@@ -64,7 +64,10 @@ The flexible width (Tech §5) uses `Scale.FIT` + `setGameSize(designSizeFor(view
 `src/game/layout.ts`, not Phaser's `EXPAND`, because `EXPAND` grows the *height* on 4:3 screens
 instead of narrowing the width to 1440. Real WebKit runs in GitHub Actions; a sandbox without WebKit
 runs the WebKit profiles on Chromium emulation (local only — CI requires WebKit). The sim purity
-lint rules are guarded by `tools/simLintGuard.test.ts`.
+lint rules are guarded by `tools/simLintGuard.test.ts`. After the M0 review the guard is an allowlist:
+only exact `Math` members pass in `src/sim` (no `**`, `hypot`, `log2`, …), `globalThis`/`self`/
+`crypto`/`process` and Phaser subpath imports are banned, `detmath.ts` has no exemption, and
+`src/sim` gets a second typecheck without DOM/Node types (`tsconfig.sim.json`).
 
 ## 3. Research notes (with sources)
 

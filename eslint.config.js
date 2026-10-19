@@ -4,37 +4,110 @@ import prettier from 'eslint-config-prettier';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
-// Math functions whose results differ between JS engines (Tech §3.2). Sim code must use detmath.ts.
-const TRANSCENDENTAL = ['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'atan2', 'exp', 'log', 'pow'];
+// --- Deterministic sim rules (Tech §3.2, .claude/rules/sim.md) -------------------------------
 
-const simRestrictedProperties = [
-  { object: 'Math', property: 'random', message: 'Use a named RNG stream: rng.stream(<name>).' },
-  ...TRANSCENDENTAL.map((property) => ({
-    object: 'Math',
-    property,
-    message: `Math.${property} differs across engines; use src/sim/detmath.ts.`,
-  })),
+// Math members whose results are exact on every engine. Everything else on Math (random, sin,
+// hypot, log2, cbrt, …) is banned in src/sim — transcendental maths goes through detmath.ts,
+// randomness through rng.stream(<name>).
+const EXACT_MATH = [
+  'sqrt',
+  'floor',
+  'ceil',
+  'round',
+  'trunc',
+  'abs',
+  'min',
+  'max',
+  'sign',
+  'fround',
+  'imul',
+  'clz32',
+  // Constants are exact literals.
+  'PI',
+  'E',
+  'LN2',
+  'LN10',
+  'LOG2E',
+  'LOG10E',
+  'SQRT1_2',
+  'SQRT2',
+];
+
+const simSyntaxRules = [
+  { selector: 'ExportDefaultDeclaration', message: 'Named exports only.' },
+  { selector: ':function[async=true]', message: 'No async code in src/sim.' },
+  { selector: 'AwaitExpression', message: 'No async code in src/sim.' },
+  { selector: 'ImportExpression', message: 'No dynamic import() in src/sim.' },
+  {
+    selector: `MemberExpression[object.name='Math'][computed=false][property.name!=/^(${EXACT_MATH.join('|')})$/]`,
+    message:
+      'Only exact Math functions are allowed in src/sim (sqrt, floor, round, abs, min, max, …). Use rng.stream(<name>) for randomness and src/sim/detmath.ts for sin/cos/atan2/exp/pow/log.',
+  },
+  {
+    selector: "MemberExpression[object.name='Math'][computed=true]",
+    message: 'No computed Math[...] access in src/sim.',
+  },
+  {
+    selector: "BinaryExpression[operator='**'], AssignmentExpression[operator='**=']",
+    message: '** is approximated like Math.pow and differs across engines; use detmath.ts.',
+  },
 ];
 
 const simRestrictedGlobals = [
   'window',
+  'self',
+  'globalThis',
+  'global',
   'document',
   'navigator',
   'location',
   'localStorage',
   'sessionStorage',
+  'indexedDB',
   'performance',
+  'crypto',
+  'process',
   'Date',
   'setTimeout',
   'setInterval',
+  'setImmediate',
   'clearTimeout',
   'clearInterval',
   'requestAnimationFrame',
   'cancelAnimationFrame',
+  'requestIdleCallback',
   'queueMicrotask',
   'fetch',
   'Promise',
+  'Intl',
 ].map((name) => ({ name, message: `${name} is not allowed in src/sim (determinism rule).` }));
+
+const simRestrictedImports = {
+  patterns: [
+    { group: ['phaser', 'phaser/*'], message: 'No Phaser in src/sim.' },
+    {
+      group: [
+        '**/game',
+        '**/game/**',
+        '**/platform',
+        '**/platform/**',
+        '**/meta',
+        '**/meta/**',
+        '**/i18n',
+        '**/i18n/**',
+        '**/debug',
+        '**/debug/**',
+        '**/content/loadNode',
+        '**/content/loadNode.*',
+      ],
+      message: 'src/sim may import only src/sim and src/content types.',
+    },
+    {
+      group: ['node:*', 'fs', 'path', 'crypto', 'os', 'perf_hooks'],
+      message: 'No Node APIs in src/sim.',
+    },
+  ],
+};
 
 export default tseslint.config(
   {
@@ -74,51 +147,17 @@ export default tseslint.config(
     ...tseslint.configs.disableTypeChecked,
   },
   {
-    // Deterministic simulation core (Tech §3.2, .claude/rules/sim.md).
+    // Deterministic simulation core. detmath.ts is NOT exempt: its tables must be generated
+    // constants or pure arithmetic, or they would carry the engine differences it exists to remove.
     files: ['src/sim/**/*.ts'],
     rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          paths: [{ name: 'phaser', message: 'No Phaser in src/sim.' }],
-          patterns: [
-            {
-              group: [
-                '**/game',
-                '**/game/**',
-                '**/platform',
-                '**/platform/**',
-                '**/meta',
-                '**/meta/**',
-              ],
-              message: 'src/sim may import only src/sim and src/content types.',
-            },
-            { group: ['node:*', 'fs', 'path', 'crypto'], message: 'No Node APIs in src/sim.' },
-          ],
-        },
-      ],
+      'no-restricted-imports': ['error', simRestrictedImports],
       'no-restricted-globals': ['error', ...simRestrictedGlobals],
-      'no-restricted-properties': ['error', ...simRestrictedProperties],
-      'no-restricted-syntax': [
-        'error',
-        { selector: 'ExportDefaultDeclaration', message: 'Named exports only.' },
-        { selector: ':function[async=true]', message: 'No async code in src/sim.' },
-        { selector: 'AwaitExpression', message: 'No async code in src/sim.' },
-      ],
+      'no-restricted-syntax': ['error', ...simSyntaxRules],
     },
   },
   {
-    // detmath.ts is the one place allowed to touch Math.* (it builds the deterministic tables).
-    files: ['src/sim/detmath.ts'],
-    rules: {
-      'no-restricted-properties': [
-        'error',
-        { object: 'Math', property: 'random', message: 'Use a named RNG stream.' },
-      ],
-    },
-  },
-  {
-    // Test files: vitest globals and relaxed rules on unsafe test fixtures.
+    // Test files: relaxed rules on unsafe test fixtures.
     files: ['**/*.test.ts', 'tests/**/*.ts'],
     rules: {
       '@typescript-eslint/no-unsafe-assignment': 'off',

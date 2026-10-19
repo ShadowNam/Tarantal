@@ -1,0 +1,10 @@
+{
+  "$comment": "Second typecheck for src/sim with no DOM and no Node types, so DOM/Node APIs fail to compile there (Tech §3.2).",
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2023"],
+    "types": []
+  },
+  "include": ["src/sim/**/*.ts"],
+  "exclude": ["src/sim/**/*.test.ts"]
+}

@@ -14,15 +14,33 @@ async function ruleIdsFor(code: string, filePath = 'src/sim/__probe__.ts'): Prom
 }
 
 const cases: readonly (readonly [string, string, string])[] = [
-  ['Math.random', 'export const r = Math.random();\n', 'no-restricted-properties'],
-  ['Math.sin', 'export const s = Math.sin(1);\n', 'no-restricted-properties'],
+  // randomness and non-exact maths
+  ['Math.random', 'export const r = Math.random();\n', 'no-restricted-syntax'],
+  ['Math.sin', 'export const s = Math.sin(1);\n', 'no-restricted-syntax'],
+  ['Math.hypot', 'export const h = Math.hypot(3, 4);\n', 'no-restricted-syntax'],
+  ['Math.log2', 'export const l = Math.log2(8);\n', 'no-restricted-syntax'],
+  ["Math['random']", "export const r = Math['random']();\n", 'no-restricted-syntax'],
+  ['** operator', 'export const p = (n: number): number => n ** 0.5;\n', 'no-restricted-syntax'],
+  ['**= operator', 'let x = 2;\nx **= 3;\nexport const y = x;\n', 'no-restricted-syntax'],
+  // time, platform and global escape hatches
   ['Date', 'export const d = Date.now();\n', 'no-restricted-globals'],
   ['performance', 'export const p = performance.now();\n', 'no-restricted-globals'],
   ['window', 'export const w = window.innerWidth;\n', 'no-restricted-globals'],
+  ['globalThis.Date', 'export const d = globalThis.Date.now();\n', 'no-restricted-globals'],
+  ['self.performance', 'export const p = self.performance.now();\n', 'no-restricted-globals'],
+  ['crypto', 'export const c = crypto.randomUUID();\n', 'no-restricted-globals'],
+  ['process', 'export const t = process.hrtime();\n', 'no-restricted-globals'],
   ['setTimeout', 'setTimeout(() => undefined, 1);\nexport {};\n', 'no-restricted-globals'],
+  ['setImmediate', 'setImmediate(() => undefined);\nexport {};\n', 'no-restricted-globals'],
+  // imports
   [
     'phaser import',
     "import * as Phaser from 'phaser';\nexport const v = Phaser.VERSION;\n",
+    'no-restricted-imports',
+  ],
+  [
+    'phaser subpath import',
+    "import { x } from 'phaser/src/math';\nexport const v = x;\n",
     'no-restricted-imports',
   ],
   [
@@ -30,6 +48,23 @@ const cases: readonly (readonly [string, string, string])[] = [
     "import { BootScene } from '../game/scenes/BootScene';\nexport const b = BootScene;\n",
     'no-restricted-imports',
   ],
+  [
+    'i18n import',
+    "import { t } from '../i18n/i18n';\nexport const f = t;\n",
+    'no-restricted-imports',
+  ],
+  [
+    'loadNode import',
+    "import { readContentDir } from '../content/loadNode';\nexport const f = readContentDir;\n",
+    'no-restricted-imports',
+  ],
+  [
+    'node import',
+    "import { readFileSync } from 'node:fs';\nexport const f = readFileSync;\n",
+    'no-restricted-imports',
+  ],
+  ['dynamic import', "export const m = import('./other');\n", 'no-restricted-syntax'],
+  // async and exports
   [
     'async',
     'export async function f(): Promise<number> {\n  return 1;\n}\n',
@@ -46,14 +81,20 @@ describe('sim purity lint rules', () => {
   }
 
   it('allow plain deterministic code in src/sim', async () => {
-    const code =
-      'export function add(a: number, b: number): number {\n  return Math.floor(a + b);\n}\n';
+    const code = [
+      "import type { Biome } from '../content/schemas';",
+      'export function f(a: number, b: number, biome?: Biome): number {',
+      '  const r = Math.floor(Math.sqrt(a * a + b * b) * Math.PI);',
+      '  return r + Math.max(0, Math.abs(a)) + (biome ? 1 : 0);',
+      '}',
+      '',
+    ].join('\n');
     expect(await ruleIdsFor(code)).toEqual([]);
   });
 
-  it('allow Math.sin only inside detmath.ts', async () => {
+  it('give detmath.ts no exemption (its tables must not come from Math.sin)', async () => {
     const code = 'export const s = Math.sin(1);\n';
-    expect(await ruleIdsFor(code, 'src/sim/detmath.ts')).toEqual([]);
+    expect(await ruleIdsFor(code, 'src/sim/detmath.ts')).toContain('no-restricted-syntax');
   });
 
   it('do not apply sim rules outside src/sim', async () => {

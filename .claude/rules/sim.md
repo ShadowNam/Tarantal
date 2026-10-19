@@ -9,9 +9,14 @@ paths:
   browser and in Node. Treat any nondeterminism as a bug.
 - Forbidden here: imports from `phaser` or `src/game/**`, DOM/`window`/`document`, `Date`,
   `performance`, `setTimeout`/`setInterval`, `Math.random`, `async`/`await`, `Promise`.
-- Transcendental math (`sin`, `cos`, `tan`, `atan2`, `exp`, `log`, `pow`) only through
-  `src/sim/detmath.ts`. Plain `+ - * /` and `Math.sqrt`, `Math.floor`, `Math.round`, `Math.abs`,
-  `Math.min`, `Math.max` are fine.
+- Transcendental math (`sin`, `cos`, `tan`, `atan2`, `exp`, `log`, `pow`, and the `**` operator)
+  only through `src/sim/detmath.ts`. `Math` is allowlisted: only the exact functions `sqrt`, `floor`,
+  `ceil`, `round`, `trunc`, `abs`, `min`, `max`, `sign`, `fround`, `imul`, `clz32` and the constants
+  (`PI`, `E`, …) pass lint. Plain `+ - * /` are fine.
+- `detmath.ts` gets no lint exemption: its tables are generated constants or pure arithmetic, never
+  built from `Math.sin` at runtime (that would bring back the engine differences it removes).
+- `src/sim` is also typechecked on its own (`tsconfig.sim.json`, no DOM or Node types), and the
+  lint rules are guarded by `tools/simLintGuard.test.ts` — add a probe there for any new rule.
 - Randomness only from named streams: `rng.stream('<system>')`. Adding a new random call to one
   system must not change another system's sequence.
 - Iterate in stable order (arrays sorted by id/spawn order). Never let `Map`/`Set`/object key order
