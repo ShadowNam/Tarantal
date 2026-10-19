@@ -27,6 +27,10 @@ export function pickLanguage(tags: readonly string[]): Language {
   return 'en';
 }
 
+export function isI18nKey(key: string): key is I18nKey {
+  return Object.hasOwn(en, key);
+}
+
 export function t(key: I18nKey): string {
   return tables[current][key] ?? en[key];
 }

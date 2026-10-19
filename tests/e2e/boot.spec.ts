@@ -30,7 +30,15 @@ test('boots the game (landscape) or shows the rotate card (portrait)', async ({ 
     await expect(rotateCard).toBeHidden();
     expect(hook?.portrait).toBe(false);
     expect(hook?.designHeight).toBe(1080);
-    expect(hook?.designWidth).toBe(designSizeFor(viewport.width, viewport.height).width);
+    const expected = designSizeFor(viewport.width, viewport.height);
+    expect(hook?.designWidth).toBe(expected.width);
+    // The canvas backing store is the design size Phaser actually renders at.
+    expect(
+      await canvas.evaluate((c) => [
+        (c as HTMLCanvasElement).width,
+        (c as HTMLCanvasElement).height,
+      ]),
+    ).toEqual([expected.width, expected.height]);
     // Canvas must not let the browser scroll or zoom on touch.
     expect(await canvas.evaluate((c) => getComputedStyle(c).touchAction)).toBe('none');
   } else {

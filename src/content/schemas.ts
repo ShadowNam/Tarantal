@@ -6,7 +6,7 @@ import { z } from 'zod';
 // ---------------------------------------------------------------------------------------------
 // Building blocks
 
-/** Strict object that also allows a free-text `$comment`. */
+/** Strict object that also allows a free-text `$comment`. Every object in content/ uses it. */
 function obj<T extends z.ZodRawShape>(shape: T) {
   return z.strictObject({ $comment: z.string().optional(), ...shape });
 }
@@ -48,17 +48,16 @@ export const WorldEventIdSchema = z.enum([
 export type WorldEventId = z.infer<typeof WorldEventIdSchema>;
 
 function perPlane<T extends z.ZodType>(item: T) {
-  return z.strictObject({ near: item, mid: item, far: item });
+  return obj({ near: item, mid: item, far: item });
 }
 function somePlanes<T extends z.ZodType>(item: T) {
-  return z.strictObject({ near: item.optional(), mid: item.optional(), far: item.optional() });
+  return obj({ near: item.optional(), mid: item.optional(), far: item.optional() });
 }
 
-const shakeSchema = z.strictObject({ px: nonNeg, ms: nonNegInt });
+const shakeSchema = obj({ px: nonNeg, ms: nonNegInt });
 
 /** Score multipliers by plane; `all` applies to every plane. */
-const scoreMulSchema = z
-  .strictObject({ all: pos.optional(), near: pos.optional(), mid: pos.optional(), far: pos.optional() })
+const scoreMulSchema = obj({ all: pos.optional(), near: pos.optional(), mid: pos.optional(), far: pos.optional() })
   .refine((m) => Object.keys(m).length > 0, 'scoreMul needs at least one entry');
 
 // ---------------------------------------------------------------------------------------------
@@ -67,7 +66,7 @@ const scoreMulSchema = z
 export const ScoringSchema = obj({
   version,
   planes: perPlane(
-    z.strictObject({
+    obj({
       base: posInt,
       scale: pos,
       scrollFactor: pos,
@@ -75,31 +74,34 @@ export const ScoringSchema = obj({
       lineWeightPx: pos,
     }),
   ),
-  behaviourAdd: z.strictObject({ forage: nonNeg, alert: nonNeg, run: nonNeg, flying: nonNeg }),
+  behaviourAdd: obj({ forage: nonNeg, alert: nonNeg, run: nonNeg, flying: nonNeg }),
   frenzyTiers: z
-    .array(z.strictObject({ atStreak: posInt, mul: pos }))
+    .array(obj({ atStreak: posInt, mul: pos }))
     .min(1)
     .refine(
       (tiers) => tiers.every((t, i) => i === 0 || t.atStreak > (tiers[i - 1]?.atStreak ?? 0)),
       'frenzyTiers must be sorted by atStreak',
     ),
-  twoFlies: z.array(z.strictObject({ birds: z.number().int().min(2), bonus: posInt })).min(1),
-  wholeFlock: z.strictObject({
+  twoFlies: z.array(obj({ birds: z.number().int().min(2), bonus: posInt })).min(1),
+  wholeFlock: obj({
     minSize: posInt,
     perBird: posInt,
-    slowMo: z.strictObject({ scale: z.number().gt(0).max(1), ms: posInt }),
+    slowMo: obj({ scale: z.number().gt(0).max(1), ms: posInt }),
   }),
   stampede: obj({ lastSeconds: pos, mul: pos, modes: z.array(ModeIdSchema) }),
-  secretChain: z.strictObject({ withinSeconds: pos, bonus: posInt }),
+  secretChain: obj({ withinSeconds: pos, bonus: posInt }),
   ranks: z
-    .array(z.strictObject({ id, minScore: nonNegInt }))
+    .array(obj({ id, minScore: nonNegInt }))
     .min(1)
     .refine((r) => r[0]?.minScore === 0, 'the first rank must start at 0')
     .refine(
       (r) => r.every((x, i) => i === 0 || x.minScore > (r[i - 1]?.minScore ?? 0)),
       'ranks must be sorted by minScore',
     ),
-  eventBonusMultipliers: z.array(z.enum(['weapon', 'frenzy', 'stampede'])),
+  /** GDD §5.3: event bonuses are multiplied by Frenzy × Stampede only, never by the weapon. */
+  eventBonusMultipliers: z
+    .array(z.enum(['frenzy', 'stampede']))
+    .refine((m) => new Set(m).size === m.length, 'eventBonusMultipliers must be unique'),
 });
 export type Scoring = z.infer<typeof ScoringSchema>;
 
@@ -119,12 +121,12 @@ export const CreatureBehaviourSchema = z.enum([
   'popupHelper',
 ]);
 
-const hitboxSchema = z.strictObject({
-  body: z.strictObject({ rx: pos, ry: pos, ox: z.number(), oy: z.number() }),
-  head: z.strictObject({ r: pos, ox: z.number(), oy: z.number() }).optional(),
+const hitboxSchema = obj({
+  body: obj({ rx: pos, ry: pos, ox: z.number(), oy: z.number() }),
+  head: obj({ r: pos, ox: z.number(), oy: z.number() }).optional(),
 });
-const fullSpeedsSchema = z.strictObject({ walk: nonNeg, run: nonNeg, fly: nonNeg, glide: nonNeg });
-const partialSpeedsSchema = z.strictObject({
+const fullSpeedsSchema = obj({ walk: nonNeg, run: nonNeg, fly: nonNeg, glide: nonNeg });
+const partialSpeedsSchema = obj({
   walk: nonNeg.optional(),
   run: nonNeg.optional(),
   fly: nonNeg.optional(),
@@ -139,7 +141,7 @@ const creatureCommon = {
   biomes: z.array(id).min(1).optional(),
 };
 
-const targetCreatureSchema = z.strictObject({
+const targetCreatureSchema = obj({
   ...creatureCommon,
   kind: z.literal('target'),
   rare: z.boolean().optional(),
@@ -152,7 +154,7 @@ const targetCreatureSchema = z.strictObject({
   maxPerHunt: posInt.optional(),
 });
 
-const bossCreatureSchema = z.strictObject({
+const bossCreatureSchema = obj({
   ...creatureCommon,
   kind: z.literal('boss'),
   baseOverride: posInt,
@@ -166,7 +168,7 @@ const bossCreatureSchema = z.strictObject({
   exemptFromOwnBossRule: z.boolean().optional(),
 });
 
-const nonTargetCreatureSchema = z.strictObject({
+const nonTargetCreatureSchema = obj({
   ...creatureCommon,
   kind: z.literal('nonTarget'),
   penalty: z.number().int().negative(),
@@ -176,7 +178,7 @@ const nonTargetCreatureSchema = z.strictObject({
   hitbox: hitboxSchema,
 });
 
-const helperCreatureSchema = z.strictObject({
+const helperCreatureSchema = obj({
   ...creatureCommon,
   kind: z.literal('helper'),
   grants: id,
@@ -192,8 +194,7 @@ export type Creature = z.infer<typeof CreatureSchema>;
 
 export const BirdsSchema = obj({
   version,
-  flockDefaults: z
-    .strictObject({
+  flockDefaults: obj({
       sizeMin: posInt,
       sizeMax: posInt,
       alertMs: range(nonNeg),
@@ -202,7 +203,7 @@ export const BirdsSchema = obj({
       flushStaggerMs: range(nonNeg),
       flightMs: range(pos),
       settleTimeoutMs: range(pos),
-      boids: z.strictObject({
+      boids: obj({
         separation: nonNeg,
         alignment: nonNeg,
         cohesion: nonNeg,
@@ -219,12 +220,12 @@ export type Birds = z.infer<typeof BirdsSchema>;
 // weapons.json
 
 const unlockSchema = z.discriminatedUnion('type', [
-  z.strictObject({ type: z.literal('start') }),
-  z.strictObject({ type: z.literal('challenge'), id }),
-  z.strictObject({ type: z.literal('rank'), id }),
+  obj({ type: z.literal('start') }),
+  obj({ type: z.literal('challenge'), id }),
+  obj({ type: z.literal('rank'), id }),
 ]);
 
-const primaryWeaponSchema = z.strictObject({
+const primaryWeaponSchema = obj({
   id,
   kind: z.literal('primary'),
   unlock: unlockSchema,
@@ -238,15 +239,13 @@ const primaryWeaponSchema = z.strictObject({
   spreadPx: nonNeg,
   alertRadiusPx: nonNeg,
   windSensitivity: nonNeg,
-  projectile: z
-    .strictObject({ travelMs: perPlane(posInt), dropPx: perPlane(nonNeg) })
+  projectile: obj({ travelMs: perPlane(posInt), dropPx: perPlane(nonNeg) })
     .nullable(),
   scoreMul: scoreMulSchema,
   shake: shakeSchema,
 });
 
-const crateWeaponSchema = z
-  .strictObject({
+const crateWeaponSchema = obj({
     id,
     kind: z.literal('crate'),
     shots: posInt.optional(),
@@ -274,7 +273,7 @@ export const WeaponsSchema = obj({
   weapons: z.array(WeaponSchema).min(1),
   gadgets: z
     .array(
-      z.strictObject({
+      obj({
         id,
         effect: z.enum(['flushAllVisibleFlocks']),
         cooldownMs: posInt,
@@ -292,11 +291,9 @@ export const PowerupsSchema = obj({
   version,
   powerups: z
     .array(
-      z
-        .strictObject({
+      obj({
           id,
-          effect: z
-            .strictObject({
+          effect: obj({
               autoFire: z.boolean().optional(),
               infiniteAmmo: z.boolean().optional(),
               creatureTimeScale: z.number().gt(0).max(1).optional(),
@@ -313,13 +310,13 @@ export const PowerupsSchema = obj({
         }),
     )
     .min(1),
-  crates: z.strictObject({
+  crates: obj({
     modes: z.array(ModeIdSchema),
     perHunt: nonNegInt,
     windows: z.array(windowFraction),
     table: z
       .array(
-        z.strictObject({ id, weight: pos, type: z.enum(['powerup', 'weapon']).optional() }),
+        obj({ id, weight: pos, type: z.enum(['powerup', 'weapon']).optional() }),
       )
       .min(1),
   }),
@@ -334,7 +331,7 @@ export const RunSchema = obj({
   huntSeconds: posInt,
   seasons: z
     .array(
-      z.strictObject({
+      obj({
         id,
         biome: id,
         omen: id,
@@ -346,13 +343,13 @@ export const RunSchema = obj({
   huntPattern: z.array(z.enum(['plain', 'omen', 'boss'])).min(1),
   bossRules: z.record(
     id,
-    z.strictObject({
+    obj({
       descriptionKey: i18nKey,
       /** Photosensitivity rule: never more than 3 large flashes per second (CLAUDE.md). */
       maxFlashesPerSecond: z.number().positive().max(3).optional(),
     }),
   ),
-  doppies: z.strictObject({
+  doppies: obj({
     start: nonNegInt,
     perHunt: nonNegInt,
     perTenPercentOverQuota: nonNegInt,
@@ -361,7 +358,7 @@ export const RunSchema = obj({
     interestCap: nonNegInt,
     bossHuntBonus: nonNegInt,
   }),
-  padstal: z.strictObject({
+  padstal: obj({
     charmOffers: nonNegInt,
     consumableOffers: nonNegInt,
     weaponOffers: nonNegInt,
@@ -413,7 +410,7 @@ export const CharmTriggerSchema = z.union([
   z.string().regex(/^timeLeft:[0-9]+(\.[0-9]+)?$/, 'timeLeft:<seconds>'),
 ]);
 
-export const CharmConditionsSchema = z.strictObject({
+export const CharmConditionsSchema = obj({
   plane: z.array(PlaneIdSchema).min(1).optional(),
   behaviour: z.array(BagBehaviourSchema).min(1).optional(),
   weapon: z.array(id).min(1).optional(),
@@ -430,32 +427,31 @@ export const CharmConditionsSchema = z.strictObject({
 
 export const BONUS_IDS = ['wholeFlock', 'twoFlies', 'secretChain'] as const;
 
-export const CharmActionsSchema = z
-  .strictObject({
+export const CharmActionsSchema = obj({
     // scoring
     addPoints: z.number().optional(),
     addMult: z.number().optional(),
     mulMult: pos.optional(),
     addMultForHunt: z.number().optional(),
-    bonusMul: z.strictObject({ bonus: z.enum(BONUS_IDS), mul: nonNeg }).optional(),
-    penaltyOverride: z.strictObject({ creature: id, points: z.number().int() }).optional(),
+    bonusMul: obj({ bonus: z.enum(BONUS_IDS), mul: nonNeg }).optional(),
+    penaltyOverride: obj({ creature: id, points: z.number().int() }).optional(),
     // ammo
     addShells: posInt.optional(),
     shellCapacity: z.number().int().optional(),
     shellCapacityForRun: z.number().int().optional(),
     reloadSpeedMul: pos.optional(),
-    weaponBlastEvery: z.strictObject({ every: posInt, weapon: id }).optional(),
+    weaponBlastEvery: obj({ every: posInt, weapon: id }).optional(),
     // flock / world
     alertRadiusMul: z
-      .union([nonNeg, z.strictObject({ source: z.enum(['miss']), mul: nonNeg })])
+      .union([nonNeg, obj({ source: z.enum(['miss']), mul: nonNeg })])
       .optional(),
     alertNearestFlock: z.literal(true).optional(),
     flushFlocks: z.union([z.literal(true), posInt]).optional(),
     spawnEvent: WorldEventIdSchema.optional(),
-    spawnRateMul: z.strictObject({ creature: id, mul: nonNeg }).optional(),
+    spawnRateMul: obj({ creature: id, mul: nonNeg }).optional(),
     windDriftMul: nonNeg.optional(),
     revealSecrets: z.literal(true).optional(),
-    slowMo: z.strictObject({ scale: z.number().gt(0).max(1), ms: posInt }).optional(),
+    slowMo: obj({ scale: z.number().gt(0).max(1), ms: posInt }).optional(),
     addTime: pos.optional(),
     enableStampede: z.literal(true).optional(),
     // frenzy
@@ -468,7 +464,7 @@ export const CharmActionsSchema = z
   })
   .refine((a) => Object.keys(a).length > 0, 'do needs at least one action');
 
-export const CharmEffectSchema = z.strictObject({
+export const CharmEffectSchema = obj({
   on: CharmTriggerSchema,
   if: CharmConditionsSchema.optional(),
   do: CharmActionsSchema,
@@ -476,12 +472,12 @@ export const CharmEffectSchema = z.strictObject({
 
 export const RaritySchema = z.enum(['common', 'uncommon', 'rare', 'legendary']);
 
-export const CharmSchema = z.strictObject({
+export const CharmSchema = obj({
   id,
   rarity: RaritySchema,
   archetype: id,
   effects: z.array(CharmEffectSchema).min(1),
-  gadget: z.strictObject({ replaces: id, cooldownMs: posInt }).optional(),
+  gadget: obj({ replaces: id, cooldownMs: posInt }).optional(),
   /** Escape hatch to a TypeScript charm in src/sim/charms/registry.ts (Tech §3.8). */
   script: id.optional(),
 });
@@ -490,7 +486,7 @@ export type Charm = z.infer<typeof CharmSchema>;
 export const CharmsSchema = obj({
   version,
   slots: posInt,
-  prices: z.strictObject({ common: posInt, uncommon: posInt, rare: posInt, legendary: posInt }),
+  prices: obj({ common: posInt, uncommon: posInt, rare: posInt, legendary: posInt }),
   sellRatio: fraction,
   charms: z.array(CharmSchema).min(1),
 });
@@ -500,12 +496,11 @@ export type Charms = z.infer<typeof CharmsSchema>;
 // biomes/*.json
 
 const occluderSchema = z.discriminatedUnion('type', [
-  z.strictObject({ type: z.literal('rect'), w: pos, h: pos, ox: z.number(), oy: z.number() }),
-  z.strictObject({ type: z.literal('ellipse'), rx: pos, ry: pos, ox: z.number(), oy: z.number() }),
+  obj({ type: z.literal('rect'), w: pos, h: pos, ox: z.number(), oy: z.number() }),
+  obj({ type: z.literal('ellipse'), rx: pos, ry: pos, ox: z.number(), oy: z.number() }),
 ]);
 
-const secretRewardSchema = z
-  .strictObject({
+const secretRewardSchema = obj({
     points: posInt.optional(),
     event: WorldEventIdSchema.optional(),
     flushBirds: posInt.optional(),
@@ -517,13 +512,13 @@ const secretRewardSchema = z
   .refine((r) => Object.keys(r).length > 0, 'reward needs at least one entry');
 
 const secretSchema = z.discriminatedUnion('type', [
-  z.strictObject({
+  obj({
     type: z.literal('multiHit'),
     parts: z.array(id).min(2),
     partsMoveWith: id.optional(),
     reward: secretRewardSchema,
   }),
-  z.strictObject({
+  obj({
     type: z.literal('singleHit'),
     part: id,
     oncePerHunt: z.boolean().optional(),
@@ -532,7 +527,7 @@ const secretSchema = z.discriminatedUnion('type', [
   }),
 ]);
 
-const laneSchema = z.strictObject({
+const laneSchema = obj({
   groundY: range(nonNeg).optional(),
   skyY: range(nonNeg).optional(),
   popupY: range(nonNeg).optional(),
@@ -544,12 +539,11 @@ export const BiomeSchema = obj({
   season: id,
   nameKey: i18nKey,
   panoramaWidth: posInt,
-  skyBand: z
-    .strictObject({ top: nonNeg, bottom: nonNeg })
+  skyBand: obj({ top: nonNeg, bottom: nonNeg })
     .refine((b) => b.top < b.bottom, 'skyBand.top must be above bottom'),
   layers: z
     .array(
-      z.strictObject({
+      obj({
         id,
         scrollFactor: pos,
         asset: z.string().min(1),
@@ -561,7 +555,7 @@ export const BiomeSchema = obj({
     .min(1),
   lanes: somePlanes(laneSchema),
   props: z.array(
-    z.strictObject({
+    obj({
       id,
       layer: id,
       u: fraction,
@@ -572,7 +566,7 @@ export const BiomeSchema = obj({
     }),
   ),
   events: z.array(
-    z.strictObject({
+    obj({
       id: WorldEventIdSchema,
       creature: id.optional(),
       perHunt: range(nonNegInt),
@@ -584,10 +578,9 @@ export const BiomeSchema = obj({
       modes: z.array(ModeIdSchema).min(1).optional(),
     }),
   ),
-  omen: z.strictObject({
+  omen: obj({
     id,
-    wind: z
-      .strictObject({
+    wind: obj({
         strength: range(nonNeg),
         directionChangeSeconds: range(pos),
         tailwindSpeedMul: pos,
@@ -595,13 +588,17 @@ export const BiomeSchema = obj({
         driftPxAtFar: nonNeg,
       })
       .optional(),
-    /** Renderer-only flags (wind sock, leaves, …). New omens add their own in M8. */
-    visual: z.record(id, z.boolean()).optional(),
+    /** Renderer-only flags. New omens add their flags here in M8 (strict, so typos fail). */
+    visual: obj({
+      windSock: z.boolean().optional(),
+      leaves: z.boolean().optional(),
+      dust: z.boolean().optional(),
+    }).optional(),
   }),
   pacing: obj({
     keyframes: z
       .array(
-        z.strictObject({
+        obj({
           t: fraction,
           flocks: somePlanes(nonNegInt),
           flyoversPerMin: nonNeg,
@@ -617,8 +614,8 @@ export const BiomeSchema = obj({
     maxBirdsOnScreen: posInt,
     maxFlocks: posInt,
   }),
-  spawnTable: z.array(z.strictObject({ creature: id, weight: pos })).min(1),
-  music: z.strictObject({ calm: id, build: id, stampede: id }),
+  spawnTable: z.array(obj({ creature: id, weight: pos })).min(1),
+  music: obj({ calm: id, build: id, stampede: id }),
   ambience: id,
 });
 export type Biome = z.infer<typeof BiomeSchema>;

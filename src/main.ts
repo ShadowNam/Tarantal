@@ -3,7 +3,7 @@
 import * as Phaser from 'phaser';
 import { BootScene } from './game/scenes/BootScene';
 import { designSizeFor, isPortrait, safeAreaInDesignPx, type Insets } from './game/layout';
-import { pickLanguage, setLanguage, t, type I18nKey } from './i18n/i18n';
+import { isI18nKey, pickLanguage, setLanguage, t } from './i18n/i18n';
 
 interface TestHook {
   ready: boolean;
@@ -25,7 +25,8 @@ const debug = params.get('debug') === '1';
 setLanguage(pickLanguage(navigator.languages));
 for (const el of document.querySelectorAll<HTMLElement>('[data-i18n]')) {
   const key = el.dataset['i18n'];
-  if (key !== undefined) el.textContent = t(key as I18nKey);
+  if (key !== undefined && isI18nKey(key)) el.textContent = t(key);
+  else console.error(`Unknown i18n key in index.html: ${String(key)}`);
 }
 
 function viewport(): { width: number; height: number } {
@@ -83,8 +84,9 @@ function applyLayout(): void {
     game.scale.setGameSize(size.width, size.height);
   }
   document.getElementById('rotate-card')?.classList.toggle('visible', portrait);
-  hook.designWidth = size.width;
-  hook.designHeight = size.height;
+  // Report what Phaser actually uses, so tests catch a setGameSize that didn't take effect.
+  hook.designWidth = game.scale.gameSize.width;
+  hook.designHeight = game.scale.gameSize.height;
   hook.portrait = portrait;
 }
 

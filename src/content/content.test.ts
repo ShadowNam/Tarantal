@@ -50,6 +50,27 @@ describe('content schemas', () => {
     expect(parseContent(c).ok).toBe(true);
   });
 
+  it('allow $comment on nested objects too', () => {
+    const c = clone();
+    const biome = asObj(c.biomes['biomes/karoo-autumn.json']);
+    const firstProp = asArr(biome['props'])[0];
+    if (firstProp) firstProp['$comment'] = 'windpomp sits left of the reservoir';
+    expect(parseContent(c).ok).toBe(true);
+  });
+
+  it('reject a typo in an omen visual flag', () => {
+    const c = clone();
+    const omen = asObj(asObj(c.biomes['biomes/karoo-autumn.json'])['omen']);
+    asObj(omen['visual'])['windsock'] = true;
+    expect(parseContent(c).ok).toBe(false);
+  });
+
+  it('reject weapon as an event-bonus multiplier (GDD §5.3)', () => {
+    const c = clone();
+    asObj(c.files['scoring.json'])['eventBonusMultipliers'] = ['frenzy', 'stampede', 'weapon'];
+    expect(parseContent(c).ok).toBe(false);
+  });
+
   it('reject an unknown charm trigger, condition or action', () => {
     expect(CharmEffectSchema.safeParse({ on: 'bagg', do: { addMult: 1 } }).success).toBe(false);
     expect(
