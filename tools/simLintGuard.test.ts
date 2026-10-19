@@ -97,6 +97,17 @@ describe('sim purity lint rules', () => {
     expect(await ruleIdsFor(code, 'src/sim/detmath.ts')).toContain('no-restricted-syntax');
   });
 
+  it('let sim tests use Math.* as a reference, but nothing else that is banned', async () => {
+    const testFile = 'src/sim/__probe__.test.ts';
+    expect(await ruleIdsFor('export const s = Math.sin(1);\n', testFile)).toEqual([]);
+    expect(await ruleIdsFor('export const d = Date.now();\n', testFile)).toContain(
+      'no-restricted-globals',
+    );
+    expect(
+      await ruleIdsFor('export const p = (n: number): number => n ** 2;\n', testFile),
+    ).toContain('no-restricted-syntax');
+  });
+
   it('do not apply sim rules outside src/sim', async () => {
     const code = 'export const r = Math.random();\n';
     expect(await ruleIdsFor(code, 'src/game/__probe__.ts')).toEqual([]);

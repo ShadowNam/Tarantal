@@ -157,6 +157,17 @@ export default tseslint.config(
     },
   },
   {
+    // Sim tests may use the engine's Math.* as a reference (e.g. detmath error bounds). They
+    // never run inside the sim, so only the Math allowlist is lifted; every other sim rule stays.
+    files: ['src/sim/**/*.test.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        ...simSyntaxRules.filter((r) => !r.selector.includes("object.name='Math'")),
+      ],
+    },
+  },
+  {
     // Test files: relaxed rules on unsafe test fixtures.
     files: ['**/*.test.ts', 'tests/**/*.ts'],
     rules: {
