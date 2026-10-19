@@ -1,0 +1,93 @@
+import { describe, expect, it } from 'vitest';
+import type { Command } from '../types';
+import {
+  createRecorder,
+  decodeInputLog,
+  decodeInputLogText,
+  encodeInputLog,
+  encodeInputLogText,
+  fromBase64Url,
+  toBase64Url,
+  type InputLog,
+} from './inputLog';
+
+const HASH = 'ab'.repeat(32);
+
+const ALL: Command[] = [
+  { t: 'fire', dx: -812.5, sy: 333 },
+  { t: 'fireHoldStart', dx: 0, sy: 1079.5 },
+  { t: 'fireHoldMove', dx: 1260, sy: 0 },
+  { t: 'fireHoldEnd' },
+  { t: 'reload' },
+  { t: 'cameraTarget', cx: 4160 },
+  { t: 'gadget' },
+  { t: 'consumable', slot: 1 },
+];
+
+describe('InputLog', () => {
+  it('round-trips every command type, header and mode option', () => {
+    const log: InputLog = {
+      v: 1,
+      seed: 0xdeadbeef,
+      contentHash: HASH,
+      mode: {
+        id: 'seasonHunt',
+        biome: 'karoo-autumn',
+        weapon: 'pomp',
+        huntSeconds: 60,
+        stampede: true,
+        omen: false,
+      },
+      inputKind: 'touch',
+      commands: ALL.map((c, i) => [i === 0 ? 3 : i % 2, c] as const),
+    };
+    expect(decodeInputLog(encodeInputLog(log))).toEqual(log);
+    expect(decodeInputLogText(encodeInputLogText(log))).toEqual(log);
+  });
+
+  it('records tick deltas, with 0 for same-tick commands, and quantises to 0.5', () => {
+    const rec = createRecorder({
+      seed: 1,
+      contentHash: HASH,
+      mode: { id: 'classic' },
+      inputKind: 'pointer',
+    });
+    rec.record(5, [
+      { t: 'cameraTarget', cx: 1000.26 },
+      { t: 'fire', dx: 1.1, sy: -2.3 },
+    ]);
+    rec.record(9, []);
+    rec.record(12, [{ t: 'reload' }]);
+    const log = rec.toLog();
+    expect(log.commands).toEqual([
+      [5, { t: 'cameraTarget', cx: 1000.5 }],
+      [0, { t: 'fire', dx: 1, sy: -2.5 }],
+      [7, { t: 'reload' }],
+    ]);
+    expect(decodeInputLog(encodeInputLog(log))).toEqual(log);
+  });
+
+  it('rejects corrupt input', () => {
+    const bytes = encodeInputLog({
+      v: 1,
+      seed: 1,
+      contentHash: HASH,
+      mode: { id: 'classic' },
+      inputKind: 'pointer',
+      commands: [[0, { t: 'reload' }]],
+    });
+    expect(() => decodeInputLog(bytes.slice(0, -1))).toThrow(/truncated/);
+    expect(() => decodeInputLog(Uint8Array.from([...bytes, 0]))).toThrow(/trailing/);
+    expect(() => decodeInputLog(Uint8Array.from([2, ...bytes.slice(1)]))).toThrow(/version/);
+    expect(() => decodeInputLogText('ab$c')).toThrow(/base64url/);
+  });
+
+  it('base64url matches Node for any length', () => {
+    for (let n = 0; n < 40; n++) {
+      const bytes = Uint8Array.from({ length: n }, (_, i) => (i * 97 + n * 31) & 0xff);
+      const text = toBase64Url(bytes);
+      expect(text).toBe(Buffer.from(bytes).toString('base64url'));
+      expect(fromBase64Url(text)).toEqual(bytes);
+    }
+  });
+});

@@ -5,3 +5,4 @@ export * from './events';
 export * from './Sim';
 export * from './types';
 export * from './world';
+export * from './replay';
