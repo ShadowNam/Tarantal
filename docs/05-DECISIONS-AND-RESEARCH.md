@@ -57,6 +57,14 @@ multipliers last — Balatro-style ordering decisions.
 **D-015 Single Stampede source + fractional windows:** `scoring.json → stampede.lastSeconds`; all
 content windows are fractions of hunt length so 60 s and 90 s hunts share biome data.
 **D-016 Build order:** crate weapons move to M4; M6 runs all seasons on a Karoo stand-in until M8.
+**D-017 M0 toolchain and scaling (19 Oct 2026):** exact pins — Phaser 4.2.1, TypeScript 6.0.3
+(typescript-eslint 8.72 supports TS < 6.1, so not TS 7 yet), Vite 8, Zod 4, Vitest 5, Playwright 1.56.1
+(matches the Chromium preinstalled in Claude Code cloud sessions; bump together with the browsers).
+The flexible width (Tech §5) uses `Scale.FIT` + `setGameSize(designSizeFor(viewport))` in
+`src/game/layout.ts`, not Phaser's `EXPAND`, because `EXPAND` grows the *height* on 4:3 screens
+instead of narrowing the width to 1440. Real WebKit runs in GitHub Actions; a sandbox without WebKit
+runs the WebKit profiles on Chromium emulation (local only — CI requires WebKit). The sim purity
+lint rules are guarded by `tools/simLintGuard.test.ts`.
 
 ## 3. Research notes (with sources)
 

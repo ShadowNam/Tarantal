@@ -248,6 +248,8 @@ then deflated and base64url'd. Used for: golden tests, bug reports (attach log),
 - **Scale:** fixed design **height** 1080, flexible width 1440–2520 (4:3 to 21:9, EXPAND-style) so
   19.5:9 phones see more panorama instead of black bars and 4:3 tablets see less; the camera geometry
   is defined in §3.3. Beyond 21:9, pillarbox. HUD anchors to safe areas (`env(safe-area-inset-*)`).
+  Implemented as `Scale.FIT` + `setGameSize()` from `designSizeFor()` in `src/game/layout.ts`
+  (Phaser's own `EXPAND` grows the height on 4:3 instead — D-017).
 - **Parallax:** 6 layers using camera scroll factors (sky 0.05 → far ridge 0.15 → far veld 0.35 →
   mid 0.6 → near 1.0 → foreground framing 1.2). Layer widths = core width from §3.3 + 300 px bleed
   per side. Layer art is cut into tiles ≤ 2 048 px wide.

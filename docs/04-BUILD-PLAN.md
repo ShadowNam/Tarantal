@@ -2,7 +2,8 @@
 
 How to use: run one milestone per session with `/milestone <n>` (skill in `.claude/skills/milestone`).
 Start each milestone in **plan mode**, approve the plan, let Claude implement, then require the
-evidence listed under *Done when*. Clear context (`/clear`) between milestones.
+evidence listed under *Done when*. Clear context between milestones: `/clear` locally, a new
+session in Claude Code cloud sessions (they don't support `/clear`).
 
 Every milestone ends with:
 1. `npm run check` green (typecheck, lint, unit tests, content validation).
