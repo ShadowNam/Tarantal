@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+tmp/
+.env
+.env.*
+CLAUDE.local.md
+.claude/settings.local.json
+*.log
+.DS_Store

@@ -1,0 +1,37 @@
+{
+  "$comment": "Season Run structure and economy. Quotas are starting values: tune with tools/balance-sim.ts.",
+  "version": 1,
+  "huntSeconds": 60,
+  "seasons": [
+    { "id": "herfs", "biome": "karoo-autumn", "omen": "karoo_wind", "boss": "generaal", "quotas": [600, 900, 1300] },
+    { "id": "winter", "biome": "bushveld-winter", "omen": "sun_glare", "boss": "ou_grys", "quotas": [1800, 2500, 3300] },
+    { "id": "lente", "biome": "okavango-spring", "omen": "sun_showers", "boss": "kuifkop_koning", "quotas": [4500, 6000, 8000] },
+    { "id": "somer", "biome": "kalahari-summer", "omen": "heat_then_storm", "boss": "stormvoel", "quotas": [11000, 15000, 20000] }
+  ],
+  "huntPattern": ["plain", "omen", "boss"],
+  "bossRules": {
+    "missAlertsAll": { "descriptionKey": "boss_rule.miss_alerts_all" },
+    "groundShotsZero": { "descriptionKey": "boss_rule.ground_shots_zero" },
+    "reloadDouble": { "descriptionKey": "boss_rule.reload_double" },
+    "darkExceptLightning": { "descriptionKey": "boss_rule.dark_except_lightning", "maxFlashesPerSecond": 2 }
+  },
+  "doppies": {
+    "start": 4,
+    "perHunt": 3,
+    "perTenPercentOverQuota": 1,
+    "overQuotaCap": 5,
+    "interestPer": 5,
+    "interestCap": 5,
+    "bossHuntBonus": 3
+  },
+  "padstal": {
+    "charmOffers": 2,
+    "consumableOffers": 1,
+    "weaponOffers": 1,
+    "rerollBase": 2,
+    "rerollIncrement": 1,
+    "consumableSlots": 2,
+    "weaponRentalPrice": 5
+  },
+  "rewardedRetryPerRun": 1
+}

@@ -1,0 +1,84 @@
+{
+  "$comment": "Power-ups: crate drops in Classic/Daily, one-use consumables in the Season Run Padstal. Crate windows are fractions of hunt length.",
+  "version": 1,
+  "powerups": [
+    {
+      "id": "chilli_biltong",
+      "effect": {
+        "autoFire": true,
+        "infiniteAmmo": true
+      },
+      "durationMs": 8000,
+      "padstalPrice": 3
+    },
+    {
+      "id": "boeretroos",
+      "effect": {
+        "creatureTimeScale": 0.5
+      },
+      "durationMs": 10000,
+      "padstalPrice": 3
+    },
+    {
+      "id": "bush_buckshot",
+      "effect": {
+        "spreadMul": 2.5
+      },
+      "durationShells": 6,
+      "padstalPrice": 3
+    },
+    {
+      "id": "meerkat_spotter",
+      "effect": {
+        "revealHidden": true
+      },
+      "durationMs": 8000,
+      "padstalPrice": 2
+    }
+  ],
+  "crates": {
+    "modes": [
+      "classic",
+      "daily"
+    ],
+    "perHunt": 2,
+    "windows": [
+      [
+        0.22,
+        0.44
+      ],
+      [
+        0.55,
+        0.78
+      ]
+    ],
+    "table": [
+      {
+        "id": "chilli_biltong",
+        "weight": 25
+      },
+      {
+        "id": "boeretroos",
+        "weight": 25
+      },
+      {
+        "id": "bush_buckshot",
+        "weight": 25
+      },
+      {
+        "id": "meerkat_spotter",
+        "weight": 10
+      },
+      {
+        "id": "voorlaaier",
+        "weight": 8,
+        "type": "weapon"
+      },
+      {
+        "id": "mielie_masjien",
+        "weight": 7,
+        "type": "weapon"
+      }
+    ]
+  }
+}

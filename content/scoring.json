@@ -1,0 +1,104 @@
+{
+  "$comment": "Scoring rules. Per bag: points = base + sum(addPoints); mult = 1 + behaviourAdd, then charms in slot order (addMult adds, mulMult multiplies), then x weapon x Frenzy x Stampede; award = round(points * mult). Event bonuses are multiplied only by eventBonusMultipliers. Full rule: docs/01-GAME-DESIGN.md section 5.3.",
+  "version": 1,
+  "planes": {
+    "near": {
+      "base": 5,
+      "scale": 1.0,
+      "scrollFactor": 1.0,
+      "aimAssistPx": 8,
+      "lineWeightPx": 6
+    },
+    "mid": {
+      "base": 10,
+      "scale": 0.5,
+      "scrollFactor": 0.6,
+      "aimAssistPx": 14,
+      "lineWeightPx": 4
+    },
+    "far": {
+      "base": 25,
+      "scale": 0.22,
+      "scrollFactor": 0.35,
+      "aimAssistPx": 18,
+      "lineWeightPx": 2
+    }
+  },
+  "behaviourAdd": {
+    "forage": 0,
+    "alert": 0,
+    "run": 0.5,
+    "flying": 1.0
+  },
+  "frenzyTiers": [
+    {
+      "atStreak": 3,
+      "mul": 1.5
+    },
+    {
+      "atStreak": 6,
+      "mul": 2.0
+    },
+    {
+      "atStreak": 10,
+      "mul": 3.0
+    }
+  ],
+  "twoFlies": [
+    {
+      "birds": 2,
+      "bonus": 50
+    },
+    {
+      "birds": 3,
+      "bonus": 150
+    },
+    {
+      "birds": 4,
+      "bonus": 300
+    }
+  ],
+  "wholeFlock": {
+    "minSize": 5,
+    "perBird": 15,
+    "slowMo": {
+      "scale": 0.3,
+      "ms": 400
+    }
+  },
+  "stampede": {
+    "lastSeconds": 15,
+    "mul": 2.0,
+    "modes": [
+      "classic",
+      "daily"
+    ],
+    "$comment": "Single source of truth for the Stampede. Enabled in these modes; Season Run only via the stampede_kenner charm."
+  },
+  "secretChain": {
+    "withinSeconds": 10,
+    "bonus": 50
+  },
+  "ranks": [
+    {
+      "id": "stadsjapie",
+      "minScore": 0
+    },
+    {
+      "id": "plaaswerker",
+      "minScore": 1000
+    },
+    {
+      "id": "bosveldjagter",
+      "minScore": 2500
+    },
+    {
+      "id": "bosveld_legend",
+      "minScore": 4500
+    }
+  ],
+  "eventBonusMultipliers": [
+    "frenzy",
+    "stampede"
+  ]
+}

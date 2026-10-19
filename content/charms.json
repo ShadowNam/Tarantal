@@ -1,0 +1,416 @@
+{
+  "$comment": "Gelukbringers (charms) for the Season Run. Effects use the DSL in docs/02-TECH-ARCHITECTURE.md section 3.8. 'script' entries are implemented in src/sim/charms/registry.ts. Ticks are 60 per second.",
+  "version": 1,
+  "slots": 5,
+  "prices": {
+    "common": 4,
+    "uncommon": 6,
+    "rare": 8,
+    "legendary": 12
+  },
+  "sellRatio": 0.5,
+  "charms": [
+    {
+      "id": "oupa_se_bril",
+      "rarity": "common",
+      "archetype": "distance",
+      "effects": [
+        {
+          "on": "bag",
+          "if": {
+            "plane": [
+              "far"
+            ]
+          },
+          "do": {
+            "addPoints": 15
+          }
+        }
+      ]
+    },
+    {
+      "id": "ekstra_bandolier",
+      "rarity": "common",
+      "archetype": "ammo",
+      "effects": [
+        {
+          "on": "passive",
+          "do": {
+            "shellCapacity": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "snelhand",
+      "rarity": "common",
+      "archetype": "ammo",
+      "effects": [
+        {
+          "on": "passive",
+          "do": {
+            "reloadSpeedMul": 1.3
+          }
+        }
+      ]
+    },
+    {
+      "id": "grondwerk",
+      "rarity": "common",
+      "archetype": "plinker",
+      "effects": [
+        {
+          "on": "bag",
+          "if": {
+            "behaviour": [
+              "forage",
+              "alert"
+            ]
+          },
+          "do": {
+            "addMult": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "vlerkskoot",
+      "rarity": "common",
+      "archetype": "flusher",
+      "effects": [
+        {
+          "on": "bag",
+          "if": {
+            "behaviour": [
+              "flying"
+            ]
+          },
+          "do": {
+            "addMult": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "fluitjie",
+      "rarity": "common",
+      "archetype": "flusher",
+      "effects": [
+        {
+          "on": "gadget",
+          "do": {
+            "alertNearestFlock": true
+          }
+        }
+      ],
+      "gadget": {
+        "replaces": "vuvuzela",
+        "cooldownMs": 6000
+      }
+    },
+    {
+      "id": "spaarblik",
+      "rarity": "common",
+      "archetype": "economy",
+      "effects": [
+        {
+          "on": "passive",
+          "do": {
+            "interestCap": 5
+          }
+        }
+      ]
+    },
+    {
+      "id": "rooi_patrone",
+      "rarity": "common",
+      "archetype": "ammo",
+      "effects": [
+        {
+          "on": "bag",
+          "if": {
+            "shellIndex": "first"
+          },
+          "do": {
+            "mulMult": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "laaste_patroon",
+      "rarity": "uncommon",
+      "archetype": "ammo",
+      "effects": [
+        {
+          "on": "bag",
+          "if": {
+            "shellIndex": "last"
+          },
+          "do": {
+            "mulMult": 3
+          }
+        }
+      ]
+    },
+    {
+      "id": "stil_loop",
+      "rarity": "uncommon",
+      "archetype": "plinker",
+      "effects": [
+        {
+          "on": "passive",
+          "do": {
+            "alertRadiusMul": {
+              "source": "miss",
+              "mul": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "bles_die_plaashond",
+      "rarity": "uncommon",
+      "archetype": "flusher",
+      "effects": [
+        {
+          "on": "tick:every:720",
+          "do": {
+            "spawnEvent": "farmDog"
+          }
+        }
+      ]
+    },
+    {
+      "id": "konsertina",
+      "rarity": "uncommon",
+      "archetype": "frenzy",
+      "effects": [
+        {
+          "on": "bag",
+          "if": {
+            "streakEvery": 10
+          },
+          "do": {
+            "addShells": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "hadeda_fluit",
+      "rarity": "uncommon",
+      "archetype": "chaos",
+      "effects": [
+        {
+          "on": "tick:every:900",
+          "do": {
+            "spawnEvent": "hadeda"
+          }
+        },
+        {
+          "on": "passive",
+          "do": {
+            "penaltyOverride": {
+              "creature": "hadeda",
+              "points": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "windleser",
+      "rarity": "uncommon",
+      "archetype": "distance",
+      "effects": [
+        {
+          "on": "passive",
+          "do": {
+            "windDriftMul": 0
+          }
+        },
+        {
+          "on": "bag",
+          "if": {
+            "omenActive": true
+          },
+          "do": {
+            "addMult": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "haelstorm",
+      "rarity": "uncommon",
+      "archetype": "ammo",
+      "effects": [
+        {
+          "on": "passive",
+          "do": {
+            "weaponBlastEvery": {
+              "every": 8,
+              "weapon": "voorlaaier"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "padstal_vriend",
+      "rarity": "uncommon",
+      "archetype": "economy",
+      "effects": [
+        {
+          "on": "passive",
+          "do": {
+            "shopSlots": 1,
+            "rerollDiscount": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "stampede_kenner",
+      "rarity": "uncommon",
+      "archetype": "timing",
+      "effects": [
+        {
+          "on": "passive",
+          "do": {
+            "enableStampede": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "hele_swerm",
+      "rarity": "rare",
+      "archetype": "flusher",
+      "effects": [
+        {
+          "on": "passive",
+          "do": {
+            "bonusMul": {
+              "bonus": "wholeFlock",
+              "mul": 3
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "kettingreaksie",
+      "rarity": "rare",
+      "archetype": "crowd",
+      "effects": [
+        {
+          "on": "twoFlies",
+          "do": {
+            "addMultForHunt": 0.2
+          }
+        }
+      ]
+    },
+    {
+      "id": "oupa_se_kaart",
+      "rarity": "rare",
+      "archetype": "explorer",
+      "effects": [
+        {
+          "on": "passive",
+          "do": {
+            "revealSecrets": true
+          }
+        },
+        {
+          "on": "secret",
+          "do": {
+            "addMultForHunt": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "boeretroos_fles",
+      "rarity": "rare",
+      "archetype": "flusher",
+      "effects": [
+        {
+          "on": "flockFlushed",
+          "do": {
+            "slowMo": {
+              "scale": 0.5,
+              "ms": 1500
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "kwevoel_se_seen",
+      "rarity": "rare",
+      "archetype": "risk",
+      "effects": [
+        {
+          "on": "passive",
+          "do": {
+            "spawnRateMul": {
+              "creature": "kwevoel",
+              "mul": 3
+            }
+          }
+        },
+        {
+          "on": "bag",
+          "if": {
+            "kwevoelCalling": true
+          },
+          "do": {
+            "mulMult": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "geheime_resep",
+      "rarity": "legendary",
+      "archetype": "frenzy",
+      "effects": [
+        {
+          "on": "passive",
+          "do": {
+            "frenzyMissBehaviour": "dropTier"
+          }
+        }
+      ]
+    },
+    {
+      "id": "generaal_se_pot",
+      "rarity": "legendary",
+      "archetype": "boss",
+      "effects": [
+        {
+          "on": "bag",
+          "if": {
+            "boss": true
+          },
+          "do": {
+            "mulMult": 5
+          }
+        },
+        {
+          "on": "bag",
+          "if": {
+            "boss": true
+          },
+          "do": {
+            "shellCapacityForRun": 1
+          }
+        }
+      ]
+    }
+  ]
+}

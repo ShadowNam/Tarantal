@@ -1,0 +1,437 @@
+{
+  "$comment": "Creatures. Hitboxes in sprite-local design px at scale 1.0 (near plane); the sim scales by plane. Speeds in design px per second at the mid plane (speeds.run is the only run-speed source). A 'hit' is one shot landing >= min(pelletsToBag, weapon.pellets) pellets; bosses lose armorHits first, then need hitsToBag hits. How many of each non-target appear per hunt is set by the biome's events, not here.",
+  "version": 1,
+  "flockDefaults": {
+    "sizeMin": 6,
+    "sizeMax": 16,
+    "alertMs": [
+      600,
+      1200
+    ],
+    "escalationWindowMs": 1500,
+    "flushAngleDeg": [
+      55,
+      75
+    ],
+    "flushStaggerMs": [
+      0,
+      300
+    ],
+    "flightMs": [
+      1500,
+      3500
+    ],
+    "settleTimeoutMs": [
+      4000,
+      7000
+    ],
+    "boids": {
+      "separation": 1.4,
+      "alignment": 1.0,
+      "cohesion": 0.8,
+      "noise": 0.35,
+      "neighbourRadiusPx": 140
+    }
+  },
+  "creatures": [
+    {
+      "id": "tarentaal",
+      "kind": "target",
+      "planes": [
+        "near",
+        "mid",
+        "far"
+      ],
+      "behaviours": [
+        "flock",
+        "flyover",
+        "popup"
+      ],
+      "pelletsToBag": 1,
+      "speeds": {
+        "walk": 40,
+        "run": 170,
+        "fly": 420,
+        "glide": 300
+      },
+      "hitbox": {
+        "body": {
+          "rx": 110,
+          "ry": 85,
+          "ox": 0,
+          "oy": 10
+        },
+        "head": {
+          "r": 38,
+          "ox": 120,
+          "oy": -70
+        }
+      },
+      "spawnWeight": 100
+    },
+    {
+      "id": "tarentaal_wit",
+      "kind": "target",
+      "rare": true,
+      "planes": [
+        "mid",
+        "far"
+      ],
+      "behaviours": [
+        "flock",
+        "flyover"
+      ],
+      "baseOverride": 100,
+      "doppiesDrop": 3,
+      "pelletsToBag": 1,
+      "speeds": {
+        "walk": 40,
+        "run": 180,
+        "fly": 440,
+        "glide": 310
+      },
+      "hitbox": {
+        "body": {
+          "rx": 110,
+          "ry": 85,
+          "ox": 0,
+          "oy": 10
+        },
+        "head": {
+          "r": 38,
+          "ox": 120,
+          "oy": -70
+        }
+      },
+      "spawnWeight": 1,
+      "maxPerHunt": 1
+    },
+    {
+      "id": "tarentaal_lavendel",
+      "kind": "target",
+      "rare": true,
+      "planes": [
+        "mid",
+        "far"
+      ],
+      "behaviours": [
+        "flock",
+        "flyover"
+      ],
+      "baseOverride": 75,
+      "pelletsToBag": 1,
+      "speeds": {
+        "walk": 40,
+        "run": 175,
+        "fly": 430,
+        "glide": 305
+      },
+      "hitbox": {
+        "body": {
+          "rx": 110,
+          "ry": 85,
+          "ox": 0,
+          "oy": 10
+        },
+        "head": {
+          "r": 38,
+          "ox": 120,
+          "oy": -70
+        }
+      },
+      "spawnWeight": 2,
+      "maxPerHunt": 2
+    },
+    {
+      "id": "kuifkop",
+      "kind": "target",
+      "planes": [
+        "mid"
+      ],
+      "behaviours": [
+        "flock",
+        "hop"
+      ],
+      "biomes": [
+        "okavango-spring"
+      ],
+      "baseOverride": 40,
+      "pelletsToBag": 1,
+      "speeds": {
+        "walk": 50,
+        "run": 200,
+        "fly": 380,
+        "glide": 280
+      },
+      "hitbox": {
+        "body": {
+          "rx": 100,
+          "ry": 80,
+          "ox": 0,
+          "oy": 10
+        },
+        "head": {
+          "r": 42,
+          "ox": 110,
+          "oy": -80
+        }
+      },
+      "spawnWeight": 30
+    },
+    {
+      "id": "generaal",
+      "kind": "boss",
+      "planes": [
+        "mid"
+      ],
+      "behaviours": [
+        "boss"
+      ],
+      "baseOverride": 100,
+      "armorHits": 1,
+      "armorHitBonus": 25,
+      "pelletsToBag": 3,
+      "speeds": {
+        "walk": 45,
+        "run": 210,
+        "fly": 400,
+        "glide": 300
+      },
+      "hitbox": {
+        "body": {
+          "rx": 120,
+          "ry": 95,
+          "ox": 0,
+          "oy": 10
+        },
+        "head": {
+          "r": 46,
+          "ox": 120,
+          "oy": -80
+        }
+      },
+      "bossRule": "missAlertsAll",
+      "hitsToBag": 1
+    },
+    {
+      "id": "ou_grys",
+      "kind": "boss",
+      "planes": [
+        "mid"
+      ],
+      "behaviours": [
+        "boss",
+        "peekFromCover"
+      ],
+      "baseOverride": 150,
+      "pelletsToBag": 4,
+      "speeds": {
+        "walk": 35,
+        "run": 190,
+        "fly": 380,
+        "glide": 290
+      },
+      "hitbox": {
+        "body": {
+          "rx": 115,
+          "ry": 90,
+          "ox": 0,
+          "oy": 10
+        },
+        "head": {
+          "r": 40,
+          "ox": 115,
+          "oy": -72
+        }
+      },
+      "bossRule": "groundShotsZero",
+      "hitsToBag": 2,
+      "exemptFromOwnBossRule": true
+    },
+    {
+      "id": "kuifkop_koning",
+      "kind": "boss",
+      "planes": [
+        "mid"
+      ],
+      "behaviours": [
+        "boss",
+        "hop"
+      ],
+      "baseOverride": 150,
+      "pelletsToBag": 3,
+      "hitsToBag": 3,
+      "speeds": {
+        "walk": 55,
+        "run": 230,
+        "fly": 400,
+        "glide": 300
+      },
+      "hitbox": {
+        "body": {
+          "rx": 105,
+          "ry": 85,
+          "ox": 0,
+          "oy": 10
+        },
+        "head": {
+          "r": 48,
+          "ox": 110,
+          "oy": -85
+        }
+      },
+      "bossRule": "reloadDouble"
+    },
+    {
+      "id": "stormvoel",
+      "kind": "boss",
+      "planes": [
+        "far",
+        "mid"
+      ],
+      "behaviours": [
+        "boss",
+        "lightningOnly"
+      ],
+      "baseOverride": 250,
+      "pelletsToBag": 5,
+      "speeds": {
+        "walk": 0,
+        "run": 0,
+        "fly": 360,
+        "glide": 260
+      },
+      "hitbox": {
+        "body": {
+          "rx": 220,
+          "ry": 160,
+          "ox": 0,
+          "oy": 0
+        },
+        "head": {
+          "r": 70,
+          "ox": 230,
+          "oy": -120
+        }
+      },
+      "bossRule": "darkExceptLightning",
+      "hitsToBag": 3
+    },
+    {
+      "id": "kwevoel",
+      "kind": "nonTarget",
+      "planes": [
+        "mid"
+      ],
+      "behaviours": [
+        "perchHigh"
+      ],
+      "penalty": -35,
+      "firstSightingBadge": true,
+      "hitbox": {
+        "body": {
+          "rx": 60,
+          "ry": 90,
+          "ox": 0,
+          "oy": 0
+        },
+        "head": {
+          "r": 30,
+          "ox": 20,
+          "oy": -110
+        }
+      }
+    },
+    {
+      "id": "hadeda",
+      "kind": "nonTarget",
+      "planes": [
+        "far"
+      ],
+      "behaviours": [
+        "flyoverEvent"
+      ],
+      "penalty": -25,
+      "alertsAllFlocks": true,
+      "speeds": {
+        "fly": 380
+      },
+      "hitbox": {
+        "body": {
+          "rx": 120,
+          "ry": 60,
+          "ox": 0,
+          "oy": 0
+        },
+        "head": {
+          "r": 30,
+          "ox": 150,
+          "oy": -10
+        }
+      }
+    },
+    {
+      "id": "visarend",
+      "kind": "nonTarget",
+      "planes": [
+        "far"
+      ],
+      "behaviours": [
+        "flyoverEvent"
+      ],
+      "biomes": [
+        "okavango-spring"
+      ],
+      "penalty": -50,
+      "speeds": {
+        "fly": 300
+      },
+      "hitbox": {
+        "body": {
+          "rx": 160,
+          "ry": 70,
+          "ox": 0,
+          "oy": 0
+        },
+        "head": {
+          "r": 30,
+          "ox": 120,
+          "oy": -20
+        }
+      }
+    },
+    {
+      "id": "sproeier",
+      "kind": "nonTarget",
+      "planes": [
+        "far"
+      ],
+      "behaviours": [
+        "flyoverEvent"
+      ],
+      "penalty": -50,
+      "speeds": {
+        "fly": 520
+      },
+      "hitbox": {
+        "body": {
+          "rx": 260,
+          "ry": 70,
+          "ox": 0,
+          "oy": 0
+        }
+      }
+    },
+    {
+      "id": "meerkat",
+      "kind": "helper",
+      "planes": [
+        "near"
+      ],
+      "behaviours": [
+        "popupHelper"
+      ],
+      "grants": "meerkat_spotter"
+    }
+  ]
+}

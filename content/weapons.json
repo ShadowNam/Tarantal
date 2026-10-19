@@ -1,0 +1,105 @@
+{
+  "$comment": "Weapons, gadget and crate weapons. Distances in design px at the mid plane; times in ms.",
+  "version": 1,
+  "weapons": [
+    {
+      "id": "dubbelloop",
+      "kind": "primary",
+      "unlock": { "type": "start" },
+      "magazine": 8,
+      "reloadMs": 900,
+      "perShellReload": false,
+      "fireCooldownMs": 140,
+      "pellets": 8,
+      "spreadPx": 70,
+      "alertRadiusPx": 260,
+      "windSensitivity": 0.4,
+      "projectile": null,
+      "scoreMul": { "all": 1.0 },
+      "shake": { "px": 4, "ms": 90 }
+    },
+    {
+      "id": "windbuks",
+      "kind": "primary",
+      "unlock": { "type": "challenge", "id": "bag_50_far" },
+      "magazine": 6,
+      "reloadMs": 600,
+      "perShellReload": true,
+      "fireCooldownMs": 220,
+      "pellets": 1,
+      "spreadPx": 0,
+      "alertRadiusPx": 0,
+      "windSensitivity": 1.0,
+      "projectile": null,
+      "scoreMul": { "far": 1.5 },
+      "shake": { "px": 1, "ms": 50 }
+    },
+    {
+      "id": "kettie",
+      "kind": "primary",
+      "unlock": { "type": "challenge", "id": "whole_flock_x3" },
+      "magazine": -1,
+      "reloadMs": 0,
+      "perShellReload": false,
+      "fireCooldownMs": 350,
+      "pellets": 1,
+      "spreadPx": 0,
+      "alertRadiusPx": 120,
+      "windSensitivity": 1.5,
+      "projectile": { "travelMs": { "near": 80, "mid": 180, "far": 350 }, "dropPx": { "near": 4, "mid": 18, "far": 40 } },
+      "scoreMul": { "all": 2.0 },
+      "shake": { "px": 0, "ms": 0 }
+    },
+    {
+      "id": "pomp",
+      "kind": "primary",
+      "unlock": { "type": "rank", "id": "plaaswerker" },
+      "magazine": 6,
+      "reloadMs": 350,
+      "perShellReload": true,
+      "interruptibleReload": true,
+      "fireCooldownMs": 260,
+      "pellets": 6,
+      "spreadPx": 48,
+      "alertRadiusPx": 260,
+      "windSensitivity": 0.4,
+      "projectile": null,
+      "scoreMul": { "all": 1.0 },
+      "shake": { "px": 5, "ms": 100 }
+    },
+    {
+      "id": "voorlaaier",
+      "kind": "crate",
+      "shots": 3,
+      "reloadMs": 2500,
+      "pellets": 24,
+      "spreadPx": 300,
+      "alertRadiusPx": 600,
+      "windSensitivity": 0.2,
+      "smokeMs": 500,
+      "scoreMul": { "all": 1.0 },
+      "shake": { "px": 12, "ms": 220 }
+    },
+    {
+      "id": "mielie_masjien",
+      "kind": "crate",
+      "durationMs": 10000,
+      "holdToFire": true,
+      "fireIntervalMs": 70,
+      "pellets": 1,
+      "spreadPx": 60,
+      "alertRadiusPx": 200,
+      "windSensitivity": 0.6,
+      "scoreMul": { "all": 1.0 },
+      "shake": { "px": 2, "ms": 40 }
+    }
+  ],
+  "gadgets": [
+    {
+      "id": "vuvuzela",
+      "effect": "flushAllVisibleFlocks",
+      "cooldownMs": 20000,
+      "chargesPerClassicHunt": 2
+    }
+  ]
+}
