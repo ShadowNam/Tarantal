@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#1b1410" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <title>Tarantal Madness</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        height: 100dvh;
+        overflow: hidden;
+        background: #1b1410;
+        overscroll-behavior: none;
+        touch-action: none;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      #game {
+        position: fixed;
+        inset: 0;
+        touch-action: none;
+      }
+      #game canvas {
+        touch-action: none;
+        display: block;
+      }
+      /* Reads env(safe-area-inset-*) so the game can convert insets to design px. */
+      #safe-area-probe {
+        position: fixed;
+        inset: 0;
+        visibility: hidden;
+        pointer-events: none;
+        padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+          env(safe-area-inset-left);
+      }
+      #rotate-card {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 24px;
+        box-sizing: border-box;
+        background: #1b1410;
+        color: #f3ead3;
+        font-family: system-ui, sans-serif;
+        text-align: center;
+      }
+      #rotate-card.visible {
+        display: flex;
+      }
+      #rotate-card .icon {
+        width: 72px;
+        height: 120px;
+        border: 6px solid #f3ead3;
+        border-radius: 14px;
+        animation: tm-rotate 2.4s ease-in-out infinite;
+      }
+      #rotate-card h1 {
+        margin: 12px 0 0;
+        font-size: 24px;
+      }
+      #rotate-card p {
+        margin: 0;
+        font-size: 16px;
+        opacity: 0.8;
+      }
+      @keyframes tm-rotate {
+        0%,
+        30% {
+          transform: rotate(0deg);
+        }
+        60%,
+        100% {
+          transform: rotate(-90deg);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #rotate-card .icon {
+          animation: none;
+          transform: rotate(-90deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game"></div>
+    <div id="safe-area-probe"></div>
+    <div id="rotate-card" role="alert" aria-live="polite">
+      <div class="icon" aria-hidden="true"></div>
+      <h1 data-i18n="rotate.title"></h1>
+      <p data-i18n="rotate.body"></p>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
