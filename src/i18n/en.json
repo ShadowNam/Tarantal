@@ -1,0 +1,12 @@
+{
+  "app.title": "Tarantal Madness",
+  "app.milestone": "M0 — scaffold",
+  "rotate.title": "Turn your device sideways",
+  "rotate.body": "Tarantal Madness plays in landscape.",
+  "biome.karoo_autumn": "Karoo Farm — Autumn",
+  "boss_rule.miss_alerts_all": "Every miss alerts all flocks.",
+  "boss_rule.ground_shots_zero": "Ground shots score 0 — wing shots only.",
+  "boss_rule.reload_double": "Reloading takes twice as long.",
+  "boss_rule.dark_except_lightning": "It's dark — only lightning shows the birds.",
+  "bark.kos_is_reg": "Kos is reg!"
+}
