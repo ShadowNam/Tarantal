@@ -69,6 +69,28 @@ only exact `Math` members pass in `src/sim` (no `**`, `hypot`, `log2`, …), `gl
 `crypto`/`process` and Phaser subpath imports are banned, `detmath.ts` has no exemption, and
 `src/sim` gets a second typecheck without DOM/Node types (`tsconfig.sim.json`).
 
+**D-018 M1 sim rules (19 Oct 2026):** decisions made while building the deterministic core.
+(1) *Frenzy timing:* a shot's bags score with the streak **including** that shot, so the 3rd
+consecutive bagging shot is the first at ×1.5; a shot that only hits a non-target bags nothing and
+resets the streak; empty clicks and reloads don't. (2) *Occlusion within a plane:* layers are walked
+front to back by scroll factor; on a plane layer its birds stand in front of its props, and a
+layer's props block every layer behind it (a per-bird "behind cover" flag comes with Ou Grys in M8).
+Within a plane the higher bird id is in front; the renderer draws birds in id order to match.
+Occluder sizes are design px on their layer (not scaled by plane); pellet spread is screen px.
+(3) *Near plane in M1* = pop-ups (rise/stare/duck, hittable until they duck, behaviour `forage`);
+mid/far = fly-overs (`flying`). Pop-ups appear within `popupDefaults.spawnHalfWidthPx` of the
+screen centre, which uses only the sim's camera, never the viewport. (4) *Replay compression:* the
+sim encodes InputLogs as delta-tick varint bytes + base64url; deflate needs async browser/Node APIs
+the sim can't use, so it is added at the share/challenge-link boundary in M7. (5) Score is not
+clamped at 0. (6) New content homes: `content/modes.json` (Classic/Daily hunt length, weapon, biome),
+`birds.json → flyoverDefaults/popupDefaults`, `biome.pacing.stampede` (surge rates). World geometry
+(R = 3200, 1920 reference width, 300 px bleed) is fixed in `src/sim/world.ts`; validation checks
+plane layer scroll factors and `panoramaWidth` against it. (7) Golden replays run on the live
+`content/`, so any tuning change needs `npm run golden:update`. (8) Deferred: wind drift (M4 omen),
+Kettie projectiles (M8; the sim rejects projectile weapons until then), flocks/Whole Flock wiring and
+the Vuvuzela (M3), secrets, crates, kwêvoël perch and boss spawns (M3/M4). Sim test files may use
+`Math.*` as a reference (lint guard proves every other sim rule still applies to them).
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

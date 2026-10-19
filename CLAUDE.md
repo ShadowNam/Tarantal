@@ -27,6 +27,8 @@ add a decision entry.
 - `npm run test` — Vitest · `npm run test:e2e` — Playwright (desktop + mobile profiles)
 - `npm run content:validate` — Zod-validate `content/` incl. cross-references
 - `npm run build` / `npm run size` — production build / download-size budget check
+- `npm run hunt -- --seed 42 --bot random|aim` — one headless hunt + replay self-check (`tools/run-hunt.ts`)
+- `npm run golden:update` — re-record golden replays after an intentional sim/content change
 - `npx tsx tools/balance-sim.ts --seeds 500` — bot score distributions (from M3)
 
 ## Architecture rules
