@@ -42,6 +42,11 @@ content/                        starting tuning data (scoring, birds, weapons, p
    and add the hosts printed by `npx playwright install --dry-run chromium webkit`; or put
    `npx playwright install --with-deps chromium webkit` in the environment's **setup script** so
    it's cached.
+   Seen in M0: Chromium is preinstalled in cloud sessions (Playwright 1.56.1 matches it), but the
+   WebKit download is blocked on Trusted (allowlist `cdn.playwright.dev` and
+   `playwright.download.prss.microsoft.com` to fix it). Without
+   WebKit, local e2e runs the iPhone/Safari profiles on Chromium emulation; GitHub Actions always
+   runs the real WebKit.
 6. Optional: install the Claude GitHub App with **Auto-fix** so cloud sessions fix CI failures and
    review comments on their own PRs.
 
@@ -54,6 +59,10 @@ content/                        starting tuning data (scoring, birds, weapons, p
 ## Keeping the Phaser skills current
 `.claude/skills/` contains the 28 Phaser 4 agent skills from the Phaser repo at tag v4.2.1. When you
 upgrade Phaser, replace those folders with the matching tag's `skills/` folder.
+
+## Commands (from M0)
+`npm run dev` · `npm run check` (typecheck + lint + unit tests + content validation) ·
+`npm run test:e2e` · `npm run build` · `npm run size` · `npm run content:validate [-- --strict]`.
 
 ## After M0
 Ask Claude to add hooks that enforce the rules — e.g. "write a PostToolUse hook that runs

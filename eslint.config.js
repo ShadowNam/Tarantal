@@ -1,0 +1,168 @@
+// @ts-check
+import js from '@eslint/js';
+import prettier from 'eslint-config-prettier';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
+
+// --- Deterministic sim rules (Tech §3.2, .claude/rules/sim.md) -------------------------------
+
+// Math members whose results are exact on every engine. Everything else on Math (random, sin,
+// hypot, log2, cbrt, …) is banned in src/sim — transcendental maths goes through detmath.ts,
+// randomness through rng.stream(<name>).
+const EXACT_MATH = [
+  'sqrt',
+  'floor',
+  'ceil',
+  'round',
+  'trunc',
+  'abs',
+  'min',
+  'max',
+  'sign',
+  'fround',
+  'imul',
+  'clz32',
+  // Constants are exact literals.
+  'PI',
+  'E',
+  'LN2',
+  'LN10',
+  'LOG2E',
+  'LOG10E',
+  'SQRT1_2',
+  'SQRT2',
+];
+
+const simSyntaxRules = [
+  { selector: 'ExportDefaultDeclaration', message: 'Named exports only.' },
+  { selector: ':function[async=true]', message: 'No async code in src/sim.' },
+  { selector: 'AwaitExpression', message: 'No async code in src/sim.' },
+  { selector: 'ImportExpression', message: 'No dynamic import() in src/sim.' },
+  {
+    selector: `MemberExpression[object.name='Math'][computed=false][property.name!=/^(${EXACT_MATH.join('|')})$/]`,
+    message:
+      'Only exact Math functions are allowed in src/sim (sqrt, floor, round, abs, min, max, …). Use rng.stream(<name>) for randomness and src/sim/detmath.ts for sin/cos/atan2/exp/pow/log.',
+  },
+  {
+    selector: "MemberExpression[object.name='Math'][computed=true]",
+    message: 'No computed Math[...] access in src/sim.',
+  },
+  {
+    selector: "BinaryExpression[operator='**'], AssignmentExpression[operator='**=']",
+    message: '** is approximated like Math.pow and differs across engines; use detmath.ts.',
+  },
+];
+
+const simRestrictedGlobals = [
+  'window',
+  'self',
+  'globalThis',
+  'global',
+  'document',
+  'navigator',
+  'location',
+  'localStorage',
+  'sessionStorage',
+  'indexedDB',
+  'performance',
+  'crypto',
+  'process',
+  'Date',
+  'setTimeout',
+  'setInterval',
+  'setImmediate',
+  'clearTimeout',
+  'clearInterval',
+  'requestAnimationFrame',
+  'cancelAnimationFrame',
+  'requestIdleCallback',
+  'queueMicrotask',
+  'fetch',
+  'Promise',
+  'Intl',
+].map((name) => ({ name, message: `${name} is not allowed in src/sim (determinism rule).` }));
+
+const simRestrictedImports = {
+  patterns: [
+    { group: ['phaser', 'phaser/*'], message: 'No Phaser in src/sim.' },
+    {
+      group: [
+        '**/game',
+        '**/game/**',
+        '**/platform',
+        '**/platform/**',
+        '**/meta',
+        '**/meta/**',
+        '**/i18n',
+        '**/i18n/**',
+        '**/debug',
+        '**/debug/**',
+        '**/content/loadNode',
+        '**/content/loadNode.*',
+      ],
+      message: 'src/sim may import only src/sim and src/content types.',
+    },
+    {
+      group: ['node:*', 'fs', 'path', 'crypto', 'os', 'perf_hooks'],
+      message: 'No Node APIs in src/sim.',
+    },
+  ],
+};
+
+export default tseslint.config(
+  {
+    ignores: [
+      'dist/**',
+      'node_modules/**',
+      'coverage/**',
+      'playwright-report/**',
+      'test-results/**',
+      '.claude/**',
+    ],
+  },
+  js.configs.recommended,
+  ...tseslint.configs.strictTypeChecked,
+  {
+    languageOptions: {
+      parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
+      globals: { ...globals.browser, ...globals.node },
+    },
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-non-null-assertion': 'error',
+      '@typescript-eslint/restrict-template-expressions': ['error', { allowNumber: true }],
+      'no-restricted-syntax': [
+        'error',
+        { selector: 'ExportDefaultDeclaration', message: 'Named exports only.' },
+      ],
+    },
+  },
+  {
+    // Tool config files must default-export.
+    files: ['*.config.ts', '*.config.js'],
+    rules: { 'no-restricted-syntax': 'off' },
+  },
+  {
+    files: ['eslint.config.js'],
+    ...tseslint.configs.disableTypeChecked,
+  },
+  {
+    // Deterministic simulation core. detmath.ts is NOT exempt: its tables must be generated
+    // constants or pure arithmetic, or they would carry the engine differences it exists to remove.
+    files: ['src/sim/**/*.ts'],
+    rules: {
+      'no-restricted-imports': ['error', simRestrictedImports],
+      'no-restricted-globals': ['error', ...simRestrictedGlobals],
+      'no-restricted-syntax': ['error', ...simSyntaxRules],
+    },
+  },
+  {
+    // Test files: relaxed rules on unsafe test fixtures.
+    files: ['**/*.test.ts', 'tests/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+    },
+  },
+  prettier,
+);
