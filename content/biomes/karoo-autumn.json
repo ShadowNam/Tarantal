@@ -345,6 +345,10 @@
         "popupsPerMin": 6
       }
     ],
+    "stampede": {
+      "flyoversPerMin": 40,
+      "popupsPerMin": 10
+    },
     "maxBirdsOnScreen": 60,
     "maxFlocks": 8,
     "$comment": "Keyframes are fractions of hunt length. The Stampede surge is added automatically by the director when the Stampede is enabled (scoring.json)."

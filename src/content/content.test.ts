@@ -149,6 +149,30 @@ describe('content cross-references', () => {
     expect(report.errors.some((e) => /boss "tarentaal" is not a boss/.test(e.message))).toBe(true);
   });
 
+  it('catch a mode whose weapon is not a primary weapon', () => {
+    const c = clone();
+    const classic = asObj(asObj(asObj(c.files['modes.json'])['modes'])['classic']);
+    classic['weapon'] = 'voorlaaier';
+    const report = checkCrossRefs(parseOk(c), { i18nKeys });
+    expect(report.errors.some((e) => /voorlaaier/.test(e.message))).toBe(true);
+  });
+
+  it('catch a plane layer whose scroll factor disagrees with scoring.json (Tech §3.3)', () => {
+    const c = clone();
+    const biome = asObj(c.biomes['biomes/karoo-autumn.json']);
+    const mid = asArr(biome['layers']).find((l) => l['id'] === 'mid');
+    if (mid) mid['scrollFactor'] = 0.5;
+    const report = checkCrossRefs(parseOk(c), { i18nKeys });
+    expect(report.errors.some((e) => /scrollFactor 0.5/.test(e.message))).toBe(true);
+  });
+
+  it('catch a panorama width that is not the mid-plane core width', () => {
+    const c = clone();
+    asObj(c.biomes['biomes/karoo-autumn.json'])['panoramaWidth'] = 4000;
+    const report = checkCrossRefs(parseOk(c), { i18nKeys });
+    expect(report.errors.some((e) => /panoramaWidth 4000/.test(e.message))).toBe(true);
+  });
+
   it('catch a crate entry that is not a crate weapon', () => {
     const c = clone();
     const table = asArr(asObj(asObj(c.files['powerups.json'])['crates'])['table']);

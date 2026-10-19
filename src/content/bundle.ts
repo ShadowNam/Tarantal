@@ -59,6 +59,7 @@ export function parseContent(raw: RawContent): ParseResult {
   );
   const charms = parseFile(CONTENT_FILES['charms.json'], 'charms.json', f['charms.json'], errors);
   const run = parseFile(CONTENT_FILES['run.json'], 'run.json', f['run.json'], errors);
+  const modes = parseFile(CONTENT_FILES['modes.json'], 'modes.json', f['modes.json'], errors);
 
   for (const name of Object.keys(f)) {
     if (!(name in CONTENT_FILES)) errors.push({ file: name, message: 'unknown content file' });
@@ -80,9 +81,10 @@ export function parseContent(raw: RawContent): ParseResult {
     weapons === undefined ||
     powerups === undefined ||
     charms === undefined ||
-    run === undefined
+    run === undefined ||
+    modes === undefined
   ) {
     return { ok: false, errors };
   }
-  return { ok: true, bundle: { scoring, birds, weapons, powerups, charms, run, biomes }, errors: [] };
+  return { ok: true, bundle: { scoring, birds, weapons, powerups, charms, run, modes, biomes }, errors: [] };
 }
