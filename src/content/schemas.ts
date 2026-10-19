@@ -212,6 +212,25 @@ export const BirdsSchema = obj({
       }),
     })
     .refine((f) => f.sizeMin <= f.sizeMax, 'sizeMin must be <= sizeMax'),
+  /** Classic fly-overs (GDD §6.5) on the mid and far sky lanes. */
+  flyoverDefaults: obj({
+    planeWeights: obj({ mid: nonNeg, far: nonNeg }).refine(
+      (w) => w.mid + w.far > 0,
+      'planeWeights need at least one positive weight',
+    ),
+    groupSize: range(z.number().int().positive()),
+    groupSpacingPx: range(nonNeg),
+    bobPx: nonNeg,
+    bobPeriodMs: range(pos),
+  }),
+  /** Near-plane pop-ups (GDD §5.2): rise, stare, duck. */
+  popupDefaults: obj({
+    riseMs: posInt,
+    stareMs: range(pos),
+    duckMs: posInt,
+    /** Pop-ups appear within this many design px of the screen centre (≤ 720 keeps them on a 4:3 screen). */
+    spawnHalfWidthPx: z.number().positive().max(720),
+  }),
   creatures: z.array(CreatureSchema).min(1),
 });
 export type Birds = z.infer<typeof BirdsSchema>;
@@ -611,6 +630,8 @@ export const BiomeSchema = obj({
         (k) => k.every((x, i) => i === 0 || x.t > (k[i - 1]?.t ?? 0)),
         'keyframes must be sorted by t',
       ),
+    /** Surge rates used during the Stampede (its length comes from scoring.json, Tech §3.6). */
+    stampede: obj({ flyoversPerMin: nonNeg, popupsPerMin: nonNeg }),
     maxBirdsOnScreen: posInt,
     maxFlocks: posInt,
   }),
@@ -619,6 +640,18 @@ export const BiomeSchema = obj({
   ambience: id,
 });
 export type Biome = z.infer<typeof BiomeSchema>;
+
+// ---------------------------------------------------------------------------------------------
+// modes.json
+
+const modeSetupSchema = obj({ huntSeconds: posInt, weapon: id, biome: id });
+
+export const ModesSchema = obj({
+  version,
+  /** Classic and Daily setup. Season Run hunts take their length from run.json (huntSeconds). */
+  modes: obj({ classic: modeSetupSchema, daily: modeSetupSchema }),
+});
+export type Modes = z.infer<typeof ModesSchema>;
 
 // ---------------------------------------------------------------------------------------------
 // The whole bundle
@@ -631,6 +664,7 @@ export const CONTENT_FILES = {
   'powerups.json': PowerupsSchema,
   'charms.json': CharmsSchema,
   'run.json': RunSchema,
+  'modes.json': ModesSchema,
 } as const;
 
 export interface ContentBundle {
@@ -640,5 +674,6 @@ export interface ContentBundle {
   readonly powerups: Powerups;
   readonly charms: Charms;
   readonly run: Run;
+  readonly modes: Modes;
   readonly biomes: readonly Biome[];
 }

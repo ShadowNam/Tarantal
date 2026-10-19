@@ -1,3 +1,6 @@
-// Weapon state, pellets, projectiles and wind (Tech §3.4).
-// Placeholder from M0 so the layout from docs/02-TECH-ARCHITECTURE.md §2 exists. Filled in by M1.
-export {};
+// Weapon state, pellets and hit tests (Tech §3.4). Projectiles and wind arrive with the Kettie
+// (M8) and omens (M4).
+export * from './hitTest';
+export * from './pellets';
+export * from './weaponState';
+export * from './damage';

@@ -33,7 +33,7 @@ tarantal-madness/
 │  └─ agents/playtest-reviewer.md # adversarial reviewer subagent
 ├─ docs/                          # GDD, this file, art bible, build plan, decisions
 ├─ content/                       # ALL tuning + content data (JSON), validated at build time
-│  ├─ scoring.json  birds.json  weapons.json  powerups.json  charms.json  run.json
+│  ├─ scoring.json  birds.json  weapons.json  powerups.json  charms.json  run.json  modes.json
 │  └─ biomes/karoo-autumn.json …
 ├─ public/assets/                 # packed atlases, audio sprites, fonts (generated; not hand-edited)
 ├─ art-source/                    # (git LFS or separate repo) PSD/Krita/Spine sources
@@ -137,6 +137,9 @@ export interface Sim {
   units; scaled by plane. When `inputKind = 'touch'`, radii grow by `aimAssistPx[plane]`.
 - Occluders: per-prop polygons/ellipses from biome JSON; a pellet stops at the first occluder or
   target it meets in near → mid → far order.
+  Layers are walked front to back by scroll factor (foreground 1.2 → near → mid → far); on a plane
+  layer its birds stand in front of its own props, and a layer's props block every layer behind
+  (D-018). The world constants above live in `src/sim/world.ts`.
 
 ### 3.4 Shot resolution
 - Shotgun: on `fire`, draw `pelletCount` offsets from `rng.stream('pellets')` inside a disc of
@@ -225,7 +228,8 @@ cursor, unlock flags) is serialisable and saved after every Padstal so a closed 
 
 ### 3.10 Replays
 `InputLog = { v, seed, contentHash, mode, inputKind, commands: [tickDelta, command][] }`, delta + varint encoded,
-then deflated and base64url'd. Used for: golden tests, bug reports (attach log), ghost replays, and
+then base64url'd (`src/sim/replay/inputLog.ts`). Deflate is applied outside the sim, at the
+share/challenge-link boundary (M7), because it needs async platform APIs (D-018). Used for: golden tests, bug reports (attach log), ghost replays, and
 (v1.x) server-side leaderboard validation by re-simulating in Node.
 
 ## 4. Content system (`content/`, `src/content/`)

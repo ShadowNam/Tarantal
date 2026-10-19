@@ -222,7 +222,7 @@ fact + a joke. Completing pages unlocks cosmetics. Collection is a quiet, strong
 
 | Combo | Rule | Effect |
 |---|---|---|
-| **Frenzy** ("Bosveld Frenzy") | Consecutive *shots* that bag ≥1 target | 3 → ×1.5, 6 → ×2, 10 → ×3 (`mulMult`). A shot that bags nothing resets to 0. Reloading does not reset. |
+| **Frenzy** ("Bosveld Frenzy") | Consecutive *shots* that bag ≥1 target | 3 → ×1.5, 6 → ×2, 10 → ×3 (`mulMult`). A shot that bags nothing resets to 0 (hitting only a non-target counts as nothing). Reloading and empty clicks do not reset. The shot that reaches a tier already scores at it (D-018). |
 | **Twee Vlieë!** (Afrikaans "two flies with one slap" = two birds, one stone) | One shot bags ≥2 | 2 = +50, 3 = +150, 4+ = +300 |
 | **Whole Flock** | §6.4 | +15 per bird |
 | **Stampede** | last 15 s | ×2 |

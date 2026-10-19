@@ -59,13 +59,16 @@ export function parseContent(raw: RawContent): ParseResult {
   );
   const charms = parseFile(CONTENT_FILES['charms.json'], 'charms.json', f['charms.json'], errors);
   const run = parseFile(CONTENT_FILES['run.json'], 'run.json', f['run.json'], errors);
+  const modes = parseFile(CONTENT_FILES['modes.json'], 'modes.json', f['modes.json'], errors);
 
   for (const name of Object.keys(f)) {
     if (!(name in CONTENT_FILES)) errors.push({ file: name, message: 'unknown content file' });
   }
 
   const biomes: Biome[] = [];
-  for (const [file, value] of Object.entries(raw.biomes).sort(([a], [b]) => a.localeCompare(b))) {
+  // Locale-free order: the biome order feeds contentHash, which must match in Node and browsers.
+  const biomeEntries = Object.entries(raw.biomes).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+  for (const [file, value] of biomeEntries) {
     const biome = parseFile(BiomeSchema, file, value, errors);
     if (biome === undefined) continue;
     const expected = `biomes/${biome.id}.json`;
@@ -80,9 +83,10 @@ export function parseContent(raw: RawContent): ParseResult {
     weapons === undefined ||
     powerups === undefined ||
     charms === undefined ||
-    run === undefined
+    run === undefined ||
+    modes === undefined
   ) {
     return { ok: false, errors };
   }
-  return { ok: true, bundle: { scoring, birds, weapons, powerups, charms, run, biomes }, errors: [] };
+  return { ok: true, bundle: { scoring, birds, weapons, powerups, charms, run, modes, biomes }, errors: [] };
 }

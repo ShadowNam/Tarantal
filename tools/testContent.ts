@@ -1,0 +1,32 @@
+// Loads and validates the real content/ once for tests and tools (Node only).
+import { join } from 'node:path';
+import { parseContent } from '../src/content/bundle';
+import { contentHash } from '../src/content/hash';
+import { readContentDir } from '../src/content/loadNode';
+import type { ContentBundle } from '../src/content/schemas';
+
+const root = join(import.meta.dirname, '..');
+
+let cached: { bundle: ContentBundle; hash: string } | undefined;
+
+function load(): { bundle: ContentBundle; hash: string } {
+  if (cached) return cached;
+  const parsed = parseContent(readContentDir(join(root, 'content')));
+  if (!parsed.ok) {
+    throw new Error(
+      `content/ is invalid: ${parsed.errors.map((e) => `${e.file}: ${e.message}`).join('; ')}`,
+    );
+  }
+  cached = { bundle: parsed.bundle, hash: contentHash(parsed.bundle) };
+  return cached;
+}
+
+/** The validated content bundle from content/. */
+export function loadContent(): ContentBundle {
+  return load().bundle;
+}
+
+/** contentHash of content/ (Tech §4). */
+export function loadContentHash(): string {
+  return load().hash;
+}

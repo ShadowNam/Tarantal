@@ -33,6 +33,36 @@
       "neighbourRadiusPx": 140
     }
   },
+  "flyoverDefaults": {
+    "$comment": "Classic fly-overs (GDD 6.5): groups cross the mid/far sky lanes. planeWeights pick the plane; speeds come from the creature's speeds.fly, scaled by plane scale / mid scale.",
+    "planeWeights": {
+      "mid": 1,
+      "far": 2
+    },
+    "groupSize": [
+      1,
+      3
+    ],
+    "groupSpacingPx": [
+      90,
+      160
+    ],
+    "bobPx": 14,
+    "bobPeriodMs": [
+      700,
+      1100
+    ]
+  },
+  "popupDefaults": {
+    "$comment": "Near-plane pop-ups (GDD 5.2): rise from the grass, stare, duck. They appear within spawnHalfWidthPx of the screen centre so they are on screen at any aspect ratio (min visible half-width is 720).",
+    "riseMs": 250,
+    "stareMs": [
+      1400,
+      2600
+    ],
+    "duckMs": 250,
+    "spawnHalfWidthPx": 600
+  },
   "creatures": [
     {
       "id": "tarentaal",

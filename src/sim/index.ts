@@ -1,3 +1,8 @@
-// Deterministic simulation core: Sim.ts, rng, detmath, clock, camera, events (Tech §3).
-// Placeholder from M0 so the layout from docs/02-TECH-ARCHITECTURE.md §2 exists. Filled in by M1.
-export {};
+// Deterministic simulation core (Tech §3). Public surface for the Phaser layer and tools.
+export * from './camera';
+export * from './clock';
+export * from './events';
+export * from './Sim';
+export * from './types';
+export * from './world';
+export * from './replay';

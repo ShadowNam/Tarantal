@@ -1,6 +1,7 @@
 // Cross-file reference checks for a parsed ContentBundle (Tech §4, .claude/rules/content.md).
 // Pure: returns errors and warnings. Warnings cover content that arrives in later milestones
 // (docs/04-BUILD-PLAN.md M0); `strict` turns them into errors (CI uses --strict from M8 on).
+import { coreWidth } from '../sim/world';
 import type { Biome, Charm, ContentBundle, Creature } from './schemas';
 
 export interface CrossRefIssue {
@@ -39,7 +40,7 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
     (options.strict === true ? errors : warnings).push({ file, message });
   };
 
-  const { scoring, birds, weapons, powerups, charms, run, biomes } = bundle;
+  const { scoring, birds, weapons, powerups, charms, run, modes, biomes } = bundle;
 
   // --- unique ids --------------------------------------------------------------------------
   checkUnique('birds.json', 'creature', birds.creatures.map((c) => c.id), err);
@@ -171,6 +172,34 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
       else if (c.biomes && !c.biomes.includes(biome.id)) {
         err(file, `spawnTable creature "${c.id}" is limited to other biomes`);
       }
+    }
+  }
+
+  // --- modes.json --------------------------------------------------------------------------
+  for (const modeId of ['classic', 'daily'] as const) {
+    const setup = modes.modes[modeId];
+    const weapon = weapons.weapons.find((w) => w.id === setup.weapon);
+    if (weapon?.kind !== 'primary') {
+      err('modes.json', `mode "${modeId}" weapon "${setup.weapon}" is not a primary weapon`);
+    }
+    if (!loadedBiomes.has(setup.biome)) {
+      err('modes.json', `mode "${modeId}" biome "${setup.biome}" has no biome file`);
+    }
+  }
+
+  // --- world geometry (Tech §3.3) ----------------------------------------------------------
+  for (const biome of biomes) {
+    const file = `biomes/${biome.id}.json`;
+    for (const layer of biome.layers) {
+      if (layer.plane === undefined) continue;
+      const expected = scoring.planes[layer.plane].scrollFactor;
+      if (layer.scrollFactor !== expected) {
+        err(file, `layer "${layer.id}" scrollFactor ${layer.scrollFactor} must equal scoring.json planes.${layer.plane}.scrollFactor ${expected}`);
+      }
+    }
+    const panorama = coreWidth(scoring.planes.mid.scrollFactor);
+    if (biome.panoramaWidth !== panorama) {
+      err(file, `panoramaWidth ${biome.panoramaWidth} must equal the mid-plane core width ${panorama}`);
     }
   }
 

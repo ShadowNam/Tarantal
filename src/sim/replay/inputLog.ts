@@ -1,0 +1,292 @@
+// Replay input logs (Tech §3.10): { v, seed, contentHash, mode, inputKind, commands }, where
+// commands are [tickDelta, command] pairs. Encoded as compact bytes (varints; positions as
+// zig-zag half-pixel integers, the same 0.5 quantisation the sim applies) and then base64url.
+// Deflate is added at the share/challenge-link boundary (M7), outside the sim (D-018).
+import { quantiseHalf } from '../camera';
+import { sanitiseCommand } from '../commands';
+import type { Command, InputKind, ModeConfig, ModeId } from '../types';
+
+export const INPUT_LOG_VERSION = 1;
+
+export interface InputLog {
+  readonly v: number;
+  readonly seed: number;
+  /** contentHash (64 hex chars) of the content the hunt was played with. */
+  readonly contentHash: string;
+  readonly mode: ModeConfig;
+  readonly inputKind: InputKind;
+  /** [ticks since the previous command (or tick 0), command]. Same-tick commands have delta 0. */
+  readonly commands: readonly (readonly [number, Command])[];
+}
+
+export interface InputLogHeader {
+  readonly seed: number;
+  readonly contentHash: string;
+  readonly mode: ModeConfig;
+  readonly inputKind: InputKind;
+}
+
+/** Records the commands sent to sim.step() tick by tick. */
+export interface InputRecorder {
+  record(tick: number, commands: readonly Command[]): void;
+  toLog(): InputLog;
+}
+
+export function createRecorder(header: InputLogHeader): InputRecorder {
+  const commands: (readonly [number, Command])[] = [];
+  let lastTick = 0;
+  return {
+    record(tick, list) {
+      for (const raw of list) {
+        // Drop exactly what the sim ignores, so every recorded command is encodable.
+        const cmd = sanitiseCommand(raw);
+        if (cmd === null) continue;
+        commands.push([tick - lastTick, cmd]);
+        lastTick = tick;
+      }
+    },
+    toLog: () => ({ v: INPUT_LOG_VERSION, ...header, commands: [...commands] }),
+  };
+}
+
+/** Absolute tick of every command. */
+export function absoluteTicks(log: InputLog): number[] {
+  let tick = 0;
+  return log.commands.map(([delta]) => (tick += delta));
+}
+
+// --- bytes ---------------------------------------------------------------------------------
+
+const OPS: readonly Command['t'][] = [
+  'fire',
+  'fireHoldStart',
+  'fireHoldMove',
+  'fireHoldEnd',
+  'reload',
+  'cameraTarget',
+  'gadget',
+  'consumable',
+];
+const MODES: readonly ModeId[] = ['classic', 'daily', 'seasonHunt'];
+const INPUT_KINDS: readonly InputKind[] = ['pointer', 'touch'];
+
+class ByteWriter {
+  private bytes: number[] = [];
+  byte(b: number): void {
+    this.bytes.push(b & 0xff);
+  }
+  /** Unsigned LEB128 for 0 ≤ n < 2^53. */
+  varint(n: number): void {
+    if (!Number.isSafeInteger(n) || n < 0) throw new Error(`varint out of range: ${n}`);
+    let v = n;
+    while (v >= 0x80) {
+      this.byte((v % 0x80) | 0x80);
+      v = Math.floor(v / 0x80);
+    }
+    this.byte(v);
+  }
+  /** A value quantised to 0.5, as a zig-zag varint of value × 2. */
+  half(value: number): void {
+    const n = Math.round(quantiseHalf(value) * 2);
+    this.varint(n >= 0 ? n * 2 : -n * 2 - 1);
+  }
+  ascii(text: string): void {
+    this.varint(text.length);
+    for (let i = 0; i < text.length; i++) {
+      const c = text.charCodeAt(i);
+      if (c > 0x7f) throw new Error('replay strings must be ASCII');
+      this.byte(c);
+    }
+  }
+  result(): Uint8Array {
+    return Uint8Array.from(this.bytes);
+  }
+}
+
+/** 128^7: longer varints cannot be safe integers. */
+const MAX_VARINT_SCALE = 562949953421312;
+
+class ByteReader {
+  private pos = 0;
+  constructor(private readonly bytes: Uint8Array) {}
+  byte(): number {
+    const b = this.bytes[this.pos++];
+    if (b === undefined) throw new Error('replay log is truncated');
+    return b;
+  }
+  varint(): number {
+    let result = 0;
+    let scale = 1;
+    for (;;) {
+      const b = this.byte();
+      result += (b & 0x7f) * scale;
+      if (b < 0x80) return result;
+      scale *= 0x80;
+      if (scale > MAX_VARINT_SCALE) throw new Error('replay varint too long');
+    }
+  }
+  half(): number {
+    const z = this.varint();
+    const n = z % 2 === 0 ? z / 2 : -(z + 1) / 2;
+    return n / 2;
+  }
+  ascii(): string {
+    const len = this.varint();
+    let s = '';
+    for (let i = 0; i < len; i++) s += String.fromCharCode(this.byte());
+    return s;
+  }
+  done(): boolean {
+    return this.pos === this.bytes.length;
+  }
+}
+
+const FLAG = {
+  biome: 1,
+  weapon: 2,
+  huntSeconds: 4,
+  stampede: 8,
+  stampedeOn: 16,
+  omen: 32,
+  omenOn: 64,
+};
+
+export function encodeInputLog(log: InputLog): Uint8Array {
+  const w = new ByteWriter();
+  w.varint(log.v);
+  w.varint(log.seed >>> 0);
+  if (!/^[0-9a-f]{64}$/.test(log.contentHash)) throw new Error('contentHash must be 64 hex chars');
+  for (let i = 0; i < 64; i += 2) w.byte(parseInt(log.contentHash.slice(i, i + 2), 16));
+  w.byte(INPUT_KINDS.indexOf(log.inputKind));
+  const m = log.mode;
+  w.byte(MODES.indexOf(m.id));
+  let flags = 0;
+  if (m.biome !== undefined) flags |= FLAG.biome;
+  if (m.weapon !== undefined) flags |= FLAG.weapon;
+  if (m.huntSeconds !== undefined) flags |= FLAG.huntSeconds;
+  if (m.stampede !== undefined) flags |= FLAG.stampede | (m.stampede ? FLAG.stampedeOn : 0);
+  if (m.omen !== undefined) flags |= FLAG.omen | (m.omen ? FLAG.omenOn : 0);
+  w.byte(flags);
+  if (m.biome !== undefined) w.ascii(m.biome);
+  if (m.weapon !== undefined) w.ascii(m.weapon);
+  if (m.huntSeconds !== undefined) w.half(m.huntSeconds);
+
+  w.varint(log.commands.length);
+  for (const [delta, cmd] of log.commands) {
+    w.varint(delta);
+    w.byte(OPS.indexOf(cmd.t));
+    switch (cmd.t) {
+      case 'fire':
+      case 'fireHoldStart':
+      case 'fireHoldMove':
+        w.half(cmd.dx);
+        w.half(cmd.sy);
+        break;
+      case 'cameraTarget':
+        w.half(cmd.cx);
+        break;
+      case 'consumable':
+        w.varint(Math.max(0, Math.trunc(cmd.slot)));
+        break;
+      default:
+        break;
+    }
+  }
+  return w.result();
+}
+
+export function decodeInputLog(bytes: Uint8Array): InputLog {
+  const r = new ByteReader(bytes);
+  const v = r.varint();
+  if (v !== INPUT_LOG_VERSION) throw new Error(`unsupported replay version ${v}`);
+  const seed = r.varint() >>> 0;
+  let contentHash = '';
+  for (let i = 0; i < 32; i++) contentHash += r.byte().toString(16).padStart(2, '0');
+  const inputKind = INPUT_KINDS[r.byte()];
+  const id = MODES[r.byte()];
+  if (inputKind === undefined || id === undefined) throw new Error('bad replay header');
+  const flags = r.byte();
+  const mode: { -readonly [K in keyof ModeConfig]: ModeConfig[K] } = { id };
+  if (flags & FLAG.biome) mode.biome = r.ascii();
+  if (flags & FLAG.weapon) mode.weapon = r.ascii();
+  if (flags & FLAG.huntSeconds) mode.huntSeconds = r.half();
+  if (flags & FLAG.stampede) mode.stampede = (flags & FLAG.stampedeOn) !== 0;
+  if (flags & FLAG.omen) mode.omen = (flags & FLAG.omenOn) !== 0;
+
+  const count = r.varint();
+  const commands: (readonly [number, Command])[] = [];
+  for (let i = 0; i < count; i++) {
+    const delta = r.varint();
+    const cmd = readCommand(r, OPS[r.byte()]);
+    commands.push([delta, cmd]);
+  }
+  if (!r.done()) throw new Error('trailing bytes in replay log');
+  return { v, seed, contentHash, mode, inputKind, commands };
+}
+
+function readCommand(r: ByteReader, op: Command['t'] | undefined): Command {
+  switch (op) {
+    case 'fire':
+    case 'fireHoldStart':
+    case 'fireHoldMove':
+      return { t: op, dx: r.half(), sy: r.half() };
+    case 'cameraTarget':
+      return { t: op, cx: r.half() };
+    case 'consumable':
+      return { t: op, slot: r.varint() };
+    case 'fireHoldEnd':
+    case 'reload':
+    case 'gadget':
+      return { t: op };
+    case undefined:
+      throw new Error('bad replay command');
+  }
+}
+
+// --- base64url -----------------------------------------------------------------------------
+
+const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+
+export function toBase64Url(bytes: Uint8Array): string {
+  let out = '';
+  for (let i = 0; i < bytes.length; i += 3) {
+    const a = bytes[i] ?? 0;
+    const b = bytes[i + 1];
+    const c = bytes[i + 2];
+    const n = (a << 16) | ((b ?? 0) << 8) | (c ?? 0);
+    out += ALPHABET.charAt((n >> 18) & 63) + ALPHABET.charAt((n >> 12) & 63);
+    if (b !== undefined) out += ALPHABET.charAt((n >> 6) & 63);
+    if (c !== undefined) out += ALPHABET.charAt(n & 63);
+  }
+  return out;
+}
+
+export function fromBase64Url(text: string): Uint8Array {
+  const values: number[] = [];
+  for (const ch of text) {
+    const v = ALPHABET.indexOf(ch);
+    if (v < 0) throw new Error('invalid base64url');
+    values.push(v);
+  }
+  if (values.length % 4 === 1) throw new Error('invalid base64url length');
+  const out: number[] = [];
+  for (let i = 0; i < values.length; i += 4) {
+    const n =
+      ((values[i] ?? 0) << 18) |
+      ((values[i + 1] ?? 0) << 12) |
+      ((values[i + 2] ?? 0) << 6) |
+      (values[i + 3] ?? 0);
+    out.push((n >> 16) & 0xff);
+    if (i + 2 < values.length) out.push((n >> 8) & 0xff);
+    if (i + 3 < values.length) out.push(n & 0xff);
+  }
+  return Uint8Array.from(out);
+}
+
+export function encodeInputLogText(log: InputLog): string {
+  return toBase64Url(encodeInputLog(log));
+}
+
+export function decodeInputLogText(text: string): InputLog {
+  return decodeInputLog(fromBase64Url(text));
+}
