@@ -178,6 +178,25 @@ describe('Sim hunt structure', () => {
     expect(sim.snapshot().cameraX).toBe(1234.5);
   });
 
+  it('ignores non-finite fire positions and clamps huge ones to the widest screen', () => {
+    const sim = newSim();
+    expect(
+      stepEvents(sim, [{ t: 'fire', dx: Number.NaN, sy: 5 }]).some((e) => e.type === 'shotFired'),
+    ).toBe(false);
+    for (let i = 0; i < 10; i++) stepEvents(sim);
+    const shot = stepEvents(sim, [{ t: 'fire', dx: -1e300, sy: 1e300 }]).find(
+      (e) => e.type === 'shotFired',
+    );
+    expect(shot).toMatchObject({ dx: -1260, sy: 1080 });
+  });
+
+  it('rejects hunt lengths that a replay could not store exactly', () => {
+    expect(() => newSim(1, { mode: { id: 'classic', huntSeconds: 60.3 } })).toThrow(/0.5/);
+    expect(newSim(1, { mode: { id: 'classic', huntSeconds: 60.5 } }).snapshot().durationTicks).toBe(
+      3630,
+    );
+  });
+
   it('quantises fire positions to 0.5 design px', () => {
     const sim = newSim();
     const shot = stepEvents(sim, [{ t: 'fire', dx: 10.26, sy: 99.9 }]).find(

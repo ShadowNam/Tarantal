@@ -66,7 +66,9 @@ export function parseContent(raw: RawContent): ParseResult {
   }
 
   const biomes: Biome[] = [];
-  for (const [file, value] of Object.entries(raw.biomes).sort(([a], [b]) => a.localeCompare(b))) {
+  // Locale-free order: the biome order feeds contentHash, which must match in Node and browsers.
+  const biomeEntries = Object.entries(raw.biomes).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+  for (const [file, value] of biomeEntries) {
     const biome = parseFile(BiomeSchema, file, value, errors);
     if (biome === undefined) continue;
     const expected = `biomes/${biome.id}.json`;

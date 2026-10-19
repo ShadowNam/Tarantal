@@ -3,6 +3,7 @@
 // zig-zag half-pixel integers, the same 0.5 quantisation the sim applies) and then base64url.
 // Deflate is added at the share/challenge-link boundary (M7), outside the sim (D-018).
 import { quantiseHalf } from '../camera';
+import { sanitiseCommand } from '../commands';
 import type { Command, InputKind, ModeConfig, ModeId } from '../types';
 
 export const INPUT_LOG_VERSION = 1;
@@ -36,29 +37,16 @@ export function createRecorder(header: InputLogHeader): InputRecorder {
   let lastTick = 0;
   return {
     record(tick, list) {
-      for (const cmd of list) {
-        commands.push([tick - lastTick, normaliseCommand(cmd)]);
+      for (const raw of list) {
+        // Drop exactly what the sim ignores, so every recorded command is encodable.
+        const cmd = sanitiseCommand(raw);
+        if (cmd === null) continue;
+        commands.push([tick - lastTick, cmd]);
         lastTick = tick;
       }
     },
     toLog: () => ({ v: INPUT_LOG_VERSION, ...header, commands: [...commands] }),
   };
-}
-
-/** Commands as they will come back from decode (values quantised to 0.5, slots integral). */
-export function normaliseCommand(cmd: Command): Command {
-  switch (cmd.t) {
-    case 'fire':
-    case 'fireHoldStart':
-    case 'fireHoldMove':
-      return { t: cmd.t, dx: quantiseHalf(cmd.dx), sy: quantiseHalf(cmd.sy) };
-    case 'cameraTarget':
-      return { t: 'cameraTarget', cx: quantiseHalf(cmd.cx) };
-    case 'consumable':
-      return { t: 'consumable', slot: Math.max(0, Math.trunc(cmd.slot)) };
-    default:
-      return cmd;
-  }
 }
 
 /** Absolute tick of every command. */

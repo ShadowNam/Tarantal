@@ -6,7 +6,8 @@
 // against the positions the player saw in the previous snapshot.
 import type { Biome, ContentBundle } from '../content/schemas';
 import { behaviourOf, isHittable, updateBird, viewOf, type Bird } from './birds/Bird';
-import { clampCameraX, quantiseHalf } from './camera';
+import { clampCameraX } from './camera';
+import { sanitiseCommand } from './commands';
 import { secondsToTicks } from './clock';
 import { createDirector, type DirectorContext } from './director/SpawnDirector';
 import { FLYOVER_EVENTS, scheduleWorldEvents } from './director/events';
@@ -64,7 +65,10 @@ function resolveSetup(content: ContentBundle, config: SimConfig): HuntSetup {
   if (weapon.projectile !== null) {
     throw new Error(`${weaponId}: projectile weapons arrive in M8 (delayed hitscan)`);
   }
-  if (!(huntSeconds > 0)) throw new Error('huntSeconds must be positive');
+  // Replays store huntSeconds on the 0.5 grid, so only allow values that survive that.
+  if (!(huntSeconds > 0) || !Number.isInteger(huntSeconds * 2)) {
+    throw new Error('huntSeconds must be a positive multiple of 0.5');
+  }
   for (const event of biome.events) {
     if (!FLYOVER_EVENTS.has(event.id) || event.creature === undefined) continue;
     const c = content.birds.creatures.find((x) => x.id === event.creature);
@@ -73,10 +77,6 @@ function resolveSetup(content: ContentBundle, config: SimConfig): HuntSetup {
     }
   }
   return { biome, weapon, huntSeconds };
-}
-
-function isFiniteNumber(v: unknown): v is number {
-  return typeof v === 'number' && Number.isFinite(v);
 }
 
 export function createSim(config: SimConfig): Sim {
@@ -177,7 +177,7 @@ export function createSim(config: SimConfig): Sim {
   }
 
   // --- shooting ----------------------------------------------------------------------------
-  function fire(dxRaw: number, syRaw: number): void {
+  function fire(dx: number, sy: number): void {
     const outcome = tryFire(weaponState, timing);
     if (outcome.kind === 'blocked') return;
     if (outcome.kind === 'empty') {
@@ -188,8 +188,6 @@ export function createSim(config: SimConfig): Sim {
     if (outcome.interrupted) {
       emit({ type: 'reloadInterrupted', tick, shells: weaponState.shells + 1 });
     }
-    const dx = quantiseHalf(dxRaw);
-    const sy = quantiseHalf(syRaw);
     const shotId = nextShotId++;
     stats.shots++;
     emit({
@@ -239,13 +237,14 @@ export function createSim(config: SimConfig): Sim {
     const damage = applyShotDamage(birds, pelletsOn, timing.pellets);
     const byId = new Map(birds.map((b) => [b.id, b]));
     const bagged: { bird: Bird; behaviour: BagBehaviour }[] = [];
+    const armorBonuses: number[] = [];
     for (const d of damage.outcomes) {
       const b = byId.get(d.birdId);
       if (b === undefined) continue;
       if (d.kind === 'armor') {
         emit({ type: 'armorKnocked', tick, shotId, birdId: b.id, armorLeft: d.armorLeft });
         if (b.creature.kind === 'boss' && b.creature.armorHitBonus !== undefined) {
-          awardBonus('armor', b.creature.armorHitBonus);
+          armorBonuses.push(b.creature.armorHitBonus);
         }
       } else if (d.kind === 'hit') {
         emit({ type: 'targetHit', tick, shotId, birdId: b.id, hitsLeft: d.hitsLeft });
@@ -318,6 +317,8 @@ export function createSim(config: SimConfig): Sim {
       emit({ type: 'penaltyApplied', tick, birdId: bird.id, creature: c.id, points: c.penalty });
     }
 
+    // Event bonuses use the post-shot streak, like the bags (D-018).
+    for (const bonus of armorBonuses) awardBonus('armor', bonus);
     const flies = twoFliesBonus(targets.length, scoring.twoFlies);
     if (flies > 0) {
       stats.twoFlies++;
@@ -344,17 +345,19 @@ export function createSim(config: SimConfig): Sim {
     emit({ type: 'bonusAwarded', tick, bonus, base, award });
   }
 
-  function apply(cmd: Command): void {
+  function apply(raw: Command): void {
+    const cmd = sanitiseCommand(raw);
+    if (cmd === null) return;
     switch (cmd.t) {
       case 'fire':
-        if (isFiniteNumber(cmd.dx) && isFiniteNumber(cmd.sy)) fire(cmd.dx, cmd.sy);
+        fire(cmd.dx, cmd.sy);
         return;
       case 'reload':
         if (startReload(weaponState, timing))
           emit({ type: 'reloadStarted', tick, perShell: timing.perShell });
         return;
       case 'cameraTarget':
-        if (isFiniteNumber(cmd.cx)) cameraX = clampCameraX(cmd.cx);
+        cameraX = cmd.cx;
         return;
       // Hold-to-fire weapons (M8), the gadget (M3) and consumables (M6) are recorded but inert.
       case 'fireHoldStart':

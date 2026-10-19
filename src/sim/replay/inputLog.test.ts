@@ -61,8 +61,31 @@ describe('InputLog', () => {
     const log = rec.toLog();
     expect(log.commands).toEqual([
       [5, { t: 'cameraTarget', cx: 1000.5 }],
-      [0, { t: 'fire', dx: 1, sy: -2.5 }],
+      [0, { t: 'fire', dx: 1, sy: 0 }],
       [7, { t: 'reload' }],
+    ]);
+    expect(decodeInputLog(encodeInputLog(log))).toEqual(log);
+  });
+
+  it('drops commands the sim ignores and clamps the rest, so any live input stays encodable', () => {
+    const rec = createRecorder({
+      seed: 1,
+      contentHash: HASH,
+      mode: { id: 'classic' },
+      inputKind: 'touch',
+    });
+    rec.record(1, [
+      { t: 'fire', dx: Number.NaN, sy: 10 },
+      { t: 'fire', dx: Infinity, sy: 10 },
+      { t: 'cameraTarget', cx: Number.NaN },
+      { t: 'consumable', slot: -1 },
+      { t: 'fire', dx: 1e300, sy: -1e300 },
+      { t: 'cameraTarget', cx: 1e300 },
+    ]);
+    const log = rec.toLog();
+    expect(log.commands).toEqual([
+      [1, { t: 'fire', dx: 1260, sy: 0 }],
+      [0, { t: 'cameraTarget', cx: 4160 }],
     ]);
     expect(decodeInputLog(encodeInputLog(log))).toEqual(log);
   });

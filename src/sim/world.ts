@@ -19,3 +19,6 @@ export const LAYER_BLEED_PX = 300;
 export function coreWidth(scrollFactor: number): number {
   return REFERENCE_WIDTH + CAMERA_RANGE * scrollFactor;
 }
+
+/** Half the widest visible design width (21:9): no tap can be further from the screen centre. */
+export const MAX_HALF_VIEW_WIDTH = 1260;

@@ -43,7 +43,9 @@ describe('golden replays', () => {
     tweaked.scoring.planes.far.base = 26;
     const log = decodeInputLogText(g.log);
     expect(runReplay(log, tweaked).eventHash).not.toBe(g.expected.eventHash);
-    const verdict = verifyReplay(log, tweaked, 'f'.repeat(64), g.expected.eventHash);
+    // Same content hash as the log, so verify reaches (and fails) the event-hash comparison.
+    const verdict = verifyReplay(log, tweaked, log.contentHash, g.expected.eventHash);
     expect(verdict.ok).toBe(false);
+    if (!verdict.ok) expect(verdict.reason).toMatch(/event hash/);
   });
 });

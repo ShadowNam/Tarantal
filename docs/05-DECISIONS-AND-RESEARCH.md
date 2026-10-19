@@ -90,6 +90,12 @@ plane layer scroll factors and `panoramaWidth` against it. (7) Golden replays ru
 Kettie projectiles (M8; the sim rejects projectile weapons until then), flocks/Whole Flock wiring and
 the Vuvuzela (M3), secrets, crates, kwêvoël perch and boss spawns (M3/M4). Sim test files may use
 `Math.*` as a reference (lint guard proves every other sim rule still applies to them).
+(9) *Command gate:* `src/sim/commands.ts` is the one filter for the sim and the replay recorder —
+non-finite values are dropped, positions are quantised to 0.5 and clamped to a real screen
+(|dx| ≤ 1260, 0 ≤ sy ≤ 1080, camera to its range), and `huntSeconds` must be a multiple of 0.5, so
+every accepted command is encodable and replays identically. (10) Kept in code as structure rather
+than tuning: the spawn-credit jitter (0.5–1.5 of the mean interval), 50/50 entry side and facing, and
+non-targets going down to a single pellet. Move them to `birds.json` if tuning ever needs them.
 
 ## 3. Research notes (with sources)
 
