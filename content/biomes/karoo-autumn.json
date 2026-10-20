@@ -90,19 +90,71 @@
         "oy": 120
       },
       "secret": {
+        "$comment": "Shoot the 4 marked blades while the rotor spins, all within windowSeconds of the first (D-021). Part offsets are relative to the rotor hub and turn with it.",
         "type": "multiHit",
         "parts": [
-          "blade_n",
-          "blade_e",
-          "blade_s",
-          "blade_w"
+          {
+            "id": "blade_n",
+            "shape": {
+              "type": "ellipse",
+              "rx": 26,
+              "ry": 26,
+              "ox": 0,
+              "oy": -72
+            }
+          },
+          {
+            "id": "blade_e",
+            "shape": {
+              "type": "ellipse",
+              "rx": 26,
+              "ry": 26,
+              "ox": 72,
+              "oy": 0
+            }
+          },
+          {
+            "id": "blade_s",
+            "shape": {
+              "type": "ellipse",
+              "rx": 26,
+              "ry": 26,
+              "ox": 0,
+              "oy": 72
+            }
+          },
+          {
+            "id": "blade_w",
+            "shape": {
+              "type": "ellipse",
+              "rx": 26,
+              "ry": 26,
+              "ox": -72,
+              "oy": 0
+            }
+          }
         ],
-        "partsMoveWith": "rotor",
+        "rotor": {
+          "ox": 0,
+          "oy": -70,
+          "degPerSec": 75
+        },
+        "windowSeconds": 8,
         "reward": {
           "points": 100,
           "event": "reservoirFlush",
-          "flushBirds": 12
+          "at": "reservoir",
+          "flushBirds": 12,
+          "reaction": {
+            "effect": "flush",
+            "scope": "area",
+            "radiusPx": 700
+          }
         }
+      },
+      "perch": {
+        "ox": -150,
+        "oy": -92
       }
     },
     {
@@ -134,12 +186,29 @@
       },
       "secret": {
         "type": "singleHit",
-        "part": "spare_wheel",
+        "part": {
+          "id": "spare_wheel",
+          "shape": {
+            "type": "ellipse",
+            "rx": 32,
+            "ry": 36,
+            "ox": -180,
+            "oy": -40
+          }
+        },
+        "oncePerHunt": true,
         "reward": {
           "points": 25,
           "event": "carAlarm",
-          "effect": "allHiddenJump"
+          "reaction": {
+            "effect": "flush",
+            "scope": "all"
+          }
         }
+      },
+      "perch": {
+        "ox": -280,
+        "oy": 40
       }
     },
     {
@@ -150,7 +219,16 @@
       "asset": "karoo/potjie",
       "secret": {
         "type": "singleHit",
-        "part": "lid",
+        "part": {
+          "id": "lid",
+          "shape": {
+            "type": "rect",
+            "w": 112,
+            "h": 34,
+            "ox": 0,
+            "oy": -40
+          }
+        },
         "oncePerHunt": true,
         "reward": {
           "addTimeSeconds": 5,
@@ -166,7 +244,16 @@
       "asset": "karoo/fence_bell",
       "secret": {
         "type": "singleHit",
-        "part": "bell",
+        "part": {
+          "id": "bell",
+          "shape": {
+            "type": "ellipse",
+            "rx": 30,
+            "ry": 28,
+            "ox": 0,
+            "oy": -20
+          }
+        },
         "cooldownSeconds": 30,
         "reward": {
           "powerup": "meerkat_spotter"
@@ -240,6 +327,10 @@
       "window": [
         0.11,
         0.89
+      ],
+      "stayMs": [
+        6000,
+        10000
       ]
     },
     {
@@ -254,6 +345,12 @@
       "window": [
         0.11,
         0.89
+      ],
+      "plane": "mid",
+      "radiusPx": 150,
+      "lifeSeconds": [
+        8,
+        12
       ]
     },
     {
@@ -273,6 +370,10 @@
       "window": [
         0.39,
         0.67
+      ],
+      "stayMs": [
+        10000,
+        14000
       ]
     }
   ],

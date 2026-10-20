@@ -1,8 +1,18 @@
 {
-  "$comment": "Per-mode hunt setup. Season Run hunt length lives in run.json (huntSeconds); Season Run weapon and biome come from the run state.",
+  "$comment": "Per-mode hunt setup. Season Run hunt length lives in run.json (huntSeconds); Season Run weapon and biome come from the run state. Omen (biome weather): Classic off, Daily on (D-021).",
   "version": 1,
   "modes": {
-    "classic": { "huntSeconds": 90, "weapon": "dubbelloop", "biome": "karoo-autumn" },
-    "daily": { "huntSeconds": 90, "weapon": "dubbelloop", "biome": "karoo-autumn" }
+    "classic": {
+      "huntSeconds": 90,
+      "weapon": "dubbelloop",
+      "biome": "karoo-autumn",
+      "omen": false
+    },
+    "daily": {
+      "huntSeconds": 90,
+      "weapon": "dubbelloop",
+      "biome": "karoo-autumn",
+      "omen": true
+    }
   }
 }

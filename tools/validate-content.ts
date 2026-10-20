@@ -1,5 +1,5 @@
 // Validates every JSON file in content/ against the Zod schemas, then checks cross-references.
-// Usage: npx tsx tools/validate-content.ts [--strict]
+// Usage: npx tsx tools/validate-content.ts [--strict] [--dir <content dir>]
 //   --strict  turns warnings (content due in later milestones) into errors. CI uses it from M8.
 import { join } from 'node:path';
 import { parseContent } from '../src/content/bundle';
@@ -10,8 +10,10 @@ import { readFileSync } from 'node:fs';
 
 const root = join(import.meta.dirname, '..');
 const strict = process.argv.includes('--strict');
+const dirArg = process.argv.indexOf('--dir');
+const contentDir = dirArg >= 0 ? (process.argv[dirArg + 1] ?? '') : join(root, 'content');
 
-const raw = readContentDir(join(root, 'content'));
+const raw = readContentDir(contentDir);
 const parsed = parseContent(raw);
 const fileNames = [...Object.keys(raw.files), ...Object.keys(raw.biomes)].sort();
 
@@ -22,7 +24,7 @@ if (!parsed.ok) {
 }
 
 // Client-only feel file (not part of the sim bundle, D-019).
-const feel = parseFeel(JSON.parse(readFileSync(join(root, 'content/client/feel.json'), 'utf8')));
+const feel = parseFeel(JSON.parse(readFileSync(join(contentDir, 'client/feel.json'), 'utf8')));
 if (!feel.ok) {
   console.error('content: client/feel.json FAILED');
   for (const e of feel.errors) console.error(`  ✗ client/feel.json: ${e}`);
