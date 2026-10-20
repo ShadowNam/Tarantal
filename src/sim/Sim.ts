@@ -185,6 +185,8 @@ function checkSeason(content: ContentBundle, mode: string, season: SeasonHuntCon
     if (!content.charms.charms.some((c) => c.id === id)) throw new Error(`unknown charm ${id}`);
   }
   if (season.charms.length > content.charms.slots) throw new Error('more charms than slots');
+  if (new Set(season.charms).size !== season.charms.length)
+    throw new Error('a charm is equipped twice');
   for (const id of season.consumables) {
     if (id !== null && !content.powerups.powerups.some((p) => p.id === id))
       throw new Error(`unknown consumable ${id}`);
