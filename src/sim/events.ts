@@ -3,7 +3,13 @@
 import type { WorldEventId } from '../content/schemas';
 import { fnv1a32 } from './rng';
 import type { BreakdownStep } from './scoring/pipeline';
-import type { BagBehaviour, BirdMotion, PlaneId } from './types';
+import type { BagBehaviour, BirdMotion, FlockState, PlaneId } from './types';
+
+/** What threatened a flock (GDD §6.2). */
+export type ThreatSource = 'shot' | 'silentBag' | 'event';
+/** Why a flock changed state. */
+export type FlockCause =
+  'threat' | 'window' | 'timeout' | 'landed' | 'settled' | 'gadget' | 'event' | 'stampede';
 
 export type BonusId = 'twoFlies' | 'armor' | 'wholeFlock' | 'secretChain';
 
@@ -107,6 +113,64 @@ export type SimEvent =
       readonly tick: number;
       readonly birdId: number;
       readonly reason: 'exited' | 'ducked' | 'bagged';
+    }
+  | {
+      readonly type: 'flockSpawned';
+      readonly tick: number;
+      readonly flockId: number;
+      readonly plane: PlaneId;
+      readonly size: number;
+      readonly state: FlockState;
+      /** Plane x of the flock's centre. */
+      readonly x: number;
+    }
+  | {
+      readonly type: 'flockThreatened';
+      readonly tick: number;
+      readonly flockId: number;
+      readonly source: ThreatSource;
+    }
+  | {
+      readonly type: 'flockStateChanged';
+      readonly tick: number;
+      readonly flockId: number;
+      readonly from: FlockState;
+      readonly to: FlockState;
+      readonly cause: FlockCause;
+      /** Plane position of the flock's centre (bubbles, stings). */
+      readonly plane: PlaneId;
+      readonly x: number;
+      readonly y: number;
+    }
+  | {
+      /** Every member bagged while eligible (GDD §6.4); a bonusAwarded{wholeFlock} follows. */
+      readonly type: 'flockWiped';
+      readonly tick: number;
+      readonly flockId: number;
+      readonly size: number;
+      readonly plane: PlaneId;
+      readonly x: number;
+      readonly y: number;
+    }
+  | {
+      readonly type: 'flockRemoved';
+      readonly tick: number;
+      readonly flockId: number;
+      readonly reason: 'bagged' | 'exited';
+    }
+  | {
+      readonly type: 'gadgetUsed';
+      readonly tick: number;
+      readonly gadget: string;
+      readonly chargesLeft: number;
+      /** Flocks it sent to FLUSH. */
+      readonly flocks: number;
+    }
+  | {
+      readonly type: 'gadgetDenied';
+      readonly tick: number;
+      readonly gadget: string;
+      readonly reason: 'noCharges' | 'cooldown';
     }
   | { readonly type: 'worldEvent'; readonly tick: number; readonly event: WorldEventId }
   | { readonly type: 'stampedeStarted'; readonly tick: number }

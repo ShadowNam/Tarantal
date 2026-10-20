@@ -1,7 +1,9 @@
-// A single bird in the sim. M1 has two lightweight motions (GDD §6.5, §5.2): fly-overs across
-// the mid/far sky and near-plane pop-ups. Flocks (M3) add their own motion on top of this.
+// A single bird in the sim. Two lightweight motions (GDD §6.5, §5.2): fly-overs across the
+// mid/far sky and near-plane pop-ups. Flock members (motion 'flock', GDD §6) are moved by their
+// flock (src/sim/flocks/), not by updateBird().
 import type { Creature } from '../../content/schemas';
 import { cos, sin } from '../detmath';
+import type { FlockMember } from '../flocks/Flock';
 import type { BagBehaviour, BirdMotion, BirdPhase, BirdView, PlaneId } from '../types';
 import { coreWidth, LAYER_BLEED_PX } from '../world';
 
@@ -39,15 +41,32 @@ export interface Bird {
   // damage
   armorLeft: number;
   hitsLeft: number;
+  /** Flock members only. */
+  readonly fm: FlockMember | null;
 }
 
+/** Behaviour when bagged (scoring.json behaviourAdd): forage +0, alert +0, run +0.5, flying +1.0. */
 export function behaviourOf(bird: Bird): BagBehaviour {
-  return bird.motion === 'flyover' ? 'flying' : 'forage';
+  if (bird.motion === 'flyover') return 'flying';
+  if (bird.motion === 'popup') return 'forage';
+  switch (bird.phase) {
+    case 'alert':
+      return 'alert';
+    case 'run':
+    case 'launch':
+    case 'land':
+      return 'run';
+    case 'flap':
+    case 'glide':
+      return 'flying';
+    default:
+      return 'forage';
+  }
 }
 
 /** Pop-ups can be shot while rising and staring, not while ducking back into the grass. */
 export function isHittable(bird: Bird): boolean {
-  return bird.motion === 'flyover' || bird.phase !== 'duck';
+  return bird.motion !== 'popup' || bird.phase !== 'duck';
 }
 
 export function damageOf(creature: BirdCreature): { armorLeft: number; hitsLeft: number } {
@@ -100,6 +119,50 @@ export function createFlyover(s: FlyoverSpec): Bird {
     stareTicks: 0,
     duckTicks: 0,
     ...damageOf(s.creature),
+    fm: null,
+  };
+}
+
+export interface FlockBirdSpec {
+  readonly id: number;
+  readonly creature: BirdCreature;
+  readonly plane: PlaneId;
+  readonly scrollFactor: number;
+  readonly planeScale: number;
+  readonly x: number;
+  readonly y: number;
+  readonly facing: 1 | -1;
+  readonly member: FlockMember;
+}
+
+export function createFlockBird(s: FlockBirdSpec): Bird {
+  const body = s.creature.hitbox.body;
+  return {
+    id: s.id,
+    creature: s.creature,
+    plane: s.plane,
+    motion: 'flock',
+    x: s.x,
+    y: s.y,
+    facing: s.facing,
+    phase: 'walk',
+    phaseTicks: 0,
+    age: 0,
+    vx: 0,
+    baseY: s.y,
+    bobAmp: 0,
+    bobPeriodTicks: 1,
+    bobOffset: 0,
+    exitMarginPx: (body.rx + Math.abs(body.ox)) * 2 * s.planeScale,
+    scrollFactor: s.scrollFactor,
+    groundY: s.y,
+    hideDepth: 0,
+    grassLine: 0,
+    riseTicks: 0,
+    stareTicks: 0,
+    duckTicks: 0,
+    ...damageOf(s.creature),
+    fm: s.member,
   };
 }
 
@@ -143,15 +206,17 @@ export function createPopup(s: PopupSpec): Bird {
     stareTicks: s.stareTicks,
     duckTicks: s.duckTicks,
     ...damageOf(s.creature),
+    fm: null,
   };
 }
 
 export type BirdExit = 'exited' | 'ducked' | null;
 
-/** Advances one tick. Returns why the bird leaves, if it does. */
+/** Advances one tick. Returns why the bird leaves, if it does. Flock members only age here. */
 export function updateBird(b: Bird): BirdExit {
   b.age++;
   b.phaseTicks++;
+  if (b.motion === 'flock') return null;
   if (b.motion === 'flyover') {
     b.x += b.vx;
     b.y = b.baseY + b.bobAmp * sin((2 * Math.PI * b.age) / b.bobPeriodTicks + b.bobOffset);
@@ -176,7 +241,7 @@ export function updateBird(b: Bird): BirdExit {
   return null;
 }
 
-function enter(b: Bird, phase: BirdPhase): void {
+export function enter(b: Bird, phase: BirdPhase): void {
   b.phase = phase;
   b.phaseTicks = 0;
 }
@@ -199,6 +264,7 @@ export function viewOf(b: Bird): BirdView {
     phase: b.phase,
     behaviour: behaviourOf(b),
     hittable: isHittable(b),
+    flockId: b.fm?.flockId ?? null,
     ground: b.motion === 'popup' ? b.grassLine : null,
   };
 }

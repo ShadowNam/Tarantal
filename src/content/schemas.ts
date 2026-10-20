@@ -203,6 +203,18 @@ export const BirdsSchema = obj({
       flushStaggerMs: range(nonNeg),
       flightMs: range(pos),
       settleTimeoutMs: range(pos),
+      /** Foraging: members wander around a goal that moves within this radius of the flock. */
+      forageWanderPx: pos,
+      /** How often the foraging goal moves. */
+      forageGoalMs: range(pos),
+      /** After landing, each bird runs on for this long before the flock settles. */
+      landRunMs: range(pos),
+      /** Gliding birds sink at this speed (design px/s at the mid plane) until they land. */
+      glideSinkPxPerSec: pos,
+      /** New flocks start scattered within this radius (design px at the mid plane). */
+      spawnSpreadPx: pos,
+      /** A new flock keeps at least this far (plane px) from other flocks on its plane. */
+      spawnSpacingPx: nonNeg,
       boids: obj({
         separation: nonNeg,
         alignment: nonNeg,
@@ -631,7 +643,13 @@ export const BiomeSchema = obj({
         'keyframes must be sorted by t',
       ),
     /** Surge rates used during the Stampede (its length comes from scoring.json, Tech §3.6). */
-    stampede: obj({ flyoversPerMin: nonNeg, popupsPerMin: nonNeg }),
+    stampede: obj({
+      flyoversPerMin: nonNeg,
+      popupsPerMin: nonNeg,
+      /** GDD §8 "mass run/flush": live flocks jump to this state when the Stampede starts, and
+       *  flocks spawned during it enter in it. */
+      flockState: z.enum(['run', 'flush']).optional(),
+    }),
     maxBirdsOnScreen: posInt,
     maxFlocks: posInt,
   }),

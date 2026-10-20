@@ -25,6 +25,18 @@
       4000,
       7000
     ],
+    "forageWanderPx": 220,
+    "forageGoalMs": [
+      2000,
+      4500
+    ],
+    "landRunMs": [
+      300,
+      800
+    ],
+    "glideSinkPxPerSec": 170,
+    "spawnSpreadPx": 150,
+    "spawnSpacingPx": 700,
     "boids": {
       "separation": 1.4,
       "alignment": 1.0,

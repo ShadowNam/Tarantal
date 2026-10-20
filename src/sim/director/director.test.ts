@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { loadContent } from '../../../tools/testContent';
 import { createRng } from '../rng';
 import { scheduleWorldEvents } from './events';
-import { pacingAt } from './pacing';
+import { flockTargetsAt, pacingAt } from './pacing';
 
 const biome = loadContent().biomes[0];
 if (biome === undefined) throw new Error('no biome');
@@ -14,6 +14,22 @@ describe('pacing', () => {
     const mid = pacingAt(biome.pacing, (0.5 + 0.83) / 2, false);
     expect(mid.flyoversPerMin).toBeCloseTo(18, 9);
     expect(pacingAt(biome.pacing, 1, false)).toEqual({ flyoversPerMin: 22, popupsPerMin: 6 });
+  });
+
+  it('flock targets step at each keyframe (warm-up → build), never interpolated', () => {
+    const keys = biome.pacing.keyframes;
+    const k1 = keys[1];
+    if (k1 === undefined) throw new Error('need two keyframes');
+    const at = (t: number) => flockTargetsAt(biome.pacing, t);
+    expect(at(0)).toEqual({
+      near: 0,
+      mid: keys[0]?.flocks.mid ?? 0,
+      far: keys[0]?.flocks.far ?? 0,
+    });
+    expect(at(k1.t - 0.001)).toEqual(at(0));
+    expect(at(k1.t)).toEqual({ near: 0, mid: k1.flocks.mid ?? 0, far: k1.flocks.far ?? 0 });
+    const last = keys[keys.length - 1];
+    expect(at(1)).toEqual({ near: 0, mid: last?.flocks.mid ?? 0, far: last?.flocks.far ?? 0 });
   });
 
   it('switches to the surge profile during the Stampede', () => {

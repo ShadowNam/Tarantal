@@ -39,4 +39,39 @@ describe('sim performance budget', () => {
     expect(minBirds).toBeGreaterThanOrEqual(50);
     expect(mean).toBeLessThan(1.5);
   });
+
+  it('step() averages ≤ 1.5 ms with ~60 flock birds steering, running and flushing', () => {
+    const content = structuredClone(loadContent());
+    content.birds.flockDefaults.sizeMin = 15;
+    content.birds.flockDefaults.sizeMax = 15;
+    for (const b of content.biomes) {
+      b.pacing.maxFlocks = 8;
+      for (const k of b.pacing.keyframes) {
+        k.flocks = { mid: 2, far: 2 };
+        k.flyoversPerMin = 0;
+        k.popupsPerMin = 0;
+      }
+    }
+    const sim = createSim({ seed: 2, content, mode: { id: 'classic' }, inputKind: 'touch' });
+    let total = 0;
+    let steps = 0;
+    let maxBirds = 0;
+    for (let i = 0; i < 1200; i++) {
+      const cmds: Command[] = [];
+      if (i % 6 === 0)
+        cmds.push({ t: 'fire', dx: ((i * 37) % 1600) - 800, sy: 600 + ((i * 53) % 200) });
+      if (i % 30 === 0) cmds.push({ t: 'reload' });
+      if (i % 200 === 0) cmds.push({ t: 'cameraTarget', cx: 960 + ((i * 7) % 3200) });
+      const t0 = performance.now();
+      sim.step(cmds);
+      total += performance.now() - t0;
+      steps++;
+      sim.drainEvents();
+      maxBirds = Math.max(maxBirds, sim.snapshot().birds.length);
+    }
+    const mean = total / steps;
+    console.log(`flocks step(): mean ${(mean * 1000).toFixed(1)} µs, up to ${maxBirds} birds`);
+    expect(maxBirds).toBeGreaterThanOrEqual(55);
+    expect(mean).toBeLessThan(1.5);
+  });
 });

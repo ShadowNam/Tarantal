@@ -1,19 +1,32 @@
 // The deterministic hunt simulation (Tech §3.1): createSim(config) → step(commands) once per
 // 1/60 s tick, snapshot() for rendering, drainEvents() for audio/FX/UI/analytics.
 //
-// Tick order: Stampede start → due world events → commands (in order) → weapon timers →
-// director spawns → bird movement/despawns → tick++ → end check. Shots therefore resolve
-// against the positions the player saw in the previous snapshot.
+// Tick order: Stampede start → due world events → commands (in order) → weapon/gadget timers →
+// director spawns (fly-overs, pop-ups, flocks) → flock FSM + steering → bird movement/despawns →
+// tick++ → end check. Shots therefore resolve against the positions the player saw in the
+// previous snapshot. A shot resolves damage first (a bag scores at the behaviour the bird had),
+// then Whole Flock, then the threats it makes (GDD §6.1–6.4).
 import type { Biome, ContentBundle } from '../content/schemas';
 import { behaviourOf, isHittable, updateBird, viewOf, type Bird } from './birds/Bird';
-import { clampCameraX } from './camera';
+import { clampCameraX, planeCentreX } from './camera';
 import { sanitiseCommand } from './commands';
-import { secondsToTicks } from './clock';
+import { msToTicks, secondsToTicks } from './clock';
 import { createDirector, type DirectorContext } from './director/SpawnDirector';
 import { FLYOVER_EVENTS, scheduleWorldEvents } from './director/events';
-import type { SimEvent } from './events';
+import type { FlockCause, SimEvent, ThreatSource } from './events';
+import { centroid, flockParams, flockView, type Flock } from './flocks/Flock';
+import { applyThreat, forceState, tickFsm, type Transition } from './flocks/fsm';
+import { moveFlock } from './flocks/steering';
+import {
+  reactionTargets,
+  shotThreats,
+  type FlockThreat,
+  type PlaneGeometry,
+  type ReactionEffect,
+  type ReactionScope,
+} from './flocks/threats';
 import { createRng } from './rng';
-import { twoFliesBonus } from './scoring/bonuses';
+import { twoFliesBonus, wholeFlockBonus } from './scoring/bonuses';
 import { frenzyMul, nextStreak } from './scoring/frenzy';
 import { scoreBag, scoreEventBonus } from './scoring/pipeline';
 import type { BagBehaviour, Command, HuntResult, PlaneId, SimConfig, SimState } from './types';
@@ -93,7 +106,24 @@ export function createSim(config: SimConfig): Sim {
   const rng = createRng(config.seed);
   const timing = weaponTiming(weapon);
   const weaponState = createWeaponState(timing);
-  const director = createDirector({ content, biome, durationTicks, spawns: rng.stream('spawns') });
+  const fParams = flockParams(content);
+  const flockRng = rng.stream('flockNoise');
+  const director = createDirector({
+    content,
+    biome,
+    durationTicks,
+    spawns: rng.stream('spawns'),
+    flocks: rng.stream('flocks'),
+    flockParams: fParams,
+  });
+  const planeGeo: PlaneGeometry = {
+    near: { scrollFactor: scoring.planes.near.scrollFactor, scale: scoring.planes.near.scale },
+    mid: { scrollFactor: scoring.planes.mid.scrollFactor, scale: scoring.planes.mid.scale },
+    far: { scrollFactor: scoring.planes.far.scrollFactor, scale: scoring.planes.far.scale },
+  };
+  const stampedeFlockState = biome.pacing.stampede.flockState ?? null;
+  const gadgetDef = content.weapons.gadgets[0] ?? null;
+  const gadgetCooldownTicks = gadgetDef === null ? 0 : msToTicks(gadgetDef.cooldownMs);
   const schedule = scheduleWorldEvents(
     biome,
     mode.id,
@@ -129,7 +159,14 @@ export function createSim(config: SimConfig): Sim {
   let bestStreak = 0;
   let nextBirdId = 1;
   let nextShotId = 1;
+  let nextFlockId = 1;
   let birds: Bird[] = [];
+  /** Live flocks in id order. */
+  let flocks: Flock[] = [];
+  // Season Run gadget charges arrive with the run state in M6; until then every mode gets the
+  // Classic number (D-020).
+  let gadgetCharges = gadgetDef?.chargesPerClassicHunt ?? 0;
+  let gadgetCooldown = 0;
   let events: SimEvent[] = [];
   const stats = {
     shots: 0,
@@ -140,6 +177,9 @@ export function createSim(config: SimConfig): Sim {
     penalties: 0,
     emptyClicks: 0,
     twoFlies: 0,
+    wholeFlocks: 0,
+    flushes: 0,
+    gadgetUses: 0,
   };
 
   const emit = (e: SimEvent): void => {
@@ -160,6 +200,107 @@ export function createSim(config: SimConfig): Sim {
       stampede: stampedeActive(),
       nextId: () => nextBirdId++,
     };
+  }
+
+  // --- flocks -----------------------------------------------------------------------------
+  function emitTransition(f: Flock, tr: Transition | null): void {
+    if (tr === null) return;
+    if (tr.to === 'flush') stats.flushes++;
+    const c = centroid(f);
+    emit({
+      type: 'flockStateChanged',
+      tick,
+      flockId: f.id,
+      from: tr.from,
+      to: tr.to,
+      cause: tr.cause,
+      plane: f.plane,
+      x: c.x,
+      y: c.y,
+    });
+  }
+
+  function threaten(threats: readonly FlockThreat[], source: ThreatSource): void {
+    for (const t of threats) {
+      if (t.flock.members.length === 0) continue;
+      emit({ type: 'flockThreatened', tick, flockId: t.flock.id, source });
+      emitTransition(t.flock, applyThreat(t.flock, t.x, fParams, flockRng));
+    }
+  }
+
+  /** World-event and gadget reactions (GDD §6.2). Returns how many flocks it reached. */
+  function react(effect: ReactionEffect, scope: ReactionScope, cause: FlockCause): void {
+    applyReaction(effect, reactionTargets(flocks, scope, cameraX, planeGeo), cause);
+  }
+
+  function applyReaction(
+    effect: ReactionEffect,
+    targets: readonly FlockThreat[],
+    cause: FlockCause,
+  ): void {
+    if (effect === 'threat') {
+      threaten(targets, 'event');
+      return;
+    }
+    for (const t of targets)
+      emitTransition(t.flock, forceState(t.flock, effect, t.x, cause, fParams, flockRng));
+  }
+
+  function addFlocks(added: readonly Flock[]): void {
+    for (const f of added) {
+      flocks.push(f);
+      addBirds(f.members);
+      const c = centroid(f);
+      emit({
+        type: 'flockSpawned',
+        tick,
+        flockId: f.id,
+        plane: f.plane,
+        size: f.spawnSize,
+        state: f.state,
+        x: c.x,
+      });
+      if (stampedeActive() && stampedeFlockState !== null) {
+        emitTransition(
+          f,
+          forceState(
+            f,
+            stampedeFlockState,
+            planeCentreX(cameraX, planeGeo[f.plane].scrollFactor),
+            'stampede',
+            fParams,
+            flockRng,
+          ),
+        );
+      }
+    }
+  }
+
+  function spawnFlocks(): void {
+    addFlocks(
+      director.spawnFlocks({
+        ...directorContext(),
+        flocks,
+        nextFlockId: () => nextFlockId++,
+      }),
+    );
+  }
+
+  /** Drops gone birds from their flocks; removes flocks left empty. */
+  function pruneFlocks(gone: ReadonlySet<number>, reason: 'bagged' | 'exited'): Flock[] {
+    const emptied: Flock[] = [];
+    for (const f of flocks) {
+      const before = f.members.length;
+      f.members = f.members.filter((b) => !gone.has(b.id));
+      if (f.members.length === before) continue;
+      if (reason === 'exited') f.eligible = false;
+      if (f.members.length === 0) emptied.push(f);
+    }
+    if (emptied.length > 0) {
+      flocks = flocks.filter((f) => f.members.length > 0);
+      for (const f of emptied) emit({ type: 'flockRemoved', tick, flockId: f.id, reason });
+    }
+    return emptied;
   }
 
   function addBirds(added: readonly Bird[]): void {
@@ -217,9 +358,11 @@ export function createSim(config: SimConfig): Sim {
     }
 
     const pelletsOn = new Map<number, number>();
+    const impacts: { dx: number; sy: number }[] = [];
     for (const o of pelletOffsets(timing.pellets, timing.spreadPx, rng.stream('pellets'))) {
       const pdx = dx + o.ox;
       const psy = sy + o.oy;
+      impacts.push({ dx: pdx, sy: psy });
       const r = resolvePellet(pdx, psy, cameraX, geometry, byPlane);
       emit({
         type: 'pelletImpact',
@@ -325,17 +468,44 @@ export function createSim(config: SimConfig): Sim {
       awardBonus('twoFlies', flies);
     }
 
+    const baggedFlockIds = new Set<number>();
     if (bagged.length > 0) {
       const gone = new Set(bagged.map((x) => x.bird.id));
       birds = birds.filter((b) => !gone.has(b.id));
-      for (const { bird } of bagged)
+      for (const { bird } of bagged) {
         emit({ type: 'birdDespawned', tick, birdId: bird.id, reason: 'bagged' });
+        if (bird.fm !== null) baggedFlockIds.add(bird.fm.flockId);
+      }
+      // Whole Flock (GDD §6.4): the last member of an eligible flock of ≥ minSize just fell.
+      for (const f of pruneFlocks(gone, 'bagged')) {
+        const bonus = f.eligible
+          ? wholeFlockBonus(f.spawnSize, f.spawnSize, scoring.wholeFlock)
+          : 0;
+        if (bonus <= 0) continue;
+        const last = bagged.filter((x) => x.bird.fm?.flockId === f.id).at(-1)?.bird;
+        stats.wholeFlocks++;
+        emit({
+          type: 'flockWiped',
+          tick,
+          flockId: f.id,
+          size: f.spawnSize,
+          plane: f.plane,
+          x: last?.x ?? f.homeX,
+          y: last?.y ?? f.goalY,
+        });
+        awardBonus('wholeFlock', bonus);
+      }
     }
+    // Threats (GDD §6.2): one per flock in range of any impact, hit or miss.
+    threaten(
+      shotThreats(flocks, impacts, cameraX, weapon.alertRadiusPx, planeGeo, baggedFlockIds),
+      weapon.alertRadiusPx > 0 ? 'shot' : 'silentBag',
+    );
     if (targets.length > 0) stats.hitShots++;
     if (!touchedAny) emit({ type: 'miss', tick, shotId });
   }
 
-  function awardBonus(bonus: 'twoFlies' | 'armor', base: number): void {
+  function awardBonus(bonus: 'twoFlies' | 'armor' | 'wholeFlock', base: number): void {
     const award = scoreEventBonus(base, {
       frenzyMul: frenzyMul(streak, scoring.frenzyTiers),
       stampedeMul: stampedeMul(),
@@ -359,21 +529,53 @@ export function createSim(config: SimConfig): Sim {
       case 'cameraTarget':
         cameraX = cmd.cx;
         return;
-      // Hold-to-fire weapons (M8), the gadget (M3) and consumables (M6) are recorded but inert.
+      case 'gadget':
+        useGadget();
+        return;
+      // Hold-to-fire weapons (M8) and consumables (M6) are recorded but inert.
       case 'fireHoldStart':
       case 'fireHoldMove':
       case 'fireHoldEnd':
-      case 'gadget':
       case 'consumable':
         return;
     }
+  }
+
+  /** The Vuvuzela (GDD §10.2): every visible flock straight to FLUSH. */
+  function useGadget(): void {
+    if (gadgetDef === null) return;
+    if (gadgetCharges <= 0 || gadgetCooldown > 0) {
+      emit({
+        type: 'gadgetDenied',
+        tick,
+        gadget: gadgetDef.id,
+        reason: gadgetCharges <= 0 ? 'noCharges' : 'cooldown',
+      });
+      return;
+    }
+    gadgetCharges--;
+    gadgetCooldown = gadgetCooldownTicks;
+    stats.gadgetUses++;
+    const targets = reactionTargets(flocks, { kind: 'visible' }, cameraX, planeGeo);
+    emit({
+      type: 'gadgetUsed',
+      tick,
+      gadget: gadgetDef.id,
+      chargesLeft: gadgetCharges,
+      flocks: targets.length,
+    });
+    applyReaction('flush', targets, 'gadget');
   }
 
   // --- the tick ----------------------------------------------------------------------------
   function step(commands: readonly Command[]): void {
     if (over) return;
 
-    if (stampedeAtTick !== null && tick === stampedeAtTick) emit({ type: 'stampedeStarted', tick });
+    if (stampedeAtTick !== null && tick === stampedeAtTick) {
+      emit({ type: 'stampedeStarted', tick });
+      // GDD §8: mass run/flush across the panorama.
+      if (stampedeFlockState !== null) react(stampedeFlockState, { kind: 'all' }, 'stampede');
+    }
 
     while (
       scheduleCursor < schedule.length &&
@@ -383,7 +585,17 @@ export function createSim(config: SimConfig): Sim {
       if (ev === undefined) break;
       if (FLYOVER_EVENTS.has(ev.id) && ev.creature !== null) {
         emit({ type: 'worldEvent', tick, event: ev.id });
-        addBirds(director.spawnEventFlyover(directorContext(), ev.creature, rng.stream('events')));
+        const added = director.spawnEventFlyover(
+          directorContext(),
+          ev.creature,
+          rng.stream('events'),
+        );
+        addBirds(added);
+        // Hadeda (GDD §6.2): its honking is one threat to every flock.
+        const c = added[0]?.creature;
+        if (c?.kind === 'nonTarget' && c.alertsAllFlocks === true) {
+          react('threat', { kind: 'all' }, 'event');
+        }
       }
     }
 
@@ -393,8 +605,23 @@ export function createSim(config: SimConfig): Sim {
     if (w === 'shellLoaded') emit({ type: 'shellLoaded', tick, shells: weaponState.shells });
     else if (w === 'reloadFinished')
       emit({ type: 'reloadFinished', tick, shells: weaponState.shells });
+    if (gadgetCooldown > 0) gadgetCooldown--;
 
     addBirds(director.tick(directorContext()));
+    spawnFlocks();
+
+    const exitedMembers: Bird[] = [];
+    for (const f of flocks) {
+      emitTransition(f, tickFsm(f, fParams, flockRng));
+      exitedMembers.push(...moveFlock(f, fParams, flockRng));
+    }
+    if (exitedMembers.length > 0) {
+      const gone = new Set(exitedMembers.map((b) => b.id));
+      for (const b of exitedMembers)
+        emit({ type: 'birdDespawned', tick, birdId: b.id, reason: 'exited' });
+      birds = birds.filter((b) => !gone.has(b.id));
+      pruneFlocks(gone, 'exited');
+    }
 
     const leaving: number[] = [];
     for (const b of birds) {
@@ -415,6 +642,9 @@ export function createSim(config: SimConfig): Sim {
       emit({ type: 'huntEnded', tick, score });
     }
   }
+
+  // Warm-up (GDD §8): the first flocks are already foraging in view at the first snapshot.
+  spawnFlocks();
 
   function rankFor(s: number): string {
     let rank = scoring.ranks[0]?.id ?? '';
@@ -446,6 +676,16 @@ export function createSim(config: SimConfig): Sim {
           cooldownTicks: weaponState.cooldownTicks,
         },
         birds: birds.map(viewOf),
+        flocks: flocks.map(flockView),
+        gadget:
+          gadgetDef === null
+            ? null
+            : {
+                id: gadgetDef.id,
+                charges: gadgetCharges,
+                cooldownTicks: gadgetCooldown,
+                cooldownTotalTicks: gadgetCooldownTicks,
+              },
         over,
       };
     },
@@ -473,6 +713,9 @@ export function createSim(config: SimConfig): Sim {
         emptyClicks: stats.emptyClicks,
         bestStreak,
         twoFlies: stats.twoFlies,
+        wholeFlocks: stats.wholeFlocks,
+        flushes: stats.flushes,
+        gadgetUses: stats.gadgetUses,
         rank: rankFor(score),
       };
     },

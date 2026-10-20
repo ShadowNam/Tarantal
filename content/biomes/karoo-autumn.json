@@ -347,7 +347,8 @@
     ],
     "stampede": {
       "flyoversPerMin": 40,
-      "popupsPerMin": 10
+      "popupsPerMin": 10,
+      "flockState": "run"
     },
     "maxBirdsOnScreen": 60,
     "maxFlocks": 8,

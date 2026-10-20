@@ -49,8 +49,46 @@ export type Command =
 
 export type CommandType = Command['t'];
 
-export type BirdMotion = 'flyover' | 'popup';
-export type BirdPhase = 'fly' | 'rise' | 'stare' | 'duck';
+export type BirdMotion = 'flyover' | 'popup' | 'flock';
+/**
+ * fly-over: fly · pop-up: rise/stare/duck · flock member (GDD §6.1): walk (forage), alert,
+ * run, launch (crouched for its stagger), flap (steep take-off and flight), glide, land (running
+ * on after touching down).
+ */
+export type BirdPhase =
+  | 'fly'
+  | 'rise'
+  | 'stare'
+  | 'duck'
+  | 'walk'
+  | 'alert'
+  | 'run'
+  | 'launch'
+  | 'flap'
+  | 'glide'
+  | 'land';
+
+/** Flock FSM states (GDD §6.1, Tech §3.5). Roost (dusk hunts) arrives with the dusk biomes. */
+export type FlockState = 'forage' | 'alert' | 'run' | 'flush' | 'settle';
+
+export interface FlockView {
+  readonly id: number;
+  readonly plane: PlaneId;
+  readonly state: FlockState;
+  /** Members at spawn (Whole Flock needs ≥ scoring.wholeFlock.minSize). */
+  readonly spawnSize: number;
+  /** Members still alive. */
+  readonly alive: number;
+  /** True while bagging every remaining member still earns the Whole-Flock bonus. */
+  readonly eligible: boolean;
+}
+
+export interface GadgetView {
+  readonly id: string;
+  readonly charges: number;
+  readonly cooldownTicks: number;
+  readonly cooldownTotalTicks: number;
+}
 
 export interface BirdView {
   readonly id: number;
@@ -65,6 +103,8 @@ export interface BirdView {
   readonly phase: BirdPhase;
   readonly behaviour: BagBehaviour;
   readonly hittable: boolean;
+  /** The flock this bird belongs to, or null (fly-overs, pop-ups). */
+  readonly flockId: number | null;
   /** Pop-ups: the grass line (design px) they rise from, so the renderer can hide what is below
    *  it. Null for fly-overs. Render-only: not part of any event or outcome. */
   readonly ground: number | null;
@@ -93,6 +133,10 @@ export interface SimState {
   readonly weapon: WeaponView;
   /** Sorted by id; higher ids are in front within a plane (renderer draws in this order). */
   readonly birds: readonly BirdView[];
+  /** Live flocks, sorted by id. */
+  readonly flocks: readonly FlockView[];
+  /** The hunt's gadget (Vuvuzela), or null if the content has none. */
+  readonly gadget: GadgetView | null;
   readonly over: boolean;
 }
 
@@ -114,6 +158,11 @@ export interface HuntResult {
   readonly emptyClicks: number;
   readonly bestStreak: number;
   readonly twoFlies: number;
+  /** Whole-Flock bonuses earned (GDD §6.4; a badge on the tally). */
+  readonly wholeFlocks: number;
+  /** Flocks that went to FLUSH. */
+  readonly flushes: number;
+  readonly gadgetUses: number;
   /** scoring.json rank id. */
   readonly rank: string;
 }
