@@ -10,9 +10,8 @@ import type { RandomStream } from '../rng';
 import { LAYER_BLEED_PX } from '../world';
 import { centroid, drawTicks, type Flock, type FlockParams } from './Flock';
 
-// Structure, not tuning (D-020): foraging birds stop pressing toward a goal this close to it, and
-// move in depth (y, the narrow ground lane) at half the speed they move across.
-const GOAL_ARRIVE_PX = 30;
+// Structure, not tuning (D-020): ground birds move in depth (y, the narrow ground lane) at half
+// the speed they move across.
 const DEPTH_SPEED = 0.5;
 
 function len(x: number, y: number): number {
@@ -140,9 +139,14 @@ function steerGround(f: Flock, p: FlockParams, rng: RandomStream): void {
     const gx = f.goalX - b.x;
     const gy = f.goalY - b.y;
     const gl = len(gx, gy);
-    if (gl > GOAL_ARRIVE_PX * f.ratio || f.state === 'run') {
-      tx += gx / Math.max(gl, 1e-6);
-      ty += gy / Math.max(gl, 1e-6);
+    // Running birds always head for the flee point. Foraging birds only feel the goal once they
+    // stray past half the wander radius (full pull at the radius), so separation can spread the
+    // flock out instead of every bird piling onto the same point.
+    const half = (p.forageWanderPx * f.ratio) / 2;
+    const pull = f.state === 'run' ? 1 : Math.min(1, Math.max(0, (gl - half) / half));
+    if (pull > 0 && gl > 1e-6) {
+      tx += (gx / gl) * pull;
+      ty += (gy / gl) * pull;
     }
     tx += rng.range(-1, 1) * p.noise;
     ty += rng.range(-1, 1) * p.noise;

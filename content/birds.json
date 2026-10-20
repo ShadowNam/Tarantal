@@ -46,7 +46,7 @@
       "weight": 0.6
     },
     "boids": {
-      "separation": 1.4,
+      "separation": 3,
       "alignment": 1.0,
       "cohesion": 0.8,
       "noise": 0.35,

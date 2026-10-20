@@ -64,6 +64,8 @@ export type SimEvent =
       readonly creature: string;
       readonly plane: PlaneId;
       readonly behaviour: BagBehaviour;
+      /** The bird's flock, or null for fly-overs and pop-ups. */
+      readonly flockId: number | null;
       readonly x: number;
       readonly y: number;
     }

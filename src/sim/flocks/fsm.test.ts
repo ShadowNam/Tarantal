@@ -272,19 +272,23 @@ describe('flock FSM', () => {
     expect(exited.size).toBeGreaterThan(0);
   });
 
-  it('foraging birds stay together (cohesion) without stacking (separation)', () => {
-    const { flock, params, rng } = makeFlock(content, { size: 10, spacing: 5 });
-    for (let i = 0; i < 600; i++) {
+  it('foraging birds spread out (separation) but stay one flock (cohesion)', () => {
+    // Started almost on top of each other; after 20 s they should be spread, not piled up.
+    const { flock, params, rng } = makeFlock(content, { size: 12, spacing: 5 });
+    for (let i = 0; i < 1200; i++) {
       tickFsm(flock, params, rng);
       moveFlock(flock, params, rng);
     }
+    const nearest = flock.members.map((a) =>
+      Math.min(
+        ...flock.members.filter((b) => b !== a).map((b) => Math.hypot(a.x - b.x, a.y - b.y)),
+      ),
+    );
+    const mean = nearest.reduce((t, v) => t + v, 0) / nearest.length;
+    // A mid-plane bird's body is ~110 px wide: neighbours mostly no closer than ~¾ of that.
+    expect(mean).toBeGreaterThan(80);
+    expect(Math.min(...nearest)).toBeGreaterThan(30);
     const xs = flock.members.map((b) => b.x);
-    expect(Math.max(...xs) - Math.min(...xs)).toBeLessThan(params.forageWanderPx * 3);
-    for (const a of flock.members) {
-      for (const b of flock.members) {
-        if (a === b) continue;
-        expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeGreaterThan(2);
-      }
-    }
+    expect(Math.max(...xs) - Math.min(...xs)).toBeLessThan(params.forageWanderPx * 5);
   });
 });

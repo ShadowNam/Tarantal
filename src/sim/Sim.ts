@@ -425,6 +425,7 @@ export function createSim(config: SimConfig): Sim {
         creature: c.id,
         plane: bird.plane,
         behaviour,
+        flockId: bird.fm?.flockId ?? null,
         x: bird.x,
         y: bird.y,
       });
