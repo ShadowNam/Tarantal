@@ -23,10 +23,10 @@ const TICKS_PER_MINUTE = TICKS_PER_SECOND * 60;
 /** Each spawn waits for a credit threshold drawn from this range (jitter around the mean rate). */
 const THRESHOLD_MIN = 0.5;
 const THRESHOLD_MAX = 1.5;
-/** Flocks smaller than this are not worth spawning (the screen is nearly full). */
+// Structure, not tuning (D-020): placement retries, and the smallest flock worth spawning when
+// the screen is nearly full.
+/** Flocks smaller than this are not worth spawning. */
 const MIN_FLOCK_SPAWN = 3;
-/** Hunt-start flocks are placed within this many mid-plane px of the screen centre (in view). */
-const START_IN_VIEW_PX = 450;
 /** Later flocks spawn at least this far (plane px, beyond the widest screen) out of view. */
 const OUT_OF_VIEW_MARGIN_PX = 120;
 /** Placement attempts per spawn, and the wait before retrying when none fit. */
@@ -216,7 +216,7 @@ export function createDirector(deps: DirectorDeps): Director {
     if (ctx.tick === 0) {
       // Warm-up (GDD §8): the first flocks forage in view.
       for (let i = 0; i < PLACE_TRIES; i++) {
-        const x = clampX(centre + flockRng.range(-START_IN_VIEW_PX, START_IN_VIEW_PX) * ratio);
+        const x = clampX(centre + flockRng.range(-fp.startInViewPx, fp.startInViewPx) * ratio);
         if (spaced(x)) return x;
       }
       return null;

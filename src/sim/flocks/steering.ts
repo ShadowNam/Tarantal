@@ -9,17 +9,10 @@ import type { RandomStream } from '../rng';
 import { LAYER_BLEED_PX } from '../world';
 import { centroid, drawTicks, type Flock, type FlockParams } from './Flock';
 
-/** How fast a ground bird's velocity turns toward the steering target (per tick). */
-const STEER_BLEND = 0.2;
-/** Zigzag period while running, in ticks, and its sideways weight. */
-const ZIG_PERIOD_TICKS = 36;
-const ZIG_WEIGHT = 0.6;
-/** Alert birds that are no longer frozen shuffle at this fraction of walking speed. */
-const ALERT_SHUFFLE = 0.4;
-/** After landing, birds run on at this fraction of running speed. */
-const LAND_RUN = 0.6;
-/** Distance from the goal (plane px) at which foraging birds stop pressing toward it. */
+// Structure, not tuning (D-020): foraging birds stop pressing toward a goal this close to it, and
+// move in depth (y, the narrow ground lane) at half the speed they move across.
 const GOAL_ARRIVE_PX = 30;
+const DEPTH_SPEED = 0.5;
 
 function len(x: number, y: number): number {
   return Math.sqrt(x * x + y * y);
@@ -59,7 +52,7 @@ export function moveFlock(f: Flock, p: FlockParams, rng: RandomStream): Bird[] {
 function updateGoal(f: Flock, p: FlockParams, rng: RandomStream, cx: number): void {
   if (f.state === 'run') {
     // Flee: well ahead of the flock, away from the threat.
-    f.goalX = cx + f.dir * 1000 * f.ratio;
+    f.goalX = cx + f.dir * p.fleeLookAheadPx * f.ratio;
     return;
   }
   f.goalTicks--;
@@ -72,16 +65,16 @@ function updateGoal(f: Flock, p: FlockParams, rng: RandomStream, cx: number): vo
   f.goalY = rng.range(f.groundY[0], f.groundY[1]);
 }
 
-function groundSpeed(f: Flock, b: Bird): number {
+function groundSpeed(f: Flock, b: Bird, p: FlockParams): number {
   const m = b.fm;
   if (m === null) return 0;
   switch (b.phase) {
     case 'alert':
-      return f.freezeTicks > 0 ? 0 : m.walk * ALERT_SHUFFLE;
+      return f.freezeTicks > 0 ? 0 : m.walk * p.alertShuffleMul;
     case 'run':
       return m.run;
     case 'land':
-      return m.run * LAND_RUN;
+      return m.run * p.landRunSpeedMul;
     default:
       return m.walk;
   }
@@ -90,7 +83,7 @@ function groundSpeed(f: Flock, b: Bird): number {
 function steerGround(f: Flock, p: FlockParams, rng: RandomStream): void {
   const ground = f.members.filter(isGrounded);
   const radius = p.neighbourRadiusPx * f.ratio;
-  const sepRadius = radius * 0.5;
+  const sepRadius = Math.min(radius, p.separationRadiusPx * f.ratio);
   const next: { vx: number; vy: number }[] = [];
   for (const b of ground) {
     const m = b.fm;
@@ -153,18 +146,18 @@ function steerGround(f: Flock, p: FlockParams, rng: RandomStream): void {
     tx += rng.range(-1, 1) * p.noise;
     ty += rng.range(-1, 1) * p.noise;
     if (b.phase === 'run') {
-      ty += sin((2 * Math.PI * f.stateTicks) / ZIG_PERIOD_TICKS + m.zigPhase) * ZIG_WEIGHT;
+      ty += sin((2 * Math.PI * f.stateTicks) / p.zigPeriodTicks + m.zigPhase) * p.zigWeight;
     }
     const tl = len(tx, ty);
-    const speed = groundSpeed(f, b);
+    const speed = groundSpeed(f, b, p);
     const wantX = tl > 1e-6 ? (tx / tl) * speed : 0;
-    const wantY = tl > 1e-6 ? (ty / tl) * speed * 0.5 : 0;
-    next.push({ vx: m.vx + (wantX - m.vx) * STEER_BLEND, vy: m.vy + (wantY - m.vy) * STEER_BLEND });
+    const wantY = tl > 1e-6 ? (ty / tl) * speed * DEPTH_SPEED : 0;
+    next.push({ vx: m.vx + (wantX - m.vx) * p.turnRate, vy: m.vy + (wantY - m.vy) * p.turnRate });
   }
   ground.forEach((b, i) => {
     const v = next[i];
     if (b.fm === null || v === undefined) return;
-    if (groundSpeed(f, b) === 0) {
+    if (groundSpeed(f, b, p) === 0) {
       b.fm.vx = 0;
       b.fm.vy = 0;
     } else {
@@ -206,7 +199,7 @@ function fly(f: Flock, b: Bird, p: FlockParams, rng: RandomStream): void {
   b.y += m.vy;
   if (b.y >= m.landY) {
     b.y = m.landY;
-    m.vx = f.dir * m.run * LAND_RUN;
+    m.vx = f.dir * m.run * p.landRunSpeedMul;
     m.vy = 0;
     m.landTicks = Math.max(1, drawTicks(rng, p.landRunTicks));
     enter(b, 'land');

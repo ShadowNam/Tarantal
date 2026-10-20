@@ -29,6 +29,14 @@ export interface FlockParams {
   readonly glideSinkPerTick: number;
   readonly spawnSpreadPx: number;
   readonly spawnSpacingPx: number;
+  readonly startInViewPx: number;
+  readonly alertShuffleMul: number;
+  readonly landRunSpeedMul: number;
+  readonly fleeLookAheadPx: number;
+  readonly zigPeriodTicks: number;
+  readonly zigWeight: number;
+  readonly separationRadiusPx: number;
+  readonly turnRate: number;
   readonly separation: number;
   readonly alignment: number;
   readonly cohesion: number;
@@ -57,6 +65,14 @@ export function flockParams(content: ContentBundle): FlockParams {
     glideSinkPerTick: d.glideSinkPxPerSec / 60,
     spawnSpreadPx: d.spawnSpreadPx,
     spawnSpacingPx: d.spawnSpacingPx,
+    startInViewPx: d.startInViewPx,
+    alertShuffleMul: d.alertShuffleMul,
+    landRunSpeedMul: d.landRunSpeedMul,
+    fleeLookAheadPx: d.fleeLookAheadPx,
+    zigPeriodTicks: Math.max(1, msToTicks(d.runZigzag.periodMs)),
+    zigWeight: d.runZigzag.weight,
+    separationRadiusPx: d.boids.separationRadiusPx,
+    turnRate: d.boids.turnRate,
     separation: d.boids.separation,
     alignment: d.boids.alignment,
     cohesion: d.boids.cohesion,

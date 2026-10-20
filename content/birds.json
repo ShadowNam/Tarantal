@@ -37,12 +37,22 @@
     "glideSinkPxPerSec": 170,
     "spawnSpreadPx": 150,
     "spawnSpacingPx": 700,
+    "startInViewPx": 450,
+    "alertShuffleMul": 0.4,
+    "landRunSpeedMul": 0.6,
+    "fleeLookAheadPx": 1000,
+    "runZigzag": {
+      "periodMs": 600,
+      "weight": 0.6
+    },
     "boids": {
       "separation": 1.4,
       "alignment": 1.0,
       "cohesion": 0.8,
       "noise": 0.35,
-      "neighbourRadiusPx": 140
+      "neighbourRadiusPx": 140,
+      "separationRadiusPx": 70,
+      "turnRate": 0.2
     }
   },
   "flyoverDefaults": {

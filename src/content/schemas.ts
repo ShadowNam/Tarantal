@@ -215,12 +215,26 @@ export const BirdsSchema = obj({
       spawnSpreadPx: pos,
       /** A new flock keeps at least this far (plane px) from other flocks on its plane. */
       spawnSpacingPx: nonNeg,
+      /** Hunt-start flocks forage within this many px of the screen centre (in view, GDD §8). */
+      startInViewPx: nonNeg,
+      /** ALERT birds shuffle at this fraction of walking speed once their freeze ends. */
+      alertShuffleMul: nonNeg,
+      /** Landed birds run on at this fraction of running speed. */
+      landRunSpeedMul: nonNeg,
+      /** RUN steers toward a point this far ahead, away from the threat. */
+      fleeLookAheadPx: pos,
+      /** RUN zigzag: sideways weave period and weight (added to the boids steering). */
+      runZigzag: obj({ periodMs: pos, weight: nonNeg }),
       boids: obj({
         separation: nonNeg,
         alignment: nonNeg,
         cohesion: nonNeg,
         noise: nonNeg,
         neighbourRadiusPx: pos,
+        /** Birds closer than this push apart (≤ neighbourRadiusPx). */
+        separationRadiusPx: pos,
+        /** Fraction per tick by which a bird's velocity turns toward its steering target. */
+        turnRate: z.number().gt(0).max(1),
       }),
     })
     .refine((f) => f.sizeMin <= f.sizeMax, 'sizeMin must be <= sizeMax'),
