@@ -3,6 +3,7 @@
 // and wind-blown leaves/dust (omen visual flags). Everything here is driven by the biome JSON
 // through the snapshot, so a secret removed from the JSON simply has nothing to draw.
 import * as Phaser from 'phaser';
+import type { LivePrefs } from '../prefs';
 import type { Biome, ContentBundle, Feel } from '../../content/schemas';
 import type { SimState } from '../../sim/types';
 import { coreWidth } from '../../sim/world';
@@ -48,6 +49,7 @@ export class WorldView {
     biome: Biome,
     parallax: ParallaxView,
     screen: Phaser.GameObjects.Container,
+    private readonly prefs: LivePrefs,
   ) {
     this.scene = scene;
     this.feel = feel;
@@ -118,7 +120,10 @@ export class WorldView {
   }
 
   private glint(layer: Phaser.GameObjects.Container, x: number, y: number): void {
-    const g = this.scene.add.image(x, y, TEX.glint).setScale(0).setAlpha(0.95);
+    const g = this.scene.add
+      .image(x, y, TEX.glint)
+      .setScale(0)
+      .setAlpha(0.95 * this.prefs.flashAlpha);
     layer.add(g);
     this.scene.tweens.add({
       targets: g,
@@ -238,8 +243,7 @@ export class WorldView {
     const wind = s.wind;
     const flags = this.biome.omen.visual;
     if (wind === null || (flags?.leaves !== true && flags?.dust !== true)) return;
-    const rate =
-      this.feel.juice.windParticlesPerSec * wind.strength * this.feel.quality.particleScale;
+    const rate = this.feel.juice.windParticlesPerSec * wind.strength * this.prefs.particleScale;
     this.windCredit += rate / 60;
     while (this.windCredit >= 1) {
       this.windCredit -= 1;

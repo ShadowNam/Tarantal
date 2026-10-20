@@ -6,6 +6,7 @@
 // reservoir splash), the Generaal's CLANG as his pot flies off, "KWÊ-KWÊ!" from a perched
 // kwêvoël, and a burst where a crate opens.
 import * as Phaser from 'phaser';
+import type { LivePrefs } from '../prefs';
 import type { Feel } from '../../content/schemas';
 import type { SimEvent } from '../../sim/events';
 import type { PlaneId, SimState } from '../../sim/types';
@@ -23,6 +24,8 @@ interface BagSpot {
 }
 
 export class Fx {
+  /** FTUE: the flock Bles is about to spook. */
+  private blesFlock: number | null = null;
   private readonly scene: Phaser.Scene;
   private readonly feel: Feel;
   private readonly parallax: ParallaxView;
@@ -45,6 +48,7 @@ export class Fx {
     locate: (birdId: number) => BagSpot | null,
     locatePot: (birdId: number) => { plane: PlaneId; x: number; y: number; scaleX: number } | null,
     cratePlane: PlaneId,
+    private readonly prefs: LivePrefs,
   ) {
     this.scene = scene;
     this.locate = locate;
@@ -159,8 +163,15 @@ export class Fx {
         case 'pelletImpact':
           if (e.birdId === null) this.puffs.explode(1, width / 2 + e.dx, e.sy);
           break;
+        case 'tutorialBeat':
+          // FTUE: Oupa's dog Bles barks at the flock it spooks (GDD §16 step 3).
+          if (e.beat === 'spook') this.blesFlock = e.flockId;
+          break;
         case 'flockStateChanged':
-          if (e.to === 'alert') this.bubble(e.plane, e.x, e.y, t('fx.kek'), false);
+          if (e.to === 'run' && e.flockId === this.blesFlock) {
+            this.bubble(e.plane, e.x, e.y - 40, t('fx.woof'), true);
+            this.blesFlock = null;
+          } else if (e.to === 'alert') this.bubble(e.plane, e.x, e.y, t('fx.kek'), false);
           else if (e.to === 'flush') this.bubble(e.plane, e.x, e.y, t('fx.kek_flush'), true);
           break;
         default:
@@ -256,7 +267,7 @@ export class Fx {
 
   private featherBurst(plane: PlaneId, x: number, y: number): void {
     const [lo, hi] = this.feel.juice.featherCount;
-    const n = Math.round((lo + Math.random() * (hi - lo)) * this.feel.quality.particleScale);
+    const n = Math.round((lo + Math.random() * (hi - lo)) * this.prefs.particleScale);
     this.feathers.get(plane)?.explode(Math.max(1, n), x, y);
   }
 

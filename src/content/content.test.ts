@@ -7,6 +7,7 @@ import { parseContent, type RawContent } from './bundle';
 import { checkCrossRefs } from './crossRefs';
 import { readContentDir, readI18nKeys } from './loadNode';
 import { CharmEffectSchema, CONTENT_FILES } from './schemas';
+import { loadNotaboek } from '../../tools/testContent';
 
 const root = join(import.meta.dirname, '..', '..');
 const raw = readContentDir(join(root, 'content'));
@@ -127,6 +128,43 @@ describe('content cross-references', () => {
     expect(text).toMatch(/bushveld-winter/);
     expect(text).toMatch(/bag_50_far/);
     expect(text).toMatch(/farmDog/);
+  });
+
+  it('Notaboek challenges resolve the weapon unlocks (M5)', () => {
+    const notaboek = loadNotaboek();
+    const report = checkCrossRefs(parseOk(raw), { i18nKeys, notaboek });
+    expect(report.errors).toEqual([]);
+    const text = report.warnings.map((w) => w.message).join('\n');
+    expect(text).not.toMatch(/bag_50_far|whole_flock_x3/);
+  });
+
+  it('catch a weapon unlock challenge missing from the Notaboek', () => {
+    const notaboek = loadNotaboek();
+    const broken = { ...notaboek, challenges: notaboek.challenges.filter((c) => c.id !== 'bag_50_far') };
+    const report = checkCrossRefs(parseOk(raw), { i18nKeys, notaboek: broken });
+    expect(report.errors.map((e) => e.message).join('\n')).toMatch(/windbuks.*bag_50_far.*not in meta\/notaboek/);
+  });
+
+  it('catch a Notaboek reward that does not match the weapon unlock', () => {
+    const notaboek = loadNotaboek();
+    const broken = {
+      ...notaboek,
+      challenges: notaboek.challenges.map((c) =>
+        c.id === 'whole_flock_x3' ? { ...c, reward: { type: 'weapon' as const, id: 'pomp' } } : c,
+      ),
+    };
+    const msgs = checkCrossRefs(parseOk(raw), { i18nKeys, notaboek: broken }).errors.map((e) => e.message);
+    expect(msgs.join('\n')).toMatch(/whole_flock_x3/);
+  });
+
+  it('catch a secrets challenge whose target is not the biome secret count', () => {
+    const notaboek = loadNotaboek();
+    const broken = {
+      ...notaboek,
+      challenges: notaboek.challenges.map((c) => (c.metric === 'distinctSecrets' ? { ...c, target: 9 } : c)),
+    };
+    const msgs = checkCrossRefs(parseOk(raw), { i18nKeys, notaboek: broken }).errors.map((e) => e.message);
+    expect(msgs.join('\n')).toMatch(/target 9 != 4 secrets/);
   });
 
   it('turn warnings into errors with strict', () => {

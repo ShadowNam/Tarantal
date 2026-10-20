@@ -54,6 +54,13 @@ export async function tapAt(page: Page, touch: boolean, x: number, y: number): P
   else await page.mouse.click(p.x, p.y);
 }
 
+/** Taps (or clicks) the centre of a rect the game published in hook.rects. */
+export async function tapRect(page: Page, touch: boolean, id: string): Promise<void> {
+  const r = (await hook(page)).rects[id];
+  if (!r) throw new Error(`no rect "${id}" on screen`);
+  await tapAt(page, touch, r.x + r.w / 2, r.y + r.h / 2);
+}
+
 /** Reload the way a player would: right-click on desktop, tap the shell belt on touch. */
 export async function reload(page: Page, touch: boolean): Promise<void> {
   const h = await hook(page);
@@ -89,16 +96,23 @@ export async function quick(
   });
 }
 
+/**
+ * Loads the game with the test hook. Unless the query says otherwise, starts as a returning
+ * player (`ftue=0`): the M2–M4 specs test Classic hunts, the FTUE has its own spec.
+ */
 export async function boot(page: Page, query: string): Promise<void> {
-  await page.goto(`/?e2e=1&${query}`);
+  const q = /(^|&)ftue=/.test(query) ? query : `${query}&ftue=0`;
+  await page.goto(`/?e2e=1&${q}`);
   await expect(page.locator('#game canvas')).toHaveCount(1);
   await page.waitForFunction(() => window.__TM__?.ready === true, null, { timeout: 60_000 });
 }
 
-/** Taps the start card and waits until the hunt is running. */
+/** Taps the title's START HUNT and waits until the hunt is running. */
 export async function startHunt(page: Page, touch: boolean): Promise<void> {
-  const h = await hook(page);
-  await tapAt(page, touch, h.designWidth / 2, h.designHeight / 2);
+  await page.waitForFunction(() => window.__TM__?.rects['start'] !== undefined, null, {
+    timeout: 60_000,
+  });
+  await tapRect(page, touch, 'start');
   await page.waitForFunction(() => window.__TM__?.scene === 'hunt', null, { timeout: 60_000 });
 }
 

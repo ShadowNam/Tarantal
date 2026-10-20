@@ -6,6 +6,7 @@ import { parseContent } from '../src/content/bundle';
 import { checkCrossRefs } from '../src/content/crossRefs';
 import { readContentDir, readI18nKeys } from '../src/content/loadNode';
 import { parseFeel } from '../src/content/feel';
+import { parseNotaboek } from '../src/content/notaboek';
 import { readFileSync } from 'node:fs';
 
 const root = join(import.meta.dirname, '..');
@@ -31,11 +32,23 @@ if (!feel.ok) {
   process.exit(1);
 }
 fileNames.push('client/feel.json');
+
+// Meta-only Notaboek challenges (not part of the sim bundle).
+const notaboek = parseNotaboek(
+  JSON.parse(readFileSync(join(contentDir, 'meta/notaboek.json'), 'utf8')),
+);
+if (!notaboek.ok) {
+  console.error('content: meta/notaboek.json FAILED');
+  for (const e of notaboek.errors) console.error(`  ✗ meta/notaboek.json: ${e}`);
+  process.exit(1);
+}
+fileNames.push('meta/notaboek.json');
 fileNames.sort();
 
 const report = checkCrossRefs(parsed.bundle, {
   i18nKeys: readI18nKeys(join(root, 'src/i18n/en.json')),
   strict,
+  notaboek: notaboek.notaboek,
 });
 
 for (const name of fileNames) {

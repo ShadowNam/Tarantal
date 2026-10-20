@@ -3,7 +3,7 @@ import type { ContentBundle } from '../src/content/schemas';
 import { createEventHasher } from '../src/sim/events';
 import { createRecorder, type InputLog } from '../src/sim/replay/inputLog';
 import { createSim } from '../src/sim/Sim';
-import type { HuntResult, InputKind, ModeConfig } from '../src/sim/types';
+import type { AimAssistLevel, HuntResult, InputKind, ModeConfig } from '../src/sim/types';
 import { createBot, type BotKind } from './bots';
 
 export interface PlayOptions {
@@ -11,6 +11,7 @@ export interface PlayOptions {
   readonly bot: BotKind;
   readonly mode: ModeConfig;
   readonly inputKind: InputKind;
+  readonly aimAssist?: AimAssistLevel;
   readonly content: ContentBundle;
   readonly contentHash: string;
 }
@@ -23,13 +24,21 @@ export interface PlayOutcome {
 }
 
 export function playHunt(o: PlayOptions): PlayOutcome {
-  const sim = createSim({ seed: o.seed, content: o.content, mode: o.mode, inputKind: o.inputKind });
+  const assist = o.aimAssist === undefined ? {} : { aimAssist: o.aimAssist };
+  const sim = createSim({
+    seed: o.seed,
+    content: o.content,
+    mode: o.mode,
+    inputKind: o.inputKind,
+    ...assist,
+  });
   const bot = createBot(o.bot, o.seed, o.content, o.inputKind);
   const recorder = createRecorder({
     seed: o.seed,
     contentHash: o.contentHash,
     mode: o.mode,
     inputKind: o.inputKind,
+    ...assist,
   });
   const hasher = createEventHasher();
   hasher.add(sim.drainEvents());

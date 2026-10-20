@@ -1,0 +1,41 @@
+// Settings as the game layer uses them each frame (one live object, updated in place when the
+// save changes, so views never re-read storage). Aim assist is not here: it goes to the sim
+// through SimConfig.aimAssist, fixed per hunt and recorded in the replay.
+import type { Feel } from '../content/schemas';
+import type { Settings } from '../meta/saveSchema';
+import { resolveTier, type DeviceHints, type QualityTier } from './quality/QualityManager';
+
+export interface LivePrefs {
+  tier: QualityTier;
+  particleScale: number;
+  /** Muzzle flash / glint alpha (1, or reducedFlashAlpha with "reduce flashes"). */
+  flashAlpha: number;
+  reduceFlashes: boolean;
+  shake: boolean;
+  leftHanded: boolean;
+}
+
+export interface PrefInputs {
+  readonly feel: Feel;
+  readonly device: DeviceHints;
+  readonly reducedMotion: boolean;
+}
+
+export function computePrefs(s: Settings, i: PrefInputs): LivePrefs {
+  const tier = resolveTier(s.quality, i.feel, i.device);
+  const t = i.feel.quality.tiers[tier];
+  return {
+    tier,
+    particleScale: t.particleScale,
+    reduceFlashes: s.reduceFlashes,
+    flashAlpha: s.reduceFlashes ? i.feel.accessibility.reducedFlashAlpha : 1,
+    // null = follow the OS reduced-motion preference.
+    shake: s.screenShake ?? !i.reducedMotion,
+    leftHanded: s.leftHanded,
+  };
+}
+
+/** Updates `target` in place (views hold a reference to it). */
+export function applyPrefs(target: LivePrefs, s: Settings, i: PrefInputs): void {
+  Object.assign(target, computePrefs(s, i));
+}

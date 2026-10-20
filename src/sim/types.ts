@@ -5,7 +5,7 @@ export type PlaneId = 'near' | 'mid' | 'far';
 /** Front-to-back order used by shot resolution. */
 export const PLANES: readonly PlaneId[] = ['near', 'mid', 'far'];
 
-export type ModeId = 'classic' | 'daily' | 'seasonHunt';
+export type ModeId = 'classic' | 'daily' | 'seasonHunt' | 'ftue';
 export type InputKind = 'pointer' | 'touch';
 
 /** Behaviour of a bird at the moment it is bagged (scoring.json behaviourAdd). */
@@ -25,6 +25,9 @@ export interface ModeConfig {
   readonly omen?: boolean;
 }
 
+/** Touch aim-assist strength chosen in Settings (scoring.json aimAssistLevels). */
+export type AimAssistLevel = 'off' | 'low' | 'standard';
+
 export interface SimConfig {
   /** u32 seed. */
   readonly seed: number;
@@ -33,6 +36,8 @@ export interface SimConfig {
   readonly mode: ModeConfig;
   /** Fixed per hunt; selects aim-assist radii; recorded in the replay. */
   readonly inputKind: InputKind;
+  /** Touch aim-assist level (default 'standard'); recorded in the replay. Mouse is always 0. */
+  readonly aimAssist?: AimAssistLevel;
 }
 
 export type Command =

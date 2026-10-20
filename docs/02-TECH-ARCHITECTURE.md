@@ -79,6 +79,8 @@ export interface SimConfig {
   content: ContentBundle;       // validated, frozen
   mode: ModeConfig;             // classic | daily | seasonHunt (+ charms, weapon, biome, omen, boss)
   inputKind: 'pointer' | 'touch'; // fixed per hunt; selects aim-assist radii; recorded in the replay
+  aimAssist?: 'off' | 'low' | 'standard'; // M5 Settings; scales the touch radii (scoring.json
+                                          // aimAssistLevels); recorded in the replay (v2)
 }
 // The sim never knows the device's viewport width (see §3.3) — that is what keeps replays,
 // the Daily Hunt and challenge links identical on every device.
@@ -260,7 +262,8 @@ pipeline or sim actions.
 cursor, unlock flags) is serialisable and saved after every Padstal so a closed tab resumes the run.
 
 ### 3.10 Replays
-`InputLog = { v, seed, contentHash, mode, inputKind, commands: [tickDelta, command][] }`, delta + varint encoded,
+`InputLog = { v, seed, contentHash, mode, inputKind, aimAssist?, commands: [tickDelta, command][] }`
+(v2 since M5: an aim-assist byte follows the input kind; v1 logs still decode as `standard`), delta + varint encoded,
 then base64url'd (`src/sim/replay/inputLog.ts`). Deflate is applied outside the sim, at the
 share/challenge-link boundary (M7), because it needs async platform APIs (D-018). Used for: golden tests, bug reports (attach log), ghost replays, and
 (v1.x) server-side leaderboard validation by re-simulating in Node.
@@ -280,6 +283,11 @@ share/challenge-link boundary (M7), because it needs async platform APIs (D-018)
   timings, HUD sizes, loop step cap, particle budget). It has a Zod schema and is validated by
   `content:validate`, but it is **not** part of the sim `ContentBundle` or `contentHash`: nothing in
   it can change a hunt's outcome (D-019).
+- **Meta-only content** lives in `content/meta/` (M5: `notaboek.json`, the Notaboek challenges and
+  their rewards). Zod-validated and cross-checked (weapon unlock ↔ challenge reward, secret
+  counts, i18n keys), but like `feel.json` outside the sim bundle and `contentHash`: progression
+  never changes a hunt's outcome. Settings tiers (quality, reduce-flashes alpha) and FTUE
+  presentation timings are in `feel.json`.
 - **Content packs / mods:** `mods/<id>/manifest.json` (`id`, `version`, `requiresContentHash?`,
   `adds`, `overrides`). Load order: base → official packs → user mods. v1 mods are data-only
   (new biomes from existing behaviours, new charms via the DSL, reskins). Mods mark the session
@@ -351,8 +359,14 @@ export interface PlatformAdapter {
   shareUrl(base: string): string;                       // portal deep-link rules differ
   analytics(event: string, data?: Record<string, unknown>): void; // may be a no-op on some portals
   canShowExternalLinks: boolean;
+  onAdChange(fn: (playing: boolean) => void): () => void; // AudioDirector mutes during ads
+  capabilities(): { fullscreen: boolean; standalone: boolean; iphone: boolean };
+  requestFullscreen(): Promise<void>;
 }
 ```
+- M5 ships the `web` adapter (`src/platform/web.ts`): no ads, analytics kept on the device (no
+  network) until a privacy-reviewed endpoint exists, service-worker registration in production
+  builds. The fullscreen/banner rules are pure functions in `src/platform/capabilities.ts`.
 - Selected at boot via build flag (`VITE_PLATFORM`), never by sniffing.
 - **Portal constraints** (verify against current docs before each submission):
   - **Poki:** initial download target < 8 MB; must work on desktop, mobile and tablet (tablets get
@@ -368,6 +382,11 @@ export interface PlatformAdapter {
 - **iPhone Safari has no element Fullscreen API** (iPad does; iOS 17.4 beta even removed an
   experimental flag). Don't show a fullscreen button there; instead show a one-time "Add to Home
   Screen for fullscreen" banner and ship a PWA manifest (`display: fullscreen`, fallback standalone).
+  M5: both live in the DOM on the title only; the banner sits at the top edge (at the bottom it
+  covered the title buttons on iPhone) and its dismissal is saved (`SaveData.notices`).
+- **Offline (PWA):** `tools/serviceWorker.ts` writes `dist/sw.js` at build time with the exact
+  build file list and a content-hash cache name; navigations are network-first with the cached
+  `index.html` as the offline fallback (query ignored), everything else cache-first.
 - Screen Orientation lock only works in fullscreen on Android; elsewhere show the rotate card.
 - Handle `visibilitychange`/`pagehide`: pause the sim, mute, save.
 - WebGL context loss (backgrounding, memory pressure): Phaser 4 has built-in context restoration —
@@ -389,9 +408,16 @@ export interface PlatformAdapter {
   (include Afrikaans ê ë ô ï û ʼn and German ä ö ü ß — same list as the art bible §6).
 
 ## 11. Persistence (`src/meta/`)
-- `SaveData` v1 (JSON, key `tm.save.v1`): settings, unlock flags, Notaboek progress, Bird Book,
-  bests per biome, daily history (date → score, first-attempt flag), streak + freezes, in-progress run.
-- Migrations: `migrations[from] = (old) => new`; tests for each.
+- `SaveData` v1 (JSON, key `tm.save.v1`, schema `src/meta/saveSchema.ts`): `settings`, `ftue`,
+  `notices`, `loadout`, `unlocks`, `notaboek` (progress + done), `birdBook` (creatures, secrets as
+  `biome/propId`), `bests` per biome (Classic), `bestRank`, `stats`. Daily history, streak and the
+  in-progress run join as new sections in M6/M7 (a new section needs no migration: it defaults).
+- Loading (`src/meta/save.ts`): every section — and every field of an object section — is
+  validated on its own, so damage falls back locally; text that isn't JSON is kept under
+  `tm.save.corrupt` and the defaults are used; a save from a newer version is read but never
+  overwritten. The `SaveStore` writes through on every change and on `pagehide`/hidden tab.
+- Migrations: `migrations[from] = (old) => new`; tests for each. v0 = the loose M2 key
+  `tm.settings.screenShake`, folded into `settings.screenShake` and removed.
 - Cloud save via adapter where available; last-write-wins with per-section merge for unlocks (union).
 
 ## 12. Daily Hunt, share and challenge links
@@ -410,7 +436,9 @@ Rate-limit per device; reject unknown `contentHash`. Replays double as "watch th
 `ftue_step`, `hunt_start`, `hunt_end` (mode, biome, score, accuracy, wingShotPct, flocksWiped,
 secrets, penalties, durationMs), `run_end` (season reached, charms), `charm_pick`, `padstal_buy`,
 `share_click`, `challenge_open`, `daily_play`, `settings_change`, `perf_sample` (tier, avgFps),
-`error`. No personal data. Respect each portal's tracker rules.
+`error`. No personal data. Respect each portal's tracker rules. M5 emits `ftue_step` (start,
+first_shot, first_bag, run, reload, flush, secret, complete, skip), `hunt_start`, `hunt_end` and
+`settings_change` through `PlatformAdapter.analytics`.
 
 ## 15. Quality gates
 

@@ -2,7 +2,7 @@
 // Pure: returns errors and warnings. Warnings cover content that arrives in later milestones
 // (docs/04-BUILD-PLAN.md M0); `strict` turns them into errors (CI uses --strict from M8 on).
 import { coreWidth } from '../sim/world';
-import type { Biome, Charm, ContentBundle, Creature } from './schemas';
+import type { Biome, Charm, ContentBundle, Creature, Notaboek } from './schemas';
 
 export interface CrossRefIssue {
   readonly file: string;
@@ -19,6 +19,8 @@ export interface CrossRefOptions {
   readonly i18nKeys: ReadonlySet<string>;
   /** Turn every warning into an error. */
   readonly strict?: boolean;
+  /** content/meta/notaboek.json (meta-only, not in the bundle). Without it challenge refs warn. */
+  readonly notaboek?: Notaboek;
 }
 
 /** Milestone in which each kind of deferred content arrives — used in warning text. */
@@ -91,7 +93,49 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
       err('weapons.json', `weapon "${w.id}" unlocks at unknown rank "${w.unlock.id}"`);
     }
     if (w.unlock.type === 'challenge') {
-      warn('weapons.json', `weapon "${w.id}" unlock challenge "${w.unlock.id}" is not defined yet (${LATER.challenge})`);
+      const unlockId = w.unlock.id;
+      const ch = options.notaboek?.challenges.find((c) => c.id === unlockId);
+      if (options.notaboek === undefined) {
+        warn('weapons.json', `weapon "${w.id}" unlock challenge "${unlockId}" is not defined yet (${LATER.challenge})`);
+      } else if (ch === undefined) {
+        err('weapons.json', `weapon "${w.id}" unlock challenge "${unlockId}" is not in meta/notaboek.json`);
+      } else if (ch.reward.type !== 'weapon' || ch.reward.id !== w.id) {
+        err('meta/notaboek.json', `challenge "${unlockId}" must reward weapon "${w.id}" (weapons.json unlock)`);
+      }
+    }
+  }
+
+  // --- meta/notaboek.json ------------------------------------------------------------------
+  if (options.notaboek !== undefined) {
+    const nb = 'meta/notaboek.json';
+    checkUnique(nb, 'challenge', options.notaboek.challenges.map((c) => c.id), err);
+    for (const c of options.notaboek.challenges) {
+      i18n(nb, `notaboek.${c.id}`);
+      if (c.reward.type === 'weapon') {
+        const rewardId = c.reward.id;
+        const w = weapons.weapons.find((x) => x.id === rewardId);
+        if (w?.kind !== 'primary') err(nb, `challenge "${c.id}" rewards unknown primary weapon "${rewardId}"`);
+        else if (w.unlock.type !== 'challenge' || w.unlock.id !== c.id) {
+          err(nb, `challenge "${c.id}" rewards "${rewardId}" but weapons.json does not unlock it with this challenge`);
+        }
+      }
+      if (c.reward.type === 'birdBookPage' && !plannedBiomeIds.has(c.reward.biome)) {
+        err(nb, `challenge "${c.id}" rewards the page of unknown biome "${c.reward.biome}"`);
+      }
+      if (c.biome !== undefined && !plannedBiomeIds.has(c.biome)) {
+        err(nb, `challenge "${c.id}" counts unknown biome "${c.biome}"`);
+      }
+      if (c.metric === 'distinctSecrets') {
+        const biome = c.biome === undefined ? undefined : loadedBiomes.get(c.biome);
+        if (c.biome === undefined) err(nb, `challenge "${c.id}" (distinctSecrets) needs a biome`);
+        else if (biome !== undefined) {
+          const n = biome.props.filter((p) => p.secret !== undefined).length;
+          if (c.target !== n) {
+            err(nb, `challenge "${c.id}" target ${c.target} != ${n} secrets in biome "${biome.id}"`);
+          }
+        }
+      }
+      if (c.metric === 'score' && c.scope !== 'hunt') err(nb, `challenge "${c.id}": score only counts per hunt`);
     }
   }
 

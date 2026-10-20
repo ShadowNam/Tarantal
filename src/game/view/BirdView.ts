@@ -53,6 +53,8 @@ export class BirdView {
     manifest: AssetManifest,
     parallax: ParallaxView,
     content: ContentBundle,
+    /** ⛔ badge on a non-target: only until its first sighting (not yet in the Bird Book). */
+    private readonly showBadge: (creature: string) => boolean = () => true,
   ) {
     this.scene = scene;
     this.manifest = manifest;
@@ -87,7 +89,10 @@ export class BirdView {
             ? this.scene.add.image(b.x, v.ground, TEX.grassTuft).setOrigin(0.5, 30 / 110)
             : null;
         if (tuft) layer.overlay?.add(tuft);
-        const badge = v.kind === 'nonTarget' ? this.scene.add.image(b.x, b.y, TEX.badgeNo) : null;
+        const badge =
+          v.kind === 'nonTarget' && this.showBadge(v.creature)
+            ? this.scene.add.image(b.x, b.y, TEX.badgeNo)
+            : null;
         if (badge) layer.overlay?.add(badge);
         const po = this.manifest.origin(TEX.pot);
         const pot =

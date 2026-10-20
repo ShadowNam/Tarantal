@@ -25,6 +25,43 @@ const ALL: Command[] = [
 ];
 
 describe('InputLog', () => {
+  it('v2 records the aim-assist level; standard is the default and is left out', () => {
+    const rec = createRecorder({
+      seed: 5,
+      contentHash: HASH,
+      mode: { id: 'classic' },
+      inputKind: 'touch',
+      aimAssist: 'off',
+    });
+    rec.record(3, [{ t: 'fire', dx: 1, sy: 2 }]);
+    const log = rec.toLog();
+    expect(log.v).toBe(2);
+    expect(decodeInputLogText(encodeInputLogText(log))).toEqual(log);
+    const std = createRecorder({
+      seed: 5,
+      contentHash: HASH,
+      mode: { id: 'classic' },
+      inputKind: 'touch',
+      aimAssist: 'standard',
+    }).toLog();
+    expect('aimAssist' in std).toBe(false);
+    expect(decodeInputLogText(encodeInputLogText(std))).toEqual(std);
+  });
+
+  it('still decodes v1 logs (pre-M5) as standard aim assist', () => {
+    const v1: InputLog = {
+      v: 1,
+      seed: 9,
+      contentHash: HASH,
+      mode: { id: 'daily' },
+      inputKind: 'touch',
+      commands: [[4, { t: 'reload' }]],
+    };
+    const back = decodeInputLog(encodeInputLog(v1));
+    expect(back).toEqual(v1);
+    expect(back.aimAssist).toBeUndefined();
+  });
+
   it('round-trips every command type, header and mode option', () => {
     const log: InputLog = {
       v: 1,
@@ -101,7 +138,7 @@ describe('InputLog', () => {
     });
     expect(() => decodeInputLog(bytes.slice(0, -1))).toThrow(/truncated/);
     expect(() => decodeInputLog(Uint8Array.from([...bytes, 0]))).toThrow(/trailing/);
-    expect(() => decodeInputLog(Uint8Array.from([2, ...bytes.slice(1)]))).toThrow(/version/);
+    expect(() => decodeInputLog(Uint8Array.from([3, ...bytes.slice(1)]))).toThrow(/version/);
     expect(() => decodeInputLogText('ab$c')).toThrow(/base64url/);
   });
 

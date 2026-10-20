@@ -9,6 +9,11 @@
     <meta name="theme-color" content="#1b1410" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Tarantal" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
     <title>Tarantal Madness</title>
     <style>
       html,
@@ -90,6 +95,68 @@
           transform: rotate(-90deg);
         }
       }
+      /* Menu chrome in the DOM (shown on the title only): fullscreen toggle (never on iPhone)
+         and the one-time iOS "Add to Home Screen" banner (Tech §9), at the top edge so it never
+         covers the title's buttons. */
+      .tm-chrome[hidden] {
+        display: none !important;
+      }
+      #fullscreen-btn {
+        position: fixed;
+        z-index: 5;
+        top: max(12px, env(safe-area-inset-top));
+        right: max(12px, env(safe-area-inset-right));
+        width: 48px;
+        height: 48px;
+        border: 3px solid #f3ead3;
+        border-radius: 12px;
+        background: rgba(27, 20, 16, 0.7);
+        color: #f3ead3;
+        font:
+          700 24px system-ui,
+          sans-serif;
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+        padding: 0;
+      }
+      #install-banner {
+        position: fixed;
+        z-index: 6;
+        left: 50%;
+        transform: translateX(-50%);
+        top: max(8px, env(safe-area-inset-top));
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        max-width: calc(100vw - 32px);
+        box-sizing: border-box;
+        padding: 8px 8px 8px 16px;
+        border-radius: 14px;
+        background: #f3ead3;
+        color: #1b1410;
+        font:
+          600 15px system-ui,
+          sans-serif;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      #install-banner span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      #install-banner button {
+        flex: none;
+        width: 36px;
+        height: 36px;
+        border: 0;
+        border-radius: 10px;
+        background: #1b1410;
+        color: #f3ead3;
+        font:
+          700 18px system-ui,
+          sans-serif;
+      }
       @media (prefers-reduced-motion: reduce) {
         #rotate-card .icon {
           animation: none;
@@ -105,6 +172,10 @@
       <div class="icon" aria-hidden="true"></div>
       <h1 data-i18n="rotate.title"></h1>
       <p data-i18n="rotate.body"></p>
+    </div>
+    <div id="install-banner" class="tm-chrome" role="status" hidden>
+      <span data-i18n="pwa.install"></span>
+      <button type="button" data-action="dismiss-install" data-i18n-label="ui.close">✕</button>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>

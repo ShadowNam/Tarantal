@@ -122,11 +122,16 @@ interface HuntSetup {
   readonly huntSeconds: number;
   /** Biome weather on (mode config, else modes.json; D-021). */
   readonly omen: boolean;
+  /** FTUE script (mode 'ftue' only). */
+  readonly tutorial: Tutorial | null;
 }
+
+type Tutorial = ContentBundle['modes']['modes']['ftue']['tutorial'];
 
 function resolveSetup(content: ContentBundle, config: SimConfig): HuntSetup {
   const { mode } = config;
   const defaults = mode.id === 'seasonHunt' ? undefined : content.modes.modes[mode.id];
+  const tutorial = mode.id === 'ftue' ? content.modes.modes.ftue.tutorial : null;
   const biomeId = mode.biome ?? defaults?.biome;
   const weaponId = mode.weapon ?? defaults?.weapon;
   const huntSeconds = mode.huntSeconds ?? defaults?.huntSeconds ?? content.run.huntSeconds;
@@ -151,7 +156,7 @@ function resolveSetup(content: ContentBundle, config: SimConfig): HuntSetup {
       throw new Error(`event ${event.id}: creature ${event.creature} needs speeds.fly to fly over`);
     }
   }
-  return { biome, weapon, huntSeconds, omen: mode.omen ?? defaults?.omen ?? false };
+  return { biome, weapon, huntSeconds, omen: mode.omen ?? defaults?.omen ?? false, tutorial };
 }
 
 /** The numbers a shot needs from whichever weapon is active (primary or crate weapon). */
@@ -166,6 +171,7 @@ interface ShotStats {
 
 export function createSim(config: SimConfig): Sim {
   const { content, mode, inputKind } = config;
+  const assistMul = content.scoring.aimAssistLevels[config.aimAssist ?? 'standard'];
   const { scoring } = content;
   const setup = resolveSetup(content, config);
   const { biome, weapon } = setup;
@@ -191,7 +197,16 @@ export function createSim(config: SimConfig): Sim {
     spawns: rng.stream('spawns'),
     flocks: rng.stream('flocks'),
     flockParams: fParams,
+    rateMul: setup.tutorial?.spawnRateMul ?? 1,
   });
+  // FTUE beats (GDD §16): fractions of the original length, in time order.
+  const tutorialBeats = (setup.tutorial?.beats ?? [])
+    .map((b, i) => ({ ...b, tick: Math.floor(b.at * baseDurationTicks), i }))
+    .sort((a, b) => a.tick - b.tick || a.i - b.i);
+  let beatCursor = 0;
+  const firstHitAssistPx = setup.tutorial?.firstHitAssistPx ?? 0;
+  /** A flock has run or flushed this hunt (the FTUE dog only comes if none has). */
+  let flockRan = false;
   const planeGeo: PlaneGeometry = {
     near: { scrollFactor: scoring.planes.near.scrollFactor, scale: scoring.planes.near.scale },
     mid: { scrollFactor: scoring.planes.mid.scrollFactor, scale: scoring.planes.mid.scale },
@@ -239,12 +254,24 @@ export function createSim(config: SimConfig): Sim {
     assistPx:
       inputKind === 'touch'
         ? {
-            near: scoring.planes.near.aimAssistPx,
-            mid: scoring.planes.mid.aimAssistPx,
-            far: scoring.planes.far.aimAssistPx,
+            near: scoring.planes.near.aimAssistPx * assistMul,
+            mid: scoring.planes.mid.aimAssistPx * assistMul,
+            far: scoring.planes.far.aimAssistPx * assistMul,
           }
         : { near: 0, mid: 0, far: 0 },
   };
+  // FTUE "generous first hit" (GDD §16): wider radii until the first bag.
+  const firstHitGeometry: ShotGeometry =
+    firstHitAssistPx > 0
+      ? {
+          ...geometry,
+          assistPx: {
+            near: geometry.assistPx.near + firstHitAssistPx,
+            mid: geometry.assistPx.mid + firstHitAssistPx,
+            far: geometry.assistPx.far + firstHitAssistPx,
+          },
+        }
+      : geometry;
 
   // --- state -----------------------------------------------------------------------------
   let tick = 0;
@@ -318,6 +345,7 @@ export function createSim(config: SimConfig): Sim {
   function emitTransition(f: Flock, tr: Transition | null): void {
     if (tr === null) return;
     if (tr.to === 'flush') stats.flushes++;
+    if (tr.to === 'run' || tr.to === 'flush') flockRan = true;
     const c = centroid(f);
     emit({
       type: 'flockStateChanged',
@@ -574,7 +602,8 @@ export function createSim(config: SimConfig): Sim {
     )) {
       const pdx = dx + o.ox;
       const psy = sy + o.oy;
-      const r = resolvePellet(pdx, psy, cameraX, geometry, byPlane, extras, driftDx);
+      const geo = stats.bagged === 0 ? firstHitGeometry : geometry;
+      const r = resolvePellet(pdx, psy, cameraX, geo, byPlane, extras, driftDx);
       // The impact is where the pellet landed: downwind if it stopped at or behind the far
       // plane (or flew on into the sky), so threats and the puff follow the drift (Tech §3.4).
       const landedFar =
@@ -987,6 +1016,31 @@ export function createSim(config: SimConfig): Sim {
     applyReaction('flush', targets, 'gadget');
   }
 
+  /** FTUE beat: the visible flock nearest the screen centre runs (Bles) or flushes. */
+  function runTutorialBeat(action: 'spook' | 'flush', skipIfFlockRan: boolean): void {
+    if (action === 'spook' && skipIfFlockRan && flockRan) {
+      emit({ type: 'tutorialBeat', tick, beat: action, flockId: null });
+      return;
+    }
+    const to = action === 'spook' ? 'run' : 'flush';
+    let best: FlockThreat | null = null;
+    let bestDist = Infinity;
+    for (const t of reactionTargets(flocks, { kind: 'visible' }, cameraX, planeGeo)) {
+      if (t.flock.state === 'flush' || t.flock.state === to) continue;
+      const d = Math.abs(
+        centroid(t.flock).x - planeCentreX(cameraX, planeGeo[t.flock.plane].scrollFactor),
+      );
+      if (d < bestDist) {
+        best = t;
+        bestDist = d;
+      }
+    }
+    emit({ type: 'tutorialBeat', tick, beat: action, flockId: best?.flock.id ?? null });
+    if (best !== null) {
+      emitTransition(best.flock, forceState(best.flock, to, best.x, 'event', fParams, flockRng));
+    }
+  }
+
   /** Flocks and birds move one step (skipped every other tick under Boeretroos). */
   function stepCreatures(): void {
     const exitedMembers: Bird[] = [];
@@ -1038,6 +1092,13 @@ export function createSim(config: SimConfig): Sim {
       const ev = schedule[scheduleCursor++];
       if (ev === undefined) break;
       runWorldEvent(ev);
+    }
+    while (
+      beatCursor < tutorialBeats.length &&
+      (tutorialBeats[beatCursor]?.tick ?? Infinity) <= tick
+    ) {
+      const beat = tutorialBeats[beatCursor++];
+      if (beat !== undefined) runTutorialBeat(beat.action, beat.skipIfFlockRan === true);
     }
     while (crateCursor < crateTicks.length && (crateTicks[crateCursor] ?? Infinity) <= tick) {
       crateCursor++;

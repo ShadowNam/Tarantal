@@ -29,7 +29,7 @@ const windowFraction = range(fraction);
 const version = z.literal(1);
 
 export const PlaneIdSchema = z.enum(['near', 'mid', 'far']);
-export const ModeIdSchema = z.enum(['classic', 'daily', 'seasonHunt']);
+export const ModeIdSchema = z.enum(['classic', 'daily', 'seasonHunt', 'ftue']);
 export const BagBehaviourSchema = z.enum(['forage', 'alert', 'run', 'flying']);
 
 /** World-event ids (Tech §3.6). Each gets a handler in director/events.ts. */
@@ -90,6 +90,8 @@ export const ScoringSchema = obj({
   }),
   stampede: obj({ lastSeconds: pos, mul: pos, modes: z.array(ModeIdSchema) }),
   secretChain: obj({ withinSeconds: pos, bonus: posInt }),
+  /** Settings → aim assist: multiplier on the touch aimAssistPx radii (GDD §18.2–18.3). */
+  aimAssistLevels: obj({ off: z.literal(0), low: fraction, standard: z.literal(1) }),
   ranks: z
     .array(obj({ id, minScore: nonNegInt }))
     .min(1)
@@ -733,10 +735,31 @@ const modeSetupSchema = obj({
   omen: z.boolean(),
 });
 
+/** FTUE "Oupa se Les" (GDD §16): a gentler Karoo hunt with scripted beats. */
+const tutorialSchema = obj({
+  /** Multiplies the biome's fly-over and pop-up rates (slower pacing). */
+  spawnRateMul: z.number().positive().max(1),
+  /** Extra hit radius (design px, every plane and input kind) until the first bag. */
+  firstHitAssistPx: nonNeg,
+  /** Scripted flock beats at fractions of the hunt: `spook` = Bles makes a visible flock RUN
+   *  (skipped if the player already made one run); `flush` = a visible flock FLUSHES. */
+  beats: z.array(
+    obj({
+      at: fraction,
+      action: z.enum(['spook', 'flush']),
+      skipIfFlockRan: z.boolean().optional(),
+    }),
+  ),
+});
+
 export const ModesSchema = obj({
   version,
-  /** Classic and Daily setup. Season Run hunts take their length from run.json (huntSeconds). */
-  modes: obj({ classic: modeSetupSchema, daily: modeSetupSchema }),
+  /** Classic, Daily and FTUE setup. Season Run hunts take their length from run.json. */
+  modes: obj({
+    classic: modeSetupSchema,
+    daily: modeSetupSchema,
+    ftue: modeSetupSchema.extend({ tutorial: tutorialSchema }),
+  }),
 });
 export type Modes = z.infer<typeof ModesSchema>;
 
@@ -769,6 +792,11 @@ export interface ContentBundle {
 // client/feel.json — game-feel tuning for the Phaser layer only (input gestures, pan, juice,
 // HUD). Nothing here changes a sim outcome, so it is NOT part of the ContentBundle or the
 // contentHash (decision D-019). Read by the game at boot; validated by tools/validate-content.ts.
+
+const qualityTier = obj({
+  /** Particle budget multiplier (feathers, wind leaves). Tiers never hide information. */
+  particleScale: fraction,
+});
 
 export const FeelSchema = obj({
   version,
@@ -837,8 +865,73 @@ export const FeelSchema = obj({
     maxStepsPerFrame: posInt,
   }),
   quality: obj({
-    /** Particle budget until QualityManager (M9) picks tiers: medium tier = 0.7. */
-    particleScale: z.number().min(0).max(1),
+    /** Tier used by Settings → quality "auto" on capable devices. */
+    auto: z.enum(['low', 'medium', 'high']),
+    /** Coarse-pointer devices with this many logical cores or fewer start on the low tier. */
+    lowTierMaxCores: posInt,
+    tiers: obj({ low: qualityTier, medium: qualityTier, high: qualityTier }),
+  }),
+  ftue: obj({
+    /** Fraction of the FTUE hunt when "Hmm, Oupa's windpomp…" shows. */
+    secretHintAt: fraction,
+    bannerMs: pos,
+    /** Longest FTUE prompt in characters (GDD §16: never more than one line). */
+    maxPromptChars: posInt,
+  }),
+  accessibility: obj({
+    /** Reduce flashes: alpha of the muzzle flash and the secret hint glints. */
+    reducedFlashAlpha: fraction,
   }),
 });
 export type Feel = z.infer<typeof FeelSchema>;
+
+// ---------------------------------------------------------------------------------------------
+// meta/notaboek.json — Oupa se Notaboek challenges (GDD §13.6). Meta progression only: outside
+// the sim ContentBundle and its contentHash (like client/feel.json), so editing a challenge
+// never invalidates a replay.
+
+/** What a challenge counts. Per-hunt values come from the game's hunt log (src/meta/huntLog.ts). */
+export const NotaboekMetricSchema = z.enum([
+  'hunts',
+  'bagged',
+  'baggedFar',
+  'wingShots',
+  'wholeFlocks',
+  'secrets',
+  'crates',
+  'score',
+  /** Different secrets found in `biome` (a full Bird Book page). */
+  'distinctSecrets',
+]);
+export type NotaboekMetric = z.infer<typeof NotaboekMetricSchema>;
+
+const notaboekRewardSchema = z.discriminatedUnion('type', [
+  /** Unlocks a primary weapon (weapons.json unlock {type: challenge} must point back here). */
+  obj({ type: z.literal('weapon'), id }),
+  /** Completes a biome's Bird Book page (a badge on the page). */
+  obj({ type: z.literal('birdBookPage'), biome: id }),
+  /** A tick in the Notaboek only. */
+  obj({ type: z.literal('none') }),
+]);
+
+export const NotaboekSchema = obj({
+  version,
+  challenges: z
+    .array(
+      obj({
+        id,
+        metric: NotaboekMetricSchema,
+        /** `total`: summed over every hunt; `hunt`: reached within one hunt. */
+        scope: z.enum(['total', 'hunt']),
+        target: posInt,
+        /** Required by distinctSecrets; otherwise counts any biome. */
+        biome: id.optional(),
+        /** Only hunts in these modes count (default: every mode). */
+        modes: z.array(z.enum(['classic', 'daily', 'seasonHunt', 'ftue'])).optional(),
+        reward: notaboekRewardSchema,
+      }),
+    )
+    .min(1),
+});
+export type Notaboek = z.infer<typeof NotaboekSchema>;
+export type NotaboekChallenge = Notaboek['challenges'][number];

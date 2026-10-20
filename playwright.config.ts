@@ -11,7 +11,8 @@ import { defineConfig, devices, webkit, type Project } from '@playwright/test';
 // the real WebKit and fails without it.
 const isCI = process.env['CI'] === 'true';
 const hasWebKit = existsSync(webkit.executablePath());
-const useWebKit = isCI || hasWebKit;
+// PW_NO_WEBKIT=1 (local only): WebKit is installed but the host lacks its system libraries.
+const useWebKit = isCI || (hasWebKit && process.env['PW_NO_WEBKIT'] !== '1');
 
 // Print once from the main process, not from every worker.
 if (!useWebKit && process.env['TEST_WORKER_INDEX'] === undefined) {

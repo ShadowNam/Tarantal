@@ -52,6 +52,29 @@
     "maxStepsPerFrame": 5
   },
   "quality": {
-    "particleScale": 0.7
+    "$comment": "QualityManager tiers (Settings → quality; auto picks lowTierMaxCores-or-fewer coarse-pointer devices as low, else medium). Tiers only cut cost (particles), never what the player can see: secret glints show on every tier. M9 adds a benchmark.",
+    "auto": "medium",
+    "lowTierMaxCores": 4,
+    "tiers": {
+      "low": {
+        "particleScale": 0.4
+      },
+      "medium": {
+        "particleScale": 0.7
+      },
+      "high": {
+        "particleScale": 1
+      }
+    }
+  },
+  "accessibility": {
+    "$comment": "Settings → reduce flashes: muzzle flash and hint glint alpha; the belt's red empty-click flash is off. Large flashes are capped at 3/s regardless (GDD §18.3).",
+    "reducedFlashAlpha": 0.35
+  },
+  "ftue": {
+    "$comment": "Oupa se Les presentation (GDD §16): when the windpomp hint shows (fraction of the hunt), how long a step banner stays, and the longest prompt allowed (characters, one line).",
+    "secretHintAt": 0.67,
+    "bannerMs": 2800,
+    "maxPromptChars": 52
   }
 }

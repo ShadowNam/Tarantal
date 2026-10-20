@@ -2,7 +2,8 @@
 // Same parse path as Node (bundle.ts), so the contentHash matches tools and replays.
 import { parseContent, type RawContent } from './bundle';
 import { parseFeel } from './feel';
-import type { ContentBundle, Feel } from './schemas';
+import { parseNotaboek } from './notaboek';
+import type { ContentBundle, Feel, Notaboek } from './schemas';
 
 const topLevel = import.meta.glob<unknown>('../../content/*.json', { eager: true, import: 'default' });
 const biomeFiles = import.meta.glob<unknown>('../../content/biomes/*.json', {
@@ -10,6 +11,11 @@ const biomeFiles = import.meta.glob<unknown>('../../content/biomes/*.json', {
   import: 'default',
 });
 const feelFiles = import.meta.glob<unknown>('../../content/client/feel.json', {
+  eager: true,
+  import: 'default',
+});
+
+const notaboekFiles = import.meta.glob<unknown>('../../content/meta/notaboek.json', {
   eager: true,
   import: 'default',
 });
@@ -30,6 +36,7 @@ export function rawContentFromBuild(): RawContent {
 export interface GameContent {
   readonly bundle: ContentBundle;
   readonly feel: Feel;
+  readonly notaboek: Notaboek;
 }
 
 /** Validated content for the game; throws with every problem listed if content is broken. */
@@ -41,5 +48,7 @@ export function loadGameContent(): GameContent {
   const feelRaw = Object.values(feelFiles)[0];
   const feel = parseFeel(feelRaw);
   if (!feel.ok) throw new Error(`content/client/feel.json invalid: ${feel.errors.join('; ')}`);
-  return { bundle: parsed.bundle, feel: feel.feel };
+  const nb = parseNotaboek(Object.values(notaboekFiles)[0]);
+  if (!nb.ok) throw new Error(`content/meta/notaboek.json invalid: ${nb.errors.join('; ')}`);
+  return { bundle: parsed.bundle, feel: feel.feel, notaboek: nb.notaboek };
 }

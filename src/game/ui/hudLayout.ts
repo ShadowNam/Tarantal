@@ -1,7 +1,8 @@
 // In-hunt HUD layout (art bible §6) from the design width and the safe area. Pure; unit-tested
 // at 16:9, 19.5:9 and 4:3. Top-left: timer + Frenzy meter. Top-right: score + pop stack.
 // Bottom-right: shell belt (tap target) + RELOAD prompt. Bottom-left: gadget button (Vuvuzela,
-// GDD §18.2; mirrored for left-handers with the M5 settings). Gun: bottom, centre-right.
+// GDD §18.2). Left-handed mode mirrors the bottom row (belt left, gadget right, gun centre-left).
+// Top centre: pause button (and the FTUE skip button next to it). Gun: bottom, centre-right.
 import type { Insets } from '../layout';
 
 export interface Rect {
@@ -27,7 +28,16 @@ export interface HudLayout {
   readonly windsock: Rect;
   /** Gun pivot (bottom-centre of the gun sprite). */
   readonly gun: { readonly x: number; readonly y: number };
+  /** Pause button (touch players have no Esc), top centre. */
+  readonly pause: Rect;
+  /** FTUE skip button, right of the pause button. */
+  readonly skip: Rect;
+  /** FTUE prompt line: centre and the width it may use. */
+  readonly prompt: { readonly x: number; readonly y: number; readonly w: number };
 }
+
+/** Pause button size (a ≥ 64 px tap target). */
+export const PAUSE_PX = 88;
 
 export interface HudSizing {
   readonly marginPx: number;
@@ -41,7 +51,13 @@ export interface HudSizing {
 export const MAX_CHIPS = 3;
 export const CHIP_GAP = 10;
 
-export function hudLayout(width: number, height: number, insets: Insets, s: HudSizing): HudLayout {
+export function hudLayout(
+  width: number,
+  height: number,
+  insets: Insets,
+  s: HudSizing,
+  mirrored = false,
+): HudLayout {
   const m = s.marginPx;
   const safe: Rect = {
     x: insets.left,
@@ -60,9 +76,22 @@ export function hudLayout(width: number, height: number, insets: Insets, s: HudS
   const beltH = Math.max(s.beltTapMinPx, 96);
   // 8 shells × 44 px + padding; narrower screens keep the same belt (it fits at 1440).
   const beltW = 8 * 44 + 40;
-  const belt: Rect = { x: right - beltW, y: bottom - beltH, w: beltW, h: beltH };
+  const belt: Rect = {
+    x: mirrored ? left : right - beltW,
+    y: bottom - beltH,
+    w: beltW,
+    h: beltH,
+  };
   const reloadPrompt: Rect = { x: belt.x, y: belt.y - 90, w: belt.w, h: 76 };
-  const gadget: Rect = { x: left, y: bottom - s.gadgetPx, w: s.gadgetPx, h: s.gadgetPx };
+  const gadget: Rect = {
+    x: mirrored ? right - s.gadgetPx : left,
+    y: bottom - s.gadgetPx,
+    w: s.gadgetPx,
+    h: s.gadgetPx,
+  };
+  const mid = safe.x + safe.w / 2;
+  const pause: Rect = { x: mid - PAUSE_PX / 2, y: top, w: PAUSE_PX, h: PAUSE_PX };
+  const skip: Rect = { x: pause.x + pause.w + 24, y: top + 8, w: 200, h: 72 };
   const chips: Rect = {
     x: left,
     y: frenzy.y + frenzy.h + 16,
@@ -81,7 +110,11 @@ export function hudLayout(width: number, height: number, insets: Insets, s: HudS
     gadget,
     chips,
     windsock,
-    gun: { x: safe.x + safe.w * 0.62, y: height },
+    gun: { x: safe.x + safe.w * (mirrored ? 0.38 : 0.62), y: height },
+    pause,
+    skip,
+    // Under the banner line, between the left and right HUD columns.
+    prompt: { x: mid, y: safe.y + safe.h * 0.36, w: safe.w - 2 * (frenzy.w + m + 40) },
   };
 }
 

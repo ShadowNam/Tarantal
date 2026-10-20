@@ -2,8 +2,11 @@
 // shell belt + RELOAD prompt bottom-right, Vuvuzela button bottom-left. Banners (Stampede, wing
 // shot after a flush) and the "DIE HELE SWERM!" stamp. M4: power-up / crate-weapon chips with
 // their time left under the Frenzy meter, a wind sock in omen hunts, banners for secrets, crates
-// and bonus time, and call-outs for a don't-shoot creature's first sighting and the boss. A separate scene so camera shake never
-// moves it. Fed each frame by HuntScene with the latest snapshot and that frame's events.
+// and bonus time, and call-outs for a don't-shoot creature's first sighting and the boss. M5: the
+// pause button (top centre), the FTUE prompt line with a pulsing hand and its Skip button,
+// left-handed mirroring, and the ⛔ call-out only for creatures not yet in the Bird Book (first
+// sighting ever). A separate scene so camera shake never moves it. Fed each frame by HuntScene
+// with the latest snapshot and that frame's events.
 import * as Phaser from 'phaser';
 import type { SimEvent } from '../../sim/events';
 import type { SimState } from '../../sim/types';
@@ -15,6 +18,13 @@ import { FONT } from '../view/Fx';
 import { formatAward, formatClock, formatMult, formatScore, popParts } from '../ui/format';
 import type { InputKind } from '../../sim/types';
 import { CHIP_GAP, hudLayout, MAX_CHIPS, rectContains, type HudLayout } from '../ui/hudLayout';
+import { drawButton, fitText, Menu, type MenuItem } from '../ui/menu';
+
+export interface HudControls {
+  readonly pause: () => void;
+  /** FTUE only: skip the lesson. */
+  readonly skip: (() => void) | null;
+}
 
 /** Room for "Frenzy ×1.5" left of the meter bar. */
 const FRENZY_LABEL_W = 200;
@@ -64,8 +74,16 @@ export class HudScene extends Phaser.Scene {
   private sockPole!: Phaser.GameObjects.Graphics;
   private sock!: Phaser.GameObjects.Image;
   private callout!: Phaser.GameObjects.Text;
-  /** Don't-shoot creatures already called out this hunt (first sighting, GDD §7). */
+  /** Don't-shoot creatures already called out (first sighting ever: Bird Book + this hunt). */
   private readonly sighted = new Set<string>();
+  private controls: HudControls | null = null;
+  private controlsMenu: Menu | null = null;
+  private pauseIcon!: Phaser.GameObjects.Graphics;
+  private skipButton: { g: Phaser.GameObjects.Graphics; text: Phaser.GameObjects.Text } | null =
+    null;
+  private prompt!: Phaser.GameObjects.Text;
+  private hand!: Phaser.GameObjects.Graphics;
+  private promptKey: string | null = null;
 
   constructor(ctx: GameContext) {
     super({ key: 'Hud' });
@@ -108,6 +126,13 @@ export class HudScene extends Phaser.Scene {
     this.gadgetDrawn = '';
     this.flushedFlocks.clear();
     this.sighted.clear();
+    for (const c of this.ctx.save.data.birdBook.creatures) this.sighted.add(c);
+    this.controlsMenu = null;
+    this.skipButton = null;
+    this.promptKey = null;
+    this.pauseIcon = this.add.graphics();
+    this.prompt = text(56, '#FFFFFF').setOrigin(0.5).setVisible(false);
+    this.hand = this.add.graphics().setVisible(false);
     this.chipPanel = this.add.graphics();
     this.chipTexts = [];
     for (let i = 0; i < MAX_CHIPS; i++) this.chipTexts.push(text(26, '#F3EAD3').setOrigin(0, 0.5));
@@ -119,8 +144,11 @@ export class HudScene extends Phaser.Scene {
     this.scale.on(Phaser.Scale.Events.RESIZE, this.relayout);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.scale.off(Phaser.Scale.Events.RESIZE, this.relayout);
+      this.controls = null;
+      this.layoutNow = null;
     });
     this.relayout();
+    this.wireControls();
   }
 
   get layoutRects(): HudLayout | null {
@@ -129,6 +157,103 @@ export class HudScene extends Phaser.Scene {
 
   isOnBelt(x: number, y: number): boolean {
     return this.layoutNow !== null && rectContains(this.layoutNow.belt, x, y);
+  }
+
+  /** Pause and (FTUE) skip buttons: the InputMapper never fires there. */
+  isOnUi(x: number, y: number): boolean {
+    const l = this.layoutNow;
+    if (l === null) return false;
+    return (
+      rectContains(l.pause, x, y) || (this.controls?.skip != null && rectContains(l.skip, x, y))
+    );
+  }
+
+  /** Wires the pause button (and the FTUE skip button) for this hunt. */
+  setControls(c: HudControls): void {
+    this.controls = c;
+    // launch() creates the scene on the next step; create() wires the stored controls then.
+    if (this.layoutNow !== null && this.sys.isActive()) this.wireControls();
+  }
+
+  private wireControls(): void {
+    const c = this.controls;
+    this.controlsMenu?.destroy();
+    this.controlsMenu = null;
+    if (c === null) return;
+    const none = { x: 0, y: 0, w: 0, h: 0 };
+    const items: MenuItem[] = [
+      {
+        id: 'pause',
+        rect: () => this.layoutNow?.pause ?? none,
+        press: () => {
+          c.pause();
+        },
+      },
+    ];
+    const skip = c.skip;
+    if (skip !== null) {
+      items.push({
+        id: 'skip',
+        rect: () => this.layoutNow?.skip ?? none,
+        press: () => {
+          skip();
+        },
+      });
+    }
+    // Pointer only: Space reloads and Esc pauses through the InputMapper during a hunt.
+    this.controlsMenu = new Menu(this, items, { keyboard: false, hook: this.ctx.hook });
+    this.relayout();
+  }
+
+  /** The FTUE line (one line, shrunk to fit) and the pulsing hand at the flock or the belt. */
+  setFtuePrompt(
+    p: { key: string; text: string } | null,
+    hand: { x: number; y: number } | 'belt' | null,
+  ): void {
+    const l = this.layoutNow;
+    if (l === null) return;
+    if (p === null) {
+      this.prompt.setVisible(false);
+      this.promptKey = null;
+    } else if (p.key !== this.promptKey) {
+      this.promptKey = p.key;
+      this.prompt.setText(p.text).setVisible(true).setPosition(l.prompt.x, l.prompt.y);
+      fitText(this.prompt, l.prompt.w);
+      const hook = this.ctx.hook;
+      if (hook) {
+        hook.ftue.prompts.push({
+          key: p.key,
+          text: p.text,
+          lines: this.prompt.getWrappedText(p.text).length,
+          width: this.prompt.displayWidth,
+          room: l.prompt.w,
+        });
+      }
+    }
+    const target =
+      hand === 'belt' ? { x: l.belt.x + l.belt.w / 2, y: l.belt.y + l.belt.h / 2 } : hand;
+    this.hand.setVisible(target !== null);
+    if (target === null) return;
+    const pulse = 0.5 + 0.5 * Math.sin(this.time.now / 160);
+    const g = this.hand.clear();
+    g.lineStyle(8, 0xffd25a, 0.4 + 0.6 * pulse).strokeCircle(target.x, target.y, 46 + 18 * pulse);
+    // A pointing finger (placeholder art: finger + palm): below the target, or above it pointing
+    // down when the target is low on the screen (the shell belt).
+    const down = target.y > l.safe.y + l.safe.h * 0.6;
+    const hx = target.x + 30;
+    const tip = target.y + (down ? -60 - 10 * pulse : 10 + 10 * pulse);
+    const finger = { x: hx - 6, y: down ? tip - 70 : tip, w: 26, h: 70 };
+    const palm = { x: hx - 22, y: down ? finger.y - 52 : tip + 60, w: 66, h: 56 };
+    g.fillStyle(0xf3ead3, 1).fillRoundedRect(finger.x, finger.y, finger.w, finger.h, 13);
+    g.fillRoundedRect(palm.x, palm.y, palm.w, palm.h, 20);
+    g.lineStyle(5, 0x1b1410, 1).strokeRoundedRect(finger.x, finger.y, finger.w, finger.h, 13);
+    g.strokeRoundedRect(palm.x, palm.y, palm.w, palm.h, 20);
+  }
+
+  relayoutNow(): void {
+    // The language may have changed in the pause menu: redraw the FTUE line too.
+    this.promptKey = null;
+    this.relayout();
   }
 
   isOnGadget(x: number, y: number): boolean {
@@ -150,7 +275,13 @@ export class HudScene extends Phaser.Scene {
   private readonly relayout = (): void => {
     const { width, height } = this.scale.gameSize;
     this.cameras.main.setSize(width, height);
-    const l = hudLayout(width, height, this.ctx.safeArea(), this.ctx.feel.hud);
+    const l = hudLayout(
+      width,
+      height,
+      this.ctx.safeArea(),
+      this.ctx.feel.hud,
+      this.ctx.prefs.leftHanded,
+    );
     this.layoutNow = l;
     const hook = this.ctx.hook;
     if (hook) {
@@ -164,6 +295,8 @@ export class HudScene extends Phaser.Scene {
         gadget: l.gadget,
         chips: l.chips,
         windsock: l.windsock,
+        pause: l.pause,
+        ...(this.controls?.skip != null ? { skip: l.skip } : {}),
       };
     }
     const g = this.panels;
@@ -205,6 +338,23 @@ export class HudScene extends Phaser.Scene {
     this.gadgetKey.setPosition(gc.x + l.gadget.w * 0.34, gc.y - l.gadget.h * 0.34);
     this.gadgetShout.setPosition(l.gadget.x + l.gadget.w + 16, gc.y);
     this.callout.setPosition(width / 2, l.safe.y + 290);
+    // Pause: two bars on a dark disc.
+    const pg = this.pauseIcon.clear();
+    const pc = { x: l.pause.x + l.pause.w / 2, y: l.pause.y + l.pause.h / 2 };
+    pg.fillStyle(C.ink, 0.85).fillCircle(pc.x, pc.y, l.pause.w / 2);
+    pg.fillStyle(C.enamel, 1).fillRoundedRect(pc.x - 18, pc.y - 22, 12, 44, 4);
+    pg.fillRoundedRect(pc.x + 6, pc.y - 22, 12, 44, 4);
+    this.skipButton?.g.destroy();
+    this.skipButton?.text.destroy();
+    this.skipButton =
+      this.controls?.skip != null
+        ? drawButton(this, l.skip, t('ftue.skip'), 'secondary', 32)
+        : null;
+    if (this.promptKey !== null) {
+      this.prompt.setPosition(l.prompt.x, l.prompt.y);
+      fitText(this.prompt, l.prompt.w);
+    }
+    this.controlsMenu?.refresh();
     this.sockPole.clear();
     this.sock.setPosition(l.windsock.x + 20, l.windsock.y + 14);
     this.gadgetDrawn = '';
@@ -318,7 +468,7 @@ export class HudScene extends Phaser.Scene {
     this.lastMul = s.frenzyMul;
 
     // Belt: filled shells + flash on an empty click.
-    const flash = now < this.beltFlashUntil;
+    const flash = now < this.beltFlashUntil && !this.ctx.prefs.reduceFlashes;
     this.shells.forEach((img, i) => {
       const full = s.weapon.shells < 0 || i < s.weapon.shells;
       const key = full ? TEX.shell : TEX.shellEmpty;
@@ -437,6 +587,8 @@ export class HudScene extends Phaser.Scene {
   }
 
   private showBanner(text: string): void {
+    // GDD §16: one line of text during the lesson — the FTUE prompt wins.
+    if (this.promptKey !== null) return;
     const ms = this.ctx.feel.juice.bannerMs;
     this.tweens.killTweensOf(this.banner);
     this.banner.setText(text).setVisible(true).setScale(1).setAlpha(1);
