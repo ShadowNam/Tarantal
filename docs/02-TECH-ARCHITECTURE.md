@@ -77,7 +77,8 @@ tarantal-madness/
 export interface SimConfig {
   seed: number;                 // u32
   content: ContentBundle;       // validated, frozen
-  mode: ModeConfig;             // classic | daily | seasonHunt (+ charms, weapon, biome, omen, boss)
+  mode: ModeConfig;             // classic | daily | seasonHunt | ftue; seasonHunt carries `season`
+                                // (charms in slot order, kind, boss, consumables, rental, runShellBonus)
   inputKind: 'pointer' | 'touch'; // fixed per hunt; selects aim-assist radii; recorded in the replay
   aimAssist?: 'off' | 'low' | 'standard'; // M5 Settings; scales the touch radii (scoring.json
                                           // aimAssistLevels); recorded in the replay (v2)
@@ -90,7 +91,8 @@ export type Command =
   | { t: 'fireHoldEnd' }
   | { t: 'reload' }
   | { t: 'cameraTarget'; cx: number }          // camera CENTRE in reference units, quantised to 0.5
-  | { t: 'gadget' } | { t: 'consumable'; slot: number };
+  | { t: 'gadget' } | { t: 'consumable'; slot: number }  // slot = consumables.length → rental
+  | { t: 'charmOrder'; order: number[] };      // pause-screen reorder: new slot i = old order[i]
 export interface Sim {
   step(commands: readonly Command[]): void;    // advances exactly one tick (1/60 s)
   readonly tick: number;
@@ -107,7 +109,7 @@ export interface Sim {
 - **No** `Math.random`, `Date`, `performance.now`, DOM, `window`, Phaser imports, or async inside `sim/`.
   Enforced by ESLint `no-restricted-imports`/`no-restricted-globals` on `src/sim/**`.
 - **RNG:** `sfc32` seeded via `splitmix32`, with **named streams** (`rng.stream('spawns')`,
-  `'pellets'`, `'flockNoise'`, `'charms'`, `'shop'`) so adding randomness in one system doesn't shift
+  `'pellets'`, `'flockNoise'`, `'charms'`, `'shop'`, `'lightning'`, `'run'` …) so adding randomness in one system doesn't shift
   every other system's sequence.
 - **Cross-browser determinism:** `+ − × ÷` and `Math.sqrt` are safe. `Math.sin/cos/atan2/exp/pow/log`
   are implementation-approximated in JavaScript engines and can differ between browsers — use
@@ -254,16 +256,34 @@ pipeline or sim actions.
   the UI lets players reorder charms.
 - `gadget` trigger: a charm with a `gadget` block (e.g. Fluitjie) **replaces** the Vuvuzela on the
   gadget button while equipped (`gadget.replaces`, `gadget.cooldownMs`).
+- Interpreter (`src/sim/charms/interpreter.ts`, M6): passive effects fold once into stats (belt,
+  reload, alert radius, wind drift, bonus/penalty overrides, spawn rates, Stampede, frenzy-on-miss,
+  gadget, shop stats). Per-bag effects return `Modifier`s for `scoreBag`; `addMultForHunt` builds up
+  per charm and is applied as an `addMult` at that charm's own slot. Other triggers return actions
+  the Sim applies through a queue, so an action that sets off another trigger (a charm flush →
+  `flockFlushed`) runs after the current one instead of nesting. Content validation enforces where
+  actions may appear: scoring actions only on `bag`, stat actions only on `passive`, no conditions
+  on `passive`, `spawnEvent` only for spawnable handlers (`flyover`, `perch`, `dustDevil`,
+  `farmDog`). `farmDog` (Bles) needs no biome entry; other spawned events use the biome's entry.
+  Run-level actions (`interestCap`, `shopSlots`, `rerollDiscount`, `addDoppies` on `shopOpen`) are
+  applied by the run engine (§3.9).
 - Escape hatch: `"script": "<id>"` → a TypeScript charm registered in `charms/registry.ts` for effects
   the DSL can't express. Mods may **not** register scripts in v1 (no remote code, no `eval`).
 
 ### 3.9 Season Run state machine
-`RunStart → (Hunt → Tally → Padstal) × 12 → Victory | Defeat`. Run state (charms, doppies, seed
+`RunStart → (Hunt → Tally → Padstal) × 12 → Victory | Defeat` in `src/sim/run/run.ts` (pure; every
+step takes the content and a `RunState` and returns a new one). `huntSetup()` turns the run into a
+`SimConfig` (`seasonHunt` with its season block); `settleHunt()` checks the quota, pays doppies
+(GDD §13.4) and clears used consumables and the rental; `openPadstal`/`buy`/`sell`/`reroll`/
+`reorderCharms`/`leavePadstal` run the shop. Hunt seeds and Padstal rolls are derived from the run
+seed and their position (`fnv1a32('hunt:<i>' | 'shop:<i>:<reroll>', runSeed)`), so the state needs no
+RNG cursor. A season whose biome isn't loaded runs on `run.json → biomeFallback`. Run state (charms, doppies, seed
 cursor, unlock flags) is serialisable and saved after every Padstal so a closed tab resumes the run.
 
 ### 3.10 Replays
 `InputLog = { v, seed, contentHash, mode, inputKind, aimAssist?, commands: [tickDelta, command][] }`
-(v2 since M5: an aim-assist byte follows the input kind; v1 logs still decode as `standard`), delta + varint encoded,
+(v2 since M5: an aim-assist byte follows the input kind; v1 logs still decode as `standard`; v3 since M6:
+a flag bit adds the Season Run block and `charmOrder` is a command), delta + varint encoded,
 then base64url'd (`src/sim/replay/inputLog.ts`). Deflate is applied outside the sim, at the
 share/challenge-link boundary (M7), because it needs async platform APIs (D-018). Used for: golden tests, bug reports (attach log), ghost replays, and
 (v1.x) server-side leaderboard validation by re-simulating in Node.
