@@ -81,10 +81,15 @@ const hook: TestHook = {
   cpuFrameMs: [],
   replay: null,
   hunts: 0,
+  boot: {},
+  rects: {},
+  safe: null,
 };
 if (testHooks) window.__TM__ = hook;
 
+hook.boot['script'] = performance.now();
 const { bundle, feel } = loadGameContent();
+hook.boot['content'] = performance.now();
 const biomeId = bundle.modes.modes.classic.biome;
 const biome = bundle.biomes.find((b) => b.id === biomeId);
 if (biome === undefined) throw new Error(`classic biome ${biomeId} missing`);

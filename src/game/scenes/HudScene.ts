@@ -92,6 +92,17 @@ export class HudScene extends Phaser.Scene {
     this.cameras.main.setSize(width, height);
     const l = hudLayout(width, height, this.ctx.safeArea(), this.ctx.feel.hud);
     this.layoutNow = l;
+    const hook = this.ctx.hook;
+    if (hook) {
+      hook.safe = l.safe;
+      hook.rects = {
+        timer: l.timer,
+        frenzy: l.frenzy,
+        score: l.score,
+        belt: l.belt,
+        reloadPrompt: l.reloadPrompt,
+      };
+    }
     const g = this.panels;
     g.clear();
     // Timer: weathered wood sign.

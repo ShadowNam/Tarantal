@@ -5,6 +5,7 @@ import type { HuntResult, InputKind } from '../sim/types';
 import type { AssetManifest } from './assets/AssetManifest';
 import type { AudioDirector } from './audio/AudioDirector';
 import type { Insets } from './layout';
+import type { Rect } from './ui/hudLayout';
 
 /** Read by Playwright (dev/test builds and ?e2e=1 only). */
 export interface TestHook {
@@ -33,6 +34,12 @@ export interface TestHook {
   /** Encoded InputLog of the last hunt (bug reports / replay checks). */
   replay: string | null;
   hunts: number;
+  /** Boot milestones in ms since navigation start (content parsed, textures built, ready). */
+  boot: Record<string, number>;
+  /** On-screen rects in design px: HUD parts during a hunt, buttons on the tally. */
+  rects: Record<string, Rect>;
+  /** Safe area in design px when the HUD was laid out. */
+  safe: Rect | null;
 }
 
 export interface GameContext {

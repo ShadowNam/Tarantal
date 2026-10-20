@@ -62,6 +62,7 @@ export class HuntScene extends Phaser.Scene {
     this.cleanups = [];
     this.lastFrameAt = null;
     this.ctx.manifest.install(this.textures);
+    if (this.ctx.hook) this.ctx.hook.boot['textures'] ??= performance.now();
     const { width, height } = this.scale.gameSize;
     this.cameras.main.setSize(width, height);
 
@@ -90,7 +91,10 @@ export class HuntScene extends Phaser.Scene {
 
     if (data.autoStart !== undefined) this.begin(data.autoStart, null);
     else this.showStartCard();
-    if (this.ctx.hook) this.ctx.hook.ready = true;
+    if (this.ctx.hook) {
+      this.ctx.hook.ready = true;
+      this.ctx.hook.boot['ready'] ??= performance.now();
+    }
   }
 
   private readonly relayout = (): void => {
@@ -170,6 +174,7 @@ export class HuntScene extends Phaser.Scene {
     this.card?.destroy();
     this.card = null;
     this.ctx.audio.unlock();
+    if (this.ctx.hook) this.ctx.hook.boot['huntStart'] ??= performance.now();
     this.inputKind = kind;
     this.shake = screenShakeEnabled(this.ctx.reducedMotion);
 

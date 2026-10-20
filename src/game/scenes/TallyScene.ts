@@ -142,6 +142,9 @@ export class TallyScene extends Phaser.Scene {
       this.unbind?.();
       this.unbind = null;
     });
-    if (this.ctx.hook) this.ctx.hook.scene = 'tally';
+    if (this.ctx.hook) {
+      this.ctx.hook.scene = 'tally';
+      this.ctx.hook.rects = { again, shake };
+    }
   }
 }
