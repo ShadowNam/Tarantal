@@ -2,6 +2,7 @@
 // The muzzle flash is a small local sprite at the barrel — never a full-screen brighten.
 // On touch the gun shrinks to 60 % and fades to 40 % while a finger is down.
 import * as Phaser from 'phaser';
+import type { LivePrefs } from '../prefs';
 import type { Feel } from '../../content/schemas';
 import { gunKey, TEX } from '../assets/AssetManifest';
 
@@ -24,7 +25,12 @@ export class WeaponView {
   private touchMode = false;
   private reticleHideAt = 0;
 
-  constructor(scene: Phaser.Scene, feel: Feel, layer: Phaser.GameObjects.Container) {
+  constructor(
+    scene: Phaser.Scene,
+    feel: Feel,
+    layer: Phaser.GameObjects.Container,
+    private readonly prefs: LivePrefs,
+  ) {
     this.scene = scene;
     this.feel = feel;
     this.gun = scene.add.image(0, 0, TEX.gun).setOrigin(0.5, 1);
@@ -100,6 +106,7 @@ export class WeaponView {
     this.flash
       .setPosition(x, y)
       .setVisible(true)
+      .setAlpha(this.prefs.flashAlpha)
       .setScale(this.gun.scaleX * (0.8 + Math.random() * 0.3))
       .setRotation(Math.random() * Math.PI);
     this.scene.time.delayedCall(this.feel.juice.muzzleFlashMs, () => this.flash.setVisible(false));

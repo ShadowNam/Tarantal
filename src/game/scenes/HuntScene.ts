@@ -1,33 +1,42 @@
-// The Classic hunt (M2). Shows the panorama behind a "Tap to hunt" card; that tap unlocks audio,
-// fixes the hunt's inputKind (touch → aim assist) and starts the sim. Each frame: advance the
-// fixed-step runner, route the frame's events to FX / audio / HUD, then draw the interpolated
-// snapshot. The scene never writes into the sim: input reaches it only as Commands.
+// The hunt (Classic and the FTUE "Oupa se Les"). Shows the panorama behind the title; START
+// unlocks audio, fixes the hunt's inputKind (touch → aim assist, at the Settings level) and starts
+// the sim. Each frame: advance the fixed-step runner, route the frame's events to FX / audio /
+// HUD / the hunt log (meta) / the FTUE director, then draw the interpolated snapshot. The scene
+// never writes into the sim: input reaches it only as Commands. Esc, P, the HUD pause button or
+// a hidden tab open the pause menu; the hunt clock holds while it is open.
 import * as Phaser from 'phaser';
 import type { Weapon } from '../../content/schemas';
 import { DebugOverlay } from '../../debug/DebugOverlay';
-import { t } from '../../i18n/i18n';
-import { screenShakeEnabled } from '../../meta/settings';
+import { fill, t } from '../../i18n/i18n';
+import { createHuntLogger, type HuntLogger } from '../../meta/huntLog';
+import { applyHunt, isWeaponEquippable, type HuntOutcome } from '../../meta/progress';
+import { msToTicks } from '../../sim/clock';
 import type { SimEvent } from '../../sim/events';
 import { createRecorder, encodeInputLogText, type InputRecorder } from '../../sim/replay/inputLog';
 import { createSim } from '../../sim/Sim';
-import type { HuntResult, InputKind, ModeConfig, SimState } from '../../sim/types';
+import type { HuntResult, InputKind, ModeConfig, ModeId, SimState } from '../../sim/types';
 import { CAMERA_MAX_X, CAMERA_MIN_X } from '../../sim/world';
 import { neededBeforeStart } from '../assets/AssetManifest';
+import { FtueDirector, type FtueStep } from '../ftue/FtueDirector';
 import type { GameContext } from '../GameContext';
 import { HuntRunner } from '../HuntRunner';
 import { InputMapper, inputKindOf } from '../input/InputMapper';
 import { BirdView } from '../view/BirdView';
-import { Fx, FONT } from '../view/Fx';
+import { Fx } from '../view/Fx';
 import { interpolateBirds, interpolateCamera } from '../view/interpolate';
 import { ParallaxView } from '../view/ParallaxView';
 import { WeaponView } from '../view/WeaponView';
 import { WorldView } from '../view/WorldView';
 import type { HudScene } from './HudScene';
+import type { PauseData } from './PauseScene';
 import type { TallyData } from './TallyScene';
+import type { TitleData } from './TitleScene';
 
 export interface HuntData {
-  /** Skip the start card (the [Again] button) with this input kind. */
+  /** Skip the title (the [Again] button) with this input kind. */
   readonly autoStart?: InputKind;
+  /** Mode for autoStart (default classic). */
+  readonly mode?: ModeId;
 }
 
 const END_DELAY_MS = 900;
@@ -44,13 +53,14 @@ export class HuntScene extends Phaser.Scene {
   private world!: WorldView;
   private debug!: DebugOverlay;
   private screen!: Phaser.GameObjects.Container;
-  private card: Phaser.GameObjects.Container | null = null;
   private runner: HuntRunner | null = null;
   private mapper: InputMapper | null = null;
   private recorder: InputRecorder | null = null;
   private inputKind: InputKind = 'pointer';
-  private shake = true;
   private ending = false;
+  private logger: HuntLogger | null = null;
+  private ftue: FtueDirector | null = null;
+  private pausedByMenu = false;
   private cleanups: (() => void)[] = [];
   private lastFrameAt: number | null = null;
   private texturesDone = false;
@@ -64,7 +74,10 @@ export class HuntScene extends Phaser.Scene {
     this.runner = null;
     this.mapper = null;
     this.ending = false;
-    this.card = null;
+    this.logger = null;
+    this.ftue = null;
+    this.pausedByMenu = false;
+    this.ctx.menuPaused = false;
     this.cleanups = [];
     this.lastFrameAt = null;
     // Scenery and UI now; birds are drawn a few at a time while the start card shows.
@@ -75,7 +88,13 @@ export class HuntScene extends Phaser.Scene {
 
     this.parallax = new ParallaxView(this, this.ctx.biome, this.ctx.manifest);
     this.screen = this.add.container(0, 0);
-    this.birds = new BirdView(this, this.ctx.manifest, this.parallax, this.ctx.content);
+    this.birds = new BirdView(
+      this,
+      this.ctx.manifest,
+      this.parallax,
+      this.ctx.content,
+      (creature) => !this.ctx.save.data.birdBook.creatures.includes(creature),
+    );
     this.fx = new Fx(
       this,
       this.ctx.feel,
@@ -84,6 +103,7 @@ export class HuntScene extends Phaser.Scene {
       (id) => this.birds.positionOf(id),
       (id) => this.birds.potOf(id),
       this.ctx.content.powerups.crates.plane,
+      this.ctx.prefs,
     );
     this.world = new WorldView(
       this,
@@ -92,8 +112,9 @@ export class HuntScene extends Phaser.Scene {
       this.ctx.biome,
       this.parallax,
       this.screen,
+      this.ctx.prefs,
     );
-    this.weapon = new WeaponView(this, this.ctx.feel, this.screen);
+    this.weapon = new WeaponView(this, this.ctx.feel, this.screen, this.ctx.prefs);
     this.debug = new DebugOverlay(
       this,
       this.ctx.content,
@@ -121,8 +142,18 @@ export class HuntScene extends Phaser.Scene {
       this.teardown();
     });
 
-    if (data.autoStart !== undefined) this.begin(data.autoStart, null);
-    else this.showStartCard();
+    // Tab hidden mid-hunt: open the pause menu, so coming back never resumes mid-flight.
+    const onVisibility = (): void => {
+      if (document.visibilityState === 'hidden' && this.runner !== null && !this.ending)
+        this.openPause();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    this.cleanups.push(() => {
+      document.removeEventListener('visibilitychange', onVisibility);
+    });
+
+    if (data.autoStart !== undefined) this.begin(data.autoStart, null, data.mode ?? 'classic');
+    else this.showTitle();
     if (this.ctx.hook) {
       this.ctx.hook.ready = true;
       this.ctx.hook.boot['ready'] ??= performance.now();
@@ -132,79 +163,27 @@ export class HuntScene extends Phaser.Scene {
   private readonly relayout = (): void => {
     const { width, height } = this.scale.gameSize;
     this.cameras.main.setSize(width, height);
-    this.weapon.layout(width * 0.62, height);
-    this.card?.setPosition(width / 2, height / 2);
+    this.weapon.layout(width * (this.ctx.prefs.leftHanded ? 0.38 : 0.62), height);
   };
 
-  // --- start card ---------------------------------------------------------------------------
+  // --- title ------------------------------------------------------------------------------
 
-  private showStartCard(): void {
-    const { width, height } = this.scale.gameSize;
-    const hintKey = this.ctx.coarsePointer ? 'start.hint_touch' : 'start.hint_mouse';
-    const shade = this.add.rectangle(0, 0, 4000, 2400, 0x1b1410, 0.45);
-    const title = this.add
-      .text(0, -40, t('start.title'), {
-        fontFamily: FONT,
-        fontSize: '120px',
-        fontStyle: '900',
-        color: '#F3EAD3',
-        stroke: '#1B1410',
-        strokeThickness: 16,
-      })
-      .setOrigin(0.5);
-    const hint = this.add
-      .text(0, 90, t(hintKey), {
-        fontFamily: FONT,
-        fontSize: '34px',
-        fontStyle: '700',
-        color: '#F3EAD3',
-        stroke: '#1B1410',
-        strokeThickness: 6,
-        align: 'center',
-        wordWrap: { width: Math.min(1300, width - 160) },
-      })
-      .setOrigin(0.5, 0);
-    this.card = this.add.container(width / 2, height / 2, [shade, title, hint]);
-    this.tweens.add({
-      targets: title,
-      scale: { from: 1, to: 1.06 },
-      yoyo: true,
-      repeat: -1,
-      duration: 700,
-    });
+  private showTitle(): void {
+    const data: TitleData = {
+      start: (kind, pointerId, mode) => {
+        this.begin(kind, pointerId, mode);
+      },
+    };
+    this.scene.launch('Title', data);
+    this.scene.bringToTop('Title');
     if (this.ctx.hook) this.ctx.hook.scene = 'start';
-
-    const canvas = this.game.canvas;
-    const onDown = (e: PointerEvent): void => {
-      e.preventDefault();
-      this.begin(inputKindOf(e.pointerType), e.pointerId);
-    };
-    const onKey = (e: KeyboardEvent): void => {
-      if (e.code === 'Space' || e.code === 'Enter') {
-        e.preventDefault();
-        this.begin('pointer', null);
-      }
-    };
-    canvas.addEventListener('pointerdown', onDown);
-    window.addEventListener('keydown', onKey);
-    const remove = (): void => {
-      canvas.removeEventListener('pointerdown', onDown);
-      window.removeEventListener('keydown', onKey);
-    };
-    this.cleanups.push(remove);
-    this.startCardRemove = remove;
   }
-
-  private startCardRemove: (() => void) | null = null;
 
   // --- hunt -------------------------------------------------------------------------------------
 
-  private begin(kind: InputKind, startPointer: number | null): void {
+  private begin(kind: InputKind, startPointer: number | null, modeId: ModeId): void {
     if (this.runner) return;
-    this.startCardRemove?.();
-    this.startCardRemove = null;
-    this.card?.destroy();
-    this.card = null;
+    this.scene.stop('Title');
     this.ctx.audio.unlock();
     if (!this.texturesDone) this.texturesDone = this.ctx.manifest.install(this.textures);
     if (this.ctx.hook) {
@@ -212,21 +191,47 @@ export class HuntScene extends Phaser.Scene {
       this.ctx.hook.missingTextures = this.ctx.manifest.missing(this.textures);
     }
     this.inputKind = kind;
-    this.shake = screenShakeEnabled(this.ctx.reducedMotion);
+    const save = this.ctx.save.data;
 
+    // Classic plays the Skiet-Skuur loadout (if it is still equippable); the FTUE its own gun.
+    const loadout = this.ctx.content.weapons.weapons.find((w) => w.id === save.loadout.weapon);
+    const weapon =
+      modeId === 'classic' &&
+      loadout !== undefined &&
+      loadout.id !== this.ctx.content.modes.modes.classic.weapon &&
+      isWeaponEquippable(loadout, save, this.ctx.content)
+        ? loadout.id
+        : undefined;
     const mode: ModeConfig = {
-      id: 'classic',
+      id: modeId,
+      ...(weapon === undefined ? {} : { weapon }),
       ...(this.ctx.huntSeconds === undefined ? {} : { huntSeconds: this.ctx.huntSeconds }),
-      ...(this.ctx.omen === undefined ? {} : { omen: this.ctx.omen }),
+      ...(this.ctx.omen === undefined || modeId === 'ftue' ? {} : { omen: this.ctx.omen }),
     };
+    const aimAssist = save.settings.aimAssist;
     const seed = this.ctx.nextSeed();
-    const sim = createSim({ seed, content: this.ctx.content, mode, inputKind: kind });
+    const sim = createSim({ seed, content: this.ctx.content, mode, inputKind: kind, aimAssist });
     this.recorder = createRecorder({
       seed,
       contentHash: this.ctx.contentHash,
       mode,
       inputKind: kind,
+      aimAssist,
     });
+    this.logger = createHuntLogger();
+    const durationTicks = sim.snapshot().durationTicks;
+    this.ftue =
+      modeId === 'ftue'
+        ? new FtueDirector({
+            inputKind: kind,
+            durationTicks,
+            secretHintAt: this.ctx.feel.ftue.secretHintAt,
+            bannerTicks: msToTicks(this.ctx.feel.ftue.bannerMs),
+            onStep: (step, tick) => {
+              this.ftueStep(step, tick);
+            },
+          })
+        : null;
 
     this.scene.launch('Hud');
     const hud = this.scene.get('Hud') as HudScene;
@@ -244,6 +249,10 @@ export class HuntScene extends Phaser.Scene {
         },
         fingerDown: (down) => {
           this.weapon.setFingerDown(down);
+        },
+        isOnUi: (x, y) => hud.isOnUi(x, y),
+        pause: () => {
+          this.openPause();
         },
         toggleDebug: () => {
           this.ctx.debug = !this.ctx.debug;
@@ -269,11 +278,32 @@ export class HuntScene extends Phaser.Scene {
     });
     this.weapon.setTouchMode(kind === 'touch');
     hud.setInputKind(kind);
+    hud.setControls({
+      pause: () => {
+        this.openPause();
+      },
+      skip:
+        modeId === 'ftue'
+          ? () => {
+              this.skipFtue();
+            }
+          : null,
+    });
+    this.ctx.platform.gameplayStart();
+    this.ctx.platform.analytics('hunt_start', {
+      mode: modeId,
+      biome: this.ctx.biome.id,
+      weapon: weapon ?? sim.snapshot().weapon.id,
+      inputKind: kind,
+      aimAssist,
+    });
     this.game.canvas.style.cursor = kind === 'pointer' ? 'none' : '';
 
     const hook = this.ctx.hook;
     if (hook) {
       hook.scene = 'hunt';
+      hook.mode = modeId;
+      hook.ftue.active = modeId === 'ftue';
       hook.inputKind = kind;
       hook.result = null;
       hook.replay = null;
@@ -304,7 +334,9 @@ export class HuntScene extends Phaser.Scene {
       }
       return;
     }
-    if (this.ctx.paused()) return;
+    const paused = this.ctx.paused();
+    if (this.ctx.hook) this.ctx.hook.paused = paused;
+    if (paused) return;
 
     const hook = this.ctx.hook;
     if (hook && !this.ending && hook.frameTimes.length < MAX_FRAME_SAMPLES)
@@ -313,6 +345,13 @@ export class HuntScene extends Phaser.Scene {
     const { events } = runner.advance(delta);
     const state = runner.state;
     if (events.length > 0) this.handleEvents(events, width, state);
+    this.logger?.add(events);
+    if (this.ftue) {
+      this.ftue.update(events, state.tick, {
+        shells: state.weapon.shells,
+        reloading: state.weapon.reloading,
+      });
+    }
 
     const alpha = runner.alpha;
     const cam = interpolateCamera(runner.prev, state, alpha);
@@ -331,7 +370,10 @@ export class HuntScene extends Phaser.Scene {
       this.scale.gameSize.height - safe.bottom - 90,
     );
     const hud = this.scene.get('Hud') as HudScene;
-    if (hud.sys.isActive()) hud.render(state, events);
+    if (hud.sys.isActive()) {
+      hud.render(state, events);
+      if (this.ftue) hud.setFtuePrompt(this.ftuePrompt(), this.ftueHand(state));
+    }
 
     if (hook) {
       hook.tick = state.tick;
@@ -403,7 +445,7 @@ export class HuntScene extends Phaser.Scene {
         const def = this.ctx.content.weapons.weapons.find((x) => x.id === e.weapon);
         if (def?.kind === 'crate' && def.smokeMs !== undefined && def.smokeMs > 0)
           this.weapon.smoke(def.smokeMs, this.ctx.feel.juice.smokeScale);
-        if (this.shake) {
+        if (this.ctx.prefs.shake) {
           const w: Weapon | undefined = this.ctx.content.weapons.weapons.find(
             (x) => x.id === e.weapon,
           );
@@ -442,17 +484,157 @@ export class HuntScene extends Phaser.Scene {
     this.game.canvas.style.cursor = '';
     this.weapon.hideReticle();
     const result = this.recordResult();
+    const ftue = this.ftue !== null;
+    if (this.ftue) {
+      this.ftue.complete(result.ticks);
+      this.markFtueDone(false);
+    }
+    const outcome = this.recordProgress(result);
     this.time.delayedCall(END_DELAY_MS, () => {
       this.scene.stop('Hud');
       const data: TallyData = {
         result,
+        outcome,
+        ftue,
         again: (pointerType) => {
           this.scene.stop('Tally');
-          this.scene.restart({ autoStart: inputKindOf(pointerType) } satisfies HuntData);
+          // After the FTUE, [Again] is a real Classic hunt (GDD §16 step 7).
+          this.scene.restart({
+            autoStart: inputKindOf(pointerType),
+            mode: 'classic',
+          } satisfies HuntData);
+        },
+        menu: () => {
+          this.scene.stop('Tally');
+          this.scene.restart({} satisfies HuntData);
         },
       };
       this.scene.launch('Tally', data);
     });
+  }
+
+  /** Hunt log → save (stats, Bird Book, bests, rank, Notaboek) and hunt_end analytics. */
+  private recordProgress(result: HuntResult): HuntOutcome | null {
+    const logger = this.logger;
+    this.ctx.platform.gameplayStop();
+    this.ctx.platform.analytics('hunt_end', {
+      mode: result.mode,
+      biome: result.biome,
+      score: result.score,
+      accuracy: result.accuracy,
+      wingShotPct: result.bagged > 0 ? result.wingShots / result.bagged : 0,
+      flocksWiped: result.wholeFlocks,
+      secrets: result.secrets,
+      penalties: result.penalties,
+      durationMs: Math.round((result.ticks * 1000) / 60),
+    });
+    if (logger === null) return null;
+    let outcome: HuntOutcome | null = null;
+    this.ctx.save.update((d) => {
+      outcome = applyHunt(d, logger.finish(result), this.ctx.content, this.ctx.notaboek);
+      return outcome.save;
+    });
+    return outcome;
+  }
+
+  // --- pause, FTUE ------------------------------------------------------------------------------
+
+  private openPause(): void {
+    if (this.runner === null || this.ending || this.pausedByMenu) return;
+    this.pausedByMenu = true;
+    this.ctx.menuPaused = true;
+    this.mapper?.setEnabled(false);
+    this.ctx.audio.setMuted('pause', true);
+    this.game.canvas.style.cursor = '';
+    const data: PauseData = {
+      resume: () => {
+        this.closePause();
+      },
+      quit: () => {
+        this.closePause();
+        if (this.ftue) this.skipFtue();
+        else this.quitToTitle();
+      },
+    };
+    this.scene.launch('Pause', data);
+    this.scene.bringToTop('Pause');
+    if (this.ctx.hook) this.ctx.hook.paused = true;
+  }
+
+  private closePause(): void {
+    if (!this.pausedByMenu) return;
+    this.scene.stop('Pause');
+    this.pausedByMenu = false;
+    this.ctx.menuPaused = false;
+    this.ctx.audio.setMuted('pause', false);
+    // Settings may have changed in the pause menu (left-handed, quality, shake).
+    this.relayout();
+    (this.scene.get('Hud') as HudScene).relayoutNow();
+    if (!this.ending) {
+      this.mapper?.setEnabled(true);
+      this.game.canvas.style.cursor = this.inputKind === 'pointer' ? 'none' : '';
+    }
+    // Don't count the time spent in the menu as a frame gap.
+    this.lastFrameAt = null;
+  }
+
+  private quitToTitle(): void {
+    this.ctx.platform.gameplayStop();
+    this.scene.stop('Hud');
+    this.scene.restart({} satisfies HuntData);
+  }
+
+  /** Skip (HUD button or Quit in the pause menu): the FTUE counts as seen. */
+  private skipFtue(): void {
+    if (this.ftue === null || this.ending) return;
+    this.ftue.skip(this.runner?.state.tick ?? 0);
+    this.markFtueDone(true);
+    this.quitToTitle();
+  }
+
+  private markFtueDone(skipped: boolean): void {
+    this.ctx.save.update((d) =>
+      d.ftue.done
+        ? d
+        : { ...d, ftue: { done: true, skipped, step: skipped ? 'skip' : 'complete' } },
+    );
+  }
+
+  private ftueStep(step: FtueStep, tick: number): void {
+    this.ctx.platform.analytics('ftue_step', { step, tick, inputKind: this.inputKind });
+    if (step !== 'complete' && step !== 'skip') {
+      this.ctx.save.update((d) => (d.ftue.done ? d : { ...d, ftue: { ...d.ftue, step } }));
+    }
+    this.ctx.hook?.ftue.steps.push(step);
+  }
+
+  /** The FTUE line with its numbers filled in from content (run and flight multipliers). */
+  private ftuePrompt(): { key: string; text: string } | null {
+    const p = this.ftue?.prompt;
+    if (p === undefined || p === null) return null;
+    const add = this.ctx.content.scoring.behaviourAdd;
+    return {
+      key: p.key,
+      text: fill(t(p.key), { n: p.key === 'ftue.run' ? add.run : 1 + add.flying }),
+    };
+  }
+
+  /** Where the FTUE hand points: the foraging flock nearest the screen centre, or the belt. */
+  private ftueHand(state: SimState): { x: number; y: number } | 'belt' | null {
+    const hand = this.ftue?.prompt?.hand ?? null;
+    if (hand !== 'flock') return hand;
+    const { width } = this.scale.gameSize;
+    let best: { x: number; y: number } | null = null;
+    for (const f of state.flocks) {
+      const members = state.birds.filter((b) => b.flockId === f.id);
+      if (members.length === 0) continue;
+      const x =
+        members.reduce((sum, b) => sum + this.parallax.screenX(b.plane, b.x), 0) / members.length;
+      const y = members.reduce((sum, b) => sum + b.y, 0) / members.length;
+      if (x < 0 || x > width) continue;
+      if (best === null || Math.abs(x - width / 2) < Math.abs(best.x - width / 2)) best = { x, y };
+    }
+    return best;
   }
 
   private recordResult(): HuntResult {

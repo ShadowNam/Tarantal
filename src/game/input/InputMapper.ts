@@ -20,6 +20,10 @@ export interface InputHost {
   isOnBelt(x: number, y: number): boolean;
   /** True if (x, y) in design px is on the gadget button. */
   isOnGadget(x: number, y: number): boolean;
+  /** True if (x, y) is on a HUD control handled elsewhere (pause, FTUE skip): never fires. */
+  isOnUi(x: number, y: number): boolean;
+  /** Esc / P: open the pause menu. */
+  pause(): void;
   /** The active weapon fires while held (snapshot weapon.holdToFire). */
   holdToFire(): boolean;
   queue(cmd: Command): void;
@@ -169,6 +173,12 @@ export class InputMapper {
     e.preventDefault();
     if (!this.enabled || this.ignored.has(e.pointerId)) return;
     const p = this.toDesign(e.clientX, e.clientY);
+    if (this.host.isOnUi(p.x, p.y)) {
+      // A finger on a HUD control must not become a tap or drag when it lifts. (A mouse press is
+      // simply dropped: its id is reused, and a release off the canvas would leave it ignored.)
+      if (e.pointerType !== 'mouse') this.ignored.add(e.pointerId);
+      return;
+    }
     const onButton = this.host.isOnBelt(p.x, p.y) || this.host.isOnGadget(p.x, p.y);
     if (e.pointerType === 'mouse') {
       if (e.button === 0) {
@@ -271,6 +281,11 @@ export class InputMapper {
       return;
     }
     if (!this.enabled) return;
+    if (e.code === 'Escape' || e.code === 'KeyP') {
+      e.preventDefault();
+      if (down && !e.repeat) this.host.pause();
+      return;
+    }
     if (e.code === 'Space') {
       e.preventDefault();
       if (down && !e.repeat) this.host.queue({ t: 'reload' });

@@ -1,19 +1,37 @@
 // All game audio goes through here (Tech §7). Starts only after a user gesture, mutes on
-// visibilitychange (and later on pause/ads via the platform adapter), pans by screen x (±0.7),
-// and caps simultaneous voices at 16. Reacts only to typed sim events.
+// visibilitychange, on pause and during ads (platform adapter), pans by screen x (±0.7),
+// and caps simultaneous voices at 16. Reacts only to typed sim events. Two buses under the
+// master: SFX and music (the flush sting and the Stampede cue until music stems land, M10),
+// each with its Settings volume.
 import type { SimEvent } from '../../sim/events';
 import { createNoise, playSfx, type SfxId } from './synth';
 
 const MAX_VOICES = 16;
 const MAX_PAN = 0.7;
+/** Master level at full volume (headroom for the placeholder synth). */
+const MASTER_LEVEL = 0.6;
+/** Sounds on the music bus. */
+const MUSIC: ReadonlySet<SfxId> = new Set<SfxId>(['sting', 'stampede']);
+
+/** Why audio is muted; any reason mutes. */
+export type MuteReason = 'pause' | 'ad' | 'menu';
+
+export interface Volumes {
+  readonly master: number;
+  readonly sfx: number;
+  readonly music: number;
+}
 
 export class AudioDirector {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
+  private sfxBus: GainNode | null = null;
+  private musicBus: GainNode | null = null;
   private noise: AudioBuffer | null = null;
   private voices = 0;
   private hidden = false;
-  private muted = false;
+  private readonly muteReasons = new Set<MuteReason>();
+  private volumes: Volumes = { master: 1, sfx: 1, music: 1 };
 
   constructor() {
     document.addEventListener('visibilitychange', () => {
@@ -34,6 +52,10 @@ export class AudioDirector {
         this.ctx = new Ctor();
         this.master = this.ctx.createGain();
         this.master.connect(this.ctx.destination);
+        this.sfxBus = this.ctx.createGain();
+        this.sfxBus.connect(this.master);
+        this.musicBus = this.ctx.createGain();
+        this.musicBus.connect(this.master);
         this.noise = createNoise(this.ctx);
         this.applyGain();
       }
@@ -44,8 +66,19 @@ export class AudioDirector {
     }
   }
 
-  setMuted(m: boolean): void {
-    this.muted = m;
+  setMuted(reason: MuteReason, on: boolean): void {
+    if (on) this.muteReasons.add(reason);
+    else this.muteReasons.delete(reason);
+    this.applyGain();
+  }
+
+  get muted(): boolean {
+    return this.muteReasons.size > 0 || this.hidden;
+  }
+
+  /** Settings volumes, 0..1 each. */
+  setVolumes(v: Volumes): void {
+    this.volumes = v;
     this.applyGain();
   }
 
@@ -55,7 +88,7 @@ export class AudioDirector {
 
   /** Plays the sounds for a frame's events. panOf maps an event to −1 (left) … +1 (right). */
   handle(events: readonly SimEvent[], panOf: (e: SimEvent) => number): void {
-    if (this.ctx === null || this.hidden) return;
+    if (this.ctx === null || this.muted) return;
     let shot = false;
     let sting = false;
     for (const e of events) {
@@ -127,11 +160,12 @@ export class AudioDirector {
   }
 
   private play(id: SfxId, pan: number): void {
-    const { ctx, master, noise } = this;
-    if (ctx === null || master === null || noise === null || this.voices >= MAX_VOICES) return;
+    const { ctx, noise } = this;
+    const bus = MUSIC.has(id) ? this.musicBus : this.sfxBus;
+    if (ctx === null || bus === null || noise === null || this.voices >= MAX_VOICES) return;
     const panner = ctx.createStereoPanner();
     panner.pan.value = Math.max(-MAX_PAN, Math.min(MAX_PAN, pan * MAX_PAN));
-    panner.connect(master);
+    panner.connect(bus);
     this.voices++;
     const seconds = playSfx(ctx, panner, id, noise);
     window.setTimeout(
@@ -145,6 +179,9 @@ export class AudioDirector {
 
   private applyGain(): void {
     if (this.master === null || this.ctx === null) return;
-    this.master.gain.setValueAtTime(this.muted || this.hidden ? 0 : 0.6, this.ctx.currentTime);
+    const now = this.ctx.currentTime;
+    this.master.gain.setValueAtTime(this.muted ? 0 : MASTER_LEVEL * this.volumes.master, now);
+    this.sfxBus?.gain.setValueAtTime(this.volumes.sfx, now);
+    this.musicBus?.gain.setValueAtTime(this.volumes.music, now);
   }
 }

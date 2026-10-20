@@ -6,6 +6,7 @@
 // reservoir splash), the Generaal's CLANG as his pot flies off, "KWÊ-KWÊ!" from a perched
 // kwêvoël, and a burst where a crate opens.
 import * as Phaser from 'phaser';
+import type { LivePrefs } from '../prefs';
 import type { Feel } from '../../content/schemas';
 import type { SimEvent } from '../../sim/events';
 import type { PlaneId, SimState } from '../../sim/types';
@@ -45,6 +46,7 @@ export class Fx {
     locate: (birdId: number) => BagSpot | null,
     locatePot: (birdId: number) => { plane: PlaneId; x: number; y: number; scaleX: number } | null,
     cratePlane: PlaneId,
+    private readonly prefs: LivePrefs,
   ) {
     this.scene = scene;
     this.locate = locate;
@@ -256,7 +258,7 @@ export class Fx {
 
   private featherBurst(plane: PlaneId, x: number, y: number): void {
     const [lo, hi] = this.feel.juice.featherCount;
-    const n = Math.round((lo + Math.random() * (hi - lo)) * this.feel.quality.particleScale);
+    const n = Math.round((lo + Math.random() * (hi - lo)) * this.prefs.particleScale);
     this.feathers.get(plane)?.explode(Math.max(1, n), x, y);
   }
 

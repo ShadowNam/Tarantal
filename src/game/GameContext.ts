@@ -1,7 +1,14 @@
-// What every scene shares: validated content, feel tuning, the asset manifest, audio, settings,
-// the safe area and the test hook. Built once in main.ts.
-import type { Biome, ContentBundle, Feel } from '../content/schemas';
+// What every scene shares: validated content, feel tuning, the asset manifest, audio, the save
+// (settings and progress), live prefs, the platform adapter, the safe area and the test hook.
+// Built once in main.ts.
+import type { Biome, ContentBundle, Feel, Notaboek } from '../content/schemas';
+import type { LoadStatus, SaveStore } from '../meta/save';
+import type { StorageStatus } from '../meta/storage';
+import type { PlatformAdapter } from '../platform/PlatformAdapter';
+import type { AnalyticsRecord } from '../platform/web';
 import type { HuntResult, InputKind } from '../sim/types';
+import type { LivePrefs } from './prefs';
+import type { DomChrome } from './ui/DomChrome';
 import type { AssetManifest } from './assets/AssetManifest';
 import type { AudioDirector } from './audio/AudioDirector';
 import type { Insets } from './layout';
@@ -13,7 +20,26 @@ export interface TestHook {
   designWidth: number;
   designHeight: number;
   portrait: boolean;
+  /** 'start' = the title (kept from M2: the title's START is the old start card). */
   scene: 'start' | 'hunt' | 'tally';
+  /** Menu overlay on top of the scene: shed, settings, pause (null = none). */
+  menu: string | null;
+  /** Hunt paused (pause menu, hidden tab or portrait). */
+  paused: boolean;
+  /** Mode of the hunt that is running or just ended. */
+  mode: string | null;
+  /** FTUE prompts shown this page, with their rendered size (GDD §16 one-line proof). */
+  ftue: {
+    active: boolean;
+    steps: string[];
+    prompts: { key: string; text: string; lines: number; width: number; room: number }[];
+  };
+  /** Analytics recorded this page (web adapter, no network). */
+  analytics: readonly AnalyticsRecord[];
+  /** How the save loaded and where it lives. */
+  save: { status: LoadStatus; storage: StorageStatus };
+  /** WebGL context restores seen this page. */
+  contextRestores: number;
   tick: number;
   ticksLeft: number;
   score: number;
@@ -68,6 +94,17 @@ export interface GameContext {
   readonly biome: Biome;
   readonly manifest: AssetManifest;
   readonly audio: AudioDirector;
+  /** Settings + progress (SaveData v1). */
+  readonly save: SaveStore;
+  readonly notaboek: Notaboek;
+  readonly platform: PlatformAdapter;
+  /** Settings as the views use them (updated in place on change). */
+  readonly prefs: LivePrefs;
+  readonly chrome: DomChrome;
+  /** Re-applies the language setting to i18n and the DOM. */
+  applyLanguage(): void;
+  /** A menu (pause) holds the hunt. */
+  menuPaused: boolean;
   /** Current safe-area insets in design px. */
   safeArea(): Insets;
   /** Seed for the next hunt (?seed= fixes it). */
@@ -79,7 +116,7 @@ export interface GameContext {
   /** Device hint before the first touch: coarse pointer → touch hints on the start card. */
   readonly coarsePointer: boolean;
   readonly reducedMotion: boolean;
-  /** Portrait (rotate card shown) or tab hidden: hunts pause. */
+  /** Portrait (rotate card shown), tab hidden or the pause menu: hunts pause. */
   paused(): boolean;
   debug: boolean;
   readonly hook: TestHook | null;

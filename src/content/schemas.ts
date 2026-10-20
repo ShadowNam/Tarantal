@@ -793,6 +793,13 @@ export interface ContentBundle {
 // HUD). Nothing here changes a sim outcome, so it is NOT part of the ContentBundle or the
 // contentHash (decision D-019). Read by the game at boot; validated by tools/validate-content.ts.
 
+const qualityTier = obj({
+  /** Particle budget multiplier (feathers, wind leaves). */
+  particleScale: fraction,
+  /** Secret hint glints drawn. */
+  glints: z.boolean(),
+});
+
 export const FeelSchema = obj({
   version,
   input: obj({
@@ -860,8 +867,22 @@ export const FeelSchema = obj({
     maxStepsPerFrame: posInt,
   }),
   quality: obj({
-    /** Particle budget until QualityManager (M9) picks tiers: medium tier = 0.7. */
-    particleScale: z.number().min(0).max(1),
+    /** Tier used by Settings → quality "auto" on capable devices. */
+    auto: z.enum(['low', 'medium', 'high']),
+    /** Coarse-pointer devices with this many logical cores or fewer start on the low tier. */
+    lowTierMaxCores: posInt,
+    tiers: obj({ low: qualityTier, medium: qualityTier, high: qualityTier }),
+  }),
+  ftue: obj({
+    /** Fraction of the FTUE hunt when "Hmm, Oupa's windpomp…" shows. */
+    secretHintAt: fraction,
+    bannerMs: pos,
+    /** Longest FTUE prompt in characters (GDD §16: never more than one line). */
+    maxPromptChars: posInt,
+  }),
+  accessibility: obj({
+    /** Reduce flashes: alpha of the muzzle flash and the secret hint glints. */
+    reducedFlashAlpha: fraction,
   }),
 });
 export type Feel = z.infer<typeof FeelSchema>;

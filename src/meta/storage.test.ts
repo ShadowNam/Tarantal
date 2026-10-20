@@ -1,5 +1,4 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { screenShakeEnabled, setScreenShake } from './settings';
 import { isBoolean, readValue, writeValue } from './storage';
 
 afterEach(() => {
@@ -31,17 +30,5 @@ describe('storage', () => {
     });
     expect(readValue('y', false, isBoolean)).toBe(false);
     expect(readValue('z', true, isBoolean)).toBe(true);
-  });
-
-  it('screen shake defaults from reduced motion and persists the toggle', () => {
-    const store = new Map<string, string>();
-    vi.stubGlobal('localStorage', {
-      getItem: (k: string) => store.get(k) ?? null,
-      setItem: (k: string, v: string) => store.set(k, v),
-    });
-    expect(screenShakeEnabled(false)).toBe(true);
-    expect(screenShakeEnabled(true)).toBe(false);
-    setScreenShake(false);
-    expect(screenShakeEnabled(false)).toBe(false);
   });
 });

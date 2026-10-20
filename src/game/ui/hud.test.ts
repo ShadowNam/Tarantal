@@ -19,33 +19,41 @@ describe('HUD layout at 16:9, 19.5:9 and 4:3', () => {
     { name: '19.5:9', vw: 844, vh: 390, insets: { top: 0, right: 47, bottom: 21, left: 47 } },
     { name: '4:3', vw: 1024, vh: 768, insets: { top: 0, right: 0, bottom: 0, left: 0 } },
   ];
-  for (const c of cases) {
-    it(`${c.name}: every element sits inside the safe area without overlapping`, () => {
-      const size = designSizeFor(c.vw, c.vh);
-      const insets = safeAreaInDesignPx(c.insets, { width: c.vw, height: c.vh }, size);
-      const l = hudLayout(size.width, size.height, insets, sizing);
-      const parts = [
-        l.timer,
-        l.frenzy,
-        l.score,
-        l.belt,
-        l.reloadPrompt,
-        l.gadget,
-        l.chips,
-        l.windsock,
-      ];
-      for (const p of parts) expect(inside(l.safe, p)).toBe(true);
-      for (let i = 0; i < parts.length; i++)
-        for (let j = i + 1; j < parts.length; j++) {
-          const a = parts[i];
-          const b = parts[j];
-          if (a && b) expect(overlap(a, b)).toBe(false);
-        }
-      expect(l.belt.h).toBeGreaterThanOrEqual(64);
-      expect(Math.min(l.gadget.w, l.gadget.h)).toBeGreaterThanOrEqual(64);
-      expect(rectContains(l.belt, l.belt.x + 5, l.belt.y + 5)).toBe(true);
-    });
-  }
+  for (const c of cases)
+    for (const mirrored of [false, true]) {
+      it(`${c.name}${mirrored ? ' left-handed' : ''}: every element sits inside the safe area without overlapping`, () => {
+        const size = designSizeFor(c.vw, c.vh);
+        const insets = safeAreaInDesignPx(c.insets, { width: c.vw, height: c.vh }, size);
+        const l = hudLayout(size.width, size.height, insets, sizing, mirrored);
+        const parts = [
+          l.timer,
+          l.frenzy,
+          l.score,
+          l.belt,
+          l.reloadPrompt,
+          l.gadget,
+          l.chips,
+          l.windsock,
+          l.pause,
+          l.skip,
+        ];
+        for (const p of parts) expect(inside(l.safe, p)).toBe(true);
+        for (let i = 0; i < parts.length; i++)
+          for (let j = i + 1; j < parts.length; j++) {
+            const a = parts[i];
+            const b = parts[j];
+            if (a && b) expect(overlap(a, b)).toBe(false);
+          }
+        expect(l.belt.h).toBeGreaterThanOrEqual(64);
+        expect(Math.min(l.gadget.w, l.gadget.h)).toBeGreaterThanOrEqual(64);
+        expect(rectContains(l.belt, l.belt.x + 5, l.belt.y + 5)).toBe(true);
+        expect(Math.min(l.pause.w, l.pause.h, l.skip.h)).toBeGreaterThanOrEqual(64);
+        // Left-handed mirrors the bottom row: belt on the left, gadget on the right.
+        const beltLeft = l.belt.x < size.width / 2;
+        expect(beltLeft).toBe(mirrored);
+        expect(l.gadget.x < size.width / 2).toBe(!mirrored);
+      });
+    }
 });
 
 describe('formatting', () => {

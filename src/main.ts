@@ -1,6 +1,6 @@
-// Boot: i18n → content (validated) → placeholder assets → Phaser game with the flexible-width
-// layout (Tech §5). Goes straight to the hunt's start card so the first shot is seconds away.
-// Platform adapter joins here in M9.
+// Boot: save (settings + progress) → i18n → content (validated) → platform adapter →
+// placeholder assets → Phaser game with the flexible-width layout (Tech §5). Opens on the title
+// over the live panorama: one giant START HUNT, so the first shot is seconds away (GDD §16).
 import * as Phaser from 'phaser';
 import { contentHash } from './content/hash';
 import { loadGameContent } from './content/loadBrowser';
@@ -9,10 +9,20 @@ import { withTestCrate } from './game/devContent';
 import type { GameContext, TestHook } from './game/GameContext';
 import { designSizeFor, isPortrait, safeAreaInDesignPx, type Insets } from './game/layout';
 import { createPlaceholderManifest } from './game/placeholder/ProceduralAssetFactory';
+import { applyPrefs, computePrefs, type PrefInputs } from './game/prefs';
 import { HudScene } from './game/scenes/HudScene';
 import { HuntScene } from './game/scenes/HuntScene';
+import { PauseScene } from './game/scenes/PauseScene';
+import { SettingsScene } from './game/scenes/SettingsScene';
+import { ShedScene } from './game/scenes/ShedScene';
 import { TallyScene } from './game/scenes/TallyScene';
+import { TitleScene } from './game/scenes/TitleScene';
+import { DomChrome } from './game/ui/DomChrome';
 import { isI18nKey, pickLanguage, setLanguage, t } from './i18n/i18n';
+import { SaveStore } from './meta/save';
+import type { Settings } from './meta/saveSchema';
+import { storageStatus } from './meta/storage';
+import { createPlatform } from './platform/platform';
 
 declare global {
   interface Window {
@@ -24,12 +34,27 @@ declare global {
 const params = new URLSearchParams(window.location.search);
 const testHooks = import.meta.env.DEV || import.meta.env.MODE === 'test' || params.has('e2e');
 
-setLanguage(pickLanguage(navigator.languages));
-for (const el of document.querySelectorAll<HTMLElement>('[data-i18n]')) {
-  const key = el.dataset['i18n'];
-  if (key !== undefined && isI18nKey(key)) el.textContent = t(key);
-  else console.error(`Unknown i18n key in index.html: ${String(key)}`);
+const save = new SaveStore();
+// e2e/dev only: ?ftue=0 starts as a returning player (older specs test Classic hunts).
+if (testHooks && params.get('ftue') === '0' && !save.data.ftue.done) {
+  save.update((d) => ({ ...d, ftue: { done: true, skipped: true, step: 'param' } }));
 }
+
+function applyLanguage(): void {
+  const lang = save.data.settings.language;
+  setLanguage(lang === 'auto' ? pickLanguage(navigator.languages) : lang);
+  document.documentElement.lang = lang === 'auto' ? pickLanguage(navigator.languages) : lang;
+  for (const el of document.querySelectorAll<HTMLElement>('[data-i18n]')) {
+    const key = el.dataset['i18n'];
+    if (key !== undefined && isI18nKey(key)) el.textContent = t(key);
+    else console.error(`Unknown i18n key in index.html: ${String(key)}`);
+  }
+  for (const el of document.querySelectorAll<HTMLElement>('[data-i18n-label]')) {
+    const key = el.dataset['i18nLabel'];
+    if (key !== undefined && isI18nKey(key)) el.setAttribute('aria-label', t(key));
+  }
+}
+applyLanguage();
 
 function viewport(): { width: number; height: number } {
   return { width: window.innerWidth, height: window.innerHeight };
@@ -80,6 +105,13 @@ const hook: TestHook = {
   shots: 0,
   over: false,
   inputKind: null,
+  menu: null,
+  paused: false,
+  mode: null,
+  ftue: { active: false, steps: [], prompts: [] },
+  analytics: [],
+  save: { status: save.status, storage: storageStatus() },
+  contextRestores: 0,
   cameraX: 0,
   birds: 0,
   gadgetCharges: 0,
@@ -119,6 +151,51 @@ if (biome === undefined) throw new Error(`classic biome ${biomeId} missing`);
 
 const initial = designSizeFor(viewport().width, viewport().height);
 let portrait = isPortrait(viewport().width, viewport().height);
+let contextLost = false;
+
+const platform = createPlatform({
+  serviceWorker: import.meta.env.PROD,
+  log: params.get('debug') === '1',
+});
+void platform.init();
+if (testHooks && 'records' in platform) hook.analytics = (platform as { records: [] }).records;
+
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
+const prefInputs: PrefInputs = {
+  feel,
+  device: { coarsePointer, cores: navigator.hardwareConcurrency || 0 },
+  reducedMotion,
+};
+const prefs = computePrefs(save.data.settings, prefInputs);
+const audio = new AudioDirector();
+const applyAudio = (s: Settings): void => {
+  audio.setVolumes({ master: s.masterVolume, sfx: s.sfxVolume, music: s.musicVolume });
+};
+applyAudio(save.data.settings);
+platform.onAdChange((playing) => {
+  audio.setMuted('ad', playing);
+});
+let lastSettings = save.data.settings;
+save.onChange((d) => {
+  if (d.settings === lastSettings) return;
+  const changed = (Object.keys(d.settings) as (keyof Settings)[]).filter(
+    (k) => d.settings[k] !== lastSettings[k],
+  );
+  lastSettings = d.settings;
+  applyPrefs(prefs, d.settings, prefInputs);
+  applyAudio(d.settings);
+  for (const k of changed)
+    platform.analytics('settings_change', { setting: k, value: d.settings[k] });
+});
+// Tech §9: save when the tab is hidden or closed (the store also writes on every change).
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') save.flush();
+});
+window.addEventListener('pagehide', () => {
+  save.flush();
+});
+const chrome = new DomChrome(platform, save);
 
 const ctx: GameContext = {
   content: bundle,
@@ -126,14 +203,24 @@ const ctx: GameContext = {
   feel,
   biome,
   manifest: createPlaceholderManifest(bundle, biome),
-  audio: new AudioDirector(),
+  audio,
+  save,
+  notaboek: loaded.notaboek,
+  platform,
+  prefs,
+  chrome,
+  applyLanguage: () => {
+    applyLanguage();
+    chrome.relabel();
+  },
+  menuPaused: false,
   safeArea: (): Insets => safeAreaInDesignPx(cssSafeArea(), viewport(), game.scale.gameSize),
   nextSeed: seedSource(),
   huntSeconds: huntSecondsParam(),
   omen: omenParam(),
-  coarsePointer: window.matchMedia('(pointer: coarse)').matches,
-  reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-  paused: () => portrait || document.visibilityState === 'hidden',
+  coarsePointer,
+  reducedMotion,
+  paused: () => portrait || document.visibilityState === 'hidden' || ctx.menuPaused || contextLost,
   debug: params.get('debug') === '1',
   hook: testHooks ? hook : null,
 };
@@ -153,7 +240,29 @@ const game: Phaser.Game = new Phaser.Game({
   audio: { noAudio: true },
   disableContextMenu: true,
   banner: false,
-  scene: [new HuntScene(ctx), new HudScene(ctx), new TallyScene(ctx)],
+  scene: [
+    new HuntScene(ctx),
+    new HudScene(ctx),
+    new TitleScene(ctx),
+    new ShedScene(ctx),
+    new SettingsScene(ctx),
+    new PauseScene(ctx),
+    new TallyScene(ctx),
+  ],
+});
+
+// WebGL context loss (backgrounding, memory pressure; Tech §9): Phaser 4 restores the context
+// and re-uploads textures; the hunt holds still meanwhile so the run is never lost.
+game.events.once(Phaser.Core.Events.READY, () => {
+  const renderer = game.renderer;
+  if (!(renderer instanceof Phaser.Renderer.WebGL.WebGLRenderer)) return;
+  renderer.on(Phaser.Renderer.Events.LOSE_WEBGL, () => {
+    contextLost = true;
+  });
+  renderer.on(Phaser.Renderer.Events.RESTORE_WEBGL, () => {
+    contextLost = false;
+    hook.contextRestores++;
+  });
 });
 
 if (testHooks) {
