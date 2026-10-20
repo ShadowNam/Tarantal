@@ -28,14 +28,22 @@ export interface HuntLogger {
   finish(result: HuntResult): HuntLog;
 }
 
-export function createHuntLogger(): HuntLogger {
+/**
+ * `sightedOnCall(creature)`: true for creatures that only count as seen when they land and call
+ * (perching non-targets such as the kwêvoël spawn off screen). The HUD's ⛔ first-sighting rule
+ * uses the same test, so the Bird Book never records a creature the player could not have seen.
+ */
+export function createHuntLogger(
+  sightedOnCall: (creature: string) => boolean = () => false,
+): HuntLogger {
   const creatures = new Set<string>();
   const secrets = new Set<string>();
   return {
     creaturesSeen: creatures,
     add(events) {
       for (const e of events) {
-        if (e.type === 'birdSpawned') creatures.add(e.creature);
+        if (e.type === 'birdSpawned' && !sightedOnCall(e.creature)) creatures.add(e.creature);
+        else if (e.type === 'birdCalled') creatures.add(e.creature);
         else if (e.type === 'secretTriggered') secrets.add(e.propId);
       }
     },

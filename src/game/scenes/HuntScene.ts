@@ -220,7 +220,12 @@ export class HuntScene extends Phaser.Scene {
       inputKind: kind,
       aimAssist,
     });
-    this.logger = createHuntLogger();
+    this.logger = createHuntLogger(
+      (id) =>
+        this.ctx.content.birds.creatures
+          .find((c) => c.id === id)
+          ?.behaviours.includes('perchHigh') === true,
+    );
     const durationTicks = sim.snapshot().durationTicks;
     this.ftue =
       modeId === 'ftue'

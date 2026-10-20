@@ -251,6 +251,8 @@ export class HudScene extends Phaser.Scene {
   }
 
   relayoutNow(): void {
+    // The language may have changed in the pause menu: redraw the FTUE line too.
+    this.promptKey = null;
     this.relayout();
   }
 
@@ -585,6 +587,8 @@ export class HudScene extends Phaser.Scene {
   }
 
   private showBanner(text: string): void {
+    // GDD §16: one line of text during the lesson — the FTUE prompt wins.
+    if (this.promptKey !== null) return;
     const ms = this.ctx.feel.juice.bannerMs;
     this.tweens.killTweensOf(this.banner);
     this.banner.setText(text).setVisible(true).setScale(1).setAlpha(1);

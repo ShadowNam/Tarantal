@@ -794,10 +794,8 @@ export interface ContentBundle {
 // contentHash (decision D-019). Read by the game at boot; validated by tools/validate-content.ts.
 
 const qualityTier = obj({
-  /** Particle budget multiplier (feathers, wind leaves). */
+  /** Particle budget multiplier (feathers, wind leaves). Tiers never hide information. */
   particleScale: fraction,
-  /** Secret hint glints drawn. */
-  glints: z.boolean(),
 });
 
 export const FeelSchema = obj({

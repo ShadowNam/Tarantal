@@ -211,6 +211,52 @@ Voorlaaier goes to 750 px — a deliberate combo). Follow-ups: a perch/boss even
 screen already holds `maxBirdsOnScreen`; Chilli Biltong's red edge glow is not drawn yet; golden
 replays don't exercise `fireHold*` (unit tests do).
 
+**D-022 M5 meta, persistence, menus and FTUE (20 Oct 2026):** decisions made while building the
+game loop around the hunt. (1) *Save:* `SaveData` v1 under `tm.save.v1` (Tech §11). Each section,
+and each field of an object section, is validated alone, so damage falls back locally; non-JSON
+text is kept as `tm.save.corrupt`; a newer-version save is read but never overwritten; v0 = the M2
+key `tm.settings.screenShake` (migrated, then removed). All access stays in `src/meta/storage.ts`,
+which runs from memory when localStorage throws. (2) *Meta content outside the hash:*
+`content/meta/notaboek.json` (8 starter challenges; `bag_50_far` → Windbuks, `whole_flock_x3` →
+Kettie, both counted over all hunts) is validated and cross-checked but, like `feel.json`, not in
+the sim bundle or `contentHash` — progression never changes a hunt. The Kettie shows as unlocked
+but can't be equipped until M8 projectiles. (3) *Aim assist in the sim:* `SimConfig.aimAssist`
+(off / low / standard) multiplies the touch radii by `scoring.json aimAssistLevels` (0 / 0.5 / 1);
+mouse stays 0. InputLog **v2** writes an aim-assist byte after the input kind (v1 still decodes as
+standard). (4) *FTUE as a sim mode:* `ftue` (appended to the replay mode table) in `modes.json` —
+60 s Karoo, 0.6× fly-over/pop-up rates, +40 px hit radius until the first bag (every plane and
+input kind, also on penalty creatures — a follow-up), no Stampede/crates/boss by their mode
+filters. Bles's spook (skipped if a flock already ran) and the forced flush are beats at 1/3 and
+1/2 of the hunt, fractions like every content window (D-015), so short e2e lessons keep them; new
+event `tutorialBeat`. Presentation (windpomp hint at 0.67, banner time, 52-character prompt cap)
+is in `feel.json`. One line at a time: while an FTUE prompt shows, HUD banners are held (the ⛔
+call-out still shows — it is a safety signal). Skip returns to the title and counts the lesson
+as seen. (5) *Golden replays* were re-recorded twice (aimAssistLevels and the ftue mode changed
+`contentHash`); every existing case kept its event hash, count and score; new cases
+`classic-7-aim-touch-lowassist` and `ftue-3-aim-touch`. (6) *⛔ first sighting* = the creature is
+not in the Bird Book yet (GDD §7). The Bird Book records perching creatures only when they land and
+call, the same rule as the HUD call-out (review fix), so an off-screen kwêvoël never hides its own
+badge. (7) *Settings reach the game* through one live `prefs` object (`src/game/prefs.ts`, updated
+in place on save change), the AudioDirector's master/SFX/music buses (the flush sting and Stampede
+cue are the music bus until stems land) and SimConfig. Quality tiers only cut particles; glints
+show on every tier (review fix: they are the only reveal of single-hit secrets). Reduce flashes
+dims the muzzle flash and glints and drops the red empty-belt flash. (8) *PlatformAdapter* gains
+`onAdChange`, `capabilities()` and `requestFullscreen()`; the `web` adapter keeps analytics on the
+device (no endpoint until a privacy review, M9) and registers the service worker in production
+builds. Fullscreen button only where the API works and never on iPhone; the iPhone gets a one-time
+Add to Home Screen banner at the top edge (at the bottom it covered the title buttons). (9) *PWA:*
+`tools/serviceWorker.ts` generates `sw.js` from the build's file list (content-hashed cache name);
+navigations are network-first with the cached `index.html` as the offline fallback. Icons are
+placeholders from `tools/make-icons.ts` until M10 art. (10) *i18n guard:* an ESLint
+`no-restricted-syntax` rule in `src/game`, `src/platform` and `main.ts` rejects word-bearing
+literals passed as on-screen text (add.text, setText, drawButton, banners, textContent,
+aria-label/title); `tools/i18nLintGuard.test.ts` proves it. Afrikaans strings are a draft for the
+native-speaker review (Appendix A). (11) *Evidence on this box:* WebKit is installed but lacks
+system libraries, so `PW_NO_WEBKIT=1` runs the iPhone profiles on Chromium emulation locally (CI
+unaffected); headless Chromium needs `LD_LIBRARY_PATH=~/.local/pw-deps/...`. CI e2e: limit 60 min,
+desktop-chromium and pixel7-landscape in two shards. (12) *Follow-ups:* the first-hit bonus should
+skip non-targets; text size and captions (M9); a real Bles sprite (now a "WOEF! WOEF!" bubble).
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

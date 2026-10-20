@@ -60,8 +60,8 @@ export class PauseScene extends Phaser.Scene {
           this.scene.launch('Settings', {
             close: () => {
               this.scene.stop('Settings');
-              menu?.setActive(true);
-              if (this.ctx.hook) this.ctx.hook.menu = 'pause';
+              // Rebuild in the (possibly new) language, Settings still focused.
+              this.scene.restart(data);
             },
           });
           this.scene.bringToTop('Settings');

@@ -24,6 +24,8 @@ interface BagSpot {
 }
 
 export class Fx {
+  /** FTUE: the flock Bles is about to spook. */
+  private blesFlock: number | null = null;
   private readonly scene: Phaser.Scene;
   private readonly feel: Feel;
   private readonly parallax: ParallaxView;
@@ -161,8 +163,15 @@ export class Fx {
         case 'pelletImpact':
           if (e.birdId === null) this.puffs.explode(1, width / 2 + e.dx, e.sy);
           break;
+        case 'tutorialBeat':
+          // FTUE: Oupa's dog Bles barks at the flock it spooks (GDD §16 step 3).
+          if (e.beat === 'spook') this.blesFlock = e.flockId;
+          break;
         case 'flockStateChanged':
-          if (e.to === 'alert') this.bubble(e.plane, e.x, e.y, t('fx.kek'), false);
+          if (e.to === 'run' && e.flockId === this.blesFlock) {
+            this.bubble(e.plane, e.x, e.y - 40, t('fx.woof'), true);
+            this.blesFlock = null;
+          } else if (e.to === 'alert') this.bubble(e.plane, e.x, e.y, t('fx.kek'), false);
           else if (e.to === 'flush') this.bubble(e.plane, e.x, e.y, t('fx.kek_flush'), true);
           break;
         default:

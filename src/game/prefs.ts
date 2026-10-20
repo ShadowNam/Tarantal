@@ -8,7 +8,6 @@ import { resolveTier, type DeviceHints, type QualityTier } from './quality/Quali
 export interface LivePrefs {
   tier: QualityTier;
   particleScale: number;
-  glints: boolean;
   /** Muzzle flash / glint alpha (1, or reducedFlashAlpha with "reduce flashes"). */
   flashAlpha: number;
   reduceFlashes: boolean;
@@ -28,7 +27,6 @@ export function computePrefs(s: Settings, i: PrefInputs): LivePrefs {
   return {
     tier,
     particleScale: t.particleScale,
-    glints: t.glints,
     reduceFlashes: s.reduceFlashes,
     flashAlpha: s.reduceFlashes ? i.feel.accessibility.reducedFlashAlpha : 1,
     // null = follow the OS reduced-motion preference.

@@ -53,4 +53,23 @@ describe('hunt log', () => {
     expect(h.secretsFound).toEqual(['potjie']);
     expect(h.baggedFar).toBe(1);
   });
+
+  it('records a perching creature only once it lands and calls (same rule as the ⛔ call-out)', () => {
+    const log = createHuntLogger((c) => c === 'kwevoel');
+    log.add([
+      {
+        type: 'birdSpawned',
+        tick: 1,
+        birdId: 9,
+        creature: 'kwevoel',
+        plane: 'mid',
+        motion: 'perch',
+      },
+    ] as SimEvent[]);
+    expect(log.creaturesSeen.has('kwevoel')).toBe(false);
+    log.add([
+      { type: 'birdCalled', tick: 200, birdId: 9, creature: 'kwevoel', plane: 'mid', x: 0, y: 0 },
+    ] as unknown as SimEvent[]);
+    expect(log.creaturesSeen.has('kwevoel')).toBe(true);
+  });
 });

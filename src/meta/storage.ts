@@ -29,7 +29,9 @@ export function readText(key: string): string | null {
     failed = true;
     text = undefined;
   }
-  if (text === undefined) return memory.get(PREFIX + key) ?? null;
+  // After a failed write the memory copy is newer than what localStorage holds.
+  if (text === undefined || (failed && memory.has(PREFIX + key)))
+    return memory.get(PREFIX + key) ?? null;
   return text ?? memory.get(PREFIX + key) ?? null;
 }
 

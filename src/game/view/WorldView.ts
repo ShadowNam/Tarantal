@@ -112,7 +112,7 @@ export class WorldView {
         if (m.texture.key !== key) m.setTexture(key);
         m.setVisible(!sec.done);
       }
-      if (glint && sec.ready && this.prefs.glints) {
+      if (glint && sec.ready) {
         const part = sec.parts.find((p) => !p.hit);
         if (part !== undefined) this.glint(layer.fixtures, part.x, part.y);
       }
