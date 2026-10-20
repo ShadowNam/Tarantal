@@ -169,7 +169,8 @@ Accuracy and timing both matter: misses near a flock still count as threats. Thi
 ceiling Moorhuhn never had.
 
 ### 6.4 Whole-flock bonus
-Bag every member of a flock of ≥ 5 before it SETTLES or EXITS → **+15 per bird**, slow-mo 0.3× for
+Bag every member of a flock of ≥ 5 before it calms down (ALERT → FORAGE or SETTLE) or EXITS →
+**+30 per bird** (`scoring.json`; tuned in M3, D-020), slow-mo 0.3× for
 0.4 s, Oupa: "Die hele swerm!". Shown on the tally screen as a badge.
 
 ### 6.5 Classic fly-overs (keep the Moorhuhn feel)
@@ -223,8 +224,8 @@ fact + a joke. Completing pages unlocks cosmetics. Collection is a quiet, strong
 | Combo | Rule | Effect |
 |---|---|---|
 | **Frenzy** ("Bosveld Frenzy") | Consecutive *shots* that bag ≥1 target | 3 → ×1.5, 6 → ×2, 10 → ×3 (`mulMult`). A shot that bags nothing resets to 0 (hitting only a non-target counts as nothing). Reloading and empty clicks do not reset. The shot that reaches a tier already scores at it (D-018). |
-| **Twee Vlieë!** (Afrikaans "two flies with one slap" = two birds, one stone) | One shot bags ≥2 | 2 = +50, 3 = +150, 4+ = +300 |
-| **Whole Flock** | §6.4 | +15 per bird |
+| **Twee Vlieë!** (Afrikaans "two flies with one slap" = two birds, one stone) | One shot bags ≥2 | 2 = +15, 3 = +40, 4+ = +80 (tuned in M3, D-020) |
+| **Whole Flock** | §6.4 | +30 per bird |
 | **Stampede** | last 15 s | ×2 |
 | **Secret chain** | Two secrets within 10 s | +50 |
 

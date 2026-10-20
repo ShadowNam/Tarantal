@@ -35,7 +35,7 @@
       800
     ],
     "glideSinkPxPerSec": 170,
-    "spawnSpreadPx": 150,
+    "spawnSpreadPx": 450,
     "spawnSpacingPx": 700,
     "startInViewPx": 450,
     "alertShuffleMul": 0.4,
@@ -50,8 +50,8 @@
       "alignment": 1.0,
       "cohesion": 0.8,
       "noise": 0.35,
-      "neighbourRadiusPx": 140,
-      "separationRadiusPx": 70,
+      "neighbourRadiusPx": 400,
+      "separationRadiusPx": 240,
       "turnRate": 0.2
     }
   },

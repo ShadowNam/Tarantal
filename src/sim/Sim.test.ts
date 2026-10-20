@@ -328,7 +328,7 @@ describe('Sim scoring in play', () => {
     const ev = stepEvents(sim, shootAt(c, trio[1] ?? bird));
     const bagged = ev.filter((e) => e.type === 'targetBagged').length;
     expect(bagged).toBeGreaterThanOrEqual(2);
-    const base = bagged === 2 ? 50 : 150;
+    const base = bagged === 2 ? 15 : 40;
     expect(ev.find((e) => e.type === 'bonusAwarded')).toMatchObject({
       bonus: 'twoFlies',
       base,

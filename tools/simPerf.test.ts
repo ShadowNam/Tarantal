@@ -44,6 +44,7 @@ describe('sim performance budget', () => {
     const content = structuredClone(loadContent());
     content.birds.flockDefaults.sizeMin = 15;
     content.birds.flockDefaults.sizeMax = 15;
+    content.birds.flockDefaults.spawnSpacingPx = 200;
     for (const b of content.biomes) {
       b.pacing.maxFlocks = 8;
       for (const k of b.pacing.keyframes) {

@@ -9,11 +9,11 @@ if (biome === undefined) throw new Error('no biome');
 
 describe('pacing', () => {
   it('interpolates keyframes by hunt fraction', () => {
-    expect(pacingAt(biome.pacing, 0, false)).toEqual({ flyoversPerMin: 6, popupsPerMin: 2 });
-    expect(pacingAt(biome.pacing, 0.5, false)).toEqual({ flyoversPerMin: 14, popupsPerMin: 5 });
+    expect(pacingAt(biome.pacing, 0, false)).toEqual({ flyoversPerMin: 3, popupsPerMin: 2 });
+    expect(pacingAt(biome.pacing, 0.5, false)).toEqual({ flyoversPerMin: 5, popupsPerMin: 5 });
     const mid = pacingAt(biome.pacing, (0.5 + 0.83) / 2, false);
-    expect(mid.flyoversPerMin).toBeCloseTo(18, 9);
-    expect(pacingAt(biome.pacing, 1, false)).toEqual({ flyoversPerMin: 22, popupsPerMin: 6 });
+    expect(mid.flyoversPerMin).toBeCloseTo(5.5, 9);
+    expect(pacingAt(biome.pacing, 1, false)).toEqual({ flyoversPerMin: 6, popupsPerMin: 6 });
   });
 
   it('flock targets step at each keyframe (warm-up → build), never interpolated', () => {

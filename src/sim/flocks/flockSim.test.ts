@@ -184,7 +184,7 @@ describe('flocks in the sim', () => {
     expect(ev.some((e) => e.type === 'flockThreatened')).toBe(false);
   });
 
-  it('Whole Flock: bagging all 5 before they settle pays +15 per bird (GDD §6.4)', () => {
+  it('Whole Flock: bagging all 5 before they calm down pays perBird each (GDD §6.4)', () => {
     const c = flockContent((x) => {
       x.birds.flockDefaults.sizeMin = 5;
       x.birds.flockDefaults.sizeMax = 5;
@@ -201,7 +201,7 @@ describe('flocks in the sim', () => {
     const wiped = seen.find((e) => e.type === 'flockWiped');
     expect(wiped).toMatchObject({ flockId: flock.id, size: 5 });
     const bonus = seen.find((e) => e.type === 'bonusAwarded' && e.bonus === 'wholeFlock');
-    expect(bonus).toMatchObject({ base: 75 });
+    expect(bonus).toMatchObject({ base: 5 * c.scoring.wholeFlock.perBird });
     expect(seen.find((e) => e.type === 'flockRemoved')).toMatchObject({ reason: 'bagged' });
     expect(sim.result().wholeFlocks).toBe(1);
   });
@@ -286,7 +286,15 @@ describe('flocks in the sim', () => {
   });
 
   it('pacing: flock counts follow the keyframes, capped by maxFlocks; later flocks spawn out of view', () => {
-    const c = flockContent();
+    // Its own keyframes (1 → 3 flocks), so the test is about the director, not Karoo tuning.
+    const c = flockContent((x) => {
+      x.birds.flockDefaults.spawnSpacingPx = 300;
+      x.birds.flockDefaults.spawnSpreadPx = 150;
+      const keys = x.biomes[0]?.pacing.keyframes ?? [];
+      keys.forEach((k, i) => {
+        k.flocks = i === 0 ? { mid: 1 } : { mid: 2, far: 1 };
+      });
+    });
     const pacing = c.biomes[0]?.pacing;
     if (!pacing) throw new Error('no biome');
     const sim = newSim(c, 11);
@@ -307,7 +315,8 @@ describe('flocks in the sim', () => {
     const last = pacing.keyframes[pacing.keyframes.length - 1]?.flocks ?? {};
     // Topped up toward the late target (the 60-bird cap may hold one flock back).
     expect(maxLive).toBeLessThanOrEqual((last.mid ?? 0) + (last.far ?? 0));
-    expect(maxLive).toBeGreaterThan((pacing.keyframes[0]?.flocks.mid ?? 0) + 1);
+    const first = pacing.keyframes[0]?.flocks ?? {};
+    expect(maxLive).toBeGreaterThan((first.mid ?? 0) + (first.far ?? 0));
     expect(spawns.length).toBeGreaterThan(0);
   });
 });

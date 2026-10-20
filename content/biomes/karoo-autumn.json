@@ -302,57 +302,52 @@
       {
         "t": 0.0,
         "flocks": {
-          "mid": 1,
-          "far": 1
+          "mid": 1
         },
-        "flyoversPerMin": 6,
+        "flyoversPerMin": 3,
         "popupsPerMin": 2
       },
       {
         "t": 0.17,
         "flocks": {
-          "mid": 2,
-          "far": 1
+          "mid": 1
         },
-        "flyoversPerMin": 10,
+        "flyoversPerMin": 4,
         "popupsPerMin": 4
       },
       {
         "t": 0.5,
         "flocks": {
-          "mid": 3,
-          "far": 2
+          "mid": 1
         },
-        "flyoversPerMin": 14,
+        "flyoversPerMin": 5,
         "popupsPerMin": 5
       },
       {
         "t": 0.83,
         "flocks": {
-          "mid": 4,
-          "far": 2
+          "mid": 1
         },
-        "flyoversPerMin": 22,
+        "flyoversPerMin": 6,
         "popupsPerMin": 6
       },
       {
         "t": 1.0,
         "flocks": {
-          "mid": 4,
-          "far": 2
+          "mid": 1
         },
-        "flyoversPerMin": 22,
+        "flyoversPerMin": 6,
         "popupsPerMin": 6
       }
     ],
     "stampede": {
-      "flyoversPerMin": 40,
+      "flyoversPerMin": 10,
       "popupsPerMin": 10,
       "flockState": "run"
     },
     "maxBirdsOnScreen": 60,
     "maxFlocks": 8,
-    "$comment": "Keyframes are fractions of hunt length. The Stampede surge is added automatically by the director when the Stampede is enabled (scoring.json)."
+    "$comment": "Keyframes are fractions of hunt length. The Stampede surge is added automatically by the director when the Stampede is enabled (scoring.json). One mid flock at a time (tuned in M3, D-020): with two flocks or far flocks on screen, plinking never costs time and scored as well as escalating; fly-overs ramp gently so the flock stays the main stage."
   },
   "spawnTable": [
     {
