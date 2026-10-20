@@ -52,6 +52,14 @@
         0.78
       ]
     ],
+    "plane": "mid",
+    "fallPxPerSec": 110,
+    "lingerMs": 3000,
+    "spawnHalfWidthPx": 600,
+    "hitbox": {
+      "rx": 70,
+      "ry": 70
+    },
     "table": [
       {
         "id": "chilli_biltong",

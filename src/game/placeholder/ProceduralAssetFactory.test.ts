@@ -3,7 +3,7 @@ import { loadContent } from '../../../tools/testContent';
 import en from '../../i18n/en.json';
 import af from '../../i18n/af.json';
 import { coreWidth, LAYER_BLEED_PX } from '../../sim/world';
-import { birdKey, MAX_TILE_WIDTH, TEX } from '../assets/AssetManifest';
+import { birdKey, gunKey, MAX_TILE_WIDTH, TEX } from '../assets/AssetManifest';
 import { createPlaceholderManifest } from './ProceduralAssetFactory';
 
 const content = loadContent();
@@ -73,6 +73,12 @@ describe('placeholder manifest', () => {
   it('has every prop, UI and FX texture', () => {
     for (const p of biome.props) expect(m.has(p.asset), p.asset).toBe(true);
     for (const key of Object.values(TEX)) expect(m.has(key), key).toBe(true);
+  });
+
+  it('has first-person art for every weapon a crate can give (M4)', () => {
+    for (const w of content.weapons.weapons) {
+      if (w.kind === 'crate') expect(m.has(gunKey(w.id)), w.id).toBe(true);
+    }
   });
 });
 

@@ -71,14 +71,17 @@ export class TallyScene extends Phaser.Scene {
       ['tally.flushes', String(r.flushes)],
       ['tally.whole_flocks', r.wholeFlocks > 0 ? `★ ${r.wholeFlocks}` : '0'],
       ['tally.best_streak', String(r.bestStreak)],
+      ['tally.secrets', r.secrets > 0 ? `★ ${r.secrets}` : '0'],
+      ['tally.crates', String(r.crates)],
       ['tally.penalties', String(r.penalties)],
     ];
     const rowH = Math.min(52, (panelH - 420) / rows.length);
+    const rowFont = Math.min(36, Math.floor(rowH * 0.78));
     rows.forEach(([key, value], i) => {
       const y = py + 240 + i * rowH;
-      const label = this.add.text(px + 80, y, t(key), chalk(36)).setAlpha(0);
+      const label = this.add.text(px + 80, y, t(key), chalk(rowFont)).setAlpha(0);
       const val = this.add
-        .text(px + panelW - 80, y, value, chalk(36))
+        .text(px + panelW - 80, y, value, chalk(rowFont))
         .setOrigin(1, 0)
         .setAlpha(0);
       this.tweens.add({ targets: [label, val], alpha: 1, delay: 150 + i * 90, duration: 160 });

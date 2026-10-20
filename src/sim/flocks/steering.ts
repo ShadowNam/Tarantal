@@ -22,8 +22,14 @@ function isGrounded(b: Bird): boolean {
   return b.phase === 'walk' || b.phase === 'alert' || b.phase === 'run' || b.phase === 'land';
 }
 
-/** Moves the flock one tick. Returns the members that left the panorama (to despawn). */
-export function moveFlock(f: Flock, p: FlockParams, rng: RandomStream): Bird[] {
+/** Moves the flock one tick. Returns the members that left the panorama (to despawn).
+ *  `airMul(sign)` scales flying birds' speed across the plane (wind, D-021). */
+export function moveFlock(
+  f: Flock,
+  p: FlockParams,
+  rng: RandomStream,
+  airMul: (sign: number) => number = () => 1,
+): Bird[] {
   const c = centroid(f);
   updateGoal(f, p, rng, c.x);
   steerGround(f, p, rng);
@@ -31,7 +37,7 @@ export function moveFlock(f: Flock, p: FlockParams, rng: RandomStream): Bird[] {
   for (const b of f.members) {
     const m = b.fm;
     if (m === null) continue;
-    if (!isGrounded(b)) fly(f, b, p, rng);
+    if (!isGrounded(b)) fly(f, b, p, rng, airMul);
     else {
       b.x += m.vx;
       b.y = Math.min(f.groundY[1], Math.max(f.groundY[0], b.y + m.vy));
@@ -173,7 +179,13 @@ function steerGround(f: Flock, p: FlockParams, rng: RandomStream): void {
 }
 
 /** Take-off, flight, glide and touch-down for one flushed bird. */
-function fly(f: Flock, b: Bird, p: FlockParams, rng: RandomStream): void {
+function fly(
+  f: Flock,
+  b: Bird,
+  p: FlockParams,
+  rng: RandomStream,
+  airMul: (sign: number) => number,
+): void {
   const m = b.fm;
   if (m === null) return;
   if (b.phase === 'launch') {
@@ -192,7 +204,7 @@ function fly(f: Flock, b: Bird, p: FlockParams, rng: RandomStream): void {
     // A fountain, not a getaway (GDD §6.1): the climb flattens out at cruise height while the
     // horizontal speed stays the take-off component fly·cos θ.
     m.vy += (0 - m.vy) * m.climbK;
-    b.x += m.vx;
+    b.x += m.vx * airMul(m.vx);
     b.y = Math.max(f.skyY[0], b.y + m.vy);
     m.flapTicks--;
     if (m.flapTicks <= 0) enter(b, 'glide');
@@ -201,7 +213,7 @@ function fly(f: Flock, b: Bird, p: FlockParams, rng: RandomStream): void {
   // glide: the same heading — glide·cos θ across — sinking at glideSinkPxPerSec.
   m.vx = f.dir * m.glide * cos(m.angle);
   m.vy = p.glideSinkPerTick * f.ratio;
-  b.x += m.vx;
+  b.x += m.vx * airMul(m.vx);
   b.y += m.vy;
   if (b.y >= m.landY) {
     b.y = m.landY;

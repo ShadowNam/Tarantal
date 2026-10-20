@@ -21,7 +21,7 @@ export interface ModeConfig {
   readonly huntSeconds?: number;
   /** Enables the Stampede outside scoring.json stampede.modes (Stampede-Kenner charm). */
   readonly stampede?: boolean;
-  /** Omen hunt (Season Run). Omen effects arrive in M4; recorded now so replays stay stable. */
+  /** Biome weather (omen) on. Overrides modes.json (Classic off, Daily on — D-021). */
   readonly omen?: boolean;
 }
 
@@ -49,7 +49,9 @@ export type Command =
 
 export type CommandType = Command['t'];
 
-export type BirdMotion = 'flyover' | 'popup' | 'flock';
+/** perch: the kwêvoël (flies in, sits on a prop, flies off). boss: the Generaal (struts, runs,
+ *  flies off). */
+export type BirdMotion = 'flyover' | 'popup' | 'flock' | 'perch' | 'boss';
 /**
  * fly-over: fly · pop-up: rise/stare/duck · flock member (GDD §6.1): walk (forage), alert,
  * run, launch (crouched for its stagger), flap (steep take-off and flight), glide, land (running
@@ -66,7 +68,8 @@ export type BirdPhase =
   | 'launch'
   | 'flap'
   | 'glide'
-  | 'land';
+  | 'land'
+  | 'perch';
 
 /** Flock FSM states (GDD §6.1, Tech §3.5). Roost (dusk hunts) arrives with the dusk biomes. */
 export type FlockState = 'forage' | 'alert' | 'run' | 'flush' | 'settle';
@@ -108,10 +111,79 @@ export interface BirdView {
   /** Pop-ups: the grass line (design px) they rise from, so the renderer can hide what is below
    *  it. Null for fly-overs. Render-only: not part of any event or outcome. */
   readonly ground: number | null;
+  /** Bosses: still wearing armour (the Generaal's pot). */
+  readonly armored: boolean;
+}
+
+/** One shootable part of a secret prop, in its layer's coordinates. */
+export interface SecretPartView {
+  readonly id: string;
+  readonly x: number;
+  readonly y: number;
+  /** Already hit (multi-hit secrets mark parts until the window resets). */
+  readonly hit: boolean;
+}
+
+export interface SecretView {
+  readonly propId: string;
+  readonly layerId: string;
+  readonly parts: readonly SecretPartView[];
+  /** Rotor angle in radians (0 for secrets without a rotor). */
+  readonly angle: number;
+  /** Can be set off now (not spent, not cooling down). */
+  readonly ready: boolean;
+  /** Paid out for this hunt (once-per-hunt secrets). */
+  readonly done: boolean;
+  /** Multi-hit: ticks left before the marks reset (0 = no window running). */
+  readonly windowTicks: number;
+  readonly cooldownTicks: number;
+}
+
+export interface CrateView {
+  readonly id: number;
+  readonly plane: PlaneId;
+  readonly x: number;
+  readonly y: number;
+  /** Falling under its parachute, or on the ground. */
+  readonly landed: boolean;
+}
+
+export interface PowerupView {
+  readonly id: string;
+  /** Ticks left, or null for shell-counted power-ups. */
+  readonly ticksLeft: number | null;
+  readonly totalTicks: number | null;
+  /** Shells left (Bush Buckshot), or null. */
+  readonly shellsLeft: number | null;
+}
+
+export interface WindView {
+  /** +1 blows left → right. */
+  readonly dir: 1 | -1;
+  /** 0..1 of the biome's wind effects. */
+  readonly strength: number;
+}
+
+export interface DustDevilView {
+  readonly id: number;
+  readonly plane: PlaneId;
+  readonly x: number;
+  readonly y: number;
+  /** Contact radius on its plane (plane px). */
+  readonly radius: number;
 }
 
 export interface WeaponView {
   readonly id: string;
+  /** primary, or a temporary crate weapon (Voorlaaier, Mielie-Masjien). */
+  readonly kind: 'primary' | 'crate';
+  /** Holding fire keeps firing (Mielie-Masjien, Chilli Biltong): send fireHold* commands. */
+  readonly holdToFire: boolean;
+  /** No shells used (Chilli Biltong, Mielie-Masjien). */
+  readonly infinite: boolean;
+  /** Crate weapon time left (Mielie-Masjien), or null. */
+  readonly ticksLeft: number | null;
+  readonly totalTicks: number | null;
   /** Shells in the belt; -1 = unlimited. */
   readonly shells: number;
   readonly magazine: number;
@@ -137,6 +209,13 @@ export interface SimState {
   readonly flocks: readonly FlockView[];
   /** The hunt's gadget (Vuvuzela), or null if the content has none. */
   readonly gadget: GadgetView | null;
+  /** Biome secrets in content order. */
+  readonly secrets: readonly SecretView[];
+  readonly crates: readonly CrateView[];
+  readonly powerups: readonly PowerupView[];
+  /** Null when the omen is off or the biome has no wind. */
+  readonly wind: WindView | null;
+  readonly dustDevils: readonly DustDevilView[];
   readonly over: boolean;
 }
 
@@ -163,6 +242,10 @@ export interface HuntResult {
   /** Flocks that went to FLUSH. */
   readonly flushes: number;
   readonly gadgetUses: number;
+  /** Secrets set off (GDD §8 tally). */
+  readonly secrets: number;
+  /** Crates opened. */
+  readonly crates: number;
   /** scoring.json rank id. */
   readonly rank: string;
 }

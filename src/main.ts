@@ -5,6 +5,7 @@ import * as Phaser from 'phaser';
 import { contentHash } from './content/hash';
 import { loadGameContent } from './content/loadBrowser';
 import { AudioDirector } from './game/audio/AudioDirector';
+import { withTestCrate } from './game/devContent';
 import type { GameContext, TestHook } from './game/GameContext';
 import { designSizeFor, isPortrait, safeAreaInDesignPx, type Insets } from './game/layout';
 import { createPlaceholderManifest } from './game/placeholder/ProceduralAssetFactory';
@@ -60,6 +61,12 @@ function huntSecondsParam(): number | undefined {
   return v > 0 && Number.isInteger(v * 2) ? v : undefined;
 }
 
+/** e2e/dev only: ?omen=1 turns the biome weather on (or ?omen=0 off) for Classic hunts. */
+function omenParam(): boolean | undefined {
+  if (!testHooks || !params.has('omen')) return undefined;
+  return params.get('omen') === '1';
+}
+
 const hook: TestHook = {
   ready: false,
   designWidth: 0,
@@ -90,11 +97,21 @@ const hook: TestHook = {
   boot: {},
   rects: {},
   safe: null,
+  secretSpots: [],
+  crateSpots: [],
+  specialBirds: [],
+  weapon: '',
+  powerups: [],
+  wind: null,
+  durationTicks: 0,
 };
 if (testHooks) window.__TM__ = hook;
 
 hook.boot['script'] = performance.now();
-const { bundle, feel } = loadGameContent();
+const loaded = loadGameContent();
+const { feel } = loaded;
+const crateParam = testHooks ? params.get('crate') : null;
+const bundle = crateParam === null ? loaded.bundle : withTestCrate(loaded.bundle, crateParam);
 hook.boot['content'] = performance.now();
 const biomeId = bundle.modes.modes.classic.biome;
 const biome = bundle.biomes.find((b) => b.id === biomeId);
@@ -113,6 +130,7 @@ const ctx: GameContext = {
   safeArea: (): Insets => safeAreaInDesignPx(cssSafeArea(), viewport(), game.scale.gameSize),
   nextSeed: seedSource(),
   huntSeconds: huntSecondsParam(),
+  omen: omenParam(),
   coarsePointer: window.matchMedia('(pointer: coarse)').matches,
   reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   paused: () => portrait || document.visibilityState === 'hidden',

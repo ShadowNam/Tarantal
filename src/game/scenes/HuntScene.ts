@@ -10,7 +10,7 @@ import { screenShakeEnabled } from '../../meta/settings';
 import type { SimEvent } from '../../sim/events';
 import { createRecorder, encodeInputLogText, type InputRecorder } from '../../sim/replay/inputLog';
 import { createSim } from '../../sim/Sim';
-import type { HuntResult, InputKind, ModeConfig } from '../../sim/types';
+import type { HuntResult, InputKind, ModeConfig, SimState } from '../../sim/types';
 import { CAMERA_MAX_X, CAMERA_MIN_X } from '../../sim/world';
 import { neededBeforeStart } from '../assets/AssetManifest';
 import type { GameContext } from '../GameContext';
@@ -21,6 +21,7 @@ import { Fx, FONT } from '../view/Fx';
 import { interpolateBirds, interpolateCamera } from '../view/interpolate';
 import { ParallaxView } from '../view/ParallaxView';
 import { WeaponView } from '../view/WeaponView';
+import { WorldView } from '../view/WorldView';
 import type { HudScene } from './HudScene';
 import type { TallyData } from './TallyScene';
 
@@ -40,6 +41,7 @@ export class HuntScene extends Phaser.Scene {
   private birds!: BirdView;
   private fx!: Fx;
   private weapon!: WeaponView;
+  private world!: WorldView;
   private debug!: DebugOverlay;
   private screen!: Phaser.GameObjects.Container;
   private card: Phaser.GameObjects.Container | null = null;
@@ -73,9 +75,23 @@ export class HuntScene extends Phaser.Scene {
 
     this.parallax = new ParallaxView(this, this.ctx.biome, this.ctx.manifest);
     this.screen = this.add.container(0, 0);
-    this.birds = new BirdView(this, this.ctx.manifest, this.parallax);
-    this.fx = new Fx(this, this.ctx.feel, this.parallax, this.screen, (id) =>
-      this.birds.positionOf(id),
+    this.birds = new BirdView(this, this.ctx.manifest, this.parallax, this.ctx.content);
+    this.fx = new Fx(
+      this,
+      this.ctx.feel,
+      this.parallax,
+      this.screen,
+      (id) => this.birds.positionOf(id),
+      (id) => this.birds.potOf(id),
+      this.ctx.content.powerups.crates.plane,
+    );
+    this.world = new WorldView(
+      this,
+      this.ctx.content,
+      this.ctx.feel,
+      this.ctx.biome,
+      this.parallax,
+      this.screen,
     );
     this.weapon = new WeaponView(this, this.ctx.feel, this.screen);
     this.debug = new DebugOverlay(
@@ -198,10 +214,11 @@ export class HuntScene extends Phaser.Scene {
     this.inputKind = kind;
     this.shake = screenShakeEnabled(this.ctx.reducedMotion);
 
-    const mode: ModeConfig =
-      this.ctx.huntSeconds === undefined
-        ? { id: 'classic' }
-        : { id: 'classic', huntSeconds: this.ctx.huntSeconds };
+    const mode: ModeConfig = {
+      id: 'classic',
+      ...(this.ctx.huntSeconds === undefined ? {} : { huntSeconds: this.ctx.huntSeconds }),
+      ...(this.ctx.omen === undefined ? {} : { omen: this.ctx.omen }),
+    };
     const seed = this.ctx.nextSeed();
     const sim = createSim({ seed, content: this.ctx.content, mode, inputKind: kind });
     this.recorder = createRecorder({
@@ -220,6 +237,7 @@ export class HuntScene extends Phaser.Scene {
         designSize: () => this.scale.gameSize,
         isOnBelt: (x, y) => hud.isOnBelt(x, y),
         isOnGadget: (x, y) => hud.isOnGadget(x, y),
+        holdToFire: () => this.runner?.state.weapon.holdToFire ?? false,
         queue: (cmd) => this.runner?.queue(cmd),
         aim: (x, y, fromTap) => {
           this.weapon.aim(x, y, fromTap || this.inputKind === 'pointer');
@@ -293,14 +311,16 @@ export class HuntScene extends Phaser.Scene {
       hook.frameTimes.push(delta);
 
     const { events } = runner.advance(delta);
-    if (events.length > 0) this.handleEvents(events, width);
-
     const state = runner.state;
+    if (events.length > 0) this.handleEvents(events, width, state);
+
     const alpha = runner.alpha;
     const cam = interpolateCamera(runner.prev, state, alpha);
     this.parallax.update(cam, width);
     const drawBirds = interpolateBirds(runner.prev, state, alpha);
     this.birds.update(drawBirds, state.tick);
+    this.world.update(state, width, this.scale.gameSize.height);
+    this.weapon.setWeapon(state.weapon.id);
     const safe = this.ctx.safeArea();
     // Bottom-left, right of the gadget button (timer/Frenzy top-left, belt bottom-right).
     this.debug.update(
@@ -329,14 +349,45 @@ export class HuntScene extends Phaser.Scene {
         const y = members.reduce((t, b) => t + b.y, 0) / n;
         return { id: f.id, state: f.state, alive: f.alive, x, y };
       });
+      hook.secretSpots = state.secrets.flatMap((sec) => {
+        const layer = this.parallax.layer(sec.layerId);
+        if (layer === undefined) return [];
+        return sec.parts
+          .filter((p) => !p.hit)
+          .map((p) => ({
+            propId: sec.propId,
+            partId: p.id,
+            x: layer.root.x + p.x,
+            y: p.y,
+            ready: sec.ready,
+          }));
+      });
+      hook.crateSpots = state.crates.map((c) => ({
+        id: c.id,
+        x: this.parallax.screenX(c.plane, c.x),
+        y: c.y,
+      }));
+      hook.specialBirds = state.birds
+        .filter((b) => b.motion === 'perch' || b.motion === 'boss')
+        .map((b) => ({
+          id: b.id,
+          creature: b.creature,
+          phase: b.phase,
+          x: this.parallax.screenX(b.plane, b.x),
+          y: b.y,
+        }));
+      hook.weapon = state.weapon.id;
+      hook.powerups = state.powerups.map((p) => p.id);
+      hook.wind = state.wind;
+      hook.durationTicks = state.durationTicks;
     }
 
     if (runner.over && !this.ending) this.finish();
   }
 
-  private handleEvents(events: readonly SimEvent[], width: number): void {
+  private handleEvents(events: readonly SimEvent[], width: number, state: SimState): void {
     // FX first: penalty pops look up where the bird was last drawn, before it is removed.
-    this.fx.handle(events, width);
+    this.fx.handle(events, width, state);
     const half = width / 2;
     this.ctx.audio.handle(events, (e) => {
       if (e.type === 'shotFired') return e.dx / half;
@@ -347,7 +398,11 @@ export class HuntScene extends Phaser.Scene {
     let bagged = false;
     for (const e of events) {
       if (e.type === 'shotFired') {
+        this.weapon.setWeapon(e.weapon);
         this.weapon.fired();
+        const def = this.ctx.content.weapons.weapons.find((x) => x.id === e.weapon);
+        if (def?.kind === 'crate' && def.smokeMs !== undefined && def.smokeMs > 0)
+          this.weapon.smoke(def.smokeMs, this.ctx.feel.juice.smokeScale);
         if (this.shake) {
           const w: Weapon | undefined = this.ctx.content.weapons.weapons.find(
             (x) => x.id === e.weapon,
@@ -359,6 +414,8 @@ export class HuntScene extends Phaser.Scene {
           hook.shots++;
           hook.firstShotAtMs ??= performance.now();
         }
+      } else if (e.type === 'weaponChanged') {
+        this.mapper?.cancelHold();
       } else if (e.type === 'targetBagged') {
         bagged = true;
       } else if (e.type === 'bonusAwarded' && e.bonus === 'twoFlies') {
@@ -415,6 +472,7 @@ export class HuntScene extends Phaser.Scene {
     for (const fn of this.cleanups) fn();
     this.cleanups = [];
     this.birds.clear();
+    this.world.clear();
     this.game.canvas.style.cursor = '';
   }
 }

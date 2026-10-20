@@ -4,6 +4,7 @@
 import type { Creature } from '../../content/schemas';
 import { cos, sin } from '../detmath';
 import type { FlockMember } from '../flocks/Flock';
+import type { ScriptState } from './scripted';
 import type { BagBehaviour, BirdMotion, BirdPhase, BirdView, PlaneId } from '../types';
 import { coreWidth, LAYER_BLEED_PX } from '../world';
 
@@ -43,6 +44,8 @@ export interface Bird {
   hitsLeft: number;
   /** Flock members only. */
   readonly fm: FlockMember | null;
+  /** Scripted birds only (motion 'perch' or 'boss', birds/scripted.ts). */
+  readonly script: ScriptState | null;
 }
 
 /** Behaviour when bagged (scoring.json behaviourAdd): forage +0, alert +0, run +0.5, flying +1.0. */
@@ -121,6 +124,7 @@ export function createFlyover(s: FlyoverSpec): Bird {
     duckTicks: 0,
     ...damageOf(s.creature),
     fm: null,
+    script: null,
   };
 }
 
@@ -164,6 +168,7 @@ export function createFlockBird(s: FlockBirdSpec): Bird {
     duckTicks: 0,
     ...damageOf(s.creature),
     fm: s.member,
+    script: null,
   };
 }
 
@@ -208,18 +213,23 @@ export function createPopup(s: PopupSpec): Bird {
     duckTicks: s.duckTicks,
     ...damageOf(s.creature),
     fm: null,
+    script: null,
   };
 }
 
 export type BirdExit = 'exited' | 'ducked' | null;
 
-/** Advances one tick. Returns why the bird leaves, if it does. Flock members only age here. */
-export function updateBird(b: Bird): BirdExit {
+/**
+ * Advances one tick. Returns why the bird leaves, if it does. Flock members and scripted birds
+ * only age here (their flock / birds/scripted.ts moves them). `airMul(sign)` scales flying speed
+ * across the screen (wind).
+ */
+export function updateBird(b: Bird, airMul: (sign: number) => number = () => 1): BirdExit {
   b.age++;
   b.phaseTicks++;
-  if (b.motion === 'flock') return null;
+  if (b.motion === 'flock' || b.motion === 'perch' || b.motion === 'boss') return null;
   if (b.motion === 'flyover') {
-    b.x += b.vx;
+    b.x += b.vx * airMul(b.vx);
     b.y = b.baseY + b.bobAmp * sin((2 * Math.PI * b.age) / b.bobPeriodTicks + b.bobOffset);
     const right = coreWidth(b.scrollFactor) + LAYER_BLEED_PX + b.exitMarginPx;
     const left = -LAYER_BLEED_PX - b.exitMarginPx;
@@ -267,5 +277,6 @@ export function viewOf(b: Bird): BirdView {
     hittable: isHittable(b),
     flockId: b.fm?.flockId ?? null,
     ground: b.motion === 'popup' ? b.grassLine : null,
+    armored: b.armorLeft > 0,
   };
 }

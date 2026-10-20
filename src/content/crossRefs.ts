@@ -137,7 +137,6 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
     checkUnique(file, 'layer', biome.layers.map((l) => l.id), err);
     checkUnique(file, 'prop', biome.props.map((p) => p.id), err);
     const layerIds = new Set(biome.layers.map((l) => l.id));
-    const propIds = new Set(biome.props.map((p) => p.id));
 
     for (const layer of biome.layers) {
       const merge = layer.lowTierMergeWith;
@@ -145,25 +144,57 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
         err(file, `layer "${layer.id}" merges into unknown layer "${merge}"`);
       }
     }
+    const layerPlane = new Map(biome.layers.map((l) => [l.id, l.plane]));
+    const propById = new Map(biome.props.map((p) => [p.id, p]));
     for (const prop of biome.props) {
       if (!layerIds.has(prop.layer)) err(file, `prop "${prop.id}" is on unknown layer "${prop.layer}"`);
-      const reward = prop.secret?.reward;
-      if (reward?.powerup !== undefined && !powerupIds.has(reward.powerup)) {
+      const secret = prop.secret;
+      if (secret === undefined) continue;
+      const parts = secret.type === 'multiHit' ? secret.parts.map((x) => x.id) : [secret.part.id];
+      checkUnique(file, `prop "${prop.id}" secret part`, parts, err);
+      const reward = secret.reward;
+      if (reward.powerup !== undefined && !powerupIds.has(reward.powerup)) {
         err(file, `prop "${prop.id}" secret grants unknown power-up "${reward.powerup}"`);
       }
-      if (reward?.barkKey !== undefined) i18n(file, reward.barkKey);
+      if (reward.barkKey !== undefined) i18n(file, reward.barkKey);
+      if (reward.at !== undefined) {
+        const at = propById.get(reward.at);
+        if (at === undefined) {
+          err(file, `prop "${prop.id}" secret reward is at unknown prop "${reward.at}"`);
+        } else if (reward.flushBirds !== undefined) {
+          const plane = layerPlane.get(at.layer);
+          if (plane === undefined) {
+            err(file, `prop "${prop.id}" flushes birds at "${at.id}", which is not on a plane layer`);
+          } else if (biome.lanes[plane]?.groundY === undefined || biome.lanes[plane].skyY === undefined) {
+            err(file, `prop "${prop.id}" flushes birds on plane "${plane}", which has no ground and sky lane`);
+          }
+        }
+      }
     }
     for (const event of biome.events) {
+      const where = `event "${event.id}"`;
+      const c = event.creature === undefined ? undefined : creatures.get(event.creature);
       if (event.creature !== undefined) {
-        const c = creatures.get(event.creature);
-        if (c === undefined) err(file, `event "${event.id}" uses unknown creature "${event.creature}"`);
+        if (c === undefined) err(file, `${where} uses unknown creature "${event.creature}"`);
         else if (c.biomes && !c.biomes.includes(biome.id)) {
-          err(file, `event "${event.id}" creature "${c.id}" is limited to other biomes`);
+          err(file, `${where} creature "${c.id}" is limited to other biomes`);
         }
       }
       for (const p of event.perchProps ?? []) {
-        if (!propIds.has(p)) err(file, `event "${event.id}" perches on unknown prop "${p}"`);
+        const prop = propById.get(p);
+        if (prop === undefined) err(file, `${where} perches on unknown prop "${p}"`);
+        else if (prop.perch === undefined) err(file, `${where} perches on prop "${p}", which has no perch point`);
+        else {
+          const plane = layerPlane.get(prop.layer);
+          if (plane === undefined) err(file, `${where} perch prop "${p}" is not on a plane layer`);
+          else if (c !== undefined && c.kind !== 'helper' && !c.planes.includes(plane)) {
+            err(file, `${where} perch prop "${p}" is on plane "${plane}", which "${c.id}" can't use`);
+          }
+        }
       }
+      checkEventShape(event, c, (m) => {
+        err(file, `${where} ${m}`);
+      });
     }
     for (const entry of biome.spawnTable) {
       const c = creatures.get(entry.creature);
@@ -277,6 +308,58 @@ function checkCharm(charm: Charm, ctx: CharmCtx): void {
     if (act.spawnEvent !== undefined && !ctx.definedEventIds.has(act.spawnEvent)) {
       ctx.warn(`${where} spawns event "${act.spawnEvent}" that no biome defines yet (${LATER.spawnEvent})`);
     }
+  }
+}
+
+type BiomeEvent = Biome['events'][number];
+
+/** What each world-event handler needs from its biome entry (Tech §3.6). */
+function checkEventShape(
+  event: BiomeEvent,
+  c: Creature | undefined,
+  err: (message: string) => void,
+): void {
+  const needs = (ok: boolean, what: string): void => {
+    if (!ok) err(`needs ${what}`);
+  };
+  switch (event.id) {
+    case 'hadeda':
+    case 'cropSprayer':
+      needs(c !== undefined && c.kind === 'nonTarget' && (c.speeds?.fly ?? 0) > 0, 'a non-target creature with speeds.fly');
+      return;
+    case 'kwevoel':
+      needs(c !== undefined && c.kind !== 'helper' && c.behaviours.includes('perchHigh') && (c.speeds?.fly ?? 0) > 0,
+        'a perchHigh creature with speeds.fly');
+      needs(event.perchProps !== undefined, 'perchProps');
+      needs(event.stayMs !== undefined, 'stayMs');
+      return;
+    case 'bossAppearance':
+      needs(c?.kind === 'boss', 'a boss creature');
+      needs(event.roamPx !== undefined, 'roamPx');
+      needs(event.perchProps !== undefined, 'perchProps');
+      needs(event.stayMs !== undefined, 'stayMs');
+      return;
+    case 'dustDevil':
+      needs(
+        event.plane !== undefined &&
+          event.radiusPx !== undefined &&
+          event.lifeSeconds !== undefined &&
+          event.speedPxPerSec !== undefined,
+        'plane, radiusPx, lifeSeconds and speedPxPerSec',
+      );
+      return;
+    case 'carAlarm':
+    case 'reservoirFlush':
+      err('is set off by a secret reward, not scheduled');
+      return;
+    case 'crate':
+      err('is scheduled from powerups.json crates, not the biome');
+      return;
+    case 'stampede':
+      err('comes from scoring.json stampede, not the biome');
+      return;
+    case 'farmDog':
+      return;
   }
 }
 

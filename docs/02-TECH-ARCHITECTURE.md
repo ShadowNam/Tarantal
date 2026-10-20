@@ -157,6 +157,12 @@ export interface Sim {
   is the skill).
 - Every resolution emits events: `ShotFired`, `PelletImpact`, `TargetBagged`, `Miss`, `FlockAlerted`,
   `FlockFlushed`, `SecretTriggered`, `ComboChanged`, `ScoreAwarded`, `PenaltyApplied`, …
+- Hit order within a layer (M4): birds → crates → live secret parts → occluders. Secret parts are
+  shapes from `props[].secret` (on a rotor they turn with it, `src/sim/props/secrets.ts`); a part
+  already hit, spent or cooling down is not a target. Wind drift (omen) shifts the pellet's screen x
+  on every layer at or behind the far plane. Order after damage: bags → bonuses → Whole Flock →
+  crates opened → secret parts → threats. The active weapon (primary or crate weapon, M4) supplies
+  pellets, spread (× power-up `spreadMul`), alert radius, wind sensitivity and score multiplier.
 
 ### 3.5 Birds and flocks
 - `Flock` (`src/sim/flocks/`) holds members + FSM state (`forage | alert | run | flush | settle`;
@@ -189,10 +195,21 @@ export interface Sim {
   the Stampede-Kenner charm) enables it, the director switches to its surge profile at
   `duration − lastSeconds` and the pipeline applies `stampede.mul`.
 - Events (hadeda, dust devil, crates, stampede) come from a seeded schedule generated at hunt start —
-  this is what makes the Daily Hunt identical for everyone.
+  this is what makes the Daily Hunt identical for everyone. Crate times and contents use their own
+  stream `rng.stream('crates')` (windows from `powerups.json → crates`); the omen (wind, dust
+  devils) uses `omen`, the kwêvoël `perch`, the boss `boss`, secret-reward flocks `secrets`.
 - World-event ids (used by biome JSON and the charm action `spawnEvent`): `hadeda`, `cropSprayer`,
   `kwevoel`, `dustDevil`, `farmDog`, `carAlarm`, `reservoirFlush`, `bossAppearance`, `crate`, `stampede`. Each has a
-  handler in `director/events.ts`; unknown ids fail content validation.
+  handler in `director/events.ts`; unknown ids fail content validation. `WORLD_EVENT_HANDLERS` maps
+  each id to a handler kind (a typed `Record`, so a new id fails the typecheck until it has one):
+  `flyover` (hadeda, crop sprayer), `perch` (kwêvoël: flies to one of `perchProps`' `perch` point,
+  stays `stayMs`, calls, flies off), `boss` (appears at a perch point, roams `roamPx`, stays
+  `stayMs`), `dustDevil` (`plane`, `radiusPx`, `lifeSeconds`, `speedPxPerSec`), `secretReward`
+  (`carAlarm`, `reservoirFlush`: only set off by a secret's reward, which carries its own
+  `reaction`, `at` prop and `flushBirds`), `crate`, `stampede`, `later` (`farmDog`, M6). Builders
+  live in `director/worldEvents.ts` and read only the biome entry and the creature.
+- Omen (M4): `ModeConfig.omen` if given, else `modes.json → <mode>.omen` (Classic off, Daily on);
+  omen-only events and the biome's `omen.wind` run only then (`src/sim/omen/`).
 
 ### 3.7 Scoring pipeline
 Implement GDD §5.3 exactly in `scoring/pipeline.ts` as a pure function:
@@ -252,7 +269,11 @@ share/challenge-link boundary (M7), because it needs async platform APIs (D-018)
 
 - One Zod schema per file type in `schemas.ts`; types are `z.infer`'d — never hand-written twice.
 - `npm run content:validate` (also in `npm run check` and CI) validates every JSON file and checks
-  cross-references (biome → creature ids, charm → trigger names, run → boss ids).
+  cross-references (biome → creature ids, charm → trigger names, run → boss ids; M4: a secret
+  reward's `at` prop, its power-up, unique part ids, `perchProps` that have a `perch` point on a
+  plane the creature uses, and each biome event's required fields for its handler kind).
+  `--dir <path>` validates another content folder (used by the test that proves a broken
+  cross-reference fails the CLI).
 - `contentHash` = SHA-256 of the canonicalised bundle; part of every replay, daily seed and score
   submission (only official content counts for leaderboards).
 - **Client-only feel** lives in `content/client/feel.json` (gesture thresholds, pan speeds, juice

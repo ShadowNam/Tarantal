@@ -1,3 +1,6 @@
+import { execFileSync } from 'node:child_process';
+import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { parseContent, type RawContent } from './bundle';
@@ -198,4 +201,88 @@ describe('content cross-references', () => {
     const report = checkCrossRefs(parseOk(c), { i18nKeys });
     expect(report.errors.some((e) => /duplicate charm id/.test(e.message))).toBe(true);
   });
+
+  // M4 (biome cross-references).
+  const karoo = (c: ReturnType<typeof clone>): Json => asObj(c.biomes['biomes/karoo-autumn.json']);
+  const propOf = (c: ReturnType<typeof clone>, id: string): Json => {
+    const p = asArr(karoo(c)['props']).find((x) => x['id'] === id);
+    if (p === undefined) throw new Error(`no prop ${id}`);
+    return p;
+  };
+  const eventOf = (c: ReturnType<typeof clone>, id: string): Json => {
+    const e = asArr(karoo(c)['events']).find((x) => x['id'] === id);
+    if (e === undefined) throw new Error(`no event ${id}`);
+    return e;
+  };
+  const errorsOf = (c: ReturnType<typeof clone>): string =>
+    checkCrossRefs(parseOk(c), { i18nKeys })
+      .errors.map((e) => e.message)
+      .join('\n');
+
+  it('catch a secret reward at a prop that does not exist', () => {
+    const c = clone();
+    asObj(asObj(propOf(c, 'windpomp')['secret'])['reward'])['at'] = 'dam';
+    expect(errorsOf(c)).toMatch(/reward is at unknown prop "dam"/);
+  });
+
+  it('catch a secret that grants an unknown power-up', () => {
+    const c = clone();
+    asObj(asObj(propOf(c, 'fence_bell')['secret'])['reward'])['powerup'] = 'rooibos';
+    expect(errorsOf(c)).toMatch(/unknown power-up "rooibos"/);
+  });
+
+  it('catch a perch prop without a perch point, and an unknown perch prop', () => {
+    const c = clone();
+    delete propOf(c, 'windpomp')['perch'];
+    expect(errorsOf(c)).toMatch(/kwevoel" perches on prop "windpomp", which has no perch point/);
+    const d = clone();
+    eventOf(d, 'bossAppearance')['perchProps'] = ['kraal'];
+    expect(errorsOf(d)).toMatch(/perches on unknown prop "kraal"/);
+  });
+
+  it('catch a boss appearance whose creature is not a boss', () => {
+    const c = clone();
+    eventOf(c, 'bossAppearance')['creature'] = 'tarentaal';
+    expect(errorsOf(c)).toMatch(/bossAppearance" needs a boss creature/);
+  });
+
+  it('catch a dust devil without its plane and radius', () => {
+    const c = clone();
+    delete eventOf(c, 'dustDevil')['radiusPx'];
+    expect(errorsOf(c)).toMatch(/dustDevil" needs plane, radiusPx/);
+  });
+
+  it('reject a single-hit secret that is neither once per hunt nor on a cooldown', () => {
+    const c = clone();
+    delete asObj(propOf(c, 'bakkie')['secret'])['oncePerHunt'];
+    expect(parseContent(c).ok).toBe(false);
+  });
+
+  it('make tools/validate-content.ts exit non-zero on a broken cross-reference', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'tarantal-content-'));
+    try {
+      cpSync(join(root, 'content'), dir, { recursive: true });
+      const file = join(dir, 'biomes', 'karoo-autumn.json');
+      const biome = asObj(JSON.parse(readFileSync(file, 'utf8')));
+      const pomp = asArr(biome['props']).find((x) => x['id'] === 'windpomp');
+      asObj(asObj(asObj(pomp)['secret'])['reward'])['at'] = 'dam';
+      writeFileSync(file, JSON.stringify(biome));
+      const run = (): string =>
+        execFileSync(
+          process.execPath,
+          ['--import', 'tsx', join(root, 'tools/validate-content.ts'), '--dir', dir],
+          { cwd: root, encoding: 'utf8', stdio: 'pipe' },
+        );
+      let failed: { status: number | null; stderr: string } | null = null;
+      try {
+        run();
+      } catch (e) {
+        failed = e as { status: number | null; stderr: string };
+      }
+      expect(failed?.status).toBe(1);
+      expect(failed?.stderr).toMatch(/unknown prop "dam"/);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 30_000);
 });

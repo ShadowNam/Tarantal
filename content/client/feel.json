@@ -20,7 +20,10 @@
     "muzzleFlashMs": 50,
     "gunKickPx": 34,
     "gunKickMs": 120,
-    "featherCount": [12, 20],
+    "featherCount": [
+      12,
+      20
+    ],
     "featherLifeMs": 700,
     "scorePopRisePx": 60,
     "scorePopMs": 600,
@@ -30,13 +33,20 @@
     "kekBubbleMs": 700,
     "flushBubbleMs": 1100,
     "bannerMs": 2200,
-    "stampMs": 1400
+    "stampMs": 1400,
+    "glintEveryMs": 4000,
+    "glintMs": 600,
+    "windParticlesPerSec": 14,
+    "smokeScale": 2.2,
+    "calloutMs": 2600
   },
   "hud": {
     "marginPx": 28,
     "beltTapMinPx": 64,
     "popStackSize": 4,
-    "gadgetPx": 120
+    "gadgetPx": 120,
+    "chipW": 260,
+    "chipH": 48
   },
   "loop": {
     "maxStepsPerFrame": 5

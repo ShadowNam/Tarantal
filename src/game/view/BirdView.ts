@@ -2,8 +2,11 @@
 // plane's container in spawn order, so a higher id is always drawn on top (D-018 hit order).
 // Pop-ups are cropped at their grass line and get a grass tuft in front of them. Flock members
 // pose by phase: standing (walk, alert, crouched for take-off), leaning forward when running,
-// fast wing beats when flushed, wings held up when gliding.
+// fast wing beats when flushed, wings held up when gliding. M4: the kwêvoël stands while perched
+// and flaps otherwise; the Generaal stands (struts/runs) until he flies off, and wears his pot
+// (a separate sprite on his head) until it is knocked off.
 import * as Phaser from 'phaser';
+import type { ContentBundle } from '../../content/schemas';
 import type { PlaneId } from '../../sim/types';
 import { TEX, type AssetManifest, type BirdFrame } from '../assets/AssetManifest';
 import type { DrawBird } from './interpolate';
@@ -13,6 +16,7 @@ interface Drawn {
   readonly sprite: Phaser.GameObjects.Image;
   readonly tuft: Phaser.GameObjects.Image | null;
   readonly badge: Phaser.GameObjects.Image | null;
+  readonly pot: Phaser.GameObjects.Image | null;
   readonly plane: PlaneId;
   frame: string;
 }
@@ -26,6 +30,9 @@ const WALK_BOB_PX = 2;
 
 function frameFor(v: DrawBird['view'], tick: number): BirdFrame {
   if (v.motion === 'popup') return 'stand';
+  const flapping: BirdFrame = (tick + v.id * 5) % FLAP_TICKS < FLAP_TICKS / 2 ? 'up' : 'down';
+  if (v.motion === 'perch') return v.phase === 'perch' ? 'stand' : flapping;
+  if (v.motion === 'boss') return v.phase === 'flap' ? flapping : 'stand';
   if (v.motion === 'flock') {
     if (v.phase === 'glide') return 'up';
     if (v.phase !== 'flap') return 'stand';
@@ -39,11 +46,27 @@ export class BirdView {
   private readonly manifest: AssetManifest;
   private readonly parallax: ParallaxView;
   private readonly drawn = new Map<number, Drawn>();
+  private readonly content: ContentBundle;
 
-  constructor(scene: Phaser.Scene, manifest: AssetManifest, parallax: ParallaxView) {
+  constructor(
+    scene: Phaser.Scene,
+    manifest: AssetManifest,
+    parallax: ParallaxView,
+    content: ContentBundle,
+  ) {
     this.scene = scene;
     this.manifest = manifest;
     this.parallax = parallax;
+    this.content = content;
+  }
+
+  /** Where a boss's helmet sits: on top of the head hitbox (plane px, scaled). */
+  private headTop(v: DrawBird['view'], x: number, y: number): { x: number; y: number } {
+    const c = this.content.birds.creatures.find((k) => k.id === v.creature);
+    const head = c !== undefined && 'hitbox' in c ? c.hitbox.head : undefined;
+    const s = this.content.scoring.planes[v.plane].scale;
+    if (head === undefined) return { x, y: y - 100 * s };
+    return { x: x + head.ox * s * v.facing, y: y + (head.oy - head.r * 0.55) * s };
   }
 
   update(birds: readonly DrawBird[], tick: number): void {
@@ -66,7 +89,13 @@ export class BirdView {
         if (tuft) layer.overlay?.add(tuft);
         const badge = v.kind === 'nonTarget' ? this.scene.add.image(b.x, b.y, TEX.badgeNo) : null;
         if (badge) layer.overlay?.add(badge);
-        d = { sprite, tuft, badge, plane: v.plane, frame: key };
+        const po = this.manifest.origin(TEX.pot);
+        const pot =
+          v.motion === 'boss' && v.armored
+            ? this.scene.add.image(b.x, b.y, TEX.pot).setOrigin(po.x, po.y)
+            : null;
+        if (pot) layer.birds?.add(pot);
+        d = { sprite, tuft, badge, pot, plane: v.plane, frame: key };
         this.drawn.set(v.id, d);
       }
       if (d.frame !== key) {
@@ -89,12 +118,22 @@ export class BirdView {
         if (visible > 0) d.sprite.setCrop(0, 0, d.sprite.frame.width, Math.min(frameH, visible));
       }
       if (d.badge) d.badge.setPosition(b.x, b.y - 90);
+      if (d.pot) {
+        const top = this.headTop(v, b.x, b.y);
+        const s = this.content.scoring.planes[v.plane].scale;
+        d.pot
+          .setVisible(v.armored)
+          .setPosition(top.x, top.y)
+          .setScale(s * v.facing, s)
+          .setRotation(lean);
+      }
     }
     for (const [id, d] of this.drawn) {
       if (seen.has(id)) continue;
       d.sprite.destroy();
       d.tuft?.destroy();
       d.badge?.destroy();
+      d.pot?.destroy();
       this.drawn.delete(id);
     }
   }
@@ -105,11 +144,18 @@ export class BirdView {
     return d ? { plane: d.plane, x: d.sprite.x, y: d.sprite.y } : null;
   }
 
+  /** Where a boss's pot is drawn now (for the CLANG knock-off). */
+  potOf(id: number): { plane: PlaneId; x: number; y: number; scaleX: number } | null {
+    const d = this.drawn.get(id);
+    return d?.pot ? { plane: d.plane, x: d.pot.x, y: d.pot.y, scaleX: d.pot.scaleX } : null;
+  }
+
   clear(): void {
     for (const d of this.drawn.values()) {
       d.sprite.destroy();
       d.tuft?.destroy();
       d.badge?.destroy();
+      d.pot?.destroy();
     }
     this.drawn.clear();
   }

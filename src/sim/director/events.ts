@@ -14,11 +14,41 @@ export interface ScheduledEvent {
   readonly creature: string | null;
 }
 
-/** World events with a handler in M1: non-target fly-overs that cost points when shot. */
-export const FLYOVER_EVENTS: ReadonlySet<WorldEventId> = new Set<WorldEventId>([
-  'hadeda',
-  'cropSprayer',
-]);
+/**
+ * How the sim handles each world-event id (Tech §3.6). Every id has an entry, so a new id in the
+ * schema fails the typecheck until it gets a handler.
+ * - flyover: a non-target crosses the sky (hadeda, crop sprayer); creatures that alertsAllFlocks
+ *   threaten every flock.
+ * - perch: a creature flies in, perches on one of `perchProps`, calls, flies off (kwêvoël).
+ * - boss: a boss appears at one of `perchProps` (Generaal).
+ * - dustDevil: an omen whirl that flushes flocks on contact.
+ * - secretReward: set off by a secret (props[].secret.reward), never scheduled.
+ * - crate: scheduled from powerups.json crates, never from the biome.
+ * - stampede: scoring.json stampede.
+ * - later: handler arrives in a later milestone (farmDog, M6 charm).
+ */
+export type WorldEventHandler =
+  'flyover' | 'perch' | 'boss' | 'dustDevil' | 'secretReward' | 'crate' | 'stampede' | 'later';
+
+export const WORLD_EVENT_HANDLERS: Readonly<Record<WorldEventId, WorldEventHandler>> = {
+  hadeda: 'flyover',
+  cropSprayer: 'flyover',
+  kwevoel: 'perch',
+  dustDevil: 'dustDevil',
+  farmDog: 'later',
+  carAlarm: 'secretReward',
+  reservoirFlush: 'secretReward',
+  bossAppearance: 'boss',
+  crate: 'crate',
+  stampede: 'stampede',
+};
+
+/** Non-target fly-over events (cost points when shot). */
+export const FLYOVER_EVENTS: ReadonlySet<WorldEventId> = new Set(
+  (Object.keys(WORLD_EVENT_HANDLERS) as WorldEventId[]).filter(
+    (id) => WORLD_EVENT_HANDLERS[id] === 'flyover',
+  ),
+);
 
 export function scheduleWorldEvents(
   biome: Biome,

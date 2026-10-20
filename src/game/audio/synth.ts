@@ -1,6 +1,7 @@
 // Placeholder SFX synthesised with Web Audio (no files to download): shot, empty click, reload,
 // poof, kek, penalty scratch; M3 adds the flush alarm, the flush music sting, the Vuvuzela and the
-// whole-flock stamp. Real recorded assets replace these in M10 (art/audio bible §10).
+// whole-flock stamp; M4 the secret ting and fanfare, car alarm, reservoir splash, CLANG, the
+// kwêvoël's call, crate pop, power-up chime and the dust devil. Real recorded assets replace these in M10 (art/audio bible §10).
 export type SfxId =
   | 'shot'
   | 'click'
@@ -12,7 +13,16 @@ export type SfxId =
   | 'vuvuzela'
   | 'stamp'
   | 'scratch'
-  | 'stampede';
+  | 'stampede'
+  | 'ting'
+  | 'secret'
+  | 'alarm'
+  | 'splash'
+  | 'clang'
+  | 'kwe'
+  | 'crate'
+  | 'powerup'
+  | 'whoosh';
 
 function noiseBuffer(ctx: BaseAudioContext, seconds: number): AudioBuffer {
   const buf = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * seconds), ctx.sampleRate);
@@ -138,6 +148,65 @@ export function playSfx(ctx: AudioContext, out: AudioNode, id: SfxId, noise: Aud
       tone('sawtooth', 60, 45, 0.9, 0.35);
       tone('sine', 220, 440, 0.4, 0.2, 0.1);
       return 1;
+    case 'ting':
+      tone('sine', 2200, 2100, 0.25, 0.25);
+      tone('sine', 3300, 3200, 0.18, 0.08);
+      return 0.3;
+    case 'secret':
+      [523, 659, 784, 1047].forEach((f, k) => {
+        tone('triangle', f, f, 0.18, 0.18, k * 0.08);
+      });
+      return 0.55;
+    case 'alarm':
+      // Two-tone bakkie alarm, four cycles.
+      for (let k = 0; k < 8; k++)
+        tone('square', k % 2 === 0 ? 880 : 660, k % 2 === 0 ? 880 : 660, 0.18, 0.12, k * 0.2);
+      return 1.7;
+    case 'splash': {
+      const s = noiseSrc();
+      const f = ctx.createBiquadFilter();
+      f.type = 'lowpass';
+      f.frequency.setValueAtTime(2500, now);
+      f.frequency.exponentialRampToValueAtTime(400, now + 0.6);
+      const g = ctx.createGain();
+      env(g, 0.6, 0.02, 0.6);
+      s.connect(f).connect(g).connect(out);
+      s.start(now);
+      s.stop(now + 0.7);
+      return 0.7;
+    }
+    case 'clang':
+      tone('square', 1250, 1180, 0.5, 0.25);
+      tone('triangle', 1870, 1800, 0.45, 0.18);
+      tone('sine', 620, 600, 0.6, 0.2);
+      return 0.65;
+    case 'kwe':
+      // "Kwê-kwê": two falling, nasal calls.
+      tone('sawtooth', 820, 520, 0.22, 0.18);
+      tone('sawtooth', 820, 520, 0.22, 0.18, 0.3);
+      return 0.55;
+    case 'crate':
+      tone('triangle', 300, 900, 0.12, 0.3);
+      tone('square', 1200, 1600, 0.1, 0.1, 0.1);
+      return 0.25;
+    case 'powerup':
+      [660, 880, 1320].forEach((f, k) => {
+        tone('sine', f, f * 1.02, 0.12, 0.2, k * 0.06);
+      });
+      return 0.35;
+    case 'whoosh': {
+      const s = noiseSrc();
+      const f = ctx.createBiquadFilter();
+      f.type = 'bandpass';
+      f.frequency.setValueAtTime(300, now);
+      f.frequency.exponentialRampToValueAtTime(1200, now + 0.8);
+      const g = ctx.createGain();
+      env(g, 0.35, 0.2, 0.8);
+      s.connect(f).connect(g).connect(out);
+      s.start(now);
+      s.stop(now + 1);
+      return 1;
+    }
   }
 }
 

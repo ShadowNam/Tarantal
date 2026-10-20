@@ -8,6 +8,7 @@ import type { PlaneId } from '../../sim/types';
 import { coreWidth, LAYER_BLEED_PX } from '../../sim/world';
 import {
   AssetManifest,
+  gunKey,
   MAX_TILE_WIDTH,
   TEX,
   type BirdFrame,
@@ -385,6 +386,16 @@ function birdDrawFor(creature: string, plane: PlaneId): BirdDraw | null {
   if (creature === 'kwevoel') return drawKwevoel;
   if (creature === 'visarend') return drawEagle;
   if (creature === 'sproeier') return drawSprayer;
+  if (creature === 'generaal') {
+    // A big old cock; his enamel pot is a separate sprite so it can fly off (fx/pot).
+    const body = drawGuineafowl(TARENTAAL, far, false);
+    return (ctx, frame, line) => {
+      ctx.save();
+      ctx.scale(1.1, 1.1);
+      body(ctx, frame, line / 1.1);
+      ctx.restore();
+    };
+  }
   if (creature === 'kuifkop' || creature === 'kuifkop_koning') {
     return drawGuineafowl(PALETTES['kuifkop'] ?? TARENTAAL, far, true);
   }
@@ -666,21 +677,16 @@ function drawProp(ctx: CanvasRenderingContext2D, id: string, w: number, h: numbe
       ctx.lineTo(half, y);
       ctx.stroke();
     }
-    // Rotor (fictional vane, no brand).
-    for (let b = 0; b < 12; b++) {
-      ctx.save();
-      ctx.translate(0, -h / 2);
-      ctx.rotate((b * Math.PI) / 6);
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(-12, -105);
-      ctx.lineTo(12, -105);
-      ctx.closePath();
-      inked(ctx, b % 2 === 0 ? KAROO.metal : KAROO.metalDark, 2);
-      ctx.restore();
-    }
-    ellipse(ctx, 0, -h / 2, 14, 14);
-    inked(ctx, KAROO.rust, line);
+    // Tail vane (the turning rotor is the secret's own sprite, secret/rotor).
+    ctx.beginPath();
+    ctx.moveTo(0, -h / 2);
+    ctx.lineTo(-150, -h / 2 + 4);
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = line;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.rect(-190, -h / 2 - 30, 50, 60);
+    inked(ctx, KAROO.metalDark, 3);
     return;
   }
   if (id === 'reservoir') {
@@ -977,6 +983,307 @@ function uiSpecs(): CanvasSpec[] {
 }
 
 // ---------------------------------------------------------------------------------------------
+// M4: secrets, crates, omen, boss, helper and crate-weapon art
+
+function star(ctx: CanvasRenderingContext2D, points: number, outer: number, inner: number): void {
+  ctx.beginPath();
+  for (let k = 0; k < points * 2; k++) {
+    const r = k % 2 === 0 ? outer : inner;
+    const a = (k / (points * 2)) * Math.PI * 2 - Math.PI / 2;
+    ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+  }
+  ctx.closePath();
+}
+
+function centred(
+  key: string,
+  w: number,
+  h: number,
+  draw: (ctx: CanvasRenderingContext2D) => void,
+): CanvasSpec {
+  return {
+    key,
+    width: w,
+    height: h,
+    originX: w / 2,
+    originY: h / 2,
+    draw(ctx) {
+      ctx.translate(w / 2, h / 2);
+      draw(ctx);
+    },
+  };
+}
+
+function m4Specs(): CanvasSpec[] {
+  return [
+    // Windpomp rotor: 12 vanes around a hub, radius ~105 (secret parts sit at 72).
+    centred(TEX.rotor, 240, 240, (ctx) => {
+      for (let b = 0; b < 12; b++) {
+        ctx.save();
+        ctx.rotate((b * Math.PI) / 6);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(-13, -108);
+        ctx.lineTo(13, -108);
+        ctx.closePath();
+        inked(ctx, b % 2 === 0 ? KAROO.metal : KAROO.metalDark, 2);
+        ctx.restore();
+      }
+      ellipse(ctx, 0, 0, 14, 14);
+      inked(ctx, KAROO.rust, 4);
+    }),
+    // A painted red target mark on a shootable secret part; grey cross once hit.
+    centred(TEX.mark, 64, 64, (ctx) => {
+      ellipse(ctx, 0, 0, 24, 24);
+      inked(ctx, '#C8302A', 4);
+      ellipse(ctx, 0, 0, 10, 10);
+      inked(ctx, '#F3EAD3', 3);
+    }),
+    centred(TEX.markHit, 64, 64, (ctx) => {
+      ellipse(ctx, 0, 0, 22, 22);
+      inked(ctx, '#55605A', 3);
+      ctx.beginPath();
+      ctx.moveTo(-12, -12);
+      ctx.lineTo(12, 12);
+      ctx.moveTo(12, -12);
+      ctx.lineTo(-12, 12);
+      ctx.strokeStyle = '#F3EAD3';
+      ctx.lineWidth = 5;
+      ctx.stroke();
+    }),
+    // Hint glint: a four-point sparkle.
+    centred(TEX.glint, 96, 96, (ctx) => {
+      star(ctx, 4, 44, 8);
+      ctx.fillStyle = '#FFF6D5';
+      ctx.fill();
+      star(ctx, 4, 22, 4);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fill();
+    }),
+    // Meerkat Spotter reveal ring (shape, not colour alone: dashed).
+    centred(TEX.ring, 200, 200, (ctx) => {
+      ctx.setLineDash([18, 10]);
+      ellipse(ctx, 0, 0, 90, 90);
+      ctx.strokeStyle = '#1B1410';
+      ctx.lineWidth = 12;
+      ctx.stroke();
+      ctx.strokeStyle = '#7CF2A0';
+      ctx.lineWidth = 6;
+      ctx.stroke();
+    }),
+    centred(TEX.spark, 80, 80, (ctx) => {
+      star(ctx, 6, 36, 12);
+      inked(ctx, '#FFD25A', 3);
+    }),
+    // Supply crate under a parachute (origin = crate centre) and on the ground.
+    {
+      key: TEX.crateChute,
+      width: 260,
+      height: 360,
+      originX: 130,
+      originY: 290,
+      draw(ctx) {
+        ctx.translate(130, 290);
+        ctx.beginPath();
+        ctx.moveTo(-120, -200);
+        ctx.quadraticCurveTo(0, -310, 120, -200);
+        ctx.quadraticCurveTo(0, -230, -120, -200);
+        ctx.closePath();
+        inked(ctx, '#F3EAD3', 4);
+        ctx.beginPath();
+        for (const x of [-110, -40, 40, 110]) {
+          ctx.moveTo(x, -205);
+          ctx.lineTo(x * 0.4, -60);
+        }
+        ctx.strokeStyle = INK;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        crateBox(ctx);
+      },
+    },
+    centred(TEX.crateBox, 160, 160, crateBox),
+    // Dust devil: a leaning swirl column (origin at its base).
+    {
+      key: TEX.dustDevil,
+      width: 300,
+      height: 520,
+      originX: 150,
+      originY: 500,
+      draw(ctx) {
+        ctx.translate(150, 500);
+        for (let k = 0; k < 9; k++) {
+          const y = -k * 55;
+          const r = 30 + k * 13;
+          ellipse(ctx, Math.sin(k * 0.9) * 18, y, r, 18 + k * 2);
+          ctx.fillStyle = k % 2 === 0 ? 'rgba(201,134,44,0.55)' : 'rgba(237,194,119,0.5)';
+          ctx.fill();
+        }
+      },
+    },
+    centred(TEX.leaf, 28, 16, (ctx) => {
+      ellipse(ctx, 0, 0, 12, 6);
+      inked(ctx, '#C9862C', 2);
+    }),
+    centred(TEX.dust, 40, 40, (ctx) => {
+      ellipse(ctx, 0, 0, 18, 14);
+      ctx.fillStyle = 'rgba(232,206,160,0.6)';
+      ctx.fill();
+    }),
+    centred(TEX.smoke, 140, 140, (ctx) => {
+      for (let k = 0; k < 5; k++) {
+        ellipse(ctx, Math.cos(k * 1.3) * 30, Math.sin(k * 1.3) * 26, 40, 36);
+        ctx.fillStyle = 'rgba(214,208,196,0.8)';
+        ctx.fill();
+      }
+    }),
+    // The Generaal's rusty enamel pot (helmet), origin at its rim centre.
+    {
+      key: TEX.pot,
+      width: 140,
+      height: 110,
+      originX: 70,
+      originY: 90,
+      draw(ctx) {
+        ctx.translate(70, 90);
+        ctx.beginPath();
+        ctx.moveTo(-48, 0);
+        ctx.lineTo(-40, -62);
+        ctx.quadraticCurveTo(0, -78, 40, -62);
+        ctx.lineTo(48, 0);
+        ctx.closePath();
+        inked(ctx, '#E8E2D0', 4);
+        ctx.beginPath();
+        ctx.rect(-56, -6, 112, 12);
+        inked(ctx, '#2D5DA8', 3);
+        ellipse(ctx, 18, -36, 10, 8);
+        ctx.fillStyle = KAROO.rust;
+        ctx.fill();
+      },
+    },
+    // Meerkat helper standing up (Meerkat Spotter).
+    {
+      key: TEX.meerkat,
+      width: 120,
+      height: 220,
+      originX: 60,
+      originY: 210,
+      draw(ctx) {
+        ctx.translate(60, 210);
+        ellipse(ctx, 0, -80, 30, 75);
+        inked(ctx, '#C9A16B', 4);
+        ellipse(ctx, 0, -170, 24, 26);
+        inked(ctx, '#C9A16B', 4);
+        for (const x of [-9, 9]) {
+          ellipse(ctx, x, -174, 6, 6);
+          ctx.fillStyle = INK;
+          ctx.fill();
+        }
+        ellipse(ctx, 0, -158, 5, 4);
+        ctx.fill();
+      },
+    },
+    // Wind sock (HUD): a striped cone, origin at the pole top; rotated/stretched by the HUD.
+    {
+      key: TEX.windsock,
+      width: 150,
+      height: 60,
+      originX: 6,
+      originY: 30,
+      draw(ctx) {
+        ctx.translate(6, 30);
+        for (let k = 0; k < 4; k++) {
+          const x0 = k * 34;
+          const h0 = 22 - k * 4;
+          const h1 = 22 - (k + 1) * 4;
+          ctx.beginPath();
+          ctx.moveTo(x0, -h0);
+          ctx.lineTo(x0 + 34, -h1);
+          ctx.lineTo(x0 + 34, h1);
+          ctx.lineTo(x0, h0);
+          ctx.closePath();
+          inked(ctx, k % 2 === 0 ? '#E2552C' : '#F3EAD3', 3);
+        }
+      },
+    },
+    // Crate weapons (first person, barrels up like the shotgun).
+    {
+      key: gunKey('voorlaaier'),
+      width: 420,
+      height: 520,
+      originX: 210,
+      originY: 520,
+      draw(ctx) {
+        ctx.translate(210, 520);
+        ctx.beginPath();
+        ctx.moveTo(-70, -500);
+        ctx.lineTo(70, -500);
+        ctx.lineTo(36, -230);
+        ctx.lineTo(-36, -230);
+        ctx.closePath();
+        inked(ctx, '#B08D3A', 6);
+        ctx.beginPath();
+        ctx.moveTo(-50, -240);
+        ctx.lineTo(50, -240);
+        ctx.lineTo(110, 0);
+        ctx.lineTo(-80, 0);
+        ctx.closePath();
+        inked(ctx, '#6B3F1F', 6);
+      },
+    },
+    {
+      key: gunKey('mielie_masjien'),
+      width: 420,
+      height: 520,
+      originX: 210,
+      originY: 520,
+      draw(ctx) {
+        ctx.translate(210, 520);
+        for (const x of [-36, 0, 36]) {
+          ctx.beginPath();
+          ctx.rect(x - 14, -500, 28, 280);
+          inked(ctx, '#6E777C', 5);
+        }
+        ellipse(ctx, 0, -220, 70, 40);
+        inked(ctx, '#E9C23B', 5);
+        ctx.beginPath();
+        ctx.moveTo(-60, -200);
+        ctx.lineTo(60, -200);
+        ctx.lineTo(100, 0);
+        ctx.lineTo(-80, 0);
+        ctx.closePath();
+        inked(ctx, '#8B5A2B', 6);
+        // Crank handle.
+        ctx.beginPath();
+        ctx.moveTo(70, -220);
+        ctx.lineTo(140, -260);
+        ctx.strokeStyle = INK;
+        ctx.lineWidth = 8;
+        ctx.stroke();
+      },
+    },
+  ];
+}
+
+function crateBox(ctx: CanvasRenderingContext2D): void {
+  ctx.beginPath();
+  ctx.rect(-62, -62, 124, 124);
+  inked(ctx, '#8B5A2B', 5);
+  ctx.beginPath();
+  ctx.moveTo(-62, -62);
+  ctx.lineTo(62, 62);
+  ctx.moveTo(62, -62);
+  ctx.lineTo(-62, 62);
+  ctx.strokeStyle = '#5E3A1A';
+  ctx.lineWidth = 8;
+  ctx.stroke();
+  ellipse(ctx, 0, 0, 30, 30);
+  inked(ctx, '#F3EAD3', 4);
+  ctx.beginPath();
+  ctx.rect(-6, -18, 12, 36);
+  ctx.rect(-18, -6, 36, 12);
+  ctx.fillStyle = '#C8302A';
+  ctx.fill();
+}
 
 const PLANE_LOOK_LINE: Readonly<Record<PlaneId, number>> = { near: 6, mid: 4, far: 2 };
 
@@ -1011,5 +1318,6 @@ export function createPlaceholderManifest(content: ContentBundle, biome: Biome):
   });
   for (const prop of biome.props) m.addTexture(propSpec(prop));
   for (const s of uiSpecs()) m.addTexture(s);
+  for (const s of m4Specs()) m.addTexture(s);
   return m;
 }

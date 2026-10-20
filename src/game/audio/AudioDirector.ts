@@ -95,6 +95,31 @@ export class AudioDirector {
         case 'flockWiped':
           this.play('stamp', panOf(e));
           break;
+        case 'secretPartHit':
+          this.play('ting', panOf(e));
+          break;
+        case 'secretTriggered':
+          this.play('secret', panOf(e));
+          break;
+        case 'worldEvent':
+          // Secret events have their own sound; scheduled ones already sound via their birds.
+          if (e.event === 'carAlarm') this.play('alarm', 0);
+          else if (e.event === 'reservoirFlush') this.play('splash', 0);
+          else if (e.event === 'dustDevil') this.play('whoosh', 0);
+          break;
+        case 'armorKnocked':
+          this.play('clang', panOf(e));
+          break;
+        case 'birdCalled':
+          this.play('kwe', panOf(e));
+          break;
+        case 'crateOpened':
+          this.play('crate', 0);
+          break;
+        case 'powerupStarted':
+        case 'weaponChanged':
+          this.play('powerup', 0);
+          break;
         default:
           break;
       }

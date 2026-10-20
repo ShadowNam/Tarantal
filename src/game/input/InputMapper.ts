@@ -3,6 +3,9 @@
 //           A/D, ←/→ or the outer 12 % of the screen pans.
 //   Touch:  tap fires at the finger · horizontal drag pans with inertia · flick-down or a tap on
 //           the shell belt reloads · a tap on the gadget button blows the Vuvuzela.
+//   Hold-to-fire (Mielie-Masjien, Chilli Biltong — the snapshot says when): pressing starts a
+//   hold (fireHoldStart), moving aims it (fireHoldMove), lifting ends it (fireHoldEnd). On touch a
+//   held finger aims instead of panning; holding it near a screen edge pans (D-021).
 // Positions are converted to design px of the visible screen; the fire command carries dx from
 // the screen centre (never an absolute x — the sim doesn't know the viewport width).
 import type { Feel } from '../../content/schemas';
@@ -17,6 +20,8 @@ export interface InputHost {
   isOnBelt(x: number, y: number): boolean;
   /** True if (x, y) in design px is on the gadget button. */
   isOnGadget(x: number, y: number): boolean;
+  /** The active weapon fires while held (snapshot weapon.holdToFire). */
+  holdToFire(): boolean;
   queue(cmd: Command): void;
   /** Cursor/finger position for the reticle and gun lean. */
   aim(x: number, y: number, fromTap: boolean): void;
@@ -39,6 +44,9 @@ export class InputMapper {
   private readonly keysDown = new Set<string>();
   private readonly ignored = new Set<number>();
   private readonly listeners: [EventTarget, string, EventListener][] = [];
+  /** The pointer holding fire down (mouse or finger), if any. */
+  private holdPointer: number | null = null;
+  private lastHold = { x: 0, y: 0 };
 
   constructor(canvas: HTMLCanvasElement, feel: Feel, host: InputHost, startCx: number) {
     this.canvas = canvas;
@@ -59,7 +67,10 @@ export class InputMapper {
       this.onCancel(e as PointerEvent);
     });
     this.on(canvas, 'pointerleave', (e) => {
-      if ((e as PointerEvent).pointerType === 'mouse') this.pan.setEdgeDirection(0);
+      if ((e as PointerEvent).pointerType === 'mouse') {
+        this.pan.setEdgeDirection(0);
+        this.endHold((e as PointerEvent).pointerId);
+      }
     });
     this.on(canvas, 'contextmenu', (e) => {
       e.preventDefault();
@@ -71,6 +82,7 @@ export class InputMapper {
       this.onKey(e as KeyboardEvent, false);
     });
     this.on(window, 'blur', () => {
+      if (this.holdPointer !== null) this.endHold(this.holdPointer);
       this.keysDown.clear();
       this.pan.setKeyDirection(0);
       this.pan.setEdgeDirection(0);
@@ -81,11 +93,18 @@ export class InputMapper {
   setEnabled(on: boolean): void {
     this.enabled = on;
     if (!on) {
+      if (this.holdPointer !== null) this.endHold(this.holdPointer);
       this.pan.setEdgeDirection(0);
       this.pan.setKeyDirection(0);
       this.pan.hold();
       this.host.fingerDown(false);
     }
+  }
+
+  /** The sim dropped the hold (crate weapon armed or used up): stop treating the held pointer as
+   *  a hold, so a finger can drag-pan again. */
+  cancelHold(): void {
+    if (this.holdPointer !== null) this.endHold(this.holdPointer);
   }
 
   /** Ignore this pointer until it lifts (e.g. the tap that started the hunt). */
@@ -125,15 +144,38 @@ export class InputMapper {
     this.host.queue({ t: 'fire', dx: x - width / 2, sy: y });
   }
 
+  private startHold(id: number, x: number, y: number): void {
+    const { width } = this.host.designSize();
+    this.holdPointer = id;
+    this.lastHold = { x, y };
+    this.host.queue({ t: 'fireHoldStart', dx: x - width / 2, sy: y });
+  }
+
+  private moveHold(x: number, y: number): void {
+    // Only real moves (≥ 2 design px) become commands, so the replay log stays small.
+    if (Math.abs(x - this.lastHold.x) < 2 && Math.abs(y - this.lastHold.y) < 2) return;
+    const { width } = this.host.designSize();
+    this.lastHold = { x, y };
+    this.host.queue({ t: 'fireHoldMove', dx: x - width / 2, sy: y });
+  }
+
+  private endHold(id: number): void {
+    if (this.holdPointer !== id) return;
+    this.holdPointer = null;
+    this.host.queue({ t: 'fireHoldEnd' });
+  }
+
   private onDown(e: PointerEvent): void {
     e.preventDefault();
     if (!this.enabled || this.ignored.has(e.pointerId)) return;
     const p = this.toDesign(e.clientX, e.clientY);
+    const onButton = this.host.isOnBelt(p.x, p.y) || this.host.isOnGadget(p.x, p.y);
     if (e.pointerType === 'mouse') {
       if (e.button === 0) {
         this.host.aim(p.x, p.y, false);
         if (this.host.isOnBelt(p.x, p.y)) this.host.queue({ t: 'reload' });
         else if (this.host.isOnGadget(p.x, p.y)) this.host.queue({ t: 'gadget' });
+        else if (this.host.holdToFire()) this.startHold(e.pointerId, p.x, p.y);
         else this.fireAt(p.x, p.y);
       } else if (e.button === 2) {
         this.host.queue({ t: 'reload' });
@@ -145,6 +187,14 @@ export class InputMapper {
     } catch {
       // Synthetic pointers can't always be captured; gestures still work without it.
     }
+    if (!onButton && this.holdPointer === null && this.host.holdToFire()) {
+      // A held finger fires and aims; the screen edges pan.
+      this.pan.hold();
+      this.host.aim(p.x, p.y, true);
+      this.host.fingerDown(true);
+      this.startHold(e.pointerId, p.x, p.y);
+      return;
+    }
     this.pan.hold();
     this.gestures.down(e.pointerId, p.x, p.y, e.timeStamp);
     this.host.fingerDown(true);
@@ -153,9 +203,16 @@ export class InputMapper {
   private onMove(e: PointerEvent): void {
     if (!this.enabled || this.ignored.has(e.pointerId)) return;
     const p = this.toDesign(e.clientX, e.clientY);
+    if (e.pointerId === this.holdPointer) this.moveHold(p.x, p.y);
     if (e.pointerType === 'mouse') {
       this.host.aim(p.x, p.y, true);
       const { width } = this.host.designSize();
+      this.pan.setEdgeDirection(edgeDirection(p.x, width, this.feel.input.edgePanFraction));
+      return;
+    }
+    if (e.pointerId === this.holdPointer) {
+      const { width } = this.host.designSize();
+      this.host.aim(p.x, p.y, true);
       this.pan.setEdgeDirection(edgeDirection(p.x, width, this.feel.input.edgePanFraction));
       return;
     }
@@ -165,6 +222,14 @@ export class InputMapper {
 
   private onUp(e: PointerEvent): void {
     if (this.ignored.delete(e.pointerId)) return;
+    if (e.pointerId === this.holdPointer) {
+      this.endHold(e.pointerId);
+      if (e.pointerType !== 'mouse') {
+        this.pan.setEdgeDirection(0);
+        if (this.gestures.activePointers === 0) this.host.fingerDown(false);
+      }
+      return;
+    }
     if (!this.enabled || e.pointerType === 'mouse') return;
     const p = this.toDesign(e.clientX, e.clientY);
     const end = this.gestures.up(e.pointerId, p.x, p.y, e.timeStamp);
@@ -191,6 +256,10 @@ export class InputMapper {
 
   private onCancel(e: PointerEvent): void {
     this.ignored.delete(e.pointerId);
+    if (e.pointerId === this.holdPointer) {
+      this.endHold(e.pointerId);
+      this.pan.setEdgeDirection(0);
+    }
     this.gestures.cancel(e.pointerId);
     if (this.gestures.activePointers === 0) this.host.fingerDown(false);
   }

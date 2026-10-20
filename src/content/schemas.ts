@@ -359,12 +359,22 @@ export const PowerupsSchema = obj({
     modes: z.array(ModeIdSchema),
     perHunt: nonNegInt,
     windows: z.array(windowFraction),
+    /** The plane crates parachute onto; they fall from its sky lane top to its ground lane. */
+    plane: PlaneIdSchema,
+    /** Design px/s at the mid plane. */
+    fallPxPerSec: pos,
+    /** Time on the ground before the crate is gone. */
+    lingerMs: posInt,
+    /** Crates appear within this many design px of the screen centre (≤ 720: on a 4:3 screen). */
+    spawnHalfWidthPx: z.number().nonnegative().max(720),
+    /** Hit ellipse at scale 1.0 (scaled by the plane like birds). */
+    hitbox: obj({ rx: pos, ry: pos }),
     table: z
       .array(
         obj({ id, weight: pos, type: z.enum(['powerup', 'weapon']).optional() }),
       )
       .min(1),
-  }),
+  }).refine((c) => c.windows.length === c.perHunt, 'crates need one window per crate (perHunt)'),
 });
 export type Powerups = z.infer<typeof PowerupsSchema>;
 
@@ -545,30 +555,59 @@ const occluderSchema = z.discriminatedUnion('type', [
   obj({ type: z.literal('ellipse'), rx: pos, ry: pos, ox: z.number(), oy: z.number() }),
 ]);
 
+/** World events a secret can set off (the rest are scheduled, Tech §3.6). */
+export const SECRET_EVENT_IDS = ['carAlarm', 'reservoirFlush'] as const;
+
+/** Flock reaction to a world event or secret (GDD §6.2, Tech §3.5). */
+export const ReactionSchema = obj({
+  effect: z.enum(['threat', 'run', 'flush']),
+  scope: z.enum(['all', 'visible', 'area']),
+  /** Area scope only: design px at the mid plane around the reward's `at` prop. */
+  radiusPx: pos.optional(),
+}).refine((r) => (r.scope === 'area') === (r.radiusPx !== undefined), {
+  message: 'radiusPx is required for scope "area" and only allowed there',
+});
+
 const secretRewardSchema = obj({
+    /** Flat event bonus (multiplied by Frenzy × Stampede only, GDD §5.3). */
     points: posInt.optional(),
-    event: WorldEventIdSchema.optional(),
+    /** Label for audio/FX; emitted as a worldEvent. */
+    event: z.enum(SECRET_EVENT_IDS).optional(),
+    /** Prop where the reward happens (area reactions, flushed birds). */
+    at: id.optional(),
+    reaction: ReactionSchema.optional(),
+    /** A flock of this many birds bursts out at `at` in FLUSH. */
     flushBirds: posInt.optional(),
-    effect: z.enum(['allHiddenJump']).optional(),
     addTimeSeconds: pos.optional(),
     barkKey: i18nKey.optional(),
     powerup: id.optional(),
   })
-  .refine((r) => Object.keys(r).length > 0, 'reward needs at least one entry');
+  .refine((r) => Object.keys(r).filter((k) => k !== '$comment').length > 0, 'reward needs at least one entry')
+  .refine((r) => r.flushBirds === undefined || r.at !== undefined, 'flushBirds needs "at"')
+  .refine((r) => r.reaction?.scope !== 'area' || r.at !== undefined, 'an area reaction needs "at"');
+
+/** A shootable part of a secret prop, in the prop's layer px relative to the prop (or rotor). */
+const secretPartSchema = obj({ id, shape: occluderSchema });
 
 const secretSchema = z.discriminatedUnion('type', [
   obj({
     type: z.literal('multiHit'),
-    parts: z.array(id).min(2),
-    partsMoveWith: id.optional(),
+    parts: z.array(secretPartSchema).min(2),
+    /** Parts orbit this point (relative to the prop) at degPerSec; part offsets are relative to it. */
+    rotor: obj({ ox: z.number(), oy: z.number(), degPerSec: z.number() }).optional(),
+    /** All parts must be hit within this many seconds of the first, or the marks reset. */
+    windowSeconds: pos.optional(),
     reward: secretRewardSchema,
   }),
   obj({
     type: z.literal('singleHit'),
-    part: id,
-    oncePerHunt: z.boolean().optional(),
+    part: secretPartSchema,
+    /** Exactly one of these: pays once per hunt, or again after the cooldown. */
+    oncePerHunt: z.literal(true).optional(),
     cooldownSeconds: pos.optional(),
     reward: secretRewardSchema,
+  }).refine((s) => (s.oncePerHunt === true) !== (s.cooldownSeconds !== undefined), {
+    message: 'singleHit secrets need exactly one of oncePerHunt or cooldownSeconds',
   }),
 ]);
 
@@ -608,6 +647,8 @@ export const BiomeSchema = obj({
       asset: z.string().min(1),
       occluder: occluderSchema.optional(),
       secret: secretSchema.optional(),
+      /** Where a perching creature sits (kwêvoël) or a boss appears, relative to the prop. */
+      perch: obj({ ox: z.number(), oy: z.number() }).optional(),
     }),
   ),
   events: z.array(
@@ -621,6 +662,14 @@ export const BiomeSchema = obj({
       flushOnContact: z.boolean().optional(),
       speedPxPerSec: pos.optional(),
       modes: z.array(ModeIdSchema).min(1).optional(),
+      /** Perching creatures and bosses: how long they stay (ms). */
+      stayMs: range(pos).optional(),
+      /** Bosses: how far (design px at mid) they roam from their perch point. */
+      roamPx: pos.optional(),
+      /** Dust devils: the plane they cross, contact radius (design px at mid) and life. */
+      plane: PlaneIdSchema.optional(),
+      radiusPx: pos.optional(),
+      lifeSeconds: range(pos).optional(),
     }),
   ),
   omen: obj({
@@ -676,7 +725,13 @@ export type Biome = z.infer<typeof BiomeSchema>;
 // ---------------------------------------------------------------------------------------------
 // modes.json
 
-const modeSetupSchema = obj({ huntSeconds: posInt, weapon: id, biome: id });
+const modeSetupSchema = obj({
+  huntSeconds: posInt,
+  weapon: id,
+  biome: id,
+  /** Biome weather (omen) on in this mode (D-021: Classic off, Daily on). */
+  omen: z.boolean(),
+});
 
 export const ModesSchema = obj({
   version,
@@ -756,6 +811,15 @@ export const FeelSchema = obj({
     /** HUD banners (wing shot, Stampede) and the "DIE HELE SWERM!" stamp. */
     bannerMs: pos,
     stampMs: pos,
+    /** M4: secret hint glints (one per ready secret every glintEveryMs, each lasting glintMs). */
+    glintEveryMs: pos,
+    glintMs: pos,
+    /** Wind leaves/dust particles per second at full strength (omen visual flags). */
+    windParticlesPerSec: nonNeg,
+    /** Voorlaaier smoke cloud scale (its length is weapons.json smokeMs). */
+    smokeScale: pos,
+    /** "⛔ don't shoot" and boss call-outs. */
+    calloutMs: pos,
   }),
   hud: obj({
     marginPx: nonNeg,
@@ -764,6 +828,9 @@ export const FeelSchema = obj({
     popStackSize: posInt,
     /** Vuvuzela button (bottom-left), a square tap target ≥ 64 design px (art bible §6). */
     gadgetPx: z.number().min(64),
+    /** Power-up / crate-weapon chips under the Frenzy meter. */
+    chipW: pos,
+    chipH: pos,
   }),
   loop: obj({
     /** Most sim steps per rendered frame (spiral-of-death guard, Tech §3.2). */

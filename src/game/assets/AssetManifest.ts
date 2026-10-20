@@ -124,4 +124,25 @@ export const TEX = {
   puff: 'fx/puff',
   grassTuft: 'fx/grass_tuft',
   gun: 'gun/dubbelloop',
+  // M4: secrets, crates, omen, boss, helpers, crate weapons.
+  rotor: 'secret/rotor',
+  mark: 'secret/mark',
+  markHit: 'secret/mark_hit',
+  glint: 'fx/glint',
+  ring: 'fx/ring',
+  spark: 'fx/spark',
+  crateChute: 'crate/chute',
+  crateBox: 'crate/box',
+  dustDevil: 'fx/dust_devil',
+  leaf: 'fx/leaf',
+  dust: 'fx/dust',
+  smoke: 'fx/smoke',
+  pot: 'fx/pot',
+  meerkat: 'helper/meerkat',
+  windsock: 'ui/windsock',
 } as const;
+
+/** First-person art for a weapon id (crate weapons get their own; unknown ids use the shotgun). */
+export function gunKey(weaponId: string): string {
+  return `gun/${weaponId}`;
+}

@@ -34,3 +34,13 @@ export function isI18nKey(key: string): key is I18nKey {
 export function t(key: I18nKey): string {
   return tables[current][key] ?? en[key];
 }
+
+/** A key built from content ids (e.g. `item.${id}`): its text, or `fallback` if it has none. */
+export function tOr(key: string, fallback: string): string {
+  return isI18nKey(key) ? t(key) : fallback;
+}
+
+/** Fills `{name}` placeholders. */
+export function fill(text: string, values: Readonly<Record<string, string | number>>): string {
+  return text.replace(/\{(\w+)\}/g, (m, k: string) => (k in values ? String(values[k]) : m));
+}
