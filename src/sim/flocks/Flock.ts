@@ -138,7 +138,8 @@ export interface Flock {
   threatX: number;
   /** +1 / −1: direction of the current run or flight. */
   dir: 1 | -1;
-  /** Whole Flock is still possible (false after the first SETTLE or any member exiting). */
+  /** Whole Flock is still possible (false once it calms down — window expiry or SETTLE — or a
+   *  member exits). */
   eligible: boolean;
 }
 

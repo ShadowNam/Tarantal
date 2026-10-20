@@ -55,6 +55,8 @@ describe('flock FSM', () => {
     for (let i = 0; i < WINDOW - 1; i++) expect(tickFsm(flock, params, rng)).toBeNull();
     expect(tickFsm(flock, params, rng)).toEqual({ from: 'alert', to: 'forage', cause: 'window' });
     expect(flock.members.every((b) => b.phase === 'walk')).toBe(true);
+    // Calming down ends Whole Flock for this flock (D-020).
+    expect(flock.eligible).toBe(false);
   });
 
   it('ALERT → RUN on a threat inside the window, away from the threat (+0.5)', () => {
@@ -193,6 +195,31 @@ describe('flock FSM', () => {
     });
     expect(top).toBeGreaterThanOrEqual(flock.skyY[0]);
     expect(top).toBeLessThanOrEqual(flock.skyY[1]);
+  });
+
+  it('a flush is a fountain: birds cross at fly·cos θ, not full fly speed', () => {
+    const { flock, params, rng } = makeFlock(content, { x: 1900 });
+    forceState(flock, 'flush', 1000, 'gadget', params, rng);
+    const start = flock.members.map((b) => b.x);
+    let maxVx = 0;
+    runUntil(flock, params, rng, () => {
+      for (const b of flock.members) {
+        const m = b.fm;
+        if (m && (b.phase === 'flap' || b.phase === 'glide')) {
+          maxVx = Math.max(maxVx, Math.abs(m.vx));
+          expect(Math.abs(m.vx)).toBeLessThanOrEqual(
+            Math.max(m.fly, m.glide) * Math.cos(m.angle) + 1e-9,
+          );
+        }
+      }
+      return flock.state !== 'flush';
+    });
+    const fly = flock.members[0]?.fm?.fly ?? 0;
+    expect(maxVx).toBeLessThan(fly * 0.6);
+    // Short hop: a few hundred px, not across the panorama.
+    flock.members.forEach((b, i) => {
+      expect(Math.abs(b.x - (start[i] ?? 0))).toBeLessThan(1600);
+    });
   });
 
   it('a threat in FLUSH changes nothing', () => {

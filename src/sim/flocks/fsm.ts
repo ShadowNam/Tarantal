@@ -7,7 +7,8 @@
 //
 // A threat in RUN after the window has closed reopens the window and restarts the calm timer but
 // does not flush: every step needs a threat inside the window opened by the previous one (D-020).
-// A threat in SETTLE counts like one in FORAGE. Forced reactions (Vuvuzela, Stampede, events)
+// A threat in SETTLE counts like one in FORAGE. Whole Flock stays possible only until the flock
+// first calms down (ALERT → FORAGE, or SETTLE). Forced reactions (Vuvuzela, Stampede, events)
 // jump straight to RUN or FLUSH.
 import { enter } from '../birds/Bird';
 import type { FlockCause } from '../events';
@@ -80,6 +81,9 @@ function enterSettle(f: Flock, p: FlockParams, rng: RandomStream, cause: FlockCa
 
 function enterForage(f: Flock, cause: FlockCause): Transition {
   f.windowTicks = 0;
+  // Calming down ends Whole Flock (GDD §6.4 "before it settles", D-020): waiting out the window
+  // is the plinker's safe play, the bonus rewards escalation.
+  f.eligible = false;
   if (cause === 'settled') f.homeX = centroid(f).x;
   f.goalTicks = 0;
   for (const b of f.members) enter(b, 'walk');

@@ -2,7 +2,8 @@
 // alignment, cohesion) toward a flock goal plus noise from rng.stream('flockNoise'); RUN adds a
 // zigzag. Flushed birds crouch for their stagger, take off steeply, level out in the sky lane,
 // glide down and land. All new velocities are computed from last tick's positions (members in id
-// order), so the result does not depend on update order.
+// order), so the result does not depend on update order. Flight keeps the take-off heading: it
+// crosses at fly·cos θ while climbing and glide·cos θ while gliding down.
 import { enter, type Bird } from '../birds/Bird';
 import { cos, sin } from '../detmath';
 import type { RandomStream } from '../rng';
@@ -184,7 +185,8 @@ function fly(f: Flock, b: Bird, p: FlockParams, rng: RandomStream): void {
     b.facing = dir;
   }
   if (b.phase === 'flap') {
-    m.vx += (f.dir * m.fly - m.vx) * m.climbK;
+    // A fountain, not a getaway (GDD §6.1): the climb flattens out at cruise height while the
+    // horizontal speed stays the take-off component fly·cos θ.
     m.vy += (0 - m.vy) * m.climbK;
     b.x += m.vx;
     b.y = Math.max(f.skyY[0], b.y + m.vy);
@@ -192,8 +194,8 @@ function fly(f: Flock, b: Bird, p: FlockParams, rng: RandomStream): void {
     if (m.flapTicks <= 0) enter(b, 'glide');
     return;
   }
-  // glide
-  m.vx = f.dir * m.glide;
+  // glide: the same heading — glide·cos θ across — sinking at glideSinkPxPerSec.
+  m.vx = f.dir * m.glide * cos(m.angle);
   m.vy = p.glideSinkPerTick * f.ratio;
   b.x += m.vx;
   b.y += m.vy;
