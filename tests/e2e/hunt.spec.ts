@@ -71,7 +71,9 @@ test.describe('Classic hunt', () => {
     test.setTimeout(600_000);
     const touch = isTouchProject(info);
     const errors = collectErrors(page);
-    await boot(page, 'seed=7&huntSeconds=15');
+    // 60 s, not 15: under software-rendered WebGL (CI, sandboxes) each harness tap round trip
+    // costs ~80 ticks, so a 15 s hunt (900 ticks) only fits ~10 taps.
+    await boot(page, 'seed=7&huntSeconds=60');
     await startHunt(page, touch);
     const started = await hook(page);
     expect(started.inputKind).toBe(touch ? 'touch' : 'pointer');
@@ -82,7 +84,7 @@ test.describe('Classic hunt', () => {
     await page.waitForFunction(() => window.__TM__?.scene === 'tally', null, { timeout: 300_000 });
     const h = await hook(page);
     expect(h.result?.shots).toBe(20);
-    expect(h.result?.ticks).toBe(15 * 60);
+    expect(h.result?.ticks).toBe(60 * 60);
     expect(h.rects['again']).toBeDefined();
     await page.waitForTimeout(1500); // count-up + rank stamp
     await page.screenshot({ path: `${SCREENSHOTS}/tally-${info.project.name}.png` });
