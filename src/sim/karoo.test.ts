@@ -415,7 +415,7 @@ describe('Generaal Tarentaal (GDD §7 boss)', () => {
     expect(sim.snapshot().score).toBe(175);
   });
 
-  it('appears once in Classic and never in a Season Run hunt', () => {
+  it('appears once in Classic and never in a plain Season Run hunt', () => {
     const c = quiet();
     karooOf(c).events = [eventEntry('bossAppearance')];
     const classic = run(newSim(c, { id: 'classic' }), 90 * 60);
