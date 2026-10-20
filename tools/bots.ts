@@ -1,13 +1,17 @@
 // Headless players for tools (run-hunt, golden replays, the M3 balance sim). Bots see only
 // snapshot() — like the renderer — and answer with Commands. Their randomness is their own.
+// The human-like plinker and competent bots live in humanBots.ts.
 import type { ContentBundle } from '../src/content/schemas';
 import { planeToDx } from '../src/sim/camera';
 import { createStream, fnv1a32 } from '../src/sim/rng';
-import type { BirdView, Command, SimState } from '../src/sim/types';
+import type { BirdView, Command, InputKind, SimState } from '../src/sim/types';
 import { CAMERA_MAX_X, CAMERA_MIN_X } from '../src/sim/world';
 
-export type BotKind = 'random' | 'aim';
-export const BOT_KINDS: readonly BotKind[] = ['random', 'aim'];
+import { createHumanBot } from './humanBots';
+
+/** random: sprays · aim: near-perfect M1 aimer (goldens) · plinker / competent: GDD §13.8. */
+export type BotKind = 'random' | 'aim' | 'plinker' | 'competent';
+export const BOT_KINDS: readonly BotKind[] = ['random', 'aim', 'plinker', 'competent'];
 
 export interface Bot {
   readonly kind: BotKind;
@@ -17,7 +21,14 @@ export interface Bot {
 /** Half the 16:9 reference width: what a bot "sees" either side of the screen centre. */
 const VIEW_HALF_WIDTH = 900;
 
-export function createBot(kind: BotKind, seed: number, content: ContentBundle): Bot {
+export function createBot(
+  kind: BotKind,
+  seed: number,
+  content: ContentBundle,
+  inputKind: InputKind = 'pointer',
+): Bot {
+  if (kind === 'plinker' || kind === 'competent')
+    return createHumanBot(kind, seed, content, inputKind);
   return kind === 'random' ? randomBot(seed) : aimBot(seed, content);
 }
 
