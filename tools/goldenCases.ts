@@ -1,6 +1,6 @@
 // The golden replays: fixed (seed, bot, input) hunts whose event hash must never change by
 // accident. Regenerate with `npm run golden:update`.
-import type { InputKind } from '../src/sim/types';
+import type { AimAssistLevel, InputKind } from '../src/sim/types';
 import type { BotKind } from './bots';
 
 export interface GoldenCase {
@@ -9,6 +9,7 @@ export interface GoldenCase {
   readonly bot: BotKind;
   readonly mode: 'classic' | 'daily';
   readonly inputKind: InputKind;
+  readonly aimAssist?: AimAssistLevel;
 }
 
 export interface GoldenReplay extends GoldenCase {
@@ -39,5 +40,14 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
     bot: 'competent',
     mode: 'classic',
     inputKind: 'pointer',
+  },
+  // M5: touch with the Settings aim assist at 'low' (replay v2 records the level).
+  {
+    name: 'classic-7-aim-touch-lowassist',
+    seed: 7,
+    bot: 'aim',
+    mode: 'classic',
+    inputKind: 'touch',
+    aimAssist: 'low',
   },
 ];

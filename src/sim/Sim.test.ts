@@ -4,20 +4,26 @@ import type { ContentBundle } from '../content/schemas';
 import { planeToDx } from './camera';
 import { hashEvents, type SimEvent } from './events';
 import { createSim, type Sim } from './Sim';
-import type { BirdView, Command, InputKind, ModeConfig } from './types';
+import type { AimAssistLevel, BirdView, Command, InputKind, ModeConfig } from './types';
 import { CAMERA_MAX_X, CAMERA_MIN_X } from './world';
 
 const content = loadContent();
 
 function newSim(
   seed = 42,
-  opts: { content?: ContentBundle; mode?: ModeConfig; inputKind?: InputKind } = {},
+  opts: {
+    content?: ContentBundle;
+    mode?: ModeConfig;
+    inputKind?: InputKind;
+    aimAssist?: AimAssistLevel;
+  } = {},
 ): Sim {
   return createSim({
     seed,
     content: opts.content ?? content,
     mode: opts.mode ?? { id: 'classic' },
     inputKind: opts.inputKind ?? 'pointer',
+    ...(opts.aimAssist === undefined ? {} : { aimAssist: opts.aimAssist }),
   });
 }
 
@@ -130,6 +136,33 @@ describe('Sim determinism', () => {
     expect(results[0]).toBeUndefined();
     // Far wing shot with the Windbuks: 25 × (1 + 1) × 1.5 = 75.
     expect(results[1]).toMatchObject({ points: 25, mult: 3, award: 75 });
+  });
+
+  it('Settings aim assist scales the touch radii (off / low / standard), mouse stays 0', () => {
+    const c = busyContent();
+    c.birds.flyoverDefaults.planeWeights = { mid: 0, far: 1 };
+    // 12 px beyond the far body edge: inside standard (18 px), outside low (9 px) and off.
+    const hit = (inputKind: 'pointer' | 'touch', aimAssist?: 'off' | 'low' | 'standard') => {
+      const sim = newSim(12, {
+        content: c,
+        inputKind,
+        ...(aimAssist === undefined ? {} : { aimAssist }),
+        mode: { id: 'classic', weapon: 'windbuks' },
+      });
+      const bird = waitFor(
+        sim,
+        (b) => b.plane === 'far' && b.kind === 'target' && b.x > 900 && b.x < 2000,
+      );
+      const [cam, fire] = shootAt(c, bird);
+      if (cam === undefined || fire?.t !== 'fire') throw new Error('bad helper');
+      const ev = stepEvents(sim, [cam, { ...fire, dx: fire.dx + 24.2 + 12 }]);
+      return ev.some((e) => e.type === 'scoreAwarded');
+    };
+    expect(hit('touch')).toBe(true);
+    expect(hit('touch', 'standard')).toBe(true);
+    expect(hit('touch', 'low')).toBe(false);
+    expect(hit('touch', 'off')).toBe(false);
+    expect(hit('pointer', 'standard')).toBe(false);
   });
 });
 

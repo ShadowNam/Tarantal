@@ -90,6 +90,8 @@ export const ScoringSchema = obj({
   }),
   stampede: obj({ lastSeconds: pos, mul: pos, modes: z.array(ModeIdSchema) }),
   secretChain: obj({ withinSeconds: pos, bonus: posInt }),
+  /** Settings → aim assist: multiplier on the touch aimAssistPx radii (GDD §18.2–18.3). */
+  aimAssistLevels: obj({ off: z.literal(0), low: fraction, standard: z.literal(1) }),
   ranks: z
     .array(obj({ id, minScore: nonNegInt }))
     .min(1)

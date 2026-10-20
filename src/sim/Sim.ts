@@ -166,6 +166,7 @@ interface ShotStats {
 
 export function createSim(config: SimConfig): Sim {
   const { content, mode, inputKind } = config;
+  const assistMul = content.scoring.aimAssistLevels[config.aimAssist ?? 'standard'];
   const { scoring } = content;
   const setup = resolveSetup(content, config);
   const { biome, weapon } = setup;
@@ -239,9 +240,9 @@ export function createSim(config: SimConfig): Sim {
     assistPx:
       inputKind === 'touch'
         ? {
-            near: scoring.planes.near.aimAssistPx,
-            mid: scoring.planes.mid.aimAssistPx,
-            far: scoring.planes.far.aimAssistPx,
+            near: scoring.planes.near.aimAssistPx * assistMul,
+            mid: scoring.planes.mid.aimAssistPx * assistMul,
+            far: scoring.planes.far.aimAssistPx * assistMul,
           }
         : { near: 0, mid: 0, far: 0 },
   };

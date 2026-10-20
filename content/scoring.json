@@ -75,6 +75,12 @@
     ],
     "$comment": "Single source of truth for the Stampede. Enabled in these modes; Season Run only via the stampede_kenner charm."
   },
+  "aimAssistLevels": {
+    "$comment": "Settings → aim assist (touch only): multiplier on planes.*.aimAssistPx. Mouse is always 0.",
+    "off": 0,
+    "low": 0.5,
+    "standard": 1
+  },
   "secretChain": {
     "withinSeconds": 10,
     "bonus": 50

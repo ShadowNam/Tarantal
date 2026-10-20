@@ -13,7 +13,13 @@ export interface ReplayOutcome {
 }
 
 export function runReplay(log: InputLog, content: ContentBundle): ReplayOutcome {
-  const sim = createSim({ seed: log.seed, content, mode: log.mode, inputKind: log.inputKind });
+  const sim = createSim({
+    seed: log.seed,
+    content,
+    mode: log.mode,
+    inputKind: log.inputKind,
+    ...(log.aimAssist === undefined ? {} : { aimAssist: log.aimAssist }),
+  });
   const hasher = createEventHasher();
   hasher.add(sim.drainEvents());
   const ticks = absoluteTicks(log);
