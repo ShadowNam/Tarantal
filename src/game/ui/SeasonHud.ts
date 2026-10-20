@@ -125,6 +125,14 @@ export class SeasonHud {
       });
     }
     this.drawChips(season.charms, season.charmMults, l.charms);
+    const hook = this.ctx.hook;
+    if (hook) {
+      hook.seasonHud = {
+        quota,
+        chips: this.chips.length,
+        items: this.itemTexts.filter((tx) => tx.visible).length,
+      };
+    }
     for (const e of events) {
       if (e.type === 'charmTriggered') this.pulse(e.slot);
     }

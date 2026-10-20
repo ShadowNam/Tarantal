@@ -86,6 +86,8 @@ export class HudScene extends Phaser.Scene {
   private hand!: Phaser.GameObjects.Graphics;
   private promptKey: string | null = null;
   private season: SeasonHud | null = null;
+  /** Kept here: the hunt sets it before launch() has created the scene. */
+  private seasonInfo: { readonly quota: number } | null = null;
 
   constructor(ctx: GameContext) {
     super({ key: 'Hud' });
@@ -144,6 +146,8 @@ export class HudScene extends Phaser.Scene {
     this.sock.setOrigin(so.x, so.y);
     this.callout = text(48, '#FF6B5A').setOrigin(0.5).setVisible(false);
     this.season = new SeasonHud(this, this.ctx);
+    this.season.setSeason(this.seasonInfo);
+    this.season.setMouse(this.inputKind === 'pointer');
     this.scale.on(Phaser.Scale.Events.RESIZE, this.relayout);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.scale.off(Phaser.Scale.Events.RESIZE, this.relayout);
@@ -278,6 +282,7 @@ export class HudScene extends Phaser.Scene {
 
   /** M6: the Season Run hunt's quota (null outside a run). */
   setSeason(info: { readonly quota: number } | null): void {
+    this.seasonInfo = info;
     this.season?.setSeason(info);
   }
 

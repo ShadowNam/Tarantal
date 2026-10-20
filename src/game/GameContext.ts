@@ -96,6 +96,8 @@ export interface TestHook {
     offers: string[];
     quota: number;
   } | null;
+  /** M6: what the run HUD draws (quota shown, charm chips, item buttons). */
+  seasonHud: { quota: number | null; chips: number; items: number } | null;
 }
 
 export interface GameContext {

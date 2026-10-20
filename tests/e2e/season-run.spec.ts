@@ -144,6 +144,8 @@ test('the run resumes after a page reload (saved after every Padstal step)', asy
   const h = await hook(page);
   expect(h.mode).toBe('seasonHunt');
   for (const id of ['quota', 'charms', 'gadget']) expect(h.rects[id], id).toBeDefined();
+  // The run HUD draws the quota and one chip per equipped charm.
+  expect(h.seasonHud).toMatchObject({ quota: 0, chips: before.charms.length });
   await page.screenshot({ path: `${SCREENSHOTS}/season-hud-${info.project.name}.png` });
   await waitView(page, 'tally', 1);
   expect(errors).toEqual([]);

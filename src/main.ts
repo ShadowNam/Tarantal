@@ -139,6 +139,7 @@ const hook: TestHook = {
   wind: null,
   durationTicks: 0,
   run: null,
+  seasonHud: null,
 };
 if (testHooks) window.__TM__ = hook;
 
