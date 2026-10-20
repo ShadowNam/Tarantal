@@ -57,6 +57,8 @@ export class HudScene extends Phaser.Scene {
     this.shells = [];
     this.lastMul = 1;
     this.timerColor = '';
+    this.lastState = null;
+    this.beltFlashUntil = 0;
     this.panels = this.add.graphics();
     const text = (size: number, color: string): Phaser.GameObjects.Text =>
       this.add.text(0, 0, '', {

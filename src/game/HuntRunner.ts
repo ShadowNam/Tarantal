@@ -102,7 +102,8 @@ export class HuntRunner {
         this.accumulator = 0;
         break;
       }
-      // A hit-stop requested by these events starts now, not after the backlog.
+      // Stop catching up while a hit-stop is pending (hitStop() is called by the scene after
+      // advance() returns, so it takes effect from the next frame).
       if (this.hitStopLeftMs > 0) break;
     }
     // Spiral-of-death guard: drop backlog we could not run this frame.

@@ -122,10 +122,14 @@ export class TallyScene extends Phaser.Scene {
     showShake();
 
     const canvas = this.game.canvas;
+    let pressed = false;
     this.unbind = bindButtons(canvas, () => this.scale.gameSize, [
       {
         rect: () => again,
         onPress: (pointerType) => {
+          // Two fingers lifting in one frame must not queue two restarts.
+          if (pressed) return;
+          pressed = true;
           this.ctx.audio.unlock();
           data.again(pointerType);
         },
