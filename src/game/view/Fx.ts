@@ -159,14 +159,20 @@ export class Fx {
       .setScale(s);
     layer.add(text);
     const { scorePopMs, scorePopRisePx } = this.feel.juice;
-    this.scene.time.delayedCall(scorePopMs * 0.45, () => {
-      text.setText(award).setColor(color === '#F3EAD3' ? '#FFD25A' : color);
-    });
+    // Resolve "10 ×2" → "+20" from the rise tween's own progress. (A scene-clock timer runs on
+    // Phaser's smoothed frame delta while tweens follow real time; on slow frames the fade could
+    // destroy the text before the timer fired.)
+    let resolved = false;
     this.scene.tweens.add({
       targets: text,
       y: text.y - scorePopRisePx,
       duration: scorePopMs,
       ease: 'Cubic.Out',
+      onUpdate: (tween) => {
+        if (resolved || tween.progress < 0.45 || !text.active) return;
+        resolved = true;
+        text.setText(award).setColor(color === '#F3EAD3' ? '#FFD25A' : color);
+      },
     });
     this.scene.tweens.add({
       targets: text,
