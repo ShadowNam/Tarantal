@@ -34,7 +34,16 @@ export interface HudLayout {
   readonly skip: Rect;
   /** FTUE prompt line: centre and the width it may use. */
   readonly prompt: { readonly x: number; readonly y: number; readonly w: number };
+  /** M6 Season Run: quota bar under the score, charm chips under the pause button, and the
+   *  consumable + rental buttons beside the gadget (slot i = consumable command slot i). */
+  readonly quota: Rect;
+  readonly charms: Rect;
+  readonly items: readonly Rect[];
 }
+
+/** Consumable slots + the rental slot (run.json consumableSlots 2, + 1). */
+export const ITEM_SLOTS = 3;
+export const ITEM_GAP = 14;
 
 /** Pause button size (a ≥ 64 px tap target). */
 export const PAUSE_PX = 88;
@@ -99,12 +108,29 @@ export function hudLayout(
     h: MAX_CHIPS * s.chipH + (MAX_CHIPS - 1) * CHIP_GAP,
   };
   const windsock: Rect = { x: timer.x + timer.w + 24, y: top + 10, w: 170, h: 76 };
+  const quota: Rect = { x: score.x, y: score.y + score.h + 6, w: score.w, h: 40 };
+  const charmsW = Math.max(0, Math.min(600, 2 * (score.x - 24 - (safe.x + safe.w / 2))));
+  const charms: Rect = {
+    x: safe.x + safe.w / 2 - charmsW / 2,
+    y: top + PAUSE_PX + 14,
+    w: charmsW,
+    h: 52,
+  };
+  const itemPx = Math.max(72, Math.round(s.gadgetPx * 0.8));
+  const items: Rect[] = Array.from({ length: ITEM_SLOTS }, (_, i) => ({
+    x: mirrored
+      ? gadget.x - 16 - itemPx - i * (itemPx + ITEM_GAP)
+      : gadget.x + gadget.w + 16 + i * (itemPx + ITEM_GAP),
+    y: bottom - itemPx,
+    w: itemPx,
+    h: itemPx,
+  }));
   return {
     safe,
     timer,
     frenzy,
     score,
-    popAnchor: { x: right, y: score.y + score.h + 12 },
+    popAnchor: { x: right, y: quota.y + quota.h + 12 },
     belt,
     reloadPrompt,
     gadget,
@@ -115,6 +141,9 @@ export function hudLayout(
     skip,
     // Under the banner line, between the left and right HUD columns.
     prompt: { x: mid, y: safe.y + safe.h * 0.36, w: safe.w - 2 * (frenzy.w + m + 40) },
+    quota,
+    charms,
+    items,
   };
 }
 

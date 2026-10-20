@@ -25,3 +25,17 @@ export function withTestCrate(b: ContentBundle, item: string): ContentBundle {
     },
   };
 }
+
+/** ?quotaMul=0.1: every Season Run quota × this (0 = every hunt passes). */
+export function withQuotaMul(b: ContentBundle, mul: number): ContentBundle {
+  return {
+    ...b,
+    run: {
+      ...b.run,
+      seasons: b.run.seasons.map((s) => ({
+        ...s,
+        quotas: s.quotas.map((q) => Math.round(q * mul)),
+      })),
+    },
+  };
+}

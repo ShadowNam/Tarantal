@@ -214,6 +214,9 @@ export class WorldView {
         const scale = this.planeScale[b.plane];
         ring(this.parallax.plane(b.plane).overlay, b.x, b.y, 120 * scale);
       }
+    }
+    // Oupa se Kaart (charm) makes the secrets glow for the whole hunt.
+    if (reveal || s.season?.revealSecrets === true) {
       for (const sec of s.secrets) {
         if (!sec.ready) continue;
         const layer = this.parallax.layer(sec.layerId)?.fixtures ?? null;

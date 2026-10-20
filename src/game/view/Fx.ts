@@ -25,6 +25,8 @@ interface BagSpot {
 
 export class Fx {
   /** FTUE: the flock Bles is about to spook. */
+  /** A farmDog world event just fired: bark at the flock it sends running. */
+  private blesNext = false;
   private blesFlock: number | null = null;
   private readonly scene: Phaser.Scene;
   private readonly feel: Feel;
@@ -116,6 +118,8 @@ export class Fx {
           break;
         }
         case 'worldEvent':
+          // Bles die Plaashond (charm): the next flock that runs this tick is his.
+          if (e.event === 'farmDog') this.blesNext = true;
           // Secret events (car alarm, reservoir) get a caption where the secret went off.
           if (secretSpot !== null) {
             const text = tOr(`fx.event.${e.event}`, '');
@@ -168,7 +172,11 @@ export class Fx {
           if (e.beat === 'spook') this.blesFlock = e.flockId;
           break;
         case 'flockStateChanged':
-          if (e.to === 'run' && e.flockId === this.blesFlock) {
+          if (
+            e.to === 'run' &&
+            (e.flockId === this.blesFlock || (this.blesNext && e.cause === 'event'))
+          ) {
+            this.blesNext = false;
             this.bubble(e.plane, e.x, e.y - 40, t('fx.woof'), true);
             this.blesFlock = null;
           } else if (e.to === 'alert') this.bubble(e.plane, e.x, e.y, t('fx.kek'), false);

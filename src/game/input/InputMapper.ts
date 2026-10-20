@@ -1,5 +1,6 @@
 // Device input → sim Commands (Tech §6). Pointer Events only, one path for mouse, touch and pen.
 //   Mouse:  left button fires at once · right button / Space reloads · Q blows the Vuvuzela ·
+//           1/2/3 use Season Run consumables and the rental (or tap/click their buttons) ·
 //           A/D, ←/→ or the outer 12 % of the screen pans.
 //   Touch:  tap fires at the finger · horizontal drag pans with inertia · flick-down or a tap on
 //           the shell belt reloads · a tap on the gadget button blows the Vuvuzela.
@@ -20,6 +21,8 @@ export interface InputHost {
   isOnBelt(x: number, y: number): boolean;
   /** True if (x, y) in design px is on the gadget button. */
   isOnGadget(x: number, y: number): boolean;
+  /** Season Run consumable/rental button under (x, y) (its consumable slot), or null. */
+  itemAt(x: number, y: number): number | null;
   /** True if (x, y) is on a HUD control handled elsewhere (pause, FTUE skip): never fires. */
   isOnUi(x: number, y: number): boolean;
   /** Esc / P: open the pause menu. */
@@ -179,12 +182,15 @@ export class InputMapper {
       if (e.pointerType !== 'mouse') this.ignored.add(e.pointerId);
       return;
     }
-    const onButton = this.host.isOnBelt(p.x, p.y) || this.host.isOnGadget(p.x, p.y);
+    const item = this.host.itemAt(p.x, p.y);
+    const onButton =
+      this.host.isOnBelt(p.x, p.y) || this.host.isOnGadget(p.x, p.y) || item !== null;
     if (e.pointerType === 'mouse') {
       if (e.button === 0) {
         this.host.aim(p.x, p.y, false);
         if (this.host.isOnBelt(p.x, p.y)) this.host.queue({ t: 'reload' });
         else if (this.host.isOnGadget(p.x, p.y)) this.host.queue({ t: 'gadget' });
+        else if (item !== null) this.host.queue({ t: 'consumable', slot: item });
         else if (this.host.holdToFire()) this.startHold(e.pointerId, p.x, p.y);
         else this.fireAt(p.x, p.y);
       } else if (e.button === 2) {
@@ -248,7 +254,10 @@ export class InputMapper {
       case 'tap':
         if (this.host.isOnBelt(end.x, end.y)) this.host.queue({ t: 'reload' });
         else if (this.host.isOnGadget(end.x, end.y)) this.host.queue({ t: 'gadget' });
-        else {
+        else if (this.host.itemAt(end.x, end.y) !== null) {
+          const slot = this.host.itemAt(end.x, end.y);
+          if (slot !== null) this.host.queue({ t: 'consumable', slot });
+        } else {
           this.host.aim(end.x, end.y, true);
           this.fireAt(end.x, end.y);
         }
@@ -289,6 +298,13 @@ export class InputMapper {
     if (e.code === 'Space') {
       e.preventDefault();
       if (down && !e.repeat) this.host.queue({ t: 'reload' });
+      return;
+    }
+    // Season Run: 1, 2 use the consumables, 3 the rented crate weapon.
+    const digit = ['Digit1', 'Digit2', 'Digit3'].indexOf(e.code);
+    if (digit >= 0) {
+      e.preventDefault();
+      if (down && !e.repeat) this.host.queue({ t: 'consumable', slot: digit });
       return;
     }
     if (e.code === 'KeyQ') {

@@ -16,6 +16,8 @@ import { drawButton, fitText, Menu, textStyle, type MenuItem } from '../ui/menu'
 export interface TitleData {
   /** Starts the hunt; pointerId is the pressing pointer (null from the keyboard). */
   readonly start: (kind: InputKind, pointerId: number | null, mode: ModeId) => void;
+  /** Opens the Season Run (resumes the saved run, or starts a new one). */
+  readonly run: () => void;
 }
 
 export class TitleScene extends Phaser.Scene {
@@ -97,13 +99,32 @@ export class TitleScene extends Phaser.Scene {
           .setOrigin(0.5);
         fitText(info, width - 200);
       }
-      const bw = 420;
+      const bw = Math.min(420, (width - safe.left - safe.right - 160) / 3);
       const by = height - safe.bottom - 170;
-      const shed: Rect = { x: width / 2 - bw - 20, y: by, w: bw, h: 96 };
-      const settings: Rect = { x: width / 2 + 20, y: by, w: bw, h: 96 };
+      const shed: Rect = { x: width / 2 - bw * 1.5 - 30, y: by, w: bw, h: 96 };
+      const run: Rect = { x: width / 2 - bw / 2, y: by, w: bw, h: 96 };
+      const settings: Rect = { x: width / 2 + bw / 2 + 30, y: by, w: bw, h: 96 };
+      const resume = this.ctx.run.current !== null;
       drawButton(this, shed, t('title.shed'), 'secondary', 44);
+      drawButton(
+        this,
+        run,
+        t(resume ? 'title.continue_run' : 'title.season_run'),
+        resume ? 'selected' : 'secondary',
+        44,
+      );
       drawButton(this, settings, t('title.settings'), 'secondary', 44);
       items.push(
+        {
+          id: 'seasonRun',
+          rect: () => run,
+          press: () => {
+            if (this.started) return;
+            this.started = true;
+            this.ctx.audio.unlock();
+            this.data_?.run();
+          },
+        },
         {
           id: 'shed',
           rect: () => shed,

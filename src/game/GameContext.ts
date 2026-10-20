@@ -11,6 +11,7 @@ import type { LivePrefs } from './prefs';
 import type { DomChrome } from './ui/DomChrome';
 import type { AssetManifest } from './assets/AssetManifest';
 import type { AudioDirector } from './audio/AudioDirector';
+import type { RunFlow } from './run/RunFlow';
 import type { Insets } from './layout';
 import type { Rect } from './ui/hudLayout';
 
@@ -21,7 +22,7 @@ export interface TestHook {
   designHeight: number;
   portrait: boolean;
   /** 'start' = the title (kept from M2: the title's START is the old start card). */
-  scene: 'start' | 'hunt' | 'tally';
+  scene: 'start' | 'hunt' | 'tally' | 'run';
   /** Menu overlay on top of the scene: shed, settings, pause (null = none). */
   menu: string | null;
   /** Hunt paused (pause menu, hidden tab or portrait). */
@@ -85,6 +86,16 @@ export interface TestHook {
   powerups: string[];
   wind: { dir: number; strength: number } | null;
   durationTicks: number;
+  /** M6: the Season Run on screen (Run scene view, run phase, hunt, doppies, charms, offers). */
+  run: {
+    view: string;
+    phase: string;
+    huntIndex: number;
+    doppies: number;
+    charms: string[];
+    offers: string[];
+    quota: number;
+  } | null;
 }
 
 export interface GameContext {
@@ -98,6 +109,8 @@ export interface GameContext {
   readonly save: SaveStore;
   readonly notaboek: Notaboek;
   readonly platform: PlatformAdapter;
+  /** M6: the Season Run (engine + save). */
+  readonly run: RunFlow;
   /** Settings as the views use them (updated in place on change). */
   readonly prefs: LivePrefs;
   readonly chrome: DomChrome;

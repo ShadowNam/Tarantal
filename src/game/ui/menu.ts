@@ -11,6 +11,8 @@ import { FONT } from '../view/Fx';
 import { rectContains, type Rect } from './hudLayout';
 
 export const MIN_TAP_PX = 64;
+/** A drag item released within this many design px of where it was pressed was a tap. */
+export const DRAG_TAP_PX = 24;
 
 export const UI = {
   ink: 0x1b1410,
@@ -31,8 +33,10 @@ export interface MenuItem {
   press(pointerType: string, pointerId: number | null): void;
   /** ←/→ while focused (sliders and choices). */
   adjust?(dir: -1 | 1): void;
-  /** Pointer pressed or dragged on the item (sliders): x in design px. */
+  /** Pointer pressed or dragged on the item (sliders, charm cards): x in design px. */
   drag?(x: number): void;
+  /** Drag items: the pointer lifted at x; `tap` = it barely moved (a tap, not a drag). */
+  drop?(x: number, tap: boolean): void;
   enabled?(): boolean;
   /** 'down': press on pointerdown (the title's START, like the M2 start card). Default 'up'. */
   readonly trigger?: 'down' | 'up';
@@ -55,7 +59,7 @@ export class Menu {
   private readonly ring: Phaser.GameObjects.Graphics;
   private focusIndex: number;
   private keyboardUsed: boolean;
-  private down: { item: MenuItem; pointerId: number } | null = null;
+  private down: { item: MenuItem; pointerId: number; x: number } | null = null;
   private readonly cleanups: (() => void)[] = [];
   private active = true;
 
@@ -83,8 +87,9 @@ export class Menu {
         item.press(e.pointerType, e.pointerId);
         return;
       }
-      this.down = { item, pointerId: e.pointerId };
-      if (item.drag) item.drag(clientToDesign(canvas, e.clientX, e.clientY, design()).x);
+      const x = clientToDesign(canvas, e.clientX, e.clientY, design()).x;
+      this.down = { item, pointerId: e.pointerId, x };
+      if (item.drag) item.drag(x);
     };
     const onMove = (e: PointerEvent): void => {
       const d = this.down;
@@ -95,7 +100,12 @@ export class Menu {
       const d = this.down;
       if (d === null || d.pointerId !== e.pointerId) return;
       this.down = null;
-      if (!this.active || d.item.drag) return;
+      if (!this.active) return;
+      if (d.item.drag) {
+        const x = clientToDesign(canvas, e.clientX, e.clientY, design()).x;
+        d.item.drop?.(x, Math.abs(x - d.x) < DRAG_TAP_PX);
+        return;
+      }
       if (at(e) === d.item) d.item.press(e.pointerType, e.pointerId);
     };
     const onKey = (e: KeyboardEvent): void => {

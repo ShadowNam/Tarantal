@@ -29,6 +29,7 @@ import { WeaponView } from '../view/WeaponView';
 import { WorldView } from '../view/WorldView';
 import type { HudScene } from './HudScene';
 import type { PauseData } from './PauseScene';
+import { viewFor, type RunData, type RunView } from './RunScene';
 import type { TallyData } from './TallyScene';
 import type { TitleData } from './TitleScene';
 
@@ -64,6 +65,7 @@ export class HuntScene extends Phaser.Scene {
   private cleanups: (() => void)[] = [];
   private lastFrameAt: number | null = null;
   private texturesDone = false;
+  private modeId: ModeId = 'classic';
 
   constructor(ctx: GameContext) {
     super({ key: 'Hunt' });
@@ -173,10 +175,56 @@ export class HuntScene extends Phaser.Scene {
       start: (kind, pointerId, mode) => {
         this.begin(kind, pointerId, mode);
       },
+      run: () => {
+        this.openRun();
+      },
     };
     this.scene.launch('Title', data);
     this.scene.bringToTop('Title');
     if (this.ctx.hook) this.ctx.hook.scene = 'start';
+  }
+
+  // --- Season Run ---------------------------------------------------------------------------
+
+  /** The primary the run uses: the Skiet-Skuur loadout if it is equippable, else Classic's. */
+  private runWeapon(): string {
+    const save = this.ctx.save.data;
+    const loadout = this.ctx.content.weapons.weapons.find((w) => w.id === save.loadout.weapon);
+    return loadout !== undefined && isWeaponEquippable(loadout, save, this.ctx.content)
+      ? loadout.id
+      : this.ctx.content.modes.modes.classic.weapon;
+  }
+
+  /** Title or tally → the run: resume the saved one, or start a new one. */
+  private openRun(): void {
+    this.scene.stop('Title');
+    this.scene.stop('Tally');
+    const run = this.ctx.run.current ?? this.ctx.run.start(this.ctx.nextSeed(), this.runWeapon());
+    this.launchRun(viewFor(run));
+  }
+
+  private launchRun(view: RunView): void {
+    const data: RunData = {
+      view,
+      hunt: (pointerType) => {
+        this.scene.stop('Run');
+        this.scene.restart({
+          autoStart: inputKindOf(pointerType),
+          mode: 'seasonHunt',
+        } satisfies HuntData);
+      },
+      title: () => {
+        this.scene.stop('Run');
+        this.scene.restart({} satisfies HuntData);
+      },
+      newRun: () => {
+        this.ctx.run.abandon();
+        this.ctx.run.start(this.ctx.nextSeed(), this.runWeapon());
+      },
+    };
+    this.scene.launch('Run', data);
+    this.scene.bringToTop('Run');
+    if (this.ctx.hook) this.ctx.hook.scene = 'run';
   }
 
   // --- hunt -------------------------------------------------------------------------------------
@@ -204,14 +252,17 @@ export class HuntScene extends Phaser.Scene {
       isWeaponEquippable(loadout, save, this.ctx.content)
         ? loadout.id
         : undefined;
-    const mode: ModeConfig = {
+    this.modeId = modeId;
+    // A Season Run hunt comes from the run (seed, biome, weapon, charms, Boss Rule …).
+    const runHunt = modeId === 'seasonHunt' ? this.ctx.run.setup(this.ctx.huntSeconds) : null;
+    const mode: ModeConfig = runHunt?.mode ?? {
       id: modeId,
       ...(weapon === undefined ? {} : { weapon }),
       ...(this.ctx.huntSeconds === undefined ? {} : { huntSeconds: this.ctx.huntSeconds }),
       ...(this.ctx.omen === undefined || modeId === 'ftue' ? {} : { omen: this.ctx.omen }),
     };
     const aimAssist = save.settings.aimAssist;
-    const seed = this.ctx.nextSeed();
+    const seed = runHunt?.seed ?? this.ctx.nextSeed();
     const sim = createSim({ seed, content: this.ctx.content, mode, inputKind: kind, aimAssist });
     this.recorder = createRecorder({
       seed,
@@ -249,6 +300,7 @@ export class HuntScene extends Phaser.Scene {
         designSize: () => this.scale.gameSize,
         isOnBelt: (x, y) => hud.isOnBelt(x, y),
         isOnGadget: (x, y) => hud.isOnGadget(x, y),
+        itemAt: (x, y) => hud.itemAt(x, y),
         holdToFire: () => this.runner?.state.weapon.holdToFire ?? false,
         queue: (cmd) => this.runner?.queue(cmd),
         aim: (x, y, fromTap) => {
@@ -285,6 +337,7 @@ export class HuntScene extends Phaser.Scene {
     });
     this.weapon.setTouchMode(kind === 'touch');
     hud.setInputKind(kind);
+    hud.setSeason(runHunt === null ? null : { quota: runHunt.info.quota });
     hud.setControls({
       pause: () => {
         this.openPause();
@@ -497,6 +550,14 @@ export class HuntScene extends Phaser.Scene {
       this.markFtueDone(false);
     }
     const outcome = this.recordProgress(result);
+    if (this.modeId === 'seasonHunt') {
+      this.ctx.run.afterHunt(result);
+      this.time.delayedCall(END_DELAY_MS, () => {
+        this.scene.stop('Hud');
+        this.launchRun('tally');
+      });
+      return;
+    }
     this.time.delayedCall(END_DELAY_MS, () => {
       this.scene.stop('Hud');
       const data: TallyData = {
@@ -514,6 +575,9 @@ export class HuntScene extends Phaser.Scene {
         menu: () => {
           this.scene.stop('Tally');
           this.scene.restart({} satisfies HuntData);
+        },
+        seasonRun: () => {
+          this.openRun();
         },
       };
       this.scene.launch('Tally', data);
@@ -553,7 +617,19 @@ export class HuntScene extends Phaser.Scene {
     this.mapper?.setEnabled(false);
     this.ctx.audio.setMuted('pause', true);
     this.game.canvas.style.cursor = '';
+    const season = this.runner.state.season;
     const data: PauseData = {
+      ...(season === null || season.charms.length < 2
+        ? {}
+        : {
+            charms: {
+              ids: season.charms,
+              reorder: (order: readonly number[], ids: readonly string[]) => {
+                this.runner?.queue({ t: 'charmOrder', order: [...order] });
+                this.ctx.run.keepOrder(ids);
+              },
+            },
+          }),
       resume: () => {
         this.closePause();
       },

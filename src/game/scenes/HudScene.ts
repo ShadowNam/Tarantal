@@ -18,6 +18,7 @@ import { FONT } from '../view/Fx';
 import { formatAward, formatClock, formatMult, formatScore, popParts } from '../ui/format';
 import type { InputKind } from '../../sim/types';
 import { CHIP_GAP, hudLayout, MAX_CHIPS, rectContains, type HudLayout } from '../ui/hudLayout';
+import { SeasonHud } from '../ui/SeasonHud';
 import { drawButton, fitText, Menu, type MenuItem } from '../ui/menu';
 
 export interface HudControls {
@@ -84,6 +85,7 @@ export class HudScene extends Phaser.Scene {
   private prompt!: Phaser.GameObjects.Text;
   private hand!: Phaser.GameObjects.Graphics;
   private promptKey: string | null = null;
+  private season: SeasonHud | null = null;
 
   constructor(ctx: GameContext) {
     super({ key: 'Hud' });
@@ -141,6 +143,7 @@ export class HudScene extends Phaser.Scene {
     const so = { x: 6 / 150, y: 0.5 };
     this.sock.setOrigin(so.x, so.y);
     this.callout = text(48, '#FF6B5A').setOrigin(0.5).setVisible(false);
+    this.season = new SeasonHud(this, this.ctx);
     this.scale.on(Phaser.Scale.Events.RESIZE, this.relayout);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.scale.off(Phaser.Scale.Events.RESIZE, this.relayout);
@@ -270,6 +273,17 @@ export class HudScene extends Phaser.Scene {
   setInputKind(kind: InputKind): void {
     this.inputKind = kind;
     this.gadgetDrawn = '';
+    this.season?.setMouse(kind === 'pointer');
+  }
+
+  /** M6: the Season Run hunt's quota (null outside a run). */
+  setSeason(info: { readonly quota: number } | null): void {
+    this.season?.setSeason(info);
+  }
+
+  /** Consumable or rental button under (x, y) that holds something, or null. */
+  itemAt(x: number, y: number): number | null {
+    return this.season?.itemAt(this.lastState, x, y) ?? null;
   }
 
   private readonly relayout = (): void => {
@@ -283,6 +297,7 @@ export class HudScene extends Phaser.Scene {
       this.ctx.prefs.leftHanded,
     );
     this.layoutNow = l;
+    this.season?.relayout(l, width, height);
     const hook = this.ctx.hook;
     if (hook) {
       hook.safe = l.safe;
@@ -296,6 +311,9 @@ export class HudScene extends Phaser.Scene {
         chips: l.chips,
         windsock: l.windsock,
         pause: l.pause,
+        quota: l.quota,
+        charms: l.charms,
+        ...Object.fromEntries(l.items.map((r, i) => [`item${i}`, r])),
         ...(this.controls?.skip != null ? { skip: l.skip } : {}),
       };
     }
@@ -365,6 +383,7 @@ export class HudScene extends Phaser.Scene {
     this.lastState = s;
     const l = this.layoutNow;
     if (l === null) return;
+    this.season?.render(s, events);
     const now = this.time.now;
     const banner: string[] = [];
     for (const e of events) {
@@ -663,7 +682,8 @@ export class HudScene extends Phaser.Scene {
     const r = l.gadget.w / 2;
     const cx = l.gadget.x + r;
     const cy = l.gadget.y + r;
-    const ready = gadget.charges > 0 && gadget.cooldownTicks === 0;
+    // A charm gadget (Fluitjie) has no charge limit (charges −1).
+    const ready = gadget.charges !== 0 && gadget.cooldownTicks === 0;
     const g = this.gadgetPanel;
     g.clear();
     g.fillStyle(C.ink, 0.9).fillCircle(cx, cy, r);
@@ -684,7 +704,7 @@ export class HudScene extends Phaser.Scene {
       g.fillStyle(C.ink, 0.6);
       g.slice(cx, cy, r - 6, -Math.PI / 2, -Math.PI / 2 + cd * Math.PI * 2, false).fillPath();
     }
-    this.gadgetCharges.setText(`×${gadget.charges}`);
+    this.gadgetCharges.setText(gadget.charges < 0 ? '∞' : `×${gadget.charges}`);
     this.gadgetKey.setText(t('hud.gadget_key'));
     if (this.inputKind === 'pointer') {
       // Key cap on the rim, top-right, clear of the horn.

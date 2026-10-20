@@ -5,7 +5,7 @@ import * as Phaser from 'phaser';
 import { contentHash } from './content/hash';
 import { loadGameContent } from './content/loadBrowser';
 import { AudioDirector } from './game/audio/AudioDirector';
-import { withTestCrate } from './game/devContent';
+import { withQuotaMul, withTestCrate } from './game/devContent';
 import type { GameContext, TestHook } from './game/GameContext';
 import { designSizeFor, isPortrait, safeAreaInDesignPx, type Insets } from './game/layout';
 import { createPlaceholderManifest } from './game/placeholder/ProceduralAssetFactory';
@@ -13,6 +13,8 @@ import { applyPrefs, computePrefs, type PrefInputs } from './game/prefs';
 import { HudScene } from './game/scenes/HudScene';
 import { HuntScene } from './game/scenes/HuntScene';
 import { PauseScene } from './game/scenes/PauseScene';
+import { RunScene } from './game/scenes/RunScene';
+import { RunFlow } from './game/run/RunFlow';
 import { SettingsScene } from './game/scenes/SettingsScene';
 import { ShedScene } from './game/scenes/ShedScene';
 import { TallyScene } from './game/scenes/TallyScene';
@@ -136,6 +138,7 @@ const hook: TestHook = {
   powerups: [],
   wind: null,
   durationTicks: 0,
+  run: null,
 };
 if (testHooks) window.__TM__ = hook;
 
@@ -143,7 +146,11 @@ hook.boot['script'] = performance.now();
 const loaded = loadGameContent();
 const { feel } = loaded;
 const crateParam = testHooks ? params.get('crate') : null;
-const bundle = crateParam === null ? loaded.bundle : withTestCrate(loaded.bundle, crateParam);
+const withCrate = crateParam === null ? loaded.bundle : withTestCrate(loaded.bundle, crateParam);
+// e2e/dev only: ?quotaMul=0 makes every Season Run quota reachable (short e2e runs).
+const quotaMul = testHooks && params.has('quotaMul') ? Number(params.get('quotaMul')) : NaN;
+const bundle =
+  Number.isFinite(quotaMul) && quotaMul >= 0 ? withQuotaMul(withCrate, quotaMul) : withCrate;
 hook.boot['content'] = performance.now();
 const biomeId = bundle.modes.modes.classic.biome;
 const biome = bundle.biomes.find((b) => b.id === biomeId);
@@ -207,6 +214,7 @@ const ctx: GameContext = {
   save,
   notaboek: loaded.notaboek,
   platform,
+  run: new RunFlow(bundle, loaded.notaboek, save, platform),
   prefs,
   chrome,
   applyLanguage: () => {
@@ -248,6 +256,7 @@ const game: Phaser.Game = new Phaser.Game({
     new SettingsScene(ctx),
     new PauseScene(ctx),
     new TallyScene(ctx),
+    new RunScene(ctx),
   ],
 });
 
