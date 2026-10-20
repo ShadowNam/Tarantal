@@ -18,3 +18,17 @@ export function frenzyMul(streak: number, tiers: FrenzyTiers): number {
   }
   return mul;
 }
+
+/** Tiers a streak has reached (0 = none). */
+export function frenzyTier(streak: number, tiers: FrenzyTiers): number {
+  let n = 0;
+  for (const tier of tiers) if (streak >= tier.atStreak) n++;
+  return n;
+}
+
+/** Geheime Resep: a miss drops one tier — to the start of the tier below, or to 0. */
+export function dropTier(streak: number, tiers: FrenzyTiers): number {
+  const n = frenzyTier(streak, tiers);
+  if (n <= 1) return 0;
+  return tiers[n - 2]?.atStreak ?? 0;
+}

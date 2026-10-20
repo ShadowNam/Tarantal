@@ -17,12 +17,16 @@ import {
   type BirdCreature,
 } from './birds/Bird';
 import { spookBoss, updateScripted } from './birds/scripted';
+import { createCharmEngine, type FiredEffect, type TriggerContext } from './charms/interpreter';
+import { CHARM_SCRIPTS } from './charms/registry';
 import { clampCameraX, planeCentreX, planeToDx } from './camera';
 import { sanitiseCommand } from './commands';
 import { msToTicks, secondsToTicks } from './clock';
 import { createDirector, type DirectorContext } from './director/SpawnDirector';
 import {
   FLYOVER_EVENTS,
+  mergeSchedules,
+  scheduleExtraEvents,
   scheduleWorldEvents,
   WORLD_EVENT_HANDLERS,
   type ScheduledEvent,
@@ -74,9 +78,18 @@ import {
 } from './props/secrets';
 import { createRng } from './rng';
 import { twoFliesBonus, wholeFlockBonus } from './scoring/bonuses';
-import { frenzyMul, nextStreak } from './scoring/frenzy';
+import { dropTier, frenzyMul, frenzyTier, nextStreak } from './scoring/frenzy';
 import { scoreBag, scoreEventBonus } from './scoring/pipeline';
-import type { BagBehaviour, Command, HuntResult, PlaneId, SimConfig, SimState } from './types';
+import type {
+  BagBehaviour,
+  Command,
+  FlockState,
+  HuntResult,
+  PlaneId,
+  SeasonHuntConfig,
+  SimConfig,
+  SimState,
+} from './types';
 import { PLANES } from './types';
 import { applyShotDamage } from './weapons/damage';
 import {
@@ -103,6 +116,7 @@ import {
   tryFire,
   weaponTiming,
   type PrimaryWeapon,
+  type WeaponTiming,
 } from './weapons/weaponState';
 import { CAMERA_MAX_X, CAMERA_MIN_X, coreWidth } from './world';
 
@@ -124,6 +138,8 @@ interface HuntSetup {
   readonly omen: boolean;
   /** FTUE script (mode 'ftue' only). */
   readonly tutorial: Tutorial | null;
+  /** Season Run hunt (mode 'seasonHunt' with a season block), else null. */
+  readonly season: SeasonHuntConfig | null;
 }
 
 type Tutorial = ContentBundle['modes']['modes']['ftue']['tutorial'];
@@ -156,7 +172,50 @@ function resolveSetup(content: ContentBundle, config: SimConfig): HuntSetup {
       throw new Error(`event ${event.id}: creature ${event.creature} needs speeds.fly to fly over`);
     }
   }
-  return { biome, weapon, huntSeconds, omen: mode.omen ?? defaults?.omen ?? false, tutorial };
+  const season = mode.season ?? null;
+  if (season !== null) checkSeason(content, mode.id, season);
+  const omen = mode.omen ?? (season === null ? defaults?.omen : season.kind === 'omen') ?? false;
+  return { biome, weapon, huntSeconds, omen, tutorial, season };
+}
+
+/** A Season Run block must name real content (the run builds it; replays carry it). */
+function checkSeason(content: ContentBundle, mode: string, season: SeasonHuntConfig): void {
+  if (mode !== 'seasonHunt') throw new Error(`mode ${mode} cannot carry a Season Run block`);
+  for (const id of season.charms) {
+    if (!content.charms.charms.some((c) => c.id === id)) throw new Error(`unknown charm ${id}`);
+  }
+  if (season.charms.length > content.charms.slots) throw new Error('more charms than slots');
+  for (const id of season.consumables) {
+    if (id !== null && !content.powerups.powerups.some((p) => p.id === id))
+      throw new Error(`unknown consumable ${id}`);
+  }
+  if (
+    season.rental !== null &&
+    !content.weapons.weapons.some((w) => w.id === season.rental && w.kind === 'crate')
+  ) {
+    throw new Error(`${season.rental} is not a crate weapon`);
+  }
+  if (season.kind === 'boss') {
+    const boss = content.birds.creatures.find((c) => c.id === season.boss);
+    if (boss?.kind !== 'boss')
+      throw new Error(`boss hunt needs a boss creature, not ${String(season.boss)}`);
+  }
+  if (!Number.isInteger(season.runShellBonus) || season.runShellBonus < 0)
+    throw new Error('runShellBonus must be a whole number ≥ 0');
+}
+
+/** Season Run: the primary's belt and reload with charm passives and the Boss Rule applied. */
+function seasonTiming(
+  base: WeaponTiming,
+  shellBonus: number,
+  reloadSpeedMul: number,
+  reloadMul: number,
+): WeaponTiming {
+  return {
+    ...base,
+    magazine: base.magazine < 0 ? base.magazine : Math.max(1, base.magazine + shellBonus),
+    reloadTicks: Math.max(1, Math.round(base.reloadTicks / reloadSpeedMul)) * reloadMul,
+  };
 }
 
 /** The numbers a shot needs from whichever weapon is active (primary or crate weapon). */
@@ -179,13 +238,42 @@ export function createSim(config: SimConfig): Sim {
    *  end and the Stampede (D-021). */
   const baseDurationTicks = secondsToTicks(setup.huntSeconds);
   let durationTicks = baseDurationTicks;
-  const stampedeEnabled = scoring.stampede.modes.includes(mode.id) || mode.stampede === true;
+  const season = setup.season;
+  const charmDefs = (season?.charms ?? []).map((id) => {
+    const c = content.charms.charms.find((x) => x.id === id);
+    if (c === undefined) throw new Error(`unknown charm ${id}`);
+    return c;
+  });
+  const hasCharms = charmDefs.length > 0;
+  const charms = createCharmEngine(charmDefs, CHARM_SCRIPTS);
+  const pass = charms.passives;
+  const seasonBoss =
+    season?.kind === 'boss' ? content.birds.creatures.find((c) => c.id === season.boss) : undefined;
+  /** run.json bossRules id in force (GDD §13.3), applied whatever boss stands in (M6: Generaal). */
+  const bossRule = seasonBoss?.kind === 'boss' ? seasonBoss.bossRule : null;
+  const bossExempt = seasonBoss?.kind === 'boss' && seasonBoss.exemptFromOwnBossRule === true;
+  const blastDef =
+    pass.weaponBlastEvery === null
+      ? null
+      : (content.weapons.weapons.find(
+          (w) => w.id === pass.weaponBlastEvery?.weapon && w.kind === 'crate',
+        ) ?? null);
+  const stampedeEnabled =
+    scoring.stampede.modes.includes(mode.id) || mode.stampede === true || pass.enableStampede;
   let stampedeAtTick: number | null = stampedeEnabled
     ? Math.max(0, durationTicks - secondsToTicks(scoring.stampede.lastSeconds))
     : null;
 
   const rng = createRng(config.seed);
-  const timing = weaponTiming(weapon);
+  const timing =
+    season === null
+      ? weaponTiming(weapon)
+      : seasonTiming(
+          weaponTiming(weapon),
+          pass.shellCapacity + season.runShellBonus,
+          pass.reloadSpeedMul,
+          bossRule === 'reloadDouble' ? 2 : 1,
+        );
   const weaponState = createWeaponState(timing);
   const fParams = flockParams(content);
   const flockRng = rng.stream('flockNoise');
@@ -213,15 +301,58 @@ export function createSim(config: SimConfig): Sim {
     far: { scrollFactor: scoring.planes.far.scrollFactor, scale: scoring.planes.far.scale },
   };
   const stampedeFlockState = biome.pacing.stampede.flockState ?? null;
-  const gadgetDef = content.weapons.gadgets[0] ?? null;
+  const vuvuzela = content.weapons.gadgets[0] ?? null;
+  /** The gadget button: the Vuvuzela, or a charm that replaces it (Fluitjie: no charge limit,
+   *  its own cooldown). */
+  const gadgetDef =
+    pass.gadget !== null
+      ? { id: pass.gadget.charm, cooldownMs: pass.gadget.cooldownMs, charges: -1, charm: true }
+      : vuvuzela === null
+        ? null
+        : {
+            id: vuvuzela.id,
+            cooldownMs: vuvuzela.cooldownMs,
+            // Season Run gadget charges are the Classic number (D-020).
+            charges: vuvuzela.chargesPerClassicHunt,
+            charm: false,
+          };
   const gadgetCooldownTicks = gadgetDef === null ? 0 : msToTicks(gadgetDef.cooldownMs);
-  const schedule = scheduleWorldEvents(
+  const baseSchedule = scheduleWorldEvents(
     biome,
     mode.id,
     setup.omen,
     durationTicks,
     rng.stream('events'),
+    season?.kind === 'boss',
   );
+  const schedule =
+    pass.spawnRateMul.size === 0
+      ? baseSchedule
+      : mergeSchedules(
+          baseSchedule,
+          scheduleExtraEvents(
+            biome,
+            mode.id,
+            setup.omen,
+            durationTicks,
+            pass.spawnRateMul,
+            rng.stream('charms'),
+          ),
+        );
+  // Stormvoël rule (GDD §13.3): dark except lightning, never above maxFlashesPerSecond (schema).
+  const lightningRule = bossRule === 'darkExceptLightning' ? content.run.bossRules[bossRule] : null;
+  const lightningTicks: number[] = [];
+  const flashTicks = msToTicks(lightningRule?.flashMs ?? 400);
+  if (lightningRule !== null && lightningRule !== undefined) {
+    const every = lightningRule.flashEverySeconds ?? [3, 5];
+    const lr = rng.stream('lightning');
+    for (let t = lr.range(every[0], every[1]); ; t += lr.range(every[0], every[1])) {
+      const at = secondsToTicks(t);
+      if (at >= durationTicks) break;
+      lightningTicks.push(at);
+    }
+  }
+  let lightningCursor = 0;
   let scheduleCursor = 0;
   const crateCfg = content.powerups.crates;
   const crateTicks = scheduleCrates(crateCfg, mode.id, durationTicks, rng.stream('crates'));
@@ -288,9 +419,7 @@ export function createSim(config: SimConfig): Sim {
   let birds: Bird[] = [];
   /** Live flocks in id order. */
   let flocks: Flock[] = [];
-  // Season Run gadget charges arrive with the run state in M6; until then every mode gets the
-  // Classic number (D-020).
-  let gadgetCharges = gadgetDef?.chargesPerClassicHunt ?? 0;
+  let gadgetCharges = gadgetDef?.charges ?? 0;
   let gadgetCooldown = 0;
   const secrets: Secret[] = buildSecrets(biome);
   let lastSecretTick: number | null = null;
@@ -304,6 +433,21 @@ export function createSim(config: SimConfig): Sim {
   let dustDevils: DustDevil[] = [];
   /** Creature time accumulator (Boeretroos slows creatures, GDD §10.4). */
   let creatureClock = 0;
+  // Season Run state.
+  let primaryShots = 0;
+  let huntDoppies = 0;
+  let shellCapacityGain = 0;
+  let bossesBagged = 0;
+  const consumables: (string | null)[] = [...(season?.consumables ?? [])];
+  const consumablesUsed: number[] = [];
+  let rental = season?.rental ?? null;
+  let rentalUsed = false;
+  /** Boeretroos-Fles slow-mo (creatures only, like the Boeretroos power-up). */
+  let slowMoTicks = 0;
+  let slowMoScale = 1;
+  let lightningLeft = 0;
+  const charmQueue: FiredEffect[] = [];
+  let applyingCharms = false;
   let events: SimEvent[] = [];
   const stats = {
     shots: 0,
@@ -358,6 +502,8 @@ export function createSim(config: SimConfig): Sim {
       x: c.x,
       y: c.y,
     });
+    if (tr.to === 'alert') charmTrigger('flockAlerted');
+    else if (tr.to === 'flush') charmTrigger('flockFlushed');
   }
 
   function threaten(threats: readonly FlockThreat[], source: ThreatSource): void {
@@ -459,9 +605,130 @@ export function createSim(config: SimConfig): Sim {
     }
   }
 
+  // --- charms (Tech §3.8) ------------------------------------------------------------------
+  function kwevoelCalling(): boolean {
+    return birds.some((b) => b.phase === 'perch' && b.creature.behaviours.includes('perchHigh'));
+  }
+
+  function charmCtx(extra: Partial<TriggerContext> = {}): TriggerContext {
+    return {
+      streak,
+      frenzyTier: frenzyTier(streak, scoring.frenzyTiers),
+      omenActive: setup.omen,
+      omen: setup.omen ? biome.omen.id : null,
+      biome: biome.id,
+      kwevoelCalling: kwevoelCalling(),
+      weapon: crateWeapon?.def.id ?? weapon.id,
+      ...extra,
+    };
+  }
+
+  function charmTrigger(on: string, extra: Partial<TriggerContext> = {}): void {
+    if (!hasCharms) return;
+    applyCharms(charms.trigger(on, charmCtx(extra)));
+  }
+
+  /** Applies fired charm actions in order. Actions that set off more triggers (a flush from a
+   *  charm sets off flockFlushed) queue behind the current ones instead of nesting. */
+  function applyCharms(fired: readonly FiredEffect[]): void {
+    if (fired.length === 0) return;
+    charmQueue.push(...fired);
+    if (applyingCharms) return;
+    applyingCharms = true;
+    for (let f = charmQueue.shift(); f !== undefined; f = charmQueue.shift()) applyCharm(f);
+    applyingCharms = false;
+  }
+
+  function applyCharm(f: FiredEffect): void {
+    emit({ type: 'charmTriggered', tick, charm: f.charm, slot: f.slot, trigger: f.trigger });
+    const a = f.actions;
+    if (a.addShells !== undefined) addShells(a.addShells);
+    if (a.shellCapacityForRun !== undefined) shellCapacityGain += a.shellCapacityForRun;
+    if (a.alertNearestFlock === true) {
+      const t = nearestVisibleFlock([]);
+      if (t !== null) threaten([t], 'gadget');
+    }
+    if (a.flushFlocks !== undefined) {
+      const targets = visibleFlocksByDistance(['flush']);
+      const n = a.flushFlocks === true ? targets.length : a.flushFlocks;
+      applyReaction('flush', targets.slice(0, n), 'event');
+    }
+    if (a.spawnEvent !== undefined) spawnCharmEvent(a.spawnEvent);
+    if (a.slowMo !== undefined) {
+      slowMoTicks = msToTicks(a.slowMo.ms);
+      slowMoScale = a.slowMo.scale;
+      emit({ type: 'slowMo', tick, ticks: slowMoTicks, scale: slowMoScale });
+    }
+    if (a.addTime !== undefined) addTime(secondsToTicks(a.addTime));
+    if (a.addDoppies !== undefined) addDoppies(a.addDoppies, null);
+  }
+
+  function addShells(n: number): void {
+    if (crateWeapon !== null || timing.magazine < 0) return;
+    const before = weaponState.shells;
+    weaponState.shells = Math.min(timing.magazine, before + n);
+    if (weaponState.shells > before) {
+      emit({
+        type: 'shellsAdded',
+        tick,
+        added: weaponState.shells - before,
+        shells: weaponState.shells,
+      });
+    }
+  }
+
+  function addDoppies(n: number, birdId: number | null): void {
+    if (season === null || n === 0) return;
+    huntDoppies += n;
+    emit({ type: 'doppiesFound', tick, amount: n, total: huntDoppies, birdId });
+  }
+
+  /** Visible flocks, nearest the screen centre first, skipping flocks in `skip` states. */
+  function visibleFlocksByDistance(skip: readonly FlockState[]): FlockThreat[] {
+    const found = reactionTargets(flocks, { kind: 'visible' }, cameraX, planeGeo)
+      .filter((t) => !skip.includes(t.flock.state))
+      .map((t) => ({
+        t,
+        d: Math.abs(
+          centroid(t.flock).x - planeCentreX(cameraX, planeGeo[t.flock.plane].scrollFactor),
+        ),
+      }));
+    // Stable: equal distances keep flock order.
+    return found
+      .map((x, i) => ({ ...x, i }))
+      .sort((a, b) => a.d - b.d || a.i - b.i)
+      .map((x) => x.t);
+  }
+
+  function nearestVisibleFlock(skip: readonly FlockState[]): FlockThreat | null {
+    return visibleFlocksByDistance(skip)[0] ?? null;
+  }
+
+  /** Bles die Plaashond (GDD §13.5): the visible flock nearest the centre starts to RUN. */
+  function runFarmDog(): void {
+    emit({ type: 'worldEvent', tick, event: 'farmDog' });
+    const t = nearestVisibleFlock(['run', 'flush']);
+    if (t !== null)
+      emitTransition(t.flock, forceState(t.flock, 'run', t.x, 'event', fParams, flockRng));
+  }
+
+  /** A charm's spawnEvent: the biome's own entry for that event, or the farm dog. */
+  function spawnCharmEvent(id: ScheduledEvent['id']): void {
+    if (WORLD_EVENT_HANDLERS[id] === 'farmDog') {
+      runFarmDog();
+      return;
+    }
+    const index = biome.events.findIndex((e) => e.id === id);
+    if (index < 0) return;
+    runWorldEvent({ tick, index, id, creature: biome.events[index]?.creature ?? null });
+  }
+
   // --- weapons and power-ups -------------------------------------------------------------
   function shotStats(): ShotStats {
-    const w = crateWeapon?.def ?? weapon;
+    return statsOf(crateWeapon?.def ?? weapon);
+  }
+
+  function statsOf(w: ShotStats & { readonly id: string }): ShotStats {
     return {
       id: w.id,
       pellets: w.pellets,
@@ -478,7 +745,7 @@ export function createSim(config: SimConfig): Sim {
     return effectsOf(powerups).autoFire;
   }
 
-  function startPowerup(id: string, source: 'crate' | 'secret'): void {
+  function startPowerup(id: string, source: 'crate' | 'secret' | 'consumable'): void {
     const def = content.powerups.powerups.find((p) => p.id === id);
     if (def === undefined) return;
     activate(powerups, def);
@@ -561,10 +828,22 @@ export function createSim(config: SimConfig): Sim {
   }
 
   function fire(dx: number, sy: number): void {
+    const usingCrate = crateWeapon !== null;
     const shellsLeft = pullTrigger();
     if (shellsLeft === null) return;
-    const shot = shotStats();
     const fx = effectsOf(powerups);
+    // Haelstorm: every nth primary shot goes off as a crate-weapon blast (a normal shell).
+    let blast = false;
+    if (!usingCrate) {
+      primaryShots++;
+      const every = pass.weaponBlastEvery?.every ?? 0;
+      blast = blastDef !== null && every > 0 && primaryShots % every === 0;
+    }
+    const shot = blast && blastDef !== null ? statsOf(blastDef) : shotStats();
+    // Rooi Patrone / Laaste Patroon: the shell's place in the belt (primary shells only).
+    const shellIndex =
+      !usingCrate && timing.magazine >= 0 && !fx.infiniteAmmo ? timing.magazine - shellsLeft : null;
+    const lastShell = shellIndex !== null && shellsLeft === 0;
     const shotId = nextShotId++;
     stats.shots++;
     emit({ type: 'shotFired', tick, shotId, weapon: shot.id, dx, sy, shellsLeft });
@@ -586,7 +865,7 @@ export function createSim(config: SimConfig): Sim {
     }
 
     const extras = hitExtras();
-    const drift = windDriftPx(wind, shot.windSensitivity);
+    const drift = windDriftPx(wind, shot.windSensitivity) * pass.windDriftMul;
     const farFactor = planeGeo.far.scrollFactor;
     // Wind drifts far shots (Tech §3.4): the far plane and everything behind it.
     const driftDx = (f: number): number => (f <= farFactor ? drift : 0);
@@ -665,7 +944,10 @@ export function createSim(config: SimConfig): Sim {
     // Frenzy first: this shot's bags score with the streak including this shot (D-018). A shot
     // that only hits a secret part or a crate leaves the streak alone (D-021).
     const onlyThings = hitThing && damage.outcomes.length === 0;
-    const newStreak = onlyThings ? streak : nextStreak(streak, targets.length > 0);
+    let newStreak = onlyThings ? streak : nextStreak(streak, targets.length > 0);
+    // Geheime Resep: a shot that bags nothing drops one Frenzy tier instead of resetting.
+    if (!onlyThings && targets.length === 0 && pass.frenzyMissBehaviour === 'dropTier')
+      newStreak = dropTier(streak, scoring.frenzyTiers);
     if (newStreak !== streak) {
       streak = newStreak;
       bestStreak = Math.max(bestStreak, streak);
@@ -678,9 +960,30 @@ export function createSim(config: SimConfig): Sim {
     }
     const fMul = frenzyMul(streak, scoring.frenzyTiers);
 
+    let bagIndex = 0;
     for (const { bird, behaviour } of targets) {
       const c = bird.creature;
       if (c.kind === 'nonTarget') continue;
+      const bag = hasCharms
+        ? charms.bag(
+            charmCtx({
+              plane: bird.plane,
+              behaviour,
+              creature: c.id,
+              boss: c.kind === 'boss',
+              weapon: shot.id,
+              firstBagOfShot: bagIndex === 0,
+              shellIndex,
+              lastShell,
+            }),
+          )
+        : null;
+      bagIndex++;
+      // Ou Grys's rule: ground bags score 0 (the season's boss is exempt if it says so).
+      const groundZero =
+        bossRule === 'groundShotsZero' &&
+        behaviour !== 'flying' &&
+        !(c.kind === 'boss' && bossExempt);
       emit({
         type: 'targetBagged',
         tick,
@@ -700,8 +1003,9 @@ export function createSim(config: SimConfig): Sim {
           weaponScoreMul: shot.scoreMul[bird.plane] ?? shot.scoreMul.all ?? 1,
           frenzyMul: fMul,
           stampedeMul: stampedeMul(),
+          ...(groundZero ? { ruleMul: 0 } : {}),
         },
-        [],
+        bag?.modifiers ?? [],
       );
       score += s.award;
       emit({
@@ -716,13 +1020,18 @@ export function createSim(config: SimConfig): Sim {
       stats.bagged++;
       stats.baggedByPlane[bird.plane]++;
       if (behaviour === 'flying') stats.wingShots++;
+      if (c.kind === 'boss') bossesBagged++;
+      if (c.kind === 'target' && c.doppiesDrop !== undefined) addDoppies(c.doppiesDrop, bird.id);
+      if (bag !== null) applyCharms(bag.fired);
     }
     for (const { bird } of nonTargets) {
       const c = bird.creature;
       if (c.kind !== 'nonTarget') continue;
-      score += c.penalty;
+      const points = pass.penaltyOverride.get(c.id) ?? c.penalty;
+      score += points;
       stats.penalties++;
-      emit({ type: 'penaltyApplied', tick, birdId: bird.id, creature: c.id, points: c.penalty });
+      emit({ type: 'penaltyApplied', tick, birdId: bird.id, creature: c.id, points });
+      charmTrigger('penalty', { creature: c.id, plane: bird.plane });
     }
 
     // Event bonuses use the post-shot streak, like the bags (D-018).
@@ -731,6 +1040,7 @@ export function createSim(config: SimConfig): Sim {
     if (flies > 0) {
       stats.twoFlies++;
       awardBonus('twoFlies', flies);
+      charmTrigger('twoFlies');
     }
 
     const baggedFlockIds = new Set<number>();
@@ -759,6 +1069,7 @@ export function createSim(config: SimConfig): Sim {
           y: last?.y ?? f.goalY,
         });
         awardBonus('wholeFlock', bonus);
+        charmTrigger('flockWiped', { plane: f.plane });
       }
     }
     // This shot counts against shell power-ups it had; one it picks up starts with the next.
@@ -767,20 +1078,37 @@ export function createSim(config: SimConfig): Sim {
     for (const s of secrets) {
       for (const h of partHits) if (h.propId === s.propId) hitSecretPart(s, h.partId);
     }
-    // Threats (GDD §6.2): one per flock in range of any impact, hit or miss.
+    // Threats (GDD §6.2): one per flock in range of any impact, hit or miss. Charms scale the
+    // radius (Stil Loop: a miss alerts nobody).
+    const miss = !touchedAny && !hitThing;
+    const radius = shot.alertRadiusPx * pass.alertRadiusMul * (miss ? pass.missAlertMul : 1);
     threaten(
-      shotThreats(flocks, impacts, cameraX, shot.alertRadiusPx, planeGeo, baggedFlockIds),
-      shot.alertRadiusPx > 0 ? 'shot' : 'silentBag',
+      shotThreats(flocks, impacts, cameraX, radius, planeGeo, baggedFlockIds),
+      radius > 0 ? 'shot' : 'silentBag',
     );
     if (targets.length > 0) stats.hitShots++;
-    if (!touchedAny && !hitThing) emit({ type: 'miss', tick, shotId });
+    if (miss) {
+      emit({ type: 'miss', tick, shotId });
+      charmTrigger('miss', { weapon: shot.id });
+      // Generaal's rule (GDD §13.3): every miss alerts all flocks.
+      if (bossRule === 'missAlertsAll') react('threat', { kind: 'all' }, 'event');
+    }
+    if (hasCharms) {
+      charmTrigger('shot', { weapon: shot.id, shellIndex, lastShell });
+      if (lastShell) charmTrigger('beltEmpty', { weapon: shot.id });
+    }
   }
 
   function awardBonus(bonus: BonusId, base: number): void {
+    const charmMul =
+      bonus === 'wholeFlock' || bonus === 'twoFlies' || bonus === 'secretChain'
+        ? pass.bonusMul[bonus]
+        : 1;
     const award = scoreEventBonus(base, {
       frenzyMul: frenzyMul(streak, scoring.frenzyTiers),
       stampedeMul: stampedeMul(),
       multipliers: scoring.eventBonusMultipliers,
+      ...(charmMul === 1 ? {} : { bonusMul: charmMul }),
     });
     score += award;
     emit({ type: 'bonusAwarded', tick, bonus, base, award });
@@ -842,6 +1170,7 @@ export function createSim(config: SimConfig): Sim {
     const reward = s.reward;
     stats.secrets++;
     emit({ type: 'secretTriggered', tick, propId: s.propId, partId });
+    charmTrigger('secret');
     if (reward.points !== undefined) awardBonus('secret', reward.points);
     // Secret chain (GDD §9): two secrets within withinSeconds.
     if (lastSecretTick !== null && tick - lastSecretTick <= chainTicks) {
@@ -947,11 +1276,13 @@ export function createSim(config: SimConfig): Sim {
         emit({ type: 'dustDevilSpawned', tick, dustDevilId: d.id, plane: d.plane, x: d.x });
         return;
       }
+      case 'farmDog':
+        runFarmDog();
+        return;
       // Never scheduled from the biome (content validation rejects them there).
       case 'secretReward':
       case 'crate':
       case 'stampede':
-      case 'later':
         return;
     }
   }
@@ -975,8 +1306,10 @@ export function createSim(config: SimConfig): Sim {
         return;
       case 'reload':
         // Crate weapons reload themselves (Voorlaaier ramrod) or never (Mielie-Masjien).
-        if (crateWeapon === null && startReload(weaponState, timing))
+        if (crateWeapon === null && startReload(weaponState, timing)) {
           emit({ type: 'reloadStarted', tick, perShell: timing.perShell });
+          charmTrigger('reload');
+        }
         return;
       case 'cameraTarget':
         cameraX = cmd.cx;
@@ -984,22 +1317,61 @@ export function createSim(config: SimConfig): Sim {
       case 'gadget':
         useGadget();
         return;
-      // Consumables arrive with the Season Run (M6): recorded but inert.
       case 'consumable':
+        useConsumable(cmd.slot);
+        return;
+      case 'charmOrder':
+        if (charms.reorder(cmd.order))
+          emit({ type: 'charmsReordered', tick, charms: charms.order() });
         return;
     }
   }
 
-  /** The Vuvuzela (GDD §10.2): every visible flock straight to FLUSH. */
+  /** Season Run consumables (GDD §10.4): one use each. The slot after the last is the rental. */
+  function useConsumable(slot: number): void {
+    if (season === null) return;
+    if (slot === consumables.length) {
+      if (rental === null) return;
+      const id = rental;
+      rental = null;
+      rentalUsed = true;
+      emit({ type: 'consumableUsed', tick, slot, item: id, itemType: 'weapon' });
+      armWeapon(id);
+      return;
+    }
+    const id = consumables[slot];
+    if (id === null || id === undefined) return;
+    consumables[slot] = null;
+    consumablesUsed.push(slot);
+    emit({ type: 'consumableUsed', tick, slot, item: id, itemType: 'powerup' });
+    startPowerup(id, 'consumable');
+  }
+
+  /** The Vuvuzela (GDD §10.2): every visible flock straight to FLUSH. A charm gadget
+   *  (Fluitjie) does its charm's `on: gadget` effects instead. */
   function useGadget(): void {
     if (gadgetDef === null) return;
-    if (gadgetCharges <= 0 || gadgetCooldown > 0) {
+    const outOfCharges = gadgetDef.charges >= 0 && gadgetCharges <= 0;
+    if (outOfCharges || gadgetCooldown > 0) {
       emit({
         type: 'gadgetDenied',
         tick,
         gadget: gadgetDef.id,
-        reason: gadgetCharges <= 0 ? 'noCharges' : 'cooldown',
+        reason: outOfCharges ? 'noCharges' : 'cooldown',
       });
+      return;
+    }
+    if (gadgetDef.charm) {
+      gadgetCooldown = gadgetCooldownTicks;
+      stats.gadgetUses++;
+      emit({
+        type: 'gadgetUsed',
+        tick,
+        gadget: gadgetDef.id,
+        chargesLeft: -1,
+        flocks: nearestVisibleFlock([]) === null ? 0 : 1,
+      });
+      charmTrigger('gadget');
       return;
     }
     gadgetCharges--;
@@ -1014,6 +1386,7 @@ export function createSim(config: SimConfig): Sim {
       flocks: targets.length,
     });
     applyReaction('flush', targets, 'gadget');
+    charmTrigger('gadget');
   }
 
   /** FTUE beat: the visible flock nearest the screen centre runs (Bles) or flushes. */
@@ -1023,18 +1396,7 @@ export function createSim(config: SimConfig): Sim {
       return;
     }
     const to = action === 'spook' ? 'run' : 'flush';
-    let best: FlockThreat | null = null;
-    let bestDist = Infinity;
-    for (const t of reactionTargets(flocks, { kind: 'visible' }, cameraX, planeGeo)) {
-      if (t.flock.state === 'flush' || t.flock.state === to) continue;
-      const d = Math.abs(
-        centroid(t.flock).x - planeCentreX(cameraX, planeGeo[t.flock.plane].scrollFactor),
-      );
-      if (d < bestDist) {
-        best = t;
-        bestDist = d;
-      }
-    }
+    const best = nearestVisibleFlock(['flush', to]);
     emit({ type: 'tutorialBeat', tick, beat: action, flockId: best?.flock.id ?? null });
     if (best !== null) {
       emitTransition(best.flock, forceState(best.flock, to, best.x, 'event', fParams, flockRng));
@@ -1104,6 +1466,15 @@ export function createSim(config: SimConfig): Sim {
       crateCursor++;
       dropCrate();
     }
+    while (
+      lightningCursor < lightningTicks.length &&
+      (lightningTicks[lightningCursor] ?? Infinity) <= tick
+    ) {
+      lightningCursor++;
+      lightningLeft = flashTicks;
+      emit({ type: 'lightning', tick, ticks: flashTicks });
+    }
+    if (hasCharms) applyCharms(charms.tickTriggers(tick, durationTicks - tick, charmCtx()));
 
     for (const cmd of commands) apply(cmd);
     if (hold !== null && holdFires()) fire(hold.dx, hold.sy);
@@ -1134,7 +1505,10 @@ export function createSim(config: SimConfig): Sim {
     addBirds(director.tick(directorContext()));
     spawnFlocks();
 
-    creatureClock += effectsOf(powerups).creatureTimeScale;
+    const slow = slowMoTicks > 0 ? slowMoScale : 1;
+    creatureClock += Math.min(effectsOf(powerups).creatureTimeScale, slow);
+    if (slowMoTicks > 0) slowMoTicks--;
+    if (lightningLeft > 0) lightningLeft--;
     if (creatureClock >= 1) {
       creatureClock -= 1;
       stepCreatures();
@@ -1166,12 +1540,14 @@ export function createSim(config: SimConfig): Sim {
     tick++;
     if (tick >= durationTicks) {
       over = true;
+      charmTrigger('huntEnd');
       emit({ type: 'huntEnded', tick, score });
     }
   }
 
   // Warm-up (GDD §8): the first flocks are already foraging in view at the first snapshot.
   spawnFlocks();
+  charmTrigger('huntStart');
 
   function rankFor(s: number): string {
     let rank = scoring.ranks[0]?.id ?? '';
@@ -1236,7 +1612,7 @@ export function createSim(config: SimConfig): Sim {
             ? null
             : {
                 id: gadgetDef.id,
-                charges: gadgetCharges,
+                charges: gadgetDef.charges < 0 ? -1 : gadgetCharges,
                 cooldownTicks: gadgetCooldown,
                 cooldownTotalTicks: gadgetCooldownTicks,
               },
@@ -1245,6 +1621,22 @@ export function createSim(config: SimConfig): Sim {
         powerups: powerups.map(powerupView),
         wind: windView(wind),
         dustDevils: dustDevils.map(dustDevilView),
+        season:
+          season === null
+            ? null
+            : {
+                kind: season.kind,
+                bossRule,
+                charms: charms.order(),
+                charmMults: charms.huntMults(),
+                consumables: [...consumables],
+                rental,
+                doppies: huntDoppies,
+                revealSecrets: pass.revealSecrets,
+                dark: bossRule === 'darkExceptLightning',
+                lightning: lightningLeft > 0,
+                slowMo: slowMoTicks > 0,
+              },
         over,
       };
     },
@@ -1278,6 +1670,11 @@ export function createSim(config: SimConfig): Sim {
         secrets: stats.secrets,
         crates: stats.crates,
         rank: rankFor(score),
+        doppies: huntDoppies,
+        shellCapacityForRun: shellCapacityGain,
+        consumablesUsed: [...consumablesUsed],
+        rentalUsed,
+        bossesBagged,
       };
     },
   };

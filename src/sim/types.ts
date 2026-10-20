@@ -23,6 +23,26 @@ export interface ModeConfig {
   readonly stampede?: boolean;
   /** Biome weather (omen) on. Overrides modes.json (Classic off, Daily on — D-021). */
   readonly omen?: boolean;
+  /** Season Run hunts only: everything the run changes in this hunt (part of the replay). */
+  readonly season?: SeasonHuntConfig;
+}
+
+/** GDD §13.1: hunt 1 plain, hunt 2 Omen (weather on), hunt 3 Boss Hunt (boss + Boss Rule). */
+export type SeasonHuntKind = 'plain' | 'omen' | 'boss';
+
+/** What a Season Run hunt brings from the run state (Tech §3.9). The Sim derives the rest. */
+export interface SeasonHuntConfig {
+  readonly kind: SeasonHuntKind;
+  /** Boss hunts: the season's boss creature, whose bossRule applies. Null otherwise. */
+  readonly boss: string | null;
+  /** Equipped charm ids in slot order (left → right). */
+  readonly charms: readonly string[];
+  /** Consumable slots (power-up ids, null = empty). */
+  readonly consumables: readonly (string | null)[];
+  /** A crate weapon rented at the Padstal for this hunt, or null. */
+  readonly rental: string | null;
+  /** Extra shell capacity built up over the run (shellCapacityForRun). */
+  readonly runShellBonus: number;
 }
 
 /** Touch aim-assist strength chosen in Settings (scoring.json aimAssistLevels). */
@@ -50,7 +70,10 @@ export type Command =
   /** Camera centre in reference units, quantised to 0.5. */
   | { readonly t: 'cameraTarget'; readonly cx: number }
   | { readonly t: 'gadget' }
-  | { readonly t: 'consumable'; readonly slot: number };
+  /** Season Run: use a consumable slot; the slot after the last one is the weapon rental. */
+  | { readonly t: 'consumable'; readonly slot: number }
+  /** Season Run: reorder charms (pause screen). New slot i holds old slot order[i]. */
+  | { readonly t: 'charmOrder'; readonly order: readonly number[] };
 
 export type CommandType = Command['t'];
 
@@ -221,7 +244,32 @@ export interface SimState {
   /** Null when the omen is off or the biome has no wind. */
   readonly wind: WindView | null;
   readonly dustDevils: readonly DustDevilView[];
+  /** Season Run hunts only. */
+  readonly season: SeasonView | null;
   readonly over: boolean;
+}
+
+export interface SeasonView {
+  readonly kind: SeasonHuntKind;
+  /** run.json bossRules id in force, or null. */
+  readonly bossRule: string | null;
+  /** Charm ids in slot order, and the Mult each has built up this hunt (addMultForHunt). */
+  readonly charms: readonly string[];
+  readonly charmMults: readonly number[];
+  /** Consumable slots; null once used or empty. */
+  readonly consumables: readonly (string | null)[];
+  /** Rented crate weapon not yet used, or null. */
+  readonly rental: string | null;
+  /** Doppies found this hunt (white tarentaal, charms). */
+  readonly doppies: number;
+  /** Oupa se Kaart: secrets glow. */
+  readonly revealSecrets: boolean;
+  /** Stormvoël's rule: the screen is dark … */
+  readonly dark: boolean;
+  /** … except while lightning flashes. */
+  readonly lightning: boolean;
+  /** Boeretroos-Fles slow-mo running. */
+  readonly slowMo: boolean;
 }
 
 export interface HuntResult {
@@ -253,4 +301,12 @@ export interface HuntResult {
   readonly crates: number;
   /** scoring.json rank id. */
   readonly rank: string;
+  /** Season Run: doppies found in the hunt (white tarentaal drops, addDoppies). */
+  readonly doppies: number;
+  /** Season Run: shell capacity gained for the rest of the run (Generaal se Pot). */
+  readonly shellCapacityForRun: number;
+  /** Season Run: consumable slots used, in slot order. */
+  readonly consumablesUsed: readonly number[];
+  readonly rentalUsed: boolean;
+  readonly bossesBagged: number;
 }

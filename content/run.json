@@ -2,6 +2,7 @@
   "$comment": "Season Run structure and economy. Quotas are starting values: tune with tools/balance-sim.ts.",
   "version": 1,
   "huntSeconds": 60,
+  "biomeFallback": "karoo-autumn",
   "seasons": [
     { "id": "herfs", "biome": "karoo-autumn", "omen": "karoo_wind", "boss": "generaal", "quotas": [600, 900, 1300] },
     { "id": "winter", "biome": "bushveld-winter", "omen": "sun_glare", "boss": "ou_grys", "quotas": [1800, 2500, 3300] },
@@ -13,7 +14,7 @@
     "missAlertsAll": { "descriptionKey": "boss_rule.miss_alerts_all" },
     "groundShotsZero": { "descriptionKey": "boss_rule.ground_shots_zero" },
     "reloadDouble": { "descriptionKey": "boss_rule.reload_double" },
-    "darkExceptLightning": { "descriptionKey": "boss_rule.dark_except_lightning", "maxFlashesPerSecond": 2 }
+    "darkExceptLightning": { "descriptionKey": "boss_rule.dark_except_lightning", "maxFlashesPerSecond": 2, "flashEverySeconds": [2.5, 5], "flashMs": 400 }
   },
   "doppies": {
     "start": 4,

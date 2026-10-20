@@ -6,7 +6,7 @@ import type { BreakdownStep } from './scoring/pipeline';
 import type { BagBehaviour, BirdMotion, FlockState, PlaneId } from './types';
 
 /** What threatened a flock (GDD §6.2). */
-export type ThreatSource = 'shot' | 'silentBag' | 'event';
+export type ThreatSource = 'shot' | 'silentBag' | 'event' | 'gadget';
 /** Why a flock changed state. */
 export type FlockCause =
   'threat' | 'window' | 'timeout' | 'landed' | 'settled' | 'gadget' | 'event' | 'stampede';
@@ -234,7 +234,7 @@ export type SimEvent =
       readonly type: 'powerupStarted';
       readonly tick: number;
       readonly powerup: string;
-      readonly source: 'crate' | 'secret';
+      readonly source: 'crate' | 'secret' | 'consumable';
     }
   | { readonly type: 'powerupEnded'; readonly tick: number; readonly powerup: string }
   | {
@@ -273,6 +273,48 @@ export type SimEvent =
       readonly tick: number;
       readonly beat: 'spook' | 'flush';
       readonly flockId: number | null;
+    }
+  | {
+      /** A charm effect fired (not per-bag scoring: that is in scoreAwarded.breakdown). */
+      readonly type: 'charmTriggered';
+      readonly tick: number;
+      readonly charm: string;
+      readonly slot: number;
+      readonly trigger: string;
+    }
+  | {
+      readonly type: 'charmsReordered';
+      readonly tick: number;
+      readonly charms: readonly string[];
+    }
+  | {
+      /** Shells put back in the belt by a charm (Konsertina). */
+      readonly type: 'shellsAdded';
+      readonly tick: number;
+      readonly added: number;
+      readonly shells: number;
+    }
+  | {
+      readonly type: 'consumableUsed';
+      readonly tick: number;
+      readonly slot: number;
+      readonly item: string;
+      readonly itemType: 'powerup' | 'weapon';
+    }
+  | {
+      /** Season Run doppies found in the hunt (white tarentaal, charms). */
+      readonly type: 'doppiesFound';
+      readonly tick: number;
+      readonly amount: number;
+      readonly total: number;
+      readonly birdId: number | null;
+    }
+  | { readonly type: 'lightning'; readonly tick: number; readonly ticks: number }
+  | {
+      readonly type: 'slowMo';
+      readonly tick: number;
+      readonly ticks: number;
+      readonly scale: number;
     }
   | { readonly type: 'huntEnded'; readonly tick: number; readonly score: number };
 

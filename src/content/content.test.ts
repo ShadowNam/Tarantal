@@ -127,7 +127,8 @@ describe('content cross-references', () => {
     const text = report.warnings.map((w) => w.message).join('\n');
     expect(text).toMatch(/bushveld-winter/);
     expect(text).toMatch(/bag_50_far/);
-    expect(text).toMatch(/farmDog/);
+    // M6: Bles's farmDog has its own handler; the last charm warning is gone.
+    expect(text).not.toMatch(/farmDog|charms\.json/);
   });
 
   it('Notaboek challenges resolve the weapon unlocks (M5)', () => {

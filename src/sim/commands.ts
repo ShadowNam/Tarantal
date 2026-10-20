@@ -25,7 +25,23 @@ export function sanitiseCommand(cmd: Command): Command | null {
       return Number.isFinite(cmd.slot) && cmd.slot >= 0 && cmd.slot < 16
         ? { t: 'consumable', slot: Math.trunc(cmd.slot) }
         : null;
+    case 'charmOrder':
+      return isPermutation(cmd.order) ? { t: 'charmOrder', order: [...cmd.order] } : null;
     default:
       return cmd;
   }
+}
+
+/** Most charm slots a reorder can name (content has 5; room to grow). */
+export const MAX_CHARM_SLOTS = 16;
+
+/** A reorder must be a permutation of 0..n-1 (new slot i holds old slot order[i]). */
+function isPermutation(order: readonly number[]): boolean {
+  if (order.length === 0 || order.length > MAX_CHARM_SLOTS) return false;
+  const seen = new Set<number>();
+  for (const i of order) {
+    if (!Number.isInteger(i) || i < 0 || i >= order.length || seen.has(i)) return false;
+    seen.add(i);
+  }
+  return true;
 }
