@@ -93,11 +93,24 @@ function charmOf(content: ContentBundle, id: string): Charm | undefined {
   return content.charms.charms.find((c) => c.id === id);
 }
 
+/** The archetype the policy committed to: that of its first (non-economy) charm. */
+function focusOf(content: ContentBundle, run: RunState): string | undefined {
+  for (const id of run.charms) {
+    const a = charmOf(content, id)?.archetype;
+    if (a !== undefined && a !== 'economy') return a;
+  }
+  return undefined;
+}
+
+/**
+ * Archetype-focused (GDD §13.8): the first charm is the best one on offer; after that only
+ * charms of the same archetype (and economy charms, which serve any build) are worth buying.
+ */
 function pickValue(content: ContentBundle, run: RunState, id: string): number {
   const c = charmOf(content, id);
   if (c === undefined) return 0;
-  const focus =
-    run.charms[0] === undefined ? undefined : charmOf(content, run.charms[0])?.archetype;
+  const focus = focusOf(content, run);
+  if (focus !== undefined && c.archetype !== focus && c.archetype !== 'economy') return 0;
   return (CHARM_VALUE[id] ?? 0) + (focus !== undefined && c.archetype === focus ? 2 : 0);
 }
 
