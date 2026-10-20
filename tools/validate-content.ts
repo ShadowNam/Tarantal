@@ -5,6 +5,8 @@ import { join } from 'node:path';
 import { parseContent } from '../src/content/bundle';
 import { checkCrossRefs } from '../src/content/crossRefs';
 import { readContentDir, readI18nKeys } from '../src/content/loadNode';
+import { parseFeel } from '../src/content/feel';
+import { readFileSync } from 'node:fs';
 
 const root = join(import.meta.dirname, '..');
 const strict = process.argv.includes('--strict');
@@ -18,6 +20,16 @@ if (!parsed.ok) {
   for (const e of parsed.errors) console.error(`  ✗ ${e.file}: ${e.message}`);
   process.exit(1);
 }
+
+// Client-only feel file (not part of the sim bundle, D-019).
+const feel = parseFeel(JSON.parse(readFileSync(join(root, 'content/client/feel.json'), 'utf8')));
+if (!feel.ok) {
+  console.error('content: client/feel.json FAILED');
+  for (const e of feel.errors) console.error(`  ✗ client/feel.json: ${e}`);
+  process.exit(1);
+}
+fileNames.push('client/feel.json');
+fileNames.sort();
 
 const report = checkCrossRefs(parsed.bundle, {
   i18nKeys: readI18nKeys(join(root, 'src/i18n/en.json')),

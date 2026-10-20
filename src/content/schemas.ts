@@ -677,3 +677,61 @@ export interface ContentBundle {
   readonly modes: Modes;
   readonly biomes: readonly Biome[];
 }
+
+// ---------------------------------------------------------------------------------------------
+// client/feel.json — game-feel tuning for the Phaser layer only (input gestures, pan, juice,
+// HUD). Nothing here changes a sim outcome, so it is NOT part of the ContentBundle or the
+// contentHash (decision D-019). Read by the game at boot; validated by tools/validate-content.ts.
+
+export const FeelSchema = obj({
+  version,
+  input: obj({
+    /** Tap = contact shorter than this and moving less than tapMaxMovePx (GDD §18.2). */
+    tapMaxMs: pos,
+    tapMaxMovePx: pos,
+    /** Flick-down reload: vertical travel ≥ flickMinPx within flickMaxMs, mostly downward. */
+    flickMinPx: pos,
+    flickMaxMs: pos,
+    /** Drag pans the camera so this plane's layer follows the finger (0.6 = mid plane). */
+    dragPlaneScrollFactor: pos,
+    /** Pan inertia after a drag: exponential decay rate per second, and the speed cap. */
+    inertiaDecayPerSec: pos,
+    inertiaMaxPxPerSec: pos,
+    /** Inertia below this speed stops. */
+    inertiaStopPxPerSec: nonNeg,
+    /** Desktop: the outer fraction of the screen width pans while the cursor is there. */
+    edgePanFraction: fraction,
+    edgePanPxPerSec: pos,
+    keyPanPxPerSec: pos,
+  }),
+  juice: obj({
+    hitStopMs: nonNeg,
+    hitStopTwoFliesMs: nonNeg,
+    muzzleFlashMs: pos,
+    gunKickPx: nonNeg,
+    gunKickMs: pos,
+    featherCount: range(nonNegInt),
+    featherLifeMs: pos,
+    scorePopRisePx: nonNeg,
+    scorePopMs: pos,
+    poofMs: pos,
+    /** Touch: the gun shrinks to this scale and fades to this alpha while a finger is down. */
+    gunTouchScale: pos,
+    gunTouchAlpha: fraction,
+  }),
+  hud: obj({
+    marginPx: nonNeg,
+    /** Minimum height of the shell-belt tap target on touch screens (art bible §6). */
+    beltTapMinPx: pos,
+    popStackSize: posInt,
+  }),
+  loop: obj({
+    /** Most sim steps per rendered frame (spiral-of-death guard, Tech §3.2). */
+    maxStepsPerFrame: posInt,
+  }),
+  quality: obj({
+    /** Particle budget until QualityManager (M9) picks tiers: medium tier = 0.7. */
+    particleScale: z.number().min(0).max(1),
+  }),
+});
+export type Feel = z.infer<typeof FeelSchema>;

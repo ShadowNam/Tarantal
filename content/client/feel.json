@@ -1,0 +1,42 @@
+{
+  "$comment": "Game feel for the Phaser layer (input gestures, pan, juice, HUD). Not part of the sim bundle or contentHash: nothing here changes a hunt's outcome (D-019). Times in ms, distances in design px, pan speeds in camera reference units per second.",
+  "version": 1,
+  "input": {
+    "tapMaxMs": 180,
+    "tapMaxMovePx": 12,
+    "flickMinPx": 60,
+    "flickMaxMs": 200,
+    "dragPlaneScrollFactor": 0.6,
+    "inertiaDecayPerSec": 5,
+    "inertiaMaxPxPerSec": 2400,
+    "inertiaStopPxPerSec": 20,
+    "edgePanFraction": 0.12,
+    "edgePanPxPerSec": 1400,
+    "keyPanPxPerSec": 1600
+  },
+  "juice": {
+    "hitStopMs": 20,
+    "hitStopTwoFliesMs": 45,
+    "muzzleFlashMs": 50,
+    "gunKickPx": 34,
+    "gunKickMs": 120,
+    "featherCount": [12, 20],
+    "featherLifeMs": 700,
+    "scorePopRisePx": 60,
+    "scorePopMs": 600,
+    "poofMs": 450,
+    "gunTouchScale": 0.6,
+    "gunTouchAlpha": 0.4
+  },
+  "hud": {
+    "marginPx": 28,
+    "beltTapMinPx": 64,
+    "popStackSize": 4
+  },
+  "loop": {
+    "maxStepsPerFrame": 5
+  },
+  "quality": {
+    "particleScale": 0.7
+  }
+}
