@@ -164,6 +164,7 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
     }
   }
   for (const s of run.seasons) {
+    i18n('run.json', `season.${s.id}`);
     const boss = creatures.get(s.boss);
     if (boss?.kind !== 'boss') err('run.json', `season "${s.id}" boss "${s.boss}" is not a boss creature`);
     const biome = loadedBiomes.get(s.biome);
@@ -288,6 +289,8 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
 
   // --- charms.json -------------------------------------------------------------------------
   for (const charm of charms.charms) {
+    i18n('charms.json', `charm.${charm.id}`);
+    i18n('charms.json', `charm.${charm.id}.desc`);
     checkCharm(charm, {
       creatures,
       weaponIds,

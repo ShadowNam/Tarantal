@@ -1,4 +1,5 @@
-// SaveData v1 (Tech §11): settings, FTUE, loadout, unlocks, Notaboek, Bird Book, bests, stats.
+// SaveData v1 (Tech §11): settings, FTUE, loadout, unlocks, Notaboek, Bird Book, bests, stats,
+// and (M6) the Season Run in progress plus run stats.
 // Every section has a default, so a damaged section falls back on its own (save.ts parses each
 // section separately) instead of wiping the player's progress.
 import { z } from 'zod';
@@ -40,6 +41,61 @@ export const DEFAULT_SETTINGS: Settings = {
   quality: 'auto',
 };
 
+const shortId = z.string().max(80);
+
+/** The in-progress Season Run (src/sim/run RunState), saved after every Padstal (Tech §11). The
+ *  shape is checked here; ids are checked against the content when the run is resumed. */
+export const RunSaveSchema = z.object({
+  v: z.number().int().positive(),
+  seed: z.number().int().nonnegative(),
+  weapon: shortId,
+  pool: z.array(shortId).max(200).readonly(),
+  phase: z.enum(['hunt', 'tally', 'padstal', 'victory', 'defeat']),
+  huntIndex: z.number().int().nonnegative().max(100),
+  charms: z.array(shortId).max(16).readonly(),
+  doppies: z.number().int().nonnegative(),
+  consumables: z.array(shortId.nullable()).max(8).readonly(),
+  rental: shortId.nullable(),
+  runShellBonus: z.number().int().nonnegative(),
+  padstal: z
+    .object({
+      offers: z
+        .array(
+          z.object({
+            kind: z.enum(['charm', 'consumable', 'weapon']),
+            id: shortId,
+            price: z.number().int().nonnegative(),
+            bought: z.boolean(),
+          }),
+        )
+        .max(16)
+        .readonly(),
+      rerolls: z.number().int().nonnegative(),
+    })
+    .nullable(),
+  history: z
+    .array(
+      z.object({
+        huntIndex: z.number().int().nonnegative(),
+        score: z.number().int(),
+        quota: z.number().int().nonnegative(),
+        passed: z.boolean(),
+        doppies: z
+          .object({
+            base: z.number().int(),
+            overQuota: z.number().int(),
+            interest: z.number().int(),
+            boss: z.number().int(),
+            found: z.number().int(),
+            total: z.number().int(),
+          })
+          .nullable(),
+      }),
+    )
+    .max(100)
+    .readonly(),
+});
+
 const sections = {
   settings: SettingsSchema,
   ftue: z.object({ done: z.boolean(), skipped: z.boolean(), step: z.string().max(40) }),
@@ -60,6 +116,9 @@ const sections = {
   ),
   bestRank: z.string().max(80).nullable(),
   stats: z.object({ hunts: count, bagged: count, shots: count }),
+  /** M6: the Season Run in progress (null = none), and finished runs. */
+  run: RunSaveSchema.nullable(),
+  runStats: z.object({ started: count, won: count, bestHunts: count }),
 } as const;
 
 export const SaveSchema = z.object({ v: z.literal(SAVE_VERSION), ...sections });
@@ -80,5 +139,7 @@ export function defaultSave(): SaveData {
     bests: {},
     bestRank: null,
     stats: { hunts: 0, bagged: 0, shots: 0 },
+    run: null,
+    runStats: { started: 0, won: 0, bestHunts: 0 },
   };
 }
