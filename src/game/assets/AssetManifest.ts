@@ -70,7 +70,8 @@ export class AssetManifest {
   /**
    * Draws textures into the texture manager (each once per game). With `filter`, only matching
    * keys; with `budgetMs`, stops after that much time so the rest can follow on later frames.
-   * Returns true when nothing matching is left to draw.
+   * Returns true only when every texture in the manifest is drawn (filtered-out ones count as
+   * still missing), so callers know whether more work is left.
    */
   install(
     textures: Phaser.Textures.TextureManager,
@@ -78,9 +79,13 @@ export class AssetManifest {
     budgetMs = Infinity,
   ): boolean {
     const start = performance.now();
+    let complete = true;
     for (const spec of this.specs.values()) {
-      if (textures.exists(spec.key) || !filter(spec.key)) continue;
-      if (performance.now() - start > budgetMs) return false;
+      if (textures.exists(spec.key)) continue;
+      if (!filter(spec.key) || performance.now() - start > budgetMs) {
+        complete = false;
+        continue;
+      }
       const canvas = document.createElement('canvas');
       canvas.width = Math.max(1, Math.ceil(spec.width));
       canvas.height = Math.max(1, Math.ceil(spec.height));
@@ -89,7 +94,12 @@ export class AssetManifest {
       spec.draw(ctx);
       textures.addCanvas(spec.key, canvas);
     }
-    return true;
+    return complete;
+  }
+
+  /** Keys not yet in the texture manager (0 once install() has completed). */
+  missing(textures: Phaser.Textures.TextureManager): string[] {
+    return [...this.specs.keys()].filter((k) => !textures.exists(k));
   }
 }
 

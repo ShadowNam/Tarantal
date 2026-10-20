@@ -73,7 +73,10 @@ test.describe('Classic hunt', () => {
     const errors = collectErrors(page);
     await boot(page, 'seed=7&huntSeconds=15');
     await startHunt(page, touch);
-    expect((await hook(page)).inputKind).toBe(touch ? 'touch' : 'pointer');
+    const started = await hook(page);
+    expect(started.inputKind).toBe(touch ? 'touch' : 'pointer');
+    // Every placeholder texture (birds included) exists once the hunt runs.
+    expect(started.missingTextures).toEqual([]);
 
     await tapAcrossScreen(page, touch, 20);
     await page.waitForFunction(() => window.__TM__?.scene === 'tally', null, { timeout: 300_000 });

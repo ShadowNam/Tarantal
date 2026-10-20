@@ -34,6 +34,8 @@ export interface TestHook {
   /** Encoded InputLog of the last hunt (bug reports / replay checks). */
   replay: string | null;
   hunts: number;
+  /** Manifest textures missing when the last hunt started (must be 0). */
+  missingTextures: string[];
   /** Boot milestones in ms since navigation start (content parsed, textures built, ready). */
   boot: Record<string, number>;
   /** On-screen rects in design px: HUD parts during a hunt, buttons on the tally. */

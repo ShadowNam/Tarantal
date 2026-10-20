@@ -81,6 +81,7 @@ const hook: TestHook = {
   cpuFrameMs: [],
   replay: null,
   hunts: 0,
+  missingTextures: [],
   boot: {},
   rects: {},
   safe: null,
@@ -144,6 +145,12 @@ if (testHooks) {
     }
   });
 }
+
+// Phaser's disableContextMenu only works through its own input managers, which are off; block
+// the menu here so a right-click (reload, or on the start card) never opens it.
+document.addEventListener('contextmenu', (e) => {
+  e.preventDefault();
+});
 
 function applyLayout(): void {
   const view = viewport();

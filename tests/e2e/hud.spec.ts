@@ -33,6 +33,7 @@ test('HUD fits the safe area at every aspect ratio (screenshots)', async ({ page
     await boot(page, 'seed=42&huntSeconds=60');
     await startHunt(page, touch);
     const start = await hook(page);
+    expect(start.missingTextures).toEqual([]);
     for (let i = 0; i < 3; i++) {
       await tapAt(page, touch, start.designWidth * (0.3 + i * 0.2), start.designHeight * 0.35);
       await waitTicks(page, 12);

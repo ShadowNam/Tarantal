@@ -90,6 +90,17 @@ export class HuntScene extends Phaser.Scene {
     this.parallax.update((CAMERA_MIN_X + CAMERA_MAX_X) / 2, width);
 
     this.scale.on(Phaser.Scale.Events.RESIZE, this.relayout);
+    // Browsers (iOS especially) only let audio start from pointerup/touchend/keydown, not from a
+    // touch pointerdown; keep offering until the AudioContext runs.
+    const unlockAudio = (): void => {
+      if (!this.ctx.audio.running) this.ctx.audio.unlock();
+    };
+    this.game.canvas.addEventListener('pointerup', unlockAudio);
+    window.addEventListener('keydown', unlockAudio);
+    this.cleanups.push(() => {
+      this.game.canvas.removeEventListener('pointerup', unlockAudio);
+      window.removeEventListener('keydown', unlockAudio);
+    });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.teardown();
     });
@@ -180,7 +191,10 @@ export class HuntScene extends Phaser.Scene {
     this.card = null;
     this.ctx.audio.unlock();
     if (!this.texturesDone) this.texturesDone = this.ctx.manifest.install(this.textures);
-    if (this.ctx.hook) this.ctx.hook.boot['huntStart'] ??= performance.now();
+    if (this.ctx.hook) {
+      this.ctx.hook.boot['huntStart'] ??= performance.now();
+      this.ctx.hook.missingTextures = this.ctx.manifest.missing(this.textures);
+    }
     this.inputKind = kind;
     this.shake = screenShakeEnabled(this.ctx.reducedMotion);
 
@@ -219,7 +233,10 @@ export class HuntScene extends Phaser.Scene {
       },
       sim.snapshot().cameraX,
     );
-    if (startPointer !== null) mapper.ignorePointer(startPointer);
+    // A touch that started the hunt must not also fire when it lifts. A mouse fires on press, so
+    // its start press is already used up (and ignoring the mouse id could swallow every later
+    // click if that press were released outside the canvas).
+    if (startPointer !== null && kind === 'touch') mapper.ignorePointer(startPointer);
     mapper.setEnabled(true);
     this.mapper = mapper;
     this.cleanups.push(() => {
@@ -290,7 +307,8 @@ export class HuntScene extends Phaser.Scene {
       safe.left + 20,
       this.scale.gameSize.height - safe.bottom - 60,
     );
-    (this.scene.get('Hud') as HudScene).render(state, events);
+    const hud = this.scene.get('Hud') as HudScene;
+    if (hud.sys.isActive()) hud.render(state, events);
 
     if (hook) {
       hook.tick = state.tick;
