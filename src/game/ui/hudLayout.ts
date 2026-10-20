@@ -42,7 +42,7 @@ export function hudLayout(width: number, height: number, insets: Insets, s: HudS
   const bottom = safe.y + safe.h - m;
 
   const timer: Rect = { x: left, y: top, w: 220, h: 96 };
-  const frenzy: Rect = { x: left, y: top + timer.h + 16, w: 300, h: 44 };
+  const frenzy: Rect = { x: left, y: top + timer.h + 16, w: 400, h: 44 };
   const score: Rect = { x: right - 420, y: top, w: 420, h: 96 };
   const beltH = Math.max(s.beltTapMinPx, 96);
   // 8 shells × 44 px + padding; narrower screens keep the same belt (it fits at 1440).

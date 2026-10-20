@@ -7,7 +7,7 @@
 import type { Sim } from '../sim/Sim';
 import type { SimEvent } from '../sim/events';
 import type { InputRecorder } from '../sim/replay/inputLog';
-import type { Command, SimState } from '../sim/types';
+import type { Command, HuntResult, SimState } from '../sim/types';
 import { TICKS_PER_SECOND } from '../sim/clock';
 
 export const STEP_MS = 1000 / TICKS_PER_SECOND;
@@ -68,6 +68,10 @@ export class HuntRunner {
 
   get over(): boolean {
     return this.sim.isOver();
+  }
+
+  result(): HuntResult {
+    return this.sim.result();
   }
 
   advance(dtMs: number): FrameResult {
