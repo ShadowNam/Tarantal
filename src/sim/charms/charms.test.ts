@@ -254,6 +254,22 @@ describe('konsertina — every 10th consecutive bag refunds 2 shells', () => {
     expect(fired(9, true)).toEqual([]);
   });
 
+  it('in the sim it counts Frenzy shots (streakEvery 2 here to keep the test short)', () => {
+    const c = withMidFlock(quiet());
+    const k = c.charms.charms.find((x) => x.id === 'konsertina');
+    const effect = k?.effects[0];
+    if (effect?.if === undefined) throw new Error('konsertina');
+    effect.if.streakEvery = 2;
+    const sim = newSim(c, season(['konsertina']));
+    const first = flockBird(sim);
+    const a = shootBird(sim, c, first);
+    expect(ofType(a, 'shellsAdded')).toEqual([]);
+    settle(sim);
+    const b = shootBird(sim, c, flockBird(sim, [first.id]));
+    expect(sim.snapshot().streak).toBe(2);
+    expect(ofType(b, 'shellsAdded')).toMatchObject([{ added: 2, shells: 8 }]);
+  });
+
   it('the sim puts refunded shells back in the belt, up to its size', () => {
     const c = quiet();
     c.charms.charms.push({
@@ -391,16 +407,18 @@ describe('kettingreaksie — each Twee Vlieë gives +0.2 Mult for the rest of th
       expect.objectContaining({ charm: 'kettingreaksie', trigger: 'twoFlies' }),
     );
     expect(sim.snapshot().season?.charmMults[0]).toBeCloseTo(0.2);
-    run(sim, 200);
-    const left = sim.snapshot().birds.find((b) => b.hittable && b.kind === 'target');
-    if (left !== undefined) {
-      const later = ofType(shootBird(sim, c, left), 'scoreAwarded')[0];
-      if (later !== undefined) {
-        expect(later.breakdown).toContainEqual(
-          expect.objectContaining({ kind: 'addMult', source: 'kettingreaksie' }),
-        );
-      }
+    // The rental is spent after 3 blasts; the next bag (with the primary) carries the Mult.
+    let later: Extract<SimEvent, { type: 'scoreAwarded' }> | undefined;
+    for (let i = 0; i < 600 && later === undefined; i++) {
+      run(sim, 1);
+      const w = sim.snapshot().weapon;
+      const left = sim.snapshot().birds.find((b) => b.hittable && b.kind === 'target');
+      if (left === undefined || w.cooldownTicks > 0 || w.reloading) continue;
+      later = ofType(shootBird(sim, c, left), 'scoreAwarded')[0];
     }
+    expect(later?.breakdown).toContainEqual(
+      expect.objectContaining({ kind: 'addMult', source: 'kettingreaksie' }),
+    );
   });
 
   it('charm bonusMul reaches the sim (a twoFlies ×3 test charm)', () => {
@@ -476,6 +494,19 @@ describe('kwevoel_se_seen — kwêvoël 3× as often; ×2 Mult while it calls', 
   it('×2 Mult only while a kwêvoël calls', () => {
     expect(bagWith(['kwevoel_se_seen'], { kwevoelCalling: true }).mult).toBe(2);
     expect(bagWith(['kwevoel_se_seen'], { kwevoelCalling: false }).mult).toBe(1);
+  });
+
+  it('in the sim bags score ×2 while the kwêvoël sits and calls', () => {
+    const c = withMidFlock(onlyEvent(quiet(), 'kwevoel'));
+    const sim = newSim(c, season(['kwevoel_se_seen']));
+    let called = false;
+    for (let i = 0; i < 20 * 60 && !called; i++)
+      called = ofType(run(sim, 1), 'birdCalled').length > 0;
+    expect(called).toBe(true);
+    const s = scoreOf(shootBird(sim, c, flockBird(sim)));
+    expect(s.breakdown).toContainEqual(
+      expect.objectContaining({ kind: 'mulMult', source: 'kwevoel_se_seen', value: 2 }),
+    );
   });
 
   it('adds kwêvoël visits from the charms stream; the base schedule is unchanged', () => {

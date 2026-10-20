@@ -442,6 +442,13 @@ export const RunSchema = obj({
   });
   for (const [ruleId, rule] of Object.entries(run.bossRules)) {
     const every = rule.flashEverySeconds;
+    if (ruleId === 'darkExceptLightning' && (every === undefined || rule.flashMs === undefined)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['bossRules', ruleId],
+        message: 'darkExceptLightning needs flashEverySeconds and flashMs',
+      });
+    }
     if (every === undefined) continue;
     const max = rule.maxFlashesPerSecond ?? 3;
     if (every[0] < 1 / max) {

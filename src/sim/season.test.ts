@@ -3,6 +3,7 @@
 // rental (GDD §10.3–10.4), and Season Run replays (InputLog v3).
 import { describe, expect, it } from 'vitest';
 import {
+  aimAt,
   base,
   eventEntry,
   karooOf,
@@ -107,6 +108,21 @@ describe('Boss Rules (GDD §13.3)', () => {
     expect(ofType(boss, 'flockThreatened')).toMatchObject([{ source: 'event' }]);
   });
 
+  it('Generaal — a near miss still threatens a flock only once (GDD §6.1)', () => {
+    const nearMiss = (mode: ModeConfig) => {
+      const c = withMidFlock(quiet());
+      const sim = newSim(c, mode);
+      const b = flockBird(sim);
+      return run(sim, 1, aimAt(c.scoring.planes[b.plane].scrollFactor, b.x, b.y - 200));
+    };
+    for (const mode of [season(), bossHunt('generaal')]) {
+      const ev = nearMiss(mode);
+      expect(ofType(ev, 'miss')).toHaveLength(1);
+      expect(ofType(ev, 'flockThreatened')).toMatchObject([{ source: 'shot' }]);
+      expect(ofType(ev, 'flockStateChanged').map((e) => e.to)).toEqual(['alert']);
+    }
+  });
+
   it('Generaal — Stil Loop does not cancel the rule (the boss rule wins, D-023)', () => {
     const c = withMidFlock(quiet());
     const sim = newSim(c, season({ kind: 'boss', boss: 'generaal', charms: ['stil_loop'] }));
@@ -120,6 +136,26 @@ describe('Boss Rules (GDD §13.3)', () => {
     const s = ofType(shootBird(sim, c, flockBird(sim)), 'scoreAwarded')[0];
     expect(s?.award).toBe(0);
     expect(s?.breakdown.at(-1)).toMatchObject({ kind: 'bossRule', value: 0 });
+  });
+
+  it('Ou Grys — a ground-only shot earns no Twee Vlieë either', () => {
+    const blast = (mode: ModeConfig) => {
+      const c = withMidFlock(quiet());
+      const v = c.weapons.weapons.find((w) => w.id === 'voorlaaier');
+      if (v === undefined) throw new Error('voorlaaier');
+      v.spreadPx = 300;
+      const sim = newSim(c, mode);
+      run(sim, 1, [{ t: 'consumable', slot: 2 }]);
+      const birds = sim.snapshot().birds.filter((b) => b.flockId !== null);
+      const mx = birds.reduce((t, b) => t + b.x, 0) / birds.length;
+      const my = birds.reduce((t, b) => t + b.y, 0) / birds.length;
+      const ev = run(sim, 1, aimAt(c.scoring.planes.mid.scrollFactor, mx, my - 30));
+      return ofType(ev, 'bonusAwarded').find((b) => b.bonus === 'twoFlies');
+    };
+    const plain = blast(season({ rental: 'voorlaaier' }));
+    expect(plain?.award).toBeGreaterThan(0);
+    const ouGrys = blast(season({ kind: 'boss', boss: 'ou_grys', rental: 'voorlaaier' }));
+    expect(ouGrys).toMatchObject({ base: plain?.base, award: 0 });
   });
 
   it('Kuifkop Koning — reload takes twice as long', () => {

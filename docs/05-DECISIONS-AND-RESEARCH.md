@@ -264,8 +264,9 @@ kind, boss, consumables, rental, run shell bonus); pause-screen reordering is a 
 interpreter:* passives fold into stats; bag effects become `Modifier`s in slot order, then listed
 order (GDD §5.3); `addMultForHunt` builds up per charm and applies at that charm's slot; other
 actions are queued, never nested. Validation rejects scoring actions off `bag`, stat actions off
-`passive` and conditions on `passive`. Randomness: `charms` (extra kwêvoël visits), new streams
-`lightning` (Stormvoël rule) and `run`; the Padstal uses `shop` seeded per position. (3) *Charm
+`passive` and conditions on `passive`. Randomness: `charms` (extra kwêvoël visits) and the new stream `lightning`
+(Stormvoël rule); hunt and Padstal seeds are `fnv1a32` of the run seed and the position, and the
+Padstal draws from its `shop` stream. (3) *Charm
 readings:* Fluitjie has no charge limit, only its 6 s cooldown (the Vuvuzela keeps 2 charges);
 Haelstorm's every-8th-primary-shot blast fires with Voorlaaier stats on a normal shell; Rooi
 Patrone = the shot fired from a full belt, Laaste Patroon = the shot that empties it — primary
@@ -278,23 +279,30 @@ timed from the `charms` stream, so the base event schedule is unchanged; Generaa
 lasts the whole run (run state), even if the charm is sold; `tick:every:N` fires on ticks N, 2N …
 (not tick 0). (4) *Boss Rules* apply to whatever boss stands in (the Generaal until M8): the rule
 comes from the season's boss creature; a boss hunt always schedules the biome's boss event. Boss
-rules beat charms: Stil Loop does not cancel the Generaal's "every miss alerts all flocks". Ou
-Grys's "ground shots score 0" is a final `bossRule` ×0 breakdown step; bosses are exempt when the
-season's boss is (`exemptFromOwnBossRule`). Lightning every 2.5–5 s (`run.json`), ≤ 2 per second.
+rules beat charms: Stil Loop does not cancel the Generaal's "every miss alerts all flocks". The
+Generaal's rule threatens each flock once per shot (GDD §6.1): flocks the miss already threatened
+are skipped (review fix — a near miss sent a foraging flock straight to RUN). Ou Grys's "ground
+shots score 0" is a final `bossRule` ×0 breakdown step; bosses are exempt when the season's boss is
+(`exemptFromOwnBossRule`); "ground" here is anything not flying (run included: "wing shots only"),
+while Grondwerk's "ground bags" stays forage/alert as in `charms.json`. A shot whose bags were all
+ground bags under Ou Grys also pays no Twee Vlieë or Whole Flock (`bonusAwarded` award 0, no charm
+trigger) — otherwise a Voorlaaier into a foraging flock still scored big (review fix, our call). Lightning every 2.5–5 s (`run.json`), ≤ 2 per second.
 (5) *Economy:* interest counts the doppies held when the hunt ended, before its payout; a failed
 hunt pays nothing; white-tarentaal doppies only exist in Season Run hunts (Classic events
 unchanged). Padstal charm offers are rarity-weighted (`charms.json → offerWeights` 6/4/2/1), only
 from the pool, never a charm you own; a reroll redraws every offer and its price restarts at each
 Padstal; the rental lasts the next hunt only, set off from its own slot (the one after the
-consumables). (6) *Unlocks:* Notaboek rewards gain `{type: charm}`; Hele Swerm, Oupa se Kaart and
+consumables). Crate weapons have no unlock yet, so the rental offer is always there ("if
+unlocked" in GDD §13.5 waits for a rental unlock, if one is ever added). (6) *Unlocks:* Notaboek rewards gain `{type: charm}`; Hele Swerm, Oupa se Kaart and
 Geheime Resep start locked (whole flock ×5, 10 secrets, 4 000 in one hunt). (7) *Stand-ins:*
 `run.json → biomeFallback` (Karoo) for seasons whose biome isn't loaded (logged by the run loader).
 (8) *Balance:* a season's pass rate = of the runs that reach it, the share that clear all three
 hunts. The `synergy` policy commits to the archetype of its first charm (the strongest charm on
 every offer gave 95 % in Winter, far from a real archetype build). Quotas tuned with the starter
-pool, competent bot, pointer: Herfs 1 950 / 2 100 / 2 250, Winter 2 350 / 2 350 / 2 250. Seeds
-1–500 → 501–1000: Herfs none 83.0 / 81.6 % (target ~85), synergy 93.0 / 90.0 % (~95); Winter
-none 47.5 / 47.1 % (~50), synergy 80.6 / 81.6 % (~80). (9) *Golden replays* re-recorded on
+pool, competent bot, pointer: Herfs 1 950 / 2 100 / 2 250, Winter 2 350 / 2 350 / 2 150 (the
+boss hunt lowered from 2 250 after the Ou Grys bonus fix). Seeds 1–500 / 501–1000: Herfs none
+83.0 / 82.4 % (target ~85), synergy 92.4 / 89.8 % (~95); Winter none 49.2 / 48.8 % (~50),
+synergy 82.0 / 82.4 % (~80). (9) *Golden replays* re-recorded on
 purpose (content hash, log v3); every existing case kept its event hash, count and score; new
 cases `season-herfs-boss-competent`, `season-winter-omen-competent`,
 `season-stormvoel-boss-competent`. (10) *Follow-ups:* `rewardedRetryPerRun` needs the portal

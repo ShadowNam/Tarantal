@@ -344,9 +344,13 @@ export function createSim(config: SimConfig): Sim {
   // Stormvoël rule (GDD §13.3): dark except lightning, never above maxFlashesPerSecond (schema).
   const lightningRule = bossRule === 'darkExceptLightning' ? content.run.bossRules[bossRule] : null;
   const lightningTicks: number[] = [];
-  const flashTicks = msToTicks(lightningRule?.flashMs ?? 400);
+  let flashTicks = 0;
   if (lightningRule !== null && lightningRule !== undefined) {
-    const every = lightningRule.flashEverySeconds ?? [3, 5];
+    // The schema requires both for darkExceptLightning.
+    const every = lightningRule.flashEverySeconds;
+    if (every === undefined || lightningRule.flashMs === undefined)
+      throw new Error('darkExceptLightning needs flashEverySeconds and flashMs');
+    flashTicks = msToTicks(lightningRule.flashMs);
     const lr = rng.stream('lightning');
     for (let t = lr.range(every[0], every[1]); ; t += lr.range(every[0], every[1])) {
       const at = secondsToTicks(t);
@@ -647,7 +651,8 @@ export function createSim(config: SimConfig): Sim {
     if (a.addShells !== undefined) addShells(a.addShells);
     if (a.shellCapacityForRun !== undefined) shellCapacityGain += a.shellCapacityForRun;
     if (a.alertNearestFlock === true) {
-      const t = nearestVisibleFlock([]);
+      // A flushing flock can't be nudged further: Fluitjie skips it (like Bles).
+      const t = nearestVisibleFlock(['flush']);
       if (t !== null) threaten([t], 'gadget');
     }
     if (a.flushFlocks !== undefined) {
@@ -963,6 +968,8 @@ export function createSim(config: SimConfig): Sim {
     const fMul = frenzyMul(streak, scoring.frenzyTiers);
 
     let bagIndex = 0;
+    /** Bags that scored under Ou Grys's rule (wing shots, or an exempt boss). */
+    let ruleBags = 0;
     for (const { bird, behaviour } of targets) {
       const c = bird.creature;
       if (c.kind === 'nonTarget') continue;
@@ -986,6 +993,7 @@ export function createSim(config: SimConfig): Sim {
         bossRule === 'groundShotsZero' &&
         behaviour !== 'flying' &&
         !(c.kind === 'boss' && bossExempt);
+      if (!groundZero) ruleBags++;
       emit({
         type: 'targetBagged',
         tick,
@@ -1036,13 +1044,15 @@ export function createSim(config: SimConfig): Sim {
       charmTrigger('penalty', { creature: c.id, plane: bird.plane });
     }
 
-    // Event bonuses use the post-shot streak, like the bags (D-018).
+    // Event bonuses use the post-shot streak, like the bags (D-018). Under Ou Grys's rule a shot
+    // whose bags were all ground bags earns no Twee Vlieë or Whole Flock either (D-023).
+    const bonusRuleMul = bossRule === 'groundShotsZero' && ruleBags === 0 ? 0 : 1;
     for (const bonus of armorBonuses) awardBonus('armor', bonus);
     const flies = twoFliesBonus(targets.length, scoring.twoFlies);
     if (flies > 0) {
       stats.twoFlies++;
-      awardBonus('twoFlies', flies);
-      charmTrigger('twoFlies');
+      awardBonus('twoFlies', flies, bonusRuleMul);
+      if (bonusRuleMul > 0) charmTrigger('twoFlies');
     }
 
     const baggedFlockIds = new Set<number>();
@@ -1070,8 +1080,8 @@ export function createSim(config: SimConfig): Sim {
           x: last?.x ?? f.homeX,
           y: last?.y ?? f.goalY,
         });
-        awardBonus('wholeFlock', bonus);
-        charmTrigger('flockWiped', { plane: f.plane });
+        awardBonus('wholeFlock', bonus, bonusRuleMul);
+        if (bonusRuleMul > 0) charmTrigger('flockWiped', { plane: f.plane });
       }
     }
     // This shot counts against shell power-ups it had; one it picks up starts with the next.
@@ -1084,16 +1094,24 @@ export function createSim(config: SimConfig): Sim {
     // radius (Stil Loop: a miss alerts nobody).
     const miss = !touchedAny && !hitThing;
     const radius = shot.alertRadiusPx * pass.alertRadiusMul * (miss ? pass.missAlertMul : 1);
-    threaten(
-      shotThreats(flocks, impacts, cameraX, radius, planeGeo, baggedFlockIds),
-      radius > 0 ? 'shot' : 'silentBag',
-    );
+    const threatened = shotThreats(flocks, impacts, cameraX, radius, planeGeo, baggedFlockIds);
+    threaten(threatened, radius > 0 ? 'shot' : 'silentBag');
     if (targets.length > 0) stats.hitShots++;
     if (miss) {
       emit({ type: 'miss', tick, shotId });
       charmTrigger('miss', { weapon: shot.id });
-      // Generaal's rule (GDD §13.3): every miss alerts all flocks.
-      if (bossRule === 'missAlertsAll') react('threat', { kind: 'all' }, 'event');
+      // Generaal's rule (GDD §13.3): every miss alerts all flocks — one threat per flock per shot
+      // (GDD §6.1), so flocks the miss already threatened are not threatened twice.
+      if (bossRule === 'missAlertsAll') {
+        const hit = new Set(threatened.map((t) => t.flock.id));
+        applyReaction(
+          'threat',
+          reactionTargets(flocks, { kind: 'all' }, cameraX, planeGeo).filter(
+            (t) => !hit.has(t.flock.id),
+          ),
+          'event',
+        );
+      }
     }
     if (hasCharms) {
       charmTrigger('shot', { weapon: shot.id, shellIndex, lastShell });
@@ -1101,7 +1119,7 @@ export function createSim(config: SimConfig): Sim {
     }
   }
 
-  function awardBonus(bonus: BonusId, base: number): void {
+  function awardBonus(bonus: BonusId, base: number, ruleMul = 1): void {
     const charmMul =
       bonus === 'wholeFlock' || bonus === 'twoFlies' || bonus === 'secretChain'
         ? pass.bonusMul[bonus]
@@ -1112,8 +1130,9 @@ export function createSim(config: SimConfig): Sim {
       multipliers: scoring.eventBonusMultipliers,
       ...(charmMul === 1 ? {} : { bonusMul: charmMul }),
     });
-    score += award;
-    emit({ type: 'bonusAwarded', tick, bonus, base, award });
+    const paid = ruleMul === 1 ? award : Math.round(award * ruleMul);
+    score += paid;
+    emit({ type: 'bonusAwarded', tick, bonus, base, award: paid });
   }
 
   // --- crates ------------------------------------------------------------------------------
@@ -1371,7 +1390,7 @@ export function createSim(config: SimConfig): Sim {
         tick,
         gadget: gadgetDef.id,
         chargesLeft: -1,
-        flocks: nearestVisibleFlock([]) === null ? 0 : 1,
+        flocks: nearestVisibleFlock(['flush']) === null ? 0 : 1,
       });
       charmTrigger('gadget');
       return;

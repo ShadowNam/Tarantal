@@ -362,7 +362,7 @@ not hanging balls.
 | Season | Hunt 1 | Hunt 2 (Omen) | Hunt 3 (Boss) |
 |---|---|---|---|
 | Herfs | 1 950 | 2 100 | 2 250 |
-| Winter | 2 350 | 2 350 | 2 250 |
+| Winter | 2 350 | 2 350 | 2 150 |
 | Lente | 4 500 | 6 000 | 8 000 |
 | Somer | 11 000 | 15 000 | 20 000 |
 
@@ -380,7 +380,9 @@ boss of every Boss Hunt, carrying the season's own Boss Rule (D-023).
 | Die Stormvoël | Screen is dark except during lightning flashes (photosensitivity-safe: see §18) |
 
 Boss rules beat charms that would cancel them: Stil Loop silences a miss's own alert but not the
-Generaal's "every miss alerts all flocks". Lightning comes every 2.5–5 s (`run.json`), never more
+Generaal's "every miss alerts all flocks" (a flock the miss already alerted is not alerted twice).
+Under Ou Grys, "ground" is anything not flying, and a shot that bagged only ground birds earns no Twee
+Vlieë or Whole Flock either. Lightning comes every 2.5–5 s (`run.json`), never more
 than 2 flashes a second.
 
 ### 13.4 Currency: Doppies (bottle caps) — in-run only

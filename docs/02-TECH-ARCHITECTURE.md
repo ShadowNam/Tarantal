@@ -109,7 +109,7 @@ export interface Sim {
 - **No** `Math.random`, `Date`, `performance.now`, DOM, `window`, Phaser imports, or async inside `sim/`.
   Enforced by ESLint `no-restricted-imports`/`no-restricted-globals` on `src/sim/**`.
 - **RNG:** `sfc32` seeded via `splitmix32`, with **named streams** (`rng.stream('spawns')`,
-  `'pellets'`, `'flockNoise'`, `'charms'`, `'shop'`, `'lightning'`, `'run'` …) so adding randomness in one system doesn't shift
+  `'pellets'`, `'flockNoise'`, `'charms'`, `'shop'`, `'lightning'` …) so adding randomness in one system doesn't shift
   every other system's sequence.
 - **Cross-browser determinism:** `+ − × ÷` and `Math.sqrt` are safe. `Math.sin/cos/atan2/exp/pow/log`
   are implementation-approximated in JavaScript engines and can differ between browsers — use
