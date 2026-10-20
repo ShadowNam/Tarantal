@@ -97,6 +97,28 @@ every accepted command is encodable and replays identically. (10) Kept in code a
 than tuning: the spawn-credit jitter (0.5–1.5 of the mean interval), 50/50 entry side and facing, and
 non-targets going down to a single pellet. Move them to `birds.json` if tuning ever needs them.
 
+**D-019 M2 game-layer rules (20 Oct 2026):** decisions made while building the playable Classic
+hunt. (1) *Feel tuning* (gestures, pan, juice, HUD, loop cap, particle budget) lives in
+`content/client/feel.json`: Zod-validated, outside the sim `ContentBundle`/`contentHash`, so tuning
+feel never invalidates replays. (2) *Input and audio* bypass Phaser: Pointer Events + keys in
+`InputMapper`, Web Audio placeholder synth in `AudioDirector` (Phaser `input` and `audio` disabled).
+(3) *Clock:* the runner follows `performance.now()`; Phaser's frame delta is smoothed/capped and would
+stretch the hunt. The 5-steps-per-frame cap stays (Tech §3.2), so below 12 fps the hunt runs slower
+than real time instead of skipping. Scene-clock timers must not touch objects a tween destroys
+(tweens follow real time, the clock follows the smoothed delta — this crashed the loop at 4 fps).
+(4) *Start card:* the first tap starts the hunt without firing, unlocks audio and fixes `inputKind`
+from its pointer type; [Again] restarts with one tap the same way. (5) *Snapshot:* `BirdView.ground`
+(pop-up grass line) is a render-only field; no event or outcome changes, golden replays untouched.
+(6) *Placeholders:* non-targets always carry the ⛔ badge until persistence (M5) can limit it to the
+first sighting; screen shake defaults off under `prefers-reduced-motion` and is toggled on the tally
+until the Settings screen (M5). `?seed=` fixes every hunt's seed; `?huntSeconds=` works only in
+dev/e2e builds. (7) *Evidence on software GL:* headless CI and this sandbox rasterise WebGL with
+SwiftShader (an empty WebGL page can't hold 60 fps there). The perf smoke therefore always asserts the
+CPU cost per frame (≤ 16.7 ms at 4× throttle) and asserts real 60 fps only with `PERF_STRICT=1` on a
+machine with a GPU. "Load → first shot" is measured inside the page (ready + start-tap latency +
+fire-tap latency) so slow harness round trips don't count. Playwright trace screenshots are off: each
+is a full-canvas GPU readback that stalls software WebGL.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
