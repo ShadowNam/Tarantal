@@ -192,7 +192,7 @@ steady rate, so there is always something to shoot. Behaviour +1.0 (flying).
 | `ou_grys` | Ou Grys | Boss (Winter) | mid | 150 | Grizzled veteran with eye patch; only peeks from behind boulders |
 | `kuifkop_koning` | Kuifkop Koning | Boss (Spring) | mid | 150 | Crested king; erratic hops in reeds; 3 hits |
 | `stormvoel` | Die Stormvoël | Boss (Summer) | far→mid | 250 | Only visible in lightning flashes; giant shadow |
-| `kwevoel` | Kwêvoël (grey go-away-bird) | **Do not shoot** | mid | −35 | Lands on high branch yelling "kwê-kwê!" (go-away). Shape + ⛔ icon on first sighting (Karoo: flies in to the windpomp's perch, sits 6–10 s, flies off; the ⛔ call-out shows on its first landing each hunt until persistence, M5) |
+| `kwevoel` | Kwêvoël (grey go-away-bird) | **Do not shoot** | mid | −35 | Lands on high branch yelling "kwê-kwê!" (go-away). Shape + ⛔ icon on first sighting (Karoo: flies in to the windpomp's perch, sits 6–10 s, flies off; the ⛔ badge and call-out show until it is in the player's Bird Book, i.e. on the first sighting ever) |
 | `hadeda` | Hadeda | Chaos event / do not shoot | far | −25 | Flies over honking — ALERTs every flock |
 | `visarend` | African fish eagle | Do not shoot (Okavango) | far | −50 | Iconic call; protected raptor |
 | `sproeier` | Oom Faan se sproeivliegtuig (crop sprayer) | Do not shoot | far | −50 | Moorhuhn's plane penalty, localised |
@@ -422,11 +422,17 @@ building block for an archetype. No charm may make a hunt unwinnable. New charms
 Unlocks come from **Oupa se Notaboek** (challenges), not currency. Examples: "Bag a whole flock of
 10+" → Hele Swerm enters the charm pool; "Win a Season Run with the Kettie" → Kettie gold engraving;
 "Find every Karoo secret" → Karoo Bird Book page complete. Unlocks widen the pool (more variety),
-never add raw power. ~60 challenges at v1.0.
+never add raw power. ~60 challenges at v1.0. The M5 starter set (`content/meta/notaboek.json`) has
+8, counted over all hunts unless marked per-hunt: *Bag 50 far birds* → Windbuks, *Bag the whole
+flock 3 times* → Kettie (shown unlocked, playable from M8), first hunt, 25 wing shots, 2 500 in one
+hunt, 200 birds, 5 crates, every Karoo secret → Bird Book page. The Plaas-Pomp unlocks at the
+Plaaswerker rank.
 
 ### 13.7 Skiet-Skuur (the shed)
 Hub screen: equip weapon for Classic/Daily, view unlocked charms, Bird Book, Notaboek, cosmetics
-(gun engravings, reticle styles, belt colours). It is **not** a points shop.
+(gun engravings, reticle styles, belt colours). It is **not** a points shop. v0 (M5): Guns
+(equip, or how to unlock), Bird Book (creatures and the biome's secrets; names once seen,
+"???" until then), Notaboek (progress bars and rewards), Settings. Cosmetics come later.
 
 ### 13.8 Balance tooling
 A headless balance simulator plays the deterministic sim over thousands of seeds with bots:
@@ -483,6 +489,12 @@ Portal players decide in minutes. Script:
 6. ~40 s: windpomp blades glint — "Hmm, Oupa's windpomp…" (secret hint).
 7. Tally → rank stamp → two buttons: **[Again]** (default focus) and **[Season Run]**.
 Never more than one line of text on screen during play. Skippable. Telemetry on every step.
+Implementation (M5): mode `ftue` in `modes.json` — 0.6× fly-over/pop-up rates, +40 px hit radius
+until the first bag, no Stampede, crates or boss; the Bles spook and the forced flush are beats at
+1/3 and 1/2 of the hunt (fractions, so short test hunts keep them) and the windpomp hint at 0.67.
+Bles is skipped if the player already made a flock run. A new player's title shows only START
+HUNT; after the lesson (or Skip, which returns to the title) START plays Classic. [Season Run]
+on the tally stays locked until M6.
 
 ## 17. Game feel ("juice") spec
 | Moment | Feedback |
@@ -521,6 +533,12 @@ blast, Stampede tint pulses — is rate-limited to no more than 3 per second reg
 muzzle flashes are small local sprites, and the Mielie-Masjien uses a steady glow, not per-shot flashes), colour-blind-safe signals (penalty creatures distinguished by shape + icon,
 never colour alone), captions/onomatopoeia for key sounds, hold-to-fire option, adjustable aim
 assist, left-handed layout, text size, full keyboard menus, pause anywhere.
+M5 Settings: master / SFX / music volume, screen shake (follows reduced motion until set), reduce
+flashes (dims the muzzle flash and glints, no red belt flash), touch aim assist (Off / Low 50 % /
+Standard; recorded in the replay), left-handed (belt left, Vuvuzela right, gun centre-left),
+language (Auto / English / Afrikaans) and quality (Auto / Low / Medium / High). Menus work with
+↑/↓/Tab, ←/→, Enter/Space and Esc; Esc or P pauses a hunt, touch players have a pause button.
+Text size and captions remain for M9.
 
 ## 19. Monetisation and ethics guardrails
 - **Web portals (launch):** free; portal ads only at natural breaks (between hunts/runs), never during
