@@ -61,6 +61,9 @@ if (process.argv.includes('--json')) {
     `  bagged      ${r.bagged}  (near ${r.baggedByPlane.near}, mid ${r.baggedByPlane.mid}, far ${r.baggedByPlane.far})  wing shots ${r.wingShots}`,
   );
   console.log(`  combos      best Frenzy streak ${r.bestStreak}, Twee Vlieë ×${r.twoFlies}`);
+  console.log(
+    `  flocks      flushes ${r.flushes}, whole flocks ${r.wholeFlocks}, Vuvuzela ×${r.gadgetUses}`,
+  );
   console.log(`  penalties   ${r.penalties}  empty clicks ${r.emptyClicks}`);
   console.log(
     `  events      ${play.eventCount}  hash ${play.eventHash}  replay ${replayOk ? 'OK' : 'MISMATCH'}`,
