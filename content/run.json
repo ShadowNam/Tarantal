@@ -5,7 +5,7 @@
   "biomeFallback": "karoo-autumn",
   "seasons": [
     { "id": "herfs", "biome": "karoo-autumn", "omen": "karoo_wind", "boss": "generaal", "quotas": [1950, 2100, 2250] },
-    { "id": "winter", "biome": "bushveld-winter", "omen": "sun_glare", "boss": "ou_grys", "quotas": [2350, 2350, 2250] },
+    { "id": "winter", "biome": "bushveld-winter", "omen": "sun_glare", "boss": "ou_grys", "quotas": [2350, 2350, 2150] },
     { "id": "lente", "biome": "okavango-spring", "omen": "sun_showers", "boss": "kuifkop_koning", "quotas": [4500, 6000, 8000] },
     { "id": "somer", "biome": "kalahari-summer", "omen": "heat_then_storm", "boss": "stormvoel", "quotas": [11000, 15000, 20000] }
   ],
