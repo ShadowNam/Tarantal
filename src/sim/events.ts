@@ -266,6 +266,14 @@ export type SimEvent =
       readonly creature: string;
     }
   | { readonly type: 'stampedeStarted'; readonly tick: number }
+  | {
+      /** FTUE script beat (GDD §16): `spook` = Oupa's dog Bles, `flush` = a forced flush.
+       *  flockId null = no flock was in view (or a spook was not needed). */
+      readonly type: 'tutorialBeat';
+      readonly tick: number;
+      readonly beat: 'spook' | 'flush';
+      readonly flockId: number | null;
+    }
   | { readonly type: 'huntEnded'; readonly tick: number; readonly score: number };
 
 export type SimEventType = SimEvent['type'];

@@ -395,3 +395,110 @@ describe('Sim scoring in play', () => {
     expect(sim.snapshot().streak).toBe(0);
   });
 });
+
+describe('FTUE hunt (Oupa se Les, GDD §16)', () => {
+  const ftue = (): ModeConfig => ({ id: 'ftue' });
+  const run = (sim: Sim, untilTick: number, script: (s: Sim) => Command[] = () => []) => {
+    const all: SimEvent[] = [...sim.drainEvents()];
+    while (sim.tick < untilTick && !sim.isOver()) all.push(...stepEvents(sim, script(sim)));
+    return all;
+  };
+
+  it('is a 60 s Karoo hunt with no Stampede and a foraging flock in view from the start', () => {
+    const sim = newSim(3, { mode: ftue() });
+    expect(sim.drainEvents()[0]).toMatchObject({ durationTicks: 3600, stampedeAtTick: null });
+    stepEvents(sim);
+    const s = sim.snapshot();
+    expect(s.flocks.some((f) => f.state === 'forage')).toBe(true);
+  });
+
+  it('Bles spooks a visible flock into RUN at 1/3 when the player has not, then a flock flushes at 1/2', () => {
+    const sim = newSim(3, { mode: ftue() });
+    const events = run(sim, 1801);
+    const beats = events.filter((e) => e.type === 'tutorialBeat');
+    expect(beats.map((b) => [b.tick, b.beat])).toEqual([
+      [Math.floor(0.33 * 3600), 'spook'],
+      [1800, 'flush'],
+    ]);
+    const spook = beats[0];
+    const flush = beats[1];
+    if (spook?.type !== 'tutorialBeat' || flush?.type !== 'tutorialBeat') throw new Error('beats');
+    expect(spook.flockId).not.toBeNull();
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        type: 'flockStateChanged',
+        tick: spook.tick,
+        flockId: spook.flockId,
+        to: 'run',
+        cause: 'event',
+      }),
+    );
+    expect(flush.flockId).not.toBeNull();
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        type: 'flockStateChanged',
+        tick: 1800,
+        flockId: flush.flockId,
+        to: 'flush',
+        cause: 'event',
+      }),
+    );
+  });
+
+  it('the dog stays home when the player already made a flock run', () => {
+    const sim = newSim(3, { mode: ftue() });
+    // The Vuvuzela flushes the visible flocks at once.
+    const events = run(sim, 1200, (s) => (s.tick === 60 ? [{ t: 'gadget' }] : []));
+    const spook = events.find((e) => e.type === 'tutorialBeat');
+    expect(spook).toMatchObject({ beat: 'spook', flockId: null });
+  });
+
+  it('gives a generous first hit (firstHitAssistPx) that ends with the first bag', () => {
+    const c = busyContent();
+    c.birds.flyoverDefaults.planeWeights = { mid: 0, far: 1 };
+    const extra = c.modes.modes.ftue.tutorial.firstHitAssistPx;
+    const shoot = (mode: ModeConfig, offset: number) => {
+      const sim = newSim(12, { content: c, mode: { ...mode, weapon: 'windbuks' } });
+      const bird = waitFor(
+        sim,
+        (b) => b.plane === 'far' && b.kind === 'target' && b.x > 900 && b.x < 2000,
+      );
+      const [cam, fire] = shootAt(c, bird);
+      if (cam === undefined || fire?.t !== 'fire') throw new Error('bad helper');
+      return {
+        sim,
+        hit: stepEvents(sim, [cam, { ...fire, dx: fire.dx + 24.2 + offset }]).some(
+          (e) => e.type === 'targetBagged',
+        ),
+      };
+    };
+    expect(shoot({ id: 'classic' }, extra - 5).hit).toBe(false);
+    const first = shoot(ftue(), extra - 5);
+    expect(first.hit).toBe(true);
+    // After the first bag the radii are back to normal.
+    const sim = first.sim;
+    for (let i = 0; i < 30; i++) stepEvents(sim);
+    const bird = waitFor(
+      sim,
+      (b) => b.plane === 'far' && b.kind === 'target' && b.x > 900 && b.x < 2000,
+    );
+    const [cam, fire] = shootAt(c, bird);
+    if (cam === undefined || fire?.t !== 'fire') throw new Error('bad helper');
+    for (let i = 0; i < 20; i++) stepEvents(sim);
+    const later = waitFor(
+      sim,
+      (b) =>
+        b.id === bird.id || (b.plane === 'far' && b.kind === 'target' && b.x > 900 && b.x < 2000),
+    );
+    const [cam2, fire2] = shootAt(c, later);
+    if (cam2 === undefined || fire2?.t !== 'fire') throw new Error('bad helper');
+    const ev = stepEvents(sim, [cam2, { ...fire2, dx: fire2.dx + 24.2 + extra - 5 }]);
+    expect(ev.some((e) => e.type === 'targetBagged')).toBe(false);
+  });
+
+  it('replays deterministically and the mode survives the InputLog', () => {
+    const a = run(newSim(5, { mode: ftue() }), 3600);
+    const b = run(newSim(5, { mode: ftue() }), 3600);
+    expect(hashEvents(a)).toBe(hashEvents(b));
+  });
+});

@@ -5,7 +5,7 @@ export type PlaneId = 'near' | 'mid' | 'far';
 /** Front-to-back order used by shot resolution. */
 export const PLANES: readonly PlaneId[] = ['near', 'mid', 'far'];
 
-export type ModeId = 'classic' | 'daily' | 'seasonHunt';
+export type ModeId = 'classic' | 'daily' | 'seasonHunt' | 'ftue';
 export type InputKind = 'pointer' | 'touch';
 
 /** Behaviour of a bird at the moment it is bagged (scoring.json behaviourAdd). */

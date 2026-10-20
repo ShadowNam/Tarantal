@@ -72,11 +72,14 @@ export interface DirectorDeps {
   readonly spawns: RandomStream;
   readonly flocks: RandomStream;
   readonly flockParams: FlockParams;
+  /** Multiplies fly-over and pop-up rates (FTUE pacing). Default 1. */
+  readonly rateMul?: number;
 }
 
 export function createDirector(deps: DirectorDeps): Director {
   const { content, biome, durationTicks, spawns, flockParams: fp } = deps;
   const flockRng = deps.flocks;
+  const rateMul = deps.rateMul ?? 1;
   const flockRetryAt: Record<PlaneId, number> = { near: 0, mid: 0, far: 0 };
   const { planes } = content.scoring;
   const flyover = content.birds.flyoverDefaults;
@@ -328,13 +331,13 @@ export function createDirector(deps: DirectorDeps): Director {
     tick(ctx) {
       const rates = pacingAt(biome.pacing, ctx.tick / durationTicks, ctx.stampede);
       const out: Bird[] = [];
-      flyoverCredit += rates.flyoversPerMin / TICKS_PER_MINUTE;
+      flyoverCredit += (rates.flyoversPerMin * rateMul) / TICKS_PER_MINUTE;
       if (flyoverCredit >= flyoverThreshold) {
         flyoverCredit -= flyoverThreshold;
         flyoverThreshold = spawns.range(THRESHOLD_MIN, THRESHOLD_MAX);
         if (ctx.aliveBirds + out.length < maxBirds) out.push(...spawnFlyoverGroup(ctx));
       }
-      popupCredit += rates.popupsPerMin / TICKS_PER_MINUTE;
+      popupCredit += (rates.popupsPerMin * rateMul) / TICKS_PER_MINUTE;
       if (popupCredit >= popupThreshold) {
         popupCredit -= popupThreshold;
         popupThreshold = spawns.range(THRESHOLD_MIN, THRESHOLD_MAX);

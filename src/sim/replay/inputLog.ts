@@ -75,7 +75,8 @@ const OPS: readonly Command['t'][] = [
   'gadget',
   'consumable',
 ];
-const MODES: readonly ModeId[] = ['classic', 'daily', 'seasonHunt'];
+// Append only: the index is the encoded value.
+const MODES: readonly ModeId[] = ['classic', 'daily', 'seasonHunt', 'ftue'];
 const INPUT_KINDS: readonly InputKind[] = ['pointer', 'touch'];
 const AIM_ASSIST: readonly AimAssistLevel[] = ['standard', 'low', 'off'];
 

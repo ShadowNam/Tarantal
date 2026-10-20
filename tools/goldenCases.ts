@@ -7,7 +7,7 @@ export interface GoldenCase {
   readonly name: string;
   readonly seed: number;
   readonly bot: BotKind;
-  readonly mode: 'classic' | 'daily';
+  readonly mode: 'classic' | 'daily' | 'ftue';
   readonly inputKind: InputKind;
   readonly aimAssist?: AimAssistLevel;
 }
@@ -50,4 +50,6 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
     inputKind: 'touch',
     aimAssist: 'low',
   },
+  // M5: the FTUE hunt (slower pacing, Bles spook and forced flush beats, generous first hit).
+  { name: 'ftue-3-aim-touch', seed: 3, bot: 'aim', mode: 'ftue', inputKind: 'touch' },
 ];

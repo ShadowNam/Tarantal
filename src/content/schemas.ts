@@ -29,7 +29,7 @@ const windowFraction = range(fraction);
 const version = z.literal(1);
 
 export const PlaneIdSchema = z.enum(['near', 'mid', 'far']);
-export const ModeIdSchema = z.enum(['classic', 'daily', 'seasonHunt']);
+export const ModeIdSchema = z.enum(['classic', 'daily', 'seasonHunt', 'ftue']);
 export const BagBehaviourSchema = z.enum(['forage', 'alert', 'run', 'flying']);
 
 /** World-event ids (Tech §3.6). Each gets a handler in director/events.ts. */
@@ -735,10 +735,31 @@ const modeSetupSchema = obj({
   omen: z.boolean(),
 });
 
+/** FTUE "Oupa se Les" (GDD §16): a gentler Karoo hunt with scripted beats. */
+const tutorialSchema = obj({
+  /** Multiplies the biome's fly-over and pop-up rates (slower pacing). */
+  spawnRateMul: z.number().positive().max(1),
+  /** Extra hit radius (design px, every plane and input kind) until the first bag. */
+  firstHitAssistPx: nonNeg,
+  /** Scripted flock beats at fractions of the hunt: `spook` = Bles makes a visible flock RUN
+   *  (skipped if the player already made one run); `flush` = a visible flock FLUSHES. */
+  beats: z.array(
+    obj({
+      at: fraction,
+      action: z.enum(['spook', 'flush']),
+      skipIfFlockRan: z.boolean().optional(),
+    }),
+  ),
+});
+
 export const ModesSchema = obj({
   version,
-  /** Classic and Daily setup. Season Run hunts take their length from run.json (huntSeconds). */
-  modes: obj({ classic: modeSetupSchema, daily: modeSetupSchema }),
+  /** Classic, Daily and FTUE setup. Season Run hunts take their length from run.json. */
+  modes: obj({
+    classic: modeSetupSchema,
+    daily: modeSetupSchema,
+    ftue: modeSetupSchema.extend({ tutorial: tutorialSchema }),
+  }),
 });
 export type Modes = z.infer<typeof ModesSchema>;
 
