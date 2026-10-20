@@ -105,8 +105,32 @@ export function pointInBird(
 
 export interface PelletResult {
   readonly birdId: number | null;
+  /** An occluding prop, or the prop of the secret part hit. */
   readonly propId: string | null;
+  /** The secret part hit (with propId). */
+  readonly partId: string | null;
+  readonly crateId: number | null;
 }
+
+/** Things on a layer that move or come and go: crates and live secret parts (layer coords). */
+export type HitExtra =
+  | {
+      readonly kind: 'crate';
+      readonly crateId: number;
+      readonly x: number;
+      readonly y: number;
+      readonly shape: OccluderShape;
+    }
+  | {
+      readonly kind: 'secret';
+      readonly propId: string;
+      readonly partId: string;
+      readonly x: number;
+      readonly y: number;
+      readonly shape: OccluderShape;
+    };
+
+const NOTHING: PelletResult = { birdId: null, propId: null, partId: null, crateId: null };
 
 export interface ShotGeometry {
   readonly slices: readonly Slice[];
@@ -117,7 +141,9 @@ export interface ShotGeometry {
 
 /**
  * Resolves one pellet at screen position (dx from centre, sy from top) for camera centre cx.
- * `birdsByPlane` lists each plane's birds front-most first (highest id first).
+ * `birdsByPlane` lists each plane's birds front-most first (highest id first). Within a layer the
+ * order is birds → extras (crates, then secret parts, as listed) → occluders. `driftDx(f)` shifts
+ * the pellet sideways on layers with scroll factor f (wind, Tech §3.4).
  */
 export function resolvePellet(
   dx: number,
@@ -125,23 +151,31 @@ export function resolvePellet(
   cx: number,
   geometry: ShotGeometry,
   birdsByPlane: Readonly<Record<PlaneId, readonly HitBird[]>>,
+  extras: ReadonlyMap<string, readonly HitExtra[]> = new Map(),
+  driftDx: (scrollFactor: number) => number = () => 0,
 ): PelletResult {
   for (const slice of geometry.slices) {
-    const p = tapToPlane(cx, slice.scrollFactor, dx, sy);
+    const p = tapToPlane(cx, slice.scrollFactor, dx + driftDx(slice.scrollFactor), sy);
     if (slice.plane !== null) {
       const scale = geometry.planeScale[slice.plane];
       const assist = geometry.assistPx[slice.plane];
       for (const bird of birdsByPlane[slice.plane]) {
         if (bird.hittable && pointInBird(p.x, p.y, bird, scale, assist)) {
-          return { birdId: bird.id, propId: null };
+          return { ...NOTHING, birdId: bird.id };
         }
       }
     }
+    for (const e of extras.get(slice.layerId) ?? []) {
+      if (!pointInOccluder(p.x, p.y, { propId: '', x: e.x, y: e.y, shape: e.shape })) continue;
+      return e.kind === 'crate'
+        ? { ...NOTHING, crateId: e.crateId }
+        : { ...NOTHING, propId: e.propId, partId: e.partId };
+    }
     for (const o of slice.occluders) {
-      if (pointInOccluder(p.x, p.y, o)) return { birdId: null, propId: o.propId };
+      if (pointInOccluder(p.x, p.y, o)) return { ...NOTHING, propId: o.propId };
     }
   }
-  return { birdId: null, propId: null };
+  return NOTHING;
 }
 
 /** A shot hits a target when its pellets on it ≥ min(pelletsToBag, weapon pellets) (GDD §5.1). */

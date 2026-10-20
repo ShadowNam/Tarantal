@@ -54,6 +54,15 @@ export interface Director {
   spawnEventFlyover(ctx: DirectorContext, creatureId: string, rng: RandomStream): Bird[];
   /** New flocks (with their member birds) to top each plane up to the pacing target. */
   spawnFlocks(ctx: FlockSpawnContext): Flock[];
+  /** A flock of `size` birds around plane x (secret rewards), drawing from `rng`. Null if the
+   *  plane has no lanes or there is no room. Ignores spacing and maxFlocks (it is a burst). */
+  spawnFlockAt(
+    ctx: FlockSpawnContext,
+    plane: PlaneId,
+    x: number,
+    size: number,
+    rng: RandomStream,
+  ): Flock | null;
 }
 
 export interface DirectorDeps {
@@ -233,23 +242,29 @@ export function createDirector(deps: DirectorDeps): Director {
     return hidden(edge) && spaced(edge) ? edge : null;
   }
 
-  function buildFlock(ctx: FlockSpawnContext, plane: PlaneId, room: number): Flock | null {
+  function buildFlock(
+    ctx: FlockSpawnContext,
+    plane: PlaneId,
+    room: number,
+    rng: RandomStream = flockRng,
+    at: { readonly x: number; readonly size: number } | null = null,
+  ): Flock | null {
     const lane = biome.lanes[plane];
     const groundY = lane?.groundY;
     const skyY = lane?.skyY;
     if (groundY === undefined || skyY === undefined) return null;
     const scale = planes[plane].scale;
     const ratio = scale / planes.mid.scale;
-    const size = Math.min(flockRng.int(fp.sizeMin, fp.sizeMax), room);
+    const size = Math.min(at === null ? rng.int(fp.sizeMin, fp.sizeMax) : at.size, room);
     if (size < MIN_FLOCK_SPAWN) return null;
-    const homeX = placeFlock(ctx, plane, ratio);
+    const homeX = at === null ? placeFlock(ctx, plane, ratio) : at.x;
     if (homeX === null) return null;
     const id = ctx.nextFlockId();
     const spread = fp.spawnSpreadPx * ratio;
     const f = scrollFactorOf(plane);
     const members: Bird[] = [];
     for (let i = 0; i < size; i++) {
-      const creature = pick(plane, 'flock', flockRng);
+      const creature = pick(plane, 'flock', rng);
       if (creature === null) break;
       const sp = creature.speeds ?? {};
       const perTick = (v: number): number => (v * ratio) / TICKS_PER_SECOND;
@@ -260,12 +275,12 @@ export function createDirector(deps: DirectorDeps): Director {
           plane,
           scrollFactor: f,
           planeScale: scale,
-          x: homeX + flockRng.range(-spread, spread),
-          y: flockRng.range(groundY[0], groundY[1]),
-          facing: flockRng.chance(0.5) ? 1 : -1,
+          x: homeX + rng.range(-spread, spread),
+          y: rng.range(groundY[0], groundY[1]),
+          facing: rng.chance(0.5) ? 1 : -1,
           member: {
             flockId: id,
-            zigPhase: flockRng.range(0, 2 * Math.PI),
+            zigPhase: rng.range(0, 2 * Math.PI),
             walk: perTick(sp.walk ?? 0),
             run: perTick(sp.run ?? 0),
             fly: perTick(sp.fly ?? 0),
@@ -301,7 +316,7 @@ export function createDirector(deps: DirectorDeps): Director {
       calmTicks: 0,
       homeX,
       goalX: homeX,
-      goalY: flockRng.range(groundY[0], groundY[1]),
+      goalY: rng.range(groundY[0], groundY[1]),
       goalTicks: 0,
       threatX: homeX,
       dir: 1,
@@ -366,6 +381,10 @@ export function createDirector(deps: DirectorDeps): Director {
         }
       }
       return out;
+    },
+
+    spawnFlockAt(ctx, plane, x, size, rng) {
+      return buildFlock(ctx, plane, maxBirds - ctx.aliveBirds, rng, { x, size });
     },
   };
 }

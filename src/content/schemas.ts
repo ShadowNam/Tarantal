@@ -664,6 +664,8 @@ export const BiomeSchema = obj({
       modes: z.array(ModeIdSchema).min(1).optional(),
       /** Perching creatures and bosses: how long they stay (ms). */
       stayMs: range(pos).optional(),
+      /** Bosses: how far (design px at mid) they roam from their perch point. */
+      roamPx: pos.optional(),
       /** Dust devils: the plane they cross, contact radius (design px at mid) and life. */
       plane: PlaneIdSchema.optional(),
       radiusPx: pos.optional(),

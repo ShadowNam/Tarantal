@@ -1,19 +1,39 @@
 // The deterministic hunt simulation (Tech §3.1): createSim(config) → step(commands) once per
 // 1/60 s tick, snapshot() for rendering, drainEvents() for audio/FX/UI/analytics.
 //
-// Tick order: Stampede start → due world events → commands (in order) → weapon/gadget timers →
-// director spawns (fly-overs, pop-ups, flocks) → flock FSM + steering → bird movement/despawns →
-// tick++ → end check. Shots therefore resolve against the positions the player saw in the
+// Tick order: Stampede start → due world events → due crates → commands (in order) → hold-to-fire
+// → weapon/crate-weapon/power-up/gadget timers → wind → secrets → director spawns (fly-overs,
+// pop-ups, flocks) → creatures (flock FSM + steering, birds; at half rate under Boeretroos) →
+// crates fall → dust devils → tick++ → end check. Shots therefore resolve against the positions the player saw in the
 // previous snapshot. A shot resolves damage first (a bag scores at the behaviour the bird had),
 // then Whole Flock, then the threats it makes (GDD §6.1–6.4).
 import type { Biome, ContentBundle } from '../content/schemas';
-import { behaviourOf, isHittable, updateBird, viewOf, type Bird } from './birds/Bird';
-import { clampCameraX, planeCentreX } from './camera';
+import {
+  behaviourOf,
+  isHittable,
+  updateBird,
+  viewOf,
+  type Bird,
+  type BirdCreature,
+} from './birds/Bird';
+import { spookBoss, updateScripted } from './birds/scripted';
+import { clampCameraX, planeCentreX, planeToDx } from './camera';
 import { sanitiseCommand } from './commands';
 import { msToTicks, secondsToTicks } from './clock';
 import { createDirector, type DirectorContext } from './director/SpawnDirector';
-import { FLYOVER_EVENTS, scheduleWorldEvents } from './director/events';
-import type { FlockCause, SimEvent, ThreatSource } from './events';
+import {
+  FLYOVER_EVENTS,
+  scheduleWorldEvents,
+  WORLD_EVENT_HANDLERS,
+  type ScheduledEvent,
+} from './director/events';
+import {
+  buildBossBird,
+  buildDustDevil,
+  buildPerchBird,
+  type WorldDeps,
+} from './director/worldEvents';
+import type { BonusId, FlockCause, SimEvent, ThreatSource } from './events';
 import { centroid, flockParams, flockView, removeMembers, type Flock } from './flocks/Flock';
 import { applyThreat, forceState, tickFsm, type Transition } from './flocks/fsm';
 import { moveFlock } from './flocks/steering';
@@ -25,6 +45,33 @@ import {
   type ReactionEffect,
   type ReactionScope,
 } from './flocks/threats';
+import { devilContacts, dustDevilView, tickDustDevil, type DustDevil } from './omen/dustDevil';
+import { createWind, tickWind, windDriftPx, windSpeedMul, windView } from './omen/wind';
+import {
+  activate,
+  effectsOf,
+  onShellFired,
+  powerupView,
+  tickPowerups,
+  type ActivePowerup,
+} from './powerups';
+import {
+  crateView,
+  rollCrate,
+  scheduleCrates,
+  spawnCrate,
+  tickCrate,
+  type Crate,
+} from './props/crates';
+import {
+  activeParts,
+  buildSecrets,
+  hitPart,
+  partPosition,
+  secretView,
+  tickSecret,
+  type Secret,
+} from './props/secrets';
 import { createRng } from './rng';
 import { twoFliesBonus, wholeFlockBonus } from './scoring/bonuses';
 import { frenzyMul, nextStreak } from './scoring/frenzy';
@@ -32,7 +79,20 @@ import { scoreBag, scoreEventBonus } from './scoring/pipeline';
 import type { BagBehaviour, Command, HuntResult, PlaneId, SimConfig, SimState } from './types';
 import { PLANES } from './types';
 import { applyShotDamage } from './weapons/damage';
-import { buildSlices, resolvePellet, type HitBird, type ShotGeometry } from './weapons/hitTest';
+import {
+  armCrateWeapon,
+  crateWeaponSpent,
+  tickCrateWeapon,
+  tryFireCrate,
+  type CrateWeaponState,
+} from './weapons/crateWeapon';
+import {
+  buildSlices,
+  resolvePellet,
+  type HitBird,
+  type HitExtra,
+  type ShotGeometry,
+} from './weapons/hitTest';
 import { pelletOffsets } from './weapons/pellets';
 import {
   createWeaponState,
@@ -44,7 +104,7 @@ import {
   weaponTiming,
   type PrimaryWeapon,
 } from './weapons/weaponState';
-import { CAMERA_MAX_X, CAMERA_MIN_X } from './world';
+import { CAMERA_MAX_X, CAMERA_MIN_X, coreWidth } from './world';
 
 export interface Sim {
   /** Advances exactly one tick (1/60 s). A no-op once the hunt is over. */
@@ -60,6 +120,8 @@ interface HuntSetup {
   readonly biome: Biome;
   readonly weapon: PrimaryWeapon;
   readonly huntSeconds: number;
+  /** Biome weather on (mode config, else modes.json; D-021). */
+  readonly omen: boolean;
 }
 
 function resolveSetup(content: ContentBundle, config: SimConfig): HuntSetup {
@@ -89,7 +151,17 @@ function resolveSetup(content: ContentBundle, config: SimConfig): HuntSetup {
       throw new Error(`event ${event.id}: creature ${event.creature} needs speeds.fly to fly over`);
     }
   }
-  return { biome, weapon, huntSeconds };
+  return { biome, weapon, huntSeconds, omen: mode.omen ?? defaults?.omen ?? false };
+}
+
+/** The numbers a shot needs from whichever weapon is active (primary or crate weapon). */
+interface ShotStats {
+  readonly id: string;
+  readonly pellets: number;
+  readonly spreadPx: number;
+  readonly alertRadiusPx: number;
+  readonly windSensitivity: number;
+  readonly scoreMul: PrimaryWeapon['scoreMul'];
 }
 
 export function createSim(config: SimConfig): Sim {
@@ -97,9 +169,12 @@ export function createSim(config: SimConfig): Sim {
   const { scoring } = content;
   const setup = resolveSetup(content, config);
   const { biome, weapon } = setup;
-  const durationTicks = secondsToTicks(setup.huntSeconds);
+  /** Pacing and the event schedule use the hunt's original length; bonus time only moves the
+   *  end and the Stampede (D-021). */
+  const baseDurationTicks = secondsToTicks(setup.huntSeconds);
+  let durationTicks = baseDurationTicks;
   const stampedeEnabled = scoring.stampede.modes.includes(mode.id) || mode.stampede === true;
-  const stampedeAtTick = stampedeEnabled
+  let stampedeAtTick: number | null = stampedeEnabled
     ? Math.max(0, durationTicks - secondsToTicks(scoring.stampede.lastSeconds))
     : null;
 
@@ -108,6 +183,7 @@ export function createSim(config: SimConfig): Sim {
   const weaponState = createWeaponState(timing);
   const fParams = flockParams(content);
   const flockRng = rng.stream('flockNoise');
+  const omenRng = rng.stream('omen');
   const director = createDirector({
     content,
     biome,
@@ -127,11 +203,27 @@ export function createSim(config: SimConfig): Sim {
   const schedule = scheduleWorldEvents(
     biome,
     mode.id,
-    mode.omen === true,
+    setup.omen,
     durationTicks,
     rng.stream('events'),
   );
   let scheduleCursor = 0;
+  const crateCfg = content.powerups.crates;
+  const crateTicks = scheduleCrates(crateCfg, mode.id, durationTicks, rng.stream('crates'));
+  let crateCursor = 0;
+  const birdCreatures = new Map<string, BirdCreature>();
+  for (const c of content.birds.creatures) if (c.kind !== 'helper') birdCreatures.set(c.id, c);
+  const worldDeps: WorldDeps = {
+    biome,
+    planes: scoring.planes,
+    creatures: birdCreatures,
+    leaveAngle: (fParams.flushAngleRad[0] + fParams.flushAngleRad[1]) / 2,
+  };
+  const layerById = new Map(biome.layers.map((l) => [l.id, l]));
+  /** The layer each plane's birds (and crates) live on. */
+  const planeLayer = new Map<PlaneId, string>();
+  for (const l of biome.layers) if (l.plane !== undefined) planeLayer.set(l.plane, l.id);
+  const chainTicks = secondsToTicks(scoring.secretChain.withinSeconds);
 
   const geometry: ShotGeometry = {
     slices: buildSlices(biome),
@@ -160,6 +252,8 @@ export function createSim(config: SimConfig): Sim {
   let nextBirdId = 1;
   let nextShotId = 1;
   let nextFlockId = 1;
+  let nextCrateId = 1;
+  let nextDevilId = 1;
   let birds: Bird[] = [];
   /** Live flocks in id order. */
   let flocks: Flock[] = [];
@@ -167,6 +261,18 @@ export function createSim(config: SimConfig): Sim {
   // Classic number (D-020).
   let gadgetCharges = gadgetDef?.chargesPerClassicHunt ?? 0;
   let gadgetCooldown = 0;
+  const secrets: Secret[] = buildSecrets(biome);
+  let lastSecretTick: number | null = null;
+  let crates: Crate[] = [];
+  const powerups: ActivePowerup[] = [];
+  let crateWeapon: CrateWeaponState | null = null;
+  /** Held fire position (fireHoldStart … fireHoldEnd). */
+  let hold: { dx: number; sy: number } | null = null;
+  const wind =
+    setup.omen && biome.omen.wind !== undefined ? createWind(biome.omen.wind, omenRng) : null;
+  let dustDevils: DustDevil[] = [];
+  /** Creature time accumulator (Boeretroos slows creatures, GDD §10.4). */
+  let creatureClock = 0;
   let events: SimEvent[] = [];
   const stats = {
     shots: 0,
@@ -180,6 +286,8 @@ export function createSim(config: SimConfig): Sim {
     wholeFlocks: 0,
     flushes: 0,
     gadgetUses: 0,
+    secrets: 0,
+    crates: 0,
   };
 
   const emit = (e: SimEvent): void => {
@@ -187,10 +295,10 @@ export function createSim(config: SimConfig): Sim {
   };
   const stampedeActive = (): boolean => stampedeAtTick !== null && tick >= stampedeAtTick;
   const stampedeMul = (): number => (stampedeActive() ? scoring.stampede.mul : 1);
-  const weaponScoreMul = (plane: PlaneId): number =>
-    weapon.scoreMul[plane] ?? weapon.scoreMul.all ?? 1;
+  const airMul = (sign: number): number => windSpeedMul(wind, sign);
 
   emit({ type: 'huntStarted', tick: 0, durationTicks, stampedeAtTick });
+  if (wind !== null) emit({ type: 'windChanged', tick: 0, dir: wind.dir, strength: wind.strength });
 
   function directorContext(): DirectorContext {
     return {
@@ -228,7 +336,7 @@ export function createSim(config: SimConfig): Sim {
     }
   }
 
-  /** World-event and gadget reactions (GDD §6.2). Returns how many flocks it reached. */
+  /** World-event and gadget reactions (GDD §6.2). */
   function react(effect: ReactionEffect, scope: ReactionScope, cause: FlockCause): void {
     applyReaction(effect, reactionTargets(flocks, scope, cameraX, planeGeo), cause);
   }
@@ -264,15 +372,22 @@ export function createSim(config: SimConfig): Sim {
     }
   }
 
+  /** Plane x on the far side of a flock from the screen centre: forcing the flock away from it
+   *  sends it across the player's view. */
+  function towardCentre(f: Flock): number {
+    const centre = planeCentreX(cameraX, planeGeo[f.plane].scrollFactor);
+    const cx = centroid(f).x;
+    return cx + (cx >= centre ? 1 : -1);
+  }
+
   /** GDD §8 mass run/flush: the flock runs (or flushes) toward the screen centre, so the
    *  Stampede crosses the player's view instead of fleeing out of it. */
   function stampede(f: Flock): void {
     if (stampedeFlockState === null) return;
-    const centre = planeCentreX(cameraX, planeGeo[f.plane].scrollFactor);
-    const cx = centroid(f).x;
-    // The flock heads away from its threat point, so put that point on its far side.
-    const from = cx + (cx >= centre ? 1 : -1);
-    emitTransition(f, forceState(f, stampedeFlockState, from, 'stampede', fParams, flockRng));
+    emitTransition(
+      f,
+      forceState(f, stampedeFlockState, towardCentre(f), 'stampede', fParams, flockRng),
+    );
   }
 
   function spawnFlocks(): void {
@@ -312,29 +427,115 @@ export function createSim(config: SimConfig): Sim {
     }
   }
 
-  // --- shooting ----------------------------------------------------------------------------
-  function fire(dx: number, sy: number): void {
+  // --- weapons and power-ups -------------------------------------------------------------
+  function shotStats(): ShotStats {
+    const w = crateWeapon?.def ?? weapon;
+    return {
+      id: w.id,
+      pellets: w.pellets,
+      spreadPx: w.spreadPx,
+      alertRadiusPx: w.alertRadiusPx,
+      windSensitivity: w.windSensitivity,
+      scoreMul: w.scoreMul,
+    };
+  }
+
+  /** Holding fire keeps firing: a hold-to-fire crate weapon, or auto-fire on the primary. */
+  function holdFires(): boolean {
+    if (crateWeapon !== null) return crateWeapon.def.holdToFire === true;
+    return effectsOf(powerups).autoFire;
+  }
+
+  function startPowerup(id: string, source: 'crate' | 'secret'): void {
+    const def = content.powerups.powerups.find((p) => p.id === id);
+    if (def === undefined) return;
+    activate(powerups, def);
+    emit({ type: 'powerupStarted', tick, powerup: id, source });
+  }
+
+  function endPowerups(ids: readonly string[]): void {
+    for (const id of ids) emit({ type: 'powerupEnded', tick, powerup: id });
+  }
+
+  function armWeapon(id: string): void {
+    const def = content.weapons.weapons.find((w) => w.id === id);
+    if (def?.kind !== 'crate') return;
+    crateWeapon = armCrateWeapon(def);
+    hold = null;
+    emit({ type: 'weaponChanged', tick, weapon: def.id, kind: 'crate' });
+  }
+
+  /** Uses a shell (or crate-weapon shot). Returns the shells left to report, or null when the
+   *  shot doesn't go off. */
+  function pullTrigger(): number | null {
+    if (crateWeapon !== null) {
+      if (!tryFireCrate(crateWeapon)) return null;
+      return crateWeapon.shotsLeft ?? -1;
+    }
+    if (effectsOf(powerups).infiniteAmmo) {
+      // Chilli Biltong: no shells used, no reload (GDD §10.4).
+      if (weaponState.cooldownTicks > 0) return null;
+      if (isReloading(weaponState)) {
+        weaponState.reloadTicks = 0;
+        emit({ type: 'reloadInterrupted', tick, shells: weaponState.shells });
+      }
+      weaponState.cooldownTicks = timing.cooldownTicks;
+      return timing.magazine < 0 ? -1 : weaponState.shells;
+    }
     const outcome = tryFire(weaponState, timing);
-    if (outcome.kind === 'blocked') return;
+    if (outcome.kind === 'blocked') return null;
     if (outcome.kind === 'empty') {
       stats.emptyClicks++;
       emit({ type: 'emptyClick', tick });
-      return;
+      return null;
     }
     if (outcome.interrupted) {
       emit({ type: 'reloadInterrupted', tick, shells: weaponState.shells + 1 });
     }
+    return weaponState.shells;
+  }
+
+  // --- shooting ----------------------------------------------------------------------------
+  function hitExtras(): Map<string, HitExtra[]> {
+    const out = new Map<string, HitExtra[]>();
+    const add = (layerId: string, e: HitExtra): void => {
+      const list = out.get(layerId);
+      if (list === undefined) out.set(layerId, [e]);
+      else list.push(e);
+    };
+    for (const c of crates) {
+      const layerId = planeLayer.get(c.plane);
+      if (layerId === undefined) continue;
+      add(layerId, {
+        kind: 'crate',
+        crateId: c.id,
+        x: c.x,
+        y: c.y,
+        shape: { type: 'ellipse', rx: c.rx, ry: c.ry },
+      });
+    }
+    for (const s of secrets) {
+      for (const part of activeParts(s)) {
+        add(s.layerId, {
+          kind: 'secret',
+          propId: s.propId,
+          partId: part.id,
+          ...partPosition(s, part),
+          shape: part.shape,
+        });
+      }
+    }
+    return out;
+  }
+
+  function fire(dx: number, sy: number): void {
+    const shellsLeft = pullTrigger();
+    if (shellsLeft === null) return;
+    const shot = shotStats();
+    const fx = effectsOf(powerups);
     const shotId = nextShotId++;
     stats.shots++;
-    emit({
-      type: 'shotFired',
-      tick,
-      shotId,
-      weapon: weapon.id,
-      dx,
-      sy,
-      shellsLeft: weaponState.shells,
-    });
+    emit({ type: 'shotFired', tick, shotId, weapon: shot.id, dx, sy, shellsLeft });
 
     // Front-most first: higher ids are drawn on top within a plane.
     const byPlane: Record<PlaneId, HitBird[]> = { near: [], mid: [], far: [] };
@@ -352,13 +553,24 @@ export function createSim(config: SimConfig): Sim {
       });
     }
 
+    const extras = hitExtras();
+    const drift = windDriftPx(wind, shot.windSensitivity);
+    const farFactor = planeGeo.far.scrollFactor;
+    // Wind drifts far shots (Tech §3.4): the far plane and everything behind it.
+    const driftDx = (f: number): number => (f <= farFactor ? drift : 0);
     const pelletsOn = new Map<number, number>();
     const impacts: { dx: number; sy: number }[] = [];
-    for (const o of pelletOffsets(timing.pellets, timing.spreadPx, rng.stream('pellets'))) {
+    const partHits: { propId: string; partId: string }[] = [];
+    const crateHits: number[] = [];
+    for (const o of pelletOffsets(
+      shot.pellets,
+      shot.spreadPx * fx.spreadMul,
+      rng.stream('pellets'),
+    )) {
       const pdx = dx + o.ox;
       const psy = sy + o.oy;
       impacts.push({ dx: pdx, sy: psy });
-      const r = resolvePellet(pdx, psy, cameraX, geometry, byPlane);
+      const r = resolvePellet(pdx, psy, cameraX, geometry, byPlane, extras, driftDx);
       emit({
         type: 'pelletImpact',
         tick,
@@ -367,12 +579,20 @@ export function createSim(config: SimConfig): Sim {
         sy: psy,
         birdId: r.birdId,
         propId: r.propId,
+        partId: r.partId,
+        crateId: r.crateId,
       });
       if (r.birdId !== null) pelletsOn.set(r.birdId, (pelletsOn.get(r.birdId) ?? 0) + 1);
+      const { propId, partId, crateId } = r;
+      if (partId !== null && propId !== null) {
+        if (!partHits.some((h) => h.propId === propId && h.partId === partId))
+          partHits.push({ propId, partId });
+      }
+      if (crateId !== null && !crateHits.includes(crateId)) crateHits.push(crateId);
     }
 
     // Damage, in bird order (stable).
-    const damage = applyShotDamage(birds, pelletsOn, timing.pellets);
+    const damage = applyShotDamage(birds, pelletsOn, shot.pellets);
     const byId = new Map(birds.map((b) => [b.id, b]));
     const bagged: { bird: Bird; behaviour: BagBehaviour }[] = [];
     const armorBonuses: number[] = [];
@@ -384,6 +604,7 @@ export function createSim(config: SimConfig): Sim {
         if (b.creature.kind === 'boss' && b.creature.armorHitBonus !== undefined) {
           armorBonuses.push(b.creature.armorHitBonus);
         }
+        if (d.armorLeft === 0) spookBoss(b);
       } else if (d.kind === 'hit') {
         emit({ type: 'targetHit', tick, shotId, birdId: b.id, hitsLeft: d.hitsLeft });
       } else {
@@ -391,12 +612,15 @@ export function createSim(config: SimConfig): Sim {
       }
     }
     const touchedAny = damage.touched;
+    const hitThing = partHits.length > 0 || crateHits.length > 0;
 
     const targets = bagged.filter((x) => x.bird.creature.kind !== 'nonTarget');
     const nonTargets = bagged.filter((x) => x.bird.creature.kind === 'nonTarget');
 
-    // Frenzy first: this shot's bags score with the streak including this shot (D-018).
-    const newStreak = nextStreak(streak, targets.length > 0);
+    // Frenzy first: this shot's bags score with the streak including this shot (D-018). A shot
+    // that only hits a secret part or a crate leaves the streak alone (D-021).
+    const onlyThings = hitThing && bagged.length === 0;
+    const newStreak = onlyThings ? streak : nextStreak(streak, targets.length > 0);
     if (newStreak !== streak) {
       streak = newStreak;
       bestStreak = Math.max(bestStreak, streak);
@@ -428,7 +652,7 @@ export function createSim(config: SimConfig): Sim {
         {
           base: c.baseOverride ?? scoring.planes[bird.plane].base,
           behaviourAdd: scoring.behaviourAdd[behaviour],
-          weaponScoreMul: weaponScoreMul(bird.plane),
+          weaponScoreMul: shot.scoreMul[bird.plane] ?? shot.scoreMul.all ?? 1,
           frenzyMul: fMul,
           stampedeMul: stampedeMul(),
         },
@@ -492,16 +716,22 @@ export function createSim(config: SimConfig): Sim {
         awardBonus('wholeFlock', bonus);
       }
     }
+    // This shot counts against shell power-ups it had; one it picks up starts with the next.
+    endPowerups(onShellFired(powerups));
+    for (const id of crateHits) openCrate(id);
+    for (const s of secrets) {
+      for (const h of partHits) if (h.propId === s.propId) hitSecretPart(s, h.partId);
+    }
     // Threats (GDD §6.2): one per flock in range of any impact, hit or miss.
     threaten(
-      shotThreats(flocks, impacts, cameraX, weapon.alertRadiusPx, planeGeo, baggedFlockIds),
-      weapon.alertRadiusPx > 0 ? 'shot' : 'silentBag',
+      shotThreats(flocks, impacts, cameraX, shot.alertRadiusPx, planeGeo, baggedFlockIds),
+      shot.alertRadiusPx > 0 ? 'shot' : 'silentBag',
     );
     if (targets.length > 0) stats.hitShots++;
-    if (!touchedAny) emit({ type: 'miss', tick, shotId });
+    if (!touchedAny && !hitThing) emit({ type: 'miss', tick, shotId });
   }
 
-  function awardBonus(bonus: 'twoFlies' | 'armor' | 'wholeFlock', base: number): void {
+  function awardBonus(bonus: BonusId, base: number): void {
     const award = scoreEventBonus(base, {
       frenzyMul: frenzyMul(streak, scoring.frenzyTiers),
       stampedeMul: stampedeMul(),
@@ -511,6 +741,174 @@ export function createSim(config: SimConfig): Sim {
     emit({ type: 'bonusAwarded', tick, bonus, base, award });
   }
 
+  // --- crates ------------------------------------------------------------------------------
+  function dropCrate(): void {
+    const p = scoring.planes[crateCfg.plane];
+    const c = spawnCrate(
+      crateCfg,
+      biome,
+      {
+        id: nextCrateId,
+        centreX: planeCentreX(cameraX, p.scrollFactor),
+        planeScale: p.scale,
+        midScale: scoring.planes.mid.scale,
+      },
+      rng.stream('crates'),
+    );
+    if (c === null) return;
+    nextCrateId++;
+    crates.push(c);
+    emit({ type: 'crateSpawned', tick, crateId: c.id, plane: c.plane, x: c.x });
+  }
+
+  function openCrate(id: number): void {
+    const c = crates.find((x) => x.id === id);
+    if (c === undefined) return;
+    crates = crates.filter((x) => x.id !== id);
+    const item = rollCrate(crateCfg, rng.stream('crates'));
+    if (item === null) return;
+    stats.crates++;
+    emit({
+      type: 'crateOpened',
+      tick,
+      crateId: id,
+      item: item.id,
+      itemType: item.type,
+      x: c.x,
+      y: c.y,
+    });
+    if (item.type === 'weapon') armWeapon(item.id);
+    else startPowerup(item.id, 'crate');
+  }
+
+  // --- secrets -----------------------------------------------------------------------------
+  function hitSecretPart(s: Secret, partId: string): void {
+    const r = hitPart(s, partId);
+    if (r === null) return;
+    if (r.kind === 'progress') {
+      emit({ type: 'secretPartHit', tick, propId: s.propId, partId, partsLeft: r.partsLeft });
+      return;
+    }
+    triggerSecret(s, partId);
+  }
+
+  /** Pays a secret's reward (GDD §11.1), all from its JSON entry. */
+  function triggerSecret(s: Secret, partId: string): void {
+    const reward = s.reward;
+    stats.secrets++;
+    emit({ type: 'secretTriggered', tick, propId: s.propId, partId });
+    if (reward.points !== undefined) awardBonus('secret', reward.points);
+    // Secret chain (GDD §9): two secrets within withinSeconds.
+    if (lastSecretTick !== null && tick - lastSecretTick <= chainTicks) {
+      awardBonus('secretChain', scoring.secretChain.bonus);
+      lastSecretTick = null;
+    } else {
+      lastSecretTick = tick;
+    }
+    if (reward.event !== undefined) emit({ type: 'worldEvent', tick, event: reward.event });
+    const at = reward.at === undefined ? undefined : biome.props.find((p) => p.id === reward.at);
+    const atLayer = at === undefined ? undefined : layerById.get(at.layer);
+    const atX =
+      at === undefined || atLayer === undefined ? null : at.u * coreWidth(atLayer.scrollFactor);
+    if (reward.reaction !== undefined) {
+      const r = reward.reaction;
+      if (r.scope === 'area') {
+        if (at !== undefined && atLayer !== undefined && atX !== null && r.radiusPx !== undefined) {
+          react(
+            r.effect,
+            {
+              kind: 'area',
+              dx: planeToDx(cameraX, atLayer.scrollFactor, atX),
+              sy: at.y,
+              radiusMidPx: r.radiusPx,
+            },
+            'event',
+          );
+        }
+      } else {
+        react(r.effect, { kind: r.scope }, 'event');
+      }
+    }
+    if (reward.flushBirds !== undefined && atLayer?.plane !== undefined && atX !== null) {
+      const f = director.spawnFlockAt(
+        { ...directorContext(), flocks, nextFlockId: () => nextFlockId++ },
+        atLayer.plane,
+        atX,
+        reward.flushBirds,
+        rng.stream('secrets'),
+      );
+      if (f !== null) {
+        addFlocks([f]);
+        emitTransition(f, forceState(f, 'flush', towardCentre(f), 'event', fParams, flockRng));
+      }
+    }
+    if (reward.addTimeSeconds !== undefined) addTime(secondsToTicks(reward.addTimeSeconds));
+    if (reward.powerup !== undefined) startPowerup(reward.powerup, 'secret');
+  }
+
+  /** Bonus time (GDD §8): the end and a Stampede that hasn't started move later. */
+  function addTime(ticks: number): void {
+    durationTicks += ticks;
+    if (stampedeAtTick !== null && tick < stampedeAtTick) stampedeAtTick += ticks;
+    emit({ type: 'timeAdded', tick, ticks, durationTicks, stampedeAtTick });
+  }
+
+  // --- world events ------------------------------------------------------------------------
+  function runWorldEvent(ev: ScheduledEvent): void {
+    const def = biome.events[ev.index];
+    if (def === undefined) return;
+    switch (WORLD_EVENT_HANDLERS[ev.id]) {
+      case 'flyover': {
+        if (ev.creature === null) return;
+        emit({ type: 'worldEvent', tick, event: ev.id });
+        const added = director.spawnEventFlyover(
+          directorContext(),
+          ev.creature,
+          rng.stream('events'),
+        );
+        addBirds(added);
+        // Hadeda (GDD §6.2): its honking is one threat to every flock.
+        const c = added[0]?.creature;
+        if (c?.kind === 'nonTarget' && c.alertsAllFlocks === true) {
+          react('threat', { kind: 'all' }, 'event');
+        }
+        return;
+      }
+      case 'perch':
+      case 'boss': {
+        if (birds.length >= biome.pacing.maxBirdsOnScreen) return;
+        const handler = WORLD_EVENT_HANDLERS[ev.id];
+        const build = handler === 'perch' ? buildPerchBird : buildBossBird;
+        const b = build(
+          worldDeps,
+          def,
+          nextBirdId,
+          rng.stream(handler === 'perch' ? 'perch' : 'boss'),
+        );
+        if (b === null) return;
+        nextBirdId++;
+        emit({ type: 'worldEvent', tick, event: ev.id });
+        addBirds([b]);
+        return;
+      }
+      case 'dustDevil': {
+        const d = buildDustDevil(worldDeps, def, nextDevilId, cameraX, wind?.dir ?? null, omenRng);
+        if (d === null) return;
+        nextDevilId++;
+        dustDevils.push(d);
+        emit({ type: 'worldEvent', tick, event: ev.id });
+        emit({ type: 'dustDevilSpawned', tick, dustDevilId: d.id, plane: d.plane, x: d.x });
+        return;
+      }
+      // Never scheduled from the biome (content validation rejects them there).
+      case 'secretReward':
+      case 'crate':
+      case 'stampede':
+      case 'later':
+        return;
+    }
+  }
+
   function apply(raw: Command): void {
     const cmd = sanitiseCommand(raw);
     if (cmd === null) return;
@@ -518,8 +916,19 @@ export function createSim(config: SimConfig): Sim {
       case 'fire':
         fire(cmd.dx, cmd.sy);
         return;
+      case 'fireHoldStart':
+        hold = { dx: cmd.dx, sy: cmd.sy };
+        fire(cmd.dx, cmd.sy);
+        return;
+      case 'fireHoldMove':
+        if (hold !== null) hold = { dx: cmd.dx, sy: cmd.sy };
+        return;
+      case 'fireHoldEnd':
+        hold = null;
+        return;
       case 'reload':
-        if (startReload(weaponState, timing))
+        // Crate weapons reload themselves (Voorlaaier ramrod) or never (Mielie-Masjien).
+        if (crateWeapon === null && startReload(weaponState, timing))
           emit({ type: 'reloadStarted', tick, perShell: timing.perShell });
         return;
       case 'cameraTarget':
@@ -528,10 +937,7 @@ export function createSim(config: SimConfig): Sim {
       case 'gadget':
         useGadget();
         return;
-      // Hold-to-fire weapons (M8) and consumables (M6) are recorded but inert.
-      case 'fireHoldStart':
-      case 'fireHoldMove':
-      case 'fireHoldEnd':
+      // Consumables arrive with the Season Run (M6): recorded but inert.
       case 'consumable':
         return;
     }
@@ -563,6 +969,40 @@ export function createSim(config: SimConfig): Sim {
     applyReaction('flush', targets, 'gadget');
   }
 
+  /** Flocks and birds move one step (skipped every other tick under Boeretroos). */
+  function stepCreatures(): void {
+    const exitedMembers: Bird[] = [];
+    for (const f of flocks) {
+      emitTransition(f, tickFsm(f, fParams, flockRng));
+      exitedMembers.push(...moveFlock(f, fParams, flockRng, airMul));
+    }
+    if (exitedMembers.length > 0) {
+      const gone = new Set(exitedMembers.map((b) => b.id));
+      for (const b of exitedMembers)
+        emit({ type: 'birdDespawned', tick, birdId: b.id, reason: 'exited' });
+      birds = birds.filter((b) => !gone.has(b.id));
+      pruneFlocks(gone, 'exited');
+    }
+
+    const leaving: number[] = [];
+    for (const b of birds) {
+      const before = b.phase;
+      let exit = updateBird(b, airMul);
+      if (b.script !== null) exit = updateScripted(b, airMul);
+      if (b.phase === 'perch' && before !== 'perch') {
+        emit({ type: 'birdCalled', tick, birdId: b.id, creature: b.creature.id });
+      }
+      if (exit !== null) {
+        leaving.push(b.id);
+        emit({ type: 'birdDespawned', tick, birdId: b.id, reason: exit });
+      }
+    }
+    if (leaving.length > 0) {
+      const gone = new Set(leaving);
+      birds = birds.filter((b) => !gone.has(b.id));
+    }
+  }
+
   // --- the tick ----------------------------------------------------------------------------
   function step(commands: readonly Command[]): void {
     if (over) return;
@@ -579,57 +1019,68 @@ export function createSim(config: SimConfig): Sim {
     ) {
       const ev = schedule[scheduleCursor++];
       if (ev === undefined) break;
-      if (FLYOVER_EVENTS.has(ev.id) && ev.creature !== null) {
-        emit({ type: 'worldEvent', tick, event: ev.id });
-        const added = director.spawnEventFlyover(
-          directorContext(),
-          ev.creature,
-          rng.stream('events'),
-        );
-        addBirds(added);
-        // Hadeda (GDD §6.2): its honking is one threat to every flock.
-        const c = added[0]?.creature;
-        if (c?.kind === 'nonTarget' && c.alertsAllFlocks === true) {
-          react('threat', { kind: 'all' }, 'event');
-        }
-      }
+      runWorldEvent(ev);
+    }
+    while (crateCursor < crateTicks.length && (crateTicks[crateCursor] ?? Infinity) <= tick) {
+      crateCursor++;
+      dropCrate();
     }
 
     for (const cmd of commands) apply(cmd);
+    if (hold !== null && holdFires()) fire(hold.dx, hold.sy);
 
     const w = tickWeapon(weaponState, timing);
     if (w === 'shellLoaded') emit({ type: 'shellLoaded', tick, shells: weaponState.shells });
     else if (w === 'reloadFinished')
       emit({ type: 'reloadFinished', tick, shells: weaponState.shells });
+    if (crateWeapon !== null) {
+      tickCrateWeapon(crateWeapon);
+      if (crateWeaponSpent(crateWeapon)) {
+        crateWeapon = null;
+        hold = null;
+        emit({ type: 'weaponChanged', tick, weapon: weapon.id, kind: 'primary' });
+      }
+    }
+    endPowerups(tickPowerups(powerups));
     if (gadgetCooldown > 0) gadgetCooldown--;
+    if (wind !== null && tickWind(wind, omenRng)) {
+      emit({ type: 'windChanged', tick, dir: wind.dir, strength: wind.strength });
+    }
+    for (const s of secrets) {
+      const t = tickSecret(s);
+      if (t === 'reset') emit({ type: 'secretReset', tick, propId: s.propId });
+      else if (t === 'ready') emit({ type: 'secretReady', tick, propId: s.propId });
+    }
 
     addBirds(director.tick(directorContext()));
     spawnFlocks();
 
-    const exitedMembers: Bird[] = [];
-    for (const f of flocks) {
-      emitTransition(f, tickFsm(f, fParams, flockRng));
-      exitedMembers.push(...moveFlock(f, fParams, flockRng));
-    }
-    if (exitedMembers.length > 0) {
-      const gone = new Set(exitedMembers.map((b) => b.id));
-      for (const b of exitedMembers)
-        emit({ type: 'birdDespawned', tick, birdId: b.id, reason: 'exited' });
-      birds = birds.filter((b) => !gone.has(b.id));
-      pruneFlocks(gone, 'exited');
+    creatureClock += effectsOf(powerups).creatureTimeScale;
+    if (creatureClock >= 1) {
+      creatureClock -= 1;
+      stepCreatures();
     }
 
-    const leaving: number[] = [];
-    for (const b of birds) {
-      const exit = updateBird(b);
-      if (exit !== null) {
-        leaving.push(b.id);
-        emit({ type: 'birdDespawned', tick, birdId: b.id, reason: exit });
+    if (crates.length > 0) {
+      const expired = crates.filter((c) => tickCrate(c));
+      if (expired.length > 0) {
+        crates = crates.filter((c) => !expired.includes(c));
+        for (const c of expired) emit({ type: 'crateExpired', tick, crateId: c.id });
       }
     }
-    if (leaving.length > 0) {
-      const gone = new Set(leaving);
-      birds = birds.filter((b) => !gone.has(b.id));
+    if (dustDevils.length > 0) {
+      const ended: DustDevil[] = [];
+      for (const d of dustDevils) {
+        if (tickDustDevil(d)) ended.push(d);
+        // A dust devil flushes what it touches (GDD §11).
+        for (const f of devilContacts(d, flocks)) {
+          emitTransition(f, forceState(f, 'flush', d.x, 'event', fParams, flockRng));
+        }
+      }
+      if (ended.length > 0) {
+        dustDevils = dustDevils.filter((d) => !ended.includes(d));
+        for (const d of ended) emit({ type: 'dustDevilEnded', tick, dustDevilId: d.id });
+      }
     }
 
     tick++;
@@ -648,6 +1099,40 @@ export function createSim(config: SimConfig): Sim {
     return rank;
   }
 
+  function weaponView(): SimState['weapon'] {
+    const cw = crateWeapon;
+    if (cw !== null) {
+      const reloading = cw.shotsLeft !== null && cw.cooldownTicks > 0;
+      return {
+        id: cw.def.id,
+        kind: 'crate',
+        shells: cw.shotsLeft ?? -1,
+        magazine: cw.def.shots ?? -1,
+        reloading,
+        reloadProgress: reloading ? 1 - cw.cooldownTicks / cw.cooldownLength : 0,
+        cooldownTicks: cw.cooldownTicks,
+        holdToFire: cw.def.holdToFire === true,
+        infinite: cw.shotsLeft === null,
+        ticksLeft: cw.ticksLeft,
+        totalTicks: cw.totalTicks,
+      };
+    }
+    const fx = effectsOf(powerups);
+    return {
+      id: weapon.id,
+      kind: 'primary',
+      shells: timing.magazine < 0 ? -1 : weaponState.shells,
+      magazine: timing.magazine,
+      reloading: isReloading(weaponState),
+      reloadProgress: reloadProgress(weaponState, timing),
+      cooldownTicks: weaponState.cooldownTicks,
+      holdToFire: fx.autoFire,
+      infinite: fx.infiniteAmmo || timing.magazine < 0,
+      ticksLeft: null,
+      totalTicks: null,
+    };
+  }
+
   return {
     step,
     get tick() {
@@ -663,14 +1148,7 @@ export function createSim(config: SimConfig): Sim {
         streak,
         frenzyMul: frenzyMul(streak, scoring.frenzyTiers),
         stampedeActive: stampedeActive(),
-        weapon: {
-          id: weapon.id,
-          shells: timing.magazine < 0 ? -1 : weaponState.shells,
-          magazine: timing.magazine,
-          reloading: isReloading(weaponState),
-          reloadProgress: reloadProgress(weaponState, timing),
-          cooldownTicks: weaponState.cooldownTicks,
-        },
+        weapon: weaponView(),
         birds: birds.map(viewOf),
         flocks: flocks.map(flockView),
         gadget:
@@ -682,6 +1160,11 @@ export function createSim(config: SimConfig): Sim {
                 cooldownTicks: gadgetCooldown,
                 cooldownTotalTicks: gadgetCooldownTicks,
               },
+        secrets: secrets.map(secretView),
+        crates: crates.map(crateView),
+        powerups: powerups.map(powerupView),
+        wind: windView(wind),
+        dustDevils: dustDevils.map(dustDevilView),
         over,
       };
     },
@@ -712,6 +1195,8 @@ export function createSim(config: SimConfig): Sim {
         wholeFlocks: stats.wholeFlocks,
         flushes: stats.flushes,
         gadgetUses: stats.gadgetUses,
+        secrets: stats.secrets,
+        crates: stats.crates,
         rank: rankFor(score),
       };
     },

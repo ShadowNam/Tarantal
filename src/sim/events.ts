@@ -11,7 +11,7 @@ export type ThreatSource = 'shot' | 'silentBag' | 'event';
 export type FlockCause =
   'threat' | 'window' | 'timeout' | 'landed' | 'settled' | 'gadget' | 'event' | 'stampede';
 
-export type BonusId = 'twoFlies' | 'armor' | 'wholeFlock' | 'secretChain';
+export type BonusId = 'twoFlies' | 'armor' | 'wholeFlock' | 'secret' | 'secretChain';
 
 export type SimEvent =
   | {
@@ -39,6 +39,9 @@ export type SimEvent =
       /** What the pellet stopped on: a bird, an occluding prop, or nothing. */
       readonly birdId: number | null;
       readonly propId: string | null;
+      /** A secret part (with propId) or a crate the pellet stopped on. */
+      readonly partId: string | null;
+      readonly crateId: number | null;
     }
   | { readonly type: 'miss'; readonly tick: number; readonly shotId: number }
   | { readonly type: 'emptyClick'; readonly tick: number }
@@ -175,6 +178,93 @@ export type SimEvent =
       readonly reason: 'noCharges' | 'cooldown';
     }
   | { readonly type: 'worldEvent'; readonly tick: number; readonly event: WorldEventId }
+  | {
+      /** A part of a secret was hit; more parts are still needed (multi-hit). */
+      readonly type: 'secretPartHit';
+      readonly tick: number;
+      readonly propId: string;
+      readonly partId: string;
+      readonly partsLeft: number;
+    }
+  | {
+      /** A multi-hit secret's window ran out; its marks reset. */
+      readonly type: 'secretReset';
+      readonly tick: number;
+      readonly propId: string;
+    }
+  | {
+      /** A secret paid out (GDD §11.1). Its rewards follow as their own events. */
+      readonly type: 'secretTriggered';
+      readonly tick: number;
+      readonly propId: string;
+      readonly partId: string;
+    }
+  | {
+      /** A secret can be set off again (cooldown over). */
+      readonly type: 'secretReady';
+      readonly tick: number;
+      readonly propId: string;
+    }
+  | {
+      readonly type: 'timeAdded';
+      readonly tick: number;
+      readonly ticks: number;
+      readonly durationTicks: number;
+      readonly stampedeAtTick: number | null;
+    }
+  | {
+      readonly type: 'crateSpawned';
+      readonly tick: number;
+      readonly crateId: number;
+      readonly plane: PlaneId;
+      readonly x: number;
+    }
+  | {
+      readonly type: 'crateOpened';
+      readonly tick: number;
+      readonly crateId: number;
+      /** Power-up or crate-weapon id. */
+      readonly item: string;
+      readonly itemType: 'powerup' | 'weapon';
+      readonly x: number;
+      readonly y: number;
+    }
+  | { readonly type: 'crateExpired'; readonly tick: number; readonly crateId: number }
+  | {
+      readonly type: 'powerupStarted';
+      readonly tick: number;
+      readonly powerup: string;
+      readonly source: 'crate' | 'secret';
+    }
+  | { readonly type: 'powerupEnded'; readonly tick: number; readonly powerup: string }
+  | {
+      /** The active weapon changed (crate weapon picked up, or used up). */
+      readonly type: 'weaponChanged';
+      readonly tick: number;
+      readonly weapon: string;
+      readonly kind: 'primary' | 'crate';
+    }
+  | {
+      readonly type: 'windChanged';
+      readonly tick: number;
+      readonly dir: 1 | -1;
+      readonly strength: number;
+    }
+  | {
+      readonly type: 'dustDevilSpawned';
+      readonly tick: number;
+      readonly dustDevilId: number;
+      readonly plane: PlaneId;
+      readonly x: number;
+    }
+  | { readonly type: 'dustDevilEnded'; readonly tick: number; readonly dustDevilId: number }
+  | {
+      /** A perching creature landed and calls (the kwêvoël's "kwê-kwê!"). */
+      readonly type: 'birdCalled';
+      readonly tick: number;
+      readonly birdId: number;
+      readonly creature: string;
+    }
   | { readonly type: 'stampedeStarted'; readonly tick: number }
   | { readonly type: 'huntEnded'; readonly tick: number; readonly score: number };
 

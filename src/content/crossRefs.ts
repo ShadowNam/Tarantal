@@ -335,6 +335,7 @@ function checkEventShape(
       return;
     case 'bossAppearance':
       needs(c?.kind === 'boss', 'a boss creature');
+      needs(event.roamPx !== undefined, 'roamPx');
       needs(event.perchProps !== undefined, 'perchProps');
       needs(event.stayMs !== undefined, 'stayMs');
       return;

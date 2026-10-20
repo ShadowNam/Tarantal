@@ -93,7 +93,7 @@ describe('front-to-back resolution', () => {
     // At cx 960 the foreground plane's centre is 960, so dx = 288 − 960 = −672.
     const b = bird(1, 'near', 288, 980);
     const r = resolvePellet(-672, 980, CX, geometry, planes([b]));
-    expect(r).toEqual({ birdId: null, propId: 'aloe_cluster_a' });
+    expect(r).toEqual({ birdId: null, propId: 'aloe_cluster_a', partId: null, crateId: null });
   });
 
   it('a mid-plane prop blocks far birds behind it but not mid birds in front', () => {
@@ -105,6 +105,8 @@ describe('front-to-back resolution', () => {
     expect(resolvePellet(0, 690, cx, geometry, planes([far]))).toEqual({
       birdId: null,
       propId: 'bakkie',
+      partId: null,
+      crateId: null,
     });
     const mid = bird(2, 'mid', 2995.2, 690);
     expect(resolvePellet(0, 690, cx, geometry, planes([far, mid])).birdId).toBe(2);
