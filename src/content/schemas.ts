@@ -842,3 +842,54 @@ export const FeelSchema = obj({
   }),
 });
 export type Feel = z.infer<typeof FeelSchema>;
+
+// ---------------------------------------------------------------------------------------------
+// meta/notaboek.json — Oupa se Notaboek challenges (GDD §13.6). Meta progression only: outside
+// the sim ContentBundle and its contentHash (like client/feel.json), so editing a challenge
+// never invalidates a replay.
+
+/** What a challenge counts. Per-hunt values come from the game's hunt log (src/meta/huntLog.ts). */
+export const NotaboekMetricSchema = z.enum([
+  'hunts',
+  'bagged',
+  'baggedFar',
+  'wingShots',
+  'wholeFlocks',
+  'secrets',
+  'crates',
+  'score',
+  /** Different secrets found in `biome` (a full Bird Book page). */
+  'distinctSecrets',
+]);
+export type NotaboekMetric = z.infer<typeof NotaboekMetricSchema>;
+
+const notaboekRewardSchema = z.discriminatedUnion('type', [
+  /** Unlocks a primary weapon (weapons.json unlock {type: challenge} must point back here). */
+  obj({ type: z.literal('weapon'), id }),
+  /** Completes a biome's Bird Book page (a badge on the page). */
+  obj({ type: z.literal('birdBookPage'), biome: id }),
+  /** A tick in the Notaboek only. */
+  obj({ type: z.literal('none') }),
+]);
+
+export const NotaboekSchema = obj({
+  version,
+  challenges: z
+    .array(
+      obj({
+        id,
+        metric: NotaboekMetricSchema,
+        /** `total`: summed over every hunt; `hunt`: reached within one hunt. */
+        scope: z.enum(['total', 'hunt']),
+        target: posInt,
+        /** Required by distinctSecrets; otherwise counts any biome. */
+        biome: id.optional(),
+        /** Only hunts in these modes count (default: every mode). */
+        modes: z.array(z.enum(['classic', 'daily', 'seasonHunt', 'ftue'])).optional(),
+        reward: notaboekRewardSchema,
+      }),
+    )
+    .min(1),
+});
+export type Notaboek = z.infer<typeof NotaboekSchema>;
+export type NotaboekChallenge = Notaboek['challenges'][number];

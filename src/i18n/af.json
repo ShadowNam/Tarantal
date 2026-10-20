@@ -59,5 +59,13 @@
   "item.mielie_masjien": "Mielie-Masjien",
   "item.hold_hint": "Hou in om te skiet",
   "tally.secrets": "Geheime gevind",
-  "tally.crates": "Kratte oopgemaak"
+  "tally.crates": "Kratte oopgemaak",
+  "notaboek.first_hunt": "Voltooi jou eerste jag",
+  "notaboek.bag_50_far": "Skiet {n} ver voëls",
+  "notaboek.whole_flock_x3": "Skiet {n} keer die hele swerm",
+  "notaboek.wing_shots_25": "Tref {n} vlerkskote",
+  "notaboek.score_2500": "Kry {n} punte in een jag",
+  "notaboek.bag_200": "Skiet {n} voëls",
+  "notaboek.crates_5": "Maak {n} kratte oop",
+  "notaboek.karoo_secrets_all": "Vind elke Karoo-geheim"
 }

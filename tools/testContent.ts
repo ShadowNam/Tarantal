@@ -3,7 +3,9 @@ import { join } from 'node:path';
 import { parseContent } from '../src/content/bundle';
 import { contentHash } from '../src/content/hash';
 import { readContentDir } from '../src/content/loadNode';
-import type { ContentBundle } from '../src/content/schemas';
+import { readFileSync } from 'node:fs';
+import { parseNotaboek } from '../src/content/notaboek';
+import type { ContentBundle, Notaboek } from '../src/content/schemas';
 
 const root = join(import.meta.dirname, '..');
 
@@ -29,4 +31,13 @@ export function loadContent(): ContentBundle {
 /** contentHash of content/ (Tech §4). */
 export function loadContentHash(): string {
   return load().hash;
+}
+
+/** content/meta/notaboek.json, validated (meta-only, not in the bundle). */
+export function loadNotaboek(): Notaboek {
+  const r = parseNotaboek(
+    JSON.parse(readFileSync(join(root, 'content/meta/notaboek.json'), 'utf8')),
+  );
+  if (!r.ok) throw new Error(`meta/notaboek.json is invalid: ${r.errors.join('; ')}`);
+  return r.notaboek;
 }

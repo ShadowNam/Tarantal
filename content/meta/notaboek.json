@@ -1,0 +1,14 @@
+{
+  "$comment": "Oupa se Notaboek v0 (GDD §13.6): challenges, not currency. Progress is meta-only (not in the sim bundle or contentHash). Text: i18n key notaboek.<id>. ~60 challenges at v1.0; this is the M5 starter set.",
+  "version": 1,
+  "challenges": [
+    { "id": "first_hunt", "metric": "hunts", "scope": "total", "target": 1, "reward": { "type": "none" } },
+    { "id": "bag_50_far", "metric": "baggedFar", "scope": "total", "target": 50, "reward": { "type": "weapon", "id": "windbuks" } },
+    { "id": "whole_flock_x3", "metric": "wholeFlocks", "scope": "total", "target": 3, "reward": { "type": "weapon", "id": "kettie" } },
+    { "id": "wing_shots_25", "metric": "wingShots", "scope": "total", "target": 25, "reward": { "type": "none" } },
+    { "id": "score_2500", "metric": "score", "scope": "hunt", "target": 2500, "modes": ["classic", "daily"], "reward": { "type": "none" } },
+    { "id": "bag_200", "metric": "bagged", "scope": "total", "target": 200, "reward": { "type": "none" } },
+    { "id": "crates_5", "metric": "crates", "scope": "total", "target": 5, "reward": { "type": "none" } },
+    { "id": "karoo_secrets_all", "metric": "distinctSecrets", "scope": "total", "target": 4, "biome": "karoo-autumn", "reward": { "type": "birdBookPage", "biome": "karoo-autumn" } }
+  ]
+}

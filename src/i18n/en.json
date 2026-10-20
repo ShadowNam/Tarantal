@@ -63,5 +63,13 @@
   "item.mielie_masjien": "Mielie-Masjien",
   "item.hold_hint": "Hold to fire",
   "tally.secrets": "Secrets found",
-  "tally.crates": "Crates opened"
+  "tally.crates": "Crates opened",
+  "notaboek.first_hunt": "Finish your first hunt",
+  "notaboek.bag_50_far": "Bag {n} far birds",
+  "notaboek.whole_flock_x3": "Bag the whole flock {n} times",
+  "notaboek.wing_shots_25": "Land {n} wing shots",
+  "notaboek.score_2500": "Score {n} in one hunt",
+  "notaboek.bag_200": "Bag {n} birds",
+  "notaboek.crates_5": "Open {n} crates",
+  "notaboek.karoo_secrets_all": "Find every Karoo secret"
 }
