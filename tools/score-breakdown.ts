@@ -3,7 +3,7 @@
 import { createSim } from '../src/sim/Sim';
 import type { InputKind } from '../src/sim/types';
 import { BOT_KINDS, createBot, type BotKind } from './bots';
-import { withOverrides } from './balance-sim';
+import { withOverrides } from './contentOverrides';
 import { loadContent } from './testContent';
 
 function arg(name: string, fallback: string): string {
