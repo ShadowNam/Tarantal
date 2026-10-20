@@ -195,7 +195,7 @@ export function createHumanBot(
             shot = flyer;
           } else if (flock) {
             // Starting an escalation needs shells for the run, the flush and the fountain.
-            wantShells = Math.min(w.magazine, 5);
+            wantShells = w.magazine;
             shot = best(foraging) ?? null;
           } else shot = best(loose) ?? null;
         }

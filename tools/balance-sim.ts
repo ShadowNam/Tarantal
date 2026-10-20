@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url';
 import { createSim } from '../src/sim/Sim';
 import type { InputKind, ModeId } from '../src/sim/types';
 import { BOT_KINDS, createBot, type BotKind } from './bots';
+import type { ContentBundle } from '../src/content/schemas';
 import { loadContent } from './testContent';
 
 interface Job {
@@ -19,6 +20,39 @@ interface Job {
   readonly seeds: readonly number[];
   readonly input: InputKind;
   readonly mode: ModeId;
+  /** Exploratory overrides (`--set path=json`), applied to a copy of the content. */
+  readonly overrides?: readonly string[];
+}
+
+/**
+ * Applies `path=json` overrides to a content copy, e.g. `birds.flockDefaults.spawnSpreadPx=320`
+ * or `biomes.0.pacing.keyframes.*.flyoversPerMin=8` (`*` = every array element). For exploring
+ * only: values are not re-validated, and final values belong in content/ (tune skill).
+ */
+export function withOverrides(content: ContentBundle, overrides: readonly string[]): ContentBundle {
+  if (overrides.length === 0) return content;
+  const copy: unknown = structuredClone(content);
+  for (const o of overrides) {
+    const eq = o.indexOf('=');
+    if (eq < 0) throw new Error(`--set ${o}: expected path=value`);
+    const value: unknown = JSON.parse(o.slice(eq + 1));
+    setPath(copy, o.slice(0, eq).split('.'), value, o);
+  }
+  // Same shape as the validated input with plain values swapped in (not re-validated).
+  return copy as ContentBundle;
+}
+
+function setPath(node: unknown, keys: readonly string[], value: unknown, where: string): void {
+  const [k, ...rest] = keys;
+  if (k === undefined || typeof node !== 'object' || node === null)
+    throw new Error(`--set ${where}: bad path`);
+  const rec = node as Record<string, unknown>;
+  const targets = k === '*' && Array.isArray(node) ? node.map((_, i) => String(i)) : [k];
+  for (const t of targets) {
+    if (!(t in rec)) throw new Error(`--set ${where}: no key "${t}"`);
+    if (rest.length === 0) rec[t] = value;
+    else setPath(rec[t], rest, value, where);
+  }
 }
 
 /** One hunt, reduced to what the report needs. */
@@ -55,7 +89,7 @@ export interface BotSummary {
 }
 
 export function playRows(job: Job): HuntRow[] {
-  const content = loadContent();
+  const content = withOverrides(loadContent(), job.overrides ?? []);
   return job.seeds.map((seed) => {
     const sim = createSim({ seed, content, mode: { id: job.mode }, inputKind: job.input });
     const bot = createBot(job.bot, seed, content, job.input);
@@ -197,6 +231,9 @@ async function main(): Promise<void> {
   const input: InputKind = arg('input', 'pointer') === 'touch' ? 'touch' : 'pointer';
   const mode: ModeId = arg('mode', 'classic') === 'daily' ? 'daily' : 'classic';
   const workers = Math.max(1, Number(arg('workers', String(availableParallelism()))));
+  const overrides = process.argv.flatMap((a, i) =>
+    a === '--set' ? [process.argv[i + 1] ?? ''] : [],
+  );
   const started = performance.now();
 
   const all = Array.from({ length: seeds }, (_, i) => i + 1);
@@ -204,7 +241,7 @@ async function main(): Promise<void> {
   for (const bot of bots) {
     const chunk = Math.ceil(seeds / workers);
     for (let i = 0; i < all.length; i += chunk)
-      jobs.push({ bot, seeds: all.slice(i, i + chunk), input, mode });
+      jobs.push({ bot, seeds: all.slice(i, i + chunk), input, mode, overrides });
   }
   // Run at most `workers` processes at a time.
   const results: HuntRow[] = [];
@@ -227,7 +264,7 @@ async function main(): Promise<void> {
   );
   const gates = m3Gates(new Map(summaries.map((s) => [s.bot, s])));
   const seconds = (performance.now() - started) / 1000;
-  const report = { seeds, mode, input, bots, summaries, gates, seconds };
+  const report = { seeds, mode, input, bots, overrides, summaries, gates, seconds };
 
   const out = arg('out', '');
   if (out !== '') {
@@ -241,6 +278,7 @@ async function main(): Promise<void> {
   console.log(
     `Balance sim — ${mode}, ${input}, ${seeds} seeds per bot, ${workers} workers, ${seconds.toFixed(0)} s`,
   );
+  if (overrides.length > 0) console.log(`overrides: ${overrides.join('  ')}`);
   console.log(formatTable(summaries));
   for (const g of gates) console.log(`${g.pass ? 'PASS' : 'FAIL'}  ${g.name}: ${g.detail}`);
   if (gates.some((g) => !g.pass)) process.exitCode = 1;

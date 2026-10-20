@@ -3,6 +3,7 @@
 import { createSim } from '../src/sim/Sim';
 import type { InputKind } from '../src/sim/types';
 import { BOT_KINDS, createBot, type BotKind } from './bots';
+import { withOverrides } from './balance-sim';
 import { loadContent } from './testContent';
 
 function arg(name: string, fallback: string): string {
@@ -14,7 +15,10 @@ const bot: BotKind | undefined = BOT_KINDS.find((b) => b === botArg);
 if (bot === undefined) throw new Error(`--bot must be one of ${BOT_KINDS.join(', ')}`);
 const seeds = Number(arg('seeds', '20'));
 const inputKind: InputKind = arg('input', 'pointer') === 'touch' ? 'touch' : 'pointer';
-const content = loadContent();
+const overrides = process.argv.flatMap((a, i) =>
+  a === '--set' ? [process.argv[i + 1] ?? ''] : [],
+);
+const content = withOverrides(loadContent(), overrides);
 
 const sums = new Map<string, number>();
 const add = (k: string, v: number): void => {
@@ -26,11 +30,18 @@ for (let seed = 1; seed <= seeds; seed++) {
   const bagInfo = new Map<number, string>();
   let stampede = false;
   const flockBirds = new Set<number>();
+  let shotKinds = new Set<string>();
+  let lastShotKinds = '';
   while (!sim.isOver()) {
     sim.step(b.next(sim.snapshot()));
     for (const e of sim.drainEvents()) {
       if (e.type === 'stampedeStarted') stampede = true;
       if (e.type === 'birdSpawned' && e.motion === 'flock') flockBirds.add(e.birdId);
+      if (e.type === 'shotFired') shotKinds = new Set();
+      if (e.type === 'targetBagged') {
+        shotKinds.add(flockBirds.has(e.birdId) ? `flock-${e.behaviour}` : `loose-${e.plane}`);
+        lastShotKinds = [...shotKinds].sort().join('+');
+      }
       if (e.type === 'targetBagged')
         bagInfo.set(
           e.birdId,
@@ -44,10 +55,12 @@ for (let seed = 1; seed <= seeds; seed++) {
         if (stampede) add('stampede share', e.award);
       }
       if (e.type === 'bonusAwarded') {
-        add(`bonus ${e.bonus}`, e.award);
+        add(`bonus ${e.bonus}${e.bonus === 'twoFlies' ? ` (${lastShotKinds})` : ''}`, e.award);
         add('ALL', e.award);
         if (stampede) add('stampede share', e.award);
       }
+      if (e.type === 'flockStateChanged' && e.to === 'flush') add('#flushes', 1);
+      if (e.type === 'shotFired') add('#shots', 1);
       if (e.type === 'penaltyApplied') {
         add('penalties', e.points);
         add('ALL', e.points);
@@ -62,6 +75,10 @@ console.log(
 );
 for (const [k, v] of [...sums.entries()].sort((a, b) => b[1] - a[1])) {
   if (k === 'ALL' || k === 'frenzyMulSum' || k === 'bags') continue;
+  if (k.startsWith('#')) {
+    console.log(`  ${k.padEnd(28)} ${(v / seeds).toFixed(1).padStart(7)} per hunt`);
+    continue;
+  }
   console.log(
     `  ${k.padEnd(28)} ${(v / seeds).toFixed(0).padStart(7)}  ${((100 * v) / all).toFixed(1)} %`,
   );
