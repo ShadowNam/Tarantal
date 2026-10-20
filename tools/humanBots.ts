@@ -31,7 +31,7 @@ export interface HumanProfile {
 
 export const HUMAN: HumanProfile = {
   reactionTicks: 15,
-  aimSigmaPx: { pointer: 10, touch: 18 },
+  aimSigmaPx: { pointer: 10, touch: 26 },
   followUpTicks: [10, 14],
   switchTicks: [16, 26],
   panPerTick: 1600 / 60,
