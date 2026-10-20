@@ -192,6 +192,8 @@ export class HuntScene extends Phaser.Scene {
     }
     this.inputKind = kind;
     const save = this.ctx.save.data;
+    // Settings may have changed on the title (left-handed moves the gun).
+    this.relayout();
 
     // Classic plays the Skiet-Skuur loadout (if it is still equippable); the FTUE its own gun.
     const loadout = this.ctx.content.weapons.weapons.find((w) => w.id === save.loadout.weapon);

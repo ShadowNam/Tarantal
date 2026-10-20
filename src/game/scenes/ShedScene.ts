@@ -166,7 +166,7 @@ export class ShedScene extends Phaser.Scene {
     if (u.type === 'challenge') {
       const c = this.ctx.notaboek.challenges.find((x) => x.id === u.id);
       const goal = c === undefined ? u.id : fill(tOr(`notaboek.${c.id}`, c.id), { n: c.target });
-      return `🔒 ${goal}`;
+      return fill(t('shed.locked'), { goal });
     }
     return '';
   }
@@ -235,11 +235,12 @@ export class ShedScene extends Phaser.Scene {
       const y = body.y + i * rowH;
       const done = nb.done.includes(c.id);
       const progress = done ? c.target : Math.min(c.target, nb.progress[c.id] ?? 0);
+      const goalText = fill(tOr(`notaboek.${c.id}`, c.id), { n: c.target });
       const goal = this.add
         .text(
           body.x,
           y + rowH / 2,
-          `${done ? '☑' : '☐'} ${fill(tOr(`notaboek.${c.id}`, c.id), { n: c.target })}`,
+          `${done ? '☑' : '☐'} ${goalText}`,
           textStyle(30, done ? '#FFD25A' : '#F3EAD3'),
         )
         .setOrigin(0, 0.5);

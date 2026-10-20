@@ -109,6 +109,47 @@ const simRestrictedImports = {
   ],
 };
 
+// --- Player-facing text only via i18n keys (CLAUDE.md rule 6, M5) -----------------------------
+// A string or template literal with a word in it, passed to a call that puts text on screen, is
+// a hard-coded player-facing string. Guarded by tools/i18nLintGuard.test.ts.
+const WORDY = '/[A-Za-z\\u00C0-\\u024F]{2,}/';
+const MSG = 'Player-facing text must come from an i18n key: t(...) (CLAUDE.md rule 6).';
+/** [callee name pattern, argument position (1-based) that carries the text]. */
+const TEXT_ARGS = [
+  ['/^(text|bitmapText)$/', 3], // scene.add.text(x, y, TEXT, style)
+  ['/^(setText|showBanner|showCallout|pushPop|appendText)$/', 1],
+  ['/^drawButton$/', 3], // drawButton(scene, rect, LABEL, kind)
+];
+const TEXT_ATTRS = '/^(textContent|innerText|title|placeholder|ariaLabel)$/';
+const i18nSyntaxRules = [
+  ...TEXT_ARGS.flatMap(([name, pos]) => [
+    {
+      selector: `CallExpression[callee.property.name=${name}] > Literal[value=${WORDY}]:nth-child(${pos})`,
+      message: MSG,
+    },
+    {
+      selector: `CallExpression[callee.name=${name}] > Literal[value=${WORDY}]:nth-child(${pos})`,
+      message: MSG,
+    },
+    {
+      selector: `CallExpression[callee.property.name=${name}] > TemplateLiteral:nth-child(${pos}):has(TemplateElement[value.raw=${WORDY}])`,
+      message: MSG,
+    },
+  ]),
+  {
+    selector: `CallExpression[callee.name=/^(alert|confirm|prompt)$/] > Literal[value=${WORDY}]`,
+    message: MSG,
+  },
+  {
+    selector: `AssignmentExpression[left.property.name=${TEXT_ATTRS}] > Literal[value=${WORDY}]`,
+    message: MSG,
+  },
+  {
+    selector: `CallExpression[callee.property.name='setAttribute'][arguments.0.value=/^(aria-label|title|alt|placeholder)$/] > Literal[value=${WORDY}]:nth-child(2)`,
+    message: MSG,
+  },
+];
+
 export default tseslint.config(
   {
     ignores: [
@@ -164,6 +205,18 @@ export default tseslint.config(
       'no-restricted-syntax': [
         'error',
         ...simSyntaxRules.filter((r) => !r.selector.includes("object.name='Math'")),
+      ],
+    },
+  },
+  {
+    // Game, platform and debug-free UI code: no hard-coded player-facing strings.
+    files: ['src/game/**/*.ts', 'src/platform/**/*.ts', 'src/main.ts'],
+    ignores: ['**/*.test.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        { selector: 'ExportDefaultDeclaration', message: 'Named exports only.' },
+        ...i18nSyntaxRules,
       ],
     },
   },

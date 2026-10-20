@@ -116,7 +116,7 @@
   "shed.equipped": "✓ Gekies",
   "shed.equip": "Tik om te kies",
   "shed.arrives_later": "Oopgesluit · kom in 'n latere opdatering",
-  "shed.unlock_rank": "🔒 Word {rank}",
+  "shed.unlock_rank": "Gesluit · word {rank}",
   "shed.birdbook_count": "{n} van {total} gesien",
   "shed.page_complete": "★ Bladsy voltooi",
   "shed.unknown": "???",
@@ -147,5 +147,6 @@
   "tally.rank_up": "Nuwe rang: {rank}",
   "tally.ftue_done": "Oupa is trots. Nou jag ons regtig!",
   "hud.pause": "Pouse",
-  "fx.woof": "WOEF! WOEF!"
+  "fx.woof": "WOEF! WOEF!",
+  "shed.locked": "Gesluit · {goal}"
 }

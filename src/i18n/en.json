@@ -120,7 +120,7 @@
   "shed.equipped": "✓ Equipped",
   "shed.equip": "Tap to equip",
   "shed.arrives_later": "Unlocked · arrives in a later update",
-  "shed.unlock_rank": "🔒 Reach {rank}",
+  "shed.unlock_rank": "Locked · reach {rank}",
   "shed.birdbook_count": "Seen {n} of {total}",
   "shed.page_complete": "★ Page complete",
   "shed.unknown": "???",
@@ -151,5 +151,6 @@
   "tally.rank_up": "New rank: {rank}",
   "tally.ftue_done": "Oupa is proud. Now hunt for real!",
   "hud.pause": "Pause",
-  "fx.woof": "WOEF! WOEF!"
+  "fx.woof": "WOEF! WOEF!",
+  "shed.locked": "Locked · {goal}"
 }
