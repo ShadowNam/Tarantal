@@ -75,10 +75,17 @@ export async function waitTicks(page: Page, ticks: number, from?: number): Promi
 }
 
 /** Tick, shells and over in one round trip. */
-export async function quick(page: Page): Promise<{ tick: number; shells: number; over: boolean }> {
+export async function quick(
+  page: Page,
+): Promise<{ tick: number; shells: number; shots: number; over: boolean }> {
   return page.evaluate(() => {
     const h = window.__TM__;
-    return { tick: h?.tick ?? 0, shells: h?.shells ?? 0, over: h?.over ?? false };
+    return {
+      tick: h?.tick ?? 0,
+      shells: h?.shells ?? 0,
+      shots: h?.shots ?? 0,
+      over: h?.over ?? false,
+    };
   });
 }
 

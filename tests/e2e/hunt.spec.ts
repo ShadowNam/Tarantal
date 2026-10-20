@@ -24,9 +24,16 @@ import {
 async function tapAcrossScreen(page: Page, touch: boolean, count: number): Promise<void> {
   const h = await hook(page);
   for (let i = 0; i < count; i++) {
-    if ((await hook(page)).shells === 0) {
+    let q = await quick(page);
+    if (q.over) return;
+    if (q.shells === 0) {
       await reload(page, touch);
-      await page.waitForFunction(() => window.__TM__?.shells === 8);
+      await page.waitForFunction(
+        () => window.__TM__?.shells === 8 || window.__TM__?.over === true,
+        null,
+        { timeout: 120_000 },
+      );
+      q = await quick(page);
     }
     const col = i % 5;
     const row = Math.floor(i / 5) % 4;
@@ -36,7 +43,13 @@ async function tapAcrossScreen(page: Page, touch: boolean, count: number): Promi
       h.designWidth * (0.14 + col * 0.15),
       h.designHeight * (0.25 + row * 0.13),
     );
-    // Past the 140 ms fire cooldown (8.4 ticks) so every tap is a shot.
+    // Wait until this tap has become a shot, then clear the 140 ms fire cooldown (8.4 ticks)
+    // from that point, so the next tap is a shot too (harness lag can be seconds here).
+    await page.waitForFunction(
+      (n) => (window.__TM__?.shots ?? 0) > n || window.__TM__?.over === true,
+      q.shots,
+      { timeout: 120_000 },
+    );
     await waitTicks(page, 12);
   }
 }
