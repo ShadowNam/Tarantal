@@ -16,6 +16,8 @@ import { fitText, textStyle, UI } from './menu';
 const DARK_ALPHA = 0.86;
 const LIT_ALPHA = 0;
 const LIT_ALPHA_REDUCED = 0.45;
+/** A lone charm chip stays chip-sized. */
+const CHIP_MAX_W = 200;
 
 export class SeasonHud {
   private quota: number | null = null;
@@ -165,9 +167,10 @@ export class SeasonHud {
     this.chips.length = 0;
     if (ids.length === 0 || area.w <= 0) return;
     const gap = 8;
-    const w = (area.w - (ids.length - 1) * gap) / ids.length;
+    const w = Math.min(CHIP_MAX_W, (area.w - (ids.length - 1) * gap) / ids.length);
+    const x0 = area.x + (area.w - (ids.length * w + (ids.length - 1) * gap)) / 2;
     ids.forEach((id, i) => {
-      const x = area.x + i * (w + gap);
+      const x = x0 + i * (w + gap);
       const box = this.scene.add.container(x + w / 2, area.y + area.h / 2);
       const c = this.ctx.content.charms.charms.find((ch) => ch.id === id);
       const g = this.scene.add.graphics();
