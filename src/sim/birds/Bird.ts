@@ -31,6 +31,8 @@ export interface Bird {
   // pop-up
   readonly groundY: number;
   readonly hideDepth: number;
+  /** Pop-ups: body bottom while staring = the grass line they hide behind (render-only). */
+  readonly grassLine: number;
   readonly riseTicks: number;
   readonly stareTicks: number;
   readonly duckTicks: number;
@@ -93,6 +95,7 @@ export function createFlyover(s: FlyoverSpec): Bird {
     scrollFactor: s.scrollFactor,
     groundY: s.y,
     hideDepth: 0,
+    grassLine: 0,
     riseTicks: 0,
     stareTicks: 0,
     duckTicks: 0,
@@ -135,6 +138,7 @@ export function createPopup(s: PopupSpec): Bird {
     scrollFactor: 1,
     groundY: s.groundY,
     hideDepth,
+    grassLine: s.groundY + (body.oy + body.ry) * s.planeScale,
     riseTicks: s.riseTicks,
     stareTicks: s.stareTicks,
     duckTicks: s.duckTicks,
@@ -195,5 +199,6 @@ export function viewOf(b: Bird): BirdView {
     phase: b.phase,
     behaviour: behaviourOf(b),
     hittable: isHittable(b),
+    ground: b.motion === 'popup' ? b.grassLine : null,
   };
 }

@@ -29,9 +29,21 @@ jobs:
       - run: npm run size
 
   e2e:
-    name: e2e (Chromium + WebKit, desktop + Pixel 7 + iPhone 14)
+    # One job per Playwright profile, in parallel: under software-rendered WebGL a full M2 run is
+    # too slow for a single job. The longest profiles take 16-30 min depending on the runner.
+    name: e2e (${{ matrix.project }})
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { project: desktop-chromium, browser: chromium }
+          - { project: desktop-webkit, browser: webkit }
+          - { project: pixel7-landscape, browser: chromium }
+          - { project: iphone14-landscape, browser: webkit }
+          - { project: pixel7-portrait, browser: chromium }
+          - { project: iphone14-portrait, browser: webkit }
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -39,14 +51,15 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium webkit
-      - run: npm run test:e2e
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: npm run test:e2e -- --project=${{ matrix.project }}
       - name: Upload screenshots and report
         if: always()
         uses: actions/upload-artifact@v5
         with:
-          name: e2e-screenshots
+          name: e2e-${{ matrix.project }}
           path: |
             tests/e2e/__screenshots__/
             playwright-report/
+            test-results/**/perf.json
           retention-days: 14

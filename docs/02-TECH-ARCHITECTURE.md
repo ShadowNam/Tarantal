@@ -239,6 +239,10 @@ share/challenge-link boundary (M7), because it needs async platform APIs (D-018)
   cross-references (biome → creature ids, charm → trigger names, run → boss ids).
 - `contentHash` = SHA-256 of the canonicalised bundle; part of every replay, daily seed and score
   submission (only official content counts for leaderboards).
+- **Client-only feel** lives in `content/client/feel.json` (gesture thresholds, pan speeds, juice
+  timings, HUD sizes, loop step cap, particle budget). It has a Zod schema and is validated by
+  `content:validate`, but it is **not** part of the sim `ContentBundle` or `contentHash`: nothing in
+  it can change a hunt's outcome (D-019).
 - **Content packs / mods:** `mods/<id>/manifest.json` (`id`, `version`, `requiresContentHash?`,
   `adds`, `overrides`). Load order: base → official packs → user mods. v1 mods are data-only
   (new biomes from existing behaviours, new charms via the DSL, reskins). Mods mark the session
@@ -274,6 +278,14 @@ share/challenge-link boundary (M7), because it needs async platform APIs (D-018)
 - Converts device input → sim `Command`s; owns gesture recognition (tap vs drag vs flick-down) and
   pan inertia (exponential decay, max 2 400 design px/s).
 - Desktop edge-pan (outer 12 %), keyboard pan, right-click reload (suppress context menu).
+- Phaser's own input and sound managers are disabled; `InputMapper` listens to Pointer Events on
+  the canvas and keys on `window`. Gesture recognition (`gestures.ts`) and pan integration
+  (`panController.ts`, advanced once per sim tick, sends `cameraTarget` only when it changes) are
+  pure and unit-tested. A drag moves the camera so the mid plane follows the finger.
+- The hunt's `inputKind` is fixed by the pointer that taps the start card (or [Again]): mouse →
+  `pointer`, touch/pen → `touch` (aim assist).
+- The fixed-step runner (`src/game/HuntRunner.ts`) follows the wall clock (`performance.now()`),
+  not Phaser's smoothed frame delta, so a 90 s hunt lasts 90 s; hit-stop pauses its accumulator.
 - Gyro "Kyk rond": `DeviceOrientationEvent.requestPermission()` on iOS must be called from a user
   gesture over HTTPS; map yaw delta → camera target with dead-zone + smoothing; recalibrate button.
 - Haptics: `navigator.vibrate` where available (Android). iPhone Safari has no Vibration API.
@@ -374,7 +386,7 @@ secrets, penalties, durationMs), `run_end` (season reached, charms), `charm_pick
 | Content | `tools/validate-content.ts` | all schemas + cross-refs pass |
 | E2E | Playwright: desktop Chromium + WebKit, Pixel 7 & iPhone 14 landscape emulation | boot → hunt → 20 taps → tally |
 | Visual | Playwright screenshots of HUD at 16:9, 19.5:9, 4:3 | reviewed on change |
-| Perf | Headless Chrome, 4× CPU throttle, 30 s hunt | avg frame ≤ 16.7 ms on medium tier |
+| Perf | Headless Chrome, 4× CPU throttle, 30 s hunt (`tests/e2e/perf.spec.ts`) | avg frame ≤ 16.7 ms on medium tier: CPU cost per frame always; real frame time with `PERF_STRICT=1` on a GPU machine (D-019) |
 | Size | `tools/size-check.ts` | initial ≤ 5 MB compressed (hard fail at 8 MB) |
 | Sim cost | microbenchmark | `step()` ≤ 1.5 ms with 60 birds on a mid-range phone profile |
 

@@ -34,12 +34,16 @@ export default defineConfig({
   testDir: 'tests/e2e',
   outputDir: 'test-results',
   fullyParallel: true,
+  // Software-rendered WebGL (CI, sandboxes) runs the game at a few fps; give boots room.
+  timeout: 90_000,
   forbidOnly: isCI,
   retries: isCI ? 1 : 0,
   reporter: isCI ? [['list'], ['html', { open: 'never' }]] : 'list',
   use: {
     baseURL: 'http://localhost:4173',
-    trace: 'retain-on-failure',
+    // No trace screenshots: each one is a full-canvas GPU readback, which stalls software-rendered
+    // WebGL (CI, sandboxes) for long enough to distort timing tests. DOM snapshots stay on.
+    trace: { mode: 'retain-on-failure', screenshots: false },
   },
   projects: [
     profile('desktop-chromium', devices['Desktop Chrome'], 'landscape'),

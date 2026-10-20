@@ -65,6 +65,9 @@ export interface BirdView {
   readonly phase: BirdPhase;
   readonly behaviour: BagBehaviour;
   readonly hittable: boolean;
+  /** Pop-ups: the grass line (design px) they rise from, so the renderer can hide what is below
+   *  it. Null for fly-overs. Render-only: not part of any event or outcome. */
+  readonly ground: number | null;
 }
 
 export interface WeaponView {
