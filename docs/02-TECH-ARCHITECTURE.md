@@ -149,6 +149,9 @@ export interface Sim {
   accumulate across shots. Targets track `armorHits` remaining, then `hitsToBag` (default 1).
 - Each shot produces at most **one threat per flock** within the weapon's `alertRadiusPx` of any
   pellet impact (GDD §6.1–6.2); silent weapons produce a threat only for the bagged bird's own flock.
+  The radius is design px at the mid plane and scales with `plane.scale / mid.scale`; each impact
+  is projected onto the flock's plane with `tapToPlane`. A shot resolves damage first (bags score
+  at the behaviour the bird had), then Whole Flock, then its threats (`src/sim/flocks/threats.ts`).
 - Projectile weapons (Kettie): **delayed hitscan** — travel time per plane (near 80 ms, mid 180 ms,
   far 350 ms), gravity drop and wind drift applied at arrival; the target may have moved (leading
   is the skill).
@@ -156,18 +159,29 @@ export interface Sim {
   `FlockFlushed`, `SecretTriggered`, `ComboChanged`, `ScoreAwarded`, `PenaltyApplied`, …
 
 ### 3.5 Birds and flocks
-- `Flock` holds members + FSM state (`forage | alert | run | flush | settle | exit | roost`), the
-  escalation-window timer (`escalationWindowMs`, 1.5 s) and state timers. One threat inside the
-  window escalates one step; window expiry de-escalates ALERT → FORAGE (GDD §6.1).
+- `Flock` (`src/sim/flocks/`) holds members + FSM state (`forage | alert | run | flush | settle`;
+  exit is per member at the panorama edge, the flock is removed when empty; `roost` arrives with
+  the dusk biomes), the escalation-window timer (`escalationWindowMs`, 1.5 s) and state timers. One
+  threat inside the window escalates one step; window expiry de-escalates ALERT → FORAGE (GDD
+  §6.1). A late threat in RUN reopens the window without flushing. Whole Flock stays possible only
+  until the flock first calms down (ALERT → FORAGE or SETTLE) or a member exits (D-020).
 - Members steer with boids (separation, alignment, cohesion) + a flock goal + zigzag noise from
-  `rng.stream('flockNoise')`. Flight = ballistic launch (55–75°) → flap → glide → land.
+  `rng.stream('flockNoise')`; foraging birds feel the goal only beyond half the wander radius so
+  they spread out. Flight = launch after a 0–300 ms stagger at 55–75° → flap (climb levels out at
+  a cruise height in the sky lane, crossing at fly·cos θ) → glide (glide·cos θ, sinking) → land →
+  run on → SETTLE. All tunables in `birds.json → flockDefaults`.
+- World-event reactions are `threat | run | flush` over a scope `all | visible | area`
+  (`reactionTargets`); hadeda = one threat to every flock, Vuvuzela = flush the visible ones,
+  Stampede start = every flock runs (`pacing.stampede.flockState`).
 - Fly-overs and pop-ups are separate lightweight behaviours.
 - Bosses are birds with extra components (`armorHits`, `bossRule`, scripted moves).
 
 ### 3.6 Spawn director
-- Budget-based: each biome defines `pacing` keyframes (`t: 0..1 → targetBirds per plane, flockRate,
-  flyoverRate, eventWeights`). The director spawns to meet budgets, respecting min/max on screen
-  (default max 60 birds total, max 8 flocks).
+- Budget-based: each biome defines `pacing` keyframes (`t: 0..1 → flocks per plane, flyoversPerMin,
+  popupsPerMin`). Flock counts step at each keyframe (live flocks are topped up to the target);
+  rates interpolate. Max 60 birds and `maxFlocks` on screen. Hunt-start flocks forage in view;
+  later ones spawn out of view (never closer than `spawnSpacingPx` to another flock on the plane).
+  Flocks use their own stream `rng.stream('flocks')`, so they never shift fly-overs or pop-ups.
 - All windows in content (events, crates) are **fractions of hunt length** (`window: [0.2, 0.8]`).
 - The **Stampede** has one source of truth: `scoring.json → stampede.lastSeconds`. When the mode (or
   the Stampede-Kenner charm) enables it, the director switches to its surge profile at
