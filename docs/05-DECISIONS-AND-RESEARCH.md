@@ -160,6 +160,50 @@ box:* the flock e2e fires its taps from inside the page (Playwright round trips 
 software GL, longer than the escalation window); WebKit cannot open pages here, so local iPhone 14
 screenshots come from Chromium emulating the device — CI runs real WebKit.
 
+**D-021 M4 Karoo biome rules (20 Oct 2026):** decisions made while building the content-driven
+Karoo. (1) *Omen:* `modes.json → omen` per mode — Classic **off** (purist, and the balance gate is
+measured there), Daily **on** (GDD §12 "same … omen" for everyone); `ModeConfig.omen` overrides
+it (Season Run omen hunts in M6; `?omen=1/0` in dev/e2e builds). (2) *Windpomp:* all 4 marked
+blades within `windowSeconds` 8 of the first, else the marks reset. Secrets pay once per hunt
+unless their JSON has `cooldownSeconds` (the fence bell, every 30 s); single-hit secrets must say
+`oncePerHunt` or `cooldownSeconds` (schema). (3) *Bots:* plinker and competent shoot visible crates
+and the boss; only the competent bot shoots visible secret parts, and only with nothing better in
+view (it finds them all: ~6 secrets/hunt incl. 3 bells — a knowing player). (4) *Frenzy:* a shot
+that only hits a secret part or a crate neither extends nor resets the streak and is not a Miss.
+(5) *Data-driven secrets:* parts are shapes in `props[].secret` (multi-hit parts may orbit a
+`rotor`); rewards are generic (`points`, `event` label, `at` prop, `reaction {effect, scope}`,
+`flushBirds`, `addTimeSeconds`, `powerup`, `barkKey`) — the old code-specific `effect:
+allHiddenJump` became `reaction: flush/all`. No system knows a secret, prop or event by id;
+world events dispatch through `WORLD_EVENT_HANDLERS` by handler kind. Tests prove removing a
+secret (or its prop) from the JSON removes it and adding one to another prop works. (6) *Burst
+flock:* the windpomp's 12 birds burst out already flushing and can't earn Whole Flock — the bonus
+rewards escalation (D-020). Without this the competent bot wiped it 0.93×/hunt for +360 and left
+the band (4 727). (7) *Bonus time:* moves the end and a Stampede that hasn't started; pacing and
+the event schedule keep the original length. (8) *Crate weapons:* replace the primary (its belt is
+kept) until used up; Voorlaaier reloads 2.5 s after each shot; Mielie-Masjien's 10 s run from
+pickup; a new crate weapon replaces the old. Chilli Biltong = hold to auto-fire at the gun's
+cooldown, no shells used, a running reload is cancelled. Boeretroos steps birds and flocks every
+other tick (half rate, exact and deterministic; renders at 30 Hz motion for 10 s). A shell
+power-up counts the shots after the one that picked it up; picking a power-up up again refreshes
+it. (9) *Hold-to-fire input:* only while the snapshot says `weapon.holdToFire`; on touch a held
+finger aims instead of panning and the screen edges pan. (10) *Placement:* crates drop into view
+(±600 px of the centre at spawn); dust devils start in view on the upwind side; the kwêvoël flies
+in from off screen to its perch; the Generaal appears at the bakkie's perch point and roams ±320 px.
+(11) *Placeholders:* the windpomp's rotor is now the secret's own sprite (the prop art keeps a
+tail vane); the ⛔ call-out for a first sighting is per hunt until persistence (M5). (12) *New
+streams:* `secrets`, `crates`, `omen`, `perch`, `boss`. (13) *Evidence on this box:* local
+Playwright repeatedly cut turns off, so the full e2e suite (incl. the new `karoo.spec.ts`) is left
+to GitHub CI; `karoo.spec.ts` passed here on desktop, Pixel 7 and iPhone 14 (Chromium emulation)
+before that. (14) *Balance* (Classic Karoo, 500 seeds, pointer), mean / p15 / p85:
+
+| bot | pre-M4 | M4, omen off | M4, omen on |
+|---|---|---|---|
+| random | 238 / 105 / 360 | 267 / 120 / 405 | 256 / 125 / 405 |
+| plinker | 2 184 / 1 675 / 2 722 | 2 408 / 1 863 / 2 897 | 2 561 / 1 991 / 3 141 |
+| competent | 3 695 / 2 991 / 4 385 | 4 180 / 3 520 / 4 883 | 4 236 / 3 532 / 4 934 |
+
+Plinker is 42.4 % (off) / 39.5 % (on) below competent; all M3 gates pass, no content tuning needed.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

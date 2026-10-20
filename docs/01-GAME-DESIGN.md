@@ -172,7 +172,7 @@ ceiling Moorhuhn never had.
 
 ### 6.4 Whole-flock bonus
 Bag every member of a flock of ≥ 5 before it calms down after losing a bird (ALERT → FORAGE),
-SETTLES or a member EXITS →
+SETTLES or a member EXITS (a flock that bursts out as a secret's reward never qualifies, D-021) →
 **+30 per bird** (`scoring.json`; tuned in M3, D-020), slow-mo 0.3× for
 0.4 s, Oupa: "Die hele swerm!". Shown on the tally screen as a badge.
 
@@ -188,11 +188,11 @@ steady rate, so there is always something to shoot. Behaviour +1.0 (flying).
 | `tarentaal_wit` | Wit Tarentaal (white morph) | Rare target | mid/far | 100 | ~1 per hunt; drops 3 Doppies; Bird Book entry |
 | `tarentaal_lavendel` | Lavendel Tarentaal (lavender morph) | Rare target | mid/far | 75 | Real domestic colour morph; collectible |
 | `kuifkop` | Kuifkoptarentaal (crested guineafowl) | Tricky target | mid | 40 | Real related species, punk curly crest; hops erratically, hides in reeds (Okavango) |
-| `generaal` | Generaal Tarentaal | Boss (Autumn) | mid | 100 | Rusty enamel pot helmet: first hit knocks pot off (CLANG +25), second bags him |
+| `generaal` | Generaal Tarentaal | Boss (Autumn) | mid | 100 | Rusty enamel pot helmet: first hit knocks pot off (CLANG +25), second bags him. Classic/Daily: appears once at the bakkie, struts, runs once the pot is off, flies off after 10–14 s |
 | `ou_grys` | Ou Grys | Boss (Winter) | mid | 150 | Grizzled veteran with eye patch; only peeks from behind boulders |
 | `kuifkop_koning` | Kuifkop Koning | Boss (Spring) | mid | 150 | Crested king; erratic hops in reeds; 3 hits |
 | `stormvoel` | Die Stormvoël | Boss (Summer) | far→mid | 250 | Only visible in lightning flashes; giant shadow |
-| `kwevoel` | Kwêvoël (grey go-away-bird) | **Do not shoot** | mid | −35 | Lands on high branch yelling "kwê-kwê!" (go-away). Shape + ⛔ icon on first sighting |
+| `kwevoel` | Kwêvoël (grey go-away-bird) | **Do not shoot** | mid | −35 | Lands on high branch yelling "kwê-kwê!" (go-away). Shape + ⛔ icon on first sighting (Karoo: flies in to the windpomp's perch, sits 6–10 s, flies off; the ⛔ call-out shows on its first landing each hunt until persistence, M5) |
 | `hadeda` | Hadeda | Chaos event / do not shoot | far | −25 | Flies over honking — ALERTs every flock |
 | `visarend` | African fish eagle | Do not shoot (Okavango) | far | −50 | Iconic call; protected raptor |
 | `sproeier` | Oom Faan se sproeivliegtuig (crop sprayer) | Do not shoot | far | −50 | Moorhuhn's plane penalty, localised |
@@ -215,9 +215,15 @@ fact + a joke. Completing pages unlocks cosmetics. Collection is a quiet, strong
   - All event and crate windows in content are **fractions of hunt length** (0–1), so the same biome
     works for 90 s Classic and 60 s Season Run hunts.
 - **Secrets** (3–5 per biome): shootable props with puzzle-ish triggers (§11). One per biome grants
-  **bonus time** (+5 s, once per hunt).
-- **Supply crates** (Classic/Daily): parachute in twice per hunt; shoot the crate to collect a power-up
-  or temporary crate weapon.
+  **bonus time** (+5 s, once per hunt). A secret pays once per hunt unless its JSON gives it a
+  `cooldownSeconds` (then it can pay again after the cooldown). Bonus time moves the hunt's end
+  and a Stampede that hasn't started; pacing and the event schedule keep the original length.
+  Secret points are event bonuses (§5.3). A shot that only hits a secret part (or a crate) neither
+  extends nor resets Frenzy and is not a Miss (D-021). Each secret lives entirely in the biome JSON
+  (`props[].secret`): removing it there removes it from the game.
+- **Supply crates** (Classic/Daily): parachute in twice per hunt into view, land, and are gone after
+  a few seconds on the ground; shoot the crate to collect a power-up or temporary crate weapon
+  (weighted table in `powerups.json`).
 - **End of hunt → Bakkie Tally:** count-up of bagged birds by plane, accuracy, wing-shot %, whole
   flocks, secrets, penalties, final score, rank stamp, Bird Book unlocks, then **[Again]** (one tap)
   and **[Season Run]**/**[Share]**.
@@ -260,16 +266,24 @@ belt is a deliberate arcade abstraction.
 
 ### 10.3 Crate weapons (temporary, Classic/Daily crates and Season Run Padstal)
 - **Die Voorlaaier** (blunderbuss): 3 shots, giant spread covering ~30 % of the screen, thick smoke
-  0.5 s, 2.5 s ramrod reload. Flock eraser.
-- **Mielie-Masjien** (hand-cranked mealie gatling): 10 s of hold-to-fire corn-kernel spray, no reload.
+  0.5 s, 2.5 s ramrod reload after each shot. Flock eraser.
+- **Mielie-Masjien** (hand-cranked mealie gatling): 10 s (from pickup) of hold-to-fire corn-kernel
+  spray, no reload.
+- While a crate weapon is out it replaces the primary; the primary's belt is left as it was and
+  comes back when the crate weapon is used up. Picking up another crate weapon replaces it.
+- Hold-to-fire: pressing starts firing, moving aims, lifting stops. On touch a held finger aims
+  instead of panning; holding it near a screen edge pans (D-021).
 
 ### 10.4 Power-ups (crates in Classic/Daily; consumables in Season Run)
 | Id | Name | Effect | Duration |
 |---|---|---|---|
-| `chilli_biltong` | Chilli Biltong | Auto-fire, no reload, screen edges glow red | 8 s |
-| `boeretroos` | Boeretroos (enamel mug of coffee) | Birds move at 50 %; your aim/reload at 100 % | 10 s |
+| `chilli_biltong` | Chilli Biltong | Auto-fire (hold to fire), no shells used, no reload, screen edges glow red | 8 s |
+| `boeretroos` | Boeretroos (enamel mug of coffee) | Birds (and their flock timers) move at 50 %; your aim/reload at 100 % | 10 s |
 | `bush_buckshot` | Bush Buckshot | Spread ×2.5 for the next 6 shells | 6 shells |
 | `meerkat_spotter` | Meerkat Spotter | Hidden birds/secrets get glowing rings | 8 s |
+
+Picking a power-up up again refreshes it. A shell power-up counts the shots after the one that
+picked it up.
 
 ### 10.5 Parking lot (good ideas cut from launch, with reason)
 Patat-Kanon (fun, but a second "line" weapon duplicates Voorlaaier's role — strong v1.x charm or
@@ -286,6 +300,13 @@ summer thunderstorm finale.
 | # | Season | Biome | Palette & landmarks (authentic) | Omen (weather) | Gameplay twist | Boss |
 |---|---|---|---|---|---|---|
 | 1 | **Herfs** (Autumn) — MVP biome | **Karoo farm** | Golden veld, flat-topped dolerite koppies (authentic Karoo), windpomp + corrugated reservoir, rusty bakkie, wire fence, aloes, springbok far away | **Karoo wind** with dust devils | Tailwind birds rocket (+40 %), headwind birds hover; dust devils flush what they touch; far shots drift | Generaal Tarentaal |
+
+Omens are on in Season Run omen hunts and in the **Daily Hunt**; **Classic is off** (purist mode;
+`modes.json → omen`, D-021). Karoo wind: direction and strength (0.4–1.0) re-rolled every 12–20 s;
+flying birds (fly-overs and flushed flocks) go ×(1 + (1.4 − 1)·strength) with the wind and
+×(1 + (0.7 − 1)·strength) against it; pellets on the far plane (and behind it) drift downwind by
+45 px × strength × the weapon's `windSensitivity`. Dust devils cross the view downwind for 8–12 s
+and flush each flock they touch once.
 | 2 | **Winter** | **Bushveld** (Limpopo/Waterberg) | Pale blue sky, frost smoke at dawn, baobabs, mopane, granite koppies, **red aloes flowering (they bloom in winter)**, giraffe silhouettes | **Low sun glare** + morning dust | Glare zone on one side of the pan; 60 % of flocks run rather than fly; boulders occlude | Ou Grys |
 | 3 | **Lente** (Spring) | **Okavango** floodplain | Papyrus, reeds, ilala palms, jackalberry and sausage trees, water lilies, hippos, lechwe; sun-showers + rainbow | **Sun-showers** | Kuifkop hop out of reeds; shots near water splash-alert; a hippo yawn flushes nearby flocks | Kuifkop Koning |
 | 4 | **Somer** (Summer) — finale | **Kalahari** red dunes | Red dunes, camelthorn trees, **sociable-weaver mega-nests (huge haystack nests in the canopy)**, gemsbok, heat shimmer → thunderstorm | **Heat haze → Donderstorm** | Haze wobbles far targets; rain makes flocks run not fly; lightning reveals silhouettes | Die Stormvoël |
@@ -301,10 +322,10 @@ not hanging balls.
 ### 11.1 Secrets per biome (launch)
 | Biome | Secret | Trigger | Reward |
 |---|---|---|---|
-| Karoo | Windpomp | Shoot all 4 marked blades while spinning | Reservoir overflows → 12-bird flush, +100 |
-| Karoo | Bakkie spare wheel | Shoot the wheel on the tailgate | Car alarm → every hidden bird jumps, +25 |
+| Karoo | Windpomp | Shoot all 4 marked blades while spinning, within 8 s of the first (marks reset otherwise) | Reservoir overflows → 12-bird flush (no Whole Flock for that burst) + flocks near the reservoir flush, +100 |
+| Karoo | Bakkie spare wheel | Shoot the wheel on the tailgate | Car alarm → every flock, in view or not, flushes, +25 |
 | Karoo | Potjie on the fire | Shoot the lid | **+5 s bonus time** ("Kos is reg!"), once |
-| Karoo | Fence-post bell | Shoot the bell | Meerkat spotter 8 s |
+| Karoo | Fence-post bell | Shoot the bell (again after a 30 s cooldown) | Meerkat spotter 8 s |
 | Bushveld | Baobab fruit (kremetart) | Shoot a hanging pod | Falls, startles the flock below into FLUSH, +25 |
 | Bushveld | Dassie on the koppie | Shoot near (not at) it | Dassie alarm whistle: all flocks ALERT; meerkat-style reveal |
 | Bushveld | Boulder crack | 3 hits | Rolls, flushes hidden birds, +75; bonus time +5 s |
