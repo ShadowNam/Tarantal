@@ -811,6 +811,15 @@ export const FeelSchema = obj({
     /** HUD banners (wing shot, Stampede) and the "DIE HELE SWERM!" stamp. */
     bannerMs: pos,
     stampMs: pos,
+    /** M4: secret hint glints (one per ready secret every glintEveryMs, each lasting glintMs). */
+    glintEveryMs: pos,
+    glintMs: pos,
+    /** Wind leaves/dust particles per second at full strength (omen visual flags). */
+    windParticlesPerSec: nonNeg,
+    /** Voorlaaier smoke cloud scale (its length is weapons.json smokeMs). */
+    smokeScale: pos,
+    /** "⛔ don't shoot" and boss call-outs. */
+    calloutMs: pos,
   }),
   hud: obj({
     marginPx: nonNeg,
@@ -819,6 +828,9 @@ export const FeelSchema = obj({
     popStackSize: posInt,
     /** Vuvuzela button (bottom-left), a square tap target ≥ 64 design px (art bible §6). */
     gadgetPx: z.number().min(64),
+    /** Power-up / crate-weapon chips under the Frenzy meter. */
+    chipW: pos,
+    chipH: pos,
   }),
   loop: obj({
     /** Most sim steps per rendered frame (spiral-of-death guard, Tech §3.2). */

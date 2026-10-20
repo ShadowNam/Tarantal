@@ -1,18 +1,20 @@
 // In-hunt HUD (art bible §6, GDD §17): timer + Frenzy meter top-left, score + pop stack top-right,
 // shell belt + RELOAD prompt bottom-right, Vuvuzela button bottom-left. Banners (Stampede, wing
-// shot after a flush) and the "DIE HELE SWERM!" stamp. A separate scene so camera shake never
+// shot after a flush) and the "DIE HELE SWERM!" stamp. M4: power-up / crate-weapon chips with
+// their time left under the Frenzy meter, a wind sock in omen hunts, banners for secrets, crates
+// and bonus time, and call-outs for a don't-shoot creature's first sighting and the boss. A separate scene so camera shake never
 // moves it. Fed each frame by HuntScene with the latest snapshot and that frame's events.
 import * as Phaser from 'phaser';
 import type { SimEvent } from '../../sim/events';
 import type { SimState } from '../../sim/types';
 import { TICKS_PER_SECOND } from '../../sim/clock';
-import { t } from '../../i18n/i18n';
+import { fill, t, tOr } from '../../i18n/i18n';
 import { TEX } from '../assets/AssetManifest';
 import type { GameContext } from '../GameContext';
 import { FONT } from '../view/Fx';
 import { formatAward, formatClock, formatMult, formatScore, popParts } from '../ui/format';
 import type { InputKind } from '../../sim/types';
-import { hudLayout, rectContains, type HudLayout } from '../ui/hudLayout';
+import { CHIP_GAP, hudLayout, MAX_CHIPS, rectContains, type HudLayout } from '../ui/hudLayout';
 
 /** Room for "Frenzy ×1.5" left of the meter bar. */
 const FRENZY_LABEL_W = 200;
@@ -57,6 +59,13 @@ export class HudScene extends Phaser.Scene {
   /** Flocks flushed since their last wing-shot banner (GDD §16 step 5: "Wing shot ×2!"). */
   private readonly flushedFlocks = new Set<number>();
   private inputKind: InputKind = 'pointer';
+  private chipPanel!: Phaser.GameObjects.Graphics;
+  private chipTexts: Phaser.GameObjects.Text[] = [];
+  private sockPole!: Phaser.GameObjects.Graphics;
+  private sock!: Phaser.GameObjects.Image;
+  private callout!: Phaser.GameObjects.Text;
+  /** Don't-shoot creatures already called out this hunt (first sighting, GDD §7). */
+  private readonly sighted = new Set<string>();
 
   constructor(ctx: GameContext) {
     super({ key: 'Hud' });
@@ -98,6 +107,15 @@ export class HudScene extends Phaser.Scene {
       .setVisible(false);
     this.gadgetDrawn = '';
     this.flushedFlocks.clear();
+    this.sighted.clear();
+    this.chipPanel = this.add.graphics();
+    this.chipTexts = [];
+    for (let i = 0; i < MAX_CHIPS; i++) this.chipTexts.push(text(26, '#F3EAD3').setOrigin(0, 0.5));
+    this.sockPole = this.add.graphics();
+    this.sock = this.add.image(0, 0, TEX.windsock).setVisible(false);
+    const so = { x: 6 / 150, y: 0.5 };
+    this.sock.setOrigin(so.x, so.y);
+    this.callout = text(48, '#FF6B5A').setOrigin(0.5).setVisible(false);
     this.scale.on(Phaser.Scale.Events.RESIZE, this.relayout);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.scale.off(Phaser.Scale.Events.RESIZE, this.relayout);
@@ -144,6 +162,8 @@ export class HudScene extends Phaser.Scene {
         belt: l.belt,
         reloadPrompt: l.reloadPrompt,
         gadget: l.gadget,
+        chips: l.chips,
+        windsock: l.windsock,
       };
     }
     const g = this.panels;
@@ -184,6 +204,9 @@ export class HudScene extends Phaser.Scene {
     this.gadgetCharges.setPosition(gc.x + l.gadget.w * 0.3, gc.y + l.gadget.h * 0.3);
     this.gadgetKey.setPosition(gc.x + l.gadget.w * 0.34, gc.y - l.gadget.h * 0.34);
     this.gadgetShout.setPosition(l.gadget.x + l.gadget.w + 16, gc.y);
+    this.callout.setPosition(width / 2, l.safe.y + 290);
+    this.sockPole.clear();
+    this.sock.setPosition(l.windsock.x + 20, l.windsock.y + 14);
     this.gadgetDrawn = '';
     if (this.lastState) this.render(this.lastState, []);
   };
@@ -193,7 +216,38 @@ export class HudScene extends Phaser.Scene {
     const l = this.layoutNow;
     if (l === null) return;
     const now = this.time.now;
+    const banner: string[] = [];
     for (const e of events) {
+      if (e.type === 'secretTriggered') {
+        const reward = this.ctx.biome.props.find((p) => p.id === e.propId)?.secret?.reward;
+        const bark = reward?.barkKey;
+        banner.push(bark !== undefined ? tOr(bark, t('hud.secret')) : t('hud.secret'));
+      } else if (e.type === 'timeAdded') {
+        banner.unshift(fill(t('hud.time_added'), { n: Math.round(e.ticks / TICKS_PER_SECOND) }));
+      } else if (e.type === 'crateOpened') {
+        banner.push(fill(t('hud.crate'), { item: tOr(`item.${e.item}`, e.item) }));
+        if (s.weapon.holdToFire) banner.push(t('item.hold_hint'));
+      } else if (e.type === 'bonusAwarded' && e.bonus === 'secretChain') {
+        banner.push(`${t('hud.secret_chain')} ${formatAward(e.award)}`);
+      } else if (e.type === 'birdSpawned' && e.motion === 'boss') {
+        this.showCallout(
+          fill(t('hud.boss'), { name: tOr(`creature.${e.creature}`, e.creature) }),
+          '#FFD25A',
+        );
+      } else if (e.type === 'birdCalled' || e.type === 'birdSpawned') {
+        const c = this.ctx.content.birds.creatures.find((x) => x.id === e.creature);
+        const firstSighting =
+          c?.kind === 'nonTarget' && c.firstSightingBadge === true && !this.sighted.has(c.id);
+        // Perching creatures are "sighted" when they land and call, others when they appear.
+        const inSight = e.type === 'birdCalled' || c?.behaviours.includes('perchHigh') !== true;
+        if (c !== undefined && firstSighting && inSight) {
+          this.sighted.add(c.id);
+          this.showCallout(
+            fill(t('hud.no_shoot'), { name: tOr(`creature.${c.id}`, c.id) }),
+            '#FF6B5A',
+          );
+        }
+      }
       if (e.type === 'scoreAwarded')
         this.pushPop(`${popParts(e.points, e.mult)}  ${formatAward(e.award)}`, '#F3EAD3');
       else if (e.type === 'bonusAwarded') this.pushPop(formatAward(e.award), '#FFD25A');
@@ -215,7 +269,10 @@ export class HudScene extends Phaser.Scene {
       else if (e.type === 'gadgetUsed') this.shoutGadget();
       else if (e.type === 'gadgetDenied') this.shakeGadget();
     }
+    if (banner.length > 0) this.showBanner(banner.join(' · '));
     this.drawGadget(s);
+    this.drawChips(s);
+    this.drawWindsock(s);
 
     this.timer.setText(formatClock(s.ticksLeft, TICKS_PER_SECOND));
     // setColor re-renders the text texture every call, so only on change.
@@ -287,6 +344,83 @@ export class HudScene extends Phaser.Scene {
     });
   }
 
+  /** Crate weapon first, then power-ups: name plus a bar of the time (or shells) left. */
+  private drawChips(s: SimState): void {
+    const l = this.layoutNow;
+    const g = this.chipPanel;
+    g.clear();
+    if (l === null) return;
+    const { chipW, chipH } = this.ctx.feel.hud;
+    const chips: { label: string; frac: number }[] = [];
+    if (s.weapon.kind === 'crate') {
+      const w = s.weapon;
+      const frac =
+        w.ticksLeft !== null && w.totalTicks !== null
+          ? w.ticksLeft / w.totalTicks
+          : w.magazine > 0
+            ? Math.max(0, w.shells) / w.magazine
+            : 1;
+      chips.push({ label: tOr(`item.${w.id}`, w.id), frac });
+    }
+    for (const p of s.powerups) {
+      const frac =
+        p.ticksLeft !== null && p.totalTicks !== null
+          ? p.ticksLeft / p.totalTicks
+          : p.shellsLeft !== null
+            ? Math.min(1, p.shellsLeft / 6)
+            : 1;
+      const suffix = p.shellsLeft !== null ? ` ×${p.shellsLeft}` : '';
+      chips.push({ label: tOr(`item.${p.id}`, p.id) + suffix, frac });
+    }
+    this.chipTexts.forEach((txt, i) => {
+      const chip = chips[i];
+      txt.setVisible(chip !== undefined);
+      if (chip === undefined) return;
+      const y = l.chips.y + i * (chipH + CHIP_GAP);
+      g.fillStyle(C.ink, 0.85).fillRoundedRect(l.chips.x, y, chipW, chipH, 12);
+      g.fillStyle(C.gold, 1).fillRoundedRect(
+        l.chips.x + 4,
+        y + chipH - 10,
+        Math.max(0, (chipW - 8) * chip.frac),
+        6,
+        3,
+      );
+      if (txt.text !== chip.label) txt.setText(chip.label);
+      txt.setPosition(l.chips.x + 14, y + chipH / 2 - 3);
+    });
+  }
+
+  /** Omen hunts: the sock points downwind and stands out straighter in a strong wind. */
+  private drawWindsock(s: SimState): void {
+    const l = this.layoutNow;
+    const wind = s.wind;
+    const show = l !== null && wind !== null && this.ctx.biome.omen.visual?.windSock === true;
+    this.sock.setVisible(show);
+    this.sockPole.clear();
+    if (!show) return;
+    const x = l.windsock.x + 20;
+    this.sockPole.fillStyle(C.ink, 1).fillRect(x - 4, l.windsock.y + 8, 8, l.windsock.h - 8);
+    const droop = (1 - wind.strength) * 0.9;
+    const wobble = Math.sin(this.time.now / 140) * 0.06 * wind.strength;
+    this.sock
+      .setScale(wind.dir * (0.55 + 0.45 * wind.strength), 1)
+      .setRotation(wind.dir * (droop + wobble));
+  }
+
+  private showCallout(text: string, color: string): void {
+    const ms = this.ctx.feel.juice.calloutMs;
+    this.tweens.killTweensOf(this.callout);
+    this.callout.setText(text).setColor(color).setVisible(true).setAlpha(1).setScale(0.5);
+    this.tweens.add({ targets: this.callout, scale: 1, duration: 220, ease: 'Back.Out' });
+    this.tweens.add({
+      targets: this.callout,
+      alpha: 0,
+      delay: ms * 0.8,
+      duration: ms * 0.2,
+      onComplete: () => this.callout.setVisible(false),
+    });
+  }
+
   private pushPop(text: string, color: string): void {
     const pop = this.add
       .text(0, 0, text, {
@@ -305,8 +439,14 @@ export class HudScene extends Phaser.Scene {
   private showBanner(text: string): void {
     const ms = this.ctx.feel.juice.bannerMs;
     this.tweens.killTweensOf(this.banner);
-    this.banner.setText(text).setVisible(true).setScale(0.4).setAlpha(1);
-    this.tweens.add({ targets: this.banner, scale: 1, duration: 300, ease: 'Back.Out' });
+    this.banner.setText(text).setVisible(true).setScale(1).setAlpha(1);
+    // Long banners (crate + hint, bonus time + bark) shrink to fit between the HUD corners.
+    const l = this.layoutNow;
+    const room =
+      l === null ? this.banner.width : l.safe.w + 2 * l.safe.x - 2 * (l.frenzy.x + l.frenzy.w + 20);
+    const fit = Math.min(1, room / Math.max(1, this.banner.width));
+    this.banner.setScale(0.4 * fit);
+    this.tweens.add({ targets: this.banner, scale: fit, duration: 300, ease: 'Back.Out' });
     this.tweens.add({
       targets: this.banner,
       alpha: 0,

@@ -21,6 +21,10 @@ export interface HudLayout {
   readonly belt: Rect;
   readonly reloadPrompt: Rect;
   readonly gadget: Rect;
+  /** M4: power-up / crate-weapon chips stack down from here (room for MAX_CHIPS). */
+  readonly chips: Rect;
+  /** Wind sock (omen hunts), between the timer and the score. */
+  readonly windsock: Rect;
   /** Gun pivot (bottom-centre of the gun sprite). */
   readonly gun: { readonly x: number; readonly y: number };
 }
@@ -29,7 +33,13 @@ export interface HudSizing {
   readonly marginPx: number;
   readonly beltTapMinPx: number;
   readonly gadgetPx: number;
+  readonly chipW: number;
+  readonly chipH: number;
 }
+
+/** Chips shown at once (crate weapon + power-ups). */
+export const MAX_CHIPS = 3;
+export const CHIP_GAP = 10;
 
 export function hudLayout(width: number, height: number, insets: Insets, s: HudSizing): HudLayout {
   const m = s.marginPx;
@@ -53,6 +63,13 @@ export function hudLayout(width: number, height: number, insets: Insets, s: HudS
   const belt: Rect = { x: right - beltW, y: bottom - beltH, w: beltW, h: beltH };
   const reloadPrompt: Rect = { x: belt.x, y: belt.y - 90, w: belt.w, h: 76 };
   const gadget: Rect = { x: left, y: bottom - s.gadgetPx, w: s.gadgetPx, h: s.gadgetPx };
+  const chips: Rect = {
+    x: left,
+    y: frenzy.y + frenzy.h + 16,
+    w: s.chipW,
+    h: MAX_CHIPS * s.chipH + (MAX_CHIPS - 1) * CHIP_GAP,
+  };
+  const windsock: Rect = { x: timer.x + timer.w + 24, y: top + 10, w: 170, h: 76 };
   return {
     safe,
     timer,
@@ -62,6 +79,8 @@ export function hudLayout(width: number, height: number, insets: Insets, s: HudS
     belt,
     reloadPrompt,
     gadget,
+    chips,
+    windsock,
     gun: { x: safe.x + safe.w * 0.62, y: height },
   };
 }

@@ -2,8 +2,9 @@
 // in that layer's own coordinates; its x is set from the sim camera with the same formula the sim
 // uses for hit tests (camera.ts), so what you see is exactly what a pellet hits.
 //   container.x = screenCentre − planeCentreX(cx, f)
-// Inside a plane layer the order is: ground tiles → props → birds (D-018: a plane's birds stand
-// in front of its own props) → FX. The foreground layer sits on top of everything.
+// Inside a plane layer the order is: ground tiles → props → fixtures (secret rotors and marks,
+// M4) → birds (D-018: a plane's birds stand in front of its own props) → FX. The foreground layer
+// sits on top of everything.
 import * as Phaser from 'phaser';
 import type { Biome } from '../../content/schemas';
 import { planeCentreX } from '../../sim/camera';
@@ -16,6 +17,8 @@ export interface LayerNode {
   readonly scrollFactor: number;
   readonly plane: PlaneId | null;
   readonly root: Phaser.GameObjects.Container;
+  /** Every layer: things on its props (secret rotors, marks, glints), above props, below birds. */
+  readonly fixtures: Phaser.GameObjects.Container;
   /** Plane layers only: birds (drawn in id order), then overlays above them. */
   readonly birds: Phaser.GameObjects.Container | null;
   readonly overlay: Phaser.GameObjects.Container | null;
@@ -53,6 +56,8 @@ export class ParallaxView {
             .setOrigin(o.x, o.y),
         );
       }
+      const fixtures = scene.add.container(0, 0);
+      root.add(fixtures);
       const plane = layer.plane ?? null;
       let birds: Phaser.GameObjects.Container | null = null;
       let overlay: Phaser.GameObjects.Container | null = null;
@@ -66,6 +71,7 @@ export class ParallaxView {
         scrollFactor: layer.scrollFactor,
         plane,
         root,
+        fixtures,
         birds,
         overlay,
       };
@@ -84,6 +90,11 @@ export class ParallaxView {
   /** Positions every layer for camera centre cx on a screen `width` design px wide. */
   update(cx: number, width: number): void {
     for (const l of this.layers) l.root.x = width / 2 - planeCentreX(cx, l.scrollFactor);
+  }
+
+  /** A layer by id (secrets live on any layer). */
+  layer(id: string): LayerNode | undefined {
+    return this.layers.find((l) => l.id === id);
   }
 
   /** Screen x (design px) of a point at layer x on plane p. */

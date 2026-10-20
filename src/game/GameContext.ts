@@ -50,6 +50,15 @@ export interface TestHook {
   rects: Record<string, Rect>;
   /** Safe area in design px when the HUD was laid out. */
   safe: Rect | null;
+  /** M4: shootable secret parts, crates and scripted birds in design px of the screen. */
+  secretSpots: { propId: string; partId: string; x: number; y: number; ready: boolean }[];
+  crateSpots: { id: number; x: number; y: number }[];
+  specialBirds: { id: number; creature: string; phase: string; x: number; y: number }[];
+  /** Active weapon id, power-up ids, wind (omen) and hunt length (bonus time grows it). */
+  weapon: string;
+  powerups: string[];
+  wind: { dir: number; strength: number } | null;
+  durationTicks: number;
 }
 
 export interface GameContext {
@@ -65,6 +74,8 @@ export interface GameContext {
   nextSeed(): number;
   /** e2e/dev only: shorter hunts. Undefined = the mode's length. */
   readonly huntSeconds: number | undefined;
+  /** e2e/dev only: ?omen=1 / ?omen=0 overrides the mode's omen. */
+  readonly omen: boolean | undefined;
   /** Device hint before the first touch: coarse pointer → touch hints on the start card. */
   readonly coarsePointer: boolean;
   readonly reducedMotion: boolean;

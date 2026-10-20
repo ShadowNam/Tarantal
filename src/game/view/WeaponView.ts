@@ -3,7 +3,7 @@
 // On touch the gun shrinks to 60 % and fades to 40 % while a finger is down.
 import * as Phaser from 'phaser';
 import type { Feel } from '../../content/schemas';
-import { TEX } from '../assets/AssetManifest';
+import { gunKey, TEX } from '../assets/AssetManifest';
 
 const GUN_TEX_HEIGHT = 520;
 const BARREL_LEN = 500;
@@ -14,6 +14,7 @@ export class WeaponView {
   private readonly gun: Phaser.GameObjects.Image;
   private readonly flash: Phaser.GameObjects.Image;
   private readonly reticle: Phaser.GameObjects.Image;
+  private readonly layer: Phaser.GameObjects.Container;
   private baseX = 0;
   private baseY = 0;
   private kick = 0;
@@ -30,6 +31,36 @@ export class WeaponView {
     this.flash = scene.add.image(0, 0, TEX.flash).setVisible(false);
     this.reticle = scene.add.image(0, 0, TEX.reticle).setVisible(false);
     layer.add([this.flash, this.gun, this.reticle]);
+    this.layer = layer;
+  }
+
+  /** Shows the active weapon's art (crate weapons have their own; others the shotgun). */
+  setWeapon(weaponId: string): void {
+    const key = this.scene.textures.exists(gunKey(weaponId)) ? gunKey(weaponId) : TEX.gun;
+    if (this.gun.texture.key !== key) this.gun.setTexture(key);
+  }
+
+  /** Thick black-powder smoke at the muzzle (Voorlaaier, weapons.json smokeMs). */
+  smoke(ms: number, scale: number): void {
+    const { x, y } = this.barrelTip();
+    for (let k = 0; k < 3; k++) {
+      const puff = this.scene.add
+        .image(x + (k - 1) * 40, y - k * 20, TEX.smoke)
+        .setScale(scale * 0.4)
+        .setAlpha(0.9);
+      this.layer.add(puff);
+      this.scene.tweens.add({
+        targets: puff,
+        scale: scale,
+        y: puff.y - 80,
+        alpha: 0,
+        duration: ms + k * 120,
+        ease: 'Cubic.Out',
+        onComplete: () => {
+          puff.destroy();
+        },
+      });
+    }
   }
 
   layout(gunX: number, gunY: number): void {
