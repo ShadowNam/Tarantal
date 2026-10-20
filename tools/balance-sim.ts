@@ -3,7 +3,9 @@
 // Hunts run in parallel worker processes (one per core) so 500 seeds × 3 bots stays short.
 //
 // Usage: npx tsx tools/balance-sim.ts [--seeds 500] [--bots random,plinker,competent]
-//          [--input pointer|touch] [--mode classic|daily] [--workers N] [--out tmp/x.json] [--json]
+//          [--input pointer|touch] [--mode classic|daily] [--omen on|off] [--workers N]
+//          [--out tmp/x.json] [--json]
+// --omen overrides the mode's omen (modes.json: Classic off, Daily on).
 import { fork } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { availableParallelism } from 'node:os';
@@ -20,6 +22,8 @@ interface Job {
   readonly seeds: readonly number[];
   readonly input: InputKind;
   readonly mode: ModeId;
+  /** Overrides the mode's omen (biome weather). */
+  readonly omen?: boolean | undefined;
   /** Exploratory overrides (`--set path=json`), applied to a copy of the content. */
   readonly overrides?: readonly string[];
 }
@@ -67,6 +71,9 @@ export interface HuntRow {
   readonly twoFlies: number;
   readonly shots: number;
   readonly accuracy: number;
+  readonly secrets: number;
+  readonly crates: number;
+  readonly penalties: number;
 }
 
 export interface BotSummary {
@@ -86,12 +93,20 @@ export interface BotSummary {
   readonly flushesPerHunt: number;
   readonly twoFliesPerHunt: number;
   readonly accuracy: number;
+  readonly secretsPerHunt: number;
+  readonly cratesPerHunt: number;
+  readonly penaltiesPerHunt: number;
 }
 
 export function playRows(job: Job): HuntRow[] {
   const content = withOverrides(loadContent(), job.overrides ?? []);
   return job.seeds.map((seed) => {
-    const sim = createSim({ seed, content, mode: { id: job.mode }, inputKind: job.input });
+    const sim = createSim({
+      seed,
+      content,
+      mode: job.omen === undefined ? { id: job.mode } : { id: job.mode, omen: job.omen },
+      inputKind: job.input,
+    });
     const bot = createBot(job.bot, seed, content, job.input);
     while (!sim.isOver()) {
       sim.step(bot.next(sim.snapshot()));
@@ -109,6 +124,9 @@ export function playRows(job: Job): HuntRow[] {
       twoFlies: r.twoFlies,
       shots: r.shots,
       accuracy: r.accuracy,
+      secrets: r.secrets,
+      crates: r.crates,
+      penalties: r.penalties,
     };
   });
 }
@@ -139,6 +157,9 @@ export function summarise(bot: BotKind, rows: readonly HuntRow[]): BotSummary {
     flushesPerHunt: sum((r) => r.flushes) / n,
     twoFliesPerHunt: sum((r) => r.twoFlies) / n,
     accuracy: sum((r) => r.accuracy) / n,
+    secretsPerHunt: sum((r) => r.secrets) / n,
+    cratesPerHunt: sum((r) => r.crates) / n,
+    penaltiesPerHunt: sum((r) => r.penalties) / n,
   };
 }
 
@@ -185,11 +206,11 @@ function fmt(n: number): string {
 
 export function formatTable(rows: readonly BotSummary[]): string {
   const head =
-    '| bot | hunts | mean | p15 | p25 | p50 | p75 | p85 | wing-shot share | whole flocks / hunt | hunts with ≥1 | flushes / hunt | Twee Vlieë / hunt | accuracy |';
-  const sep = '|' + '---|'.repeat(14);
+    '| bot | hunts | mean | p15 | p25 | p50 | p75 | p85 | wing-shot share | whole flocks / hunt | hunts with ≥1 | flushes / hunt | Twee Vlieë / hunt | accuracy | secrets / hunt | crates / hunt | penalties / hunt |';
+  const sep = '|' + '---|'.repeat(17);
   const lines = rows.map(
     (s) =>
-      `| ${s.bot} | ${s.hunts} | ${fmt(s.mean)} | ${fmt(s.p15)} | ${fmt(s.p25)} | ${fmt(s.p50)} | ${fmt(s.p75)} | ${fmt(s.p85)} | ${(s.wingShotShare * 100).toFixed(1)} % | ${s.wholeFlocksPerHunt.toFixed(2)} | ${(s.wholeFlockHuntRate * 100).toFixed(0)} % | ${s.flushesPerHunt.toFixed(1)} | ${s.twoFliesPerHunt.toFixed(1)} | ${(s.accuracy * 100).toFixed(0)} % |`,
+      `| ${s.bot} | ${s.hunts} | ${fmt(s.mean)} | ${fmt(s.p15)} | ${fmt(s.p25)} | ${fmt(s.p50)} | ${fmt(s.p75)} | ${fmt(s.p85)} | ${(s.wingShotShare * 100).toFixed(1)} % | ${s.wholeFlocksPerHunt.toFixed(2)} | ${(s.wholeFlockHuntRate * 100).toFixed(0)} % | ${s.flushesPerHunt.toFixed(1)} | ${s.twoFliesPerHunt.toFixed(1)} | ${(s.accuracy * 100).toFixed(0)} % | ${s.secretsPerHunt.toFixed(2)} | ${s.cratesPerHunt.toFixed(2)} | ${s.penaltiesPerHunt.toFixed(2)} |`,
   );
   return [head, sep, ...lines].join('\n');
 }
@@ -230,6 +251,8 @@ async function main(): Promise<void> {
     });
   const input: InputKind = arg('input', 'pointer') === 'touch' ? 'touch' : 'pointer';
   const mode: ModeId = arg('mode', 'classic') === 'daily' ? 'daily' : 'classic';
+  const omenArg = arg('omen', '');
+  const omen = omenArg === 'on' ? true : omenArg === 'off' ? false : undefined;
   const workers = Math.max(1, Number(arg('workers', String(availableParallelism()))));
   const overrides = process.argv.flatMap((a, i) =>
     a === '--set' ? [process.argv[i + 1] ?? ''] : [],
@@ -241,7 +264,7 @@ async function main(): Promise<void> {
   for (const bot of bots) {
     const chunk = Math.ceil(seeds / workers);
     for (let i = 0; i < all.length; i += chunk)
-      jobs.push({ bot, seeds: all.slice(i, i + chunk), input, mode, overrides });
+      jobs.push({ bot, seeds: all.slice(i, i + chunk), input, mode, omen, overrides });
   }
   // Run at most `workers` processes at a time.
   const results: HuntRow[] = [];
@@ -264,7 +287,7 @@ async function main(): Promise<void> {
   );
   const gates = m3Gates(new Map(summaries.map((s) => [s.bot, s])));
   const seconds = (performance.now() - started) / 1000;
-  const report = { seeds, mode, input, bots, overrides, summaries, gates, seconds };
+  const report = { seeds, mode, omen, input, bots, overrides, summaries, gates, seconds };
 
   const out = arg('out', '');
   if (out !== '') {
@@ -276,7 +299,7 @@ async function main(): Promise<void> {
     return;
   }
   console.log(
-    `Balance sim — ${mode}, ${input}, ${seeds} seeds per bot, ${workers} workers, ${seconds.toFixed(0)} s`,
+    `Balance sim — ${mode}${omen === undefined ? '' : `, omen ${omen ? 'on' : 'off'}`}, ${input}, ${seeds} seeds per bot, ${workers} workers, ${seconds.toFixed(0)} s`,
   );
   if (overrides.length > 0) console.log(`overrides: ${overrides.join('  ')}`);
   console.log(formatTable(summaries));

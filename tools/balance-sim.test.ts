@@ -12,6 +12,9 @@ const row = (bot: HuntRow['bot'], score: number, extra: Partial<HuntRow> = {}): 
   twoFlies: 0,
   shots: 20,
   accuracy: 0.5,
+  secrets: 0,
+  crates: 0,
+  penalties: 0,
   ...extra,
 });
 

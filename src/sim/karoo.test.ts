@@ -176,6 +176,8 @@ describe('secrets (GDD §11.1)', () => {
     // Bursts out at the reservoir (u 0.26 on the mid layer) and goes straight to FLUSH.
     expect(Math.abs((spawned[0]?.x ?? 0) - 0.26 * 3840)).toBeLessThan(200);
     expect(ofType(all, 'flockStateChanged')).toMatchObject([{ to: 'flush', cause: 'event' }]);
+    // The burst is the reward: it can't also earn Whole Flock (D-021).
+    expect(sim.snapshot().flocks.find((f) => f.id === spawned[0]?.flockId)?.eligible).toBe(false);
     expect(ofType(all, 'miss')).toEqual([]);
     expect(secretOf(sim, 'windpomp')).toMatchObject({ done: true, ready: false });
     expect(sim.result().secrets).toBe(1);

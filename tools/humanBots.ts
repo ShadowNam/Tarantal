@@ -6,6 +6,8 @@
 //     what the finger loses, so touch scores stay close to pointer scores;
 //   - panning at keyboard pan speed (no instant camera jumps) and a human shot cadence.
 // Bots read only snapshot() (what the screen shows), never sim internals.
+// M4 (D-021): both styles shoot supply crates and the boss when they see them; only the competent
+// bot shoots visible secret parts, and only when nothing better is in view.
 import type { ContentBundle } from '../src/content/schemas';
 import { planeToDx } from '../src/sim/camera';
 import { createStream, fnv1a32, type RandomStream } from '../src/sim/rng';
@@ -70,6 +72,9 @@ export function createHumanBot(
   let lastAim: { dx: number; sy: number } | null = null;
   let camGoal: number | null = null;
   const sigma = profile.aimSigmaPx[inputKind];
+  const layerFactor = new Map(
+    content.biomes.flatMap((b) => b.layers.map((l) => [l.id, l.scrollFactor] as const)),
+  );
 
   const gauss = (r: RandomStream): number => {
     // Box–Muller (tools may use Math; the sim never sees this).
@@ -156,6 +161,40 @@ export function createHumanBot(
       const flockOf = (a: Aim): FlockView | undefined =>
         a.bird.flockId === null ? undefined : flocks.get(a.bird.flockId);
 
+      const inView = (p: { dx: number; sy: number }): boolean =>
+        Math.abs(p.dx) < profile.viewHalfWidth && p.sy > 0 && p.sy < 1080 && safe(p);
+      // Crates fall slowly: lead them like birds.
+      const crates = seen.crates
+        .map((c) => {
+          const prev = seenBefore?.crates.find((x) => x.id === c.id);
+          const f = planes[c.plane].scrollFactor;
+          return {
+            dx: planeToDx(cx, f, c.x),
+            sy: c.y + (prev === undefined ? 0 : c.y - prev.y) * lag,
+          };
+        })
+        .filter(inView);
+      const bosses = targets.filter((a) => a.bird.kind === 'boss');
+      // Secret parts (some turn on a rotor): lead them from their last movement too.
+      const secretParts =
+        style !== 'competent'
+          ? []
+          : seen.secrets
+              .filter((sec) => sec.ready)
+              .flatMap((sec) => {
+                const f = layerFactor.get(sec.layerId) ?? 1;
+                const prev = seenBefore?.secrets.find((x) => x.propId === sec.propId);
+                return sec.parts
+                  .filter((part) => !part.hit)
+                  .map((part) => {
+                    const old = prev?.parts.find((x) => x.id === part.id);
+                    const vx = old === undefined ? 0 : part.x - old.x;
+                    const vy = old === undefined ? 0 : part.y - old.y;
+                    return { dx: planeToDx(cx, f, part.x + vx * lag), sy: part.y + vy * lag };
+                  });
+              })
+              .filter(inView);
+
       const flushed = targets.filter((a) => flockOf(a)?.state === 'flush');
       const loose = targets.filter((a) => a.bird.flockId === null);
       const grounded = (state: FlockView['state']): Aim[] =>
@@ -172,7 +211,11 @@ export function createHumanBot(
       if (style === 'competent') {
         const escalating = [...grounded('run'), ...grounded('alert')];
         const foraging = [...grounded('forage'), ...grounded('settle')];
-        if (flushed.length > 0) {
+        if (flushed.length === 0 && bosses.length > 0) {
+          shot = best(bosses) ?? null;
+        } else if (flushed.length === 0 && crates[0] !== undefined) {
+          shot = crates[0];
+        } else if (flushed.length > 0) {
           const pick = flushed
             .map((a) => ({ a, c: clusterAim(a, flushed) }))
             .sort((x, y) => y.c.n - x.c.n || valueOf(y.a.bird) - valueOf(x.a.bird))[0];
@@ -197,13 +240,13 @@ export function createHumanBot(
             // Starting an escalation needs shells for the run, the flush and the fountain.
             wantShells = w.magazine;
             shot = best(foraging) ?? null;
-          } else shot = best(loose) ?? null;
+          } else shot = best(loose) ?? secretParts[0] ?? null;
         }
       } else {
         // Plinker: never escalates on purpose — only foraging flocks, waiting out every alert.
         const foraging = grounded('forage');
         const flyer = best([...loose, ...flushed].filter((a) => a.bird.behaviour === 'flying'));
-        shot = flyer ?? best(foraging) ?? best(loose) ?? null;
+        shot = best(bosses) ?? crates[0] ?? flyer ?? best(foraging) ?? best(loose) ?? null;
       }
 
       if (w.shells === 0 && !w.reloading) return [...out, { t: 'reload' }];

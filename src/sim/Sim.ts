@@ -838,6 +838,8 @@ export function createSim(config: SimConfig): Sim {
         rng.stream('secrets'),
       );
       if (f !== null) {
+        // A burst is the secret's reward, not an escalation: no Whole Flock for it (D-021).
+        f.eligible = false;
         addFlocks([f]);
         emitTransition(f, forceState(f, 'flush', towardCentre(f), 'event', fParams, flockRng));
       }
