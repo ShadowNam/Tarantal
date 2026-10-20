@@ -219,6 +219,7 @@ export class HuntScene extends Phaser.Scene {
       {
         designSize: () => this.scale.gameSize,
         isOnBelt: (x, y) => hud.isOnBelt(x, y),
+        isOnGadget: (x, y) => hud.isOnGadget(x, y),
         queue: (cmd) => this.runner?.queue(cmd),
         aim: (x, y, fromTap) => {
           this.weapon.aim(x, y, fromTap || this.inputKind === 'pointer');
@@ -249,6 +250,7 @@ export class HuntScene extends Phaser.Scene {
       perTick: () => mapper.perTick(),
     });
     this.weapon.setTouchMode(kind === 'touch');
+    hud.setInputKind(kind);
     this.game.canvas.style.cursor = kind === 'pointer' ? 'none' : '';
 
     const hook = this.ctx.hook;
@@ -258,6 +260,7 @@ export class HuntScene extends Phaser.Scene {
       hook.result = null;
       hook.replay = null;
       hook.over = false;
+      hook.flockLog = [];
       hook.hunts++;
     }
   }
@@ -299,13 +302,13 @@ export class HuntScene extends Phaser.Scene {
     const drawBirds = interpolateBirds(runner.prev, state, alpha);
     this.birds.update(drawBirds, state.tick);
     const safe = this.ctx.safeArea();
-    // Bottom-left, clear of the HUD (timer/Frenzy top-left, belt bottom-right).
+    // Bottom-left, right of the gadget button (timer/Frenzy top-left, belt bottom-right).
     this.debug.update(
       state,
       drawBirds,
       this.inputKind,
-      safe.left + 20,
-      this.scale.gameSize.height - safe.bottom - 60,
+      safe.left + 40 + this.ctx.feel.hud.gadgetPx + this.ctx.feel.hud.marginPx,
+      this.scale.gameSize.height - safe.bottom - 90,
     );
     const hud = this.scene.get('Hud') as HudScene;
     if (hud.sys.isActive()) hud.render(state, events);
@@ -317,6 +320,15 @@ export class HuntScene extends Phaser.Scene {
       hook.shells = state.weapon.shells;
       hook.cameraX = state.cameraX;
       hook.birds = state.birds.length;
+      hook.gadgetCharges = state.gadget?.charges ?? 0;
+      hook.flocks = state.flocks.map((f) => `${f.id}:${f.state}`);
+      hook.flockSpots = state.flocks.map((f) => {
+        const members = state.birds.filter((b) => b.flockId === f.id);
+        const n = Math.max(1, members.length);
+        const x = members.reduce((t, b) => t + this.parallax.screenX(b.plane, b.x), 0) / n;
+        const y = members.reduce((t, b) => t + b.y, 0) / n;
+        return { id: f.id, state: f.state, alive: f.alive, x, y };
+      });
     }
 
     if (runner.over && !this.ending) this.finish();
@@ -328,7 +340,8 @@ export class HuntScene extends Phaser.Scene {
     const half = width / 2;
     this.ctx.audio.handle(events, (e) => {
       if (e.type === 'shotFired') return e.dx / half;
-      if (e.type === 'targetBagged') return (this.parallax.screenX(e.plane, e.x) - half) / half;
+      if (e.type === 'targetBagged' || e.type === 'flockStateChanged' || e.type === 'flockWiped')
+        return (this.parallax.screenX(e.plane, e.x) - half) / half;
       return 0;
     });
     let bagged = false;
@@ -350,6 +363,15 @@ export class HuntScene extends Phaser.Scene {
         bagged = true;
       } else if (e.type === 'bonusAwarded' && e.bonus === 'twoFlies') {
         this.runner?.hitStop(this.ctx.feel.juice.hitStopTwoFliesMs);
+      } else if (e.type === 'flockWiped') {
+        // GDD §6.4: slow-mo 0.3× for 0.4 s (scoring.json, so the rule and its feel stay together).
+        const { scale, ms } = this.ctx.content.scoring.wholeFlock.slowMo;
+        this.runner?.slowMo(scale, ms);
+      } else if (e.type === 'gadgetUsed' && this.ctx.hook) {
+        this.ctx.hook.gadgetUses++;
+      } else if (e.type === 'flockStateChanged' && this.ctx.hook) {
+        const log = this.ctx.hook.flockLog;
+        if (log.length < 500) log.push(`${e.flockId}:${e.from}>${e.to}:${e.cause}`);
       }
     }
     if (bagged) this.runner?.hitStop(this.ctx.feel.juice.hitStopMs);

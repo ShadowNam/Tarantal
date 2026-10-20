@@ -1,13 +1,13 @@
 {
   "app.title": "Tarantal Madness",
-  "app.milestone": "M2 — Klassieke jag",
+  "app.milestone": "M3 — Die swerm",
   "rotate.title": "Draai jou toestel dwars",
   "rotate.body": "Tarantal Madness speel in landskap.",
   "biome.karoo_autumn": "Karooplaas — Herfs",
   "bark.kos_is_reg": "Kos is reg!",
   "start.title": "Tik om te jag",
-  "start.hint_touch": "Tik om te skiet · Sleep om rond te kyk · Swiep af of tik die doppe om te laai",
-  "start.hint_mouse": "Klik om te skiet · Regsklik of Spasie om te laai · A/D of die skermrande om rond te kyk",
+  "start.hint_touch": "Tik om te skiet · Sleep om rond te kyk · Swiep af of tik die doppe om te laai · Toeterknoppie: vuvuzela",
+  "start.hint_mouse": "Klik om te skiet · Regsklik of Spasie om te laai · Q: vuvuzela · A/D of die skermrande om rond te kyk",
   "hud.reload": "LAAI!",
   "hud.frenzy": "Frenzy",
   "hud.stampede": "STORMLOOP ×2",
@@ -27,5 +27,13 @@
   "rank.stadsjapie": "Stadsjapie",
   "rank.plaaswerker": "Plaaswerker",
   "rank.bosveldjagter": "Bosveldjagter",
-  "rank.bosveld_legend": "Bosveld Legend"
+  "rank.bosveld_legend": "Bosveld Legend",
+  "hud.wing_shot": "VLERKSKOOT",
+  "hud.whole_flock": "DIE HELE SWERM!",
+  "hud.gadget_key": "Q",
+  "fx.kek": "KEK!",
+  "fx.kek_flush": "KEK-KEK-KEK!",
+  "fx.vuvuzela": "BWAAAP!",
+  "tally.flushes": "Swerms opgejaag",
+  "tally.whole_flocks": "Hele swerms"
 }

@@ -1,6 +1,7 @@
 // In-hunt HUD (art bible §6, GDD §17): timer + Frenzy meter top-left, score + pop stack top-right,
-// shell belt + RELOAD prompt bottom-right. A separate scene so camera shake never moves it.
-// Fed each frame by HuntScene with the latest snapshot and that frame's events.
+// shell belt + RELOAD prompt bottom-right, Vuvuzela button bottom-left. Banners (Stampede, wing
+// shot after a flush) and the "DIE HELE SWERM!" stamp. A separate scene so camera shake never
+// moves it. Fed each frame by HuntScene with the latest snapshot and that frame's events.
 import * as Phaser from 'phaser';
 import type { SimEvent } from '../../sim/events';
 import type { SimState } from '../../sim/types';
@@ -10,6 +11,7 @@ import { TEX } from '../assets/AssetManifest';
 import type { GameContext } from '../GameContext';
 import { FONT } from '../view/Fx';
 import { formatAward, formatClock, formatMult, formatScore, popParts } from '../ui/format';
+import type { InputKind } from '../../sim/types';
 import { hudLayout, rectContains, type HudLayout } from '../ui/hudLayout';
 
 /** Room for "Frenzy ×1.5" left of the meter bar. */
@@ -46,6 +48,15 @@ export class HudScene extends Phaser.Scene {
   private lastMul = 1;
   private lastState: SimState | null = null;
   private timerColor = '';
+  private gadgetPanel!: Phaser.GameObjects.Graphics;
+  private gadgetCharges!: Phaser.GameObjects.Text;
+  private gadgetKey!: Phaser.GameObjects.Text;
+  private gadgetShout!: Phaser.GameObjects.Text;
+  private stamp!: Phaser.GameObjects.Text;
+  private gadgetDrawn = '';
+  /** Flocks flushed since their last wing-shot banner (GDD §16 step 5: "Wing shot ×2!"). */
+  private readonly flushedFlocks = new Set<number>();
+  private inputKind: InputKind = 'pointer';
 
   constructor(ctx: GameContext) {
     super({ key: 'Hud' });
@@ -76,6 +87,17 @@ export class HudScene extends Phaser.Scene {
     for (let i = 0; i < 8; i++) this.shells.push(this.add.image(0, 0, TEX.shell));
     this.reload = text(56, '#FFD25A').setOrigin(0.5).setVisible(false);
     this.banner = text(84, '#FFD25A').setOrigin(0.5).setVisible(false);
+    this.gadgetPanel = this.add.graphics();
+    this.gadgetCharges = text(40, '#F3EAD3').setOrigin(0.5);
+    this.gadgetKey = text(26, '#1B1410').setOrigin(0.5).setStroke('#F3EAD3', 0);
+    this.gadgetShout = text(64, '#FFD25A').setOrigin(0, 0.5).setVisible(false);
+    this.stamp = text(110, '#C8302A')
+      .setOrigin(0.5)
+      .setStroke('#F3EAD3', 12)
+      .setRotation(-0.09)
+      .setVisible(false);
+    this.gadgetDrawn = '';
+    this.flushedFlocks.clear();
     this.scale.on(Phaser.Scale.Events.RESIZE, this.relayout);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.scale.off(Phaser.Scale.Events.RESIZE, this.relayout);
@@ -89,6 +111,22 @@ export class HudScene extends Phaser.Scene {
 
   isOnBelt(x: number, y: number): boolean {
     return this.layoutNow !== null && rectContains(this.layoutNow.belt, x, y);
+  }
+
+  isOnGadget(x: number, y: number): boolean {
+    const g = this.lastState?.gadget;
+    return (
+      this.layoutNow !== null &&
+      g !== null &&
+      g !== undefined &&
+      rectContains(this.layoutNow.gadget, x, y)
+    );
+  }
+
+  /** Mouse players see the Q key hint on the gadget button. */
+  setInputKind(kind: InputKind): void {
+    this.inputKind = kind;
+    this.gadgetDrawn = '';
   }
 
   private readonly relayout = (): void => {
@@ -105,6 +143,7 @@ export class HudScene extends Phaser.Scene {
         score: l.score,
         belt: l.belt,
         reloadPrompt: l.reloadPrompt,
+        gadget: l.gadget,
       };
     }
     const g = this.panels;
@@ -140,6 +179,12 @@ export class HudScene extends Phaser.Scene {
       l.reloadPrompt.y + l.reloadPrompt.h / 2,
     );
     this.banner.setPosition(width / 2, l.safe.y + 180);
+    this.stamp.setPosition(width / 2, l.safe.y + l.safe.h * 0.42);
+    const gc = { x: l.gadget.x + l.gadget.w / 2, y: l.gadget.y + l.gadget.h / 2 };
+    this.gadgetCharges.setPosition(gc.x + l.gadget.w * 0.3, gc.y + l.gadget.h * 0.3);
+    this.gadgetKey.setPosition(gc.x + l.gadget.w * 0.34, gc.y - l.gadget.h * 0.34);
+    this.gadgetShout.setPosition(l.gadget.x + l.gadget.w + 16, gc.y);
+    this.gadgetDrawn = '';
     if (this.lastState) this.render(this.lastState, []);
   };
 
@@ -155,7 +200,22 @@ export class HudScene extends Phaser.Scene {
       else if (e.type === 'penaltyApplied') this.pushPop(formatAward(e.points), '#FF6B5A');
       else if (e.type === 'emptyClick') this.beltFlashUntil = now + 220;
       else if (e.type === 'stampedeStarted') this.showBanner(t('hud.stampede'));
+      else if (e.type === 'flockStateChanged' && e.to === 'flush')
+        this.flushedFlocks.add(e.flockId);
+      else if (e.type === 'flockRemoved') this.flushedFlocks.delete(e.flockId);
+      else if (
+        e.type === 'targetBagged' &&
+        e.behaviour === 'flying' &&
+        e.flockId !== null &&
+        this.flushedFlocks.delete(e.flockId)
+      ) {
+        const mul = 1 + this.ctx.content.scoring.behaviourAdd.flying;
+        this.showBanner(`${t('hud.wing_shot')} ×${formatMult(mul)}`);
+      } else if (e.type === 'flockWiped') this.showStamp(t('hud.whole_flock'));
+      else if (e.type === 'gadgetUsed') this.shoutGadget();
+      else if (e.type === 'gadgetDenied') this.shakeGadget();
     }
+    this.drawGadget(s);
 
     this.timer.setText(formatClock(s.ticksLeft, TICKS_PER_SECOND));
     // setColor re-renders the text texture every call, so only on change.
@@ -243,14 +303,103 @@ export class HudScene extends Phaser.Scene {
   }
 
   private showBanner(text: string): void {
+    const ms = this.ctx.feel.juice.bannerMs;
+    this.tweens.killTweensOf(this.banner);
     this.banner.setText(text).setVisible(true).setScale(0.4).setAlpha(1);
     this.tweens.add({ targets: this.banner, scale: 1, duration: 300, ease: 'Back.Out' });
     this.tweens.add({
       targets: this.banner,
       alpha: 0,
-      delay: 1800,
-      duration: 400,
+      delay: ms * 0.8,
+      duration: ms * 0.2,
       onComplete: () => this.banner.setVisible(false),
     });
+  }
+
+  /** "DIE HELE SWERM!" (GDD §6.4, §17): a rubber stamp thud. */
+  private showStamp(text: string): void {
+    const ms = this.ctx.feel.juice.stampMs;
+    this.tweens.killTweensOf(this.stamp);
+    this.stamp.setText(text).setVisible(true).setScale(2.6).setAlpha(0);
+    this.tweens.add({ targets: this.stamp, scale: 1, alpha: 1, duration: 180, ease: 'Quad.In' });
+    this.tweens.add({
+      targets: this.stamp,
+      alpha: 0,
+      delay: ms * 0.75,
+      duration: ms * 0.25,
+      onComplete: () => this.stamp.setVisible(false),
+    });
+  }
+
+  private shoutGadget(): void {
+    const ms = this.ctx.feel.juice.kekBubbleMs;
+    this.tweens.killTweensOf(this.gadgetShout);
+    this.gadgetShout.setText(t('fx.vuvuzela')).setVisible(true).setAlpha(1).setScale(0.5);
+    this.tweens.add({ targets: this.gadgetShout, scale: 1, duration: 160, ease: 'Back.Out' });
+    this.tweens.add({
+      targets: this.gadgetShout,
+      alpha: 0,
+      delay: ms,
+      duration: 300,
+      onComplete: () => this.gadgetShout.setVisible(false),
+    });
+  }
+
+  private shakeGadget(): void {
+    const l = this.layoutNow;
+    if (l === null) return;
+    this.tweens.killTweensOf(this.gadgetPanel);
+    this.gadgetPanel.setX(0);
+    this.tweens.add({ targets: this.gadgetPanel, x: 8, yoyo: true, repeat: 3, duration: 40 });
+  }
+
+  /** Round enamel button with a horn, the charges, a cooldown wedge and (mouse) the Q hint. */
+  private drawGadget(s: SimState): void {
+    const l = this.layoutNow;
+    const gadget = s.gadget;
+    const show = l !== null && gadget !== null;
+    this.gadgetCharges.setVisible(show);
+    this.gadgetKey.setVisible(show && this.inputKind === 'pointer');
+    if (!show) {
+      this.gadgetPanel.clear();
+      return;
+    }
+    const cd = gadget.cooldownTotalTicks > 0 ? gadget.cooldownTicks / gadget.cooldownTotalTicks : 0;
+    const key = `${gadget.charges}:${Math.ceil(cd * 40)}:${this.inputKind}`;
+    if (key === this.gadgetDrawn) return;
+    this.gadgetDrawn = key;
+    const r = l.gadget.w / 2;
+    const cx = l.gadget.x + r;
+    const cy = l.gadget.y + r;
+    const ready = gadget.charges > 0 && gadget.cooldownTicks === 0;
+    const g = this.gadgetPanel;
+    g.clear();
+    g.fillStyle(C.ink, 0.9).fillCircle(cx, cy, r);
+    g.fillStyle(ready ? 0x2f8f4e : 0x55605a, 1).fillCircle(cx, cy, r - 6);
+    // Horn: a widening cone with a bell (yellow, like the stadium horn).
+    g.fillStyle(ready ? 0xffd25a : 0x9a9a8a, 1);
+    g.fillTriangle(
+      cx - r * 0.55,
+      cy + r * 0.05,
+      cx + r * 0.35,
+      cy - r * 0.35,
+      cx + r * 0.35,
+      cy + r * 0.45,
+    );
+    g.fillEllipse(cx + r * 0.38, cy + r * 0.05, r * 0.3, r * 0.85);
+    if (cd > 0) {
+      // Cooldown: a dark wedge that shrinks clockwise.
+      g.fillStyle(C.ink, 0.6);
+      g.slice(cx, cy, r - 6, -Math.PI / 2, -Math.PI / 2 + cd * Math.PI * 2, false).fillPath();
+    }
+    this.gadgetCharges.setText(`×${gadget.charges}`);
+    this.gadgetKey.setText(t('hud.gadget_key'));
+    if (this.inputKind === 'pointer') {
+      // Key cap on the rim, top-right, clear of the horn.
+      const kx = cx + r * 0.68;
+      const ky = cy - r * 0.68;
+      g.fillStyle(C.ink, 1).fillRoundedRect(kx - 23, ky - 21, 46, 42, 9);
+      g.fillStyle(C.enamel, 1).fillRoundedRect(kx - 19, ky - 17, 38, 34, 7);
+    }
   }
 }

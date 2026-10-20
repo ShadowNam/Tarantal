@@ -115,3 +115,64 @@ export function stats(values: readonly number[]): {
 }
 
 export const SCREENSHOTS = 'tests/e2e/__screenshots__';
+
+/**
+ * Fires taps at a flock from inside the page, `gapTicks` sim ticks apart, as real PointerEvents on
+ * the canvas (the normal InputMapper path). Harness round trips cost seconds on software GL — more
+ * than the 1.5 s escalation window — so timing must not depend on them. Each tap aims at the
+ * flock's current position. Resolves with the sim tick of each tap.
+ */
+export async function burstAtFlock(
+  page: Page,
+  touch: boolean,
+  flockId: number,
+  count: number,
+  gapTicks: number,
+): Promise<number[]> {
+  return page.evaluate(
+    ([id, n, gap, isTouch]) =>
+      new Promise<number[]>((resolve, reject) => {
+        const canvas = document.querySelector<HTMLCanvasElement>('#game canvas');
+        const h = window.__TM__;
+        if (!canvas || !h) {
+          reject(new Error('game not booted'));
+          return;
+        }
+        const ticks: number[] = [];
+        let pointerId = 900;
+        const fire = (): void => {
+          const spot = h.flockSpots.find((f) => f.id === id);
+          if (!spot) {
+            resolve(ticks);
+            return;
+          }
+          const r = canvas.getBoundingClientRect();
+          const init: PointerEventInit = {
+            clientX: r.left + (spot.x / h.designWidth) * r.width,
+            clientY: r.top + (spot.y / h.designHeight) * r.height,
+            pointerId: pointerId++,
+            pointerType: isTouch ? 'touch' : 'mouse',
+            isPrimary: true,
+            button: 0,
+            buttons: 1,
+            bubbles: true,
+            cancelable: true,
+          };
+          canvas.dispatchEvent(new PointerEvent('pointerdown', init));
+          canvas.dispatchEvent(new PointerEvent('pointerup', { ...init, buttons: 0 }));
+          ticks.push(h.tick);
+        };
+        const loop = (): void => {
+          const last = ticks[ticks.length - 1];
+          if (ticks.length >= n) {
+            resolve(ticks);
+            return;
+          }
+          if (last === undefined || h.tick >= last + gap) fire();
+          requestAnimationFrame(loop);
+        };
+        loop();
+      }),
+    [flockId, count, gapTicks, touch] as const,
+  );
+}

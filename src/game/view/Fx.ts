@@ -1,5 +1,7 @@
-// Juice pass 1 (GDD §17): feather burst + POOF bubble + score pop on a bag, pellet puffs on misses,
-// camera shake per weapon, hit-stop through the runner. Driven only by sim events.
+// Juice (GDD §17): feather burst + POOF bubble + score pop on a bag, pellet puffs on misses,
+// camera shake per weapon, hit-stop through the runner (pass 1); "KEK!" when a flock is alerted
+// and one synchronised "KEK-KEK-KEK!" per flock when it flushes (pass 2). Driven only by sim
+// events. Bubbles are also captions for the alarm calls (accessibility, GDD §17).
 import * as Phaser from 'phaser';
 import type { Feel } from '../../content/schemas';
 import type { SimEvent } from '../../sim/events';
@@ -89,6 +91,10 @@ export class Fx {
         case 'pelletImpact':
           if (e.birdId === null) this.puffs.explode(1, width / 2 + e.dx, e.sy);
           break;
+        case 'flockStateChanged':
+          if (e.to === 'alert') this.bubble(e.plane, e.x, e.y, t('fx.kek'), false);
+          else if (e.to === 'flush') this.bubble(e.plane, e.x, e.y, t('fx.kek_flush'), true);
+          break;
         default:
           break;
       }
@@ -99,6 +105,49 @@ export class Fx {
     const [lo, hi] = this.feel.juice.featherCount;
     const n = Math.round((lo + Math.random() * (hi - lo)) * this.feel.quality.particleScale);
     this.feathers.get(plane)?.explode(Math.max(1, n), x, y);
+  }
+
+  /** Alarm-call bubble above a flock: small for ALERT, big and wobbling for FLUSH. */
+  private bubble(plane: PlaneId, x: number, y: number, text: string, big: boolean): void {
+    const layer = this.parallax.plane(plane).overlay;
+    if (!layer) return;
+    const s = (plane === 'near' ? 1 : plane === 'mid' ? 0.75 : 0.5) * (big ? 1.25 : 0.8);
+    const lift = (big ? 170 : 120) * s;
+    const ms = big ? this.feel.juice.flushBubbleMs : this.feel.juice.kekBubbleMs;
+    const rot = Phaser.Math.DegToRad(big ? -6 : 4);
+    const label = this.scene.add
+      .text(x, y - lift, text, {
+        fontFamily: FONT,
+        fontSize: '60px',
+        fontStyle: '900',
+        color: big ? '#FFD25A' : '#F3EAD3',
+        stroke: '#1B1410',
+        strokeThickness: 10,
+      })
+      .setOrigin(0.5)
+      .setScale(0.2 * s)
+      .setRotation(rot);
+    layer.add(label);
+    this.scene.tweens.add({ targets: label, scale: s, duration: ms * 0.2, ease: 'Back.Out' });
+    if (big) {
+      this.scene.tweens.add({
+        targets: label,
+        angle: { from: -8, to: 8 },
+        yoyo: true,
+        repeat: 2,
+        duration: ms * 0.12,
+      });
+    }
+    this.scene.tweens.add({
+      targets: label,
+      alpha: 0,
+      y: label.y - 30 * s,
+      delay: ms * 0.7,
+      duration: ms * 0.3,
+      onComplete: () => {
+        label.destroy();
+      },
+    });
   }
 
   private poof(plane: PlaneId, x: number, y: number): void {

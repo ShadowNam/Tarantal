@@ -23,6 +23,14 @@ export interface TestHook {
   inputKind: InputKind | null;
   cameraX: number;
   birds: number;
+  /** Vuvuzela charges left, uses this page, and live flocks as "id:state". */
+  gadgetCharges: number;
+  gadgetUses: number;
+  flocks: string[];
+  /** Live flocks with their members' mean position in design px of the screen. */
+  /** Flock transitions this hunt as "id:from>to:cause" (capped). */
+  flockLog: string[];
+  flockSpots: { id: number; state: string; alive: number; x: number; y: number }[];
   result: HuntResult | null;
   /** performance.now() when the first shot of the page was fired (ms since navigation start). */
   firstShotAtMs: number | null;

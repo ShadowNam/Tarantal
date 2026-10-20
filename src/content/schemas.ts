@@ -750,12 +750,20 @@ export const FeelSchema = obj({
     /** Touch: the gun shrinks to this scale and fades to this alpha while a finger is down. */
     gunTouchScale: pos,
     gunTouchAlpha: fraction,
+    /** Flock juice (GDD §17): ALERT "KEK!" and the synchronised FLUSH "KEK-KEK-KEK!" bubbles. */
+    kekBubbleMs: pos,
+    flushBubbleMs: pos,
+    /** HUD banners (wing shot, Stampede) and the "DIE HELE SWERM!" stamp. */
+    bannerMs: pos,
+    stampMs: pos,
   }),
   hud: obj({
     marginPx: nonNeg,
     /** Minimum height of the shell-belt tap target on touch screens (art bible §6). */
     beltTapMinPx: pos,
     popStackSize: posInt,
+    /** Vuvuzela button (bottom-left), a square tap target ≥ 64 design px (art bible §6). */
+    gadgetPx: z.number().min(64),
   }),
   loop: obj({
     /** Most sim steps per rendered frame (spiral-of-death guard, Tech §3.2). */
