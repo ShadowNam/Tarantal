@@ -53,7 +53,7 @@ function waitFor(sim: Sim, pred: (b: BirdView) => boolean, maxTicks = 6000): Bir
   throw new Error('bird never appeared');
 }
 
-/** Content tweaked for busy, predictable fly-overs (no bob, no near-plane pop-ups). */
+/** Content tweaked for busy, predictable fly-overs (no bob, no near-plane pop-ups, no flocks). */
 function busyContent(
   over: { groupSize?: [number, number]; spacing?: [number, number] } = {},
 ): ContentBundle {
@@ -65,6 +65,7 @@ function busyContent(
     for (const k of b.pacing.keyframes) {
       k.flyoversPerMin = 120;
       k.popupsPerMin = 0;
+      k.flocks = {};
     }
     b.pacing.stampede = { flyoversPerMin: 120, popupsPerMin: 0 };
   }
@@ -327,7 +328,7 @@ describe('Sim scoring in play', () => {
     const ev = stepEvents(sim, shootAt(c, trio[1] ?? bird));
     const bagged = ev.filter((e) => e.type === 'targetBagged').length;
     expect(bagged).toBeGreaterThanOrEqual(2);
-    const base = bagged === 2 ? 50 : 150;
+    const base = bagged === 2 ? 15 : 40;
     expect(ev.find((e) => e.type === 'bonusAwarded')).toMatchObject({
       bonus: 'twoFlies',
       base,

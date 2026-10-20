@@ -1,5 +1,6 @@
 // Bakkie Tally (GDD §8, art bible §6): chalk slate with a score count-up, accuracy, birds bagged
-// by plane, wing shots, best Frenzy streak, penalties and the rank stamp. [Again] starts the next
+// by plane, wing shots, flocks flushed, the whole-flock badge (GDD §6.4), best Frenzy streak,
+// penalties and the rank stamp. [Again] starts the next
 // hunt with one tap. The screen-shake toggle lives here until the Settings screen (M5).
 import * as Phaser from 'phaser';
 import type { I18nKey } from '../../i18n/i18n';
@@ -67,6 +68,8 @@ export class TallyScene extends Phaser.Scene {
       ['tally.bagged_mid', String(r.baggedByPlane.mid)],
       ['tally.bagged_far', String(r.baggedByPlane.far)],
       ['tally.wing_shots', String(r.wingShots)],
+      ['tally.flushes', String(r.flushes)],
+      ['tally.whole_flocks', r.wholeFlocks > 0 ? `★ ${r.wholeFlocks}` : '0'],
       ['tally.best_streak', String(r.bestStreak)],
       ['tally.penalties', String(r.penalties)],
     ];

@@ -228,11 +228,9 @@ describe('event bonuses', () => {
   const content = loadContent();
   const multipliers = content.scoring.eventBonusMultipliers;
 
-  it('Twee Vlieë pays 2 = 50, 3 = 150, 4+ = 300', () => {
+  it('Twee Vlieë pays 2 = 15, 3 = 40, 4+ = 80 (tuned in M3, D-020)', () => {
     const table = content.scoring.twoFlies;
-    expect([0, 1, 2, 3, 4, 7].map((n) => twoFliesBonus(n, table))).toEqual([
-      0, 0, 50, 150, 300, 300,
-    ]);
+    expect([0, 1, 2, 3, 4, 7].map((n) => twoFliesBonus(n, table))).toEqual([0, 0, 15, 40, 80, 80]);
   });
 
   it('are multiplied by Frenzy × Stampede but never by the weapon', () => {
@@ -249,7 +247,7 @@ describe('event bonuses', () => {
 
   it('Whole Flock pays perBird × size only for a complete flock of ≥ minSize', () => {
     const rule = content.scoring.wholeFlock;
-    expect(wholeFlockBonus(6, 6, rule)).toBe(90);
+    expect(wholeFlockBonus(6, 6, rule)).toBe(180); // +30 per bird (tuned in M3, D-020)
     expect(wholeFlockBonus(6, 5, rule)).toBe(0);
     expect(wholeFlockBonus(4, 4, rule)).toBe(0);
   });

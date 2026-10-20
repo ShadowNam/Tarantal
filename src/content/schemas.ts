@@ -203,12 +203,38 @@ export const BirdsSchema = obj({
       flushStaggerMs: range(nonNeg),
       flightMs: range(pos),
       settleTimeoutMs: range(pos),
+      /** Foraging: members wander around a goal that moves within this radius of the flock. */
+      forageWanderPx: pos,
+      /** How often the foraging goal moves. */
+      forageGoalMs: range(pos),
+      /** After landing, each bird runs on for this long before the flock settles. */
+      landRunMs: range(pos),
+      /** Gliding birds sink at this speed (design px/s at the mid plane) until they land. */
+      glideSinkPxPerSec: pos,
+      /** New flocks start scattered within this radius (design px at the mid plane). */
+      spawnSpreadPx: pos,
+      /** A new flock keeps at least this far (plane px) from other flocks on its plane. */
+      spawnSpacingPx: nonNeg,
+      /** Hunt-start flocks forage within this many px of the screen centre (in view, GDD §8). */
+      startInViewPx: nonNeg,
+      /** ALERT birds shuffle at this fraction of walking speed once their freeze ends. */
+      alertShuffleMul: nonNeg,
+      /** Landed birds run on at this fraction of running speed. */
+      landRunSpeedMul: nonNeg,
+      /** RUN steers toward a point this far ahead, away from the threat. */
+      fleeLookAheadPx: pos,
+      /** RUN zigzag: sideways weave period and weight (added to the boids steering). */
+      runZigzag: obj({ periodMs: pos, weight: nonNeg }),
       boids: obj({
         separation: nonNeg,
         alignment: nonNeg,
         cohesion: nonNeg,
         noise: nonNeg,
         neighbourRadiusPx: pos,
+        /** Birds closer than this push apart (≤ neighbourRadiusPx). */
+        separationRadiusPx: pos,
+        /** Fraction per tick by which a bird's velocity turns toward its steering target. */
+        turnRate: z.number().gt(0).max(1),
       }),
     })
     .refine((f) => f.sizeMin <= f.sizeMax, 'sizeMin must be <= sizeMax'),
@@ -631,7 +657,13 @@ export const BiomeSchema = obj({
         'keyframes must be sorted by t',
       ),
     /** Surge rates used during the Stampede (its length comes from scoring.json, Tech §3.6). */
-    stampede: obj({ flyoversPerMin: nonNeg, popupsPerMin: nonNeg }),
+    stampede: obj({
+      flyoversPerMin: nonNeg,
+      popupsPerMin: nonNeg,
+      /** GDD §8 "mass run/flush": live flocks jump to this state when the Stampede starts, and
+       *  flocks spawned during it enter in it. */
+      flockState: z.enum(['run', 'flush']).optional(),
+    }),
     maxBirdsOnScreen: posInt,
     maxFlocks: posInt,
   }),
@@ -718,12 +750,20 @@ export const FeelSchema = obj({
     /** Touch: the gun shrinks to this scale and fades to this alpha while a finger is down. */
     gunTouchScale: pos,
     gunTouchAlpha: fraction,
+    /** Flock juice (GDD §17): ALERT "KEK!" and the synchronised FLUSH "KEK-KEK-KEK!" bubbles. */
+    kekBubbleMs: pos,
+    flushBubbleMs: pos,
+    /** HUD banners (wing shot, Stampede) and the "DIE HELE SWERM!" stamp. */
+    bannerMs: pos,
+    stampMs: pos,
   }),
   hud: obj({
     marginPx: nonNeg,
     /** Minimum height of the shell-belt tap target on touch screens (art bible §6). */
     beltTapMinPx: pos,
     popStackSize: posInt,
+    /** Vuvuzela button (bottom-left), a square tap target ≥ 64 design px (art bible §6). */
+    gadgetPx: z.number().min(64),
   }),
   loop: obj({
     /** Most sim steps per rendered frame (spiral-of-death guard, Tech §3.2). */

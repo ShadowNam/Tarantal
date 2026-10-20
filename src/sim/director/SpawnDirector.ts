@@ -1,19 +1,38 @@
-// Minimal budget-based spawn director for M1 (Tech §3.6): fly-overs on the mid/far sky lanes and
-// pop-ups on the near plane at the biome's pacing rates, plus non-target fly-over events.
-// Flocks join in M3. All randomness comes from rng.stream('spawns') (or 'events' for events).
+// Budget-based spawn director (Tech §3.6): fly-overs on the mid/far sky lanes and pop-ups on the
+// near plane at the biome's pacing rates, non-target fly-over events, and flocks topped up to the
+// pacing keyframes' per-plane counts. Randomness: rng.stream('spawns') for fly-overs and pop-ups,
+// 'flocks' for flocks, 'events' for events. Flocks draw no 'spawns' numbers; they do share the
+// per-hunt caps (maxPerHunt) with fly-overs, so a rare morph in a flock is not seen again aloft.
 import type { ContentBundle, Biome } from '../../content/schemas';
-import { createFlyover, createPopup, type Bird, type BirdCreature } from '../birds/Bird';
+import {
+  createFlockBird,
+  createFlyover,
+  createPopup,
+  type Bird,
+  type BirdCreature,
+} from '../birds/Bird';
 import { planeCentreX } from '../camera';
 import { msToTicks, TICKS_PER_SECOND } from '../clock';
+import type { Flock, FlockParams } from '../flocks/Flock';
 import type { RandomStream } from '../rng';
 import type { PlaneId } from '../types';
-import { coreWidth, LAYER_BLEED_PX } from '../world';
-import { pacingAt } from './pacing';
+import { PLANES } from '../types';
+import { coreWidth, LAYER_BLEED_PX, MAX_HALF_VIEW_WIDTH } from '../world';
+import { flockTargetsAt, pacingAt } from './pacing';
 
 const TICKS_PER_MINUTE = TICKS_PER_SECOND * 60;
 /** Each spawn waits for a credit threshold drawn from this range (jitter around the mean rate). */
 const THRESHOLD_MIN = 0.5;
 const THRESHOLD_MAX = 1.5;
+// Structure, not tuning (D-020): placement retries, and the smallest flock worth spawning when
+// the screen is nearly full.
+/** Flocks smaller than this are not worth spawning. */
+const MIN_FLOCK_SPAWN = 3;
+/** Later flocks spawn at least this far (plane px, beyond the widest screen) out of view. */
+const OUT_OF_VIEW_MARGIN_PX = 120;
+/** Placement attempts per spawn, and the wait before retrying when none fit. */
+const PLACE_TRIES = 8;
+const RETRY_TICKS = 30;
 
 export interface DirectorContext {
   readonly tick: number;
@@ -23,11 +42,18 @@ export interface DirectorContext {
   nextId(): number;
 }
 
+export interface FlockSpawnContext extends DirectorContext {
+  readonly flocks: readonly Flock[];
+  nextFlockId(): number;
+}
+
 export interface Director {
   /** Birds to add this tick. */
   tick(ctx: DirectorContext): Bird[];
   /** Spawns a non-target fly-over for a world event (hadeda, crop sprayer). */
   spawnEventFlyover(ctx: DirectorContext, creatureId: string, rng: RandomStream): Bird[];
+  /** New flocks (with their member birds) to top each plane up to the pacing target. */
+  spawnFlocks(ctx: FlockSpawnContext): Flock[];
 }
 
 export interface DirectorDeps {
@@ -35,10 +61,14 @@ export interface DirectorDeps {
   readonly biome: Biome;
   readonly durationTicks: number;
   readonly spawns: RandomStream;
+  readonly flocks: RandomStream;
+  readonly flockParams: FlockParams;
 }
 
 export function createDirector(deps: DirectorDeps): Director {
-  const { content, biome, durationTicks, spawns } = deps;
+  const { content, biome, durationTicks, spawns, flockParams: fp } = deps;
+  const flockRng = deps.flocks;
+  const flockRetryAt: Record<PlaneId, number> = { near: 0, mid: 0, far: 0 };
   const { planes } = content.scoring;
   const flyover = content.birds.flyoverDefaults;
   const popup = content.birds.popupDefaults;
@@ -55,7 +85,7 @@ export function createDirector(deps: DirectorDeps): Director {
   /** Spawn-table creatures that can appear on a plane with a behaviour, under their caps. */
   function candidates(
     plane: PlaneId,
-    behaviour: 'flyover' | 'popup',
+    behaviour: 'flyover' | 'popup' | 'flock',
   ): { c: BirdCreature; w: number }[] {
     const out: { c: BirdCreature; w: number }[] = [];
     for (const entry of biome.spawnTable) {
@@ -68,9 +98,13 @@ export function createDirector(deps: DirectorDeps): Director {
     return out;
   }
 
-  function pick(plane: PlaneId, behaviour: 'flyover' | 'popup'): BirdCreature | null {
+  function pick(
+    plane: PlaneId,
+    behaviour: 'flyover' | 'popup' | 'flock',
+    rng: RandomStream = spawns,
+  ): BirdCreature | null {
     const list = candidates(plane, behaviour);
-    const i = spawns.weightedIndex(list.map((x) => x.w));
+    const i = rng.weightedIndex(list.map((x) => x.w));
     const chosen = list[i]?.c;
     if (chosen === undefined) return null;
     spawnedCount.set(chosen.id, (spawnedCount.get(chosen.id) ?? 0) + 1);
@@ -171,6 +205,110 @@ export function createDirector(deps: DirectorDeps): Director {
     ];
   }
 
+  /** Home x for a new flock on a plane, or null if none fits right now. */
+  function placeFlock(ctx: FlockSpawnContext, plane: PlaneId, ratio: number): number | null {
+    const core = coreWidth(scrollFactorOf(plane));
+    const spread = fp.spawnSpreadPx * ratio;
+    const centre = planeCentreX(ctx.cameraX, scrollFactorOf(plane));
+    const others = ctx.flocks.filter((f) => f.plane === plane);
+    const spaced = (x: number): boolean =>
+      others.every((f) => f.members.every((b) => Math.abs(b.x - x) >= fp.spawnSpacingPx * ratio));
+    const clampX = (x: number): number => Math.min(core - spread, Math.max(spread, x));
+    if (ctx.tick === 0) {
+      // Warm-up (GDD §8): the first flocks forage in view.
+      for (let i = 0; i < PLACE_TRIES; i++) {
+        const x = clampX(centre + flockRng.range(-fp.startInViewPx, fp.startInViewPx) * ratio);
+        if (spaced(x)) return x;
+      }
+      return null;
+    }
+    const hidden = (x: number): boolean =>
+      Math.abs(x - centre) > MAX_HALF_VIEW_WIDTH + spread + OUT_OF_VIEW_MARGIN_PX;
+    for (let i = 0; i < PLACE_TRIES; i++) {
+      const x = flockRng.range(spread, core - spread);
+      if (hidden(x) && spaced(x)) return x;
+    }
+    // Fall back to the panorama edge farther from the camera (never on screen).
+    const edge = centre < core / 2 ? core - spread : spread;
+    return hidden(edge) && spaced(edge) ? edge : null;
+  }
+
+  function buildFlock(ctx: FlockSpawnContext, plane: PlaneId, room: number): Flock | null {
+    const lane = biome.lanes[plane];
+    const groundY = lane?.groundY;
+    const skyY = lane?.skyY;
+    if (groundY === undefined || skyY === undefined) return null;
+    const scale = planes[plane].scale;
+    const ratio = scale / planes.mid.scale;
+    const size = Math.min(flockRng.int(fp.sizeMin, fp.sizeMax), room);
+    if (size < MIN_FLOCK_SPAWN) return null;
+    const homeX = placeFlock(ctx, plane, ratio);
+    if (homeX === null) return null;
+    const id = ctx.nextFlockId();
+    const spread = fp.spawnSpreadPx * ratio;
+    const f = scrollFactorOf(plane);
+    const members: Bird[] = [];
+    for (let i = 0; i < size; i++) {
+      const creature = pick(plane, 'flock', flockRng);
+      if (creature === null) break;
+      const sp = creature.speeds ?? {};
+      const perTick = (v: number): number => (v * ratio) / TICKS_PER_SECOND;
+      members.push(
+        createFlockBird({
+          id: ctx.nextId(),
+          creature,
+          plane,
+          scrollFactor: f,
+          planeScale: scale,
+          x: homeX + flockRng.range(-spread, spread),
+          y: flockRng.range(groundY[0], groundY[1]),
+          facing: flockRng.chance(0.5) ? 1 : -1,
+          member: {
+            flockId: id,
+            zigPhase: flockRng.range(0, 2 * Math.PI),
+            walk: perTick(sp.walk ?? 0),
+            run: perTick(sp.run ?? 0),
+            fly: perTick(sp.fly ?? 0),
+            glide: perTick(sp.glide ?? 0),
+            vx: 0,
+            vy: 0,
+            launchTicks: 0,
+            flapTicks: 0,
+            angle: 0,
+            climbK: 0,
+            cruiseY: skyY[0],
+            landY: groundY[0],
+            landTicks: 0,
+          },
+        }),
+      );
+    }
+    if (members.length < MIN_FLOCK_SPAWN) return null;
+    return {
+      id,
+      plane,
+      spawnSize: members.length,
+      ratio,
+      groundY,
+      skyY,
+      coreWidth: coreWidth(f),
+      members,
+      state: 'forage',
+      stateTicks: 0,
+      windowTicks: 0,
+      windowFresh: false,
+      freezeTicks: 0,
+      calmTicks: 0,
+      homeX,
+      goalX: homeX,
+      goalY: flockRng.range(groundY[0], groundY[1]),
+      goalTicks: 0,
+      threatX: homeX,
+      dir: 1,
+      eligible: true,
+    };
+  }
+
   return {
     tick(ctx) {
       const rates = pacingAt(biome.pacing, ctx.tick / durationTicks, ctx.stampede);
@@ -199,6 +337,35 @@ export function createDirector(deps: DirectorDeps): Director {
       if (plane === undefined || sky === undefined) return [];
       const dir: 1 | -1 = rng.chance(0.5) ? 1 : -1;
       return [makeFlyover(ctx, creature, plane, dir, rng.range(sky[0], sky[1]), 0, rng)];
+    },
+
+    spawnFlocks(ctx) {
+      const targets = flockTargetsAt(biome.pacing, ctx.tick / durationTicks);
+      const out: Flock[] = [];
+      let alive = ctx.aliveBirds;
+      for (const plane of PLANES) {
+        if (ctx.tick < flockRetryAt[plane]) continue;
+        let live = ctx.flocks.filter((f) => f.plane === plane).length;
+        while (
+          live < targets[plane] &&
+          ctx.flocks.length + out.length < biome.pacing.maxFlocks &&
+          alive < maxBirds
+        ) {
+          const flock = buildFlock(
+            { ...ctx, flocks: [...ctx.flocks, ...out] },
+            plane,
+            maxBirds - alive,
+          );
+          if (flock === null) {
+            flockRetryAt[plane] = ctx.tick + RETRY_TICKS;
+            break;
+          }
+          out.push(flock);
+          alive += flock.members.length;
+          live++;
+        }
+      }
+      return out;
     },
   };
 }

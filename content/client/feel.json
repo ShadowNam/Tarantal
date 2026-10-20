@@ -26,12 +26,17 @@
     "scorePopMs": 600,
     "poofMs": 450,
     "gunTouchScale": 0.6,
-    "gunTouchAlpha": 0.4
+    "gunTouchAlpha": 0.4,
+    "kekBubbleMs": 700,
+    "flushBubbleMs": 1100,
+    "bannerMs": 2200,
+    "stampMs": 1400
   },
   "hud": {
     "marginPx": 28,
     "beltTapMinPx": 64,
-    "popStackSize": 4
+    "popStackSize": 4,
+    "gadgetPx": 120
   },
   "loop": {
     "maxStepsPerFrame": 5

@@ -1,6 +1,6 @@
 {
   "app.title": "Tarantal Madness",
-  "app.milestone": "M2 — Classic hunt",
+  "app.milestone": "M3 — The Flock",
   "rotate.title": "Turn your device sideways",
   "rotate.body": "Tarantal Madness plays in landscape.",
   "biome.karoo_autumn": "Karoo Farm — Autumn",
@@ -10,8 +10,8 @@
   "boss_rule.dark_except_lightning": "It's dark — only lightning shows the birds.",
   "bark.kos_is_reg": "Kos is reg!",
   "start.title": "Tap to hunt",
-  "start.hint_touch": "Tap to shoot · Drag to look around · Flick down or tap the shells to reload",
-  "start.hint_mouse": "Click to shoot · Right-click or Space to reload · A/D or screen edges to look around",
+  "start.hint_touch": "Tap to shoot · Drag to look around · Flick down or tap the shells to reload · Horn button: Vuvuzela",
+  "start.hint_mouse": "Click to shoot · Right-click or Space to reload · Q: Vuvuzela · A/D or screen edges to look around",
   "hud.reload": "RELOAD!",
   "hud.frenzy": "Frenzy",
   "hud.stampede": "STAMPEDE ×2",
@@ -31,5 +31,13 @@
   "rank.stadsjapie": "Stadsjapie (city slicker)",
   "rank.plaaswerker": "Plaaswerker (farmhand)",
   "rank.bosveldjagter": "Bosveldjagter (bushveld hunter)",
-  "rank.bosveld_legend": "Bosveld Legend"
+  "rank.bosveld_legend": "Bosveld Legend",
+  "hud.wing_shot": "WING SHOT",
+  "hud.whole_flock": "DIE HELE SWERM!",
+  "hud.gadget_key": "Q",
+  "fx.kek": "KEK!",
+  "fx.kek_flush": "KEK-KEK-KEK!",
+  "fx.vuvuzela": "BWAAAP!",
+  "tally.flushes": "Flocks flushed",
+  "tally.whole_flocks": "Whole flocks (die hele swerm)"
 }

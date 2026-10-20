@@ -119,6 +119,47 @@ machine with a GPU. "Load → first shot" is measured inside the page (ready + s
 fire-tap latency) so slow harness round trips don't count. Playwright trace screenshots are off: each
 is a full-canvas GPU readback that stalls software WebGL.
 
+**D-020 M3 flock rules and balance (20 Oct 2026):** decisions made while building the flock and
+tuning Classic Karoo. (1) *Late threat in RUN:* every escalation step needs a threat inside the
+window opened by the previous one; a threat reaching a RUNNING flock after its window closed
+reopens the window and restarts the 4–7 s calm timer but does not flush. (2) *Whole Flock* is
+possible only until the flock calms down after losing a bird (ALERT → FORAGE), SETTLES, or a
+member exits — GDD §6.4 "before it settles" read as "before it calms down". Without this a plinker
+earned 3.3 whole flocks per hunt by picking off a foraging flock that never leaves; the bonus
+rewards escalation. A flock that was only spooked (hadeda, stray shot) keeps its chance.
+(3) *Vuvuzela "visible"* = any member within the 1920-px reference view around the screen centre
+(device-independent, Tech §3.3). Charges: Classic and Daily 2; Season Run uses the same until the
+run state owns gadgets (M6). (4) *Events:* one `flockStateChanged {from, to, cause, plane, x, y}`
+instead of separate alerted/flushed events (charm triggers `flockAlerted`/`flockFlushed` map to
+`to` in M6), plus `flockSpawned`, `flockThreatened {source}`, `flockWiped`, `flockRemoved`,
+`gadgetUsed`, `gadgetDenied`; `targetBagged` carries `flockId`. (5) *RNG:* flock spawns use the new
+stream `flocks`; FSM timings and steering use `flockNoise`. (6) *Flight is a fountain:* a flushed
+bird keeps its take-off heading (crosses at fly·cos θ while climbing, glide·cos θ while gliding);
+accelerating to full fly speed sent 4.6 of ~8 birds per flush off the panorama. (7) *Kept in code
+as structure:* ground depth speed ½, placement retries (8 tries, 30-tick retry), smallest flock
+worth spawning (3), the climb blend clamp. Flock tunables (incl. new `startInViewPx`,
+`alertShuffleMul`, `landRunSpeedMul`, `fleeLookAheadPx`, `runZigzag`, `boids.separationRadiusPx`,
+`boids.turnRate`, `forageWanderPx`, `forageGoalMs`, `landRunMs`, `glideSinkPxPerSec`,
+`spawnSpreadPx`, `spawnSpacingPx`, `pacing.stampede.flockState`) are in content; files stay
+`version: 1` because no content has shipped. (8) *Balance bots:* plinker and competent share one
+player model (`tools/humanBots.ts`); the M3 gate is measured with a mouse (`pointer`), touch is
+reported. (9) *Tuning (tune commits):* Twee Vlieë +50/+150/+300 → +15/+40/+80 (it was half of every
+score once dense flocks existed); Whole Flock +15 → +30 per bird; boids separation 1.4 → 3 with
+radius 240, spawn spread 450; Karoo pacing: one mid flock at a time and no far flocks (with two
+flocks or a far flock on screen plinking never cost time and scored as much as escalating; far
+standing birds were Twee Vlieë farms), fly-overs 3→6/min (Stampede 10). Result, 500 seeds: see the
+M3 PR. Follow-up: touch scores run ~16 % above pointer because the GDD §18.2 aim-assist radii are
+large next to 110-px mid birds — revisit with the adjustable aim assist (M9). (12) *Window length:* the escalation window opens on the threat's tick and its first countdown is
+skipped, so a follow-up on any of the next 90 ticks (the full 1.5 s) escalates. (13) *Crouched
+flushed birds* (0–300 ms stagger before take-off) score as flying (+1.0, GDD §5.3 "flushed").
+(14) *Stampede direction:* every flock forced by the Stampede (live or newly spawned) runs toward
+the screen centre, so the mass run crosses the player's view instead of leaving it. (10) *Slow-mo*
+is a
+HuntRunner time scale like hit-stop (sim ticks and replays unaffected). (11) *Evidence on this
+box:* the flock e2e fires its taps from inside the page (Playwright round trips cost ~130 ticks on
+software GL, longer than the escalation window); WebKit cannot open pages here, so local iPhone 14
+screenshots come from Chromium emulating the device — CI runs real WebKit.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

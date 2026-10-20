@@ -57,6 +57,7 @@ export class AudioDirector {
   handle(events: readonly SimEvent[], panOf: (e: SimEvent) => number): void {
     if (this.ctx === null || this.hidden) return;
     let shot = false;
+    let sting = false;
     for (const e of events) {
       switch (e.type) {
         case 'shotFired':
@@ -79,6 +80,20 @@ export class AudioDirector {
           break;
         case 'stampedeStarted':
           this.play('stampede', 0);
+          break;
+        case 'flockStateChanged':
+          if (e.to === 'alert') this.play('kek', panOf(e));
+          else if (e.to === 'flush') {
+            this.play('kekAlarm', panOf(e));
+            if (!sting) this.play('sting', 0);
+            sting = true;
+          }
+          break;
+        case 'gadgetUsed':
+          this.play('vuvuzela', -0.6);
+          break;
+        case 'flockWiped':
+          this.play('stamp', panOf(e));
           break;
         default:
           break;

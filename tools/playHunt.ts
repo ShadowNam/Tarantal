@@ -24,7 +24,7 @@ export interface PlayOutcome {
 
 export function playHunt(o: PlayOptions): PlayOutcome {
   const sim = createSim({ seed: o.seed, content: o.content, mode: o.mode, inputKind: o.inputKind });
-  const bot = createBot(o.bot, o.seed, o.content);
+  const bot = createBot(o.bot, o.seed, o.content, o.inputKind);
   const recorder = createRecorder({
     seed: o.seed,
     contentHash: o.contentHash,

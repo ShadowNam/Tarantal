@@ -32,6 +32,19 @@ describe('HuntRunner', () => {
     expect(r.advance(STEP_MS * 0.5).steps).toBe(0);
   });
 
+  it('slow-mo runs the sim at scale × real time for that long, then normal speed', () => {
+    const r = new HuntRunner(newSim(), { maxStepsPerFrame: 5 });
+    r.advance(STEP_MS);
+    r.slowMo(0.3, 400);
+    let steps = 0;
+    for (let i = 0; i < 24; i++) steps += r.advance(400 / 24).steps; // 400 ms real
+    expect(r.slowMoActive).toBe(false);
+    // 400 ms × 0.3 = 120 ms of sim time ≈ 7 ticks (instead of 24).
+    expect(steps).toBeGreaterThanOrEqual(6);
+    expect(steps).toBeLessThanOrEqual(8);
+    expect(r.advance(STEP_MS * 3).steps).toBe(3);
+  });
+
   it('hit-stop holds the sim for that much real time', () => {
     const r = new HuntRunner(newSim(), { maxStepsPerFrame: 5 });
     r.advance(STEP_MS);

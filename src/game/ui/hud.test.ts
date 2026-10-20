@@ -3,7 +3,7 @@ import { designSizeFor, safeAreaInDesignPx } from '../layout';
 import { formatAward, formatClock, formatScore, popParts } from './format';
 import { hudLayout, rectContains, type Rect } from './hudLayout';
 
-const sizing = { marginPx: 28, beltTapMinPx: 64 };
+const sizing = { marginPx: 28, beltTapMinPx: 64, gadgetPx: 120 };
 const inside = (outer: Rect, r: Rect) =>
   r.x >= outer.x &&
   r.y >= outer.y &&
@@ -24,7 +24,7 @@ describe('HUD layout at 16:9, 19.5:9 and 4:3', () => {
       const size = designSizeFor(c.vw, c.vh);
       const insets = safeAreaInDesignPx(c.insets, { width: c.vw, height: c.vh }, size);
       const l = hudLayout(size.width, size.height, insets, sizing);
-      const parts = [l.timer, l.frenzy, l.score, l.belt, l.reloadPrompt];
+      const parts = [l.timer, l.frenzy, l.score, l.belt, l.reloadPrompt, l.gadget];
       for (const p of parts) expect(inside(l.safe, p)).toBe(true);
       for (let i = 0; i < parts.length; i++)
         for (let j = i + 1; j < parts.length; j++) {
@@ -33,6 +33,7 @@ describe('HUD layout at 16:9, 19.5:9 and 4:3', () => {
           if (a && b) expect(overlap(a, b)).toBe(false);
         }
       expect(l.belt.h).toBeGreaterThanOrEqual(64);
+      expect(Math.min(l.gadget.w, l.gadget.h)).toBeGreaterThanOrEqual(64);
       expect(rectContains(l.belt, l.belt.x + 5, l.belt.y + 5)).toBe(true);
     });
   }

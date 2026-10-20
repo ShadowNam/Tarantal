@@ -47,20 +47,20 @@
   "twoFlies": [
     {
       "birds": 2,
-      "bonus": 50
+      "bonus": 15
     },
     {
       "birds": 3,
-      "bonus": 150
+      "bonus": 40
     },
     {
       "birds": 4,
-      "bonus": 300
+      "bonus": 80
     }
   ],
   "wholeFlock": {
     "minSize": 5,
-    "perBird": 15,
+    "perBird": 30,
     "slowMo": {
       "scale": 0.3,
       "ms": 400

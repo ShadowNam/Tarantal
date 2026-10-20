@@ -2,8 +2,8 @@
 // Pure TypeScript (no Phaser) so it is unit-tested. Each rendered frame calls advance(dtMs):
 // the accumulator runs 0..maxSteps sim ticks, keeps the last two snapshots for interpolation,
 // records every command for bug-report replays, and returns the events those ticks produced.
-// Hit-stop only holds the accumulator: the sim still sees the same commands at the same ticks,
-// so it never affects determinism.
+// Hit-stop and slow-mo only change how real time feeds the accumulator: the sim still sees the
+// recorded commands at their ticks, so neither affects determinism.
 import type { Sim } from '../sim/Sim';
 import type { SimEvent } from '../sim/events';
 import type { InputRecorder } from '../sim/replay/inputLog';
@@ -30,6 +30,8 @@ export class HuntRunner {
   private pending: Command[] = [];
   private accumulator = 0;
   private hitStopLeftMs = 0;
+  private slowLeftMs = 0;
+  private slowScale = 1;
   private previous: SimState;
   private current: SimState;
   /** Events emitted at creation (huntStarted) are handed out by the first advance(). */
@@ -51,6 +53,16 @@ export class HuntRunner {
   /** Holds the sim for ms of real time (hit-stop); the longest request wins. */
   hitStop(ms: number): void {
     this.hitStopLeftMs = Math.max(this.hitStopLeftMs, ms);
+  }
+
+  /** Runs the sim at `scale` × real time for the next `ms` of real time (Whole-Flock slow-mo). */
+  slowMo(scale: number, ms: number): void {
+    this.slowScale = Math.min(1, Math.max(0.01, scale));
+    this.slowLeftMs = Math.max(this.slowLeftMs, ms);
+  }
+
+  get slowMoActive(): boolean {
+    return this.slowLeftMs > 0;
   }
 
   get prev(): SimState {
@@ -84,6 +96,11 @@ export class HuntRunner {
       const held = Math.min(this.hitStopLeftMs, dt);
       this.hitStopLeftMs -= held;
       dt -= held;
+    }
+    if (this.slowLeftMs > 0 && dt > 0) {
+      const slow = Math.min(this.slowLeftMs, dt);
+      this.slowLeftMs -= slow;
+      dt = dt - slow + slow * this.slowScale;
     }
     this.accumulator += dt;
 

@@ -124,7 +124,9 @@ Flocks escalate one step per **threat**. A threat is: a shot whose impact lands 
 weapon's alert radius of any flock member (hit **or** miss — one threat per shot per flock), a
 flockmate being bagged by a silent weapon, or a world event (hadeda, dust devil, dog, bakkie alarm).
 The **escalation window** is 1.5 s: a second threat inside it escalates; if it expires, the flock
-calms down one step.
+calms down one step. Every step needs a threat inside the window opened by the previous one: a
+threat that reaches a RUNNING flock after its window has closed reopens the window (and restarts
+the 4–7 s calm timer) but does not flush it (D-020).
 
 ```
           threat                    threat within 1.5 s                threat within 1.5 s
@@ -169,7 +171,9 @@ Accuracy and timing both matter: misses near a flock still count as threats. Thi
 ceiling Moorhuhn never had.
 
 ### 6.4 Whole-flock bonus
-Bag every member of a flock of ≥ 5 before it SETTLES or EXITS → **+15 per bird**, slow-mo 0.3× for
+Bag every member of a flock of ≥ 5 before it calms down after losing a bird (ALERT → FORAGE),
+SETTLES or a member EXITS →
+**+30 per bird** (`scoring.json`; tuned in M3, D-020), slow-mo 0.3× for
 0.4 s, Oupa: "Die hele swerm!". Shown on the tally screen as a badge.
 
 ### 6.5 Classic fly-overs (keep the Moorhuhn feel)
@@ -223,8 +227,8 @@ fact + a joke. Completing pages unlocks cosmetics. Collection is a quiet, strong
 | Combo | Rule | Effect |
 |---|---|---|
 | **Frenzy** ("Bosveld Frenzy") | Consecutive *shots* that bag ≥1 target | 3 → ×1.5, 6 → ×2, 10 → ×3 (`mulMult`). A shot that bags nothing resets to 0 (hitting only a non-target counts as nothing). Reloading and empty clicks do not reset. The shot that reaches a tier already scores at it (D-018). |
-| **Twee Vlieë!** (Afrikaans "two flies with one slap" = two birds, one stone) | One shot bags ≥2 | 2 = +50, 3 = +150, 4+ = +300 |
-| **Whole Flock** | §6.4 | +15 per bird |
+| **Twee Vlieë!** (Afrikaans "two flies with one slap" = two birds, one stone) | One shot bags ≥2 | 2 = +15, 3 = +40, 4+ = +80 (tuned in M3, D-020) |
+| **Whole Flock** | §6.4 | +30 per bird |
 | **Stampede** | last 15 s | ×2 |
 | **Secret chain** | Two secrets within 10 s | +50 |
 
@@ -248,8 +252,11 @@ said over-and-under. **Side-by-side is canonical** (it reads better from first p
 belt is a deliberate arcade abstraction.
 
 ### 10.2 Gadget
-- **Vuvuzela** (all modes, one slot): no damage; BZZZT shockwave FLUSHES every visible flock.
-  Cooldown 20 s (Classic: 2 charges per hunt). The flush tool that makes the flock mechanic sing.
+- **Vuvuzela** (all modes, one slot): no damage; BZZZT shockwave FLUSHES every visible flock
+  ("visible" = within the 1920-px reference view around the screen centre, so it is the same on
+  every device, D-020). Cooldown 20 s (Classic and Daily: 2 charges per hunt; Season Run uses the
+  same number until the run state owns it in M6). Desktop **Q**, touch: the horn button
+  bottom-left. The flush tool that makes the flock mechanic sing.
 
 ### 10.3 Crate weapons (temporary, Classic/Daily crates and Season Run Padstal)
 - **Die Voorlaaier** (blunderbuss): 3 shots, giant spread covering ~30 % of the screen, thick smoke
@@ -403,7 +410,10 @@ Hub screen: equip weapon for Classic/Daily, view unlocked charms, Bird Book, Not
 ### 13.8 Balance tooling
 A headless balance simulator plays the deterministic sim over thousands of seeds with bots:
 `random`, `plinker` (never escalates on purpose; waits out alert windows), `competent` (escalates
-flocks to FLUSH, leads moving targets, ~250 ms reaction, small aim error). In Season Runs a bot's
+flocks to FLUSH, leads moving targets, ~250 ms reaction, small aim error). Plinker and competent
+share one player model (`tools/humanBots.ts`: 250 ms perception lag, leading from perceived
+velocity, Gaussian aim error σ 10 px mouse / 26 px finger, keyboard pan speed, human shot cadence)
+so their gap measures tempo, not aim. Run it with `npm run balance` (`tools/balance-sim.ts`). In Season Runs a bot's
 charm policy is either `none` or `synergy` (a scripted archetype-focused picker).
 
 Quotas are tuned to these pass-rate targets for the competent bot (60 s hunts):

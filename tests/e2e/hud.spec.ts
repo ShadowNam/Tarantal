@@ -49,6 +49,7 @@ test('HUD fits the safe area at every aspect ratio (screenshots)', async ({ page
       expect(r.y + r.h, `${c.label} ${name} bottom`).toBeLessThanOrEqual(safe.y + safe.h);
     }
     expect(h.rects['belt']?.h ?? 0).toBeGreaterThanOrEqual(64);
+    expect(h.rects['gadget']?.h ?? 0).toBeGreaterThanOrEqual(64);
     await page.screenshot({ path: `${SCREENSHOTS}/hud-${c.label}-${info.project.name}.png` });
   }
   expect(errors).toEqual([]);

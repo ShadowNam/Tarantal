@@ -24,7 +24,7 @@ export function fnv1a32(text: string, seed = 0x811c9dc5): number {
 
 /** Stream names in use. Add a name here when a new system needs randomness. */
 export type StreamName =
-  'spawns' | 'events' | 'pellets' | 'birds' | 'flockNoise' | 'charms' | 'shop' | 'bot';
+  'spawns' | 'events' | 'pellets' | 'birds' | 'flocks' | 'flockNoise' | 'charms' | 'shop' | 'bot';
 
 /** A stream's members are closures, so they are safe to pass around detached. */
 export interface RandomStream {

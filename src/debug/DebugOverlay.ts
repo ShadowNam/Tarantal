@@ -111,7 +111,9 @@ export class DebugOverlay {
       label
         .setVisible(true)
         .setPosition(b.x, b.y + body.ry * s + 6)
-        .setText(`#${b.view.id} ${b.view.phase} ${b.view.behaviour}`);
+        .setText(
+          `#${b.view.id}${b.view.flockId === null ? '' : ` f${b.view.flockId}`} ${b.view.phase} ${b.view.behaviour}`,
+        );
       li++;
     }
     for (; li < this.labels.length; li++) this.labels[li]?.setVisible(false);
@@ -119,7 +121,7 @@ export class DebugOverlay {
     this.text
       .setPosition(x, y)
       .setText(
-        `FPS ${fps}  tick ${state.tick}/${state.durationTicks}  cam ${state.cameraX.toFixed(1)}  birds ${state.birds.length}  input ${inputKind}`,
+        `FPS ${fps}  tick ${state.tick}/${state.durationTicks}  cam ${state.cameraX.toFixed(1)}  birds ${state.birds.length}  input ${inputKind}\nflocks ${state.flocks.map((f) => `f${f.id} ${f.state} ${f.alive}/${f.spawnSize}${f.eligible ? '' : ' ✗'}`).join(' · ') || '—'}`,
       );
   }
 }

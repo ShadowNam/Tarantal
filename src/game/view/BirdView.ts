@@ -1,6 +1,8 @@
 // Draws the birds of each snapshot (interpolated). One pooled image per bird id, added to its
 // plane's container in spawn order, so a higher id is always drawn on top (D-018 hit order).
-// Pop-ups are cropped at their grass line and get a grass tuft in front of them.
+// Pop-ups are cropped at their grass line and get a grass tuft in front of them. Flock members
+// pose by phase: standing (walk, alert, crouched for take-off), leaning forward when running,
+// fast wing beats when flushed, wings held up when gliding.
 import * as Phaser from 'phaser';
 import type { PlaneId } from '../../sim/types';
 import { TEX, type AssetManifest, type BirdFrame } from '../assets/AssetManifest';
@@ -15,8 +17,22 @@ interface Drawn {
   frame: string;
 }
 
-/** Wing-beat period in ticks (rendering only). */
+/** Wing-beat period in ticks (rendering only); flushed birds beat twice as fast. */
 const FLAP_TICKS = 14;
+const FLUSH_FLAP_TICKS = 6;
+/** Running lean (radians) and the walking bob (design px), rendering only. */
+const RUN_LEAN = 0.18;
+const WALK_BOB_PX = 2;
+
+function frameFor(v: DrawBird['view'], tick: number): BirdFrame {
+  if (v.motion === 'popup') return 'stand';
+  if (v.motion === 'flock') {
+    if (v.phase === 'glide') return 'up';
+    if (v.phase !== 'flap') return 'stand';
+    return (tick + v.id * 3) % FLUSH_FLAP_TICKS < FLUSH_FLAP_TICKS / 2 ? 'up' : 'down';
+  }
+  return (tick + v.id * 5) % FLAP_TICKS < FLAP_TICKS / 2 ? 'up' : 'down';
+}
 
 export class BirdView {
   private readonly scene: Phaser.Scene;
@@ -35,12 +51,7 @@ export class BirdView {
     for (const b of birds) {
       seen.add(b.view.id);
       const v = b.view;
-      const frame: BirdFrame =
-        v.motion === 'popup'
-          ? 'stand'
-          : (tick + v.id * 5) % FLAP_TICKS < FLAP_TICKS / 2
-            ? 'up'
-            : 'down';
+      const frame = frameFor(v, tick);
       const key = this.manifest.bird(v.creature, v.plane, frame);
       let d = this.drawn.get(v.id);
       if (d === undefined) {
@@ -63,7 +74,13 @@ export class BirdView {
         d.frame = key;
       }
       // Mirror around the origin (the bird's position) — the hitbox mirrors the same way.
-      d.sprite.setPosition(b.x, b.y).setScale(v.facing, 1);
+      const bob =
+        v.motion === 'flock' && v.phase === 'walk' && (tick + v.id) % 20 < 10 ? WALK_BOB_PX : 0;
+      const lean = v.phase === 'run' || v.phase === 'land' ? RUN_LEAN * v.facing : 0;
+      d.sprite
+        .setPosition(b.x, b.y - bob)
+        .setScale(v.facing, 1)
+        .setRotation(lean);
       if (v.motion === 'popup' && v.ground !== null) {
         // Hide everything below the grass line (texture px == design px on the near plane).
         const frameH = d.sprite.frame.height;

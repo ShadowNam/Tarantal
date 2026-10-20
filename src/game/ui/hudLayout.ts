@@ -1,6 +1,7 @@
 // In-hunt HUD layout (art bible §6) from the design width and the safe area. Pure; unit-tested
 // at 16:9, 19.5:9 and 4:3. Top-left: timer + Frenzy meter. Top-right: score + pop stack.
-// Bottom-right: shell belt (tap target) + RELOAD prompt. Gun: bottom, centre-right.
+// Bottom-right: shell belt (tap target) + RELOAD prompt. Bottom-left: gadget button (Vuvuzela,
+// GDD §18.2; mirrored for left-handers with the M5 settings). Gun: bottom, centre-right.
 import type { Insets } from '../layout';
 
 export interface Rect {
@@ -19,6 +20,7 @@ export interface HudLayout {
   readonly popAnchor: { readonly x: number; readonly y: number };
   readonly belt: Rect;
   readonly reloadPrompt: Rect;
+  readonly gadget: Rect;
   /** Gun pivot (bottom-centre of the gun sprite). */
   readonly gun: { readonly x: number; readonly y: number };
 }
@@ -26,6 +28,7 @@ export interface HudLayout {
 export interface HudSizing {
   readonly marginPx: number;
   readonly beltTapMinPx: number;
+  readonly gadgetPx: number;
 }
 
 export function hudLayout(width: number, height: number, insets: Insets, s: HudSizing): HudLayout {
@@ -49,6 +52,7 @@ export function hudLayout(width: number, height: number, insets: Insets, s: HudS
   const beltW = 8 * 44 + 40;
   const belt: Rect = { x: right - beltW, y: bottom - beltH, w: beltW, h: beltH };
   const reloadPrompt: Rect = { x: belt.x, y: belt.y - 90, w: belt.w, h: 76 };
+  const gadget: Rect = { x: left, y: bottom - s.gadgetPx, w: s.gadgetPx, h: s.gadgetPx };
   return {
     safe,
     timer,
@@ -57,6 +61,7 @@ export function hudLayout(width: number, height: number, insets: Insets, s: HudS
     popAnchor: { x: right, y: score.y + score.h + 12 },
     belt,
     reloadPrompt,
+    gadget,
     gun: { x: safe.x + safe.w * 0.62, y: height },
   };
 }

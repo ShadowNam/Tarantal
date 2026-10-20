@@ -1,6 +1,18 @@
 // Placeholder SFX synthesised with Web Audio (no files to download): shot, empty click, reload,
-// poof, kek, penalty scratch. Real recorded assets replace these in M10 (art/audio bible §10).
-export type SfxId = 'shot' | 'click' | 'shell' | 'poof' | 'kek' | 'scratch' | 'stampede';
+// poof, kek, penalty scratch; M3 adds the flush alarm, the flush music sting, the Vuvuzela and the
+// whole-flock stamp. Real recorded assets replace these in M10 (art/audio bible §10).
+export type SfxId =
+  | 'shot'
+  | 'click'
+  | 'shell'
+  | 'poof'
+  | 'kek'
+  | 'kekAlarm'
+  | 'sting'
+  | 'vuvuzela'
+  | 'stamp'
+  | 'scratch'
+  | 'stampede';
 
 function noiseBuffer(ctx: BaseAudioContext, seconds: number): AudioBuffer {
   const buf = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * seconds), ctx.sampleRate);
@@ -81,6 +93,44 @@ export function playSfx(ctx: AudioContext, out: AudioNode, id: SfxId, noise: Aud
     case 'kek':
       for (let k = 0; k < 3; k++) tone('square', 1500, 1100, 0.05, 0.12, k * 0.09);
       return 0.3;
+    case 'kekAlarm':
+      // The whole flock at once: fast, overlapping, slightly detuned keks.
+      for (let k = 0; k < 7; k++) {
+        const f = 1350 + (k % 3) * 140;
+        tone('square', f, f * 0.72, 0.045, 0.1, k * 0.055);
+      }
+      return 0.45;
+    case 'sting':
+      // Short rising brass-ish arpeggio: the flush music sting.
+      [392, 494, 587, 784].forEach((f, k) => {
+        tone('sawtooth', f, f * 1.01, 0.16, 0.12, k * 0.07);
+      });
+      return 0.5;
+    case 'vuvuzela': {
+      const o = ctx.createOscillator();
+      const lfo = ctx.createOscillator();
+      const lfoGain = ctx.createGain();
+      const g = ctx.createGain();
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(233, now);
+      lfo.frequency.setValueAtTime(6, now);
+      lfoGain.gain.setValueAtTime(5, now);
+      lfo.connect(lfoGain).connect(o.frequency);
+      g.gain.setValueAtTime(0.0001, now);
+      g.gain.exponentialRampToValueAtTime(0.3, now + 0.06);
+      g.gain.setValueAtTime(0.3, now + 0.7);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 0.9);
+      o.connect(g).connect(out);
+      o.start(now);
+      lfo.start(now);
+      o.stop(now + 0.95);
+      lfo.stop(now + 0.95);
+      return 0.95;
+    }
+    case 'stamp':
+      tone('sine', 120, 50, 0.3, 0.7);
+      tone('triangle', 660, 880, 0.25, 0.15, 0.12);
+      return 0.4;
     case 'scratch':
       tone('sawtooth', 300, 80, 0.3, 0.3);
       return 0.3;

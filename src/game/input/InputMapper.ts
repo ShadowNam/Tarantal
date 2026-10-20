@@ -1,8 +1,8 @@
 // Device input → sim Commands (Tech §6). Pointer Events only, one path for mouse, touch and pen.
-//   Mouse:  left button fires at once · right button / Space reloads · A/D, ←/→ or the outer 12 %
-//           of the screen pans.
+//   Mouse:  left button fires at once · right button / Space reloads · Q blows the Vuvuzela ·
+//           A/D, ←/→ or the outer 12 % of the screen pans.
 //   Touch:  tap fires at the finger · horizontal drag pans with inertia · flick-down or a tap on
-//           the shell belt reloads.
+//           the shell belt reloads · a tap on the gadget button blows the Vuvuzela.
 // Positions are converted to design px of the visible screen; the fire command carries dx from
 // the screen centre (never an absolute x — the sim doesn't know the viewport width).
 import type { Feel } from '../../content/schemas';
@@ -15,6 +15,8 @@ export interface InputHost {
   designSize(): { width: number; height: number };
   /** True if (x, y) in design px is on the shell belt (touch reload target). */
   isOnBelt(x: number, y: number): boolean;
+  /** True if (x, y) in design px is on the gadget button. */
+  isOnGadget(x: number, y: number): boolean;
   queue(cmd: Command): void;
   /** Cursor/finger position for the reticle and gun lean. */
   aim(x: number, y: number, fromTap: boolean): void;
@@ -131,6 +133,7 @@ export class InputMapper {
       if (e.button === 0) {
         this.host.aim(p.x, p.y, false);
         if (this.host.isOnBelt(p.x, p.y)) this.host.queue({ t: 'reload' });
+        else if (this.host.isOnGadget(p.x, p.y)) this.host.queue({ t: 'gadget' });
         else this.fireAt(p.x, p.y);
       } else if (e.button === 2) {
         this.host.queue({ t: 'reload' });
@@ -169,6 +172,7 @@ export class InputMapper {
     switch (end.kind) {
       case 'tap':
         if (this.host.isOnBelt(end.x, end.y)) this.host.queue({ t: 'reload' });
+        else if (this.host.isOnGadget(end.x, end.y)) this.host.queue({ t: 'gadget' });
         else {
           this.host.aim(end.x, end.y, true);
           this.fireAt(end.x, end.y);
@@ -201,6 +205,11 @@ export class InputMapper {
     if (e.code === 'Space') {
       e.preventDefault();
       if (down && !e.repeat) this.host.queue({ t: 'reload' });
+      return;
+    }
+    if (e.code === 'KeyQ') {
+      e.preventDefault();
+      if (down && !e.repeat) this.host.queue({ t: 'gadget' });
       return;
     }
     const dir: Record<string, number> = { KeyA: -1, ArrowLeft: -1, KeyD: 1, ArrowRight: 1 };

@@ -32,4 +32,12 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
   },
   { name: 'classic-7-aim-pointer', seed: 7, bot: 'aim', mode: 'classic', inputKind: 'pointer' },
   { name: 'daily-2026-aim-touch', seed: 2026, bot: 'aim', mode: 'daily', inputKind: 'touch' },
+  // M3: a hunt that escalates flocks (alert → run → flush, Vuvuzela, Whole Flock).
+  {
+    name: 'classic-11-competent-pointer',
+    seed: 11,
+    bot: 'competent',
+    mode: 'classic',
+    inputKind: 'pointer',
+  },
 ];
