@@ -101,6 +101,12 @@ export class InputMapper {
     }
   }
 
+  /** The sim dropped the hold (crate weapon armed or used up): stop treating the held pointer as
+   *  a hold, so a finger can drag-pan again. */
+  cancelHold(): void {
+    if (this.holdPointer !== null) this.endHold(this.holdPointer);
+  }
+
   /** Ignore this pointer until it lifts (e.g. the tap that started the hunt). */
   ignorePointer(id: number): void {
     this.ignored.add(id);

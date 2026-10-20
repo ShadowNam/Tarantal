@@ -497,6 +497,19 @@ describe('Karoo omen (wind, dust devils)', () => {
   });
 });
 
+describe('dust devil without flushOnContact', () => {
+  it('only threatens the flock it touches (the JSON flag is honoured)', () => {
+    const c = onlyEvent(withMidFlock(quiet()), 'dustDevil');
+    const devil = karooOf(c).events[0];
+    if (devil === undefined) throw new Error('devil');
+    devil.radiusPx = 5000;
+    devil.flushOnContact = false;
+    const ev = run(newSim(c, { id: 'daily' }), 120);
+    expect(ofType(ev, 'flockThreatened')).toMatchObject([{ source: 'event' }]);
+    expect(ofType(ev, 'flockStateChanged')).toMatchObject([{ to: 'alert' }]);
+  });
+});
+
 describe('Generaal Tarentaal (GDD §7 boss)', () => {
   it('appears at the bakkie; first hit knocks the pot (+25), he runs; second bags him', () => {
     const c = onlyEvent(quiet(), 'bossAppearance');

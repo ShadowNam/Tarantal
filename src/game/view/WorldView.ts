@@ -37,6 +37,7 @@ export class WorldView {
   private readonly helper: Phaser.GameObjects.Image;
   /** Power-ups that bring a helper creature (helpers' `grants`, birds.json). */
   private readonly helperPowerups: ReadonlySet<string>;
+  private readonly planeScale: Readonly<Record<'near' | 'mid' | 'far', number>>;
   private nextGlintAt = 0;
   private windCredit = 0;
 
@@ -53,6 +54,8 @@ export class WorldView {
     this.parallax = parallax;
     this.biome = biome;
     this.screen = screen;
+    const { planes } = content.scoring;
+    this.planeScale = { near: planes.near.scale, mid: planes.mid.scale, far: planes.far.scale };
     this.helperPowerups = new Set(
       content.birds.creatures.flatMap((c) => (c.kind === 'helper' ? [c.grants] : [])),
     );
@@ -203,7 +206,7 @@ export class WorldView {
     if (reveal) {
       for (const b of s.birds) {
         if (b.kind === 'nonTarget' || !b.hittable) continue;
-        const scale = b.plane === 'near' ? 1 : b.plane === 'mid' ? 0.5 : 0.22;
+        const scale = this.planeScale[b.plane];
         ring(this.parallax.plane(b.plane).overlay, b.x, b.y, 120 * scale);
       }
       for (const sec of s.secrets) {

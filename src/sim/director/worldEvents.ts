@@ -158,6 +158,7 @@ export function buildDustDevil(
       speedPxPerSec,
       radiusPx,
       lifeSeconds,
+      flushes: event.flushOnContact !== false,
     },
     rng,
   );

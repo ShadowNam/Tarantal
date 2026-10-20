@@ -203,6 +203,13 @@ before that. (14) *Balance* (Classic Karoo, 500 seeds, pointer), mean / p15 / p8
 | competent | 3 695 / 2 991 / 4 385 | 4 180 / 3 520 / 4 883 | 4 236 / 3 532 / 4 934 |
 
 Plinker is 42.4 % (off) / 39.5 % (on) below competent; all M3 gates pass, no content tuning needed.
+(15) *Review fixes:* a pellet's impact (threats, `pelletImpact.dx`) is where it landed, so a far
+shot's drift moves its alert point too; a shot that knocks armour off while also hitting a secret or
+crate is a normal Frenzy shot (only a shot that damages nothing keeps the streak); dust devils honour
+`flushOnContact` (false = one threat). Bush Buckshot also widens and counts crate-weapon shots (the
+Voorlaaier goes to 750 px — a deliberate combo). Follow-ups: a perch/boss event is skipped if the
+screen already holds `maxBirdsOnScreen`; Chilli Biltong's red edge glow is not drawn yet; golden
+replays don't exercise `fireHold*` (unit tests do).
 
 ## 3. Research notes (with sources)
 

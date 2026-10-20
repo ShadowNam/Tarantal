@@ -224,6 +224,10 @@ export function createSim(config: SimConfig): Sim {
   const planeLayer = new Map<PlaneId, string>();
   for (const l of biome.layers) if (l.plane !== undefined) planeLayer.set(l.plane, l.id);
   const chainTicks = secondsToTicks(scoring.secretChain.withinSeconds);
+  /** Each prop's layer scroll factor (where a pellet that stopped on it landed). */
+  const propLayerFactor = new Map(
+    biome.props.map((p) => [p.id, layerById.get(p.layer)?.scrollFactor ?? 1]),
+  );
 
   const geometry: ShotGeometry = {
     slices: buildSlices(biome),
@@ -558,6 +562,7 @@ export function createSim(config: SimConfig): Sim {
     const farFactor = planeGeo.far.scrollFactor;
     // Wind drifts far shots (Tech §3.4): the far plane and everything behind it.
     const driftDx = (f: number): number => (f <= farFactor ? drift : 0);
+    const byId0 = new Map(birds.map((b) => [b.id, b]));
     const pelletsOn = new Map<number, number>();
     const impacts: { dx: number; sy: number }[] = [];
     const partHits: { propId: string; partId: string }[] = [];
@@ -569,13 +574,24 @@ export function createSim(config: SimConfig): Sim {
     )) {
       const pdx = dx + o.ox;
       const psy = sy + o.oy;
-      impacts.push({ dx: pdx, sy: psy });
       const r = resolvePellet(pdx, psy, cameraX, geometry, byPlane, extras, driftDx);
+      // The impact is where the pellet landed: downwind if it stopped at or behind the far
+      // plane (or flew on into the sky), so threats and the puff follow the drift (Tech §3.4).
+      const landedFar =
+        r.birdId !== null
+          ? byId0.get(r.birdId)?.plane === 'far'
+          : r.crateId !== null
+            ? crateCfg.plane === 'far'
+            : r.propId !== null
+              ? (propLayerFactor.get(r.propId) ?? 1) <= farFactor
+              : true;
+      const ldx = landedFar ? pdx + drift : pdx;
+      impacts.push({ dx: ldx, sy: psy });
       emit({
         type: 'pelletImpact',
         tick,
         shotId,
-        dx: pdx,
+        dx: ldx,
         sy: psy,
         birdId: r.birdId,
         propId: r.propId,
@@ -619,7 +635,7 @@ export function createSim(config: SimConfig): Sim {
 
     // Frenzy first: this shot's bags score with the streak including this shot (D-018). A shot
     // that only hits a secret part or a crate leaves the streak alone (D-021).
-    const onlyThings = hitThing && bagged.length === 0;
+    const onlyThings = hitThing && damage.outcomes.length === 0;
     const newStreak = onlyThings ? streak : nextStreak(streak, targets.length > 0);
     if (newStreak !== streak) {
       streak = newStreak;
@@ -1076,7 +1092,8 @@ export function createSim(config: SimConfig): Sim {
         if (tickDustDevil(d)) ended.push(d);
         // A dust devil flushes what it touches (GDD §11).
         for (const f of devilContacts(d, flocks)) {
-          emitTransition(f, forceState(f, 'flush', d.x, 'event', fParams, flockRng));
+          if (d.flushes) emitTransition(f, forceState(f, 'flush', d.x, 'event', fParams, flockRng));
+          else threaten([{ flock: f, x: d.x }], 'event');
         }
       }
       if (ended.length > 0) {

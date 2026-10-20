@@ -414,6 +414,8 @@ export class HuntScene extends Phaser.Scene {
           hook.shots++;
           hook.firstShotAtMs ??= performance.now();
         }
+      } else if (e.type === 'weaponChanged') {
+        this.mapper?.cancelHold();
       } else if (e.type === 'targetBagged') {
         bagged = true;
       } else if (e.type === 'bonusAwarded' && e.bonus === 'twoFlies') {

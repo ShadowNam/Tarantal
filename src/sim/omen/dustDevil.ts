@@ -17,6 +17,8 @@ export interface DustDevil {
   /** Contact radius in plane px. */
   readonly radius: number;
   ticksLeft: number;
+  /** flushOnContact: touched flocks FLUSH; otherwise they get one threat. */
+  readonly flushes: boolean;
   /** Flocks already flushed by this devil. */
   readonly touched: Set<number>;
 }
@@ -33,6 +35,7 @@ export interface DustDevilSpec {
   readonly speedPxPerSec: number;
   readonly radiusPx: number;
   readonly lifeSeconds: readonly [number, number];
+  readonly flushes: boolean;
 }
 
 /** A dust devil starting in view (within half the reference width of the centre), upwind. */
@@ -47,6 +50,7 @@ export function spawnDustDevil(s: DustDevilSpec, rng: RandomStream): DustDevil {
     vx: (s.dir * s.speedPxPerSec * s.ratio) / TICKS_PER_SECOND,
     radius: s.radiusPx * s.ratio,
     ticksLeft: Math.max(1, secondsToTicks(rng.range(s.lifeSeconds[0], s.lifeSeconds[1]))),
+    flushes: s.flushes,
     touched: new Set(),
   };
 }
