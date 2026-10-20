@@ -29,8 +29,13 @@ function setState(f: Flock, to: FlockState, cause: FlockCause): Transition {
   return { from, to, cause };
 }
 
-function enterAlert(f: Flock, p: FlockParams, rng: RandomStream, cause: FlockCause): Transition {
+function openWindow(f: Flock, p: FlockParams): void {
   f.windowTicks = p.windowTicks;
+  f.windowFresh = true;
+}
+
+function enterAlert(f: Flock, p: FlockParams, rng: RandomStream, cause: FlockCause): Transition {
+  openWindow(f, p);
   f.freezeTicks = drawTicks(rng, p.alertTicks);
   for (const b of f.members) {
     enter(b, 'alert');
@@ -43,7 +48,7 @@ function enterAlert(f: Flock, p: FlockParams, rng: RandomStream, cause: FlockCau
 }
 
 function enterRun(f: Flock, p: FlockParams, rng: RandomStream, cause: FlockCause): Transition {
-  f.windowTicks = p.windowTicks;
+  openWindow(f, p);
   f.calmTicks = drawTicks(rng, p.settleTimeoutTicks);
   f.dir = awayFrom(f);
   for (const b of f.members) enter(b, 'run');
@@ -81,9 +86,10 @@ function enterSettle(f: Flock, p: FlockParams, rng: RandomStream, cause: FlockCa
 
 function enterForage(f: Flock, cause: FlockCause): Transition {
   f.windowTicks = 0;
-  // Calming down ends Whole Flock (GDD §6.4 "before it settles", D-020): waiting out the window
-  // is the plinker's safe play, the bonus rewards escalation.
-  f.eligible = false;
+  // Calming down after losing a bird ends Whole Flock (GDD §6.4 "before it settles", D-020):
+  // waiting out the window between shots is the plinker's safe play; the bonus rewards
+  // escalation. A flock that only got spooked (a hadeda, a stray shot) keeps its chance.
+  if (f.members.length < f.spawnSize) f.eligible = false;
   if (cause === 'settled') f.homeX = centroid(f).x;
   f.goalTicks = 0;
   for (const b of f.members) enter(b, 'walk');
@@ -114,7 +120,7 @@ export function applyThreat(
       return enterRun(f, p, rng, 'threat');
     case 'run':
       if (f.windowTicks > 0) return enterFlush(f, p, rng, 'threat');
-      f.windowTicks = p.windowTicks;
+      openWindow(f, p);
       f.calmTicks = drawTicks(rng, p.settleTimeoutTicks);
       f.dir = awayFrom(f);
       return null;
@@ -138,7 +144,8 @@ export function forceState(
 /** Advances the FSM timers one tick (before members move). */
 export function tickFsm(f: Flock, p: FlockParams, rng: RandomStream): Transition | null {
   f.stateTicks++;
-  if (f.windowTicks > 0) f.windowTicks--;
+  if (f.windowFresh) f.windowFresh = false;
+  else if (f.windowTicks > 0) f.windowTicks--;
   switch (f.state) {
     case 'forage':
       return null;

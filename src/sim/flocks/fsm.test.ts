@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { loadContent } from '../../../tools/testContent';
 import { behaviourOf } from '../birds/Bird';
 import { msToTicks } from '../clock';
-import type { Flock, FlockParams } from './Flock';
+import { removeMembers, type Flock, type FlockParams } from './Flock';
 import { applyThreat, forceState, tickFsm, type Transition } from './fsm';
 import { moveFlock } from './steering';
 import { makeFlock } from './testing';
@@ -52,10 +52,33 @@ describe('flock FSM', () => {
   it('ALERT → FORAGE when the 1.5 s window expires without a second threat', () => {
     const { flock, params, rng } = makeFlock(content);
     applyThreat(flock, 1000, params, rng);
-    for (let i = 0; i < WINDOW - 1; i++) expect(tickFsm(flock, params, rng)).toBeNull();
+    // The threat's own tick plus the full window: a follow-up on any of the next WINDOW ticks
+    // still escalates (the sim ticks the FSM after commands in the same tick).
+    for (let i = 0; i < WINDOW; i++) expect(tickFsm(flock, params, rng)).toBeNull();
+    expect(flock.windowTicks).toBe(1);
     expect(tickFsm(flock, params, rng)).toEqual({ from: 'alert', to: 'forage', cause: 'window' });
     expect(flock.members.every((b) => b.phase === 'walk')).toBe(true);
-    // Calming down ends Whole Flock for this flock (D-020).
+    // Only spooked, nobody lost: Whole Flock is still possible (D-020).
+    expect(flock.eligible).toBe(true);
+  });
+
+  it('a member exiting the panorama ends Whole Flock; a bag does not', () => {
+    const a = makeFlock(content);
+    const first = a.flock.members[0]?.id ?? -1;
+    expect(removeMembers(a.flock, new Set([first]), 'bagged')).toBe(true);
+    expect(a.flock.eligible).toBe(true);
+    const next = a.flock.members[0]?.id ?? -1;
+    expect(removeMembers(a.flock, new Set([next]), 'exited')).toBe(true);
+    expect(a.flock.eligible).toBe(false);
+    expect(removeMembers(a.flock, new Set([12345]), 'exited')).toBe(false);
+  });
+
+  it('calming down after losing a bird ends Whole Flock (the plinker cannot farm it)', () => {
+    const { flock, params, rng } = makeFlock(content);
+    applyThreat(flock, 1000, params, rng);
+    flock.members = flock.members.slice(1); // one bird bagged by that shot
+    for (let i = 0; i <= WINDOW; i++) tickFsm(flock, params, rng);
+    expect(flock.state).toBe('forage');
     expect(flock.eligible).toBe(false);
   });
 
@@ -131,7 +154,7 @@ describe('flock FSM', () => {
     const { flock, params, rng } = makeFlock(content);
     applyThreat(flock, 1000, params, rng);
     applyThreat(flock, 1000, params, rng);
-    for (let i = 0; i < WINDOW; i++) tickFsm(flock, params, rng);
+    for (let i = 0; i <= WINDOW; i++) tickFsm(flock, params, rng);
     expect(flock.state).toBe('run');
     expect(flock.windowTicks).toBe(0);
     const calmBefore = flock.calmTicks;

@@ -126,6 +126,9 @@ export interface Flock {
   stateTicks: number;
   /** Escalation window ticks left; 0 = closed. */
   windowTicks: number;
+  /** The window opened this tick: its first countdown is skipped, so a follow-up threat on any of
+   *  the next windowTicks ticks escalates (the full 1.5 s). */
+  windowFresh: boolean;
   /** ALERT: ticks left frozen. */
   freezeTicks: number;
   /** RUN: ticks without a threat before it settles. */
@@ -153,6 +156,22 @@ export function centroid(f: Flock): { x: number; y: number } {
     y += b.y;
   }
   return { x: x / f.members.length, y: y / f.members.length };
+}
+
+/**
+ * Drops gone birds from a flock. A member leaving the panorama ends Whole Flock (the flock can no
+ * longer be bagged complete, GDD §6.4). Returns true if the flock lost anyone.
+ */
+export function removeMembers(
+  f: Flock,
+  gone: ReadonlySet<number>,
+  reason: 'bagged' | 'exited',
+): boolean {
+  const before = f.members.length;
+  f.members = f.members.filter((b) => !gone.has(b.id));
+  if (f.members.length === before) return false;
+  if (reason === 'exited') f.eligible = false;
+  return true;
 }
 
 export function flockView(f: Flock): FlockView {

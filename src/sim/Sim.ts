@@ -14,7 +14,7 @@ import { msToTicks, secondsToTicks } from './clock';
 import { createDirector, type DirectorContext } from './director/SpawnDirector';
 import { FLYOVER_EVENTS, scheduleWorldEvents } from './director/events';
 import type { FlockCause, SimEvent, ThreatSource } from './events';
-import { centroid, flockParams, flockView, type Flock } from './flocks/Flock';
+import { centroid, flockParams, flockView, removeMembers, type Flock } from './flocks/Flock';
 import { applyThreat, forceState, tickFsm, type Transition } from './flocks/fsm';
 import { moveFlock } from './flocks/steering';
 import {
@@ -260,20 +260,19 @@ export function createSim(config: SimConfig): Sim {
         state: f.state,
         x: c.x,
       });
-      if (stampedeActive() && stampedeFlockState !== null) {
-        emitTransition(
-          f,
-          forceState(
-            f,
-            stampedeFlockState,
-            planeCentreX(cameraX, planeGeo[f.plane].scrollFactor),
-            'stampede',
-            fParams,
-            flockRng,
-          ),
-        );
-      }
+      if (stampedeActive()) stampede(f);
     }
+  }
+
+  /** GDD §8 mass run/flush: the flock runs (or flushes) toward the screen centre, so the
+   *  Stampede crosses the player's view instead of fleeing out of it. */
+  function stampede(f: Flock): void {
+    if (stampedeFlockState === null) return;
+    const centre = planeCentreX(cameraX, planeGeo[f.plane].scrollFactor);
+    const cx = centroid(f).x;
+    // The flock heads away from its threat point, so put that point on its far side.
+    const from = cx + (cx >= centre ? 1 : -1);
+    emitTransition(f, forceState(f, stampedeFlockState, from, 'stampede', fParams, flockRng));
   }
 
   function spawnFlocks(): void {
@@ -290,11 +289,7 @@ export function createSim(config: SimConfig): Sim {
   function pruneFlocks(gone: ReadonlySet<number>, reason: 'bagged' | 'exited'): Flock[] {
     const emptied: Flock[] = [];
     for (const f of flocks) {
-      const before = f.members.length;
-      f.members = f.members.filter((b) => !gone.has(b.id));
-      if (f.members.length === before) continue;
-      if (reason === 'exited') f.eligible = false;
-      if (f.members.length === 0) emptied.push(f);
+      if (removeMembers(f, gone, reason) && f.members.length === 0) emptied.push(f);
     }
     if (emptied.length > 0) {
       flocks = flocks.filter((f) => f.members.length > 0);
@@ -575,7 +570,7 @@ export function createSim(config: SimConfig): Sim {
     if (stampedeAtTick !== null && tick === stampedeAtTick) {
       emit({ type: 'stampedeStarted', tick });
       // GDD §8: mass run/flush across the panorama.
-      if (stampedeFlockState !== null) react(stampedeFlockState, { kind: 'all' }, 'stampede');
+      for (const f of flocks) stampede(f);
     }
 
     while (

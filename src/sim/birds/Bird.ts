@@ -53,9 +53,10 @@ export function behaviourOf(bird: Bird): BagBehaviour {
     case 'alert':
       return 'alert';
     case 'run':
-    case 'launch':
     case 'land':
       return 'run';
+    // A flushed bird crouched for its take-off is already "flushed" (GDD §5.3: +1.0).
+    case 'launch':
     case 'flap':
     case 'glide':
       return 'flying';

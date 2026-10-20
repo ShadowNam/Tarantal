@@ -223,6 +223,31 @@ describe('flocks in the sim', () => {
     expect(seen.some((e) => e.type === 'flockWiped')).toBe(false);
   });
 
+  it('no Whole Flock once the flock calmed down after losing a bird (D-020)', () => {
+    const c = flockContent((x) => {
+      x.birds.flockDefaults.sizeMin = 5;
+      x.birds.flockDefaults.sizeMax = 5;
+    });
+    const sim = newSim(c, 9);
+    const flock = midFlock(sim);
+    const first = membersOf(sim, flock.id)[0];
+    if (!first) throw new Error('empty');
+    const seen: SimEvent[] = [...step(sim, shootAt(c, first))];
+    expect(membersOf(sim, flock.id).length).toBeLessThan(5);
+    // Wait the window out: the flock calms down (ALERT → FORAGE) and loses its chance.
+    seen.push(...wait(sim, 120));
+    expect(stateChanges(seen)).toContain('alert>forage:window');
+    expect(sim.snapshot().flocks.find((f) => f.id === flock.id)?.eligible).toBe(false);
+    for (let i = 0; i < 40 && membersOf(sim, flock.id).length > 0; i++) {
+      const target = membersOf(sim, flock.id).find((b) => b.hittable);
+      if (target) seen.push(...step(sim, shootAt(c, target)));
+      seen.push(...wait(sim, COOLDOWN));
+    }
+    expect(membersOf(sim, flock.id)).toHaveLength(0);
+    expect(seen.some((e) => e.type === 'flockWiped')).toBe(false);
+    expect(seen.some((e) => e.type === 'bonusAwarded' && e.bonus === 'wholeFlock')).toBe(false);
+  });
+
   it('hadeda fly-over: one threat to every flock (alertsAllFlocks)', () => {
     const c = flockContent((x) => {
       const b = x.biomes[0];
@@ -283,6 +308,40 @@ describe('flocks in the sim', () => {
     );
     expect(runs.length).toBeGreaterThan(0);
     expect(runs.every((e) => e.type === 'flockStateChanged' && e.to === 'run')).toBe(true);
+  });
+
+  it('Stampede: flocks spawned during it enter running, toward the screen centre', () => {
+    const c = flockContent((x) => {
+      x.birds.flockDefaults.sizeMin = 3;
+      x.birds.flockDefaults.sizeMax = 3;
+    });
+    const sim = newSim(c, 5, { id: 'classic', huntSeconds: 20 });
+    wait(sim, 5 * 60 + 1); // Stampede from 5 s
+    expect(sim.snapshot().stampedeActive).toBe(true);
+    // Clear the live flock so the director spawns a new one during the Stampede.
+    const seen: SimEvent[] = [];
+    for (let i = 0; i < 60 && !seen.some((e) => e.type === 'flockSpawned'); i++) {
+      const target = sim.snapshot().birds.find((b) => b.flockId !== null && b.hittable);
+      if (target) seen.push(...step(sim, shootAt(c, target)));
+      seen.push(...wait(sim, COOLDOWN));
+    }
+    for (let i = 0; i < 120 && !seen.some((e) => e.type === 'flockSpawned'); i++)
+      seen.push(...step(sim));
+    const spawned = seen.find((e) => e.type === 'flockSpawned');
+    if (spawned?.type !== 'flockSpawned') throw new Error('no flock spawned in the Stampede');
+    const entered = seen.find(
+      (e) => e.type === 'flockStateChanged' && e.flockId === spawned.flockId,
+    );
+    expect(entered).toMatchObject({ tick: spawned.tick, to: 'run', cause: 'stampede' });
+    // It heads toward the screen centre, i.e. across the player's view.
+    const centre = () => planeCentreX(sim.snapshot().cameraX, c.scoring.planes.mid.scrollFactor);
+    const meanX = () => {
+      const m = membersOf(sim, spawned.flockId);
+      return m.reduce((t, b) => t + b.x, 0) / Math.max(1, m.length);
+    };
+    const before = Math.abs(meanX() - centre());
+    wait(sim, 60);
+    expect(Math.abs(meanX() - centre())).toBeLessThan(before);
   });
 
   it('pacing: flock counts follow the keyframes, capped by maxFlocks; later flocks spawn out of view', () => {

@@ -181,7 +181,9 @@ export interface Sim {
   popupsPerMin`). Flock counts step at each keyframe (live flocks are topped up to the target);
   rates interpolate. Max 60 birds and `maxFlocks` on screen. Hunt-start flocks forage in view;
   later ones spawn out of view (never closer than `spawnSpacingPx` to another flock on the plane).
-  Flocks use their own stream `rng.stream('flocks')`, so they never shift fly-overs or pop-ups.
+  Flocks use their own stream `rng.stream('flocks')` (they draw no `spawns` numbers), but share the
+  per-hunt caps (`maxPerHunt`) with fly-overs, so a rare morph in a flock is not seen again aloft.
+  During the Stampede every flock — live or new — runs toward the screen centre.
 - All windows in content (events, crates) are **fractions of hunt length** (`window: [0.2, 0.8]`).
 - The **Stampede** has one source of truth: `scoring.json → stampede.lastSeconds`. When the mode (or
   the Stampede-Kenner charm) enables it, the director switches to its surge profile at

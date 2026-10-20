@@ -77,6 +77,7 @@ export function makeFlock(
     state: 'forage',
     stateTicks: 0,
     windowTicks: 0,
+    windowFresh: false,
     freezeTicks: 0,
     calmTicks: 0,
     homeX: x,

@@ -171,7 +171,8 @@ Accuracy and timing both matter: misses near a flock still count as threats. Thi
 ceiling Moorhuhn never had.
 
 ### 6.4 Whole-flock bonus
-Bag every member of a flock of ≥ 5 before it calms down (ALERT → FORAGE or SETTLE) or EXITS →
+Bag every member of a flock of ≥ 5 before it calms down after losing a bird (ALERT → FORAGE),
+SETTLES or a member EXITS →
 **+30 per bird** (`scoring.json`; tuned in M3, D-020), slow-mo 0.3× for
 0.4 s, Oupa: "Die hele swerm!". Shown on the tally screen as a badge.
 

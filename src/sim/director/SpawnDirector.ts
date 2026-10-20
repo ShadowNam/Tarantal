@@ -1,7 +1,8 @@
 // Budget-based spawn director (Tech §3.6): fly-overs on the mid/far sky lanes and pop-ups on the
 // near plane at the biome's pacing rates, non-target fly-over events, and flocks topped up to the
 // pacing keyframes' per-plane counts. Randomness: rng.stream('spawns') for fly-overs and pop-ups,
-// 'flocks' for flocks (so adding flocks never shifts the others), 'events' for events.
+// 'flocks' for flocks, 'events' for events. Flocks draw no 'spawns' numbers; they do share the
+// per-hunt caps (maxPerHunt) with fly-overs, so a rare morph in a flock is not seen again aloft.
 import type { ContentBundle, Biome } from '../../content/schemas';
 import {
   createFlockBird,
@@ -295,6 +296,7 @@ export function createDirector(deps: DirectorDeps): Director {
       state: 'forage',
       stateTicks: 0,
       windowTicks: 0,
+      windowFresh: false,
       freezeTicks: 0,
       calmTicks: 0,
       homeX,
