@@ -51,10 +51,31 @@ test('boots the game (landscape) or shows the rotate card (portrait)', async ({ 
   expect(errors).toEqual([]);
 });
 
-test('no fullscreen button exists (iPhone Safari has no element Fullscreen API)', async ({
+test('fullscreen button: never on iPhone (no element Fullscreen API) — Add to Home Screen banner instead', async ({
   page,
-}) => {
+}, info) => {
+  test.skip(
+    !['desktop-chromium', 'iphone14-landscape', 'iphone14-landscape-chromium-fallback'].includes(
+      info.project.name,
+    ),
+    'one desktop and the iPhone',
+  );
   await page.goto('/?e2e=1');
   await page.waitForFunction(() => window.__TM__?.ready === true);
-  await expect(page.locator('[data-action="fullscreen"]')).toHaveCount(0);
+  const button = page.locator('[data-action="fullscreen"]');
+  const banner = page.locator('#install-banner');
+  if (info.project.name.startsWith('iphone14')) {
+    await expect(button).toHaveCount(0);
+    await expect(banner).toBeVisible();
+    await expect(banner).toContainText('Add to Home Screen');
+    // One-time: dismissing it is saved.
+    await banner.locator('[data-action="dismiss-install"]').click();
+    await expect(banner).toBeHidden();
+    await page.reload();
+    await page.waitForFunction(() => window.__TM__?.ready === true);
+    await expect(banner).toBeHidden();
+  } else {
+    await expect(button).toBeVisible();
+    await expect(banner).toBeHidden();
+  }
 });

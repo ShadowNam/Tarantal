@@ -96,7 +96,8 @@
         }
       }
       /* Menu chrome in the DOM (shown on the title only): fullscreen toggle (never on iPhone)
-         and the one-time iOS "Add to Home Screen" banner (Tech §9). */
+         and the one-time iOS "Add to Home Screen" banner (Tech §9), at the top edge so it never
+         covers the title's buttons. */
       .tm-chrome[hidden] {
         display: none !important;
       }
@@ -124,7 +125,7 @@
         z-index: 6;
         left: 50%;
         transform: translateX(-50%);
-        bottom: max(10px, env(safe-area-inset-bottom));
+        top: max(8px, env(safe-area-inset-top));
         display: flex;
         align-items: center;
         gap: 10px;

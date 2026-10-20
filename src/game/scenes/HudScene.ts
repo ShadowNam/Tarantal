@@ -237,13 +237,17 @@ export class HudScene extends Phaser.Scene {
     const pulse = 0.5 + 0.5 * Math.sin(this.time.now / 160);
     const g = this.hand.clear();
     g.lineStyle(8, 0xffd25a, 0.4 + 0.6 * pulse).strokeCircle(target.x, target.y, 46 + 18 * pulse);
-    // A pointing finger below the target (placeholder art: finger + palm).
+    // A pointing finger (placeholder art: finger + palm): below the target, or above it pointing
+    // down when the target is low on the screen (the shell belt).
+    const down = target.y > l.safe.y + l.safe.h * 0.6;
     const hx = target.x + 30;
-    const hy = target.y + 70 + 10 * pulse;
-    g.fillStyle(0xf3ead3, 1).fillRoundedRect(hx - 6, hy - 64, 26, 70, 13);
-    g.fillRoundedRect(hx - 22, hy - 4, 66, 56, 20);
-    g.lineStyle(5, 0x1b1410, 1).strokeRoundedRect(hx - 6, hy - 64, 26, 70, 13);
-    g.strokeRoundedRect(hx - 22, hy - 4, 66, 56, 20);
+    const tip = target.y + (down ? -60 - 10 * pulse : 10 + 10 * pulse);
+    const finger = { x: hx - 6, y: down ? tip - 70 : tip, w: 26, h: 70 };
+    const palm = { x: hx - 22, y: down ? finger.y - 52 : tip + 60, w: 66, h: 56 };
+    g.fillStyle(0xf3ead3, 1).fillRoundedRect(finger.x, finger.y, finger.w, finger.h, 13);
+    g.fillRoundedRect(palm.x, palm.y, palm.w, palm.h, 20);
+    g.lineStyle(5, 0x1b1410, 1).strokeRoundedRect(finger.x, finger.y, finger.w, finger.h, 13);
+    g.strokeRoundedRect(palm.x, palm.y, palm.w, palm.h, 20);
   }
 
   relayoutNow(): void {

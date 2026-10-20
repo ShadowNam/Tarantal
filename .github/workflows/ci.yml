@@ -29,21 +29,24 @@ jobs:
       - run: npm run size
 
   e2e:
-    # One job per Playwright profile, in parallel: under software-rendered WebGL a full M2 run is
-    # too slow for a single job. The longest profiles take 16-30 min depending on the runner.
-    name: e2e (${{ matrix.project }})
+    # One job per Playwright profile, in parallel: under software-rendered WebGL a full run is too
+    # slow for a single job. The two slowest profiles (desktop Chromium: 40 of 45 min in M4; Pixel 7)
+    # are split in two shards each, since M5 adds the FTUE, persistence, PWA and menu specs.
+    name: e2e (${{ matrix.project }} ${{ matrix.shard }})
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         include:
-          - { project: desktop-chromium, browser: chromium }
-          - { project: desktop-webkit, browser: webkit }
-          - { project: pixel7-landscape, browser: chromium }
-          - { project: iphone14-landscape, browser: webkit }
-          - { project: pixel7-portrait, browser: chromium }
-          - { project: iphone14-portrait, browser: webkit }
+          - { project: desktop-chromium, browser: chromium, shard: 1/2 }
+          - { project: desktop-chromium, browser: chromium, shard: 2/2 }
+          - { project: desktop-webkit, browser: webkit, shard: 1/1 }
+          - { project: pixel7-landscape, browser: chromium, shard: 1/2 }
+          - { project: pixel7-landscape, browser: chromium, shard: 2/2 }
+          - { project: iphone14-landscape, browser: webkit, shard: 1/1 }
+          - { project: pixel7-portrait, browser: chromium, shard: 1/1 }
+          - { project: iphone14-portrait, browser: webkit, shard: 1/1 }
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -52,12 +55,12 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps ${{ matrix.browser }}
-      - run: npm run test:e2e -- --project=${{ matrix.project }}
+      - run: npm run test:e2e -- --project=${{ matrix.project }} --shard=${{ matrix.shard }}
       - name: Upload screenshots and report
         if: always()
         uses: actions/upload-artifact@v5
         with:
-          name: e2e-${{ matrix.project }}
+          name: e2e-${{ matrix.project }}-${{ strategy.job-index }}
           path: |
             tests/e2e/__screenshots__/
             playwright-report/
