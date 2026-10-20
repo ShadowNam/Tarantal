@@ -198,9 +198,9 @@ before that. (14) *Balance* (Classic Karoo, 500 seeds, pointer), mean / p15 / p8
 
 | bot | pre-M4 | M4, omen off | M4, omen on |
 |---|---|---|---|
-| random | 238 / 105 / 360 | 267 / 120 / 405 | 256 / 125 / 405 |
-| plinker | 2 184 / 1 675 / 2 722 | 2 408 / 1 863 / 2 897 | 2 561 / 1 991 / 3 141 |
-| competent | 3 695 / 2 991 / 4 385 | 4 180 / 3 520 / 4 883 | 4 236 / 3 532 / 4 934 |
+| random | 238 / 105 / 360 | 267 / 120 / 405 | 255 / 120 / 405 |
+| plinker | 2 184 / 1 675 / 2 722 | 2 408 / 1 863 / 2 897 | 2 566 / 1 995 / 3 167 |
+| competent | 3 695 / 2 991 / 4 385 | 4 180 / 3 520 / 4 883 | 4 243 / 3 532 / 4 931 |
 
 Plinker is 42.4 % (off) / 39.5 % (on) below competent; all M3 gates pass, no content tuning needed.
 (15) *Review fixes:* a pellet's impact (threats, `pelletImpact.dx`) is where it landed, so a far
