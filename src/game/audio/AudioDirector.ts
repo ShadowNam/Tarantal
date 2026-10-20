@@ -19,8 +19,9 @@ export class AudioDirector {
     document.addEventListener('visibilitychange', () => {
       this.hidden = document.visibilityState === 'hidden';
       this.applyGain();
-      if (this.hidden) void this.ctx?.suspend();
-      else void this.ctx?.resume();
+      // Both can reject (no audio device, policy); a silent game is fine.
+      if (this.hidden) this.ctx?.suspend().catch(() => undefined);
+      else this.ctx?.resume().catch(() => undefined);
     });
   }
 
@@ -36,7 +37,7 @@ export class AudioDirector {
         this.noise = createNoise(this.ctx);
         this.applyGain();
       }
-      if (this.ctx.state !== 'running') void this.ctx.resume();
+      if (this.ctx.state !== 'running') this.ctx.resume().catch(() => undefined);
     } catch {
       // No audio is better than no game.
       this.ctx = null;

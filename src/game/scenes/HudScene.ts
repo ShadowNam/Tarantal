@@ -45,6 +45,7 @@ export class HudScene extends Phaser.Scene {
   private beltFlashUntil = 0;
   private lastMul = 1;
   private lastState: SimState | null = null;
+  private timerColor = '';
 
   constructor(ctx: GameContext) {
     super({ key: 'Hud' });
@@ -55,6 +56,7 @@ export class HudScene extends Phaser.Scene {
     this.pops = [];
     this.shells = [];
     this.lastMul = 1;
+    this.timerColor = '';
     this.panels = this.add.graphics();
     const text = (size: number, color: string): Phaser.GameObjects.Text =>
       this.add.text(0, 0, '', {
@@ -154,7 +156,12 @@ export class HudScene extends Phaser.Scene {
     }
 
     this.timer.setText(formatClock(s.ticksLeft, TICKS_PER_SECOND));
-    this.timer.setColor(s.stampedeActive ? '#FFD25A' : '#F3EAD3');
+    // setColor re-renders the text texture every call, so only on change.
+    const timerColor = s.stampedeActive ? '#FFD25A' : '#F3EAD3';
+    if (timerColor !== this.timerColor) {
+      this.timerColor = timerColor;
+      this.timer.setColor(timerColor);
+    }
     this.score.setText(formatScore(s.score));
 
     // Frenzy meter: progress toward the next tier; punch-scale on tier up.
@@ -195,7 +202,8 @@ export class HudScene extends Phaser.Scene {
     const flash = now < this.beltFlashUntil;
     this.shells.forEach((img, i) => {
       const full = s.weapon.shells < 0 || i < s.weapon.shells;
-      img.setTexture(full ? TEX.shell : TEX.shellEmpty);
+      const key = full ? TEX.shell : TEX.shellEmpty;
+      if (img.texture.key !== key) img.setTexture(key);
       img.setVisible(i < Math.max(0, s.weapon.magazine));
       img.setTint(flash ? 0xff4040 : 0xffffff);
     });
