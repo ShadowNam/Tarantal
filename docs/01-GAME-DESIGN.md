@@ -450,6 +450,10 @@ flock 3 times* → Kettie (shown unlocked, playable from M8), first hunt, 25 win
 hunt, 200 birds, 5 crates, every Karoo secret → Bird Book page. The Plaas-Pomp unlocks at the
 Plaaswerker rank.
 
+Between hunts the run shows a hunt card (season, quota, Boss Rule), the run tally (quota met or
+missed, doppies earned line by line) and the Padstal; after the last hunt or a missed quota, a
+summary with the run record. Charms are reordered by dragging (Padstal and pause screen).
+
 ### 13.7 Skiet-Skuur (the shed)
 Hub screen: equip weapon for Classic/Daily, view unlocked charms, Bird Book, Notaboek, cosmetics
 (gun engravings, reticle styles, belt colours). It is **not** a points shop. v0 (M5): Guns

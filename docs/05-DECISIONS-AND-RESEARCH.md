@@ -305,7 +305,15 @@ boss hunt lowered from 2 250 after the Ou Grys bonus fix). Seeds 1–500 / 501�
 synergy 82.0 / 82.4 % (~80). (9) *Golden replays* re-recorded on
 purpose (content hash, log v3); every existing case kept its event hash, count and score; new
 cases `season-herfs-boss-competent`, `season-winter-omen-competent`,
-`season-stormvoel-boss-competent`. (10) *Follow-ups:* `rewardedRetryPerRun` needs the portal
+`season-stormvoel-boss-competent`. (10) *Run UI (PR 2/2):* the title and the tally open the run
+(`[Continue run]` when one is saved); the run uses the Skiet-Skuur gun if it is equippable. The
+Padstal and the pause screen share one charm row: drag a card to a new slot, tap it to pick it for
+selling (Padstal), ←/→ moves the focused card on keys; a mid-hunt reorder is a recorded
+`charmOrder` and the run keeps it. Consumables and the rental sit beside the gadget (tap/click, or
+1/2/3). Stormvoël darkness: 86 % dark between flashes, clear during a flash (45 % with "reduce
+flashes"). Closing the tab mid-hunt replays that hunt from its card with the same seed (like
+Balatro's round restart). Dev/e2e builds take `?quotaMul=` (0 = every hunt passes) so the
+12-hunt e2e stays short. (11) *Follow-ups:* `rewardedRetryPerRun` needs the portal
 rewarded-ad flow (M9); Lente/Somer quotas and the real bosses come with their biomes (M8); a
 charm's `addPoints`/`addMult` on non-bag triggers is rejected rather than given a meaning.
 
