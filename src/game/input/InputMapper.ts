@@ -1,0 +1,215 @@
+// Device input → sim Commands (Tech §6). Pointer Events only, one path for mouse, touch and pen.
+//   Mouse:  left button fires at once · right button / Space reloads · A/D, ←/→ or the outer 12 %
+//           of the screen pans.
+//   Touch:  tap fires at the finger · horizontal drag pans with inertia · flick-down or a tap on
+//           the shell belt reloads.
+// Positions are converted to design px of the visible screen; the fire command carries dx from
+// the screen centre (never an absolute x — the sim doesn't know the viewport width).
+import type { Feel } from '../../content/schemas';
+import type { Command, InputKind } from '../../sim/types';
+import { GestureRecognizer } from './gestures';
+import { edgeDirection, PanController } from './panController';
+
+export interface InputHost {
+  /** Design size of the visible screen right now. */
+  designSize(): { width: number; height: number };
+  /** True if (x, y) in design px is on the shell belt (touch reload target). */
+  isOnBelt(x: number, y: number): boolean;
+  queue(cmd: Command): void;
+  /** Cursor/finger position for the reticle and gun lean. */
+  aim(x: number, y: number, fromTap: boolean): void;
+  fingerDown(down: boolean): void;
+  toggleDebug(): void;
+}
+
+/** Pointer type → the sim's inputKind (touch gets aim assist). */
+export function inputKindOf(pointerType: string): InputKind {
+  return pointerType === 'mouse' ? 'pointer' : 'touch';
+}
+
+export class InputMapper {
+  private readonly canvas: HTMLCanvasElement;
+  private readonly feel: Feel;
+  private readonly host: InputHost;
+  private readonly gestures: GestureRecognizer;
+  readonly pan: PanController;
+  private enabled = false;
+  private readonly keysDown = new Set<string>();
+  private readonly ignored = new Set<number>();
+  private readonly listeners: [EventTarget, string, EventListener][] = [];
+
+  constructor(canvas: HTMLCanvasElement, feel: Feel, host: InputHost, startCx: number) {
+    this.canvas = canvas;
+    this.feel = feel;
+    this.host = host;
+    this.gestures = new GestureRecognizer(feel.input);
+    this.pan = new PanController(feel.input, startCx);
+    this.on(canvas, 'pointerdown', (e) => {
+      this.onDown(e as PointerEvent);
+    });
+    this.on(canvas, 'pointermove', (e) => {
+      this.onMove(e as PointerEvent);
+    });
+    this.on(canvas, 'pointerup', (e) => {
+      this.onUp(e as PointerEvent);
+    });
+    this.on(canvas, 'pointercancel', (e) => {
+      this.onCancel(e as PointerEvent);
+    });
+    this.on(canvas, 'pointerleave', (e) => {
+      if ((e as PointerEvent).pointerType === 'mouse') this.pan.setEdgeDirection(0);
+    });
+    this.on(canvas, 'contextmenu', (e) => {
+      e.preventDefault();
+    });
+    this.on(window, 'keydown', (e) => {
+      this.onKey(e as KeyboardEvent, true);
+    });
+    this.on(window, 'keyup', (e) => {
+      this.onKey(e as KeyboardEvent, false);
+    });
+    this.on(window, 'blur', () => {
+      this.keysDown.clear();
+      this.pan.setKeyDirection(0);
+      this.pan.setEdgeDirection(0);
+    });
+  }
+
+  /** Start/stop turning input into commands (off on the start card and the tally). */
+  setEnabled(on: boolean): void {
+    this.enabled = on;
+    if (!on) {
+      this.pan.setEdgeDirection(0);
+      this.pan.setKeyDirection(0);
+      this.pan.hold();
+      this.host.fingerDown(false);
+    }
+  }
+
+  /** Ignore this pointer until it lifts (e.g. the tap that started the hunt). */
+  ignorePointer(id: number): void {
+    this.ignored.add(id);
+  }
+
+  /** Commands for the next sim tick (camera from drag/inertia/keys/edges). */
+  perTick(): Command[] {
+    if (!this.enabled) return [];
+    const cx = this.pan.tick();
+    return cx === null ? [] : [{ t: 'cameraTarget', cx }];
+  }
+
+  destroy(): void {
+    for (const [target, type, fn] of this.listeners) target.removeEventListener(type, fn);
+    this.listeners.length = 0;
+  }
+
+  /** Client px → design px of the visible screen. */
+  toDesign(clientX: number, clientY: number): { x: number; y: number } {
+    const r = this.canvas.getBoundingClientRect();
+    const { width, height } = this.host.designSize();
+    return {
+      x: ((clientX - r.left) / Math.max(1, r.width)) * width,
+      y: ((clientY - r.top) / Math.max(1, r.height)) * height,
+    };
+  }
+
+  private on(target: EventTarget, type: string, fn: EventListener): void {
+    target.addEventListener(type, fn, { passive: false });
+    this.listeners.push([target, type, fn]);
+  }
+
+  private fireAt(x: number, y: number): void {
+    const { width } = this.host.designSize();
+    this.host.queue({ t: 'fire', dx: x - width / 2, sy: y });
+  }
+
+  private onDown(e: PointerEvent): void {
+    e.preventDefault();
+    if (!this.enabled || this.ignored.has(e.pointerId)) return;
+    const p = this.toDesign(e.clientX, e.clientY);
+    if (e.pointerType === 'mouse') {
+      if (e.button === 0) {
+        this.host.aim(p.x, p.y, false);
+        if (this.host.isOnBelt(p.x, p.y)) this.host.queue({ t: 'reload' });
+        else this.fireAt(p.x, p.y);
+      } else if (e.button === 2) {
+        this.host.queue({ t: 'reload' });
+      }
+      return;
+    }
+    try {
+      this.canvas.setPointerCapture(e.pointerId);
+    } catch {
+      // Synthetic pointers can't always be captured; gestures still work without it.
+    }
+    this.pan.hold();
+    this.gestures.down(e.pointerId, p.x, p.y, e.timeStamp);
+    this.host.fingerDown(true);
+  }
+
+  private onMove(e: PointerEvent): void {
+    if (!this.enabled || this.ignored.has(e.pointerId)) return;
+    const p = this.toDesign(e.clientX, e.clientY);
+    if (e.pointerType === 'mouse') {
+      this.host.aim(p.x, p.y, true);
+      const { width } = this.host.designSize();
+      this.pan.setEdgeDirection(edgeDirection(p.x, width, this.feel.input.edgePanFraction));
+      return;
+    }
+    const dx = this.gestures.move(e.pointerId, p.x, p.y, e.timeStamp);
+    if (dx !== 0) this.pan.drag(dx);
+  }
+
+  private onUp(e: PointerEvent): void {
+    if (this.ignored.delete(e.pointerId)) return;
+    if (!this.enabled || e.pointerType === 'mouse') return;
+    const p = this.toDesign(e.clientX, e.clientY);
+    const end = this.gestures.up(e.pointerId, p.x, p.y, e.timeStamp);
+    if (this.gestures.activePointers === 0) this.host.fingerDown(false);
+    switch (end.kind) {
+      case 'tap':
+        if (this.host.isOnBelt(end.x, end.y)) this.host.queue({ t: 'reload' });
+        else {
+          this.host.aim(end.x, end.y, true);
+          this.fireAt(end.x, end.y);
+        }
+        return;
+      case 'flickDown':
+        this.host.queue({ t: 'reload' });
+        return;
+      case 'dragEnd':
+        this.pan.release(end.vx);
+        return;
+      case 'none':
+        return;
+    }
+  }
+
+  private onCancel(e: PointerEvent): void {
+    this.ignored.delete(e.pointerId);
+    this.gestures.cancel(e.pointerId);
+    if (this.gestures.activePointers === 0) this.host.fingerDown(false);
+  }
+
+  private onKey(e: KeyboardEvent, down: boolean): void {
+    if (e.code === 'F1') {
+      e.preventDefault();
+      if (down && !e.repeat) this.host.toggleDebug();
+      return;
+    }
+    if (!this.enabled) return;
+    if (e.code === 'Space') {
+      e.preventDefault();
+      if (down && !e.repeat) this.host.queue({ t: 'reload' });
+      return;
+    }
+    const dir: Record<string, number> = { KeyA: -1, ArrowLeft: -1, KeyD: 1, ArrowRight: 1 };
+    if (dir[e.code] === undefined) return;
+    e.preventDefault();
+    if (down) this.keysDown.add(e.code);
+    else this.keysDown.delete(e.code);
+    let sum = 0;
+    for (const k of this.keysDown) sum += dir[k] ?? 0;
+    this.pan.setKeyDirection(sum);
+  }
+}
