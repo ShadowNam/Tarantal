@@ -67,10 +67,20 @@ export class AssetManifest {
     return s ? { x: s.originX / s.width, y: s.originY / s.height } : { x: 0.5, y: 0.5 };
   }
 
-  /** Draws every texture into the scene's texture manager (once per game). */
-  install(textures: Phaser.Textures.TextureManager): void {
+  /**
+   * Draws textures into the texture manager (each once per game). With `filter`, only matching
+   * keys; with `budgetMs`, stops after that much time so the rest can follow on later frames.
+   * Returns true when nothing matching is left to draw.
+   */
+  install(
+    textures: Phaser.Textures.TextureManager,
+    filter: (key: string) => boolean = () => true,
+    budgetMs = Infinity,
+  ): boolean {
+    const start = performance.now();
     for (const spec of this.specs.values()) {
-      if (textures.exists(spec.key)) continue;
+      if (textures.exists(spec.key) || !filter(spec.key)) continue;
+      if (performance.now() - start > budgetMs) return false;
       const canvas = document.createElement('canvas');
       canvas.width = Math.max(1, Math.ceil(spec.width));
       canvas.height = Math.max(1, Math.ceil(spec.height));
@@ -79,7 +89,13 @@ export class AssetManifest {
       spec.draw(ctx);
       textures.addCanvas(spec.key, canvas);
     }
+    return true;
   }
+}
+
+/** Textures the start card needs; birds can be drawn while the card is showing. */
+export function neededBeforeStart(key: string): boolean {
+  return !key.startsWith('bird/');
 }
 
 export function birdKey(creature: string, plane: PlaneId, frame: BirdFrame): string {

@@ -12,6 +12,7 @@ import { createRecorder, encodeInputLogText, type InputRecorder } from '../../si
 import { createSim } from '../../sim/Sim';
 import type { HuntResult, InputKind, ModeConfig } from '../../sim/types';
 import { CAMERA_MAX_X, CAMERA_MIN_X } from '../../sim/world';
+import { neededBeforeStart } from '../assets/AssetManifest';
 import type { GameContext } from '../GameContext';
 import { HuntRunner } from '../HuntRunner';
 import { InputMapper, inputKindOf } from '../input/InputMapper';
@@ -29,6 +30,8 @@ export interface HuntData {
 }
 
 const END_DELAY_MS = 900;
+/** Time per frame spent drawing deferred textures behind the start card. */
+const BACKGROUND_DRAW_MS = 8;
 const MAX_FRAME_SAMPLES = 20_000;
 
 export class HuntScene extends Phaser.Scene {
@@ -48,6 +51,7 @@ export class HuntScene extends Phaser.Scene {
   private ending = false;
   private cleanups: (() => void)[] = [];
   private lastFrameAt: number | null = null;
+  private texturesDone = false;
 
   constructor(ctx: GameContext) {
     super({ key: 'Hunt' });
@@ -61,7 +65,8 @@ export class HuntScene extends Phaser.Scene {
     this.card = null;
     this.cleanups = [];
     this.lastFrameAt = null;
-    this.ctx.manifest.install(this.textures);
+    // Scenery and UI now; birds are drawn a few at a time while the start card shows.
+    this.texturesDone = this.ctx.manifest.install(this.textures, neededBeforeStart);
     if (this.ctx.hook) this.ctx.hook.boot['textures'] ??= performance.now();
     const { width, height } = this.scale.gameSize;
     this.cameras.main.setSize(width, height);
@@ -174,6 +179,7 @@ export class HuntScene extends Phaser.Scene {
     this.card?.destroy();
     this.card = null;
     this.ctx.audio.unlock();
+    if (!this.texturesDone) this.texturesDone = this.ctx.manifest.install(this.textures);
     if (this.ctx.hook) this.ctx.hook.boot['huntStart'] ??= performance.now();
     this.inputKind = kind;
     this.shake = screenShakeEnabled(this.ctx.reducedMotion);
@@ -248,7 +254,18 @@ export class HuntScene extends Phaser.Scene {
     const runner = this.runner;
     const { width } = this.scale.gameSize;
     this.weapon.update(delta);
-    if (runner === null) return;
+    if (runner === null) {
+      if (!this.texturesDone) {
+        this.texturesDone = this.ctx.manifest.install(
+          this.textures,
+          () => true,
+          BACKGROUND_DRAW_MS,
+        );
+        if (this.texturesDone && this.ctx.hook)
+          this.ctx.hook.boot['allTextures'] ??= performance.now();
+      }
+      return;
+    }
     if (this.ctx.paused()) return;
 
     const hook = this.ctx.hook;
