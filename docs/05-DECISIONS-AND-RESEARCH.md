@@ -662,6 +662,25 @@ is the system font until M10's self-hosted display font, which must include ä �
 "TATÜ-TATA!" for the car alarm, "Weiter" for skip; nl — kwêvoël and visarend names, "Baas" for
 boss, "charm" kept, "bevriezing" for the streak freeze, "Opnieuw" for reroll, invented item names
 (Bos-hagel, Stokstaartjes-spotter).
+*PR E — touch aim assist (carry-over from M8):* (32) *Cause:* the GDD §18.2 radii grew every
+pellet's target, so a shotgun shot on touch dropped two birds much more often (competent bot,
+Karoo: Twee Vlieë 20.4/hunt touch vs 16.4 pointer) and the touch competent mean was 4 643–4 705,
+over the 4 500 cap on every biome. Cutting the radii barely helped (0.5×: Karoo 4 504, still
+over), because the multi-hit came from the growth on every pellet, not from its size. (33) *Fix
+(sim):* touch pellets resolve at the real hitboxes; only a shot with no pellet on a bird uses the
+assist, on the aim point alone (`assistSnap` in `hitTest.ts`), and snaps the pattern onto that
+bird. The GDD radii are unchanged. The Kettie (one stone, per band) is unchanged. Pointer shots
+never reach the new path: **every pointer golden replay keeps its event hash**; the 9 touch cases
+(`daily-2026-aim-touch`, `classic-7-aim-touch-lowassist`, `ftue-3-aim-touch`,
+`season-winter-omen-competent`, `classic-22-windbuks-competent-touch`,
+`daily-32/42/52-…-aim-touch`, `daily-2026-10-21-aim-touch`) were re-recorded with
+`golden:update`. `contentHash` is unchanged (no content change), so Daily seeds are too.
+(34) *Balance after* (balance-sim, 200 seeds, touch; competent / plinker mean, plinker gap):
+Karoo 4 201 / 2 484 (40.9 %), Bushveld 4 055 / 2 262 (44.2 %), Okavango 4 137 / 2 982 (27.9 %),
+Kalahari 3 917 / 2 199 (43.9 %): every M3 gate passes on touch. Touch is now within ~1–3 % of
+pointer (Karoo pointer 4 147), and Twee Vlieë per hunt matches (16.2 touch vs 16.4 pointer).
+*Needs a person:* how touch feels on a real phone (the assist should catch near misses without
+feeling sticky).
 
 ## 3. Research notes (with sources)
 

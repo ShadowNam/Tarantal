@@ -596,6 +596,9 @@ the screen to pan · Q vuvuzela · E consumable · Esc pause.
 - **Flick down** anywhere (fast vertical swipe ≥ 60 px in < 200 ms) **or tap the shell belt** = reload.
 - Gadget + consumable buttons bottom-left (mirror option for left-handers).
 - **Touch aim assist:** hit radius bonus near 8 px, mid 14 px, far 18 px (design px). Mouse: 0.
+  M9 (D-026): the assist **rescues a missed shot** instead of widening every pellet: if no pellet
+  hits a bird, a shot whose aim point is within the bonus radius of a bird snaps onto that bird.
+  (Growing every pellet's target let a touch shot drop two birds far more often than a mouse shot.)
 - Optional **"Kyk rond" (look around) tilt mode:** turn the phone to pan (DeviceOrientation; iOS asks
   permission after a tap). Novel, physical, and great in videos — opt-in only.
 - Optional **offset reticle**: reticle sits 70 px above the finger for precision players.
