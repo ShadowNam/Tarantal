@@ -16,6 +16,10 @@ import {
 } from './helpers';
 import { serveStandins } from './standins';
 
+// The PWA service worker would fetch delivered files itself once it controls the page, and
+// page.route never sees those requests (CI saw the server's index.html instead of the art).
+test.use({ serviceWorkers: 'block' });
+
 /** The stand-in keys and how the hook names them (PR C added the Karoo music and ambience). */
 const FINAL_KEYS = [
   'bird/tarentaal/near',

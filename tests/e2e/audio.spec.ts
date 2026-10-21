@@ -15,6 +15,10 @@ import {
 } from './helpers';
 import { serveStandins } from './standins';
 
+// The PWA service worker would fetch delivered files itself once it controls the page, and
+// page.route never sees those requests (CI saw the server's index.html instead of the art).
+test.use({ serviceWorkers: 'block' });
+
 async function setHidden(page: Page, hidden: boolean): Promise<void> {
   await page.evaluate((h) => {
     Object.defineProperty(document, 'visibilityState', {
