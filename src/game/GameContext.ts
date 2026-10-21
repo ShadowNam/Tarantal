@@ -132,6 +132,8 @@ export interface TestHook {
   platform: string;
   /** M9: a commercial break is being asked for before the next hunt. */
   adPending: boolean;
+  /** M9: hunts started after a break request (a double tap must count once). */
+  huntRequests: number;
   /** M9: ads asked for this page (AdBreaks counts). */
   ads: AdCounts | null;
   /** M9: the AudioDirector is muted (ad, portal mute, pause, hidden tab). */

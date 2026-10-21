@@ -184,10 +184,17 @@ export class RunScene extends Phaser.Scene {
     this.itemsLine(run, p.y + 590);
     const go: Rect = { x: cx - 260, y: p.y + p.h - 150, w: 520, h: 120 };
     const menu: Rect = { x: p.x + 40, y: p.y + p.h - 130, w: 260, h: 84 };
+    // One press only (D-026): a second tap while the break before the hunt is requested must
+    // neither start a second hunt nor leave for the title under the ad.
+    let pressed = false;
     this.button(items, 'run.go', go, t('run.go'), 'primary', 64, (pt) => {
+      if (pressed) return;
+      pressed = true;
       this.data_.hunt(pt);
     });
     this.button(items, 'run.menu', menu, t('run.menu'), 'secondary', 34, () => {
+      if (pressed) return;
+      pressed = true;
       this.data_.title();
     });
     return 'run.go';

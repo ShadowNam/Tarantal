@@ -127,6 +127,10 @@ export abstract class LocalPlatform implements PlatformAdapter {
     return false;
   }
 
+  isAdBusy(): boolean {
+    return this.ads.isBusy;
+  }
+
   isAdPlaying(): boolean {
     return this.ads.isPlaying;
   }

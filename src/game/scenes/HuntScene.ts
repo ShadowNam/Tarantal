@@ -71,6 +71,8 @@ export class HuntScene extends Phaser.Scene {
   private cleanups: (() => void)[] = [];
   private lastFrameAt: number | null = null;
   private texturesDone = false;
+  /** A commercial break before the next hunt is in flight (afterBreak is single-flight). */
+  private breakPending = false;
   private modeId: ModeId = 'classic';
   /** M7: Classic/Daily/challenge setup (null for the FTUE and Season Run hunts). */
   private plan: HuntPlan | null = null;
@@ -313,9 +315,15 @@ export class HuntScene extends Phaser.Scene {
    */
   private afterBreak(go: () => void): void {
     this.ctx.audio.unlock();
+    // Single-flight (D-026): a second tap while the break is requested or showing is dropped;
+    // only the first request's hunt starts, once, after the ad.
+    if (this.breakPending) return;
+    this.breakPending = true;
     if (this.ctx.hook) this.ctx.hook.adPending = true;
     const next = (): void => {
+      this.breakPending = false;
       if (this.ctx.hook) this.ctx.hook.adPending = false;
+      if (this.ctx.hook) this.ctx.hook.huntRequests++;
       go();
     };
     this.ctx.ads.beforeHunt().then(next, next);
