@@ -1,5 +1,6 @@
 // `npm run assets:standins` (M10): generates the stand-in delivery that proves the art swap path
-// — one tarentaal atlas (every §3.4 clip), the Karoo mid layer and two SFX (shot, poof). It is
+// — one tarentaal atlas (every §3.4 clip), the Karoo mid layer, two SFX (shot, poof) and (PR C)
+// two Karoo music stems plus its ambience loop. It is
 // drawn by this script (flat magenta shapes stamped "STAND-IN", synthesised noise), never human
 // art, and packed by the real pipeline into tests/fixtures/standin-assets/. Nothing here ships:
 // the e2e serves it with page.route, and `STANDIN=1 npm run dev` serves it for a look.
@@ -168,6 +169,22 @@ export async function makeStandins(publicDir = STANDIN_PUBLIC): Promise<string[]
           Math.exp(-t * 9) *
           Math.min(1, t * 80),
       ),
+    );
+    // M10 PR C: two Karoo music stems and an ambience loop (3 s each, seamless: whole cycles of
+    // the tones), so the e2e can watch the music start, crossfade and mute.
+    const chord = (freqs: readonly number[], seed: number) =>
+      sound(
+        3,
+        seed,
+        (t, n) =>
+          (freqs.reduce((a, f) => a + Math.sin(2 * Math.PI * f * t), 0) / freqs.length) * 0.5 +
+          n * 0.02,
+      );
+    put(join(src, 'audio', 'music', 'karoo-autumn', 'calm.wav'), chord([220, 277, 330], 3));
+    put(join(src, 'audio', 'music', 'karoo-autumn', 'build.wav'), chord([247, 311, 370, 440], 4));
+    put(
+      join(src, 'audio', 'ambience', 'karoo-autumn.wav'),
+      sound(3, 5, (_t, n) => n * 0.3),
     );
     const report = await packAssets({ src, publicDir, content, catalog });
     if (report.errors.length > 0) throw new Error(report.errors.join('\n'));

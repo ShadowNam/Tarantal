@@ -448,6 +448,57 @@
     }
   },
   "audio": {
+    "amb/karoo-autumn": {
+      "group": "karoo-autumn",
+      "kind": "ambience",
+      "ogg": {
+        "path": "assets/karoo-autumn/audio/ambience/karoo-autumn.922c9b2faba5.ogg",
+        "bytes": 26381,
+        "hash": "922c9b2faba5"
+      },
+      "mp3": {
+        "path": "assets/karoo-autumn/audio/ambience/karoo-autumn.58dba6f6d041.mp3",
+        "bytes": 18900,
+        "hash": "58dba6f6d041"
+      },
+      "loop": true,
+      "lufs": -20,
+      "peakDb": -16.7
+    },
+    "music/karoo-autumn/build": {
+      "group": "karoo-autumn",
+      "kind": "music",
+      "ogg": {
+        "path": "assets/karoo-autumn/audio/music/karoo-autumn-build.760c56686d7a.ogg",
+        "bytes": 28065,
+        "hash": "760c56686d7a"
+      },
+      "mp3": {
+        "path": "assets/karoo-autumn/audio/music/karoo-autumn-build.8c5b28eab2f5.mp3",
+        "bytes": 21767,
+        "hash": "8c5b28eab2f5"
+      },
+      "loop": true,
+      "lufs": -16,
+      "peakDb": -6.1
+    },
+    "music/karoo-autumn/calm": {
+      "group": "karoo-autumn",
+      "kind": "music",
+      "ogg": {
+        "path": "assets/karoo-autumn/audio/music/karoo-autumn-calm.37e578a02492.ogg",
+        "bytes": 27954,
+        "hash": "37e578a02492"
+      },
+      "mp3": {
+        "path": "assets/karoo-autumn/audio/music/karoo-autumn-calm.63c09de65b6f.mp3",
+        "bytes": 21793,
+        "hash": "63c09de65b6f"
+      },
+      "loop": true,
+      "lufs": -16,
+      "peakDb": -7.4
+    },
     "sfx/poof": {
       "group": "common",
       "kind": "sfx",
