@@ -32,7 +32,10 @@ function frameFor(v: DrawBird['view'], tick: number): BirdFrame {
   if (v.motion === 'popup') return 'stand';
   const flapping: BirdFrame = (tick + v.id * 5) % FLAP_TICKS < FLAP_TICKS / 2 ? 'up' : 'down';
   if (v.motion === 'perch') return v.phase === 'perch' ? 'stand' : flapping;
-  if (v.motion === 'boss') return v.phase === 'flap' ? flapping : 'stand';
+  if (v.motion === 'boss')
+    return v.phase === 'flap' ? flapping : v.phase === 'hop' ? 'up' : 'stand';
+  // Kuifkop (M8): stands peeking, wings up mid-hop, flaps when it leaves.
+  if (v.motion === 'hop') return v.phase === 'flap' ? flapping : v.phase === 'hop' ? 'up' : 'stand';
   if (v.motion === 'flock') {
     if (v.phase === 'glide') return 'up';
     if (v.phase !== 'flap') return 'stand';

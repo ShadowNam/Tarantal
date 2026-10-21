@@ -95,8 +95,9 @@ export interface TestHook {
   /** M8: biome of the hunt on screen, and the omen's glare side (Bushveld) or null. */
   biome: string;
   glare: number | null;
-  /** M8: the omen (biome weather) is on in this hunt. */
+  /** M8: the omen (biome weather) is on in this hunt; rain is falling now. */
   omen: boolean;
+  rain: boolean;
   powerups: string[];
   wind: { dir: number; strength: number } | null;
   durationTicks: number;

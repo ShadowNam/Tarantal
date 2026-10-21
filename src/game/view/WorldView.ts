@@ -24,6 +24,9 @@ interface SecretArt {
   readonly marks: Map<string, Phaser.GameObjects.Image>;
 }
 
+/** Widest design screen (21:9, Tech §3.3): rain falls across all of it. */
+const MAX_SCREEN_WIDTH = 2520;
+
 export class WorldView {
   private readonly scene: Phaser.Scene;
   private readonly feel: Feel;
@@ -34,6 +37,9 @@ export class WorldView {
   private readonly devils = new Map<number, Phaser.GameObjects.Image>();
   private readonly stones = new Map<number, Phaser.GameObjects.Image>();
   private glare: Phaser.GameObjects.Image | null = null;
+  /** Rain streaks and the sun-shower rainbow: made the first time it rains (rain biomes only). */
+  private rain: Phaser.GameObjects.Particles.ParticleEmitter | null = null;
+  private rainbow: Phaser.GameObjects.Image | null = null;
   private readonly midScroll: number;
   private readonly rings: Phaser.GameObjects.Image[] = [];
   private readonly windBits: Phaser.GameObjects.Image[] = [];
@@ -77,6 +83,7 @@ export class WorldView {
     this.drawDevils(s, now);
     this.drawStones(s, width, height);
     if (s.glare !== null) this.drawGlare(s.glare, width, height);
+    if (s.rain || this.rain !== null) this.drawRain(s.rain);
     this.drawRings(s);
     this.drawHelper(s, width, height);
     this.blowWind(s, width, height);
@@ -192,6 +199,41 @@ export class WorldView {
         },
       });
       this.devils.delete(id);
+    }
+  }
+
+  /** Rain (omen visual flag `rain`): streaks from a particle emitter, and a rainbow (`rainbow`). */
+  private drawRain(raining: boolean): void {
+    const flags = this.biome.omen.visual;
+    if (flags?.rain !== true) return;
+    if (this.rain === null) {
+      const rate = this.feel.juice.rainParticlesPerSec * this.prefs.particleScale;
+      this.rain = this.scene.add.particles(0, -40, TEX.rain, {
+        x: { min: 0, max: MAX_SCREEN_WIDTH },
+        speedY: { min: 1000, max: 1300 },
+        speedX: { min: -160, max: -100 },
+        rotate: 6,
+        lifespan: 1300,
+        alpha: { start: 0.8, end: 0.4 },
+        frequency: rate > 0 ? 1000 / rate : -1,
+        emitting: false,
+      });
+      this.screen.add(this.rain);
+      // The rainbow hangs in the sky layer, behind the land and the birds.
+      const sky = this.parallax.layers[0];
+      if (flags.rainbow === true && sky !== undefined) {
+        this.rainbow = this.scene.add
+          .image(coreWidth(sky.scrollFactor) * 0.6, 640, TEX.rainbow)
+          .setScale(2.4)
+          .setAlpha(0);
+        sky.root.add(this.rainbow);
+      }
+    }
+    if (raining && !this.rain.emitting) this.rain.start();
+    else if (!raining && this.rain.emitting) this.rain.stop();
+    if (this.rainbow !== null) {
+      const target = raining ? 0.45 : 0;
+      this.rainbow.setAlpha(this.rainbow.alpha + (target - this.rainbow.alpha) * 0.02);
     }
   }
 

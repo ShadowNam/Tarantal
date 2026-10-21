@@ -550,6 +550,7 @@ export class HuntScene extends Phaser.Scene {
       hook.reloading = state.weapon.reloading;
       hook.stones = state.projectiles.length;
       hook.glare = state.glare?.side ?? null;
+      hook.rain = state.rain;
       hook.cameraX = state.cameraX;
       hook.birds = state.birds.length;
       hook.gadgetCharges = state.gadget?.charges ?? 0;
@@ -580,7 +581,7 @@ export class HuntScene extends Phaser.Scene {
         y: c.y,
       }));
       hook.specialBirds = state.birds
-        .filter((b) => b.motion === 'perch' || b.motion === 'boss')
+        .filter((b) => b.motion === 'perch' || b.motion === 'boss' || b.motion === 'hop')
         .map((b) => ({
           id: b.id,
           creature: b.creature,
