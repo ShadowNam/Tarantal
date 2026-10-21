@@ -122,6 +122,18 @@
     "bannerMs": 2800,
     "maxPromptChars": 52
   },
+  "audio": {
+    "$comment": "M10 AudioDirector (art bible §10, Tech §7): master headroom; music stems crossfade by intensity (build from a fleeing flock or Frenzy ×buildAtFrenzy, stampede in the Stampede) and hold stemHoldMs before calming down; biome changes fade over biomeFadeMs; music ducks under Oupa's barks, at most one bark per barkGapMs.",
+    "masterLevel": 0.6,
+    "crossfadeMs": 1200,
+    "biomeFadeMs": 1500,
+    "stemHoldMs": 4000,
+    "buildAtFrenzy": 2,
+    "duckDb": -6,
+    "duckAttackMs": 80,
+    "duckReleaseMs": 600,
+    "barkGapMs": 6000
+  },
   "assets": {
     "$comment": "M10 asset manifest (docs/06-ASSET-DELIVERY.md): how long boot waits for the final-asset index, and for each final file, before that key stays on its procedural placeholder.",
     "indexTimeoutMs": 3000,

@@ -19,6 +19,8 @@ export const SettingsSchema = z.object({
   masterVolume: volume,
   sfxVolume: volume,
   musicVolume: volume,
+  /** M10: Oupa's barks (art bible §10: music / effects / voice sliders). */
+  voiceVolume: volume,
   /** null = follow prefers-reduced-motion (shake off when the OS asks for reduced motion). */
   screenShake: z.boolean().nullable(),
   reduceFlashes: z.boolean(),
@@ -43,6 +45,7 @@ export const DEFAULT_SETTINGS: Settings = {
   masterVolume: 0.8,
   sfxVolume: 1,
   musicVolume: 0.8,
+  voiceVolume: 1,
   screenShake: null,
   reduceFlashes: false,
   aimAssist: 'standard',

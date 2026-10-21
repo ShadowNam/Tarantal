@@ -327,6 +327,17 @@ export function sfxKey(id: string): string {
   return `sfx/${id}`;
 }
 
+/** M10: a biome's music stem (calm / build / stampede), its ambience loop, an Oupa bark. */
+export function musicKey(biome: string, stem: string): string {
+  return `music/${biome}/${stem}`;
+}
+export function ambienceKey(biome: string): string {
+  return `amb/${biome}`;
+}
+export function voiceKey(barkKey: string): string {
+  return `voice/${barkKey}`;
+}
+
 export function birdKey(creature: string, plane: PlaneId, frame: BirdFrame): string {
   return `bird/${creature}/${plane}/${frame}`;
 }

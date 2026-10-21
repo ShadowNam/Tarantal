@@ -376,7 +376,7 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
       errors.push(`audio/${rel}: unexpected path (see docs/06-ASSET-DELIVERY.md §Audio)`);
       continue;
     }
-    if (kind === 'sfx' && o.catalog.entries.get(key)?.kind !== 'sound') {
+    if (o.catalog.entries.get(key)?.kind !== 'sound') {
       errors.push(`audio/${rel}: no sound "${key}" in the manifest`);
       continue;
     }

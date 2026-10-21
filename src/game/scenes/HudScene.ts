@@ -468,11 +468,16 @@ export class HudScene extends Phaser.Scene {
         const reward = this.ctx.huntBiome.props.find((p) => p.id === e.propId)?.secret?.reward;
         const bark = reward?.barkKey;
         banner.push(bark !== undefined ? tOr(bark, t('hud.secret')) : t('hud.secret'));
+        // M10: Oupa says it too, once his recording is delivered (the banner is the subtitle).
+        if (bark !== undefined) this.ctx.audio.bark(bark);
       } else if (e.type === 'secretPenalty') {
         // A "don't shoot it" prop (the weaver nest): its scolding, and the points off.
         const bark = this.ctx.huntBiome.props.find((p) => p.id === e.propId)?.secret?.reward
           .barkKey;
-        if (bark !== undefined) banner.push(tOr(bark, bark));
+        if (bark !== undefined) {
+          banner.push(tOr(bark, bark));
+          this.ctx.audio.bark(bark);
+        }
         this.pushPop(formatAward(e.points), '#FF6B5A');
       } else if (e.type === 'timeAdded') {
         banner.unshift(fill(t('hud.time_added'), { n: Math.round(e.ticks / TICKS_PER_SECOND) }));

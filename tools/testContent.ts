@@ -5,8 +5,9 @@ import { contentHash } from '../src/content/hash';
 import { readContentDir } from '../src/content/loadNode';
 import { readFileSync } from 'node:fs';
 import { parseDailyMeta } from '../src/content/daily';
+import { parseFeel } from '../src/content/feel';
 import { parseNotaboek } from '../src/content/notaboek';
-import type { ContentBundle, DailyMeta, Notaboek } from '../src/content/schemas';
+import type { ContentBundle, DailyMeta, Feel, Notaboek } from '../src/content/schemas';
 
 const root = join(import.meta.dirname, '..');
 
@@ -48,4 +49,11 @@ export function loadDailyMeta(): DailyMeta {
   const r = parseDailyMeta(JSON.parse(readFileSync(join(root, 'content/meta/daily.json'), 'utf8')));
   if (!r.ok) throw new Error(`meta/daily.json is invalid: ${r.errors.join('; ')}`);
   return r.value;
+}
+
+/** content/client/feel.json, validated (Phaser-layer tuning, not in the bundle). */
+export function loadFeel(): Feel {
+  const r = parseFeel(JSON.parse(readFileSync(join(root, 'content/client/feel.json'), 'utf8')));
+  if (!r.ok) throw new Error(`client/feel.json is invalid: ${r.errors.join('; ')}`);
+  return r.feel;
 }

@@ -104,7 +104,7 @@ export class SettingsScene extends Phaser.Scene {
       col: 0 | 1,
       i: number,
       labelKey: I18nKey,
-      key: 'masterVolume' | 'sfxVolume' | 'musicVolume',
+      key: 'masterVolume' | 'sfxVolume' | 'musicVolume' | 'voiceVolume',
     ): void => {
       const rect = row(col, i, labelKey);
       const track: Rect = { x: rect.x + 30, y: rect.y, w: rect.w - 60, h: rect.h };
@@ -263,11 +263,7 @@ export class SettingsScene extends Phaser.Scene {
       slider(0, 0, 'settings.master', 'masterVolume');
       slider(0, 1, 'settings.sfx', 'sfxVolume');
       slider(0, 2, 'settings.music', 'musicVolume');
-      choice(0, 3, 'settings.language', LANG, () => {
-        this.ctx.applyLanguage();
-        // Every label changes: rebuild with the language row still focused.
-        restyle('settings.language')();
-      });
+      slider(0, 3, 'settings.voice', 'voiceVolume');
       // M9: the privacy screen (what is stored, what is sent, clear my data).
       const privacy = row(0, 4, 'settings.privacy');
       drawButton(this, privacy, t('settings.privacy_open'), 'secondary', 34);
@@ -291,6 +287,11 @@ export class SettingsScene extends Phaser.Scene {
       choice(1, 0, 'settings.aim', AIM);
       flag(1, 1, 'settings.left_handed', 'leftHanded');
       flag(1, 2, 'settings.hold_to_fire', 'holdToFire');
+      choice(1, 3, 'settings.language', LANG, () => {
+        this.ctx.applyLanguage();
+        // Every label changes: rebuild with the language row still focused.
+        restyle('settings.language')();
+      });
     } else {
       toggle(
         0,

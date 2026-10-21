@@ -1,17 +1,18 @@
 // All game audio goes through here (Tech §7). Starts only after a user gesture, mutes on
 // visibilitychange, on pause and during ads (platform adapter), pans by screen x (±0.7),
-// and caps simultaneous voices at 16. Reacts only to typed sim events. Two buses under the
-// master: SFX and music (the flush sting and the Stampede cue until music stems land, M10),
-// each with its Settings volume. M10: a sound with a delivered recording (asset index) plays the
-// decoded file; the synth stays the fallback for every other sound.
+// and caps simultaneous voices at 16. Reacts only to typed sim events. M10: four buses under the
+// master — SFX (+ ambience), music, voice — each with its Settings volume (art bible §10). A sound
+// with a delivered recording (asset index) plays the decoded file; the synth stays the fallback
+// for every other sound. Each biome's music stems crossfade by intensity (music.ts) and duck
+// under Oupa's barks; with no music delivered there is none, and the synth stings stay.
+import type { Feel } from '../../content/schemas';
 import type { SimEvent } from '../../sim/events';
-import { sfxKey, type FinalSound } from '../assets/AssetManifest';
+import { ambienceKey, musicKey, sfxKey, voiceKey, type FinalSound } from '../assets/AssetManifest';
+import { MusicMixer, STEMS, StemHold, type MusicSet, type Stem } from './music';
 import { createNoise, playSfx, type SfxId } from './synth';
 
 const MAX_VOICES = 16;
 const MAX_PAN = 0.7;
-/** Master level at full volume (headroom for the placeholder synth). */
-const MASTER_LEVEL = 0.6;
 /** Sounds on the music bus. */
 const MUSIC: ReadonlySet<SfxId> = new Set<SfxId>(['sting', 'stampede']);
 
@@ -22,30 +23,73 @@ export interface Volumes {
   readonly master: number;
   readonly sfx: number;
   readonly music: number;
+  readonly voice: number;
 }
+
+/** What the director needs from the page (tests pass fakes). */
+export interface AudioEnv {
+  readonly createContext: () => AudioContext | null;
+  readonly onVisibility: (fn: (hidden: boolean) => void) => void;
+  /** Wall-clock ms (bark spacing, stem hold). */
+  readonly now: () => number;
+  readonly setTimer: (fn: () => void, ms: number) => void;
+  readonly canPlay: (mime: string) => string;
+}
+
+export const browserAudioEnv = (): AudioEnv => ({
+  createContext: () => {
+    const Ctor = window.AudioContext as typeof AudioContext | undefined;
+    return Ctor === undefined ? null : new Ctor();
+  },
+  onVisibility: (fn) => {
+    document.addEventListener('visibilitychange', () => {
+      fn(document.visibilityState === 'hidden');
+    });
+  },
+  now: () => performance.now(),
+  setTimer: (fn, ms) => {
+    window.setTimeout(fn, ms);
+  },
+  canPlay: (mime) => document.createElement('audio').canPlayType(mime),
+});
+
+export type AudioTuning = Feel['audio'];
 
 export class AudioDirector {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
   private sfxBus: GainNode | null = null;
   private musicBus: GainNode | null = null;
+  private voiceBus: GainNode | null = null;
+  /** Between the music mixer and the music bus: the bark duck. */
+  private duck: GainNode | null = null;
+  private mixer: MusicMixer | null = null;
   private noise: AudioBuffer | null = null;
   private voices = 0;
   private hidden = false;
   private readonly muteReasons = new Set<MuteReason>();
-  private volumes: Volumes = { master: 1, sfx: 1, music: 1 };
+  private volumes: Volumes = { master: 1, sfx: 1, music: 1, voice: 1 };
   /** Delivered files waiting for an AudioContext to decode them. */
   private pending: FinalSound[] = [];
   private readonly buffers = new Map<string, AudioBuffer>();
   /** Sound keys that play from a decoded recording (read by the test hook). */
   readonly recorded: string[] = [];
+  private biome: string | null = null;
+  private wantStem: Stem = 'calm';
+  private readonly hold: StemHold;
+  private lastBarkAt = -Infinity;
+  private tallyCounting = false;
 
-  constructor() {
-    document.addEventListener('visibilitychange', () => {
-      this.hidden = document.visibilityState === 'hidden';
+  constructor(
+    private readonly tuning: AudioTuning,
+    private readonly env: AudioEnv = browserAudioEnv(),
+  ) {
+    this.hold = new StemHold(tuning.stemHoldMs);
+    env.onVisibility((hidden) => {
+      this.hidden = hidden;
       this.applyGain();
       // Both can reject (no audio device, policy); a silent game is fine.
-      if (this.hidden) this.ctx?.suspend().catch(() => undefined);
+      if (hidden) this.ctx?.suspend().catch(() => undefined);
       else this.ctx?.resume().catch(() => undefined);
     });
   }
@@ -54,18 +98,27 @@ export class AudioDirector {
   unlock(): void {
     try {
       if (this.ctx === null) {
-        const Ctor = window.AudioContext as typeof AudioContext | undefined;
-        if (Ctor === undefined) return;
-        this.ctx = new Ctor();
-        this.master = this.ctx.createGain();
-        this.master.connect(this.ctx.destination);
-        this.sfxBus = this.ctx.createGain();
-        this.sfxBus.connect(this.master);
-        this.musicBus = this.ctx.createGain();
-        this.musicBus.connect(this.master);
-        this.noise = createNoise(this.ctx);
+        const ctx = this.env.createContext();
+        if (ctx === null) return;
+        this.ctx = ctx;
+        this.master = ctx.createGain();
+        this.master.connect(ctx.destination);
+        const bus = (): GainNode => {
+          const g = ctx.createGain();
+          // Safe: master was created just above.
+          g.connect(this.master as GainNode);
+          return g;
+        };
+        this.sfxBus = bus();
+        this.musicBus = bus();
+        this.voiceBus = bus();
+        this.duck = ctx.createGain();
+        this.duck.connect(this.musicBus);
+        this.mixer = new MusicMixer(ctx, this.duck, this.sfxBus, this.tuning);
+        this.noise = createNoise(ctx);
         this.applyGain();
         this.decodePending();
+        this.refreshMusic();
       }
       if (this.ctx.state !== 'running') this.ctx.resume().catch(() => undefined);
     } catch {
@@ -77,9 +130,8 @@ export class AudioDirector {
   /** The recorded format this browser plays: Ogg Vorbis where sure, else MP3 (Safari). */
   fileFormat(): 'ogg' | 'mp3' | null {
     try {
-      const a = document.createElement('audio');
-      if (a.canPlayType('audio/ogg; codecs="vorbis"') === 'probably') return 'ogg';
-      return a.canPlayType('audio/mpeg') !== '' ? 'mp3' : null;
+      if (this.env.canPlay('audio/ogg; codecs="vorbis"') === 'probably') return 'ogg';
+      return this.env.canPlay('audio/mpeg') !== '' ? 'mp3' : null;
     } catch {
       return null;
     }
@@ -101,12 +153,79 @@ export class AudioDirector {
         (buf) => {
           this.buffers.set(f.key, buf);
           this.recorded.push(f.key);
+          this.refreshMusic();
         },
-        // A file the browser can't decode keeps the synth.
+        // A file the browser can't decode keeps the synth (or silence, for music).
         () => undefined,
       );
     }
     this.pending = [];
+  }
+
+  /** M10: the biome whose music and ambience play (title and hunts). */
+  setBiome(id: string): void {
+    this.biome = id;
+    this.refreshMusic();
+  }
+
+  /** M10: the intensity the moment calls for (music.ts stemFor); rising is immediate. */
+  setIntensity(want: Stem): void {
+    this.wantStem = this.hold.next(want, this.env.now());
+    this.mixer?.setStem(this.wantStem);
+  }
+
+  /** M10: the tally is counting up (no barks over it, art bible §10). */
+  setTallyCounting(on: boolean): void {
+    this.tallyCounting = on;
+  }
+
+  /** What the music plays now (test hook): biome and stem, or null. */
+  get music(): { id: string; stem: Stem | null } | null {
+    return this.mixer?.state ?? null;
+  }
+
+  private refreshMusic(): void {
+    const mixer = this.mixer;
+    const id = this.biome;
+    if (mixer === null || id === null) return;
+    const stems: Partial<Record<Stem, AudioBuffer>> = {};
+    for (const s of STEMS) {
+      const b = this.buffers.get(musicKey(id, s));
+      if (b !== undefined) stems[s] = b;
+    }
+    const set: MusicSet = { stems, ambience: this.buffers.get(ambienceKey(id)) ?? null };
+    mixer.setStem(this.wantStem);
+    mixer.play(id, set);
+  }
+
+  /**
+   * M10: Oupa says `barkKey` if a recording was delivered: at most one per barkGapMs and never
+   * over the tally count-up; the music ducks under it. Returns whether it played.
+   */
+  bark(barkKey: string): boolean {
+    const { ctx, voiceBus, duck } = this;
+    const buf = this.buffers.get(voiceKey(barkKey));
+    if (ctx === null || voiceBus === null || duck === null || buf === undefined) return false;
+    const now = this.env.now();
+    if (this.muted || this.tallyCounting || now - this.lastBarkAt < this.tuning.barkGapMs)
+      return false;
+    this.lastBarkAt = now;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(voiceBus);
+    src.start();
+    const t = ctx.currentTime;
+    const low = 10 ** (this.tuning.duckDb / 20);
+    const attack = this.tuning.duckAttackMs / 1000;
+    duck.gain.cancelScheduledValues(t);
+    duck.gain.setValueAtTime(duck.gain.value, t);
+    duck.gain.linearRampToValueAtTime(low, t + attack);
+    duck.gain.setValueAtTime(low, t + Math.max(attack, buf.duration));
+    duck.gain.linearRampToValueAtTime(
+      1,
+      t + Math.max(attack, buf.duration) + this.tuning.duckReleaseMs / 1000,
+    );
+    return true;
   }
 
   setMuted(reason: MuteReason, on: boolean): void {
@@ -222,7 +341,7 @@ export class AudioDirector {
     } else {
       seconds = playSfx(ctx, panner, id, noise);
     }
-    window.setTimeout(
+    this.env.setTimer(
       () => {
         this.voices--;
         panner.disconnect();
@@ -234,8 +353,17 @@ export class AudioDirector {
   private applyGain(): void {
     if (this.master === null || this.ctx === null) return;
     const now = this.ctx.currentTime;
-    this.master.gain.setValueAtTime(this.muted ? 0 : MASTER_LEVEL * this.volumes.master, now);
+    const m = this.muted ? 0 : this.tuning.masterLevel * this.volumes.master;
+    this.master.gain.setValueAtTime(m, now);
     this.sfxBus?.gain.setValueAtTime(this.volumes.sfx, now);
     this.musicBus?.gain.setValueAtTime(this.volumes.music, now);
+    this.voiceBus?.gain.setValueAtTime(this.volumes.voice, now);
+  }
+
+  /** The master gain the director has set (test hook: 0 while muted; null before unlock). A
+   *  suspended context doesn't update the param's own value, so this reports the target. */
+  get masterGain(): number | null {
+    if (this.master === null) return null;
+    return this.muted ? 0 : this.tuning.masterLevel * this.volumes.master;
   }
 }

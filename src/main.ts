@@ -202,6 +202,8 @@ const hook: TestHook = {
   replay: null,
   hunts: 0,
   assets: { problem: null, byBiome: {}, recorded: [] },
+  music: null,
+  masterGain: null,
   missingTextures: [],
   boot: {},
   rects: {},
@@ -345,10 +347,20 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') benchmark?.pause();
   else if (titleUp) benchmark?.resume();
 });
-const audio = new AudioDirector();
+const audio = new AudioDirector(feel.audio);
 hook.assets.recorded = audio.recorded;
+// Live values (read through the hook in page.evaluate).
+Object.defineProperties(hook, {
+  music: { enumerable: true, get: () => audio.music },
+  masterGain: { enumerable: true, get: () => audio.masterGain },
+});
 const applyAudio = (s: Settings): void => {
-  audio.setVolumes({ master: s.masterVolume, sfx: s.sfxVolume, music: s.musicVolume });
+  audio.setVolumes({
+    master: s.masterVolume,
+    sfx: s.sfxVolume,
+    music: s.musicVolume,
+    voice: s.voiceVolume,
+  });
 };
 applyAudio(save.data.settings);
 platform.onAdChange((playing) => {
