@@ -3,13 +3,15 @@
 // over the live panorama: one giant START HUNT, so the first shot is seconds away (GDD §16).
 import * as Phaser from 'phaser';
 import { contentHash } from './content/hash';
+import { DailyFlow } from './game/daily/DailyFlow';
 import { loadGameContent } from './content/loadBrowser';
 import { AudioDirector } from './game/audio/AudioDirector';
 import { withQuotaMul, withTestCrate } from './game/devContent';
-import type { GameContext, TestHook } from './game/GameContext';
+import type { GameContext, TestHook, TestTools } from './game/GameContext';
 import { designSizeFor, isPortrait, safeAreaInDesignPx, type Insets } from './game/layout';
 import { createPlaceholderManifest } from './game/placeholder/ProceduralAssetFactory';
 import { applyPrefs, computePrefs, type PrefInputs } from './game/prefs';
+import { ChallengeScene } from './game/scenes/ChallengeScene';
 import { HudScene } from './game/scenes/HudScene';
 import { HuntScene } from './game/scenes/HuntScene';
 import { PauseScene } from './game/scenes/PauseScene';
@@ -21,15 +23,21 @@ import { TallyScene } from './game/scenes/TallyScene';
 import { TitleScene } from './game/scenes/TitleScene';
 import { DomChrome } from './game/ui/DomChrome';
 import { isI18nKey, pickLanguage, setLanguage, t } from './i18n/i18n';
+import { decodeChallenge, type ChallengeDecode } from './meta/challenge';
+import { dailySeed } from './meta/daily';
+import { dayNumber, parseDayKey } from './meta/dailyCalendar';
 import { SaveStore } from './meta/save';
 import type { Settings } from './meta/saveSchema';
 import { storageStatus } from './meta/storage';
 import { createPlatform } from './platform/platform';
+import { decodeInputLogText } from './sim/replay/inputLog';
+import { runReplay } from './sim/replay/verify';
 
 declare global {
   interface Window {
     /** Read by Playwright tests; dev/test builds and ?e2e=1 only. */
     __TM__?: TestHook;
+    __TM_TOOLS__?: TestTools;
   }
 }
 
@@ -94,6 +102,12 @@ function omenParam(): boolean | undefined {
   return params.get('omen') === '1';
 }
 
+/** e2e/dev only: ?today=2026-10-21 fixes the UTC day of the Daily Hunt. */
+function todaySource(): () => number {
+  const fixed = testHooks ? parseDayKey(params.get('today') ?? '') : null;
+  return fixed === null ? () => dayNumber(Date.now()) : () => fixed;
+}
+
 const hook: TestHook = {
   ready: false,
   designWidth: 0,
@@ -140,6 +154,13 @@ const hook: TestHook = {
   durationTicks: 0,
   run: null,
   seasonHud: null,
+  huntSeed: null,
+  daily: null,
+  challenge: null,
+  notice: null,
+  hudTag: null,
+  tally: null,
+  lastShare: null,
 };
 if (testHooks) window.__TM__ = hook;
 
@@ -205,15 +226,58 @@ window.addEventListener('pagehide', () => {
 });
 const chrome = new DomChrome(platform, save);
 
+const hash = contentHash(bundle);
+// Biomes this build draws: the main biome's art only until M8 (the rotation skips the rest).
+const playableBiomes = [biome.id];
+// A challenge link (Tech §12): decoded once, then removed from the address bar so a reload or a
+// bookmark doesn't show the card again.
+let pendingChallenge: ChallengeDecode | null = null;
+const challengeParam = params.get('c');
+if (challengeParam !== null) {
+  pendingChallenge = decodeChallenge(challengeParam, {
+    content: bundle,
+    playableBiomes,
+    contentHash: hash,
+    limits: loaded.daily.challenge,
+  });
+  platform.analytics('challenge_open', {
+    ok: pendingChallenge.ok,
+    ...(pendingChallenge.ok
+      ? { mode: pendingChallenge.challenge.mode, contentChanged: pendingChallenge.contentChanged }
+      : { reason: pendingChallenge.reason }),
+  });
+  try {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('c');
+    window.history.replaceState(window.history.state, '', url.toString());
+  } catch {
+    // Some embeds forbid history changes; the card then shows again on reload, which is harmless.
+  }
+}
+const shareBase = (): string => `${window.location.origin}${window.location.pathname}`;
+const today = todaySource();
+
 const ctx: GameContext = {
   content: bundle,
-  contentHash: contentHash(bundle),
+  contentHash: hash,
   feel,
   biome,
   manifest: createPlaceholderManifest(bundle, biome),
   audio,
   save,
   notaboek: loaded.notaboek,
+  dailyMeta: loaded.daily,
+  daily: new DailyFlow({
+    content: bundle,
+    contentHash: hash,
+    meta: loaded.daily,
+    save,
+    platform,
+    today,
+    playableBiomes,
+    shareBase,
+  }),
+  pendingChallenge,
   platform,
   run: new RunFlow(bundle, loaded.notaboek, save, platform),
   prefs,
@@ -258,6 +322,7 @@ const game: Phaser.Game = new Phaser.Game({
     new PauseScene(ctx),
     new TallyScene(ctx),
     new RunScene(ctx),
+    new ChallengeScene(ctx),
   ],
 });
 
@@ -274,6 +339,17 @@ game.events.once(Phaser.Core.Events.READY, () => {
     hook.contextRestores++;
   });
 });
+
+if (testHooks) {
+  window.__TM_TOOLS__ = {
+    contentHash: hash,
+    dailySeed: (key) => dailySeed(key, hash),
+    replay: (text) => {
+      const o = runReplay(decodeInputLogText(text), bundle);
+      return { eventHash: o.eventHash, eventCount: o.eventCount, score: o.result.score };
+    },
+  };
+}
 
 if (testHooks) {
   // CPU cost of each frame for the perf smoke (the part our code controls; GPU raster excluded).

@@ -18,6 +18,8 @@ export interface TitleData {
   readonly start: (kind: InputKind, pointerId: number | null, mode: ModeId) => void;
   /** Opens the Season Run (resumes the saved run, or starts a new one). */
   readonly run: () => void;
+  /** M7: one line under the logo (a challenge link that doesn't work). */
+  readonly notice?: string;
 }
 
 export class TitleScene extends Phaser.Scene {
@@ -50,6 +52,17 @@ export class TitleScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
     fitText(logo, width - 160);
+    if (data.notice !== undefined) {
+      const notice = this.add
+        .text(width / 2, safe.top + 260, data.notice, {
+          ...textStyle(40, '#FF8A7A'),
+          stroke: '#1B1410',
+          strokeThickness: 6,
+        })
+        .setOrigin(0.5);
+      fitText(notice, width - 200);
+    }
+    if (this.ctx.hook) this.ctx.hook.notice = data.notice ?? null;
 
     const startW = Math.min(900, width - safe.left - safe.right - 200);
     const start: Rect = { x: (width - startW) / 2, y: height / 2 - 110, w: startW, h: 220 };
@@ -99,13 +112,35 @@ export class TitleScene extends Phaser.Scene {
           .setOrigin(0.5);
         fitText(info, width - 200);
       }
-      const bw = Math.min(420, (width - safe.left - safe.right - 160) / 3);
+      // Bottom row, left to right: Skiet-Skuur, Daily Hunt (M7), Season Run, Settings.
+      const gap = 30;
+      const bw = Math.min(380, (width - safe.left - safe.right - 160 - gap * 3) / 4);
       const by = height - safe.bottom - 170;
-      const shed: Rect = { x: width / 2 - bw * 1.5 - 30, y: by, w: bw, h: 96 };
-      const run: Rect = { x: width / 2 - bw / 2, y: by, w: bw, h: 96 };
-      const settings: Rect = { x: width / 2 + bw / 2 + 30, y: by, w: bw, h: 96 };
+      const x0 = width / 2 - (bw * 4 + gap * 3) / 2;
+      const slot = (i: number): Rect => ({ x: x0 + i * (bw + gap), y: by, w: bw, h: 96 });
+      const shed = slot(0);
+      const daily = slot(1);
+      const run = slot(2);
+      const settings = slot(3);
       const resume = this.ctx.run.current !== null;
       drawButton(this, shed, t('title.shed'), 'secondary', 44);
+      const setup = this.ctx.daily.todaySetup();
+      const played = this.ctx.daily.playedToday();
+      drawButton(
+        this,
+        daily,
+        fill(t('title.daily'), { n: setup.number }),
+        played ? 'secondary' : 'selected',
+        44,
+      );
+      const status = this.add
+        .text(daily.x + daily.w / 2, daily.y - 14, this.dailyStatus(played), {
+          ...textStyle(26),
+          stroke: '#1B1410',
+          strokeThickness: 5,
+        })
+        .setOrigin(0.5, 1);
+      fitText(status, Math.max(bw * 1.6, 300));
       drawButton(
         this,
         run,
@@ -114,13 +149,28 @@ export class TitleScene extends Phaser.Scene {
         44,
       );
       drawButton(this, settings, t('title.settings'), 'secondary', 44);
-      // Focus order follows the buttons left to right: Shed, Season Run, Settings.
+      // Focus order follows the buttons left to right: Shed, Daily, Season Run, Settings.
       items.push(
         {
           id: 'shed',
           rect: () => shed,
           press: () => {
             this.openOverlay('Shed');
+          },
+        },
+        {
+          id: 'daily',
+          rect: () => daily,
+          trigger: 'down',
+          press: (pointerType, pointerId) => {
+            if (this.started) return;
+            this.started = true;
+            this.ctx.audio.unlock();
+            this.data_?.start(
+              pointerId === null ? 'pointer' : inputKindOf(pointerType),
+              pointerId,
+              'daily',
+            );
           },
         },
         {
@@ -162,6 +212,15 @@ export class TitleScene extends Phaser.Scene {
       this.ctx.chrome.setOnTitle(false);
       this.menu = null;
     });
+  }
+
+  /** The line above the Daily button: new today, the streak (and its freeze), or played. */
+  private dailyStatus(played: boolean): string {
+    if (played) return t('title.daily_played');
+    const streak = this.ctx.daily.streakToday();
+    if (streak.streak === 0) return t('title.daily_new');
+    const line = fill(t('title.daily_streak'), { n: streak.streak });
+    return streak.freezeReady ? `${line} · ${t('title.daily_freeze')}` : line;
   }
 
   /** Skiet-Skuur or Settings on top of the title; the title rebuilds when it closes. */
