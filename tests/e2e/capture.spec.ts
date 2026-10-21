@@ -20,7 +20,7 @@ test('capture mode hides the HUD, fixes the seed, and slows, freezes and pans on
   await boot(page, 'capture=1');
   await startHunt(page, false);
   await page.waitForFunction(() => window.__TM__?.capture !== null, null, { timeout: 30_000 });
-  let h = await hook(page);
+  const h = await hook(page);
   expect(h.huntSeed).toBe(42);
   expect(h.capture).toEqual({ speed: 1, frozen: false, panning: false, hud: false });
 
@@ -42,8 +42,8 @@ test('capture mode hides the HUD, fixes the seed, and slows, freezes and pans on
     timeout: 60_000,
   });
   await page.keyboard.press('KeyC');
-  h = await hook(page);
-  expect(h.capture?.panning).toBe(false);
+  // The hook updates on the next frame.
+  await page.waitForFunction(() => window.__TM__?.capture?.panning === false);
   await page.screenshot({ path: `${SCREENSHOTS}/capture-${info.project.name}.png` });
   expect(errors).toEqual([]);
 });
