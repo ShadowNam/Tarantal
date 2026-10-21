@@ -34,6 +34,8 @@ export interface ScriptState {
   readonly coreWidth: number;
   /** Peeking boss route (Ou Grys), or null. */
   readonly peek: PeekPlan | null;
+  /** Sky passes still to come after this one (Die Stormvoël: far, then mid). */
+  readonly passes: readonly PlaneId[];
 }
 
 /** One stop on a peeking boss's route: a cover point, how long he hides on the way there and
@@ -89,6 +91,8 @@ export interface ScriptedSpec {
   readonly peekStops?: readonly PeekStop[];
   /** Hopping birds: visible hops between the stops. */
   readonly hop?: HopSpec;
+  /** Sky-pass bosses: the passes after this one. */
+  readonly passes?: readonly PlaneId[];
 }
 
 function base(s: ScriptedSpec, motion: 'perch' | 'boss' | 'hop', x: number, y: number): Bird {
@@ -144,8 +148,22 @@ function base(s: ScriptedSpec, motion: 'perch' | 'boss' | 'hop', x: number, y: n
               fromX: x,
               fromY: y,
             },
+      passes: s.passes ?? [],
     },
   };
+}
+
+/** A boss crossing the sky on its plane (Die Stormvoël): already flying, from (startX, startY)
+ *  at fly speed in `dir`, level. It leaves at the far edge (then its next pass may follow). */
+export function createSkyPassBird(s: ScriptedSpec): Bird {
+  const b = base(s, 'boss', s.startX, s.startY);
+  enter(b, 'flap');
+  const st = b.script;
+  if (st !== null) {
+    st.vx = s.dir * s.fly;
+    st.vy = 0;
+  }
+  return b;
 }
 
 /** The kwêvoël: flies in from (startX, startY) to its perch. */

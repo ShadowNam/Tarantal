@@ -92,8 +92,8 @@ describe('run structure (GDD §13.1)', () => {
     });
     expect(huntInfo(base, 9)).toMatchObject({
       season: 'somer',
-      biome: 'karoo-autumn',
-      biomeFallback: true,
+      biome: 'kalahari-summer',
+      biomeFallback: false,
     });
   });
 

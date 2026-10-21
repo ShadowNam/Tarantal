@@ -607,6 +607,9 @@ export const ReactionSchema = obj({
 const secretRewardSchema = obj({
     /** Flat event bonus (multiplied by Frenzy × Stampede only, GDD §5.3). */
     points: posInt.optional(),
+    /** M8 "don't shoot it" props (the Kalahari weaver nest): this many points off. Not a secret
+     *  found: no secret count, chain or charm trigger. */
+    penalty: posInt.optional(),
     /** Label for audio/FX; emitted as a worldEvent. */
     event: z.enum(SECRET_EVENT_IDS).optional(),
     /** Prop where the reward happens (area reactions, flushed birds). */
@@ -724,6 +727,8 @@ export const BiomeSchema = obj({
        *  and rises hopPx (design px at mid) at its top. */
       hopMs: range(pos).optional(),
       hopPx: pos.optional(),
+      /** M8 lightningOnly bosses (Die Stormvoël): which plane each pass across the sky is on. */
+      passes: z.array(PlaneIdSchema).min(1).optional(),
       /** Dust devils: the plane they cross, contact radius (design px at mid) and life. */
       plane: PlaneIdSchema.optional(),
       radiusPx: pos.optional(),
@@ -743,6 +748,21 @@ export const BiomeSchema = obj({
     /** M8 Okavango sun-showers: a shower every `everySeconds` (gap) for `lastSeconds`, drawn from
      *  the omen stream at hunt start; while it rains a shot's alert radius is × alertRadiusMul. */
     showers: obj({ everySeconds: range(pos), lastSeconds: range(pos), alertRadiusMul: pos }).optional(),
+    /** M8 Kalahari heat → storm: heat haze wobbles far-plane birds (hitboxes too) by hazePx
+     *  until `stormAt` (fraction of the hunt), then a thunderstorm: rain (flocks run, never fly)
+     *  and lightning every lightningEverySeconds for flashMs, never above maxFlashesPerSecond. */
+    storm: obj({
+      stormAt: fraction,
+      hazePx: nonNeg,
+      hazePeriodSeconds: pos,
+      lightningEverySeconds: range(pos),
+      flashMs: posInt,
+      maxFlashesPerSecond: z.number().positive().max(3),
+    })
+      .refine((s) => s.lightningEverySeconds[0] >= 1 / s.maxFlashesPerSecond, {
+        message: 'storm flashes closer than 1/maxFlashesPerSecond s',
+      })
+      .optional(),
     /** M8 Bushveld low sun: a glare band this wide (design px of the screen) on one side of the
      *  view, the side drawn from the omen stream at hunt start. Drawn only; no sim rule. */
     glare: obj({ widthPx: pos, alpha: fraction }).optional(),
@@ -754,6 +774,7 @@ export const BiomeSchema = obj({
       frost: z.boolean().optional(),
       rain: z.boolean().optional(),
       rainbow: z.boolean().optional(),
+      shimmer: z.boolean().optional(),
     }).optional(),
   }),
   /** M8 biome twist (GDD §11 "Gameplay twist"): on in every mode, unlike the omen. */

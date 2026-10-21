@@ -121,11 +121,11 @@ describe('content schemas', () => {
 });
 
 describe('content cross-references', () => {
-  it('pass for the current content with only deferred-content warnings', () => {
+  it('pass for the current content; every biome is in (M8), only Notaboek-dependent warnings', () => {
     const report = checkCrossRefs(parseOk(raw), { i18nKeys });
     expect(report.errors).toEqual([]);
     const text = report.warnings.map((w) => w.message).join('\n');
-    expect(text).toMatch(/kalahari-summer/);
+    expect(text).not.toMatch(/bushveld|okavango|kalahari|not loaded yet|does not exist yet/);
     expect(text).toMatch(/bag_50_far/);
     // M6: Bles's farmDog has its own handler; the last charm warning is gone.
     expect(text).not.toMatch(/farmDog|charms\.json/);
@@ -168,10 +168,12 @@ describe('content cross-references', () => {
     expect(msgs.join('\n')).toMatch(/target 9 != 4 secrets/);
   });
 
-  it('turn warnings into errors with strict', () => {
+  it('turn warnings into errors with strict; the real content passes strict (CI, M8)', () => {
     const report = checkCrossRefs(parseOk(raw), { i18nKeys, strict: true });
     expect(report.warnings).toEqual([]);
-    expect(report.errors.some((e) => /kalahari-summer/.test(e.message))).toBe(true);
+    expect(report.errors.some((e) => /bag_50_far/.test(e.message))).toBe(true);
+    const full = checkCrossRefs(parseOk(raw), { i18nKeys, notaboek: loadNotaboek(), strict: true });
+    expect(full.errors).toEqual([]);
   });
 
   it('catch a peekFromCover boss without peek timings or cover (M8)', () => {

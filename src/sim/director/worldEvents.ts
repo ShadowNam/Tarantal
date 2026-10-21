@@ -8,6 +8,7 @@ import {
   createBossBird,
   createHopperBird,
   createPerchBird,
+  createSkyPassBird,
   type HopSpec,
   type PeekStop,
 } from '../birds/scripted';
@@ -16,7 +17,7 @@ import { msToTicks, TICKS_PER_SECOND } from '../clock';
 import { spawnDustDevil, type DustDevil } from '../omen/dustDevil';
 import type { RandomStream } from '../rng';
 import type { PlaneId } from '../types';
-import { coreWidth, MAX_HALF_VIEW_WIDTH } from '../world';
+import { coreWidth, LAYER_BLEED_PX, MAX_HALF_VIEW_WIDTH } from '../world';
 
 export type BiomeEvent = Biome['events'][number];
 
@@ -207,6 +208,48 @@ export function buildPerchBird(
   });
 }
 
+/**
+ * One pass of a sky boss (Die Stormvoël) across `plane`'s sky lane, entering beyond the panorama
+ * edge on the side it comes from. `passes` are the passes still to come after this one.
+ */
+export function buildSkyPass(
+  deps: WorldDeps,
+  c: BirdCreature,
+  plane: PlaneId,
+  dir: 1 | -1,
+  hitsLeft: number,
+  passes: readonly PlaneId[],
+  id: number,
+): Bird | null {
+  const layer = deps.biome.layers.find((l) => l.plane === plane);
+  const sky = deps.biome.lanes[plane]?.skyY;
+  if (layer === undefined || sky === undefined) return null;
+  const scale = deps.planes[plane].scale;
+  const ratio = scale / deps.planes.mid.scale;
+  const width = coreWidth(layer.scrollFactor);
+  const margin = (c.hitbox.body.rx + Math.abs(c.hitbox.body.ox)) * scale + LAYER_BLEED_PX;
+  return createSkyPassBird({
+    id,
+    creature: c,
+    plane,
+    scrollFactor: layer.scrollFactor,
+    planeScale: scale,
+    coreWidth: width,
+    homeX: width / 2,
+    homeY: (sky[0] + sky[1]) / 2,
+    stayTicks: 1,
+    ...speedsPerTick(c, ratio),
+    leaveAngle: deps.leaveAngle,
+    dir,
+    startX: dir > 0 ? -margin : width + margin,
+    startY: (sky[0] + sky[1]) / 2,
+    roamPx: 0,
+    armorLeft: 0,
+    hitsLeft,
+    passes,
+  });
+}
+
 /** A boss appearing at a perch prop (the Generaal at the bakkie). */
 export function buildBossBird(
   deps: WorldDeps,
@@ -215,6 +258,12 @@ export function buildBossBird(
   rng: RandomStream,
 ): Bird | null {
   const c = event.creature === undefined ? undefined : deps.creatures.get(event.creature);
+  // Die Stormvoël crosses the sky (its passes, e.g. far then mid) instead of standing anywhere.
+  if (c?.kind === 'boss' && event.passes !== undefined) {
+    const [first, ...rest] = event.passes;
+    if (first === undefined) return null;
+    return buildSkyPass(deps, c, first, rng.chance(0.5) ? 1 : -1, c.hitsToBag, rest, id);
+  }
   const stay = event.stayMs;
   if (c?.kind !== 'boss' || stay === undefined) return null;
   const at = perchPoint(deps, event, rng);

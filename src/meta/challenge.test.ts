@@ -108,7 +108,7 @@ describe('challenge links (Tech §12)', () => {
       [b64(JSON.stringify({ ...valid, extra: 1 })), 'badShape'],
       [b64(JSON.stringify({ ...valid, __proto__: { x: 1 }, constructor: 1 })), 'badShape'],
       [b64(JSON.stringify({ ...valid, biome: '../etc' })), 'badShape'],
-      [b64(JSON.stringify({ ...valid, biome: 'kalahari-summer' })), 'unknownBiome'],
+      [b64(JSON.stringify({ ...valid, biome: 'namibie-etosha' })), 'unknownBiome'],
       [b64(JSON.stringify({ ...valid, weapon: 'bazooka' })), 'unknownWeapon'],
       [b64(JSON.stringify({ ...valid, weapon: 'voorlaaier' })), 'unknownWeapon'],
       [b64(JSON.stringify({ ...valid, weapon: 'vuvuzela' })), 'unknownWeapon'],

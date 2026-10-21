@@ -436,6 +436,12 @@ function checkEventShape(
       return;
     case 'bossAppearance': {
       needs(c?.kind === 'boss', 'a boss creature');
+      // M8: a lightningOnly boss (Die Stormvoël) crosses the sky in `passes`, nothing else.
+      if (c !== undefined && c.kind === 'boss' && c.behaviours.includes('lightningOnly')) {
+        needs(event.passes !== undefined, 'passes (the planes it crosses)');
+        return;
+      }
+      if (event.passes !== undefined) err('passes are only for a lightningOnly boss');
       needs(event.roamPx !== undefined, 'roamPx');
       needs(event.perchProps !== undefined, 'perchProps');
       needs(event.stayMs !== undefined, 'stayMs');

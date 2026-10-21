@@ -36,6 +36,7 @@ import {
   buildDustDevil,
   buildHopperBird,
   buildPerchBird,
+  buildSkyPass,
   type WorldDeps,
 } from './director/worldEvents';
 import type { BonusId, FlockCause, SimEvent, ThreatSource } from './events';
@@ -78,12 +79,14 @@ import {
   tickSecret,
   type Secret,
 } from './props/secrets';
+import { sin } from './detmath';
 import { createRng } from './rng';
 import { twoFliesBonus, wholeFlockBonus } from './scoring/bonuses';
 import { dropTier, frenzyMul, frenzyTier, nextStreak } from './scoring/frenzy';
 import { scoreBag, scoreEventBonus } from './scoring/pipeline';
 import type {
   BagBehaviour,
+  BirdView,
   Command,
   FlockState,
   HuntResult,
@@ -385,6 +388,38 @@ export function createSim(config: SimConfig): Sim {
     }
   }
   let lightningCursor = 0;
+  // M8: one lightning timeline. The Kalahari storm (omen) and Die Stormvoël's own flashes (any
+  // hunt he flies in without his boss rule, at his rule's cadence) are drawn at run time from the
+  // 'storm' stream; every flash, whatever its source, keeps the shared gap (≤ the lowest
+  // maxFlashesPerSecond in play, D-025). The boss rule's own schedule above is unchanged.
+  const storm = setup.omen ? (biome.omen.storm ?? null) : null;
+  const stormTick = storm === null ? null : Math.floor(storm.stormAt * baseDurationTicks);
+  const hazePeriodTicks = storm === null ? 1 : Math.max(1, secondsToTicks(storm.hazePeriodSeconds));
+  const stormRng = rng.stream('storm');
+  const voelRule = ((): {
+    every: readonly [number, number];
+    flashMs: number;
+    max: number;
+  } | null => {
+    for (const ev of biome.events) {
+      const c = content.birds.creatures.find((x) => x.id === ev.creature);
+      if (c?.kind !== 'boss' || !c.behaviours.includes('lightningOnly')) continue;
+      const r = content.run.bossRules[c.bossRule];
+      if (r?.flashEverySeconds === undefined || r.flashMs === undefined) continue;
+      return { every: r.flashEverySeconds, flashMs: r.flashMs, max: r.maxFlashesPerSecond ?? 3 };
+    }
+    return null;
+  })();
+  const flashCaps = [
+    ...(lightningRule !== null && lightningRule !== undefined
+      ? [lightningRule.maxFlashesPerSecond ?? 3]
+      : []),
+    ...(storm === null ? [] : [storm.maxFlashesPerSecond]),
+    ...(voelRule === null ? [] : [voelRule.max]),
+  ];
+  const flashGapTicks = Math.ceil(60 / Math.min(3, ...flashCaps));
+  let lastFlashTick = -Infinity;
+  let nextOwnFlash = -1;
   let scheduleCursor = 0;
   const crateCfg = content.powerups.crates;
   const crateTicks = scheduleCrates(crateCfg, mode.id, durationTicks, rng.stream('crates'));
@@ -620,6 +655,8 @@ export function createSim(config: SimConfig): Sim {
     for (const f of added) {
       // Biome twist (Bushveld): some flocks run instead of taking wing (own stream, D-025).
       if (runChance > 0) f.runsOnly = twistRng.chance(runChance);
+      // Kalahari storm: in the rain every flock runs (GDD §11 "rain makes flocks run not fly").
+      if (stormActive()) f.runsOnly = true;
       flocks.push(f);
       addBirds(f.members);
       const c = centroid(f);
@@ -923,14 +960,73 @@ export function createSim(config: SimConfig): Sim {
       byPlane[b.plane].push({
         id: b.id,
         plane: b.plane,
-        x: b.x,
+        x: b.x + hazeDx(b),
         y: b.y,
         facing: b.facing,
         hitbox: b.creature.hitbox,
-        hittable: isHittable(b),
+        hittable: canHit(b),
       });
     }
     return byPlane;
+  }
+
+  /** A lightning flash, unless one came less than the shared gap ago (photosensitivity, D-025). */
+  function flash(ticks: number): void {
+    if (tick - lastFlashTick < flashGapTicks) return;
+    lastFlashTick = tick;
+    lightningLeft = Math.max(lightningLeft, ticks);
+    emit({ type: 'lightning', tick, ticks });
+  }
+
+  const stormActive = (): boolean => stormTick !== null && tick >= stormTick;
+
+  /** The Kalahari thunderstorm breaks: rain, and every flock runs instead of flying. */
+  function startStorm(): void {
+    emit({ type: 'weatherChanged', tick, rain: true });
+    for (const f of flocks) f.runsOnly = true;
+  }
+
+  /** Storm lightning, or Die Stormvoël's own flashes when no boss rule lights the hunt. */
+  function ownLightning(): void {
+    const src =
+      storm !== null && stormActive()
+        ? { every: storm.lightningEverySeconds, flashMs: storm.flashMs }
+        : voelRule !== null &&
+            lightningTicks.length === 0 &&
+            birds.some((b) => b.creature.behaviours.includes('lightningOnly'))
+          ? voelRule
+          : null;
+    if (src === null) {
+      nextOwnFlash = -1;
+      return;
+    }
+    const gap = (): number => secondsToTicks(stormRng.range(src.every[0], src.every[1]));
+    if (nextOwnFlash < 0) nextOwnFlash = tick + gap();
+    else if (tick >= nextOwnFlash) {
+      flash(msToTicks(src.flashMs));
+      nextOwnFlash = tick + gap();
+    }
+  }
+
+  /** Hittable now: Die Stormvoël (lightningOnly) only while lightning lights him up. */
+  function canHit(b: Bird): boolean {
+    if (!isHittable(b)) return false;
+    return !b.creature.behaviours.includes('lightningOnly') || lightningLeft > 0;
+  }
+
+  /** Kalahari heat haze (omen, before the storm): far-plane birds wobble sideways — the hitbox
+   *  with them, so what you see is what you hit (D-025). */
+  function hazeDx(b: Bird): number {
+    if (storm === null || b.plane !== 'far' || stormActive()) return 0;
+    return storm.hazePx * sin((2 * Math.PI * tick) / hazePeriodTicks + b.id * 1.7);
+  }
+
+  /** The snapshot of a bird, with the haze and the lit-only rule applied. */
+  function birdView(b: Bird): BirdView {
+    const v = viewOf(b);
+    const dx = hazeDx(b);
+    const hittable = canHit(b);
+    return dx === 0 && hittable === v.hittable ? v : { ...v, x: v.x + dx, hittable };
   }
 
   /** Wind drift of a shot, in screen px on the far plane and behind (Tech §3.4). */
@@ -1387,6 +1483,13 @@ export function createSim(config: SimConfig): Sim {
   /** Pays a secret's reward (GDD §11.1), all from its JSON entry. */
   function triggerSecret(s: Secret, partId: string): void {
     const reward = s.reward;
+    // "Don't shoot it" (the weaver nest): points off, and not a secret found (D-025).
+    if (reward.penalty !== undefined) {
+      score -= reward.penalty;
+      stats.penalties++;
+      emit({ type: 'secretPenalty', tick, propId: s.propId, partId, points: -reward.penalty });
+      return;
+    }
     stats.secrets++;
     emit({ type: 'secretTriggered', tick, propId: s.propId, partId });
     charmTrigger('secret');
@@ -1661,7 +1764,29 @@ export function createSim(config: SimConfig): Sim {
     }
     if (leaving.length > 0) {
       const gone = new Set(leaving);
+      // Die Stormvoël: when a pass leaves the sky still unbagged, his next pass comes back the
+      // other way on its plane (far, then mid), keeping the hits he has taken.
+      const next: Bird[] = [];
+      for (const b of birds) {
+        const s = b.script;
+        if (!gone.has(b.id) || s === null || s.passes.length === 0) continue;
+        const [plane, ...rest] = s.passes;
+        if (plane === undefined) continue;
+        const p = buildSkyPass(
+          worldDeps,
+          b.creature,
+          plane,
+          s.dir > 0 ? -1 : 1,
+          b.hitsLeft,
+          rest,
+          nextBirdId,
+        );
+        if (p === null) continue;
+        nextBirdId++;
+        next.push(p);
+      }
       birds = birds.filter((b) => !gone.has(b.id));
+      addBirds(next);
     }
   }
 
@@ -1699,9 +1824,10 @@ export function createSim(config: SimConfig): Sim {
       (lightningTicks[lightningCursor] ?? Infinity) <= tick
     ) {
       lightningCursor++;
-      lightningLeft = flashTicks;
-      emit({ type: 'lightning', tick, ticks: flashTicks });
+      flash(flashTicks);
     }
+    if (stormTick !== null && tick === stormTick) startStorm();
+    ownLightning();
     if (hasCharms) applyCharms(charms.tickTriggers(tick, durationTicks - tick, charmCtx()));
 
     for (const cmd of commands) apply(cmd);
@@ -1841,7 +1967,7 @@ export function createSim(config: SimConfig): Sim {
         frenzyMul: frenzyMul(streak, scoring.frenzyTiers),
         stampedeActive: stampedeActive(),
         weapon: weaponView(),
-        birds: birds.map(viewOf),
+        birds: birds.map(birdView),
         flocks: flocks.map(flockView),
         gadget:
           gadgetDef === null
@@ -1858,7 +1984,8 @@ export function createSim(config: SimConfig): Sim {
         wind: windView(wind),
         dustDevils: dustDevils.map(dustDevilView),
         glare,
-        rain: raining(),
+        rain: raining() || stormActive(),
+        lightning: lightningLeft > 0,
         projectiles: flights.map((f) => ({
           shotId: f.shotId,
           dx: f.dx,
