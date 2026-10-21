@@ -912,6 +912,9 @@ export const FeelSchema = obj({
     /** Tap = contact shorter than this and moving less than tapMaxMovePx (GDD §18.2). */
     tapMaxMs: pos,
     tapMaxMovePx: pos,
+    /** M9 Settings → hold to fire on touch: a finger still (< tapMaxMovePx) this long starts the
+     *  repeat; moving first keeps it a drag or flick (D-026). */
+    touchHoldMs: pos,
     /** Flick-down reload: vertical travel ≥ flickMinPx within flickMaxMs, mostly downward. */
     flickMinPx: pos,
     flickMaxMs: pos,
