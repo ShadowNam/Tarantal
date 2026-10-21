@@ -557,8 +557,10 @@ compiled out: the `hooksInBuild` constant is `false`, so the minifier drops it, 
 - Audio: WAV masters → loudness-normalised (BS.1770-4 meter in `tools/assets/loudness.ts`:
   music −16, voice −16, SFX −14, ambience −20 LUFS, true peak ≤ −1 dBTP) → Ogg Vorbis + MP3
   (`wasm-media-encoders`, no ffmpeg).
-- Fonts: self-hosted, open licence (e.g. Bangers / Luckiest Guy for display); subset to used glyphs
-  (include Afrikaans ê ë ô ï û ʼn and German ä ö ü ß — same list as the art bible §6).
+- Fonts (M10): self-hosted OFL Baloo 2 (600, 800: all UI text) and Bangers (onomatopoeia), from
+  `@fontsource`, subset by `tools/make-fonts.ts` (`npm run fonts:build`) to the four language files
+  plus the art bible §6 letters → `public/fonts/` (~42 KB, initial download). `main.ts` waits for
+  them (≤ `feel.json assets.fontTimeoutMs`) before Phaser draws any text; system font otherwise.
 
 ## 11. Persistence (`src/meta/`)
 - `SaveData` v1 (JSON, key `tm.save.v1`, schema `src/meta/saveSchema.ts`): `settings`, `ftue`,
@@ -634,7 +636,7 @@ platform for now (neither portal SDK takes custom events or error reports).
 | Golden replays | Vitest | fixed seed + input log → expected score + event-stream hash |
 | Content | `tools/validate-content.ts` | all schemas + cross-refs pass |
 | E2E | Playwright: desktop Chromium + WebKit, Pixel 7 & iPhone 14 landscape emulation | boot → hunt → 20 taps → tally |
-| Visual | Playwright screenshots of HUD at 16:9, 19.5:9, 4:3 | reviewed on change |
+| Visual | Playwright `toHaveScreenshot` (`tests/e2e/visual.spec.ts`, M10): title, hunt held at tick 300 (seed 42, `?holdAt`), tally, Padstal, Settings ×2, privacy, on desktop-chromium + pixel7-landscape; baselines in `tests/e2e/visual-baselines/`, Linux/SwiftShader reference | ≤ 2 % pixels differ (colour threshold 0.25); re-record with `--update-snapshots` after an intentional change (art swap) and review the diff |
 | Perf | Headless Chrome, 4× CPU throttle, 30 s hunt (`tests/e2e/perf.spec.ts`) | avg frame ≤ 16.7 ms on medium tier: CPU cost per frame always; real frame time with `PERF_STRICT=1` on a GPU machine (D-019) |
 | Perf, low tier (M9) | Pixel 7 profile, 6× CPU throttle, quality low, 20 s hunt (`perf.spec.ts`) | CPU cost of a frame at 50 fps ≤ 20 ms: (CPU per frame − sim time) + 1.2 × sim tick cost (D-026) |
 | Size | `tools/size-check.ts` (`--strict` in CI, `--dir` per platform build) | initial (entry + static imports, from Vite's manifest) ≤ 5 MB gzip; hard fail at 8 MB; lazy chunks reported apart |

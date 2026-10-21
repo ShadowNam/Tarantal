@@ -280,7 +280,8 @@ npm run assets:pack                 # art-source/ → public/assets/ (fails on a
 npm run assets:audit                # every key: final or placeholder, size, where it's used
 npm run assets:audit -- --strict    # launch gate: fails while any placeholder remains
 npm run build && npm run size -- --strict
-npx playwright test tests/e2e/visual.spec.ts --update-snapshots   # then review the new baselines
+npx playwright test tests/e2e/visual.spec.ts --project=desktop-chromium --project=pixel7-landscape --update-snapshots
+                                    # then review tests/e2e/visual-baselines/ in the PR diff and commit
 ```
 
 To look at the swap path without real art, use `npm run assets:standins`. It regenerates the

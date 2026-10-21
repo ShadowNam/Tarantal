@@ -171,8 +171,8 @@ chalk slate (`#2E3B33`), rubber-stamp gold (`#D8A73A`), shotgun-shell red (`#C83
 Notaboek, cosmetics), Padstal (farm-stall shop with hand-painted price boards), Bakkie Tally
 (chalk slate on the tailgate, rank stamp), Settings, Pause, Daily card, Share preview.
 
-**Fonts (open licences, self-hosted, subset):** display — *Bangers* or *Luckiest Guy*; body —
-*Baloo 2* (or similar rounded sans). Verify glyphs for Afrikaans (ê ë ô ï û ʼn) and German (ä ö ü ß).
+**Fonts (open licences, self-hosted, subset):** display — *Bangers* (onomatopoeia); body —
+*Baloo 2* 600/800 (all UI text). Shipped in M10 (`public/fonts/`, D-027). Verify glyphs for Afrikaans (ê ë ô ï û ʼn) and German (ä ö ü ß).
 
 ## 7. FX
 Feather bursts (palette-tinted per variant), dust puffs, muzzle flash + smoke, shell ejection,
