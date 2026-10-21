@@ -173,6 +173,12 @@ export interface Sim {
   command or RNG stream: the replay stays v3.
 - Every resolution emits events: `ShotFired`, `PelletImpact`, `TargetBagged`, `Miss`, `FlockAlerted`,
   `FlockFlushed`, `SecretTriggered`, `ComboChanged`, `ScoreAwarded`, `PenaltyApplied`, …
+- Water (M8 Okavango, `biome.twist.splash`): a pellet that stopped on nothing (no bird, prop or
+  crate) whose screen point projected onto a zone's layer is inside the zone splashes; the shot
+  then threatens every flock within `alertRadiusPx` of the wet impacts that its own alert didn't
+  reach (one threat per flock per shot), source `splash` — silent guns and Stil Loop included.
+  Showers (omen): rain spells from the omen stream; `alertRadiusMul` scales the shot's radius
+  while `SimState.rain` is true (`weatherChanged` events).
 - Secret kinds (M8): `singleHit` may need `hitsRequired` hits over any number of shots (progress
   is a `secretPartHit` with the hits left); `nearMiss` pays for an impact projected onto its layer
   within `radiusPx` of the part's centre but outside its shape — its part is never a hit target.
@@ -226,7 +232,10 @@ export interface Sim {
   stream `rng.stream('crates')` (windows from `powerups.json → crates`); the omen (wind, dust
   devils) uses `omen`, the kwêvoël `perch`, the boss `boss`, secret-reward flocks `secrets`.
 - World-event ids (used by biome JSON and the charm action `spawnEvent`): `hadeda`, `cropSprayer`,
-  `kwevoel`, `dustDevil`, `farmDog`, `carAlarm`, `reservoirFlush`, `bossAppearance`, `crate`, `stampede`. Each has a
+  `kwevoel`, `dustDevil`, `farmDog`, `carAlarm`, `reservoirFlush`, `bossAppearance`, `crate`, `stampede`,
+  and (M8) `fishEagle` (flyover) and `kuifkopHop` (handler `hopper`: a target hides in one of
+  `perchProps`, peeks `peekMs`, hops `hopMs` on an arc `hopPx` high to the next cover; route drawn
+  from the `hop` stream when it appears). Each has a
   handler in `director/events.ts`; unknown ids fail content validation. `WORLD_EVENT_HANDLERS` maps
   each id to a handler kind (a typed `Record`, so a new id fails the typecheck until it has one):
   `flyover` (hadeda, crop sprayer), `perch` (kwêvoël: flies to one of `perchProps`' `perch` point,

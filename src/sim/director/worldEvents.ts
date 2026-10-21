@@ -4,7 +4,13 @@
 // no event or prop is known here by id.
 import type { Biome, Scoring } from '../../content/schemas';
 import type { Bird, BirdCreature } from '../birds/Bird';
-import { createBossBird, createPerchBird, type PeekStop } from '../birds/scripted';
+import {
+  createBossBird,
+  createHopperBird,
+  createPerchBird,
+  type HopSpec,
+  type PeekStop,
+} from '../birds/scripted';
 import { planeCentreX } from '../camera';
 import { msToTicks, TICKS_PER_SECOND } from '../clock';
 import { spawnDustDevil, type DustDevil } from '../omen/dustDevil';
@@ -95,6 +101,69 @@ function peekRoute(
   return stops;
 }
 
+/** A peek route over the event's covers on the bird's plane, starting at `at` (and visible hops
+ *  between them when the event gives hopMs/hopPx). */
+function coverRoute(
+  deps: WorldDeps,
+  event: BiomeEvent,
+  at: PerchPoint,
+  stayTicks: number,
+  ratio: number,
+  rng: RandomStream,
+): { peekStops?: PeekStop[]; hop?: HopSpec } {
+  if (event.peekMs === undefined || event.hideMs === undefined) return {};
+  const covers = allPerchPoints(deps, event).filter((p) => p.plane === at.plane);
+  const first = Math.max(
+    0,
+    covers.findIndex((p) => p.x === at.x && p.y === at.y),
+  );
+  const peekStops = peekRoute(covers, first, stayTicks, event.peekMs, event.hideMs, rng);
+  if (event.hopMs === undefined || event.hopPx === undefined) return { peekStops };
+  const hop = {
+    ticks: Math.max(1, msToTicks(rng.range(event.hopMs[0], event.hopMs[1]))),
+    px: event.hopPx * ratio,
+  };
+  return { peekStops, hop };
+}
+
+/** A hopping target (kuifkop): hides in one of the event's covers, peeks, hops to another. */
+export function buildHopperBird(
+  deps: WorldDeps,
+  event: BiomeEvent,
+  id: number,
+  rng: RandomStream,
+): Bird | null {
+  const c = event.creature === undefined ? undefined : deps.creatures.get(event.creature);
+  const stay = event.stayMs;
+  if (c === undefined || c.kind === 'nonTarget' || stay === undefined) return null;
+  const at = perchPoint(deps, event, rng);
+  if (at === null) return null;
+  const scale = deps.planes[at.plane].scale;
+  const ratio = scale / deps.planes.mid.scale;
+  const stayTicks = Math.max(1, msToTicks(rng.range(stay[0], stay[1])));
+  const route = coverRoute(deps, event, at, stayTicks, ratio, rng);
+  return createHopperBird({
+    ...route,
+    id,
+    creature: c,
+    plane: at.plane,
+    scrollFactor: at.scrollFactor,
+    planeScale: scale,
+    coreWidth: coreWidth(at.scrollFactor),
+    homeX: at.x,
+    homeY: at.y,
+    stayTicks,
+    ...speedsPerTick(c, ratio),
+    leaveAngle: deps.leaveAngle,
+    dir: rng.chance(0.5) ? 1 : -1,
+    startX: at.x,
+    startY: at.y,
+    roamPx: 0,
+    armorLeft: 0,
+    hitsLeft: c.kind === 'boss' ? c.hitsToBag : 1,
+  });
+}
+
 function speedsPerTick(c: BirdCreature, ratio: number): { walk: number; run: number; fly: number } {
   const s = c.speeds ?? {};
   const t = (v: number | undefined): number => ((v ?? 0) * ratio) / TICKS_PER_SECOND;
@@ -153,26 +222,13 @@ export function buildBossBird(
   const scale = deps.planes[at.plane].scale;
   const ratio = scale / deps.planes.mid.scale;
   const stayTicks = Math.max(1, msToTicks(rng.range(stay[0], stay[1])));
-  // Ou Grys: peeks out from the event's cover props on his plane (validated: peekMs + hideMs).
-  const covers = allPerchPoints(deps, event).filter((p) => p.plane === at.plane);
-  const peekStops =
-    c.behaviours.includes('peekFromCover') &&
-    event.peekMs !== undefined &&
-    event.hideMs !== undefined
-      ? peekRoute(
-          covers,
-          Math.max(
-            0,
-            covers.findIndex((p) => p.x === at.x && p.y === at.y),
-          ),
-          stayTicks,
-          event.peekMs,
-          event.hideMs,
-          rng,
-        )
-      : undefined;
+  // Ou Grys peeks from cover; Kuifkop Koning hops between reeds (validated timings).
+  const route =
+    c.behaviours.includes('peekFromCover') || c.behaviours.includes('hop')
+      ? coverRoute(deps, event, at, stayTicks, ratio, rng)
+      : {};
   return createBossBird({
-    ...(peekStops === undefined ? {} : { peekStops }),
+    ...route,
     id,
     creature: c,
     plane: at.plane,

@@ -336,6 +336,12 @@ not hanging balls.
 | Bushveld | Baobab fruit (kremetart) | Shoot a hanging pod | Falls, startles the flock below into FLUSH, +25 |
 | Bushveld | Dassie on the koppie | Shoot near (not at) it | Dassie alarm whistle: all flocks ALERT; meerkat-style reveal |
 | Bushveld | Boulder crack | 3 hits | Rolls, flushes hidden birds, +75; bonus time +5 s |
+| Okavango | Hippo | Shoot the water beside it | Yawn + wave: flushes flocks on the bank, +50 |
+| Okavango | Mokoro pole marker | Shoot the flag | **+5 s bonus time** |
+| Okavango | Lily pad frog | Shoot the frog's lily | Frog leaps; +25; Bird Book easter egg |
+| Kalahari | Dead camelthorn branch | Shoot the dry branch | Snaps; roosting flock bursts out, +50 |
+| Kalahari | Windpomp sign | Shoot the sign | **+5 s bonus time** |
+| Kalahari | Weaver nest | **Don't shoot it** | Weavers scold you, −10 (scenery joke) |
 
 Bushveld as built (M8, D-025): the twist is on in every mode — each flock has a 60 % chance
 (`twist.flushAsRunChance`) of being one that keeps running when a threat would flush it; the
@@ -345,12 +351,15 @@ but not on it (pellets pass the dassie itself). The boulder counts hits over any
 its "hidden birds" are 6 that burst out flushing (no Whole Flock). Ou Grys moves hidden between
 three boulders and peeks out from each for 1.2–2 s; only a peeking Ou Grys can be hit, and a hit
 sends him back behind cover. Numbers live in `content/biomes/bushveld-winter.json`.
-| Okavango | Hippo | Shoot the water beside it | Yawn + wave: flushes flocks on the bank, +50 |
-| Okavango | Mokoro pole marker | Shoot the flag | **+5 s bonus time** |
-| Okavango | Lily pad frog | Shoot the frog's lily | Frog leaps; +25; Bird Book easter egg |
-| Kalahari | Dead camelthorn branch | Shoot the dry branch | Snaps; roosting flock bursts out, +50 |
-| Kalahari | Windpomp sign | Shoot the sign | **+5 s bonus time** |
-| Kalahari | Weaver nest | **Don't shoot it** | Weavers scold you, −10 (scenery joke) |
+
+Okavango as built (M8, D-025): water channels on the mid plane are the twist — a pellet that
+lands in water splashes and alerts flocks within 320 px, even from the silent Windbuks. Kuifkop
+hide in the reed beds, peek out for about a second and hop in plain view to the next reed bed
+(3–4 per hunt, 40 points; caught mid-hop it scores as a runner). Kuifkop Koning does the same
+with 3 hits; each hit sends him into the reeds. The sun-showers (omen) come every 8–14 s for
+5–9 s and muffle shots (alert radius × 0.6); a rainbow shows while it rains. The hippo pays for a
+shot into the water beside it (flushes flocks within 650 px, +50). The fish eagle (−50) replaces
+the crop sprayer here. Numbers live in `content/biomes/okavango-spring.json`.
 
 ## 12. Game modes
 

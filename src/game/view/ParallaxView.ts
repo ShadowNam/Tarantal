@@ -2,7 +2,7 @@
 // in that layer's own coordinates; its x is set from the sim camera with the same formula the sim
 // uses for hit tests (camera.ts), so what you see is exactly what a pellet hits.
 //   container.x = screenCentre − planeCentreX(cx, f)
-// Inside a plane layer the order is: ground tiles → props → fixtures (secret rotors and marks,
+// Inside a plane layer the order is: ground tiles → water (M8 splash zones) → props → fixtures (secret rotors and marks,
 // M4) → birds (D-018: a plane's birds stand in front of its own props) → FX. The foreground layer
 // sits on top of everything.
 import * as Phaser from 'phaser';
@@ -10,7 +10,7 @@ import type { Biome } from '../../content/schemas';
 import { planeCentreX } from '../../sim/camera';
 import type { PlaneId } from '../../sim/types';
 import { coreWidth } from '../../sim/world';
-import type { AssetManifest } from '../assets/AssetManifest';
+import { TEX, type AssetManifest } from '../assets/AssetManifest';
 
 export interface LayerNode {
   readonly id: string;
@@ -46,6 +46,19 @@ export class ParallaxView {
               .setScale(art.scale),
           );
         });
+      }
+      // Water channels (Okavango) are drawn from the splash zones: where you see water is exactly
+      // where a pellet splashes.
+      for (const z of biome.twist?.splash?.zones ?? []) {
+        if (z.layer !== layer.id) continue;
+        const sh = z.shape;
+        const w = sh.type === 'rect' ? sh.w : sh.rx * 2;
+        const h = sh.type === 'rect' ? sh.h : sh.ry * 2;
+        root.add(
+          scene.add
+            .image(z.u * coreWidth(layer.scrollFactor) + sh.ox, z.y + sh.oy, TEX.water)
+            .setDisplaySize(w, h),
+        );
       }
       for (const prop of biome.props) {
         if (prop.layer !== layer.id || !manifest.has(prop.asset)) continue;

@@ -116,6 +116,10 @@ export function birdKey(creature: string, plane: PlaneId, frame: BirdFrame): str
 export const TEX = {
   stone: 'fx/stone',
   glare: 'omen/glare',
+  water: 'biome/water',
+  rain: 'omen/rain',
+  rainbow: 'omen/rainbow',
+  splash: 'fx/splash',
   shell: 'ui/shell',
   shellEmpty: 'ui/shell_empty',
   reticle: 'ui/reticle',

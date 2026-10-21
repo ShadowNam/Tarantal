@@ -44,7 +44,7 @@ export interface Bird {
   hitsLeft: number;
   /** Flock members only. */
   readonly fm: FlockMember | null;
-  /** Scripted birds only (motion 'perch' or 'boss', birds/scripted.ts). */
+  /** Scripted birds only (motion 'perch', 'boss' or 'hop', birds/scripted.ts). */
   readonly script: ScriptState | null;
 }
 
@@ -55,8 +55,10 @@ export function behaviourOf(bird: Bird): BagBehaviour {
   switch (bird.phase) {
     case 'alert':
       return 'alert';
+    // A kuifkop caught mid-hop (M8) is on the move, like a runner.
     case 'run':
     case 'land':
+    case 'hop':
       return 'run';
     // A flushed bird crouched for its take-off is already "flushed" (GDD §5.3: +1.0).
     case 'launch':
@@ -229,7 +231,8 @@ export type BirdExit = 'exited' | 'ducked' | null;
 export function updateBird(b: Bird, airMul: (sign: number) => number = () => 1): BirdExit {
   b.age++;
   b.phaseTicks++;
-  if (b.motion === 'flock' || b.motion === 'perch' || b.motion === 'boss') return null;
+  if (b.motion === 'flock' || b.motion === 'perch' || b.motion === 'boss' || b.motion === 'hop')
+    return null;
   if (b.motion === 'flyover') {
     b.x += b.vx * airMul(b.vx);
     b.y = b.baseY + b.bobAmp * sin((2 * Math.PI * b.age) / b.bobPeriodTicks + b.bobOffset);

@@ -18,6 +18,7 @@ import { arsenalSpecs } from './arsenalArt';
 import { omenSpecs } from './omenArt';
 import type { Band, BiomeArt } from './biomeArt';
 import { BUSHVELD_ART } from './biomes/bushveld';
+import { OKAVANGO_ART } from './biomes/okavango';
 import { ellipse, ground, inked, INK, prng, tuft } from './draw';
 
 const KAROO = {
@@ -392,7 +393,24 @@ function birdDrawFor(creature: string, plane: PlaneId): BirdDraw | null {
       ctx.restore();
     };
   }
-  if (creature === 'kuifkop' || creature === 'kuifkop_koning') {
+  if (creature === 'kuifkop_koning') {
+    // Art bible §3.2: a kuifkop with a bottle-cap crown wedged in his crest.
+    const body = drawGuineafowl(PALETTES['kuifkop'] ?? TARENTAAL, far, true);
+    return (ctx, frame, line) => {
+      ctx.save();
+      ctx.scale(1.12, 1.12);
+      body(ctx, frame, line / 1.12);
+      ctx.beginPath();
+      ctx.moveTo(92, -130);
+      for (let k = 0; k <= 6; k++) ctx.lineTo(92 + k * 8, k % 2 === 0 ? -150 : -136);
+      ctx.lineTo(140, -122);
+      ctx.lineTo(92, -122);
+      ctx.closePath();
+      inked(ctx, '#E9C23B', line / 1.12);
+      ctx.restore();
+    };
+  }
+  if (creature === 'kuifkop') {
     return drawGuineafowl(PALETTES['kuifkop'] ?? TARENTAAL, far, true);
   }
   const palette = PALETTES[creature];
@@ -1245,6 +1263,7 @@ const KAROO_ART: BiomeArt = { bands: BANDS, drawProp: drawKarooProp };
 const BIOME_ART: Readonly<Record<string, BiomeArt>> = {
   'karoo-autumn': KAROO_ART,
   'bushveld-winter': BUSHVELD_ART,
+  'okavango-spring': OKAVANGO_ART,
 };
 
 /** Biome ids this build can draw (the Daily rotation, challenges and the run use only these). */

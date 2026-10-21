@@ -125,7 +125,7 @@ describe('content cross-references', () => {
     const report = checkCrossRefs(parseOk(raw), { i18nKeys });
     expect(report.errors).toEqual([]);
     const text = report.warnings.map((w) => w.message).join('\n');
-    expect(text).toMatch(/okavango-spring/);
+    expect(text).toMatch(/kalahari-summer/);
     expect(text).toMatch(/bag_50_far/);
     // M6: Bles's farmDog has its own handler; the last charm warning is gone.
     expect(text).not.toMatch(/farmDog|charms\.json/);
@@ -171,7 +171,7 @@ describe('content cross-references', () => {
   it('turn warnings into errors with strict', () => {
     const report = checkCrossRefs(parseOk(raw), { i18nKeys, strict: true });
     expect(report.warnings).toEqual([]);
-    expect(report.errors.some((e) => /okavango-spring/.test(e.message))).toBe(true);
+    expect(report.errors.some((e) => /kalahari-summer/.test(e.message))).toBe(true);
   });
 
   it('catch a peekFromCover boss without peek timings or cover (M8)', () => {

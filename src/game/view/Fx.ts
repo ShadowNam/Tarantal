@@ -41,6 +41,7 @@ export class Fx {
   ) => { plane: PlaneId; x: number; y: number; scaleX: number } | null;
   /** The plane crates land on (powerups.json). */
   private readonly cratePlane: PlaneId;
+  private readonly screenLayer: Phaser.GameObjects.Container;
 
   constructor(
     scene: Phaser.Scene,
@@ -56,6 +57,7 @@ export class Fx {
     this.locate = locate;
     this.locatePot = locatePot;
     this.cratePlane = cratePlane;
+    this.screenLayer = screenLayer;
     this.feel = feel;
     this.parallax = parallax;
     for (const plane of ['near', 'mid', 'far'] as const) {
@@ -171,6 +173,23 @@ export class Fx {
               ? 0
               : (e.cx - state.cameraX) * this.parallax.plane('mid').scrollFactor;
           if (e.birdId === null) this.puffs.explode(1, width / 2 + e.dx + pan, e.sy);
+          break;
+        }
+        case 'splash': {
+          // Okavango water (M8): a crown of drops where the shot hit the water.
+          const pan = (e.cx - state.cameraX) * this.parallax.plane('mid').scrollFactor;
+          const img = this.scene.add.image(width / 2 + e.dx + pan, e.sy, TEX.splash).setScale(0.4);
+          this.screenLayer.add(img);
+          this.scene.tweens.add({
+            targets: img,
+            scale: 1.1,
+            alpha: 0,
+            duration: 420,
+            ease: 'Cubic.Out',
+            onComplete: () => {
+              img.destroy();
+            },
+          });
           break;
         }
         case 'tutorialBeat':

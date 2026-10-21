@@ -1,0 +1,536 @@
+{
+  "$comment": "Lente · Okavango floodplain, GDD §11 row 3. Positions: 'u' 0..1 across the layer core width, 'y' design px; windows are fractions of hunt length. Twist (every mode): water channels on the mid plane — a pellet that lands in water splashes and alerts flocks near it, even from the silent Windbuks; kuifkop hop out of the reeds. Omen (Season omen hunts, Daily): sun-showers that muffle shots. Reed beds occlude and are where kuifkop and Kuifkop Koning hide.",
+  "version": 1,
+  "id": "okavango-spring",
+  "season": "lente",
+  "nameKey": "biome.okavango_spring",
+  "panoramaWidth": 3840,
+  "skyBand": {
+    "top": 80,
+    "bottom": 420
+  },
+  "layers": [
+    {
+      "id": "sky",
+      "scrollFactor": 0.05,
+      "asset": "okavango/sky",
+      "lowTierMergeWith": null
+    },
+    {
+      "id": "far_ridge",
+      "scrollFactor": 0.15,
+      "asset": "okavango/far_ridge",
+      "lowTierMergeWith": "far_veld"
+    },
+    {
+      "id": "far_veld",
+      "scrollFactor": 0.35,
+      "asset": "okavango/far_veld",
+      "plane": "far"
+    },
+    {
+      "id": "mid",
+      "scrollFactor": 0.6,
+      "asset": "okavango/mid",
+      "plane": "mid"
+    },
+    {
+      "id": "near",
+      "scrollFactor": 1.0,
+      "asset": "okavango/near",
+      "plane": "near"
+    },
+    {
+      "id": "foreground",
+      "scrollFactor": 1.2,
+      "asset": "okavango/foreground",
+      "occludes": true
+    }
+  ],
+  "lanes": {
+    "far": {
+      "groundY": [
+        585,
+        610
+      ],
+      "skyY": [
+        120,
+        300
+      ]
+    },
+    "mid": {
+      "groundY": [
+        690,
+        750
+      ],
+      "skyY": [
+        160,
+        420
+      ]
+    },
+    "near": {
+      "popupY": [
+        880,
+        960
+      ]
+    }
+  },
+  "props": [
+    {
+      "id": "reeds_a",
+      "layer": "mid",
+      "u": 0.08,
+      "y": 720,
+      "asset": "okavango/reeds_a",
+      "occluder": {
+        "type": "ellipse",
+        "rx": 150,
+        "ry": 95,
+        "ox": 0,
+        "oy": -10
+      },
+      "perch": {
+        "ox": 110,
+        "oy": 0
+      }
+    },
+    {
+      "id": "mokoro_pole",
+      "layer": "mid",
+      "u": 0.24,
+      "y": 640,
+      "asset": "okavango/mokoro_pole",
+      "occluder": {
+        "type": "rect",
+        "w": 22,
+        "h": 260,
+        "ox": 0,
+        "oy": 0
+      },
+      "secret": {
+        "$comment": "Shoot the flag on the mokoro marker pole: +5 s.",
+        "type": "singleHit",
+        "part": {
+          "id": "flag",
+          "shape": {
+            "type": "rect",
+            "w": 56,
+            "h": 36,
+            "ox": 30,
+            "oy": -112
+          }
+        },
+        "oncePerHunt": true,
+        "reward": {
+          "addTimeSeconds": 5,
+          "barkKey": "bark.mokoro"
+        }
+      }
+    },
+    {
+      "id": "reeds_b",
+      "layer": "mid",
+      "u": 0.37,
+      "y": 722,
+      "asset": "okavango/reeds_b",
+      "occluder": {
+        "type": "ellipse",
+        "rx": 140,
+        "ry": 90,
+        "ox": 0,
+        "oy": -10
+      },
+      "perch": {
+        "ox": -105,
+        "oy": 0
+      }
+    },
+    {
+      "id": "sausage_tree",
+      "layer": "mid",
+      "u": 0.47,
+      "y": 470,
+      "asset": "okavango/sausage_tree",
+      "occluder": {
+        "type": "rect",
+        "w": 70,
+        "h": 330,
+        "ox": 0,
+        "oy": 95
+      },
+      "perch": {
+        "ox": -130,
+        "oy": -170
+      }
+    },
+    {
+      "id": "hippo",
+      "layer": "mid",
+      "u": 0.58,
+      "y": 800,
+      "asset": "okavango/hippo",
+      "occluder": {
+        "type": "ellipse",
+        "rx": 120,
+        "ry": 45,
+        "ox": 0,
+        "oy": 0
+      },
+      "secret": {
+        "$comment": "Shoot the water beside the hippo: it yawns, the wave flushes the flocks on the bank.",
+        "type": "singleHit",
+        "part": {
+          "id": "water",
+          "shape": {
+            "type": "ellipse",
+            "rx": 70,
+            "ry": 24,
+            "ox": -210,
+            "oy": 8
+          }
+        },
+        "oncePerHunt": true,
+        "reward": {
+          "points": 50,
+          "at": "hippo",
+          "reaction": {
+            "effect": "flush",
+            "scope": "area",
+            "radiusPx": 650
+          }
+        }
+      }
+    },
+    {
+      "id": "reeds_c",
+      "layer": "mid",
+      "u": 0.72,
+      "y": 718,
+      "asset": "okavango/reeds_c",
+      "occluder": {
+        "type": "ellipse",
+        "rx": 155,
+        "ry": 95,
+        "ox": 0,
+        "oy": -10
+      },
+      "perch": {
+        "ox": 115,
+        "oy": 0
+      }
+    },
+    {
+      "id": "reeds_d",
+      "layer": "mid",
+      "u": 0.9,
+      "y": 722,
+      "asset": "okavango/reeds_d",
+      "occluder": {
+        "type": "ellipse",
+        "rx": 140,
+        "ry": 90,
+        "ox": 0,
+        "oy": -10
+      },
+      "perch": {
+        "ox": -105,
+        "oy": 0
+      }
+    },
+    {
+      "id": "lily_frog",
+      "layer": "near",
+      "u": 0.66,
+      "y": 975,
+      "asset": "okavango/lily_frog",
+      "secret": {
+        "$comment": "Shoot the frog's lily pad: the frog leaps (a Bird Book easter egg).",
+        "type": "singleHit",
+        "part": {
+          "id": "lily",
+          "shape": {
+            "type": "ellipse",
+            "rx": 56,
+            "ry": 18,
+            "ox": 0,
+            "oy": 0
+          }
+        },
+        "oncePerHunt": true,
+        "reward": {
+          "points": 25,
+          "barkKey": "bark.kwaak"
+        }
+      }
+    },
+    {
+      "id": "papyrus_a",
+      "layer": "foreground",
+      "u": 0.05,
+      "y": 980,
+      "asset": "okavango/papyrus_a",
+      "occluder": {
+        "type": "ellipse",
+        "rx": 140,
+        "ry": 130,
+        "ox": 0,
+        "oy": 0
+      }
+    },
+    {
+      "id": "papyrus_b",
+      "layer": "foreground",
+      "u": 0.94,
+      "y": 985,
+      "asset": "okavango/papyrus_b",
+      "occluder": {
+        "type": "ellipse",
+        "rx": 150,
+        "ry": 130,
+        "ox": 0,
+        "oy": 0
+      }
+    }
+  ],
+  "events": [
+    {
+      "id": "hadeda",
+      "creature": "hadeda",
+      "perHunt": [
+        0,
+        2
+      ],
+      "window": [
+        0.17,
+        0.83
+      ]
+    },
+    {
+      "id": "fishEagle",
+      "creature": "visarend",
+      "perHunt": [
+        1,
+        1
+      ],
+      "window": [
+        0.28,
+        0.72
+      ]
+    },
+    {
+      "id": "kwevoel",
+      "creature": "kwevoel",
+      "perHunt": [
+        1,
+        2
+      ],
+      "perchProps": [
+        "sausage_tree"
+      ],
+      "window": [
+        0.11,
+        0.89
+      ],
+      "stayMs": [
+        6000,
+        10000
+      ]
+    },
+    {
+      "id": "kuifkopHop",
+      "creature": "kuifkop",
+      "perHunt": [
+        3,
+        4
+      ],
+      "perchProps": [
+        "reeds_a",
+        "reeds_b",
+        "reeds_c",
+        "reeds_d"
+      ],
+      "window": [
+        0.08,
+        0.85
+      ],
+      "stayMs": [
+        7000,
+        10000
+      ],
+      "peekMs": [
+        800,
+        1300
+      ],
+      "hideMs": [
+        700,
+        1200
+      ],
+      "hopMs": [
+        500,
+        700
+      ],
+      "hopPx": 90
+    },
+    {
+      "id": "bossAppearance",
+      "creature": "kuifkop_koning",
+      "modes": [
+        "classic",
+        "daily"
+      ],
+      "perHunt": [
+        1,
+        1
+      ],
+      "perchProps": [
+        "reeds_a",
+        "reeds_b",
+        "reeds_c",
+        "reeds_d"
+      ],
+      "window": [
+        0.3,
+        0.6
+      ],
+      "stayMs": [
+        14000,
+        18000
+      ],
+      "roamPx": 60,
+      "peekMs": [
+        1000,
+        1500
+      ],
+      "hideMs": [
+        800,
+        1300
+      ],
+      "hopMs": [
+        550,
+        750
+      ],
+      "hopPx": 110
+    }
+  ],
+  "omen": {
+    "id": "sun_showers",
+    "showers": {
+      "everySeconds": [
+        8,
+        14
+      ],
+      "lastSeconds": [
+        5,
+        9
+      ],
+      "alertRadiusMul": 0.6
+    },
+    "visual": {
+      "rain": true,
+      "rainbow": true
+    }
+  },
+  "twist": {
+    "splash": {
+      "zones": [
+        {
+          "layer": "mid",
+          "u": 0.3,
+          "y": 815,
+          "shape": {
+            "type": "rect",
+            "w": 1100,
+            "h": 70,
+            "ox": 0,
+            "oy": 0
+          }
+        },
+        {
+          "layer": "mid",
+          "u": 0.76,
+          "y": 812,
+          "shape": {
+            "type": "rect",
+            "w": 1300,
+            "h": 70,
+            "ox": 0,
+            "oy": 0
+          }
+        }
+      ],
+      "alertRadiusPx": 320
+    }
+  },
+  "pacing": {
+    "keyframes": [
+      {
+        "t": 0.0,
+        "flocks": {
+          "mid": 1
+        },
+        "flyoversPerMin": 3,
+        "popupsPerMin": 2
+      },
+      {
+        "t": 0.17,
+        "flocks": {
+          "mid": 1
+        },
+        "flyoversPerMin": 4,
+        "popupsPerMin": 4
+      },
+      {
+        "t": 0.5,
+        "flocks": {
+          "mid": 1
+        },
+        "flyoversPerMin": 5,
+        "popupsPerMin": 5
+      },
+      {
+        "t": 0.83,
+        "flocks": {
+          "mid": 1
+        },
+        "flyoversPerMin": 6,
+        "popupsPerMin": 6
+      },
+      {
+        "t": 1.0,
+        "flocks": {
+          "mid": 1
+        },
+        "flyoversPerMin": 6,
+        "popupsPerMin": 6
+      }
+    ],
+    "stampede": {
+      "flyoversPerMin": 10,
+      "popupsPerMin": 10,
+      "flockState": "run"
+    },
+    "maxBirdsOnScreen": 60,
+    "maxFlocks": 8,
+    "$comment": "Starts from the Karoo pacing (D-020); tuned against the Classic balance gates (D-025)."
+  },
+  "spawnTable": [
+    {
+      "creature": "tarentaal",
+      "weight": 100
+    },
+    {
+      "creature": "tarentaal_lavendel",
+      "weight": 2
+    },
+    {
+      "creature": "tarentaal_wit",
+      "weight": 1
+    }
+  ],
+  "music": {
+    "calm": "okavango_calm",
+    "build": "okavango_build",
+    "stampede": "okavango_stampede"
+  },
+  "ambience": "okavango_reeds_bed"
+}

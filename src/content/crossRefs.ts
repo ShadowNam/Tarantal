@@ -212,6 +212,9 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
     }
     const layerPlane = new Map(biome.layers.map((l) => [l.id, l.plane]));
     const propById = new Map(biome.props.map((p) => [p.id, p]));
+    for (const z of biome.twist?.splash?.zones ?? []) {
+      if (!layerIds.has(z.layer)) err(file, `twist.splash zone is on unknown layer "${z.layer}"`);
+    }
     for (const prop of biome.props) {
       if (!layerIds.has(prop.layer)) err(file, `prop "${prop.id}" is on unknown layer "${prop.layer}"`);
       const secret = prop.secret;
@@ -422,6 +425,7 @@ function checkEventShape(
   switch (event.id) {
     case 'hadeda':
     case 'cropSprayer':
+    case 'fishEagle':
       needs(c !== undefined && c.kind === 'nonTarget' && (c.speeds?.fly ?? 0) > 0, 'a non-target creature with speeds.fly');
       return;
     case 'kwevoel':
@@ -435,16 +439,36 @@ function checkEventShape(
       needs(event.roamPx !== undefined, 'roamPx');
       needs(event.perchProps !== undefined, 'perchProps');
       needs(event.stayMs !== undefined, 'stayMs');
-      // M8: a boss that peeks from cover moves between at least two cover props.
+      // M8: a boss that peeks from cover moves between at least two cover props; one that hops
+      // (Kuifkop Koning) also needs its hop.
       const peeks = c !== undefined && c.kind === 'boss' && c.behaviours.includes('peekFromCover');
-      if (peeks) {
+      const hops = c !== undefined && c.kind === 'boss' && c.behaviours.includes('hop');
+      if (peeks || hops) {
         needs(event.peekMs !== undefined && event.hideMs !== undefined, 'peekMs and hideMs');
         needs((event.perchProps?.length ?? 0) >= 2, 'two or more perchProps (cover)');
       } else if (event.peekMs !== undefined || event.hideMs !== undefined) {
-        err('peekMs/hideMs are only for a peekFromCover boss');
+        err('peekMs/hideMs are only for a peekFromCover or hopping boss');
       }
+      if (hops) needs(event.hopMs !== undefined && event.hopPx !== undefined, 'hopMs and hopPx');
+      else if (event.hopMs !== undefined || event.hopPx !== undefined)
+        err('hopMs/hopPx are only for a hopping bird');
       return;
     }
+    case 'kuifkopHop':
+      needs(
+        c !== undefined && c.kind === 'target' && c.behaviours.includes('hop'),
+        'a target creature with the hop behaviour',
+      );
+      needs((event.perchProps?.length ?? 0) >= 2, 'two or more perchProps (cover)');
+      needs(event.stayMs !== undefined, 'stayMs');
+      needs(
+        event.peekMs !== undefined &&
+          event.hideMs !== undefined &&
+          event.hopMs !== undefined &&
+          event.hopPx !== undefined,
+        'peekMs, hideMs, hopMs and hopPx',
+      );
+      return;
     case 'dustDevil':
       needs(
         event.plane !== undefined &&

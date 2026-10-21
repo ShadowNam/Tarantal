@@ -132,6 +132,7 @@ const hook: TestHook = {
   biome: '',
   glare: null,
   omen: false,
+  rain: false,
   magazine: 0,
   reloading: false,
   stones: 0,

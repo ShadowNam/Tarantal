@@ -6,7 +6,7 @@ import type { BreakdownStep } from './scoring/pipeline';
 import type { BagBehaviour, BirdMotion, FlockState, PlaneId } from './types';
 
 /** What threatened a flock (GDD §6.2). */
-export type ThreatSource = 'shot' | 'silentBag' | 'event' | 'gadget';
+export type ThreatSource = 'shot' | 'silentBag' | 'event' | 'gadget' | 'splash';
 /** Why a flock changed state. */
 export type FlockCause =
   'threat' | 'window' | 'timeout' | 'landed' | 'settled' | 'gadget' | 'event' | 'stampede';
@@ -46,6 +46,16 @@ export type SimEvent =
       readonly cx?: number;
     }
   | { readonly type: 'miss'; readonly tick: number; readonly shotId: number }
+  /** M8 Okavango: a shot splashed into water (screen point for the camera `cx`). */
+  | {
+      readonly type: 'splash';
+      readonly tick: number;
+      readonly dx: number;
+      readonly sy: number;
+      readonly cx: number;
+    }
+  /** M8: rain started or stopped (sun-showers, storm). */
+  | { readonly type: 'weatherChanged'; readonly tick: number; readonly rain: boolean }
   | { readonly type: 'emptyClick'; readonly tick: number }
   | {
       readonly type: 'targetHit';

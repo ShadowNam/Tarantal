@@ -1,9 +1,10 @@
 // Scripted single birds (GDD §7): the kwêvoël flies in, perches on a prop calling "kwê-kwê!",
 // then flies off; the Generaal (boss) appears at a prop, struts around it, runs once his pot is
 // knocked off, and flies off when his time is up. Ou Grys (peekFromCover, M8) moves between
-// cover props hidden and peeks out from each for a while; a hit sends him back behind cover. His
-// whole route is drawn when he appears, so updates need no randomness. Positions are on the
-// bird's plane.
+// cover props hidden and peeks out from each for a while; a hit sends him back behind cover.
+// Hopping birds (the kuifkop and Kuifkop Koning, M8) peek from reeds and hop to the next reed in
+// plain view. The whole route is drawn when the bird appears, so updates need no randomness.
+// Positions are on the bird's plane.
 import { cos, sin } from '../detmath';
 import type { PlaneId } from '../types';
 import { LAYER_BLEED_PX } from '../world';
@@ -44,11 +45,22 @@ export interface PeekStop {
   readonly peekTicks: number;
 }
 
+/** A visible hop between covers: its length and the height of its arc (plane px). */
+export interface HopSpec {
+  readonly ticks: number;
+  readonly px: number;
+}
+
 export interface PeekPlan {
   readonly stops: readonly PeekStop[];
-  /** Current stop, and ticks left in the current phase (hidden or peek). */
+  /** Null: moves hidden between covers (Ou Grys). Else hops there in view (kuifkop). */
+  readonly hop: HopSpec | null;
+  /** Current stop, and ticks left in the current phase (hidden, peek or hop). */
   stop: number;
   ticksLeft: number;
+  /** Where the current hop started. */
+  fromX: number;
+  fromY: number;
 }
 
 export interface ScriptedSpec {
@@ -75,9 +87,11 @@ export interface ScriptedSpec {
   readonly hitsLeft: number;
   /** Peeking boss route (route stops in order; the bird appears at the first, hidden). */
   readonly peekStops?: readonly PeekStop[];
+  /** Hopping birds: visible hops between the stops. */
+  readonly hop?: HopSpec;
 }
 
-function base(s: ScriptedSpec, motion: 'perch' | 'boss', x: number, y: number): Bird {
+function base(s: ScriptedSpec, motion: 'perch' | 'boss' | 'hop', x: number, y: number): Bird {
   const body = s.creature.hitbox.body;
   return {
     id: s.id,
@@ -122,7 +136,14 @@ function base(s: ScriptedSpec, motion: 'perch' | 'boss', x: number, y: number): 
       peek:
         s.peekStops === undefined || s.peekStops.length === 0
           ? null
-          : { stops: s.peekStops, stop: 0, ticksLeft: s.peekStops[0]?.hideTicks ?? 1 },
+          : {
+              stops: s.peekStops,
+              hop: s.hop ?? null,
+              stop: 0,
+              ticksLeft: s.peekStops[0]?.hideTicks ?? 1,
+              fromX: x,
+              fromY: y,
+            },
     },
   };
 }
@@ -141,10 +162,18 @@ export function createBossBird(s: ScriptedSpec): Bird {
   return b;
 }
 
-/** A peeking boss was hit: he ducks behind cover and heads for the next stop. */
+/** A hopping target (kuifkop): starts hidden in its first cover. */
+export function createHopperBird(s: ScriptedSpec): Bird {
+  const first = s.peekStops?.[0];
+  const b = base(s, 'hop', first?.x ?? s.homeX, first?.y ?? s.homeY);
+  enter(b, 'hidden');
+  return b;
+}
+
+/** A peeking or hopping bird was hit (not bagged): it ducks into cover, then the next stop. */
 export function duckBoss(b: Bird): void {
   const p = b.script?.peek;
-  if (p === null || p === undefined || b.phase !== 'peek') return;
+  if (p === null || p === undefined || (b.phase !== 'peek' && b.phase !== 'hop')) return;
   nextStop(b, p);
 }
 
@@ -159,6 +188,20 @@ function updatePeek(b: Bird, s: ScriptState, p: PeekPlan): void {
   const at = p.stops[p.stop];
   if (at === undefined) return;
   p.ticksLeft--;
+  if (b.phase === 'hop' && p.hop !== null) {
+    // In plain view on an arc to this stop.
+    const t = 1 - Math.max(0, p.ticksLeft) / p.hop.ticks;
+    b.x = p.fromX + (at.x - p.fromX) * t;
+    b.y = p.fromY + (at.y - p.fromY) * t - p.hop.px * sin(Math.PI * t);
+    b.facing = at.x >= p.fromX ? 1 : -1;
+    if (p.ticksLeft <= 0) {
+      b.x = at.x;
+      b.y = at.y;
+      p.ticksLeft = at.hideTicks;
+      enter(b, 'hidden');
+    }
+    return;
+  }
   if (b.phase === 'hidden') {
     const dx = at.x - b.x;
     const step = Math.min(Math.abs(dx), s.run);
@@ -174,7 +217,17 @@ function updatePeek(b: Bird, s: ScriptState, p: PeekPlan): void {
     }
     return;
   }
-  if (p.ticksLeft <= 0) nextStop(b, p);
+  if (p.ticksLeft > 0) return;
+  if (p.hop === null) {
+    nextStop(b, p);
+    return;
+  }
+  // Hop out of this cover to the next one, in plain view.
+  p.fromX = b.x;
+  p.fromY = b.y;
+  p.stop = (p.stop + 1) % p.stops.length;
+  p.ticksLeft = p.hop.ticks;
+  enter(b, 'hop');
 }
 
 /** The boss lost his armour: he runs (GDD §7 Generaal: CLANG, then bag him). */

@@ -192,6 +192,53 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
       },
     },
   },
+  // M8 (PR C): Lente · Okavango — Classic (water splashes, kuifkop hops), a Daily with the
+  // sun-showers, a silent Windbuks hunt (splashes are its only noise) and the Kuifkop Koning boss
+  // hunt with his own rule.
+  {
+    name: 'classic-41-okavango-competent-pointer',
+    seed: 41,
+    bot: 'competent',
+    mode: 'classic',
+    inputKind: 'pointer',
+    modeConfig: { id: 'classic', biome: 'okavango-spring' },
+  },
+  {
+    name: 'daily-42-okavango-aim-touch',
+    seed: 42,
+    bot: 'aim',
+    mode: 'daily',
+    inputKind: 'touch',
+    modeConfig: { id: 'daily', biome: 'okavango-spring' },
+  },
+  {
+    name: 'classic-43-okavango-windbuks-competent-pointer',
+    seed: 43,
+    bot: 'competent',
+    mode: 'classic',
+    inputKind: 'pointer',
+    modeConfig: { id: 'classic', biome: 'okavango-spring', weapon: 'windbuks' },
+  },
+  {
+    name: 'season-lente-boss-okavango-competent',
+    seed: 44,
+    bot: 'competent',
+    mode: 'seasonHunt',
+    inputKind: 'pointer',
+    modeConfig: {
+      id: 'seasonHunt',
+      biome: 'okavango-spring',
+      weapon: 'dubbelloop',
+      season: {
+        kind: 'boss',
+        boss: 'kuifkop_koning',
+        charms: ['snelhand', 'vlerkskoot'],
+        consumables: [null, null],
+        rental: null,
+        runShellBonus: 0,
+      },
+    },
+  },
   // M7: the Daily Hunt of 2026-10-21 on the Karoo, omen on. The seed is pinned to the value
   // dailySeed('2026-10-21', contentHash) had at M7 (D-025): derived live, it changed with every
   // content edit and so did these hashes. daily.spec.ts still checks the browser derives the same

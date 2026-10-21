@@ -42,8 +42,9 @@ export type StreamName =
   | 'boss'
   // M6: the Stormvoël rule's lightning.
   | 'lightning'
-  // M8: biome twists (which flocks run instead of flying).
-  | 'twist';
+  // M8: biome twists (which flocks run instead of flying), hopping birds' routes.
+  | 'twist'
+  | 'hop';
 
 /** A stream's members are closures, so they are safe to pass around detached. */
 export interface RandomStream {
