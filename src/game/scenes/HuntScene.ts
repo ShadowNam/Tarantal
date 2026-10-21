@@ -75,6 +75,8 @@ export class HuntScene extends Phaser.Scene {
   /** M7: Classic/Daily/challenge setup (null for the FTUE and Season Run hunts). */
   private plan: HuntPlan | null = null;
   private shareLog: ShareLogger | null = null;
+  /** The pause between the hunt's end and the tally, on the wall clock (see afterRealMs). */
+  private endAction: { readonly at: number; readonly run: () => void } | null = null;
   /** The biome on screen and its manifest (the home biome until a hunt in another starts). */
   private biome!: Biome;
   private manifest!: AssetManifest;
@@ -86,6 +88,7 @@ export class HuntScene extends Phaser.Scene {
 
   create(data: HuntData): void {
     this.runner = null;
+    this.endAction = null;
     this.mapper = null;
     this.ending = false;
     this.logger = null;
@@ -96,8 +99,11 @@ export class HuntScene extends Phaser.Scene {
     this.ctx.menuPaused = false;
     this.cleanups = [];
     this.lastFrameAt = null;
-    this.biome = this.ctx.biome;
-    this.manifest = this.ctx.manifest;
+    // An auto-started hunt (Season Run, [Again], challenge) builds its own biome straight away
+    // instead of the home biome's views first (D-025); the title shows the home biome.
+    this.biome = this.initialBiome(data);
+    this.manifest =
+      this.biome.id === this.ctx.biome.id ? this.ctx.manifest : this.ctx.manifestFor(this.biome);
     this.ctx.huntBiome = this.biome;
     // Scenery and UI now; birds are drawn a few at a time while the start card shows.
     this.texturesDone = this.manifest.install(this.textures, neededBeforeStart);
@@ -137,6 +143,22 @@ export class HuntScene extends Phaser.Scene {
       this.ctx.hook.ready = true;
       this.ctx.hook.boot['ready'] ??= performance.now();
     }
+  }
+
+  /** The biome an auto-started hunt will play (the home biome for the title). */
+  private initialBiome(data: HuntData): Biome {
+    const c = this.ctx;
+    let id: string | undefined;
+    if (data.autoStart !== undefined) {
+      if (data.challenge !== undefined) id = data.challenge.biome;
+      else if (data.mode === 'seasonHunt')
+        id = c.run.current === null ? undefined : c.run.info().biome;
+      else if (data.mode === 'daily') id = c.daily.todaySetup().biome;
+      else if (data.mode === 'ftue') id = c.content.modes.modes.ftue.biome;
+      else id = c.classicBiome ?? c.content.modes.modes.classic.biome;
+    }
+    const b = id === undefined ? undefined : c.content.biomes.find((x) => x.id === id);
+    return b !== undefined && c.playableBiomes.includes(b.id) ? b : c.biome;
   }
 
   /** Every view of the hunt for the scene's biome (a hunt in another biome rebuilds them). */
@@ -486,6 +508,12 @@ export class HuntScene extends Phaser.Scene {
     // Real elapsed time, not Phaser's smoothed/capped delta: the hunt clock must follow the wall
     // clock (a 90 s hunt lasts 90 s). The runner's step cap still guards against huge gaps.
     const now = performance.now();
+    const end = this.endAction;
+    if (end !== null && now >= end.at) {
+      this.endAction = null;
+      end.run();
+      return;
+    }
     const delta = this.lastFrameAt === null ? 0 : now - this.lastFrameAt;
     this.lastFrameAt = now;
     const runner = this.runner;
@@ -551,6 +579,7 @@ export class HuntScene extends Phaser.Scene {
       hook.stones = state.projectiles.length;
       hook.glare = state.glare?.side ?? null;
       hook.rain = state.rain;
+      hook.lightning = state.lightning;
       hook.cameraX = state.cameraX;
       hook.birds = state.birds.length;
       hook.gadgetCharges = state.gadget?.charges ?? 0;
@@ -647,6 +676,15 @@ export class HuntScene extends Phaser.Scene {
     if (bagged) this.runner?.hitStop(this.ctx.feel.juice.hitStopMs);
   }
 
+  /**
+   * Runs `fn` after `ms` of real time. Phaser's scene clock follows the smoothed, capped frame
+   * delta, so at a few frames a second (software GL in CI) a 900 ms delayedCall took ~15 s;
+   * like the hunt clock (D-019), this one follows performance.now() (D-025).
+   */
+  private afterRealMs(ms: number, fn: () => void): void {
+    this.endAction = { at: performance.now() + ms, run: fn };
+  }
+
   private finish(): void {
     const runner = this.runner;
     if (runner === null) return;
@@ -666,13 +704,13 @@ export class HuntScene extends Phaser.Scene {
       plan === null ? null : this.ctx.daily.finish(plan, result, this.shareLog?.grid() ?? '');
     if (this.modeId === 'seasonHunt') {
       this.ctx.run.afterHunt(result);
-      this.time.delayedCall(END_DELAY_MS, () => {
+      this.afterRealMs(END_DELAY_MS, () => {
         this.scene.stop('Hud');
         this.launchRun('tally');
       });
       return;
     }
-    this.time.delayedCall(END_DELAY_MS, () => {
+    this.afterRealMs(END_DELAY_MS, () => {
       this.scene.stop('Hud');
       const data: TallyData = {
         result,

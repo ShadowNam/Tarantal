@@ -239,6 +239,52 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
       },
     },
   },
+  // M8 (PR D): Somer · Kalahari — Classic (the Stormvoël brings his own lightning), a Daily with
+  // heat haze then the storm, a Kettie hunt in the storm, and the Stormvoël boss hunt.
+  {
+    name: 'classic-51-kalahari-competent-pointer',
+    seed: 51,
+    bot: 'competent',
+    mode: 'classic',
+    inputKind: 'pointer',
+    modeConfig: { id: 'classic', biome: 'kalahari-summer' },
+  },
+  {
+    name: 'daily-52-kalahari-aim-touch',
+    seed: 52,
+    bot: 'aim',
+    mode: 'daily',
+    inputKind: 'touch',
+    modeConfig: { id: 'daily', biome: 'kalahari-summer' },
+  },
+  {
+    name: 'daily-53-kalahari-kettie-competent-pointer',
+    seed: 53,
+    bot: 'competent',
+    mode: 'daily',
+    inputKind: 'pointer',
+    modeConfig: { id: 'daily', biome: 'kalahari-summer', weapon: 'kettie' },
+  },
+  {
+    name: 'season-somer-boss-kalahari-competent',
+    seed: 54,
+    bot: 'competent',
+    mode: 'seasonHunt',
+    inputKind: 'pointer',
+    modeConfig: {
+      id: 'seasonHunt',
+      biome: 'kalahari-summer',
+      weapon: 'dubbelloop',
+      season: {
+        kind: 'boss',
+        boss: 'stormvoel',
+        charms: ['vlerkskoot', 'oupa_se_bril'],
+        consumables: [null, null],
+        rental: null,
+        runShellBonus: 0,
+      },
+    },
+  },
   // M7: the Daily Hunt of 2026-10-21 on the Karoo, omen on. The seed is pinned to the value
   // dailySeed('2026-10-21', contentHash) had at M7 (D-025): derived live, it changed with every
   // content edit and so did these hashes. daily.spec.ts still checks the browser derives the same

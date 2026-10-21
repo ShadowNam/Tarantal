@@ -98,6 +98,8 @@ export interface TestHook {
   /** M8: the omen (biome weather) is on in this hunt; rain is falling now. */
   omen: boolean;
   rain: boolean;
+  /** M8: a lightning flash is lighting the scene. */
+  lightning: boolean;
   powerups: string[];
   wind: { dir: number; strength: number } | null;
   durationTicks: number;

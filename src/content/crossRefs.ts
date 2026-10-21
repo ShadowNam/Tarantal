@@ -152,7 +152,7 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
     const df = 'meta/daily.json';
     for (const b of options.daily.biomeRotation) {
       if (!plannedBiomeIds.has(b)) err(df, `biomeRotation: unknown biome "${b}"`);
-      else if (!loadedBiomes.has(b)) warn(df, `biomeRotation: biome "${b}" is not loaded yet (${LATER.biome}); the rotation skips it`);
+      else if (!loadedBiomes.has(b)) warn(df, `biomeRotation: biome "${b}" is not loaded yet (${LATER.biome}); its days play the fallback`);
     }
     checkUnique(df, 'streak milestone day', options.daily.streakMilestones.map((m) => String(m.days)), err);
     for (const m of options.daily.streakMilestones) i18n(df, `cosmetic.${m.cosmetic}`);
@@ -436,6 +436,12 @@ function checkEventShape(
       return;
     case 'bossAppearance': {
       needs(c?.kind === 'boss', 'a boss creature');
+      // M8: a lightningOnly boss (Die Stormvoël) crosses the sky in `passes`, nothing else.
+      if (c !== undefined && c.kind === 'boss' && c.behaviours.includes('lightningOnly')) {
+        needs(event.passes !== undefined, 'passes (the planes it crosses)');
+        return;
+      }
+      if (event.passes !== undefined) err('passes are only for a lightningOnly boss');
       needs(event.roamPx !== undefined, 'roamPx');
       needs(event.perchProps !== undefined, 'perchProps');
       needs(event.stayMs !== undefined, 'stayMs');
@@ -449,8 +455,12 @@ function checkEventShape(
       } else if (event.peekMs !== undefined || event.hideMs !== undefined) {
         err('peekMs/hideMs are only for a peekFromCover or hopping boss');
       }
-      if (hops) needs(event.hopMs !== undefined && event.hopPx !== undefined, 'hopMs and hopPx');
-      else if (event.hopMs !== undefined || event.hopPx !== undefined)
+      if (hops)
+        needs(
+          event.hopMs !== undefined && event.hopPx !== undefined && event.hopPxPerSec !== undefined,
+          'hopMs, hopPx and hopPxPerSec',
+        );
+      else if (event.hopMs !== undefined || event.hopPx !== undefined || event.hopPxPerSec !== undefined)
         err('hopMs/hopPx are only for a hopping bird');
       return;
     }
@@ -465,8 +475,9 @@ function checkEventShape(
         event.peekMs !== undefined &&
           event.hideMs !== undefined &&
           event.hopMs !== undefined &&
-          event.hopPx !== undefined,
-        'peekMs, hideMs, hopMs and hopPx',
+          event.hopPx !== undefined &&
+          event.hopPxPerSec !== undefined,
+        'peekMs, hideMs, hopMs, hopPx and hopPxPerSec',
       );
       return;
     case 'dustDevil':

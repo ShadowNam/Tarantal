@@ -448,6 +448,49 @@ p85, omen off: random 318 / 160 / 455, plinker 2 803 / 2 230 / 3 380, competent 
 (20) *Golden replays:* every existing case kept its event hash; new
 `classic-41-okavango-competent-pointer`, `daily-42-okavango-aim-touch`,
 `classic-43-okavango-windbuks-competent-pointer`, `season-lente-boss-okavango-competent`.
+*PR D — Somer · Kalahari.* (21) *Heat → storm:* the omen splits at 55 % of the hunt. Haze is in
+the sim (far birds and their hitboxes wobble ±14 px), not a filter, so "what you see is what you
+hit" holds. The storm's rain makes every flock running-only ("rain makes flocks run not fly"
+read the same way as the Bushveld twist). (22) *One lightning timeline:* boss-rule flashes keep
+their M6 schedule (its golden kept its hash); storm flashes and the Stormvoël's own flashes come
+from the new `storm` stream at run time; any flash closer than `60 / min(cap)` ticks to the last
+is dropped, so two sources can never add up past the cap (2/s, under the ≤ 3/s rule).
+(23) *Die Stormvoël:* "far→mid" = two passes across the sky: far first, then back across the mid
+sky (a new bird keeping his `hitsLeft`; a bird's plane stays immutable). Hittable only while lit
+(`lightningOnly`). In Classic/Daily he brings his own flashes at his rule's cadence (run.json
+`darkExceptLightning`); the screen goes dark only under the boss rule. "Giant shadow" = a dark
+silhouette with glowing eyes; the render box for birds widened 20 px for his head (render only).
+(24) *Weaver nest:* "don't shoot it, −10" = a `penalty` secret reward: points off on each hit
+(2 s cooldown), a `secretPenalty` event, not a secret found and no Frenzy change (a shot that only
+hits a secret part leaves the streak, D-021). Bots leave it alone. (25) *Strict validator:* with
+all four biome files present the validator passes `--strict` with no warnings (CI switch in PR E).
+(26) *Balance (Classic Kalahari, 500 seeds, pointer)*, mean / p15 / p85, omen off: random 297 /
+120 / 465, plinker 2 161 / 1 617 / 2 721, competent 3 885 / 3 184 / 4 663 (plinker 44 % below);
+omen on: competent 3 892, plinker 1 995 — all M3 gates pass. (27) *Golden replays:* every
+existing case kept its event hash; new `classic-51-kalahari-competent-pointer`,
+`daily-52-kalahari-aim-touch`, `daily-53-kalahari-kettie-competent-pointer`,
+`season-somer-boss-kalahari-competent`.
+*Review fixes (on D, after #14).* (R1) *End-of-hunt pause:* the 900 ms pause before the tally was
+a Phaser `delayedCall`; the scene clock follows the smoothed, capped frame delta, so at ~300 ms
+frames (software GL in CI) it took ~15 s, and with four real-biome seasons the 12-hunt e2e passed
+10 min. It now runs on `performance.now()` like the hunt clock (D-019): hunt end → run tally went
+from 17.5–27 s to 3.5–3.9 s locally, the 12-hunt test from > 10 min (CI) to 4.9 min (local).
+Auto-started hunts (Season Run, [Again], challenges) also build their own biome's views directly
+instead of the home biome's first (that was cheap, ~4 ms — textures already stay cached across
+hunts). (R2) *Hippo:* it and the water beside it were on dry grass between the splash zones; the
+second channel now spans x≈1815–3715. (R3) *Hops:* any-cover hops in 0.5–0.7 s crossed up to
+3 000 px (unhittable); hopping routes now go to the adjacent cover by x and each hop lasts
+distance / `hopPxPerSec` (kuifkop 520, Koning 480), at least `hopMs`. Ou Grys's hidden route is
+unchanged. Classic Okavango competent 4 211 (was 4 164), gates pass. (R4) *Kettie and reload
+charms:* Snelhand's `reloadSpeedMul` now shortens the Kettie's draw, as Kuifkop Koning doubles it.
+(R5) *Daily biome:* `rotation[day mod length]` for every client; a client that can't draw that
+biome plays the `modes.json` daily biome (indexing the playable subset gave different clients
+different biomes for one Daily #). (R6) *Small:* the Generaal's miss alert uses the shot's camera
+(a Kettie stone lands later); the splash FX sits on the mid layer at the world point; storm
+overlays resize only on a size change and hide at alpha 0; kuifkop is hop-only (`flock` and its
+unused `spawnWeight` dropped); the unused `omen.visual.shimmer` flag is gone (the haze is in the
+sim). New tests: flash cap with two sources at once; a stone lands at its fire-time world point
+after a pan.
 
 ## 3. Research notes (with sources)
 

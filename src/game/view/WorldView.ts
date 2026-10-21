@@ -24,6 +24,10 @@ interface SecretArt {
   readonly marks: Map<string, Phaser.GameObjects.Image>;
 }
 
+/** Storm look (rendering only): the gloom under the storm and the light of a flash. */
+const STORM_GLOOM_ALPHA = 0.32;
+const FLASH_ALPHA = 0.45;
+const FLASH_ALPHA_REDUCED = 0.15;
 /** Widest design screen (21:9, Tech §3.3): rain falls across all of it. */
 const MAX_SCREEN_WIDTH = 2520;
 
@@ -40,6 +44,10 @@ export class WorldView {
   /** Rain streaks and the sun-shower rainbow: made the first time it rains (rain biomes only). */
   private rain: Phaser.GameObjects.Particles.ParticleEmitter | null = null;
   private rainbow: Phaser.GameObjects.Image | null = null;
+  /** Storm gloom and lightning light (Kalahari storm, Die Stormvoël outside his boss hunt). */
+  private gloom: Phaser.GameObjects.Rectangle | null = null;
+  private flashLight: Phaser.GameObjects.Rectangle | null = null;
+  private stormSize = { w: 0, h: 0 };
   private readonly midScroll: number;
   private readonly rings: Phaser.GameObjects.Image[] = [];
   private readonly windBits: Phaser.GameObjects.Image[] = [];
@@ -84,6 +92,8 @@ export class WorldView {
     this.drawStones(s, width, height);
     if (s.glare !== null) this.drawGlare(s.glare, width, height);
     if (s.rain || this.rain !== null) this.drawRain(s.rain);
+    if (s.lightning || this.flashLight !== null || (s.rain && this.biome.omen.storm !== undefined))
+      this.drawStorm(s, width, height);
     this.drawRings(s);
     this.drawHelper(s, width, height);
     this.blowWind(s, width, height);
@@ -200,6 +210,31 @@ export class WorldView {
       });
       this.devils.delete(id);
     }
+  }
+
+  /**
+   * The storm sky darkens the scene while it rains; a lightning flash lights it up. Flashes come
+   * from the sim (never more than 2 a second, D-025); "reduce flashes" dims them. The Stormvoël's
+   * boss-hunt darkness is the Season HUD's overlay, so this one stays off then.
+   */
+  private drawStorm(s: SimState, width: number, height: number): void {
+    if (s.season?.dark === true) return;
+    if (this.flashLight === null) {
+      this.gloom = this.scene.add.rectangle(0, 0, width, height, 0x1c2230).setOrigin(0, 0);
+      this.flashLight = this.scene.add.rectangle(0, 0, width, height, 0xe8f1ff).setOrigin(0, 0);
+      this.screen.addAt(this.gloom, 0);
+      this.screen.addAt(this.flashLight, 1);
+    }
+    if (this.stormSize.w !== width || this.stormSize.h !== height) {
+      this.stormSize = { w: width, h: height };
+      this.gloom?.setSize(width, height);
+      this.flashLight.setSize(width, height);
+    }
+    const storming = s.rain && this.biome.omen.storm !== undefined;
+    const gloom = storming && !s.lightning ? STORM_GLOOM_ALPHA : 0;
+    this.gloom?.setAlpha(gloom).setVisible(gloom > 0);
+    const lit = s.lightning ? (this.prefs.reduceFlashes ? FLASH_ALPHA_REDUCED : FLASH_ALPHA) : 0;
+    this.flashLight.setAlpha(lit).setVisible(lit > 0);
   }
 
   /** Rain (omen visual flag `rain`): streaks from a particle emitter, and a rainbow (`rainbow`). */

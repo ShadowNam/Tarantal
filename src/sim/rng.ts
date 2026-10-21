@@ -44,7 +44,9 @@ export type StreamName =
   | 'lightning'
   // M8: biome twists (which flocks run instead of flying), hopping birds' routes.
   | 'twist'
-  | 'hop';
+  | 'hop'
+  // M8: the Kalahari storm's lightning and the Stormvoël's own flashes outside its boss hunt.
+  | 'storm';
 
 /** A stream's members are closures, so they are safe to pass around detached. */
 export interface RandomStream {

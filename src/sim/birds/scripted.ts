@@ -34,6 +34,8 @@ export interface ScriptState {
   readonly coreWidth: number;
   /** Peeking boss route (Ou Grys), or null. */
   readonly peek: PeekPlan | null;
+  /** Sky passes still to come after this one (Die Stormvoël: far, then mid). */
+  readonly passes: readonly PlaneId[];
 }
 
 /** One stop on a peeking boss's route: a cover point, how long he hides on the way there and
@@ -43,11 +45,12 @@ export interface PeekStop {
   readonly y: number;
   readonly hideTicks: number;
   readonly peekTicks: number;
+  /** Hopping routes: ticks of the hop that arrives at this stop. */
+  readonly hopTicks?: number;
 }
 
-/** A visible hop between covers: its length and the height of its arc (plane px). */
+/** A visible hop between covers: the height of its arc (plane px); each stop has its length. */
 export interface HopSpec {
-  readonly ticks: number;
   readonly px: number;
 }
 
@@ -89,6 +92,8 @@ export interface ScriptedSpec {
   readonly peekStops?: readonly PeekStop[];
   /** Hopping birds: visible hops between the stops. */
   readonly hop?: HopSpec;
+  /** Sky-pass bosses: the passes after this one. */
+  readonly passes?: readonly PlaneId[];
 }
 
 function base(s: ScriptedSpec, motion: 'perch' | 'boss' | 'hop', x: number, y: number): Bird {
@@ -144,8 +149,22 @@ function base(s: ScriptedSpec, motion: 'perch' | 'boss' | 'hop', x: number, y: n
               fromX: x,
               fromY: y,
             },
+      passes: s.passes ?? [],
     },
   };
+}
+
+/** A boss crossing the sky on its plane (Die Stormvoël): already flying, from (startX, startY)
+ *  at fly speed in `dir`, level. It leaves at the far edge (then its next pass may follow). */
+export function createSkyPassBird(s: ScriptedSpec): Bird {
+  const b = base(s, 'boss', s.startX, s.startY);
+  enter(b, 'flap');
+  const st = b.script;
+  if (st !== null) {
+    st.vx = s.dir * s.fly;
+    st.vy = 0;
+  }
+  return b;
 }
 
 /** The kwêvoël: flies in from (startX, startY) to its perch. */
@@ -190,7 +209,7 @@ function updatePeek(b: Bird, s: ScriptState, p: PeekPlan): void {
   p.ticksLeft--;
   if (b.phase === 'hop' && p.hop !== null) {
     // In plain view on an arc to this stop.
-    const t = 1 - Math.max(0, p.ticksLeft) / p.hop.ticks;
+    const t = 1 - Math.max(0, p.ticksLeft) / (at.hopTicks ?? 1);
     b.x = p.fromX + (at.x - p.fromX) * t;
     b.y = p.fromY + (at.y - p.fromY) * t - p.hop.px * sin(Math.PI * t);
     b.facing = at.x >= p.fromX ? 1 : -1;
@@ -226,7 +245,7 @@ function updatePeek(b: Bird, s: ScriptState, p: PeekPlan): void {
   p.fromX = b.x;
   p.fromY = b.y;
   p.stop = (p.stop + 1) % p.stops.length;
-  p.ticksLeft = p.hop.ticks;
+  p.ticksLeft = p.stops[p.stop]?.hopTicks ?? 1;
   enter(b, 'hop');
 }
 

@@ -202,6 +202,21 @@ describe('Kettie (delayed hitscan)', () => {
     expect(misses).toEqual([1, 2]);
   });
 
+  it('a stone lands at the world point it was fired at, even if the camera pans away', () => {
+    const sim = newSim('kettie');
+    const bird = waitFor(sim, isForagingMid);
+    const a = aimAt(content, bird, { x: 0, y: -travel.dropPx.mid });
+    stepEvents(sim, [{ t: 'cameraTarget', cx: a.cx }]);
+    stepEvents(sim, [{ t: 'fire', dx: a.dx, sy: a.sy }]);
+    // Pan hard the other way while the stone flies.
+    const away = a.cx > 2500 ? 960 : 4160;
+    stepEvents(sim, [{ t: 'cameraTarget', cx: away }]);
+    const { e } = stepUntil(sim, (x) => x.type === 'pelletImpact');
+    expect(sim.snapshot().cameraX).not.toBe(a.cx);
+    expect(e.type === 'pelletImpact' && e.birdId).toBeTruthy();
+    expect(e.type === 'pelletImpact' && e.cx).toBe(a.cx);
+  });
+
   it('a stone still in the air when the hunt ends is dropped', () => {
     const sim = newSim('kettie', { mode: { huntSeconds: 1 } });
     for (let i = 0; i < 55; i++) stepEvents(sim);
@@ -229,6 +244,30 @@ describe('Kettie (delayed hitscan)', () => {
     });
     stepEvents(sim, [{ t: 'fire', dx: 0, sy: 40 }]);
     expect(sim.snapshot().weapon.cooldownTicks).toBe(2 * msToTicks(kettie.fireCooldownMs) - 1);
+  });
+
+  it('reload charms (Snelhand) shorten the Kettie draw like a reload (D-025)', () => {
+    const snel = content.charms.charms.find((c) => c.id === 'snelhand');
+    const mul = snel?.effects.find((e) => 'reloadSpeedMul' in e.do)?.do.reloadSpeedMul;
+    if (mul === undefined) throw new Error('snelhand');
+    const season: SeasonHuntConfig = {
+      kind: 'plain',
+      boss: null,
+      charms: ['snelhand'],
+      consumables: [],
+      rental: null,
+      runShellBonus: 0,
+    };
+    const sim = createSim({
+      seed: 1,
+      content,
+      mode: { id: 'seasonHunt', biome: 'karoo-autumn', weapon: 'kettie', season },
+      inputKind: 'pointer',
+    });
+    stepEvents(sim, [{ t: 'fire', dx: 0, sy: 40 }]);
+    const base = msToTicks(kettie.fireCooldownMs);
+    expect(sim.snapshot().weapon.cooldownTicks).toBe(Math.round(base / mul) - 1);
+    expect(sim.snapshot().weapon.cooldownTicks).toBeLessThan(base - 1);
   });
 });
 

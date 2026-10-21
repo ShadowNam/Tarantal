@@ -20,8 +20,10 @@ export function dailyNumber(day: number, epoch: string): number {
 }
 
 /**
- * The day's biome: rotation[day mod n] over the rotation biomes that are playable (exist and have
- * art), so a biome missing until M8 is skipped; with none playable, `fallback` (modes.json daily).
+ * The day's biome: rotation[day mod rotation length] — the same for every client on the same day,
+ * whatever it can draw (D-025: indexing the playable subset gave a client with a different set,
+ * e.g. an old cached PWA, another biome for the same Daily #). If that biome isn't playable here,
+ * `fallback` (modes.json daily).
  */
 export function dailyBiome(
   day: number,
@@ -29,10 +31,10 @@ export function dailyBiome(
   playable: readonly string[],
   fallback: string,
 ): string {
-  const list = rotation.filter((b) => playable.includes(b));
-  const n = list.length;
+  const n = rotation.length;
   if (n === 0) return fallback;
-  return list[((day % n) + n) % n] ?? fallback;
+  const b = rotation[((day % n) + n) % n];
+  return b !== undefined && playable.includes(b) ? b : fallback;
 }
 
 export interface DailySetup {

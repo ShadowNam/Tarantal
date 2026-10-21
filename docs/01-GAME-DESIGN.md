@@ -361,6 +361,15 @@ with 3 hits; each hit sends him into the reeds. The sun-showers (omen) come ever
 shot into the water beside it (flushes flocks within 650 px, +50). The fish eagle (−50) replaces
 the crop sprayer here. Numbers live in `content/biomes/okavango-spring.json`.
 
+Kalahari as built (M8, D-025): in omen hunts and the Daily the heat haze wobbles far birds (and
+what you hit with them) until 55 % of the hunt, then the thunderstorm breaks: rain (every flock
+runs, none fly) and lightning every 2.5–4.5 s. Die Stormvoël crosses the far sky, then comes back
+the other way across the mid sky; he can only be hit while lightning lights him (3 hits). In
+Classic he brings his own lightning; in his boss hunt the Boss Rule's lightning lights him. Every
+flash from any source keeps at least ½ s from the last (≤ 2 a second), and "reduce flashes" dims
+them. The weaver nest costs 10 each time you hit it (every 2 s at most) and is not a secret
+found. Numbers live in `content/biomes/kalahari-summer.json`.
+
 ## 12. Game modes
 
 1. **Klassieke Jag (Classic Hunt)** — 90 s, choose biome (unlocked ones), choose weapon. Pure score.

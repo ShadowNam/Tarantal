@@ -75,6 +75,12 @@ export function createHumanBot(
   const layerFactor = new Map(
     content.biomes.flatMap((b) => b.layers.map((l) => [l.id, l.scrollFactor] as const)),
   );
+  /** "Don't shoot it" props (the weaver nest): a knowing player leaves them alone. */
+  const penaltyProps = new Set(
+    content.biomes.flatMap((b) =>
+      b.props.flatMap((p) => (p.secret?.reward.penalty !== undefined ? [p.id] : [])),
+    ),
+  );
   /** Near-miss secrets (the dassie): a knowing player shoots beside the part, not at it. */
   const nearMissOffset = new Map(
     content.biomes.flatMap((b) =>
@@ -205,7 +211,7 @@ export function createHumanBot(
         style !== 'competent'
           ? []
           : seen.secrets
-              .filter((sec) => sec.ready)
+              .filter((sec) => sec.ready && !penaltyProps.has(sec.propId))
               .flatMap((sec) => {
                 const f = layerFactor.get(sec.layerId) ?? 1;
                 const prev = seenBefore?.secrets.find((x) => x.propId === sec.propId);

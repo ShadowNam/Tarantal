@@ -54,6 +54,14 @@ export type SimEvent =
       readonly sy: number;
       readonly cx: number;
     }
+  /** M8: a "don't shoot it" prop was shot (the Kalahari weaver nest): points off. */
+  | {
+      readonly type: 'secretPenalty';
+      readonly tick: number;
+      readonly propId: string;
+      readonly partId: string;
+      readonly points: number;
+    }
   /** M8: rain started or stopped (sun-showers, storm). */
   | { readonly type: 'weatherChanged'; readonly tick: number; readonly rain: boolean }
   | { readonly type: 'emptyClick'; readonly tick: number }
