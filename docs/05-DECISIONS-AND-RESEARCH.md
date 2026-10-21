@@ -596,6 +596,7 @@ error reports strip URLs with a ':' in the query, protocol-relative and bare-hos
 only the type of non-Error rejections; a rewarded request with no ad shown (no SDK, no fill) no
 longer skips the next break; portal builds drop the unreferenced `manifest.webmanifest`; CI also
 runs the portal spec on iPhone 14 landscape (WebKit).
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
