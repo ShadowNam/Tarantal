@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { parseFeel } from '../content/feel';
 import { DEFAULT_SETTINGS } from '../meta/saveSchema';
-import { applyPrefs, computePrefs } from './prefs';
+import { applyPrefs, computePrefs, showDontShootBadge } from './prefs';
 import feelJson from '../../content/client/feel.json';
 
 const parsed = parseFeel(feelJson);
@@ -59,5 +59,41 @@ describe('live prefs from Settings', () => {
     applyPrefs(p, { ...DEFAULT_SETTINGS, reduceFlashes: true, leftHanded: true }, desktop);
     expect(ref.flashAlpha).toBe(feel.accessibility.reducedFlashAlpha);
     expect(ref.leftHanded).toBe(true);
+  });
+
+  it('M9 accessibility settings reach the live prefs', () => {
+    const off = computePrefs(DEFAULT_SETTINGS, desktop);
+    expect(off).toMatchObject({
+      textScale: 1,
+      highContrast: false,
+      captions: false,
+      colourBlind: false,
+      holdToFire: false,
+    });
+    const on = computePrefs(
+      {
+        ...DEFAULT_SETTINGS,
+        textSize: 'large',
+        highContrast: true,
+        captions: true,
+        colourBlind: true,
+        holdToFire: true,
+      },
+      desktop,
+    );
+    expect(on).toMatchObject({
+      textScale: feel.accessibility.largeTextScale,
+      highContrast: true,
+      captions: true,
+      colourBlind: true,
+      holdToFire: true,
+    });
+  });
+
+  it('colour-blind aids: the ⛔ badge on every sighting, not only the first', () => {
+    const book = ['kwevoel'];
+    expect(showDontShootBadge({ colourBlind: false }, book, 'kwevoel')).toBe(false);
+    expect(showDontShootBadge({ colourBlind: false }, book, 'hadeda')).toBe(true);
+    expect(showDontShootBadge({ colourBlind: true }, book, 'kwevoel')).toBe(true);
   });
 });

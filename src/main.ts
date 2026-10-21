@@ -19,6 +19,7 @@ import {
   type Insets,
 } from './game/layout';
 import { fitCamera } from './game/view/fitCamera';
+import { setTextLook } from './game/ui/textLook';
 import type { AssetManifest } from './game/assets/AssetManifest';
 import {
   biomeArtReady,
@@ -223,6 +224,7 @@ const hook: TestHook = {
   adPending: false,
   ads: null,
   audioMuted: false,
+  captions: [],
   quality: { tier: '', bench: null, benchRan: false, layers: 0, filters: [] },
   errors: [],
 };
@@ -298,8 +300,13 @@ const prefListeners = new Set<() => void>();
 let relayout: (() => void) | null = null;
 /** Safe-area insets in design px; cleared by applyLayout (resize, rotation, tier change). */
 let safeCache: Insets | null = null;
+const applyTextLook = (): void => {
+  setTextLook(prefs.textScale, prefs.highContrast, feel.accessibility.contrastStroke);
+};
+applyTextLook();
 const prefsChanged = (): void => {
   hook.quality.tier = prefs.tier;
+  applyTextLook();
   // The render scale may have changed with the tier (applyLayout exists once the game does).
   relayout?.();
   for (const fn of prefListeners) fn();

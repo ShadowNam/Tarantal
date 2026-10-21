@@ -13,7 +13,7 @@ import * as Phaser from 'phaser';
 import type { SimEvent } from '../../sim/events';
 import type { SimState } from '../../sim/types';
 import { TICKS_PER_SECOND } from '../../sim/clock';
-import { fill, t, tOr } from '../../i18n/i18n';
+import { fill, t, tOr, type I18nKey } from '../../i18n/i18n';
 import { TEX } from '../assets/AssetManifest';
 import type { GameContext } from '../GameContext';
 import { FONT } from '../view/Fx';
@@ -23,6 +23,8 @@ import { CHIP_GAP, hudLayout, MAX_CHIPS, rectContains, type HudLayout } from '..
 import { SeasonHud } from '../ui/SeasonHud';
 import { drawButton, fitText, Menu, type MenuItem } from '../ui/menu';
 import { BakedDrawing, RoundRect } from '../ui/shapes';
+import { fontPx, outline } from '../ui/textLook';
+import { updateCaptions, type CaptionLine } from '../audio/captions';
 
 export interface HudControls {
   readonly pause: () => void;
@@ -91,6 +93,9 @@ export class HudScene extends Phaser.Scene {
   private callout!: Phaser.GameObjects.Text;
   /** Don't-shoot creatures already called out (first sighting ever: Bird Book + this hunt). */
   private readonly sighted = new Set<string>();
+  private captions: CaptionLine[] = [];
+  private readonly captionShown = new Map<I18nKey, number>();
+  private captionTexts: Phaser.GameObjects.Text[] = [];
   private controls: HudControls | null = null;
   private controlsMenu: Menu | null = null;
   private pauseIcon: Phaser.GameObjects.Shape[] = [];
@@ -127,20 +132,21 @@ export class HudScene extends Phaser.Scene {
       new RoundRect(this, C.enamel, 1, 14),
       new RoundRect(this, C.ink, 0.85, 16),
     ];
-    const text = (size: number, color: string): Phaser.GameObjects.Text =>
+    // M9: Settings → text size scales the HUD's messages (not the numbers and labels in fixed
+    // signs); high contrast thickens every outline.
+    const text = (size: number, color: string, scaled = true): Phaser.GameObjects.Text =>
       this.add.text(0, 0, '', {
         fontFamily: FONT,
-        fontSize: `${size}px`,
+        fontSize: fontPx(size, scaled),
         fontStyle: '900',
         color,
-        stroke: '#1B1410',
-        strokeThickness: Math.round(size / 7),
+        ...outline(size, Math.round(size / 7), '#1B1410', color),
       });
-    this.timer = text(64, '#F3EAD3').setOrigin(0.5);
-    this.frenzyLabel = text(30, '#F3EAD3').setOrigin(0, 0.5);
+    this.timer = text(64, '#F3EAD3', false).setOrigin(0.5);
+    this.frenzyLabel = text(30, '#F3EAD3', false).setOrigin(0, 0.5);
     this.frenzyBack = new RoundRect(this, C.ink, 0.85, 10);
     this.frenzyFill = new RoundRect(this, C.gold, 1, 8);
-    this.score = text(64, '#1B1410').setOrigin(1, 0.5).setStroke('#F3EAD3', 0);
+    this.score = text(64, '#1B1410', false).setOrigin(1, 0.5).setStroke('#F3EAD3', 0);
     for (let i = 0; i < 8; i++) this.shells.push(this.add.image(0, 0, TEX.shell));
     this.drawBack = new RoundRect(this, 0xf3ead3, 0.25, 12);
     this.drawFill = new RoundRect(this, 0xffd25a, 1, 12);
@@ -152,8 +158,8 @@ export class HudScene extends Phaser.Scene {
     this.banner = text(84, '#FFD25A').setOrigin(0.5).setVisible(false);
     this.gadgetPanel = new BakedDrawing(this, 'hud.gadget');
     this.gadgetShake.x = 0;
-    this.gadgetCharges = text(40, '#F3EAD3').setOrigin(0.5);
-    this.gadgetKey = text(26, '#1B1410').setOrigin(0.5).setStroke('#F3EAD3', 0);
+    this.gadgetCharges = text(40, '#F3EAD3', false).setOrigin(0.5);
+    this.gadgetKey = text(26, '#1B1410', false).setOrigin(0.5).setStroke('#F3EAD3', 0);
     this.gadgetShout = text(64, '#FFD25A').setOrigin(0, 0.5).setVisible(false);
     this.stamp = text(110, '#C8302A')
       .setOrigin(0.5)
@@ -181,13 +187,26 @@ export class HudScene extends Phaser.Scene {
       this.chipBars.push(new RoundRect(this, C.gold, 1, 3).hide());
     }
     this.chipTexts = [];
-    for (let i = 0; i < MAX_CHIPS; i++) this.chipTexts.push(text(26, '#F3EAD3').setOrigin(0, 0.5));
+    for (let i = 0; i < MAX_CHIPS; i++)
+      this.chipTexts.push(text(26, '#F3EAD3', false).setOrigin(0, 0.5));
     this.sockPole = this.add.rectangle(0, 0, 8, 1, C.ink, 1).setOrigin(0, 0).setVisible(false);
     this.sock = this.add.image(0, 0, TEX.windsock).setVisible(false);
     const so = { x: 6 / 150, y: 0.5 };
     this.sock.setOrigin(so.x, so.y);
     this.callout = text(48, '#FF6B5A').setOrigin(0.5).setVisible(false);
     this.tag = text(28, '#FFD25A').setOrigin(1, 0.5);
+    // M9 sound captions (Settings → captions): a pooled stack, bottom centre.
+    this.captions = [];
+    this.captionShown.clear();
+    this.captionTexts = [];
+    for (let i = 0; i < this.ctx.feel.accessibility.captionMax; i++)
+      this.captionTexts.push(
+        text(34, '#F3EAD3')
+          .setOrigin(0.5, 1)
+          .setBackgroundColor('rgba(27,20,16,0.8)')
+          .setPadding(14, 6, 14, 6)
+          .setVisible(false),
+      );
     this.applyTag();
     this.season = new SeasonHud(this, this.ctx);
     this.season.setSeason(this.seasonInfo);
@@ -442,6 +461,7 @@ export class HudScene extends Phaser.Scene {
     if (l === null) return;
     this.season?.render(s, events);
     const now = this.time.now;
+    this.drawCaptions(events, now, l);
     const banner: string[] = [];
     for (const e of events) {
       if (e.type === 'secretTriggered') {
@@ -579,6 +599,34 @@ export class HudScene extends Phaser.Scene {
     });
   }
 
+  /** M9: captions for this frame's sound cues (only with Settings → captions). */
+  private drawCaptions(events: readonly SimEvent[], now: number, l: HudLayout): void {
+    if (!this.ctx.prefs.captions) {
+      if (this.captions.length > 0) {
+        this.captions = [];
+        for (const tx of this.captionTexts) tx.setVisible(false);
+      }
+      return;
+    }
+    this.captions = updateCaptions(
+      this.captions,
+      this.captionShown,
+      events,
+      now,
+      this.ctx.feel.accessibility,
+    );
+    const x = l.safe.x + l.safe.w / 2;
+    let y = l.safe.y + l.safe.h - 150;
+    this.captionTexts.forEach((tx, i) => {
+      const line = this.captions[i];
+      tx.setVisible(line !== undefined);
+      if (line === undefined) return;
+      tx.setText(t(line.key)).setPosition(x, y);
+      y -= tx.height + 8;
+    });
+    if (this.ctx.hook) this.ctx.hook.captions = this.captions.map((c) => c.key);
+  }
+
   /** Kettie (no belt): a stone and a bar that fills as the next draw is ready. */
   private drawKettie(w: SimState['weapon']): void {
     const l = this.layoutNow;
@@ -681,11 +729,10 @@ export class HudScene extends Phaser.Scene {
     const pop = this.add
       .text(0, 0, text, {
         fontFamily: FONT,
-        fontSize: '38px',
+        fontSize: fontPx(38),
         fontStyle: '900',
         color,
-        stroke: '#1B1410',
-        strokeThickness: 6,
+        ...outline(38, 6),
       })
       .setOrigin(1, 0);
     this.pops.unshift({ text: pop, born: this.time.now });

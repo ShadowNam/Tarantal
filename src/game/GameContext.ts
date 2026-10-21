@@ -149,6 +149,8 @@ export interface TestHook {
     layers: number;
     filters: string[];
   };
+  /** M9: sound captions on screen (i18n keys, newest first). */
+  captions: string[];
   /** M9: the AudioDirector is muted (ad, portal mute, pause, hidden tab). */
   audioMuted: boolean;
   /** M9: error reports this page (LocalPlatform.errors). */
