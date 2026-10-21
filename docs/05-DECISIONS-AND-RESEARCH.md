@@ -708,6 +708,33 @@ Freeze) is now "Herausforderung" and "Serienschutz"; in af "Frenzy" is "Waansin"
 `i18n.ts` and the `src/i18n/<lang>.json` files differ (checked by removing `nl` from the list →
 `content: FAILED`). `i18n.spec.ts` screenshots the Padstal (help card and shop) in de and nl;
 `padstal.spec.ts` runs en and de.
+*PR E — touch aim assist (carry-over from M8):* (32) *Cause:* the GDD §18.2 radii grew every
+pellet's target, so a shotgun shot on touch dropped two birds much more often (competent bot,
+Karoo: Twee Vlieë 20.4/hunt touch vs 16.4 pointer) and the touch competent mean was 4 643–4 705,
+over the 4 500 cap on every biome. Cutting the radii barely helped (0.5×: Karoo 4 504, still
+over), because the multi-hit came from the growth on every pellet, not from its size. (33) *Fix
+(sim):* touch pellets resolve at the real hitboxes; only a shot with no pellet on a bird uses the
+assist, on the aim point alone (`assistSnap` in `hitTest.ts`), and snaps the pattern onto that
+bird. The GDD radii are unchanged. The Kettie (one stone, per band) is unchanged. Pointer shots
+never reach the new path: **every pointer golden replay keeps its event hash**; the 9 touch cases
+(`daily-2026-aim-touch`, `classic-7-aim-touch-lowassist`, `ftue-3-aim-touch`,
+`season-winter-omen-competent`, `classic-22-windbuks-competent-touch`,
+`daily-32/42/52-…-aim-touch`, `daily-2026-10-21-aim-touch`) were re-recorded with
+`golden:update`. `contentHash` is unchanged (no content change), so Daily seeds are too.
+(34) *Balance after* (balance-sim, 200 seeds, touch; competent / plinker mean, plinker gap),
+re-run after the review fixes (33a): Karoo 4 214 / 2 483 (41.1 %), Bushveld 4 027 / 2 249
+(44.2 %), Okavango 4 111 / 2 969 (27.8 %), Kalahari 3 896 / 2 185 (43.9 %): every M3 gate passes
+on touch, competent ≤ 4 500 everywhere. Touch is within ~1–3 % of pointer (Karoo pointer 4 147).
+(33a) *Review fixes:* the snap never lands on, or reaches past, a don't-shoot creature or a
+helper (`HitBird.snappable`: targets and bosses only); the snapped pattern is kept only if it hits
+the bird it snapped to; a shot whose pellets hit a crate or a secret part counts as a hit and is
+never snapped. The decision is the pure `resolvePattern` in `hitTest.ts`. `Sim.test.ts`: a touch
+near-miss is rescued, the same mouse miss isn't, a near-miss beside a hadeda costs nothing (it
+fails without the fix), a crate hit with a bird inside the assist radius is kept. Re-recorded
+with `golden:update`: only `daily-32-bushveld-aim-touch` changed; every pointer case is
+byte-identical.
+*Needs a person:* how touch feels on a real phone (the assist should catch near misses without
+feeling sticky).
 
 ## 3. Research notes (with sources)
 
