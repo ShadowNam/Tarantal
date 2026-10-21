@@ -179,6 +179,18 @@ export interface Sim {
   reach (one threat per flock per shot), source `splash` — silent guns and Stil Loop included.
   Showers (omen): rain spells from the omen stream; `alertRadiusMul` scales the shot's radius
   while `SimState.rain` is true (`weatherChanged` events).
+- Storm (M8 Kalahari, `omen.storm`): before `stormAt` (fraction of the original length) the haze
+  offsets far-plane birds' x by `hazePx·sin(2π·tick/period + id·1.7)` (detmath) in both the hit
+  test and the snapshot; at `stormAt` a `weatherChanged` (rain) and every flock — and every new
+  one — becomes running-only. Lightning: the boss rule's schedule (stream `lightning`) is
+  unchanged; storm flashes and the Stormvoël's own flashes (when he flies without his boss rule)
+  are drawn at run time from stream `storm`. Every flash passes one gate: at least
+  `60 / min(maxFlashesPerSecond in play)` ticks since the last. `SimState.lightning` is the lit
+  state; `lightningOnly` birds are hittable only then. Sky-pass bosses (`bossAppearance.passes`)
+  cross a plane's sky lane; when a pass leaves unbagged, the next pass enters from the other side
+  as a new bird with the same `hitsLeft`.
+- Secret rewards (M8): `penalty` = points off (`secretPenalty` event), not a secret found (no
+  count, chain or charm trigger).
 - Secret kinds (M8): `singleHit` may need `hitsRequired` hits over any number of shots (progress
   is a `secretPartHit` with the hits left); `nearMiss` pays for an impact projected onto its layer
   within `radiusPx` of the part's centre but outside its shape — its part is never a hit target.
