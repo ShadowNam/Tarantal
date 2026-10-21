@@ -83,15 +83,32 @@ export function createHumanBot(
     return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
   };
 
-  /** Where a bird's body centre will be on screen now, from what was seen `lag` ticks ago. */
-  function project(b: BirdView, before: BirdView | undefined, cx: number, lag: number): Aim {
+  /** Projectile weapons (Kettie): ticks to each plane and the drop there (aim higher, lead more). */
+  const flight = new Map(
+    content.weapons.weapons.flatMap((w) =>
+      w.kind === 'primary' && w.projectile !== null ? [[w.id, w.projectile] as const] : [],
+    ),
+  );
+
+  /** Where a bird's body centre will be on screen when the shot gets there, from what was seen
+   *  `lag` ticks ago (plus the flight time and drop of a Kettie stone). */
+  function project(
+    b: BirdView,
+    before: BirdView | undefined,
+    cx: number,
+    lag: number,
+    weapon: string,
+  ): Aim {
     const p = planes[b.plane];
     const c = creatures.get(b.creature);
     const body = c !== undefined && 'hitbox' in c ? c.hitbox.body : { ox: 0, oy: 0 };
+    const stone = flight.get(weapon);
+    const travel = stone === undefined ? 0 : Math.round((stone.travelMs[b.plane] * 60) / 1000) + 1;
+    const drop = stone === undefined ? 0 : stone.dropPx[b.plane];
     const vx = before === undefined ? 0 : b.x - before.x;
     const vy = before === undefined ? 0 : b.y - before.y;
-    const x = b.x + vx * lag + body.ox * p.scale * b.facing;
-    const y = b.y + vy * lag + body.oy * p.scale;
+    const x = b.x + vx * (lag + travel) + body.ox * p.scale * b.facing;
+    const y = b.y + vy * (lag + travel) + body.oy * p.scale - drop;
     return { bird: b, dx: planeToDx(cx, p.scrollFactor, x), sy: y };
   }
 
@@ -152,7 +169,7 @@ export function createHumanBot(
       // Everything visible, projected to where it is now.
       const aims = seen.birds
         .filter((b) => b.hittable)
-        .map((b) => project(b, before.get(b.id), cx, lag))
+        .map((b) => project(b, before.get(b.id), cx, lag, now.weapon.id))
         .filter((a) => Math.abs(a.dx) < profile.viewHalfWidth && a.sy > 0 && a.sy < 1080);
       const blockers = aims.filter((a) => a.bird.kind === 'nonTarget');
       const safe = (p: { dx: number; sy: number }): boolean =>
