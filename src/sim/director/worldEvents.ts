@@ -118,13 +118,58 @@ function coverRoute(
     0,
     covers.findIndex((p) => p.x === at.x && p.y === at.y),
   );
-  const peekStops = peekRoute(covers, first, stayTicks, event.peekMs, event.hideMs, rng);
-  if (event.hopMs === undefined || event.hopPx === undefined) return { peekStops };
-  const hop = {
-    ticks: Math.max(1, msToTicks(rng.range(event.hopMs[0], event.hopMs[1]))),
-    px: event.hopPx * ratio,
-  };
+  if (event.hopMs === undefined || event.hopPx === undefined || event.hopPxPerSec === undefined)
+    return { peekStops: peekRoute(covers, first, stayTicks, event.peekMs, event.hideMs, rng) };
+  const hop = { px: event.hopPx * ratio };
+  const pxPerTick = (event.hopPxPerSec * ratio) / TICKS_PER_SECOND;
+  const peekStops = hopRoute(covers, first, stayTicks, event, pxPerTick, rng);
   return { peekStops, hop };
+}
+
+/**
+ * A hopping bird's route (kuifkop, Kuifkop Koning): from cover to an adjacent cover (by x; turning
+ * back at the ends), each hop as long as its distance needs at hopPxPerSec but never shorter than
+ * hopMs, so a hop can be followed and hit (D-025 review fix: any-cover hops crossed the panorama
+ * in half a second).
+ */
+function hopRoute(
+  points: readonly PerchPoint[],
+  first: number,
+  stayTicks: number,
+  event: BiomeEvent,
+  pxPerTick: number,
+  rng: RandomStream,
+): PeekStop[] {
+  const { peekMs, hideMs, hopMs } = event;
+  if (peekMs === undefined || hideMs === undefined || hopMs === undefined) return [];
+  const order = points
+    .map((p, i) => ({ p, i }))
+    .sort((a, b) => a.p.x - b.p.x || a.i - b.i)
+    .map((x) => x.p);
+  const start = points[first];
+  let at = Math.max(
+    0,
+    order.findIndex((p) => p === start),
+  );
+  let dir: 1 | -1 = rng.chance(0.5) ? 1 : -1;
+  const stops: PeekStop[] = [];
+  let hopTicks = 0;
+  for (let used = 0; used < stayTicks;) {
+    const p = order[at];
+    if (p === undefined) break;
+    const hideTicks = Math.max(1, msToTicks(rng.range(hideMs[0], hideMs[1])));
+    const peekTicks = Math.max(1, msToTicks(rng.range(peekMs[0], peekMs[1])));
+    stops.push({ x: p.x, y: p.y, hideTicks, peekTicks, hopTicks: Math.max(1, hopTicks) });
+    used += hideTicks + peekTicks + hopTicks;
+    if (order.length < 2) break;
+    if (at + dir < 0 || at + dir >= order.length) dir = dir > 0 ? -1 : 1;
+    const next = order[at + dir];
+    if (next === undefined) break;
+    const minTicks = msToTicks(rng.range(hopMs[0], hopMs[1]));
+    hopTicks = Math.max(minTicks, Math.ceil(Math.abs(next.x - p.x) / Math.max(1e-6, pxPerTick)));
+    at += dir;
+  }
+  return stops;
 }
 
 /** A hopping target (kuifkop): hides in one of the event's covers, peeks, hops to another. */

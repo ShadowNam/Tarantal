@@ -85,7 +85,7 @@ describe('daily number and biome', () => {
     expect(dailyNumber(day(meta.epoch) + 141, meta.epoch)).toBe(142);
   });
 
-  it('rotates over playable biomes and falls back cleanly', () => {
+  it('indexes the whole rotation; an unplayable day falls back (D-025)', () => {
     const rot = ['a', 'b', 'c'];
     expect([0, 1, 2, 3].map((d) => dailyBiome(d, rot, ['a', 'b', 'c'], 'z'))).toEqual([
       'a',
@@ -93,7 +93,8 @@ describe('daily number and biome', () => {
       'c',
       'a',
     ]);
-    expect([0, 1, 2].map((d) => dailyBiome(d, rot, ['a', 'c'], 'z'))).toEqual(['a', 'c', 'a']);
+    // A client that can't draw 'b' plays the fallback on b's day, not another rotation biome.
+    expect([0, 1, 2].map((d) => dailyBiome(d, rot, ['a', 'c'], 'z'))).toEqual(['a', 'z', 'c']);
     expect(dailyBiome(5, rot, [], 'z')).toBe('z');
     expect(dailyBiome(-1, rot, rot, 'z')).toBe('c');
   });
@@ -140,28 +141,27 @@ describe('daily number and biome', () => {
     expect(biomes[0]).toBe('kalahari-summer');
   });
 
-  it('picks up a new playable biome automatically (M8): Bushveld on an odd day, with its omen', () => {
+  it("plays the rotation's biome for the day; a client that can't draw it falls back (D-025)", () => {
     const content = loadContent();
     const playable = ['karoo-autumn', 'bushveld-winter'];
-    const odd = dailySetup(day('2026-10-21'), {
-      meta,
-      contentHash: loadContentHash(),
-      playable,
-      fallbackBiome: content.modes.modes.daily.biome,
-    });
-    expect(day('2026-10-21') % 2).toBe(1);
-    expect(odd.biome).toBe('bushveld-winter');
-    const even = dailySetup(day('2026-10-22'), {
-      meta,
-      contentHash: loadContentHash(),
-      playable,
-      fallbackBiome: content.modes.modes.daily.biome,
-    });
-    expect(even.biome).toBe('karoo-autumn');
+    const setup = (key: string) =>
+      dailySetup(day(key), {
+        meta,
+        contentHash: loadContentHash(),
+        playable,
+        fallbackBiome: content.modes.modes.daily.biome,
+      });
+    // Day 20745 ≡ 1 (mod 4): rotation[1] = Bushveld, playable here.
+    expect(day('2026-10-19') % 4).toBe(1);
+    const bush = setup('2026-10-19');
+    expect(bush.biome).toBe('bushveld-winter');
+    // Day 20747 ≡ 3: rotation[3] = Kalahari, not playable here → the fallback, never another
+    // biome from the rotation (every client agrees on the day's biome when it can draw it).
+    expect(setup('2026-10-21').biome).toBe(content.modes.modes.daily.biome);
     const sim = createSim({
-      seed: odd.seed,
+      seed: bush.seed,
       content,
-      mode: dailyMode(odd, undefined),
+      mode: dailyMode(bush, undefined),
       inputKind: 'pointer',
     });
     expect(sim.snapshot().glare).not.toBeNull();

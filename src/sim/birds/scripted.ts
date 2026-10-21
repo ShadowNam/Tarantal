@@ -45,11 +45,12 @@ export interface PeekStop {
   readonly y: number;
   readonly hideTicks: number;
   readonly peekTicks: number;
+  /** Hopping routes: ticks of the hop that arrives at this stop. */
+  readonly hopTicks?: number;
 }
 
-/** A visible hop between covers: its length and the height of its arc (plane px). */
+/** A visible hop between covers: the height of its arc (plane px); each stop has its length. */
 export interface HopSpec {
-  readonly ticks: number;
   readonly px: number;
 }
 
@@ -208,7 +209,7 @@ function updatePeek(b: Bird, s: ScriptState, p: PeekPlan): void {
   p.ticksLeft--;
   if (b.phase === 'hop' && p.hop !== null) {
     // In plain view on an arc to this stop.
-    const t = 1 - Math.max(0, p.ticksLeft) / p.hop.ticks;
+    const t = 1 - Math.max(0, p.ticksLeft) / (at.hopTicks ?? 1);
     b.x = p.fromX + (at.x - p.fromX) * t;
     b.y = p.fromY + (at.y - p.fromY) * t - p.hop.px * sin(Math.PI * t);
     b.facing = at.x >= p.fromX ? 1 : -1;
@@ -244,7 +245,7 @@ function updatePeek(b: Bird, s: ScriptState, p: PeekPlan): void {
   p.fromX = b.x;
   p.fromY = b.y;
   p.stop = (p.stop + 1) % p.stops.length;
-  p.ticksLeft = p.hop.ticks;
+  p.ticksLeft = p.stops[p.stop]?.hopTicks ?? 1;
   enter(b, 'hop');
 }
 

@@ -6,6 +6,7 @@
 // reservoir splash), the Generaal's CLANG as his pot flies off, "KWÊ-KWÊ!" from a perched
 // kwêvoël, and a burst where a crate opens.
 import * as Phaser from 'phaser';
+import { tapToPlane } from '../../sim/camera';
 import type { LivePrefs } from '../prefs';
 import type { Feel } from '../../content/schemas';
 import type { SimEvent } from '../../sim/events';
@@ -41,7 +42,6 @@ export class Fx {
   ) => { plane: PlaneId; x: number; y: number; scaleX: number } | null;
   /** The plane crates land on (powerups.json). */
   private readonly cratePlane: PlaneId;
-  private readonly screenLayer: Phaser.GameObjects.Container;
 
   constructor(
     scene: Phaser.Scene,
@@ -57,7 +57,6 @@ export class Fx {
     this.locate = locate;
     this.locatePot = locatePot;
     this.cratePlane = cratePlane;
-    this.screenLayer = screenLayer;
     this.feel = feel;
     this.parallax = parallax;
     for (const plane of ['near', 'mid', 'far'] as const) {
@@ -177,9 +176,11 @@ export class Fx {
         }
         case 'splash': {
           // Okavango water (M8): a crown of drops where the shot hit the water.
-          const pan = (e.cx - state.cameraX) * this.parallax.plane('mid').scrollFactor;
-          const img = this.scene.add.image(width / 2 + e.dx + pan, e.sy, TEX.splash).setScale(0.4);
-          this.screenLayer.add(img);
+          // On the water's own layer (the mid plane), at the world point the shot hit.
+          const mid = this.parallax.plane('mid');
+          const at = tapToPlane(e.cx, mid.scrollFactor, e.dx, e.sy);
+          const img = this.scene.add.image(at.x, at.y, TEX.splash).setScale(0.4);
+          mid.overlay?.add(img);
           this.scene.tweens.add({
             targets: img,
             scale: 1.1,

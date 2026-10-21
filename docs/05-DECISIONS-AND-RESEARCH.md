@@ -470,6 +470,27 @@ omen on: competent 3 892, plinker 1 995 — all M3 gates pass. (27) *Golden repl
 existing case kept its event hash; new `classic-51-kalahari-competent-pointer`,
 `daily-52-kalahari-aim-touch`, `daily-53-kalahari-kettie-competent-pointer`,
 `season-somer-boss-kalahari-competent`.
+*Review fixes (on D, after #14).* (R1) *End-of-hunt pause:* the 900 ms pause before the tally was
+a Phaser `delayedCall`; the scene clock follows the smoothed, capped frame delta, so at ~300 ms
+frames (software GL in CI) it took ~15 s, and with four real-biome seasons the 12-hunt e2e passed
+10 min. It now runs on `performance.now()` like the hunt clock (D-019): hunt end → run tally went
+from 17.5–27 s to 3.5–3.9 s locally, the 12-hunt test from > 10 min (CI) to 4.9 min (local).
+Auto-started hunts (Season Run, [Again], challenges) also build their own biome's views directly
+instead of the home biome's first (that was cheap, ~4 ms — textures already stay cached across
+hunts). (R2) *Hippo:* it and the water beside it were on dry grass between the splash zones; the
+second channel now spans x≈1815–3715. (R3) *Hops:* any-cover hops in 0.5–0.7 s crossed up to
+3 000 px (unhittable); hopping routes now go to the adjacent cover by x and each hop lasts
+distance / `hopPxPerSec` (kuifkop 520, Koning 480), at least `hopMs`. Ou Grys's hidden route is
+unchanged. Classic Okavango competent 4 211 (was 4 164), gates pass. (R4) *Kettie and reload
+charms:* Snelhand's `reloadSpeedMul` now shortens the Kettie's draw, as Kuifkop Koning doubles it.
+(R5) *Daily biome:* `rotation[day mod length]` for every client; a client that can't draw that
+biome plays the `modes.json` daily biome (indexing the playable subset gave different clients
+different biomes for one Daily #). (R6) *Small:* the Generaal's miss alert uses the shot's camera
+(a Kettie stone lands later); the splash FX sits on the mid layer at the world point; storm
+overlays resize only on a size change and hide at alpha 0; kuifkop is hop-only (`flock` and its
+unused `spawnWeight` dropped); the unused `omen.visual.shimmer` flag is gone (the haze is in the
+sim). New tests: flash cap with two sources at once; a stone lands at its fire-time world point
+after a pan.
 *PR E — stand-in removed, strict validator, Season Run tuning.* (28) *Stand-in gone:*
 `run.json → biomeFallback` is removed; a season whose biome file is missing is a content error and
 the run engine throws. `run.json` stays `version: 1` — content ships inside the build, so no saved

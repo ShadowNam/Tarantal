@@ -227,3 +227,56 @@ describe('Die Stormvoël (GDD §7 Summer boss): only lightning shows him', () =>
     }
   });
 });
+
+describe('one lightning timeline (D-025 review)', () => {
+  it('storm lightning and the boss rule together still keep the shared cap', () => {
+    const c = quiet(KAL);
+    const season: SeasonHuntConfig = {
+      kind: 'boss',
+      boss: 'stormvoel',
+      charms: [],
+      consumables: [],
+      rental: null,
+      runShellBonus: 0,
+    };
+    // Boss hunt with the omen forced on: the rule's schedule and the storm both flash.
+    const s = createSim({
+      seed: 11,
+      content: c,
+      mode: { id: 'seasonHunt', biome: KAL, weapon: 'dubbelloop', season, omen: true },
+      inputKind: 'pointer',
+    });
+    const flashes = ofType(run(s, secondsToTicks(60)), 'lightning').map((e) => e.tick);
+    const at = Math.floor(stormOf(c).stormAt * secondsToTicks(60));
+    expect(flashes.filter((t) => t >= at).length).toBeGreaterThan(3);
+    const cap = Math.min(
+      stormOf(c).maxFlashesPerSecond,
+      c.run.bossRules['darkExceptLightning']?.maxFlashesPerSecond ?? 3,
+    );
+    for (let i = 1; i < flashes.length; i++)
+      expect((flashes[i] ?? 0) - (flashes[i - 1] ?? 0)).toBeGreaterThanOrEqual(60 / cap);
+  });
+
+  it("the Stormvoël's own flashes hand over to the storm without breaking the cap", () => {
+    const c = quiet(KAL);
+    biomeOf(c, KAL).events = [
+      {
+        id: 'bossAppearance',
+        creature: 'stormvoel',
+        modes: ['classic', 'daily'],
+        perHunt: [1, 1],
+        window: [0.01, 0.01],
+        passes: ['far', 'mid'],
+      },
+    ];
+    const s = sim(c, classic(true), 6);
+    const flashes = ofType(run(s, secondsToTicks(90)), 'lightning').map((e) => e.tick);
+    const at = Math.floor(stormOf(c).stormAt * secondsToTicks(90));
+    expect(flashes.some((t) => t < at)).toBe(true);
+    expect(flashes.some((t) => t >= at)).toBe(true);
+    for (let i = 1; i < flashes.length; i++)
+      expect((flashes[i] ?? 0) - (flashes[i - 1] ?? 0)).toBeGreaterThanOrEqual(
+        60 / stormOf(c).maxFlashesPerSecond,
+      );
+  });
+});

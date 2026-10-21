@@ -369,7 +369,8 @@
         500,
         700
       ],
-      "hopPx": 90
+      "hopPx": 90,
+      "hopPxPerSec": 520
     },
     {
       "id": "bossAppearance",
@@ -409,7 +410,8 @@
         550,
         750
       ],
-      "hopPx": 110
+      "hopPx": 110,
+      "hopPxPerSec": 480
     }
   ],
   "omen": {
@@ -447,11 +449,11 @@
         },
         {
           "layer": "mid",
-          "u": 0.76,
+          "u": 0.72,
           "y": 812,
           "shape": {
             "type": "rect",
-            "w": 1300,
+            "w": 1900,
             "h": 70,
             "ox": 0,
             "oy": 0
