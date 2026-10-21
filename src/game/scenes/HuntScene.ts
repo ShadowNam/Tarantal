@@ -589,6 +589,7 @@ export class HuntScene extends Phaser.Scene {
       maxStepsPerFrame: this.ctx.feel.loop.maxStepsPerFrame,
       recorder: this.recorder,
       perTick: () => mapper.perTick(),
+      ...(this.ctx.holdAtTick === undefined ? {} : { holdAtTick: this.ctx.holdAtTick }),
     });
     this.weapon.setTouchMode(kind === 'touch');
     hud.setInputKind(kind);

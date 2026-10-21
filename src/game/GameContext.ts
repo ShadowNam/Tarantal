@@ -34,6 +34,8 @@ export interface TestHook {
   scene: 'start' | 'hunt' | 'tally' | 'run' | 'challenge';
   /** Menu overlay on top of the scene: shed, settings, pause (null = none). */
   menu: string | null;
+  /** M10: the self-hosted fonts loaded before the game drew any text. */
+  fontsReady: boolean;
   /** M10 capture mode: speed (0 = frozen) and auto-pan, or null outside it. */
   capture: { speed: number; frozen: boolean; panning: boolean; hud: boolean } | null;
   /** Id of the keyboard-focused item of the active menu (null = none yet). */
@@ -239,6 +241,8 @@ export interface GameContext {
   nextSeed(): number;
   /** e2e/dev only: shorter hunts. Undefined = the mode's length. */
   readonly huntSeconds: number | undefined;
+  /** e2e/dev only (?holdAt=600): hunts stop at this sim tick (M10 visual baselines). */
+  readonly holdAtTick: number | undefined;
   /** e2e/dev only: ?omen=1 / ?omen=0 overrides the mode's omen. */
   readonly omen: boolean | undefined;
   /** e2e/dev only: ?biome= plays Classic hunts in another playable biome (M8). */

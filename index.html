@@ -15,7 +15,27 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
     <title>Tarantal Madness</title>
+    <link rel="preload" href="fonts/baloo2-800.woff2" as="font" type="font/woff2" crossorigin />
     <style>
+      /* M10 (art bible §6): self-hosted OFL fonts, subset by tools/make-fonts.ts. */
+      @font-face {
+        font-family: 'Baloo 2';
+        src: url('fonts/baloo2-600.woff2') format('woff2');
+        font-weight: 400 700;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'Baloo 2';
+        src: url('fonts/baloo2-800.woff2') format('woff2');
+        font-weight: 800 900;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: Bangers;
+        src: url('fonts/bangers-400.woff2') format('woff2');
+        font-weight: 400 900;
+        font-display: swap;
+      }
       html,
       body {
         margin: 0;

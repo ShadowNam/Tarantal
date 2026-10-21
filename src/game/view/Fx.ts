@@ -17,7 +17,10 @@ import { TEX } from '../assets/AssetManifest';
 import { formatAward, popParts } from '../ui/format';
 import type { ParallaxView } from './ParallaxView';
 
-export const FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+/** UI and body face (art bible §6): self-hosted Baloo 2 (public/fonts), system font until it loads. */
+export const FONT = '"Baloo 2", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+/** Comic display face for onomatopoeia (KEK!, POOF!; art bible §1 rule 3, §6). */
+export const DISPLAY_FONT = 'Bangers, "Baloo 2", system-ui, sans-serif';
 
 interface BagSpot {
   readonly plane: PlaneId;
@@ -315,7 +318,7 @@ export class Fx {
     const rot = Phaser.Math.DegToRad(big ? -6 : 4);
     const label = this.scene.add
       .text(x, y - lift, text, {
-        fontFamily: FONT,
+        fontFamily: DISPLAY_FONT,
         fontSize: fontPx(60),
         fontStyle: '900',
         color: big ? '#FFD25A' : '#F3EAD3',
@@ -358,7 +361,7 @@ export class Fx {
       .setRotation(rot);
     const label = this.scene.add
       .text(x, y - 40 * s, t('fx.poof'), {
-        fontFamily: FONT,
+        fontFamily: DISPLAY_FONT,
         fontSize: fontPx(64),
         fontStyle: '900',
         color: '#C8302A',

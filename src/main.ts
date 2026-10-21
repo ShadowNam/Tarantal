@@ -19,6 +19,7 @@ import {
   type Insets,
 } from './game/layout';
 import { fitCamera } from './game/view/fitCamera';
+import { loadFonts } from './game/ui/fonts';
 import { FlashLimiter } from './game/view/flashLimit';
 import { setTextLook } from './game/ui/textLook';
 import type { AssetManifest } from './game/assets/AssetManifest';
@@ -144,6 +145,13 @@ function seedSource(): () => number {
   return () => crypto.getRandomValues(new Uint32Array(1))[0] ?? 1;
 }
 
+/** e2e/dev only: ?holdAt=300 stops every hunt's sim at that tick (M10 visual baselines). */
+function holdAtParam(): number | undefined {
+  if (!testHooks || !params.has('holdAt')) return undefined;
+  const v = Number(params.get('holdAt'));
+  return Number.isInteger(v) && v > 0 ? v : undefined;
+}
+
 /** e2e/dev only: ?huntSeconds=15 shortens hunts (must be a positive multiple of 0.5). */
 function huntSecondsParam(): number | undefined {
   if (!testHooks || !params.has('huntSeconds')) return undefined;
@@ -193,6 +201,7 @@ const hook: TestHook = {
   inputKind: null,
   menu: null,
   capture: null,
+  fontsReady: false,
   focus: null,
   paused: false,
   mode: null,
@@ -550,6 +559,7 @@ const ctx: GameContext = {
     (safeCache ??= safeAreaInDesignPx(cssSafeArea(), viewport(), designSize())),
   nextSeed: seedSource(),
   huntSeconds: huntSecondsParam(),
+  holdAtTick: holdAtParam(),
   omen: omenParam(),
   classicBiome: biomeParam(),
   coarsePointer,
@@ -559,6 +569,10 @@ const ctx: GameContext = {
   hook: testHooks ? hook : null,
 };
 
+// M10: Phaser draws text onto canvases once, so the self-hosted fonts must be ready first
+// (bounded by fontTimeoutMs; a slow or blocked font leaves the system font, as before).
+hook.fontsReady = await loadFonts(feel.assets.fontTimeoutMs);
+hook.boot['fonts'] = performance.now();
 setView(initialDesign, prefs.renderScale);
 const game: Phaser.Game = new Phaser.Game({
   type: Phaser.WEBGL,
