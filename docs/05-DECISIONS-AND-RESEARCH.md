@@ -404,6 +404,33 @@ in the belt slot and per-shell reloads fading the next shell in. (7) *Golden rep
 for the content hash only, every existing case kept its event hash, count and score; new cases
 `classic-21-kettie-competent-pointer`, `classic-22-windbuks-competent-touch`,
 `classic-23-pomp-competent-pointer`, `season-kuifkop-boss-pomp-competent`.
+*PR B — Winter · Bushveld.* (8) *Twist vs omen:* GDD §11's "Gameplay twist" column is on in every
+mode; the "Omen" column is weather in omen hunts and the Daily (Classic stays purist, D-021).
+Bushveld: 60 % of flocks run instead of flying (a running-only flock, drawn from the new `twist`
+stream, never takes wing from shots; the Vuvuzela and secrets still flush it — "60 % of flocks
+run rather than fly" read as escalation only). (9) *Glare is drawn only:* a band on one side of
+the screen, the side drawn from the omen stream so every device shows the same; no sim rule (our
+call — GDD gives none; the bots can't be dazzled, so omen on/off balance is identical and the
+feel is a human check). (10) *Secrets:* the dassie is a new `nearMiss` kind (radius 120 px on the
+mid layer; pellets pass the dassie itself); the boulder is `singleHit` with `hitsRequired: 3`
+(hits over any shots, no window); "flushes hidden birds" = a 6-bird burst at the boulder (no Whole
+Flock, D-021). The baobab pod flushes flocks within 500 px. (11) *Ou Grys:* hidden/peek between
+three boulders (hide 1.5–2.6 s, peek 1.2–2 s, stay 14–18 s, 2 hits, 4 pellets); his route is drawn
+once from the `boss` stream; a hit sends him to the next cover. D-018's per-bird "behind cover"
+flag is the `hidden` phase (not hittable, not drawn). (12) *Rendering many biomes:* the game drew
+one biome (`ctx.biome`, one manifest, `playableBiomes = [karoo]`). Now a biome is playable when it
+has placeholder art registered; manifests are built on first use and `HuntScene` swaps its views
+when a hunt's biome differs from the title's (Daily rotation, challenges, the run). Textures of a
+new biome are drawn when its first hunt starts (lazy, D-010). `?biome=` (dev/e2e) plays Classic
+in another biome. The Bird Book lists every playable biome's secrets. (13) *Daily rotation:* it
+already picks up new playable biomes; 2026-10-21 (day 20747, odd) is now a Bushveld daily, so
+`daily.spec` checks the rotation's biome and an omen flag instead of the Karoo's wind.
+(14) *Balance (Classic Bushveld, 500 seeds, pointer)*, mean / p15 / p85: random 242 / 105 / 380,
+plinker 2 195 / 1 755 / 2 665, competent 4 015 / 3 381 / 4 631 — all M3 gates pass (plinker 45 %
+below competent); Karoo's pacing unchanged. (15) *Golden replays:* every existing case kept its
+event hash; new `classic-31-bushveld-competent-pointer`, `daily-32-bushveld-aim-touch`,
+`season-winter-boss-bushveld-competent`. Tests that took `content.biomes[0]` as the Karoo now find
+it by id (biomes sort by file name, Bushveld first).
 
 ## 3. Research notes (with sources)
 
