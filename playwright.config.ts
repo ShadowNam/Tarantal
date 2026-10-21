@@ -44,6 +44,14 @@ const skip = process.env['E2E_SKIP'] || undefined;
 
 export default defineConfig({
   testDir: 'tests/e2e',
+  // M10 visual regression (tests/e2e/visual.spec.ts): committed baselines, one per screen and
+  // profile; Linux (CI) is the reference platform. Update with --update-snapshots (docs/06 §7).
+  snapshotPathTemplate: '{testDir}/visual-baselines/{arg}-{projectName}{ext}',
+  expect: {
+    // Software-rendered WebGL (SwiftShader) and font antialiasing differ slightly between runs and
+    // machines: allow 2 % of pixels to differ, each by a colour distance of up to 0.25.
+    toHaveScreenshot: { maxDiffPixelRatio: 0.02, threshold: 0.25, animations: 'disabled' },
+  },
   ...(only ? { testMatch: only } : {}),
   ...(skip ? { testIgnore: skip } : {}),
   outputDir: 'test-results',
