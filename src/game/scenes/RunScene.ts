@@ -318,9 +318,10 @@ export class RunScene extends Phaser.Scene {
     const offers = run.padstal?.offers ?? [];
     const slots = this.ctx.content.charms.slots;
     const cardW = Math.min(300, (p.w - 80 - (offers.length - 1) * 20) / Math.max(1, offers.length));
-    this.label(p.x + 40, p.y + 128, t('run.for_sale'));
+    // Below the title even with large text (the title is 60 px, up to 75 with large text).
+    this.label(p.x + 40, p.y + 146, t('run.for_sale'));
     const rects = slotRects(
-      { x: p.x + 40, y: p.y + 150, w: p.w - 80, h: 240 },
+      { x: p.x + 40, y: p.y + 154, w: p.w - 80, h: 236 },
       offers.length,
       cardW,
       20,
