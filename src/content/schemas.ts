@@ -985,7 +985,7 @@ export const FeelSchema = obj({
   platform: obj({
     /** Longest wait for a portal SDK script + init; after it the game runs without the SDK. */
     sdkTimeoutMs: pos,
-    /** An ad whose promise never settles is treated as over after this long (game never hangs). */
+    /** An ad the SDK hasn't started after this long (visible time) counts as none (D-026). */
     adTimeoutMs: pos,
     /** Error reports kept or sent per page load (the rest are counted, not reported). */
     maxErrorReports: posInt,

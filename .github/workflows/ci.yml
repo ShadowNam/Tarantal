@@ -117,6 +117,14 @@ jobs:
               workers: 1,
               platform: poki,
             }
+          - {
+              project: iphone14-landscape,
+              browser: webkit,
+              shard: poki,
+              only: '**/platform.spec.ts',
+              workers: 1,
+              platform: poki,
+            }
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5

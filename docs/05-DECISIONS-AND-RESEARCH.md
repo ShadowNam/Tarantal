@@ -579,7 +579,23 @@ player's own save. The specs read `tm.e2e.save.v1`. (10) *Tests:* adapters again
 (unit), `tests/e2e/platform.spec.ts` against fake SDK scripts served by `page.route()` in place
 of the portals' URLs (CI jobs: desktop poki, desktop crazygames, Pixel poki); `REAL_SDK=1` runs it
 against the real SDKs' localhost modes (by hand: it needs the network).
-
+*PR A review fixes:* (10a) *Ad request race (must):* the menus were locked only once the SDK
+called `onStart`, so during the request (0.5–2 s) a second tap could start a hunt under the coming
+ad, or leave for the title. Now `afterBreak` and `AdBreaks.beforeHunt` are single-flight (a second
+request joins or is dropped), menus are locked from the request on (`isAdBusy()` on the adapter
+plus `AdBreaks.busy`), the run's HUNT!/Menu have a press guard, and the title's Shed/Settings
+don't open once START is pressed. `platform.spec.ts` races [Again]×2 + [Menu] and HUNT!×2 + Menu
+against a fake SDK that takes 1.5 s to start the ad: one break, one hunt start each (it fails
+without the fixes: 4 starts instead of 3). (10b) *Ad timeout:* `adTimeoutMs` now covers only the
+request (until the SDK starts the ad), paused while the tab is hidden; a long ad, or one watched
+after a tab switch, ends when the SDK says so, and a watched rewarded ad is granted.
+(10c) *Boot:* one deadline (`sdkTimeoutMs`) for the SDK script + init together; Poki
+`shareableURL` and CrazyGames `hasAdblock` no longer block boot (filled in later; until then the
+page URL is used for links and an ad request under an adblocker simply errors). (10d) *Smaller:*
+error reports strip URLs with a ':' in the query, protocol-relative and bare-host URLs, and report
+only the type of non-Error rejections; a rewarded request with no ad shown (no SDK, no fill) no
+longer skips the next break; portal builds drop the unreferenced `manifest.webmanifest`; CI also
+runs the portal spec on iPhone 14 landscape (WebKit).
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

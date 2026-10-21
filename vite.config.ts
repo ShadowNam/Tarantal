@@ -1,3 +1,5 @@
+import { rmSync } from 'node:fs';
+import { join } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 import { serviceWorkerPlugin } from './tools/serviceWorker';
 
@@ -20,6 +22,11 @@ function stripPwa(): Plugin {
         .replace(/\s*<link rel="manifest"[^>]*>/, '')
         .replace(/\s*<meta name="apple-mobile-web-app-[^>]*>/g, '')
         .replace(/\s*<meta name="mobile-web-app-capable"[^>]*>/, '');
+    },
+    // public/manifest.webmanifest is copied into every build; nothing references it here.
+    writeBundle(options) {
+      if (options.dir !== undefined)
+        rmSync(join(options.dir, 'manifest.webmanifest'), { force: true });
     },
   };
 }
