@@ -875,6 +875,21 @@ before. This also makes the screenshots match across machines. (2) *Baselines:*
   is the reference platform.
 - CI runs them in the existing e2e matrix (the spec skips the other profiles).
 - After the art swap: `--update-snapshots`, review the diff, commit (`docs/06` §7).
+*PR G — portal assets:* `tools/portal-shots.ts` (`npm run portal:shots`) renders from the web
+build into `release/portal-assets/` (gitignored, never uploaded):
+- **Background:** a capture-mode frame (seed 42, held at tick 300, no HUD or gun, 2×).
+- **CrazyGames covers:** 1920×1080, 800×1200 and 800×800. They carry the title in Bangers,
+  because CrazyGames wants the title only.
+- **Poki thumbnails:** 628 and 1256 px squares with no text, because Poki says "skip titles".
+- **Screenshots:** three 1920×1080 shots (title, hunt, tally).
+
+Sizes and rules are from each portal's docs as of 21 Oct 2026. The animated Poki thumbnail and
+CrazyGames' preview videos need a screen recording, so they're listed for a person. The
+`?capture=1` keys make that easy. Store text in en/af/de/nl, the controls blurb, tags and a
+checklist per portal are in `docs/07-PORTAL-SUBMISSION.md`. The checklists cover build and folder,
+the QA tool (Poki Inspector event log; CrazyGames preview), the SDK events the adapters actually
+fire, mobile and tablet, incognito, ad blocker and size. Neither text names another game series
+or a real brand.
 *Needs a person:* the illustrator, animator and sound designer deliver per
 `docs/06-ASSET-DELIVERY.md`.
 
