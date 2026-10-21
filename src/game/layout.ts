@@ -55,3 +55,30 @@ export function safeAreaInDesignPx(cssInsets: Insets, viewport: Size, design: Si
     left: toDesign(cssInsets.left, barX),
   };
 }
+
+/**
+ * M9 render scale (Tech §5 quality tiers): scenes always lay out in design px (`designSize()`),
+ * while the canvas is design × renderScale and every camera zooms by it (`fitCamera`). Set by
+ * main.ts on resize and when the tier changes.
+ */
+const view = { width: 1920, height: DESIGN_HEIGHT, renderScale: 1 };
+
+export function setView(design: Size, renderScale: number): void {
+  view.width = design.width;
+  view.height = design.height;
+  view.renderScale = renderScale;
+}
+
+/** The visible design size (1080 tall) the scenes lay out in. */
+export function designSize(): Size {
+  return view;
+}
+
+export function renderScale(): number {
+  return view.renderScale;
+}
+
+/** Canvas size for a design size at a render scale (whole pixels). */
+export function renderSizeFor(design: Size, scale: number): Size {
+  return { width: Math.round(design.width * scale), height: Math.round(design.height * scale) };
+}

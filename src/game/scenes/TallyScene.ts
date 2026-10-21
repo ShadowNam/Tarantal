@@ -3,6 +3,8 @@
 // penalties and the rank stamp. GDD §16 step 7: [Again] (default focus) starts the next hunt with
 // one tap; [Season Run] opens the run (M6); [Menu] goes back to the title. Below the rank:
 // what the hunt changed in the save (new best, rank up, Notaboek ticks, unlocks), one line.
+import { designSize } from '../layout';
+import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
 import type { I18nKey } from '../../i18n/i18n';
 import { fill, isI18nKey, t, tOr } from '../../i18n/i18n';
@@ -45,8 +47,8 @@ export class TallyScene extends Phaser.Scene {
   }
 
   create(data: TallyData): void {
-    const { width, height } = this.scale.gameSize;
-    this.cameras.main.setSize(width, height);
+    const { width, height } = designSize();
+    fitCamera(this.cameras.main);
     const r = data.result;
     const safe = this.ctx.safeArea();
     const panelW = Math.min(1100, width - safe.left - safe.right - 80);

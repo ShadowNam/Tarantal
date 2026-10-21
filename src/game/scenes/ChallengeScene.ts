@@ -2,6 +2,8 @@
 // challenge link. Who sent it, the score to beat, the hunt (Daily #n or Classic · biome · gun),
 // a note if the game changed since the link was made, and two buttons: [Accept] starts the
 // identical hunt (it fixes the input kind from the press, like START), [Not now] goes to the title.
+import { designSize } from '../layout';
+import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
 import { fill, t, tOr } from '../../i18n/i18n';
 import type { Challenge } from '../../meta/challenge';
@@ -28,8 +30,8 @@ export class ChallengeScene extends Phaser.Scene {
   }
 
   create(data: ChallengeData): void {
-    const { width, height } = this.scale.gameSize;
-    this.cameras.main.setSize(width, height);
+    const { width, height } = designSize();
+    fitCamera(this.cameras.main);
     const safe = this.ctx.safeArea();
     const c = data.challenge;
     const panelW = Math.min(1200, width - safe.left - safe.right - 120);

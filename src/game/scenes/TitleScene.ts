@@ -3,6 +3,8 @@
 // fixes the hunt's inputKind from the pointer that pressed it. A new player's first hunt is the
 // FTUE "Oupa se Les"; afterwards START plays Classic and the title also shows the rank, the Karoo
 // best, the Skiet-Skuur and Settings (and, in the DOM, the fullscreen button where it works).
+import { designSize } from '../layout';
+import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
 import { fill, t, tOr } from '../../i18n/i18n';
 import type { ModeId } from '../../sim/types';
@@ -36,8 +38,10 @@ export class TitleScene extends Phaser.Scene {
   create(data: TitleData): void {
     this.data_ = data;
     this.started = false;
-    const { width, height } = this.scale.gameSize;
-    this.cameras.main.setSize(width, height);
+    // M9: the quality benchmark measures frames while the title is up.
+    this.ctx.titleShown(this);
+    const { width, height } = designSize();
+    fitCamera(this.cameras.main);
     const safe = this.ctx.safeArea();
     const returning = this.ctx.save.data.ftue.done;
     const mode: ModeId = returning ? 'classic' : 'ftue';

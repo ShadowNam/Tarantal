@@ -1,6 +1,8 @@
 // Skiet-Skuur (GDD §13.7): the hub — equip the Classic weapon, the Bird Book v0 (creatures and
 // Karoo secrets seen), Oupa se Notaboek v0 (challenge progress and what each unlocks), and the
 // way to Settings. It is not a shop: everything here is unlocked by playing (GDD §13.6).
+import { designSize } from '../layout';
+import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
 import type { Weapon } from '../../content/schemas';
 import { fill, t, tOr } from '../../i18n/i18n';
@@ -28,8 +30,8 @@ export class ShedScene extends Phaser.Scene {
 
   create(data: ShedData): void {
     const tab = data.tab ?? 'loadout';
-    const { width, height } = this.scale.gameSize;
-    this.cameras.main.setSize(width, height);
+    const { width, height } = designSize();
+    fitCamera(this.cameras.main);
     const safe = this.ctx.safeArea();
     const panelW = Math.min(1700, width - safe.left - safe.right - 60);
     const panelH = Math.min(960, height - safe.top - safe.bottom - 40);

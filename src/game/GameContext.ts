@@ -1,6 +1,7 @@
 // What every scene shares: validated content, feel tuning, the asset manifest, audio, the save
 // (settings and progress), live prefs, the platform adapter, the safe area and the test hook.
 // Built once in main.ts.
+import type * as Phaser from 'phaser';
 import type { Biome, ContentBundle, DailyMeta, Feel, Notaboek } from '../content/schemas';
 import type { ChallengeDecode } from '../meta/challenge';
 import type { LoadStatus, SaveStore } from '../meta/save';
@@ -23,6 +24,8 @@ export interface TestHook {
   ready: boolean;
   designWidth: number;
   designHeight: number;
+  /** M9: canvas px per design px (the quality tier's render scale). */
+  renderScale: number;
   portrait: boolean;
   /** 'start' = the title (kept from M2: the title's START is the old start card).
    *  'challenge' = the "beat this" card of a challenge link (M7). */
@@ -76,6 +79,9 @@ export interface TestHook {
   /** CPU time per frame in ms (Phaser pre-step → post-render: sim, views, HUD, render
    *  submission; excludes GPU raster and idle) while a hunt is running. */
   cpuFrameMs: number[];
+  /** M9: per hunt frame, the ms spent in sim ticks and how many ticks ran. */
+  simFrameMs: number[];
+  simFrameSteps: number[];
   /** Encoded InputLog of the last hunt (bug reports / replay checks). */
   replay: string | null;
   hunts: number;
@@ -134,6 +140,15 @@ export interface TestHook {
   adPending: boolean;
   /** M9: ads asked for this page (AdBreaks counts). */
   ads: AdCounts | null;
+  /** M9: the quality tier in use and this page's benchmark (null until it ran). */
+  quality: {
+    tier: string;
+    bench: { tier: string; avgMs: number } | null;
+    benchRan: boolean;
+    /** Parallax layers drawn (low tier merges one) and camera filters on. */
+    layers: number;
+    filters: string[];
+  };
   /** M9: the AudioDirector is muted (ad, portal mute, pause, hidden tab). */
   audioMuted: boolean;
   /** M9: error reports this page (LocalPlatform.errors). */
@@ -158,6 +173,10 @@ export interface GameContext {
   readonly playableBiomes: readonly string[];
   /** M8: a playable biome's manifest (built on first use, then cached). */
   manifestFor(biome: Biome): AssetManifest;
+  /** M9: the biome's art chunk is loaded (manifestFor may be called). */
+  biomeReady(id: string): boolean;
+  /** M9: loads a biome's art chunk (lazy biome bundles); false if it failed. */
+  loadBiome(id: string): Promise<boolean>;
   /** M8: the biome of the hunt on screen (the home biome between hunts). */
   huntBiome: Biome;
   readonly audio: AudioDirector;
@@ -178,6 +197,10 @@ export interface GameContext {
   /** Settings as the views use them (updated in place on change). */
   readonly prefs: LivePrefs;
   readonly chrome: DomChrome;
+  /** M9: the title is on screen (runs the quality benchmark while it stays there). */
+  titleShown(scene: Phaser.Scene): void;
+  /** M9: called after live prefs changed (quality tier → filters). Returns an unsubscribe. */
+  onPrefsChange(fn: () => void): () => void;
   /** M9: reloads the page (after the privacy screen's clear my data). */
   restartPage(): void;
   /** Re-applies the language setting to i18n and the DOM. */

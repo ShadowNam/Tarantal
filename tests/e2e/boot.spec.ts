@@ -1,6 +1,6 @@
 // M0 smoke test: the game boots on every device profile; portrait shows the rotate card.
 import { expect, test, type Page } from '@playwright/test';
-import { designSizeFor } from '../../src/game/layout';
+import { designSizeFor, renderSizeFor } from '../../src/game/layout';
 
 function collectErrors(page: Page): string[] {
   const errors: string[] = [];
@@ -32,13 +32,14 @@ test('boots the game (landscape) or shows the rotate card (portrait)', async ({ 
     expect(hook?.designHeight).toBe(1080);
     const expected = designSizeFor(viewport.width, viewport.height);
     expect(hook?.designWidth).toBe(expected.width);
-    // The canvas backing store is the design size Phaser actually renders at.
+    // The canvas backing store is the design size × the quality tier's render scale (M9).
+    const render = renderSizeFor(expected, hook?.renderScale ?? 1);
     expect(
       await canvas.evaluate((c) => [
         (c as HTMLCanvasElement).width,
         (c as HTMLCanvasElement).height,
       ]),
-    ).toEqual([expected.width, expected.height]);
+    ).toEqual([render.width, render.height]);
     // Canvas must not let the browser scroll or zoom on touch.
     expect(await canvas.evaluate((c) => getComputedStyle(c).touchAction)).toBe('none');
   } else {

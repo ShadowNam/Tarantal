@@ -2,6 +2,8 @@
 // tally after it (quota met or missed, doppies earned), the Padstal (offers, reroll, buy, sell,
 // drag charms to reorder) and the run summary (victory or defeat). Every change goes through
 // ctx.run, which writes the save, so closing the tab anywhere here resumes in the same place.
+import { designSize } from '../layout';
+import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
 import { fill, t, tOr } from '../../i18n/i18n';
 import type { RunState, ShopOffer } from '../../sim/run/run';
@@ -58,8 +60,8 @@ export class RunScene extends Phaser.Scene {
       data.title();
       return;
     }
-    const { width, height } = this.scale.gameSize;
-    this.cameras.main.setSize(width, height);
+    const { width, height } = designSize();
+    fitCamera(this.cameras.main);
     const safe = this.ctx.safeArea();
     const w = Math.min(1500, width - safe.left - safe.right - 60);
     const h = Math.min(980, height - safe.top - safe.bottom - 40);

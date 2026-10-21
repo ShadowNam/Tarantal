@@ -8,6 +8,12 @@ import { resolveTier, type DeviceHints, type QualityTier } from './quality/Quali
 export interface LivePrefs {
   tier: QualityTier;
   particleScale: number;
+  /** M9: canvas px per design px (Tech §5 render scale). */
+  renderScale: number;
+  /** M9 tier filters and layer merges (feel.json quality.tiers). */
+  vignette: TierLook['vignette'];
+  bloom: TierLook['bloom'];
+  mergeLayers: TierLook['mergeLayers'];
   /** Muzzle flash / glint alpha (1, or reducedFlashAlpha with "reduce flashes"). */
   flashAlpha: number;
   reduceFlashes: boolean;
@@ -15,18 +21,26 @@ export interface LivePrefs {
   leftHanded: boolean;
 }
 
+type TierLook = Feel['quality']['tiers']['low'];
+
 export interface PrefInputs {
   readonly feel: Feel;
   readonly device: DeviceHints;
   readonly reducedMotion: boolean;
+  /** M9: the tier this device's title benchmark chose (SaveData.device), or null. */
+  readonly bench?: QualityTier | null;
 }
 
 export function computePrefs(s: Settings, i: PrefInputs): LivePrefs {
-  const tier = resolveTier(s.quality, i.feel, i.device);
+  const tier = resolveTier(s.quality, i.feel, i.device, i.bench ?? null);
   const t = i.feel.quality.tiers[tier];
   return {
     tier,
     particleScale: t.particleScale,
+    renderScale: t.renderScale,
+    vignette: t.vignette,
+    bloom: t.bloom,
+    mergeLayers: t.mergeLayers,
     reduceFlashes: s.reduceFlashes,
     flashAlpha: s.reduceFlashes ? i.feel.accessibility.reducedFlashAlpha : 1,
     // null = follow the OS reduced-motion preference.

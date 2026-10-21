@@ -1,5 +1,7 @@
 // Pause (GDD §18.3 "pause anywhere"): Esc/P, the HUD pause button, or the tab going hidden. The
 // hunt clock stops (ctx.menuPaused) and audio mutes. Resume, Settings or Quit to the title.
+import { designSize } from '../layout';
+import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
 import { t } from '../../i18n/i18n';
 import type { GameContext } from '../GameContext';
@@ -27,8 +29,8 @@ export class PauseScene extends Phaser.Scene {
   }
 
   create(data: PauseData): void {
-    const { width, height } = this.scale.gameSize;
-    this.cameras.main.setSize(width, height);
+    const { width, height } = designSize();
+    fitCamera(this.cameras.main);
     this.add.rectangle(0, 0, width, height, UI.ink, 0.65).setOrigin(0);
     this.add
       .text(width / 2, height / 2 - 260, t('pause.title'), {

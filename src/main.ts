@@ -9,10 +9,21 @@ import { loadGameContent } from './content/loadBrowser';
 import { AudioDirector } from './game/audio/AudioDirector';
 import { withQuotaMul, withTestCrate } from './game/devContent';
 import type { GameContext, TestHook, TestTools } from './game/GameContext';
-import { designSizeFor, isPortrait, safeAreaInDesignPx, type Insets } from './game/layout';
+import {
+  designSize,
+  designSizeFor,
+  isPortrait,
+  renderSizeFor,
+  safeAreaInDesignPx,
+  setView,
+  type Insets,
+} from './game/layout';
+import { fitCamera } from './game/view/fitCamera';
 import type { AssetManifest } from './game/assets/AssetManifest';
 import {
+  biomeArtReady,
   createPlaceholderManifest,
+  loadBiomeArt,
   placeholderBiomes,
 } from './game/placeholder/ProceduralAssetFactory';
 import { applyPrefs, computePrefs, type PrefInputs } from './game/prefs';
@@ -40,6 +51,8 @@ import { createPlatform, currentPlatformId } from './platform/platform';
 import { AdBreaks } from './game/ads/AdBreaks';
 import { PrivacyScene } from './game/scenes/PrivacyScene';
 import { testHookPolicy } from './game/testHooks';
+import { FrameBenchmark } from './game/quality/FrameBenchmark';
+import { benchmarkTier, type DeviceHints } from './game/quality/QualityManager';
 import { setMenuInputGate } from './game/ui/menu';
 import { decodeInputLogText } from './sim/replay/inputLog';
 import { runReplay } from './sim/replay/verify';
@@ -145,6 +158,7 @@ const hook: TestHook = {
   ready: false,
   designWidth: 0,
   designHeight: 0,
+  renderScale: 1,
   portrait: false,
   scene: 'start',
   tick: 0,
@@ -181,6 +195,8 @@ const hook: TestHook = {
   firstShotAtMs: null,
   frameTimes: [],
   cpuFrameMs: [],
+  simFrameMs: [],
+  simFrameSteps: [],
   replay: null,
   hunts: 0,
   missingTextures: [],
@@ -207,6 +223,7 @@ const hook: TestHook = {
   adPending: false,
   ads: null,
   audioMuted: false,
+  quality: { tier: '', bench: null, benchRan: false, layers: 0, filters: [] },
   errors: [],
 };
 if (testHooks) window.__TM__ = hook;
@@ -225,7 +242,7 @@ const biomeId = bundle.modes.modes.classic.biome;
 const biome = bundle.biomes.find((b) => b.id === biomeId);
 if (biome === undefined) throw new Error(`classic biome ${biomeId} missing`);
 
-const initial = designSizeFor(viewport().width, viewport().height);
+const initialDesign = designSizeFor(viewport().width, viewport().height);
 let portrait = isPortrait(viewport().width, viewport().height);
 let contextLost = false;
 
@@ -264,12 +281,50 @@ setMenuInputGate(() => platform.isAdPlaying());
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
-const prefInputs: PrefInputs = {
-  feel,
-  device: { coarsePointer, cores: navigator.hardwareConcurrency || 0 },
-  reducedMotion,
+const device: DeviceHints = {
+  coarsePointer,
+  cores: navigator.hardwareConcurrency || 0,
+  // Chrome only; Safari and Firefox leave it out (0 = unknown).
+  memoryGb: (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 0,
 };
-const prefs = computePrefs(save.data.settings, prefInputs);
+const prefInputs = (): PrefInputs => ({
+  feel,
+  device,
+  reducedMotion,
+  bench: save.data.device.benchTier,
+});
+const prefs = computePrefs(save.data.settings, prefInputs());
+const prefListeners = new Set<() => void>();
+let relayout: (() => void) | null = null;
+/** Safe-area insets in design px; cleared by applyLayout (resize, rotation, tier change). */
+let safeCache: Insets | null = null;
+const prefsChanged = (): void => {
+  hook.quality.tier = prefs.tier;
+  // The render scale may have changed with the tier (applyLayout exists once the game does).
+  relayout?.();
+  for (const fn of prefListeners) fn();
+};
+hook.quality.tier = prefs.tier;
+// M9 title benchmark (Tech §5): 90 frames on the title once per page; "auto" follows the result
+// (saved per device, so the next visit starts on it). e2e runs skip it unless ?bench=1, so the
+// specs keep a fixed tier.
+const benchCfg = feel.quality.benchmark;
+const benchmark =
+  !testHooks || params.get('bench') === '1'
+    ? new FrameBenchmark(benchCfg.warmupFrames + benchCfg.frames, (frames) => {
+        const r = benchmarkTier(frames, feel, device);
+        hook.quality.benchRan = true;
+        if (r === null) return;
+        hook.quality.bench = r;
+        platform.analytics('perf_sample', { kind: 'benchmark', tier: r.tier, avgMs: r.avgMs });
+        save.update((d) => ({ ...d, device: { benchTier: r.tier, benchAvgMs: r.avgMs } }));
+      })
+    : null;
+let titleUp = false;
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') benchmark?.pause();
+  else if (titleUp) benchmark?.resume();
+});
 const audio = new AudioDirector();
 const applyAudio = (s: Settings): void => {
   audio.setVolumes({ master: s.masterVolume, sfx: s.sfxVolume, music: s.musicVolume });
@@ -285,13 +340,20 @@ platform.onPortalMute((muted) => {
   hook.audioMuted = audio.muted;
 });
 let lastSettings = save.data.settings;
+let lastDevice = save.data.device;
 save.onChange((d) => {
+  if (d.device !== lastDevice) {
+    lastDevice = d.device;
+    applyPrefs(prefs, d.settings, prefInputs());
+    prefsChanged();
+  }
   if (d.settings === lastSettings) return;
   const changed = (Object.keys(d.settings) as (keyof Settings)[]).filter(
     (k) => d.settings[k] !== lastSettings[k],
   );
   lastSettings = d.settings;
-  applyPrefs(prefs, d.settings, prefInputs);
+  applyPrefs(prefs, d.settings, prefInputs());
+  prefsChanged();
   applyAudio(d.settings);
   for (const k of changed)
     platform.analytics('settings_change', { setting: k, value: d.settings[k] });
@@ -355,6 +417,8 @@ const ctx: GameContext = {
   manifest: manifestFor(biome),
   playableBiomes,
   manifestFor,
+  biomeReady: biomeArtReady,
+  loadBiome: loadBiomeArt,
   huntBiome: biome,
   audio,
   save,
@@ -376,6 +440,19 @@ const ctx: GameContext = {
   run: new RunFlow(bundle, loaded.notaboek, save, platform),
   prefs,
   chrome,
+  titleShown: (scene) => {
+    if (benchmark === null || benchmark.done) return;
+    titleUp = true;
+    if (document.visibilityState === 'visible') benchmark.resume();
+    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      titleUp = false;
+      benchmark.pause();
+    });
+  },
+  onPrefsChange: (fn) => {
+    prefListeners.add(fn);
+    return () => prefListeners.delete(fn);
+  },
   restartPage: () => {
     window.location.reload();
   },
@@ -384,7 +461,9 @@ const ctx: GameContext = {
     chrome.relabel();
   },
   menuPaused: false,
-  safeArea: (): Insets => safeAreaInDesignPx(cssSafeArea(), viewport(), game.scale.gameSize),
+  // getComputedStyle forces a style pass: computed once per layout, not every frame (M9 perf).
+  safeArea: (): Insets =>
+    (safeCache ??= safeAreaInDesignPx(cssSafeArea(), viewport(), designSize())),
   nextSeed: seedSource(),
   huntSeconds: huntSecondsParam(),
   omen: omenParam(),
@@ -396,6 +475,7 @@ const ctx: GameContext = {
   hook: testHooks ? hook : null,
 };
 
+setView(initialDesign, prefs.renderScale);
 const game: Phaser.Game = new Phaser.Game({
   type: Phaser.WEBGL,
   parent: 'game',
@@ -403,13 +483,15 @@ const game: Phaser.Game = new Phaser.Game({
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
-    width: initial.width,
-    height: initial.height,
+    width: renderSizeFor(initialDesign, prefs.renderScale).width,
+    height: renderSizeFor(initialDesign, prefs.renderScale).height,
   },
   // All input is Pointer Events + keys in InputMapper (Tech §6); all audio is AudioDirector.
   input: { keyboard: false, mouse: false, touch: false, gamepad: false },
   audio: { noAudio: true },
   disableContextMenu: true,
+  // M9: low tier renders without antialiasing (fixed at boot: the tier of the last benchmark).
+  antialias: feel.quality.tiers[prefs.tier].antialias,
   banner: false,
   scene: [
     new HuntScene(ctx),
@@ -473,16 +555,25 @@ function applyLayout(): void {
   const view = viewport();
   const size = designSizeFor(view.width, view.height);
   portrait = isPortrait(view.width, view.height);
-  if (size.width !== game.scale.gameSize.width || size.height !== game.scale.gameSize.height) {
-    game.scale.setGameSize(size.width, size.height);
+  // M9: the canvas is the design size × the tier's render scale; cameras zoom to match.
+  setView(size, prefs.renderScale);
+  safeCache = null;
+  const canvas = renderSizeFor(size, prefs.renderScale);
+  const changed =
+    canvas.width !== game.scale.gameSize.width || canvas.height !== game.scale.gameSize.height;
+  if (changed) {
+    game.scale.setGameSize(canvas.width, canvas.height);
+    for (const scene of game.scene.getScenes(true)) fitCamera(scene.cameras.main);
   }
   document.getElementById('rotate-card')?.classList.toggle('visible', portrait);
   // Report what Phaser actually uses, so tests catch a setGameSize that didn't take effect.
-  hook.designWidth = game.scale.gameSize.width;
-  hook.designHeight = game.scale.gameSize.height;
+  hook.designWidth = Math.round(game.scale.gameSize.width / prefs.renderScale);
+  hook.designHeight = Math.round(game.scale.gameSize.height / prefs.renderScale);
+  hook.renderScale = prefs.renderScale;
   hook.portrait = portrait;
 }
 
 applyLayout();
+relayout = applyLayout;
 window.addEventListener('resize', applyLayout);
 window.visualViewport?.addEventListener('resize', applyLayout);
