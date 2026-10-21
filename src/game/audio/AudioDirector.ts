@@ -2,8 +2,10 @@
 // visibilitychange, on pause and during ads (platform adapter), pans by screen x (±0.7),
 // and caps simultaneous voices at 16. Reacts only to typed sim events. Two buses under the
 // master: SFX and music (the flush sting and the Stampede cue until music stems land, M10),
-// each with its Settings volume.
+// each with its Settings volume. M10: a sound with a delivered recording (asset index) plays the
+// decoded file; the synth stays the fallback for every other sound.
 import type { SimEvent } from '../../sim/events';
+import { sfxKey, type FinalSound } from '../assets/AssetManifest';
 import { createNoise, playSfx, type SfxId } from './synth';
 
 const MAX_VOICES = 16;
@@ -32,6 +34,11 @@ export class AudioDirector {
   private hidden = false;
   private readonly muteReasons = new Set<MuteReason>();
   private volumes: Volumes = { master: 1, sfx: 1, music: 1 };
+  /** Delivered files waiting for an AudioContext to decode them. */
+  private pending: FinalSound[] = [];
+  private readonly buffers = new Map<string, AudioBuffer>();
+  /** Sound keys that play from a decoded recording (read by the test hook). */
+  readonly recorded: string[] = [];
 
   constructor() {
     document.addEventListener('visibilitychange', () => {
@@ -58,12 +65,48 @@ export class AudioDirector {
         this.musicBus.connect(this.master);
         this.noise = createNoise(this.ctx);
         this.applyGain();
+        this.decodePending();
       }
       if (this.ctx.state !== 'running') this.ctx.resume().catch(() => undefined);
     } catch {
       // No audio is better than no game.
       this.ctx = null;
     }
+  }
+
+  /** The recorded format this browser plays: Ogg Vorbis where sure, else MP3 (Safari). */
+  fileFormat(): 'ogg' | 'mp3' | null {
+    try {
+      const a = document.createElement('audio');
+      if (a.canPlayType('audio/ogg; codecs="vorbis"') === 'probably') return 'ogg';
+      return a.canPlayType('audio/mpeg') !== '' ? 'mp3' : null;
+    } catch {
+      return null;
+    }
+  }
+
+  /** Delivered recordings (decoded now, or once audio is unlocked). */
+  addRecorded(files: readonly FinalSound[]): void {
+    const known = new Set([...this.pending.map((f) => f.key), ...this.buffers.keys()]);
+    this.pending.push(...files.filter((f) => !known.has(f.key)));
+    this.decodePending();
+  }
+
+  private decodePending(): void {
+    const ctx = this.ctx;
+    if (ctx === null) return;
+    for (const f of this.pending) {
+      // decodeAudioData detaches its buffer: decode a copy so a second context could retry.
+      ctx.decodeAudioData(f.bytes.slice(0)).then(
+        (buf) => {
+          this.buffers.set(f.key, buf);
+          this.recorded.push(f.key);
+        },
+        // A file the browser can't decode keeps the synth.
+        () => undefined,
+      );
+    }
+    this.pending = [];
   }
 
   setMuted(reason: MuteReason, on: boolean): void {
@@ -168,7 +211,17 @@ export class AudioDirector {
     panner.pan.value = Math.max(-MAX_PAN, Math.min(MAX_PAN, pan * MAX_PAN));
     panner.connect(bus);
     this.voices++;
-    const seconds = playSfx(ctx, panner, id, noise);
+    const buf = this.buffers.get(sfxKey(id));
+    let seconds: number;
+    if (buf !== undefined) {
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      src.connect(panner);
+      src.start();
+      seconds = buf.duration;
+    } else {
+      seconds = playSfx(ctx, panner, id, noise);
+    }
     window.setTimeout(
       () => {
         this.voices--;

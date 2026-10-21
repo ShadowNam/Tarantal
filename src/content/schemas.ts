@@ -1016,6 +1016,12 @@ export const FeelSchema = obj({
     captionMax: posInt,
     captionRepeatMs: nonNeg,
   }),
+  assets: obj({
+    /** M10: longest wait for assets/asset-index.json at boot; after it every key is a placeholder. */
+    indexTimeoutMs: pos,
+    /** M10: longest wait for one final file (image, atlas, sound); after it that key falls back. */
+    fileTimeoutMs: pos,
+  }),
   platform: obj({
     /** Longest wait for a portal SDK script + init; after it the game runs without the SDK. */
     sdkTimeoutMs: pos,

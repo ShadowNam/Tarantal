@@ -740,6 +740,7 @@ export class HuntScene extends Phaser.Scene {
   private handleEvents(events: readonly SimEvent[], width: number, state: SimState): void {
     // FX first: penalty pops look up where the bird was last drawn, before it is removed.
     this.fx.handle(events, width, state);
+    this.birds.handle(events);
     const half = width / 2;
     this.ctx.audio.handle(events, (e) => {
       if (e.type === 'shotFired') return e.dx / half;
