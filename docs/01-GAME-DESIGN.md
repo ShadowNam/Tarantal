@@ -612,7 +612,15 @@ flashes (dims the muzzle flash and glints, no red belt flash), touch aim assist 
 Standard; recorded in the replay), left-handed (belt left, Vuvuzela right, gun centre-left),
 language (Auto / English / Afrikaans) and quality (Auto / Low / Medium / High). Menus work with
 ↑/↓/Tab, ←/→, Enter/Space and Esc; Esc or P pauses a hunt, touch players have a pause button.
-Text size and captions remain for M9.
+M9 (D-026) completes the list. Settings has two pages, **Sound & game** (volumes, language,
+privacy, aim assist, left-handed, **hold to fire**) and **Display & access** (screen shake, reduce
+flashes, quality, **text size** Normal/Large, **high contrast**, **sound captions**, **don't-shoot
+marks**). Hold to fire: holding fires again whenever the gun is ready, on every weapon (never an
+empty click). Text size Large scales menus, tally, captions, prompts and call-outs
+(`feel.json accessibility.largeTextScale`); the HUD's timer, score and fixed labels keep their size.
+High contrast puts a black outline on all light text. Sound captions show a line such as
+"[kek-kek — alarm call]" for every sound cue that has no words on screen already. Don't-shoot marks
+keep the ⛔ badge over every don't-shoot creature, not only at its first sighting.
 
 ## 19. Monetisation and ethics guardrails
 - **Web portals (launch):** free; portal ads only at natural breaks (between hunts/runs), never during

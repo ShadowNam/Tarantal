@@ -617,6 +617,32 @@ the medium perf smoke on the Pixel profile went from 16.0 to **12.4 ms** CPU/fra
 *Follow-up:* score pops and "POOF!" create a Text per kill (canvas render + upload); a pooled or
 bitmap-font version would cut the rest. `feel.json` gains fields without a `version` bump: no
 content has shipped and the client file has no older readers.
+*PR C — accessibility checklist (GDD §18.3):* (20) *New settings* (`SaveData.settings`, each
+field validated on its own, so old saves get the defaults, all off): `textSize` normal/large,
+`highContrast`, `captions`, `colourBlind`, `holdToFire`. Settings is split into two pages with
+tabs (←/→ on a tab turns the page); every id the older specs tap stays on page 1. (21) *Hold to
+fire* is input-only: a weapon without its own hold gets one `fire` on press, then a `fire` at the
+held position each tick the gun is ready (loaded, not reloading, no cooldown), so it never
+empty-clicks and the sim and replays are untouched (ordinary commands). Weapons with a native
+hold keep their `fireHold*` commands. (22) *Text size* scales menus, tally, captions, prompts and
+world call-outs by `largeTextScale` (1.25); the HUD timer, score, frenzy label, chips and gadget
+numbers stay put (fixed signs). Text made before a change restyles when its screen rebuilds (the
+Settings screen rebuilds at once). (23) *High contrast* = black outline at 0.2 × font size on light
+text; dark text on light plates gets none (it smeared). (24) *Captions* mirror the AudioDirector's
+event → sound map (`src/game/audio/captions.ts`); cues already in words on screen (POOF!, score
+pops, the stamp) get none. Shown whatever the volume, bottom centre, ≤ 3 lines, a repeat only
+extends the line. (25) *Colour-blind aid* = the ⛔ badge on every don't-shoot creature at every
+sighting (shape + icon, never colour alone); without it the badge shows until the first sighting
+as before. Other colour signals already pair with text or shape (belt flash + RELOAD!, frenzy
+colour + ×N, stampede timer colour + banner). (26) *Toggle → test:* screen shake, reduce flashes,
+left-handed, quality, text size, contrast, captions, colour-blind, hold to fire → `prefs.test.ts`;
+aim assist → sim tests (`aimAssistLevels`, golden `…-lowassist`); text size/contrast →
+`textLook.test.ts`; captions → `captions.test.ts` + `a11y.spec.ts` (a reload is captioned in a
+hunt); hold to fire → `InputMapper.test.ts` + `a11y.spec.ts` (one held press fires repeatedly);
+keyboard-only menus incl. the new page and privacy → `a11y.spec.ts` + `menus.spec.ts`; pause
+anywhere → `menus.spec.ts`; large-flash cap → content validation (`maxFlashesPerSecond`);
+language → `persistence.spec.ts`. *Needs a person:* a screen-reader and keyboard-only pass, and
+a colour-blind player's look at the don't-shoot creatures.
 
 ## 3. Research notes (with sources)
 
