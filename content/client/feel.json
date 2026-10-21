@@ -37,6 +37,7 @@
     "glintEveryMs": 4000,
     "glintMs": 600,
     "windParticlesPerSec": 14,
+    "rainParticlesPerSec": 90,
     "smokeScale": 2.2,
     "calloutMs": 2600
   },
