@@ -51,6 +51,8 @@ describe('i18n tables', () => {
     setLanguage('en');
     expect(fill(t('notaboek.bag_50_far'), { n: 50 })).toBe('Bag 50 far birds');
     expect(pickLanguage(['af-ZA', 'en'])).toBe('af');
-    expect(pickLanguage(['de-DE'])).toBe('en');
+    expect(pickLanguage(['de-DE'])).toBe('de');
+    expect(pickLanguage(['nl-BE', 'en'])).toBe('nl');
+    expect(pickLanguage(['fr-FR'])).toBe('en');
   });
 });

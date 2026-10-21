@@ -13,7 +13,7 @@ const count = z.number().int().nonnegative();
 
 export const AimAssistSchema = z.enum(['off', 'low', 'standard']);
 export const QualitySettingSchema = z.enum(['auto', 'low', 'medium', 'high']);
-export const LanguageSettingSchema = z.enum(['auto', 'en', 'af']);
+export const LanguageSettingSchema = z.enum(['auto', 'en', 'af', 'de', 'nl']);
 
 export const SettingsSchema = z.object({
   masterVolume: volume,

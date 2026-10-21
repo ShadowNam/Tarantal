@@ -3,6 +3,8 @@ import type { SimEvent } from '../../sim/events';
 import { FtueDirector, type FtueStep } from './FtueDirector';
 import en from '../../i18n/en.json';
 import af from '../../i18n/af.json';
+import de from '../../i18n/de.json';
+import nl from '../../i18n/nl.json';
 import feelJson from '../../../content/client/feel.json';
 
 const full = { shells: 8, reloading: false };
@@ -69,7 +71,7 @@ describe('FTUE director (GDD §16)', () => {
 
   it('every FTUE prompt is one short line in every language', () => {
     const max = feelJson.ftue.maxPromptChars;
-    for (const table of [en, af] as Record<string, string>[]) {
+    for (const table of [en, af, de, nl] as Record<string, string>[]) {
       const keys = Object.keys(table).filter((k) => k.startsWith('ftue.'));
       expect(keys.length).toBeGreaterThanOrEqual(7);
       for (const k of keys) {
