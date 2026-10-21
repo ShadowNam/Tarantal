@@ -29,6 +29,10 @@ const FINAL_KEYS = [
 ];
 
 /** Serves tests/fixtures/standin-assets/assets/** in place of the build's assets/ (where present). */
+// The PWA service worker would fetch delivered files itself once it controls the page, and
+// page.route never sees those requests (CI saw the server's index.html instead of the art).
+test.use({ serviceWorkers: 'block' });
+
 async function serveStandins(page: Page, broken: RegExp | null = null): Promise<string[]> {
   const served: string[] = [];
   await page.route('**/assets/**', async (route) => {
