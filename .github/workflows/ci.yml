@@ -26,6 +26,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
+      # M8: every biome is in, so content warnings (content due later) are errors from now on.
+      - run: npm run content:validate -- --strict
       - run: npm run build
       - run: npm run size
 
@@ -40,25 +42,26 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # The Season Run spec gets its own job per landscape Chromium profile (one worker): next to
+          # The Season Run specs (season-*.spec.ts: the 12-hunt run, resume, M8 real seasons) get their
+          # own job per landscape Chromium profile (one worker): next to
           # other specs it starved the perf and menu timing tests on the shared software-GL runner.
           - {
               project: desktop-chromium,
               browser: chromium,
               shard: 1/2,
-              skip: '**/season-run.spec.ts',
+              skip: '**/season-*.spec.ts',
             }
           - {
               project: desktop-chromium,
               browser: chromium,
               shard: 2/2,
-              skip: '**/season-run.spec.ts',
+              skip: '**/season-*.spec.ts',
             }
           - {
               project: desktop-chromium,
               browser: chromium,
               shard: season,
-              only: '**/season-run.spec.ts',
+              only: '**/season-*.spec.ts',
               workers: 1,
             }
           - { project: desktop-webkit, browser: webkit, shard: 1/1 }
@@ -66,19 +69,19 @@ jobs:
               project: pixel7-landscape,
               browser: chromium,
               shard: 1/2,
-              skip: '**/season-run.spec.ts',
+              skip: '**/season-*.spec.ts',
             }
           - {
               project: pixel7-landscape,
               browser: chromium,
               shard: 2/2,
-              skip: '**/season-run.spec.ts',
+              skip: '**/season-*.spec.ts',
             }
           - {
               project: pixel7-landscape,
               browser: chromium,
               shard: season,
-              only: '**/season-run.spec.ts',
+              only: '**/season-*.spec.ts',
               workers: 1,
             }
           - { project: iphone14-landscape, browser: webkit, shard: 1/1 }
