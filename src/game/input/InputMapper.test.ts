@@ -48,6 +48,8 @@ function tap(
       isOnUi: () => false,
       pause: () => undefined,
       holdToFire: () => false,
+      weaponHolds: () => false,
+      readyToFire: () => true,
       queue: (c) => queued.push(c),
       aim: () => undefined,
       fingerDown: () => undefined,
@@ -84,4 +86,74 @@ describe('InputMapper: viewport width never reaches the sim', () => {
       for (const r of results) expect(r).toEqual([{ t: 'fire', dx: -312.5, sy: 640 }]);
     });
   }
+});
+
+describe('M9 Settings → hold to fire (any weapon)', () => {
+  function holdRig(weaponHolds: boolean) {
+    const canvas = fakeCanvas(1920, 1080);
+    const queued: Command[] = [];
+    let ready = true;
+    const mapper = new InputMapper(
+      canvas as unknown as HTMLCanvasElement,
+      feel,
+      {
+        designSize: () => ({ width: 1920, height: 1080 }),
+        isOnBelt: () => false,
+        isOnGadget: () => false,
+        itemAt: () => null,
+        isOnUi: () => false,
+        pause: () => undefined,
+        holdToFire: () => true,
+        weaponHolds: () => weaponHolds,
+        readyToFire: () => ready,
+        queue: (c) => queued.push(c),
+        aim: () => undefined,
+        fingerDown: () => undefined,
+        toggleDebug: () => undefined,
+      },
+      0,
+    );
+    mapper.setEnabled(true);
+    const e = { pointerId: 3, pointerType: 'mouse', button: 0, timeStamp: 1 };
+    return {
+      queued,
+      mapper,
+      setReady: (r: boolean) => {
+        ready = r;
+      },
+      down: (x: number, y: number) => {
+        canvas.emit('pointerdown', { ...e, clientX: 10 + x, clientY: 20 + y });
+      },
+      move: (x: number, y: number) => {
+        canvas.emit('pointermove', { ...e, clientX: 10 + x, clientY: 20 + y });
+      },
+      up: () => {
+        canvas.emit('pointerup', e);
+      },
+    };
+  }
+
+  it('a gun without its own hold fires on press, then each tick it is ready, at the held spot', () => {
+    const r = holdRig(false);
+    r.down(1060, 500);
+    expect(r.queued).toEqual([{ t: 'fire', dx: 100, sy: 500 }]);
+    r.move(860, 400);
+    // Moves aim the repeat; they are no commands of their own.
+    expect(r.queued).toHaveLength(1);
+    expect(r.mapper.perTick()).toEqual([{ t: 'fire', dx: -100, sy: 400 }]);
+    r.setReady(false); // reloading or cooling down: nothing (never an empty click)
+    expect(r.mapper.perTick()).toEqual([]);
+    r.setReady(true);
+    r.up();
+    expect(r.mapper.perTick()).toEqual([]);
+    expect(r.queued).toHaveLength(1);
+  });
+
+  it("a gun with its own hold (Mielie-Masjien) keeps the sim's hold commands", () => {
+    const r = holdRig(true);
+    r.down(960, 500);
+    r.up();
+    expect(r.queued.map((c) => c.t)).toEqual(['fireHoldStart', 'fireHoldEnd']);
+    expect(r.mapper.perTick()).toEqual([]);
+  });
 });
