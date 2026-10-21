@@ -1,5 +1,5 @@
 // SaveData v1 (Tech §11): settings, FTUE, loadout, unlocks, Notaboek, Bird Book, bests, stats,
-// and (M6) the Season Run in progress plus run stats.
+// (M6) the Season Run in progress plus run stats, and (M7) the Daily Hunt.
 // Every section has a default, so a damaged section falls back on its own (save.ts parses each
 // section separately) instead of wiping the player's progress.
 import { z } from 'zod';
@@ -96,6 +96,33 @@ export const RunSaveSchema = z.object({
     .readonly(),
 });
 
+/** M7: Daily Hunt streak, freezes, cosmetics and recent official attempts (Tech §11). */
+export const DailySaveSchema = z.object({
+  streak: count,
+  bestStreak: count,
+  /** Best official daily score (null = none finished yet). */
+  bestScore: z.number().int().nullable(),
+  /** UTC day number of the last official attempt (null = never played). */
+  lastDay: z.number().int().nonnegative().nullable(),
+  /** ISO weeks ("2026-W43") whose free freeze is used. */
+  freezesUsed: z.array(z.string().regex(/^\d{4}-W\d{2}$/)).max(60),
+  /** Streak-milestone cosmetics owned (GDD §15: cosmetics only). */
+  cosmetics: ids,
+  /** Official attempts, oldest first; score null = started but not finished. */
+  history: z
+    .array(
+      z.object({
+        day: z.number().int().nonnegative(),
+        score: z.number().int().nullable(),
+        rank: z.string().max(80).nullable(),
+        wholeFlocks: count,
+        grid: z.string().max(40),
+      }),
+    )
+    .max(400),
+});
+export type DailySave = z.infer<typeof DailySaveSchema>;
+
 const sections = {
   settings: SettingsSchema,
   ftue: z.object({ done: z.boolean(), skipped: z.boolean(), step: z.string().max(40) }),
@@ -119,6 +146,8 @@ const sections = {
   /** M6: the Season Run in progress (null = none), and finished runs. */
   run: RunSaveSchema.nullable(),
   runStats: z.object({ started: count, won: count, bestHunts: count }),
+  /** M7: the Daily Hunt (a new section: older saves get the default, no migration). */
+  daily: DailySaveSchema,
 } as const;
 
 export const SaveSchema = z.object({ v: z.literal(SAVE_VERSION), ...sections });
@@ -141,5 +170,14 @@ export function defaultSave(): SaveData {
     stats: { hunts: 0, bagged: 0, shots: 0 },
     run: null,
     runStats: { started: 0, won: 0, bestHunts: 0 },
+    daily: {
+      streak: 0,
+      bestStreak: 0,
+      bestScore: null,
+      lastDay: null,
+      freezesUsed: [],
+      cosmetics: [],
+      history: [],
+    },
   };
 }
