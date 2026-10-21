@@ -17,6 +17,16 @@ function baselineProfile(info: TestInfo): void {
 // The PWA worker plays no part in what is drawn; keep every run on the network path.
 test.use({ serviceWorkers: 'block' });
 
+// The quality tier ("auto" follows core count and a benchmark) changes the render scale, so it
+// would differ between machines: baselines are taken at a fixed medium tier.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    const key = 'tm.e2e.save.v1';
+    if (localStorage.getItem(key) === null)
+      localStorage.setItem(key, JSON.stringify({ v: 1, settings: { quality: 'medium' } }));
+  });
+});
+
 /** Lets the frame settle (fonts loaded, a few frames drawn) before a screenshot. */
 async function settled(page: Page): Promise<void> {
   await page.waitForFunction(() => window.__TM__?.fontsReady === true, null, { timeout: 30_000 });
