@@ -777,7 +777,6 @@ export const BiomeSchema = obj({
       frost: z.boolean().optional(),
       rain: z.boolean().optional(),
       rainbow: z.boolean().optional(),
-      shimmer: z.boolean().optional(),
     }).optional(),
   }),
   /** M8 biome twist (GDD §11 "Gameplay twist"): on in every mode, unlike the omen. */

@@ -202,6 +202,21 @@ describe('Kettie (delayed hitscan)', () => {
     expect(misses).toEqual([1, 2]);
   });
 
+  it('a stone lands at the world point it was fired at, even if the camera pans away', () => {
+    const sim = newSim('kettie');
+    const bird = waitFor(sim, isForagingMid);
+    const a = aimAt(content, bird, { x: 0, y: -travel.dropPx.mid });
+    stepEvents(sim, [{ t: 'cameraTarget', cx: a.cx }]);
+    stepEvents(sim, [{ t: 'fire', dx: a.dx, sy: a.sy }]);
+    // Pan hard the other way while the stone flies.
+    const away = a.cx > 2500 ? 960 : 4160;
+    stepEvents(sim, [{ t: 'cameraTarget', cx: away }]);
+    const { e } = stepUntil(sim, (x) => x.type === 'pelletImpact');
+    expect(sim.snapshot().cameraX).not.toBe(a.cx);
+    expect(e.type === 'pelletImpact' && e.birdId).toBeTruthy();
+    expect(e.type === 'pelletImpact' && e.cx).toBe(a.cx);
+  });
+
   it('a stone still in the air when the hunt ends is dropped', () => {
     const sim = newSim('kettie', { mode: { huntSeconds: 1 } });
     for (let i = 0; i < 55; i++) stepEvents(sim);

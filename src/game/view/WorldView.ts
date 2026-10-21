@@ -47,6 +47,7 @@ export class WorldView {
   /** Storm gloom and lightning light (Kalahari storm, Die Stormvoël outside his boss hunt). */
   private gloom: Phaser.GameObjects.Rectangle | null = null;
   private flashLight: Phaser.GameObjects.Rectangle | null = null;
+  private stormSize = { w: 0, h: 0 };
   private readonly midScroll: number;
   private readonly rings: Phaser.GameObjects.Image[] = [];
   private readonly windBits: Phaser.GameObjects.Image[] = [];
@@ -224,10 +225,16 @@ export class WorldView {
       this.screen.addAt(this.gloom, 0);
       this.screen.addAt(this.flashLight, 1);
     }
+    if (this.stormSize.w !== width || this.stormSize.h !== height) {
+      this.stormSize = { w: width, h: height };
+      this.gloom?.setSize(width, height);
+      this.flashLight.setSize(width, height);
+    }
     const storming = s.rain && this.biome.omen.storm !== undefined;
-    this.gloom?.setSize(width, height).setAlpha(storming && !s.lightning ? STORM_GLOOM_ALPHA : 0);
-    const lit = this.prefs.reduceFlashes ? FLASH_ALPHA_REDUCED : FLASH_ALPHA;
-    this.flashLight.setSize(width, height).setAlpha(s.lightning ? lit : 0);
+    const gloom = storming && !s.lightning ? STORM_GLOOM_ALPHA : 0;
+    this.gloom?.setAlpha(gloom).setVisible(gloom > 0);
+    const lit = s.lightning ? (this.prefs.reduceFlashes ? FLASH_ALPHA_REDUCED : FLASH_ALPHA) : 0;
+    this.flashLight.setAlpha(lit).setVisible(lit > 0);
   }
 
   /** Rain (omen visual flag `rain`): streaks from a particle emitter, and a rainbow (`rainbow`). */

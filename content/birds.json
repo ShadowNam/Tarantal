@@ -201,7 +201,6 @@
         "mid"
       ],
       "behaviours": [
-        "flock",
         "hop"
       ],
       "biomes": [
@@ -228,7 +227,7 @@
           "oy": -80
         }
       },
-      "spawnWeight": 30
+      "spawnWeight": 0
     },
     {
       "id": "generaal",

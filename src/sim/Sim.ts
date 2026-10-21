@@ -1402,7 +1402,7 @@ export function createSim(config: SimConfig): Sim {
         const hit = new Set(threatened.map((t) => t.flock.id));
         applyReaction(
           'threat',
-          reactionTargets(flocks, { kind: 'all' }, cameraX, planeGeo).filter(
+          reactionTargets(flocks, { kind: 'all' }, shotCx, planeGeo).filter(
             (t) => !hit.has(t.flock.id),
           ),
           'event',
