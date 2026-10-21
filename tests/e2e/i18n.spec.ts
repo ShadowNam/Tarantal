@@ -13,9 +13,10 @@ async function seedLanguage(page: Page, language: string): Promise<void> {
 for (const lang of ['de', 'nl'] as const) {
   test(`${lang}: title, Settings and a tally render in ${lang}`, async ({ page }, info) => {
     test.skip(!isLandscape(info), 'landscape screens');
+    test.setTimeout(240_000);
     const touch = isTouchProject(info);
     await seedLanguage(page, lang);
-    await boot(page, 'huntSeconds=2');
+    await boot(page, 'huntSeconds=2&quotaMul=0');
     expect(await page.evaluate(() => document.documentElement.lang)).toBe(lang);
     const shot = (name: string) =>
       page.screenshot({ path: `${SCREENSHOTS}/i18n-${lang}-${name}-${info.project.name}.png` });
@@ -31,5 +32,25 @@ for (const lang of ['de', 'nl'] as const) {
     await startHunt(page, touch);
     await page.waitForFunction(() => window.__TM__?.scene === 'tally', null, { timeout: 90_000 });
     await shot('tally');
+    // The Padstal holds the longest new strings (help card, notes, labels).
+    await tapRect(page, touch, 'seasonRun');
+    await page.waitForFunction(() => window.__TM__?.run?.view === 'intro', null, {
+      timeout: 60_000,
+    });
+    await tapRect(page, touch, 'run.go');
+    await page.waitForFunction(
+      () =>
+        window.__TM__?.run?.view === 'tally' && window.__TM__.rects['run.padstal'] !== undefined,
+      null,
+      { timeout: 90_000 },
+    );
+    await tapRect(page, touch, 'run.padstal');
+    await page.waitForFunction(() => window.__TM__?.rects['run.helpClose'] !== undefined, null, {
+      timeout: 60_000,
+    });
+    await shot('padstal-help');
+    await tapRect(page, touch, 'run.helpClose');
+    await page.waitForFunction(() => window.__TM__?.rects['run.next'] !== undefined);
+    await shot('padstal');
   });
 }

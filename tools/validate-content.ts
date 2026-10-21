@@ -9,7 +9,8 @@ import { parseFeel } from '../src/content/feel';
 import { parseDailyMeta } from '../src/content/daily';
 import { parseNotaboek } from '../src/content/notaboek';
 import { readdirSync, readFileSync } from 'node:fs';
-import { checkLanguage } from '../src/content/i18nCheck';
+import { checkLanguage, checkLanguageSet } from '../src/content/i18nCheck';
+import { LANGUAGES } from '../src/i18n/i18n';
 
 const root = join(import.meta.dirname, '..');
 const strict = process.argv.includes('--strict');
@@ -69,6 +70,11 @@ const i18nDir = join(root, 'src/i18n');
 const readTable = (f: string): Record<string, unknown> =>
   JSON.parse(readFileSync(join(i18nDir, f), 'utf8')) as Record<string, unknown>;
 const enTable = readTable('en.json');
+const langFiles = readdirSync(i18nDir)
+  .filter((x) => /^[a-z]{2}\.json$/.test(x))
+  .map((x) => x.slice(0, 2));
+for (const message of checkLanguageSet(LANGUAGES, langFiles))
+  errors.push({ file: 'i18n/', message });
 for (const f of readdirSync(i18nDir).filter((x) => /^[a-z]{2}\.json$/.test(x) && x !== 'en.json')) {
   const file = `i18n/${f}`;
   fileNames.push(file);

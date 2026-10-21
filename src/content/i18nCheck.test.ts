@@ -1,7 +1,8 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { checkLanguage } from './i18nCheck';
+import { LANGUAGES } from '../i18n/i18n';
+import { checkLanguage, checkLanguageSet } from './i18nCheck';
 
 const dir = join(import.meta.dirname, '..', 'i18n');
 const read = (f: string): Record<string, unknown> =>
@@ -24,5 +25,16 @@ describe('every language has every string (M9)', () => {
     const langs = readdirSync(dir).filter((f) => /^[a-z]{2}\.json$/.test(f) && f !== 'en.json');
     expect(langs.sort()).toEqual(['af.json', 'de.json', 'nl.json']);
     for (const f of langs) expect(checkLanguage(f, en, read(f)), f).toEqual([]);
+  });
+
+  it('LANGUAGES and the language files are the same set', () => {
+    const files = readdirSync(dir)
+      .filter((f) => /^[a-z]{2}\.json$/.test(f))
+      .map((f) => f.slice(0, 2));
+    expect(checkLanguageSet(LANGUAGES, files)).toEqual([]);
+    expect(checkLanguageSet(['en', 'af', 'fr'], ['en', 'af', 'de'])).toEqual([
+      '"fr" is in LANGUAGES but has no fr.json',
+      'de.json exists but "de" is not in LANGUAGES',
+    ]);
   });
 });

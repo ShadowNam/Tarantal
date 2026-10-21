@@ -687,7 +687,12 @@ is the system font until M10's self-hosted display font, which must include ä �
 "LADEN!", "Freeze"/"Challenge" left in English, bird names Graulärmvogel/Schreiseeadler,
 "TATÜ-TATA!" for the car alarm, "Weiter" for skip; nl — kwêvoël and visarend names, "Baas" for
 boss, "charm" kept, "bevriezing" for the streak freeze, "Opnieuw" for reroll, invented item names
-(Bos-hagel, Stokstaartjes-spotter).
+(Bos-hagel, Stokstaartjes-spotter). *Review fixes:* the English left in de (Challenge,
+Freeze) is now "Herausforderung" and "Serienschutz"; in af "Frenzy" is "Waansin" and the rank
+"Bosveld-legende" (as on the share card). The validator also fails when `LANGUAGES` in
+`i18n.ts` and the `src/i18n/<lang>.json` files differ (checked by removing `nl` from the list →
+`content: FAILED`). `i18n.spec.ts` screenshots the Padstal (help card and shop) in de and nl;
+`padstal.spec.ts` runs en and de.
 
 *PR C review fixes:* (26e) *Hold to fire on touch* fired on every touch and broke drag-pan and
 flick-reload. A finger now stays a tap/drag/flick gesture until it has been still (< 12 px) for

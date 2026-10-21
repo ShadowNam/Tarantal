@@ -6,8 +6,8 @@ import { expect, test, type Page } from '@playwright/test';
 import { boot, hook, isLandscape, isTouchProject, SCREENSHOTS, tapRect } from './helpers';
 
 const SAVE = 'tm.e2e.save.v1';
-/** Languages this branch ships (D adds de). */
-const LANGS = ['en'] as const;
+/** English and the longest language (German). */
+const LANGS = ['en', 'de'] as const;
 
 async function seedSettings(page: Page, settings: Record<string, unknown>): Promise<void> {
   await page.addInitScript(
