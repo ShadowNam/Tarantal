@@ -5,7 +5,7 @@
 import { designSize } from '../layout';
 import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
-import { fill, t, tOr } from '../../i18n/i18n';
+import { fill, t, tOr, type I18nKey } from '../../i18n/i18n';
 import type { RunState, ShopOffer } from '../../sim/run/run';
 import type { GameContext } from '../GameContext';
 import { charmRow, drawCharmCard, RARITY_COLOR } from '../ui/charmCards';
@@ -17,10 +17,15 @@ import { sellPrice, rerollCost } from '../../sim/run/run';
 
 export type RunView = 'intro' | 'tally' | 'padstal' | 'summary';
 
+/** SaveData.notices entry: the Padstal explainer was dismissed once. */
+const PADSTAL_HELP_NOTICE = 'padstal_help';
+
 export interface RunData {
   readonly view: RunView;
   /** Padstal: the owned charm picked for selling. */
   readonly selected?: number | null;
+  /** Padstal: show the explainer card (the first visit, or the "?" button). */
+  readonly help?: boolean;
   /** Start the current hunt with the pointer type that pressed HUNT!. */
   readonly hunt: (pointerType: string) => void;
   readonly title: () => void;
@@ -112,8 +117,8 @@ export class RunScene extends Phaser.Scene {
     }
   }
 
-  private go(view: RunView, selected: number | null = null): void {
-    this.scene.restart({ ...this.data_, view, selected } satisfies RunData);
+  private go(view: RunView, selected: number | null = null, help = false): void {
+    this.scene.restart({ ...this.data_, view, selected, help } satisfies RunData);
   }
 
   private text(x: number, y: number, s: string, size: number, color = '#F3EAD3', maxW = 0) {
@@ -186,10 +191,17 @@ export class RunScene extends Phaser.Scene {
     this.itemsLine(run, p.y + 590);
     const go: Rect = { x: cx - 260, y: p.y + p.h - 150, w: 520, h: 120 };
     const menu: Rect = { x: p.x + 40, y: p.y + p.h - 130, w: 260, h: 84 };
+    // One press only (D-026): a second tap while the break before the hunt is requested must
+    // neither start a second hunt nor leave for the title under the ad.
+    let pressed = false;
     this.button(items, 'run.go', go, t('run.go'), 'primary', 64, (pt) => {
+      if (pressed) return;
+      pressed = true;
       this.data_.hunt(pt);
     });
     this.button(items, 'run.menu', menu, t('run.menu'), 'secondary', 34, () => {
+      if (pressed) return;
+      pressed = true;
       this.data_.title();
     });
     return 'run.go';
@@ -294,11 +306,17 @@ export class RunScene extends Phaser.Scene {
     const cx = p.x + p.w / 2;
     this.text(p.x + 220, p.y + 60, t('run.padstal'), 60, '#FFD25A');
     this.text(p.x + p.w - 220, p.y + 60, fill(t('run.doppies'), { n: run.doppies }), 44, '#FFD25A');
+    // "?" reopens the explainer (user feedback: what the Padstal is for).
+    const helpBtn: Rect = { x: p.x + 440, y: p.y + 24, w: 72, h: 72 };
+    this.button(items, 'run.help', helpBtn, t('run.help_open'), 'secondary', 40, () => {
+      this.go('padstal', null, true);
+    });
     const offers = run.padstal?.offers ?? [];
     const slots = this.ctx.content.charms.slots;
     const cardW = Math.min(300, (p.w - 80 - (offers.length - 1) * 20) / Math.max(1, offers.length));
+    this.label(p.x + 40, p.y + 128, t('run.for_sale'));
     const rects = slotRects(
-      { x: p.x + 40, y: p.y + 120, w: p.w - 80, h: 250 },
+      { x: p.x + 40, y: p.y + 150, w: p.w - 80, h: 240 },
       offers.length,
       cardW,
       20,
@@ -307,7 +325,7 @@ export class RunScene extends Phaser.Scene {
       const r = rects[i];
       if (r === undefined) return;
       const can = this.canBuy(run, o, slots);
-      this.offerCard(o, r, can);
+      this.offerCard(o, r, can, this.blocker(run, o, slots));
       items.push({
         id: `run.offer.${i}`,
         rect: () => r,
@@ -318,9 +336,10 @@ export class RunScene extends Phaser.Scene {
       });
     });
     const sel = this.data_.selected ?? null;
-    this.ownedRow(run, items, { x: p.x + 40, y: p.y + 420, w: p.w - 80, h: 90 }, true, sel);
-    this.itemsLine(run, p.y + 560);
-    this.text(cx, p.y + 620, t('run.drag_hint'), 26, '#D8CFB8', p.w - 80);
+    this.label(p.x + 40, p.y + 450, t('run.your_charms'));
+    this.ownedRow(run, items, { x: p.x + 40, y: p.y + 466, w: p.w - 80, h: 90 }, true, sel);
+    this.itemsLine(run, p.y + 600);
+    this.text(cx, p.y + 650, t('run.drag_hint'), 26, '#D8CFB8', p.w - 80);
 
     const by = p.y + p.h - 140;
     const reroll: Rect = { x: p.x + 40, y: by + 10, w: 340, h: 96 };
@@ -357,7 +376,82 @@ export class RunScene extends Phaser.Scene {
       this.ctx.run.leavePadstal();
       this.go('intro');
     });
+    // First visit (or "?"): the explainer card over the Padstal; it takes the input meanwhile.
+    const firstVisit = !this.ctx.save.data.notices.includes(PADSTAL_HELP_NOTICE);
+    if (this.data_.help === true || firstVisit) {
+      items.length = 0;
+      return this.helpCard(items);
+    }
     return 'run.next';
+  }
+
+  /** A left-aligned row label (Padstal: "For sale", "Your charms"). */
+  private label(x: number, y: number, s: string): void {
+    this.add.text(x, y, s, textStyle(28, '#FFD25A')).setOrigin(0, 1);
+  }
+
+  /** Why an offer can't be bought, or null: Doppies short, slots full, already renting. */
+  private blocker(run: RunState, o: ShopOffer, slots: number): string | null {
+    if (o.bought) return null;
+    if (o.kind === 'charm' && run.charms.length >= slots) return t('run.slots_full');
+    if (o.kind === 'consumable' && !run.consumables.includes(null)) return t('run.cons_full');
+    if (o.kind === 'weapon' && run.rental !== null) return t('run.rental_taken');
+    if (run.doppies < o.price) return fill(t('run.need_more'), { n: o.price - run.doppies });
+    return null;
+  }
+
+  /** The Padstal explainer (user feedback, D-026): Doppies, charms, consumables, rental, quota. */
+  private helpCard(items: MenuItem[]): string {
+    const { width, height } = designSize();
+    this.add.rectangle(0, 0, width, height, UI.ink, 0.75).setOrigin(0).setDepth(50);
+    const w = Math.min(1300, this.panel.w - 80);
+    const h = 760;
+    const x = (width - w) / 2;
+    const y = (height - h) / 2;
+    const g = this.add.graphics().setDepth(51);
+    g.fillStyle(UI.wood, 1).fillRoundedRect(x - 12, y - 12, w + 24, h + 24, 24);
+    g.fillStyle(UI.slate, 1).fillRoundedRect(x, y, w, h, 16);
+    this.text(x + w / 2, y + 60, t('run.help_title'), 52, '#FFD25A', w - 60).setDepth(52);
+    const lines: I18nKey[] = [
+      'run.help_doppies',
+      'run.help_charms',
+      'run.help_consumable',
+      'run.help_rental',
+      'run.help_quota',
+    ];
+    let ly = y + 120;
+    for (const key of lines) {
+      const tx = this.add
+        .text(x + 50, ly, `•  ${t(key)}`, {
+          ...textStyle(28),
+          fontStyle: '600',
+          wordWrap: { width: w - 100 },
+          lineSpacing: 4,
+        })
+        .setDepth(52);
+      ly += tx.height + 22;
+    }
+    const ok: Rect = { x: x + w / 2 - 200, y: y + h - 120, w: 400, h: 96 };
+    const btn = drawButton(this, ok, t('run.help_close'), 'primary', 44);
+    btn.g.setDepth(52);
+    btn.text.setDepth(53);
+    items.push({
+      id: 'run.helpClose',
+      rect: () => ok,
+      press: () => {
+        this.ctx.save.update((d) =>
+          d.notices.includes(PADSTAL_HELP_NOTICE)
+            ? d
+            : { ...d, notices: [...d.notices, PADSTAL_HELP_NOTICE] },
+        );
+        this.go('padstal', this.data_.selected ?? null, false);
+      },
+    });
+    if (this.ctx.hook) this.ctx.hook.menu = 'padstalHelp';
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      if (this.ctx.hook?.menu === 'padstalHelp') this.ctx.hook.menu = null;
+    });
+    return 'run.helpClose';
   }
 
   private canBuy(run: RunState, o: ShopOffer, slots: number): boolean {
@@ -367,7 +461,7 @@ export class RunScene extends Phaser.Scene {
     return run.rental === null;
   }
 
-  private offerCard(o: ShopOffer, r: Rect, can: boolean): void {
+  private offerCard(o: ShopOffer, r: Rect, can: boolean, blocker: string | null): void {
     if (o.kind === 'charm') {
       const card = drawCharmCard(this, this.ctx.content, r, o.id, { detail: true });
       if (!can) card.setAlpha(0.45);
@@ -401,7 +495,9 @@ export class RunScene extends Phaser.Scene {
     }
     const c = this.ctx.content.charms.charms.find((x) => x.id === o.id);
     const rarity = c === undefined ? null : tOr(`rarity.${c.rarity}`, c.rarity);
-    const label = o.bought ? t('run.sold_out') : fill(t('run.doppies'), { n: o.price });
+    const price = fill(t('run.doppies'), { n: o.price });
+    // Can't buy: say why (user feedback), not only grey the card out.
+    const label = o.bought ? t('run.sold_out') : blocker === null ? price : `${price} · ${blocker}`;
     this.text(
       r.x + r.w / 2,
       r.y + r.h - 30,
@@ -461,7 +557,11 @@ export class RunScene extends Phaser.Scene {
   /** Consumables and the rental, one line. */
   private itemsLine(run: RunState, y: number): void {
     const p = this.panel;
-    const cons = run.consumables.map((c) => (c === null ? '—' : tOr(`item.${c}`, c))).join('  ·  ');
+    // Empty slots say so (user feedback: "Boeretroos · —" read as nothing).
+    const list = run.consumables
+      .map((c) => (c === null ? t('run.items.empty') : tOr(`item.${c}`, c)))
+      .join(', ');
+    const cons = fill(t('run.items.consumables'), { list });
     const rental =
       run.rental === null
         ? t('run.rental_none')
