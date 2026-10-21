@@ -162,6 +162,8 @@ test.describe('web build', () => {
     page,
   }, info) => {
     test.skip(!isLandscape(info), 'portrait shows the rotate card');
+    // Two boots and a dozen menu steps: over the 90 s default on loaded software-GL CI runners.
+    test.setTimeout(240_000);
     const touch = isTouchProject(info);
     await boot(page, '');
     // ?e2e runs keep their own save: the player's tm.save.v1 is never touched.
