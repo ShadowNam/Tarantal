@@ -27,7 +27,8 @@
     "assets:pack": "tsx tools/pack-atlases.ts",
     "assets:standins": "tsx tools/make-standins.ts",
     "assets:audit": "tsx tools/asset-audit.ts",
-    "fonts:build": "tsx tools/make-fonts.ts"
+    "fonts:build": "tsx tools/make-fonts.ts",
+    "portal:shots": "npm run build && tsx tools/portal-shots.ts"
   },
   "dependencies": {
     "phaser": "4.2.1",
