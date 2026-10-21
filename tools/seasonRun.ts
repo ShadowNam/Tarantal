@@ -43,6 +43,8 @@ export interface RunOptions {
 
 export interface HuntRow {
   readonly huntIndex: number;
+  /** The biome the hunt played on (M8: each season's own). */
+  readonly biome: string;
   readonly score: number;
   readonly quota: number;
   readonly passed: boolean;
@@ -243,6 +245,7 @@ export function playRun(o: RunOptions): RunOutcome {
     const rec = run.history.at(-1);
     hunts.push({
       huntIndex: rec?.huntIndex ?? -1,
+      biome: result.biome,
       score: result.score,
       quota: rec?.quota ?? 0,
       passed: rec?.passed ?? false,
