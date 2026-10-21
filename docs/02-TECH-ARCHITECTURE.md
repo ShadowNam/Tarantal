@@ -438,7 +438,10 @@ export interface PlatformAdapter {
   `notices`, `loadout`, `unlocks`, `notaboek` (progress + done), `birdBook` (creatures, secrets as
   `biome/propId`), `bests` per biome (Classic), `bestRank`, `stats`, and (M6) `run` — the Season
   Run in progress (`RunState`, null when none) — and `runStats` (started, won, best hunts cleared).
-  Daily history and streak join in M7 (a new section needs no migration: it defaults).
+  M7 adds `daily` (a new section needs no migration: it defaults): `streak`, `bestStreak`,
+  `bestScore`, `lastDay` (UTC day number of the last official attempt), `freezesUsed` (ISO weeks),
+  `cosmetics` (streak milestones) and `history` (recent official attempts: day, score or null if
+  abandoned, rank, whole flocks, share grid), bounded by `content/meta/daily.json`.
 - Season Run save (M6, `src/game/run/RunFlow.ts`): written at run start and after every step of
   the tally and the Padstal (open, buy, sell, reroll, reorder, leave), so a closed tab resumes on
   the same screen; a finished run leaves the save (the summary is shown from memory). Closing the
@@ -454,11 +457,26 @@ export interface PlatformAdapter {
 - Cloud save via adapter where available; last-write-wins with per-section merge for unlocks (union).
 
 ## 12. Daily Hunt, share and challenge links
-- `dailySeed = u32(SHA-256("tm-daily|" + YYYY-MM-DD(UTC) + "|" + contentHash))`. Biome rotates by
-  day; omen + crate schedule derived from the seed.
-- Share text is built locally (no server) and copied/shared via `navigator.share` when available.
-- Challenge URL: `/?c=<base64url(JSON {v, seed, mode, biome, weapon, score, by?})>` — friend
-  challenges only (trivially editable; no leaderboard trust).
+- `dailySeed = u32(SHA-256("tm-daily|" + YYYY-MM-DD(UTC) + "|" + contentHash))`: the first 4
+  digest bytes read big-endian (`src/meta/daily.ts`, the sync SHA-256 of `content/hash.ts`, so Node
+  and every browser agree). The date comes from `Date.now()` in the game layer only; the UTC day
+  number, `YYYY-MM-DD` and ISO weeks are integer arithmetic in `src/meta/dailyCalendar.ts` (no
+  `Date`, no time zones, DST-free). Daily #n counts from `content/meta/daily.json → epoch` (#1).
+- Biome rotates by day: `biomeRotation[day mod n]` over the rotation biomes that are playable (in
+  the bundle and drawn by this build); none playable → `modes.json → daily.biome`. Omen + crate
+  schedule come from the seed's own streams (`omen`, `crates`). Daily = Classic rules with the
+  omen on (D-021), no charms, no ad boosts; the gun is the Skiet-Skuur loadout (GDD §13.7).
+  `content/meta/daily.json` is meta-only (outside the bundle and `contentHash`, like the Notaboek).
+- First attempt of the UTC day is official (claimed when the hunt starts); later ones are practice
+  and change no streak, share card, daily best, Classic best or rank. Streak/freeze rules: GDD §15.
+- Share text is built locally (no server, `src/meta/share.ts`) in the player's language and sent
+  through `PlatformAdapter.share` (§8): share sheet with text and link apart, else the clipboard.
+- Challenge URL: `/?c=<base64url(JSON {v, seed, mode, biome, weapon, score, by?, n?, h?})>` —
+  friend challenges only (trivially editable; no leaderboard trust). `mode` is `classic` or
+  `daily`; `n` = daily number (for the card), `h` = first 8 hex of `contentHash` (a mismatch still
+  plays, with a "game updated" note). `src/meta/challenge.ts` decodes with a length cap, strict Zod
+  and content checks (playable biome; a primary the sim plays — lent for that hunt even if
+  locked) and never throws. The link carries no replay, so it is not deflated (D-024).
 
 ## 13. Leaderboards (v1.x)
 Small serverless API (e.g. Cloudflare Workers + D1, or Supabase). Client submits
