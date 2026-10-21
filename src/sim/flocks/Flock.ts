@@ -144,6 +144,9 @@ export interface Flock {
   /** Whole Flock is still possible (false once it calms down — window expiry or SETTLE — or a
    *  member exits). */
   eligible: boolean;
+  /** Biome twist (Bushveld, Kalahari rain, D-025): a threat in RUN never makes this flock take
+   *  wing — it keeps running. World flushes (Vuvuzela, secrets) still do. */
+  runsOnly?: boolean;
 }
 
 /** Members' plane-space centre (the flock's own home if it has no members). */

@@ -109,7 +109,7 @@ export interface Sim {
 - **No** `Math.random`, `Date`, `performance.now`, DOM, `window`, Phaser imports, or async inside `sim/`.
   Enforced by ESLint `no-restricted-imports`/`no-restricted-globals` on `src/sim/**`.
 - **RNG:** `sfc32` seeded via `splitmix32`, with **named streams** (`rng.stream('spawns')`,
-  `'pellets'`, `'flockNoise'`, `'charms'`, `'shop'`, `'lightning'` …) so adding randomness in one system doesn't shift
+  `'pellets'`, `'flockNoise'`, `'charms'`, `'shop'`, `'lightning'`, `'twist'` …) so adding randomness in one system doesn't shift
   every other system's sequence.
 - **Cross-browser determinism:** `+ − × ÷` and `Math.sqrt` are safe. `Math.sin/cos/atan2/exp/pow/log`
   are implementation-approximated in JavaScript engines and can differ between browsers — use
@@ -173,6 +173,9 @@ export interface Sim {
   command or RNG stream: the replay stays v3.
 - Every resolution emits events: `ShotFired`, `PelletImpact`, `TargetBagged`, `Miss`, `FlockAlerted`,
   `FlockFlushed`, `SecretTriggered`, `ComboChanged`, `ScoreAwarded`, `PenaltyApplied`, …
+- Secret kinds (M8): `singleHit` may need `hitsRequired` hits over any number of shots (progress
+  is a `secretPartHit` with the hits left); `nearMiss` pays for an impact projected onto its layer
+  within `radiusPx` of the part's centre but outside its shape — its part is never a hit target.
 - Hit order within a layer (M4): birds → crates → live secret parts → occluders. Secret parts are
   shapes from `props[].secret` (on a rotor they turn with it, `src/sim/props/secrets.ts`); a part
   already hit, spent or cooling down is not a target. Wind drift (omen) shifts the pellet's screen x
@@ -195,8 +198,16 @@ export interface Sim {
 - World-event reactions are `threat | run | flush` over a scope `all | visible | area`
   (`reactionTargets`); hadeda = one threat to every flock, Vuvuzela = flush the visible ones,
   Stampede start = every flock runs (`pacing.stampede.flockState`).
+- Biome twist (M8): `biome.twist.flushAsRunChance` marks each new flock running-only with that
+  chance (stream `twist`, drawn only when the chance is above 0); a running-only flock treats a
+  threat in RUN like a late one — it never takes wing from shots. `forceState` (Vuvuzela,
+  secrets, Stampede) is unchanged.
 - Fly-overs and pop-ups are separate lightweight behaviours.
-- Bosses are birds with extra components (`armorHits`, `bossRule`, scripted moves).
+- Bosses are birds with extra components (`armorHits`, `bossRule`, scripted moves). M8
+  `peekFromCover` (Ou Grys): the boss event's `perchProps` are covers; his whole route (cover
+  order, `hideMs`, `peekMs`) is drawn from the `boss` stream when he appears, so updates need no
+  randomness. Phases `hidden` (not hittable, not drawn) and `peek`; a hit sends him to the next
+  cover hidden.
 
 ### 3.6 Spawn director
 - Budget-based: each biome defines `pacing` keyframes (`t: 0..1 → flocks per plane, flyoversPerMin,
@@ -335,6 +346,11 @@ share/challenge-link boundary (M7), because it needs async platform APIs (D-018)
   is defined in §3.3. Beyond 21:9, pillarbox. HUD anchors to safe areas (`env(safe-area-inset-*)`).
   Implemented as `Scale.FIT` + `setGameSize()` from `designSizeFor()` in `src/game/layout.ts`
   (Phaser's own `EXPAND` grows the height on 4:3 instead — D-017).
+- **Biomes (M8):** each biome's placeholder art registers in `ProceduralAssetFactory`
+  (`placeholder/biomes/*.ts`: one band painter per layer id, a prop painter); a biome is playable
+  only with art. Manifests are built on first use (`ctx.manifestFor`); the title shows the home
+  biome, and `HuntScene` rebuilds its views when a hunt's biome is another one (Daily rotation,
+  challenge, Season Run). `ctx.huntBiome` is the biome on screen.
 - **Parallax:** 6 layers using camera scroll factors (sky 0.05 → far ridge 0.15 → far veld 0.35 →
   mid 0.6 → near 1.0 → foreground framing 1.2). Layer widths = core width from §3.3 + 300 px bleed
   per side. Layer art is cut into tiles ≤ 2 048 px wide.

@@ -98,12 +98,12 @@ describe('daily number and biome', () => {
     expect(dailyBiome(-1, rot, rot, 'z')).toBe('c');
   });
 
-  it('today (Karoo only until M8) is a daily hunt on the Karoo with the omen from modes.json', () => {
+  it('with only the Karoo playable, today is a Karoo daily with the omen from modes.json', () => {
     const content = loadContent();
     const setup = dailySetup(day('2026-10-21'), {
       meta,
       contentHash: loadContentHash(),
-      playable: content.biomes.map((b) => b.id),
+      playable: ['karoo-autumn'],
       fallbackBiome: content.modes.modes.daily.biome,
     });
     expect(setup).toMatchObject({ key: '2026-10-21', number: 1, biome: 'karoo-autumn' });
@@ -120,6 +120,33 @@ describe('daily number and biome', () => {
       inputKind: 'touch',
     });
     expect(sim.snapshot().wind).not.toBeNull();
+  });
+
+  it('picks up a new playable biome automatically (M8): Bushveld on an odd day, with its omen', () => {
+    const content = loadContent();
+    const playable = ['karoo-autumn', 'bushveld-winter'];
+    const odd = dailySetup(day('2026-10-21'), {
+      meta,
+      contentHash: loadContentHash(),
+      playable,
+      fallbackBiome: content.modes.modes.daily.biome,
+    });
+    expect(day('2026-10-21') % 2).toBe(1);
+    expect(odd.biome).toBe('bushveld-winter');
+    const even = dailySetup(day('2026-10-22'), {
+      meta,
+      contentHash: loadContentHash(),
+      playable,
+      fallbackBiome: content.modes.modes.daily.biome,
+    });
+    expect(even.biome).toBe('karoo-autumn');
+    const sim = createSim({
+      seed: odd.seed,
+      content,
+      mode: dailyMode(odd, undefined),
+      inputKind: 'pointer',
+    });
+    expect(sim.snapshot().glare).not.toBeNull();
   });
 });
 

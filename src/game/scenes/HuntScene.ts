@@ -5,7 +5,7 @@
 // never writes into the sim: input reaches it only as Commands. Esc, P, the HUD pause button or
 // a hidden tab open the pause menu; the hunt clock holds while it is open.
 import * as Phaser from 'phaser';
-import type { Weapon } from '../../content/schemas';
+import type { Biome, Weapon } from '../../content/schemas';
 import { DebugOverlay } from '../../debug/DebugOverlay';
 import { fill, t } from '../../i18n/i18n';
 import type { Challenge } from '../../meta/challenge';
@@ -18,7 +18,7 @@ import { createRecorder, encodeInputLogText, type InputRecorder } from '../../si
 import { createSim } from '../../sim/Sim';
 import type { HuntResult, InputKind, ModeConfig, ModeId, SimState } from '../../sim/types';
 import { CAMERA_MAX_X, CAMERA_MIN_X } from '../../sim/world';
-import { neededBeforeStart } from '../assets/AssetManifest';
+import { neededBeforeStart, type AssetManifest } from '../assets/AssetManifest';
 import type { HuntPlan } from '../daily/DailyFlow';
 import { FtueDirector, type FtueStep } from '../ftue/FtueDirector';
 import type { GameContext } from '../GameContext';
@@ -75,6 +75,9 @@ export class HuntScene extends Phaser.Scene {
   /** M7: Classic/Daily/challenge setup (null for the FTUE and Season Run hunts). */
   private plan: HuntPlan | null = null;
   private shareLog: ShareLogger | null = null;
+  /** The biome on screen and its manifest (the home biome until a hunt in another starts). */
+  private biome!: Biome;
+  private manifest!: AssetManifest;
 
   constructor(ctx: GameContext) {
     super({ key: 'Hunt' });
@@ -93,51 +96,13 @@ export class HuntScene extends Phaser.Scene {
     this.ctx.menuPaused = false;
     this.cleanups = [];
     this.lastFrameAt = null;
+    this.biome = this.ctx.biome;
+    this.manifest = this.ctx.manifest;
+    this.ctx.huntBiome = this.biome;
     // Scenery and UI now; birds are drawn a few at a time while the start card shows.
-    this.texturesDone = this.ctx.manifest.install(this.textures, neededBeforeStart);
+    this.texturesDone = this.manifest.install(this.textures, neededBeforeStart);
     if (this.ctx.hook) this.ctx.hook.boot['textures'] ??= performance.now();
-    const { width, height } = this.scale.gameSize;
-    this.cameras.main.setSize(width, height);
-
-    this.parallax = new ParallaxView(this, this.ctx.biome, this.ctx.manifest);
-    this.screen = this.add.container(0, 0);
-    this.birds = new BirdView(
-      this,
-      this.ctx.manifest,
-      this.parallax,
-      this.ctx.content,
-      (creature) => !this.ctx.save.data.birdBook.creatures.includes(creature),
-    );
-    this.fx = new Fx(
-      this,
-      this.ctx.feel,
-      this.parallax,
-      this.screen,
-      (id) => this.birds.positionOf(id),
-      (id) => this.birds.potOf(id),
-      this.ctx.content.powerups.crates.plane,
-      this.ctx.prefs,
-    );
-    this.world = new WorldView(
-      this,
-      this.ctx.content,
-      this.ctx.feel,
-      this.ctx.biome,
-      this.parallax,
-      this.screen,
-      this.ctx.prefs,
-    );
-    this.weapon = new WeaponView(this, this.ctx.feel, this.screen, this.ctx.prefs);
-    this.debug = new DebugOverlay(
-      this,
-      this.ctx.content,
-      this.ctx.biome,
-      this.parallax,
-      this.screen,
-    );
-    this.debug.setVisible(this.ctx.debug);
-    this.relayout();
-    this.parallax.update((CAMERA_MIN_X + CAMERA_MAX_X) / 2, width);
+    this.buildViews();
 
     this.scale.on(Phaser.Scale.Events.RESIZE, this.relayout);
     // Browsers (iOS especially) only let audio start from pointerup/touchend/keydown, not from a
@@ -172,6 +137,58 @@ export class HuntScene extends Phaser.Scene {
       this.ctx.hook.ready = true;
       this.ctx.hook.boot['ready'] ??= performance.now();
     }
+  }
+
+  /** Every view of the hunt for the scene's biome (a hunt in another biome rebuilds them). */
+  private buildViews(): void {
+    const { width, height } = this.scale.gameSize;
+    this.cameras.main.setSize(width, height);
+    this.parallax = new ParallaxView(this, this.biome, this.manifest);
+    this.screen = this.add.container(0, 0);
+    this.birds = new BirdView(
+      this,
+      this.manifest,
+      this.parallax,
+      this.ctx.content,
+      (creature) => !this.ctx.save.data.birdBook.creatures.includes(creature),
+    );
+    this.fx = new Fx(
+      this,
+      this.ctx.feel,
+      this.parallax,
+      this.screen,
+      (id) => this.birds.positionOf(id),
+      (id) => this.birds.potOf(id),
+      this.ctx.content.powerups.crates.plane,
+      this.ctx.prefs,
+    );
+    this.world = new WorldView(
+      this,
+      this.ctx.content,
+      this.ctx.feel,
+      this.biome,
+      this.parallax,
+      this.screen,
+      this.ctx.prefs,
+    );
+    this.weapon = new WeaponView(this, this.ctx.feel, this.screen, this.ctx.prefs);
+    this.debug = new DebugOverlay(this, this.ctx.content, this.biome, this.parallax, this.screen);
+    this.debug.setVisible(this.ctx.debug);
+    this.relayout();
+    this.parallax.update((CAMERA_MIN_X + CAMERA_MAX_X) / 2, width);
+  }
+
+  /** M8: a hunt in another biome (Daily rotation, challenge, Season Run) swaps the scenery. */
+  private useBiome(id: string): void {
+    if (id === this.biome.id) return;
+    const next = this.ctx.content.biomes.find((b) => b.id === id);
+    if (next === undefined || !this.ctx.playableBiomes.includes(id)) return;
+    for (const obj of [...this.children.list]) obj.destroy();
+    this.biome = next;
+    this.manifest = this.ctx.manifestFor(next);
+    this.ctx.huntBiome = next;
+    this.texturesDone = this.manifest.install(this.textures);
+    this.buildViews();
   }
 
   private readonly relayout = (): void => {
@@ -272,11 +289,6 @@ export class HuntScene extends Phaser.Scene {
     this.scene.stop('Title');
     this.scene.stop('Challenge');
     this.ctx.audio.unlock();
-    if (!this.texturesDone) this.texturesDone = this.ctx.manifest.install(this.textures);
-    if (this.ctx.hook) {
-      this.ctx.hook.boot['huntStart'] ??= performance.now();
-      this.ctx.hook.missingTextures = this.ctx.manifest.missing(this.textures);
-    }
     this.inputKind = kind;
     const save = this.ctx.save.data;
     // Settings may have changed on the title (left-handed moves the gun).
@@ -298,16 +310,40 @@ export class HuntScene extends Phaser.Scene {
       ...(this.ctx.omen === undefined || modeId === 'ftue' ? {} : { omen: this.ctx.omen }),
     };
     // Classic, Daily and challenge hunts: seed and mode from the daily flow (M7).
-    const plan =
+    let plan =
       plainMode === null
         ? null
         : this.ctx.daily.plan(plainMode, challenge, weapon, extra, () => this.ctx.nextSeed());
+    const biomeParam = this.ctx.classicBiome;
+    if (
+      plan?.mode.id === 'classic' &&
+      plan.challenge === null &&
+      biomeParam !== undefined &&
+      this.ctx.playableBiomes.includes(biomeParam)
+    )
+      plan = { ...plan, mode: { ...plan.mode, biome: biomeParam } };
     this.plan = plan;
     this.modeId = plan?.mode.id ?? modeId;
     // A Season Run hunt comes from the run (seed, biome, weapon, charms, Boss Rule …).
     const runHunt = modeId === 'seasonHunt' ? this.ctx.run.setup(this.ctx.huntSeconds) : null;
     const mode: ModeConfig = runHunt?.mode ??
       plan?.mode ?? { id: modeId, ...(weapon === undefined ? {} : { weapon }), ...extra };
+    // The hunt's biome may not be the one behind the title (M8): swap the scenery first.
+    this.useBiome(
+      mode.biome ??
+        (mode.id === 'seasonHunt' ? this.biome.id : this.ctx.content.modes.modes[mode.id].biome),
+    );
+    if (!this.texturesDone) this.texturesDone = this.manifest.install(this.textures);
+    if (this.ctx.hook) {
+      this.ctx.hook.boot['huntStart'] ??= performance.now();
+      this.ctx.hook.missingTextures = this.manifest.missing(this.textures);
+      this.ctx.hook.biome = this.biome.id;
+      this.ctx.hook.omen =
+        mode.omen ??
+        (mode.id === 'seasonHunt'
+          ? mode.season?.kind === 'omen'
+          : this.ctx.content.modes.modes[mode.id].omen);
+    }
     const aimAssist = save.settings.aimAssist;
     const seed = runHunt?.seed ?? plan?.seed ?? this.ctx.nextSeed();
     const sim = createSim({ seed, content: this.ctx.content, mode, inputKind: kind, aimAssist });
@@ -404,7 +440,7 @@ export class HuntScene extends Phaser.Scene {
     this.ctx.platform.gameplayStart();
     this.ctx.platform.analytics('hunt_start', {
       mode: this.modeId,
-      biome: mode.biome ?? this.ctx.biome.id,
+      biome: this.biome.id,
       weapon: weapon ?? sim.snapshot().weapon.id,
       inputKind: kind,
       aimAssist,
@@ -457,11 +493,7 @@ export class HuntScene extends Phaser.Scene {
     this.weapon.update(delta);
     if (runner === null) {
       if (!this.texturesDone) {
-        this.texturesDone = this.ctx.manifest.install(
-          this.textures,
-          () => true,
-          BACKGROUND_DRAW_MS,
-        );
+        this.texturesDone = this.manifest.install(this.textures, () => true, BACKGROUND_DRAW_MS);
         if (this.texturesDone && this.ctx.hook)
           this.ctx.hook.boot['allTextures'] ??= performance.now();
       }
@@ -517,6 +549,7 @@ export class HuntScene extends Phaser.Scene {
       hook.magazine = state.weapon.magazine;
       hook.reloading = state.weapon.reloading;
       hook.stones = state.projectiles.length;
+      hook.glare = state.glare?.side ?? null;
       hook.cameraX = state.cameraX;
       hook.birds = state.birds.length;
       hook.gadgetCharges = state.gadget?.charges ?? 0;

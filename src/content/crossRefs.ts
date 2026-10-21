@@ -430,12 +430,21 @@ function checkEventShape(
       needs(event.perchProps !== undefined, 'perchProps');
       needs(event.stayMs !== undefined, 'stayMs');
       return;
-    case 'bossAppearance':
+    case 'bossAppearance': {
       needs(c?.kind === 'boss', 'a boss creature');
       needs(event.roamPx !== undefined, 'roamPx');
       needs(event.perchProps !== undefined, 'perchProps');
       needs(event.stayMs !== undefined, 'stayMs');
+      // M8: a boss that peeks from cover moves between at least two cover props.
+      const peeks = c !== undefined && c.kind === 'boss' && c.behaviours.includes('peekFromCover');
+      if (peeks) {
+        needs(event.peekMs !== undefined && event.hideMs !== undefined, 'peekMs and hideMs');
+        needs((event.perchProps?.length ?? 0) >= 2, 'two or more perchProps (cover)');
+      } else if (event.peekMs !== undefined || event.hideMs !== undefined) {
+        err('peekMs/hideMs are only for a peekFromCover boss');
+      }
       return;
+    }
     case 'dustDevil':
       needs(
         event.plane !== undefined &&

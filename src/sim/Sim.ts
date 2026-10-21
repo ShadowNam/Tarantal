@@ -16,10 +16,10 @@ import {
   type Bird,
   type BirdCreature,
 } from './birds/Bird';
-import { spookBoss, updateScripted } from './birds/scripted';
+import { duckBoss, spookBoss, updateScripted } from './birds/scripted';
 import { createCharmEngine, type FiredEffect, type TriggerContext } from './charms/interpreter';
 import { CHARM_SCRIPTS } from './charms/registry';
-import { clampCameraX, planeCentreX, planeToDx } from './camera';
+import { clampCameraX, planeCentreX, planeToDx, tapToPlane } from './camera';
 import { sanitiseCommand } from './commands';
 import { msToTicks, secondsToTicks } from './clock';
 import { createDirector, type DirectorContext } from './director/SpawnDirector';
@@ -71,6 +71,7 @@ import {
   activeParts,
   buildSecrets,
   hitPart,
+  nearMiss,
   partPosition,
   secretView,
   tickSecret,
@@ -299,6 +300,8 @@ export function createSim(config: SimConfig): Sim {
   const weaponState = createWeaponState(timing);
   const fParams = flockParams(content);
   const flockRng = rng.stream('flockNoise');
+  const twistRng = rng.stream('twist');
+  const runChance = biome.twist?.flushAsRunChance ?? 0;
   const omenRng = rng.stream('omen');
   const director = createDirector({
     content,
@@ -469,6 +472,11 @@ export function createSim(config: SimConfig): Sim {
   const wind =
     setup.omen && biome.omen.wind !== undefined ? createWind(biome.omen.wind, omenRng) : null;
   let dustDevils: DustDevil[] = [];
+  /** Bushveld low sun (omen): which side of the view the glare is on, drawn once (D-025). */
+  const glare =
+    setup.omen && biome.omen.glare !== undefined
+      ? { side: omenRng.chance(0.5) ? (1 as const) : (-1 as const), ...biome.omen.glare }
+      : null;
   /** Creature time accumulator (Boeretroos slows creatures, GDD §10.4). */
   let creatureClock = 0;
   // Season Run state.
@@ -572,6 +580,8 @@ export function createSim(config: SimConfig): Sim {
 
   function addFlocks(added: readonly Flock[]): void {
     for (const f of added) {
+      // Biome twist (Bushveld): some flocks run instead of taking wing (own stream, D-025).
+      if (runChance > 0) f.runsOnly = twistRng.chance(runChance);
       flocks.push(f);
       addBirds(f.members);
       const c = centroid(f);
@@ -1043,6 +1053,7 @@ export function createSim(config: SimConfig): Sim {
         if (d.armorLeft === 0) spookBoss(b);
       } else if (d.kind === 'hit') {
         emit({ type: 'targetHit', tick, shotId, birdId: b.id, hitsLeft: d.hitsLeft });
+        duckBoss(b);
       } else {
         bagged.push({ bird: b, behaviour: behaviourOf(b) });
       }
@@ -1194,6 +1205,15 @@ export function createSim(config: SimConfig): Sim {
     for (const id of crateHits) openCrate(id);
     for (const s of secrets) {
       for (const h of partHits) if (h.propId === s.propId) hitSecretPart(s, h.partId);
+      // Near-miss secrets (the dassie): a pellet that landed close to the part, not on it.
+      if (s.nearMissPx > 0) {
+        for (const imp of impacts) {
+          const p = tapToPlane(shotCx, s.scrollFactor, imp.dx, imp.sy);
+          if (!nearMiss(s, p.x, p.y)) continue;
+          triggerSecret(s, s.parts[0]?.id ?? '');
+          break;
+        }
+      }
     }
     // Threats (GDD §6.2): one per flock in range of any impact, hit or miss. Charms scale the
     // radius (Stil Loop: a miss alerts nobody).
@@ -1751,6 +1771,7 @@ export function createSim(config: SimConfig): Sim {
         powerups: powerups.map(powerupView),
         wind: windView(wind),
         dustDevils: dustDevils.map(dustDevilView),
+        glare,
         projectiles: flights.map((f) => ({
           shotId: f.shotId,
           dx: f.dx,

@@ -76,14 +76,19 @@ describe('run structure (GDD §13.1)', () => {
     });
   });
 
-  it('seasons without a biome yet run on the Karoo (biomeFallback) with their own boss rule', () => {
+  it('each season runs on its own biome once loaded (M8), else on the Karoo stand-in', () => {
     expect(huntInfo(base, 0)).toMatchObject({ biome: 'karoo-autumn', biomeFallback: false });
     expect(huntInfo(base, 5)).toMatchObject({
       season: 'winter',
-      biome: 'karoo-autumn',
-      biomeFallback: true,
+      biome: 'bushveld-winter',
+      biomeFallback: false,
       boss: 'ou_grys',
       bossRule: 'groundShotsZero',
+    });
+    expect(huntInfo(base, 6)).toMatchObject({
+      season: 'lente',
+      biome: 'karoo-autumn',
+      biomeFallback: true,
     });
   });
 

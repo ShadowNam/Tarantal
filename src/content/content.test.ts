@@ -125,7 +125,7 @@ describe('content cross-references', () => {
     const report = checkCrossRefs(parseOk(raw), { i18nKeys });
     expect(report.errors).toEqual([]);
     const text = report.warnings.map((w) => w.message).join('\n');
-    expect(text).toMatch(/bushveld-winter/);
+    expect(text).toMatch(/okavango-spring/);
     expect(text).toMatch(/bag_50_far/);
     // M6: Bles's farmDog has its own handler; the last charm warning is gone.
     expect(text).not.toMatch(/farmDog|charms\.json/);
@@ -171,7 +171,21 @@ describe('content cross-references', () => {
   it('turn warnings into errors with strict', () => {
     const report = checkCrossRefs(parseOk(raw), { i18nKeys, strict: true });
     expect(report.warnings).toEqual([]);
-    expect(report.errors.some((e) => /bushveld-winter/.test(e.message))).toBe(true);
+    expect(report.errors.some((e) => /okavango-spring/.test(e.message))).toBe(true);
+  });
+
+  it('catch a peekFromCover boss without peek timings or cover (M8)', () => {
+    const c = clone();
+    const biome = asObj(c.biomes['biomes/bushveld-winter.json']);
+    const boss = asArr(biome['events']).find((e) => e['id'] === 'bossAppearance');
+    if (boss === undefined) throw new Error('no boss event');
+    delete boss['peekMs'];
+    boss['perchProps'] = ['boulder_a'];
+    const text = checkCrossRefs(parseOk(c), { i18nKeys })
+      .errors.map((e) => e.message)
+      .join('\n');
+    expect(text).toMatch(/peekMs and hideMs/);
+    expect(text).toMatch(/two or more perchProps/);
   });
 
   it('catch a biome that spawns an unknown creature', () => {

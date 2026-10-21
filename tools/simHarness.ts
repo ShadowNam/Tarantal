@@ -14,10 +14,10 @@ export const base = loadContent();
 export type Mutable<T> = { -readonly [K in keyof T]: Mutable<T[K]> };
 export type Content = Mutable<ContentBundle>;
 
-/** The real content with everything that spawns on its own switched off. */
-export function quiet(): Content {
+/** The real content with everything that spawns on its own switched off (in one biome). */
+export function quiet(biomeId = 'karoo-autumn'): Content {
   const c = structuredClone(base) as Content;
-  const biome = karooOf(c);
+  const biome = biomeOf(c, biomeId);
   for (const k of biome.pacing.keyframes) {
     k.flocks = {};
     k.flyoversPerMin = 0;
@@ -32,10 +32,14 @@ export function quiet(): Content {
   return c;
 }
 
-export function karooOf(c: Content): Mutable<Biome> {
-  const b = c.biomes[0];
-  if (b === undefined) throw new Error('no biome');
+export function biomeOf(c: Content, id: string): Mutable<Biome> {
+  const b = c.biomes.find((x) => x.id === id);
+  if (b === undefined) throw new Error(`no biome ${id}`);
   return b;
+}
+
+export function karooOf(c: Content): Mutable<Biome> {
+  return biomeOf(c, 'karoo-autumn');
 }
 
 export function newSim(c: Content, mode: ModeConfig = { id: 'classic' }, seed = 3): Sim {
@@ -123,8 +127,8 @@ export function waitForBird(sim: Sim, c: Content, creature: string, maxTicks = 3
 export const settle = (sim: Sim): SimEvent[] => run(sim, 12);
 
 /** A mid flock is on the plane before the test starts. */
-export function withMidFlock(c: Content): Content {
-  for (const k of karooOf(c).pacing.keyframes) k.flocks = { mid: 1 };
+export function withMidFlock(c: Content, biomeId = 'karoo-autumn'): Content {
+  for (const k of biomeOf(c, biomeId).pacing.keyframes) k.flocks = { mid: 1 };
   return c;
 }
 

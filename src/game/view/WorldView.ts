@@ -33,6 +33,7 @@ export class WorldView {
   private readonly crates = new Map<number, Phaser.GameObjects.Image>();
   private readonly devils = new Map<number, Phaser.GameObjects.Image>();
   private readonly stones = new Map<number, Phaser.GameObjects.Image>();
+  private glare: Phaser.GameObjects.Image | null = null;
   private readonly midScroll: number;
   private readonly rings: Phaser.GameObjects.Image[] = [];
   private readonly windBits: Phaser.GameObjects.Image[] = [];
@@ -75,6 +76,7 @@ export class WorldView {
     this.drawCrates(s);
     this.drawDevils(s, now);
     this.drawStones(s, width, height);
+    if (s.glare !== null) this.drawGlare(s.glare, width, height);
     this.drawRings(s);
     this.drawHelper(s, width, height);
     this.blowWind(s, width, height);
@@ -191,6 +193,19 @@ export class WorldView {
       });
       this.devils.delete(id);
     }
+  }
+
+  /** Bushveld low sun (omen): a warm glare band on one edge of the screen (drawn only). */
+  private drawGlare(g: NonNullable<SimState['glare']>, width: number, height: number): void {
+    if (this.glare === null) {
+      this.glare = this.scene.add.image(0, 0, TEX.glare).setAlpha(g.alpha);
+      this.screen.addAt(this.glare, 0);
+    }
+    this.glare
+      .setOrigin(1, 0)
+      .setFlipX(g.side < 0)
+      .setPosition(g.side > 0 ? width : g.widthPx, 0)
+      .setDisplaySize(g.widthPx, height);
   }
 
   /** Kettie stones in the air: from the gun up to the aim point, shrinking as they go (the

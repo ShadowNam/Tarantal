@@ -13,7 +13,7 @@ import {
 import { pelletOffsets } from './pellets';
 
 const content = loadContent();
-const biome = content.biomes[0];
+const biome = content.biomes.find((b) => b.id === 'karoo-autumn');
 if (biome === undefined) throw new Error('no biome');
 const tarentaal = content.birds.creatures.find((c) => c.id === 'tarentaal');
 if (tarentaal?.kind !== 'target') throw new Error('no tarentaal');

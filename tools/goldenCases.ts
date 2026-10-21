@@ -154,6 +154,44 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
       weapon: 'pomp',
     },
   },
+  // M8 (PR B): Winter · Bushveld — Classic (Ou Grys peeks, flocks that run), a Daily with the
+  // glare omen, and the Season Run boss hunt with Ou Grys's own rule.
+  {
+    name: 'classic-31-bushveld-competent-pointer',
+    seed: 31,
+    bot: 'competent',
+    mode: 'classic',
+    inputKind: 'pointer',
+    modeConfig: { id: 'classic', biome: 'bushveld-winter' },
+  },
+  {
+    name: 'daily-32-bushveld-aim-touch',
+    seed: 32,
+    bot: 'aim',
+    mode: 'daily',
+    inputKind: 'touch',
+    modeConfig: { id: 'daily', biome: 'bushveld-winter' },
+  },
+  {
+    name: 'season-winter-boss-bushveld-competent',
+    seed: 33,
+    bot: 'competent',
+    mode: 'seasonHunt',
+    inputKind: 'pointer',
+    modeConfig: {
+      id: 'seasonHunt',
+      biome: 'bushveld-winter',
+      weapon: 'dubbelloop',
+      season: {
+        kind: 'boss',
+        boss: 'ou_grys',
+        charms: ['vlerkskoot'],
+        consumables: [null, null],
+        rental: null,
+        runShellBonus: 0,
+      },
+    },
+  },
   // M7: the Daily Hunt of 2026-10-21 on the Karoo, omen on. The seed is pinned to the value
   // dailySeed('2026-10-21', contentHash) had at M7 (D-025): derived live, it changed with every
   // content edit and so did these hashes. daily.spec.ts still checks the browser derives the same

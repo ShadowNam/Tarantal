@@ -115,6 +115,7 @@ export function birdKey(creature: string, plane: PlaneId, frame: BirdFrame): str
 /** Fixed keys for UI and FX textures. */
 export const TEX = {
   stone: 'fx/stone',
+  glare: 'omen/glare',
   shell: 'ui/shell',
   shellEmpty: 'ui/shell_empty',
   reticle: 'ui/reticle',

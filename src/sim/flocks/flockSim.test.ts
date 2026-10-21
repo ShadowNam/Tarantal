@@ -79,7 +79,7 @@ describe('flocks in the sim', () => {
     const c = flockContent();
     const sim = createSim({ seed: 3, content: c, mode: { id: 'classic' }, inputKind: 'pointer' });
     const s = sim.snapshot();
-    const k0 = c.biomes[0]?.pacing.keyframes[0]?.flocks ?? {};
+    const k0 = c.biomes.find((b) => b.id === 'karoo-autumn')?.pacing.keyframes[0]?.flocks ?? {};
     expect(s.flocks.filter((f) => f.plane === 'mid')).toHaveLength(k0.mid ?? 0);
     expect(s.flocks.filter((f) => f.plane === 'far')).toHaveLength(k0.far ?? 0);
     const d = c.birds.flockDefaults;
@@ -250,7 +250,7 @@ describe('flocks in the sim', () => {
 
   it('hadeda fly-over: one threat to every flock (alertsAllFlocks)', () => {
     const c = flockContent((x) => {
-      const b = x.biomes[0];
+      const b = x.biomes.find((b) => b.id === 'karoo-autumn');
       if (b)
         b.events = [{ id: 'hadeda', creature: 'hadeda', perHunt: [1, 1], window: [0.02, 0.02] }];
     });
@@ -349,12 +349,12 @@ describe('flocks in the sim', () => {
     const c = flockContent((x) => {
       x.birds.flockDefaults.spawnSpacingPx = 300;
       x.birds.flockDefaults.spawnSpreadPx = 150;
-      const keys = x.biomes[0]?.pacing.keyframes ?? [];
+      const keys = x.biomes.find((b) => b.id === 'karoo-autumn')?.pacing.keyframes ?? [];
       keys.forEach((k, i) => {
         k.flocks = i === 0 ? { mid: 1 } : { mid: 2, far: 1 };
       });
     });
-    const pacing = c.biomes[0]?.pacing;
+    const pacing = c.biomes.find((b) => b.id === 'karoo-autumn')?.pacing;
     if (!pacing) throw new Error('no biome');
     const sim = newSim(c, 11);
     const spawns: SimEvent[] = [];

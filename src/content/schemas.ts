@@ -638,9 +638,24 @@ const secretSchema = z.discriminatedUnion('type', [
     /** Exactly one of these: pays once per hunt, or again after the cooldown. */
     oncePerHunt: z.literal(true).optional(),
     cooldownSeconds: pos.optional(),
+    /** M8: hits (over any number of shots) before it pays, e.g. the Bushveld boulder crack. */
+    hitsRequired: z.number().int().min(2).optional(),
     reward: secretRewardSchema,
   }).refine((s) => (s.oncePerHunt === true) !== (s.cooldownSeconds !== undefined), {
     message: 'singleHit secrets need exactly one of oncePerHunt or cooldownSeconds',
+  }),
+  /** M8: shoot *near* the part, not at it (the Bushveld dassie): a pellet landing within
+   *  `radiusPx` (layer px) of the part's centre but outside its shape pays. The part is not a
+   *  target: pellets pass it. */
+  obj({
+    type: z.literal('nearMiss'),
+    part: secretPartSchema,
+    radiusPx: pos,
+    oncePerHunt: z.literal(true).optional(),
+    cooldownSeconds: pos.optional(),
+    reward: secretRewardSchema,
+  }).refine((s) => (s.oncePerHunt === true) !== (s.cooldownSeconds !== undefined), {
+    message: 'nearMiss secrets need exactly one of oncePerHunt or cooldownSeconds',
   }),
 ]);
 
@@ -699,6 +714,9 @@ export const BiomeSchema = obj({
       stayMs: range(pos).optional(),
       /** Bosses: how far (design px at mid) they roam from their perch point. */
       roamPx: pos.optional(),
+      /** M8 peekFromCover bosses (Ou Grys): how long a peek and a hide between covers last. */
+      peekMs: range(pos).optional(),
+      hideMs: range(pos).optional(),
       /** Dust devils: the plane they cross, contact radius (design px at mid) and life. */
       plane: PlaneIdSchema.optional(),
       radiusPx: pos.optional(),
@@ -715,13 +733,22 @@ export const BiomeSchema = obj({
         driftPxAtFar: nonNeg,
       })
       .optional(),
-    /** Renderer-only flags. New omens add their flags here in M8 (strict, so typos fail). */
+    /** M8 Bushveld low sun: a glare band this wide (design px of the screen) on one side of the
+     *  view, the side drawn from the omen stream at hunt start. Drawn only; no sim rule. */
+    glare: obj({ widthPx: pos, alpha: fraction }).optional(),
+    /** Renderer-only flags. New omens add their flags here (strict, so typos fail). */
     visual: obj({
       windSock: z.boolean().optional(),
       leaves: z.boolean().optional(),
       dust: z.boolean().optional(),
+      frost: z.boolean().optional(),
     }).optional(),
   }),
+  /** M8 biome twist (GDD §11 "Gameplay twist"): on in every mode, unlike the omen. */
+  twist: obj({
+    /** Share of flocks that run instead of taking wing when a threat would flush them. */
+    flushAsRunChance: fraction.optional(),
+  }).optional(),
   pacing: obj({
     keyframes: z
       .array(

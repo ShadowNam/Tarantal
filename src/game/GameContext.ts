@@ -92,6 +92,11 @@ export interface TestHook {
   specialBirds: { id: number; creature: string; phase: string; x: number; y: number }[];
   /** Active weapon id, power-up ids, wind (omen) and hunt length (bonus time grows it). */
   weapon: string;
+  /** M8: biome of the hunt on screen, and the omen's glare side (Bushveld) or null. */
+  biome: string;
+  glare: number | null;
+  /** M8: the omen (biome weather) is on in this hunt. */
+  omen: boolean;
   powerups: string[];
   wind: { dir: number; strength: number } | null;
   durationTicks: number;
@@ -132,8 +137,15 @@ export interface GameContext {
   readonly content: ContentBundle;
   readonly contentHash: string;
   readonly feel: Feel;
+  /** The home biome (Classic's, the panorama behind the title) and its asset manifest. */
   readonly biome: Biome;
   readonly manifest: AssetManifest;
+  /** M8: biomes this build can draw, in content order (Daily rotation, challenges, the run). */
+  readonly playableBiomes: readonly string[];
+  /** M8: a playable biome's manifest (built on first use, then cached). */
+  manifestFor(biome: Biome): AssetManifest;
+  /** M8: the biome of the hunt on screen (the home biome between hunts). */
+  huntBiome: Biome;
   readonly audio: AudioDirector;
   /** Settings + progress (SaveData v1). */
   readonly save: SaveStore;
@@ -162,6 +174,8 @@ export interface GameContext {
   readonly huntSeconds: number | undefined;
   /** e2e/dev only: ?omen=1 / ?omen=0 overrides the mode's omen. */
   readonly omen: boolean | undefined;
+  /** e2e/dev only: ?biome= plays Classic hunts in another playable biome (M8). */
+  readonly classicBiome: string | undefined;
   /** Device hint before the first touch: coarse pointer → touch hints on the start card. */
   readonly coarsePointer: boolean;
   readonly reducedMotion: boolean;

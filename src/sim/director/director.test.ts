@@ -4,7 +4,7 @@ import { createRng } from '../rng';
 import { scheduleWorldEvents } from './events';
 import { flockTargetsAt, pacingAt } from './pacing';
 
-const biome = loadContent().biomes[0];
+const biome = loadContent().biomes.find((b) => b.id === 'karoo-autumn');
 if (biome === undefined) throw new Error('no biome');
 
 describe('pacing', () => {

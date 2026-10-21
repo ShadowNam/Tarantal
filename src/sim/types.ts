@@ -83,7 +83,7 @@ export type BirdMotion = 'flyover' | 'popup' | 'flock' | 'perch' | 'boss';
 /**
  * fly-over: fly · pop-up: rise/stare/duck · flock member (GDD §6.1): walk (forage), alert,
  * run, launch (crouched for its stagger), flap (steep take-off and flight), glide, land (running
- * on after touching down).
+ * on after touching down). Peeking bosses: hidden (behind cover, can't be hit), peek.
  */
 export type BirdPhase =
   | 'fly'
@@ -97,7 +97,10 @@ export type BirdPhase =
   | 'flap'
   | 'glide'
   | 'land'
-  | 'perch';
+  | 'perch'
+  // M8 peekFromCover bosses (Ou Grys): behind cover (not hittable) or peeking out.
+  | 'hidden'
+  | 'peek';
 
 /** Flock FSM states (GDD §6.1, Tech §3.5). Roost (dusk hunts) arrives with the dusk biomes. */
 export type FlockState = 'forage' | 'alert' | 'run' | 'flush' | 'settle';
@@ -246,6 +249,12 @@ export interface SimState {
   /** Null when the omen is off or the biome has no wind. */
   readonly wind: WindView | null;
   readonly dustDevils: readonly DustDevilView[];
+  /** Bushveld low sun (omen hunts): glare band on the left (−1) or right (+1) of the view. */
+  readonly glare: {
+    readonly side: 1 | -1;
+    readonly widthPx: number;
+    readonly alpha: number;
+  } | null;
   /** Kettie stones in the air (render only), in fire order. */
   readonly projectiles: readonly ProjectileView[];
   /** Season Run hunts only. */

@@ -30,7 +30,7 @@ afterEach(() => {
 
 describe('AssetManifest.install', () => {
   const content = loadContent();
-  const biome = content.biomes[0];
+  const biome = content.biomes.find((b) => b.id === 'karoo-autumn');
   if (!biome) throw new Error('no biome');
 
   it('reports incomplete while filtered-out textures (birds) are still missing', () => {

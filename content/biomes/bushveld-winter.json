@@ -1,0 +1,428 @@
+{
+  "$comment": "Winter · Bushveld (Limpopo/Waterberg), GDD §11 row 2. Positions: 'u' 0..1 across the layer core width, 'y' design px; windows are fractions of hunt length. Twist (every mode): 60 % of flocks run instead of taking wing when a threat would flush them (D-025). Omen (Season omen hunts, Daily): low sun glare on one side of the view, frost mist — drawn only. Granite boulders occlude and are Ou Grys's cover.",
+  "version": 1,
+  "id": "bushveld-winter",
+  "season": "winter",
+  "nameKey": "biome.bushveld_winter",
+  "panoramaWidth": 3840,
+  "skyBand": {
+    "top": 80,
+    "bottom": 420
+  },
+  "layers": [
+    {
+      "id": "sky",
+      "scrollFactor": 0.05,
+      "asset": "bushveld/sky",
+      "lowTierMergeWith": null
+    },
+    {
+      "id": "far_ridge",
+      "scrollFactor": 0.15,
+      "asset": "bushveld/far_ridge",
+      "lowTierMergeWith": "far_veld"
+    },
+    {
+      "id": "far_veld",
+      "scrollFactor": 0.35,
+      "asset": "bushveld/far_veld",
+      "plane": "far"
+    },
+    {
+      "id": "mid",
+      "scrollFactor": 0.6,
+      "asset": "bushveld/mid",
+      "plane": "mid"
+    },
+    {
+      "id": "near",
+      "scrollFactor": 1.0,
+      "asset": "bushveld/near",
+      "plane": "near"
+    },
+    {
+      "id": "foreground",
+      "scrollFactor": 1.2,
+      "asset": "bushveld/foreground",
+      "occludes": true
+    }
+  ],
+  "lanes": {
+    "far": {
+      "groundY": [
+        585,
+        610
+      ],
+      "skyY": [
+        120,
+        300
+      ]
+    },
+    "mid": {
+      "groundY": [
+        690,
+        760
+      ],
+      "skyY": [
+        160,
+        420
+      ]
+    },
+    "near": {
+      "popupY": [
+        880,
+        960
+      ]
+    }
+  },
+  "props": [
+    {
+      "id": "baobab",
+      "layer": "mid",
+      "u": 0.3,
+      "y": 470,
+      "asset": "bushveld/baobab",
+      "occluder": {
+        "type": "rect",
+        "w": 150,
+        "h": 330,
+        "ox": 0,
+        "oy": 95
+      },
+      "secret": {
+        "$comment": "Kremetart: shoot a hanging pod; it falls and flushes the flock below.",
+        "type": "singleHit",
+        "part": {
+          "id": "pod",
+          "shape": {
+            "type": "ellipse",
+            "rx": 22,
+            "ry": 34,
+            "ox": 110,
+            "oy": -120
+          }
+        },
+        "oncePerHunt": true,
+        "reward": {
+          "points": 25,
+          "at": "baobab",
+          "reaction": {
+            "effect": "flush",
+            "scope": "area",
+            "radiusPx": 500
+          }
+        }
+      },
+      "perch": {
+        "ox": -120,
+        "oy": -215
+      }
+    },
+    {
+      "id": "dassie_koppie",
+      "layer": "mid",
+      "u": 0.62,
+      "y": 660,
+      "asset": "bushveld/dassie_koppie",
+      "occluder": {
+        "type": "ellipse",
+        "rx": 210,
+        "ry": 80,
+        "ox": 0,
+        "oy": 10
+      },
+      "secret": {
+        "$comment": "Shoot near the dassie, not at it: its alarm whistle alerts every flock and it points out hidden birds.",
+        "type": "nearMiss",
+        "part": {
+          "id": "dassie",
+          "shape": {
+            "type": "ellipse",
+            "rx": 30,
+            "ry": 22,
+            "ox": 40,
+            "oy": -82
+          }
+        },
+        "radiusPx": 120,
+        "oncePerHunt": true,
+        "reward": {
+          "reaction": {
+            "effect": "threat",
+            "scope": "all"
+          },
+          "powerup": "meerkat_spotter"
+        }
+      }
+    },
+    {
+      "id": "boulder_crack",
+      "layer": "mid",
+      "u": 0.84,
+      "y": 705,
+      "asset": "bushveld/boulder_crack",
+      "occluder": {
+        "type": "ellipse",
+        "rx": 125,
+        "ry": 75,
+        "ox": 0,
+        "oy": 0
+      },
+      "secret": {
+        "$comment": "Three hits on the crack: the boulder rolls, the birds hiding behind it burst out, +5 s.",
+        "type": "singleHit",
+        "part": {
+          "id": "crack",
+          "shape": {
+            "type": "ellipse",
+            "rx": 32,
+            "ry": 28,
+            "ox": -10,
+            "oy": -30
+          }
+        },
+        "oncePerHunt": true,
+        "hitsRequired": 3,
+        "reward": {
+          "points": 75,
+          "at": "boulder_crack",
+          "flushBirds": 6,
+          "addTimeSeconds": 5
+        }
+      },
+      "perch": {
+        "ox": 70,
+        "oy": -60
+      }
+    },
+    {
+      "id": "boulder_a",
+      "layer": "mid",
+      "u": 0.12,
+      "y": 708,
+      "asset": "bushveld/boulder_a",
+      "occluder": {
+        "type": "ellipse",
+        "rx": 115,
+        "ry": 72,
+        "ox": 0,
+        "oy": 0
+      },
+      "perch": {
+        "ox": 60,
+        "oy": -58
+      }
+    },
+    {
+      "id": "boulder_b",
+      "layer": "mid",
+      "u": 0.47,
+      "y": 712,
+      "asset": "bushveld/boulder_b",
+      "occluder": {
+        "type": "ellipse",
+        "rx": 105,
+        "ry": 66,
+        "ox": 0,
+        "oy": 0
+      },
+      "perch": {
+        "ox": -55,
+        "oy": -54
+      }
+    },
+    {
+      "id": "aloe_red_a",
+      "layer": "foreground",
+      "u": 0.06,
+      "y": 980,
+      "asset": "bushveld/aloe_a",
+      "occluder": {
+        "type": "ellipse",
+        "rx": 140,
+        "ry": 120,
+        "ox": 0,
+        "oy": 0
+      }
+    },
+    {
+      "id": "aloe_red_b",
+      "layer": "foreground",
+      "u": 0.92,
+      "y": 990,
+      "asset": "bushveld/aloe_b",
+      "occluder": {
+        "type": "ellipse",
+        "rx": 150,
+        "ry": 120,
+        "ox": 0,
+        "oy": 0
+      }
+    }
+  ],
+  "events": [
+    {
+      "id": "hadeda",
+      "creature": "hadeda",
+      "perHunt": [
+        0,
+        2
+      ],
+      "window": [
+        0.17,
+        0.83
+      ]
+    },
+    {
+      "id": "cropSprayer",
+      "creature": "sproeier",
+      "perHunt": [
+        1,
+        1
+      ],
+      "window": [
+        0.28,
+        0.72
+      ]
+    },
+    {
+      "id": "kwevoel",
+      "creature": "kwevoel",
+      "perHunt": [
+        1,
+        2
+      ],
+      "perchProps": [
+        "baobab"
+      ],
+      "window": [
+        0.11,
+        0.89
+      ],
+      "stayMs": [
+        6000,
+        10000
+      ]
+    },
+    {
+      "id": "bossAppearance",
+      "creature": "ou_grys",
+      "modes": [
+        "classic",
+        "daily"
+      ],
+      "perHunt": [
+        1,
+        1
+      ],
+      "perchProps": [
+        "boulder_a",
+        "boulder_b",
+        "boulder_crack"
+      ],
+      "window": [
+        0.3,
+        0.6
+      ],
+      "stayMs": [
+        14000,
+        18000
+      ],
+      "roamPx": 60,
+      "peekMs": [
+        1200,
+        2000
+      ],
+      "hideMs": [
+        1500,
+        2600
+      ]
+    }
+  ],
+  "omen": {
+    "id": "sun_glare",
+    "glare": {
+      "widthPx": 640,
+      "alpha": 0.55
+    },
+    "visual": {
+      "frost": true,
+      "dust": true
+    }
+  },
+  "twist": {
+    "flushAsRunChance": 0.6
+  },
+  "pacing": {
+    "keyframes": [
+      {
+        "t": 0.0,
+        "flocks": {
+          "mid": 1
+        },
+        "flyoversPerMin": 3,
+        "popupsPerMin": 2
+      },
+      {
+        "t": 0.17,
+        "flocks": {
+          "mid": 1
+        },
+        "flyoversPerMin": 4,
+        "popupsPerMin": 4
+      },
+      {
+        "t": 0.5,
+        "flocks": {
+          "mid": 1
+        },
+        "flyoversPerMin": 5,
+        "popupsPerMin": 5
+      },
+      {
+        "t": 0.83,
+        "flocks": {
+          "mid": 1
+        },
+        "flyoversPerMin": 6,
+        "popupsPerMin": 6
+      },
+      {
+        "t": 1.0,
+        "flocks": {
+          "mid": 1
+        },
+        "flyoversPerMin": 6,
+        "popupsPerMin": 6
+      }
+    ],
+    "stampede": {
+      "flyoversPerMin": 10,
+      "popupsPerMin": 10,
+      "flockState": "run"
+    },
+    "maxBirdsOnScreen": 60,
+    "maxFlocks": 8,
+    "$comment": "Starts from the Karoo pacing (D-020); tuned against the Classic balance gates (D-025)."
+  },
+  "spawnTable": [
+    {
+      "creature": "tarentaal",
+      "weight": 100
+    },
+    {
+      "creature": "tarentaal_lavendel",
+      "weight": 2
+    },
+    {
+      "creature": "tarentaal_wit",
+      "weight": 1
+    }
+  ],
+  "music": {
+    "calm": "bushveld_calm",
+    "build": "bushveld_build",
+    "stampede": "bushveld_stampede"
+  },
+  "ambience": "bushveld_dawn_bed"
+}

@@ -171,7 +171,8 @@ export class ShedScene extends Phaser.Scene {
     return '';
   }
 
-  /** Creatures from birds.json and this biome's secrets: names once seen, "???" until then. */
+  /** Creatures from birds.json and every playable biome's secrets (M8): names once seen, "???"
+   *  until then. */
   private birdBook(body: Rect): void {
     const book = this.ctx.save.data.birdBook;
     const entries: { label: string; seen: boolean }[] = [
@@ -179,12 +180,16 @@ export class ShedScene extends Phaser.Scene {
         label: tOr(`creature.${c.id}`, c.id),
         seen: book.creatures.includes(c.id),
       })),
-      ...this.ctx.biome.props
-        .filter((p) => p.secret !== undefined)
-        .map((p) => ({
-          label: `★ ${tOr(`secret.${p.id}`, p.id)}`,
-          seen: book.secrets.includes(secretKey(this.ctx.biome.id, p.id)),
-        })),
+      ...this.ctx.content.biomes
+        .filter((b) => this.ctx.playableBiomes.includes(b.id))
+        .flatMap((b) =>
+          b.props
+            .filter((p) => p.secret !== undefined)
+            .map((p) => ({
+              label: `★ ${tOr(`secret.${p.id}`, p.id)}`,
+              seen: book.secrets.includes(secretKey(b.id, p.id)),
+            })),
+        ),
     ];
     const seen = entries.filter((e) => e.seen).length;
     const page = this.ctx.save.data.notaboek.done.some((id) => {

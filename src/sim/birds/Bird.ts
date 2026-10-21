@@ -68,8 +68,10 @@ export function behaviourOf(bird: Bird): BagBehaviour {
   }
 }
 
-/** Pop-ups can be shot while rising and staring, not while ducking back into the grass. */
+/** Pop-ups can be shot while rising and staring, not while ducking back into the grass; a
+ *  peeking boss only while it peeks out from cover (D-018 "behind cover", D-025). */
 export function isHittable(bird: Bird): boolean {
+  if (bird.phase === 'hidden') return false;
   return bird.motion !== 'popup' || bird.phase !== 'duck';
 }
 

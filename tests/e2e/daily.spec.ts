@@ -6,10 +6,12 @@
 import { readFileSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
 import type { GoldenReplay } from '../../tools/goldenCases';
-import { loadContentHash } from '../../tools/testContent';
+import { loadContent, loadContentHash, loadDailyMeta } from '../../tools/testContent';
+import { placeholderBiomes } from '../../src/game/placeholder/ProceduralAssetFactory';
+import { parseDayKey } from '../../src/meta/dailyCalendar';
 import { designSizeFor } from '../../src/game/layout';
 import { challengeFor, encodeChallenge } from '../../src/meta/challenge';
-import { dailySeed } from '../../src/meta/daily';
+import { dailyBiome, dailySeed } from '../../src/meta/daily';
 import {
   SCREENSHOTS,
   boot,
@@ -100,7 +102,18 @@ test.describe('Daily Hunt', () => {
     expect(h.daily).toMatchObject({ key: DAY, number: 1, official: true });
     expect(h.huntSeed).toBe(dailySeed(DAY, loadContentHash()));
     expect(h.hudTag).toBe('DAILY #1');
-    expect(h.wind, 'Daily has the omen on').not.toBeNull();
+    // M8: the day's biome comes from the rotation over the biomes this build draws.
+    const content = loadContent();
+    const drawable = new Set(placeholderBiomes());
+    expect(h.biome).toBe(
+      dailyBiome(
+        parseDayKey(DAY) ?? 0,
+        loadDailyMeta().biomeRotation,
+        content.biomes.filter((b) => drawable.has(b.id)).map((b) => b.id),
+        content.modes.modes.daily.biome,
+      ),
+    );
+    expect(h.omen, 'Daily has the omen on').toBe(true);
     await page.screenshot({ path: `${SCREENSHOTS}/daily-hud-${info.project.name}.png` });
 
     await waitScene(page, 'tally');

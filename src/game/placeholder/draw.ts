@@ -56,3 +56,23 @@ export function ground(
   ctx.closePath();
   inked(ctx, fill, line);
 }
+
+/** A grass tuft: five blades from a base line at y. */
+export function tuft(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  h: number,
+  fill: string,
+  line: number,
+): void {
+  ctx.beginPath();
+  ctx.moveTo(x - h * 0.5, y);
+  for (let i = 0; i < 5; i++) {
+    const bx = x - h * 0.5 + (i + 0.5) * (h / 5);
+    ctx.lineTo(bx + (i - 2) * h * 0.12, y - h * (0.7 + (i % 2) * 0.3));
+    ctx.lineTo(bx + h * 0.1, y);
+  }
+  ctx.closePath();
+  inked(ctx, fill, line);
+}

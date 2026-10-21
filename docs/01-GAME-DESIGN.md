@@ -336,6 +336,15 @@ not hanging balls.
 | Bushveld | Baobab fruit (kremetart) | Shoot a hanging pod | Falls, startles the flock below into FLUSH, +25 |
 | Bushveld | Dassie on the koppie | Shoot near (not at) it | Dassie alarm whistle: all flocks ALERT; meerkat-style reveal |
 | Bushveld | Boulder crack | 3 hits | Rolls, flushes hidden birds, +75; bonus time +5 s |
+
+Bushveld as built (M8, D-025): the twist is on in every mode — each flock has a 60 % chance
+(`twist.flushAsRunChance`) of being one that keeps running when a threat would flush it; the
+Vuvuzela and secrets still make it fly. The glare is drawn only (a bright band on one side of the
+screen in omen hunts and the Daily). The dassie pays for a pellet that lands within 120 px of it
+but not on it (pellets pass the dassie itself). The boulder counts hits over any number of shots;
+its "hidden birds" are 6 that burst out flushing (no Whole Flock). Ou Grys moves hidden between
+three boulders and peeks out from each for 1.2–2 s; only a peeking Ou Grys can be hit, and a hit
+sends him back behind cover. Numbers live in `content/biomes/bushveld-winter.json`.
 | Okavango | Hippo | Shoot the water beside it | Yawn + wave: flushes flocks on the bank, +50 |
 | Okavango | Mokoro pole marker | Shoot the flag | **+5 s bonus time** |
 | Okavango | Lily pad frog | Shoot the frog's lily | Frog leaps; +25; Bird Book easter egg |

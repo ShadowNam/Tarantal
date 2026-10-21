@@ -114,7 +114,9 @@ export class BirdView {
       d.sprite
         .setPosition(b.x, b.y - bob)
         .setScale(v.facing, 1)
-        .setRotation(lean);
+        .setRotation(lean)
+        // A peeking boss behind cover (Ou Grys, M8) is not drawn until he peeks out.
+        .setVisible(v.phase !== 'hidden');
       if (v.motion === 'popup' && v.ground !== null) {
         // Hide everything below the grass line (texture px == design px on the near plane).
         const frameH = d.sprite.frame.height;
