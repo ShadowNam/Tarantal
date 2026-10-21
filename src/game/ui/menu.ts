@@ -7,6 +7,7 @@
 import * as Phaser from 'phaser';
 import type { TestHook } from '../GameContext';
 import { clientToDesign } from '../input/screenButtons';
+import { designSize } from '../layout';
 import { FONT } from '../view/Fx';
 import { rectContains, type Rect } from './hudLayout';
 
@@ -80,7 +81,7 @@ export class Menu {
     );
     this.ring = scene.add.graphics().setDepth(1000);
     const canvas = scene.game.canvas;
-    const design = (): { width: number; height: number } => scene.scale.gameSize;
+    const design = (): { width: number; height: number } => designSize();
     const at = (e: PointerEvent): MenuItem | undefined => {
       const p = clientToDesign(canvas, e.clientX, e.clientY, design());
       return this.items.find((i) => this.isEnabled(i) && rectContains(i.rect(), p.x, p.y));

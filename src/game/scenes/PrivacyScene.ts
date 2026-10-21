@@ -2,6 +2,8 @@
 // what it sends (nothing of its own; on a games site the site's own service runs ads and
 // statistics), no personal data, and [Clear my data] (tap twice) which removes every key the
 // game stored and restarts as a new player. Opened from Settings; Esc or [Back] closes it.
+import { designSize } from '../layout';
+import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
 import { t, type I18nKey } from '../../i18n/i18n';
 import type { GameContext } from '../GameContext';
@@ -23,8 +25,8 @@ export class PrivacyScene extends Phaser.Scene {
   }
 
   create(data: PrivacyData): void {
-    const { width, height } = this.scale.gameSize;
-    this.cameras.main.setSize(width, height);
+    const { width, height } = designSize();
+    fitCamera(this.cameras.main);
     const safe = this.ctx.safeArea();
     const panelW = Math.min(1500, width - safe.left - safe.right - 60);
     const panelH = Math.min(940, height - safe.top - safe.bottom - 40);

@@ -162,6 +162,11 @@ const sections = {
    * retries and the hunts whose Doppies were doubled. Kept outside RunState (the sim's).
    */
   runAds: RunAdsSchema,
+  /** M9: this device's title-screen benchmark (Settings → quality "auto" follows it). */
+  device: z.object({
+    benchTier: z.enum(['low', 'medium', 'high']).nullable(),
+    benchAvgMs: z.number().nonnegative().max(10_000).nullable(),
+  }),
 } as const;
 
 export const SaveSchema = z.object({ v: z.literal(SAVE_VERSION), ...sections });
@@ -185,6 +190,7 @@ export function defaultSave(): SaveData {
     run: null,
     runStats: { started: 0, won: 0, bestHunts: 0 },
     runAds: { seed: null, retries: 0, doubled: [] },
+    device: { benchTier: null, benchAvgMs: null },
     daily: {
       streak: 0,
       bestStreak: 0,

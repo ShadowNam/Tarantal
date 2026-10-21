@@ -308,5 +308,6 @@
   "run.ad_retry_title": "Oupa se tweede kans!",
   "run.ad_retry": "▶ Advertensie: speel weer",
   "run.ad_double": "▶ Advertensie: dubbel Doppies (+{n})",
-  "run.ad_none": "Nou geen advertensie nie. Dalk volgende keer!"
+  "run.ad_none": "Nou geen advertensie nie. Dalk volgende keer!",
+  "ui.loading": "Laai…"
 }

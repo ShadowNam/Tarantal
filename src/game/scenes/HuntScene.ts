@@ -4,10 +4,14 @@
 // HUD / the hunt log (meta) / the FTUE director, then draw the interpolated snapshot. The scene
 // never writes into the sim: input reaches it only as Commands. Esc, P, the HUD pause button or
 // a hidden tab open the pause menu; the hunt clock holds while it is open.
+import { designSize } from '../layout';
+import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
 import type { Biome, Weapon } from '../../content/schemas';
 import { DebugOverlay } from '../../debug/DebugOverlay';
 import { fill, t } from '../../i18n/i18n';
+import { textStyle } from '../ui/menu';
+import { TierFilters } from '../quality/TierFilters';
 import type { Challenge } from '../../meta/challenge';
 import { createHuntLogger, type HuntLogger } from '../../meta/huntLog';
 import { createShareLogger, type ShareLogger } from '../../meta/share';
@@ -71,6 +75,9 @@ export class HuntScene extends Phaser.Scene {
   private cleanups: (() => void)[] = [];
   private lastFrameAt: number | null = null;
   private texturesDone = false;
+  private tierFilters: TierFilters | null = null;
+  /** M9: create() is waiting for a biome's art; there are no views to update yet. */
+  private viewsPending = false;
   /** A commercial break before the next hunt is in flight (afterBreak is single-flight). */
   private breakPending = false;
   private modeId: ModeId = 'classic';
@@ -89,8 +96,18 @@ export class HuntScene extends Phaser.Scene {
   }
 
   create(data: HuntData): void {
+    // M9 lazy biomes: an auto-started hunt in a biome whose art isn't loaded yet waits for it.
+    const wanted = this.initialBiome(data);
+    this.viewsPending = !this.ctx.biomeReady(wanted.id);
+    if (this.viewsPending) {
+      this.waitForBiome(wanted.id, (ok) => {
+        this.scene.restart(ok ? data : ({} satisfies HuntData));
+      });
+      return;
+    }
     this.runner = null;
     this.endAction = null;
+    this.tierFilters = null;
     this.mapper = null;
     this.ending = false;
     this.logger = null;
@@ -101,6 +118,15 @@ export class HuntScene extends Phaser.Scene {
     this.ctx.menuPaused = false;
     this.cleanups = [];
     this.lastFrameAt = null;
+    // Settings or the title benchmark changed the tier: swap the filters now (a layer merge
+    // waits for the next view build).
+    this.cleanups.push(
+      this.ctx.onPrefsChange(() => {
+        this.tierFilters?.apply(this.ctx.prefs);
+        if (this.ctx.hook && this.tierFilters)
+          this.ctx.hook.quality.filters = this.tierFilters.active;
+      }),
+    );
     // An auto-started hunt (Season Run, [Again], challenge) builds its own biome straight away
     // instead of the home biome's views first (D-025); the title shows the home biome.
     this.biome = this.initialBiome(data);
@@ -165,9 +191,17 @@ export class HuntScene extends Phaser.Scene {
 
   /** Every view of the hunt for the scene's biome (a hunt in another biome rebuilds them). */
   private buildViews(): void {
-    const { width, height } = this.scale.gameSize;
-    this.cameras.main.setSize(width, height);
-    this.parallax = new ParallaxView(this, this.biome, this.manifest);
+    const { width } = designSize();
+    fitCamera(this.cameras.main);
+    this.parallax = new ParallaxView(this, this.biome, this.manifest, this.ctx.prefs.mergeLayers);
+    // M9 tier filters on this camera (the HUD scene has its own camera, unfiltered).
+    this.tierFilters?.clear();
+    this.tierFilters = new TierFilters(this.cameras.main);
+    this.tierFilters.apply(this.ctx.prefs);
+    if (this.ctx.hook) {
+      this.ctx.hook.quality.layers = this.parallax.layers.length;
+      this.ctx.hook.quality.filters = this.tierFilters.active;
+    }
     this.screen = this.add.container(0, 0);
     this.birds = new BirdView(
       this,
@@ -216,8 +250,8 @@ export class HuntScene extends Phaser.Scene {
   }
 
   private readonly relayout = (): void => {
-    const { width, height } = this.scale.gameSize;
-    this.cameras.main.setSize(width, height);
+    const { width, height } = designSize();
+    fitCamera(this.cameras.main);
     this.weapon.layout(width * (this.ctx.prefs.leftHanded ? 0.38 : 0.62), height);
   };
 
@@ -329,6 +363,21 @@ export class HuntScene extends Phaser.Scene {
     this.ctx.ads.beforeHunt().then(next, next);
   }
 
+  /** Loads a biome's art chunk with a "Loading…" line and the portal's loading signals. */
+  private waitForBiome(id: string, then: (ok: boolean) => void): void {
+    const { width, height } = designSize();
+    const label = this.add
+      .text(width / 2, height / 2, t('ui.loading'), textStyle(48, '#F3EAD3'))
+      .setOrigin(0.5)
+      .setDepth(10_000);
+    this.ctx.platform.loadingProgress(0);
+    void this.ctx.loadBiome(id).then((ok) => {
+      this.ctx.platform.loadingProgress(1);
+      if (label.active) label.destroy();
+      then(ok);
+    });
+  }
+
   // --- hunt -------------------------------------------------------------------------------------
 
   private begin(
@@ -381,10 +430,18 @@ export class HuntScene extends Phaser.Scene {
     const mode: ModeConfig = runHunt?.mode ??
       plan?.mode ?? { id: modeId, ...(weapon === undefined ? {} : { weapon }), ...extra };
     // The hunt's biome may not be the one behind the title (M8): swap the scenery first.
-    this.useBiome(
+    const huntBiome =
       mode.biome ??
-        (mode.id === 'seasonHunt' ? this.biome.id : this.ctx.content.modes.modes[mode.id].biome),
-    );
+      (mode.id === 'seasonHunt' ? this.biome.id : this.ctx.content.modes.modes[mode.id].biome);
+    // M9 lazy biomes: its art loads on first use; the hunt starts once it is in.
+    if (this.ctx.playableBiomes.includes(huntBiome) && !this.ctx.biomeReady(huntBiome)) {
+      this.waitForBiome(huntBiome, (ok) => {
+        if (ok) this.begin(kind, startPointer, modeId, challenge);
+        else this.scene.restart({} satisfies HuntData);
+      });
+      return;
+    }
+    this.useBiome(huntBiome);
     if (!this.texturesDone) this.texturesDone = this.manifest.install(this.textures);
     if (this.ctx.hook) {
       this.ctx.hook.boot['huntStart'] ??= performance.now();
@@ -436,7 +493,7 @@ export class HuntScene extends Phaser.Scene {
       this.game.canvas,
       this.ctx.feel,
       {
-        designSize: () => this.scale.gameSize,
+        designSize: () => designSize(),
         isOnBelt: (x, y) => hud.isOnBelt(x, y),
         isOnGadget: (x, y) => hud.isOnGadget(x, y),
         itemAt: (x, y) => hud.itemAt(x, y),
@@ -536,6 +593,7 @@ export class HuntScene extends Phaser.Scene {
   }
 
   override update(): void {
+    if (this.viewsPending) return;
     // Real elapsed time, not Phaser's smoothed/capped delta: the hunt clock must follow the wall
     // clock (a 90 s hunt lasts 90 s). The runner's step cap still guards against huge gaps.
     const now = performance.now();
@@ -548,7 +606,7 @@ export class HuntScene extends Phaser.Scene {
     const delta = this.lastFrameAt === null ? 0 : now - this.lastFrameAt;
     this.lastFrameAt = now;
     const runner = this.runner;
-    const { width } = this.scale.gameSize;
+    const { width } = designSize();
     this.weapon.update(delta);
     if (runner === null) {
       if (!this.texturesDone) {
@@ -566,7 +624,14 @@ export class HuntScene extends Phaser.Scene {
     if (hook && !this.ending && hook.frameTimes.length < MAX_FRAME_SAMPLES)
       hook.frameTimes.push(delta);
 
-    const { events } = runner.advance(delta);
+    const simStart = hook ? performance.now() : 0;
+    const { events, steps } = runner.advance(delta);
+    if (hook && !this.ending && hook.simFrameMs.length < MAX_FRAME_SAMPLES) {
+      // M9 perf: the sim's share of the frame and its ticks (catch-up ticks pile up when frames
+      // are slow, as under software GL; perf.spec separates them from the render cost).
+      hook.simFrameMs.push(performance.now() - simStart);
+      hook.simFrameSteps.push(steps);
+    }
     const state = runner.state;
     if (events.length > 0) this.handleEvents(events, width, state);
     this.logger?.add(events);
@@ -583,7 +648,7 @@ export class HuntScene extends Phaser.Scene {
     this.parallax.update(cam, width);
     const drawBirds = interpolateBirds(runner.prev, state, alpha);
     this.birds.update(drawBirds, state.tick);
-    this.world.update(state, width, this.scale.gameSize.height);
+    this.world.update(state, width, designSize().height);
     this.weapon.setWeapon(state.weapon.id);
     const safe = this.ctx.safeArea();
     // Bottom-left, right of the gadget button (timer/Frenzy top-left, belt bottom-right).
@@ -592,7 +657,7 @@ export class HuntScene extends Phaser.Scene {
       drawBirds,
       this.inputKind,
       safe.left + 40 + this.ctx.feel.hud.gadgetPx + this.ctx.feel.hud.marginPx,
-      this.scale.gameSize.height - safe.bottom - 90,
+      designSize().height - safe.bottom - 90,
     );
     const hud = this.scene.get('Hud') as HudScene;
     if (hud.sys.isActive()) {
@@ -899,7 +964,7 @@ export class HuntScene extends Phaser.Scene {
   private ftueHand(state: SimState): { x: number; y: number } | 'belt' | null {
     const hand = this.ftue?.prompt?.hand ?? null;
     if (hand !== 'flock') return hand;
-    const { width } = this.scale.gameSize;
+    const { width } = designSize();
     let best: { x: number; y: number } | null = null;
     for (const f of state.flocks) {
       const members = state.birds.filter((b) => b.flockId === f.id);

@@ -6,8 +6,8 @@ import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import type { Plugin } from 'vite';
 
-/** Files never precached (source maps, the worker itself, OS junk). */
-const SKIP = [/\.map$/, /^sw\.js$/, /(^|\/)\.DS_Store$/, /\.gitkeep$/];
+/** Files never precached (source maps, the worker itself, OS junk, Vite's build manifest). */
+const SKIP = [/\.map$/, /^sw\.js$/, /(^|\/)\.DS_Store$/, /\.gitkeep$/, /^\.vite\//];
 
 /** Precache list (scope-relative URLs) from the built file paths (posix, relative to dist). */
 export function precacheList(files: readonly string[]): string[] {

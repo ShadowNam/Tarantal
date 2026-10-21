@@ -80,3 +80,68 @@ test('perf smoke: 30 s hunt at 4× CPU throttle', async ({ page, browserName }, 
   }
   expect(errors).toEqual([]);
 });
+
+// M9 "Done when": the low tier holds ≥ 50 fps on the low-tier profile: the Pixel 7 profile at
+// 6× CPU throttle (DevTools' "low-end mobile"), quality forced to low. Without a GPU (D-019) frames
+// here come at a few per second, so each one also runs up to maxStepsPerFrame catch-up sim ticks
+// that a phone at 50 fps never runs. The asserted figure is therefore the CPU cost of one rendered
+// frame at 50 fps: (CPU per frame − sim time per frame) + 1.2 × the CPU cost of one sim tick
+// (60 ticks/s ÷ 50 frames/s), measured on the same frames. Raw CPU per frame is reported too.
+// Real fps on a real low-end phone is a human check.
+const LOW_BUDGET_MS = 1000 / 50;
+
+test('perf: low tier holds 50 fps (CPU) at 6× throttle on the Pixel 7 profile', async ({
+  page,
+  browserName,
+}, info) => {
+  test.skip(
+    info.project.name !== 'pixel7-landscape' || browserName !== 'chromium',
+    'low-tier profile = Pixel 7 + CDP throttling',
+  );
+  test.setTimeout(400_000);
+  await page.addInitScript(() => {
+    if (localStorage.getItem('tm.e2e.save.v1') === null)
+      localStorage.setItem(
+        'tm.e2e.save.v1',
+        JSON.stringify({ v: 1, settings: { quality: 'low' } }),
+      );
+  });
+  await boot(page, 'seed=3&huntSeconds=20');
+  expect((await hook(page)).quality.tier).toBe('low');
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 6 });
+  await startHunt(page, true);
+  const h0 = await hook(page);
+  let i = 0;
+  while (!(await hook(page)).over) {
+    await tapAt(page, true, h0.designWidth * (0.2 + (i % 6) * 0.12), h0.designHeight * 0.4);
+    i++;
+    if ((await hook(page)).shells === 0) await page.keyboard.press('Space');
+    await waitTicks(page, 30);
+  }
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+  const h = await hook(page);
+  const cpu = stats(h.cpuFrameMs.slice(30));
+  const simMs = h.simFrameMs.slice(30);
+  const simSteps = h.simFrameSteps.slice(30);
+  const sum = (v: readonly number[]): number => v.reduce((a, b) => a + b, 0);
+  const tickMs = sum(simMs) / Math.max(1, sum(simSteps));
+  const renderMs = cpu.avg - sum(simMs) / Math.max(1, simMs.length);
+  const at50fps = renderMs + (60 / 50) * tickMs;
+  const report = {
+    project: info.project.name,
+    tier: 'low',
+    throttle: 6,
+    cpuFrameMs: cpu,
+    simTicksPerFrame: sum(simSteps) / Math.max(1, simSteps.length),
+    simTickMs: tickMs,
+    renderMs,
+    frameCostAt50fpsMs: at50fps,
+  };
+  console.log(`[perf-low] ${JSON.stringify(report)}`);
+  writeFileSync(info.outputPath('perf-low.json'), JSON.stringify(report, null, 2));
+  expect(cpu.n).toBeGreaterThan(30);
+  expect(at50fps, 'CPU cost of a frame at 50 fps (ms), low tier, 6× throttle').toBeLessThanOrEqual(
+    LOW_BUDGET_MS,
+  );
+});

@@ -53,18 +53,56 @@
     "maxStepsPerFrame": 5
   },
   "quality": {
-    "$comment": "QualityManager tiers (Settings → quality; auto picks lowTierMaxCores-or-fewer coarse-pointer devices as low, else medium). Tiers only cut cost (particles), never what the player can see: secret glints show on every tier. M9 adds a benchmark.",
+    "$comment": "QualityManager tiers (Settings → quality; auto = the title-screen benchmark (M9) — 90 frames after a warm-up — else lowTierMaxCores-or-fewer coarse-pointer devices are low, the rest medium). Tiers only cut cost (particles, filters, a merged parallax layer, antialiasing), never what the player can see: secret glints and birds show on every tier.",
     "auto": "medium",
     "lowTierMaxCores": 4,
+    "benchmark": {
+      "frames": 90,
+      "warmupFrames": 15,
+      "lowAboveMs": 22,
+      "highBelowMs": 17.5,
+      "highMinCores": 8,
+      "highMinMemoryGb": 8
+    },
     "tiers": {
       "low": {
-        "particleScale": 0.4
+        "particleScale": 0.4,
+        "renderScale": 0.67,
+        "antialias": false,
+        "vignette": null,
+        "bloom": null,
+        "mergeLayers": [
+          [
+            "far_ridge",
+            "far_veld"
+          ]
+        ]
       },
       "medium": {
-        "particleScale": 0.7
+        "particleScale": 0.7,
+        "renderScale": 0.83,
+        "antialias": true,
+        "vignette": {
+          "radius": 0.8,
+          "strength": 0.3
+        },
+        "bloom": null,
+        "mergeLayers": []
       },
       "high": {
-        "particleScale": 1
+        "particleScale": 1,
+        "renderScale": 1,
+        "antialias": true,
+        "vignette": {
+          "radius": 0.8,
+          "strength": 0.3
+        },
+        "bloom": {
+          "threshold": 0.8,
+          "amount": 0.35,
+          "blur": 2
+        },
+        "mergeLayers": []
       }
     }
   },

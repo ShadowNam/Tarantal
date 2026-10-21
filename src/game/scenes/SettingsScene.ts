@@ -3,6 +3,8 @@
 // change is written to the save at once (SaveStore → storage.ts) and reaches the game through
 // ctx.prefs / the AudioDirector (main.ts listens to the save); aim assist goes into the next
 // hunt's SimConfig (recorded in its replay). A language change rebuilds this screen.
+import { designSize } from '../layout';
+import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
 import { t, type I18nKey } from '../../i18n/i18n';
 import type { Settings } from '../../meta/saveSchema';
@@ -60,8 +62,8 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   create(data: OverlayData): void {
-    const { width, height } = this.scale.gameSize;
-    this.cameras.main.setSize(width, height);
+    const { width, height } = designSize();
+    fitCamera(this.cameras.main);
     const safe = this.ctx.safeArea();
     const panelW = Math.min(1700, width - safe.left - safe.right - 60);
     const panelH = Math.min(940, height - safe.top - safe.bottom - 40);

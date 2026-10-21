@@ -40,6 +40,8 @@ export default defineConfig({
     sourcemap: false,
     chunkSizeWarningLimit: 2000,
     outDir: portal ? `dist-${platform}` : 'dist',
+    // .vite/manifest.json: which chunks the entry loads at once (tools/size-check.ts).
+    manifest: true,
   },
   server: { host: true },
   preview: { host: true, port: 4173, strictPort: true },

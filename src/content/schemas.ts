@@ -894,6 +894,16 @@ export interface ContentBundle {
 const qualityTier = obj({
   /** Particle budget multiplier (feathers, wind leaves). Tiers never hide information. */
   particleScale: fraction,
+  /** M9: canvas px per design px (Tech §5: low 0.67, medium 0.83, high 1). */
+  renderScale: z.number().min(0.5).max(1),
+  /** M9: WebGL antialiasing (set when the game boots, from the tier the last benchmark chose). */
+  antialias: z.boolean(),
+  /** M9: camera vignette (screen space) or null; radius and strength 0..1. */
+  vignette: obj({ radius: fraction, strength: fraction }).nullable(),
+  /** M9: bloom (bright parts blurred and added back) or null. */
+  bloom: obj({ threshold: fraction, amount: fraction, blur: posInt }).nullable(),
+  /** M9: parallax layers drawn on another layer's plane: [from, into] layer ids (decoration only). */
+  mergeLayers: z.array(z.tuple([z.string(), z.string()])).max(4),
 });
 
 export const FeelSchema = obj({
@@ -969,6 +979,19 @@ export const FeelSchema = obj({
     auto: z.enum(['low', 'medium', 'high']),
     /** Coarse-pointer devices with this many logical cores or fewer start on the low tier. */
     lowTierMaxCores: posInt,
+    /** M9: the title-screen frame benchmark behind "auto" (Tech §5). */
+    benchmark: obj({
+      /** Frames measured, after `warmupFrames` (texture uploads, shader compiles) are skipped. */
+      frames: posInt,
+      warmupFrames: nonNegInt,
+      /** Average frame time above this → low. */
+      lowAboveMs: pos,
+      /** At or below this, on a fine pointer with enough cores and memory → high. */
+      highBelowMs: pos,
+      highMinCores: posInt,
+      /** navigator.deviceMemory (GB); unknown counts as enough. */
+      highMinMemoryGb: pos,
+    }),
     tiers: obj({ low: qualityTier, medium: qualityTier, high: qualityTier }),
   }),
   ftue: obj({

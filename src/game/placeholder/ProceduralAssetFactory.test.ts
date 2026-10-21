@@ -4,7 +4,12 @@ import en from '../../i18n/en.json';
 import af from '../../i18n/af.json';
 import { coreWidth, LAYER_BLEED_PX } from '../../sim/world';
 import { birdKey, gunKey, MAX_TILE_WIDTH, TEX } from '../assets/AssetManifest';
-import { createPlaceholderManifest, placeholderBiomes } from './ProceduralAssetFactory';
+import {
+  biomeArtReady,
+  createPlaceholderManifest,
+  loadBiomeArt,
+  placeholderBiomes,
+} from './ProceduralAssetFactory';
 
 const content = loadContent();
 const biome = content.biomes.find((b) => b.id === content.modes.modes.classic.biome);
@@ -97,9 +102,22 @@ describe('i18n for M2', () => {
     for (const k of m2) expect(Object.hasOwn(af, k), k).toBe(true);
   });
 
-  it('every biome in content has placeholder art (M8: all four are playable)', () => {
+  it('M9: only the home biome is in memory at start; the others load on first use', async () => {
+    expect(biomeArtReady('karoo-autumn')).toBe(true);
+    const other = content.biomes.find((b) => b.id !== 'karoo-autumn');
+    if (!other) throw new Error('one biome only');
+    expect(biomeArtReady(other.id)).toBe(false);
+    expect(() => createPlaceholderManifest(content, other)).toThrow(/not loaded/);
+    const [a, b] = await Promise.all([loadBiomeArt(other.id), loadBiomeArt(other.id)]);
+    expect([a, b]).toEqual([true, true]);
+    expect(biomeArtReady(other.id)).toBe(true);
+    expect(await loadBiomeArt('no-such-biome')).toBe(false);
+  });
+
+  it('every biome in content has placeholder art (M8: all four are playable)', async () => {
     expect([...placeholderBiomes()].sort()).toEqual(content.biomes.map((b) => b.id).sort());
     for (const b of content.biomes) {
+      expect(await loadBiomeArt(b.id), b.id).toBe(true);
       const bm = createPlaceholderManifest(content, b);
       for (const layer of b.layers)
         expect(bm.layer(layer.asset), `${b.id}/${layer.id}`).toBeDefined();

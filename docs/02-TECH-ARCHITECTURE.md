@@ -380,12 +380,28 @@ share/challenge-link boundary (M7), because it needs async platform APIs (D-018)
   Particles via Phaser's emitter (or `SpriteGPULayer` for large feather storms on high tier).
 - **Quality tiers** (`QualityManager`): auto-picked from a 90-frame benchmark on the title screen +
   `hardwareConcurrency`/`deviceMemory` hints; user override in Settings.
+  M9 as built (D-026): `FrameBenchmark` counts rAF frame times only while the title is up and the
+  tab visible (after `warmupFrames`), once per page; `benchmarkTier` → low above `lowAboveMs`,
+  high at ≤ `highBelowMs` on a fine pointer with ≥ `highMinCores` and enough `deviceMemory`, else
+  medium (`feel.json quality.benchmark`). The result is saved per device (`SaveData.device`) and
+  "auto" follows it from then on; small touch devices stay low. **Render scale** is real: the
+  canvas is design size × `renderScale` and every scene camera zooms by it (`fitCamera`), while
+  scenes keep laying out in design px (`designSize()`). Filters are camera filters on the hunt
+  scene (vignette; bloom = threshold + blur in a ParallelFilters, added back). The low tier draws
+  the far ridge on the far veld's layer (stretched by their core widths) and renders without
+  antialiasing (fixed at boot). Tiers never hide birds, secrets or information.
+  **Per-frame cost rules (M9):** HUD shapes are cached Shape objects (`ui/shapes.ts`), never
+  per-frame `Graphics` (Phaser re-tessellates Graphics paths every frame); off-screen parallax art
+  is hidden; safe-area insets are computed per layout, not per frame.
 
 | Tier | Render scale | Atlas set | Particles | Filters | Parallax layers |
 |---|---|---|---|---|---|
 | Low | 0.67 | @1x (≤ 2048² pages) | 40 % | none | 5 (far ridge merged into far veld) |
 | Medium | 0.83 | @1x | 70 % | vignette, glare | 6 |
 | High | 1.0 | @2x (≤ 4096² pages) | 100 % | + bloom, heat haze, lightning glow | 6 |
+
+(Glare, heat haze and lightning are gameplay weather drawn on every tier; atlas sets arrive with
+final art in M10. Values live in `feel.json quality.tiers`.)
 
 ## 6. Input (`src/game/input/InputMapper.ts`)
 - Pointer Events only (one code path for mouse/touch/pen); canvas CSS `touch-action: none`;
@@ -471,6 +487,11 @@ export interface PlatformAdapter {
     ≤ 1 500 files; mouse, keyboard and touch; many players on Chromebooks.
   - **YouTube Playables:** initial download under 30 MiB.
 - **Our budget:** first playable hunt ≤ **5 MB** compressed (core + Karoo); other biomes lazy-loaded.
+  M9: each non-home biome's art is its own chunk (`import()` in `ProceduralAssetFactory`), loaded
+  the first time a hunt there starts ("Loading…" and the portal's loading signals meanwhile; a
+  failed load returns to the title). The content JSON of all biomes stays in the initial bundle
+  (the sim, `contentHash` and the Daily rotation need it). Final art (M10) plugs into the same
+  per-biome loader.
 
 ## 9. Mobile web specifics (the gotchas)
 - **iPhone Safari has no element Fullscreen API** (iPad does; iOS 17.4 beta even removed an
@@ -577,7 +598,8 @@ platform for now (neither portal SDK takes custom events or error reports).
 | E2E | Playwright: desktop Chromium + WebKit, Pixel 7 & iPhone 14 landscape emulation | boot → hunt → 20 taps → tally |
 | Visual | Playwright screenshots of HUD at 16:9, 19.5:9, 4:3 | reviewed on change |
 | Perf | Headless Chrome, 4× CPU throttle, 30 s hunt (`tests/e2e/perf.spec.ts`) | avg frame ≤ 16.7 ms on medium tier: CPU cost per frame always; real frame time with `PERF_STRICT=1` on a GPU machine (D-019) |
-| Size | `tools/size-check.ts` | initial ≤ 5 MB compressed (hard fail at 8 MB) |
+| Perf, low tier (M9) | Pixel 7 profile, 6× CPU throttle, quality low, 20 s hunt (`perf.spec.ts`) | CPU cost of a frame at 50 fps ≤ 20 ms: (CPU per frame − sim time) + 1.2 × sim tick cost (D-026) |
+| Size | `tools/size-check.ts` (`--strict` in CI, `--dir` per platform build) | initial (entry + static imports, from Vite's manifest) ≤ 5 MB gzip; hard fail at 8 MB; lazy chunks reported apart |
 | Sim cost | microbenchmark | `step()` ≤ 1.5 ms with 60 birds on a mid-range phone profile |
 
 CI (GitHub Actions): install → `npm run check` → build → size → e2e. Deploy previews per PR to static

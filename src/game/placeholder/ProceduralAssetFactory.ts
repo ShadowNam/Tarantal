@@ -17,9 +17,6 @@ import {
 import { arsenalSpecs } from './arsenalArt';
 import { omenSpecs } from './omenArt';
 import type { Band, BiomeArt } from './biomeArt';
-import { BUSHVELD_ART } from './biomes/bushveld';
-import { KALAHARI_ART } from './biomes/kalahari';
-import { OKAVANGO_ART } from './biomes/okavango';
 import { ellipse, ground, inked, INK, prng, tuft } from './draw';
 
 const KAROO = {
@@ -1295,22 +1292,59 @@ const PLANE_LOOK_LINE: Readonly<Record<PlaneId, number>> = { near: 6, mid: 4, fa
 /** Builds the placeholder manifest for the creatures, biome and UI the hunt needs. */
 const KAROO_ART: BiomeArt = { bands: BANDS, drawProp: drawKarooProp };
 
-/** Placeholder art per biome id (M8). A biome is playable only once it has an entry here. */
-const BIOME_ART: Readonly<Record<string, BiomeArt>> = {
-  'karoo-autumn': KAROO_ART,
-  'bushveld-winter': BUSHVELD_ART,
-  'okavango-spring': OKAVANGO_ART,
-  'kalahari-summer': KALAHARI_ART,
+/**
+ * Placeholder art per biome id (M8). A biome is playable only once it has an entry here. M9: the
+ * home biome (Karoo) is in the initial download; the others are separate chunks loaded on first
+ * use (lazy biome bundles, Tech §8 budget) — `loadBiomeArt` before `createPlaceholderManifest`.
+ */
+const LAZY_ART: Readonly<Record<string, () => Promise<BiomeArt>>> = {
+  'bushveld-winter': () => import('./biomes/bushveld').then((m) => m.BUSHVELD_ART),
+  'okavango-spring': () => import('./biomes/okavango').then((m) => m.OKAVANGO_ART),
+  'kalahari-summer': () => import('./biomes/kalahari').then((m) => m.KALAHARI_ART),
 };
+const loadedArt = new Map<string, BiomeArt>([['karoo-autumn', KAROO_ART]]);
+const loadingArt = new Map<string, Promise<boolean>>();
 
 /** Biome ids this build can draw (the Daily rotation, challenges and the run use only these). */
 export function placeholderBiomes(): readonly string[] {
-  return Object.keys(BIOME_ART);
+  return ['karoo-autumn', ...Object.keys(LAZY_ART)];
+}
+
+/** The biome's art is in memory (createPlaceholderManifest can run now). */
+export function biomeArtReady(id: string): boolean {
+  return loadedArt.has(id);
+}
+
+/**
+ * Loads a biome's art chunk once (later calls share the first). False if it failed (offline
+ * without the chunk cached, a CDN hiccup): the caller stays on what it has, and may retry.
+ */
+export function loadBiomeArt(id: string): Promise<boolean> {
+  if (loadedArt.has(id)) return Promise.resolve(true);
+  const load = LAZY_ART[id];
+  if (load === undefined) return Promise.resolve(false);
+  let p = loadingArt.get(id);
+  if (p === undefined) {
+    p = load().then(
+      (art) => {
+        loadedArt.set(id, art);
+        loadingArt.delete(id);
+        return true;
+      },
+      () => {
+        loadingArt.delete(id);
+        return false;
+      },
+    );
+    loadingArt.set(id, p);
+  }
+  return p;
 }
 
 export function createPlaceholderManifest(content: ContentBundle, biome: Biome): AssetManifest {
   const m = new AssetManifest();
-  const art = BIOME_ART[biome.id] ?? KAROO_ART;
+  const art = loadedArt.get(biome.id);
+  if (art === undefined) throw new Error(`biome art ${biome.id} not loaded (loadBiomeArt first)`);
   const planes: PlaneId[] = ['near', 'mid', 'far'];
   for (const c of content.birds.creatures) {
     if (c.kind === 'helper') continue;
