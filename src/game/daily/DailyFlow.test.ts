@@ -212,6 +212,59 @@ describe('DailyFlow', () => {
     );
   });
 
+  it('a day before the epoch finishes and shares without a daily number (no throw)', () => {
+    const { flow, save } = setup(DAY - 3);
+    const plan = flow.plan('daily', null, undefined, {}, seedNever);
+    expect(plan.daily?.setup.number).toBeLessThan(1);
+    flow.start(plan);
+    const x = flow.finish(plan, result(plan, 500), '🟩');
+    expect(save.data.daily.history.at(-1)?.score).toBe(500);
+    const param = new URL(x.share?.url ?? '').searchParams.get('c') ?? '';
+    const decoded = decodeChallenge(param, {
+      content,
+      playableBiomes: ['karoo-autumn'],
+      contentHash: hash,
+      limits: meta.challenge,
+    });
+    expect(decoded.ok).toBe(true);
+    expect(decoded.ok && decoded.challenge.n).toBeUndefined();
+  });
+
+  it('a daily challenge to another day, or to another biome, is never ranked or official', () => {
+    const { flow } = setup();
+    const today = flow.todaySetup();
+    const old = challengeFor(
+      {
+        seed: 12345,
+        mode: 'daily',
+        biome: 'karoo-autumn',
+        weapon: 'dubbelloop',
+        score: 1,
+        dailyNumber: 1,
+      },
+      hash,
+    );
+    const p1 = flow.plan('classic', old, undefined, {}, seedNever);
+    expect(p1.daily).toBeNull();
+    flow.start(p1);
+    expect(flow.ranked(p1)).toBe(false);
+    const otherBiome = challengeFor(
+      {
+        seed: today.seed,
+        mode: 'daily',
+        biome: 'bushveld-winter',
+        weapon: 'dubbelloop',
+        score: 1,
+        dailyNumber: 1,
+      },
+      hash,
+    );
+    const p2 = flow.plan('classic', otherBiome, undefined, {}, seedNever);
+    expect(p2.daily).toBeNull();
+    flow.start(p2);
+    expect(flow.ranked(p2)).toBe(false);
+  });
+
   it('a Classic challenge plays its seed and gun, compares, and can be shared on', () => {
     const { flow, save } = setup();
     const c = challengeFor(

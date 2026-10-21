@@ -366,6 +366,15 @@ run used a scratch config on 4174 (CI unaffected); `daily.spec.ts` (4 tests, ~2.
 GL) stays in the shared shards. (16) *Follow-ups:* streak cosmetics have no art yet (M10); the
 share card is text only (an image card is v1.x); `by` (sender name) is never set by this build —
 there is no player name yet; set the real `epoch` before launch.
+(17) *Review fixes:* a day before the epoch (number ≤ 0) shares a link without `n` and never
+blocks the tally (building the share line can't throw); a daily challenge counts as today's
+official daily only when both seed **and** biome match today; a daily challenge to any other day
+never moves the rank. Content caps `historyDays` ≤ 400 and `freezeWeeksKept` ≤ 60 match the save
+caps. *Known limit (M9):* the `?e2e` test hooks (`today`, `huntSeconds`, `omen`, `quotaMul`) work
+in production builds, so a player can bend their own local streak and bests; this was already true
+for Classic bests. M9 should gate the hooks out of portal builds or give them their own save
+namespace (the e2e specs read `tm.save.v1` directly, so that needs a spec change too). No trust is
+placed in local results (Tech §12), so this only affects the player's own save.
 
 ## 3. Research notes (with sources)
 

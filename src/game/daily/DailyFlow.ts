@@ -117,7 +117,10 @@ export class DailyFlow {
       const hunt = challengeHunt(challenge);
       const setup = challenge.mode === 'daily' ? this.todaySetup() : null;
       // A challenge to today's daily is the daily itself (official if not played yet).
-      const today = setup !== null && setup.seed === challenge.seed ? setup : null;
+      const today =
+        setup !== null && setup.seed === challenge.seed && setup.biome === challenge.biome
+          ? setup
+          : null;
       const official = today !== null && !this.playedToday();
       return {
         seed: hunt.seed,
@@ -170,9 +173,13 @@ export class DailyFlow {
     });
   }
 
-  /** Practice daily hunts don't move the Classic rank (first-attempt rule). */
+  /**
+   * Practice daily hunts don't move the Classic rank (first-attempt rule); neither does a daily
+   * challenge to another day (an editable link, replayable without limit).
+   */
   ranked(plan: HuntPlan): boolean {
-    return plan.daily === null || this.started?.official === true;
+    if (plan.daily === null) return plan.mode.id !== 'daily';
+    return this.started?.official === true;
   }
 
   /** The hunt ended: record the official result and build the tally extras + share message. */
@@ -230,8 +237,11 @@ export class DailyFlow {
     // Share: Classic hunts and the official daily. Practice (and an old day's daily) has none.
     const shareable = result.mode === 'classic' || official;
     const dailyNumber = official ? daily.setup.number : null;
-    const share = shareable
-      ? buildShareText(
+    // Building the share line must never stop the tally from opening (the result is saved).
+    let share: ShareMessage | null = null;
+    if (shareable) {
+      try {
+        share = buildShareText(
           {
             dailyNumber,
             biome: result.biome,
@@ -257,8 +267,11 @@ export class DailyFlow {
             ),
           },
           translator(getLanguage()),
-        )
-      : null;
+        );
+      } catch {
+        share = null;
+      }
+    }
     return {
       tag,
       compare,

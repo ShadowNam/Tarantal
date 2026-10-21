@@ -130,7 +130,8 @@ export function challengeFor(
     weapon: hunt.weapon,
     score: hunt.score,
     ...(by === undefined ? {} : { by }),
-    ...(hunt.dailyNumber === null ? {} : { n: hunt.dailyNumber }),
+    // A day before the content epoch has no #n (dailyNumber ≤ 0): leave it out, never throw.
+    ...(hunt.dailyNumber === null || hunt.dailyNumber < 1 ? {} : { n: hunt.dailyNumber }),
     h: contentHash.slice(0, CHALLENGE_HASH_CHARS),
   };
 }
