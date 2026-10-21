@@ -28,7 +28,7 @@ const geometry: ShotGeometry = {
 const CX = 960; // left camera end: every plane's centre x is 960 (tapToPlane at dx 0)
 
 function bird(id: number, plane: PlaneId, x: number, y: number, facing: 1 | -1 = 1): HitBird {
-  return { id, plane, x, y, facing, hitbox, hittable: true };
+  return { id, plane, x, y, facing, hitbox, hittable: true, snappable: true };
 }
 function planes(list: HitBird[]): Record<PlaneId, HitBird[]> {
   const out: Record<PlaneId, HitBird[]> = { near: [], mid: [], far: [] };
@@ -150,6 +150,7 @@ describe('touch aim assist rescues a miss (M9, D-026)', () => {
     // far body centre (1000, 302.2); aim at plane x 1026 (dx 66): outside, but within 18 px.
     expect(resolvePellet(66, 302.2, CX, geometry, planes([b])).birdId).toBeNull();
     const snap = assistSnap(66, 302.2, CX, assisted, planes([b]));
+    expect(snap?.birdId).toBe(1);
     expect(snap?.sx).toBeCloseTo(-26, 6);
     expect(snap?.sy).toBeCloseTo(0, 6);
     expect(resolvePellet(66 + (snap?.sx ?? 0), 302.2, CX, geometry, planes([b])).birdId).toBe(1);
@@ -162,5 +163,12 @@ describe('touch aim assist rescues a miss (M9, D-026)', () => {
     const near = bird(2, 'near', 1040, 300);
     const snap = assistSnap(66, 302.2, CX, assisted, planes([b, near]));
     expect(snap?.sx).toBeCloseTo(1040 - 1026, 6);
+  });
+
+  it("never snaps onto a don't-shoot creature, nor past one onto a target behind it", () => {
+    const hadeda = { ...bird(5, 'far', 1000, 300), snappable: false };
+    expect(assistSnap(66, 302.2, CX, assisted, planes([hadeda]))).toBeNull();
+    const behind = bird(1, 'far', 1004, 300);
+    expect(assistSnap(66, 302.2, CX, assisted, planes([hadeda, behind]))).toBeNull();
   });
 });

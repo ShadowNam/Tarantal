@@ -6,6 +6,8 @@ import { hashEvents, type SimEvent } from './events';
 import { createSim, type Sim } from './Sim';
 import type { AimAssistLevel, BirdView, Command, InputKind, ModeConfig } from './types';
 import { CAMERA_MAX_X, CAMERA_MIN_X } from './world';
+import { onlyEvent, quiet, waitForBird } from '../../tools/simHarness';
+import { buildSlices, resolvePattern, type HitBird, type ShotGeometry } from './weapons/hitTest';
 
 const content = loadContent();
 
@@ -499,5 +501,115 @@ describe('FTUE hunt (Oupa se Les, GDD §16)', () => {
     const a = run(newSim(5, { mode: ftue() }), 3600);
     const b = run(newSim(5, { mode: ftue() }), 3600);
     expect(hashEvents(a)).toBe(hashEvents(b));
+  });
+});
+
+describe('touch aim assist rescues a clean miss only (M9, D-026)', () => {
+  /** Windbuks (1 pellet, no spread) near-miss below a bird's body, by `gap` px past its edge. */
+  function nearMiss(c: ContentBundle, bird: BirdView, gap: number) {
+    const [cam, fire] = shootAt(c, bird);
+    if (cam === undefined || fire?.t !== 'fire') throw new Error('bad helper');
+    const creature = c.birds.creatures.find((x) => x.id === bird.creature);
+    const ry = creature && 'hitbox' in creature ? creature.hitbox.body.ry : 0;
+    const scale = c.scoring.planes[bird.plane].scale;
+    return [cam, { ...fire, sy: fire.sy + ry * scale + gap }] as const;
+  }
+
+  it('a touch miss within the assist radius is rescued; the same pointer miss is not', () => {
+    const c = busyContent();
+    c.birds.flyoverDefaults.planeWeights = { mid: 0, far: 1 };
+    const scored = (inputKind: InputKind): boolean => {
+      const sim = newSim(12, {
+        content: c,
+        inputKind,
+        mode: { id: 'classic', weapon: 'windbuks' },
+      });
+      const bird = waitFor(
+        sim,
+        (b) => b.plane === 'far' && b.kind === 'target' && b.x > 900 && b.x < 2000,
+      );
+      // 8 px below the far body edge: inside the 18 px far assist.
+      const ev = stepEvents(sim, [...nearMiss(c, bird, 8)]);
+      return ev.some((e) => e.type === 'targetBagged' && e.birdId === bird.id);
+    };
+    expect(scored('touch')).toBe(true);
+  });
+
+  it('the same miss with a mouse is not rescued (pointer has no assist)', () => {
+    const c = busyContent();
+    c.birds.flyoverDefaults.planeWeights = { mid: 0, far: 1 };
+    const sim = newSim(12, {
+      content: c,
+      inputKind: 'pointer',
+      mode: { id: 'classic', weapon: 'windbuks' },
+    });
+    const bird = waitFor(
+      sim,
+      (b) => b.plane === 'far' && b.kind === 'target' && b.x > 900 && b.x < 2000,
+    );
+    const ev = stepEvents(sim, [...nearMiss(c, bird, 8)]);
+    expect(ev.some((e) => e.type === 'targetBagged')).toBe(false);
+    expect(ev.some((e) => e.type === 'pelletImpact' && e.birdId !== null)).toBe(false);
+  });
+
+  it("a touch miss next to a don't-shoot hadeda is not snapped onto it", () => {
+    const c = onlyEvent(quiet(), 'hadeda');
+    const penalties = (gap: number): number => {
+      const sim = createSim({
+        seed: 5,
+        content: c,
+        mode: { id: 'classic', weapon: 'windbuks' },
+        inputKind: 'touch',
+      });
+      const hadeda = waitForBird(sim, c, 'hadeda');
+      const ev = stepEvents(sim, [...nearMiss(c, hadeda, gap)]);
+      return ev.filter((e) => e.type === 'penaltyApplied').length;
+    };
+    // 8 px past its edge: within the assist radius, but no snap onto a don't-shoot creature.
+    expect(penalties(8)).toBe(0);
+    // A real hit on it still costs (the shot itself is not blocked).
+    expect(penalties(-12)).toBe(1);
+  });
+
+  it('a touch shot that hits a crate keeps the crate hit (no snap onto a bird beside it)', () => {
+    const biome = content.biomes.find((b) => b.id === 'karoo-autumn');
+    const tarentaal = content.birds.creatures.find((x) => x.id === 'tarentaal');
+    if (biome === undefined || tarentaal === undefined || !('hitbox' in tarentaal))
+      throw new Error('content');
+    const precise: ShotGeometry = {
+      slices: buildSlices(biome),
+      planeScale: { near: 1, mid: 0.5, far: 0.22 },
+      assistPx: { near: 0, mid: 0, far: 0 },
+    };
+    const assisted: ShotGeometry = { ...precise, assistPx: { near: 8, mid: 14, far: 18 } };
+    // Camera at the left end: every plane's centre x is 960, so dx 0 is plane x 960.
+    const cx = CAMERA_MIN_X;
+    const bird: HitBird = {
+      id: 7,
+      plane: 'far',
+      x: 960 + 24.2 + 10, // body edge 10 px right of the aim point: inside the 18 px assist
+      y: 500,
+      facing: 1,
+      hitbox: tarentaal.hitbox,
+      hittable: true,
+      snappable: true,
+    };
+    const birds = { near: [], mid: [], far: [bird] };
+    const crate = {
+      kind: 'crate' as const,
+      crateId: 3,
+      x: 960,
+      y: 500,
+      shape: { type: 'rect' as const, w: 20, h: 20 },
+    };
+    const farLayer = biome.layers.find((l) => l.plane === 'far')?.id ?? '';
+    const extras = new Map([[farLayer, [crate]]]);
+    const out = resolvePattern(0, 500, cx, [{ ox: 0, oy: 0 }], precise, assisted, birds, extras);
+    expect(out[0]?.r.crateId).toBe(3);
+    expect(out[0]?.r.birdId).toBeNull();
+    expect(out[0]?.pdx).toBe(0);
+    // Without the crate the same tap is rescued onto the bird.
+    const rescued = resolvePattern(0, 500, cx, [{ ox: 0, oy: 0 }], precise, assisted, birds);
+    expect(rescued[0]?.r.birdId).toBe(7);
   });
 });

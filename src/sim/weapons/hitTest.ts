@@ -16,6 +16,8 @@ export interface HitBird {
   readonly facing: 1 | -1;
   readonly hitbox: Hitbox;
   readonly hittable: boolean;
+  /** Touch aim assist may snap onto it: targets and bosses, never don't-shoot creatures or helpers. */
+  readonly snappable: boolean;
 }
 
 export type OccluderShape =
@@ -180,9 +182,9 @@ export function resolvePellet(
 
 /**
  * Touch aim assist as a rescue (M9, D-026): the aim point alone (the pattern's centre, no spread)
- * is tested with the assist-grown hitboxes. If it meets a bird first (front to back, the same
- * rules as a pellet), returns the screen shift that moves the aim point onto that bird's body
- * centre; otherwise null. The caller re-resolves the whole pattern, shifted, at the real
+ * is tested with the assist-grown hitboxes. If it meets a snappable bird first (front to back, the
+ * same rules as a pellet), returns that bird's id and the screen shift that moves the aim point
+ * onto its body centre; otherwise null (nothing, a prop, a crate, or a don't-shoot creature). The caller re-resolves the whole pattern, shifted, at the real
  * hitboxes, so the assist finds a target but never widens every pellet's.
  */
 export function assistSnap(
@@ -193,22 +195,68 @@ export function assistSnap(
   birdsByPlane: Readonly<Record<PlaneId, readonly HitBird[]>>,
   extras: ReadonlyMap<string, readonly HitExtra[]> = new Map(),
   driftDx: (scrollFactor: number) => number = () => 0,
-): { readonly sx: number; readonly sy: number } | null {
+): { readonly sx: number; readonly sy: number; readonly birdId: number } | null {
   const r = resolvePellet(dx, sy, cx, assisted, birdsByPlane, extras, driftDx);
   if (r.birdId === null) return null;
   for (const slice of assisted.slices) {
     if (slice.plane === null) continue;
     const bird = birdsByPlane[slice.plane].find((b) => b.id === r.birdId);
     if (bird === undefined) continue;
+    // The first bird under the aim point is a don't-shoot creature (or a helper): no snap, not
+    // onto it and not past it onto a target behind it (D-026).
+    if (!bird.snappable) return null;
     const scale = assisted.planeScale[slice.plane];
     const p = tapToPlane(cx, slice.scrollFactor, dx + driftDx(slice.scrollFactor), sy);
     const { body } = bird.hitbox;
     return {
       sx: bird.x + body.ox * scale * bird.facing - p.x,
       sy: bird.y + body.oy * scale - p.y,
+      birdId: bird.id,
     };
   }
   return null;
+}
+
+export interface PatternPellet {
+  readonly pdx: number;
+  readonly psy: number;
+  readonly r: PelletResult;
+}
+
+/**
+ * Resolves a hitscan pattern (M9, D-026). Pellets resolve at `precise` (the real hitboxes plus
+ * the FTUE first-hit help). With touch assist on (`assisted` grows the hitboxes) a shot that hit
+ * nothing — no bird, crate or secret part — may be rescued: `assistSnap` on the aim point, the
+ * pattern shifted onto that bird and resolved again, kept only if it hits that same bird.
+ */
+export function resolvePattern(
+  dx: number,
+  sy: number,
+  cx: number,
+  offsets: readonly { readonly ox: number; readonly oy: number }[],
+  precise: ShotGeometry,
+  assisted: ShotGeometry | null,
+  birdsByPlane: Readonly<Record<PlaneId, readonly HitBird[]>>,
+  extras: ReadonlyMap<string, readonly HitExtra[]> = new Map(),
+  driftDx: (scrollFactor: number) => number = () => 0,
+): PatternPellet[] {
+  const at = (sx: number, sy2: number): PatternPellet[] =>
+    offsets.map((o) => {
+      const pdx = dx + sx + o.ox;
+      const psy = sy + sy2 + o.oy;
+      return { pdx, psy, r: resolvePellet(pdx, psy, cx, precise, birdsByPlane, extras, driftDx) };
+    });
+  const pellets = at(0, 0);
+  if (assisted === null) return pellets;
+  // A crate or secret part hit is a hit too: never thrown away for a snap.
+  const hit = pellets.some(
+    (p) => p.r.birdId !== null || p.r.crateId !== null || p.r.partId !== null,
+  );
+  if (hit) return pellets;
+  const snap = assistSnap(dx, sy, cx, assisted, birdsByPlane, extras, driftDx);
+  if (snap === null) return pellets;
+  const snapped = at(snap.sx, snap.sy);
+  return snapped.some((p) => p.r.birdId === snap.birdId) ? snapped : pellets;
 }
 
 /** A shot hits a target when its pellets on it ≥ min(pelletsToBag, weapon pellets) (GDD §5.1). */

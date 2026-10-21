@@ -107,7 +107,7 @@ import {
 import {
   buildSlices,
   pointInOccluder,
-  assistSnap,
+  resolvePattern,
   resolvePellet,
   type HitBird,
   type Occluder,
@@ -986,6 +986,7 @@ export function createSim(config: SimConfig): Sim {
         facing: b.facing,
         hitbox: b.creature.hitbox,
         hittable: canHit(b),
+        snappable: b.creature.kind === 'target' || b.creature.kind === 'boss',
       });
     }
     return byPlane;
@@ -1138,21 +1139,18 @@ export function createSim(config: SimConfig): Sim {
     );
     const assisted = stats.bagged === 0 ? firstHitGeometry : geometry;
     const precise = stats.bagged === 0 ? preciseFirstHitGeometry : preciseGeometry;
-    const drifted = driftOn(drift);
-    const resolveAt = (sx: number, sy2: number) =>
-      offsets.map((o) => {
-        const pdx = dx + sx + o.ox;
-        const psy = sy + sy2 + o.oy;
-        return { pdx, psy, r: resolvePellet(pdx, psy, cameraX, precise, byPlane, extras, drifted) };
-      });
-    let pellets = resolveAt(0, 0);
-    if (touchAssist && !pellets.some((p) => p.r.birdId !== null)) {
-      const snap = assistSnap(dx, sy, cameraX, assisted, byPlane, extras, drifted);
-      if (snap !== null) {
-        const snapped = resolveAt(snap.sx, snap.sy);
-        if (snapped.some((p) => p.r.birdId !== null)) pellets = snapped;
-      }
-    }
+    // Touch assist rescues a clean miss only (resolvePattern, D-026); pointer never has it.
+    const pellets = resolvePattern(
+      dx,
+      sy,
+      cameraX,
+      offsets,
+      precise,
+      touchAssist ? assisted : null,
+      byPlane,
+      extras,
+      driftOn(drift),
+    );
     const landed = pellets.map((p) => landPellet(shotId, p.pdx, p.psy, p.r, drift, null));
     resolveShot(ctx, landed);
   }
