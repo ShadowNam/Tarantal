@@ -142,7 +142,8 @@ test('FTUE "Oupa se Les" completes with one line of text at a time', async ({ pa
   );
   const saved = await page.evaluate(
     () =>
-      (JSON.parse(localStorage.getItem('tm.save.v1') ?? '{}') as { ftue?: { done: boolean } }).ftue,
+      (JSON.parse(localStorage.getItem('tm.e2e.save.v1') ?? '{}') as { ftue?: { done: boolean } })
+        .ftue,
   );
   expect(saved?.done).toBe(true);
 

@@ -78,7 +78,7 @@ test('closing the tab mid-menu and reopening restores settings and progress', as
   await expect(again.locator('#rotate-card h1')).toHaveText('Draai jou toestel dwars');
   const saved = await again.evaluate(
     () =>
-      JSON.parse(localStorage.getItem('tm.save.v1') ?? '{}') as Record<
+      JSON.parse(localStorage.getItem('tm.e2e.save.v1') ?? '{}') as Record<
         string,
         Record<string, unknown>
       >,
@@ -113,7 +113,7 @@ test('a corrupted save falls back to defaults safely and keeps the bad text', as
   await page.addInitScript(() => {
     if (sessionStorage.getItem('corrupted') === null) {
       sessionStorage.setItem('corrupted', '1');
-      localStorage.setItem('tm.save.v1', '{"v":1,"settings":{"leftHa');
+      localStorage.setItem('tm.e2e.save.v1', '{"v":1,"settings":{"leftHa');
     }
   });
   await ready(page);
@@ -124,8 +124,8 @@ test('a corrupted save falls back to defaults safely and keeps the bad text', as
     () => window.__TM__?.scene === 'hunt' && window.__TM__.mode === 'ftue',
   );
   const stored = await page.evaluate(() => ({
-    save: localStorage.getItem('tm.save.v1'),
-    corrupt: localStorage.getItem('tm.save.corrupt'),
+    save: localStorage.getItem('tm.e2e.save.v1'),
+    corrupt: localStorage.getItem('tm.e2e.save.corrupt'),
   }));
   expect(stored.corrupt).toBe('{"v":1,"settings":{"leftHa');
   expect(() => JSON.parse(stored.save ?? '') as unknown).not.toThrow();

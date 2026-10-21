@@ -15,9 +15,9 @@ import {
 
 async function reduceFlashes(page: Page): Promise<void> {
   await page.addInitScript(() => {
-    if (localStorage.getItem('tm.save.v1') !== null) return;
+    if (localStorage.getItem('tm.e2e.save.v1') !== null) return;
     localStorage.setItem(
-      'tm.save.v1',
+      'tm.e2e.save.v1',
       JSON.stringify({
         v: 1,
         ftue: { done: true, skipped: false, step: '' },

@@ -34,6 +34,12 @@ function profile(name: string, device: (typeof devices)[string], orientation: st
 // CI splits the long Season Run spec into its own desktop job so it doesn't starve the timing
 // tests (perf, menus) that share a runner with it: E2E_ONLY / E2E_SKIP take a spec glob.
 const only = process.env['E2E_ONLY'] || undefined;
+// M9: E2E_PLATFORM=poki|crazygames builds and serves that portal build (with its test hooks,
+// VITE_TEST_HOOKS=1) instead of the web build; platform.spec.ts tests it against a fake SDK.
+const e2ePlatform = process.env['E2E_PLATFORM'] || 'web';
+/** Exported for playwright.local*.config.ts (scratch configs on other ports). */
+export const buildEnv =
+  e2ePlatform === 'web' ? '' : `VITE_PLATFORM=${e2ePlatform} VITE_TEST_HOOKS=1 `;
 const skip = process.env['E2E_SKIP'] || undefined;
 
 export default defineConfig({
@@ -62,7 +68,7 @@ export default defineConfig({
     profile('iphone14-portrait', devices['iPhone 14'], 'portrait'),
   ],
   webServer: {
-    command: 'npm run build && npx vite preview --port 4173 --strictPort',
+    command: `${buildEnv}npm run build && ${buildEnv}npx vite preview --port 4173 --strictPort`,
     url: 'http://localhost:4173',
     reuseExistingServer: !isCI,
     timeout: 120_000,
