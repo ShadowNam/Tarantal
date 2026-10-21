@@ -4,9 +4,9 @@
   "huntSeconds": 60,
   "seasons": [
     { "id": "herfs", "biome": "karoo-autumn", "omen": "karoo_wind", "boss": "generaal", "quotas": [1950, 2100, 2250] },
-    { "id": "winter", "biome": "bushveld-winter", "omen": "sun_glare", "boss": "ou_grys", "quotas": [2350, 2350, 2150] },
-    { "id": "lente", "biome": "okavango-spring", "omen": "sun_showers", "boss": "kuifkop_koning", "quotas": [4500, 6000, 8000] },
-    { "id": "somer", "biome": "kalahari-summer", "omen": "heat_then_storm", "boss": "stormvoel", "quotas": [11000, 15000, 20000] }
+    { "id": "winter", "biome": "bushveld-winter", "omen": "sun_glare", "boss": "ou_grys", "quotas": [2150, 2200, 1750] },
+    { "id": "lente", "biome": "okavango-spring", "omen": "sun_showers", "boss": "kuifkop_koning", "quotas": [2600, 2650, 2150] },
+    { "id": "somer", "biome": "kalahari-summer", "omen": "heat_then_storm", "boss": "stormvoel", "quotas": [2950, 3000, 2800] }
   ],
   "huntPattern": ["plain", "omen", "boss"],
   "bossRules": {
