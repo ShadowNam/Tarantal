@@ -336,5 +336,6 @@
   "run.ad_retry_title": "Oupa se tweede kans!",
   "run.ad_retry": "▶ Ad: play this hunt again",
   "run.ad_double": "▶ Ad: double Doppies (+{n})",
-  "run.ad_none": "No ad right now. Maybe next time!"
+  "run.ad_none": "No ad right now. Maybe next time!",
+  "ui.loading": "Loading…"
 }

@@ -29,12 +29,13 @@ jobs:
       # M8: every biome is in, so content warnings (content due later) are errors from now on.
       - run: npm run content:validate -- --strict
       - run: npm run build
-      - run: npm run size
-      # M9: one build per portal (VITE_PLATFORM); each must fit the same download budget.
+      # M9: the initial download (first playable hunt) must be ≤ 5 MB gzip on every build;
+      # --strict fails above it (8 MB fails always). One build per portal (VITE_PLATFORM).
+      - run: npm run size -- --strict
       - run: npm run build:poki
-      - run: npm run size -- --dir dist-poki
+      - run: npm run size -- --strict --dir dist-poki
       - run: npm run build:crazygames
-      - run: npm run size -- --dir dist-crazygames
+      - run: npm run size -- --strict --dir dist-crazygames
 
   e2e:
     # One job per Playwright profile, in parallel: under software-rendered WebGL a full run is too
