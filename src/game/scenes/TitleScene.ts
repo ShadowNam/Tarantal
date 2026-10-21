@@ -114,7 +114,15 @@ export class TitleScene extends Phaser.Scene {
         44,
       );
       drawButton(this, settings, t('title.settings'), 'secondary', 44);
+      // Focus order follows the buttons left to right: Shed, Season Run, Settings.
       items.push(
+        {
+          id: 'shed',
+          rect: () => shed,
+          press: () => {
+            this.openOverlay('Shed');
+          },
+        },
         {
           id: 'seasonRun',
           rect: () => run,
@@ -123,13 +131,6 @@ export class TitleScene extends Phaser.Scene {
             this.started = true;
             this.ctx.audio.unlock();
             this.data_?.run();
-          },
-        },
-        {
-          id: 'shed',
-          rect: () => shed,
-          press: () => {
-            this.openOverlay('Shed');
           },
         },
         {
