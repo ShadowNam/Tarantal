@@ -7,6 +7,7 @@ import * as Phaser from 'phaser';
 import { t, type I18nKey } from '../../i18n/i18n';
 import type { Settings } from '../../meta/saveSchema';
 import type { GameContext } from '../GameContext';
+import type { PrivacyData } from './PrivacyScene';
 import type { Rect } from '../ui/hudLayout';
 import {
   drawButton,
@@ -230,6 +231,26 @@ export class SettingsScene extends Phaser.Scene {
       this.time.delayedCall(0, () => this.scene.restart({ ...data, focus: 'settings.language' }));
     });
     choice(1, 3, 'settings.quality', QUALITY);
+    // M9: the privacy screen (what is stored, what is sent, clear my data).
+    const privacy = row(1, 4, 'settings.privacy');
+    drawButton(this, privacy, t('settings.privacy_open'), 'secondary', 34);
+    items.push({
+      id: 'settings.privacy',
+      rect: () => privacy,
+      press: () => {
+        menu.setActive(false);
+        this.scene.launch('Privacy', {
+          close: () => {
+            this.scene.stop('Privacy');
+            menu.setActive(true);
+          },
+          restart: () => {
+            this.ctx.restartPage();
+          },
+        } satisfies PrivacyData);
+        this.scene.bringToTop('Privacy');
+      },
+    });
 
     const back: Rect = { x: px + panelW / 2 - 220, y: py + panelH - 120, w: 440, h: 96 };
     drawButton(this, back, t('ui.back'), 'primary', 44);
@@ -241,7 +262,7 @@ export class SettingsScene extends Phaser.Scene {
       },
     });
 
-    new Menu(this, items, {
+    const menu = new Menu(this, items, {
       onBack: () => {
         data.close();
       },

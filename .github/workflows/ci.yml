@@ -30,6 +30,11 @@ jobs:
       - run: npm run content:validate -- --strict
       - run: npm run build
       - run: npm run size
+      # M9: one build per portal (VITE_PLATFORM); each must fit the same download budget.
+      - run: npm run build:poki
+      - run: npm run size -- --dir dist-poki
+      - run: npm run build:crazygames
+      - run: npm run size -- --dir dist-crazygames
 
   e2e:
     # One job per Playwright profile, in parallel: under software-rendered WebGL a full run is too
@@ -87,6 +92,39 @@ jobs:
           - { project: iphone14-landscape, browser: webkit, shard: 1/1 }
           - { project: pixel7-portrait, browser: chromium, shard: 1/1 }
           - { project: iphone14-portrait, browser: webkit, shard: 1/1 }
+          # M9: the portal builds (VITE_PLATFORM + VITE_TEST_HOOKS=1) against fake portal SDKs.
+          - {
+              project: desktop-chromium,
+              browser: chromium,
+              shard: poki,
+              only: '**/platform.spec.ts',
+              workers: 1,
+              platform: poki,
+            }
+          - {
+              project: desktop-chromium,
+              browser: chromium,
+              shard: crazygames,
+              only: '**/platform.spec.ts',
+              workers: 1,
+              platform: crazygames,
+            }
+          - {
+              project: pixel7-landscape,
+              browser: chromium,
+              shard: poki,
+              only: '**/platform.spec.ts',
+              workers: 1,
+              platform: poki,
+            }
+          - {
+              project: iphone14-landscape,
+              browser: webkit,
+              shard: poki,
+              only: '**/platform.spec.ts',
+              workers: 1,
+              platform: poki,
+            }
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -99,6 +137,7 @@ jobs:
         env:
           E2E_ONLY: ${{ matrix.only }}
           E2E_SKIP: ${{ matrix.skip }}
+          E2E_PLATFORM: ${{ matrix.platform }}
       - name: Upload screenshots and report
         if: always()
         uses: actions/upload-artifact@v5

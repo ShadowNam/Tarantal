@@ -6,7 +6,9 @@ import type { ContentBundle, Notaboek } from '../../content/schemas';
 import { finishRunStats, playerPool, validRun } from '../../meta/run';
 import type { SaveStore } from '../../meta/save';
 import type { PlatformAdapter } from '../../platform/PlatformAdapter';
+import type { RunAds, SaveData } from '../../meta/saveSchema';
 import {
+  bonusDoppies,
   buy,
   createRun,
   huntInfo,
@@ -26,6 +28,8 @@ import type { HuntResult, ModeConfig } from '../../sim/types';
 
 export class RunFlow {
   private finished: RunState | null = null;
+  /** M9: the run as it was before the hunt that ended it, for "Oupa se tweede kans". */
+  private retryFrom: { run: RunState; runStats: SaveData['runStats'] } | null = null;
 
   constructor(
     private readonly content: ContentBundle,
@@ -51,10 +55,12 @@ export class RunFlow {
       pool: playerPool(this.save.data, this.content, this.notaboek),
     });
     this.finished = null;
+    this.retryFrom = null;
     this.save.update((d) => ({
       ...d,
       run,
       runStats: { ...d.runStats, started: d.runStats.started + 1 },
+      runAds: { seed: run.seed, retries: 0, doubled: [] },
     }));
     this.platform.analytics('run_start', { weapon, pool: run.pool.length });
     return run;
@@ -74,7 +80,10 @@ export class RunFlow {
   }
 
   afterHunt(result: HuntResult): RunState {
-    const run = settleHunt(this.content, this.need(), result);
+    const before = this.need();
+    const statsBefore = this.save.data.runStats;
+    const run = settleHunt(this.content, before, result);
+    this.retryFrom = run.phase === 'defeat' ? { run: before, runStats: statsBefore } : null;
     if (runOver(run)) {
       this.finished = run;
       this.save.update((d) => ({ ...d, run: null, runStats: finishRunStats(d.runStats, run) }));
@@ -129,9 +138,66 @@ export class RunFlow {
     this.write({ ...run, charms: [...charms] });
   }
 
+  /** M9: rewarded ads used by this run (fresh for another seed). */
+  private ads(seed: number): RunAds {
+    const a = this.save.data.runAds;
+    return a.seed === seed ? a : { seed, retries: 0, doubled: [] };
+  }
+
+  /**
+   * "Oupa se tweede kans" (GDD §19): the hunt that just lost the run can be played again,
+   * `run.json rewardedRetryPerRun` times per run, in this session (a closed tab keeps the loss).
+   */
+  canRetry(): boolean {
+    const from = this.retryFrom;
+    if (from === null || this.finished === null) return false;
+    return this.ads(from.run.seed).retries < this.content.run.rewardedRetryPerRun;
+  }
+
+  /** After a granted rewarded ad: back to the lost hunt's card (same seed, same run). */
+  retry(): RunState | null {
+    const from = this.retryFrom;
+    if (from === null || !this.canRetry()) return null;
+    const ads = this.ads(from.run.seed);
+    this.retryFrom = null;
+    this.finished = null;
+    this.save.update((d) => ({
+      ...d,
+      run: from.run,
+      runStats: from.runStats,
+      runAds: { ...ads, retries: ads.retries + 1 },
+    }));
+    this.platform.analytics('rewarded', { kind: 'retry', hunt: from.run.huntIndex + 1 });
+    return from.run;
+  }
+
+  /** "Double Doppies" can be offered: the run tally of a hunt that paid, not yet doubled. */
+  canDouble(): boolean {
+    const run = this.current;
+    if (run?.phase !== 'tally') return false;
+    if ((run.history.at(-1)?.doppies?.total ?? 0) <= 0) return false;
+    return !this.ads(run.seed).doubled.includes(run.huntIndex);
+  }
+
+  /** After a granted rewarded ad: the hunt's Doppies once more (once per hunt). */
+  doubleDoppies(): RunState | null {
+    if (!this.canDouble()) return null;
+    const run = this.need();
+    const ads = this.ads(run.seed);
+    const next = bonusDoppies(run);
+    this.save.update((d) => ({
+      ...d,
+      run: next,
+      runAds: { ...ads, doubled: [...ads.doubled, run.huntIndex] },
+    }));
+    this.platform.analytics('rewarded', { kind: 'doppies', hunt: run.huntIndex + 1 });
+    return next;
+  }
+
   /** Give up the run (title → New run). */
   abandon(): void {
     this.finished = null;
+    this.retryFrom = null;
     this.save.update((d) => ({ ...d, run: null }));
   }
 

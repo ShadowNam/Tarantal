@@ -77,5 +77,13 @@
     "secretHintAt": 0.67,
     "bannerMs": 2800,
     "maxPromptChars": 52
+  },
+  "platform": {
+    "$comment": "Platform layer (Tech §8, M9): one deadline for a portal SDK's script + init at boot; the ad request timeout (until the SDK starts the ad; paused while the tab is hidden; no limit once the ad plays); error-report caps (no personal data: messages are trimmed, URLs reduced to file names).",
+    "sdkTimeoutMs": 6000,
+    "adTimeoutMs": 60000,
+    "maxErrorReports": 10,
+    "errorStackFrames": 5,
+    "errorMessageChars": 300
   }
 }

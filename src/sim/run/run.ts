@@ -409,6 +409,17 @@ export function leavePadstal(run: RunState): RunState {
   return { ...run, phase: 'hunt', huntIndex: run.huntIndex + 1, padstal: null };
 }
 
+/**
+ * M9 "double Doppies" (GDD §19, a rewarded ad on the run tally): the Doppies the last hunt paid
+ * are paid once more. Only in the tally; a hunt that paid nothing (or the hunt that ended the
+ * run) changes nothing. The game allows it once per hunt (SaveData.runAds, D-026).
+ */
+export function bonusDoppies(run: RunState): RunState {
+  if (run.phase !== 'tally') return run;
+  const extra = run.history.at(-1)?.doppies?.total ?? 0;
+  return extra > 0 ? { ...run, doppies: run.doppies + extra } : run;
+}
+
 /** True once the run is over (Victory or Defeat). */
 export const runOver = (run: RunState): boolean =>
   run.phase === 'victory' || run.phase === 'defeat';

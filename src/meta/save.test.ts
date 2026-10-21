@@ -12,6 +12,10 @@ function fakeLocalStorage(): void {
     getItem: (k: string) => store.get(k) ?? null,
     setItem: (k: string, v: string) => store.set(k, v),
     removeItem: (k: string) => store.delete(k),
+    get length() {
+      return store.size;
+    },
+    key: (i: number) => [...store.keys()][i] ?? null,
   });
 }
 
@@ -24,6 +28,20 @@ afterEach(() => {
 });
 
 describe('SaveData v1', () => {
+  it('M9 clear(): removes every stored key and goes on with the defaults', () => {
+    const save = new SaveStore();
+    save.update((d) => ({ ...d, stats: { ...d.stats, hunts: 7 } }));
+    store.set('tm.save.corrupt', 'old');
+    store.set('tm.notice.x', '1');
+    const seen: number[] = [];
+    save.onChange((d) => seen.push(d.stats.hunts));
+    save.clear();
+    expect([...store.keys()]).toEqual([]);
+    expect(save.data).toEqual(defaultSave());
+    expect(seen).toEqual([0]);
+    expect(loadSave().status).toBe('new');
+  });
+
   it('starts from defaults when nothing is stored', () => {
     const r = loadSave();
     expect(r.status).toBe('new');

@@ -13,6 +13,14 @@ export interface PlatformCapabilities {
   readonly iphone: boolean;
 }
 
+/** An uncaught error or rejection, already stripped of URLs and query strings (errors.ts). */
+export interface ErrorReport {
+  readonly source: 'error' | 'rejection';
+  readonly message: string;
+  /** Top stack frames as `file:line:col` (no origin, path or query). */
+  readonly frames: readonly string[];
+}
+
 export interface PlatformAdapter {
   readonly id: PlatformId;
   init(): Promise<void>;
@@ -25,17 +33,29 @@ export interface PlatformAdapter {
   /** True = reward granted. */
   rewardedBreak(): Promise<boolean>;
   isAdPlaying(): boolean;
+  /** An ad is requested or playing (from the request on: menus ignore input, D-026). */
+  isAdBusy(): boolean;
+  /** A rewarded ad can be offered now (false on web, without an SDK, or when it failed to load). */
+  rewardedAvailable(): boolean;
   /** Called with true when an ad starts and false when it ends (AudioDirector mutes). */
   onAdChange(fn: (playing: boolean) => void): () => void;
   cloudSave?: { get(): Promise<string | null>; set(data: string): Promise<void> };
   user?(): Promise<{ id: string; name: string } | null>;
-  /** Portal deep-link rules differ. */
+  /** Portal deep-link rules differ: rewrites a `…?c=<challenge>` link for the portal. */
   shareUrl(base: string): string;
+  /** A launch parameter (the challenge link's `c`): the portal's invite parameter, else the URL's. */
+  launchParam(name: string): string | null;
+  /** The portal asks the game to be silent (CrazyGames settings.muteAudio), or lets it play again. */
+  onPortalMute(fn: (muted: boolean) => void): () => void;
+  /** Crash/error hook (M9): no personal data; kept on the device unless a portal takes reports. */
+  reportError(report: ErrorReport): void;
   /** Share sheet → clipboard → textarea copy (M7). Call from inside a user gesture. */
   share(payload: SharePayload): Promise<ShareOutcome>;
   /** Analytics event (Tech §14). No personal data; may be a no-op on some portals. */
   analytics(event: string, data?: Record<string, unknown>): void;
   readonly canShowExternalLinks: boolean;
+  /** PWA extras (service worker, "Add to Home Screen" banner) belong to this build: web only. */
+  readonly pwa: boolean;
   capabilities(): PlatformCapabilities;
   /** Enters fullscreen where capabilities().fullscreen is true. */
   requestFullscreen(): Promise<void>;

@@ -522,6 +522,81 @@ four biomes on four consecutive days (unit test). (32) *Stack upkeep:* my GDD Bu
 split the §11.1 table; fixed on the Bushveld branch after #13 merged and carried forward by
 merges (the fix reaches main with #14).
 
+**D-026 M9 Platform, performance, accessibility, localisation (21 Oct 2026):** decisions made in
+M9, shipped as a linear stack of PRs (A platform, B quality + size, C accessibility, D de/nl,
+E touch aim assist). *PR A — platform adapters, ads, error hook, privacy:* (1) *Adapters:*
+`web`, `poki`, `crazygames` share `src/platform/local.ts` (analytics and error reports kept in
+memory on the device, one-at-a-time ads through `AdGate`, share, capabilities). `VITE_PLATFORM`
+is read with dot access so Vite inlines it and the minifier drops the other adapters: a Poki
+build holds no CrazyGames SDK URL and vice versa (checked with grep on each build). Unknown
+values fail the build (`vite.config.ts`) and boot. (2) *SDK loading:* each portal's own script
+from its own host (Poki `game-cdn.poki.com/scripts/v2/poki-sdk.js`, CrazyGames
+`sdk.crazygames.com/crazygames-sdk-v3.js`), injected in `init()`, which main.ts now awaits
+(bounded by `feel.json platform.sdkTimeoutMs`) so challenge links can be read through the portal.
+Blocked/failed/timed-out SDK = the game runs without ads or rewards; CrazyGames `environment:
+'disabled'` counts as no SDK (its calls throw there). APIs as documented on 21 Oct 2026 (Poki
+HTML5 guide; CrazyGames SDK v3 intro, video ads, game module). (3) *Interface additions*
+(Tech §8): `rewardedAvailable()`, `launchParam(name)` (Poki `getURLParam`, CrazyGames
+`getInviteParam`, else the page URL), `onPortalMute(fn)` (CrazyGames `settings.muteAudio`
+wins over the in-game volume: AudioDirector mute reason `portal`), `reportError(report)` and
+`pwa` (portal builds: no service worker, no manifest, no "Add to Home Screen" banner; no
+fullscreen button either — the portal page has its own). `shareUrl` stays synchronous: Poki's
+`shareableURL({})` is fetched once at init and challenge links become `<poki page>?gdc=<c>`
+(read back by `getURLParam('c')`); CrazyGames uses `inviteLink({c})`. *Needs an account to
+verify:* the real Poki link format. (4) *Sharing on portals:* clipboard only (no native share
+sheet), since an outside share sheet leads players off the portal; `canShowExternalLinks` is
+false on both. (5) *Ads only between hunts* (`src/game/ads/AdBreaks.ts`): a commercial break when
+the player leaves a screen for the next hunt (tally [Again], the run's hunt card, the title's
+START, a challenge's accept), never before the first hunt of the page (time to first shot,
+GDD §16) and never right after a rewarded ad (Poki resets its timer after one too). The portals
+cap the real rate. While an ad covers the game the AudioDirector is muted (`onAdChange`) and every
+Menu ignores pointers and keys (`setMenuInputGate`, Poki rule). `AdGate` gives up after
+`platform.adTimeoutMs` so a stuck SDK can't hang the game. Gameplay start/stop now also wrap the
+pause menu (both portals ask for it), deduplicated in the adapters. Loading: `loadingProgress(0)`
+at boot, `1` when the title is up (Poki `gameLoadingFinished` once; CrazyGames
+`loadingStart/Stop`, re-opened for later loads). (6) *Rewarded ads (GDD §19):* "Oupa se tweede
+kans" on the run tally of a lost run replays the lost hunt from the run as it was before it (same
+seed, run record restored), `run.json rewardedRetryPerRun` times per run, this session only (a
+closed tab keeps the loss); "double Doppies" on a paid run tally pays that hunt's Doppies once
+more, once per hunt. Both are shown only when `rewardedAvailable()` and say "▶ Ad" before the tap
+(Poki rule). The Daily Hunt and Classic offer none. Usage lives in a new save section `runAds`
+(seed, retries, doubled hunts; reset at run start), outside the sim's `RunState`. The one sim
+addition is the pure `bonusDoppies(run)` in `src/sim/run` (unit-tested; no golden replay
+changes: the sim's hunt path is untouched). (7) *Error hook:* `window` errors and unhandled
+rejections → `PlatformAdapter.reportError`; messages trimmed, every URL cut to its file name (no
+origin, path, query or hash: challenge links and portal session ids never ride along), top stack
+frames only, capped and de-duplicated per page (`feel.json platform`). Neither portal SDK takes
+error reports, so reports stay on the device (debug overlay, e2e hook) on every platform, with
+an `error` analytics record. (8) *Privacy screen* (Settings → Privacy): what is stored on the
+device, what is sent (web: nothing; portals: the site's own service runs ads and statistics
+under its own policy — the portal is not named, per the no-brand-names rule), no personal data,
+and [Clear my data] (tap twice) which removes every `tm.` key in the current namespace and
+reloads as a new player. *Needs a person:* legal check of the text. (9) *Test hooks (D-024
+known limit closed):* portal builds compile the hooks out unless built with `VITE_TEST_HOOKS=1`
+(CI's portal e2e builds; `grep __TM_TOOLS__` finds nothing in `dist-poki`/`dist-crazygames`);
+in any build `?e2e` switches storage to the `tm.e2e.` namespace, so a test link never bends a
+player's own save. The specs read `tm.e2e.save.v1`. (10) *Tests:* adapters against fake SDKs
+(unit), `tests/e2e/platform.spec.ts` against fake SDK scripts served by `page.route()` in place
+of the portals' URLs (CI jobs: desktop poki, desktop crazygames, Pixel poki); `REAL_SDK=1` runs it
+against the real SDKs' localhost modes (by hand: it needs the network).
+*PR A review fixes:* (10a) *Ad request race (must):* the menus were locked only once the SDK
+called `onStart`, so during the request (0.5–2 s) a second tap could start a hunt under the coming
+ad, or leave for the title. Now `afterBreak` and `AdBreaks.beforeHunt` are single-flight (a second
+request joins or is dropped), menus are locked from the request on (`isAdBusy()` on the adapter
+plus `AdBreaks.busy`), the run's HUNT!/Menu have a press guard, and the title's Shed/Settings
+don't open once START is pressed. `platform.spec.ts` races [Again]×2 + [Menu] and HUNT!×2 + Menu
+against a fake SDK that takes 1.5 s to start the ad: one break, one hunt start each (it fails
+without the fixes: 4 starts instead of 3). (10b) *Ad timeout:* `adTimeoutMs` now covers only the
+request (until the SDK starts the ad), paused while the tab is hidden; a long ad, or one watched
+after a tab switch, ends when the SDK says so, and a watched rewarded ad is granted.
+(10c) *Boot:* one deadline (`sdkTimeoutMs`) for the SDK script + init together; Poki
+`shareableURL` and CrazyGames `hasAdblock` no longer block boot (filled in later; until then the
+page URL is used for links and an ad request under an adblocker simply errors). (10d) *Smaller:*
+error reports strip URLs with a ':' in the query, protocol-relative and bare-host URLs, and report
+only the type of non-Error rejections; a rewarded request with no ad shown (no SDK, no fill) no
+longer skips the next break; portal builds drop the unreferenced `manifest.webmanifest`; CI also
+runs the portal spec on iPhone 14 landscape (WebKit).
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

@@ -1,7 +1,21 @@
 // The only door to localStorage (CLAUDE.md: it can throw in private modes, when blocked, or
 // when full). Falls back to memory so the game keeps working; values are JSON or plain text.
 const memory = new Map<string, string>();
-const PREFIX = 'tm.';
+const BASE_PREFIX = 'tm.';
+let PREFIX = BASE_PREFIX;
+
+/**
+ * Keys go under `tm.<namespace>` from now on (M9: `?e2e` test runs use `tm.e2e.`, so test
+ * hooks can never touch a player's real save). Call once at boot, before anything is read.
+ */
+export function setStorageNamespace(namespace: string): void {
+  PREFIX = BASE_PREFIX + namespace;
+}
+
+/** The key prefix in use (`tm.` or `tm.<namespace>`). */
+export function storagePrefix(): string {
+  return PREFIX;
+}
 
 /** 'local' while localStorage works; 'memory' after it threw or is missing (private mode). */
 export type StorageStatus = 'local' | 'memory';
@@ -71,10 +85,34 @@ export function writeValue(key: string, value: unknown): void {
   writeText(key, JSON.stringify(value));
 }
 
+/** Removes every key under the current prefix (privacy screen → clear my data). */
+export function removeAllKeys(): void {
+  for (const k of [...memory.keys()]) if (k.startsWith(PREFIX)) memory.delete(k);
+  try {
+    const b = backend();
+    if (b === null) return;
+    const keys: string[] = [];
+    for (let i = 0; i < b.length; i++) {
+      const k = b.key(i);
+      // A namespace's keys never count as the plain prefix's (tm.e2e.* is not the player's).
+      if (
+        k !== null &&
+        k.startsWith(PREFIX) &&
+        !(PREFIX === BASE_PREFIX && k.startsWith('tm.e2e.'))
+      )
+        keys.push(k);
+    }
+    for (const k of keys) b.removeItem(k);
+  } catch {
+    failed = true;
+  }
+}
+
 export const isBoolean = (v: unknown): v is boolean => typeof v === 'boolean';
 
 /** Tests only: forget the in-memory copy and the failure flag. */
 export function resetStorageForTests(): void {
   memory.clear();
   failed = false;
+  PREFIX = BASE_PREFIX;
 }

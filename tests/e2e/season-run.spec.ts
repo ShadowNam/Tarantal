@@ -91,7 +91,7 @@ test('a full 12-hunt Season Run completes (short hunts, zero quotas)', async ({ 
   // The run left the save; the title offers a new run, with the win counted.
   const saved = await page.evaluate(
     () =>
-      JSON.parse(localStorage.getItem('tm.save.v1') ?? '{}') as {
+      JSON.parse(localStorage.getItem('tm.e2e.save.v1') ?? '{}') as {
         run: unknown;
         runStats: { won: number };
       },

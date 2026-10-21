@@ -3,13 +3,15 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Tarantal Madness — a panning shooting gallery starring the helmeted guineafowl.",
+  "description": "Tarantal Madness \u2014 a panning shooting gallery starring the helmeted guineafowl.",
   "engines": {
     "node": ">=22.12"
   },
   "scripts": {
     "dev": "vite",
     "build": "npm run typecheck && vite build",
+    "build:poki": "VITE_PLATFORM=poki npm run build",
+    "build:crazygames": "VITE_PLATFORM=crazygames npm run build",
     "preview": "vite preview",
     "test": "vitest run",
     "test:e2e": "playwright test",

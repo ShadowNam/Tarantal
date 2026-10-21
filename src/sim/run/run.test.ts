@@ -5,6 +5,7 @@ import { base, type Content } from '../../../tools/simHarness';
 import { playRun } from '../../../tools/seasonRun';
 import type { HuntResult } from '../types';
 import {
+  bonusDoppies,
   buy,
   charmPool,
   createRun,
@@ -137,6 +138,19 @@ describe('run structure (GDD §13.1)', () => {
       rental: null,
       runShellBonus: 1,
     });
+  });
+});
+
+describe('double Doppies (M9 rewarded, GDD §19)', () => {
+  it("pays the last hunt's Doppies once more, in the tally only", () => {
+    const quota = huntInfo(base, 0).quota;
+    const tally = settleHunt(base, newRun(), result(quota));
+    const paid = tally.history.at(-1)?.doppies?.total ?? 0;
+    expect(paid).toBeGreaterThan(0);
+    expect(bonusDoppies(tally).doppies).toBe(tally.doppies + paid);
+    expect(bonusDoppies(newRun())).toEqual(newRun());
+    const lost = settleHunt(base, newRun(), result(0));
+    expect(bonusDoppies(lost)).toBe(lost);
   });
 });
 

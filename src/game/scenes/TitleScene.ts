@@ -225,6 +225,8 @@ export class TitleScene extends Phaser.Scene {
 
   /** Skiet-Skuur or Settings on top of the title; the title rebuilds when it closes. */
   private openOverlay(key: 'Shed' | 'Settings'): void {
+    // START (or the run) was pressed: its break or hunt is on its way (D-026).
+    if (this.started) return;
     this.menu?.setActive(false);
     this.ctx.chrome.setOnTitle(false);
     this.scene.launch(key, {

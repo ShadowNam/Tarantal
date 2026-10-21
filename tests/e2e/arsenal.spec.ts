@@ -19,9 +19,9 @@ import {
 /** A returning player with this gun unlocked and equipped (save sections load one by one). */
 async function equip(page: Page, weapon: string): Promise<void> {
   await page.addInitScript((w) => {
-    if (localStorage.getItem('tm.save.v1') !== null) return;
+    if (localStorage.getItem('tm.e2e.save.v1') !== null) return;
     localStorage.setItem(
-      'tm.save.v1',
+      'tm.e2e.save.v1',
       JSON.stringify({
         v: 1,
         ftue: { done: true, skipped: false, step: '' },

@@ -37,9 +37,9 @@ function savedRunAt(hunts: number): RunState {
 
 async function withSavedRun(page: Page, run: RunState): Promise<void> {
   await page.addInitScript((r) => {
-    if (localStorage.getItem('tm.save.v1') !== null) return;
+    if (localStorage.getItem('tm.e2e.save.v1') !== null) return;
     localStorage.setItem(
-      'tm.save.v1',
+      'tm.e2e.save.v1',
       JSON.stringify({ v: 1, ftue: { done: true, skipped: false, step: '' }, run: r }),
     );
   }, run);
