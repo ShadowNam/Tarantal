@@ -230,6 +230,30 @@ describe('Kettie (delayed hitscan)', () => {
     stepEvents(sim, [{ t: 'fire', dx: 0, sy: 40 }]);
     expect(sim.snapshot().weapon.cooldownTicks).toBe(2 * msToTicks(kettie.fireCooldownMs) - 1);
   });
+
+  it('reload charms (Snelhand) shorten the Kettie draw like a reload (D-025)', () => {
+    const snel = content.charms.charms.find((c) => c.id === 'snelhand');
+    const mul = snel?.effects.find((e) => 'reloadSpeedMul' in e.do)?.do.reloadSpeedMul;
+    if (mul === undefined) throw new Error('snelhand');
+    const season: SeasonHuntConfig = {
+      kind: 'plain',
+      boss: null,
+      charms: ['snelhand'],
+      consumables: [],
+      rental: null,
+      runShellBonus: 0,
+    };
+    const sim = createSim({
+      seed: 1,
+      content,
+      mode: { id: 'seasonHunt', biome: 'karoo-autumn', weapon: 'kettie', season },
+      inputKind: 'pointer',
+    });
+    stepEvents(sim, [{ t: 'fire', dx: 0, sy: 40 }]);
+    const base = msToTicks(kettie.fireCooldownMs);
+    expect(sim.snapshot().weapon.cooldownTicks).toBe(Math.round(base / mul) - 1);
+    expect(sim.snapshot().weapon.cooldownTicks).toBeLessThan(base - 1);
+  });
 });
 
 describe('Plaas-Pomp (interruptible per-shell reload)', () => {

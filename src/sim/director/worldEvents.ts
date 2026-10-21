@@ -154,7 +154,7 @@ function hopRoute(
   let dir: 1 | -1 = rng.chance(0.5) ? 1 : -1;
   const stops: PeekStop[] = [];
   let hopTicks = 0;
-  for (let used = 0; used < stayTicks; ) {
+  for (let used = 0; used < stayTicks;) {
     const p = order[at];
     if (p === undefined) break;
     const hideTicks = Math.max(1, msToTicks(rng.range(hideMs[0], hideMs[1])));

@@ -213,8 +213,8 @@ function checkSeason(content: ContentBundle, mode: string, season: SeasonHuntCon
 }
 
 /** Season Run: the primary's belt and reload with charm passives and the Boss Rule applied.
- *  A weapon with no belt (Kettie) has no reload: its draw (fire cooldown) is its reload, so
- *  Kuifkop Koning's "reload twice as long" doubles the draw instead (D-025). */
+ *  A weapon with no belt (Kettie) has no reload: its draw (fire cooldown) is its reload, so reload
+ *  charms (Snelhand) shorten it and Kuifkop Koning's "reload twice as long" doubles it (D-025). */
 function seasonTiming(
   base: WeaponTiming,
   shellBonus: number,
@@ -226,7 +226,9 @@ function seasonTiming(
     ...base,
     magazine: unlimited ? base.magazine : Math.max(1, base.magazine + shellBonus),
     reloadTicks: Math.max(1, Math.round(base.reloadTicks / reloadSpeedMul)) * reloadMul,
-    cooldownTicks: unlimited ? base.cooldownTicks * reloadMul : base.cooldownTicks,
+    cooldownTicks: unlimited
+      ? Math.max(1, Math.round(base.cooldownTicks / reloadSpeedMul)) * reloadMul
+      : base.cooldownTicks,
   };
 }
 
