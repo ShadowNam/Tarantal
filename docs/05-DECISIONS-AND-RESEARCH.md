@@ -579,6 +579,44 @@ player's own save. The specs read `tm.e2e.save.v1`. (10) *Tests:* adapters again
 (unit), `tests/e2e/platform.spec.ts` against fake SDK scripts served by `page.route()` in place
 of the portals' URLs (CI jobs: desktop poki, desktop crazygames, Pixel poki); `REAL_SDK=1` runs it
 against the real SDKs' localhost modes (by hand: it needs the network).
+*PR B — quality tiers, benchmark, lazy biomes, size budget:* (11) *Benchmark:* 90 frames after a
+15-frame warm-up, rAF to rAF, only while the title is on screen and the tab visible (paused
+otherwise, so nothing runs per frame outside the title); gaps over 1 s don't count. Result →
+`SaveData.device` (new section, defaults, no migration) and `perf_sample` analytics; "auto"
+follows the saved tier from the next page on. e2e runs skip it unless `?bench=1` so the specs keep
+a fixed tier. Thresholds are first guesses in `feel.json` (*needs a person:* real devices).
+(12) *Render scale (Tech §5) implemented, not deferred:* Phaser 4 has no resolution setting, so the
+canvas is the design size × `renderScale` and each scene camera zooms by it (`fitCamera`);
+scenes lay out in design px through `designSize()`. Text is drawn at design size and scaled, so it
+is a little softer on low/medium. (13) *Filters:* medium + high get a soft camera vignette, high a
+bloom. The vignette is a small look change on medium (the tier table lists it); low has none.
+(14) *Layer merge:* low draws `far_ridge` on `far_veld` (`feel.json mergeLayers`), stretched by the
+two core widths so it still spans the panorama; only layers without props, planes or water may
+merge (all four biomes' far ridges qualify). (15) *Antialias off on low,* fixed at boot from the
+saved tier (WebGL can't switch it live). (16) *Lazy biome bundles:* Karoo (home) art is in the
+initial bundle, the other three are `import()` chunks loaded when a hunt there first starts; their
+content JSON stays initial (the sim, `contentHash`, the Daily rotation). Today's chunks are small
+(procedural placeholders: ~5 KB gzip together); M10's atlases use the same loader. (17) *Size gate:*
+`size-check` splits initial (entry + static imports + non-chunk files, from Vite's manifest) from
+lazy; CI runs `--strict` (fails above 5 MB initial) on all three builds; > 8 MB always fails.
+Measured (gzip): web initial 0.48 MB + lazy 0.005 MB; Poki and CrazyGames builds the same ±1 KB.
+(18) *Low tier ≥ 50 fps — method:* this box and CI have no GPU (SwiftShader, D-019), where frames
+come at 3–4 per second and each also runs up to 5 catch-up sim ticks a phone at 50 fps never runs.
+The asserted figure is the CPU cost of one frame at 50 fps = (CPU per frame − sim time per frame)
++ 1.2 × sim tick cost, on the Pixel 7 profile at 6× CPU throttle (DevTools' low-end mobile),
+quality forced low, 20 s hunt with taps and reloads; budget 20 ms. First run: 26.1–26.9 ms
+(fail). A CPU profile showed ~8 ms/frame in Phaser re-tessellating the HUD's `Graphics` rounded
+rects every frame, ~0.5 ms in `getComputedStyle` (safe area read every frame) and text re-renders
+on kills; render scale and off-screen culling barely moved it (the cost is CPU, not fill).
+(19) *Fixes, all tiers:* HUD panels, bars, chips and the pause icon are cached rounded-rectangle
+shapes (geometry only rebuilt on resize), the Vuvuzela button is baked to a texture when its look
+changes, the safe area is computed once per layout, off-screen parallax art is hidden. After:
+low tier **18.4 ms** at 6× (raw CPU per frame 20.9 ms incl. catch-up ticks, sim tick 0.66 ms);
+the medium perf smoke on the Pixel profile went from 16.0 to **12.4 ms** CPU/frame at 4×.
+*Needs a person:* fps on a real low-end Android phone and an older iPhone with quality low/auto.
+*Follow-up:* score pops and "POOF!" create a Text per kill (canvas render + upload); a pooled or
+bitmap-font version would cut the rest. `feel.json` gains fields without a `version` bump: no
+content has shipped and the client file has no older readers.
 
 ## 3. Research notes (with sources)
 
