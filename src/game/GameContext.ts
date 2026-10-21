@@ -5,8 +5,9 @@ import type { Biome, ContentBundle, DailyMeta, Feel, Notaboek } from '../content
 import type { ChallengeDecode } from '../meta/challenge';
 import type { LoadStatus, SaveStore } from '../meta/save';
 import type { StorageStatus } from '../meta/storage';
-import type { PlatformAdapter } from '../platform/PlatformAdapter';
-import type { AnalyticsRecord } from '../platform/web';
+import type { ErrorReport, PlatformAdapter } from '../platform/PlatformAdapter';
+import type { AdBreaks, AdCounts } from './ads/AdBreaks';
+import type { AnalyticsRecord } from '../platform/local';
 import type { HuntResult, InputKind } from '../sim/types';
 import type { LivePrefs } from './prefs';
 import type { DomChrome } from './ui/DomChrome';
@@ -127,6 +128,16 @@ export interface TestHook {
   tally: { tag: string | null; compare: string | null; news: string | null; share: boolean } | null;
   /** M7: the last [Share] (outcome and the message sent). */
   lastShare: { outcome: string; text: string; url: string } | null;
+  /** M9: the build's platform adapter id. */
+  platform: string;
+  /** M9: a commercial break is being asked for before the next hunt. */
+  adPending: boolean;
+  /** M9: ads asked for this page (AdBreaks counts). */
+  ads: AdCounts | null;
+  /** M9: the AudioDirector is muted (ad, portal mute, pause, hidden tab). */
+  audioMuted: boolean;
+  /** M9: error reports this page (LocalPlatform.errors). */
+  errors: readonly ErrorReport[];
 }
 
 /** e2e-only functions (window.__TM_TOOLS__): replay a log in this browser, the daily seed. */
@@ -160,11 +171,15 @@ export interface GameContext {
   /** M7: a challenge link opened this page, until the card has been shown. */
   pendingChallenge: ChallengeDecode | null;
   readonly platform: PlatformAdapter;
+  /** M9: commercial breaks between hunts and the GDD's rewarded ads. */
+  readonly ads: AdBreaks;
   /** M6: the Season Run (engine + save). */
   readonly run: RunFlow;
   /** Settings as the views use them (updated in place on change). */
   readonly prefs: LivePrefs;
   readonly chrome: DomChrome;
+  /** M9: reloads the page (after the privacy screen's clear my data). */
+  restartPage(): void;
   /** Re-applies the language setting to i18n and the DOM. */
   applyLanguage(): void;
   /** A menu (pause) holds the hunt. */

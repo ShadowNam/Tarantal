@@ -236,6 +236,7 @@ export class RunScene extends Phaser.Scene {
         .setOrigin(1, 0.5);
     }
     const next: Rect = { x: cx - 300, y: p.y + p.h - 150, w: 600, h: 112 };
+    this.rewardedButton(run, items, { x: cx - 300, y: next.y - 108, w: 600, h: 88 });
     if (run.phase === 'tally') {
       this.button(items, 'run.padstal', next, t('run.to_padstal'), 'primary', 52, () => {
         this.ctx.run.openPadstal();
@@ -247,6 +248,41 @@ export class RunScene extends Phaser.Scene {
       this.go('summary');
     });
     return 'run.summary';
+  }
+
+  /**
+   * M9 rewarded ads (GDD §19), shown only when the portal can play one: "Oupa se tweede kans"
+   * on a lost run (replay the lost hunt) and "double Doppies" on a paid tally. The label says it
+   * is an ad before the player taps (Poki rule).
+   */
+  private rewardedButton(run: RunState, items: MenuItem[], rect: Rect): void {
+    if (!this.ctx.ads.rewardedAvailable()) return;
+    const flow = this.ctx.run;
+    const pay = run.history.at(-1)?.doppies?.total ?? 0;
+    const offer: { id: string; label: string; kind: 'retry' | 'doppies' } | null =
+      run.phase === 'defeat' && flow.canRetry()
+        ? { id: 'run.retryAd', label: t('run.ad_retry'), kind: 'retry' as const }
+        : run.phase === 'tally' && flow.canDouble()
+          ? { id: 'run.doubleAd', label: fill(t('run.ad_double'), { n: pay }), kind: 'doppies' }
+          : null;
+    if (offer === null) return;
+    if (offer.kind === 'retry')
+      this.text(rect.x + rect.w / 2, rect.y - 34, t('run.ad_retry_title'), 34, '#FFD25A', rect.w);
+    let busy = false;
+    this.button(items, offer.id, rect, offer.label, 'secondary', 34, () => {
+      if (busy) return;
+      busy = true;
+      void this.ctx.ads.rewarded(offer.kind).then((granted) => {
+        if (!this.sys.isActive()) return;
+        if (!granted) {
+          this.text(rect.x + rect.w / 2, rect.y - 80, t('run.ad_none'), 28, '#FFD25A', rect.w);
+          return;
+        }
+        if (offer.kind === 'retry') {
+          if (flow.retry() !== null) this.go('intro');
+        } else if (flow.doubleDoppies() !== null) this.go('tally');
+      });
+    });
   }
 
   // --- Padstal ------------------------------------------------------------------------------

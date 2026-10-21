@@ -123,6 +123,15 @@ export const DailySaveSchema = z.object({
 });
 export type DailySave = z.infer<typeof DailySaveSchema>;
 
+export const RunAdsSchema = z.object({
+  /** The run these belong to (RunState.seed); another seed means a fresh run: all unused. */
+  seed: z.number().int().nonnegative().nullable(),
+  retries: count,
+  /** Hunt indexes whose Doppies were doubled. */
+  doubled: z.array(z.number().int().nonnegative()).max(40),
+});
+export type RunAds = z.infer<typeof RunAdsSchema>;
+
 const sections = {
   settings: SettingsSchema,
   ftue: z.object({ done: z.boolean(), skipped: z.boolean(), step: z.string().max(40) }),
@@ -148,6 +157,11 @@ const sections = {
   runStats: z.object({ started: count, won: count, bestHunts: count }),
   /** M7: the Daily Hunt (a new section: older saves get the default, no migration). */
   daily: DailySaveSchema,
+  /**
+   * M9: rewarded ads used in the Season Run with this seed (D-026): "Oupa se tweede kans"
+   * retries and the hunts whose Doppies were doubled. Kept outside RunState (the sim's).
+   */
+  runAds: RunAdsSchema,
 } as const;
 
 export const SaveSchema = z.object({ v: z.literal(SAVE_VERSION), ...sections });
@@ -170,6 +184,7 @@ export function defaultSave(): SaveData {
     stats: { hunts: 0, bagged: 0, shots: 0 },
     run: null,
     runStats: { started: 0, won: 0, bestHunts: 0 },
+    runAds: { seed: null, retries: 0, doubled: [] },
     daily: {
       streak: 0,
       bestStreak: 0,

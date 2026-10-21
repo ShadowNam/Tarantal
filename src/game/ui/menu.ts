@@ -25,6 +25,13 @@ export const UI = {
   focus: 0xffd25a,
 } as const;
 
+/** M9: true while an ad covers the game: every menu ignores pointers and keys (Poki rule). */
+let inputBlocked: () => boolean = () => false;
+
+export function setMenuInputGate(blocked: () => boolean): void {
+  inputBlocked = blocked;
+}
+
 export interface MenuItem {
   /** Also the key under hook.rects (e2e taps by id). */
   readonly id: string;
@@ -79,7 +86,7 @@ export class Menu {
       return this.items.find((i) => this.isEnabled(i) && rectContains(i.rect(), p.x, p.y));
     };
     const onDown = (e: PointerEvent): void => {
-      if (!this.active) return;
+      if (!this.active || inputBlocked()) return;
       const item = at(e);
       if (item === undefined) return;
       e.preventDefault();
@@ -100,7 +107,7 @@ export class Menu {
       const d = this.down;
       if (d === null || d.pointerId !== e.pointerId) return;
       this.down = null;
-      if (!this.active) return;
+      if (!this.active || inputBlocked()) return;
       if (d.item.drag) {
         const x = clientToDesign(canvas, e.clientX, e.clientY, design()).x;
         d.item.drop?.(x, Math.abs(x - d.x) < DRAG_TAP_PX);
@@ -109,7 +116,7 @@ export class Menu {
       if (at(e) === d.item) d.item.press(e.pointerType, e.pointerId);
     };
     const onKey = (e: KeyboardEvent): void => {
-      if (!this.active || opts.keyboard === false) return;
+      if (!this.active || opts.keyboard === false || inputBlocked()) return;
       this.onKey(e);
     };
     canvas.addEventListener('pointerdown', onDown);

@@ -222,6 +222,8 @@ export class HuntScene extends Phaser.Scene {
   // --- title ------------------------------------------------------------------------------
 
   private showTitle(): void {
+    // The title is up: loading is over (Poki gameLoadingFinished, CrazyGames loadingStop).
+    this.ctx.platform.loadingProgress(1);
     // A challenge link opened this page: its "beat this" card comes first, once.
     const pending = this.ctx.pendingChallenge;
     this.ctx.pendingChallenge = null;
@@ -230,7 +232,9 @@ export class HuntScene extends Phaser.Scene {
         challenge: pending.challenge,
         contentChanged: pending.contentChanged,
         accept: (kind, pointerId) => {
-          this.begin(kind, pointerId, pending.challenge.mode, pending.challenge);
+          this.afterBreak(() => {
+            this.begin(kind, pointerId, pending.challenge.mode, pending.challenge);
+          });
         },
         later: () => {
           this.scene.stop('Challenge');
@@ -245,7 +249,9 @@ export class HuntScene extends Phaser.Scene {
     const data: TitleData = {
       ...(pending === null ? {} : { notice: t('title.challenge_bad') }),
       start: (kind, pointerId, mode) => {
-        this.begin(kind, pointerId, mode);
+        this.afterBreak(() => {
+          this.begin(kind, pointerId, mode);
+        });
       },
       run: () => {
         this.openRun();
@@ -279,11 +285,13 @@ export class HuntScene extends Phaser.Scene {
     const data: RunData = {
       view,
       hunt: (pointerType) => {
-        this.scene.stop('Run');
-        this.scene.restart({
-          autoStart: inputKindOf(pointerType),
-          mode: 'seasonHunt',
-        } satisfies HuntData);
+        this.afterBreak(() => {
+          this.scene.stop('Run');
+          this.scene.restart({
+            autoStart: inputKindOf(pointerType),
+            mode: 'seasonHunt',
+          } satisfies HuntData);
+        });
       },
       title: () => {
         this.scene.stop('Run');
@@ -297,6 +305,20 @@ export class HuntScene extends Phaser.Scene {
     this.scene.launch('Run', data);
     this.scene.bringToTop('Run');
     if (this.ctx.hook) this.ctx.hook.scene = 'run';
+  }
+
+  /**
+   * Between hunts (M9): the portal's commercial break, then `go` (the next hunt). Audio is
+   * unlocked here, inside the tap, because iOS refuses it once the ad has run.
+   */
+  private afterBreak(go: () => void): void {
+    this.ctx.audio.unlock();
+    if (this.ctx.hook) this.ctx.hook.adPending = true;
+    const next = (): void => {
+      if (this.ctx.hook) this.ctx.hook.adPending = false;
+      go();
+    };
+    this.ctx.ads.beforeHunt().then(next, next);
   }
 
   // --- hunt -------------------------------------------------------------------------------------
@@ -460,6 +482,7 @@ export class HuntScene extends Phaser.Scene {
           : null,
     });
     this.ctx.platform.gameplayStart();
+    this.ctx.ads.huntStarted();
     this.ctx.platform.analytics('hunt_start', {
       mode: this.modeId,
       biome: this.biome.id,
@@ -719,15 +742,17 @@ export class HuntScene extends Phaser.Scene {
         extras,
         share: (x) => this.ctx.daily.share(x),
         again: (pointerType) => {
-          this.scene.stop('Tally');
-          // After the FTUE, [Again] is a real Classic hunt (GDD §16 step 7). After a Daily it is
-          // practice on the same hunt; after a challenge, the same challenge again.
-          const challengeAgain = plan?.challenge ?? null;
-          this.scene.restart({
-            autoStart: inputKindOf(pointerType),
-            mode: this.modeId === 'daily' ? 'daily' : 'classic',
-            ...(challengeAgain === null ? {} : { challenge: challengeAgain }),
-          } satisfies HuntData);
+          this.afterBreak(() => {
+            this.scene.stop('Tally');
+            // After the FTUE, [Again] is a real Classic hunt (GDD §16 step 7). After a Daily it
+            // is practice on the same hunt; after a challenge, the same challenge again.
+            const challengeAgain = plan?.challenge ?? null;
+            this.scene.restart({
+              autoStart: inputKindOf(pointerType),
+              mode: this.modeId === 'daily' ? 'daily' : 'classic',
+              ...(challengeAgain === null ? {} : { challenge: challengeAgain }),
+            } satisfies HuntData);
+          });
         },
         menu: () => {
           this.scene.stop('Tally');
@@ -773,6 +798,7 @@ export class HuntScene extends Phaser.Scene {
     this.ctx.menuPaused = true;
     this.mapper?.setEnabled(false);
     this.ctx.audio.setMuted('pause', true);
+    this.ctx.platform.gameplayStop();
     this.game.canvas.style.cursor = '';
     const season = this.runner.state.season;
     const data: PauseData = {
@@ -791,7 +817,7 @@ export class HuntScene extends Phaser.Scene {
         this.closePause();
       },
       quit: () => {
-        this.closePause();
+        this.closePause(false);
         if (this.ftue) this.skipFtue();
         else this.quitToTitle();
       },
@@ -801,7 +827,8 @@ export class HuntScene extends Phaser.Scene {
     if (this.ctx.hook) this.ctx.hook.paused = true;
   }
 
-  private closePause(): void {
+  /** `resume` false: Quit (the hunt ends, so gameplay doesn't restart for the portal). */
+  private closePause(resume = true): void {
     if (!this.pausedByMenu) return;
     this.scene.stop('Pause');
     this.pausedByMenu = false;
@@ -810,7 +837,8 @@ export class HuntScene extends Phaser.Scene {
     // Settings may have changed in the pause menu (left-handed, quality, shake).
     this.relayout();
     (this.scene.get('Hud') as HudScene).relayoutNow();
-    if (!this.ending) {
+    if (!this.ending && resume) {
+      this.ctx.platform.gameplayStart();
       this.mapper?.setEnabled(true);
       this.game.canvas.style.cursor = this.inputKind === 'pointer' ? 'none' : '';
     }

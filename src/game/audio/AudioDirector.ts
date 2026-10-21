@@ -14,7 +14,7 @@ const MASTER_LEVEL = 0.6;
 const MUSIC: ReadonlySet<SfxId> = new Set<SfxId>(['sting', 'stampede']);
 
 /** Why audio is muted; any reason mutes. */
-export type MuteReason = 'pause' | 'ad' | 'menu';
+export type MuteReason = 'pause' | 'ad' | 'menu' | 'portal';
 
 export interface Volumes {
   readonly master: number;
