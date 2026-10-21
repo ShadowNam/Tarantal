@@ -19,7 +19,7 @@ function newSim(
   return createSim({
     seed: opts.seed ?? 42,
     content: opts.c ?? content,
-    mode: { id: 'classic', weapon, ...opts.mode } as ModeConfig,
+    mode: { id: 'classic', weapon, ...opts.mode },
     inputKind: 'pointer',
   });
 }
@@ -254,9 +254,7 @@ describe('Plaas-Pomp (interruptible per-shell reload)', () => {
     expect(started.some((e) => e.type === 'reloadStarted' && e.perShell)).toBe(true);
     const loaded = wait(sim, perShell);
     expect(
-      loaded
-        .filter((e) => e.type === 'shellLoaded')
-        .map((e) => (e.type === 'shellLoaded' ? e.shells : 0)),
+      loaded.filter((e) => e.type === 'shellLoaded').map((e) => ('shells' in e ? e.shells : 0)),
     ).toEqual([5]);
     const cut = stepEvents(sim, [{ t: 'fire', dx: 0, sy: 40 }]);
     expect(cut.some((e) => e.type === 'reloadInterrupted')).toBe(true);
