@@ -431,6 +431,23 @@ below competent); Karoo's pacing unchanged. (15) *Golden replays:* every existin
 event hash; new `classic-31-bushveld-competent-pointer`, `daily-32-bushveld-aim-touch`,
 `season-winter-boss-bushveld-competent`. Tests that took `content.biomes[0]` as the Karoo now find
 it by id (biomes sort by file name, Bushveld first).
+*PR C — Lente · Okavango.* (16) *Splash:* "shots near water splash-alert" = water zones on the
+mid layer (data, drawn by the renderer from the same zones); a pellet that stops on nothing over
+water threatens flocks within 320 px that the shot didn't already threaten. It is the water's
+noise, not the gun's, so the silent Windbuks and Stil Loop still splash (our call: otherwise the
+twist does nothing to the stealth builds it is meant to test). (17) *Sun-showers:* the GDD names
+no rule; rain muffles shots (alert radius × 0.6), showers every 8–14 s for 5–9 s, drawn from the
+omen stream — a window to plink closer. (18) *Kuifkop:* appears only through the new
+`kuifkopHop` event (3–4 per hunt), not in flocks; hides in a reed bed (not hittable), peeks
+0.8–1.3 s, hops 0.5–0.7 s in plain view to another bed (scored as a runner, +0.5). Kuifkop Koning
+uses the same route with 3 hits; a hit sends him into the reeds. The hippo's "yawn" is its secret
+(no separate scheduled yawn). The fish eagle gets its own event id `fishEagle`; the crop sprayer
+stays on the farm biomes. (19) *Balance (Classic Okavango, 500 seeds, pointer)*, mean / p15 /
+p85, omen off: random 318 / 160 / 455, plinker 2 803 / 2 230 / 3 380, competent 4 164 / 3 464 /
+4 921 (plinker 32.7 % below); omen on: competent 4 145, plinker 2 817 — all M3 gates pass.
+(20) *Golden replays:* every existing case kept its event hash; new
+`classic-41-okavango-competent-pointer`, `daily-42-okavango-aim-touch`,
+`classic-43-okavango-windbuks-competent-pointer`, `season-lente-boss-okavango-competent`.
 
 ## 3. Research notes (with sources)
 
