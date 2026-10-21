@@ -4,6 +4,7 @@
   "input": {
     "tapMaxMs": 180,
     "tapMaxMovePx": 12,
+    "touchHoldMs": 180,
     "flickMinPx": 60,
     "flickMaxMs": 200,
     "dragPlaneScrollFactor": 0.6,

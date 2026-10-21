@@ -39,3 +39,24 @@ export function withQuotaMul(b: ContentBundle, mul: number): ContentBundle {
     },
   };
 }
+
+/**
+ * ?doppies=1: a Season Run starts with this many Doppies and hunts pay none (base, over-quota,
+ * interest and boss pay all 0), so the Padstal shows offers the player can't afford (e2e).
+ */
+export function withDoppies(b: ContentBundle, n: number): ContentBundle {
+  return {
+    ...b,
+    run: {
+      ...b.run,
+      doppies: {
+        ...b.run.doppies,
+        start: n,
+        perHunt: 0,
+        overQuotaCap: 0,
+        interestCap: 0,
+        bossHuntBonus: 0,
+      },
+    },
+  };
+}

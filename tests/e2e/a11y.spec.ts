@@ -127,3 +127,99 @@ test('hold to fire: one held press keeps firing while the gun is ready', async (
   await page.mouse.up();
   expect((await hook(page)).shots).toBeGreaterThanOrEqual(h.shots + 2);
 });
+
+/**
+ * One touch gesture dispatched inside the page with real timing: `path` is [dx, dy, ms] steps in
+ * design px from (x, y), after the press; the finger lifts after the last step.
+ */
+async function touchGesture(
+  page: Page,
+  x: number,
+  y: number,
+  path: readonly (readonly [number, number, number])[],
+): Promise<void> {
+  await page.evaluate(
+    ([sx, sy, steps]) =>
+      new Promise<void>((resolve) => {
+        const canvas = document.querySelector<HTMLCanvasElement>('#game canvas');
+        const h = window.__TM__;
+        if (!canvas || !h) throw new Error('game not booted');
+        const r = canvas.getBoundingClientRect();
+        const at = (dx: number, dy: number): PointerEventInit => ({
+          clientX: r.left + ((sx + dx) / h.designWidth) * r.width,
+          clientY: r.top + ((sy + dy) / h.designHeight) * r.height,
+          pointerId: 77,
+          pointerType: 'touch',
+          isPrimary: true,
+          button: 0,
+          buttons: 1,
+          bubbles: true,
+          cancelable: true,
+        });
+        canvas.dispatchEvent(new PointerEvent('pointerdown', at(0, 0)));
+        let i = 0;
+        let last: [number, number] = [0, 0];
+        const next = (): void => {
+          const s = steps[i++];
+          if (s === undefined) {
+            canvas.dispatchEvent(new PointerEvent('pointerup', { ...at(...last), buttons: 0 }));
+            resolve();
+            return;
+          }
+          const move = (): void => {
+            last = [s[0], s[1]];
+            canvas.dispatchEvent(new PointerEvent('pointermove', at(s[0], s[1])));
+            next();
+          };
+          // 0 ms: right away (a frame on software GL is far longer than a flick may take).
+          if (s[2] === 0) move();
+          else setTimeout(move, s[2]);
+        };
+        next();
+      }),
+    [x, y, path] as const,
+  );
+}
+
+test('hold to fire on touch: a held finger repeats, a drag pans, a flick reloads', async ({
+  page,
+}, info) => {
+  test.skip(info.project.name !== 'pixel7-landscape', 'touch gestures: Pixel 7 landscape');
+  test.setTimeout(180_000);
+  await seedSettings(page, { holdToFire: true });
+  await boot(page, 'seed=3&huntSeconds=40');
+  await startHunt(page, true);
+  await waitTicks(page, 20);
+  const h0 = await hook(page);
+  const cx = h0.designWidth / 2;
+  const cy = h0.designHeight * 0.35;
+
+  // 1. Drag sideways: the camera pans, nothing fires.
+  const camBefore = h0.cameraX;
+  await touchGesture(page, cx, cy, [
+    [-60, 0, 0],
+    [-160, 2, 40],
+    [-260, 4, 40],
+    [-360, 4, 40],
+  ]);
+  await waitTicks(page, 20);
+  let h = await hook(page);
+  expect(h.shots).toBe(h0.shots);
+  expect(h.cameraX).not.toBe(camBefore);
+
+  // 2. Held still for 1.2 s: repeated shots from one finger.
+  await touchGesture(page, cx, cy, [[0, 0, 1200]]);
+  await waitTicks(page, 10);
+  h = await hook(page);
+  expect(h.shots).toBeGreaterThanOrEqual(h0.shots + 2);
+  const afterHold = h.shots;
+
+  // 3. Flick down: a reload, no shot.
+  await touchGesture(page, cx, cy, [
+    [0, 40, 0],
+    [0, 90, 0],
+  ]);
+  await page.waitForFunction(() => window.__TM__?.reloading === true, null, { timeout: 30_000 });
+  h = await hook(page);
+  expect(h.shots).toBe(afterHold);
+});
