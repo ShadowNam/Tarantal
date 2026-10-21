@@ -91,8 +91,7 @@ export function decodeChallenge(param: string, ctx: ChallengeContext): Challenge
   if (!ctx.playableBiomes.includes(c.biome)) return { ok: false, reason: 'unknownBiome' };
   const w = ctx.content.weapons.weapons.find((x) => x.id === c.weapon);
   // A challenge lends its gun for that hunt (unlocks don't matter), but only a primary.
-  if (w === undefined || w.kind !== 'primary')
-    return { ok: false, reason: 'unknownWeapon' };
+  if (w === undefined || w.kind !== 'primary') return { ok: false, reason: 'unknownWeapon' };
   const { by: rawBy, ...rest } = c;
   const by = cleanName(rawBy, ctx.limits.maxByChars);
   const challenge: Challenge = by === undefined ? rest : { ...rest, by };

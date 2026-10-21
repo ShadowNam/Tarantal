@@ -2,7 +2,6 @@
 // Run after an intentional sim/content change and say why in the commit message (CLAUDE.md).
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { dailySeed } from '../src/meta/daily';
 import { encodeInputLogText } from '../src/sim/replay/inputLog';
 import { runReplay } from '../src/sim/replay/verify';
 import { GOLDEN_CASES, type GoldenReplay } from './goldenCases';
@@ -13,9 +12,7 @@ const content = loadContent();
 const contentHash = loadContentHash();
 const out: GoldenReplay[] = [];
 
-for (const raw of GOLDEN_CASES) {
-  const c =
-    raw.dailyDate === undefined ? raw : { ...raw, seed: dailySeed(raw.dailyDate, contentHash) };
+for (const c of GOLDEN_CASES) {
   const play = playHunt({ ...c, mode: c.modeConfig ?? { id: c.mode }, content, contentHash });
   const replay = runReplay(play.log, content);
   if (replay.eventHash !== play.eventHash) {

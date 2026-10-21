@@ -23,7 +23,7 @@ import {
 const DAY = '2026-10-21';
 const golden = (
   JSON.parse(readFileSync('src/sim/replay/golden/replays.json', 'utf8')) as GoldenReplay[]
-).filter((g) => g.dailyDate === DAY);
+).filter((g) => g.name.startsWith(`daily-${DAY}-`));
 
 async function waitScene(page: Page, scene: string): Promise<void> {
   await page.waitForFunction((s) => window.__TM__?.scene === s, scene, { timeout: 120_000 });
@@ -78,7 +78,6 @@ test.describe('Daily Hunt', () => {
       expect(got.contentHash).toBe(hash);
       expect(got.seed).toBe(seed);
       golden.forEach((g, i) => {
-        expect(g.seed).toBe(seed);
         expect(got.outcomes[i], `${g.name} at width ${String(w)}`).toEqual(g.expected);
       });
     }

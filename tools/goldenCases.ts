@@ -12,9 +12,6 @@ export interface GoldenCase {
   readonly aimAssist?: AimAssistLevel;
   /** Full mode config when `{ id: mode }` is not enough (Season Run hunts). */
   readonly modeConfig?: ModeConfig;
-  /** M7: a Daily Hunt of this UTC day; `seed` is then dailySeed(day, contentHash), set by
-   *  golden:update (the value written here is a placeholder). */
-  readonly dailyDate?: string;
 }
 
 /** A Season Run hunt on the Karoo stand-in with this season block. */
@@ -114,24 +111,67 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
       runShellBonus: 0,
     }),
   },
-  // M7: the Daily Hunt of a fixed UTC day — seed from dailySeed(day, contentHash), the day's
-  // rotation biome, omen on. The same logs are replayed in Chromium and WebKit (daily.spec.ts).
+  // M8: one Classic hunt per new weapon (Kettie stones in flight, per-shell reloads, silent misses).
+  {
+    name: 'classic-21-kettie-competent-pointer',
+    seed: 21,
+    bot: 'competent',
+    mode: 'classic',
+    inputKind: 'pointer',
+    modeConfig: { id: 'classic', weapon: 'kettie' },
+  },
+  {
+    name: 'classic-22-windbuks-competent-touch',
+    seed: 22,
+    bot: 'competent',
+    mode: 'classic',
+    inputKind: 'touch',
+    modeConfig: { id: 'classic', weapon: 'windbuks' },
+  },
+  {
+    name: 'classic-23-pomp-competent-pointer',
+    seed: 23,
+    bot: 'competent',
+    mode: 'classic',
+    inputKind: 'pointer',
+    modeConfig: { id: 'classic', weapon: 'pomp' },
+  },
+  {
+    name: 'season-kuifkop-boss-pomp-competent',
+    seed: 24,
+    bot: 'competent',
+    mode: 'seasonHunt',
+    inputKind: 'pointer',
+    modeConfig: {
+      ...seasonMode({
+        kind: 'boss',
+        boss: 'kuifkop_koning',
+        charms: ['snelhand'],
+        consumables: [null, null],
+        rental: null,
+        runShellBonus: 0,
+      }),
+      weapon: 'pomp',
+    },
+  },
+  // M7: the Daily Hunt of 2026-10-21 on the Karoo, omen on. The seed is pinned to the value
+  // dailySeed('2026-10-21', contentHash) had at M7 (D-025): derived live, it changed with every
+  // content edit and so did these hashes. daily.spec.ts still checks the browser derives the same
+  // daily seed as Node, and replays these logs in Chromium and WebKit.
   {
     name: 'daily-2026-10-21-competent-pointer',
-    seed: 0,
+    seed: 1286298468,
     bot: 'competent',
     mode: 'daily',
     inputKind: 'pointer',
     modeConfig: { id: 'daily', biome: 'karoo-autumn' },
-    dailyDate: '2026-10-21',
   },
   {
     name: 'daily-2026-10-21-aim-touch',
-    seed: 0,
+    seed: 1286298468,
     bot: 'aim',
     mode: 'daily',
     inputKind: 'touch',
     modeConfig: { id: 'daily', biome: 'karoo-autumn' },
-    dailyDate: '2026-10-21',
   },
 ];
