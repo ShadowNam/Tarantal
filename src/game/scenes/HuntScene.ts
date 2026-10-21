@@ -514,6 +514,9 @@ export class HuntScene extends Phaser.Scene {
       hook.ticksLeft = state.ticksLeft;
       hook.score = state.score;
       hook.shells = state.weapon.shells;
+      hook.magazine = state.weapon.magazine;
+      hook.reloading = state.weapon.reloading;
+      hook.stones = state.projectiles.length;
       hook.cameraX = state.cameraX;
       hook.birds = state.birds.length;
       hook.gadgetCharges = state.gadget?.charges ?? 0;

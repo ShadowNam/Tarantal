@@ -158,7 +158,19 @@ export interface Sim {
   at the behaviour the bird had), then Whole Flock, then its threats (`src/sim/flocks/threats.ts`).
 - Projectile weapons (Kettie): **delayed hitscan** — travel time per plane (near 80 ms, mid 180 ms,
   far 350 ms), gravity drop and wind drift applied at arrival; the target may have moved (leading
-  is the skill).
+  is the skill). M8 (`src/sim/weapons/projectile.ts`): the front-to-back slices split into three
+  bands by scroll factor (≥ near: foreground + near; ≥ mid; the far plane and everything behind).
+  The stone flies to the world point under the tap **for the camera when it was fired**; after
+  `travelMs[band]` ticks it is tested against that band only (birds where they are then, crates,
+  live secret parts, occluders), with `sy + dropPx[band]` and wind drift read on arrival (far
+  band only, × `windSensitivity`). It stops at the first thing it meets; after the far band it
+  has missed. Everything a shot does after its pellets land (damage, Frenzy, scoring, bonuses,
+  crates, secrets, threats, `miss`, charm `shot` triggers) runs at landing, through the same
+  `resolveShot` as hitscan shots, which still resolve in the tick they are fired (event order
+  unchanged). Stones resolve in fire order after creatures move; a stone still in the air when
+  the hunt ends is dropped (it counts as a shot, not a miss). `pelletImpact.cx` carries the
+  firing camera for stones; `SimState.projectiles` lists stones in the air (render only). No new
+  command or RNG stream: the replay stays v3.
 - Every resolution emits events: `ShotFired`, `PelletImpact`, `TargetBagged`, `Miss`, `FlockAlerted`,
   `FlockFlushed`, `SecretTriggered`, `ComboChanged`, `ScoreAwarded`, `PenaltyApplied`, …
 - Hit order within a layer (M4): birds → crates → live secret parts → occluders. Secret parts are
