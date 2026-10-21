@@ -1,5 +1,5 @@
-import { rmSync } from 'node:fs';
-import { join } from 'node:path';
+import { createReadStream, existsSync, rmSync, statSync } from 'node:fs';
+import { extname, join } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 import { serviceWorkerPlugin } from './tools/serviceWorker';
 
@@ -31,10 +31,46 @@ function stripPwa(): Plugin {
   };
 }
 
+/**
+ * M10, dev server only: `STANDIN=1 npm run dev` serves the stand-in delivery
+ * (tests/fixtures/standin-assets/, from tools/make-standins.ts) in place of public/assets/, to
+ * look at the art swap path. Never part of a build.
+ */
+function standinAssets(): Plugin {
+  const root = join(import.meta.dirname, 'tests', 'fixtures', 'standin-assets');
+  const types: Record<string, string> = {
+    '.json': 'application/json',
+    '.png': 'image/png',
+    '.ogg': 'audio/ogg',
+    '.mp3': 'audio/mpeg',
+  };
+  return {
+    name: 'tm-standin-assets',
+    apply: 'serve',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const path = (req.url ?? '').split('?')[0] ?? '';
+        const at = path.indexOf('/assets/');
+        const file = at < 0 ? '' : join(root, path.slice(at + 1));
+        if (file === '' || !existsSync(file) || !statSync(file).isFile()) {
+          next();
+          return;
+        }
+        res.setHeader('Content-Type', types[extname(file)] ?? 'application/octet-stream');
+        createReadStream(file).pipe(res);
+      });
+    },
+  };
+}
+const standin = process.env['STANDIN'] === '1';
+
 // Default export is required by Vite (config files are exempt from the named-exports rule).
 export default defineConfig({
   base: './',
-  plugins: portal ? [stripPwa()] : [serviceWorkerPlugin()],
+  plugins: [
+    ...(portal ? [stripPwa()] : [serviceWorkerPlugin()]),
+    ...(standin ? [standinAssets()] : []),
+  ],
   build: {
     target: 'es2022',
     sourcemap: false,

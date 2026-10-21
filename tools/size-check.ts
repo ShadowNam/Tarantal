@@ -4,10 +4,18 @@
 // Budget: initial ≤ 5 MB gzip (CLAUDE.md; `--strict` fails above it, as CI does), hard fail above
 // 8 MB always (Poki < 8 MB). `--dir dist-poki` checks a portal build. `--json out.json` writes the
 // report for PR evidence.
-import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { brotliCompressSync, constants, gzipSync } from 'node:zlib';
-import { BUDGET_BYTES, MB, splitInitialLazy, verdict, type ViteManifest } from './sizeBudget';
+import { ASSET_INDEX_PATH, parseAssetIndex } from '../src/game/assets/assetIndex';
+import {
+  BUDGET_BYTES,
+  lazyAssetFiles,
+  MB,
+  splitInitialLazy,
+  verdict,
+  type ViteManifest,
+} from './sizeBudget';
 
 function arg(name: string): string | undefined {
   const i = process.argv.indexOf(name);
@@ -64,7 +72,18 @@ const sum = (rows: readonly Row[]): Row =>
 const line = (r: Row): string =>
   `  ${r.file.padEnd(44)} ${kb(r.raw)} raw  ${kb(r.gz)} gz  ${kb(r.br)} br`;
 
-const split = splitInitialLazy(manifest, files);
+// M10: delivered art and audio of the non-home biomes load with their biome (asset index groups).
+const indexPath = join(dist, ASSET_INDEX_PATH);
+let lazyAssets = new Set<string>();
+if (existsSync(indexPath)) {
+  const { index, error } = parseAssetIndex(JSON.parse(readFileSync(indexPath, 'utf8')));
+  if (error !== null) {
+    console.error(`size: ${ASSET_INDEX_PATH} is invalid:\n${error}`);
+    process.exit(1);
+  }
+  lazyAssets = lazyAssetFiles(index);
+}
+const split = splitInitialLazy(manifest, files, lazyAssets);
 const initial = split.initial.map(measure);
 const lazy = split.lazy.map(measure);
 const ti = sum(initial);

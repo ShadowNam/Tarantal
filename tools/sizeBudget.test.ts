@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { MB, splitInitialLazy, verdict, type ViteManifest } from './sizeBudget';
+import { EMPTY_INDEX, type AssetIndex } from '../src/game/assets/assetIndex';
+import { lazyAssetFiles, MB, splitInitialLazy, verdict, type ViteManifest } from './sizeBudget';
 
 const manifest: ViteManifest = {
   'index.html': {
@@ -35,6 +36,45 @@ describe('size budget (M9)', () => {
         'sw.js',
       ],
       lazy: ['assets/bushveld-c.js'],
+    });
+  });
+
+  it('M10: delivered assets of non-initial groups are lazy, the rest initial', () => {
+    const f = (path: string) => ({ path, bytes: 1, hash: '0123456789ab' });
+    const index: AssetIndex = {
+      ...EMPTY_INDEX,
+      initialGroups: ['common', 'karoo-autumn'],
+      images: {
+        'ui/shell': { group: 'common', file: f('assets/common/shell.png'), width: 1, height: 1 },
+        'prop/bush': {
+          group: 'bushveld-winter',
+          file: f('assets/bv/bush.png'),
+          width: 1,
+          height: 1,
+        },
+      },
+      layers: {
+        'karoo/mid': {
+          group: 'karoo-autumn',
+          tiles: [f('assets/karoo/mid-0.png')],
+          tileWidth: 2048,
+          left: -300,
+          top: 500,
+          height: 400,
+        },
+      },
+    };
+    const lazy = lazyAssetFiles(index);
+    expect([...lazy]).toEqual(['assets/bv/bush.png']);
+    const files = [
+      'assets/index-a.js',
+      'assets/common/shell.png',
+      'assets/bv/bush.png',
+      'assets/karoo/mid-0.png',
+    ];
+    expect(splitInitialLazy(manifest, files, lazy)).toEqual({
+      initial: ['assets/index-a.js', 'assets/common/shell.png', 'assets/karoo/mid-0.png'],
+      lazy: ['assets/bv/bush.png'],
     });
   });
 
