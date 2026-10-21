@@ -615,7 +615,8 @@ flashes (dims the muzzle flash and glints, no red belt flash), touch aim assist 
 Standard; recorded in the replay), left-handed (belt left, Vuvuzela right, gun centre-left),
 language (Auto / English / Afrikaans; M9 adds Deutsch and Nederlands) and quality (Auto / Low / Medium / High). Menus work with
 ↑/↓/Tab, ←/→, Enter/Space and Esc; Esc or P pauses a hunt, touch players have a pause button.
-M9 (D-026) completes the list. Settings has two pages, **Sound & game** (volumes, language,
+M9 (D-026) completes the list. Settings has two pages, **Sound & game** (volumes — M10 adds
+**voice** for Oupa's barks next to master / SFX / music, art bible §10 — language,
 privacy, aim assist, left-handed, **hold to fire**) and **Display & access** (screen shake, reduce
 flashes, quality, **text size** Normal/Large, **high contrast**, **sound captions**, **don't-shoot
 marks**). Hold to fire: holding fires again whenever the gun is ready, on every weapon (never an

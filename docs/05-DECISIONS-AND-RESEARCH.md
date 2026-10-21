@@ -795,6 +795,33 @@ plus a `gunKey()` caller for guns, `this.play('<id>'` for SFX. It always fails o
 
 `--strict` also fails while any placeholder remains: it is the launch gate. CI runs report mode
 until the art lands.
+*PR C — audio:* (1) *Recorded first, synth as fallback:* every SFX key plays its decoded
+recording when one was delivered, otherwise the synth. Nothing decodes before the first gesture.
+(2) *Music per biome* (`music.ts`): the three stems of the bible start together and loop in sync.
+They crossfade by intensity: calm by default; build for a fleeing flock (run or flush) or Frenzy
+at `buildAtFrenzy` (×2, tier 2); stampede while the Stampede is active. Rising is immediate;
+calming waits `stemHoldMs` so short lulls don't make it flutter. A missing stem falls back to the
+next calmer one. A biome change fades the old set out and the new one in. The ambience loop sits
+on the SFX bus: it's environment, so it follows the effects slider. With no music delivered
+there is no music, and the synth flush sting and Stampede cue stay (D-027 A: no synth music
+loop). (3) *Voice and ducking were cheap, so they're in:*
+- Settings gets a **voice** slider (the bible's music / effects / voice). Language moves to the
+  right column to make room.
+- `SaveData` needs no migration: a missing field takes its default, field by field.
+- The voice keys are the five existing secret barks (`voice/<barkKey>`), and the HUD banner is
+  the subtitle.
+- At most one bark per `barkGapMs` (6 s), none during the tally count-up, and music ducks −6 dB
+  under each one.
+- The bible's ~40 launch barks need triggers first, so they're a follow-up.
+
+All numbers are in `feel.json audio`, including `masterLevel`, which was a constant. (4) *Mute
+rules kept:* first gesture, hidden tab (the context suspends too; mid-hunt the pause menu opens,
+so audio stays muted until Resume), pause, ads and the portal mute. (5) *Tests:* the Web Audio
+fake `tools/fakeAudio.ts`; `music.test.ts` covers sync start, crossfade, fallback, biome fade and
+hold; `AudioDirector.test.ts` covers format choice, recorded over synth, mute reasons, music
+after decode, and bark gap, tally and duck. The e2e `audio.spec.ts` uses stand-in Karoo stems and
+ambience added to the stand-in delivery, and runs on Chromium only (it reads Web Audio state
+through the hook; Linux WebKit may lack the codecs).
 *Needs a person:* the illustrator, animator and sound designer deliver per
 `docs/06-ASSET-DELIVERY.md`.
 
