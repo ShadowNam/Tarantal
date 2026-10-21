@@ -51,6 +51,8 @@ export function viewFor(run: RunState): RunView {
 export class RunScene extends Phaser.Scene {
   private readonly ctx: GameContext;
   private data_!: RunData;
+  /** Padstal notes drawn this build (for the test hook). */
+  private notes: string[] = [];
   private panel!: Rect;
 
   constructor(ctx: GameContext) {
@@ -60,6 +62,7 @@ export class RunScene extends Phaser.Scene {
 
   create(data: RunData): void {
     this.data_ = data;
+    this.notes = [];
     const run = this.ctx.run.shown;
     if (run === null) {
       data.title();
@@ -113,6 +116,7 @@ export class RunScene extends Phaser.Scene {
           (o) => `${o.kind}:${o.id}:${o.price}:${o.bought ? 'sold' : 'open'}`,
         ),
         quota: info.quota,
+        notes: [...this.notes],
       };
     }
   }
@@ -309,7 +313,7 @@ export class RunScene extends Phaser.Scene {
     // "?" reopens the explainer (user feedback: what the Padstal is for).
     const helpBtn: Rect = { x: p.x + 440, y: p.y + 24, w: 72, h: 72 };
     this.button(items, 'run.help', helpBtn, t('run.help_open'), 'secondary', 40, () => {
-      this.go('padstal', null, true);
+      this.go('padstal', this.data_.selected ?? null, true);
     });
     const offers = run.padstal?.offers ?? [];
     const slots = this.ctx.content.charms.slots;
@@ -405,13 +409,6 @@ export class RunScene extends Phaser.Scene {
     const { width, height } = designSize();
     this.add.rectangle(0, 0, width, height, UI.ink, 0.75).setOrigin(0).setDepth(50);
     const w = Math.min(1300, this.panel.w - 80);
-    const h = 760;
-    const x = (width - w) / 2;
-    const y = (height - h) / 2;
-    const g = this.add.graphics().setDepth(51);
-    g.fillStyle(UI.wood, 1).fillRoundedRect(x - 12, y - 12, w + 24, h + 24, 24);
-    g.fillStyle(UI.slate, 1).fillRoundedRect(x, y, w, h, 16);
-    this.text(x + w / 2, y + 60, t('run.help_title'), 52, '#FFD25A', w - 60).setDepth(52);
     const lines: I18nKey[] = [
       'run.help_doppies',
       'run.help_charms',
@@ -419,18 +416,45 @@ export class RunScene extends Phaser.Scene {
       'run.help_rental',
       'run.help_quota',
     ];
-    let ly = y + 120;
-    for (const key of lines) {
-      const tx = this.add
-        .text(x + 50, ly, `•  ${t(key)}`, {
-          ...textStyle(28),
-          fontStyle: '600',
-          wordWrap: { width: w - 100 },
-          lineSpacing: 4,
-        })
-        .setDepth(52);
-      ly += tx.height + 22;
+    // The card is sized from its text (de/nl with large text run to ~10 lines). If even the
+    // tallest card can't hold it on this screen, the text steps down a size until it fits.
+    const TOP = 120;
+    const GAP = 18;
+    const BOTTOM = 150;
+    const maxH = height - 60;
+    const bullets: Phaser.GameObjects.Text[] = [];
+    let textH = 0;
+    for (let size = 28; size >= 18; size -= 2) {
+      for (const b of bullets) b.destroy();
+      bullets.length = 0;
+      textH = 0;
+      for (const key of lines) {
+        const tx = this.add
+          .text(0, 0, `•  ${t(key)}`, {
+            ...textStyle(size),
+            fontStyle: '600',
+            wordWrap: { width: w - 100 },
+            lineSpacing: 4,
+          })
+          .setDepth(52);
+        bullets.push(tx);
+        textH += tx.height + GAP;
+      }
+      if (TOP + textH + BOTTOM <= maxH) break;
     }
+    const h = Math.min(maxH, TOP + textH + BOTTOM);
+    const x = (width - w) / 2;
+    const y = (height - h) / 2;
+    const g = this.add.graphics().setDepth(51);
+    g.fillStyle(UI.wood, 1).fillRoundedRect(x - 12, y - 12, w + 24, h + 24, 24);
+    g.fillStyle(UI.slate, 1).fillRoundedRect(x, y, w, h, 16);
+    this.text(x + w / 2, y + 60, t('run.help_title'), 52, '#FFD25A', w - 60).setDepth(52);
+    let ly = y + TOP;
+    for (const tx of bullets) {
+      tx.setPosition(x + 50, ly);
+      ly += tx.height + GAP;
+    }
+    if (this.ctx.hook) this.ctx.hook.helpCard = { textBottom: ly - GAP, okTop: y + h - 120 };
     const ok: Rect = { x: x + w / 2 - 200, y: y + h - 120, w: 400, h: 96 };
     const btn = drawButton(this, ok, t('run.help_close'), 'primary', 44);
     btn.g.setDepth(52);
@@ -496,8 +520,7 @@ export class RunScene extends Phaser.Scene {
     const c = this.ctx.content.charms.charms.find((x) => x.id === o.id);
     const rarity = c === undefined ? null : tOr(`rarity.${c.rarity}`, c.rarity);
     const price = fill(t('run.doppies'), { n: o.price });
-    // Can't buy: say why (user feedback), not only grey the card out.
-    const label = o.bought ? t('run.sold_out') : blocker === null ? price : `${price} · ${blocker}`;
+    const label = o.bought ? t('run.sold_out') : price;
     this.text(
       r.x + r.w / 2,
       r.y + r.h - 30,
@@ -506,6 +529,31 @@ export class RunScene extends Phaser.Scene {
       '#1B1410',
       r.w - 20,
     ).setAlpha(can || o.bought ? 1 : 0.6);
+    // Can't buy: say why on its own plate (user feedback), full strength over the greyed card,
+    // wrapped rather than squeezed so it stays readable on phones and with large text.
+    if (blocker !== null && !o.bought) {
+      const note = this.add
+        .text(r.x + r.w / 2, r.y + r.h - 56, blocker, {
+          ...textStyle(24),
+          align: 'center',
+          wordWrap: { width: r.w - 28 },
+        })
+        .setOrigin(0.5, 1)
+        .setDepth(2);
+      const plate = this.add
+        .rectangle(
+          r.x + r.w / 2,
+          r.y + r.h - 50,
+          Math.min(r.w - 8, note.width + 20),
+          note.height + 12,
+          UI.ink,
+          0.92,
+        )
+        .setOrigin(0.5, 1)
+        .setDepth(1);
+      plate.setStrokeStyle(2, UI.focus, 1);
+      this.notes.push(blocker);
+    }
     if (c !== undefined) {
       const g = this.add.graphics();
       g.fillStyle(RARITY_COLOR[c.rarity] ?? UI.enamel, 1).fillCircle(r.x + 18, r.y + 18, 8);
