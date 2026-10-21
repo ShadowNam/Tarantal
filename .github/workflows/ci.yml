@@ -2,6 +2,7 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -15,7 +16,7 @@ permissions:
 jobs:
   check:
     name: check, build, size
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
@@ -33,7 +34,7 @@ jobs:
     # slow for a single job. The two slowest profiles (desktop Chromium: 40 of 45 min in M4; Pixel 7)
     # are split in two shards each, since M5 adds the FTUE, persistence, PWA and menu specs.
     name: e2e (${{ matrix.project }} ${{ matrix.shard }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
       fail-fast: false
