@@ -64,18 +64,26 @@ export class PokiPlatform extends LocalPlatform {
         { passive: false },
       );
     }
-    const sdk = await this.loadSdk(this.opts.sdkTimeoutMs);
+    // One deadline for script + init (D-026): boot never waits longer than sdkTimeoutMs. Poki:
+    // start the game whether init resolves or rejects; only a working SDK is used, and an SDK
+    // that turns up after the deadline is not adopted.
+    const ready = (async (): Promise<PokiSdk | null> => {
+      const loaded = await this.loadSdk(this.opts.sdkTimeoutMs);
+      if (loaded === null) return null;
+      await loaded.init();
+      return loaded;
+    })();
+    const sdk = await withTimeout(ready, this.opts.sdkTimeoutMs, null);
     if (sdk === null) return;
-    // Poki: start the game whether init resolves or rejects; only a working SDK is used.
-    const ok = await withTimeout(
-      sdk.init().then(() => true),
-      this.opts.sdkTimeoutMs,
-      false,
-    );
-    if (!ok) return;
     this.sdk = sdk;
-    this.shareBase = await withTimeout(sdk.shareableURL({}), this.opts.sdkTimeoutMs, null);
     if (this.loadingDone) sdk.gameLoadingFinished();
+    // The share link base fills in later; until then challenge links keep the page URL.
+    sdk.shareableURL({}).then(
+      (url) => {
+        this.shareBase = url;
+      },
+      () => undefined,
+    );
   }
 
   get sdkReady(): boolean {

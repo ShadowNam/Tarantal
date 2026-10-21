@@ -66,15 +66,17 @@ export class CrazyGamesPlatform extends LocalPlatform {
   }
 
   async init(): Promise<void> {
-    const sdk = await this.loadSdk(this.opts.sdkTimeoutMs);
-    if (sdk === null) return;
-    const ok = await withTimeout(
-      sdk.init().then(() => true),
-      this.opts.sdkTimeoutMs,
-      false,
-    );
+    // One deadline for script + init (D-026): boot never waits longer than sdkTimeoutMs; an SDK
+    // that turns up after it is not adopted.
+    const ready = (async (): Promise<CrazySdk | null> => {
+      const loaded = await this.loadSdk(this.opts.sdkTimeoutMs);
+      if (loaded === null) return null;
+      await loaded.init();
+      return loaded;
+    })();
+    const sdk = await withTimeout(ready, this.opts.sdkTimeoutMs, null);
     // 'disabled' (not on CrazyGames or localhost): every call throws, so run without it.
-    if (!ok || sdk.environment === 'disabled') return;
+    if (sdk === null || sdk.environment === 'disabled') return;
     this.sdk = sdk;
     this.call(() => {
       sdk.game.loadingStart();
@@ -84,8 +86,14 @@ export class CrazyGamesPlatform extends LocalPlatform {
     sdk.game.addSettingsChangeListener?.((s) => {
       this.setMuted(s.muteAudio === true);
     });
-    if (sdk.ad.hasAdblock)
-      this.adblock = await withTimeout(sdk.ad.hasAdblock(), this.opts.sdkTimeoutMs, false);
+    // Not awaited: boot goes on; until the answer, an ad request under an adblocker just errors
+    // (adError → no ad, no reward).
+    sdk.ad.hasAdblock?.().then(
+      (blocked) => {
+        this.adblock = blocked;
+      },
+      () => undefined,
+    );
   }
 
   get sdkEnvironment(): string | null {

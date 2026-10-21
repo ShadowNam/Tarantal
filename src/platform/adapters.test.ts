@@ -109,24 +109,79 @@ describe('AdGate', () => {
     expect(gate.isPlaying).toBe(false);
   });
 
-  it('an ad that never settles ends at the timeout (the game never hangs)', async () => {
-    let fire: () => void = () => undefined;
+  function fakeTimers() {
+    let fire: (() => void) | null = null;
+    let hidden = false;
     const timers: Timers = {
       set: (fn) => {
         fire = fn;
         return 1;
       },
-      clear: () => undefined,
+      clear: () => {
+        fire = null;
+      },
+      hidden: () => hidden,
     };
-    const gate = new AdGate(60_000, timers);
-    const p = gate.run((started) => {
-      started();
-      return new Promise<boolean>(() => undefined);
-    }, false);
-    expect(gate.isPlaying).toBe(true);
-    fire();
+    return {
+      timers,
+      fire: () => {
+        const f = fire;
+        fire = null;
+        f?.();
+      },
+      armed: () => fire !== null,
+      setHidden: (h: boolean) => {
+        hidden = h;
+      },
+    };
+  }
+
+  it('a request the SDK never starts gives up at the timeout (the game never hangs)', async () => {
+    const t = fakeTimers();
+    const gate = new AdGate(60_000, t.timers);
+    const p = gate.run(() => new Promise<boolean>(() => undefined), false);
+    expect(gate.isBusy).toBe(true);
+    t.fire();
     expect(await p).toBe(false);
-    expect(gate.isPlaying).toBe(false);
+    expect(gate.isBusy).toBe(false);
+  });
+
+  it('once the ad has started there is no timeout: a long ad ends when the SDK says so', async () => {
+    const t = fakeTimers();
+    const gate = new AdGate(60_000, t.timers);
+    let finish: (v: boolean) => void = () => undefined;
+    const p = gate.run(
+      (started) =>
+        new Promise<boolean>((resolve) => {
+          started();
+          finish = resolve;
+        }),
+      false,
+    );
+    expect(t.armed()).toBe(false);
+    expect(gate.isPlaying).toBe(true);
+    finish(true); // a rewarded ad watched to the end is granted however long it took
+    expect(await p).toBe(true);
+  });
+
+  it('the request timeout waits while the tab is hidden', async () => {
+    const t = fakeTimers();
+    const gate = new AdGate(60_000, t.timers);
+    let settled = false;
+    const p = gate
+      .run(() => new Promise<boolean>(() => undefined), false)
+      .then((v) => {
+        settled = true;
+        return v;
+      });
+    t.setHidden(true);
+    t.fire(); // hidden: re-armed, not given up
+    await Promise.resolve();
+    expect(settled).toBe(false);
+    expect(t.armed()).toBe(true);
+    t.setHidden(false);
+    t.fire();
+    expect(await p).toBe(false);
   });
 });
 
@@ -182,6 +237,29 @@ describe('PokiPlatform (fake SDK)', () => {
     expect(await p.rewardedBreak()).toBe(false);
     await expect(p.commercialBreak()).resolves.toBeUndefined();
     expect(p.shareUrl('https://x.test/?c=abc')).toBe('https://x.test/?c=abc');
+  });
+
+  it('boot waits at most one sdkTimeoutMs for script + init, and never for shareableURL', async () => {
+    const quick: PlatformOptions = { ...opts, sdkTimeoutMs: 40 };
+    // init never settles: boot goes on at the deadline, without the SDK.
+    const hung = new PokiPlatform(
+      quick,
+      () => Promise.resolve(fakePoki({ init: () => new Promise(() => undefined) })),
+      false,
+    );
+    const t0 = performance.now();
+    await hung.init();
+    expect(performance.now() - t0).toBeLessThan(400);
+    expect(hung.rewardedAvailable()).toBe(false);
+    // shareableURL never settles: init still returns at once, with a working SDK.
+    const slowShare = new PokiPlatform(
+      quick,
+      () => Promise.resolve(fakePoki({ shareableURL: () => new Promise(() => undefined) })),
+      false,
+    );
+    await slowShare.init();
+    expect(slowShare.rewardedAvailable()).toBe(true);
+    expect(slowShare.shareUrl('https://x.test/?c=a')).toBe('https://x.test/?c=a');
   });
 
   it('init that rejects counts as no SDK', async () => {
