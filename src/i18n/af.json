@@ -292,5 +292,21 @@
   "tally.cosmetic": "Ontsluit: {item}",
   "tally.daily_best": "Nuwe daaglikse beste!",
   "tally.practice_score": "Oefening · vandag se amptelike telling: {score}",
-  "tally.practice": "Oefening · net die eerste poging tel"
+  "tally.practice": "Oefening · net die eerste poging tel",
+  "settings.privacy": "Privaatheid",
+  "settings.privacy_open": "Kyk",
+  "privacy.title": "Privaatheid",
+  "privacy.stored_title": "Op hierdie toestel gestoor",
+  "privacy.stored": "Jou instellings en vordering (jagte, beste tellings, range, Voëlboek, Notaboek, Seisoenrit en Daaglikse Jag-reeks) word net in hierdie blaaier gestoor. As jy jou blaaierdata uitvee, of die knoppie hieronder druk, is dit weg.",
+  "privacy.sent_title": "Wat die speletjie stuur",
+  "privacy.sent_web": "Niks. Daar is geen analise, volgers of advertensies nie. Foutverslae en spelstatistiek bly in hierdie blaaier.",
+  "privacy.sent_portal": "Die speletjie self stuur niks. Die speletjiewebwerf wat dit aanbied, wys die advertensies en hou sy eie statistiek, onder sy eie privaatheidsbeleid. Foutverslae bly in hierdie blaaier.",
+  "privacy.personal_title": "Persoonlike data",
+  "privacy.personal": "Die speletjie vra geen naam, e-pos of rekening nie en versamel geen persoonlike data nie. 'n Gedeelde uitdagingskakel hou net die jag se saad, modus, geweer en telling.",
+  "privacy.clear": "Vee my data uit",
+  "privacy.clear_confirm": "Tik weer: vee alles uit",
+  "run.ad_retry_title": "Oupa se tweede kans!",
+  "run.ad_retry": "▶ Advertensie: speel weer",
+  "run.ad_double": "▶ Advertensie: dubbel Doppies (+{n})",
+  "run.ad_none": "Nou geen advertensie nie. Dalk volgende keer!"
 }

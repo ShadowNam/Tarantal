@@ -6,7 +6,7 @@
 import { z } from 'zod';
 import { migrate, readLegacyV0, type RawSave } from './migrations';
 import { defaultSave, SAVE_KEY, SAVE_SECTIONS, SAVE_VERSION, type SaveData } from './saveSchema';
-import { readText, removeKey, writeText } from './storage';
+import { readText, removeAllKeys, removeKey, writeText } from './storage';
 
 export const CORRUPT_KEY = 'save.corrupt';
 
@@ -108,7 +108,7 @@ export class SaveStore {
   private current: SaveData;
   readonly status: LoadStatus;
   readonly repaired: readonly string[];
-  private readonly readOnly: boolean;
+  private readOnly: boolean;
   private readonly listeners = new Set<(data: SaveData) => void>();
 
   constructor(result: LoadResult = loadSave()) {
@@ -145,5 +145,17 @@ export class SaveStore {
 
   flush(): void {
     if (!this.readOnly) writeSave(this.current);
+  }
+
+  /**
+   * Privacy screen → clear my data (M9): every key the game stored on this device is removed
+   * (save, corrupt backup, notices) and this session goes on with the defaults. Nothing is
+   * written back until the next change, so a reload right after starts as a new player.
+   */
+  clear(): void {
+    removeAllKeys();
+    this.current = defaultSave();
+    this.readOnly = false;
+    for (const fn of this.listeners) fn(this.current);
   }
 }

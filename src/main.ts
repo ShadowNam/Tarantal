@@ -33,8 +33,14 @@ import { dailySeed } from './meta/daily';
 import { dayNumber, parseDayKey } from './meta/dailyCalendar';
 import { SaveStore } from './meta/save';
 import type { Settings } from './meta/saveSchema';
-import { storageStatus } from './meta/storage';
-import { createPlatform } from './platform/platform';
+import { setStorageNamespace, storageStatus } from './meta/storage';
+import { installErrorHook } from './platform/errors';
+import { LocalPlatform } from './platform/local';
+import { createPlatform, currentPlatformId } from './platform/platform';
+import { AdBreaks } from './game/ads/AdBreaks';
+import { PrivacyScene } from './game/scenes/PrivacyScene';
+import { testHookPolicy } from './game/testHooks';
+import { setMenuInputGate } from './game/ui/menu';
 import { decodeInputLogText } from './sim/replay/inputLog';
 import { runReplay } from './sim/replay/verify';
 
@@ -47,7 +53,23 @@ declare global {
 }
 
 const params = new URLSearchParams(window.location.search);
-const testHooks = import.meta.env.DEV || import.meta.env.MODE === 'test' || params.has('e2e');
+// M9 (D-024 known limit): portal builds carry no test hooks (unless built with VITE_TEST_HOOKS=1
+// for their e2e runs), and ?e2e runs keep their own save (tm.e2e.*).
+const hookPolicy = testHookPolicy({
+  dev: import.meta.env.DEV,
+  mode: import.meta.env.MODE,
+  platform: currentPlatformId(),
+  testHooksFlag: import.meta.env.VITE_TEST_HOOKS === '1',
+  e2eParam: params.has('e2e'),
+});
+// A literal after Vite's replacement: in a portal build without VITE_TEST_HOOKS it is `false`,
+// so the minifier drops the hook code paths altogether.
+const hooksInBuild =
+  import.meta.env.VITE_PLATFORM === undefined ||
+  import.meta.env.VITE_PLATFORM === 'web' ||
+  import.meta.env.VITE_TEST_HOOKS === '1';
+const testHooks = hooksInBuild && hookPolicy.enabled;
+if (hookPolicy.namespace !== null) setStorageNamespace(hookPolicy.namespace);
 
 const save = new SaveStore();
 // e2e/dev only: ?ftue=0 starts as a returning player (older specs test Classic hunts).
@@ -181,6 +203,11 @@ const hook: TestHook = {
   hudTag: null,
   tally: null,
   lastShare: null,
+  platform: currentPlatformId(),
+  adPending: false,
+  ads: null,
+  audioMuted: false,
+  errors: [],
 };
 if (testHooks) window.__TM__ = hook;
 
@@ -205,9 +232,35 @@ let contextLost = false;
 const platform = createPlatform({
   serviceWorker: import.meta.env.PROD,
   log: params.get('debug') === '1',
+  adTimeoutMs: feel.platform.adTimeoutMs,
+  sdkTimeoutMs: feel.platform.sdkTimeoutMs,
 });
-void platform.init();
-if (testHooks && 'records' in platform) hook.analytics = (platform as { records: [] }).records;
+// Crash/error hook (M9): reports carry no personal data (errors.ts) and go through the adapter.
+installErrorHook(
+  window,
+  {
+    maxReports: feel.platform.maxErrorReports,
+    stackFrames: feel.platform.errorStackFrames,
+    messageChars: feel.platform.errorMessageChars,
+  },
+  (r) => {
+    platform.reportError(r);
+  },
+);
+if (testHooks && platform instanceof LocalPlatform) {
+  hook.analytics = platform.records;
+  hook.errors = platform.errors;
+}
+platform.loadingProgress(0);
+// Portals want their SDK ready before the game starts; it is bounded by sdkTimeoutMs, and a
+// blocked SDK only means no ads (the adapters never reject).
+hook.boot['platformStart'] = performance.now();
+await platform.init();
+hook.boot['platform'] = performance.now();
+const ads = new AdBreaks(platform);
+hook.ads = ads.counts;
+// Poki: no input reaches the game while an ad covers it (the hunt never runs during one).
+setMenuInputGate(() => platform.isAdPlaying());
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
@@ -224,6 +277,12 @@ const applyAudio = (s: Settings): void => {
 applyAudio(save.data.settings);
 platform.onAdChange((playing) => {
   audio.setMuted('ad', playing);
+  hook.audioMuted = audio.muted;
+});
+// CrazyGames settings.muteAudio wins over the in-game volume.
+platform.onPortalMute((muted) => {
+  audio.setMuted('portal', muted);
+  hook.audioMuted = audio.muted;
 });
 let lastSettings = save.data.settings;
 save.onChange((d) => {
@@ -263,7 +322,7 @@ const manifestFor = (b: Biome): AssetManifest => {
 // A challenge link (Tech §12): decoded once, then removed from the address bar so a reload or a
 // bookmark doesn't show the card again.
 let pendingChallenge: ChallengeDecode | null = null;
-const challengeParam = params.get('c');
+const challengeParam = platform.launchParam('c');
 if (challengeParam !== null) {
   pendingChallenge = decodeChallenge(challengeParam, {
     content: bundle,
@@ -313,9 +372,13 @@ const ctx: GameContext = {
   }),
   pendingChallenge,
   platform,
+  ads,
   run: new RunFlow(bundle, loaded.notaboek, save, platform),
   prefs,
   chrome,
+  restartPage: () => {
+    window.location.reload();
+  },
   applyLanguage: () => {
     applyLanguage();
     chrome.relabel();
@@ -358,6 +421,7 @@ const game: Phaser.Game = new Phaser.Game({
     new TallyScene(ctx),
     new RunScene(ctx),
     new ChallengeScene(ctx),
+    new PrivacyScene(ctx),
   ],
 });
 

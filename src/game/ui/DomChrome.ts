@@ -58,7 +58,14 @@ export class DomChrome {
     if (this.fullscreen) this.fullscreen.hidden = !this.onTitle || !caps.fullscreen;
     if (this.banner) {
       const dismissed = this.save.data.notices.includes(INSTALL_NOTICE);
-      this.banner.hidden = !(this.onTitle && caps.iphone && !caps.standalone && !dismissed);
+      // Portal builds (M9) are no PWA: no "Add to Home Screen" banner there.
+      this.banner.hidden = !(
+        this.platform.pwa &&
+        this.onTitle &&
+        caps.iphone &&
+        !caps.standalone &&
+        !dismissed
+      );
     }
   }
 }
