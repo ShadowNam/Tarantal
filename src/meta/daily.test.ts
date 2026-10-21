@@ -261,3 +261,15 @@ describe('streak and weekly freeze (GDD §15)', () => {
     expect(DailySaveSchema.safeParse(s).success).toBe(true);
   });
 });
+
+describe('golden daily replays (M7)', () => {
+  it('use the daily seed of their day under the current content', async () => {
+    const { default: replays } = await import('../sim/replay/golden/replays.json');
+    const daily = replays.filter((g) => 'dailyDate' in g);
+    expect(daily.map((g) => g.inputKind).sort()).toEqual(['pointer', 'touch']);
+    for (const g of daily) {
+      const date = (g as { dailyDate: string }).dailyDate;
+      expect(g.seed, g.name).toBe(dailySeed(date, loadContentHash()));
+    }
+  });
+});

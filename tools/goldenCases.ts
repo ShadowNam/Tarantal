@@ -12,6 +12,9 @@ export interface GoldenCase {
   readonly aimAssist?: AimAssistLevel;
   /** Full mode config when `{ id: mode }` is not enough (Season Run hunts). */
   readonly modeConfig?: ModeConfig;
+  /** M7: a Daily Hunt of this UTC day; `seed` is then dailySeed(day, contentHash), set by
+   *  golden:update (the value written here is a placeholder). */
+  readonly dailyDate?: string;
 }
 
 /** A Season Run hunt on the Karoo stand-in with this season block. */
@@ -110,5 +113,25 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
       rental: null,
       runShellBonus: 0,
     }),
+  },
+  // M7: the Daily Hunt of a fixed UTC day — seed from dailySeed(day, contentHash), the day's
+  // rotation biome, omen on. The same logs are replayed in Chromium and WebKit (daily.spec.ts).
+  {
+    name: 'daily-2026-10-21-competent-pointer',
+    seed: 0,
+    bot: 'competent',
+    mode: 'daily',
+    inputKind: 'pointer',
+    modeConfig: { id: 'daily', biome: 'karoo-autumn' },
+    dailyDate: '2026-10-21',
+  },
+  {
+    name: 'daily-2026-10-21-aim-touch',
+    seed: 0,
+    bot: 'aim',
+    mode: 'daily',
+    inputKind: 'touch',
+    modeConfig: { id: 'daily', biome: 'karoo-autumn' },
+    dailyDate: '2026-10-21',
   },
 ];
