@@ -197,8 +197,7 @@ describe('Sim hunt structure', () => {
     expect(kenner.drainEvents()[0]).toMatchObject({ stampedeAtTick: 2700 });
   });
 
-  it('rejects a projectile weapon until M8 and a seasonHunt without biome/weapon', () => {
-    expect(() => newSim(1, { mode: { id: 'classic', weapon: 'kettie' } })).toThrow(/M8/);
+  it('rejects a seasonHunt without biome/weapon', () => {
     expect(() => newSim(1, { mode: { id: 'seasonHunt' } })).toThrow(/biome/);
   });
 

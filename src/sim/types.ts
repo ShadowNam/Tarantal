@@ -244,9 +244,22 @@ export interface SimState {
   /** Null when the omen is off or the biome has no wind. */
   readonly wind: WindView | null;
   readonly dustDevils: readonly DustDevilView[];
+  /** Kettie stones in the air (render only), in fire order. */
+  readonly projectiles: readonly ProjectileView[];
   /** Season Run hunts only. */
   readonly season: SeasonView | null;
   readonly over: boolean;
+}
+
+export interface ProjectileView {
+  readonly shotId: number;
+  /** Aim point: screen dx/sy for the camera centre `cx` it was fired at. */
+  readonly dx: number;
+  readonly sy: number;
+  readonly cx: number;
+  /** Ticks since it was fired, and the flight time to the far band. */
+  readonly age: number;
+  readonly flightTicks: number;
 }
 
 export interface SeasonView {
