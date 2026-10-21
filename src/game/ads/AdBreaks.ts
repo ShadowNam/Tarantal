@@ -17,16 +17,37 @@ export interface AdCounts {
 
 export class AdBreaks {
   private hunts = 0;
-  /** A rewarded ad just ran: the next hunt goes without a commercial break. */
+  /** A rewarded ad was really shown: the next hunt goes without a commercial break. */
   private skipNext = false;
+  /** The break or rewarded ad in flight (single-flight: a second request joins it). */
+  private pending: Promise<unknown> | null = null;
+  /** An ad covered the game since the current request began. */
+  private sawAd = false;
   readonly counts: AdCounts = { breaks: 0, rewarded: 0, granted: 0 };
 
   constructor(
     private readonly platform: Pick<
       PlatformAdapter,
-      'commercialBreak' | 'rewardedBreak' | 'rewardedAvailable' | 'analytics'
+      'commercialBreak' | 'rewardedBreak' | 'rewardedAvailable' | 'analytics' | 'onAdChange'
     >,
-  ) {}
+  ) {
+    platform.onAdChange((playing) => {
+      if (playing) this.sawAd = true;
+    });
+  }
+
+  /** A break or rewarded ad is being requested or shown (menus ignore input meanwhile). */
+  get busy(): boolean {
+    return this.pending !== null;
+  }
+
+  private flight<T>(run: () => Promise<T>): Promise<T> {
+    const p = run().finally(() => {
+      if (this.pending === p) this.pending = null;
+    });
+    this.pending = p;
+    return p;
+  }
 
   /** A hunt started (the first of the page goes without a break before it). */
   huntStarted(): void {
@@ -34,14 +55,16 @@ export class AdBreaks {
   }
 
   /** Before the next hunt: a commercial break, unless no hunt was played yet this page. */
-  async beforeHunt(): Promise<void> {
-    if (this.hunts === 0) return;
+  beforeHunt(): Promise<void> {
+    // Single-flight: a second tap while the break is requested waits for the same one.
+    if (this.pending !== null) return this.pending.then(() => undefined);
+    if (this.hunts === 0) return Promise.resolve();
     if (this.skipNext) {
       this.skipNext = false;
-      return;
+      return Promise.resolve();
     }
     this.counts.breaks++;
-    await this.platform.commercialBreak();
+    return this.flight(() => this.platform.commercialBreak());
   }
 
   /** A rewarded ad can be offered right now. */
@@ -50,12 +73,17 @@ export class AdBreaks {
   }
 
   /** Shows a rewarded ad; true = the reward is granted. */
-  async rewarded(kind: RewardKind): Promise<boolean> {
+  rewarded(kind: RewardKind): Promise<boolean> {
+    if (this.pending !== null) return Promise.resolve(false);
     this.counts.rewarded++;
-    const granted = await this.platform.rewardedBreak();
-    this.skipNext = true;
-    if (granted) this.counts.granted++;
-    this.platform.analytics('rewarded_ad', { kind, granted });
-    return granted;
+    this.sawAd = false;
+    return this.flight(async () => {
+      const granted = await this.platform.rewardedBreak();
+      // Only an ad that really played resets the portal's break timer (no SDK, no fill: no skip).
+      if (this.sawAd) this.skipNext = true;
+      if (granted) this.counts.granted++;
+      this.platform.analytics('rewarded_ad', { kind, granted });
+      return granted;
+    });
   }
 }

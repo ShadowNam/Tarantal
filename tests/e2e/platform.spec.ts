@@ -139,6 +139,83 @@ test.describe('portal build', () => {
     expect(await sdkCalls(page)).not.toContain(AD);
   });
 
+  test('ad request race: double taps and Menu while the SDK starts the ad — one break, one hunt', async ({
+    page,
+  }, info) => {
+    test.skip(!isLandscape(info), 'hunts are played in landscape');
+    test.skip(REAL_SDK, 'fake SDK only');
+    test.setTimeout(180_000);
+    const touch = isTouchProject(info);
+    await routeSdk(page);
+    // The fake SDK takes 1.5 s to start each ad: the request phase where taps used to slip through.
+    await boot(page, 'huntSeconds=2&fakeAdDelay=1500');
+    await startHunt(page, touch);
+    await waitScene(page, 'tally');
+    // Taps dispatched inside the page in one go: all land during the 1.5 s ad request.
+    const tapIds = (ids: readonly string[]): Promise<void> =>
+      page.evaluate(
+        ([list, isTouch]) => {
+          const canvas = document.querySelector<HTMLCanvasElement>('#game canvas');
+          const h = window.__TM__;
+          if (!canvas || !h) throw new Error('game not booted');
+          const r = canvas.getBoundingClientRect();
+          let pid = 500;
+          for (const id of list) {
+            const rect = h.rects[id];
+            if (!rect) throw new Error(`no rect ${id}`);
+            const init: PointerEventInit = {
+              clientX: r.left + ((rect.x + rect.w / 2) / h.designWidth) * r.width,
+              clientY: r.top + ((rect.y + rect.h / 2) / h.designHeight) * r.height,
+              pointerId: pid++,
+              pointerType: isTouch ? 'touch' : 'mouse',
+              isPrimary: true,
+              button: 0,
+              buttons: 1,
+              bubbles: true,
+              cancelable: true,
+            };
+            canvas.dispatchEvent(new PointerEvent('pointerdown', init));
+            window.dispatchEvent(new PointerEvent('pointerup', { ...init, buttons: 0 }));
+          }
+        },
+        [ids, touch] as const,
+      );
+    const breaks = async (): Promise<number> =>
+      (await sdkCalls(page)).filter((c) => c === AD).length;
+
+    // 1. Tally: [Again] twice, then [Menu].
+    await tapIds(['again', 'again', 'menu']);
+    await waitScene(page, 'hunt');
+    let tick = (await hook(page)).tick;
+    await page.waitForTimeout(3000);
+    let h = await hook(page);
+    expect(h.scene).toBe('hunt');
+    expect(h.tick).toBeGreaterThan(tick);
+    expect(await breaks()).toBe(1);
+    expect(h.huntRequests).toBe(2);
+
+    // 2. The run's hunt card (the route without a guard before): HUNT! twice, then Menu.
+    await waitScene(page, 'tally');
+    await tapRect(page, touch, 'seasonRun');
+    await page.waitForFunction(() => window.__TM__?.run?.view === 'intro', null, {
+      timeout: 60_000,
+    });
+    await tapIds(['run.go', 'run.go', 'run.menu']);
+    await waitScene(page, 'hunt');
+    tick = (await hook(page)).tick;
+    await page.waitForTimeout(3000);
+    h = await hook(page);
+    expect(h.scene).toBe('hunt');
+    expect(h.mode).toBe('seasonHunt');
+    expect(h.tick).toBeGreaterThan(tick);
+    expect(await breaks()).toBe(2);
+    expect(h.huntRequests).toBe(3);
+    expect(h.analytics.filter((a) => a.event === 'hunt_start')).toHaveLength(3);
+    const calls = await sdkCalls(page);
+    // Each break ran to its end before its hunt (never a hunt under a playing ad).
+    expect(calls.filter((c) => c === `${AD}:end`)).toHaveLength(2);
+  });
+
   test("a challenge link arrives through the portal's own parameter", async ({ page }) => {
     test.skip(REAL_SDK, 'fake SDK only');
     await routeSdk(page);

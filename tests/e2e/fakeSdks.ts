@@ -4,19 +4,24 @@
 // The real SDKs' local modes are checked by platform.spec.ts with REAL_SDK=1 (network needed).
 
 const COMMON = `
-  window.__fakeSdk = { calls: [], adMs: 600, rewardGranted: true };
+  // ?fakeAdDelay=1500: the SDK takes that long to start the ad (the request phase, D-026).
+  const delay = Number(new URLSearchParams(location.search).get('fakeAdDelay') || 0);
+  window.__fakeSdk = { calls: [], adMs: 600, startDelayMs: delay, rewardGranted: true };
   const fake = window.__fakeSdk;
   const log = (c) => fake.calls.push(c);
   // Records whether the game muted itself once the ad covers it (AudioDirector via onAdChange).
   const showAd = (name, onStart, result) => {
     log(name);
-    if (onStart) onStart();
     return new Promise((resolve) => {
-      setTimeout(() => log(name + ':muted=' + String(window.__TM__ && window.__TM__.audioMuted)), 50);
       setTimeout(() => {
-        log(name + ':end');
-        resolve(result);
-      }, fake.adMs);
+        log(name + ':start');
+        if (onStart) onStart();
+        setTimeout(() => log(name + ':muted=' + String(window.__TM__ && window.__TM__.audioMuted)), 50);
+        setTimeout(() => {
+          log(name + ':end');
+          resolve(result);
+        }, fake.adMs);
+      }, fake.startDelayMs);
     });
   };
 `;

@@ -54,6 +54,18 @@ async function buyCharm(page: Page, touch: boolean): Promise<string | null> {
   return id;
 }
 
+/**
+ * The Padstal's first-visit explainer (user feedback, D-026) covers the shop until dismissed;
+ * returns whether it was showing. `shot` saves a screenshot of it first.
+ */
+async function dismissPadstalHelp(page: Page, touch: boolean, shot?: string): Promise<boolean> {
+  if ((await hook(page)).rects['run.helpClose'] === undefined) return false;
+  if (shot !== undefined) await page.screenshot({ path: shot });
+  await tapRect(page, touch, 'run.helpClose');
+  await page.waitForFunction(() => window.__TM__?.rects['run.next'] !== undefined);
+  return true;
+}
+
 function landscapeOnly(info: TestInfo): void {
   test.skip(!isLandscape(info), 'the run is played in landscape');
 }
@@ -76,6 +88,8 @@ test('a full 12-hunt Season Run completes (short hunts, zero quotas)', async ({ 
     if (i === 11) break;
     await tapRect(page, touch, 'run.padstal');
     await waitView(page, 'padstal', i);
+    // Shown on the first visit only.
+    expect(await dismissPadstalHelp(page, touch)).toBe(i === 0);
     await buyCharm(page, touch);
     await tapRect(page, touch, 'run.next');
     await waitView(page, 'intro', i + 1);
@@ -116,6 +130,14 @@ test('the run resumes after a page reload (saved after every Padstal step)', asy
   await playHunt(page, touch, 0);
   await tapRect(page, touch, 'run.padstal');
   await waitView(page, 'padstal', 0);
+  // First visit: the explainer card, then the shop with its row labels and price notes.
+  expect(
+    await dismissPadstalHelp(
+      page,
+      touch,
+      `${SCREENSHOTS}/season-padstal-help-${info.project.name}.png`,
+    ),
+  ).toBe(true);
   const bought = await buyCharm(page, touch);
   expect(bought).not.toBeNull();
   await page.screenshot({ path: `${SCREENSHOTS}/season-padstal-${info.project.name}.png` });
@@ -126,6 +148,11 @@ test('the run resumes after a page reload (saved after every Padstal step)', asy
   await page.waitForFunction(() => window.__TM__?.rects['seasonRun'] !== undefined);
   await tapRect(page, touch, 'seasonRun'); // now "Continue run"
   await waitView(page, 'padstal', 0);
+  // Dismissed once: not again after the reload; "?" still opens it.
+  expect((await hook(page)).rects['run.helpClose']).toBeUndefined();
+  await tapRect(page, touch, 'run.help');
+  await page.waitForFunction(() => window.__TM__?.rects['run.helpClose'] !== undefined);
+  expect(await dismissPadstalHelp(page, touch)).toBe(true);
   const after = await runHook(page);
   expect(after.charms).toEqual(before.charms);
   expect(after.doppies).toBe(before.doppies);

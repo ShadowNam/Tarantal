@@ -579,6 +579,23 @@ player's own save. The specs read `tm.e2e.save.v1`. (10) *Tests:* adapters again
 (unit), `tests/e2e/platform.spec.ts` against fake SDK scripts served by `page.route()` in place
 of the portals' URLs (CI jobs: desktop poki, desktop crazygames, Pixel poki); `REAL_SDK=1` runs it
 against the real SDKs' localhost modes (by hand: it needs the network).
+*PR A review fixes:* (10a) *Ad request race (must):* the menus were locked only once the SDK
+called `onStart`, so during the request (0.5–2 s) a second tap could start a hunt under the coming
+ad, or leave for the title. Now `afterBreak` and `AdBreaks.beforeHunt` are single-flight (a second
+request joins or is dropped), menus are locked from the request on (`isAdBusy()` on the adapter
+plus `AdBreaks.busy`), the run's HUNT!/Menu have a press guard, and the title's Shed/Settings
+don't open once START is pressed. `platform.spec.ts` races [Again]×2 + [Menu] and HUNT!×2 + Menu
+against a fake SDK that takes 1.5 s to start the ad: one break, one hunt start each (it fails
+without the fixes: 4 starts instead of 3). (10b) *Ad timeout:* `adTimeoutMs` now covers only the
+request (until the SDK starts the ad), paused while the tab is hidden; a long ad, or one watched
+after a tab switch, ends when the SDK says so, and a watched rewarded ad is granted.
+(10c) *Boot:* one deadline (`sdkTimeoutMs`) for the SDK script + init together; Poki
+`shareableURL` and CrazyGames `hasAdblock` no longer block boot (filled in later; until then the
+page URL is used for links and an ad request under an adblocker simply errors). (10d) *Smaller:*
+error reports strip URLs with a ':' in the query, protocol-relative and bare-host URLs, and report
+only the type of non-Error rejections; a rewarded request with no ad shown (no SDK, no fill) no
+longer skips the next break; portal builds drop the unreferenced `manifest.webmanifest`; CI also
+runs the portal spec on iPhone 14 landscape (WebKit).
 *PR B — quality tiers, benchmark, lazy biomes, size budget:* (11) *Benchmark:* 90 frames after a
 15-frame warm-up, rAF to rAF, only while the title is on screen and the tab visible (paused
 otherwise, so nothing runs per frame outside the title); gaps over 1 s don't count. Result →
@@ -643,6 +660,15 @@ keyboard-only menus incl. the new page and privacy → `a11y.spec.ts` + `menus.s
 anywhere → `menus.spec.ts`; large-flash cap → content validation (`maxFlashesPerSecond`);
 language → `persistence.spec.ts`. *Needs a person:* a screen-reader and keyboard-only pass, and
 a colour-blind player's look at the don't-shoot creatures.
+*PR C addition — Padstal clarity (user feedback: "couldn't tell what the screen is for"):*
+(26a) a first-visit explainer card (Doppies, charms and slot order, consumables, the rental gun,
+quota = run over), dismissed once into `SaveData.notices` (`padstal_help`) and reopenable from a
+"?" button; (26b) an offer the player can't buy says why on the card ("need N more", "slots full",
+"consumable slots full", "already renting") instead of only greying out; (26c) row labels "For
+sale" and "Your charms (drag to reorder)"; (26d) empty slots read "Consumables: empty, empty" and
+"Rental gun: none" (was "— | No rental"). Strings in en/af here, de/nl on PR D.
+`season-run.spec.ts` checks the card on the first visit only, not after a reload, and reopens it
+with "?" (screenshots `season-padstal-help-*`, `season-padstal-*`, desktop + Pixel 7).
 *PR D — de + nl:* (27) *Languages:* `de.json` and `nl.json` (366 keys each), machine-quality
 first pass written for this game, **flagged for native review**; Afrikaans completed (the 28
 missing keys: four Boss Rules translated, charm names are Afrikaans in every language). Language

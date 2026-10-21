@@ -19,6 +19,14 @@ describe('error reports carry no personal data (M9, Tech §17)', () => {
     );
   });
 
+  it('a ":" in the query, scheme-less and protocol-relative URLs are stripped too', () => {
+    expect(stripUrls('at https://h.test/a/app.js?c=a:b:c#x:1:3:9')).toBe('at app.js:3:9');
+    expect(stripUrls('load //cdn.test/p/sdk.js?sid=9 failed')).toBe('load sdk.js failed');
+    expect(stripUrls('see poki.com/en/g/tarantal?gdc=abc:def now')).toBe('see tarantal now');
+    expect(stripUrls('at https://h.test/?c=eyJzZWVkIjo0Mn0:2:4')).toBe('at <url>:2:4');
+    expect(stripUrls('ratio 1:2, file index.js:3:9')).toBe('ratio 1:2, file index.js:3:9');
+  });
+
   it('keeps the top frames only', () => {
     const stack = [
       'TypeError: x is undefined',
@@ -30,9 +38,15 @@ describe('error reports carry no personal data (M9, Tech §17)', () => {
   });
 
   it('trims long messages and accepts non-Error rejections', () => {
-    const r = toErrorReport('rejection', 'x'.repeat(100), limits);
+    const r = toErrorReport('error', 'x'.repeat(100), limits);
     expect(r.message).toHaveLength(40);
-    expect(toErrorReport('rejection', { code: 7 }, limits).message).toBe('{"code":7}');
+    // Non-Error rejections may carry anything: only their type is reported.
+    expect(toErrorReport('rejection', { code: 7 }, limits).message).toBe(
+      'non-Error value (Object)',
+    );
+    expect(toErrorReport('rejection', 'user@example.com', limits).message).toBe(
+      'non-Error value (string)',
+    );
   });
 
   it('the hook caps reports per page and drops repeats', () => {
