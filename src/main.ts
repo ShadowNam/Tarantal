@@ -133,6 +133,7 @@ const hook: TestHook = {
   glare: null,
   omen: false,
   rain: false,
+  lightning: false,
   magazine: 0,
   reloading: false,
   stones: 0,

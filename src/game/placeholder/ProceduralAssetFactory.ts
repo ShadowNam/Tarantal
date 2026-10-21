@@ -18,6 +18,7 @@ import { arsenalSpecs } from './arsenalArt';
 import { omenSpecs } from './omenArt';
 import type { Band, BiomeArt } from './biomeArt';
 import { BUSHVELD_ART } from './biomes/bushveld';
+import { KALAHARI_ART } from './biomes/kalahari';
 import { OKAVANGO_ART } from './biomes/okavango';
 import { ellipse, ground, inked, INK, prng, tuft } from './draw';
 
@@ -105,7 +106,7 @@ interface PlaneLook {
 }
 
 /** Local-unit bounding box every bird is drawn inside (scale 1, facing right). */
-const BIRD_BOX = { left: -280, right: 300, top: -230, bottom: 170 };
+const BIRD_BOX = { left: -310, right: 310, top: -230, bottom: 170 };
 
 function birdSpec(
   draw: (ctx: CanvasRenderingContext2D, frame: BirdFrame, line: number) => void,
@@ -323,6 +324,40 @@ function drawEagle(ctx: CanvasRenderingContext2D, frame: BirdFrame, line: number
   inked(ctx, '#E9C23B', line);
 }
 
+/** Die Stormvoël (art bible §3.2): a giant storm-dark silhouette; only the eyes glow. */
+function drawStormvoel(ctx: CanvasRenderingContext2D, frame: BirdFrame, line: number): void {
+  const dark = '#1C2030';
+  // Broad ragged wings, up or down.
+  const up = frame !== 'down';
+  ctx.beginPath();
+  ctx.moveTo(-60, -20);
+  ctx.lineTo(-260, up ? -210 : 150);
+  ctx.lineTo(-180, up ? -160 : 110);
+  ctx.lineTo(-210, up ? -120 : 160);
+  ctx.lineTo(-120, up ? -90 : 90);
+  ctx.lineTo(40, -10);
+  ctx.closePath();
+  inked(ctx, dark, line);
+  ellipse(ctx, 0, 0, 200, 140);
+  inked(ctx, dark, line);
+  ellipse(ctx, 230, -120, 66, 62);
+  inked(ctx, dark, line);
+  // Casque and the glowing eyes.
+  ctx.beginPath();
+  ctx.moveTo(205, -170);
+  ctx.lineTo(225, -215);
+  ctx.lineTo(250, -172);
+  ctx.closePath();
+  inked(ctx, dark, line);
+  for (const [x, r] of [
+    [250, 16],
+    [222, 11],
+  ] as const) {
+    ellipse(ctx, x, -128, r, r * 0.7);
+    inked(ctx, '#FFE066', 0);
+  }
+}
+
 function drawSprayer(ctx: CanvasRenderingContext2D, frame: BirdFrame, line: number): void {
   // Fictional yellow biplane (no brand marks) trailing a mist.
   ctx.save();
@@ -365,6 +400,7 @@ function birdDrawFor(creature: string, plane: PlaneId): BirdDraw | null {
   if (creature === 'kwevoel') return drawKwevoel;
   if (creature === 'visarend') return drawEagle;
   if (creature === 'sproeier') return drawSprayer;
+  if (creature === 'stormvoel') return drawStormvoel;
   if (creature === 'generaal') {
     // A big old cock; his enamel pot is a separate sprite so it can fly off (fx/pot).
     const body = drawGuineafowl(TARENTAAL, far, false);
@@ -1264,6 +1300,7 @@ const BIOME_ART: Readonly<Record<string, BiomeArt>> = {
   'karoo-autumn': KAROO_ART,
   'bushveld-winter': BUSHVELD_ART,
   'okavango-spring': OKAVANGO_ART,
+  'kalahari-summer': KALAHARI_ART,
 };
 
 /** Biome ids this build can draw (the Daily rotation, challenges and the run use only these). */

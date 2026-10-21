@@ -109,6 +109,7 @@ export class AudioDirector {
           if (e.behaviour !== 'flying' || Math.random() < 0.5) this.play('kek', panOf(e));
           break;
         case 'penaltyApplied':
+        case 'secretPenalty':
           this.play('scratch', 0);
           break;
         case 'stampedeStarted':
