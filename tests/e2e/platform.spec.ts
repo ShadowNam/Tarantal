@@ -21,7 +21,7 @@ import {
   tapRect,
 } from './helpers';
 
-const PLATFORM = process.env['E2E_PLATFORM'] ?? 'web';
+const PLATFORM = process.env['E2E_PLATFORM'] || 'web';
 const REAL_SDK = process.env['REAL_SDK'] === '1';
 const SAVE = 'tm.e2e.save.v1';
 
@@ -161,6 +161,7 @@ test.describe('web build', () => {
   test('privacy screen from Settings; clear my data restarts as a new player', async ({
     page,
   }, info) => {
+    test.skip(!isLandscape(info), 'portrait shows the rotate card');
     const touch = isTouchProject(info);
     await boot(page, '');
     // ?e2e runs keep their own save: the player's tm.save.v1 is never touched.
