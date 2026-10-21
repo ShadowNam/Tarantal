@@ -21,7 +21,7 @@ import {
   tapRect,
 } from './helpers';
 
-const PLATFORM = process.env['E2E_PLATFORM'] ?? 'web';
+const PLATFORM = process.env['E2E_PLATFORM'] || 'web';
 const REAL_SDK = process.env['REAL_SDK'] === '1';
 const SAVE = 'tm.e2e.save.v1';
 
