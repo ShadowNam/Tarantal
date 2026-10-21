@@ -88,7 +88,8 @@ export class HudScene extends Phaser.Scene {
   private season: SeasonHud | null = null;
   /** Kept here: the hunt sets it before launch() has created the scene. */
   private seasonInfo: { readonly quota: number } | null = null;
-  /** M7: "DAILY #n" / "PRACTICE · DAILY #n" / "BEAT 2 840" under the pause button. */
+  /** M7: "DAILY #n" / "PRACTICE · DAILY #n" / "BEAT 2 840" under the score, in the Season Run
+   *  quota's slot (never both: run hunts have no tag), above the score pops. */
   private tagText: string | null = null;
   private tag: Phaser.GameObjects.Text | null = null;
 
@@ -148,7 +149,7 @@ export class HudScene extends Phaser.Scene {
     const so = { x: 6 / 150, y: 0.5 };
     this.sock.setOrigin(so.x, so.y);
     this.callout = text(48, '#FF6B5A').setOrigin(0.5).setVisible(false);
-    this.tag = text(30, '#FFD25A').setOrigin(0.5, 0);
+    this.tag = text(28, '#FFD25A').setOrigin(1, 0.5);
     this.applyTag();
     this.season = new SeasonHud(this, this.ctx);
     this.season.setSeason(this.seasonInfo);
@@ -303,8 +304,8 @@ export class HudScene extends Phaser.Scene {
     tag.setText(this.tagText ?? '').setVisible(this.tagText !== null);
     const l = this.layoutNow;
     if (l !== null) {
-      tag.setPosition(l.charms.x + l.charms.w / 2, l.charms.y);
-      fitText(tag, l.charms.w);
+      tag.setPosition(l.quota.x + l.quota.w - 8, l.quota.y + l.quota.h / 2);
+      fitText(tag, l.quota.w - 16);
     }
   }
 

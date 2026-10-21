@@ -38,7 +38,7 @@ export interface HuntPlan {
   /** Set for a daily hunt (also a challenge to today's daily). */
   readonly daily: { readonly setup: DailySetup; readonly official: boolean } | null;
   readonly challenge: Challenge | null;
-  /** Line under the HUD pause button (null = none). */
+  /** Line under the HUD score (null = none). */
   readonly hudTag: string | null;
 }
 

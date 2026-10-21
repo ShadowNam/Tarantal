@@ -121,7 +121,7 @@ describe('DailyFlow', () => {
       { day: DAY, score: 2840, rank: 'bosveldjagter', wholeFlocks: 2, grid: '🟩🟩🟨🟩⬛' },
     ]);
     expect(x.share?.text).toContain(
-      'Daily #1 · 2 840 · Bosveldjagter · 🟩🟩🟨🟩⬛ · 2× hele swerm',
+      'Daily #1 · 2\u00a0840 · Bosveldjagter · 🟩🟩🟨🟩⬛ · 2× hele swerm',
     );
     const param = new URL(x.share?.url ?? '').searchParams.get('c') ?? '';
     const decoded = decodeChallenge(param, {
@@ -158,7 +158,7 @@ describe('DailyFlow', () => {
     const x = flow.finish(again, result(again, 9000), '🟩');
     expect(x.share).toBeNull();
     expect(x.tag).toBe('Practice · Daily #1');
-    expect(x.news).toEqual(["Practice · today's official score: 2 840"]);
+    expect(x.news).toEqual(["Practice · today's official score: 2\u00a0840"]);
     expect(save.data.daily.bestScore).toBe(2840);
     expect(save.data.daily.streak).toBe(1);
   });
@@ -201,14 +201,14 @@ describe('DailyFlow', () => {
     });
     flow.start(plan);
     const x = flow.finish(plan, result(plan, 3100), '');
-    expect(x.compare).toBe('You 3 100 · Sannie 3 000 · you win!');
+    expect(x.compare).toBe('You 3\u00a0100 · Sannie 3\u00a0000 · you win!');
     expect(x.tag).toBe('Daily #1');
     // Again on the same challenge: now practice, still compared.
     const again = flow.plan('classic', c, undefined, {}, seedNever);
     expect(again.daily?.official).toBe(false);
     flow.start(again);
     expect(flow.finish(again, result(again, 10), '').compare).toBe(
-      'You 10 · Sannie 3 000 · so close!',
+      'You 10 · Sannie 3\u00a0000 · so close!',
     );
   });
 
@@ -234,7 +234,7 @@ describe('DailyFlow', () => {
     });
     flow.start(plan);
     const x = flow.finish(plan, result(plan, 1500), '⬛');
-    expect(x.compare).toBe('You 1 500 · them 1 500 · a tie!');
+    expect(x.compare).toBe('You 1\u00a0500 · them 1\u00a0500 · a tie!');
     expect(x.tag).toBe('Challenge');
     expect(x.share?.text).toContain('Classic · Karoo');
     expect(save.data.daily).toEqual(defaultSave().daily);
