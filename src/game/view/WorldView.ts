@@ -9,6 +9,7 @@ import type { SimState } from '../../sim/types';
 import { coreWidth } from '../../sim/world';
 import { TEX } from '../assets/AssetManifest';
 import type { ParallaxView } from './ParallaxView';
+import { FlashGate, type FlashLimiter } from './flashLimit';
 
 /** Rendering only: dust devils sway this much (radians) and this fast (ms per sway). */
 const DEVIL_SWAY = 0.08;
@@ -47,6 +48,11 @@ export class WorldView {
   /** Storm gloom and lightning light (Kalahari storm, Die Stormvoël outside his boss hunt). */
   private gloom: Phaser.GameObjects.Rectangle | null = null;
   private flashLight: Phaser.GameObjects.Rectangle | null = null;
+  /** M10: lightning light only starts within the shared large-flash budget (≤ 3 a second). */
+  private readonly stormFlash: FlashGate;
+  /** GDD §17 Stampede sky tint: fades in and out, never pulses. */
+  private stampedeTint: Phaser.GameObjects.Rectangle | null = null;
+  private stampedeOn = false;
   private stormSize = { w: 0, h: 0 };
   private readonly midScroll: number;
   private readonly rings: Phaser.GameObjects.Image[] = [];
@@ -67,7 +73,9 @@ export class WorldView {
     parallax: ParallaxView,
     screen: Phaser.GameObjects.Container,
     private readonly prefs: LivePrefs,
+    flashes: FlashLimiter,
   ) {
+    this.stormFlash = new FlashGate(flashes);
     this.scene = scene;
     this.feel = feel;
     this.parallax = parallax;
@@ -94,6 +102,8 @@ export class WorldView {
     if (s.rain || this.rain !== null) this.drawRain(s.rain);
     if (s.lightning || this.flashLight !== null || (s.rain && this.biome.omen.storm !== undefined))
       this.drawStorm(s, width, height);
+    if (s.stampedeActive || this.stampedeTint !== null)
+      this.drawStampede(s.stampedeActive, width, height);
     this.drawRings(s);
     this.drawHelper(s, width, height);
     this.blowWind(s, width, height);
@@ -233,8 +243,41 @@ export class WorldView {
     const storming = s.rain && this.biome.omen.storm !== undefined;
     const gloom = storming && !s.lightning ? STORM_GLOOM_ALPHA : 0;
     this.gloom?.setAlpha(gloom).setVisible(gloom > 0);
-    const lit = s.lightning ? (this.prefs.reduceFlashes ? FLASH_ALPHA_REDUCED : FLASH_ALPHA) : 0;
+    const strike = this.stormFlash.lit(s.lightning, performance.now());
+    const lit = strike ? (this.prefs.reduceFlashes ? FLASH_ALPHA_REDUCED : FLASH_ALPHA) : 0;
     this.flashLight.setAlpha(lit).setVisible(lit > 0);
+  }
+
+  /**
+   * GDD §17: while the Stampede runs, a warm tint washes over the scene (fades in and out over
+   * tintFadeMs; one steady change, not a flash; dimmed by "reduce flashes").
+   */
+  private drawStampede(on: boolean, width: number, height: number): void {
+    const cfg = this.feel.juice.stampede;
+    if (this.stampedeTint === null) {
+      const colour = Number.parseInt(cfg.tint.slice(1), 16);
+      this.stampedeTint = this.scene.add
+        .rectangle(0, 0, width, height, colour)
+        .setOrigin(0, 0)
+        .setAlpha(0)
+        .setVisible(false);
+      this.screen.addAt(this.stampedeTint, 0);
+    }
+    const tint = this.stampedeTint;
+    if (tint.width !== width || tint.height !== height) tint.setSize(width, height);
+    if (on === this.stampedeOn) return;
+    this.stampedeOn = on;
+    const dim = this.prefs.reduceFlashes ? this.feel.accessibility.reducedFlashAlpha : 1;
+    this.scene.tweens.killTweensOf(tint);
+    tint.setVisible(true);
+    this.scene.tweens.add({
+      targets: tint,
+      alpha: on ? cfg.tintAlpha * dim : 0,
+      duration: cfg.tintFadeMs,
+      onComplete: () => {
+        if (!this.stampedeOn) tint.setVisible(false);
+      },
+    });
   }
 
   /** Rain (omen visual flag `rain`): streaks from a particle emitter, and a rainbow (`rainbow`). */

@@ -19,6 +19,7 @@ import {
   type Insets,
 } from './game/layout';
 import { fitCamera } from './game/view/fitCamera';
+import { FlashLimiter } from './game/view/flashLimit';
 import { setTextLook } from './game/ui/textLook';
 import type { AssetManifest } from './game/assets/AssetManifest';
 import { ABSENT, fetchAssetIndex } from './game/assets/finalLoader';
@@ -489,6 +490,7 @@ const ctx: GameContext = {
   },
   huntBiome: biome,
   audio,
+  flashes: new FlashLimiter(feel.accessibility.maxLargeFlashesPerSec),
   save,
   notaboek: loaded.notaboek,
   dailyMeta: loaded.daily,

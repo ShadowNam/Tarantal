@@ -23,6 +23,9 @@ export const SFX_IDS = [
   'crate',
   'powerup',
   'whoosh',
+  // M10 tally (GDD §17): count-up tick and the rank stamp thud.
+  'tick',
+  'thud',
 ] as const;
 export type SfxId = (typeof SFX_IDS)[number];
 
@@ -143,6 +146,13 @@ export function playSfx(ctx: AudioContext, out: AudioNode, id: SfxId, noise: Aud
       tone('sine', 120, 50, 0.3, 0.7);
       tone('triangle', 660, 880, 0.25, 0.15, 0.12);
       return 0.4;
+    case 'tick':
+      tone('square', 1800, 1500, 0.025, 0.08);
+      return 0.04;
+    case 'thud':
+      tone('sine', 90, 40, 0.25, 0.8);
+      tone('triangle', 180, 90, 0.12, 0.25);
+      return 0.3;
     case 'scratch':
       tone('sawtooth', 300, 80, 0.3, 0.3);
       return 0.3;

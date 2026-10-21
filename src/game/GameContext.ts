@@ -13,6 +13,7 @@ import type { HuntResult, InputKind } from '../sim/types';
 import type { LivePrefs } from './prefs';
 import type { DomChrome } from './ui/DomChrome';
 import type { AssetManifest, ManifestEntry } from './assets/AssetManifest';
+import type { FlashLimiter } from './view/flashLimit';
 import type { AudioDirector } from './audio/AudioDirector';
 import type { RunFlow } from './run/RunFlow';
 import type { DailyFlow } from './daily/DailyFlow';
@@ -198,6 +199,8 @@ export interface GameContext {
   /** M8: the biome of the hunt on screen (the home biome between hunts). */
   huntBiome: Biome;
   readonly audio: AudioDirector;
+  /** M10: the shared budget of large-area flashes (≤ 3 a second, GDD §18.3). */
+  readonly flashes: FlashLimiter;
   /** Settings + progress (SaveData v1). */
   readonly save: SaveStore;
   readonly notaboek: Notaboek;

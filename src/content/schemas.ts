@@ -961,6 +961,32 @@ export const FeelSchema = obj({
     smokeScale: pos,
     /** "⛔ don't shoot" and boss call-outs. */
     calloutMs: pos,
+    /** M10 juice pass: multiplier on every weapon's screen shake (weapons.json stays sim content). */
+    shakeScale: nonNeg,
+    /** Frenzy tier up: the meter label punches from this scale back to 1 over frenzyPunchMs. */
+    frenzyPunchScale: z.number().min(1).max(3),
+    frenzyPunchMs: pos,
+    /** GDD §17 Stampede: a warm sky tint fades in (steady, never pulsing) and the ground rumbles
+     *  (a small camera shake every rumbleEveryMs, off with Settings → screen shake). */
+    stampede: obj({
+      tint: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+      tintAlpha: fraction,
+      tintFadeMs: pos,
+      rumblePx: nonNeg,
+      rumbleMs: pos,
+      rumbleEveryMs: pos,
+    }),
+  }),
+  /** M10 Bakkie Tally pacing (GDD §17): score count-up with ticks, rows fading in one by one,
+   *  then the rank stamp thud and the news line. */
+  tally: obj({
+    countUpMs: pos,
+    tickEveryMs: pos,
+    rowDelayMs: nonNeg,
+    rowStaggerMs: nonNeg,
+    rowFadeMs: pos,
+    stampMs: pos,
+    newsDelayMs: nonNeg,
   }),
   hud: obj({
     marginPx: nonNeg,
@@ -1015,6 +1041,9 @@ export const FeelSchema = obj({
     captionMs: pos,
     captionMax: posInt,
     captionRepeatMs: nonNeg,
+    /** M10: large-area flashes (lightning light, lit darkness) allowed to start in any second,
+     *  across all sources (WCAG 2.3.1: never more than 3). */
+    maxLargeFlashesPerSec: z.number().int().min(1).max(3),
   }),
   audio: obj({
     /** Master gain at full volume (headroom so the synth and recordings never clip). */

@@ -91,6 +91,8 @@ export class HuntScene extends Phaser.Scene {
   /** The biome on screen and its manifest (the home biome until a hunt in another starts). */
   private biome!: Biome;
   private manifest!: AssetManifest;
+  /** Real time of the next Stampede rumble shake. */
+  private nextRumbleAt = 0;
 
   constructor(ctx: GameContext) {
     super({ key: 'Hunt' });
@@ -234,12 +236,21 @@ export class HuntScene extends Phaser.Scene {
       this.parallax,
       this.screen,
       this.ctx.prefs,
+      this.ctx.flashes,
     );
     this.weapon = new WeaponView(this, this.ctx.feel, this.screen, this.ctx.prefs);
     this.debug = new DebugOverlay(this, this.ctx.content, this.biome, this.parallax, this.screen);
     this.debug.setVisible(this.ctx.debug);
     this.relayout();
     this.parallax.update((CAMERA_MIN_X + CAMERA_MAX_X) / 2, width);
+  }
+
+  /** GDD §17 Stampede ground-shake rumble: a small shake every rumbleEveryMs (Settings → shake). */
+  private rumble(on: boolean, now: number, width: number): void {
+    const r = this.ctx.feel.juice.stampede;
+    if (!on || !this.ctx.prefs.shake || r.rumblePx <= 0 || now < this.nextRumbleAt) return;
+    this.nextRumbleAt = now + r.rumbleEveryMs;
+    this.cameras.main.shake(r.rumbleMs, (r.rumblePx * this.ctx.feel.juice.shakeScale) / width);
   }
 
   /** M8: a hunt in another biome (Daily rotation, challenge, Season Run) swaps the scenery. */
@@ -654,6 +665,7 @@ export class HuntScene extends Phaser.Scene {
     if (events.length > 0) this.handleEvents(events, width, state);
     // M10: the music follows the hunt's intensity (calm / build / stampede).
     this.ctx.audio.setIntensity(stemFor(runner.over ? null : state, this.ctx.feel.audio));
+    this.rumble(state.stampedeActive && !runner.over, now, width);
     this.logger?.add(events);
     this.shareLog?.add(events);
     if (this.ftue) {
@@ -766,7 +778,8 @@ export class HuntScene extends Phaser.Scene {
           const w: Weapon | undefined = this.ctx.content.weapons.weapons.find(
             (x) => x.id === e.weapon,
           );
-          if (w && w.shake.px > 0) this.cameras.main.shake(w.shake.ms, w.shake.px / width);
+          const px = (w?.shake.px ?? 0) * this.ctx.feel.juice.shakeScale;
+          if (w && px > 0) this.cameras.main.shake(w.shake.ms, px / width);
         }
         const hook = this.ctx.hook;
         if (hook) {

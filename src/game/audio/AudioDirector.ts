@@ -248,6 +248,13 @@ export class AudioDirector {
     return this.ctx?.state === 'running';
   }
 
+  /** M10: menu and tally sounds that aren't sim events (GDD §17 tally ticks and stamp thud). */
+  ui(id: 'tick' | 'thud'): void {
+    if (this.ctx === null || this.muted) return;
+    if (id === 'tick') this.play('tick', 0);
+    else this.play('thud', 0);
+  }
+
   /** Plays the sounds for a frame's events. panOf maps an event to −1 (left) … +1 (right). */
   handle(events: readonly SimEvent[], panOf: (e: SimEvent) => number): void {
     if (this.ctx === null || this.muted) return;

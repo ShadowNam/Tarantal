@@ -40,7 +40,28 @@
     "windParticlesPerSec": 14,
     "rainParticlesPerSec": 90,
     "smokeScale": 2.2,
-    "calloutMs": 2600
+    "calloutMs": 2600,
+    "shakeScale": 1,
+    "frenzyPunchScale": 1.5,
+    "frenzyPunchMs": 260,
+    "stampede": {
+      "tint": "#FF9F43",
+      "tintAlpha": 0.12,
+      "tintFadeMs": 600,
+      "rumblePx": 3,
+      "rumbleMs": 140,
+      "rumbleEveryMs": 520
+    }
+  },
+  "tally": {
+    "$comment": "M10 Bakkie Tally pacing (GDD §17): the score counts up over countUpMs with a tick every tickEveryMs; stat rows fade in from rowDelayMs, rowStaggerMs apart; then the rank stamp lands (stampMs, with a thud) and the news line follows newsDelayMs later. The [Again] button is live from the start.",
+    "countUpMs": 900,
+    "tickEveryMs": 75,
+    "rowDelayMs": 150,
+    "rowStaggerMs": 90,
+    "rowFadeMs": 160,
+    "stampMs": 220,
+    "newsDelayMs": 300
   },
   "hud": {
     "marginPx": 28,
@@ -108,13 +129,14 @@
     }
   },
   "accessibility": {
-    "$comment": "GDD §18.3. Reduce flashes: muzzle flash and hint glint alpha; the belt's red empty-click flash is off. Large flashes are capped at 3/s regardless. M9: large text scale, high-contrast outline width (fraction of the font size), sound captions (time on screen, lines at once, repeat gap).",
+    "$comment": "GDD §18.3. Reduce flashes: muzzle flash and hint glint alpha; the belt's red empty-click flash is off. Large flashes are capped at 3/s regardless. M9: large text scale, high-contrast outline width (fraction of the font size), sound captions (time on screen, lines at once, repeat gap). M10: at most maxLargeFlashesPerSec large-area flashes start in any second, across all sources (client backstop on top of content spacing).",
     "reducedFlashAlpha": 0.35,
     "largeTextScale": 1.25,
     "contrastStroke": 0.2,
     "captionMs": 2200,
     "captionMax": 3,
-    "captionRepeatMs": 1200
+    "captionRepeatMs": 1200,
+    "maxLargeFlashesPerSec": 3
   },
   "ftue": {
     "$comment": "Oupa se Les presentation (GDD §16): when the windpomp hint shows (fraction of the hunt), how long a step banner stays, and the longest prompt allowed (characters, one line).",
