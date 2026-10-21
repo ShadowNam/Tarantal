@@ -1,7 +1,7 @@
 // Bakkie Tally (GDD §8, art bible §6): chalk slate with a score count-up, accuracy, birds bagged
 // by plane, wing shots, flocks flushed, the whole-flock badge (GDD §6.4), best Frenzy streak,
 // penalties and the rank stamp. GDD §16 step 7: [Again] (default focus) starts the next hunt with
-// one tap; [Season Run] stays locked until M6; [Menu] goes back to the title. Below the rank:
+// one tap; [Season Run] opens the run (M6); [Menu] goes back to the title. Below the rank:
 // what the hunt changed in the save (new best, rank up, Notaboek ticks, unlocks), one line.
 import * as Phaser from 'phaser';
 import type { I18nKey } from '../../i18n/i18n';
@@ -20,6 +20,8 @@ export interface TallyData {
   readonly again: (pointerType: string) => void;
   /** Back to the title. */
   readonly menu: () => void;
+  /** Opens the Season Run. */
+  readonly seasonRun: () => void;
   /** What the hunt changed in the save (null if nothing was recorded). */
   readonly outcome: HuntOutcome | null;
   /** This was the FTUE hunt (Oupa se Les). */
@@ -126,13 +128,13 @@ export class TallyScene extends Phaser.Scene {
       this.tweens.add({ targets: line, alpha: 1, delay: COUNT_UP_MS + 300, duration: 200 });
     }
 
-    // Buttons: [Again] (default focus, ≥ 64 px), [Season Run] (locked until M6), [Menu].
+    // Buttons: [Again] (default focus, ≥ 64 px), [Season Run], [Menu].
     const by = py + panelH - 116;
     const again: Rect = { x: px + panelW / 2 - 210, y: by, w: 420, h: 96 };
     const season: Rect = { x: px + 30, y: by + 12, w: Math.min(300, again.x - px - 60), h: 76 };
     const menuR: Rect = { x: px + panelW - 30 - season.w, y: by + 12, w: season.w, h: 76 };
     drawButton(this, again, t('tally.again'), 'primary', 52);
-    drawButton(this, season, t('tally.season_run'), 'locked', 28);
+    drawButton(this, season, t('tally.season_run'), 'secondary', 30);
     drawButton(this, menuR, t('tally.menu'), 'secondary', 32);
 
     let pressed = false;
@@ -150,7 +152,15 @@ export class TallyScene extends Phaser.Scene {
             data.again(pointerType === 'keyboard' ? 'mouse' : pointerType);
           },
         },
-        { id: 'seasonRun', rect: () => season, enabled: () => false, press: () => undefined },
+        {
+          id: 'seasonRun',
+          rect: () => season,
+          press: () => {
+            if (pressed) return;
+            pressed = true;
+            data.seasonRun();
+          },
+        },
         {
           id: 'menu',
           rect: () => menuR,
@@ -182,6 +192,12 @@ export class TallyScene extends Phaser.Scene {
     for (const id of o.completed) {
       const c = this.ctx.notaboek.challenges.find((x) => x.id === id);
       if (c === undefined || c.reward.type === 'weapon') continue;
+      if (c.reward.type === 'charm') {
+        parts.push(
+          fill(t('tally.charm_unlocked'), { charm: tOr(`charm.${c.reward.id}`, c.reward.id) }),
+        );
+        continue;
+      }
       parts.push(
         fill(t('tally.notaboek_done'), { goal: fill(tOr(`notaboek.${id}`, id), { n: c.target }) }),
       );

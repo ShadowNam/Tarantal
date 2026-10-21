@@ -430,8 +430,15 @@ export interface PlatformAdapter {
 ## 11. Persistence (`src/meta/`)
 - `SaveData` v1 (JSON, key `tm.save.v1`, schema `src/meta/saveSchema.ts`): `settings`, `ftue`,
   `notices`, `loadout`, `unlocks`, `notaboek` (progress + done), `birdBook` (creatures, secrets as
-  `biome/propId`), `bests` per biome (Classic), `bestRank`, `stats`. Daily history, streak and the
-  in-progress run join as new sections in M6/M7 (a new section needs no migration: it defaults).
+  `biome/propId`), `bests` per biome (Classic), `bestRank`, `stats`, and (M6) `run` — the Season
+  Run in progress (`RunState`, null when none) — and `runStats` (started, won, best hunts cleared).
+  Daily history and streak join in M7 (a new section needs no migration: it defaults).
+- Season Run save (M6, `src/game/run/RunFlow.ts`): written at run start and after every step of
+  the tally and the Padstal (open, buy, sell, reroll, reorder, leave), so a closed tab resumes on
+  the same screen; a finished run leaves the save (the summary is shown from memory). Closing the
+  tab mid-hunt resumes at that hunt's card: the hunt starts again with the same seed. A saved run
+  is used only while it fits the content (`src/meta/run.ts validRun`: ids, slots, hunt count);
+  otherwise it is dropped, never "repaired" into a different run.
 - Loading (`src/meta/save.ts`): every section — and every field of an object section — is
   validated on its own, so damage falls back locally; text that isn't JSON is kept under
   `tm.save.corrupt` and the defaults are used; a save from a newer version is read but never

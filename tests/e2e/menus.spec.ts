@@ -54,7 +54,8 @@ test('menus work from the keyboard alone', async ({ page }, info) => {
   const errors = collectErrors(page);
   await boot(page, 'seed=3');
   await page.waitForFunction(() => window.__TM__?.rects['settings'] !== undefined);
-  // START has focus; ↓ ↓ reaches Settings.
+  // START has focus; ↓ ↓ ↓ goes Shed → Season Run → Settings (left to right).
+  await page.keyboard.press('ArrowDown');
   await page.keyboard.press('ArrowDown');
   await page.keyboard.press('ArrowDown');
   await page.keyboard.press('Enter');

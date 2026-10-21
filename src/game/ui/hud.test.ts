@@ -36,6 +36,9 @@ describe('HUD layout at 16:9, 19.5:9 and 4:3', () => {
           l.windsock,
           l.pause,
           l.skip,
+          l.quota,
+          l.charms,
+          ...l.items,
         ];
         for (const p of parts) expect(inside(l.safe, p)).toBe(true);
         for (let i = 0; i < parts.length; i++)
