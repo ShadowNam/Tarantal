@@ -1,0 +1,367 @@
+{
+  "$comment": "Somer · Kalahari red dunes, GDD §11 row 4 (the finale). Positions: 'u' 0..1 across the layer core width, 'y' design px; windows are fractions of hunt length. Omen (Season omen hunts, Daily): heat haze wobbles far birds (and their hitboxes) until the thunderstorm breaks at 55 % of the hunt; then rain (every flock runs, none fly) and lightning (≤ 2 flashes a second, shared with Die Stormvoël's own). Don't shoot the sociable-weaver nest.",
+  "version": 1,
+  "id": "kalahari-summer",
+  "season": "somer",
+  "nameKey": "biome.kalahari_summer",
+  "panoramaWidth": 3840,
+  "skyBand": {
+    "top": 80,
+    "bottom": 420
+  },
+  "layers": [
+    {
+      "id": "sky",
+      "scrollFactor": 0.05,
+      "asset": "kalahari/sky",
+      "lowTierMergeWith": null
+    },
+    {
+      "id": "far_ridge",
+      "scrollFactor": 0.15,
+      "asset": "kalahari/far_ridge",
+      "lowTierMergeWith": "far_veld"
+    },
+    {
+      "id": "far_veld",
+      "scrollFactor": 0.35,
+      "asset": "kalahari/far_veld",
+      "plane": "far"
+    },
+    {
+      "id": "mid",
+      "scrollFactor": 0.6,
+      "asset": "kalahari/mid",
+      "plane": "mid"
+    },
+    {
+      "id": "near",
+      "scrollFactor": 1.0,
+      "asset": "kalahari/near",
+      "plane": "near"
+    },
+    {
+      "id": "foreground",
+      "scrollFactor": 1.2,
+      "asset": "kalahari/foreground",
+      "occludes": true
+    }
+  ],
+  "lanes": {
+    "far": {
+      "groundY": [
+        585,
+        610
+      ],
+      "skyY": [
+        120,
+        300
+      ]
+    },
+    "mid": {
+      "groundY": [
+        690,
+        760
+      ],
+      "skyY": [
+        160,
+        420
+      ]
+    },
+    "near": {
+      "popupY": [
+        880,
+        960
+      ]
+    }
+  },
+  "props": [
+    {
+      "id": "weaver_camelthorn",
+      "layer": "mid",
+      "u": 0.2,
+      "y": 480,
+      "asset": "kalahari/weaver_camelthorn",
+      "occluder": {
+        "type": "rect",
+        "w": 60,
+        "h": 300,
+        "ox": 0,
+        "oy": 110
+      },
+      "secret": {
+        "$comment": "Don't shoot the sociable-weaver mega-nest: the weavers scold you, −10 (every 2 s you keep at it).",
+        "type": "singleHit",
+        "part": {
+          "id": "nest",
+          "shape": {
+            "type": "ellipse",
+            "rx": 150,
+            "ry": 46,
+            "ox": 0,
+            "oy": -78
+          }
+        },
+        "cooldownSeconds": 2,
+        "reward": {
+          "penalty": 10,
+          "barkKey": "bark.weavers"
+        }
+      },
+      "perch": {
+        "ox": 150,
+        "oy": -110
+      }
+    },
+    {
+      "id": "windpomp_sign",
+      "layer": "mid",
+      "u": 0.46,
+      "y": 640,
+      "asset": "kalahari/windpomp_sign",
+      "occluder": {
+        "type": "rect",
+        "w": 24,
+        "h": 240,
+        "ox": 0,
+        "oy": 0
+      },
+      "secret": {
+        "$comment": "Shoot the sign on the windpomp: +5 s.",
+        "type": "singleHit",
+        "part": {
+          "id": "sign",
+          "shape": {
+            "type": "rect",
+            "w": 90,
+            "h": 46,
+            "ox": 0,
+            "oy": -90
+          }
+        },
+        "oncePerHunt": true,
+        "reward": {
+          "addTimeSeconds": 5,
+          "barkKey": "bark.sign"
+        }
+      }
+    },
+    {
+      "id": "dead_camelthorn",
+      "layer": "mid",
+      "u": 0.74,
+      "y": 520,
+      "asset": "kalahari/dead_camelthorn",
+      "occluder": {
+        "type": "rect",
+        "w": 60,
+        "h": 280,
+        "ox": 0,
+        "oy": 90
+      },
+      "secret": {
+        "$comment": "Snap the dry branch: the roosting flock bursts out, +50.",
+        "type": "singleHit",
+        "part": {
+          "id": "branch",
+          "shape": {
+            "type": "ellipse",
+            "rx": 40,
+            "ry": 22,
+            "ox": -90,
+            "oy": -60
+          }
+        },
+        "oncePerHunt": true,
+        "reward": {
+          "points": 50,
+          "at": "dead_camelthorn",
+          "flushBirds": 8
+        }
+      }
+    },
+    {
+      "id": "dune_grass_a",
+      "layer": "foreground",
+      "u": 0.05,
+      "y": 985,
+      "asset": "kalahari/dune_grass_a",
+      "occluder": {
+        "type": "ellipse",
+        "rx": 140,
+        "ry": 110,
+        "ox": 0,
+        "oy": 0
+      }
+    },
+    {
+      "id": "dune_grass_b",
+      "layer": "foreground",
+      "u": 0.93,
+      "y": 990,
+      "asset": "kalahari/dune_grass_b",
+      "occluder": {
+        "type": "ellipse",
+        "rx": 150,
+        "ry": 110,
+        "ox": 0,
+        "oy": 0
+      }
+    }
+  ],
+  "events": [
+    {
+      "id": "hadeda",
+      "creature": "hadeda",
+      "perHunt": [
+        0,
+        2
+      ],
+      "window": [
+        0.17,
+        0.83
+      ]
+    },
+    {
+      "id": "cropSprayer",
+      "creature": "sproeier",
+      "perHunt": [
+        1,
+        1
+      ],
+      "window": [
+        0.28,
+        0.5
+      ]
+    },
+    {
+      "id": "kwevoel",
+      "creature": "kwevoel",
+      "perHunt": [
+        1,
+        2
+      ],
+      "perchProps": [
+        "weaver_camelthorn"
+      ],
+      "window": [
+        0.11,
+        0.89
+      ],
+      "stayMs": [
+        6000,
+        10000
+      ]
+    },
+    {
+      "id": "bossAppearance",
+      "creature": "stormvoel",
+      "modes": [
+        "classic",
+        "daily"
+      ],
+      "perHunt": [
+        1,
+        1
+      ],
+      "window": [
+        0.3,
+        0.5
+      ],
+      "passes": [
+        "far",
+        "mid"
+      ]
+    }
+  ],
+  "omen": {
+    "id": "heat_then_storm",
+    "storm": {
+      "stormAt": 0.55,
+      "hazePx": 14,
+      "hazePeriodSeconds": 1.6,
+      "lightningEverySeconds": [
+        2.5,
+        4.5
+      ],
+      "flashMs": 350,
+      "maxFlashesPerSecond": 2
+    },
+    "visual": {
+      "shimmer": true,
+      "rain": true
+    }
+  },
+  "pacing": {
+    "keyframes": [
+      {
+        "t": 0.0,
+        "flocks": {
+          "mid": 1
+        },
+        "flyoversPerMin": 3,
+        "popupsPerMin": 2
+      },
+      {
+        "t": 0.17,
+        "flocks": {
+          "mid": 1
+        },
+        "flyoversPerMin": 4,
+        "popupsPerMin": 4
+      },
+      {
+        "t": 0.5,
+        "flocks": {
+          "mid": 1
+        },
+        "flyoversPerMin": 5,
+        "popupsPerMin": 5
+      },
+      {
+        "t": 0.83,
+        "flocks": {
+          "mid": 1
+        },
+        "flyoversPerMin": 6,
+        "popupsPerMin": 6
+      },
+      {
+        "t": 1.0,
+        "flocks": {
+          "mid": 1
+        },
+        "flyoversPerMin": 6,
+        "popupsPerMin": 6
+      }
+    ],
+    "stampede": {
+      "flyoversPerMin": 10,
+      "popupsPerMin": 10,
+      "flockState": "run"
+    },
+    "maxBirdsOnScreen": 60,
+    "maxFlocks": 8,
+    "$comment": "Starts from the Karoo pacing (D-020); tuned against the Classic balance gates (D-025)."
+  },
+  "spawnTable": [
+    {
+      "creature": "tarentaal",
+      "weight": 100
+    },
+    {
+      "creature": "tarentaal_lavendel",
+      "weight": 2
+    },
+    {
+      "creature": "tarentaal_wit",
+      "weight": 1
+    }
+  ],
+  "music": {
+    "calm": "kalahari_calm",
+    "build": "kalahari_build",
+    "stampede": "kalahari_stampede"
+  },
+  "ambience": "kalahari_heat_bed"
+}
