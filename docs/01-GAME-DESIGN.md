@@ -336,6 +336,12 @@ not hanging balls.
 | Bushveld | Baobab fruit (kremetart) | Shoot a hanging pod | Falls, startles the flock below into FLUSH, +25 |
 | Bushveld | Dassie on the koppie | Shoot near (not at) it | Dassie alarm whistle: all flocks ALERT; meerkat-style reveal |
 | Bushveld | Boulder crack | 3 hits | Rolls, flushes hidden birds, +75; bonus time +5 s |
+| Okavango | Hippo | Shoot the water beside it | Yawn + wave: flushes flocks on the bank, +50 |
+| Okavango | Mokoro pole marker | Shoot the flag | **+5 s bonus time** |
+| Okavango | Lily pad frog | Shoot the frog's lily | Frog leaps; +25; Bird Book easter egg |
+| Kalahari | Dead camelthorn branch | Shoot the dry branch | Snaps; roosting flock bursts out, +50 |
+| Kalahari | Windpomp sign | Shoot the sign | **+5 s bonus time** |
+| Kalahari | Weaver nest | **Don't shoot it** | Weavers scold you, −10 (scenery joke) |
 
 Bushveld as built (M8, D-025): the twist is on in every mode — each flock has a 60 % chance
 (`twist.flushAsRunChance`) of being one that keeps running when a threat would flush it; the
@@ -354,12 +360,6 @@ with 3 hits; each hit sends him into the reeds. The sun-showers (omen) come ever
 5–9 s and muffle shots (alert radius × 0.6); a rainbow shows while it rains. The hippo pays for a
 shot into the water beside it (flushes flocks within 650 px, +50). The fish eagle (−50) replaces
 the crop sprayer here. Numbers live in `content/biomes/okavango-spring.json`.
-| Okavango | Hippo | Shoot the water beside it | Yawn + wave: flushes flocks on the bank, +50 |
-| Okavango | Mokoro pole marker | Shoot the flag | **+5 s bonus time** |
-| Okavango | Lily pad frog | Shoot the frog's lily | Frog leaps; +25; Bird Book easter egg |
-| Kalahari | Dead camelthorn branch | Shoot the dry branch | Snaps; roosting flock bursts out, +50 |
-| Kalahari | Windpomp sign | Shoot the sign | **+5 s bonus time** |
-| Kalahari | Weaver nest | **Don't shoot it** | Weavers scold you, −10 (scenery joke) |
 
 ## 12. Game modes
 
