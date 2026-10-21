@@ -327,6 +327,7 @@
   "settings.privacy": "Privacy",
   "settings.privacy_open": "Bekijken",
   "privacy.title": "Privacy",
+  "privacy.version": "Versie {version}",
   "privacy.stored_title": "Opgeslagen op dit apparaat",
   "privacy.stored": "Je instellingen en voortgang (jachten, records, rangen, Vogelboek, Notaboek, Seizoensrun en Dagjacht-reeks) worden alleen in deze browser bewaard. Je browsergegevens wissen, of de knop hieronder, verwijdert ze.",
   "privacy.sent_title": "Wat de game verstuurt",

@@ -327,6 +327,7 @@
   "settings.privacy": "Privacy",
   "settings.privacy_open": "View",
   "privacy.title": "Privacy",
+  "privacy.version": "Version {version}",
   "privacy.stored_title": "Stored on this device",
   "privacy.stored": "Your settings and progress (hunts, bests, ranks, Bird Book, Notaboek, Season Run and Daily Hunt streak) are saved in this browser only. Clearing your browser data, or the button below, removes them.",
   "privacy.sent_title": "What the game sends",
