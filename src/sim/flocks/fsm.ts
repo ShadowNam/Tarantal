@@ -5,8 +5,9 @@
 //     ▲                │ window expires          │ no threat for 4–7 s                       │
 //     └────────────────┘                         └──────────────▶ SETTLE ─all walking─▶ FORAGE
 //
-// A threat in RUN after the window has closed reopens the window and restarts the calm timer but
-// does not flush: every step needs a threat inside the window opened by the previous one (D-020).
+// A flock with `runsOnly` (a biome twist) treats every threat in RUN like a late one: it keeps
+// running. A threat in RUN after the window has closed reopens the window and restarts the calm
+// timer but does not flush: every step needs a threat inside the window opened by the previous one (D-020).
 // A threat in SETTLE counts like one in FORAGE. Whole Flock stays possible only until the flock
 // first calms down (ALERT → FORAGE, or SETTLE). Forced reactions (Vuvuzela, Stampede, events)
 // jump straight to RUN or FLUSH.
@@ -119,7 +120,7 @@ export function applyThreat(
       // ALERT only lasts while its window is open, so a threat here is always inside it.
       return enterRun(f, p, rng, 'threat');
     case 'run':
-      if (f.windowTicks > 0) return enterFlush(f, p, rng, 'threat');
+      if (f.windowTicks > 0 && f.runsOnly !== true) return enterFlush(f, p, rng, 'threat');
       openWindow(f, p);
       f.calmTicks = drawTicks(rng, p.settleTimeoutTicks);
       f.dir = awayFrom(f);

@@ -4,7 +4,7 @@
 // no event or prop is known here by id.
 import type { Biome, Scoring } from '../../content/schemas';
 import type { Bird, BirdCreature } from '../birds/Bird';
-import { createBossBird, createPerchBird } from '../birds/scripted';
+import { createBossBird, createPerchBird, type PeekStop } from '../birds/scripted';
 import { planeCentreX } from '../camera';
 import { msToTicks, TICKS_PER_SECOND } from '../clock';
 import { spawnDustDevil, type DustDevil } from '../omen/dustDevil';
@@ -46,6 +46,53 @@ function perchPoint(deps: WorldDeps, event: BiomeEvent, rng: RandomStream): Perc
     x: prop.u * coreWidth(layer.scrollFactor) + prop.perch.ox,
     y: prop.y + prop.perch.oy,
   };
+}
+
+/** Every perch prop of the event on one plane, as points (props order). */
+function allPerchPoints(deps: WorldDeps, event: BiomeEvent): PerchPoint[] {
+  const out: PerchPoint[] = [];
+  for (const id of event.perchProps ?? []) {
+    const prop = deps.biome.props.find((p) => p.id === id);
+    const layer = deps.biome.layers.find((l) => l.id === prop?.layer);
+    if (prop?.perch === undefined || layer?.plane === undefined) continue;
+    out.push({
+      plane: layer.plane,
+      scrollFactor: layer.scrollFactor,
+      x: prop.u * coreWidth(layer.scrollFactor) + prop.perch.ox,
+      y: prop.y + prop.perch.oy,
+    });
+  }
+  return out;
+}
+
+/**
+ * A peeking boss's whole route (Ou Grys, peekFromCover): from a random cover point to another
+ * one each time, hiding `hideMs` on the way and peeking `peekMs`, until the stay is used up.
+ * Drawn once from the boss stream so updates need no randomness.
+ */
+function peekRoute(
+  points: readonly PerchPoint[],
+  first: number,
+  stayTicks: number,
+  peekMs: readonly [number, number],
+  hideMs: readonly [number, number],
+  rng: RandomStream,
+): PeekStop[] {
+  const stops: PeekStop[] = [];
+  let at = first;
+  for (let used = 0; used < stayTicks;) {
+    const p = points[at];
+    if (p === undefined) break;
+    const hideTicks = Math.max(1, msToTicks(rng.range(hideMs[0], hideMs[1])));
+    const peekTicks = Math.max(1, msToTicks(rng.range(peekMs[0], peekMs[1])));
+    stops.push({ x: p.x, y: p.y, hideTicks, peekTicks });
+    used += hideTicks + peekTicks;
+    if (points.length > 1) {
+      const step = rng.int(1, points.length - 1);
+      at = (at + step) % points.length;
+    }
+  }
+  return stops;
 }
 
 function speedsPerTick(c: BirdCreature, ratio: number): { walk: number; run: number; fly: number } {
@@ -105,7 +152,27 @@ export function buildBossBird(
   if (at === null) return null;
   const scale = deps.planes[at.plane].scale;
   const ratio = scale / deps.planes.mid.scale;
+  const stayTicks = Math.max(1, msToTicks(rng.range(stay[0], stay[1])));
+  // Ou Grys: peeks out from the event's cover props on his plane (validated: peekMs + hideMs).
+  const covers = allPerchPoints(deps, event).filter((p) => p.plane === at.plane);
+  const peekStops =
+    c.behaviours.includes('peekFromCover') &&
+    event.peekMs !== undefined &&
+    event.hideMs !== undefined
+      ? peekRoute(
+          covers,
+          Math.max(
+            0,
+            covers.findIndex((p) => p.x === at.x && p.y === at.y),
+          ),
+          stayTicks,
+          event.peekMs,
+          event.hideMs,
+          rng,
+        )
+      : undefined;
   return createBossBird({
+    ...(peekStops === undefined ? {} : { peekStops }),
     id,
     creature: c,
     plane: at.plane,
@@ -114,7 +181,7 @@ export function buildBossBird(
     coreWidth: coreWidth(at.scrollFactor),
     homeX: at.x,
     homeY: at.y,
-    stayTicks: Math.max(1, msToTicks(rng.range(stay[0], stay[1]))),
+    stayTicks,
     ...speedsPerTick(c, ratio),
     leaveAngle: deps.leaveAngle,
     dir: rng.chance(0.5) ? 1 : -1,

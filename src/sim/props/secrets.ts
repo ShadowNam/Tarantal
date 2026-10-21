@@ -1,11 +1,13 @@
 // Secrets (GDD §8, §11.1): shootable prop parts with puzzle-ish triggers, built entirely from the
 // biome JSON (props[].secret). Nothing here knows a secret by id: removing a secret from the JSON
 // removes it from the game. Multi-hit secrets mark parts until all are hit within the window
-// (parts may orbit a rotor); single-hit secrets pay once per hunt or again after a cooldown.
+// (parts may orbit a rotor); single-hit secrets pay once per hunt or again after a cooldown, and
+// may need several hits (M8 boulder); near-miss secrets pay for a pellet that lands close to the
+// part but not on it (M8 dassie) — their part is not a target.
 import type { Biome } from '../../content/schemas';
 import { secondsToTicks } from '../clock';
 import { cos, degToRad, sin } from '../detmath';
-import type { OccluderShape } from '../weapons/hitTest';
+import { pointInOccluder, type OccluderShape } from '../weapons/hitTest';
 import type { PlaneId, SecretView } from '../types';
 import { coreWidth } from '../world';
 
@@ -42,6 +44,11 @@ export interface Secret {
   cooldownLeft: number;
   done: boolean;
   readonly reward: SecretReward;
+  /** Near-miss secrets: the radius (layer px) around the part; 0 = a normal secret. */
+  readonly nearMissPx: number;
+  /** Single-hit secrets: hits needed (1 = the first hit pays) and hits still needed. */
+  readonly hitsNeeded: number;
+  hitsLeft: number;
 }
 
 function shapeOf(s: NonNullable<Prop['occluder']>): OccluderShape {
@@ -85,12 +92,15 @@ export function buildSecrets(biome: Biome): Secret[] {
           : 0,
       windowLeft: 0,
       cooldownLength:
-        def.type === 'singleHit' && def.cooldownSeconds !== undefined
+        def.type !== 'multiHit' && def.cooldownSeconds !== undefined
           ? secondsToTicks(def.cooldownSeconds)
           : 0,
       cooldownLeft: 0,
       done: false,
       reward: def.reward,
+      nearMissPx: def.type === 'nearMiss' ? def.radiusPx : 0,
+      hitsNeeded: def.type === 'singleHit' ? (def.hitsRequired ?? 1) : 1,
+      hitsLeft: def.type === 'singleHit' ? (def.hitsRequired ?? 1) : 1,
     });
   }
   return out;
@@ -109,9 +119,38 @@ export function partPosition(s: Secret, p: SecretPart): { x: number; y: number }
 
 export const isReady = (s: Secret): boolean => !s.done && s.cooldownLeft === 0;
 
-/** Parts that can be hit right now (unhit parts of a ready secret). */
+/** Parts that can be hit right now (unhit parts of a ready secret; never a near-miss part). */
 export function activeParts(s: Secret): SecretPart[] {
-  return isReady(s) ? s.parts.filter((p) => !p.hit) : [];
+  return isReady(s) && s.nearMissPx === 0 ? s.parts.filter((p) => !p.hit) : [];
+}
+
+/** Starts the cooldown, or retires a once-per-hunt secret, after it paid. */
+function spend(s: Secret): void {
+  s.windowLeft = 0;
+  s.hitsLeft = s.hitsNeeded;
+  if (s.cooldownLength > 0) {
+    s.cooldownLeft = s.cooldownLength;
+    for (const p of s.parts) p.hit = false;
+  } else {
+    s.done = true;
+  }
+}
+
+/**
+ * Near-miss secrets: does a pellet that landed at (x, y) on the secret's layer pay? It must be
+ * within `nearMissPx` of the part's centre and outside the part itself. Spends the secret.
+ */
+export function nearMiss(s: Secret, x: number, y: number): boolean {
+  if (s.nearMissPx === 0 || !isReady(s)) return false;
+  const part = s.parts[0];
+  if (part === undefined) return false;
+  const c = partPosition(s, part);
+  const dx = x - c.x;
+  const dy = y - c.y;
+  if (dx * dx + dy * dy > s.nearMissPx * s.nearMissPx) return false;
+  if (pointInOccluder(x, y, { propId: s.propId, x: c.x, y: c.y, shape: part.shape })) return false;
+  spend(s);
+  return true;
 }
 
 export type SecretTick = 'reset' | 'ready' | null;
@@ -146,6 +185,11 @@ export function hitPart(s: Secret, partId: string): PartHit {
   if (!isReady(s)) return null;
   const part = s.parts.find((p) => p.id === partId);
   if (part === undefined || part.hit) return null;
+  // A single part that needs several hits (boulder crack): count them; the part stays a target.
+  if (s.hitsLeft > 1) {
+    s.hitsLeft--;
+    return { kind: 'progress', partsLeft: s.hitsLeft };
+  }
   part.hit = true;
   const left = s.parts.filter((p) => !p.hit).length;
   if (left > 0) {
@@ -153,13 +197,7 @@ export function hitPart(s: Secret, partId: string): PartHit {
     if (s.windowLength > 0 && s.windowLeft === 0) s.windowLeft = s.windowLength;
     return { kind: 'progress', partsLeft: left };
   }
-  s.windowLeft = 0;
-  if (s.cooldownLength > 0) {
-    s.cooldownLeft = s.cooldownLength;
-    for (const p of s.parts) p.hit = false;
-  } else {
-    s.done = true;
-  }
+  spend(s);
   return { kind: 'triggered' };
 }
 

@@ -1,6 +1,9 @@
 // Scripted single birds (GDD §7): the kwêvoël flies in, perches on a prop calling "kwê-kwê!",
 // then flies off; the Generaal (boss) appears at a prop, struts around it, runs once his pot is
-// knocked off, and flies off when his time is up. Positions are on the bird's plane.
+// knocked off, and flies off when his time is up. Ou Grys (peekFromCover, M8) moves between
+// cover props hidden and peeks out from each for a while; a hit sends him back behind cover. His
+// whole route is drawn when he appears, so updates need no randomness. Positions are on the
+// bird's plane.
 import { cos, sin } from '../detmath';
 import type { PlaneId } from '../types';
 import { LAYER_BLEED_PX } from '../world';
@@ -28,6 +31,24 @@ export interface ScriptState {
   dir: 1 | -1;
   /** Core width of the plane layer (exit test). */
   readonly coreWidth: number;
+  /** Peeking boss route (Ou Grys), or null. */
+  readonly peek: PeekPlan | null;
+}
+
+/** One stop on a peeking boss's route: a cover point, how long he hides on the way there and
+ *  how long he peeks out from it. */
+export interface PeekStop {
+  readonly x: number;
+  readonly y: number;
+  readonly hideTicks: number;
+  readonly peekTicks: number;
+}
+
+export interface PeekPlan {
+  readonly stops: readonly PeekStop[];
+  /** Current stop, and ticks left in the current phase (hidden or peek). */
+  stop: number;
+  ticksLeft: number;
 }
 
 export interface ScriptedSpec {
@@ -52,6 +73,8 @@ export interface ScriptedSpec {
   readonly roamPx: number;
   readonly armorLeft: number;
   readonly hitsLeft: number;
+  /** Peeking boss route (route stops in order; the bird appears at the first, hidden). */
+  readonly peekStops?: readonly PeekStop[];
 }
 
 function base(s: ScriptedSpec, motion: 'perch' | 'boss', x: number, y: number): Bird {
@@ -96,6 +119,10 @@ function base(s: ScriptedSpec, motion: 'perch' | 'boss', x: number, y: number): 
       vy: 0,
       dir: s.dir,
       coreWidth: s.coreWidth,
+      peek:
+        s.peekStops === undefined || s.peekStops.length === 0
+          ? null
+          : { stops: s.peekStops, stop: 0, ticksLeft: s.peekStops[0]?.hideTicks ?? 1 },
     },
   };
 }
@@ -105,9 +132,49 @@ export function createPerchBird(s: ScriptedSpec): Bird {
   return base(s, 'perch', s.startX, s.startY);
 }
 
-/** A boss appearing at its home point, strutting. */
+/** A boss appearing at its home point, strutting (or, with a peek route, hidden at its first
+ *  cover point). */
 export function createBossBird(s: ScriptedSpec): Bird {
-  return base(s, 'boss', s.homeX, s.homeY);
+  const first = s.peekStops?.[0];
+  const b = base(s, 'boss', first?.x ?? s.homeX, first?.y ?? s.homeY);
+  if (first !== undefined) enter(b, 'hidden');
+  return b;
+}
+
+/** A peeking boss was hit: he ducks behind cover and heads for the next stop. */
+export function duckBoss(b: Bird): void {
+  const p = b.script?.peek;
+  if (p === null || p === undefined || b.phase !== 'peek') return;
+  nextStop(b, p);
+}
+
+function nextStop(b: Bird, p: PeekPlan): void {
+  p.stop = (p.stop + 1) % p.stops.length;
+  p.ticksLeft = p.stops[p.stop]?.hideTicks ?? 1;
+  enter(b, 'hidden');
+}
+
+/** One tick of a peeking boss on the ground: move hidden to the stop, then peek from it. */
+function updatePeek(b: Bird, s: ScriptState, p: PeekPlan): void {
+  const at = p.stops[p.stop];
+  if (at === undefined) return;
+  p.ticksLeft--;
+  if (b.phase === 'hidden') {
+    const dx = at.x - b.x;
+    const step = Math.min(Math.abs(dx), s.run);
+    if (dx !== 0) {
+      b.x += Math.sign(dx) * step;
+      b.facing = dx > 0 ? 1 : -1;
+    }
+    b.y = at.y;
+    if (p.ticksLeft <= 0) {
+      b.x = at.x;
+      p.ticksLeft = at.peekTicks;
+      enter(b, 'peek');
+    }
+    return;
+  }
+  if (p.ticksLeft <= 0) nextStop(b, p);
 }
 
 /** The boss lost his armour: he runs (GDD §7 Generaal: CLANG, then bag him). */
@@ -177,6 +244,10 @@ export function updateScripted(b: Bird, airMul: (sign: number) => number): 'exit
   s.stayTicks--;
   if (s.stayTicks <= 0) {
     takeOff(b, s);
+    return null;
+  }
+  if (s.peek !== null) {
+    updatePeek(b, s, s.peek);
     return null;
   }
   const speed = b.phase === 'run' ? s.run : s.walk;

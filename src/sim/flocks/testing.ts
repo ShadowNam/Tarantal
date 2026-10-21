@@ -23,7 +23,7 @@ export function makeFlock(
   const spacing = opts.spacing ?? 40;
   const { planes } = content.scoring;
   const ratio = planes[plane].scale / planes.mid.scale;
-  const biome = content.biomes[0];
+  const biome = content.biomes.find((b) => b.id === content.modes.modes.classic.biome);
   const lane = biome?.lanes[plane];
   const groundY = lane?.groundY ?? [690, 760];
   const skyY = lane?.skyY ?? [160, 420];
