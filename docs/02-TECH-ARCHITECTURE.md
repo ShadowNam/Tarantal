@@ -377,6 +377,8 @@ export interface PlatformAdapter {
   cloudSave?: { get(): Promise<string | null>; set(data: string): Promise<void> };
   user?(): Promise<{ id: string; name: string } | null>;
   shareUrl(base: string): string;                       // portal deep-link rules differ
+  share(p: { text: string; url: string }): Promise<'shared' | 'copied' | 'cancelled' | 'failed'>;
+                                                        // M7: share sheet → clipboard → textarea copy
   analytics(event: string, data?: Record<string, unknown>): void; // may be a no-op on some portals
   canShowExternalLinks: boolean;
   onAdChange(fn: (playing: boolean) => void): () => void; // AudioDirector mutes during ads
@@ -387,6 +389,10 @@ export interface PlatformAdapter {
 - M5 ships the `web` adapter (`src/platform/web.ts`): no ads, analytics kept on the device (no
   network) until a privacy-reviewed endpoint exists, service-worker registration in production
   builds. The fullscreen/banner rules are pure functions in `src/platform/capabilities.ts`.
+- M7 `share` (`src/platform/share.ts`, called from inside the tap's event handler): `navigator.share`
+  with text and url apart (where `canShare` allows it); a closed sheet is `cancelled` with no
+  fallback; otherwise `navigator.clipboard.writeText(text + " " + url)`, then a hidden-textarea
+  copy, else `failed`. Portals that forbid external share sheets override it in M9.
 - Selected at boot via build flag (`VITE_PLATFORM`), never by sniffing.
 - **Portal constraints** (verify against current docs before each submission):
   - **Poki:** initial download target < 8 MB; must work on desktop, mobile and tablet (tablets get

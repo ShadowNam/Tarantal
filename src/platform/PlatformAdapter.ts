@@ -1,5 +1,6 @@
 // Everything portal- or wrapper-specific goes through this interface (Tech §8, CLAUDE.md rule 5).
 // Selected at boot by the VITE_PLATFORM build flag (platform.ts), never by sniffing the portal.
+import type { ShareOutcome, SharePayload } from './share';
 export type PlatformId = 'web' | 'poki' | 'crazygames' | 'capacitor' | 'desktop';
 
 /** What the page can do on this device (feature detection, not portal selection). */
@@ -30,6 +31,8 @@ export interface PlatformAdapter {
   user?(): Promise<{ id: string; name: string } | null>;
   /** Portal deep-link rules differ. */
   shareUrl(base: string): string;
+  /** Share sheet → clipboard → textarea copy (M7). Call from inside a user gesture. */
+  share(payload: SharePayload): Promise<ShareOutcome>;
   /** Analytics event (Tech §14). No personal data; may be a no-op on some portals. */
   analytics(event: string, data?: Record<string, unknown>): void;
   readonly canShowExternalLinks: boolean;
