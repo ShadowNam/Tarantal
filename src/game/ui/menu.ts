@@ -199,6 +199,7 @@ export class Menu {
       const item = this.items[i];
       if (item && this.isEnabled(item)) {
         this.focusIndex = i;
+        if (this.opts.hook) this.opts.hook.focus = item.id;
         return;
       }
     }
@@ -216,6 +217,7 @@ export class Menu {
     const hook = this.opts.hook;
     if (!hook) return;
     for (const i of this.items) hook.rects[i.id] = i.rect();
+    hook.focus = this.focusedId;
   }
 }
 

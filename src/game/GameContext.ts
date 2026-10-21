@@ -28,6 +28,8 @@ export interface TestHook {
   scene: 'start' | 'hunt' | 'tally' | 'run' | 'challenge';
   /** Menu overlay on top of the scene: shed, settings, pause (null = none). */
   menu: string | null;
+  /** Id of the keyboard-focused item of the active menu (null = none yet). */
+  focus: string | null;
   /** Hunt paused (pause menu, hidden tab or portrait). */
   paused: boolean;
   /** Mode of the hunt that is running or just ended. */

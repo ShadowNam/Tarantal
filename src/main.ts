@@ -122,6 +122,7 @@ const hook: TestHook = {
   over: false,
   inputKind: null,
   menu: null,
+  focus: null,
   paused: false,
   mode: null,
   ftue: { active: false, steps: [], prompts: [] },
