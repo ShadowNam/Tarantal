@@ -24,6 +24,7 @@ export class WeaponView {
   private touchDown = false;
   private touchMode = false;
   private reticleHideAt = 0;
+  private gunHidden = false;
 
   constructor(
     scene: Phaser.Scene,
@@ -96,12 +97,20 @@ export class WeaponView {
     }
   }
 
+  /** M10 capture mode (?gun=0): no first-person gun or muzzle flash in the shot. */
+  setVisible(on: boolean): void {
+    this.gunHidden = !on;
+    this.gun.setVisible(on);
+    if (!on) this.flash.setVisible(false);
+  }
+
   hideReticle(): void {
     this.reticle.setVisible(false);
   }
 
   fired(): void {
     this.kick = 1;
+    if (this.gunHidden) return;
     const { x, y } = this.barrelTip();
     this.flash
       .setPosition(x, y)

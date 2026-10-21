@@ -122,6 +122,17 @@ export class HuntScene extends Phaser.Scene {
     this.ctx.menuPaused = false;
     this.cleanups = [];
     this.lastFrameAt = null;
+    // M10 capture mode keys (S slow-mo, F freeze, C auto-pan); none of them is a game key.
+    const capture = this.ctx.capture;
+    if (capture !== null) {
+      const onKey = (e: KeyboardEvent): void => {
+        if (!e.repeat && capture.key(e.code)) e.preventDefault();
+      };
+      window.addEventListener('keydown', onKey);
+      this.cleanups.push(() => {
+        window.removeEventListener('keydown', onKey);
+      });
+    }
     // Settings or the title benchmark changed the tier: swap the filters now (a layer merge
     // waits for the next view build).
     this.cleanups.push(
@@ -243,6 +254,25 @@ export class HuntScene extends Phaser.Scene {
     this.debug.setVisible(this.ctx.debug);
     this.relayout();
     this.parallax.update((CAMERA_MIN_X + CAMERA_MAX_X) / 2, width);
+  }
+
+  /**
+   * M10 capture mode, each hunt frame: no HUD or reticle, the speed (slow-mo, frozen) for the sim,
+   * tweens and animations, and the auto-pan. Applied from the next frame on.
+   */
+  private applyCapture(runner: HuntRunner, cameraX: number): void {
+    const c = this.ctx.capture;
+    if (c === null) return;
+    const ts = c.timeScale;
+    runner.timeScale = ts;
+    this.tweens.timeScale = ts;
+    this.anims.globalTimeScale = ts;
+    this.mapper?.setAutoPan(c.panDirection(cameraX, CAMERA_MIN_X, CAMERA_MAX_X));
+    this.weapon.hideReticle();
+    if (!c.showGun) this.weapon.setVisible(false);
+    const hud = this.scene.get('Hud');
+    hud.cameras.main.setVisible(false);
+    if (this.ctx.hook) this.ctx.hook.capture = { ...c.snapshot(), hud: hud.cameras.main.visible };
   }
 
   /** GDD §17 Stampede ground-shake rumble: a small shake every rumbleEveryMs (Settings → shake). */
@@ -663,6 +693,7 @@ export class HuntScene extends Phaser.Scene {
     }
     const state = runner.state;
     if (events.length > 0) this.handleEvents(events, width, state);
+    this.applyCapture(runner, state.cameraX);
     // M10: the music follows the hunt's intensity (calm / build / stampede).
     this.ctx.audio.setIntensity(stemFor(runner.over ? null : state, this.ctx.feel.audio));
     this.rumble(state.stampedeActive && !runner.over, now, width);

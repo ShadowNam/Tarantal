@@ -54,6 +54,7 @@ import { createPlatform, currentPlatformId } from './platform/platform';
 import { AdBreaks } from './game/ads/AdBreaks';
 import { PrivacyScene } from './game/scenes/PrivacyScene';
 import { testHookPolicy } from './game/testHooks';
+import { CAPTURE_NAMESPACE, CaptureState, captureAllowed } from './game/capture';
 import { FrameBenchmark } from './game/quality/FrameBenchmark';
 import { benchmarkTier, type DeviceHints } from './game/quality/QualityManager';
 import { setMenuInputGate } from './game/ui/menu';
@@ -85,7 +86,16 @@ const hooksInBuild =
   import.meta.env.VITE_PLATFORM === 'web' ||
   import.meta.env.VITE_TEST_HOOKS === '1';
 const testHooks = hooksInBuild && hookPolicy.enabled;
+// M10 marketing capture mode (?capture=1): where the hooks may be, on its own save (D-027).
+const capture =
+  hooksInBuild &&
+  captureAllowed({
+    platform: currentPlatformId(),
+    testHooksFlag: import.meta.env.VITE_TEST_HOOKS === '1',
+    captureParam: params.get('capture') === '1',
+  });
 if (hookPolicy.namespace !== null) setStorageNamespace(hookPolicy.namespace);
+else if (capture) setStorageNamespace(CAPTURE_NAMESPACE);
 
 const save = new SaveStore();
 // e2e/dev only: ?ftue=0 starts as a returning player (older specs test Classic hunts).
@@ -129,6 +139,8 @@ function cssSafeArea(): Insets {
 function seedSource(): () => number {
   const fixed = Number(params.get('seed'));
   if (params.has('seed') && Number.isInteger(fixed) && fixed >= 0) return () => fixed >>> 0;
+  // Capture mode replays the same hunt every time (trailers, store shots).
+  if (capture) return () => feel.capture.seed;
   return () => crypto.getRandomValues(new Uint32Array(1))[0] ?? 1;
 }
 
@@ -180,6 +192,7 @@ const hook: TestHook = {
   over: false,
   inputKind: null,
   menu: null,
+  capture: null,
   focus: null,
   paused: false,
   mode: null,
@@ -491,6 +504,7 @@ const ctx: GameContext = {
   huntBiome: biome,
   audio,
   flashes: new FlashLimiter(feel.accessibility.maxLargeFlashesPerSec),
+  capture: capture ? new CaptureState(feel.capture, params.get('gun') !== '0') : null,
   save,
   notaboek: loaded.notaboek,
   dailyMeta: loaded.daily,

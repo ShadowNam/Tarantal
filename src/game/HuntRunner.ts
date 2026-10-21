@@ -32,6 +32,8 @@ export class HuntRunner {
   private hitStopLeftMs = 0;
   private slowLeftMs = 0;
   private slowScale = 1;
+  /** M10 capture mode: real time × this feeds the sim (0 = frozen). */
+  timeScale = 1;
   private previous: SimState;
   private current: SimState;
   /** Events emitted at creation (huntStarted) are handed out by the first advance(). */
@@ -91,7 +93,7 @@ export class HuntRunner {
     this.initialEvents = [];
     if (this.sim.isOver() || !(dtMs > 0)) return { steps: 0, events };
 
-    let dt = dtMs;
+    let dt = dtMs * this.timeScale;
     if (this.hitStopLeftMs > 0) {
       const held = Math.min(this.hitStopLeftMs, dt);
       this.hitStopLeftMs -= held;

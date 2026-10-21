@@ -1061,6 +1061,13 @@ export const FeelSchema = obj({
     /** At most one bark per barkGapMs (bible: 6 s), never while the tally counts up. */
     barkGapMs: nonNeg,
   }),
+  capture: obj({
+    /** M10 marketing capture mode (?capture=1): seed when no ?seed= is given, the slow-motion
+     *  steps S cycles through, and how far before each end the auto-pan (C) turns around. */
+    seed: nonNegInt,
+    speeds: z.array(z.number().positive().max(1)).min(1).max(6),
+    panTurnPx: nonNeg,
+  }),
   assets: obj({
     /** M10: longest wait for assets/asset-index.json at boot; after it every key is a placeholder. */
     indexTimeoutMs: pos,
