@@ -643,6 +643,25 @@ keyboard-only menus incl. the new page and privacy → `a11y.spec.ts` + `menus.s
 anywhere → `menus.spec.ts`; large-flash cap → content validation (`maxFlashesPerSecond`);
 language → `persistence.spec.ts`. *Needs a person:* a screen-reader and keyboard-only pass, and
 a colour-blind player's look at the don't-shoot creatures.
+*PR D — de + nl:* (27) *Languages:* `de.json` and `nl.json` (366 keys each), machine-quality
+first pass written for this game, **flagged for native review**; Afrikaans completed (the 28
+missing keys: four Boss Rules translated, charm names are Afrikaans in every language). Language
+setting Auto / English / Afrikaans / Deutsch / Nederlands (names in their own language);
+`pickLanguage` maps `de-*` and `nl-*`. (28) *Kept in Afrikaans in every language:* Oupa, tarentaal,
+Skiet-Skuur, Padstal, Doppies, Notaboek, weapon, boss, charm and rank names, barks (Mooi skoot!
+…). Translated: Season Run (Saison-Lauf / Seizoensrun), Daily Hunt (Tagesjagd / Dagjacht),
+Frenzy (Rausch / Razernij), quota (Soll / quotum), charm (Talisman / charm). (29) *Validation:*
+`content:validate` reads every `src/i18n/<lang>.json` and fails on a missing key, a key English
+lacks, an empty string or `{placeholders}` that differ (`src/content/i18nCheck.ts`, unit-tested;
+proven by deleting `tally.again` from nl.json → `content: FAILED`). Content-derived keys are
+already checked against English by crossRefs, so every key the game can ask for exists in every
+language. FTUE prompts stay ≤ `maxPromptChars` in all four (unit test). (30) *Glyphs:* the UI font
+is the system font until M10's self-hosted display font, which must include ä ö ü ß (art bible
+§6 list). (31) *Native review notes from the first pass:* de — Rausch vs Raserei, "Bakkie-Bilanz",
+"LADEN!", "Freeze"/"Challenge" left in English, bird names Graulärmvogel/Schreiseeadler,
+"TATÜ-TATA!" for the car alarm, "Weiter" for skip; nl — kwêvoël and visarend names, "Baas" for
+boss, "charm" kept, "bevriezing" for the streak freeze, "Opnieuw" for reroll, invented item names
+(Bos-hagel, Stokstaartjes-spotter).
 
 ## 3. Research notes (with sources)
 

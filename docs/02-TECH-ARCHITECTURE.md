@@ -62,7 +62,8 @@ tarantal-madness/
 │  │  └─ placeholder/             # ProceduralAssetFactory (playable before real art)
 │  ├─ meta/                       # storage.ts, save.ts (+ migrations), unlocks, birdbook, daily, share, challenge
 │  ├─ platform/                   # PlatformAdapter.ts + web.ts, poki.ts, crazygames.ts, capacitor.ts
-│  ├─ i18n/                       # i18n.ts + en.json, af.json, de.json, nl.json
+│  ├─ i18n/                       # i18n.ts + en.json, af.json, de.json, nl.json (M9: all
+│  │                              #   complete; content:validate checks every key per language)
 │  └─ debug/                      # dev overlay, URL params, hitbox drawing (stripped from prod)
 ├─ tools/                         # validate-content, balance-sim, size-check, pack-atlases, golden-update
 ├─ tests/e2e/                     # Playwright specs
