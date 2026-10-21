@@ -721,10 +721,18 @@ never reach the new path: **every pointer golden replay keeps its event hash**; 
 `season-winter-omen-competent`, `classic-22-windbuks-competent-touch`,
 `daily-32/42/52-…-aim-touch`, `daily-2026-10-21-aim-touch`) were re-recorded with
 `golden:update`. `contentHash` is unchanged (no content change), so Daily seeds are too.
-(34) *Balance after* (balance-sim, 200 seeds, touch; competent / plinker mean, plinker gap):
-Karoo 4 201 / 2 484 (40.9 %), Bushveld 4 055 / 2 262 (44.2 %), Okavango 4 137 / 2 982 (27.9 %),
-Kalahari 3 917 / 2 199 (43.9 %): every M3 gate passes on touch. Touch is now within ~1–3 % of
-pointer (Karoo pointer 4 147), and Twee Vlieë per hunt matches (16.2 touch vs 16.4 pointer).
+(34) *Balance after* (balance-sim, 200 seeds, touch; competent / plinker mean, plinker gap),
+re-run after the review fixes (33a): Karoo 4 214 / 2 483 (41.1 %), Bushveld 4 027 / 2 249
+(44.2 %), Okavango 4 111 / 2 969 (27.8 %), Kalahari 3 896 / 2 185 (43.9 %): every M3 gate passes
+on touch, competent ≤ 4 500 everywhere. Touch is within ~1–3 % of pointer (Karoo pointer 4 147).
+(33a) *Review fixes:* the snap never lands on, or reaches past, a don't-shoot creature or a
+helper (`HitBird.snappable`: targets and bosses only); the snapped pattern is kept only if it hits
+the bird it snapped to; a shot whose pellets hit a crate or a secret part counts as a hit and is
+never snapped. The decision is the pure `resolvePattern` in `hitTest.ts`. `Sim.test.ts`: a touch
+near-miss is rescued, the same mouse miss isn't, a near-miss beside a hadeda costs nothing (it
+fails without the fix), a crate hit with a bird inside the assist radius is kept. Re-recorded
+with `golden:update`: only `daily-32-bushveld-aim-touch` changed; every pointer case is
+byte-identical.
 *Needs a person:* how touch feels on a real phone (the assist should catch near misses without
 feeling sticky).
 

@@ -153,9 +153,10 @@ export interface Sim {
   `min(pelletsToBag, weapon.pellets)` (single-projectile weapons always qualify). Pellets never
   accumulate across shots. Targets track `armorHits` remaining, then `hitsToBag` (default 1).
 - Touch aim assist (M9, D-026): pellets resolve at the real hitboxes (plus the FTUE first-hit
-  help). Only if none hits a bird is the aim point tested with the assist-grown hitboxes
-  (`assistSnap`, front to back); a bird found there shifts the whole pattern onto its body
-  centre and the pellets resolve again (kept only if one now hits a bird). Pointer input has no
+  help). Only if none hits a bird, a crate or a secret part is the aim point tested with the
+  assist-grown hitboxes (`assistSnap`, front to back); a target or boss found there (never a
+  don't-shoot creature or helper, nor one behind it) shifts the whole pattern onto its body
+  centre, kept only if the pellets now hit that same bird (`resolvePattern`). Pointer input has no
   assist and never takes this path. The Kettie's single stone keeps the per-band assist.
 - Each shot produces at most **one threat per flock** within the weapon's `alertRadiusPx` of any
   pellet impact (GDD §6.1–6.2); silent weapons produce a threat only for the bagged bird's own flock.
