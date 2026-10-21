@@ -618,6 +618,10 @@ Text size and captions remain for M9.
 - **Web portals (launch):** free; portal ads only at natural breaks (between hunts/runs), never during
   a hunt. Rewarded ads optional: "Oupa se tweede kans" (retry a failed Season Run hunt once per run),
   "double Doppies" after a hunt. Daily Hunt has no ad boosts (fair leaderboard).
+  M9 (D-026): no break before the first hunt of a visit or right after a rewarded ad; the retry
+  replays the lost Season Run hunt (`run.json rewardedRetryPerRun` per run); double Doppies pays
+  a Season Run hunt's Doppies once more, once per hunt; both buttons say "▶ Ad" and appear only
+  when the portal can play one. Audio is muted and input locked while an ad shows.
 - **Premium (Steam / Switch / app stores, later):** one-time price, no ads, includes biome packs.
   (Reference point: the official Moorhuhn 2 console/Steam re-release launched at $7.99 in 2025.)
 - **Never:** loot boxes or paid random rewards, paid currency, energy timers, pay-to-skip quotas,

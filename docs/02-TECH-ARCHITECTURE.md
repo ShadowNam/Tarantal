@@ -424,14 +424,19 @@ export interface PlatformAdapter {
   commercialBreak(): Promise<void>;                     // between hunts only; resolves when done
   rewardedBreak(): Promise<boolean>;                    // true = reward granted
   isAdPlaying(): boolean;
+  rewardedAvailable(): boolean;                         // M9: offer a rewarded ad only if true
   cloudSave?: { get(): Promise<string | null>; set(data: string): Promise<void> };
   user?(): Promise<{ id: string; name: string } | null>;
   shareUrl(base: string): string;                       // portal deep-link rules differ
+  launchParam(name: string): string | null;             // M9: portal invite param, else the URL's
   share(p: { text: string; url: string }): Promise<'shared' | 'copied' | 'cancelled' | 'failed'>;
                                                         // M7: share sheet → clipboard → textarea copy
   analytics(event: string, data?: Record<string, unknown>): void; // may be a no-op on some portals
   canShowExternalLinks: boolean;
+  pwa: boolean;                                         // M9: service worker + install banner (web)
   onAdChange(fn: (playing: boolean) => void): () => void; // AudioDirector mutes during ads
+  onPortalMute(fn: (muted: boolean) => void): () => void; // M9: CrazyGames settings.muteAudio
+  reportError(report: ErrorReport): void;               // M9: crash/error hook, no personal data
   capabilities(): { fullscreen: boolean; standalone: boolean; iphone: boolean };
   requestFullscreen(): Promise<void>;
 }
@@ -444,6 +449,19 @@ export interface PlatformAdapter {
   fallback; otherwise `navigator.clipboard.writeText(text + " " + url)`, then a hidden-textarea
   copy, else `failed`. Portals that forbid external share sheets override it in M9.
 - Selected at boot via build flag (`VITE_PLATFORM`), never by sniffing.
+- **M9 adapters** (D-026): `web`, `poki`, `crazygames` on a shared base (`local.ts`: analytics and
+  error reports kept on the device, `AdGate` one ad at a time with a timeout). `npm run build`,
+  `build:poki`, `build:crazygames` → `dist/`, `dist-poki/`, `dist-crazygames/`; the flag is
+  inlined, so each build carries only its own SDK. Portal SDKs load from the portal's host in
+  `init()` (awaited at boot, bounded by `feel.json platform.sdkTimeoutMs`); without the SDK the
+  game runs with no ads. Ads only between hunts (`src/game/ads/AdBreaks.ts`): a commercial break
+  before every hunt but the page's first and none right after a rewarded ad; audio muted and menus
+  locked while an ad shows; gameplay start/stop around hunts and the pause menu; loading
+  finished when the title is up. Rewarded ads: the Season Run's retry and double Doppies (GDD §19).
+  Portal builds: no service worker or manifest, no fullscreen button, clipboard-only sharing,
+  challenge links via the portal's own parameter (Poki `gdc`, CrazyGames `inviteLink`).
+- **Test hooks** (`src/game/testHooks.ts`): compiled out of portal builds unless
+  `VITE_TEST_HOOKS=1` (CI's portal e2e builds); `?e2e` uses the storage namespace `tm.e2e.`.
 - **Portal constraints** (verify against current docs before each submission):
   - **Poki:** initial download target < 8 MB; must work on desktop, mobile and tablet (tablets get
     mobile controls) and in incognito; on mobile the game must fill the screen in portrait or
@@ -491,7 +509,8 @@ export interface PlatformAdapter {
   M7 adds `daily` (a new section needs no migration: it defaults): `streak`, `bestStreak`,
   `bestScore`, `lastDay` (UTC day number of the last official attempt), `freezesUsed` (ISO weeks),
   `cosmetics` (streak milestones) and `history` (recent official attempts: day, score or null if
-  abandoned, rank, whole flocks, share grid), bounded by `content/meta/daily.json`.
+  abandoned, rank, whole flocks, share grid), bounded by `content/meta/daily.json`. M9 adds
+  `runAds` (rewarded ads used by the run with `seed`: retries, doubled hunts; reset at run start).
 - Season Run save (M6, `src/game/run/RunFlow.ts`): written at run start and after every step of
   the tally and the Padstal (open, buy, sell, reroll, reorder, leave), so a closed tab resumes on
   the same screen; a finished run leaves the save (the summary is shown from memory). Closing the
@@ -541,7 +560,10 @@ secrets, penalties, durationMs), `run_end` (season reached, charms), `charm_pick
 first_shot, first_bag, run, reload, flush, secret, complete, skip), `hunt_start`, `hunt_end` and
 `settings_change` through `PlatformAdapter.analytics`. M7 adds `daily_play` (day, number,
 official, biome, challenge), `share_click` (mode, official, method = shared/copied/cancelled/failed)
-and `challenge_open` (ok, mode and contentChanged, or the rejection reason).
+and `challenge_open` (ok, mode and contentChanged, or the rejection reason). M9 adds `error`
+(source, trimmed message: see §17), `rewarded_ad` (kind, granted), `rewarded` (kind, hunt: the
+reward applied) and `privacy_clear`. Analytics and error reports stay on the device on every
+platform for now (neither portal SDK takes custom events or error reports).
 
 ## 15. Quality gates
 
@@ -567,5 +589,9 @@ Android Chrome on mid-range devices from ~2021. WebGL2 required; show a friendly
 
 ## 17. Security and privacy
 No PII collected; anonymous device id only if a platform needs it. No `eval`/remote code; mods are
-data. CSP for the standalone site. In-game privacy policy screen. Bundle all dependencies (no
-external CDNs at runtime).
+data. CSP for the standalone site. In-game privacy policy screen (M9: Settings → Privacy: what is
+stored locally, what is sent, no personal data, clear my data). Bundle all dependencies (no
+external CDNs at runtime) — the one exception is the portal's own SDK script in its portal build,
+which the portal requires. Error reports (M9, `src/platform/errors.ts`) carry the error message
+and top stack frames with every URL cut to its file name (no origin, path, query or hash), capped
+per page.
