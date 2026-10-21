@@ -76,24 +76,21 @@ describe('run structure (GDD §13.1)', () => {
     });
   });
 
-  it('each season runs on its own biome once loaded (M8), else on the Karoo stand-in', () => {
-    expect(huntInfo(base, 0)).toMatchObject({ biome: 'karoo-autumn', biomeFallback: false });
+  it('each season runs on its own biome (M8: the Karoo stand-in is gone)', () => {
+    expect(huntInfo(base, 0)).toMatchObject({ biome: 'karoo-autumn' });
     expect(huntInfo(base, 5)).toMatchObject({
       season: 'winter',
       biome: 'bushveld-winter',
-      biomeFallback: false,
       boss: 'ou_grys',
       bossRule: 'groundShotsZero',
     });
     expect(huntInfo(base, 6)).toMatchObject({
       season: 'lente',
       biome: 'okavango-spring',
-      biomeFallback: false,
     });
     expect(huntInfo(base, 9)).toMatchObject({
       season: 'somer',
       biome: 'kalahari-summer',
-      biomeFallback: false,
     });
   });
 
@@ -299,7 +296,7 @@ describe('a full run with the balance bot (M6 "Done when")', () => {
     return c;
   }
 
-  it('completes all 12 hunts to victory, buying charms along the way', () => {
+  it('completes all 12 hunts to victory through all four real seasons (M8), buying charms', () => {
     const c = easy();
     const out = playRun({
       content: c,
@@ -309,6 +306,11 @@ describe('a full run with the balance bot (M6 "Done when")', () => {
       pool: c.charms.charms.map((x) => x.id),
     });
     expect(out.hunts).toHaveLength(12);
+    // Every hunt played its season's own biome: no stand-in (M8).
+    expect(out.hunts.map((h) => h.biome)).toEqual(
+      c.run.seasons.flatMap((s) => [s.biome, s.biome, s.biome]),
+    );
+    expect(new Set(out.hunts.map((h) => h.biome)).size).toBe(4);
     expect(out.run.phase).toBe('victory');
     expect(out.run.charms.length).toBeGreaterThan(0);
     expect(out.hunts.every((h) => h.passed)).toBe(true);

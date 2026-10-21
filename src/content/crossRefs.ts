@@ -182,7 +182,8 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
     if (boss?.kind !== 'boss') err('run.json', `season "${s.id}" boss "${s.boss}" is not a boss creature`);
     const biome = loadedBiomes.get(s.biome);
     if (biome === undefined) {
-      warn('run.json', `season "${s.id}" biome file biomes/${s.biome}.json does not exist yet (${LATER.biome})`);
+      // M8: no stand-in any more — every season needs its own biome.
+      err('run.json', `season "${s.id}" biome file biomes/${s.biome}.json is missing`);
     } else {
       if (biome.season !== s.id) {
         err(`biomes/${biome.id}.json`, `season "${biome.season}" does not match run.json season "${s.id}"`);
@@ -193,7 +194,6 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
     }
   }
 
-  if (!loadedBiomes.has(run.biomeFallback)) err('run.json', `biomeFallback "${run.biomeFallback}" is not a loaded biome`);
 
   // --- biomes ------------------------------------------------------------------------------
   for (const biome of biomes) {

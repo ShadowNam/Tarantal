@@ -491,6 +491,36 @@ overlays resize only on a size change and hide at alpha 0; kuifkop is hop-only (
 unused `spawnWeight` dropped); the unused `omen.visual.shimmer` flag is gone (the haze is in the
 sim). New tests: flash cap with two sources at once; a stone lands at its fire-time world point
 after a pan.
+*PR E — stand-in removed, strict validator, Season Run tuning.* (28) *Stand-in gone:*
+`run.json → biomeFallback` is removed; a season whose biome file is missing is a content error and
+the run engine throws. `run.json` stays `version: 1` — content ships inside the build, so no saved
+content needs a migration (same reasoning as D-020). CI runs `content:validate -- --strict` after
+`npm run check`. (29) *Season sim:* judges all eight §13.8 rows (±10 points) and plays all 12
+hunts by default; `season-*.spec.ts` share the season e2e jobs. (30) *Quotas (tune):* the M6
+Winter quotas failed on the real Bushveld (18.1 % / 56.9 %); the Lente/Somer placeholders
+(4 500–20 000) assumed charm builds multiply scores several times, but the `synergy` bot's builds
+add ~20–30 %, so nobody passed Lente. Tuned (competent, pointer, 500 runs per policy):
+
+| season | policy | target | seeds 1–500 | seeds 501–1000 |
+|---|---|---|---|---|
+| Herfs | none / synergy | ~85 / ~95 % | 83.0 / 92.4 % | 82.4 / 89.8 % |
+| Winter | none / synergy | ~50 / ~80 % | 47.0 / 80.1 % | 47.8 / 80.2 % |
+| Lente | none / synergy | ≤ 10 / ~60 % | 10.8 / 61.6 % | 8.6 / 57.8 % |
+| Somer | none / synergy | ~0 / ~35 % | 0.0 / 32.9 % | 0.0 / 39.4 % |
+
+After the review fixes (hippo, adjacent hops, R2–R3) the same quotas give Lente 12.8 / 64.1 % and
+7.6 / 63.6 %, Somer 0.0 / 34.6 % and 0.0 / 39.7 % — every row still within ±10.
+
+Winter 2 150 / 2 200 / 1 750, Lente 2 600 / 2 650 / 2 150, Somer 2 950 / 3 000 / 2 800. The
+policies now separate by where the quotas sit in each biome's score spread, not by quota size.
+*Follow-up:* if charms are meant to compound (GDD §13.2 "outpaces raw skill"), charm power and the
+synergy bot need a pass before quotas can climb; few runs reach Somer with `none` (17–21), so its
+row is noisy. (31) *Proof the run plays the real seasons:* the full-run bot test checks the 12
+hunts' biomes are the four seasons' own; `season-real.spec.ts` resumes runs saved at Lente and at
+Somer and checks their hunts play on the Okavango and the Kalahari. The Daily rotation covers all
+four biomes on four consecutive days (unit test). (32) *Stack upkeep:* my GDD Bushveld note had
+split the §11.1 table; fixed on the Bushveld branch after #13 merged and carried forward by
+merges (the fix reaches main with #14).
 
 ## 3. Research notes (with sources)
 

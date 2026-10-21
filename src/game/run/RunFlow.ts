@@ -57,19 +57,7 @@ export class RunFlow {
       runStats: { ...d.runStats, started: d.runStats.started + 1 },
     }));
     this.platform.analytics('run_start', { weapon, pool: run.pool.length });
-    for (const w of this.fallbackWarnings()) console.warn(w);
     return run;
-  }
-
-  /** Seasons that run on the stand-in biome until M8 (logged when a run starts). */
-  fallbackWarnings(): string[] {
-    const per = this.content.run.huntPattern.length;
-    return this.content.run.seasons.flatMap((s, i) => {
-      const info = huntInfo(this.content, i * per);
-      return info.biomeFallback
-        ? [`Season Run: ${s.id} runs on ${info.biome} until biomes/${s.biome}.json exists (M8)`]
-        : [];
-    });
   }
 
   info(run: RunState = this.need()): HuntInfo {

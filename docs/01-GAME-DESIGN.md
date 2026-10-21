@@ -392,18 +392,21 @@ found. Numbers live in `content/biomes/kalahari-summer.json`.
 - Between hunts: **Padstal** (farm-stall shop) with charms, consumables, temporary weapons.
 - After the Summer boss: victory tally, unlocks, optional Endless (v1.x).
 
-### 13.2 Quotas (Herfs and Winter tuned in M6 on the Karoo stand-in; Lente and Somer are placeholders until M8, §13.8)
+### 13.2 Quotas (Herfs tuned in M6; Winter, Lente and Somer in M8 on their own biomes, §13.8)
 | Season | Hunt 1 | Hunt 2 (Omen) | Hunt 3 (Boss) |
 |---|---|---|---|
 | Herfs | 1 950 | 2 100 | 2 250 |
-| Winter | 2 350 | 2 350 | 2 150 |
-| Lente | 4 500 | 6 000 | 8 000 |
-| Somer | 11 000 | 15 000 | 20 000 |
+| Winter | 2 150 | 2 200 | 1 750 |
+| Lente | 2 600 | 2 650 | 2 150 |
+| Somer | 2 950 | 3 000 | 2 800 |
 
 The curve outpaces raw skill by season 3: you need charm synergies to keep up (that's the point).
-Winter's boss hunt is lower than its omen hunt because Ou Grys's rule zeroes ground shots. Until M8
-every season runs on the Karoo (`run.json → biomeFallback`, logged) and the Generaal stands in as the
-boss of every Boss Hunt, carrying the season's own Boss Rule (D-023).
+Each biome makes scoring harder in its own way (Bushveld flocks that won't fly, Okavango splashes,
+the Kalahari storm), so the numbers rise less than the difficulty does; they sit where the §13.8
+pass rates land for the competent bot (D-025). Boss hunts are lower than omen hunts because their
+Boss Rules cut scores (Ou Grys zeroes ground shots, Kuifkop Koning doubles reloads, Die Stormvoël
+darkens the screen). Every season plays its own biome and boss (M8; until then the Karoo and the
+Generaal stood in, D-023).
 
 ### 13.3 Boss Rules
 | Boss | Rule during the boss hunt |

@@ -321,7 +321,8 @@ step takes the content and a `RunState` and returns a new one). `huntSetup()` tu
 (GDD §13.4) and clears used consumables and the rental; `openPadstal`/`buy`/`sell`/`reroll`/
 `reorderCharms`/`leavePadstal` run the shop. Hunt seeds and Padstal rolls are derived from the run
 seed and their position (`fnv1a32('hunt:<i>' | 'shop:<i>:<reroll>', runSeed)`), so the state needs no
-RNG cursor. A season whose biome isn't loaded runs on `run.json → biomeFallback`. Run state (charms, doppies, seed
+RNG cursor. Every season plays its own biome (M8 removed the Karoo stand-in; a season without its
+biome file is a content error). Run state (charms, doppies, seed
 cursor, unlock flags) is serialisable and saved after every Padstal so a closed tab resumes the run.
 
 ### 3.10 Replays

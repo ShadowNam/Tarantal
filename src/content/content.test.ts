@@ -176,6 +176,15 @@ describe('content cross-references', () => {
     expect(full.errors).toEqual([]);
   });
 
+  it('catch a season without its own biome (M8: the Karoo stand-in is gone)', () => {
+    const c = clone();
+    delete c.biomes['biomes/okavango-spring.json'];
+    const text = checkCrossRefs(parseOk(c), { i18nKeys })
+      .errors.map((e) => e.message)
+      .join('\n');
+    expect(text).toMatch(/season "lente" biome file biomes\/okavango-spring.json is missing/);
+  });
+
   it('catch a peekFromCover boss without peek timings or cover (M8)', () => {
     const c = clone();
     const biome = asObj(c.biomes['biomes/bushveld-winter.json']);

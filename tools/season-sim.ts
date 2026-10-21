@@ -3,7 +3,7 @@
 // season, the share that clear all of its hunts (D-023) — next to the GDD targets, plus each
 // hunt's score spread for tuning quotas. Runs go to worker processes (one per core).
 //
-// Usage: npm run balance -- --run [--seeds 500] [--policies none,synergy] [--hunts 6]
+// Usage: npm run balance -- --run [--seeds 500] [--policies none,synergy] [--hunts 12]
 //          [--bot competent] [--workers N] [--set path=json] [--out tmp/x.json] [--json]
 import { fork } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -24,7 +24,7 @@ export const PASS_TARGETS: Readonly<Record<string, Readonly<Record<CharmPolicy, 
   lente: { none: 0.1, synergy: 0.6 },
   somer: { none: 0, synergy: 0.35 },
 };
-/** M6 gate: within ±10 points (Herfs and Winter; Lente/Somer are checked in M8). */
+/** Gate: within ±10 points of every row (M6: Herfs and Winter; M8: all four seasons). */
 export const PASS_TOLERANCE = 0.1;
 
 interface Job {
@@ -112,7 +112,7 @@ export function summariseSeasons(
       );
       const rate = reached.length === 0 ? 0 : cleared.length / reached.length;
       const target = PASS_TARGETS[s.id]?.[policy] ?? null;
-      const gated = (s.id === 'herfs' || s.id === 'winter') && target !== null;
+      const gated = target !== null;
       out.push({
         season: s.id,
         policy,
@@ -205,7 +205,8 @@ function runWorker(job: Job): Promise<RunRow[]> {
 
 export async function seasonMain(): Promise<void> {
   const seeds = Number(arg('seeds', '500'));
-  const hunts = Number(arg('hunts', '6'));
+  // M8: all 12 hunts by default (every season plays its own biome).
+  const hunts = Number(arg('hunts', '12'));
   const firstSeed = Number(arg('first-seed', '1'));
   const botArg = arg('bot', 'competent');
   const bot = BOT_KINDS.find((k) => k === botArg);
