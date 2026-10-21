@@ -394,8 +394,6 @@ export type Powerups = z.infer<typeof PowerupsSchema>;
 export const RunSchema = obj({
   version,
   huntSeconds: posInt,
-  /** Until M8 adds the other biomes, a season whose biome file is missing runs here (logged). */
-  biomeFallback: id,
   seasons: z
     .array(
       obj({

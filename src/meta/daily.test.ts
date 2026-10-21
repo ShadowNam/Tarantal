@@ -122,6 +122,24 @@ describe('daily number and biome', () => {
     expect(sim.snapshot().wind).not.toBeNull();
   });
 
+  it('with all four biomes playable (M8), four days in a row are the four biomes', () => {
+    const content = loadContent();
+    const playable = content.biomes.map((b) => b.id);
+    const d0 = day('2026-10-21');
+    const biomes = [0, 1, 2, 3].map(
+      (k) =>
+        dailySetup(d0 + k, {
+          meta,
+          contentHash: loadContentHash(),
+          playable,
+          fallbackBiome: content.modes.modes.daily.biome,
+        }).biome,
+    );
+    expect([...biomes].sort()).toEqual([...meta.biomeRotation].sort());
+    // 2026-10-21 is day 20747 (≡ 3 mod 4): the Kalahari.
+    expect(biomes[0]).toBe('kalahari-summer');
+  });
+
   it('picks up a new playable biome automatically (M8): Bushveld on an odd day, with its omen', () => {
     const content = loadContent();
     const playable = ['karoo-autumn', 'bushveld-winter'];

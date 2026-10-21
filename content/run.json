@@ -1,8 +1,7 @@
 {
-  "$comment": "Season Run structure and economy. Herfs and Winter quotas are tuned (M6, Karoo stand-in, 60 s hunts) to the GDD §13.8 pass rates with `npm run balance -- --run`; Winter's boss hunt is lower because Ou Grys's rule zeroes ground shots. Lente and Somer are placeholders until their biomes (M8).",
+  "$comment": "Season Run structure and economy. Quotas are tuned (60 s hunts, competent bot) to the GDD §13.8 pass rates with `npm run balance -- --run`: Herfs in M6; Winter, Lente and Somer in M8 on their own biomes (the Karoo stand-in is gone, D-025). Boss hunts sit lower because their Boss Rules cut scores (Ou Grys zeroes ground shots, Kuifkop Koning doubles reloads, Die Stormvoël darkens the screen).",
   "version": 1,
   "huntSeconds": 60,
-  "biomeFallback": "karoo-autumn",
   "seasons": [
     { "id": "herfs", "biome": "karoo-autumn", "omen": "karoo_wind", "boss": "generaal", "quotas": [1950, 2100, 2250] },
     { "id": "winter", "biome": "bushveld-winter", "omen": "sun_glare", "boss": "ou_grys", "quotas": [2350, 2350, 2150] },

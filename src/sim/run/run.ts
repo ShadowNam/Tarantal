@@ -117,9 +117,8 @@ export interface HuntInfo {
   readonly huntInSeason: number;
   readonly kind: SeasonHuntKind;
   readonly quota: number;
-  /** The biome it runs on; `biomeFallback` when the season's own biome isn't loaded yet. */
+  /** The season's own biome (M8: every season has one; the Karoo stand-in is gone). */
   readonly biome: string;
-  readonly biomeFallback: boolean;
   /** The season's boss and its Boss Rule (in force only in the boss hunt). */
   readonly boss: string;
   readonly bossRule: string | null;
@@ -135,7 +134,8 @@ export function huntInfo(content: ContentBundle, huntIndex: number): HuntInfo {
   if (s === undefined || kind === undefined || quota === undefined) {
     throw new Error(`hunt ${huntIndex} is outside the run`);
   }
-  const loaded = content.biomes.some((b: Biome) => b.id === s.biome);
+  if (!content.biomes.some((b: Biome) => b.id === s.biome))
+    throw new Error(`season ${s.id}: biome ${s.biome} is not loaded`);
   const boss = content.birds.creatures.find((c) => c.id === s.boss);
   return {
     huntIndex,
@@ -144,8 +144,7 @@ export function huntInfo(content: ContentBundle, huntIndex: number): HuntInfo {
     huntInSeason,
     kind,
     quota,
-    biome: loaded ? s.biome : content.run.biomeFallback,
-    biomeFallback: !loaded,
+    biome: s.biome,
     boss: s.boss,
     bossRule: boss?.kind === 'boss' ? boss.bossRule : null,
   };
