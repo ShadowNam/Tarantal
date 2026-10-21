@@ -497,9 +497,16 @@ note "verskrikker", not the Dutch "verschrikker" used in the earlier draft.)
 
 ## 15. Retention and social systems
 - **Daily Hunt + streak:** streak counter with one free "freeze" per week (miss a day without losing
-  it). Streak milestones give cosmetics only.
+  it). Streak milestones give cosmetics only. Rules (M7, D-024): the streak counts UTC days with an
+  official (first) attempt; each missed day needs the unused freeze of **its own ISO week**
+  (Monday–Sunday), so one missed day per week is forgiven, missing Sunday + Monday uses two weeks'
+  freezes, and two missed days in one week (or three in a row) restart the streak at 1. Milestones
+  at 3 / 7 / 30 / 100 days (`content/meta/daily.json`).
 - **Share card:** generated client-side; text + emoji grid (Wordle-style) summarising the hunt:
   `🐦 Tarantal Madness · Daily #142 · 2 840 · Bosveldjagter · 🟩🟩🟨🟩⬛ · 2× hele swerm` plus a link.
+  The grid cuts the hunt into five equal parts; each square is that part's accuracy (shots that
+  bagged a target ÷ shots): 🟩 ≥ 60 %, 🟨 ≥ 30 %, ⬛ below or no shots. Classic shares the same line
+  with `Classic · Karoo` in place of the daily number; the link is a challenge to the same hunt.
   The original Moorhuhn spread virally because the whole game was ~2 MB and could be emailed;
   a link that opens the same hunt in a browser is the 2026 equivalent.
 - **Challenge links** (§12.4).

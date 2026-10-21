@@ -4,7 +4,7 @@
 import { coreWidth } from '../sim/world';
 import { WORLD_EVENT_HANDLERS } from '../sim/director/events';
 import { CHARM_SCRIPTS } from '../sim/charms/registry';
-import type { Biome, Charm, ContentBundle, Creature, Notaboek } from './schemas';
+import type { Biome, Charm, ContentBundle, Creature, DailyMeta, Notaboek } from './schemas';
 
 export interface CrossRefIssue {
   readonly file: string;
@@ -23,6 +23,8 @@ export interface CrossRefOptions {
   readonly strict?: boolean;
   /** content/meta/notaboek.json (meta-only, not in the bundle). Without it challenge refs warn. */
   readonly notaboek?: Notaboek;
+  /** content/meta/daily.json (meta-only, not in the bundle). */
+  readonly daily?: DailyMeta;
 }
 
 /** Milestone in which each kind of deferred content arrives — used in warning text. */
@@ -143,6 +145,17 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
       }
     }
     checkUnique(nb, 'charm reward', options.notaboek.challenges.flatMap((c) => (c.reward.type === 'charm' ? [c.reward.id] : [])), err);
+  }
+
+  // --- meta/daily.json ---------------------------------------------------------------------
+  if (options.daily !== undefined) {
+    const df = 'meta/daily.json';
+    for (const b of options.daily.biomeRotation) {
+      if (!plannedBiomeIds.has(b)) err(df, `biomeRotation: unknown biome "${b}"`);
+      else if (!loadedBiomes.has(b)) warn(df, `biomeRotation: biome "${b}" is not loaded yet (${LATER.biome}); the rotation skips it`);
+    }
+    checkUnique(df, 'streak milestone day', options.daily.streakMilestones.map((m) => String(m.days)), err);
+    for (const m of options.daily.streakMilestones) i18n(df, `cosmetic.${m.cosmetic}`);
   }
 
   // --- powerups.json -----------------------------------------------------------------------

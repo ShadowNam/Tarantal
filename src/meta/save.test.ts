@@ -90,6 +90,27 @@ describe('SaveData v1', () => {
     expect(r.data.ftue.done).toBe(true);
   });
 
+  it('an M6 save without the daily section gets the default (no migration, M7)', () => {
+    const old: Record<string, unknown> = {
+      ...defaultSave(),
+      stats: { hunts: 4, bagged: 9, shots: 30 },
+    };
+    delete old['daily'];
+    const { data, repaired } = repairSave(old);
+    expect(data.daily).toEqual(defaultSave().daily);
+    expect(data.stats.hunts).toBe(4);
+    expect(repaired).toEqual([]);
+  });
+
+  it('a damaged daily field falls back alone', () => {
+    const d = defaultSave();
+    const raw = { ...d, daily: { ...d.daily, streak: 5, freezesUsed: ['nope'] } };
+    const { data, repaired } = repairSave(raw);
+    expect(data.daily.streak).toBe(5);
+    expect(data.daily.freezesUsed).toEqual([]);
+    expect(repaired).toEqual(['daily.freezesUsed']);
+  });
+
   it('a save from a newer version is read but never overwritten', () => {
     const newer = JSON.stringify({
       v: SAVE_VERSION + 1,

@@ -317,6 +317,39 @@ Balatro's round restart). Dev/e2e builds take `?quotaMul=` (0 = every hunt passe
 rewarded-ad flow (M9); Lente/Somer quotas and the real bosses come with their biomes (M8); a
 charm's `addPoints`/`addMult` on non-bag triggers is rejected rather than given a meaning.
 
+**D-024 M7 Daily Hunt, share card, challenge links (21 Oct 2026):** decisions made while building
+the daily layer. (1) *No sim change:* the Daily already existed as a sim mode (`modes.json →
+daily`, omen on, no charms or ad boosts — D-021); the replay format stays **v3**. Date → seed
+happens in `src/meta/daily.ts`; `Date.now()` is read only in the game layer. (2) *Seed bytes:* the
+first 4 SHA-256 bytes big-endian; the UTC calendar (day number, `YYYY-MM-DD`, ISO week) is integer
+arithmetic, tested against `Date` for every day 1970–2100. (3) *Meta content outside the hash:*
+`content/meta/daily.json` (epoch, rotation, streak milestones, grid thresholds, link limits) is
+validated and cross-checked but not in the bundle or `contentHash`, so tuning it never changes a
+daily seed. Epoch = 2026-10-21 is a **placeholder** for the launch date. (4) *Rotation:*
+`biomeRotation[day mod n]` over the biomes that are playable (only Karoo until M8); none → the
+`modes.json` daily biome. (5) *Weapon:* the Daily uses the Skiet-Skuur gun (GDD §13.7 "equip
+weapon for Classic/Daily"; GDD §12 fixes only seed, biome, omen and crates). (6) *First attempt:*
+claimed when the daily hunt **starts**; quitting or closing the tab uses it up (it counts for the
+streak, with no score), so a bad start can't be retried. A clock moved back never opens a second
+official attempt. Practice changes no streak, share card, daily best, Classic best or rank.
+(7) *Freeze:* each missed day needs the unused freeze of its own ISO week (GDD §15 text).
+(8) *Cosmetics:* streak milestones (3/7/30/100) are save ids with names until cosmetic art exists
+(M10). (9) *Share grid:* five equal parts of the planned hunt (bonus time adds to the last part),
+coloured by accuracy (bagging shots ÷ shots, the `hitShots` rule): 🟩 ≥ 0.6, 🟨 ≥ 0.3, else ⬛.
+The score is grouped with no-break spaces ("2 840"); rank names on the card have their own short
+keys (`share.rank.*`: the tally's English gloss is dropped). The en line keeps the GDD's "hele
+swerm" flavour. (10) *Share:* text and link go to `navigator.share` apart (some targets append the
+url themselves); a closed sheet is `cancelled` with no clipboard fallback. (11) *Challenge links:*
+optional `n` (daily number, for the card) and `h` (8 hex of `contentHash`; a mismatch still plays
+with a warning) join the Tech §12 fields; `by` loses control and bidi-override characters and is
+cut to 24 graphemes. A challenge lends its gun for that hunt even if the recipient hasn't unlocked
+it; guns the sim can't play (Kettie until M8), crate weapons and gadgets are rejected, like unknown
+biomes. **No deflate:** a link holds ~110 bytes of JSON and no replay, so `CompressionStream`
+would save almost nothing and make decoding async; deflate stays for shared replays (D-018).
+(12) *Golden replays:* `golden:update` was re-run only to add `daily-2026-10-21-competent-pointer`
+and `daily-2026-10-21-aim-touch` (seed = `dailySeed('2026-10-21', contentHash)`); every existing
+case kept its log, hash, count and score.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

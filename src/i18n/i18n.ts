@@ -35,6 +35,11 @@ export function t(key: I18nKey): string {
   return tables[current][key] ?? en[key];
 }
 
+/** Text of `key` in a given language (share text built for a fixed language, tests). */
+export function tIn(lang: Language, key: I18nKey): string {
+  return tables[lang][key] ?? en[key];
+}
+
 /** A key built from content ids (e.g. `item.${id}`): its text, or `fallback` if it has none. */
 export function tOr(key: string, fallback: string): string {
   return isI18nKey(key) ? t(key) : fallback;
@@ -43,4 +48,18 @@ export function tOr(key: string, fallback: string): string {
 /** Fills `{name}` placeholders. */
 export function fill(text: string, values: Readonly<Record<string, string | number>>): string {
   return text.replace(/\{(\w+)\}/g, (m, k: string) => (k in values ? String(values[k]) : m));
+}
+
+/** Lookups for one fixed language (share text is built in the player's language at share time). */
+export interface Translator {
+  text(key: I18nKey): string;
+  /** A key built from content ids, or `fallback` when it has no text. */
+  or(key: string, fallback: string): string;
+}
+
+export function translator(lang: Language): Translator {
+  return {
+    text: (key) => tIn(lang, key),
+    or: (key, fallback) => (isI18nKey(key) ? tIn(lang, key) : fallback),
+  };
 }

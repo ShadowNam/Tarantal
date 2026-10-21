@@ -4,6 +4,7 @@
 import type { DeviceInfo } from './capabilities';
 import { canShowFullscreenButton, isIPhone } from './capabilities';
 import type { PlatformAdapter, PlatformCapabilities } from './PlatformAdapter';
+import { shareWith, type ShareOutcome, type SharePayload } from './share';
 
 export interface AnalyticsRecord {
   readonly event: string;
@@ -28,6 +29,23 @@ export function deviceInfo(): DeviceInfo {
       mq('(display-mode: standalone)') ||
       mq('(display-mode: fullscreen)'),
   };
+}
+
+/** Old-browser copy: select a hidden textarea and run the legacy copy command. */
+function copyWithTextarea(text: string): boolean {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.setAttribute('readonly', '');
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- the fallback for browsers without the Clipboard API
+    return document.execCommand('copy');
+  } finally {
+    ta.remove();
+  }
 }
 
 export class WebPlatform implements PlatformAdapter {
@@ -72,6 +90,31 @@ export class WebPlatform implements PlatformAdapter {
 
   shareUrl(base: string): string {
     return base;
+  }
+
+  share(payload: SharePayload): Promise<ShareOutcome> {
+    // Not every browser has these (desktop Firefox/Linux Chrome lack share; old ones the
+    // Clipboard API), whatever lib.dom says.
+    const nav: {
+      share?: (d: ShareData) => Promise<void>;
+      canShare?: (d: ShareData) => boolean;
+      clipboard?: { writeText?: (t: string) => Promise<void> };
+    } = navigator;
+    const { share, canShare, clipboard } = nav;
+    const writeText = clipboard?.writeText;
+    return shareWith(
+      {
+        ...(share === undefined ? {} : { share: (d: ShareData) => share.call(navigator, d) }),
+        ...(canShare === undefined
+          ? {}
+          : { canShare: (d: ShareData) => canShare.call(navigator, d) }),
+        ...(writeText === undefined || clipboard === undefined
+          ? {}
+          : { writeClipboard: (t: string) => writeText.call(clipboard, t) }),
+        copyFallback: copyWithTextarea,
+      },
+      payload,
+    );
   }
 
   analytics(event: string, data: Record<string, unknown> = {}): void {

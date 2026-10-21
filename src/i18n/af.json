@@ -226,5 +226,18 @@
   "charm.boeretroos_fles.desc": "Elke opvlieg vertraag die voëls 1,5 s",
   "charm.kwevoel_se_seen.desc": "Kwêvoël 3× so dikwels; alles ×2 terwyl hy roep",
   "charm.geheime_resep.desc": "'n Mis laat Frenzy een vlak sak, nie heeltemal nie",
-  "charm.generaal_se_pot.desc": "Base ×5; +1 patroon per baas in hierdie jag-jaar"
+  "charm.generaal_se_pot.desc": "Base ×5; +1 patroon per baas in hierdie jag-jaar",
+  "cosmetic.streak_3": "Kraal-wapen (3-dae-reeks)",
+  "cosmetic.streak_7": "Koperveer (7-dae-reeks)",
+  "cosmetic.streak_30": "Silwerveer (30-dae-reeks)",
+  "cosmetic.streak_100": "Goue helm (100-dae-reeks)",
+  "share.daily": "Daaglikse Jag #{n}",
+  "share.classic": "Klassiek · {biome}",
+  "share.whole_flocks": "{n}× hele swerm",
+  "share.beat_me": "Klop my op presies hierdie jag:",
+  "share.biome.karoo_autumn": "Karoo",
+  "share.rank.stadsjapie": "Stadsjapie",
+  "share.rank.plaaswerker": "Plaaswerker",
+  "share.rank.bosveldjagter": "Bosveldjagter",
+  "share.rank.bosveld_legend": "Bosveld-legende"
 }

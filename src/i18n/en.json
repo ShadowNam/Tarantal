@@ -254,5 +254,18 @@
   "charm.geheime_resep": "Oupa se Geheime Resep",
   "charm.geheime_resep.desc": "A miss drops Frenzy one tier instead of resetting",
   "charm.generaal_se_pot": "Generaal se Pot",
-  "charm.generaal_se_pot.desc": "Boss bags ×5; +1 shell per boss bagged this run"
+  "charm.generaal_se_pot.desc": "Boss bags ×5; +1 shell per boss bagged this run",
+  "cosmetic.streak_3": "Kraal badge (3-day streak)",
+  "cosmetic.streak_7": "Copper feather (7-day streak)",
+  "cosmetic.streak_30": "Silver feather (30-day streak)",
+  "cosmetic.streak_100": "Golden helmet (100-day streak)",
+  "share.daily": "Daily #{n}",
+  "share.classic": "Classic · {biome}",
+  "share.whole_flocks": "{n}× hele swerm",
+  "share.beat_me": "Beat me on this exact hunt:",
+  "share.biome.karoo_autumn": "Karoo",
+  "share.rank.stadsjapie": "Stadsjapie",
+  "share.rank.plaaswerker": "Plaaswerker",
+  "share.rank.bosveldjagter": "Bosveldjagter",
+  "share.rank.bosveld_legend": "Bosveld Legend"
 }
