@@ -669,6 +669,7 @@ sale" and "Your charms (drag to reorder)"; (26d) empty slots read "Consumables: 
 "Rental gun: none" (was "— | No rental"). Strings in en/af here, de/nl on PR D.
 `season-run.spec.ts` checks the card on the first visit only, not after a reload, and reopens it
 with "?" (screenshots `season-padstal-help-*`, `season-padstal-*`, desktop + Pixel 7).
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
