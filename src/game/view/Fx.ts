@@ -5,6 +5,7 @@
 // "TING!" on secret parts, a burst when a secret pays out (with its event's caption: car alarm,
 // reservoir splash), the Generaal's CLANG as his pot flies off, "KWÊ-KWÊ!" from a perched
 // kwêvoël, and a burst where a crate opens.
+import { fontPx, outline } from '../ui/textLook';
 import * as Phaser from 'phaser';
 import { tapToPlane } from '../../sim/camera';
 import type { LivePrefs } from '../prefs';
@@ -242,11 +243,10 @@ export class Fx {
     const label = this.scene.add
       .text(x, y, text, {
         fontFamily: FONT,
-        fontSize: '56px',
+        fontSize: fontPx(56),
         fontStyle: '900',
         color,
-        stroke: '#1B1410',
-        strokeThickness: 9,
+        ...outline(56, 9),
       })
       .setOrigin(0.5)
       .setScale(0.3 * s);
@@ -316,11 +316,10 @@ export class Fx {
     const label = this.scene.add
       .text(x, y - lift, text, {
         fontFamily: FONT,
-        fontSize: '60px',
+        fontSize: fontPx(60),
         fontStyle: '900',
         color: big ? '#FFD25A' : '#F3EAD3',
-        stroke: '#1B1410',
-        strokeThickness: 10,
+        ...outline(60, 10),
       })
       .setOrigin(0.5)
       .setScale(0.2 * s)
@@ -360,11 +359,10 @@ export class Fx {
     const label = this.scene.add
       .text(x, y - 40 * s, t('fx.poof'), {
         fontFamily: FONT,
-        fontSize: '64px',
+        fontSize: fontPx(64),
         fontStyle: '900',
         color: '#C8302A',
-        stroke: '#1B1410',
-        strokeThickness: 8,
+        ...outline(64, 8),
       })
       .setOrigin(0.5)
       .setScale(0.2 * s)
@@ -396,11 +394,10 @@ export class Fx {
     const text = this.scene.add
       .text(at.x, at.y - 110 * s, parts, {
         fontFamily: FONT,
-        fontSize: '52px',
+        fontSize: fontPx(52),
         fontStyle: '900',
         color,
-        stroke: '#1B1410',
-        strokeThickness: 8,
+        ...outline(52, 8),
       })
       .setOrigin(0.5)
       .setScale(s);

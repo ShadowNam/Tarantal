@@ -8,6 +8,7 @@ import * as Phaser from 'phaser';
 import type { TestHook } from '../GameContext';
 import { clientToDesign } from '../input/screenButtons';
 import { designSize } from '../layout';
+import { fontPx, outline } from './textLook';
 import { FONT } from '../view/Fx';
 import { rectContains, type Rect } from './hudLayout';
 
@@ -235,7 +236,14 @@ export function textStyle(
   size: number,
   color = '#F3EAD3',
 ): Phaser.Types.GameObjects.Text.TextStyle {
-  return { fontFamily: FONT, fontSize: `${size}px`, fontStyle: '800', color };
+  // M9: Settings → text size and high contrast apply to every menu text.
+  return {
+    fontFamily: FONT,
+    fontSize: fontPx(size),
+    fontStyle: '800',
+    color,
+    ...outline(size, 0, '#1B1410', color),
+  };
 }
 
 /** A rounded button with a centred label that shrinks to fit (labels are always one line). */

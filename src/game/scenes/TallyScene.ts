@@ -17,6 +17,7 @@ import { formatPercent, formatScore } from '../ui/format';
 import type { Rect } from '../ui/hudLayout';
 import { drawButton, fitText, Menu } from '../ui/menu';
 import { FONT } from '../view/Fx';
+import { fontPx, outline } from '../ui/textLook';
 
 export interface TallyData {
   readonly result: HuntResult;
@@ -63,9 +64,10 @@ export class TallyScene extends Phaser.Scene {
 
     const chalk = (size: number, color = '#F3EAD3') => ({
       fontFamily: FONT,
-      fontSize: `${size}px`,
+      fontSize: fontPx(size),
       fontStyle: '800',
       color,
+      ...outline(size, 0, '#1B1410', color),
     });
     this.add.text(px + panelW / 2, py + 64, t('tally.title'), chalk(64, '#FFD25A')).setOrigin(0.5);
     const extras = data.extras;
