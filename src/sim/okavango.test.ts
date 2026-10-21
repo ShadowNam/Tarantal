@@ -165,6 +165,7 @@ describe('kuifkop (GDD §7 tricky target): hops out of the reeds', () => {
     hideMs: [800, 800] as [number, number],
     hopMs: [600, 600] as [number, number],
     hopPx: 90,
+    hopPxPerSec: 520,
   };
 
   it('hidden in the reeds it cannot be hit; it peeks, then hops in plain view to another reed', () => {
@@ -202,6 +203,70 @@ describe('kuifkop (GDD §7 tricky target): hops out of the reeds', () => {
   });
 });
 
+describe('review fixes (D-025)', () => {
+  it("the hippo and the water beside it lie in a channel (the secret's shot splashes there)", () => {
+    const b = biomeOf(quiet(OKA), OKA);
+    const hippo = b.props.find((p) => p.id === 'hippo');
+    if (hippo?.secret?.type !== 'singleHit') throw new Error('hippo');
+    const w = 1920 + 3200 * 0.6;
+    const partX = hippo.u * w + hippo.secret.part.shape.ox;
+    const inWater = (x: number): boolean =>
+      (b.twist?.splash?.zones ?? []).some(
+        (z) => z.shape.type === 'rect' && Math.abs(x - z.u * w) <= z.shape.w / 2,
+      );
+    expect(inWater(partX - 70) && inWater(partX + 70)).toBe(true);
+    expect(inWater(hippo.u * w)).toBe(true);
+  });
+
+  it('a kuifkop hops only to the next reed bed and no faster than hopPxPerSec', () => {
+    const c = quiet(OKA);
+    const reedXs = biomeOf(c, OKA)
+      .props.filter((p) => p.id.startsWith('reeds_'))
+      .map((p) => p.u * (1920 + 3200 * 0.6))
+      .sort((a, b) => a - b);
+    biomeOf(c, OKA).events = [
+      {
+        id: 'kuifkopHop',
+        creature: 'kuifkop',
+        perHunt: [1, 1],
+        window: [0.01, 0.01],
+        perchProps: ['reeds_a', 'reeds_b', 'reeds_c', 'reeds_d'],
+        stayMs: [40000, 40000],
+        peekMs: [1000, 1000],
+        hideMs: [800, 800],
+        hopMs: [600, 600],
+        hopPx: 90,
+        hopPxPerSec: 520,
+      },
+    ];
+    const s = sim(c);
+    const hops: { from: number; to: number; ticks: number }[] = [];
+    let from: number | null = null;
+    let t0 = 0;
+    for (let i = 0; i < secondsToTicks(40) && hops.length < 4; i++) {
+      const before = s.snapshot().birds.find((b) => b.creature === 'kuifkop');
+      run(s, 1);
+      const now = s.snapshot().birds.find((b) => b.creature === 'kuifkop');
+      if (before === undefined || now === undefined) continue;
+      if (before.phase === 'peek' && now.phase === 'hop') {
+        from = before.x;
+        t0 = s.snapshot().tick;
+      }
+      if (before.phase === 'hop' && now.phase === 'hidden' && from !== null) {
+        hops.push({ from, to: now.x, ticks: s.snapshot().tick - t0 });
+        from = null;
+      }
+    }
+    expect(hops.length).toBeGreaterThan(1);
+    for (const h of hops) {
+      const a = reedXs.findIndex((x) => Math.abs(x - h.from) < 200);
+      const b = reedXs.findIndex((x) => Math.abs(x - h.to) < 200);
+      expect(Math.abs(a - b)).toBe(1);
+      expect(Math.abs(h.to - h.from) / (h.ticks / 60)).toBeLessThanOrEqual(520 * 1.05);
+    }
+  });
+});
+
 describe('Kuifkop Koning (GDD §7 Spring boss): three hits, hops between the reeds', () => {
   it('takes three hits; each hit sends him into the reeds', () => {
     const c = quiet(OKA);
@@ -220,6 +285,7 @@ describe('Kuifkop Koning (GDD §7 Spring boss): three hits, hops between the ree
         hideMs: [800, 800],
         hopMs: [600, 600],
         hopPx: 110,
+        hopPxPerSec: 480,
       },
     ];
     const s = sim(c);

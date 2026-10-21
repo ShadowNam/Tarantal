@@ -727,6 +727,9 @@ export const BiomeSchema = obj({
        *  and rises hopPx (design px at mid) at its top. */
       hopMs: range(pos).optional(),
       hopPx: pos.optional(),
+      /** Hop speed (design px/s at mid): a hop to the next cover lasts distance / speed, at least
+       *  hopMs. */
+      hopPxPerSec: pos.optional(),
       /** M8 lightningOnly bosses (Die Stormvoël): which plane each pass across the sky is on. */
       passes: z.array(PlaneIdSchema).min(1).optional(),
       /** Dust devils: the plane they cross, contact radius (design px at mid) and life. */

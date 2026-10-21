@@ -455,8 +455,12 @@ function checkEventShape(
       } else if (event.peekMs !== undefined || event.hideMs !== undefined) {
         err('peekMs/hideMs are only for a peekFromCover or hopping boss');
       }
-      if (hops) needs(event.hopMs !== undefined && event.hopPx !== undefined, 'hopMs and hopPx');
-      else if (event.hopMs !== undefined || event.hopPx !== undefined)
+      if (hops)
+        needs(
+          event.hopMs !== undefined && event.hopPx !== undefined && event.hopPxPerSec !== undefined,
+          'hopMs, hopPx and hopPxPerSec',
+        );
+      else if (event.hopMs !== undefined || event.hopPx !== undefined || event.hopPxPerSec !== undefined)
         err('hopMs/hopPx are only for a hopping bird');
       return;
     }
@@ -471,8 +475,9 @@ function checkEventShape(
         event.peekMs !== undefined &&
           event.hideMs !== undefined &&
           event.hopMs !== undefined &&
-          event.hopPx !== undefined,
-        'peekMs, hideMs, hopMs and hopPx',
+          event.hopPx !== undefined &&
+          event.hopPxPerSec !== undefined,
+        'peekMs, hideMs, hopMs, hopPx and hopPxPerSec',
       );
       return;
     case 'dustDevil':
