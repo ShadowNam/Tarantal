@@ -54,10 +54,12 @@ test('menus work from the keyboard alone', async ({ page }, info) => {
   const errors = collectErrors(page);
   await boot(page, 'seed=3');
   await page.waitForFunction(() => window.__TM__?.rects['settings'] !== undefined);
-  // START has focus; ↓ ↓ ↓ goes Shed → Season Run → Settings (left to right).
-  await page.keyboard.press('ArrowDown');
-  await page.keyboard.press('ArrowDown');
-  await page.keyboard.press('ArrowDown');
+  // START has focus; ↓ walks the bottom row left to right until Settings (the row grows by
+  // milestone, so the test doesn't count buttons).
+  for (let i = 0; i < 10 && (await hook(page)).focus !== 'settings'; i++) {
+    await page.keyboard.press('ArrowDown');
+  }
+  expect((await hook(page)).focus).toBe('settings');
   await page.keyboard.press('Enter');
   await page.waitForFunction(() => window.__TM__?.menu === 'settings');
   await page.screenshot({ path: `${SCREENSHOTS}/settings-keyboard-${info.project.name}.png` });

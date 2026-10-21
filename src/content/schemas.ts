@@ -986,9 +986,9 @@ export const DailyMetaSchema = obj({
   /** Day n plays rotation[n mod length] (filtered to playable biomes; Tech §12). */
   biomeRotation: z.array(id).min(1),
   /** Recent days kept in the save. */
-  historyDays: posInt,
+  historyDays: posInt.max(400), // ≤ the save's history cap (saveSchema)
   /** ISO weeks whose freeze use is remembered (older weeks can't matter any more). */
-  freezeWeeksKept: posInt,
+  freezeWeeksKept: posInt.max(60), // ≤ the save's freezesUsed cap (saveSchema)
   /** Streak lengths that award a cosmetic (GDD §15: cosmetics only). */
   streakMilestones: z.array(obj({ days: posInt, cosmetic: id })),
   /** Share-card emoji grid: hunt cut into `segments`; accuracy ≥ green → 🟩, ≥ yellow → 🟨. */

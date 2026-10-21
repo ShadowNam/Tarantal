@@ -76,7 +76,7 @@ export interface ShareInput {
 /** 2840 → "2 840" (no-break space, so a chat app never splits the number). */
 export function groupThousands(n: number): string {
   const sign = n < 0 ? '−' : '';
-  return sign + String(Math.abs(Math.round(n))).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  return sign + String(Math.abs(Math.round(n))).replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0');
 }
 
 /** What a share sends: navigator.share gets both; a clipboard copy gets joinShare(). */

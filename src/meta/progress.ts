@@ -68,6 +68,8 @@ export function applyHunt(
   log: HuntLog,
   content: Pick<ContentBundle, 'scoring'>,
   notaboek: Notaboek,
+  /** False for practice Daily hunts: they never move bests or the rank (first-attempt rule). */
+  ranked = true,
 ): HuntOutcome {
   const ranks = content.scoring.ranks;
   const newCreatures = log.creaturesSeen.filter((c) => !save.birdBook.creatures.includes(c));
@@ -82,7 +84,7 @@ export function applyHunt(
   let newBest: HuntOutcome['newBest'] = null;
   let bestRank = save.bestRank;
   let rankUp: string | null = null;
-  if (SCORED_MODES.has(log.mode)) {
+  if (ranked && SCORED_MODES.has(log.mode)) {
     const prev = save.bests[log.biome];
     if (log.mode === 'classic' && (prev === undefined || log.score > prev.score)) {
       bests = { ...save.bests, [log.biome]: { score: log.score, rank: log.rank } };

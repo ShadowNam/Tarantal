@@ -348,7 +348,33 @@ biomes. **No deflate:** a link holds ~110 bytes of JSON and no replay, so `Compr
 would save almost nothing and make decoding async; deflate stays for shared replays (D-018).
 (12) *Golden replays:* `golden:update` was re-run only to add `daily-2026-10-21-competent-pointer`
 and `daily-2026-10-21-aim-touch` (seed = `dailySeed('2026-10-21', contentHash)`); every existing
-case kept its log, hash, count and score.
+case kept its log, hash, count and score. (13) *UI (PR 2/2):* the title's bottom row is Skiet-Skuur
+· **Daily #n** · Season Run · Settings, with one line above Daily (new today / streak and "freeze
+ready" / played → practice); a new player's title still shows only START (GDD §16), so the Daily
+appears after the lesson. A challenge link opened by a new player plays the challenge straight
+away; the FTUE stays pending for their next START. The "beat this" card (`ChallengeScene`) shows
+before the title; a bad link shows the title with one line. The HUD tag (`DAILY #n`, `PRACTICE ·
+DAILY #n`, `BEAT n`) sits in the Season Run quota slot under the score (run hunts have no tag),
+drawn once at setup — under the pause button it collided with the big banners. Tally: tag
+top-left, [Share] top-right (Classic, the official daily, and Classic challenges; never practice),
+the challenge verdict and streak news first in the news line. [Again] after a daily replays the
+same daily as practice; after a challenge, the same challenge. Practice dailies count for stats and
+the Notaboek but not for the rank (`applyHunt` `ranked`). (14) *Test hooks:* `?today=YYYY-MM-DD`
+fixes the UTC day and `window.__TM_TOOLS__` replays a log in the page (dev/e2e builds only).
+(15) *Evidence on this box:* port 4173 was held by another checkout's preview server, so the local
+run used a scratch config on 4174 (CI unaffected); `daily.spec.ts` (4 tests, ~2.5 min on software
+GL) stays in the shared shards. (16) *Follow-ups:* streak cosmetics have no art yet (M10); the
+share card is text only (an image card is v1.x); `by` (sender name) is never set by this build —
+there is no player name yet; set the real `epoch` before launch.
+(17) *Review fixes:* a day before the epoch (number ≤ 0) shares a link without `n` and never
+blocks the tally (building the share line can't throw); a daily challenge counts as today's
+official daily only when both seed **and** biome match today; a daily challenge to any other day
+never moves the rank. Content caps `historyDays` ≤ 400 and `freezeWeeksKept` ≤ 60 match the save
+caps. *Known limit (M9):* the `?e2e` test hooks (`today`, `huntSeconds`, `omen`, `quotaMul`) work
+in production builds, so a player can bend their own local streak and bests; this was already true
+for Classic bests. M9 should gate the hooks out of portal builds or give them their own save
+namespace (the e2e specs read `tm.save.v1` directly, so that needs a spec change too). No trust is
+placed in local results (Tech §12), so this only affects the player's own save.
 
 ## 3. Research notes (with sources)
 

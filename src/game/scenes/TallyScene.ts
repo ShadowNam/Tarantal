@@ -8,6 +8,8 @@ import type { I18nKey } from '../../i18n/i18n';
 import { fill, isI18nKey, t, tOr } from '../../i18n/i18n';
 import type { HuntOutcome } from '../../meta/progress';
 import type { HuntResult } from '../../sim/types';
+import type { ShareOutcome } from '../../platform/share';
+import type { TallyExtras } from '../daily/DailyFlow';
 import type { GameContext } from '../GameContext';
 import { formatPercent, formatScore } from '../ui/format';
 import type { Rect } from '../ui/hudLayout';
@@ -26,6 +28,10 @@ export interface TallyData {
   readonly outcome: HuntOutcome | null;
   /** This was the FTUE hunt (Oupa se Les). */
   readonly ftue: boolean;
+  /** M7: Daily/challenge lines and the share message (null for the FTUE). */
+  readonly extras: TallyExtras | null;
+  /** M7: [Share] — sends extras.share (from inside the tap's event handler). */
+  readonly share: (extras: TallyExtras) => Promise<ShareOutcome>;
 }
 
 const COUNT_UP_MS = 900;
@@ -60,6 +66,11 @@ export class TallyScene extends Phaser.Scene {
       color,
     });
     this.add.text(px + panelW / 2, py + 64, t('tally.title'), chalk(64, '#FFD25A')).setOrigin(0.5);
+    const extras = data.extras;
+    if (extras?.tag != null) {
+      const tag = this.add.text(px + 30, py + 30, extras.tag, chalk(28, '#FFD25A'));
+      fitText(tag, panelW / 2 - 240);
+    }
 
     const score = this.add.text(px + panelW / 2, py + 160, '0', chalk(96)).setOrigin(0.5);
     this.tweens.addCounter({
@@ -137,6 +148,56 @@ export class TallyScene extends Phaser.Scene {
     drawButton(this, season, t('tally.season_run'), 'secondary', 30);
     drawButton(this, menuR, t('tally.menu'), 'secondary', 32);
 
+    // M7 [Share]: top-right of the slate (≥ 64 px), Classic and the official daily only.
+    const shareR: Rect = { x: px + panelW - 30 - 240, y: py + 20, w: 240, h: 84 };
+    const shareMsg = extras?.share != null ? extras : null;
+    let toast: Phaser.GameObjects.Text | null = null;
+    if (shareMsg !== null) drawButton(this, shareR, t('tally.share'), 'secondary', 40);
+    let sharing = false;
+    const shareItems =
+      shareMsg === null
+        ? []
+        : [
+            {
+              id: 'share',
+              rect: () => shareR,
+              press: () => {
+                if (sharing) return;
+                sharing = true;
+                // Synchronous up to navigator.share / clipboard.writeText: keeps user activation.
+                void data.share(shareMsg).then((outcome) => {
+                  sharing = false;
+                  if (!this.sys.isActive()) return;
+                  if (this.ctx.hook)
+                    this.ctx.hook.lastShare = {
+                      outcome,
+                      text: shareMsg.share?.text ?? '',
+                      url: shareMsg.share?.url ?? '',
+                    };
+                  if (outcome === 'cancelled') return;
+                  const key =
+                    outcome === 'shared'
+                      ? 'tally.shared'
+                      : outcome === 'copied'
+                        ? 'tally.copied'
+                        : 'tally.share_failed';
+                  toast?.destroy();
+                  const tx = this.add
+                    .text(
+                      shareR.x + shareR.w,
+                      shareR.y + shareR.h + 14,
+                      t(key),
+                      chalk(26, '#FFD25A'),
+                    )
+                    .setOrigin(1, 0);
+                  fitText(tx, panelW / 2);
+                  toast = tx;
+                  this.tweens.add({ targets: tx, alpha: 0, delay: 2200, duration: 400 });
+                });
+              },
+            },
+          ];
+
     let pressed = false;
     new Menu(
       this,
@@ -170,20 +231,36 @@ export class TallyScene extends Phaser.Scene {
             data.menu();
           },
         },
+        ...shareItems,
       ],
       { focus: 'again', hook: this.ctx.hook },
     );
     if (this.ctx.hook) {
       this.ctx.hook.scene = 'tally';
-      this.ctx.hook.rects = { again, seasonRun: season, menu: menuR };
+      this.ctx.hook.rects = {
+        again,
+        seasonRun: season,
+        menu: menuR,
+        ...(shareMsg === null ? {} : { share: shareR }),
+      };
+      this.ctx.hook.tally = {
+        tag: extras?.tag ?? null,
+        compare: extras?.compare ?? null,
+        news,
+        share: shareMsg !== null,
+      };
     }
   }
 
   private news(data: TallyData): string | null {
     if (data.ftue) return t('tally.ftue_done');
+    // M7 first: the challenge verdict, then the streak / practice line.
+    const parts: string[] = [
+      ...(data.extras?.compare != null ? [data.extras.compare] : []),
+      ...(data.extras?.news ?? []),
+    ];
     const o = data.outcome;
-    if (o === null) return null;
-    const parts: string[] = [];
+    if (o === null) return parts.length === 0 ? null : parts.slice(0, 2).join('  ·  ');
     for (const w of o.unlockedWeapons)
       parts.push(fill(t('tally.unlocked'), { weapon: tOr(`weapon.${w}`, w) }));
     if (o.newBest !== null && o.newBest.previous !== null) parts.push(t('tally.new_best'));

@@ -489,7 +489,9 @@ secrets, penalties, durationMs), `run_end` (season reached, charms), `charm_pick
 `share_click`, `challenge_open`, `daily_play`, `settings_change`, `perf_sample` (tier, avgFps),
 `error`. No personal data. Respect each portal's tracker rules. M5 emits `ftue_step` (start,
 first_shot, first_bag, run, reload, flush, secret, complete, skip), `hunt_start`, `hunt_end` and
-`settings_change` through `PlatformAdapter.analytics`.
+`settings_change` through `PlatformAdapter.analytics`. M7 adds `daily_play` (day, number,
+official, biome, challenge), `share_click` (mode, official, method = shared/copied/cancelled/failed)
+and `challenge_open` (ok, mode and contentChanged, or the rejection reason).
 
 ## 15. Quality gates
 

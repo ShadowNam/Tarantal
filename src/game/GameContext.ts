@@ -1,7 +1,8 @@
 // What every scene shares: validated content, feel tuning, the asset manifest, audio, the save
 // (settings and progress), live prefs, the platform adapter, the safe area and the test hook.
 // Built once in main.ts.
-import type { Biome, ContentBundle, Feel, Notaboek } from '../content/schemas';
+import type { Biome, ContentBundle, DailyMeta, Feel, Notaboek } from '../content/schemas';
+import type { ChallengeDecode } from '../meta/challenge';
 import type { LoadStatus, SaveStore } from '../meta/save';
 import type { StorageStatus } from '../meta/storage';
 import type { PlatformAdapter } from '../platform/PlatformAdapter';
@@ -12,6 +13,7 @@ import type { DomChrome } from './ui/DomChrome';
 import type { AssetManifest } from './assets/AssetManifest';
 import type { AudioDirector } from './audio/AudioDirector';
 import type { RunFlow } from './run/RunFlow';
+import type { DailyFlow } from './daily/DailyFlow';
 import type { Insets } from './layout';
 import type { Rect } from './ui/hudLayout';
 
@@ -21,10 +23,13 @@ export interface TestHook {
   designWidth: number;
   designHeight: number;
   portrait: boolean;
-  /** 'start' = the title (kept from M2: the title's START is the old start card). */
-  scene: 'start' | 'hunt' | 'tally' | 'run';
+  /** 'start' = the title (kept from M2: the title's START is the old start card).
+   *  'challenge' = the "beat this" card of a challenge link (M7). */
+  scene: 'start' | 'hunt' | 'tally' | 'run' | 'challenge';
   /** Menu overlay on top of the scene: shed, settings, pause (null = none). */
   menu: string | null;
+  /** Id of the keyboard-focused item of the active menu (null = none yet). */
+  focus: string | null;
   /** Hunt paused (pause menu, hidden tab or portrait). */
   paused: boolean;
   /** Mode of the hunt that is running or just ended. */
@@ -98,6 +103,25 @@ export interface TestHook {
   } | null;
   /** M6: what the run HUD draws (quota shown, charm chips, item buttons). */
   seasonHud: { quota: number | null; chips: number; items: number } | null;
+  /** M7: seed of the hunt that is running or just ended. */
+  huntSeed: number | null;
+  /** M7: the daily hunt running or just ended (null = not a daily). */
+  daily: { key: string; number: number; seed: number; official: boolean } | null;
+  /** M7: challenge of the hunt running or just ended, and the card / tally lines shown. */
+  challenge: { seed: number; mode: string; score: number; contentChanged: boolean } | null;
+  /** M7: one-line notice on the title (a bad challenge link), the HUD tag, tally lines. */
+  notice: string | null;
+  hudTag: string | null;
+  tally: { tag: string | null; compare: string | null; news: string | null; share: boolean } | null;
+  /** M7: the last [Share] (outcome and the message sent). */
+  lastShare: { outcome: string; text: string; url: string } | null;
+}
+
+/** e2e-only functions (window.__TM_TOOLS__): replay a log in this browser, the daily seed. */
+export interface TestTools {
+  readonly contentHash: string;
+  dailySeed(key: string): number;
+  replay(log: string): { eventHash: string; eventCount: number; score: number };
 }
 
 export interface GameContext {
@@ -110,6 +134,12 @@ export interface GameContext {
   /** Settings + progress (SaveData v1). */
   readonly save: SaveStore;
   readonly notaboek: Notaboek;
+  /** M7: content/meta/daily.json. */
+  readonly dailyMeta: DailyMeta;
+  /** M7: Daily Hunt, challenge links and sharing. */
+  readonly daily: DailyFlow;
+  /** M7: a challenge link opened this page, until the card has been shown. */
+  pendingChallenge: ChallengeDecode | null;
   readonly platform: PlatformAdapter;
   /** M6: the Season Run (engine + save). */
   readonly run: RunFlow;

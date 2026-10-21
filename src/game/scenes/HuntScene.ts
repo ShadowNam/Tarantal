@@ -8,7 +8,9 @@ import * as Phaser from 'phaser';
 import type { Weapon } from '../../content/schemas';
 import { DebugOverlay } from '../../debug/DebugOverlay';
 import { fill, t } from '../../i18n/i18n';
+import type { Challenge } from '../../meta/challenge';
 import { createHuntLogger, type HuntLogger } from '../../meta/huntLog';
+import { createShareLogger, type ShareLogger } from '../../meta/share';
 import { applyHunt, isWeaponEquippable, type HuntOutcome } from '../../meta/progress';
 import { msToTicks } from '../../sim/clock';
 import type { SimEvent } from '../../sim/events';
@@ -17,6 +19,7 @@ import { createSim } from '../../sim/Sim';
 import type { HuntResult, InputKind, ModeConfig, ModeId, SimState } from '../../sim/types';
 import { CAMERA_MAX_X, CAMERA_MIN_X } from '../../sim/world';
 import { neededBeforeStart } from '../assets/AssetManifest';
+import type { HuntPlan } from '../daily/DailyFlow';
 import { FtueDirector, type FtueStep } from '../ftue/FtueDirector';
 import type { GameContext } from '../GameContext';
 import { HuntRunner } from '../HuntRunner';
@@ -32,12 +35,15 @@ import type { PauseData } from './PauseScene';
 import { viewFor, type RunData, type RunView } from './RunScene';
 import type { TallyData } from './TallyScene';
 import type { TitleData } from './TitleScene';
+import type { ChallengeData } from './ChallengeScene';
 
 export interface HuntData {
   /** Skip the title (the [Again] button) with this input kind. */
   readonly autoStart?: InputKind;
   /** Mode for autoStart (default classic). */
   readonly mode?: ModeId;
+  /** M7: play this challenge (link card's [Accept], or [Again] after one). */
+  readonly challenge?: Challenge;
 }
 
 const END_DELAY_MS = 900;
@@ -66,6 +72,9 @@ export class HuntScene extends Phaser.Scene {
   private lastFrameAt: number | null = null;
   private texturesDone = false;
   private modeId: ModeId = 'classic';
+  /** M7: Classic/Daily/challenge setup (null for the FTUE and Season Run hunts). */
+  private plan: HuntPlan | null = null;
+  private shareLog: ShareLogger | null = null;
 
   constructor(ctx: GameContext) {
     super({ key: 'Hunt' });
@@ -78,6 +87,8 @@ export class HuntScene extends Phaser.Scene {
     this.ending = false;
     this.logger = null;
     this.ftue = null;
+    this.plan = null;
+    this.shareLog = null;
     this.pausedByMenu = false;
     this.ctx.menuPaused = false;
     this.cleanups = [];
@@ -154,7 +165,8 @@ export class HuntScene extends Phaser.Scene {
       document.removeEventListener('visibilitychange', onVisibility);
     });
 
-    if (data.autoStart !== undefined) this.begin(data.autoStart, null, data.mode ?? 'classic');
+    if (data.autoStart !== undefined)
+      this.begin(data.autoStart, null, data.mode ?? 'classic', data.challenge ?? null);
     else this.showTitle();
     if (this.ctx.hook) {
       this.ctx.hook.ready = true;
@@ -171,7 +183,28 @@ export class HuntScene extends Phaser.Scene {
   // --- title ------------------------------------------------------------------------------
 
   private showTitle(): void {
+    // A challenge link opened this page: its "beat this" card comes first, once.
+    const pending = this.ctx.pendingChallenge;
+    this.ctx.pendingChallenge = null;
+    if (pending?.ok === true) {
+      const data: ChallengeData = {
+        challenge: pending.challenge,
+        contentChanged: pending.contentChanged,
+        accept: (kind, pointerId) => {
+          this.begin(kind, pointerId, pending.challenge.mode, pending.challenge);
+        },
+        later: () => {
+          this.scene.stop('Challenge');
+          this.showTitle();
+        },
+      };
+      this.scene.launch('Challenge', data);
+      this.scene.bringToTop('Challenge');
+      if (this.ctx.hook) this.ctx.hook.scene = 'challenge';
+      return;
+    }
     const data: TitleData = {
+      ...(pending === null ? {} : { notice: t('title.challenge_bad') }),
       start: (kind, pointerId, mode) => {
         this.begin(kind, pointerId, mode);
       },
@@ -229,9 +262,15 @@ export class HuntScene extends Phaser.Scene {
 
   // --- hunt -------------------------------------------------------------------------------------
 
-  private begin(kind: InputKind, startPointer: number | null, modeId: ModeId): void {
+  private begin(
+    kind: InputKind,
+    startPointer: number | null,
+    modeId: ModeId,
+    challenge: Challenge | null = null,
+  ): void {
     if (this.runner) return;
     this.scene.stop('Title');
+    this.scene.stop('Challenge');
     this.ctx.audio.unlock();
     if (!this.texturesDone) this.texturesDone = this.ctx.manifest.install(this.textures);
     if (this.ctx.hook) {
@@ -243,26 +282,34 @@ export class HuntScene extends Phaser.Scene {
     // Settings may have changed on the title (left-handed moves the gun).
     this.relayout();
 
-    // Classic plays the Skiet-Skuur loadout (if it is still equippable); the FTUE its own gun.
+    // Classic and Daily play the Skiet-Skuur loadout (if it is still equippable); the FTUE its
+    // own gun; a challenge the gun it names.
     const loadout = this.ctx.content.weapons.weapons.find((w) => w.id === save.loadout.weapon);
+    const plainMode = modeId === 'classic' || modeId === 'daily' ? modeId : null;
     const weapon =
-      modeId === 'classic' &&
+      plainMode !== null &&
       loadout !== undefined &&
-      loadout.id !== this.ctx.content.modes.modes.classic.weapon &&
+      loadout.id !== this.ctx.content.modes.modes[plainMode].weapon &&
       isWeaponEquippable(loadout, save, this.ctx.content)
         ? loadout.id
         : undefined;
-    this.modeId = modeId;
-    // A Season Run hunt comes from the run (seed, biome, weapon, charms, Boss Rule …).
-    const runHunt = modeId === 'seasonHunt' ? this.ctx.run.setup(this.ctx.huntSeconds) : null;
-    const mode: ModeConfig = runHunt?.mode ?? {
-      id: modeId,
-      ...(weapon === undefined ? {} : { weapon }),
+    const extra = {
       ...(this.ctx.huntSeconds === undefined ? {} : { huntSeconds: this.ctx.huntSeconds }),
       ...(this.ctx.omen === undefined || modeId === 'ftue' ? {} : { omen: this.ctx.omen }),
     };
+    // Classic, Daily and challenge hunts: seed and mode from the daily flow (M7).
+    const plan =
+      plainMode === null
+        ? null
+        : this.ctx.daily.plan(plainMode, challenge, weapon, extra, () => this.ctx.nextSeed());
+    this.plan = plan;
+    this.modeId = plan?.mode.id ?? modeId;
+    // A Season Run hunt comes from the run (seed, biome, weapon, charms, Boss Rule …).
+    const runHunt = modeId === 'seasonHunt' ? this.ctx.run.setup(this.ctx.huntSeconds) : null;
+    const mode: ModeConfig = runHunt?.mode ??
+      plan?.mode ?? { id: modeId, ...(weapon === undefined ? {} : { weapon }), ...extra };
     const aimAssist = save.settings.aimAssist;
-    const seed = runHunt?.seed ?? this.ctx.nextSeed();
+    const seed = runHunt?.seed ?? plan?.seed ?? this.ctx.nextSeed();
     const sim = createSim({ seed, content: this.ctx.content, mode, inputKind: kind, aimAssist });
     this.recorder = createRecorder({
       seed,
@@ -277,6 +324,10 @@ export class HuntScene extends Phaser.Scene {
           .find((c) => c.id === id)
           ?.behaviours.includes('perchHigh') === true,
     );
+    if (plan !== null) {
+      this.ctx.daily.start(plan);
+      this.shareLog = createShareLogger(this.ctx.dailyMeta.grid);
+    }
     const durationTicks = sim.snapshot().durationTicks;
     this.ftue =
       modeId === 'ftue'
@@ -338,6 +389,7 @@ export class HuntScene extends Phaser.Scene {
     this.weapon.setTouchMode(kind === 'touch');
     hud.setInputKind(kind);
     hud.setSeason(runHunt === null ? null : { quota: runHunt.info.quota });
+    hud.setTag(plan?.hudTag ?? null);
     hud.setControls({
       pause: () => {
         this.openPause();
@@ -351,8 +403,8 @@ export class HuntScene extends Phaser.Scene {
     });
     this.ctx.platform.gameplayStart();
     this.ctx.platform.analytics('hunt_start', {
-      mode: modeId,
-      biome: this.ctx.biome.id,
+      mode: this.modeId,
+      biome: mode.biome ?? this.ctx.biome.id,
       weapon: weapon ?? sim.snapshot().weapon.id,
       inputKind: kind,
       aimAssist,
@@ -362,7 +414,28 @@ export class HuntScene extends Phaser.Scene {
     const hook = this.ctx.hook;
     if (hook) {
       hook.scene = 'hunt';
-      hook.mode = modeId;
+      hook.mode = this.modeId;
+      hook.huntSeed = seed;
+      hook.daily =
+        plan?.daily == null
+          ? null
+          : {
+              key: plan.daily.setup.key,
+              number: plan.daily.setup.number,
+              seed: plan.daily.setup.seed,
+              official: plan.daily.official,
+            };
+      hook.challenge =
+        challenge === null
+          ? null
+          : {
+              seed: challenge.seed,
+              mode: challenge.mode,
+              score: challenge.score,
+              contentChanged: hook.challenge?.contentChanged ?? false,
+            };
+      hook.hudTag = plan?.hudTag ?? null;
+      hook.tally = null;
       hook.ftue.active = modeId === 'ftue';
       hook.inputKind = kind;
       hook.result = null;
@@ -406,6 +479,7 @@ export class HuntScene extends Phaser.Scene {
     const state = runner.state;
     if (events.length > 0) this.handleEvents(events, width, state);
     this.logger?.add(events);
+    this.shareLog?.add(events);
     if (this.ftue) {
       this.ftue.update(events, state.tick, {
         shells: state.weapon.shells,
@@ -549,7 +623,10 @@ export class HuntScene extends Phaser.Scene {
       this.ftue.complete(result.ticks);
       this.markFtueDone(false);
     }
-    const outcome = this.recordProgress(result);
+    const plan = this.plan;
+    const outcome = this.recordProgress(result, plan === null || this.ctx.daily.ranked(plan));
+    const extras =
+      plan === null ? null : this.ctx.daily.finish(plan, result, this.shareLog?.grid() ?? '');
     if (this.modeId === 'seasonHunt') {
       this.ctx.run.afterHunt(result);
       this.time.delayedCall(END_DELAY_MS, () => {
@@ -564,12 +641,17 @@ export class HuntScene extends Phaser.Scene {
         result,
         outcome,
         ftue,
+        extras,
+        share: (x) => this.ctx.daily.share(x),
         again: (pointerType) => {
           this.scene.stop('Tally');
-          // After the FTUE, [Again] is a real Classic hunt (GDD §16 step 7).
+          // After the FTUE, [Again] is a real Classic hunt (GDD §16 step 7). After a Daily it is
+          // practice on the same hunt; after a challenge, the same challenge again.
+          const challengeAgain = plan?.challenge ?? null;
           this.scene.restart({
             autoStart: inputKindOf(pointerType),
-            mode: 'classic',
+            mode: this.modeId === 'daily' ? 'daily' : 'classic',
+            ...(challengeAgain === null ? {} : { challenge: challengeAgain }),
           } satisfies HuntData);
         },
         menu: () => {
@@ -585,7 +667,7 @@ export class HuntScene extends Phaser.Scene {
   }
 
   /** Hunt log → save (stats, Bird Book, bests, rank, Notaboek) and hunt_end analytics. */
-  private recordProgress(result: HuntResult): HuntOutcome | null {
+  private recordProgress(result: HuntResult, ranked: boolean): HuntOutcome | null {
     const logger = this.logger;
     this.ctx.platform.gameplayStop();
     this.ctx.platform.analytics('hunt_end', {
@@ -602,7 +684,7 @@ export class HuntScene extends Phaser.Scene {
     if (logger === null) return null;
     let outcome: HuntOutcome | null = null;
     this.ctx.save.update((d) => {
-      outcome = applyHunt(d, logger.finish(result), this.ctx.content, this.ctx.notaboek);
+      outcome = applyHunt(d, logger.finish(result), this.ctx.content, this.ctx.notaboek, ranked);
       return outcome.save;
     });
     return outcome;

@@ -131,3 +131,16 @@ describe('applyHunt', () => {
     expect(isWeaponEquippable(weapon('dubbelloop'), defaultSave(), content)).toBe(true);
   });
 });
+
+describe('practice Daily hunts (M7 first-attempt rule)', () => {
+  it('count for stats and the Notaboek but never move the rank', () => {
+    const log = hunt({ mode: 'daily', score: 4800, rank: 'bosveld_legend' });
+    const practice = applyHunt(defaultSave(), log, content, notaboek, false);
+    expect(practice.save.bestRank).toBeNull();
+    expect(practice.rankUp).toBeNull();
+    expect(practice.save.stats.hunts).toBe(1);
+    expect(practice.completed).toContain('first_hunt');
+    const official = applyHunt(defaultSave(), log, content, notaboek);
+    expect(official.save.bestRank).toBe('bosveld_legend');
+  });
+});

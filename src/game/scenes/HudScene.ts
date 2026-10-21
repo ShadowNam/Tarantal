@@ -88,6 +88,10 @@ export class HudScene extends Phaser.Scene {
   private season: SeasonHud | null = null;
   /** Kept here: the hunt sets it before launch() has created the scene. */
   private seasonInfo: { readonly quota: number } | null = null;
+  /** M7: "DAILY #n" / "PRACTICE · DAILY #n" / "BEAT 2 840" under the score, in the Season Run
+   *  quota's slot (never both: run hunts have no tag), above the score pops. */
+  private tagText: string | null = null;
+  private tag: Phaser.GameObjects.Text | null = null;
 
   constructor(ctx: GameContext) {
     super({ key: 'Hud' });
@@ -145,6 +149,8 @@ export class HudScene extends Phaser.Scene {
     const so = { x: 6 / 150, y: 0.5 };
     this.sock.setOrigin(so.x, so.y);
     this.callout = text(48, '#FF6B5A').setOrigin(0.5).setVisible(false);
+    this.tag = text(28, '#FFD25A').setOrigin(1, 0.5);
+    this.applyTag();
     this.season = new SeasonHud(this, this.ctx);
     this.season.setSeason(this.seasonInfo);
     this.season.setMouse(this.inputKind === 'pointer');
@@ -286,6 +292,23 @@ export class HudScene extends Phaser.Scene {
     this.season?.setSeason(info);
   }
 
+  /** M7: the hunt's tag line (drawn once here, never per frame). */
+  setTag(text: string | null): void {
+    this.tagText = text;
+    this.applyTag();
+  }
+
+  private applyTag(): void {
+    const tag = this.tag;
+    if (tag === null || !tag.active) return;
+    tag.setText(this.tagText ?? '').setVisible(this.tagText !== null);
+    const l = this.layoutNow;
+    if (l !== null) {
+      tag.setPosition(l.quota.x + l.quota.w - 8, l.quota.y + l.quota.h / 2);
+      fitText(tag, l.quota.w - 16);
+    }
+  }
+
   /** Consumable or rental button under (x, y) that holds something, or null. */
   itemAt(x: number, y: number): number | null {
     return this.season?.itemAt(this.lastState, x, y) ?? null;
@@ -377,6 +400,7 @@ export class HudScene extends Phaser.Scene {
       this.prompt.setPosition(l.prompt.x, l.prompt.y);
       fitText(this.prompt, l.prompt.w);
     }
+    this.applyTag();
     this.controlsMenu?.refresh();
     this.sockPole.clear();
     this.sock.setPosition(l.windsock.x + 20, l.windsock.y + 14);
