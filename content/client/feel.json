@@ -4,6 +4,7 @@
   "input": {
     "tapMaxMs": 180,
     "tapMaxMovePx": 12,
+    "touchHoldMs": 180,
     "flickMinPx": 60,
     "flickMaxMs": 200,
     "dragPlaneScrollFactor": 0.6,
@@ -107,8 +108,13 @@
     }
   },
   "accessibility": {
-    "$comment": "Settings → reduce flashes: muzzle flash and hint glint alpha; the belt's red empty-click flash is off. Large flashes are capped at 3/s regardless (GDD §18.3).",
-    "reducedFlashAlpha": 0.35
+    "$comment": "GDD §18.3. Reduce flashes: muzzle flash and hint glint alpha; the belt's red empty-click flash is off. Large flashes are capped at 3/s regardless. M9: large text scale, high-contrast outline width (fraction of the font size), sound captions (time on screen, lines at once, repeat gap).",
+    "reducedFlashAlpha": 0.35,
+    "largeTextScale": 1.25,
+    "contrastStroke": 0.2,
+    "captionMs": 2200,
+    "captionMax": 3,
+    "captionRepeatMs": 1200
   },
   "ftue": {
     "$comment": "Oupa se Les presentation (GDD §16): when the windpomp hint shows (fraction of the hunt), how long a step banner stays, and the longest prompt allowed (characters, one line).",

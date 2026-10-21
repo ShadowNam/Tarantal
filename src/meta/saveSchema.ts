@@ -26,6 +26,16 @@ export const SettingsSchema = z.object({
   leftHanded: z.boolean(),
   language: LanguageSettingSchema,
   quality: QualitySettingSchema,
+  /** M9 accessibility (GDD §18.3): menu, tally and caption text 1× or `largeTextScale`. */
+  textSize: z.enum(['normal', 'large']),
+  /** M9: a black outline on all light text (menus, tally, HUD messages, call-outs). */
+  highContrast: z.boolean(),
+  /** M9: text captions for sound cues. */
+  captions: z.boolean(),
+  /** M9: the ⛔ badge on every don't-shoot creature (shape + icon, never colour alone). */
+  colourBlind: z.boolean(),
+  /** M9: holding fire repeats the shot whenever the gun is ready (any weapon). */
+  holdToFire: z.boolean(),
 });
 export type Settings = z.infer<typeof SettingsSchema>;
 
@@ -39,6 +49,11 @@ export const DEFAULT_SETTINGS: Settings = {
   leftHanded: false,
   language: 'auto',
   quality: 'auto',
+  textSize: 'normal',
+  highContrast: false,
+  captions: false,
+  colourBlind: false,
+  holdToFire: false,
 };
 
 const shortId = z.string().max(80);

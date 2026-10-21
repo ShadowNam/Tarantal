@@ -912,6 +912,9 @@ export const FeelSchema = obj({
     /** Tap = contact shorter than this and moving less than tapMaxMovePx (GDD §18.2). */
     tapMaxMs: pos,
     tapMaxMovePx: pos,
+    /** M9 Settings → hold to fire on touch: a finger still (< tapMaxMovePx) this long starts the
+     *  repeat; moving first keeps it a drag or flick (D-026). */
+    touchHoldMs: pos,
     /** Flick-down reload: vertical travel ≥ flickMinPx within flickMaxMs, mostly downward. */
     flickMinPx: pos,
     flickMaxMs: pos,
@@ -1004,6 +1007,14 @@ export const FeelSchema = obj({
   accessibility: obj({
     /** Reduce flashes: alpha of the muzzle flash and the secret hint glints. */
     reducedFlashAlpha: fraction,
+    /** M9 text size "large": font scale for menus, tally, captions, prompts and call-outs. */
+    largeTextScale: z.number().min(1).max(1.6),
+    /** M9 high contrast: outline width as a fraction of the font size. */
+    contrastStroke: fraction,
+    /** M9 captions: how long one shows, how many at once, and the gap before the same one repeats. */
+    captionMs: pos,
+    captionMax: posInt,
+    captionRepeatMs: nonNeg,
   }),
   platform: obj({
     /** Longest wait for a portal SDK script + init; after it the game runs without the SDK. */

@@ -17,6 +17,7 @@ import { formatPercent, formatScore } from '../ui/format';
 import type { Rect } from '../ui/hudLayout';
 import { drawButton, fitText, Menu } from '../ui/menu';
 import { FONT } from '../view/Fx';
+import { fontPx, outline } from '../ui/textLook';
 
 export interface TallyData {
   readonly result: HuntResult;
@@ -61,20 +62,27 @@ export class TallyScene extends Phaser.Scene {
     g.fillStyle(0x8b5a2b, 1).fillRoundedRect(px - 14, py - 14, panelW + 28, panelH + 28, 26);
     g.fillStyle(0x2e3b33, 1).fillRoundedRect(px, py, panelW, panelH, 18);
 
-    const chalk = (size: number, color = '#F3EAD3') => ({
+    // Settings → large text scales the tag, the news line and the toast; the title, score, rows
+    // and rank stamp sit in fixed slots of the slate (already large), like the HUD numbers.
+    const chalk = (size: number, color = '#F3EAD3', scaled = true) => ({
       fontFamily: FONT,
-      fontSize: `${size}px`,
+      fontSize: fontPx(size, scaled),
       fontStyle: '800',
       color,
+      ...outline(size, 0, '#1B1410', color),
     });
-    this.add.text(px + panelW / 2, py + 64, t('tally.title'), chalk(64, '#FFD25A')).setOrigin(0.5);
+    this.add
+      .text(px + panelW / 2, py + 64, t('tally.title'), chalk(64, '#FFD25A', false))
+      .setOrigin(0.5);
     const extras = data.extras;
     if (extras?.tag != null) {
       const tag = this.add.text(px + 30, py + 30, extras.tag, chalk(28, '#FFD25A'));
       fitText(tag, panelW / 2 - 240);
     }
 
-    const score = this.add.text(px + panelW / 2, py + 160, '0', chalk(96)).setOrigin(0.5);
+    const score = this.add
+      .text(px + panelW / 2, py + 160, '0', chalk(96, '#F3EAD3', false))
+      .setOrigin(0.5);
     this.tweens.addCounter({
       from: 0,
       to: r.score,
@@ -100,9 +108,9 @@ export class TallyScene extends Phaser.Scene {
     const rowFont = Math.min(36, Math.floor(rowH * 0.78));
     rows.forEach(([key, value], i) => {
       const y = py + 240 + i * rowH;
-      const label = this.add.text(px + 80, y, t(key), chalk(rowFont)).setAlpha(0);
+      const label = this.add.text(px + 80, y, t(key), chalk(rowFont, '#F3EAD3', false)).setAlpha(0);
       const val = this.add
-        .text(px + panelW - 80, y, value, chalk(rowFont))
+        .text(px + panelW - 80, y, value, chalk(rowFont, '#F3EAD3', false))
         .setOrigin(1, 0)
         .setAlpha(0);
       this.tweens.add({ targets: [label, val], alpha: 1, delay: 150 + i * 90, duration: 160 });
@@ -113,7 +121,7 @@ export class TallyScene extends Phaser.Scene {
     const rankText = isI18nKey(rankKey) ? t(rankKey) : r.rank;
     const stamp = this.add
       .text(px + panelW / 2, py + panelH - 222, rankText, {
-        ...chalk(56, '#C8302A'),
+        ...chalk(56, '#C8302A', false),
         stroke: '#F3EAD3',
         strokeThickness: 6,
       })

@@ -634,6 +634,57 @@ the medium perf smoke on the Pixel profile went from 16.0 to **12.4 ms** CPU/fra
 *Follow-up:* score pops and "POOF!" create a Text per kill (canvas render + upload); a pooled or
 bitmap-font version would cut the rest. `feel.json` gains fields without a `version` bump: no
 content has shipped and the client file has no older readers.
+*PR C — accessibility checklist (GDD §18.3):* (20) *New settings* (`SaveData.settings`, each
+field validated on its own, so old saves get the defaults, all off): `textSize` normal/large,
+`highContrast`, `captions`, `colourBlind`, `holdToFire`. Settings is split into two pages with
+tabs (←/→ on a tab turns the page); every id the older specs tap stays on page 1. (21) *Hold to
+fire* is input-only: a weapon without its own hold gets one `fire` on press, then a `fire` at the
+held position each tick the gun is ready (loaded, not reloading, no cooldown), so it never
+empty-clicks and the sim and replays are untouched (ordinary commands). Weapons with a native
+hold keep their `fireHold*` commands. (22) *Text size* scales menus, tally, captions, prompts and
+world call-outs by `largeTextScale` (1.25); the HUD timer, score, frenzy label, chips and gadget
+numbers stay put (fixed signs). Text made before a change restyles when its screen rebuilds (the
+Settings screen rebuilds at once). (23) *High contrast* = black outline at 0.2 × font size on light
+text; dark text on light plates gets none (it smeared). (24) *Captions* mirror the AudioDirector's
+event → sound map (`src/game/audio/captions.ts`); cues already in words on screen (POOF!, score
+pops, the stamp) get none. Shown whatever the volume, bottom centre, ≤ 3 lines, a repeat only
+extends the line. (25) *Colour-blind aid* = the ⛔ badge on every don't-shoot creature at every
+sighting (shape + icon, never colour alone); without it the badge shows until the first sighting
+as before. Other colour signals already pair with text or shape (belt flash + RELOAD!, frenzy
+colour + ×N, stampede timer colour + banner). (26) *Toggle → test:* screen shake, reduce flashes,
+left-handed, quality, text size, contrast, captions, colour-blind, hold to fire → `prefs.test.ts`;
+aim assist → sim tests (`aimAssistLevels`, golden `…-lowassist`); text size/contrast →
+`textLook.test.ts`; captions → `captions.test.ts` + `a11y.spec.ts` (a reload is captioned in a
+hunt); hold to fire → `InputMapper.test.ts` + `a11y.spec.ts` (one held press fires repeatedly);
+keyboard-only menus incl. the new page and privacy → `a11y.spec.ts` + `menus.spec.ts`; pause
+anywhere → `menus.spec.ts`; large-flash cap → content validation (`maxFlashesPerSecond`);
+language → `persistence.spec.ts`. *Needs a person:* a screen-reader and keyboard-only pass, and
+a colour-blind player's look at the don't-shoot creatures.
+*PR C addition — Padstal clarity (user feedback: "couldn't tell what the screen is for"):*
+(26a) a first-visit explainer card (Doppies, charms and slot order, consumables, the rental gun,
+quota = run over), dismissed once into `SaveData.notices` (`padstal_help`) and reopenable from a
+"?" button; (26b) an offer the player can't buy says why on the card ("need N more", "slots full",
+"consumable slots full", "already renting") instead of only greying out; (26c) row labels "For
+sale" and "Your charms (drag to reorder)"; (26d) empty slots read "Consumables: empty, empty" and
+"Rental gun: none" (was "— | No rental"). Strings in en/af here, de/nl on PR D.
+`season-run.spec.ts` checks the card on the first visit only, not after a reload, and reopens it
+with "?" (screenshots `season-padstal-help-*`, `season-padstal-*`, desktop + Pixel 7).
+
+*PR C review fixes:* (26e) *Hold to fire on touch* fired on every touch and broke drag-pan and
+flick-reload. A finger now stays a tap/drag/flick gesture until it has been still (< 12 px) for
+`input.touchHoldMs` (180 ms); only then does it become the hold (first shot at once, then each
+ready tick). A tap before that fires once; moving first makes it a drag or flick. The Settings
+hold doesn't edge-pan (a weapon's own hold still does). Unit tests use `pointerType: 'touch'`;
+`a11y.spec.ts` checks hold/drag/flick on Pixel 7 landscape. (26f) *Blocker note:* moved off the
+24 px price line (squeezed to ~5 CSS px on a phone) onto its own wrapped plate above the price.
+(26g) *Help card* is sized from its measured text and steps the font down (28 → 18 px) if even
+the tallest card can't hold it; the test asserts the text ends above the button. (26h) *Large
+text on the tally:* title, score, rows and rank stamp keep their size (fixed slots of the slate;
+scaled they overlapped on phones); the tag, news line and buttons scale. The Padstal's "For sale"
+label moved below the large title. (26i) e2e-only `?doppies=N` (a run with N Doppies and no pay)
+to show blocked offers. `padstal.spec.ts`: blocked cards on iPhone 14 + Pixel 7 landscape, the
+help card with large text on desktop at 4:3 and iPhone 14, and a Pixel 7 pass with large text +
+high contrast (Settings ×2, Padstal, tally).
 
 ## 3. Research notes (with sources)
 

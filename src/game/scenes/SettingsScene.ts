@@ -26,7 +26,15 @@ export interface OverlayData {
   readonly close: () => void;
   /** Item to focus when the screen opens (kept across a language rebuild). */
   readonly focus?: string;
+  /** M9: Settings page (0 sound & game, 1 display & access). */
+  readonly page?: number;
 }
+
+const TEXT: Choice<'textSize'> = {
+  key: 'textSize',
+  values: ['normal', 'large'],
+  label: (v) => `settings.text.${v}`,
+};
 
 type Choice<K extends keyof Settings> = {
   key: K;
@@ -86,7 +94,7 @@ export class SettingsScene extends Phaser.Scene {
     const items: MenuItem[] = [];
     const row = (col: 0 | 1, i: number, labelKey: I18nKey): Rect => {
       const x = px + 40 + col * (colW + 40);
-      const y = py + 130 + i * (ROW_H + ROW_GAP);
+      const y = py + 210 + i * (ROW_H + ROW_GAP);
       const label = this.add.text(x, y + ROW_H / 2, t(labelKey), textStyle(36)).setOrigin(0, 0.5);
       fitText(label, colW - ctrlW - 30);
       return { x: x + colW - ctrlW, y, w: ctrlW, h: ROW_H };
@@ -171,7 +179,7 @@ export class SettingsScene extends Phaser.Scene {
       );
     };
 
-    const choice = <K extends 'aimAssist' | 'language' | 'quality'>(
+    const choice = <K extends 'aimAssist' | 'language' | 'quality' | 'textSize'>(
       col: 0 | 1,
       i: number,
       labelKey: I18nKey,
@@ -196,63 +204,110 @@ export class SettingsScene extends Phaser.Scene {
       );
     };
 
-    slider(0, 0, 'settings.master', 'masterVolume');
-    slider(0, 1, 'settings.sfx', 'sfxVolume');
-    slider(0, 2, 'settings.music', 'musicVolume');
-    toggle(
-      0,
-      3,
-      'settings.shake',
-      () => this.ctx.prefs.shake,
-      (on) => {
-        set({ screenShake: on });
-      },
-    );
-    toggle(
-      0,
-      4,
-      'settings.flashes',
-      () => s().reduceFlashes,
-      (on) => {
-        set({ reduceFlashes: on });
-      },
-    );
-    choice(1, 0, 'settings.aim', AIM);
-    toggle(
-      1,
-      1,
-      'settings.left_handed',
-      () => s().leftHanded,
-      (on) => {
-        set({ leftHanded: on });
-      },
-    );
-    choice(1, 2, 'settings.language', LANG, () => {
-      this.ctx.applyLanguage();
-      // Every label changes: rebuild with the language row still focused.
-      this.time.delayedCall(0, () => this.scene.restart({ ...data, focus: 'settings.language' }));
+    // M9: two pages (GDD §18.3 adds text size, contrast, captions, colour-blind aids and hold
+    // to fire): tabs at the top, ←/→ or a tap switches.
+    const page = data.page === 1 ? 1 : 0;
+    const tabW = Math.min(520, (panelW - 120) / 2);
+    const tabs: Rect[] = [0, 1].map((i) => ({
+      x: px + panelW / 2 + (i === 0 ? -tabW - 10 : 10),
+      y: py + 104,
+      w: tabW,
+      h: 80,
+    }));
+    const tabKeys: I18nKey[] = ['settings.page.game', 'settings.page.access'];
+    tabs.forEach((r, i) => {
+      drawButton(
+        this,
+        r,
+        t(tabKeys[i] ?? 'settings.page.game'),
+        i === page ? 'selected' : 'secondary',
+        32,
+      );
+      items.push({
+        id: `settings.page.${i}`,
+        rect: () => r,
+        press: () => {
+          if (i !== page) this.goPage(data, i);
+        },
+        adjust: (d) => {
+          const next = page + d;
+          if (next === 0 || next === 1) this.goPage(data, next);
+        },
+      });
     });
-    choice(1, 3, 'settings.quality', QUALITY);
-    // M9: the privacy screen (what is stored, what is sent, clear my data).
-    const privacy = row(1, 4, 'settings.privacy');
-    drawButton(this, privacy, t('settings.privacy_open'), 'secondary', 34);
-    items.push({
-      id: 'settings.privacy',
-      rect: () => privacy,
-      press: () => {
-        menu.setActive(false);
-        this.scene.launch('Privacy', {
-          close: () => {
-            this.scene.stop('Privacy');
-            menu.setActive(true);
-          },
-          restart: () => {
-            this.ctx.restartPage();
-          },
-        } satisfies PrivacyData);
-        this.scene.bringToTop('Privacy');
-      },
-    });
+    const flag = (
+      col: 0 | 1,
+      i: number,
+      labelKey: I18nKey,
+      key:
+        'reduceFlashes' | 'leftHanded' | 'highContrast' | 'captions' | 'colourBlind' | 'holdToFire',
+      after?: () => void,
+    ): void => {
+      toggle(
+        col,
+        i,
+        labelKey,
+        () => s()[key],
+        (on) => {
+          set({ [key]: on });
+          after?.();
+        },
+      );
+    };
+    // Text size and contrast restyle every text: rebuild this screen with the row still focused.
+    const restyle = (focus: string) => (): void => {
+      this.time.delayedCall(0, () => this.scene.restart({ ...data, page, focus }));
+    };
+
+    if (page === 0) {
+      slider(0, 0, 'settings.master', 'masterVolume');
+      slider(0, 1, 'settings.sfx', 'sfxVolume');
+      slider(0, 2, 'settings.music', 'musicVolume');
+      choice(0, 3, 'settings.language', LANG, () => {
+        this.ctx.applyLanguage();
+        // Every label changes: rebuild with the language row still focused.
+        restyle('settings.language')();
+      });
+      // M9: the privacy screen (what is stored, what is sent, clear my data).
+      const privacy = row(0, 4, 'settings.privacy');
+      drawButton(this, privacy, t('settings.privacy_open'), 'secondary', 34);
+      items.push({
+        id: 'settings.privacy',
+        rect: () => privacy,
+        press: () => {
+          menu.setActive(false);
+          this.scene.launch('Privacy', {
+            close: () => {
+              this.scene.stop('Privacy');
+              menu.setActive(true);
+            },
+            restart: () => {
+              this.ctx.restartPage();
+            },
+          } satisfies PrivacyData);
+          this.scene.bringToTop('Privacy');
+        },
+      });
+      choice(1, 0, 'settings.aim', AIM);
+      flag(1, 1, 'settings.left_handed', 'leftHanded');
+      flag(1, 2, 'settings.hold_to_fire', 'holdToFire');
+    } else {
+      toggle(
+        0,
+        0,
+        'settings.shake',
+        () => this.ctx.prefs.shake,
+        (on) => {
+          set({ screenShake: on });
+        },
+      );
+      flag(0, 1, 'settings.flashes', 'reduceFlashes');
+      choice(0, 2, 'settings.quality', QUALITY);
+      choice(0, 3, 'settings.text_size', TEXT, restyle('settings.textSize'));
+      flag(1, 0, 'settings.contrast', 'highContrast', restyle('settings.contrast'));
+      flag(1, 1, 'settings.captions', 'captions');
+      flag(1, 2, 'settings.colour_blind', 'colourBlind');
+    }
 
     const back: Rect = { x: px + panelW / 2 - 220, y: py + panelH - 120, w: 440, h: 96 };
     drawButton(this, back, t('ui.back'), 'primary', 44);
@@ -276,5 +331,12 @@ export class SettingsScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       if (this.ctx.hook?.menu === 'settings') this.ctx.hook.menu = null;
     });
+  }
+
+  /** Shows the other Settings page (focus on its tab, so ←/→ keeps paging). */
+  private goPage(data: OverlayData, page: number): void {
+    this.time.delayedCall(0, () =>
+      this.scene.restart({ ...data, page, focus: `settings.page.${page}` }),
+    );
   }
 }

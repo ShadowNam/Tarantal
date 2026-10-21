@@ -7,7 +7,7 @@ import { contentHash } from './content/hash';
 import { DailyFlow } from './game/daily/DailyFlow';
 import { loadGameContent } from './content/loadBrowser';
 import { AudioDirector } from './game/audio/AudioDirector';
-import { withQuotaMul, withTestCrate } from './game/devContent';
+import { withDoppies, withQuotaMul, withTestCrate } from './game/devContent';
 import type { GameContext, TestHook, TestTools } from './game/GameContext';
 import {
   designSize,
@@ -19,6 +19,7 @@ import {
   type Insets,
 } from './game/layout';
 import { fitCamera } from './game/view/fitCamera';
+import { setTextLook } from './game/ui/textLook';
 import type { AssetManifest } from './game/assets/AssetManifest';
 import {
   biomeArtReady,
@@ -224,6 +225,7 @@ const hook: TestHook = {
   huntRequests: 0,
   ads: null,
   audioMuted: false,
+  captions: [],
   quality: { tier: '', bench: null, benchRan: false, layers: 0, filters: [] },
   errors: [],
 };
@@ -236,8 +238,14 @@ const crateParam = testHooks ? params.get('crate') : null;
 const withCrate = crateParam === null ? loaded.bundle : withTestCrate(loaded.bundle, crateParam);
 // e2e/dev only: ?quotaMul=0 makes every Season Run quota reachable (short e2e runs).
 const quotaMul = testHooks && params.has('quotaMul') ? Number(params.get('quotaMul')) : NaN;
-const bundle =
+const withQuota =
   Number.isFinite(quotaMul) && quotaMul >= 0 ? withQuotaMul(withCrate, quotaMul) : withCrate;
+// e2e/dev only: ?doppies=1 — a run with (almost) no Doppies, to show Padstal offers it can't buy.
+const doppiesParam = testHooks && params.has('doppies') ? Number(params.get('doppies')) : NaN;
+const bundle =
+  Number.isInteger(doppiesParam) && doppiesParam >= 0
+    ? withDoppies(withQuota, doppiesParam)
+    : withQuota;
 hook.boot['content'] = performance.now();
 const biomeId = bundle.modes.modes.classic.biome;
 const biome = bundle.biomes.find((b) => b.id === biomeId);
@@ -301,8 +309,13 @@ const prefListeners = new Set<() => void>();
 let relayout: (() => void) | null = null;
 /** Safe-area insets in design px; cleared by applyLayout (resize, rotation, tier change). */
 let safeCache: Insets | null = null;
+const applyTextLook = (): void => {
+  setTextLook(prefs.textScale, prefs.highContrast, feel.accessibility.contrastStroke);
+};
+applyTextLook();
 const prefsChanged = (): void => {
   hook.quality.tier = prefs.tier;
+  applyTextLook();
   // The render scale may have changed with the tier (applyLayout exists once the game does).
   relayout?.();
   for (const fn of prefListeners) fn();

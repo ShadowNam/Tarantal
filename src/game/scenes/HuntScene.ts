@@ -11,6 +11,7 @@ import type { Biome, Weapon } from '../../content/schemas';
 import { DebugOverlay } from '../../debug/DebugOverlay';
 import { fill, t } from '../../i18n/i18n';
 import { textStyle } from '../ui/menu';
+import { showDontShootBadge } from '../prefs';
 import { TierFilters } from '../quality/TierFilters';
 import type { Challenge } from '../../meta/challenge';
 import { createHuntLogger, type HuntLogger } from '../../meta/huntLog';
@@ -208,7 +209,9 @@ export class HuntScene extends Phaser.Scene {
       this.manifest,
       this.parallax,
       this.ctx.content,
-      (creature) => !this.ctx.save.data.birdBook.creatures.includes(creature),
+      // ⛔ until a creature's first sighting; always with Settings → colour-blind aids (M9).
+      (creature) =>
+        showDontShootBadge(this.ctx.prefs, this.ctx.save.data.birdBook.creatures, creature),
     );
     this.fx = new Fx(
       this,
@@ -497,7 +500,18 @@ export class HuntScene extends Phaser.Scene {
         isOnBelt: (x, y) => hud.isOnBelt(x, y),
         isOnGadget: (x, y) => hud.isOnGadget(x, y),
         itemAt: (x, y) => hud.itemAt(x, y),
-        holdToFire: () => this.runner?.state.weapon.holdToFire ?? false,
+        holdToFire: () =>
+          (this.runner?.state.weapon.holdToFire ?? false) || this.ctx.prefs.holdToFire,
+        weaponHolds: () => this.runner?.state.weapon.holdToFire ?? false,
+        readyToFire: () => {
+          const w = this.runner?.state.weapon;
+          return (
+            w !== undefined &&
+            !w.reloading &&
+            w.cooldownTicks === 0 &&
+            (w.shells > 0 || w.magazine < 0)
+          );
+        },
         queue: (cmd) => this.runner?.queue(cmd),
         aim: (x, y, fromTap) => {
           this.weapon.aim(x, y, fromTap || this.inputKind === 'pointer');

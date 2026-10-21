@@ -19,6 +19,12 @@ export interface LivePrefs {
   reduceFlashes: boolean;
   shake: boolean;
   leftHanded: boolean;
+  /** M9 accessibility (GDD §18.3). */
+  textScale: number;
+  highContrast: boolean;
+  captions: boolean;
+  colourBlind: boolean;
+  holdToFire: boolean;
 }
 
 type TierLook = Feel['quality']['tiers']['low'];
@@ -46,7 +52,24 @@ export function computePrefs(s: Settings, i: PrefInputs): LivePrefs {
     // null = follow the OS reduced-motion preference.
     shake: s.screenShake ?? !i.reducedMotion,
     leftHanded: s.leftHanded,
+    textScale: s.textSize === 'large' ? i.feel.accessibility.largeTextScale : 1,
+    highContrast: s.highContrast,
+    captions: s.captions,
+    colourBlind: s.colourBlind,
+    holdToFire: s.holdToFire,
   };
+}
+
+/**
+ * The ⛔ badge over a don't-shoot creature (GDD §18.3: shape + icon, never colour alone): until
+ * its first sighting (Bird Book), or always with Settings → colour-blind aids (M9).
+ */
+export function showDontShootBadge(
+  prefs: Pick<LivePrefs, 'colourBlind'>,
+  birdBook: readonly string[],
+  creature: string,
+): boolean {
+  return prefs.colourBlind || !birdBook.includes(creature);
 }
 
 /** Updates `target` in place (views hold a reference to it). */

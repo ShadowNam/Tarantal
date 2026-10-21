@@ -7,6 +7,12 @@
 //   Hold-to-fire (Mielie-Masjien, Chilli Biltong — the snapshot says when): pressing starts a
 //   hold (fireHoldStart), moving aims it (fireHoldMove), lifting ends it (fireHoldEnd). On touch a
 //   held finger aims instead of panning; holding it near a screen edge pans (D-021).
+//   M9 Settings → hold to fire (GDD §18.3) gives every weapon the same hold: a weapon without its
+//   own hold gets a plain `fire` at the held position each tick the gun is ready (never an empty
+//   click), so the sim and replays are unchanged — these are ordinary fire commands. A mouse
+//   press starts it at once. A finger first stays an ordinary gesture: only once it has been
+//   still (< tapMaxMovePx) for touchHoldMs does it become the hold, so a tap still fires once and
+//   a drag still pans, a flick still reloads (D-026). This hold doesn't edge-pan.
 // Positions are converted to design px of the visible screen; the fire command carries dx from
 // the screen centre (never an absolute x — the sim doesn't know the viewport width).
 import type { Feel } from '../../content/schemas';
@@ -27,8 +33,12 @@ export interface InputHost {
   isOnUi(x: number, y: number): boolean;
   /** Esc / P: open the pause menu. */
   pause(): void;
-  /** The active weapon fires while held (snapshot weapon.holdToFire). */
+  /** Holding fires: the weapon's own hold (snapshot weapon.holdToFire) or Settings → hold to fire. */
   holdToFire(): boolean;
+  /** The active weapon has its own hold (fireHoldStart/Move/End commands). */
+  weaponHolds(): boolean;
+  /** The gun can fire this tick (loaded, not reloading, no cooldown): repeat-fire only then. */
+  readyToFire(): boolean;
   queue(cmd: Command): void;
   /** Cursor/finger position for the reticle and gun lean. */
   aim(x: number, y: number, fromTap: boolean): void;
@@ -54,8 +64,19 @@ export class InputMapper {
   /** The pointer holding fire down (mouse or finger), if any. */
   private holdPointer: number | null = null;
   private lastHold = { x: 0, y: 0 };
+  /** The hold repeats plain fire commands (Settings → hold to fire on a weapon without a hold). */
+  private repeating = false;
+  /** Touch + Settings → hold to fire: a finger that may still become a hold (see the header). */
+  private pendingHold: { id: number; x: number; y: number; at: number } | null = null;
 
-  constructor(canvas: HTMLCanvasElement, feel: Feel, host: InputHost, startCx: number) {
+  constructor(
+    canvas: HTMLCanvasElement,
+    feel: Feel,
+    host: InputHost,
+    startCx: number,
+    /** Same time base as PointerEvent.timeStamp (tests pass their own). */
+    private readonly now: () => number = () => performance.now(),
+  ) {
     this.canvas = canvas;
     this.feel = feel;
     this.host = host;
@@ -122,8 +143,21 @@ export class InputMapper {
   /** Commands for the next sim tick (camera from drag/inertia/keys/edges). */
   perTick(): Command[] {
     if (!this.enabled) return [];
+    const pending = this.pendingHold;
+    if (pending !== null && this.now() - pending.at >= this.feel.input.touchHoldMs) {
+      // The finger stayed still long enough: no longer a tap, drag or flick, but the hold.
+      this.pendingHold = null;
+      this.gestures.cancel(pending.id);
+      this.host.aim(pending.x, pending.y, true);
+      this.startHold(pending.id, pending.x, pending.y);
+    }
     const cx = this.pan.tick();
-    return cx === null ? [] : [{ t: 'cameraTarget', cx }];
+    const cmds: Command[] = cx === null ? [] : [{ t: 'cameraTarget', cx }];
+    if (this.repeating && this.holdPointer !== null && this.host.readyToFire()) {
+      const { width } = this.host.designSize();
+      cmds.push({ t: 'fire', dx: this.lastHold.x - width / 2, sy: this.lastHold.y });
+    }
+    return cmds;
   }
 
   destroy(): void {
@@ -155,7 +189,10 @@ export class InputMapper {
     const { width } = this.host.designSize();
     this.holdPointer = id;
     this.lastHold = { x, y };
-    this.host.queue({ t: 'fireHoldStart', dx: x - width / 2, sy: y });
+    this.repeating = !this.host.weaponHolds();
+    // Repeat mode: the press itself fires once; perTick repeats while the gun is ready.
+    if (this.repeating) this.fireAt(x, y);
+    else this.host.queue({ t: 'fireHoldStart', dx: x - width / 2, sy: y });
   }
 
   private moveHold(x: number, y: number): void {
@@ -163,13 +200,14 @@ export class InputMapper {
     if (Math.abs(x - this.lastHold.x) < 2 && Math.abs(y - this.lastHold.y) < 2) return;
     const { width } = this.host.designSize();
     this.lastHold = { x, y };
-    this.host.queue({ t: 'fireHoldMove', dx: x - width / 2, sy: y });
+    if (!this.repeating) this.host.queue({ t: 'fireHoldMove', dx: x - width / 2, sy: y });
   }
 
   private endHold(id: number): void {
     if (this.holdPointer !== id) return;
     this.holdPointer = null;
-    this.host.queue({ t: 'fireHoldEnd' });
+    if (this.repeating) this.repeating = false;
+    else this.host.queue({ t: 'fireHoldEnd' });
   }
 
   private onDown(e: PointerEvent): void {
@@ -203,8 +241,17 @@ export class InputMapper {
     } catch {
       // Synthetic pointers can't always be captured; gestures still work without it.
     }
-    if (!onButton && this.holdPointer === null && this.host.holdToFire()) {
-      // A held finger fires and aims; the screen edges pan.
+    if (
+      !onButton &&
+      this.holdPointer === null &&
+      this.pendingHold === null &&
+      this.host.holdToFire() &&
+      !this.host.weaponHolds()
+    ) {
+      // Settings → hold to fire: an ordinary gesture until the finger has been still a moment.
+      this.pendingHold = { id: e.pointerId, x: p.x, y: p.y, at: e.timeStamp };
+    } else if (!onButton && this.holdPointer === null && this.host.holdToFire()) {
+      // A weapon with its own hold: a held finger fires and aims; the screen edges pan.
       this.pan.hold();
       this.host.aim(p.x, p.y, true);
       this.host.fingerDown(true);
@@ -219,6 +266,12 @@ export class InputMapper {
   private onMove(e: PointerEvent): void {
     if (!this.enabled || this.ignored.has(e.pointerId)) return;
     const p = this.toDesign(e.clientX, e.clientY);
+    const pending = this.pendingHold;
+    if (
+      pending?.id === e.pointerId &&
+      Math.hypot(p.x - pending.x, p.y - pending.y) > this.feel.input.tapMaxMovePx
+    )
+      this.pendingHold = null; // it moved: a drag or a flick, not a hold
     if (e.pointerId === this.holdPointer) this.moveHold(p.x, p.y);
     if (e.pointerType === 'mouse') {
       this.host.aim(p.x, p.y, true);
@@ -229,7 +282,9 @@ export class InputMapper {
     if (e.pointerId === this.holdPointer) {
       const { width } = this.host.designSize();
       this.host.aim(p.x, p.y, true);
-      this.pan.setEdgeDirection(edgeDirection(p.x, width, this.feel.input.edgePanFraction));
+      // Only a weapon's own hold edge-pans; the Settings hold just aims.
+      if (!this.repeating)
+        this.pan.setEdgeDirection(edgeDirection(p.x, width, this.feel.input.edgePanFraction));
       return;
     }
     const dx = this.gestures.move(e.pointerId, p.x, p.y, e.timeStamp);
@@ -237,6 +292,7 @@ export class InputMapper {
   }
 
   private onUp(e: PointerEvent): void {
+    if (this.pendingHold?.id === e.pointerId) this.pendingHold = null; // lifted first: a tap
     if (this.ignored.delete(e.pointerId)) return;
     if (e.pointerId === this.holdPointer) {
       this.endHold(e.pointerId);
@@ -274,6 +330,7 @@ export class InputMapper {
   }
 
   private onCancel(e: PointerEvent): void {
+    if (this.pendingHold?.id === e.pointerId) this.pendingHold = null;
     this.ignored.delete(e.pointerId);
     if (e.pointerId === this.holdPointer) {
       this.endHold(e.pointerId);
