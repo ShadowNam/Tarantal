@@ -1,3 +1,4 @@
+import { msToTicks } from '../clock';
 import { describe, expect, it } from 'vitest';
 import { loadContent } from '../../../tools/testContent';
 import {
@@ -71,16 +72,17 @@ describe('Dubbelloop belt (GDD §5.1)', () => {
 });
 
 describe('per-shell reloads', () => {
-  it('Plaas-Pomp loads one shell per 0.35 s and a shot interrupts the reload', () => {
+  it('Plaas-Pomp loads one shell per reload step and a shot interrupts the reload', () => {
     const t = weaponTiming(primary('pomp'));
-    expect(t.reloadTicks).toBe(21);
+    const step = t.reloadTicks;
+    expect(step).toBe(msToTicks(primary('pomp').reloadMs));
     const s = createWeaponState(t);
     for (let i = 0; i < 6; i++) fireReady(s, t);
     startReload(s, t);
-    for (let i = 0; i < 20; i++) tickWeapon(s, t);
+    for (let i = 0; i < step - 1; i++) tickWeapon(s, t);
     expect(tryFire(s, t).kind).toBe('blocked'); // nothing loaded yet
     expect(tickWeapon(s, t)).toBe('shellLoaded');
-    for (let i = 0; i < 21; i++) tickWeapon(s, t);
+    for (let i = 0; i < step; i++) tickWeapon(s, t);
     expect(s.shells).toBe(2);
     const shot = tryFire(s, t);
     expect(shot).toEqual({ kind: 'fired', interrupted: true });
