@@ -75,6 +75,14 @@ export function createHumanBot(
   const layerFactor = new Map(
     content.biomes.flatMap((b) => b.layers.map((l) => [l.id, l.scrollFactor] as const)),
   );
+  /** Near-miss secrets (the dassie): a knowing player shoots beside the part, not at it. */
+  const nearMissOffset = new Map(
+    content.biomes.flatMap((b) =>
+      b.props.flatMap((p) =>
+        p.secret?.type === 'nearMiss' ? [[p.id, p.secret.radiusPx * 0.6] as const] : [],
+      ),
+    ),
+  );
 
   const gauss = (r: RandomStream): number => {
     // Box–Muller (tools may use Math; the sim never sees this).
@@ -207,7 +215,11 @@ export function createHumanBot(
                     const old = prev?.parts.find((x) => x.id === part.id);
                     const vx = old === undefined ? 0 : part.x - old.x;
                     const vy = old === undefined ? 0 : part.y - old.y;
-                    return { dx: planeToDx(cx, f, part.x + vx * lag), sy: part.y + vy * lag };
+                    const beside = nearMissOffset.get(sec.propId) ?? 0;
+                    return {
+                      dx: planeToDx(cx, f, part.x + vx * lag + beside),
+                      sy: part.y + vy * lag,
+                    };
                   });
               })
               .filter(inView);

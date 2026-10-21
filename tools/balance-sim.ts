@@ -4,6 +4,7 @@
 //
 // Usage: npx tsx tools/balance-sim.ts [--seeds 500] [--bots random,plinker,competent]
 //          [--input pointer|touch] [--mode classic|daily] [--omen on|off] [--workers N]
+//          [--biome <id>]  (M8: any biome; default the mode's)
 //          [--out tmp/x.json] [--json]
 //        npm run balance -- --run …   Season Runs per charm policy (see tools/season-sim.ts)
 // --omen overrides the mode's omen (modes.json: Classic off, Daily on).
@@ -25,6 +26,8 @@ interface Job {
   readonly mode: ModeId;
   /** Overrides the mode's omen (biome weather). */
   readonly omen?: boolean | undefined;
+  /** Overrides the mode's biome (M8: each biome's own Classic report). */
+  readonly biome?: string | undefined;
   /** Exploratory overrides (`--set path=json`), applied to a copy of the content. */
   readonly overrides?: readonly string[];
 }
@@ -74,7 +77,11 @@ export function playRows(job: Job): HuntRow[] {
     const sim = createSim({
       seed,
       content,
-      mode: job.omen === undefined ? { id: job.mode } : { id: job.mode, omen: job.omen },
+      mode: {
+        id: job.mode,
+        ...(job.omen === undefined ? {} : { omen: job.omen }),
+        ...(job.biome === undefined ? {} : { biome: job.biome }),
+      },
       inputKind: job.input,
     });
     const bot = createBot(job.bot, seed, content, job.input);
@@ -223,6 +230,8 @@ async function main(): Promise<void> {
   const mode: ModeId = arg('mode', 'classic') === 'daily' ? 'daily' : 'classic';
   const omenArg = arg('omen', '');
   const omen = omenArg === 'on' ? true : omenArg === 'off' ? false : undefined;
+  const biomeArg = arg('biome', '');
+  const biome = biomeArg === '' ? undefined : biomeArg;
   const workers = Math.max(1, Number(arg('workers', String(availableParallelism()))));
   const overrides = process.argv.flatMap((a, i) =>
     a === '--set' ? [process.argv[i + 1] ?? ''] : [],
@@ -234,7 +243,7 @@ async function main(): Promise<void> {
   for (const bot of bots) {
     const chunk = Math.ceil(seeds / workers);
     for (let i = 0; i < all.length; i += chunk)
-      jobs.push({ bot, seeds: all.slice(i, i + chunk), input, mode, omen, overrides });
+      jobs.push({ bot, seeds: all.slice(i, i + chunk), input, mode, omen, biome, overrides });
   }
   // Run at most `workers` processes at a time.
   const results: HuntRow[] = [];
@@ -257,7 +266,7 @@ async function main(): Promise<void> {
   );
   const gates = m3Gates(new Map(summaries.map((s) => [s.bot, s])));
   const seconds = (performance.now() - started) / 1000;
-  const report = { seeds, mode, omen, input, bots, overrides, summaries, gates, seconds };
+  const report = { seeds, mode, biome, omen, input, bots, overrides, summaries, gates, seconds };
 
   const out = arg('out', '');
   if (out !== '') {
@@ -269,7 +278,7 @@ async function main(): Promise<void> {
     return;
   }
   console.log(
-    `Balance sim — ${mode}${omen === undefined ? '' : `, omen ${omen ? 'on' : 'off'}`}, ${input}, ${seeds} seeds per bot, ${workers} workers, ${seconds.toFixed(0)} s`,
+    `Balance sim — ${mode}${biome === undefined ? '' : ` ${biome}`}${omen === undefined ? '' : `, omen ${omen ? 'on' : 'off'}`}, ${input}, ${seeds} seeds per bot, ${workers} workers, ${seconds.toFixed(0)} s`,
   );
   if (overrides.length > 0) console.log(`overrides: ${overrides.join('  ')}`);
   console.log(formatTable(summaries));
