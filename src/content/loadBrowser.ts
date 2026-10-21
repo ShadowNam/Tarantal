@@ -2,8 +2,9 @@
 // Same parse path as Node (bundle.ts), so the contentHash matches tools and replays.
 import { parseContent, type RawContent } from './bundle';
 import { parseFeel } from './feel';
+import { parseDailyMeta } from './daily';
 import { parseNotaboek } from './notaboek';
-import type { ContentBundle, Feel, Notaboek } from './schemas';
+import type { ContentBundle, DailyMeta, Feel, Notaboek } from './schemas';
 
 const topLevel = import.meta.glob<unknown>('../../content/*.json', { eager: true, import: 'default' });
 const biomeFiles = import.meta.glob<unknown>('../../content/biomes/*.json', {
@@ -16,6 +17,11 @@ const feelFiles = import.meta.glob<unknown>('../../content/client/feel.json', {
 });
 
 const notaboekFiles = import.meta.glob<unknown>('../../content/meta/notaboek.json', {
+  eager: true,
+  import: 'default',
+});
+
+const dailyFiles = import.meta.glob<unknown>('../../content/meta/daily.json', {
   eager: true,
   import: 'default',
 });
@@ -37,6 +43,7 @@ export interface GameContent {
   readonly bundle: ContentBundle;
   readonly feel: Feel;
   readonly notaboek: Notaboek;
+  readonly daily: DailyMeta;
 }
 
 /** Validated content for the game; throws with every problem listed if content is broken. */
@@ -50,5 +57,7 @@ export function loadGameContent(): GameContent {
   if (!feel.ok) throw new Error(`content/client/feel.json invalid: ${feel.errors.join('; ')}`);
   const nb = parseNotaboek(Object.values(notaboekFiles)[0]);
   if (!nb.ok) throw new Error(`content/meta/notaboek.json invalid: ${nb.errors.join('; ')}`);
-  return { bundle: parsed.bundle, feel: feel.feel, notaboek: nb.notaboek };
+  const daily = parseDailyMeta(Object.values(dailyFiles)[0]);
+  if (!daily.ok) throw new Error(`content/meta/daily.json invalid: ${daily.errors.join('; ')}`);
+  return { bundle: parsed.bundle, feel: feel.feel, notaboek: nb.notaboek, daily: daily.value };
 }

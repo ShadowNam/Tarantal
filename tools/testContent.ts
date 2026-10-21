@@ -4,8 +4,9 @@ import { parseContent } from '../src/content/bundle';
 import { contentHash } from '../src/content/hash';
 import { readContentDir } from '../src/content/loadNode';
 import { readFileSync } from 'node:fs';
+import { parseDailyMeta } from '../src/content/daily';
 import { parseNotaboek } from '../src/content/notaboek';
-import type { ContentBundle, Notaboek } from '../src/content/schemas';
+import type { ContentBundle, DailyMeta, Notaboek } from '../src/content/schemas';
 
 const root = join(import.meta.dirname, '..');
 
@@ -40,4 +41,11 @@ export function loadNotaboek(): Notaboek {
   );
   if (!r.ok) throw new Error(`meta/notaboek.json is invalid: ${r.errors.join('; ')}`);
   return r.notaboek;
+}
+
+/** content/meta/daily.json, validated (meta-only, not in the bundle). */
+export function loadDailyMeta(): DailyMeta {
+  const r = parseDailyMeta(JSON.parse(readFileSync(join(root, 'content/meta/daily.json'), 'utf8')));
+  if (!r.ok) throw new Error(`meta/daily.json is invalid: ${r.errors.join('; ')}`);
+  return r.value;
 }

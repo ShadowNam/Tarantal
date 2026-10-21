@@ -963,3 +963,40 @@ export const NotaboekSchema = obj({
 });
 export type Notaboek = z.infer<typeof NotaboekSchema>;
 export type NotaboekChallenge = Notaboek['challenges'][number];
+
+// ---------------------------------------------------------------------------------------------
+// meta/daily.json — Daily Hunt meta (GDD §12, §15; Tech §12). Outside the sim ContentBundle and
+// its contentHash (like notaboek.json): it never changes a hunt or a daily seed.
+
+const isoDate = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'dates look like YYYY-MM-DD')
+  .refine((s) => {
+    const [y, m, d] = s.split('-').map(Number);
+    if (y === undefined || m === undefined || d === undefined) return false;
+    const leap = (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+    const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m - 1];
+    return days !== undefined && d >= 1 && d <= days;
+  }, 'not a calendar date');
+
+export const DailyMetaSchema = obj({
+  version,
+  /** UTC day of Daily #1. */
+  epoch: isoDate,
+  /** Day n plays rotation[n mod length] (filtered to playable biomes; Tech §12). */
+  biomeRotation: z.array(id).min(1),
+  /** Recent days kept in the save. */
+  historyDays: posInt,
+  /** ISO weeks whose freeze use is remembered (older weeks can't matter any more). */
+  freezeWeeksKept: posInt,
+  /** Streak lengths that award a cosmetic (GDD §15: cosmetics only). */
+  streakMilestones: z.array(obj({ days: posInt, cosmetic: id })),
+  /** Share-card emoji grid: hunt cut into `segments`; accuracy ≥ green → 🟩, ≥ yellow → 🟨. */
+  grid: obj({ segments: posInt.max(10), green: fraction, yellow: fraction }).refine(
+    (g) => g.yellow <= g.green,
+    'grid.yellow must be <= grid.green',
+  ),
+  /** Challenge links (Tech §12): longest `c` parameter decoded, longest `by` name kept. */
+  challenge: obj({ maxLinkChars: posInt, maxByChars: posInt.max(64) }),
+});
+export type DailyMeta = z.infer<typeof DailyMetaSchema>;

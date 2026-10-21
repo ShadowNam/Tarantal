@@ -1,0 +1,16 @@
+{
+  "$comment": "Daily Hunt meta (GDD §12, §15; Tech §12). Outside the sim bundle and contentHash like notaboek.json: editing it never changes a hunt or a daily seed. epoch = the UTC day of Daily #1 (placeholder until the launch date is fixed). biomeRotation: day n plays rotation[n mod length], filtered to biomes that exist and have art (only Karoo until M8). grid: the share card's emoji squares = the hunt cut into `segments` equal parts, each coloured by its accuracy (shots that bagged / shots fired). Streak milestones give cosmetics only.",
+  "version": 1,
+  "epoch": "2026-10-21",
+  "biomeRotation": ["karoo-autumn", "bushveld-winter", "okavango-spring", "kalahari-summer"],
+  "historyDays": 60,
+  "freezeWeeksKept": 10,
+  "streakMilestones": [
+    { "days": 3, "cosmetic": "streak_3" },
+    { "days": 7, "cosmetic": "streak_7" },
+    { "days": 30, "cosmetic": "streak_30" },
+    { "days": 100, "cosmetic": "streak_100" }
+  ],
+  "grid": { "segments": 5, "green": 0.6, "yellow": 0.3 },
+  "challenge": { "maxLinkChars": 600, "maxByChars": 24 }
+}

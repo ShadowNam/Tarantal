@@ -6,6 +6,7 @@ import { parseContent } from '../src/content/bundle';
 import { checkCrossRefs } from '../src/content/crossRefs';
 import { readContentDir, readI18nKeys } from '../src/content/loadNode';
 import { parseFeel } from '../src/content/feel';
+import { parseDailyMeta } from '../src/content/daily';
 import { parseNotaboek } from '../src/content/notaboek';
 import { readFileSync } from 'node:fs';
 
@@ -43,12 +44,22 @@ if (!notaboek.ok) {
   process.exit(1);
 }
 fileNames.push('meta/notaboek.json');
+
+// Meta-only Daily Hunt settings (not part of the sim bundle, D-024).
+const daily = parseDailyMeta(JSON.parse(readFileSync(join(contentDir, 'meta/daily.json'), 'utf8')));
+if (!daily.ok) {
+  console.error('content: meta/daily.json FAILED');
+  for (const e of daily.errors) console.error(`  ✗ meta/daily.json: ${e}`);
+  process.exit(1);
+}
+fileNames.push('meta/daily.json');
 fileNames.sort();
 
 const report = checkCrossRefs(parsed.bundle, {
   i18nKeys: readI18nKeys(join(root, 'src/i18n/en.json')),
   strict,
   notaboek: notaboek.notaboek,
+  daily: daily.value,
 });
 
 for (const name of fileNames) {
