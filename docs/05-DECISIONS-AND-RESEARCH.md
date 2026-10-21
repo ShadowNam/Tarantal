@@ -660,7 +660,15 @@ keyboard-only menus incl. the new page and privacy → `a11y.spec.ts` + `menus.s
 anywhere → `menus.spec.ts`; large-flash cap → content validation (`maxFlashesPerSecond`);
 language → `persistence.spec.ts`. *Needs a person:* a screen-reader and keyboard-only pass, and
 a colour-blind player's look at the don't-shoot creatures.
-
+*PR C addition — Padstal clarity (user feedback: "couldn't tell what the screen is for"):*
+(26a) a first-visit explainer card (Doppies, charms and slot order, consumables, the rental gun,
+quota = run over), dismissed once into `SaveData.notices` (`padstal_help`) and reopenable from a
+"?" button; (26b) an offer the player can't buy says why on the card ("need N more", "slots full",
+"consumable slots full", "already renting") instead of only greying out; (26c) row labels "For
+sale" and "Your charms (drag to reorder)"; (26d) empty slots read "Consumables: empty, empty" and
+"Rental gun: none" (was "— | No rental"). Strings in en/af here, de/nl on PR D.
+`season-run.spec.ts` checks the card on the first visit only, not after a reload, and reopens it
+with "?" (screenshots `season-padstal-help-*`, `season-padstal-*`, desktop + Pixel 7).
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
