@@ -14,8 +14,9 @@ import {
   type BirdFrame,
   type CanvasSpec,
 } from '../assets/AssetManifest';
+import { arsenalSpecs } from './arsenalArt';
+import { ellipse, ground, inked, INK, prng } from './draw';
 
-const INK = '#1B1410';
 const KAROO = {
   skyTop: '#8DB8D8',
   skyBottom: '#F2D8A7',
@@ -79,40 +80,6 @@ const CASQUE = '#C68B59';
 const CASQUE_HI = '#E2C08F';
 const BEAK = '#E9A23B';
 const LEGS = '#6B5B4B';
-
-/** Small seeded PRNG (mulberry32) for stable placeholder scenery. Rendering only. */
-function prng(seed: number): () => number {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-function ellipse(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  rx: number,
-  ry: number,
-): void {
-  ctx.beginPath();
-  ctx.ellipse(x, y, Math.max(0.1, rx), Math.max(0.1, ry), 0, 0, Math.PI * 2);
-}
-
-function inked(ctx: CanvasRenderingContext2D, fill: string, line: number): void {
-  ctx.fillStyle = fill;
-  ctx.fill();
-  if (line > 0) {
-    ctx.strokeStyle = INK;
-    ctx.lineWidth = line;
-    ctx.lineJoin = 'round';
-    ctx.stroke();
-  }
-}
 
 // ---------------------------------------------------------------------------------------------
 // Birds
@@ -412,26 +379,6 @@ interface Band {
   readonly bottom: number;
   readonly scale: number;
   draw(ctx: CanvasRenderingContext2D, width: number, rnd: () => number): void;
-}
-
-/** Ground fill with a wavy top edge from y0 down to the band bottom. */
-function ground(
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  y0: number,
-  bottom: number,
-  amp: number,
-  fill: string,
-  line: number,
-  rnd: () => number,
-): void {
-  ctx.beginPath();
-  ctx.moveTo(0, bottom);
-  ctx.lineTo(0, y0);
-  for (let x = 0; x <= width; x += 120) ctx.lineTo(x, y0 + (rnd() - 0.5) * amp);
-  ctx.lineTo(width, bottom);
-  ctx.closePath();
-  inked(ctx, fill, line);
 }
 
 function bush(ctx: CanvasRenderingContext2D, x: number, y: number, s: number, line: number): void {
@@ -1319,5 +1266,6 @@ export function createPlaceholderManifest(content: ContentBundle, biome: Biome):
   for (const prop of biome.props) m.addTexture(propSpec(prop));
   for (const s of uiSpecs()) m.addTexture(s);
   for (const s of m4Specs()) m.addTexture(s);
+  for (const s of arsenalSpecs()) m.addTexture(s);
   return m;
 }

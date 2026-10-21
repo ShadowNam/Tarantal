@@ -50,6 +50,10 @@ export interface TestHook {
   ticksLeft: number;
   score: number;
   shells: number;
+  /** M8: belt size (-1 = no belt, Kettie), reloading, and Kettie stones in the air. */
+  magazine: number;
+  reloading: boolean;
+  stones: number;
   shots: number;
   over: boolean;
   inputKind: InputKind | null;

@@ -75,9 +75,11 @@ describe('placeholder manifest', () => {
     for (const key of Object.values(TEX)) expect(m.has(key), key).toBe(true);
   });
 
-  it('has first-person art for every weapon a crate can give (M4)', () => {
+  it('has first-person art for every weapon a crate can give (M4) and every other primary (M8)', () => {
     for (const w of content.weapons.weapons) {
-      if (w.kind === 'crate') expect(m.has(gunKey(w.id)), w.id).toBe(true);
+      // The starting Dubbelloop is TEX.gun, the fallback for any id without its own art.
+      if (w.id === 'dubbelloop') continue;
+      expect(m.has(gunKey(w.id)), w.id).toBe(true);
     }
   });
 });

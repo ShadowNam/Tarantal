@@ -376,6 +376,35 @@ for Classic bests. M9 should gate the hooks out of portal builds or give them th
 namespace (the e2e specs read `tm.save.v1` directly, so that needs a spec change too). No trust is
 placed in local results (Tech §12), so this only affects the player's own save.
 
+**D-025 M8 Remaining biomes and arsenal (21 Oct 2026):** decisions made while building the three
+remaining biomes, their bosses and the launch arsenal. Shipped as a stack of PRs (A arsenal,
+B Bushveld, C Okavango, D Kalahari, E stand-in removal + Season Run tuning); each part adds here.
+*PR A — arsenal.* (1) *Kettie = delayed hitscan* (Tech §3.4): three depth bands by scroll factor,
+the stone flies to the world point under the tap for the camera at fire time, each band is tested
+at its own travel time against what stands there then; drop and wind (far band) on arrival. The
+whole resolution (Frenzy, miss, Generaal's "every miss alerts all flocks", charm `shot`/`miss`
+triggers) happens at landing. A stone still in the air at the hunt end is dropped (a shot, not a
+miss). No new command or RNG stream; the replay stays **v3**. `fire()` was split into trigger +
+`resolveShot` with hitscan shots resolving in the same tick: every golden replay kept its event
+hash. (2) *Kuifkop Koning × Kettie:* "reload takes twice as long" doubles the Kettie's draw (its
+fire cooldown), because it has no belt to reload — the GDD's Mag/reload column lists "∞ / 0.35 s
+draw". (3) *Plaas-Pomp tuned:* with the GDD's 0.35 s per shell and 48 px spread the competent bot
+scored 5 924 vs the Dubbelloop's 4 134 (500 seeds) — the interruptible reload never cost time and
+the tight spread hit 77 % vs 60 %. Now 0.7 s per shell and 60 px: 4 306 (plinker 33 % below).
+Weapons Windbuks 3 039 and Kettie 4 713 (200 seeds) are left as they are: the Windbuks's silence
+and far ×1.5 pay off in biomes with far flocks, and the Kettie needs leading that bots do better
+than people (human check). (4) *Bots* lead Kettie stones by the travel time and aim above the
+drop; hitscan aims are unchanged. (5) *Daily golden seeds pinned:* the M7 daily cases derived
+their seed from `contentHash`, so every content edit changed their event hash; they now keep the
+M7 seed (1286298468), and `daily.spec.ts` still checks the browser derives the same daily seed as
+Node. (6) *Placeholders:* gun art for the three primaries (`placeholder/arsenalArt.ts`; shared
+canvas primitives moved to `placeholder/draw.ts`), a stone sprite drawn from the gun to the aim
+point (it follows the world as you pan; the mid plane stands in for depth), a Kettie draw meter
+in the belt slot and per-shell reloads fading the next shell in. (7) *Golden replays:* re-recorded
+for the content hash only, every existing case kept its event hash, count and score; new cases
+`classic-21-kettie-competent-pointer`, `classic-22-windbuks-competent-touch`,
+`classic-23-pomp-competent-pointer`, `season-kuifkop-boss-pomp-competent`.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

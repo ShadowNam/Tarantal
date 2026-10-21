@@ -56,12 +56,19 @@ function aimBot(seed: number, content: ContentBundle): Bot {
   const creatures = new Map(content.birds.creatures.map((c) => [c.id, c]));
   let reactUntil = 0;
 
-  const aimPoint = (b: BirdView, cx: number): { dx: number; sy: number } => {
+  // The aim bot doesn't lead, but it knows a Kettie stone drops (it aims that much higher).
+  const drops = new Map(
+    content.weapons.weapons.flatMap((w) =>
+      w.kind === 'primary' && w.projectile !== null ? [[w.id, w.projectile.dropPx] as const] : [],
+    ),
+  );
+  const aimPoint = (b: BirdView, cx: number, weapon: string): { dx: number; sy: number } => {
     const p = planes[b.plane];
     const c = creatures.get(b.creature);
     const body = c !== undefined && 'hitbox' in c ? c.hitbox.body : { ox: 0, oy: 0 };
     const x = b.x + body.ox * p.scale * b.facing;
-    return { dx: planeToDx(cx, p.scrollFactor, x), sy: b.y + body.oy * p.scale };
+    const drop = drops.get(weapon)?.[b.plane] ?? 0;
+    return { dx: planeToDx(cx, p.scrollFactor, x), sy: b.y + body.oy * p.scale - drop };
   };
 
   return {
@@ -70,7 +77,7 @@ function aimBot(seed: number, content: ContentBundle): Bot {
       const out: Command[] = [];
       const targets = s.birds.filter((b) => b.hittable && b.kind !== 'nonTarget');
       const visible = targets
-        .map((b) => ({ b, ...aimPoint(b, s.cameraX) }))
+        .map((b) => ({ b, ...aimPoint(b, s.cameraX, s.weapon.id) }))
         .filter((t) => Math.abs(t.dx) < VIEW_HALF_WIDTH);
       const ready = s.weapon.cooldownTicks === 0 && !s.weapon.reloading;
 

@@ -42,6 +42,8 @@ export type SimEvent =
       /** A secret part (with propId) or a crate the pellet stopped on. */
       readonly partId: string | null;
       readonly crateId: number | null;
+      /** Kettie stones only: the camera centre the shot was fired at (dx is relative to it). */
+      readonly cx?: number;
     }
   | { readonly type: 'miss'; readonly tick: number; readonly shotId: number }
   | { readonly type: 'emptyClick'; readonly tick: number }

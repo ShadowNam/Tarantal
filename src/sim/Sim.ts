@@ -104,9 +104,11 @@ import {
   resolvePellet,
   type HitBird,
   type HitExtra,
+  type PelletResult,
   type ShotGeometry,
 } from './weapons/hitTest';
 import { pelletOffsets } from './weapons/pellets';
+import { bandGeometry, projectileBands, type Flight } from './weapons/projectile';
 import {
   createWeaponState,
   isReloading,
@@ -158,9 +160,6 @@ function resolveSetup(content: ContentBundle, config: SimConfig): HuntSetup {
   if (biome === undefined) throw new Error(`unknown biome ${biomeId}`);
   const weapon = content.weapons.weapons.find((w) => w.id === weaponId);
   if (weapon?.kind !== 'primary') throw new Error(`${weaponId} is not a primary weapon`);
-  if (weapon.projectile !== null) {
-    throw new Error(`${weaponId}: projectile weapons arrive in M8 (delayed hitscan)`);
-  }
   // Replays store huntSeconds on the 0.5 grid, so only allow values that survive that.
   if (!(huntSeconds > 0) || !Number.isInteger(huntSeconds * 2)) {
     throw new Error('huntSeconds must be a positive multiple of 0.5');
@@ -206,18 +205,39 @@ function checkSeason(content: ContentBundle, mode: string, season: SeasonHuntCon
     throw new Error('runShellBonus must be a whole number ≥ 0');
 }
 
-/** Season Run: the primary's belt and reload with charm passives and the Boss Rule applied. */
+/** Season Run: the primary's belt and reload with charm passives and the Boss Rule applied.
+ *  A weapon with no belt (Kettie) has no reload: its draw (fire cooldown) is its reload, so
+ *  Kuifkop Koning's "reload twice as long" doubles the draw instead (D-025). */
 function seasonTiming(
   base: WeaponTiming,
   shellBonus: number,
   reloadSpeedMul: number,
   reloadMul: number,
 ): WeaponTiming {
+  const unlimited = base.magazine < 0;
   return {
     ...base,
-    magazine: base.magazine < 0 ? base.magazine : Math.max(1, base.magazine + shellBonus),
+    magazine: unlimited ? base.magazine : Math.max(1, base.magazine + shellBonus),
     reloadTicks: Math.max(1, Math.round(base.reloadTicks / reloadSpeedMul)) * reloadMul,
+    cooldownTicks: unlimited ? base.cooldownTicks * reloadMul : base.cooldownTicks,
   };
+}
+
+/** A fired shot until it resolves (at once, or when a Kettie stone lands). */
+interface ShotContext {
+  readonly shotId: number;
+  readonly shot: ShotStats;
+  readonly shellIndex: number | null;
+  readonly lastShell: boolean;
+  /** Camera centre when fired (impacts are screen dx from it). */
+  readonly cx: number;
+}
+
+/** A pellet that has landed: where (screen px for the shot's camera) and on what. */
+interface Landed {
+  readonly dx: number;
+  readonly sy: number;
+  readonly r: PelletResult;
 }
 
 /** The numbers a shot needs from whichever weapon is active (primary or crate weapon). */
@@ -397,6 +417,15 @@ export function createSim(config: SimConfig): Sim {
           }
         : { near: 0, mid: 0, far: 0 },
   };
+  /** Kettie flight bands (delayed hitscan, Tech §3.4); null for hitscan weapons. */
+  const bands =
+    weapon.projectile === null
+      ? null
+      : projectileBands(weapon.projectile, geometry.slices, {
+          near: planeGeo.near.scrollFactor,
+          mid: planeGeo.mid.scrollFactor,
+          far: planeGeo.far.scrollFactor,
+        });
   // FTUE "generous first hit" (GDD §16): wider radii until the first bag.
   const firstHitGeometry: ShotGeometry =
     firstHitAssistPx > 0
@@ -432,6 +461,9 @@ export function createSim(config: SimConfig): Sim {
   let crates: Crate[] = [];
   const powerups: ActivePowerup[] = [];
   let crateWeapon: CrateWeaponState | null = null;
+  /** Kettie stones in the air, in fire order, and their shots. */
+  let flights: Flight[] = [];
+  const stoneShots = new Map<number, ShotContext>();
   /** Held fire position (fireHoldStart … fireHoldEnd). */
   let hold: { dx: number; sy: number } | null = null;
   const wind =
@@ -834,6 +866,74 @@ export function createSim(config: SimConfig): Sim {
     return out;
   }
 
+  /** Birds as hit-test targets, front-most first per plane (higher ids are drawn on top). */
+  function hitBirds(): Record<PlaneId, HitBird[]> {
+    const byPlane: Record<PlaneId, HitBird[]> = { near: [], mid: [], far: [] };
+    for (let i = birds.length - 1; i >= 0; i--) {
+      const b = birds[i];
+      if (b === undefined) continue;
+      byPlane[b.plane].push({
+        id: b.id,
+        plane: b.plane,
+        x: b.x,
+        y: b.y,
+        facing: b.facing,
+        hitbox: b.creature.hitbox,
+        hittable: isHittable(b),
+      });
+    }
+    return byPlane;
+  }
+
+  /** Wind drift of a shot, in screen px on the far plane and behind (Tech §3.4). */
+  function shotDrift(shot: ShotStats): number {
+    return windDriftPx(wind, shot.windSensitivity) * pass.windDriftMul;
+  }
+
+  /**
+   * Where a pellet (or stone) that stopped with result `r` landed, and its pelletImpact event: a
+   * pellet that stopped at or behind the far plane (or flew on into the sky) lands downwind, so
+   * threats and the puff follow the drift (Tech §3.4).
+   */
+  function landPellet(
+    shotId: number,
+    pdx: number,
+    psy: number,
+    r: PelletResult,
+    drift: number,
+    cx: number | null,
+  ): Landed {
+    const farFactor = planeGeo.far.scrollFactor;
+    const plane = r.birdId === null ? null : (birds.find((b) => b.id === r.birdId)?.plane ?? null);
+    const landedFar =
+      r.birdId !== null
+        ? plane === 'far'
+        : r.crateId !== null
+          ? crateCfg.plane === 'far'
+          : r.propId !== null
+            ? (propLayerFactor.get(r.propId) ?? 1) <= farFactor
+            : true;
+    const ldx = landedFar ? pdx + drift : pdx;
+    emit({
+      type: 'pelletImpact',
+      tick,
+      shotId,
+      dx: ldx,
+      sy: psy,
+      birdId: r.birdId,
+      propId: r.propId,
+      partId: r.partId,
+      crateId: r.crateId,
+      ...(cx === null ? {} : { cx }),
+    });
+    return { dx: ldx, sy: psy, r };
+  }
+
+  function driftOn(drift: number): (f: number) => number {
+    const farFactor = planeGeo.far.scrollFactor;
+    return (f: number): number => (f <= farFactor ? drift : 0);
+  }
+
   function fire(dx: number, sy: number): void {
     const usingCrate = crateWeapon !== null;
     const shellsLeft = pullTrigger();
@@ -854,33 +954,19 @@ export function createSim(config: SimConfig): Sim {
     const shotId = nextShotId++;
     stats.shots++;
     emit({ type: 'shotFired', tick, shotId, weapon: shot.id, dx, sy, shellsLeft });
+    const ctx: ShotContext = { shotId, shot, shellIndex, lastShell, cx: cameraX };
 
-    // Front-most first: higher ids are drawn on top within a plane.
-    const byPlane: Record<PlaneId, HitBird[]> = { near: [], mid: [], far: [] };
-    for (let i = birds.length - 1; i >= 0; i--) {
-      const b = birds[i];
-      if (b === undefined) continue;
-      byPlane[b.plane].push({
-        id: b.id,
-        plane: b.plane,
-        x: b.x,
-        y: b.y,
-        facing: b.facing,
-        hitbox: b.creature.hitbox,
-        hittable: isHittable(b),
-      });
+    // Kettie: the stone is in the air; it resolves band by band in flyStones() (Tech §3.4).
+    if (!usingCrate && !blast && bands !== null) {
+      flights.push({ shotId, dx, sy, cx: cameraX, firedTick: tick, next: 0 });
+      stoneShots.set(shotId, ctx);
+      return;
     }
 
+    const byPlane = hitBirds();
     const extras = hitExtras();
-    const drift = windDriftPx(wind, shot.windSensitivity) * pass.windDriftMul;
-    const farFactor = planeGeo.far.scrollFactor;
-    // Wind drifts far shots (Tech §3.4): the far plane and everything behind it.
-    const driftDx = (f: number): number => (f <= farFactor ? drift : 0);
-    const byId0 = new Map(birds.map((b) => [b.id, b]));
-    const pelletsOn = new Map<number, number>();
-    const impacts: { dx: number; sy: number }[] = [];
-    const partHits: { propId: string; partId: string }[] = [];
-    const crateHits: number[] = [];
+    const drift = shotDrift(shot);
+    const landed: Landed[] = [];
     for (const o of pelletOffsets(
       shot.pellets,
       shot.spreadPx * fx.spreadMul,
@@ -889,30 +975,49 @@ export function createSim(config: SimConfig): Sim {
       const pdx = dx + o.ox;
       const psy = sy + o.oy;
       const geo = stats.bagged === 0 ? firstHitGeometry : geometry;
-      const r = resolvePellet(pdx, psy, cameraX, geo, byPlane, extras, driftDx);
-      // The impact is where the pellet landed: downwind if it stopped at or behind the far
-      // plane (or flew on into the sky), so threats and the puff follow the drift (Tech §3.4).
-      const landedFar =
-        r.birdId !== null
-          ? byId0.get(r.birdId)?.plane === 'far'
-          : r.crateId !== null
-            ? crateCfg.plane === 'far'
-            : r.propId !== null
-              ? (propLayerFactor.get(r.propId) ?? 1) <= farFactor
-              : true;
-      const ldx = landedFar ? pdx + drift : pdx;
-      impacts.push({ dx: ldx, sy: psy });
-      emit({
-        type: 'pelletImpact',
-        tick,
-        shotId,
-        dx: ldx,
-        sy: psy,
-        birdId: r.birdId,
-        propId: r.propId,
-        partId: r.partId,
-        crateId: r.crateId,
-      });
+      const r = resolvePellet(pdx, psy, cameraX, geo, byPlane, extras, driftOn(drift));
+      landed.push(landPellet(shotId, pdx, psy, r, drift, null));
+    }
+    resolveShot(ctx, landed);
+  }
+
+  /** Kettie stones in fire order: each reaches its next band, is tested there, and stops at the
+   *  first thing it meets; after the far band it has missed (Tech §3.4). */
+  function flyStones(): void {
+    if (bands === null || flights.length === 0) return;
+    const flying: Flight[] = [];
+    for (const f of flights) {
+      const ctx = stoneShots.get(f.shotId);
+      let done = ctx === undefined;
+      while (!done && ctx !== undefined) {
+        const band = bands[f.next];
+        if (band === undefined || tick - f.firedTick < band.ticks) break;
+        f.next++;
+        const drift = shotDrift(ctx.shot);
+        const psy = f.sy + band.dropPx;
+        const geo = bandGeometry(stats.bagged === 0 ? firstHitGeometry : geometry, band);
+        const r = resolvePellet(f.dx, psy, f.cx, geo, hitBirds(), hitExtras(), driftOn(drift));
+        const stopped =
+          r.birdId !== null || r.propId !== null || r.crateId !== null || f.next >= bands.length;
+        if (!stopped) continue;
+        resolveShot(ctx, [landPellet(f.shotId, f.dx, psy, r, drift, f.cx)]);
+        done = true;
+      }
+      if (done) stoneShots.delete(f.shotId);
+      else flying.push(f);
+    }
+    flights = flying;
+  }
+
+  /** Damage, scoring, bonuses, crates, secrets and threats of a shot whose pellets have landed. */
+  function resolveShot(ctx: ShotContext, landed: readonly Landed[]): void {
+    const { shotId, shot, shellIndex, lastShell, cx: shotCx } = ctx;
+    const pelletsOn = new Map<number, number>();
+    const impacts: { dx: number; sy: number }[] = [];
+    const partHits: { propId: string; partId: string }[] = [];
+    const crateHits: number[] = [];
+    for (const { dx: ldx, sy: lsy, r } of landed) {
+      impacts.push({ dx: ldx, sy: lsy });
       if (r.birdId !== null) pelletsOn.set(r.birdId, (pelletsOn.get(r.birdId) ?? 0) + 1);
       const { propId, partId, crateId } = r;
       if (partId !== null && propId !== null) {
@@ -1094,7 +1199,7 @@ export function createSim(config: SimConfig): Sim {
     // radius (Stil Loop: a miss alerts nobody).
     const miss = !touchedAny && !hitThing;
     const radius = shot.alertRadiusPx * pass.alertRadiusMul * (miss ? pass.missAlertMul : 1);
-    const threatened = shotThreats(flocks, impacts, cameraX, radius, planeGeo, baggedFlockIds);
+    const threatened = shotThreats(flocks, impacts, shotCx, radius, planeGeo, baggedFlockIds);
     threaten(threatened, radius > 0 ? 'shot' : 'silentBag');
     if (targets.length > 0) stats.hitShots++;
     if (miss) {
@@ -1534,6 +1639,8 @@ export function createSim(config: SimConfig): Sim {
       creatureClock -= 1;
       stepCreatures();
     }
+    // Stones land after the birds moved: leading the target is the skill (Tech §3.4).
+    flyStones();
 
     if (crates.length > 0) {
       const expired = crates.filter((c) => tickCrate(c));
@@ -1587,6 +1694,7 @@ export function createSim(config: SimConfig): Sim {
         magazine: cw.def.shots ?? -1,
         reloading,
         reloadProgress: reloading ? 1 - cw.cooldownTicks / cw.cooldownLength : 0,
+        perShellReload: false,
         cooldownTicks: cw.cooldownTicks,
         holdToFire: cw.def.holdToFire === true,
         infinite: cw.shotsLeft === null,
@@ -1602,6 +1710,7 @@ export function createSim(config: SimConfig): Sim {
       magazine: timing.magazine,
       reloading: isReloading(weaponState),
       reloadProgress: reloadProgress(weaponState, timing),
+      perShellReload: timing.perShell,
       cooldownTicks: weaponState.cooldownTicks,
       holdToFire: fx.autoFire,
       infinite: fx.infiniteAmmo || timing.magazine < 0,
@@ -1642,6 +1751,14 @@ export function createSim(config: SimConfig): Sim {
         powerups: powerups.map(powerupView),
         wind: windView(wind),
         dustDevils: dustDevils.map(dustDevilView),
+        projectiles: flights.map((f) => ({
+          shotId: f.shotId,
+          dx: f.dx,
+          sy: f.sy,
+          cx: f.cx,
+          age: tick - f.firedTick,
+          flightTicks: bands?.at(-1)?.ticks ?? 1,
+        })),
         season:
           season === null
             ? null

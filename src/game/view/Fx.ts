@@ -164,9 +164,15 @@ export class Fx {
           }
           break;
         }
-        case 'pelletImpact':
-          if (e.birdId === null) this.puffs.explode(1, width / 2 + e.dx, e.sy);
+        case 'pelletImpact': {
+          // A Kettie stone lands later: shift by the camera's pan since it was fired.
+          const pan =
+            e.cx === undefined
+              ? 0
+              : (e.cx - state.cameraX) * this.parallax.plane('mid').scrollFactor;
+          if (e.birdId === null) this.puffs.explode(1, width / 2 + e.dx + pan, e.sy);
           break;
+        }
         case 'tutorialBeat':
           // FTUE: Oupa's dog Bles barks at the flock it spooks (GDD §16 step 3).
           if (e.beat === 'spook') this.blesFlock = e.flockId;

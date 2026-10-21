@@ -251,7 +251,14 @@ Design rule: few weapons, each with a distinct *verb*. Every weapon changes how 
 | `dubbelloop` | Oupa se Dubbelloop (12-gauge side-by-side) | Start | 8 shells "belt" / 0.9 s | 8 pellets, medium spread | Misses alert (260 px) | ×1 |
 | `windbuks` | Die Windbuks (air rifle) | Bag 50 far-plane birds | 6 / 0.6 s per pellet | 1 pellet, no spread, slight wind drift | **Silent:** misses don't alert | ×1.5 on far plane |
 | `kettie` | Die Kettie (slingshot) | Whole-flock 3 times | ∞ / 0.35 s draw | 1 projectile, travel time + drop + wind | Misses alert small radius (120 px) | ×2 all hits |
-| `pomp` | Plaas-Pomp (pump shotgun) | Reach Plaaswerker rank | 6 / 0.35 s **per shell**, interruptible | 6 pellets, tight spread | Alerts | ×1 |
+| `pomp` | Plaas-Pomp (pump shotgun) | Reach Plaaswerker rank | 6 / 0.7 s **per shell**, interruptible | 6 pellets, tighter spread | Alerts | ×1 |
+
+Kettie: a stone reaches the near / mid / far plane after 80 / 180 / 350 ms and drops on the way,
+so you lead moving birds and aim a touch high; it lands where you aimed in the world even if you
+pan meanwhile. Under Kuifkop Koning's rule its draw takes twice as long (it has no reload). The
+Plaas-Pomp's reload was 0.35 s per shell in the first draft; with that it out-scored the
+Dubbelloop by ~43 % in the balance sim, so it is 0.7 s with a 60 px spread (D-025) — a different
+rhythm, not more power. Numbers live in `content/weapons.json`.
 
 Note: the concept art shows a side-by-side double-barrel as Oupa's default gun; the earlier spec
 said over-and-under. **Side-by-side is canonical** (it reads better from first person). The 8-shell

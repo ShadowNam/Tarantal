@@ -74,11 +74,12 @@ describe('applyHunt', () => {
     expect(isWeaponEquippable(weapon('windbuks'), r2.save, content)).toBe(true);
   });
 
-  it('whole_flock_x3 unlocks the Kettie, which stays unequippable until M8 projectiles', () => {
+  it('whole_flock_x3 unlocks the Kettie, which is equippable (M8 projectiles)', () => {
     const r = play(defaultSave(), [hunt({ wholeFlocks: 2 }), hunt({ wholeFlocks: 1 })]);
     expect(r.unlocked).toEqual(['kettie']);
     expect(isWeaponUnlocked(weapon('kettie'), r.save, content)).toBe(true);
-    expect(isWeaponEquippable(weapon('kettie'), r.save, content)).toBe(false);
+    expect(isWeaponEquippable(weapon('kettie'), r.save, content)).toBe(true);
+    expect(isWeaponEquippable(weapon('kettie'), defaultSave(), content)).toBe(false);
   });
 
   it('hunt-scope challenges need the score in one hunt, and only in their modes', () => {

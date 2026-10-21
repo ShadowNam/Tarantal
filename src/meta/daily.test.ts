@@ -262,14 +262,14 @@ describe('streak and weekly freeze (GDD §15)', () => {
   });
 });
 
-describe('golden daily replays (M7)', () => {
-  it('use the daily seed of their day under the current content', async () => {
+describe('golden daily replays (M7, pinned in M8)', () => {
+  it('are Karoo dailies with the omen on and the seed pinned at M7 (D-025)', async () => {
     const { default: replays } = await import('../sim/replay/golden/replays.json');
-    const daily = replays.filter((g) => 'dailyDate' in g);
+    const daily = replays.filter((g) => g.name.startsWith('daily-2026-10-21-'));
     expect(daily.map((g) => g.inputKind).sort()).toEqual(['pointer', 'touch']);
     for (const g of daily) {
-      const date = (g as { dailyDate: string }).dailyDate;
-      expect(g.seed, g.name).toBe(dailySeed(date, loadContentHash()));
+      expect(g.seed, g.name).toBe(1286298468);
+      expect(g.modeConfig, g.name).toEqual({ id: 'daily', biome: 'karoo-autumn' });
     }
   });
 });
