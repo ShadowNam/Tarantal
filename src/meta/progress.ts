@@ -163,11 +163,11 @@ export function isWeaponUnlocked(
   }
 }
 
-/** Unlocked and playable now (projectile weapons arrive in M8; the sim rejects them until then). */
+/** Unlocked and a primary the player can equip (crate weapons never are). */
 export function isWeaponEquippable(
   w: Weapon,
   save: Pick<SaveData, 'unlocks' | 'bestRank'>,
   content: Pick<ContentBundle, 'scoring'>,
 ): boolean {
-  return isWeaponUnlocked(w, save, content) && w.kind === 'primary' && w.projectile === null;
+  return isWeaponUnlocked(w, save, content) && w.kind === 'primary';
 }

@@ -32,6 +32,8 @@ export class WorldView {
   private readonly secretArt = new Map<string, SecretArt>();
   private readonly crates = new Map<number, Phaser.GameObjects.Image>();
   private readonly devils = new Map<number, Phaser.GameObjects.Image>();
+  private readonly stones = new Map<number, Phaser.GameObjects.Image>();
+  private readonly midScroll: number;
   private readonly rings: Phaser.GameObjects.Image[] = [];
   private readonly windBits: Phaser.GameObjects.Image[] = [];
   private readonly screen: Phaser.GameObjects.Container;
@@ -58,6 +60,7 @@ export class WorldView {
     this.screen = screen;
     const { planes } = content.scoring;
     this.planeScale = { near: planes.near.scale, mid: planes.mid.scale, far: planes.far.scale };
+    this.midScroll = planes.mid.scrollFactor;
     this.helperPowerups = new Set(
       content.birds.creatures.flatMap((c) => (c.kind === 'helper' ? [c.grants] : [])),
     );
@@ -71,6 +74,7 @@ export class WorldView {
     this.drawSecrets(s, now);
     this.drawCrates(s);
     this.drawDevils(s, now);
+    this.drawStones(s, width, height);
     this.drawRings(s);
     this.drawHelper(s, width, height);
     this.blowWind(s, width, height);
@@ -186,6 +190,33 @@ export class WorldView {
         },
       });
       this.devils.delete(id);
+    }
+  }
+
+  /** Kettie stones in the air: from the gun up to the aim point, shrinking as they go (the
+   *  aim point follows the world as the camera pans; the mid plane stands in for depth). */
+  private drawStones(s: SimState, width: number, height: number): void {
+    if (s.projectiles.length === 0 && this.stones.size === 0) return;
+    const seen = new Set<number>();
+    for (const p of s.projectiles) {
+      seen.add(p.shotId);
+      let img = this.stones.get(p.shotId);
+      if (img === undefined) {
+        img = this.scene.add.image(0, 0, TEX.stone);
+        this.screen.add(img);
+        this.stones.set(p.shotId, img);
+      }
+      const k = Math.min(1, p.age / p.flightTicks);
+      const tx = width / 2 + p.dx + (p.cx - s.cameraX) * this.midScroll;
+      const lift = Math.sin(k * Math.PI) * 60;
+      img
+        .setPosition(width / 2 + (tx - width / 2) * k, height + (p.sy - height) * k - lift)
+        .setScale(1.6 - 1.2 * k);
+    }
+    for (const [id, img] of this.stones) {
+      if (seen.has(id)) continue;
+      img.destroy();
+      this.stones.delete(id);
     }
   }
 

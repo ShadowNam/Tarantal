@@ -218,6 +218,8 @@ export interface WeaponView {
   readonly reloading: boolean;
   /** 0..1 progress of the current reload step (one shell for per-shell reloads). */
   readonly reloadProgress: number;
+  /** Reloads one shell per step (Windbuks, Plaas-Pomp). */
+  readonly perShellReload: boolean;
   readonly cooldownTicks: number;
 }
 

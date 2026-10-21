@@ -79,6 +79,11 @@ describe('challenge links (Tech §12)', () => {
     expect(param.length).toBeLessThan(220);
   });
 
+  it('lends the Kettie (M8 projectiles) like any other primary', () => {
+    const got = decodeChallenge(b64(JSON.stringify({ ...valid, weapon: 'kettie' })), ctx);
+    expect(got.ok && got.challenge.weapon).toBe('kettie');
+  });
+
   it('appends to a base that already has a query', () => {
     const c = challengeFor({ ...valid, mode: 'classic', dailyNumber: null }, hash);
     expect(challengeUrl('https://x.test/?portal=1', c)).toMatch(/\?portal=1&c=/);
@@ -105,7 +110,6 @@ describe('challenge links (Tech §12)', () => {
       [b64(JSON.stringify({ ...valid, biome: '../etc' })), 'badShape'],
       [b64(JSON.stringify({ ...valid, biome: 'kalahari-summer' })), 'unknownBiome'],
       [b64(JSON.stringify({ ...valid, weapon: 'bazooka' })), 'unknownWeapon'],
-      [b64(JSON.stringify({ ...valid, weapon: 'kettie' })), 'unknownWeapon'],
       [b64(JSON.stringify({ ...valid, weapon: 'voorlaaier' })), 'unknownWeapon'],
       [b64(JSON.stringify({ ...valid, weapon: 'vuvuzela' })), 'unknownWeapon'],
     ];

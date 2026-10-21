@@ -286,7 +286,12 @@ const primaryWeaponSchema = obj({
   spreadPx: nonNeg,
   alertRadiusPx: nonNeg,
   windSensitivity: nonNeg,
+  /** Delayed hitscan (Kettie, Tech §3.4): the stone reaches near → mid → far in that order. */
   projectile: obj({ travelMs: perPlane(posInt), dropPx: perPlane(nonNeg) })
+    .refine(
+      (p) => p.travelMs.near <= p.travelMs.mid && p.travelMs.mid <= p.travelMs.far,
+      'projectile travelMs must not decrease from near to far',
+    )
     .nullable(),
   scoreMul: scoreMulSchema,
   shake: shakeSchema,

@@ -54,6 +54,11 @@ export class HudScene extends Phaser.Scene {
   private frenzyBar!: Phaser.GameObjects.Graphics;
   private score!: Phaser.GameObjects.Text;
   private shells: Phaser.GameObjects.Image[] = [];
+  /** Kettie: no belt; a stone and a draw bar fill as the band is pulled back. */
+  private drawStone!: Phaser.GameObjects.Image;
+  private drawBar!: Phaser.GameObjects.Graphics;
+  /** Longest draw seen since the last shot (the Boss Rule can double it). */
+  private drawTotal = 1;
   private reload!: Phaser.GameObjects.Text;
   private banner!: Phaser.GameObjects.Text;
   private pops: Pop[] = [];
@@ -120,6 +125,9 @@ export class HudScene extends Phaser.Scene {
     this.frenzyBar = this.add.graphics();
     this.score = text(64, '#1B1410').setOrigin(1, 0.5).setStroke('#F3EAD3', 0);
     for (let i = 0; i < 8; i++) this.shells.push(this.add.image(0, 0, TEX.shell));
+    this.drawBar = this.add.graphics();
+    this.drawStone = this.add.image(0, 0, TEX.stone).setScale(1.6).setVisible(false);
+    this.drawTotal = 1;
     this.reload = text(56, '#FFD25A').setOrigin(0.5).setVisible(false);
     this.banner = text(84, '#FFD25A').setOrigin(0.5).setVisible(false);
     this.gadgetPanel = this.add.graphics();
@@ -515,15 +523,20 @@ export class HudScene extends Phaser.Scene {
     }
     this.lastMul = s.frenzyMul;
 
-    // Belt: filled shells + flash on an empty click.
+    // Belt: filled shells + flash on an empty click. A per-shell reload (Windbuks, Plaas-Pomp)
+    // fades the next shell in as it loads.
     const flash = now < this.beltFlashUntil && !this.ctx.prefs.reduceFlashes;
+    const w = s.weapon;
+    const loading = w.reloading && w.perShellReload ? w.shells : -1;
     this.shells.forEach((img, i) => {
-      const full = s.weapon.shells < 0 || i < s.weapon.shells;
+      const full = w.shells < 0 || i < w.shells || i === loading;
       const key = full ? TEX.shell : TEX.shellEmpty;
       if (img.texture.key !== key) img.setTexture(key);
-      img.setVisible(i < Math.max(0, s.weapon.magazine));
+      img.setVisible(i < Math.max(0, w.magazine));
+      img.setAlpha(i === loading ? 0.35 + 0.65 * w.reloadProgress : 1);
       img.setTint(flash ? 0xff4040 : 0xffffff);
     });
+    this.drawKettie(w);
     const empty = s.weapon.shells === 0 && !s.weapon.reloading;
     this.reload.setText(t('hud.reload')).setVisible(empty);
     if (empty) this.reload.setScale(1 + 0.08 * Math.sin(now / 90));
@@ -540,6 +553,27 @@ export class HudScene extends Phaser.Scene {
       y += 46;
       return true;
     });
+  }
+
+  /** Kettie (no belt): a stone and a bar that fills as the next draw is ready. */
+  private drawKettie(w: SimState['weapon']): void {
+    const l = this.layoutNow;
+    const show = w.kind === 'primary' && w.magazine < 0 && l !== null;
+    this.drawStone.setVisible(show);
+    this.drawBar.clear();
+    if (!show) return;
+    if (w.cooldownTicks > this.drawTotal || w.cooldownTicks === 0)
+      this.drawTotal = Math.max(1, w.cooldownTicks);
+    const ready = w.cooldownTicks === 0 ? 1 : 1 - w.cooldownTicks / this.drawTotal;
+    const x = l.belt.x + 20;
+    const y = l.belt.y + l.belt.h / 2;
+    this.drawStone.setPosition(x + 26, y).setAlpha(ready >= 1 ? 1 : 0.5);
+    const bx = x + 64;
+    const bw = l.belt.w - 104;
+    this.drawBar.fillStyle(0xf3ead3, 0.25).fillRoundedRect(bx, y - 12, bw, 24, 12);
+    this.drawBar
+      .fillStyle(0xffd25a, 1)
+      .fillRoundedRect(bx, y - 12, Math.max(24, bw * ready), 24, 12);
   }
 
   /** Crate weapon first, then power-ups: name plus a bar of the time (or shells) left. */
