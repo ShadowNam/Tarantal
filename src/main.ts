@@ -1,3 +1,4 @@
+import type { Biome } from './content/schemas';
 // Boot: save (settings + progress) → i18n → content (validated) → platform adapter →
 // placeholder assets → Phaser game with the flexible-width layout (Tech §5). Opens on the title
 // over the live panorama: one giant START HUNT, so the first shot is seconds away (GDD §16).
@@ -9,7 +10,11 @@ import { AudioDirector } from './game/audio/AudioDirector';
 import { withQuotaMul, withTestCrate } from './game/devContent';
 import type { GameContext, TestHook, TestTools } from './game/GameContext';
 import { designSizeFor, isPortrait, safeAreaInDesignPx, type Insets } from './game/layout';
-import { createPlaceholderManifest } from './game/placeholder/ProceduralAssetFactory';
+import type { AssetManifest } from './game/assets/AssetManifest';
+import {
+  createPlaceholderManifest,
+  placeholderBiomes,
+} from './game/placeholder/ProceduralAssetFactory';
 import { applyPrefs, computePrefs, type PrefInputs } from './game/prefs';
 import { ChallengeScene } from './game/scenes/ChallengeScene';
 import { HudScene } from './game/scenes/HudScene';
@@ -102,6 +107,12 @@ function omenParam(): boolean | undefined {
   return params.get('omen') === '1';
 }
 
+/** e2e/dev only: ?biome=bushveld-winter plays Classic hunts in that biome (M8). */
+function biomeParam(): string | undefined {
+  if (!testHooks) return undefined;
+  return params.get('biome') ?? undefined;
+}
+
 /** e2e/dev only: ?today=2026-10-21 fixes the UTC day of the Daily Hunt. */
 function todaySource(): () => number {
   const fixed = testHooks ? parseDayKey(params.get('today') ?? '') : null;
@@ -118,6 +129,9 @@ const hook: TestHook = {
   ticksLeft: 0,
   score: 0,
   shells: 0,
+  biome: '',
+  glare: null,
+  omen: false,
   magazine: 0,
   reloading: false,
   stones: 0,
@@ -231,8 +245,19 @@ window.addEventListener('pagehide', () => {
 const chrome = new DomChrome(platform, save);
 
 const hash = contentHash(bundle);
-// Biomes this build draws: the main biome's art only until M8 (the rotation skips the rest).
-const playableBiomes = [biome.id];
+// Biomes this build draws (M8: every biome with placeholder art). Their manifests are built on
+// first use; only the home biome's is made at boot.
+const drawable = new Set(placeholderBiomes());
+const playableBiomes = bundle.biomes.filter((b) => drawable.has(b.id)).map((b) => b.id);
+const manifests = new Map<string, AssetManifest>();
+const manifestFor = (b: Biome): AssetManifest => {
+  let m = manifests.get(b.id);
+  if (m === undefined) {
+    m = createPlaceholderManifest(bundle, b);
+    manifests.set(b.id, m);
+  }
+  return m;
+};
 // A challenge link (Tech §12): decoded once, then removed from the address bar so a reload or a
 // bookmark doesn't show the card again.
 let pendingChallenge: ChallengeDecode | null = null;
@@ -266,7 +291,10 @@ const ctx: GameContext = {
   contentHash: hash,
   feel,
   biome,
-  manifest: createPlaceholderManifest(bundle, biome),
+  manifest: manifestFor(biome),
+  playableBiomes,
+  manifestFor,
+  huntBiome: biome,
   audio,
   save,
   notaboek: loaded.notaboek,
@@ -295,6 +323,7 @@ const ctx: GameContext = {
   nextSeed: seedSource(),
   huntSeconds: huntSecondsParam(),
   omen: omenParam(),
+  classicBiome: biomeParam(),
   coarsePointer,
   reducedMotion,
   paused: () => portrait || document.visibilityState === 'hidden' || ctx.menuPaused || contextLost,

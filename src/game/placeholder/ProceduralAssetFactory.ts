@@ -15,7 +15,10 @@ import {
   type CanvasSpec,
 } from '../assets/AssetManifest';
 import { arsenalSpecs } from './arsenalArt';
-import { ellipse, ground, inked, INK, prng } from './draw';
+import { omenSpecs } from './omenArt';
+import type { Band, BiomeArt } from './biomeArt';
+import { BUSHVELD_ART } from './biomes/bushveld';
+import { ellipse, ground, inked, INK, prng, tuft } from './draw';
 
 const KAROO = {
   skyTop: '#8DB8D8',
@@ -66,6 +69,14 @@ const PALETTES: Readonly<Record<string, BirdPalette>> = {
     dots: '#F4F1E8',
     face: '#2F7DE1',
     faceHi: '#6FB3FF',
+  },
+  // Ou Grys (art bible §3.2): faded grey plumage; the eye patch is drawn on top.
+  ou_grys: {
+    plumage: '#6F7378',
+    shadow: '#55595E',
+    dots: '#C9CCCF',
+    face: '#7FA3C9',
+    faceHi: '#A9C3DD',
   },
   kuifkop: {
     plumage: '#1E1F2A',
@@ -363,6 +374,24 @@ function birdDrawFor(creature: string, plane: PlaneId): BirdDraw | null {
       ctx.restore();
     };
   }
+  if (creature === 'ou_grys') {
+    // A grizzled veteran: grey, a bit bigger, a black eye patch on a strap.
+    const body = drawGuineafowl(PALETTES['ou_grys'] ?? TARENTAAL, far, false);
+    return (ctx, frame, line) => {
+      ctx.save();
+      ctx.scale(1.08, 1.08);
+      body(ctx, frame, line / 1.08);
+      ctx.beginPath();
+      ctx.moveTo(98, -104);
+      ctx.lineTo(152, -60);
+      ctx.strokeStyle = INK;
+      ctx.lineWidth = 5;
+      ctx.stroke();
+      ellipse(ctx, 128, -78, 16, 15);
+      inked(ctx, INK, 0);
+      ctx.restore();
+    };
+  }
   if (creature === 'kuifkop' || creature === 'kuifkop_koning') {
     return drawGuineafowl(PALETTES['kuifkop'] ?? TARENTAAL, far, true);
   }
@@ -374,37 +403,11 @@ function birdDrawFor(creature: string, plane: PlaneId): BirdDraw | null {
 // ---------------------------------------------------------------------------------------------
 // Parallax layers (art bible §4.1: sky, far ridge, far veld, mid, near, foreground)
 
-interface Band {
-  readonly top: number;
-  readonly bottom: number;
-  readonly scale: number;
-  draw(ctx: CanvasRenderingContext2D, width: number, rnd: () => number): void;
-}
-
 function bush(ctx: CanvasRenderingContext2D, x: number, y: number, s: number, line: number): void {
   for (let i = 0; i < 3; i++) {
     ellipse(ctx, x + (i - 1) * 18 * s, y - (i === 1 ? 14 : 6) * s, 22 * s, 16 * s);
     inked(ctx, i === 1 ? KAROO.bush : KAROO.bushDark, line);
   }
-}
-
-function tuft(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  h: number,
-  fill: string,
-  line: number,
-): void {
-  ctx.beginPath();
-  ctx.moveTo(x - h * 0.5, y);
-  for (let i = 0; i < 5; i++) {
-    const bx = x - h * 0.5 + (i + 0.5) * (h / 5);
-    ctx.lineTo(bx + (i - 2) * h * 0.12, y - h * (0.7 + (i % 2) * 0.3));
-    ctx.lineTo(bx + h * 0.1, y);
-  }
-  ctx.closePath();
-  inked(ctx, fill, line);
 }
 
 const BANDS: Readonly<Record<string, Band>> = {
@@ -577,15 +580,16 @@ function layerTiles(assetId: string, band: Band, scrollFactor: number, seed: num
 
 type Prop = Biome['props'][number];
 
-function propSpec(prop: Prop): CanvasSpec {
+function propSpec(prop: Prop, art: BiomeArt): CanvasSpec {
   const o = prop.occluder;
   const ow = o === undefined ? 140 : o.type === 'rect' ? o.w : o.rx * 2;
   const oh = o === undefined ? 140 : o.type === 'rect' ? o.h : o.ry * 2;
   const ox = o?.ox ?? 0;
   const oy = o?.oy ?? 0;
   // Extra room above for the windpomp rotor and other bits that stick out of the occluder.
-  const padTop = prop.id === 'windpomp' ? 140 : 60;
-  const pad = 40;
+  const custom = art.propPad?.[prop.id];
+  const padTop = custom?.top ?? (prop.id === 'windpomp' ? 140 : 60);
+  const pad = custom?.side ?? 40;
   const w = ow + pad * 2;
   const h = oh + padTop + pad;
   // Texture origin = the prop's (x, y); the occluder centre sits at (ox, oy) from it.
@@ -599,12 +603,12 @@ function propSpec(prop: Prop): CanvasSpec {
     originY: cy - oy,
     draw(ctx) {
       ctx.translate(cx, cy);
-      drawProp(ctx, prop.id, ow, oh);
+      art.drawProp(ctx, prop.id, ow, oh);
     },
   };
 }
 
-function drawProp(ctx: CanvasRenderingContext2D, id: string, w: number, h: number): void {
+function drawKarooProp(ctx: CanvasRenderingContext2D, id: string, w: number, h: number): void {
   const line = 4;
   if (id === 'windpomp') {
     ctx.beginPath();
@@ -1235,8 +1239,22 @@ function crateBox(ctx: CanvasRenderingContext2D): void {
 const PLANE_LOOK_LINE: Readonly<Record<PlaneId, number>> = { near: 6, mid: 4, far: 2 };
 
 /** Builds the placeholder manifest for the creatures, biome and UI the hunt needs. */
+const KAROO_ART: BiomeArt = { bands: BANDS, drawProp: drawKarooProp };
+
+/** Placeholder art per biome id (M8). A biome is playable only once it has an entry here. */
+const BIOME_ART: Readonly<Record<string, BiomeArt>> = {
+  'karoo-autumn': KAROO_ART,
+  'bushveld-winter': BUSHVELD_ART,
+};
+
+/** Biome ids this build can draw (the Daily rotation, challenges and the run use only these). */
+export function placeholderBiomes(): readonly string[] {
+  return Object.keys(BIOME_ART);
+}
+
 export function createPlaceholderManifest(content: ContentBundle, biome: Biome): AssetManifest {
   const m = new AssetManifest();
+  const art = BIOME_ART[biome.id] ?? KAROO_ART;
   const planes: PlaneId[] = ['near', 'mid', 'far'];
   for (const c of content.birds.creatures) {
     if (c.kind === 'helper') continue;
@@ -1258,14 +1276,15 @@ export function createPlaceholderManifest(content: ContentBundle, biome: Biome):
     }
   }
   biome.layers.forEach((layer, i) => {
-    const band = BANDS[layer.id];
+    const band = art.bands[layer.id];
     if (band === undefined) return;
-    const { art, tiles } = layerTiles(layer.asset, band, layer.scrollFactor, 1000 + i);
-    m.addLayer(layer.asset, art, tiles);
+    const { art: layerArt, tiles } = layerTiles(layer.asset, band, layer.scrollFactor, 1000 + i);
+    m.addLayer(layer.asset, layerArt, tiles);
   });
-  for (const prop of biome.props) m.addTexture(propSpec(prop));
+  for (const prop of biome.props) m.addTexture(propSpec(prop, art));
   for (const s of uiSpecs()) m.addTexture(s);
   for (const s of m4Specs()) m.addTexture(s);
   for (const s of arsenalSpecs()) m.addTexture(s);
+  for (const s of omenSpecs()) m.addTexture(s);
   return m;
 }

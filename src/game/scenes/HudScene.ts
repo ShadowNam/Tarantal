@@ -425,7 +425,7 @@ export class HudScene extends Phaser.Scene {
     const banner: string[] = [];
     for (const e of events) {
       if (e.type === 'secretTriggered') {
-        const reward = this.ctx.biome.props.find((p) => p.id === e.propId)?.secret?.reward;
+        const reward = this.ctx.huntBiome.props.find((p) => p.id === e.propId)?.secret?.reward;
         const bark = reward?.barkKey;
         banner.push(bark !== undefined ? tOr(bark, t('hud.secret')) : t('hud.secret'));
       } else if (e.type === 'timeAdded') {
@@ -626,7 +626,7 @@ export class HudScene extends Phaser.Scene {
   private drawWindsock(s: SimState): void {
     const l = this.layoutNow;
     const wind = s.wind;
-    const show = l !== null && wind !== null && this.ctx.biome.omen.visual?.windSock === true;
+    const show = l !== null && wind !== null && this.ctx.huntBiome.omen.visual?.windSock === true;
     this.sock.setVisible(show);
     this.sockPole.clear();
     if (!show) return;
