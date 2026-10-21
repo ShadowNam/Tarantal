@@ -40,8 +40,27 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { project: desktop-chromium, browser: chromium, shard: 1/2 }
-          - { project: desktop-chromium, browser: chromium, shard: 2/2 }
+          # The 12-hunt Season Run spec gets its own desktop job (one worker): next to other specs
+          # it starved the perf and menu timing tests on the shared software-GL runner.
+          - {
+              project: desktop-chromium,
+              browser: chromium,
+              shard: 1/2,
+              skip: '**/season-run.spec.ts',
+            }
+          - {
+              project: desktop-chromium,
+              browser: chromium,
+              shard: 2/2,
+              skip: '**/season-run.spec.ts',
+            }
+          - {
+              project: desktop-chromium,
+              browser: chromium,
+              shard: season,
+              only: '**/season-run.spec.ts',
+              workers: 1,
+            }
           - { project: desktop-webkit, browser: webkit, shard: 1/1 }
           - { project: pixel7-landscape, browser: chromium, shard: 1/2 }
           - { project: pixel7-landscape, browser: chromium, shard: 2/2 }
@@ -56,7 +75,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps ${{ matrix.browser }}
-      - run: npm run test:e2e -- --project=${{ matrix.project }} --shard=${{ matrix.shard }}
+      - run: npm run test:e2e -- --project=${{ matrix.project }} ${{ matrix.only && format('--workers={0}', matrix.workers) || format('--shard={0}', matrix.shard) }}
+        env:
+          E2E_ONLY: ${{ matrix.only }}
+          E2E_SKIP: ${{ matrix.skip }}
       - name: Upload screenshots and report
         if: always()
         uses: actions/upload-artifact@v5

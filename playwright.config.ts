@@ -31,8 +31,15 @@ function profile(name: string, device: (typeof devices)[string], orientation: st
   };
 }
 
+// CI splits the long Season Run spec into its own desktop job so it doesn't starve the timing
+// tests (perf, menus) that share a runner with it: E2E_ONLY / E2E_SKIP take a spec glob.
+const only = process.env['E2E_ONLY'] || undefined;
+const skip = process.env['E2E_SKIP'] || undefined;
+
 export default defineConfig({
   testDir: 'tests/e2e',
+  ...(only ? { testMatch: only } : {}),
+  ...(skip ? { testIgnore: skip } : {}),
   outputDir: 'test-results',
   fullyParallel: true,
   // Software-rendered WebGL (CI, sandboxes) runs the game at a few fps; give boots room.
