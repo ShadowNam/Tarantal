@@ -7,6 +7,8 @@
 // left-handed mirroring, and the ⛔ call-out only for creatures not yet in the Bird Book (first
 // sighting ever). A separate scene so camera shake never moves it. Fed each frame by HuntScene
 // with the latest snapshot and that frame's events.
+import { designSize } from '../layout';
+import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
 import type { SimEvent } from '../../sim/events';
 import type { SimState } from '../../sim/types';
@@ -20,6 +22,7 @@ import type { InputKind } from '../../sim/types';
 import { CHIP_GAP, hudLayout, MAX_CHIPS, rectContains, type HudLayout } from '../ui/hudLayout';
 import { SeasonHud } from '../ui/SeasonHud';
 import { drawButton, fitText, Menu, type MenuItem } from '../ui/menu';
+import { BakedDrawing, RoundRect } from '../ui/shapes';
 
 export interface HudControls {
   readonly pause: () => void;
@@ -48,15 +51,18 @@ interface Pop {
 export class HudScene extends Phaser.Scene {
   private readonly ctx: GameContext;
   private layoutNow: HudLayout | null = null;
-  private panels!: Phaser.GameObjects.Graphics;
+  /** M9: HUD panels are cached shapes (no per-frame tessellation, see ui/shapes.ts). */
+  private panels: RoundRect[] = [];
   private timer!: Phaser.GameObjects.Text;
   private frenzyLabel!: Phaser.GameObjects.Text;
-  private frenzyBar!: Phaser.GameObjects.Graphics;
+  private frenzyBack!: RoundRect;
+  private frenzyFill!: RoundRect;
   private score!: Phaser.GameObjects.Text;
   private shells: Phaser.GameObjects.Image[] = [];
   /** Kettie: no belt; a stone and a draw bar fill as the band is pulled back. */
   private drawStone!: Phaser.GameObjects.Image;
-  private drawBar!: Phaser.GameObjects.Graphics;
+  private drawBack!: RoundRect;
+  private drawFill!: RoundRect;
   /** Longest draw seen since the last shot (the Boss Rule can double it). */
   private drawTotal = 1;
   private reload!: Phaser.GameObjects.Text;
@@ -66,7 +72,9 @@ export class HudScene extends Phaser.Scene {
   private lastMul = 1;
   private lastState: SimState | null = null;
   private timerColor = '';
-  private gadgetPanel!: Phaser.GameObjects.Graphics;
+  private gadgetPanel!: BakedDrawing;
+  /** Horizontal shake of the Vuvuzela button (tweened when it is denied). */
+  private readonly gadgetShake = { x: 0 };
   private gadgetCharges!: Phaser.GameObjects.Text;
   private gadgetKey!: Phaser.GameObjects.Text;
   private gadgetShout!: Phaser.GameObjects.Text;
@@ -75,16 +83,17 @@ export class HudScene extends Phaser.Scene {
   /** Flocks flushed since their last wing-shot banner (GDD §16 step 5: "Wing shot ×2!"). */
   private readonly flushedFlocks = new Set<number>();
   private inputKind: InputKind = 'pointer';
-  private chipPanel!: Phaser.GameObjects.Graphics;
+  private chipBacks: RoundRect[] = [];
+  private chipBars: RoundRect[] = [];
   private chipTexts: Phaser.GameObjects.Text[] = [];
-  private sockPole!: Phaser.GameObjects.Graphics;
+  private sockPole!: Phaser.GameObjects.Rectangle;
   private sock!: Phaser.GameObjects.Image;
   private callout!: Phaser.GameObjects.Text;
   /** Don't-shoot creatures already called out (first sighting ever: Bird Book + this hunt). */
   private readonly sighted = new Set<string>();
   private controls: HudControls | null = null;
   private controlsMenu: Menu | null = null;
-  private pauseIcon!: Phaser.GameObjects.Graphics;
+  private pauseIcon: Phaser.GameObjects.Shape[] = [];
   private skipButton: { g: Phaser.GameObjects.Graphics; text: Phaser.GameObjects.Text } | null =
     null;
   private prompt!: Phaser.GameObjects.Text;
@@ -110,7 +119,14 @@ export class HudScene extends Phaser.Scene {
     this.timerColor = '';
     this.lastState = null;
     this.beltFlashUntil = 0;
-    this.panels = this.add.graphics();
+    // Timer sign (ink rim, wood), score plate (blue rim, enamel), belt slate: back to front.
+    this.panels = [
+      new RoundRect(this, C.ink, 1, 18),
+      new RoundRect(this, C.wood, 1, 14),
+      new RoundRect(this, C.rim, 1, 20),
+      new RoundRect(this, C.enamel, 1, 14),
+      new RoundRect(this, C.ink, 0.85, 16),
+    ];
     const text = (size: number, color: string): Phaser.GameObjects.Text =>
       this.add.text(0, 0, '', {
         fontFamily: FONT,
@@ -122,15 +138,20 @@ export class HudScene extends Phaser.Scene {
       });
     this.timer = text(64, '#F3EAD3').setOrigin(0.5);
     this.frenzyLabel = text(30, '#F3EAD3').setOrigin(0, 0.5);
-    this.frenzyBar = this.add.graphics();
+    this.frenzyBack = new RoundRect(this, C.ink, 0.85, 10);
+    this.frenzyFill = new RoundRect(this, C.gold, 1, 8);
     this.score = text(64, '#1B1410').setOrigin(1, 0.5).setStroke('#F3EAD3', 0);
     for (let i = 0; i < 8; i++) this.shells.push(this.add.image(0, 0, TEX.shell));
-    this.drawBar = this.add.graphics();
+    this.drawBack = new RoundRect(this, 0xf3ead3, 0.25, 12);
+    this.drawFill = new RoundRect(this, 0xffd25a, 1, 12);
+    this.drawBack.hide();
+    this.drawFill.hide();
     this.drawStone = this.add.image(0, 0, TEX.stone).setScale(1.6).setVisible(false);
     this.drawTotal = 1;
     this.reload = text(56, '#FFD25A').setOrigin(0.5).setVisible(false);
     this.banner = text(84, '#FFD25A').setOrigin(0.5).setVisible(false);
-    this.gadgetPanel = this.add.graphics();
+    this.gadgetPanel = new BakedDrawing(this, 'hud.gadget');
+    this.gadgetShake.x = 0;
     this.gadgetCharges = text(40, '#F3EAD3').setOrigin(0.5);
     this.gadgetKey = text(26, '#1B1410').setOrigin(0.5).setStroke('#F3EAD3', 0);
     this.gadgetShout = text(64, '#FFD25A').setOrigin(0, 0.5).setVisible(false);
@@ -146,13 +167,22 @@ export class HudScene extends Phaser.Scene {
     this.controlsMenu = null;
     this.skipButton = null;
     this.promptKey = null;
-    this.pauseIcon = this.add.graphics();
+    this.pauseIcon = [
+      this.add.circle(0, 0, 1, C.ink, 0.85),
+      this.add.rectangle(0, 0, 12, 44, C.enamel, 1).setOrigin(0, 0).setRounded(4),
+      this.add.rectangle(0, 0, 12, 44, C.enamel, 1).setOrigin(0, 0).setRounded(4),
+    ];
     this.prompt = text(56, '#FFFFFF').setOrigin(0.5).setVisible(false);
     this.hand = this.add.graphics().setVisible(false);
-    this.chipPanel = this.add.graphics();
+    this.chipBacks = [];
+    this.chipBars = [];
+    for (let i = 0; i < MAX_CHIPS; i++) {
+      this.chipBacks.push(new RoundRect(this, C.ink, 0.85, 12).hide());
+      this.chipBars.push(new RoundRect(this, C.gold, 1, 3).hide());
+    }
     this.chipTexts = [];
     for (let i = 0; i < MAX_CHIPS; i++) this.chipTexts.push(text(26, '#F3EAD3').setOrigin(0, 0.5));
-    this.sockPole = this.add.graphics();
+    this.sockPole = this.add.rectangle(0, 0, 8, 1, C.ink, 1).setOrigin(0, 0).setVisible(false);
     this.sock = this.add.image(0, 0, TEX.windsock).setVisible(false);
     const so = { x: 6 / 150, y: 0.5 };
     this.sock.setOrigin(so.x, so.y);
@@ -323,8 +353,8 @@ export class HudScene extends Phaser.Scene {
   }
 
   private readonly relayout = (): void => {
-    const { width, height } = this.scale.gameSize;
-    this.cameras.main.setSize(width, height);
+    const { width, height } = designSize();
+    fitCamera(this.cameras.main);
     const l = hudLayout(
       width,
       height,
@@ -353,28 +383,15 @@ export class HudScene extends Phaser.Scene {
         ...(this.controls?.skip != null ? { skip: l.skip } : {}),
       };
     }
-    const g = this.panels;
-    g.clear();
+    const [timerRim, timerWood, scoreRim, scoreEnamel, belt] = this.panels;
     // Timer: weathered wood sign.
-    g.fillStyle(C.ink, 1).fillRoundedRect(
-      l.timer.x - 4,
-      l.timer.y - 4,
-      l.timer.w + 8,
-      l.timer.h + 8,
-      18,
-    );
-    g.fillStyle(C.wood, 1).fillRoundedRect(l.timer.x, l.timer.y, l.timer.w, l.timer.h, 14);
+    timerRim?.place(l.timer.x - 4, l.timer.y - 4, l.timer.w + 8, l.timer.h + 8);
+    timerWood?.place(l.timer.x, l.timer.y, l.timer.w, l.timer.h);
     // Score: cream enamel with blue rim.
-    g.fillStyle(C.rim, 1).fillRoundedRect(
-      l.score.x - 6,
-      l.score.y - 6,
-      l.score.w + 12,
-      l.score.h + 12,
-      20,
-    );
-    g.fillStyle(C.enamel, 1).fillRoundedRect(l.score.x, l.score.y, l.score.w, l.score.h, 14);
+    scoreRim?.place(l.score.x - 6, l.score.y - 6, l.score.w + 12, l.score.h + 12);
+    scoreEnamel?.place(l.score.x, l.score.y, l.score.w, l.score.h);
     // Belt: chalk slate.
-    g.fillStyle(C.ink, 0.85).fillRoundedRect(l.belt.x, l.belt.y, l.belt.w, l.belt.h, 16);
+    belt?.place(l.belt.x, l.belt.y, l.belt.w, l.belt.h);
     this.timer.setPosition(l.timer.x + l.timer.w / 2, l.timer.y + l.timer.h / 2);
     this.frenzyLabel.setPosition(l.frenzy.x, l.frenzy.y + l.frenzy.h / 2);
     this.score.setPosition(l.score.x + l.score.w - 24, l.score.y + l.score.h / 2);
@@ -393,11 +410,12 @@ export class HudScene extends Phaser.Scene {
     this.gadgetShout.setPosition(l.gadget.x + l.gadget.w + 16, gc.y);
     this.callout.setPosition(width / 2, l.safe.y + 290);
     // Pause: two bars on a dark disc.
-    const pg = this.pauseIcon.clear();
     const pc = { x: l.pause.x + l.pause.w / 2, y: l.pause.y + l.pause.h / 2 };
-    pg.fillStyle(C.ink, 0.85).fillCircle(pc.x, pc.y, l.pause.w / 2);
-    pg.fillStyle(C.enamel, 1).fillRoundedRect(pc.x - 18, pc.y - 22, 12, 44, 4);
-    pg.fillRoundedRect(pc.x + 6, pc.y - 22, 12, 44, 4);
+    const [disc, barL, barR] = this.pauseIcon;
+    if (disc instanceof Phaser.GameObjects.Arc)
+      disc.setPosition(pc.x, pc.y).setRadius(l.pause.w / 2);
+    barL?.setPosition(pc.x - 18, pc.y - 22);
+    barR?.setPosition(pc.x + 6, pc.y - 22);
     this.skipButton?.g.destroy();
     this.skipButton?.text.destroy();
     this.skipButton =
@@ -410,7 +428,9 @@ export class HudScene extends Phaser.Scene {
     }
     this.applyTag();
     this.controlsMenu?.refresh();
-    this.sockPole.clear();
+    this.sockPole
+      .setPosition(l.windsock.x + 20 - 4, l.windsock.y + 8)
+      .setSize(8, Math.max(1, l.windsock.h - 8));
     this.sock.setPosition(l.windsock.x + 20, l.windsock.y + 14);
     this.gadgetDrawn = '';
     if (this.lastState) this.render(this.lastState, []);
@@ -500,24 +520,22 @@ export class HudScene extends Phaser.Scene {
     const next = tiers.find((tier) => tier.atStreak > s.streak);
     const prevAt = [...tiers].reverse().find((tier) => tier.atStreak <= s.streak)?.atStreak ?? 0;
     const frac = next ? (s.streak - prevAt) / (next.atStreak - prevAt) : 1;
-    const g = this.frenzyBar;
-    g.clear();
-    g.fillStyle(C.ink, 0.85).fillRoundedRect(
+    this.frenzyBack.place(
       l.frenzy.x + FRENZY_LABEL_W,
       l.frenzy.y,
       l.frenzy.w - FRENZY_LABEL_W,
       l.frenzy.h,
-      10,
     );
     const hot =
       s.frenzyMul >= 3 ? C.red : s.frenzyMul >= 2 ? 0xe2552c : s.frenzyMul > 1 ? C.gold : 0x8e7fa6;
-    g.fillStyle(hot, 1).fillRoundedRect(
-      l.frenzy.x + FRENZY_LABEL_W + 4,
-      l.frenzy.y + 4,
-      Math.max(0, (l.frenzy.w - FRENZY_LABEL_W - 8) * frac),
-      l.frenzy.h - 8,
-      8,
-    );
+    this.frenzyFill
+      .fill(hot)
+      .place(
+        l.frenzy.x + FRENZY_LABEL_W + 4,
+        l.frenzy.y + 4,
+        Math.round(Math.max(0, (l.frenzy.w - FRENZY_LABEL_W - 8) * frac)),
+        l.frenzy.h - 8,
+      );
     this.frenzyLabel.setText(`${t('hud.frenzy')} ×${formatMult(s.frenzyMul)}`);
     if (s.frenzyMul > this.lastMul) {
       this.tweens.add({
@@ -566,8 +584,11 @@ export class HudScene extends Phaser.Scene {
     const l = this.layoutNow;
     const show = w.kind === 'primary' && w.magazine < 0 && l !== null;
     this.drawStone.setVisible(show);
-    this.drawBar.clear();
-    if (!show) return;
+    if (!show) {
+      this.drawBack.hide();
+      this.drawFill.hide();
+      return;
+    }
     if (w.cooldownTicks > this.drawTotal || w.cooldownTicks === 0)
       this.drawTotal = Math.max(1, w.cooldownTicks);
     const ready = w.cooldownTicks === 0 ? 1 : 1 - w.cooldownTicks / this.drawTotal;
@@ -576,17 +597,13 @@ export class HudScene extends Phaser.Scene {
     this.drawStone.setPosition(x + 26, y).setAlpha(ready >= 1 ? 1 : 0.5);
     const bx = x + 64;
     const bw = l.belt.w - 104;
-    this.drawBar.fillStyle(0xf3ead3, 0.25).fillRoundedRect(bx, y - 12, bw, 24, 12);
-    this.drawBar
-      .fillStyle(0xffd25a, 1)
-      .fillRoundedRect(bx, y - 12, Math.max(24, bw * ready), 24, 12);
+    this.drawBack.place(bx, y - 12, bw, 24);
+    this.drawFill.place(bx, y - 12, Math.round(Math.max(24, bw * ready)), 24);
   }
 
   /** Crate weapon first, then power-ups: name plus a bar of the time (or shells) left. */
   private drawChips(s: SimState): void {
     const l = this.layoutNow;
-    const g = this.chipPanel;
-    g.clear();
     if (l === null) return;
     const { chipW, chipH } = this.ctx.feel.hud;
     const chips: { label: string; frac: number }[] = [];
@@ -613,15 +630,18 @@ export class HudScene extends Phaser.Scene {
     this.chipTexts.forEach((txt, i) => {
       const chip = chips[i];
       txt.setVisible(chip !== undefined);
-      if (chip === undefined) return;
+      if (chip === undefined) {
+        this.chipBacks[i]?.hide();
+        this.chipBars[i]?.hide();
+        return;
+      }
       const y = l.chips.y + i * (chipH + CHIP_GAP);
-      g.fillStyle(C.ink, 0.85).fillRoundedRect(l.chips.x, y, chipW, chipH, 12);
-      g.fillStyle(C.gold, 1).fillRoundedRect(
+      this.chipBacks[i]?.place(l.chips.x, y, chipW, chipH);
+      this.chipBars[i]?.place(
         l.chips.x + 4,
         y + chipH - 10,
-        Math.max(0, (chipW - 8) * chip.frac),
+        Math.round(Math.max(0, (chipW - 8) * chip.frac)),
         6,
-        3,
       );
       if (txt.text !== chip.label) txt.setText(chip.label);
       txt.setPosition(l.chips.x + 14, y + chipH / 2 - 3);
@@ -634,10 +654,8 @@ export class HudScene extends Phaser.Scene {
     const wind = s.wind;
     const show = l !== null && wind !== null && this.ctx.huntBiome.omen.visual?.windSock === true;
     this.sock.setVisible(show);
-    this.sockPole.clear();
+    this.sockPole.setVisible(show);
     if (!show) return;
-    const x = l.windsock.x + 20;
-    this.sockPole.fillStyle(C.ink, 1).fillRect(x - 4, l.windsock.y + 8, 8, l.windsock.h - 8);
     const droop = (1 - wind.strength) * 0.9;
     const wobble = Math.sin(this.time.now / 140) * 0.06 * wind.strength;
     this.sock
@@ -728,9 +746,9 @@ export class HudScene extends Phaser.Scene {
   private shakeGadget(): void {
     const l = this.layoutNow;
     if (l === null) return;
-    this.tweens.killTweensOf(this.gadgetPanel);
-    this.gadgetPanel.setX(0);
-    this.tweens.add({ targets: this.gadgetPanel, x: 8, yoyo: true, repeat: 3, duration: 40 });
+    this.tweens.killTweensOf(this.gadgetShake);
+    this.gadgetShake.x = 0;
+    this.tweens.add({ targets: this.gadgetShake, x: 8, yoyo: true, repeat: 3, duration: 40 });
   }
 
   /** Round enamel button with a horn, the charges, a cooldown wedge and (mouse) the Q hint. */
@@ -741,46 +759,58 @@ export class HudScene extends Phaser.Scene {
     this.gadgetCharges.setVisible(show);
     this.gadgetKey.setVisible(show && this.inputKind === 'pointer');
     if (!show) {
-      this.gadgetPanel.clear();
+      this.gadgetPanel.hide();
       return;
     }
     const cd = gadget.cooldownTotalTicks > 0 ? gadget.cooldownTicks / gadget.cooldownTotalTicks : 0;
-    const key = `${gadget.charges}:${Math.ceil(cd * 40)}:${this.inputKind}`;
-    if (key === this.gadgetDrawn) return;
-    this.gadgetDrawn = key;
     const r = l.gadget.w / 2;
-    const cx = l.gadget.x + r;
-    const cy = l.gadget.y + r;
+    // The key cap pokes out past the disc: draw with a margin, in the drawing's own coordinates.
+    const pad = 8;
+    const size = 2 * (r + pad);
     // A charm gadget (Fluitjie) has no charge limit (charges −1).
     const ready = gadget.charges !== 0 && gadget.cooldownTicks === 0;
-    const g = this.gadgetPanel;
-    g.clear();
-    g.fillStyle(C.ink, 0.9).fillCircle(cx, cy, r);
-    g.fillStyle(ready ? 0x2f8f4e : 0x55605a, 1).fillCircle(cx, cy, r - 6);
-    // Horn: a widening cone with a bell (yellow, like the stadium horn).
-    g.fillStyle(ready ? 0xffd25a : 0x9a9a8a, 1);
-    g.fillTriangle(
-      cx - r * 0.55,
-      cy + r * 0.05,
-      cx + r * 0.35,
-      cy - r * 0.35,
-      cx + r * 0.35,
-      cy + r * 0.45,
+    const key = `${gadget.charges}:${Math.ceil(cd * 40)}:${this.inputKind}:${r}`;
+    if (key !== this.gadgetDrawn) {
+      this.gadgetDrawn = key;
+      this.gadgetCharges.setText(gadget.charges < 0 ? '∞' : `×${gadget.charges}`);
+      this.gadgetKey.setText(t('hud.gadget_key'));
+    }
+    // Baked into a texture only when the look changes (M9: no per-frame tessellation).
+    this.gadgetPanel.draw(
+      l.gadget.x - pad + this.gadgetShake.x,
+      l.gadget.y - pad,
+      size,
+      size,
+      key,
+      (g) => {
+        const cx = r + pad;
+        const cy = r + pad;
+        g.fillStyle(C.ink, 0.9).fillCircle(cx, cy, r);
+        g.fillStyle(ready ? 0x2f8f4e : 0x55605a, 1).fillCircle(cx, cy, r - 6);
+        // Horn: a widening cone with a bell (yellow, like the stadium horn).
+        g.fillStyle(ready ? 0xffd25a : 0x9a9a8a, 1);
+        g.fillTriangle(
+          cx - r * 0.55,
+          cy + r * 0.05,
+          cx + r * 0.35,
+          cy - r * 0.35,
+          cx + r * 0.35,
+          cy + r * 0.45,
+        );
+        g.fillEllipse(cx + r * 0.38, cy + r * 0.05, r * 0.3, r * 0.85);
+        if (cd > 0) {
+          // Cooldown: a dark wedge that shrinks clockwise.
+          g.fillStyle(C.ink, 0.6);
+          g.slice(cx, cy, r - 6, -Math.PI / 2, -Math.PI / 2 + cd * Math.PI * 2, false).fillPath();
+        }
+        if (this.inputKind === 'pointer') {
+          // Key cap on the rim, top-right, clear of the horn.
+          const kx = cx + r * 0.68;
+          const ky = cy - r * 0.68;
+          g.fillStyle(C.ink, 1).fillRoundedRect(kx - 23, ky - 21, 46, 42, 9);
+          g.fillStyle(C.enamel, 1).fillRoundedRect(kx - 19, ky - 17, 38, 34, 7);
+        }
+      },
     );
-    g.fillEllipse(cx + r * 0.38, cy + r * 0.05, r * 0.3, r * 0.85);
-    if (cd > 0) {
-      // Cooldown: a dark wedge that shrinks clockwise.
-      g.fillStyle(C.ink, 0.6);
-      g.slice(cx, cy, r - 6, -Math.PI / 2, -Math.PI / 2 + cd * Math.PI * 2, false).fillPath();
-    }
-    this.gadgetCharges.setText(gadget.charges < 0 ? '∞' : `×${gadget.charges}`);
-    this.gadgetKey.setText(t('hud.gadget_key'));
-    if (this.inputKind === 'pointer') {
-      // Key cap on the rim, top-right, clear of the horn.
-      const kx = cx + r * 0.68;
-      const ky = cy - r * 0.68;
-      g.fillStyle(C.ink, 1).fillRoundedRect(kx - 23, ky - 21, 46, 42, 9);
-      g.fillStyle(C.enamel, 1).fillRoundedRect(kx - 19, ky - 17, 38, 34, 7);
-    }
   }
 }
