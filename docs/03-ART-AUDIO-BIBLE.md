@@ -217,8 +217,11 @@ Use these to explore; then give the winners to a human illustrator. Always appen
 
 ## 9. Production pipeline
 1. **Lock** (this doc) → 2. Human illustrator: tarentaal model sheet + Karoo paintover (MVP).
-3. Animator: rig in Spine, clips per §3.4. 4. Export via `tools/pack-atlases` → `public/assets/`.
-5. Integrate behind the `AssetManifest` (placeholders swap without code changes).
+3. Animator: rig in Spine, clips per §3.4 (exported to frames per skin for v1, D-027).
+4. Export into `art-source/` per `docs/06-ASSET-DELIVERY.md`, then `npm run assets:pack` →
+   `public/assets/` + `asset-index.json`.
+5. The `AssetManifest` picks up every delivered key at boot (placeholders swap without code
+   changes); `npm run assets:audit -- --strict` lists what is still a placeholder.
 6. Repeat per biome. Keep all sources in `art-source/`.
 
 ## 10. Audio bible
