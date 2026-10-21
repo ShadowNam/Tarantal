@@ -44,6 +44,9 @@ export const WorldEventIdSchema = z.enum([
   'bossAppearance',
   'crate',
   'stampede',
+  // M8: the Okavango fish eagle fly-over and the kuifkop hopping between reeds.
+  'fishEagle',
+  'kuifkopHop',
 ]);
 export type WorldEventId = z.infer<typeof WorldEventIdSchema>;
 
@@ -717,6 +720,10 @@ export const BiomeSchema = obj({
       /** M8 peekFromCover bosses (Ou Grys): how long a peek and a hide between covers last. */
       peekMs: range(pos).optional(),
       hideMs: range(pos).optional(),
+      /** M8 hopping birds (kuifkop, Kuifkop Koning): a visible hop to the next cover takes hopMs
+       *  and rises hopPx (design px at mid) at its top. */
+      hopMs: range(pos).optional(),
+      hopPx: pos.optional(),
       /** Dust devils: the plane they cross, contact radius (design px at mid) and life. */
       plane: PlaneIdSchema.optional(),
       radiusPx: pos.optional(),
@@ -733,6 +740,9 @@ export const BiomeSchema = obj({
         driftPxAtFar: nonNeg,
       })
       .optional(),
+    /** M8 Okavango sun-showers: a shower every `everySeconds` (gap) for `lastSeconds`, drawn from
+     *  the omen stream at hunt start; while it rains a shot's alert radius is × alertRadiusMul. */
+    showers: obj({ everySeconds: range(pos), lastSeconds: range(pos), alertRadiusMul: pos }).optional(),
     /** M8 Bushveld low sun: a glare band this wide (design px of the screen) on one side of the
      *  view, the side drawn from the omen stream at hunt start. Drawn only; no sim rule. */
     glare: obj({ widthPx: pos, alpha: fraction }).optional(),
@@ -742,12 +752,21 @@ export const BiomeSchema = obj({
       leaves: z.boolean().optional(),
       dust: z.boolean().optional(),
       frost: z.boolean().optional(),
+      rain: z.boolean().optional(),
+      rainbow: z.boolean().optional(),
     }).optional(),
   }),
   /** M8 biome twist (GDD §11 "Gameplay twist"): on in every mode, unlike the omen. */
   twist: obj({
     /** Share of flocks that run instead of taking wing when a threat would flush them. */
     flushAsRunChance: fraction.optional(),
+    /** Okavango: water on a layer. A pellet that stops on nothing over water splashes — one
+     *  threat to every flock within alertRadiusPx (design px at mid) of it, even from a silent
+     *  gun (not your gun's noise, so Stil Loop doesn't silence it). */
+    splash: obj({
+      zones: z.array(obj({ layer: id, u: fraction, y: z.number(), shape: occluderSchema })).min(1),
+      alertRadiusPx: pos,
+    }).optional(),
   }).optional(),
   pacing: obj({
     keyframes: z
@@ -902,6 +921,8 @@ export const FeelSchema = obj({
     glintMs: pos,
     /** Wind leaves/dust particles per second at full strength (omen visual flags). */
     windParticlesPerSec: nonNeg,
+    /** M8: rain streaks per second while it rains (sun-showers, storm), before the quality tier. */
+    rainParticlesPerSec: nonNeg,
     /** Voorlaaier smoke cloud scale (its length is weapons.json smokeMs). */
     smokeScale: pos,
     /** "⛔ don't shoot" and boss call-outs. */

@@ -34,6 +34,7 @@ import {
 import {
   buildBossBird,
   buildDustDevil,
+  buildHopperBird,
   buildPerchBird,
   type WorldDeps,
 } from './director/worldEvents';
@@ -102,8 +103,10 @@ import {
 } from './weapons/crateWeapon';
 import {
   buildSlices,
+  pointInOccluder,
   resolvePellet,
   type HitBird,
+  type Occluder,
   type HitExtra,
   type PelletResult,
   type ShotGeometry,
@@ -473,6 +476,41 @@ export function createSim(config: SimConfig): Sim {
     setup.omen && biome.omen.wind !== undefined ? createWind(biome.omen.wind, omenRng) : null;
   let dustDevils: DustDevil[] = [];
   /** Bushveld low sun (omen): which side of the view the glare is on, drawn once (D-025). */
+  /** Okavango water zones as occluder shapes on their layers (twist, every mode). */
+  const splash =
+    biome.twist?.splash === undefined
+      ? null
+      : {
+          alertRadiusPx: biome.twist.splash.alertRadiusPx,
+          zones: biome.twist.splash.zones.map((z) => {
+            const f = layerById.get(z.layer)?.scrollFactor ?? 1;
+            const sh = z.shape;
+            const occluder: Occluder = {
+              propId: '',
+              x: z.u * coreWidth(f) + sh.ox,
+              y: z.y + sh.oy,
+              shape:
+                sh.type === 'rect'
+                  ? { type: 'rect', w: sh.w, h: sh.h }
+                  : { type: 'ellipse', rx: sh.rx, ry: sh.ry },
+            };
+            return { scrollFactor: f, occluder };
+          }),
+        };
+  /** Okavango sun-showers (omen): rain intervals drawn once (D-025). */
+  const showers = setup.omen ? (biome.omen.showers ?? null) : null;
+  const rainSpells: { from: number; to: number }[] = [];
+  if (showers !== null) {
+    for (let t = omenRng.range(showers.everySeconds[0], showers.everySeconds[1]); ;) {
+      const from = secondsToTicks(t);
+      if (from >= durationTicks) break;
+      const last = omenRng.range(showers.lastSeconds[0], showers.lastSeconds[1]);
+      rainSpells.push({ from, to: secondsToTicks(t + last) });
+      t += last + omenRng.range(showers.everySeconds[0], showers.everySeconds[1]);
+    }
+  }
+  const raining = (): boolean => rainSpells.some((r) => tick >= r.from && tick < r.to);
+  let wasRaining = false;
   const glare =
     setup.omen && biome.omen.glare !== undefined
       ? { side: omenRng.chance(0.5) ? (1 as const) : (-1 as const), ...biome.omen.glare }
@@ -1019,6 +1057,37 @@ export function createSim(config: SimConfig): Sim {
     flights = flying;
   }
 
+  /**
+   * Okavango water (biome.twist.splash): pellets that stopped on nothing over a water zone
+   * splash — one threat to each flock in range that the shot didn't already threaten (one threat
+   * per flock per shot, GDD §6.1). Not the gun's noise: silent guns and Stil Loop still splash.
+   */
+  function splashThreats(
+    landed: readonly Landed[],
+    cx: number,
+    threatened: readonly FlockThreat[],
+    bagged: ReadonlySet<number>,
+  ): void {
+    if (splash === null) return;
+    const wet: { dx: number; sy: number }[] = [];
+    for (const l of landed) {
+      if (l.r.birdId !== null || l.r.propId !== null || l.r.crateId !== null) continue;
+      const inWater = splash.zones.some((z) => {
+        const p = tapToPlane(cx, z.scrollFactor, l.dx, l.sy);
+        return pointInOccluder(p.x, p.y, z.occluder);
+      });
+      if (inWater) wet.push({ dx: l.dx, sy: l.sy });
+    }
+    const first = wet[0];
+    if (first === undefined) return;
+    emit({ type: 'splash', tick, dx: first.dx, sy: first.sy, cx });
+    const already = new Set(threatened.map((t) => t.flock.id));
+    const more = shotThreats(flocks, wet, cx, splash.alertRadiusPx, planeGeo, bagged).filter(
+      (t) => !already.has(t.flock.id),
+    );
+    threaten(more, 'splash');
+  }
+
   /** Damage, scoring, bonuses, crates, secrets and threats of a shot whose pellets have landed. */
   function resolveShot(ctx: ShotContext, landed: readonly Landed[]): void {
     const { shotId, shot, shellIndex, lastShell, cx: shotCx } = ctx;
@@ -1218,9 +1287,13 @@ export function createSim(config: SimConfig): Sim {
     // Threats (GDD §6.2): one per flock in range of any impact, hit or miss. Charms scale the
     // radius (Stil Loop: a miss alerts nobody).
     const miss = !touchedAny && !hitThing;
-    const radius = shot.alertRadiusPx * pass.alertRadiusMul * (miss ? pass.missAlertMul : 1);
+    // Okavango sun-showers: rain muffles the shot (omen.showers.alertRadiusMul).
+    const rainMul = raining() ? (showers?.alertRadiusMul ?? 1) : 1;
+    const radius =
+      shot.alertRadiusPx * pass.alertRadiusMul * (miss ? pass.missAlertMul : 1) * rainMul;
     const threatened = shotThreats(flocks, impacts, shotCx, radius, planeGeo, baggedFlockIds);
     threaten(threatened, radius > 0 ? 'shot' : 'silentBag');
+    splashThreats(landed, shotCx, threatened, baggedFlockIds);
     if (targets.length > 0) stats.hitShots++;
     if (miss) {
       emit({ type: 'miss', tick, shotId });
@@ -1394,6 +1467,15 @@ export function createSim(config: SimConfig): Sim {
         if (c?.kind === 'nonTarget' && c.alertsAllFlocks === true) {
           react('threat', { kind: 'all' }, 'event');
         }
+        return;
+      }
+      case 'hopper': {
+        if (birds.length >= biome.pacing.maxBirdsOnScreen) return;
+        const b = buildHopperBird(worldDeps, def, nextBirdId, rng.stream('hop'));
+        if (b === null) return;
+        nextBirdId++;
+        emit({ type: 'worldEvent', tick, event: ev.id });
+        addBirds([b]);
         return;
       }
       case 'perch':
@@ -1639,6 +1721,10 @@ export function createSim(config: SimConfig): Sim {
     }
     endPowerups(tickPowerups(powerups));
     if (gadgetCooldown > 0) gadgetCooldown--;
+    if (rainSpells.length > 0 && raining() !== wasRaining) {
+      wasRaining = !wasRaining;
+      emit({ type: 'weatherChanged', tick, rain: wasRaining });
+    }
     if (wind !== null && tickWind(wind, omenRng)) {
       emit({ type: 'windChanged', tick, dir: wind.dir, strength: wind.strength });
     }
@@ -1772,6 +1858,7 @@ export function createSim(config: SimConfig): Sim {
         wind: windView(wind),
         dustDevils: dustDevils.map(dustDevilView),
         glare,
+        rain: raining(),
         projectiles: flights.map((f) => ({
           shotId: f.shotId,
           dx: f.dx,

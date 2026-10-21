@@ -21,6 +21,8 @@ export interface ScheduledEvent {
  *   threaten every flock.
  * - perch: a creature flies in, perches on one of `perchProps`, calls, flies off (kwêvoël).
  * - boss: a boss appears at one of `perchProps` (Generaal).
+ * - hopper (M8): a target hides in one of `perchProps` (reeds), peeks out and hops to another
+ *   (kuifkop).
  * - dustDevil: an omen whirl that flushes flocks on contact.
  * - secretReward: set off by a secret (props[].secret.reward), never scheduled.
  * - crate: scheduled from powerups.json crates, never from the biome.
@@ -29,7 +31,15 @@ export interface ScheduledEvent {
  *   screen centre to RUN; needs no biome entry.
  */
 export type WorldEventHandler =
-  'flyover' | 'perch' | 'boss' | 'dustDevil' | 'farmDog' | 'secretReward' | 'crate' | 'stampede';
+  | 'flyover'
+  | 'perch'
+  | 'boss'
+  | 'hopper'
+  | 'dustDevil'
+  | 'farmDog'
+  | 'secretReward'
+  | 'crate'
+  | 'stampede';
 
 export const WORLD_EVENT_HANDLERS: Readonly<Record<WorldEventId, WorldEventHandler>> = {
   hadeda: 'flyover',
@@ -42,6 +52,8 @@ export const WORLD_EVENT_HANDLERS: Readonly<Record<WorldEventId, WorldEventHandl
   bossAppearance: 'boss',
   crate: 'crate',
   stampede: 'stampede',
+  fishEagle: 'flyover',
+  kuifkopHop: 'hopper',
 };
 
 /** Non-target fly-over events (cost points when shot). */

@@ -79,7 +79,7 @@ export type CommandType = Command['t'];
 
 /** perch: the kwêvoël (flies in, sits on a prop, flies off). boss: the Generaal (struts, runs,
  *  flies off). */
-export type BirdMotion = 'flyover' | 'popup' | 'flock' | 'perch' | 'boss';
+export type BirdMotion = 'flyover' | 'popup' | 'flock' | 'perch' | 'boss' | 'hop';
 /**
  * fly-over: fly · pop-up: rise/stare/duck · flock member (GDD §6.1): walk (forage), alert,
  * run, launch (crouched for its stagger), flap (steep take-off and flight), glide, land (running
@@ -98,9 +98,11 @@ export type BirdPhase =
   | 'glide'
   | 'land'
   | 'perch'
-  // M8 peekFromCover bosses (Ou Grys): behind cover (not hittable) or peeking out.
+  // M8 peekFromCover bosses (Ou Grys) and hopping birds (kuifkop): behind cover (not hittable),
+  // peeking out, or hopping to the next cover in plain view.
   | 'hidden'
-  | 'peek';
+  | 'peek'
+  | 'hop';
 
 /** Flock FSM states (GDD §6.1, Tech §3.5). Roost (dusk hunts) arrives with the dusk biomes. */
 export type FlockState = 'forage' | 'alert' | 'run' | 'flush' | 'settle';
@@ -255,6 +257,8 @@ export interface SimState {
     readonly widthPx: number;
     readonly alpha: number;
   } | null;
+  /** Rain falling now (Okavango sun-showers; Kalahari storm). */
+  readonly rain: boolean;
   /** Kettie stones in the air (render only), in fire order. */
   readonly projectiles: readonly ProjectileView[];
   /** Season Run hunts only. */
