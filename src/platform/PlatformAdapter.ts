@@ -33,6 +33,8 @@ export interface PlatformAdapter {
   /** True = reward granted. */
   rewardedBreak(): Promise<boolean>;
   isAdPlaying(): boolean;
+  /** An ad is requested or playing (from the request on: menus ignore input, D-026). */
+  isAdBusy(): boolean;
   /** A rewarded ad can be offered now (false on web, without an SDK, or when it failed to load). */
   rewardedAvailable(): boolean;
   /** Called with true when an ad starts and false when it ends (AudioDirector mutes). */

@@ -221,6 +221,7 @@ const hook: TestHook = {
   lastShare: null,
   platform: currentPlatformId(),
   adPending: false,
+  huntRequests: 0,
   ads: null,
   audioMuted: false,
   quality: { tier: '', bench: null, benchRan: false, layers: 0, filters: [] },
@@ -277,7 +278,9 @@ hook.boot['platform'] = performance.now();
 const ads = new AdBreaks(platform);
 hook.ads = ads.counts;
 // Poki: no input reaches the game while an ad covers it (the hunt never runs during one).
-setMenuInputGate(() => platform.isAdPlaying());
+// From the request on, not only once the ad shows (a tap during the request must not start a
+// hunt under it, D-026).
+setMenuInputGate(() => platform.isAdBusy() || ads.busy);
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const coarsePointer = window.matchMedia('(pointer: coarse)').matches;

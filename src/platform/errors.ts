@@ -10,14 +10,28 @@ export interface ErrorLimits {
   readonly messageChars: number;
 }
 
-const URL_RE = /\b(?:https?|file|blob|chrome-extension|moz-extension|webpack|app):\/\/[^\s)'"]*/g;
+/** URLs with a scheme, protocol-relative ones (`//host/…`) and bare hosts with a path. */
+const URL_RE =
+  /(?:\b(?:https?|file|blob|chrome-extension|moz-extension|safari-extension|webpack|app):\/\/|(?<![\w:])\/\/|\b(?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}(?=\/))[^\s)'"]*/gi;
 
-/** Every URL → its last path segment (`https://x/a/index-1.js?q=1:3:9` → `index-1.js:3:9`). */
+/**
+ * Every URL → its file name plus a trailing `:line:col` (`https://x/a/index-1.js?q=a:b:3:9` →
+ * `index-1.js:3:9`). The line/column suffix is cut off first, so a ':' in the query or hash can't
+ * leak anything; a URL without a file name becomes `<url>`.
+ */
 export function stripUrls(text: string): string {
   return text.replace(URL_RE, (url) => {
-    const noQuery = url.replace(/[?#][^:]*(?=(?::\d+)*$)/, '');
-    const parts = noQuery.split('/');
-    return parts[parts.length - 1] || '<url>';
+    const pos = /(?::\d+){1,2}$/.exec(url);
+    const suffix = pos?.[0] ?? '';
+    const base = suffix === '' ? url : url.slice(0, -suffix.length);
+    const path = base.split(/[?#]/)[0] ?? '';
+    const parts = path
+      .replace(/^[a-z-]+:\/\//i, '')
+      .replace(/^\/\//, '')
+      .split('/');
+    // The first segment is the host: a bare host (no path) is no file name.
+    const file = parts.length > 1 ? (parts[parts.length - 1] ?? '') : '';
+    return (file === '' ? '<url>' : file) + suffix;
   });
 }
 
@@ -32,16 +46,20 @@ export function stackFrames(stack: string | undefined, n: number): string[] {
     .map((l) => stripUrls(l.replace(/^at\s+/, '')).slice(0, 160));
 }
 
-function messageOf(value: unknown): string {
+/**
+ * The message: an Error's name and message (URLs stripped). Anything else that is thrown or
+ * rejected (a string, an object, a portal SDK's payload) may carry arbitrary data, so only its
+ * type is reported; a window error event without an Error keeps the browser's own message.
+ */
+function messageOf(source: ErrorReport['source'], value: unknown): string {
   if (value instanceof Error) return `${value.name}: ${value.message}`;
-  if (typeof value === 'string') return value;
-  try {
-    // undefined for functions and undefined itself, whatever the lib types say.
-    const json = JSON.stringify(value) as string | undefined;
-    return json ?? String(value);
-  } catch {
-    return String(value);
-  }
+  if (source === 'error' && typeof value === 'string') return value;
+  if (value === null) return 'non-Error value (null)';
+  const type =
+    typeof value === 'object'
+      ? ((value as { constructor?: { name?: unknown } }).constructor?.name ?? 'object')
+      : typeof value;
+  return `non-Error value (${typeof type === 'string' ? type : 'object'})`;
 }
 
 export function toErrorReport(
@@ -51,7 +69,7 @@ export function toErrorReport(
 ): ErrorReport {
   return {
     source,
-    message: stripUrls(messageOf(value)).slice(0, limits.messageChars),
+    message: stripUrls(messageOf(source, value)).slice(0, limits.messageChars),
     frames: stackFrames(value instanceof Error ? value.stack : undefined, limits.stackFrames),
   };
 }
