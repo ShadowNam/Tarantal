@@ -508,6 +508,9 @@ add ~20–30 %, so nobody passed Lente. Tuned (competent, pointer, 500 runs per 
 | Lente | none / synergy | ≤ 10 / ~60 % | 10.8 / 61.6 % | 8.6 / 57.8 % |
 | Somer | none / synergy | ~0 / ~35 % | 0.0 / 32.9 % | 0.0 / 39.4 % |
 
+After the review fixes (hippo, adjacent hops, R2–R3) the same quotas give Lente 12.8 / 64.1 % and
+7.6 / 63.6 %, Somer 0.0 / 34.6 % and 0.0 / 39.7 % — every row still within ±10.
+
 Winter 2 150 / 2 200 / 1 750, Lente 2 600 / 2 650 / 2 150, Somer 2 950 / 3 000 / 2 800. The
 policies now separate by where the quotas sit in each biome's score spread, not by quota size.
 *Follow-up:* if charms are meant to compound (GDD §13.2 "outpaces raw skill"), charm power and the
