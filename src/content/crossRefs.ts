@@ -152,7 +152,7 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
     const df = 'meta/daily.json';
     for (const b of options.daily.biomeRotation) {
       if (!plannedBiomeIds.has(b)) err(df, `biomeRotation: unknown biome "${b}"`);
-      else if (!loadedBiomes.has(b)) warn(df, `biomeRotation: biome "${b}" is not loaded yet (${LATER.biome}); the rotation skips it`);
+      else if (!loadedBiomes.has(b)) warn(df, `biomeRotation: biome "${b}" is not loaded yet (${LATER.biome}); its days play the fallback`);
     }
     checkUnique(df, 'streak milestone day', options.daily.streakMilestones.map((m) => String(m.days)), err);
     for (const m of options.daily.streakMilestones) i18n(df, `cosmetic.${m.cosmetic}`);
