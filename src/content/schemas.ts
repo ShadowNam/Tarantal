@@ -982,6 +982,18 @@ export const FeelSchema = obj({
     /** Reduce flashes: alpha of the muzzle flash and the secret hint glints. */
     reducedFlashAlpha: fraction,
   }),
+  platform: obj({
+    /** Longest wait for a portal SDK script + init; after it the game runs without the SDK. */
+    sdkTimeoutMs: pos,
+    /** An ad whose promise never settles is treated as over after this long (game never hangs). */
+    adTimeoutMs: pos,
+    /** Error reports kept or sent per page load (the rest are counted, not reported). */
+    maxErrorReports: posInt,
+    /** Stack frames kept per error report. */
+    errorStackFrames: posInt,
+    /** Longest error message kept, in characters. */
+    errorMessageChars: posInt,
+  }),
 });
 export type Feel = z.infer<typeof FeelSchema>;
 

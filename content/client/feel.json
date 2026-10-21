@@ -77,5 +77,13 @@
     "secretHintAt": 0.67,
     "bannerMs": 2800,
     "maxPromptChars": 52
+  },
+  "platform": {
+    "$comment": "Platform layer (Tech §8, M9): portal SDK load timeout, the ad safety timeout, and error-report caps (no personal data: messages are trimmed, URLs reduced to file names).",
+    "sdkTimeoutMs": 6000,
+    "adTimeoutMs": 60000,
+    "maxErrorReports": 10,
+    "errorStackFrames": 5,
+    "errorMessageChars": 300
   }
 }

@@ -9,7 +9,10 @@ const MB = 1024 * 1024;
 const BUDGET_BYTES = 5 * MB;
 const HARD_FAIL_BYTES = 8 * MB;
 
-const dist = join(import.meta.dirname, '..', 'dist');
+// M9: `--dir dist-poki` checks a portal build (one build per VITE_PLATFORM).
+const dirArg = process.argv.indexOf('--dir');
+const distName = dirArg >= 0 ? (process.argv[dirArg + 1] ?? 'dist') : 'dist';
+const dist = join(import.meta.dirname, '..', distName);
 
 function listFiles(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {
@@ -22,7 +25,7 @@ let files: string[];
 try {
   files = listFiles(dist).sort();
 } catch {
-  console.error('size: dist/ not found — run `npm run build` first.');
+  console.error(`size: ${distName}/ not found — run \`npm run build\` first.`);
   process.exit(1);
 }
 
