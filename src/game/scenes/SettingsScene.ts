@@ -49,7 +49,7 @@ const AIM: Choice<'aimAssist'> = {
 };
 const LANG: Choice<'language'> = {
   key: 'language',
-  values: ['auto', 'en', 'af'],
+  values: ['auto', 'en', 'af', 'de', 'nl'],
   label: (v) => `settings.lang.${v}`,
 };
 const QUALITY: Choice<'quality'> = {

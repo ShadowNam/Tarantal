@@ -669,7 +669,6 @@ sale" and "Your charms (drag to reorder)"; (26d) empty slots read "Consumables: 
 "Rental gun: none" (was "— | No rental"). Strings in en/af here, de/nl on PR D.
 `season-run.spec.ts` checks the card on the first visit only, not after a reload, and reopens it
 with "?" (screenshots `season-padstal-help-*`, `season-padstal-*`, desktop + Pixel 7).
-
 *PR C review fixes:* (26e) *Hold to fire on touch* fired on every touch and broke drag-pan and
 flick-reload. A finger now stays a tap/drag/flick gesture until it has been still (< 12 px) for
 `input.touchHoldMs` (180 ms); only then does it become the hold (first shot at once, then each
@@ -685,6 +684,30 @@ label moved below the large title. (26i) e2e-only `?doppies=N` (a run with N Dop
 to show blocked offers. `padstal.spec.ts`: blocked cards on iPhone 14 + Pixel 7 landscape, the
 help card with large text on desktop at 4:3 and iPhone 14, and a Pixel 7 pass with large text +
 high contrast (Settings ×2, Padstal, tally).
+*PR D — de + nl:* (27) *Languages:* `de.json` and `nl.json` (366 keys each), machine-quality
+first pass written for this game, **flagged for native review**; Afrikaans completed (the 28
+missing keys: four Boss Rules translated, charm names are Afrikaans in every language). Language
+setting Auto / English / Afrikaans / Deutsch / Nederlands (names in their own language);
+`pickLanguage` maps `de-*` and `nl-*`. (28) *Kept in Afrikaans in every language:* Oupa, tarentaal,
+Skiet-Skuur, Padstal, Doppies, Notaboek, weapon, boss, charm and rank names, barks (Mooi skoot!
+…). Translated: Season Run (Saison-Lauf / Seizoensrun), Daily Hunt (Tagesjagd / Dagjacht),
+Frenzy (Rausch / Razernij), quota (Soll / quotum), charm (Talisman / charm). (29) *Validation:*
+`content:validate` reads every `src/i18n/<lang>.json` and fails on a missing key, a key English
+lacks, an empty string or `{placeholders}` that differ (`src/content/i18nCheck.ts`, unit-tested;
+proven by deleting `tally.again` from nl.json → `content: FAILED`). Content-derived keys are
+already checked against English by crossRefs, so every key the game can ask for exists in every
+language. FTUE prompts stay ≤ `maxPromptChars` in all four (unit test). (30) *Glyphs:* the UI font
+is the system font until M10's self-hosted display font, which must include ä ö ü ß (art bible
+§6 list). (31) *Native review notes from the first pass:* de — Rausch vs Raserei, "Bakkie-Bilanz",
+"LADEN!", "Freeze"/"Challenge" left in English, bird names Graulärmvogel/Schreiseeadler,
+"TATÜ-TATA!" for the car alarm, "Weiter" for skip; nl — kwêvoël and visarend names, "Baas" for
+boss, "charm" kept, "bevriezing" for the streak freeze, "Opnieuw" for reroll, invented item names
+(Bos-hagel, Stokstaartjes-spotter). *Review fixes:* the English left in de (Challenge,
+Freeze) is now "Herausforderung" and "Serienschutz"; in af "Frenzy" is "Waansin" and the rank
+"Bosveld-legende" (as on the share card). The validator also fails when `LANGUAGES` in
+`i18n.ts` and the `src/i18n/<lang>.json` files differ (checked by removing `nl` from the list →
+`content: FAILED`). `i18n.spec.ts` screenshots the Padstal (help card and shop) in de and nl;
+`padstal.spec.ts` runs en and de.
 
 ## 3. Research notes (with sources)
 

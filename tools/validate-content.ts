@@ -8,7 +8,9 @@ import { readContentDir, readI18nKeys } from '../src/content/loadNode';
 import { parseFeel } from '../src/content/feel';
 import { parseDailyMeta } from '../src/content/daily';
 import { parseNotaboek } from '../src/content/notaboek';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
+import { checkLanguage, checkLanguageSet } from '../src/content/i18nCheck';
+import { LANGUAGES } from '../src/i18n/i18n';
 
 const root = join(import.meta.dirname, '..');
 const strict = process.argv.includes('--strict');
@@ -62,15 +64,34 @@ const report = checkCrossRefs(parsed.bundle, {
   daily: daily.value,
 });
 
+const errors = [...report.errors];
+// M9: every language has every string (src/i18n/<lang>.json against en.json).
+const i18nDir = join(root, 'src/i18n');
+const readTable = (f: string): Record<string, unknown> =>
+  JSON.parse(readFileSync(join(i18nDir, f), 'utf8')) as Record<string, unknown>;
+const enTable = readTable('en.json');
+const langFiles = readdirSync(i18nDir)
+  .filter((x) => /^[a-z]{2}\.json$/.test(x))
+  .map((x) => x.slice(0, 2));
+for (const message of checkLanguageSet(LANGUAGES, langFiles))
+  errors.push({ file: 'i18n/', message });
+for (const f of readdirSync(i18nDir).filter((x) => /^[a-z]{2}\.json$/.test(x) && x !== 'en.json')) {
+  const file = `i18n/${f}`;
+  fileNames.push(file);
+  for (const issue of checkLanguage(f.slice(0, 2), enTable, readTable(f)))
+    errors.push({ file, message: `"${issue.key}": ${issue.message}` });
+}
+fileNames.sort();
+
 for (const name of fileNames) {
-  const bad = report.errors.some((e) => e.file === name);
+  const bad = errors.some((e) => e.file === name);
   console.log(`  ${bad ? '✗' : '✓'} ${name}`);
 }
 for (const w of report.warnings) console.log(`  ⚠ ${w.file}: ${w.message}`);
-for (const e of report.errors) console.error(`  ✗ ${e.file}: ${e.message}`);
+for (const e of errors) console.error(`  ✗ ${e.file}: ${e.message}`);
 
-const summary = `${fileNames.length} files, ${report.errors.length} errors, ${report.warnings.length} warnings${strict ? ' (strict)' : ''}`;
-if (report.errors.length > 0) {
+const summary = `${fileNames.length} files, ${errors.length} errors, ${report.warnings.length} warnings${strict ? ' (strict)' : ''}`;
+if (errors.length > 0) {
   console.error(`content: FAILED — ${summary}`);
   process.exit(1);
 }

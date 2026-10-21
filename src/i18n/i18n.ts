@@ -1,12 +1,17 @@
 // Player-facing strings. Code uses keys only; text lives in the JSON files (CLAUDE.md rule 6).
 // en.json is the base: every key must exist there; other languages fall back to it.
 import af from './af.json';
+import de from './de.json';
 import en from './en.json';
+import nl from './nl.json';
 
 export type I18nKey = keyof typeof en;
-export type Language = 'en' | 'af';
+/** M9 adds German and Dutch (machine-quality first pass, flagged for native review: D-026). */
+export const LANGUAGES = ['en', 'af', 'de', 'nl'] as const;
+export type Language = (typeof LANGUAGES)[number];
 
-const tables: Record<Language, Partial<Record<I18nKey, string>>> = { en, af };
+// Content validation checks that every language has every key (src/content/i18nCheck.ts).
+const tables: Record<Language, Partial<Record<I18nKey, string>>> = { en, af, de, nl };
 
 let current: Language = 'en';
 
@@ -22,7 +27,8 @@ export function getLanguage(): Language {
 export function pickLanguage(tags: readonly string[]): Language {
   for (const tag of tags) {
     const base = tag.toLowerCase().split('-')[0];
-    if (base === 'af' || base === 'en') return base;
+    const lang = LANGUAGES.find((l) => l === base);
+    if (lang !== undefined) return lang;
   }
   return 'en';
 }
