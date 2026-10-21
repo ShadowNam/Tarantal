@@ -890,6 +890,19 @@ checklist per portal are in `docs/07-PORTAL-SUBMISSION.md`. The checklists cover
 the QA tool (Poki Inspector event log; CrazyGames preview), the SDK events the adapters actually
 fire, mobile and tablet, incognito, ad blocker and size. Neither text names another game series
 or a real brand.
+*PR H — release:*
+- The version is 1.0.0 (`package.json`), injected as `__APP_VERSION__` by Vite `define`, and
+  shown as "Version 1.0.0" top-right on Settings → Privacy (i18n key `privacy.version`, four
+  languages).
+- There is no build id on screen: a per-commit id would break that screen's visual baseline on
+  every commit.
+- `CHANGELOG.md` covers v1.0.0.
+- `npm run release` (`tools/release.ts`) runs all three builds, each through `size --strict`, then
+  the asset audit in report mode. It zips each build into `release/` (gitignored), with
+  `index.html` at the root and no `.vite/` metadata.
+- The zips come from a small built-in writer (`tools/zip.ts`, deflate + CRC32, fixed timestamps):
+  this box has no `zip`, and a dependency wasn't worth it. Python's `zipfile` validates them.
+- Nothing is uploaded.
 *Needs a person:* the illustrator, animator and sound designer deliver per
 `docs/06-ASSET-DELIVERY.md`.
 
