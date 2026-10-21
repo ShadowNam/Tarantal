@@ -574,8 +574,9 @@ function applyLayout(): void {
   }
   document.getElementById('rotate-card')?.classList.toggle('visible', portrait);
   // Report what Phaser actually uses, so tests catch a setGameSize that didn't take effect.
-  hook.designWidth = Math.round(game.scale.gameSize.width / prefs.renderScale);
-  hook.designHeight = Math.round(game.scale.gameSize.height / prefs.renderScale);
+  // Design px are what the scenes and taps use; the canvas size is checked against it × scale.
+  hook.designWidth = designSize().width;
+  hook.designHeight = designSize().height;
   hook.renderScale = prefs.renderScale;
   hook.portrait = portrait;
 }
