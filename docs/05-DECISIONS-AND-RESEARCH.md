@@ -842,6 +842,20 @@ length. This is a backstop on top of the content's ≤ 2/s lightning. The Stampe
 steady fade, not a flash; "reduce flashes" dims it by `reducedFlashAlpha`. Muzzle flashes stay
 small local sprites. (4) Pointer goldens and Daily seeds are byte-identical: no sim or bundle
 content changed.
+*PR E — capture mode:* (1) *Gate:* the same as the test hooks (no separate flag): web and dev
+builds, or a portal build made with `VITE_TEST_HOOKS=1`. In a shipped Poki or CrazyGames build
+it is compiled out (grep of `dist-poki` finds neither the `KeyF` handler nor the `capture.`
+namespace). The GitHub Pages web build has it, which is where trailers are captured.
+(2) *Behaviour:*
+- It hides the hunt HUD and the reticle; `&gun=0` also hides the gun.
+- It fixes the seed (`feel.json capture.seed` 42, unless `?seed=` is given).
+- S cycles 1 / ½ / ¼ speed, F freezes, and C sweeps the camera end to end. S, F and C are unused
+  game keys.
+
+Speed scales how real time feeds `HuntRunner` (`timeScale`), the hunt scene's tweens and
+animations; particles keep real time. Pause and hunt end behave as usual. (3) *Own save:* capture
+plays on `tm.capture.*` (the e2e namespace wins if both are set), so a trailer session never
+changes a player's bests, streak or Notaboek.
 *Needs a person:* the illustrator, animator and sound designer deliver per
 `docs/06-ASSET-DELIVERY.md`.
 

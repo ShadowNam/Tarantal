@@ -512,6 +512,16 @@ export interface PlatformAdapter {
   (the sim, `contentHash` and the Daily rotation need it). Final art (M10) plugs into the same
   per-biome loader.
 
+### 8.1 Marketing capture mode (M10, D-027)
+`?capture=1` hides the hunt HUD and the reticle (`&gun=0` also hides the gun), plays seed
+`feel.json capture.seed` unless `?seed=` is given, and adds keys: **S** cycles the speed
+(`capture.speeds`, 1 → ½ → ¼), **F** freezes the action, **C** sweeps the camera end to end. The
+keys scale how real time feeds the hunt runner, tweens and animations; the sim stays
+deterministic. The gate is the test hooks' gate: web and dev builds always, a portal build only
+when built with `VITE_TEST_HOOKS=1` (the CI e2e builds). In a shipped portal build the code is
+compiled out: the `hooksInBuild` constant is `false`, so the minifier drops it, which a grep of
+`dist-poki` confirms. Capture sessions play on their own save (`tm.capture.*`).
+
 ## 9. Mobile web specifics (the gotchas)
 - **iPhone Safari has no element Fullscreen API** (iPad does; iOS 17.4 beta even removed an
   experimental flag). Don't show a fullscreen button there; instead show a one-time "Add to Home
