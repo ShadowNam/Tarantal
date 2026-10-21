@@ -178,6 +178,39 @@ export function resolvePellet(
   return NOTHING;
 }
 
+/**
+ * Touch aim assist as a rescue (M9, D-026): the aim point alone (the pattern's centre, no spread)
+ * is tested with the assist-grown hitboxes. If it meets a bird first (front to back, the same
+ * rules as a pellet), returns the screen shift that moves the aim point onto that bird's body
+ * centre; otherwise null. The caller re-resolves the whole pattern, shifted, at the real
+ * hitboxes, so the assist finds a target but never widens every pellet's.
+ */
+export function assistSnap(
+  dx: number,
+  sy: number,
+  cx: number,
+  assisted: ShotGeometry,
+  birdsByPlane: Readonly<Record<PlaneId, readonly HitBird[]>>,
+  extras: ReadonlyMap<string, readonly HitExtra[]> = new Map(),
+  driftDx: (scrollFactor: number) => number = () => 0,
+): { readonly sx: number; readonly sy: number } | null {
+  const r = resolvePellet(dx, sy, cx, assisted, birdsByPlane, extras, driftDx);
+  if (r.birdId === null) return null;
+  for (const slice of assisted.slices) {
+    if (slice.plane === null) continue;
+    const bird = birdsByPlane[slice.plane].find((b) => b.id === r.birdId);
+    if (bird === undefined) continue;
+    const scale = assisted.planeScale[slice.plane];
+    const p = tapToPlane(cx, slice.scrollFactor, dx + driftDx(slice.scrollFactor), sy);
+    const { body } = bird.hitbox;
+    return {
+      sx: bird.x + body.ox * scale * bird.facing - p.x,
+      sy: bird.y + body.oy * scale - p.y,
+    };
+  }
+  return null;
+}
+
 /** A shot hits a target when its pellets on it ≥ min(pelletsToBag, weapon pellets) (GDD §5.1). */
 export function pelletsNeeded(pelletsToBag: number, weaponPellets: number): number {
   return Math.min(pelletsToBag, weaponPellets);
