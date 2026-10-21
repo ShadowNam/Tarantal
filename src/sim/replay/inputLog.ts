@@ -4,10 +4,19 @@
 // Deflate is added at the share/challenge-link boundary (M7), outside the sim (D-018).
 import { quantiseHalf } from '../camera';
 import { sanitiseCommand } from '../commands';
-import type { AimAssistLevel, Command, InputKind, ModeConfig, ModeId } from '../types';
+import type {
+  AimAssistLevel,
+  Command,
+  InputKind,
+  ModeConfig,
+  ModeId,
+  SeasonHuntConfig,
+  SeasonHuntKind,
+} from '../types';
 
-/** v2 (M5) adds the aim-assist level after the input kind; v1 logs still decode ('standard'). */
-export const INPUT_LOG_VERSION = 2;
+/** v2 (M5) adds the aim-assist level after the input kind; v1 logs still decode ('standard').
+ *  v3 (M6) adds the Season Run block (charms, Boss Rule, consumables …) and charmOrder. */
+export const INPUT_LOG_VERSION = 3;
 
 export interface InputLog {
   readonly v: number;
@@ -74,11 +83,13 @@ const OPS: readonly Command['t'][] = [
   'cameraTarget',
   'gadget',
   'consumable',
+  'charmOrder',
 ];
 // Append only: the index is the encoded value.
 const MODES: readonly ModeId[] = ['classic', 'daily', 'seasonHunt', 'ftue'];
 const INPUT_KINDS: readonly InputKind[] = ['pointer', 'touch'];
 const AIM_ASSIST: readonly AimAssistLevel[] = ['standard', 'low', 'off'];
+const SEASON_KINDS: readonly SeasonHuntKind[] = ['plain', 'omen', 'boss'];
 
 class ByteWriter {
   private bytes: number[] = [];
@@ -159,7 +170,41 @@ const FLAG = {
   stampedeOn: 16,
   omen: 32,
   omenOn: 64,
+  season: 128,
 };
+
+function writeSeason(w: ByteWriter, s: SeasonHuntConfig): void {
+  w.byte(SEASON_KINDS.indexOf(s.kind));
+  w.ascii(s.boss ?? '');
+  w.varint(s.charms.length);
+  for (const c of s.charms) w.ascii(c);
+  w.varint(s.consumables.length);
+  for (const c of s.consumables) w.ascii(c ?? '');
+  w.ascii(s.rental ?? '');
+  w.varint(s.runShellBonus);
+}
+
+function readSeason(r: ByteReader): SeasonHuntConfig {
+  const kind = SEASON_KINDS[r.byte()];
+  if (kind === undefined) throw new Error('bad replay season kind');
+  const boss = r.ascii();
+  const charms: string[] = [];
+  for (let n = r.varint(); n > 0; n--) charms.push(r.ascii());
+  const consumables: (string | null)[] = [];
+  for (let n = r.varint(); n > 0; n--) {
+    const c = r.ascii();
+    consumables.push(c === '' ? null : c);
+  }
+  const rental = r.ascii();
+  return {
+    kind,
+    boss: boss === '' ? null : boss,
+    charms,
+    consumables,
+    rental: rental === '' ? null : rental,
+    runShellBonus: r.varint(),
+  };
+}
 
 export function encodeInputLog(log: InputLog): Uint8Array {
   const w = new ByteWriter();
@@ -177,10 +222,15 @@ export function encodeInputLog(log: InputLog): Uint8Array {
   if (m.huntSeconds !== undefined) flags |= FLAG.huntSeconds;
   if (m.stampede !== undefined) flags |= FLAG.stampede | (m.stampede ? FLAG.stampedeOn : 0);
   if (m.omen !== undefined) flags |= FLAG.omen | (m.omen ? FLAG.omenOn : 0);
+  if (m.season !== undefined) {
+    if (log.v < 3) throw new Error('Season Run replays need log version 3');
+    flags |= FLAG.season;
+  }
   w.byte(flags);
   if (m.biome !== undefined) w.ascii(m.biome);
   if (m.weapon !== undefined) w.ascii(m.weapon);
   if (m.huntSeconds !== undefined) w.half(m.huntSeconds);
+  if (m.season !== undefined) writeSeason(w, m.season);
 
   w.varint(log.commands.length);
   for (const [delta, cmd] of log.commands) {
@@ -199,6 +249,10 @@ export function encodeInputLog(log: InputLog): Uint8Array {
       case 'consumable':
         w.varint(Math.max(0, Math.trunc(cmd.slot)));
         break;
+      case 'charmOrder':
+        w.varint(cmd.order.length);
+        for (const i of cmd.order) w.varint(i);
+        break;
       default:
         break;
     }
@@ -209,7 +263,7 @@ export function encodeInputLog(log: InputLog): Uint8Array {
 export function decodeInputLog(bytes: Uint8Array): InputLog {
   const r = new ByteReader(bytes);
   const v = r.varint();
-  if (v !== 1 && v !== INPUT_LOG_VERSION) throw new Error(`unsupported replay version ${v}`);
+  if (!(v >= 1 && v <= INPUT_LOG_VERSION)) throw new Error(`unsupported replay version ${v}`);
   const seed = r.varint() >>> 0;
   let contentHash = '';
   for (let i = 0; i < 32; i++) contentHash += r.byte().toString(16).padStart(2, '0');
@@ -225,6 +279,10 @@ export function decodeInputLog(bytes: Uint8Array): InputLog {
   if (flags & FLAG.huntSeconds) mode.huntSeconds = r.half();
   if (flags & FLAG.stampede) mode.stampede = (flags & FLAG.stampedeOn) !== 0;
   if (flags & FLAG.omen) mode.omen = (flags & FLAG.omenOn) !== 0;
+  if (flags & FLAG.season) {
+    if (v < 3) throw new Error('bad replay flags');
+    mode.season = readSeason(r);
+  }
 
   const count = r.varint();
   const commands: (readonly [number, Command])[] = [];
@@ -255,6 +313,11 @@ function readCommand(r: ByteReader, op: Command['t'] | undefined): Command {
       return { t: op, cx: r.half() };
     case 'consumable':
       return { t: op, slot: r.varint() };
+    case 'charmOrder': {
+      const order: number[] = [];
+      for (let n = r.varint(); n > 0; n--) order.push(r.varint());
+      return { t: op, order };
+    }
     case 'fireHoldEnd':
     case 'reload':
     case 'gadget':

@@ -39,7 +39,9 @@ export type StreamName =
   | 'crates'
   | 'omen'
   | 'perch'
-  | 'boss';
+  | 'boss'
+  // M6: the Stormvoël rule's lightning.
+  | 'lightning';
 
 /** A stream's members are closures, so they are safe to pass around detached. */
 export interface RandomStream {

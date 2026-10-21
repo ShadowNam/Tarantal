@@ -7,6 +7,7 @@ import {
   encodeInputLog,
   encodeInputLogText,
   fromBase64Url,
+  INPUT_LOG_VERSION,
   toBase64Url,
   type InputLog,
 } from './inputLog';
@@ -35,7 +36,7 @@ describe('InputLog', () => {
     });
     rec.record(3, [{ t: 'fire', dx: 1, sy: 2 }]);
     const log = rec.toLog();
-    expect(log.v).toBe(2);
+    expect(log.v).toBe(INPUT_LOG_VERSION);
     expect(decodeInputLogText(encodeInputLogText(log))).toEqual(log);
     const std = createRecorder({
       seed: 5,
@@ -138,7 +139,9 @@ describe('InputLog', () => {
     });
     expect(() => decodeInputLog(bytes.slice(0, -1))).toThrow(/truncated/);
     expect(() => decodeInputLog(Uint8Array.from([...bytes, 0]))).toThrow(/trailing/);
-    expect(() => decodeInputLog(Uint8Array.from([3, ...bytes.slice(1)]))).toThrow(/version/);
+    expect(() =>
+      decodeInputLog(Uint8Array.from([INPUT_LOG_VERSION + 1, ...bytes.slice(1)])),
+    ).toThrow(/version/);
     expect(() => decodeInputLogText('ab$c')).toThrow(/base64url/);
   });
 

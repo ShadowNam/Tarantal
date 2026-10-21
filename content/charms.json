@@ -9,6 +9,12 @@
     "legendary": 12
   },
   "sellRatio": 0.5,
+  "offerWeights": {
+    "common": 6,
+    "uncommon": 4,
+    "rare": 2,
+    "legendary": 1
+  },
   "charms": [
     {
       "id": "oupa_se_bril",

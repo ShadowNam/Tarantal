@@ -358,15 +358,18 @@ not hanging balls.
 - Between hunts: **Padstal** (farm-stall shop) with charms, consumables, temporary weapons.
 - After the Summer boss: victory tally, unlocks, optional Endless (v1.x).
 
-### 13.2 Quotas (placeholders — the real values are set by the balance simulator in M6/M8, §13.8)
+### 13.2 Quotas (Herfs and Winter tuned in M6 on the Karoo stand-in; Lente and Somer are placeholders until M8, §13.8)
 | Season | Hunt 1 | Hunt 2 (Omen) | Hunt 3 (Boss) |
 |---|---|---|---|
-| Herfs | 600 | 900 | 1 300 |
-| Winter | 1 800 | 2 500 | 3 300 |
+| Herfs | 1 950 | 2 100 | 2 250 |
+| Winter | 2 350 | 2 350 | 2 150 |
 | Lente | 4 500 | 6 000 | 8 000 |
 | Somer | 11 000 | 15 000 | 20 000 |
 
 The curve outpaces raw skill by season 3: you need charm synergies to keep up (that's the point).
+Winter's boss hunt is lower than its omen hunt because Ou Grys's rule zeroes ground shots. Until M8
+every season runs on the Karoo (`run.json → biomeFallback`, logged) and the Generaal stands in as the
+boss of every Boss Hunt, carrying the season's own Boss Rule (D-023).
 
 ### 13.3 Boss Rules
 | Boss | Rule during the boss hunt |
@@ -376,15 +379,34 @@ The curve outpaces raw skill by season 3: you need charm synergies to keep up (t
 | Kuifkop Koning | Reload takes twice as long |
 | Die Stormvoël | Screen is dark except during lightning flashes (photosensitivity-safe: see §18) |
 
+Boss rules beat charms that would cancel them: Stil Loop silences a miss's own alert but not the
+Generaal's "every miss alerts all flocks" (a flock the miss already alerted is not alerted twice).
+Under Ou Grys, "ground" is anything not flying, and a shot that bagged only ground birds earns no Twee
+Vlieë or Whole Flock either. Lightning comes every 2.5–5 s (`run.json`), never more
+than 2 flashes a second.
+
 ### 13.4 Currency: Doppies (bottle caps) — in-run only
 - Start a run with 4. After each hunt: +3 base, +1 per full 10 % over quota (max +5), +1 interest per
-  5 unspent (max +5), +3 after boss hunts. White tarentaal drop 3.
+  5 unspent (max +5), +3 after boss hunts. White tarentaal drop 3. Interest counts the doppies you
+  held when the hunt ended, before this hunt's payout. Missing the quota ends the run: no payout.
 - Doppies never leave the run (no meta currency to grind or sell).
 
 ### 13.5 Gelukbringers (charms) — the build-crafting layer
 - 5 charm slots. Charms are data (`content/charms.json`) executed by an effect interpreter (§ Tech).
 - Rarity / Padstal price: Common 4 · Uncommon 6 · Rare 8 · Legendary 12. Sell for half (rounded down).
 - Padstal offers 2 charms + 1 consumable + 1 temporary weapon (if unlocked). Reroll 2, +1 per reroll.
+  Charm offers are weighted by rarity (`charms.json → offerWeights`), come only from the unlocked
+  pool and never repeat a charm you own. A reroll redraws every offer; its price starts at 2 again
+  at the next Padstal. Consumables fill 2 slots and are used from the HUD (one use each). A rented
+  crate weapon (Voorlaaier, Mielie-Masjien, 5 doppies) lasts the next hunt only: you set it off from
+  its own HUD slot when you choose; unused, it is gone after that hunt.
+- Charm reading for the launch set (D-023): Fluitjie has no charge limit, only its 6 s cooldown;
+  Haelstorm's blast uses a normal shell; Rooi Patrone = the shot fired from a full belt, Laaste
+  Patroon = the shot that empties it (primary shells only, not crate weapons or Chilli Biltong);
+  Konsertina counts once per shot, on streaks 10, 20 …, and refills up to the belt size; Geheime
+  Resep drops the streak to the start of the tier below (or to 0 from the first tier); Boeretroos-Fles
+  slows the birds in the sim (like the Boeretroos power-up), the hunt clock keeps running; Kwêvoël se
+  Seën adds visits (×3 the mean); Generaal se Pot's extra shell lasts the whole run.
 
 Launch set (24) — archetypes in brackets so synergies are deliberate:
 
@@ -443,7 +465,11 @@ velocity, Gaussian aim error σ 10 px mouse / 26 px finger, keyboard pan speed, 
 so their gap measures tempo, not aim. Run it with `npm run balance` (`tools/balance-sim.ts`). In Season Runs a bot's
 charm policy is either `none` or `synergy` (a scripted archetype-focused picker).
 
-Quotas are tuned to these pass-rate targets for the competent bot (60 s hunts):
+`synergy` commits to the archetype of its first charm (the best on offer) and then buys only that
+archetype plus economy charms; it orders +Mult charms before ×Mult ones and uses its consumables and
+rental. A season's **pass rate** is the share of runs that reach the season and clear all three of its
+hunts (`npm run balance -- --run`). Quotas are tuned to these pass-rate targets for the competent bot
+(60 s hunts):
 
 | Season | Charm policy `none` | Charm policy `synergy` |
 |---|---|---|

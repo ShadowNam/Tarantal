@@ -17,6 +17,8 @@ export interface BagContext {
   readonly frenzyMul: number;
   /** 1 outside the Stampede. */
   readonly stampedeMul: number;
+  /** A Boss Rule's multiplier, after everything (Ou Grys: ground shots ×0). Default 1. */
+  readonly ruleMul?: number;
 }
 
 /** One scoring action from a charm effect. The caller passes them in slot order, then listed order. */
@@ -28,7 +30,15 @@ export interface Modifier {
 }
 
 export type BreakdownKind =
-  'base' | 'addPoints' | 'behaviour' | 'addMult' | 'mulMult' | 'weapon' | 'frenzy' | 'stampede';
+  | 'base'
+  | 'addPoints'
+  | 'behaviour'
+  | 'addMult'
+  | 'mulMult'
+  | 'weapon'
+  | 'frenzy'
+  | 'stampede'
+  | 'bossRule';
 
 export interface BreakdownStep {
   readonly kind: BreakdownKind;
@@ -82,6 +92,11 @@ export function scoreBag(ctx: BagContext, modifiers: readonly Modifier[]): BagSc
   if (ctx.frenzyMul !== 1) push('frenzy', 'frenzy', ctx.frenzyMul);
   mult *= ctx.stampedeMul;
   if (ctx.stampedeMul !== 1) push('stampede', 'stampede', ctx.stampedeMul);
+  const ruleMul = ctx.ruleMul ?? 1;
+  if (ruleMul !== 1) {
+    mult *= ruleMul;
+    push('bossRule', 'bossRule', ruleMul);
+  }
 
   return { points, mult, award: Math.round(points * mult), breakdown };
 }

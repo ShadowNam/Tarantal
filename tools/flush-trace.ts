@@ -1,7 +1,7 @@
 // Diagnostics: what happens to the birds of each flush (bagged flying, landed, exited) and the
 // shots fired while a flock was flushed. npx tsx tools/flush-trace.ts --bot competent --seeds 10
 import { createSim } from '../src/sim/Sim';
-import { withOverrides } from './balance-sim';
+import { withOverrides } from './contentOverrides';
 import { BOT_KINDS, createBot, type BotKind } from './bots';
 import { loadContent } from './testContent';
 

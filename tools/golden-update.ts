@@ -13,7 +13,7 @@ const contentHash = loadContentHash();
 const out: GoldenReplay[] = [];
 
 for (const c of GOLDEN_CASES) {
-  const play = playHunt({ ...c, mode: { id: c.mode }, content, contentHash });
+  const play = playHunt({ ...c, mode: c.modeConfig ?? { id: c.mode }, content, contentHash });
   const replay = runReplay(play.log, content);
   if (replay.eventHash !== play.eventHash) {
     console.error(`${c.name}: replay does not reproduce the live run — determinism bug`);

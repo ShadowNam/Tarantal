@@ -2,6 +2,8 @@
 // Pure: returns errors and warnings. Warnings cover content that arrives in later milestones
 // (docs/04-BUILD-PLAN.md M0); `strict` turns them into errors (CI uses --strict from M8 on).
 import { coreWidth } from '../sim/world';
+import { WORLD_EVENT_HANDLERS } from '../sim/director/events';
+import { CHARM_SCRIPTS } from '../sim/charms/registry';
 import type { Biome, Charm, ContentBundle, Creature, Notaboek } from './schemas';
 
 export interface CrossRefIssue {
@@ -27,8 +29,7 @@ export interface CrossRefOptions {
 const LATER = {
   biome: 'M8',
   challenge: 'M5 (Notaboek)',
-  spawnEvent: 'M6',
-  script: 'M6 (charm registry)',
+  spawnEvent: 'M8',
   i18n: 'when its screen is built',
 } as const;
 
@@ -136,7 +137,12 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
         }
       }
       if (c.metric === 'score' && c.scope !== 'hunt') err(nb, `challenge "${c.id}": score only counts per hunt`);
+      if (c.reward.type === 'charm') {
+        const charmId = c.reward.id;
+        if (!charms.charms.some((x) => x.id === charmId)) err(nb, `challenge "${c.id}" rewards unknown charm "${charmId}"`);
+      }
     }
+    checkUnique(nb, 'charm reward', options.notaboek.challenges.flatMap((c) => (c.reward.type === 'charm' ? [c.reward.id] : [])), err);
   }
 
   // --- powerups.json -----------------------------------------------------------------------
@@ -172,6 +178,8 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
       }
     }
   }
+
+  if (!loadedBiomes.has(run.biomeFallback)) err('run.json', `biomeFallback "${run.biomeFallback}" is not a loaded biome`);
 
   // --- biomes ------------------------------------------------------------------------------
   for (const biome of biomes) {
@@ -287,6 +295,8 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
       plannedBiomeIds,
       omenIds,
       definedEventIds,
+      scriptIds: new Set(Object.keys(CHARM_SCRIPTS)),
+      eventCreatures: new Set(biomes.flatMap((b) => b.events.flatMap((e) => (e.creature === undefined ? [] : [e.creature])))),
       err: (m) => {
         err('charms.json', m);
       },
@@ -306,6 +316,9 @@ interface CharmCtx {
   readonly plannedBiomeIds: ReadonlySet<string>;
   readonly omenIds: ReadonlySet<string>;
   readonly definedEventIds: ReadonlySet<string>;
+  readonly scriptIds: ReadonlySet<string>;
+  /** Creatures some biome event brings in (spawnRateMul scales those events). */
+  readonly eventCreatures: ReadonlySet<string>;
   readonly err: (message: string) => void;
   readonly warn: (message: string) => void;
 }
@@ -319,11 +332,18 @@ function checkCharm(charm: Charm, ctx: CharmCtx): void {
   if (hasGadgetTrigger && charm.gadget === undefined) {
     ctx.err(`${where} has an "on: gadget" effect but no gadget block`);
   }
-  if (charm.script !== undefined) {
-    ctx.warn(`${where} script "${charm.script}" has no registry yet (${LATER.script})`);
+  if (charm.script !== undefined && !ctx.scriptIds.has(charm.script)) {
+    ctx.err(`${where} script "${charm.script}" is not registered in src/sim/charms/registry.ts`);
   }
   for (const effect of charm.effects) {
     const cond = effect.if;
+    const passive = effect.on === 'passive';
+    for (const key of Object.keys(effect.do) as (keyof typeof effect.do)[]) {
+      if (PASSIVE_ACTIONS.has(key) && !passive) ctx.err(`${where} action "${key}" only works on "passive"`);
+      if (!PASSIVE_ACTIONS.has(key) && passive) ctx.err(`${where} action "${key}" needs a trigger, not "passive"`);
+      if (BAG_ACTIONS.has(key) && effect.on !== 'bag') ctx.err(`${where} scoring action "${key}" only works on "bag"`);
+    }
+    if (passive && cond !== undefined) ctx.err(`${where} a passive effect cannot have conditions`);
     for (const c of cond?.creature ?? []) {
       if (!ctx.creatures.has(c)) ctx.err(`${where} condition uses unknown creature "${c}"`);
     }
@@ -346,14 +366,31 @@ function checkCharm(charm: Charm, ctx: CharmCtx): void {
         ctx.err(`${where} penaltyOverride creature "${act.penaltyOverride.creature}" is not a non-target`);
       }
     }
-    if (act.spawnRateMul && !ctx.creatures.has(act.spawnRateMul.creature)) {
-      ctx.err(`${where} spawnRateMul uses unknown creature "${act.spawnRateMul.creature}"`);
+    if (act.spawnRateMul && !ctx.eventCreatures.has(act.spawnRateMul.creature)) {
+      ctx.err(`${where} spawnRateMul creature "${act.spawnRateMul.creature}" is brought in by no biome event`);
     }
-    if (act.spawnEvent !== undefined && !ctx.definedEventIds.has(act.spawnEvent)) {
-      ctx.warn(`${where} spawns event "${act.spawnEvent}" that no biome defines yet (${LATER.spawnEvent})`);
+    if (act.spawnEvent !== undefined) {
+      const handler = WORLD_EVENT_HANDLERS[act.spawnEvent];
+      if (!CHARM_SPAWNABLE.has(handler)) {
+        ctx.err(`${where} cannot spawn event "${act.spawnEvent}" (handler "${handler}")`);
+      } else if (handler !== 'farmDog' && !ctx.definedEventIds.has(act.spawnEvent)) {
+        ctx.warn(`${where} spawns event "${act.spawnEvent}" that no biome defines yet (${LATER.spawnEvent})`);
+      }
     }
   }
 }
+
+/** Stat actions a charm holds while equipped (Tech §3.8); every other action needs a trigger. */
+const PASSIVE_ACTIONS: ReadonlySet<string> = new Set([
+  'bonusMul', 'penaltyOverride', 'shellCapacity', 'reloadSpeedMul', 'weaponBlastEvery',
+  'alertRadiusMul', 'spawnRateMul', 'windDriftMul', 'revealSecrets', 'enableStampede',
+  'frenzyMissBehaviour', 'interestCap', 'shopSlots', 'rerollDiscount',
+]);
+/** Per-bag scoring actions (GDD §5.3 pipeline). */
+const BAG_ACTIONS: ReadonlySet<string> = new Set(['addPoints', 'addMult', 'mulMult']);
+/** World-event handlers a charm's spawnEvent can call (the biome entry supplies the details,
+ *  except the farm dog, which needs none). */
+const CHARM_SPAWNABLE: ReadonlySet<string> = new Set(['flyover', 'perch', 'dustDevil', 'farmDog']);
 
 type BiomeEvent = Biome['events'][number];
 

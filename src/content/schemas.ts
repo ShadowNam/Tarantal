@@ -386,6 +386,8 @@ export type Powerups = z.infer<typeof PowerupsSchema>;
 export const RunSchema = obj({
   version,
   huntSeconds: posInt,
+  /** Until M8 adds the other biomes, a season whose biome file is missing runs here (logged). */
+  biomeFallback: id,
   seasons: z
     .array(
       obj({
@@ -404,6 +406,9 @@ export const RunSchema = obj({
       descriptionKey: i18nKey,
       /** Photosensitivity rule: never more than 3 large flashes per second (CLAUDE.md). */
       maxFlashesPerSecond: z.number().positive().max(3).optional(),
+      /** darkExceptLightning: seconds between lightning flashes, and how long one lights up. */
+      flashEverySeconds: range(pos).optional(),
+      flashMs: posInt.optional(),
     }),
   ),
   doppies: obj({
@@ -435,6 +440,25 @@ export const RunSchema = obj({
       });
     }
   });
+  for (const [ruleId, rule] of Object.entries(run.bossRules)) {
+    const every = rule.flashEverySeconds;
+    if (ruleId === 'darkExceptLightning' && (every === undefined || rule.flashMs === undefined)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['bossRules', ruleId],
+        message: 'darkExceptLightning needs flashEverySeconds and flashMs',
+      });
+    }
+    if (every === undefined) continue;
+    const max = rule.maxFlashesPerSecond ?? 3;
+    if (every[0] < 1 / max) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['bossRules', ruleId, 'flashEverySeconds'],
+        message: `flashes closer than 1/${max} s break maxFlashesPerSecond`,
+      });
+    }
+  }
 });
 export type Run = z.infer<typeof RunSchema>;
 
@@ -544,6 +568,8 @@ export const CharmsSchema = obj({
   version,
   slots: posInt,
   prices: obj({ common: posInt, uncommon: posInt, rare: posInt, legendary: posInt }),
+  /** Padstal: how likely each rarity is to be offered (relative weights). */
+  offerWeights: obj({ common: nonNeg, uncommon: nonNeg, rare: nonNeg, legendary: nonNeg }),
   sellRatio: fraction,
   charms: z.array(CharmSchema).min(1),
 });
@@ -912,6 +938,8 @@ const notaboekRewardSchema = z.discriminatedUnion('type', [
   obj({ type: z.literal('birdBookPage'), biome: id }),
   /** A tick in the Notaboek only. */
   obj({ type: z.literal('none') }),
+  /** Adds a charm to the Season Run pool (GDD §13.6: unlocks widen the pool, never add power). */
+  obj({ type: z.literal('charm'), id }),
 ]);
 
 export const NotaboekSchema = obj({
