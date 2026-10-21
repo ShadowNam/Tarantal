@@ -186,11 +186,10 @@ test.describe('portal build', () => {
     // 1. Tally: [Again] twice, then [Menu].
     await tapIds(['again', 'again', 'menu']);
     await waitScene(page, 'hunt');
-    let tick = (await hook(page)).tick;
+    // Long enough for a stray second break (1.5 s + 0.6 s) or restart to happen. The hunt may
+    // already be over on a fast browser: the counts below catch any extra start or restart.
     await page.waitForTimeout(3000);
     let h = await hook(page);
-    expect(h.scene).toBe('hunt');
-    expect(h.tick).toBeGreaterThan(tick);
     expect(await breaks()).toBe(1);
     expect(h.huntRequests).toBe(2);
 
@@ -202,12 +201,9 @@ test.describe('portal build', () => {
     });
     await tapIds(['run.go', 'run.go', 'run.menu']);
     await waitScene(page, 'hunt');
-    tick = (await hook(page)).tick;
+    expect((await hook(page)).mode).toBe('seasonHunt');
     await page.waitForTimeout(3000);
     h = await hook(page);
-    expect(h.scene).toBe('hunt');
-    expect(h.mode).toBe('seasonHunt');
-    expect(h.tick).toBeGreaterThan(tick);
     expect(await breaks()).toBe(2);
     expect(h.huntRequests).toBe(3);
     expect(h.analytics.filter((a) => a.event === 'hunt_start')).toHaveLength(3);
