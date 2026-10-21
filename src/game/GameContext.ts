@@ -119,6 +119,8 @@ export interface TestHook {
     charms: string[];
     offers: string[];
     quota: number;
+    /** Padstal: the "why you can't buy" notes on the offer cards (D-026). */
+    notes: string[];
   } | null;
   /** M6: what the run HUD draws (quota shown, charm chips, item buttons). */
   seasonHud: { quota: number | null; chips: number; items: number } | null;
@@ -151,6 +153,8 @@ export interface TestHook {
     layers: number;
     filters: string[];
   };
+  /** M9: the Padstal help card's text bottom and OK button top (no overlap: textBottom < okTop). */
+  helpCard?: { textBottom: number; okTop: number };
   /** M9: sound captions on screen (i18n keys, newest first). */
   captions: string[];
   /** M9: the AudioDirector is muted (ad, portal mute, pause, hidden tab). */

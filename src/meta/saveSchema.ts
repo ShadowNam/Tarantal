@@ -28,7 +28,7 @@ export const SettingsSchema = z.object({
   quality: QualitySettingSchema,
   /** M9 accessibility (GDD §18.3): menu, tally and caption text 1× or `largeTextScale`. */
   textSize: z.enum(['normal', 'large']),
-  /** M9: dark outlines on all text, solid panels behind HUD text. */
+  /** M9: a black outline on all light text (menus, tally, HUD messages, call-outs). */
   highContrast: z.boolean(),
   /** M9: text captions for sound cues. */
   captions: z.boolean(),

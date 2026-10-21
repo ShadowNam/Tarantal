@@ -37,3 +37,17 @@ export function checkLanguage(
     if (!Object.hasOwn(base, key)) issues.push({ lang, key, message: 'not in en.json' });
   return issues;
 }
+
+/**
+ * The languages the game offers (`LANGUAGES` in i18n.ts) and the `<lang>.json` files in
+ * src/i18n must be the same set: a file the picker never offers, or a language without a file,
+ * is an error.
+ */
+export function checkLanguageSet(declared: readonly string[], files: readonly string[]): string[] {
+  const d = new Set(declared);
+  const f = new Set(files);
+  return [
+    ...[...d].filter((l) => !f.has(l)).map((l) => `"${l}" is in LANGUAGES but has no ${l}.json`),
+    ...[...f].filter((l) => !d.has(l)).map((l) => `${l}.json exists but "${l}" is not in LANGUAGES`),
+  ];
+}

@@ -7,7 +7,7 @@ import { contentHash } from './content/hash';
 import { DailyFlow } from './game/daily/DailyFlow';
 import { loadGameContent } from './content/loadBrowser';
 import { AudioDirector } from './game/audio/AudioDirector';
-import { withQuotaMul, withTestCrate } from './game/devContent';
+import { withDoppies, withQuotaMul, withTestCrate } from './game/devContent';
 import type { GameContext, TestHook, TestTools } from './game/GameContext';
 import {
   designSize,
@@ -238,8 +238,14 @@ const crateParam = testHooks ? params.get('crate') : null;
 const withCrate = crateParam === null ? loaded.bundle : withTestCrate(loaded.bundle, crateParam);
 // e2e/dev only: ?quotaMul=0 makes every Season Run quota reachable (short e2e runs).
 const quotaMul = testHooks && params.has('quotaMul') ? Number(params.get('quotaMul')) : NaN;
-const bundle =
+const withQuota =
   Number.isFinite(quotaMul) && quotaMul >= 0 ? withQuotaMul(withCrate, quotaMul) : withCrate;
+// e2e/dev only: ?doppies=1 — a run with (almost) no Doppies, to show Padstal offers it can't buy.
+const doppiesParam = testHooks && params.has('doppies') ? Number(params.get('doppies')) : NaN;
+const bundle =
+  Number.isInteger(doppiesParam) && doppiesParam >= 0
+    ? withDoppies(withQuota, doppiesParam)
+    : withQuota;
 hook.boot['content'] = performance.now();
 const biomeId = bundle.modes.modes.classic.biome;
 const biome = bundle.biomes.find((b) => b.id === biomeId);

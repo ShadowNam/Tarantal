@@ -669,6 +669,21 @@ sale" and "Your charms (drag to reorder)"; (26d) empty slots read "Consumables: 
 "Rental gun: none" (was "— | No rental"). Strings in en/af here, de/nl on PR D.
 `season-run.spec.ts` checks the card on the first visit only, not after a reload, and reopens it
 with "?" (screenshots `season-padstal-help-*`, `season-padstal-*`, desktop + Pixel 7).
+*PR C review fixes:* (26e) *Hold to fire on touch* fired on every touch and broke drag-pan and
+flick-reload. A finger now stays a tap/drag/flick gesture until it has been still (< 12 px) for
+`input.touchHoldMs` (180 ms); only then does it become the hold (first shot at once, then each
+ready tick). A tap before that fires once; moving first makes it a drag or flick. The Settings
+hold doesn't edge-pan (a weapon's own hold still does). Unit tests use `pointerType: 'touch'`;
+`a11y.spec.ts` checks hold/drag/flick on Pixel 7 landscape. (26f) *Blocker note:* moved off the
+24 px price line (squeezed to ~5 CSS px on a phone) onto its own wrapped plate above the price.
+(26g) *Help card* is sized from its measured text and steps the font down (28 → 18 px) if even
+the tallest card can't hold it; the test asserts the text ends above the button. (26h) *Large
+text on the tally:* title, score, rows and rank stamp keep their size (fixed slots of the slate;
+scaled they overlapped on phones); the tag, news line and buttons scale. The Padstal's "For sale"
+label moved below the large title. (26i) e2e-only `?doppies=N` (a run with N Doppies and no pay)
+to show blocked offers. `padstal.spec.ts`: blocked cards on iPhone 14 + Pixel 7 landscape, the
+help card with large text on desktop at 4:3 and iPhone 14, and a Pixel 7 pass with large text +
+high contrast (Settings ×2, Padstal, tally).
 *PR D — de + nl:* (27) *Languages:* `de.json` and `nl.json` (366 keys each), machine-quality
 first pass written for this game, **flagged for native review**; Afrikaans completed (the 28
 missing keys: four Boss Rules translated, charm names are Afrikaans in every language). Language
@@ -687,7 +702,12 @@ is the system font until M10's self-hosted display font, which must include ä �
 "LADEN!", "Freeze"/"Challenge" left in English, bird names Graulärmvogel/Schreiseeadler,
 "TATÜ-TATA!" for the car alarm, "Weiter" for skip; nl — kwêvoël and visarend names, "Baas" for
 boss, "charm" kept, "bevriezing" for the streak freeze, "Opnieuw" for reroll, invented item names
-(Bos-hagel, Stokstaartjes-spotter).
+(Bos-hagel, Stokstaartjes-spotter). *Review fixes:* the English left in de (Challenge,
+Freeze) is now "Herausforderung" and "Serienschutz"; in af "Frenzy" is "Waansin" and the rank
+"Bosveld-legende" (as on the share card). The validator also fails when `LANGUAGES` in
+`i18n.ts` and the `src/i18n/<lang>.json` files differ (checked by removing `nl` from the list →
+`content: FAILED`). `i18n.spec.ts` screenshots the Padstal (help card and shop) in de and nl;
+`padstal.spec.ts` runs en and de.
 *PR E — touch aim assist (carry-over from M8):* (32) *Cause:* the GDD §18.2 radii grew every
 pellet's target, so a shotgun shot on touch dropped two birds much more often (competent bot,
 Karoo: Twee Vlieë 20.4/hunt touch vs 16.4 pointer) and the touch competent mean was 4 643–4 705,
