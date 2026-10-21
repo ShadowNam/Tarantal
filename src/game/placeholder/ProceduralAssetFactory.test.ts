@@ -4,7 +4,7 @@ import en from '../../i18n/en.json';
 import af from '../../i18n/af.json';
 import { coreWidth, LAYER_BLEED_PX } from '../../sim/world';
 import { birdKey, gunKey, MAX_TILE_WIDTH, TEX } from '../assets/AssetManifest';
-import { createPlaceholderManifest } from './ProceduralAssetFactory';
+import { createPlaceholderManifest, placeholderBiomes } from './ProceduralAssetFactory';
 
 const content = loadContent();
 const biome = content.biomes.find((b) => b.id === content.modes.modes.classic.biome);
@@ -95,5 +95,15 @@ describe('i18n for M2', () => {
     const m2 = Object.keys(en).filter((k) => /^(start|hud|fx|tally|rank)\./.test(k));
     expect(m2.length).toBeGreaterThan(20);
     for (const k of m2) expect(Object.hasOwn(af, k), k).toBe(true);
+  });
+
+  it('every biome in content has placeholder art (M8: all four are playable)', () => {
+    expect([...placeholderBiomes()].sort()).toEqual(content.biomes.map((b) => b.id).sort());
+    for (const b of content.biomes) {
+      const bm = createPlaceholderManifest(content, b);
+      for (const layer of b.layers)
+        expect(bm.layer(layer.asset), `${b.id}/${layer.id}`).toBeDefined();
+      for (const p of b.props) expect(bm.has(p.asset), `${b.id}/${p.asset}`).toBe(true);
+    }
   });
 });
