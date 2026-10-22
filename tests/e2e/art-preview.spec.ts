@@ -119,10 +119,14 @@ test('flock foraging, then flushing', async ({ page }, info) => {
   compose('flock-flush', info);
 });
 
-test('the Generaal (and the hitbox overlay)', async ({ page }, info) => {
+test('the Generaal', async ({ page }, info) => {
   test.setTimeout(400_000);
   await held(page, info, 'generaal', 'seed=11&huntSeconds=20', 800);
-  await held(page, info, 'debug-hitboxes', 'seed=11&huntSeconds=20&debug=1', 800);
+});
+
+test('the debug hitbox overlay (?debug=1)', async ({ page }, info) => {
+  test.setTimeout(400_000);
+  await held(page, info, 'debug-hitboxes', 'seed=42&huntSeconds=20&debug=1', 70);
 });
 
 const GUNS: readonly [string, number | null][] = [
