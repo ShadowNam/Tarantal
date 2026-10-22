@@ -10,6 +10,13 @@ import { z } from 'zod';
 export const ASSET_INDEX_PATH = 'assets/asset-index.json';
 /** Group of assets every hunt needs (UI, FX, shared birds and sounds). */
 export const COMMON_GROUP = 'common';
+/**
+ * D-029: assets the first hunt doesn't need straight away (rare variants, bosses, guns that aren't
+ * equipped). They download after the first download settles (while the title is up) and are installed
+ * when first needed; until
+ * then their keys show the placeholder. Not part of the first download.
+ */
+export const LATE_GROUP = 'late';
 
 /** Bird animation clips (art bible §3.4). */
 export const BIRD_CLIPS = [
@@ -39,8 +46,18 @@ export type FileRef = z.infer<typeof fileRef>;
 const group = z.string().min(1);
 const fraction = z.number().min(0).max(1);
 
+/**
+ * Who made a delivered file (D-029). `interim` = code-drawn stand-in art from `npm run art:interim`
+ * (tools/art/), replaced key by key by human art; absent = final. The audit lists both, and
+ * `--strict` (the launch gate) fails while any interim key remains.
+ */
+export const ASSET_ORIGINS = ['final', 'interim'] as const;
+export type AssetOrigin = (typeof ASSET_ORIGINS)[number];
+const origin = z.enum(ASSET_ORIGINS).optional();
+
 const imageEntry = z.object({
   group,
+  origin,
   file: fileRef,
   width: z.number().int().positive(),
   height: z.number().int().positive(),
@@ -51,6 +68,7 @@ const imageEntry = z.object({
 
 const layerEntry = z.object({
   group,
+  origin,
   /** Left to right, each ≤ 2048 px wide (art bible §4.1). */
   tiles: z.array(fileRef).min(1),
   /** Width of one tile in layer px (the last tile may be narrower). */
@@ -74,6 +92,7 @@ const clipEntry = z.object({
 
 const birdPlaneEntry = z.object({
   group,
+  origin,
   /** @1x atlas (low and medium tiers) and optional @2x (high tier, art bible §3.4). */
   x1: atlasRef,
   x2: atlasRef.optional(),
@@ -82,7 +101,35 @@ const birdPlaneEntry = z.object({
   /** The bird's sim position inside a frame, as fractions (matches content/birds.json hitboxes). */
   originX: fraction,
   originY: fraction,
+  /**
+   * D-029: frames are cropped per clip and carry their own pivot (the sim position inside the
+   * crop); views then must not override the origin. Absent = full-box frames at originX/Y.
+   */
+  pivots: z.boolean().optional(),
   clips: z.partialRecord(z.enum(BIRD_CLIPS), clipEntry),
+});
+
+/**
+ * First-person gun clips (D-029): `idle` (1 frame), `fire` (recoil), `reload` (break-open, pump,
+ * ramrod: stretched to the weapon's reloadMs) and `flash` (the gun's own small muzzle flash).
+ */
+export const GUN_CLIPS = ['idle', 'fire', 'reload', 'flash'] as const;
+export type GunClip = (typeof GUN_CLIPS)[number];
+
+const gunEntry = z.object({
+  group,
+  origin,
+  x1: atlasRef,
+  x2: atlasRef.optional(),
+  /** D-029: frames carry their own pivot (grip, or the flash centre); see birdPlaneEntry. */
+  pivots: z.boolean().optional(),
+  /** Grip point (the gun's screen anchor) in the 420 × 520 gun frame, as fractions. */
+  originX: fraction,
+  originY: fraction,
+  /** Muzzle (barrel tip) in the same frame, as fractions: where the flash and smoke appear. */
+  tipX: fraction,
+  tipY: fraction,
+  clips: z.partialRecord(z.enum(GUN_CLIPS), clipEntry),
 });
 
 export const AUDIO_KINDS = ['sfx', 'music', 'ambience', 'voice'] as const;
@@ -90,6 +137,7 @@ export type AudioKind = (typeof AUDIO_KINDS)[number];
 
 const audioEntry = z.object({
   group,
+  origin,
   kind: z.enum(AUDIO_KINDS),
   /** Ogg Vorbis (Chrome, Firefox, Android) and MP3 (Safari) of the same master. */
   ogg: fileRef,
@@ -109,6 +157,8 @@ export const assetIndexSchema = z.object({
   /** creature id → plane → atlas and clips. */
   birds: z.record(z.string(), z.partialRecord(z.enum(['near', 'mid', 'far']), birdPlaneEntry)),
   audio: z.record(z.string(), audioEntry),
+  /** D-029: weapon id → animated gun atlas (absent in older indexes). */
+  guns: z.record(z.string(), gunEntry).default({}),
 });
 
 export type AssetIndex = z.infer<typeof assetIndexSchema>;
@@ -117,6 +167,7 @@ export type LayerEntry = z.infer<typeof layerEntry>;
 export type BirdPlaneEntry = z.infer<typeof birdPlaneEntry>;
 export type ClipEntry = z.infer<typeof clipEntry>;
 export type AudioEntry = z.infer<typeof audioEntry>;
+export type GunEntry = z.infer<typeof gunEntry>;
 
 export const EMPTY_INDEX: AssetIndex = {
   version: 1,
@@ -125,6 +176,7 @@ export const EMPTY_INDEX: AssetIndex = {
   layers: {},
   birds: {},
   audio: {},
+  guns: {},
 };
 
 /** Parses an index; anything invalid is reported and treated as "no final assets". */
@@ -151,6 +203,12 @@ export function indexFiles(index: AssetIndex): { path: string; group: string; by
         }
       }
     }
+  for (const e of Object.values(index.guns))
+    for (const a of [e.x1, e.x2])
+      for (const page of a?.pages ?? []) {
+        add(e.group, page.image);
+        add(e.group, page.data);
+      }
   for (const e of Object.values(index.audio)) {
     add(e.group, e.ogg);
     add(e.group, e.mp3);

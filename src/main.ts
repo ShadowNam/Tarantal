@@ -242,6 +242,7 @@ const hook: TestHook = {
   music: null,
   masterGain: null,
   missingTextures: [],
+  textureBytes: 0,
   boot: {},
   rects: {},
   safe: null,
@@ -470,10 +471,15 @@ const loadFinalFor = (b: Biome): Promise<void> => {
             atlasScale: prefs.tier === 'high' ? 2 : 1,
             timeoutMs: feel.assets.fileTimeoutMs,
             audioFormat: audio.fileFormat(),
+            biome: b.id,
           })
     ).then(() => {
       finalDone.add(b.id);
       hook.assets.byBiome[b.id] = m.entries();
+      // D-029: the late group arrives after boot; refresh the statuses when it has.
+      void m.lateLoaded.then(() => {
+        hook.assets.byBiome[b.id] = m.entries();
+      });
       // Recordings arrive on their own (boot doesn't wait for them).
       void m.takeSounds().then((files) => {
         audio.addRecorded(files);

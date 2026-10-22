@@ -103,6 +103,66 @@ describe('asset audit (M10)', () => {
     );
   });
 
+  it('D-029: interim deliveries are their own group; --strict fails on them', () => {
+    const gunCat: Catalog = {
+      ...catalog,
+      entries: new Map([
+        ...catalog.entries,
+        ['gun/pomp', entry('gun/pomp', 'texture', { width: 420, height: 520 })],
+      ]),
+    };
+    const atlas = {
+      pages: [{ image: f('assets/common/guns/p.png'), data: f('assets/common/guns/p.json') }],
+    };
+    const index: AssetIndex = {
+      ...EMPTY_INDEX,
+      images: {
+        'ui/shell': {
+          group: 'common',
+          origin: 'interim',
+          file: f('assets/common/img/shell.png'),
+          width: 40,
+          height: 80,
+        },
+      },
+      guns: {
+        pomp: {
+          group: 'common',
+          origin: 'interim',
+          x1: atlas,
+          originX: 0.5,
+          originY: 1,
+          tipX: 0.5,
+          tipY: 0.04,
+          clips: { idle: { frames: ['idle/00'], fps: 1, loop: false } },
+        },
+      },
+    };
+    const r = audit(
+      base({
+        catalog: gunCat,
+        index,
+        files: [
+          'assets/common/img/shell.png',
+          'assets/common/guns/p.png',
+          'assets/common/guns/p.json',
+        ],
+        sources: new Map([
+          ...base().sources,
+          ['content/weapons.json', '{ "id": "pomp" }'],
+          ['src/game/view/WeaponView.ts', 'gunKey(id)'],
+        ]),
+      }),
+    );
+    expect(r.rows.find((x) => x.key === 'ui/shell')?.status).toBe('interim');
+    expect(r.rows.find((x) => x.key === 'gun/pomp')?.status).toBe('interim');
+    expect([r.finals, r.interims, r.placeholders]).toEqual([0, 2, 3]);
+    expect(r.problems.filter((p) => !p.includes('fx/orphan'))).toEqual([]);
+    const text = formatAudit(r, true);
+    expect(text).toContain('== INTERIM');
+    expect(text).toContain('strict: 2 interim key(s) remain');
+  });
+
   it('a TEX constant without a manifest entry is a missing key', () => {
     const r = audit(base({ tex: { shell: 'ui/shell', orphan: 'fx/orphan', ghost: 'fx/ghost' } }));
     expect(r.problems).toContain('missing key: TEX.ghost = "fx/ghost" has no manifest entry');

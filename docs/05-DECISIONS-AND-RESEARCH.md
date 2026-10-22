@@ -1143,6 +1143,128 @@ compounding would push Lente/Somer synergy past their targets. (3) *No content c
 replay changes and `contentHash` is unchanged. (4) *Version:* 1.0.1 (`package.json`, the zip names
 in docs/07, the version line on Settings → Privacy); CHANGELOG `[1.0.1]`.
 
+**D-029 Graphics pass 1: interim guns and tarentaal (22 Oct 2026):** the user chose *option C*: a
+much better **code-drawn interim** art set now, human illustrator art later, swapped in key by key
+through the M10 pipeline. This pass covers the six first-person guns and the tarentaal with its
+variants. Stack of PRs: `gfx1-generator` (A) ← `gfx1-guns` (B) ← `gfx1-tarentaal` (C); the v1.0.1
+stack (D-028) runs in parallel and is merged in when it lands. Sim, `content/` and golden replays
+are untouched: art never changes hitboxes or gameplay.
+*§1 — Authoring as source files:* (1) *Route:* `tools/art/` builds SVG strings from pure
+functions (pose + palette → markup) and rasterises them with `@resvg/resvg-js` (devDependency;
+Rust/tiny-skia, no GPU and no browser, so it runs the same on this box and in CI). Seeded PRNG for
+dots and grain; hand-drawn line wobble is an `feTurbulence` + `feDisplacementMap` filter.
+Rejected: Playwright's Chromium (slow start, GPU-path differences) and `@napi-rs/canvas` (another
+native canvas for no gain over SVG). (2) *Output:* `npm run art:interim` writes `art-source/`
+exactly as a human delivery would (docs/06): same folders, frame boxes, origins, clip names and
+`rig.json`, masters at 2× the @1x frame. `npm run assets:pack` then packs them unchanged. A folder
+whose `rig.json` is not marked interim is a human delivery and the generator never touches it.
+(3) *Constants:* palettes (the bible's exact hex), dot fields, wobble, clip sets and gun colours
+live in `tools/art/config.json` (Zod-checked), **not** `content/`, so `contentHash` is
+unchanged. Line weights come from `content/scoring.json planes.lineWeightPx` and the body/head
+sizes from `content/birds.json` hitboxes (read only). Shape coordinates stay in the drawing code,
+as in the runtime placeholder factory. (4) *Masters are palette PNGs* (≤ 256 colours): the art is
+regenerated from code, so the generator is the real source; this keeps `art-source/` about 4×
+smaller in git.
+*§2 — Interim, not final:* (1) *Provenance:* `rig.json` and sprite sidecars take
+`"origin": "interim"`; the pack tool copies it into each asset-index entry (absent = final).
+(2) *Audit:* `npm run assets:audit` lists three groups — FINAL, INTERIM, PLACEHOLDER — and
+`--strict` (the launch gate) fails while any interim **or** placeholder key remains. The game's
+test hook reports `interim` as a status too. (3) *Legal note (bible §2):* the US Copyright Office
+(Jan 2025) found wholly AI-generated material not copyrightable, and Steam and the app stores
+require AI-content disclosure. The interim set is drawn by code written for this repo (no image
+model, no traced references), so it carries no AI-art disclosure duty; it is still not the
+launch art: final characters should be human-authored with source files kept as evidence of
+authorship, which is why `--strict` fails on interim keys.
+*§3 — Pipeline additions (also useful to the illustrator):* (1) *Per-plane bird masters*
+(`birds/<creature>/planes/<plane>/<clip>/NN.png`) replace the shared master on that plane:
+line weight by depth (bible §1.4) and the far plane's fewer, larger dots are drawn, not scaled.
+(2) *No trimmed atlas frames:* trimming (opaque bounds, Phaser trimmed-frame JSON) was built
+first, then dropped: in-game, Phaser 4.2.1 drew trimmed frames played through an animation with
+the neighbouring frames' pixels (flock birds grew extra heads); static `setTexture` frames were
+fine, so the gun previews hid it. Untrimmed frames render correctly. Cost: more atlas area (20
+pages of ≤ 2048², ~200 MB of GPU texture memory when everything is installed). Revisit with a
+Phaser upgrade or a repro upstream. (3) `encode: "png8"` and `x2: false` rig options.
+(4) *Animated gun rigs:* `guns/<weaponId>/{idle,fire,reload,flash}/NN.png` + `rig.json`
+(grip `originX/Y`, muzzle `tipX/Y`, per-clip fps/loop) in a new optional `guns` section of the
+asset index (older indexes still parse). The frame box stays the placeholder's 420 × 520 with the
+grip at the bottom centre and the muzzle at (210, 20), so `WeaponView`'s layout, lean, kick and
+flash position are unchanged; a single-image `sprites/gun/<id>.png` delivery still works.
+*§4 — @1x only:* the canvas is design size × `renderScale`, and `renderScale` ≤ 1 on every tier
+with no camera zoom above 1, so a @1x frame is already drawn 1 texture px : 1 canvas px on the
+high tier. A @2x set would add no visible detail but count 4× in the size budget (worst-case
+twin) and GPU memory. Interim rigs set `x2: false`; the 2× masters stay in `art-source/` so a
+later render-scale change only needs a re-pack.
+*§5 — Size levers, in order:* palette PNG pages, @1x only, variants drawing only the clips they
+play and leaning on the runtime fallback chain (docs/06 §3), and lossy WebP only if still over
+(not needed). Measured: the full tarentaal (3 planes, 140 frames) packs to 0.78 MB; the six guns
+0.56 MB. *Initial download (gzip, `npm run size -- --strict`):* web, Poki and CrazyGames
+**0.55 MB → 2.86 MB** of the 5 MB budget; lazy 0.005 → 0.20 MB (the Okavango-only Kuifkop).
+*§6 — Look (review, 22 Oct):* (1) *Dots:* smaller, varied in size and position, densest on the
+back and thinning toward the belly and tail (no "polka-dot ball"); seeded per creature, not per
+frame, so they don't jump between frames. Slimmer legs. (2) *Generaal:* his rusty blue enamel pot
+is the separate `fx/pot` sprite (interim, `sprites/fx/pot.png`, origin seated over the head) that
+BirdView shows until the CLANG knock-off (Fx spins it away); the bird itself has a stub casque
+(`stubCasque` part) that only shows once the pot is gone. The variants sheet shows both looks.
+(3) *Kuifkop Koning:* bottle-cap crown ~1.5× larger, brighter gold with a pale rim. (4) *Guns:*
+3/4 view leaning 5° toward the screen centre; geometry widened 1.4× about the barrel line by
+scaling path x coordinates (resvg has no non-scaling strokes, so a plain SVG scale would fatten
+the outlines); trigger guards; muzzle at box y = 80 (rig `tipX/tipY`) leaves headroom for smoke
+and the Voorlaaier's ramrod. Flashes stay small local sprites; `reduce flashes` dims them.
+*§7 — Perf (M9 method, Pixel 7 profile, low tier, 6× throttle; frame cost at 50 fps):* the same
+build with the asset index hidden (`PERF_PLACEHOLDERS=1`) **25.8 ms**, with the interim art
+**23.9 ms** — no measurable cost (animated atlas sprites replace drawn placeholder frames). Both
+are over the 20 ms budget on this run because the box was loaded (load average 11 on 6 cores;
+D-026 measured 18.4 ms on a quiet box). *Needs a person:* fps and memory on a real low-end Android
+and an older iPhone (GPU texture memory above).
+*§8 — Evidence:* `docs/art-preview/` (contact sheets, hitbox fit, variants, guns and flashes;
+`compare/` before | after in-game on desktop-chromium and pixel7-landscape: pop-up, mid and far
+fly-overs, flock forage and flush, the Generaal, `?debug=1` hitboxes, each gun idle / mid-recoil /
+reload), from `ART_PREVIEW=1 npx playwright test tests/e2e/art-preview.spec.ts`. The hunt visual
+baselines were re-recorded. Golden replays and `contentHash` are unchanged (sim and `content/`
+untouched).
+*§9 — Review round 2 (22 Oct): fixes before merge.* (1) *Birds read grey in the game:* the
+mid-plane dots (as small as ~1.2 screen px, ~19 % of the body) blurred into a grey haze. Now
+fewer, crisper dots (≥ ~2 screen px on every plane, ~9 % at mid), a subtler back highlight, the
+face outline 1.35× the plane's ink, wattles 1.35× with a full ink line, far sky tint 20 → 15 %
+(bible range 15–25 %, mid none). Plumage stays the bible's `#2E2F45` / `#1F2033`.
+`docs/art-preview/contrast.{png,json}` puts every bird on the Karoo veld, soil and sky with its
+silhouette and the WCAG contrast of its average colour (tarentaal mid vs veld 4.9 → 5.6 : 1; far
+2.8 : 1; `tarentaal_wit` is white by design, 1.6 : 1 on the veld). (2) *The shotgun read as a
+stubby revolver:* the long guns (Dubbelloop, Pomp, Voorlaaier, Windbuks) now point into the scene
+at −22° with the stock bottom right and the barrels running up-left toward the screen centre,
+converging in perspective; muzzle 500 px from the grip again; per-gun pose in
+`tools/art/config.json guns.poses`; rig `tipX/tipY` follow it. (3) *Size and graphics memory:*
+frames of a clip are cropped to the clip's common opaque area and carry a Phaser `pivot` (safe,
+unlike trimmed frames); near-identical frames are packed once; each plane packs only the clips it
+plays (near: `peek` + `hit_poof`; the reserved `tumble` is drawn for the sheets but not packed);
+`rig.json group` puts wit, lavendel, the Generaal and every gun but the Dubbelloop in a **late**
+group (downloads after the first download settles, while the title is up; placeholders until
+then), Ou Grys with the Bushveld,
+Kuifkop and Koning with the Okavango; bird and gun atlases go to the GPU on first use, the
+first-download birds at hunt start (not mid-hunt). *Results:* first download (gzip, all three
+builds) 0.55 → 2.86 → **1.09 MB**; late + biome groups 1.4 MB. Texture memory at the end of a
+20 s Karoo hunt, low tier, Pixel 7 profile (test hook `textureBytes`, every texture incl.
+placeholders and layers): 43.7 MB without the art, 101.7 → **93.7 MB** with it. The low tier
+already loads @1x only (no @2x sets exist). Frame cost at 50 fps (M9 method, 6× throttle) on this
+loaded box (load average 8–11 on 6 cores) spread 23.9–30.8 ms with the art and 24.8–26.0 ms
+without across runs; differences are within the box's noise, and none meet the 20 ms budget here
+(D-026's 18.4 ms was a quiet box). *Needs a person:* fps and memory on a real low-end Android and
+an older iPhone. (4) *Reviewer fixes:* a reload that starts while the fire clip plays (every
+Voorlaaier shot) now begins when the fire clip ends; a fire clip with no reload clip settles on
+idle; @2x gun rigs draw at `rig.scale`; a final gun rig's provenance wins over an interim gun
+image; gun masters smaller than the box are an error, not a silent skip; the generator never
+overwrites a sidecar it can't read; the fit test covers every packed tarentaal frame on every
+plane (it caught a takeoff wing and poof feathers clipping the frame edge).
+*§10 — Final review (22 Oct):* (1) frame merging now needs every channel of every pixel within
+±2 (the earlier "0.4 % may differ by any amount, the rest by ≤ 24" merged a Voorlaaier ramrod
+stroke, a Windbuks puff, a Dubbelloop reload step and every bird's peek glance); exact repeats
+(alert hold, peek 01/03, Pomp reload 04) still pack once. (2) A late gun rig arriving for the
+weapon already in hand keeps the reload state and clip position. (3) The knocked-off pot starts
+from the head pot's origin (no jump at the CLANG). *Follow-up (not in this pass):* left-handed
+mode (`prefs.leftHanded`) moves the gun to the left but doesn't mirror it: the interim long guns
+lean toward the screen centre from the right, so a left-handed player sees them lean outward.
+Mirror the gun sprite (scaleX −1, tip x mirrored) when left-handed.
+
 **D-030 Faster delivery: CI lanes and working rules (22 Oct 2026).** The product owner found
 the build loop too slow. Measured on a 16-job CI run (48 min wall clock): installing browsers and
 their system packages took 1–22 min per job, jobs queued up to 20 min for free runners (stacked

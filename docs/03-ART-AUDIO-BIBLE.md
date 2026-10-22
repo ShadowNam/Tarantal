@@ -221,7 +221,10 @@ Use these to explore; then give the winners to a human illustrator. Always appen
 4. Export into `art-source/` per `docs/06-ASSET-DELIVERY.md`, then `npm run assets:pack` →
    `public/assets/` + `asset-index.json`.
 5. The `AssetManifest` picks up every delivered key at boot (placeholders swap without code
-   changes); `npm run assets:audit -- --strict` lists what is still a placeholder.
+   changes); `npm run assets:audit -- --strict` lists what is still a placeholder or interim.
+   Interim keys (D-029) are code-drawn stand-ins from `npm run art:interim` (`tools/art/`): they
+   follow this bible's palette and shapes so the game looks right meanwhile, and a human delivery
+   for the same key replaces them.
 6. Repeat per biome. Keep all sources in `art-source/`.
 
 ## 10. Audio bible

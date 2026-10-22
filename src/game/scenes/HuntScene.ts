@@ -197,6 +197,14 @@ export class HuntScene extends Phaser.Scene {
     }
   }
 
+  /** RGBA bytes of every texture in the texture manager (an estimate of GPU texture memory). */
+  private textureBytes(): number {
+    let n = 0;
+    for (const key of this.textures.getTextureKeys())
+      for (const src of this.textures.get(key).source) n += src.width * src.height * 4;
+    return n;
+  }
+
   /** The biome an auto-started hunt will play (the home biome for the title). */
   private initialBiome(data: HuntData): Biome {
     const c = this.ctx;
@@ -547,6 +555,7 @@ export class HuntScene extends Phaser.Scene {
     }
     this.useBiome(huntBiome);
     if (!this.texturesDone) this.texturesDone = this.manifest.install(this.textures);
+    this.manifest.prewarmBirds(this.textures);
     if (this.ctx.hook) {
       this.ctx.hook.boot['huntStart'] ??= performance.now();
       this.ctx.hook.missingTextures = this.manifest.missing(this.textures);
@@ -808,6 +817,8 @@ export class HuntScene extends Phaser.Scene {
       hook.ticksLeft = state.ticksLeft;
       hook.score = state.score;
       hook.shells = state.weapon.shells;
+      // D-029: GPU texture memory (RGBA bytes of every texture source), sampled twice a second.
+      if (state.tick % 30 === 0) hook.textureBytes = this.textureBytes();
       hook.magazine = state.weapon.magazine;
       hook.reloading = state.weapon.reloading;
       hook.stones = state.projectiles.length;

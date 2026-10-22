@@ -1,6 +1,6 @@
 # Tarantal Madness — Asset Delivery Spec
 
-Status: v1.0 · 21 Oct 2026 · for the illustrator, the animator and the sound designer.
+Status: v1.0 · 21 Oct 2026 · interim art and gun rigs added 22 Oct 2026 (D-029) · for the illustrator, the animator and the sound designer.
 Rules come from the art bible (`03-ART-AUDIO-BIBLE.md` §1, §3.4, §4.1, §9, §10) and Tech §10. If this
 page and the bible disagree, the bible wins: tell the developer.
 
@@ -16,9 +16,20 @@ page and the bible disagree, the bible wins: tell the developer.
    other key keeps its procedural placeholder.** No code changes are needed. A file that is
    missing, broken or slow (over `feel.json assets.fileTimeoutMs`) falls back to the placeholder
    for that key only.
-4. Run `npm run assets:audit`, which lists every key as final or placeholder. Before launch,
-   `npm run assets:audit -- --strict` must pass with no placeholders left.
+4. Run `npm run assets:audit`, which lists every key as final, interim or placeholder. Before
+   launch, `npm run assets:audit -- --strict` must pass with no placeholders and no interim keys
+   left.
 5. Update the visual regression baselines (§7).
+
+**Interim art (D-029).** Until your files arrive, some keys use *interim* art: code-drawn stand-ins
+written into `art-source/` by `npm run art:interim` (`tools/art/`), in exactly the layout this page
+describes. They are marked `"origin": "interim"` in their `rig.json` (or sprite sidecar JSON), and
+the audit lists them in their own INTERIM group. **A human delivery for the same key simply
+replaces them:** delete the interim folder (e.g. `art-source/birds/tarentaal/`), copy your files in
+(your `rig.json` has no `origin`, so the key counts as final), run `npm run assets:pack`. The
+generator never overwrites a folder whose `rig.json` isn't marked interim. Today the six guns
+and the tarentaal family (tarentaal, wit, lavendel, kuifkop, kuifkop_koning, generaal, ou_grys)
+are interim.
 
 You can deliver in parts. A single sprite, one layer, or one bird with only some clips all work:
 whatever isn't delivered stays on its placeholder.
@@ -33,6 +44,10 @@ art-source/
   layers/<biome>/<layerId>.json   optional: { "top": 630 } (design y of the top edge)
   birds/<creature>/<clip>/00.png  one folder per §3.4 clip, frames numbered 00, 01, …
   birds/<creature>/rig.json       optional: origin, per-clip fps/loop, clips per plane (§3)
+  birds/<creature>/planes/<plane>/<clip>/00.png
+                                  optional: a master drawn for one plane only (§3)
+  guns/<weaponId>/<clip>/00.png   animated first-person gun: idle, fire, reload, flash (§6)
+  guns/<weaponId>/rig.json        optional: grip, muzzle tip, per-clip fps/loop (§6)
   audio/sfx/<id>.wav              sound effects (§5)
   audio/music/<biome>/<stem>.wav  calm | build | stampede
   audio/ambience/<biome>.wav      one loop per biome
@@ -62,9 +77,26 @@ tiers) and twice that for @2x (high tier). It never upscales, so masters smaller
 | mid | 0.5 | 310 × 200 | 620 × 400 |
 | far | 0.22 | 136 × 88 | 273 × 176 |
 
-Line weight by depth (bible §1 rule 4) is drawn into the masters: draw each plane's own version if
-one master doesn't read well at both 136 px and 620 px (deliver it as a separate creature folder
-and ask for the key).
+Line weight by depth (bible §1 rule 4) is drawn into the masters. If one master doesn't read well
+at both 136 px and 620 px, draw that plane's own version in
+`birds/<creature>/planes/<plane>/<clip>/` (same frame box, any multiple of it): it replaces the
+shared master on that plane, clip by clip. The interim art does this for every plane (6 / 4 / 2 px
+ink, fewer and larger dots on the far plane).
+
+**`rig.json` options:** `originX`/`originY` (fractions), `clips` (`{ "flap": { "fps": 18,
+"loop": true } }`), `planeClips` (which clips each plane's atlas holds), `"x2": false` (no @2x
+set: the game draws @1x at 1 texture px per canvas px on every tier, D-029 §4), `"encode":
+"png8"` (palette PNG pages, about 3–4× smaller; fine for flat-fill art) and `"origin":
+"interim"` (only for stand-in art; leave it out), `"planeRes": { "mid": 0.75 }` (pack a plane
+below its display size; the game draws it scaled up) and `"group": "late"` (download after the
+first download settles, while the title is up: rare variants, bosses; until then the placeholder
+shows).
+
+**How the tool packs frames (D-029):** every frame of a clip is cropped to the clip's common
+opaque area and stores the bird's sim position (or the gun's grip) as its own pivot, so nothing
+moves; frames of a clip that are near-identical to an earlier one are packed once. Frames are
+never *trimmed* in the TexturePacker sense: Phaser 4.2.1 draws trimmed frames wrongly when they
+play as an animation. You don't need to do anything for this: deliver full frames in the box.
 
 **Clips (bible §3.4).** Folder names must be one of these:
 
@@ -327,12 +359,28 @@ px = 1 design px), and the pack tool warns if it differs. Its origin defaults to
 | `okavango/reeds_d` | 360 × 340 | okavango-spring |
 | `okavango/sausage_tree` | 410 × 800 | okavango-spring |
 
+**Animated guns (D-029).** A gun can also be delivered as frames, which replaces its single
+sprite: `guns/<weaponId>/<clip>/NN.png` with these clips:
+
+| Clip | Frames | Box | Plays when |
+|---|---|---|---|
+| `idle` | 1 (required) | 420 × 520 | always, between the others |
+| `fire` | 3–4 @ 24 fps | 420 × 520 | each shot (recoil, hammer, band release, crank) |
+| `reload` | ~5–8 | 420 × 520 | while the weapon reloads, stretched to `weapons.json reloadMs` (per shell when `perShellReload`) |
+| `flash` | 2–3 @ 30 fps | 200 × 200, centred on the muzzle | each shot: a small local muzzle flash, never full-screen; "reduce flashes" dims it |
+
+The gun frame is the placeholder's box: the grip (the gun's screen anchor) at the bottom centre
+(210, 520) and the muzzle at (210, 20). If the muzzle sits elsewhere, set `tipX`/`tipY` (fractions)
+in `guns/<weaponId>/rig.json`, so the flash and smoke appear at the barrel. Barrels point up the
+screen, like the placeholder. On touch screens the game shrinks the gun to 60 % and fades it to
+40 % while a finger is down (bible §6).
+
 ## 7. Checking a delivery
 
 ```
 npm run assets:pack                 # art-source/ → public/assets/ (fails on any error)
-npm run assets:audit                # every key: final or placeholder, size, where it's used
-npm run assets:audit -- --strict    # launch gate: fails while any placeholder remains
+npm run assets:audit                # every key: final, interim or placeholder, size, where it's used
+npm run assets:audit -- --strict    # launch gate: fails while any placeholder or interim key remains
 npm run build && npm run size -- --strict
 npx playwright test tests/e2e/visual.spec.ts --project=desktop-chromium --project=pixel7-landscape --update-snapshots
                                     # then review tests/e2e/visual-baselines/ in the PR diff and commit

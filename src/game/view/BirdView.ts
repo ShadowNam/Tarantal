@@ -17,6 +17,16 @@ import type { SimEvent } from '../../sim/events';
 import type { DrawBird } from './interpolate';
 import type { ParallaxView } from './ParallaxView';
 
+/** Where a boss's pot is drawn now, with its sprite origin (the knock-off starts from it). */
+export interface PotSpot {
+  readonly plane: PlaneId;
+  readonly x: number;
+  readonly y: number;
+  readonly scaleX: number;
+  readonly originX: number;
+  readonly originY: number;
+}
+
 interface Drawn {
   readonly sprite: Phaser.GameObjects.Sprite;
   readonly tuft: Phaser.GameObjects.Image | null;
@@ -87,7 +97,8 @@ export class BirdView {
     for (const b of birds) {
       seen.add(b.view.id);
       const v = b.view;
-      const final = this.manifest.finalBird(v.creature, v.plane);
+      // The atlas goes to the GPU the first time this creature shows on this plane (D-029).
+      const final = this.manifest.ensureBird(this.scene.textures, v.creature, v.plane);
       const clip =
         final !== null && this.scene.textures.exists(final.atlasKey)
           ? resolveClip(
@@ -134,7 +145,10 @@ export class BirdView {
           // Stagger looping clips so flock members don't move in lockstep; one-shot clips
           // (alert, takeoff, land) always start at their first frame.
           const startFrame = anim.repeat === -1 ? v.id % frames : 0;
-          d.sprite.play({ key, startFrame }).setOrigin(final.entry.originX, final.entry.originY);
+          d.sprite.play({ key, startFrame });
+          // Cropped frames carry their own pivot (D-029); full-box frames use the entry's origin.
+          if (final.entry.pivots !== true)
+            d.sprite.setOrigin(final.entry.originX, final.entry.originY);
         } else {
           const o = this.manifest.origin(key);
           d.sprite.stop();
@@ -203,7 +217,7 @@ export class BirdView {
   handle(events: readonly SimEvent[]): void {
     for (const e of events) {
       if (e.type !== 'targetBagged') continue;
-      const final = this.manifest.finalBird(e.creature, e.plane);
+      const final = this.manifest.ensureBird(this.scene.textures, e.creature, e.plane);
       if (final === null || !this.scene.textures.exists(final.atlasKey)) continue;
       if (final.entry.clips.hit_poof === undefined) continue;
       const key = this.ensureAnim(e.creature, e.plane, final, 'hit_poof');
@@ -228,9 +242,18 @@ export class BirdView {
   }
 
   /** Where a boss's pot is drawn now (for the CLANG knock-off). */
-  potOf(id: number): { plane: PlaneId; x: number; y: number; scaleX: number } | null {
+  potOf(id: number): PotSpot | null {
     const d = this.drawn.get(id);
-    return d?.pot ? { plane: d.plane, x: d.pot.x, y: d.pot.y, scaleX: d.pot.scaleX } : null;
+    return d?.pot
+      ? {
+          plane: d.plane,
+          x: d.pot.x,
+          y: d.pot.y,
+          scaleX: d.pot.scaleX,
+          originX: d.pot.originX,
+          originY: d.pot.originY,
+        }
+      : null;
   }
 
   clear(): void {

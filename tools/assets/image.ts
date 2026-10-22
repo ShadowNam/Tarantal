@@ -2,6 +2,7 @@
 // resizing and blitting. No native dependencies, so the pipeline runs the same on every machine.
 import { readFileSync } from 'node:fs';
 import { PNG } from 'pngjs';
+import UPNG from 'upng-js';
 
 export interface Rgba {
   readonly width: number;
@@ -87,4 +88,31 @@ export function crop(src: Rgba, x: number, y: number, width: number, height: num
     out.data.set(src.data.subarray(from, from + width * 4), row * width * 4);
   }
   return out;
+}
+
+/**
+ * Palette PNG (≤ 256 colours incl. alpha) via UPNG's deterministic quantiser (D-029). Flat-fill
+ * comic art loses almost nothing and the file is 3–4× smaller than RGBA, which is what keeps the
+ * interim atlases inside the 5 MB first download.
+ */
+export function encodePng8(img: Rgba): Uint8Array {
+  const buf = img.data.buffer.slice(img.data.byteOffset, img.data.byteOffset + img.data.byteLength);
+  return new Uint8Array(UPNG.encode([buf as ArrayBuffer], img.width, img.height, 256));
+}
+
+/** The smallest rectangle holding every pixel with alpha above 0, or null if the image is empty. */
+export function opaqueBounds(img: Rgba): { x: number; y: number; w: number; h: number } | null {
+  let x0 = img.width;
+  let y0 = img.height;
+  let x1 = -1;
+  let y1 = -1;
+  for (let y = 0; y < img.height; y++)
+    for (let x = 0; x < img.width; x++) {
+      if ((img.data[(y * img.width + x) * 4 + 3] ?? 0) === 0) continue;
+      if (x < x0) x0 = x;
+      if (x > x1) x1 = x;
+      if (y < y0) y0 = y;
+      if (y > y1) y1 = y;
+    }
+  return x1 < 0 ? null : { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
 }

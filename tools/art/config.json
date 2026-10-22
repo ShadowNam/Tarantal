@@ -1,0 +1,189 @@
+{
+  "$comment": "Interim art generator (D-029, `npm run art:interim`). Constants for the code-drawn stand-in guns and birds. Lives in tools/art/, not content/, so the content hash and golden replays never change. Palettes are the art bible's exact hex values (§3.1, §3.2, §6); line weights by depth come from content/scoring.json planes.lineWeightPx; hitboxes from content/birds.json.",
+  "ink": "#1B1410",
+  "masterScale": 2,
+  "birds": {
+    "skyTint": { "colour": "#F2D8A7", "far": 0.2 },
+    "wobble": {
+      "$comment": "Hand-drawn line wobble: turbulence frequency (per bird unit) and displacement (bird units) per plane; 0 = off.",
+      "frequency": 0.03,
+      "near": 3,
+      "mid": 4,
+      "far": 0
+    },
+    "dots": {
+      "$comment": "White dot field (bible §3.1): radius and spacing in bird units per plane; the far plane gets fewer, larger dots so it reads at 0.22 scale.",
+      "near": { "r": 4.2, "spacing": 15 },
+      "mid": { "r": 5.5, "spacing": 19 },
+      "far": { "r": 11, "spacing": 34 }
+    },
+    "innerLine": 0.55,
+    "eyeWhite": "#FBF8EF",
+    "star": "#F2C94C",
+    "puff": "#F4F1E8",
+    "puffShadow": "#D9D2C2",
+    "base": {
+      "plumage": "#2E2F45",
+      "shadow": "#1F2033",
+      "highlight": "#45476A",
+      "dots": "#F4F1E8",
+      "face": "#2F7DE1",
+      "faceHi": "#6FB3FF",
+      "wattle": "#D7263D",
+      "wattleShadow": "#A31A2E",
+      "casque": "#C68B59",
+      "casqueHi": "#E2C08F",
+      "beak": "#E9A23B",
+      "legs": "#6B5B4B"
+    },
+    "variants": {
+      "tarentaal": { "palette": {}, "parts": [] },
+      "tarentaal_wit": {
+        "palette": {
+          "plumage": "#F1EEE6",
+          "shadow": "#CFCAC0",
+          "highlight": "#FFFFFF",
+          "dots": "#A9A49C",
+          "face": "#E7A3B4",
+          "faceHi": "#F6CCD6"
+        },
+        "parts": ["sparkle"]
+      },
+      "tarentaal_lavendel": {
+        "palette": { "plumage": "#8F86A8", "shadow": "#6F6789", "highlight": "#ABA3C2" },
+        "parts": []
+      },
+      "kuifkop": {
+        "palette": {
+          "plumage": "#1E1F2A",
+          "shadow": "#121219",
+          "highlight": "#33354A",
+          "dots": "#BFD4F2",
+          "face": "#5D7FB8",
+          "faceHi": "#8FAEDD"
+        },
+        "dotScale": 0.75,
+        "parts": ["crest", "eyeRing"]
+      },
+      "kuifkop_koning": {
+        "palette": {
+          "plumage": "#1E1F2A",
+          "shadow": "#121219",
+          "highlight": "#33354A",
+          "dots": "#BFD4F2",
+          "face": "#5D7FB8",
+          "faceHi": "#8FAEDD"
+        },
+        "dotScale": 0.75,
+        "parts": ["crest", "eyeRing", "crown"]
+      },
+      "generaal": { "palette": {}, "parts": ["bandolier", "scowl"] },
+      "ou_grys": {
+        "palette": {
+          "plumage": "#6F7378",
+          "shadow": "#55595E",
+          "highlight": "#878B90",
+          "dots": "#C9CCCF",
+          "face": "#7FA3C9",
+          "faceHi": "#A9C3DD"
+        },
+        "parts": ["eyePatch", "chippedCasque", "toothpick"]
+      }
+    },
+    "parts": {
+      "crest": "#141420",
+      "eyeRing": "#D7263D",
+      "crownCap": "#D8A73A",
+      "crownCapShadow": "#A87A22",
+      "crownRed": "#C8302A",
+      "bandolier": "#7A4E2A",
+      "bandolierShadow": "#5A361C",
+      "cob": "#E9C46A",
+      "cobShadow": "#C99A3A",
+      "husk": "#D9C79A",
+      "eyePatch": "#1B1410",
+      "toothpick": "#E2C08F",
+      "sparkle": "#FFFFFF"
+    },
+    "clipSets": {
+      "$comment": "Clips drawn per creature (bible §3.4). Variants lean on the runtime fallback chain (docs/06 §3) to stay inside the first-download budget: peck → forage_walk, glide → flap, land → run, peek → alert, tumble → hit_poof.",
+      "tarentaal": [
+        "forage_walk",
+        "peck",
+        "alert",
+        "run",
+        "takeoff",
+        "flap",
+        "glide",
+        "land",
+        "hit_poof",
+        "tumble",
+        "peek"
+      ],
+      "flockVariant": ["forage_walk", "alert", "run", "takeoff", "flap", "hit_poof"],
+      "boss": ["forage_walk", "run", "takeoff", "flap", "peek", "hit_poof"]
+    },
+    "creatures": {
+      "tarentaal": "tarentaal",
+      "tarentaal_wit": "flockVariant",
+      "tarentaal_lavendel": "flockVariant",
+      "kuifkop": "boss",
+      "kuifkop_koning": "boss",
+      "generaal": "boss",
+      "ou_grys": "boss"
+    }
+  },
+  "guns": {
+    "wood": "#8B5A2B",
+    "woodShadow": "#5E3A1A",
+    "woodHi": "#B07A42",
+    "woodGrain": "#4A2C12",
+    "lightWood": "#B98A52",
+    "lightWoodShadow": "#8A5F31",
+    "lightWoodHi": "#D6AE78",
+    "steel": "#4A5058",
+    "steelShadow": "#2C3036",
+    "steelHi": "#9AA6B0",
+    "blued": "#2F3A4A",
+    "bluedShadow": "#1C2430",
+    "bluedHi": "#6D819A",
+    "brass": "#C9A13B",
+    "brassShadow": "#94721F",
+    "brassHi": "#F0D27A",
+    "rubber": "#C8302A",
+    "rubberShadow": "#8E1E1A",
+    "leather": "#7A4E2A",
+    "leatherShadow": "#55341A",
+    "leatherHi": "#A26E40",
+    "stone": "#9A9187",
+    "stoneHi": "#C9C1B6",
+    "shellRed": "#C8302A",
+    "shellRedShadow": "#8E1E1A",
+    "duct": "#9AA3A8",
+    "cob": "#E9C46A",
+    "cobShadow": "#C99A3A",
+    "smoke": "#E8E2D6",
+    "smokeShadow": "#BDB5A6",
+    "flashCore": "#FFF6C8",
+    "flashMid": "#FFC94A",
+    "flashOuter": "#F07A2A",
+    "scratch": "#C9CED3",
+    "lineNear": 6,
+    "wobble": { "frequency": 0.04, "scale": 2.5 },
+    "clips": {
+      "$comment": "Frames per gun clip; fps for fire/flash per gun; reload clips are stretched to weapons.json reloadMs at runtime.",
+      "dubbelloop": { "fire": 4, "reload": 8, "flash": 3 },
+      "windbuks": { "fire": 3, "flash": 2 },
+      "kettie": { "fire": 4, "flash": 2 },
+      "pomp": { "fire": 4, "reload": 5, "flash": 3 },
+      "voorlaaier": { "fire": 4, "reload": 8, "flash": 3 },
+      "mielie_masjien": { "fire": 4, "flash": 2 }
+    }
+  },
+  "sheets": {
+    "background": "#E9DFC9",
+    "checker": "#DED2B8",
+    "cell": 4,
+    "gap": 12
+  }
+}
