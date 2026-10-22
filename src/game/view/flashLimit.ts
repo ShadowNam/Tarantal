@@ -5,15 +5,24 @@
 
 export class FlashLimiter {
   private readonly starts: number[] = [];
+  /** The last counted start and whether it was granted (a strike seen by several sources). */
+  private last: { at: number; granted: boolean } | null = null;
 
-  constructor(private readonly maxPerSecond: number) {}
+  constructor(
+    private readonly maxPerSecond: number,
+    /** Starts this close to the last one are the same flash (one strike lighting two overlays
+     *  on the same or the next frame): they share its slot and its answer. */
+    private readonly mergeMs = 0,
+  ) {}
 
   /** Asks to start a flash now: true (and counted) if fewer than N started in the last second. */
   start(nowMs: number): boolean {
+    if (this.last !== null && nowMs - this.last.at <= this.mergeMs) return this.last.granted;
     while (this.starts.length > 0 && nowMs - (this.starts[0] ?? 0) >= 1000) this.starts.shift();
-    if (this.starts.length >= this.maxPerSecond) return false;
-    this.starts.push(nowMs);
-    return true;
+    const granted = this.starts.length < this.maxPerSecond;
+    if (granted) this.starts.push(nowMs);
+    this.last = { at: nowMs, granted };
+    return granted;
   }
 }
 

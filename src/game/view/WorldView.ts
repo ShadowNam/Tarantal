@@ -10,6 +10,7 @@ import { coreWidth } from '../../sim/world';
 import { TEX } from '../assets/AssetManifest';
 import type { ParallaxView } from './ParallaxView';
 import { FlashGate, type FlashLimiter } from './flashLimit';
+import { stampedeTintAlpha } from './juice';
 
 /** Rendering only: dust devils sway this much (radians) and this fast (ms per sway). */
 const DEVIL_SWAY = 0.08;
@@ -52,7 +53,7 @@ export class WorldView {
   private readonly stormFlash: FlashGate;
   /** GDD §17 Stampede sky tint: fades in and out, never pulses. */
   private stampedeTint: Phaser.GameObjects.Rectangle | null = null;
-  private stampedeOn = false;
+  private stampedeTarget = 0;
   private stormSize = { w: 0, h: 0 };
   private readonly midScroll: number;
   private readonly rings: Phaser.GameObjects.Image[] = [];
@@ -265,17 +266,23 @@ export class WorldView {
     }
     const tint = this.stampedeTint;
     if (tint.width !== width || tint.height !== height) tint.setSize(width, height);
-    if (on === this.stampedeOn) return;
-    this.stampedeOn = on;
-    const dim = this.prefs.reduceFlashes ? this.feel.accessibility.reducedFlashAlpha : 1;
+    // Re-read every frame: Settings → reduce flashes applies during a Stampede too.
+    const target = stampedeTintAlpha(
+      on,
+      cfg.tintAlpha,
+      this.prefs.reduceFlashes,
+      this.feel.accessibility.reducedFlashAlpha,
+    );
+    if (target === this.stampedeTarget) return;
+    this.stampedeTarget = target;
     this.scene.tweens.killTweensOf(tint);
     tint.setVisible(true);
     this.scene.tweens.add({
       targets: tint,
-      alpha: on ? cfg.tintAlpha * dim : 0,
+      alpha: target,
       duration: cfg.tintFadeMs,
       onComplete: () => {
-        if (!this.stampedeOn) tint.setVisible(false);
+        if (this.stampedeTarget === 0) tint.setVisible(false);
       },
     });
   }

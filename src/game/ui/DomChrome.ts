@@ -11,6 +11,8 @@ export class DomChrome {
   private fullscreen: HTMLButtonElement | null = null;
   private readonly banner: HTMLElement | null;
   private onTitle = false;
+  /** M10 capture mode: no install banner in trailer footage. */
+  private noBanner = false;
 
   constructor(
     private readonly platform: PlatformAdapter,
@@ -48,6 +50,12 @@ export class DomChrome {
     this.sync();
   }
 
+  /** M10 capture mode: keep the "Add to Home Screen" banner out of the shot. */
+  hideInstallBanner(): void {
+    this.noBanner = true;
+    this.sync();
+  }
+
   relabel(): void {
     this.fullscreen?.setAttribute('aria-label', t('ui.fullscreen'));
     this.fullscreen?.setAttribute('title', t('ui.fullscreen'));
@@ -60,6 +68,7 @@ export class DomChrome {
       const dismissed = this.save.data.notices.includes(INSTALL_NOTICE);
       // Portal builds (M9) are no PWA: no "Add to Home Screen" banner there.
       this.banner.hidden = !(
+        !this.noBanner &&
         this.platform.pwa &&
         this.onTitle &&
         caps.iphone &&

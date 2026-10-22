@@ -128,23 +128,27 @@ export class TitleScene extends Phaser.Scene {
       const settings = slot(3);
       const resume = this.ctx.run.current !== null;
       drawButton(this, shed, t('title.shed'), 'secondary', 44);
-      const setup = this.ctx.daily.todaySetup();
-      const played = this.ctx.daily.playedToday();
-      drawButton(
-        this,
-        daily,
-        fill(t('title.daily'), { n: setup.number }),
-        played ? 'secondary' : 'selected',
-        44,
-      );
-      const status = this.add
-        .text(daily.x + daily.w / 2, daily.y - 14, this.dailyStatus(played), {
-          ...textStyle(26),
-          stroke: '#1B1410',
-          strokeThickness: 5,
-        })
-        .setOrigin(0.5, 1);
-      fitText(status, Math.max(bw * 1.6, 300));
+      // M10: capture mode is unranked (slow-mo would inflate a Daily score): no Daily entry.
+      const dailyOn = this.ctx.capture === null;
+      if (dailyOn) {
+        const setup = this.ctx.daily.todaySetup();
+        const played = this.ctx.daily.playedToday();
+        drawButton(
+          this,
+          daily,
+          fill(t('title.daily'), { n: setup.number }),
+          played ? 'secondary' : 'selected',
+          44,
+        );
+        const status = this.add
+          .text(daily.x + daily.w / 2, daily.y - 14, this.dailyStatus(played), {
+            ...textStyle(26),
+            stroke: '#1B1410',
+            strokeThickness: 5,
+          })
+          .setOrigin(0.5, 1);
+        fitText(status, Math.max(bw * 1.6, 300));
+      }
       drawButton(
         this,
         run,
@@ -162,21 +166,25 @@ export class TitleScene extends Phaser.Scene {
             this.openOverlay('Shed');
           },
         },
-        {
-          id: 'daily',
-          rect: () => daily,
-          trigger: 'down',
-          press: (pointerType, pointerId) => {
-            if (this.started) return;
-            this.started = true;
-            this.ctx.audio.unlock();
-            this.data_?.start(
-              pointerId === null ? 'pointer' : inputKindOf(pointerType),
-              pointerId,
-              'daily',
-            );
-          },
-        },
+        ...(dailyOn
+          ? ([
+              {
+                id: 'daily',
+                rect: () => daily,
+                trigger: 'down',
+                press: (pointerType, pointerId) => {
+                  if (this.started) return;
+                  this.started = true;
+                  this.ctx.audio.unlock();
+                  this.data_?.start(
+                    pointerId === null ? 'pointer' : inputKindOf(pointerType),
+                    pointerId,
+                    'daily',
+                  );
+                },
+              },
+            ] satisfies MenuItem[])
+          : []),
         {
           id: 'seasonRun',
           rect: () => run,
