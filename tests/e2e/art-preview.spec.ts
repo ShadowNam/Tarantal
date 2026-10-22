@@ -42,10 +42,11 @@ async function setVariant(page: Page, v: Variant): Promise<void> {
     await page.route('**/assets/asset-index.json', (r) => r.fulfill({ status: 404, body: '' }));
 }
 
-/** Fonts in, and the pointer parked off the canvas (no reticle, gun at rest). */
+/** Fonts in, and the pointer parked bottom right so the gun leans away from the birds. */
 async function settle(page: Page): Promise<void> {
   await page.waitForFunction(() => window.__TM__?.fontsReady === true, null, { timeout: 30_000 });
-  await page.mouse.move(0, 0);
+  const box = await page.locator('#game canvas').boundingBox();
+  if (box !== null) await page.mouse.move(box.x + box.width - 2, box.y + box.height - 2);
   await page.waitForTimeout(600);
 }
 
@@ -112,7 +113,7 @@ test('flock foraging, then flushing', async ({ page }, info) => {
     if (!flock) throw new Error('no flock in view at the start');
     await burstAtFlock(page, touch, flock.id, 3, 15);
     await waitTicks(page, 40);
-    await page.mouse.move(0, 0);
+    await settle(page);
     save('flock-flush', v, info, await page.screenshot());
   }
   compose('flock-flush', info);
