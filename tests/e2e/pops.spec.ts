@@ -51,7 +51,9 @@ test('score pops are pooled: many shown, few made', async ({ page }, info) => {
       await waitTicks(page, 30);
       continue;
     }
-    await burstAtFlock(page, touch, flock.id, 2, 10);
+    // One shot per burst: the helper waits on sim ticks between shots, and the freeze on the
+    // first pop stops them (a two-shot burst hung there on WebKit, where the pop came first).
+    await burstAtFlock(page, touch, flock.id, 1, 10);
     // 8 more ticks, or the freeze on the first pop (the sim then stops ticking).
     const t0 = (await hook(page)).tick;
     await page.waitForFunction(
