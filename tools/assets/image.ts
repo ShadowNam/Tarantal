@@ -99,3 +99,20 @@ export function encodePng8(img: Rgba): Uint8Array {
   const buf = img.data.buffer.slice(img.data.byteOffset, img.data.byteOffset + img.data.byteLength);
   return new Uint8Array(UPNG.encode([buf as ArrayBuffer], img.width, img.height, 256));
 }
+
+/** The smallest rectangle holding every pixel with alpha above 0, or null if the image is empty. */
+export function opaqueBounds(img: Rgba): { x: number; y: number; w: number; h: number } | null {
+  let x0 = img.width;
+  let y0 = img.height;
+  let x1 = -1;
+  let y1 = -1;
+  for (let y = 0; y < img.height; y++)
+    for (let x = 0; x < img.width; x++) {
+      if ((img.data[(y * img.width + x) * 4 + 3] ?? 0) === 0) continue;
+      if (x < x0) x0 = x;
+      if (x > x1) x1 = x;
+      if (y < y0) y0 = y;
+      if (y > y1) y1 = y;
+    }
+  return x1 < 0 ? null : { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+}
