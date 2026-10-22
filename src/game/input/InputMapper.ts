@@ -59,6 +59,7 @@ export class InputMapper {
   readonly pan: PanController;
   private enabled = false;
   private readonly keysDown = new Set<string>();
+  private autoPan = 0;
   private readonly ignored = new Set<number>();
   private readonly listeners: [EventTarget, string, EventListener][] = [];
   /** The pointer holding fire down (mouse or finger), if any. */
@@ -374,7 +375,19 @@ export class InputMapper {
     e.preventDefault();
     if (down) this.keysDown.add(e.code);
     else this.keysDown.delete(e.code);
-    let sum = 0;
+    this.applyKeyPan();
+  }
+
+  /** M10 capture mode: a held pan direction added to the keys (−1, 0, 1). */
+  setAutoPan(dir: number): void {
+    if (dir === this.autoPan) return;
+    this.autoPan = dir;
+    this.applyKeyPan();
+  }
+
+  private applyKeyPan(): void {
+    const dir: Record<string, number> = { KeyA: -1, ArrowLeft: -1, KeyD: 1, ArrowRight: 1 };
+    let sum = this.autoPan;
     for (const k of this.keysDown) sum += dir[k] ?? 0;
     this.pan.setKeyDirection(sum);
   }

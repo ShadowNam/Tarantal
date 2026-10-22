@@ -14,6 +14,7 @@ import type { LivePrefs } from './prefs';
 import type { DomChrome } from './ui/DomChrome';
 import type { AssetManifest, ManifestEntry } from './assets/AssetManifest';
 import type { FlashLimiter } from './view/flashLimit';
+import type { CaptureState } from './capture';
 import type { AudioDirector } from './audio/AudioDirector';
 import type { RunFlow } from './run/RunFlow';
 import type { DailyFlow } from './daily/DailyFlow';
@@ -33,6 +34,8 @@ export interface TestHook {
   scene: 'start' | 'hunt' | 'tally' | 'run' | 'challenge';
   /** Menu overlay on top of the scene: shed, settings, pause (null = none). */
   menu: string | null;
+  /** M10 capture mode: speed (0 = frozen) and auto-pan, or null outside it. */
+  capture: { speed: number; frozen: boolean; panning: boolean; hud: boolean } | null;
   /** Id of the keyboard-focused item of the active menu (null = none yet). */
   focus: string | null;
   /** Hunt paused (pause menu, hidden tab or portrait). */
@@ -201,6 +204,8 @@ export interface GameContext {
   readonly audio: AudioDirector;
   /** M10: the shared budget of large-area flashes (≤ 3 a second, GDD §18.3). */
   readonly flashes: FlashLimiter;
+  /** M10 marketing capture mode (?capture=1), or null. */
+  readonly capture: CaptureState | null;
   /** Settings + progress (SaveData v1). */
   readonly save: SaveStore;
   readonly notaboek: Notaboek;

@@ -158,6 +158,16 @@
     "duckReleaseMs": 600,
     "barkGapMs": 6000
   },
+  "capture": {
+    "$comment": "M10 marketing capture mode (?capture=1; web and dev builds, never a shipped portal build): hides the hunt HUD and reticle, plays seed unless ?seed= is given, S cycles speeds, F freezes, C sweeps the camera end to end (turning panTurnPx before each end). ?gun=0 also hides the gun.",
+    "seed": 42,
+    "speeds": [
+      1,
+      0.5,
+      0.25
+    ],
+    "panTurnPx": 40
+  },
   "assets": {
     "$comment": "M10 asset manifest (docs/06-ASSET-DELIVERY.md): how long boot waits for the final-asset index, and for each final file, before that key stays on its procedural placeholder.",
     "indexTimeoutMs": 3000,
