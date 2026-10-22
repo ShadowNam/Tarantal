@@ -10,10 +10,12 @@ import {
   AssetManifest,
   gunKey,
   MAX_TILE_WIDTH,
+  sfxKey,
   TEX,
   type BirdFrame,
   type CanvasSpec,
 } from '../assets/AssetManifest';
+import { SFX_IDS } from '../audio/synth';
 import { arsenalSpecs } from './arsenalArt';
 import { omenSpecs } from './omenArt';
 import type { Band, BiomeArt } from './biomeArt';
@@ -1376,5 +1378,6 @@ export function createPlaceholderManifest(content: ContentBundle, biome: Biome):
   for (const s of m4Specs()) m.addTexture(s);
   for (const s of arsenalSpecs()) m.addTexture(s);
   for (const s of omenSpecs()) m.addTexture(s);
+  for (const id of SFX_IDS) m.addSound(sfxKey(id));
   return m;
 }

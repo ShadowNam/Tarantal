@@ -2,27 +2,29 @@
 // poof, kek, penalty scratch; M3 adds the flush alarm, the flush music sting, the Vuvuzela and the
 // whole-flock stamp; M4 the secret ting and fanfare, car alarm, reservoir splash, CLANG, the
 // kwêvoël's call, crate pop, power-up chime and the dust devil. Real recorded assets replace these in M10 (art/audio bible §10).
-export type SfxId =
-  | 'shot'
-  | 'click'
-  | 'shell'
-  | 'poof'
-  | 'kek'
-  | 'kekAlarm'
-  | 'sting'
-  | 'vuvuzela'
-  | 'stamp'
-  | 'scratch'
-  | 'stampede'
-  | 'ting'
-  | 'secret'
-  | 'alarm'
-  | 'splash'
-  | 'clang'
-  | 'kwe'
-  | 'crate'
-  | 'powerup'
-  | 'whoosh';
+export const SFX_IDS = [
+  'shot',
+  'click',
+  'shell',
+  'poof',
+  'kek',
+  'kekAlarm',
+  'sting',
+  'vuvuzela',
+  'stamp',
+  'scratch',
+  'stampede',
+  'ting',
+  'secret',
+  'alarm',
+  'splash',
+  'clang',
+  'kwe',
+  'crate',
+  'powerup',
+  'whoosh',
+] as const;
+export type SfxId = (typeof SFX_IDS)[number];
 
 function noiseBuffer(ctx: BaseAudioContext, seconds: number): AudioBuffer {
   const buf = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * seconds), ctx.sampleRate);

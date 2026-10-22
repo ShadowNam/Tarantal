@@ -12,7 +12,7 @@ import type { AnalyticsRecord } from '../platform/local';
 import type { HuntResult, InputKind } from '../sim/types';
 import type { LivePrefs } from './prefs';
 import type { DomChrome } from './ui/DomChrome';
-import type { AssetManifest } from './assets/AssetManifest';
+import type { AssetManifest, ManifestEntry } from './assets/AssetManifest';
 import type { AudioDirector } from './audio/AudioDirector';
 import type { RunFlow } from './run/RunFlow';
 import type { DailyFlow } from './daily/DailyFlow';
@@ -85,6 +85,13 @@ export interface TestHook {
   /** Encoded InputLog of the last hunt (bug reports / replay checks). */
   replay: string | null;
   hunts: number;
+  /** M10: the asset index (null problem = loaded) and each loaded biome's keys with status. */
+  assets: {
+    problem: string | null;
+    byBiome: Record<string, ManifestEntry[]>;
+    /** Sound keys playing from a recorded file (decoded), not the synth. */
+    recorded: string[];
+  };
   /** Manifest textures missing when the last hunt started (must be 0). */
   missingTextures: string[];
   /** Boot milestones in ms since navigation start (content parsed, textures built, ready). */

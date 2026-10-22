@@ -21,6 +21,7 @@ import {
 import { fitCamera } from './game/view/fitCamera';
 import { setTextLook } from './game/ui/textLook';
 import type { AssetManifest } from './game/assets/AssetManifest';
+import { ABSENT, fetchAssetIndex } from './game/assets/finalLoader';
 import {
   biomeArtReady,
   createPlaceholderManifest,
@@ -200,6 +201,7 @@ const hook: TestHook = {
   simFrameSteps: [],
   replay: null,
   hunts: 0,
+  assets: { problem: null, byBiome: {}, recorded: [] },
   missingTextures: [],
   boot: {},
   rects: {},
@@ -234,6 +236,8 @@ if (testHooks) window.__TM__ = hook;
 hook.boot['script'] = performance.now();
 const loaded = loadGameContent();
 const { feel } = loaded;
+// M10: the final-asset index, fetched while the platform SDK starts (absent = all placeholders).
+const indexLoad = fetchAssetIndex(feel.assets.indexTimeoutMs);
 const crateParam = testHooks ? params.get('crate') : null;
 const withCrate = crateParam === null ? loaded.bundle : withTestCrate(loaded.bundle, crateParam);
 // e2e/dev only: ?quotaMul=0 makes every Season Run quota reachable (short e2e runs).
@@ -342,6 +346,7 @@ document.addEventListener('visibilitychange', () => {
   else if (titleUp) benchmark?.resume();
 });
 const audio = new AudioDirector();
+hook.assets.recorded = audio.recorded;
 const applyAudio = (s: Settings): void => {
   audio.setVolumes({ master: s.masterVolume, sfx: s.sfxVolume, music: s.musicVolume });
 };
@@ -397,6 +402,39 @@ const manifestFor = (b: Biome): AssetManifest => {
   }
   return m;
 };
+// M10: final files for a biome's manifest, loaded once (each failure keeps that placeholder).
+const { index: assetIndex, problem: indexProblem } = await indexLoad;
+hook.assets.problem = indexProblem;
+if (indexProblem !== null && !indexProblem.startsWith(ABSENT))
+  console.warn(`[assets] ${indexProblem}: using placeholders`);
+const finalLoads = new Map<string, Promise<void>>();
+const finalDone = new Set<string>();
+const loadFinalFor = (b: Biome): Promise<void> => {
+  let p = finalLoads.get(b.id);
+  if (p === undefined) {
+    const m = manifestFor(b);
+    p = (
+      assetIndex === null
+        ? Promise.resolve()
+        : m.loadFinal(assetIndex, {
+            atlasScale: prefs.tier === 'high' ? 2 : 1,
+            timeoutMs: feel.assets.fileTimeoutMs,
+            audioFormat: audio.fileFormat(),
+          })
+    ).then(() => {
+      finalDone.add(b.id);
+      hook.assets.byBiome[b.id] = m.entries();
+      // Recordings arrive on their own (boot doesn't wait for them).
+      void m.soundsReady().then((files) => {
+        audio.addRecorded(files);
+        hook.assets.byBiome[b.id] = m.entries();
+      });
+    });
+    finalLoads.set(b.id, p);
+  }
+  return p;
+};
+await loadFinalFor(biome);
 // A challenge link (Tech §12): decoded once, then removed from the address bar so a reload or a
 // bookmark doesn't show the card again.
 let pendingChallenge: ChallengeDecode | null = null;
@@ -433,8 +471,14 @@ const ctx: GameContext = {
   manifest: manifestFor(biome),
   playableBiomes,
   manifestFor,
-  biomeReady: biomeArtReady,
-  loadBiome: loadBiomeArt,
+  biomeReady: (id) => biomeArtReady(id) && finalDone.has(id),
+  // The biome's placeholder art chunk, then its final files (if any were delivered).
+  loadBiome: async (id) => {
+    if (!(await loadBiomeArt(id))) return false;
+    const b = bundle.biomes.find((x) => x.id === id);
+    if (b !== undefined) await loadFinalFor(b);
+    return true;
+  },
   huntBiome: biome,
   audio,
   save,

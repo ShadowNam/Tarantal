@@ -1,0 +1,486 @@
+{
+  "version": 1,
+  "initialGroups": [
+    "common",
+    "karoo-autumn"
+  ],
+  "images": {},
+  "layers": {
+    "karoo/mid": {
+      "group": "karoo-autumn",
+      "tiles": [
+        {
+          "path": "assets/karoo-autumn/layers/mid-0.b678eab48a33.png",
+          "bytes": 30604,
+          "hash": "b678eab48a33"
+        },
+        {
+          "path": "assets/karoo-autumn/layers/mid-1.9b5f1d972368.png",
+          "bytes": 30559,
+          "hash": "9b5f1d972368"
+        },
+        {
+          "path": "assets/karoo-autumn/layers/mid-2.f49ff0019273.png",
+          "bytes": 5856,
+          "hash": "f49ff0019273"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 630,
+      "height": 280
+    }
+  },
+  "birds": {
+    "tarentaal": {
+      "far": {
+        "group": "common",
+        "x1": {
+          "pages": [
+            {
+              "image": {
+                "path": "assets/common/birds/tarentaal-far@1x-0.fff8797614ef.png",
+                "bytes": 225757,
+                "hash": "fff8797614ef"
+              },
+              "data": {
+                "path": "assets/common/birds/tarentaal-far@1x-0.3f431ec36f1e.json",
+                "bytes": 9991,
+                "hash": "3f431ec36f1e"
+              }
+            }
+          ]
+        },
+        "x2": {
+          "pages": [
+            {
+              "image": {
+                "path": "assets/common/birds/tarentaal-far@2x-0.e0e1085e9307.png",
+                "bytes": 465648,
+                "hash": "e0e1085e9307"
+              },
+              "data": {
+                "path": "assets/common/birds/tarentaal-far@2x-0.c721ffce4019.json",
+                "bytes": 10202,
+                "hash": "c721ffce4019"
+              }
+            }
+          ]
+        },
+        "scale": 1,
+        "originX": 0.5,
+        "originY": 0.575,
+        "clips": {
+          "alert": {
+            "frames": [
+              "alert/00",
+              "alert/01",
+              "alert/02",
+              "alert/03"
+            ],
+            "fps": 10,
+            "loop": false
+          },
+          "flap": {
+            "frames": [
+              "flap/00",
+              "flap/01",
+              "flap/02",
+              "flap/03",
+              "flap/04",
+              "flap/05"
+            ],
+            "fps": 16,
+            "loop": true
+          },
+          "forage_walk": {
+            "frames": [
+              "forage_walk/00",
+              "forage_walk/01",
+              "forage_walk/02",
+              "forage_walk/03",
+              "forage_walk/04",
+              "forage_walk/05",
+              "forage_walk/06",
+              "forage_walk/07"
+            ],
+            "fps": 12,
+            "loop": true
+          },
+          "glide": {
+            "frames": [
+              "glide/00",
+              "glide/01"
+            ],
+            "fps": 6,
+            "loop": true
+          },
+          "hit_poof": {
+            "frames": [
+              "hit_poof/00",
+              "hit_poof/01",
+              "hit_poof/02",
+              "hit_poof/03",
+              "hit_poof/04",
+              "hit_poof/05"
+            ],
+            "fps": 24,
+            "loop": false
+          },
+          "land": {
+            "frames": [
+              "land/00",
+              "land/01",
+              "land/02",
+              "land/03"
+            ],
+            "fps": 14,
+            "loop": false
+          },
+          "peck": {
+            "frames": [
+              "peck/00",
+              "peck/01",
+              "peck/02",
+              "peck/03",
+              "peck/04",
+              "peck/05"
+            ],
+            "fps": 12,
+            "loop": true
+          },
+          "peek": {
+            "frames": [
+              "peek/00",
+              "peek/01",
+              "peek/02",
+              "peek/03",
+              "peek/04",
+              "peek/05"
+            ],
+            "fps": 12,
+            "loop": true
+          },
+          "run": {
+            "frames": [
+              "run/00",
+              "run/01",
+              "run/02",
+              "run/03",
+              "run/04",
+              "run/05",
+              "run/06",
+              "run/07"
+            ],
+            "fps": 18,
+            "loop": true
+          },
+          "takeoff": {
+            "frames": [
+              "takeoff/00",
+              "takeoff/01",
+              "takeoff/02",
+              "takeoff/03",
+              "takeoff/04",
+              "takeoff/05"
+            ],
+            "fps": 20,
+            "loop": false
+          },
+          "tumble": {
+            "frames": [
+              "tumble/00",
+              "tumble/01",
+              "tumble/02",
+              "tumble/03"
+            ],
+            "fps": 16,
+            "loop": true
+          }
+        }
+      },
+      "mid": {
+        "group": "common",
+        "x1": {
+          "pages": [
+            {
+              "image": {
+                "path": "assets/common/birds/tarentaal-mid@1x-0.4beadca83a01.png",
+                "bytes": 320858,
+                "hash": "4beadca83a01"
+              },
+              "data": {
+                "path": "assets/common/birds/tarentaal-mid@1x-0.695d56cbdd1b.json",
+                "bytes": 10218,
+                "hash": "695d56cbdd1b"
+              }
+            }
+          ]
+        },
+        "x2": {
+          "pages": [
+            {
+              "image": {
+                "path": "assets/common/birds/tarentaal-mid@2x-0.ef993b5a4fd0.png",
+                "bytes": 352465,
+                "hash": "ef993b5a4fd0"
+              },
+              "data": {
+                "path": "assets/common/birds/tarentaal-mid@2x-0.2bb9464bb78a.json",
+                "bytes": 10250,
+                "hash": "2bb9464bb78a"
+              }
+            }
+          ]
+        },
+        "scale": 1,
+        "originX": 0.5,
+        "originY": 0.575,
+        "clips": {
+          "alert": {
+            "frames": [
+              "alert/00",
+              "alert/01",
+              "alert/02",
+              "alert/03"
+            ],
+            "fps": 10,
+            "loop": false
+          },
+          "flap": {
+            "frames": [
+              "flap/00",
+              "flap/01",
+              "flap/02",
+              "flap/03",
+              "flap/04",
+              "flap/05"
+            ],
+            "fps": 16,
+            "loop": true
+          },
+          "forage_walk": {
+            "frames": [
+              "forage_walk/00",
+              "forage_walk/01",
+              "forage_walk/02",
+              "forage_walk/03",
+              "forage_walk/04",
+              "forage_walk/05",
+              "forage_walk/06",
+              "forage_walk/07"
+            ],
+            "fps": 12,
+            "loop": true
+          },
+          "glide": {
+            "frames": [
+              "glide/00",
+              "glide/01"
+            ],
+            "fps": 6,
+            "loop": true
+          },
+          "hit_poof": {
+            "frames": [
+              "hit_poof/00",
+              "hit_poof/01",
+              "hit_poof/02",
+              "hit_poof/03",
+              "hit_poof/04",
+              "hit_poof/05"
+            ],
+            "fps": 24,
+            "loop": false
+          },
+          "land": {
+            "frames": [
+              "land/00",
+              "land/01",
+              "land/02",
+              "land/03"
+            ],
+            "fps": 14,
+            "loop": false
+          },
+          "peck": {
+            "frames": [
+              "peck/00",
+              "peck/01",
+              "peck/02",
+              "peck/03",
+              "peck/04",
+              "peck/05"
+            ],
+            "fps": 12,
+            "loop": true
+          },
+          "peek": {
+            "frames": [
+              "peek/00",
+              "peek/01",
+              "peek/02",
+              "peek/03",
+              "peek/04",
+              "peek/05"
+            ],
+            "fps": 12,
+            "loop": true
+          },
+          "run": {
+            "frames": [
+              "run/00",
+              "run/01",
+              "run/02",
+              "run/03",
+              "run/04",
+              "run/05",
+              "run/06",
+              "run/07"
+            ],
+            "fps": 18,
+            "loop": true
+          },
+          "takeoff": {
+            "frames": [
+              "takeoff/00",
+              "takeoff/01",
+              "takeoff/02",
+              "takeoff/03",
+              "takeoff/04",
+              "takeoff/05"
+            ],
+            "fps": 20,
+            "loop": false
+          },
+          "tumble": {
+            "frames": [
+              "tumble/00",
+              "tumble/01",
+              "tumble/02",
+              "tumble/03"
+            ],
+            "fps": 16,
+            "loop": true
+          }
+        }
+      },
+      "near": {
+        "group": "common",
+        "x1": {
+          "pages": [
+            {
+              "image": {
+                "path": "assets/common/birds/tarentaal-near@1x-0.59fc8c53f5e2.png",
+                "bytes": 90995,
+                "hash": "59fc8c53f5e2"
+              },
+              "data": {
+                "path": "assets/common/birds/tarentaal-near@1x-0.d66ad0d73356.json",
+                "bytes": 2650,
+                "hash": "d66ad0d73356"
+              }
+            },
+            {
+              "image": {
+                "path": "assets/common/birds/tarentaal-near@1x-1.498cc742b0c8.png",
+                "bytes": 33545,
+                "hash": "498cc742b0c8"
+              },
+              "data": {
+                "path": "assets/common/birds/tarentaal-near@1x-1.f6c62dda4089.json",
+                "bytes": 966,
+                "hash": "f6c62dda4089"
+              }
+            }
+          ]
+        },
+        "scale": 1,
+        "originX": 0.5,
+        "originY": 0.575,
+        "clips": {
+          "alert": {
+            "frames": [
+              "alert/00",
+              "alert/01",
+              "alert/02",
+              "alert/03"
+            ],
+            "fps": 10,
+            "loop": false
+          },
+          "hit_poof": {
+            "frames": [
+              "hit_poof/00",
+              "hit_poof/01",
+              "hit_poof/02",
+              "hit_poof/03",
+              "hit_poof/04",
+              "hit_poof/05"
+            ],
+            "fps": 24,
+            "loop": false
+          },
+          "peek": {
+            "frames": [
+              "peek/00",
+              "peek/01",
+              "peek/02",
+              "peek/03",
+              "peek/04",
+              "peek/05"
+            ],
+            "fps": 12,
+            "loop": true
+          },
+          "tumble": {
+            "frames": [
+              "tumble/00",
+              "tumble/01",
+              "tumble/02",
+              "tumble/03"
+            ],
+            "fps": 16,
+            "loop": true
+          }
+        }
+      }
+    }
+  },
+  "audio": {
+    "sfx/poof": {
+      "group": "common",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/poof.b57c4adca957.ogg",
+        "bytes": 8091,
+        "hash": "b57c4adca957"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/poof.8d5f3a340004.mp3",
+        "bytes": 5005,
+        "hash": "8d5f3a340004"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -1
+    },
+    "sfx/shot": {
+      "group": "common",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/shot.da4f7682af8c.ogg",
+        "bytes": 8336,
+        "hash": "da4f7682af8c"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/shot.3dff4a02932d.mp3",
+        "bytes": 5264,
+        "hash": "3dff4a02932d"
+      },
+      "loop": false,
+      "lufs": -15.2,
+      "peakDb": -1
+    }
+  }
+}

@@ -434,7 +434,8 @@ final art in M10. Values live in `feel.json quality.tiers`.)
   crossfaded by the director's intensity value; tempo-up variant for the Stampede.
 - Stereo pan by screen x of the event; voice limit 16; duck music under Oupa barks.
 - Mute on `visibilitychange`, on pause, and whenever the platform adapter reports an ad (Poki rule).
-- Formats: AAC `.m4a` primary + `.ogg` fallback, loaded by array so the browser picks.
+- Formats (M10, D-027): Ogg Vorbis where `canPlayType` says "probably", else MP3 (Safari);
+  recorded files come from the asset index, the synth stays the fallback per sound.
 
 ## 8. Platform layer (`src/platform/`)
 
@@ -519,13 +520,22 @@ export interface PlatformAdapter {
 
 ## 10. Assets pipeline
 - Sources in `art-source/` (PSD/Krita/Spine) — keep them: they document human authorship (see art bible).
-- `tools/pack-atlases`: exports → WebP atlases (+ JSON) per biome per tier; generates `assetManifest.ts`
-  with content hashes for cache-busting.
-- Characters: **Spine** skeletal animation recommended (one tarentaal rig, variants and bosses as
-  **skins**/attachments; squash-and-stretch via mesh deform). Alternative: frame-by-frame atlases.
-  Until art lands, `ProceduralAssetFactory` draws placeholder birds/props/layers at runtime so the
-  game is playable from the first milestone.
-- Audio: ffmpeg → `.m4a` + `.ogg`; loudness-normalise (−16 LUFS music, −14 LUFS SFX peaks ≤ −1 dBTP).
+- `tools/pack-atlases.ts` (`npm run assets:pack`, M10, D-027): turns `art-source/` into PNG
+  textures, layer tiles (≤ 2 048 px), multi-page bird atlases (JSON hash, @1x + @2x) and audio,
+  under `public/assets/<group>/` with content-hashed names, plus `public/assets/asset-index.json`
+  (schema `src/game/assets/assetIndex.ts`). Rules for artists: `docs/06-ASSET-DELIVERY.md`.
+- **Final/placeholder switch:** the game fetches the index at boot. `AssetManifest` loads each
+  listed key's file (`loadFinal`) and `install()` uses it in place of the placeholder; a key
+  without a file, or whose file fails, keeps its `ProceduralAssetFactory` placeholder (or the
+  synth, for sounds). Every key reports `final`/`placeholder` (`entries()`, the audit, the test
+  hook). Files belong to `common` or to one biome; non-initial groups load with their biome and
+  are lazy for the size budget and the service worker.
+- Characters: frame-by-frame atlases for v1 (D-027). Spine (one rig, variants as skins) is
+  exported to frames per skin; a Spine runtime is a v1.x option. Bird clips follow art bible
+  §3.4 (`src/game/assets/birdClips.ts` maps sim motion/phase → clip, with fallbacks).
+- Audio: WAV masters → loudness-normalised (BS.1770-4 meter in `tools/assets/loudness.ts`:
+  music −16, voice −16, SFX −14, ambience −20 LUFS, true peak ≤ −1 dBTP) → Ogg Vorbis + MP3
+  (`wasm-media-encoders`, no ffmpeg).
 - Fonts: self-hosted, open licence (e.g. Bangers / Luckiest Guy for display); subset to used glyphs
   (include Afrikaans ê ë ô ï û ʼn and German ä ö ü ß — same list as the art bible §6).
 

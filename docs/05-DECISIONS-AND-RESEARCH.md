@@ -736,6 +736,54 @@ byte-identical.
 *Needs a person:* how touch feels on a real phone (the assist should catch near misses without
 feeling sticky).
 
+**D-027 M10 Final art and audio integration → soft launch (21 Oct 2026):** decisions made in M10,
+shipped as a linear stack of PRs (A asset pipeline, B audit, C audio, D juice, E capture mode,
+F visual regression, G portal assets, H release). No human-made art or recorded audio exists yet,
+so M10 builds the path that delivered files take into the game, and proves it with stand-ins.
+*PR A — asset pipeline and manifest switch:* (1) *Index, not generated code:* Tech §10 planned a
+generated `assetManifest.ts`; instead `tools/pack-atlases.ts` (`npm run assets:pack`) writes
+`public/assets/asset-index.json` (Zod schema `src/game/assets/assetIndex.ts`). The game fetches it
+at boot (`feel.json assets.indexTimeoutMs`). A delivery is then data only, so art drops in without
+a code change or a rebuild of the code. A missing index (404, or an SPA server's HTML), an invalid
+index, or any file that fails or times out (`assets.fileTimeoutMs`) leaves that key on its
+placeholder; a layer is all-or-nothing (all its tiles or none), and so is a bird's atlas set.
+(2) *Manifest:* every key now has a status (`final`/`placeholder`). `AssetManifest.loadFinal`
+decodes files with plain DOM loading before a scene installs textures, and `install()` adds final
+images under the same key, so views are unchanged. The test hook shows `assets.byBiome` and
+`assets.recorded`. (3) *Formats:* PNG (pngjs, pure JS), not WebP as Tech §10 said: no native
+encoder is needed, and the size budget has room (WebP is a v1.x option). Audio is Ogg Vorbis plus
+MP3, not m4a as Tech §7 said: MP3 plays everywhere including Safari, and the WASM encoders
+(`wasm-media-encoders`, devDependency) have no AAC. The browser gets Ogg only where
+`canPlayType` answers "probably", otherwise MP3. Loudness is measured with a BS.1770-4 meter in
+TypeScript (`tools/assets/loudness.ts`; its K-weighting matches the standard's 48 kHz table and
+reads −23.0 LUFS for the −20 dBFS 997 Hz reference). Targets are music −16, voice −16, SFX −14 and
+ambience −20 LUFS (ambience isn't in the bible: it sits under the music), all with a −1 dBTP
+ceiling that wins over the target. (4) *Birds:* frame-by-frame atlases only, no Spine runtime in
+v1. The runtime is about 300 KB and carries its own licence; a Spine rig is exported to frames
+per skin. Frames use the placeholder's bird box (620 × 400, origin (310, 230)), so delivered art
+lines up with the hitboxes. The tool makes @1x (box × plane scale) and @2x sets; the high tier
+loads @2x, fixed for the page load. Bird atlases are Phaser multi-page atlases (≤ 2048² per page
+at @1x, ≤ 4096² at @2x). By default the near atlas holds only the pop-up clips (`peek`, `alert`,
+`hit_poof`, `tumble`), because all 11 clips at 620 × 400 need four pages. `birdClips.ts` maps
+sim motion and phase to a §3.4 clip, with a fallback chain down to the placeholder frames.
+Delivered clips drop the placeholder's drawn bob and lean. `hit_poof` plays once where a bird is
+bagged. (5) *Sprites and layers stay one texture per key/tile:* Phaser 4 batches several textures
+per draw call, so props, UI and FX need no shared atlas page for v1. A delivered sprite should
+match its placeholder's size (the pack tool warns otherwise). Layers are delivered full width at
+design px and cut into 2048 px tiles. (6) *Groups and the size budget:* each file belongs to
+`common` or one biome (a key only one biome uses loads with it). The index's `initialGroups`
+(common + the home biome) are in the first download. `size-check` and the service worker treat
+the other biomes' files as lazy: they're not precached, and are cached on first use. (7)
+*Stand-ins:* `tools/make-standins.ts` (`npm run assets:standins`) draws a magenta tarentaal stamped
+"STAND-IN" (all 11 clips), the Karoo `mid` layer and two synthesised SFX (shot, poof), and packs
+them with the real pipeline into `tests/fixtures/standin-assets/` (committed, about 1.7 MB). They
+are never in a build: `tests/e2e/assets.spec.ts` serves them with `page.route`, and
+`STANDIN=1 npm run dev` serves them from the dev server. (8) *Recorded SFX:* `AudioDirector`
+plays a decoded recording when one was delivered and keeps the synth for every other sound
+(music and ambience arrive in PR C). Delivery spec for artists: `docs/06-ASSET-DELIVERY.md`.
+*Needs a person:* the illustrator, animator and sound designer deliver per
+`docs/06-ASSET-DELIVERY.md`.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

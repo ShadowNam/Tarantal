@@ -961,6 +961,8 @@ export const FeelSchema = obj({
     smokeScale: pos,
     /** "⛔ don't shoot" and boss call-outs. */
     calloutMs: pos,
+    /** M10 delivered bird clips: render ticks per foraging walk/peck spell (every third pecks). */
+    forageSpellTicks: posInt,
   }),
   hud: obj({
     marginPx: nonNeg,
@@ -1015,6 +1017,12 @@ export const FeelSchema = obj({
     captionMs: pos,
     captionMax: posInt,
     captionRepeatMs: nonNeg,
+  }),
+  assets: obj({
+    /** M10: longest wait for assets/asset-index.json at boot; after it every key is a placeholder. */
+    indexTimeoutMs: pos,
+    /** M10: longest wait for one final file (image, atlas, sound); after it that key falls back. */
+    fileTimeoutMs: pos,
   }),
   platform: obj({
     /** Longest wait for a portal SDK script + init; after it the game runs without the SDK. */

@@ -2,16 +2,25 @@
 // game needs, so the game loads offline after one visit. Pure functions (unit-tested) plus a
 // small Vite plugin that writes dist/sw.js after the bundle is written.
 import { createHash } from 'node:crypto';
-import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import type { Plugin } from 'vite';
+import { ASSET_INDEX_PATH, parseAssetIndex } from '../src/game/assets/assetIndex';
+import { audioFiles, lazyAssetFiles } from './sizeBudget';
 
 /** Files never precached (source maps, the worker itself, OS junk, Vite's build manifest). */
 const SKIP = [/\.map$/, /^sw\.js$/, /(^|\/)\.DS_Store$/, /\.gitkeep$/, /^\.vite\//];
 
-/** Precache list (scope-relative URLs) from the built file paths (posix, relative to dist). */
-export function precacheList(files: readonly string[]): string[] {
-  const keep = files.filter((f) => !SKIP.some((re) => re.test(f)));
+/**
+ * Precache list (scope-relative URLs) from the built file paths (posix, relative to dist). M10:
+ * delivered art and audio of the non-home biomes (`lazy`) are cached when first used instead,
+ * so installing the PWA doesn't download every biome.
+ */
+export function precacheList(
+  files: readonly string[],
+  lazy: ReadonlySet<string> = new Set(),
+): string[] {
+  const keep = files.filter((f) => !SKIP.some((re) => re.test(f)) && !lazy.has(f));
   return ['./', ...[...new Set(keep)].sort()];
 }
 
@@ -105,7 +114,17 @@ export function serviceWorkerPlugin(): Plugin {
     },
     closeBundle() {
       const files = listFiles(outDir).map((p) => relative(outDir, p).split(sep).join('/'));
-      const list = precacheList(files);
+      const indexPath = join(outDir, ASSET_INDEX_PATH);
+      // Other biomes' files and every recording are cached on first use, not up front (a browser
+      // plays one of each Ogg/MP3 pair).
+      const index = existsSync(indexPath)
+        ? parseAssetIndex(JSON.parse(readFileSync(indexPath, 'utf8'))).index
+        : null;
+      const lazy = new Set([
+        ...(index === null ? [] : lazyAssetFiles(index)),
+        ...(index === null ? [] : audioFiles(index)),
+      ]);
+      const list = precacheList(files, lazy);
       const version = cacheVersion(
         list
           .filter((f) => f !== './')

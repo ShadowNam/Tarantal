@@ -4,20 +4,26 @@
 // pose by phase: standing (walk, alert, crouched for take-off), leaning forward when running,
 // fast wing beats when flushed, wings held up when gliding. M4: the kwêvoël stands while perched
 // and flaps otherwise; the Generaal stands (struts/runs) until he flies off, and wears his pot
-// (a separate sprite on his head) until it is knocked off.
+// (a separate sprite on his head) until it is knocked off. M10: a bird with a delivered atlas plays
+// its §3.4 clips instead (birdClips.ts), drawn at the atlas's scale and origin; a missing clip
+// falls back along CLIP_FALLBACK, then to the placeholder frames.
 import * as Phaser from 'phaser';
 import type { ContentBundle } from '../../content/schemas';
 import type { PlaneId } from '../../sim/types';
-import { TEX, type AssetManifest, type BirdFrame } from '../assets/AssetManifest';
+import type { BirdClip } from '../assets/assetIndex';
+import { clipFor, resolveClip } from '../assets/birdClips';
+import { TEX, type AssetManifest, type BirdFrame, type FinalBird } from '../assets/AssetManifest';
+import type { SimEvent } from '../../sim/events';
 import type { DrawBird } from './interpolate';
 import type { ParallaxView } from './ParallaxView';
 
 interface Drawn {
-  readonly sprite: Phaser.GameObjects.Image;
+  readonly sprite: Phaser.GameObjects.Sprite;
   readonly tuft: Phaser.GameObjects.Image | null;
   readonly badge: Phaser.GameObjects.Image | null;
   readonly pot: Phaser.GameObjects.Image | null;
   readonly plane: PlaneId;
+  /** Placeholder texture key, or the final clip's animation key. */
   frame: string;
 }
 
@@ -56,6 +62,8 @@ export class BirdView {
     manifest: AssetManifest,
     parallax: ParallaxView,
     content: ContentBundle,
+    /** Render ticks per foraging walk/peck spell (feel.json juice.forageSpellTicks). */
+    private readonly forageSpellTicks: number,
     /** ⛔ badge on a non-target: only until its first sighting (not yet in the Bird Book). */
     private readonly showBadge: (creature: string) => boolean = () => true,
   ) {
@@ -79,13 +87,27 @@ export class BirdView {
     for (const b of birds) {
       seen.add(b.view.id);
       const v = b.view;
-      const frame = frameFor(v, tick);
-      const key = this.manifest.bird(v.creature, v.plane, frame);
+      const final = this.manifest.finalBird(v.creature, v.plane);
+      const clip =
+        final !== null && this.scene.textures.exists(final.atlasKey)
+          ? resolveClip(
+              clipFor(v.motion, v.phase, v.id, tick, this.forageSpellTicks),
+              (c) => final.entry.clips[c] !== undefined,
+            )
+          : null;
+      const animKey =
+        final !== null && clip !== null ? this.ensureAnim(v.creature, v.plane, final, clip) : null;
+      // An animation with no frames (it can't play) leaves the bird on its placeholder frames.
+      const anim = animKey === null ? undefined : this.scene.anims.get(animKey);
+      const playable = final !== null && anim !== undefined && anim.frames.length > 0;
+      const key =
+        playable && animKey !== null
+          ? animKey
+          : this.manifest.bird(v.creature, v.plane, frameFor(v, tick));
       let d = this.drawn.get(v.id);
       if (d === undefined) {
         const layer = this.parallax.plane(v.plane);
-        const o = this.manifest.origin(key);
-        const sprite = this.scene.add.image(b.x, b.y, key).setOrigin(o.x, o.y);
+        const sprite = this.scene.add.sprite(b.x, b.y, TEX.feather);
         layer.birds?.add(sprite);
         const tuft =
           v.motion === 'popup' && v.ground !== null
@@ -103,27 +125,41 @@ export class BirdView {
             ? this.scene.add.image(b.x, b.y, TEX.pot).setOrigin(po.x, po.y)
             : null;
         if (pot) layer.birds?.add(pot);
-        d = { sprite, tuft, badge, pot, plane: v.plane, frame: key };
+        d = { sprite, tuft, badge, pot, plane: v.plane, frame: '' };
         this.drawn.set(v.id, d);
       }
       if (d.frame !== key) {
-        d.sprite.setTexture(key);
+        if (playable) {
+          const frames = anim.frames.length;
+          // Stagger looping clips so flock members don't move in lockstep; one-shot clips
+          // (alert, takeoff, land) always start at their first frame.
+          const startFrame = anim.repeat === -1 ? v.id % frames : 0;
+          d.sprite.play({ key, startFrame }).setOrigin(final.entry.originX, final.entry.originY);
+        } else {
+          const o = this.manifest.origin(key);
+          d.sprite.stop();
+          d.sprite.setTexture(key).setOrigin(o.x, o.y);
+        }
         d.frame = key;
       }
-      // Mirror around the origin (the bird's position) — the hitbox mirrors the same way.
+      const s = playable ? final.scale : 1;
+      // Placeholder frames get a drawn walk bob and running lean; delivered clips animate it.
       const bob =
-        v.motion === 'flock' && v.phase === 'walk' && (tick + v.id) % 20 < 10 ? WALK_BOB_PX : 0;
-      const lean = v.phase === 'run' || v.phase === 'land' ? RUN_LEAN * v.facing : 0;
+        s === 1 && v.motion === 'flock' && v.phase === 'walk' && (tick + v.id) % 20 < 10
+          ? WALK_BOB_PX
+          : 0;
+      const lean = s === 1 && (v.phase === 'run' || v.phase === 'land') ? RUN_LEAN * v.facing : 0;
+      // Mirror around the origin (the bird's position) — the hitbox mirrors the same way.
       d.sprite
         .setPosition(b.x, b.y - bob)
-        .setScale(v.facing, 1)
+        .setScale(v.facing * s, s)
         .setRotation(lean)
         // A peeking boss behind cover (Ou Grys, M8) is not drawn until he peeks out.
         .setVisible(v.phase !== 'hidden');
       if (v.motion === 'popup' && v.ground !== null) {
-        // Hide everything below the grass line (texture px == design px on the near plane).
+        // Hide everything below the grass line (in texture px: design px / scale).
         const frameH = d.sprite.frame.height;
-        const visible = d.sprite.displayOriginY + (v.ground - b.y);
+        const visible = d.sprite.displayOriginY + (v.ground - b.y) / s;
         d.sprite.setVisible(visible > 0);
         if (visible > 0) d.sprite.setCrop(0, 0, d.sprite.frame.width, Math.min(frameH, visible));
       }
@@ -145,6 +181,43 @@ export class BirdView {
       d.badge?.destroy();
       d.pot?.destroy();
       this.drawn.delete(id);
+    }
+  }
+
+  /** The animation key of a delivered clip, created on first use. */
+  private ensureAnim(creature: string, plane: PlaneId, final: FinalBird, clip: BirdClip): string {
+    const key = `final:${creature}/${plane}/${clip}`;
+    const c = final.entry.clips[clip];
+    if (!this.scene.anims.exists(key) && c !== undefined) {
+      this.scene.anims.create({
+        key,
+        frames: c.frames.map((frame) => ({ key: final.atlasKey, frame })),
+        frameRate: c.fps,
+        repeat: c.loop ? -1 : 0,
+      });
+    }
+    return key;
+  }
+
+  /** M10: a bagged bird with a delivered `hit_poof` clip plays it once where it was hit. */
+  handle(events: readonly SimEvent[]): void {
+    for (const e of events) {
+      if (e.type !== 'targetBagged') continue;
+      const final = this.manifest.finalBird(e.creature, e.plane);
+      if (final === null || !this.scene.textures.exists(final.atlasKey)) continue;
+      if (final.entry.clips.hit_poof === undefined) continue;
+      const key = this.ensureAnim(e.creature, e.plane, final, 'hit_poof');
+      if ((this.scene.anims.get(key)?.frames.length ?? 0) === 0) continue;
+      const face = this.drawn.get(e.birdId)?.sprite.scaleX ?? final.scale;
+      const poof = this.scene.add
+        .sprite(e.x, e.y, final.atlasKey)
+        .setOrigin(final.entry.originX, final.entry.originY)
+        .setScale(face, final.scale);
+      this.parallax.plane(e.plane).overlay?.add(poof);
+      // Once, even if rig.json marked hit_poof as a loop (a loop would never complete).
+      poof.play({ key, repeat: 0 }).once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+        poof.destroy();
+      });
     }
   }
 
