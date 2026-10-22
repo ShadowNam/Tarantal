@@ -1,9 +1,23 @@
 name: CI
 
+# Two lanes (D-030):
+# - PR lane (pull requests into main): check/build/size + a quick e2e set (desktop Chromium and
+#   Pixel 7 landscape in short shards, iPhone 14 landscape on WebKit), without the long Season Run
+#   and perf timing specs. Stacked PRs (base is not main) don't run CI until they are retargeted
+#   to main, which re-triggers it.
+# - Full lane (push to main, nightly, manual, or a PR labelled `full-ci`): every profile, the
+#   Season Run, perf, portal and public-build jobs.
+# E2E jobs run inside the official Playwright image, so browsers and their system packages are
+# already installed (installing them took 1–22 min per job). Keep its tag equal to the
+# @playwright/test version in package.json.
 on:
   push:
     branches: [main]
   pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, edited, labeled]
+  schedule:
+    - cron: '17 2 * * *'
   workflow_dispatch:
 
 concurrency:
@@ -14,8 +28,68 @@ permissions:
   contents: read
 
 jobs:
+  plan:
+    name: plan
+    runs-on: ubuntu-24.04
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.event.action != 'edited' && github.event.action != 'labeled') ||
+      (github.event.action == 'edited' && github.event.changes.base != null) ||
+      (github.event.action == 'labeled' && github.event.label.name == 'full-ci')
+    outputs:
+      matrix: ${{ steps.m.outputs.matrix }}
+    steps:
+      - id: m
+        env:
+          FULL: >-
+            ${{ github.event_name != 'pull_request' ||
+            contains(github.event.pull_request.labels.*.name, 'full-ci') }}
+        run: |
+          SKIP_LONG='**/season-*.spec.ts,**/perf.spec.ts'
+          quick=$(cat <<JSON
+          [
+            {"project":"desktop-chromium","browser":"chromium","shard":"1/4","skip":"$SKIP_LONG"},
+            {"project":"desktop-chromium","browser":"chromium","shard":"2/4","skip":"$SKIP_LONG"},
+            {"project":"desktop-chromium","browser":"chromium","shard":"3/4","skip":"$SKIP_LONG"},
+            {"project":"desktop-chromium","browser":"chromium","shard":"4/4","skip":"$SKIP_LONG"},
+            {"project":"pixel7-landscape","browser":"chromium","shard":"1/3","skip":"$SKIP_LONG"},
+            {"project":"pixel7-landscape","browser":"chromium","shard":"2/3","skip":"$SKIP_LONG"},
+            {"project":"pixel7-landscape","browser":"chromium","shard":"3/3","skip":"$SKIP_LONG"},
+            {"project":"iphone14-landscape","browser":"webkit","shard":"1/1","skip":"$SKIP_LONG"}
+          ]
+          JSON
+          )
+          full=$(cat <<'JSON'
+          [
+            {"project":"desktop-chromium","browser":"chromium","shard":"1/4","skip":"**/season-*.spec.ts"},
+            {"project":"desktop-chromium","browser":"chromium","shard":"2/4","skip":"**/season-*.spec.ts"},
+            {"project":"desktop-chromium","browser":"chromium","shard":"3/4","skip":"**/season-*.spec.ts"},
+            {"project":"desktop-chromium","browser":"chromium","shard":"4/4","skip":"**/season-*.spec.ts"},
+            {"project":"desktop-chromium","browser":"chromium","shard":"season","only":"**/season-*.spec.ts","workers":1},
+            {"project":"desktop-webkit","browser":"webkit","shard":"1/2"},
+            {"project":"desktop-webkit","browser":"webkit","shard":"2/2"},
+            {"project":"pixel7-landscape","browser":"chromium","shard":"1/3","skip":"**/season-*.spec.ts"},
+            {"project":"pixel7-landscape","browser":"chromium","shard":"2/3","skip":"**/season-*.spec.ts"},
+            {"project":"pixel7-landscape","browser":"chromium","shard":"3/3","skip":"**/season-*.spec.ts"},
+            {"project":"pixel7-landscape","browser":"chromium","shard":"season","only":"**/season-*.spec.ts","workers":1},
+            {"project":"iphone14-landscape","browser":"webkit","shard":"1/1"},
+            {"project":"pixel7-portrait","browser":"chromium","shard":"1/1"},
+            {"project":"iphone14-portrait","browser":"webkit","shard":"1/1"},
+            {"project":"desktop-chromium","browser":"chromium","shard":"public","only":"**/daily-public.spec.ts","workers":1,"build":"public"},
+            {"project":"desktop-chromium","browser":"chromium","shard":"poki","only":"**/platform.spec.ts","workers":1,"platform":"poki"},
+            {"project":"desktop-chromium","browser":"chromium","shard":"crazygames","only":"**/platform.spec.ts","workers":1,"platform":"crazygames"},
+            {"project":"pixel7-landscape","browser":"chromium","shard":"poki","only":"**/platform.spec.ts","workers":1,"platform":"poki"},
+            {"project":"iphone14-landscape","browser":"webkit","shard":"poki","only":"**/platform.spec.ts","workers":1,"platform":"poki"}
+          ]
+          JSON
+          )
+          if [ "$FULL" = "true" ]; then m="$full"; else m="$quick"; fi
+          echo "matrix=$(echo "$m" | jq -c '{include: .}')" >> "$GITHUB_OUTPUT"
+          echo "lane: $([ "$FULL" = true ] && echo full || echo quick)"
+
   check:
     name: check, build, size
+    needs: plan
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -40,104 +114,19 @@ jobs:
       - run: npm run size -- --strict --dir dist-crazygames
 
   e2e:
-    # One job per Playwright profile, in parallel: under software-rendered WebGL a full run is too
-    # slow for a single job. The two slowest profiles (desktop Chromium: 40 of 45 min in M4; Pixel 7)
-    # are split in two shards each, since M5 adds the FTUE, persistence, PWA and menu specs.
+    # One job per Playwright profile/shard, in parallel: under software-rendered WebGL a full run is
+    # too slow for a single job. Matrix comes from the plan job (quick lane on PRs, full lane on
+    # main / nightly / manual / `full-ci` label).
     name: e2e (${{ matrix.project }} ${{ matrix.shard }})
+    needs: plan
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 45
+    container:
+      image: mcr.microsoft.com/playwright:v1.56.1-noble
+      options: --ipc=host
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          # The Season Run specs (season-*.spec.ts: the 12-hunt run, resume, M8 real seasons) get their
-          # own job per landscape Chromium profile (one worker): next to
-          # other specs it starved the perf and menu timing tests on the shared software-GL runner.
-          - {
-              project: desktop-chromium,
-              browser: chromium,
-              shard: 1/2,
-              skip: '**/season-*.spec.ts',
-            }
-          - {
-              project: desktop-chromium,
-              browser: chromium,
-              shard: 2/2,
-              skip: '**/season-*.spec.ts',
-            }
-          - {
-              project: desktop-chromium,
-              browser: chromium,
-              shard: season,
-              only: '**/season-*.spec.ts',
-              workers: 1,
-            }
-          - { project: desktop-webkit, browser: webkit, shard: 1/1 }
-          - {
-              project: pixel7-landscape,
-              browser: chromium,
-              shard: 1/2,
-              skip: '**/season-*.spec.ts',
-            }
-          - {
-              project: pixel7-landscape,
-              browser: chromium,
-              shard: 2/2,
-              skip: '**/season-*.spec.ts',
-            }
-          - {
-              project: pixel7-landscape,
-              browser: chromium,
-              shard: season,
-              only: '**/season-*.spec.ts',
-              workers: 1,
-            }
-          - { project: iphone14-landscape, browser: webkit, shard: 1/1 }
-          - { project: pixel7-portrait, browser: chromium, shard: 1/1 }
-          - { project: iphone14-portrait, browser: webkit, shard: 1/1 }
-          # v1.0.1 (D-028): the public web build (no VITE_TEST_HOOKS, as Pages ships it) refuses
-          # official Dailies, shares and challenge links under ?e2e.
-          - {
-              project: desktop-chromium,
-              browser: chromium,
-              shard: public,
-              only: '**/daily-public.spec.ts',
-              workers: 1,
-              build: public,
-            }
-          # M9: the portal builds (VITE_PLATFORM + VITE_TEST_HOOKS=1) against fake portal SDKs.
-          - {
-              project: desktop-chromium,
-              browser: chromium,
-              shard: poki,
-              only: '**/platform.spec.ts',
-              workers: 1,
-              platform: poki,
-            }
-          - {
-              project: desktop-chromium,
-              browser: chromium,
-              shard: crazygames,
-              only: '**/platform.spec.ts',
-              workers: 1,
-              platform: crazygames,
-            }
-          - {
-              project: pixel7-landscape,
-              browser: chromium,
-              shard: poki,
-              only: '**/platform.spec.ts',
-              workers: 1,
-              platform: poki,
-            }
-          - {
-              project: iphone14-landscape,
-              browser: webkit,
-              shard: poki,
-              only: '**/platform.spec.ts',
-              workers: 1,
-              platform: poki,
-            }
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -145,7 +134,6 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps ${{ matrix.browser }}
       - run: npm run test:e2e -- --project=${{ matrix.project }} ${{ matrix.only && format('--workers={0}', matrix.workers) || format('--shard={0}', matrix.shard) }}
         env:
           E2E_ONLY: ${{ matrix.only }}
