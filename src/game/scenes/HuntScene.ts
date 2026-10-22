@@ -758,6 +758,12 @@ export class HuntScene extends Phaser.Scene {
 
     if (hook) {
       hook.tick = state.tick;
+      const fxPops = this.fx.popStats();
+      const hudPops = hud.popStats();
+      hook.pops = {
+        shown: fxPops.shown + hudPops.shown,
+        created: fxPops.created + hudPops.created,
+      };
       hook.ticksLeft = state.ticksLeft;
       hook.score = state.score;
       hook.shells = state.weapon.shells;

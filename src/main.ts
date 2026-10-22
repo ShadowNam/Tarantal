@@ -225,6 +225,7 @@ const hook: TestHook = {
   gadgetUses: 0,
   flocks: [],
   flockSpots: [],
+  pops: { shown: 0, created: 0 },
   flockLog: [],
   result: null,
   firstShotAtMs: null,

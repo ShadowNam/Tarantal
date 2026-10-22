@@ -15,6 +15,7 @@ import type { PlaneId, SimState } from '../../sim/types';
 import { t, tOr } from '../../i18n/i18n';
 import { TEX } from '../assets/AssetManifest';
 import { formatAward, popParts } from '../ui/format';
+import { PopPool, colorNumber, ensurePopFont, popCanShow, popLook } from '../ui/popFont';
 import type { ParallaxView } from './ParallaxView';
 
 /** UI and body face (art bible §6): self-hosted Baloo 2 (public/fonts), system font until it loads. */
@@ -40,6 +41,14 @@ export class Fx {
   private readonly puffs: Phaser.GameObjects.Particles.ParticleEmitter;
   /** Where each bird was bagged this frame, so its score pop appears there. */
   private readonly bagged = new Map<number, BagSpot>();
+  /** v1.0.1 (D-028 §4): pooled BitmapText score pops (no canvas text per kill). */
+  private readonly pops: PopPool;
+  /** v1.0.1: pooled POOF bubbles; the label's text rarely changes, so reuse never re-renders it. */
+  private readonly poofFree: {
+    bubble: Phaser.GameObjects.Image;
+    label: Phaser.GameObjects.Text;
+    look: string;
+  }[] = [];
   private readonly locate: (birdId: number) => BagSpot | null;
   private readonly locatePot: (
     birdId: number,
@@ -58,6 +67,7 @@ export class Fx {
     private readonly prefs: LivePrefs,
   ) {
     this.scene = scene;
+    this.pops = new PopPool(scene);
     this.locate = locate;
     this.locatePot = locatePot;
     this.cratePlane = cratePlane;
@@ -355,21 +365,42 @@ export class Fx {
     if (!layer) return;
     const s = plane === 'near' ? 0.9 : plane === 'mid' ? 0.6 : 0.4;
     const rot = Phaser.Math.DegToRad((Math.random() - 0.5) * 16);
-    const bubble = this.scene.add
-      .image(x, y - 40 * s, TEX.bubble)
-      .setScale(0.2 * s)
-      .setRotation(rot);
-    const label = this.scene.add
-      .text(x, y - 40 * s, t('fx.poof'), {
-        fontFamily: DISPLAY_FONT,
-        fontSize: fontPx(64),
-        fontStyle: '900',
-        color: '#C8302A',
-        ...outline(64, 8),
-      })
-      .setOrigin(0.5)
-      .setScale(0.2 * s)
-      .setRotation(rot);
+    const text = t('fx.poof');
+    const style = { ...outline(64, 8) };
+    const look = `${fontPx(64)}|${style.stroke ?? ''}|${style.strokeThickness ?? 0}`;
+    // Reuse a finished POOF (same look: its label texture is already right); else make one.
+    let item = this.poofFree.pop();
+    if (item !== undefined && item.look !== look) {
+      item.bubble.destroy();
+      item.label.destroy();
+      item = undefined;
+    }
+    if (item === undefined) {
+      item = {
+        bubble: this.scene.add.image(0, 0, TEX.bubble),
+        label: this.scene.add
+          .text(0, 0, text, {
+            fontFamily: DISPLAY_FONT,
+            fontSize: fontPx(64),
+            fontStyle: '900',
+            color: '#C8302A',
+            ...style,
+          })
+          .setOrigin(0.5),
+        look,
+      };
+    }
+    const { bubble, label } = item;
+    // Phaser's setText re-renders only when the text differs (a language switch).
+    label.setText(text);
+    for (const o of [bubble, label]) {
+      o.setPosition(x, y - 40 * s)
+        .setScale(0.2 * s)
+        .setRotation(rot)
+        .setAlpha(1)
+        .setVisible(true)
+        .setActive(true);
+    }
     layer.add([bubble, label]);
     this.scene.tweens.add({
       targets: [bubble, label],
@@ -377,20 +408,70 @@ export class Fx {
       duration: this.feel.juice.poofMs * 0.3,
       ease: 'Back.Out',
     });
+    const done = item;
     this.scene.tweens.add({
       targets: [bubble, label],
       alpha: 0,
       delay: this.feel.juice.poofMs * 0.6,
       duration: this.feel.juice.poofMs * 0.4,
       onComplete: () => {
-        bubble.destroy();
-        label.destroy();
+        bubble.setVisible(false).setActive(false);
+        label.setVisible(false).setActive(false);
+        this.poofFree.push(done);
       },
     });
   }
 
+  /** Pooled score pops: shown and made (test hook, D-028 §4). */
+  popStats(): { shown: number; created: number } {
+    return { shown: this.pops.shown, created: this.pops.created };
+  }
+
   /** "10 ×2" rising, then resolving to "+20" (GDD §5.3, §17: 60 px over 600 ms). */
   private scorePop(at: BagSpot, parts: string, award: string, color: string): void {
+    const layer = this.parallax.plane(at.plane).overlay;
+    if (!layer) return;
+    const s = at.plane === 'near' ? 1 : at.plane === 'mid' ? 0.8 : 0.65;
+    const resolvedColor = color === '#F3EAD3' ? '#FFD25A' : color;
+    // v1.0.1 (D-028 §4): a pooled BitmapText pop. A string the pop atlas can't draw (it never
+    // happens with format.ts) falls back to a canvas Text.
+    if (!popCanShow(parts) || !popCanShow(award)) {
+      this.scorePopText(at, parts, award, color);
+      return;
+    }
+    const keys = ensurePopFont(this.scene, popLook(FONT, 52, 8));
+    const pop = this.pops
+      .acquire(keys)
+      .show(keys, keys.sizePx, parts, 0.5, 0.5, colorNumber(color));
+    pop.root.setPosition(at.x, at.y - 110 * s).setScale(s);
+    layer.add(pop.root);
+    const { scorePopMs, scorePopRisePx } = this.feel.juice;
+    // Resolve "10 ×2" → "+20" from the rise tween's own progress (see scorePopText).
+    let resolved = false;
+    this.scene.tweens.add({
+      targets: pop.root,
+      y: pop.root.y - scorePopRisePx,
+      duration: scorePopMs,
+      ease: 'Cubic.Out',
+      onUpdate: (tween) => {
+        if (resolved || tween.progress < 0.45 || !pop.root.active) return;
+        resolved = true;
+        pop.setText(award).setColor(colorNumber(resolvedColor));
+      },
+    });
+    this.scene.tweens.add({
+      targets: pop.root,
+      alpha: 0,
+      delay: scorePopMs * 0.75,
+      duration: scorePopMs * 0.5,
+      onComplete: () => {
+        this.pops.release(pop);
+      },
+    });
+  }
+
+  /** The pre-v1.0.1 canvas Text pop, kept for strings outside the pop atlas. */
+  private scorePopText(at: BagSpot, parts: string, award: string, color: string): void {
     const layer = this.parallax.plane(at.plane).overlay;
     if (!layer) return;
     const s = at.plane === 'near' ? 1 : at.plane === 'mid' ? 0.8 : 0.65;

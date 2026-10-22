@@ -77,6 +77,8 @@ export interface TestHook {
   /** Flock transitions this hunt as "id:from>to:cause" (capped). */
   flockLog: string[];
   flockSpots: { id: number; state: string; alive: number; x: number; y: number }[];
+  /** v1.0.1 (D-028 §4): score pops shown this page, and pop objects made (pooled: stays small). */
+  pops: { shown: number; created: number };
   result: HuntResult | null;
   /** performance.now() when the first shot of the page was fired (ms since navigation start). */
   firstShotAtMs: number | null;
