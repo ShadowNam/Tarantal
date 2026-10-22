@@ -76,6 +76,16 @@ const configSchema = z.object({
     dots: z
       .object({ $comment: z.string().optional() })
       .and(perPlane(z.object({ r: z.number().positive(), spacing: z.number().positive() }))),
+    dotVariety: z.object({
+      $comment: z.string().optional(),
+      minSize: z.number().positive(),
+      maxSize: z.number().positive(),
+      jitter: z.number().min(0).max(1),
+      bellyThin: z.number().min(0).max(1),
+      tailThin: z.number().min(0).max(1),
+    }),
+    /** Leg stroke width (bird units, before the ink outline). */
+    legWidth: z.number().positive(),
     /** Inner detail lines as a fraction of the plane's ink weight. */
     innerLine: z.number().positive().max(1),
     eyeWhite: hex,

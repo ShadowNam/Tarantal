@@ -114,7 +114,11 @@ if (only === undefined || only === 'guns') {
   }
 }
 if (process.argv.includes('--sheets')) {
-  if (only === undefined || only === 'guns' || only === 'none')
+  if (
+    only === undefined ||
+    only === 'guns' ||
+    (only === 'none' && process.argv.includes('--gun-sheets'))
+  )
     for (const [name, bytes] of gunSheets(cfg, oneGun)) {
       put(join(root, 'docs', 'art-preview', name), bytes);
       console.log(`docs/art-preview/${name}`);

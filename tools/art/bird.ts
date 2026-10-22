@@ -137,8 +137,10 @@ export interface DrawInput {
   readonly dotScale: number;
   readonly shape: BirdShape;
   readonly cfg: ArtConfig;
-  /** Varies sparkle and dot jitter per creature/frame (deterministic). */
+  /** Per creature: dot layout (deterministic, the same in every frame). */
   readonly seed: number;
+  /** Frame index: varies only the sparkle. */
+  readonly frame: number;
   /** Unique id prefix for clip paths inside one SVG. */
   readonly id: string;
 }
@@ -197,18 +199,24 @@ function dotField(
   x1: number,
   y1: number,
   scale = 1,
+  /** 0–1: how many of the dots survive at (x, y) (sparser toward the belly and the tail). */
+  density: (x: number, y: number) => number = () => 1,
 ): string {
   const spacing = i.look.dotSpacing * scale * i.dotScale;
   const r = i.look.dotR * scale * i.dotScale;
+  const v = i.cfg.birds.dotVariety;
+  // Seeded per creature and part (not per frame), so the dots stay put while the bird moves.
   const rnd = prng(i.seed ^ Math.round(x0 * 7 + y0 * 13));
   const dots: string[] = [];
   const rowH = spacing * 0.866;
   let row = 0;
   for (let y = y0; y <= y1; y += rowH, row++) {
     for (let x = x0 + (row % 2) * spacing * 0.5; x <= x1; x += spacing) {
-      const jx = (rnd() - 0.5) * spacing * 0.25;
-      const jy = (rnd() - 0.5) * spacing * 0.25;
-      const rr = r * (0.85 + rnd() * 0.3);
+      const jx = (rnd() - 0.5) * spacing * v.jitter;
+      const jy = (rnd() - 0.5) * spacing * v.jitter;
+      const size = v.minSize + rnd() * (v.maxSize - v.minSize);
+      if (rnd() > density(x, y)) continue;
+      const rr = r * size;
       dots.push(
         `M${r2(x + jx - rr)} ${r2(y + jy)}a${r2(rr)} ${r2(rr)} 0 1 0 ${r2(rr * 2)} 0a${r2(rr)} ${r2(rr)} 0 1 0 ${r2(-rr * 2)} 0Z`,
       );
@@ -236,7 +244,13 @@ function body(i: DrawInput): string {
       fill: i.pal.highlight,
       'clip-path': `url(#${cid})`,
     }),
-    dotField(i, cid, -rx * 1.1, oy - ry * 1.2, rx * 1.1, oy + ry * 1.1),
+    dotField(i, cid, -rx * 1.1, oy - ry * 1.2, rx * 1.1, oy + ry * 1.1, 1, (x, y) => {
+      const v = i.cfg.birds.dotVariety;
+      // Densest on the back, thinning toward the belly and the tail end.
+      const belly = Math.max(0, Math.min(1, (y - oy) / ry + 0.1));
+      const tail = Math.max(0, Math.min(1, (-x / rx - 0.45) / 0.55));
+      return 1 - v.bellyThin * belly - v.tailThin * tail;
+    }),
     el('path', {
       d,
       fill: 'none',
@@ -268,7 +282,16 @@ function tail(i: DrawInput): string {
   return [
     el('clipPath', { id: cid }, el('path', { d })),
     inked(d, i.pal.shadow, i.cfg.ink, 0),
-    dotField(i, cid, base[0] - 80, base[1] - 40, base[0] + 10, base[1] + 70, 0.85),
+    dotField(
+      i,
+      cid,
+      base[0] - 80,
+      base[1] - 40,
+      base[0] + 10,
+      base[1] + 70,
+      0.85,
+      () => 1 - i.cfg.birds.dotVariety.tailThin,
+    ),
     el('path', {
       d,
       fill: 'none',
@@ -526,8 +549,8 @@ function bandolier(i: DrawInput): string {
 // --- legs ------------------------------------------------------------------------------------
 
 function legStroke(i: DrawInput, d: string, opacity = 1, toes = ''): string {
-  const w = 15;
-  const t = 6;
+  const w = i.cfg.birds.legWidth;
+  const t = w * 0.45;
   const line = (path: string, colour: string, width: number): string =>
     el('path', {
       d: path,
@@ -539,8 +562,8 @@ function legStroke(i: DrawInput, d: string, opacity = 1, toes = ''): string {
     });
   return g(
     opacity < 1 ? { opacity } : {},
-    line(d, i.cfg.ink, w + i.look.line * 1.6),
-    toes === '' ? '' : line(toes, i.cfg.ink, t + i.look.line * 1.4),
+    line(d, i.cfg.ink, w + i.look.line * 1.15),
+    toes === '' ? '' : line(toes, i.cfg.ink, t + i.look.line * 1.0),
     line(d, i.pal.legs, w),
     toes === '' ? '' : line(toes, i.pal.legs, t),
   );
@@ -1177,7 +1200,7 @@ function stars(i: DrawInput): string {
 
 function sparkle(i: DrawInput): string {
   if (!i.parts.includes('sparkle')) return '';
-  const rnd = prng(i.seed * 7 + 3);
+  const rnd = prng(i.seed * 7 + 3 + i.frame * 101);
   const out: string[] = [];
   const { rx, ry, oy } = i.shape.body;
   for (let k = 0; k < 3; k++) {

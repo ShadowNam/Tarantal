@@ -67,7 +67,8 @@ export function birdFrameSvg(
     dotScale: v.dotScale ?? 1,
     shape: birdShape(content, creature),
     cfg,
-    seed: seed + frame,
+    seed,
+    frame,
     id: 'b',
   });
   const filter = wobbleFilter('wob', cfg.birds.wobble.frequency, wob, 11);
