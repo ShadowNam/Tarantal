@@ -9,9 +9,9 @@
       "group": "common",
       "origin": "interim",
       "file": {
-        "path": "assets/common/img/biome_water.3d04febfd821.png",
-        "bytes": 1646,
-        "hash": "3d04febfd821"
+        "path": "assets/common/img/biome_water.3afc6cb1a402.png",
+        "bytes": 1887,
+        "hash": "3afc6cb1a402"
       },
       "width": 256,
       "height": 64
@@ -385,9 +385,9 @@
       "group": "karoo-autumn",
       "origin": "interim",
       "file": {
-        "path": "assets/karoo-autumn/img/karoo_fence_bell.25d0171c4ffc.png",
-        "bytes": 3295,
-        "hash": "25d0171c4ffc"
+        "path": "assets/karoo-autumn/img/karoo_fence_bell.3db4af8e7149.png",
+        "bytes": 2884,
+        "hash": "3db4af8e7149"
       },
       "width": 220,
       "height": 240

@@ -831,20 +831,23 @@ function rotor(p: SpriteCtx): string {
 }
 
 function water(p: SpriteCtx): string {
-  // A floodplain channel, stretched by the view to each splash zone: soft bank, two water tones,
-  // ripple glints.
+  // A floodplain channel, stretched by the view to each splash zone (often ~7× wider than tall).
+  // The ends are long tapered points and the ink is a filled band (outer lens minus inner lens),
+  // never a stroke: a horizontal stretch keeps the ink's thickness, so the ends never smear into
+  // blobs. Ripple glints are horizontal for the same reason.
   const w = tone(p.c('water'), 0.2, 0.35);
+  const lens = (h: number, inset: number): string =>
+    `M${-128 + inset} 0C${-100 + inset} ${-h} ${-80} ${-h} ${-50} ${-h}L50 ${-h}C80 ${-h} ${100 - inset} ${-h} ${128 - inset} 0C${100 - inset} ${h} 80 ${h} 50 ${h}L-50 ${h}C-80 ${h} ${-100 + inset} ${h} ${-128 + inset} 0Z`;
   return g(
     {},
-    inked(
-      'M-124 -2Q-126 -26 -96 -26L96 -26Q126 -26 124 -2Q126 26 96 26L-96 26Q-126 26 -124 -2Z',
-      w.fill,
-      p.ink,
-      3,
+    flat(lens(27, 0), p.ink),
+    flat(lens(24, 3), w.fill),
+    flat(
+      'M-110 4C-80 18 -40 21 0 21C40 21 80 18 110 4C90 15 60 23 0 23C-60 23 -90 15 -110 4Z',
+      w.dark,
     ),
-    flat('M-112 6Q-60 18 0 14Q70 10 114 4Q120 22 94 23L-94 23Q-116 22 -112 6Z', w.dark),
     line('M-84 -10l30 0M-10 2l38 0M54 -12l26 0M-50 12l20 0', { ink: w.light, w: 3 }),
-    flat(ellipseD(-70, -16, 24, 3), w.light),
+    flat(ellipseD(-60, -15, 24, 3), w.light),
   );
 }
 

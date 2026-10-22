@@ -33,14 +33,10 @@ function edgeAlpha(img: Img): number {
   return max;
 }
 
-/** Props whose art deliberately runs off the sides (the fence-bell's wires meet the mid fence). */
-const CONTINUES = new Set(['karoo/fence_bell']);
-
-/** Highest alpha on the left, right and top edges (or the top edge only). */
-function sideAlpha(img: Img, topOnly = false): number {
+/** Highest alpha on the left, right and top edges. */
+function sideAlpha(img: Img): number {
   let max = 0;
   for (let x = 0; x < img.width; x++) max = Math.max(max, img.data[x * 4 + 3] ?? 0);
-  if (topOnly) return max;
   for (let y = 0; y < img.height; y++)
     for (const x of [0, img.width - 1])
       max = Math.max(max, img.data[(y * img.width + x) * 4 + 3] ?? 0);
@@ -131,10 +127,7 @@ describe('interim sprites and props keep the placeholder geometry (D-031)', () =
           expect([r.originX, r.originY]).toEqual([o.x, o.y]);
         }
         // Nothing is cut off at the texture's sides or top (the base may sit on its bottom edge).
-        expect(
-          sideAlpha(r.img, CONTINUES.has(prop.asset)),
-          `${prop.asset} touches a side or the top`,
-        ).toBe(0);
+        expect(sideAlpha(r.img), `${prop.asset} touches a side or the top`).toBe(0);
         // The occluder box lies inside the texture (what you see is what blocks pellets).
         const box = propBox(prop);
         const ox = r.originX * r.img.width;
