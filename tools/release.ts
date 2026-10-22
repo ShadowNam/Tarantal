@@ -37,7 +37,19 @@ mkdirSync(out, { recursive: true });
 let failed = false;
 for (const b of BUILDS) {
   process.stdout.write(`${b.platform}: build… `);
-  run(`npm run ${b.script}`);
+  try {
+    run(`npm run ${b.script}`);
+  } catch (e) {
+    // Keep going: the other builds and the summary still matter; this one gets no zip.
+    const err = e as { stdout?: string; stderr?: string };
+    writeFileSync(
+      join(out, `build-${b.platform}.txt`),
+      `${err.stdout ?? ''}\n${err.stderr ?? String(e)}`,
+    );
+    console.log(`FAILED (see release/build-${b.platform}.txt)`);
+    failed = true;
+    continue;
+  }
   let size: string;
   try {
     size = run(`npx tsx tools/size-check.ts --strict --dir ${b.dir}`);
