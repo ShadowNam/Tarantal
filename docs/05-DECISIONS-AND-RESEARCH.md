@@ -1283,6 +1283,56 @@ of five to eight; one review at the end of a job, not one per part; check-ins ev
 instead of hourly, and a cut-off turn is restarted at once. `E2E_SKIP` now takes
 comma-separated globs.
 
+**D-031 Graphics pass 2: interim landscapes, props, other creatures and effects (22 Oct
+2026).** The product owner approved a second code-drawn interim pass (same route as D-029, human
+art later): every remaining runtime-drawn *visual* placeholder. Audio is out of scope. Two PRs
+(D-030): `gfx2-karoo` (the home biome and everything shared, in the first download) and
+`gfx2-biomes` (Bushveld, Kalahari, Okavango; lazy per biome). Sim, `content/` and golden replays
+are untouched.
+*§1 — Generator:* new `tools/art/` modules on the D-029 route (SVG → resvg → palette PNG):
+`scenery.ts` (mesas, koppies, bossies, grass tufts, stones, posts and wire, clouds, tree blobs),
+`landscape.ts` (layer and prop rendering), `biomes/<biome>.ts` (one plan per biome: six layers
++ its props), `sprites.ts` (shared FX/UI), `flyers.ts` (non-targets and the Stormvoël),
+`scenePreview.ts` + `scenerySheets.ts` (docs only). `npm run art:interim -- --only
+scenery|sprites|flyers [--biome <id>] [--sheets]`. Palettes live in `tools/art/config.json
+scenery` (bible §4.2 / §6 hex values plus derived tones), never in `content/`.
+*§2 — Pipeline:* a layer sidecar (`layers/<biome>/<id>.json`) now also takes `origin`
+("interim") and `encode` ("png8"), like sprite sidecars; the asset index already had a
+provenance field for layers. The parallax renderer and its tiling are unchanged.
+*§3 — Interpretation calls:* (1) *Look:* flat fills + one shadow + one highlight, light from the
+upper left; aerial perspective by layer (`scenery.haze`: far ridge 30 %, far veld 18 % toward the
+horizon colour, ink lightened with it); ink 2 / 2 / 4 / 6 / 6 px for far ridge / far veld / mid /
+near / foreground (bible §1.4); grass and bossies are inked round their silhouette only, so thin
+blades keep their colour. (2) *No paper grain* (bible §1.2 asks for "subtle"): grain costs palette
+PNGs most of their compression; dry-grass hatching gives the texture instead. (3) *Sky:* a smooth
+vertical gradient (rows compress to almost nothing), thin high streaks only in the flyer band, low
+cumulus banks behind the mesas. (4) *Prop boxes:* every prop keeps its placeholder texture size and
+origin except the **windpomp**, whose texture is wider (170 → 310 px, origin moved in the
+sidecar) so its tail vane is drawn where the kwêvoël perches (`perch.ox −150`); its occluder,
+rotor and secret geometry are unchanged (the pack tool's size warning is expected). (5) *Crate:*
+a stencilled shell symbol instead of the placeholder's red cross (a protected emblem) or Oupa's
+initials (no text in art, bible §1.7). (6) *`fx/flash`* is drawn: it is still the muzzle flash of
+any gun whose rig has no flash clip (late guns before they arrive). It stays a small local sprite;
+"reduce flashes" dims it as before. `omen/glare` stays a steady soft band, not a flash. (7)
+*`fx/grass_tuft`* is one key for every biome, so it uses neutral dry grass on the Karoo near-ground
+colour. (8) *Flyers draw only what the game plays:* hadeda and crop-sprayer `flap`; visarend
+`flap` + `glide`; kwêvoël `alert` (perched; crest up, then "KWÊ" beak open) + `flap`; Stormvoël
+`flap` + `hit_poof` (only targets get the bag poof). Each also has a one-frame `forage_walk` hold
+pose: the game never asks a flyer for it, but it ends every fallback chain, so the audit's
+"incomplete bird" rule holds and no state can drop to placeholder frames; identical frames pack
+once. The Stormvoël loads with the `late` group, visarend with the Okavango. (9) *Silhouettes*
+(bible §1.6): ibis bill and trailing legs (hadeda), biplane (sprayer), crest + long tail
+(kwêvoël), white head + white wedge tail on broad wings (visarend), giant casqued guineafowl with
+glowing eyes and a cold rim light (Stormvoël).
+*§4 — Tests:* `tools/art/scenery.test.ts`: every flyer frame stays inside the bird box and
+covers its body hitbox; every shared sprite and prop is drawn at the placeholder's size and
+origin with its occluder inside the art; layers come out at the delivered width; renders are
+deterministic. The pipeline test covers the layer sidecar.
+*§5 — Evidence:* `docs/art-preview/` `sprites.png`, `flyers.png`, `scenery-<biome>-{props,layers,pan}.png`
+(the pan sheets stamp real interim birds on their lanes: contrast check, bible §1.5);
+`compare/gfx2-*.png` before (main) | after in-game on desktop-chromium and pixel7-landscape, from
+`ART_PREVIEW=1 npx playwright test tests/e2e/art-preview-gfx2.spec.ts`.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
