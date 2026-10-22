@@ -415,6 +415,7 @@ window.addEventListener('pagehide', () => {
   save.flush();
 });
 const chrome = new DomChrome(platform, save);
+if (capture) chrome.hideInstallBanner();
 
 const hash = contentHash(bundle);
 // Biomes this build draws (M8: every biome with placeholder art). Their manifests are built on
@@ -466,7 +467,8 @@ await loadFinalFor(biome);
 // A challenge link (Tech §12): decoded once, then removed from the address bar so a reload or a
 // bookmark doesn't show the card again.
 let pendingChallenge: ChallengeDecode | null = null;
-const challengeParam = platform.launchParam('c');
+// Capture mode (unranked) opens no challenge links.
+const challengeParam = capture ? null : platform.launchParam('c');
 if (challengeParam !== null) {
   pendingChallenge = decodeChallenge(challengeParam, {
     content: bundle,
@@ -526,6 +528,7 @@ const ctx: GameContext = {
     today,
     playableBiomes,
     shareBase,
+    unranked: capture,
   }),
   pendingChallenge,
   platform,
