@@ -14,6 +14,7 @@ import type { SimEvent } from '../../sim/events';
 import type { PlaneId, SimState } from '../../sim/types';
 import { t, tOr } from '../../i18n/i18n';
 import { TEX } from '../assets/AssetManifest';
+import type { PotSpot } from './BirdView';
 import { formatAward, popParts } from '../ui/format';
 import { PopPool, colorNumber, ensurePopFont, popCanShow, popLook } from '../ui/popFont';
 import { fontReadiness } from '../ui/fontReady';
@@ -51,9 +52,7 @@ export class Fx {
     look: string;
   }[] = [];
   private readonly locate: (birdId: number) => BagSpot | null;
-  private readonly locatePot: (
-    birdId: number,
-  ) => { plane: PlaneId; x: number; y: number; scaleX: number } | null;
+  private readonly locatePot: (birdId: number) => PotSpot | null;
   /** The plane crates land on (powerups.json). */
   private readonly cratePlane: PlaneId;
 
@@ -63,7 +62,7 @@ export class Fx {
     parallax: ParallaxView,
     screenLayer: Phaser.GameObjects.Container,
     locate: (birdId: number) => BagSpot | null,
-    locatePot: (birdId: number) => { plane: PlaneId; x: number; y: number; scaleX: number } | null,
+    locatePot: (birdId: number) => PotSpot | null,
     cratePlane: PlaneId,
     private readonly prefs: LivePrefs,
   ) {
@@ -279,11 +278,15 @@ export class Fx {
   }
 
   /** CLANG! The Generaal's pot spins off his head (GDD §7). */
-  private knockPot(pot: { plane: PlaneId; x: number; y: number; scaleX: number }): void {
+  private knockPot(pot: PotSpot): void {
     const layer = this.parallax.plane(pot.plane).overlay;
     if (!layer) return;
     const s = Math.abs(pot.scaleX);
-    const img = this.scene.add.image(pot.x, pot.y, TEX.pot).setScale(pot.scaleX, s);
+    // Same origin as the pot on the head (the manifest's), so it doesn't jump at the CLANG.
+    const img = this.scene.add
+      .image(pot.x, pot.y, TEX.pot)
+      .setOrigin(pot.originX, pot.originY)
+      .setScale(pot.scaleX, s);
     layer.add(img);
     const dir = pot.scaleX >= 0 ? -1 : 1;
     this.scene.tweens.add({

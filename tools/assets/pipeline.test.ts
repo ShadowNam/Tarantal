@@ -2,13 +2,14 @@
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { PNG } from 'pngjs';
 import { afterAll, describe, expect, it } from 'vitest';
 import { ASSET_INDEX_PATH, parseAssetIndex } from '../../src/game/assets/assetIndex';
 import { loadContent } from '../testContent';
 import { buildCatalog } from './catalog';
 import { blank, encodePng, readPng, resize } from './image';
 import { applyGain, integratedLufs, normaliseGainDb, truePeakDb } from './loudness';
-import { packAssets } from './pack';
+import { nearlySame, packAssets } from './pack';
 import { shelfPack, shelfPackPages } from './shelfPack';
 import { readWav, writeWav, type Pcm } from './wav';
 
@@ -55,6 +56,29 @@ describe('wav + images', () => {
     img.data.fill(200);
     const small = resize(img, 3, 3);
     expect([...small.data.subarray(0, 4)]).toEqual([200, 200, 200, 200]);
+  });
+});
+
+describe('frame merging (D-029 final review)', () => {
+  const frame = (): ReturnType<typeof blank> => {
+    const img = blank(120, 80);
+    for (let i = 0; i < img.data.length; i += 4) img.data.set([46, 47, 69, 255], i);
+    return img;
+  };
+  const withBlock = (delta: number) => {
+    const img = frame();
+    for (let y = 30; y < 40; y++)
+      for (let x = 50; x < 70; x++)
+        img.data.set([46 + delta, 47 + delta, 69 + delta, 255], (y * 120 + x) * 4);
+    return img;
+  };
+  it('a 20 × 10 block that differs keeps two frames apart, even by a small step', () => {
+    expect(nearlySame(frame(), withBlock(200), 2)).toBe(false);
+    expect(nearlySame(frame(), withBlock(20), 2)).toBe(false);
+  });
+  it('exact repeats and ±2 rounding still merge', () => {
+    expect(nearlySame(frame(), frame(), 2)).toBe(true);
+    expect(nearlySame(frame(), withBlock(2), 2)).toBe(true);
   });
 });
 
@@ -130,6 +154,11 @@ describe('pack-atlases', () => {
     put('birds/tarentaal/forage_walk/00.png', disc(620, 400));
     put('birds/tarentaal/forage_walk/01.png', disc(620, 400));
     put('birds/tarentaal/peek/00.png', disc(620, 400));
+    // A frame that differs from flap/00 only by a small block: must stay its own frame.
+    const flap1 = PNG.sync.read(Buffer.from(disc(620, 400)));
+    for (let y = 190; y < 210; y++)
+      for (let x = 290; x < 330; x++) flap1.data.set([215, 38, 61, 255], (y * 620 + x) * 4);
+    put('birds/tarentaal/flap/01.png', PNG.sync.write(flap1));
     put('birds/tarentaal/planes/far/flap/00.png', disc(272, 176));
     put(
       'guns/pomp/rig.json',
@@ -161,6 +190,7 @@ describe('pack-atlases', () => {
     expect(flap.frame.w * flap.pivot.x).toBeCloseTo(155 - (310 / 2 - flap.frame.w / 2), 0);
     // Identical frames of a clip are packed once and named twice.
     expect(mid?.clips.forage_walk?.frames).toEqual(['forage_walk/00', 'forage_walk/00']);
+    expect(mid?.clips.flap?.frames).toEqual(['flap/00', 'flap/01']);
     expect(mid?.group).toBe('late');
     // The palette PNG decodes back to an image.
     expect(readPng(join(out, page?.image.path ?? '')).width).toBeGreaterThan(0);
