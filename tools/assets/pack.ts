@@ -3,6 +3,8 @@
 //   sprites/<key>.png (+ <key>.json {originX, originY})   any texture key (UI, FX, props, guns)
 //   layers/<biome>/<layerId>.png (+ .json {top})         one parallax layer, full width incl. bleed
 //   birds/<creature>/<clip>/<NN>.png (+ rig.json)         §3.4 clips; frames in the bird box
+//   birds/<creature>/planes/<plane>/<clip>/<NN>.png       optional per-plane masters (D-029)
+//   guns/<weaponId>/<clip>/<NN>.png (+ rig.json)          idle/fire/reload/flash (D-029)
 //   audio/sfx/<id>.wav · audio/music/<biome>/<stem>.wav · audio/ambience/<biome>.wav ·
 //   audio/voice/<id>.wav                                  WAV masters, normalised here
 // Output file names carry a content hash; the same sources always give the same bytes.
@@ -20,26 +22,42 @@ import { dirname, join, relative, sep } from 'node:path';
 import { z } from 'zod';
 import {
   ASSET_INDEX_PATH,
+  ASSET_ORIGINS,
   assetIndexSchema,
   BIRD_CLIPS,
   COMMON_GROUP,
+  GUN_CLIPS,
   type AssetIndex,
   type AudioKind,
   type BirdClip,
   type BirdPlaneEntry,
   type FileRef,
+  type GunEntry,
 } from '../../src/game/assets/assetIndex';
 import type { ContentBundle } from '../../src/content/schemas';
 import type { PlaneId } from '../../src/sim/types';
 import type { Catalog } from './catalog';
 import { encodeMp3, encodeOgg } from './encode';
-import { blank, blit, crop, encodePng, readPng, resize, type Rgba } from './image';
+import {
+  blank,
+  blit,
+  crop,
+  encodePng,
+  encodePng8,
+  opaqueBounds,
+  readPng,
+  resize,
+  type Rgba,
+} from './image';
 import { applyGain, integratedLufs, normaliseGainDb, truePeakDb } from './loudness';
 import { shelfPackPages } from './shelfPack';
 import {
   ATLAS_MAX,
   BIRD_BOX,
   CLIP_SPEC,
+  GUN_BOX,
+  GUN_CLIP_SPEC,
+  GUN_FLASH_BOX,
   LOUDNESS,
   TILE_WIDTH,
   TRUE_PEAK_CEILING_DB,
@@ -62,8 +80,17 @@ export interface PackReport {
   readonly errors: readonly string[];
 }
 
+const provenance = z.enum(ASSET_ORIGINS);
+const encoding = z.enum(['png', 'png8']);
 const sidecarOrigin = z
-  .strictObject({ originX: z.number().min(0).max(1), originY: z.number().min(0).max(1) })
+  .strictObject({
+    originX: z.number().min(0).max(1),
+    originY: z.number().min(0).max(1),
+    /** D-029: "interim" marks code-drawn stand-in art (absent = final). */
+    origin: provenance,
+    /** D-029: "png8" writes a palette PNG (smaller; fine for flat-fill art). */
+    encode: encoding,
+  })
   .partial();
 const sidecarLayer = z.strictObject({ top: z.number() }).partial();
 const rigSchema = z
@@ -78,8 +105,36 @@ const rigSchema = z
     ),
     /** Which clips go into each plane's atlas (default: all; near: NEAR_CLIPS). */
     planeClips: z.partialRecord(z.enum(['near', 'mid', 'far']), z.array(z.enum(BIRD_CLIPS))),
+    /** D-029: provenance ("interim" = code-drawn stand-in), atlas encoding, and false = no @2x set. */
+    origin: provenance,
+    encode: encoding,
+    x2: z.boolean(),
   })
   .partial();
+const gunRigSchema = z
+  .strictObject({
+    /** Grip and muzzle in the gun frame (fractions); defaults = GUN_BOX. */
+    originX: z.number().min(0).max(1),
+    originY: z.number().min(0).max(1),
+    tipX: z.number().min(0).max(1),
+    tipY: z.number().min(0).max(1),
+    clips: z.partialRecord(
+      z.enum(GUN_CLIPS),
+      z.strictObject({ fps: z.number().positive().max(60), loop: z.boolean() }).partial(),
+    ),
+    origin: provenance,
+    encode: encoding,
+    x2: z.boolean(),
+  })
+  .partial();
+
+/** One frame to pack: its master image and its box size at @1x. */
+interface Cell {
+  readonly id: string;
+  readonly img: Rgba;
+  readonly w: number;
+  readonly h: number;
+}
 
 const MUSIC_STEMS = ['calm', 'build', 'stampede'] as const;
 /** Clips a near-plane bird (a pop-up) plays: the near atlas holds only these by default. */
@@ -133,6 +188,78 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
     layers: {},
     birds: {},
     audio: {},
+    guns: {},
+  };
+
+  /**
+   * Packs frames into Phaser multi-atlas pages at `k`× their box size (never upscaling). With
+   * `trim`, each frame is cut to its opaque pixels and the JSON keeps the full source size, so
+   * origins don't move (D-029: about half the texture memory for birds and guns).
+   */
+  const packAtlas = (
+    cells: readonly Cell[],
+    k: 1 | 2,
+    base: string,
+    group: string,
+    sub: string,
+    rig: { encode?: 'png' | 'png8' | undefined },
+    trim: boolean,
+  ): { pages: { image: FileRef; data: FileRef }[] } | null => {
+    if (cells.length === 0) return null;
+    // Never upscale: a @k set needs every master at least that big.
+    if (cells.some((c) => c.img.height < c.h * k)) return null;
+    const sized = cells.map((c) => {
+      const w = Math.round(c.w * k);
+      const h = Math.round(c.h * k);
+      const img = c.img.width === w && c.img.height === h ? c.img : resize(c.img, w, h);
+      const b = trim ? opaqueBounds(img) : { x: 0, y: 0, w, h };
+      const box = b ?? { x: 0, y: 0, w: 1, h: 1 };
+      return { id: c.id, w, h, box, img: crop(img, box.x, box.y, box.w, box.h) };
+    });
+    let packed;
+    try {
+      packed = shelfPackPages(
+        sized.map((c) => ({ id: c.id, width: c.box.w, height: c.box.h })),
+        k === 1 ? ATLAS_MAX.x1 : ATLAS_MAX.x2,
+      );
+    } catch (e) {
+      errors.push(`${sub}/${base} @${k}x: ${String(e)}`);
+      return null;
+    }
+    const pages = packed.map((pk, pi) => {
+      const page = blank(pk.width, pk.height);
+      const frames: Record<string, unknown> = {};
+      for (const p of pk.placed) {
+        const cell = sized.find((c) => c.id === p.id);
+        if (cell === undefined) continue;
+        blit(page, cell.img, p.x, p.y);
+        const trimmed = cell.box.w !== cell.w || cell.box.h !== cell.h;
+        frames[p.id] = {
+          frame: { x: p.x, y: p.y, w: cell.box.w, h: cell.box.h },
+          rotated: false,
+          trimmed,
+          spriteSourceSize: { x: cell.box.x, y: cell.box.y, w: cell.box.w, h: cell.box.h },
+          sourceSize: { w: cell.w, h: cell.h },
+        };
+      }
+      const name = `${base}@${k}x-${pi}`;
+      const bytes = rig.encode === 'png8' ? encodePng8(page) : encodePng(page);
+      const image = emit(group, sub, name, 'png', bytes);
+      const data = {
+        frames,
+        meta: {
+          app: 'tools/pack-atlases.ts',
+          image: image.path.split('/').pop(),
+          size: { w: page.width, h: page.height },
+          scale: '1',
+        },
+      };
+      return {
+        image,
+        data: emit(group, sub, name, 'json', new TextEncoder().encode(JSON.stringify(data))),
+      };
+    });
+    return { pages };
   };
 
   // --- sprites -----------------------------------------------------------------------------
@@ -152,12 +279,20 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
         `sprites/${key}.png is ${img.width}×${img.height}, the placeholder is ${cat.width}×${cat.height}: views place it at its own size`,
       );
     const side = readJson(path.replace(/\.png$/, '.json'), sidecarOrigin, errors) ?? {};
+    const { origin: made, encode, ...place } = side;
     index.images[key] = {
       group: cat.group,
-      file: emit(cat.group, 'img', slug(key), 'png', encodePng(img)),
+      ...(made === undefined ? {} : { origin: made }),
+      file: emit(
+        cat.group,
+        'img',
+        slug(key),
+        'png',
+        encode === 'png8' ? encodePng8(img) : encodePng(img),
+      ),
       width: img.width,
       height: img.height,
-      ...side,
+      ...place,
     };
   }
 
@@ -210,39 +345,61 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
       continue;
     }
     const rig = readJson(join(birdDir, creature, 'rig.json'), rigSchema, errors) ?? {};
-    const clips = new Map<BirdClip, Rgba[]>();
-    let master: { w: number; h: number } | null = null;
-    for (const name of readdirSync(join(birdDir, creature)).sort()) {
-      const dir = join(birdDir, creature, name);
-      if (!statSync(dir).isDirectory()) continue;
-      if (!(BIRD_CLIPS as readonly string[]).includes(name)) {
-        errors.push(
-          `birds/${creature}/${name}: not a clip (expected one of ${BIRD_CLIPS.join(', ')})`,
-        );
-        continue;
-      }
-      const frames = listPngs(dir).map(readPng);
-      for (const f of frames) {
-        master ??= { w: f.width, h: f.height };
-        if (f.width !== master.w || f.height !== master.h)
+    // Shared masters, then per-plane masters (`planes/<plane>/<clip>/`) that replace them on that
+    // plane (D-029: line weight and dot size by depth are drawn, not scaled).
+    const readClips = (dir: string, label: string): Map<BirdClip, Rgba[]> => {
+      const clips = new Map<BirdClip, Rgba[]>();
+      if (!existsSync(dir)) return clips;
+      let master: { w: number; h: number } | null = null;
+      for (const name of readdirSync(dir).sort()) {
+        const sub = join(dir, name);
+        if (!statSync(sub).isDirectory() || (label === creature && name === 'planes')) continue;
+        if (!(BIRD_CLIPS as readonly string[]).includes(name)) {
           errors.push(
-            `birds/${creature}/${name}: every frame must be ${master.w}×${master.h} (found ${f.width}×${f.height})`,
+            `birds/${label}/${name}: not a clip (expected one of ${BIRD_CLIPS.join(', ')})`,
+          );
+          continue;
+        }
+        const frames = listPngs(sub).map(readPng);
+        for (const f of frames) {
+          master ??= { w: f.width, h: f.height };
+          if (f.width !== master.w || f.height !== master.h)
+            errors.push(
+              `birds/${label}/${name}: every frame must be ${master.w}×${master.h} (found ${f.width}×${f.height})`,
+            );
+        }
+        if (frames.length > 0) clips.set(name as BirdClip, frames);
+        const want = CLIP_SPEC[name as BirdClip].frames;
+        if (frames.length !== want)
+          warnings.push(
+            `birds/${label}/${name}: ${frames.length} frames (art bible §3.4 lists ${want})`,
           );
       }
-      if (frames.length > 0) clips.set(name as BirdClip, frames);
-      const want = CLIP_SPEC[name as BirdClip].frames;
-      if (frames.length !== want)
-        warnings.push(
-          `birds/${creature}/${name}: ${frames.length} frames (art bible §3.4 lists ${want})`,
+      if (
+        master !== null &&
+        Math.abs(master.w / master.h - BIRD_BOX.width / BIRD_BOX.height) > 0.01
+      )
+        errors.push(
+          `birds/${label}: frames are ${master.w}×${master.h}; they must have the bird box's ${BIRD_BOX.width}:${BIRD_BOX.height} aspect`,
         );
+      return clips;
+    };
+    const shared = readClips(join(birdDir, creature), creature);
+    const perPlane = new Map<PlaneId, Map<BirdClip, Rgba[]>>();
+    for (const plane of ['near', 'mid', 'far'] as const) {
+      const dir = join(birdDir, creature, 'planes', plane);
+      if (!existsSync(dir)) continue;
+      if (!planes.includes(plane))
+        warnings.push(`birds/${creature}/planes/${plane}: ${creature} never appears on ${plane}`);
+      perPlane.set(plane, readClips(dir, `${creature}/planes/${plane}`));
     }
-    if (master === null) continue;
-    if (Math.abs(master.w / master.h - BIRD_BOX.width / BIRD_BOX.height) > 0.01)
-      errors.push(
-        `birds/${creature}: frames are ${master.w}×${master.h}; they must have the bird box's ${BIRD_BOX.width}:${BIRD_BOX.height} aspect`,
-      );
+    const any = new Set([
+      ...shared.keys(),
+      ...[...perPlane.values()].flatMap((m) => [...m.keys()]),
+    ]);
+    if (any.size === 0) continue;
     for (const need of ['flap', 'forage_walk'] as const)
-      if (!clips.has(need) && planes.length > 0)
+      if (!any.has(need) && planes.length > 0)
         warnings.push(
           `birds/${creature}: no "${need}" clip — states that fall back to it use placeholder frames`,
         );
@@ -255,70 +412,26 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
       const h1 = Math.round(BIRD_BOX.height * s);
       // Near birds are pop-ups: by default their atlas holds only the clips a pop-up plays.
       const keep = rig.planeClips?.[plane] ?? (plane === 'near' ? NEAR_CLIPS : BIRD_CLIPS);
-      const planeClips = [...clips].filter(([clip]) => keep.includes(clip));
-      const atlas = (k: 1 | 2): { pages: { image: FileRef; data: FileRef }[] } | null => {
-        const w = w1 * k;
-        const h = h1 * k;
-        // Never upscale: a @2x set needs masters at least that big.
-        if (master.h < h) return null;
-        const cells = planeClips.flatMap(([clip, frames]) =>
-          frames.map((f, i) => ({
-            id: `${clip}/${String(i).padStart(2, '0')}`,
-            width: w,
-            height: h,
-            img: f,
-          })),
-        );
-        if (cells.length === 0) return null;
-        let packed;
-        try {
-          packed = shelfPackPages(cells, k === 1 ? ATLAS_MAX.x1 : ATLAS_MAX.x2);
-        } catch (e) {
-          errors.push(`birds/${creature} ${plane} @${k}x: ${String(e)}`);
-          return null;
-        }
-        const pages = packed.map((pk, pi) => {
-          const page = blank(pk.width, pk.height);
-          const frames: Record<string, unknown> = {};
-          for (const p of pk.placed) {
-            const cell = cells.find((c) => c.id === p.id);
-            if (cell === undefined) continue;
-            blit(page, resize(cell.img, w, h), p.x, p.y);
-            frames[p.id] = {
-              frame: { x: p.x, y: p.y, w, h },
-              rotated: false,
-              trimmed: false,
-              spriteSourceSize: { x: 0, y: 0, w, h },
-              sourceSize: { w, h },
-            };
-          }
-          const name = `${slug(creature)}-${plane}@${k}x-${pi}`;
-          const image = emit(group, 'birds', name, 'png', encodePng(page));
-          const data = {
-            frames,
-            meta: {
-              app: 'tools/pack-atlases.ts',
-              image: image.path.split('/').pop(),
-              size: { w: page.width, h: page.height },
-              scale: '1',
-            },
-          };
-          return {
-            image,
-            data: emit(
-              group,
-              'birds',
-              name,
-              'json',
-              new TextEncoder().encode(JSON.stringify(data)),
-            ),
-          };
-        });
-        return { pages };
-      };
-      const x1 = atlas(1);
+      const merged = new Map([...shared, ...(perPlane.get(plane) ?? [])]);
+      const planeClips = [...merged]
+        .filter(([clip]) => keep.includes(clip))
+        .sort(([a], [b]) => BIRD_CLIPS.indexOf(a) - BIRD_CLIPS.indexOf(b));
+      const cells = planeClips.flatMap(([clip, frames]) =>
+        frames.map((img, i) => ({
+          id: `${clip}/${String(i).padStart(2, '0')}`,
+          img,
+          w: w1,
+          h: h1,
+        })),
+      );
+      // Pop-ups are cropped at their grass line in frame px, so near frames stay untrimmed.
+      const trim = plane !== 'near';
+      const x1 = packAtlas(cells, 1, `${slug(creature)}-${plane}`, group, 'birds', rig, trim);
       if (x1 === null) continue;
-      const x2 = atlas(2);
+      const x2 =
+        rig.x2 === false
+          ? null
+          : packAtlas(cells, 2, `${slug(creature)}-${plane}`, group, 'birds', rig, trim);
       const clipEntries: BirdPlaneEntry['clips'] = {};
       for (const [clip, frames] of planeClips) {
         clipEntries[clip] = {
@@ -329,6 +442,7 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
       }
       planeEntries[plane] = {
         group,
+        ...(rig.origin === undefined ? {} : { origin: rig.origin }),
         x1,
         ...(x2 === null ? {} : { x2 }),
         scale: 1,
@@ -338,6 +452,74 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
       };
     }
     index.birds[creature] = planeEntries;
+  }
+
+  // --- guns (D-029) ------------------------------------------------------------------------
+  const gunDir = join(o.src, 'guns');
+  const gunIds = existsSync(gunDir)
+    ? readdirSync(gunDir)
+        .filter((n) => statSync(join(gunDir, n)).isDirectory())
+        .sort()
+    : [];
+  for (const id of gunIds) {
+    const cat = o.catalog.entries.get(`gun/${id}`);
+    if (cat?.kind !== 'texture') {
+      errors.push(`guns/${id}: no gun "gun/${id}" in the manifest`);
+      continue;
+    }
+    const rig = readJson(join(gunDir, id, 'rig.json'), gunRigSchema, errors) ?? {};
+    const cells: Cell[] = [];
+    const clipEntries: GunEntry['clips'] = {};
+    for (const clip of GUN_CLIPS) {
+      const dir = join(gunDir, id, clip);
+      const frames = listPngs(dir).map(readPng);
+      if (frames.length === 0) continue;
+      const box = clip === 'flash' ? GUN_FLASH_BOX : GUN_BOX;
+      for (const [i, f] of frames.entries()) {
+        if (Math.abs(f.width / f.height - box.width / box.height) > 0.01)
+          errors.push(
+            `guns/${id}/${clip}/${String(i).padStart(2, '0')}.png is ${f.width}×${f.height}; it must have the ${box.width}:${box.height} aspect`,
+          );
+        cells.push({
+          id: `${clip}/${String(i).padStart(2, '0')}`,
+          img: f,
+          w: box.width,
+          h: box.height,
+        });
+      }
+      clipEntries[clip] = {
+        frames: frames.map((_, i) => `${clip}/${String(i).padStart(2, '0')}`),
+        fps: rig.clips?.[clip]?.fps ?? GUN_CLIP_SPEC[clip].fps,
+        loop: rig.clips?.[clip]?.loop ?? GUN_CLIP_SPEC[clip].loop,
+      };
+    }
+    for (const dir of readdirSync(join(gunDir, id)))
+      if (
+        statSync(join(gunDir, id, dir)).isDirectory() &&
+        !(GUN_CLIPS as readonly string[]).includes(dir)
+      )
+        errors.push(`guns/${id}/${dir}: not a gun clip (expected one of ${GUN_CLIPS.join(', ')})`);
+    if (clipEntries.idle === undefined) {
+      errors.push(`guns/${id}: an "idle" clip (one frame) is required`);
+      continue;
+    }
+    const x1 = packAtlas(cells, 1, `gun-${slug(id)}`, cat.group, 'guns', rig, true);
+    if (x1 === null) continue;
+    const x2 =
+      rig.x2 === false
+        ? null
+        : packAtlas(cells, 2, `gun-${slug(id)}`, cat.group, 'guns', rig, true);
+    index.guns[id] = {
+      group: cat.group,
+      ...(rig.origin === undefined ? {} : { origin: rig.origin }),
+      x1,
+      ...(x2 === null ? {} : { x2 }),
+      originX: rig.originX ?? GUN_BOX.originX / GUN_BOX.width,
+      originY: rig.originY ?? GUN_BOX.originY / GUN_BOX.height,
+      tipX: rig.tipX ?? GUN_BOX.tipX / GUN_BOX.width,
+      tipY: rig.tipY ?? GUN_BOX.tipY / GUN_BOX.height,
+      clips: clipEntries,
+    };
   }
 
   // --- audio -------------------------------------------------------------------------------
@@ -411,7 +593,8 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
     Object.keys(checked.images).length +
     Object.keys(checked.layers).length +
     Object.keys(checked.birds).length +
-    Object.keys(checked.audio).length;
+    Object.keys(checked.audio).length +
+    Object.keys(checked.guns).length;
   if (total === 0) return { index: checked, written, warnings, errors };
   for (const [path, bytes] of files) {
     const full = join(o.publicDir, path);

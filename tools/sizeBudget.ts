@@ -67,21 +67,24 @@ export function lazyAssetFiles(index: AssetIndex): Set<string> {
 
 /**
  * Files a browser never downloads alongside their twin (dist-relative): the smaller of each
- * Ogg/MP3 pair (a browser plays one) and the @1x bird pages where @2x exists (a tier loads one
+ * Ogg/MP3 pair (a browser plays one) and the @1x bird and gun pages where @2x exists (a tier loads one
  * set). The budget counts the larger twin, the worst case one player downloads.
  */
 export function alternateAssetFiles(index: AssetIndex): Set<string> {
   const alt = new Set<string>();
   for (const e of Object.values(index.audio))
     alt.add(e.ogg.bytes >= e.mp3.bytes ? e.mp3.path : e.ogg.path);
-  for (const planes of Object.values(index.birds))
-    for (const e of Object.values(planes)) {
-      if (e.x2 === undefined) continue;
-      for (const p of e.x1.pages) {
-        alt.add(p.image.path);
-        alt.add(p.data.path);
-      }
+  const rigs = [
+    ...Object.values(index.birds).flatMap((planes) => Object.values(planes)),
+    ...Object.values(index.guns),
+  ];
+  for (const e of rigs) {
+    if (e.x2 === undefined) continue;
+    for (const p of e.x1.pages) {
+      alt.add(p.image.path);
+      alt.add(p.data.path);
     }
+  }
   return alt;
 }
 

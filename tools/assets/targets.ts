@@ -1,6 +1,6 @@
 // Delivery targets the pack tool checks and applies (M10). From the art bible (§3.4 clips, §4.1
 // layers, §10 mix) and Tech §10 (loudness); docs/06-ASSET-DELIVERY.md prints them for artists.
-import type { AudioKind, BirdClip } from '../../src/game/assets/assetIndex';
+import type { AudioKind, BirdClip, GunClip } from '../../src/game/assets/assetIndex';
 
 /** §3.4 frame counts and playback per clip (a delivery may use other counts; fps/loop as here). */
 export const CLIP_SPEC: Readonly<Record<BirdClip, { frames: number; fps: number; loop: boolean }>> =
@@ -40,3 +40,29 @@ export const LOUDNESS: Readonly<Record<AudioKind, number>> = {
   voice: -16,
 };
 export const TRUE_PEAK_CEILING_DB = -1;
+
+/**
+ * First-person gun frames (D-029): the same 420 × 520 box as the placeholder guns, grip (screen
+ * anchor) at the bottom centre and the muzzle at (210, 20), so WeaponView's layout, lean, kick and
+ * flash position work unchanged. Masters may be any multiple of the box. The `flash` clip has its
+ * own square box, drawn centred on the muzzle.
+ */
+export const GUN_BOX = {
+  width: 420,
+  height: 520,
+  originX: 210,
+  originY: 520,
+  tipX: 210,
+  tipY: 20,
+} as const;
+export const GUN_FLASH_BOX = { width: 200, height: 200 } as const;
+
+/** Default frames and playback per gun clip (reload is stretched to the weapon's reloadMs). */
+export const GUN_CLIP_SPEC: Readonly<
+  Record<GunClip, { frames: number; fps: number; loop: boolean }>
+> = {
+  idle: { frames: 1, fps: 1, loop: false },
+  fire: { frames: 4, fps: 24, loop: false },
+  reload: { frames: 6, fps: 12, loop: false },
+  flash: { frames: 3, fps: 30, loop: false },
+};

@@ -24,6 +24,8 @@ export interface AuditReport {
   /** Problems that fail the audit in every mode. */
   readonly problems: readonly string[];
   readonly placeholders: number;
+  /** D-029: delivered but code-drawn stand-in art (`origin: "interim"`): not launch art. */
+  readonly interims: number;
   readonly finals: number;
 }
 
@@ -107,6 +109,12 @@ function usages(
 function deliveredFiles(key: string, kind: AssetKind, index: AssetIndex | null): string[] | null {
   if (index === null) return null;
   if (kind === 'texture') {
+    // An animated gun rig (D-029) delivers gun/<id> too, and wins over a single image.
+    const gun = key.startsWith('gun/') ? index.guns[key.slice(4)] : undefined;
+    if (gun !== undefined)
+      return [gun.x1, gun.x2].flatMap((a) =>
+        (a?.pages ?? []).flatMap((p) => [p.image.path, p.data.path]),
+      );
     const e = index.images[key];
     return e === undefined ? null : [e.file.path];
   }
@@ -124,6 +132,26 @@ function deliveredFiles(key: string, kind: AssetKind, index: AssetIndex | null):
   }
   const e = index.audio[key];
   return e === undefined ? null : [e.ogg.path, e.mp3.path];
+}
+
+/** Who made a delivered key (D-029): `interim` art comes from tools/art/; absent = final. */
+function deliveredOrigin(
+  key: string,
+  kind: AssetKind,
+  index: AssetIndex | null,
+): string | undefined {
+  if (index === null) return undefined;
+  if (kind === 'texture')
+    return (
+      (key.startsWith('gun/') ? index.guns[key.slice(4)] : undefined)?.origin ??
+      index.images[key]?.origin
+    );
+  if (kind === 'layer') return index.layers[key]?.origin;
+  if (kind === 'bird') {
+    const [, creature = '', plane = ''] = key.split('/');
+    return index.birds[creature]?.[plane as 'near' | 'mid' | 'far']?.origin;
+  }
+  return index.audio[key]?.origin;
 }
 
 const MOTIONS: readonly BirdMotion[] = ['flyover', 'popup', 'flock', 'perch', 'boss', 'hop'];
@@ -174,7 +202,12 @@ export function audit(i: AuditInputs): AuditReport {
           problems.push(`missing file: ${e.key} → ${f} is in the index but not on disk`);
         return b ?? 0;
       });
-      status = sizes.every((_, n) => i.bytesOf(files[n] ?? '') !== null) ? 'final' : 'placeholder';
+      const whole = sizes.every((_, n) => i.bytesOf(files[n] ?? '') !== null);
+      status = !whole
+        ? 'placeholder'
+        : deliveredOrigin(e.key, e.kind, i.index) === 'interim'
+          ? 'interim'
+          : 'final';
       size = kb(sizes.reduce((a, b) => a + b, 0));
     } else if (e.width !== undefined && e.height !== undefined) {
       size = `${e.width}×${e.height} drawn`;
@@ -207,6 +240,9 @@ export function audit(i: AuditInputs): AuditReport {
     for (const key of Object.keys(i.index.audio))
       if (!known('sound', key))
         problems.push(`unused delivery: sound "${key}" is not played by the game`);
+    for (const id of Object.keys(i.index.guns))
+      if (!known('texture', `gun/${id}`))
+        problems.push(`unused delivery: gun "${id}" is not a manifest key`);
   }
   // A delivered bird must cover every clip the game asks of it on that plane (directly or through
   // its fallback chain); otherwise that state would fall back to placeholder frames mid-hunt.
@@ -227,27 +263,48 @@ export function audit(i: AuditInputs): AuditReport {
     if (!claimed.has(f))
       problems.push(`unused file: public/${f} is not referenced by the asset index`);
   const placeholders = rows.filter((r) => r.status === 'placeholder').length;
-  return { rows, problems, placeholders, finals: rows.length - placeholders };
+  const interims = rows.filter((r) => r.status === 'interim').length;
+  return { rows, problems, placeholders, interims, finals: rows.length - placeholders - interims };
 }
 
-/** The report as text (a table per kind, then the problems). */
+const LABEL: Readonly<Record<AssetStatus, string>> = {
+  final: 'FINAL      ',
+  interim: 'INTERIM    ',
+  placeholder: 'PLACEHOLDER',
+};
+
+/** The report as text: three groups (final, interim, placeholder), a table per kind, problems. */
 export function formatAudit(r: AuditReport, strict: boolean): string {
   const lines: string[] = [];
   const kinds: AssetKind[] = ['texture', 'layer', 'bird', 'sound'];
-  for (const kind of kinds) {
-    const rows = r.rows.filter((x) => x.kind === kind);
-    if (rows.length === 0) continue;
-    lines.push(`\n${kind}s (${rows.length}):`);
-    for (const x of rows)
-      lines.push(
-        `  ${x.status === 'final' ? 'FINAL      ' : 'PLACEHOLDER'} ${x.key.padEnd(30)} ${x.group.padEnd(16)} ${x.size.padEnd(16)} ${x.usedIn.join(', ')}`,
-      );
+  const groups: [AssetStatus, string][] = [
+    ['final', 'FINAL — delivered human art'],
+    ['interim', 'INTERIM — code-drawn stand-ins (tools/art/), to be replaced (D-029)'],
+    ['placeholder', 'PLACEHOLDER — drawn at runtime'],
+  ];
+  for (const [status, title] of groups) {
+    const inGroup = r.rows.filter((x) => x.status === status);
+    if (inGroup.length === 0) continue;
+    lines.push(`\n== ${title}: ${inGroup.length}`);
+    for (const kind of kinds) {
+      const rows = inGroup.filter((x) => x.kind === kind);
+      if (rows.length === 0) continue;
+      lines.push(`\n${kind}s (${rows.length}):`);
+      for (const x of rows)
+        lines.push(
+          `  ${LABEL[x.status]} ${x.key.padEnd(30)} ${x.group.padEnd(16)} ${x.size.padEnd(16)} ${x.usedIn.join(', ')}`,
+        );
+    }
   }
-  lines.push(`\n${r.rows.length} keys: ${r.finals} final, ${r.placeholders} placeholder.`);
+  lines.push(
+    `\n${r.rows.length} keys: ${r.finals} final, ${r.interims} interim, ${r.placeholders} placeholder.`,
+  );
   if (r.problems.length > 0) {
     lines.push(`\n${r.problems.length} problem(s):`);
     for (const p of r.problems) lines.push(`  ✗ ${p}`);
   }
+  if (strict && r.interims > 0)
+    lines.push(`\nstrict: ${r.interims} interim key(s) remain — launch needs human art.`);
   if (strict && r.placeholders > 0)
     lines.push(`\nstrict: ${r.placeholders} placeholder(s) remain — not ready to launch.`);
   return lines.join('\n');

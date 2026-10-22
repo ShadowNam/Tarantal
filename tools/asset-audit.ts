@@ -1,8 +1,9 @@
-// `npm run assets:audit` (M10): lists every manifest key — final or placeholder, size, where it
-// is used — and fails on delivered files nothing uses and on keys or files referenced but missing.
-// `--strict` is the launch gate: it also fails while any placeholder remains (CI runs report mode
-// until the art lands). `--public <dir>` audits another public folder (e.g. the stand-ins);
-// `--json <file>` writes the report.
+// `npm run assets:audit` (M10): lists every manifest key in three groups — final (human art),
+// interim (code-drawn stand-ins from tools/art/, D-029) and placeholder — with size and where it
+// is used, and fails on delivered files nothing uses and on keys or files referenced but missing.
+// `--strict` is the launch gate: it also fails while any placeholder or interim key remains (CI
+// runs report mode until the art lands). `--public <dir>` audits another public folder (e.g. the
+// stand-ins); `--json <file>` writes the report.
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { ASSET_INDEX_PATH, parseAssetIndex, type AssetIndex } from '../src/game/assets/assetIndex';
@@ -68,6 +69,6 @@ console.log(formatAudit({ ...report, problems }, strict));
 const jsonOut = arg('--json');
 if (jsonOut !== undefined)
   writeFileSync(jsonOut, `${JSON.stringify({ ...report, problems }, null, 2)}\n`);
-const fail = problems.length > 0 || (strict && report.placeholders > 0);
+const fail = problems.length > 0 || (strict && report.placeholders + report.interims > 0);
 console.log(fail ? '\nassets:audit: FAIL' : '\nassets:audit: OK');
 process.exit(fail ? 1 : 0);

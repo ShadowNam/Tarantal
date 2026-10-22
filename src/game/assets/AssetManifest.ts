@@ -5,8 +5,15 @@
 // Views only ask for keys, so delivered art drops in without code changes.
 import type * as Phaser from 'phaser';
 import type { PlaneId } from '../../sim/types';
-import type { AssetIndex, AudioEntry, BirdPlaneEntry, ImageEntry } from './assetIndex';
-import { checkBirdAtlas } from './atlasCheck';
+import type {
+  AssetIndex,
+  AssetOrigin,
+  AudioEntry,
+  BirdPlaneEntry,
+  GunEntry,
+  ImageEntry,
+} from './assetIndex';
+import { checkAtlas, checkBirdAtlas } from './atlasCheck';
 import { loadBytes, loadImage, loadJson } from './finalLoader';
 
 /** A texture drawn at runtime onto a canvas. Origin is in texture pixels. */
@@ -31,7 +38,8 @@ export interface LayerArt {
   readonly scale: number;
 }
 
-export type AssetStatus = 'final' | 'placeholder';
+/** D-029: `interim` = delivered, but code-drawn stand-in art (tools/art/), not the launch art. */
+export type AssetStatus = 'final' | 'interim' | 'placeholder';
 export type AssetKind = 'texture' | 'layer' | 'bird' | 'sound';
 
 /** One manifest key as the audit and the test hook see it. */
@@ -45,6 +53,14 @@ export interface ManifestEntry {
 export interface FinalBird {
   readonly atlasKey: string;
   readonly entry: BirdPlaneEntry;
+  /** Design px per texture px of the atlas set in use (@2x halves it). */
+  readonly scale: number;
+}
+
+/** A delivered animated gun (D-029) after loading. */
+export interface FinalGun {
+  readonly atlasKey: string;
+  readonly entry: GunEntry;
   /** Design px per texture px of the atlas set in use (@2x halves it). */
   readonly scale: number;
 }
@@ -86,8 +102,14 @@ export class AssetManifest {
     string,
     FinalBird & { img: HTMLImageElement[]; data: object[] }
   >();
+  private readonly finalGuns = new Map<
+    string,
+    FinalGun & { img: HTMLImageElement[]; data: object[] }
+  >();
   /** Sound keys whose file loaded (status); the bytes themselves are handed off once. */
   private readonly finalSoundKeys = new Set<string>();
+  /** Delivered keys (texture, layer, `bird/<c>/<plane>`, gun texture, sound) marked interim. */
+  private readonly interimKeys = new Set<string>();
   private soundFiles: FinalSound[] = [];
   private soundsLoaded: Promise<void> = Promise.resolve();
 
@@ -131,6 +153,15 @@ export class AssetManifest {
     return this.finalBirds.get(`${creature}/${plane}`) ?? null;
   }
 
+  /** D-029: the delivered animated gun for a weapon id, or null (single image or placeholder). */
+  finalGun(weaponId: string): FinalGun | null {
+    return this.finalGuns.get(weaponId) ?? null;
+  }
+
+  private mark(key: string, origin: AssetOrigin | undefined): void {
+    if (origin === 'interim') this.interimKeys.add(key);
+  }
+
   /** Origin as fractions (for setOrigin). A final image may set its own. */
   origin(key: string): { x: number; y: number } {
     const s = this.specs.get(key);
@@ -156,7 +187,9 @@ export class AssetManifest {
       if (!this.specs.has(key) || this.layerOfTile.has(key)) continue;
       jobs.push(
         loadImage(entry.file.path, o.timeoutMs).then((img) => {
-          if (img !== null) this.finalImages.set(key, { img, entry });
+          if (img === null) return;
+          this.finalImages.set(key, { img, entry });
+          this.mark(key, entry.origin);
         }),
       );
     }
@@ -171,6 +204,7 @@ export class AssetManifest {
             // Safe: the line above returned if any image is null.
             img: img as HTMLImageElement,
           }));
+          this.mark(id, entry.origin);
           this.finalLayers.set(id, {
             tiles,
             art: {
@@ -214,6 +248,7 @@ export class AssetManifest {
                 `[assets] ${creature} ${plane}: clips with missing frames dropped: ${check.dropped.join(', ')}`,
               );
             if (check.clips === null) return;
+            this.mark(`bird/${creature}/${plane}`, entry.origin);
             this.finalBirds.set(`${creature}/${plane}`, {
               atlasKey: `final:bird/${creature}/${plane}@${use2x ? 2 : 1}x`,
               entry: { ...entry, clips: check.clips },
@@ -224,6 +259,44 @@ export class AssetManifest {
           }),
         );
       }
+    }
+    for (const [id, entry] of Object.entries(index.guns)) {
+      if (!this.specs.has(gunKey(id))) continue;
+      const use2x = o.atlasScale === 2 && entry.x2 !== undefined;
+      const atlas = use2x && entry.x2 !== undefined ? entry.x2 : entry.x1;
+      jobs.push(
+        Promise.all(
+          atlas.pages.map((pg) =>
+            Promise.all([
+              loadImage(pg.image.path, o.timeoutMs),
+              loadJson(pg.data.path, o.timeoutMs),
+            ]),
+          ),
+        ).then((pages) => {
+          const imgs: HTMLImageElement[] = [];
+          const data: object[] = [];
+          for (const [img, d] of pages) {
+            if (img === null || typeof d !== 'object' || d === null) return;
+            imgs.push(img);
+            data.push(d);
+          }
+          const check = checkAtlas(entry.clips, data);
+          // Without its idle frame the gun can't stand still: keep the placeholder.
+          if (check.clips?.idle === undefined) return;
+          if (check.dropped.length > 0)
+            console.warn(
+              `[assets] gun ${id}: clips with missing frames dropped: ${check.dropped.join(', ')}`,
+            );
+          this.mark(gunKey(id), entry.origin);
+          this.finalGuns.set(id, {
+            atlasKey: `final:gun/${id}@${use2x ? 2 : 1}x`,
+            entry: { ...entry, clips: check.clips },
+            scale: use2x ? 0.5 : 1,
+            img: imgs,
+            data,
+          });
+        }),
+      );
     }
     // Sounds load beside the game, not before it: nothing plays before the first tap, so boot
     // never waits on audio (music stems are the largest files).
@@ -236,6 +309,7 @@ export class AssetManifest {
           loadBytes(entry[format].path, o.timeoutMs).then((bytes) => {
             if (bytes === null) return;
             this.finalSoundKeys.add(key);
+            this.mark(key, entry.origin);
             this.soundFiles.push({ key, entry, bytes, format });
           }),
         );
@@ -257,13 +331,22 @@ export class AssetManifest {
     });
   }
 
-  /** Final or placeholder, for every key (birds and layers as one entry each). */
+  /** Final, interim or placeholder, for every key (birds and layers as one entry each). */
   status(key: string): AssetStatus {
-    if (this.finalImages.has(key) || this.finalLayers.has(key) || this.finalSoundKeys.has(key))
-      return 'final';
     const bird = /^bird\/([^/]+)\/([^/]+)/.exec(key);
-    if (bird !== null && this.finalBirds.has(`${bird[1]}/${bird[2]}`)) return 'final';
-    return 'placeholder';
+    const birdKeyOf = bird === null ? null : `bird/${bird[1]}/${bird[2]}`;
+    const gun = /^gun\/(.+)$/.exec(key);
+    const delivered =
+      this.finalImages.has(key) ||
+      this.finalLayers.has(key) ||
+      this.finalSoundKeys.has(key) ||
+      (bird !== null && this.finalBirds.has(`${bird[1]}/${bird[2]}`)) ||
+      (gun?.[1] !== undefined && this.finalGuns.has(gun[1]));
+    if (!delivered) return 'placeholder';
+    // An animated gun wins over a single gun image, so its provenance decides.
+    const gunInterim = gun?.[1] !== undefined && this.finalGuns.has(gun[1]);
+    const interim = gunInterim ? this.interimKeys.has(key) : this.interimKeys.has(birdKeyOf ?? key);
+    return interim ? 'interim' : 'final';
   }
 
   /** Every key once: textures, layers (not their tiles), birds per plane, sounds. */
@@ -302,7 +385,7 @@ export class AssetManifest {
       if (!textures.exists(key)) textures.addImage(key, img);
     for (const { tiles } of this.finalLayers.values())
       for (const t of tiles) if (!textures.exists(t.key)) textures.addImage(t.key, t.img);
-    for (const b of this.finalBirds.values())
+    for (const b of [...this.finalBirds.values(), ...this.finalGuns.values()])
       if (!textures.exists(b.atlasKey)) textures.addAtlasJSONHash(b.atlasKey, b.img, b.data);
     const start = performance.now();
     let complete = true;
@@ -328,6 +411,7 @@ export class AssetManifest {
     const finals = [
       ...[...this.finalLayers.values()].flatMap((l) => l.tiles.map((t) => t.key)),
       ...[...this.finalBirds.values()].map((b) => b.atlasKey),
+      ...[...this.finalGuns.values()].map((b) => b.atlasKey),
     ];
     return [...[...this.specs.keys()].filter((k) => !this.skipped(k)), ...finals].filter(
       (k) => !textures.exists(k),

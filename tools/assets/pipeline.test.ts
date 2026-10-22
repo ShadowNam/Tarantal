@@ -113,8 +113,66 @@ describe('pack-atlases', () => {
     const tile = index.layers['karoo/far_ridge']?.tiles[0];
     expect(readPng(join(out, tile?.path ?? '')).width).toBe(2048);
 
+    // D-029: per-plane bird masters, trimmed @1x-only palette atlases, interim provenance, guns.
+    const disc = (w: number, h: number) => {
+      const img = blank(w, h);
+      for (let y = 0; y < h; y++)
+        for (let x = 0; x < w; x++)
+          if ((x - w / 2) ** 2 / (w / 4) ** 2 + (y - h / 2) ** 2 / (h / 4) ** 2 < 1)
+            img.data.set([40, 50, 70, 255], (y * w + x) * 4);
+      return encodePng(img);
+    };
+    put(
+      'birds/tarentaal/rig.json',
+      new TextEncoder().encode('{"origin":"interim","x2":false,"encode":"png8"}'),
+    );
+    put('birds/tarentaal/flap/00.png', disc(620, 400));
+    put('birds/tarentaal/forage_walk/00.png', disc(620, 400));
+    put('birds/tarentaal/peek/00.png', disc(620, 400));
+    put('birds/tarentaal/planes/far/flap/00.png', disc(272, 176));
+    put(
+      'guns/pomp/rig.json',
+      new TextEncoder().encode('{"origin":"interim","x2":false,"tipY":0.05}'),
+    );
+    put('guns/pomp/idle/00.png', disc(420, 520));
+    put('guns/pomp/fire/00.png', disc(420, 520));
+    put('guns/pomp/flash/00.png', disc(200, 200));
+    const d = await packAssets({ src, publicDir: out, content, catalog });
+    expect(d.errors).toEqual([]);
+    const mid = d.index.birds['tarentaal']?.mid;
+    expect(mid?.origin).toBe('interim');
+    expect(mid?.x2).toBeUndefined();
+    const page = mid?.x1.pages[0];
+    const json = JSON.parse(readFileSync(join(out, page?.data.path ?? ''), 'utf8')) as {
+      frames: Record<string, { trimmed: boolean; frame: { w: number }; sourceSize: { w: number } }>;
+    };
+    expect(json.frames['flap/00']?.trimmed).toBe(true);
+    expect(json.frames['flap/00']?.sourceSize.w).toBe(310);
+    expect(json.frames['flap/00']?.frame.w).toBeLessThan(200);
+    // The palette PNG decodes back to an image.
+    expect(readPng(join(out, page?.image.path ?? '')).width).toBeGreaterThan(0);
+    // The far plane uses its own master (only flap there): forage_walk still comes from the shared one.
+    expect(Object.keys(d.index.birds['tarentaal']?.far?.clips ?? {}).sort()).toEqual([
+      'flap',
+      'forage_walk',
+      'peek',
+    ]);
+    // Near frames stay untrimmed (pop-ups crop at the grass line in frame px).
+    const near = d.index.birds['tarentaal']?.near?.x1.pages[0];
+    const nearJson = JSON.parse(readFileSync(join(out, near?.data.path ?? ''), 'utf8')) as {
+      frames: Record<string, { trimmed: boolean }>;
+    };
+    expect(Object.values(nearJson.frames).every((f) => !f.trimmed)).toBe(true);
+    const gun = d.index.guns['pomp'];
+    expect(gun?.origin).toBe('interim');
+    expect(gun?.tipY).toBe(0.05);
+    expect(gun?.originY).toBe(1);
+    expect(Object.keys(gun?.clips ?? {}).sort()).toEqual(['fire', 'flash', 'idle']);
+
+    put('guns/pomp/recoil/00.png', disc(420, 520));
     put('sprites/ui/not_a_key.png', encodePng(blank(4, 4)));
     const bad = await packAssets({ src, publicDir: out, content, catalog });
     expect(bad.errors.some((e) => e.includes('not_a_key'))).toBe(true);
+    expect(bad.errors.some((e) => e.includes('guns/pomp/recoil'))).toBe(true);
   }, 60_000);
 });
