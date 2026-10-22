@@ -24,6 +24,8 @@ export class WeaponView {
   private rig: FinalGun | null = null;
   private weaponId = '';
   private reloading = false;
+  /** Scene time the current reload began (the clip resumes from it when a late rig arrives). */
+  private reloadSince = 0;
   /** The touch shrink in use (1, 0.8 or the finger-down scale), before the rig's atlas scale. */
   private displayScale = 1;
   /** e2e/dev only (art previews): the gun is frozen on one clip frame (kick and flash held). */
@@ -75,9 +77,12 @@ export class WeaponView {
   setWeapon(weaponId: string): void {
     if (this.frozen && this.weaponId !== '') return;
     // Same gun: only worth another look while its rig hasn't arrived (late group, D-029).
-    if (weaponId === this.weaponId && (this.rig !== null || this.gunRig(weaponId) === null)) return;
+    const sameWeapon = weaponId === this.weaponId;
+    if (sameWeapon && (this.rig !== null || this.gunRig(weaponId) === null)) return;
     this.weaponId = weaponId;
-    this.reloading = false;
+    // A real weapon change resets the reload; the same weapon's rig arriving late (final review,
+    // D-029) keeps it and picks the reload clip up where the reload has got to.
+    if (!sameWeapon) this.reloading = false;
     const rig = this.gunRig(weaponId);
     this.rig = rig !== null && this.scene.textures.exists(rig.atlasKey) ? rig : null;
     if (this.rig !== null) {
@@ -86,6 +91,7 @@ export class WeaponView {
       // Cropped frames carry their own pivot (the grip); full-box frames use the entry's origin.
       if (this.rig.entry.pivots !== true)
         this.gun.setOrigin(this.rig.entry.originX, this.rig.entry.originY);
+      if (sameWeapon && this.reloading) this.startReload(this.scene.time.now - this.reloadSince);
       return;
     }
     const key = this.scene.textures.exists(gunKey(weaponId)) ? gunKey(weaponId) : TEX.gun;
@@ -100,6 +106,7 @@ export class WeaponView {
   setReloading(on: boolean): void {
     if (on === this.reloading || this.frozen) return;
     this.reloading = on;
+    if (on) this.reloadSince = this.scene.time.now;
     const rig = this.rig;
     if (rig === null) return;
     if (!on) {
@@ -117,7 +124,7 @@ export class WeaponView {
   }
 
   /** Plays the reload clip stretched to the weapon's reloadMs, or rests on idle if there is none. */
-  private startReload(): void {
+  private startReload(elapsedMs = 0): void {
     const rig = this.rig;
     if (rig === null) return;
     const clip = rig.entry.clips.reload;
@@ -129,10 +136,15 @@ export class WeaponView {
       return;
     }
     const perShell = def !== undefined && 'perShellReload' in def && def.perShellReload;
+    const n = clip.frames.length;
+    // Resume where the reload has got to (a rig that arrived mid-reload); per-shell loops wrap.
+    const done = Math.max(0, Math.floor((elapsedMs / ms) * n));
+    const startFrame = perShell ? done % n : Math.min(n - 1, done);
     this.gun.play({
       key,
-      frameRate: (clip.frames.length * 1000) / ms,
+      frameRate: (n * 1000) / ms,
       repeat: perShell ? -1 : 0,
+      startFrame,
     });
   }
 
