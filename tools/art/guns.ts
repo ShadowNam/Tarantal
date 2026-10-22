@@ -21,18 +21,30 @@ import {
 
 type Pt = readonly [number, number];
 
-/** Muzzle height above the grip (local units): leaves headroom in the box for smoke and the ramrod. */
-export const MUZZLE_Y = -440;
+/** Muzzle distance from the grip along the barrel (local units, drawn pointing up). */
+export const MUZZLE_Y = -500;
 /** Kettie: the fork's centre is its "muzzle". */
 export const KETTIE_TIP_Y = -400;
-/** The 3/4 view: the gun leans this many degrees toward the screen centre (barrels up-left). */
-export const LEAN_DEG = -5;
 
-/** The muzzle in the frame (fractions), after the lean: rig.json tipX/tipY. */
-export function tipFor(id: GunId): { tipX: number; tipY: number } {
+/**
+ * How a gun sits in its 420 × 520 frame (tools/art/config.json guns.poses): drawn pointing up from
+ * the grip at local (0, 0), widened about the barrel line, turned `angle` degrees (negative =
+ * barrels up-left toward the screen centre) and moved `shift` px right, so the stock sits bottom
+ * right and the barrels run into the scene in perspective (bible §6).
+ */
+export function poseFor(
+  cfg: ArtConfig,
+  id: GunId,
+): { angle: number; shift: number; widen: number } {
+  return cfg.guns.poses[id];
+}
+
+/** The muzzle in the frame (fractions), after the pose: rig.json tipX/tipY. */
+export function tipFor(cfg: ArtConfig, id: GunId): { tipX: number; tipY: number } {
   const y = id === 'kettie' ? KETTIE_TIP_Y : MUZZLE_Y;
-  const a = (LEAN_DEG * Math.PI) / 180;
-  const tx = -y * Math.sin(a);
+  const p = poseFor(cfg, id);
+  const a = (p.angle * Math.PI) / 180;
+  const tx = p.shift - y * Math.sin(a);
   const ty = y * Math.cos(a);
   const round = (v: number) => Math.round(v * 10000) / 10000;
   return {
@@ -375,15 +387,15 @@ function stockButt(x: Ctx, top: number, seed: number, light = false): string {
     [34, top],
     [48, top + 8],
     [60, top + 64],
-    [142, 4],
-    [118, 4],
+    [128, 4],
+    [104, 4],
     [42, top + 60],
   ];
   const pts: Pt[] = [
     [-36, top],
     [36, top],
     [44, top + 62],
-    [120, 4],
+    [104, 4],
     [-74, 4],
     [-38, top + 62],
   ];
@@ -463,10 +475,19 @@ function dubbelloop(x: Ctx, s: DubbelState): string {
   const hinge = -236;
   const k = 1 - 0.62 * s.open;
   const top = hinge + (MUZZLE_Y - hinge) * k;
+  // Two barrels converging toward the muzzle (perspective): centres ±9 there, ±21 at the breech.
   const bar = (side: -1 | 1): Pt[] => {
-    const q = taper(side * 13, top, 10.5 * (1 + 0.25 * s.open), hinge, 20);
-    return q;
+    const wTop = 8 * (1 + 0.25 * s.open);
+    const cTop = side * 9 * (1 + 0.4 * s.open);
+    const cBot = side * 21;
+    return [
+      [cTop - wTop, top],
+      [cTop + wTop, top],
+      [cBot + 21, hinge],
+      [cBot - 21, hinge],
+    ];
   };
+
   const out: string[] = [];
   // Stock and action first (barrels lie on top of the action when closed).
   out.push(stockButt(x, -162, 11));
@@ -525,14 +546,19 @@ function dubbelloop(x: Ctx, s: DubbelState): string {
   for (const side of [-1, 1] as const)
     out.push(
       inked(
-        ellipseD(side * 13, top, 11 * (1 + 0.25 * s.open), 4 + 6 * s.open),
+        ellipseD(
+          side * 11 * (1 + (0.15 * (top - MUZZLE_Y)) / 300),
+          top,
+          11 * (1 + 0.25 * s.open),
+          4 + 6 * s.open,
+        ),
         x.c('bluedShadow'),
         x.ink,
         x.inner,
       ),
     );
   if (s.open < 0.2) out.push(inked(ellipseD(0, top - 5, 4.5, 4.5), x.c('brassHi'), x.ink, x.inner));
-  for (const side of [-1, 1] as const) out.push(muzzleGlow(x, side * 13, top, s.glow));
+  for (const side of [-1, 1] as const) out.push(muzzleGlow(x, side * 9, top, s.glow));
   // Breech faces show when the gun is broken open.
   if (s.open > 0.3) {
     const ry = 13 * s.open;
@@ -623,7 +649,7 @@ function windbuks(x: Ctx, puff: number): string {
     ),
   );
   // Slim barrel with the breech joint.
-  out.push(metal(x, taper(0, MUZZLE_Y + 6, 7, -236, 14), 'blued', 8, true, 5));
+  out.push(metal(x, taper(0, MUZZLE_Y + 6, 5.5, -236, 14), 'blued', 8, true, 5));
   out.push(inked(ellipseD(0, -240, 18, 7), x.c('bluedHi'), x.ink, x.inner));
   // Front sight hood and rear sight leaf.
   out.push(
@@ -778,9 +804,9 @@ function pomp(x: Ctx, s: { pump: number; eject: number; smoke: number; glow: num
   const out: string[] = [];
   out.push(stockButt(x, -150, 61));
   // Magazine tube peeking out under the barrel.
-  out.push(metal(x, taper(0, -420, 19, -250, 31), 'blued', 62, false));
+  out.push(metal(x, taper(0, -470, 14, -250, 31), 'blued', 62, false));
   // Barrel with a vent rib.
-  out.push(metal(x, taper(0, MUZZLE_Y, 15, -240, 27), 'blued', 63, true, 8));
+  out.push(metal(x, taper(0, MUZZLE_Y, 11, -240, 27), 'blued', 63, true, 8));
   out.push(inked(polyD(taper(0, MUZZLE_Y - 2, 3.5, -240, 6)), x.c('bluedHi'), x.ink, x.inner));
   out.push(
     el('path', {
@@ -921,7 +947,7 @@ function voorlaaier(
     );
   }
   // Octagonal browned barrel: facets as flat stripes.
-  const bar = taper(0, muzzle, 11, -204, 22);
+  const bar = taper(0, muzzle, 8, -204, 22);
   inner.push(metal(x, bar, 'steel', 83, true, 7));
   inner.push(
     el('path', {
@@ -1467,7 +1493,12 @@ export function gunFrameSvg(cfg: ArtConfig, id: GunId, clip: GunClip, frame: num
       filter === '' ? {} : { filter: 'url(#wob)' },
       clip === 'flash'
         ? draw(x)
-        : g({ transform: `rotate(${LEAN_DEG})` }, widenX(draw(x), cfg.guns.widen)),
+        : g(
+            {
+              transform: `translate(${poseFor(cfg, id).shift} 0) rotate(${poseFor(cfg, id).angle})`,
+            },
+            widenX(draw(x), poseFor(cfg, id).widen),
+          ),
     ),
   );
 }

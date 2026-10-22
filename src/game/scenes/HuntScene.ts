@@ -266,7 +266,8 @@ export class HuntScene extends Phaser.Scene {
       this.ctx.feel,
       this.screen,
       this.ctx.prefs,
-      (id) => this.manifest.finalGun(id),
+      // The gun's atlas goes to the GPU when it is first shown (D-029).
+      (id) => this.manifest.ensureGun(this.textures, id),
       this.ctx.content.weapons.weapons,
     );
     // e2e/dev only (D-029 art previews): freeze the gun on a clip frame for screenshots.

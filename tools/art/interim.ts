@@ -127,7 +127,7 @@ if (only === undefined || only === 'guns') {
     }
     put(
       join(dir, 'rig.json'),
-      `${JSON.stringify({ origin: 'interim', x2: false, encode: 'png8', ...tipFor(id) }, null, 2)}\n`,
+      `${JSON.stringify({ origin: 'interim', x2: false, encode: 'png8', ...tipFor(cfg, id), ...(cfg.guns.lateLoad.ids.includes(id) ? { group: 'late' } : {}) }, null, 2)}\n`,
     );
     console.log(`guns/${id}: ${gunClipNames(cfg, id).join(', ')}`);
   }
