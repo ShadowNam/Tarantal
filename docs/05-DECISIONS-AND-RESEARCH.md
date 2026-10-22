@@ -1357,6 +1357,11 @@ drawn; only their pixels changed. Audit: 18 → **66 interim**, 169 → **121 pl
 rest are audio, out of scope). Golden replay `8ab8e33970ccd89f` unchanged, no diff in `src/sim/`
 or `content/`. `art:interim` + `assets:pack` run twice give byte-identical `art-source/` and
 `public/assets/`. Hunt visual baselines re-recorded in `mcr.microsoft.com/playwright:v1.56.1-noble`.
+*§6b — Budgets (part B):* first download unchanged (1.69 MB gzip; the asset index grows by
+2 KB). Lazy chunks per biome (gzip, incl. its birds): Bushveld 0.63 MB, Kalahari 0.42 MB,
+Okavango 0.89 MB (cap 1.5 MB each). Each biome's layers have the Karoo's dimensions, so a hunt in
+any biome holds about the same texture memory as the Karoo measurement above. Audit with both
+parts: **106 interim, 81 placeholder** keys (every remaining placeholder is audio).
 *§5 — Evidence:* `docs/art-preview/` `sprites.png`, `flyers.png`, `scenery-<biome>-{props,layers,pan}.png`
 (the pan sheets stamp real interim birds on their lanes: contrast check, bible §1.5);
 `compare/gfx2-*.png` before (main) | after in-game on desktop-chromium and pixel7-landscape (part
