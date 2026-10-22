@@ -5,7 +5,6 @@
 // D-031.
 import type { BiomeArtPlan, LayerCtx, PropCtx } from '../landscape';
 import {
-  cloud,
   flat,
   groundD,
   line,
@@ -18,11 +17,14 @@ import {
   tuft,
   yAt,
   type Pen,
+  type Pt,
   type Rnd,
   type Tone,
 } from '../scenery';
 import { el, ellipseD, g, inked, polyD, r2, smoothD } from '../svg';
-import { groundBand, groundShadow, vGradient } from './karoo';
+import { bush, groundBand, groundShadow, softSky } from './karoo';
+import { foregroundClumps, midScrub, nearGrass } from './common';
+import { thunderhead } from '../skies';
 
 // --- shapes --------------------------------------------------------------------------------
 
@@ -66,76 +68,6 @@ function dune(
       `M${r2(cx)} ${r2(top)}Q${r2(cx - w * 0.02)} ${r2(top + h * 0.6)} ${r2(cx - w * 0.06)} ${r2(base)}`,
       pen,
       pen.w * 0.6,
-    ),
-  );
-}
-
-/**
- * A building thunderhead: a bank of round sunlit lobes, a dark flat-bottomed storm base and grey
- * rain shafts below (no hard outline at the top, so it never reads as a mountain).
- */
-function stormCloud(
-  rnd: Rnd,
-  x: number,
-  base: number,
-  w: number,
-  h: number,
-  body: string,
-  lit: string,
-  pen: Pen,
-): string {
-  const lobes: [number, number, number][] = [];
-  const n = 7;
-  for (let k = 0; k < n; k++) {
-    const f = k / (n - 1);
-    const hh = Math.sin(f * Math.PI) * 0.75 + 0.25;
-    const r = w * (0.11 + rnd() * 0.05);
-    lobes.push([x + w * f, base - h * hh * (0.8 + rnd() * 0.25) + r * 0.6, r]);
-  }
-  for (let k = 0; k < 4; k++)
-    lobes.push([x + w * (0.2 + rnd() * 0.6), base - h * (0.35 + rnd() * 0.3), w * 0.14]);
-  const d =
-    lobes.map(([cx, cy, r]) => ellipseD(cx, cy, r, r * 0.85)).join('') +
-    `M${r2(x - w * 0.08)} ${r2(base - h * 0.32)}L${r2(x + w * 1.08)} ${r2(base - h * 0.32)}L${r2(x + w * 1.08)} ${r2(base + 40)}L${r2(x - w * 0.08)} ${r2(base + 40)}Z`;
-  const id = nextId();
-  const rain: string[] = [];
-  for (let k = 0; k < 6; k++) {
-    const rx = x + w * (0.15 + k * 0.13);
-    rain.push(`M${r2(rx)} ${r2(base - h * 0.2)}l-18 120`);
-  }
-  return g(
-    {},
-    el('path', {
-      d: rain.join(''),
-      stroke: body,
-      'stroke-width': 10,
-      opacity: 0.35,
-      'stroke-linecap': 'round',
-    }),
-    el('path', {
-      d,
-      fill: lit,
-      stroke: mix(pen.ink, lit, 0.45),
-      'stroke-width': pen.w * 2,
-      'stroke-linejoin': 'round',
-    }),
-    el('clipPath', { id }, el('path', { d })),
-    flat(d, lit),
-    g(
-      { 'clip-path': `url(#${id})` },
-      flat(
-        `M${r2(x - w)} ${r2(base - h * 0.45)}Q${r2(x + w * 0.5)} ${r2(base - h * 0.6)} ${r2(x + w * 2)} ${r2(base - h * 0.42)}L${r2(x + w * 2)} ${r2(base + 60)}L${r2(x - w)} ${r2(base + 60)}Z`,
-        body,
-      ),
-      flat(
-        `M${r2(x - w)} ${r2(base - h * 0.62)}Q${r2(x + w * 0.5)} ${r2(base - h * 0.74)} ${r2(x + w * 2)} ${r2(base - h * 0.58)}L${r2(x + w * 2)} ${r2(base - h * 0.45)}Q${r2(x + w * 0.5)} ${r2(base - h * 0.6)} ${r2(x - w)} ${r2(base - h * 0.45)}Z`,
-        mix(body, lit, 0.5),
-      ),
-      ...lobes
-        .slice(0, 5)
-        .map(([cx, cy, r]) =>
-          flat(ellipseD(cx - r * 0.25, cy - r * 0.35, r * 0.45, r * 0.25), '#FFF8EE'),
-        ),
     ),
   );
 }
@@ -245,65 +177,29 @@ function ripples(
 // --- layers --------------------------------------------------------------------------------
 
 function sky(ctx: LayerCtx): string {
+  // A hot summer sky; the storm is a few distant thunderheads low over the dunes: tall, soft,
+  // grey-violet and lighter than the navy birds (far flocks stay readable against them).
   const parts: string[] = [
-    vGradient('sky', [
-      [0, ctx.raw('skyTop')],
-      [0.34, ctx.raw('skyMid')],
-      [0.55, ctx.raw('skyBottom')],
-      [1, ctx.raw('horizon')],
-    ]),
-    el('rect', { x: 0, y: 0, width: ctx.width, height: 1080, fill: 'url(#sky)' }),
+    softSky(ctx, {
+      stops: [
+        [0, ctx.raw('skyTop')],
+        [0.34, ctx.raw('skyMid')],
+        [0.55, ctx.raw('skyBottom')],
+        [1, ctx.raw('horizon')],
+      ],
+      cloud: {
+        lit: ctx.raw('cloud'),
+        body: mix(ctx.raw('cloud'), ctx.raw('skyBottom'), 0.4),
+        base: ctx.raw('cloudShadow'),
+      },
+      size: [40, 70],
+      streaks: 3,
+    }),
   ];
-  // The storm builds low over the horizon (behind the dunes); the flyer band above stays clear.
-  const pen: Pen = { ink: mix(ctx.pen.ink, ctx.raw('storm'), 0.3), w: 2 };
-  for (let x = -100; x < ctx.width; x += 300 + ctx.rnd() * 300) {
-    const w = 320 + ctx.rnd() * 300;
-    parts.push(
-      stormCloud(
-        ctx.rnd,
-        x,
-        600,
-        w,
-        150 + ctx.rnd() * 60,
-        ctx.raw('storm'),
-        ctx.raw('stormLit'),
-        pen,
-      ),
-    );
-  }
-  for (let x = 0; x < ctx.width; x += 200 + ctx.rnd() * 300) {
-    const w = 120 + ctx.rnd() * 140;
-    parts.push(
-      cloud(
-        ctx.rnd,
-        x,
-        470 + ctx.rnd() * 30,
-        w,
-        w * 0.2,
-        tone(ctx.raw('stormLit'), 0.15, 0.2),
-        null,
-      ),
-    );
-  }
-  const streak = mix(ctx.raw('cloud'), ctx.raw('skyMid'), 0.35);
-  for (let x = 160; x < ctx.width; x += 520 + ctx.rnd() * 400) {
-    const y = 140 + ctx.rnd() * 200;
-    const w = 160 + ctx.rnd() * 200;
-    parts.push(
-      flat(
-        smoothD(
-          [
-            [x, y],
-            [x + w * 0.35, y - 5],
-            [x + w, y - 2],
-            [x + w * 0.6, y + 4],
-          ],
-          true,
-          0.8,
-        ),
-        streak,
-      ),
-    );
+  const storm = { lit: ctx.raw('stormLit'), body: ctx.raw('storm'), base: ctx.raw('stormBase') };
+  for (let x = 120 + ctx.rnd() * 300; x < ctx.width; x += 700 + ctx.rnd() * 600) {
+    const w = 260 + ctx.rnd() * 160;
+    parts.push(thunderhead(ctx.rnd, x, 600, w, 190 + ctx.rnd() * 50, storm, ctx.raw('stormBase')));
   }
   return g({}, ...parts);
 }
@@ -350,14 +246,17 @@ function farVeld(ctx: LayerCtx): string {
     ),
     flat(groundD(ctx.rnd, -40, ctx.width + 40, 700, 8, 170, ctx.bottom + 40), ctx.c('sand')),
   ];
-  for (let k = 0; k < ctx.width / 26; k++) {
-    const x = ctx.rnd() * ctx.width;
+  // Distant grass tussocks and shrubs: small, paler, thinly inked.
+  const far: { y: number; svg: string }[] = [];
+  for (let x = ctx.rnd() * 40; x < ctx.width; x += 18 + ctx.rnd() * 60) {
     const y = 584 + Math.pow(ctx.rnd(), 1.3) * 170;
-    const s = 2.5 + ((y - 580) / 170) * 5;
-    inside.push(
-      flat(ellipseD(x, y, s * 1.4, s * 0.7), ctx.rnd() < 0.6 ? ctx.c('grass') : ctx.c('shrub')),
-    );
+    far.push({
+      y,
+      svg: bush(ctx, x, y, 3 + ((y - 580) / 170) * 6 + ctx.rnd() * 2, { ink: ctx.pen.ink, w: 1.2 }),
+    });
   }
+  far.sort((p, q) => p.y - q.y);
+  inside.push(...far.map((i) => i.svg));
   const parts = [
     band.svg,
     g({ 'clip-path': `url(#${band.clip})` }, ...inside),
@@ -416,19 +315,7 @@ function mid(ctx: LayerCtx): string {
       2,
     ),
   );
-  const items: { y: number; svg: string }[] = [];
-  const grass = tone(ctx.c('grass'), 0.22, 0.25);
-  const shrub = tone(ctx.c('shrub'), 0.24, 0.24);
-  for (let x = 20; x < ctx.width; x += 70 + ctx.rnd() * 170) {
-    const y = 676 + Math.pow(ctx.rnd(), 0.9) * 230;
-    const s = 10 + ((y - 660) / 250) * 34;
-    const pen: Pen = { ink: ctx.pen.ink, w: s < 18 ? 2.5 : ctx.pen.w };
-    const r = ctx.rnd();
-    if (r < 0.1)
-      items.push({ y, svg: stone(ctx.rnd, x, y, s * 0.5, tone(ctx.c('stone'), 0.25, 0.25), pen) });
-    else if (r < 0.35) items.push({ y, svg: tuft(ctx.rnd, x, y, s * 1.3, shrub, pen) });
-    else items.push({ y, svg: tuft(ctx.rnd, x, y, s * 1.5, grass, pen, 9) });
-  }
+  const items = midScrub(ctx, { bushes: 0.45, stone: tone(ctx.c('stone'), 0.25, 0.25) });
   items.sort((a, b) => a.y - b.y);
   inside.push(...items.map((i) => i.svg));
   return g(
@@ -460,34 +347,7 @@ function near(ctx: LayerCtx): string {
       3,
     ),
   );
-  const items: { y: number; svg: string }[] = [];
-  const pen: Pen = { ink: ctx.pen.ink, w: 5 };
-  const grassA = tone(ctx.c('grass'), 0.22, 0.25);
-  const grassB = tone(ctx.c('grassPale'), 0.22, 0.2);
-  for (let x = 10; x < ctx.width; x += 70 + ctx.rnd() * 140) {
-    const y = 860 + ctx.rnd() * 18;
-    items.push({
-      y,
-      svg: tuft(ctx.rnd, x, y, 28 + ctx.rnd() * 26, ctx.rnd() < 0.5 ? grassA : grassB, {
-        ink: ctx.pen.ink,
-        w: 4,
-      }),
-    });
-  }
-  for (let x = 40; x < ctx.width; x += 110 + ctx.rnd() * 220) {
-    const y = 1000 + ctx.rnd() * 80;
-    const r = ctx.rnd();
-    if (r < 0.12)
-      items.push({
-        y,
-        svg: stone(ctx.rnd, x, y, 14 + ctx.rnd() * 14, tone(ctx.c('stone'), 0.25, 0.25), pen),
-      });
-    else
-      items.push({
-        y,
-        svg: tuft(ctx.rnd, x, y, 50 + ctx.rnd() * 60, r < 0.55 ? grassA : grassB, pen, 9),
-      });
-  }
+  const items = nearGrass(ctx, { stone: tone(ctx.c('stone'), 0.25, 0.25), bushes: 0.3 });
   items.sort((a, b) => a.y - b.y);
   inside.push(...items.map((i) => i.svg));
   return g(
@@ -499,33 +359,13 @@ function near(ctx: LayerCtx): string {
 }
 
 function foreground(ctx: LayerCtx): string {
-  const parts: string[] = [];
   const pen = ctx.pen;
-  const grassA = tone(ctx.c('grass'), 0.25, 0.25);
-  const grassB = tone(ctx.c('grassPale'), 0.22, 0.2);
-  const avoid = [ctx.u(0.05), ctx.u(0.93)];
-  for (let x = 200 + ctx.rnd() * 200; x < ctx.width; x += 650 + ctx.rnd() * 650) {
-    if (avoid.some((a) => Math.abs(a - x) < 320)) continue;
-    if (ctx.rnd() < 0.3) {
-      parts.push(
-        stone(ctx.rnd, x, 1084, 50 + ctx.rnd() * 20, tone(ctx.c('stone'), 0.28, 0.25), pen),
-      );
-      parts.push(tuft(ctx.rnd, x + 70, 1090, 120, grassB, pen, 9));
-    } else
-      for (let k = 0; k < 4; k++)
-        parts.push(
-          tuft(
-            ctx.rnd,
-            x + k * 46 - 70,
-            1092,
-            120 + ctx.rnd() * 70,
-            k % 2 === 0 ? grassA : grassB,
-            pen,
-            9,
-          ),
-        );
-  }
-  return g({}, ...parts);
+  return g(
+    {},
+    ...foregroundClumps(ctx, [ctx.u(0.05), ctx.u(0.93)], (x) =>
+      stone(ctx.rnd, x, 1084, 46 + ctx.rnd() * 20, tone(ctx.c('stone'), 0.28, 0.25), pen),
+    ),
+  );
 }
 
 // --- props ---------------------------------------------------------------------------------
@@ -568,46 +408,50 @@ function weaverCamelthorn(ctx: PropCtx): string {
     true,
     0.6,
   );
-  // Sociable-weaver colony nest (content part: ellipse 150 × 46 at (0, −78)): a huge thatched
-  // haystack under the crown, its underside dotted with nest-chamber holes.
-  const nest = smoothD(
-    [
-      [-160, -70],
-      [-150, -112],
-      [-90, -128],
-      [0, -132],
-      [100, -128],
-      [156, -108],
-      [162, -66],
-      [120, -38],
-      [0, -30],
-      [-120, -38],
-    ],
-    true,
-    0.8,
-  );
-  const id = nextId();
-  const holes: string[] = [];
-  for (let k = 0; k < 9; k++)
-    holes.push(flat(ellipseD(-120 + k * 30, -44 + (k % 2) * 4, 6, 4), '#2A2018'));
-  const straws: string[] = [];
-  for (let k = 0; k < 26; k++) {
-    const x = -150 + ctx.rnd() * 300;
-    const y = -122 + ctx.rnd() * 76;
-    straws.push(`M${r2(x)} ${r2(y)}l${r2(-6 + ctx.rnd() * 12)} ${r2(8 + ctx.rnd() * 8)}`);
+  // Sociable-weaver colony nest (content part: ellipse 150 × 46 at (0, −78)): a shaggy haystack
+  // of grass straws hanging in the canopy (GDD §11): ragged sides, a fringe of loose straws
+  // along the underside with the chamber entrances, the crown and branches over its top.
+  const rnd = ctx.rnd;
+  const outline: Pt[] = [];
+  outline.push([-150, -132], [-100, -142], [-40, -146], [30, -145], [100, -140], [152, -128]);
+  for (let y = -118; y <= -56; y += 12)
+    outline.push([158 + (rnd() - 0.5) * 14 + (y > -80 ? 6 : 0), y]);
+  // Underside fringe: straws hanging down in uneven tufts.
+  for (let x = 160; x >= -160; x -= 7) {
+    const long = rnd() < 0.3;
+    outline.push([x, -44 + (rnd() - 0.5) * 6]);
+    outline.push([x - 3, -44 + (long ? 18 + rnd() * 14 : 5 + rnd() * 8)]);
   }
+  for (let y = -56; y >= -118; y -= 12)
+    outline.push([-160 + (rnd() - 0.5) * 14 - (y > -80 ? 6 : 0), y]);
+  const nest = polyD(outline);
+  const id = nextId();
+  const straws: string[] = [];
+  const strawsLight: string[] = [];
+  for (let k = 0; k < 120; k++) {
+    const x = -150 + rnd() * 300;
+    const y = -136 + rnd() * 86;
+    const len = 8 + rnd() * 14;
+    const d = `M${r2(x)} ${r2(y)}l${r2((rnd() - 0.5) * 6)} ${r2(len)}`;
+    (rnd() < 0.35 ? strawsLight : straws).push(d);
+  }
+  const holes: string[] = [];
+  for (let k = 0; k < 8; k++)
+    holes.push(ellipseD(-120 + k * 34 + (rnd() - 0.5) * 10, -50 + (rnd() - 0.5) * 6, 7, 5));
   const canopy = smoothD(
     [
-      [-230, -150],
-      [-200, -186],
-      [-120, -204],
-      [0, -210],
-      [120, -206],
-      [210, -188],
-      [236, -150],
-      [150, -140],
-      [0, -138],
-      [-150, -140],
+      [-236, -150],
+      [-206, -188],
+      [-120, -208],
+      [0, -214],
+      [120, -208],
+      [214, -190],
+      [240, -150],
+      [170, -134],
+      [80, -140],
+      [0, -132],
+      [-90, -140],
+      [-170, -134],
     ],
     true,
     0.8,
@@ -631,31 +475,41 @@ function weaverCamelthorn(ctx: PropCtx): string {
       ]),
       bark.dark,
     ),
-    inked(canopy, crown.fill, pen.ink, pen.w),
-    flat(ellipseD(-40, -196, 150, 8), crown.light),
-    flat(ellipseD(30, -146, 180, 7), crown.dark),
     el('clipPath', { id }, el('path', { d: nest })),
     flat(nest, thatch.fill),
     g(
       { 'clip-path': `url(#${id})` },
-      flat(ellipseD(30, -40, 190, 34), thatch.dark),
-      flat(ellipseD(-60, -116, 70, 10), thatch.light),
+      flat(ellipseD(40, -50, 200, 40), thatch.dark),
+      flat(ellipseD(-70, -128, 80, 12), thatch.light),
       el('path', {
         d: straws.join(''),
         stroke: thatch.dark,
-        'stroke-width': 2.5,
+        'stroke-width': 2.2,
         'stroke-linecap': 'round',
         fill: 'none',
       }),
-      ...holes,
+      el('path', {
+        d: strawsLight.join(''),
+        stroke: thatch.light,
+        'stroke-width': 2,
+        'stroke-linecap': 'round',
+        fill: 'none',
+      }),
+      flat(holes.join(''), '#2A2018'),
     ),
     el('path', {
       d: nest,
       fill: 'none',
       stroke: pen.ink,
-      'stroke-width': pen.w,
+      'stroke-width': pen.w * 0.8,
       'stroke-linejoin': 'round',
     }),
+    // Branches run into the nest; the flat crown sits over its top.
+    limb(-80, -110, -60, -60, 10, bark.fill, pen),
+    limb(70, -114, 70, -62, 10, bark.fill, pen),
+    inked(canopy, crown.fill, pen.ink, pen.w),
+    flat(ellipseD(-40, -200, 150, 8), crown.light),
+    flat(ellipseD(30, -150, 190, 8), crown.dark),
   );
 }
 

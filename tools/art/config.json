@@ -452,7 +452,15 @@
         "aloe": "#7E9A86",
         "aloeDark": "#5C7866",
         "aloeFlower": "#E04A2B",
-        "aloeBud": "#F29A3A"
+        "aloeBud": "#F29A3A",
+        "straw": "#CDBB8A",
+        "bleached": "#ECE6D2",
+        "greyGreen": "#A7AC90",
+        "bossie": "#7C8A4E",
+        "bossieGrey": "#8E8C46",
+        "autumn": "#B57A3E",
+        "twig": "#5E4E40",
+        "seed": "#F4F1E6"
       },
       "kalahari-summer": {
         "skyTop": "#7FB2DA",
@@ -460,8 +468,8 @@
         "skyBottom": "#EBD7B8",
         "horizon": "#E8C9A4",
         "cloud": "#F6EFE4",
-        "storm": "#3B4256",
-        "stormLit": "#E9DCCB",
+        "storm": "#A9A3BE",
+        "stormLit": "#F1E8E6",
         "duneLit": "#E0703A",
         "duneLee": "#C8452B",
         "sandLight": "#E79A62",
@@ -479,7 +487,16 @@
         "wood": "#8B5A2B",
         "board": "#C9B48A",
         "paint": "#3F5E8C",
-        "seed": "#F1E6C8"
+        "seed": "#F1E6C8",
+        "stormBase": "#8C86A4",
+        "cloudShadow": "#D6C3B8",
+        "straw": "#D9C27A",
+        "bleached": "#EEE0B0",
+        "greyGreen": "#A8AE84",
+        "bossie": "#9AA05A",
+        "bossieGrey": "#A9A88A",
+        "autumn": "#B88A4E",
+        "twig": "#5E4636"
       },
       "okavango-spring": {
         "skyTop": "#7FB8E2",

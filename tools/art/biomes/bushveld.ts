@@ -4,8 +4,6 @@
 // giraffe. Low sun from the right (the glare omen's side). D-031.
 import type { BiomeArtPlan, LayerCtx, PropCtx } from '../landscape';
 import {
-  bossie,
-  cloud,
   edgePts,
   flat,
   groundD,
@@ -14,7 +12,6 @@ import {
   mix,
   nextId,
   shade,
-  stone,
   tone,
   treeBlob,
   tuft,
@@ -25,7 +22,8 @@ import {
   type Tone,
 } from '../scenery';
 import { el, ellipseD, g, inked, polyD, r2, smoothD } from '../svg';
-import { aloeFlowers, aloeRosette, groundBand, groundShadow, vGradient } from './karoo';
+import { aloeFlowers, aloeRosette, bush, groundBand, groundShadow, softSky } from './karoo';
+import { foregroundClumps, midScrub, nearGrass } from './common';
 
 // --- shapes --------------------------------------------------------------------------------
 
@@ -202,46 +200,25 @@ function mist(
 // --- layers --------------------------------------------------------------------------------
 
 function sky(ctx: LayerCtx): string {
-  const parts: string[] = [
-    vGradient('sky', [
-      [0, ctx.raw('skyTop')],
-      [0.3, ctx.raw('skyMid')],
-      [0.5, ctx.raw('skyBottom')],
-      [1, ctx.raw('horizon')],
-    ]),
-    el('rect', { x: 0, y: 0, width: ctx.width, height: 1080, fill: 'url(#sky)' }),
-  ];
-  const streak = mix(ctx.raw('cloud'), ctx.raw('skyMid'), 0.3);
-  for (let x = 120; x < ctx.width; x += 420 + ctx.rnd() * 380) {
-    const y = 140 + ctx.rnd() * 220;
-    const w = 180 + ctx.rnd() * 240;
-    parts.push(
-      flat(
-        smoothD(
-          [
-            [x, y],
-            [x + w * 0.35, y - 6],
-            [x + w, y - 2],
-            [x + w * 0.6, y + 4],
-          ],
-          true,
-          0.8,
-        ),
-        streak,
-      ),
-    );
-  }
-  const low = {
-    fill: mix(ctx.raw('cloud'), ctx.raw('skyBottom'), 0.4),
-    dark: ctx.raw('cloudShadow'),
-    light: '#FFF6EA',
-  };
-  for (let x = -40; x < ctx.width; x += 320 + ctx.rnd() * 420) {
-    const w = 160 + ctx.rnd() * 220;
-    parts.push(cloud(ctx.rnd, x, 540 + ctx.rnd() * 40, w, w * 0.14, low, null));
-  }
-  parts.push(mist(ctx.rnd, -40, ctx.width + 40, 610, 70, ctx.raw('mist'), 0.55));
-  return g({}, ...parts);
+  return g(
+    {},
+    softSky(ctx, {
+      stops: [
+        [0, ctx.raw('skyTop')],
+        [0.3, ctx.raw('skyMid')],
+        [0.5, ctx.raw('skyBottom')],
+        [1, ctx.raw('horizon')],
+      ],
+      cloud: {
+        lit: ctx.raw('cloud'),
+        body: mix(ctx.raw('cloud'), ctx.raw('skyBottom'), 0.4),
+        base: ctx.raw('cloudShadow'),
+      },
+      size: [45, 85],
+      streaks: 5,
+    }),
+    mist(ctx.rnd, -40, ctx.width + 40, 610, 70, ctx.raw('mist'), 0.55),
+  );
 }
 
 function farRidge(ctx: LayerCtx): string {
@@ -294,13 +271,17 @@ function farVeld(ctx: LayerCtx): string {
     ),
     flat(groundD(ctx.rnd, -40, ctx.width + 40, 700, 8, 170, ctx.bottom + 40), ctx.c('grass')),
   ];
-  for (let k = 0; k < ctx.width / 24; k++) {
-    const x = ctx.rnd() * ctx.width;
+  // Distant mopane scrub: small, paler twiggy shrubs, thinly inked.
+  const far: { y: number; svg: string }[] = [];
+  for (let x = ctx.rnd() * 40; x < ctx.width; x += 14 + ctx.rnd() * 46) {
     const y = 584 + Math.pow(ctx.rnd(), 1.3) * 170;
-    const s = 2.5 + ((y - 580) / 170) * 6;
-    const c = ctx.rnd() < 0.6 ? ctx.c('mopane') : ctx.c('mopaneCopper');
-    inside.push(flat(ellipseD(x, y, s * 1.4, s * 0.8), c));
+    far.push({
+      y,
+      svg: bush(ctx, x, y, 3 + ((y - 580) / 170) * 7 + ctx.rnd() * 2, { ink: ctx.pen.ink, w: 1.2 }),
+    });
   }
+  far.sort((p, q) => p.y - q.y);
+  inside.push(...far.map((i) => i.svg));
   const parts = [
     band.svg,
     g({ 'clip-path': `url(#${band.clip})` }, ...inside),
@@ -406,16 +387,7 @@ function mid(ctx: LayerCtx): string {
       2,
     ),
   );
-  const items: { y: number; svg: string }[] = [];
-  for (let x = 20; x < ctx.width; x += 50 + ctx.rnd() * 130) {
-    const y = 676 + Math.pow(ctx.rnd(), 0.9) * 230;
-    const s = 9 + ((y - 660) / 250) * 30;
-    const c = ctx.rnd() < 0.55 ? ctx.c('mopane') : ctx.c('mopaneCopper');
-    const pen: Pen = { ink: ctx.pen.ink, w: s < 16 ? 2.5 : ctx.pen.w };
-    if (ctx.rnd() < 0.12)
-      items.push({ y, svg: stone(ctx.rnd, x, y, s * 0.7, tone(ctx.c('granite'), 0.25, 0.2), pen) });
-    else items.push({ y, svg: bossie(ctx.rnd, x, y, s, tone(c, 0.24, 0.24), pen) });
-  }
+  const items = midScrub(ctx, { bushes: 0.85, stone: tone(ctx.c('granite'), 0.25, 0.2) });
   items.sort((a, b) => a.y - b.y);
   inside.push(...items.map((i) => i.svg));
   return g(
@@ -424,25 +396,6 @@ function mid(ctx: LayerCtx): string {
     g({ 'clip-path': `url(#${band.clip})` }, ...inside),
     line(smoothD(band.edge, false, 0.8), ctx.pen),
   );
-}
-
-/** Frost on a tuft: a few white highlights on the blade tips. */
-function frosted(
-  rnd: Rnd,
-  x: number,
-  y: number,
-  h: number,
-  t: Tone,
-  pen: Pen,
-  frost: string,
-): string {
-  const ticks: string[] = [];
-  for (let k = 0; k < 4; k++) {
-    const fx = x + (rnd() - 0.5) * h * 0.6;
-    const fy = y - h * (0.5 + rnd() * 0.35);
-    ticks.push(flat(ellipseD(fx, fy, 2.5, 1.6), frost));
-  }
-  return g({}, tuft(rnd, x, y, h, t, pen), ...ticks);
 }
 
 function near(ctx: LayerCtx): string {
@@ -467,40 +420,7 @@ function near(ctx: LayerCtx): string {
       2.5,
     ),
   );
-  const items: { y: number; svg: string }[] = [];
-  const pen: Pen = { ink: ctx.pen.ink, w: 5 };
-  const grassA = tone(ctx.c('grassLight'), 0.2, 0.2);
-  const grassB = tone(ctx.c('grass'), 0.22, 0.25);
-  const frost = ctx.c('frost');
-  for (let x = 10; x < ctx.width; x += 60 + ctx.rnd() * 120) {
-    const y = 860 + ctx.rnd() * 18;
-    items.push({
-      y,
-      svg: frosted(
-        ctx.rnd,
-        x,
-        y,
-        28 + ctx.rnd() * 26,
-        ctx.rnd() < 0.5 ? grassA : grassB,
-        { ink: ctx.pen.ink, w: 4 },
-        frost,
-      ),
-    });
-  }
-  for (let x = 40; x < ctx.width; x += 90 + ctx.rnd() * 200) {
-    const y = 1000 + ctx.rnd() * 80;
-    const r = ctx.rnd();
-    if (r < 0.16)
-      items.push({
-        y,
-        svg: stone(ctx.rnd, x, y, 16 + ctx.rnd() * 18, tone(ctx.c('granite'), 0.25, 0.2), pen),
-      });
-    else
-      items.push({
-        y,
-        svg: frosted(ctx.rnd, x, y, 50 + ctx.rnd() * 50, r < 0.55 ? grassA : grassB, pen, frost),
-      });
-  }
+  const items = nearGrass(ctx, { stone: tone(ctx.c('granite'), 0.25, 0.2), bushes: 0.6 });
   items.sort((a, b) => a.y - b.y);
   inside.push(...items.map((i) => i.svg));
   return g(
@@ -512,65 +432,39 @@ function near(ctx: LayerCtx): string {
 }
 
 function foreground(ctx: LayerCtx): string {
-  const parts: string[] = [];
   const pen = ctx.pen;
-  const grassA = tone(ctx.c('grassDark'), 0.25, 0.25);
-  const grassB = tone(ctx.c('grassLight'), 0.22, 0.2);
-  const avoid = [ctx.u(0.06), ctx.u(0.92)];
-  for (let x = 200 + ctx.rnd() * 200; x < ctx.width; x += 650 + ctx.rnd() * 650) {
-    if (avoid.some((a) => Math.abs(a - x) < 320)) continue;
-    const kind = ctx.rnd();
-    if (kind < 0.3) {
-      parts.push(
-        boulderPile(ctx.rnd, x, 1100, 220, 140, tone(ctx.c('granite'), 0.28, 0.2), pen, 3),
-      );
-      parts.push(tuft(ctx.rnd, x + 110, 1090, 100, grassB, pen));
-    } else if (kind < 0.5) {
-      // A fallen mopane branch.
-      parts.push(
-        inked(
-          smoothD(
-            [
-              [x - 160, 1080],
-              [x - 40, 1040],
-              [x + 90, 1010],
-              [x + 110, 1022],
-              [x - 30, 1062],
-              [x - 150, 1092],
-            ],
-            true,
-            0.6,
+  const parts = foregroundClumps(ctx, [ctx.u(0.06), ctx.u(0.92)], (x) =>
+    ctx.rnd() < 0.6
+      ? boulderPile(ctx.rnd, x, 1100, 220, 140, tone(ctx.c('granite'), 0.28, 0.2), pen, 3)
+      : g(
+          {},
+          inked(
+            smoothD(
+              [
+                [x - 160, 1080],
+                [x - 40, 1040],
+                [x + 90, 1010],
+                [x + 110, 1022],
+                [x - 30, 1062],
+                [x - 150, 1092],
+              ],
+              true,
+              0.6,
+            ),
+            ctx.c('trunk'),
+            pen.ink,
+            pen.w,
           ),
-          ctx.c('trunk'),
-          pen.ink,
-          pen.w,
+          line(`M${r2(x + 20)} ${1035}l40 -40M${r2(x - 60)} ${1055}l-10 -50`, {
+            ink: pen.ink,
+            w: 9,
+          }),
+          line(`M${r2(x + 20)} ${1035}l40 -40M${r2(x - 60)} ${1055}l-10 -50`, {
+            ink: ctx.c('trunk'),
+            w: 4,
+          }),
         ),
-      );
-      parts.push(
-        line(`M${r2(x + 20)} 1035l40 -40M${r2(x - 60)} 1055l-10 -50`, { ink: pen.ink, w: 9 }),
-      );
-      parts.push(
-        line(`M${r2(x + 20)} 1035l40 -40M${r2(x - 60)} 1055l-10 -50`, {
-          ink: ctx.c('trunk'),
-          w: 4,
-        }),
-      );
-      parts.push(tuft(ctx.rnd, x - 90, 1092, 110, grassA, pen, 8));
-    } else {
-      for (let k = 0; k < 4; k++)
-        parts.push(
-          tuft(
-            ctx.rnd,
-            x + k * 46 - 70,
-            1092,
-            110 + ctx.rnd() * 70,
-            k % 2 === 0 ? grassA : grassB,
-            pen,
-            8,
-          ),
-        );
-    }
-  }
+  );
   return g({}, ...parts);
 }
 
