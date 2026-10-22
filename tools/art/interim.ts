@@ -15,7 +15,7 @@ import { NEAR_CLIPS } from '../assets/pack';
 import { CLIP_SPEC } from '../assets/targets';
 import { loadContent } from '../testContent';
 import { renderBirdFrame } from './birdFrames';
-import { birdSheets, gunSheets } from './previews';
+import { birdSheets, contrastSheet, gunSheets } from './previews';
 import { renderGunFrame } from './gunFrames';
 import { gunClipNames, gunFrameCount, tipFor } from './guns';
 import { POT_SEAT_Y, POT_SIZE, renderPot } from './pot';
@@ -56,6 +56,11 @@ const planesOf = (creature: string): PlaneId[] => {
   return c === undefined ? [] : [...c.planes];
 };
 
+const groupOf = (creature: string): { group?: string } => {
+  const g = cfg.birds.loadGroups[creature];
+  return typeof g === 'string' ? { group: g } : {};
+};
+
 let frames = 0;
 const t0 = Date.now();
 if (only === undefined || only === 'birds') {
@@ -84,7 +89,7 @@ if (only === undefined || only === 'birds') {
     }
     put(
       join(dir, 'rig.json'),
-      `${JSON.stringify({ origin: 'interim', x2: false, encode: 'png8' }, null, 2)}\n`,
+      `${JSON.stringify({ origin: 'interim', x2: false, encode: 'png8', ...groupOf(creature) }, null, 2)}\n`,
     );
     console.log(`birds/${creature}: ${planesOf(creature).join(', ')} (${clips.length} clips)`);
   }
@@ -143,6 +148,11 @@ if (process.argv.includes('--sheets')) {
       console.log(`docs/art-preview/${name}`);
     }
   const out = join(root, 'docs', 'art-preview');
+  if (only !== 'guns')
+    for (const [name, bytes] of contrastSheet(cfg, content)) {
+      put(join(root, 'docs', 'art-preview', name), bytes);
+      console.log(`docs/art-preview/${name}`);
+    }
   if (only !== 'guns')
     for (const [name, bytes] of birdSheets(cfg, content, oneCreature)) {
       put(join(out, name), bytes);

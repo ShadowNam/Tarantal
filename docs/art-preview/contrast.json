@@ -1,0 +1,152 @@
+{
+  "tarentaal near peek": {
+    "meanRgb": [
+      64,
+      61,
+      71
+    ],
+    "luminance": 0.049,
+    "contrastVs": {
+      "veld": 4.81,
+      "veld light": 6.37,
+      "soil": 2.23,
+      "sky low": 7.67,
+      "sky high": 5.05
+    }
+  },
+  "tarentaal mid forage_walk": {
+    "meanRgb": [
+      53,
+      51,
+      62
+    ],
+    "luminance": 0.035,
+    "contrastVs": {
+      "veld": 5.6,
+      "veld light": 7.43,
+      "soil": 2.6,
+      "sky low": 8.94,
+      "sky high": 5.89
+    }
+  },
+  "tarentaal mid flap": {
+    "meanRgb": [
+      57,
+      56,
+      69
+    ],
+    "luminance": 0.041,
+    "contrastVs": {
+      "veld": 5.2,
+      "veld light": 6.89,
+      "soil": 2.41,
+      "sky low": 8.3,
+      "sky high": 5.47
+    }
+  },
+  "tarentaal far flap": {
+    "meanRgb": [
+      93,
+      88,
+      90
+    ],
+    "luminance": 0.1,
+    "contrastVs": {
+      "veld": 3.16,
+      "veld light": 4.18,
+      "soil": 1.46,
+      "sky low": 5.04,
+      "sky high": 3.32
+    }
+  },
+  "tarentaal_wit mid forage_walk": {
+    "meanRgb": [
+      146,
+      136,
+      130
+    ],
+    "luminance": 0.253,
+    "contrastVs": {
+      "veld": 1.57,
+      "veld light": 2.07,
+      "soil": 1.38,
+      "sky low": 2.5,
+      "sky high": 1.65
+    }
+  },
+  "tarentaal_lavendel mid forage_walk": {
+    "meanRgb": [
+      99,
+      93,
+      110
+    ],
+    "luminance": 0.116,
+    "contrastVs": {
+      "veld": 2.86,
+      "veld light": 3.79,
+      "soil": 1.33,
+      "sky low": 4.56,
+      "sky high": 3
+    }
+  },
+  "kuifkop mid forage_walk": {
+    "meanRgb": [
+      49,
+      43,
+      50
+    ],
+    "luminance": 0.026,
+    "contrastVs": {
+      "veld": 6.24,
+      "veld light": 8.27,
+      "soil": 2.89,
+      "sky low": 9.96,
+      "sky high": 6.56
+    }
+  },
+  "kuifkop_koning mid forage_walk": {
+    "meanRgb": [
+      57,
+      50,
+      54
+    ],
+    "luminance": 0.034,
+    "contrastVs": {
+      "veld": 5.64,
+      "veld light": 7.47,
+      "soil": 2.62,
+      "sky low": 9,
+      "sky high": 5.93
+    }
+  },
+  "generaal mid forage_walk": {
+    "meanRgb": [
+      61,
+      58,
+      66
+    ],
+    "luminance": 0.044,
+    "contrastVs": {
+      "veld": 5.05,
+      "veld light": 6.69,
+      "soil": 2.34,
+      "sky low": 8.05,
+      "sky high": 5.3
+    }
+  },
+  "ou_grys mid forage_walk": {
+    "meanRgb": [
+      85,
+      84,
+      85
+    ],
+    "luminance": 0.089,
+    "contrastVs": {
+      "veld": 3.41,
+      "veld light": 4.52,
+      "soil": 1.58,
+      "sky low": 5.44,
+      "sky high": 3.58
+    }
+  }
+}

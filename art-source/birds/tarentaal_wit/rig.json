@@ -1,5 +1,6 @@
 {
   "origin": "interim",
   "x2": false,
-  "encode": "png8"
+  "encode": "png8",
+  "group": "late"
 }

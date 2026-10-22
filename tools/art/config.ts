@@ -87,6 +87,9 @@ const configSchema = z.object({
     }),
     /** Leg stroke width (bird units, before the ink outline). */
     legWidth: z.number().positive(),
+    /** Face outline weight × the plane's ink weight; wattle size multiplier (review 2: read at mid/far). */
+    faceLine: z.number().positive(),
+    wattleScale: z.number().positive(),
     /** Inner detail lines as a fraction of the plane's ink weight. */
     innerLine: z.number().positive().max(1),
     eyeWhite: hex,
@@ -121,6 +124,8 @@ const configSchema = z.object({
       .object({ $comment: z.string().optional() })
       .catchall(z.array(z.enum(BIRD_CLIPS)).or(z.string())),
     creatures: z.record(z.string(), z.string()),
+    /** Download group per creature (rig.json `group`). */
+    loadGroups: z.object({ $comment: z.string().optional() }).catchall(z.string()),
   }),
   guns: z
     .object({

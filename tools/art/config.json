@@ -5,7 +5,7 @@
   "birds": {
     "skyTint": {
       "colour": "#F2D8A7",
-      "far": 0.2
+      "far": 0.15
     },
     "wobble": {
       "$comment": "Hand-drawn line wobble: turbulence frequency (per bird unit) and displacement (bird units) per plane; 0 = off.",
@@ -15,29 +15,31 @@
       "far": 0
     },
     "dots": {
-      "$comment": "White dot field (bible \u00a73.1): radius and spacing in bird units per plane; the far plane gets fewer, larger dots so it reads at 0.22 scale.",
+      "$comment": "White dot field (bible \u00a73.1): radius and spacing in bird units per plane. Review 2: fewer, crisper dots (\u2265 ~2 screen px at every plane) so the body stays dark slate-navy and doesn't blur to grey; the far plane gets the fewest, largest dots.",
       "near": {
-        "r": 3.4,
-        "spacing": 14
+        "r": 4.2,
+        "spacing": 20
       },
       "mid": {
-        "r": 4.4,
-        "spacing": 17
+        "r": 5,
+        "spacing": 26
       },
       "far": {
-        "r": 9,
-        "spacing": 31
+        "r": 11,
+        "spacing": 40
       }
     },
     "dotVariety": {
       "$comment": "Dot size range (\u00d7 r), position jitter (\u00d7 spacing), and how much the field thins toward the belly and the tail (0 = uniform). Feedback 22 Oct: avoid the uniform 'polka-dot ball'.",
-      "minSize": 0.55,
-      "maxSize": 1.2,
-      "jitter": 0.5,
+      "minSize": 0.8,
+      "maxSize": 1.15,
+      "jitter": 0.4,
       "bellyThin": 0.55,
       "tailThin": 0.35
     },
     "legWidth": 11,
+    "faceLine": 1.35,
+    "wattleScale": 1.35,
     "innerLine": 0.55,
     "eyeWhite": "#FBF8EF",
     "star": "#F2C94C",
@@ -46,7 +48,7 @@
     "base": {
       "plumage": "#2E2F45",
       "shadow": "#1F2033",
-      "highlight": "#45476A",
+      "highlight": "#3A3C58",
       "dots": "#F4F1E8",
       "face": "#2F7DE1",
       "faceHi": "#6FB3FF",
@@ -169,6 +171,15 @@
       "kuifkop_koning": "boss",
       "generaal": "boss",
       "ou_grys": "boss"
+    },
+    "loadGroups": {
+      "$comment": "Download group per creature (D-029 review 2): 'late' = after the first hunt is up; a biome id = with that biome. Creatures not listed follow the catalog (tarentaal: first download).",
+      "tarentaal_wit": "late",
+      "tarentaal_lavendel": "late",
+      "generaal": "late",
+      "ou_grys": "bushveld-winter",
+      "kuifkop": "okavango-spring",
+      "kuifkop_koning": "okavango-spring"
     }
   },
   "guns": {

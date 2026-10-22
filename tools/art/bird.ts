@@ -907,14 +907,16 @@ function drawHead(i: DrawInput, h: HeadAt): string {
 }
 
 function wattle(i: DrawInput, x: number, y: number, r: number, dark: boolean): string {
+  // Big enough to read at the mid and far planes (bible §3.1: red wattles), with a full ink line.
+  const k = i.cfg.birds.wattleScale;
   const d = smoothD([
-    [x - r * 0.12, y],
-    [x + r * 0.14, y],
-    [x + r * 0.2, y + r * 0.45],
-    [x + r * 0.04, y + r * 0.72],
-    [x - r * 0.14, y + r * 0.5],
+    [x - r * 0.14 * k, y],
+    [x + r * 0.16 * k, y],
+    [x + r * 0.24 * k, y + r * 0.5 * k],
+    [x + r * 0.05 * k, y + r * 0.82 * k],
+    [x - r * 0.16 * k, y + r * 0.56 * k],
   ]);
-  return inked(d, dark ? i.pal.wattleShadow : i.pal.wattle, i.cfg.ink, i.look.inner * 1.3);
+  return inked(d, dark ? i.pal.wattleShadow : i.pal.wattle, i.cfg.ink, i.look.line * 0.8);
 }
 
 function sideHead(i: DrawInput, r: number): string {
@@ -926,7 +928,8 @@ function sideHead(i: DrawInput, r: number): string {
   // Wattles behind the jaw (far one darker).
   out.push(wattle(i, r * 0.25, r * 0.55, r, true));
   // Head.
-  out.push(inked(ellipseD(0, 0, r, r * 0.95), i.pal.face, ink, L));
+  // The cobalt face is the bird's beacon: a heavier outline than the body (bible §1 rule 5).
+  out.push(inked(ellipseD(0, 0, r, r * 0.95), i.pal.face, ink, L * i.cfg.birds.faceLine));
   out.push(
     el('path', {
       d: `M${r2(-r * 0.55)} ${r2(-r * 0.55)}A${r2(r * 0.8)} ${r2(r * 0.8)} 0 0 1 ${r2(r * 0.6)} ${r2(-r * 0.5)}A${r2(r * 0.95)} ${r2(r * 0.7)} 0 0 0 ${r2(-r * 0.55)} ${r2(-r * 0.55)}Z`,
@@ -1022,7 +1025,7 @@ function frontHead(i: DrawInput, r: number): string {
   out.push(casque(i, r, true));
   out.push(wattle(i, -r * 0.62, r * 0.42, r, true));
   out.push(wattle(i, r * 0.5, r * 0.42, r, true));
-  out.push(inked(ellipseD(0, 0, r * 1.05, r), i.pal.face, ink, L));
+  out.push(inked(ellipseD(0, 0, r * 1.05, r), i.pal.face, ink, L * i.cfg.birds.faceLine));
   out.push(el('path', { d: ellipseD(-r * 0.1, -r * 0.55, r * 0.6, r * 0.22), fill: i.pal.faceHi }));
   const look: Pt =
     p.eyes === 'frontLeft' ? [-0.7, 0] : p.eyes === 'frontRight' ? [0.7, 0] : [0, 0.15];
