@@ -3,7 +3,9 @@
 // files referenced but missing, placeholder keys nothing uses. `--strict` (the launch gate) also
 // fails while any key is still a placeholder. Pure: the CLI (tools/asset-audit.ts) gathers the
 // inputs from disk.
-import type { AssetIndex } from '../../src/game/assets/assetIndex';
+import type { AssetIndex, BirdClip } from '../../src/game/assets/assetIndex';
+import { clipFor, resolveClip } from '../../src/game/assets/birdClips';
+import type { BirdMotion, BirdPhase, PlaneId } from '../../src/sim/types';
 import type { AssetKind, AssetStatus } from '../../src/game/assets/AssetManifest';
 import type { Catalog } from './catalog';
 
@@ -107,6 +109,37 @@ function deliveredFiles(key: string, kind: AssetKind, index: AssetIndex | null):
   return e === undefined ? null : [e.ogg.path, e.mp3.path];
 }
 
+const MOTIONS: readonly BirdMotion[] = ['flyover', 'popup', 'flock', 'perch', 'boss', 'hop'];
+const PHASES: readonly BirdPhase[] = [
+  'fly',
+  'rise',
+  'stare',
+  'duck',
+  'walk',
+  'alert',
+  'run',
+  'launch',
+  'flap',
+  'glide',
+  'land',
+  'perch',
+  'hidden',
+  'peek',
+  'hop',
+];
+
+/**
+ * Every clip the game can ask a bird for on a plane: clipFor over every motion and phase (the
+ * near plane holds only pop-ups). Both foraging spells (walk, peck) are covered.
+ */
+export function clipsNeeded(plane: PlaneId): BirdClip[] {
+  const motions = plane === 'near' ? (['popup'] as const) : MOTIONS;
+  const out = new Set<BirdClip>();
+  for (const m of motions)
+    for (const p of PHASES) for (const spell of [0, 1, 2]) out.add(clipFor(m, p, 0, spell, 1));
+  return [...out].sort();
+}
+
 export function audit(i: AuditInputs): AuditReport {
   const problems: string[] = [];
   const texByKey = new Map(Object.entries(i.tex).map(([name, key]) => [key, name]));
@@ -158,6 +191,21 @@ export function audit(i: AuditInputs): AuditReport {
       if (!known('sound', key))
         problems.push(`unused delivery: sound "${key}" is not played by the game`);
   }
+  // A delivered bird must cover every clip the game asks of it on that plane (directly or through
+  // its fallback chain); otherwise that state would fall back to placeholder frames mid-hunt.
+  for (const [creature, planes] of Object.entries(i.index?.birds ?? {}))
+    for (const [plane, e] of Object.entries(planes) as [
+      PlaneId,
+      { clips: Partial<Record<BirdClip, unknown>> },
+    ][]) {
+      const missing = clipsNeeded(plane).filter(
+        (c) => resolveClip(c, (x) => e.clips[x] !== undefined) === null,
+      );
+      if (missing.length > 0)
+        problems.push(
+          `incomplete bird: ${creature} ${plane} has no clip (or fallback) for ${missing.join(', ')}`,
+        );
+    }
   for (const f of i.files)
     if (!claimed.has(f))
       problems.push(`unused file: public/${f} is not referenced by the asset index`);
