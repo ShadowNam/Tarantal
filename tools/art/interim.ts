@@ -18,6 +18,7 @@ import { renderBirdFrame } from './birdFrames';
 import { birdSheets, gunSheets } from './previews';
 import { renderGunFrame } from './gunFrames';
 import { gunClipNames, gunFrameCount, tipFor } from './guns';
+import { POT_SEAT_Y, POT_SIZE, renderPot } from './pot';
 import { clipsFor, GUN_IDS, loadArtConfig } from './config';
 
 function arg(name: string): string | undefined {
@@ -86,6 +87,24 @@ if (only === undefined || only === 'birds') {
       `${JSON.stringify({ origin: 'interim', x2: false, encode: 'png8' }, null, 2)}\n`,
     );
     console.log(`birds/${creature}: ${planesOf(creature).join(', ')} (${clips.length} clips)`);
+  }
+}
+if (only === undefined || only === 'birds') {
+  // The Generaal's pot helmet: a sprite key (fx/pot), not part of his atlas (it flies off).
+  const potPath = join(src, 'sprites', 'fx', 'pot');
+  const side = `${potPath}.json`;
+  const human =
+    existsSync(`${potPath}.png`) &&
+    (!existsSync(side) ||
+      (JSON.parse(readFileSync(side, 'utf8')) as { origin?: string }).origin !== 'interim');
+  if (human) console.warn('skip sprites/fx/pot: a human delivery is there');
+  else {
+    put(`${potPath}.png`, encodePng8(renderPot(cfg)));
+    put(
+      side,
+      `${JSON.stringify({ origin: 'interim', encode: 'png8', originX: POT_SIZE.originX / POT_SIZE.width, originY: POT_SEAT_Y / POT_SIZE.height }, null, 2)}\n`,
+    );
+    console.log('sprites/fx/pot');
   }
 }
 if (only === undefined || only === 'guns') {

@@ -767,8 +767,21 @@ function eye(i: DrawInput, cx: number, cy: number, r: number, mode: Eyes, look: 
 }
 
 function casque(i: DrawInput, r: number, front: boolean): string {
-  const ink = i.cfg.ink;
   if (i.parts.includes('crest')) return crest(i, r);
+  // The Generaal's casque is a stub so his pot (the separate fx/pot sprite) covers it; it shows
+  // once the pot is knocked off.
+  if (i.parts.includes('stubCasque'))
+    return g(
+      {
+        transform: `translate(${r2(-0.1 * r)} ${r2(-0.6 * r)}) scale(0.55) translate(${r2(0.1 * r)} ${r2(0.6 * r)})`,
+      },
+      casqueShape(i, r, front),
+    );
+  return casqueShape(i, r, front);
+}
+
+function casqueShape(i: DrawInput, r: number, front: boolean): string {
+  const ink = i.cfg.ink;
   const chipped = i.parts.includes('chippedCasque');
   const pts: Pt[] = front
     ? [
@@ -860,18 +873,28 @@ function crest(i: DrawInput, r: number): string {
 function bottleCap(i: DrawInput, r: number): string {
   const P = i.cfg.birds.parts;
   const cx = 0.05 * r;
-  const cy = -1.75 * r;
+  const cy = -1.95 * r;
+  // Big enough to read at the mid plane: a crimped cap seen slightly from above.
   const teeth: Pt[] = [];
   for (let k = 0; k < 21; k++) {
     const a = (k / 21) * Math.PI * 2;
-    const rr = k % 2 === 0 ? r * 0.62 : r * 0.52;
-    teeth.push([cx + Math.cos(a) * rr, cy + Math.sin(a) * rr * 0.42]);
+    const rr = k % 2 === 0 ? r * 0.95 : r * 0.8;
+    teeth.push([cx + Math.cos(a) * rr, cy + Math.sin(a) * rr * 0.55]);
   }
+  const rim = `M${r2(cx - r * 0.8)} ${r2(cy)}A${r2(r * 0.8)} ${r2(r * 0.44)} 0 0 1 ${r2(cx + r * 0.8)} ${r2(cy)}`;
   return g(
     { transform: `rotate(-14 ${r2(cx)} ${r2(cy)})` },
     inked(polyD(teeth), P.crownCap, i.cfg.ink, i.look.line * 0.8),
-    el('path', { d: ellipseD(cx, cy - r * 0.04, r * 0.4, r * 0.15), fill: P.crownCapShadow }),
-    el('path', { d: ellipseD(cx, cy - r * 0.06, r * 0.26, r * 0.09), fill: P.crownRed }),
+    el('path', {
+      d: rim,
+      fill: 'none',
+      stroke: P.crownRim,
+      'stroke-width': i.look.line * 0.9,
+      'stroke-linecap': 'round',
+    }),
+    el('path', { d: ellipseD(cx, cy + r * 0.02, r * 0.62, r * 0.32), fill: P.crownCapShadow }),
+    inked(ellipseD(cx, cy, r * 0.44, r * 0.22), P.crownRed, i.cfg.ink, i.look.inner),
+    el('path', { d: ellipseD(cx - r * 0.12, cy - r * 0.06, r * 0.14, r * 0.06), fill: P.crownRim }),
   );
 }
 

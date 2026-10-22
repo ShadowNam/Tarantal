@@ -375,16 +375,16 @@ function stockButt(x: Ctx, top: number, seed: number, light = false): string {
     [34, top],
     [48, top + 8],
     [60, top + 64],
-    [176, 4],
-    [146, 4],
+    [142, 4],
+    [118, 4],
     [42, top + 60],
   ];
   const pts: Pt[] = [
     [-36, top],
     [36, top],
     [44, top + 62],
-    [150, 4],
-    [-70, 4],
+    [120, 4],
+    [-74, 4],
     [-38, top + 62],
   ];
   const side = smoothD(comb, true, 0.35);
@@ -397,8 +397,57 @@ function stockButt(x: Ctx, top: number, seed: number, light = false): string {
   return (
     inked(side, x.c(light ? 'lightWoodShadow' : 'woodShadow'), x.ink, x.L) +
     wood(x, pts, seed, light, 0.35) +
-    checkering(x, wrist)
+    checkering(x, wrist) +
+    triggerGuard(x, top)
   );
+}
+
+/** Steel trigger guard and trigger(s) peeking out on the right of the wrist (3/4 view). */
+function triggerGuard(x: Ctx, top: number): string {
+  const loop = smoothD(
+    [
+      [30, top + 6],
+      [58, top + 2],
+      [74, top + 22],
+      [70, top + 52],
+      [46, top + 62],
+      [32, top + 52],
+    ],
+    true,
+    0.8,
+  );
+  const hole = smoothD(
+    [
+      [40, top + 14],
+      [58, top + 12],
+      [64, top + 28],
+      [60, top + 46],
+      [46, top + 50],
+      [40, top + 40],
+    ],
+    true,
+    0.8,
+  );
+  const trig = (dx: number) =>
+    inked(
+      `M${r2(46 + dx)} ${r2(top + 14)}Q${r2(56 + dx)} ${r2(top + 26)} ${r2(50 + dx)} ${r2(top + 40)}L${r2(46 + dx)} ${r2(top + 38)}Q${r2(50 + dx)} ${r2(top + 26)} ${r2(42 + dx)} ${r2(top + 16)}Z`,
+      x.c('steelHi'),
+      x.ink,
+      x.inner,
+    );
+  return [
+    el('path', {
+      d: loop + hole,
+      fill: x.c('steel'),
+      'fill-rule': 'evenodd',
+      stroke: x.ink,
+      'stroke-width': x.L * 0.8,
+      'stroke-linejoin': 'round',
+    }),
+    el('path', { d: hole, fill: x.c('woodShadow') }),
+    trig(0),
+    trig(8),
+  ].join('');
 }
 
 function muzzleGlow(x: Ctx, cx: number, cy: number, a: number): string {
@@ -1416,7 +1465,62 @@ export function gunFrameSvg(cfg: ArtConfig, id: GunId, clip: GunClip, frame: num
     filter,
     g(
       filter === '' ? {} : { filter: 'url(#wob)' },
-      clip === 'flash' ? draw(x) : g({ transform: `rotate(${LEAN_DEG})` }, draw(x)),
+      clip === 'flash'
+        ? draw(x)
+        : g({ transform: `rotate(${LEAN_DEG})` }, widenX(draw(x), cfg.guns.widen)),
     ),
   );
+}
+
+/**
+ * Scales every x coordinate in the markup's path data by `k` (about x = 0, the barrel line), so the
+ * gun gets more mass without fattening its outlines (resvg has no non-scaling strokes). Handles
+ * the commands the gun drawing uses: M L H V C S Q T A Z, absolute and relative.
+ */
+export function widenX(markup: string, k: number): string {
+  if (k === 1) return markup;
+  return markup.replace(/ d="([^"]*)"/g, (_, d: string) => ` d="${widenPath(d, k)}"`);
+}
+
+const ARITY: Readonly<Record<string, number>> = {
+  m: 2,
+  l: 2,
+  h: 1,
+  v: 1,
+  c: 6,
+  s: 4,
+  q: 4,
+  t: 2,
+  a: 7,
+  z: 0,
+};
+
+function widenPath(d: string, k: number): string {
+  const tokens = d.match(/[a-zA-Z]|-?(?:\d+\.?\d*|\.\d+)(?:e-?\d+)?/g) ?? [];
+  let out = '';
+  let cmd = '';
+  let args: number[] = [];
+  const flush = (): void => {
+    const lc = cmd.toLowerCase();
+    const n = ARITY[lc] ?? 0;
+    if (n === 0) return;
+    for (let i = 0; i < args.length; i++) {
+      const j = i % n;
+      const isX = lc === 'h' || (lc === 'a' ? j === 0 || j === 5 : lc !== 'v' && j % 2 === 0);
+      const v = args[i] ?? 0;
+      out += `${i === 0 ? '' : ' '}${r2(isX ? v * k : v)}`;
+    }
+  };
+  for (const t of tokens) {
+    if (/[a-zA-Z]/.test(t)) {
+      flush();
+      out += t;
+      cmd = t;
+      args = [];
+    } else {
+      args.push(Number(t));
+    }
+  }
+  flush();
+  return out;
 }

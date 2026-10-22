@@ -34,6 +34,7 @@ export const BIRD_PARTS = [
   'eyePatch',
   'chippedCasque',
   'toothpick',
+  'stubCasque',
 ] as const;
 export type BirdPart = (typeof BIRD_PARTS)[number];
 
@@ -100,6 +101,13 @@ const configSchema = z.object({
       crownCap: hex,
       crownCapShadow: hex,
       crownRed: hex,
+      crownRim: hex,
+      potBlue: hex,
+      potShadow: hex,
+      potHi: hex,
+      potRim: hex,
+      potRust: hex,
+      potChip: hex,
       bandolier: hex,
       bandolierShadow: hex,
       cob: hex,
@@ -117,6 +125,8 @@ const configSchema = z.object({
   guns: z
     .object({
       lineNear: z.number().positive(),
+      /** Gun width multiplier (path x coordinates, about the barrel line): mass in first person. */
+      widen: z.number().positive(),
       wobble: z.object({ frequency: z.number().positive(), scale: z.number().nonnegative() }),
       clips: z.object({ $comment: z.string().optional() }).and(z.record(z.enum(GUN_IDS), gunClips)),
     })

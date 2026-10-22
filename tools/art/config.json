@@ -107,7 +107,7 @@
       },
       "generaal": {
         "palette": {},
-        "parts": ["bandolier", "scowl"]
+        "parts": ["bandolier", "scowl", "stubCasque"]
       },
       "ou_grys": {
         "palette": {
@@ -124,7 +124,7 @@
     "parts": {
       "crest": "#141420",
       "eyeRing": "#D7263D",
-      "crownCap": "#D8A73A",
+      "crownCap": "#E9B83A",
       "crownCapShadow": "#A87A22",
       "crownRed": "#C8302A",
       "bandolier": "#7A4E2A",
@@ -134,7 +134,14 @@
       "husk": "#D9C79A",
       "eyePatch": "#1B1410",
       "toothpick": "#E2C08F",
-      "sparkle": "#FFFFFF"
+      "sparkle": "#FFFFFF",
+      "crownRim": "#FFE89A",
+      "potBlue": "#2D5DA8",
+      "potShadow": "#1F4580",
+      "potHi": "#6F98D8",
+      "potRim": "#F3EAD3",
+      "potRust": "#9A4B2A",
+      "potChip": "#1B1410"
     },
     "clipSets": {
       "$comment": "Clips drawn per creature (bible \u00a73.4). Variants lean on the runtime fallback chain (docs/06 \u00a73) to stay inside the first-download budget: peck \u2192 forage_walk, glide \u2192 flap, land \u2192 run, peek \u2192 alert, tumble \u2192 hit_poof.",
@@ -200,6 +207,7 @@
     "flashOuter": "#F07A2A",
     "scratch": "#C9CED3",
     "lineNear": 6,
+    "widen": 1.4,
     "wobble": {
       "frequency": 0.04,
       "scale": 2.5
