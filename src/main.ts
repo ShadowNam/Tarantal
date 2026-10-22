@@ -6,7 +6,7 @@ import * as Phaser from 'phaser';
 import { contentHash } from './content/hash';
 import { DailyFlow } from './game/daily/DailyFlow';
 import { loadGameContent } from './content/loadBrowser';
-import { AudioDirector } from './game/audio/AudioDirector';
+import { AudioDirector, browserAudioEnv } from './game/audio/AudioDirector';
 import { withDoppies, withQuotaMul, withTestCrate } from './game/devContent';
 import type { GameContext, TestHook, TestTools } from './game/GameContext';
 import {
@@ -202,6 +202,8 @@ const hook: TestHook = {
   replay: null,
   hunts: 0,
   assets: { problem: null, byBiome: {}, recorded: [] },
+  music: null,
+  masterGain: null,
   missingTextures: [],
   boot: {},
   rects: {},
@@ -345,10 +347,20 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') benchmark?.pause();
   else if (titleUp) benchmark?.resume();
 });
-const audio = new AudioDirector();
+const audio = new AudioDirector(feel.audio, browserAudioEnv(feel.assets.fileTimeoutMs));
 hook.assets.recorded = audio.recorded;
+// Live values (read through the hook in page.evaluate).
+Object.defineProperties(hook, {
+  music: { enumerable: true, get: () => audio.music },
+  masterGain: { enumerable: true, get: () => audio.masterGain },
+});
 const applyAudio = (s: Settings): void => {
-  audio.setVolumes({ master: s.masterVolume, sfx: s.sfxVolume, music: s.musicVolume });
+  audio.setVolumes({
+    master: s.masterVolume,
+    sfx: s.sfxVolume,
+    music: s.musicVolume,
+    voice: s.voiceVolume,
+  });
 };
 applyAudio(save.data.settings);
 platform.onAdChange((playing) => {
@@ -425,7 +437,7 @@ const loadFinalFor = (b: Biome): Promise<void> => {
       finalDone.add(b.id);
       hook.assets.byBiome[b.id] = m.entries();
       // Recordings arrive on their own (boot doesn't wait for them).
-      void m.soundsReady().then((files) => {
+      void m.takeSounds().then((files) => {
         audio.addRecorded(files);
         hook.assets.byBiome[b.id] = m.entries();
       });

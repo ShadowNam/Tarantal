@@ -183,6 +183,18 @@ music sting), `vuvuzela`, `stamp` (whole-flock stamp), `scratch` (penalty record
 More of the bible's SFX list (variants ×3, hadeda call, tally ticks, UI clicks) need a key in the
 game first: ask the developer for it.
 
+**Music and ambience keys** per biome (`karoo-autumn`, `bushveld-winter`, `okavango-spring`,
+`kalahari-summer`): `audio/music/<biome>/calm.wav`, `build.wav` and `stampede.wav`, plus
+`audio/ambience/<biome>.wav`. **Calm** plays at the title and in quiet stretches, **build** when a
+flock runs or flushes or the Frenzy reaches ×2, and **stampede** in the Stampede. A missing stem
+falls back to the next calmer one. Music ducks −6 dB under Oupa.
+
+**Voice keys** (Oupa's barks, file name = the bark's i18n key; the HUD shows the line as a
+subtitle): `bark.kos_is_reg` (Karoo), `bark.weavers` and `bark.sign` (Kalahari),
+`bark.mokoro` and `bark.kwaak` (Okavango), e.g. `audio/voice/bark.kos_is_reg.wav`. Record the
+EN/AF line as written in `src/i18n/en.json`. The bible's ~40 launch barks need their trigger and
+key in the game first: they are listed as a follow-up.
+
 **Size:** the home biome's (Karoo) music and ambience are in the first download, which must stay
 at or under 5 MB gzip in total (`npm run size`). Three 60 s stems at Vorbis q2 come to about 2 MB.
 The other biomes' audio loads when that biome is first played.

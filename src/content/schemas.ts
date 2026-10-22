@@ -1018,6 +1018,22 @@ export const FeelSchema = obj({
     captionMax: posInt,
     captionRepeatMs: nonNeg,
   }),
+  audio: obj({
+    /** Master gain at full volume (headroom so the synth and recordings never clip). */
+    masterLevel: fraction,
+    /** M10 music (art bible §10): stem crossfade, biome fade, how long a stem holds before
+     *  the music falls back to a calmer one, and the Frenzy multiplier that brings in "build". */
+    crossfadeMs: pos,
+    biomeFadeMs: pos,
+    stemHoldMs: nonNeg,
+    buildAtFrenzy: pos,
+    /** Music ducks by duckDb under an Oupa bark (bible: −6 dB), with attack and release. */
+    duckDb: z.number().max(0),
+    duckAttackMs: pos,
+    duckReleaseMs: pos,
+    /** At most one bark per barkGapMs (bible: 6 s), never while the tally counts up. */
+    barkGapMs: nonNeg,
+  }),
   assets: obj({
     /** M10: longest wait for assets/asset-index.json at boot; after it every key is a placeholder. */
     indexTimeoutMs: pos,

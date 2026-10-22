@@ -24,6 +24,7 @@ import { createSim } from '../../sim/Sim';
 import type { HuntResult, InputKind, ModeConfig, ModeId, SimState } from '../../sim/types';
 import { CAMERA_MAX_X, CAMERA_MIN_X } from '../../sim/world';
 import { neededBeforeStart, type AssetManifest } from '../assets/AssetManifest';
+import { stemFor } from '../audio/music';
 import type { HuntPlan } from '../daily/DailyFlow';
 import { FtueDirector, type FtueStep } from '../ftue/FtueDirector';
 import type { GameContext } from '../GameContext';
@@ -134,6 +135,8 @@ export class HuntScene extends Phaser.Scene {
     this.manifest =
       this.biome.id === this.ctx.biome.id ? this.ctx.manifest : this.ctx.manifestFor(this.biome);
     this.ctx.huntBiome = this.biome;
+    this.ctx.audio.setBiome(this.biome.id);
+    this.ctx.audio.resetIntensity();
     // Scenery and UI now; birds are drawn a few at a time while the start card shows.
     this.texturesDone = this.manifest.install(this.textures, neededBeforeStart);
     if (this.ctx.hook) this.ctx.hook.boot['textures'] ??= performance.now();
@@ -249,6 +252,7 @@ export class HuntScene extends Phaser.Scene {
     this.biome = next;
     this.manifest = this.ctx.manifestFor(next);
     this.ctx.huntBiome = next;
+    this.ctx.audio.setBiome(next.id);
     this.texturesDone = this.manifest.install(this.textures);
     this.buildViews();
   }
@@ -649,6 +653,8 @@ export class HuntScene extends Phaser.Scene {
     }
     const state = runner.state;
     if (events.length > 0) this.handleEvents(events, width, state);
+    // M10: the music follows the hunt's intensity (calm / build / stampede).
+    this.ctx.audio.setIntensity(stemFor(runner.over ? null : state, this.ctx.feel.audio));
     this.logger?.add(events);
     this.shareLog?.add(events);
     if (this.ftue) {

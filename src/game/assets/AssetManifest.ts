@@ -86,8 +86,10 @@ export class AssetManifest {
     string,
     FinalBird & { img: HTMLImageElement[]; data: object[] }
   >();
-  private readonly finalSounds = new Map<string, FinalSound>();
-  private soundsLoaded: Promise<readonly FinalSound[]> = Promise.resolve([]);
+  /** Sound keys whose file loaded (status); the bytes themselves are handed off once. */
+  private readonly finalSoundKeys = new Set<string>();
+  private soundFiles: FinalSound[] = [];
+  private soundsLoaded: Promise<void> = Promise.resolve();
 
   addTexture(spec: CanvasSpec): void {
     this.specs.set(spec.key, spec);
@@ -232,23 +234,32 @@ export class AssetManifest {
         if (!this.sounds.has(key)) continue;
         sounds.push(
           loadBytes(entry[format].path, o.timeoutMs).then((bytes) => {
-            if (bytes !== null) this.finalSounds.set(key, { key, entry, bytes, format });
+            if (bytes === null) return;
+            this.finalSoundKeys.add(key);
+            this.soundFiles.push({ key, entry, bytes, format });
           }),
         );
       }
     }
-    this.soundsLoaded = Promise.all(sounds).then(() => [...this.finalSounds.values()]);
+    this.soundsLoaded = Promise.all(sounds).then(() => undefined);
     await Promise.all(jobs);
   }
 
-  /** Delivered sounds once their bytes are in (after loadFinal; empty without an index). */
-  soundsReady(): Promise<readonly FinalSound[]> {
-    return this.soundsLoaded;
+  /**
+   * Delivered sounds once their bytes are in, handed over once: the manifest keeps no copy (the
+   * AudioDirector decides what stays in memory).
+   */
+  takeSounds(): Promise<readonly FinalSound[]> {
+    return this.soundsLoaded.then(() => {
+      const files = this.soundFiles;
+      this.soundFiles = [];
+      return files;
+    });
   }
 
   /** Final or placeholder, for every key (birds and layers as one entry each). */
   status(key: string): AssetStatus {
-    if (this.finalImages.has(key) || this.finalLayers.has(key) || this.finalSounds.has(key))
+    if (this.finalImages.has(key) || this.finalLayers.has(key) || this.finalSoundKeys.has(key))
       return 'final';
     const bird = /^bird\/([^/]+)\/([^/]+)/.exec(key);
     if (bird !== null && this.finalBirds.has(`${bird[1]}/${bird[2]}`)) return 'final';
@@ -338,6 +349,17 @@ export function neededBeforeStart(key: string): boolean {
 /** Manifest key of a sound effect (synth placeholder until a recording is delivered). */
 export function sfxKey(id: string): string {
   return `sfx/${id}`;
+}
+
+/** M10: a biome's music stem (calm / build / stampede), its ambience loop, an Oupa bark. */
+export function musicKey(biome: string, stem: string): string {
+  return `music/${biome}/${stem}`;
+}
+export function ambienceKey(biome: string): string {
+  return `amb/${biome}`;
+}
+export function voiceKey(barkKey: string): string {
+  return `voice/${barkKey}`;
 }
 
 export function birdKey(creature: string, plane: PlaneId, frame: BirdFrame): string {

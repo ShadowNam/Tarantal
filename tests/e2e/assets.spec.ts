@@ -3,8 +3,6 @@
 // page.route, as if it had been packed into public/assets/ — it is never in a build. With it the
 // game loads those keys as final through the manifest; without it (the shipped state today) or with
 // a file broken, the same keys fall back to their procedural placeholders, and no texture is missing.
-import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 import {
   SCREENSHOTS,
@@ -16,9 +14,13 @@ import {
   startHunt,
   waitTicks,
 } from './helpers';
+import { serveStandins } from './standins';
 
-const STANDIN = join(import.meta.dirname, '..', 'fixtures', 'standin-assets');
-/** The stand-in keys and how the hook names them. */
+// The PWA service worker would fetch delivered files itself once it controls the page, and
+// page.route never sees those requests (CI saw the server's index.html instead of the art).
+test.use({ serviceWorkers: 'block' });
+
+/** The stand-in keys and how the hook names them (PR C added the Karoo music and ambience). */
 const FINAL_KEYS = [
   'bird/tarentaal/near',
   'bird/tarentaal/mid',
@@ -26,37 +28,10 @@ const FINAL_KEYS = [
   'karoo/mid',
   'sfx/shot',
   'sfx/poof',
+  'music/karoo-autumn/calm',
+  'music/karoo-autumn/build',
+  'amb/karoo-autumn',
 ];
-
-/** Serves tests/fixtures/standin-assets/assets/** in place of the build's assets/ (where present). */
-// The PWA service worker would fetch delivered files itself once it controls the page, and
-// page.route never sees those requests (CI saw the server's index.html instead of the art).
-test.use({ serviceWorkers: 'block' });
-
-/** Rewrites a served JSON file (atlas data) before the game sees it. */
-type JsonEdit = { readonly match: RegExp; readonly edit: (json: unknown) => unknown };
-
-async function serveStandins(
-  page: Page,
-  broken: RegExp | null = null,
-  jsonEdit: JsonEdit | null = null,
-): Promise<string[]> {
-  const served: string[] = [];
-  await page.route('**/assets/**', async (route) => {
-    const path = new URL(route.request().url()).pathname;
-    const rel = path.slice(path.indexOf('/assets/') + 1);
-    const file = join(STANDIN, rel);
-    if (!existsSync(file)) return route.fallback();
-    if (broken?.test(rel)) return route.fulfill({ status: 404, body: '' });
-    served.push(rel);
-    if (jsonEdit?.match.test(rel)) {
-      const body = JSON.stringify(jsonEdit.edit(JSON.parse(readFileSync(file, 'utf8'))));
-      return route.fulfill({ body, contentType: 'application/json' });
-    }
-    return route.fulfill({ path: file });
-  });
-  return served;
-}
 
 async function statuses(page: Page): Promise<Record<string, string>> {
   const h = await hook(page);

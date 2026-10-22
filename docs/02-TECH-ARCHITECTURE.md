@@ -429,11 +429,22 @@ final art in M10. Values live in `feel.json quality.tiers`.)
 - Haptics: `navigator.vibrate` where available (Android). iPhone Safari has no Vibration API.
 
 ## 7. Audio (`src/game/audio/AudioDirector.ts`)
-- Phaser sound (Web Audio). Unlock on first user gesture (Phaser handles; verify on iOS).
-- SFX as one audio sprite per biome + common; music as 3 intensity stems (calm / build / stampede)
-  crossfaded by the director's intensity value; tempo-up variant for the Stampede.
-- Stereo pan by screen x of the event; voice limit 16; duck music under Oupa barks.
-- Mute on `visibilitychange`, on pause, and whenever the platform adapter reports an ad (Poki rule).
+- Web Audio directly (Phaser's sound manager is off). The AudioContext is created and resumed in
+  the first user gesture; nothing decodes or plays before it.
+- Buses under the master (`feel.json audio.masterLevel` headroom): SFX (with the ambience loop),
+  music, voice, each with its Settings volume (master / effects / music / voice, art bible §10).
+- SFX: a delivered recording per key (`sfx/<id>`) when the asset index has one, else the
+  placeholder synth (`synth.ts`). Stereo pan by screen x of the event (±0.7); voice limit 16.
+- Music (M10, `music.ts`): per biome, three looping stems (`music/<biome>/calm|build|stampede`)
+  started together and crossfaded by intensity (`stemFor`: calm; build when a flock runs or
+  flushes or Frenzy ≥ `buildAtFrenzy`; stampede in the Stampede; rising is immediate, calming
+  waits `stemHoldMs`). A missing stem falls back to the next calmer one. A biome change fades
+  the old set out and the new one in (`biomeFadeMs`); ambience (`amb/<biome>`) loops beside it.
+  With no music delivered there is none, and the synth flush sting and Stampede cue stay.
+- Oupa's barks (`voice/<barkKey>`, subtitled by the HUD banner): at most one per `barkGapMs`,
+  never during the tally count-up; music ducks by `duckDb` (−6 dB) under them.
+- Mute on `visibilitychange` (and the context suspends), on pause, and whenever the platform
+  adapter reports an ad (Poki rule) or the portal mutes (CrazyGames).
 - Formats (M10, D-027): Ogg Vorbis where `canPlayType` says "probably", else MP3 (Safari);
   recorded files come from the asset index, the synth stays the fallback per sound.
 

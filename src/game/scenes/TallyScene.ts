@@ -83,12 +83,20 @@ export class TallyScene extends Phaser.Scene {
     const score = this.add
       .text(px + panelW / 2, py + 160, '0', chalk(96, '#F3EAD3', false))
       .setOrigin(0.5);
+    // No Oupa bark over the count-up (art bible §10).
+    this.ctx.audio.setTallyCounting(true);
     this.tweens.addCounter({
       from: 0,
       to: r.score,
       duration: COUNT_UP_MS,
       ease: 'Cubic.Out',
       onUpdate: (tw) => score.setText(formatScore(Math.round(tw.getValue() ?? 0))),
+      onComplete: () => {
+        this.ctx.audio.setTallyCounting(false);
+      },
+    });
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.ctx.audio.setTallyCounting(false);
     });
 
     const rows: [I18nKey, string][] = [

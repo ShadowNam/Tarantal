@@ -92,6 +92,9 @@ export interface TestHook {
     /** Sound keys playing from a recorded file (decoded), not the synth. */
     recorded: string[];
   };
+  /** M10: what the music plays (biome, audible stem) and the master gain (0 while muted). */
+  readonly music: { id: string; stem: string | null } | null;
+  readonly masterGain: number | null;
   /** Manifest textures missing when the last hunt started (must be 0). */
   missingTextures: string[];
   /** Boot milestones in ms since navigation start (content parsed, textures built, ready). */

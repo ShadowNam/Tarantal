@@ -1,0 +1,195 @@
+import { beforeEach, describe, expect, it } from 'vitest';
+import { FakeContext, fakeFile, type FakeGain } from '../../../tools/fakeAudio';
+import { loadFeel } from '../../../tools/testContent';
+import type { SimEvent } from '../../sim/events';
+import { ambienceKey, musicKey, sfxKey, voiceKey, type FinalSound } from '../assets/AssetManifest';
+import { AudioDirector, type AudioEnv } from './AudioDirector';
+
+const tuning = loadFeel().audio;
+
+function rig(canPlay: (m: string) => string = () => 'probably') {
+  const ctx = new FakeContext();
+  let hidden: (h: boolean) => void = () => undefined;
+  let now = 0;
+  const env: AudioEnv = {
+    createContext: () => ctx as unknown as AudioContext,
+    onVisibility: (fn) => {
+      hidden = fn;
+    },
+    now: () => now,
+    setTimer: () => undefined,
+    canPlay,
+    fetchBytes: (path) => Promise.resolve(fakeFile(1, `mp3:${path}`)),
+  };
+  const audio = new AudioDirector(tuning, env);
+  return {
+    ctx,
+    audio,
+    setHidden: (h: boolean) => {
+      hidden(h);
+    },
+    advance: (ms: number) => {
+      now += ms;
+      ctx.currentTime += ms / 1000;
+    },
+  };
+}
+const file = (key: string, seconds = 1, format: 'ogg' | 'mp3' = 'ogg'): FinalSound => ({
+  key,
+  bytes: fakeFile(seconds, key),
+  format,
+  entry: {
+    group: 'common',
+    kind: 'sfx',
+    ogg: { path: 'a.ogg', bytes: 1, hash: '0123456789ab' },
+    mp3: { path: 'a.mp3', bytes: 1, hash: '0123456789ab' },
+    loop: false,
+    lufs: -14,
+    peakDb: -1,
+  },
+});
+const flush = () => new Promise((r) => setTimeout(r, 0));
+const shot: SimEvent = { type: 'shotFired' } as unknown as SimEvent;
+
+describe('AudioDirector (M10)', () => {
+  let r: ReturnType<typeof rig>;
+  beforeEach(() => {
+    r = rig();
+  });
+
+  it('picks Ogg where the browser is sure, else MP3, else no files', () => {
+    expect(rig(() => 'probably').audio.fileFormat()).toBe('ogg');
+    expect(rig((m) => (m === 'audio/mpeg' ? 'maybe' : '')).audio.fileFormat()).toBe('mp3');
+    expect(rig(() => '').audio.fileFormat()).toBeNull();
+  });
+
+  it('plays a delivered recording instead of the synth; other sounds stay on the synth', async () => {
+    r.audio.addRecorded([file(sfxKey('shot'))]);
+    // Nothing decodes before the first gesture.
+    expect(r.ctx.decoded).toEqual([]);
+    r.audio.unlock();
+    await flush();
+    expect(r.audio.recorded).toEqual(['sfx/shot']);
+    r.audio.handle([shot], () => 0);
+    expect(r.ctx.sources.some((s) => s.buffer?.id === 'sfx/shot' && s.startedAt !== null)).toBe(
+      true,
+    );
+    const before = r.ctx.sources.length;
+    r.audio.handle([{ type: 'emptyClick' } as unknown as SimEvent], () => 0);
+    // The click is synthesised: no new buffer source carries a recording.
+    expect(r.ctx.sources.slice(before).every((s) => s.buffer?.id === undefined)).toBe(true);
+  });
+
+  it('mute rules: hidden tab, pause and ads zero the master and silence events', () => {
+    r.audio.unlock();
+    expect(r.audio.masterGain).toBeCloseTo(tuning.masterLevel);
+    r.setHidden(true);
+    expect(r.audio.masterGain).toBe(0);
+    expect(r.ctx.state).toBe('suspended');
+    r.setHidden(false);
+    expect(r.audio.masterGain).toBeCloseTo(tuning.masterLevel);
+    r.audio.setMuted('ad', true);
+    r.audio.setMuted('pause', true);
+    expect(r.audio.masterGain).toBe(0);
+    const n = r.ctx.sources.length;
+    r.audio.handle([shot], () => 0);
+    expect(r.ctx.sources.length).toBe(n);
+    r.audio.setMuted('ad', false);
+    expect(r.audio.masterGain).toBe(0);
+    r.audio.setMuted('pause', false);
+    expect(r.audio.masterGain).toBeCloseTo(tuning.masterLevel);
+  });
+
+  it('per-biome music starts once decoded and crossfades with intensity', async () => {
+    r.audio.setBiome('karoo-autumn');
+    r.audio.addRecorded([
+      file(musicKey('karoo-autumn', 'calm'), 30),
+      file(musicKey('karoo-autumn', 'build'), 30),
+      file(ambienceKey('karoo-autumn'), 20),
+    ]);
+    expect(r.audio.music).toBeNull();
+    r.audio.unlock();
+    await flush();
+    expect(r.audio.music).toEqual({ id: 'karoo-autumn', stem: 'calm' });
+    // One batch of decodes starts the music once (2 stems + ambience = 3 sources, not restarts).
+    expect(r.ctx.sources.filter((s) => s.loop)).toHaveLength(3);
+    r.audio.setIntensity('stampede');
+    expect(r.audio.music?.stem).toBe('build');
+    r.audio.setBiome('bushveld-winter');
+    // No bushveld music delivered: the Karoo set fades out, nothing replaces it.
+    expect(r.audio.music).toBeNull();
+    expect(r.ctx.sources.every((s) => s.stoppedAt !== null)).toBe(true);
+  });
+
+  it('barks: only delivered ones, one per gap, never over the tally; music ducks −6 dB', async () => {
+    r.audio.addRecorded([file(voiceKey('bark.kos_is_reg'), 2)]);
+    r.audio.unlock();
+    await flush();
+    expect(r.audio.bark('bark.missing')).toBe(false);
+    r.audio.setTallyCounting(true);
+    expect(r.audio.bark('bark.kos_is_reg')).toBe(false);
+    r.audio.setTallyCounting(false);
+    expect(r.audio.bark('bark.kos_is_reg')).toBe(true);
+    // The duck node feeds the music bus: down to −6 dB during the bark, back up after.
+    const duck = (r.audio as unknown as { duck: FakeGain }).duck;
+    expect(duck.gain.at(1)).toBeCloseTo(10 ** (tuning.duckDb / 20), 3);
+    expect(duck.gain.at(2 + tuning.duckReleaseMs / 1000 + 0.01)).toBe(1);
+    r.advance(tuning.barkGapMs - 1);
+    expect(r.audio.bark('bark.kos_is_reg')).toBe(false);
+    r.advance(2);
+    expect(r.audio.bark('bark.kos_is_reg')).toBe(true);
+  });
+});
+
+describe('AudioDirector memory and fallbacks (M10 review)', () => {
+  const buffers = (r: ReturnType<typeof rig>) =>
+    [...(r.audio as unknown as { buffers: Map<string, unknown> }).buffers.keys()].sort();
+
+  it('keeps only the biome on screen decoded; a revisit decodes it again', async () => {
+    const r = rig();
+    r.audio.setBiome('karoo-autumn');
+    r.audio.addRecorded([
+      file(sfxKey('shot')),
+      file(musicKey('karoo-autumn', 'calm'), 30),
+      file(musicKey('bushveld-winter', 'calm'), 30),
+      file(ambienceKey('bushveld-winter'), 20),
+    ]);
+    r.audio.unlock();
+    await flush();
+    expect(buffers(r)).toEqual(['music/karoo-autumn/calm', 'sfx/shot']);
+    r.audio.setBiome('bushveld-winter');
+    await flush();
+    expect(buffers(r)).toEqual(['amb/bushveld-winter', 'music/bushveld-winter/calm', 'sfx/shot']);
+    expect(r.audio.music?.id).toBe('bushveld-winter');
+    r.audio.setBiome('karoo-autumn');
+    await flush();
+    expect(buffers(r)).toEqual(['music/karoo-autumn/calm', 'sfx/shot']);
+  });
+
+  it('an Ogg the browser cannot decode retries the MP3 twin', async () => {
+    const r = rig();
+    const bad = file(sfxKey('shot'));
+    const bytes = new Uint8Array(bad.bytes.slice(0));
+    bytes[0] = 255;
+    r.audio.addRecorded([{ ...bad, bytes: bytes.buffer }]);
+    r.audio.unlock();
+    await flush();
+    await flush();
+    expect(buffers(r)).toEqual(['sfx/shot']);
+    expect(r.ctx.decoded).toContain('mp3:a.mp3');
+  });
+
+  it('a new hunt starts calm, not on the last stampede stem', async () => {
+    const r = rig();
+    r.audio.setBiome('karoo-autumn');
+    r.audio.addRecorded(
+      ['calm', 'build', 'stampede'].map((s) => file(musicKey('karoo-autumn', s), 30)),
+    );
+    r.audio.unlock();
+    await flush();
+    r.audio.setIntensity('stampede');
+    expect(r.audio.music?.stem).toBe('stampede');
+    r.audio.resetIntensity();
+    expect(r.audio.music?.stem).toBe('calm');
+  });
+});

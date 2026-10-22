@@ -69,7 +69,24 @@ function usages(
   } else if (kind === 'sound') {
     const [type, id = ''] = key.split('/');
     if (type === 'sfx') needles.push(new RegExp(`this\\.play\\('${id}'`));
+    else if (type === 'voice') needles.push(new RegExp(`"barkKey":\\s*"${key.slice(6)}"`));
     else needles.push(quoted(key));
+    // Music, ambience and voice keys are built at runtime: the player must call the key helper.
+    const helper =
+      type === 'music'
+        ? 'musicKey'
+        : type === 'amb'
+          ? 'ambienceKey'
+          : type === 'voice'
+            ? 'voiceKey'
+            : null;
+    if (helper !== null) {
+      const plays = [...i.sources].some(
+        ([p, t]) => !DEFINITIONS.test(p) && new RegExp(`\\b${helper}\\(`).test(t),
+      );
+      if (!plays) return [];
+      if (type !== 'voice') return ['src/game/audio/AudioDirector.ts'];
+    }
   } else if (texName === undefined) {
     // Props and layers are named by their asset id in the biome files.
     needles.push(new RegExp(`"asset":\\s*"${key}"`));
@@ -162,7 +179,7 @@ export function audit(i: AuditInputs): AuditReport {
     } else if (e.width !== undefined && e.height !== undefined) {
       size = `${e.width}×${e.height} drawn`;
     } else {
-      size = e.kind === 'sound' ? 'synth' : 'drawn';
+      size = e.kind !== 'sound' ? 'drawn' : e.key.startsWith('sfx/') ? 'synth' : 'silent';
     }
     const usedIn = usages(e.key, e.kind, i, texByKey.get(e.key));
     if (usedIn.length === 0)

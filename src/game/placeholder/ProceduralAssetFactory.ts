@@ -10,11 +10,15 @@ import {
   AssetManifest,
   gunKey,
   MAX_TILE_WIDTH,
+  ambienceKey,
+  musicKey,
   sfxKey,
+  voiceKey,
   TEX,
   type BirdFrame,
   type CanvasSpec,
 } from '../assets/AssetManifest';
+import { STEMS } from '../audio/music';
 import { SFX_IDS } from '../audio/synth';
 import { arsenalSpecs } from './arsenalArt';
 import { omenSpecs } from './omenArt';
@@ -1379,5 +1383,13 @@ export function createPlaceholderManifest(content: ContentBundle, biome: Biome):
   for (const s of arsenalSpecs()) m.addTexture(s);
   for (const s of omenSpecs()) m.addTexture(s);
   for (const id of SFX_IDS) m.addSound(sfxKey(id));
+  // M10: music and ambience are silent placeholders until recordings are delivered; so are Oupa's
+  // barks (their subtitles show either way).
+  for (const stem of STEMS) m.addSound(musicKey(biome.id, stem));
+  m.addSound(ambienceKey(biome.id));
+  for (const prop of biome.props) {
+    const bark = prop.secret?.reward.barkKey;
+    if (bark !== undefined) m.addSound(voiceKey(bark));
+  }
   return m;
 }
