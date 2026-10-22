@@ -95,6 +95,16 @@ jobs:
           - { project: iphone14-landscape, browser: webkit, shard: 1/1 }
           - { project: pixel7-portrait, browser: chromium, shard: 1/1 }
           - { project: iphone14-portrait, browser: webkit, shard: 1/1 }
+          # v1.0.1 (D-028): the public web build (no VITE_TEST_HOOKS, as Pages ships it) refuses
+          # official Dailies, shares and challenge links under ?e2e.
+          - {
+              project: desktop-chromium,
+              browser: chromium,
+              shard: public,
+              only: '**/daily-public.spec.ts',
+              workers: 1,
+              build: public,
+            }
           # M9: the portal builds (VITE_PLATFORM + VITE_TEST_HOOKS=1) against fake portal SDKs.
           - {
               project: desktop-chromium,
@@ -141,6 +151,7 @@ jobs:
           E2E_ONLY: ${{ matrix.only }}
           E2E_SKIP: ${{ matrix.skip }}
           E2E_PLATFORM: ${{ matrix.platform }}
+          E2E_BUILD: ${{ matrix.build }}
       - name: Upload screenshots and report
         if: always()
         uses: actions/upload-artifact@v5

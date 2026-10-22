@@ -7,6 +7,9 @@
 //   Screenshots: 1920×1080 title, hunt (HUD on), tally.
 // The scenes are the placeholder art today: re-run after the art swap (docs/07-PORTAL-SUBMISSION).
 // Covers are composed in a page with the game's own display font (Bangers, OFL).
+// v1.0.1 (D-028): built with VITE_TEST_HOOKS=1, so the `?e2e` title and tally look as a player
+// sees them (a public build marks `?e2e` Dailies "practice only" and hides [Share]). That dist/ is
+// a test build: `npm run release` rebuilds dist/ without the flag before zipping.
 import { spawn, type ChildProcess } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';

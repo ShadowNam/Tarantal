@@ -295,6 +295,7 @@
   "title.daily_streak": "Streak: {n}",
   "title.daily_freeze": "freeze ready",
   "title.daily_played": "Played today · more tries are practice",
+  "title.daily_unranked": "Test link · practice only",
   "title.challenge_bad": "That challenge link doesn't work.",
   "challenge.title": "Challenge!",
   "challenge.from": "{by} challenges you",

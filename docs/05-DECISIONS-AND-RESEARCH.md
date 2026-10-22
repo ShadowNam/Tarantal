@@ -958,6 +958,29 @@ or a real brand.
 *Needs a person:* the illustrator, animator and sound designer deliver per
 `docs/06-ASSET-DELIVERY.md`.
 
+**D-028 v1.0.1 cleanup (22 Oct 2026):** six follow-ups to D-025 … D-027, shipped as one linear
+stack of PRs merged bottom-up (`v101-daily-gate` ← `v101-epoch` ← `v101-score-pops` ←
+`v101-capture-hint` ← `v101-barks` ← `v101-charm-balance`): D-028, the CHANGELOG, the HUD, `feel.json`
+and the i18n files are shared by most of them, so separate PRs from main would conflict at every
+merge. Only the last PR (charm balance) changes `contentHash` and the golden replays; it also bumps
+the version to 1.0.1.
+*§1 — `?e2e` Daily gate (D-027 follow-up):* (1) *Flag:* the existing build flag
+`VITE_TEST_HOOKS=1` now means "CI e2e build" on every platform: Playwright's builds set it
+(`playwright.config.ts buildEnv`), Pages (`pages.yml`) and `npm run release` never do. No second
+flag: the portal e2e builds already carry it, and one meaning is easier to audit. (2) *Rule:*
+`officialResultsAllowed` (`src/game/testHooks.ts`): a page records official results unless it has
+`?e2e` on a build without the flag; the dev server and Vitest keep them (never public). (3) *Public
+`?e2e` = capture's unranked path:* `DailyFlow.unranked` makes the Daily practice (no attempt, streak
+or best saved) and offers no [Share] on any tally, Classic included (a Classic share is a
+challenge link, and `?seed`/`?huntSeconds` would make it fake); `?c=` challenge links are not
+opened. Unlike capture, the title keeps its Daily button, styled as played, with the status line
+"Test link · practice only" (`title.daily_unranked`, 4 languages). (4) *Proof:* unit tests on the
+policy; `tests/e2e/daily-public.spec.ts` runs only with `E2E_BUILD=public` (the build Pages ships)
+in its own CI job (desktop Chromium), and every other e2e run ignores it; `daily.spec.ts` keeps
+passing on the flagged CI build. (5) *Portal shots:* `npm run portal:shots` builds with the flag
+so the store title and tally look as a player sees them; `npm run release` rebuilds `dist/`
+without it before zipping.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

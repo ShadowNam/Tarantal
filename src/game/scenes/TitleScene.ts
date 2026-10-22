@@ -132,7 +132,7 @@ export class TitleScene extends Phaser.Scene {
       const dailyOn = this.ctx.capture === null;
       if (dailyOn) {
         const setup = this.ctx.daily.todaySetup();
-        const played = this.ctx.daily.playedToday();
+        const played = this.ctx.daily.playedToday() || this.ctx.daily.unranked;
         drawButton(
           this,
           daily,
@@ -228,6 +228,8 @@ export class TitleScene extends Phaser.Scene {
 
   /** The line above the Daily button: new today, the streak (and its freeze), or played. */
   private dailyStatus(played: boolean): string {
+    // D-028: a test link on a public build only ever plays practice.
+    if (this.ctx.daily.unranked) return t('title.daily_unranked');
     if (played) return t('title.daily_played');
     const streak = this.ctx.daily.streakToday();
     if (streak.streak === 0) return t('title.daily_new');

@@ -37,9 +37,16 @@ const only = process.env['E2E_ONLY'] || undefined;
 // M9: E2E_PLATFORM=poki|crazygames builds and serves that portal build (with its test hooks,
 // VITE_TEST_HOOKS=1) instead of the web build; platform.spec.ts tests it against a fake SDK.
 const e2ePlatform = process.env['E2E_PLATFORM'] || 'web';
+// v1.0.1 (D-028): every e2e build is a CI test build (VITE_TEST_HOOKS=1: `?e2e` may record
+// official Dailies and share). E2E_BUILD=public builds what Pages ships instead (no flag), for
+// daily-public.spec.ts, which proves that build refuses them.
+const publicBuild = process.env['E2E_BUILD'] === 'public';
 /** Exported for playwright.local*.config.ts (scratch configs on other ports). */
-export const buildEnv =
-  e2ePlatform === 'web' ? '' : `VITE_PLATFORM=${e2ePlatform} VITE_TEST_HOOKS=1 `;
+export const buildEnv = publicBuild
+  ? ''
+  : e2ePlatform === 'web'
+    ? 'VITE_TEST_HOOKS=1 '
+    : `VITE_PLATFORM=${e2ePlatform} VITE_TEST_HOOKS=1 `;
 const skip = process.env['E2E_SKIP'] || undefined;
 
 export default defineConfig({
@@ -52,8 +59,9 @@ export default defineConfig({
     // machines: allow 2 % of pixels to differ, each by a colour distance of up to 0.25.
     toHaveScreenshot: { maxDiffPixelRatio: 0.02, threshold: 0.25, animations: 'disabled' },
   },
-  ...(only ? { testMatch: only } : {}),
-  ...(skip ? { testIgnore: skip } : {}),
+  // The public-build spec runs only against that build, and nothing else does.
+  ...(publicBuild ? { testMatch: '**/daily-public.spec.ts' } : only ? { testMatch: only } : {}),
+  testIgnore: [...(publicBuild ? [] : ['**/daily-public.spec.ts']), ...(skip ? [skip] : [])],
   outputDir: 'test-results',
   fullyParallel: true,
   // Software-rendered WebGL (CI, sandboxes) runs the game at a few fps; give boots room.
