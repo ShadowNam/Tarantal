@@ -106,6 +106,9 @@ test('perf: low tier holds 50 fps (CPU) at 6× throttle on the Pixel 7 profile',
         JSON.stringify({ v: 1, settings: { quality: 'low' } }),
       );
   });
+  // D-029: PERF_PLACEHOLDERS=1 measures the same build with no delivered art (before/after).
+  if (process.env['PERF_PLACEHOLDERS'] === '1')
+    await page.route('**/assets/asset-index.json', (r) => r.fulfill({ status: 404, body: '' }));
   await boot(page, 'seed=3&huntSeconds=20');
   expect((await hook(page)).quality.tier).toBe('low');
   const cdp = await page.context().newCDPSession(page);
