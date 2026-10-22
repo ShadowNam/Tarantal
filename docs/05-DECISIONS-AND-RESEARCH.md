@@ -1324,13 +1324,33 @@ once. The Stormvoël loads with the `late` group, visarend with the Okavango. (9
 (bible §1.6): ibis bill and trailing legs (hadeda), biplane (sprayer), crest + long tail
 (kwêvoël), white head + white wedge tail on broad wings (visarend), giant casqued guineafowl with
 glowing eyes and a cold rim light (Stormvoël).
+*§3b — The other biomes (part B):* each biome has its own `tools/art/biomes/<biome>.ts` plan
+and palette, sharing the Karoo's shapes and line rules but clearly distinct in season and light.
+*Bushveld winter:* a cold dawn sky warming to peach at the horizon, frost mist lying on the far
+veld, orange granite domes with exfoliation sheets and boulder koppies, a mopane tree line and
+far baobabs, tiny giraffe silhouettes, pale straw grass, frost on the near tufts; props: a
+leafless baobab (the pod hangs on a stalk at the content's part position), the dassie peeking
+over its koppie, granite boulders (one split, its crack is the secret), red winter aloes.
+*Kalahari summer:* hot blue sky with the thunderstorm **kept low** behind the dunes (sunlit
+lobed thunderheads, dark flat base, rain shafts), so the flyer band stays light and navy birds
+keep their contrast (bible §1.5); red dunes with lit and lee faces, gemsbok on a crest, wind
+ripples, flat-topped camelthorns; props: a camelthorn holding a sociable-weaver haystack nest
+(nest-chamber holes underneath), a signpost with a painted windpomp pictogram and an arrow (no
+text, bible §1.7), a dead camelthorn with its branch stub, dune-grass tussocks with seed heads.
+*Okavango spring:* fresh blue sky with spring cumulus, tree islands of jackalberry and ilala
+palms on a flat horizon, green floodplain with glinting channels, a muddy wet strip where the
+splash zones' water sits, lily pads; props: reed beds (Phragmites with plumes), a mokoro pole
+with a red cloth flag, a sausage tree with hanging fruit and dark red flowers, a submerged
+hippo (eyes, ears, nostrils, back), a lily pad with a reed frog and a pink lily, papyrus
+clumps. No jacarandas (bible §2).
 *§4 — Tests:* `tools/art/scenery.test.ts`: every flyer frame stays inside the bird box and
 covers its body hitbox; every shared sprite and prop is drawn at the placeholder's size and
 origin with its occluder inside the art; layers come out at the delivered width; renders are
 deterministic. The pipeline test covers the layer sidecar.
 *§5 — Evidence:* `docs/art-preview/` `sprites.png`, `flyers.png`, `scenery-<biome>-{props,layers,pan}.png`
 (the pan sheets stamp real interim birds on their lanes: contrast check, bible §1.5);
-`compare/gfx2-*.png` before (main) | after in-game on desktop-chromium and pixel7-landscape, from
+`compare/gfx2-*.png` before (main) | after in-game on desktop-chromium and pixel7-landscape (part
+B adds one hunt view per biome: `gfx2-{bushveld,kalahari,okavango}-*.png`), from
 `ART_PREVIEW=1 npx playwright test tests/e2e/art-preview-gfx2.spec.ts`.
 
 ## 3. Research notes (with sources)

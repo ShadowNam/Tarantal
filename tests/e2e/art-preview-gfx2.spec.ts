@@ -132,6 +132,20 @@ test('a crate drop, the reticle and the shell belt', async ({ page }, info) => {
   await held(page, info, 'gfx2-crate-hud', 'seed=42&huntSeconds=20', 430, { aim: true });
 });
 
+// Part B: one hunt view per other biome (lazy-loaded art), held after the first flock settles.
+for (const biome of ['bushveld-winter', 'kalahari-summer', 'okavango-spring']) {
+  test(`hunt view: ${biome}`, async ({ page }, info) => {
+    test.setTimeout(600_000);
+    const short = biome.split('-')[0] ?? biome;
+    await held(page, info, `gfx2-${short}`, `seed=42&huntSeconds=20&biome=${biome}`, 240, {
+      wait: async (p) => {
+        // The biome's art loads on first use: wait until its layers are in (after only).
+        await p.waitForTimeout(1500);
+      },
+    });
+  });
+}
+
 // GPU texture memory (D-029 method): low tier, end of a 20 s Karoo hunt, every texture incl.
 // placeholders and layers (test hook `textureBytes`), before and after, once the late group is in.
 test('texture memory on the low tier', async ({ page }, info) => {
