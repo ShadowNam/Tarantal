@@ -650,6 +650,8 @@ export class HuntScene extends Phaser.Scene {
     this.weapon.setTouchMode(kind === 'touch');
     hud.setInputKind(kind);
     hud.setSeason(runHunt === null ? null : { quota: runHunt.info.quota });
+    // D-028 §3: Oupa barks in every hunt but his own lesson, and never in capture footage.
+    hud.startBarks(modeId !== 'ftue' && this.ctx.capture === null);
     hud.setTag(plan?.hudTag ?? null);
     hud.setControls({
       pause: () => {
@@ -758,6 +760,8 @@ export class HuntScene extends Phaser.Scene {
     if (runner.held && this.tweens.timeScale !== 0) {
       this.tweens.timeScale = 0;
       this.anims.globalTimeScale = 0;
+      // v1.0.1: the HUD's tweens too (Oupa's bubble holds where it is).
+      this.scene.get('Hud').tweens.timeScale = 0;
     }
     // M10: the music follows the hunt's intensity (calm / build / stampede).
     this.ctx.audio.setIntensity(stemFor(runner.over ? null : state, this.ctx.feel.audio));

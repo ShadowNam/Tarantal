@@ -15,6 +15,7 @@ import type { DomChrome } from './ui/DomChrome';
 import type { AssetManifest, ManifestEntry } from './assets/AssetManifest';
 import type { FlashLimiter } from './view/flashLimit';
 import type { CaptureState } from './capture';
+import type { BarkDirector } from './audio/barks';
 import type { AudioDirector } from './audio/AudioDirector';
 import type { RunFlow } from './run/RunFlow';
 import type { DailyFlow } from './daily/DailyFlow';
@@ -86,6 +87,10 @@ export interface TestHook {
   flockSpots: { id: number; state: string; alive: number; x: number; y: number }[];
   /** v1.0.1 (D-028 §4): score pops shown this page, and pop objects made (pooled: stays small). */
   pops: { shown: number; created: number };
+  /** v1.0.1 (D-028 §3): Oupa's bubble on screen (line key, text, design-px rect) and every line
+   *  he has said on this page, oldest first (capped). */
+  bark: { line: string; text: string; x: number; y: number; w: number; h: number } | null;
+  barks: string[];
   result: HuntResult | null;
   /** performance.now() when the first shot of the page was fired (ms since navigation start). */
   firstShotAtMs: number | null;
@@ -215,6 +220,10 @@ export interface GameContext {
   /** M8: the biome of the hunt on screen (the home biome between hunts). */
   huntBiome: Biome;
   readonly audio: AudioDirector;
+  /** v1.0.1 (D-028 §3): Oupa's barks (one per page: the gap spans hunts and the tally). */
+  readonly barks: BarkDirector;
+  /** UTC day number now (the Daily's clock; e2e ?today= fixes it). */
+  readonly today: () => number;
   /** M10: the shared budget of large-area flashes (≤ 3 a second, GDD §18.3). */
   readonly flashes: FlashLimiter;
   /** M10 marketing capture mode (?capture=1), or null. */
