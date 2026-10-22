@@ -220,9 +220,9 @@
       "group": "karoo-autumn",
       "origin": "interim",
       "file": {
-        "path": "assets/karoo-autumn/img/karoo_aloe_a.8f29fa88af9d.png",
-        "bytes": 21502,
-        "hash": "8f29fa88af9d"
+        "path": "assets/karoo-autumn/img/karoo_aloe_a.dfed8ef9d4f3.png",
+        "bytes": 20872,
+        "hash": "dfed8ef9d4f3"
       },
       "width": 360,
       "height": 340
@@ -231,9 +231,9 @@
       "group": "karoo-autumn",
       "origin": "interim",
       "file": {
-        "path": "assets/karoo-autumn/img/karoo_aloe_b.3f1d2225f3bf.png",
-        "bytes": 22023,
-        "hash": "3f1d2225f3bf"
+        "path": "assets/karoo-autumn/img/karoo_aloe_b.2744255a5f28.png",
+        "bytes": 21600,
+        "hash": "2744255a5f28"
       },
       "width": 380,
       "height": 340
@@ -264,9 +264,9 @@
       "group": "karoo-autumn",
       "origin": "interim",
       "file": {
-        "path": "assets/karoo-autumn/img/karoo_potjie.59cea13c9c33.png",
-        "bytes": 6787,
-        "hash": "59cea13c9c33"
+        "path": "assets/karoo-autumn/img/karoo_potjie.8fc697a7a740.png",
+        "bytes": 6780,
+        "hash": "8fc697a7a740"
       },
       "width": 220,
       "height": 240
@@ -275,9 +275,9 @@
       "group": "karoo-autumn",
       "origin": "interim",
       "file": {
-        "path": "assets/karoo-autumn/img/karoo_reservoir.072f2ad0f4cb.png",
-        "bytes": 7006,
-        "hash": "072f2ad0f4cb"
+        "path": "assets/karoo-autumn/img/karoo_reservoir.46383ae6bb93.png",
+        "bytes": 6996,
+        "hash": "46383ae6bb93"
       },
       "width": 420,
       "height": 220
@@ -286,9 +286,9 @@
       "group": "karoo-autumn",
       "origin": "interim",
       "file": {
-        "path": "assets/karoo-autumn/img/karoo_windpomp.1825c3081b82.png",
-        "bytes": 11528,
-        "hash": "1825c3081b82"
+        "path": "assets/karoo-autumn/img/karoo_windpomp.ba510cde9606.png",
+        "bytes": 11532,
+        "hash": "ba510cde9606"
       },
       "width": 310,
       "height": 560,
