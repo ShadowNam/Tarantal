@@ -78,3 +78,20 @@ test('a fresh capture session skips the tutorial and plays the Classic seed', as
   expect(h.mode).toBe('classic');
   expect(h.huntSeed).toBe(42);
 });
+
+test('capture mode is unranked: no Daily entry on the title, no share on the tally', async ({
+  page,
+}, info) => {
+  test.skip(
+    isTouchProject(info) || info.project.metadata['orientation'] !== 'landscape',
+    'keyboard: desktop',
+  );
+  await boot(page, 'capture=1&ftue=1&huntSeconds=2');
+  await page.waitForFunction(() => window.__TM__?.rects['start'] !== undefined);
+  expect((await hook(page)).rects['daily']).toBeUndefined();
+  await startHunt(page, false);
+  await page.waitForFunction(() => window.__TM__?.scene === 'tally', null, { timeout: 90_000 });
+  await page.waitForFunction(() => window.__TM__?.rects['again'] !== undefined);
+  const rects = (await hook(page)).rects;
+  expect(rects['share']).toBeUndefined();
+});

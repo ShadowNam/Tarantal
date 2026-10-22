@@ -90,6 +90,11 @@ export class HuntRunner {
     return this.sim.result();
   }
 
+  /** The sim reached its e2e hold tick (?holdAt) and stays there. */
+  get held(): boolean {
+    return this.opts.holdAtTick !== undefined && this.sim.tick >= this.opts.holdAtTick;
+  }
+
   advance(dtMs: number): FrameResult {
     const events: SimEvent[] = this.initialEvents;
     this.initialEvents = [];

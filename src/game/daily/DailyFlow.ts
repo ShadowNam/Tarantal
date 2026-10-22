@@ -66,6 +66,11 @@ export interface DailyFlowDeps {
   readonly playableBiomes: readonly string[];
   /** Page URL without query, the base of share links. */
   readonly shareBase: () => string;
+  /**
+   * M10 capture mode: hunts are unranked (slow-mo and freeze would inflate a score). No Daily is
+   * official (no attempt, streak or best is recorded) and no tally offers a share or a link.
+   */
+  readonly unranked?: boolean;
 }
 
 interface Started {
@@ -121,7 +126,7 @@ export class DailyFlow {
         setup !== null && setup.seed === challenge.seed && setup.biome === challenge.biome
           ? setup
           : null;
-      const official = today !== null && !this.playedToday();
+      const official = today !== null && !this.playedToday() && this.deps.unranked !== true;
       return {
         seed: hunt.seed,
         mode: { ...hunt.mode, ...extra },
@@ -134,7 +139,7 @@ export class DailyFlow {
     }
     if (kind === 'daily') {
       const setup = this.todaySetup();
-      const official = !this.playedToday();
+      const official = !this.playedToday() && this.deps.unranked !== true;
       return {
         seed: setup.seed,
         mode: { ...dailyMode(setup, weapon), ...extra },
@@ -235,7 +240,7 @@ export class DailyFlow {
     }
 
     // Share: Classic hunts and the official daily. Practice (and an old day's daily) has none.
-    const shareable = result.mode === 'classic' || official;
+    const shareable = this.deps.unranked !== true && (result.mode === 'classic' || official);
     const dailyNumber = official ? daily.setup.number : null;
     // Building the share line must never stop the tally from opening (the result is saved).
     let share: ShareMessage | null = null;

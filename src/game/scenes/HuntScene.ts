@@ -25,6 +25,7 @@ import type { HuntResult, InputKind, ModeConfig, ModeId, SimState } from '../../
 import { CAMERA_MAX_X, CAMERA_MIN_X } from '../../sim/world';
 import { neededBeforeStart, type AssetManifest } from '../assets/AssetManifest';
 import { stemFor } from '../audio/music';
+import { rumbleDue } from '../view/juice';
 import type { HuntPlan } from '../daily/DailyFlow';
 import { FtueDirector, type FtueStep } from '../ftue/FtueDirector';
 import type { GameContext } from '../GameContext';
@@ -151,7 +152,7 @@ export class HuntScene extends Phaser.Scene {
       this.biome.id === this.ctx.biome.id ? this.ctx.manifest : this.ctx.manifestFor(this.biome);
     this.ctx.huntBiome = this.biome;
     this.ctx.audio.setBiome(this.biome.id);
-    this.ctx.audio.setIntensity('calm');
+    this.ctx.audio.resetIntensity();
     // Scenery and UI now; birds are drawn a few at a time while the start card shows.
     this.texturesDone = this.manifest.install(this.textures, neededBeforeStart);
     if (this.ctx.hook) this.ctx.hook.boot['textures'] ??= performance.now();
@@ -227,6 +228,7 @@ export class HuntScene extends Phaser.Scene {
       this.manifest,
       this.parallax,
       this.ctx.content,
+      this.ctx.feel.juice.forageSpellTicks,
       // ⛔ until a creature's first sighting; always with Settings → colour-blind aids (M9).
       (creature) =>
         showDontShootBadge(this.ctx.prefs, this.ctx.save.data.birdBook.creatures, creature),
@@ -286,9 +288,18 @@ export class HuntScene extends Phaser.Scene {
   /** GDD §17 Stampede ground-shake rumble: a small shake every rumbleEveryMs (Settings → shake). */
   private rumble(on: boolean, now: number, width: number): void {
     const r = this.ctx.feel.juice.stampede;
-    if (!on || !this.shakeAllowed() || r.rumblePx <= 0 || now < this.nextRumbleAt) return;
-    this.nextRumbleAt = now + r.rumbleEveryMs;
-    this.cameras.main.shake(r.rumbleMs, (r.rumblePx * this.ctx.feel.juice.shakeScale) / width);
+    const due = rumbleDue({
+      on,
+      shakeAllowed: this.shakeAllowed(),
+      rumblePx: r.rumblePx,
+      shakeScale: this.ctx.feel.juice.shakeScale,
+      nowMs: now,
+      nextAtMs: this.nextRumbleAt,
+      everyMs: r.rumbleEveryMs,
+    });
+    if (due === null) return;
+    this.nextRumbleAt = due.nextAtMs;
+    this.cameras.main.shake(r.rumbleMs, due.px / width);
   }
 
   /** M8: a hunt in another biome (Daily rotation, challenge, Season Run) swaps the scenery. */
@@ -705,6 +716,12 @@ export class HuntScene extends Phaser.Scene {
     const state = runner.state;
     if (events.length > 0) this.handleEvents(events, width, state);
     this.applyCapture(runner, state.cameraX);
+    // e2e ?holdAt (visual baselines): once the sim holds, tweens and animations hold too, so a
+    // delivered bird's clip or a fading pop is the same frame on every run.
+    if (runner.held && this.tweens.timeScale !== 0) {
+      this.tweens.timeScale = 0;
+      this.anims.globalTimeScale = 0;
+    }
     // M10: the music follows the hunt's intensity (calm / build / stampede).
     this.ctx.audio.setIntensity(stemFor(runner.over ? null : state, this.ctx.feel.audio));
     this.rumble(state.stampedeActive && !runner.over, now, width);

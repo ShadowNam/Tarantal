@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { EMPTY_INDEX, type AssetIndex } from '../../src/game/assets/assetIndex';
-import { audit, formatAudit, type AuditInputs } from './audit';
+import { audit, clipsNeeded, formatAudit, type AuditInputs } from './audit';
 import type { Catalog, CatalogEntry } from './catalog';
 
 const entry = (
@@ -106,5 +106,50 @@ describe('asset audit (M10)', () => {
   it('a TEX constant without a manifest entry is a missing key', () => {
     const r = audit(base({ tex: { shell: 'ui/shell', orphan: 'fx/orphan', ghost: 'fx/ghost' } }));
     expect(r.problems).toContain('missing key: TEX.ghost = "fx/ghost" has no manifest entry');
+  });
+});
+
+describe('delivered bird clips (M10 review)', () => {
+  it('the near plane needs only the pop-up clip; other planes need the whole flock set', () => {
+    expect(clipsNeeded('near')).toEqual(['peek']);
+    expect(clipsNeeded('mid')).toEqual(
+      ['alert', 'flap', 'forage_walk', 'glide', 'land', 'peck', 'peek', 'run', 'takeoff'].sort(),
+    );
+  });
+
+  it('a delivered plane whose clips (and fallbacks) miss a state is a problem', () => {
+    const f = (path: string) => ({ path, bytes: 1, hash: '0123456789ab' });
+    const atlas = { pages: [{ image: f('a.png'), data: f('a.json') }] };
+    const clip = { frames: ['x'], fps: 12, loop: true };
+    const index: AssetIndex = {
+      ...EMPTY_INDEX,
+      birds: {
+        tarentaal: {
+          // forage_walk alone: flap (flyovers, flushed flocks) has no fallback.
+          mid: {
+            group: 'common',
+            x1: atlas,
+            scale: 1,
+            originX: 0.5,
+            originY: 0.5,
+            clips: { forage_walk: clip },
+          },
+          // peek falls back to alert → forage_walk: complete.
+          near: {
+            group: 'common',
+            x1: atlas,
+            scale: 1,
+            originX: 0.5,
+            originY: 0.5,
+            clips: { forage_walk: clip },
+          },
+        },
+      },
+    };
+    const r = audit(base({ index }));
+    expect(r.problems).toContain(
+      'incomplete bird: tarentaal mid has no clip (or fallback) for flap, glide, takeoff',
+    );
+    expect(r.problems.some((p) => p.includes('tarentaal near'))).toBe(false);
   });
 });

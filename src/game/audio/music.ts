@@ -177,11 +177,22 @@ export class StemHold {
   constructor(private readonly holdMs: number) {}
 
   next(want: Stem, nowMs: number): Stem {
-    const rising = STEMS.indexOf(want) > STEMS.indexOf(this.current);
-    if (want !== this.current && (rising || nowMs - this.since >= this.holdMs)) {
+    const rank = STEMS.indexOf(want) - STEMS.indexOf(this.current);
+    if (rank >= 0) {
+      // Rising switches at once; staying (or rising) restarts the hold, so calming waits until
+      // the moment has been calmer for holdMs — not just since the last change.
+      this.current = want;
+      this.since = nowMs;
+    } else if (nowMs - this.since >= this.holdMs) {
       this.current = want;
       this.since = nowMs;
     }
     return this.current;
+  }
+
+  /** Back to calm with no hold (a new hunt). */
+  reset(): void {
+    this.current = 'calm';
+    this.since = -Infinity;
   }
 }

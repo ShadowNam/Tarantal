@@ -6,7 +6,7 @@ import * as Phaser from 'phaser';
 import { contentHash } from './content/hash';
 import { DailyFlow } from './game/daily/DailyFlow';
 import { loadGameContent } from './content/loadBrowser';
-import { AudioDirector } from './game/audio/AudioDirector';
+import { AudioDirector, browserAudioEnv } from './game/audio/AudioDirector';
 import { withDoppies, withQuotaMul, withTestCrate } from './game/devContent';
 import type { GameContext, TestHook, TestTools } from './game/GameContext';
 import {
@@ -372,7 +372,7 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') benchmark?.pause();
   else if (titleUp) benchmark?.resume();
 });
-const audio = new AudioDirector(feel.audio);
+const audio = new AudioDirector(feel.audio, browserAudioEnv(feel.assets.fileTimeoutMs));
 hook.assets.recorded = audio.recorded;
 // Live values (read through the hook in page.evaluate).
 Object.defineProperties(hook, {
@@ -424,6 +424,7 @@ window.addEventListener('pagehide', () => {
   save.flush();
 });
 const chrome = new DomChrome(platform, save);
+if (capture) chrome.hideInstallBanner();
 
 const hash = contentHash(bundle);
 // Biomes this build draws (M8: every biome with placeholder art). Their manifests are built on
@@ -462,7 +463,7 @@ const loadFinalFor = (b: Biome): Promise<void> => {
       finalDone.add(b.id);
       hook.assets.byBiome[b.id] = m.entries();
       // Recordings arrive on their own (boot doesn't wait for them).
-      void m.soundsReady().then((files) => {
+      void m.takeSounds().then((files) => {
         audio.addRecorded(files);
         hook.assets.byBiome[b.id] = m.entries();
       });
@@ -475,7 +476,8 @@ await loadFinalFor(biome);
 // A challenge link (Tech §12): decoded once, then removed from the address bar so a reload or a
 // bookmark doesn't show the card again.
 let pendingChallenge: ChallengeDecode | null = null;
-const challengeParam = platform.launchParam('c');
+// Capture mode (unranked) opens no challenge links.
+const challengeParam = capture ? null : platform.launchParam('c');
 if (challengeParam !== null) {
   pendingChallenge = decodeChallenge(challengeParam, {
     content: bundle,
@@ -518,7 +520,10 @@ const ctx: GameContext = {
   },
   huntBiome: biome,
   audio,
-  flashes: new FlashLimiter(feel.accessibility.maxLargeFlashesPerSec),
+  flashes: new FlashLimiter(
+    feel.accessibility.maxLargeFlashesPerSec,
+    feel.accessibility.flashMergeMs,
+  ),
   capture: capture ? new CaptureState(feel.capture, params.get('gun') !== '0') : null,
   save,
   notaboek: loaded.notaboek,
@@ -532,6 +537,7 @@ const ctx: GameContext = {
     today,
     playableBiomes,
     shareBase,
+    unranked: capture,
   }),
   pendingChallenge,
   platform,

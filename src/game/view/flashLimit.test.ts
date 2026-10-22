@@ -14,18 +14,36 @@ describe('large-flash limit (GDD §18.3, M10)', () => {
     const l = new FlashLimiter(3);
     const storm = new FlashGate(l);
     const season = new FlashGate(l);
-    // Two sources strobing at 8 Hz for a second: only 3 flashes ever show.
+    // Two sources strobing at 8 Hz for a second: only 3 strikes ever show (a strike both sources
+    // light at the same moment is one flash).
     let shown = 0;
-    let prev = [false, false];
+    let prev = false;
     for (let t = 0; t < 1000; t += 16) {
       const on = Math.floor(t / 62) % 2 === 0;
-      const now = [storm.lit(on, t), season.lit(on, t)];
-      now.forEach((lit, i) => {
-        if (lit && prev[i] !== true) shown++;
-      });
-      prev = now;
+      const a = storm.lit(on, t);
+      const b = season.lit(on, t);
+      if ((a || b) && !prev) shown++;
+      prev = a || b;
     }
     expect(shown).toBe(3);
+  });
+
+  it('one strike seen by two sources (same or next frame) takes one slot', () => {
+    const l = new FlashLimiter(3, 50);
+    const storm = new FlashGate(l);
+    const dark = new FlashGate(l);
+    // Three strikes 300 ms apart, each lighting both overlays a frame apart: all three show.
+    let shown = 0;
+    for (const at of [0, 300, 600]) {
+      if (storm.lit(true, at)) shown++;
+      if (dark.lit(true, at + 16)) shown++;
+      storm.lit(false, at + 100);
+      dark.lit(false, at + 100);
+    }
+    expect(shown).toBe(6);
+    // A fourth strike within the second is refused for both sources.
+    expect(storm.lit(true, 900)).toBe(false);
+    expect(dark.lit(true, 916)).toBe(false);
   });
 
   it('feel.json caps large flashes at 3 a second or fewer', () => {

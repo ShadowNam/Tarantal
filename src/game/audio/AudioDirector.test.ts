@@ -19,6 +19,7 @@ function rig(canPlay: (m: string) => string = () => 'probably') {
     now: () => now,
     setTimer: () => undefined,
     canPlay,
+    fetchBytes: (path) => Promise.resolve(fakeFile(1, `mp3:${path}`)),
   };
   const audio = new AudioDirector(tuning, env);
   return {
@@ -33,10 +34,10 @@ function rig(canPlay: (m: string) => string = () => 'probably') {
     },
   };
 }
-const file = (key: string, seconds = 1): FinalSound => ({
+const file = (key: string, seconds = 1, format: 'ogg' | 'mp3' = 'ogg'): FinalSound => ({
   key,
   bytes: fakeFile(seconds, key),
-  format: 'ogg',
+  format,
   entry: {
     group: 'common',
     kind: 'sfx',
@@ -137,5 +138,86 @@ describe('AudioDirector (M10)', () => {
     expect(r.audio.bark('bark.kos_is_reg')).toBe(false);
     r.advance(2);
     expect(r.audio.bark('bark.kos_is_reg')).toBe(true);
+  });
+});
+
+describe('AudioDirector memory and fallbacks (M10 review)', () => {
+  const buffers = (r: ReturnType<typeof rig>) =>
+    [...(r.audio as unknown as { buffers: Map<string, unknown> }).buffers.keys()].sort();
+
+  it('keeps only the biome on screen decoded; a revisit decodes it again', async () => {
+    const r = rig();
+    r.audio.setBiome('karoo-autumn');
+    r.audio.addRecorded([
+      file(sfxKey('shot')),
+      file(musicKey('karoo-autumn', 'calm'), 30),
+      file(musicKey('bushveld-winter', 'calm'), 30),
+      file(ambienceKey('bushveld-winter'), 20),
+    ]);
+    r.audio.unlock();
+    await flush();
+    expect(buffers(r)).toEqual(['music/karoo-autumn/calm', 'sfx/shot']);
+    r.audio.setBiome('bushveld-winter');
+    await flush();
+    expect(buffers(r)).toEqual(['amb/bushveld-winter', 'music/bushveld-winter/calm', 'sfx/shot']);
+    expect(r.audio.music?.id).toBe('bushveld-winter');
+    r.audio.setBiome('karoo-autumn');
+    await flush();
+    expect(buffers(r)).toEqual(['music/karoo-autumn/calm', 'sfx/shot']);
+  });
+
+  it('an Ogg the browser cannot decode retries the MP3 twin', async () => {
+    const r = rig();
+    const bad = file(sfxKey('shot'));
+    const bytes = new Uint8Array(bad.bytes.slice(0));
+    bytes[0] = 255;
+    r.audio.addRecorded([{ ...bad, bytes: bytes.buffer }]);
+    r.audio.unlock();
+    await flush();
+    await flush();
+    expect(buffers(r)).toEqual(['sfx/shot']);
+    expect(r.ctx.decoded).toContain('mp3:a.mp3');
+  });
+
+  it('a new hunt starts calm, not on the last stampede stem', async () => {
+    const r = rig();
+    r.audio.setBiome('karoo-autumn');
+    r.audio.addRecorded(
+      ['calm', 'build', 'stampede'].map((s) => file(musicKey('karoo-autumn', s), 30)),
+    );
+    r.audio.unlock();
+    await flush();
+    r.audio.setIntensity('stampede');
+    expect(r.audio.music?.stem).toBe('stampede');
+    r.audio.resetIntensity();
+    expect(r.audio.music?.stem).toBe('calm');
+  });
+});
+
+describe('tally sounds and mute rules (M10 review)', () => {
+  const reasons = ['pause', 'ad', 'menu', 'portal'] as const;
+  it('ui tick and thud play when audible and stay silent for every mute reason', () => {
+    const r = rig();
+    // Before the first gesture: no context, nothing plays.
+    r.audio.ui('tick');
+    expect(r.ctx.panners).toBe(0);
+    r.audio.unlock();
+    const count = () => r.ctx.panners;
+    let n = count();
+    r.audio.ui('tick');
+    r.audio.ui('thud');
+    expect(count()).toBeGreaterThan(n);
+    for (const reason of reasons) {
+      r.audio.setMuted(reason, true);
+      n = count();
+      r.audio.ui('tick');
+      r.audio.ui('thud');
+      expect(count(), reason).toBe(n);
+      r.audio.setMuted(reason, false);
+    }
+    r.setHidden(true);
+    n = count();
+    r.audio.ui('thud');
+    expect(count()).toBe(n);
   });
 });

@@ -109,4 +109,17 @@ describe('intensity (M10)', () => {
     expect(h.next('calm', 3000)).toBe('stampede');
     expect(h.next('calm', 4200)).toBe('calm');
   });
+
+  it('a one-frame lull after a long build does not drop the stem (no flutter)', () => {
+    const h = new StemHold(4000);
+    for (let t = 0; t <= 10_000; t += 16) expect(h.next('build', t)).toBe('build');
+    expect(h.next('calm', 10_016)).toBe('build');
+    expect(h.next('build', 10_032)).toBe('build');
+    // Calm for the whole hold: then it calms.
+    for (let t = 10_048; t < 14_032; t += 16) expect(h.next('calm', t)).toBe('build');
+    expect(h.next('calm', 14_040)).toBe('calm');
+    h.next('stampede', 15_000);
+    h.reset();
+    expect(h.next('calm', 15_016)).toBe('calm');
+  });
 });
