@@ -4,7 +4,6 @@
 // mokoro marker pole. No jacarandas (bible §2). Soft light from the upper left. D-031.
 import type { BiomeArtPlan, LayerCtx, PropCtx } from '../landscape';
 import {
-  cloud,
   edgePts,
   flat,
   groundD,
@@ -13,7 +12,6 @@ import {
   mix,
   nextId,
   shade,
-  stone,
   tone,
   treeBlob,
   tuft,
@@ -23,7 +21,8 @@ import {
   type Tone,
 } from '../scenery';
 import { el, ellipseD, g, inked, polyD, r2, smoothD } from '../svg';
-import { groundBand, vGradient } from './karoo';
+import { groundBand, softSky } from './karoo';
+import { foregroundClumps, midScrub, nearGrass } from './common';
 
 // --- shapes --------------------------------------------------------------------------------
 
@@ -230,27 +229,22 @@ function channel(
 // --- layers --------------------------------------------------------------------------------
 
 function sky(ctx: LayerCtx): string {
-  const parts: string[] = [
-    vGradient('sky', [
+  return softSky(ctx, {
+    stops: [
       [0, ctx.raw('skyTop')],
       [0.35, ctx.raw('skyMid')],
       [0.58, ctx.raw('skyBottom')],
       [1, ctx.raw('horizon')],
-    ]),
-    el('rect', { x: 0, y: 0, width: ctx.width, height: 1080, fill: 'url(#sky)' }),
-  ];
-  const pen: Pen = { ink: mix(ctx.pen.ink, ctx.raw('skyMid'), 0.6), w: 2 };
-  const ct = { fill: ctx.raw('cloud'), dark: ctx.raw('cloudShadow'), light: '#FFFFFF' };
-  // Spring cumulus banks low over the delta, a few small ones higher up.
-  for (let x = -80; x < ctx.width; x += 260 + ctx.rnd() * 300) {
-    const w = 200 + ctx.rnd() * 240;
-    parts.push(cloud(ctx.rnd, x, 600 + ctx.rnd() * 30, w, w * (0.18 + ctx.rnd() * 0.08), ct, pen));
-  }
-  for (let x = 200; x < ctx.width; x += 700 + ctx.rnd() * 500) {
-    const w = 110 + ctx.rnd() * 90;
-    parts.push(cloud(ctx.rnd, x, 300 + ctx.rnd() * 120, w, w * 0.3, ct, pen));
-  }
-  return g({}, ...parts);
+    ],
+    cloud: {
+      lit: ctx.raw('cloud'),
+      body: mix(ctx.raw('cloud'), ctx.raw('skyMid'), 0.3),
+      base: ctx.raw('cloudShadow'),
+    },
+    base: 590,
+    size: [70, 120],
+    streaks: 4,
+  });
 }
 
 function farRidge(ctx: LayerCtx): string {
@@ -375,16 +369,12 @@ function mid(ctx: LayerCtx): string {
       2,
     ),
   );
-  const items: { y: number; svg: string }[] = [];
-  const reedT = tone(ctx.c('reed'), 0.22, 0.25);
-  const sedge = tone(ctx.c('grassLight'), 0.22, 0.2);
-  for (let x = 20; x < ctx.width; x += 60 + ctx.rnd() * 140) {
-    const y = 676 + Math.pow(ctx.rnd(), 0.9) * 230;
-    if (y > 790 && y < 845) continue; // keep the channel strip open
-    const s = 10 + ((y - 660) / 250) * 30;
-    const pen: Pen = { ink: ctx.pen.ink, w: s < 16 ? 2.5 : ctx.pen.w };
-    items.push({ y, svg: tuft(ctx.rnd, x, y, s * 1.5, ctx.rnd() < 0.5 ? reedT : sedge, pen, 8) });
-  }
+  // Sedges and grass in irregular clusters, the channel strip kept open; a few low shrubs.
+  const items = midScrub(ctx, {
+    bushes: 0.25,
+    stone: tone(ctx.c('mud'), 0.25, 0.25),
+    avoid: (_x, y) => y > 788 && y < 848,
+  });
   const pad = tone(ctx.c('pad'), 0.22, 0.25);
   for (let x = 60; x < ctx.width; x += 160 + ctx.rnd() * 300) {
     const y = 795 + ctx.rnd() * 45;
@@ -441,34 +431,7 @@ function near(ctx: LayerCtx): string {
       2.5,
     ),
   );
-  const items: { y: number; svg: string }[] = [];
-  const pen: Pen = { ink: ctx.pen.ink, w: 5 };
-  const grassA = tone(ctx.c('grass'), 0.22, 0.25);
-  const grassB = tone(ctx.c('reed'), 0.22, 0.25);
-  for (let x = 10; x < ctx.width; x += 60 + ctx.rnd() * 120) {
-    const y = 860 + ctx.rnd() * 18;
-    items.push({
-      y,
-      svg: tuft(ctx.rnd, x, y, 28 + ctx.rnd() * 26, ctx.rnd() < 0.5 ? grassA : grassB, {
-        ink: ctx.pen.ink,
-        w: 4,
-      }),
-    });
-  }
-  for (let x = 40; x < ctx.width; x += 90 + ctx.rnd() * 200) {
-    const y = 1000 + ctx.rnd() * 80;
-    const r = ctx.rnd();
-    if (r < 0.08)
-      items.push({
-        y,
-        svg: stone(ctx.rnd, x, y, 14 + ctx.rnd() * 12, tone(ctx.c('mud'), 0.25, 0.25), pen),
-      });
-    else
-      items.push({
-        y,
-        svg: tuft(ctx.rnd, x, y, 50 + ctx.rnd() * 50, r < 0.55 ? grassA : grassB, pen, 8),
-      });
-  }
+  const items = nearGrass(ctx, { stone: tone(ctx.c('mud'), 0.25, 0.25), bushes: 0 });
   items.sort((a, b) => a.y - b.y);
   inside.push(...items.map((i) => i.svg));
   return g(
@@ -480,45 +443,35 @@ function near(ctx: LayerCtx): string {
 }
 
 function foreground(ctx: LayerCtx): string {
-  const parts: string[] = [];
   const pen = ctx.pen;
   const head = tone(ctx.c('papyrus'), 0.22, 0.25);
-  const reedT = tone(ctx.c('reed'), 0.25, 0.25);
-  const avoid = [ctx.u(0.05), ctx.u(0.94)];
-  for (let x = 200 + ctx.rnd() * 200; x < ctx.width; x += 650 + ctx.rnd() * 650) {
-    if (avoid.some((a) => Math.abs(a - x) < 320)) continue;
-    if (ctx.rnd() < 0.4) {
-      for (let k = 0; k < 4; k++)
-        parts.push(
-          reed(
-            x + k * 26 - 40,
-            1100,
-            170 + ctx.rnd() * 60,
-            (k - 1.5) * 18,
-            ctx.c('reed'),
-            ctx.c('plume'),
-            pen,
-            7,
-          ),
+  return g(
+    {},
+    ...foregroundClumps(ctx, [ctx.u(0.05), ctx.u(0.94)], (x) => {
+      const n = 2 + Math.floor(ctx.rnd() * 3);
+      const out: string[] = [];
+      const reeds = ctx.rnd() < 0.5;
+      for (let k = 0; k < n; k++) {
+        const dx = (k - (n - 1) / 2) * (24 + ctx.rnd() * 20);
+        const h = 150 + ctx.rnd() * 90;
+        out.push(
+          reeds
+            ? reed(
+                x + dx,
+                1100,
+                h,
+                dx * 0.6 + (ctx.rnd() - 0.5) * 20,
+                ctx.c('reed'),
+                ctx.c('plume'),
+                pen,
+                6 + ctx.rnd() * 3,
+              )
+            : papyrus(x + dx, 1100, h, dx * 0.8, ctx.c('papyrusStem'), head, pen),
         );
-      parts.push(tuft(ctx.rnd, x, 1092, 100, reedT, pen, 8));
-    } else {
-      for (let k = 0; k < 3; k++)
-        parts.push(
-          papyrus(
-            x + k * 40 - 40,
-            1100,
-            160 + ctx.rnd() * 40,
-            (k - 1) * 30,
-            ctx.c('papyrusStem'),
-            head,
-            pen,
-          ),
-        );
-      parts.push(tuft(ctx.rnd, x, 1092, 90, reedT, pen, 8));
-    }
-  }
-  return g({}, ...parts);
+      }
+      return g({}, ...out);
+    }),
+  );
 }
 
 // --- props ---------------------------------------------------------------------------------
@@ -645,14 +598,46 @@ function sausageTree(ctx: PropCtx): string {
     true,
     0.6,
   );
-  // Crown: a broad rounded mass of lobes (dense spring leaves).
-  const lobes: [number, number, number][] = [];
-  for (let k = 0; k < 11; k++) {
-    const f = k / 10 - 0.5;
-    lobes.push([f * 330, -230 + Math.abs(f) * 120 + (ctx.rnd() - 0.5) * 20, 70 + ctx.rnd() * 30]);
-  }
-  for (let k = 0; k < 5; k++) lobes.push([(ctx.rnd() - 0.5) * 240, -300 + ctx.rnd() * 60, 70]);
-  const crown = lobes.map(([x, y, r]) => ellipseD(x, y, r, r * 0.8)).join('');
+  // Crown: separate leaf clusters on spreading limbs (gaps show the branches), each with its own
+  // shadow and highlight; back clusters first.
+  const clusterSeeds: [number, number, number][] = [
+    [-60, -296, 60],
+    [50, -298, 62],
+    [-130, -232, 58],
+    [130, -238, 58],
+    [0, -250, 66],
+    [-95, -180, 56],
+    [95, -184, 56],
+    [-150, -172, 42],
+    [150, -174, 42],
+  ];
+  const clusters = clusterSeeds.map(
+    ([x, y, r]) =>
+      [x + (ctx.rnd() - 0.5) * 16, y + (ctx.rnd() - 0.5) * 12, r * (0.9 + ctx.rnd() * 0.2)] as [
+        number,
+        number,
+        number,
+      ],
+  );
+  const clusterD = (cx: number, cy: number, r: number): string => {
+    let d = ellipseD(cx, cy, r * 0.62, r * 0.5);
+    for (let k = 0; k < 7; k++) {
+      const a2 = (k / 7) * Math.PI * 2 + ctx.rnd() * 0.4;
+      d += ellipseD(
+        cx + Math.cos(a2) * r * 0.55,
+        cy + Math.sin(a2) * r * 0.4,
+        r * (0.34 + ctx.rnd() * 0.1),
+        r * 0.3,
+      );
+    }
+    return d;
+  };
+  const limbsD = clusters
+    .map(
+      ([cx, cy]) =>
+        `M${r2(cx * 0.15)} ${r2(top - 10)}Q${r2(cx * 0.5)} ${r2((top + cy) / 2 - 20)} ${r2(cx)} ${r2(cy + 10)}`,
+    )
+    .join('');
   const id = nextId();
   const fruits: string[] = [];
   for (const [fx, fy, len] of [
@@ -686,10 +671,10 @@ function sausageTree(ctx: PropCtx): string {
     );
   }
   const flowers: string[] = [];
-  for (let k = 0; k < 9; k++)
+  for (let k = 0; k < 27; k++)
     flowers.push(
       inked(
-        ellipseD(-160 + ctx.rnd() * 320, -190 + ctx.rnd() * 60, 7, 6),
+        ellipseD(-170 + ctx.rnd() * 340, -280 + ctx.rnd() * 120, 7, 6),
         ctx.c('flower'),
         pen.ink,
         2,
@@ -712,20 +697,44 @@ function sausageTree(ctx: PropCtx): string {
       'stroke-linecap': 'round',
     }),
     el('path', {
-      d: crown,
-      fill: pen.ink,
+      d: limbsD,
+      fill: 'none',
       stroke: pen.ink,
-      'stroke-width': pen.w * 2,
-      'stroke-linejoin': 'round',
+      'stroke-width': 14,
+      'stroke-linecap': 'round',
     }),
-    el('clipPath', { id }, el('path', { d: crown })),
-    flat(crown, leaf.fill),
-    g(
-      { 'clip-path': `url(#${id})` },
-      flat(ellipseD(60, -160, 220, 80), leaf.dark),
-      flat(ellipseD(-90, -320, 90, 30), leaf.light),
-      ...flowers,
-    ),
+    el('path', {
+      d: limbsD,
+      fill: 'none',
+      stroke: bark.fill,
+      'stroke-width': 8,
+      'stroke-linecap': 'round',
+    }),
+    ...clusters.map(([cx, cy, r], i) => {
+      const d = clusterD(cx, cy, r);
+      const cid = `${id}c${i}`;
+      return g(
+        {},
+        el('path', {
+          d,
+          fill: pen.ink,
+          stroke: pen.ink,
+          'stroke-width': pen.w * 2,
+          'stroke-linejoin': 'round',
+        }),
+        el('clipPath', { id: cid }, el('path', { d })),
+        flat(d, i % 3 === 1 ? leaf.dark : leaf.fill),
+        g(
+          { 'clip-path': `url(#${cid})` },
+          flat(
+            ellipseD(cx + r * 0.3, cy + r * 0.35, r * 0.8, r * 0.45),
+            i % 3 === 1 ? shade(leaf.dark, -0.15) : leaf.dark,
+          ),
+          flat(ellipseD(cx - r * 0.3, cy - r * 0.35, r * 0.35, r * 0.18), leaf.light),
+          ...flowers.filter((_, k) => k % clusters.length === i),
+        ),
+      );
+    }),
     // Perch branch out of the crown's underside (content perch (−130, −170)).
     inked(
       smoothD(

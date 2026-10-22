@@ -455,11 +455,11 @@ function foreground(ctx: LayerCtx): string {
             pen.ink,
             pen.w,
           ),
-          line(`M${r2(x + 20)} ${1035}l40 -40M${r2(x - 60)} ${1055}l-10 -50`, {
+          line(`M${r2(x + 20)} 1035l40 -40M${r2(x - 60)} 1055l-10 -50`, {
             ink: pen.ink,
             w: 9,
           }),
-          line(`M${r2(x + 20)} ${1035}l40 -40M${r2(x - 60)} ${1055}l-10 -50`, {
+          line(`M${r2(x + 20)} 1035l40 -40M${r2(x - 60)} 1055l-10 -50`, {
             ink: ctx.c('trunk'),
             w: 4,
           }),

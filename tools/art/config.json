@@ -526,7 +526,15 @@
         "sausage": "#8C7A60",
         "flower": "#8E2A3A",
         "hippo": "#7C6E78",
-        "hippoPink": "#C99A9A"
+        "hippoPink": "#C99A9A",
+        "straw": "#8CBF52",
+        "bleached": "#C9DB8A",
+        "greyGreen": "#7E9C6A",
+        "bossie": "#5E8A3A",
+        "bossieGrey": "#6E9A48",
+        "autumn": "#8C8A4A",
+        "twig": "#5A4A3A",
+        "seed": "#E8E2C0"
       }
     }
   }
