@@ -1216,6 +1216,12 @@ build with the asset index hidden (`PERF_PLACEHOLDERS=1`) **25.8 ms**, with the 
 are over the 20 ms budget on this run because the box was loaded (load average 11 on 6 cores;
 D-026 measured 18.4 ms on a quiet box). *Needs a person:* fps and memory on a real low-end Android
 and an older iPhone (GPU texture memory above).
+*§8 — Evidence:* `docs/art-preview/` (contact sheets, hitbox fit, variants, guns and flashes;
+`compare/` before | after in-game on desktop-chromium and pixel7-landscape: pop-up, mid and far
+fly-overs, flock forage and flush, the Generaal, `?debug=1` hitboxes, each gun idle / mid-recoil /
+reload), from `ART_PREVIEW=1 npx playwright test tests/e2e/art-preview.spec.ts`. The hunt visual
+baselines were re-recorded. Golden replays and `contentHash` are unchanged (sim and `content/`
+untouched).
 *§9 — Review round 2 (22 Oct): fixes before merge.* (1) *Birds read grey in the game:* the
 mid-plane dots (as small as ~1.2 screen px, ~19 % of the body) blurred into a grey haze. Now
 fewer, crisper dots (≥ ~2 screen px on every plane, ~9 % at mid), a subtler back highlight, the
@@ -1232,7 +1238,8 @@ frames of a clip are cropped to the clip's common opaque area and carry a Phaser
 unlike trimmed frames); near-identical frames are packed once; each plane packs only the clips it
 plays (near: `peek` + `hit_poof`; the reserved `tumble` is drawn for the sheets but not packed);
 `rig.json group` puts wit, lavendel, the Generaal and every gun but the Dubbelloop in a **late**
-group (downloads after the hunt view is up; placeholders until then), Ou Grys with the Bushveld,
+group (downloads after the first download settles, while the title is up; placeholders until
+then), Ou Grys with the Bushveld,
 Kuifkop and Koning with the Okavango; bird and gun atlases go to the GPU on first use, the
 first-download birds at hunt start (not mid-hunt). *Results:* first download (gzip, all three
 builds) 0.55 → 2.86 → **1.09 MB**; late + biome groups 1.4 MB. Texture memory at the end of a
@@ -1248,12 +1255,16 @@ idle; @2x gun rigs draw at `rig.scale`; a final gun rig's provenance wins over a
 image; gun masters smaller than the box are an error, not a silent skip; the generator never
 overwrites a sidecar it can't read; the fit test covers every packed tarentaal frame on every
 plane (it caught a takeoff wing and poof feathers clipping the frame edge).
-*§8 — Evidence:* `docs/art-preview/` (contact sheets, hitbox fit, variants, guns and flashes;
-`compare/` before | after in-game on desktop-chromium and pixel7-landscape: pop-up, mid and far
-fly-overs, flock forage and flush, the Generaal, `?debug=1` hitboxes, each gun idle / mid-recoil /
-reload), from `ART_PREVIEW=1 npx playwright test tests/e2e/art-preview.spec.ts`. The hunt visual
-baselines were re-recorded. Golden replays and `contentHash` are unchanged (sim and `content/`
-untouched).
+*§10 — Final review (22 Oct):* (1) frame merging now needs every channel of every pixel within
+±2 (the earlier "0.4 % may differ by any amount, the rest by ≤ 24" merged a Voorlaaier ramrod
+stroke, a Windbuks puff, a Dubbelloop reload step and every bird's peek glance); exact repeats
+(alert hold, peek 01/03, Pomp reload 04) still pack once. (2) A late gun rig arriving for the
+weapon already in hand keeps the reload state and clip position. (3) The knocked-off pot starts
+from the head pot's origin (no jump at the CLANG). *Follow-up (not in this pass):* left-handed
+mode (`prefs.leftHanded`) moves the gun to the left but doesn't mirror it: the interim long guns
+lean toward the screen centre from the right, so a left-handed player sees them lean outward.
+Mirror the gun sprite (scaleX −1, tip x mirrored) when left-handed.
+
 
 ## 3. Research notes (with sources)
 

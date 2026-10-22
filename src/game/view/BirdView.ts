@@ -17,6 +17,16 @@ import type { SimEvent } from '../../sim/events';
 import type { DrawBird } from './interpolate';
 import type { ParallaxView } from './ParallaxView';
 
+/** Where a boss's pot is drawn now, with its sprite origin (the knock-off starts from it). */
+export interface PotSpot {
+  readonly plane: PlaneId;
+  readonly x: number;
+  readonly y: number;
+  readonly scaleX: number;
+  readonly originX: number;
+  readonly originY: number;
+}
+
 interface Drawn {
   readonly sprite: Phaser.GameObjects.Sprite;
   readonly tuft: Phaser.GameObjects.Image | null;
@@ -232,9 +242,18 @@ export class BirdView {
   }
 
   /** Where a boss's pot is drawn now (for the CLANG knock-off). */
-  potOf(id: number): { plane: PlaneId; x: number; y: number; scaleX: number } | null {
+  potOf(id: number): PotSpot | null {
     const d = this.drawn.get(id);
-    return d?.pot ? { plane: d.plane, x: d.pot.x, y: d.pot.y, scaleX: d.pot.scaleX } : null;
+    return d?.pot
+      ? {
+          plane: d.plane,
+          x: d.pot.x,
+          y: d.pot.y,
+          scaleX: d.pot.scaleX,
+          originX: d.pot.originX,
+          originY: d.pot.originY,
+        }
+      : null;
   }
 
   clear(): void {

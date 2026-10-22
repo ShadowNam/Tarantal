@@ -112,7 +112,7 @@ const rigSchema = z
     x2: z.boolean(),
     /** Pack resolution per plane (≤ 1): drawn scaled up by 1/res (saves memory on small planes). */
     planeRes: z.partialRecord(z.enum(['near', 'mid', 'far']), z.number().min(0.25).max(1)),
-    /** Load group override: "late" (after the first hunt starts), "common" or a biome id. */
+    /** Load group override: "late" (after the first download settles), "common" or a biome id. */
     group: z.string(),
   })
   .partial();
@@ -148,25 +148,18 @@ interface Cell {
 /** Transparent px kept around each clip's crop (filtering never samples a neighbour). */
 const CROP_PAD = 2;
 /**
- * Two frames of a clip merge when at most this fraction of their pixels differ visibly (D-029:
- * near-identical frames such as an alert hold are packed once).
+ * Two frames of a clip merge only when every channel of every pixel is within this distance
+ * (D-029 final review: a looser test merged visibly different frames — a ramrod stroke, a pupil
+ * glance). Exact repeats such as an alert hold still pack once; ±2 absorbs rounding only.
  */
-const FRAME_MERGE = 0.004;
+const FRAME_MERGE_TOLERANCE = 2;
 const round4 = (v: number): number => Math.round(v * 10000) / 10000;
 
-/** True when two same-size images differ in at most `frac` of their pixels (by more than 24). */
-function nearlySame(a: Rgba, b: Rgba, frac: number): boolean {
+/** True when two same-size images match within `tolerance` per channel, with no outliers. */
+export function nearlySame(a: Rgba, b: Rgba, tolerance: number): boolean {
   if (a.width !== b.width || a.height !== b.height) return false;
-  const limit = a.width * a.height * frac;
-  let n = 0;
-  for (let i = 0; i < a.data.length; i += 4) {
-    for (let c = 0; c < 4; c++)
-      if (Math.abs((a.data[i + c] ?? 0) - (b.data[i + c] ?? 0)) > 24) {
-        n++;
-        break;
-      }
-    if (n > limit) return false;
-  }
+  for (let i = 0; i < a.data.length; i++)
+    if (Math.abs((a.data[i] ?? 0) - (b.data[i] ?? 0)) > tolerance) return false;
   return true;
 }
 
@@ -215,7 +208,7 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
     files.set(path, bytes);
     return { path, bytes: bytes.length, hash: h };
   };
-  /** A rig's `group` override (D-029: "late" loads after the first hunt starts), checked. */
+  /** A rig's `group` override (D-029: "late" loads after the first download settles), checked. */
   const groupFor = (want: string | undefined, fallback: string, label: string): string => {
     if (want === undefined) return fallback;
     if (want === COMMON_GROUP || want === LATE_GROUP || o.catalog.biomes.includes(want))
@@ -295,8 +288,9 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
       const twinId =
         given !== undefined
           ? given.get(c.id)
-          : sized.find((o) => o.id.startsWith(`${c.clip}/`) && nearlySame(o.img, img, FRAME_MERGE))
-              ?.id;
+          : sized.find(
+              (o) => o.id.startsWith(`${c.clip}/`) && nearlySame(o.img, img, FRAME_MERGE_TOLERANCE),
+            )?.id;
       if (twinId !== undefined) {
         alias.set(c.id, twinId);
         continue;
