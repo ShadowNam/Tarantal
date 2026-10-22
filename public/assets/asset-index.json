@@ -16,6 +16,83 @@
       "width": 256,
       "height": 64
     },
+    "bushveld/aloe_a": {
+      "group": "bushveld-winter",
+      "origin": "interim",
+      "file": {
+        "path": "assets/bushveld-winter/img/bushveld_aloe_a.cf28a57111b0.png",
+        "bytes": 23677,
+        "hash": "cf28a57111b0"
+      },
+      "width": 360,
+      "height": 400
+    },
+    "bushveld/aloe_b": {
+      "group": "bushveld-winter",
+      "origin": "interim",
+      "file": {
+        "path": "assets/bushveld-winter/img/bushveld_aloe_b.9ae7b02db2b8.png",
+        "bytes": 24085,
+        "hash": "9ae7b02db2b8"
+      },
+      "width": 380,
+      "height": 400
+    },
+    "bushveld/baobab": {
+      "group": "bushveld-winter",
+      "origin": "interim",
+      "file": {
+        "path": "assets/bushveld-winter/img/bushveld_baobab.aab9b770cb4f.png",
+        "bytes": 24200,
+        "hash": "aab9b770cb4f"
+      },
+      "width": 550,
+      "height": 910
+    },
+    "bushveld/boulder_a": {
+      "group": "bushveld-winter",
+      "origin": "interim",
+      "file": {
+        "path": "assets/bushveld-winter/img/bushveld_boulder_a.88393a55ef59.png",
+        "bytes": 6787,
+        "hash": "88393a55ef59"
+      },
+      "width": 310,
+      "height": 244
+    },
+    "bushveld/boulder_b": {
+      "group": "bushveld-winter",
+      "origin": "interim",
+      "file": {
+        "path": "assets/bushveld-winter/img/bushveld_boulder_b.1b41d26155f8.png",
+        "bytes": 6229,
+        "hash": "1b41d26155f8"
+      },
+      "width": 290,
+      "height": 232
+    },
+    "bushveld/boulder_crack": {
+      "group": "bushveld-winter",
+      "origin": "interim",
+      "file": {
+        "path": "assets/bushveld-winter/img/bushveld_boulder_crack.16332768d294.png",
+        "bytes": 7047,
+        "hash": "16332768d294"
+      },
+      "width": 330,
+      "height": 250
+    },
+    "bushveld/dassie_koppie": {
+      "group": "bushveld-winter",
+      "origin": "interim",
+      "file": {
+        "path": "assets/bushveld-winter/img/bushveld_dassie_koppie.aa4e513dc87c.png",
+        "bytes": 12488,
+        "hash": "aa4e513dc87c"
+      },
+      "width": 500,
+      "height": 340
+    },
     "crate/box": {
       "group": "common",
       "origin": "interim",
@@ -216,6 +293,61 @@
       "width": 120,
       "height": 220
     },
+    "kalahari/dead_camelthorn": {
+      "group": "kalahari-summer",
+      "origin": "interim",
+      "file": {
+        "path": "assets/kalahari-summer/img/kalahari_dead_camelthorn.b573b5b28cf3.png",
+        "bytes": 11436,
+        "hash": "b573b5b28cf3"
+      },
+      "width": 400,
+      "height": 670
+    },
+    "kalahari/dune_grass_a": {
+      "group": "kalahari-summer",
+      "origin": "interim",
+      "file": {
+        "path": "assets/kalahari-summer/img/kalahari_dune_grass_a.ad6441954b03.png",
+        "bytes": 23685,
+        "hash": "ad6441954b03"
+      },
+      "width": 360,
+      "height": 380
+    },
+    "kalahari/dune_grass_b": {
+      "group": "kalahari-summer",
+      "origin": "interim",
+      "file": {
+        "path": "assets/kalahari-summer/img/kalahari_dune_grass_b.4ea46447be6d.png",
+        "bytes": 22989,
+        "hash": "4ea46447be6d"
+      },
+      "width": 380,
+      "height": 380
+    },
+    "kalahari/weaver_camelthorn": {
+      "group": "kalahari-summer",
+      "origin": "interim",
+      "file": {
+        "path": "assets/kalahari-summer/img/kalahari_weaver_camelthorn.9d50ba591d2a.png",
+        "bytes": 11442,
+        "hash": "9d50ba591d2a"
+      },
+      "width": 500,
+      "height": 740
+    },
+    "kalahari/windpomp_sign": {
+      "group": "kalahari-summer",
+      "origin": "interim",
+      "file": {
+        "path": "assets/kalahari-summer/img/kalahari_windpomp_sign.653633271428.png",
+        "bytes": 5064,
+        "hash": "653633271428"
+      },
+      "width": 204,
+      "height": 410
+    },
     "karoo/aloe_a": {
       "group": "karoo-autumn",
       "origin": "interim",
@@ -294,6 +426,116 @@
       "height": 560,
       "originX": 0.7258064516129032,
       "originY": 0.375
+    },
+    "okavango/hippo": {
+      "group": "okavango-spring",
+      "origin": "interim",
+      "file": {
+        "path": "assets/okavango-spring/img/okavango_hippo.b7ceeda6fdd6.png",
+        "bytes": 4181,
+        "hash": "b7ceeda6fdd6"
+      },
+      "width": 320,
+      "height": 190
+    },
+    "okavango/lily_frog": {
+      "group": "okavango-spring",
+      "origin": "interim",
+      "file": {
+        "path": "assets/okavango-spring/img/okavango_lily_frog.0d9922ad856e.png",
+        "bytes": 3787,
+        "hash": "0d9922ad856e"
+      },
+      "width": 180,
+      "height": 200
+    },
+    "okavango/mokoro_pole": {
+      "group": "okavango-spring",
+      "origin": "interim",
+      "file": {
+        "path": "assets/okavango-spring/img/okavango_mokoro_pole.083e8f113480.png",
+        "bytes": 3229,
+        "hash": "083e8f113480"
+      },
+      "width": 182,
+      "height": 400
+    },
+    "okavango/papyrus_a": {
+      "group": "okavango-spring",
+      "origin": "interim",
+      "file": {
+        "path": "assets/okavango-spring/img/okavango_papyrus_a.fd3fb4c5bddb.png",
+        "bytes": 23493,
+        "hash": "fd3fb4c5bddb"
+      },
+      "width": 440,
+      "height": 480
+    },
+    "okavango/papyrus_b": {
+      "group": "okavango-spring",
+      "origin": "interim",
+      "file": {
+        "path": "assets/okavango-spring/img/okavango_papyrus_b.b5434c159e9d.png",
+        "bytes": 23953,
+        "hash": "b5434c159e9d"
+      },
+      "width": 460,
+      "height": 480
+    },
+    "okavango/reeds_a": {
+      "group": "okavango-spring",
+      "origin": "interim",
+      "file": {
+        "path": "assets/okavango-spring/img/okavango_reeds_a.8526489273f9.png",
+        "bytes": 28189,
+        "hash": "8526489273f9"
+      },
+      "width": 380,
+      "height": 350
+    },
+    "okavango/reeds_b": {
+      "group": "okavango-spring",
+      "origin": "interim",
+      "file": {
+        "path": "assets/okavango-spring/img/okavango_reeds_b.cb9bc2680b49.png",
+        "bytes": 29325,
+        "hash": "cb9bc2680b49"
+      },
+      "width": 360,
+      "height": 340
+    },
+    "okavango/reeds_c": {
+      "group": "okavango-spring",
+      "origin": "interim",
+      "file": {
+        "path": "assets/okavango-spring/img/okavango_reeds_c.5d231da9003b.png",
+        "bytes": 27116,
+        "hash": "5d231da9003b"
+      },
+      "width": 390,
+      "height": 350
+    },
+    "okavango/reeds_d": {
+      "group": "okavango-spring",
+      "origin": "interim",
+      "file": {
+        "path": "assets/okavango-spring/img/okavango_reeds_d.57d22175085c.png",
+        "bytes": 26857,
+        "hash": "57d22175085c"
+      },
+      "width": 360,
+      "height": 340
+    },
+    "okavango/sausage_tree": {
+      "group": "okavango-spring",
+      "origin": "interim",
+      "file": {
+        "path": "assets/okavango-spring/img/okavango_sausage_tree.32567bb6c627.png",
+        "bytes": 16302,
+        "hash": "32567bb6c627"
+      },
+      "width": 410,
+      "height": 800
     },
     "omen/glare": {
       "group": "common",
@@ -418,6 +660,286 @@
     }
   },
   "layers": {
+    "bushveld/far_ridge": {
+      "group": "bushveld-winter",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/bushveld-winter/layers/far_ridge-0.8c38a188c818.png",
+          "bytes": 37990,
+          "hash": "8c38a188c818"
+        },
+        {
+          "path": "assets/bushveld-winter/layers/far_ridge-1.1dc388191de4.png",
+          "bytes": 18322,
+          "hash": "1dc388191de4"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 380,
+      "height": 280
+    },
+    "bushveld/far_veld": {
+      "group": "bushveld-winter",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/bushveld-winter/layers/far_veld-0.321b13cb4d08.png",
+          "bytes": 14757,
+          "hash": "321b13cb4d08"
+        },
+        {
+          "path": "assets/bushveld-winter/layers/far_veld-1.8985e4ec67c3.png",
+          "bytes": 11513,
+          "hash": "8985e4ec67c3"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 548,
+      "height": 232
+    },
+    "bushveld/foreground": {
+      "group": "bushveld-winter",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/bushveld-winter/layers/foreground-0.c07085ea13e2.png",
+          "bytes": 9609,
+          "hash": "c07085ea13e2"
+        },
+        {
+          "path": "assets/bushveld-winter/layers/foreground-1.f6ebc52c1700.png",
+          "bytes": 10414,
+          "hash": "f6ebc52c1700"
+        },
+        {
+          "path": "assets/bushveld-winter/layers/foreground-2.5e78502525ad.png",
+          "bytes": 10624,
+          "hash": "5e78502525ad"
+        },
+        {
+          "path": "assets/bushveld-winter/layers/foreground-3.67c0d9056c65.png",
+          "bytes": 126,
+          "hash": "67c0d9056c65"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 880,
+      "height": 200
+    },
+    "bushveld/mid": {
+      "group": "bushveld-winter",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/bushveld-winter/layers/mid-0.63881691600c.png",
+          "bytes": 45797,
+          "hash": "63881691600c"
+        },
+        {
+          "path": "assets/bushveld-winter/layers/mid-1.e05519c7d7c8.png",
+          "bytes": 49873,
+          "hash": "e05519c7d7c8"
+        },
+        {
+          "path": "assets/bushveld-winter/layers/mid-2.a9ee2f50f751.png",
+          "bytes": 10475,
+          "hash": "a9ee2f50f751"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 630,
+      "height": 280
+    },
+    "bushveld/near": {
+      "group": "bushveld-winter",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/bushveld-winter/layers/near-0.a7b95c84fa47.png",
+          "bytes": 56010,
+          "hash": "a7b95c84fa47"
+        },
+        {
+          "path": "assets/bushveld-winter/layers/near-1.2371b5c8f58c.png",
+          "bytes": 57330,
+          "hash": "2371b5c8f58c"
+        },
+        {
+          "path": "assets/bushveld-winter/layers/near-2.584e54045df7.png",
+          "bytes": 46181,
+          "hash": "584e54045df7"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 820,
+      "height": 260
+    },
+    "bushveld/sky": {
+      "group": "bushveld-winter",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/bushveld-winter/layers/sky-0.991f9bf9ce18.png",
+          "bytes": 11943,
+          "hash": "991f9bf9ce18"
+        },
+        {
+          "path": "assets/bushveld-winter/layers/sky-1.e78a3942b11f.png",
+          "bytes": 5852,
+          "hash": "e78a3942b11f"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 0,
+      "height": 1080
+    },
+    "kalahari/far_ridge": {
+      "group": "kalahari-summer",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/kalahari-summer/layers/far_ridge-0.6467440ca1e6.png",
+          "bytes": 15099,
+          "hash": "6467440ca1e6"
+        },
+        {
+          "path": "assets/kalahari-summer/layers/far_ridge-1.e6f1a29e3435.png",
+          "bytes": 7567,
+          "hash": "e6f1a29e3435"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 380,
+      "height": 280
+    },
+    "kalahari/far_veld": {
+      "group": "kalahari-summer",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/kalahari-summer/layers/far_veld-0.3b34394e91de.png",
+          "bytes": 9252,
+          "hash": "3b34394e91de"
+        },
+        {
+          "path": "assets/kalahari-summer/layers/far_veld-1.b3cb2ffd710f.png",
+          "bytes": 7878,
+          "hash": "b3cb2ffd710f"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 548,
+      "height": 232
+    },
+    "kalahari/foreground": {
+      "group": "kalahari-summer",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/kalahari-summer/layers/foreground-0.1860e7a62cac.png",
+          "bytes": 17131,
+          "hash": "1860e7a62cac"
+        },
+        {
+          "path": "assets/kalahari-summer/layers/foreground-1.99a397a5a133.png",
+          "bytes": 21308,
+          "hash": "99a397a5a133"
+        },
+        {
+          "path": "assets/kalahari-summer/layers/foreground-2.3e7bee9c2268.png",
+          "bytes": 5196,
+          "hash": "3e7bee9c2268"
+        },
+        {
+          "path": "assets/kalahari-summer/layers/foreground-3.67c0d9056c65.png",
+          "bytes": 126,
+          "hash": "67c0d9056c65"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 880,
+      "height": 200
+    },
+    "kalahari/mid": {
+      "group": "kalahari-summer",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/kalahari-summer/layers/mid-0.4f55fadfd474.png",
+          "bytes": 41957,
+          "hash": "4f55fadfd474"
+        },
+        {
+          "path": "assets/kalahari-summer/layers/mid-1.024e448c7fe1.png",
+          "bytes": 42663,
+          "hash": "024e448c7fe1"
+        },
+        {
+          "path": "assets/kalahari-summer/layers/mid-2.23cccab77312.png",
+          "bytes": 7929,
+          "hash": "23cccab77312"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 630,
+      "height": 280
+    },
+    "kalahari/near": {
+      "group": "kalahari-summer",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/kalahari-summer/layers/near-0.bfeca99d541a.png",
+          "bytes": 49221,
+          "hash": "bfeca99d541a"
+        },
+        {
+          "path": "assets/kalahari-summer/layers/near-1.b0bd97f2b87a.png",
+          "bytes": 48260,
+          "hash": "b0bd97f2b87a"
+        },
+        {
+          "path": "assets/kalahari-summer/layers/near-2.a75ac389e57e.png",
+          "bytes": 41267,
+          "hash": "a75ac389e57e"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 820,
+      "height": 260
+    },
+    "kalahari/sky": {
+      "group": "kalahari-summer",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/kalahari-summer/layers/sky-0.387a7b1c8b95.png",
+          "bytes": 42203,
+          "hash": "387a7b1c8b95"
+        },
+        {
+          "path": "assets/kalahari-summer/layers/sky-1.b6e5defa5009.png",
+          "bytes": 17564,
+          "hash": "b6e5defa5009"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 0,
+      "height": 1080
+    },
     "karoo/far_ridge": {
       "group": "karoo-autumn",
       "origin": "interim",
@@ -551,6 +1073,146 @@
           "path": "assets/karoo-autumn/layers/sky-1.7f3319e11c6d.png",
           "bytes": 6194,
           "hash": "7f3319e11c6d"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 0,
+      "height": 1080
+    },
+    "okavango/far_ridge": {
+      "group": "okavango-spring",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/okavango-spring/layers/far_ridge-0.c5800049f8e2.png",
+          "bytes": 39686,
+          "hash": "c5800049f8e2"
+        },
+        {
+          "path": "assets/okavango-spring/layers/far_ridge-1.00c52970fab7.png",
+          "bytes": 21551,
+          "hash": "00c52970fab7"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 380,
+      "height": 280
+    },
+    "okavango/far_veld": {
+      "group": "okavango-spring",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/okavango-spring/layers/far_veld-0.16bd6dff0576.png",
+          "bytes": 10417,
+          "hash": "16bd6dff0576"
+        },
+        {
+          "path": "assets/okavango-spring/layers/far_veld-1.1d55cd1e6a6b.png",
+          "bytes": 8084,
+          "hash": "1d55cd1e6a6b"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 548,
+      "height": 232
+    },
+    "okavango/foreground": {
+      "group": "okavango-spring",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/okavango-spring/layers/foreground-0.330e57af415f.png",
+          "bytes": 8159,
+          "hash": "330e57af415f"
+        },
+        {
+          "path": "assets/okavango-spring/layers/foreground-1.3e23ffa9acd6.png",
+          "bytes": 12261,
+          "hash": "3e23ffa9acd6"
+        },
+        {
+          "path": "assets/okavango-spring/layers/foreground-2.58a7b2b1ff17.png",
+          "bytes": 17662,
+          "hash": "58a7b2b1ff17"
+        },
+        {
+          "path": "assets/okavango-spring/layers/foreground-3.d1f33d8d2c82.png",
+          "bytes": 1408,
+          "hash": "d1f33d8d2c82"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 880,
+      "height": 200
+    },
+    "okavango/mid": {
+      "group": "okavango-spring",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/okavango-spring/layers/mid-0.949e2c716d94.png",
+          "bytes": 40405,
+          "hash": "949e2c716d94"
+        },
+        {
+          "path": "assets/okavango-spring/layers/mid-1.9b596a37a334.png",
+          "bytes": 40635,
+          "hash": "9b596a37a334"
+        },
+        {
+          "path": "assets/okavango-spring/layers/mid-2.dd215d6a917d.png",
+          "bytes": 7577,
+          "hash": "dd215d6a917d"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 630,
+      "height": 280
+    },
+    "okavango/near": {
+      "group": "okavango-spring",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/okavango-spring/layers/near-0.129ded0ab535.png",
+          "bytes": 60099,
+          "hash": "129ded0ab535"
+        },
+        {
+          "path": "assets/okavango-spring/layers/near-1.15cd485f9193.png",
+          "bytes": 61158,
+          "hash": "15cd485f9193"
+        },
+        {
+          "path": "assets/okavango-spring/layers/near-2.eb0178489429.png",
+          "bytes": 46462,
+          "hash": "eb0178489429"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 820,
+      "height": 260
+    },
+    "okavango/sky": {
+      "group": "okavango-spring",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/okavango-spring/layers/sky-0.a9b2a4f17420.png",
+          "bytes": 19157,
+          "hash": "a9b2a4f17420"
+        },
+        {
+          "path": "assets/okavango-spring/layers/sky-1.ffe8f372ad12.png",
+          "bytes": 6188,
+          "hash": "ffe8f372ad12"
         }
       ],
       "tileWidth": 2048,
