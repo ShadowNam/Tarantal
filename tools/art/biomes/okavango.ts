@@ -174,7 +174,11 @@ function lilyPad(
   pen: Pen,
   flower: string | null,
 ): string {
-  const d = `M${r2(x)} ${r2(y)}L${r2(x + r)} ${r2(y - r * 0.08)}A${r2(r)} ${r2(r * 0.35)} 0 1 1 ${r2(x + r * 0.9)} ${r2(y + r * 0.14)}Z`;
+  // A centred pad with a notch on the right: the long way round from −14° to +14°.
+  const a1 = (-14 * Math.PI) / 180;
+  const a2 = (14 * Math.PI) / 180;
+  const ry = r * 0.35;
+  const d = `M${r2(x)} ${r2(y)}L${r2(x + r * Math.cos(a1))} ${r2(y + ry * Math.sin(a1))}A${r2(r)} ${r2(ry)} 0 1 0 ${r2(x + r * Math.cos(a2))} ${r2(y + ry * Math.sin(a2))}Z`;
   const out = [
     inked(d, t.fill, pen.ink, pen.w),
     flat(ellipseD(x - r * 0.3, y - r * 0.08, r * 0.35, r * 0.08), t.light),
@@ -488,14 +492,14 @@ function reeds(seed: number) {
     );
     for (const k of order) {
       const f = k / (n - 1) - 0.5;
-      const hh = h * (1.2 + ctx.rnd() * 0.5) * (1 - Math.abs(f) * 0.5);
+      const hh = Math.min(h * (1.2 + ctx.rnd() * 0.5) * (1 - Math.abs(f) * 0.5), h + 80); // texture room above the base is h + 120 (pad), less the plume
       const stem = k % 3 === 0 ? shade(ctx.c('reed'), -0.15) : ctx.c('reed');
       parts.push(
         reed(
-          f * w * 0.9,
+          f * w * 0.8,
           base,
           hh,
-          f * w * 0.5 + (ctx.rnd() - 0.5) * 30,
+          f * w * 0.25 + (ctx.rnd() - 0.5) * 20,
           stem,
           ctx.c('plume'),
           pen,
@@ -799,7 +803,7 @@ function hippo(ctx: PropCtx): string {
   );
   return g(
     {},
-    inked(ellipseD(0, 16, 156, 24), water.fill, pen.ink, 3),
+    inked(ellipseD(0, 16, 146, 22), water.fill, pen.ink, 3),
     inked(hump, skin.fill, pen.ink, pen.w),
     flat(ellipseD(-50, -22, 40, 6), skin.light),
     inked(head, skin.fill, pen.ink, pen.w),
@@ -825,18 +829,18 @@ function hippo(ctx: PropCtx): string {
     flat(
       smoothD(
         [
-          [-156, 16],
-          [156, 16],
-          [156, 40],
-          [-156, 40],
+          [-146, 16],
+          [146, 16],
+          [146, 36],
+          [-146, 36],
         ],
         true,
         0.2,
       ),
       water.fill,
     ),
-    line('M-150 18q30 -6 60 0t60 0t60 0t60 0t60 0', { ink: water.light, w: 3 }),
-    line('M-160 30q20 6 40 0M100 34q20 6 40 0', { ink: water.dark, w: 2.5 }),
+    line('M-140 18q28 -6 56 0t56 0t56 0t56 0t56 0', { ink: water.light, w: 3 }),
+    line('M-136 30q20 6 40 0M96 32q20 6 40 0', { ink: water.dark, w: 2.5 }),
   );
 }
 
@@ -848,9 +852,9 @@ function lilyFrog(ctx: PropCtx): string {
   const frog = tone(ctx.c('frog'), 0.25, 0.3);
   return g(
     {},
-    inked(ellipseD(0, 8, 84, 22), water.fill, pen.ink, 3),
+    inked(ellipseD(-4, 8, 76, 20), water.fill, pen.ink, 3),
     line('M-70 14q14 -5 28 0M40 18q14 -5 28 0', { ink: water.light, w: 2.5 }),
-    lilyPad(0, 2, 58, pad, pen, null),
+    lilyPad(-4, 2, 54, pad, pen, null),
     // Lily flower on its own stalk behind, the frog sitting on the pad.
     ...[-40, -15, 10, 35].map((a) =>
       inked(
@@ -964,7 +968,7 @@ function papyrusClump(seed: number) {
 export const OKAVANGO_PLAN: BiomeArtPlan = {
   biome: 'okavango-spring',
   layers: {
-    sky: { top: 0, height: 1080, draw: sky },
+    sky: { top: 0, height: 1080, encode: 'png', draw: sky },
     far_ridge: { top: 380, height: 280, draw: farRidge },
     far_veld: { top: 548, height: 232, draw: farVeld },
     mid: { top: 630, height: 280, draw: mid },

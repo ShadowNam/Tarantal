@@ -600,7 +600,7 @@ function dassieKoppie(ctx: PropCtx): string {
     groundShadow(0, 82, 220, 16),
     boulderPile(ctx.rnd, 60, 40, 140, 150, t, pen, 3),
     dassie,
-    boulderPile(ctx.rnd, -40, 92, 380, 150, t, pen, 6),
+    boulderPile(ctx.rnd, -20, 92, 320, 150, t, pen, 6),
     tuft(ctx.rnd, -180, 92, 46, tone(ctx.c('grass'), 0.22, 0.25), pen),
     tuft(ctx.rnd, 170, 94, 40, tone(ctx.c('grassLight'), 0.22, 0.2), pen),
   );
@@ -732,7 +732,7 @@ function redAloes(rosettes: readonly (readonly [number, number, number])[]) {
 export const BUSHVELD_PLAN: BiomeArtPlan = {
   biome: 'bushveld-winter',
   layers: {
-    sky: { top: 0, height: 1080, draw: sky },
+    sky: { top: 0, height: 1080, encode: 'png', draw: sky },
     far_ridge: { top: 380, height: 280, draw: farRidge },
     far_veld: { top: 548, height: 232, draw: farVeld },
     mid: { top: 630, height: 280, draw: mid },

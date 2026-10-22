@@ -25,6 +25,7 @@ import { el, ellipseD, g, inked, polyD, r2, smoothD } from '../svg';
 import { bush, groundBand, groundShadow, softSky } from './karoo';
 import { foregroundClumps, midScrub, nearGrass } from './common';
 import { thunderhead } from '../skies';
+import { tuftOf } from '../vegetation';
 
 // --- shapes --------------------------------------------------------------------------------
 
@@ -634,9 +635,20 @@ function duneGrass(seed: number) {
     const a = tone(ctx.c('grass'), 0.22, 0.25);
     const b = tone(ctx.c('grassPale'), 0.22, 0.2);
     for (let k = 0; k < 7; k++) {
-      const x = -120 + k * 40 + (ctx.rnd() - 0.5) * 16;
-      const hh = 150 + ctx.rnd() * 90 - Math.abs(k - 3) * 18;
-      parts.push(tuft(ctx.rnd, x, 120, hh, k % 2 === seed % 2 ? a : b, pen, 9));
+      const x = -96 + k * 32 + (ctx.rnd() - 0.5) * 12;
+      const hh = 130 + ctx.rnd() * 60 - Math.abs(k - 3) * 16;
+      parts.push(
+        tuftOf(
+          k % 3 === 0 ? 'upright' : 'fan',
+          ctx.rnd,
+          x,
+          120,
+          hh,
+          k % 2 === seed % 2 ? a : b,
+          pen,
+          ctx.c('seed'),
+        ),
+      );
     }
     // Feathery seed heads (Stipagrostis), pale.
     for (let k = 0; k < 6; k++) {
@@ -652,7 +664,7 @@ function duneGrass(seed: number) {
 export const KALAHARI_PLAN: BiomeArtPlan = {
   biome: 'kalahari-summer',
   layers: {
-    sky: { top: 0, height: 1080, draw: sky },
+    sky: { top: 0, height: 1080, encode: 'png', draw: sky },
     far_ridge: { top: 380, height: 280, draw: farRidge },
     far_veld: { top: 548, height: 232, draw: farVeld },
     mid: { top: 630, height: 280, draw: mid },
