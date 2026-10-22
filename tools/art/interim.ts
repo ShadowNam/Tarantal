@@ -323,7 +323,9 @@ if (process.argv.includes('--sheets')) {
     for (const plan of BIOME_PLANS) {
       const biome = content.biomes.find((b) => b.id === plan.biome);
       if (biome === undefined || (oneBiome !== undefined && plan.biome !== oneBiome)) continue;
-      for (const [name, bytes] of biomeSheets(cfg, biome)) {
+      if (!(await loadBiomeArt(biome.id))) continue;
+      const m = createPlaceholderManifest(content, biome);
+      for (const [name, bytes] of biomeSheets(cfg, biome, (k) => m.origin(k))) {
         put(join(out, name), bytes);
         console.log(`docs/art-preview/${name}`);
       }

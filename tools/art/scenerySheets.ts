@@ -64,6 +64,8 @@ export function spriteSheet(cfg: ArtConfig): [string, Uint8Array] {
 export function biomeSheets(
   cfg: ArtConfig,
   biome: Biome,
+  /** Placeholder origin per prop key (props keep it; their sidecars only say when it moved). */
+  originOf: (key: string) => { x: number; y: number },
   stamps: (cx: number) => readonly Stamp[] = (cx) => birdStamps(biome, cx),
 ): [string, Uint8Array][] {
   const props = biome.props.map((p) => sprite(p.asset)).filter((f): f is Rgba => f !== null);
@@ -92,7 +94,7 @@ export function biomeSheets(
     ),
   ]);
   const pans = [960, 2560, 4160].map((cx) =>
-    shrink(composeScene(biome, cx, 1920, stamps(cx)), 960),
+    shrink(composeScene(biome, cx, 1920, stamps(cx), originOf), 960),
   );
   out.push([
     `scenery-${short}-pan.png`,

@@ -70,6 +70,8 @@ export function composeScene(
   cx: number,
   width = 1920,
   stamps: readonly Stamp[] = [],
+  /** The placeholder's origin (fractions) for props whose sidecar gives none. */
+  originOf: (key: string) => { x: number; y: number } = () => ({ x: 0.5, y: 0.5 }),
 ): Rgba {
   const out = blank(width, 1080);
   const order = [...biome.layers].sort((a, b) => a.scrollFactor - b.scrollFactor);
@@ -86,8 +88,9 @@ export function composeScene(
       if (!existsSync(p)) continue;
       const img = read(p);
       const side = json(p.replace(/\.png$/, '.json'));
-      const ox = (side?.originX ?? 0.5) * img.width;
-      const oy = (side?.originY ?? 0.5) * img.height;
+      const base = originOf(prop.asset);
+      const ox = (side?.originX ?? base.x) * img.width;
+      const oy = (side?.originY ?? base.y) * img.height;
       over(out, img, rootX + prop.u * coreWidth(layer.scrollFactor) - ox, prop.y - oy);
     }
     for (const s of stamps)

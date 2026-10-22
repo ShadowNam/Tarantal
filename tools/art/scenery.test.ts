@@ -127,13 +127,14 @@ describe('interim sprites and props keep the placeholder geometry (D-031)', () =
       }
     }, 120_000);
 
-    it(`${plan.biome}: sky layer at the delivered width`, () => {
+    it(`${plan.biome}: every layer at the delivered width and its plan's band`, () => {
       const biome = content.biomes.find((b) => b.id === plan.biome);
-      const sky = biome?.layers.find((l) => l.id === 'sky');
-      if (sky === undefined) throw new Error('no sky');
-      const img = renderLayer(cfg, plan, sky);
-      expect(img.width).toBe(coreWidth(sky.scrollFactor) + LAYER_BLEED_PX * 2);
-      expect(img.height).toBe(plan.layers['sky']?.height);
-    }, 60_000);
+      if (biome === undefined) throw new Error(plan.biome);
+      for (const layer of biome.layers) {
+        const img = renderLayer(cfg, plan, layer);
+        expect(img.width, layer.id).toBe(coreWidth(layer.scrollFactor) + LAYER_BLEED_PX * 2);
+        expect(img.height, layer.id).toBe(plan.layers[layer.id]?.height);
+      }
+    }, 120_000);
   }
 });
