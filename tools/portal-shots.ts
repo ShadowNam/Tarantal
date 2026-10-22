@@ -40,6 +40,13 @@ async function serve(): Promise<ChildProcess> {
 }
 
 async function ready(page: Page, query: string): Promise<void> {
+  // A fixed quality tier ("auto" follows the machine's cores): high = full render scale and
+  // bloom, the best look for store images, and the same images on every machine.
+  await page.addInitScript(() => {
+    const key = 'tm.e2e.save.v1';
+    if (localStorage.getItem(key) === null)
+      localStorage.setItem(key, JSON.stringify({ v: 1, settings: { quality: 'high' } }));
+  });
   await page.goto(`${ORIGIN}/${query}`);
   await page.waitForFunction(
     () => window.__TM__?.ready === true && window.__TM__.fontsReady,
