@@ -981,6 +981,58 @@ passing on the flagged CI build. (5) *Portal shots:* `npm run portal:shots` buil
 so the store title and tally look as a player sees them; `npm run release` rebuilds `dist/`
 without it before zipping.
 
+**D-029 Graphics pass 1: interim guns and tarentaal (22 Oct 2026):** the user chose *option C*: a
+much better **code-drawn interim** art set now, human illustrator art later, swapped in key by key
+through the M10 pipeline. This pass covers the six first-person guns and the tarentaal with its
+variants. Stack of PRs: `gfx1-generator` (A) ← `gfx1-guns` (B) ← `gfx1-tarentaal` (C); the v1.0.1
+stack (D-028) runs in parallel and is merged in when it lands. Sim, `content/` and golden replays
+are untouched: art never changes hitboxes or gameplay.
+*§1 — Authoring as source files:* (1) *Route:* `tools/art/` builds SVG strings from pure
+functions (pose + palette → markup) and rasterises them with `@resvg/resvg-js` (devDependency;
+Rust/tiny-skia, no GPU and no browser, so it runs the same on this box and in CI). Seeded PRNG for
+dots and grain; hand-drawn line wobble is an `feTurbulence` + `feDisplacementMap` filter.
+Rejected: Playwright's Chromium (slow start, GPU-path differences) and `@napi-rs/canvas` (another
+native canvas for no gain over SVG). (2) *Output:* `npm run art:interim` writes `art-source/`
+exactly as a human delivery would (docs/06): same folders, frame boxes, origins, clip names and
+`rig.json`, masters at 2× the @1x frame. `npm run assets:pack` then packs them unchanged. A folder
+whose `rig.json` is not marked interim is a human delivery and the generator never touches it.
+(3) *Constants:* palettes (the bible's exact hex), dot fields, wobble, clip sets and gun colours
+live in `tools/art/config.json` (Zod-checked), **not** `content/`, so `contentHash` is
+unchanged. Line weights come from `content/scoring.json planes.lineWeightPx` and the body/head
+sizes from `content/birds.json` hitboxes (read only). Shape coordinates stay in the drawing code,
+as in the runtime placeholder factory. (4) *Masters are palette PNGs* (≤ 256 colours): the art is
+regenerated from code, so the generator is the real source; this keeps `art-source/` about 4×
+smaller in git.
+*§2 — Interim, not final:* (1) *Provenance:* `rig.json` and sprite sidecars take
+`"origin": "interim"`; the pack tool copies it into each asset-index entry (absent = final).
+(2) *Audit:* `npm run assets:audit` lists three groups — FINAL, INTERIM, PLACEHOLDER — and
+`--strict` (the launch gate) fails while any interim **or** placeholder key remains. The game's
+test hook reports `interim` as a status too. (3) *Legal note (bible §2):* the US Copyright Office
+(Jan 2025) found wholly AI-generated material not copyrightable, and Steam and the app stores
+require AI-content disclosure. The interim set is drawn by code written for this repo (no image
+model, no traced references), so it carries no AI-art disclosure duty; it is still not the
+launch art: final characters should be human-authored with source files kept as evidence of
+authorship, which is why `--strict` fails on interim keys.
+*§3 — Pipeline additions (also useful to the illustrator):* (1) *Per-plane bird masters*
+(`birds/<creature>/planes/<plane>/<clip>/NN.png`) replace the shared master on that plane:
+line weight by depth (bible §1.4) and the far plane's fewer, larger dots are drawn, not scaled.
+(2) *Trimmed atlas frames* for mid/far birds and guns (Phaser trimmed-frame JSON keeps the full
+source size, so origins and hitbox alignment don't move); near stays untrimmed because pop-ups are
+cropped at the grass line in frame px. (3) `encode: "png8"` and `x2: false` rig options.
+(4) *Animated gun rigs:* `guns/<weaponId>/{idle,fire,reload,flash}/NN.png` + `rig.json`
+(grip `originX/Y`, muzzle `tipX/Y`, per-clip fps/loop) in a new optional `guns` section of the
+asset index (older indexes still parse). The frame box stays the placeholder's 420 × 520 with the
+grip at the bottom centre and the muzzle at (210, 20), so `WeaponView`'s layout, lean, kick and
+flash position are unchanged; a single-image `sprites/gun/<id>.png` delivery still works.
+*§4 — @1x only:* the canvas is design size × `renderScale`, and `renderScale` ≤ 1 on every tier
+with no camera zoom above 1, so a @1x frame is already drawn 1 texture px : 1 canvas px on the
+high tier. A @2x set would add no visible detail but count 4× in the size budget (worst-case
+twin) and GPU memory. Interim rigs set `x2: false`; the 2× masters stay in `art-source/` so a
+later render-scale change only needs a re-pack.
+*§5 — Size levers, in order:* palette PNG pages, @1x only, variants drawing only the clips they
+play and leaning on the runtime fallback chain (docs/06 §3), and lossy WebP only if still over
+(not needed). Measured: the full tarentaal (3 planes, 140 frames) packs to 0.78 MB.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
