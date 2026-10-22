@@ -298,6 +298,11 @@ crate candidate), Kleilat mud-flinger (non-lethal gag; v1.x), .600 Nitro "Grofge
 big-game rifle reads wrong for a cartoon bird game), sawed-off coach gun (crime connotation, overlaps
 pump), Brno .22 bolt-action (overlaps Windbuks), Boerewors bolas/net gun (v1.x conservation mode).
 
+**Planned (approved 22 Oct 2026, not built):** a generic .22 bolt-action (Die Twee-Twee, v1.3) and a
+long-range rifle (Die Langloop, v1.4) come back with hold-to-zoom sights and a fourth, distant plane;
+the zoom and the new plane give the .22 its own job. Plan: `docs/08-PROPOSAL-LONG-RANGE-AND-DAILY-MAPS.md`.
+This section changes when they are built.
+
 ## 11. Biomes, seasons and weather
 
 The Season Run follows a **South African hunting year**: guineafowl hunting season has historically
