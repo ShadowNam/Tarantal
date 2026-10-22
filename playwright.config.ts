@@ -86,7 +86,8 @@ export default defineConfig({
   webServer: {
     command: `${buildEnv}npm run build && ${buildEnv}npx vite preview --port 4173 --strictPort`,
     url: 'http://localhost:4173',
-    reuseExistingServer: !isCI,
+    // A special build (public, portal) must never reuse a server left running with another one.
+    reuseExistingServer: !isCI && !publicBuild && e2ePlatform === 'web',
     timeout: 120_000,
   },
 });

@@ -66,7 +66,7 @@ const report = checkCrossRefs(parsed.bundle, {
 });
 
 const errors = [...report.errors];
-// v1.0.1 (D-028 §2): the epoch lives only in meta/daily.json — no copy in game or tool code.
+// v1.0.1 (D-028 §2): the epoch lives only in meta/daily.json — no copy in game, tool or e2e code.
 const codeFiles = (dir: string): string[] =>
   readdirSync(join(root, dir), { withFileTypes: true }).flatMap((d) =>
     d.isDirectory()
@@ -76,7 +76,7 @@ const codeFiles = (dir: string): string[] =>
         : [],
   );
 const copies = findEpochCopies(
-  [...codeFiles('src'), ...codeFiles('tools')].map((path) => ({
+  [...codeFiles('src'), ...codeFiles('tools'), ...codeFiles('tests')].map((path) => ({
     path,
     text: readFileSync(join(root, path), 'utf8'),
   })),
