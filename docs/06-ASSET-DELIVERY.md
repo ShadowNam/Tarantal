@@ -231,7 +231,7 @@ above are separate.
 | `bark.next_time` | quotaMissed | Not this time. The veld is patient. | Nie hierdie keer nie. Die veld is geduldig. |
 | `bark.not_that_one` | nonTarget | Not that one! | Nie daai een nie! |
 | `bark.on_fire` | frenzyTop | Now you're on fire! | Nou brand jy! |
-| `bark.quota_met` | quotaMet | That's the quota! Now show off. | Dis die kwota! Wys nou af. |
+| `bark.quota_met` | quotaMet | That's the quota! Now show off. | Dis die kwota! Nou kan jy spog. |
 | `bark.rain` | rain | Rain! Now the birds will run. | Reën! Nou gaan die voëls hardloop. |
 | `bark.run_won` | runWon | The whole year! Bosveld Legend, my kind! | Die hele jaar! Bosveld-legende, my kind! |
 | `bark.slaap` | idle | Are you asleep, my kind? | Slaap jy, my kind? |
@@ -239,13 +239,14 @@ above are separate.
 | `bark.stampede` | stampede | Stampede! Hold on to your hat! | Stormloop! Hou jou hoed vas! |
 | `bark.sun_going` | lastSeconds | Hurry now, the sun's going down! | Maak gou, die son sak! |
 | `bark.ten_seconds` | lastSeconds | Ten seconds! Make them count! | Tien sekondes! Laat dit tel! |
-| `bark.twee_vlieë` | twoFlies | Twee vlieë met een klap! | Twee vlieë met een klap! |
+| `bark.twee_vliee` | twoFlies | Twee vlieë met een klap! | Twee vlieë met een klap! |
 | `bark.up_up` | flush | Up, up, up! | Op, op, op! |
 | `bark.warming_up` | frenzyTop | You're warming up nicely! | Jy raak lekker warm! |
 | `bark.whole_lot` | wholeFlock | The whole lot! Jinne! | Die hele lot! Jinne! |
 | `bark.wont_shoot` | idle | They won't shoot themselves, you know. | Hulle gaan nie hulself skiet nie, weet jy. |
 
-If more lines are wanted later: add the key to `src/i18n/*.json` and to a trigger's `lines` in
+Keys are ASCII only (the file name must survive macOS and zip normalisation). If more lines
+are wanted later: add the key to `src/i18n/*.json` and to a trigger's `lines` in
 feel.json (`content:validate` checks the key exists); the audit then lists its voice key.
 
 **Size:** the home biome's (Karoo) music and ambience are in the first download, which must stay

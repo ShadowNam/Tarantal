@@ -512,6 +512,13 @@ export class HudScene extends Phaser.Scene {
     this.season?.render(s, events);
     const now = this.time.now;
     this.drawCaptions(events, now, l);
+    // D-028 review: a secret's own bark (shown in the banner below, said by the AudioDirector) is
+    // Oupa's top priority. It claims the bark gap first, so the director picks no generic line
+    // this frame or for the gap after, and a generic bubble still up gives way to the banner.
+    if (this.secretBarkIn(events)) {
+      this.ctx.barks.secret(now);
+      this.bubble?.hide();
+    }
     this.updateBarks(s, events, now, l);
     const banner: string[] = [];
     for (const e of events) {
@@ -807,6 +814,16 @@ export class HudScene extends Phaser.Scene {
       const old = this.pops.pop();
       if (old !== undefined) this.dropPop(old);
     }
+  }
+
+  /** Does a secret with its own bark (biome content) go off or scold this frame? */
+  private secretBarkIn(events: readonly SimEvent[]): boolean {
+    return events.some(
+      (e) =>
+        (e.type === 'secretTriggered' || e.type === 'secretPenalty') &&
+        this.ctx.huntBiome.props.find((p) => p.id === e.propId)?.secret?.reward.barkKey !==
+          undefined,
+    );
   }
 
   /** v1.0.1 (D-028 §3): this frame's events → maybe one bark, shown in the bubble slot. */

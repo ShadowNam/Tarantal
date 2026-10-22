@@ -147,7 +147,7 @@
     "maxPromptChars": 52
   },
   "audio": {
-    "$comment": "M10 AudioDirector (art bible §10, Tech §7): master headroom; music stems crossfade by intensity (build from a fleeing flock or Frenzy ×buildAtFrenzy, stampede in the Stampede) and hold stemHoldMs before calming down; biome changes fade over biomeFadeMs; music ducks under Oupa's barks, at most one bark per barkGapMs.",
+    "$comment": "M10 AudioDirector (art bible §10, Tech §7): master headroom; music stems crossfade by intensity (build from a fleeing flock or Frenzy ×buildAtFrenzy, stampede in the Stampede) and hold stemHoldMs before calming down; biome changes fade over biomeFadeMs; music ducks under Oupa's barks, at most one bark per barkGapMs (kept by the BarkDirector for bubbles and voice alike; a secret's bark claims it, D-028).",
     "masterLevel": 0.6,
     "crossfadeMs": 1200,
     "biomeFadeMs": 1500,
@@ -232,7 +232,7 @@
         "priority": 75,
         "cooldownMs": 0,
         "lines": [
-          "bark.twee_vlieë"
+          "bark.twee_vliee"
         ]
       },
       "quotaMet": {
