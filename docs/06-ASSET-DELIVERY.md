@@ -87,8 +87,8 @@ ink, fewer and larger dots on the far plane).
 "loop": true } }`), `planeClips` (which clips each plane's atlas holds), `"x2": false` (no @2x
 set: the game draws @1x at 1 texture px per canvas px on every tier, D-029 §4), `"encode":
 "png8"` (palette PNG pages, about 3–4× smaller; fine for flat-fill art) and `"origin":
-"interim"` (only for stand-in art; leave it out). Mid and far frames are trimmed to their opaque
-pixels in the atlas; origins don't move.
+"interim"` (only for stand-in art; leave it out). Atlas frames are packed whole (untrimmed):
+Phaser 4.2.1 draws trimmed frames wrongly when they play as an animation (D-029 §3).
 
 **Clips (bible §3.4).** Folder names must be one of these:
 
