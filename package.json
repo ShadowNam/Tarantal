@@ -26,7 +26,8 @@
     "balance": "tsx tools/balance-sim.ts",
     "assets:pack": "tsx tools/pack-atlases.ts",
     "assets:standins": "tsx tools/make-standins.ts",
-    "assets:audit": "tsx tools/asset-audit.ts"
+    "assets:audit": "tsx tools/asset-audit.ts",
+    "fonts:build": "tsx tools/make-fonts.ts"
   },
   "dependencies": {
     "phaser": "4.2.1",
@@ -34,6 +35,8 @@
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
+    "@fontsource/baloo-2": "5.3.0",
+    "@fontsource/bangers": "5.3.0",
     "@playwright/test": "1.56.1",
     "@types/node": "22.20.5",
     "@types/pngjs": "6.0.4",
@@ -42,6 +45,7 @@
     "globals": "17.13.0",
     "pngjs": "7.0.0",
     "prettier": "3.9.10",
+    "subset-font": "2.9.0",
     "tsx": "4.23.15",
     "typescript": "6.0.3",
     "typescript-eslint": "8.72.0",

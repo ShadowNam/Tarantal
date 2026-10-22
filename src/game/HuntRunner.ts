@@ -17,6 +17,8 @@ export interface RunnerOptions {
   readonly recorder?: InputRecorder;
   /** Commands produced every tick (e.g. the camera target from pan inertia). */
   readonly perTick?: () => readonly Command[];
+  /** e2e only (?holdAt=): the sim stops at exactly this tick (visual regression baselines). */
+  readonly holdAtTick?: number;
 }
 
 export interface FrameResult {
@@ -88,6 +90,11 @@ export class HuntRunner {
     return this.sim.result();
   }
 
+  /** The sim reached its e2e hold tick (?holdAt) and stays there. */
+  get held(): boolean {
+    return this.opts.holdAtTick !== undefined && this.sim.tick >= this.opts.holdAtTick;
+  }
+
   advance(dtMs: number): FrameResult {
     const events: SimEvent[] = this.initialEvents;
     this.initialEvents = [];
@@ -108,6 +115,10 @@ export class HuntRunner {
 
     let steps = 0;
     while (this.accumulator >= STEP_MS && steps < this.opts.maxStepsPerFrame) {
+      if (this.opts.holdAtTick !== undefined && this.sim.tick >= this.opts.holdAtTick) {
+        this.accumulator = 0;
+        break;
+      }
       this.accumulator -= STEP_MS;
       const cmds = [...(this.opts.perTick?.() ?? []), ...this.pending];
       this.pending = [];

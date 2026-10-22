@@ -856,6 +856,25 @@ Speed scales how real time feeds `HuntRunner` (`timeScale`), the hunt scene's tw
 animations; particles keep real time. Pause and hunt end behave as usual. (3) *Own save:* capture
 plays on `tm.capture.*` (the e2e namespace wins if both are set), so a trailer session never
 changes a player's bests, streak or Notaboek.
+*PR F — fonts and visual regression:* (1) *Fonts first:* OFL Baloo 2 (600, 800) and Bangers are
+self-hosted, subset to the four language files plus the bible §6 letters (`tools/make-fonts.ts`,
+about 42 KB, counted in the initial download). Baloo 2 is every UI text; weight 900 maps to the
+800 file. Bangers is used only for the onomatopoeia bubbles (KEK!, POOF!), because the menus' fit
+logic is tuned to a rounded sans. Glyphs the fonts lack (★ ⛔ ▶ ✓ ⎙) fall back to the system font
+per glyph. Phaser draws text to canvases once, so `main.ts` waits for the fonts
+(`assets.fontTimeoutMs` 2.5 s) before the game boots; on timeout the system font is used, as
+before. This also makes the screenshots match across machines. (2) *Baselines:*
+- Seven screens on desktop-chromium and pixel7-landscape: title, a hunt held at tick 300, tally,
+  Padstal, both Settings pages and privacy.
+- The hunt uses seed 42 and a new e2e-only `?holdAt=<tick>`: `HuntRunner` stops the sim at
+  exactly that tick, so birds and HUD are identical every run.
+- Every boot pins `?today=` so the Daily number on the title doesn't change.
+- The PWA worker is blocked.
+- Tolerance: `maxDiffPixelRatio` 0.02, colour threshold 0.25, which survives SwiftShader.
+- Baselines live in `tests/e2e/visual-baselines/` (`__screenshots__` is gitignored), and Linux CI
+  is the reference platform.
+- CI runs them in the existing e2e matrix (the spec skips the other profiles).
+- After the art swap: `--update-snapshots`, review the diff, commit (`docs/06` §7).
 *Needs a person:* the illustrator, animator and sound designer deliver per
 `docs/06-ASSET-DELIVERY.md`.
 

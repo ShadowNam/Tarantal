@@ -1078,6 +1078,8 @@ export const FeelSchema = obj({
     indexTimeoutMs: pos,
     /** M10: longest wait for one final file (image, atlas, sound); after it that key falls back. */
     fileTimeoutMs: pos,
+    /** M10: longest wait at boot for the self-hosted fonts; after it text uses the system font. */
+    fontTimeoutMs: pos,
   }),
   platform: obj({
     /** Longest wait for a portal SDK script + init; after it the game runs without the SDK. */

@@ -180,8 +180,8 @@ export default tseslint.config(
     },
   },
   {
-    // Tool config files must default-export.
-    files: ['*.config.ts', '*.config.js'],
+    // Tool config files must default-export; so do type declarations of default-export packages.
+    files: ['*.config.ts', '*.config.js', '**/*.d.ts'],
     rules: { 'no-restricted-syntax': 'off' },
   },
   {
