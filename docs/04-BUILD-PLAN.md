@@ -246,7 +246,60 @@ Open, because they need people:
 
 ---
 
+## v1.1–v1.4 — Long range, sights and daily maps (approved 22 Oct 2026)
+The design is in `docs/08-PROPOSAL-LONG-RANGE-AND-DAILY-MAPS.md`; each milestone moves its part of
+it into the GDD (and Tech doc when the sim changes) with a decision entry. They run in order, after
+graphics pass 2 (D-029 style interim art), one build job each, 1–2 PRs per job (D-030). The product
+owner approves the look (before/after screenshots) before a milestone merges.
+
+## v1.1 — Gun feel: ammo display, crosshairs, interim sound effects
+Scope: per-gun ammo on the HUD, realistic not cartoony (12-gauge shells, diabolo pellets, stones,
+paper cartridges, mielie kernels; .22 and rifle rounds arrive with their guns in v1.3); a crosshair
+per gun that shows its spread (ring, dot, Kettie drop mark, wide ring, jitter); interim code-made
+sound effects for every `sfx/*` key plus per-biome music (calm/build/stampede) and ambience beds,
+through the existing `AudioDirector` recorded-audio path (origin `interim`, replaceable by delivered
+files). Screen and audio only: no sim change, golden replays unchanged.
+Done when: every primary and crate gun shows its own ammo and crosshair in Playwright screenshots on
+desktop, Pixel 7 and iPhone 14 landscape (both states: full and partly spent); mute rules (first
+gesture, `visibilitychange`, pause, ads) still pass; `assets:audit` lists the new keys as interim;
+initial download ≤ 3 MB gzip on all three builds.
+
+## v1.2 — Day-of-week maps and bonus map Verder
+Scope: seven layouts per biome, one per UTC weekday (light/time of day, prop and secret positions,
+flock feeding spots and fly-over routes, weather), as content; Classic and the Daily Hunt play the
+day's layout; the map id travels with the seed in replays, challenge links and the share card (old
+links keep their map); bonus map **Verder** unlocked by beating the map's quota, reset daily, with
+its own best score (saved through `src/meta/storage.ts`).
+Done when: all 28 layouts pass content validation and a per-layout balance report; a replay and a
+challenge link reproduce the same map on desktop and mobile; golden replays updated with the reason
+in the commit; Playwright screenshots of each Karoo weekday layout; the unlock/reset is unit-tested
+across a UTC midnight.
+
+## v1.3 — Long range: the Ver plane, sights and zoom, Die Twee-Twee
+Scope: a fourth sim plane **Ver** (scale 0.10, 50 points; shotgun pellets and Kettie stones fall
+short); rifles fire with hold to zoom, release to fire (hip shot on an early release, cancel by
+right-click or sliding onto the ammo display); sight types iron 1.5× / peep 2× / small scope 4× with
+raise times and sway (own RNG stream, breath-hold settle after ~0.5 s for ~3 s); raising the sight
+and the zoom level are recorded commands, and a zoomed tap maps to the same world point on every
+screen (Tech §3.3); **Die Twee-Twee** (.22 bolt-action, 5 rounds, sights fitted in the Skiet-Skuur,
+upgrades from Notaboek challenges and ranks); bonus maps **Nog Verder** and **Die Verste**.
+Done when: sim tests for the Ver plane, hold/release, hip shot, cancel and sway; golden replays
+updated on purpose; replay of a zoomed hunt identical on desktop and mobile viewports; balance
+reports before and after; medium tier holds 60 fps while scoped; Playwright screenshots of each
+sight picture on desktop and both phones.
+
+## v1.4 — Die Langloop and the Namibië pack
+Scope: **Die Langloop** (long-range rifle, 3 rounds, variable scope 3–9×, alerts every flock,
+unlocked by reaching Die Verste); the **Namibië** biome (Etosha salt pan with mirages, quiver trees,
+Namib dunes, a far waterhole; mostly far and Ver birds), lazy-loaded like the other biomes, with its
+weekday layouts, omen, secret and interim art and sound.
+Done when: the biome passes its Classic balance report; its lazy chunk ≤ 1.5 MB gzip and the first
+download still ≤ 3 MB; Langloop sim tests and balance report; Playwright screenshots on desktop and
+both phones.
+
+---
+
 ## After v1.0 (v1.x backlog)
 Leaderboards with server replay validation (`server/`), weekly seeded Season Run, Endless mode,
-ghost replays of top hunts, Namibië biome pack, charm pack 2, gamepad, Capacitor iOS/Android builds,
-Steam desktop wrapper, data-only mod loader UI.
+ghost replays of top hunts, charm pack 2, gamepad, Capacitor iOS/Android builds, Steam desktop
+wrapper, data-only mod loader UI. (The Namibië biome pack moved to v1.4.)
