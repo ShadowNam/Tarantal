@@ -140,6 +140,8 @@ test('perf: low tier holds 50 fps (CPU) at 6× throttle on the Pixel 7 profile',
     simTickMs: tickMs,
     renderMs,
     frameCostAt50fpsMs: at50fps,
+    // D-029: RGBA bytes of every texture at the end of the hunt (GPU memory estimate).
+    textureMB: Math.round((h.textureBytes / 1024 / 1024) * 10) / 10,
   };
   console.log(`[perf-low] ${JSON.stringify(report)}`);
   writeFileSync(info.outputPath('perf-low.json'), JSON.stringify(report, null, 2));

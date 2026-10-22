@@ -124,6 +124,10 @@ const configSchema = z.object({
       .object({ $comment: z.string().optional() })
       .catchall(z.array(z.enum(BIRD_CLIPS)).or(z.string())),
     creatures: z.record(z.string(), z.string()),
+    /** Clips packed per plane (rig.json planeClips). */
+    planeClips: z
+      .object({ $comment: z.string().optional() })
+      .and(z.partialRecord(z.enum(['near', 'mid', 'far']), z.array(z.enum(BIRD_CLIPS)))),
     /** Download group per creature (rig.json `group`). */
     loadGroups: z.object({ $comment: z.string().optional() }).catchall(z.string()),
   }),

@@ -89,7 +89,7 @@ if (only === undefined || only === 'birds') {
     }
     put(
       join(dir, 'rig.json'),
-      `${JSON.stringify({ origin: 'interim', x2: false, encode: 'png8', ...groupOf(creature) }, null, 2)}\n`,
+      `${JSON.stringify({ origin: 'interim', x2: false, encode: 'png8', ...groupOf(creature), planeClips: { near: cfg.birds.planeClips.near, mid: cfg.birds.planeClips.mid, far: cfg.birds.planeClips.far } }, null, 2)}\n`,
     );
     console.log(`birds/${creature}: ${planesOf(creature).join(', ')} (${clips.length} clips)`);
   }

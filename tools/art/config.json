@@ -180,6 +180,34 @@
       "ou_grys": "bushveld-winter",
       "kuifkop": "okavango-spring",
       "kuifkop_koning": "okavango-spring"
+    },
+    "planeClips": {
+      "$comment": "Clips packed per plane (rig.json planeClips; D-029 review 2: graphics memory). Near pop-ups only play peek (and hit_poof where bagged); tumble is reserved and never played, so it is drawn for the sheets but not packed.",
+      "near": ["peek", "hit_poof"],
+      "mid": [
+        "forage_walk",
+        "peck",
+        "alert",
+        "run",
+        "takeoff",
+        "flap",
+        "glide",
+        "land",
+        "hit_poof",
+        "peek"
+      ],
+      "far": [
+        "forage_walk",
+        "peck",
+        "alert",
+        "run",
+        "takeoff",
+        "flap",
+        "glide",
+        "land",
+        "hit_poof",
+        "peek"
+      ]
     }
   },
   "guns": {

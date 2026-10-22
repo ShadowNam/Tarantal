@@ -2,5 +2,35 @@
   "origin": "interim",
   "x2": false,
   "encode": "png8",
-  "group": "late"
+  "group": "late",
+  "planeClips": {
+    "near": [
+      "peek",
+      "hit_poof"
+    ],
+    "mid": [
+      "forage_walk",
+      "peck",
+      "alert",
+      "run",
+      "takeoff",
+      "flap",
+      "glide",
+      "land",
+      "hit_poof",
+      "peek"
+    ],
+    "far": [
+      "forage_walk",
+      "peck",
+      "alert",
+      "run",
+      "takeoff",
+      "flap",
+      "glide",
+      "land",
+      "hit_poof",
+      "peek"
+    ]
+  }
 }
