@@ -9,7 +9,6 @@ import { expect, test } from '@playwright/test';
 import { writeFileSync } from 'node:fs';
 import {
   boot,
-  burstAtFlock,
   collectErrors,
   hook,
   isTouchProject,
@@ -152,11 +151,14 @@ test('perf: low tier holds 50 fps (CPU) at 6× throttle on the Pixel 7 profile',
   );
 });
 
-// v1.0.1 (D-028 §4): the smoke test above taps a fixed grid and often bags nothing, so it can't
-// show what a kill costs. This run aims at flocks (Pixel 7, 4× throttle) so most frames follow a
-// bag: score pops, POOF bubbles and feathers. Reported for before/after comparisons; the CPU
-// budget is asserted as in the smoke test.
-test('perf: kill-heavy 30 s hunt at 4× CPU throttle on the Pixel 7 profile', async ({
+// v1.0.1 (D-028 §4): what a score pop costs, pooled BitmapText vs the pre-v1.0.1 canvas Text, as
+// an A/B in one page (Pixel 7 profile, 4× CPU throttle): rounds of 20 world pops each way and
+// control rounds with none, in rotating order, during a running hunt. Each round counts the CPU
+// spent over the pops' lifetime (50 ticks) and the 2D-canvas text draws (fillText/strokeText) and
+// WebGL texture uploads (texImage2D/texSubImage2D) in it. Same page, same moment: the shared
+// runner's load hits both ways alike, which whole-run frame averages can't promise (D-019).
+// Asserted: the deterministic counts (a BitmapText pop draws no canvas text; a Text pop does).
+test('perf: score pop A/B — pooled BitmapText vs canvas Text (Pixel 7, 4×)', async ({
   page,
   browserName,
 }, info) => {
@@ -166,31 +168,109 @@ test('perf: kill-heavy 30 s hunt at 4× CPU throttle on the Pixel 7 profile', as
   );
   test.setTimeout(400_000);
   const errors = collectErrors(page);
-  await boot(page, 'seed=42&huntSeconds=30');
+  await page.addInitScript(() => {
+    const n = { text: 0, upload: 0, counting: false };
+    (window as unknown as { __gpuCount: typeof n }).__gpuCount = n;
+    const wrap = (proto: object, name: string, key: 'text' | 'upload'): void => {
+      const o = proto as Record<string, (...a: unknown[]) => unknown>;
+      const orig = o[name];
+      if (typeof orig !== 'function') return;
+      o[name] = function (this: unknown, ...a: unknown[]) {
+        if (n.counting) n[key]++;
+        return orig.apply(this, a);
+      };
+    };
+    wrap(CanvasRenderingContext2D.prototype, 'fillText', 'text');
+    wrap(CanvasRenderingContext2D.prototype, 'strokeText', 'text');
+    for (const gl of [WebGLRenderingContext.prototype, WebGL2RenderingContext.prototype]) {
+      wrap(gl, 'texImage2D', 'upload');
+      wrap(gl, 'texSubImage2D', 'upload');
+    }
+  });
+  await boot(page, 'seed=42&huntSeconds=90');
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
   await startHunt(page, true);
-  while (!(await hook(page)).over) {
-    const h = await hook(page);
-    const flock = h.flockSpots.find((f) => f.alive > 0);
-    if (h.shells === 0) await page.keyboard.press('Space');
-    else if (flock !== undefined) await burstAtFlock(page, true, flock.id, 2, 10);
-    await waitTicks(page, 20);
+  type Mode = 'control' | 'bitmap' | 'text';
+  const N = 20;
+  const round = async (
+    mode: Mode,
+  ): Promise<{ syncMs: number; cpuMs: number; text: number; upload: number }> => {
+    const from = (await hook(page)).cpuFrameMs.length;
+    const syncMs = await page.evaluate(
+      ([m, n]) => {
+        const c = (
+          window as unknown as { __gpuCount: { text: number; upload: number; counting: boolean } }
+        ).__gpuCount;
+        c.text = 0;
+        c.upload = 0;
+        c.counting = true;
+        return m === 'control' ? 0 : (window.__TM_TOOLS__?.popBench(n, m) ?? -1);
+      },
+      [mode, N] as const,
+    );
+    await waitTicks(page, 50);
+    const c = await page.evaluate(() => {
+      const g = (
+        window as unknown as { __gpuCount: { text: number; upload: number; counting: boolean } }
+      ).__gpuCount;
+      g.counting = false;
+      return { text: g.text, upload: g.upload };
+    });
+    const frames = (await hook(page)).cpuFrameMs.slice(from);
+    return { syncMs, cpuMs: frames.reduce((a, b) => a + b, 0), ...c };
+  };
+  // Warm-up: the pop atlas is built on the first BitmapText pop; Phaser's Text path warms too.
+  await round('bitmap');
+  await round('text');
+  const orders: Mode[][] = [
+    ['control', 'bitmap', 'text'],
+    ['text', 'control', 'bitmap'],
+    ['bitmap', 'text', 'control'],
+  ];
+  const rows: Record<Mode, { syncMs: number; cpuMs: number; text: number; upload: number }[]> = {
+    control: [],
+    bitmap: [],
+    text: [],
+  };
+  for (let r = 0; r < 6; r++) {
+    for (const m of orders[r % orders.length] ?? []) rows[m].push(await round(m));
   }
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
-  const h = await hook(page);
-  const frames = h.cpuFrameMs.slice(30);
-  const cpu = stats(frames);
+  const median = (xs: number[]): number => {
+    const v = [...xs].sort((a, b) => a - b);
+    const mid = Math.floor(v.length / 2);
+    return v.length % 2 === 1 ? (v[mid] ?? 0) : ((v[mid - 1] ?? 0) + (v[mid] ?? 0)) / 2;
+  };
+  const sum = (mode: Mode, k: 'syncMs' | 'cpuMs' | 'text' | 'upload'): number =>
+    median(rows[mode].map((x) => x[k]));
+  const perPop = (mode: Mode) => ({
+    syncMsPerPop: sum(mode, 'syncMs') / N,
+    extraCpuMsPerPop: (sum(mode, 'cpuMs') - sum('control', 'cpuMs')) / N,
+    textDrawsPerPop: (sum(mode, 'text') - sum('control', 'text')) / N,
+    uploadsPerPop: (sum(mode, 'upload') - sum('control', 'upload')) / N,
+  });
   const report = {
     project: info.project.name,
     throttle: 4,
-    score: h.score,
-    pops: h.pops,
-    cpuFrameMs: { ...cpu, max: Math.max(...frames) },
+    popsPerRound: N,
+    rounds: rows.control.length,
+    windowCpuMsMedian: {
+      control: sum('control', 'cpuMs'),
+      bitmap: sum('bitmap', 'cpuMs'),
+      text: sum('text', 'cpuMs'),
+    },
+    bitmap: perPop('bitmap'),
+    text: perPop('text'),
+    pops: (await hook(page)).pops,
   };
-  console.log(`[perf-kills] ${JSON.stringify(report)}`);
-  writeFileSync(info.outputPath('perf-kills.json'), JSON.stringify(report, null, 2));
-  expect(h.score, 'the run bagged birds').toBeGreaterThan(0);
-  expect(cpu.avg, 'CPU cost per frame (ms) at 4× throttle').toBeLessThanOrEqual(BUDGET_MS);
+  console.log(`[perf-pops] ${JSON.stringify(report)}`);
+  writeFileSync(info.outputPath('perf-pops.json'), JSON.stringify(report, null, 2));
+  await info.attach('perf-pops.json', {
+    body: JSON.stringify(report, null, 2),
+    contentType: 'application/json',
+  });
+  expect(report.text.textDrawsPerPop, 'a canvas Text pop draws text').toBeGreaterThanOrEqual(2);
+  expect(report.bitmap.textDrawsPerPop, 'a BitmapText pop draws no canvas text').toBeLessThan(0.5);
   expect(errors).toEqual([]);
 });

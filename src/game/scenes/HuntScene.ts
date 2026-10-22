@@ -820,6 +820,20 @@ export class HuntScene extends Phaser.Scene {
     if (runner.over && !this.ending) this.finish();
   }
 
+  /** e2e only (D-028 §4): `n` score pops over a bird in view, BitmapText or canvas Text. */
+  benchPops(n: number, mode: 'bitmap' | 'text'): number | null {
+    const state = this.runner?.state;
+    if (state === undefined) return null;
+    const { width } = designSize();
+    const bird =
+      state.birds.find((b) => {
+        const x = this.parallax.screenX(b.plane, b.x);
+        return x > 0 && x < width;
+      }) ?? state.birds[0];
+    if (bird === undefined) return null;
+    return this.fx.benchPops(n, mode, { plane: bird.plane, x: bird.x, y: bird.y });
+  }
+
   private handleEvents(events: readonly SimEvent[], width: number, state: SimState): void {
     // FX first: penalty pops look up where the bird was last drawn, before it is removed.
     this.fx.handle(events, width, state);

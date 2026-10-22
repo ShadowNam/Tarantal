@@ -422,6 +422,21 @@ export class Fx {
     });
   }
 
+  /**
+   * e2e only (`__TM_TOOLS__.popBench`, D-028 §4): `n` world score pops at `at`, the pooled
+   * BitmapText way or the pre-v1.0.1 canvas Text way, for a same-page A/B of their cost. Returns
+   * the synchronous ms (the Text way also renders again when it resolves, and uploads on draw).
+   */
+  benchPops(n: number, mode: 'bitmap' | 'text', at: BagSpot): number {
+    const t0 = performance.now();
+    for (let i = 0; i < n; i++) {
+      const spot = { ...at, x: at.x + (i % 10) * 40, y: at.y - Math.floor(i / 10) * 60 };
+      if (mode === 'bitmap') this.scorePop(spot, '10 ×2', '+20', '#F3EAD3');
+      else this.scorePopText(spot, '10 ×2', '+20', '#F3EAD3');
+    }
+    return performance.now() - t0;
+  }
+
   /** Pooled score pops: shown and made (test hook, D-028 §4). */
   popStats(): { shown: number; created: number } {
     return { shown: this.pops.shown, created: this.pops.created };

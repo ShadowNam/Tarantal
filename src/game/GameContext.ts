@@ -186,6 +186,8 @@ export interface TestTools {
   readonly contentHash: string;
   dailySeed(key: string): number;
   replay(log: string): { eventHash: string; eventCount: number; score: number };
+  /** v1.0.1 (D-028 §4): `n` world score pops now, pooled BitmapText or canvas Text; sync ms. */
+  popBench(n: number, mode: 'bitmap' | 'text'): number | null;
 }
 
 export interface GameContext {
