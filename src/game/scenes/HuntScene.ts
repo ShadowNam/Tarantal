@@ -518,6 +518,7 @@ export class HuntScene extends Phaser.Scene {
     }
     this.useBiome(huntBiome);
     if (!this.texturesDone) this.texturesDone = this.manifest.install(this.textures);
+    this.manifest.prewarmBirds(this.textures);
     if (this.ctx.hook) {
       this.ctx.hook.boot['huntStart'] ??= performance.now();
       this.ctx.hook.missingTextures = this.manifest.missing(this.textures);
