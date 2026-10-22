@@ -931,7 +931,7 @@ function windpomp(ctx: PropCtx): string {
   }
   return g(
     {},
-    groundShadow(18, base + 2, 70, 9),
+    groundShadow(10, base + 2, 66, 9),
     // Back legs (3/4 view), then bracing, front legs, pump rod and the pipe to the reservoir.
     legs(14, 4, shade(steel.fill, -0.35)),
     line(braces.join(''), { ink: pen.ink, w: 2.2 }, 2.2),
@@ -953,8 +953,8 @@ function windpomp(ctx: PropCtx): string {
     inked(
       polyD([
         [10, base - 12],
-        [84, base - 12],
-        [84, base - 4],
+        [74, base - 12],
+        [74, base - 4],
         [10, base - 4],
       ]),
       steel.fill,
@@ -1036,7 +1036,7 @@ function reservoir(ctx: PropCtx): string {
   }
   return g(
     {},
-    groundShadow(26, botY + 14, 200, 26),
+    groundShadow(14, botY + 14, 186, 24),
     el('clipPath', { id }, el('path', { d: wall })),
     flat(wall, metal.fill),
     g(
@@ -1069,7 +1069,7 @@ function reservoir(ctx: PropCtx): string {
     ),
     // Inlet pipe from the windpomp and a little ladder.
     inked(
-      `M-210 ${botY - 10}L-176 ${botY - 10}L-176 ${rimY - 6}L-150 ${rimY - 6}L-150 ${rimY + 1}L-170 ${rimY + 1}L-170 ${botY - 3}L-210 ${botY - 3}Z`,
+      `M-202 ${botY - 10}L-176 ${botY - 10}L-176 ${rimY - 6}L-150 ${rimY - 6}L-150 ${rimY + 1}L-170 ${rimY + 1}L-170 ${botY - 3}L-202 ${botY - 3}Z`,
       metal.dark,
       pen.ink,
       2.5,
@@ -1336,7 +1336,7 @@ function potjie(ctx: PropCtx): string {
     flat(ellipseD(-18, -44, 16, 4), iron.light),
     inked(ellipseD(0, -56, 10, 6), iron.dark, pen.ink, 4),
     // Steam.
-    line('M-10 -66c-14 -14 12 -22 0 -38s8 -22 4 -30', { ink: '#F4F1E8', w: 7 }, 7, {
+    line('M-10 -66c-14 -14 12 -22 0 -38s8 -16 4 -18', { ink: '#F4F1E8', w: 7 }, 7, {
       opacity: '0.8',
     }),
     line('M16 -70c-10 -12 10 -18 2 -32', { ink: '#F4F1E8', w: 5 }, 5, { opacity: '0.7' }),
@@ -1440,7 +1440,7 @@ function aloes(rosettes: readonly (readonly [number, number, number])[]) {
           ctx.rnd,
           x,
           y - s * 0.3,
-          s * 1.75,
+          Math.min(s * 1.75, (y - s * 0.3 + 170) / 1.3),
           n,
           ctx.c('aloeFlower'),
           ctx.c('aloeBud'),
