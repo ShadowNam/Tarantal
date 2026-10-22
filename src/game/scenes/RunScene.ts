@@ -11,7 +11,9 @@ import type { GameContext } from '../GameContext';
 import { charmRow, drawCharmCard, RARITY_COLOR } from '../ui/charmCards';
 import { slotRects } from '../ui/charmSlots';
 import { formatScore } from '../ui/format';
-import type { Rect } from '../ui/hudLayout';
+import { tallyBarkSlot, type Rect } from '../ui/hudLayout';
+import { BarkBubble, sayBark } from '../ui/BarkBubble';
+import type { BarkTrigger } from '../../content/schemas';
 import { drawButton, fitText, Menu, textStyle, UI, type MenuItem } from '../ui/menu';
 import { sellPrice, rerollCost } from '../../sim/run/run';
 
@@ -218,6 +220,8 @@ export class RunScene extends Phaser.Scene {
     const cx = p.x + p.w / 2;
     const last = run.history.at(-1);
     const passed = last?.passed === true;
+    // D-028 §3: Oupa on a missed quota (a met one he cheered in the hunt).
+    if (!passed) this.bark('quotaMissed');
     this.text(
       cx,
       p.y + 80,
@@ -618,12 +622,38 @@ export class RunScene extends Phaser.Scene {
     this.text(p.x + p.w / 2, y, `${cons}   |   ${rental}`, 30, '#F3EAD3', p.w - 80);
   }
 
+  /**
+   * v1.0.1 (D-028 §3): Oupa says `trigger` beside (or in the corner of) the panel. If an earlier
+   * line still holds the gap (a last-seconds bark just before the hunt ended), he says it once
+   * the gap is over (D-028 review: quota missed and run won are "lasting"), unless the screen has
+   * moved on by then (a scene timer dies with the scene).
+   */
+  private bark(trigger: BarkTrigger, retry = true): void {
+    if (this.ctx.capture !== null) return;
+    const now = this.time.now;
+    const b = this.ctx.barks.say(trigger, now);
+    if (b === null) {
+      const wait = this.ctx.barks.waitMs(now);
+      if (retry && wait > 0)
+        this.time.delayedCall(wait, () => {
+          this.bark(trigger, false);
+        });
+      return;
+    }
+    const { width, height } = designSize();
+    const s = this.ctx.safeArea();
+    const safe = { x: s.left, y: s.top, w: width - s.left - s.right, h: height - s.top - s.bottom };
+    const bubble = new BarkBubble(this, this.ctx.feel.barks.fontPx);
+    sayBark(this.ctx, bubble, b.line, tallyBarkSlot(safe, this.panel), now);
+  }
+
   // --- summary ------------------------------------------------------------------------------
 
   private summary(run: RunState, items: MenuItem[]): string {
     const p = this.panel;
     const cx = p.x + p.w / 2;
     const won = run.phase === 'victory';
+    if (won) this.bark('runWon');
     this.text(
       cx,
       p.y + 90,

@@ -39,6 +39,7 @@ describe('HUD layout at 16:9, 19.5:9 and 4:3', () => {
           l.quota,
           l.charms,
           ...l.items,
+          l.bark,
         ];
         for (const p of parts) expect(inside(l.safe, p)).toBe(true);
         for (let i = 0; i < parts.length; i++)
@@ -55,6 +56,8 @@ describe('HUD layout at 16:9, 19.5:9 and 4:3', () => {
         const beltLeft = l.belt.x < size.width / 2;
         expect(beltLeft).toBe(mirrored);
         expect(l.gadget.x < size.width / 2).toBe(!mirrored);
+        // D-028 §3: Oupa's bubble stays clear of the pop stack under the score.
+        expect(l.bark.x + l.bark.w).toBeLessThan(l.popAnchor.x - 300);
       });
     }
 });

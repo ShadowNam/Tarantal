@@ -906,6 +906,48 @@ const qualityTier = obj({
   mergeLayers: z.array(z.tuple([z.string(), z.string()])).max(4),
 });
 
+/**
+ * v1.0.1 (D-028 §3): what makes Oupa bark. Hunt triggers come from sim events (and the run's
+ * quota, the save's last hunt day); tally triggers from the tally and the run tally.
+ */
+export const BARK_TRIGGERS = [
+  'firstToday',
+  'boss',
+  'stampede',
+  'wholeFlock',
+  'twoFlies',
+  'quotaMet',
+  'kwevoel',
+  'nonTarget',
+  'lastSeconds',
+  'frenzyTop',
+  'bagStreak',
+  'missStreak',
+  'emptyClick',
+  'rain',
+  'crate',
+  'idle',
+  'flush',
+  'newBest',
+  'legend',
+  'badHunt',
+  'quotaMissed',
+  'runWon',
+] as const;
+export type BarkTrigger = (typeof BARK_TRIGGERS)[number];
+
+// ASCII only: the key is also the voice file name (audio/voice/<key>.wav), and a non-ASCII name
+// changes under macOS NFD or zip normalisation, so the recording would never match.
+const barkKey = z.string().regex(/^bark\.[a-z][a-z0-9_]*$/, 'bark lines are ASCII bark.* i18n keys');
+const BarkTriggerSchema = obj({
+  /** Highest priority wins when several triggers fire in one frame. */
+  priority: nonNegInt,
+  /** This trigger speaks at most once per cooldownMs (on top of the global gap). */
+  cooldownMs: nonNeg,
+  /** Lines said in turn: i18n keys, also the voice keys (voice/<line>). */
+  lines: z.array(barkKey).min(1),
+});
+
 export const FeelSchema = obj({
   version,
   input: obj({
@@ -1063,8 +1105,23 @@ export const FeelSchema = obj({
     duckDb: z.number().max(0),
     duckAttackMs: pos,
     duckReleaseMs: pos,
-    /** At most one bark per barkGapMs (bible: 6 s), never while the tally counts up. */
+    /** At most one bark per barkGapMs (bible: 6 s; the BarkDirector keeps it, D-028), never while
+     *  the tally counts up. */
     barkGapMs: nonNeg,
+  }),
+  barks: obj({
+    /** Speech bubble: shown bubbleMs, faded in and out over fadeMs; text size (design px). */
+    bubbleMs: pos,
+    fadeMs: nonNeg,
+    fontPx: pos,
+    /** Shots in a row that bagged (bagStreak) or missed (missStreak). */
+    bagStreak: posInt,
+    missStreak: posInt,
+    /** Seconds without a shot (idle), and seconds left on the clock (lastSeconds). */
+    idleSeconds: pos,
+    lastSeconds: pos,
+    /** One entry per trigger (an enum-keyed record: every trigger is required). */
+    triggers: z.record(z.enum(BARK_TRIGGERS), BarkTriggerSchema),
   }),
   capture: obj({
     /** M10 marketing capture mode (?capture=1): seed when no ?seed= is given, the slow-motion
@@ -1072,6 +1129,13 @@ export const FeelSchema = obj({
     seed: nonNegInt,
     speeds: z.array(z.number().positive().max(1)).min(1).max(6),
     panTurnPx: nonNeg,
+    /** v1.0.1 (D-028 §5): the "S slow · F freeze · C pan" hint: shown hintMs, faded over hintFadeMs. */
+    hintMs: nonNeg,
+    hintFadeMs: pos,
+    /** Most a single frame advances the hint (ms): a long stall doesn't skip it. */
+    hintMaxStepMs: pos,
+    /** Its font size (design px). */
+    hintPx: pos,
   }),
   assets: obj({
     /** M10: longest wait for assets/asset-index.json at boot; after it every key is a placeholder. */
