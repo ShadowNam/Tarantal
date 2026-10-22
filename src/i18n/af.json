@@ -295,6 +295,7 @@
   "title.daily_streak": "Reeks: {n}",
   "title.daily_freeze": "vriesdag gereed",
   "title.daily_played": "Vandag gespeel · nog pogings is oefening",
+  "title.daily_unranked": "Toetsskakel · net oefening",
   "title.challenge_bad": "Daardie uitdagingskakel werk nie.",
   "challenge.title": "Uitdaging!",
   "challenge.from": "{by} daag jou uit",

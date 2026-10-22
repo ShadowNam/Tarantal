@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { testHookPolicy, type HookPolicyInput } from './testHooks';
+import { officialResultsAllowed, testHookPolicy, type HookPolicyInput } from './testHooks';
 
 const prod: HookPolicyInput = {
   dev: false,
@@ -34,5 +34,29 @@ describe('testHookPolicy (M9, D-024 known limit)', () => {
       enabled: true,
       namespace: null,
     });
+  });
+});
+
+describe('officialResultsAllowed (v1.0.1, D-028: ?e2e Daily gate)', () => {
+  it('the public build (Pages, portal releases) refuses official results under ?e2e', () => {
+    for (const platform of ['web', 'poki', 'crazygames'] as const) {
+      expect(officialResultsAllowed({ ...prod, platform, e2eParam: true })).toBe(false);
+    }
+  });
+
+  it('a CI e2e build (VITE_TEST_HOOKS=1) keeps official Dailies under ?e2e', () => {
+    for (const platform of ['web', 'poki', 'crazygames'] as const) {
+      expect(
+        officialResultsAllowed({ ...prod, platform, e2eParam: true, testHooksFlag: true }),
+      ).toBe(true);
+    }
+  });
+
+  it('players without ?e2e, the dev server and Vitest are unaffected', () => {
+    expect(officialResultsAllowed(prod)).toBe(true);
+    expect(
+      officialResultsAllowed({ ...prod, dev: true, mode: 'development', e2eParam: true }),
+    ).toBe(true);
+    expect(officialResultsAllowed({ ...prod, mode: 'test', e2eParam: true })).toBe(true);
   });
 });

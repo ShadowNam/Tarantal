@@ -54,7 +54,7 @@ import { LocalPlatform } from './platform/local';
 import { createPlatform, currentPlatformId } from './platform/platform';
 import { AdBreaks } from './game/ads/AdBreaks';
 import { PrivacyScene } from './game/scenes/PrivacyScene';
-import { testHookPolicy } from './game/testHooks';
+import { officialResultsAllowed, testHookPolicy } from './game/testHooks';
 import { CAPTURE_NAMESPACE, CaptureState, captureAllowed, captureSave } from './game/capture';
 import { FrameBenchmark } from './game/quality/FrameBenchmark';
 import { benchmarkTier, type DeviceHints } from './game/quality/QualityManager';
@@ -87,6 +87,14 @@ const hooksInBuild =
   import.meta.env.VITE_PLATFORM === 'web' ||
   import.meta.env.VITE_TEST_HOOKS === '1';
 const testHooks = hooksInBuild && hookPolicy.enabled;
+// v1.0.1 (D-028): `?e2e` on a public build (no VITE_TEST_HOOKS) is unranked, like capture mode.
+const officialResults = officialResultsAllowed({
+  dev: import.meta.env.DEV,
+  mode: import.meta.env.MODE,
+  platform: currentPlatformId(),
+  testHooksFlag: import.meta.env.VITE_TEST_HOOKS === '1',
+  e2eParam: params.has('e2e'),
+});
 // M10 marketing capture mode (?capture=1): where the hooks may be, on its own save (D-027).
 const capture =
   hooksInBuild &&
@@ -476,8 +484,9 @@ await loadFinalFor(biome);
 // A challenge link (Tech §12): decoded once, then removed from the address bar so a reload or a
 // bookmark doesn't show the card again.
 let pendingChallenge: ChallengeDecode | null = null;
-// Capture mode (unranked) opens no challenge links.
-const challengeParam = capture ? null : platform.launchParam('c');
+// Capture mode and `?e2e` on a public build (unranked) open no challenge links.
+const unranked = capture || !officialResults;
+const challengeParam = unranked ? null : platform.launchParam('c');
 if (challengeParam !== null) {
   pendingChallenge = decodeChallenge(challengeParam, {
     content: bundle,
@@ -537,7 +546,7 @@ const ctx: GameContext = {
     today,
     playableBiomes,
     shareBase,
-    unranked: capture,
+    unranked,
   }),
   pendingChallenge,
   platform,

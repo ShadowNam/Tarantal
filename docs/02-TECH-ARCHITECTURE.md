@@ -496,7 +496,12 @@ export interface PlatformAdapter {
   Portal builds: no service worker or manifest, no fullscreen button, clipboard-only sharing,
   challenge links via the portal's own parameter (Poki `gdc`, CrazyGames `inviteLink`).
 - **Test hooks** (`src/game/testHooks.ts`): compiled out of portal builds unless
-  `VITE_TEST_HOOKS=1` (CI's portal e2e builds); `?e2e` uses the storage namespace `tm.e2e.`.
+  `VITE_TEST_HOOKS=1` (CI's e2e builds); `?e2e` uses the storage namespace `tm.e2e.`.
+  v1.0.1 (D-028): only a `VITE_TEST_HOOKS=1` build (or the dev server) records official results
+  under `?e2e`. On a public build (Pages, portal releases) `?e2e` is unranked like capture mode:
+  Dailies are practice (no attempt, streak or best saved), no tally offers [Share], and `?c=`
+  links are ignored. `tests/e2e/daily-public.spec.ts` (CI job `public`, `E2E_BUILD=public`)
+  proves it on the build Pages ships.
 - **Portal constraints** (verify against current docs before each submission):
   - **Poki:** initial download target < 8 MB; must work on desktop, mobile and tablet (tablets get
     mobile controls) and in incognito; on mobile the game must fill the screen in portrait or

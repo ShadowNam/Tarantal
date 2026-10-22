@@ -67,8 +67,9 @@ export interface DailyFlowDeps {
   /** Page URL without query, the base of share links. */
   readonly shareBase: () => string;
   /**
-   * M10 capture mode: hunts are unranked (slow-mo and freeze would inflate a score). No Daily is
-   * official (no attempt, streak or best is recorded) and no tally offers a share or a link.
+   * M10 capture mode, and (v1.0.1, D-028) `?e2e` on a public build: hunts are unranked (slow-mo
+   * would inflate a score; a test link has a fresh save every time). No Daily is official (no
+   * attempt, streak or best is recorded) and no tally offers a share or a link.
    */
   readonly unranked?: boolean;
 }
@@ -100,6 +101,11 @@ export class DailyFlow {
     const s = this.deps.save.data.daily;
     const day = this.deps.today();
     return { streak: liveStreak(s, day), freezeReady: freezeReady(s, day) };
+  }
+
+  /** Every hunt on this page is unranked (capture mode, `?e2e` on a public build). */
+  get unranked(): boolean {
+    return this.deps.unranked === true;
   }
 
   /** Today's official attempt has started already (the title labels Daily as practice). */
