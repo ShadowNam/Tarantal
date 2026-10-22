@@ -1348,11 +1348,12 @@ covers its body hitbox; every shared sprite and prop is drawn at the placeholder
 origin with its occluder inside the art; every layer comes out at the delivered width and its plan's height; renders are
 deterministic. The pipeline test covers the layer sidecar (provenance, `top`, palette tiles).
 *§6 — Budgets (part A, measured):* first download (gzip, `npm run size -- --strict`) web
-1.11 → **1.69 MB**, Poki and CrazyGames 1.68 MB (cap for this pass 3.0 MB, hard budget 5 MB).
+1.11 → **1.69 MB**, Poki and CrazyGames 1.68 MB (cap for this pass 3.0 MB, hard budget 5 MB);
+**1.89 MB** after the look review (§7).
 GPU texture memory at the end of a 20 s Karoo hunt, low tier, Pixel 7 profile (test hook
 `textureBytes`, every texture; `compare/gfx2-texture-memory.json`): 94.0 → **107.7 MB**, inside
-Tech §15's 128 MB for the low tier (the bible sets no number). Most of it is the full-resolution
-sky layer (2680 × 1080). No new per-frame work: the same parallax tiles, sprites and atlases are
+Tech §15's 128 MB for the low tier (the bible sets no number). Most of the *increase* is the
+full-resolution sky layer (2680 × 1080 × 4 B ≈ 11.0 MB of the 13.7 MB). No new per-frame work: the same parallax tiles, sprites and atlases are
 drawn; only their pixels changed. Audit: 18 → **66 interim**, 169 → **121 placeholder** keys (the
 rest are audio, out of scope). Golden replay `8ab8e33970ccd89f` unchanged, no diff in `src/sim/`
 or `content/`. `art:interim` + `assets:pack` run twice give byte-identical `art-source/` and

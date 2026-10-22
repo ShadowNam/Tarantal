@@ -45,7 +45,9 @@ art-source/
   sprites/<key>.json              optional: { "originX": 0.5, "originY": 1 } (fractions)
   layers/<biome>/<layerId>.png    one parallax layer, full width with bleed (§4)
   layers/<biome>/<layerId>.json   optional: { "top": 630 } (design y of the top edge); interim
-                                  art also sets "origin": "interim" and "encode": "png8" (D-031)
+                                  art also sets "origin": "interim", and "encode": "png8" (palette
+                                  tiles) except the skies, which are full colour (no "encode") so
+                                  their gradient doesn't band (D-031)
   birds/<creature>/<clip>/00.png  one folder per §3.4 clip, frames numbered 00, 01, …
   birds/<creature>/rig.json       optional: origin, per-clip fps/loop, clips per plane (§3)
   birds/<creature>/planes/<plane>/<clip>/00.png
@@ -131,17 +133,19 @@ Different frame counts work (the tool warns). fps and loop can be changed per cl
 Override it with `rig.json` `"planeClips": { "near": [...] }`.
 
 **Variants and bosses** are separate creature folders (bible §3.2). A Spine rig would be exported
-per skin to frames for v1 (see D-027). Creatures and the planes they appear on:
+per skin to frames for v1 (see D-027). Creatures, the planes they appear on, and the download
+group their interim `rig.json` sets (`common` = the first download; `late` = after it settles;
+a biome = with that biome; a delivery without `group` falls back to the catalog's group):
 
 | Creature | Planes | Group |
 |---|---|---|
 | `tarentaal` | near, mid, far | common |
-| `tarentaal_wit` | mid, far | common |
-| `tarentaal_lavendel` | mid, far | common |
-| `generaal` | mid | common |
-| `ou_grys` | mid | common |
-| `kuifkop_koning` | mid | common |
-| `stormvoel` | mid, far | common |
+| `tarentaal_wit` | mid, far | late |
+| `tarentaal_lavendel` | mid, far | late |
+| `generaal` | mid | late |
+| `ou_grys` | mid | bushveld-winter |
+| `kuifkop_koning` | mid | okavango-spring |
+| `stormvoel` | mid, far | late |
 | `kwevoel` | mid | common |
 | `hadeda` | far | common |
 | `sproeier` | far | common |
