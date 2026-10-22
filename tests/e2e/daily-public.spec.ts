@@ -6,7 +6,7 @@
 // Runs only with E2E_BUILD=public (playwright.config.ts builds the public web build then); every
 // other e2e run uses the CI test build, where daily.spec.ts keeps official Dailies.
 import { expect, test, type Page } from '@playwright/test';
-import { loadContentHash } from '../../tools/testContent';
+import { loadContentHash, loadDailyMeta } from '../../tools/testContent';
 import { challengeFor, encodeChallenge } from '../../src/meta/challenge';
 import {
   SCREENSHOTS,
@@ -18,7 +18,8 @@ import {
   tapRect,
 } from './helpers';
 
-const DAY = '2026-10-21';
+// Today = the epoch (content/meta/daily.json, its only copy, D-028).
+const DAY = loadDailyMeta().epoch;
 
 async function waitScene(page: Page, scene: string): Promise<void> {
   await page.waitForFunction((s) => window.__TM__?.scene === s, scene, { timeout: 120_000 });

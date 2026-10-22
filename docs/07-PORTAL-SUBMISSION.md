@@ -20,6 +20,9 @@ the upload form again on the day, because portals change their rules.
   (report), and writes the zips. The size report is `release/size-<platform>.txt`. It also checks
   the Daily epoch (D-028): a warning while `content/meta/daily.json → epoch` is the placeholder;
   use `npm run release -- --strict` for the launch build, which fails until the real date is set.
+  A confirmed date more than 7 days from the build day also fails `--strict` (a typo guard); add
+  `--allow-epoch-gap` for releases after the launch, or a build submitted well before it. The
+  release refuses to build at all while `VITE_TEST_HOOKS` is set (CI e2e builds only).
 - Store images: `npm run portal:shots` → `release/portal-assets/` (covers, thumbnails,
   screenshots; capture mode, seed 42). **Re-render after the art swap**: today's images show the
   placeholder art.
