@@ -114,10 +114,14 @@ if (only === undefined || only === 'birds') {
   // The Generaal's pot helmet: a sprite key (fx/pot), not part of his atlas (it flies off).
   const potPath = join(src, 'sprites', 'fx', 'pot');
   const side = `${potPath}.json`;
-  const human =
-    existsSync(`${potPath}.png`) &&
-    (!existsSync(side) ||
-      (JSON.parse(readFileSync(side, 'utf8')) as { origin?: string }).origin !== 'interim');
+  const sideOrigin = (): string | undefined => {
+    try {
+      return (JSON.parse(readFileSync(side, 'utf8')) as { origin?: string }).origin;
+    } catch {
+      return undefined; // unreadable sidecar: treat as a human delivery, never overwrite
+    }
+  };
+  const human = existsSync(`${potPath}.png`) && (!existsSync(side) || sideOrigin() !== 'interim');
   if (human) console.warn('skip sprites/fx/pot: a human delivery is there');
   else {
     put(`${potPath}.png`, encodePng8(renderPot(cfg)));

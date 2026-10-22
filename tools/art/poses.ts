@@ -117,13 +117,13 @@ function takeoff(n: number): Pose[] {
       tail: -14,
     }),
     pose({
-      y: -6,
+      y: -8,
       rot: -18,
       sx: 0.9,
-      sy: 1.14,
+      sy: 1.1,
       head: { dx: 6, dy: -10, rot: -10 },
       eyes: 'wide',
-      wing: flight(-15, 0.95),
+      wing: flight(-15, 0.84),
       legs: { kind: 'dangle' },
       tail: 10,
     }),
@@ -304,7 +304,7 @@ function hitPoof(n: number): Pose[] {
     pose({
       alpha: 0,
       fx: {
-        feathers: { n: 12, r: 200, drop: 24 },
+        feathers: { n: 12, r: 196, drop: 14 },
         puff: { size: 0.85, alpha: 0.55 },
         stars: { n: 3, spin: 2, alpha: 0.8 },
       },
@@ -312,7 +312,7 @@ function hitPoof(n: number): Pose[] {
     pose({
       alpha: 0,
       fx: {
-        feathers: { n: 10, r: 210, drop: 38 },
+        feathers: { n: 10, r: 200, drop: 20 },
         puff: { size: 0.6, alpha: 0.3 },
         stars: { n: 3, spin: 3, alpha: 0.5 },
       },

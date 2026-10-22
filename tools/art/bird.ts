@@ -596,7 +596,7 @@ function legs(i: DrawInput, bodyM: M): string {
         const f: Pt =
           l.kind === 'tucked'
             ? apply(bodyM, [hx - 92, hipY - 4 + n * 8])
-            : apply(bodyM, [hx - 22, hipY + 58]);
+            : apply(bodyM, [hx - 22, hipY + 44]);
         return legStroke(
           i,
           `M${r2(hip[0])} ${r2(hip[1])}L${r2(f[0])} ${r2(f[1])}` +
