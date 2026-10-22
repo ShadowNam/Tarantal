@@ -1016,9 +1016,12 @@ authorship, which is why `--strict` fails on interim keys.
 *§3 — Pipeline additions (also useful to the illustrator):* (1) *Per-plane bird masters*
 (`birds/<creature>/planes/<plane>/<clip>/NN.png`) replace the shared master on that plane:
 line weight by depth (bible §1.4) and the far plane's fewer, larger dots are drawn, not scaled.
-(2) *Trimmed atlas frames* for mid/far birds and guns (Phaser trimmed-frame JSON keeps the full
-source size, so origins and hitbox alignment don't move); near stays untrimmed because pop-ups are
-cropped at the grass line in frame px. (3) `encode: "png8"` and `x2: false` rig options.
+(2) *No trimmed atlas frames:* trimming (opaque bounds, Phaser trimmed-frame JSON) was built
+first, then dropped: in-game, Phaser 4.2.1 drew trimmed frames played through an animation with
+the neighbouring frames' pixels (flock birds grew extra heads); static `setTexture` frames were
+fine, so the gun previews hid it. Untrimmed frames render correctly. Cost: more atlas area (20
+pages of ≤ 2048², ~200 MB of GPU texture memory when everything is installed). Revisit with a
+Phaser upgrade or a repro upstream. (3) `encode: "png8"` and `x2: false` rig options.
 (4) *Animated gun rigs:* `guns/<weaponId>/{idle,fire,reload,flash}/NN.png` + `rig.json`
 (grip `originX/Y`, muzzle `tipX/Y`, per-clip fps/loop) in a new optional `guns` section of the
 asset index (older indexes still parse). The frame box stays the placeholder's 420 × 520 with the
@@ -1031,7 +1034,32 @@ twin) and GPU memory. Interim rigs set `x2: false`; the 2× masters stay in `art
 later render-scale change only needs a re-pack.
 *§5 — Size levers, in order:* palette PNG pages, @1x only, variants drawing only the clips they
 play and leaning on the runtime fallback chain (docs/06 §3), and lossy WebP only if still over
-(not needed). Measured: the full tarentaal (3 planes, 140 frames) packs to 0.78 MB.
+(not needed). Measured: the full tarentaal (3 planes, 140 frames) packs to 0.78 MB; the six guns
+0.56 MB. *Initial download (gzip, `npm run size -- --strict`):* web, Poki and CrazyGames
+**0.55 MB → 2.86 MB** of the 5 MB budget; lazy 0.005 → 0.20 MB (the Okavango-only Kuifkop).
+*§6 — Look (review, 22 Oct):* (1) *Dots:* smaller, varied in size and position, densest on the
+back and thinning toward the belly and tail (no "polka-dot ball"); seeded per creature, not per
+frame, so they don't jump between frames. Slimmer legs. (2) *Generaal:* his rusty blue enamel pot
+is the separate `fx/pot` sprite (interim, `sprites/fx/pot.png`, origin seated over the head) that
+BirdView shows until the CLANG knock-off (Fx spins it away); the bird itself has a stub casque
+(`stubCasque` part) that only shows once the pot is gone. The variants sheet shows both looks.
+(3) *Kuifkop Koning:* bottle-cap crown ~1.5× larger, brighter gold with a pale rim. (4) *Guns:*
+3/4 view leaning 5° toward the screen centre; geometry widened 1.4× about the barrel line by
+scaling path x coordinates (resvg has no non-scaling strokes, so a plain SVG scale would fatten
+the outlines); trigger guards; muzzle at box y = 80 (rig `tipX/tipY`) leaves headroom for smoke
+and the Voorlaaier's ramrod. Flashes stay small local sprites; `reduce flashes` dims them.
+*§7 — Perf (M9 method, Pixel 7 profile, low tier, 6× throttle; frame cost at 50 fps):* the same
+build with the asset index hidden (`PERF_PLACEHOLDERS=1`) **25.8 ms**, with the interim art
+**23.9 ms** — no measurable cost (animated atlas sprites replace drawn placeholder frames). Both
+are over the 20 ms budget on this run because the box was loaded (load average 11 on 6 cores;
+D-026 measured 18.4 ms on a quiet box). *Needs a person:* fps and memory on a real low-end Android
+and an older iPhone (GPU texture memory above).
+*§8 — Evidence:* `docs/art-preview/` (contact sheets, hitbox fit, variants, guns and flashes;
+`compare/` before | after in-game on desktop-chromium and pixel7-landscape: pop-up, mid and far
+fly-overs, flock forage and flush, the Generaal, `?debug=1` hitboxes, each gun idle / mid-recoil /
+reload), from `ART_PREVIEW=1 npx playwright test tests/e2e/art-preview.spec.ts`. The hunt visual
+baselines were re-recorded. Golden replays and `contentHash` are unchanged (sim and `content/`
+untouched).
 
 ## 3. Research notes (with sources)
 
