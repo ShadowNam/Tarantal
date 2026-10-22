@@ -38,17 +38,7 @@ import type { ContentBundle } from '../../src/content/schemas';
 import type { PlaneId } from '../../src/sim/types';
 import type { Catalog } from './catalog';
 import { encodeMp3, encodeOgg } from './encode';
-import {
-  blank,
-  blit,
-  crop,
-  encodePng,
-  encodePng8,
-  opaqueBounds,
-  readPng,
-  resize,
-  type Rgba,
-} from './image';
+import { blank, blit, crop, encodePng, encodePng8, readPng, resize, type Rgba } from './image';
 import { applyGain, integratedLufs, normaliseGainDb, truePeakDb } from './loudness';
 import { shelfPackPages } from './shelfPack';
 import {
@@ -192,9 +182,9 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
   };
 
   /**
-   * Packs frames into Phaser multi-atlas pages at `k`× their box size (never upscaling). With
-   * `trim`, each frame is cut to its opaque pixels and the JSON keeps the full source size, so
-   * origins don't move (D-029: about half the texture memory for birds and guns).
+   * Packs frames into Phaser multi-atlas pages at `k`× their box size (never upscaling). Frames
+   * are never trimmed: Phaser 4.2.1 draws trimmed frames played through an animation with the
+   * neighbouring frames' pixels (D-029 §3).
    */
   const packAtlas = (
     cells: readonly Cell[],
@@ -203,7 +193,6 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
     group: string,
     sub: string,
     rig: { encode?: 'png' | 'png8' | undefined },
-    trim: boolean,
   ): { pages: { image: FileRef; data: FileRef }[] } | null => {
     if (cells.length === 0) return null;
     // Never upscale: a @k set needs every master at least that big.
@@ -212,9 +201,7 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
       const w = Math.round(c.w * k);
       const h = Math.round(c.h * k);
       const img = c.img.width === w && c.img.height === h ? c.img : resize(c.img, w, h);
-      const b = trim ? opaqueBounds(img) : { x: 0, y: 0, w, h };
-      const box = b ?? { x: 0, y: 0, w: 1, h: 1 };
-      return { id: c.id, w, h, box, img: crop(img, box.x, box.y, box.w, box.h) };
+      return { id: c.id, w, h, box: { x: 0, y: 0, w, h }, img };
     });
     let packed;
     try {
@@ -233,11 +220,10 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
         const cell = sized.find((c) => c.id === p.id);
         if (cell === undefined) continue;
         blit(page, cell.img, p.x, p.y);
-        const trimmed = cell.box.w !== cell.w || cell.box.h !== cell.h;
         frames[p.id] = {
           frame: { x: p.x, y: p.y, w: cell.box.w, h: cell.box.h },
           rotated: false,
-          trimmed,
+          trimmed: false,
           spriteSourceSize: { x: cell.box.x, y: cell.box.y, w: cell.box.w, h: cell.box.h },
           sourceSize: { w: cell.w, h: cell.h },
         };
@@ -424,14 +410,12 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
           h: h1,
         })),
       );
-      // Pop-ups are cropped at their grass line in frame px, so near frames stay untrimmed.
-      const trim = plane !== 'near';
-      const x1 = packAtlas(cells, 1, `${slug(creature)}-${plane}`, group, 'birds', rig, trim);
+      const x1 = packAtlas(cells, 1, `${slug(creature)}-${plane}`, group, 'birds', rig);
       if (x1 === null) continue;
       const x2 =
         rig.x2 === false
           ? null
-          : packAtlas(cells, 2, `${slug(creature)}-${plane}`, group, 'birds', rig, trim);
+          : packAtlas(cells, 2, `${slug(creature)}-${plane}`, group, 'birds', rig);
       const clipEntries: BirdPlaneEntry['clips'] = {};
       for (const [clip, frames] of planeClips) {
         clipEntries[clip] = {
@@ -503,12 +487,10 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
       errors.push(`guns/${id}: an "idle" clip (one frame) is required`);
       continue;
     }
-    const x1 = packAtlas(cells, 1, `gun-${slug(id)}`, cat.group, 'guns', rig, true);
+    const x1 = packAtlas(cells, 1, `gun-${slug(id)}`, cat.group, 'guns', rig);
     if (x1 === null) continue;
     const x2 =
-      rig.x2 === false
-        ? null
-        : packAtlas(cells, 2, `gun-${slug(id)}`, cat.group, 'guns', rig, true);
+      rig.x2 === false ? null : packAtlas(cells, 2, `gun-${slug(id)}`, cat.group, 'guns', rig);
     index.guns[id] = {
       group: cat.group,
       ...(rig.origin === undefined ? {} : { origin: rig.origin }),
