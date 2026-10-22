@@ -14,7 +14,8 @@ import { DailyFlow, type HuntPlan } from './DailyFlow';
 const content = loadContent();
 const hash = loadContentHash();
 const meta = loadDailyMeta();
-const DAY = parseDayKey('2026-10-21') ?? NaN;
+// Daily #1: the epoch, read from content (its only copy, D-028).
+const DAY = parseDayKey(meta.epoch) ?? NaN;
 
 interface Fake {
   events: { event: string; data: Record<string, unknown> }[];
@@ -115,7 +116,7 @@ describe('DailyFlow', () => {
   it('first daily attempt is official, records the result and shares a link to the same hunt', async () => {
     const { flow, save, fake } = setup();
     const plan = flow.plan('daily', null, undefined, {}, seedNever);
-    expect(plan.seed).toBe(dailySeed('2026-10-21', hash));
+    expect(plan.seed).toBe(dailySeed(meta.epoch, hash));
     expect(plan.mode).toEqual({ id: 'daily', biome: 'karoo-autumn' });
     expect(plan.daily?.official).toBe(true);
     expect(plan.hudTag).toBe('DAILY #1');
@@ -125,7 +126,7 @@ describe('DailyFlow', () => {
       {
         event: 'daily_play',
         data: {
-          day: '2026-10-21',
+          day: meta.epoch,
           number: 1,
           official: true,
           biome: 'karoo-autumn',
