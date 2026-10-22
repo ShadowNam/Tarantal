@@ -136,7 +136,7 @@ export class HuntScene extends Phaser.Scene {
       this.biome.id === this.ctx.biome.id ? this.ctx.manifest : this.ctx.manifestFor(this.biome);
     this.ctx.huntBiome = this.biome;
     this.ctx.audio.setBiome(this.biome.id);
-    this.ctx.audio.setIntensity('calm');
+    this.ctx.audio.resetIntensity();
     // Scenery and UI now; birds are drawn a few at a time while the start card shows.
     this.texturesDone = this.manifest.install(this.textures, neededBeforeStart);
     if (this.ctx.hook) this.ctx.hook.boot['textures'] ??= performance.now();

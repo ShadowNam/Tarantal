@@ -8,6 +8,7 @@
 import type { Feel } from '../../content/schemas';
 import type { SimEvent } from '../../sim/events';
 import { ambienceKey, musicKey, sfxKey, voiceKey, type FinalSound } from '../assets/AssetManifest';
+import { loadBytes } from '../assets/finalLoader';
 import { MusicMixer, STEMS, StemHold, type MusicSet, type Stem } from './music';
 import { createNoise, playSfx, type SfxId } from './synth';
 
@@ -34,9 +35,11 @@ export interface AudioEnv {
   readonly now: () => number;
   readonly setTimer: (fn: () => void, ms: number) => void;
   readonly canPlay: (mime: string) => string;
+  /** Fetches another delivered file (the MP3 twin when an Ogg won't decode), or null. */
+  readonly fetchBytes: (path: string) => Promise<ArrayBuffer | null>;
 }
 
-export const browserAudioEnv = (): AudioEnv => ({
+export const browserAudioEnv = (fileTimeoutMs: number): AudioEnv => ({
   createContext: () => {
     const Ctor = window.AudioContext as typeof AudioContext | undefined;
     return Ctor === undefined ? null : new Ctor();
@@ -51,7 +54,14 @@ export const browserAudioEnv = (): AudioEnv => ({
     window.setTimeout(fn, ms);
   },
   canPlay: (mime) => document.createElement('audio').canPlayType(mime),
+  fetchBytes: (path) => loadBytes(path, fileTimeoutMs),
 });
+
+/** The biome a music or ambience key belongs to (music/<biome>/<stem>, amb/<biome>), else null. */
+export function biomeOfKey(key: string): string | null {
+  const [type, biome] = key.split('/');
+  return (type === 'music' || type === 'amb') && biome !== undefined ? biome : null;
+}
 
 export type AudioTuning = Feel['audio'];
 
@@ -72,6 +82,9 @@ export class AudioDirector {
   /** Delivered files waiting for an AudioContext to decode them. */
   private pending: FinalSound[] = [];
   private readonly buffers = new Map<string, AudioBuffer>();
+  /** Music and ambience recordings, compressed (decoded only for the biome on screen). */
+  private readonly musicFiles = new Map<string, FinalSound>();
+  private readonly decoding = new Set<string>();
   /** Sound keys that play from a decoded recording (read by the test hook). */
   readonly recorded: string[] = [];
   private biome: string | null = null;
@@ -82,7 +95,7 @@ export class AudioDirector {
 
   constructor(
     private readonly tuning: AudioTuning,
-    private readonly env: AudioEnv = browserAudioEnv(),
+    private readonly env: AudioEnv,
   ) {
     this.hold = new StemHold(tuning.stemHoldMs);
     env.onVisibility((hidden) => {
@@ -137,38 +150,75 @@ export class AudioDirector {
     }
   }
 
-  /** Delivered recordings (decoded now, or once audio is unlocked). */
+  /**
+   * Delivered recordings. Effects and voices are decoded once (now, or when audio unlocks) and
+   * their compressed bytes dropped. Music and ambience keep only their compressed bytes and are
+   * decoded for the biome on screen: a decoded 2-minute stereo stem is ~46 MB, so every visited
+   * biome's music held at once could get the tab killed on iOS.
+   */
   addRecorded(files: readonly FinalSound[]): void {
     const known = new Set([...this.pending.map((f) => f.key), ...this.buffers.keys()]);
-    this.pending.push(...files.filter((f) => !known.has(f.key)));
+    for (const f of files) {
+      if (biomeOfKey(f.key) !== null) this.musicFiles.set(f.key, f);
+      else if (!known.has(f.key)) this.pending.push(f);
+    }
     this.decodePending();
   }
 
+  /** Decodes waiting effects and the current biome's music, then refreshes the music once. */
   private decodePending(): void {
     const ctx = this.ctx;
-    if (ctx === null || this.pending.length === 0) return;
+    if (ctx === null) return;
     const batch = this.pending;
     this.pending = [];
+    for (const f of this.musicFiles.values())
+      if (biomeOfKey(f.key) === this.biome && !this.buffers.has(f.key) && !this.decoding.has(f.key))
+        batch.push(f);
+    if (batch.length === 0) return;
+    for (const f of batch) this.decoding.add(f.key);
     // Decode the whole batch, then refresh the music once: refreshing per file would restart the
     // stems (from 0, with a fade) once for every stem that finished.
-    void Promise.allSettled(
-      batch.map((f) =>
-        // decodeAudioData detaches its buffer: decode a copy so a second context could retry.
-        ctx.decodeAudioData(f.bytes.slice(0)).then((buf) => {
-          this.buffers.set(f.key, buf);
-          this.recorded.push(f.key);
-        }),
-      ),
-      // A file the browser can't decode keeps the synth (or silence, for music).
-    ).then(() => {
+    void Promise.allSettled(batch.map((f) => this.decode(ctx, f))).then(() => {
+      for (const f of batch) this.decoding.delete(f.key);
       this.refreshMusic();
     });
   }
 
-  /** M10: the biome whose music and ambience play (title and hunts). */
+  /** One file; an Ogg the browser can't decode retries as MP3; failing both keeps the fallback. */
+  private async decode(ctx: AudioContext, f: FinalSound): Promise<void> {
+    let buf: AudioBuffer | null = null;
+    try {
+      // decodeAudioData detaches its buffer: decode a copy (music may be decoded again later).
+      buf = await ctx.decodeAudioData(f.bytes.slice(0));
+    } catch {
+      const mp3 = f.format === 'ogg' ? await this.env.fetchBytes(f.entry.mp3.path) : null;
+      if (mp3 !== null) buf = await ctx.decodeAudioData(mp3).catch(() => null);
+    }
+    // A biome left while decoding doesn't keep its music.
+    const biome = biomeOfKey(f.key);
+    if (buf === null || (biome !== null && biome !== this.biome)) return;
+    this.buffers.set(f.key, buf);
+    if (!this.recorded.includes(f.key)) this.recorded.push(f.key);
+  }
+
+  /** M10: the biome whose music and ambience play (title and hunts). Other biomes' decoded music
+   *  is released (their compressed bytes stay, to decode again on a later visit). */
   setBiome(id: string): void {
+    if (id === this.biome) return;
     this.biome = id;
+    for (const key of [...this.buffers.keys()]) {
+      const b = biomeOfKey(key);
+      if (b !== null && b !== id) this.buffers.delete(key);
+    }
     this.refreshMusic();
+    this.decodePending();
+  }
+
+  /** M10: a new hunt starts calm, not on the last hunt's stampede stem. */
+  resetIntensity(): void {
+    this.hold.reset();
+    this.wantStem = 'calm';
+    this.mixer?.setStem('calm');
   }
 
   /** M10: the intensity the moment calls for (music.ts stemFor); rising is immediate. */
