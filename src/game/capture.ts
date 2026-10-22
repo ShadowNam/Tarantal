@@ -75,3 +75,13 @@ export class CaptureState {
     return { speed: this.timeScale, frozen: this.frozen, panning: this.panning };
   }
 }
+
+/**
+ * A capture session plays on its own fresh save (tm.capture.*), which would start with the
+ * tutorial hunt — whose prompts capture mode hides. Mark the tutorial done there, so START plays
+ * the capture seed's Classic hunt. Pure: returns the save to store.
+ */
+export function captureSave<T extends { readonly ftue: { readonly done: boolean } }>(data: T): T {
+  if (data.ftue.done) return data;
+  return { ...data, ftue: { done: true, skipped: true, step: 'capture' } };
+}

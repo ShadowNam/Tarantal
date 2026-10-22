@@ -146,20 +146,23 @@ export class AudioDirector {
 
   private decodePending(): void {
     const ctx = this.ctx;
-    if (ctx === null) return;
-    for (const f of this.pending) {
-      // decodeAudioData detaches its buffer: decode a copy so a second context could retry.
-      ctx.decodeAudioData(f.bytes.slice(0)).then(
-        (buf) => {
+    if (ctx === null || this.pending.length === 0) return;
+    const batch = this.pending;
+    this.pending = [];
+    // Decode the whole batch, then refresh the music once: refreshing per file would restart the
+    // stems (from 0, with a fade) once for every stem that finished.
+    void Promise.allSettled(
+      batch.map((f) =>
+        // decodeAudioData detaches its buffer: decode a copy so a second context could retry.
+        ctx.decodeAudioData(f.bytes.slice(0)).then((buf) => {
           this.buffers.set(f.key, buf);
           this.recorded.push(f.key);
-          this.refreshMusic();
-        },
-        // A file the browser can't decode keeps the synth (or silence, for music).
-        () => undefined,
-      );
-    }
-    this.pending = [];
+        }),
+      ),
+      // A file the browser can't decode keeps the synth (or silence, for music).
+    ).then(() => {
+      this.refreshMusic();
+    });
   }
 
   /** M10: the biome whose music and ambience play (title and hunts). */

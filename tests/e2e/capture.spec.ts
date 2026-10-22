@@ -62,3 +62,19 @@ test('without ?capture=1 the HUD shows and capture keys do nothing', async ({ pa
   const t0 = h.tick;
   await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) > t + 30, t0, { timeout: 30_000 });
 });
+
+test('a fresh capture session skips the tutorial and plays the Classic seed', async ({
+  page,
+}, info) => {
+  test.skip(
+    isTouchProject(info) || info.project.metadata['orientation'] !== 'landscape',
+    'keyboard: desktop',
+  );
+  // `ftue=1` keeps the boot helper from marking the tutorial done: this is the live web path.
+  await boot(page, 'capture=1&ftue=1');
+  await startHunt(page, false);
+  await page.waitForFunction(() => window.__TM__?.capture !== null, null, { timeout: 30_000 });
+  const h = await hook(page);
+  expect(h.mode).toBe('classic');
+  expect(h.huntSeed).toBe(42);
+});
