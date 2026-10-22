@@ -179,9 +179,10 @@ tempo-up).
 `shell` (shell insert / reload), `poof`, `kek` (contact call), `kekAlarm`, `sting` (flush
 music sting), `vuvuzela`, `stamp` (whole-flock stamp), `scratch` (penalty record scratch),
 `stampede`, `ting` (secret part hit), `secret` (secret fanfare), `alarm` (bakkie alarm),
-`splash`, `clang` (pot), `kwe` (kwêvoël call), `crate`, `powerup`, `whoosh` (dust devil).
-More of the bible's SFX list (variants ×3, hadeda call, tally ticks, UI clicks) need a key in the
-game first: ask the developer for it.
+`splash`, `clang` (pot), `kwe` (kwêvoël call), `crate`, `powerup`, `whoosh` (dust devil),
+`tick` (tally count-up tick) and `thud` (rank stamp thud on the tally). All 22 are required
+for `npm run assets:audit -- --strict` to pass. More of the bible's SFX list (variants ×3,
+hadeda call, UI clicks) needs a key in the game first: ask the developer for it.
 
 **Music and ambience keys** per biome (`karoo-autumn`, `bushveld-winter`, `okavango-spring`,
 `kalahari-summer`): `audio/music/<biome>/calm.wav`, `build.wav` and `stampede.wav`, plus

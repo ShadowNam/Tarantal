@@ -22,7 +22,10 @@ interface Fake {
   outcome: ShareOutcome;
 }
 
-function setup(day = DAY): {
+function setup(
+  day = DAY,
+  unranked = false,
+): {
   flow: DailyFlow;
   save: SaveStore;
   fake: Fake;
@@ -47,6 +50,7 @@ function setup(day = DAY): {
     today: () => today,
     playableBiomes: ['karoo-autumn'],
     shareBase: () => 'https://example.test/Tarantal/',
+    unranked,
   });
   return { flow, save, fake, setDay: (d) => (today = d) };
 }
@@ -93,6 +97,21 @@ beforeEach(() => {
 });
 
 describe('DailyFlow', () => {
+  it('M10 capture (unranked): the Daily is never official and no hunt offers a share or link', () => {
+    const { flow, save } = setup(DAY, true);
+    const plan = flow.plan('daily', null, undefined, {}, seedNever);
+    expect(plan.daily?.official).toBe(false);
+    flow.start(plan);
+    expect(flow.ranked(plan)).toBe(false);
+    const x = flow.finish(plan, result(plan, 99_999), '🟩');
+    expect(x.share).toBeNull();
+    expect(save.data.daily.history).toEqual([]);
+    expect(save.data.daily.streak).toBe(0);
+    const classic = flow.plan('classic', null, undefined, {}, () => 42);
+    flow.start(classic);
+    expect(flow.finish(classic, result(classic, 1234), '🟩').share).toBeNull();
+  });
+
   it('first daily attempt is official, records the result and shares a link to the same hunt', async () => {
     const { flow, save, fake } = setup();
     const plan = flow.plan('daily', null, undefined, {}, seedNever);
