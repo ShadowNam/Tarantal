@@ -1328,6 +1328,16 @@ glowing eyes and a cold rim light (Stormvoël).
 covers its body hitbox; every shared sprite and prop is drawn at the placeholder's size and
 origin with its occluder inside the art; layers come out at the delivered width; renders are
 deterministic. The pipeline test covers the layer sidecar.
+*§6 — Budgets (part A, measured):* first download (gzip, `npm run size -- --strict`) web
+1.11 → **1.69 MB**, Poki and CrazyGames 1.68 MB (cap for this pass 3.0 MB, hard budget 5 MB).
+GPU texture memory at the end of a 20 s Karoo hunt, low tier, Pixel 7 profile (test hook
+`textureBytes`, every texture; `compare/gfx2-texture-memory.json`): 94.0 → **107.7 MB**, inside
+Tech §15's 128 MB for the low tier (the bible sets no number). Most of it is the full-resolution
+sky layer (2680 × 1080). No new per-frame work: the same parallax tiles, sprites and atlases are
+drawn; only their pixels changed. Audit: 18 → **66 interim**, 169 → **121 placeholder** keys (the
+rest are audio, out of scope). Golden replay `8ab8e33970ccd89f` unchanged, no diff in `src/sim/`
+or `content/`. `art:interim` + `assets:pack` run twice give byte-identical `art-source/` and
+`public/assets/`. Hunt visual baselines re-recorded in `mcr.microsoft.com/playwright:v1.56.1-noble`.
 *§5 — Evidence:* `docs/art-preview/` `sprites.png`, `flyers.png`, `scenery-<biome>-{props,layers,pan}.png`
 (the pan sheets stamp real interim birds on their lanes: contrast check, bible §1.5);
 `compare/gfx2-*.png` before (main) | after in-game on desktop-chromium and pixel7-landscape, from
