@@ -467,6 +467,7 @@ const loadFinalFor = (b: Biome): Promise<void> => {
             atlasScale: prefs.tier === 'high' ? 2 : 1,
             timeoutMs: feel.assets.fileTimeoutMs,
             audioFormat: audio.fileFormat(),
+            biome: b.id,
           })
     ).then(() => {
       finalDone.add(b.id);
