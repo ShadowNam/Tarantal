@@ -894,12 +894,13 @@ function windpomp(ctx: PropCtx): string {
       pen.ink,
       3,
     ),
-    // Tail boom and vane (fictional plain vane: no lettering). The kwêvoël perches on the boom.
+    // Tail boom and vane (fictional plain vane: no lettering). The kwêvoël perches on the boom:
+    // its content perch (−150, −92) puts its feet at y ≈ −31 at mid scale, so the boom dips to meet it.
     inked(
       polyD([
         [0, top - 14],
-        [-168, top + 4],
-        [-168, top + 9],
+        [-168, top + 27],
+        [-168, top + 32],
         [0, top - 6],
       ]),
       steel.dark,
@@ -909,11 +910,11 @@ function windpomp(ctx: PropCtx): string {
     inked(
       smoothD(
         [
-          [-205, top + 4],
-          [-140, top + 4],
-          [-146, top + 50],
-          [-200, top + 58],
-          [-212, top + 30],
+          [-205, top + 28],
+          [-140, top + 28],
+          [-146, top + 74],
+          [-200, top + 82],
+          [-212, top + 54],
         ],
         true,
         0.4,
@@ -924,14 +925,14 @@ function windpomp(ctx: PropCtx): string {
     ),
     flat(
       polyD([
-        [-176, top + 8],
-        [-146, top + 8],
-        [-150, top + 46],
+        [-176, top + 32],
+        [-146, top + 32],
+        [-150, top + 70],
         [-176, top + 52],
       ]),
       steel.dark,
     ),
-    line(`M${-196} ${top + 14}l42 0`, { ink: steel.light, w: 2.5 }, 2.5),
+    line(`M${-196} ${top + 38}l42 0`, { ink: steel.light, w: 2.5 }, 2.5),
     inked(ellipseD(0, top - 10, 16, 14), ctx.c('rust'), pen.ink, 3),
   );
 }

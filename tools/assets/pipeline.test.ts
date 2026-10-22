@@ -143,6 +143,8 @@ describe('pack-atlases', () => {
     expect(index.audio['sfx/click']?.lufs).toBeCloseTo(-14, 0);
     const tile = index.layers['karoo/far_ridge']?.tiles[0];
     expect(readPng(join(out, tile?.path ?? '')).width).toBe(2048);
+    // `encode: png8` writes palette tiles (PNG colour type 3, byte 25 of the file).
+    expect(readFileSync(join(out, tile?.path ?? ''))[25]).toBe(3);
 
     // D-029: per-plane bird masters, @1x-only palette atlases, interim provenance, guns.
     const disc = (w: number, h: number) => {

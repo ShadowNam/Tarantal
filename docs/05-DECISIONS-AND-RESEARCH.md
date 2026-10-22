@@ -1345,8 +1345,8 @@ hippo (eyes, ears, nostrils, back), a lily pad with a reed frog and a pink lily,
 clumps. No jacarandas (bible §2).
 *§4 — Tests:* `tools/art/scenery.test.ts`: every flyer frame stays inside the bird box and
 covers its body hitbox; every shared sprite and prop is drawn at the placeholder's size and
-origin with its occluder inside the art; layers come out at the delivered width; renders are
-deterministic. The pipeline test covers the layer sidecar.
+origin with its occluder inside the art; every layer comes out at the delivered width and its plan's height; renders are
+deterministic. The pipeline test covers the layer sidecar (provenance, `top`, palette tiles).
 *§6 — Budgets (part A, measured):* first download (gzip, `npm run size -- --strict`) web
 1.11 → **1.69 MB**, Poki and CrazyGames 1.68 MB (cap for this pass 3.0 MB, hard budget 5 MB).
 GPU texture memory at the end of a 20 s Karoo hunt, low tier, Pixel 7 profile (test hook
