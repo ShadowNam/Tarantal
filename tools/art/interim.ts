@@ -8,6 +8,7 @@
 //   --sheets              also write the contact sheets to docs/art-preview/
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { format } from 'prettier';
 import type { BirdClip } from '../../src/game/assets/assetIndex';
 import type { PlaneId } from '../../src/sim/types';
 import { encodePng8 } from '../assets/image';
@@ -51,6 +52,11 @@ function put(path: string, bytes: Uint8Array | string): void {
   writeFileSync(path, bytes);
 }
 
+/** JSON as the repo's Prettier prints it (`npm run lint` checks art-source/ too). */
+async function json(value: unknown): Promise<string> {
+  return format(JSON.stringify(value), { parser: 'json' });
+}
+
 const planesOf = (creature: string): PlaneId[] => {
   const c = content.birds.creatures.find((x) => x.id === creature);
   return c === undefined ? [] : [...c.planes];
@@ -89,7 +95,17 @@ if (only === undefined || only === 'birds') {
     }
     put(
       join(dir, 'rig.json'),
-      `${JSON.stringify({ origin: 'interim', x2: false, encode: 'png8', ...groupOf(creature), planeClips: { near: cfg.birds.planeClips.near, mid: cfg.birds.planeClips.mid, far: cfg.birds.planeClips.far } }, null, 2)}\n`,
+      await json({
+        origin: 'interim',
+        x2: false,
+        encode: 'png8',
+        ...groupOf(creature),
+        planeClips: {
+          near: cfg.birds.planeClips.near,
+          mid: cfg.birds.planeClips.mid,
+          far: cfg.birds.planeClips.far,
+        },
+      }),
     );
     console.log(`birds/${creature}: ${planesOf(creature).join(', ')} (${clips.length} clips)`);
   }
@@ -107,7 +123,12 @@ if (only === undefined || only === 'birds') {
     put(`${potPath}.png`, encodePng8(renderPot(cfg)));
     put(
       side,
-      `${JSON.stringify({ origin: 'interim', encode: 'png8', originX: POT_SIZE.originX / POT_SIZE.width, originY: POT_SEAT_Y / POT_SIZE.height }, null, 2)}\n`,
+      await json({
+        origin: 'interim',
+        encode: 'png8',
+        originX: POT_SIZE.originX / POT_SIZE.width,
+        originY: POT_SEAT_Y / POT_SIZE.height,
+      }),
     );
     console.log('sprites/fx/pot');
   }
@@ -132,7 +153,13 @@ if (only === undefined || only === 'guns') {
     }
     put(
       join(dir, 'rig.json'),
-      `${JSON.stringify({ origin: 'interim', x2: false, encode: 'png8', ...tipFor(cfg, id), ...(cfg.guns.lateLoad.ids.includes(id) ? { group: 'late' } : {}) }, null, 2)}\n`,
+      await json({
+        origin: 'interim',
+        x2: false,
+        encode: 'png8',
+        ...tipFor(cfg, id),
+        ...(cfg.guns.lateLoad.ids.includes(id) ? { group: 'late' } : {}),
+      }),
     );
     console.log(`guns/${id}: ${gunClipNames(cfg, id).join(', ')}`);
   }

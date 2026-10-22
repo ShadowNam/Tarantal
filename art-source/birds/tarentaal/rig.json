@@ -3,10 +3,7 @@
   "x2": false,
   "encode": "png8",
   "planeClips": {
-    "near": [
-      "peek",
-      "hit_poof"
-    ],
+    "near": ["peek", "hit_poof"],
     "mid": [
       "forage_walk",
       "peck",
