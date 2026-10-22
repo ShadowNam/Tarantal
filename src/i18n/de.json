@@ -296,6 +296,7 @@
   "title.daily_freeze": "Serienschutz bereit",
   "title.daily_played": "Heute gespielt · weitere Versuche sind Training",
   "title.daily_unranked": "Testlink · nur Training",
+  "capture.hint": "S Zeitlupe · F Standbild · C Schwenk",
   "title.challenge_bad": "Dieser Herausforderungs-Link geht nicht.",
   "challenge.title": "Herausforderung!",
   "challenge.from": "{by} fordert dich heraus",

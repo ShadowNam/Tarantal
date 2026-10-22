@@ -1050,6 +1050,21 @@ after). *Start-up build (should-fix):* `HudScene.create()` builds the atlas, and
 change the text size or contrast, so no bag pays for it. *Old looks:* the atlases of looks older
 than the previous one are removed (the previous one stays: a pop on screen may still use it).
 
+*§5 — Capture-mode hint:* (1) *What:* the first hunt frame in capture mode shows "S slow ·
+F freeze · C pan" (`capture.hint`, en/af/de/nl; the key letters stay S/F/C in every language,
+they are physical keys) at the top centre, where the hidden HUD leaves the frame empty. It shows
+`feel.json capture.hintMs` (3 s), fades over `hintFadeMs` (0.6 s) and is then destroyed, so no
+frame captured after that can contain it. Once per page (`CaptureState.hintDone`). (2) *Clock:* it
+runs on real frame time, not hunt time (slow motion and freeze scale the hunt, its tweens and
+animations; a freeze must not keep the hint up), but each frame counts at most `hintMaxStepMs`
+(100 ms): the first hunt frames can stall for seconds while shaders compile on a slow device, and
+the hint would otherwise be used up before it was drawn (it was, under software GL). Phaser's
+`game.loop.delta` is smoothed toward 16 ms and was not usable: the hunt's own real frame delta is
+used. (3) *Portals:* the hint is drawn only when `ctx.capture` exists, which a portal release build
+never creates (capture is compiled out, D-027); the gate's unit tests stand. (4) *Proof:*
+`capture.spec.ts` "key hint" (shown, then gone while frozen; screenshots of both) and unit tests of
+the fade (`captureHintAlpha`).
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

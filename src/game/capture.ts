@@ -26,12 +26,29 @@ export interface CaptureTuning {
   readonly speeds: readonly number[];
   /** Auto-pan turns around this many reference px before each end of the camera range. */
   readonly panTurnPx: number;
+  /** v1.0.1: the key hint shows this long, then fades over hintFadeMs. */
+  readonly hintMs: number;
+  readonly hintFadeMs: number;
+}
+
+/**
+ * v1.0.1 (D-028 §5): the key hint's opacity `elapsedMs` after it appeared — 1 for `holdMs`, then
+ * down to 0 over `fadeMs` — or null once it has faded (the hint is then destroyed, so no captured
+ * frame can show it). Frame time, not game time: slow motion and freeze don't hold it on screen.
+ */
+export function captureHintAlpha(elapsedMs: number, holdMs: number, fadeMs: number): number | null {
+  if (elapsedMs < holdMs) return 1;
+  const a = 1 - (elapsedMs - holdMs) / fadeMs;
+  return a > 0 ? a : null;
 }
 
 export class CaptureState {
   private speedIndex = 0;
   frozen = false;
   panning = false;
+  /** Ms the key hint has shown (null = not yet); it shows once per page. */
+  hintElapsedMs: number | null = null;
+  hintDone = false;
   private panDir = 1;
 
   constructor(
@@ -71,8 +88,13 @@ export class CaptureState {
   }
 
   /** For the test hook. */
-  snapshot(): { speed: number; frozen: boolean; panning: boolean } {
-    return { speed: this.timeScale, frozen: this.frozen, panning: this.panning };
+  snapshot(): { speed: number; frozen: boolean; panning: boolean; hint: boolean } {
+    return {
+      speed: this.timeScale,
+      frozen: this.frozen,
+      panning: this.panning,
+      hint: this.hintElapsedMs !== null && !this.hintDone,
+    };
   }
 }
 

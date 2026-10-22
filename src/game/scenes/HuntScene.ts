@@ -11,6 +11,7 @@ import type { Biome, Weapon } from '../../content/schemas';
 import { DebugOverlay } from '../../debug/DebugOverlay';
 import { fill, t } from '../../i18n/i18n';
 import { textStyle } from '../ui/menu';
+import { captureHintAlpha, type CaptureState } from '../capture';
 import { showDontShootBadge } from '../prefs';
 import { TierFilters } from '../quality/TierFilters';
 import type { Challenge } from '../../meta/challenge';
@@ -68,6 +69,8 @@ export class HuntScene extends Phaser.Scene {
   private debug!: DebugOverlay;
   private screen!: Phaser.GameObjects.Container;
   private runner: HuntRunner | null = null;
+  /** v1.0.1 (D-028 §5): capture mode's key hint while it shows. */
+  private captureHint: Phaser.GameObjects.Text | null = null;
   private mapper: InputMapper | null = null;
   private recorder: InputRecorder | null = null;
   private inputKind: InputKind = 'pointer';
@@ -111,6 +114,7 @@ export class HuntScene extends Phaser.Scene {
       return;
     }
     this.runner = null;
+    this.captureHint = null;
     this.endAction = null;
     this.tierFilters = null;
     this.mapper = null;
@@ -264,7 +268,7 @@ export class HuntScene extends Phaser.Scene {
    * M10 capture mode, each hunt frame: no HUD or reticle, the speed (slow-mo, frozen) for the sim,
    * tweens and animations, and the auto-pan. Applied from the next frame on.
    */
-  private applyCapture(runner: HuntRunner, cameraX: number): void {
+  private applyCapture(runner: HuntRunner, cameraX: number, deltaMs: number): void {
     const c = this.ctx.capture;
     if (c === null) return;
     const ts = c.timeScale;
@@ -276,7 +280,40 @@ export class HuntScene extends Phaser.Scene {
     if (!c.showGun) this.weapon.setVisible(false);
     const hud = this.scene.get('Hud');
     hud.cameras.main.setVisible(false);
+    this.updateCaptureHint(c, deltaMs);
     if (this.ctx.hook) this.ctx.hook.capture = { ...c.snapshot(), hud: hud.cameras.main.visible };
+  }
+
+  /**
+   * v1.0.1 (D-028 §5): on entering capture mode, "S slow · F freeze · C pan" for a few seconds,
+   * then a fade, then gone. It runs on frame time (slow motion and freeze scale the hunt, not
+   * this), each frame counting at most hintMaxStepMs, so a stall while the hunt warms up (shader
+   * compiles on a slow device) can't use up the hint before it was ever drawn.
+   */
+  private updateCaptureHint(c: CaptureState, deltaMs: number): void {
+    if (c.hintDone) return;
+    const tuning = this.ctx.feel.capture;
+    c.hintElapsedMs =
+      c.hintElapsedMs === null ? 0 : c.hintElapsedMs + Math.min(deltaMs, tuning.hintMaxStepMs);
+    const alpha = captureHintAlpha(c.hintElapsedMs, tuning.hintMs, tuning.hintFadeMs);
+    if (alpha === null) {
+      this.captureHint?.destroy();
+      this.captureHint = null;
+      c.hintDone = true;
+      return;
+    }
+    if (this.captureHint === null) {
+      const { width } = designSize();
+      this.captureHint = this.add
+        .text(width / 2, this.ctx.safeArea().top + 40, t('capture.hint'), {
+          ...textStyle(tuning.hintPx),
+          stroke: '#1B1410',
+          strokeThickness: 5,
+        })
+        .setOrigin(0.5, 0)
+        .setDepth(10_000);
+    }
+    this.captureHint.setAlpha(alpha);
   }
 
   /** Settings → screen shake, and never in a capture slow-mo or freeze (shakes run on real time). */
@@ -715,7 +752,7 @@ export class HuntScene extends Phaser.Scene {
     }
     const state = runner.state;
     if (events.length > 0) this.handleEvents(events, width, state);
-    this.applyCapture(runner, state.cameraX);
+    this.applyCapture(runner, state.cameraX, delta);
     // e2e ?holdAt (visual baselines): once the sim holds, tweens and animations hold too, so a
     // delivered bird's clip or a fading pop is the same frame on every run.
     if (runner.held && this.tweens.timeScale !== 0) {

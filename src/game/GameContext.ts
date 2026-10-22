@@ -37,7 +37,14 @@ export interface TestHook {
   /** M10: the self-hosted fonts loaded before the game drew any text. */
   fontsReady: boolean;
   /** M10 capture mode: speed (0 = frozen) and auto-pan, or null outside it. */
-  capture: { speed: number; frozen: boolean; panning: boolean; hud: boolean } | null;
+  capture: {
+    speed: number;
+    frozen: boolean;
+    panning: boolean;
+    hud: boolean;
+    /** v1.0.1: the key hint is on screen. */
+    hint: boolean;
+  } | null;
   /** Id of the keyboard-focused item of the active menu (null = none yet). */
   focus: string | null;
   /** Hunt paused (pause menu, hidden tab or portrait). */

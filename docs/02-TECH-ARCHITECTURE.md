@@ -526,6 +526,10 @@ deterministic. The gate is the test hooks' gate: web and dev builds always, a po
 when built with `VITE_TEST_HOOKS=1` (the CI e2e builds). In a shipped portal build the code is
 compiled out: the `hooksInBuild` constant is `false`, so the minifier drops it, which a grep of
 `dist-poki` confirms. Capture sessions play on their own save (`tm.capture.*`).
+v1.0.1 (D-028): entering capture mode shows a small "S slow · F freeze · C pan" hint (i18n
+`capture.hint`) at the top for `capture.hintMs`, then fades it over `hintFadeMs` and destroys it.
+It runs on frame time, not hunt time (a freeze doesn't hold it), at most `hintMaxStepMs` per frame
+(a warm-up stall can't use it up unseen). Portal release builds have no capture mode, so no hint.
 
 ## 9. Mobile web specifics (the gotchas)
 - **iPhone Safari has no element Fullscreen API** (iPad does; iOS 17.4 beta even removed an

@@ -22,7 +22,7 @@ test('capture mode hides the HUD, fixes the seed, and slows, freezes and pans on
   await page.waitForFunction(() => window.__TM__?.capture !== null, null, { timeout: 30_000 });
   const h = await hook(page);
   expect(h.huntSeed).toBe(42);
-  expect(h.capture).toEqual({ speed: 1, frozen: false, panning: false, hud: false });
+  expect(h.capture).toMatchObject({ speed: 1, frozen: false, panning: false, hud: false });
 
   await page.keyboard.press('KeyS');
   await page.waitForFunction(() => window.__TM__?.capture?.speed === 0.5);
@@ -94,4 +94,31 @@ test('capture mode is unranked: no Daily entry on the title, no share on the tal
   await page.waitForFunction(() => window.__TM__?.rects['again'] !== undefined);
   const rects = (await hook(page)).rects;
   expect(rects['share']).toBeUndefined();
+});
+
+// v1.0.1 (D-028 §5): entering capture mode shows "S slow · F freeze · C pan" for ~3 s, then it
+// fades out on real time (a freeze doesn't hold it) and is removed before any capture.
+test('capture mode shows its key hint, then fades it out even while frozen', async ({
+  page,
+}, info) => {
+  test.skip(
+    isTouchProject(info) || info.project.metadata['orientation'] !== 'landscape',
+    'keyboard: desktop',
+  );
+  test.setTimeout(120_000);
+  const errors = collectErrors(page);
+  await boot(page, 'capture=1');
+  await startHunt(page, false);
+  await page.waitForFunction(() => window.__TM__?.capture?.hint === true, null, {
+    timeout: 30_000,
+  });
+  await page.screenshot({ path: `${SCREENSHOTS}/capture-hint-${info.project.name}.png` });
+  // Freeze straight away: the hint must still go.
+  await page.keyboard.press('KeyF');
+  await page.waitForFunction(() => window.__TM__?.capture?.frozen === true);
+  await page.waitForFunction(() => window.__TM__?.capture?.hint === false, null, {
+    timeout: 30_000,
+  });
+  await page.screenshot({ path: `${SCREENSHOTS}/capture-hint-gone-${info.project.name}.png` });
+  expect(errors).toEqual([]);
 });
