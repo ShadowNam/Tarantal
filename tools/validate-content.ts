@@ -7,6 +7,7 @@ import { checkCrossRefs } from '../src/content/crossRefs';
 import { readContentDir, readI18nKeys } from '../src/content/loadNode';
 import { parseFeel } from '../src/content/feel';
 import { parseDailyMeta } from '../src/content/daily';
+import { findEpochCopies } from './epochCheck';
 import { parseNotaboek } from '../src/content/notaboek';
 import { readdirSync, readFileSync } from 'node:fs';
 import { checkLanguage, checkLanguageSet } from '../src/content/i18nCheck';
@@ -65,6 +66,27 @@ const report = checkCrossRefs(parsed.bundle, {
 });
 
 const errors = [...report.errors];
+// v1.0.1 (D-028 §2): the epoch lives only in meta/daily.json — no copy in game, tool or e2e code.
+const codeFiles = (dir: string): string[] =>
+  readdirSync(join(root, dir), { withFileTypes: true }).flatMap((d) =>
+    d.isDirectory()
+      ? codeFiles(`${dir}/${d.name}`)
+      : d.name.endsWith('.ts')
+        ? [`${dir}/${d.name}`]
+        : [],
+  );
+const copies = findEpochCopies(
+  [...codeFiles('src'), ...codeFiles('tools'), ...codeFiles('tests')].map((path) => ({
+    path,
+    text: readFileSync(join(root, path), 'utf8'),
+  })),
+  daily.value.epoch,
+);
+for (const c of copies)
+  errors.push({
+    file: 'meta/daily.json',
+    message: `epoch ${daily.value.epoch} is hard-coded in ${c.path}:${c.line} (read meta.epoch)`,
+  });
 // M9: every language has every string (src/i18n/<lang>.json against en.json).
 const i18nDir = join(root, 'src/i18n');
 const readTable = (f: string): Record<string, unknown> =>

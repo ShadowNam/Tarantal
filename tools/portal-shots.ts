@@ -14,13 +14,15 @@ import { spawn, type ChildProcess } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { chromium, type Browser, type Page } from '@playwright/test';
+import { loadDailyMeta } from './testContent';
 
 const root = join(import.meta.dirname, '..');
 const out = join(root, 'release', 'portal-assets');
 const PORT = Number(process.env['PORTAL_SHOTS_PORT'] ?? 4175);
 const ORIGIN = `http://localhost:${PORT}`;
-/** Fixed day and seed: the same images every run. */
-const BASE = '?e2e=1&ftue=0&today=2026-10-21&seed=42';
+/** Fixed day and seed: the same images every run (until the epoch is set). */
+// The title shows Daily #1: today = the epoch (content/meta/daily.json, its only copy, D-028).
+const BASE = `?e2e=1&ftue=0&today=${loadDailyMeta().epoch}&seed=42`;
 const TITLE = (
   JSON.parse(readFileSync(join(root, 'src', 'i18n', 'en.json'), 'utf8')) as Record<string, string>
 )['app.title'];

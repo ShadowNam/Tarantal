@@ -22,10 +22,13 @@ import {
   tapRect,
 } from './helpers';
 
-const DAY = '2026-10-21';
+// The golden Daily replays are pinned to the day they were recorded (tools/goldenCases.ts).
+const GOLDEN_DAY = '2026-10-21';
 const golden = (
   JSON.parse(readFileSync('src/sim/replay/golden/replays.json', 'utf8')) as GoldenReplay[]
-).filter((g) => g.name.startsWith(`daily-${DAY}-`));
+).filter((g) => g.name.startsWith(`daily-${GOLDEN_DAY}-`));
+// Daily #1 is the epoch: read from content, its only copy (D-028).
+const EPOCH = loadDailyMeta().epoch;
 
 async function waitScene(page: Page, scene: string): Promise<void> {
   await page.waitForFunction((s) => window.__TM__?.scene === s, scene, { timeout: 120_000 });
@@ -57,12 +60,12 @@ test.describe('Daily Hunt', () => {
     test.setTimeout(300_000);
     expect(golden.map((g) => g.inputKind).sort()).toEqual(['pointer', 'touch']);
     const hash = loadContentHash();
-    const seed = dailySeed(DAY, hash);
+    const seed = dailySeed(GOLDEN_DAY, hash);
     // Desktop: three widths, each a fresh page load. Phones: their own viewport (WebKit on iPhone).
     const widths = info.project.use.isMobile === true ? [null] : [1440, 1920, 2520];
     for (const w of widths) {
       if (w !== null) await page.setViewportSize({ width: w, height: 1080 });
-      await boot(page, `today=${DAY}`);
+      await boot(page, `today=${GOLDEN_DAY}`);
       const h = await hook(page);
       if (w !== null) expect(h.designWidth).toBe(designSizeFor(w, 1080).width);
       const got = await page.evaluate(
@@ -75,7 +78,7 @@ test.describe('Daily Hunt', () => {
             outcomes: logs.map((l) => tools.replay(l)),
           };
         },
-        [DAY, golden.map((g) => g.log)] as const,
+        [GOLDEN_DAY, golden.map((g) => g.log)] as const,
       );
       expect(got.contentHash).toBe(hash);
       expect(got.seed).toBe(seed);
@@ -93,21 +96,21 @@ test.describe('Daily Hunt', () => {
     const touch = isTouchProject(info);
     const errors = collectErrors(page);
     await stubClipboard(page);
-    await boot(page, `huntSeconds=3&today=${DAY}`);
+    await boot(page, `huntSeconds=3&today=${EPOCH}`);
     await page.waitForFunction(() => window.__TM__?.rects['daily'] !== undefined);
     await page.screenshot({ path: `${SCREENSHOTS}/daily-title-${info.project.name}.png` });
     await tapRect(page, touch, 'daily');
     await waitScene(page, 'hunt');
     let h = await hook(page);
-    expect(h.daily).toMatchObject({ key: DAY, number: 1, official: true });
-    expect(h.huntSeed).toBe(dailySeed(DAY, loadContentHash()));
+    expect(h.daily).toMatchObject({ key: EPOCH, number: 1, official: true });
+    expect(h.huntSeed).toBe(dailySeed(EPOCH, loadContentHash()));
     expect(h.hudTag).toBe('DAILY #1');
     // M8: the day's biome comes from the rotation over the biomes this build draws.
     const content = loadContent();
     const drawable = new Set(placeholderBiomes());
     expect(h.biome).toBe(
       dailyBiome(
-        parseDayKey(DAY) ?? 0,
+        parseDayKey(EPOCH) ?? 0,
         loadDailyMeta().biomeRotation,
         content.biomes.filter((b) => drawable.has(b.id)).map((b) => b.id),
         content.modes.modes.daily.biome,

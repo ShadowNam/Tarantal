@@ -980,6 +980,39 @@ in its own CI job (desktop Chromium), and every other e2e run ignores it; `daily
 passing on the flagged CI build. (5) *Portal shots:* `npm run portal:shots` builds with the flag
 so the store title and tally look as a player sees them; `npm run release` rebuilds `dist/`
 without it before zipping.
+(6) *Review fixes (#31):* `npm run release` refuses to build when `VITE_TEST_HOOKS` is set in the
+environment or a production `.env` file (`.env`, `.env.local`, `.env.production`,
+`.env.production.local`); Playwright never reuses a running preview server for an
+`E2E_BUILD=public` or portal run (it could be the other build). *Known limit:* clearing
+`localStorage` or opening a private window still gives a player another official Daily attempt;
+a client-only game can't prevent that (the same holds for every client-side streak), and the gate
+only stops a public link from handing out unlimited ones.
+
+*§2 — Daily epoch:* (1) *One value:* `content/meta/daily.json → epoch` stays the placeholder
+2026-10-21 (a person picks the launch date). Two fields join it: `epochPlaceholder: true` (the
+person sets it to false with the real date) and `epochMaxAgeDays: 7` (the pre-launch limit, a
+number in content, not in the tool). (2) *No copies:* `content:validate` scans non-test `.ts` in
+`src/` and `tools/` for the epoch's date (`tools/epochCheck.ts findEpochCopies`) and fails on a
+hit. `tools/goldenCases.ts` is allowed: its Daily replays are pinned to the day they were recorded,
+which only equals the placeholder by chance, and renaming them would change the golden file.
+Tests that meant "Daily #1" now read `meta.epoch` (DailyFlow, daily, daily.spec's title test);
+tests of a fixed day's seed keep their literal day. `portal:shots` uses the epoch as its `?today=`
+so the store title shows Daily #1. (3) *Release check:* `npm run release` prints `epoch: WARNING`
+while `epochPlaceholder` is true, plus a second line when the epoch lies more than
+`epochMaxAgeDays` before the build date; `npm run release -- --strict` turns them into a failure.
+*Interpretation:* the age check runs only while the epoch is a placeholder. A confirmed epoch
+ages by one day every day, so checking it would fail every release from the eighth day after
+launch; the person who confirms the date is the check.
+(4) *Review fixes (#31):* the copy scan also covers `tests/` (non-unit-test `.ts`): the visual
+baselines and `daily-public.spec.ts` had `today=2026-10-21`, and the title baseline shows
+"Daily #1" only because that day is the epoch — with the real date set it would show another
+number and fail on every profile at launch. They now read `meta.epoch`. The allowlist is per line,
+not per file: only the `daily-<date>-…` case names in `tools/goldenCases.ts` and `GOLDEN_DAY` in
+`daily.spec.ts` (the golden Daily replays are pinned to their recording day); the goldenCases
+comment no longer spells the date. A confirmed epoch (`epochPlaceholder: false`) is checked too:
+more than `epochMaxAgeDays` before or after the build day is an issue (a typo such as 2062 or
+2025), which `--strict` fails; `--allow-epoch-gap` accepts it for releases after the launch, or
+a portal build submitted well before it.
 
 ## 3. Research notes (with sources)
 

@@ -596,7 +596,8 @@ compiled out: the `hooksInBuild` constant is `false`, so the minifier drops it, 
   digest bytes read big-endian (`src/meta/daily.ts`, the sync SHA-256 of `content/hash.ts`, so Node
   and every browser agree). The date comes from `Date.now()` in the game layer only; the UTC day
   number, `YYYY-MM-DD` and ISO weeks are integer arithmetic in `src/meta/dailyCalendar.ts` (no
-  `Date`, no time zones, DST-free). Daily #n counts from `content/meta/daily.json → epoch` (#1).
+  `Date`, no time zones, DST-free). Daily #n counts from `content/meta/daily.json → epoch` (#1), its only copy (D-028: `content:validate`
+  rejects a copy in code; `npm run release` warns, `--strict` fails, while it is the placeholder).
 - Biome rotates by day: `biomeRotation[day mod n]` over the rotation biomes that are playable (in
   the bundle and drawn by this build); none playable → `modes.json → daily.biome`. Omen + crate
   schedule come from the seed's own streams (`omen`, `crates`). Daily = Classic rules with the
