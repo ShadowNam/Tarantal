@@ -34,6 +34,7 @@ import {
   popLook,
   type PopText,
 } from '../ui/popFont';
+import { fontReadiness } from '../ui/fontReady';
 import { updateCaptions, type CaptionLine } from '../audio/captions';
 
 export interface HudControls {
@@ -140,6 +141,18 @@ export class HudScene extends Phaser.Scene {
     // startBarks() (the hunt) may run before this create() (launch is deferred): keep its flags.
     this.bubble = new BarkBubble(this, this.ctx.feel.barks.fontPx);
     this.popPool = new PopPool(this);
+    // D-028 §4: the pop atlas is built now, not on the first kill; again when Settings change the
+    // text size or contrast, and once more if the web font arrives after loadFonts gave up.
+    const buildPopAtlas = (): void => {
+      ensurePopFont(this, popLook(FONT, 52, 8));
+    };
+    buildPopAtlas();
+    const offPrefs = this.ctx.onPrefsChange(buildPopAtlas);
+    const offFonts = fontReadiness.onFontsLoaded(buildPopAtlas);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      offPrefs();
+      offFonts();
+    });
     this.shells = [];
     this.lastMul = 1;
     this.timerColor = '';

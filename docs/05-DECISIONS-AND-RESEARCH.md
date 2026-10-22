@@ -1038,6 +1038,17 @@ after 16.4/16.4. The low-tier test (6×) fails its 20 ms budget on this box befo
 and after (26.4/23.2) alike; CI is the reference. A same-page A/B is the only comparison here that
 load can't skew. (4) *Hook:* `pops: { shown, created }` (`pops.spec.ts`: 19 pops from 5 objects). Visual
 baselines are unchanged; no pop is on a baseline frame.
+(5) *Review fixes (#33):* *Late web font (must-fix):* `loadFonts` gives up after
+`fontTimeoutMs`; a pop atlas drawn before Baloo 2 arrived stayed in the system face all session,
+where a `Text` made later picked the font up. `fontReady.ts` now tells, per CSS font, whether it
+has loaded (`document.fonts.check`, sticky once true), and the atlas key (`popAtlas.ts`) and the
+pooled POOF label's look include that state: a late font gets exactly one rebuild and the stale
+labels are remade. The HUD also rebuilds on `document.fonts` `loadingdone`, so the rebuild happens
+before the next pop. The atlas logic moved into Phaser-free `popAtlas.ts` (cache and texture
+manager injected); unit tests use a fake `document.fonts` (drawn before ready, rebuilt once
+after). *Start-up build (should-fix):* `HudScene.create()` builds the atlas, and again when Settings
+change the text size or contrast, so no bag pays for it. *Old looks:* the atlases of looks older
+than the previous one are removed (the previous one stays: a pop on screen may still use it).
 
 *§5 — Capture-mode hint:* (1) *What:* the first hunt frame in capture mode shows "S slow ·
 F freeze · C pan" (`capture.hint`, en/af/de/nl; the key letters stay S/F/C in every language,
