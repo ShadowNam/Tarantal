@@ -6,6 +6,7 @@
 import type * as Phaser from 'phaser';
 import type { PlaneId } from '../../sim/types';
 import type { AssetIndex, AudioEntry, BirdPlaneEntry, ImageEntry } from './assetIndex';
+import { checkBirdAtlas } from './atlasCheck';
 import { loadBytes, loadImage, loadJson } from './finalLoader';
 
 /** A texture drawn at runtime onto a canvas. Origin is in texture pixels. */
@@ -204,9 +205,16 @@ export class AssetManifest {
               imgs.push(img);
               data.push(d);
             }
+            // Every clip's frames must exist in the pages (Phaser throws on a short clip).
+            const check = checkBirdAtlas(entry.clips, data);
+            if (check.dropped.length > 0)
+              console.warn(
+                `[assets] ${creature} ${plane}: clips with missing frames dropped: ${check.dropped.join(', ')}`,
+              );
+            if (check.clips === null) return;
             this.finalBirds.set(`${creature}/${plane}`, {
               atlasKey: `final:bird/${creature}/${plane}@${use2x ? 2 : 1}x`,
-              entry,
+              entry: { ...entry, clips: check.clips },
               scale: use2x ? entry.scale / 2 : entry.scale,
               img: imgs,
               data,
