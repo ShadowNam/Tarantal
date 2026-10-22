@@ -6,3 +6,6 @@ interface ImportMetaEnv {
   /** '1': keep the e2e test hooks in a portal build (CI e2e builds only). */
   readonly VITE_TEST_HOOKS?: string;
 }
+
+/** M10: package.json version, replaced at build time (vite.config.ts `define`). */
+declare const __APP_VERSION__: string;

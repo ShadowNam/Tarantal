@@ -5,7 +5,7 @@
 import { designSize } from '../layout';
 import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
-import { t, type I18nKey } from '../../i18n/i18n';
+import { fill, t, type I18nKey } from '../../i18n/i18n';
 import type { GameContext } from '../GameContext';
 import type { Rect } from '../ui/hudLayout';
 import { drawButton, Menu, textStyle, UI, type MenuItem } from '../ui/menu';
@@ -39,6 +39,13 @@ export class PrivacyScene extends Phaser.Scene {
     this.add
       .text(px + panelW / 2, py + 60, t('privacy.title'), textStyle(60, '#FFD25A'))
       .setOrigin(0.5);
+    // M10: the release version (package.json), for support and bug reports.
+    this.add
+      .text(px + panelW - 40, py + 36, fill(t('privacy.version'), { version: __APP_VERSION__ }), {
+        ...textStyle(24, '#C9BFA6'),
+        fontStyle: '600',
+      })
+      .setOrigin(1, 0);
 
     const portal = this.ctx.platform.id !== 'web';
     const paragraphs: [I18nKey, I18nKey][] = [

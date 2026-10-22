@@ -890,6 +890,71 @@ checklist per portal are in `docs/07-PORTAL-SUBMISSION.md`. The checklists cover
 the QA tool (Poki Inspector event log; CrazyGames preview), the SDK events the adapters actually
 fire, mobile and tablet, incognito, ad blocker and size. Neither text names another game series
 or a real brand.
+*PR H — release:*
+- The version is 1.0.0 (`package.json`), injected as `__APP_VERSION__` by Vite `define`, and
+  shown as "Version 1.0.0" top-right on Settings → Privacy (i18n key `privacy.version`, four
+  languages).
+- There is no build id on screen: a per-commit id would break that screen's visual baseline on
+  every commit.
+- `CHANGELOG.md` covers v1.0.0.
+- `npm run release` (`tools/release.ts`) runs all three builds, each through `size --strict`, then
+  the asset audit in report mode. It zips each build into `release/` (gitignored), with
+  `index.html` at the root and no `.vite/` metadata.
+- The zips come from a small built-in writer (`tools/zip.ts`, deflate + CRC32, fixed timestamps):
+  this box has no `zip`, and a dependency wasn't worth it. Python's `zipfile` validates them.
+- Nothing is uploaded.
+*Review fixes (playtest-reviewer on the whole M10 diff):*
+- **Capture save:** a fresh capture save started the tutorial hunt, whose prompts capture mode
+  hides. `captureSave` now marks the tutorial done there, and an e2e boots the live path
+  without `ftue=0`. (Fixed in E.)
+- **Capture freeze:** a freeze or slow-mo no longer leaks to the next hunt; the game-wide
+  animation speed resets on shutdown and between hunts. No shake or rumble while slowed or
+  frozen. (E)
+- **Music start:** the music starts once per decoded batch, not once per stem; per-stem
+  refreshes restarted the stems up to four times. (C)
+- **Boot and retries:** boot no longer waits on recordings, since nothing plays before the first
+  tap. A failed or timed-out file is forgotten rather than cached as null. (A)
+- **Size and the service worker:** `size-check` counts the larger of each Ogg/MP3 pair and the
+  @2x atlas set where one exists, the worst case one player downloads, and lists the twins
+  apart. The service worker caches recordings on first play instead of precaching both
+  formats. (A)
+*Second review (two independent reviews of A–H):*
+- **Corrupt atlases (A, must-fix):** a partial or corrupt bird atlas no longer crashes the hunt.
+  `checkBirdAtlas` requires a `frames` object on every page and drops any clip naming a frame no
+  page has, so its fallback plays; with no usable clip the bird stays on its placeholder.
+  `BirdView` plays a clip only when its animation has frames. `startFrame` staggers looping
+  clips only, and `hit_poof` always plays once. Unit tests and two e2e cases (corrupt atlas JSON,
+  a clip missing a frame).
+- **Capture is unranked (E, must-fix):** slow motion and freeze would inflate a score, and the
+  capture save allows unlimited fresh Daily attempts. `DailyFlow.unranked` therefore makes every
+  Daily practice and offers no share card or challenge link. The title shows no Daily entry,
+  `?c=` links are ignored, and the install banner is hidden.
+- **Not cheap: `?e2e` on the web build.** It keeps official dailies, because the Daily e2e specs
+  rely on them. Remaining risk: someone could run `?e2e` on the public build to get fresh Daily
+  attempts. The test hooks' `?seed`/`?huntSeconds` already make those hunts non-comparable.
+  Logged as a follow-up: gate e2e dailies behind a build flag.
+- **Audit (B):** a delivered bird plane must resolve every clip `clipFor` can ask for there
+  (only pop-ups on the near plane), or the audit fails.
+- **Audio (C):**
+  - `StemHold` restarts its hold on every frame at or above the current stem, so there is no
+    flutter, and a new hunt resets to calm.
+  - Only the current biome's music and ambience stay decoded; compressed bytes are kept so a
+    revisit can decode again. Effects drop their bytes once decoded.
+  - An undecodable Ogg retries its MP3 twin.
+- **Juice (D):**
+  - `FlashLimiter` merges starts within `flashMergeMs` (50 ms), so one strike lighting two
+    overlays costs one slot.
+  - The tint and rumble decisions are now pure functions with tests, and the tint re-reads
+    "reduce flashes" during a Stampede.
+  - The tally tick and thud are tested against every mute reason.
+  - `docs/06` lists `sfx/tick` and `sfx/thud`.
+- **Fonts and holds (F):** the font subset keeps `−`, `•`, `ʼ` and the symbols `src/game` writes,
+  and `?holdAt` also freezes tweens and animations.
+- **Smaller fixes:**
+  - G: `portal:shots` pins the high tier.
+  - H: `npm run release` reports a failed build instead of throwing.
+  - A: only a 404 or an HTML page means "no asset index", and the foraging spell length moved to
+    `feel.json`.
 *Needs a person:* the illustrator, animator and sound designer deliver per
 `docs/06-ASSET-DELIVERY.md`.
 

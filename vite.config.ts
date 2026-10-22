@@ -1,4 +1,4 @@
-import { createReadStream, existsSync, rmSync, statSync } from 'node:fs';
+import { createReadStream, existsSync, readFileSync, rmSync, statSync } from 'node:fs';
 import { extname, join } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 import { serviceWorkerPlugin } from './tools/serviceWorker';
@@ -63,10 +63,15 @@ function standinAssets(): Plugin {
   };
 }
 const standin = process.env['STANDIN'] === '1';
+/** M10: the release version (package.json), shown in Settings → Privacy. */
+const version = (
+  JSON.parse(readFileSync(join(import.meta.dirname, 'package.json'), 'utf8')) as { version: string }
+).version;
 
 // Default export is required by Vite (config files are exempt from the named-exports rule).
 export default defineConfig({
   base: './',
+  define: { __APP_VERSION__: JSON.stringify(version) },
   plugins: [
     ...(portal ? [stripPwa()] : [serviceWorkerPlugin()]),
     ...(standin ? [standinAssets()] : []),

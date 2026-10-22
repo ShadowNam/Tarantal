@@ -229,6 +229,21 @@ slow-mo on keypress) for trailers/GIFs; store/portal page assets.
 Done when: no placeholder assets remain (asset audit script); visual regression screenshots approved;
 portal soft launch submitted.
 
+**Status (21 Oct 2026, v1.0.0, D-027):** everything that code can do is built. That covers:
+- the asset pipeline and the final/placeholder switch, proven with stand-ins;
+- `assets:audit` with its `--strict` gate;
+- recorded audio with fallback, per-biome music and ambience, voice and ducking;
+- the juice pass;
+- capture mode;
+- self-hosted fonts and visual baselines;
+- portal renders and the submission kit (`docs/07-PORTAL-SUBMISSION.md`);
+- `npm run release`.
+
+Open, because they need people:
+- art and audio delivered per `docs/06-ASSET-DELIVERY.md`, until `assets:audit --strict` passes;
+- the visual baselines re-recorded and approved after the swap;
+- the portal accounts and the soft-launch submission (done by the product owner).
+
 ---
 
 ## After v1.0 (v1.x backlog)

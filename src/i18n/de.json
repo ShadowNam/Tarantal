@@ -327,6 +327,7 @@
   "settings.privacy": "Datenschutz",
   "settings.privacy_open": "Ansehen",
   "privacy.title": "Datenschutz",
+  "privacy.version": "Version {version}",
   "privacy.stored_title": "Auf diesem Gerät gespeichert",
   "privacy.stored": "Deine Einstellungen und dein Fortschritt (Jagden, Rekorde, Ränge, Vogelbuch, Notaboek, Saison-Lauf und Tagesjagd-Serie) werden nur in diesem Browser gespeichert. Wenn du die Browserdaten löschst oder die Taste unten drückst, sind sie weg.",
   "privacy.sent_title": "Was das Spiel sendet",
