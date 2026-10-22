@@ -617,6 +617,7 @@ platform for now (neither portal SDK takes custom events or error reports).
 | Perf | Headless Chrome, 4× CPU throttle, 30 s hunt (`tests/e2e/perf.spec.ts`) | avg frame ≤ 16.7 ms on medium tier: CPU cost per frame always; real frame time with `PERF_STRICT=1` on a GPU machine (D-019) |
 | Perf, low tier (M9) | Pixel 7 profile, 6× CPU throttle, quality low, 20 s hunt (`perf.spec.ts`) | CPU cost of a frame at 50 fps ≤ 20 ms: (CPU per frame − sim time) + 1.2 × sim tick cost (D-026) |
 | Size | `tools/size-check.ts` (`--strict` in CI, `--dir` per platform build) | initial (entry + static imports, from Vite's manifest) ≤ 5 MB gzip; hard fail at 8 MB; lazy chunks reported apart |
+| Assets (M10) | `tools/asset-audit.ts` (`npm run assets:audit`) | every manifest key final/placeholder, size, where used; fails on unused deliveries/files/keys and missing files or keys; CI runs report mode, `--strict` (no placeholders) is the launch gate |
 | Sim cost | microbenchmark | `step()` ≤ 1.5 ms with 60 birds on a mid-range phone profile |
 
 CI (GitHub Actions): install → `npm run check` → build → size → e2e. Deploy previews per PR to static

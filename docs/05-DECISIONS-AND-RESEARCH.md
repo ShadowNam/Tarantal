@@ -781,6 +781,20 @@ are never in a build: `tests/e2e/assets.spec.ts` serves them with `page.route`, 
 `STANDIN=1 npm run dev` serves them from the dev server. (8) *Recorded SFX:* `AudioDirector`
 plays a decoded recording when one was delivered and keeps the synth for every other sound
 (music and ambience arrive in PR C). Delivery spec for artists: `docs/06-ASSET-DELIVERY.md`.
+*PR B — asset audit:* `tools/asset-audit.ts` (`npm run assets:audit`) lists all 126 keys today
+(65 textures, 24 layers, 17 bird × plane sets, 20 sounds), each with its status, size (delivered
+bytes, or the placeholder's drawn size) and where it is used. A use is a file outside the
+placeholder factory and the key tables that names the key: its `TEX` constant, a biome file's
+`"asset"` for props and layers, the creature id in `content/birds.json` for birds, the weapon id
+plus a `gunKey()` caller for guns, `this.play('<id>'` for SFX. It always fails on:
+- a placeholder key nothing uses;
+- a `TEX` constant with no manifest entry;
+- an index entry for a key the game doesn't have;
+- a file under `public/assets/` the index doesn't reference;
+- an index file missing on disk.
+
+`--strict` also fails while any placeholder remains: it is the launch gate. CI runs report mode
+until the art lands.
 *Needs a person:* the illustrator, animator and sound designer deliver per
 `docs/06-ASSET-DELIVERY.md`.
 

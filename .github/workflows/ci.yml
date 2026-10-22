@@ -26,6 +26,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
+      # M10: every asset key, final or placeholder (report only; `--strict` is the launch gate once art lands).
+      - run: npm run assets:audit
       # M8: every biome is in, so content warnings (content due later) are errors from now on.
       - run: npm run content:validate -- --strict
       - run: npm run build
