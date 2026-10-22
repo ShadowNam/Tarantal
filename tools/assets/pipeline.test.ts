@@ -113,7 +113,7 @@ describe('pack-atlases', () => {
     const tile = index.layers['karoo/far_ridge']?.tiles[0];
     expect(readPng(join(out, tile?.path ?? '')).width).toBe(2048);
 
-    // D-029: per-plane bird masters, trimmed @1x-only palette atlases, interim provenance, guns.
+    // D-029: per-plane bird masters, @1x-only palette atlases, interim provenance, guns.
     const disc = (w: number, h: number) => {
       const img = blank(w, h);
       for (let y = 0; y < h; y++)
@@ -146,9 +146,9 @@ describe('pack-atlases', () => {
     const json = JSON.parse(readFileSync(join(out, page?.data.path ?? ''), 'utf8')) as {
       frames: Record<string, { trimmed: boolean; frame: { w: number }; sourceSize: { w: number } }>;
     };
-    expect(json.frames['flap/00']?.trimmed).toBe(true);
-    expect(json.frames['flap/00']?.sourceSize.w).toBe(310);
-    expect(json.frames['flap/00']?.frame.w).toBeLessThan(200);
+    // Never trimmed: Phaser 4.2.1 mis-draws trimmed frames in animations (D-029 §3).
+    expect(json.frames['flap/00']?.trimmed).toBe(false);
+    expect(json.frames['flap/00']?.frame.w).toBe(310);
     // The palette PNG decodes back to an image.
     expect(readPng(join(out, page?.image.path ?? '')).width).toBeGreaterThan(0);
     // The far plane uses its own master (only flap there): forage_walk still comes from the shared one.
