@@ -314,7 +314,7 @@ export function grassField(rnd: Rnd, o: FieldOpts): { y: number; svg: string }[]
           rnd,
           sx,
           cy,
-          (o.h[1] * 1.3 + rnd() * o.h[1]) * k,
+          (o.h[1] * 0.8 + rnd() * o.h[1] * 0.6) * k,
           o.stalks.colour,
           o.stalks.head,
           { ink: o.pen.ink, w: Math.max(1, o.pen.w * 0.5) },

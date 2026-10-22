@@ -1040,19 +1040,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/karoo-autumn/layers/near-0.942b413bb5be.png",
-          "bytes": 67901,
-          "hash": "942b413bb5be"
+          "path": "assets/karoo-autumn/layers/near-0.13f8cebec2a0.png",
+          "bytes": 67254,
+          "hash": "13f8cebec2a0"
         },
         {
-          "path": "assets/karoo-autumn/layers/near-1.52c4a695066a.png",
-          "bytes": 77129,
-          "hash": "52c4a695066a"
+          "path": "assets/karoo-autumn/layers/near-1.a306073dceb6.png",
+          "bytes": 77057,
+          "hash": "a306073dceb6"
         },
         {
-          "path": "assets/karoo-autumn/layers/near-2.39d094fc05ad.png",
-          "bytes": 64168,
-          "hash": "39d094fc05ad"
+          "path": "assets/karoo-autumn/layers/near-2.ae26ce036f02.png",
+          "bytes": 64047,
+          "hash": "ae26ce036f02"
         }
       ],
       "tileWidth": 2048,
