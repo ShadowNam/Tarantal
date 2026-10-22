@@ -1357,13 +1357,11 @@ drawn; only their pixels changed. Audit: 18 → **66 interim**, 169 → **121 pl
 rest are audio, out of scope). Golden replay `8ab8e33970ccd89f` unchanged, no diff in `src/sim/`
 or `content/`. `art:interim` + `assets:pack` run twice give byte-identical `art-source/` and
 `public/assets/`. Hunt visual baselines re-recorded in `mcr.microsoft.com/playwright:v1.56.1-noble`.
-<<<<<<< HEAD
 *§6b — Budgets (part B):* first download unchanged (1.69 MB gzip; the asset index grows by
 2 KB). Lazy chunks per biome (gzip, incl. its birds): Bushveld 0.63 MB, Kalahari 0.42 MB,
-Okavango 0.89 MB (cap 1.5 MB each). Each biome's layers have the Karoo's dimensions, so a hunt in
+Okavango 0.89 MB (cap 1.5 MB each; after the look review see §7b). Each biome's layers have the Karoo's dimensions, so a hunt in
 any biome holds about the same texture memory as the Karoo measurement above. Audit with both
 parts: **106 interim, 81 placeholder** keys (every remaining placeholder is audio).
-=======
 *§7 — Look review (22 Oct, user on the first Karoo look: "fix the grass, bushes and sky"):*
 (1) *Grass:* `tools/art/vegetation.ts` has seven tuft shapes (fan, upright, clump, wispy,
 windswept, seeding, sparse) in weighted straw-gold, bleached and grey-green tones, placed by
@@ -1385,7 +1383,6 @@ textures:* a new test fails if any prop's art touches its texture's left, right 
 (the fence bell's wires excepted: they join the mid fence). It caught the aloe candles, the
 potjie's steam and the windpomp and reservoir pipes and shadows, all fixed. First download
 1.69 → **1.89 MB** gzip (the full-colour sky and the denser ground cover).
->>>>>>> gfx2-karoo
 *§7b — Look review, the other biomes:* all three use the shared grass, shrubs and soft sky
 (`tools/art/biomes/common.ts`: mid scrub, near grass, foreground clumps; each biome's palette
 names the straw / bleached / grey-green grass and its shrub colours). *Kalahari:* the dark band
