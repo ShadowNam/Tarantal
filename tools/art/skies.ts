@@ -143,8 +143,9 @@ export function cirrus(
 }
 
 /**
- * A distant thunderhead (Kalahari): a tall soft tower of cumulus lobes with a flat anvil top and a
- * shaded flat base with faint rain shafts. Grey-violet, kept lighter than the navy birds.
+ * A distant thunderhead (Kalahari): one tall, lumpy tower of cumulus lobes (wide at the base,
+ * cauliflower top) with a soft anvil spreading from its top, a sunlit top fading to a shaded
+ * flat base, faint rain shafts below. Grey-violet, kept lighter than the navy birds.
  */
 export function thunderhead(
   rnd: Rnd,
@@ -155,13 +156,43 @@ export function thunderhead(
   c: CloudColours,
   rain: string,
 ): string {
-  const parts: string[] = [];
   const shafts: string[] = [];
   for (let k = 0; k < 5; k++) {
     const rx = x + w * (0.2 + k * 0.15 + (rnd() - 0.5) * 0.05);
     shafts.push(`M${r2(rx)} ${r2(base - 4)}l${r2(-14 - rnd() * 8)} ${r2(70 + rnd() * 40)}`);
   }
-  parts.push(
+  const lobes: [number, number, number][] = [];
+  const rows = 6;
+  for (let r = 0; r < rows; r++) {
+    const f = r / (rows - 1); // 0 base … 1 top
+    const rowW = w * (1 - f * 0.45);
+    const cy = base - h * 0.12 - f * h * 0.72;
+    const n = 4 - Math.floor(f * 2);
+    for (let k = 0; k < n; k++) {
+      const cx = x + w / 2 + (k / Math.max(1, n - 1) - 0.5) * rowW * 0.8 + (rnd() - 0.5) * w * 0.06;
+      lobes.push([cx, cy + (rnd() - 0.5) * h * 0.05, rowW * (0.24 + rnd() * 0.06)]);
+    }
+  }
+  const body = lobes.map(([cx, cy, r]) => ellipseD(cx, cy, r, r * 0.85)).join('');
+  const ay = base - h * 0.95;
+  const anvil = smoothD(
+    [
+      [x + w * 0.22, ay + h * 0.1],
+      [x - w * 0.05, ay + h * 0.02],
+      [x + w * 0.2, ay - h * 0.08],
+      [x + w * 0.7, ay - h * 0.11],
+      [x + w * 1.25, ay - h * 0.04],
+      [x + w * 1.05, ay + h * 0.05],
+      [x + w * 0.78, ay + h * 0.12],
+    ],
+    true,
+    0.8,
+  );
+  const clip = nextId();
+  const grad = nextId();
+  const top = base - h * 1.1;
+  return g(
+    {},
     el('path', {
       d: shafts.join(''),
       stroke: rain,
@@ -171,28 +202,34 @@ export function thunderhead(
       filter: 'url(#softer)',
       fill: 'none',
     }),
+    g(
+      { filter: 'url(#soft)' },
+      el(
+        'defs',
+        {},
+        el(
+          'linearGradient',
+          { id: grad, gradientUnits: 'userSpaceOnUse', x1: 0, y1: top, x2: 0, y2: base },
+          el('stop', { offset: 0, 'stop-color': c.lit }),
+          el('stop', { offset: 0.5, 'stop-color': c.body }),
+          el('stop', { offset: 1, 'stop-color': c.base }),
+        ),
+      ),
+      flat(anvil, mix(c.lit, c.body, 0.3)),
+      el(
+        'clipPath',
+        { id: clip },
+        el('rect', { x: x - w, y: top - h, width: w * 3, height: base - top + h }),
+      ),
+      g(
+        { 'clip-path': `url(#${clip})` },
+        el('path', { d: body, fill: `url(#${grad})` }),
+        ...lobes
+          .filter((_, i) => i % 3 === 0)
+          .map(([cx, cy, r]) =>
+            flat(ellipseD(cx - r * 0.3, cy - r * 0.45, r * 0.45, r * 0.2), c.lit, { opacity: 0.3 }),
+          ),
+      ),
+    ),
   );
-  // Tower: stacked cumulus, narrowing upward, then the anvil.
-  const tiers = 3;
-  for (let t = 0; t < tiers; t++) {
-    const tw = w * (1 - t * 0.22);
-    const tx = x + (w - tw) * (0.4 + rnd() * 0.2);
-    const tb = base - t * h * 0.28;
-    parts.push(softCumulus(rnd, tx, tb, tw, h * 0.42, c));
-  }
-  const ay = base - h * 0.92;
-  const anvil = smoothD(
-    [
-      [x + w * 0.15, ay + h * 0.08],
-      [x + w * 0.05, ay - h * 0.02],
-      [x + w * 0.4, ay - h * 0.1],
-      [x + w * 1.05, ay - h * 0.08],
-      [x + w * 1.2, ay + h * 0.02],
-      [x + w * 0.75, ay + h * 0.1],
-    ],
-    true,
-    0.8,
-  );
-  parts.push(flat(anvil, mix(c.lit, c.body, 0.35), { filter: 'url(#soft)', opacity: 0.95 }));
-  return g({}, ...parts);
 }
