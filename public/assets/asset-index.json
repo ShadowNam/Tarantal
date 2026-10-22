@@ -1,0 +1,360 @@
+{
+  "version": 1,
+  "initialGroups": [
+    "common",
+    "karoo-autumn"
+  ],
+  "images": {},
+  "layers": {},
+  "birds": {},
+  "audio": {},
+  "guns": {
+    "dubbelloop": {
+      "group": "common",
+      "origin": "interim",
+      "x1": {
+        "pages": [
+          {
+            "image": {
+              "path": "assets/common/guns/gun-dubbelloop@1x-0.f3229eff4609.png",
+              "bytes": 134711,
+              "hash": "f3229eff4609"
+            },
+            "data": {
+              "path": "assets/common/guns/gun-dubbelloop@1x-0.5edf6fc8464f.json",
+              "bytes": 2825,
+              "hash": "5edf6fc8464f"
+            }
+          }
+        ]
+      },
+      "originX": 0.5,
+      "originY": 1,
+      "tipX": 0.4087,
+      "tipY": 0.1571,
+      "clips": {
+        "fire": {
+          "frames": [
+            "fire/00",
+            "fire/01",
+            "fire/02",
+            "fire/03"
+          ],
+          "fps": 24,
+          "loop": false
+        },
+        "flash": {
+          "frames": [
+            "flash/00",
+            "flash/01",
+            "flash/02"
+          ],
+          "fps": 30,
+          "loop": false
+        },
+        "idle": {
+          "frames": [
+            "idle/00"
+          ],
+          "fps": 1,
+          "loop": false
+        },
+        "reload": {
+          "frames": [
+            "reload/00",
+            "reload/01",
+            "reload/02",
+            "reload/03",
+            "reload/04",
+            "reload/05",
+            "reload/06",
+            "reload/07"
+          ],
+          "fps": 12,
+          "loop": false
+        }
+      }
+    },
+    "kettie": {
+      "group": "common",
+      "origin": "interim",
+      "x1": {
+        "pages": [
+          {
+            "image": {
+              "path": "assets/common/guns/gun-kettie@1x-0.234eed904941.png",
+              "bytes": 35564,
+              "hash": "234eed904941"
+            },
+            "data": {
+              "path": "assets/common/guns/gun-kettie@1x-0.f735571a49ce.json",
+              "bytes": 1281,
+              "hash": "f735571a49ce"
+            }
+          }
+        ]
+      },
+      "originX": 0.5,
+      "originY": 1,
+      "tipX": 0.417,
+      "tipY": 0.2337,
+      "clips": {
+        "fire": {
+          "frames": [
+            "fire/00",
+            "fire/01",
+            "fire/02",
+            "fire/03"
+          ],
+          "fps": 24,
+          "loop": false
+        },
+        "flash": {
+          "frames": [
+            "flash/00",
+            "flash/01"
+          ],
+          "fps": 30,
+          "loop": false
+        },
+        "idle": {
+          "frames": [
+            "idle/00"
+          ],
+          "fps": 1,
+          "loop": false
+        }
+      }
+    },
+    "mielie_masjien": {
+      "group": "common",
+      "origin": "interim",
+      "x1": {
+        "pages": [
+          {
+            "image": {
+              "path": "assets/common/guns/gun-mielie_masjien@1x-0.813fda25c45f.png",
+              "bytes": 52487,
+              "hash": "813fda25c45f"
+            },
+            "data": {
+              "path": "assets/common/guns/gun-mielie_masjien@1x-0.54311ff61c81.json",
+              "bytes": 1293,
+              "hash": "54311ff61c81"
+            }
+          }
+        ]
+      },
+      "originX": 0.5,
+      "originY": 1,
+      "tipX": 0.4087,
+      "tipY": 0.1571,
+      "clips": {
+        "fire": {
+          "frames": [
+            "fire/00",
+            "fire/01",
+            "fire/02",
+            "fire/03"
+          ],
+          "fps": 24,
+          "loop": false
+        },
+        "flash": {
+          "frames": [
+            "flash/00",
+            "flash/01"
+          ],
+          "fps": 30,
+          "loop": false
+        },
+        "idle": {
+          "frames": [
+            "idle/00"
+          ],
+          "fps": 1,
+          "loop": false
+        }
+      }
+    },
+    "pomp": {
+      "group": "common",
+      "origin": "interim",
+      "x1": {
+        "pages": [
+          {
+            "image": {
+              "path": "assets/common/guns/gun-pomp@1x-0.ff06dc304429.png",
+              "bytes": 106776,
+              "hash": "ff06dc304429"
+            },
+            "data": {
+              "path": "assets/common/guns/gun-pomp@1x-0.e3c1ba0e4c1d.json",
+              "bytes": 2301,
+              "hash": "e3c1ba0e4c1d"
+            }
+          }
+        ]
+      },
+      "originX": 0.5,
+      "originY": 1,
+      "tipX": 0.4087,
+      "tipY": 0.1571,
+      "clips": {
+        "fire": {
+          "frames": [
+            "fire/00",
+            "fire/01",
+            "fire/02",
+            "fire/03"
+          ],
+          "fps": 24,
+          "loop": false
+        },
+        "flash": {
+          "frames": [
+            "flash/00",
+            "flash/01",
+            "flash/02"
+          ],
+          "fps": 30,
+          "loop": false
+        },
+        "idle": {
+          "frames": [
+            "idle/00"
+          ],
+          "fps": 1,
+          "loop": false
+        },
+        "reload": {
+          "frames": [
+            "reload/00",
+            "reload/01",
+            "reload/02",
+            "reload/03",
+            "reload/04"
+          ],
+          "fps": 12,
+          "loop": false
+        }
+      }
+    },
+    "voorlaaier": {
+      "group": "common",
+      "origin": "interim",
+      "x1": {
+        "pages": [
+          {
+            "image": {
+              "path": "assets/common/guns/gun-voorlaaier@1x-0.b24e59513105.png",
+              "bytes": 147504,
+              "hash": "b24e59513105"
+            },
+            "data": {
+              "path": "assets/common/guns/gun-voorlaaier@1x-0.53f9e7c7496d.json",
+              "bytes": 2826,
+              "hash": "53f9e7c7496d"
+            }
+          }
+        ]
+      },
+      "originX": 0.5,
+      "originY": 1,
+      "tipX": 0.4087,
+      "tipY": 0.1571,
+      "clips": {
+        "fire": {
+          "frames": [
+            "fire/00",
+            "fire/01",
+            "fire/02",
+            "fire/03"
+          ],
+          "fps": 24,
+          "loop": false
+        },
+        "flash": {
+          "frames": [
+            "flash/00",
+            "flash/01",
+            "flash/02"
+          ],
+          "fps": 30,
+          "loop": false
+        },
+        "idle": {
+          "frames": [
+            "idle/00"
+          ],
+          "fps": 1,
+          "loop": false
+        },
+        "reload": {
+          "frames": [
+            "reload/00",
+            "reload/01",
+            "reload/02",
+            "reload/03",
+            "reload/04",
+            "reload/05",
+            "reload/06",
+            "reload/07"
+          ],
+          "fps": 12,
+          "loop": false
+        }
+      }
+    },
+    "windbuks": {
+      "group": "common",
+      "origin": "interim",
+      "x1": {
+        "pages": [
+          {
+            "image": {
+              "path": "assets/common/guns/gun-windbuks@1x-0.fa917d22326a.png",
+              "bytes": 34597,
+              "hash": "fa917d22326a"
+            },
+            "data": {
+              "path": "assets/common/guns/gun-windbuks@1x-0.5cded0202b61.json",
+              "bytes": 1122,
+              "hash": "5cded0202b61"
+            }
+          }
+        ]
+      },
+      "originX": 0.5,
+      "originY": 1,
+      "tipX": 0.4087,
+      "tipY": 0.1571,
+      "clips": {
+        "fire": {
+          "frames": [
+            "fire/00",
+            "fire/01",
+            "fire/02"
+          ],
+          "fps": 24,
+          "loop": false
+        },
+        "flash": {
+          "frames": [
+            "flash/00",
+            "flash/01"
+          ],
+          "fps": 30,
+          "loop": false
+        },
+        "idle": {
+          "frames": [
+            "idle/00"
+          ],
+          "fps": 1,
+          "loop": false
+        }
+      }
+    }
+  }
+}

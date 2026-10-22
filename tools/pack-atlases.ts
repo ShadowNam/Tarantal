@@ -21,9 +21,9 @@ const report = await packAssets({ src, publicDir, content, catalog: await buildC
 for (const w of report.warnings) console.warn(`warning: ${w}`);
 for (const e of report.errors) console.error(`error: ${e}`);
 const n = (o: object): number => Object.keys(o).length;
-const { images, layers, birds, audio } = report.index;
+const { images, layers, birds, audio, guns } = report.index;
 console.log(
-  `assets:pack — ${n(images)} images, ${n(layers)} layers, ${n(birds)} birds, ${n(audio)} sounds; ` +
+  `assets:pack — ${n(images)} images, ${n(layers)} layers, ${n(birds)} birds, ${n(guns)} guns, ${n(audio)} sounds; ` +
     `${report.written.length} files written to ${arg('--public', 'public')}/assets/`,
 );
 if (report.errors.length > 0) {

@@ -2,8 +2,9 @@
 // art-source/ exactly like a human delivery (docs/06), marked `"origin": "interim"` in each rig.json.
 // Then run `npm run assets:pack`. A folder whose rig.json is not marked interim is a human delivery
 // and is never touched.
-//   --only birds|guns     one half
+//   --only birds|guns     one half (none: sheets only)
 //   --creature <id>       one bird
+//   --gun <id>            one gun
 //   --sheets              also write the contact sheets to docs/art-preview/
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -14,8 +15,10 @@ import { NEAR_CLIPS } from '../assets/pack';
 import { CLIP_SPEC } from '../assets/targets';
 import { loadContent } from '../testContent';
 import { renderBirdFrame } from './birdFrames';
-import { birdSheets } from './previews';
-import { clipsFor, loadArtConfig } from './config';
+import { birdSheets, gunSheets } from './previews';
+import { renderGunFrame } from './gunFrames';
+import { gunClipNames, gunFrameCount, tipFor } from './guns';
+import { clipsFor, GUN_IDS, loadArtConfig } from './config';
 
 function arg(name: string): string | undefined {
   const i = process.argv.indexOf(name);
@@ -28,6 +31,7 @@ const cfg = loadArtConfig();
 const content = loadContent();
 const only = arg('--only');
 const oneCreature = arg('--creature');
+const oneGun = arg('--gun');
 
 /** True when `dir` may be (re)written: absent, or an earlier interim delivery. */
 function ours(dir: string): boolean {
@@ -84,11 +88,42 @@ if (only === undefined || only === 'birds') {
     console.log(`birds/${creature}: ${planesOf(creature).join(', ')} (${clips.length} clips)`);
   }
 }
-if (process.argv.includes('--sheets')) {
-  const out = join(root, 'docs', 'art-preview');
-  for (const [name, bytes] of birdSheets(cfg, content, oneCreature)) {
-    put(join(out, name), bytes);
-    console.log(`docs/art-preview/${name}`);
+if (only === undefined || only === 'guns') {
+  for (const id of GUN_IDS) {
+    if (oneGun !== undefined && id !== oneGun) continue;
+    const dir = join(src, 'guns', id);
+    if (!ours(dir)) {
+      console.warn(`skip guns/${id}: a human delivery is there (rig.json not interim)`);
+      continue;
+    }
+    rmSync(dir, { recursive: true, force: true });
+    for (const clip of gunClipNames(cfg, id)) {
+      for (let k = 0; k < gunFrameCount(cfg, id, clip); k++) {
+        put(
+          join(dir, clip, `${String(k).padStart(2, '0')}.png`),
+          encodePng8(renderGunFrame(cfg, id, clip, k)),
+        );
+        frames++;
+      }
+    }
+    put(
+      join(dir, 'rig.json'),
+      `${JSON.stringify({ origin: 'interim', x2: false, encode: 'png8', ...tipFor(id) }, null, 2)}\n`,
+    );
+    console.log(`guns/${id}: ${gunClipNames(cfg, id).join(', ')}`);
   }
+}
+if (process.argv.includes('--sheets')) {
+  if (only === undefined || only === 'guns' || only === 'none')
+    for (const [name, bytes] of gunSheets(cfg, oneGun)) {
+      put(join(root, 'docs', 'art-preview', name), bytes);
+      console.log(`docs/art-preview/${name}`);
+    }
+  const out = join(root, 'docs', 'art-preview');
+  if (only !== 'guns')
+    for (const [name, bytes] of birdSheets(cfg, content, oneCreature)) {
+      put(join(out, name), bytes);
+      console.log(`docs/art-preview/${name}`);
+    }
 }
 console.log(`art:interim — ${frames} frames in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
