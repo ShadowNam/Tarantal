@@ -1092,6 +1092,30 @@ unit tests (streaks, priority, gap, cooldown, lasting triggers, kwêvoël), layo
 Pixel 7 and iPhone 14 landscape; `?holdAt` now also freezes the HUD's tweens so the bubble can be
 screenshotted (a Playwright round trip here outlasts its 2.8 s). Visual baselines unchanged.
 
+*§6 — Charm balance (D-025 follow-up):* (1) *Measured:* `npm run balance -- --run --seeds 500` on
+seeds 1–500 and again on 501–1000 (competent bot, 60 s hunts). Every §13.8 row is within ±10
+points on both sets:
+
+| Season | none (target) | none 1… / 501… | synergy (target) | synergy 1… / 501… |
+|---|---|---|---|---|
+| Herfs | ~85 % | 83.0 / 82.4 % | ~95 % | 92.4 / 89.8 % |
+| Winter | ~50 % | 47.0 / 47.8 % | ~80 % | 80.1 / 80.2 % |
+| Lente | ≤ 10 % | 12.8 / 7.6 % | ~60 % | 64.1 / 63.6 % |
+| Somer | ~0 % | 0.0 / 0.0 % (25 / 15 runs reach it) | ~35 % | 34.6 / 39.7 % |
+
+The baseline's 100-seed quick run showed Lente-synergy at 73 % (a FAIL); at 500 seeds that was
+sampling noise. "Few runs reach Somer without good charms" is the design (§13.8: `none` ~0 %).
+(2) *Compounding — decision: keep it as it is.* The scoring pipeline (§5.3) already compounds:
++Mult charms add, ×Mult charms multiply each other and the Frenzy/Stampede multipliers, in slot
+order (the synergy bot puts +Mult before ×Mult). Median hunt score, synergy ÷ none: Herfs hunts 2–3
++19 % / +22 %, Winter +20 / +31 / +24 %, Lente +24 / +37 / +21 %, Somer hunt 10 +27 % — the lead
+grows as the build grows, and the pass-rate gap follows the targets (+9 → +33 → +51 → +35 points vs
++10/+30/+50/+35). That gap is if anything understated: the `none` runs that reach the later
+seasons are the lucky ones. So §13.2's "outpaces raw skill by season 3" holds, and stronger
+compounding would push Lente/Somer synergy past their targets. (3) *No content changed:* no golden
+replay changes and `contentHash` is unchanged. (4) *Version:* 1.0.1 (`package.json`, the zip names
+in docs/07, the version line on Settings → Privacy); CHANGELOG `[1.0.1]`.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
