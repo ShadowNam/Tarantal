@@ -1087,6 +1087,38 @@ build with the asset index hidden (`PERF_PLACEHOLDERS=1`) **25.8 ms**, with the 
 are over the 20 ms budget on this run because the box was loaded (load average 11 on 6 cores;
 D-026 measured 18.4 ms on a quiet box). *Needs a person:* fps and memory on a real low-end Android
 and an older iPhone (GPU texture memory above).
+*§9 — Review round 2 (22 Oct): fixes before merge.* (1) *Birds read grey in the game:* the
+mid-plane dots (as small as ~1.2 screen px, ~19 % of the body) blurred into a grey haze. Now
+fewer, crisper dots (≥ ~2 screen px on every plane, ~9 % at mid), a subtler back highlight, the
+face outline 1.35× the plane's ink, wattles 1.35× with a full ink line, far sky tint 20 → 15 %
+(bible range 15–25 %, mid none). Plumage stays the bible's `#2E2F45` / `#1F2033`.
+`docs/art-preview/contrast.{png,json}` puts every bird on the Karoo veld, soil and sky with its
+silhouette and the WCAG contrast of its average colour (tarentaal mid vs veld 4.9 → 5.6 : 1; far
+2.8 : 1; `tarentaal_wit` is white by design, 1.6 : 1 on the veld). (2) *The shotgun read as a
+stubby revolver:* the long guns (Dubbelloop, Pomp, Voorlaaier, Windbuks) now point into the scene
+at −22° with the stock bottom right and the barrels running up-left toward the screen centre,
+converging in perspective; muzzle 500 px from the grip again; per-gun pose in
+`tools/art/config.json guns.poses`; rig `tipX/tipY` follow it. (3) *Size and graphics memory:*
+frames of a clip are cropped to the clip's common opaque area and carry a Phaser `pivot` (safe,
+unlike trimmed frames); near-identical frames are packed once; each plane packs only the clips it
+plays (near: `peek` + `hit_poof`; the reserved `tumble` is drawn for the sheets but not packed);
+`rig.json group` puts wit, lavendel, the Generaal and every gun but the Dubbelloop in a **late**
+group (downloads after the hunt view is up; placeholders until then), Ou Grys with the Bushveld,
+Kuifkop and Koning with the Okavango; bird and gun atlases go to the GPU on first use, the
+first-download birds at hunt start (not mid-hunt). *Results:* first download (gzip, all three
+builds) 0.55 → 2.86 → **1.09 MB**; late + biome groups 1.4 MB. Texture memory at the end of a
+20 s Karoo hunt, low tier, Pixel 7 profile (test hook `textureBytes`, every texture incl.
+placeholders and layers): 43.7 MB without the art, 101.7 → **93.7 MB** with it. The low tier
+already loads @1x only (no @2x sets exist). Frame cost at 50 fps (M9 method, 6× throttle) on this
+loaded box (load average 8–11 on 6 cores) spread 23.9–30.8 ms with the art and 24.8–26.0 ms
+without across runs; differences are within the box's noise, and none meet the 20 ms budget here
+(D-026's 18.4 ms was a quiet box). *Needs a person:* fps and memory on a real low-end Android and
+an older iPhone. (4) *Reviewer fixes:* a reload that starts while the fire clip plays (every
+Voorlaaier shot) now begins when the fire clip ends; a fire clip with no reload clip settles on
+idle; @2x gun rigs draw at `rig.scale`; a final gun rig's provenance wins over an interim gun
+image; gun masters smaller than the box are an error, not a silent skip; the generator never
+overwrites a sidecar it can't read; the fit test covers every packed tarentaal frame on every
+plane (it caught a takeoff wing and poof feathers clipping the frame edge).
 *§8 — Evidence:* `docs/art-preview/` (contact sheets, hitbox fit, variants, guns and flashes;
 `compare/` before | after in-game on desktop-chromium and pixel7-landscape: pop-up, mid and far
 fly-overs, flock forage and flush, the Generaal, `?debug=1` hitboxes, each gun idle / mid-recoil /
