@@ -89,7 +89,8 @@ set: the game draws @1x at 1 texture px per canvas px on every tier, D-029 §4),
 "png8"` (palette PNG pages, about 3–4× smaller; fine for flat-fill art) and `"origin":
 "interim"` (only for stand-in art; leave it out), `"planeRes": { "mid": 0.75 }` (pack a plane
 below its display size; the game draws it scaled up) and `"group": "late"` (download after the
-first hunt is up: rare variants, bosses; until then the placeholder shows).
+first download settles, while the title is up: rare variants, bosses; until then the placeholder
+shows).
 
 **How the tool packs frames (D-029):** every frame of a clip is cropped to the clip's common
 opaque area and stores the bird's sim position (or the gun's grip) as its own pivot, so nothing

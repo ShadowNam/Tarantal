@@ -12,7 +12,8 @@ export const ASSET_INDEX_PATH = 'assets/asset-index.json';
 export const COMMON_GROUP = 'common';
 /**
  * D-029: assets the first hunt doesn't need straight away (rare variants, bosses, guns that aren't
- * equipped). They download after the hunt view is up and are installed when they arrive; until
+ * equipped). They download after the first download settles (while the title is up) and are installed
+ * when first needed; until
  * then their keys show the placeholder. Not part of the first download.
  */
 export const LATE_GROUP = 'late';
