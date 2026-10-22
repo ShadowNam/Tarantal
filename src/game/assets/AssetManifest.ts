@@ -13,7 +13,7 @@ import type {
   GunEntry,
   ImageEntry,
 } from './assetIndex';
-import { LATE_GROUP } from './assetIndex';
+import { COMMON_GROUP, LATE_GROUP } from './assetIndex';
 import { checkAtlas, checkBirdAtlas } from './atlasCheck';
 import { loadBytes, loadImage, loadJson } from './finalLoader';
 
@@ -80,6 +80,8 @@ export interface FinalLoadOptions {
   readonly timeoutMs: number;
   /** Which audio file the browser plays (null = no audio files at all). */
   readonly audioFormat: 'ogg' | 'mp3' | null;
+  /** The biome this manifest draws: entries of other biomes' groups are skipped (D-029). */
+  readonly biome?: string;
 }
 
 export type BirdFrame = 'up' | 'down' | 'stand';
@@ -214,6 +216,15 @@ export class AssetManifest {
     // D-029: the late group downloads after everything else (it isn't needed to start a hunt).
     const late: (() => Promise<void>)[] = [];
     const queue = (group: string, job: () => Promise<void>): void => {
+      // A key every biome has can still be delivered for one biome only (rig.json group): only
+      // that biome's manifest loads it.
+      if (
+        o.biome !== undefined &&
+        group !== COMMON_GROUP &&
+        group !== LATE_GROUP &&
+        group !== o.biome
+      )
+        return;
       if (group === LATE_GROUP) late.push(job);
       else jobs.push(job());
     };
