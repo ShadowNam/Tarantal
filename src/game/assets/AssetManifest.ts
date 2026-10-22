@@ -13,6 +13,7 @@ import type {
   GunEntry,
   ImageEntry,
 } from './assetIndex';
+import { LATE_GROUP } from './assetIndex';
 import { checkAtlas, checkBirdAtlas } from './atlasCheck';
 import { loadBytes, loadImage, loadJson } from './finalLoader';
 
@@ -110,8 +111,12 @@ export class AssetManifest {
   private readonly finalSoundKeys = new Set<string>();
   /** Delivered keys (texture, layer, `bird/<c>/<plane>`, gun texture, sound) marked interim. */
   private readonly interimKeys = new Set<string>();
+  /** Weapon ids whose animated rig is interim (a rig's provenance wins over a gun image's). */
+  private readonly interimGuns = new Set<string>();
   private soundFiles: FinalSound[] = [];
   private soundsLoaded: Promise<void> = Promise.resolve();
+  /** D-029: the late group's downloads (resolves when they have all settled). */
+  lateLoaded: Promise<void> = Promise.resolve();
 
   addTexture(spec: CanvasSpec): void {
     this.specs.set(spec.key, spec);
@@ -153,6 +158,29 @@ export class AssetManifest {
     return this.finalBirds.get(`${creature}/${plane}`) ?? null;
   }
 
+  /**
+   * D-029: puts a delivered bird atlas on the GPU the first time a view needs it. Returns the
+   * atlas (or null: not delivered, or still downloading — the placeholder draws meanwhile).
+   */
+  ensureBird(
+    textures: Phaser.Textures.TextureManager,
+    creature: string,
+    plane: PlaneId,
+  ): FinalBird | null {
+    const b = this.finalBirds.get(`${creature}/${plane}`);
+    if (b === undefined) return null;
+    if (!textures.exists(b.atlasKey)) textures.addAtlasJSONHash(b.atlasKey, b.img, b.data);
+    return b;
+  }
+
+  /** D-029: like ensureBird, for a weapon's animated gun. */
+  ensureGun(textures: Phaser.Textures.TextureManager, weaponId: string): FinalGun | null {
+    const g = this.finalGuns.get(weaponId);
+    if (g === undefined) return null;
+    if (!textures.exists(g.atlasKey)) textures.addAtlasJSONHash(g.atlasKey, g.img, g.data);
+    return g;
+  }
+
   /** D-029: the delivered animated gun for a weapon id, or null (single image or placeholder). */
   finalGun(weaponId: string): FinalGun | null {
     return this.finalGuns.get(weaponId) ?? null;
@@ -183,9 +211,15 @@ export class AssetManifest {
    */
   async loadFinal(index: AssetIndex, o: FinalLoadOptions): Promise<void> {
     const jobs: Promise<void>[] = [];
+    // D-029: the late group downloads after everything else (it isn't needed to start a hunt).
+    const late: (() => Promise<void>)[] = [];
+    const queue = (group: string, job: () => Promise<void>): void => {
+      if (group === LATE_GROUP) late.push(job);
+      else jobs.push(job());
+    };
     for (const [key, entry] of Object.entries(index.images)) {
       if (!this.specs.has(key) || this.layerOfTile.has(key)) continue;
-      jobs.push(
+      queue(entry.group, () =>
         loadImage(entry.file.path, o.timeoutMs).then((img) => {
           if (img === null) return;
           this.finalImages.set(key, { img, entry });
@@ -195,7 +229,7 @@ export class AssetManifest {
     }
     for (const [id, entry] of Object.entries(index.layers)) {
       if (!this.layerArt.has(id)) continue;
-      jobs.push(
+      queue(entry.group, () =>
         Promise.all(entry.tiles.map((t) => loadImage(t.path, o.timeoutMs))).then((imgs) => {
           // A layer is all or nothing: half a delivered panorama would show a seam.
           if (imgs.some((i) => i === null)) return;
@@ -224,7 +258,7 @@ export class AssetManifest {
         if (!this.specs.has(birdKey(creature, plane, 'stand'))) continue;
         const use2x = o.atlasScale === 2 && entry.x2 !== undefined;
         const atlas = use2x && entry.x2 !== undefined ? entry.x2 : entry.x1;
-        jobs.push(
+        queue(entry.group, () =>
           Promise.all(
             atlas.pages.map((pg) =>
               Promise.all([
@@ -264,7 +298,7 @@ export class AssetManifest {
       if (!this.specs.has(gunKey(id))) continue;
       const use2x = o.atlasScale === 2 && entry.x2 !== undefined;
       const atlas = use2x && entry.x2 !== undefined ? entry.x2 : entry.x1;
-      jobs.push(
+      queue(entry.group, () =>
         Promise.all(
           atlas.pages.map((pg) =>
             Promise.all([
@@ -287,7 +321,7 @@ export class AssetManifest {
             console.warn(
               `[assets] gun ${id}: clips with missing frames dropped: ${check.dropped.join(', ')}`,
             );
-          this.mark(gunKey(id), entry.origin);
+          if (entry.origin === 'interim') this.interimGuns.add(id);
           this.finalGuns.set(id, {
             atlasKey: `final:gun/${id}@${use2x ? 2 : 1}x`,
             entry: { ...entry, clips: check.clips },
@@ -317,6 +351,7 @@ export class AssetManifest {
     }
     this.soundsLoaded = Promise.all(sounds).then(() => undefined);
     await Promise.all(jobs);
+    this.lateLoaded = Promise.all(late.map((job) => job())).then(() => undefined);
   }
 
   /**
@@ -344,8 +379,9 @@ export class AssetManifest {
       (gun?.[1] !== undefined && this.finalGuns.has(gun[1]));
     if (!delivered) return 'placeholder';
     // An animated gun wins over a single gun image, so its provenance decides.
-    const gunInterim = gun?.[1] !== undefined && this.finalGuns.has(gun[1]);
-    const interim = gunInterim ? this.interimKeys.has(key) : this.interimKeys.has(birdKeyOf ?? key);
+    const rigId = gun?.[1] !== undefined && this.finalGuns.has(gun[1]) ? gun[1] : null;
+    const interim =
+      rigId !== null ? this.interimGuns.has(rigId) : this.interimKeys.has(birdKeyOf ?? key);
     return interim ? 'interim' : 'final';
   }
 
@@ -385,8 +421,8 @@ export class AssetManifest {
       if (!textures.exists(key)) textures.addImage(key, img);
     for (const { tiles } of this.finalLayers.values())
       for (const t of tiles) if (!textures.exists(t.key)) textures.addImage(t.key, t.img);
-    for (const b of [...this.finalBirds.values(), ...this.finalGuns.values()])
-      if (!textures.exists(b.atlasKey)) textures.addAtlasJSONHash(b.atlasKey, b.img, b.data);
+    // Bird and gun atlases go to the GPU on first use (ensureBird / ensureGun, D-029), so a hunt
+    // only holds the creatures and guns it actually shows.
     const start = performance.now();
     let complete = true;
     for (const spec of this.specs.values()) {
@@ -408,11 +444,8 @@ export class AssetManifest {
 
   /** Keys not yet in the texture manager (0 once install() has completed). */
   missing(textures: Phaser.Textures.TextureManager): string[] {
-    const finals = [
-      ...[...this.finalLayers.values()].flatMap((l) => l.tiles.map((t) => t.key)),
-      ...[...this.finalBirds.values()].map((b) => b.atlasKey),
-      ...[...this.finalGuns.values()].map((b) => b.atlasKey),
-    ];
+    // Bird and gun atlases are installed on demand; until then their placeholders draw.
+    const finals = [...this.finalLayers.values()].flatMap((l) => l.tiles.map((t) => t.key));
     return [...[...this.specs.keys()].filter((k) => !this.skipped(k)), ...finals].filter(
       (k) => !textures.exists(k),
     );

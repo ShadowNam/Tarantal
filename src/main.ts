@@ -238,6 +238,7 @@ const hook: TestHook = {
   music: null,
   masterGain: null,
   missingTextures: [],
+  textureBytes: 0,
   boot: {},
   rects: {},
   safe: null,

@@ -103,6 +103,8 @@ export interface TestHook {
   readonly masterGain: number | null;
   /** Manifest textures missing when the last hunt started (must be 0). */
   missingTextures: string[];
+  /** D-029: RGBA bytes of all textures during a hunt (GPU memory estimate), 0 before. */
+  textureBytes: number;
   /** Boot milestones in ms since navigation start (content parsed, textures built, ready). */
   boot: Record<string, number>;
   /** On-screen rects in design px: HUD parts during a hunt, buttons on the tally. */
