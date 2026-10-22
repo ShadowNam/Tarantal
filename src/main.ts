@@ -435,8 +435,12 @@ const loadFinalFor = (b: Biome): Promise<void> => {
           })
     ).then(() => {
       finalDone.add(b.id);
-      audio.addRecorded(m.finalSoundFiles());
       hook.assets.byBiome[b.id] = m.entries();
+      // Recordings arrive on their own (boot doesn't wait for them).
+      void m.soundsReady().then((files) => {
+        audio.addRecorded(files);
+        hook.assets.byBiome[b.id] = m.entries();
+      });
     });
     finalLoads.set(b.id, p);
   }

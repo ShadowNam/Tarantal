@@ -6,7 +6,7 @@ import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from '
 import { join, relative, sep } from 'node:path';
 import type { Plugin } from 'vite';
 import { ASSET_INDEX_PATH, parseAssetIndex } from '../src/game/assets/assetIndex';
-import { lazyAssetFiles } from './sizeBudget';
+import { audioFiles, lazyAssetFiles } from './sizeBudget';
 
 /** Files never precached (source maps, the worker itself, OS junk, Vite's build manifest). */
 const SKIP = [/\.map$/, /^sw\.js$/, /(^|\/)\.DS_Store$/, /\.gitkeep$/, /^\.vite\//];
@@ -115,9 +115,15 @@ export function serviceWorkerPlugin(): Plugin {
     closeBundle() {
       const files = listFiles(outDir).map((p) => relative(outDir, p).split(sep).join('/'));
       const indexPath = join(outDir, ASSET_INDEX_PATH);
-      const lazy = existsSync(indexPath)
-        ? lazyAssetFiles(parseAssetIndex(JSON.parse(readFileSync(indexPath, 'utf8'))).index)
-        : new Set<string>();
+      // Other biomes' files and every recording are cached on first use, not up front (a browser
+      // plays one of each Ogg/MP3 pair).
+      const index = existsSync(indexPath)
+        ? parseAssetIndex(JSON.parse(readFileSync(indexPath, 'utf8'))).index
+        : null;
+      const lazy = new Set([
+        ...(index === null ? [] : lazyAssetFiles(index)),
+        ...(index === null ? [] : audioFiles(index)),
+      ]);
       const list = precacheList(files, lazy);
       const version = cacheVersion(
         list
