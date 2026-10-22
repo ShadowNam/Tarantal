@@ -209,6 +209,7 @@ export class HuntScene extends Phaser.Scene {
       this.manifest,
       this.parallax,
       this.ctx.content,
+      this.ctx.feel.juice.forageSpellTicks,
       // ⛔ until a creature's first sighting; always with Settings → colour-blind aids (M9).
       (creature) =>
         showDontShootBadge(this.ctx.prefs, this.ctx.save.data.birdBook.creatures, creature),

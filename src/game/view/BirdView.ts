@@ -62,6 +62,8 @@ export class BirdView {
     manifest: AssetManifest,
     parallax: ParallaxView,
     content: ContentBundle,
+    /** Render ticks per foraging walk/peck spell (feel.json juice.forageSpellTicks). */
+    private readonly forageSpellTicks: number,
     /** ⛔ badge on a non-target: only until its first sighting (not yet in the Bird Book). */
     private readonly showBadge: (creature: string) => boolean = () => true,
   ) {
@@ -89,13 +91,18 @@ export class BirdView {
       const clip =
         final !== null && this.scene.textures.exists(final.atlasKey)
           ? resolveClip(
-              clipFor(v.motion, v.phase, v.id, tick),
+              clipFor(v.motion, v.phase, v.id, tick, this.forageSpellTicks),
               (c) => final.entry.clips[c] !== undefined,
             )
           : null;
+      const animKey =
+        final !== null && clip !== null ? this.ensureAnim(v.creature, v.plane, final, clip) : null;
+      // An animation with no frames (it can't play) leaves the bird on its placeholder frames.
+      const anim = animKey === null ? undefined : this.scene.anims.get(animKey);
+      const playable = final !== null && anim !== undefined && anim.frames.length > 0;
       const key =
-        final !== null && clip !== null
-          ? this.ensureAnim(v.creature, v.plane, final, clip)
+        playable && animKey !== null
+          ? animKey
           : this.manifest.bird(v.creature, v.plane, frameFor(v, tick));
       let d = this.drawn.get(v.id);
       if (d === undefined) {
@@ -122,12 +129,12 @@ export class BirdView {
         this.drawn.set(v.id, d);
       }
       if (d.frame !== key) {
-        if (final !== null && clip !== null) {
-          const frames = final.entry.clips[clip]?.frames.length ?? 1;
-          // Stagger flock members so they don't move in lockstep.
-          d.sprite
-            .play({ key, startFrame: v.id % frames })
-            .setOrigin(final.entry.originX, final.entry.originY);
+        if (playable) {
+          const frames = anim.frames.length;
+          // Stagger looping clips so flock members don't move in lockstep; one-shot clips
+          // (alert, takeoff, land) always start at their first frame.
+          const startFrame = anim.repeat === -1 ? v.id % frames : 0;
+          d.sprite.play({ key, startFrame }).setOrigin(final.entry.originX, final.entry.originY);
         } else {
           const o = this.manifest.origin(key);
           d.sprite.stop();
@@ -135,7 +142,7 @@ export class BirdView {
         }
         d.frame = key;
       }
-      const s = final !== null && clip !== null ? final.scale : 1;
+      const s = playable ? final.scale : 1;
       // Placeholder frames get a drawn walk bob and running lean; delivered clips animate it.
       const bob =
         s === 1 && v.motion === 'flock' && v.phase === 'walk' && (tick + v.id) % 20 < 10
@@ -200,13 +207,15 @@ export class BirdView {
       if (final === null || !this.scene.textures.exists(final.atlasKey)) continue;
       if (final.entry.clips.hit_poof === undefined) continue;
       const key = this.ensureAnim(e.creature, e.plane, final, 'hit_poof');
+      if ((this.scene.anims.get(key)?.frames.length ?? 0) === 0) continue;
       const face = this.drawn.get(e.birdId)?.sprite.scaleX ?? final.scale;
       const poof = this.scene.add
         .sprite(e.x, e.y, final.atlasKey)
         .setOrigin(final.entry.originX, final.entry.originY)
         .setScale(face, final.scale);
       this.parallax.plane(e.plane).overlay?.add(poof);
-      poof.play(key).once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+      // Once, even if rig.json marked hit_poof as a loop (a loop would never complete).
+      poof.play({ key, repeat: 0 }).once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
         poof.destroy();
       });
     }

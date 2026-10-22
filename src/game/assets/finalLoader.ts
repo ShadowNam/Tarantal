@@ -38,11 +38,14 @@ export async function fetchAssetIndex(timeoutMs: number): Promise<IndexLoad> {
       // no-cache asks the network to revalidate; the PWA worker may still serve its precached copy
       // for one session after a deploy, which is consistent (it cached the matching files too).
       const res = await fetch(ASSET_INDEX_PATH, { cache: 'no-cache' });
-      // Static hosts answer 404; SPA-style servers (vite preview) send index.html instead.
+      // Static hosts answer 404; SPA-style servers (vite preview) send index.html instead. Both
+      // mean "nothing delivered". Any other answer is parsed (a host may label JSON oddly), and
+      // a failure there is a real problem worth a warning.
       const type = res.headers.get('content-type') ?? '';
-      if (!res.ok || !type.includes('json'))
+      if (res.status === 404 || (res.ok && type.includes('html')))
         return { index: null, problem: `${ABSENT} (HTTP ${res.status}, ${type || 'no type'})` };
-      const { index, error } = parseAssetIndex(await res.json());
+      if (!res.ok) return { index: null, problem: `index HTTP ${res.status}` };
+      const { index, error } = parseAssetIndex(JSON.parse(await res.text()));
       return error === null ? { index, problem: null } : { index: null, problem: error };
     } catch (e) {
       return { index: null, problem: `index unreadable: ${String(e)}` };
