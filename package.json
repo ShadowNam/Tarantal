@@ -1,9 +1,9 @@
 {
   "name": "tarantal-madness",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "type": "module",
-  "description": "Tarantal Madness \u2014 a panning shooting gallery starring the helmeted guineafowl.",
+  "description": "Tarantal Madness — a panning shooting gallery starring the helmeted guineafowl.",
   "engines": {
     "node": ">=22.12"
   },
