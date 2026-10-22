@@ -25,6 +25,7 @@ import type { HuntResult, InputKind, ModeConfig, ModeId, SimState } from '../../
 import { CAMERA_MAX_X, CAMERA_MIN_X } from '../../sim/world';
 import { neededBeforeStart, type AssetManifest } from '../assets/AssetManifest';
 import { stemFor } from '../audio/music';
+import { rumbleDue } from '../view/juice';
 import type { HuntPlan } from '../daily/DailyFlow';
 import { FtueDirector, type FtueStep } from '../ftue/FtueDirector';
 import type { GameContext } from '../GameContext';
@@ -249,9 +250,18 @@ export class HuntScene extends Phaser.Scene {
   /** GDD §17 Stampede ground-shake rumble: a small shake every rumbleEveryMs (Settings → shake). */
   private rumble(on: boolean, now: number, width: number): void {
     const r = this.ctx.feel.juice.stampede;
-    if (!on || !this.ctx.prefs.shake || r.rumblePx <= 0 || now < this.nextRumbleAt) return;
-    this.nextRumbleAt = now + r.rumbleEveryMs;
-    this.cameras.main.shake(r.rumbleMs, (r.rumblePx * this.ctx.feel.juice.shakeScale) / width);
+    const due = rumbleDue({
+      on,
+      shakeAllowed: this.ctx.prefs.shake,
+      rumblePx: r.rumblePx,
+      shakeScale: this.ctx.feel.juice.shakeScale,
+      nowMs: now,
+      nextAtMs: this.nextRumbleAt,
+      everyMs: r.rumbleEveryMs,
+    });
+    if (due === null) return;
+    this.nextRumbleAt = due.nextAtMs;
+    this.cameras.main.shake(r.rumbleMs, due.px / width);
   }
 
   /** M8: a hunt in another biome (Daily rotation, challenge, Season Run) swaps the scenery. */

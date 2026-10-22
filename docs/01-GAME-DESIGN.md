@@ -581,6 +581,7 @@ on the tally stays locked until M6.
 | Penalty | Record-scratch SFX, red score drop, offended creature reaction |
 | Stampede | Tempo up, sky tint shifts, ground-shake rumble, ×2 banner |
 | Tally | Count-up ticks, per-line stamps, rank badge thud |
+
 M10 (D-027) juice pass: every number above is in `content/client/feel.json` (`juice`, `tally`,
 `audio`) and none is sim content. Screen shake keeps its per-weapon values in `weapons.json`,
 with a client-side `juice.shakeScale`. The Stampede adds a steady warm sky tint (fades in and out,

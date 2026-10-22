@@ -101,7 +101,10 @@ export class FakeContext {
     this.sources.push(s);
     return s;
   }
+  /** Sounds started through a panner (every SFX, recorded or synth). */
+  panners = 0;
   createStereoPanner(): FakeNode & { pan: FakeParam } {
+    this.panners++;
     return Object.assign(new FakeNode(), { pan: new FakeParam(this, 0) });
   }
   createBuffer(

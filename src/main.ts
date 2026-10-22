@@ -494,7 +494,10 @@ const ctx: GameContext = {
   },
   huntBiome: biome,
   audio,
-  flashes: new FlashLimiter(feel.accessibility.maxLargeFlashesPerSec),
+  flashes: new FlashLimiter(
+    feel.accessibility.maxLargeFlashesPerSec,
+    feel.accessibility.flashMergeMs,
+  ),
   save,
   notaboek: loaded.notaboek,
   dailyMeta: loaded.daily,
