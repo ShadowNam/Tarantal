@@ -17,7 +17,9 @@ the upload form again on the day, because portals change their rules.
 - Portal builds carry no service worker, no PWA manifest and no test hooks. Capture mode is
   compiled out too (D-026, D-027).
 - `npm run release` builds all three, runs the size check (`--strict`) and the asset audit
-  (report), and writes the zips. The size report is `release/size-<platform>.txt`.
+  (report), and writes the zips. The size report is `release/size-<platform>.txt`. It also checks
+  the Daily epoch (D-028): a warning while `content/meta/daily.json → epoch` is the placeholder;
+  use `npm run release -- --strict` for the launch build, which fails until the real date is set.
 - Store images: `npm run portal:shots` → `release/portal-assets/` (covers, thumbnails,
   screenshots; capture mode, seed 42). **Re-render after the art swap**: today's images show the
   placeholder art.
@@ -136,6 +138,8 @@ covers: the rendered covers are a starting point for the illustrator, not final 
 ## 4. Checklist — Poki
 
 ☐ **Account:** Poki for Developers account and a game entry (needs a person).
+☐ **Daily epoch** (needs a person): set `content/meta/daily.json → epoch` to the launch day (Daily
+#1) and `epochPlaceholder: false`; `npm run release -- --strict` must pass.
 ☐ **Build:** `npm run release` (or `npm run build:poki`); upload the **contents** of
 `dist-poki/` (or the zip) as a new version.
 ☐ **Size:** initial download < 8 MB (Poki rule) — ours is about 0.55 MB gzip; `release/size-poki.txt`.
@@ -163,6 +167,7 @@ thumbnail before global release.
 ## 5. Checklist — CrazyGames
 
 ☐ **Account:** developer account and payout details (the portal asks before submission).
+☐ **Daily epoch:** as for Poki (`npm run release -- --strict` passes).
 ☐ **Build:** `npm run release` (or `npm run build:crazygames`); upload `dist-crazygames/` or the
 zip in **Submit a game**.
 ☐ **Size:** initial ≤ 50 MB, total ≤ 250 MB, ≤ 1 500 files; the mobile homepage wants

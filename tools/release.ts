@@ -4,9 +4,14 @@
 //   release/tarantal-madness-<version>-<platform>.zip   upload this (index.html at the root)
 //   release/size-<platform>.txt, release/asset-audit.txt
 // It never uploads or submits anything (docs/07-PORTAL-SUBMISSION.md is for the person who does).
+// v1.0.1 (D-028 §2): pre-launch check of the Daily epoch (content/meta/daily.json): a warning while
+// it is still the placeholder (or older than epochMaxAgeDays); `--strict` makes that a failure.
 import { execSync } from 'node:child_process';
 import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
+import { parseDailyMeta } from '../src/content/daily';
+import { dayNumber } from '../src/meta/dailyCalendar';
+import { epochReleaseIssues } from './epochCheck';
 import { zip } from './zip';
 
 const root = join(import.meta.dirname, '..');
@@ -33,8 +38,22 @@ function files(dir: string): string[] {
   });
 }
 
+const strict = process.argv.includes('--strict');
 mkdirSync(out, { recursive: true });
 let failed = false;
+
+const daily = parseDailyMeta(
+  JSON.parse(readFileSync(join(root, 'content/meta/daily.json'), 'utf8')) as unknown,
+);
+if (!daily.ok) {
+  console.log(`epoch: FAILED — meta/daily.json is invalid: ${daily.errors.join('; ')}`);
+  failed = true;
+} else {
+  const issues = epochReleaseIssues(daily.value, dayNumber(Date.now()));
+  for (const i of issues) console.log(`epoch: ${strict ? 'FAILED' : 'WARNING'} — ${i}`);
+  if (issues.length === 0) console.log(`epoch: OK — Daily #1 is ${daily.value.epoch}.`);
+  else if (strict) failed = true;
+}
 for (const b of BUILDS) {
   process.stdout.write(`${b.platform}: build… `);
   try {
@@ -87,7 +106,7 @@ console.log(
 );
 console.log(
   failed
-    ? 'release: FAILED (see release/*.txt)'
+    ? 'release: FAILED (see above and release/*.txt)'
     : `release: ${version} ready in release/ — nothing was uploaded.`,
 );
 process.exit(failed ? 1 : 0);

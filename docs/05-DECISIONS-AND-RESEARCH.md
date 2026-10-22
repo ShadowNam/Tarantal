@@ -981,6 +981,22 @@ passing on the flagged CI build. (5) *Portal shots:* `npm run portal:shots` buil
 so the store title and tally look as a player sees them; `npm run release` rebuilds `dist/`
 without it before zipping.
 
+*§2 — Daily epoch:* (1) *One value:* `content/meta/daily.json → epoch` stays the placeholder
+2026-10-21 (a person picks the launch date). Two fields join it: `epochPlaceholder: true` (the
+person sets it to false with the real date) and `epochMaxAgeDays: 7` (the pre-launch limit, a
+number in content, not in the tool). (2) *No copies:* `content:validate` scans non-test `.ts` in
+`src/` and `tools/` for the epoch's date (`tools/epochCheck.ts findEpochCopies`) and fails on a
+hit. `tools/goldenCases.ts` is allowed: its Daily replays are pinned to the day they were recorded,
+which only equals the placeholder by chance, and renaming them would change the golden file.
+Tests that meant "Daily #1" now read `meta.epoch` (DailyFlow, daily, daily.spec's title test);
+tests of a fixed day's seed keep their literal day. `portal:shots` uses the epoch as its `?today=`
+so the store title shows Daily #1. (3) *Release check:* `npm run release` prints `epoch: WARNING`
+while `epochPlaceholder` is true, plus a second line when the epoch lies more than
+`epochMaxAgeDays` before the build date; `npm run release -- --strict` turns them into a failure.
+*Interpretation:* the age check runs only while the epoch is a placeholder. A confirmed epoch
+ages by one day every day, so checking it would fail every release from the eighth day after
+launch; the person who confirms the date is the check.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

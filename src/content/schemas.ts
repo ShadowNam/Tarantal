@@ -1166,8 +1166,12 @@ const isoDate = z
 
 export const DailyMetaSchema = obj({
   version,
-  /** UTC day of Daily #1. */
+  /** UTC day of Daily #1 — the only copy (content:validate checks src/ and tools/, D-028). */
   epoch: isoDate,
+  /** True until a person sets the real launch date: `npm run release` warns, `--strict` fails. */
+  epochPlaceholder: z.boolean(),
+  /** Pre-launch check: a placeholder epoch more than this many days before the build date. */
+  epochMaxAgeDays: posInt,
   /** Day n plays rotation[n mod length] (filtered to playable biomes; Tech §12). */
   biomeRotation: z.array(id).min(1),
   /** Recent days kept in the save. */
