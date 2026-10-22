@@ -154,6 +154,7 @@ export class HuntScene extends Phaser.Scene {
     this.biome = this.initialBiome(data);
     this.manifest =
       this.biome.id === this.ctx.biome.id ? this.ctx.manifest : this.ctx.manifestFor(this.biome);
+    this.swapManifest();
     this.ctx.huntBiome = this.biome;
     this.ctx.audio.setBiome(this.biome.id);
     this.ctx.audio.resetIntensity();
@@ -360,6 +361,17 @@ export class HuntScene extends Phaser.Scene {
     this.cameras.main.shake(r.rumbleMs, due.px / width);
   }
 
+  /**
+   * D-031: releases the previously installed biome's scenery textures (not the shared ones) before
+   * this.manifest installs, so the low tier never holds two biomes' layers and props. Callers have
+   * destroyed every object that drew them (scene restart or useBiome).
+   */
+  private swapManifest(): void {
+    const prev = this.ctx.installedManifest;
+    if (prev !== null && prev !== this.manifest) prev.release(this.textures, this.manifest);
+    this.ctx.installedManifest = this.manifest;
+  }
+
   /** M8: a hunt in another biome (Daily rotation, challenge, Season Run) swaps the scenery. */
   private useBiome(id: string): void {
     if (id === this.biome.id) return;
@@ -368,6 +380,7 @@ export class HuntScene extends Phaser.Scene {
     for (const obj of [...this.children.list]) obj.destroy();
     this.biome = next;
     this.manifest = this.ctx.manifestFor(next);
+    this.swapManifest();
     this.ctx.huntBiome = next;
     this.ctx.audio.setBiome(next.id);
     this.texturesDone = this.manifest.install(this.textures);

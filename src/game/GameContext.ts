@@ -215,6 +215,12 @@ export interface GameContext {
   readonly playableBiomes: readonly string[];
   /** M8: a playable biome's manifest (built on first use, then cached). */
   manifestFor(biome: Biome): AssetManifest;
+  /**
+   * D-031: the manifest whose textures are on the GPU now (null before the first install). A
+   * hunt in another biome releases its scenery first (AssetManifest.release), so the low tier
+   * holds one biome's layers and props at a time.
+   */
+  installedManifest: AssetManifest | null;
   /** M9: the biome's art chunk is loaded (manifestFor may be called). */
   biomeReady(id: string): boolean;
   /** M9: loads a biome's art chunk (lazy biome bundles); false if it failed. */

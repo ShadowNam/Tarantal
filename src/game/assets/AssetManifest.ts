@@ -463,6 +463,33 @@ export class AssetManifest {
     return complete;
   }
 
+  /** Every texture key this manifest puts in the texture manager (placeholders, final files). */
+  textureKeys(): Set<string> {
+    const out = new Set<string>(this.specs.keys());
+    for (const key of this.finalImages.keys()) out.add(key);
+    for (const { tiles } of this.finalLayers.values()) for (const t of tiles) out.add(t.key);
+    return out;
+  }
+
+  /**
+   * D-031 (low-tier memory): removes the textures this manifest installed that `next` doesn't
+   * use: the old biome's layers, props and biome-only placeholders. Shared keys (UI, FX, common
+   * birds) stay. The decoded images stay cached here, so install() re-adds them if this biome
+   * comes back. Bird and gun atlases are untouched (they go to the GPU on first use). Call it
+   * only once nothing draws the old biome's objects. Returns the removed keys.
+   */
+  release(textures: Phaser.Textures.TextureManager, next: AssetManifest): string[] {
+    if (next === this) return [];
+    const keep = next.textureKeys();
+    const removed: string[] = [];
+    for (const key of this.textureKeys()) {
+      if (keep.has(key) || !textures.exists(key)) continue;
+      textures.remove(key);
+      removed.push(key);
+    }
+    return removed;
+  }
+
   /** Keys not yet in the texture manager (0 once install() has completed). */
   missing(textures: Phaser.Textures.TextureManager): string[] {
     // Bird and gun atlases are installed on demand; until then their placeholders draw.

@@ -182,3 +182,37 @@ test('texture memory on the low tier', async ({ page }, info) => {
     `${JSON.stringify({ unit: 'MB', ...out }, null, 2)}\n`,
   );
 });
+
+// Per biome: a hunt in each biome started from the title (which installs the home biome first),
+// low tier, after the late group settles. Catches textures kept from an earlier biome.
+test('texture memory per biome on the low tier', async ({ page }, info) => {
+  test.skip(info.project.name !== 'pixel7-landscape', 'measured on the Pixel 7 profile');
+  test.setTimeout(900_000);
+  await page.addInitScript(() => {
+    const key = 'tm.e2e.save.v1';
+    const save = JSON.parse(localStorage.getItem(key) ?? '{}') as {
+      settings?: Record<string, unknown>;
+    };
+    localStorage.setItem(
+      key,
+      JSON.stringify({ ...save, settings: { ...save.settings, quality: 'low' } }),
+    );
+  });
+  const out: Record<string, number> = {};
+  for (const biome of ['karoo-autumn', 'bushveld-winter', 'kalahari-summer', 'okavango-spring']) {
+    await setVariant(page, 'after');
+    await boot(page, `seed=42&huntSeconds=20&holdAt=600&biome=${biome}`);
+    await startHunt(page, true);
+    await page.waitForFunction(() => (window.__TM__?.tick ?? 0) >= 600, null, {
+      timeout: 400_000,
+    });
+    await page.waitForTimeout(3000);
+    const bytes = await page.evaluate(() => window.__TM__?.textureBytes ?? 0);
+    out[biome] = Math.round((bytes / 1024 / 1024) * 10) / 10;
+  }
+  mkdirSync(join(OUT, 'compare'), { recursive: true });
+  writeFileSync(
+    join(OUT, 'compare', 'gfx2-texture-memory-biomes.json'),
+    `${JSON.stringify({ unit: 'MB', tier: 'low', ...out }, null, 2)}\n`,
+  );
+});
