@@ -1338,6 +1338,27 @@ drawn; only their pixels changed. Audit: 18 → **66 interim**, 169 → **121 pl
 rest are audio, out of scope). Golden replay `8ab8e33970ccd89f` unchanged, no diff in `src/sim/`
 or `content/`. `art:interim` + `assets:pack` run twice give byte-identical `art-source/` and
 `public/assets/`. Hunt visual baselines re-recorded in `mcr.microsoft.com/playwright:v1.56.1-noble`.
+*§7 — Look review (22 Oct, user on the first Karoo look: "fix the grass, bushes and sky"):*
+(1) *Grass:* `tools/art/vegetation.ts` has seven tuft shapes (fan, upright, clump, wispy,
+windswept, seeding, sparse) in weighted straw-gold, bleached and grey-green tones, placed by
+`grassField` in irregular seeded clusters (1–5 tufts, random gaps with some long empty
+stretches; never a grid), with stones, forked twigs and lone dry stalks mixed in. Blades grow out
+of the ground (nothing inked below the base line) and are inked round the tuft's silhouette only.
+Foreground clumps mix shapes and heights (70–210 px) with a few tall seed heads; `fx/grass_tuft`
+is one mixed clump (tips kept inside its 30 px headroom). (2) *Bushes:* `shrub` draws low, twiggy
+shrubs from many small leaf lobes with a dashed (broken) ink outline at the plane's weight, bare
+twigs through the crown and at the base, one shadow and one highlight, a second colour that only
+shifts the hue, and four shapes (dome, wide, tall, sparse) in grey-green, olive and some autumn
+brown; far-veld ones are 3–10 px, thinly inked and hazed. (3) *Sky:* `tools/art/skies.ts`: a
+smooth gradient (deeper blue at the top to warm pale gold at the horizon) packed as a
+**full-colour PNG** (the layer plan's `encode: 'png'`; a palette PNG banded) at about 100 KB;
+soft flat-bottomed cumulus (blurred edges, lit top to a cooler base, no ink) banked low over
+the horizon and a few small ones just under the flyer band; three to five faint high streaks.
+The flyer band (skyBand 80–420) holds only those faint streaks. (4) *Props stay inside their
+textures:* a new test fails if any prop's art touches its texture's left, right or top edge
+(the fence bell's wires excepted: they join the mid fence). It caught the aloe candles, the
+potjie's steam and the windpomp and reservoir pipes and shadows, all fixed. First download
+1.69 → **1.89 MB** gzip (the full-colour sky and the denser ground cover).
 *§5 — Evidence:* `docs/art-preview/` `sprites.png`, `flyers.png`, `scenery-<biome>-{props,layers,pan}.png`
 (the pan sheets stamp real interim birds on their lanes: contrast check, bible §1.5);
 `compare/gfx2-*.png` before (main) | after in-game on desktop-chromium and pixel7-landscape, from
