@@ -24,6 +24,17 @@ import { SeasonHud } from '../ui/SeasonHud';
 import { drawButton, fitText, Menu, type MenuItem } from '../ui/menu';
 import { BakedDrawing, RoundRect } from '../ui/shapes';
 import { fontPx, outline } from '../ui/textLook';
+import { BarkBubble, sayBark } from '../ui/BarkBubble';
+import { firstHuntToday, type Bark } from '../audio/barks';
+import {
+  PopPool,
+  colorNumber,
+  ensurePopFont,
+  popCanShow,
+  popLook,
+  type PopText,
+} from '../ui/popFont';
+import { fontReadiness } from '../ui/fontReady';
 import { updateCaptions, type CaptionLine } from '../audio/captions';
 
 export interface HudControls {
@@ -46,7 +57,9 @@ const C = {
 };
 
 interface Pop {
-  readonly text: Phaser.GameObjects.Text;
+  /** v1.0.1 (D-028 §4): a pooled BitmapText pop, or a canvas Text for a string outside it. */
+  readonly pop: PopText | null;
+  readonly text: Phaser.GameObjects.Text | null;
   born: number;
 }
 
@@ -70,6 +83,7 @@ export class HudScene extends Phaser.Scene {
   private reload!: Phaser.GameObjects.Text;
   private banner!: Phaser.GameObjects.Text;
   private pops: Pop[] = [];
+  private popPool: PopPool | null = null;
   private beltFlashUntil = 0;
   private lastMul = 1;
   private lastState: SimState | null = null;
@@ -107,6 +121,11 @@ export class HudScene extends Phaser.Scene {
   private season: SeasonHud | null = null;
   /** Kept here: the hunt sets it before launch() has created the scene. */
   private seasonInfo: { readonly quota: number } | null = null;
+  /** v1.0.1 (D-028 §3): Oupa's bubble, and whether he barks this hunt (not in FTUE or capture). */
+  private bubble: BarkBubble | null = null;
+  private barksOn = false;
+  private firstTodayPending = false;
+  private lastScore = 0;
   /** M7: "DAILY #n" / "PRACTICE · DAILY #n" / "BEAT 2 840" under the score, in the Season Run
    *  quota's slot (never both: run hunts have no tag), above the score pops. */
   private tagText: string | null = null;
@@ -119,6 +138,21 @@ export class HudScene extends Phaser.Scene {
 
   create(): void {
     this.pops = [];
+    // startBarks() (the hunt) may run before this create() (launch is deferred): keep its flags.
+    this.bubble = new BarkBubble(this, this.ctx.feel.barks.fontPx);
+    this.popPool = new PopPool(this);
+    // D-028 §4: the pop atlas is built now, not on the first kill; again when Settings change the
+    // text size or contrast, and once more if the web font arrives after loadFonts gave up.
+    const buildPopAtlas = (): void => {
+      ensurePopFont(this, popLook(FONT, 52, 8));
+    };
+    buildPopAtlas();
+    const offPrefs = this.ctx.onPrefsChange(buildPopAtlas);
+    const offFonts = fontReadiness.onFontsLoaded(buildPopAtlas);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      offPrefs();
+      offFonts();
+    });
     this.shells = [];
     this.lastMul = 1;
     this.timerColor = '';
@@ -349,6 +383,22 @@ export class HudScene extends Phaser.Scene {
     this.season?.setSeason(info);
   }
 
+  /**
+   * v1.0.1 (D-028 §3): a hunt starts. Oupa barks in it unless `on` is false (the FTUE has its own
+   * Oupa prompts; capture mode's footage has no HUD). The first hunt of a UTC day gets a greeting;
+   * the save remembers the day.
+   */
+  startBarks(on: boolean): void {
+    this.barksOn = on;
+    this.lastScore = 0;
+    if (!on) return;
+    this.ctx.barks.startHunt(0);
+    const today = this.ctx.today();
+    const save = this.ctx.save;
+    this.firstTodayPending = firstHuntToday(save.data.barks.lastHuntDay, today);
+    if (this.firstTodayPending) save.update((d) => ({ ...d, barks: { lastHuntDay: today } }));
+  }
+
   /** M7: the hunt's tag line (drawn once here, never per frame). */
   setTag(text: string | null): void {
     this.tagText = text;
@@ -462,6 +512,14 @@ export class HudScene extends Phaser.Scene {
     this.season?.render(s, events);
     const now = this.time.now;
     this.drawCaptions(events, now, l);
+    // D-028 review: a secret's own bark (shown in the banner below, said by the AudioDirector) is
+    // Oupa's top priority. It claims the bark gap first, so the director picks no generic line
+    // this frame or for the gap after, and a generic bubble still up gives way to the banner.
+    if (this.secretBarkIn(events)) {
+      this.ctx.barks.secret(now);
+      this.bubble?.hide();
+    }
+    this.updateBarks(s, events, now, l);
     const banner: string[] = [];
     for (const e of events) {
       if (e.type === 'secretTriggered') {
@@ -595,10 +653,12 @@ export class HudScene extends Phaser.Scene {
     this.pops = this.pops.filter((p) => {
       const age = now - p.born;
       if (age > 1600) {
-        p.text.destroy();
+        this.dropPop(p);
         return false;
       }
-      p.text.setPosition(l.popAnchor.x, y).setAlpha(age < 1200 ? 1 : 1 - (age - 1200) / 400);
+      const alpha = age < 1200 ? 1 : 1 - (age - 1200) / 400;
+      p.pop?.root.setPosition(l.popAnchor.x, y).setAlpha(alpha);
+      p.text?.setPosition(l.popAnchor.x, y).setAlpha(alpha);
       y += 46;
       return true;
     });
@@ -731,17 +791,71 @@ export class HudScene extends Phaser.Scene {
   }
 
   private pushPop(text: string, color: string): void {
-    const pop = this.add
-      .text(0, 0, text, {
-        fontFamily: FONT,
-        fontSize: fontPx(38),
-        fontStyle: '900',
-        color,
-        ...outline(38, 6),
-      })
-      .setOrigin(1, 0);
-    this.pops.unshift({ text: pop, born: this.time.now });
-    while (this.pops.length > this.ctx.feel.hud.popStackSize) this.pops.pop()?.text.destroy();
+    const pool = this.popPool;
+    if (pool !== null && popCanShow(text)) {
+      // The pop atlas is drawn at the world pops' 52 px; 38 px here scales it (outline 8 → ~6).
+      const keys = ensurePopFont(this, popLook(FONT, 52, 8));
+      const size = Math.round((keys.sizePx * 38) / 52);
+      const pop = pool.acquire(keys).show(keys, size, text, 1, 0, colorNumber(color));
+      this.pops.unshift({ pop, text: null, born: this.time.now });
+    } else {
+      const tx = this.add
+        .text(0, 0, text, {
+          fontFamily: FONT,
+          fontSize: fontPx(38),
+          fontStyle: '900',
+          color,
+          ...outline(38, 6),
+        })
+        .setOrigin(1, 0);
+      this.pops.unshift({ pop: null, text: tx, born: this.time.now });
+    }
+    while (this.pops.length > this.ctx.feel.hud.popStackSize) {
+      const old = this.pops.pop();
+      if (old !== undefined) this.dropPop(old);
+    }
+  }
+
+  /** Does a secret with its own bark (biome content) go off or scold this frame? */
+  private secretBarkIn(events: readonly SimEvent[]): boolean {
+    return events.some(
+      (e) =>
+        (e.type === 'secretTriggered' || e.type === 'secretPenalty') &&
+        this.ctx.huntBiome.props.find((p) => p.id === e.propId)?.secret?.reward.barkKey !==
+          undefined,
+    );
+  }
+
+  /** v1.0.1 (D-028 §3): this frame's events → maybe one bark, shown in the bubble slot. */
+  private updateBarks(s: SimState, events: readonly SimEvent[], now: number, l: HudLayout): void {
+    if (!this.barksOn || this.bubble === null) return;
+    const quota = this.seasonInfo?.quota;
+    const quotaReached = quota !== undefined && this.lastScore < quota && s.score >= quota;
+    this.lastScore = s.score;
+    let bark: Bark | null = null;
+    if (this.firstTodayPending) {
+      this.firstTodayPending = false;
+      bark = this.ctx.barks.say('firstToday', now);
+    }
+    bark ??= this.ctx.barks.hunt(events, {
+      nowMs: now,
+      tick: s.tick,
+      ticksLeft: s.ticksLeft,
+      ticksPerSecond: TICKS_PER_SECOND,
+      frenzyTopMul: Math.max(...this.ctx.content.scoring.frenzyTiers.map((f) => f.mul)),
+      quotaReached,
+    });
+    if (bark !== null) sayBark(this.ctx, this.bubble, bark.line, l.bark, now);
+  }
+
+  /** Pooled HUD pops: shown and made (test hook, D-028 §4). */
+  popStats(): { shown: number; created: number } {
+    return { shown: this.popPool?.shown ?? 0, created: this.popPool?.created ?? 0 };
+  }
+
+  private dropPop(p: Pop): void {
+    if (p.pop !== null) this.popPool?.release(p.pop);
+    p.text?.destroy();
   }
 
   private showBanner(text: string): void {

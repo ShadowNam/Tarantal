@@ -7,6 +7,7 @@ import { contentHash } from './content/hash';
 import { DailyFlow } from './game/daily/DailyFlow';
 import { loadGameContent } from './content/loadBrowser';
 import { AudioDirector, browserAudioEnv } from './game/audio/AudioDirector';
+import { BarkDirector, allBarkLines } from './game/audio/barks';
 import { withDoppies, withQuotaMul, withTestCrate } from './game/devContent';
 import type { GameContext, TestHook, TestTools } from './game/GameContext';
 import {
@@ -225,6 +226,9 @@ const hook: TestHook = {
   gadgetUses: 0,
   flocks: [],
   flockSpots: [],
+  pops: { shown: 0, created: 0 },
+  bark: null,
+  barks: [],
   flockLog: [],
   result: null,
   firstShotAtMs: null,
@@ -444,7 +448,7 @@ const manifests = new Map<string, AssetManifest>();
 const manifestFor = (b: Biome): AssetManifest => {
   let m = manifests.get(b.id);
   if (m === undefined) {
-    m = createPlaceholderManifest(bundle, b);
+    m = createPlaceholderManifest(bundle, b, allBarkLines(feel.barks));
     manifests.set(b.id, m);
   }
   return m;
@@ -543,6 +547,8 @@ const ctx: GameContext = {
   save,
   notaboek: loaded.notaboek,
   dailyMeta: loaded.daily,
+  barks: new BarkDirector(feel.barks, feel.audio.barkGapMs),
+  today,
   daily: new DailyFlow({
     content: bundle,
     contentHash: hash,
@@ -653,6 +659,10 @@ if (testHooks) {
     replay: (text) => {
       const o = runReplay(decodeInputLogText(text), bundle);
       return { eventHash: o.eventHash, eventCount: o.eventCount, score: o.result.score };
+    },
+    popBench: (n, mode) => {
+      const hunt = game.scene.getScene('Hunt');
+      return hunt instanceof HuntScene && hunt.sys.isActive() ? hunt.benchPops(n, mode) : null;
     },
   };
 }

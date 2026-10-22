@@ -185,6 +185,9 @@ const sections = {
     benchTier: z.enum(['low', 'medium', 'high']).nullable(),
     benchAvgMs: z.number().nonnegative().max(10_000).nullable(),
   }),
+  /** v1.0.1 (D-028 §3): UTC day of the last hunt started, for Oupa's first-hunt-of-the-day bark
+   *  (a new section: older saves get the default, no migration). */
+  barks: z.object({ lastHuntDay: z.number().int().nonnegative().nullable() }),
 } as const;
 
 export const SaveSchema = z.object({ v: z.literal(SAVE_VERSION), ...sections });
@@ -209,6 +212,7 @@ export function defaultSave(): SaveData {
     runStats: { started: 0, won: 0, bestHunts: 0 },
     runAds: { seed: null, retries: 0, doubled: [] },
     device: { benchTier: null, benchAvgMs: null },
+    barks: { lastHuntDay: null },
     daily: {
       streak: 0,
       bestStreak: 0,

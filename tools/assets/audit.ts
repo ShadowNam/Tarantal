@@ -71,8 +71,13 @@ function usages(
   } else if (kind === 'sound') {
     const [type, id = ''] = key.split('/');
     if (type === 'sfx') needles.push(new RegExp(`this\\.play\\('${id}'`));
-    else if (type === 'voice') needles.push(new RegExp(`"barkKey":\\s*"${key.slice(6)}"`));
-    else needles.push(quoted(key));
+    else if (type === 'voice') {
+      const line = key.slice(6).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      // A secret's bark (biome files), or a line of one of Oupa's triggers (feel.json barks,
+      // v1.0.1 D-028 §3) — a "lines" array, not just any quote of the key (i18n files have those).
+      needles.push(new RegExp(`"barkKey":\\s*"${line}"`));
+      needles.push(new RegExp(`"lines":\\s*\\[[^\\]]*"${line}"`));
+    } else needles.push(quoted(key));
     // Music, ambience and voice keys are built at runtime: the player must call the key helper.
     const helper =
       type === 'music'

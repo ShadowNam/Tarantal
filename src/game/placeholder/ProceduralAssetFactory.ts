@@ -1347,7 +1347,15 @@ export function loadBiomeArt(id: string): Promise<boolean> {
   return p;
 }
 
-export function createPlaceholderManifest(content: ContentBundle, biome: Biome): AssetManifest {
+/**
+ * `barkLines` (v1.0.1, D-028 §3): Oupa's bark lines (feel.json barks), each a silent `voice/<line>`
+ * placeholder until its recording is delivered.
+ */
+export function createPlaceholderManifest(
+  content: ContentBundle,
+  biome: Biome,
+  barkLines: readonly string[] = [],
+): AssetManifest {
   const m = new AssetManifest();
   const art = loadedArt.get(biome.id);
   if (art === undefined) throw new Error(`biome art ${biome.id} not loaded (loadBiomeArt first)`);
@@ -1391,5 +1399,6 @@ export function createPlaceholderManifest(content: ContentBundle, biome: Biome):
     const bark = prop.secret?.reward.barkKey;
     if (bark !== undefined) m.addSound(voiceKey(bark));
   }
+  for (const line of barkLines) if (!m.has(voiceKey(line))) m.addSound(voiceKey(line));
   return m;
 }

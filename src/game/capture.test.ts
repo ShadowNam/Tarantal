@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { defaultSave } from '../meta/saveSchema';
-import { CaptureState, captureAllowed, captureSave } from './capture';
+import { CaptureState, captureAllowed, captureHintAlpha, captureSave } from './capture';
 
 describe('capture mode (M10)', () => {
   it('is available on web (and test-hook portal builds) only with ?capture=1', () => {
@@ -22,7 +22,10 @@ describe('capture mode (M10)', () => {
   });
 
   it('S cycles slow-mo, F freezes, C pans end to end and turns around', () => {
-    const c = new CaptureState({ speeds: [1, 0.5, 0.25], panTurnPx: 40 }, true);
+    const c = new CaptureState(
+      { speeds: [1, 0.5, 0.25], panTurnPx: 40, hintMs: 3000, hintFadeMs: 600 },
+      true,
+    );
     expect(c.timeScale).toBe(1);
     c.key('KeyS');
     expect(c.timeScale).toBe(0.5);
@@ -51,5 +54,24 @@ describe('capture save (M10 review)', () => {
     expect(d.settings).toBe(fresh.settings);
     const done = { ...fresh, ftue: { done: true, skipped: false, step: 'end' } };
     expect(captureSave(done)).toBe(done);
+  });
+});
+
+describe('capture key hint (v1.0.1, D-028 §5)', () => {
+  it('shows fully, fades, then is gone (null: destroyed, never in a captured frame)', () => {
+    expect(captureHintAlpha(0, 3000, 600)).toBe(1);
+    expect(captureHintAlpha(2999, 3000, 600)).toBe(1);
+    expect(captureHintAlpha(3300, 3000, 600)).toBeCloseTo(0.5);
+    expect(captureHintAlpha(3600, 3000, 600)).toBeNull();
+    expect(captureHintAlpha(60_000, 3000, 600)).toBeNull();
+  });
+
+  it('the hook reports it while it shows', () => {
+    const c = new CaptureState({ speeds: [1], panTurnPx: 40, hintMs: 3000, hintFadeMs: 600 }, true);
+    expect(c.snapshot().hint).toBe(false);
+    c.hintElapsedMs = 0;
+    expect(c.snapshot().hint).toBe(true);
+    c.hintDone = true;
+    expect(c.snapshot().hint).toBe(false);
   });
 });

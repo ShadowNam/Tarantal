@@ -39,6 +39,9 @@ export interface HudLayout {
   readonly quota: Rect;
   readonly charms: Rect;
   readonly items: readonly Rect[];
+  /** v1.0.1 (D-028 §3): Oupa's speech bubble, left column under the chips — clear of the belt,
+   *  score, pops, pause and gadget, and never a tap target (taps pass through it). */
+  readonly bark: Rect;
 }
 
 /** Consumable slots + the rental slot (run.json consumableSlots 2, + 1). */
@@ -55,6 +58,9 @@ export interface HudSizing {
   readonly chipW: number;
   readonly chipH: number;
 }
+
+/** Oupa's bubble slot height (design px): three lines at the bubble's text size. */
+export const BARK_H = 150;
 
 /** Chips shown at once (crate weapon + power-ups). */
 export const MAX_CHIPS = 3;
@@ -144,7 +150,31 @@ export function hudLayout(
     quota,
     charms,
     items,
+    bark: {
+      x: left,
+      y: chips.y + chips.h + 24,
+      // The Frenzy column's width: long banners already shrink to stay clear of it.
+      w: frenzy.w,
+      h: BARK_H,
+    },
   };
+}
+
+/** A bubble needs this much width (design px) to sit beside a tally panel. */
+const SIDE_MIN_W = 300;
+const SIDE_MAX_W = 400;
+const SLOT_H = 150;
+
+/**
+ * Where Oupa's bubble goes on a tally (v1.0.1, D-028 §3): beside the panel when the screen leaves
+ * room (16:9 and wider), else in the panel's top-right corner, beside the centred title and above
+ * the score (4:3), never over the buttons at the bottom. Pure.
+ */
+export function tallyBarkSlot(safe: Rect, panel: Rect, gap = 20): Rect {
+  const sideW = Math.min(SIDE_MAX_W, panel.x - gap - (safe.x + gap));
+  if (sideW >= SIDE_MIN_W) return { x: safe.x + gap, y: panel.y + 40, w: sideW, h: SLOT_H };
+  const w = Math.min(SIDE_MAX_W, panel.w * 0.34);
+  return { x: panel.x + panel.w - w - gap, y: panel.y + gap, w, h: SLOT_H * 0.75 };
 }
 
 export function rectContains(r: Rect, x: number, y: number): boolean {
