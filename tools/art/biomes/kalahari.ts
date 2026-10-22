@@ -412,18 +412,24 @@ function weaverCamelthorn(ctx: PropCtx): string {
   // of grass straws hanging in the canopy (GDD §11): ragged sides, a fringe of loose straws
   // along the underside with the chamber entrances, the crown and branches over its top.
   const rnd = ctx.rnd;
+  // A lumpy, rounded mass: bulging sides, a sagging belly, a fringe of loose straws underneath.
   const outline: Pt[] = [];
-  outline.push([-150, -132], [-100, -142], [-40, -146], [30, -145], [100, -140], [152, -128]);
-  for (let y = -118; y <= -56; y += 12)
-    outline.push([158 + (rnd() - 0.5) * 14 + (y > -80 ? 6 : 0), y]);
-  // Underside fringe: straws hanging down in uneven tufts.
-  for (let x = 160; x >= -160; x -= 7) {
-    const long = rnd() < 0.3;
-    outline.push([x, -44 + (rnd() - 0.5) * 6]);
-    outline.push([x - 3, -44 + (long ? 18 + rnd() * 14 : 5 + rnd() * 8)]);
+  outline.push([-150, -128], [-100, -146], [-40, -150], [30, -150], [100, -146], [152, -130]);
+  for (let y = -116; y <= -64; y += 10) {
+    const bulge = Math.sin(((y + 116) / 52) * Math.PI) * 16;
+    outline.push([160 + bulge + (rnd() - 0.5) * 10, y]);
   }
-  for (let y = -56; y >= -118; y -= 12)
-    outline.push([-160 + (rnd() - 0.5) * 14 - (y > -80 ? 6 : 0), y]);
+  for (let x = 166; x >= -166; x -= 6) {
+    const sag = Math.cos((x / 166) * (Math.PI / 2)) * 16; // the belly hangs lowest mid-way
+    const yb = -60 + sag + (rnd() - 0.5) * 5;
+    const long = rnd() < 0.3;
+    outline.push([x, yb]);
+    outline.push([x - 3, yb + (long ? 16 + rnd() * 14 : 4 + rnd() * 7)]);
+  }
+  for (let y = -64; y >= -116; y -= 10) {
+    const bulge = Math.sin(((y + 116) / 52) * Math.PI) * 16;
+    outline.push([-160 - bulge + (rnd() - 0.5) * 10, y]);
+  }
   const nest = polyD(outline);
   const id = nextId();
   const straws: string[] = [];
@@ -479,7 +485,7 @@ function weaverCamelthorn(ctx: PropCtx): string {
     flat(nest, thatch.fill),
     g(
       { 'clip-path': `url(#${id})` },
-      flat(ellipseD(40, -50, 200, 40), thatch.dark),
+      flat(ellipseD(40, -44, 210, 42), thatch.dark),
       flat(ellipseD(-70, -128, 80, 12), thatch.light),
       el('path', {
         d: straws.join(''),
