@@ -16,26 +16,26 @@
         "pages": [
           {
             "image": {
-              "path": "assets/common/guns/gun-dubbelloop@1x-0.3ee0b7076f33.png",
-              "bytes": 108383,
-              "hash": "3ee0b7076f33"
+              "path": "assets/common/guns/gun-dubbelloop@1x-0.99f6037586bd.png",
+              "bytes": 121626,
+              "hash": "99f6037586bd"
             },
             "data": {
-              "path": "assets/common/guns/gun-dubbelloop@1x-0.b25bb0aea37a.json",
+              "path": "assets/common/guns/gun-dubbelloop@1x-0.a9f3827a1db4.json",
               "bytes": 2136,
-              "hash": "b25bb0aea37a"
+              "hash": "a9f3827a1db4"
             }
           },
           {
             "image": {
-              "path": "assets/common/guns/gun-dubbelloop@1x-1.a0dd5a63003a.png",
-              "bytes": 31045,
-              "hash": "a0dd5a63003a"
+              "path": "assets/common/guns/gun-dubbelloop@1x-1.2926b5396910.png",
+              "bytes": 33593,
+              "hash": "2926b5396910"
             },
             "data": {
-              "path": "assets/common/guns/gun-dubbelloop@1x-1.4080d687a0bb.json",
+              "path": "assets/common/guns/gun-dubbelloop@1x-1.15fff4e32daa.json",
               "bytes": 796,
-              "hash": "4080d687a0bb"
+              "hash": "15fff4e32daa"
             }
           }
         ]
@@ -94,14 +94,14 @@
         "pages": [
           {
             "image": {
-              "path": "assets/common/guns/gun-kettie@1x-0.45b34b2109fe.png",
-              "bytes": 49705,
-              "hash": "45b34b2109fe"
+              "path": "assets/common/guns/gun-kettie@1x-0.7736bd49c8b7.png",
+              "bytes": 51416,
+              "hash": "7736bd49c8b7"
             },
             "data": {
-              "path": "assets/common/guns/gun-kettie@1x-0.32444f358a8c.json",
+              "path": "assets/common/guns/gun-kettie@1x-0.cb6b2695743a.json",
               "bytes": 1286,
-              "hash": "32444f358a8c"
+              "hash": "cb6b2695743a"
             }
           }
         ]
@@ -145,14 +145,14 @@
         "pages": [
           {
             "image": {
-              "path": "assets/common/guns/gun-mielie_masjien@1x-0.eb95085c275e.png",
-              "bytes": 58165,
-              "hash": "eb95085c275e"
+              "path": "assets/common/guns/gun-mielie_masjien@1x-0.b02cf3943f54.png",
+              "bytes": 63630,
+              "hash": "b02cf3943f54"
             },
             "data": {
-              "path": "assets/common/guns/gun-mielie_masjien@1x-0.5e20a3de4719.json",
+              "path": "assets/common/guns/gun-mielie_masjien@1x-0.c6572bd91468.json",
               "bytes": 1294,
-              "hash": "5e20a3de4719"
+              "hash": "c6572bd91468"
             }
           }
         ]
@@ -196,14 +196,14 @@
         "pages": [
           {
             "image": {
-              "path": "assets/common/guns/gun-pomp@1x-0.01c0fa64c623.png",
-              "bytes": 108370,
-              "hash": "01c0fa64c623"
+              "path": "assets/common/guns/gun-pomp@1x-0.03827f571662.png",
+              "bytes": 119141,
+              "hash": "03827f571662"
             },
             "data": {
-              "path": "assets/common/guns/gun-pomp@1x-0.8ba66b764449.json",
+              "path": "assets/common/guns/gun-pomp@1x-0.bfc135ea31cb.json",
               "bytes": 2297,
-              "hash": "8ba66b764449"
+              "hash": "bfc135ea31cb"
             }
           }
         ]
@@ -259,26 +259,26 @@
         "pages": [
           {
             "image": {
-              "path": "assets/common/guns/gun-voorlaaier@1x-0.231535ecdade.png",
-              "bytes": 97798,
-              "hash": "231535ecdade"
+              "path": "assets/common/guns/gun-voorlaaier@1x-0.8ada878b87ab.png",
+              "bytes": 108150,
+              "hash": "8ada878b87ab"
             },
             "data": {
-              "path": "assets/common/guns/gun-voorlaaier@1x-0.735c50239bfe.json",
+              "path": "assets/common/guns/gun-voorlaaier@1x-0.81c49a2f94a0.json",
               "bytes": 2136,
-              "hash": "735c50239bfe"
+              "hash": "81c49a2f94a0"
             }
           },
           {
             "image": {
-              "path": "assets/common/guns/gun-voorlaaier@1x-1.4493cd46114f.png",
-              "bytes": 31528,
-              "hash": "4493cd46114f"
+              "path": "assets/common/guns/gun-voorlaaier@1x-1.2e6415613c59.png",
+              "bytes": 33797,
+              "hash": "2e6415613c59"
             },
             "data": {
-              "path": "assets/common/guns/gun-voorlaaier@1x-1.660f6dd72d57.json",
+              "path": "assets/common/guns/gun-voorlaaier@1x-1.0562ccd66b0b.json",
               "bytes": 796,
-              "hash": "660f6dd72d57"
+              "hash": "0562ccd66b0b"
             }
           }
         ]
@@ -337,14 +337,14 @@
         "pages": [
           {
             "image": {
-              "path": "assets/common/guns/gun-windbuks@1x-0.8c3e25581823.png",
-              "bytes": 24732,
-              "hash": "8c3e25581823"
+              "path": "assets/common/guns/gun-windbuks@1x-0.2912d4181cce.png",
+              "bytes": 27511,
+              "hash": "2912d4181cce"
             },
             "data": {
-              "path": "assets/common/guns/gun-windbuks@1x-0.7ed8e7caad61.json",
+              "path": "assets/common/guns/gun-windbuks@1x-0.c2f241472e58.json",
               "bytes": 1121,
-              "hash": "7ed8e7caad61"
+              "hash": "c2f241472e58"
             }
           }
         ]

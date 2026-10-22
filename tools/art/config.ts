@@ -34,6 +34,7 @@ export const BIRD_PARTS = [
   'eyePatch',
   'chippedCasque',
   'toothpick',
+  'stubCasque',
 ] as const;
 export type BirdPart = (typeof BIRD_PARTS)[number];
 
@@ -76,6 +77,16 @@ const configSchema = z.object({
     dots: z
       .object({ $comment: z.string().optional() })
       .and(perPlane(z.object({ r: z.number().positive(), spacing: z.number().positive() }))),
+    dotVariety: z.object({
+      $comment: z.string().optional(),
+      minSize: z.number().positive(),
+      maxSize: z.number().positive(),
+      jitter: z.number().min(0).max(1),
+      bellyThin: z.number().min(0).max(1),
+      tailThin: z.number().min(0).max(1),
+    }),
+    /** Leg stroke width (bird units, before the ink outline). */
+    legWidth: z.number().positive(),
     /** Inner detail lines as a fraction of the plane's ink weight. */
     innerLine: z.number().positive().max(1),
     eyeWhite: hex,
@@ -90,6 +101,13 @@ const configSchema = z.object({
       crownCap: hex,
       crownCapShadow: hex,
       crownRed: hex,
+      crownRim: hex,
+      potBlue: hex,
+      potShadow: hex,
+      potHi: hex,
+      potRim: hex,
+      potRust: hex,
+      potChip: hex,
       bandolier: hex,
       bandolierShadow: hex,
       cob: hex,
@@ -107,6 +125,8 @@ const configSchema = z.object({
   guns: z
     .object({
       lineNear: z.number().positive(),
+      /** Gun width multiplier (path x coordinates, about the barrel line): mass in first person. */
+      widen: z.number().positive(),
       wobble: z.object({ frequency: z.number().positive(), scale: z.number().nonnegative() }),
       clips: z.object({ $comment: z.string().optional() }).and(z.record(z.enum(GUN_IDS), gunClips)),
     })
