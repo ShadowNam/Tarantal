@@ -1265,6 +1265,23 @@ mode (`prefs.leftHanded`) moves the gun to the left but doesn't mirror it: the i
 lean toward the screen centre from the right, so a left-handed player sees them lean outward.
 Mirror the gun sprite (scaleX −1, tip x mirrored) when left-handed.
 
+**D-030 Faster delivery: CI lanes and working rules (22 Oct 2026).** The product owner found
+the build loop too slow. Measured on a 16-job CI run (48 min wall clock): installing browsers and
+their system packages took 1–22 min per job, jobs queued up to 20 min for free runners (stacked
+PRs pushed several 16-job runs at once), and the slowest test shards took 17–18 min. Idle gaps
+between agent turns (a turn ends mid-task, nothing restarts it until the next hourly check) cost
+more than any of these. Decisions: (1) *CI lanes.* Pull requests into `main` run the **quick
+lane**: check/build/size, desktop Chromium in 4 shards, Pixel 7 landscape in 3, iPhone 14
+landscape on WebKit, without the Season Run and perf timing specs. Push to `main`, the nightly
+run, a manual run and a PR labelled `full-ci` run the **full lane** (every profile, Season Run,
+perf, portal and public-build jobs, desktop WebKit in 2 shards). A PR merges on a green quick
+lane; a red full lane on `main` is fixed forward at once. PRs whose base isn't `main` (stacked)
+don't run CI until retargeted, which re-triggers it. (2) *Playwright image.* E2E jobs run in
+`mcr.microsoft.com/playwright:v<version>-noble`; its tag must equal `@playwright/test` in
+`package.json`. (3) *Working rules for agent tasks.* One or two PRs per job instead of a stack
+of five to eight; one review at the end of a job, not one per part; check-ins every ~20 min
+instead of hourly, and a cut-off turn is restarted at once. `E2E_SKIP` now takes
+comma-separated globs.
 
 ## 3. Research notes (with sources)
 
