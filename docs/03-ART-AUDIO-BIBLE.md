@@ -242,6 +242,9 @@ libraries (e.g. xeno-canto) use Creative Commons licences, many **NonCommercial*
 "Twee vlieë met een klap!" · "Laai, laai, laai!" (reload) · "Los die kwêvoël uit!" (leave the go-away-
 bird alone) · "Kos is reg!" · "Stadsjapie…" (gentle teasing after a bad hunt) · "Bosveld Legend!".
 Max one bark per 6 s; never over a tally count-up.
+*v1.0.1 (D-028):* 39 launch lines are in the game, each with its trigger (`content/client/feel.json
+→ barks`), text in en/af/de/nl, a speech bubble as its subtitle, and a `voice/bark.<id>` key waiting
+for the recording (`docs/06-ASSET-DELIVERY.md` lists them).
 
 **SFX list (MVP):** dubbelloop shot ×3 variants, empty click, break-open + shell insert + snap shut,
 belt refill, pellet thuds (ground, wood, metal CLANG for the pot), feather POOF ×4, bird alarm ×6,

@@ -121,7 +121,7 @@ describe('AudioDirector (M10)', () => {
     expect(r.ctx.sources.every((s) => s.stoppedAt !== null)).toBe(true);
   });
 
-  it('barks: only delivered ones, one per gap, never over the tally; music ducks −6 dB', async () => {
+  it('barks: only delivered ones, one voice at a time, never over the tally; music ducks −6 dB', async () => {
     r.audio.addRecorded([file(voiceKey('bark.kos_is_reg'), 2)]);
     r.audio.unlock();
     await flush();
@@ -134,10 +134,14 @@ describe('AudioDirector (M10)', () => {
     const duck = (r.audio as unknown as { duck: FakeGain }).duck;
     expect(duck.gain.at(1)).toBeCloseTo(10 ** (tuning.duckDb / 20), 3);
     expect(duck.gain.at(2 + tuning.duckReleaseMs / 1000 + 0.01)).toBe(1);
-    r.advance(tuning.barkGapMs - 1);
-    expect(r.audio.bark('bark.kos_is_reg')).toBe(false);
-    r.advance(2);
+    // v1.0.1 (D-028 review): the gap is the BarkDirector's; a new line here plays at once and
+    // stops the one still playing (one Oupa voice at a time).
+    const voices = () => r.ctx.sources.filter((s) => s.buffer?.id.includes('bark') === true);
+    const first = voices().at(-1);
     expect(r.audio.bark('bark.kos_is_reg')).toBe(true);
+    expect(voices()).toHaveLength(2);
+    expect(first?.stoppedAt).not.toBeNull();
+    expect(voices().at(-1)?.stoppedAt).toBeNull();
   });
 });
 

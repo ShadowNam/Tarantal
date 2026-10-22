@@ -14,7 +14,9 @@ import type { ShareOutcome } from '../../platform/share';
 import type { TallyExtras } from '../daily/DailyFlow';
 import type { GameContext } from '../GameContext';
 import { formatPercent, formatScore } from '../ui/format';
-import type { Rect } from '../ui/hudLayout';
+import { tallyBarkSlot, type Rect } from '../ui/hudLayout';
+import { BarkBubble, sayBark } from '../ui/BarkBubble';
+import type { BarkTrigger } from '../../content/schemas';
 import { drawButton, fitText, Menu } from '../ui/menu';
 import { FONT } from '../view/Fx';
 import { fontPx, outline } from '../ui/textLook';
@@ -43,6 +45,30 @@ export class TallyScene extends Phaser.Scene {
   constructor(ctx: GameContext) {
     super({ key: 'Tally' });
     this.ctx = ctx;
+  }
+
+  /**
+   * v1.0.1 (D-028 §3): a new best, the top rank ("Bosveld Legend!") or the bottom one
+   * ("Stadsjapie…") gets a word from Oupa; not after his lesson or in capture mode.
+   */
+  private verdictBark(data: TallyData, at: { safe: Rect; panel: Rect }): void {
+    if (data.ftue || this.ctx.capture !== null) return;
+    const ranks = this.ctx.content.scoring.ranks;
+    const r = data.result;
+    const trigger: BarkTrigger | null =
+      data.outcome?.newBest != null && r.score > 0
+        ? 'newBest'
+        : r.rank === ranks.at(-1)?.id
+          ? 'legend'
+          : r.rank === ranks[0]?.id && r.shots > 0
+            ? 'badHunt'
+            : null;
+    if (trigger === null) return;
+    const now = this.time.now;
+    const bark = this.ctx.barks.say(trigger, now);
+    if (bark === null) return;
+    const bubble = new BarkBubble(this, this.ctx.feel.barks.fontPx);
+    sayBark(this.ctx, bubble, bark.line, tallyBarkSlot(at.safe, at.panel), now);
   }
 
   create(data: TallyData): void {
@@ -100,6 +126,16 @@ export class TallyScene extends Phaser.Scene {
       },
       onComplete: () => {
         this.ctx.audio.setTallyCounting(false);
+        // D-028 §3: Oupa's verdict once the count-up is done (never over it, art bible §10).
+        this.verdictBark(data, {
+          safe: {
+            x: safe.left,
+            y: safe.top,
+            w: width - safe.left - safe.right,
+            h: height - safe.top - safe.bottom,
+          },
+          panel: { x: px, y: py, w: panelW, h: panelH },
+        });
       },
     });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {

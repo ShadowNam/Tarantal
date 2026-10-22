@@ -844,8 +844,9 @@ small local sprites. (4) Pointer goldens and Daily seeds are byte-identical: no 
 content changed.
 *PR E — capture mode:* (1) *Gate:* the same as the test hooks (no separate flag): web and dev
 builds, or a portal build made with `VITE_TEST_HOOKS=1`. In a shipped Poki or CrazyGames build
-it is compiled out (grep of `dist-poki` finds neither the `KeyF` handler nor the `capture.`
-namespace). The GitHub Pages web build has it, which is where trailers are captured.
+it is compiled out (v1.0.1 wording: the capture class's own field `speedIndex` is in `dist`
+but not in `dist-poki`; a grep for `KeyF` or `capture.` proves nothing — Phaser has `isKeyFrame`,
+and the i18n tables carry `capture.hint` in every build). The GitHub Pages web build has it, which is where trailers are captured.
 (2) *Behaviour:*
 - It hides the hunt HUD and the reticle; `&gun=0` also hides the gun.
 - It fixes the seed (`feel.json capture.seed` 42, unless `?seed=` is given).
@@ -1013,6 +1014,134 @@ comment no longer spells the date. A confirmed epoch (`epochPlaceholder: false`)
 more than `epochMaxAgeDays` before or after the build day is an issue (a typo such as 2062 or
 2025), which `--strict` fails; `--allow-epoch-gap` accepts it for releases after the launch, or
 a portal build submitted well before it.
+
+*§4 — Pooled score pops (D-026 follow-up):* (1) *BitmapText, built at runtime:* every bag made a
+world pop and a HUD-stack pop as Phaser `Text` (canvas render + texture upload, again when "10 ×2"
+resolves to "+20") and a POOF label. The pops use Baloo 2 (the font they already used, not
+Bangers: changing face would change the look and the baselines), so `src/game/ui/popFont.ts` draws
+the pop characters (`popGlyphs.ts POP_CHARS`: digits, K, M, signs, ×, spaces) once into two
+canvas-texture atlases — the outline and a white fill — and registers them as bitmap fonts. No
+build step and no download. A pop is a pooled pair of BitmapTexts in a container (`PopPool`); the
+fill is tinted to the pop colour. Two layers rather than one: with one, each glyph's outline would
+overdraw its neighbour's fill. The atlas is keyed by the Settings text size and contrast and is
+rebuilt when they change. A string with a character outside the atlas falls back to the old Text
+path (format.ts never produces one; a unit test checks the formats). (2) *POOF:* its label text
+rarely changes, so the bubble and label are pooled as they are; Phaser's `setText` re-renders only
+when the text differs (a language switch). (3) *Measured:* `perf.spec.ts` "score pop A/B" makes
+rounds of 20 world pops each way plus control rounds, in one page at 4× throttle on the Pixel 7
+profile (test-only `__TM_TOOLS__.popBench`). Per pop: on the kill frame 6.0 ms (Text) vs 0.58 ms
+(BitmapText); canvas text draws 6 vs 0; texture uploads 4 vs 0; CPU over the pop's life 5.0 vs
+4.5 ms. So the per-kill spike — the stutter — is about 10× smaller, and the steady draw cost while
+a pop shows is about the same. The test asserts the deterministic counts only. *Interpretation:* the
+existing smoke test (4×) bags nothing (score 0) and so can't show pops, and on this shared
+software-GL box (load 8–17) its CPU average varies ±15 % from run to run: before 14.7/14.8/16.9 ms,
+after 16.4/16.4. The low-tier test (6×) fails its 20 ms budget on this box before (22.7/23.2/27.5)
+and after (26.4/23.2) alike; CI is the reference. A same-page A/B is the only comparison here that
+load can't skew. (4) *Hook:* `pops: { shown, created }` (`pops.spec.ts`: 19 pops from 5 objects). Visual
+baselines are unchanged; no pop is on a baseline frame.
+(5) *Review fixes (#33):* *Late web font (must-fix):* `loadFonts` gives up after
+`fontTimeoutMs`; a pop atlas drawn before Baloo 2 arrived stayed in the system face all session,
+where a `Text` made later picked the font up. `fontReady.ts` now tells, per CSS font, whether it
+has loaded (`document.fonts.check`, sticky once true), and the atlas key (`popAtlas.ts`) and the
+pooled POOF label's look include that state: a late font gets exactly one rebuild and the stale
+labels are remade. The HUD also rebuilds on `document.fonts` `loadingdone`, so the rebuild happens
+before the next pop. The atlas logic moved into Phaser-free `popAtlas.ts` (cache and texture
+manager injected); unit tests use a fake `document.fonts` (drawn before ready, rebuilt once
+after). *Start-up build (should-fix):* `HudScene.create()` builds the atlas, and again when Settings
+change the text size or contrast, so no bag pays for it. *Old looks:* the atlases of looks older
+than the previous one are removed (the previous one stays: a pop on screen may still use it).
+
+*§5 — Capture-mode hint:* (1) *What:* the first hunt frame in capture mode shows "S slow ·
+F freeze · C pan" (`capture.hint`, en/af/de/nl; the key letters stay S/F/C in every language,
+they are physical keys) at the top centre, where the hidden HUD leaves the frame empty. It shows
+`feel.json capture.hintMs` (3 s), fades over `hintFadeMs` (0.6 s) and is then destroyed, so no
+frame captured after that can contain it. Once per page (`CaptureState.hintDone`). (2) *Clock:* it
+runs on real frame time, not hunt time (slow motion and freeze scale the hunt, its tweens and
+animations; a freeze must not keep the hint up), but each frame counts at most `hintMaxStepMs`
+(100 ms): the first hunt frames can stall for seconds while shaders compile on a slow device, and
+the hint would otherwise be used up before it was drawn (it was, under software GL). Phaser's
+`game.loop.delta` is smoothed toward 16 ms and was not usable: the hunt's own real frame delta is
+used. (3) *Portals:* the hint is drawn only when `ctx.capture` exists, which a portal release build
+never creates (capture is compiled out, D-027: `speedIndex`, a field only the capture class has,
+is in `dist` 4× and in `dist-poki` 0×; the `capture.hint` i18n key is in both, being a string
+table entry, which is why a grep for `capture.` is no proof); the gate's unit tests stand. (4) *Proof:*
+`capture.spec.ts` "key hint" (shown, then gone while frozen; screenshots of both) and unit tests of
+the fade (`captureHintAlpha`).
+
+*§3 — Oupa's barks (D-027 follow-up):* (1) *Where it lives:* `src/game/audio/barks.ts`
+`BarkDirector`, in the presentation layer, not the sim: a bark changes nothing in a hunt, so it
+reads the typed sim event stream (plus what the HUD knows: the run's quota, the clock, the save's
+last hunt day) and may use wall-clock time. Replays, golden hashes and `contentHash` are untouched
+(`feel.json` is outside the bundle). (2) *Triggers* (22, `feel.json barks.triggers`): first hunt of
+the UTC day, boss intro (`birdSpawned` motion boss), Stampede, whole flock, Twee Vlieë, quota met
+(the score crosses the run quota), kwêvoël hit (its own line, bible "Los die kwêvoël uit!"), other
+non-target hits, last `lastSeconds` (10 s), top Frenzy tier, `bagStreak` (3) shots in a row that
+bagged (a two-bird shot counts once), `missStreak` (4) misses, empty click, rain, crate,
+`idleSeconds` (8 s) without a shot, a flush; on the tally after the count-up: new best (score > 0),
+top rank ("Bosveld Legend!"), bottom rank with shots fired ("Stadsjapie…"); on the run tally: quota
+missed, run won. Each has a priority (the highest wins a frame), a cooldownMs, and lines said in
+turn (no randomness, so tests are exact). (3) *Rate:* one bark per `audio.barkGapMs` (6 s, the
+bible's number; one value shared with the AudioDirector's own guard). A trigger the gap blocks is
+dropped, except idle, last seconds and quota met, which hold until said. (4) *Lines:* 38 new plus
+"Kos is reg!" reused = 39 (bible ~40), with the bible's lines; signature Afrikaans phrases ("Mooi
+skoot, my kind!", "Ag nee man!", "Twee vlieë met een klap!", "Laai, laai, laai!", "Die hele
+swerm!") stay Afrikaans in every language, as the M8 secret barks do; the rest are translated.
+`content:validate` checks every line is an i18n key. (5) *Bubble = subtitle and caption
+(interpretation of "read by captions"):* the bubble shows whatever the captions setting and the
+volume (bible: "all subtitled"; text now, voice later), so it is the caption; captions.ts gets no
+second copy. Speaker tag "Oupa" (`ui.oupa`). (6) *Placement:* HUD slot `hudLayout().bark`: left
+column under the chips, the Frenzy bar's width (long banners already shrink to stay clear of that
+column), 150 px tall (text shrinks to fit); unit-tested against every HUD rect at 16:9, 19.5:9, 4:3,
+mirrored or not; e2e-checked against score, belt, pause, timer, gadget. Never interactive: a tap on
+it is a shot (e2e). Tallies: beside the panel when the margin is ≥ 300 px, else the panel's
+top-right corner beside the title (4:3); there it can brush the run tally's centred header — a
+cosmetic overlap on narrow screens only. (7) *Never:* in Oupa se Les (it has its own prompts), in
+capture mode (footage), over the tally count-up. (8) *Voice:* each line is `voice/<line>`: a silent
+placeholder in every biome manifest (common group), played by `AudioDirector.bark()` once delivered
+(music ducks −6 dB). The asset audit counts a voice key as used when a feel.json `lines` array names
+it (187 keys, 0 problems); docs/06 lists all 39 with trigger and EN/AF text. (9) *Save:* a new
+section `barks: { lastHuntDay }` (older saves get the default, no migration). (10) *Tests:* director
+unit tests (streaks, priority, gap, cooldown, lasting triggers, kwêvoël), layout tests,
+`barks.spec.ts` (bubble rect clear of the HUD, tap-through, af text, none in the FTUE) on desktop,
+Pixel 7 and iPhone 14 landscape; `?holdAt` now also freezes the HUD's tweens so the bubble can be
+screenshotted (a Playwright round trip here outlasts its 2.8 s). Visual baselines unchanged.
+(11) *Review fixes (#37):* the af quota line was "Wys nou af" ("afwys" = refuse): now "Dis die
+kwota! Nou kan jy spog."; de "Jetzt läuft's!" and "Soll erfüllt!" (as `run.quota_met`). The
+voice key `bark.twee_vlieë` is now `bark.twee_vliee`, and bark keys are ASCII-only (schema): the
+key is the recording's file name, and a non-ASCII name changes under macOS NFD or zip
+normalisation, so the recording would never be found. *Secrets first:* a secret's own bark
+(biome content, said with its HUD banner) went straight to the AudioDirector, whose own 6 s timer
+could silence it after a generic bark, and its banner could share the screen with a bubble. Now
+the BarkDirector is the only gap clock (Phaser time): a frame with a secret bark claims the gap
+first (`BarkDirector.secret`) and hides a generic bubble, and `AudioDirector.bark()` keeps no timer
+(only one Oupa voice at a time: a new line stops the one playing; mute and the tally count-up
+still apply). *Lasting:* `boss` and `stampede` wait out the gap like `quotaMet`; on the run tally,
+`quotaMissed` and `runWon` retry once the gap ends (`waitMs`; the timer dies if the screen moves
+on).
+
+*§6 — Charm balance (D-025 follow-up):* (1) *Measured:* `npm run balance -- --run --seeds 500` on
+seeds 1–500 and again on 501–1000 (competent bot, 60 s hunts). Every §13.8 row is within ±10
+points on both sets:
+
+| Season | none (target) | none 1… / 501… | synergy (target) | synergy 1… / 501… |
+|---|---|---|---|---|
+| Herfs | ~85 % | 83.0 / 82.4 % | ~95 % | 92.4 / 89.8 % |
+| Winter | ~50 % | 47.0 / 47.8 % | ~80 % | 80.1 / 80.2 % |
+| Lente | ≤ 10 % | 12.8 / 7.6 % | ~60 % | 64.1 / 63.6 % |
+| Somer | ~0 % | 0.0 / 0.0 % (25 / 15 runs reach it) | ~35 % | 34.6 / 39.7 % |
+
+The baseline's 100-seed quick run showed Lente-synergy at 73 % (a FAIL); at 500 seeds that was
+sampling noise. "Few runs reach Somer without good charms" is the design (§13.8: `none` ~0 %).
+(2) *Compounding — decision: keep it as it is.* The scoring pipeline (§5.3) already compounds:
++Mult charms add, ×Mult charms multiply each other and the Frenzy/Stampede multipliers, in slot
+order (the synergy bot puts +Mult before ×Mult). Median hunt score, synergy ÷ none: Herfs hunts 2–3
++19 % / +22 %, Winter +20 / +31 / +24 %, Lente +24 / +37 / +21 %, Somer hunt 10 +27 % — the lead
+grows as the build grows, and the pass-rate gap follows the targets (+9 → +33 → +51 → +35 points vs
++10/+30/+50/+35). That gap is if anything understated: the `none` runs that reach the later
+seasons are the lucky ones. So §13.2's "outpaces raw skill by season 3" holds, and stronger
+compounding would push Lente/Somer synergy past their targets. (3) *No content changed:* no golden
+replay changes and `contentHash` is unchanged. (4) *Version:* 1.0.1 (`package.json`, the zip names
+in docs/07, the version line on Settings → Privacy); CHANGELOG `[1.0.1]`.
 
 **D-029 Graphics pass 1: interim guns and tarentaal (22 Oct 2026):** the user chose *option C*: a
 much better **code-drawn interim** art set now, human illustrator art later, swapped in key by key

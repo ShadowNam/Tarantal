@@ -90,7 +90,8 @@ export class AudioDirector {
   private biome: string | null = null;
   private wantStem: Stem = 'calm';
   private readonly hold: StemHold;
-  private lastBarkAt = -Infinity;
+  /** The Oupa line playing (or last played): a new one stops it. */
+  private voiceSrc: AudioBufferSourceNode | null = null;
   private tallyCounting = false;
 
   constructor(
@@ -252,18 +253,24 @@ export class AudioDirector {
   }
 
   /**
-   * M10: Oupa says `barkKey` if a recording was delivered: at most one per barkGapMs and never
-   * over the tally count-up; the music ducks under it. Returns whether it played.
+   * M10: Oupa says `barkKey` if a recording was delivered, never over the tally count-up; the
+   * music ducks under it. Returns whether it played. v1.0.1 (D-028 review): how often he speaks
+   * is the BarkDirector's call (one gap clock for bubbles and voice, so a secret's bark is never
+   * silenced by an earlier generic one); here only one Oupa voice plays at a time — a new line
+   * stops the one still playing.
    */
   bark(barkKey: string): boolean {
     const { ctx, voiceBus, duck } = this;
     const buf = this.buffers.get(voiceKey(barkKey));
     if (ctx === null || voiceBus === null || duck === null || buf === undefined) return false;
-    const now = this.env.now();
-    if (this.muted || this.tallyCounting || now - this.lastBarkAt < this.tuning.barkGapMs)
-      return false;
-    this.lastBarkAt = now;
+    if (this.muted || this.tallyCounting) return false;
+    try {
+      this.voiceSrc?.stop();
+    } catch {
+      // Already ended.
+    }
     const src = ctx.createBufferSource();
+    this.voiceSrc = src;
     src.buffer = buf;
     src.connect(voiceBus);
     src.start();

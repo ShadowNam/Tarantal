@@ -1,6 +1,6 @@
 # Tarantal Madness — Portal Submission Kit
 
-Status: v1.0.0 soft launch · 21 Oct 2026. **For the person who submits.** Nothing in this repo
+Status: v1.0.1 (soft launch build + cleanup, D-028) · 22 Oct 2026. **For the person who submits.** Nothing in this repo
 uploads or submits anything: every step marked ☐ is done by hand in the portal's own tool.
 
 Requirements below are as each portal documented them on 21 Oct 2026 (sources at the end); check
@@ -10,9 +10,9 @@ the upload form again on the day, because portals change their rules.
 
 | Portal | Build | Upload folder | Zip (from `npm run release`) |
 |---|---|---|---|
-| Poki | `npm run build:poki` | `dist-poki/` (its contents, `index.html` at the root) | `release/tarantal-madness-1.0.0-poki.zip` |
-| CrazyGames | `npm run build:crazygames` | `dist-crazygames/` | `release/tarantal-madness-1.0.0-crazygames.zip` |
-| Web (own site, PWA) | `npm run build` | `dist/` (GitHub Pages workflow deploys `main`) | `release/tarantal-madness-1.0.0-web.zip` |
+| Poki | `npm run build:poki` | `dist-poki/` (its contents, `index.html` at the root) | `release/tarantal-madness-1.0.1-poki.zip` |
+| CrazyGames | `npm run build:crazygames` | `dist-crazygames/` | `release/tarantal-madness-1.0.1-crazygames.zip` |
+| Web (own site, PWA) | `npm run build` | `dist/` (GitHub Pages workflow deploys `main`) | `release/tarantal-madness-1.0.1-web.zip` |
 
 - Portal builds carry no service worker, no PWA manifest and no test hooks. Capture mode is
   compiled out too (D-026, D-027).

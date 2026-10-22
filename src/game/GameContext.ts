@@ -15,6 +15,7 @@ import type { DomChrome } from './ui/DomChrome';
 import type { AssetManifest, ManifestEntry } from './assets/AssetManifest';
 import type { FlashLimiter } from './view/flashLimit';
 import type { CaptureState } from './capture';
+import type { BarkDirector } from './audio/barks';
 import type { AudioDirector } from './audio/AudioDirector';
 import type { RunFlow } from './run/RunFlow';
 import type { DailyFlow } from './daily/DailyFlow';
@@ -37,7 +38,14 @@ export interface TestHook {
   /** M10: the self-hosted fonts loaded before the game drew any text. */
   fontsReady: boolean;
   /** M10 capture mode: speed (0 = frozen) and auto-pan, or null outside it. */
-  capture: { speed: number; frozen: boolean; panning: boolean; hud: boolean } | null;
+  capture: {
+    speed: number;
+    frozen: boolean;
+    panning: boolean;
+    hud: boolean;
+    /** v1.0.1: the key hint is on screen. */
+    hint: boolean;
+  } | null;
   /** Id of the keyboard-focused item of the active menu (null = none yet). */
   focus: string | null;
   /** Hunt paused (pause menu, hidden tab or portrait). */
@@ -77,6 +85,12 @@ export interface TestHook {
   /** Flock transitions this hunt as "id:from>to:cause" (capped). */
   flockLog: string[];
   flockSpots: { id: number; state: string; alive: number; x: number; y: number }[];
+  /** v1.0.1 (D-028 §4): score pops shown this page, and pop objects made (pooled: stays small). */
+  pops: { shown: number; created: number };
+  /** v1.0.1 (D-028 §3): Oupa's bubble on screen (line key, text, design-px rect) and every line
+   *  he has said on this page, oldest first (capped). */
+  bark: { line: string; text: string; x: number; y: number; w: number; h: number } | null;
+  barks: string[];
   result: HuntResult | null;
   /** performance.now() when the first shot of the page was fired (ms since navigation start). */
   firstShotAtMs: number | null;
@@ -186,6 +200,8 @@ export interface TestTools {
   readonly contentHash: string;
   dailySeed(key: string): number;
   replay(log: string): { eventHash: string; eventCount: number; score: number };
+  /** v1.0.1 (D-028 §4): `n` world score pops now, pooled BitmapText or canvas Text; sync ms. */
+  popBench(n: number, mode: 'bitmap' | 'text'): number | null;
 }
 
 export interface GameContext {
@@ -206,6 +222,10 @@ export interface GameContext {
   /** M8: the biome of the hunt on screen (the home biome between hunts). */
   huntBiome: Biome;
   readonly audio: AudioDirector;
+  /** v1.0.1 (D-028 §3): Oupa's barks (one per page: the gap spans hunts and the tally). */
+  readonly barks: BarkDirector;
+  /** UTC day number now (the Daily's clock; e2e ?today= fixes it). */
+  readonly today: () => number;
   /** M10: the shared budget of large-area flashes (≤ 3 a second, GDD §18.3). */
   readonly flashes: FlashLimiter;
   /** M10 marketing capture mode (?capture=1), or null. */

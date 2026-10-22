@@ -3,16 +3,36 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
-## [1.0.1] — unreleased
+## [1.0.1] — cleanup (22 Oct 2026)
 
-Cleanup after the soft launch build (decision record D-028).
+Cleanup after the soft launch build (decision record D-028). Gameplay, the sim and the content
+hash are unchanged: every 1.0.0 replay, Daily seed and challenge link stays valid.
+
+### Added
+- **Oupa's barks:** 39 short lines in his EN/AF voice react to the hunt (streaks, misses, wrong
+  birds, the Stampede, bosses, the quota, idling, the first hunt of the day) and to the tally, at
+  most one every 6 s. Text bubbles now (en, af, de, nl); each line has a voice key for the
+  recording.
+- Capture mode (`?capture=1`) shows a short "S slow · F freeze · C pan" hint, then fades it out
+  before any footage.
 
 ### Fixed
 - `?e2e` on the public web build no longer gives fresh official Daily attempts, share cards or
   challenge links: it plays unranked like capture mode. Only CI test builds (`VITE_TEST_HOOKS=1`)
-  record official Dailies under `?e2e`.
+  record official Dailies under `?e2e`, and `npm run release` refuses to build with that flag.
 - The Daily epoch (Daily #1) is one value in `content/meta/daily.json`: `content:validate` fails on
-  a copy in code, and `npm run release` warns (`--strict` fails) while it is still the placeholder.
+  a copy in code or tests, and `npm run release` warns (`--strict` fails) while it is still the
+  placeholder or far from the build date.
+
+### Performance
+- Score pops and "POOF!" no longer create a canvas text per kill: pooled BitmapText pops from a
+  glyph atlas built at start-up. At 4× CPU throttle a pop costs 0.6 ms on its kill frame instead
+  of 6 ms.
+
+### Balance
+- Charm balance checked at 1 000 seeded Season Runs per charm policy: every season's pass rate
+  is within ±10 points of the design targets, and charm Mult already compounds. No numbers
+  changed.
 
 ## [1.0.0] — soft launch build (21 Oct 2026)
 
