@@ -175,6 +175,16 @@ export class AssetManifest {
     return b;
   }
 
+  /**
+   * D-029: uploads the bird atlases that came with the first download (not the late group) when
+   * a hunt starts, so their GPU upload never lands mid-hunt. Late arrivals upload on first use.
+   */
+  prewarmBirds(textures: Phaser.Textures.TextureManager): void {
+    for (const b of this.finalBirds.values())
+      if (b.entry.group !== LATE_GROUP && !textures.exists(b.atlasKey))
+        textures.addAtlasJSONHash(b.atlasKey, b.img, b.data);
+  }
+
   /** D-029: like ensureBird, for a weapon's animated gun. */
   ensureGun(textures: Phaser.Textures.TextureManager, weaponId: string): FinalGun | null {
     const g = this.finalGuns.get(weaponId);
