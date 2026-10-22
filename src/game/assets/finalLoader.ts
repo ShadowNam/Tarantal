@@ -35,7 +35,8 @@ export interface IndexLoad {
 export async function fetchAssetIndex(timeoutMs: number): Promise<IndexLoad> {
   const get = async (): Promise<IndexLoad> => {
     try {
-      // no-cache: the index names hashed files, so it is the one file that must be fresh.
+      // no-cache asks the network to revalidate; the PWA worker may still serve its precached copy
+      // for one session after a deploy, which is consistent (it cached the matching files too).
       const res = await fetch(ASSET_INDEX_PATH, { cache: 'no-cache' });
       // Static hosts answer 404; SPA-style servers (vite preview) send index.html instead.
       const type = res.headers.get('content-type') ?? '';
@@ -48,6 +49,18 @@ export async function fetchAssetIndex(timeoutMs: number): Promise<IndexLoad> {
     }
   };
   return withTimeout(get(), timeoutMs, { index: null, problem: 'index timed out' });
+}
+
+/**
+ * Caches a load by path, but forgets a failed or timed-out one (null), so a later biome or a
+ * later page visit can try again instead of staying on the placeholder for the whole session.
+ */
+function forget<T>(cache: Map<string, Promise<T | null>>, path: string, p: Promise<T | null>) {
+  cache.set(path, p);
+  void p.then((v) => {
+    if (v === null && cache.get(path) === p) cache.delete(path);
+  });
+  return p;
 }
 
 const images = new Map<string, Promise<HTMLImageElement | null>>();
@@ -69,8 +82,7 @@ export function loadImage(path: string, timeoutMs: number): Promise<HTMLImageEle
       };
     });
     img.src = path;
-    p = withTimeout(load, timeoutMs, null);
-    images.set(path, p);
+    p = forget(images, path, withTimeout(load, timeoutMs, null));
   }
   return p;
 }
@@ -79,12 +91,15 @@ export function loadImage(path: string, timeoutMs: number): Promise<HTMLImageEle
 export function loadJson(path: string, timeoutMs: number): Promise<unknown> {
   let p = jsons.get(path);
   if (p === undefined) {
-    p = withTimeout(
-      fetch(path).then((r) => (r.ok ? (r.json() as Promise<unknown>) : null)),
-      timeoutMs,
-      null,
+    p = forget(
+      jsons,
+      path,
+      withTimeout(
+        fetch(path).then((r) => (r.ok ? (r.json() as Promise<unknown>) : null)),
+        timeoutMs,
+        null,
+      ),
     );
-    jsons.set(path, p);
   }
   return p;
 }
@@ -93,12 +108,15 @@ export function loadJson(path: string, timeoutMs: number): Promise<unknown> {
 export function loadBytes(path: string, timeoutMs: number): Promise<ArrayBuffer | null> {
   let p = buffers.get(path);
   if (p === undefined) {
-    p = withTimeout(
-      fetch(path).then((r) => (r.ok ? r.arrayBuffer() : null)),
-      timeoutMs,
-      null,
+    p = forget(
+      buffers,
+      path,
+      withTimeout(
+        fetch(path).then((r) => (r.ok ? r.arrayBuffer() : null)),
+        timeoutMs,
+        null,
+      ),
     );
-    buffers.set(path, p);
   }
   return p;
 }

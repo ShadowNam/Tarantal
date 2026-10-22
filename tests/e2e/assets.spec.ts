@@ -50,6 +50,15 @@ test('a stand-in delivery loads through the manifest with no code change', async
   await boot(page, 'seed=42');
   const h = await hook(page);
   expect(h.assets.problem).toBeNull();
+  // Recordings load beside the game (boot doesn't wait for them): wait until they report in.
+  await page.waitForFunction(
+    (keys) => {
+      const entries = window.__TM__?.assets.byBiome['karoo-autumn'] ?? [];
+      return keys.every((k) => entries.some((e) => e.key === k && e.status === 'final'));
+    },
+    FINAL_KEYS,
+    { timeout: 60_000 },
+  );
   const st = await statuses(page);
   for (const key of FINAL_KEYS) expect(st[key], key).toBe('final');
   // Everything not delivered stays a placeholder.

@@ -10,6 +10,7 @@ import { brotliCompressSync, constants, gzipSync } from 'node:zlib';
 import { ASSET_INDEX_PATH, parseAssetIndex } from '../src/game/assets/assetIndex';
 import {
   BUDGET_BYTES,
+  alternateAssetFiles,
   lazyAssetFiles,
   MB,
   splitInitialLazy,
@@ -75,6 +76,7 @@ const line = (r: Row): string =>
 // M10: delivered art and audio of the non-home biomes load with their biome (asset index groups).
 const indexPath = join(dist, ASSET_INDEX_PATH);
 let lazyAssets = new Set<string>();
+let alternates = new Set<string>();
 if (existsSync(indexPath)) {
   const { index, error } = parseAssetIndex(JSON.parse(readFileSync(indexPath, 'utf8')));
   if (error !== null) {
@@ -82,8 +84,9 @@ if (existsSync(indexPath)) {
     process.exit(1);
   }
   lazyAssets = lazyAssetFiles(index);
+  alternates = alternateAssetFiles(index);
 }
-const split = splitInitialLazy(manifest, files, lazyAssets);
+const split = splitInitialLazy(manifest, files, lazyAssets, alternates);
 const initial = split.initial.map(measure);
 const lazy = split.lazy.map(measure);
 const ti = sum(initial);
@@ -95,6 +98,12 @@ console.log(line({ ...ti, file: 'INITIAL TOTAL' }));
 console.log('lazy (loaded on first use):');
 console.log(lazy.length === 0 ? '  (none)' : lazy.map(line).join('\n'));
 console.log(line({ ...tl, file: 'LAZY TOTAL' }));
+if (split.alternate.length > 0) {
+  const alt = split.alternate.map(measure);
+  console.log('alternates (the other audio format / atlas set; one player never downloads both):');
+  console.log(alt.map(line).join('\n'));
+  console.log(line({ ...sum(alt), file: 'ALTERNATES (not counted)' }));
+}
 console.log(line({ ...sum([ti, tl]), file: 'BUILD TOTAL' }));
 
 if (jsonOut !== undefined) {
