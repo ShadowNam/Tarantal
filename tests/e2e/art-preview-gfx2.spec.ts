@@ -1,0 +1,130 @@
+// D-031 graphics pass 2 previews (on demand, not part of the regular suite): the same hunt frames
+// before (main's art: pass 1 birds and guns, runtime-drawn scenery, FX and UI) and after (this
+// pass's interim art), composed side by side into docs/art-preview/compare/gfx2-*.png. Run:
+//   ART_PREVIEW=1 npx playwright test tests/e2e/art-preview-gfx2.spec.ts \
+//     --project=desktop-chromium --project=pixel7-landscape
+// "Before" serves the asset index with this pass's keys taken out (every layer, the flyers, every
+// image except the guns and the Generaal's pot). Scenes are held at a fixed sim tick (?holdAt),
+// found with the headless sim; pans are made with the arrow keys before the hold.
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { test, type Page, type TestInfo } from '@playwright/test';
+import { composePair } from '../../tools/art/compare';
+import { boot, isTouchProject, startHunt } from './helpers';
+
+const OUT = join(import.meta.dirname, '..', '..', 'docs', 'art-preview');
+const RAW = join(OUT, 'screens');
+const PROFILES = ['desktop-chromium', 'pixel7-landscape'];
+const VARIANTS = ['before', 'after'] as const;
+type Variant = (typeof VARIANTS)[number];
+const FLYERS = ['hadeda', 'sproeier', 'kwevoel', 'visarend', 'stormvoel'];
+
+test.use({ serviceWorkers: 'block' });
+test.beforeEach(async ({ page }, info) => {
+  test.skip(process.env['ART_PREVIEW'] !== '1', 'on demand: ART_PREVIEW=1');
+  test.skip(!PROFILES.includes(info.project.name), 'previews: desktop + Pixel 7 landscape');
+  await page.addInitScript(() => {
+    const key = 'tm.e2e.save.v1';
+    if (localStorage.getItem(key) === null)
+      localStorage.setItem(
+        key,
+        JSON.stringify({
+          v: 1,
+          settings: { quality: 'medium' },
+          ftue: { done: true, skipped: false, step: '' },
+        }),
+      );
+  });
+});
+
+/** Before = main's art: this pass's keys removed from the asset index. */
+async function setVariant(page: Page, v: Variant): Promise<void> {
+  await page.unroute('**/assets/asset-index.json');
+  if (v === 'after') return;
+  await page.route('**/assets/asset-index.json', async (route) => {
+    const res = await route.fetch();
+    const index = (await res.json()) as {
+      images: Record<string, unknown>;
+      layers: Record<string, unknown>;
+      birds: Record<string, unknown>;
+    };
+    index.layers = {};
+    for (const key of Object.keys(index.images))
+      if (!key.startsWith('gun/') && key !== 'fx/pot') delete index.images[key];
+    for (const c of FLYERS) delete index.birds[c];
+    await route.fulfill({ response: res, json: index });
+  });
+}
+
+/** Fonts in, the pointer parked at the screen centre (reticle in view on desktop). */
+async function settle(page: Page, aim: boolean): Promise<void> {
+  await page.waitForFunction(() => window.__TM__?.fontsReady === true, null, { timeout: 30_000 });
+  const box = await page.locator('#game canvas').boundingBox();
+  if (box !== null) {
+    if (aim) await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.45);
+    else await page.mouse.move(box.x + box.width - 2, box.y + box.height - 2);
+  }
+  await page.waitForTimeout(800);
+}
+
+function save(name: string, v: Variant, info: TestInfo, png: Buffer): void {
+  mkdirSync(RAW, { recursive: true });
+  writeFileSync(join(RAW, `${name}-${v}-${info.project.name}.png`), png);
+}
+
+/**
+ * A hunt held at `holdAt`; `pan` holds an arrow key from the start until the camera reaches its
+ * end stop (−1 left, +1 right). `aim` shows the reticle at the centre.
+ */
+async function held(
+  page: Page,
+  info: TestInfo,
+  name: string,
+  query: string,
+  holdAt: number,
+  o: { pan?: -1 | 1; aim?: boolean; wait?: (page: Page) => Promise<void> } = {},
+): Promise<void> {
+  for (const v of VARIANTS) {
+    await setVariant(page, v);
+    await boot(page, `${query}&holdAt=${holdAt}`);
+    await startHunt(page, isTouchProject(info));
+    if (o.pan !== undefined) {
+      const key = o.pan < 0 ? 'ArrowLeft' : 'ArrowRight';
+      const start = (await page.evaluate(() => window.__TM__?.cameraX)) ?? 0;
+      await page.keyboard.down(key);
+      await page.waitForFunction(
+        ([s, d]) => {
+          const x = window.__TM__?.cameraX ?? s;
+          return d < 0 ? x <= 961 : x >= 4159;
+        },
+        [start, o.pan] as const,
+        { timeout: 300_000 },
+      );
+      await page.keyboard.up(key);
+    }
+    await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) >= t, holdAt, {
+      timeout: 300_000,
+    });
+    if (o.wait !== undefined) await o.wait(page);
+    await settle(page, o.aim === true);
+    save(name, v, info, await page.screenshot());
+  }
+  composePair(name, info.project.name);
+}
+
+test('Karoo panned left, centre and right', async ({ page }, info) => {
+  test.setTimeout(900_000);
+  await held(page, info, 'gfx2-karoo-left', 'seed=42&huntSeconds=20', 300, { pan: -1 });
+  await held(page, info, 'gfx2-karoo-centre', 'seed=42&huntSeconds=20', 70);
+  await held(page, info, 'gfx2-karoo-right', 'seed=42&huntSeconds=20', 300, { pan: 1 });
+});
+
+test('hadeda, crop-sprayer and kwevoel fly over', async ({ page }, info) => {
+  test.setTimeout(600_000);
+  await held(page, info, 'gfx2-flyover', 'seed=42&huntSeconds=20', 960);
+});
+
+test('a crate drop, the reticle and the shell belt', async ({ page }, info) => {
+  test.setTimeout(600_000);
+  await held(page, info, 'gfx2-crate-hud', 'seed=42&huntSeconds=20', 430, { aim: true });
+});
