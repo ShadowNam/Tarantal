@@ -132,9 +132,11 @@ export class FakeContext {
       type: 'lowpass',
     });
   }
-  /** "Decodes" bytes whose first byte is the duration in seconds; the id is the text after it. */
+  /** "Decodes" bytes whose first byte is the duration in seconds (255 = undecodable); the id is the text after it. */
   decodeAudioData(bytes: ArrayBuffer): Promise<{ duration: number; id: string }> {
     const b = new Uint8Array(bytes);
+    // A first byte of 255 marks a file this "browser" can't decode.
+    if (b[0] === 255) return Promise.reject(new Error('EncodingError'));
     const id = new TextDecoder().decode(b.subarray(1));
     this.decoded.push(id);
     return Promise.resolve({ duration: b[0] ?? 1, id });

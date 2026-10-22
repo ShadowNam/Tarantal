@@ -138,7 +138,7 @@ export class HuntScene extends Phaser.Scene {
       this.biome.id === this.ctx.biome.id ? this.ctx.manifest : this.ctx.manifestFor(this.biome);
     this.ctx.huntBiome = this.biome;
     this.ctx.audio.setBiome(this.biome.id);
-    this.ctx.audio.setIntensity('calm');
+    this.ctx.audio.resetIntensity();
     // Scenery and UI now; birds are drawn a few at a time while the start card shows.
     this.texturesDone = this.manifest.install(this.textures, neededBeforeStart);
     if (this.ctx.hook) this.ctx.hook.boot['textures'] ??= performance.now();
@@ -214,6 +214,7 @@ export class HuntScene extends Phaser.Scene {
       this.manifest,
       this.parallax,
       this.ctx.content,
+      this.ctx.feel.juice.forageSpellTicks,
       // ⛔ until a creature's first sighting; always with Settings → colour-blind aids (M9).
       (creature) =>
         showDontShootBadge(this.ctx.prefs, this.ctx.save.data.birdBook.creatures, creature),

@@ -4,19 +4,19 @@ import { CLIP_FALLBACK, clipFor, resolveClip } from './birdClips';
 
 describe('bird clips (M10)', () => {
   it('maps flock phases to the §3.4 clips', () => {
-    expect(clipFor('flock', 'alert', 1, 0)).toBe('alert');
-    expect(clipFor('flock', 'run', 1, 0)).toBe('run');
-    expect(clipFor('flock', 'launch', 1, 0)).toBe('takeoff');
-    expect(clipFor('flock', 'flap', 1, 0)).toBe('flap');
-    expect(clipFor('flock', 'glide', 1, 0)).toBe('glide');
-    expect(clipFor('flock', 'land', 1, 0)).toBe('land');
-    expect(clipFor('flyover', 'fly', 1, 0)).toBe('flap');
-    expect(clipFor('popup', 'stare', 1, 0)).toBe('peek');
+    expect(clipFor('flock', 'alert', 1, 0, 90)).toBe('alert');
+    expect(clipFor('flock', 'run', 1, 0, 90)).toBe('run');
+    expect(clipFor('flock', 'launch', 1, 0, 90)).toBe('takeoff');
+    expect(clipFor('flock', 'flap', 1, 0, 90)).toBe('flap');
+    expect(clipFor('flock', 'glide', 1, 0, 90)).toBe('glide');
+    expect(clipFor('flock', 'land', 1, 0, 90)).toBe('land');
+    expect(clipFor('flyover', 'fly', 1, 0, 90)).toBe('flap');
+    expect(clipFor('popup', 'stare', 1, 0, 90)).toBe('peek');
   });
 
   it('foraging birds alternate walk and peck spells, staggered by id', () => {
     const at = (id: number) =>
-      Array.from({ length: 6 }, (_, spell) => clipFor('flock', 'walk', id, spell * 90));
+      Array.from({ length: 6 }, (_, spell) => clipFor('flock', 'walk', id, spell * 90, 90));
     expect(at(0)).toEqual([
       'peck',
       'forage_walk',

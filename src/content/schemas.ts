@@ -961,6 +961,8 @@ export const FeelSchema = obj({
     smokeScale: pos,
     /** "⛔ don't shoot" and boss call-outs. */
     calloutMs: pos,
+    /** M10 delivered bird clips: render ticks per foraging walk/peck spell (every third pecks). */
+    forageSpellTicks: posInt,
     /** M10 juice pass: multiplier on every weapon's screen shake (weapons.json stays sim content). */
     shakeScale: nonNeg,
     /** Frenzy tier up: the meter label punches from this scale back to 1 over frenzyPunchMs. */

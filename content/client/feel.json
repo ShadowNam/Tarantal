@@ -41,6 +41,7 @@
     "rainParticlesPerSec": 90,
     "smokeScale": 2.2,
     "calloutMs": 2600,
+    "forageSpellTicks": 90,
     "shakeScale": 1,
     "frenzyPunchScale": 1.5,
     "frenzyPunchMs": 260,
