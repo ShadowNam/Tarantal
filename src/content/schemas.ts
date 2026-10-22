@@ -1072,6 +1072,13 @@ export const FeelSchema = obj({
     seed: nonNegInt,
     speeds: z.array(z.number().positive().max(1)).min(1).max(6),
     panTurnPx: nonNeg,
+    /** v1.0.1 (D-028 §5): the "S slow · F freeze · C pan" hint: shown hintMs, faded over hintFadeMs. */
+    hintMs: nonNeg,
+    hintFadeMs: pos,
+    /** Most a single frame advances the hint (ms): a long stall doesn't skip it. */
+    hintMaxStepMs: pos,
+    /** Its font size (design px). */
+    hintPx: pos,
   }),
   assets: obj({
     /** M10: longest wait for assets/asset-index.json at boot; after it every key is a placeholder. */

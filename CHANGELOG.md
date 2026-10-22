@@ -14,6 +14,9 @@ Cleanup after the soft launch build (decision record D-028).
 - The Daily epoch (Daily #1) is one value in `content/meta/daily.json`: `content:validate` fails on
   a copy in code, and `npm run release` warns (`--strict` fails) while it is still the placeholder.
 
+- Capture mode (`?capture=1`) shows a short "S slow · F freeze · C pan" hint, then fades it out
+  before any footage.
+
 ### Performance
 - Score pops and "POOF!" no longer create a canvas text per kill: pooled BitmapText pops from a
   glyph atlas built at start-up. At 4× CPU throttle a pop costs 0.6 ms on its kill frame instead
