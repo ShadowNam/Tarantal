@@ -906,6 +906,46 @@ const qualityTier = obj({
   mergeLayers: z.array(z.tuple([z.string(), z.string()])).max(4),
 });
 
+/**
+ * v1.0.1 (D-028 §3): what makes Oupa bark. Hunt triggers come from sim events (and the run's
+ * quota, the save's last hunt day); tally triggers from the tally and the run tally.
+ */
+export const BARK_TRIGGERS = [
+  'firstToday',
+  'boss',
+  'stampede',
+  'wholeFlock',
+  'twoFlies',
+  'quotaMet',
+  'kwevoel',
+  'nonTarget',
+  'lastSeconds',
+  'frenzyTop',
+  'bagStreak',
+  'missStreak',
+  'emptyClick',
+  'rain',
+  'crate',
+  'idle',
+  'flush',
+  'newBest',
+  'legend',
+  'badHunt',
+  'quotaMissed',
+  'runWon',
+] as const;
+export type BarkTrigger = (typeof BARK_TRIGGERS)[number];
+
+const barkKey = z.string().regex(/^bark\.[a-z][a-z0-9_ë]*$/, 'bark lines are bark.* i18n keys');
+const BarkTriggerSchema = obj({
+  /** Highest priority wins when several triggers fire in one frame. */
+  priority: nonNegInt,
+  /** This trigger speaks at most once per cooldownMs (on top of the global gap). */
+  cooldownMs: nonNeg,
+  /** Lines said in turn: i18n keys, also the voice keys (voice/<line>). */
+  lines: z.array(barkKey).min(1),
+});
+
 export const FeelSchema = obj({
   version,
   input: obj({
@@ -1065,6 +1105,20 @@ export const FeelSchema = obj({
     duckReleaseMs: pos,
     /** At most one bark per barkGapMs (bible: 6 s), never while the tally counts up. */
     barkGapMs: nonNeg,
+  }),
+  barks: obj({
+    /** Speech bubble: shown bubbleMs, faded in and out over fadeMs; text size (design px). */
+    bubbleMs: pos,
+    fadeMs: nonNeg,
+    fontPx: pos,
+    /** Shots in a row that bagged (bagStreak) or missed (missStreak). */
+    bagStreak: posInt,
+    missStreak: posInt,
+    /** Seconds without a shot (idle), and seconds left on the clock (lastSeconds). */
+    idleSeconds: pos,
+    lastSeconds: pos,
+    /** One entry per trigger (an enum-keyed record: every trigger is required). */
+    triggers: z.record(z.enum(BARK_TRIGGERS), BarkTriggerSchema),
   }),
   capture: obj({
     /** M10 marketing capture mode (?capture=1): seed when no ?seed= is given, the slow-motion

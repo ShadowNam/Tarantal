@@ -17,6 +17,11 @@ Cleanup after the soft launch build (decision record D-028).
 - Capture mode (`?capture=1`) shows a short "S slow · F freeze · C pan" hint, then fades it out
   before any footage.
 
+- **Oupa's barks:** 39 short lines in his EN/AF voice react to the hunt (streaks, misses, wrong
+  birds, the Stampede, bosses, the quota, idling, the first hunt of the day) and to the tally, at
+  most one every 6 s. Text bubbles now (en, af, de, nl); each line has a voice key for the
+  recording.
+
 ### Performance
 - Score pops and "POOF!" no longer create a canvas text per kill: pooled BitmapText pops from a
   glyph atlas built at start-up. At 4× CPU throttle a pop costs 0.6 ms on its kill frame instead

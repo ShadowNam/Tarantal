@@ -1054,6 +1054,44 @@ never creates (capture is compiled out, D-027); the gate's unit tests stand. (4)
 `capture.spec.ts` "key hint" (shown, then gone while frozen; screenshots of both) and unit tests of
 the fade (`captureHintAlpha`).
 
+*§3 — Oupa's barks (D-027 follow-up):* (1) *Where it lives:* `src/game/audio/barks.ts`
+`BarkDirector`, in the presentation layer, not the sim: a bark changes nothing in a hunt, so it
+reads the typed sim event stream (plus what the HUD knows: the run's quota, the clock, the save's
+last hunt day) and may use wall-clock time. Replays, golden hashes and `contentHash` are untouched
+(`feel.json` is outside the bundle). (2) *Triggers* (22, `feel.json barks.triggers`): first hunt of
+the UTC day, boss intro (`birdSpawned` motion boss), Stampede, whole flock, Twee Vlieë, quota met
+(the score crosses the run quota), kwêvoël hit (its own line, bible "Los die kwêvoël uit!"), other
+non-target hits, last `lastSeconds` (10 s), top Frenzy tier, `bagStreak` (3) shots in a row that
+bagged (a two-bird shot counts once), `missStreak` (4) misses, empty click, rain, crate,
+`idleSeconds` (8 s) without a shot, a flush; on the tally after the count-up: new best (score > 0),
+top rank ("Bosveld Legend!"), bottom rank with shots fired ("Stadsjapie…"); on the run tally: quota
+missed, run won. Each has a priority (the highest wins a frame), a cooldownMs, and lines said in
+turn (no randomness, so tests are exact). (3) *Rate:* one bark per `audio.barkGapMs` (6 s, the
+bible's number; one value shared with the AudioDirector's own guard). A trigger the gap blocks is
+dropped, except idle, last seconds and quota met, which hold until said. (4) *Lines:* 38 new plus
+"Kos is reg!" reused = 39 (bible ~40), with the bible's lines; signature Afrikaans phrases ("Mooi
+skoot, my kind!", "Ag nee man!", "Twee vlieë met een klap!", "Laai, laai, laai!", "Die hele
+swerm!") stay Afrikaans in every language, as the M8 secret barks do; the rest are translated.
+`content:validate` checks every line is an i18n key. (5) *Bubble = subtitle and caption
+(interpretation of "read by captions"):* the bubble shows whatever the captions setting and the
+volume (bible: "all subtitled"; text now, voice later), so it is the caption; captions.ts gets no
+second copy. Speaker tag "Oupa" (`ui.oupa`). (6) *Placement:* HUD slot `hudLayout().bark`: left
+column under the chips, the Frenzy bar's width (long banners already shrink to stay clear of that
+column), 150 px tall (text shrinks to fit); unit-tested against every HUD rect at 16:9, 19.5:9, 4:3,
+mirrored or not; e2e-checked against score, belt, pause, timer, gadget. Never interactive: a tap on
+it is a shot (e2e). Tallies: beside the panel when the margin is ≥ 300 px, else the panel's
+top-right corner beside the title (4:3); there it can brush the run tally's centred header — a
+cosmetic overlap on narrow screens only. (7) *Never:* in Oupa se Les (it has its own prompts), in
+capture mode (footage), over the tally count-up. (8) *Voice:* each line is `voice/<line>`: a silent
+placeholder in every biome manifest (common group), played by `AudioDirector.bark()` once delivered
+(music ducks −6 dB). The asset audit counts a voice key as used when a feel.json `lines` array names
+it (187 keys, 0 problems); docs/06 lists all 39 with trigger and EN/AF text. (9) *Save:* a new
+section `barks: { lastHuntDay }` (older saves get the default, no migration). (10) *Tests:* director
+unit tests (streaks, priority, gap, cooldown, lasting triggers, kwêvoël), layout tests,
+`barks.spec.ts` (bubble rect clear of the HUD, tap-through, af text, none in the FTUE) on desktop,
+Pixel 7 and iPhone 14 landscape; `?holdAt` now also freezes the HUD's tweens so the bubble can be
+screenshotted (a Playwright round trip here outlasts its 2.8 s). Visual baselines unchanged.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

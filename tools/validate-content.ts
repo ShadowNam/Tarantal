@@ -66,6 +66,16 @@ const report = checkCrossRefs(parsed.bundle, {
 });
 
 const errors = [...report.errors];
+// v1.0.1 (D-028 §3): every bark line is an i18n key (its text, and its voice key voice/<line>).
+const enKeys = new Set(readI18nKeys(join(root, 'src/i18n/en.json')));
+for (const [trigger, cfg] of Object.entries(feel.feel.barks.triggers)) {
+  for (const line of cfg.lines)
+    if (!enKeys.has(line))
+      errors.push({
+        file: 'client/feel.json',
+        message: `barks.triggers.${trigger}: "${line}" is not in src/i18n/en.json`,
+      });
+}
 // v1.0.1 (D-028 §2): the epoch lives only in meta/daily.json — no copy in game, tool or e2e code.
 const codeFiles = (dir: string): string[] =>
   readdirSync(join(root, dir), { withFileTypes: true }).flatMap((d) =>

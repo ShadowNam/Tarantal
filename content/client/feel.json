@@ -185,5 +185,189 @@
     "maxErrorReports": 10,
     "errorStackFrames": 5,
     "errorMessageChars": 300
+  },
+  "barks": {
+    "$comment": "v1.0.1 Oupa's barks (art bible §10, D-028 §3): sim events (and the run, tally and save around them) pick a trigger; the highest priority this frame wins, at most one bark per audio.barkGapMs (6 s) and each trigger at most once per its cooldownMs (0 = no extra cooldown). A trigger's lines are said in turn. Each line is an i18n key shown as a speech bubble for bubbleMs (fadeMs in and out) in the HUD's bark slot (left column, clear of the belt, score and pops), and the voice key voice/<line> once a recording is delivered. No barks in the FTUE or capture mode, none over the tally count-up. bagStreak / missStreak: shots in a row that bagged / missed; idleSeconds without a shot; lastSeconds left on the clock.",
+    "bubbleMs": 2800,
+    "fadeMs": 220,
+    "fontPx": 30,
+    "bagStreak": 3,
+    "missStreak": 4,
+    "idleSeconds": 8,
+    "lastSeconds": 10,
+    "triggers": {
+      "firstToday": {
+        "priority": 60,
+        "cooldownMs": 0,
+        "lines": [
+          "bark.morning",
+          "bark.back_again"
+        ]
+      },
+      "boss": {
+        "priority": 90,
+        "cooldownMs": 0,
+        "lines": [
+          "bark.boss_big",
+          "bark.boss_years"
+        ]
+      },
+      "stampede": {
+        "priority": 85,
+        "cooldownMs": 0,
+        "lines": [
+          "bark.jinne_hardloop",
+          "bark.stampede"
+        ]
+      },
+      "wholeFlock": {
+        "priority": 80,
+        "cooldownMs": 0,
+        "lines": [
+          "bark.hele_swerm",
+          "bark.whole_lot"
+        ]
+      },
+      "twoFlies": {
+        "priority": 75,
+        "cooldownMs": 0,
+        "lines": [
+          "bark.twee_vlieë"
+        ]
+      },
+      "quotaMet": {
+        "priority": 70,
+        "cooldownMs": 0,
+        "lines": [
+          "bark.quota_met",
+          "bark.kos_is_reg"
+        ]
+      },
+      "kwevoel": {
+        "priority": 68,
+        "cooldownMs": 20000,
+        "lines": [
+          "bark.los_kwevoel"
+        ]
+      },
+      "nonTarget": {
+        "priority": 65,
+        "cooldownMs": 20000,
+        "lines": [
+          "bark.not_that_one",
+          "bark.neighbour"
+        ]
+      },
+      "lastSeconds": {
+        "priority": 55,
+        "cooldownMs": 0,
+        "lines": [
+          "bark.ten_seconds",
+          "bark.sun_going"
+        ]
+      },
+      "frenzyTop": {
+        "priority": 50,
+        "cooldownMs": 30000,
+        "lines": [
+          "bark.on_fire",
+          "bark.warming_up"
+        ]
+      },
+      "bagStreak": {
+        "priority": 45,
+        "cooldownMs": 20000,
+        "lines": [
+          "bark.mooi_skoot",
+          "bark.lekker",
+          "bark.hawk_eye"
+        ]
+      },
+      "missStreak": {
+        "priority": 40,
+        "cooldownMs": 20000,
+        "lines": [
+          "bark.ag_nee",
+          "bark.aim",
+          "bark.laughing"
+        ]
+      },
+      "emptyClick": {
+        "priority": 35,
+        "cooldownMs": 30000,
+        "lines": [
+          "bark.laai",
+          "bark.empty_gun"
+        ]
+      },
+      "rain": {
+        "priority": 30,
+        "cooldownMs": 0,
+        "lines": [
+          "bark.rain"
+        ]
+      },
+      "crate": {
+        "priority": 25,
+        "cooldownMs": 30000,
+        "lines": [
+          "bark.crate"
+        ]
+      },
+      "idle": {
+        "priority": 20,
+        "cooldownMs": 30000,
+        "lines": [
+          "bark.slaap",
+          "bark.wont_shoot",
+          "bark.kettle"
+        ]
+      },
+      "flush": {
+        "priority": 10,
+        "cooldownMs": 45000,
+        "lines": [
+          "bark.daar_gaan",
+          "bark.up_up"
+        ]
+      },
+      "newBest": {
+        "priority": 60,
+        "cooldownMs": 0,
+        "lines": [
+          "bark.new_best"
+        ]
+      },
+      "legend": {
+        "priority": 60,
+        "cooldownMs": 0,
+        "lines": [
+          "bark.legend"
+        ]
+      },
+      "badHunt": {
+        "priority": 60,
+        "cooldownMs": 0,
+        "lines": [
+          "bark.stadsjapie",
+          "bark.farmer_yet"
+        ]
+      },
+      "quotaMissed": {
+        "priority": 60,
+        "cooldownMs": 0,
+        "lines": [
+          "bark.stadsjapie",
+          "bark.next_time"
+        ]
+      },
+      "runWon": {
+        "priority": 60,
+        "cooldownMs": 0,
+        "lines": [
+          "bark.run_won"
+        ]
+      }
+    }
   }
 }

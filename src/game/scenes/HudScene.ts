@@ -24,6 +24,8 @@ import { SeasonHud } from '../ui/SeasonHud';
 import { drawButton, fitText, Menu, type MenuItem } from '../ui/menu';
 import { BakedDrawing, RoundRect } from '../ui/shapes';
 import { fontPx, outline } from '../ui/textLook';
+import { BarkBubble, sayBark } from '../ui/BarkBubble';
+import { firstHuntToday, type Bark } from '../audio/barks';
 import {
   PopPool,
   colorNumber,
@@ -118,6 +120,11 @@ export class HudScene extends Phaser.Scene {
   private season: SeasonHud | null = null;
   /** Kept here: the hunt sets it before launch() has created the scene. */
   private seasonInfo: { readonly quota: number } | null = null;
+  /** v1.0.1 (D-028 §3): Oupa's bubble, and whether he barks this hunt (not in FTUE or capture). */
+  private bubble: BarkBubble | null = null;
+  private barksOn = false;
+  private firstTodayPending = false;
+  private lastScore = 0;
   /** M7: "DAILY #n" / "PRACTICE · DAILY #n" / "BEAT 2 840" under the score, in the Season Run
    *  quota's slot (never both: run hunts have no tag), above the score pops. */
   private tagText: string | null = null;
@@ -130,6 +137,8 @@ export class HudScene extends Phaser.Scene {
 
   create(): void {
     this.pops = [];
+    // startBarks() (the hunt) may run before this create() (launch is deferred): keep its flags.
+    this.bubble = new BarkBubble(this, this.ctx.feel.barks.fontPx);
     this.popPool = new PopPool(this);
     this.shells = [];
     this.lastMul = 1;
@@ -361,6 +370,22 @@ export class HudScene extends Phaser.Scene {
     this.season?.setSeason(info);
   }
 
+  /**
+   * v1.0.1 (D-028 §3): a hunt starts. Oupa barks in it unless `on` is false (the FTUE has its own
+   * Oupa prompts; capture mode's footage has no HUD). The first hunt of a UTC day gets a greeting;
+   * the save remembers the day.
+   */
+  startBarks(on: boolean): void {
+    this.barksOn = on;
+    this.lastScore = 0;
+    if (!on) return;
+    this.ctx.barks.startHunt(0);
+    const today = this.ctx.today();
+    const save = this.ctx.save;
+    this.firstTodayPending = firstHuntToday(save.data.barks.lastHuntDay, today);
+    if (this.firstTodayPending) save.update((d) => ({ ...d, barks: { lastHuntDay: today } }));
+  }
+
   /** M7: the hunt's tag line (drawn once here, never per frame). */
   setTag(text: string | null): void {
     this.tagText = text;
@@ -474,6 +499,7 @@ export class HudScene extends Phaser.Scene {
     this.season?.render(s, events);
     const now = this.time.now;
     this.drawCaptions(events, now, l);
+    this.updateBarks(s, events, now, l);
     const banner: string[] = [];
     for (const e of events) {
       if (e.type === 'secretTriggered') {
@@ -768,6 +794,28 @@ export class HudScene extends Phaser.Scene {
       const old = this.pops.pop();
       if (old !== undefined) this.dropPop(old);
     }
+  }
+
+  /** v1.0.1 (D-028 §3): this frame's events → maybe one bark, shown in the bubble slot. */
+  private updateBarks(s: SimState, events: readonly SimEvent[], now: number, l: HudLayout): void {
+    if (!this.barksOn || this.bubble === null) return;
+    const quota = this.seasonInfo?.quota;
+    const quotaReached = quota !== undefined && this.lastScore < quota && s.score >= quota;
+    this.lastScore = s.score;
+    let bark: Bark | null = null;
+    if (this.firstTodayPending) {
+      this.firstTodayPending = false;
+      bark = this.ctx.barks.say('firstToday', now);
+    }
+    bark ??= this.ctx.barks.hunt(events, {
+      nowMs: now,
+      tick: s.tick,
+      ticksLeft: s.ticksLeft,
+      ticksPerSecond: TICKS_PER_SECOND,
+      frenzyTopMul: Math.max(...this.ctx.content.scoring.frenzyTiers.map((f) => f.mul)),
+      quotaReached,
+    });
+    if (bark !== null) sayBark(this.ctx, this.bubble, bark.line, l.bark, now);
   }
 
   /** Pooled HUD pops: shown and made (test hook, D-028 §4). */

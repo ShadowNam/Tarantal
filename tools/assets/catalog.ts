@@ -11,6 +11,8 @@ import {
   loadBiomeArt,
   placeholderBiomes,
 } from '../../src/game/placeholder/ProceduralAssetFactory';
+import { allBarkLines } from '../../src/game/audio/barks';
+import { loadFeel } from '../testContent';
 
 export interface CatalogEntry {
   readonly key: string;
@@ -48,13 +50,15 @@ export interface Catalog {
 
 export async function buildCatalog(content: ContentBundle): Promise<Catalog> {
   const ids = placeholderBiomes();
+  // v1.0.1 (D-028 §3): Oupa's barks are common voice keys (feel.json barks lines).
+  const barkLines = allBarkLines(loadFeel().barks);
   const entries = new Map<string, CatalogEntry>();
   const layers = new Map<string, LayerSpec>();
   const birds = new Map<string, PlaneId[]>();
   for (const id of ids) {
     const biome = content.biomes.find((b) => b.id === id);
     if (biome === undefined || !(await loadBiomeArt(id))) continue;
-    const m = createPlaceholderManifest(content, biome);
+    const m = createPlaceholderManifest(content, biome, barkLines);
     for (const e of m.entries()) {
       const prev = entries.get(e.key);
       const biomes = [...(prev?.biomes ?? []), id];

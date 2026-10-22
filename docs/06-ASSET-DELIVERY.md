@@ -193,8 +193,60 @@ falls back to the next calmer one. Music ducks −6 dB under Oupa.
 **Voice keys** (Oupa's barks, file name = the bark's i18n key; the HUD shows the line as a
 subtitle): `bark.kos_is_reg` (Karoo), `bark.weavers` and `bark.sign` (Kalahari),
 `bark.mokoro` and `bark.kwaak` (Okavango), e.g. `audio/voice/bark.kos_is_reg.wav`. Record the
-EN/AF line as written in `src/i18n/en.json`. The bible's ~40 launch barks need their trigger and
-key in the game first: they are listed as a follow-up.
+EN/AF line as written in `src/i18n/en.json`.
+
+**Oupa's launch barks** (v1.0.1, D-028): what triggers each line, and its text, live in
+`content/client/feel.json → barks` and `src/i18n/<lang>.json`; the HUD shows the line as a
+speech bubble whether or not a recording exists. One file per key, recorded in Oupa's EN/AF mix
+(the signature Afrikaans lines stay Afrikaans in every language; the en.json text is the
+reference, the af.json text is the Afrikaans read). Short: most lines are 1–2 s. `npm run
+assets:audit` lists each as `voice/bark.<id>` (placeholder until delivered). The 5 secret barks
+above are separate.
+
+| Voice key (`audio/voice/<key>.wav`) | Trigger(s) | EN line | AF line |
+|---|---|---|---|
+| `bark.ag_nee` | missStreak | Ag nee man! | Ag nee man! |
+| `bark.aim` | missStreak | Aim, my kind, aim! | Mik, my kind, mik! |
+| `bark.back_again` | firstToday | Back again? Good. The tarentaal missed you. | Terug? Mooi. Die tarentale het jou gemis. |
+| `bark.boss_big` | boss | There's the big one. Steady now. | Daar's die grote. Stadig nou. |
+| `bark.boss_years` | boss | That one's been dodging me for years! | Daai een ontduik my al jare! |
+| `bark.crate` | crate | Ooh, what's in the crate? | Ooh, wat's in die kis? |
+| `bark.daar_gaan` | flush | There they go! | Daar gaan hulle! |
+| `bark.empty_gun` | emptyClick | Click? That's an empty gun, my kind. | Klik? Dis 'n leë geweer, my kind. |
+| `bark.farmer_yet` | badHunt | We'll make a farmer of you yet. | Ons maak nog 'n boer van jou. |
+| `bark.hawk_eye` | bagStreak | Eye like a hawk, that one. | Oog soos 'n valk, daai een. |
+| `bark.hele_swerm` | wholeFlock | Die hele swerm! | Die hele swerm! |
+| `bark.jinne_hardloop` | stampede | Jinne, kyk hoe hardloop hulle! | Jinne, kyk hoe hardloop hulle! |
+| `bark.kettle` | idle | I'll put the kettle on, then. | Dan sit ek maar die ketel aan. |
+| `bark.kos_is_reg` | quotaMet | Kos is reg! | Kos is reg! |
+| `bark.laai` | emptyClick | Laai, laai, laai! | Laai, laai, laai! |
+| `bark.laughing` | missStreak | Those birds are laughing at you. | Daai voëls lag vir jou. |
+| `bark.legend` | legend | Bosveld Legend! | Bosveld-legende! |
+| `bark.lekker` | bagStreak | Lekker! Keep them coming! | Lekker! Hou so aan! |
+| `bark.los_kwevoel` | kwevoel | Los die kwêvoël uit! | Los die kwêvoël uit! |
+| `bark.mooi_skoot` | bagStreak | Mooi skoot, my kind! | Mooi skoot, my kind! |
+| `bark.morning` | firstToday | Môre, my kind! The birds are up early. | Môre, my kind! Die voëls is vroeg op. |
+| `bark.neighbour` | nonTarget | Haai! That one's the neighbour's! | Haai! Daai een is die buurman s'n! |
+| `bark.new_best` | newBest | A new best! Wait till I tell Ouma. | 'n Nuwe beste! Wag tot ek vir Ouma vertel. |
+| `bark.next_time` | quotaMissed | Not this time. The veld is patient. | Nie hierdie keer nie. Die veld is geduldig. |
+| `bark.not_that_one` | nonTarget | Not that one! | Nie daai een nie! |
+| `bark.on_fire` | frenzyTop | Now you're on fire! | Nou brand jy! |
+| `bark.quota_met` | quotaMet | That's the quota! Now show off. | Dis die kwota! Wys nou af. |
+| `bark.rain` | rain | Rain! Now the birds will run. | Reën! Nou gaan die voëls hardloop. |
+| `bark.run_won` | runWon | The whole year! Bosveld Legend, my kind! | Die hele jaar! Bosveld-legende, my kind! |
+| `bark.slaap` | idle | Are you asleep, my kind? | Slaap jy, my kind? |
+| `bark.stadsjapie` | badHunt, quotaMissed | Stadsjapie… | Stadsjapie… |
+| `bark.stampede` | stampede | Stampede! Hold on to your hat! | Stormloop! Hou jou hoed vas! |
+| `bark.sun_going` | lastSeconds | Hurry now, the sun's going down! | Maak gou, die son sak! |
+| `bark.ten_seconds` | lastSeconds | Ten seconds! Make them count! | Tien sekondes! Laat dit tel! |
+| `bark.twee_vlieë` | twoFlies | Twee vlieë met een klap! | Twee vlieë met een klap! |
+| `bark.up_up` | flush | Up, up, up! | Op, op, op! |
+| `bark.warming_up` | frenzyTop | You're warming up nicely! | Jy raak lekker warm! |
+| `bark.whole_lot` | wholeFlock | The whole lot! Jinne! | Die hele lot! Jinne! |
+| `bark.wont_shoot` | idle | They won't shoot themselves, you know. | Hulle gaan nie hulself skiet nie, weet jy. |
+
+If more lines are wanted later: add the key to `src/i18n/*.json` and to a trigger's `lines` in
+feel.json (`content:validate` checks the key exists); the audit then lists its voice key.
 
 **Size:** the home biome's (Karoo) music and ambience are in the first download, which must stay
 at or under 5 MB gzip in total (`npm run size`). Three 60 s stems at Vorbis q2 come to about 2 MB.
