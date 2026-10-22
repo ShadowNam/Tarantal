@@ -26,6 +26,10 @@ export function glyphs(): string {
   // Printable ASCII (numbers, scores, URLs) and the bible §6 letters, even if no string uses them yet.
   for (let c = 0x20; c < 0x7f; c++) set.add(String.fromCharCode(c));
   for (const ch of 'êëôïûÊËÔÏÛäöüÄÖÜßéèáóúíÉ×·–—’‘“”„…') set.add(ch);
+  // Built in code, not in the language files: − (U+2212, negative scores and penalty pops),
+  // • (U+2022, run screen lists), ʼ (U+02BC, Afrikaans ʼn, bible §6), and the symbols src/game
+  // writes (± ≈ ≤ ≥ ∞ arrows ◀ ▶); a glyph the font lacks is simply left to the system font.
+  for (const ch of '\u2212\u2022\u02BC±≈≤≥∞←↑→↓◀▶§') set.add(ch);
   return [...set].sort().join('');
 }
 

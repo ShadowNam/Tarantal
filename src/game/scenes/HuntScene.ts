@@ -716,6 +716,12 @@ export class HuntScene extends Phaser.Scene {
     const state = runner.state;
     if (events.length > 0) this.handleEvents(events, width, state);
     this.applyCapture(runner, state.cameraX);
+    // e2e ?holdAt (visual baselines): once the sim holds, tweens and animations hold too, so a
+    // delivered bird's clip or a fading pop is the same frame on every run.
+    if (runner.held && this.tweens.timeScale !== 0) {
+      this.tweens.timeScale = 0;
+      this.anims.globalTimeScale = 0;
+    }
     // M10: the music follows the hunt's intensity (calm / build / stampede).
     this.ctx.audio.setIntensity(stemFor(runner.over ? null : state, this.ctx.feel.audio));
     this.rumble(state.stampedeActive && !runner.over, now, width);
