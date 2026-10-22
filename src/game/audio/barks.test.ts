@@ -132,4 +132,34 @@ describe('BarkDirector (v1.0.1, D-028 §3)', () => {
     expect(new Set(lines).size).toBe(lines.length);
     expect(lines.length).toBeGreaterThanOrEqual(35);
   });
+
+  it("a secret's bark claims the gap: no generic line that frame or for the gap after", () => {
+    const d = new BarkDirector(T, GAP);
+    d.startHunt(0);
+    d.secret(0);
+    const click: SimEvent[] = [{ type: 'emptyClick', tick: 1 }];
+    expect(d.hunt(click, frame(0))).toBeNull();
+    expect(d.hunt(click, frame(GAP - 1))).toBeNull();
+    expect(d.waitMs(GAP - 1)).toBe(1);
+    expect(d.hunt(click, frame(GAP))?.trigger).toBe('emptyClick');
+    expect(d.waitMs(GAP)).toBe(GAP);
+  });
+
+  it('a boss or the Stampede during the gap is said once it ends (lasting), only once', () => {
+    const d = new BarkDirector(T, GAP);
+    d.startHunt(0);
+    expect(d.hunt([{ type: 'emptyClick', tick: 1 }], frame(0))?.trigger).toBe('emptyClick');
+    const boss: SimEvent = {
+      type: 'birdSpawned',
+      tick: 2,
+      birdId: 9,
+      creature: 'generaal',
+      plane: 'mid',
+      motion: 'boss',
+    };
+    expect(d.hunt([boss, { type: 'stampedeStarted', tick: 2 }], frame(10))).toBeNull();
+    expect(d.hunt([], frame(GAP))?.trigger).toBe('boss'); // higher priority first
+    expect(d.hunt([], frame(GAP * 2))?.trigger).toBe('stampede');
+    expect(d.hunt([], frame(GAP * 3))).toBeNull();
+  });
 });

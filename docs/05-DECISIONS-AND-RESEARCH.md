@@ -844,8 +844,9 @@ small local sprites. (4) Pointer goldens and Daily seeds are byte-identical: no 
 content changed.
 *PR E — capture mode:* (1) *Gate:* the same as the test hooks (no separate flag): web and dev
 builds, or a portal build made with `VITE_TEST_HOOKS=1`. In a shipped Poki or CrazyGames build
-it is compiled out (grep of `dist-poki` finds neither the `KeyF` handler nor the `capture.`
-namespace). The GitHub Pages web build has it, which is where trailers are captured.
+it is compiled out (v1.0.1 wording: the capture class's own field `speedIndex` is in `dist`
+but not in `dist-poki`; a grep for `KeyF` or `capture.` proves nothing — Phaser has `isKeyFrame`,
+and the i18n tables carry `capture.hint` in every build). The GitHub Pages web build has it, which is where trailers are captured.
 (2) *Behaviour:*
 - It hides the hunt HUD and the reticle; `&gun=0` also hides the gun.
 - It fixes the seed (`feel.json capture.seed` 42, unless `?seed=` is given).
@@ -1061,7 +1062,9 @@ animations; a freeze must not keep the hint up), but each frame counts at most `
 the hint would otherwise be used up before it was drawn (it was, under software GL). Phaser's
 `game.loop.delta` is smoothed toward 16 ms and was not usable: the hunt's own real frame delta is
 used. (3) *Portals:* the hint is drawn only when `ctx.capture` exists, which a portal release build
-never creates (capture is compiled out, D-027); the gate's unit tests stand. (4) *Proof:*
+never creates (capture is compiled out, D-027: `speedIndex`, a field only the capture class has,
+is in `dist` 4× and in `dist-poki` 0×; the `capture.hint` i18n key is in both, being a string
+table entry, which is why a grep for `capture.` is no proof); the gate's unit tests stand. (4) *Proof:*
 `capture.spec.ts` "key hint" (shown, then gone while frozen; screenshots of both) and unit tests of
 the fade (`captureHintAlpha`).
 
@@ -1102,6 +1105,19 @@ unit tests (streaks, priority, gap, cooldown, lasting triggers, kwêvoël), layo
 `barks.spec.ts` (bubble rect clear of the HUD, tap-through, af text, none in the FTUE) on desktop,
 Pixel 7 and iPhone 14 landscape; `?holdAt` now also freezes the HUD's tweens so the bubble can be
 screenshotted (a Playwright round trip here outlasts its 2.8 s). Visual baselines unchanged.
+(11) *Review fixes (#37):* the af quota line was "Wys nou af" ("afwys" = refuse): now "Dis die
+kwota! Nou kan jy spog."; de "Jetzt läuft's!" and "Soll erfüllt!" (as `run.quota_met`). The
+voice key `bark.twee_vlieë` is now `bark.twee_vliee`, and bark keys are ASCII-only (schema): the
+key is the recording's file name, and a non-ASCII name changes under macOS NFD or zip
+normalisation, so the recording would never be found. *Secrets first:* a secret's own bark
+(biome content, said with its HUD banner) went straight to the AudioDirector, whose own 6 s timer
+could silence it after a generic bark, and its banner could share the screen with a bubble. Now
+the BarkDirector is the only gap clock (Phaser time): a frame with a secret bark claims the gap
+first (`BarkDirector.secret`) and hides a generic bubble, and `AudioDirector.bark()` keeps no timer
+(only one Oupa voice at a time: a new line stops the one playing; mute and the tally count-up
+still apply). *Lasting:* `boss` and `stampede` wait out the gap like `quotaMet`; on the run tally,
+`quotaMissed` and `runWon` retry once the gap ends (`waitMs`; the timer dies if the screen moves
+on).
 
 ## 3. Research notes (with sources)
 

@@ -622,12 +622,24 @@ export class RunScene extends Phaser.Scene {
     this.text(p.x + p.w / 2, y, `${cons}   |   ${rental}`, 30, '#F3EAD3', p.w - 80);
   }
 
-  /** v1.0.1 (D-028 §3): Oupa says `trigger` beside (or in the corner of) the panel. */
-  private bark(trigger: BarkTrigger): void {
+  /**
+   * v1.0.1 (D-028 §3): Oupa says `trigger` beside (or in the corner of) the panel. If an earlier
+   * line still holds the gap (a last-seconds bark just before the hunt ended), he says it once
+   * the gap is over (D-028 review: quota missed and run won are "lasting"), unless the screen has
+   * moved on by then (a scene timer dies with the scene).
+   */
+  private bark(trigger: BarkTrigger, retry = true): void {
     if (this.ctx.capture !== null) return;
     const now = this.time.now;
     const b = this.ctx.barks.say(trigger, now);
-    if (b === null) return;
+    if (b === null) {
+      const wait = this.ctx.barks.waitMs(now);
+      if (retry && wait > 0)
+        this.time.delayedCall(wait, () => {
+          this.bark(trigger, false);
+        });
+      return;
+    }
     const { width, height } = designSize();
     const s = this.ctx.safeArea();
     const safe = { x: s.left, y: s.top, w: width - s.left - s.right, h: height - s.top - s.bottom };

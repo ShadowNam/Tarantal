@@ -936,7 +936,9 @@ export const BARK_TRIGGERS = [
 ] as const;
 export type BarkTrigger = (typeof BARK_TRIGGERS)[number];
 
-const barkKey = z.string().regex(/^bark\.[a-z][a-z0-9_ë]*$/, 'bark lines are bark.* i18n keys');
+// ASCII only: the key is also the voice file name (audio/voice/<key>.wav), and a non-ASCII name
+// changes under macOS NFD or zip normalisation, so the recording would never match.
+const barkKey = z.string().regex(/^bark\.[a-z][a-z0-9_]*$/, 'bark lines are ASCII bark.* i18n keys');
 const BarkTriggerSchema = obj({
   /** Highest priority wins when several triggers fire in one frame. */
   priority: nonNegInt,
@@ -1103,7 +1105,8 @@ export const FeelSchema = obj({
     duckDb: z.number().max(0),
     duckAttackMs: pos,
     duckReleaseMs: pos,
-    /** At most one bark per barkGapMs (bible: 6 s), never while the tally counts up. */
+    /** At most one bark per barkGapMs (bible: 6 s; the BarkDirector keeps it, D-028), never while
+     *  the tally counts up. */
     barkGapMs: nonNeg,
   }),
   barks: obj({

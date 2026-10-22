@@ -525,7 +525,8 @@ keys scale how real time feeds the hunt runner, tweens and animations; the sim s
 deterministic. The gate is the test hooks' gate: web and dev builds always, a portal build only
 when built with `VITE_TEST_HOOKS=1` (the CI e2e builds). In a shipped portal build the code is
 compiled out: the `hooksInBuild` constant is `false`, so the minifier drops it, which a grep of
-`dist-poki` confirms. Capture sessions play on their own save (`tm.capture.*`).
+`dist-poki` confirms (the capture class's field `speedIndex` is absent; i18n keys like
+`capture.hint` stay in every build's string tables). Capture sessions play on their own save (`tm.capture.*`).
 v1.0.1 (D-028): entering capture mode shows a small "S slow · F freeze · C pan" hint (i18n
 `capture.hint`) at the top for `capture.hintMs`, then fades it over `hintFadeMs` and destroys it.
 It runs on frame time, not hunt time (a freeze doesn't hold it), at most `hintMaxStepMs` per frame

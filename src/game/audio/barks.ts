@@ -6,7 +6,11 @@
 //   - One bark per frame at most (the highest priority), at most one per `gapMs` overall (the
 //     bible's 6 s, audio.barkGapMs), and each trigger at most once per its own cooldownMs.
 //   - A trigger that can't speak because of the gap is dropped, except the "while it lasts" ones
-//     (idle, lastSeconds, quotaMet), which try again on later frames.
+//     (idle, lastSeconds, quotaMet, boss, stampede), which try again on later frames; tally lines
+//     can ask `waitMs` and retry.
+//   - The director is the only gap clock (the HUD's Phaser time). A secret's own bark (biome
+//     content, shown in the HUD banner) always speaks and claims the gap (`secret`), so no generic
+//     line follows it within 6 s and the two never share the screen (D-028 review).
 // The HUD shows the line as a speech bubble (the subtitle) and asks the AudioDirector to play
 // voice/<line> (it plays once a recording is delivered; music ducks under it).
 import type { BarkTrigger, Feel } from '../../content/schemas';
@@ -45,6 +49,8 @@ export class BarkDirector {
   private lastSecondsSaid = false;
   private quotaSaid = false;
   private quotaPending = false;
+  /** Event triggers that hold until said (a boss or the Stampede arrives during the gap). */
+  private pending = new Set<BarkTrigger>();
   private bagged = new Set<number>();
 
   constructor(
@@ -62,6 +68,7 @@ export class BarkDirector {
     this.lastSecondsSaid = false;
     this.quotaSaid = false;
     this.quotaPending = false;
+    this.pending = new Set();
     this.bagged = new Set();
   }
 
@@ -103,10 +110,10 @@ export class BarkDirector {
           cands.push('emptyClick');
           break;
         case 'stampedeStarted':
-          cands.push('stampede');
+          this.pending.add('stampede');
           break;
         case 'birdSpawned':
-          if (e.motion === 'boss') cands.push('boss');
+          if (e.motion === 'boss') this.pending.add('boss');
           break;
         case 'flockStateChanged':
           if (e.to === 'flush') cands.push('flush');
@@ -126,6 +133,7 @@ export class BarkDirector {
     }
     if (f.quotaReached === true && !this.quotaSaid) this.quotaPending = true;
     if (this.quotaPending) cands.push('quotaMet');
+    cands.push(...this.pending);
     if (!this.idleSaid && f.tick - this.lastShotTick >= t.idleSeconds * f.ticksPerSecond)
       cands.push('idle');
     if (!this.lastSecondsSaid && f.ticksLeft > 0 && f.ticksLeft <= t.lastSeconds * f.ticksPerSecond)
@@ -138,13 +146,27 @@ export class BarkDirector {
       this.quotaSaid = true;
       this.quotaPending = false;
     }
-    // idle, lastSeconds and quotaMet hold until said, so a gap only delays them; others are gone.
+    if (bark !== null) this.pending.delete(bark.trigger);
+    // The lasting ones hold until said, so a gap only delays them; others are gone.
     return bark;
   }
 
   /** A trigger from outside the hunt frame (first hunt today, tally verdicts, the run tally). */
   say(trigger: BarkTrigger, nowMs: number): Bark | null {
     return this.pick([trigger], nowMs);
+  }
+
+  /** Ms until the gap lets Oupa speak again (0 = now): a tally line can retry then. */
+  waitMs(nowMs: number): number {
+    return Math.max(0, this.gapMs - (nowMs - this.lastAt));
+  }
+
+  /**
+   * A secret's bark (biome content: the HUD banner shows it and the AudioDirector says it) speaks
+   * now whatever the gap, and claims the gap: no generic line this frame or for gapMs after.
+   */
+  secret(nowMs: number): void {
+    this.lastAt = nowMs;
   }
 
   private pick(cands: readonly BarkTrigger[], nowMs: number): Bark | null {
