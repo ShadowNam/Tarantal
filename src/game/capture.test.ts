@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { CaptureState, captureAllowed } from './capture';
+import { defaultSave } from '../meta/saveSchema';
+import { CaptureState, captureAllowed, captureSave } from './capture';
 
 describe('capture mode (M10)', () => {
   it('is available on web (and test-hook portal builds) only with ?capture=1', () => {
@@ -38,5 +39,17 @@ describe('capture mode (M10)', () => {
     expect(c.panDirection(500, 0, 1000)).toBe(-1);
     expect(c.panDirection(20, 0, 1000)).toBe(1);
     expect(c.key('KeyX')).toBe(false);
+  });
+});
+
+describe('capture save (M10 review)', () => {
+  it('skips the tutorial on a fresh capture save, so START plays Classic', () => {
+    const fresh = defaultSave();
+    expect(fresh.ftue.done).toBe(false);
+    const d = captureSave(fresh);
+    expect(d.ftue).toEqual({ done: true, skipped: true, step: 'capture' });
+    expect(d.settings).toBe(fresh.settings);
+    const done = { ...fresh, ftue: { done: true, skipped: false, step: 'end' } };
+    expect(captureSave(done)).toBe(done);
   });
 });

@@ -131,6 +131,8 @@ export class HuntScene extends Phaser.Scene {
       window.addEventListener('keydown', onKey);
       this.cleanups.push(() => {
         window.removeEventListener('keydown', onKey);
+        // The animation speed is game-wide: don't carry a freeze or slow-mo past this scene.
+        this.anims.globalTimeScale = 1;
       });
     }
     // Settings or the title benchmark changed the tier: swap the filters now (a layer merge
@@ -275,10 +277,16 @@ export class HuntScene extends Phaser.Scene {
     if (this.ctx.hook) this.ctx.hook.capture = { ...c.snapshot(), hud: hud.cameras.main.visible };
   }
 
+  /** Settings → screen shake, and never in a capture slow-mo or freeze (shakes run on real time). */
+  private shakeAllowed(): boolean {
+    const c = this.ctx.capture;
+    return this.ctx.prefs.shake && (c === null || c.timeScale === 1);
+  }
+
   /** GDD §17 Stampede ground-shake rumble: a small shake every rumbleEveryMs (Settings → shake). */
   private rumble(on: boolean, now: number, width: number): void {
     const r = this.ctx.feel.juice.stampede;
-    if (!on || !this.ctx.prefs.shake || r.rumblePx <= 0 || now < this.nextRumbleAt) return;
+    if (!on || !this.shakeAllowed() || r.rumblePx <= 0 || now < this.nextRumbleAt) return;
     this.nextRumbleAt = now + r.rumbleEveryMs;
     this.cameras.main.shake(r.rumbleMs, (r.rumblePx * this.ctx.feel.juice.shakeScale) / width);
   }
@@ -669,6 +677,8 @@ export class HuntScene extends Phaser.Scene {
     const { width } = designSize();
     this.weapon.update(delta);
     if (runner === null) {
+      // Between hunts (start card, title) nothing stays frozen or slowed from capture mode.
+      if (this.anims.globalTimeScale !== 1) this.anims.globalTimeScale = 1;
       if (!this.texturesDone) {
         this.texturesDone = this.manifest.install(this.textures, () => true, BACKGROUND_DRAW_MS);
         if (this.texturesDone && this.ctx.hook)
@@ -806,7 +816,7 @@ export class HuntScene extends Phaser.Scene {
         const def = this.ctx.content.weapons.weapons.find((x) => x.id === e.weapon);
         if (def?.kind === 'crate' && def.smokeMs !== undefined && def.smokeMs > 0)
           this.weapon.smoke(def.smokeMs, this.ctx.feel.juice.smokeScale);
-        if (this.ctx.prefs.shake) {
+        if (this.shakeAllowed()) {
           const w: Weapon | undefined = this.ctx.content.weapons.weapons.find(
             (x) => x.id === e.weapon,
           );

@@ -110,6 +110,8 @@ describe('AudioDirector (M10)', () => {
     r.audio.unlock();
     await flush();
     expect(r.audio.music).toEqual({ id: 'karoo-autumn', stem: 'calm' });
+    // One batch of decodes starts the music once (2 stems + ambience = 3 sources, not restarts).
+    expect(r.ctx.sources.filter((s) => s.loop)).toHaveLength(3);
     r.audio.setIntensity('stampede');
     expect(r.audio.music?.stem).toBe('build');
     r.audio.setBiome('bushveld-winter');
