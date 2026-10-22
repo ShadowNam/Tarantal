@@ -86,6 +86,7 @@ export class AssetManifest {
     FinalBird & { img: HTMLImageElement[]; data: object[] }
   >();
   private readonly finalSounds = new Map<string, FinalSound>();
+  private soundsLoaded: Promise<readonly FinalSound[]> = Promise.resolve([]);
 
   addTexture(spec: CanvasSpec): void {
     this.specs.set(spec.key, spec);
@@ -125,11 +126,6 @@ export class AssetManifest {
   /** The delivered atlas and clips for a bird on a plane, or null (placeholder frames). */
   finalBird(creature: string, plane: PlaneId): FinalBird | null {
     return this.finalBirds.get(`${creature}/${plane}`) ?? null;
-  }
-
-  /** Delivered sounds that loaded (the AudioDirector decodes them). */
-  finalSoundFiles(): readonly FinalSound[] {
-    return [...this.finalSounds.values()];
   }
 
   /** Origin as fractions (for setOrigin). A final image may set its own. */
@@ -219,18 +215,27 @@ export class AssetManifest {
         );
       }
     }
+    // Sounds load beside the game, not before it: nothing plays before the first tap, so boot
+    // never waits on audio (music stems are the largest files).
+    const sounds: Promise<void>[] = [];
     if (o.audioFormat !== null) {
       const format = o.audioFormat;
       for (const [key, entry] of Object.entries(index.audio)) {
         if (!this.sounds.has(key)) continue;
-        jobs.push(
+        sounds.push(
           loadBytes(entry[format].path, o.timeoutMs).then((bytes) => {
             if (bytes !== null) this.finalSounds.set(key, { key, entry, bytes, format });
           }),
         );
       }
     }
+    this.soundsLoaded = Promise.all(sounds).then(() => [...this.finalSounds.values()]);
     await Promise.all(jobs);
+  }
+
+  /** Delivered sounds once their bytes are in (after loadFinal; empty without an index). */
+  soundsReady(): Promise<readonly FinalSound[]> {
+    return this.soundsLoaded;
   }
 
   /** Final or placeholder, for every key (birds and layers as one entry each). */
