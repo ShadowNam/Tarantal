@@ -54,7 +54,7 @@ import { createPlatform, currentPlatformId } from './platform/platform';
 import { AdBreaks } from './game/ads/AdBreaks';
 import { PrivacyScene } from './game/scenes/PrivacyScene';
 import { testHookPolicy } from './game/testHooks';
-import { CAPTURE_NAMESPACE, CaptureState, captureAllowed } from './game/capture';
+import { CAPTURE_NAMESPACE, CaptureState, captureAllowed, captureSave } from './game/capture';
 import { FrameBenchmark } from './game/quality/FrameBenchmark';
 import { benchmarkTier, type DeviceHints } from './game/quality/QualityManager';
 import { setMenuInputGate } from './game/ui/menu';
@@ -99,6 +99,8 @@ else if (capture) setStorageNamespace(CAPTURE_NAMESPACE);
 
 const save = new SaveStore();
 // e2e/dev only: ?ftue=0 starts as a returning player (older specs test Classic hunts).
+// M10 capture mode: no tutorial on the capture save (its prompts would be hidden).
+if (capture && !save.data.ftue.done) save.update((d) => captureSave(d));
 if (testHooks && params.get('ftue') === '0' && !save.data.ftue.done) {
   save.update((d) => ({ ...d, ftue: { done: true, skipped: true, step: 'param' } }));
 }
