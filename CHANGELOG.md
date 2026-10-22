@@ -14,6 +14,11 @@ Cleanup after the soft launch build (decision record D-028).
 - The Daily epoch (Daily #1) is one value in `content/meta/daily.json`: `content:validate` fails on
   a copy in code, and `npm run release` warns (`--strict` fails) while it is still the placeholder.
 
+### Performance
+- Score pops and "POOF!" no longer create a canvas text per kill: pooled BitmapText pops from a
+  glyph atlas built at start-up. At 4× CPU throttle a pop costs 0.6 ms on its kill frame instead
+  of 6 ms.
+
 ## [1.0.0] — soft launch build (21 Oct 2026)
 
 The first release for the Poki and CrazyGames soft launch and the web PWA. Gameplay is complete;

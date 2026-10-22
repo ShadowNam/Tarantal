@@ -77,6 +77,8 @@ export interface TestHook {
   /** Flock transitions this hunt as "id:from>to:cause" (capped). */
   flockLog: string[];
   flockSpots: { id: number; state: string; alive: number; x: number; y: number }[];
+  /** v1.0.1 (D-028 §4): score pops shown this page, and pop objects made (pooled: stays small). */
+  pops: { shown: number; created: number };
   result: HuntResult | null;
   /** performance.now() when the first shot of the page was fired (ms since navigation start). */
   firstShotAtMs: number | null;
@@ -184,6 +186,8 @@ export interface TestTools {
   readonly contentHash: string;
   dailySeed(key: string): number;
   replay(log: string): { eventHash: string; eventCount: number; score: number };
+  /** v1.0.1 (D-028 §4): `n` world score pops now, pooled BitmapText or canvas Text; sync ms. */
+  popBench(n: number, mode: 'bitmap' | 'text'): number | null;
 }
 
 export interface GameContext {

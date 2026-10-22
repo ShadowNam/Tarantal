@@ -1014,6 +1014,42 @@ more than `epochMaxAgeDays` before or after the build day is an issue (a typo su
 2025), which `--strict` fails; `--allow-epoch-gap` accepts it for releases after the launch, or
 a portal build submitted well before it.
 
+*§4 — Pooled score pops (D-026 follow-up):* (1) *BitmapText, built at runtime:* every bag made a
+world pop and a HUD-stack pop as Phaser `Text` (canvas render + texture upload, again when "10 ×2"
+resolves to "+20") and a POOF label. The pops use Baloo 2 (the font they already used, not
+Bangers: changing face would change the look and the baselines), so `src/game/ui/popFont.ts` draws
+the pop characters (`popGlyphs.ts POP_CHARS`: digits, K, M, signs, ×, spaces) once into two
+canvas-texture atlases — the outline and a white fill — and registers them as bitmap fonts. No
+build step and no download. A pop is a pooled pair of BitmapTexts in a container (`PopPool`); the
+fill is tinted to the pop colour. Two layers rather than one: with one, each glyph's outline would
+overdraw its neighbour's fill. The atlas is keyed by the Settings text size and contrast and is
+rebuilt when they change. A string with a character outside the atlas falls back to the old Text
+path (format.ts never produces one; a unit test checks the formats). (2) *POOF:* its label text
+rarely changes, so the bubble and label are pooled as they are; Phaser's `setText` re-renders only
+when the text differs (a language switch). (3) *Measured:* `perf.spec.ts` "score pop A/B" makes
+rounds of 20 world pops each way plus control rounds, in one page at 4× throttle on the Pixel 7
+profile (test-only `__TM_TOOLS__.popBench`). Per pop: on the kill frame 6.0 ms (Text) vs 0.58 ms
+(BitmapText); canvas text draws 6 vs 0; texture uploads 4 vs 0; CPU over the pop's life 5.0 vs
+4.5 ms. So the per-kill spike — the stutter — is about 10× smaller, and the steady draw cost while
+a pop shows is about the same. The test asserts the deterministic counts only. *Interpretation:* the
+existing smoke test (4×) bags nothing (score 0) and so can't show pops, and on this shared
+software-GL box (load 8–17) its CPU average varies ±15 % from run to run: before 14.7/14.8/16.9 ms,
+after 16.4/16.4. The low-tier test (6×) fails its 20 ms budget on this box before (22.7/23.2/27.5)
+and after (26.4/23.2) alike; CI is the reference. A same-page A/B is the only comparison here that
+load can't skew. (4) *Hook:* `pops: { shown, created }` (`pops.spec.ts`: 19 pops from 5 objects). Visual
+baselines are unchanged; no pop is on a baseline frame.
+(5) *Review fixes (#33):* *Late web font (must-fix):* `loadFonts` gives up after
+`fontTimeoutMs`; a pop atlas drawn before Baloo 2 arrived stayed in the system face all session,
+where a `Text` made later picked the font up. `fontReady.ts` now tells, per CSS font, whether it
+has loaded (`document.fonts.check`, sticky once true), and the atlas key (`popAtlas.ts`) and the
+pooled POOF label's look include that state: a late font gets exactly one rebuild and the stale
+labels are remade. The HUD also rebuilds on `document.fonts` `loadingdone`, so the rebuild happens
+before the next pop. The atlas logic moved into Phaser-free `popAtlas.ts` (cache and texture
+manager injected); unit tests use a fake `document.fonts` (drawn before ready, rebuilt once
+after). *Start-up build (should-fix):* `HudScene.create()` builds the atlas, and again when Settings
+change the text size or contrast, so no bag pays for it. *Old looks:* the atlases of looks older
+than the previous one are removed (the previous one stays: a pop on screen may still use it).
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

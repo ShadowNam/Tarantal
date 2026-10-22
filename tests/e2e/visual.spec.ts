@@ -43,6 +43,9 @@ const shot = (page: Page, name: string) =>
 
 test('title and both Settings pages and privacy', async ({ page }, info) => {
   baselineProfile(info);
+  // Four screens with a settle and a screenshot each: 1.1–1.5 min under software GL, so the
+  // default 90 s timed out on loaded runners (CI pixel7 2/2 and locally).
+  test.setTimeout(180_000);
   const touch = isTouchProject(info);
   await boot(page, `today=${EPOCH}&seed=42`);
   await page.waitForFunction(() => window.__TM__?.rects['settings'] !== undefined);

@@ -225,6 +225,7 @@ const hook: TestHook = {
   gadgetUses: 0,
   flocks: [],
   flockSpots: [],
+  pops: { shown: 0, created: 0 },
   flockLog: [],
   result: null,
   firstShotAtMs: null,
@@ -647,6 +648,10 @@ if (testHooks) {
     replay: (text) => {
       const o = runReplay(decodeInputLogText(text), bundle);
       return { eventHash: o.eventHash, eventCount: o.eventCount, score: o.result.score };
+    },
+    popBench: (n, mode) => {
+      const hunt = game.scene.getScene('Hunt');
+      return hunt instanceof HuntScene && hunt.sys.isActive() ? hunt.benchPops(n, mode) : null;
     },
   };
 }
