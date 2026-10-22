@@ -565,8 +565,8 @@ export class HudScene extends Phaser.Scene {
     if (s.frenzyMul > this.lastMul) {
       this.tweens.add({
         targets: this.frenzyLabel,
-        scale: { from: 1.5, to: 1 },
-        duration: 260,
+        scale: { from: this.ctx.feel.juice.frenzyPunchScale, to: 1 },
+        duration: this.ctx.feel.juice.frenzyPunchMs,
         ease: 'Back.Out',
       });
     }

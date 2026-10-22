@@ -37,8 +37,6 @@ export interface TallyData {
   readonly share: (extras: TallyExtras) => Promise<ShareOutcome>;
 }
 
-const COUNT_UP_MS = 900;
-
 export class TallyScene extends Phaser.Scene {
   private readonly ctx: GameContext;
 
@@ -83,14 +81,23 @@ export class TallyScene extends Phaser.Scene {
     const score = this.add
       .text(px + panelW / 2, py + 160, '0', chalk(96, '#F3EAD3', false))
       .setOrigin(0.5);
-    // No Oupa bark over the count-up (art bible §10).
+    // No Oupa bark over the count-up (art bible §10). The count ticks as it climbs (GDD §17).
+    const pace = this.ctx.feel.tally;
     this.ctx.audio.setTallyCounting(true);
+    let ticks = 0;
     this.tweens.addCounter({
       from: 0,
       to: r.score,
-      duration: COUNT_UP_MS,
+      duration: pace.countUpMs,
       ease: 'Cubic.Out',
-      onUpdate: (tw) => score.setText(formatScore(Math.round(tw.getValue() ?? 0))),
+      onUpdate: (tw) => {
+        score.setText(formatScore(Math.round(tw.getValue() ?? 0)));
+        const due = Math.floor((tw.progress * pace.countUpMs) / pace.tickEveryMs);
+        if (r.score > 0 && due > ticks && tw.progress < 1) {
+          ticks = due;
+          this.ctx.audio.ui('tick');
+        }
+      },
       onComplete: () => {
         this.ctx.audio.setTallyCounting(false);
       },
@@ -121,7 +128,12 @@ export class TallyScene extends Phaser.Scene {
         .text(px + panelW - 80, y, value, chalk(rowFont, '#F3EAD3', false))
         .setOrigin(1, 0)
         .setAlpha(0);
-      this.tweens.add({ targets: [label, val], alpha: 1, delay: 150 + i * 90, duration: 160 });
+      this.tweens.add({
+        targets: [label, val],
+        alpha: 1,
+        delay: pace.rowDelayMs + i * pace.rowStaggerMs,
+        duration: pace.rowFadeMs,
+      });
     });
 
     // Rank stamp thud.
@@ -141,9 +153,12 @@ export class TallyScene extends Phaser.Scene {
       targets: stamp,
       scale: 1,
       alpha: 1,
-      delay: COUNT_UP_MS,
-      duration: 220,
+      delay: pace.countUpMs,
+      duration: pace.stampMs,
       ease: 'Quad.In',
+      onComplete: () => {
+        this.ctx.audio.ui('thud');
+      },
     });
 
     // What changed in the save: one line, the most exciting news first.
@@ -154,7 +169,12 @@ export class TallyScene extends Phaser.Scene {
         .setOrigin(0.5)
         .setAlpha(0);
       fitText(line, panelW - 80);
-      this.tweens.add({ targets: line, alpha: 1, delay: COUNT_UP_MS + 300, duration: 200 });
+      this.tweens.add({
+        targets: line,
+        alpha: 1,
+        delay: pace.countUpMs + pace.newsDelayMs,
+        duration: 200,
+      });
     }
 
     // Buttons: [Again] (default focus, ≥ 64 px), [Season Run], [Menu].

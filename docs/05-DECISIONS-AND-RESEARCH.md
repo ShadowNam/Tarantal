@@ -822,6 +822,26 @@ hold; `AudioDirector.test.ts` covers format choice, recorded over synth, mute re
 after decode, and bark gap, tally and duck. The e2e `audio.spec.ts` uses stand-in Karoo stems and
 ambience added to the stand-in delivery, and runs on Chromium only (it reads Web Audio state
 through the hook; Linux WebKit may lack the codecs).
+*PR D — juice pass:* (1) *What "final tuning" means without a playtest:* the GDD §17 numbers
+(hit-stop 20/45 ms, 12–20 feathers, dubbelloop shake 4 px / 90 ms, pops 60 px / 600 ms) stay as
+specified. The pass moves the remaining hard-coded juice numbers into `feel.json`: the tally
+pacing (`tally.*`) and the Frenzy punch (`juice.frenzyPunch*`). It also adds the GDD §17 moments
+that were missing:
+- tally count-up ticks and the rank stamp thud (new synth SFX `tick` and `thud`, deliverable as
+  recordings like every SFX);
+- the Stampede's sky tint and ground rumble (`juice.stampede`).
+
+Retuning by feel is left to the real-device check. (2) *Screen shake:* the per-weapon shake lives
+in `weapons.json`, which is part of the `contentHash`. Moving it would change the Daily seeds and
+challenge links, so it stays there, and `juice.shakeScale` (1) scales it on the client. The
+Stampede rumble also follows Settings → screen shake. (3) *Flash limit:* `FlashLimiter` +
+`FlashGate` (`src/game/view/flashLimit.ts`) give every large-area flash source (the storm's
+lightning light, the Stormvoël's lit darkness) one shared budget of
+`accessibility.maxLargeFlashesPerSec` (schema max 3). A refused strike stays dark for its whole
+length. This is a backstop on top of the content's ≤ 2/s lightning. The Stampede tint is one
+steady fade, not a flash; "reduce flashes" dims it by `reducedFlashAlpha`. Muzzle flashes stay
+small local sprites. (4) Pointer goldens and Daily seeds are byte-identical: no sim or bundle
+content changed.
 *Needs a person:* the illustrator, animator and sound designer deliver per
 `docs/06-ASSET-DELIVERY.md`.
 

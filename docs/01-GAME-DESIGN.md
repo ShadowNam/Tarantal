@@ -581,6 +581,13 @@ on the tally stays locked until M6.
 | Penalty | Record-scratch SFX, red score drop, offended creature reaction |
 | Stampede | Tempo up, sky tint shifts, ground-shake rumble, ×2 banner |
 | Tally | Count-up ticks, per-line stamps, rank badge thud |
+
+M10 (D-027) juice pass: every number above is in `content/client/feel.json` (`juice`, `tally`,
+`audio`) and none is sim content. Screen shake keeps its per-weapon values in `weapons.json`,
+with a client-side `juice.shakeScale`. The Stampede adds a steady warm sky tint (fades in and out,
+never pulses) and a small ground rumble every ~0.5 s (off with screen shake). The tally ticks as
+it counts up and the rank stamp lands with a thud. Large-area flashes share a client budget of
+`accessibility.maxLargeFlashesPerSec` (3) on top of the content's lightning spacing.
 Onomatopoeia bubbles (KEK-KEK!, POOF!, KLAP!, CLANG!, BZZZT!) are part of the art style **and** an
 accessibility feature (visual captions for important sounds).
 

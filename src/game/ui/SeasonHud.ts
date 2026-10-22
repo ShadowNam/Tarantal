@@ -16,6 +16,7 @@ import { charmName, RARITY_COLOR } from './charmCards';
 import { formatScore } from './format';
 import { rectContains, type HudLayout, type Rect } from './hudLayout';
 import { fitText, textStyle, UI } from './menu';
+import { FlashGate } from '../view/flashLimit';
 
 /** Darkness of the Stormvoël rule, between flashes and during one ("reduce flashes"). */
 const DARK_ALPHA = 0.86;
@@ -60,10 +61,14 @@ export class SeasonHud {
   private darkAlpha = -1;
   private tintAlpha = -1;
 
+  private readonly darkFlash: FlashGate;
+
   constructor(
     private readonly scene: Phaser.Scene,
     private readonly ctx: GameContext,
-  ) {}
+  ) {
+    this.darkFlash = new FlashGate(ctx.flashes);
+  }
 
   /** Null outside a Season Run: nothing is built or drawn. */
   setSeason(info: { readonly quota: number } | null): void {
@@ -171,7 +176,9 @@ export class SeasonHud {
   /** Darkness and slow-mo tint: created on first need, hidden (not rendered) at alpha 0. */
   private overlays(season: SeasonView): void {
     const litAlpha = this.ctx.prefs.reduceFlashes ? LIT_ALPHA_REDUCED : LIT_ALPHA;
-    const dark = season.dark ? (season.lightning ? litAlpha : DARK_ALPHA) : 0;
+    // M10: a strike lights the dark only within the shared large-flash budget.
+    const strike = this.darkFlash.lit(season.dark && season.lightning, performance.now());
+    const dark = season.dark ? (strike ? litAlpha : DARK_ALPHA) : 0;
     if (dark !== this.darkAlpha) {
       this.darkAlpha = dark;
       if (dark > 0 && this.dark === null) this.dark = this.overlay(0x05070c, -10);

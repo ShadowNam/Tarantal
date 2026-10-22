@@ -193,3 +193,31 @@ describe('AudioDirector memory and fallbacks (M10 review)', () => {
     expect(r.audio.music?.stem).toBe('calm');
   });
 });
+
+describe('tally sounds and mute rules (M10 review)', () => {
+  const reasons = ['pause', 'ad', 'menu', 'portal'] as const;
+  it('ui tick and thud play when audible and stay silent for every mute reason', () => {
+    const r = rig();
+    // Before the first gesture: no context, nothing plays.
+    r.audio.ui('tick');
+    expect(r.ctx.panners).toBe(0);
+    r.audio.unlock();
+    const count = () => r.ctx.panners;
+    let n = count();
+    r.audio.ui('tick');
+    r.audio.ui('thud');
+    expect(count()).toBeGreaterThan(n);
+    for (const reason of reasons) {
+      r.audio.setMuted(reason, true);
+      n = count();
+      r.audio.ui('tick');
+      r.audio.ui('thud');
+      expect(count(), reason).toBe(n);
+      r.audio.setMuted(reason, false);
+    }
+    r.setHidden(true);
+    n = count();
+    r.audio.ui('thud');
+    expect(count()).toBe(n);
+  });
+});
