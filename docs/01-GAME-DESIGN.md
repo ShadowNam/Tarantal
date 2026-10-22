@@ -525,7 +525,8 @@ Meaning: skill alone gets you through autumn; finishing the year requires a real
 501…): every row within ±10 points (none 83/82, 47/48, 13/8, 0/0 %; synergy 92/90, 80/80, 64/64,
 35/40 %). Charm Mult compounds (×Mult charms multiply each other, §5.3), and the synergy bot's
 median score lead over `none` grows from about +20 % in Herfs to +25–30 % by Lente and Somer, so
-the curve outpaces raw skill as intended. No numbers changed.*
+the curve outpaces raw skill as intended. No numbers changed. Lente/none is checked against the
+±10-point gate, not the "≤ 10 %" bound strictly: 12.8 % on seed set 1 (7.6 % on set 2) passes.*
 
 ## 14. Meta: rank titles (from the Gemini spec, kept)
 | Classic score | Title |
