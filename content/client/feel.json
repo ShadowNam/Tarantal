@@ -40,7 +40,8 @@
     "windParticlesPerSec": 14,
     "rainParticlesPerSec": 90,
     "smokeScale": 2.2,
-    "calloutMs": 2600
+    "calloutMs": 2600,
+    "forageSpellTicks": 90
   },
   "hud": {
     "marginPx": 28,

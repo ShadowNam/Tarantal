@@ -961,6 +961,8 @@ export const FeelSchema = obj({
     smokeScale: pos,
     /** "⛔ don't shoot" and boss call-outs. */
     calloutMs: pos,
+    /** M10 delivered bird clips: render ticks per foraging walk/peck spell (every third pecks). */
+    forageSpellTicks: posInt,
   }),
   hud: obj({
     marginPx: nonNeg,
