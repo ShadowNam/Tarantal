@@ -903,6 +903,21 @@ or a real brand.
 - The zips come from a small built-in writer (`tools/zip.ts`, deflate + CRC32, fixed timestamps):
   this box has no `zip`, and a dependency wasn't worth it. Python's `zipfile` validates them.
 - Nothing is uploaded.
+*Review fixes (playtest-reviewer on the whole M10 diff):*
+- **Capture save:** a fresh capture save started the tutorial hunt, whose prompts capture mode
+  hides. `captureSave` now marks the tutorial done there, and an e2e boots the live path
+  without `ftue=0`. (Fixed in E.)
+- **Capture freeze:** a freeze or slow-mo no longer leaks to the next hunt; the game-wide
+  animation speed resets on shutdown and between hunts. No shake or rumble while slowed or
+  frozen. (E)
+- **Music start:** the music starts once per decoded batch, not once per stem; per-stem
+  refreshes restarted the stems up to four times. (C)
+- **Boot and retries:** boot no longer waits on recordings, since nothing plays before the first
+  tap. A failed or timed-out file is forgotten rather than cached as null. (A)
+- **Size and the service worker:** `size-check` counts the larger of each Ogg/MP3 pair and the
+  @2x atlas set where one exists, the worst case one player downloads, and lists the twins
+  apart. The service worker caches recordings on first play instead of precaching both
+  formats. (A)
 *Needs a person:* the illustrator, animator and sound designer deliver per
 `docs/06-ASSET-DELIVERY.md`.
 
