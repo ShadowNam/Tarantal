@@ -4,19 +4,16 @@
 // glyph atlases — the outline and a white fill — from the font the pops already use (self-hosted
 // Baloo 2, no extra download), and pops are pooled pairs of BitmapTexts: a new number is a
 // re-layout of quads, with no canvas work and no upload. The fill is tinted to the pop's colour.
-// The atlases are rebuilt when Settings change the text size or contrast.
+// The atlases are built when the HUD starts, and rebuilt when Settings change the text size or
+// contrast and once more if the web font arrives late (popAtlas.ts, fontReady.ts).
 import * as Phaser from 'phaser';
 import { fontPx, outline } from './textLook';
-import { POP_CHARS, bitmapFontData, layoutGlyphs, type PopLook } from './popGlyphs';
+import type { PopLook } from './popGlyphs';
+import { ensurePopAtlas, type PopFontKeys } from './popAtlas';
+import { fontReadiness } from './fontReady';
 
 export { popCanShow } from './popGlyphs';
-
-/** Atlas width limit (px): small enough for any GPU, wide enough for one or two rows. */
-const ATLAS_MAX_W = 1024;
-
-function lookKey(look: PopLook): string {
-  return `popfont:${look.family}:${look.weight}:${look.sizePx}:${look.stroke}:${look.strokePx}`;
-}
+export type { PopFontKeys } from './popAtlas';
 
 /** The pop look at the current Settings text size and contrast (as `fontPx` and `outline`). */
 export function popLook(family: string, size: number, strokePx: number): PopLook {
@@ -30,59 +27,40 @@ export function popLook(family: string, size: number, strokePx: number): PopLook
   };
 }
 
-export interface PopFontKeys {
-  readonly stroke: string;
-  readonly fill: string;
-  /** The atlas font size: BitmapText at this size draws glyphs 1:1. */
-  readonly sizePx: number;
-}
+let measureCtx: CanvasRenderingContext2D | null = null;
 
-/** Builds (once per look) the outline and fill atlases; returns their bitmap font keys. */
+/**
+ * Builds (once per look, and again once its web font has arrived) the outline and fill atlases
+ * in this game's caches; returns their bitmap font keys (popAtlas.ts).
+ */
 export function ensurePopFont(scene: Phaser.Scene, look: PopLook): PopFontKeys {
-  const base = lookKey(look);
-  const keys = { stroke: `${base}:stroke`, fill: `${base}:fill`, sizePx: look.sizePx };
   const cache = scene.sys.cache.bitmapFont;
-  if (cache.exists(keys.fill) && cache.exists(keys.stroke)) return keys;
-
-  const font = `${look.weight} ${look.sizePx}px ${look.family}`;
-  const measure = document.createElement('canvas').getContext('2d');
-  if (measure === null) throw new Error('popFont: no 2D canvas');
-  measure.font = font;
-  const advances = Array.from(POP_CHARS).map((ch) => measure.measureText(ch).width);
-  const pad = Math.ceil(look.strokePx / 2) + 1;
-  // Baloo 2 reaches about 1.15 em above the baseline and 0.45 em below; leave room for both.
-  const ascent = Math.ceil(look.sizePx * 1.05);
-  const cellH = ascent + Math.ceil(look.sizePx * 0.4) + 2 * pad;
-  const layout = layoutGlyphs(POP_CHARS, advances, cellH, pad, ATLAS_MAX_W);
-  const data = bitmapFontData(font, look.sizePx, layout, pad);
-
-  for (const part of ['stroke', 'fill'] as const) {
-    const key = keys[part];
-    if (scene.textures.exists(key)) scene.textures.remove(key);
-    const tex = scene.textures.createCanvas(key, layout.w, layout.h);
-    if (tex === null) throw new Error(`popFont: canvas texture ${key} failed`);
-    const ctx = tex.getContext();
-    ctx.font = font;
-    ctx.textBaseline = 'alphabetic';
-    ctx.lineJoin = 'round';
-    ctx.lineWidth = look.strokePx;
-    ctx.strokeStyle = look.stroke;
-    ctx.fillStyle = '#FFFFFF';
-    for (const g of layout.glyphs) {
-      const ch = String.fromCodePoint(g.code);
-      const x = g.x + pad;
-      const y = g.y + pad + ascent;
-      if (part === 'stroke') {
-        if (look.strokePx > 0) ctx.strokeText(ch, x, y);
-        // The outline layer also fills: no seam between outline and fill when scaled down.
-        ctx.fillStyle = look.stroke;
-        ctx.fillText(ch, x, y);
-      } else ctx.fillText(ch, x, y);
-    }
-    tex.refresh();
-    cache.add(key, { data, texture: key, frame: null });
-  }
-  return keys;
+  const textures = scene.textures;
+  return ensurePopAtlas(
+    {
+      hasFont: (key) => cache.exists(key),
+      addFont: (key, data) => cache.add(key, { data, texture: key, frame: null }),
+      removeFont: (key) => {
+        cache.remove(key);
+      },
+      hasTexture: (key) => textures.exists(key),
+      removeTexture: (key) => {
+        textures.remove(key);
+      },
+      createCanvas: (key, w, h) => {
+        const tex = textures.createCanvas(key, w, h);
+        return tex === null ? null : { ctx: tex.getContext(), refresh: () => tex.refresh() };
+      },
+      measure: (font, ch) => {
+        measureCtx ??= document.createElement('canvas').getContext('2d');
+        if (measureCtx === null) throw new Error('popFont: no 2D canvas');
+        measureCtx.font = font;
+        return measureCtx.measureText(ch).width;
+      },
+      fontState: (font) => fontReadiness.state(font),
+    },
+    look,
+  );
 }
 
 /** A pooled pop: outline + tinted fill BitmapTexts in one container. */

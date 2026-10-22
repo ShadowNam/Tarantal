@@ -16,6 +16,7 @@ import { t, tOr } from '../../i18n/i18n';
 import { TEX } from '../assets/AssetManifest';
 import { formatAward, popParts } from '../ui/format';
 import { PopPool, colorNumber, ensurePopFont, popCanShow, popLook } from '../ui/popFont';
+import { fontReadiness } from '../ui/fontReady';
 import type { ParallaxView } from './ParallaxView';
 
 /** UI and body face (art bible §6): self-hosted Baloo 2 (public/fonts), system font until it loads. */
@@ -367,7 +368,10 @@ export class Fx {
     const rot = Phaser.Math.DegToRad((Math.random() - 0.5) * 16);
     const text = t('fx.poof');
     const style = { ...outline(64, 8) };
-    const look = `${fontPx(64)}|${style.stroke ?? ''}|${style.strokeThickness ?? 0}`;
+    // The font state too (D-028 review): a label drawn before Bangers arrived is thrown away and
+    // remade once it has (setText alone never redraws the same text).
+    const fontState = fontReadiness.state(`900 ${fontPx(64)} ${DISPLAY_FONT}`);
+    const look = `${fontPx(64)}|${style.stroke ?? ''}|${style.strokeThickness ?? 0}|${fontState}`;
     // Reuse a finished POOF (same look: its label texture is already right); else make one.
     let item = this.poofFree.pop();
     if (item !== undefined && item.look !== look) {
