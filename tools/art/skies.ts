@@ -221,15 +221,7 @@ export function thunderhead(
         { id: clip },
         el('rect', { x: x - w, y: top - h, width: w * 3, height: base - top + h }),
       ),
-      g(
-        { 'clip-path': `url(#${clip})` },
-        el('path', { d: body, fill: `url(#${grad})` }),
-        ...lobes
-          .filter((_, i) => i % 3 === 0)
-          .map(([cx, cy, r]) =>
-            flat(ellipseD(cx - r * 0.3, cy - r * 0.45, r * 0.45, r * 0.2), c.lit, { opacity: 0.3 }),
-          ),
-      ),
+      g({ 'clip-path': `url(#${clip})` }, el('path', { d: body, fill: `url(#${grad})` })),
     ),
   );
 }
