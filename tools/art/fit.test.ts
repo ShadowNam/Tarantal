@@ -3,7 +3,7 @@
 // poses, and nothing touches the frame edge (it would be cut off).
 import { describe, expect, it } from 'vitest';
 import type { BirdClip } from '../../src/game/assets/assetIndex';
-import { BIRD_BOX } from '../assets/targets';
+import { BIRD_BOX, CLIP_SPEC } from '../assets/targets';
 import { loadContent } from '../testContent';
 import { birdShape, renderBirdFrame } from './birdFrames';
 import { clipsFor, loadArtConfig } from './config';
@@ -78,6 +78,33 @@ describe('interim birds fit their hitboxes (D-029)', () => {
         }
       },
       60_000,
+    );
+  }
+});
+
+// Reviewer (D-029): every packed frame of the base tarentaal on every plane keeps its body on the
+// hitbox (squash, peck and flight included) and never touches the frame edge.
+describe('every tarentaal frame on every plane (D-029)', () => {
+  const s = birdShape(content, 'tarentaal');
+  for (const plane of ['near', 'mid', 'far'] as const) {
+    it(
+      plane,
+      () => {
+        const clips = cfg.birds.planeClips[plane] ?? [];
+        for (const clip of clipsFor(cfg, 'tarentaal').filter((c) => clips.includes(c))) {
+          for (let k = 0; k < CLIP_SPEC[clip].frames; k++) {
+            const img = renderBirdFrame(cfg, content, 'tarentaal', plane, clip, k);
+            expect(edgeAlpha(img), `${plane} ${clip}/${k} touches the frame edge`).toBe(0);
+            if (clip === 'hit_poof') continue; // the bird vanishes into the cloud
+            const body = coverage(
+              img,
+              (x, y) => (x / s.body.rx) ** 2 + ((y - s.body.oy) / s.body.ry) ** 2 <= 0.7,
+            );
+            expect(body, `${plane} ${clip}/${k} body`).toBeGreaterThan(0.85);
+          }
+        }
+      },
+      120_000,
     );
   }
 });

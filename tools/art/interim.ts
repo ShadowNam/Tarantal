@@ -8,6 +8,7 @@
 //   --sheets              also write the contact sheets to docs/art-preview/
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { format } from 'prettier';
 import type { BirdClip } from '../../src/game/assets/assetIndex';
 import type { PlaneId } from '../../src/sim/types';
 import { encodePng8 } from '../assets/image';
@@ -15,7 +16,7 @@ import { NEAR_CLIPS } from '../assets/pack';
 import { CLIP_SPEC } from '../assets/targets';
 import { loadContent } from '../testContent';
 import { renderBirdFrame } from './birdFrames';
-import { birdSheets, gunSheets } from './previews';
+import { birdSheets, contrastSheet, gunSheets } from './previews';
 import { renderGunFrame } from './gunFrames';
 import { gunClipNames, gunFrameCount, tipFor } from './guns';
 import { POT_SEAT_Y, POT_SIZE, renderPot } from './pot';
@@ -51,9 +52,19 @@ function put(path: string, bytes: Uint8Array | string): void {
   writeFileSync(path, bytes);
 }
 
+/** JSON as the repo's Prettier prints it (`npm run lint` checks art-source/ too). */
+async function json(value: unknown): Promise<string> {
+  return format(JSON.stringify(value), { parser: 'json' });
+}
+
 const planesOf = (creature: string): PlaneId[] => {
   const c = content.birds.creatures.find((x) => x.id === creature);
   return c === undefined ? [] : [...c.planes];
+};
+
+const groupOf = (creature: string): { group?: string } => {
+  const g = cfg.birds.loadGroups[creature];
+  return typeof g === 'string' ? { group: g } : {};
 };
 
 let frames = 0;
@@ -84,7 +95,17 @@ if (only === undefined || only === 'birds') {
     }
     put(
       join(dir, 'rig.json'),
-      `${JSON.stringify({ origin: 'interim', x2: false, encode: 'png8' }, null, 2)}\n`,
+      await json({
+        origin: 'interim',
+        x2: false,
+        encode: 'png8',
+        ...groupOf(creature),
+        planeClips: {
+          near: cfg.birds.planeClips.near,
+          mid: cfg.birds.planeClips.mid,
+          far: cfg.birds.planeClips.far,
+        },
+      }),
     );
     console.log(`birds/${creature}: ${planesOf(creature).join(', ')} (${clips.length} clips)`);
   }
@@ -93,16 +114,25 @@ if (only === undefined || only === 'birds') {
   // The Generaal's pot helmet: a sprite key (fx/pot), not part of his atlas (it flies off).
   const potPath = join(src, 'sprites', 'fx', 'pot');
   const side = `${potPath}.json`;
-  const human =
-    existsSync(`${potPath}.png`) &&
-    (!existsSync(side) ||
-      (JSON.parse(readFileSync(side, 'utf8')) as { origin?: string }).origin !== 'interim');
+  const sideOrigin = (): string | undefined => {
+    try {
+      return (JSON.parse(readFileSync(side, 'utf8')) as { origin?: string }).origin;
+    } catch {
+      return undefined; // unreadable sidecar: treat as a human delivery, never overwrite
+    }
+  };
+  const human = existsSync(`${potPath}.png`) && (!existsSync(side) || sideOrigin() !== 'interim');
   if (human) console.warn('skip sprites/fx/pot: a human delivery is there');
   else {
     put(`${potPath}.png`, encodePng8(renderPot(cfg)));
     put(
       side,
-      `${JSON.stringify({ origin: 'interim', encode: 'png8', originX: POT_SIZE.originX / POT_SIZE.width, originY: POT_SEAT_Y / POT_SIZE.height }, null, 2)}\n`,
+      await json({
+        origin: 'interim',
+        encode: 'png8',
+        originX: POT_SIZE.originX / POT_SIZE.width,
+        originY: POT_SEAT_Y / POT_SIZE.height,
+      }),
     );
     console.log('sprites/fx/pot');
   }
@@ -127,7 +157,13 @@ if (only === undefined || only === 'guns') {
     }
     put(
       join(dir, 'rig.json'),
-      `${JSON.stringify({ origin: 'interim', x2: false, encode: 'png8', ...tipFor(cfg, id), ...(cfg.guns.lateLoad.ids.includes(id) ? { group: 'late' } : {}) }, null, 2)}\n`,
+      await json({
+        origin: 'interim',
+        x2: false,
+        encode: 'png8',
+        ...tipFor(cfg, id),
+        ...(cfg.guns.lateLoad.ids.includes(id) ? { group: 'late' } : {}),
+      }),
     );
     console.log(`guns/${id}: ${gunClipNames(cfg, id).join(', ')}`);
   }
@@ -143,6 +179,11 @@ if (process.argv.includes('--sheets')) {
       console.log(`docs/art-preview/${name}`);
     }
   const out = join(root, 'docs', 'art-preview');
+  if (only !== 'guns')
+    for (const [name, bytes] of contrastSheet(cfg, content)) {
+      put(join(root, 'docs', 'art-preview', name), bytes);
+      console.log(`docs/art-preview/${name}`);
+    }
   if (only !== 'guns')
     for (const [name, bytes] of birdSheets(cfg, content, oneCreature)) {
       put(join(out, name), bytes);

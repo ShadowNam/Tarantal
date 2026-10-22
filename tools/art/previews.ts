@@ -189,3 +189,112 @@ export function gunSheets(cfg: ArtConfig, only?: string): [string, Uint8Array][]
     ],
   ];
 }
+
+/** sRGB relative luminance (WCAG 2) of an 8-bit colour. */
+function luminance(r: number, g: number, b: number): number {
+  const lin = (v: number): number => {
+    const c = v / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+}
+const ratio = (a: number, b: number): number => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+const hexRgb = (h: string): [number, number, number] =>
+  [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)) as [number, number, number];
+
+/** The bird's average colour (alpha-weighted) and its luminance. */
+function birdMean(img: Rgba): { rgb: [number, number, number]; lum: number } {
+  let r = 0;
+  let g = 0;
+  let b = 0;
+  let a = 0;
+  for (let i = 0; i < img.data.length; i += 4) {
+    const w = (img.data[i + 3] ?? 0) / 255;
+    r += (img.data[i] ?? 0) * w;
+    g += (img.data[i + 1] ?? 0) * w;
+    b += (img.data[i + 2] ?? 0) * w;
+    a += w;
+  }
+  const rgb: [number, number, number] = [r / a, g / a, b / a].map(Math.round) as [
+    number,
+    number,
+    number,
+  ];
+  return { rgb, lum: luminance(...rgb) };
+}
+
+function onColour(img: Rgba, hex: string, silhouette = false): Rgba {
+  const [br, bg, bb] = hexRgb(hex);
+  const out = new Uint8Array(img.data.length);
+  for (let i = 0; i < img.data.length; i += 4) {
+    const a = (img.data[i + 3] ?? 0) / 255;
+    const src = silhouette
+      ? [27, 20, 16]
+      : [img.data[i] ?? 0, img.data[i + 1] ?? 0, img.data[i + 2] ?? 0];
+    out[i] = Math.round((src[0] ?? 0) * a + br * (1 - a));
+    out[i + 1] = Math.round((src[1] ?? 0) * a + bg * (1 - a));
+    out[i + 2] = Math.round((src[2] ?? 0) * a + bb * (1 - a));
+    out[i + 3] = 255;
+  }
+  return { ...img, data: out };
+}
+
+/**
+ * Review 2 (bible §1 rule 5, "targets must pop"): every interim bird on the Karoo veld, soil and
+ * sky colours plus its solid silhouette, and the WCAG contrast of the bird's average colour
+ * against each background (docs/art-preview/contrast.json).
+ */
+export function contrastSheet(cfg: ArtConfig, content: ContentBundle): [string, Uint8Array][] {
+  const grounds: Record<string, string> = {
+    veld: '#E3A23B',
+    'veld light': '#EDC277',
+    soil: '#B8562C',
+    'sky low': '#F2D8A7',
+    'sky high': '#8DB8D8',
+  };
+  const rows: SheetRow[] = [];
+  const report: Record<string, unknown> = {};
+  const cases: [string, PlaneId, BirdClip][] = [
+    ['tarentaal', 'near', 'peek'],
+    ['tarentaal', 'mid', 'forage_walk'],
+    ['tarentaal', 'mid', 'flap'],
+    ['tarentaal', 'far', 'flap'],
+    ...Object.keys(cfg.birds.creatures)
+      .filter((c) => c !== 'tarentaal')
+      .map((c): [string, PlaneId, BirdClip] => [c, 'mid', 'forage_walk']),
+  ];
+  for (const [creature, plane, clip] of cases) {
+    const img = renderBirdFrame(cfg, content, creature, plane, clip, 0);
+    const m = birdMean(img);
+    const vs = Object.fromEntries(
+      Object.entries(grounds).map(([name, hex]) => [
+        name,
+        Math.round(ratio(m.lum, luminance(...hexRgb(hex))) * 100) / 100,
+      ]),
+    );
+    report[`${creature} ${plane} ${clip}`] = {
+      meanRgb: m.rgb,
+      luminance: Math.round(m.lum * 1000) / 1000,
+      contrastVs: vs,
+    };
+    rows.push({
+      label: `${creature} ${plane} (vs veld ${String(vs['veld'])}:1)`,
+      frames: [
+        ...Object.values(grounds).map((hex) => onColour(img, hex)),
+        onColour(img, grounds['veld'] ?? '#E3A23B', true),
+      ],
+    });
+  }
+  return [
+    [
+      'contrast.png',
+      contactSheet(
+        cfg,
+        'Contrast on the Karoo — veld, light veld, soil, low sky, high sky, silhouette',
+        rows,
+        160,
+      ),
+    ],
+    ['contrast.json', new TextEncoder().encode(`${JSON.stringify(report, null, 2)}\n`)],
+  ];
+}

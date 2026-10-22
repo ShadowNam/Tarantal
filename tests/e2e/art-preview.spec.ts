@@ -42,10 +42,11 @@ async function setVariant(page: Page, v: Variant): Promise<void> {
     await page.route('**/assets/asset-index.json', (r) => r.fulfill({ status: 404, body: '' }));
 }
 
-/** Fonts in, and the pointer parked off the canvas (no reticle, gun at rest). */
+/** Fonts in, and the pointer parked bottom right so the gun leans away from the birds. */
 async function settle(page: Page): Promise<void> {
   await page.waitForFunction(() => window.__TM__?.fontsReady === true, null, { timeout: 30_000 });
-  await page.mouse.move(0, 0);
+  const box = await page.locator('#game canvas').boundingBox();
+  if (box !== null) await page.mouse.move(box.x + box.width - 2, box.y + box.height - 2);
   await page.waitForTimeout(600);
 }
 
@@ -112,16 +113,20 @@ test('flock foraging, then flushing', async ({ page }, info) => {
     if (!flock) throw new Error('no flock in view at the start');
     await burstAtFlock(page, touch, flock.id, 3, 15);
     await waitTicks(page, 40);
-    await page.mouse.move(0, 0);
+    await settle(page);
     save('flock-flush', v, info, await page.screenshot());
   }
   compose('flock-flush', info);
 });
 
-test('the Generaal (and the hitbox overlay)', async ({ page }, info) => {
+test('the Generaal', async ({ page }, info) => {
   test.setTimeout(400_000);
   await held(page, info, 'generaal', 'seed=11&huntSeconds=20', 800);
-  await held(page, info, 'debug-hitboxes', 'seed=11&huntSeconds=20&debug=1', 800);
+});
+
+test('the debug hitbox overlay (?debug=1)', async ({ page }, info) => {
+  test.setTimeout(400_000);
+  await held(page, info, 'debug-hitboxes', 'seed=42&huntSeconds=20&debug=1', 70);
 });
 
 const GUNS: readonly [string, number | null][] = [
