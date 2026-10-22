@@ -3,6 +3,7 @@
 // page.route, as if it had been packed into public/assets/ — it is never in a build. With it the
 // game loads those keys as final through the manifest; without it (the shipped state today) or with
 // a file broken, the same keys fall back to their procedural placeholders, and no texture is missing.
+// D-029: the build itself ships interim (code-drawn) art for the guns and the tarentaal family.
 import { expect, test, type Page } from '@playwright/test';
 import {
   SCREENSHOTS,
@@ -89,9 +90,10 @@ test('a stand-in delivery loads through the manifest with no code change', async
 test('with no delivery every key falls back to its placeholder', async ({ page }, info) => {
   test.skip(!isLandscape(info), 'portrait shows the rotate card');
   const errors = collectErrors(page);
+  // D-029: the build ships interim art, so "nothing delivered" is an index that isn't there.
+  await page.route('**/assets/asset-index.json', (r) => r.fulfill({ status: 404, body: '' }));
   await boot(page, 'seed=42');
   const h = await hook(page);
-  // The shipped build has no asset index yet.
   expect(h.assets.problem).toMatch(/^no asset index/);
   const st = await statuses(page);
   for (const key of FINAL_KEYS) expect(st[key], key).toBe('placeholder');
@@ -103,6 +105,31 @@ test('with no delivery every key falls back to its placeholder', async ({ page }
   await page.screenshot({ path: `${SCREENSHOTS}/assets-fallback-${info.project.name}.png` });
   // A 404 for the index is expected and not a game error.
   expect(errors.filter((e) => !/404|Failed to load resource/.test(e))).toEqual([]);
+});
+
+test('the shipped interim art loads as interim (D-029)', async ({ page }, info) => {
+  test.skip(!isLandscape(info), 'portrait shows the rotate card');
+  const errors = collectErrors(page);
+  await boot(page, 'seed=42');
+  expect((await hook(page)).assets.problem).toBeNull();
+  // Guns other than the Dubbelloop are in the late group: they arrive after boot.
+  await page.waitForFunction(
+    () => {
+      const entries = window.__TM__?.assets.byBiome['karoo-autumn'] ?? [];
+      return entries.filter((e) => e.key.startsWith('gun/') && e.status === 'interim').length >= 6;
+    },
+    null,
+    { timeout: 60_000 },
+  );
+  const st = await statuses(page);
+  const interim = Object.entries(st).filter(([, s]) => s === 'interim');
+  for (const id of ['dubbelloop', 'windbuks', 'kettie', 'pomp', 'voorlaaier', 'mielie_masjien'])
+    expect(st[`gun/${id}`], id).toBe('interim');
+  expect(Object.values(st).includes('final')).toBe(false);
+  expect(interim.length).toBeGreaterThanOrEqual(6);
+  await startHunt(page, isTouchProject(info));
+  expect((await hook(page)).missingTextures).toEqual([]);
+  expect(errors).toEqual([]);
 });
 
 test('a broken delivered file falls back for its key only', async ({ page }, info) => {

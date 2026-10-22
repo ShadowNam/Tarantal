@@ -1,9 +1,12 @@
 {
-  "$comment": "Interim art generator (D-029, `npm run art:interim`). Constants for the code-drawn stand-in guns and birds. Lives in tools/art/, not content/, so the content hash and golden replays never change. Palettes are the art bible's exact hex values (§3.1, §3.2, §6); line weights by depth come from content/scoring.json planes.lineWeightPx; hitboxes from content/birds.json.",
+  "$comment": "Interim art generator (D-029, `npm run art:interim`). Constants for the code-drawn stand-in guns and birds. Lives in tools/art/, not content/, so the content hash and golden replays never change. Palettes are the art bible's exact hex values (\u00a73.1, \u00a73.2, \u00a76); line weights by depth come from content/scoring.json planes.lineWeightPx; hitboxes from content/birds.json.",
   "ink": "#1B1410",
   "masterScale": 2,
   "birds": {
-    "skyTint": { "colour": "#F2D8A7", "far": 0.2 },
+    "skyTint": {
+      "colour": "#F2D8A7",
+      "far": 0.2
+    },
     "wobble": {
       "$comment": "Hand-drawn line wobble: turbulence frequency (per bird unit) and displacement (bird units) per plane; 0 = off.",
       "frequency": 0.03,
@@ -12,11 +15,29 @@
       "far": 0
     },
     "dots": {
-      "$comment": "White dot field (bible §3.1): radius and spacing in bird units per plane; the far plane gets fewer, larger dots so it reads at 0.22 scale.",
-      "near": { "r": 4.2, "spacing": 15 },
-      "mid": { "r": 5.5, "spacing": 19 },
-      "far": { "r": 11, "spacing": 34 }
+      "$comment": "White dot field (bible \u00a73.1): radius and spacing in bird units per plane; the far plane gets fewer, larger dots so it reads at 0.22 scale.",
+      "near": {
+        "r": 3.4,
+        "spacing": 14
+      },
+      "mid": {
+        "r": 4.4,
+        "spacing": 17
+      },
+      "far": {
+        "r": 9,
+        "spacing": 31
+      }
     },
+    "dotVariety": {
+      "$comment": "Dot size range (\u00d7 r), position jitter (\u00d7 spacing), and how much the field thins toward the belly and the tail (0 = uniform). Feedback 22 Oct: avoid the uniform 'polka-dot ball'.",
+      "minSize": 0.55,
+      "maxSize": 1.2,
+      "jitter": 0.5,
+      "bellyThin": 0.55,
+      "tailThin": 0.35
+    },
+    "legWidth": 11,
     "innerLine": 0.55,
     "eyeWhite": "#FBF8EF",
     "star": "#F2C94C",
@@ -37,7 +58,10 @@
       "legs": "#6B5B4B"
     },
     "variants": {
-      "tarentaal": { "palette": {}, "parts": [] },
+      "tarentaal": {
+        "palette": {},
+        "parts": []
+      },
       "tarentaal_wit": {
         "palette": {
           "plumage": "#F1EEE6",
@@ -50,7 +74,11 @@
         "parts": ["sparkle"]
       },
       "tarentaal_lavendel": {
-        "palette": { "plumage": "#8F86A8", "shadow": "#6F6789", "highlight": "#ABA3C2" },
+        "palette": {
+          "plumage": "#8F86A8",
+          "shadow": "#6F6789",
+          "highlight": "#ABA3C2"
+        },
         "parts": []
       },
       "kuifkop": {
@@ -77,7 +105,10 @@
         "dotScale": 0.75,
         "parts": ["crest", "eyeRing", "crown"]
       },
-      "generaal": { "palette": {}, "parts": ["bandolier", "scowl"] },
+      "generaal": {
+        "palette": {},
+        "parts": ["bandolier", "scowl", "stubCasque"]
+      },
       "ou_grys": {
         "palette": {
           "plumage": "#6F7378",
@@ -93,7 +124,7 @@
     "parts": {
       "crest": "#141420",
       "eyeRing": "#D7263D",
-      "crownCap": "#D8A73A",
+      "crownCap": "#E9B83A",
       "crownCapShadow": "#A87A22",
       "crownRed": "#C8302A",
       "bandolier": "#7A4E2A",
@@ -103,10 +134,17 @@
       "husk": "#D9C79A",
       "eyePatch": "#1B1410",
       "toothpick": "#E2C08F",
-      "sparkle": "#FFFFFF"
+      "sparkle": "#FFFFFF",
+      "crownRim": "#FFE89A",
+      "potBlue": "#2D5DA8",
+      "potShadow": "#1F4580",
+      "potHi": "#6F98D8",
+      "potRim": "#F3EAD3",
+      "potRust": "#9A4B2A",
+      "potChip": "#1B1410"
     },
     "clipSets": {
-      "$comment": "Clips drawn per creature (bible §3.4). Variants lean on the runtime fallback chain (docs/06 §3) to stay inside the first-download budget: peck → forage_walk, glide → flap, land → run, peek → alert, tumble → hit_poof.",
+      "$comment": "Clips drawn per creature (bible \u00a73.4). Variants lean on the runtime fallback chain (docs/06 \u00a73) to stay inside the first-download budget: peck \u2192 forage_walk, glide \u2192 flap, land \u2192 run, peek \u2192 alert, tumble \u2192 hit_poof.",
       "tarentaal": [
         "forage_walk",
         "peck",
@@ -169,15 +207,76 @@
     "flashOuter": "#F07A2A",
     "scratch": "#C9CED3",
     "lineNear": 6,
-    "wobble": { "frequency": 0.04, "scale": 2.5 },
+    "poses": {
+      "$comment": "Per gun: angle (deg, negative = barrels up-left toward the screen centre), shift (px right of the box centre) and widen (x scale of the drawing about the barrel line). Review 2: the long guns point into the scene at an angle with the stock bottom right, like the old placeholder's silhouette.",
+      "dubbelloop": {
+        "angle": -22,
+        "shift": 62,
+        "widen": 1.15
+      },
+      "windbuks": {
+        "angle": -22,
+        "shift": 62,
+        "widen": 1.15
+      },
+      "pomp": {
+        "angle": -22,
+        "shift": 62,
+        "widen": 1.15
+      },
+      "voorlaaier": {
+        "angle": -22,
+        "shift": 62,
+        "widen": 1.15
+      },
+      "kettie": {
+        "angle": -8,
+        "shift": 10,
+        "widen": 1.25
+      },
+      "mielie_masjien": {
+        "angle": -14,
+        "shift": 40,
+        "widen": 1.3
+      }
+    },
+    "lateLoad": {
+      "$comment": "Guns that download after the first hunt is up (D-029 'late' group): unlockables and crate weapons. The default Dubbelloop is in the first download.",
+      "ids": ["windbuks", "kettie", "pomp", "voorlaaier", "mielie_masjien"]
+    },
+    "wobble": {
+      "frequency": 0.04,
+      "scale": 2.5
+    },
     "clips": {
       "$comment": "Frames per gun clip; fps for fire/flash per gun; reload clips are stretched to weapons.json reloadMs at runtime.",
-      "dubbelloop": { "fire": 4, "reload": 8, "flash": 3 },
-      "windbuks": { "fire": 3, "flash": 2 },
-      "kettie": { "fire": 4, "flash": 2 },
-      "pomp": { "fire": 4, "reload": 5, "flash": 3 },
-      "voorlaaier": { "fire": 4, "reload": 8, "flash": 3 },
-      "mielie_masjien": { "fire": 4, "flash": 2 }
+      "dubbelloop": {
+        "fire": 4,
+        "reload": 8,
+        "flash": 3
+      },
+      "windbuks": {
+        "fire": 3,
+        "flash": 2
+      },
+      "kettie": {
+        "fire": 4,
+        "flash": 2
+      },
+      "pomp": {
+        "fire": 4,
+        "reload": 5,
+        "flash": 3
+      },
+      "voorlaaier": {
+        "fire": 4,
+        "reload": 8,
+        "flash": 3
+      },
+      "mielie_masjien": {
+        "fire": 4,
+        "flash": 2
+      }
     }
   },
   "sheets": {

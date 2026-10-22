@@ -265,7 +265,20 @@ export class HuntScene extends Phaser.Scene {
       this.ctx.prefs,
       this.ctx.flashes,
     );
-    this.weapon = new WeaponView(this, this.ctx.feel, this.screen, this.ctx.prefs);
+    this.weapon = new WeaponView(
+      this,
+      this.ctx.feel,
+      this.screen,
+      this.ctx.prefs,
+      // The gun's atlas goes to the GPU when it is first shown (D-029).
+      (id) => this.manifest.ensureGun(this.textures, id),
+      this.ctx.content.weapons.weapons,
+    );
+    // e2e/dev only (D-029 art previews): freeze the gun on a clip frame for screenshots.
+    if (this.ctx.hook)
+      (window as { __TM_GUN__?: WeaponView['pose'] }).__TM_GUN__ = (id, clip, frame) => {
+        this.weapon.pose(id, clip, frame);
+      };
     this.debug = new DebugOverlay(this, this.ctx.content, this.biome, this.parallax, this.screen);
     this.debug.setVisible(this.ctx.debug);
     this.relayout();
@@ -791,6 +804,7 @@ export class HuntScene extends Phaser.Scene {
     this.birds.update(drawBirds, state.tick);
     this.world.update(state, width, designSize().height);
     this.weapon.setWeapon(state.weapon.id);
+    this.weapon.setReloading(state.weapon.reloading);
     const safe = this.ctx.safeArea();
     // Bottom-left, right of the gadget button (timer/Frenzy top-left, belt bottom-right).
     this.debug.update(

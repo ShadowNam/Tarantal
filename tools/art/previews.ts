@@ -8,8 +8,12 @@ import { NEAR_CLIPS } from '../assets/pack';
 import { BIRD_BOX, CLIP_SPEC } from '../assets/targets';
 import type { Rgba } from '../assets/image';
 import { birdShape, renderBirdFrame } from './birdFrames';
-import { clipsFor, type ArtConfig } from './config';
+import { clipsFor, GUN_IDS, type ArtConfig } from './config';
+import { renderGunFrame } from './gunFrames';
+import { gunClipNames, gunFrameCount } from './guns';
 import { contactSheet, type SheetRow } from './sheets';
+import { encodePng } from '../assets/image';
+import { POT_SEAT_Y, POT_SIZE, renderPot } from './pot';
 import { el } from './svg';
 
 function frames(
@@ -22,6 +26,18 @@ function frames(
   return Array.from({ length: CLIP_SPEC[clip].frames }, (_, k) =>
     renderBirdFrame(cfg, content, creature, plane, clip, k),
   );
+}
+
+/** The Generaal's pot where BirdView puts it: on the head hitbox, origin on the rim (D-029). */
+function potOverlay(cfg: ArtConfig, content: ContentBundle, creature: string) {
+  const s = birdShape(content, creature);
+  const href = `data:image/png;base64,${Buffer.from(encodePng(renderPot(cfg))).toString('base64')}`;
+  return (w: number): string => {
+    const k = w / BIRD_BOX.width;
+    const x = BIRD_BOX.originX * k + s.head.x * k - POT_SIZE.originX * k;
+    const y = BIRD_BOX.originY * k + (s.head.y - s.head.r * 0.55) * k - POT_SEAT_Y * k;
+    return el('image', { x, y, width: POT_SIZE.width * k, height: POT_SIZE.height * k, href });
+  };
 }
 
 function hitboxOverlay(content: ContentBundle, creature: string) {
@@ -105,8 +121,17 @@ export function birdSheets(
     const rows: SheetRow[] = variants.map((v) => ({
       label: v,
       frames: clipsFor(cfg, v).map((c) => renderBirdFrame(cfg, content, v, 'mid', c, 0)),
-      overlay: hitboxOverlay(content, v),
+      overlay: (w: number) =>
+        hitboxOverlay(content, v)(w) + (v === 'generaal' ? potOverlay(cfg, content, v)(w) : ''),
     }));
+    // The Generaal after the knock-off (his pot spun away): the bare stub-casque head.
+    const bare = rows.find((r) => r.label === 'generaal');
+    if (bare !== undefined)
+      rows.push({
+        ...bare,
+        label: 'generaal (pot off)',
+        overlay: hitboxOverlay(content, 'generaal'),
+      });
     out.push([
       'variants.png',
       contactSheet(
@@ -118,4 +143,49 @@ export function birdSheets(
     ]);
   }
   return out;
+}
+
+/** Every gun: one row per weapon, all clips side by side (idle, fire, reload, flash). */
+export function gunSheets(cfg: ArtConfig, only?: string): [string, Uint8Array][] {
+  const rows: SheetRow[] = [];
+  for (const id of GUN_IDS) {
+    if (only !== undefined && only !== id) continue;
+    for (const clip of gunClipNames(cfg, id)) {
+      if (clip === 'flash') continue;
+      rows.push({
+        label: `${id} ${clip}`,
+        frames: Array.from({ length: gunFrameCount(cfg, id, clip) }, (_, k) =>
+          renderGunFrame(cfg, id, clip, k),
+        ),
+      });
+    }
+  }
+  const flashes: SheetRow[] = GUN_IDS.filter((id) => only === undefined || only === id).map(
+    (id) => ({
+      label: `${id} flash`,
+      frames: Array.from({ length: gunFrameCount(cfg, id, 'flash') }, (_, k) =>
+        renderGunFrame(cfg, id, 'flash', k),
+      ),
+    }),
+  );
+  return [
+    [
+      'guns.png',
+      contactSheet(
+        cfg,
+        'Guns — idle, fire (recoil), reload (interim, D-029); muzzle at y = 80',
+        rows,
+        260,
+      ),
+    ],
+    [
+      'gun-flashes.png',
+      contactSheet(
+        cfg,
+        'Muzzle flashes (200 × 200, local; "reduce flashes" dims them)',
+        flashes,
+        160,
+      ),
+    ],
+  ];
 }
