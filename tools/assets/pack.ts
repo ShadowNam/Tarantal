@@ -27,6 +27,7 @@ import {
   BIRD_CLIPS,
   COMMON_GROUP,
   GUN_CLIPS,
+  LATE_GROUP,
   type AssetIndex,
   type AudioKind,
   type BirdClip,
@@ -38,7 +39,17 @@ import type { ContentBundle } from '../../src/content/schemas';
 import type { PlaneId } from '../../src/sim/types';
 import type { Catalog } from './catalog';
 import { encodeMp3, encodeOgg } from './encode';
-import { blank, blit, crop, encodePng, encodePng8, readPng, resize, type Rgba } from './image';
+import {
+  blank,
+  blit,
+  crop,
+  encodePng,
+  encodePng8,
+  opaqueBounds,
+  readPng,
+  resize,
+  type Rgba,
+} from './image';
 import { applyGain, integratedLufs, normaliseGainDb, truePeakDb } from './loudness';
 import { shelfPackPages } from './shelfPack';
 import {
@@ -99,6 +110,10 @@ const rigSchema = z
     origin: provenance,
     encode: encoding,
     x2: z.boolean(),
+    /** Pack resolution per plane (≤ 1): drawn scaled up by 1/res (saves memory on small planes). */
+    planeRes: z.partialRecord(z.enum(['near', 'mid', 'far']), z.number().min(0.25).max(1)),
+    /** Load group override: "late" (after the first hunt starts), "common" or a biome id. */
+    group: z.string(),
   })
   .partial();
 const gunRigSchema = z
@@ -115,15 +130,44 @@ const gunRigSchema = z
     origin: provenance,
     encode: encoding,
     x2: z.boolean(),
+    group: z.string(),
   })
   .partial();
 
-/** One frame to pack: its master image and its box size at @1x. */
+/** One frame to pack: its master image, its box size at @1x and the origin in that box (px). */
 interface Cell {
   readonly id: string;
+  readonly clip: string;
   readonly img: Rgba;
   readonly w: number;
   readonly h: number;
+  readonly ox: number;
+  readonly oy: number;
+}
+
+/** Transparent px kept around each clip's crop (filtering never samples a neighbour). */
+const CROP_PAD = 2;
+/**
+ * Two frames of a clip merge when at most this fraction of their pixels differ visibly (D-029:
+ * near-identical frames such as an alert hold are packed once).
+ */
+const FRAME_MERGE = 0.004;
+const round4 = (v: number): number => Math.round(v * 10000) / 10000;
+
+/** True when two same-size images differ in at most `frac` of their pixels (by more than 24). */
+function nearlySame(a: Rgba, b: Rgba, frac: number): boolean {
+  if (a.width !== b.width || a.height !== b.height) return false;
+  const limit = a.width * a.height * frac;
+  let n = 0;
+  for (let i = 0; i < a.data.length; i += 4) {
+    for (let c = 0; c < 4; c++)
+      if (Math.abs((a.data[i + c] ?? 0) - (b.data[i + c] ?? 0)) > 24) {
+        n++;
+        break;
+      }
+    if (n > limit) return false;
+  }
+  return true;
 }
 
 const MUSIC_STEMS = ['calm', 'build', 'stampede'] as const;
@@ -171,6 +215,14 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
     files.set(path, bytes);
     return { path, bytes: bytes.length, hash: h };
   };
+  /** A rig's `group` override (D-029: "late" loads after the first hunt starts), checked. */
+  const groupFor = (want: string | undefined, fallback: string, label: string): string => {
+    if (want === undefined) return fallback;
+    if (want === COMMON_GROUP || want === LATE_GROUP || o.catalog.biomes.includes(want))
+      return want;
+    errors.push(`${label}/rig.json: group "${want}" is not common, late or a biome id`);
+    return fallback;
+  };
   const index: AssetIndex = {
     version: 1,
     initialGroups: [COMMON_GROUP, o.catalog.homeBiome],
@@ -182,9 +234,12 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
   };
 
   /**
-   * Packs frames into Phaser multi-atlas pages at `k`× their box size (never upscaling). Frames
-   * are never trimmed: Phaser 4.2.1 draws trimmed frames played through an animation with the
-   * neighbouring frames' pixels (D-029 §3).
+   * Packs frames into Phaser multi-atlas pages at `k` × `res` × their box size (never upscaling).
+   * D-029: frames are never *trimmed* (Phaser 4.2.1 draws trimmed frames played through an
+   * animation with the neighbouring frames' pixels). Instead every frame of a clip is cropped to
+   * the clip's common opaque bounds and carries a `pivot` (the bird's sim position or the gun's
+   * grip inside the crop), which Phaser applies on every frame change. Frames of a clip that are
+   * near-identical to an earlier one are packed once (`alias` maps the dropped frame to it).
    */
   const packAtlas = (
     cells: readonly Cell[],
@@ -193,16 +248,61 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
     group: string,
     sub: string,
     rig: { encode?: 'png' | 'png8' | undefined },
-  ): { pages: { image: FileRef; data: FileRef }[] } | null => {
+    res = 1,
+    /** Reuse the @1x set's merges for the @2x set, so both name the same frames. */
+    given?: ReadonlyMap<string, string>,
+  ): { pages: { image: FileRef; data: FileRef }[]; alias: Map<string, string> } | null => {
     if (cells.length === 0) return null;
     // Never upscale: a @k set needs every master at least that big.
-    if (cells.some((c) => c.img.height < c.h * k)) return null;
-    const sized = cells.map((c) => {
-      const w = Math.round(c.w * k);
-      const h = Math.round(c.h * k);
+    if (cells.some((c) => c.img.height < c.h * k * res)) return null;
+    const scaled = cells.map((c) => {
+      const w = Math.round(c.w * k * res);
+      const h = Math.round(c.h * k * res);
       const img = c.img.width === w && c.img.height === h ? c.img : resize(c.img, w, h);
-      return { id: c.id, w, h, box: { x: 0, y: 0, w, h }, img };
+      return { ...c, w, h, img, ox: (c.ox * w) / c.w, oy: (c.oy * h) / c.h };
     });
+    // One crop per clip: the union of its frames' opaque pixels, padded for filtering.
+    const crops = new Map<string, { x: number; y: number; w: number; h: number }>();
+    for (const c of scaled) {
+      const b = opaqueBounds(c.img);
+      if (b === null) continue;
+      const prev = crops.get(c.clip);
+      const x0 = Math.min(prev?.x ?? b.x, b.x);
+      const y0 = Math.min(prev?.y ?? b.y, b.y);
+      const x1 = Math.max(prev === undefined ? b.x + b.w : prev.x + prev.w, b.x + b.w);
+      const y1 = Math.max(prev === undefined ? b.y + b.h : prev.y + prev.h, b.y + b.h);
+      crops.set(c.clip, { x: x0, y: y0, w: x1 - x0, h: y1 - y0 });
+    }
+    const alias = new Map<string, string>();
+    const sized: {
+      id: string;
+      box: { x: number; y: number; w: number; h: number };
+      img: Rgba;
+      px: number;
+      py: number;
+    }[] = [];
+    for (const c of scaled) {
+      const raw = crops.get(c.clip) ?? { x: 0, y: 0, w: 1, h: 1 };
+      const x = Math.max(0, raw.x - CROP_PAD);
+      const y = Math.max(0, raw.y - CROP_PAD);
+      const box = {
+        x,
+        y,
+        w: Math.min(c.w, raw.x + raw.w + CROP_PAD) - x,
+        h: Math.min(c.h, raw.y + raw.h + CROP_PAD) - y,
+      };
+      const img = crop(c.img, box.x, box.y, box.w, box.h);
+      const twinId =
+        given !== undefined
+          ? given.get(c.id)
+          : sized.find((o) => o.id.startsWith(`${c.clip}/`) && nearlySame(o.img, img, FRAME_MERGE))
+              ?.id;
+      if (twinId !== undefined) {
+        alias.set(c.id, twinId);
+        continue;
+      }
+      sized.push({ id: c.id, box, img, px: (c.ox - box.x) / box.w, py: (c.oy - box.y) / box.h });
+    }
     let packed;
     try {
       packed = shelfPackPages(
@@ -220,12 +320,14 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
         const cell = sized.find((c) => c.id === p.id);
         if (cell === undefined) continue;
         blit(page, cell.img, p.x, p.y);
+        const { w, h } = cell.box;
         frames[p.id] = {
-          frame: { x: p.x, y: p.y, w: cell.box.w, h: cell.box.h },
+          frame: { x: p.x, y: p.y, w, h },
           rotated: false,
           trimmed: false,
-          spriteSourceSize: { x: cell.box.x, y: cell.box.y, w: cell.box.w, h: cell.box.h },
-          sourceSize: { w: cell.w, h: cell.h },
+          spriteSourceSize: { x: 0, y: 0, w, h },
+          sourceSize: { w, h },
+          pivot: { x: round4(cell.px), y: round4(cell.py) },
         };
       }
       const name = `${base}@${k}x-${pi}`;
@@ -245,7 +347,7 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
         data: emit(group, sub, name, 'json', new TextEncoder().encode(JSON.stringify(data))),
       };
     });
-    return { pages };
+    return { pages, alias };
   };
 
   // --- sprites -----------------------------------------------------------------------------
@@ -389,8 +491,11 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
         warnings.push(
           `birds/${creature}: no "${need}" clip — states that fall back to it use placeholder frames`,
         );
-    const group =
-      o.catalog.entries.get(`bird/${creature}/${planes[0] ?? 'mid'}`)?.group ?? COMMON_GROUP;
+    const group = groupFor(
+      rig.group,
+      o.catalog.entries.get(`bird/${creature}/${planes[0] ?? 'mid'}`)?.group ?? COMMON_GROUP,
+      `birds/${creature}`,
+    );
     const planeEntries: Partial<Record<PlaneId, BirdPlaneEntry>> = {};
     for (const plane of planes) {
       const s = o.content.scoring.planes[plane].scale;
@@ -402,24 +507,34 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
       const planeClips = [...merged]
         .filter(([clip]) => keep.includes(clip))
         .sort(([a], [b]) => BIRD_CLIPS.indexOf(a) - BIRD_CLIPS.indexOf(b));
+      const ox = (rig.originX ?? BIRD_BOX.originX / BIRD_BOX.width) * w1;
+      const oy = (rig.originY ?? BIRD_BOX.originY / BIRD_BOX.height) * h1;
       const cells = planeClips.flatMap(([clip, frames]) =>
         frames.map((img, i) => ({
           id: `${clip}/${String(i).padStart(2, '0')}`,
+          clip,
           img,
           w: w1,
           h: h1,
+          ox,
+          oy,
         })),
       );
-      const x1 = packAtlas(cells, 1, `${slug(creature)}-${plane}`, group, 'birds', rig);
+      // D-029: a plane may be packed below its display size (rig planeRes) and drawn scaled up.
+      const res = rig.planeRes?.[plane] ?? 1;
+      const x1 = packAtlas(cells, 1, `${slug(creature)}-${plane}`, group, 'birds', rig, res);
       if (x1 === null) continue;
       const x2 =
         rig.x2 === false
           ? null
-          : packAtlas(cells, 2, `${slug(creature)}-${plane}`, group, 'birds', rig);
+          : packAtlas(cells, 2, `${slug(creature)}-${plane}`, group, 'birds', rig, res, x1.alias);
       const clipEntries: BirdPlaneEntry['clips'] = {};
       for (const [clip, frames] of planeClips) {
         clipEntries[clip] = {
-          frames: frames.map((_, i) => `${clip}/${String(i).padStart(2, '0')}`),
+          frames: frames.map((_, i) => {
+            const id = `${clip}/${String(i).padStart(2, '0')}`;
+            return x1.alias.get(id) ?? id;
+          }),
           fps: rig.clips?.[clip]?.fps ?? CLIP_SPEC[clip].fps,
           loop: rig.clips?.[clip]?.loop ?? CLIP_SPEC[clip].loop,
         };
@@ -427,9 +542,10 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
       planeEntries[plane] = {
         group,
         ...(rig.origin === undefined ? {} : { origin: rig.origin }),
-        x1,
-        ...(x2 === null ? {} : { x2 }),
-        scale: 1,
+        x1: { pages: x1.pages },
+        ...(x2 === null ? {} : { x2: { pages: x2.pages } }),
+        scale: 1 / res,
+        pivots: true,
         originX: rig.originX ?? BIRD_BOX.originX / BIRD_BOX.width,
         originY: rig.originY ?? BIRD_BOX.originY / BIRD_BOX.height,
         clips: clipEntries,
@@ -466,9 +582,19 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
           );
         cells.push({
           id: `${clip}/${String(i).padStart(2, '0')}`,
+          clip,
           img: f,
           w: box.width,
           h: box.height,
+          // The gun's grip, or the flash's centre (it is drawn centred on the muzzle).
+          ox:
+            clip === 'flash'
+              ? box.width / 2
+              : (rig.originX ?? GUN_BOX.originX / GUN_BOX.width) * box.width,
+          oy:
+            clip === 'flash'
+              ? box.height / 2
+              : (rig.originY ?? GUN_BOX.originY / GUN_BOX.height) * box.height,
         });
       }
       clipEntries[clip] = {
@@ -487,15 +613,26 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
       errors.push(`guns/${id}: an "idle" clip (one frame) is required`);
       continue;
     }
-    const x1 = packAtlas(cells, 1, `gun-${slug(id)}`, cat.group, 'guns', rig);
-    if (x1 === null) continue;
+    const group = groupFor(rig.group, cat.group, `guns/${id}`);
+    const x1 = packAtlas(cells, 1, `gun-${slug(id)}`, group, 'guns', rig);
+    if (x1 === null) {
+      errors.push(
+        `guns/${id}: masters must be at least the ${GUN_BOX.width}×${GUN_BOX.height} box`,
+      );
+      continue;
+    }
     const x2 =
-      rig.x2 === false ? null : packAtlas(cells, 2, `gun-${slug(id)}`, cat.group, 'guns', rig);
+      rig.x2 === false
+        ? null
+        : packAtlas(cells, 2, `gun-${slug(id)}`, group, 'guns', rig, 1, x1.alias);
+    for (const c of Object.values(clipEntries))
+      c.frames = c.frames.map((f) => x1.alias.get(f) ?? f);
     index.guns[id] = {
-      group: cat.group,
+      group,
       ...(rig.origin === undefined ? {} : { origin: rig.origin }),
-      x1,
-      ...(x2 === null ? {} : { x2 }),
+      x1: { pages: x1.pages },
+      ...(x2 === null ? {} : { x2: { pages: x2.pages } }),
+      pivots: true,
       originX: rig.originX ?? GUN_BOX.originX / GUN_BOX.width,
       originY: rig.originY ?? GUN_BOX.originY / GUN_BOX.height,
       tipX: rig.tipX ?? GUN_BOX.tipX / GUN_BOX.width,

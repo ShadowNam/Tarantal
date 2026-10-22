@@ -10,6 +10,8 @@ import type { GunClip } from '../assets/assetIndex';
 import { gunKey, TEX, type FinalGun } from '../assets/AssetManifest';
 
 const GUN_TEX_HEIGHT = 520;
+/** Width of the gun frame box (design px): rig tipX/originX are fractions of it. */
+const GUN_TEX_WIDTH = 420;
 /** Placeholder guns: the muzzle sits this far above the grip (texture px). */
 const BARREL_LEN = 500;
 
@@ -22,6 +24,8 @@ export class WeaponView {
   private rig: FinalGun | null = null;
   private weaponId = '';
   private reloading = false;
+  /** The touch shrink in use (1, 0.8 or the finger-down scale), before the rig's atlas scale. */
+  private displayScale = 1;
   /** e2e/dev only (art previews): the gun is frozen on one clip frame (kick and flash held). */
   private frozen = false;
   private readonly reticle: Phaser.GameObjects.Image;
@@ -50,11 +54,15 @@ export class WeaponView {
     this.feel = feel;
     this.gun = scene.add.sprite(0, 0, TEX.gun).setOrigin(0.5, 1);
     this.flash = scene.add.sprite(0, 0, TEX.flash).setVisible(false);
-    // A finished fire or reload clip settles back on the idle frame (unless a reload is running).
+    // A finished fire clip hands over to a reload that began meanwhile (the Voorlaaier reloads
+    // from the same tick it fires); otherwise fire and reload settle back on the idle frame.
     this.gun.on(
       Phaser.Animations.Events.ANIMATION_COMPLETE,
       (anim: Phaser.Animations.Animation) => {
-        if (anim.key.endsWith('/fire') && this.reloading) return;
+        if (anim.key.endsWith('/fire') && this.reloading) {
+          this.startReload();
+          return;
+        }
         this.showIdle();
       },
     );
@@ -65,8 +73,9 @@ export class WeaponView {
 
   /** Shows the active weapon's art (crate weapons have their own; others the shotgun). */
   setWeapon(weaponId: string): void {
-    if (weaponId === this.weaponId) return;
     if (this.frozen && this.weaponId !== '') return;
+    // Same gun: only worth another look while its rig hasn't arrived (late group, D-029).
+    if (weaponId === this.weaponId && (this.rig !== null || this.gunRig(weaponId) === null)) return;
     this.weaponId = weaponId;
     this.reloading = false;
     const rig = this.gunRig(weaponId);
@@ -74,7 +83,9 @@ export class WeaponView {
     if (this.rig !== null) {
       this.gun.stop();
       this.showIdle();
-      this.gun.setOrigin(this.rig.entry.originX, this.rig.entry.originY);
+      // Cropped frames carry their own pivot (the grip); full-box frames use the entry's origin.
+      if (this.rig.entry.pivots !== true)
+        this.gun.setOrigin(this.rig.entry.originX, this.rig.entry.originY);
       return;
     }
     const key = this.scene.textures.exists(gunKey(weaponId)) ? gunKey(weaponId) : TEX.gun;
@@ -98,12 +109,25 @@ export class WeaponView {
       }
       return;
     }
+    // Let the shot's recoil finish first; the fire clip's end starts the reload.
+    if (this.gun.anims.isPlaying && this.gun.anims.currentAnim?.key === this.animKey(rig, 'fire')) {
+      return;
+    }
+    this.startReload();
+  }
+
+  /** Plays the reload clip stretched to the weapon's reloadMs, or rests on idle if there is none. */
+  private startReload(): void {
+    const rig = this.rig;
+    if (rig === null) return;
     const clip = rig.entry.clips.reload;
     const def = this.weapons.find((w) => w.id === this.weaponId);
     const ms = def?.reloadMs ?? 0;
-    if (clip === undefined || ms <= 0) return;
-    const key = this.ensureAnim(rig, 'reload');
-    if (key === null) return;
+    const key = clip === undefined || ms <= 0 ? null : this.ensureAnim(rig, 'reload');
+    if (clip === undefined || key === null) {
+      this.showIdle();
+      return;
+    }
     const perShell = def !== undefined && 'perShellReload' in def && def.perShellReload;
     this.gun.play({
       key,
@@ -214,10 +238,12 @@ export class WeaponView {
       .setPosition(x, y)
       .setVisible(true)
       .setAlpha(this.prefs.flashAlpha)
-      .setScale(this.gun.scaleX * (0.8 + Math.random() * 0.3));
+      .setScale(this.displayScale * (rig?.scale ?? 1) * (0.8 + Math.random() * 0.3));
     if (own !== null && rig !== null) {
-      // The gun's own flash is drawn along the barrel: it turns with the gun.
-      this.flash.setOrigin(0.5, 0.5).setRotation(this.gun.rotation).play(own);
+      // The gun's own flash is drawn along the barrel: it turns with the gun. Its frames carry
+      // their centre as the pivot when cropped.
+      this.flash.setRotation(this.gun.rotation).play(own);
+      if (rig.entry.pivots !== true) this.flash.setOrigin(0.5, 0.5);
     } else {
       this.flash.stop();
       this.flash
@@ -255,10 +281,11 @@ export class WeaponView {
       .setPosition(x, y)
       .setVisible(true)
       .setAlpha(this.prefs.flashAlpha)
-      .setScale(this.gun.scaleX);
-    if (rig !== null && flash !== undefined)
-      this.flash.setTexture(rig.atlasKey, flash).setOrigin(0.5, 0.5).setRotation(this.gun.rotation);
-    else this.flash.setTexture(TEX.flash).setOrigin(0.5, 0.5).setRotation(0.4);
+      .setScale(this.displayScale * (rig?.scale ?? 1));
+    if (rig !== null && flash !== undefined) {
+      this.flash.setTexture(rig.atlasKey, flash).setRotation(this.gun.rotation);
+      if (rig.entry.pivots !== true) this.flash.setOrigin(0.5, 0.5);
+    } else this.flash.setTexture(TEX.flash).setOrigin(0.5, 0.5).setRotation(0.4);
   }
 
   update(deltaMs: number): void {
@@ -268,6 +295,7 @@ export class WeaponView {
     const shrink = this.touchMode && this.touchDown;
     const scale = shrink ? j.gunTouchScale : this.touchMode ? 0.8 : 1;
     const alpha = shrink ? j.gunTouchAlpha : 1;
+    this.displayScale = scale;
     // Lean the barrels toward the aim point; kick pushes the gun down and tilts it.
     const dx = this.aimX - this.baseX;
     const dy = Math.max(200, this.baseY - this.aimY);
@@ -278,7 +306,8 @@ export class WeaponView {
         this.baseY + this.kick * j.gunKickPx + GUN_TEX_HEIGHT * 0.12 * scale,
       )
       .setRotation(lean - this.kick * 0.06)
-      .setScale(scale)
+      // A @2x rig atlas (high tier) is drawn at half scale (FinalGun.scale).
+      .setScale(scale * (this.rig?.scale ?? 1))
       .setAlpha(alpha);
     if (this.touchMode && this.reticle.visible && this.scene.time.now > this.reticleHideAt) {
       this.reticle.setAlpha(Math.max(0, this.reticle.alpha - deltaMs / 250));
@@ -289,13 +318,12 @@ export class WeaponView {
   private barrelTip(): { x: number; y: number } {
     const r = this.gun.rotation;
     const e = this.rig?.entry;
-    // Muzzle relative to the gun's origin, in texture px (rig: from rig.json tipX/tipY).
-    const w = this.gun.frame.realWidth;
-    const h = this.gun.frame.realHeight;
-    const dx = e === undefined ? 0 : (e.tipX - e.originX) * w;
-    const dy = e === undefined ? -BARREL_LEN : (e.tipY - e.originY) * h;
-    const sx = dx * this.gun.scaleX;
-    const sy = dy * this.gun.scaleY;
+    // Muzzle relative to the grip in design px (rig: rig.json tipX/tipY, fractions of the box),
+    // whatever the atlas resolution or crop.
+    const dx = e === undefined ? 0 : (e.tipX - e.originX) * GUN_TEX_WIDTH;
+    const dy = e === undefined ? -BARREL_LEN : (e.tipY - e.originY) * GUN_TEX_HEIGHT;
+    const sx = dx * this.displayScale;
+    const sy = dy * this.displayScale;
     return {
       x: this.gun.x + sx * Math.cos(r) - sy * Math.sin(r),
       y: this.gun.y + sx * Math.sin(r) + sy * Math.cos(r),

@@ -147,6 +147,16 @@ test('every gun: idle, mid-recoil and reload', async ({ page }, info) => {
     await startHunt(page, isTouchProject(info));
     await page.waitForFunction(() => (window.__TM__?.tick ?? 0) >= 30, null, { timeout: 120_000 });
     await settle(page);
+    // The guns other than the Dubbelloop download late (D-029): wait for them.
+    if (v === 'after')
+      await page.waitForFunction(
+        () =>
+          (window.__TM__?.assets.byBiome['karoo-autumn'] ?? []).filter(
+            (e) => e.key.startsWith('gun/') && e.status === 'interim',
+          ).length >= 6,
+        null,
+        { timeout: 60_000 },
+      );
     await aimCentre(page);
     for (const [id, reloadFrame] of GUNS) {
       const poses: [string, string, number][] = [

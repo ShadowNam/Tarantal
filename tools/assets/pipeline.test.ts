@@ -124,10 +124,11 @@ describe('pack-atlases', () => {
     };
     put(
       'birds/tarentaal/rig.json',
-      new TextEncoder().encode('{"origin":"interim","x2":false,"encode":"png8"}'),
+      new TextEncoder().encode('{"origin":"interim","x2":false,"encode":"png8","group":"late"}'),
     );
     put('birds/tarentaal/flap/00.png', disc(620, 400));
     put('birds/tarentaal/forage_walk/00.png', disc(620, 400));
+    put('birds/tarentaal/forage_walk/01.png', disc(620, 400));
     put('birds/tarentaal/peek/00.png', disc(620, 400));
     put('birds/tarentaal/planes/far/flap/00.png', disc(272, 176));
     put(
@@ -146,9 +147,21 @@ describe('pack-atlases', () => {
     const json = JSON.parse(readFileSync(join(out, page?.data.path ?? ''), 'utf8')) as {
       frames: Record<string, { trimmed: boolean; frame: { w: number }; sourceSize: { w: number } }>;
     };
-    // Never trimmed: Phaser 4.2.1 mis-draws trimmed frames in animations (D-029 §3).
-    expect(json.frames['flap/00']?.trimmed).toBe(false);
-    expect(json.frames['flap/00']?.frame.w).toBe(310);
+    // Never trimmed (Phaser 4.2.1 mis-draws trimmed frames in animations, D-029 §3): cropped to
+    // the clip's opaque bounds instead, with the sim position as the frame's pivot.
+    const flap = json.frames['flap/00'] as unknown as {
+      trimmed: boolean;
+      frame: { w: number; h: number };
+      pivot: { x: number; y: number };
+    };
+    expect(flap.trimmed).toBe(false);
+    expect(flap.frame.w).toBeLessThan(200);
+    expect(mid?.pivots).toBe(true);
+    // The disc is centred in the box; the sim position (310, 230) of the 620 × 400 box, halved.
+    expect(flap.frame.w * flap.pivot.x).toBeCloseTo(155 - (310 / 2 - flap.frame.w / 2), 0);
+    // Identical frames of a clip are packed once and named twice.
+    expect(mid?.clips.forage_walk?.frames).toEqual(['forage_walk/00', 'forage_walk/00']);
+    expect(mid?.group).toBe('late');
     // The palette PNG decodes back to an image.
     expect(readPng(join(out, page?.image.path ?? '')).width).toBeGreaterThan(0);
     // The far plane uses its own master (only flap there): forage_walk still comes from the shared one.

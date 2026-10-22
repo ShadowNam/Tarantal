@@ -112,6 +112,15 @@ test('the shipped interim art loads as interim (D-029)', async ({ page }, info) 
   const errors = collectErrors(page);
   await boot(page, 'seed=42');
   expect((await hook(page)).assets.problem).toBeNull();
+  // Guns other than the Dubbelloop are in the late group: they arrive after boot.
+  await page.waitForFunction(
+    () => {
+      const entries = window.__TM__?.assets.byBiome['karoo-autumn'] ?? [];
+      return entries.filter((e) => e.key.startsWith('gun/') && e.status === 'interim').length >= 6;
+    },
+    null,
+    { timeout: 60_000 },
+  );
   const st = await statuses(page);
   const interim = Object.entries(st).filter(([, s]) => s === 'interim');
   for (const id of ['dubbelloop', 'windbuks', 'kettie', 'pomp', 'voorlaaier', 'mielie_masjien'])

@@ -207,7 +207,43 @@
     "flashOuter": "#F07A2A",
     "scratch": "#C9CED3",
     "lineNear": 6,
-    "widen": 1.4,
+    "poses": {
+      "$comment": "Per gun: angle (deg, negative = barrels up-left toward the screen centre), shift (px right of the box centre) and widen (x scale of the drawing about the barrel line). Review 2: the long guns point into the scene at an angle with the stock bottom right, like the old placeholder's silhouette.",
+      "dubbelloop": {
+        "angle": -22,
+        "shift": 62,
+        "widen": 1.15
+      },
+      "windbuks": {
+        "angle": -22,
+        "shift": 62,
+        "widen": 1.15
+      },
+      "pomp": {
+        "angle": -22,
+        "shift": 62,
+        "widen": 1.15
+      },
+      "voorlaaier": {
+        "angle": -22,
+        "shift": 62,
+        "widen": 1.15
+      },
+      "kettie": {
+        "angle": -8,
+        "shift": 10,
+        "widen": 1.25
+      },
+      "mielie_masjien": {
+        "angle": -14,
+        "shift": 40,
+        "widen": 1.3
+      }
+    },
+    "lateLoad": {
+      "$comment": "Guns that download after the first hunt is up (D-029 'late' group): unlockables and crate weapons. The default Dubbelloop is in the first download.",
+      "ids": ["windbuks", "kettie", "pomp", "voorlaaier", "mielie_masjien"]
+    },
     "wobble": {
       "frequency": 0.04,
       "scale": 2.5

@@ -10,6 +10,12 @@ import { z } from 'zod';
 export const ASSET_INDEX_PATH = 'assets/asset-index.json';
 /** Group of assets every hunt needs (UI, FX, shared birds and sounds). */
 export const COMMON_GROUP = 'common';
+/**
+ * D-029: assets the first hunt doesn't need straight away (rare variants, bosses, guns that aren't
+ * equipped). They download after the hunt view is up and are installed when they arrive; until
+ * then their keys show the placeholder. Not part of the first download.
+ */
+export const LATE_GROUP = 'late';
 
 /** Bird animation clips (art bible §3.4). */
 export const BIRD_CLIPS = [
@@ -94,6 +100,11 @@ const birdPlaneEntry = z.object({
   /** The bird's sim position inside a frame, as fractions (matches content/birds.json hitboxes). */
   originX: fraction,
   originY: fraction,
+  /**
+   * D-029: frames are cropped per clip and carry their own pivot (the sim position inside the
+   * crop); views then must not override the origin. Absent = full-box frames at originX/Y.
+   */
+  pivots: z.boolean().optional(),
   clips: z.partialRecord(z.enum(BIRD_CLIPS), clipEntry),
 });
 
@@ -109,6 +120,8 @@ const gunEntry = z.object({
   origin,
   x1: atlasRef,
   x2: atlasRef.optional(),
+  /** D-029: frames carry their own pivot (grip, or the flash centre); see birdPlaneEntry. */
+  pivots: z.boolean().optional(),
   /** Grip point (the gun's screen anchor) in the 420 × 520 gun frame, as fractions. */
   originX: fraction,
   originY: fraction,

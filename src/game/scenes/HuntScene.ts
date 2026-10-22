@@ -193,6 +193,14 @@ export class HuntScene extends Phaser.Scene {
     }
   }
 
+  /** RGBA bytes of every texture in the texture manager (an estimate of GPU texture memory). */
+  private textureBytes(): number {
+    let n = 0;
+    for (const key of this.textures.getTextureKeys())
+      for (const src of this.textures.get(key).source) n += src.width * src.height * 4;
+    return n;
+  }
+
   /** The biome an auto-started hunt will play (the home biome for the title). */
   private initialBiome(data: HuntData): Biome {
     const c = this.ctx;
@@ -258,7 +266,8 @@ export class HuntScene extends Phaser.Scene {
       this.ctx.feel,
       this.screen,
       this.ctx.prefs,
-      (id) => this.manifest.finalGun(id),
+      // The gun's atlas goes to the GPU when it is first shown (D-029).
+      (id) => this.manifest.ensureGun(this.textures, id),
       this.ctx.content.weapons.weapons,
     );
     // e2e/dev only (D-029 art previews): freeze the gun on a clip frame for screenshots.
@@ -774,6 +783,8 @@ export class HuntScene extends Phaser.Scene {
       hook.ticksLeft = state.ticksLeft;
       hook.score = state.score;
       hook.shells = state.weapon.shells;
+      // D-029: GPU texture memory (RGBA bytes of every texture source), sampled twice a second.
+      if (state.tick % 30 === 0) hook.textureBytes = this.textureBytes();
       hook.magazine = state.weapon.magazine;
       hook.reloading = state.weapon.reloading;
       hook.stones = state.projectiles.length;

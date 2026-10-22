@@ -125,8 +125,17 @@ const configSchema = z.object({
   guns: z
     .object({
       lineNear: z.number().positive(),
-      /** Gun width multiplier (path x coordinates, about the barrel line): mass in first person. */
-      widen: z.number().positive(),
+      /** Guns in the late download group (not needed to start the first hunt). */
+      lateLoad: z.object({ $comment: z.string().optional(), ids: z.array(z.enum(GUN_IDS)) }),
+      /** Per gun: how it sits in its frame (guns.ts poseFor). */
+      poses: z
+        .object({ $comment: z.string().optional() })
+        .and(
+          z.record(
+            z.enum(GUN_IDS),
+            z.object({ angle: z.number(), shift: z.number(), widen: z.number().positive() }),
+          ),
+        ),
       wobble: z.object({ frequency: z.number().positive(), scale: z.number().nonnegative() }),
       clips: z.object({ $comment: z.string().optional() }).and(z.record(z.enum(GUN_IDS), gunClips)),
     })
