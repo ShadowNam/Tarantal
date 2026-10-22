@@ -14,7 +14,7 @@ import { dirname, join } from 'node:path';
 import { format } from 'prettier';
 import type { BirdClip } from '../../src/game/assets/assetIndex';
 import type { PlaneId } from '../../src/sim/types';
-import { encodePng8 } from '../assets/image';
+import { encodePng, encodePng8 } from '../assets/image';
 import { NEAR_CLIPS } from '../assets/pack';
 import { CLIP_SPEC } from '../assets/targets';
 import { loadContent } from '../testContent';
@@ -208,11 +208,17 @@ if (wants('scenery')) {
         console.warn(`skip layers/${biome.id}/${layer.id}: a human delivery is there`);
         continue;
       }
-      put(png, encodePng8(renderLayer(cfg, plan, layer)));
       const lp = plan.layers[layer.id];
+      const enc = lp?.encode ?? 'png8';
+      const img = renderLayer(cfg, plan, layer);
+      put(png, enc === 'png8' ? encodePng8(img) : encodePng(img));
       put(
         png.replace(/\.png$/, '.json'),
-        await json({ origin: 'interim', encode: 'png8', top: lp?.top }),
+        await json({
+          origin: 'interim',
+          ...(enc === 'png8' ? { encode: 'png8' } : {}),
+          top: lp?.top,
+        }),
       );
       console.log(`layers/${biome.id}/${layer.id}`);
     }

@@ -7,7 +7,8 @@ import { resize, type Rgba } from '../assets/image';
 import type { ArtConfig } from './config';
 import { biomePalette } from './config';
 import { renderSvg } from './raster';
-import { flat, line, nextId, resetIds, shade, tone, tuft, type Pen } from './scenery';
+import { flat, line, nextId, resetIds, shade, stone, tone, type Pen } from './scenery';
+import { pick, stalk, tuftOf, type TuftKind } from './vegetation';
 import {
   el,
   ellipseD,
@@ -249,60 +250,57 @@ function puff(p: SpriteCtx): string {
 }
 
 function grassTuft(p: SpriteCtx): string {
-  // Covers a pop-up bird's base on the near ground: a ragged grass mound in the near layer's
-  // colours (origin on the grass line, blades rise 30 px above it), edges fading into the ground.
+  // Covers a pop-up bird's base on the near ground: a ragged mound in the near layer's colour
+  // (origin on the grass line, blades rise ~30–60 px above it) carrying a mixed clump: tufts of
+  // different shapes, sizes and colours, a stone and a dry stalk (D-031 look review).
   const ground = p.c('veldDark');
   const mound = smoothD(
     [
-      [-128, 70],
-      [-118, 18],
-      [-80, 6],
-      [-30, 2],
-      [30, 3],
-      [84, 6],
-      [120, 20],
-      [128, 70],
-      [60, 80],
-      [-60, 80],
+      [-128, 72],
+      [-122, 26],
+      [-96, 10],
+      [-50, 4],
+      [10, 2],
+      [62, 6],
+      [104, 14],
+      [126, 32],
+      [128, 72],
+      [60, 82],
+      [-60, 82],
     ],
     true,
     0.8,
   );
   const parts: string[] = [flat(mound, ground)];
-  parts.push(
-    flat(
-      smoothD(
-        [
-          [-110, 60],
-          [-60, 40],
-          [0, 44],
-          [70, 38],
-          [112, 60],
-          [40, 74],
-          [-50, 74],
-        ],
-        true,
-        0.8,
-      ),
-      shade(ground, -0.1),
-    ),
-  );
-  const grass = [tone(p.c('veld'), 0.22, 0.25), tone(p.c('veldLight'), 0.22, 0.2)];
-  for (let k = 0; k < 7; k++) {
-    const t = grass[k % 2] ?? grass[0];
-    if (t === undefined) continue;
+  parts.push(flat(ellipseD(10, 52, 110, 18), shade(ground, -0.1)));
+  const tones = [
+    { v: tone(p.c('straw'), 0.24, 0.25), w: 5 },
+    { v: tone(p.c('bleached'), 0.22, 0.18), w: 3 },
+    { v: tone(p.c('greyGreen'), 0.24, 0.22), w: 1.2 },
+  ];
+  const kinds: TuftKind[] = [
+    'fan',
+    'clump',
+    'seeding',
+    'wispy',
+    'upright',
+    'windswept',
+    'fan',
+    'clump',
+  ];
+  const pen = { ink: p.ink, w: 3.5 };
+  parts.push(stone(p.rnd, 86, 30, 12, tone(p.c('pebble'), 0.28, 0.25), { ink: p.ink, w: 3 }));
+  for (let k = 0; k < kinds.length; k++) {
+    const kind = kinds[k] ?? 'fan';
+    const x = -112 + k * 30 + (p.rnd() - 0.5) * 14;
+    const y = 24 + p.rnd() * 10;
+    // The texture ends 30 px above the grass line: keep every tip (and seed head) inside it.
+    const room = (y + 27) / (kind === 'seeding' ? 1.65 : 1.05);
     parts.push(
-      tuft(
-        p.rnd,
-        -108 + k * 36 + (p.rnd() - 0.5) * 8,
-        22 + (k % 2) * 6,
-        50 + p.rnd() * 18,
-        t,
-        { ink: p.ink, w: 3.5 },
-        6,
-      ),
+      tuftOf(kind, p.rnd, x, y, room * (0.7 + p.rnd() * 0.3), pick(p.rnd, tones), pen, p.c('seed')),
     );
   }
+  parts.push(stalk(p.rnd, -30, 26, 48, p.c('bleached'), p.c('seed'), { ink: p.ink, w: 2.5 }));
   return g({}, ...parts);
 }
 

@@ -4,8 +4,6 @@
 // a fire, a fence-post bell and aloes. Light from the upper left. D-031.
 import type { BiomeArtPlan, LayerCtx, PaintCtx, PropCtx } from '../landscape';
 import {
-  bossie,
-  cloud,
   edgePts,
   flat,
   groundD,
@@ -26,8 +24,20 @@ import {
   type Pen,
   type Pt,
   type Rnd,
+  type Tone,
 } from '../scenery';
 import { el, ellipseD, g, inked, place, polyD, r2, smoothD } from '../svg';
+import { cirrus, skyGradient, softCumulus, softDefs, type CloudColours } from '../skies';
+import {
+  grassField,
+  pick,
+  shrub,
+  shrubShape,
+  stalk,
+  tuftOf,
+  type TuftKind,
+  type Weighted,
+} from '../vegetation';
 
 // --- shared bits ---------------------------------------------------------------------------
 
@@ -270,55 +280,98 @@ export function aloeRosette(ctx: PaintCtx, x: number, y: number, s: number, pen:
 // --- layers --------------------------------------------------------------------------------
 
 function sky(ctx: LayerCtx): string {
-  const parts: string[] = [
-    vGradient('sky', [
+  return softSky(ctx, {
+    stops: [
       [0, ctx.raw('skyTop')],
-      [0.28, ctx.raw('skyMid')],
+      [0.3, ctx.raw('skyMid')],
       [0.52, ctx.raw('skyBottom')],
       [1, ctx.raw('horizon')],
-    ]),
-    el('rect', { x: 0, y: 0, width: ctx.width, height: 1080, fill: 'url(#sky)' }),
-  ];
-  const pen: Pen = { ink: mix('#1B1410', ctx.raw('skyMid'), 0.62), w: 2 };
-  // High thin streaks (calm flyer band), then cumulus banks low over the horizon.
-  const streak = mix(ctx.raw('cloud'), ctx.raw('skyMid'), 0.35);
-  for (let x = 80; x < ctx.width; x += 380 + ctx.rnd() * 360) {
-    const y = 120 + ctx.rnd() * 200;
-    const w = 160 + ctx.rnd() * 220;
+    ],
+    cloud: {
+      lit: ctx.raw('cloud'),
+      body: mix(ctx.raw('cloud'), ctx.raw('skyBottom'), 0.35),
+      base: ctx.raw('cloudShadow'),
+    },
+  });
+}
+
+/**
+ * A soft sky shared by the biomes: smooth gradient, two or three high thin streaks kept faint,
+ * and soft flat-bottomed cumulus banked low over the horizon (below the flyer band, 80–420).
+ */
+export function softSky(
+  ctx: LayerCtx,
+  o: {
+    stops: readonly (readonly [number, string])[];
+    cloud: CloudColours;
+    /** Base line of the cumulus banks and their height range. */
+    base?: number;
+    size?: readonly [number, number];
+    streaks?: number;
+  },
+): string {
+  const parts: string[] = [softDefs(), skyGradient(ctx.width, 1080, o.stops)];
+  const streak = mix(o.cloud.lit, o.stops[1]?.[1] ?? o.cloud.lit, 0.25);
+  const n = o.streaks ?? 4;
+  for (let k = 0; k < n; k++) {
+    const x = ((k + ctx.rnd() * 0.6) / n) * ctx.width;
+    parts.push(cirrus(ctx.rnd, x, 120 + ctx.rnd() * 230, 220 + ctx.rnd() * 300, streak, 0.45));
+  }
+  const base = o.base ?? 560;
+  const [h0, h1] = o.size ?? [60, 110];
+  for (let x = -100 + ctx.rnd() * 120; x < ctx.width;) {
+    const w = 200 + ctx.rnd() * 260;
+    const h = h0 + ctx.rnd() * (h1 - h0);
+    parts.push(softCumulus(ctx.rnd, x, base + ctx.rnd() * 30, w, h, o.cloud));
+    x += w * (0.7 + ctx.rnd() * 0.9);
+  }
+  // A few small fair-weather clouds just under the flyer band.
+  for (let x = 300 + ctx.rnd() * 300; x < ctx.width; x += 900 + ctx.rnd() * 700)
     parts.push(
-      flat(
-        smoothD(
-          [
-            [x, y],
-            [x + w * 0.3, y - 7],
-            [x + w, y - 3],
-            [x + w * 0.7, y + 4],
-          ],
-          true,
-          0.8,
-        ),
-        streak,
+      softCumulus(
+        ctx.rnd,
+        x,
+        470 + ctx.rnd() * 30,
+        110 + ctx.rnd() * 80,
+        34 + ctx.rnd() * 16,
+        o.cloud,
       ),
     );
-  }
-  // Low cumulus banks over the horizon (behind the mesas), soft and warm in the low sun.
-  const low = {
-    fill: mix(ctx.raw('cloud'), ctx.raw('skyBottom'), 0.35),
-    dark: mix(ctx.raw('cloudShadow'), ctx.raw('skyBottom'), 0.25),
-    light: '#FFF8EC',
-  };
-  for (let x = -60; x < ctx.width; x += 260 + ctx.rnd() * 380) {
-    const y = 520 + ctx.rnd() * 40;
-    const w = 150 + ctx.rnd() * 220;
-    parts.push(cloud(ctx.rnd, x, y, w, w * (0.16 + ctx.rnd() * 0.06), low, null));
-  }
-  const ct = { fill: ctx.raw('cloud'), dark: ctx.raw('cloudShadow'), light: '#FFFFFF' };
-  for (let x = 240; x < ctx.width; x += 760 + ctx.rnd() * 520) {
-    const y = 360 + ctx.rnd() * 70;
-    const w = 110 + ctx.rnd() * 120;
-    parts.push(cloud(ctx.rnd, x, y, w, w * 0.26, ct, pen));
-  }
   return g({}, ...parts);
+}
+
+/** Weighted grass tones from a biome palette's straw / bleached / grey-green colours. */
+export function grassTones(ctx: PaintCtx, darkK = 0.24): Weighted<Tone>[] {
+  return [
+    { v: tone(ctx.c('straw'), darkK, 0.25), w: 5 },
+    { v: tone(ctx.c('bleached'), darkK * 0.9, 0.18), w: 3 },
+    { v: tone(ctx.c('greyGreen'), darkK, 0.22), w: 1.2 },
+  ];
+}
+
+/** Weighted shrub tones: grey-green and olive, some autumn brown. */
+export function shrubTones(ctx: PaintCtx): Weighted<Tone>[] {
+  return [
+    { v: tone(ctx.c('bossieGrey'), 0.26, 0.24), w: 4 },
+    { v: tone(ctx.c('bossie'), 0.26, 0.24), w: 3 },
+    { v: tone(ctx.c('autumn'), 0.26, 0.22), w: 1.5 },
+  ];
+}
+
+/** A shrub with a mixed second colour, size s, shape from the PRNG. */
+export function bush(ctx: PaintCtx, x: number, y: number, s: number, pen: Pen): string {
+  const tones = shrubTones(ctx);
+  return shrub(
+    ctx.rnd,
+    x,
+    y,
+    s,
+    pick(ctx.rnd, tones),
+    pick(ctx.rnd, tones),
+    ctx.c('twig'),
+    pen,
+    shrubShape(ctx.rnd),
+  );
 }
 
 function farRidge(ctx: LayerCtx): string {
@@ -486,14 +539,15 @@ function farVeld(ctx: LayerCtx): string {
       ),
     );
   }
-  for (let k = 0; k < ctx.width / 22; k++) {
-    const x = ctx.rnd() * ctx.width;
-    const y = 582 + Math.pow(ctx.rnd(), 1.3) * 170;
-    const s = 2.5 + ((y - 580) / 170) * 6;
-    const c = ctx.rnd() < 0.5 ? ctx.c('bossie') : ctx.c('bossieGrey');
-    inside.push(flat(ellipseD(x, y, s * 1.4, s * 0.8), c));
-    inside.push(flat(ellipseD(x + s * 0.4, y + s * 0.3, s * 0.9, s * 0.4), shade(c, -0.2)));
+  // Distant bossies: small, paler twiggy shrubs, thinly inked (aerial perspective).
+  const far: { y: number; svg: string }[] = [];
+  for (let x = ctx.rnd() * 40; x < ctx.width; x += 14 + ctx.rnd() * 46) {
+    const y = 584 + Math.pow(ctx.rnd(), 1.3) * 170;
+    const s = 3 + ((y - 580) / 170) * 7 + ctx.rnd() * 2;
+    far.push({ y, svg: bush(ctx, x, y, s, { ink: ctx.pen.ink, w: 1.2 }) });
   }
+  far.sort((a, b) => a.y - b.y);
+  inside.push(...far.map((i) => i.svg));
   parts.push(g({ 'clip-path': `url(#${band.clip})` }, ...inside));
   parts.push(line(smoothD(band.edge, false, 0.8), ctx.pen));
   // A farmstead with bluegums, a far windpomp and a stand of trees, on the horizon line.
@@ -635,20 +689,38 @@ function mid(ctx: LayerCtx): string {
   );
   const road = track(ctx, ctx.u(0.47), 672);
   inside.push(road.svg);
-  // Bossies and stones, smaller toward the horizon, never on the track.
+  // Bossies and stones, smaller toward the horizon, never on the track; irregular spacing.
   const items: { y: number; svg: string }[] = [];
-  for (let x = 20; x < ctx.width; x += 40 + ctx.rnd() * 110) {
+  const offTrack = (x: number, y: number) => Math.abs(x - road.xAt(y)) < 60 + (y - 660) * 0.35;
+  for (let x = 20 + ctx.rnd() * 40; x < ctx.width;) {
     const y = 676 + Math.pow(ctx.rnd(), 0.9) * 230;
-    if (Math.abs(x - road.xAt(y)) < 70 + (y - 660) * 0.35) continue;
     const s = 9 + ((y - 660) / 250) * 30;
-    const pick = ctx.rnd();
-    const c =
-      pick < 0.45 ? ctx.c('bossie') : pick < 0.8 ? ctx.c('bossieGrey') : ctx.c('bossieDark');
-    const pen: Pen = { ink: ctx.pen.ink, w: s < 16 ? 2.5 : ctx.pen.w };
-    if (ctx.rnd() < 0.1)
-      items.push({ y, svg: stone(ctx.rnd, x, y, s * 0.6, tone(ctx.c('stone'), 0.25, 0.25), pen) });
-    else items.push({ y, svg: bossie(ctx.rnd, x, y, s, tone(c, 0.24, 0.26), pen) });
+    if (!offTrack(x, y)) {
+      const pen: Pen = { ink: ctx.pen.ink, w: s < 16 ? 2.5 : ctx.pen.w };
+      if (ctx.rnd() < 0.1)
+        items.push({
+          y,
+          svg: stone(ctx.rnd, x, y, s * 0.6, tone(ctx.c('stone'), 0.25, 0.25), pen),
+        });
+      else items.push({ y, svg: bush(ctx, x, y, s * (0.9 + ctx.rnd() * 0.7), pen) });
+    }
+    x += ctx.rnd() < 0.15 ? 140 + ctx.rnd() * 160 : 18 + ctx.rnd() * 70;
   }
+  items.push(
+    ...grassField(ctx.rnd, {
+      x0: 0,
+      x1: ctx.width,
+      y0: 690,
+      y1: 905,
+      h: [10, 18],
+      grow: 1.6,
+      gap: 80,
+      grass: grassTones(ctx),
+      pen: { ink: ctx.pen.ink, w: 2.5 },
+      twigs: { p: 0.2, colour: ctx.c('twig') },
+      avoid: (x, y) => offTrack(x, y),
+    }),
+  );
   items.sort((a, b) => a.y - b.y);
   inside.push(...items.map((i) => i.svg));
   const parts = [band.svg, g({ 'clip-path': `url(#${band.clip})` }, ...inside)];
@@ -727,41 +799,27 @@ function near(ctx: LayerCtx): string {
       2.5,
     ),
   );
-  const items: { y: number; svg: string }[] = [];
+  // Grass in irregular clusters (a calmer band where the pop-ups rise), stones, twigs, stalks,
+  // and a few bossies.
   const pen: Pen = { ink: ctx.pen.ink, w: 5 };
-  const grassA = tone(ctx.c('veld'), 0.22, 0.25);
-  const grassB = tone(ctx.c('veldLight'), 0.22, 0.2);
-  // Back row of short tufts at the crest, a calm middle band (pop-ups), a front row.
-  for (let x = 10; x < ctx.width; x += 60 + ctx.rnd() * 120) {
-    const y = 860 + ctx.rnd() * 18;
-    items.push({
-      y,
-      svg: tuft(ctx.rnd, x, y, 28 + ctx.rnd() * 26, ctx.rnd() < 0.5 ? grassA : grassB, {
-        ink: ctx.pen.ink,
-        w: 4,
-      }),
-    });
-  }
-  for (let x = 40; x < ctx.width; x += 90 + ctx.rnd() * 200) {
-    const y = 1000 + ctx.rnd() * 80;
-    const r = ctx.rnd();
-    if (r < 0.14)
-      items.push({
-        y,
-        svg: stone(ctx.rnd, x, y, 16 + ctx.rnd() * 16, tone(ctx.c('stone'), 0.25, 0.25), pen),
-      });
-    else
-      items.push({
-        y,
-        svg: tuft(ctx.rnd, x, y, 50 + ctx.rnd() * 50, r < 0.55 ? grassA : grassB, pen),
-      });
-  }
-  for (let x = 300; x < ctx.width; x += 500 + ctx.rnd() * 600) {
-    const y = 960 + ctx.rnd() * 30;
-    items.push({
-      y,
-      svg: bossie(ctx.rnd, x, y, 30 + ctx.rnd() * 14, tone(ctx.c('bossieGrey'), 0.24, 0.26), pen),
-    });
+  const items = grassField(ctx.rnd, {
+    x0: 0,
+    x1: ctx.width,
+    y0: 856,
+    y1: 1078,
+    h: [28, 50],
+    grow: 1.3,
+    gap: 95,
+    grass: grassTones(ctx),
+    pen: { ink: ctx.pen.ink, w: 4 },
+    stones: { p: 0.22, tone: tone(ctx.c('stone'), 0.25, 0.25) },
+    twigs: { p: 0.3, colour: ctx.c('twig') },
+    stalks: { p: 0.25, colour: ctx.c('bleached'), head: ctx.c('seed') },
+    avoid: (_x, y) => y > 905 && y < 965 && ctx.rnd() < 0.6,
+  });
+  for (let x = 200 + ctx.rnd() * 300; x < ctx.width; x += 450 + ctx.rnd() * 800) {
+    const y = 960 + ctx.rnd() * 60;
+    items.push({ y, svg: bush(ctx, x, y, 24 + ctx.rnd() * 18, pen) });
   }
   items.sort((a, b) => a.y - b.y);
   inside.push(...items.map((i) => i.svg));
@@ -776,13 +834,19 @@ function near(ctx: LayerCtx): string {
 function foreground(ctx: LayerCtx): string {
   const parts: string[] = [];
   const pen = ctx.pen;
-  const grassA = tone(ctx.c('veldDark'), 0.25, 0.25);
-  const grassB = tone(ctx.c('veld'), 0.25, 0.22);
+  const grass = grassTones(ctx, 0.3);
   const avoid = [ctx.u(0.05), ctx.u(0.93)];
-  for (let x = 160 + ctx.rnd() * 200; x < ctx.width; x += 650 + ctx.rnd() * 650) {
+  const kinds: Weighted<TuftKind>[] = [
+    { v: 'fan', w: 3 },
+    { v: 'seeding', w: 2.5 },
+    { v: 'wispy', w: 2 },
+    { v: 'upright', w: 2 },
+    { v: 'windswept', w: 1.5 },
+  ];
+  for (let x = 160 + ctx.rnd() * 200; x < ctx.width; x += 500 + ctx.rnd() * 800) {
     if (avoid.some((a) => Math.abs(a - x) < 320)) continue;
     const kind = ctx.rnd();
-    if (kind < 0.25) {
+    if (kind < 0.2) {
       // An old leaning fence post with a curl of slack wire.
       const base = 1090;
       parts.push(
@@ -797,26 +861,41 @@ function foreground(ctx: LayerCtx): string {
           w: 2.5,
         }),
       );
-      parts.push(tuft(ctx.rnd, x - 20, 1088, 90, grassA, pen));
-    } else if (kind < 0.45) {
+    } else if (kind < 0.38) {
       parts.push(
-        stone(ctx.rnd, x, 1082, 58 + ctx.rnd() * 20, tone(ctx.c('stone'), 0.28, 0.25), pen),
+        stone(ctx.rnd, x, 1082, 50 + ctx.rnd() * 26, tone(ctx.c('stone'), 0.28, 0.25), pen),
       );
-      parts.push(tuft(ctx.rnd, x + 70, 1090, 110, grassB, pen));
-    } else {
-      for (let k = 0; k < 4; k++)
-        parts.push(
-          tuft(
-            ctx.rnd,
-            x + k * 46 - 70,
-            1092,
-            110 + ctx.rnd() * 70,
-            k % 2 === 0 ? grassA : grassB,
-            pen,
-            8,
-          ),
-        );
     }
+    // A clump of mixed tufts: varied heights, a few tall seed heads.
+    const n = 2 + Math.floor(ctx.rnd() * 5);
+    for (let k = 0; k < n; k++) {
+      const tx = x + (ctx.rnd() - 0.5) * 220;
+      const h = 70 + Math.pow(ctx.rnd(), 1.5) * 140;
+      parts.push(
+        tuftOf(
+          pick(ctx.rnd, kinds),
+          ctx.rnd,
+          tx,
+          1088 + ctx.rnd() * 8,
+          h,
+          pick(ctx.rnd, grass),
+          pen,
+          ctx.c('seed'),
+        ),
+      );
+    }
+    if (ctx.rnd() < 0.5)
+      parts.push(
+        stalk(
+          ctx.rnd,
+          x + (ctx.rnd() - 0.5) * 160,
+          1090,
+          180 + ctx.rnd() * 60,
+          ctx.c('bleached'),
+          ctx.c('seed'),
+          { ink: pen.ink, w: 3 },
+        ),
+      );
   }
   return g({}, ...parts);
 }
@@ -1381,7 +1460,7 @@ function aloes(rosettes: readonly (readonly [number, number, number])[]) {
 export const KAROO_PLAN: BiomeArtPlan = {
   biome: 'karoo-autumn',
   layers: {
-    sky: { top: 0, height: 1080, draw: sky },
+    sky: { top: 0, height: 1080, encode: 'png', draw: sky },
     far_ridge: { top: 380, height: 280, draw: farRidge },
     far_veld: { top: 548, height: 232, draw: farVeld },
     mid: { top: 600, height: 310, draw: mid },
