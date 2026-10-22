@@ -4,7 +4,11 @@
 // desktop-chromium and pixel7-landscape. Fonts are loaded before anything is drawn. After the
 // art swap: `npx playwright test tests/e2e/visual.spec.ts --update-snapshots`, review, commit.
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
+import { loadDailyMeta } from '../../tools/testContent';
 import { boot, hook, isTouchProject, tapRect } from './helpers';
+
+// The title shows Daily #1: today = the epoch, read from content (its only copy, D-028).
+const EPOCH = loadDailyMeta().epoch;
 
 const PROFILES = ['desktop-chromium', 'pixel7-landscape'];
 
@@ -40,7 +44,7 @@ const shot = (page: Page, name: string) =>
 test('title and both Settings pages and privacy', async ({ page }, info) => {
   baselineProfile(info);
   const touch = isTouchProject(info);
-  await boot(page, 'today=2026-10-21&seed=42');
+  await boot(page, `today=${EPOCH}&seed=42`);
   await page.waitForFunction(() => window.__TM__?.rects['settings'] !== undefined);
   await settled(page);
   await shot(page, 'title');
@@ -65,7 +69,7 @@ test('title and both Settings pages and privacy', async ({ page }, info) => {
 
 test('hunt held at a fixed tick', async ({ page }, info) => {
   baselineProfile(info);
-  await boot(page, 'today=2026-10-21&seed=42&holdAt=300');
+  await boot(page, `today=${EPOCH}&seed=42&holdAt=300`);
   await page.waitForFunction(() => window.__TM__?.rects['start'] !== undefined, null, {
     timeout: 60_000,
   });
@@ -80,7 +84,7 @@ test('hunt held at a fixed tick', async ({ page }, info) => {
 
 test('tally after a short hunt', async ({ page }, info) => {
   baselineProfile(info);
-  await boot(page, 'today=2026-10-21&seed=42&huntSeconds=2');
+  await boot(page, `today=${EPOCH}&seed=42&huntSeconds=2`);
   await page.waitForFunction(() => window.__TM__?.rects['start'] !== undefined, null, {
     timeout: 60_000,
   });
@@ -97,7 +101,7 @@ test('Padstal', async ({ page }, info) => {
   baselineProfile(info);
   test.setTimeout(180_000);
   const touch = isTouchProject(info);
-  await boot(page, 'today=2026-10-21&seed=4&huntSeconds=1&quotaMul=0&doppies=1');
+  await boot(page, `today=${EPOCH}&seed=4&huntSeconds=1&quotaMul=0&doppies=1`);
   await page.waitForFunction(() => window.__TM__?.rects['seasonRun'] !== undefined);
   await tapRect(page, touch, 'seasonRun');
   await page.waitForFunction(() => window.__TM__?.run?.view === 'intro', null, { timeout: 60_000 });

@@ -285,8 +285,8 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
       },
     },
   },
-  // M7: the Daily Hunt of 2026-10-21 on the Karoo, omen on. The seed is pinned to the value
-  // dailySeed('2026-10-21', contentHash) had at M7 (D-025): derived live, it changed with every
+  // M7: the Daily Hunt of the day in the case names on the Karoo, omen on. The seed is pinned to
+  // the value dailySeed(<that day>, contentHash) had at M7 (D-025): derived live, it changed with every
   // content edit and so did these hashes. daily.spec.ts still checks the browser derives the same
   // daily seed as Node, and replays these logs in Chromium and WebKit.
   {

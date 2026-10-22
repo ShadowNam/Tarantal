@@ -11,6 +11,8 @@ Cleanup after the soft launch build (decision record D-028).
 - `?e2e` on the public web build no longer gives fresh official Daily attempts, share cards or
   challenge links: it plays unranked like capture mode. Only CI test builds (`VITE_TEST_HOOKS=1`)
   record official Dailies under `?e2e`.
+- The Daily epoch (Daily #1) is one value in `content/meta/daily.json`: `content:validate` fails on
+  a copy in code, and `npm run release` warns (`--strict` fails) while it is still the placeholder.
 
 ## [1.0.0] — soft launch build (21 Oct 2026)
 

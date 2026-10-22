@@ -101,13 +101,13 @@ describe('daily number and biome', () => {
 
   it('with only the Karoo playable, today is a Karoo daily with the omen from modes.json', () => {
     const content = loadContent();
-    const setup = dailySetup(day('2026-10-21'), {
+    const setup = dailySetup(day(meta.epoch), {
       meta,
       contentHash: loadContentHash(),
       playable: ['karoo-autumn'],
       fallbackBiome: content.modes.modes.daily.biome,
     });
-    expect(setup).toMatchObject({ key: '2026-10-21', number: 1, biome: 'karoo-autumn' });
+    expect(setup).toMatchObject({ key: meta.epoch, number: 1, biome: 'karoo-autumn' });
     expect(dailyMode(setup, undefined)).toEqual({ id: 'daily', biome: 'karoo-autumn' });
     expect(dailyMode(setup, 'windbuks')).toEqual({
       id: 'daily',
