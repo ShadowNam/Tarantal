@@ -3,11 +3,18 @@
 import type { BirdMotion, BirdPhase } from '../../sim/types';
 import type { BirdClip } from './assetIndex';
 
-/** Ticks a foraging bird spends on each walk/peck spell (render only). */
-const FORAGE_SPELL_TICKS = 90;
-
-/** The clip a bird should play now. `id` and `tick` only vary foraging between walk and peck. */
-export function clipFor(motion: BirdMotion, phase: BirdPhase, id: number, tick: number): BirdClip {
+/**
+ * The clip a bird should play now. `id` and `tick` only vary foraging between walk and peck, in
+ * spells of `spellTicks` (render only).
+ */
+export function clipFor(
+  motion: BirdMotion,
+  phase: BirdPhase,
+  id: number,
+  tick: number,
+  /** Ticks per walk/peck spell (feel.json juice.forageSpellTicks). */
+  spellTicks: number,
+): BirdClip {
   switch (motion) {
     case 'flyover':
       return 'flap';
@@ -26,7 +33,7 @@ export function clipFor(motion: BirdMotion, phase: BirdPhase, id: number, tick: 
       switch (phase) {
         case 'walk':
           // Every third spell is a peck spell, staggered by bird id.
-          return (Math.floor(tick / FORAGE_SPELL_TICKS) + id) % 3 === 0 ? 'peck' : 'forage_walk';
+          return (Math.floor(tick / spellTicks) + id) % 3 === 0 ? 'peck' : 'forage_walk';
         case 'alert':
           return 'alert';
         case 'run':

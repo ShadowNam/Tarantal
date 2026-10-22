@@ -118,3 +118,48 @@ test('a broken delivered file falls back for its key only', async ({ page }, inf
   expect((await hook(page)).missingTextures).toEqual([]);
   expect(errors.filter((e) => !/404|Failed to load resource/.test(e))).toEqual([]);
 });
+
+test('a corrupt bird atlas falls back to placeholder frames; the hunt plays on', async ({
+  page,
+}, info) => {
+  test.skip(!isLandscape(info), 'portrait shows the rotate card');
+  const errors = collectErrors(page);
+  // The mid-plane atlas data arrives as {} (no frames): every mid clip would have 0 frames.
+  await serveStandins(page, null, { match: /tarentaal-mid@1x-0\..*\.json$/, edit: () => ({}) });
+  await boot(page, 'seed=42');
+  const st = await statuses(page);
+  expect(st['bird/tarentaal/mid']).toBe('placeholder');
+  expect(st['bird/tarentaal/far']).toBe('final');
+  await startHunt(page, isTouchProject(info));
+  await waitTicks(page, 240);
+  expect((await hook(page)).missingTextures).toEqual([]);
+  expect(errors.filter((e) => !/404|Failed to load resource/.test(e))).toEqual([]);
+});
+
+test('a clip naming a frame the atlas lacks is dropped; its fallback plays', async ({
+  page,
+}, info) => {
+  test.skip(!isLandscape(info), 'portrait shows the rotate card');
+  const errors = collectErrors(page);
+  const dropped: string[] = [];
+  page.on('console', (m) => {
+    if (m.type() === 'warning' && m.text().includes('missing frames')) dropped.push(m.text());
+  });
+  // The mid atlas loses one peck frame: peck (6 frames listed, 5 present) must not play.
+  await serveStandins(page, null, {
+    match: /tarentaal-mid@1x-0\..*\.json$/,
+    edit: (j) => {
+      const d = j as { frames: Record<string, unknown> };
+      delete d.frames['peck/05'];
+      return d;
+    },
+  });
+  await boot(page, 'seed=42');
+  expect((await statuses(page))['bird/tarentaal/mid']).toBe('final');
+  expect(dropped.join(' ')).toMatch(/mid: clips with missing frames dropped: peck/);
+  await startHunt(page, isTouchProject(info));
+  // Long enough for foraging birds to reach a peck spell (every third 1.5 s spell).
+  await waitTicks(page, 400);
+  expect((await hook(page)).missingTextures).toEqual([]);
+  expect(errors.filter((e) => !/404|Failed to load resource/.test(e))).toEqual([]);
+});

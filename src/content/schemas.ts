@@ -961,6 +961,8 @@ export const FeelSchema = obj({
     smokeScale: pos,
     /** "⛔ don't shoot" and boss call-outs. */
     calloutMs: pos,
+    /** M10 delivered bird clips: render ticks per foraging walk/peck spell (every third pecks). */
+    forageSpellTicks: posInt,
     /** M10 juice pass: multiplier on every weapon's screen shake (weapons.json stays sim content). */
     shakeScale: nonNeg,
     /** Frenzy tier up: the meter label punches from this scale back to 1 over frenzyPunchMs. */
@@ -1044,6 +1046,9 @@ export const FeelSchema = obj({
     /** M10: large-area flashes (lightning light, lit darkness) allowed to start in any second,
      *  across all sources (WCAG 2.3.1: never more than 3). */
     maxLargeFlashesPerSec: z.number().int().min(1).max(3),
+    /** Flash starts this close together (ms) are one flash: one strike lighting both the storm
+     *  light and the Stormvoël's darkness counts once. */
+    flashMergeMs: nonNeg,
   }),
   audio: obj({
     /** Master gain at full volume (headroom so the synth and recordings never clip). */

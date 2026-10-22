@@ -6,7 +6,7 @@ import * as Phaser from 'phaser';
 import { contentHash } from './content/hash';
 import { DailyFlow } from './game/daily/DailyFlow';
 import { loadGameContent } from './content/loadBrowser';
-import { AudioDirector } from './game/audio/AudioDirector';
+import { AudioDirector, browserAudioEnv } from './game/audio/AudioDirector';
 import { withDoppies, withQuotaMul, withTestCrate } from './game/devContent';
 import type { GameContext, TestHook, TestTools } from './game/GameContext';
 import {
@@ -363,7 +363,7 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') benchmark?.pause();
   else if (titleUp) benchmark?.resume();
 });
-const audio = new AudioDirector(feel.audio);
+const audio = new AudioDirector(feel.audio, browserAudioEnv(feel.assets.fileTimeoutMs));
 hook.assets.recorded = audio.recorded;
 // Live values (read through the hook in page.evaluate).
 Object.defineProperties(hook, {
@@ -453,7 +453,7 @@ const loadFinalFor = (b: Biome): Promise<void> => {
       finalDone.add(b.id);
       hook.assets.byBiome[b.id] = m.entries();
       // Recordings arrive on their own (boot doesn't wait for them).
-      void m.soundsReady().then((files) => {
+      void m.takeSounds().then((files) => {
         audio.addRecorded(files);
         hook.assets.byBiome[b.id] = m.entries();
       });
@@ -509,7 +509,10 @@ const ctx: GameContext = {
   },
   huntBiome: biome,
   audio,
-  flashes: new FlashLimiter(feel.accessibility.maxLargeFlashesPerSec),
+  flashes: new FlashLimiter(
+    feel.accessibility.maxLargeFlashesPerSec,
+    feel.accessibility.flashMergeMs,
+  ),
   capture: capture ? new CaptureState(feel.capture, params.get('gun') !== '0') : null,
   save,
   notaboek: loaded.notaboek,

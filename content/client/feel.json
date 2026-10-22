@@ -41,6 +41,7 @@
     "rainParticlesPerSec": 90,
     "smokeScale": 2.2,
     "calloutMs": 2600,
+    "forageSpellTicks": 90,
     "shakeScale": 1,
     "frenzyPunchScale": 1.5,
     "frenzyPunchMs": 260,
@@ -136,7 +137,8 @@
     "captionMs": 2200,
     "captionMax": 3,
     "captionRepeatMs": 1200,
-    "maxLargeFlashesPerSec": 3
+    "maxLargeFlashesPerSec": 3,
+    "flashMergeMs": 50
   },
   "ftue": {
     "$comment": "Oupa se Les presentation (GDD §16): when the windpomp hint shows (fraction of the hunt), how long a step banner stays, and the longest prompt allowed (characters, one line).",
