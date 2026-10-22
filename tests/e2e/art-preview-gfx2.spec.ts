@@ -10,7 +10,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { test, type Page, type TestInfo } from '@playwright/test';
 import { composePair } from '../../tools/art/compare';
-import { boot, isTouchProject, startHunt } from './helpers';
+import { boot, hook, isTouchProject, startHunt, tapRect } from './helpers';
 
 const OUT = join(import.meta.dirname, '..', '..', 'docs', 'art-preview');
 const RAW = join(OUT, 'screens');
@@ -214,5 +214,67 @@ test('texture memory per biome on the low tier', async ({ page }, info) => {
   writeFileSync(
     join(OUT, 'compare', 'gfx2-texture-memory-biomes.json'),
     `${JSON.stringify({ unit: 'MB', tier: 'low', ...out }, null, 2)}\n`,
+  );
+});
+
+// A Season Run on the low tier: twelve short hunts across the biomes in one page (the hunt scene
+// swaps biome in place), texture memory read late in each hunt. With the release on a biome
+// switch (D-031 §6b) the peak stays at the largest single biome.
+test('texture memory through a Season Run on the low tier', async ({ page }, info) => {
+  test.skip(info.project.name !== 'pixel7-landscape', 'measured on the Pixel 7 profile');
+  test.setTimeout(1_500_000);
+  await page.addInitScript(() => {
+    const key = 'tm.e2e.save.v1';
+    const save = JSON.parse(localStorage.getItem(key) ?? '{}') as {
+      settings?: Record<string, unknown>;
+    };
+    localStorage.setItem(
+      key,
+      JSON.stringify({ ...save, settings: { ...save.settings, quality: 'low' } }),
+    );
+  });
+  await setVariant(page, 'after');
+  await boot(page, 'seed=5&huntSeconds=3&quotaMul=0');
+  const view = (v: string, i: number) =>
+    page.waitForFunction(
+      ([vv, ii]) => {
+        const h = window.__TM__;
+        return h?.scene === 'run' && h.run?.view === vv && h.run.huntIndex === ii;
+      },
+      [v, i] as const,
+      { timeout: 180_000 },
+    );
+  await page.waitForFunction(() => window.__TM__?.rects['seasonRun'] !== undefined);
+  await tapRect(page, true, 'seasonRun');
+  await view('intro', 0);
+  const hunts: { hunt: number; biome: string; mb: number }[] = [];
+  const n = Number(process.env['SEASON_HUNTS'] || 12);
+  for (let i = 0; i < n; i++) {
+    await tapRect(page, true, 'run.go');
+    await page.waitForFunction(
+      () => window.__TM__?.scene === 'hunt' && window.__TM__.tick >= 150,
+      null,
+      { timeout: 300_000 },
+    );
+    const h = await page.evaluate(() => ({
+      biome: window.__TM__?.biome ?? '',
+      bytes: window.__TM__?.textureBytes ?? 0,
+    }));
+    hunts.push({ hunt: i + 1, biome: h.biome, mb: Math.round((h.bytes / 1024 / 1024) * 10) / 10 });
+    await view('tally', i);
+    if (i === n - 1) break;
+    await tapRect(page, true, 'run.padstal');
+    await view('padstal', i);
+    if ((await hook(page)).rects['run.helpClose'] !== undefined) {
+      await tapRect(page, true, 'run.helpClose');
+      await page.waitForFunction(() => window.__TM__?.rects['run.next'] !== undefined);
+    }
+    await tapRect(page, true, 'run.next');
+    await view('intro', i + 1);
+  }
+  mkdirSync(join(OUT, 'compare'), { recursive: true });
+  writeFileSync(
+    join(OUT, 'compare', 'gfx2-texture-memory-season.json'),
+    `${JSON.stringify({ unit: 'MB', tier: 'low', peak: Math.max(...hunts.map((h) => h.mb)), hunts }, null, 2)}\n`,
   );
 });

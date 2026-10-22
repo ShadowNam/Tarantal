@@ -368,7 +368,8 @@ export class HuntScene extends Phaser.Scene {
    */
   private swapManifest(): void {
     const prev = this.ctx.installedManifest;
-    if (prev !== null && prev !== this.manifest) prev.release(this.textures, this.manifest);
+    if (prev !== null && prev !== this.manifest)
+      prev.release(this.textures, this.manifest, this.anims);
     this.ctx.installedManifest = this.manifest;
   }
 
