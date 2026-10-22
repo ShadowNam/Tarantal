@@ -1365,12 +1365,7 @@ function fenceBell(ctx: PropCtx): string {
   return g(
     {},
     groundShadow(8, 62, 40, 6),
-    // Fence wires running off both sides (they meet the mid layer's fence).
-    line(
-      'M-112 -14Q-60 -10 -10 -14M10 -14Q60 -10 112 -14M-112 2Q-60 6 -10 2M10 2Q60 6 112 2',
-      { ink: shade(pen.ink, 0.15), w: 1.5 },
-      1.5,
-    ),
+    // No wires of its own: the mid layer's fence passes behind the post.
     post(0, 62, 158, 20, wood, pen),
     line('M-6 -70l12 0M-6 30l12 0', { ink: wood.dark, w: 2 }, 2),
     // Iron bracket and the brass bell (secret part: ellipse 30 × 28 at (0, −20)).
