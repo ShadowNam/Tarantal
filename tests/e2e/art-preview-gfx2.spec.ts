@@ -49,9 +49,12 @@ async function setVariant(page: Page, v: Variant): Promise<void> {
       birds: Record<string, unknown>;
     };
     index.layers = {};
-    for (const key of Object.keys(index.images))
-      if (!key.startsWith('gun/') && key !== 'fx/pot') delete index.images[key];
-    for (const c of FLYERS) delete index.birds[c];
+    index.images = Object.fromEntries(
+      Object.entries(index.images).filter(([k]) => k.startsWith('gun/') || k === 'fx/pot'),
+    );
+    index.birds = Object.fromEntries(
+      Object.entries(index.birds).filter(([k]) => !FLYERS.includes(k)),
+    );
     await route.fulfill({ response: res, json: index });
   });
 }
@@ -127,4 +130,41 @@ test('hadeda, crop-sprayer and kwevoel fly over', async ({ page }, info) => {
 test('a crate drop, the reticle and the shell belt', async ({ page }, info) => {
   test.setTimeout(600_000);
   await held(page, info, 'gfx2-crate-hud', 'seed=42&huntSeconds=20', 430, { aim: true });
+});
+
+// GPU texture memory (D-029 method): low tier, end of a 20 s Karoo hunt, every texture incl.
+// placeholders and layers (test hook `textureBytes`), before and after, once the late group is in.
+test('texture memory on the low tier', async ({ page }, info) => {
+  test.skip(info.project.name !== 'pixel7-landscape', 'measured on the Pixel 7 profile');
+  test.setTimeout(600_000);
+  await page.addInitScript(() => {
+    const key = 'tm.e2e.save.v1';
+    const save = JSON.parse(localStorage.getItem(key) ?? '{}') as {
+      settings?: Record<string, unknown>;
+    };
+    localStorage.setItem(
+      key,
+      JSON.stringify({ ...save, settings: { ...save.settings, quality: 'low' } }),
+    );
+  });
+  const out: Record<string, number> = {};
+  for (const v of VARIANTS) {
+    await setVariant(page, v);
+    await boot(page, 'seed=42&huntSeconds=20&holdAt=1140');
+    await startHunt(page, true);
+    await page.waitForFunction(() => (window.__TM__?.tick ?? 0) >= 1140, null, {
+      timeout: 400_000,
+    });
+    await page.waitForTimeout(3000);
+    const h = await page.evaluate(() => ({
+      bytes: window.__TM__?.textureBytes ?? 0,
+      tier: window.__TM__?.quality.tier ?? '',
+    }));
+    out[`${v} (${h.tier})`] = Math.round((h.bytes / 1024 / 1024) * 10) / 10;
+  }
+  mkdirSync(join(OUT, 'compare'), { recursive: true });
+  writeFileSync(
+    join(OUT, 'compare', 'gfx2-texture-memory.json'),
+    `${JSON.stringify({ unit: 'MB', ...out }, null, 2)}\n`,
+  );
 });
