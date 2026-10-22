@@ -1358,11 +1358,26 @@ drawn; only their pixels changed. Audit: 18 → **66 interim**, 169 → **121 pl
 rest are audio, out of scope). Golden replay `8ab8e33970ccd89f` unchanged, no diff in `src/sim/`
 or `content/`. `art:interim` + `assets:pack` run twice give byte-identical `art-source/` and
 `public/assets/`. Hunt visual baselines re-recorded in `mcr.microsoft.com/playwright:v1.56.1-noble`.
-*§6b — Budgets (part B):* first download unchanged (1.69 MB gzip; the asset index grows by
-2 KB). Lazy chunks per biome (gzip, incl. its birds): Bushveld 0.63 MB, Kalahari 0.42 MB,
-Okavango 0.89 MB (cap 1.5 MB each; after the look review see §7b). Each biome's layers have the Karoo's dimensions, so a hunt in
-any biome holds about the same texture memory as the Karoo measurement above. Audit with both
-parts: **106 interim, 81 placeholder** keys (every remaining placeholder is audio).
+*§6b — Budgets (part B):* first download unchanged by part B (**1.89 MB** gzip after the look
+review, §7; the asset index grows by 2 KB). Lazy chunks per biome (gzip, incl. its birds):
+Bushveld 0.86, Kalahari 0.63, Okavango 1.00 MB (cap 1.5 MB each). Audit with both parts: **106
+interim, 81 placeholder** keys (every remaining placeholder is audio). *GPU texture memory on
+the low tier (final review):* `AssetManifest.install` only ever added textures and the title
+installs the Karoo, so a hunt in another biome held two biomes of scenery: measured from the
+title (Pixel 7 profile, test hook `textureBytes`) Bushveld 136.8, Kalahari 129.2, Okavango
+147.3 MB, and a 12-hunt Season Run 144.9 MB (boss, late and biome-only bird atlases piled up
+too), over Tech §15's 128 MB. Fix: on every manifest swap HuntScene calls
+`AssetManifest.release(textures, next, anims)`, which removes the old manifest's textures that
+`next` doesn't use (its layers, props and biome-only placeholders) and every bird atlas `next`
+won't prewarm at hunt start (with those atlases' animations, recreated on first use). Shared
+UI/FX, guns and first-download birds stay; decoded images stay cached, so `install()` /
+`ensureBird()` re-add anything that comes back. Unit test: switching biome removes the old
+biome's scenery keys and keeps the shared ones (`AssetManifest.test.ts`). *Measured after the
+fix* (low tier, Pixel 7, `docs/art-preview/compare/gfx2-texture-memory-{biomes,season}.json`):
+hunt from the title — Karoo 91.5, Bushveld 100.6, Kalahari 93.0, Okavango **111.1 MB**; Season
+Run (12 hunts, one page) peak **126.9 MB** (the Okavango boss hunt; Karoo 93–110, Bushveld 108,
+Okavango 119–127, Kalahari 92–101). All under 128 MB, the Season Run peak with 1.1 MB to spare:
+if later art grows, a half-resolution sky on the low tier (≈ 8 MB per biome) is the next lever.
 *§7 — Look review (22 Oct, user on the first Karoo look: "fix the grass, bushes and sky"):*
 (1) *Grass:* `tools/art/vegetation.ts` has seven tuft shapes (fan, upright, clump, wispy,
 windswept, seeding, sparse) in weighted straw-gold, bleached and grey-green tones, placed by
