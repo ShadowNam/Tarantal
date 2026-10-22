@@ -181,7 +181,7 @@ function biomeParam(): string | undefined {
   return params.get('biome') ?? undefined;
 }
 
-/** e2e/dev only: ?today=2026-10-21 fixes the UTC day of the Daily Hunt. */
+/** e2e/dev only: ?today=YYYY-MM-DD fixes the UTC day of the Daily Hunt. */
 function todaySource(): () => number {
   const fixed = testHooks ? parseDayKey(params.get('today') ?? '') : null;
   return fixed === null ? () => dayNumber(Date.now()) : () => fixed;

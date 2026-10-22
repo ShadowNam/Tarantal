@@ -16,5 +16,10 @@ describe('meta/daily.json', () => {
     expect(parseDailyMeta({ ...ok, epoch: '2028-02-29' }).ok).toBe(true);
     expect(parseDailyMeta({ ...ok, grid: { segments: 5, green: 0.2, yellow: 0.5 } }).ok).toBe(false);
     expect(parseDailyMeta({ ...ok, surprise: 1 }).ok).toBe(false);
+    // D-028: the placeholder flag and the pre-launch age limit are required.
+    const noFlag: Record<string, unknown> = { ...ok };
+    delete noFlag['epochPlaceholder'];
+    expect(parseDailyMeta(noFlag).ok).toBe(false);
+    expect(parseDailyMeta({ ...ok, epochMaxAgeDays: 0 }).ok).toBe(false);
   });
 });
