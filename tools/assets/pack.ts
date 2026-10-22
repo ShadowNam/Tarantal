@@ -1,7 +1,7 @@
 // The asset pipeline (M10, art bible §9, Tech §10): art-source/ → public/assets/ + asset-index.json.
 // Layout of art-source/ and every rule checked here is in docs/06-ASSET-DELIVERY.md.
 //   sprites/<key>.png (+ <key>.json {originX, originY})   any texture key (UI, FX, props, guns)
-//   layers/<biome>/<layerId>.png (+ .json {top})         one parallax layer, full width incl. bleed
+//   layers/<biome>/<layerId>.png (+ .json {top, origin, encode})  one parallax layer, full width + bleed
 //   birds/<creature>/<clip>/<NN>.png (+ rig.json)         §3.4 clips; frames in the bird box
 //   birds/<creature>/planes/<plane>/<clip>/<NN>.png       optional per-plane masters (D-029)
 //   guns/<weaponId>/<clip>/<NN>.png (+ rig.json)          idle/fire/reload/flash (D-029)
@@ -93,7 +93,14 @@ const sidecarOrigin = z
     encode: encoding,
   })
   .partial();
-const sidecarLayer = z.strictObject({ top: z.number() }).partial();
+const sidecarLayer = z
+  .strictObject({
+    top: z.number(),
+    /** D-031: provenance and palette tiles, as for sprites (D-029). */
+    origin: provenance,
+    encode: encoding,
+  })
+  .partial();
 const rigSchema = z
   .strictObject({
     /** The bird's sim position in the frame (fractions); default = the bird box's origin. */
@@ -400,11 +407,18 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
     for (let x = 0, i = 0; x < img.width; x += TILE_WIDTH, i++) {
       const w = Math.min(TILE_WIDTH, img.width - x);
       tiles.push(
-        emit(biome, 'layers', `${layerId}-${i}`, 'png', encodePng(crop(img, x, 0, w, img.height))),
+        emit(
+          biome,
+          'layers',
+          `${layerId}-${i}`,
+          'png',
+          (side.encode === 'png8' ? encodePng8 : encodePng)(crop(img, x, 0, w, img.height)),
+        ),
       );
     }
     index.layers[spec.assetId] = {
       group: biome,
+      ...(side.origin === undefined ? {} : { origin: side.origin }),
       tiles,
       tileWidth: TILE_WIDTH,
       left: spec.left,

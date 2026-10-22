@@ -5,6 +5,127 @@
     "karoo-autumn"
   ],
   "images": {
+    "biome/water": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/biome_water.3d04febfd821.png",
+        "bytes": 1646,
+        "hash": "3d04febfd821"
+      },
+      "width": 256,
+      "height": 64
+    },
+    "crate/box": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/crate_box.0fed528eb1ea.png",
+        "bytes": 2519,
+        "hash": "0fed528eb1ea"
+      },
+      "width": 160,
+      "height": 160
+    },
+    "crate/chute": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/crate_chute.1fa3a2fe87ac.png",
+        "bytes": 8854,
+        "hash": "1fa3a2fe87ac"
+      },
+      "width": 260,
+      "height": 360
+    },
+    "fx/bubble": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/fx_bubble.9e79822a7853.png",
+        "bytes": 3827,
+        "hash": "9e79822a7853"
+      },
+      "width": 260,
+      "height": 170
+    },
+    "fx/dust": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/fx_dust.5c52ac4ef8aa.png",
+        "bytes": 439,
+        "hash": "5c52ac4ef8aa"
+      },
+      "width": 40,
+      "height": 40
+    },
+    "fx/dust_devil": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/fx_dust_devil.8419250823c7.png",
+        "bytes": 11616,
+        "hash": "8419250823c7"
+      },
+      "width": 300,
+      "height": 520
+    },
+    "fx/feather": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/fx_feather.3e961f1d1ba0.png",
+        "bytes": 725,
+        "hash": "3e961f1d1ba0"
+      },
+      "width": 24,
+      "height": 48
+    },
+    "fx/flash": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/fx_flash.67782c9bf306.png",
+        "bytes": 5782,
+        "hash": "67782c9bf306"
+      },
+      "width": 200,
+      "height": 200
+    },
+    "fx/glint": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/fx_glint.a733bf6dd5d1.png",
+        "bytes": 1055,
+        "hash": "a733bf6dd5d1"
+      },
+      "width": 96,
+      "height": 96
+    },
+    "fx/grass_tuft": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/fx_grass_tuft.94263a193e46.png",
+        "bytes": 9255,
+        "hash": "94263a193e46"
+      },
+      "width": 260,
+      "height": 110
+    },
+    "fx/leaf": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/fx_leaf.d58b3f8ae8dc.png",
+        "bytes": 423,
+        "hash": "d58b3f8ae8dc"
+      },
+      "width": 28,
+      "height": 16
+    },
     "fx/pot": {
       "group": "common",
       "origin": "interim",
@@ -17,9 +138,427 @@
       "height": 110,
       "originX": 0.5,
       "originY": 0.6
+    },
+    "fx/puff": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/fx_puff.ba08eed14040.png",
+        "bytes": 786,
+        "hash": "ba08eed14040"
+      },
+      "width": 64,
+      "height": 64
+    },
+    "fx/ring": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/fx_ring.e761fffe4699.png",
+        "bytes": 5082,
+        "hash": "e761fffe4699"
+      },
+      "width": 200,
+      "height": 200
+    },
+    "fx/smoke": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/fx_smoke.06438f899a3e.png",
+        "bytes": 2596,
+        "hash": "06438f899a3e"
+      },
+      "width": 140,
+      "height": 140
+    },
+    "fx/spark": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/fx_spark.945071754dff.png",
+        "bytes": 1805,
+        "hash": "945071754dff"
+      },
+      "width": 80,
+      "height": 80
+    },
+    "fx/splash": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/fx_splash.b17fae800b17.png",
+        "bytes": 1956,
+        "hash": "b17fae800b17"
+      },
+      "width": 96,
+      "height": 64
+    },
+    "fx/stone": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/fx_stone.dc00128451ac.png",
+        "bytes": 634,
+        "hash": "dc00128451ac"
+      },
+      "width": 32,
+      "height": 28
+    },
+    "helper/meerkat": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/helper_meerkat.3a762a693e30.png",
+        "bytes": 4247,
+        "hash": "3a762a693e30"
+      },
+      "width": 120,
+      "height": 220
+    },
+    "karoo/aloe_a": {
+      "group": "karoo-autumn",
+      "origin": "interim",
+      "file": {
+        "path": "assets/karoo-autumn/img/karoo_aloe_a.8f29fa88af9d.png",
+        "bytes": 21502,
+        "hash": "8f29fa88af9d"
+      },
+      "width": 360,
+      "height": 340
+    },
+    "karoo/aloe_b": {
+      "group": "karoo-autumn",
+      "origin": "interim",
+      "file": {
+        "path": "assets/karoo-autumn/img/karoo_aloe_b.3f1d2225f3bf.png",
+        "bytes": 22023,
+        "hash": "3f1d2225f3bf"
+      },
+      "width": 380,
+      "height": 340
+    },
+    "karoo/bakkie": {
+      "group": "karoo-autumn",
+      "origin": "interim",
+      "file": {
+        "path": "assets/karoo-autumn/img/karoo_bakkie.04ee79ad79f2.png",
+        "bytes": 8792,
+        "hash": "04ee79ad79f2"
+      },
+      "width": 500,
+      "height": 300
+    },
+    "karoo/fence_bell": {
+      "group": "karoo-autumn",
+      "origin": "interim",
+      "file": {
+        "path": "assets/karoo-autumn/img/karoo_fence_bell.25d0171c4ffc.png",
+        "bytes": 3295,
+        "hash": "25d0171c4ffc"
+      },
+      "width": 220,
+      "height": 240
+    },
+    "karoo/potjie": {
+      "group": "karoo-autumn",
+      "origin": "interim",
+      "file": {
+        "path": "assets/karoo-autumn/img/karoo_potjie.59cea13c9c33.png",
+        "bytes": 6787,
+        "hash": "59cea13c9c33"
+      },
+      "width": 220,
+      "height": 240
+    },
+    "karoo/reservoir": {
+      "group": "karoo-autumn",
+      "origin": "interim",
+      "file": {
+        "path": "assets/karoo-autumn/img/karoo_reservoir.072f2ad0f4cb.png",
+        "bytes": 7006,
+        "hash": "072f2ad0f4cb"
+      },
+      "width": 420,
+      "height": 220
+    },
+    "karoo/windpomp": {
+      "group": "karoo-autumn",
+      "origin": "interim",
+      "file": {
+        "path": "assets/karoo-autumn/img/karoo_windpomp.e3e5c12ca29d.png",
+        "bytes": 11357,
+        "hash": "e3e5c12ca29d"
+      },
+      "width": 310,
+      "height": 560,
+      "originX": 0.7258064516129032,
+      "originY": 0.375
+    },
+    "omen/glare": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/omen_glare.d04c6b6092ad.png",
+        "bytes": 1312,
+        "hash": "d04c6b6092ad"
+      },
+      "width": 256,
+      "height": 64
+    },
+    "omen/rain": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/omen_rain.1bfbd6c7f099.png",
+        "bytes": 396,
+        "hash": "1bfbd6c7f099"
+      },
+      "width": 6,
+      "height": 40
+    },
+    "omen/rainbow": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/omen_rainbow.3293cc0cf57c.png",
+        "bytes": 9918,
+        "hash": "3293cc0cf57c"
+      },
+      "width": 512,
+      "height": 256
+    },
+    "secret/mark": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/secret_mark.75c7a5e50e26.png",
+        "bytes": 1585,
+        "hash": "75c7a5e50e26"
+      },
+      "width": 64,
+      "height": 64
+    },
+    "secret/mark_hit": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/secret_mark_hit.fbba115753bd.png",
+        "bytes": 1237,
+        "hash": "fbba115753bd"
+      },
+      "width": 64,
+      "height": 64
+    },
+    "secret/rotor": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/secret_rotor.49bb2d09c185.png",
+        "bytes": 16038,
+        "hash": "49bb2d09c185"
+      },
+      "width": 240,
+      "height": 240
+    },
+    "ui/badge_no": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/ui_badge_no.0dc550b24232.png",
+        "bytes": 977,
+        "hash": "0dc550b24232"
+      },
+      "width": 64,
+      "height": 64
+    },
+    "ui/reticle": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/ui_reticle.5fe30f1ce45d.png",
+        "bytes": 3379,
+        "hash": "5fe30f1ce45d"
+      },
+      "width": 180,
+      "height": 180
+    },
+    "ui/shell": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/ui_shell.89427e5b763d.png",
+        "bytes": 501,
+        "hash": "89427e5b763d"
+      },
+      "width": 40,
+      "height": 92
+    },
+    "ui/shell_empty": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/ui_shell_empty.1158aa49ee92.png",
+        "bytes": 401,
+        "hash": "1158aa49ee92"
+      },
+      "width": 40,
+      "height": 92
+    },
+    "ui/windsock": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/ui_windsock.70783a4a9d3a.png",
+        "bytes": 1867,
+        "hash": "70783a4a9d3a"
+      },
+      "width": 150,
+      "height": 60
     }
   },
-  "layers": {},
+  "layers": {
+    "karoo/far_ridge": {
+      "group": "karoo-autumn",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/karoo-autumn/layers/far_ridge-0.9798ba58cb89.png",
+          "bytes": 20796,
+          "hash": "9798ba58cb89"
+        },
+        {
+          "path": "assets/karoo-autumn/layers/far_ridge-1.d81542a4f529.png",
+          "bytes": 11344,
+          "hash": "d81542a4f529"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 380,
+      "height": 280
+    },
+    "karoo/far_veld": {
+      "group": "karoo-autumn",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/karoo-autumn/layers/far_veld-0.f21e2ef6f031.png",
+          "bytes": 16154,
+          "hash": "f21e2ef6f031"
+        },
+        {
+          "path": "assets/karoo-autumn/layers/far_veld-1.c2435769a7d3.png",
+          "bytes": 13972,
+          "hash": "c2435769a7d3"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 548,
+      "height": 232
+    },
+    "karoo/foreground": {
+      "group": "karoo-autumn",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/karoo-autumn/layers/foreground-0.7a5af0672a63.png",
+          "bytes": 15783,
+          "hash": "7a5af0672a63"
+        },
+        {
+          "path": "assets/karoo-autumn/layers/foreground-1.97adca413f6c.png",
+          "bytes": 13091,
+          "hash": "97adca413f6c"
+        },
+        {
+          "path": "assets/karoo-autumn/layers/foreground-2.f35effd4635b.png",
+          "bytes": 13788,
+          "hash": "f35effd4635b"
+        },
+        {
+          "path": "assets/karoo-autumn/layers/foreground-3.a15a3feefc11.png",
+          "bytes": 944,
+          "hash": "a15a3feefc11"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 880,
+      "height": 200
+    },
+    "karoo/mid": {
+      "group": "karoo-autumn",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/karoo-autumn/layers/mid-0.fc41af99a378.png",
+          "bytes": 46672,
+          "hash": "fc41af99a378"
+        },
+        {
+          "path": "assets/karoo-autumn/layers/mid-1.1d82e838516a.png",
+          "bytes": 48378,
+          "hash": "1d82e838516a"
+        },
+        {
+          "path": "assets/karoo-autumn/layers/mid-2.090c8de7bb83.png",
+          "bytes": 8954,
+          "hash": "090c8de7bb83"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 600,
+      "height": 310
+    },
+    "karoo/near": {
+      "group": "karoo-autumn",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/karoo-autumn/layers/near-0.ac44a5c3454e.png",
+          "bytes": 62483,
+          "hash": "ac44a5c3454e"
+        },
+        {
+          "path": "assets/karoo-autumn/layers/near-1.ee9000a06299.png",
+          "bytes": 60872,
+          "hash": "ee9000a06299"
+        },
+        {
+          "path": "assets/karoo-autumn/layers/near-2.da85c5d578c4.png",
+          "bytes": 51656,
+          "hash": "da85c5d578c4"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 820,
+      "height": 260
+    },
+    "karoo/sky": {
+      "group": "karoo-autumn",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/karoo-autumn/layers/sky-0.06465d2f5663.png",
+          "bytes": 12516,
+          "hash": "06465d2f5663"
+        },
+        {
+          "path": "assets/karoo-autumn/layers/sky-1.7f3319e11c6d.png",
+          "bytes": 6194,
+          "hash": "7f3319e11c6d"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 0,
+      "height": 1080
+    }
+  },
   "birds": {
     "generaal": {
       "mid": {
@@ -121,6 +660,53 @@
             ],
             "fps": 20,
             "loop": false
+          }
+        }
+      }
+    },
+    "hadeda": {
+      "far": {
+        "group": "common",
+        "origin": "interim",
+        "x1": {
+          "pages": [
+            {
+              "image": {
+                "path": "assets/common/birds/hadeda-far@1x-0.4b1fa8974427.png",
+                "bytes": 4931,
+                "hash": "4b1fa8974427"
+              },
+              "data": {
+                "path": "assets/common/birds/hadeda-far@1x-0.98a69a03bc34.json",
+                "bytes": 1087,
+                "hash": "98a69a03bc34"
+              }
+            }
+          ]
+        },
+        "scale": 1,
+        "originX": 0.5,
+        "originY": 0.575,
+        "pivots": true,
+        "clips": {
+          "flap": {
+            "frames": [
+              "flap/00",
+              "flap/01",
+              "flap/02",
+              "flap/03",
+              "flap/02",
+              "flap/01"
+            ],
+            "fps": 16,
+            "loop": true
+          },
+          "forage_walk": {
+            "frames": [
+              "forage_walk/00"
+            ],
+            "fps": 12,
+            "loop": true
           }
         }
       }
@@ -333,6 +919,63 @@
         }
       }
     },
+    "kwevoel": {
+      "mid": {
+        "group": "common",
+        "origin": "interim",
+        "x1": {
+          "pages": [
+            {
+              "image": {
+                "path": "assets/common/birds/kwevoel-mid@1x-0.c8b847fef74a.png",
+                "bytes": 14386,
+                "hash": "c8b847fef74a"
+              },
+              "data": {
+                "path": "assets/common/birds/kwevoel-mid@1x-0.6411f077bcdc.json",
+                "bytes": 1688,
+                "hash": "6411f077bcdc"
+              }
+            }
+          ]
+        },
+        "scale": 1,
+        "originX": 0.5,
+        "originY": 0.575,
+        "pivots": true,
+        "clips": {
+          "alert": {
+            "frames": [
+              "alert/00",
+              "alert/01",
+              "alert/02",
+              "alert/02"
+            ],
+            "fps": 10,
+            "loop": false
+          },
+          "flap": {
+            "frames": [
+              "flap/00",
+              "flap/01",
+              "flap/02",
+              "flap/03",
+              "flap/02",
+              "flap/01"
+            ],
+            "fps": 16,
+            "loop": true
+          },
+          "forage_walk": {
+            "frames": [
+              "forage_walk/00"
+            ],
+            "fps": 12,
+            "loop": true
+          }
+        }
+      }
+    },
     "ou_grys": {
       "mid": {
         "group": "bushveld-winter",
@@ -432,6 +1075,169 @@
               "takeoff/05"
             ],
             "fps": 20,
+            "loop": false
+          }
+        }
+      }
+    },
+    "sproeier": {
+      "far": {
+        "group": "common",
+        "origin": "interim",
+        "x1": {
+          "pages": [
+            {
+              "image": {
+                "path": "assets/common/birds/sproeier-far@1x-0.0476f005220f.png",
+                "bytes": 6298,
+                "hash": "0476f005220f"
+              },
+              "data": {
+                "path": "assets/common/birds/sproeier-far@1x-0.af34aec484a6.json",
+                "bytes": 1483,
+                "hash": "af34aec484a6"
+              }
+            }
+          ]
+        },
+        "scale": 1,
+        "originX": 0.5,
+        "originY": 0.575,
+        "pivots": true,
+        "clips": {
+          "flap": {
+            "frames": [
+              "flap/00",
+              "flap/01",
+              "flap/02",
+              "flap/03",
+              "flap/04",
+              "flap/05"
+            ],
+            "fps": 16,
+            "loop": true
+          },
+          "forage_walk": {
+            "frames": [
+              "forage_walk/00"
+            ],
+            "fps": 12,
+            "loop": true
+          }
+        }
+      }
+    },
+    "stormvoel": {
+      "far": {
+        "group": "late",
+        "origin": "interim",
+        "x1": {
+          "pages": [
+            {
+              "image": {
+                "path": "assets/late/birds/stormvoel-far@1x-0.2f3ebda5cd95.png",
+                "bytes": 19944,
+                "hash": "2f3ebda5cd95"
+              },
+              "data": {
+                "path": "assets/late/birds/stormvoel-far@1x-0.780dbedb51aa.json",
+                "bytes": 2253,
+                "hash": "780dbedb51aa"
+              }
+            }
+          ]
+        },
+        "scale": 1,
+        "originX": 0.5,
+        "originY": 0.575,
+        "pivots": true,
+        "clips": {
+          "flap": {
+            "frames": [
+              "flap/00",
+              "flap/01",
+              "flap/02",
+              "flap/03",
+              "flap/02",
+              "flap/01"
+            ],
+            "fps": 16,
+            "loop": true
+          },
+          "forage_walk": {
+            "frames": [
+              "forage_walk/00"
+            ],
+            "fps": 12,
+            "loop": true
+          },
+          "hit_poof": {
+            "frames": [
+              "hit_poof/00",
+              "hit_poof/01",
+              "hit_poof/02",
+              "hit_poof/03",
+              "hit_poof/04",
+              "hit_poof/05"
+            ],
+            "fps": 24,
+            "loop": false
+          }
+        }
+      },
+      "mid": {
+        "group": "late",
+        "origin": "interim",
+        "x1": {
+          "pages": [
+            {
+              "image": {
+                "path": "assets/late/birds/stormvoel-mid@1x-0.34a3d9b76a8d.png",
+                "bytes": 56232,
+                "hash": "34a3d9b76a8d"
+              },
+              "data": {
+                "path": "assets/late/birds/stormvoel-mid@1x-0.1e75051f0a97.json",
+                "bytes": 2331,
+                "hash": "1e75051f0a97"
+              }
+            }
+          ]
+        },
+        "scale": 1,
+        "originX": 0.5,
+        "originY": 0.575,
+        "pivots": true,
+        "clips": {
+          "flap": {
+            "frames": [
+              "flap/00",
+              "flap/01",
+              "flap/02",
+              "flap/03",
+              "flap/02",
+              "flap/01"
+            ],
+            "fps": 16,
+            "loop": true
+          },
+          "forage_walk": {
+            "frames": [
+              "forage_walk/00"
+            ],
+            "fps": 12,
+            "loop": true
+          },
+          "hit_poof": {
+            "frames": [
+              "hit_poof/00",
+              "hit_poof/01",
+              "hit_poof/02",
+              "hit_poof/03",
+              "hit_poof/04",
+              "hit_poof/05"
+            ],
+            "fps": 24,
             "loop": false
           }
         }
@@ -1173,6 +1979,61 @@
             ],
             "fps": 20,
             "loop": false
+          }
+        }
+      }
+    },
+    "visarend": {
+      "far": {
+        "group": "okavango-spring",
+        "origin": "interim",
+        "x1": {
+          "pages": [
+            {
+              "image": {
+                "path": "assets/okavango-spring/birds/visarend-far@1x-0.b6319271bbf6.png",
+                "bytes": 5226,
+                "hash": "b6319271bbf6"
+              },
+              "data": {
+                "path": "assets/okavango-spring/birds/visarend-far@1x-0.9c0a52f11713.json",
+                "bytes": 1467,
+                "hash": "9c0a52f11713"
+              }
+            }
+          ]
+        },
+        "scale": 1,
+        "originX": 0.5,
+        "originY": 0.575,
+        "pivots": true,
+        "clips": {
+          "flap": {
+            "frames": [
+              "flap/00",
+              "flap/01",
+              "flap/02",
+              "flap/03",
+              "flap/02",
+              "flap/01"
+            ],
+            "fps": 16,
+            "loop": true
+          },
+          "forage_walk": {
+            "frames": [
+              "forage_walk/00"
+            ],
+            "fps": 12,
+            "loop": true
+          },
+          "glide": {
+            "frames": [
+              "glide/00",
+              "glide/01"
+            ],
+            "fps": 6,
+            "loop": true
           }
         }
       }

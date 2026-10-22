@@ -149,6 +149,19 @@ const configSchema = z.object({
       clips: z.object({ $comment: z.string().optional() }).and(z.record(z.enum(GUN_IDS), gunClips)),
     })
     .catchall(hex.or(z.number()).or(z.looseObject({}))),
+  /** Graphics pass 2 (D-031): landscapes, props, flyers, FX and UI. */
+  scenery: z.object({
+    $comment: z.string().optional(),
+    wobble: z.object({
+      frequency: z.number().positive(),
+      far: z.number().nonnegative(),
+      mid: z.number().nonnegative(),
+      near: z.number().nonnegative(),
+    }),
+    haze: z.object({ $comment: z.string().optional() }).catchall(z.number().min(0).max(1)),
+    lines: z.object({ $comment: z.string().optional() }).catchall(z.number().positive()),
+    biomes: z.record(z.string(), z.record(z.string(), hex)),
+  }),
   sheets: z.object({
     background: hex,
     checker: hex,
@@ -185,4 +198,15 @@ export function paletteFor(c: ArtConfig, creature: string): BirdPalette {
     (e): e is [string, string] => e[1] !== undefined,
   );
   return { ...c.birds.base, ...Object.fromEntries(over) };
+}
+
+/** A biome's scenery palette (throws on a missing colour, so typos fail the generator). */
+export function biomePalette(c: ArtConfig, biome: string): (name: string) => string {
+  const p = c.scenery.biomes[biome];
+  if (p === undefined) throw new Error(`tools/art/config.json scenery.biomes has no ${biome}`);
+  return (name) => {
+    const v = p[name];
+    if (v === undefined) throw new Error(`tools/art/config.json scenery.biomes.${biome}.${name}`);
+    return v;
+  };
 }
