@@ -351,12 +351,12 @@
     },
     "biomes": {
       "karoo-autumn": {
-        "skyTop": "#8DB8D8",
-        "skyMid": "#C3CFD0",
-        "skyBottom": "#F2D8A7",
-        "horizon": "#F4DDB0",
-        "cloud": "#FBF3E4",
-        "cloudShadow": "#E6D2C2",
+        "skyTop": "#6E9FCB",
+        "skyMid": "#9EC0D8",
+        "skyBottom": "#EBD7AE",
+        "horizon": "#F2DDB0",
+        "cloud": "#FFF8EC",
+        "cloudShadow": "#C9B9B4",
         "koppie": "#8E7FA6",
         "koppieCap": "#6C5E88",
         "veld": "#E3A23B",
@@ -379,7 +379,13 @@
         "aloe": "#6E9468",
         "aloeDark": "#4E7352",
         "aloeFlower": "#E2552C",
-        "aloeBud": "#F2A33A"
+        "aloeBud": "#F2A33A",
+        "straw": "#D9A845",
+        "bleached": "#E9D6A2",
+        "greyGreen": "#A2A585",
+        "autumn": "#A87442",
+        "twig": "#6B5440",
+        "seed": "#F3E8C8"
       },
       "common": {
         "shellRed": "#C8302A",
@@ -415,7 +421,11 @@
         "rb6": "#7E5BB5",
         "veld": "#E3A23B",
         "veldLight": "#EDC277",
-        "veldDark": "#C9862C"
+        "veldDark": "#C9862C",
+        "straw": "#D9A845",
+        "bleached": "#E9D6A2",
+        "greyGreen": "#A2A585",
+        "seed": "#F3E8C8"
       },
       "bushveld-winter": {
         "skyTop": "#9DC2DE",

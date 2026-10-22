@@ -32,6 +32,8 @@ export interface LayerPlan {
   /** Design y of the art's top edge and its height (docs/06 §4: may start above the band). */
   readonly top: number;
   readonly height: number;
+  /** Tile encoding: palette PNG (default) or full colour ('png', smooth skies: no banding). */
+  readonly encode?: 'png' | 'png8';
   draw(ctx: LayerCtx): string;
 }
 

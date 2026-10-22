@@ -185,9 +185,9 @@
       "group": "common",
       "origin": "interim",
       "file": {
-        "path": "assets/common/img/fx_grass_tuft.94263a193e46.png",
-        "bytes": 9255,
-        "hash": "94263a193e46"
+        "path": "assets/common/img/fx_grass_tuft.c1faf56e8e09.png",
+        "bytes": 8361,
+        "hash": "c1faf56e8e09"
       },
       "width": 260,
       "height": 110
@@ -945,14 +945,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/karoo-autumn/layers/far_ridge-0.9798ba58cb89.png",
-          "bytes": 20796,
-          "hash": "9798ba58cb89"
+          "path": "assets/karoo-autumn/layers/far_ridge-0.9d41fa78c652.png",
+          "bytes": 20896,
+          "hash": "9d41fa78c652"
         },
         {
-          "path": "assets/karoo-autumn/layers/far_ridge-1.d81542a4f529.png",
-          "bytes": 11344,
-          "hash": "d81542a4f529"
+          "path": "assets/karoo-autumn/layers/far_ridge-1.8109a4cb8270.png",
+          "bytes": 11295,
+          "hash": "8109a4cb8270"
         }
       ],
       "tileWidth": 2048,
@@ -965,14 +965,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/karoo-autumn/layers/far_veld-0.f21e2ef6f031.png",
-          "bytes": 16154,
-          "hash": "f21e2ef6f031"
+          "path": "assets/karoo-autumn/layers/far_veld-0.0fee1aa0b0f6.png",
+          "bytes": 21117,
+          "hash": "0fee1aa0b0f6"
         },
         {
-          "path": "assets/karoo-autumn/layers/far_veld-1.c2435769a7d3.png",
-          "bytes": 13972,
-          "hash": "c2435769a7d3"
+          "path": "assets/karoo-autumn/layers/far_veld-1.9984486b866f.png",
+          "bytes": 16425,
+          "hash": "9984486b866f"
         }
       ],
       "tileWidth": 2048,
@@ -985,24 +985,24 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/karoo-autumn/layers/foreground-0.7a5af0672a63.png",
-          "bytes": 15783,
-          "hash": "7a5af0672a63"
+          "path": "assets/karoo-autumn/layers/foreground-0.4115b60a694b.png",
+          "bytes": 33690,
+          "hash": "4115b60a694b"
         },
         {
-          "path": "assets/karoo-autumn/layers/foreground-1.97adca413f6c.png",
-          "bytes": 13091,
-          "hash": "97adca413f6c"
+          "path": "assets/karoo-autumn/layers/foreground-1.2a7af718a0b6.png",
+          "bytes": 17669,
+          "hash": "2a7af718a0b6"
         },
         {
-          "path": "assets/karoo-autumn/layers/foreground-2.f35effd4635b.png",
-          "bytes": 13788,
-          "hash": "f35effd4635b"
+          "path": "assets/karoo-autumn/layers/foreground-2.0ccaa3ebb6d9.png",
+          "bytes": 19733,
+          "hash": "0ccaa3ebb6d9"
         },
         {
-          "path": "assets/karoo-autumn/layers/foreground-3.a15a3feefc11.png",
-          "bytes": 944,
-          "hash": "a15a3feefc11"
+          "path": "assets/karoo-autumn/layers/foreground-3.67c0d9056c65.png",
+          "bytes": 126,
+          "hash": "67c0d9056c65"
         }
       ],
       "tileWidth": 2048,
@@ -1015,19 +1015,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/karoo-autumn/layers/mid-0.fc41af99a378.png",
-          "bytes": 46672,
-          "hash": "fc41af99a378"
+          "path": "assets/karoo-autumn/layers/mid-0.f15fac58a679.png",
+          "bytes": 83172,
+          "hash": "f15fac58a679"
         },
         {
-          "path": "assets/karoo-autumn/layers/mid-1.1d82e838516a.png",
-          "bytes": 48378,
-          "hash": "1d82e838516a"
+          "path": "assets/karoo-autumn/layers/mid-1.ccad3bdd1fcb.png",
+          "bytes": 77283,
+          "hash": "ccad3bdd1fcb"
         },
         {
-          "path": "assets/karoo-autumn/layers/mid-2.090c8de7bb83.png",
-          "bytes": 8954,
-          "hash": "090c8de7bb83"
+          "path": "assets/karoo-autumn/layers/mid-2.50b7da849733.png",
+          "bytes": 16345,
+          "hash": "50b7da849733"
         }
       ],
       "tileWidth": 2048,
@@ -1040,19 +1040,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/karoo-autumn/layers/near-0.ac44a5c3454e.png",
-          "bytes": 62483,
-          "hash": "ac44a5c3454e"
+          "path": "assets/karoo-autumn/layers/near-0.942b413bb5be.png",
+          "bytes": 67901,
+          "hash": "942b413bb5be"
         },
         {
-          "path": "assets/karoo-autumn/layers/near-1.ee9000a06299.png",
-          "bytes": 60872,
-          "hash": "ee9000a06299"
+          "path": "assets/karoo-autumn/layers/near-1.52c4a695066a.png",
+          "bytes": 77129,
+          "hash": "52c4a695066a"
         },
         {
-          "path": "assets/karoo-autumn/layers/near-2.da85c5d578c4.png",
-          "bytes": 51656,
-          "hash": "da85c5d578c4"
+          "path": "assets/karoo-autumn/layers/near-2.39d094fc05ad.png",
+          "bytes": 64168,
+          "hash": "39d094fc05ad"
         }
       ],
       "tileWidth": 2048,
@@ -1065,14 +1065,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/karoo-autumn/layers/sky-0.06465d2f5663.png",
-          "bytes": 12516,
-          "hash": "06465d2f5663"
+          "path": "assets/karoo-autumn/layers/sky-0.49cd738b217c.png",
+          "bytes": 78882,
+          "hash": "49cd738b217c"
         },
         {
-          "path": "assets/karoo-autumn/layers/sky-1.7f3319e11c6d.png",
-          "bytes": 6194,
-          "hash": "7f3319e11c6d"
+          "path": "assets/karoo-autumn/layers/sky-1.1a9e71049a26.png",
+          "bytes": 23988,
+          "hash": "1a9e71049a26"
         }
       ],
       "tileWidth": 2048,
