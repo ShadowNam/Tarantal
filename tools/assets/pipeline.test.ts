@@ -122,6 +122,11 @@ describe('pack-atlases', () => {
     put('sprites/ui/shell.png', encodePng(blank(shell?.width ?? 1, shell?.height ?? 1)));
     const ridge = catalog.layers.get('karoo/far_ridge');
     put('layers/karoo-autumn/far_ridge.png', encodePng(blank(ridge?.width ?? 1, 50)));
+    // D-031: a layer sidecar marks interim art and asks for palette tiles.
+    put(
+      'layers/karoo-autumn/far_ridge.json',
+      new TextEncoder().encode('{"top":400,"origin":"interim","encode":"png8"}'),
+    );
     const wav = sine(-20, 0.3, 440, 44100);
     put('audio/sfx/click.wav', writeWav(wav));
     const r = await packAssets({ src, publicDir: out, content, catalog });
@@ -133,9 +138,13 @@ describe('pack-atlases', () => {
     expect(index.initialGroups).toEqual(['common', 'karoo-autumn']);
     expect(index.images['ui/shell']?.group).toBe('common');
     expect(index.layers['karoo/far_ridge']?.tiles).toHaveLength(2);
+    expect(index.layers['karoo/far_ridge']?.origin).toBe('interim');
+    expect(index.layers['karoo/far_ridge']?.top).toBe(400);
     expect(index.audio['sfx/click']?.lufs).toBeCloseTo(-14, 0);
     const tile = index.layers['karoo/far_ridge']?.tiles[0];
     expect(readPng(join(out, tile?.path ?? '')).width).toBe(2048);
+    // `encode: png8` writes palette tiles (PNG colour type 3, byte 25 of the file).
+    expect(readFileSync(join(out, tile?.path ?? ''))[25]).toBe(3);
 
     // D-029: per-plane bird masters, @1x-only palette atlases, interim provenance, guns.
     const disc = (w: number, h: number) => {

@@ -1283,6 +1283,88 @@ of five to eight; one review at the end of a job, not one per part; check-ins ev
 instead of hourly, and a cut-off turn is restarted at once. `E2E_SKIP` now takes
 comma-separated globs.
 
+**D-031 Graphics pass 2: interim landscapes, props, other creatures and effects (22 Oct
+2026).** The product owner approved a second code-drawn interim pass (same route as D-029, human
+art later): every remaining runtime-drawn *visual* placeholder. Audio is out of scope. Two PRs
+(D-030): `gfx2-karoo` (the home biome and everything shared, in the first download) and
+`gfx2-biomes` (Bushveld, Kalahari, Okavango; lazy per biome). Sim, `content/` and golden replays
+are untouched.
+*§1 — Generator:* new `tools/art/` modules on the D-029 route (SVG → resvg → palette PNG):
+`scenery.ts` (mesas, koppies, bossies, grass tufts, stones, posts and wire, clouds, tree blobs),
+`landscape.ts` (layer and prop rendering), `biomes/<biome>.ts` (one plan per biome: six layers
++ its props), `sprites.ts` (shared FX/UI), `flyers.ts` (non-targets and the Stormvoël),
+`scenePreview.ts` + `scenerySheets.ts` (docs only). `npm run art:interim -- --only
+scenery|sprites|flyers [--biome <id>] [--sheets]`. Palettes live in `tools/art/config.json
+scenery` (bible §4.2 / §6 hex values plus derived tones), never in `content/`.
+*§2 — Pipeline:* a layer sidecar (`layers/<biome>/<id>.json`) now also takes `origin`
+("interim") and `encode` ("png8"), like sprite sidecars; the asset index already had a
+provenance field for layers. The parallax renderer and its tiling are unchanged.
+*§3 — Interpretation calls:* (1) *Look:* flat fills + one shadow + one highlight, light from the
+upper left; aerial perspective by layer (`scenery.haze`: far ridge 30 %, far veld 18 % toward the
+horizon colour, ink lightened with it); ink 2 / 2 / 4 / 6 / 6 px for far ridge / far veld / mid /
+near / foreground (bible §1.4); grass and bossies are inked round their silhouette only, so thin
+blades keep their colour. (2) *No paper grain* (bible §1.2 asks for "subtle"): grain costs palette
+PNGs most of their compression; dry-grass hatching gives the texture instead. (3) *Sky:* a smooth
+vertical gradient (rows compress to almost nothing), thin high streaks only in the flyer band, low
+cumulus banks behind the mesas. (4) *Prop boxes:* every prop keeps its placeholder texture size and
+origin except the **windpomp**, whose texture is wider (170 → 310 px, origin moved in the
+sidecar) so its tail vane is drawn where the kwêvoël perches (`perch.ox −150`); its occluder,
+rotor and secret geometry are unchanged (the pack tool's size warning is expected). (5) *Crate:*
+a stencilled shell symbol instead of the placeholder's red cross (a protected emblem) or Oupa's
+initials (no text in art, bible §1.7). (6) *`fx/flash`* is drawn: it is still the muzzle flash of
+any gun whose rig has no flash clip (late guns before they arrive). It stays a small local sprite;
+"reduce flashes" dims it as before. `omen/glare` stays a steady soft band, not a flash. (7)
+*`fx/grass_tuft`* is one key for every biome, so it uses neutral dry grass on the Karoo near-ground
+colour. (8) *Flyers draw only what the game plays:* hadeda and crop-sprayer `flap`; visarend
+`flap` + `glide`; kwêvoël `alert` (perched; crest up, then "KWÊ" beak open) + `flap`; Stormvoël
+`flap` + `hit_poof` (only targets get the bag poof). Each also has a one-frame `forage_walk` hold
+pose: the game never asks a flyer for it, but it ends every fallback chain, so the audit's
+"incomplete bird" rule holds and no state can drop to placeholder frames; identical frames pack
+once. The Stormvoël loads with the `late` group, visarend with the Okavango. (9) *Silhouettes*
+(bible §1.6): ibis bill and trailing legs (hadeda), biplane (sprayer), crest + long tail
+(kwêvoël), white head + white wedge tail on broad wings (visarend), giant casqued guineafowl with
+glowing eyes and a cold rim light (Stormvoël).
+*§4 — Tests:* `tools/art/scenery.test.ts`: every flyer frame stays inside the bird box and
+covers its body hitbox; every shared sprite and prop is drawn at the placeholder's size and
+origin with its occluder inside the art; every layer comes out at the delivered width and its plan's height; renders are
+deterministic. The pipeline test covers the layer sidecar (provenance, `top`, palette tiles).
+*§6 — Budgets (part A, measured):* first download (gzip, `npm run size -- --strict`) web
+1.11 → **1.69 MB**, Poki and CrazyGames 1.68 MB (cap for this pass 3.0 MB, hard budget 5 MB);
+**1.89 MB** after the look review (§7).
+GPU texture memory at the end of a 20 s Karoo hunt, low tier, Pixel 7 profile (test hook
+`textureBytes`, every texture; `compare/gfx2-texture-memory.json`): 94.0 → **107.7 MB**, inside
+Tech §15's 128 MB for the low tier (the bible sets no number). Most of the *increase* is the
+full-resolution sky layer (2680 × 1080 × 4 B ≈ 11.0 MB of the 13.7 MB). No new per-frame work: the same parallax tiles, sprites and atlases are
+drawn; only their pixels changed. Audit: 18 → **66 interim**, 169 → **121 placeholder** keys (the
+rest are audio, out of scope). Golden replay `8ab8e33970ccd89f` unchanged, no diff in `src/sim/`
+or `content/`. `art:interim` + `assets:pack` run twice give byte-identical `art-source/` and
+`public/assets/`. Hunt visual baselines re-recorded in `mcr.microsoft.com/playwright:v1.56.1-noble`.
+*§7 — Look review (22 Oct, user on the first Karoo look: "fix the grass, bushes and sky"):*
+(1) *Grass:* `tools/art/vegetation.ts` has seven tuft shapes (fan, upright, clump, wispy,
+windswept, seeding, sparse) in weighted straw-gold, bleached and grey-green tones, placed by
+`grassField` in irregular seeded clusters (1–5 tufts, random gaps with some long empty
+stretches; never a grid), with stones, forked twigs and lone dry stalks mixed in. Blades grow out
+of the ground (nothing inked below the base line) and are inked round the tuft's silhouette only.
+Foreground clumps mix shapes and heights (70–210 px) with a few tall seed heads; `fx/grass_tuft`
+is one mixed clump (tips kept inside its 30 px headroom). (2) *Bushes:* `shrub` draws low, twiggy
+shrubs from many small leaf lobes with a dashed (broken) ink outline at the plane's weight, bare
+twigs through the crown and at the base, one shadow and one highlight, a second colour that only
+shifts the hue, and four shapes (dome, wide, tall, sparse) in grey-green, olive and some autumn
+brown; far-veld ones are 3–10 px, thinly inked and hazed. (3) *Sky:* `tools/art/skies.ts`: a
+smooth gradient (deeper blue at the top to warm pale gold at the horizon) packed as a
+**full-colour PNG** (the layer plan's `encode: 'png'`; a palette PNG banded) at about 100 KB;
+soft flat-bottomed cumulus (blurred edges, lit top to a cooler base, no ink) banked low over
+the horizon and a few small ones just under the flyer band; three to five faint high streaks.
+The flyer band (skyBand 80–420) holds only those faint streaks. (4) *Props stay inside their
+textures:* a new test fails if any prop's art touches its texture's left, right or top edge
+(the fence bell's wires excepted: they join the mid fence). It caught the aloe candles, the
+potjie's steam and the windpomp and reservoir pipes and shadows, all fixed. First download
+1.69 → **1.89 MB** gzip (the full-colour sky and the denser ground cover).
+*§5 — Evidence:* `docs/art-preview/` `sprites.png`, `flyers.png`, `scenery-<biome>-{props,layers,pan}.png`
+(the pan sheets stamp real interim birds on their lanes: contrast check, bible §1.5);
+`compare/gfx2-*.png` before (main) | after in-game on desktop-chromium and pixel7-landscape, from
+`ART_PREVIEW=1 npx playwright test tests/e2e/art-preview-gfx2.spec.ts`.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
