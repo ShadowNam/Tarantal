@@ -19,7 +19,9 @@ import {
   isTouchProject,
   startHunt,
   stats,
+  tapRect,
 } from './helpers';
+import { composePair } from '../../tools/art/compare';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const SCREENS = join(ROOT, 'docs', 'art-preview', 'screens');
@@ -199,7 +201,8 @@ test.describe('long range (v1.3)', () => {
       await startHunt(page, touch);
       const at = await verFlock(page);
       mkdirSync(SCREENS, { recursive: true });
-      await page.screenshot({ path: join(SCREENS, `v1.3-sight-none-${info.project.name}.png`) });
+      const name = `v1.3-sight-${sight}`;
+      await page.screenshot({ path: join(SCREENS, `${name}-before-${info.project.name}.png`) });
       await press(page, touch, at.x, at.y);
       // Up, and the breath held (the sway settles): the picture you shoot through.
       await page.waitForFunction(() => (window.__TM__?.zoom.raise ?? 0) >= 1, null, {
@@ -209,12 +212,37 @@ test.describe('long range (v1.3)', () => {
       await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) >= t + 50, t0, {
         timeout: 60_000,
       });
-      await page.screenshot({
-        path: join(SCREENS, `v1.3-sight-${sight}-${info.project.name}.png`),
-      });
+      await page.screenshot({ path: join(SCREENS, `${name}-after-${info.project.name}.png`) });
       await release(page);
+      // docs/art-preview/compare/<name>-<project>.png: the open view | the sight picture.
+      expect(composePair(name, info.project.name)).toBe(true);
     });
   }
+
+  test('preview: the Skiet-Skuur with the Twee-Twee and its sights', async ({ page }, info) => {
+    gate(info);
+    test.skip(!PREVIEW, 'on demand: ART_PREVIEW=1');
+    test.setTimeout(300_000);
+    const touch = isTouchProject(info);
+    await rifleSave(page, 'peep');
+    await boot(page, `today=${TODAY}`);
+    await page.waitForFunction(() => window.__TM__?.rects['shed'] !== undefined, null, {
+      timeout: 60_000,
+    });
+    await tapRect(page, touch, 'shed');
+    await page.waitForFunction(() => window.__TM__?.shedSights?.weapon === 'twee_twee', null, {
+      timeout: 90_000,
+    });
+    await page.waitForFunction(() => (window.__TM__?.shedIcons ?? []).includes('twee_twee'), null, {
+      timeout: 90_000,
+    });
+    await page.waitForTimeout(500);
+    expect((await hook(page)).shedSights).toEqual({ weapon: 'twee_twee', fitted: 'peep' });
+    mkdirSync(join(ROOT, 'docs', 'art-preview', 'compare'), { recursive: true });
+    await page.screenshot({
+      path: join(ROOT, 'docs', 'art-preview', 'compare', `v1.3-shed-${info.project.name}.png`),
+    });
+  });
 
   test('preview: frame cost while scoped (medium tier)', async ({ page, browserName }, info) => {
     gate(info);
