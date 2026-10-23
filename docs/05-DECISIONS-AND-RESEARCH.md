@@ -1289,7 +1289,21 @@ failed on `main` three times in a day (21.3–22.0 ms against 20 ms; median fram
 worker ran the perf smoke and the score-pop A/B, so three throttled, software-rendered pages
 shared the runner's CPU. In the full lane the perf specs now run alone, one job per profile
 (desktop Chromium, Pixel 7 landscape) with one worker, and the other shards skip them. The
-budget is unchanged.
+budget is unchanged. *Visual baselines recorded in CI (23 Oct, approved by the product owner):*
+nobody re-records `tests/e2e/visual-baselines/` on their own machine any more. Another machine
+(an ARM Mac, a different GPU) renders a little differently, and the Playwright container was the
+heaviest memory step on the build server, which ran out of memory twice in graphics pass 3. The
+*Visual baselines* workflow (`.github/workflows/visual-baselines.yml`) records them in the same
+`mcr.microsoft.com/playwright` image as the e2e jobs, one job per baseline profile, with
+`--update-snapshots=changed` (only screens past the tolerance, or with no baseline yet, are
+written). It commits them to the PR branch as `github-actions[bot]` and starts the quick lane on
+that commit, because a push made with the workflow token starts no workflows (GitHub may list a
+CI run "awaiting approval" for the bot's push; ignore it, the started quick lane is the real
+one). Start it by
+labelling the PR `update-baselines` (the label is removed when the run ends) or by hand with the
+branch name; it refuses `main` and stops if the branch moved while it recorded. Agents say in the
+PR which screens changed on purpose and pull before their next push; the reviewer checks the image
+diff. A manual CI run can now pick `lane: quick`.
 
 **D-031 Graphics pass 2: interim landscapes, props, other creatures and effects (22 Oct
 2026).** The product owner approved a second code-drawn interim pass (same route as D-029, human

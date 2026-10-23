@@ -5,10 +5,11 @@ name: CI
 #   Pixel 7 landscape in short shards, iPhone 14 landscape on WebKit), without the long Season Run
 #   and perf timing specs. Stacked PRs (base is not main) don't run CI until they are retargeted
 #   to main, which re-triggers it.
-# - Full lane (push to main, nightly, manual, or a PR labelled `full-ci`): every profile, the
-#   Season Run, perf, portal and public-build jobs. The perf timing specs run alone (one worker,
-#   own job per profile): sharing a runner with another worker's test inflated the low-tier figure
-#   past its budget (D-030).
+# - Full lane (push to main, nightly, manual unless `lane: quick` is picked, or a PR labelled
+#   `full-ci`): every profile, the Season Run, perf, portal and public-build jobs. The perf timing
+#   specs run alone (one worker, own job per profile): sharing a runner with another worker's test
+#   inflated the low-tier figure past its budget (D-030).
+# Visual baselines are re-recorded by visual-baselines.yml, never on a person's or agent's machine.
 # E2E jobs run inside the official Playwright image, so browsers and their system packages are
 # already installed (installing them took 1–22 min per job). Keep its tag equal to the
 # @playwright/test version in package.json.
@@ -21,6 +22,12 @@ on:
   schedule:
     - cron: '17 2 * * *'
   workflow_dispatch:
+    inputs:
+      lane:
+        description: full (every job) or quick (the PR set; visual-baselines.yml uses it after a push)
+        type: choice
+        options: [full, quick]
+        default: full
 
 concurrency:
   # A description edit or an unrelated label runs nothing (see `plan`), so it gets its own group:
@@ -50,7 +57,7 @@ jobs:
       - id: m
         env:
           FULL: >-
-            ${{ github.event_name != 'pull_request' ||
+            ${{ (github.event_name != 'pull_request' && inputs.lane != 'quick') ||
             contains(github.event.pull_request.labels.*.name, 'full-ci') }}
         run: |
           SKIP_LONG='**/season-*.spec.ts,**/perf.spec.ts'

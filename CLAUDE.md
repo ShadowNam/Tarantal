@@ -30,6 +30,9 @@ add a decision entry.
 - `npm run hunt -- --seed 42 --bot random|aim` — one headless hunt + replay self-check (`tools/run-hunt.ts`)
 - `npm run golden:update` — re-record golden replays after an intentional sim/content change
 - `npx tsx tools/balance-sim.ts --seeds 500` — bot score distributions (from M3)
+- Visual baselines are re-recorded only in CI: label the PR `update-baselines` (or run the
+  "Visual baselines" workflow). It commits the changed screens to the branch, so pull before the
+  next push. Never run `--update-snapshots` locally.
 
 ## Architecture rules
 1. `src/sim/` is pure, deterministic TypeScript. It advances in fixed 60 Hz ticks from
