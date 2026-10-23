@@ -1,0 +1,67 @@
+{
+  "unit": "MB",
+  "tier": "low",
+  "peak": 126.9,
+  "hunts": [
+    {
+      "hunt": 1,
+      "biome": "karoo-autumn",
+      "mb": 93.3
+    },
+    {
+      "hunt": 2,
+      "biome": "karoo-autumn",
+      "mb": 93.3
+    },
+    {
+      "hunt": 3,
+      "biome": "karoo-autumn",
+      "mb": 109.5
+    },
+    {
+      "hunt": 4,
+      "biome": "bushveld-winter",
+      "mb": 108.4
+    },
+    {
+      "hunt": 5,
+      "biome": "bushveld-winter",
+      "mb": 108.4
+    },
+    {
+      "hunt": 6,
+      "biome": "bushveld-winter",
+      "mb": 108.5
+    },
+    {
+      "hunt": 7,
+      "biome": "okavango-spring",
+      "mb": 118.8
+    },
+    {
+      "hunt": 8,
+      "biome": "okavango-spring",
+      "mb": 126.8
+    },
+    {
+      "hunt": 9,
+      "biome": "okavango-spring",
+      "mb": 126.9
+    },
+    {
+      "hunt": 10,
+      "biome": "kalahari-summer",
+      "mb": 91.7
+    },
+    {
+      "hunt": 11,
+      "biome": "kalahari-summer",
+      "mb": 91.8
+    },
+    {
+      "hunt": 12,
+      "biome": "kalahari-summer",
+      "mb": 100.8
+    }
+  ]
+}
