@@ -9,6 +9,7 @@ import {
   crosshairWeapon,
   gunLookFor,
   pileRows,
+  spreadMulOf,
   type AmmoState,
 } from './gunLook';
 
@@ -30,6 +31,7 @@ const state = (o: Partial<AmmoState>): AmmoState => ({
   cooldownTicks: 0,
   ticksLeft: null,
   totalTicks: null,
+  infinite: false,
   ...o,
 });
 const slotsFor = (id: string, o: Partial<AmmoState>) => {
@@ -200,5 +202,45 @@ describe('crosshairs show the spread', () => {
     expect(ringR('voorlaaier')).toBeGreaterThan(weapon('voorlaaier').spreadPx * 0.9);
     expect(gunLookFor(guns, 'mielie_masjien').crosshair.jitterPx).toBeGreaterThan(0);
     expect(gunLookFor(guns, 'dubbelloop').crosshair.jitterPx).toBe(0);
+  });
+});
+
+describe('review fixes (v1.1)', () => {
+  it('a bigger magazine (Season Run bandolier) packs the rounds inside the belt', () => {
+    for (const [id, magazine] of [
+      ['windbuks', 8],
+      ['dubbelloop', 10],
+      ['pomp', 12],
+    ] as const) {
+      const look = gunLookFor(guns, id);
+      const s = ammoSlots(look.ammo, look.type, look.typeId, state({ magazine, shells: 3 }), belt);
+      expect(s).toHaveLength(look.type.spent === 'sprite' ? magazine : 3);
+      for (const x of s) {
+        expect(x.x - look.type.width / 2, id).toBeGreaterThanOrEqual(belt.x);
+        expect(x.x + look.type.width / 2, id).toBeLessThanOrEqual(belt.x + belt.w);
+      }
+    }
+  });
+
+  it('infinite ammo (Chilli Biltong) shows a full belt', () => {
+    const s = slotsFor('dubbelloop', { shells: 0, infinite: true });
+    expect(s.every((x) => x.key === 'ui/ammo/shell12')).toBe(true);
+    expect(s).toHaveLength(8);
+  });
+
+  it('the ring follows a power-up spread multiplier (Bush Buckshot)', () => {
+    const defs = loadContent().powerups.powerups;
+    const buck = defs.find((d) => d.effect.spreadMul !== undefined);
+    expect(buck).toBeDefined();
+    const mul = spreadMulOf([{ id: buck?.id ?? '' }], defs);
+    expect(mul).toBe(buck?.effect.spreadMul);
+    expect(spreadMulOf([], defs)).toBe(1);
+    const prims = crosshairPrims(
+      gunLookFor(guns, 'dubbelloop').crosshair,
+      crosshairWeapon(weapon('dubbelloop'), mul),
+    );
+    const ring = prims.find((p) => p.kind === 'path' && p.pts.length > 4);
+    const r = ring?.kind === 'path' ? Math.max(...ring.pts.map(([x, y]) => Math.hypot(x, y))) : 0;
+    expect(r).toBeCloseTo(weapon('dubbelloop').spreadPx * mul, 0);
   });
 });

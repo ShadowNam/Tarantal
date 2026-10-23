@@ -635,7 +635,7 @@ export class HudScene extends Phaser.Scene {
     const w = this.previewWeapon(s.weapon);
     this.drawAmmo(w, l, flash);
     this.drawKettie(w);
-    const empty = s.weapon.shells === 0 && !s.weapon.reloading;
+    const empty = s.weapon.shells === 0 && !s.weapon.reloading && !s.weapon.infinite;
     this.reload.setText(t('hud.reload')).setVisible(empty);
     if (empty) this.reload.setScale(1 + 0.08 * Math.sin(now / 90));
 
