@@ -470,8 +470,8 @@ on the strip at the foot of the far ridge and a Ver fly-over lane.
 | Bonus map | Flocks | Fly-over lanes (mid : far : Ver) | Pop-ups / fly-overs | Points | Light |
 |---|---|---|---|---|---|
 | Verder | 1 far | 1 : 3 : 0 | ×0.35 / ×0.8 | ×0.8 | Blue distance haze |
-| Nog Verder | 1 far + 1 Ver | 0.5 : 2 : 1 | ×0.2 / ×0.7 | ×0.8 | Deeper haze; the Ver strip pale |
-| Die Verste | 1 far + 2 Ver | 0 : 1 : 3 | ×0.1 / ×0.6 | ×0.8 | The most haze; a hot, pale horizon |
+| Nog Verder | 1 far + 1 Ver | 0.5 : 2 : 1 | ×0.2 / ×0.7 | ×0.75 | Deeper haze; the Ver strip pale |
+| Die Verste | 1 far + 2 Ver | 0 : 1 : 3 | ×0.1 / ×0.6 | ×0.65 | The most haze; a hot, pale horizon |
 
 Weather is on in all three (wind ×1.5 / ×1.6 / ×1.7 where there is wind). Shotguns struggle on Nog
 Verder (their pellets fall short of every Ver bird) and the Twee-Twee shines; Die Verste is built

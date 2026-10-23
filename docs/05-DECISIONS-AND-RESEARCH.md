@@ -1753,6 +1753,25 @@ sight is up; competent and aim wait for the breath to settle on far and Ver targ
 for the wind; nobody can cancel the sway). All bots skip planes their gun can't reach (a
 shotgun bot fired ~160 wasted shots at Ver birds per Nog Verder hunt before). Guns without
 sights are unchanged, so every existing golden and balance number holds.
+(13) *Balance (500 seeds, competent / plinker / random, `docs/balance/v1.3-long-range.md`):*
+before = main 5aa4f31. Classic Karoo 4 180 / 2 407 / 267 and Monday Verder 3 649 / 1 684 / 249,
+**identical after** (no existing gun or map changed). The Twee-Twee on Classic: iron 2 684 /
+3 046, peep 2 696 / 2 976, scope 2 629 / 2 770 — below the shotguns on plain maps, as intended.
+On Nog Verder (Monday): Dubbelloop 3 324 / 1 372, .22 iron 3 205 / 1 110, peep 3 783 / 1 005,
+scope 4 554 / 877 (Ver birds 13.8–14.1 a hunt for the competent bot); Die Verste: Dubbelloop
+2 700 / 862, scoped .22 4 809 / 731 (17.7 Ver birds). Tuned once: the first pass (points ×0.8 on
+both) gave a scoped Die Verste 5 861, 40 % above a Classic hunt — a score farm for rank titles —
+so Nog Verder pays ×0.75 and Die Verste ×0.65 (defaulted; the scoped .22 now sits 9–15 % above
+Classic, the reward for the hardest unlock). Two M3 gates fail outside their scope and are left:
+"plinker ≥ 25 % below competent" for the .22 on plain maps (the competent bot's strategy is
+flock escalation for a spread gun; with 5 single bullets plinking scores more — a bot model
+limit, not a balance issue), and "competent ≤ 4 500" for the scoped .22 on the bonus maps.
+The plinker struggles at range (12–22 % accuracy: it neither waits for the breath nor holds off
+for the wind), which is the skill gap the proposal wants.
+(14) *Golden replays (PR B):* re-recorded on purpose for the content (the .22, sight unlocks, the
+two bonus maps); the 31 existing event hashes, counts and scores are unchanged; three new ones
+(Twee-Twee + scope on Nog Verder, competent pointer; Twee-Twee iron on Die Verste, aim bot
+touch; the Pomp on a Bushveld Nog Verder, whose pellets fall short of the Ver birds).
 
 ## 3. Research notes (with sources)
 
