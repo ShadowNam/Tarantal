@@ -1384,26 +1384,6 @@ function bakkie(ctx: PropCtx): string {
   parts.push(contactShadow(8, wheelY + wheelR - 4, 236, 10, 0.34));
   for (const cx of [rearX, frontX])
     parts.push(fill(ellipseD(cx, 46, archR + 1, archR + 1), '#1E1A18'));
-  // Spare wheel standing in the bin: drawn first, so the bin side hides its lower half (the
-  // secret's hit area is the whole wheel).
-  parts.push(
-    fill(ellipseD(-180, -40, 32, 36), `url(#${gTyre})`),
-    stroke(ellipseD(-180, -40, 32, 36), ink, pen.w),
-    fill(ellipseD(-180, -40, 15, 17), '#C9CDD0'),
-    fill(ellipseD(-180, -40, 6, 7), '#8A9196'),
-    stroke(ellipseD(-180, -40, 15, 17), '#5E666C', 1.2),
-    fill(ellipseD(-186, -48, 4, 5), '#FFFFFF', 0.7),
-    ...Array.from({ length: 14 }, (_, k) => {
-      const a = (k / 14) * Math.PI * 2;
-      const x1 = -180 + Math.cos(a) * 29;
-      const y1 = -40 + Math.sin(a) * 33;
-      return stroke(
-        `M${r2(x1)} ${r2(y1)}L${r2(-180 + Math.cos(a) * 32)} ${r2(-40 + Math.sin(a) * 36)}`,
-        '#4A4340',
-        2.2,
-      );
-    }),
-  );
   // The body: paint gradient, then everything on the paint inside its clip.
   parts.push(el('clipPath', { id }, el('path', { d: bodyD })), fill(bodyD, `url(#${gPaint})`));
   const onPaint: string[] = [];
@@ -1684,6 +1664,31 @@ function bakkie(ctx: PropCtx): string {
     fill(ellipseD(x + w * 0.8, 23, 3, 1.2), '#6E5A48', 0.5),
   ];
   parts.push(...bumper(184, 40), ...bumper(-218, 26));
+  // The spare wheel (the secret, content part at (−180, −40), 32 × 36): bolted to a bracket on
+  // the outside of the bin by the tailgate, leaning back a little, in front of the bin side so
+  // nearly all of its hit ellipse shows the wheel (review of #49: inside the bin, 58 % of it was
+  // hidden and the plain panel triggered the secret).
+  const spareTread = Array.from({ length: 14 }, (_, n) => {
+    const a = (n / 14) * Math.PI * 2;
+    return `M${r2(-180 + Math.cos(a) * 29)} ${r2(-40 + Math.sin(a) * 33)}L${r2(-180 + Math.cos(a) * 32)} ${r2(-40 + Math.sin(a) * 36)}`;
+  }).join('');
+  parts.push(
+    contactShadow(-174, -2, 30, 4, 0.3),
+    g(
+      { transform: 'rotate(-6 -180 -40)' },
+      el('rect', { x: -186, y: -50, width: 12, height: 22, rx: 2, fill: '#3A3431' }),
+      fill(ellipseD(-180, -40, 32, 36), `url(#${gTyre})`),
+      stroke(spareTread, '#4A4340', 2.2),
+      stroke(ellipseD(-180, -40, 32, 36), shade('#24201E', -0.2), pen.w),
+      fill(ellipseD(-180, -40, 15, 17), '#C9CDD0'),
+      fill(ellipseD(-178, -38, 13, 15), '#9AA1A6', 0.5),
+      fill(ellipseD(-180, -40, 6, 7), '#8A9196'),
+      stroke(ellipseD(-180, -40, 15, 17), '#5E666C', 1.2),
+      fill(ellipseD(-186, -48, 4, 5), '#FFFFFF', 0.7),
+      fill(ellipseD(-180, -40, 2.2, 2.2), '#3A3431'),
+      fill(ellipseD(-180, -20, 26, 8), dust, 0.3),
+    ),
+  );
   // The road wheels: treaded tyre, steel rim with holes, hub with nuts, dust on the rubber.
   const wheel = (cx: number): string => {
     const tread: string[] = [];
