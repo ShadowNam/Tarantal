@@ -12,17 +12,32 @@ import type { GameContext } from '../GameContext';
 import { inputKindOf } from '../input/InputMapper';
 import type { InputKind } from '../../sim/types';
 import { formatScore } from '../ui/format';
+import { layoutForDay } from '../../meta/maps';
+import { isUnlocked, mapQuota } from '../../meta/bonusMaps';
+import { findLayout } from '../../sim/maps';
 import type { Rect } from '../ui/hudLayout';
 import { drawButton, fitText, Menu, textStyle, type MenuItem } from '../ui/menu';
 
 export interface TitleData {
   /** Starts the hunt; pointerId is the pressing pointer (null from the keyboard). */
-  readonly start: (kind: InputKind, pointerId: number | null, mode: ModeId) => void;
+  readonly start: (
+    kind: InputKind,
+    pointerId: number | null,
+    mode: ModeId,
+    /** v1.2: a bonus map on today's Classic map ('verder'). */
+    bonus?: string,
+  ) => void;
   /** Opens the Season Run (resumes the saved run, or starts a new one). */
   readonly run: () => void;
   /** M7: one line under the logo (a challenge link that doesn't work). */
   readonly notice?: string;
 }
+
+/** Room kept between Verder and the bottom row: the Daily status line plus a gap (design px). */
+const VERDER_ROW_GAP = 50;
+/** Verder's height and its offset below START (design px). */
+const VERDER_H = 72;
+const VERDER_BELOW_START = 142;
 
 export class TitleScene extends Phaser.Scene {
   private readonly ctx: GameContext;
@@ -69,7 +84,18 @@ export class TitleScene extends Phaser.Scene {
     if (this.ctx.hook) this.ctx.hook.notice = data.notice ?? null;
 
     const startW = Math.min(900, width - safe.left - safe.right - 200);
-    const start: Rect = { x: (width - startW) / 2, y: height / 2 - 110, w: startW, h: 220 };
+    // v1.2: a returning player's START block (START, best, today's map, Verder) moves up as far
+    // as the safe area needs, so Verder never reaches the bottom row (iPhone home indicator).
+    const rowTop = height - safe.bottom - 170 - VERDER_ROW_GAP;
+    const lift = returning
+      ? Math.max(0, height / 2 - 110 + 220 + VERDER_BELOW_START + VERDER_H - rowTop)
+      : 0;
+    const start: Rect = {
+      x: (width - startW) / 2,
+      y: height / 2 - 110 - lift,
+      w: startW,
+      h: 220,
+    };
     const startBtn = drawButton(this, start, t('title.start'), 'primary', 110);
     this.tweens.add({
       targets: startBtn.text,
@@ -116,6 +142,62 @@ export class TitleScene extends Phaser.Scene {
           .setOrigin(0.5);
         fitText(info, width - 200);
       }
+      // v1.2: today's Classic map (UTC weekday), e.g. "Today's map: Monday · Dawn mist".
+      const mapLine = this.add
+        .text(
+          width / 2,
+          start.y + start.h + 112,
+          fill(t('title.map'), { map: todayMapName(this.ctx) }),
+          {
+            ...textStyle(32, '#FFE7A8'),
+            stroke: '#1B1410',
+            strokeThickness: 5,
+          },
+        )
+        .setOrigin(0.5);
+      fitText(mapLine, width - 200);
+      // v1.2: Verder — a button once today's map quota is beaten, else what unlocks it.
+      const home = this.ctx.biome.id;
+      const verderOpen = isUnlocked(this.ctx.save.data.bonusMaps, this.ctx.today(), home, 'verder');
+      // Above the bottom row and the Daily status line over it (rowTop), whatever the safe area.
+      const verder: Rect = {
+        x: width / 2 - 200,
+        y: Math.min(start.y + start.h + VERDER_BELOW_START, rowTop - VERDER_H),
+        w: 400,
+        h: VERDER_H,
+      };
+      if (verderOpen) {
+        drawButton(this, verder, t('title.verder'), 'selected', 40);
+        items.push({
+          id: 'verder',
+          rect: () => verder,
+          trigger: 'down',
+          press: (pointerType, pointerId) => {
+            if (this.started) return;
+            this.started = true;
+            this.ctx.audio.unlock();
+            this.data_?.start(
+              pointerId === null ? 'pointer' : inputKindOf(pointerType),
+              pointerId,
+              'classic',
+              'verder',
+            );
+          },
+        });
+      } else {
+        const locked = this.add
+          .text(
+            width / 2,
+            verder.y + verder.h / 2,
+            fill(t('title.verder_locked'), {
+              quota: formatScore(mapQuota(this.ctx.content, home)),
+            }),
+            { ...textStyle(28, '#D9CBB0'), stroke: '#1B1410', strokeThickness: 5 },
+          )
+          .setOrigin(0.5);
+        fitText(locked, width - 240);
+      }
+      if (this.ctx.hook) this.ctx.hook.verder = verderOpen;
       // Bottom row, left to right: Skiet-Skuur, Daily Hunt (M7), Season Run, Settings.
       const gap = 30;
       const bw = Math.min(380, (width - safe.left - safe.right - 160 - gap * 3) / 4);
@@ -252,4 +334,14 @@ export class TitleScene extends Phaser.Scene {
     });
     this.scene.bringToTop(key);
   }
+}
+
+/** "Monday · Dawn mist": today's Classic layout of the home biome. */
+export function todayMapName(ctx: GameContext): string {
+  const id = ctx.classicLayout ?? layoutForDay(ctx.today());
+  const layout = findLayout(ctx.biome, id);
+  return fill(t('map.name'), {
+    day: tOr(`map.day.${id}`, id),
+    light: layout === undefined ? '' : tOr(`map.light.${layout.light}`, layout.light),
+  });
 }

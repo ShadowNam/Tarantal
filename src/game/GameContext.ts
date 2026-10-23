@@ -137,6 +137,16 @@ export interface TestHook {
   weapon: string;
   /** M8: biome of the hunt on screen, and the omen's glare side (Bushveld) or null. */
   biome: string;
+  /** v1.2: the title offers Verder (today's map quota beaten), and the last hunt's unlock. */
+  verder: boolean;
+  verderUnlocked: string | null;
+  /** v1.2: the map on screen (layout, bonus map, light presets drawn, prop u positions). */
+  map: {
+    layout: string | null;
+    bonus: string | null;
+    lights: string[];
+    props: Record<string, number>;
+  } | null;
   glare: number | null;
   /** M8: the omen (biome weather) is on in this hunt; rain is falling now. */
   omen: boolean;
@@ -279,6 +289,9 @@ export interface GameContext {
   readonly omen: boolean | undefined;
   /** e2e/dev only: ?biome= plays Classic hunts in another playable biome (M8). */
   readonly classicBiome: string | undefined;
+  /** e2e/dev only (v1.2): ?layout=thu and ?bonus=verder play Classic hunts on that map. */
+  readonly classicLayout: string | undefined;
+  readonly classicBonus: string | undefined;
   /** Device hint before the first touch: coarse pointer → touch hints on the start card. */
   readonly coarsePointer: boolean;
   readonly reducedMotion: boolean;

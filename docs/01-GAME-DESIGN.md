@@ -92,7 +92,8 @@ Moorhuhn's original paid 25 for the farthest birds; we keep 5 / 10 / 25 so the i
 For each bagged target:
 
 ```
-points = base(plane or creature override) + Σ addPoints          // "Punte" (order irrelevant)
+points = round(base(plane or creature override) × map.pointsMul) + Σ addPoints   // "Punte"
+                                                       // (map.pointsMul: §11.5, 1 on most maps)
 mult   = 1 + behaviourAdd                                         // "Maal" starts here
 for each charm in slot order, left → right:                       // order MATTERS (Balatro-style)
     for each matching effect in that charm, in listed order:
@@ -314,6 +315,7 @@ summer thunderstorm finale.
 | 1 | **Herfs** (Autumn) — MVP biome | **Karoo farm** | Golden veld, flat-topped dolerite koppies (authentic Karoo), windpomp + corrugated reservoir, rusty bakkie, wire fence, aloes, springbok far away | **Karoo wind** with dust devils | Tailwind birds rocket (+40 %), headwind birds hover; dust devils flush what they touch; far shots drift | Generaal Tarentaal |
 
 Omens are on in Season Run omen hunts and in the **Daily Hunt**; **Classic is off** (purist mode;
+a weekday layout can override both: `calm` days have none, `omen` days have it in Classic too, §11.5;
 `modes.json → omen`, D-021). Karoo wind: direction and strength (0.4–1.0) re-rolled every 12–20 s;
 flying birds (fly-overs and flushed flocks) go ×(1 + (1.4 − 1)·strength) with the wind and
 ×(1 + (0.7 − 1)·strength) against it; pellets on the far plane (and behind it) drift downwind by
@@ -374,6 +376,52 @@ Classic he brings his own lightning; in his boss hunt the Boss Rule's lightning 
 flash from any source keeps at least ½ s from the last (≤ 2 a second), and "reduce flashes" dims
 them. The weaver nest costs 10 each time you hit it (every 2 s at most) and is not a secret
 found. Numbers live in `content/biomes/kalahari-summer.json`.
+
+### 11.5 Day-of-week maps and bonus map Verder (v1.2, D-033)
+
+Every biome has **seven layouts, one per UTC weekday** (`content/biomes/<biome>.json → layouts`,
+Monday first). The weekday is counted in **UTC** like the Daily Hunt, so everyone plays the same
+Monday map. **Classic and the Daily Hunt** play the day's layout; the **Season Run and the FTUE play
+the biome as it is** (their quotas and lesson stay fixed). A layout changes, as data:
+
+- **Light** (a preset in `content/client/feel.json → lights`): multiply tints per parallax layer and
+  flat haze bands over a layer's art, drawn below that plane's birds (birds stay crisp). No new
+  textures. The fly-over sky stays light: every map keeps ≥ 80 % of the plain sky's
+  plumage-to-sky contrast (`tools/sky-contrast.ts`, a unit test fails below it).
+- **Where things stand:** props move (`u`, optionally `y`) with their occluders, secrets and perches.
+- **Where the birds are:** flock **feeding spots** (u ranges per plane: the first flock forages
+  on the spot, and later ones there whenever it is out of view, else anywhere hidden), where the
+  hunt **opens along the pan** (`cameraStartU`, a little off the spot, so the first flock sits
+  left or right of centre), **fly-over routes** (lane weights, sky bands, one fixed direction)
+  and flock targets per plane.
+- **Weather:** `calm` (no biome weather, even in the Daily), `default` (Classic off, Daily on,
+  D-021) or `omen` (on in Classic too), with an optional wind multiplier.
+- **Pacing and points:** fly-over / pop-up rate multipliers, the run-instead-of-fly share, and a
+  base-points multiplier (dusk: fewer birds, worth more).
+
+| Day | Light | Karoo |
+|---|---|---|
+| Mon | Dawn mist: cool haze | Calm; flocks feed by the reservoir |
+| Tue | Crisp, clear midday: bluer sky, bright horizon | Flocks spread across the open veld; bakkie and bell move |
+| Wed | Overcast: grey cloud bank, flat grey light | Bakkie by the fence; half the flocks run instead of flying |
+| Thu | Golden afternoon | Wind on (×1.3), higher fly-over lanes, more on the far lane |
+| Fri | Warm, dusty wind: ochre dust low in the sky and over the ridges | Windpomp and reservoir in the east; flocks gather there |
+| Sat | Dusk: deep blue top, orange-pink glow behind the koppies, warm ground, cool foreground | Fewer birds (×0.7), base points ×1.15; secrets glow |
+| Sun | Bright and clear, fair-weather clouds | Calm; pop-ups ×1.5 |
+
+The other biomes follow the same week with their own props and weather. Per-map balance:
+`docs/balance/v1.2-<biome>.md` (all 28 layouts within −9 … +14 % of the plain biome; Verder
+−2 … −22 %). Clouds are Phaser ellipse shapes and glows are haze bands: no new textures.
+
+**Verder (further)** is today's layout seen from further back: one far flock instead of the mid
+one, fly-overs mostly far (mid 1 : far 3), pop-ups ×0.35, fly-overs ×0.8, base points ×0.8,
+weather on, wind ×1.5 where there is wind, a blue distance haze. It is **unlocked by beating the
+map's quota** — the biome's Season Run plain-hunt quota (`run.json`; Karoo 1 950) — in a Classic
+or Daily hunt on **today's** map, and stays open until **UTC midnight** (a hunt that started before
+midnight and ends after it unlocks nothing: its map is gone). The title shows a Verder button once
+it is open, else "Beat 1 950 to unlock Verder". Verder keeps **its own best** (not the Classic
+best) and counts for rank titles. A challenge link to a Verder hunt plays it without the unlock
+(like a lent gun). Nog Verder and Die Verste follow in v1.3.
 
 ## 12. Game modes
 

@@ -166,8 +166,10 @@ export function createDirector(deps: DirectorDeps): Director {
 
   function spawnFlyoverGroup(ctx: DirectorContext): Bird[] {
     const lanes: PlaneId[] = ['mid', 'far'];
+    // v1.2: a map's fly-over routes may weight the sky lanes and fix the direction.
+    const planeWeights = biome.flyovers?.planeWeights ?? flyover.planeWeights;
     const weights = lanes.map((p) =>
-      biome.lanes[p]?.skyY === undefined ? 0 : flyover.planeWeights[p as 'mid' | 'far'],
+      biome.lanes[p]?.skyY === undefined ? 0 : planeWeights[p as 'mid' | 'far'],
     );
     const plane = lanes[spawns.weightedIndex(weights)];
     const sky = plane === undefined ? undefined : biome.lanes[plane]?.skyY;
@@ -177,7 +179,9 @@ export function createDirector(deps: DirectorDeps): Director {
       spawns.int(flyover.groupSize[0], flyover.groupSize[1]),
       maxBirds - ctx.aliveBirds,
     );
-    const dir: 1 | -1 = spawns.chance(0.5) ? 1 : -1;
+    // The coin is always drawn, so a fixed route leaves the rest of the stream as it was.
+    const coin: 1 | -1 = spawns.chance(0.5) ? 1 : -1;
+    const dir: 1 | -1 = biome.flyovers?.dir ?? coin;
     const leaderY = spawns.range(sky[0], sky[1]);
     const out: Bird[] = [];
     let offset = 0;
@@ -226,8 +230,20 @@ export function createDirector(deps: DirectorDeps): Director {
     const spaced = (x: number): boolean =>
       others.every((f) => f.members.every((b) => Math.abs(b.x - x) >= fp.spawnSpacingPx * ratio));
     const clampX = (x: number): number => Math.min(core - spread, Math.max(spread, x));
+    // v1.2: a map's feeding spots for this plane.
+    const spots = (biome.feedingSpots ?? []).filter((s) => s.plane === plane);
     if (ctx.tick === 0) {
-      // Warm-up (GDD §8): the first flocks forage in view.
+      // Warm-up (GDD §8): the first flocks forage in view — on a feeding spot where one is in view.
+      const half = fp.startInViewPx * ratio;
+      for (const spot of spots) {
+        const from = Math.max(spot.u[0] * core, centre - half);
+        const to = Math.min(spot.u[1] * core, centre + half);
+        if (from > to) continue;
+        for (let i = 0; i < PLACE_TRIES; i++) {
+          const x = clampX(flockRng.range(from, to));
+          if (spaced(x)) return x;
+        }
+      }
       for (let i = 0; i < PLACE_TRIES; i++) {
         const x = clampX(centre + flockRng.range(-fp.startInViewPx, fp.startInViewPx) * ratio);
         if (spaced(x)) return x;
@@ -236,6 +252,15 @@ export function createDirector(deps: DirectorDeps): Director {
     }
     const hidden = (x: number): boolean =>
       Math.abs(x - centre) > MAX_HALF_VIEW_WIDTH + spread + OUT_OF_VIEW_MARGIN_PX;
+    // v1.2: the feeding spots come first; anywhere else if none fits.
+    if (spots.length > 0) {
+      for (let i = 0; i < PLACE_TRIES; i++) {
+        const spot = spots[flockRng.int(0, spots.length - 1)];
+        if (spot === undefined) break;
+        const x = clampX(flockRng.range(spot.u[0] * core, spot.u[1] * core));
+        if (hidden(x) && spaced(x)) return x;
+      }
+    }
     for (let i = 0; i < PLACE_TRIES; i++) {
       const x = flockRng.range(spread, core - spread);
       if (hidden(x) && spaced(x)) return x;

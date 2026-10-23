@@ -1,4 +1,4 @@
-import type { Biome } from './content/schemas';
+import { BONUS_MAP_IDS, WEEKDAY_IDS, type Biome } from './content/schemas';
 // Boot: save (settings + progress) → i18n → content (validated) → platform adapter →
 // placeholder assets → Phaser game with the flexible-width layout (Tech §5). Opens on the title
 // over the live panorama: one giant START HUNT, so the first shot is seconds away (GDD §16).
@@ -182,6 +182,19 @@ function biomeParam(): string | undefined {
   return params.get('biome') ?? undefined;
 }
 
+/** e2e/dev only (v1.2): ?layout=thu / ?bonus=verder play Classic hunts on that map. */
+function layoutParam(): string | undefined {
+  const v = testHooks ? params.get('layout') : null;
+  // 'none' plays the plain biome (the "before" of the v1.2 previews).
+  return v !== null && (v === 'none' || (WEEKDAY_IDS as readonly string[]).includes(v))
+    ? v
+    : undefined;
+}
+function bonusParam(): string | undefined {
+  const v = testHooks ? params.get('bonus') : null;
+  return v !== null && (BONUS_MAP_IDS as readonly string[]).includes(v) ? v : undefined;
+}
+
 /** e2e/dev only: ?today=YYYY-MM-DD fixes the UTC day of the Daily Hunt. */
 function todaySource(): () => number {
   const fixed = testHooks ? parseDayKey(params.get('today') ?? '') : null;
@@ -200,6 +213,9 @@ const hook: TestHook = {
   score: 0,
   shells: 0,
   biome: '',
+  map: null,
+  verder: false,
+  verderUnlocked: null,
   glare: null,
   omen: false,
   rain: false,
@@ -602,6 +618,8 @@ const ctx: GameContext = {
   holdAtTick: holdAtParam(),
   omen: omenParam(),
   classicBiome: biomeParam(),
+  classicLayout: layoutParam(),
+  classicBonus: bonusParam(),
   coarsePointer,
   reducedMotion,
   paused: () => portrait || document.visibilityState === 'hidden' || ctx.menuPaused || contextLost,

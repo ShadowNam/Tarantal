@@ -305,4 +305,46 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
     inputKind: 'touch',
     modeConfig: { id: 'daily', biome: 'karoo-autumn' },
   },
+  // v1.2 (D-033): weekday layouts and Verder (InputLog v4 carries the map). The cases above
+  // carry no layout: they replay on the plain biome, as every log made before v1.2 does.
+  {
+    name: 'classic-61-karoo-thu-competent-pointer',
+    seed: 61,
+    bot: 'competent',
+    mode: 'classic',
+    inputKind: 'pointer',
+    modeConfig: { id: 'classic', layout: 'thu' },
+  },
+  {
+    name: 'classic-62-karoo-fri-competent-touch',
+    seed: 62,
+    bot: 'competent',
+    mode: 'classic',
+    inputKind: 'touch',
+    modeConfig: { id: 'classic', layout: 'fri' },
+  },
+  {
+    name: 'classic-63-karoo-sat-aim-pointer',
+    seed: 63,
+    bot: 'aim',
+    mode: 'classic',
+    inputKind: 'pointer',
+    modeConfig: { id: 'classic', layout: 'sat' },
+  },
+  {
+    name: 'classic-64-karoo-mon-verder-competent-pointer',
+    seed: 64,
+    bot: 'competent',
+    mode: 'classic',
+    inputKind: 'pointer',
+    modeConfig: { id: 'classic', layout: 'mon', bonus: 'verder' },
+  },
+  {
+    name: 'daily-65-bushveld-wed-aim-touch',
+    seed: 65,
+    bot: 'aim',
+    mode: 'daily',
+    inputKind: 'touch',
+    modeConfig: { id: 'daily', biome: 'bushveld-winter', layout: 'wed' },
+  },
 ];

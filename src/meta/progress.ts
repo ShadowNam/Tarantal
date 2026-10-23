@@ -86,7 +86,13 @@ export function applyHunt(
   let rankUp: string | null = null;
   if (ranked && SCORED_MODES.has(log.mode)) {
     const prev = save.bests[log.biome];
-    if (log.mode === 'classic' && (prev === undefined || log.score > prev.score)) {
+    // A bonus map (v1.2) keeps its own best (bonusMaps.ts); it still counts for rank titles.
+    const bonus = log.bonus ?? null;
+    if (
+      log.mode === 'classic' &&
+      bonus === null &&
+      (prev === undefined || log.score > prev.score)
+    ) {
       bests = { ...save.bests, [log.biome]: { score: log.score, rank: log.rank } };
       newBest = { previous: prev?.score ?? null };
     }

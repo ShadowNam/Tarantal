@@ -60,6 +60,8 @@ function result(plan: HuntPlan, score: number): HuntResult {
   return {
     seed: plan.seed,
     mode: plan.mode.id,
+    layout: plan.mode.layout ?? null,
+    bonus: plan.mode.bonus ?? null,
     biome: plan.mode.biome ?? 'karoo-autumn',
     weapon: plan.mode.weapon ?? 'dubbelloop',
     score,
@@ -113,11 +115,25 @@ describe('DailyFlow', () => {
     expect(flow.finish(classic, result(classic, 1234), '🟩').share).toBeNull();
   });
 
+  it('v1.2: Classic plays today’s layout and may carry Verder; the Daily never does', () => {
+    const { flow } = setup();
+    const classic = flow.plan('classic', null, undefined, { bonus: 'verder' }, () => 42);
+    expect(classic.mode).toMatchObject({ id: 'classic', layout: 'wed', bonus: 'verder' });
+    expect(classic.hudTag).toBe('Verder · further');
+    const daily = flow.plan('daily', null, undefined, { bonus: 'verder' }, seedNever);
+    expect(daily.mode.bonus).toBeUndefined();
+    expect(daily.mode.layout).toBe('wed');
+  });
+
   it('first daily attempt is official, records the result and shares a link to the same hunt', async () => {
     const { flow, save, fake } = setup();
     const plan = flow.plan('daily', null, undefined, {}, seedNever);
     expect(plan.seed).toBe(dailySeed(meta.epoch, hash));
-    expect(plan.mode).toEqual({ id: 'daily', biome: 'karoo-autumn' });
+    expect(plan.mode).toEqual({
+      id: 'daily',
+      biome: 'karoo-autumn',
+      layout: plan.daily?.setup.layout,
+    });
     expect(plan.daily?.official).toBe(true);
     expect(plan.hudTag).toBe('DAILY #1');
     flow.start(plan);
@@ -141,7 +157,7 @@ describe('DailyFlow', () => {
       { day: DAY, score: 2840, rank: 'bosveldjagter', wholeFlocks: 2, grid: '🟩🟩🟨🟩⬛' },
     ]);
     expect(x.share?.text).toContain(
-      'Daily #1 · 2\u00a0840 · Bosveldjagter · 🟩🟩🟨🟩⬛ · 2× hele swerm',
+      'Daily #1 · Wednesday · 2\u00a0840 · Bosveldjagter · 🟩🟩🟨🟩⬛ · 2× hele swerm',
     );
     const param = new URL(x.share?.url ?? '').searchParams.get('c') ?? '';
     const decoded = decodeChallenge(param, {
@@ -152,7 +168,7 @@ describe('DailyFlow', () => {
     });
     expect(decoded).toMatchObject({
       ok: true,
-      challenge: { seed: plan.seed, mode: 'daily', score: 2840, n: 1 },
+      challenge: { seed: plan.seed, mode: 'daily', score: 2840, n: 1, l: 'wed' },
     });
 
     expect(await flow.share(x)).toBe('copied');
@@ -207,6 +223,7 @@ describe('DailyFlow', () => {
         weapon: 'windbuks',
         score: 3000,
         dailyNumber: 1,
+        layout: today.layout,
       },
       hash,
       'Sannie',
@@ -217,6 +234,7 @@ describe('DailyFlow', () => {
       id: 'daily',
       biome: 'karoo-autumn',
       weapon: 'windbuks',
+      layout: today.layout,
       huntSeconds: 3,
     });
     flow.start(plan);

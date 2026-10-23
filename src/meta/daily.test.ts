@@ -17,6 +17,8 @@ import {
   startAttempt,
 } from './daily';
 import { parseDayKey } from './dailyCalendar';
+import { layoutForDay } from './maps';
+import { findLayout } from '../sim/maps';
 import { sha256HexOfString } from '../content/hash';
 import type { DailySave } from './saveSchema';
 import { DailySaveSchema } from './saveSchema';
@@ -108,10 +110,16 @@ describe('daily number and biome', () => {
       fallbackBiome: content.modes.modes.daily.biome,
     });
     expect(setup).toMatchObject({ key: meta.epoch, number: 1, biome: 'karoo-autumn' });
-    expect(dailyMode(setup, undefined)).toEqual({ id: 'daily', biome: 'karoo-autumn' });
+    expect(setup.layout).toBe(layoutForDay(setup.day));
+    expect(dailyMode(setup, undefined)).toEqual({
+      id: 'daily',
+      biome: 'karoo-autumn',
+      layout: setup.layout,
+    });
     expect(dailyMode(setup, 'windbuks')).toEqual({
       id: 'daily',
       biome: 'karoo-autumn',
+      layout: setup.layout,
       weapon: 'windbuks',
     });
     const sim = createSim({
@@ -120,7 +128,10 @@ describe('daily number and biome', () => {
       mode: dailyMode(setup, undefined),
       inputKind: 'touch',
     });
-    expect(sim.snapshot().wind).not.toBeNull();
+    // The weather follows the day's layout: a calm map (v1.2) has none, else the Daily's omen.
+    const karoo = content.biomes.find((b) => b.id === 'karoo-autumn');
+    const calm = karoo !== undefined && findLayout(karoo, setup.layout)?.weather === 'calm';
+    expect(sim.snapshot().wind === null).toBe(calm);
   });
 
   it('with all four biomes playable (M8), four days in a row are the four biomes', () => {
@@ -164,7 +175,9 @@ describe('daily number and biome', () => {
       mode: dailyMode(bush, undefined),
       inputKind: 'pointer',
     });
-    expect(sim.snapshot().glare).not.toBeNull();
+    const bushveld = content.biomes.find((b) => b.id === 'bushveld-winter');
+    const calm = bushveld !== undefined && findLayout(bushveld, bush.layout)?.weather === 'calm';
+    expect(sim.snapshot().glare === null).toBe(calm);
   });
 });
 

@@ -1,6 +1,7 @@
 # Design proposal: long range, sights and daily maps
 
-**Status:** approved by the product owner on 22 Oct 2026; not built yet. It is built in four steps,
+**Status:** approved by the product owner on 22 Oct 2026. v1.1 (ammo, crosshairs) and v1.2
+(day-of-week maps, Verder: GDD §11.5, D-033) are built; v1.3–v1.4 are not yet. It is built in four steps,
 milestones v1.1–v1.4 in `04-BUILD-PLAN.md`. As each step is built, its rules move into
 `01-GAME-DESIGN.md` (and `02-TECH-ARCHITECTURE.md` where the sim changes), with a decision entry in
 `05-DECISIONS-AND-RESEARCH.md`. Until then, the game design doc is the rule book and this file is

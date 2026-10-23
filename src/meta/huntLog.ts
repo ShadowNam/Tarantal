@@ -6,6 +6,8 @@ import type { HuntResult } from '../sim/types';
 export interface HuntLog {
   readonly mode: string;
   readonly biome: string;
+  /** v1.2: the bonus map played (null = today's map or the plain biome). */
+  readonly bonus?: string | null;
   readonly score: number;
   readonly rank: string;
   readonly shots: number;
@@ -51,6 +53,7 @@ export function createHuntLogger(
       return {
         mode: r.mode,
         biome: r.biome,
+        bonus: r.bonus,
         score: r.score,
         rank: r.rank,
         shots: r.shots,

@@ -20,6 +20,8 @@ function result(score: number): HuntResult {
     seed: 0,
     mode: 'seasonHunt',
     biome: 'karoo-autumn',
+    layout: null,
+    bonus: null,
     weapon: 'dubbelloop',
     score,
     ticks: 3600,

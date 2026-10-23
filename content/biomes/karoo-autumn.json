@@ -470,5 +470,267 @@
     "build": "karoo_build",
     "stampede": "karoo_stampede"
   },
-  "ambience": "karoo_wind_bed"
+  "ambience": "karoo_wind_bed",
+  "layouts": [
+    {
+      "id": "mon",
+      "light": "dawn_mist",
+      "weather": "calm",
+      "$comment": "Dawn mist: birds feed close to the reservoir; still air (no wind, no dust devils).",
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.17,
+            0.35
+          ]
+        },
+        {
+          "plane": "far",
+          "u": [
+            0.15,
+            0.35
+          ]
+        }
+      ],
+      "cameraStartU": 0.12
+    },
+    {
+      "id": "tue",
+      "light": "midday",
+      "weather": "default",
+      "$comment": "Bright midday: flocks spread across the open veld, far from the props.",
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.02,
+            0.14
+          ]
+        },
+        {
+          "plane": "mid",
+          "u": [
+            0.4,
+            0.55
+          ]
+        },
+        {
+          "plane": "mid",
+          "u": [
+            0.86,
+            0.98
+          ]
+        }
+      ],
+      "props": [
+        {
+          "id": "bakkie",
+          "u": 0.68
+        },
+        {
+          "id": "fence_bell",
+          "u": 0.48
+        }
+      ],
+      "pacing": {
+        "flyoversMul": 1.15
+      },
+      "cameraStartU": 0.35
+    },
+    {
+      "id": "wed",
+      "light": "overcast",
+      "weather": "default",
+      "$comment": "Overcast: the bakkie is parked by the fence; birds run more than they fly.",
+      "props": [
+        {
+          "id": "bakkie",
+          "u": 0.56
+        },
+        {
+          "id": "fence_bell",
+          "u": 0.66,
+          "y": 650
+        },
+        {
+          "id": "potjie",
+          "u": 0.82
+        }
+      ],
+      "flushAsRunChance": 0.5,
+      "pacing": {
+        "flyoversMul": 0.8
+      },
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.5,
+            0.62
+          ]
+        }
+      ],
+      "cameraStartU": 0.74
+    },
+    {
+      "id": "thu",
+      "light": "golden",
+      "weather": "omen",
+      "$comment": "Golden afternoon: strong wind (the omen is on in Classic too) and long, high fly-over routes downwind.",
+      "windMul": 1.3,
+      "flyovers": {
+        "planeWeights": {
+          "mid": 1,
+          "far": 1.5
+        }
+      },
+      "lanes": {
+        "far": {
+          "skyY": [
+            100,
+            260
+          ]
+        },
+        "mid": {
+          "skyY": [
+            140,
+            380
+          ]
+        }
+      },
+      "pacing": {
+        "flyoversMul": 1.1
+      },
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.62,
+            0.78
+          ]
+        }
+      ],
+      "cameraStartU": 0.78
+    },
+    {
+      "id": "fri",
+      "light": "dusty_wind",
+      "weather": "default",
+      "$comment": "Warm, dusty wind: the windpomp and reservoir stand on the east side; flocks gather there before roosting.",
+      "props": [
+        {
+          "id": "windpomp",
+          "u": 0.7
+        },
+        {
+          "id": "reservoir",
+          "u": 0.74
+        },
+        {
+          "id": "bakkie",
+          "u": 0.3
+        },
+        {
+          "id": "potjie",
+          "u": 0.88
+        },
+        {
+          "id": "fence_bell",
+          "u": 0.5
+        }
+      ],
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.64,
+            0.82
+          ]
+        },
+        {
+          "plane": "far",
+          "u": [
+            0.62,
+            0.84
+          ]
+        }
+      ],
+      "cameraStartU": 0.86
+    },
+    {
+      "id": "sat",
+      "light": "dusk",
+      "weather": "default",
+      "$comment": "Dusk: fewer birds, worth more (base points × 1.3); secrets glow.",
+      "pacing": {
+        "flyoversMul": 0.7,
+        "popupsMul": 0.7
+      },
+      "pointsMul": 1.15,
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.28,
+            0.4
+          ]
+        }
+      ],
+      "cameraStartU": 0.28
+    },
+    {
+      "id": "sun",
+      "light": "bright_calm",
+      "weather": "calm",
+      "$comment": "Bright and calm: a relaxed Sunday with extra pop-ups close by.",
+      "props": [
+        {
+          "id": "potjie",
+          "u": 0.42
+        },
+        {
+          "id": "bakkie",
+          "u": 0.86
+        }
+      ],
+      "pacing": {
+        "popupsMul": 1.5
+      },
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.78,
+            0.9
+          ]
+        }
+      ],
+      "cameraStartU": 0.88
+    }
+  ],
+  "bonusMaps": [
+    {
+      "$comment": "Verder (further): today's layout seen from further back — more far birds, fewer near ones, weather on and the wind stronger. Unlocked by beating the season's plain-hunt quota on today's map (GDD §11.5).",
+      "id": "verder",
+      "nameKey": "map.verder",
+      "light": "verder_haze",
+      "weather": "omen",
+      "flyovers": {
+        "planeWeights": {
+          "mid": 1,
+          "far": 3
+        }
+      },
+      "pacing": {
+        "popupsMul": 0.35,
+        "flyoversMul": 0.8,
+        "flocks": {
+          "far": 1
+        }
+      },
+      "windMul": 1.5,
+      "pointsMul": 0.8
+    }
+  ]
 }

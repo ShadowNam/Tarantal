@@ -64,6 +64,9 @@ export interface ShareInput {
   /** Daily number (#n) for a daily hunt; null for Classic. */
   readonly dailyNumber: number | null;
   readonly biome: string;
+  /** v1.2: the map (weekday layout, bonus map); null/absent = the plain biome. */
+  readonly layout?: string | null;
+  readonly bonus?: string | null;
   readonly score: number;
   /** scoring.json rank id. */
   readonly rank: string;
@@ -98,6 +101,7 @@ export function buildShareText(input: ShareInput, tr: Translator): ShareMessage 
     input.dailyNumber === null
       ? fill(tr.text('share.classic'), { biome: tr.or(`share.biome.${biomeKey}`, input.biome) })
       : fill(tr.text('share.daily'), { n: input.dailyNumber }),
+    mapLabel(input, tr),
     groupThousands(input.score),
     tr.or(`share.rank.${input.rank}`, tr.or(`rank.${input.rank}`, input.rank)),
     input.grid,
@@ -109,4 +113,15 @@ export function buildShareText(input: ShareInput, tr: Translator): ShareMessage 
     text: input.url === '' ? line : `${line}\n${tr.text('share.beat_me')}`,
     url: input.url,
   };
+}
+
+/** "Monday" or "Monday · Verder" (v1.2: the share card names the map); '' = the plain biome. */
+function mapLabel(input: ShareInput, tr: Translator): string {
+  const layout = input.layout ?? null;
+  if (layout === null) return '';
+  const day = tr.or(`map.day.${layout}`, layout);
+  const bonus = input.bonus ?? null;
+  return bonus === null
+    ? fill(tr.text('share.map'), { day })
+    : fill(tr.text('share.map_bonus'), { day, bonus: tr.or(`map.${bonus}`, bonus) });
 }

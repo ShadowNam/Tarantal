@@ -9,7 +9,7 @@ import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
 import type { Biome, Weapon } from '../../content/schemas';
 import { DebugOverlay } from '../../debug/DebugOverlay';
-import { fill, t } from '../../i18n/i18n';
+import { fill, t, tOr } from '../../i18n/i18n';
 import { textStyle } from '../ui/menu';
 import { captureHintAlpha, type CaptureState } from '../capture';
 import { showDontShootBadge } from '../prefs';
@@ -39,6 +39,10 @@ import { ParallaxView } from '../view/ParallaxView';
 import { WeaponView } from '../view/WeaponView';
 import { crosshairExtent, spreadMulOf } from '../ui/gunLook';
 import { WorldView } from '../view/WorldView';
+import { mapLights, mapOmen, resolveMap, type ResolvedMap } from '../../sim/maps';
+import { layoutForDay } from '../../meta/maps';
+import { applyBonusResult, isUnlocked } from '../../meta/bonusMaps';
+import { formatScore } from '../ui/format';
 import type { HudScene } from './HudScene';
 import type { PauseData } from './PauseScene';
 import { viewFor, type RunData, type RunView } from './RunScene';
@@ -53,6 +57,8 @@ export interface HuntData {
   readonly mode?: ModeId;
   /** M7: play this challenge (link card's [Accept], or [Again] after one). */
   readonly challenge?: Challenge;
+  /** v1.2: a bonus map on today's Classic map ([Again] after Verder, while it is unlocked). */
+  readonly bonus?: string;
 }
 
 const END_DELAY_MS = 900;
@@ -96,6 +102,10 @@ export class HuntScene extends Phaser.Scene {
   /** The biome on screen and its manifest (the home biome until a hunt in another starts). */
   private biome!: Biome;
   private manifest!: AssetManifest;
+  /** v1.2 (D-033): the map on screen — weekday layout and bonus map (undefined = plain biome). */
+  private map: { readonly layout?: string; readonly bonus?: string } = {};
+  /** v1.2: UTC day the hunt started (its layout is that day's; Verder unlocks for that day). */
+  private huntDay = 0;
   /** Real time of the next Stampede rumble shake. */
   private nextRumbleAt = 0;
 
@@ -153,6 +163,7 @@ export class HuntScene extends Phaser.Scene {
     // An auto-started hunt (Season Run, [Again], challenge) builds its own biome straight away
     // instead of the home biome's views first (D-025); the title shows the home biome.
     this.biome = this.initialBiome(data);
+    this.map = this.initialMap(data);
     this.manifest =
       this.biome.id === this.ctx.biome.id ? this.ctx.manifest : this.ctx.manifestFor(this.biome);
     this.swapManifest();
@@ -191,7 +202,7 @@ export class HuntScene extends Phaser.Scene {
     });
 
     if (data.autoStart !== undefined)
-      this.begin(data.autoStart, null, data.mode ?? 'classic', data.challenge ?? null);
+      this.begin(data.autoStart, null, data.mode ?? 'classic', data.challenge ?? null, data.bonus);
     else this.showTitle();
     if (this.ctx.hook) {
       this.ctx.hook.ready = true;
@@ -223,11 +234,45 @@ export class HuntScene extends Phaser.Scene {
     return b !== undefined && c.playableBiomes.includes(b.id) ? b : c.biome;
   }
 
-  /** Every view of the hunt for the scene's biome (a hunt in another biome rebuilds them). */
+  /** v1.2: the map an auto-started hunt will play (the title shows today's Classic layout). */
+  private initialMap(data: HuntData): { readonly layout?: string; readonly bonus?: string } {
+    const c = this.ctx;
+    if (data.autoStart !== undefined) {
+      if (data.challenge !== undefined) {
+        const l = data.challenge.l;
+        const b = data.challenge.b;
+        return l === undefined ? {} : b === undefined ? { layout: l } : { layout: l, bonus: b };
+      }
+      if (data.mode === 'seasonHunt' || data.mode === 'ftue') return {};
+      if (data.mode === 'daily') return { layout: c.daily.todaySetup().layout };
+    }
+    if (c.classicLayout === 'none') return {};
+    // [Again] after Verder: the views are built for Verder straight away (no rebuild in begin).
+    const bonus = c.classicBonus ?? (data.autoStart !== undefined ? data.bonus : undefined);
+    const layout = c.classicLayout ?? layoutForDay(c.today());
+    return bonus === undefined ? { layout } : { layout, bonus };
+  }
+
+  /** Every view of the hunt for the scene's biome and map (another biome or map rebuilds them). */
   private buildViews(): void {
     const { width } = designSize();
     fitCamera(this.cameras.main);
-    this.parallax = new ParallaxView(this, this.biome, this.manifest, this.ctx.prefs.mergeLayers);
+    // An id this biome lacks (a bad ?layout=) draws the plain biome rather than failing.
+    const map = safeResolveMap(this.biome, this.map.layout, this.map.bonus);
+    const mapBiome = map.biome;
+    this.parallax = new ParallaxView(this, mapBiome, this.manifest, this.ctx.prefs.mergeLayers);
+    const lights = mapLights(map).flatMap((id) => {
+      const light = this.ctx.feel.lights[id];
+      return light === undefined ? [] : [light];
+    });
+    this.parallax.applyLight(lights);
+    if (this.ctx.hook)
+      this.ctx.hook.map = {
+        layout: map.layout?.id ?? null,
+        bonus: map.bonus?.id ?? null,
+        lights: mapLights(map),
+        props: Object.fromEntries(mapBiome.props.map((p) => [p.id, p.u])),
+      };
     // M9 tier filters on this camera (the HUD scene has its own camera, unfiltered).
     this.tierFilters?.clear();
     this.tierFilters = new TierFilters(this.cameras.main);
@@ -261,12 +306,13 @@ export class HuntScene extends Phaser.Scene {
       this,
       this.ctx.content,
       this.ctx.feel,
-      this.biome,
+      mapBiome,
       this.parallax,
       this.screen,
       this.ctx.prefs,
       this.ctx.flashes,
     );
+    this.world.secretGlow = lights.some((l) => l.secretGlow === true);
     this.weapon = new WeaponView(
       this,
       this.ctx.feel,
@@ -295,7 +341,7 @@ export class HuntScene extends Phaser.Scene {
         this.weapon.pose(id ?? this.runner?.state.weapon.id ?? '', id === null ? null : 'idle');
         if (x !== undefined && y !== undefined) this.weapon.aim(x, y, true);
       };
-    this.debug = new DebugOverlay(this, this.ctx.content, this.biome, this.parallax, this.screen);
+    this.debug = new DebugOverlay(this, this.ctx.content, mapBiome, this.parallax, this.screen);
     this.debug.setVisible(this.ctx.debug);
     this.relayout();
     this.parallax.update((CAMERA_MIN_X + CAMERA_MAX_X) / 2, width);
@@ -389,11 +435,20 @@ export class HuntScene extends Phaser.Scene {
   }
 
   /** M8: a hunt in another biome (Daily rotation, challenge, Season Run) swaps the scenery. */
-  private useBiome(id: string): void {
-    if (id === this.biome.id) return;
+  private useBiome(id: string, map: { readonly layout?: string; readonly bonus?: string }): void {
+    const sameMap = map.layout === this.map.layout && map.bonus === this.map.bonus;
+    if (id === this.biome.id) {
+      if (sameMap) return;
+      // v1.2: same biome, another map (props move, light changes): same textures, new views.
+      for (const obj of [...this.children.list]) obj.destroy();
+      this.map = map;
+      this.buildViews();
+      return;
+    }
     const next = this.ctx.content.biomes.find((b) => b.id === id);
     if (next === undefined || !this.ctx.playableBiomes.includes(id)) return;
     for (const obj of [...this.children.list]) obj.destroy();
+    this.map = map;
     this.biome = next;
     this.manifest = this.ctx.manifestFor(next);
     this.swapManifest();
@@ -438,9 +493,9 @@ export class HuntScene extends Phaser.Scene {
     }
     const data: TitleData = {
       ...(pending === null ? {} : { notice: t('title.challenge_bad') }),
-      start: (kind, pointerId, mode) => {
+      start: (kind, pointerId, mode, bonus) => {
         this.afterBreak(() => {
-          this.begin(kind, pointerId, mode);
+          this.begin(kind, pointerId, mode, null, bonus);
         });
       },
       run: () => {
@@ -539,8 +594,11 @@ export class HuntScene extends Phaser.Scene {
     startPointer: number | null,
     modeId: ModeId,
     challenge: Challenge | null = null,
+    /** v1.2: a bonus map on today's Classic map (only while it is unlocked today). */
+    bonus?: string,
   ): void {
     if (this.runner) return;
+    this.huntDay = this.ctx.today();
     this.scene.stop('Title');
     this.scene.stop('Challenge');
     this.ctx.audio.unlock();
@@ -560,7 +618,13 @@ export class HuntScene extends Phaser.Scene {
       isWeaponEquippable(loadout, save, this.ctx.content)
         ? loadout.id
         : undefined;
+    const bonusOpen =
+      bonus !== undefined &&
+      modeId === 'classic' &&
+      challenge === null &&
+      isUnlocked(save.bonusMaps, this.huntDay, this.ctx.biome.id, bonus);
     const extra = {
+      ...(bonusOpen ? { bonus } : {}),
       ...(this.ctx.huntSeconds === undefined ? {} : { huntSeconds: this.ctx.huntSeconds }),
       ...(this.ctx.omen === undefined || modeId === 'ftue' ? {} : { omen: this.ctx.omen }),
     };
@@ -577,6 +641,19 @@ export class HuntScene extends Phaser.Scene {
       this.ctx.playableBiomes.includes(biomeParam)
     )
       plan = { ...plan, mode: { ...plan.mode, biome: biomeParam } };
+    // e2e/dev only (v1.2): ?layout=thu&bonus=verder plays Classic on that map.
+    if (plan?.mode.id === 'classic' && plan.challenge === null) {
+      const { classicLayout, classicBonus } = this.ctx;
+      if (classicLayout === 'none') plan = { ...plan, mode: plainMap(plan.mode) };
+      else if (classicLayout !== undefined)
+        plan = { ...plan, mode: { ...plan.mode, layout: classicLayout } };
+      if (classicBonus !== undefined && classicLayout !== 'none')
+        plan = {
+          ...plan,
+          mode: { ...plan.mode, bonus: classicBonus },
+          hudTag: tOr(`hud.tag_${classicBonus}`, classicBonus),
+        };
+    }
     this.plan = plan;
     this.modeId = plan?.mode.id ?? modeId;
     // A Season Run hunt comes from the run (seed, biome, weapon, charms, Boss Rule …).
@@ -590,23 +667,29 @@ export class HuntScene extends Phaser.Scene {
     // M9 lazy biomes: its art loads on first use; the hunt starts once it is in.
     if (this.ctx.playableBiomes.includes(huntBiome) && !this.ctx.biomeReady(huntBiome)) {
       this.waitForBiome(huntBiome, (ok) => {
-        if (ok) this.begin(kind, startPointer, modeId, challenge);
+        if (ok) this.begin(kind, startPointer, modeId, challenge, bonus);
         else this.scene.restart({} satisfies HuntData);
       });
       return;
     }
-    this.useBiome(huntBiome);
+    this.useBiome(huntBiome, {
+      ...(mode.layout === undefined ? {} : { layout: mode.layout }),
+      ...(mode.bonus === undefined ? {} : { bonus: mode.bonus }),
+    });
     if (!this.texturesDone) this.texturesDone = this.manifest.install(this.textures);
     this.manifest.prewarmBirds(this.textures);
     if (this.ctx.hook) {
       this.ctx.hook.boot['huntStart'] ??= performance.now();
       this.ctx.hook.missingTextures = this.manifest.missing(this.textures);
       this.ctx.hook.biome = this.biome.id;
-      this.ctx.hook.omen =
-        mode.omen ??
-        (mode.id === 'seasonHunt'
+      // v1.2: the map's weather (calm / omen) sits between the mode setting and its default.
+      this.ctx.hook.omen = mapOmen(
+        safeResolveMap(this.biome, mode.layout, mode.bonus).weather,
+        mode.omen,
+        mode.id === 'seasonHunt'
           ? mode.season?.kind === 'omen'
-          : this.ctx.content.modes.modes[mode.id].omen);
+          : this.ctx.content.modes.modes[mode.id].omen,
+      );
     }
     const aimAssist = save.settings.aimAssist;
     const seed = runHunt?.seed ?? plan?.seed ?? this.ctx.nextSeed();
@@ -1017,8 +1100,13 @@ export class HuntScene extends Phaser.Scene {
     }
     const plan = this.plan;
     const outcome = this.recordProgress(result, plan === null || this.ctx.daily.ranked(plan));
-    const extras =
+    const verder = this.recordBonus(result);
+    const finished =
       plan === null ? null : this.ctx.daily.finish(plan, result, this.shareLog?.grid() ?? '');
+    const extras =
+      finished === null || verder === null
+        ? finished
+        : { ...finished, news: [verder, ...finished.news] };
     if (this.modeId === 'seasonHunt') {
       this.ctx.run.afterHunt(result);
       this.afterRealMs(END_DELAY_MS, () => {
@@ -1041,10 +1129,12 @@ export class HuntScene extends Phaser.Scene {
             // After the FTUE, [Again] is a real Classic hunt (GDD §16 step 7). After a Daily it
             // is practice on the same hunt; after a challenge, the same challenge again.
             const challengeAgain = plan?.challenge ?? null;
+            const bonusAgain = plan?.mode.bonus;
             this.scene.restart({
               autoStart: inputKindOf(pointerType),
               mode: this.modeId === 'daily' ? 'daily' : 'classic',
               ...(challengeAgain === null ? {} : { challenge: challengeAgain }),
+              ...(bonusAgain === undefined ? {} : { bonus: bonusAgain }),
             } satisfies HuntData);
           });
         },
@@ -1058,6 +1148,32 @@ export class HuntScene extends Phaser.Scene {
       };
       this.scene.launch('Tally', data);
     });
+  }
+
+  /**
+   * v1.2 (D-033): a Classic or Daily hunt → bonus maps (today's Verder unlock, Verder's best).
+   * Returns the tally line it earned, or null. Capture mode and `?e2e` on a public build are
+   * unranked and unlock nothing.
+   */
+  private recordBonus(result: HuntResult): string | null {
+    if (this.ctx.daily.unranked) return null;
+    let line: string | null = null;
+    this.ctx.save.update((d) => {
+      const r = applyBonusResult(
+        d.bonusMaps,
+        result,
+        this.huntDay,
+        this.ctx.today(),
+        this.ctx.content,
+        this.ctx.biome.id,
+      );
+      if (r.unlocked !== null) line = t(`tally.${r.unlocked}_unlocked`);
+      else if (r.newBest !== null && result.bonus !== null)
+        line = fill(t('title.verder_best'), { score: formatScore(result.score) });
+      if (this.ctx.hook) this.ctx.hook.verderUnlocked = r.unlocked;
+      return { ...d, bonusMaps: r.save };
+    });
+    return line;
   }
 
   /** Hunt log → save (stats, Bird Book, bests, rank, Notaboek) and hunt_end analytics. */
@@ -1219,4 +1335,24 @@ export class HuntScene extends Phaser.Scene {
     this.world.clear();
     this.game.canvas.style.cursor = '';
   }
+}
+
+/** resolveMap, or the plain biome for ids this biome lacks (a bad dev ?layout=). */
+function safeResolveMap(biome: Biome, layout?: string, bonus?: string): ResolvedMap {
+  try {
+    return resolveMap(biome, layout, bonus);
+  } catch {
+    return resolveMap(biome, undefined, undefined);
+  }
+}
+
+/** e2e/dev only (?layout=none): the mode without a map (the plain biome). */
+function plainMap(mode: ModeConfig): ModeConfig {
+  return {
+    id: mode.id,
+    ...(mode.biome === undefined ? {} : { biome: mode.biome }),
+    ...(mode.weapon === undefined ? {} : { weapon: mode.weapon }),
+    ...(mode.huntSeconds === undefined ? {} : { huntSeconds: mode.huntSeconds }),
+    ...(mode.omen === undefined ? {} : { omen: mode.omen }),
+  };
 }

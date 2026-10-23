@@ -79,6 +79,55 @@ describe('challenge links (Tech §12)', () => {
     expect(param.length).toBeLessThan(220);
   });
 
+  it('v1.2: carries the map (l, b); a link without one plays the plain biome', () => {
+    const sent = {
+      seed: 99,
+      mode: 'classic' as const,
+      biome: 'karoo-autumn',
+      weapon: 'dubbelloop',
+      score: 3000,
+      dailyNumber: null,
+      layout: 'fri',
+      bonus: 'verder',
+    };
+    const c = challengeFor(sent, hash);
+    expect(c).toMatchObject({ l: 'fri', b: 'verder' });
+    const got = decodeChallenge(
+      new URL(challengeUrl('https://x.test/', c)).searchParams.get('c') ?? '',
+      ctx,
+    );
+    expect(got.ok && challengeHunt(got.challenge).mode).toEqual({
+      id: 'classic',
+      biome: 'karoo-autumn',
+      weapon: 'dubbelloop',
+      layout: 'fri',
+      bonus: 'verder',
+    });
+    // An old link (made before v1.2) has no map: the same hunt as then, on the plain biome.
+    const old = decodeChallenge(b64(JSON.stringify(valid)), ctx);
+    expect(old.ok && challengeHunt(old.challenge).mode).toEqual({
+      id: 'classic',
+      biome: 'karoo-autumn',
+      weapon: 'dubbelloop',
+    });
+    // Unknown map ids are rejected, not guessed.
+    expect(decodeChallenge(b64(JSON.stringify({ ...valid, l: 'xyz' })), ctx)).toEqual({
+      ok: false,
+      reason: 'badShape',
+    });
+    // A bonus map needs a Classic layout.
+    for (const bad of [
+      { ...valid, b: 'verder' },
+      { ...valid, mode: 'daily', l: 'mon', b: 'verder' },
+    ])
+      expect(decodeChallenge(b64(JSON.stringify(bad)), ctx)).toEqual({
+        ok: false,
+        reason: 'badShape',
+      });
+    // Map ids this version can't make are left out of a link rather than throwing.
+    expect(challengeFor({ ...sent, layout: 'xyz' }, hash).l).toBeUndefined();
+  });
+
   it('lends the Kettie (M8 projectiles) like any other primary', () => {
     const got = decodeChallenge(b64(JSON.stringify({ ...valid, weapon: 'kettie' })), ctx);
     expect(got.ok && got.challenge.weapon).toBe('kettie');

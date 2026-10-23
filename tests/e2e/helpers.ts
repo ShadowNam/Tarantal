@@ -99,9 +99,14 @@ export async function quick(
 /**
  * Loads the game with the test hook. Unless the query says otherwise, starts as a returning
  * player (`ftue=0`): the M2–M4 specs test Classic hunts, the FTUE has its own spec.
+ * Unless the query picks a day (`today=`), a map (`layout=`, `bonus=`) or a challenge (`c=`),
+ * Classic plays the plain biome (`layout=none`, v1.2): otherwise the weekday layout moves the
+ * props these specs tap, and a spec would pass on one UTC day and fail on the next.
  */
 export async function boot(page: Page, query: string): Promise<void> {
-  const q = /(^|&)ftue=/.test(query) ? query : `${query}&ftue=0`;
+  const pinned = /(^|&)(today|layout|bonus|c)=/.test(query);
+  const withMap = pinned ? query : `${query}&layout=none`;
+  const q = /(^|&)ftue=/.test(withMap) ? withMap : `${withMap}&ftue=0`;
   await page.goto(`/?e2e=1&${q}`);
   await expect(page.locator('#game canvas')).toHaveCount(1);
   await page.waitForFunction(() => window.__TM__?.ready === true, null, { timeout: 60_000 });

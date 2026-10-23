@@ -424,5 +424,236 @@
     "build": "bushveld_build",
     "stampede": "bushveld_stampede"
   },
-  "ambience": "bushveld_dawn_bed"
+  "ambience": "bushveld_dawn_bed",
+  "layouts": [
+    {
+      "id": "mon",
+      "light": "dawn_mist",
+      "weather": "calm",
+      "$comment": "Dawn mist in the thornveld; flocks feed under the baobab; no low-sun glare.",
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.22,
+            0.4
+          ]
+        },
+        {
+          "plane": "far",
+          "u": [
+            0.2,
+            0.4
+          ]
+        }
+      ],
+      "cameraStartU": 0.22
+    },
+    {
+      "id": "tue",
+      "light": "midday",
+      "weather": "default",
+      "$comment": "Bright midday: flocks spread wide between the koppies.",
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.02,
+            0.16
+          ]
+        },
+        {
+          "plane": "mid",
+          "u": [
+            0.5,
+            0.6
+          ]
+        },
+        {
+          "plane": "mid",
+          "u": [
+            0.88,
+            0.98
+          ]
+        }
+      ],
+      "props": [
+        {
+          "id": "boulder_b",
+          "u": 0.38
+        },
+        {
+          "id": "dassie_koppie",
+          "u": 0.7
+        }
+      ],
+      "pacing": {
+        "flyoversMul": 1.15
+      },
+      "cameraStartU": 0.5
+    },
+    {
+      "id": "wed",
+      "light": "overcast",
+      "weather": "default",
+      "$comment": "Overcast: the boulders shift west; birds run for cover more than they fly.",
+      "props": [
+        {
+          "id": "boulder_a",
+          "u": 0.2
+        },
+        {
+          "id": "boulder_crack",
+          "u": 0.76
+        }
+      ],
+      "flushAsRunChance": 0.6,
+      "pacing": {
+        "flyoversMul": 0.8
+      },
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.5,
+            0.62
+          ]
+        }
+      ],
+      "cameraStartU": 0.74
+    },
+    {
+      "id": "thu",
+      "light": "golden",
+      "weather": "omen",
+      "$comment": "Golden afternoon: the low sun glares (omen on in Classic too); high fly-overs, more on the far lane.",
+      "flyovers": {
+        "planeWeights": {
+          "mid": 1,
+          "far": 1.5
+        }
+      },
+      "lanes": {
+        "far": {
+          "skyY": [
+            100,
+            260
+          ]
+        }
+      },
+      "pacing": {
+        "flyoversMul": 1.1
+      },
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.62,
+            0.78
+          ]
+        }
+      ],
+      "cameraStartU": 0.78
+    },
+    {
+      "id": "fri",
+      "light": "dusty_wind",
+      "weather": "default",
+      "$comment": "Warm, dusty wind: the baobab stands east; flocks gather there to roost.",
+      "props": [
+        {
+          "id": "baobab",
+          "u": 0.68
+        },
+        {
+          "id": "boulder_b",
+          "u": 0.3
+        },
+        {
+          "id": "dassie_koppie",
+          "u": 0.5
+        }
+      ],
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.6,
+            0.78
+          ]
+        },
+        {
+          "plane": "far",
+          "u": [
+            0.6,
+            0.8
+          ]
+        }
+      ],
+      "cameraStartU": 0.78
+    },
+    {
+      "id": "sat",
+      "light": "dusk",
+      "weather": "default",
+      "$comment": "Dusk: fewer birds, worth more; secrets glow.",
+      "pacing": {
+        "flyoversMul": 0.7,
+        "popupsMul": 0.7
+      },
+      "pointsMul": 1.15,
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.28,
+            0.4
+          ]
+        }
+      ],
+      "cameraStartU": 0.28
+    },
+    {
+      "id": "sun",
+      "light": "bright_calm",
+      "weather": "calm",
+      "$comment": "Bright and calm: a relaxed map with extra pop-ups close by.",
+      "pacing": {
+        "popupsMul": 1.5
+      },
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.78,
+            0.9
+          ]
+        }
+      ],
+      "cameraStartU": 0.88
+    }
+  ],
+  "bonusMaps": [
+    {
+      "$comment": "Verder (further): today's layout seen from further back — more far birds, fewer near ones, weather on and the wind stronger. Unlocked by beating the season's plain-hunt quota on today's map (GDD §11.5).",
+      "id": "verder",
+      "nameKey": "map.verder",
+      "light": "verder_haze",
+      "weather": "omen",
+      "flyovers": {
+        "planeWeights": {
+          "mid": 1,
+          "far": 3
+        }
+      },
+      "pacing": {
+        "popupsMul": 0.35,
+        "flyoversMul": 0.8,
+        "flocks": {
+          "far": 1
+        }
+      },
+      "pointsMul": 0.8
+    }
+  ]
 }

@@ -23,6 +23,7 @@ import {
   startAttempt,
   type DailySetup,
 } from '../../meta/daily';
+import { layoutForDay } from '../../meta/maps';
 import type { SaveStore } from '../../meta/save';
 import { buildShareText, groupThousands, type ShareMessage } from '../../meta/share';
 import type { PlatformAdapter } from '../../platform/PlatformAdapter';
@@ -121,7 +122,7 @@ export class DailyFlow {
     kind: PlainKind,
     challenge: Challenge | null,
     weapon: string | undefined,
-    extra: Partial<Pick<ModeConfig, 'huntSeconds' | 'omen'>>,
+    extra: Partial<Pick<ModeConfig, 'huntSeconds' | 'omen' | 'bonus'>>,
     seedForClassic: () => number,
   ): HuntPlan {
     if (challenge !== null) {
@@ -129,13 +130,17 @@ export class DailyFlow {
       const setup = challenge.mode === 'daily' ? this.todaySetup() : null;
       // A challenge to today's daily is the daily itself (official if not played yet).
       const today =
-        setup !== null && setup.seed === challenge.seed && setup.biome === challenge.biome
+        setup !== null &&
+        setup.seed === challenge.seed &&
+        setup.biome === challenge.biome &&
+        setup.layout === challenge.l &&
+        challenge.b === undefined
           ? setup
           : null;
       const official = today !== null && !this.playedToday() && this.deps.unranked !== true;
       return {
         seed: hunt.seed,
-        mode: { ...hunt.mode, ...extra },
+        mode: { ...hunt.mode, ...withoutBonus(extra) },
         daily: today === null ? null : { setup: today, official },
         challenge,
         hudTag: official
@@ -148,18 +153,24 @@ export class DailyFlow {
       const official = !this.playedToday() && this.deps.unranked !== true;
       return {
         seed: setup.seed,
-        mode: { ...dailyMode(setup, weapon), ...extra },
+        mode: { ...dailyMode(setup, weapon), ...withoutBonus(extra) },
         daily: { setup, official },
         challenge: null,
         hudTag: fill(t(official ? 'hud.tag_daily' : 'hud.tag_practice'), { n: setup.number }),
       };
     }
+    // v1.2 (D-033): Classic plays today's UTC weekday layout.
     return {
       seed: seedForClassic(),
-      mode: { id: 'classic', ...(weapon === undefined ? {} : { weapon }), ...extra },
+      mode: {
+        id: 'classic',
+        layout: layoutForDay(this.deps.today()),
+        ...(weapon === undefined ? {} : { weapon }),
+        ...extra,
+      },
       daily: null,
       challenge: null,
-      hudTag: null,
+      hudTag: extra.bonus === undefined ? null : tOr(`hud.tag_${extra.bonus}`, extra.bonus),
     };
   }
 
@@ -256,6 +267,8 @@ export class DailyFlow {
           {
             dailyNumber,
             biome: result.biome,
+            layout: result.layout,
+            bonus: result.bonus,
             score: result.score,
             rank: result.rank,
             grid,
@@ -271,6 +284,8 @@ export class DailyFlow {
                     weapon: result.weapon,
                     score: result.score,
                     dailyNumber,
+                    layout: result.layout,
+                    bonus: result.bonus,
                   },
                   this.deps.contentHash,
                 ),
@@ -299,4 +314,14 @@ export class DailyFlow {
     this.deps.platform.analytics('share_click', { ...extras.shareInfo, method: outcome });
     return outcome;
   }
+}
+
+/** A bonus map is played only on today's Classic map (never a Daily or a challenge's own). */
+function withoutBonus(
+  extra: Partial<Pick<ModeConfig, 'huntSeconds' | 'omen' | 'bonus'>>,
+): Partial<Pick<ModeConfig, 'huntSeconds' | 'omen'>> {
+  return {
+    ...(extra.huntSeconds === undefined ? {} : { huntSeconds: extra.huntSeconds }),
+    ...(extra.omen === undefined ? {} : { omen: extra.omen }),
+  };
 }

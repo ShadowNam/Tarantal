@@ -362,5 +362,228 @@
     "build": "kalahari_build",
     "stampede": "kalahari_stampede"
   },
-  "ambience": "kalahari_heat_bed"
+  "ambience": "kalahari_heat_bed",
+  "layouts": [
+    {
+      "id": "mon",
+      "light": "dawn_mist",
+      "weather": "calm",
+      "$comment": "Cool dawn on the dunes: flocks feed by the weaver tree; no heat or storm.",
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.12,
+            0.3
+          ]
+        },
+        {
+          "plane": "far",
+          "u": [
+            0.12,
+            0.32
+          ]
+        }
+      ],
+      "cameraStartU": 0.1
+    },
+    {
+      "id": "tue",
+      "light": "midday",
+      "weather": "default",
+      "$comment": "Bright midday: flocks spread across the red sand.",
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.02,
+            0.12
+          ]
+        },
+        {
+          "plane": "mid",
+          "u": [
+            0.56,
+            0.66
+          ]
+        },
+        {
+          "plane": "mid",
+          "u": [
+            0.88,
+            0.98
+          ]
+        }
+      ],
+      "props": [
+        {
+          "id": "windpomp_sign",
+          "u": 0.36
+        }
+      ],
+      "pacing": {
+        "flyoversMul": 1.15
+      },
+      "cameraStartU": 0.62
+    },
+    {
+      "id": "wed",
+      "light": "overcast",
+      "weather": "default",
+      "$comment": "Overcast: the old windpomp sign stands by the dead camelthorn; birds run more than they fly.",
+      "props": [
+        {
+          "id": "windpomp_sign",
+          "u": 0.64
+        },
+        {
+          "id": "dead_camelthorn",
+          "u": 0.82
+        }
+      ],
+      "flushAsRunChance": 0.5,
+      "pacing": {
+        "flyoversMul": 0.8
+      },
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.5,
+            0.62
+          ]
+        }
+      ],
+      "cameraStartU": 0.74
+    },
+    {
+      "id": "thu",
+      "light": "golden",
+      "weather": "omen",
+      "$comment": "Golden afternoon: heat haze, then the storm (omen on in Classic too); high fly-overs.",
+      "flyovers": {
+        "planeWeights": {
+          "mid": 1,
+          "far": 1.5
+        }
+      },
+      "lanes": {
+        "far": {
+          "skyY": [
+            100,
+            260
+          ]
+        }
+      },
+      "pacing": {
+        "flyoversMul": 1.1
+      },
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.62,
+            0.78
+          ]
+        }
+      ],
+      "cameraStartU": 0.78
+    },
+    {
+      "id": "fri",
+      "light": "dusty_wind",
+      "weather": "default",
+      "$comment": "Warm, dusty wind: the weaver tree stands east; flocks gather under it to roost.",
+      "props": [
+        {
+          "id": "weaver_camelthorn",
+          "u": 0.66
+        },
+        {
+          "id": "dead_camelthorn",
+          "u": 0.3
+        }
+      ],
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.58,
+            0.76
+          ]
+        },
+        {
+          "plane": "far",
+          "u": [
+            0.58,
+            0.78
+          ]
+        }
+      ],
+      "cameraStartU": 0.74
+    },
+    {
+      "id": "sat",
+      "light": "dusk",
+      "weather": "default",
+      "$comment": "Dusk: fewer birds, worth more; secrets glow.",
+      "pacing": {
+        "flyoversMul": 0.7,
+        "popupsMul": 0.7
+      },
+      "pointsMul": 1.15,
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.28,
+            0.4
+          ]
+        }
+      ],
+      "cameraStartU": 0.28
+    },
+    {
+      "id": "sun",
+      "light": "bright_calm",
+      "weather": "calm",
+      "$comment": "Bright and calm: a relaxed map with extra pop-ups close by.",
+      "pacing": {
+        "popupsMul": 1.5
+      },
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.78,
+            0.9
+          ]
+        }
+      ],
+      "cameraStartU": 0.88
+    }
+  ],
+  "bonusMaps": [
+    {
+      "$comment": "Verder (further): today's layout seen from further back — more far birds, fewer near ones, weather on and the wind stronger. Unlocked by beating the season's plain-hunt quota on today's map (GDD §11.5).",
+      "id": "verder",
+      "nameKey": "map.verder",
+      "light": "verder_haze",
+      "weather": "omen",
+      "flyovers": {
+        "planeWeights": {
+          "mid": 1,
+          "far": 3
+        }
+      },
+      "pacing": {
+        "popupsMul": 0.35,
+        "flyoversMul": 0.8,
+        "flocks": {
+          "far": 1
+        }
+      },
+      "pointsMul": 0.8
+    }
+  ]
 }

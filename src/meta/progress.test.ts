@@ -125,6 +125,25 @@ describe('applyHunt', () => {
     expect(f.save.bestRank).toBeNull();
   });
 
+  it('a Verder hunt (v1.2) leaves the Classic best alone but still counts for rank', () => {
+    const first = applyHunt(
+      defaultSave(),
+      hunt({ score: 1200, rank: 'plaaswerker' }),
+      content,
+      notaboek,
+    );
+    const v = applyHunt(
+      first.save,
+      hunt({ bonus: 'verder', score: 4000, rank: 'bosveldjagter' }),
+      content,
+      notaboek,
+    );
+    expect(v.newBest).toBeNull();
+    expect(v.save.bests['karoo-autumn']).toEqual({ score: 1200, rank: 'plaaswerker' });
+    expect(v.rankUp).toBe('bosveldjagter');
+    expect(v.save.bestRank).toBe('bosveldjagter');
+  });
+
   it('the Pomp unlocks at the Plaaswerker rank', () => {
     expect(isWeaponUnlocked(weapon('pomp'), defaultSave(), content)).toBe(false);
     const o = applyHunt(defaultSave(), hunt({ rank: 'plaaswerker' }), content, notaboek);
