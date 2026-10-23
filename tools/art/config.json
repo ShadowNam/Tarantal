@@ -37,19 +37,19 @@
       "bellyThin": 0.55,
       "tailThin": 0.35
     },
-    "legWidth": 8,
+    "legWidth": 6,
     "faceLine": 1.35,
     "wattleScale": 1.35,
     "innerLine": 0.55,
     "eyeWhite": "#FBF8EF",
     "iris": "#4A2A18",
     "outline": {
-      "near": 0.55,
-      "mid": 0.65,
+      "near": 0.45,
+      "mid": 0.5,
       "far": 0.85
     },
-    "softInk": 0.3,
-    "headScale": 0.66,
+    "softInk": 0.75,
+    "headScale": 0.48,
     "star": "#F2C94C",
     "puff": "#F4F1E8",
     "puffShadow": "#D9D2C2",
@@ -65,7 +65,7 @@
       "casque": "#C49A6C",
       "casqueHi": "#E6C9A0",
       "beak": "#C98F4E",
-      "legs": "#6B5B4B"
+      "legs": "#3C3D42"
     },
     "variants": {
       "tarentaal": {
@@ -222,16 +222,16 @@
     "wood": "#8B5A2B",
     "woodShadow": "#5E3A1A",
     "woodHi": "#B07A42",
-    "woodGrain": "#4A2C12",
+    "woodGrain": "#3A2310",
     "lightWood": "#B98A52",
     "lightWoodShadow": "#8A5F31",
     "lightWoodHi": "#D6AE78",
-    "steel": "#4A5058",
-    "steelShadow": "#2C3036",
-    "steelHi": "#9AA6B0",
-    "blued": "#2F3A4A",
-    "bluedShadow": "#1C2430",
-    "bluedHi": "#6D819A",
+    "steel": "#55595E",
+    "steelShadow": "#2E3135",
+    "steelHi": "#A7ADB3",
+    "blued": "#2F3338",
+    "bluedShadow": "#1B1D21",
+    "bluedHi": "#7C838C",
     "brass": "#C9A13B",
     "brassShadow": "#94721F",
     "brassHi": "#F0D27A",
@@ -252,9 +252,9 @@
     "flashCore": "#FFF6C8",
     "flashMid": "#FFC94A",
     "flashOuter": "#F07A2A",
-    "scratch": "#C9CED3",
+    "scratch": "#9EA4AA",
     "lineNear": 6,
-    "outline": 0.42,
+    "outline": 0.25,
     "poses": {
       "$comment": "Per gun: angle (deg, negative = barrels up-left toward the screen centre), shift (px right of the box centre) and widen (x scale of the drawing about the barrel line). Review 2: the long guns point into the scene at an angle with the stock bottom right, like the old placeholder's silhouette.",
       "dubbelloop": {
@@ -294,7 +294,7 @@
     },
     "wobble": {
       "frequency": 0.04,
-      "scale": 1.0
+      "scale": 0.6
     },
     "clips": {
       "$comment": "Frames per gun clip; fps for fire/flash per gun; reload clips are stretched to weapons.json reloadMs at runtime.",
