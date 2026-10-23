@@ -283,6 +283,7 @@ const hook: TestHook = {
   masterGain: null,
   missingTextures: [],
   textureBytes: 0,
+  gunAtlases: [],
   boot: {},
   rects: {},
   safe: null,

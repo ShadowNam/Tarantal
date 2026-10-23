@@ -29,7 +29,7 @@ import { stemFor } from '../audio/music';
 import { rumbleDue } from '../view/juice';
 import type { HuntPlan } from '../daily/DailyFlow';
 import { FtueDirector, type FtueStep } from '../ftue/FtueDirector';
-import type { GameContext } from '../GameContext';
+import type { GameContext, TestHook } from '../GameContext';
 import { HuntRunner } from '../HuntRunner';
 import { InputMapper, inputKindOf } from '../input/InputMapper';
 import { BirdView } from '../view/BirdView';
@@ -169,6 +169,7 @@ export class HuntScene extends Phaser.Scene {
     this.manifest =
       this.biome.id === this.ctx.biome.id ? this.ctx.manifest : this.ctx.manifestFor(this.biome);
     this.swapManifest();
+    this.releaseGuns();
     this.ctx.huntBiome = this.biome;
     this.ctx.audio.setBiome(this.biome.id);
     this.ctx.audio.resetIntensity();
@@ -426,6 +427,23 @@ export class HuntScene extends Phaser.Scene {
     if (prev !== null && prev !== this.manifest)
       prev.release(this.textures, this.manifest, this.anims);
     this.ctx.installedManifest = this.manifest;
+  }
+
+  /** D-029 texture memory for the test hook, and (v1.3) which gun atlases are on the GPU. */
+  private sampleTextures(hook: TestHook): void {
+    hook.textureBytes = textureBytes(this.textures);
+    hook.gunAtlases = this.textures.getTextureKeys().filter((k) => k.startsWith('final:gun/'));
+  }
+
+  /**
+   * v1.3: leaving a hunt (this scene restarts for the title, [Again] or the next hunt) drops the
+   * gun atlases of every gun but the equipped one, so a hunt that used both crate guns doesn't
+   * keep them on the GPU (low tier < 128 MB). A gun shown again uploads on demand (ensureGun).
+   */
+  private releaseGuns(): void {
+    const keep = new Set([this.ctx.save.data.loadout.weapon]);
+    for (const m of new Set([this.manifest, this.ctx.installedManifest]))
+      m?.releaseGuns(this.textures, keep, this.anims);
   }
 
   /** M8: a hunt in another biome (Daily rotation, challenge, Season Run) swaps the scenery. */
@@ -897,6 +915,8 @@ export class HuntScene extends Phaser.Scene {
         if (this.texturesDone && this.ctx.hook)
           this.ctx.hook.boot['allTextures'] ??= performance.now();
       }
+      // v1.3: texture memory on the title too (after a hunt), about twice a second.
+      if (this.ctx.hook && this.game.loop.frame % 30 === 0) this.sampleTextures(this.ctx.hook);
       return;
     }
     const paused = this.ctx.paused();
@@ -985,7 +1005,7 @@ export class HuntScene extends Phaser.Scene {
       hook.score = state.score;
       hook.shells = state.weapon.shells;
       // D-029: GPU texture memory (RGBA bytes of every texture source), sampled twice a second.
-      if (state.tick % 30 === 0) hook.textureBytes = textureBytes(this.textures);
+      if (state.tick % 30 === 0) this.sampleTextures(hook);
       hook.magazine = state.weapon.magazine;
       hook.reloading = state.weapon.reloading;
       hook.stones = state.projectiles.length;

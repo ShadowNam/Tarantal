@@ -83,3 +83,37 @@ describe('AssetManifest.release (D-031: one biome of scenery at a time)', () => 
     expect(a.release(tex, a)).toEqual([]);
   });
 });
+
+describe('AssetManifest.releaseGuns (v1.3: only the equipped gun stays on the GPU)', () => {
+  const content = loadContent();
+  const karoo = content.biomes.find((b) => b.id === 'karoo-autumn');
+  if (!karoo) throw new Error('no biome');
+
+  it('removes every delivered gun atlas but the kept one, with its animations', () => {
+    const m = createPlaceholderManifest(content, karoo);
+    // Stand-in delivered rigs (the loader fills this map from the asset index in the browser).
+    const guns = (m as unknown as { finalGuns: Map<string, object> }).finalGuns;
+    for (const id of ['dubbelloop', 'voorlaaier', 'mielie_masjien'])
+      guns.set(id, {
+        atlasKey: `final:gun/${id}@1x`,
+        entry: { clips: { idle: { frames: ['a'] }, fire: { frames: ['a', 'b'] } } },
+        scale: 1,
+        img: [],
+        data: [],
+      });
+    const tex = fakeTextures();
+    for (const id of ['dubbelloop', 'voorlaaier', 'mielie_masjien'])
+      tex.keys.add(`final:gun/${id}@1x`);
+    const animKeys = new Set(['final:gun/voorlaaier@1x/fire', 'final:gun/dubbelloop@1x/fire']);
+    const anims = {
+      exists: (k: string) => animKeys.has(k),
+      remove: (k: string) => animKeys.delete(k),
+    } as unknown as Phaser.Animations.AnimationManager;
+    const removed = m.releaseGuns(tex, new Set(['dubbelloop']), anims);
+    expect(removed.sort()).toEqual(['final:gun/mielie_masjien@1x', 'final:gun/voorlaaier@1x']);
+    expect(tex.keys.has('final:gun/dubbelloop@1x')).toBe(true);
+    expect([...animKeys]).toEqual(['final:gun/dubbelloop@1x/fire']);
+    // Nothing left to drop the second time.
+    expect(m.releaseGuns(tex, new Set(['dubbelloop']), anims)).toEqual([]);
+  });
+});
