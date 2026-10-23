@@ -115,6 +115,32 @@ test.describe('maps (v1.2)', () => {
     expect(errors).toEqual([]);
   });
 
+  test('a Classic hunt over the quota unlocks Verder; the title then offers it', async ({
+    page,
+  }, info) => {
+    gate(info);
+    test.setTimeout(300_000);
+    const touch = isTouchProject(info);
+    // quotaMul=0: every quota is 0, so any score unlocks (a 2 s hunt).
+    await boot(page, 'today=2026-10-23&huntSeconds=2&quotaMul=0');
+    await page.waitForFunction(() => window.__TM__?.rects['start'] !== undefined);
+    expect((await hook(page)).verder).toBe(false);
+    await startHunt(page, touch);
+    await waitScene(page, 'tally');
+    let h = await hook(page);
+    expect(h.verderUnlocked).toBe('verder');
+    expect(h.tally?.news ?? '').toContain('Verder unlocked for today!');
+    await tapRect(page, touch, 'menu');
+    await waitScene(page, 'start');
+    await page.waitForFunction(() => window.__TM__?.rects['verder'] !== undefined);
+    h = await hook(page);
+    expect(h.verder).toBe(true);
+    // Verder sits above the bottom row (Daily, Season Run), never on it.
+    const v = h.rects['verder'];
+    const d = h.rects['daily'];
+    expect(v !== undefined && d !== undefined && v.y + v.h < d.y).toBe(true);
+  });
+
   test('beating today’s quota offers Verder on the title until UTC midnight', async ({
     page,
   }, info) => {

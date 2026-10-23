@@ -92,7 +92,8 @@ Moorhuhn's original paid 25 for the farthest birds; we keep 5 / 10 / 25 so the i
 For each bagged target:
 
 ```
-points = base(plane or creature override) + Σ addPoints          // "Punte" (order irrelevant)
+points = round(base(plane or creature override) × map.pointsMul) + Σ addPoints   // "Punte"
+                                                       // (map.pointsMul: §11.5, 1 on most maps)
 mult   = 1 + behaviourAdd                                         // "Maal" starts here
 for each charm in slot order, left → right:                       // order MATTERS (Balatro-style)
     for each matching effect in that charm, in listed order:
@@ -314,6 +315,7 @@ summer thunderstorm finale.
 | 1 | **Herfs** (Autumn) — MVP biome | **Karoo farm** | Golden veld, flat-topped dolerite koppies (authentic Karoo), windpomp + corrugated reservoir, rusty bakkie, wire fence, aloes, springbok far away | **Karoo wind** with dust devils | Tailwind birds rocket (+40 %), headwind birds hover; dust devils flush what they touch; far shots drift | Generaal Tarentaal |
 
 Omens are on in Season Run omen hunts and in the **Daily Hunt**; **Classic is off** (purist mode;
+a weekday layout can override both: `calm` days have none, `omen` days have it in Classic too, §11.5;
 `modes.json → omen`, D-021). Karoo wind: direction and strength (0.4–1.0) re-rolled every 12–20 s;
 flying birds (fly-overs and flushed flocks) go ×(1 + (1.4 − 1)·strength) with the wind and
 ×(1 + (0.7 − 1)·strength) against it; pellets on the far plane (and behind it) drift downwind by

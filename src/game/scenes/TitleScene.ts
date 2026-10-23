@@ -33,6 +33,12 @@ export interface TitleData {
   readonly notice?: string;
 }
 
+/** Room kept between Verder and the bottom row: the Daily status line plus a gap (design px). */
+const VERDER_ROW_GAP = 50;
+/** Verder's height and its offset below START (design px). */
+const VERDER_H = 72;
+const VERDER_BELOW_START = 142;
+
 export class TitleScene extends Phaser.Scene {
   private readonly ctx: GameContext;
   private menu: Menu | null = null;
@@ -78,7 +84,18 @@ export class TitleScene extends Phaser.Scene {
     if (this.ctx.hook) this.ctx.hook.notice = data.notice ?? null;
 
     const startW = Math.min(900, width - safe.left - safe.right - 200);
-    const start: Rect = { x: (width - startW) / 2, y: height / 2 - 110, w: startW, h: 220 };
+    // v1.2: a returning player's START block (START, best, today's map, Verder) moves up as far
+    // as the safe area needs, so Verder never reaches the bottom row (iPhone home indicator).
+    const rowTop = height - safe.bottom - 170 - VERDER_ROW_GAP;
+    const lift = returning
+      ? Math.max(0, height / 2 - 110 + 220 + VERDER_BELOW_START + VERDER_H - rowTop)
+      : 0;
+    const start: Rect = {
+      x: (width - startW) / 2,
+      y: height / 2 - 110 - lift,
+      w: startW,
+      h: 220,
+    };
     const startBtn = drawButton(this, start, t('title.start'), 'primary', 110);
     this.tweens.add({
       targets: startBtn.text,
@@ -142,7 +159,13 @@ export class TitleScene extends Phaser.Scene {
       // v1.2: Verder — a button once today's map quota is beaten, else what unlocks it.
       const home = this.ctx.biome.id;
       const verderOpen = isUnlocked(this.ctx.save.data.bonusMaps, this.ctx.today(), home, 'verder');
-      const verder: Rect = { x: width / 2 - 200, y: start.y + start.h + 142, w: 400, h: 72 };
+      // Above the bottom row and the Daily status line over it (rowTop), whatever the safe area.
+      const verder: Rect = {
+        x: width / 2 - 200,
+        y: Math.min(start.y + start.h + VERDER_BELOW_START, rowTop - VERDER_H),
+        w: 400,
+        h: VERDER_H,
+      };
       if (verderOpen) {
         drawButton(this, verder, t('title.verder'), 'selected', 40);
         items.push({

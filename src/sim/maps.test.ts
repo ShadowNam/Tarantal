@@ -138,7 +138,7 @@ describe('maps (v1.2)', () => {
     expect(play(7, { id: 'classic', layout: 'sat' }).hash).not.toBe(a.hash);
   });
 
-  it('a dusk map (pointsMul) pays more per bird', () => {
+  it('the dusk layout carries a points multiplier and the dusk light', () => {
     const sat = resolveMap(karoo, 'sat', undefined);
     expect(sat.pointsMul).toBe(1.15);
     expect(findLayout(karoo, 'sat')?.light).toBe('dusk');

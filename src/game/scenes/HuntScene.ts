@@ -247,10 +247,10 @@ export class HuntScene extends Phaser.Scene {
       if (data.mode === 'daily') return { layout: c.daily.todaySetup().layout };
     }
     if (c.classicLayout === 'none') return {};
-    return {
-      layout: c.classicLayout ?? layoutForDay(c.today()),
-      ...(c.classicBonus === undefined ? {} : { bonus: c.classicBonus }),
-    };
+    // [Again] after Verder: the views are built for Verder straight away (no rebuild in begin).
+    const bonus = c.classicBonus ?? (data.autoStart !== undefined ? data.bonus : undefined);
+    const layout = c.classicLayout ?? layoutForDay(c.today());
+    return bonus === undefined ? { layout } : { layout, bonus };
   }
 
   /** Every view of the hunt for the scene's biome and map (another biome or map rebuilds them). */
@@ -622,7 +622,7 @@ export class HuntScene extends Phaser.Scene {
       bonus !== undefined &&
       modeId === 'classic' &&
       challenge === null &&
-      isUnlocked(save.bonusMaps, this.huntDay, this.ctx.content.modes.modes.classic.biome, bonus);
+      isUnlocked(save.bonusMaps, this.huntDay, this.ctx.biome.id, bonus);
     const extra = {
       ...(bonusOpen ? { bonus } : {}),
       ...(this.ctx.huntSeconds === undefined ? {} : { huntSeconds: this.ctx.huntSeconds }),
@@ -647,7 +647,7 @@ export class HuntScene extends Phaser.Scene {
       if (classicLayout === 'none') plan = { ...plan, mode: plainMap(plan.mode) };
       else if (classicLayout !== undefined)
         plan = { ...plan, mode: { ...plan.mode, layout: classicLayout } };
-      if (classicBonus !== undefined)
+      if (classicBonus !== undefined && classicLayout !== 'none')
         plan = {
           ...plan,
           mode: { ...plan.mode, bonus: classicBonus },
@@ -667,7 +667,7 @@ export class HuntScene extends Phaser.Scene {
     // M9 lazy biomes: its art loads on first use; the hunt starts once it is in.
     if (this.ctx.playableBiomes.includes(huntBiome) && !this.ctx.biomeReady(huntBiome)) {
       this.waitForBiome(huntBiome, (ok) => {
-        if (ok) this.begin(kind, startPointer, modeId, challenge);
+        if (ok) this.begin(kind, startPointer, modeId, challenge, bonus);
         else this.scene.restart({} satisfies HuntData);
       });
       return;
@@ -1165,6 +1165,7 @@ export class HuntScene extends Phaser.Scene {
         this.huntDay,
         this.ctx.today(),
         this.ctx.content,
+        this.ctx.biome.id,
       );
       if (r.unlocked !== null) line = t(`tally.${r.unlocked}_unlocked`);
       else if (r.newBest !== null && result.bonus !== null)

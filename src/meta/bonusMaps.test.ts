@@ -13,6 +13,7 @@ const lateSunday = Date.UTC(2026, 9, 25, 23, 59, 59, 999);
 const sun = dayNumber(lateSunday);
 const mon = dayNumber(lateSunday + 1);
 const empty = defaultSave().bonusMaps;
+const KAROO = 'karoo-autumn';
 
 const hunt = (over: Partial<Parameters<typeof applyBonusResult>[1]> = {}) => ({
   mode: 'classic' as const,
@@ -32,32 +33,45 @@ describe('bonus maps (v1.2)', () => {
   });
 
   it('beating the quota on today’s map unlocks Verder for today', () => {
-    const r = applyBonusResult(empty, hunt(), sun, sun, content);
+    const r = applyBonusResult(empty, hunt(), sun, sun, content, KAROO);
     expect(r.unlocked).toBe('verder');
     expect(isUnlocked(r.save, sun, 'karoo-autumn', 'verder')).toBe(true);
     expect(isUnlocked(r.save, sun, 'bushveld-winter', 'verder')).toBe(false);
     // Once is enough: a second pass reports nothing new.
-    expect(applyBonusResult(r.save, hunt(), sun, sun, content).unlocked).toBeNull();
+    expect(applyBonusResult(r.save, hunt(), sun, sun, content, KAROO).unlocked).toBeNull();
   });
 
   it('one point short, another day’s layout, a Season Run or an FTUE hunt unlock nothing', () => {
     expect(
-      applyBonusResult(empty, hunt({ score: quota - 1 }), sun, sun, content).unlocked,
+      applyBonusResult(empty, hunt({ score: quota - 1 }), sun, sun, content, KAROO).unlocked,
     ).toBeNull();
-    expect(applyBonusResult(empty, hunt({ layout: 'tue' }), sun, sun, content).unlocked).toBeNull();
-    expect(applyBonusResult(empty, hunt({ layout: null }), sun, sun, content).unlocked).toBeNull();
     expect(
-      applyBonusResult(empty, hunt({ mode: 'seasonHunt' }), sun, sun, content).unlocked,
+      applyBonusResult(empty, hunt({ layout: 'tue' }), sun, sun, content, KAROO).unlocked,
     ).toBeNull();
-    expect(applyBonusResult(empty, hunt({ mode: 'ftue' }), sun, sun, content).unlocked).toBeNull();
+    expect(
+      applyBonusResult(empty, hunt({ layout: null }), sun, sun, content, KAROO).unlocked,
+    ).toBeNull();
+    expect(
+      applyBonusResult(empty, hunt({ mode: 'seasonHunt' }), sun, sun, content, KAROO).unlocked,
+    ).toBeNull();
+    expect(
+      applyBonusResult(empty, hunt({ mode: 'ftue' }), sun, sun, content, KAROO).unlocked,
+    ).toBeNull();
     // The Daily plays today's map too.
-    expect(applyBonusResult(empty, hunt({ mode: 'daily' }), sun, sun, content).unlocked).toBe(
-      'verder',
-    );
+    expect(
+      applyBonusResult(empty, hunt({ mode: 'daily' }), sun, sun, content, KAROO).unlocked,
+    ).toBe('verder');
+  });
+
+  it('only the Classic biome unlocks: a Bushveld Daily over its quota unlocks nothing', () => {
+    const bush = hunt({ mode: 'daily', biome: 'bushveld-winter', score: 99_999 });
+    const r = applyBonusResult(empty, bush, sun, sun, content, KAROO);
+    expect(r.unlocked).toBeNull();
+    expect(r.save.unlocked).toEqual([]);
   });
 
   it('resets at UTC midnight', () => {
-    const unlocked = applyBonusResult(empty, hunt(), sun, sun, content).save;
+    const unlocked = applyBonusResult(empty, hunt(), sun, sun, content, KAROO).save;
     expect(isUnlocked(unlocked, sun, 'karoo-autumn', 'verder')).toBe(true);
     expect(isUnlocked(unlocked, mon, 'karoo-autumn', 'verder')).toBe(false);
     expect(unlocksOn(unlocked, mon)).toEqual([]);
@@ -68,12 +82,13 @@ describe('bonus maps (v1.2)', () => {
       mon,
       mon,
       content,
+      KAROO,
     );
     expect(next.save).toMatchObject({ day: mon, unlocked: [] });
   });
 
   it('a hunt started before midnight and finished after it unlocks nothing (its map is gone)', () => {
-    const r = applyBonusResult(empty, hunt(), sun, mon, content);
+    const r = applyBonusResult(empty, hunt(), sun, mon, content, KAROO);
     expect(r.unlocked).toBeNull();
     expect(isUnlocked(r.save, mon, 'karoo-autumn', 'verder')).toBe(false);
     expect(isUnlocked(r.save, sun, 'karoo-autumn', 'verder')).toBe(false);
@@ -82,11 +97,11 @@ describe('bonus maps (v1.2)', () => {
   it('Verder keeps its own best across days', () => {
     const v = (score: number, day: number) =>
       hunt({ layout: layoutForDay(day), bonus: 'verder', score });
-    const a = applyBonusResult(empty, v(1800, sun), sun, sun, content);
+    const a = applyBonusResult(empty, v(1800, sun), sun, sun, content, KAROO);
     expect(a.newBest).toEqual({ previous: null });
-    const b = applyBonusResult(a.save, v(1500, mon), mon, mon, content);
+    const b = applyBonusResult(a.save, v(1500, mon), mon, mon, content, KAROO);
     expect(b.newBest).toBeNull();
-    const c = applyBonusResult(b.save, v(2100, mon), mon, mon, content);
+    const c = applyBonusResult(b.save, v(2100, mon), mon, mon, content, KAROO);
     expect(c.newBest).toEqual({ previous: 1800 });
     expect(c.save.bests['karoo-autumn/verder']).toEqual({ score: 2100, rank: 'bosveldjagter' });
     // A Verder hunt never unlocks another Verder (v1.3 adds Nog Verder).

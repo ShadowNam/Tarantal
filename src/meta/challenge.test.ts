@@ -115,6 +115,15 @@ describe('challenge links (Tech §12)', () => {
       ok: false,
       reason: 'badShape',
     });
+    // A bonus map needs a Classic layout.
+    for (const bad of [
+      { ...valid, b: 'verder' },
+      { ...valid, mode: 'daily', l: 'mon', b: 'verder' },
+    ])
+      expect(decodeChallenge(b64(JSON.stringify(bad)), ctx)).toEqual({
+        ok: false,
+        reason: 'badShape',
+      });
     // Map ids this version can't make are left out of a link rather than throwing.
     expect(challengeFor({ ...sent, layout: 'xyz' }, hash).l).toBeUndefined();
   });

@@ -46,7 +46,9 @@ export interface BonusOutcome {
  * A finished Classic or Daily hunt → the bonus-map save. `huntDay` is the UTC day the hunt
  * started (its layout is that day's); `today` is the UTC day now. An unlock counts only for the
  * day it was earned: a hunt that started before midnight and ended after it unlocks nothing,
- * since that map is gone. A bonus map's best is kept whatever the day.
+ * since that map is gone. A bonus map's best is kept whatever the day. Only `classicBiome` (the
+ * biome Classic and the title play, where a Verder hunt can start) unlocks: a Daily in another
+ * biome of the rotation unlocks nothing.
  */
 export function applyBonusResult(
   s: BonusMapSave,
@@ -54,6 +56,7 @@ export function applyBonusResult(
   huntDay: number,
   today: number,
   content: Pick<ContentBundle, 'run' | 'biomes'>,
+  classicBiome: string,
 ): BonusOutcome {
   let save: BonusMapSave = s.day === today ? s : { ...s, day: today, unlocked: [] };
   let newBest: BonusOutcome['newBest'] = null;
@@ -79,6 +82,7 @@ export function applyBonusResult(
   const exists = next !== null && ids.includes(next);
   if (
     huntDay !== today ||
+    result.biome !== classicBiome ||
     !todaysMap ||
     next === null ||
     !exists ||
