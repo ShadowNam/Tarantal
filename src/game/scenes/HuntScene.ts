@@ -9,7 +9,7 @@ import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
 import type { Biome, Weapon } from '../../content/schemas';
 import { DebugOverlay } from '../../debug/DebugOverlay';
-import { fill, t } from '../../i18n/i18n';
+import { fill, t, tOr } from '../../i18n/i18n';
 import { textStyle } from '../ui/menu';
 import { captureHintAlpha, type CaptureState } from '../capture';
 import { showDontShootBadge } from '../prefs';
@@ -39,7 +39,7 @@ import { ParallaxView } from '../view/ParallaxView';
 import { WeaponView } from '../view/WeaponView';
 import { crosshairExtent, spreadMulOf } from '../ui/gunLook';
 import { WorldView } from '../view/WorldView';
-import { mapLights, resolveMap, type ResolvedMap } from '../../sim/maps';
+import { mapLights, mapOmen, resolveMap, type ResolvedMap } from '../../sim/maps';
 import { layoutForDay } from '../../meta/maps';
 import { applyBonusResult, isUnlocked } from '../../meta/bonusMaps';
 import { formatScore } from '../ui/format';
@@ -246,6 +246,7 @@ export class HuntScene extends Phaser.Scene {
       if (data.mode === 'seasonHunt' || data.mode === 'ftue') return {};
       if (data.mode === 'daily') return { layout: c.daily.todaySetup().layout };
     }
+    if (c.classicLayout === 'none') return {};
     return {
       layout: c.classicLayout ?? layoutForDay(c.today()),
       ...(c.classicBonus === undefined ? {} : { bonus: c.classicBonus }),
@@ -643,10 +644,15 @@ export class HuntScene extends Phaser.Scene {
     // e2e/dev only (v1.2): ?layout=thu&bonus=verder plays Classic on that map.
     if (plan?.mode.id === 'classic' && plan.challenge === null) {
       const { classicLayout, classicBonus } = this.ctx;
-      if (classicLayout !== undefined)
+      if (classicLayout === 'none') plan = { ...plan, mode: plainMap(plan.mode) };
+      else if (classicLayout !== undefined)
         plan = { ...plan, mode: { ...plan.mode, layout: classicLayout } };
       if (classicBonus !== undefined)
-        plan = { ...plan, mode: { ...plan.mode, bonus: classicBonus } };
+        plan = {
+          ...plan,
+          mode: { ...plan.mode, bonus: classicBonus },
+          hudTag: tOr(`hud.tag_${classicBonus}`, classicBonus),
+        };
     }
     this.plan = plan;
     this.modeId = plan?.mode.id ?? modeId;
@@ -676,11 +682,14 @@ export class HuntScene extends Phaser.Scene {
       this.ctx.hook.boot['huntStart'] ??= performance.now();
       this.ctx.hook.missingTextures = this.manifest.missing(this.textures);
       this.ctx.hook.biome = this.biome.id;
-      this.ctx.hook.omen =
-        mode.omen ??
-        (mode.id === 'seasonHunt'
+      // v1.2: the map's weather (calm / omen) sits between the mode setting and its default.
+      this.ctx.hook.omen = mapOmen(
+        safeResolveMap(this.biome, mode.layout, mode.bonus).weather,
+        mode.omen,
+        mode.id === 'seasonHunt'
           ? mode.season?.kind === 'omen'
-          : this.ctx.content.modes.modes[mode.id].omen);
+          : this.ctx.content.modes.modes[mode.id].omen,
+      );
     }
     const aimAssist = save.settings.aimAssist;
     const seed = runHunt?.seed ?? plan?.seed ?? this.ctx.nextSeed();
@@ -1334,4 +1343,15 @@ function safeResolveMap(biome: Biome, layout?: string, bonus?: string): Resolved
   } catch {
     return resolveMap(biome, undefined, undefined);
   }
+}
+
+/** e2e/dev only (?layout=none): the mode without a map (the plain biome). */
+function plainMap(mode: ModeConfig): ModeConfig {
+  return {
+    id: mode.id,
+    ...(mode.biome === undefined ? {} : { biome: mode.biome }),
+    ...(mode.weapon === undefined ? {} : { weapon: mode.weapon }),
+    ...(mode.huntSeconds === undefined ? {} : { huntSeconds: mode.huntSeconds }),
+    ...(mode.omen === undefined ? {} : { omen: mode.omen }),
+  };
 }

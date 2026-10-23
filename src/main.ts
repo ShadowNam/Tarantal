@@ -185,7 +185,10 @@ function biomeParam(): string | undefined {
 /** e2e/dev only (v1.2): ?layout=thu / ?bonus=verder play Classic hunts on that map. */
 function layoutParam(): string | undefined {
   const v = testHooks ? params.get('layout') : null;
-  return v !== null && (WEEKDAY_IDS as readonly string[]).includes(v) ? v : undefined;
+  // 'none' plays the plain biome (the "before" of the v1.2 previews).
+  return v !== null && (v === 'none' || (WEEKDAY_IDS as readonly string[]).includes(v))
+    ? v
+    : undefined;
 }
 function bonusParam(): string | undefined {
   const v = testHooks ? params.get('bonus') : null;
