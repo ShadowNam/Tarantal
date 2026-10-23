@@ -115,6 +115,16 @@ describe('DailyFlow', () => {
     expect(flow.finish(classic, result(classic, 1234), '🟩').share).toBeNull();
   });
 
+  it('v1.2: Classic plays today’s layout and may carry Verder; the Daily never does', () => {
+    const { flow } = setup();
+    const classic = flow.plan('classic', null, undefined, { bonus: 'verder' }, () => 42);
+    expect(classic.mode).toMatchObject({ id: 'classic', layout: 'wed', bonus: 'verder' });
+    expect(classic.hudTag).toBe('Verder · further');
+    const daily = flow.plan('daily', null, undefined, { bonus: 'verder' }, seedNever);
+    expect(daily.mode.bonus).toBeUndefined();
+    expect(daily.mode.layout).toBe('wed');
+  });
+
   it('first daily attempt is official, records the result and shares a link to the same hunt', async () => {
     const { flow, save, fake } = setup();
     const plan = flow.plan('daily', null, undefined, {}, seedNever);

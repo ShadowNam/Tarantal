@@ -211,6 +211,8 @@ const hook: TestHook = {
   shells: 0,
   biome: '',
   map: null,
+  verder: false,
+  verderUnlocked: null,
   glare: null,
   omen: false,
   rain: false,

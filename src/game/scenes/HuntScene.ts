@@ -41,6 +41,8 @@ import { crosshairExtent, spreadMulOf } from '../ui/gunLook';
 import { WorldView } from '../view/WorldView';
 import { mapLights, resolveMap, type ResolvedMap } from '../../sim/maps';
 import { layoutForDay } from '../../meta/maps';
+import { applyBonusResult, isUnlocked } from '../../meta/bonusMaps';
+import { formatScore } from '../ui/format';
 import type { HudScene } from './HudScene';
 import type { PauseData } from './PauseScene';
 import { viewFor, type RunData, type RunView } from './RunScene';
@@ -55,6 +57,8 @@ export interface HuntData {
   readonly mode?: ModeId;
   /** M7: play this challenge (link card's [Accept], or [Again] after one). */
   readonly challenge?: Challenge;
+  /** v1.2: a bonus map on today's Classic map ([Again] after Verder, while it is unlocked). */
+  readonly bonus?: string;
 }
 
 const END_DELAY_MS = 900;
@@ -100,6 +104,8 @@ export class HuntScene extends Phaser.Scene {
   private manifest!: AssetManifest;
   /** v1.2 (D-033): the map on screen — weekday layout and bonus map (undefined = plain biome). */
   private map: { readonly layout?: string; readonly bonus?: string } = {};
+  /** v1.2: UTC day the hunt started (its layout is that day's; Verder unlocks for that day). */
+  private huntDay = 0;
   /** Real time of the next Stampede rumble shake. */
   private nextRumbleAt = 0;
 
@@ -196,7 +202,7 @@ export class HuntScene extends Phaser.Scene {
     });
 
     if (data.autoStart !== undefined)
-      this.begin(data.autoStart, null, data.mode ?? 'classic', data.challenge ?? null);
+      this.begin(data.autoStart, null, data.mode ?? 'classic', data.challenge ?? null, data.bonus);
     else this.showTitle();
     if (this.ctx.hook) {
       this.ctx.hook.ready = true;
@@ -486,9 +492,9 @@ export class HuntScene extends Phaser.Scene {
     }
     const data: TitleData = {
       ...(pending === null ? {} : { notice: t('title.challenge_bad') }),
-      start: (kind, pointerId, mode) => {
+      start: (kind, pointerId, mode, bonus) => {
         this.afterBreak(() => {
-          this.begin(kind, pointerId, mode);
+          this.begin(kind, pointerId, mode, null, bonus);
         });
       },
       run: () => {
@@ -587,8 +593,11 @@ export class HuntScene extends Phaser.Scene {
     startPointer: number | null,
     modeId: ModeId,
     challenge: Challenge | null = null,
+    /** v1.2: a bonus map on today's Classic map (only while it is unlocked today). */
+    bonus?: string,
   ): void {
     if (this.runner) return;
+    this.huntDay = this.ctx.today();
     this.scene.stop('Title');
     this.scene.stop('Challenge');
     this.ctx.audio.unlock();
@@ -608,7 +617,13 @@ export class HuntScene extends Phaser.Scene {
       isWeaponEquippable(loadout, save, this.ctx.content)
         ? loadout.id
         : undefined;
+    const bonusOpen =
+      bonus !== undefined &&
+      modeId === 'classic' &&
+      challenge === null &&
+      isUnlocked(save.bonusMaps, this.huntDay, this.ctx.content.modes.modes.classic.biome, bonus);
     const extra = {
+      ...(bonusOpen ? { bonus } : {}),
       ...(this.ctx.huntSeconds === undefined ? {} : { huntSeconds: this.ctx.huntSeconds }),
       ...(this.ctx.omen === undefined || modeId === 'ftue' ? {} : { omen: this.ctx.omen }),
     };
@@ -1076,8 +1091,13 @@ export class HuntScene extends Phaser.Scene {
     }
     const plan = this.plan;
     const outcome = this.recordProgress(result, plan === null || this.ctx.daily.ranked(plan));
-    const extras =
+    const verder = this.recordBonus(result);
+    const finished =
       plan === null ? null : this.ctx.daily.finish(plan, result, this.shareLog?.grid() ?? '');
+    const extras =
+      finished === null || verder === null
+        ? finished
+        : { ...finished, news: [verder, ...finished.news] };
     if (this.modeId === 'seasonHunt') {
       this.ctx.run.afterHunt(result);
       this.afterRealMs(END_DELAY_MS, () => {
@@ -1100,10 +1120,12 @@ export class HuntScene extends Phaser.Scene {
             // After the FTUE, [Again] is a real Classic hunt (GDD §16 step 7). After a Daily it
             // is practice on the same hunt; after a challenge, the same challenge again.
             const challengeAgain = plan?.challenge ?? null;
+            const bonusAgain = plan?.mode.bonus;
             this.scene.restart({
               autoStart: inputKindOf(pointerType),
               mode: this.modeId === 'daily' ? 'daily' : 'classic',
               ...(challengeAgain === null ? {} : { challenge: challengeAgain }),
+              ...(bonusAgain === undefined ? {} : { bonus: bonusAgain }),
             } satisfies HuntData);
           });
         },
@@ -1117,6 +1139,31 @@ export class HuntScene extends Phaser.Scene {
       };
       this.scene.launch('Tally', data);
     });
+  }
+
+  /**
+   * v1.2 (D-033): a Classic or Daily hunt → bonus maps (today's Verder unlock, Verder's best).
+   * Returns the tally line it earned, or null. Capture mode and `?e2e` on a public build are
+   * unranked and unlock nothing.
+   */
+  private recordBonus(result: HuntResult): string | null {
+    if (this.ctx.daily.unranked) return null;
+    let line: string | null = null;
+    this.ctx.save.update((d) => {
+      const r = applyBonusResult(
+        d.bonusMaps,
+        result,
+        this.huntDay,
+        this.ctx.today(),
+        this.ctx.content,
+      );
+      if (r.unlocked !== null) line = t(`tally.${r.unlocked}_unlocked`);
+      else if (r.newBest !== null && result.bonus !== null)
+        line = fill(t('title.verder_best'), { score: formatScore(result.score) });
+      if (this.ctx.hook) this.ctx.hook.verderUnlocked = r.unlocked;
+      return { ...d, bonusMaps: r.save };
+    });
+    return line;
   }
 
   /** Hunt log → save (stats, Bird Book, bests, rank, Notaboek) and hunt_end analytics. */

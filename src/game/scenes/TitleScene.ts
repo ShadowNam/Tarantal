@@ -13,13 +13,20 @@ import { inputKindOf } from '../input/InputMapper';
 import type { InputKind } from '../../sim/types';
 import { formatScore } from '../ui/format';
 import { layoutForDay } from '../../meta/maps';
+import { isUnlocked, mapQuota } from '../../meta/bonusMaps';
 import { findLayout } from '../../sim/maps';
 import type { Rect } from '../ui/hudLayout';
 import { drawButton, fitText, Menu, textStyle, type MenuItem } from '../ui/menu';
 
 export interface TitleData {
   /** Starts the hunt; pointerId is the pressing pointer (null from the keyboard). */
-  readonly start: (kind: InputKind, pointerId: number | null, mode: ModeId) => void;
+  readonly start: (
+    kind: InputKind,
+    pointerId: number | null,
+    mode: ModeId,
+    /** v1.2: a bonus map on today's Classic map ('verder'). */
+    bonus?: string,
+  ) => void;
   /** Opens the Season Run (resumes the saved run, or starts a new one). */
   readonly run: () => void;
   /** M7: one line under the logo (a challenge link that doesn't work). */
@@ -132,6 +139,42 @@ export class TitleScene extends Phaser.Scene {
         )
         .setOrigin(0.5);
       fitText(mapLine, width - 200);
+      // v1.2: Verder — a button once today's map quota is beaten, else what unlocks it.
+      const home = this.ctx.biome.id;
+      const verderOpen = isUnlocked(this.ctx.save.data.bonusMaps, this.ctx.today(), home, 'verder');
+      const verder: Rect = { x: width / 2 - 200, y: start.y + start.h + 142, w: 400, h: 72 };
+      if (verderOpen) {
+        drawButton(this, verder, t('title.verder'), 'selected', 40);
+        items.push({
+          id: 'verder',
+          rect: () => verder,
+          trigger: 'down',
+          press: (pointerType, pointerId) => {
+            if (this.started) return;
+            this.started = true;
+            this.ctx.audio.unlock();
+            this.data_?.start(
+              pointerId === null ? 'pointer' : inputKindOf(pointerType),
+              pointerId,
+              'classic',
+              'verder',
+            );
+          },
+        });
+      } else {
+        const locked = this.add
+          .text(
+            width / 2,
+            verder.y + verder.h / 2,
+            fill(t('title.verder_locked'), {
+              quota: formatScore(mapQuota(this.ctx.content, home)),
+            }),
+            { ...textStyle(28, '#D9CBB0'), stroke: '#1B1410', strokeThickness: 5 },
+          )
+          .setOrigin(0.5);
+        fitText(locked, width - 240);
+      }
+      if (this.ctx.hook) this.ctx.hook.verder = verderOpen;
       // Bottom row, left to right: Skiet-Skuur, Daily Hunt (M7), Season Run, Settings.
       const gap = 30;
       const bw = Math.min(380, (width - safe.left - safe.right - 160 - gap * 3) / 4);

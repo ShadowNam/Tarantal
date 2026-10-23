@@ -122,7 +122,7 @@ export class DailyFlow {
     kind: PlainKind,
     challenge: Challenge | null,
     weapon: string | undefined,
-    extra: Partial<Pick<ModeConfig, 'huntSeconds' | 'omen'>>,
+    extra: Partial<Pick<ModeConfig, 'huntSeconds' | 'omen' | 'bonus'>>,
     seedForClassic: () => number,
   ): HuntPlan {
     if (challenge !== null) {
@@ -140,7 +140,7 @@ export class DailyFlow {
       const official = today !== null && !this.playedToday() && this.deps.unranked !== true;
       return {
         seed: hunt.seed,
-        mode: { ...hunt.mode, ...extra },
+        mode: { ...hunt.mode, ...withoutBonus(extra) },
         daily: today === null ? null : { setup: today, official },
         challenge,
         hudTag: official
@@ -153,7 +153,7 @@ export class DailyFlow {
       const official = !this.playedToday() && this.deps.unranked !== true;
       return {
         seed: setup.seed,
-        mode: { ...dailyMode(setup, weapon), ...extra },
+        mode: { ...dailyMode(setup, weapon), ...withoutBonus(extra) },
         daily: { setup, official },
         challenge: null,
         hudTag: fill(t(official ? 'hud.tag_daily' : 'hud.tag_practice'), { n: setup.number }),
@@ -170,7 +170,7 @@ export class DailyFlow {
       },
       daily: null,
       challenge: null,
-      hudTag: null,
+      hudTag: extra.bonus === undefined ? null : tOr(`hud.tag_${extra.bonus}`, extra.bonus),
     };
   }
 
@@ -314,4 +314,14 @@ export class DailyFlow {
     this.deps.platform.analytics('share_click', { ...extras.shareInfo, method: outcome });
     return outcome;
   }
+}
+
+/** A bonus map is played only on today's Classic map (never a Daily or a challenge's own). */
+function withoutBonus(
+  extra: Partial<Pick<ModeConfig, 'huntSeconds' | 'omen' | 'bonus'>>,
+): Partial<Pick<ModeConfig, 'huntSeconds' | 'omen'>> {
+  return {
+    ...(extra.huntSeconds === undefined ? {} : { huntSeconds: extra.huntSeconds }),
+    ...(extra.omen === undefined ? {} : { omen: extra.omen }),
+  };
 }
