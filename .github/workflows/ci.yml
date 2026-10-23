@@ -21,7 +21,13 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ci-${{ github.ref }}
+  # A description edit or an unrelated label runs nothing (see `plan`), so it gets its own group:
+  # sharing the PR's group would cancel the real run in progress and leave the PR with no result.
+  group: >-
+    ci-${{ github.ref }}${{ github.event_name == 'pull_request' &&
+    ((github.event.action == 'edited' && github.event.changes.base == null) ||
+    (github.event.action == 'labeled' && github.event.label.name != 'full-ci')) &&
+    '-noop' || '' }}
   cancel-in-progress: true
 
 permissions:
