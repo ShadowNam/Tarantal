@@ -389,9 +389,11 @@ the biome as it is** (their quotas and lesson stay fixed). A layout changes, as 
   textures. The fly-over sky stays light: every map keeps ≥ 80 % of the plain sky's
   plumage-to-sky contrast (`tools/sky-contrast.ts`, a unit test fails below it).
 - **Where things stand:** props move (`u`, optionally `y`) with their occluders, secrets and perches.
-- **Where the birds are:** flock **feeding spots** (u ranges per plane: a new flock forages there
-  whenever the spot is out of view, else anywhere hidden), **fly-over routes** (lane weights,
-  sky bands, one fixed direction) and flock targets per plane.
+- **Where the birds are:** flock **feeding spots** (u ranges per plane: the first flock forages
+  on the spot, and later ones there whenever it is out of view, else anywhere hidden), where the
+  hunt **opens along the pan** (`cameraStartU`, a little off the spot, so the first flock sits
+  left or right of centre), **fly-over routes** (lane weights, sky bands, one fixed direction)
+  and flock targets per plane.
 - **Weather:** `calm` (no biome weather, even in the Daily), `default` (Classic off, Daily on,
   D-021) or `omen` (on in Classic too), with an optional wind multiplier.
 - **Pacing and points:** fly-over / pop-up rate multipliers, the run-instead-of-fly share, and a
@@ -399,16 +401,17 @@ the biome as it is** (their quotas and lesson stay fixed). A layout changes, as 
 
 | Day | Light | Karoo |
 |---|---|---|
-| Mon | Dawn mist | Calm; flocks feed by the reservoir |
-| Tue | Bright midday | Flocks spread across the open veld; bakkie and bell move |
-| Wed | Overcast | Bakkie by the fence; half the flocks run instead of flying |
+| Mon | Dawn mist: cool haze | Calm; flocks feed by the reservoir |
+| Tue | Crisp, clear midday: bluer sky, bright horizon | Flocks spread across the open veld; bakkie and bell move |
+| Wed | Overcast: grey cloud bank, flat grey light | Bakkie by the fence; half the flocks run instead of flying |
 | Thu | Golden afternoon | Wind on (×1.3), higher fly-over lanes, more on the far lane |
-| Fri | Late afternoon | Windpomp and reservoir in the east; flocks gather there |
-| Sat | Dusk | Fewer birds (×0.7), base points ×1.15; secrets glow |
-| Sun | Bright and calm | Calm; pop-ups ×1.5 |
+| Fri | Warm, dusty wind: ochre dust low in the sky and over the ridges | Windpomp and reservoir in the east; flocks gather there |
+| Sat | Dusk: deep blue top, orange-pink glow behind the koppies, warm ground, cool foreground | Fewer birds (×0.7), base points ×1.15; secrets glow |
+| Sun | Bright and clear, fair-weather clouds | Calm; pop-ups ×1.5 |
 
 The other biomes follow the same week with their own props and weather. Per-map balance:
-`docs/balance/v1.2-<biome>.md` (all 28 layouts within −7 … +8 % of the plain biome).
+`docs/balance/v1.2-<biome>.md` (all 28 layouts within −9 … +14 % of the plain biome; Verder
+−2 … −22 %). Clouds are Phaser ellipse shapes and glows are haze bands: no new textures.
 
 **Verder (further)** is today's layout seen from further back: one far flock instead of the mid
 one, fly-overs mostly far (mid 1 : far 3), pop-ups ×0.35, fly-overs ×0.8, base points ×0.8,

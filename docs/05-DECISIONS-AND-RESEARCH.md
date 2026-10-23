@@ -1519,28 +1519,40 @@ their event hashes and scores when the content changed; 5 map cases were added
 plain biome so their quotas, bosses and the lesson stay as tuned.
 (4) *Weather:* a layout says `calm`, `default` or `omen`. Calm beats the Daily's omen-on default
 (D-021) — "still air" on Monday is for everyone; an explicit `mode.omen` (e2e/dev) still wins.
-(5) *Feeding spots* only steer where new flocks spawn after the warm-up, and only when the spot is
-out of view (a flock never pops into sight); otherwise the old placement runs. *Routes* are lane
+(5) *Feeding spots:* the warm-up flock forages on the spot where it is in view, later flocks
+there only while it is out of view (a flock never pops into sight); otherwise the old
+placement runs. Each layout opens the pan at `cameraStartU`, a little off its spot (look review:
+the first flock foraged in the same screen spot every day). *Routes* are lane
 weights, sky bands and an optional fixed direction (the coin is still drawn).
 (6) *Dusk "worth more"* is a base-points multiplier (×1.15 after tuning), applied before the
 pipeline so the breakdown and charms are unchanged.
 (7) *Light without textures:* multiply tints per layer and flat haze rectangles under each
 plane's birds; presets live in the client feel file (outside `contentHash`). First review found
 the dusk sky too dark for fly-overs (screenshot median plumage:sky contrast 1.39 vs 3.22 plain):
-sky tints are now near-white and the dusk glow sits on the ridge and ground layers.
-`tools/sky-contrast.ts` (and its test) keep every map ≥ 80 % of its plain sky's contrast; the
-preview spec checks the same on screenshots (Karoo: Sat 2.66, Fri 2.91, others ≥ 3.0).
+the second look review asked for a light that differs at a glance each day and a real dusk
+(deep blue top, orange-pink glow behind the koppies, warm ground, cool foreground, no veil).
+Light presets gained banded sky glows (haze `top`/`bottom` on the sky layer) and `clouds`
+(Phaser ellipse clusters at fixed positions, no textures). `tools/sky-contrast.ts` (and its
+test) keep every map ≥ 80 % of its plain sky's contrast in the fly-over band; the preview spec
+checks screenshots against ≥ 80 % of the plain map (Karoo desktop: plain 3.20, Mon 3.69,
+Tue 2.84, Wed 2.95, Thu 3.02, Fri 2.69, Sat 3.19, Sun 3.40, Verder 2.98; Pixel 7 within 0.05).
 (8) *The quota that unlocks Verder* is the biome's Season Run plain-hunt quota (`run.json`
 `quotas[huntPattern.indexOf('plain')]`, Karoo 1 950), the "same number the Season Run uses".
-Classic and Daily hunts (practice too) on **today's** layout count; a challenge to another day's
-map doesn't. The unlock is for the UTC day the hunt started and is dropped if the hunt ends after
+Classic and Daily hunts (practice too) on **today's** layout **in the Classic biome** count (the
+title and Verder start there; review: a Bushveld Daily said "unlocked" for a map the title could
+never start); a challenge to another day's map doesn't. The unlock is for the UTC day the hunt started and is dropped if the hunt ends after
 midnight. Capture mode and `?e2e` on a public build unlock nothing (unranked).
 (9) *Verder is harder, as the proposal says, not just further.* As first written (mid + far
 flocks) bots scored +28 % (far birds pay 25). Tuned to one far flock, fly-overs mid 1 : far 3 and
 ×0.8, pop-ups ×0.35, base points ×0.8: competent mean −5 … −26 % vs the plain biome, plinker
-quota pass 0–35 % (plain 13–75 %). Its own best lives in `bonusMaps.bests`; it never moves the
+quota pass 0–31 % (plain 13–73 %); after the opening-view change (5) the layouts sit within
+−9 … +14 % and Verder −2 … −22 %. Its own best lives in `bonusMaps.bests`; it never moves the
 Classic best but counts for rank titles. A Verder challenge link plays without the unlock.
-(10) *Budgets:* initial download +5.8 KB gzip (2 658.3 → 2 664.1 KB web; Poki/CrazyGames
+(10) *Review fixes:* a bonus map in a link needs a Classic layout (`badShape` otherwise); the
+title moves its START block up so Verder never reaches the bottom row on a phone's safe area;
+two original InputLog v3 logs (Classic, Season) are frozen as fixtures that must replay to
+their recorded hashes (`src/sim/replay/golden/v3-fixtures.json`).
+(11) *Budgets:* initial download +5.8 KB gzip (2 658.3 → 2 664.1 KB web; Poki/CrazyGames
 2 660.2/2 660.3 KB), lazy chunks unchanged (Okavango 1 463.1 KB), low-tier texture memory per
 biome identical to v1.1 (no new textures; the Season Run plays no layout, so its 126.9 MB peak
 is unchanged by construction).
