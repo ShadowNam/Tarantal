@@ -265,6 +265,35 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
         err(file, `${where} ${m}`);
       });
     }
+    // v1.2 (D-033): weekday layouts and bonus maps move real props onto real lanes.
+    const propIds = new Set(biome.props.map((p) => p.id));
+    const maps = [
+      ...biome.layouts.map((l) => ({ where: `layout "${l.id}"`, o: l })),
+      ...biome.bonusMaps.map((b) => ({ where: `bonus map "${b.id}"`, o: b })),
+    ];
+    for (const { where, o } of maps) {
+      for (const m of o.props ?? []) {
+        if (!propIds.has(m.id)) err(file, `${where} moves unknown prop "${m.id}"`);
+      }
+      if (o.windMul !== undefined && biome.omen.wind === undefined)
+        err(file, `${where} sets windMul but omen "${biome.omen.id}" has no wind`);
+      const lanes = { ...biome.lanes };
+      for (const plane of ['near', 'mid', 'far'] as const)
+        if (o.lanes?.[plane] !== undefined) lanes[plane] = { ...lanes[plane], ...o.lanes[plane] };
+      for (const s of o.feedingSpots ?? []) {
+        if (lanes[s.plane]?.groundY === undefined || lanes[s.plane]?.skyY === undefined)
+          err(file, `${where} feeding spot on plane "${s.plane}", which has no ground and sky lane`);
+      }
+      const w = o.flyovers?.planeWeights;
+      if (w !== undefined && (['mid', 'far'] as const).every((p) => w[p] === 0 || lanes[p]?.skyY === undefined))
+        err(file, `${where} fly-over weights pick no plane with a sky lane`);
+      for (const plane of ['near', 'mid', 'far'] as const) {
+        const n = o.pacing?.flocks?.[plane];
+        if (n !== undefined && n > 0 && (lanes[plane]?.groundY === undefined || lanes[plane]?.skyY === undefined))
+          err(file, `${where} wants flocks on plane "${plane}", which has no ground and sky lane`);
+      }
+    }
+    for (const b of biome.bonusMaps) i18n(file, b.nameKey);
     for (const entry of biome.spawnTable) {
       const c = creatures.get(entry.creature);
       if (c === undefined) err(file, `spawnTable uses unknown creature "${entry.creature}"`);

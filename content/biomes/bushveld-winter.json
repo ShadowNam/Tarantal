@@ -424,5 +424,189 @@
     "build": "bushveld_build",
     "stampede": "bushveld_stampede"
   },
-  "ambience": "bushveld_dawn_bed"
+  "ambience": "bushveld_dawn_bed",
+  "layouts": [
+    {
+      "id": "mon",
+      "light": "dawn_mist",
+      "weather": "calm",
+      "$comment": "Dawn mist in the thornveld; flocks feed under the baobab; no low-sun glare.",
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.22,
+            0.4
+          ]
+        },
+        {
+          "plane": "far",
+          "u": [
+            0.2,
+            0.4
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tue",
+      "light": "midday",
+      "weather": "default",
+      "$comment": "Bright midday: flocks spread wide between the koppies.",
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.02,
+            0.16
+          ]
+        },
+        {
+          "plane": "mid",
+          "u": [
+            0.5,
+            0.6
+          ]
+        },
+        {
+          "plane": "mid",
+          "u": [
+            0.88,
+            0.98
+          ]
+        }
+      ],
+      "props": [
+        {
+          "id": "boulder_b",
+          "u": 0.38
+        },
+        {
+          "id": "dassie_koppie",
+          "u": 0.7
+        }
+      ]
+    },
+    {
+      "id": "wed",
+      "light": "overcast",
+      "weather": "default",
+      "$comment": "Overcast: the boulders shift west; birds run for cover more than they fly.",
+      "props": [
+        {
+          "id": "boulder_a",
+          "u": 0.2
+        },
+        {
+          "id": "boulder_crack",
+          "u": 0.76
+        }
+      ],
+      "flushAsRunChance": 0.6,
+      "pacing": {
+        "flyoversMul": 0.8
+      }
+    },
+    {
+      "id": "thu",
+      "light": "golden",
+      "weather": "omen",
+      "$comment": "Golden afternoon: the low sun glares (omen on in Classic too); high fly-overs, more on the far lane.",
+      "flyovers": {
+        "planeWeights": {
+          "mid": 1,
+          "far": 1.5
+        }
+      },
+      "lanes": {
+        "far": {
+          "skyY": [
+            100,
+            260
+          ]
+        }
+      },
+      "pacing": {
+        "flyoversMul": 1.2
+      }
+    },
+    {
+      "id": "fri",
+      "light": "late_afternoon",
+      "weather": "default",
+      "$comment": "Late afternoon: the baobab stands east; flocks gather there to roost.",
+      "props": [
+        {
+          "id": "baobab",
+          "u": 0.68
+        },
+        {
+          "id": "boulder_b",
+          "u": 0.3
+        },
+        {
+          "id": "dassie_koppie",
+          "u": 0.5
+        }
+      ],
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.6,
+            0.78
+          ]
+        },
+        {
+          "plane": "far",
+          "u": [
+            0.6,
+            0.8
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sat",
+      "light": "dusk",
+      "weather": "default",
+      "$comment": "Dusk: fewer birds, worth more; secrets glow.",
+      "pacing": {
+        "flyoversMul": 0.7,
+        "popupsMul": 0.7
+      },
+      "pointsMul": 1.3
+    },
+    {
+      "id": "sun",
+      "light": "bright_calm",
+      "weather": "calm",
+      "$comment": "Bright and calm: a relaxed map with extra pop-ups close by.",
+      "pacing": {
+        "popupsMul": 1.5
+      }
+    }
+  ],
+  "bonusMaps": [
+    {
+      "$comment": "Verder (further): today's layout seen from further back — more far birds, fewer near ones, weather on and the wind stronger. Unlocked by beating the season's plain-hunt quota on today's map (GDD §11.5).",
+      "id": "verder",
+      "nameKey": "map.verder",
+      "light": "verder_haze",
+      "weather": "omen",
+      "flyovers": {
+        "planeWeights": {
+          "mid": 1,
+          "far": 3
+        }
+      },
+      "pacing": {
+        "popupsMul": 0.35,
+        "flocks": {
+          "mid": 1,
+          "far": 1
+        }
+      }
+    }
+  ]
 }

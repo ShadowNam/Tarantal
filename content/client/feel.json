@@ -370,6 +370,161 @@
     "bannerMs": 2800,
     "maxPromptChars": 52
   },
+  "lights": {
+    "dawn_mist": {
+      "tint": {
+        "sky": "#F6DCD2",
+        "far_ridge": "#D9D2DA",
+        "far_veld": "#E2DAD8",
+        "mid": "#E8E0DA",
+        "near": "#EAE2DC",
+        "foreground": "#C9C2C4"
+      },
+      "haze": [
+        {
+          "layer": "far_ridge",
+          "color": "#F4EEEA",
+          "alpha": 0.5
+        },
+        {
+          "layer": "far_veld",
+          "color": "#F4EEEA",
+          "alpha": 0.32,
+          "top": 380
+        },
+        {
+          "layer": "mid",
+          "color": "#F4EEEA",
+          "alpha": 0.12,
+          "top": 520
+        }
+      ]
+    },
+    "midday": {
+      "tint": {
+        "sky": "#FFFFFF",
+        "far_ridge": "#F2F4F8"
+      },
+      "haze": [
+        {
+          "layer": "far_ridge",
+          "color": "#FFF8EC",
+          "alpha": 0.16
+        }
+      ]
+    },
+    "overcast": {
+      "tint": {
+        "sky": "#A9B2BE",
+        "far_ridge": "#AEB4BC",
+        "far_veld": "#B8BCC2",
+        "mid": "#C2C4C6",
+        "near": "#C8C8C8",
+        "foreground": "#A8A8AA"
+      },
+      "haze": [
+        {
+          "layer": "far_ridge",
+          "color": "#C8CCD2",
+          "alpha": 0.28
+        }
+      ]
+    },
+    "golden": {
+      "tint": {
+        "sky": "#FFD49A",
+        "far_ridge": "#F4C890",
+        "far_veld": "#FFD8A2",
+        "mid": "#FFDDAA",
+        "near": "#FFE0B0",
+        "foreground": "#D8B080"
+      },
+      "haze": [
+        {
+          "layer": "far_veld",
+          "color": "#FFC070",
+          "alpha": 0.12
+        }
+      ]
+    },
+    "late_afternoon": {
+      "tint": {
+        "sky": "#F2B890",
+        "far_ridge": "#D8A890",
+        "far_veld": "#EAB894",
+        "mid": "#F0C4A0",
+        "near": "#F2CAA8",
+        "foreground": "#B08878"
+      },
+      "haze": [
+        {
+          "layer": "far_ridge",
+          "color": "#F0A070",
+          "alpha": 0.18
+        }
+      ]
+    },
+    "dusk": {
+      "tint": {
+        "sky": "#B488A8",
+        "far_ridge": "#7C6888",
+        "far_veld": "#8C7890",
+        "mid": "#9C8898",
+        "near": "#A898A0",
+        "foreground": "#605060"
+      },
+      "haze": [
+        {
+          "layer": "far_ridge",
+          "color": "#6A5478",
+          "alpha": 0.22
+        },
+        {
+          "layer": "far_veld",
+          "color": "#6A5478",
+          "alpha": 0.14
+        }
+      ],
+      "secretGlow": true
+    },
+    "bright_calm": {
+      "tint": {
+        "sky": "#F4FAFF"
+      },
+      "haze": [
+        {
+          "layer": "far_ridge",
+          "color": "#FFFFFF",
+          "alpha": 0.08
+        }
+      ]
+    },
+    "verder_haze": {
+      "$comment": "Verder: the same place seen from further back — a blue distance haze over every plane (birds stay crisp).",
+      "haze": [
+        {
+          "layer": "far_ridge",
+          "color": "#B8C8D8",
+          "alpha": 0.22
+        },
+        {
+          "layer": "far_veld",
+          "color": "#B8C8D8",
+          "alpha": 0.16
+        },
+        {
+          "layer": "mid",
+          "color": "#B8C8D8",
+          "alpha": 0.1
+        },
+        {
+          "layer": "near",
+          "color": "#B8C8D8",
+          "alpha": 0.06
+        }
+      ]
+    }
+  },
   "audio": {
     "$comment": "M10 AudioDirector (art bible §10, Tech §7): master headroom; music stems crossfade by intensity (build from a fleeing flock or Frenzy ×buildAtFrenzy, stampede in the Stampede) and hold stemHoldMs before calming down; biome changes fade over biomeFadeMs; music ducks under Oupa's barks, at most one bark per barkGapMs (kept by the BarkDirector for bubbles and voice alike; a secret's bark claims it, D-028).",
     "masterLevel": 0.6,

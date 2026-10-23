@@ -534,5 +534,181 @@
     "build": "okavango_build",
     "stampede": "okavango_stampede"
   },
-  "ambience": "okavango_reeds_bed"
+  "ambience": "okavango_reeds_bed",
+  "layouts": [
+    {
+      "id": "mon",
+      "light": "dawn_mist",
+      "weather": "calm",
+      "$comment": "Dawn mist on the water: flocks feed by the mokoro pole; no showers.",
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.16,
+            0.32
+          ]
+        },
+        {
+          "plane": "far",
+          "u": [
+            0.16,
+            0.34
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tue",
+      "light": "midday",
+      "weather": "default",
+      "$comment": "Bright midday: flocks spread along the floodplain.",
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.02,
+            0.12
+          ]
+        },
+        {
+          "plane": "mid",
+          "u": [
+            0.62,
+            0.7
+          ]
+        },
+        {
+          "plane": "mid",
+          "u": [
+            0.88,
+            0.98
+          ]
+        }
+      ],
+      "props": [
+        {
+          "id": "reeds_b",
+          "u": 0.42
+        },
+        {
+          "id": "reeds_c",
+          "u": 0.78
+        }
+      ]
+    },
+    {
+      "id": "wed",
+      "light": "overcast",
+      "weather": "default",
+      "$comment": "Overcast: the reeds stand thicker in the west; birds run more than they fly.",
+      "props": [
+        {
+          "id": "reeds_a",
+          "u": 0.14
+        },
+        {
+          "id": "reeds_d",
+          "u": 0.84
+        }
+      ],
+      "flushAsRunChance": 0.5,
+      "pacing": {
+        "flyoversMul": 0.8
+      }
+    },
+    {
+      "id": "thu",
+      "light": "golden",
+      "weather": "omen",
+      "$comment": "Golden afternoon: sun-showers (omen on in Classic too); high fly-overs, more far.",
+      "flyovers": {
+        "planeWeights": {
+          "mid": 1,
+          "far": 1.5
+        }
+      },
+      "lanes": {
+        "far": {
+          "skyY": [
+            100,
+            260
+          ]
+        }
+      },
+      "pacing": {
+        "flyoversMul": 1.2
+      }
+    },
+    {
+      "id": "fri",
+      "light": "late_afternoon",
+      "weather": "default",
+      "$comment": "Late afternoon: flocks gather under the sausage tree before roosting.",
+      "props": [
+        {
+          "id": "sausage_tree",
+          "u": 0.4
+        }
+      ],
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.34,
+            0.48
+          ]
+        },
+        {
+          "plane": "far",
+          "u": [
+            0.34,
+            0.5
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sat",
+      "light": "dusk",
+      "weather": "default",
+      "$comment": "Dusk: fewer birds, worth more; secrets glow.",
+      "pacing": {
+        "flyoversMul": 0.7,
+        "popupsMul": 0.7
+      },
+      "pointsMul": 1.3
+    },
+    {
+      "id": "sun",
+      "light": "bright_calm",
+      "weather": "calm",
+      "$comment": "Bright and calm: a relaxed map with extra pop-ups close by.",
+      "pacing": {
+        "popupsMul": 1.5
+      }
+    }
+  ],
+  "bonusMaps": [
+    {
+      "$comment": "Verder (further): today's layout seen from further back — more far birds, fewer near ones, weather on and the wind stronger. Unlocked by beating the season's plain-hunt quota on today's map (GDD §11.5).",
+      "id": "verder",
+      "nameKey": "map.verder",
+      "light": "verder_haze",
+      "weather": "omen",
+      "flyovers": {
+        "planeWeights": {
+          "mid": 1,
+          "far": 3
+        }
+      },
+      "pacing": {
+        "popupsMul": 0.35,
+        "flocks": {
+          "mid": 1,
+          "far": 1
+        }
+      }
+    }
+  ]
 }

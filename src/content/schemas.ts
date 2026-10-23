@@ -669,6 +669,81 @@ const laneSchema = obj({
   popupY: range(nonNeg).optional(),
 });
 
+// v1.2 (D-033): day-of-week maps and bonus maps. A map is the biome with overrides applied
+// (src/sim/maps.ts): the layout of the UTC weekday, then a bonus map (Verder) on top.
+
+/** Layout ids, Monday first (ISO weekday 1..7 → index 0..6). */
+export const WEEKDAY_IDS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
+export type WeekdayId = (typeof WEEKDAY_IDS)[number];
+export const WeekdayIdSchema = z.enum(WEEKDAY_IDS);
+/** Bonus maps in unlock order (v1.3 adds nogVerder and dieVerste). */
+export const BONUS_MAP_IDS = ['verder'] as const;
+export type BonusMapId = (typeof BONUS_MAP_IDS)[number];
+export const BonusMapIdSchema = z.enum(BONUS_MAP_IDS);
+
+/** Where flocks of a plane prefer to forage: u range (0..1 of the plane layer's core width). */
+const feedingSpotSchema = obj({
+  plane: z.enum(['mid', 'far']),
+  u: range(fraction),
+});
+
+/** Fly-over routes: which sky lane groups take (weights) and which way they all fly. */
+const flyoverRouteSchema = obj({
+  planeWeights: obj({ mid: nonNeg, far: nonNeg })
+    .refine((w) => w.mid + w.far > 0, 'planeWeights need at least one positive weight')
+    .optional(),
+  /** 1 = every group flies left → right, −1 = right → left; absent = either way. */
+  dir: z.union([z.literal(1), z.literal(-1)]).optional(),
+});
+
+/** What a layout or bonus map changes. Everything optional: absent = the biome's own. */
+const mapOverrideShape = {
+  /** Light preset (client/feel.json lights): tints and haze, drawn only. */
+  light: id.optional(),
+  /** Moved props (with their occluders, secrets and perches). The layer stays the prop's own. */
+  props: z.array(obj({ id, u: fraction, y: z.number().optional() })).optional(),
+  /** Lane bands merged over the biome's, per plane and key. */
+  lanes: somePlanes(
+    obj({
+      groundY: range(nonNeg).optional(),
+      skyY: range(nonNeg).optional(),
+      popupY: range(nonNeg).optional(),
+    }),
+  ).optional(),
+  feedingSpots: z.array(feedingSpotSchema).min(1).optional(),
+  flyovers: flyoverRouteSchema.optional(),
+  /** calm = no biome weather in any mode; omen = weather on in Classic and Daily; default = the
+   *  mode's (D-021: Classic off, Daily on). Season Run and FTUE hunts play no layout. */
+  weather: z.enum(['calm', 'default', 'omen']).optional(),
+  /** Multiplies the omen's wind strength (biomes with wind only). */
+  windMul: pos.optional(),
+  pacing: obj({
+    flyoversMul: pos.optional(),
+    popupsMul: pos.optional(),
+    /** Replaces every keyframe's flock targets. */
+    flocks: somePlanes(nonNegInt).optional(),
+  }).optional(),
+  /** Overrides the biome twist's share of flocks that run instead of flying. */
+  flushAsRunChance: fraction.optional(),
+  /** Multiplies every bird's base points (rounded), e.g. dusk: fewer birds, worth more. */
+  pointsMul: pos.optional(),
+};
+
+export const LayoutSchema = obj({
+  id: WeekdayIdSchema,
+  ...mapOverrideShape,
+  light: id,
+  weather: z.enum(['calm', 'default', 'omen']),
+});
+export type Layout = z.infer<typeof LayoutSchema>;
+
+export const BonusMapSchema = obj({
+  id: BonusMapIdSchema,
+  nameKey: i18nKey,
+  ...mapOverrideShape,
+});
+export type BonusMap = z.infer<typeof BonusMapSchema>;
+
 export const BiomeSchema = obj({
   version,
   id,
@@ -819,6 +894,20 @@ export const BiomeSchema = obj({
   spawnTable: z.array(obj({ creature: id, weight: pos })).min(1),
   music: obj({ calm: id, build: id, stampede: id }),
   ambience: id,
+  /** v1.2: flock feeding spots and fly-over routes (absent = anywhere, either way). Layouts set
+   *  them; the biome's own apply to Season Run and FTUE hunts. */
+  feedingSpots: z.array(feedingSpotSchema).min(1).optional(),
+  flyovers: flyoverRouteSchema.optional(),
+  /** v1.2: one layout per UTC weekday, Monday first. */
+  layouts: z
+    .array(LayoutSchema)
+    .length(WEEKDAY_IDS.length)
+    .refine((l) => l.every((x, i) => x.id === WEEKDAY_IDS[i]), 'layouts must be mon..sun in order'),
+  /** v1.2: bonus maps (Verder), each at most once. */
+  bonusMaps: z
+    .array(BonusMapSchema)
+    .min(1)
+    .refine((b) => new Set(b.map((x) => x.id)).size === b.length, 'a bonus map is listed twice'),
 });
 export type Biome = z.infer<typeof BiomeSchema>;
 
@@ -1063,6 +1152,28 @@ export const GunLookSchema = obj({
 });
 export type GunLook = z.infer<typeof GunLookSchema>;
 
+/** A light preset (v1.2): multiply tints per layer id and haze bands over a layer's art. */
+export const LightSchema = obj({
+  /** Multiply tint of a layer's art and props, by layer id (absent = untinted). */
+  tint: z.record(id, hexColor).optional(),
+  /** A flat colour band over a layer's art and props, below its birds (mist, haze, dusk). `top`
+   *  and `bottom` are design px (default: the whole height). */
+  haze: z
+    .array(
+      obj({
+        layer: id,
+        color: hexColor,
+        alpha: fraction,
+        top: nonNeg.optional(),
+        bottom: nonNeg.optional(),
+      }),
+    )
+    .optional(),
+  /** Secrets' shootable parts glow softly (dusk). */
+  secretGlow: z.boolean().optional(),
+});
+export type Light = z.infer<typeof LightSchema>;
+
 export const FeelSchema = obj({
   version,
   input: obj({
@@ -1209,6 +1320,9 @@ export const FeelSchema = obj({
      *  light and the Stormvoël's darkness counts once. */
     flashMergeMs: nonNeg,
   }),
+  /** v1.2 (D-033): light presets of the weekday layouts and bonus maps, drawn with tints and
+   *  flat haze rectangles over the existing art (no new textures). Keyed by preset id. */
+  lights: z.record(id, LightSchema),
   audio: obj({
     /** Master gain at full volume (headroom so the synth and recordings never clip). */
     masterLevel: fraction,

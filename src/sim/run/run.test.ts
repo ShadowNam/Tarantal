@@ -33,6 +33,8 @@ function result(score: number, over: Partial<HuntResult> = {}): HuntResult {
     seed: 0,
     mode: 'seasonHunt',
     biome: 'karoo-autumn',
+    layout: null,
+    bonus: null,
     weapon: 'dubbelloop',
     score,
     ticks: 3600,

@@ -129,6 +129,7 @@ import {
   type WeaponTiming,
 } from './weapons/weaponState';
 import { CAMERA_MAX_X, CAMERA_MIN_X, coreWidth } from './world';
+import { mapOmen, resolveMap, type ResolvedMap } from './maps';
 
 export interface Sim {
   /** Advances exactly one tick (1/60 s). A no-op once the hunt is over. */
@@ -141,7 +142,9 @@ export interface Sim {
 }
 
 interface HuntSetup {
+  /** The map's biome (layout and bonus map applied). */
   readonly biome: Biome;
+  readonly map: ResolvedMap;
   readonly weapon: PrimaryWeapon;
   readonly huntSeconds: number;
   /** Biome weather on (mode config, else modes.json; D-021). */
@@ -164,8 +167,17 @@ function resolveSetup(content: ContentBundle, config: SimConfig): HuntSetup {
   if (biomeId === undefined || weaponId === undefined) {
     throw new Error(`mode ${mode.id} needs a biome and a weapon`);
   }
-  const biome = content.biomes.find((b) => b.id === biomeId);
-  if (biome === undefined) throw new Error(`unknown biome ${biomeId}`);
+  const baseBiome = content.biomes.find((b) => b.id === biomeId);
+  if (baseBiome === undefined) throw new Error(`unknown biome ${biomeId}`);
+  // v1.2 (D-033): the day's layout and bonus map; none = the biome as it is (old replays).
+  if (
+    (mode.layout !== undefined || mode.bonus !== undefined) &&
+    mode.id !== 'classic' &&
+    mode.id !== 'daily'
+  )
+    throw new Error(`mode ${mode.id} plays no layout`);
+  const map = resolveMap(baseBiome, mode.layout, mode.bonus);
+  const { biome } = map;
   const weapon = content.weapons.weapons.find((w) => w.id === weaponId);
   if (weapon?.kind !== 'primary') throw new Error(`${weaponId} is not a primary weapon`);
   // Replays store huntSeconds on the 0.5 grid, so only allow values that survive that.
@@ -181,8 +193,12 @@ function resolveSetup(content: ContentBundle, config: SimConfig): HuntSetup {
   }
   const season = mode.season ?? null;
   if (season !== null) checkSeason(content, mode.id, season);
-  const omen = mode.omen ?? (season === null ? defaults?.omen : season.kind === 'omen') ?? false;
-  return { biome, weapon, huntSeconds, omen, tutorial, season };
+  const omen = mapOmen(
+    map.weather,
+    mode.omen,
+    (season === null ? defaults?.omen : season.kind === 'omen') ?? false,
+  );
+  return { biome, map, weapon, huntSeconds, omen, tutorial, season };
 }
 
 /** A Season Run block must name real content (the run builds it; replays carry it). */
@@ -266,6 +282,10 @@ export function createSim(config: SimConfig): Sim {
   const { scoring } = content;
   const setup = resolveSetup(content, config);
   const { biome, weapon } = setup;
+  const { pointsMul } = setup.map;
+  /** v1.2: the map's points multiplier on a bird's base points (dusk: fewer birds, worth more). */
+  const mapPoints = (base: number): number =>
+    pointsMul === 1 ? base : Math.round(base * pointsMul);
   /** Pacing and the event schedule use the hunt's original length; bonus time only moves the
    *  end and the Stampede (D-021). */
   const baseDurationTicks = secondsToTicks(setup.huntSeconds);
@@ -1319,7 +1339,7 @@ export function createSim(config: SimConfig): Sim {
       });
       const s = scoreBag(
         {
-          base: c.baseOverride ?? scoring.planes[bird.plane].base,
+          base: mapPoints(c.baseOverride ?? scoring.planes[bird.plane].base),
           behaviourAdd: scoring.behaviourAdd[behaviour],
           weaponScoreMul: shot.scoreMul[bird.plane] ?? shot.scoreMul.all ?? 1,
           frenzyMul: fMul,
@@ -2054,6 +2074,8 @@ export function createSim(config: SimConfig): Sim {
         seed: rng.seed,
         mode: mode.id,
         biome: biome.id,
+        layout: setup.map.layout?.id ?? null,
+        bonus: setup.map.bonus?.id ?? null,
         weapon: weapon.id,
         score,
         ticks: tick,

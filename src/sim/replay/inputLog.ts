@@ -15,8 +15,10 @@ import type {
 } from '../types';
 
 /** v2 (M5) adds the aim-assist level after the input kind; v1 logs still decode ('standard').
- *  v3 (M6) adds the Season Run block (charms, Boss Rule, consumables …) and charmOrder. */
-export const INPUT_LOG_VERSION = 3;
+ *  v3 (M6) adds the Season Run block (charms, Boss Rule, consumables …) and charmOrder.
+ *  v4 (v1.2, D-033) adds the map after the mode block: layout and bonus map ids ('' = none). A
+ *  v1–v3 log decodes with neither, so it replays on the plain biome it was played on. */
+export const INPUT_LOG_VERSION = 4;
 
 export interface InputLog {
   readonly v: number;
@@ -231,6 +233,12 @@ export function encodeInputLog(log: InputLog): Uint8Array {
   if (m.weapon !== undefined) w.ascii(m.weapon);
   if (m.huntSeconds !== undefined) w.half(m.huntSeconds);
   if (m.season !== undefined) writeSeason(w, m.season);
+  if (log.v >= 4) {
+    w.ascii(m.layout ?? '');
+    w.ascii(m.bonus ?? '');
+  } else if (m.layout !== undefined || m.bonus !== undefined) {
+    throw new Error('a layout or bonus map needs log version 4');
+  }
 
   w.varint(log.commands.length);
   for (const [delta, cmd] of log.commands) {
@@ -282,6 +290,12 @@ export function decodeInputLog(bytes: Uint8Array): InputLog {
   if (flags & FLAG.season) {
     if (v < 3) throw new Error('bad replay flags');
     mode.season = readSeason(r);
+  }
+  if (v >= 4) {
+    const layout = r.ascii();
+    const bonus = r.ascii();
+    if (layout !== '') mode.layout = layout;
+    if (bonus !== '') mode.bonus = bonus;
   }
 
   const count = r.varint();

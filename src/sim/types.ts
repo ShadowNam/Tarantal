@@ -25,6 +25,11 @@ export interface ModeConfig {
   readonly omen?: boolean;
   /** Season Run hunts only: everything the run changes in this hunt (part of the replay). */
   readonly season?: SeasonHuntConfig;
+  /** v1.2 (D-033), Classic and Daily only: the weekday layout ('mon' … 'sun'). Absent = the
+   *  biome as it is (every replay and challenge link made before v1.2). */
+  readonly layout?: string;
+  /** v1.2: a bonus map on top of the layout ('verder'). Needs a layout. */
+  readonly bonus?: string;
 }
 
 /** GDD §13.1: hunt 1 plain, hunt 2 Omen (weather on), hunt 3 Boss Hunt (boss + Boss Rule). */
@@ -306,6 +311,9 @@ export interface HuntResult {
   readonly seed: number;
   readonly mode: ModeId;
   readonly biome: string;
+  /** v1.2: the map played (null = the plain biome: Season Run, FTUE, old replays). */
+  readonly layout: string | null;
+  readonly bonus: string | null;
   readonly weapon: string;
   readonly score: number;
   readonly ticks: number;

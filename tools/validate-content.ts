@@ -78,6 +78,33 @@ for (const [trigger, cfg] of Object.entries(feel.feel.barks.triggers)) {
         message: `barks.triggers.${trigger}: "${line}" is not in src/i18n/en.json`,
       });
 }
+// v1.2 (D-033): every layout and bonus map light is a preset, and its layers are the biome's.
+for (const biome of parsed.bundle.biomes) {
+  const layerIds = new Set(biome.layers.map((l) => l.id));
+  const lights = [
+    ...biome.layouts.map((l) => [`layout "${l.id}"`, l.light] as const),
+    ...biome.bonusMaps.flatMap((b) =>
+      b.light === undefined ? [] : [[`bonus map "${b.id}"`, b.light] as const],
+    ),
+  ];
+  for (const [where, lightId] of lights) {
+    const light = feel.feel.lights[lightId];
+    if (light === undefined) {
+      errors.push({
+        file: `biomes/${biome.id}.json`,
+        message: `${where} uses unknown light "${lightId}" (client/feel.json lights)`,
+      });
+      continue;
+    }
+    const used = [...Object.keys(light.tint ?? {}), ...(light.haze ?? []).map((h) => h.layer)];
+    for (const layer of used)
+      if (!layerIds.has(layer))
+        errors.push({
+          file: 'client/feel.json',
+          message: `lights.${lightId} names layer "${layer}", which biome ${biome.id} lacks`,
+        });
+  }
+}
 // v1.1 (D-032): every weapon has its ammo display and crosshair, and they fit the weapon.
 for (const message of checkGunLook(feel.feel.guns, parsed.bundle.weapons.weapons))
   errors.push({ file: 'client/feel.json', message });
