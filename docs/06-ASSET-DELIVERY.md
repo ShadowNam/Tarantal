@@ -30,7 +30,7 @@ replaces them:** delete the interim folder (e.g. `art-source/birds/tarentaal/`),
 generator never overwrites a folder whose `rig.json` (or a sprite's or layer's sidecar JSON)
 isn't marked interim. Today the six guns, the tarentaal family (tarentaal, wit, lavendel,
 kuifkop, kuifkop_koning, generaal, ou_grys), the non-target flyers (hadeda, sproeier, kwevoel,
-visarend, stormvoel), the shared FX/UI sprites and the Karoo layers and props are interim
+visarend, stormvoel), the shared FX/UI sprites and every biome's layers and props are interim
 (D-031); `npm run assets:audit` lists every key. To replace an interim sprite or layer, delete
 its `.png` and `.json` and copy yours in.
 

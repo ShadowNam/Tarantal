@@ -1324,6 +1324,25 @@ once. The Stormvoël loads with the `late` group, visarend with the Okavango. (9
 (bible §1.6): ibis bill and trailing legs (hadeda), biplane (sprayer), crest + long tail
 (kwêvoël), white head + white wedge tail on broad wings (visarend), giant casqued guineafowl with
 glowing eyes and a cold rim light (Stormvoël).
+*§3b — The other biomes (part B):* each biome has its own `tools/art/biomes/<biome>.ts` plan
+and palette, sharing the Karoo's shapes and line rules but clearly distinct in season and light.
+*Bushveld winter:* a cold dawn sky warming to peach at the horizon, frost mist lying on the far
+veld, orange granite domes with exfoliation sheets and boulder koppies, a mopane tree line and
+far baobabs, tiny giraffe silhouettes, pale straw grass, frost on the near tufts; props: a
+leafless baobab (the pod hangs on a stalk at the content's part position), the dassie peeking
+over its koppie, granite boulders (one split, its crack is the secret), red winter aloes.
+*Kalahari summer:* hot blue sky with the thunderstorm **kept low** behind the dunes (sunlit
+lobed thunderheads, dark flat base, rain shafts), so the flyer band stays light and navy birds
+keep their contrast (bible §1.5); red dunes with lit and lee faces, gemsbok on a crest, wind
+ripples, flat-topped camelthorns; props: a camelthorn holding a sociable-weaver haystack nest
+(nest-chamber holes underneath), a signpost with a painted windpomp pictogram and an arrow (no
+text, bible §1.7), a dead camelthorn with its branch stub, dune-grass tussocks with seed heads.
+*Okavango spring:* fresh blue sky with spring cumulus, tree islands of jackalberry and ilala
+palms on a flat horizon, green floodplain with glinting channels, a muddy wet strip where the
+splash zones' water sits, lily pads; props: reed beds (Phragmites with plumes), a mokoro pole
+with a red cloth flag, a sausage tree with hanging fruit and dark red flowers, a submerged
+hippo (eyes, ears, nostrils, back), a lily pad with a reed frog and a pink lily, papyrus
+clumps. No jacarandas (bible §2).
 *§4 — Tests:* `tools/art/scenery.test.ts`: every flyer frame stays inside the bird box and
 covers its body hitbox; every shared sprite and prop is drawn at the placeholder's size and
 origin with its occluder inside the art; every layer comes out at the delivered width and its plan's height; renders are
@@ -1339,6 +1358,26 @@ drawn; only their pixels changed. Audit: 18 → **66 interim**, 169 → **121 pl
 rest are audio, out of scope). Golden replay `8ab8e33970ccd89f` unchanged, no diff in `src/sim/`
 or `content/`. `art:interim` + `assets:pack` run twice give byte-identical `art-source/` and
 `public/assets/`. Hunt visual baselines re-recorded in `mcr.microsoft.com/playwright:v1.56.1-noble`.
+*§6b — Budgets (part B):* first download unchanged by part B (**1.89 MB** gzip after the look
+review, §7; the asset index grows by 2 KB). Lazy chunks per biome (gzip, incl. its birds):
+Bushveld 0.86, Kalahari 0.63, Okavango 1.00 MB (cap 1.5 MB each). Audit with both parts: **106
+interim, 81 placeholder** keys (every remaining placeholder is audio). *GPU texture memory on
+the low tier (final review):* `AssetManifest.install` only ever added textures and the title
+installs the Karoo, so a hunt in another biome held two biomes of scenery: measured from the
+title (Pixel 7 profile, test hook `textureBytes`) Bushveld 136.8, Kalahari 129.2, Okavango
+147.3 MB, and a 12-hunt Season Run 144.9 MB (boss, late and biome-only bird atlases piled up
+too), over Tech §15's 128 MB. Fix: on every manifest swap HuntScene calls
+`AssetManifest.release(textures, next, anims)`, which removes the old manifest's textures that
+`next` doesn't use (its layers, props and biome-only placeholders) and every bird atlas `next`
+won't prewarm at hunt start (with those atlases' animations, recreated on first use). Shared
+UI/FX, guns and first-download birds stay; decoded images stay cached, so `install()` /
+`ensureBird()` re-add anything that comes back. Unit test: switching biome removes the old
+biome's scenery keys and keeps the shared ones (`AssetManifest.test.ts`). *Measured after the
+fix* (low tier, Pixel 7, `docs/art-preview/compare/gfx2-texture-memory-{biomes,season}.json`):
+hunt from the title — Karoo 91.5, Bushveld 100.6, Kalahari 93.0, Okavango **111.1 MB**; Season
+Run (12 hunts, one page) peak **126.9 MB** (the Okavango boss hunt; Karoo 93–110, Bushveld 108,
+Okavango 119–127, Kalahari 92–101). All under 128 MB, the Season Run peak with 1.1 MB to spare:
+if later art grows, a half-resolution sky on the low tier (≈ 8 MB per biome) is the next lever.
 *§7 — Look review (22 Oct, user on the first Karoo look: "fix the grass, bushes and sky"):*
 (1) *Grass:* `tools/art/vegetation.ts` has seven tuft shapes (fan, upright, clump, wispy,
 windswept, seeding, sparse) in weighted straw-gold, bleached and grey-green tones, placed by
@@ -1360,9 +1399,22 @@ textures:* a new test fails if any prop's art touches its texture's left, right 
 (the fence bell's wires excepted: they join the mid fence). It caught the aloe candles, the
 potjie's steam and the windpomp and reservoir pipes and shadows, all fixed. First download
 1.69 → **1.89 MB** gzip (the full-colour sky and the denser ground cover).
+*§7b — Look review, the other biomes:* all three use the shared grass, shrubs and soft sky
+(`tools/art/biomes/common.ts`: mid scrub, near grass, foreground clumps; each biome's palette
+names the straw / bleached / grey-green grass and its shrub colours). *Kalahari:* the dark band
+behind the dunes (the old storm clouds, the same navy as the birds, so far flocks vanished) is
+now a few distant thunderheads: one soft lumpy tower each with an anvil and faint rain shafts,
+grey-violet and **lighter than the birds** (far bird vs storm 2.6–3.7 : 1, was 1.1 : 1; vs the
+veld 2.8 : 1, D-029). The sociable-weaver nest is a lumpy, shaggy haystack of straws hanging in
+the camelthorn's canopy (bulging sides, a sagging belly with a fringe of loose straws and the
+chamber entrances; branches run into it, the crown sits over it; GDD §11). *Okavango:* soft
+cumulus; the sausage-tree crown is nine leaf clusters on visible limbs; the lily pad is a
+centred pad with its notch. Lazy chunks (gzip): Bushveld 0.86, Kalahari 0.63, Okavango
+1.00 MB (cap 1.5 MB each).
 *§5 — Evidence:* `docs/art-preview/` `sprites.png`, `flyers.png`, `scenery-<biome>-{props,layers,pan}.png`
 (the pan sheets stamp real interim birds on their lanes: contrast check, bible §1.5);
-`compare/gfx2-*.png` before (main) | after in-game on desktop-chromium and pixel7-landscape, from
+`compare/gfx2-*.png` before (main) | after in-game on desktop-chromium and pixel7-landscape (part
+B adds one hunt view per biome: `gfx2-{bushveld,kalahari,okavango}-*.png`), from
 `ART_PREVIEW=1 npx playwright test tests/e2e/art-preview-gfx2.spec.ts`.
 
 ## 3. Research notes (with sources)

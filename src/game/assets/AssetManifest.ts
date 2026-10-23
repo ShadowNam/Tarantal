@@ -463,6 +463,51 @@ export class AssetManifest {
     return complete;
   }
 
+  /** Every texture key this manifest puts in the texture manager (placeholders, final files). */
+  textureKeys(): Set<string> {
+    const out = new Set<string>(this.specs.keys());
+    for (const key of this.finalImages.keys()) out.add(key);
+    for (const { tiles } of this.finalLayers.values()) for (const t of tiles) out.add(t.key);
+    return out;
+  }
+
+  /**
+   * D-031 (low-tier memory): removes the textures this manifest installed that `next` doesn't
+   * use: the old biome's layers, props and biome-only placeholders, and every bird atlas `next`
+   * won't prewarm at hunt start (bosses, late variants, biome creatures). Shared keys (UI, FX,
+   * first-download birds) stay. Decoded images stay cached here, so install() / ensureBird()
+   * re-add them when needed. With `anims`, the removed atlases' animations go too (they hold
+   * frames of the removed textures; BirdView recreates them on first use). Gun atlases are kept.
+   * Call it only once nothing draws the old biome's objects. Returns the removed keys.
+   */
+  release(
+    textures: Phaser.Textures.TextureManager,
+    next: AssetManifest,
+    anims?: Phaser.Animations.AnimationManager,
+  ): string[] {
+    if (next === this) return [];
+    const keep = next.textureKeys();
+    for (const b of next.finalBirds.values())
+      if (b.entry.group !== LATE_GROUP) keep.add(b.atlasKey);
+    const removed: string[] = [];
+    for (const key of this.textureKeys()) {
+      if (keep.has(key) || !textures.exists(key)) continue;
+      textures.remove(key);
+      removed.push(key);
+    }
+    for (const [id, b] of this.finalBirds) {
+      if (keep.has(b.atlasKey) || !textures.exists(b.atlasKey)) continue;
+      textures.remove(b.atlasKey);
+      removed.push(b.atlasKey);
+      // `id` is `${creature}/${plane}`: BirdView's animation keys are `final:${id}/${clip}`.
+      for (const clip of Object.keys(b.entry.clips)) {
+        const key = `final:${id}/${clip}`;
+        if (anims?.exists(key) === true) anims.remove(key);
+      }
+    }
+    return removed;
+  }
+
   /** Keys not yet in the texture manager (0 once install() has completed). */
   missing(textures: Phaser.Textures.TextureManager): string[] {
     // Bird and gun atlases are installed on demand; until then their placeholders draw.

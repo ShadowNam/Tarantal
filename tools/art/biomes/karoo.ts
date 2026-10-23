@@ -55,7 +55,7 @@ export function vGradient(id: string, stops: readonly (readonly [number, string]
 }
 
 /** Ground band with an inked top edge; returns the svg and the edge points. */
-function groundBand(
+export function groundBand(
   ctx: LayerCtx,
   y: number,
   amp: number,
@@ -902,7 +902,7 @@ function foreground(ctx: LayerCtx): string {
 
 // --- props ---------------------------------------------------------------------------------
 
-function groundShadow(x: number, y: number, rx: number, ry: number): string {
+export function groundShadow(x: number, y: number, rx: number, ry: number): string {
   return flat(ellipseD(x, y, rx, ry), '#5A3418', { opacity: 0.28 });
 }
 

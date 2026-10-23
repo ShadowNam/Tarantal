@@ -529,6 +529,7 @@ const ctx: GameContext = {
   manifest: manifestFor(biome),
   playableBiomes,
   manifestFor,
+  installedManifest: null,
   biomeReady: (id) => biomeArtReady(id) && finalDone.has(id),
   // The biome's placeholder art chunk, then its final files (if any were delivered).
   loadBiome: async (id) => {
