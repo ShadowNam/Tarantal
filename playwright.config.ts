@@ -32,8 +32,9 @@ function profile(name: string, device: (typeof devices)[string], orientation: st
 }
 
 // CI splits the long Season Run spec into its own desktop job so it doesn't starve the timing
-// tests (perf, menus) that share a runner with it: E2E_ONLY takes a spec glob, E2E_SKIP one or
-// more comma-separated globs (the PR lane skips the Season Run and perf specs, D-030).
+// tests (perf, menus) that share a runner with it, and runs the perf specs alone in their own job
+// (one worker): E2E_ONLY takes a spec glob, E2E_SKIP one or more comma-separated globs (the PR
+// lane skips the Season Run and perf specs, D-030).
 const only = process.env['E2E_ONLY'] || undefined;
 // M9: E2E_PLATFORM=poki|crazygames builds and serves that portal build (with its test hooks,
 // VITE_TEST_HOOKS=1) instead of the web build; platform.spec.ts tests it against a fake SDK.

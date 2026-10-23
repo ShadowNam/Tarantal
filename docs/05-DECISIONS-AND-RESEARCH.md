@@ -1283,7 +1283,13 @@ of five to eight; one review at the end of a job, not one per part; check-ins ev
 instead of hourly, and a cut-off turn is restarted at once. `E2E_SKIP` now takes
 comma-separated globs. *Fix (23 Oct):* a PR description edit or an unrelated label runs no jobs,
 but it shared the PR's concurrency group and cancelled the quick lane in progress (#43); such
-events now get their own `-noop` group.
+events now get their own `-noop` group. *Fix (23 Oct, later):* the Pixel 7 low-tier perf test
+failed on `main` three times in a day (21.3–22.0 ms against 20 ms; median frame 18.7 ms, p95
+49 ms) with no change in the hunt's code path. Its shard ran it on one worker while the other
+worker ran the perf smoke and the score-pop A/B, so three throttled, software-rendered pages
+shared the runner's CPU. In the full lane the perf specs now run alone, one job per profile
+(desktop Chromium, Pixel 7 landscape) with one worker, and the other shards skip them. The
+budget is unchanged.
 
 **D-031 Graphics pass 2: interim landscapes, props, other creatures and effects (22 Oct
 2026).** The product owner approved a second code-drawn interim pass (same route as D-029, human
