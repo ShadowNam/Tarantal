@@ -30,7 +30,12 @@ import { tuftOf } from '../vegetation';
 
 // --- shapes --------------------------------------------------------------------------------
 
-/** A dune with a sharp crest: lit windward slope on the left, shadowed lee slope on the right. */
+/**
+ * D-035 round 2: a dune in side view. A long, soft windward slope (lit, a gradient from the
+ * bright crest down to the foot, fine wind ripples) rises to a sharp brink; the steep slip face
+ * drops on the right, darkest just under the brink and lighter toward its foot; the crest line
+ * runs down the face as a sinuous S. Thin soft outline.
+ */
 function dune(
   rnd: Rnd,
   x: number,
@@ -40,37 +45,97 @@ function dune(
   lit: string,
   lee: string,
   pen: Pen,
+  /** Receives the crest point (to stand something on it). */
+  crest?: { x: number; y: number },
 ): string {
-  const cx = x + w * (0.55 + rnd() * 0.1);
+  const cx = x + w * (0.58 + rnd() * 0.1);
   const top = base - h;
-  const outline = smoothD(
+  if (crest !== undefined) {
+    crest.x = cx;
+    crest.y = top;
+  }
+  const sway = (rnd() - 0.5) * w * 0.05;
+  // Windward profile: convex, with a slight shoulder; the brink is a small rounded lip.
+  const windward = smoothD(
     [
       [x, base],
-      [x + w * 0.25, base - h * 0.45],
-      [cx - w * 0.05, top + 4],
+      [x + w * 0.18, base - h * 0.22],
+      [x + w * 0.38, base - h * 0.55 + (rnd() - 0.5) * h * 0.06],
+      [cx - w * 0.08, top + h * 0.06],
+      [cx - w * 0.015, top + 1],
       [cx, top],
     ],
     false,
     0.6,
   );
-  const leeD = `${outline}Q${r2(cx + w * 0.12)} ${r2(top + h * 0.5)} ${r2(x + w)} ${r2(base)}Z`;
-  const litD = `${outline}Q${r2(cx - w * 0.02)} ${r2(top + h * 0.6)} ${r2(cx - w * 0.06)} ${r2(base)}Z`;
+  // Slip face: steep and nearly straight to the right foot.
+  const leeD = `${windward}C${r2(cx + w * 0.06)} ${r2(top + h * 0.3)} ${r2(cx + w * 0.16)} ${r2(
+    top + h * 0.75,
+  )} ${r2(x + w)} ${r2(base)}Z`;
+  // The brink / crest line seen running down across the face: a sinuous S.
+  const crestLine = `M${r2(cx)} ${r2(top)}C${r2(cx - w * 0.05 + sway)} ${r2(top + h * 0.3)} ${r2(
+    cx + w * 0.03 - sway,
+  )} ${r2(top + h * 0.6)} ${r2(cx - w * 0.07)} ${r2(base)}`;
+  const litD = `${windward}${crestLine.replace(/^M[^C]+/, '')}L${r2(x)} ${r2(base)}Z`;
+  const gLit = nextId();
+  const gLee = nextId();
+  const clip = nextId();
+  const ripples: string[] = [];
+  for (let k = 0; k < Math.round(h / 6); k++) {
+    const yy = base - (h * (k + 0.5)) / Math.round(h / 6);
+    const x0 = x + w * 0.04;
+    const x1 = cx - w * 0.02;
+    const amp = 1.2 + rnd() * 1.2;
+    let d = `M${r2(x0)} ${r2(yy)}`;
+    for (let s = 1; s <= 8; s++) {
+      const xs = x0 + ((x1 - x0) * s) / 8;
+      d += `Q${r2(xs - (x1 - x0) / 16)} ${r2(yy + (s % 2 === 0 ? amp : -amp))} ${r2(xs)} ${r2(yy)}`;
+    }
+    ripples.push(d);
+  }
+  const soft = mix(pen.ink, lee, 0.55);
   return g(
     {},
-    flat(leeD, lee),
-    flat(litD, lit),
+    el(
+      'linearGradient',
+      { id: gLit, x1: 0, y1: 0, x2: 0.25, y2: 1 },
+      el('stop', { offset: 0, 'stop-color': shade(lit, 0.22) }),
+      el('stop', { offset: 0.55, 'stop-color': lit }),
+      el('stop', { offset: 1, 'stop-color': shade(lit, -0.1) }),
+    ),
+    el(
+      'linearGradient',
+      { id: gLee, x1: 0, y1: 0, x2: 0, y2: 1 },
+      el('stop', { offset: 0, 'stop-color': shade(lee, -0.22) }),
+      el('stop', { offset: 0.6, 'stop-color': lee }),
+      el('stop', { offset: 1, 'stop-color': shade(lee, 0.08) }),
+    ),
+    el('path', { d: leeD, fill: `url(#${gLee})` }),
+    el('clipPath', { id: clip }, el('path', { d: litD })),
+    el('path', { d: litD, fill: `url(#${gLit})` }),
+    el('path', {
+      d: ripples.join(''),
+      fill: 'none',
+      stroke: shade(lit, -0.18),
+      'stroke-width': 0.8,
+      opacity: 0.45,
+      'clip-path': `url(#${clip})`,
+    }),
+    el('path', {
+      d: crestLine,
+      fill: 'none',
+      stroke: shade(lit, 0.3),
+      'stroke-width': Math.max(1, pen.w * 0.5),
+      'stroke-linecap': 'round',
+      opacity: 0.8,
+    }),
     el('path', {
       d: leeD,
       fill: 'none',
-      stroke: pen.ink,
-      'stroke-width': pen.w,
+      stroke: soft,
+      'stroke-width': Math.max(0.8, pen.w * 0.5),
       'stroke-linejoin': 'round',
     }),
-    line(
-      `M${r2(cx)} ${r2(top)}Q${r2(cx - w * 0.02)} ${r2(top + h * 0.6)} ${r2(cx - w * 0.06)} ${r2(base)}`,
-      pen,
-      pen.w * 0.6,
-    ),
   );
 }
 
@@ -229,6 +294,7 @@ function farRidge(ctx: LayerCtx): string {
       height: [70, 190],
       overlap: [-0.35, 0.2],
       haze: 0.45,
+      spireAt: 0.37,
     },
   );
   parts.push(...paintRow(ctx.rnd, range, rock, { ink: backPen.ink, w: 1.4 }, horizon));
@@ -248,16 +314,41 @@ function farRidge(ctx: LayerCtx): string {
     );
     x += w * (0.55 + ctx.rnd() * 0.2);
   }
+  // Gemsbok on a crest (bible), tiny: on the front dune whose crest is nearest u = 0.43, drawn
+  // right after it (D-035 round 2: they stand on the sand, not in the air).
+  const gem = mix(ctx.c('gemsbok'), horizon, 0.2);
+  const want = ctx.u(0.43);
+  const front: { svg: string; crest: { x: number; y: number } }[] = [];
   for (let x = -100; x < ctx.width;) {
     const w = 380 + ctx.rnd() * 340;
-    parts.push(
-      dune(ctx.rnd, x, 660, w, 100 + ctx.rnd() * 70, ctx.c('duneLit'), ctx.c('duneLee'), ctx.pen),
-    );
+    const crest = { x: 0, y: 0 };
+    front.push({
+      svg: dune(
+        ctx.rnd,
+        x,
+        660,
+        w,
+        100 + ctx.rnd() * 70,
+        ctx.c('duneLit'),
+        ctx.c('duneLee'),
+        ctx.pen,
+        crest,
+      ),
+      crest,
+    });
     x += w * (0.6 + ctx.rnd() * 0.25);
   }
-  // Gemsbok on a crest (bible), tiny.
-  const gem = mix(ctx.c('gemsbok'), horizon, 0.2);
-  parts.push(gemsbok(ctx.u(0.42), 588, 0.9, gem), gemsbok(ctx.u(0.44), 590, 0.85, gem));
+  const near = front.reduce((best, d) =>
+    Math.abs(d.crest.x - want) < Math.abs(best.crest.x - want) ? d : best,
+  );
+  for (const d of front) {
+    parts.push(d.svg);
+    if (d === near)
+      parts.push(
+        gemsbok(d.crest.x - 34, d.crest.y + 9, 0.9, gem),
+        gemsbok(d.crest.x - 12, d.crest.y + 3, 0.85, gem),
+      );
+  }
   return g({}, ...parts);
 }
 
