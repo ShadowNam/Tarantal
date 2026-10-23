@@ -12,6 +12,8 @@ import type { GameContext } from '../GameContext';
 import { inputKindOf } from '../input/InputMapper';
 import type { InputKind } from '../../sim/types';
 import { formatScore } from '../ui/format';
+import { layoutForDay } from '../../meta/maps';
+import { findLayout } from '../../sim/maps';
 import type { Rect } from '../ui/hudLayout';
 import { drawButton, fitText, Menu, textStyle, type MenuItem } from '../ui/menu';
 
@@ -116,6 +118,20 @@ export class TitleScene extends Phaser.Scene {
           .setOrigin(0.5);
         fitText(info, width - 200);
       }
+      // v1.2: today's Classic map (UTC weekday), e.g. "Today's map: Monday · Dawn mist".
+      const mapLine = this.add
+        .text(
+          width / 2,
+          start.y + start.h + 112,
+          fill(t('title.map'), { map: todayMapName(this.ctx) }),
+          {
+            ...textStyle(32, '#FFE7A8'),
+            stroke: '#1B1410',
+            strokeThickness: 5,
+          },
+        )
+        .setOrigin(0.5);
+      fitText(mapLine, width - 200);
       // Bottom row, left to right: Skiet-Skuur, Daily Hunt (M7), Season Run, Settings.
       const gap = 30;
       const bw = Math.min(380, (width - safe.left - safe.right - 160 - gap * 3) / 4);
@@ -252,4 +268,14 @@ export class TitleScene extends Phaser.Scene {
     });
     this.scene.bringToTop(key);
   }
+}
+
+/** "Monday · Dawn mist": today's Classic layout of the home biome. */
+export function todayMapName(ctx: GameContext): string {
+  const id = ctx.classicLayout ?? layoutForDay(ctx.today());
+  const layout = findLayout(ctx.biome, id);
+  return fill(t('map.name'), {
+    day: tOr(`map.day.${id}`, id),
+    light: layout === undefined ? '' : tOr(`map.light.${layout.light}`, layout.light),
+  });
 }

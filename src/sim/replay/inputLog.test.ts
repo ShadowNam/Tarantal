@@ -49,6 +49,25 @@ describe('InputLog', () => {
     expect(decodeInputLogText(encodeInputLogText(std))).toEqual(std);
   });
 
+  it('v4 (v1.2) carries the map; a v3 log decodes with none (the plain biome)', () => {
+    const rec = createRecorder({
+      seed: 8,
+      contentHash: HASH,
+      mode: { id: 'classic', layout: 'thu', bonus: 'verder' },
+      inputKind: 'pointer',
+    });
+    rec.record(2, [{ t: 'reload' }]);
+    const log = rec.toLog();
+    expect(decodeInputLogText(encodeInputLogText(log)).mode).toEqual({
+      id: 'classic',
+      layout: 'thu',
+      bonus: 'verder',
+    });
+    const v3: InputLog = { ...log, v: 3, mode: { id: 'classic' } };
+    expect(decodeInputLog(encodeInputLog(v3))).toEqual(v3);
+    expect(() => encodeInputLog({ ...log, v: 3 })).toThrow();
+  });
+
   it('still decodes v1 logs (pre-M5) as standard aim assist', () => {
     const v1: InputLog = {
       v: 1,

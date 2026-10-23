@@ -40,8 +40,8 @@ function applyOverride(biome: Biome, o: Override): Biome {
     for (const plane of ['near', 'mid', 'far'] as const) {
       const over = o.lanes[plane];
       if (over === undefined) continue;
-      const { $comment: _c, ...bands } = over;
-      next[plane] = { ...(biome.lanes[plane] ?? {}), ...bands };
+      // $comment is carried over harmlessly (content comments are ignored everywhere).
+      next[plane] = { ...(biome.lanes[plane] ?? {}), ...over };
     }
     lanes = next;
   }

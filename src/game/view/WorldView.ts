@@ -66,6 +66,9 @@ export class WorldView {
   private nextGlintAt = 0;
   private windCredit = 0;
 
+  /** v1.2: the map's light makes ready secrets glow (dusk). */
+  secretGlow = false;
+
   constructor(
     scene: Phaser.Scene,
     content: ContentBundle,
@@ -388,8 +391,8 @@ export class WorldView {
         ring(this.parallax.plane(b.plane).overlay, b.x, b.y, 120 * scale);
       }
     }
-    // Oupa se Kaart (charm) makes the secrets glow for the whole hunt.
-    if (reveal || s.season?.revealSecrets === true) {
+    // Oupa se Kaart (charm) makes the secrets glow for the whole hunt; so does a dusk map (v1.2).
+    if (reveal || s.season?.revealSecrets === true || this.secretGlow) {
       for (const sec of s.secrets) {
         if (!sec.ready) continue;
         const layer = this.parallax.layer(sec.layerId)?.fixtures ?? null;

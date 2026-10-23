@@ -17,7 +17,12 @@ import {
 } from '../../tools/simHarness';
 import { loadContentHash } from '../../tools/testContent';
 import { createEventHasher } from './events';
-import { createRecorder, decodeInputLogText, encodeInputLogText } from './replay/inputLog';
+import {
+  createRecorder,
+  decodeInputLogText,
+  INPUT_LOG_VERSION,
+  encodeInputLogText,
+} from './replay/inputLog';
 import { runReplay } from './replay/verify';
 import type { Sim } from './Sim';
 import type { BirdView, Command, ModeConfig, SeasonHuntConfig } from './types';
@@ -286,7 +291,7 @@ describe('Season Run replays (InputLog v3)', () => {
       hasher.add(sim.drainEvents());
     }
     const log = rec.toLog();
-    expect(log.v).toBe(3);
+    expect(log.v).toBe(INPUT_LOG_VERSION);
     const decoded = decodeInputLogText(encodeInputLogText(log));
     expect(decoded).toEqual(log);
     const replay = runReplay(decoded, content);

@@ -289,7 +289,8 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
         err(file, `${where} fly-over weights pick no plane with a sky lane`);
       for (const plane of ['near', 'mid', 'far'] as const) {
         const n = o.pacing?.flocks?.[plane];
-        if (n !== undefined && n > 0 && (lanes[plane]?.groundY === undefined || lanes[plane]?.skyY === undefined))
+        const lane = lanes[plane];
+        if (n !== undefined && n > 0 && (lane?.groundY === undefined || lane.skyY === undefined))
           err(file, `${where} wants flocks on plane "${plane}", which has no ground and sky lane`);
       }
     }

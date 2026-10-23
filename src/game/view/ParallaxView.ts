@@ -6,10 +6,10 @@
 // M4) → birds (D-018: a plane's birds stand in front of its own props) → FX. The foreground layer
 // sits on top of everything.
 import * as Phaser from 'phaser';
-import type { Biome } from '../../content/schemas';
+import type { Biome, Light } from '../../content/schemas';
 import { planeCentreX } from '../../sim/camera';
 import type { PlaneId } from '../../sim/types';
-import { coreWidth } from '../../sim/world';
+import { coreWidth, DESIGN_HEIGHT, LAYER_BLEED_PX } from '../../sim/world';
 import { TEX, type AssetManifest } from '../assets/AssetManifest';
 
 export interface LayerNode {
@@ -167,6 +167,42 @@ export class ParallaxView {
     });
   }
 
+  /**
+   * v1.2 (D-033): the map's light — a multiply tint on each layer's art and props, and flat haze
+   * bands over a layer's art (below its fixtures and birds, so birds stay crisp). Presets apply in
+   * order and compound. No textures: tints and rectangles only. Call once, after construction.
+   */
+  applyLight(lights: readonly Light[]): void {
+    if (lights.length === 0) return;
+    this.layers.forEach((l, i) => {
+      let tint = 0xffffff;
+      for (const light of lights) {
+        const hex = light.tint?.[l.id];
+        if (hex !== undefined) tint = multiplyRgb(tint, parseInt(hex.slice(1), 16));
+      }
+      if (tint !== 0xffffff) for (const a of this.statics[i] ?? []) a.img.setTint(tint);
+      const width = coreWidth(l.scrollFactor) + LAYER_BLEED_PX * 2;
+      for (const light of lights) {
+        for (const h of light.haze ?? []) {
+          if (h.layer !== l.id) continue;
+          const top = h.top ?? 0;
+          const bottom = h.bottom ?? DESIGN_HEIGHT;
+          const rect = l.root.scene.add
+            .rectangle(
+              -LAYER_BLEED_PX,
+              top,
+              width,
+              Math.max(0, bottom - top),
+              parseInt(h.color.slice(1), 16),
+              h.alpha,
+            )
+            .setOrigin(0, 0);
+          l.root.addAt(rect, l.root.getIndex(l.fixtures));
+        }
+      }
+    });
+  }
+
   /** A layer by id (secrets live on any layer). */
   layer(id: string): LayerNode | undefined {
     return this.layers.find((l) => l.id === id);
@@ -177,4 +213,11 @@ export class ParallaxView {
     const node = this.plane(p);
     return node.root.x + x;
   }
+}
+
+/** Channel-wise multiply of two 0xRRGGBB colours (tints compound like light filters). */
+export function multiplyRgb(a: number, b: number): number {
+  const ch = (shift: number): number =>
+    Math.round((((a >> shift) & 0xff) * ((b >> shift) & 0xff)) / 255);
+  return (ch(16) << 16) | (ch(8) << 8) | ch(0);
 }
