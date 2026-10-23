@@ -34,7 +34,9 @@ import { HuntRunner } from '../HuntRunner';
 import { InputMapper, inputKindOf } from '../input/InputMapper';
 import { BirdView } from '../view/BirdView';
 import { Fx } from '../view/Fx';
-import { interpolateBirds, interpolateCamera } from '../view/interpolate';
+import { interpolateAim, interpolateBirds, interpolateCamera } from '../view/interpolate';
+import { SightView, type SightPicture } from '../view/SightView';
+import { NO_ZOOM, zoomFor, type ZoomState } from '../view/zoomView';
 import { ParallaxView } from '../view/ParallaxView';
 import { WeaponView } from '../view/WeaponView';
 import { crosshairExtent, spreadMulOf } from '../ui/gunLook';
@@ -77,6 +79,14 @@ export class HuntScene extends Phaser.Scene {
   private world!: WorldView;
   private debug!: DebugOverlay;
   private screen!: Phaser.GameObjects.Container;
+  /** v1.3: screen overlays a sight's zoom never scales (glare, tints, rain), the sight picture,
+   *  and the gun with its crosshair — in that order above the zoomed world. */
+  private screenFixed!: Phaser.GameObjects.Container;
+  private sightLayer!: Phaser.GameObjects.Container;
+  private gunLayer!: Phaser.GameObjects.Container;
+  private sight!: SightView;
+  /** The rifle zoom view of the last frame (NO_ZOOM when no sight is up). */
+  private zoomView: ZoomState = NO_ZOOM(1920, 1080);
   private runner: HuntRunner | null = null;
   /** v1.0.1 (D-028 §5): capture mode's key hint while it shows. */
   private captureHint: Phaser.GameObjects.Text | null = null;
@@ -277,6 +287,10 @@ export class HuntScene extends Phaser.Scene {
       this.ctx.hook.quality.filters = this.tierFilters.active;
     }
     this.screen = this.add.container(0, 0);
+    this.screenFixed = this.add.container(0, 0);
+    this.sightLayer = this.add.container(0, 0);
+    this.gunLayer = this.add.container(0, 0);
+    this.sight = new SightView(this, this.sightLayer, this.manifest);
     this.birds = new BirdView(
       this,
       this.manifest,
@@ -306,12 +320,13 @@ export class HuntScene extends Phaser.Scene {
       this.screen,
       this.ctx.prefs,
       this.ctx.flashes,
+      this.screenFixed,
     );
     this.world.secretGlow = lights.some((l) => l.secretGlow === true);
     this.weapon = new WeaponView(
       this,
       this.ctx.feel,
-      this.screen,
+      this.gunLayer,
       this.ctx.prefs,
       // The gun's atlas goes to the GPU when it is first shown (D-029).
       (id) => this.manifest.ensureGun(this.textures, id),
@@ -427,6 +442,12 @@ export class HuntScene extends Phaser.Scene {
     if (prev !== null && prev !== this.manifest)
       prev.release(this.textures, this.manifest, this.anims);
     this.ctx.installedManifest = this.manifest;
+  }
+
+  /** v1.3: the picture a fitted sight draws (weapons.json sights), or null for no sight. */
+  private sightPicture(id: string | null): SightPicture | null {
+    if (id === null) return null;
+    return this.ctx.content.weapons.sights.find((s) => s.id === id)?.picture ?? null;
   }
 
   /** D-029 texture memory for the test hook, and (v1.3) which gun atlases are on the GPU. */
@@ -784,6 +805,13 @@ export class HuntScene extends Phaser.Scene {
         holdToFire: () =>
           (this.runner?.state.weapon.holdToFire ?? false) || this.ctx.prefs.holdToFire,
         weaponHolds: () => this.runner?.state.weapon.holdToFire ?? false,
+        // v1.3: a rifle in hand (its fitted sight's zoom) holds to zoom and releases to fire.
+        sightZoom: () => {
+          const w = this.runner?.state.weapon;
+          if (w?.kind !== 'primary' || w.sight === null) return null;
+          const s = this.ctx.content.weapons.sights.find((x) => x.id === w.sight);
+          return s?.zoom[w.zoomStep] ?? s?.zoom[0] ?? null;
+        },
         readyToFire: () => {
           const w = this.runner?.state.weapon;
           return (
@@ -960,8 +988,19 @@ export class HuntScene extends Phaser.Scene {
 
     const alpha = runner.alpha;
     const cam = interpolateCamera(runner.prev, state, alpha);
+    // v1.3 (D-036): a raised rifle sight zooms the world around the aim point (zoomView.ts).
+    const { height } = designSize();
+    const zoom = zoomFor(interpolateAim(runner.prev, state, alpha), width, height);
+    this.zoomView = zoom;
+    this.parallax.setZoom(zoom.z, zoom.cx, zoom.cy);
     this.parallax.update(cam, width);
+    this.screen.setPosition(width / 2 - zoom.cx * zoom.z, height / 2 - zoom.cy * zoom.z);
+    this.screen.setScale(zoom.z);
+    this.sight.setPicture(this.sightPicture(state.weapon.sight));
+    this.sight.update(zoom, height);
+    this.weapon.setScoped(zoom.raise);
     const drawBirds = interpolateBirds(runner.prev, state, alpha);
+    this.birds.setViewZoom(zoom.z);
     this.birds.update(drawBirds, state.tick);
     this.world.update(state, width, designSize().height);
     this.weapon.spreadMul = spreadMulOf(state.powerups, this.ctx.content.powerups.powerups);
@@ -976,6 +1015,15 @@ export class HuntScene extends Phaser.Scene {
         visible: c.root.visible && c.root.alpha > 0,
         x: Math.round(c.root.x),
         y: Math.round(c.root.y),
+      };
+      // v1.3: the rifle zoom view (the reticle is where a release fires, on screen).
+      const z = this.zoomView;
+      this.ctx.hook.zoom = {
+        z: Math.round(z.z * 1000) / 1000,
+        raise: Math.round(z.raise * 1000) / 1000,
+        reticleX: Math.round(z.reticleX * 10) / 10,
+        reticleY: Math.round(z.reticleY * 10) / 10,
+        sight: state.weapon.sight,
       };
     }
     const safe = this.ctx.safeArea();
@@ -1021,7 +1069,7 @@ export class HuntScene extends Phaser.Scene {
         const n = Math.max(1, members.length);
         const x = members.reduce((t, b) => t + this.parallax.screenX(b.plane, b.x), 0) / n;
         const y = members.reduce((t, b) => t + b.y, 0) / n;
-        return { id: f.id, state: f.state, alive: f.alive, x, y };
+        return { id: f.id, state: f.state, alive: f.alive, x, y, plane: f.plane };
       });
       hook.secretSpots = state.secrets.flatMap((sec) => {
         const layer = this.parallax.layer(sec.layerId);

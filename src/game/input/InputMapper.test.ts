@@ -270,3 +270,108 @@ describe('M9 hold to fire on touch keeps the gestures (D-026)', () => {
     expect(fires(cmds)).toBe(0);
   });
 });
+
+describe('v1.3 rifles: hold to zoom, release to fire (D-036)', () => {
+  function rifleRig(width: number, scale: number, zoom: number | null = 4) {
+    const canvas = fakeCanvas(width * scale, 1080 * scale);
+    const queued: Command[] = [];
+    const mapper = new InputMapper(
+      canvas as unknown as HTMLCanvasElement,
+      feel,
+      {
+        designSize: () => ({ width, height: 1080 }),
+        // The ammo display: the bottom-right corner.
+        isOnBelt: (x, y) => x > width - 200 && y > 900,
+        isOnGadget: () => false,
+        itemAt: () => null,
+        isOnUi: () => false,
+        pause: () => undefined,
+        holdToFire: () => false,
+        weaponHolds: () => false,
+        readyToFire: () => true,
+        sightZoom: () => zoom,
+        queue: (c) => queued.push(c),
+        aim: () => undefined,
+        fingerDown: () => undefined,
+        toggleDebug: () => undefined,
+      },
+      0,
+    );
+    mapper.setEnabled(true);
+    const at = (dx: number, sy: number) => ({
+      clientX: 10 + (width / 2 + dx) * scale,
+      clientY: 20 + sy * scale,
+    });
+    return { canvas, queued, mapper, at };
+  }
+
+  it('press raises the sight at the pointer, moves aim finer (÷ zoom, one per tick), release fires', () => {
+    for (const [width, scale] of [
+      [1920, 1],
+      [1440, 0.6],
+      [2520, 0.4],
+    ] as const) {
+      const { canvas, queued, mapper, at } = rifleRig(width, scale);
+      const e = { pointerId: 1, pointerType: 'mouse', button: 0, timeStamp: 0 };
+      canvas.emit('pointerdown', { ...e, ...at(-200, 500) });
+      canvas.emit('pointermove', { ...e, ...at(-180, 520) });
+      canvas.emit('pointermove', { ...e, ...at(-160, 540) });
+      const tick = mapper.perTick();
+      canvas.emit('pointerup', { ...e, ...at(-160, 540) });
+      mapper.destroy();
+      // The same commands at every width and CSS scale: dx from the centre, unzoomed px.
+      expect(queued[0]).toEqual({ t: 'aimStart', dx: -200, sy: 500 });
+      expect(tick.filter((c) => c.t === 'aimMove')).toEqual([{ t: 'aimMove', dx: -190, sy: 510 }]);
+      expect(queued.at(-1)).toEqual({ t: 'aimRelease' });
+    }
+  });
+
+  it('right-click while holding cancels (no reload); otherwise it reloads', () => {
+    const { canvas, queued, mapper, at } = rifleRig(1920, 1);
+    const e = { pointerId: 1, pointerType: 'mouse', timeStamp: 0 };
+    canvas.emit('pointerdown', { ...e, button: 0, ...at(0, 500) });
+    canvas.emit('pointerdown', { ...e, button: 2, ...at(0, 500) });
+    canvas.emit('pointerup', { ...e, button: 0, ...at(0, 500) });
+    canvas.emit('pointerdown', { ...e, button: 2, ...at(0, 500) });
+    mapper.destroy();
+    expect(queued.map((c) => c.t)).toEqual(['aimStart', 'aimCancel', 'reload']);
+  });
+
+  it('touch: sliding onto the ammo display cancels; a quick tap is a press and release', () => {
+    const { canvas, queued, mapper, at } = rifleRig(1920, 1);
+    const t = { pointerId: 3, pointerType: 'touch', button: 0 };
+    canvas.emit('pointerdown', { ...t, timeStamp: 0, ...at(100, 400) });
+    canvas.emit('pointermove', { ...t, timeStamp: 50, ...at(500, 700) });
+    canvas.emit('pointermove', { ...t, timeStamp: 100, ...at(880, 1000) });
+    canvas.emit('pointerup', { ...t, timeStamp: 150, ...at(880, 1000) });
+    expect(queued.map((c) => c.t)).toEqual(['aimStart', 'aimCancel']);
+    queued.length = 0;
+    canvas.emit('pointerdown', { ...t, pointerId: 4, timeStamp: 1000, ...at(-50, 600) });
+    canvas.emit('pointerup', { ...t, pointerId: 4, timeStamp: 1040, ...at(-50, 600) });
+    mapper.destroy();
+    expect(queued).toEqual([{ t: 'aimStart', dx: -50, sy: 600 }, { t: 'aimRelease' }]);
+  });
+
+  it('touch: a flick down still reloads (and lowers the sight)', () => {
+    const { canvas, queued, mapper, at } = rifleRig(1920, 1);
+    const t = { pointerId: 5, pointerType: 'touch', button: 0 };
+    canvas.emit('pointerdown', { ...t, timeStamp: 0, ...at(0, 300) });
+    canvas.emit('pointermove', { ...t, timeStamp: 40, ...at(0, 450) });
+    canvas.emit('pointerup', { ...t, timeStamp: 80, ...at(0, 620) });
+    mapper.destroy();
+    expect(queued.map((c) => c.t)).toEqual(['aimStart', 'aimCancel', 'reload']);
+  });
+
+  it('a gun without a sight still fires on press', () => {
+    const { canvas, queued, mapper, at } = rifleRig(1920, 1, null);
+    canvas.emit('pointerdown', {
+      pointerId: 1,
+      pointerType: 'mouse',
+      button: 0,
+      timeStamp: 0,
+      ...at(30, 400),
+    });
+    mapper.destroy();
+    expect(queued).toEqual([{ t: 'fire', dx: 30, sy: 400 }]);
+  });
+});

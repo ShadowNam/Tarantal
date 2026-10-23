@@ -79,6 +79,8 @@ export interface TestHook {
    *  it belongs to, its reach (px from the aim point) and whether it shows. */
   ammo: string[];
   crosshair: { weapon: string; extent: number; visible: boolean; x: number; y: number };
+  /** v1.3: the rifle zoom view: zoom, raise 0..1, the reticle on screen (design px), the sight. */
+  zoom: { z: number; raise: number; reticleX: number; reticleY: number; sight: string | null };
   shots: number;
   over: boolean;
   inputKind: InputKind | null;
@@ -91,7 +93,15 @@ export interface TestHook {
   /** Live flocks with their members' mean position in design px of the screen. */
   /** Flock transitions this hunt as "id:from>to:cause" (capped). */
   flockLog: string[];
-  flockSpots: { id: number; state: string; alive: number; x: number; y: number }[];
+  flockSpots: {
+    id: number;
+    state: string;
+    alive: number;
+    x: number;
+    y: number;
+    /** v1.3: the flock's plane (Ver flocks for the long-range checks). */
+    plane: string;
+  }[];
   /** v1.0.1 (D-028 §4): score pops shown this page, and pop objects made (pooled: stays small). */
   pops: { shown: number; created: number };
   /** v1.0.1 (D-028 §3): Oupa's bubble on screen (line key, text, design-px rect) and every line

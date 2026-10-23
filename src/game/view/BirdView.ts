@@ -11,6 +11,7 @@ import * as Phaser from 'phaser';
 import type { ContentBundle } from '../../content/schemas';
 import type { PlaneId } from '../../sim/types';
 import type { BirdClip } from '../assets/assetIndex';
+import { artPlaneFor, type ArtPlaneId } from '../assets/artPlane';
 import { clipFor, resolveClip } from '../assets/birdClips';
 import { TEX, type AssetManifest, type BirdFrame, type FinalBird } from '../assets/AssetManifest';
 import type { SimEvent } from '../../sim/events';
@@ -36,6 +37,9 @@ interface Drawn {
   /** Placeholder texture key, or the final clip's animation key. */
   frame: string;
 }
+
+/** v1.3: Ver birds are far away — a little of the horizon's haze over them (multiply tint). */
+const VER_HAZE_TINT = 0xd9d4ca;
 
 /** Wing-beat period in ticks (rendering only); flushed birds beat twice as fast. */
 const FLAP_TICKS = 14;
@@ -66,6 +70,9 @@ export class BirdView {
   private readonly parallax: ParallaxView;
   private readonly drawn = new Map<number, Drawn>();
   private readonly content: ContentBundle;
+  /** v1.3: the rifle zoom view's zoom (Ver birds pick sharper art when zoomed in). */
+  private viewZoom = 1;
+  private readonly artScales: Readonly<Record<ArtPlaneId, number>>;
 
   constructor(
     scene: Phaser.Scene,
@@ -81,6 +88,20 @@ export class BirdView {
     this.manifest = manifest;
     this.parallax = parallax;
     this.content = content;
+    const p = content.scoring.planes;
+    this.artScales = { near: p.near.scale, mid: p.mid.scale, far: p.far.scale };
+  }
+
+  /** v1.3: the zoom the world is drawn at now (1 = no sight up). */
+  setViewZoom(z: number): void {
+    this.viewZoom = z;
+  }
+
+  /** The plane whose art draws a bird of `plane`, and the scale on top of that art's own. */
+  private artOf(plane: PlaneId): { art: ArtPlaneId; ratio: number } {
+    const s = this.content.scoring.planes[plane].scale;
+    const art = artPlaneFor(plane, s * this.viewZoom, this.artScales);
+    return { art, ratio: s / this.artScales[art] };
   }
 
   /** Where a boss's helmet sits: on top of the head hitbox (plane px, scaled). */
@@ -97,8 +118,9 @@ export class BirdView {
     for (const b of birds) {
       seen.add(b.view.id);
       const v = b.view;
+      const { art, ratio } = this.artOf(v.plane);
       // The atlas goes to the GPU the first time this creature shows on this plane (D-029).
-      const final = this.manifest.ensureBird(this.scene.textures, v.creature, v.plane);
+      const final = this.manifest.ensureBird(this.scene.textures, v.creature, art);
       const clip =
         final !== null && this.scene.textures.exists(final.atlasKey)
           ? resolveClip(
@@ -107,18 +129,19 @@ export class BirdView {
             )
           : null;
       const animKey =
-        final !== null && clip !== null ? this.ensureAnim(v.creature, v.plane, final, clip) : null;
+        final !== null && clip !== null ? this.ensureAnim(v.creature, art, final, clip) : null;
       // An animation with no frames (it can't play) leaves the bird on its placeholder frames.
       const anim = animKey === null ? undefined : this.scene.anims.get(animKey);
       const playable = final !== null && anim !== undefined && anim.frames.length > 0;
       const key =
         playable && animKey !== null
           ? animKey
-          : this.manifest.bird(v.creature, v.plane, frameFor(v, tick));
+          : this.manifest.bird(v.creature, art, frameFor(v, tick));
       let d = this.drawn.get(v.id);
       if (d === undefined) {
         const layer = this.parallax.plane(v.plane);
         const sprite = this.scene.add.sprite(b.x, b.y, TEX.feather);
+        if (v.plane === 'ver') sprite.setTint(VER_HAZE_TINT);
         layer.birds?.add(sprite);
         const tuft =
           v.motion === 'popup' && v.ground !== null
@@ -156,13 +179,18 @@ export class BirdView {
         }
         d.frame = key;
       }
-      const s = playable ? final.scale : 1;
+      // Ver birds draw another plane's art scaled down to the Ver size (ratio ≤ 1).
+      const s = (playable ? final.scale : 1) * ratio;
       // Placeholder frames get a drawn walk bob and running lean; delivered clips animate it.
       const bob =
-        s === 1 && v.motion === 'flock' && v.phase === 'walk' && (tick + v.id) % 20 < 10
+        !playable &&
+        ratio === 1 &&
+        v.motion === 'flock' &&
+        v.phase === 'walk' &&
+        (tick + v.id) % 20 < 10
           ? WALK_BOB_PX
           : 0;
-      const lean = s === 1 && (v.phase === 'run' || v.phase === 'land') ? RUN_LEAN * v.facing : 0;
+      const lean = !playable && (v.phase === 'run' || v.phase === 'land') ? RUN_LEAN * v.facing : 0;
       // Mirror around the origin (the bird's position) — the hitbox mirrors the same way.
       d.sprite
         .setPosition(b.x, b.y - bob)
@@ -217,16 +245,17 @@ export class BirdView {
   handle(events: readonly SimEvent[]): void {
     for (const e of events) {
       if (e.type !== 'targetBagged') continue;
-      const final = this.manifest.ensureBird(this.scene.textures, e.creature, e.plane);
+      const { art, ratio } = this.artOf(e.plane);
+      const final = this.manifest.ensureBird(this.scene.textures, e.creature, art);
       if (final === null || !this.scene.textures.exists(final.atlasKey)) continue;
       if (final.entry.clips.hit_poof === undefined) continue;
-      const key = this.ensureAnim(e.creature, e.plane, final, 'hit_poof');
+      const key = this.ensureAnim(e.creature, art, final, 'hit_poof');
       if ((this.scene.anims.get(key)?.frames.length ?? 0) === 0) continue;
-      const face = this.drawn.get(e.birdId)?.sprite.scaleX ?? final.scale;
+      const face = this.drawn.get(e.birdId)?.sprite.scaleX ?? final.scale * ratio;
       const poof = this.scene.add
         .sprite(e.x, e.y, final.atlasKey)
         .setOrigin(final.entry.originX, final.entry.originY)
-        .setScale(face, final.scale);
+        .setScale(face, final.scale * ratio);
       this.parallax.plane(e.plane).overlay?.add(poof);
       // Once, even if rig.json marked hit_poof as a loop (a loop would never complete).
       poof.play({ key, repeat: 0 }).once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {

@@ -23,6 +23,7 @@ import { SFX_IDS } from '../audio/synth';
 import { ammoSpecs, arsenalSpecs } from './arsenalArt';
 import { omenSpecs } from './omenArt';
 import { verBand, type Band, type BiomeArt } from './biomeArt';
+import { sightSpecs } from './sightArt';
 import { ellipse, ground, inked, INK, prng, tuft } from './draw';
 
 const KAROO = {
@@ -1336,6 +1337,8 @@ export function createPlaceholderManifest(
   for (const s of uiSpecs()) m.addTexture(s);
   for (const s of m4Specs()) m.addTexture(s);
   for (const s of arsenalSpecs()) m.addTexture(s);
+  // v1.3: rifle sight pictures (D-036).
+  for (const s of sightSpecs()) m.addTexture(s);
   for (const s of ammoSpecs(ammoTypes)) m.addTexture(s);
   for (const s of omenSpecs()) m.addTexture(s);
   for (const id of SFX_IDS) m.addSound(sfxKey(id));
