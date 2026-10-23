@@ -3,7 +3,7 @@
 // birds dark and cool against a warm veld. Everything is drawn onto canvases and registered in the
 // AssetManifest, so real art can replace any key later. Rendering-only code: Math.random would be
 // allowed here, but a tiny seeded PRNG keeps the panorama identical between runs and screenshots.
-import type { Biome, ContentBundle } from '../../content/schemas';
+import type { AmmoType, Biome, ContentBundle } from '../../content/schemas';
 import type { PlaneId } from '../../sim/types';
 import { coreWidth, LAYER_BLEED_PX } from '../../sim/world';
 import {
@@ -20,7 +20,7 @@ import {
 } from '../assets/AssetManifest';
 import { STEMS } from '../audio/music';
 import { SFX_IDS } from '../audio/synth';
-import { arsenalSpecs } from './arsenalArt';
+import { ammoSpecs, arsenalSpecs } from './arsenalArt';
 import { omenSpecs } from './omenArt';
 import type { Band, BiomeArt } from './biomeArt';
 import { ellipse, ground, inked, INK, prng, tuft } from './draw';
@@ -784,66 +784,9 @@ function drawKarooProp(ctx: CanvasRenderingContext2D, id: string, w: number, h: 
 // UI and FX
 
 function uiSpecs(): CanvasSpec[] {
-  const shell = (key: string, empty: boolean): CanvasSpec => ({
-    key,
-    width: 40,
-    height: 92,
-    originX: 20,
-    originY: 46,
-    draw(ctx) {
-      ctx.translate(20, 46);
-      ctx.beginPath();
-      ctx.roundRect(-14, -40, 28, 62, 6);
-      if (empty) {
-        ctx.setLineDash([6, 5]);
-        ctx.strokeStyle = 'rgba(243,234,211,0.7)';
-        ctx.lineWidth = 3;
-        ctx.stroke();
-        return;
-      }
-      inked(ctx, '#C8302A', 3);
-      ctx.beginPath();
-      ctx.roundRect(-16, 20, 32, 20, 3);
-      inked(ctx, '#D8A73A', 3);
-    },
-  });
+  // v1.1 (D-032): the shell belt and the reticle moved to per-gun ammo (arsenalArt ammoSpecs) and
+  // shape-built crosshairs (view/CrosshairView.ts).
   return [
-    shell(TEX.shell, false),
-    shell(TEX.shellEmpty, true),
-    {
-      key: TEX.reticle,
-      width: 180,
-      height: 180,
-      originX: 90,
-      originY: 90,
-      draw(ctx) {
-        // Ring = spread (70 px), centre dot = precision, ticks (art bible §6).
-        ctx.translate(90, 90);
-        ctx.lineWidth = 8;
-        ctx.strokeStyle = INK;
-        ellipse(ctx, 0, 0, 70, 70);
-        ctx.stroke();
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = '#F3EAD3';
-        ctx.stroke();
-        for (let k = 0; k < 4; k++) {
-          ctx.save();
-          ctx.rotate((k * Math.PI) / 2);
-          ctx.beginPath();
-          ctx.moveTo(0, -84);
-          ctx.lineTo(0, -56);
-          ctx.lineWidth = 8;
-          ctx.strokeStyle = INK;
-          ctx.stroke();
-          ctx.lineWidth = 4;
-          ctx.strokeStyle = '#F3EAD3';
-          ctx.stroke();
-          ctx.restore();
-        }
-        ellipse(ctx, 0, 0, 6, 6);
-        inked(ctx, '#C8302A', 3);
-      },
-    },
     {
       key: TEX.badgeNo,
       width: 64,
@@ -1355,6 +1298,8 @@ export function createPlaceholderManifest(
   content: ContentBundle,
   biome: Biome,
   barkLines: readonly string[] = [],
+  /** v1.1 (D-032): feel.json guns.ammo — a placeholder per ammo type (full and spent). */
+  ammoTypes: Readonly<Record<string, AmmoType>> = {},
 ): AssetManifest {
   const m = new AssetManifest();
   const art = loadedArt.get(biome.id);
@@ -1389,6 +1334,7 @@ export function createPlaceholderManifest(
   for (const s of uiSpecs()) m.addTexture(s);
   for (const s of m4Specs()) m.addTexture(s);
   for (const s of arsenalSpecs()) m.addTexture(s);
+  for (const s of ammoSpecs(ammoTypes)) m.addTexture(s);
   for (const s of omenSpecs()) m.addTexture(s);
   for (const id of SFX_IDS) m.addSound(sfxKey(id));
   // M10: music and ambience are silent placeholders until recordings are delivered; so are Oupa's

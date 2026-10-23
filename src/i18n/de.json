@@ -392,6 +392,7 @@
   "settings.captions": "Ton-Untertitel",
   "settings.colour_blind": "Nicht-schießen-Marken",
   "settings.hold_to_fire": "Halten zum Feuern",
+  "settings.offset_crosshair": "Fadenkreuz über Finger (Touch)",
   "caption.empty_click": "[Klick — Waffe leer]",
   "caption.reloaded": "[Patronen klacken rein]",
   "caption.penalty": "[Plattenkratzer — Strafe]",

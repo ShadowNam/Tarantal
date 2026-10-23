@@ -392,6 +392,7 @@
   "settings.captions": "Klankonderskrifte",
   "settings.colour_blind": "Moenie-skiet-merke",
   "settings.hold_to_fire": "Hou in om te skiet",
+  "settings.offset_crosshair": "Visier bo vinger (raak)",
   "caption.empty_click": "[klik — leë geweer]",
   "caption.reloaded": "[doppies klap in]",
   "caption.penalty": "[plaat krap — strafpunte]",

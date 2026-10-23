@@ -42,6 +42,8 @@ export interface InputHost {
   queue(cmd: Command): void;
   /** Cursor/finger position for the reticle and gun lean. */
   aim(x: number, y: number, fromTap: boolean): void;
+  /** v1.1 (GDD §18.2): Settings → offset crosshair: touch aims this far above the finger (0 = off). */
+  crosshairOffsetPx?(): number;
   fingerDown(down: boolean): void;
   toggleDebug(): void;
 }
@@ -149,8 +151,9 @@ export class InputMapper {
       // The finger stayed still long enough: no longer a tap, drag or flick, but the hold.
       this.pendingHold = null;
       this.gestures.cancel(pending.id);
-      this.host.aim(pending.x, pending.y, true);
-      this.startHold(pending.id, pending.x, pending.y);
+      const a = this.aimPoint(pending, false);
+      this.host.aim(a.x, a.y, true);
+      this.startHold(pending.id, a.x, a.y);
     }
     const cx = this.pan.tick();
     const cmds: Command[] = cx === null ? [] : [{ t: 'cameraTarget', cx }];
@@ -211,6 +214,12 @@ export class InputMapper {
     else this.host.queue({ t: 'fireHoldEnd' });
   }
 
+  /** Where a finger aims: the finger, or (offset crosshair) straight above it. Mouse: the cursor. */
+  private aimPoint(p: { x: number; y: number }, mouse: boolean): { x: number; y: number } {
+    const off = mouse ? 0 : (this.host.crosshairOffsetPx?.() ?? 0);
+    return off > 0 ? { x: p.x, y: Math.max(0, p.y - off) } : p;
+  }
+
   private onDown(e: PointerEvent): void {
     e.preventDefault();
     if (!this.enabled || this.ignored.has(e.pointerId)) return;
@@ -253,11 +262,17 @@ export class InputMapper {
       this.pendingHold = { id: e.pointerId, x: p.x, y: p.y, at: e.timeStamp };
     } else if (!onButton && this.holdPointer === null && this.host.holdToFire()) {
       // A weapon with its own hold: a held finger fires and aims; the screen edges pan.
+      const a = this.aimPoint(p, false);
       this.pan.hold();
-      this.host.aim(p.x, p.y, true);
+      this.host.aim(a.x, a.y, true);
       this.host.fingerDown(true);
-      this.startHold(e.pointerId, p.x, p.y);
+      this.startHold(e.pointerId, a.x, a.y);
       return;
+    }
+    // Offset crosshair: it shows above the finger while the finger is down.
+    if (!onButton && (this.host.crosshairOffsetPx?.() ?? 0) > 0) {
+      const a = this.aimPoint(p, false);
+      this.host.aim(a.x, a.y, true);
     }
     this.pan.hold();
     this.gestures.down(e.pointerId, p.x, p.y, e.timeStamp);
@@ -273,8 +288,10 @@ export class InputMapper {
       Math.hypot(p.x - pending.x, p.y - pending.y) > this.feel.input.tapMaxMovePx
     )
       this.pendingHold = null; // it moved: a drag or a flick, not a hold
-    if (e.pointerId === this.holdPointer) this.moveHold(p.x, p.y);
-    if (e.pointerType === 'mouse') {
+    const mouse = e.pointerType === 'mouse';
+    const a = this.aimPoint(p, mouse);
+    if (e.pointerId === this.holdPointer) this.moveHold(a.x, a.y);
+    if (mouse) {
       this.host.aim(p.x, p.y, true);
       const { width } = this.host.designSize();
       this.pan.setEdgeDirection(edgeDirection(p.x, width, this.feel.input.edgePanFraction));
@@ -282,12 +299,13 @@ export class InputMapper {
     }
     if (e.pointerId === this.holdPointer) {
       const { width } = this.host.designSize();
-      this.host.aim(p.x, p.y, true);
+      this.host.aim(a.x, a.y, true);
       // Only a weapon's own hold edge-pans; the Settings hold just aims.
       if (!this.repeating)
         this.pan.setEdgeDirection(edgeDirection(p.x, width, this.feel.input.edgePanFraction));
       return;
     }
+    if (a !== p) this.host.aim(a.x, a.y, true); // offset crosshair follows the finger
     const dx = this.gestures.move(e.pointerId, p.x, p.y, e.timeStamp);
     if (dx !== 0) this.pan.drag(dx);
   }
@@ -315,8 +333,9 @@ export class InputMapper {
           const slot = this.host.itemAt(end.x, end.y);
           if (slot !== null) this.host.queue({ t: 'consumable', slot });
         } else {
-          this.host.aim(end.x, end.y, true);
-          this.fireAt(end.x, end.y);
+          const a = this.aimPoint(end, false);
+          this.host.aim(a.x, a.y, true);
+          this.fireAt(a.x, a.y);
         }
         return;
       case 'flickDown':

@@ -948,6 +948,103 @@ const BarkTriggerSchema = obj({
   lines: z.array(barkKey).min(1),
 });
 
+// v1.1 (D-032): what each gun shows on screen — its ammo on the HUD and its crosshair. Screen
+// only: none of this reaches the sim. Adding a gun's look (the .22, the Langloop) is data here
+// plus one interim drawing in tools/art; the HUD and the crosshair code read only this.
+const hexColor = z.string().regex(/^#[0-9A-Fa-f]{6}$/);
+
+/** One kind of round. Textures `ui/ammo/<type>` (full) and `ui/ammo/<type>_spent`. */
+const AmmoTypeSchema = obj({
+  /** HUD texture size in design px (1 texture px per design px, origin at the centre). */
+  width: posInt,
+  height: posInt,
+  /** Step between rounds in a belt or pile row (design px). */
+  pitch: pos,
+  /** What a fired round leaves: its own spent texture, or nothing (the slot empties). */
+  spent: z.enum(['sprite', 'gone']),
+  /** Runtime placeholder colours until the interim/final art loads: body and base. */
+  body: hexColor,
+  base: hexColor,
+  /** Hopper: the band of the texture (fractions of its height, top and bottom) that holds the
+   *  ammo and empties; the rest (the hopper's frame) always shows. */
+  fillBand: range(fraction).optional(),
+});
+export type AmmoType = z.infer<typeof AmmoTypeSchema>;
+
+const AmmoDisplaySchema = z.discriminatedUnion('layout', [
+  /** A row of rounds, one per shell in the magazine (or crate shot), newest on the left. */
+  obj({ layout: z.literal('belt'), type: id }),
+  /** Unlimited ammo (Kettie): a small pile of `count` rounds; the top one goes while drawing. */
+  obj({ layout: z.literal('pile'), type: id, count: posInt }),
+  /** One container that empties with the time left (Mielie-Masjien): the full texture is
+   *  cropped down over the spent (empty) one. */
+  obj({ layout: z.literal('hopper'), type: id }),
+]);
+export type AmmoDisplay = z.infer<typeof AmmoDisplaySchema>;
+
+/** Radius: design px, or "spread" × `scale` (the weapon's spreadPx: where its pellets land). */
+const radiusSchema = z.union([pos, z.literal('spread')]);
+const CrosshairPartSchema = z.discriminatedUnion('shape', [
+  /** A ring; `rough` > 0 makes it hand-cut and uneven (Voorlaaier), `gaps` breaks it. */
+  obj({
+    shape: z.literal('ring'),
+    r: radiusSchema,
+    scale: pos.default(1),
+    rough: fraction.default(0),
+    gaps: nonNegInt.default(0),
+    width: pos.default(1),
+  }),
+  /** A filled centre dot. */
+  obj({ shape: z.literal('dot'), r: pos }),
+  /** `count` short marks around the centre from `inner` to `outer` (px past the radius `at`). */
+  obj({
+    shape: z.literal('ticks'),
+    at: radiusSchema,
+    inner: z.number(),
+    outer: z.number(),
+    count: posInt,
+    width: pos.default(1),
+  }),
+  /** A thin cross with a gap in the middle. */
+  obj({ shape: z.literal('cross'), gap: nonNeg, len: pos, width: pos.default(1) }),
+  /** A small V (slingshot fork) with its point on the aim point. */
+  obj({ shape: z.literal('vee'), size: pos, width: pos.default(1) }),
+  /** Kettie: a line down from the aim point with a mark at each plane's projectile drop. */
+  obj({ shape: z.literal('drop'), mark: pos, width: pos.default(1) }),
+]);
+export type CrosshairPart = z.infer<typeof CrosshairPartSchema>;
+
+const CrosshairSchema = obj({
+  parts: z.array(CrosshairPartSchema).min(1),
+  /** The whole crosshair shakes by up to this many px every frame (Mielie-Masjien). */
+  jitterPx: nonNeg.default(0),
+});
+export type Crosshair = z.infer<typeof CrosshairSchema>;
+
+/** Colours and line weight of every crosshair (the Skiet-Skuur's crosshair styles pick one). */
+const CrosshairStyleSchema = obj({
+  color: hexColor,
+  /** The dark keyline under every line, so it reads on sky and veld alike. */
+  keyline: hexColor,
+  /** Line width (× each part's width) and the keyline's extra width on each side. */
+  lineWidth: pos,
+  keylinePx: nonNeg,
+  alpha: fraction,
+});
+export type CrosshairStyle = z.infer<typeof CrosshairStyleSchema>;
+
+export const GunLookSchema = obj({
+  ammo: z.record(id, AmmoTypeSchema),
+  crosshairStyles: z.record(id, CrosshairStyleSchema),
+  /** The style used until the Skiet-Skuur lets the player pick one. */
+  crosshairStyle: id,
+  /** Weapon id (content/weapons.json) → its ammo display and crosshair. */
+  weapons: z.record(id, obj({ ammo: AmmoDisplaySchema, crosshair: CrosshairSchema })),
+  /** GDD §18.2: Settings → offset crosshair (touch) puts it this far above the finger. */
+  offsetCrosshairPx: pos,
+});
+export type GunLook = z.infer<typeof GunLookSchema>;
+
 export const FeelSchema = obj({
   version,
   input: obj({
@@ -1043,6 +1140,8 @@ export const FeelSchema = obj({
     chipW: pos,
     chipH: pos,
   }),
+  /** v1.1 (D-032): per-gun ammo display and crosshair. */
+  guns: GunLookSchema,
   loop: obj({
     /** Most sim steps per rendered frame (spiral-of-death guard, Tech §3.2). */
     maxStepsPerFrame: posInt,

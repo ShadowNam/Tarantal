@@ -72,6 +72,203 @@
     "chipW": 260,
     "chipH": 48
   },
+  "guns": {
+    "$comment": "v1.1 (D-032, GDD §17.1): what each gun shows — its ammo on the HUD (realistic interim art ui/ammo/<type> and ui/ammo/<type>_spent, 1 texture px per design px) and its crosshair, built from shape parts. A ring with r \"spread\" is the weapon's spreadPx: where its pellets land, the same on every plane. The crosshair style (Skiet-Skuur cosmetic, later) only recolours. Adding a gun's look is data here plus one drawing in tools/art.",
+    "ammo": {
+      "shell12": {
+        "width": 30,
+        "height": 84,
+        "pitch": 44,
+        "spent": "sprite",
+        "body": "#B8261F",
+        "base": "#C9A04A"
+      },
+      "diabolo": {
+        "width": 50,
+        "height": 64,
+        "pitch": 56,
+        "spent": "gone",
+        "body": "#8C9196",
+        "base": "#5E6368"
+      },
+      "stone": {
+        "width": 38,
+        "height": 30,
+        "pitch": 36,
+        "spent": "gone",
+        "body": "#9A8C7A",
+        "base": "#6E6252"
+      },
+      "paper": {
+        "width": 28,
+        "height": 80,
+        "pitch": 50,
+        "spent": "sprite",
+        "body": "#E6D8B4",
+        "base": "#7C7F84"
+      },
+      "kernel": {
+        "width": 150,
+        "height": 84,
+        "pitch": 150,
+        "spent": "sprite",
+        "body": "#E9B53A",
+        "base": "#6B6F73",
+        "fillBand": [0.12, 0.84]
+      }
+    },
+    "crosshairStyles": {
+      "veld": {
+        "color": "#F3EAD3",
+        "keyline": "#1B1410",
+        "lineWidth": 3,
+        "keylinePx": 2,
+        "alpha": 1
+      }
+    },
+    "crosshairStyle": "veld",
+    "weapons": {
+      "dubbelloop": {
+        "ammo": {
+          "layout": "belt",
+          "type": "shell12"
+        },
+        "crosshair": {
+          "parts": [
+            {
+              "shape": "ring",
+              "r": "spread"
+            },
+            {
+              "shape": "dot",
+              "r": 3
+            },
+            {
+              "shape": "ticks",
+              "at": "spread",
+              "inner": 6,
+              "outer": 20,
+              "count": 4
+            }
+          ]
+        }
+      },
+      "pomp": {
+        "ammo": {
+          "layout": "belt",
+          "type": "shell12"
+        },
+        "crosshair": {
+          "parts": [
+            {
+              "shape": "ring",
+              "r": "spread"
+            },
+            {
+              "shape": "dot",
+              "r": 3
+            },
+            {
+              "shape": "ticks",
+              "at": "spread",
+              "inner": 6,
+              "outer": 20,
+              "count": 4
+            }
+          ]
+        }
+      },
+      "windbuks": {
+        "ammo": {
+          "layout": "belt",
+          "type": "diabolo"
+        },
+        "crosshair": {
+          "parts": [
+            {
+              "shape": "ring",
+              "r": 16,
+              "width": 0.6
+            },
+            {
+              "shape": "dot",
+              "r": 2.5
+            },
+            {
+              "shape": "ticks",
+              "at": 16,
+              "inner": 6,
+              "outer": 18,
+              "count": 4,
+              "width": 0.6
+            }
+          ]
+        }
+      },
+      "kettie": {
+        "ammo": {
+          "layout": "pile",
+          "type": "stone",
+          "count": 5
+        },
+        "crosshair": {
+          "parts": [
+            {
+              "shape": "vee",
+              "size": 20
+            },
+            {
+              "shape": "drop",
+              "mark": 9,
+              "width": 0.7
+            }
+          ]
+        }
+      },
+      "voorlaaier": {
+        "ammo": {
+          "layout": "belt",
+          "type": "paper"
+        },
+        "crosshair": {
+          "parts": [
+            {
+              "shape": "ring",
+              "r": "spread",
+              "rough": 0.6,
+              "gaps": 5,
+              "width": 1.4
+            },
+            {
+              "shape": "dot",
+              "r": 4
+            }
+          ]
+        }
+      },
+      "mielie_masjien": {
+        "ammo": {
+          "layout": "hopper",
+          "type": "kernel"
+        },
+        "crosshair": {
+          "parts": [
+            {
+              "shape": "ring",
+              "r": "spread",
+              "gaps": 6
+            },
+            {
+              "shape": "dot",
+              "r": 3
+            }
+          ],
+          "jitterPx": 5
+        }
+      }
+    },
+    "offsetCrosshairPx": 70
+  },
   "loop": {
     "maxStepsPerFrame": 5
   },

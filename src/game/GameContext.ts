@@ -72,6 +72,10 @@ export interface TestHook {
   magazine: number;
   reloading: boolean;
   stones: number;
+  /** v1.1 (D-032): the HUD's ammo textures in belt order, and the crosshair on screen: the gun
+   *  it belongs to, its reach (px from the aim point) and whether it shows. */
+  ammo: string[];
+  crosshair: { weapon: string; extent: number; visible: boolean; x: number; y: number };
   shots: number;
   over: boolean;
   inputKind: InputKind | null;

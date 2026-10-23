@@ -101,7 +101,7 @@ describe('interim sprites and props keep the placeholder geometry (D-031)', () =
       if (size === null) continue;
       const a = renderSprite(cfg, spec, size, m.origin(spec.key));
       expect([a.width, a.height], spec.key).toEqual([size.width, size.height]);
-      if (spec.key === 'ui/reticle') {
+      if (spec.key === 'ui/windsock') {
         const b = renderSprite(cfg, spec, size, m.origin(spec.key));
         expect(createHash('sha1').update(b.data).digest('hex')).toBe(
           createHash('sha1').update(a.data).digest('hex'),

@@ -73,8 +73,8 @@ describe('AssetManifest.release (D-031: one biome of scenery at a time)', () => 
     expect(removed).toContain('karoo/windpomp');
     expect([...tex.keys].some((k) => k.startsWith('karoo/'))).toBe(false);
     expect(tex.keys.has('bushveld/baobab')).toBe(true);
-    expect(tex.keys.has('ui/reticle')).toBe(true);
-    expect(removed).not.toContain('ui/reticle');
+    expect(tex.keys.has('ui/windsock')).toBe(true);
+    expect(removed).not.toContain('ui/windsock');
     // Back to the Karoo: release the Bushveld, the Karoo re-installs.
     b.release(tex, a);
     a.install(tex);

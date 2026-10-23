@@ -58,7 +58,7 @@ export async function buildCatalog(content: ContentBundle): Promise<Catalog> {
   for (const id of ids) {
     const biome = content.biomes.find((b) => b.id === id);
     if (biome === undefined || !(await loadBiomeArt(id))) continue;
-    const m = createPlaceholderManifest(content, biome, barkLines);
+    const m = createPlaceholderManifest(content, biome, barkLines, loadFeel().guns.ammo);
     for (const e of m.entries()) {
       const prev = entries.get(e.key);
       const biomes = [...(prev?.biomes ?? []), id];

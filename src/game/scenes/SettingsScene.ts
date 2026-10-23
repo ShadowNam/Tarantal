@@ -240,7 +240,13 @@ export class SettingsScene extends Phaser.Scene {
       i: number,
       labelKey: I18nKey,
       key:
-        'reduceFlashes' | 'leftHanded' | 'highContrast' | 'captions' | 'colourBlind' | 'holdToFire',
+        | 'reduceFlashes'
+        | 'leftHanded'
+        | 'highContrast'
+        | 'captions'
+        | 'colourBlind'
+        | 'holdToFire'
+        | 'offsetCrosshair',
       after?: () => void,
     ): void => {
       toggle(
@@ -287,6 +293,8 @@ export class SettingsScene extends Phaser.Scene {
       choice(1, 0, 'settings.aim', AIM);
       flag(1, 1, 'settings.left_handed', 'leftHanded');
       flag(1, 2, 'settings.hold_to_fire', 'holdToFire');
+      // v1.1 (GDD §18.2): touch only — the crosshair sits above the finger.
+      flag(1, 4, 'settings.offset_crosshair', 'offsetCrosshair');
       choice(1, 3, 'settings.language', LANG, () => {
         this.ctx.applyLanguage();
         // Every label changes: rebuild with the language row still focused.

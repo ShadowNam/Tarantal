@@ -603,6 +603,94 @@
       "width": 240,
       "height": 240
     },
+    "ui/ammo/diabolo": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/ui_ammo_diabolo.818b2ddcac6d.png",
+        "bytes": 2833,
+        "hash": "818b2ddcac6d"
+      },
+      "width": 50,
+      "height": 64
+    },
+    "ui/ammo/kernel": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/ui_ammo_kernel.85cc52e61c3b.png",
+        "bytes": 21175,
+        "hash": "85cc52e61c3b"
+      },
+      "width": 150,
+      "height": 84
+    },
+    "ui/ammo/kernel_spent": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/ui_ammo_kernel_spent.13005a3ebe09.png",
+        "bytes": 7319,
+        "hash": "13005a3ebe09"
+      },
+      "width": 150,
+      "height": 84
+    },
+    "ui/ammo/paper": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/ui_ammo_paper.f4968f11f8a1.png",
+        "bytes": 2246,
+        "hash": "f4968f11f8a1"
+      },
+      "width": 28,
+      "height": 80
+    },
+    "ui/ammo/paper_spent": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/ui_ammo_paper_spent.209b58546b69.png",
+        "bytes": 1550,
+        "hash": "209b58546b69"
+      },
+      "width": 28,
+      "height": 80
+    },
+    "ui/ammo/shell12": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/ui_ammo_shell12.2d08c8d73371.png",
+        "bytes": 1157,
+        "hash": "2d08c8d73371"
+      },
+      "width": 30,
+      "height": 84
+    },
+    "ui/ammo/shell12_spent": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/ui_ammo_shell12_spent.0e40d47b52eb.png",
+        "bytes": 1468,
+        "hash": "0e40d47b52eb"
+      },
+      "width": 30,
+      "height": 84
+    },
+    "ui/ammo/stone": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/ui_ammo_stone.b72722107067.png",
+        "bytes": 1927,
+        "hash": "b72722107067"
+      },
+      "width": 38,
+      "height": 30
+    },
     "ui/badge_no": {
       "group": "common",
       "origin": "interim",
@@ -613,39 +701,6 @@
       },
       "width": 64,
       "height": 64
-    },
-    "ui/reticle": {
-      "group": "common",
-      "origin": "interim",
-      "file": {
-        "path": "assets/common/img/ui_reticle.5fe30f1ce45d.png",
-        "bytes": 3379,
-        "hash": "5fe30f1ce45d"
-      },
-      "width": 180,
-      "height": 180
-    },
-    "ui/shell": {
-      "group": "common",
-      "origin": "interim",
-      "file": {
-        "path": "assets/common/img/ui_shell.89427e5b763d.png",
-        "bytes": 501,
-        "hash": "89427e5b763d"
-      },
-      "width": 40,
-      "height": 92
-    },
-    "ui/shell_empty": {
-      "group": "common",
-      "origin": "interim",
-      "file": {
-        "path": "assets/common/img/ui_shell_empty.1158aa49ee92.png",
-        "bytes": 401,
-        "hash": "1158aa49ee92"
-      },
-      "width": 40,
-      "height": 92
     },
     "ui/windsock": {
       "group": "common",

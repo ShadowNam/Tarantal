@@ -392,6 +392,7 @@
   "settings.captions": "Geluidsondertitels",
   "settings.colour_blind": "Niet-schieten-markering",
   "settings.hold_to_fire": "Ingedrukt vuren",
+  "settings.offset_crosshair": "Vizier boven vinger (touch)",
   "caption.empty_click": "[klik — leeg geweer]",
   "caption.reloaded": "[hulzen klikken erin]",
   "caption.penalty": "[plaatkras — straf]",
