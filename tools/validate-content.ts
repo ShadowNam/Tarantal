@@ -83,7 +83,7 @@ for (const message of checkGunLook(feel.feel.guns, parsed.bundle.weapons.weapons
   errors.push({ file: 'client/feel.json', message });
 for (const [gun, look] of Object.entries(feel.feel.guns.weapons))
   for (const [event, sfx] of Object.entries(look.sfx))
-    if (sfx !== undefined && !(SFX_IDS as readonly string[]).includes(sfx))
+    if (typeof sfx === 'string' && !(SFX_IDS as readonly string[]).includes(sfx))
       errors.push({
         file: 'client/feel.json',
         message: `guns.weapons.${gun}.sfx.${event}: no sound "${sfx}" (src/game/audio/synth.ts SFX_IDS)`,

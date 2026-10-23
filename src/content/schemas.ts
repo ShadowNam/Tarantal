@@ -1051,6 +1051,10 @@ export const GunLookSchema = obj({
         reloadStarted: id.optional(),
         shellLoaded: id.optional(),
         reloadFinished: id.optional(),
+        /** Played `afterShotMs` after a shot that leaves rounds (a crate gun's reload has no
+         *  reload events: the Voorlaaier's ramrod). */
+        afterShot: id.optional(),
+        afterShotMs: nonNeg.optional(),
       }),
     }),
   ),

@@ -334,7 +334,11 @@ export class AudioDirector {
   }
 
   /** A gun's sound for an event, if it has one. */
-  private playGun(which: keyof GunSfx, pan: number, weapon?: string): void {
+  private playGun(
+    which: 'shot' | 'reloadStarted' | 'shellLoaded' | 'reloadFinished',
+    pan: number,
+    weapon?: string,
+  ): void {
     const id = this.gun(weapon)[which];
     if (isSfx(id)) this.play(id, pan);
   }
@@ -346,11 +350,20 @@ export class AudioDirector {
     let sting = false;
     for (const e of events) {
       switch (e.type) {
-        case 'shotFired':
+        case 'shotFired': {
           this.weapon = e.weapon;
           if (!shot) this.playGun('shot', panOf(e), e.weapon);
           shot = true;
+          // A crate gun reloads without events: its reload sound follows the shot.
+          const g = this.gun(e.weapon);
+          if (isSfx(g.afterShot) && e.shellsLeft !== 0) {
+            const id = g.afterShot;
+            this.env.setTimer(() => {
+              if (!this.muted) this.play(id, 0.5);
+            }, g.afterShotMs ?? 0);
+          }
           break;
+        }
         case 'emptyClick':
           this.play('click', 0);
           break;

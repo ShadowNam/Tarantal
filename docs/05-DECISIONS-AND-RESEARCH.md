@@ -1492,6 +1492,12 @@ gun's own ammo and crosshair, from the e2e preview hook on a held frame);
 `tests/e2e/gun-look.spec.ts` checks every gun, full and partly spent, on desktop, Pixel 7 and
 iPhone 14 landscape (locally on Chromium emulation; CI runs WebKit), real Windbuks play, and the offset crosshair; visual baselines re-recorded in
 `mcr.microsoft.com/playwright:v1.56.1-noble`; `v1.1-texture-memory-{biomes,season}.json`.
+(8) *Playtest review fixes:* a crate gun reloads without events, so the Voorlaaier's ramrod is an
+`afterShot` sound (900 ms after a shot that leaves rounds); a bigger magazine (the Season Run's
+bandolier charm) packs the belt's rounds closer instead of spilling off the slate (also in
+left-handed mode); the crosshair ring follows the active power-ups' spread multiplier (Bush
+Buckshot ×2.5), exactly as the sim fires; infinite ammo (Chilli Biltong) shows a full belt and no
+RELOAD prompt; aiming keeps a crosshair style's opacity.
 
 ## 3. Research notes (with sources)
 

@@ -266,7 +266,8 @@
         },
         "sfx": {
           "shot": "shotVoorlaaier",
-          "reloadStarted": "ramrod"
+          "afterShot": "ramrod",
+          "afterShotMs": 900
         }
       },
       "mielie_masjien": {

@@ -263,6 +263,34 @@ describe('AudioDirector: each gun its own sounds (v1.1, D-032)', () => {
     expect(playedIds(r, at)).toEqual(['sfx/shell', 'sfx/rackPomp']);
   });
 
+  it('the Voorlaaier (a crate gun, no reload events) plays its ramrod after a shot that leaves rounds', async () => {
+    const timers: { fn: () => void; ms: number }[] = [];
+    const r = rig(undefined, guns);
+    (r as unknown as { audio: { env: { setTimer: unknown } } }).audio.env.setTimer = (
+      fn: () => void,
+      ms: number,
+    ) => timers.push({ fn, ms });
+    r.audio.addRecorded(['shotVoorlaaier', 'ramrod'].map((id) => file(sfxKey(id))));
+    r.audio.unlock();
+    await flush();
+    const at = r.ctx.sources.length;
+    r.audio.handle(
+      [{ type: 'shotFired', weapon: 'voorlaaier', shellsLeft: 2 } as unknown as SimEvent],
+      () => 0,
+    );
+    const ramrod = timers.find((t) => t.ms === 900);
+    expect(ramrod).toBeDefined();
+    ramrod?.fn();
+    expect(playedIds(r, at)).toEqual(['sfx/shotVoorlaaier', 'sfx/ramrod']);
+    // The last shot leaves nothing to load: no ramrod.
+    const n = timers.length;
+    r.audio.handle(
+      [{ type: 'shotFired', weapon: 'voorlaaier', shellsLeft: 0 } as unknown as SimEvent],
+      () => 0,
+    );
+    expect(timers.slice(n).some((t) => t.ms === 900)).toBe(false);
+  });
+
   it('a muted director plays no gun sound', async () => {
     const r = rig(undefined, guns);
     r.audio.unlock();
