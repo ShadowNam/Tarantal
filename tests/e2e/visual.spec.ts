@@ -1,8 +1,8 @@
 // M10 visual regression (Build plan M10 "visual regression screenshots approved"): the title, a
 // hunt held at a fixed tick (seed 42, ?holdAt), the tally, the Padstal, both Settings pages and
 // the privacy screen, compared with committed baselines (tests/e2e/visual-baselines/) on
-// desktop-chromium and pixel7-landscape. Fonts are loaded before anything is drawn. After the
-// art swap: `npx playwright test tests/e2e/visual.spec.ts --update-snapshots`, review, commit.
+// desktop-chromium and pixel7-landscape. Fonts are loaded before anything is drawn. After an
+// intentional change, CI re-records them: label the PR `update-baselines` (D-030), then review.
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
 import { loadDailyMeta } from '../../tools/testContent';
 import { boot, hook, isTouchProject, tapRect } from './helpers';

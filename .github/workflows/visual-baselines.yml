@@ -1,0 +1,183 @@
+name: Visual baselines
+
+# Re-records the visual regression baselines (tests/e2e/visual.spec.ts → tests/e2e/visual-baselines/)
+# on GitHub, in the same Playwright image as the e2e jobs, and commits the screens that changed to
+# the branch (D-030, 23 Oct). Nobody records them on their own machine: another machine renders a
+# little differently, and the Playwright container was the heaviest step on the build server.
+#
+# Start it by labelling a PR into main `update-baselines`, or by hand (Actions → Visual baselines →
+# Run workflow, with the branch). Only screens that differ beyond the spec's tolerance, or have no
+# baseline yet, are written (`--update-snapshots=changed`). The commit lands on the PR branch, so
+# pull before the next push; then review the image diff in the PR before merging.
+on:
+  pull_request:
+    types: [labeled]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Branch to re-record (never main)
+        required: true
+        type: string
+      grep:
+        description: Only tests whose title matches this, e.g. "hunt|Padstal" (empty = all)
+        required: false
+        type: string
+        default: ''
+
+concurrency:
+  group: visual-baselines-${{ github.event.pull_request.head.ref || inputs.branch }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  target:
+    name: target
+    runs-on: ubuntu-24.04
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.label.name == 'update-baselines' &&
+      github.event.pull_request.head.repo.full_name == github.repository)
+    outputs:
+      branch: ${{ steps.t.outputs.branch }}
+      sha: ${{ steps.t.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.ref || inputs.branch }}
+          sparse-checkout: package.json
+          sparse-checkout-cone-mode: false
+      - id: t
+        env:
+          BRANCH: ${{ github.event.pull_request.head.ref || inputs.branch }}
+        run: |
+          if [ "$BRANCH" = main ]; then
+            echo "::error::Baselines are re-recorded on a PR branch, never on main."
+            exit 1
+          fi
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "Recording $BRANCH at $(git rev-parse HEAD)"
+
+  record:
+    name: record (${{ matrix.project }})
+    needs: target
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    # Keep the tag equal to the e2e jobs' image in ci.yml (= @playwright/test in package.json).
+    container:
+      image: mcr.microsoft.com/playwright:v1.56.1-noble
+      options: --ipc=host
+    strategy:
+      fail-fast: true
+      matrix:
+        project: [desktop-chromium, pixel7-landscape]
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.target.outputs.sha }}
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Record the screens that changed
+        env:
+          PROJECT: ${{ matrix.project }}
+          GREP: ${{ inputs.grep }}
+        run: |
+          set -- tests/e2e/visual.spec.ts --project="$PROJECT" --update-snapshots=changed --retries=0
+          if [ -n "$GREP" ]; then set -- "$@" --grep "$GREP"; fi
+          npx playwright test "$@"
+      - uses: actions/upload-artifact@v5
+        with:
+          name: baselines-${{ matrix.project }}
+          path: tests/e2e/visual-baselines/*-${{ matrix.project }}.png
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload the report
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: report-${{ matrix.project }}
+          path: playwright-report/
+          retention-days: 7
+
+  commit:
+    name: commit
+    needs: [target, record]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.target.outputs.branch }}
+      - uses: actions/download-artifact@v5
+        with:
+          pattern: baselines-*
+          path: ${{ runner.temp }}/baselines
+          merge-multiple: true
+      - name: Commit the screens that changed
+        id: c
+        env:
+          SHA: ${{ needs.target.outputs.sha }}
+          BRANCH: ${{ needs.target.outputs.branch }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          head=$(git rev-parse HEAD)
+          if [ "$head" != "$SHA" ]; then
+            echo "::error::$BRANCH moved from $SHA to $head while recording. Run this again on the new head."
+            exit 1
+          fi
+          cp "$RUNNER_TEMP"/baselines/*.png tests/e2e/visual-baselines/
+          changed=$(git status --porcelain -- tests/e2e/visual-baselines | awk '{print $2}')
+          if [ -z "$changed" ]; then
+            echo "No baseline changed: every screen matches within the tolerance." | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- tests/e2e/visual-baselines
+          {
+            echo 'test(visual): re-record baselines in CI'
+            echo
+            echo "Recorded from $SHA in mcr.microsoft.com/playwright:v1.56.1-noble by the"
+            echo "Visual baselines workflow: $RUN_URL"
+            echo
+            echo "$changed" | sed 's/^/- /'
+          } > "$RUNNER_TEMP/message"
+          git commit -q -F "$RUNNER_TEMP/message"
+          git push origin "HEAD:refs/heads/$BRANCH"
+          echo "pushed=true" >> "$GITHUB_OUTPUT"
+          { echo "Re-recorded and pushed to \`$BRANCH\`:"; echo "$changed" | sed 's/^/- /'; } >> "$GITHUB_STEP_SUMMARY"
+      # A push made with the workflow's token starts no workflows (a GitHub rule), so start the
+      # quick lane on the new commit by hand.
+      - name: Run CI on the new commit
+        if: steps.c.outputs.pushed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ needs.target.outputs.branch }}
+        run: gh workflow run ci.yml --repo "$GITHUB_REPOSITORY" --ref "$BRANCH" -f lane=quick
+
+  unlabel:
+    name: remove label
+    needs: commit
+    if: >-
+      always() && github.event_name == 'pull_request' &&
+      github.event.label.name == 'update-baselines' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      # Removed whatever happened, so labelling the PR again starts a new run.
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: gh api -X DELETE "repos/$GITHUB_REPOSITORY/issues/$PR/labels/update-baselines" --silent || true

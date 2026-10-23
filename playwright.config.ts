@@ -54,7 +54,8 @@ const skip = process.env['E2E_SKIP'] || undefined;
 export default defineConfig({
   testDir: 'tests/e2e',
   // M10 visual regression (tests/e2e/visual.spec.ts): committed baselines, one per screen and
-  // profile; Linux (CI) is the reference platform. Update with --update-snapshots (docs/06 §7).
+  // profile; Linux (CI) is the reference platform. Re-recorded only in CI, by
+  // .github/workflows/visual-baselines.yml (label a PR `update-baselines`; docs/06 §7, D-030).
   snapshotPathTemplate: '{testDir}/visual-baselines/{arg}-{projectName}{ext}',
   expect: {
     // Software-rendered WebGL (SwiftShader) and font antialiasing differ slightly between runs and
