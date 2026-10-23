@@ -82,12 +82,57 @@ test('recorded music and SFX play after the first gesture; mute rules hold', asy
   expect(errors).toEqual([]);
 });
 
-test('with nothing delivered there is no music and the synth plays the SFX', async ({
+test('the shipped interim audio plays: every gun sound, Karoo music and ambience (v1.1)', async ({
+  page,
+  browserName,
+}, info) => {
+  test.skip(browserName !== 'chromium' || !isLandscape(info), 'Chromium, landscape');
+  const errors = collectErrors(page);
+  const touch = isTouchProject(info);
+  await boot(page, 'seed=42');
+  expect(await gain(page)).toBeNull();
+  await startHunt(page, touch);
+  await page.waitForFunction(() => window.__TM__?.music?.id === 'karoo-autumn', null, {
+    timeout: 30_000,
+  });
+  const h = await hook(page);
+  expect(h.assets.recorded).toEqual(
+    expect.arrayContaining([
+      'sfx/shot',
+      'sfx/shotPomp',
+      'sfx/shotWindbuks',
+      'sfx/shotKettie',
+      'sfx/shotVoorlaaier',
+      'sfx/shotMielie',
+      'sfx/kek',
+      'music/karoo-autumn/calm',
+      'music/karoo-autumn/build',
+      'music/karoo-autumn/stampede',
+      'amb/karoo-autumn',
+    ]),
+  );
+  // Only the biome on screen: the other biomes' music isn't decoded (their lazy chunks).
+  expect(h.assets.recorded.some((k) => k.startsWith('music/okavango-spring'))).toBe(false);
+  expect(await gain(page)).toBeGreaterThan(0);
+  await setHidden(page, true);
+  expect(await gain(page)).toBe(0);
+  await setHidden(page, false);
+  expect(errors).toEqual([]);
+});
+
+test('with no audio delivered there is no music and the synth plays the SFX', async ({
   page,
   browserName,
 }, info) => {
   test.skip(browserName !== 'chromium' || !isLandscape(info), 'Chromium, landscape');
   const touch = isTouchProject(info);
+  // v1.1 ships interim audio (D-032): serve the index without it, as before any delivery.
+  await page.route('**/assets/asset-index.json', async (route) => {
+    const res = await route.fetch();
+    const index = (await res.json()) as { audio: Record<string, unknown> };
+    index.audio = {};
+    await route.fulfill({ response: res, json: index });
+  });
   await boot(page, 'seed=42');
   await startHunt(page, touch);
   await page.waitForFunction(() => (window.__TM__?.masterGain ?? 0) > 0, null, { timeout: 60_000 });

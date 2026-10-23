@@ -7,7 +7,7 @@ import { AudioDirector, type AudioEnv } from './AudioDirector';
 
 const tuning = loadFeel().audio;
 
-function rig(canPlay: (m: string) => string = () => 'probably') {
+function rig(canPlay: (m: string) => string = () => 'probably', guns = {}) {
   const ctx = new FakeContext();
   let hidden: (h: boolean) => void = () => undefined;
   let now = 0;
@@ -21,7 +21,7 @@ function rig(canPlay: (m: string) => string = () => 'probably') {
     canPlay,
     fetchBytes: (path) => Promise.resolve(fakeFile(1, `mp3:${path}`)),
   };
-  const audio = new AudioDirector(tuning, env);
+  const audio = new AudioDirector(tuning, env, guns);
   return {
     ctx,
     audio,
@@ -223,5 +223,54 @@ describe('tally sounds and mute rules (M10 review)', () => {
     n = count();
     r.audio.ui('thud');
     expect(count()).toBe(n);
+  });
+});
+
+describe('AudioDirector: each gun its own sounds (v1.1, D-032)', () => {
+  const guns = Object.fromEntries(
+    Object.entries(loadFeel().guns.weapons).map(([id, w]) => [id, w.sfx]),
+  );
+  const playedIds = (r: ReturnType<typeof rig>, from: number): (string | undefined)[] =>
+    r.ctx.sources.slice(from).map((s) => s.buffer?.id);
+
+  it("a shot plays the firing gun's recording; a reload plays the gun in hand's", async () => {
+    const r = rig(undefined, guns);
+    r.audio.addRecorded(
+      ['shot', 'shotWindbuks', 'shotKettie', 'cockWindbuks', 'rackPomp', 'shell'].map((id) =>
+        file(sfxKey(id)),
+      ),
+    );
+    r.audio.unlock();
+    await flush();
+    let at = r.ctx.sources.length;
+    r.audio.handle([{ type: 'shotFired', weapon: 'windbuks' } as unknown as SimEvent], () => 0);
+    expect(playedIds(r, at)).toEqual(['sfx/shotWindbuks']);
+    at = r.ctx.sources.length;
+    r.audio.handle([{ type: 'shellLoaded', shells: 1 } as unknown as SimEvent], () => 0);
+    expect(playedIds(r, at)).toEqual(['sfx/cockWindbuks']);
+    at = r.ctx.sources.length;
+    r.audio.handle([{ type: 'shotFired', weapon: 'kettie' } as unknown as SimEvent], () => 0);
+    expect(playedIds(r, at)).toEqual(['sfx/shotKettie']);
+    r.audio.setWeapon('pomp');
+    at = r.ctx.sources.length;
+    r.audio.handle(
+      [
+        { type: 'shellLoaded', shells: 1 },
+        { type: 'reloadFinished', shells: 6 },
+      ] as unknown as SimEvent[],
+      () => 0,
+    );
+    expect(playedIds(r, at)).toEqual(['sfx/shell', 'sfx/rackPomp']);
+  });
+
+  it('a muted director plays no gun sound', async () => {
+    const r = rig(undefined, guns);
+    r.audio.unlock();
+    await flush();
+    r.audio.setMuted('pause', true);
+    const at = r.ctx.sources.length;
+    r.audio.handle([{ type: 'shotFired', weapon: 'voorlaaier' } as unknown as SimEvent], () => 0);
+    expect(r.ctx.sources.length).toBe(at);
+    expect(r.audio.masterGain).toBe(0);
   });
 });
