@@ -1673,8 +1673,9 @@ passes; head 0.48 × the hit radius, outlines 0.45 / 0.5 / 0.85 × the plane wei
 no wing outline, a small round eye in a pale ring, ringed spots denser
 toward the neck, slimmer grey-black legs. Koppies are rounded and lopsided, strata ridges are
 cuestas, one landmark spire at most (Kalahari); Kalahari dunes get a sinuous crest, slip face,
-graded slopes and ripples. Budgets after round 2: first download 2 910.9 KB gzip web (Poki 2 907.2,
-CrazyGames 2 907.3); lazy Bushveld 1 429.3, Kalahari 1 125.3, late 1 438.7, Okavango 1 516.5 KB; texture sizes unchanged;
+graded slopes and ripples. Budgets after round 2 and the #49 review fixes: first download 2 914.6 KB gzip web (Poki
+2 911.0, CrazyGames 2 911.1); lazy Bushveld 1 429.3, Kalahari 1 125.3, late 1 436.4, Okavango
+1 516.5 KB; texture sizes unchanged;
 sky contrast unchanged (plain maps 6.50–8.49, every map ≥ 82 % of its plain one); `art:interim` +
 `assets:pack` twice byte-identical (1 130 files). Full-size crops: `gfx3-full-dubbelloop.png`,
 `gfx3-full-tarentaal-near.png`.
