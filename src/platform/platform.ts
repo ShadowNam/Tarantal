@@ -21,6 +21,18 @@ export function currentPlatformId(): PlatformId {
   return buildPlatform(import.meta.env.VITE_PLATFORM);
 }
 
+/**
+ * v1.2x (D-034): does this build open the playtest admin page for `?admin=1`? The adapter's own
+ * answer (`adminPage`), readable before the adapter exists: the admin page keeps its own save,
+ * which must be chosen before the save loads.
+ */
+export function adminPageInBuild(): boolean {
+  const flag = import.meta.env.VITE_PLATFORM;
+  if (flag === 'poki') return PokiPlatform.ADMIN_PAGE;
+  if (flag === 'crazygames') return CrazyGamesPlatform.ADMIN_PAGE;
+  return WebPlatform.ADMIN_PAGE;
+}
+
 export function createPlatform(
   opts: PlatformOptions & { readonly serviceWorker: boolean },
 ): PlatformAdapter {

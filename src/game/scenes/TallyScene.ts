@@ -29,6 +29,8 @@ export interface TallyData {
   readonly menu: () => void;
   /** Opens the Season Run. */
   readonly seasonRun: () => void;
+  /** v1.2x (D-034): admin hunts swap [Season Run] for [Back to admin]. */
+  readonly admin?: () => void;
   /** What the hunt changed in the save (null if nothing was recorded). */
   readonly outcome: HuntOutcome | null;
   /** This was the FTUE hunt (Oupa se Les). */
@@ -219,7 +221,14 @@ export class TallyScene extends Phaser.Scene {
     const season: Rect = { x: px + 30, y: by + 12, w: Math.min(300, again.x - px - 60), h: 76 };
     const menuR: Rect = { x: px + panelW - 30 - season.w, y: by + 12, w: season.w, h: 76 };
     drawButton(this, again, t('tally.again'), 'primary', 52);
-    drawButton(this, season, t('tally.season_run'), 'secondary', 30);
+    const toAdmin = data.admin;
+    drawButton(
+      this,
+      season,
+      t(toAdmin === undefined ? 'tally.season_run' : 'admin.back'),
+      'secondary',
+      30,
+    );
     drawButton(this, menuR, t('tally.menu'), 'secondary', 32);
 
     // M7 [Share]: top-right of the slate (≥ 64 px), Classic and the official daily only.
@@ -288,12 +297,13 @@ export class TallyScene extends Phaser.Scene {
           },
         },
         {
-          id: 'seasonRun',
+          id: toAdmin === undefined ? 'seasonRun' : 'admin',
           rect: () => season,
           press: () => {
             if (pressed) return;
             pressed = true;
-            data.seasonRun();
+            if (toAdmin !== undefined) toAdmin();
+            else data.seasonRun();
           },
         },
         {
@@ -313,7 +323,7 @@ export class TallyScene extends Phaser.Scene {
       this.ctx.hook.scene = 'tally';
       this.ctx.hook.rects = {
         again,
-        seasonRun: season,
+        ...(toAdmin === undefined ? { seasonRun: season } : { admin: season }),
         menu: menuR,
         ...(shareMsg === null ? {} : { share: shareR }),
       };

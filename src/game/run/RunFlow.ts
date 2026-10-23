@@ -66,6 +66,16 @@ export class RunFlow {
     return run;
   }
 
+  /**
+   * v1.2x admin page (D-034): the run in progress jumps to `huntIndex` (its hunt next), with a
+   * crate gun rented for it. Admin pages keep their own save, so no player run is changed.
+   */
+  jumpTo(huntIndex: number, rental: string | null): RunState {
+    const run: RunState = { ...this.need(), huntIndex, phase: 'hunt', padstal: null, rental };
+    this.write(run);
+    return run;
+  }
+
   info(run: RunState = this.need()): HuntInfo {
     return huntInfo(this.content, run.huntIndex);
   }

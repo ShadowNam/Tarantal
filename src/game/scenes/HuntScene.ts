@@ -49,6 +49,7 @@ import { viewFor, type RunData, type RunView } from './RunScene';
 import type { TallyData } from './TallyScene';
 import type { TitleData } from './TitleScene';
 import type { ChallengeData } from './ChallengeScene';
+import type { AdminData } from './AdminScene';
 
 export interface HuntData {
   /** Skip the title (the [Again] button) with this input kind. */
@@ -469,6 +470,11 @@ export class HuntScene extends Phaser.Scene {
   private showTitle(): void {
     // The title is up: loading is over (Poki gameLoadingFinished, CrazyGames loadingStop).
     this.ctx.platform.loadingProgress(1);
+    // v1.2x (D-034): the playtest admin page replaces the title (list, or the [Play] card).
+    if (this.ctx.admin !== null) {
+      this.showAdmin();
+      return;
+    }
     // A challenge link opened this page: its "beat this" card comes first, once.
     const pending = this.ctx.pendingChallenge;
     this.ctx.pendingChallenge = null;
@@ -505,6 +511,32 @@ export class HuntScene extends Phaser.Scene {
     this.scene.launch('Title', data);
     this.scene.bringToTop('Title');
     if (this.ctx.hook) this.ctx.hook.scene = 'start';
+  }
+
+  // --- admin page (D-034) ---------------------------------------------------------------------
+
+  private showAdmin(): void {
+    const setup = this.ctx.admin?.setup ?? null;
+    const data: AdminData =
+      setup === null
+        ? { view: 'list' }
+        : {
+            view: 'play',
+            start: (pointerType) => {
+              this.ctx.audio.unlock();
+              const kind = inputKindOf(pointerType);
+              if (setup.mode === 'seasonHunt') {
+                // A fresh run on the admin save, jumped to the chosen hunt.
+                this.ctx.run.abandon();
+                this.ctx.run.start(this.ctx.nextSeed(), setup.weapon ?? this.runWeapon());
+                this.ctx.run.jumpTo(setup.huntIndex ?? 0, setup.runRental ?? null);
+              }
+              this.begin(kind, null, setup.mode);
+            },
+          };
+    this.scene.launch('Admin', data);
+    this.scene.bringToTop('Admin');
+    if (this.ctx.hook) this.ctx.hook.scene = 'admin';
   }
 
   // --- Season Run ---------------------------------------------------------------------------
@@ -611,13 +643,15 @@ export class HuntScene extends Phaser.Scene {
     // own gun; a challenge the gun it names.
     const loadout = this.ctx.content.weapons.weapons.find((w) => w.id === save.loadout.weapon);
     const plainMode = modeId === 'classic' || modeId === 'daily' ? modeId : null;
+    const adminGun = plainMode === null ? undefined : this.ctx.weaponOverride;
     const weapon =
-      plainMode !== null &&
+      adminGun ??
+      (plainMode !== null &&
       loadout !== undefined &&
       loadout.id !== this.ctx.content.modes.modes[plainMode].weapon &&
       isWeaponEquippable(loadout, save, this.ctx.content)
         ? loadout.id
-        : undefined;
+        : undefined);
     const bonusOpen =
       bonus !== undefined &&
       modeId === 'classic' &&
@@ -711,6 +745,7 @@ export class HuntScene extends Phaser.Scene {
       this.ctx.daily.start(plan);
       this.shareLog = createShareLogger(this.ctx.dailyMeta.grid);
     }
+    this.ctx.admin?.played(seed, sim.snapshot().weapon.id);
     const durationTicks = sim.snapshot().durationTicks;
     this.ftue =
       modeId === 'ftue'
@@ -1145,6 +1180,13 @@ export class HuntScene extends Phaser.Scene {
         seasonRun: () => {
           this.openRun();
         },
+        ...(this.ctx.admin === null
+          ? {}
+          : {
+              admin: () => {
+                this.ctx.admin?.back();
+              },
+            }),
       };
       this.scene.launch('Tally', data);
     });

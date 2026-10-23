@@ -9,6 +9,9 @@ export class WebPlatform extends LocalPlatform {
   readonly id = 'web' as const;
   readonly canShowExternalLinks = true;
   readonly pwa = true;
+  /** D-034: the playtest admin page is on the Pages and dev builds. */
+  static readonly ADMIN_PAGE = true;
+  readonly adminPage = WebPlatform.ADMIN_PAGE;
 
   private readonly serviceWorker: boolean;
 

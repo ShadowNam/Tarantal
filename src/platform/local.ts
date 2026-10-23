@@ -92,6 +92,7 @@ export abstract class LocalPlatform implements PlatformAdapter {
   abstract readonly id: PlatformId;
   abstract readonly canShowExternalLinks: boolean;
   abstract readonly pwa: boolean;
+  abstract readonly adminPage: boolean;
   /** Analytics this page (newest last, capped). */
   readonly records: AnalyticsRecord[] = [];
   /** Error reports this page (newest last, capped). */

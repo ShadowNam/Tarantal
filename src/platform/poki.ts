@@ -36,6 +36,9 @@ export class PokiPlatform extends LocalPlatform {
   readonly id = 'poki' as const;
   readonly canShowExternalLinks = false;
   readonly pwa = false;
+  /** D-034: no playtest admin page on a portal (`?admin=1` shows the normal title). */
+  static readonly ADMIN_PAGE = false;
+  readonly adminPage = PokiPlatform.ADMIN_PAGE;
   protected override readonly shareSheet = false;
   private sdk: PokiSdk | null = null;
   private inGameplay = false;
