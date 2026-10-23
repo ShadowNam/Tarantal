@@ -1598,6 +1598,94 @@ the URL stays ≤ 7 000 chars. Screenshots are attached on GitHub.
 `touch-action: pan-y` on its scroll areas), i18n keys `admin.*` (English text in every table:
 admin is a tool for the team). Checked on desktop and Pixel 7 landscape (`admin.spec.ts`).
 
+**D-035 v1.2x Graphics pass 3: semi-realistic guns, birds, bakkie and mountains (23 Oct 2026):**
+the product owner's notes: "the farm house seems half cut, layers issue. Also the mountains can't
+all be flat, look at mountains in Namibia and make more interesting. The car detail needs to be
+better. And the detail on the guns needs a more realistic touch, they look too cartoony, the same
+applies for the birds. I see there is even a bird that has no texture at all." Art direction
+change, art bible §1.1: guns, birds, vehicles and mountains move from cartoon toward
+semi-realistic (realistic proportions and materials, painterly shading, fine detail, thinner and
+softer outlines); UI, FX and tone stay comic. Provenance stays `interim` (code-drawn,
+`npm run art:interim`).
+(1) *Farmhouse cut in half:* the far-veld textures were cropped at y = 548 while the Karoo
+farmhouse's trees reached y ≈ 500, so the trees (and Bushveld mopane, Kalahari camelthorns,
+Okavango palms) lost their tops and the house read as half a building. The far-veld window moves
+to 464–696 in every biome (same 232 px; the mid layer is opaque from y = 662), the farmstead is
+redrawn standing on the ground line (stoep, corrugated roof, chimney, yard wall, a path to the
+track, a tank stand, contact shadows), and trees are leaf masses on their own base. Foreground
+grass tips fade over 28 px instead of a hard cut. Guard: `tools/art/edgeAudit.test.ts` fails when
+any layer's top row or a scenery prop's top/left/right edge holds art.
+(2) *Mountains:* `tools/art/mountains.ts` (inselberg, massif with ravines, strata ridge, koppie
+with scree, boulder heap, mesa with talus and horizontal strata), fractal skylines, gradients,
+cracks, exfoliation sheets, gullies and aerial perspective. Karoo: mesas, koppies and a hazy
+massif range; Bushveld: granite inselbergs and boulder koppies; Kalahari: an escarpment-like
+range behind the dunes; Okavango: low Tsodilo-like hills in the haze.
+(3) *Bakkie:* an old single-cab pickup with no badge: panel gaps and swage line, door, chrome
+handle and keyhole, mirror, sky reflections in the glass, slatted grille, round headlight,
+indicators, tail lights, chrome bumpers, roll bar, tie-down hooks, treaded tyres on steel rims,
+dust, mud, dents and rust. The spare wheel (the secret, unchanged hit area) hangs on a bracket on
+the outside of the bin by the tailgate, leaning back 6°, so its whole hit ellipse shows the wheel
+(review of #49: drawn inside the bin, 58 % of the ellipse was plain panel).
+(4) *Guns:* outlines first 0.42 × the near weight and tinted (superseded in round 2, see (8):
+0.25 × and no dark contours at all), less wobble; metal with a rounded-surface
+gradient, specular line and edge wear; finer wood grain with figure; finer checkering with a cut
+border; slotted screws and a rear sling swivel; a slim Dubbelloop splinter fore-end and finer
+engraving; a slim grooved pump slide; bark and glossy tubing on the Kettie. The Skiet-Skuur's gun
+cards now show each gun: its idle frame is cropped from the decoded atlas page onto a small canvas
+about the card's height (≈ 0.1–0.3 MB) and removed with the scene; no gun atlas goes to the GPU
+for it. (The first version uploaded each gun's whole atlas, 4–16 MB each; the review of #49
+measured the open shed after a Karoo hunt at 116.9 MB on the low tier, and past 128 MB after a
+crate-gun hunt. Now: 101.0 MB with the shed open after a Karoo hunt, hunt end 99.8 MB,
+`gfx3-texture-memory-shed.json`.) If the late group is still downloading, the Guns tab rebuilds
+once when it lands. The HUD's ammo belt keeps the v1.1 ammo (D-032).
+(5) *Birds:* the guineafowl rig gets a small bare head (first 0.66, final 0.48 × the head hitbox
+radius, see (8); hitboxes are unchanged, so the headshot area is about 4× the visible head — a
+generous target, left as it is: changing it is a sim change), red skin behind the ridged casque, a slim neck with a barred collar, a realistic eye,
+a horn bill, slate plumage under a radial light, finer spots at near and mid (far keeps a few
+large ones), barred wing feathers, feather scallops at near, slimmer scaled legs, and thinner
+soft outlines (first near 0.55, mid 0.65, far 0.85; final 0.45 / 0.5 / 0.85 in a darker slate of
+the bird's own shadow, see (8)). Variants and bosses follow. Every flyer part gets
+a gradient, a feather-edge pattern and a soft outline. **The bird with no texture was the
+kwêvoël on the mid plane** (a flat grey silhouette, 15.7 KB): it is now a textured grey
+go-away-bird. The audit of every creature on every plane is `docs/art-preview/compare/gfx3-creatures.png`.
+(6) *Budgets (measured):* first download 2 900.6 KB gzip web (v1.2: 2 664.9 KB; under 3 MB);
+lazy chunks Bushveld 1 434.2, Kalahari 1 103.8, late 1 437.1, Okavango 1 531.0 KB (≤ 1.5 MB:
+Okavango's hazed back tree line keeps the simple crown, its hills drop the strata kind, mid-plane
+spots stay at spacing 21, scallops only at near, no brushing lines on gun metal — each one was
+measured). Texture sizes are unchanged except the Windbuks atlas (2048 × 1024 → 2048 × 512), so
+the low-tier peak cannot rise; per biome on the low tier (Pixel 7): Karoo 91.5, Bushveld 100.6,
+Kalahari 93.0, Okavango 111.1 MB, identical to v1.2 (`gfx3-texture-memory-biomes.json`); the
+Season Run peak stays 126.9 MB by construction. Bird readability: the plumage is `#2C303C`
+(`#363B4A` was tried and lost ~15 % of the sky contrast), so the plain maps' median fly-over
+contrast is at or above v1.2's and every map keeps ≥ 82 % of its plain map
+(`tools/sky-contrast.ts`, `gfx3-sky-contrast.txt`). `art:interim` + `assets:pack` twice are
+byte-identical (1 130 files).
+(8) *Round 2 (the product owner's look review, 23 Oct: "still cartoony"):* guns lose every dark
+contour (outlines 0.25 × the near weight; parts edged in a 22 % darker shade of their own
+material, detail strokes in their material's shade), get dense fine grain with figure
+bands, an edge-darkening stain and a varnish highlight, tubular blued barrels worn grey at the
+edges with a long soft specular and a fine vent rib (less saturated steel), a pistol-grip curve,
+comb line and rubber butt pad, a slim forged trigger guard, a slim grooved Pomp slide, and soft
+contact shadows (receiver on wrist, barrels on fore-end). The guineafowl becomes a humped egg with
+a head of ~1/6 body length kept inside the content head circle (`content/birds.json` unchanged;
+crouch poses squash a little less so the body still covers its ellipse; `tools/art/fit.test.ts`
+passes; head 0.48 × the hit radius, outlines 0.45 / 0.5 / 0.85 × the plane weight), slate edges,
+no wing outline, a small round eye in a pale ring, ringed spots denser
+toward the neck, slimmer grey-black legs. Koppies are rounded and lopsided, strata ridges are
+cuestas, one landmark spire at most (Kalahari); Kalahari dunes get a sinuous crest, slip face,
+graded slopes and ripples. Budgets after round 2 and the #49 review fixes: first download 2 914.6 KB gzip web (Poki
+2 911.0, CrazyGames 2 911.1); lazy Bushveld 1 429.3, Kalahari 1 125.3, late 1 436.4, Okavango
+1 516.5 KB; texture sizes unchanged;
+sky contrast unchanged (plain maps 6.50–8.49, every map ≥ 82 % of its plain one); `art:interim` +
+`assets:pack` twice byte-identical (1 130 files). Full-size crops: `gfx3-full-dubbelloop.png`,
+`gfx3-full-tarentaal-near.png`.
+(7) *Evidence:* `docs/art-preview/compare/gfx3-*.png` (before | after, desktop-chromium and
+pixel7-landscape): `gfx3-farmhouse`, `gfx3-mountains-{karoo,bushveld,kalahari,okavango}`,
+`gfx3-bakkie`, `gfx3-gun-<id>`, `gfx3-shed`, `gfx3-tarentaal-{near,mid,far}`, `gfx3-flyover`,
+whole frames `gfx3-*-centre` / `gfx3-karoo-right`; sprite sheets `gfx3-creatures.png`,
+`gfx3-tarentaal-sprites.png`, `gfx3-fixed-bird-kwevoel.png`. Recorded with
+`tests/e2e/art-preview-gfx3.spec.ts` (on demand, `ART_PREVIEW=1 GFX3_VARIANT=before|after`).
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

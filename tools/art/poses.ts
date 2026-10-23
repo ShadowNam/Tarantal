@@ -99,7 +99,7 @@ function takeoff(n: number): Pose[] {
     pose({
       y: 8,
       sx: 1.12,
-      sy: 0.84,
+      sy: 0.88,
       pivotY: GROUND,
       head: { dx: 10, dy: 14, rot: 0 },
       eyes: 'wide',
@@ -109,7 +109,7 @@ function takeoff(n: number): Pose[] {
     pose({
       y: 10,
       sx: 1.16,
-      sy: 0.8,
+      sy: 0.85,
       pivotY: GROUND,
       head: { dx: 14, dy: 16, rot: -4 },
       eyes: 'wide',
@@ -228,7 +228,7 @@ function land(n: number): Pose[] {
     pose({
       y: 8,
       sx: 1.16,
-      sy: 0.82,
+      sy: 0.87,
       pivotY: GROUND,
       head: { dx: 26, dy: 22, rot: 8 },
       eyes: 'wide',

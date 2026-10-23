@@ -1,5 +1,5 @@
 {
-  "$comment": "Interim art generator (D-029, `npm run art:interim`). Constants for the code-drawn stand-in guns and birds. Lives in tools/art/, not content/, so the content hash and golden replays never change. Palettes are the art bible's exact hex values (\u00a73.1, \u00a73.2, \u00a76); line weights by depth come from content/scoring.json planes.lineWeightPx; hitboxes from content/birds.json.",
+  "$comment": "Interim art generator (D-029, `npm run art:interim`). Constants for the code-drawn stand-in guns and birds. Lives in tools/art/, not content/, so the content hash and golden replays never change. Palettes are the art bible's exact hex values (§3.1, §3.2, §6); line weights by depth come from content/scoring.json planes.lineWeightPx; hitboxes from content/birds.json.",
   "ink": "#1B1410",
   "masterScale": 2,
   "birds": {
@@ -10,54 +10,62 @@
     "wobble": {
       "$comment": "Hand-drawn line wobble: turbulence frequency (per bird unit) and displacement (bird units) per plane; 0 = off.",
       "frequency": 0.03,
-      "near": 3,
-      "mid": 4,
+      "near": 1.2,
+      "mid": 1.6,
       "far": 0
     },
     "dots": {
-      "$comment": "White dot field (bible \u00a73.1): radius and spacing in bird units per plane. Review 2: fewer, crisper dots (\u2265 ~2 screen px at every plane) so the body stays dark slate-navy and doesn't blur to grey; the far plane gets the fewest, largest dots.",
+      "$comment": "White dot field (bible §3.1): radius and spacing in bird units per plane. Review 2: fewer, crisper dots (≥ ~2 screen px at every plane) so the body stays dark slate-navy and doesn't blur to grey; the far plane gets the fewest, largest dots. D-035: finer, denser spots at near and mid (semi-realistic); the far plane keeps a few large ones so flocks stay readable.",
       "near": {
-        "r": 4.2,
-        "spacing": 20
+        "r": 2.9,
+        "spacing": 13
       },
       "mid": {
-        "r": 5,
-        "spacing": 26
+        "r": 4.2,
+        "spacing": 21
       },
       "far": {
-        "r": 11,
-        "spacing": 40
+        "r": 10,
+        "spacing": 36
       }
     },
     "dotVariety": {
-      "$comment": "Dot size range (\u00d7 r), position jitter (\u00d7 spacing), and how much the field thins toward the belly and the tail (0 = uniform). Feedback 22 Oct: avoid the uniform 'polka-dot ball'.",
+      "$comment": "Dot size range (× r), position jitter (× spacing), and how much the field thins toward the belly and the tail (0 = uniform). Feedback 22 Oct: avoid the uniform 'polka-dot ball'.",
       "minSize": 0.8,
       "maxSize": 1.15,
       "jitter": 0.4,
       "bellyThin": 0.55,
       "tailThin": 0.35
     },
-    "legWidth": 11,
+    "legWidth": 6,
     "faceLine": 1.35,
     "wattleScale": 1.35,
     "innerLine": 0.55,
     "eyeWhite": "#FBF8EF",
+    "iris": "#4A2A18",
+    "outline": {
+      "near": 0.45,
+      "mid": 0.5,
+      "far": 0.85
+    },
+    "softInk": 0.75,
+    "headScale": 0.48,
     "star": "#F2C94C",
     "puff": "#F4F1E8",
     "puffShadow": "#D9D2C2",
     "base": {
-      "plumage": "#2E2F45",
-      "shadow": "#1F2033",
-      "highlight": "#3A3C58",
+      "plumage": "#2C303C",
+      "shadow": "#1D2029",
+      "highlight": "#4A5060",
       "dots": "#F4F1E8",
       "face": "#2F7DE1",
       "faceHi": "#6FB3FF",
       "wattle": "#D7263D",
       "wattleShadow": "#A31A2E",
-      "casque": "#C68B59",
-      "casqueHi": "#E2C08F",
-      "beak": "#E9A23B",
-      "legs": "#6B5B4B"
+      "casque": "#C49A6C",
+      "casqueHi": "#E6C9A0",
+      "beak": "#C98F4E",
+      "legs": "#3C3D42"
     },
     "variants": {
       "tarentaal": {
@@ -92,7 +100,7 @@
           "face": "#5D7FB8",
           "faceHi": "#8FAEDD"
         },
-        "dotScale": 0.75,
+        "dotScale": 0.85,
         "parts": ["crest", "eyeRing"]
       },
       "kuifkop_koning": {
@@ -104,7 +112,7 @@
           "face": "#5D7FB8",
           "faceHi": "#8FAEDD"
         },
-        "dotScale": 0.75,
+        "dotScale": 0.85,
         "parts": ["crest", "eyeRing", "crown"]
       },
       "generaal": {
@@ -146,7 +154,7 @@
       "potChip": "#1B1410"
     },
     "clipSets": {
-      "$comment": "Clips drawn per creature (bible \u00a73.4). Variants lean on the runtime fallback chain (docs/06 \u00a73) to stay inside the first-download budget: peck \u2192 forage_walk, glide \u2192 flap, land \u2192 run, peek \u2192 alert, tumble \u2192 hit_poof.",
+      "$comment": "Clips drawn per creature (bible §3.4). Variants lean on the runtime fallback chain (docs/06 §3) to stay inside the first-download budget: peck → forage_walk, glide → flap, land → run, peek → alert, tumble → hit_poof.",
       "tarentaal": [
         "forage_walk",
         "peck",
@@ -214,16 +222,16 @@
     "wood": "#8B5A2B",
     "woodShadow": "#5E3A1A",
     "woodHi": "#B07A42",
-    "woodGrain": "#4A2C12",
+    "woodGrain": "#3A2310",
     "lightWood": "#B98A52",
     "lightWoodShadow": "#8A5F31",
     "lightWoodHi": "#D6AE78",
-    "steel": "#4A5058",
-    "steelShadow": "#2C3036",
-    "steelHi": "#9AA6B0",
-    "blued": "#2F3A4A",
-    "bluedShadow": "#1C2430",
-    "bluedHi": "#6D819A",
+    "steel": "#55595E",
+    "steelShadow": "#2E3135",
+    "steelHi": "#A7ADB3",
+    "blued": "#2F3338",
+    "bluedShadow": "#1B1D21",
+    "bluedHi": "#7C838C",
     "brass": "#C9A13B",
     "brassShadow": "#94721F",
     "brassHi": "#F0D27A",
@@ -244,8 +252,9 @@
     "flashCore": "#FFF6C8",
     "flashMid": "#FFC94A",
     "flashOuter": "#F07A2A",
-    "scratch": "#C9CED3",
+    "scratch": "#9EA4AA",
     "lineNear": 6,
+    "outline": 0.25,
     "poses": {
       "$comment": "Per gun: angle (deg, negative = barrels up-left toward the screen centre), shift (px right of the box centre) and widen (x scale of the drawing about the barrel line). Review 2: the long guns point into the scene at an angle with the stock bottom right, like the old placeholder's silhouette.",
       "dubbelloop": {
@@ -285,7 +294,7 @@
     },
     "wobble": {
       "frequency": 0.04,
-      "scale": 2.5
+      "scale": 0.6
     },
     "clips": {
       "$comment": "Frames per gun clip; fps for fire/flash per gun; reload clips are stretched to weapons.json reloadMs at runtime.",
@@ -325,7 +334,7 @@
     "gap": 12
   },
   "scenery": {
-    "$comment": "Graphics pass 2 (D-031): landscapes, props, non-target flyers, FX and UI. Palettes are the art bible's hex values (\u00a74.2, \u00a76) plus derived shadow/highlight tones; shapes live in the drawing code. Ink per layer: line weights by depth (\u00a71.4), far layers' ink and colours mixed toward the horizon by `haze`.",
+    "$comment": "Graphics pass 2 (D-031): landscapes, props, non-target flyers, FX and UI. Palettes are the art bible's hex values (§4.2, §6) plus derived shadow/highlight tones; shapes live in the drawing code. Ink per layer: line weights by depth (§1.4), far layers' ink and colours mixed toward the horizon by `haze`.",
     "wobble": {
       "frequency": 0.02,
       "far": 1.5,
@@ -342,7 +351,7 @@
       "foreground": 0
     },
     "lines": {
-      "$comment": "Ink width (design px) per layer (bible \u00a71.4: far 2, mid 4, near 6).",
+      "$comment": "Ink width (design px) per layer (bible §1.4: far 2, mid 4, near 6).",
       "far_ridge": 2,
       "far_veld": 2,
       "mid": 4,
@@ -385,7 +394,12 @@
         "greyGreen": "#A2A585",
         "autumn": "#A87442",
         "twig": "#6B5440",
-        "seed": "#F3E8C8"
+        "seed": "#F3E8C8",
+        "rock": "#8E7FA6",
+        "rockShadow": "#5E5072",
+        "rockLit": "#C2A9A6",
+        "scree": "#B89A86",
+        "rockBush": "#6B7350"
       },
       "common": {
         "shellRed": "#C8302A",
@@ -460,7 +474,12 @@
         "bossieGrey": "#8E8C46",
         "autumn": "#B57A3E",
         "twig": "#5E4E40",
-        "seed": "#F4F1E6"
+        "seed": "#F4F1E6",
+        "rock": "#C27448",
+        "rockShadow": "#7A4A3E",
+        "rockLit": "#E6A774",
+        "scree": "#C9A27E",
+        "rockBush": "#6E6E3A"
       },
       "kalahari-summer": {
         "skyTop": "#7FB2DA",
@@ -496,7 +515,12 @@
         "bossie": "#9AA05A",
         "bossieGrey": "#A9A88A",
         "autumn": "#B88A4E",
-        "twig": "#5E4636"
+        "twig": "#5E4636",
+        "rock": "#9C5A44",
+        "rockShadow": "#5E3A3E",
+        "rockLit": "#D48C64",
+        "scree": "#C8784E",
+        "rockBush": "#6E6A3A"
       },
       "okavango-spring": {
         "skyTop": "#7FB8E2",
@@ -534,7 +558,12 @@
         "bossieGrey": "#6E9A48",
         "autumn": "#8C8A4A",
         "twig": "#5A4A3A",
-        "seed": "#E8E2C0"
+        "seed": "#E8E2C0",
+        "rock": "#9C8A8C",
+        "rockShadow": "#625A6C",
+        "rockLit": "#CDB9AE",
+        "scree": "#A8A08A",
+        "rockBush": "#4F7A3E"
       }
     }
   }

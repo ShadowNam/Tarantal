@@ -124,7 +124,8 @@ export interface TestHook {
   readonly masterGain: number | null;
   /** Manifest textures missing when the last hunt started (must be 0). */
   missingTextures: string[];
-  /** D-029: RGBA bytes of all textures during a hunt (GPU memory estimate), 0 before. */
+  /** D-029: RGBA bytes of all textures (GPU memory estimate) during a hunt, and when the
+   *  Skiet-Skuur opens (D-035 review); 0 before. */
   textureBytes: number;
   /** Boot milestones in ms since navigation start (content parsed, textures built, ready). */
   boot: Record<string, number>;
@@ -202,6 +203,8 @@ export interface TestHook {
     layers: number;
     filters: string[];
   };
+  /** D-035 review: weapon ids whose picture the Skiet-Skuur's Guns tab shows. */
+  shedIcons?: string[];
   /** M9: the Padstal help card's text bottom and OK button top (no overlap: textBottom < okTop). */
   helpCard?: { textBottom: number; okTop: number };
   /** M9: sound captions on screen (i18n keys, newest first). */

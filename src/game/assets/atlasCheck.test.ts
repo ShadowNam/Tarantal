@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { checkBirdAtlas } from './atlasCheck';
+import { atlasRegion, checkBirdAtlas } from './atlasCheck';
 import { resolveClip } from './birdClips';
 
 const clip = (frames: string[]) => ({ frames, fps: 12, loop: true });
@@ -33,5 +33,28 @@ describe('bird atlas check (M10 review)', () => {
       expect(checkBirdAtlas(clips, [bad]).clips).toBeNull();
     expect(checkBirdAtlas({ flap: clip([]) }, [page([])]).clips).toBeNull();
     expect(checkBirdAtlas(clips, [page(['other/00'])]).clips).toBeNull();
+  });
+});
+
+describe('atlasRegion (D-035 shed gun icons)', () => {
+  const page = (frames: Record<string, unknown>): object => ({ frames, meta: {} });
+  it('finds a frame on any page', () => {
+    const pages = [
+      page({ 'fire/00': { frame: { x: 2, y: 2, w: 10, h: 20 } } }),
+      page({ 'idle/00': { frame: { x: 30, y: 40, w: 414, h: 520 }, rotated: false } }),
+    ];
+    expect(atlasRegion(pages, 'idle/00')).toEqual({
+      page: 1,
+      x: 30,
+      y: 40,
+      w: 414,
+      h: 520,
+      rotated: false,
+    });
+  });
+  it('is null for a missing or malformed frame', () => {
+    expect(atlasRegion([page({})], 'idle/00')).toBeNull();
+    expect(atlasRegion([page({ 'idle/00': { frame: { x: 'a' } } })], 'idle/00')).toBeNull();
+    expect(atlasRegion([{}], 'idle/00')).toBeNull();
   });
 });

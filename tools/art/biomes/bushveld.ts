@@ -13,54 +13,19 @@ import {
   nextId,
   shade,
   tone,
-  treeBlob,
   tuft,
   yAt,
   type Pen,
-  type Pt,
   type Rnd,
   type Tone,
 } from '../scenery';
 import { el, ellipseD, g, inked, polyD, r2, smoothD } from '../svg';
+import { mountainRow, paintRow, rockColours } from '../mountains';
+import { tree as leafyTree } from '../realism';
 import { aloeFlowers, aloeRosette, bush, groundBand, groundShadow, softSky } from './karoo';
 import { foregroundClumps, midScrub, nearGrass } from './common';
 
 // --- shapes --------------------------------------------------------------------------------
-
-/** A smooth granite dome (whaleback) with curved exfoliation sheets; lit from the right. */
-function dome(rnd: Rnd, x: number, base: number, w: number, h: number, t: Tone, pen: Pen): string {
-  const pts: Pt[] = [[x, base]];
-  for (let k = 1; k < 9; k++) {
-    const f = k / 9;
-    pts.push([x + w * f, base - h * Math.pow(Math.sin(f * Math.PI), 0.7) * (0.96 + rnd() * 0.08)]);
-  }
-  pts.push([x + w, base]);
-  const body = smoothD(pts, true, 0.7);
-  const id = nextId();
-  const sheets: string[] = [];
-  for (let k = 1; k <= 3; k++) {
-    const f = 0.18 + k * 0.17;
-    sheets.push(
-      line(
-        `M${r2(x + w * (0.12 + k * 0.06))} ${r2(base - h * f * 0.5)}Q${r2(x + w * 0.45)} ${r2(base - h * (f + 0.55))} ${r2(x + w * (0.8 - k * 0.04))} ${r2(base - h * f * 0.6)}`,
-        pen,
-        pen.w * 0.6,
-      ),
-    );
-  }
-  return g(
-    {},
-    el('clipPath', { id }, el('path', { d: body })),
-    flat(body, t.fill),
-    g(
-      { 'clip-path': `url(#${id})` },
-      flat(ellipseD(x + w * 0.22, base, w * 0.4, h * 0.9), t.dark),
-      flat(ellipseD(x + w * 0.66, base - h * 0.78, w * 0.16, h * 0.12), t.light),
-      ...sheets,
-    ),
-    el('path', { d: body, fill: 'none', stroke: pen.ink, 'stroke-width': pen.w }),
-  );
-}
 
 /** A pile of rounded granite boulders (koppie) centred on x, standing on base. */
 function boulderPile(
@@ -224,31 +189,56 @@ function sky(ctx: LayerCtx): string {
 function farRidge(ctx: LayerCtx): string {
   const parts: string[] = [];
   const horizon = ctx.raw('horizon');
-  const back = tone(mix(ctx.c('granite'), horizon, 0.4), 0.14, 0.18);
-  const backPen: Pen = { ink: mix(ctx.pen.ink, horizon, 0.35), w: 1.5 };
-  for (let x = -100; x < ctx.width;) {
-    const w = 360 + ctx.rnd() * 380;
-    parts.push(dome(ctx.rnd, x, 640, w, 90 + ctx.rnd() * 60, back, backPen));
-    x += w * (0.6 + ctx.rnd() * 0.25);
-  }
-  const t = tone(ctx.c('granite'), 0.22, 0.2);
-  for (let x = -40; x < ctx.width;) {
-    if (ctx.rnd() < 0.55) {
-      const w = 240 + ctx.rnd() * 260;
-      parts.push(dome(ctx.rnd, x, 660, w, 120 + ctx.rnd() * 70, t, ctx.pen));
-      x += w + 80 + ctx.rnd() * 260;
-    } else {
-      const w = 180 + ctx.rnd() * 140;
-      parts.push(boulderPile(ctx.rnd, x + w / 2, 660, w, 110 + ctx.rnd() * 50, t, ctx.pen));
-      x += w + 100 + ctx.rnd() * 220;
-    }
-  }
+  // D-035: granite country (Spitzkoppe, the Erongo): a hazy back range of massifs and jagged
+  // ridges, then steep granite inselbergs, boulder koppies and low boulder heaps.
+  const rock = rockColours(ctx.raw);
+  const backPen: Pen = { ink: mix(ctx.pen.ink, horizon, 0.35), w: 1.4 };
+  const back = mountainRow(
+    ctx.rnd,
+    [
+      { kind: 'massif', w: 2 },
+      { kind: 'strata', w: 1 },
+      { kind: 'inselberg', w: 1 },
+    ],
+    {
+      x0: -160,
+      x1: ctx.width,
+      base: 626,
+      width: [420, 720],
+      height: [70, 150],
+      overlap: [0.1, 0.35],
+      haze: 0.52,
+    },
+  );
+  const front = mountainRow(
+    ctx.rnd,
+    [
+      { kind: 'inselberg', w: 2.4 },
+      { kind: 'koppie', w: 1.6 },
+      { kind: 'boulders', w: 1.6 },
+      { kind: 'massif', w: 0.6 },
+    ],
+    {
+      x0: -80,
+      x1: ctx.width,
+      base: 660,
+      width: [260, 520],
+      height: [90, 215],
+      overlap: [-0.3, 0.1],
+      haze: 0.2,
+    },
+  );
+  parts.push(
+    ...paintRow(ctx.rnd, back, rock, backPen, horizon),
+    ...paintRow(ctx.rnd, front, rock, ctx.pen, horizon),
+  );
   // A line of mopane along the foot of the hills, and a baobab or two.
   const tree = tone(ctx.c('mopane'), 0.22, 0.2);
   for (let x = 0; x < ctx.width; x += 26 + ctx.rnd() * 50)
     parts.push(
-      treeBlob(
+      leafyTree(
         ctx.rnd,
+        'round',
         x,
         602 + ctx.rnd() * 6,
         24 + ctx.rnd() * 18,
@@ -291,8 +281,9 @@ function farVeld(ctx: LayerCtx): string {
   for (let x = 40; x < ctx.width; x += 140 + ctx.rnd() * 260) {
     const t = tree[ctx.rnd() < 0.6 ? 0 : 1] ?? tone(ctx.c('mopane'));
     parts.push(
-      treeBlob(
+      leafyTree(
         ctx.rnd,
+        'round',
         x,
         yAt(band.edge, x) + 4,
         34 + ctx.rnd() * 22,
@@ -734,10 +725,10 @@ export const BUSHVELD_PLAN: BiomeArtPlan = {
   layers: {
     sky: { top: 0, height: 1080, encode: 'png', draw: sky },
     far_ridge: { top: 380, height: 280, draw: farRidge },
-    far_veld: { top: 548, height: 232, draw: farVeld },
+    far_veld: { top: 464, height: 232, draw: farVeld },
     mid: { top: 630, height: 280, draw: mid },
     near: { top: 820, height: 260, draw: near },
-    foreground: { top: 880, height: 200, draw: foreground },
+    foreground: { top: 880, height: 200, fadeTop: 28, draw: foreground },
   },
   props: {
     'bushveld/baobab': { draw: baobab },

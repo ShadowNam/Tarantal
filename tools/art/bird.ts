@@ -18,6 +18,9 @@ export interface Look {
   readonly inner: number;
   readonly dotR: number;
   readonly dotSpacing: number;
+  /** D-035: feather-edge scallops under the spots (near plane only: elsewhere they are too small
+   *  to see and cost download size). */
+  readonly scallops: boolean;
 }
 
 export type Eyes =
@@ -157,7 +160,21 @@ export function drawBird(i: DrawInput): string {
   if (flight !== null)
     out.push(g({ transform: bodyT }, flightWing(i, flight.angle + 12, flight.len * 0.88, true)));
   out.push(legs(i, bodyM));
-  out.push(g({ transform: bodyT }, tail(i), body(i), foldedWing(i), bandolier(i)));
+  out.push(
+    g(
+      { transform: bodyT },
+      el(
+        'filter',
+        { id: `${i.id}-soft`, x: '-20%', y: '-20%', width: '140%', height: '140%' },
+        el('feGaussianBlur', { stdDeviation: r2(i.shape.body.ry * 0.05) }),
+      ),
+      tail(i),
+      body(i),
+      wingFoldShadow(i),
+      foldedWing(i),
+      bandolier(i),
+    ),
+  );
   const head = headPose(i);
   out.push(neck(i, bodyM, head));
   out.push(drawHead(i, head));
@@ -171,21 +188,105 @@ export function drawBird(i: DrawInput): string {
   return g({ transform: matrix(whole) }, fxBack, bird, fxFront);
 }
 
+// --- D-035 texture helpers ---------------------------------------------------------------------
+
+/** Mixes two #RRGGBB colours (t = 0 → a). */
+function mixHex(a: string, b: string, t: number): string {
+  const p = (h: string, k: number): number => parseInt(h.slice(k, k + 2), 16);
+  return `#${[1, 3, 5]
+    .map((k) =>
+      Math.round(p(a, k) + (p(b, k) - p(a, k)) * t)
+        .toString(16)
+        .padStart(2, '0'),
+    )
+    .join('')}`;
+}
+
+/** Overlapping feather edges (scallops) in rows across a box, clipped by the caller. */
+function scallops(
+  i: DrawInput,
+  clipId: string,
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+  size: number,
+  colour: string,
+  opacity: number,
+): string {
+  const rnd = prng(i.seed * 3 + Math.round(x0 + y0));
+  let d = '';
+  const rowH = size * 0.62;
+  let row = 0;
+  for (let y = y0; y <= y1; y += rowH, row++)
+    for (let x = x0 + (row % 2) * size * 0.5; x <= x1; x += size) {
+      const jx = (rnd() - 0.5) * size * 0.2;
+      d += `M${r2(x + jx - size * 0.48)} ${r2(y)}Q${r2(x + jx)} ${r2(y + size * 0.42)} ${r2(x + jx + size * 0.48)} ${r2(y)}`;
+    }
+  return el('path', {
+    d,
+    fill: 'none',
+    stroke: colour,
+    'stroke-width': Math.max(0.6, size * 0.09),
+    'stroke-linecap': 'round',
+    opacity,
+    'clip-path': `url(#${clipId})`,
+  });
+}
+
+/** Thin pale bars across feathers (guineafowl flight and wing feathers), clipped by the caller. */
+function barring(
+  clipId: string,
+  pts: readonly Pt[],
+  colour: string,
+  width: number,
+  opacity: number,
+): string {
+  let d = '';
+  for (let k = 0; k + 1 < pts.length; k += 2) {
+    const a = pts[k] ?? [0, 0];
+    const b = pts[k + 1] ?? [0, 0];
+    const mx = (a[0] + b[0]) / 2 + (b[1] - a[1]) * 0.08;
+    const my = (a[1] + b[1]) / 2 - (b[0] - a[0]) * 0.08;
+    d += `M${r2(a[0])} ${r2(a[1])}Q${r2(mx)} ${r2(my)} ${r2(b[0])} ${r2(b[1])}`;
+  }
+  return el('path', {
+    d,
+    fill: 'none',
+    stroke: colour,
+    'stroke-width': width,
+    'stroke-linecap': 'round',
+    opacity,
+    'clip-path': `url(#${clipId})`,
+  });
+}
+
 // --- body ------------------------------------------------------------------------------------
 
 function bodyOutline(s: BirdShape): Pt[] {
   const { rx, ry, oy } = s.body;
   const pts: Pt[] = [];
-  const n = 18;
+  const n = 28;
   for (let k = 0; k < n; k++) {
     const t = (k / n) * Math.PI * 2;
     let x = Math.cos(t) * rx;
     let y = Math.sin(t) * ry;
-    // Bowling ball with a hunched back: the upper back rises, the breast stays round.
-    if (y < 0 && x < rx * 0.3) y *= 1 + 0.08 * Math.max(0, 1 - Math.abs(x + rx * 0.2) / rx);
-    // A slightly flatter belly.
-    if (y > ry * 0.7) y = ry * 0.7 + (y - ry * 0.7) * 0.75;
-    x *= 1.02;
+    // D-035 round 2: an egg with a hump. The back peaks behind the middle (x ≈ −0.25 rx), the
+    // front of the back slopes down to the neck, the rear slopes down into the tail, the belly is
+    // flatter. It stays inside the content hit ellipse (rx × ry).
+    if (y < 0) {
+      const f = x / rx; // −1 rear … +1 front
+      const hump = Math.exp(-((f + 0.25) * (f + 0.25)) / 0.18);
+      const slope =
+        f > -0.25
+          ? 1 - 0.2 * Math.min(1, (f + 0.25) / 1.1)
+          : 1 - 0.22 * Math.min(1, (-0.25 - f) / 0.75);
+      y *= Math.min(1, slope + 0.12 * hump);
+    }
+    if (y > ry * 0.72) y = ry * 0.72 + (y - ry * 0.72) * 0.8;
+    // The breast is fuller low down, the rear narrower (egg, broad end forward and low).
+    if (x > 0 && y > 0) x *= 1.0;
+    if (x < 0) x *= 0.97;
     pts.push([x, oy + y]);
   }
   return pts;
@@ -201,6 +302,10 @@ function dotField(
   scale = 1,
   /** 0–1: how many of the dots survive at (x, y) (sparser toward the belly and the tail). */
   density: (x: number, y: number) => number = () => 1,
+  /** D-035 round 2: dot size and spacing × this at x (smaller and denser toward the neck). */
+  scaleAt: (x: number) => number = () => 1,
+  /** Position jitter × the config's (loose rows on the wing use less). */
+  jitterMul = 1,
 ): string {
   const spacing = i.look.dotSpacing * scale * i.dotScale;
   const r = i.look.dotR * scale * i.dotScale;
@@ -211,18 +316,27 @@ function dotField(
   const rowH = spacing * 0.866;
   let row = 0;
   for (let y = y0; y <= y1; y += rowH, row++) {
-    for (let x = x0 + (row % 2) * spacing * 0.5; x <= x1; x += spacing) {
-      const jx = (rnd() - 0.5) * spacing * v.jitter;
-      const jy = (rnd() - 0.5) * spacing * v.jitter;
+    for (let x = x0 + (row % 2) * spacing * 0.5; x <= x1; x += spacing * scaleAt(x)) {
+      const sc = scaleAt(x);
+      const jx = (rnd() - 0.5) * spacing * sc * v.jitter * jitterMul;
+      const jy = (rnd() - 0.5) * spacing * sc * v.jitter * jitterMul;
       const size = v.minSize + rnd() * (v.maxSize - v.minSize);
       if (rnd() > density(x, y)) continue;
-      const rr = r * size;
+      const rr = r * size * sc;
       dots.push(
         `M${r2(x + jx - rr)} ${r2(y + jy)}a${r2(rr)} ${r2(rr)} 0 1 0 ${r2(rr * 2)} 0a${r2(rr)} ${r2(rr)} 0 1 0 ${r2(-rr * 2)} 0Z`,
       );
     }
   }
-  return el('path', { d: dots.join(''), fill: i.pal.dots, 'clip-path': `url(#${clipId})` });
+  // Each spot sits in a faint dark ring (the feather around it).
+  return el('path', {
+    d: dots.join(''),
+    fill: i.pal.dots,
+    stroke: i.pal.shadow,
+    'stroke-width': r2(Math.max(0.5, r * 0.4)),
+    'stroke-opacity': 0.55,
+    'clip-path': `url(#${clipId})`,
+  });
 }
 
 function body(i: DrawInput): string {
@@ -230,27 +344,62 @@ function body(i: DrawInput): string {
   const d = smoothD(bodyOutline(s));
   const cid = `${i.id}-body`;
   const { rx, ry, oy } = s.body;
+  const gid = `${i.id}-bodyG`;
   return [
+    // D-035: a rounded body lit from the upper left (radial gradient), feather edges, then spots.
+    el(
+      'radialGradient',
+      {
+        id: gid,
+        cx: -rx * 0.3,
+        cy: oy - ry * 0.45,
+        r: rx * 1.45,
+        gradientUnits: 'userSpaceOnUse',
+      },
+      el('stop', { offset: 0, 'stop-color': i.pal.highlight }),
+      el('stop', { offset: 0.45, 'stop-color': i.pal.plumage }),
+      el('stop', { offset: 0.85, 'stop-color': i.pal.shadow }),
+      el('stop', { offset: 1, 'stop-color': mixHex(i.pal.shadow, '#000000', 0.25) }),
+    ),
     el('clipPath', { id: cid }, el('path', { d })),
-    inked(d, i.pal.plumage, i.cfg.ink, 0),
-    // One shadow (belly crescent) and one highlight (upper back), clipped to the body.
+    inked(d, `url(#${gid})`, i.cfg.ink, 0),
+    // Reflected light along the lower belly edge.
     el('path', {
-      d: ellipseD(rx * 0.12, oy + ry * 0.78, rx * 1.15, ry * 0.55),
-      fill: i.pal.shadow,
-      'clip-path': `url(#${cid})`,
-    }),
-    el('path', {
-      d: ellipseD(-rx * 0.2, oy - ry * 0.55, rx * 0.55, ry * 0.26),
+      d: ellipseD(rx * 0.1, oy + ry * 1.02, rx * 0.75, ry * 0.16),
       fill: i.pal.highlight,
+      opacity: 0.35,
       'clip-path': `url(#${cid})`,
     }),
-    dotField(i, cid, -rx * 1.1, oy - ry * 1.2, rx * 1.1, oy + ry * 1.1, 1, (x, y) => {
-      const v = i.cfg.birds.dotVariety;
-      // Densest on the back, thinning toward the belly and the tail end.
-      const belly = Math.max(0, Math.min(1, (y - oy) / ry + 0.1));
-      const tail = Math.max(0, Math.min(1, (-x / rx - 0.45) / 0.55));
-      return 1 - v.bellyThin * belly - v.tailThin * tail;
-    }),
+    !i.look.scallops
+      ? ''
+      : scallops(
+          i,
+          cid,
+          -rx * 1.1,
+          oy - ry * 1.1,
+          rx * 1.1,
+          oy + ry * 1.1,
+          i.look.dotSpacing * i.dotScale * 1.15,
+          mixHex(i.pal.highlight, i.pal.dots, 0.15),
+          0.35,
+        ),
+    dotField(
+      i,
+      cid,
+      -rx * 1.1,
+      oy - ry * 1.2,
+      rx * 1.1,
+      oy + ry * 1.1,
+      1,
+      (x, y) => {
+        const v = i.cfg.birds.dotVariety;
+        // Densest on the back, thinning toward the belly and the tail end.
+        const belly = Math.max(0, Math.min(1, (y - oy) / ry + 0.1));
+        const tail = Math.max(0, Math.min(1, (-x / rx - 0.45) / 0.55));
+        return 1 - v.bellyThin * belly - v.tailThin * tail;
+      },
+      (x) => 1 - 0.38 * Math.max(0, Math.min(1, (x / rx - 0.1) / 0.8)),
+    ),
     el('path', {
       d,
       fill: 'none',
@@ -349,22 +498,81 @@ function foldedWing(i: DrawInput): string {
       fill: i.pal.shadow,
       'clip-path': `url(#${cid})`,
     }),
-    dotField(i, cid, pivot[0] - 190, pivot[1] - 50, pivot[0] + 20, pivot[1] + 70, 0.9),
+    dotField(
+      i,
+      cid,
+      pivot[0] - 190,
+      pivot[1] - 50,
+      pivot[0] + 20,
+      pivot[1] + 70,
+      0.9,
+      () => 1,
+      () => 1,
+      0.35,
+    ),
+    // D-035: the secondaries' pale bars toward the wing's trailing half.
+    barring(
+      cid,
+      [0.5, 0.58, 0.66, 0.74, 0.82, 0.9].flatMap((t) =>
+        place(
+          [
+            [-170 * t - 6, 36 * t + 12],
+            [-170 * t + 18, 4],
+          ],
+          pivot[0],
+          pivot[1],
+          -lift * 28,
+          rx / 110,
+          ry / 85,
+        ),
+      ),
+      i.pal.dots,
+      Math.max(0.8, i.look.dotR * 0.55),
+      0.55,
+    ),
+    // D-035 round 2: no outline round the wing; feather separations are faint shade lines.
     el('path', {
       d: lines.join(''),
       fill: 'none',
-      stroke: i.cfg.ink,
+      stroke: i.pal.shadow,
       'stroke-width': i.look.inner,
       'stroke-linecap': 'round',
-    }),
-    el('path', {
-      d,
-      fill: 'none',
-      stroke: i.cfg.ink,
-      'stroke-width': i.look.line,
-      'stroke-linejoin': 'round',
+      opacity: 0.6,
     }),
   ].join('');
+}
+
+/** D-035 round 2: the folded wing's soft shadow on the body below its lower edge (no line). */
+function wingFoldShadow(i: DrawInput): string {
+  if (i.pose.wing.kind !== 'folded') return '';
+  const { rx, ry, oy } = i.shape.body;
+  const lift = i.pose.wing.lift;
+  const pivot: Pt = [rx * 0.38, oy - ry * 0.32];
+  const lower = place(
+    [
+      [-170, 40],
+      [-120, 50],
+      [-60, 46],
+      [-10, 28],
+    ],
+    pivot[0],
+    pivot[1],
+    -lift * 28,
+    rx / 110,
+    ry / 85,
+  );
+  const d = lower.map(([x, y], k) => `${k === 0 ? 'M' : 'L'}${r2(x)} ${r2(y)}`).join('');
+  return el('path', {
+    d,
+    fill: 'none',
+    stroke: i.pal.shadow,
+    'stroke-width': ry * 0.16,
+    'stroke-linecap': 'round',
+    'stroke-linejoin': 'round',
+    opacity: 0.55,
+    filter: `url(#${i.id}-soft)`,
+    'clip-path': `url(#${i.id}-body)`,
+  });
 }
 
 /** A broad, rounded guineafowl wing with fingered primaries, pointing "up" before rotation. */
@@ -439,6 +647,26 @@ function flightWing(i: DrawInput, angle: number, len: number, far: boolean): str
       shoulder[0] + 230,
       shoulder[1] + 230,
       far ? 1 : 0.9,
+    ),
+    // D-035: pale bars across the primaries and secondaries.
+    barring(
+      cid,
+      [-150, -128, -106, -84, -62].flatMap((y) =>
+        place(
+          [
+            [-86, y + 18],
+            [20, y - 6],
+          ],
+          shoulder[0],
+          shoulder[1],
+          angle,
+          k,
+          len * k,
+        ),
+      ),
+      i.pal.dots,
+      Math.max(0.8, i.look.dotR * 0.5),
+      far ? 0.35 : 0.5,
     ),
     el('path', {
       d: notches.join(''),
@@ -566,6 +794,15 @@ function legStroke(i: DrawInput, d: string, opacity = 1, toes = ''): string {
     toes === '' ? '' : line(toes, i.cfg.ink, t + i.look.line * 1.0),
     line(d, i.pal.legs, w),
     toes === '' ? '' : line(toes, i.pal.legs, t),
+    // D-035: scutes down the front of the leg.
+    el('path', {
+      d,
+      fill: 'none',
+      stroke: mixHex(i.pal.legs, '#000000', 0.35),
+      'stroke-width': w * 0.7,
+      'stroke-dasharray': `${r2(w * 0.12)} ${r2(w * 0.45)}`,
+      opacity: 0.6,
+    }),
   );
 }
 
@@ -648,7 +885,22 @@ function headPose(i: DrawInput): HeadAt {
   const p = i.pose;
   const h = i.shape.head;
   // The head follows the body's translation, not its squash: it stays near its hitbox.
-  return { x: h.x + p.x + p.head.dx, y: h.y + p.y + p.head.dy, rot: p.head.rot, r: h.r * 0.9 };
+  // D-035: a small bare head on a slim neck, as on the real bird (the hitbox keeps its size, so
+  // the head is no harder to hit); the head sits a little lower and back inside its hitbox.
+  const k = i.cfg.birds.headScale;
+  // Round 2: about 1/6 of the body length across, carried forward and low (it stays inside the
+  // content head circle, so the hit area still covers it).
+  // The pose's head offset is clamped so the drawn head stays inside the content head circle
+  // (the hit area matches the art; content/birds.json is unchanged).
+  let dx = p.head.dx + h.r * 0.15;
+  let dy = p.head.dy + h.r * 0.25;
+  const room = Math.max(4, h.r * (0.72 - k));
+  const off = Math.hypot(dx, dy);
+  if (off > room) {
+    dx *= room / off;
+    dy *= room / off;
+  }
+  return { x: h.x + p.x + dx, y: h.y + p.y + dy, rot: p.head.rot, r: h.r * k };
 }
 
 function neck(i: DrawInput, bodyM: M, h: HeadAt): string {
@@ -678,10 +930,35 @@ function neck(i: DrawInput, bodyM: M, h: HeadAt): string {
       'stroke-width': width,
       'stroke-linecap': 'round',
     });
+  // D-035: the feathered collar is finely barred; the bare upper neck has a few dark bristles.
+  const lower = `M${r2(base[0])} ${r2(base[1])}Q${r2((base[0] + c[0]) / 2)} ${r2(
+    (base[1] + c[1]) / 2,
+  )} ${r2(s[0])} ${r2(s[1])}`;
+  const bristles: string[] = [];
+  for (const t of [0.62, 0.72, 0.82, 0.9]) {
+    const p0 = q(t);
+    bristles.push(`M${r2(p0[0] - w * 0.15)} ${r2(p0[1])}l${r2(-w * 0.12)} ${r2(-w * 0.1)}`);
+  }
   return [
     stroke(full, i.cfg.ink, w + i.look.line * 2),
     stroke(full, i.pal.plumage, w),
+    el('path', {
+      d: lower,
+      fill: 'none',
+      stroke: i.pal.dots,
+      'stroke-width': w * 0.92,
+      'stroke-dasharray': `${r2(Math.max(0.8, w * 0.06))} ${r2(Math.max(1.6, w * 0.12))}`,
+      opacity: 0.35,
+    }),
     stroke(upper, i.pal.face, w * 0.8),
+    el('path', {
+      d: bristles.join(''),
+      fill: 'none',
+      stroke: i.pal.shadow,
+      'stroke-width': Math.max(0.6, i.look.inner * 0.7),
+      'stroke-linecap': 'round',
+      opacity: 0.7,
+    }),
   ].join('');
 }
 
@@ -689,9 +966,11 @@ function eye(i: DrawInput, cx: number, cy: number, r: number, mode: Eyes, look: 
   const ink = i.cfg.ink;
   const white = i.cfg.birds.eyeWhite;
   const out: string[] = [];
-  const big = mode === 'wide' ? 1.15 : 1;
-  const ex = r * 0.42 * big;
-  const ey = r * 0.5 * big;
+  // D-035: a smaller, realistic eye (dark iris, small pupil, a glint); 'wide' still opens up so
+  // panic reads at a glance.
+  const big = mode === 'wide' ? 1.25 : 1;
+  const ex = r * 0.3 * big;
+  const ey = r * 0.34 * big;
   if (mode === 'closed' || mode === 'frontBlink') {
     out.push(
       el('path', {
@@ -704,17 +983,9 @@ function eye(i: DrawInput, cx: number, cy: number, r: number, mode: Eyes, look: 
     );
     return out.join('');
   }
-  out.push(inked(ellipseD(cx, cy, ex, ey), white, ink, i.look.line * 0.8));
-  if (i.parts.includes('eyeRing'))
-    out.push(
-      el('path', {
-        d: ellipseD(cx, cy, ex + i.look.line * 0.6, ey + i.look.line * 0.6),
-        fill: 'none',
-        stroke: i.cfg.birds.parts.eyeRing,
-        'stroke-width': i.look.line * 0.9,
-      }),
-    );
   if (mode === 'swirl') {
+    // The dazed POOF (comic FX stays comic): a spiral in the eye.
+    out.push(inked(ellipseD(cx, cy, ex, ey), white, ink, i.look.line * 0.6));
     let d = `M${r2(cx)} ${r2(cy)}`;
     for (let k = 1; k <= 22; k++) {
       const a = k * 0.62;
@@ -725,42 +996,42 @@ function eye(i: DrawInput, cx: number, cy: number, r: number, mode: Eyes, look: 
       el('path', {
         d,
         fill: 'none',
-        stroke: ink,
+        stroke: '#1A1210',
         'stroke-width': i.look.inner,
         'stroke-linecap': 'round',
       }),
     );
     return out.join('');
   }
-  const pr = mode === 'wide' ? r * 0.085 : r * 0.12;
+  // D-035 round 2: a small round dark eye in a pale ring of bare skin, a glint; no lid.
+  const ring = r * (mode === 'wide' ? 0.3 : 0.26);
+  const pupil = r * (mode === 'wide' ? 0.17 : 0.16);
+  const ox = look[0] * ring * 0.15;
+  const oy2 = look[1] * ring * 0.15;
+  out.push(el('path', { d: ellipseD(cx, cy, ring, ring), fill: '#D6DCE2' }));
+  if (i.parts.includes('eyeRing'))
+    out.push(
+      el('path', {
+        d: ellipseD(cx, cy, ring, ring),
+        fill: 'none',
+        stroke: i.cfg.birds.parts.eyeRing,
+        'stroke-width': ring * 0.45,
+      }),
+    );
   out.push(
+    el('path', { d: ellipseD(cx + ox, cy + oy2, pupil, pupil), fill: '#1A1210' }),
     el('path', {
-      d: ellipseD(cx + look[0] * ex * 0.45, cy + look[1] * ey * 0.4, pr, pr),
-      fill: ink,
-    }),
-  );
-  out.push(
-    el('path', {
-      d: ellipseD(
-        cx + look[0] * ex * 0.45 + pr * 0.4,
-        cy + look[1] * ey * 0.4 - pr * 0.4,
-        pr * 0.35,
-        pr * 0.35,
-      ),
+      d: ellipseD(cx + ox - pupil * 0.35, cy + oy2 - pupil * 0.35, pupil * 0.3, pupil * 0.3),
       fill: white,
     }),
   );
-  if (mode === 'calm' || mode === 'half') {
-    // Dignified heavy lid (calm) or half-closed blink.
-    const lid = mode === 'half' ? 0.15 : -0.45;
-    const ly = cy + ey * lid;
+  if (mode === 'half') {
+    // A blink half-way: the ring's upper half in face colour (no cartoon lid line).
     out.push(
-      inked(
-        `M${r2(cx - ex - 1)} ${r2(ly)}A${r2(ex)} ${r2(ey)} 0 0 1 ${r2(cx + ex + 1)} ${r2(ly)}Z`,
-        i.pal.face,
-        ink,
-        i.look.inner,
-      ),
+      el('path', {
+        d: `M${r2(cx - ring)} ${r2(cy)}A${r2(ring)} ${r2(ring)} 0 0 1 ${r2(cx + ring)} ${r2(cy)}Z`,
+        fill: i.pal.face,
+      }),
     );
   }
   return out.join('');
@@ -825,9 +1096,25 @@ function casqueShape(i: DrawInput, r: number, front: boolean): string {
         [-0.24 * r, -1.45 * r],
         [0.12 * r, -0.85 * r],
       ]);
+  // D-035: bony texture: fine growth ridges and a shaded back edge.
+  const ridges: string[] = [];
+  for (const t of [0.3, 0.5, 0.7])
+    ridges.push(
+      front
+        ? `M${r2(-0.28 * r)} ${r2((-0.6 - t * 1.1) * r)}Q0 ${r2((-0.66 - t * 1.1) * r)} ${r2(0.28 * r)} ${r2((-0.6 - t * 1.1) * r)}`
+        : `M${r2((-0.5 - t * 0.6) * r)} ${r2((-0.55 - t * 0.9) * r)}Q${r2((-0.2 - t * 0.6) * r)} ${r2((-0.5 - t * 0.95) * r)} ${r2((0.1 - t * 0.5) * r)} ${r2((-0.75 - t * 0.6) * r)}`,
+    );
   return [
     inked(d, i.pal.casque, ink, i.look.line),
     el('path', { d: hi, fill: i.pal.casqueHi }),
+    el('path', {
+      d: ridges.join(''),
+      fill: 'none',
+      stroke: mixHex(i.pal.casque, '#3A2A1A', 0.45),
+      'stroke-width': Math.max(0.6, i.look.inner * 0.6),
+      'stroke-linecap': 'round',
+      opacity: 0.7,
+    }),
   ].join('');
 }
 
@@ -930,6 +1217,14 @@ function sideHead(i: DrawInput, r: number): string {
   // Head.
   // The cobalt face is the bird's beacon: a heavier outline than the body (bible §1 rule 5).
   out.push(inked(ellipseD(0, 0, r, r * 0.95), i.pal.face, ink, L * i.cfg.birds.faceLine));
+  // D-035: red bare skin at the back of the head, below the casque.
+  out.push(
+    el('path', {
+      d: `M${r2(-r * 0.92)} ${r2(-r * 0.1)}Q${r2(-r * 0.9)} ${r2(-r * 0.75)} ${r2(-r * 0.35)} ${r2(-r * 0.85)}Q${r2(-r * 0.45)} ${r2(-r * 0.35)} ${r2(-r * 0.92)} ${r2(-r * 0.1)}Z`,
+      fill: i.pal.wattle,
+      opacity: 0.85,
+    }),
+  );
   out.push(
     el('path', {
       d: `M${r2(-r * 0.55)} ${r2(-r * 0.55)}A${r2(r * 0.8)} ${r2(r * 0.8)} 0 0 1 ${r2(r * 0.6)} ${r2(-r * 0.5)}A${r2(r * 0.95)} ${r2(r * 0.7)} 0 0 0 ${r2(-r * 0.55)} ${r2(-r * 0.55)}Z`,

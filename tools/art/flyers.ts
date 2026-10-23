@@ -16,19 +16,7 @@ import { masterSize, planeLook } from './birdFrames';
 import type { ArtConfig } from './config';
 import { renderSvg, tint } from './raster';
 import { flat, line, nextId, resetIds, type Pt } from './scenery';
-import {
-  el,
-  ellipseD,
-  g,
-  inked,
-  place,
-  polyD,
-  prng,
-  r2,
-  smoothD,
-  svgDoc,
-  wobbleFilter,
-} from './svg';
+import { el, ellipseD, g, place, polyD, prng, r2, smoothD, svgDoc, wobbleFilter } from './svg';
 
 /** Clips drawn per flyer and plane (rig.json planeClips). */
 // Each also gets a one-frame `forage_walk` hold pose: the game never asks a flyer for it, but it
@@ -87,7 +75,78 @@ function wingD(
   );
 }
 
-const fill = (d: string, c: string, o: Draw, w = o.w): string => inked(d, c, o.ink, w);
+/** #RRGGBB lighter (k > 0) or darker (k < 0). */
+function tone(hex: string, k: number): string {
+  const to = k > 0 ? 255 : 0;
+  const t = Math.abs(k);
+  return `#${[1, 3, 5]
+    .map((i) => {
+      const v = parseInt(hex.slice(i, i + 2), 16);
+      return Math.round(v + (to - v) * t)
+        .toString(16)
+        .padStart(2, '0');
+    })
+    .join('')}`;
+}
+
+/** Gradients and the feather pattern already emitted in this SVG (reset per frame). */
+const emitted = new Set<string>();
+const FEATHER = 'fp';
+
+/**
+ * D-035: a plumage part. A soft gradient lit from the upper left (object bounding box), a fine
+ * feather-edge pattern (not at the far plane, where it would only blur), and a thin outline
+ * leaning toward the part's own colour. Every textured part of every flyer goes through here.
+ */
+const fill = (d: string, c: string, o: Draw, w = o.w): string => {
+  const gid = `g${c.slice(1)}`;
+  const defs: string[] = [];
+  if (!emitted.has(gid)) {
+    emitted.add(gid);
+    defs.push(
+      el(
+        'linearGradient',
+        { id: gid, x1: 0, y1: 0, x2: 0.55, y2: 1 },
+        el('stop', { offset: 0, 'stop-color': tone(c, 0.22) }),
+        el('stop', { offset: 0.5, 'stop-color': c }),
+        el('stop', { offset: 1, 'stop-color': tone(c, -0.28) }),
+      ),
+    );
+  }
+  if (!o.far && !emitted.has(FEATHER)) {
+    emitted.add(FEATHER);
+    defs.push(
+      el(
+        'pattern',
+        { id: FEATHER, width: 16, height: 11, patternUnits: 'userSpaceOnUse' },
+        el('path', {
+          d: 'M0 4Q8 11 16 4M-8 9.5Q0 16.5 8 9.5M8 9.5Q16 16.5 24 9.5',
+          fill: 'none',
+          stroke: '#FFFFFF',
+          'stroke-width': 1.1,
+          opacity: 0.5,
+        }),
+        el('path', { d: 'M8 1L8 6', stroke: '#000000', 'stroke-width': 0.9, opacity: 0.35 }),
+      ),
+    );
+  }
+  const ink = tone(c, -0.62);
+  return [
+    ...defs,
+    el('path', { d, fill: `url(#${gid})` }),
+    o.far ? '' : el('path', { d, fill: `url(#${FEATHER})`, opacity: 0.32 }),
+    w > 0
+      ? el('path', {
+          d,
+          fill: 'none',
+          stroke: ink,
+          'stroke-width': w * 0.7,
+          'stroke-linejoin': 'round',
+          'stroke-linecap': 'round',
+        })
+      : '',
+  ].join('');
+};
 
 // --- hadeda --------------------------------------------------------------------------------
 
@@ -161,19 +220,15 @@ function hadeda(o: Draw, clip: BirdClip, k: number): string {
     line('M-90 30L-170 46M-92 36L-168 58', { ink: o.ink, w: o.w * 1.6 }),
     line('M-90 30L-170 46M-92 36L-168 58', { ink: '#4A4540', w: o.w * 0.7 }),
     el('clipPath', { id }, el('path', { d: body })),
-    flat(body, P.body),
+    fill(body, P.body, o),
     g(
       { 'clip-path': `url(#${id})` },
-      flat(ellipseD(10, 40, 140, 34), P.dark),
-      flat(ellipseD(-20, -38, 70, 10), P.light),
+      flat(ellipseD(10, 40, 140, 34), P.dark, { opacity: 0.55 }),
+      flat(ellipseD(-20, -38, 70, 10), P.light, { opacity: 0.6 }),
+      // Iridescent green-purple sheen on the shoulder.
+      flat(ellipseD(-30, -22, 60, 14), P.sheen, { opacity: 0.45 }),
+      flat(ellipseD(10, -16, 40, 10), P.sheen2, { opacity: 0.35 }),
     ),
-    el('path', {
-      d: body,
-      fill: 'none',
-      stroke: o.ink,
-      'stroke-width': o.w,
-      'stroke-linejoin': 'round',
-    }),
     // Neck, head, white cheek stripe, the long down-curved bill with its red ridge.
     fill(
       smoothD(
@@ -541,24 +596,27 @@ function kwevoel(o: Draw, clip: BirdClip, k: number): string {
     g(
       { transform: `rotate(${tilt} 0 0)` },
       el('clipPath', { id }, el('path', { d: body })),
-      flat(body, P.body),
+      fill(body, P.body, o),
       g(
         { 'clip-path': `url(#${id})` },
-        flat(ellipseD(30, 30, 50, 80), P.dark),
-        flat(ellipseD(-24, -44, 14, 26), P.light),
+        // Paler grey breast, darker back; fine dark shaft streaks on the breast.
+        flat(ellipseD(30, 40, 50, 70), P.dark, { opacity: 0.45 }),
+        flat(ellipseD(40, -10, 22, 50), P.light, { opacity: 0.5 }),
+        el('path', {
+          d: 'M30 -40l4 14M44 -30l4 14M36 -10l4 14M50 0l4 14M28 14l4 14M44 22l4 14',
+          stroke: P.dark,
+          'stroke-width': 1.2,
+          opacity: o.far ? 0 : 0.6,
+        }),
       ),
-      el('path', {
-        d: body,
-        fill: 'none',
-        stroke: o.ink,
-        'stroke-width': o.w,
-        'stroke-linejoin': 'round',
-      }),
     ),
     perched ? wingSvg : '',
     // Head (hitbox r 30 at (20, −110)), crest, beak (open for the call), dark eye.
     crest(o, up),
     fill(ellipseD(20, -110, 32, 30), P.body, o),
+    // Pale face around the eye, darker nape.
+    flat(ellipseD(30, -112, 14, 11), P.light, { opacity: 0.6 }),
+    flat(ellipseD(4, -100, 14, 18), P.dark, { opacity: 0.4 }),
     fill(
       polyD([
         [46, -118 - open * 0.3],
@@ -581,8 +639,9 @@ function kwevoel(o: Draw, clip: BirdClip, k: number): string {
           o.w * 0.8,
         )
       : '',
-    flat(ellipseD(30, -116, 6, 6), '#F4F1E8'),
-    flat(ellipseD(31, -116, 3.4, 3.4), o.ink),
+    flat(ellipseD(30, -116, 5, 5), '#3A2A22'),
+    flat(ellipseD(30.5, -116, 2.4, 2.4), '#0E0C0A'),
+    flat(ellipseD(29, -117.5, 1.1, 1.1), '#FFFFFF'),
     perched ? '' : wingSvg,
   );
 }
@@ -648,19 +707,13 @@ function visarend(o: Draw, clip: BirdClip, k: number): string {
       o,
     ),
     el('clipPath', { id }, el('path', { d: body })),
-    flat(body, P.chestnut),
+    fill(body, P.chestnut, o),
     g(
       { 'clip-path': `url(#${id})` },
       flat(ellipseD(80, -4, 90, 70), P.white),
-      flat(ellipseD(-10, 44, 150, 22), P.chestnutDark),
+      flat(ellipseD(70, 10, 70, 40), P.whiteShade, { opacity: 0.5 }),
+      flat(ellipseD(-10, 44, 150, 22), P.chestnutDark, { opacity: 0.8 }),
     ),
-    el('path', {
-      d: body,
-      fill: 'none',
-      stroke: o.ink,
-      'stroke-width': o.w,
-      'stroke-linejoin': 'round',
-    }),
     // White head (hitbox r 30 at (120, −20)), yellow face, hooked bill.
     fill(ellipseD(124, -22, 34, 30), P.white, o),
     flat(ellipseD(134, -12, 18, 10), P.whiteShade),
@@ -901,6 +954,7 @@ export function renderFlyerFrame(
         ? draw0(o, 'alert', 0)
         : draw0(o, 'flap', 1);
   resetIds();
+  emitted.clear();
   const look = planeLook(cfg, content, plane);
   const o: Draw = { ink: cfg.ink, w: look.line, far: plane === 'far', rnd: prng(k + 1) };
   const { w, h } = masterSize(cfg, content, plane);

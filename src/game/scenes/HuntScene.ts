@@ -39,6 +39,7 @@ import { ParallaxView } from '../view/ParallaxView';
 import { WeaponView } from '../view/WeaponView';
 import { crosshairExtent, spreadMulOf } from '../ui/gunLook';
 import { WorldView } from '../view/WorldView';
+import { textureBytes } from '../assets/textureBytes';
 import { mapLights, mapOmen, resolveMap, type ResolvedMap } from '../../sim/maps';
 import { layoutForDay } from '../../meta/maps';
 import { applyBonusResult, isUnlocked } from '../../meta/bonusMaps';
@@ -209,14 +210,6 @@ export class HuntScene extends Phaser.Scene {
       this.ctx.hook.ready = true;
       this.ctx.hook.boot['ready'] ??= performance.now();
     }
-  }
-
-  /** RGBA bytes of every texture in the texture manager (an estimate of GPU texture memory). */
-  private textureBytes(): number {
-    let n = 0;
-    for (const key of this.textures.getTextureKeys())
-      for (const src of this.textures.get(key).source) n += src.width * src.height * 4;
-    return n;
   }
 
   /** The biome an auto-started hunt will play (the home biome for the title). */
@@ -992,7 +985,7 @@ export class HuntScene extends Phaser.Scene {
       hook.score = state.score;
       hook.shells = state.weapon.shells;
       // D-029: GPU texture memory (RGBA bytes of every texture source), sampled twice a second.
-      if (state.tick % 30 === 0) hook.textureBytes = this.textureBytes();
+      if (state.tick % 30 === 0) hook.textureBytes = textureBytes(this.textures);
       hook.magazine = state.weapon.magazine;
       hook.reloading = state.weapon.reloading;
       hook.stones = state.projectiles.length;

@@ -374,9 +374,9 @@
       "group": "karoo-autumn",
       "origin": "interim",
       "file": {
-        "path": "assets/karoo-autumn/img/karoo_bakkie.04ee79ad79f2.png",
-        "bytes": 8792,
-        "hash": "04ee79ad79f2"
+        "path": "assets/karoo-autumn/img/karoo_bakkie.6afbf44d9f26.png",
+        "bytes": 15559,
+        "hash": "6afbf44d9f26"
       },
       "width": 500,
       "height": 300
@@ -720,14 +720,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/bushveld-winter/layers/far_ridge-0.8c38a188c818.png",
-          "bytes": 37990,
-          "hash": "8c38a188c818"
+          "path": "assets/bushveld-winter/layers/far_ridge-0.73c7ee75e6eb.png",
+          "bytes": 61177,
+          "hash": "73c7ee75e6eb"
         },
         {
-          "path": "assets/bushveld-winter/layers/far_ridge-1.1dc388191de4.png",
-          "bytes": 18322,
-          "hash": "1dc388191de4"
+          "path": "assets/bushveld-winter/layers/far_ridge-1.70476796e7a7.png",
+          "bytes": 33580,
+          "hash": "70476796e7a7"
         }
       ],
       "tileWidth": 2048,
@@ -740,19 +740,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/bushveld-winter/layers/far_veld-0.963d2123058f.png",
-          "bytes": 21206,
-          "hash": "963d2123058f"
+          "path": "assets/bushveld-winter/layers/far_veld-0.82138240b406.png",
+          "bytes": 21235,
+          "hash": "82138240b406"
         },
         {
-          "path": "assets/bushveld-winter/layers/far_veld-1.ad25d34b8acb.png",
-          "bytes": 15251,
-          "hash": "ad25d34b8acb"
+          "path": "assets/bushveld-winter/layers/far_veld-1.5086a6322a4b.png",
+          "bytes": 17185,
+          "hash": "5086a6322a4b"
         }
       ],
       "tileWidth": 2048,
       "left": -300,
-      "top": 548,
+      "top": 464,
       "height": 232
     },
     "bushveld/foreground": {
@@ -760,24 +760,24 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/bushveld-winter/layers/foreground-0.cfa152fa632f.png",
-          "bytes": 28100,
-          "hash": "cfa152fa632f"
+          "path": "assets/bushveld-winter/layers/foreground-0.52148830ae24.png",
+          "bytes": 28530,
+          "hash": "52148830ae24"
         },
         {
-          "path": "assets/bushveld-winter/layers/foreground-1.44e2fc50fe54.png",
-          "bytes": 18624,
-          "hash": "44e2fc50fe54"
+          "path": "assets/bushveld-winter/layers/foreground-1.3db5025c902f.png",
+          "bytes": 18025,
+          "hash": "3db5025c902f"
         },
         {
-          "path": "assets/bushveld-winter/layers/foreground-2.4d46fec043ce.png",
-          "bytes": 14667,
-          "hash": "4d46fec043ce"
+          "path": "assets/bushveld-winter/layers/foreground-2.f4efc866b280.png",
+          "bytes": 15036,
+          "hash": "f4efc866b280"
         },
         {
-          "path": "assets/bushveld-winter/layers/foreground-3.c99f74045220.png",
-          "bytes": 8786,
-          "hash": "c99f74045220"
+          "path": "assets/bushveld-winter/layers/foreground-3.35af0a41d3e6.png",
+          "bytes": 9301,
+          "hash": "35af0a41d3e6"
         }
       ],
       "tileWidth": 2048,
@@ -860,14 +860,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/kalahari-summer/layers/far_ridge-0.6467440ca1e6.png",
-          "bytes": 15099,
-          "hash": "6467440ca1e6"
+          "path": "assets/kalahari-summer/layers/far_ridge-0.c25f9899c8bc.png",
+          "bytes": 57741,
+          "hash": "c25f9899c8bc"
         },
         {
-          "path": "assets/kalahari-summer/layers/far_ridge-1.e6f1a29e3435.png",
-          "bytes": 7567,
-          "hash": "e6f1a29e3435"
+          "path": "assets/kalahari-summer/layers/far_ridge-1.e8b6b32c35c3.png",
+          "bytes": 20701,
+          "hash": "e8b6b32c35c3"
         }
       ],
       "tileWidth": 2048,
@@ -880,19 +880,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/kalahari-summer/layers/far_veld-0.6fd557158b38.png",
-          "bytes": 15817,
-          "hash": "6fd557158b38"
+          "path": "assets/kalahari-summer/layers/far_veld-0.6250ca393fb2.png",
+          "bytes": 13108,
+          "hash": "6250ca393fb2"
         },
         {
-          "path": "assets/kalahari-summer/layers/far_veld-1.c6536858b56d.png",
-          "bytes": 12280,
-          "hash": "c6536858b56d"
+          "path": "assets/kalahari-summer/layers/far_veld-1.548dc3e1c8f7.png",
+          "bytes": 10053,
+          "hash": "548dc3e1c8f7"
         }
       ],
       "tileWidth": 2048,
       "left": -300,
-      "top": 548,
+      "top": 464,
       "height": 232
     },
     "kalahari/foreground": {
@@ -900,24 +900,24 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/kalahari-summer/layers/foreground-0.6ccff9dbace8.png",
-          "bytes": 23556,
-          "hash": "6ccff9dbace8"
+          "path": "assets/kalahari-summer/layers/foreground-0.0ca2d0a17904.png",
+          "bytes": 23964,
+          "hash": "0ca2d0a17904"
         },
         {
-          "path": "assets/kalahari-summer/layers/foreground-1.7ab86e7ea750.png",
-          "bytes": 28128,
-          "hash": "7ab86e7ea750"
+          "path": "assets/kalahari-summer/layers/foreground-1.26f06ebba386.png",
+          "bytes": 27824,
+          "hash": "26f06ebba386"
         },
         {
-          "path": "assets/kalahari-summer/layers/foreground-2.70d42a18d8b3.png",
-          "bytes": 13867,
-          "hash": "70d42a18d8b3"
+          "path": "assets/kalahari-summer/layers/foreground-2.03f156a3cb41.png",
+          "bytes": 13762,
+          "hash": "03f156a3cb41"
         },
         {
-          "path": "assets/kalahari-summer/layers/foreground-3.35d1ebd97445.png",
-          "bytes": 2525,
-          "hash": "35d1ebd97445"
+          "path": "assets/kalahari-summer/layers/foreground-3.a25533661422.png",
+          "bytes": 2765,
+          "hash": "a25533661422"
         }
       ],
       "tileWidth": 2048,
@@ -1000,14 +1000,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/karoo-autumn/layers/far_ridge-0.9d41fa78c652.png",
-          "bytes": 20896,
-          "hash": "9d41fa78c652"
+          "path": "assets/karoo-autumn/layers/far_ridge-0.922cf01dee4c.png",
+          "bytes": 59211,
+          "hash": "922cf01dee4c"
         },
         {
-          "path": "assets/karoo-autumn/layers/far_ridge-1.8109a4cb8270.png",
-          "bytes": 11295,
-          "hash": "8109a4cb8270"
+          "path": "assets/karoo-autumn/layers/far_ridge-1.72833ccb37dc.png",
+          "bytes": 26028,
+          "hash": "72833ccb37dc"
         }
       ],
       "tileWidth": 2048,
@@ -1020,19 +1020,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/karoo-autumn/layers/far_veld-0.0fee1aa0b0f6.png",
-          "bytes": 21117,
-          "hash": "0fee1aa0b0f6"
+          "path": "assets/karoo-autumn/layers/far_veld-0.bfacf750ce01.png",
+          "bytes": 18636,
+          "hash": "bfacf750ce01"
         },
         {
-          "path": "assets/karoo-autumn/layers/far_veld-1.9984486b866f.png",
-          "bytes": 16425,
-          "hash": "9984486b866f"
+          "path": "assets/karoo-autumn/layers/far_veld-1.a461cc2ae1a0.png",
+          "bytes": 17688,
+          "hash": "a461cc2ae1a0"
         }
       ],
       "tileWidth": 2048,
       "left": -300,
-      "top": 548,
+      "top": 464,
       "height": 232
     },
     "karoo/foreground": {
@@ -1040,19 +1040,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/karoo-autumn/layers/foreground-0.4115b60a694b.png",
-          "bytes": 33690,
-          "hash": "4115b60a694b"
+          "path": "assets/karoo-autumn/layers/foreground-0.2ed613e25c79.png",
+          "bytes": 33624,
+          "hash": "2ed613e25c79"
         },
         {
-          "path": "assets/karoo-autumn/layers/foreground-1.2a7af718a0b6.png",
-          "bytes": 17669,
-          "hash": "2a7af718a0b6"
+          "path": "assets/karoo-autumn/layers/foreground-1.c02971d50478.png",
+          "bytes": 17545,
+          "hash": "c02971d50478"
         },
         {
-          "path": "assets/karoo-autumn/layers/foreground-2.0ccaa3ebb6d9.png",
-          "bytes": 19733,
-          "hash": "0ccaa3ebb6d9"
+          "path": "assets/karoo-autumn/layers/foreground-2.eeb78c12810a.png",
+          "bytes": 20068,
+          "hash": "eeb78c12810a"
         },
         {
           "path": "assets/karoo-autumn/layers/foreground-3.67c0d9056c65.png",
@@ -1140,14 +1140,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/okavango-spring/layers/far_ridge-0.c5800049f8e2.png",
-          "bytes": 39686,
-          "hash": "c5800049f8e2"
+          "path": "assets/okavango-spring/layers/far_ridge-0.5f8a570575dd.png",
+          "bytes": 57178,
+          "hash": "5f8a570575dd"
         },
         {
-          "path": "assets/okavango-spring/layers/far_ridge-1.00c52970fab7.png",
-          "bytes": 21551,
-          "hash": "00c52970fab7"
+          "path": "assets/okavango-spring/layers/far_ridge-1.fe3222cfd60e.png",
+          "bytes": 22078,
+          "hash": "fe3222cfd60e"
         }
       ],
       "tileWidth": 2048,
@@ -1160,19 +1160,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/okavango-spring/layers/far_veld-0.16bd6dff0576.png",
-          "bytes": 10417,
-          "hash": "16bd6dff0576"
+          "path": "assets/okavango-spring/layers/far_veld-0.3dc876b9e1a5.png",
+          "bytes": 11937,
+          "hash": "3dc876b9e1a5"
         },
         {
-          "path": "assets/okavango-spring/layers/far_veld-1.1d55cd1e6a6b.png",
-          "bytes": 8084,
-          "hash": "1d55cd1e6a6b"
+          "path": "assets/okavango-spring/layers/far_veld-1.509b4b608540.png",
+          "bytes": 8306,
+          "hash": "509b4b608540"
         }
       ],
       "tileWidth": 2048,
       "left": -300,
-      "top": 548,
+      "top": 464,
       "height": 232
     },
     "okavango/foreground": {
@@ -1180,19 +1180,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/okavango-spring/layers/foreground-0.fc60ec9a822e.png",
-          "bytes": 11433,
-          "hash": "fc60ec9a822e"
+          "path": "assets/okavango-spring/layers/foreground-0.00223636d13e.png",
+          "bytes": 11608,
+          "hash": "00223636d13e"
         },
         {
-          "path": "assets/okavango-spring/layers/foreground-1.c2e5ca65e5a5.png",
-          "bytes": 30432,
-          "hash": "c2e5ca65e5a5"
+          "path": "assets/okavango-spring/layers/foreground-1.f479e76a2a33.png",
+          "bytes": 30186,
+          "hash": "f479e76a2a33"
         },
         {
-          "path": "assets/okavango-spring/layers/foreground-2.ffd66e740757.png",
-          "bytes": 25980,
-          "hash": "ffd66e740757"
+          "path": "assets/okavango-spring/layers/foreground-2.ce506c7910f0.png",
+          "bytes": 25927,
+          "hash": "ce506c7910f0"
         },
         {
           "path": "assets/okavango-spring/layers/foreground-3.67c0d9056c65.png",
@@ -1285,14 +1285,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/late/birds/generaal-mid@1x-0.9628a1f266e1.png",
-                "bytes": 176307,
-                "hash": "9628a1f266e1"
+                "path": "assets/late/birds/generaal-mid@1x-0.6f79d2c82812.png",
+                "bytes": 215931,
+                "hash": "6f79d2c82812"
               },
               "data": {
-                "path": "assets/late/birds/generaal-mid@1x-0.89e47dce23de.json",
-                "bytes": 7727,
-                "hash": "89e47dce23de"
+                "path": "assets/late/birds/generaal-mid@1x-0.3e926275e3d2.json",
+                "bytes": 7729,
+                "hash": "3e926275e3d2"
               }
             }
           ]
@@ -1389,14 +1389,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/common/birds/hadeda-far@1x-0.4b1fa8974427.png",
-                "bytes": 4931,
-                "hash": "4b1fa8974427"
+                "path": "assets/common/birds/hadeda-far@1x-0.c99d722c8dc4.png",
+                "bytes": 6567,
+                "hash": "c99d722c8dc4"
               },
               "data": {
-                "path": "assets/common/birds/hadeda-far@1x-0.98a69a03bc34.json",
-                "bytes": 1087,
-                "hash": "98a69a03bc34"
+                "path": "assets/common/birds/hadeda-far@1x-0.8bc8252c2be3.json",
+                "bytes": 1102,
+                "hash": "8bc8252c2be3"
               }
             }
           ]
@@ -1436,14 +1436,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/okavango-spring/birds/kuifkop-mid@1x-0.b2f5a489ba85.png",
-                "bytes": 171582,
-                "hash": "b2f5a489ba85"
+                "path": "assets/okavango-spring/birds/kuifkop-mid@1x-0.5edbec894682.png",
+                "bytes": 183515,
+                "hash": "5edbec894682"
               },
               "data": {
-                "path": "assets/okavango-spring/birds/kuifkop-mid@1x-0.02836cd6414a.json",
-                "bytes": 7663,
-                "hash": "02836cd6414a"
+                "path": "assets/okavango-spring/birds/kuifkop-mid@1x-0.666eec4a0090.json",
+                "bytes": 7679,
+                "hash": "666eec4a0090"
               }
             }
           ]
@@ -1540,14 +1540,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/okavango-spring/birds/kuifkop_koning-mid@1x-0.62cfb3119aea.png",
-                "bytes": 178555,
-                "hash": "62cfb3119aea"
+                "path": "assets/okavango-spring/birds/kuifkop_koning-mid@1x-0.8f292a4b026f.png",
+                "bytes": 201339,
+                "hash": "8f292a4b026f"
               },
               "data": {
-                "path": "assets/okavango-spring/birds/kuifkop_koning-mid@1x-0.20df4d808d5d.json",
-                "bytes": 7735,
-                "hash": "20df4d808d5d"
+                "path": "assets/okavango-spring/birds/kuifkop_koning-mid@1x-0.ffa263ae6a94.json",
+                "bytes": 7707,
+                "hash": "ffa263ae6a94"
               }
             }
           ]
@@ -1644,14 +1644,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/common/birds/kwevoel-mid@1x-0.c8b847fef74a.png",
-                "bytes": 14386,
-                "hash": "c8b847fef74a"
+                "path": "assets/common/birds/kwevoel-mid@1x-0.78c16b799cc1.png",
+                "bytes": 28554,
+                "hash": "78c16b799cc1"
               },
               "data": {
-                "path": "assets/common/birds/kwevoel-mid@1x-0.6411f077bcdc.json",
+                "path": "assets/common/birds/kwevoel-mid@1x-0.4083004a2d17.json",
                 "bytes": 1688,
-                "hash": "6411f077bcdc"
+                "hash": "4083004a2d17"
               }
             }
           ]
@@ -1701,14 +1701,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/bushveld-winter/birds/ou_grys-mid@1x-0.29e13873828e.png",
-                "bytes": 170360,
-                "hash": "29e13873828e"
+                "path": "assets/bushveld-winter/birds/ou_grys-mid@1x-0.1f04e520c9a4.png",
+                "bytes": 204324,
+                "hash": "1f04e520c9a4"
               },
               "data": {
-                "path": "assets/bushveld-winter/birds/ou_grys-mid@1x-0.04449cb0a0c4.json",
-                "bytes": 7722,
-                "hash": "04449cb0a0c4"
+                "path": "assets/bushveld-winter/birds/ou_grys-mid@1x-0.2c6032c4dab3.json",
+                "bytes": 7717,
+                "hash": "2c6032c4dab3"
               }
             }
           ]
@@ -1805,14 +1805,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/common/birds/sproeier-far@1x-0.0476f005220f.png",
-                "bytes": 6298,
-                "hash": "0476f005220f"
+                "path": "assets/common/birds/sproeier-far@1x-0.6adeff6ad2de.png",
+                "bytes": 7086,
+                "hash": "6adeff6ad2de"
               },
               "data": {
-                "path": "assets/common/birds/sproeier-far@1x-0.af34aec484a6.json",
+                "path": "assets/common/birds/sproeier-far@1x-0.df8478963d64.json",
                 "bytes": 1483,
-                "hash": "af34aec484a6"
+                "hash": "df8478963d64"
               }
             }
           ]
@@ -1852,14 +1852,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/late/birds/stormvoel-far@1x-0.2f3ebda5cd95.png",
-                "bytes": 19944,
-                "hash": "2f3ebda5cd95"
+                "path": "assets/late/birds/stormvoel-far@1x-0.e9c9e7a144d2.png",
+                "bytes": 21911,
+                "hash": "e9c9e7a144d2"
               },
               "data": {
-                "path": "assets/late/birds/stormvoel-far@1x-0.780dbedb51aa.json",
-                "bytes": 2253,
-                "hash": "780dbedb51aa"
+                "path": "assets/late/birds/stormvoel-far@1x-0.72c46fa1766a.json",
+                "bytes": 2286,
+                "hash": "72c46fa1766a"
               }
             }
           ]
@@ -1909,14 +1909,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/late/birds/stormvoel-mid@1x-0.34a3d9b76a8d.png",
-                "bytes": 56232,
-                "hash": "34a3d9b76a8d"
+                "path": "assets/late/birds/stormvoel-mid@1x-0.134770144f8d.png",
+                "bytes": 98401,
+                "hash": "134770144f8d"
               },
               "data": {
-                "path": "assets/late/birds/stormvoel-mid@1x-0.1e75051f0a97.json",
-                "bytes": 2331,
-                "hash": "1e75051f0a97"
+                "path": "assets/late/birds/stormvoel-mid@1x-0.78c12bfef00e.json",
+                "bytes": 2320,
+                "hash": "78c12bfef00e"
               }
             }
           ]
@@ -1968,14 +1968,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/common/birds/tarentaal-far@1x-0.717bf5925c92.png",
-                "bytes": 84076,
-                "hash": "717bf5925c92"
+                "path": "assets/common/birds/tarentaal-far@1x-0.1ecd5573efc0.png",
+                "bytes": 83073,
+                "hash": "1ecd5573efc0"
               },
               "data": {
-                "path": "assets/common/birds/tarentaal-far@1x-0.fbe458eb19c7.json",
-                "bytes": 10526,
-                "hash": "fbe458eb19c7"
+                "path": "assets/common/birds/tarentaal-far@1x-0.58947e461bb9.json",
+                "bytes": 10523,
+                "hash": "58947e461bb9"
               }
             }
           ]
@@ -2110,14 +2110,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/common/birds/tarentaal-mid@1x-0.af34b49d8b7e.png",
-                "bytes": 225420,
-                "hash": "af34b49d8b7e"
+                "path": "assets/common/birds/tarentaal-mid@1x-0.5b63e4bd7e36.png",
+                "bytes": 271422,
+                "hash": "5b63e4bd7e36"
               },
               "data": {
-                "path": "assets/common/birds/tarentaal-mid@1x-0.555514c3d4fe.json",
-                "bytes": 10909,
-                "hash": "555514c3d4fe"
+                "path": "assets/common/birds/tarentaal-mid@1x-0.83b0c7d4761d.json",
+                "bytes": 10901,
+                "hash": "83b0c7d4761d"
               }
             }
           ]
@@ -2252,14 +2252,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/common/birds/tarentaal-near@1x-0.384a292eec23.png",
-                "bytes": 105703,
-                "hash": "384a292eec23"
+                "path": "assets/common/birds/tarentaal-near@1x-0.fafa71acc016.png",
+                "bytes": 124819,
+                "hash": "fafa71acc016"
               },
               "data": {
-                "path": "assets/common/birds/tarentaal-near@1x-0.27964e8fa22c.json",
-                "bytes": 2124,
-                "hash": "27964e8fa22c"
+                "path": "assets/common/birds/tarentaal-near@1x-0.b61a1af09b97.json",
+                "bytes": 2118,
+                "hash": "b61a1af09b97"
               }
             }
           ]
@@ -2304,14 +2304,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/late/birds/tarentaal_lavendel-far@1x-0.4d40d54efb1b.png",
-                "bytes": 61948,
-                "hash": "4d40d54efb1b"
+                "path": "assets/late/birds/tarentaal_lavendel-far@1x-0.ea8081bd3138.png",
+                "bytes": 63825,
+                "hash": "ea8081bd3138"
               },
               "data": {
-                "path": "assets/late/birds/tarentaal_lavendel-far@1x-0.f44e91f67013.json",
-                "bytes": 7466,
-                "hash": "f44e91f67013"
+                "path": "assets/late/birds/tarentaal_lavendel-far@1x-0.83276ce54645.json",
+                "bytes": 7478,
+                "hash": "83276ce54645"
               }
             }
           ]
@@ -2404,14 +2404,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/late/birds/tarentaal_lavendel-mid@1x-0.9cfc2b6ab57e.png",
-                "bytes": 170808,
-                "hash": "9cfc2b6ab57e"
+                "path": "assets/late/birds/tarentaal_lavendel-mid@1x-0.7e33b2dc4a53.png",
+                "bytes": 208436,
+                "hash": "7e33b2dc4a53"
               },
               "data": {
-                "path": "assets/late/birds/tarentaal_lavendel-mid@1x-0.f9c2ff4428ba.json",
-                "bytes": 7741,
-                "hash": "f9c2ff4428ba"
+                "path": "assets/late/birds/tarentaal_lavendel-mid@1x-0.e7e57b36707c.json",
+                "bytes": 7743,
+                "hash": "e7e57b36707c"
               }
             }
           ]
@@ -2506,14 +2506,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/late/birds/tarentaal_wit-far@1x-0.bb977beacd7d.png",
-                "bytes": 65003,
-                "hash": "bb977beacd7d"
+                "path": "assets/late/birds/tarentaal_wit-far@1x-0.0fe28ffdf0e1.png",
+                "bytes": 64200,
+                "hash": "0fe28ffdf0e1"
               },
               "data": {
-                "path": "assets/late/birds/tarentaal_wit-far@1x-0.845b262f0318.json",
-                "bytes": 7461,
-                "hash": "845b262f0318"
+                "path": "assets/late/birds/tarentaal_wit-far@1x-0.01d62371d132.json",
+                "bytes": 7473,
+                "hash": "01d62371d132"
               }
             }
           ]
@@ -2606,14 +2606,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/late/birds/tarentaal_wit-mid@1x-0.bfe9b2b343e8.png",
-                "bytes": 179674,
-                "hash": "bfe9b2b343e8"
+                "path": "assets/late/birds/tarentaal_wit-mid@1x-0.d108d6f6ddf5.png",
+                "bytes": 211419,
+                "hash": "d108d6f6ddf5"
               },
               "data": {
-                "path": "assets/late/birds/tarentaal_wit-mid@1x-0.d4b16ae15db7.json",
-                "bytes": 7736,
-                "hash": "d4b16ae15db7"
+                "path": "assets/late/birds/tarentaal_wit-mid@1x-0.ee6f25b20d6a.json",
+                "bytes": 7738,
+                "hash": "ee6f25b20d6a"
               }
             }
           ]
@@ -2708,14 +2708,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/okavango-spring/birds/visarend-far@1x-0.b6319271bbf6.png",
-                "bytes": 5226,
-                "hash": "b6319271bbf6"
+                "path": "assets/okavango-spring/birds/visarend-far@1x-0.bcf3a5c10579.png",
+                "bytes": 6103,
+                "hash": "bcf3a5c10579"
               },
               "data": {
-                "path": "assets/okavango-spring/birds/visarend-far@1x-0.9c0a52f11713.json",
-                "bytes": 1467,
-                "hash": "9c0a52f11713"
+                "path": "assets/okavango-spring/birds/visarend-far@1x-0.6957c3e46845.json",
+                "bytes": 1469,
+                "hash": "6957c3e46845"
               }
             }
           ]
@@ -3594,14 +3594,14 @@
         "pages": [
           {
             "image": {
-              "path": "assets/common/guns/gun-dubbelloop@1x-0.1ed76c0837fe.png",
-              "bytes": 159648,
-              "hash": "1ed76c0837fe"
+              "path": "assets/common/guns/gun-dubbelloop@1x-0.cb753c6f66cd.png",
+              "bytes": 272794,
+              "hash": "cb753c6f66cd"
             },
             "data": {
-              "path": "assets/common/guns/gun-dubbelloop@1x-0.8ff7d12e645d.json",
-              "bytes": 3253,
-              "hash": "8ff7d12e645d"
+              "path": "assets/common/guns/gun-dubbelloop@1x-0.c1e7a9670e79.json",
+              "bytes": 3238,
+              "hash": "c1e7a9670e79"
             }
           }
         ]
@@ -3661,14 +3661,14 @@
         "pages": [
           {
             "image": {
-              "path": "assets/late/guns/gun-kettie@1x-0.fd7cd160a562.png",
-              "bytes": 39326,
-              "hash": "fd7cd160a562"
+              "path": "assets/late/guns/gun-kettie@1x-0.e84f3b3f85f0.png",
+              "bytes": 42088,
+              "hash": "e84f3b3f85f0"
             },
             "data": {
-              "path": "assets/late/guns/gun-kettie@1x-0.ca76b4c5ef41.json",
+              "path": "assets/late/guns/gun-kettie@1x-0.a3e1481732b6.json",
               "bytes": 1464,
-              "hash": "ca76b4c5ef41"
+              "hash": "a3e1481732b6"
             }
           }
         ]
@@ -3713,14 +3713,14 @@
         "pages": [
           {
             "image": {
-              "path": "assets/late/guns/gun-mielie_masjien@1x-0.995cdc36db6c.png",
-              "bytes": 43815,
-              "hash": "995cdc36db6c"
+              "path": "assets/late/guns/gun-mielie_masjien@1x-0.1b5df399d007.png",
+              "bytes": 104758,
+              "hash": "1b5df399d007"
             },
             "data": {
-              "path": "assets/late/guns/gun-mielie_masjien@1x-0.396beb4d4b6e.json",
-              "bytes": 1491,
-              "hash": "396beb4d4b6e"
+              "path": "assets/late/guns/gun-mielie_masjien@1x-0.93a66d9e2814.json",
+              "bytes": 1492,
+              "hash": "93a66d9e2814"
             }
           }
         ]
@@ -3765,14 +3765,14 @@
         "pages": [
           {
             "image": {
-              "path": "assets/late/guns/gun-pomp@1x-0.6eed0a76f29f.png",
-              "bytes": 112000,
-              "hash": "6eed0a76f29f"
+              "path": "assets/late/guns/gun-pomp@1x-0.c1f937f3366a.png",
+              "bytes": 176308,
+              "hash": "c1f937f3366a"
             },
             "data": {
-              "path": "assets/late/guns/gun-pomp@1x-0.4f1e30b60cd4.json",
-              "bytes": 2462,
-              "hash": "4f1e30b60cd4"
+              "path": "assets/late/guns/gun-pomp@1x-0.d99329f4b806.json",
+              "bytes": 2460,
+              "hash": "d99329f4b806"
             }
           }
         ]
@@ -3829,14 +3829,14 @@
         "pages": [
           {
             "image": {
-              "path": "assets/late/guns/gun-voorlaaier@1x-0.b36a68d9f385.png",
-              "bytes": 132502,
-              "hash": "b36a68d9f385"
+              "path": "assets/late/guns/gun-voorlaaier@1x-0.2485ce26acff.png",
+              "bytes": 219577,
+              "hash": "2485ce26acff"
             },
             "data": {
-              "path": "assets/late/guns/gun-voorlaaier@1x-0.953e527afacb.json",
-              "bytes": 3057,
-              "hash": "953e527afacb"
+              "path": "assets/late/guns/gun-voorlaaier@1x-0.3100d53832b7.json",
+              "bytes": 3043,
+              "hash": "3100d53832b7"
             }
           }
         ]
@@ -3896,14 +3896,14 @@
         "pages": [
           {
             "image": {
-              "path": "assets/late/guns/gun-windbuks@1x-0.c7009291618a.png",
-              "bytes": 41492,
-              "hash": "c7009291618a"
+              "path": "assets/late/guns/gun-windbuks@1x-0.c9ebe151e926.png",
+              "bytes": 59918,
+              "hash": "c9ebe151e926"
             },
             "data": {
-              "path": "assets/late/guns/gun-windbuks@1x-0.3c8c0ae62817.json",
-              "bytes": 1276,
-              "hash": "3c8c0ae62817"
+              "path": "assets/late/guns/gun-windbuks@1x-0.a4f1a73cfbf5.json",
+              "bytes": 1273,
+              "hash": "a4f1a73cfbf5"
             }
           }
         ]

@@ -8,16 +8,13 @@ import {
   flat,
   groundD,
   hatch,
-  koppie,
   line,
-  mesa,
   mix,
   nextId,
   post,
   shade,
   stone,
   tone,
-  treeBlob,
   tuft,
   wire,
   yAt,
@@ -27,6 +24,8 @@ import {
   type Tone,
 } from '../scenery';
 import { el, ellipseD, g, inked, place, polyD, r2, smoothD } from '../svg';
+import { contactShadow, fillD, softPen, tree } from '../realism';
+import { mountainRow, paintRow, rockColours } from '../mountains';
 import { cirrus, skyGradient, softCumulus, softDefs, type CloudColours } from '../skies';
 import {
   grassField,
@@ -375,119 +374,339 @@ export function bush(ctx: PaintCtx, x: number, y: number, s: number, pen: Pen): 
 }
 
 function farRidge(ctx: LayerCtx): string {
-  const parts: string[] = [];
+  // D-035: no longer a row of flat tops. A hazy back range (a dark massif with ravines, jagged
+  // strata ridges, a mesa or two), then nearer dolerite mesas, pointed koppies with scree, a
+  // granite inselberg and boulder heaps: varied heights and gaps, lit from the left.
   const horizon = ctx.raw('horizon');
-  const backPen: Pen = { ink: mix(ctx.pen.ink, horizon, 0.35), w: 1.5 };
-  const backTone = tone(mix(ctx.c('koppie'), horizon, 0.35), 0.15, 0.2);
-  const backCap = mix(ctx.c('koppieCap'), horizon, 0.35);
-  // A low continuous range behind.
-  for (let x = -120; x < ctx.width;) {
-    const w = 420 + ctx.rnd() * 420;
-    parts.push(mesa(ctx.rnd, x, 610, w, 70 + ctx.rnd() * 60, backTone, backCap, backPen));
-    x += w * (0.62 + ctx.rnd() * 0.2);
-  }
-  // Nearer mesas and koppies.
-  const t = tone(ctx.c('koppie'), 0.2, 0.22);
-  for (let x = -60; x < ctx.width;) {
-    if (ctx.rnd() < 0.62) {
-      const w = 260 + ctx.rnd() * 320;
-      parts.push(mesa(ctx.rnd, x, 650, w, 125 + ctx.rnd() * 85, t, ctx.c('koppieCap'), ctx.pen));
-      x += w + 60 + ctx.rnd() * 260;
-    } else {
-      const w = 140 + ctx.rnd() * 140;
-      parts.push(koppie(ctx.rnd, x, 650, w, 85 + ctx.rnd() * 55, t, ctx.pen));
-      x += w + 80 + ctx.rnd() * 240;
-    }
-  }
-  return g({}, ...parts);
-}
-
-function farmhouse(ctx: LayerCtx, x: number, base: number): string {
-  const pen = ctx.pen;
-  const wall = tone(ctx.c('wall'), 0.18, 0.1);
-  const roof = ctx.c('roof');
+  const rock = rockColours(ctx.raw);
+  const back = mountainRow(
+    ctx.rnd,
+    [
+      { kind: 'massif', w: 2 },
+      { kind: 'strata', w: 2 },
+      { kind: 'mesa', w: 1.2 },
+    ],
+    {
+      x0: -160,
+      x1: ctx.width,
+      base: 612,
+      width: [420, 760],
+      height: [80, 175],
+      overlap: [0.15, 0.4],
+      haze: 0.5,
+    },
+  );
+  const front = mountainRow(
+    ctx.rnd,
+    [
+      { kind: 'mesa', w: 1.4 },
+      { kind: 'koppie', w: 2 },
+      { kind: 'inselberg', w: 0.8 },
+      { kind: 'strata', w: 1 },
+      { kind: 'boulders', w: 1 },
+    ],
+    {
+      x0: -80,
+      x1: ctx.width,
+      base: 650,
+      width: [260, 560],
+      height: [115, 245],
+      overlap: [-0.25, 0.15],
+      haze: 0.2,
+    },
+  );
+  const backPen: Pen = { ink: mix(ctx.pen.ink, horizon, 0.35), w: 1.4 };
   return g(
     {},
-    treeBlob(
-      ctx.rnd,
-      x - 70,
-      base + 2,
-      60,
-      74,
-      tone(ctx.c('tree'), 0.22, 0.2),
-      ctx.c('trunk'),
-      pen,
-    ),
-    treeBlob(
-      ctx.rnd,
-      x + 90,
-      base + 3,
-      54,
-      66,
-      tone(ctx.c('tree'), 0.22, 0.2),
-      ctx.c('trunk'),
-      pen,
-    ),
-    inked(
-      polyD([
-        [x - 36, base],
-        [x - 36, base - 18],
-        [x + 30, base - 18],
-        [x + 30, base],
-      ]),
-      wall.fill,
-      pen.ink,
-      pen.w,
-    ),
-    flat(
-      polyD([
-        [x + 14, base],
-        [x + 14, base - 18],
-        [x + 30, base - 18],
-        [x + 30, base],
-      ]),
-      wall.dark,
-    ),
-    inked(
-      polyD([
-        [x - 42, base - 16],
-        [x - 30, base - 30],
-        [x + 26, base - 30],
-        [x + 36, base - 16],
-      ]),
-      roof,
-      pen.ink,
-      pen.w,
-    ),
-    flat(
-      polyD([
-        [x - 20, base],
-        [x - 20, base - 9],
-        [x - 14, base - 9],
-        [x - 14, base],
-      ]),
-      shade(wall.fill, -0.5),
-    ),
-    flat(
-      polyD([
-        [x + 2, base - 7],
-        [x + 2, base - 12],
-        [x + 9, base - 12],
-        [x + 9, base - 7],
-      ]),
-      '#6A8BA0',
-    ),
-    treeBlob(
-      ctx.rnd,
-      x + 54,
-      base + 4,
-      40,
-      50,
-      tone(ctx.c('tree'), 0.22, 0.2),
-      ctx.c('trunk'),
-      pen,
+    ...paintRow(ctx.rnd, back, rock, backPen, horizon),
+    ...paintRow(ctx.rnd, front, rock, ctx.pen, horizon),
+  );
+}
+
+/**
+ * D-035: the farmstead on the far veld, standing on the ground line (`ground` gives the line's y
+ * at any x): a whitewashed farmhouse with a corrugated red roof, a stoep, chimney, windows and a
+ * door; a beaten-earth yard with a low wall, a path down to the track, a tank on its stand, and
+ * bluegums and a pepper tree beside it, each on its own base with a contact shadow.
+ */
+function farmhouse(ctx: LayerCtx, x: number, ground: (x: number) => number): string {
+  const pen = softPen(ctx.pen, ctx.c('wall'), 0.7);
+  const base = ground(x) + 2;
+  const wall = ctx.c('wall');
+  const wallLit = shade(wall, 0.25);
+  const wallShade = shade(wall, -0.22);
+  const roof = ctx.c('roof');
+  const leaves = tone(ctx.c('tree'), 0.3, 0.22);
+  const gum = tone(shade(ctx.c('tree'), -0.12), 0.3, 0.2);
+  const trunk = ctx.c('trunk');
+  const soil = mix(ctx.c('soil'), ctx.c('veldLight'), 0.55);
+  const parts: string[] = [];
+  // Bluegums behind the house (taller, darker), then the yard on the ground.
+  for (const [dx, w, h] of [
+    [-78, 32, 84],
+    [-58, 28, 72],
+    [70, 34, 86],
+  ] as const) {
+    const tx = x + dx;
+    parts.push(tree(ctx.rnd, 'bluegum', tx, ground(tx) + 2, w, h, gum, trunk, ctx.pen));
+  }
+  parts.push(fillD(ellipseD(x - 4, base + 5, 86, 7), soil, 0.75));
+  // The path from the door down to the track (widens toward the viewer).
+  parts.push(
+    fillD(
+      `M${r2(x - 12)} ${r2(base + 1)}C${r2(x - 16)} ${r2(base + 18)} ${r2(x - 40)} ${r2(base + 30)} ${r2(
+        x - 64,
+      )} ${r2(base + 58)}L${r2(x - 44)} ${r2(base + 58)}C${r2(x - 26)} ${r2(base + 30)} ${r2(
+        x - 6,
+      )} ${r2(base + 18)} ${r2(x - 4)} ${r2(base + 1)}Z`,
+      shade(soil, 0.12),
+      0.9,
     ),
   );
+  parts.push(contactShadow(x + 6, base + 1, 46, 3.5, 0.32));
+  // Tank on a stand (behind-right), corrugated.
+  const kx = x + 44;
+  parts.push(
+    g(
+      {},
+      el('path', {
+        d: `M${r2(kx - 7)} ${r2(base)}L${r2(kx - 6)} ${r2(base - 14)}M${r2(kx + 7)} ${r2(base)}L${r2(
+          kx + 6,
+        )} ${r2(base - 14)}M${r2(kx - 6.5)} ${r2(base - 7)}L${r2(kx + 6.5)} ${r2(base - 7)}`,
+        fill: 'none',
+        stroke: shade(ctx.c('metal'), -0.3),
+        'stroke-width': 1.2,
+      }),
+      el('rect', {
+        x: kx - 9,
+        y: base - 27,
+        width: 18,
+        height: 13,
+        rx: 2,
+        fill: ctx.c('metal'),
+        stroke: pen.ink,
+        'stroke-width': pen.w,
+      }),
+      el('path', {
+        d: [0, 1, 2, 3].map((k) => `M${r2(kx - 9)} ${r2(base - 24 + k * 3)}h18`).join(''),
+        stroke: shade(ctx.c('metal'), -0.25),
+        'stroke-width': 0.7,
+      }),
+      fillD(
+        polyD([
+          [kx + 3, base - 27],
+          [kx + 9, base - 27],
+          [kx + 9, base - 14],
+          [kx + 3, base - 14],
+        ]),
+        shade(ctx.c('metal'), -0.25),
+        0.6,
+      ),
+    ),
+  );
+  // The house: front wall (lit), gable end (shade), stoep.
+  const L = x - 36;
+  const R = x + 26;
+  const E = x + 38; // end wall edge (the gable seen at an angle)
+  const H = 22;
+  parts.push(
+    el('path', {
+      d: polyD([
+        [L, base],
+        [L, base - H],
+        [R, base - H],
+        [R, base],
+      ]),
+      fill: wallLit,
+      stroke: pen.ink,
+      'stroke-width': pen.w,
+      'stroke-linejoin': 'round',
+    }),
+    el('path', {
+      d: polyD([
+        [R, base],
+        [R, base - H],
+        [(R + E) / 2, base - H - 10],
+        [E, base - H + 2],
+        [E, base - 1],
+      ]),
+      fill: wallShade,
+      stroke: pen.ink,
+      'stroke-width': pen.w,
+      'stroke-linejoin': 'round',
+    }),
+    // A damp/dust line along the foot of the walls.
+    fillD(
+      polyD([
+        [L, base],
+        [L, base - 2.5],
+        [E, base - 3],
+        [E, base - 1],
+      ]),
+      shade(wall, -0.3),
+      0.5,
+    ),
+  );
+  // Windows (frames, panes catching the sky) and the door.
+  for (const wx of [L + 8, L + 36]) {
+    parts.push(
+      el('rect', {
+        x: wx,
+        y: base - 16,
+        width: 8,
+        height: 8,
+        fill: '#5E7F94',
+        stroke: shade(wall, -0.5),
+        'stroke-width': 0.9,
+      }),
+      fillD(
+        polyD([
+          [wx + 0.8, base - 15.2],
+          [wx + 4, base - 15.2],
+          [wx + 0.8, base - 11],
+        ]),
+        '#BFD7E3',
+        0.8,
+      ),
+      el('path', {
+        d: `M${r2(wx + 4)} ${r2(base - 16)}v8M${r2(wx)} ${r2(base - 12)}h8`,
+        stroke: shade(wall, -0.4),
+        'stroke-width': 0.6,
+      }),
+    );
+  }
+  parts.push(
+    el('rect', {
+      x: L + 22,
+      y: base - 13,
+      width: 7,
+      height: 13,
+      fill: shade(ctx.c('trunk'), -0.1),
+      stroke: shade(wall, -0.5),
+      'stroke-width': 0.9,
+    }),
+  );
+  // Main roof (corrugated: thin ridges), its shaded far slope, the ridge cap and a chimney.
+  const roofD = polyD([
+    [L - 5, base - H + 1],
+    [L + 4, base - H - 12],
+    [(R + E) / 2, base - H - 12],
+    [R + 3, base - H + 1],
+  ]);
+  const roofId = nextId();
+  const ridges: string[] = [];
+  for (let rx = L - 4; rx < R + 4; rx += 2.6)
+    ridges.push(`M${r2(rx)} ${r2(base - H + 1)}L${r2(rx + 4)} ${r2(base - H - 12)}`);
+  parts.push(
+    el('rect', {
+      x: L + 10,
+      y: base - H - 19,
+      width: 5,
+      height: 9,
+      fill: wallShade,
+      stroke: pen.ink,
+      'stroke-width': pen.w * 0.9,
+    }),
+    el('path', {
+      d: roofD,
+      fill: roof,
+      stroke: pen.ink,
+      'stroke-width': pen.w,
+      'stroke-linejoin': 'round',
+    }),
+    el('clipPath', { id: roofId }, el('path', { d: roofD })),
+    g(
+      { 'clip-path': `url(#${roofId})` },
+      el('path', { d: ridges.join(''), stroke: shade(roof, -0.25), 'stroke-width': 0.7 }),
+      fillD(
+        polyD([
+          [L - 6, base - H - 13],
+          [R + 6, base - H - 13],
+          [R + 6, base - H - 9],
+          [L - 6, base - H - 9],
+        ]),
+        shade(roof, 0.3),
+        0.6,
+      ),
+      // Rust streaks.
+      fillD(
+        polyD([
+          [L + 14, base - H - 12],
+          [L + 17, base - H - 12],
+          [L + 15, base - H + 1],
+          [L + 12, base - H + 1],
+        ]),
+        shade(roof, -0.3),
+        0.5,
+      ),
+    ),
+  );
+  // The stoep: a lean-to roof on thin posts along the front, with its shadow on the wall.
+  parts.push(
+    fillD(
+      polyD([
+        [L, base - 11],
+        [R, base - 11],
+        [R, base - 6],
+        [L, base - 6],
+      ]),
+      shade(wall, -0.35),
+      0.45,
+    ),
+    el('path', {
+      d: polyD([
+        [L - 3, base - 10],
+        [L + 1, base - 14.5],
+        [R - 1, base - 14.5],
+        [R + 3, base - 10],
+      ]),
+      fill: shade(roof, -0.12),
+      stroke: pen.ink,
+      'stroke-width': pen.w * 0.9,
+      'stroke-linejoin': 'round',
+    }),
+    el('path', {
+      d: [L, L + 20, L + 40, R]
+        .map((px) => `M${r2(px + 0.5)} ${r2(base - 10)}V${r2(base)}`)
+        .join(''),
+      stroke: shade(wall, -0.45),
+      'stroke-width': 1,
+    }),
+  );
+  // A low whitewashed yard wall in front, broken by the gate where the path leaves.
+  const wallY = base + 8;
+  for (const [a, b] of [
+    [x - 82, x - 24],
+    [x - 2, x + 62],
+  ] as const) {
+    parts.push(
+      el('path', {
+        d: polyD([
+          [a, wallY],
+          [a, wallY - 4],
+          [b, wallY - 4],
+          [b, wallY],
+        ]),
+        fill: shade(wall, -0.04),
+        stroke: pen.ink,
+        'stroke-width': pen.w * 0.8,
+      }),
+      fillD(
+        polyD([
+          [a, wallY],
+          [a, wallY - 1.2],
+          [b, wallY - 1.2],
+          [b, wallY],
+        ]),
+        shade(wall, -0.25),
+        0.6,
+      ),
+    );
+  }
+  // A pepper tree beside the yard, in front.
+  const px = x - 104;
+  parts.push(tree(ctx.rnd, 'pepper', px, ground(px) + 4, 44, 46, leaves, trunk, ctx.pen));
+  return g({}, ...parts);
 }
 
 function farWindpomp(ctx: LayerCtx, x: number, base: number): string {
@@ -552,7 +771,7 @@ function farVeld(ctx: LayerCtx): string {
   parts.push(line(smoothD(band.edge, false, 0.8), ctx.pen));
   // A farmstead with bluegums, a far windpomp and a stand of trees, on the horizon line.
   const fx = ctx.u(0.62);
-  parts.push(farmhouse(ctx, fx, yAt(band.edge, fx) + 4));
+  parts.push(farmhouse(ctx, fx, (x) => yAt(band.edge, x)));
   const wx = ctx.u(0.36);
   parts.push(farWindpomp(ctx, wx, yAt(band.edge, wx) + 3));
   for (const u of [0.08, 0.14, 0.88]) {
@@ -560,13 +779,14 @@ function farVeld(ctx: LayerCtx): string {
     for (let k = 0; k < 3; k++) {
       const tx = x + k * 34 + ctx.rnd() * 10;
       parts.push(
-        treeBlob(
+        tree(
           ctx.rnd,
+          k === 1 ? 'pepper' : 'round',
           tx,
           yAt(band.edge, tx) + 3,
           36 + ctx.rnd() * 14,
           46 + ctx.rnd() * 16,
-          tone(ctx.c('tree'), 0.22, 0.2),
+          tone(ctx.c('tree'), 0.3, 0.22),
           ctx.c('trunk'),
           ctx.pen,
         ),
@@ -1082,149 +1302,433 @@ function reservoir(ctx: PropCtx): string {
   );
 }
 
+/**
+ * D-035: the farm bakkie, semi-realistic. An old single-cab pickup facing right, with no badge or
+ * brand: faded red paint over primer and rust, a swage line and panel gaps, a door with a chrome
+ * handle and keyhole, a mirror on its arm, a windscreen and side glass reflecting the sky, a
+ * slatted grille, a round headlight, amber indicators, red tail lights, chrome bumpers, a roll bar
+ * and tie-down hooks on the load bin, treaded tyres on steel rims, dust and mud low down, two
+ * dents. The spare wheel in the bin is the secret (content part at (−180, −40), 32 × 36).
+ */
 function bakkie(ctx: PropCtx): string {
-  const pen = ctx.pen;
-  const paint = tone(mix('#A6533A', ctx.c('rust'), 0.3), 0.3, 0.25);
-  const glass = '#BFDCEA';
-  const tyre = '#2A2522';
+  const ink = shade(ctx.c('rust'), -0.7);
+  const pen: Pen = { ink, w: Math.max(1.4, ctx.pen.w * 0.5) };
+  const paintBase = mix('#A6533A', ctx.c('rust'), 0.25);
+  const paintTop = shade(paintBase, 0.22);
+  const paintLow = shade(paintBase, -0.28);
+  const rust = ctx.c('rust');
+  const mud = '#7A5A3C';
+  const dust = '#C9A878';
+  const chrome = ['#F4F6F7', '#A9B1B6', '#5E666C'] as const;
+  const tyre = '#24201E';
+  const wheelR = 40;
+  const wheelY = 58;
+  const frontX = 140;
+  const rearX = -128;
+  const archR = 50;
+  const bodyD =
+    `M-208 -46L-22 -46L-14 -54L-2 -97Q1 -102 8 -102L90 -102Q97 -102 101 -96L127 -50L194 -42` +
+    `Q211 -38 214 -25L216 38Q216 46 209 46L${r2(frontX + archR)} 46` +
+    `A${archR} ${archR} 0 0 0 ${r2(frontX - archR)} 46L${r2(rearX + archR)} 46` +
+    `A${archR} ${archR} 0 0 0 ${r2(rearX - archR)} 46L-203 46Q-208 46 -208 40Z`;
   const id = nextId();
-  // Side silhouette facing right: load bin, cab, bonnet; the 3/4 front face is a slim panel.
-  const body = polyD([
-    [-206, 52],
-    [-208, -48],
-    [-14, -48],
-    [-6, -98],
-    [104, -98],
-    [132, -46],
-    [196, -38],
-    [214, -26],
-    [216, 50],
-  ]);
-  const wheel = (x: number) =>
-    g(
-      {},
-      inked(ellipseD(x, 56, 42, 42), tyre, pen.ink, pen.w),
-      inked(ellipseD(x, 56, 20, 20), ctx.c('metal'), pen.ink, 3),
-      flat(ellipseD(x - 6, 50, 7, 7), shade(ctx.c('metal'), 0.4)),
-    );
-  return g(
-    {},
-    groundShadow(10, 96, 230, 14),
-    el('clipPath', { id }, el('path', { d: body })),
-    flat(body, paint.fill),
-    g(
-      { 'clip-path': `url(#${id})` },
-      flat(
-        polyD([
-          [-220, 18],
-          [230, 18],
-          [230, 60],
-          [-220, 60],
-        ]),
-        paint.dark,
-      ),
-      flat(
-        polyD([
-          [-200, -44],
-          [-24, -44],
-          [-24, -34],
-          [-200, -34],
-        ]),
-        paint.light,
-      ),
-      flat(ellipseD(-80, -10, 34, 16), shade(ctx.c('rust'), -0.15)),
-      flat(ellipseD(160, 0, 22, 12), shade(ctx.c('rust'), -0.15)),
-      flat(ellipseD(40, 28, 26, 8), '#8F8A80', { opacity: 0.8 }),
-      // Bin ribs.
-      line(
-        'M-180 -44L-180 14M-140 -44L-140 14M-100 -44L-100 14M-60 -44L-60 14',
-        { ink: paint.dark, w: 3 },
-        3,
-      ),
-    ),
+  const gPaint = nextId();
+  const gGlass = nextId();
+  const gChrome = nextId();
+  const gTyre = nextId();
+  const parts: string[] = [];
+  const stroke = (d: string, col: string, w: number, op = 1): string =>
     el('path', {
-      d: body,
+      d,
       fill: 'none',
-      stroke: pen.ink,
-      'stroke-width': pen.w,
+      stroke: col,
+      'stroke-width': w,
+      'stroke-linecap': 'round',
       'stroke-linejoin': 'round',
-    }),
-    // Cab window, door, handle, mirror, headlight, plain grille bars (no badge), bumper.
-    inked(
-      polyD([
-        [4, -88],
-        [98, -88],
-        [120, -50],
-        [4, -50],
-      ]),
-      glass,
-      pen.ink,
-      3,
+      ...(op < 1 ? { 'stroke-opacity': op } : {}),
+    });
+  const fill = (d: string, col: string, op = 1): string =>
+    el('path', { d, fill: col, ...(op < 1 ? { 'fill-opacity': op } : {}) });
+  parts.push(
+    el(
+      'linearGradient',
+      { id: gPaint, x1: 0, y1: -102, x2: 0, y2: 46, gradientUnits: 'userSpaceOnUse' },
+      el('stop', { offset: 0, 'stop-color': paintTop }),
+      el('stop', { offset: 0.45, 'stop-color': paintBase }),
+      el('stop', { offset: 1, 'stop-color': paintLow }),
     ),
-    flat(
-      polyD([
-        [30, -86],
-        [46, -86],
-        [24, -52],
-        [8, -52],
-      ]),
-      '#EAF5FA',
+    el(
+      'linearGradient',
+      { id: gGlass, x1: 0, y1: -96, x2: 30, y2: -50, gradientUnits: 'userSpaceOnUse' },
+      el('stop', { offset: 0, 'stop-color': '#DCEBF2' }),
+      el('stop', { offset: 0.5, 'stop-color': '#8FB4C8' }),
+      el('stop', { offset: 1, 'stop-color': '#4A6170' }),
     ),
-    line('M-10 -46L-12 40M118 -40L118 40', pen, 3),
-    line('M8 -30l20 0', pen, 4),
-    inked(
-      polyD([
-        [124, -64],
-        [138, -64],
-        [138, -52],
-        [124, -52],
-      ]),
-      shade(paint.fill, -0.3),
-      pen.ink,
-      2.5,
+    el(
+      'linearGradient',
+      { id: gChrome, x1: 0, y1: 0, x2: 0, y2: 1 },
+      el('stop', { offset: 0, 'stop-color': chrome[0] }),
+      el('stop', { offset: 0.45, 'stop-color': chrome[1] }),
+      el('stop', { offset: 0.55, 'stop-color': chrome[2] }),
+      el('stop', { offset: 1, 'stop-color': chrome[1] }),
     ),
-    inked(
-      polyD([
-        [198, -34],
-        [216, -26],
-        [216, 18],
-        [198, 14],
-      ]),
-      '#7C756C',
-      pen.ink,
-      3,
+    el(
+      'radialGradient',
+      { id: gTyre },
+      el('stop', { offset: 0.55, 'stop-color': '#3A3431' }),
+      el('stop', { offset: 0.85, 'stop-color': tyre }),
+      el('stop', { offset: 1, 'stop-color': '#141110' }),
     ),
-    line('M202 -24l12 4M202 -14l12 4M202 -4l12 4M202 6l12 4', pen, 2),
-    inked(ellipseD(190, -24, 8, 8), '#F5E6B0', pen.ink, 2.5),
-    inked(
-      polyD([
-        [184, 26],
-        [222, 28],
-        [222, 40],
-        [184, 38],
-      ]),
-      '#9C9890',
-      pen.ink,
-      3,
-    ),
-    inked(
-      polyD([
-        [-214, 18],
-        [-200, 18],
-        [-200, 34],
-        [-214, 34],
-      ]),
-      '#9C9890',
-      pen.ink,
-      3,
-    ),
-    // Spare wheel standing in the bin (the secret: content part at (−180, −40), 32 × 36).
-    inked(ellipseD(-180, -40, 32, 36), tyre, pen.ink, pen.w),
-    inked(ellipseD(-180, -40, 15, 17), ctx.c('metal'), pen.ink, 3),
-    flat(ellipseD(-186, -48, 5, 6), shade(ctx.c('metal'), 0.45)),
-    wheel(-128),
-    wheel(140),
   );
+  // Contact shadow, and the dark wheel wells behind the wheels.
+  parts.push(contactShadow(8, wheelY + wheelR - 4, 236, 10, 0.34));
+  for (const cx of [rearX, frontX])
+    parts.push(fill(ellipseD(cx, 46, archR + 1, archR + 1), '#1E1A18'));
+  // The body: paint gradient, then everything on the paint inside its clip.
+  parts.push(el('clipPath', { id }, el('path', { d: bodyD })), fill(bodyD, `url(#${gPaint})`));
+  const onPaint: string[] = [];
+  // Sky sheen along the shoulder, the swage line, the dark rocker panel.
+  onPaint.push(
+    fill(
+      polyD([
+        [-210, -45],
+        [-20, -45],
+        [-20, -38],
+        [-210, -38],
+      ]),
+      shade(paintTop, 0.35),
+      0.55,
+    ),
+    fill(
+      polyD([
+        [128, -48],
+        [196, -40],
+        [198, -34],
+        [128, -42],
+      ]),
+      shade(paintTop, 0.35),
+      0.5,
+    ),
+    stroke('M-206 -12L212 -10', shade(paintTop, 0.3), 2.2, 0.8),
+    stroke('M-206 -9L212 -7', shade(paintLow, -0.25), 1.6, 0.8),
+    fill(
+      polyD([
+        [-210, 30],
+        [220, 30],
+        [220, 50],
+        [-210, 50],
+      ]),
+      shade(paintLow, -0.3),
+      0.7,
+    ),
+  );
+  // Panel gaps: tailgate, bin/cab seam, door, bonnet line, fender seam.
+  onPaint.push(
+    stroke('M-196 -44L-196 40', ink, 1.3, 0.8),
+    stroke('M-18 -44L-18 44', ink, 1.6, 0.85),
+    stroke('M-8 -52L-6 34Q-6 42 2 42L104 42Q112 42 114 34L120 -44', ink, 1.5, 0.85),
+    stroke('M127 -48Q160 -46 200 -40', ink, 1.1, 0.6),
+    stroke('M190 -40L190 30', ink, 1.1, 0.6),
+  );
+  // Rust: around the arches and along the bin's foot (dark edges, lighter flecks).
+  const rustBlob = (x: number, y: number, rx: number, ry: number): string[] => {
+    const pts: Pt[] = [];
+    for (let k = 0; k < 10; k++) {
+      const a = (k / 10) * Math.PI * 2;
+      const rr = 0.7 + ctx.rnd() * 0.5;
+      pts.push([x + Math.cos(a) * rx * rr, y + Math.sin(a) * ry * rr]);
+    }
+    const d = smoothD(pts, true, 1);
+    return [
+      fill(d, shade(rust, -0.25), 0.85),
+      fill(ellipseD(x - rx * 0.2, y - ry * 0.2, rx * 0.5, ry * 0.4), shade(rust, 0.15), 0.6),
+      stroke(d, shade(rust, -0.5), 0.8, 0.6),
+    ];
+  };
+  onPaint.push(
+    ...rustBlob(rearX - 56, 32, 16, 9),
+    ...rustBlob(rearX + 58, 30, 12, 7),
+    ...rustBlob(frontX - 58, 34, 10, 6),
+    ...rustBlob(-150, -36, 9, 4),
+    ...rustBlob(170, 26, 9, 5),
+  );
+  // Two dents: a soft dark crescent under a lit edge.
+  for (const [dx, dy, r] of [
+    [-70, -24, 16],
+    [62, 8, 12],
+  ] as const)
+    onPaint.push(
+      fill(ellipseD(dx + 2, dy + 2, r, r * 0.55), shade(paintBase, -0.35), 0.45),
+      stroke(
+        `M${r2(dx - r)} ${r2(dy - 1)}Q${r2(dx)} ${r2(dy - r * 0.7)} ${r2(dx + r)} ${r2(dy - 1)}`,
+        shade(paintTop, 0.4),
+        1.4,
+        0.7,
+      ),
+    );
+  // Dust over the lower third and mud thrown up behind the wheels.
+  const dustD = polyD([
+    [-212, 6],
+    [222, 10],
+    [222, 50],
+    [-212, 50],
+  ]);
+  onPaint.push(fill(dustD, dust, 0.28));
+  for (const cx of [rearX, frontX])
+    for (let k = 0; k < 16; k++) {
+      const ang = Math.PI * (0.9 + ctx.rnd() * 0.5);
+      const rr = archR + 2 + ctx.rnd() * 22;
+      const mx = cx + Math.cos(ang) * rr;
+      const my = 46 + Math.sin(ang) * rr * 0.6;
+      onPaint.push(fill(ellipseD(mx, my, 2 + ctx.rnd() * 4, 1.2 + ctx.rnd() * 2.2), mud, 0.65));
+    }
+  // Fuel filler on the bin side.
+  onPaint.push(
+    fill(ellipseD(-48, -24, 7, 7), shade(paintLow, -0.2)),
+    stroke(ellipseD(-48, -24, 7, 7), ink, 1, 0.7),
+    fill(ellipseD(-50, -26, 2.5, 2.5), shade(paintTop, 0.4), 0.7),
+  );
+  parts.push(g({ 'clip-path': `url(#${id})` }, ...onPaint));
+  parts.push(stroke(bodyD, ink, pen.w));
+  // Side glass with the sky in it, a headrest behind, the rubber frame.
+  const glassD = polyD([
+    [4, -94],
+    [90, -94],
+    [114, -54],
+    [4, -54],
+  ]);
+  const glassId = nextId();
+  parts.push(
+    fill(glassD, `url(#${gGlass})`),
+    el('clipPath', { id: glassId }, el('path', { d: glassD })),
+    g(
+      { 'clip-path': `url(#${glassId})` },
+      fill(ellipseD(20, -66, 10, 14), '#2E3A42', 0.55),
+      fill(
+        polyD([
+          [30, -96],
+          [44, -96],
+          [22, -50],
+          [8, -50],
+        ]),
+        '#FFFFFF',
+        0.45,
+      ),
+      fill(
+        polyD([
+          [52, -96],
+          [58, -96],
+          [36, -50],
+          [30, -50],
+        ]),
+        '#FFFFFF',
+        0.3,
+      ),
+      fill(
+        polyD([
+          [4, -60],
+          [120, -64],
+          [120, -50],
+          [4, -50],
+        ]),
+        '#C9A878',
+        0.25,
+      ),
+    ),
+    stroke(glassD, '#1E1A18', 2.4),
+    // Windscreen edge seen past the A-pillar.
+    stroke('M101 -96L127 -50', '#2A2522', 3),
+    stroke('M104 -94L125 -56', '#DCEBF2', 1, 0.7),
+  );
+  // Mirror on its arm, the door handle and keyhole.
+  parts.push(
+    stroke('M114 -58L126 -64', '#2A2522', 2.4),
+    el('rect', {
+      x: 122,
+      y: -78,
+      width: 14,
+      height: 17,
+      rx: 3,
+      fill: '#2A2522',
+      stroke: ink,
+      'stroke-width': 1,
+    }),
+    fill(
+      polyD([
+        [124, -76],
+        [128, -76],
+        [125, -64],
+        [124, -64],
+      ]),
+      chrome[1],
+      0.8,
+    ),
+    el('rect', {
+      x: 2,
+      y: -40,
+      width: 20,
+      height: 5,
+      rx: 2.5,
+      fill: `url(#${gChrome})`,
+      stroke: ink,
+      'stroke-width': 0.8,
+    }),
+    fill(ellipseD(28, -37.5, 1.6, 1.6), '#2A2522'),
+  );
+  // Roll bar behind the cab, tie-down hooks along the bin rail, tailgate latch, tail light.
+  parts.push(
+    stroke('M-30 -46L-30 -86Q-30 -91 -35 -91L-42 -91M-33 -84L-92 -46', '#2A2522', 5),
+    stroke('M-31.5 -48L-31.5 -84M-36 -82L-90 -48', chrome[0], 1.2, 0.5),
+    ...[-170, -130, -90, -50].map((hx) => stroke(`M${hx} -46q0 6 5 6`, chrome[1], 2)),
+    el('rect', {
+      x: -200,
+      y: -6,
+      width: 4,
+      height: 8,
+      fill: chrome[1],
+      stroke: ink,
+      'stroke-width': 0.6,
+    }),
+    el('rect', {
+      x: -210,
+      y: -42,
+      width: 7,
+      height: 26,
+      rx: 1.5,
+      fill: '#B5241E',
+      stroke: ink,
+      'stroke-width': 1,
+    }),
+    fill(
+      polyD([
+        [-209, -40],
+        [-206, -40],
+        [-206, -20],
+        [-209, -20],
+      ]),
+      '#F07A6A',
+      0.7,
+    ),
+    el('rect', {
+      x: -210,
+      y: -14,
+      width: 7,
+      height: 6,
+      fill: '#E9A23B',
+      stroke: ink,
+      'stroke-width': 0.8,
+    }),
+  );
+  // The nose: slatted grille, round headlight in a chrome ring, amber indicator.
+  parts.push(
+    el('rect', { x: 205, y: -24, width: 10, height: 34, rx: 1, fill: '#2A2522' }),
+    ...[0, 1, 2, 3, 4, 5].map((k) => stroke(`M206 ${-20 + k * 5.5}h8`, chrome[1], 1.6)),
+    fill(ellipseD(202, -22, 9, 9), `url(#${gChrome})`),
+    fill(ellipseD(202, -22, 6.5, 6.5), '#F4EBC4'),
+    fill(ellipseD(200, -24.5, 2.6, 2.2), '#FFFFFF', 0.95),
+    stroke(ellipseD(202, -22, 9, 9), ink, 1),
+    el('rect', {
+      x: 196,
+      y: -10,
+      width: 10,
+      height: 6,
+      rx: 1.5,
+      fill: '#F2A33A',
+      stroke: ink,
+      'stroke-width': 0.8,
+    }),
+    fill(
+      polyD([
+        [197, -9],
+        [201, -9],
+        [201, -7],
+        [197, -7],
+      ]),
+      '#FFE0A0',
+      0.8,
+    ),
+  );
+  // Chrome bumpers (pitted at the ends), front and rear.
+  const bumper = (x: number, w: number): string[] => [
+    el('rect', {
+      x,
+      y: 20,
+      width: w,
+      height: 13,
+      rx: 3,
+      fill: `url(#${gChrome})`,
+      stroke: ink,
+      'stroke-width': 1.2,
+    }),
+    fill(ellipseD(x + w * 0.2, 31, 4, 1.5), '#6E5A48', 0.6),
+    fill(ellipseD(x + w * 0.8, 23, 3, 1.2), '#6E5A48', 0.5),
+  ];
+  parts.push(...bumper(184, 40), ...bumper(-218, 26));
+  // The spare wheel (the secret, content part at (−180, −40), 32 × 36): bolted to a bracket on
+  // the outside of the bin by the tailgate, leaning back a little, in front of the bin side so
+  // nearly all of its hit ellipse shows the wheel (review of #49: inside the bin, 58 % of it was
+  // hidden and the plain panel triggered the secret).
+  const spareTread = Array.from({ length: 14 }, (_, n) => {
+    const a = (n / 14) * Math.PI * 2;
+    return `M${r2(-180 + Math.cos(a) * 29)} ${r2(-40 + Math.sin(a) * 33)}L${r2(-180 + Math.cos(a) * 32)} ${r2(-40 + Math.sin(a) * 36)}`;
+  }).join('');
+  parts.push(
+    contactShadow(-174, -2, 30, 4, 0.3),
+    g(
+      { transform: 'rotate(-6 -180 -40)' },
+      el('rect', { x: -186, y: -50, width: 12, height: 22, rx: 2, fill: '#3A3431' }),
+      fill(ellipseD(-180, -40, 32, 36), `url(#${gTyre})`),
+      stroke(spareTread, '#4A4340', 2.2),
+      stroke(ellipseD(-180, -40, 32, 36), shade('#24201E', -0.2), pen.w),
+      fill(ellipseD(-180, -40, 15, 17), '#C9CDD0'),
+      fill(ellipseD(-178, -38, 13, 15), '#9AA1A6', 0.5),
+      fill(ellipseD(-180, -40, 6, 7), '#8A9196'),
+      stroke(ellipseD(-180, -40, 15, 17), '#5E666C', 1.2),
+      fill(ellipseD(-186, -48, 4, 5), '#FFFFFF', 0.7),
+      fill(ellipseD(-180, -40, 2.2, 2.2), '#3A3431'),
+      fill(ellipseD(-180, -20, 26, 8), dust, 0.3),
+    ),
+  );
+  // The road wheels: treaded tyre, steel rim with holes, hub with nuts, dust on the rubber.
+  const wheel = (cx: number): string => {
+    const tread: string[] = [];
+    for (let k = 0; k < 22; k++) {
+      const a = (k / 22) * Math.PI * 2;
+      const c = Math.cos(a);
+      const sn = Math.sin(a);
+      tread.push(
+        `M${r2(cx + c * (wheelR - 5))} ${r2(wheelY + sn * (wheelR - 5))}L${r2(cx + c * wheelR)} ${r2(wheelY + sn * wheelR)}`,
+      );
+    }
+    const holes: string[] = [];
+    for (let k = 0; k < 6; k++) {
+      const a = (k / 6) * Math.PI * 2 + 0.3;
+      holes.push(ellipseD(cx + Math.cos(a) * 13, wheelY + Math.sin(a) * 13, 3, 3));
+    }
+    const nuts: string[] = [];
+    for (let k = 0; k < 5; k++) {
+      const a = (k / 5) * Math.PI * 2;
+      nuts.push(ellipseD(cx + Math.cos(a) * 6, wheelY + Math.sin(a) * 6, 1.3, 1.3));
+    }
+    return g(
+      {},
+      fill(ellipseD(cx, wheelY, wheelR, wheelR), `url(#${gTyre})`),
+      stroke(tread.join(''), '#4A4340', 3),
+      stroke(ellipseD(cx, wheelY, wheelR, wheelR), ink, pen.w),
+      fill(ellipseD(cx, wheelY + 26, wheelR * 0.8, 10), dust, 0.35),
+      fill(ellipseD(cx, wheelY, 21, 21), '#D7DBDD'),
+      fill(ellipseD(cx + 4, wheelY + 4, 19, 19), '#9AA1A6', 0.6),
+      fill(holes.join(''), '#3A3431'),
+      fill(ellipseD(cx, wheelY, 9, 9), '#B9BFC3'),
+      fill(nuts.join(''), '#5E666C'),
+      stroke(ellipseD(cx, wheelY, 21, 21), '#4A5257', 1.4),
+      fill(ellipseD(cx - 7, wheelY - 9, 5, 3), '#FFFFFF', 0.7),
+    );
+  };
+  parts.push(wheel(rearX), wheel(frontX));
+  // Mud flap behind the rear wheel.
+  parts.push(el('rect', { x: rearX + archR - 4, y: 44, width: 5, height: 30, fill: '#1E1A18' }));
+  return g({}, ...parts);
 }
 
 function potjie(ctx: PropCtx): string {
@@ -1457,10 +1961,10 @@ export const KAROO_PLAN: BiomeArtPlan = {
   layers: {
     sky: { top: 0, height: 1080, encode: 'png', draw: sky },
     far_ridge: { top: 380, height: 280, draw: farRidge },
-    far_veld: { top: 548, height: 232, draw: farVeld },
+    far_veld: { top: 464, height: 232, draw: farVeld },
     mid: { top: 600, height: 310, draw: mid },
     near: { top: 820, height: 260, draw: near },
-    foreground: { top: 880, height: 200, draw: foreground },
+    foreground: { top: 880, height: 200, fadeTop: 28, draw: foreground },
   },
   props: {
     'karoo/windpomp': { draw: windpomp, frame: { w: 310, h: 560, ox: 225, oy: 210 } },

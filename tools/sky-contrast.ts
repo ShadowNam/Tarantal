@@ -14,8 +14,8 @@ import { loadContent, loadFeel } from './testContent';
 export const MIN_SKY_CONTRAST_RATIO = 0.8;
 /** The fly-over band (design px): the top of the far sky lane to the bottom of the mid one. */
 export const SKY_BAND: readonly [number, number] = [120, 420];
-/** The tarentaal's plumage (ProceduralAssetFactory TARENTAAL.plumage; the interim art matches). */
-export const BIRD = 0x2e2f45;
+/** The tarentaal's plumage: the interim art's slate (tools/art/config.json birds.base.plumage, D-035). */
+export const BIRD = 0x2c303c;
 
 const root = join(import.meta.dirname, '..');
 

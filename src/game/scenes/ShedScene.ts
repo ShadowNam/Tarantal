@@ -4,6 +4,7 @@
 import { designSize } from '../layout';
 import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
+import { textureBytes } from '../assets/textureBytes';
 import type { Weapon } from '../../content/schemas';
 import { fill, t, tOr } from '../../i18n/i18n';
 import { isWeaponEquippable, isWeaponUnlocked, secretKey } from '../../meta/progress';
@@ -29,6 +30,7 @@ export class ShedScene extends Phaser.Scene {
   }
 
   create(data: ShedData): void {
+    this.shown = data;
     const tab = data.tab ?? 'loadout';
     const { width, height } = designSize();
     fitCamera(this.cameras.main);
@@ -102,16 +104,26 @@ export class ShedScene extends Phaser.Scene {
       hook: this.ctx.hook,
       showFocus: data.focus !== undefined,
     });
-    if (this.ctx.hook) this.ctx.hook.menu = `shed.${tab}`;
+    if (this.ctx.hook) {
+      this.ctx.hook.menu = `shed.${tab}`;
+      // D-035 review: texture memory with the shed open (its gun icons included).
+      this.ctx.hook.textureBytes = textureBytes(this.textures);
+    }
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       if (this.ctx.hook?.menu?.startsWith('shed') === true) this.ctx.hook.menu = null;
     });
   }
 
   private focusAfterEquip = 'shed.loadout';
+  /** D-035 review: the late group has settled (its gun pictures are in, or never will be). */
+  private lateSettled = false;
+  private lateWaiting = false;
+  /** The data this scene was last started with (the late refresh restarts with it). */
+  private shown: ShedData | null = null;
 
   /** One card per primary weapon: equipped, equip, locked (with how to unlock) or "later". */
   private loadout(body: Rect, items: MenuItem[], rebuild: () => void): void {
+    if (this.ctx.hook) this.ctx.hook.shedIcons = [];
     const save = this.ctx.save.data;
     const weapons = this.ctx.content.weapons.weapons.filter(
       (w): w is PrimaryWeapon => w.kind === 'primary',
@@ -119,6 +131,26 @@ export class ShedScene extends Phaser.Scene {
     const cols = 2;
     const cardW = (body.w - 30) / cols;
     const cardH = Math.min(150, (body.h - 30) / Math.ceil(weapons.length / cols));
+    // D-035 review: the guns other than the Dubbelloop arrive with the late group (D-029); if it
+    // is still downloading, rebuild this tab once it lands so their pictures appear.
+    if (
+      !this.lateSettled &&
+      !this.lateWaiting &&
+      weapons.some((w) => this.ctx.manifest.gunIdleImage(w.id) === null)
+    ) {
+      this.lateWaiting = true;
+      void this.ctx.manifest.lateLoaded.then(() => {
+        this.lateSettled = true;
+        this.lateWaiting = false;
+        // Only the Guns tab that is on screen now (the player may have switched tabs or left).
+        if (
+          this.sys.isActive() &&
+          this.shown !== null &&
+          (this.shown.tab ?? 'loadout') === 'loadout'
+        )
+          this.scene.restart(this.shown);
+      });
+    }
     weapons.forEach((w, i) => {
       const r: Rect = {
         x: body.x + (i % cols) * (cardW + 30),
@@ -138,17 +170,19 @@ export class ShedScene extends Phaser.Scene {
             : this.unlockHint(w);
       drawButton(this, r, '', equipped ? 'selected' : equippable ? 'secondary' : 'locked', 30);
       const dark = equipped ? '#1B1410' : '#F3EAD3';
+      // D-035: the gun itself on its card (its first-person idle frame, when its art is in).
+      const icon = this.gunIcon(w.id, r, !unlocked);
       const name = this.add.text(
         r.x + 28,
         r.y + 22,
         tOr(`weapon.${w.id}`, w.id),
         textStyle(40, dark),
       );
-      fitText(name, r.w - 56);
+      fitText(name, r.w - 56 - icon);
       const sub = this.add
         .text(r.x + 28, r.y + r.h - 22, status, textStyle(28, dark))
         .setOrigin(0, 1);
-      fitText(sub, r.w - 56);
+      fitText(sub, r.w - 56 - icon);
       items.push({
         id: `shed.weapon.${w.id}`,
         rect: () => r,
@@ -160,6 +194,46 @@ export class ShedScene extends Phaser.Scene {
         },
       });
     });
+  }
+
+  /**
+   * The gun's idle frame at the right of its card; returns the width it takes (0 = none).
+   * D-035 review: the frame is cropped from the decoded atlas page onto a small canvas about the
+   * card's height (≈ 0.1–0.3 MB on the GPU) — the gun's atlas itself is never uploaded here — and
+   * the canvas leaves with the scene.
+   */
+  private gunIcon(weaponId: string, r: Rect, locked: boolean): number {
+    const src = this.ctx.manifest.gunIdleImage(weaponId);
+    if (src === null) return 0;
+    const { img, region } = src;
+    const fw = region.rotated ? region.h : region.w;
+    const fh = region.rotated ? region.w : region.h;
+    const h = r.h - 12;
+    const scale = this.ctx.prefs.renderScale;
+    const ch = Math.max(1, Math.round(h * scale));
+    const cw = Math.max(1, Math.round((fw / fh) * ch));
+    const key = `shed/gun/${weaponId}`;
+    if (this.textures.exists(key)) this.textures.remove(key);
+    const tex = this.textures.createCanvas(key, cw, ch);
+    if (tex === null) return 0;
+    const c = tex.getContext();
+    c.imageSmoothingEnabled = true;
+    c.imageSmoothingQuality = 'high';
+    if (region.rotated) {
+      // TexturePacker turned it 90° clockwise in the page: turn it back.
+      c.translate(0, ch);
+      c.rotate(-Math.PI / 2);
+      c.drawImage(img, region.x, region.y, region.w, region.h, 0, 0, ch, cw);
+    } else c.drawImage(img, region.x, region.y, region.w, region.h, 0, 0, cw, ch);
+    tex.refresh();
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      if (this.textures.exists(key)) this.textures.remove(key);
+    });
+    const icon = this.add.image(r.x + r.w - 16, r.y + r.h / 2, key).setOrigin(1, 0.5);
+    icon.setDisplaySize(cw / scale, h);
+    if (locked) icon.setAlpha(0.45);
+    this.ctx.hook?.shedIcons?.push(weaponId);
+    return icon.displayWidth + 16;
   }
 
   private unlockHint(w: PrimaryWeapon): string {

@@ -21,6 +21,8 @@ import {
   type Tone,
 } from '../scenery';
 import { el, ellipseD, g, inked, polyD, r2, smoothD } from '../svg';
+import { mountainRow, paintRow, rockColours } from '../mountains';
+import { tree as leafyTree } from '../realism';
 import { groundBand, softSky } from './karoo';
 import { foregroundClumps, midScrub, nearGrass } from './common';
 
@@ -256,9 +258,33 @@ function farRidge(ctx: LayerCtx): string {
   const parts: string[] = [];
   const horizon = ctx.raw('horizon');
   const backPen: Pen = { ink: mix(ctx.pen.ink, horizon, 0.35), w: 1.5 };
+  // D-035: far beyond the flat delta, a few low quartzite hills in the haze (like the Tsodilo
+  // Hills at the panhandle): long low ridges, knobbly koppies, wide gaps of open horizon.
+  const hills = mountainRow(
+    ctx.rnd,
+    [
+      { kind: 'massif', w: 1.4 },
+      { kind: 'koppie', w: 1.4 },
+      { kind: 'boulders', w: 0.6 },
+    ],
+    {
+      x0: 80,
+      x1: ctx.width - 200,
+      base: 640,
+      width: [300, 620],
+      height: [100, 175],
+      overlap: [-1.6, -0.6],
+      haze: 0.62,
+    },
+  );
+  parts.push(
+    ...paintRow(ctx.rnd, hills, rockColours(ctx.raw), { ink: backPen.ink, w: 1.3 }, horizon),
+  );
   const backT = tone(mix(ctx.c('island'), horizon, 0.35), 0.15, 0.18);
   for (let x = -60; x < ctx.width; x += 30 + ctx.rnd() * 40)
     parts.push(
+      // The hazed back tree line keeps the simple crown: detail there is lost in the haze and
+      // costs download bytes (D-035).
       treeBlob(
         ctx.rnd,
         x,
@@ -280,8 +306,9 @@ function farRidge(ctx: LayerCtx): string {
         parts.push(palm(ctx.rnd, tx, 650, 90 + ctx.rnd() * 40, palmT, ctx.c('trunk'), ctx.pen));
       else
         parts.push(
-          treeBlob(
+          leafyTree(
             ctx.rnd,
+            'round',
             tx,
             652,
             70 + ctx.rnd() * 50,
@@ -289,6 +316,7 @@ function farRidge(ctx: LayerCtx): string {
             t,
             ctx.c('trunk'),
             ctx.pen,
+            0.25,
           ),
         );
     }
@@ -970,10 +998,10 @@ export const OKAVANGO_PLAN: BiomeArtPlan = {
   layers: {
     sky: { top: 0, height: 1080, encode: 'png', draw: sky },
     far_ridge: { top: 380, height: 280, draw: farRidge },
-    far_veld: { top: 548, height: 232, draw: farVeld },
+    far_veld: { top: 464, height: 232, draw: farVeld },
     mid: { top: 630, height: 280, draw: mid },
     near: { top: 820, height: 260, draw: near },
-    foreground: { top: 880, height: 200, draw: foreground },
+    foreground: { top: 880, height: 200, fadeTop: 28, draw: foreground },
   },
   props: {
     'okavango/reeds_a': { draw: reeds(1) },
