@@ -187,8 +187,11 @@ export class ParallaxView {
         l.root.x = base;
       }
       // Static art outside the screen isn't drawn (most of a 6 000 px layer is off screen).
-      const from = -base - CULL_MARGIN_PX;
-      const to = -base + width + CULL_MARGIN_PX;
+      // v1.3: zoomed in, only the unzoomed screen span the zoomed view shows: [c − C/z, c + C/z].
+      const viewFrom = on ? zx - width / 2 / z : 0;
+      const viewTo = on ? zx + width / 2 / z : width;
+      const from = -base + viewFrom - CULL_MARGIN_PX;
+      const to = -base + viewTo + CULL_MARGIN_PX;
       for (const a of this.statics[i] ?? []) {
         const on = a.right >= from && a.left <= to;
         if (a.img.visible !== on) a.img.setVisible(on);

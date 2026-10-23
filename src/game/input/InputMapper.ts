@@ -83,6 +83,9 @@ export class InputMapper {
   private aimHold: { id: number; x: number; y: number; zoom: number; touch: boolean } | null = null;
   /** The aim point (unzoomed design px) last sent, and the newest one not yet sent. */
   private aimSent = { x: 0, y: 0 };
+  /** aimStart is queued for this frame: moves wait a tick (the runner sends perTick's commands
+   *  before the queued ones, and the sim drops a move before its start). */
+  private aimStartPending = false;
   private aimNext: { x: number; y: number } | null = null;
 
   constructor(
@@ -174,7 +177,8 @@ export class InputMapper {
     const cmds: Command[] = cx === null ? [] : [{ t: 'cameraTarget', cx }];
     // v1.3: at most one aim move a tick (a fast mouse makes several pointer moves per tick).
     const next = this.aimNext;
-    if (this.aimHold !== null && next !== null) {
+    if (this.aimStartPending) this.aimStartPending = false;
+    else if (this.aimHold !== null && next !== null) {
       this.aimNext = null;
       if (Math.abs(next.x - this.aimSent.x) >= 0.5 || Math.abs(next.y - this.aimSent.y) >= 0.5) {
         this.aimSent = next;
@@ -249,6 +253,7 @@ export class InputMapper {
     this.aimHold = { id, x, y, zoom, touch };
     this.aimSent = { x, y };
     this.aimNext = null;
+    this.aimStartPending = true;
     this.host.queue({ t: 'aimStart', dx: x - width / 2, sy: y });
     this.host.aim(x, y, false);
   }
@@ -325,6 +330,12 @@ export class InputMapper {
       // Synthetic pointers can't always be captured; gestures still work without it.
     }
     const zoom = this.rifleZoom();
+    // While one finger holds the sight up, other fingers only work the buttons (a tap must not
+    // fire past the sight).
+    if (!onButton && zoom !== null && this.aimHold !== null) {
+      this.ignored.add(e.pointerId);
+      return;
+    }
     if (!onButton && zoom !== null && this.aimHold === null && this.holdPointer === null) {
       // A rifle: the sight comes up under the finger (or the offset crosshair); the gesture is
       // still tracked so a flick down reloads.
