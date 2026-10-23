@@ -180,6 +180,9 @@ export class HuntScene extends Phaser.Scene {
       this.biome.id === this.ctx.biome.id ? this.ctx.manifest : this.ctx.manifestFor(this.biome);
     this.swapManifest();
     this.releaseGuns();
+    // The test hook reads texture memory right after the release (not 30 frames later, which is
+    // seconds under software GL on CI).
+    if (this.ctx.hook) this.sampleTextures(this.ctx.hook);
     this.ctx.huntBiome = this.biome;
     this.ctx.audio.setBiome(this.biome.id);
     this.ctx.audio.resetIntensity();

@@ -52,6 +52,8 @@ test('texture memory: the title after a hunt that used both crate guns (low tier
   await page.waitForFunction(() => window.__TM__?.rects['shed'] !== undefined, null, {
     timeout: 60_000,
   });
+  // The title's own reading (the hook samples it when the scene restarts, then every 30 frames).
+  await page.waitForFunction(() => window.__TM__?.scene === 'start', null, { timeout: 60_000 });
   await page.waitForTimeout(1000);
   const title = await page.evaluate(() => ({
     bytes: window.__TM__?.textureBytes ?? 0,
