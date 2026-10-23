@@ -607,12 +607,12 @@
       "group": "common",
       "origin": "interim",
       "file": {
-        "path": "assets/common/img/ui_ammo_diabolo.1553c9eca767.png",
-        "bytes": 1393,
-        "hash": "1553c9eca767"
+        "path": "assets/common/img/ui_ammo_diabolo.818b2ddcac6d.png",
+        "bytes": 2833,
+        "hash": "818b2ddcac6d"
       },
-      "width": 34,
-      "height": 44
+      "width": 50,
+      "height": 64
     },
     "ui/ammo/kernel": {
       "group": "common",
@@ -640,9 +640,9 @@
       "group": "common",
       "origin": "interim",
       "file": {
-        "path": "assets/common/img/ui_ammo_paper.0fd4c1e56ec9.png",
-        "bytes": 1854,
-        "hash": "0fd4c1e56ec9"
+        "path": "assets/common/img/ui_ammo_paper.f4968f11f8a1.png",
+        "bytes": 2246,
+        "hash": "f4968f11f8a1"
       },
       "width": 28,
       "height": 80
@@ -651,9 +651,9 @@
       "group": "common",
       "origin": "interim",
       "file": {
-        "path": "assets/common/img/ui_ammo_paper_spent.a9d3aec0d4dd.png",
-        "bytes": 1151,
-        "hash": "a9d3aec0d4dd"
+        "path": "assets/common/img/ui_ammo_paper_spent.209b58546b69.png",
+        "bytes": 1550,
+        "hash": "209b58546b69"
       },
       "width": 28,
       "height": 80

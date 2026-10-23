@@ -84,9 +84,9 @@
         "base": "#C9A04A"
       },
       "diabolo": {
-        "width": 34,
-        "height": 44,
-        "pitch": 48,
+        "width": 50,
+        "height": 64,
+        "pitch": 56,
         "spent": "gone",
         "body": "#8C9196",
         "base": "#5E6368"

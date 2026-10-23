@@ -160,7 +160,8 @@ function shell12(spent: boolean): () => string {
 // ------------------------------------------------------------- diabolo pellet (26 × 34)
 
 function diabolo(): string {
-  const lead = grad('h', cylinder('#2B2E31', '#5A5F64', '#9AA0A6', '#E4E8EC'));
+  // Bright, freshly-cast lead (not dark grey): it has to read on the dark belt slate.
+  const lead = grad('h', cylinder('#5C6268', '#8E959C', '#C9CFD5', '#FFFFFF'));
   const skirtIn = grad('v', [
     [0, '#16181A'],
     [1, '#3B3F43'],
@@ -189,11 +190,20 @@ function diabolo(): string {
     true,
     0.7,
   );
-  // Drawn for a 26 × 34 box, shown at 34 × 44 (feel.json): scaled up to stay readable.
+  // Drawn for a 26 × 34 box, shown at 50 × 64 (feel.json, v1.1 review: "too small and dark"):
+  // scaled up, with a light rim so the count reads at a glance on a phone.
   return g(
-    { transform: 'scale(1.28)' },
+    { transform: 'scale(1.85)' },
     el('defs', {}, lead.def, skirtIn.def),
     shadow(1, 14, 11, 2),
+    el('path', {
+      d: body,
+      fill: 'none',
+      stroke: '#F4F6F8',
+      'stroke-opacity': 0.75,
+      'stroke-width': 1.6,
+      'stroke-linejoin': 'round',
+    }),
     path(body, lead.url),
     // The head's band and the skirt's rings (swaged lines).
     path('M-7.2 -4.6L7.2 -4.6L7 -3.4L-7 -3.4Z', '#1E2124', { opacity: 0.35 }),
@@ -255,62 +265,91 @@ function stone(p: SpriteCtx): string {
 
 function paper(spent: boolean): (p: SpriteCtx) => string {
   return (p) => {
-    const kraft = grad('h', cylinder('#8C7A55', '#C9B88E', '#E9DDBC', '#FFF8E6'));
+    // Brown kraft paper (v1.1 review: the first pass "read like white candles"), crinkled, with
+    // the lead ball showing at the top and the powder end twisted shut at the bottom.
+    const kraft = grad('h', cylinder('#4E3319', '#7E5730', '#A87B4A', '#D2A874'));
     const ball = grad('r', [
-      [0, '#C7CCD1'],
-      [0.4, '#7C8187'],
-      [1, '#33373B'],
+      [0, '#E9EDF0'],
+      [0.35, '#9AA1A8'],
+      [0.8, '#4E5459'],
+      [1, '#2A2E31'],
     ]);
     const out: string[] = [el('defs', {}, kraft.def, ball.def)];
     out.push(shadow(1.5, 37, 12, 2.4));
-    if (spent) {
-      // Bitten open and emptied: a short, crumpled tube with a ragged torn top and powder stains.
-      const pts: [number, number][] = [[-9, 34]];
-      for (let k = 0; k <= 9; k++)
-        pts.push([-9 + k * 2, -4 + (k % 2 === 0 ? -3 : 2) - p.rnd() * 4]);
-      pts.push([9, 34]);
-      out.push(path(polyD(pts), kraft.url));
-      out.push(path('M-9 34L9 34L9 26L-9 26Z', '#2A231A', { opacity: 0.28 }));
-      for (let k = 0; k < 4; k++)
+    /** Crinkles: short darker and lighter strokes across the paper. */
+    const crinkle = (y0: number, y1: number, n: number): void => {
+      for (let k = 0; k < n; k++) {
+        const y = y0 + p.rnd() * (y1 - y0);
+        const x = -8 + p.rnd() * 10;
         out.push(
           el('path', {
-            d: `M${-7 + k * 4.5} ${4 + p.rnd() * 6}l${1.5 - p.rnd() * 3} ${10 + p.rnd() * 8}`,
-            stroke: '#7D6C49',
-            'stroke-opacity': 0.6,
+            d: `M${x.toFixed(1)} ${y.toFixed(1)}l${(3 + p.rnd() * 5).toFixed(1)} ${(p.rnd() * 3 - 1.5).toFixed(1)}`,
+            stroke: k % 2 === 0 ? '#3A2512' : '#E2BC88',
+            'stroke-opacity': k % 2 === 0 ? 0.45 : 0.35,
             'stroke-width': 0.7,
             fill: 'none',
           }),
         );
-      out.push(path(ellipseD(-2, 14, 4, 6), '#2B241C', { opacity: 0.18 }));
+      }
+    };
+    if (spent) {
+      // Bitten open and emptied: the lower half of the tube with a ragged, torn top edge, the
+      // dark powder-stained inside showing, and a torn flap hanging off one side.
+      const pts: [number, number][] = [[-8.5, 30]];
+      for (let k = 0; k <= 8; k++)
+        pts.push([-8.5 + k * 2.1, 2 + (k % 2 === 0 ? -4 : 1.5) - p.rnd() * 5]);
+      pts.push([8.5, 30]);
+      out.push(path(smoothD(pts, true, 0.25), kraft.url));
+      out.push(path(ellipseD(0, 1, 7.5, 2.4), '#20150B', { opacity: 0.75 }));
+      out.push(path('M5 2L11 9L9 16L6 8Z', '#8A6236'));
+      out.push(path('M-8.5 22L8.5 22L8.5 30L-8.5 30Z', '#2A1A0C', { opacity: 0.25 }));
+      crinkle(6, 28, 10);
+      out.push(path('M-4 30L4 30L2 37L-2 37Z', '#6E4B27'));
       return g({}, ...out);
     }
-    // Tube from the twisted tail (bottom) up to the ball, which shows as a bulge at the top.
-    out.push(path('M-8 -18L8 -18L8 30Q8 33 5 34L-5 34Q-8 33 -8 30Z', kraft.url));
-    out.push(path(ellipseD(0, -24, 9, 10), ball.url));
-    // Paper wrapped over the ball (translucent), tied below it with twine.
-    out.push(path(ellipseD(0, -24, 9.4, 10.4), '#E9DDBC', { opacity: 0.55 }));
-    out.push(path('M-8.6 -15L8.6 -15L8.6 -12.6L-8.6 -12.6Z', '#6B5131'));
-    out.push(path('M-8.6 -14.6L8.6 -14.6L8.6 -13.8L-8.6 -13.8Z', '#A8865A', { opacity: 0.7 }));
-    // Paper seam and folds, and the twisted tail end.
+    // The tube: slightly uneven, as if rolled by hand.
+    out.push(
+      path(
+        smoothD(
+          [
+            [-8.2, -16],
+            [8.4, -16],
+            [8.8, 6],
+            [8.2, 28],
+            [4, 31],
+            [-4, 31],
+            [-8.6, 28],
+            [-8.9, 6],
+          ],
+          true,
+          0.4,
+        ),
+        kraft.url,
+      ),
+    );
+    // Lead ball, its top half out of the paper.
+    out.push(path(ellipseD(0, -22, 8.6, 8.6), ball.url));
+    out.push(path(ellipseD(-2.6, -26, 2.4, 2), '#FFFFFF', { opacity: 0.55 }));
+    // The paper's folded lip round the ball and the twine tie under it.
+    out.push(path('M-9 -20Q-6 -15 0 -15.5Q6 -15 9 -20L9 -15L-9 -15Z', '#8E6437'));
+    out.push(path('M-9 -14.5L9 -14.5L9 -12L-9 -12Z', '#3F2A15'));
+    out.push(path('M-9 -14L9 -14L9 -13.2L-9 -13.2Z', '#B79568', { opacity: 0.8 }));
+    crinkle(-10, 26, 14);
+    // Twisted tail: a tapering twist with spiral creases.
+    out.push(path('M-5 30L5 30L2.2 40L-2.2 40Z', '#6E4B27'));
     out.push(
       el('path', {
-        d: 'M3.5 -12L3.2 31M-6 2L6 4M-6 18L6 19',
-        stroke: '#8C7A55',
-        'stroke-opacity': 0.45,
+        d: 'M-4.6 31.5L3.8 33.6M-3.6 34.4L3 36.4M-2.6 37.2L2.2 39',
+        stroke: '#2E1D0D',
+        'stroke-opacity': 0.7,
         'stroke-width': 0.7,
-        fill: 'none',
       }),
     );
-    out.push(path('M-4.5 33L4.5 33L2.6 39L-2.6 39Z', '#B9A57A'));
     out.push(
-      el('path', {
-        d: 'M-3.8 34.5L3.4 36.4M-2.8 37L2.6 38.6',
-        stroke: '#6D5D3E',
-        'stroke-opacity': 0.6,
-        'stroke-width': 0.6,
+      path('M-5.2 -10L-3.6 -10L-3.4 27L-5 27Z', '#F0D2A2', {
+        opacity: 0.35,
       }),
     );
-    out.push(path(ellipseD(-3, -27, 2.4, 3.2), '#FFFFFF', { opacity: 0.35 }));
     return g({}, ...out);
   };
 }
