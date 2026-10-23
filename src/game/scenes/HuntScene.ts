@@ -37,6 +37,7 @@ import { Fx } from '../view/Fx';
 import { interpolateBirds, interpolateCamera } from '../view/interpolate';
 import { ParallaxView } from '../view/ParallaxView';
 import { WeaponView } from '../view/WeaponView';
+import { crosshairExtent } from '../ui/gunLook';
 import { WorldView } from '../view/WorldView';
 import type { HudScene } from './HudScene';
 import type { PauseData } from './PauseScene';
@@ -279,6 +280,20 @@ export class HuntScene extends Phaser.Scene {
     if (this.ctx.hook)
       (window as { __TM_GUN__?: WeaponView['pose'] }).__TM_GUN__ = (id, clip, frame) => {
         this.weapon.pose(id, clip, frame);
+      };
+    // e2e/dev only (v1.1 art previews): a gun's ammo with N rounds left and its crosshair, on top
+    // of whatever is equipped (null = back to live). The hunt is held (?holdAt) meanwhile.
+    if (this.ctx.hook)
+      (
+        window as {
+          __TM_AMMO__?: (id: string | null, rounds?: number, x?: number, y?: number) => void;
+        }
+      ).__TM_AMMO__ = (id, rounds = 0, x, y) => {
+        (this.scene.get('Hud') as HudScene).previewAmmo(id, rounds);
+        this.weapon.crosshairPreview = id;
+        // The previewed gun's own first-person art too (frozen on its idle frame).
+        this.weapon.pose(id ?? this.runner?.state.weapon.id ?? '', id === null ? null : 'idle');
+        if (x !== undefined && y !== undefined) this.weapon.aim(x, y, true);
       };
     this.debug = new DebugOverlay(this, this.ctx.content, this.biome, this.parallax, this.screen);
     this.debug.setVisible(this.ctx.debug);
@@ -653,6 +668,7 @@ export class HuntScene extends Phaser.Scene {
         aim: (x, y, fromTap) => {
           this.weapon.aim(x, y, fromTap || this.inputKind === 'pointer');
         },
+        crosshairOffsetPx: () => this.ctx.prefs.crosshairOffsetPx,
         fingerDown: (down) => {
           this.weapon.setFingerDown(down);
         },
@@ -819,6 +835,16 @@ export class HuntScene extends Phaser.Scene {
     this.world.update(state, width, designSize().height);
     this.weapon.setWeapon(state.weapon.id);
     this.weapon.setReloading(state.weapon.reloading);
+    if (this.ctx.hook) {
+      const c = this.weapon.crosshair;
+      this.ctx.hook.crosshair = {
+        weapon: c.weaponId,
+        extent: Math.round(crosshairExtent(c.prims)),
+        visible: c.root.visible && c.root.alpha > 0,
+        x: Math.round(c.root.x),
+        y: Math.round(c.root.y),
+      };
+    }
     const safe = this.ctx.safeArea();
     // Bottom-left, right of the gadget button (timer/Frenzy top-left, belt bottom-right).
     this.debug.update(

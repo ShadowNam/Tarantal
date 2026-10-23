@@ -25,6 +25,8 @@ export interface LivePrefs {
   captions: boolean;
   colourBlind: boolean;
   holdToFire: boolean;
+  /** v1.1: touch shots go to a crosshair this many design px above the finger (0 = off). */
+  crosshairOffsetPx: number;
 }
 
 type TierLook = Feel['quality']['tiers']['low'];
@@ -57,6 +59,7 @@ export function computePrefs(s: Settings, i: PrefInputs): LivePrefs {
     captions: s.captions,
     colourBlind: s.colourBlind,
     holdToFire: s.holdToFire,
+    crosshairOffsetPx: s.offsetCrosshair ? i.feel.guns.offsetCrosshairPx : 0,
   };
 }
 

@@ -207,6 +207,8 @@ const hook: TestHook = {
   magazine: 0,
   reloading: false,
   stones: 0,
+  ammo: [],
+  crosshair: { weapon: '', extent: 0, visible: false, x: 0, y: 0 },
   shots: 0,
   over: false,
   inputKind: null,
@@ -448,7 +450,7 @@ const manifests = new Map<string, AssetManifest>();
 const manifestFor = (b: Biome): AssetManifest => {
   let m = manifests.get(b.id);
   if (m === undefined) {
-    m = createPlaceholderManifest(bundle, b, allBarkLines(feel.barks));
+    m = createPlaceholderManifest(bundle, b, allBarkLines(feel.barks), feel.guns.ammo);
     manifests.set(b.id, m);
   }
   return m;

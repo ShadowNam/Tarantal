@@ -3,6 +3,8 @@
 // WeaponView kick, lean and muzzle position work unchanged), plus the Kettie's stone.
 import { gunKey, TEX, type CanvasSpec } from '../assets/AssetManifest';
 import { ellipse, inked, INK } from './draw';
+import type { AmmoType } from '../../content/schemas';
+import { ammoKeys } from '../ui/gunLook';
 
 const WOOD = '#8B5A2B';
 const WOOD_DARK = '#6B3F1F';
@@ -145,4 +147,38 @@ export function arsenalSpecs(): CanvasSpec[] {
       },
     },
   ];
+}
+
+/**
+ * v1.1 (D-032): runtime placeholders for every ammo type in feel.json `guns.ammo` (full and
+ * spent), drawn from the type's size and two colours until its interim or final art loads. Data
+ * only: a new ammo type gets its placeholder without code.
+ */
+export function ammoSpecs(types: Readonly<Record<string, AmmoType>>): CanvasSpec[] {
+  const out: CanvasSpec[] = [];
+  for (const [id, t] of Object.entries(types)) {
+    const keys = ammoKeys(id);
+    const spec = (key: string, spent: boolean): CanvasSpec => ({
+      key,
+      width: t.width,
+      height: t.height,
+      originX: t.width / 2,
+      originY: t.height / 2,
+      draw(ctx) {
+        const w = t.width - 6;
+        const h = t.height - 6;
+        ctx.translate(3, 3);
+        ctx.globalAlpha = spent ? 0.45 : 1;
+        ctx.beginPath();
+        ctx.roundRect(0, 0, w, h * 0.75, Math.min(w, h) * 0.2);
+        inked(ctx, t.body, 2);
+        ctx.beginPath();
+        ctx.roundRect(0, h * 0.72, w, h * 0.28, 2);
+        inked(ctx, t.base, 2);
+      },
+    });
+    out.push(spec(keys.full, false));
+    if (t.spent === 'sprite') out.push(spec(keys.spent, true));
+  }
+  return out;
 }

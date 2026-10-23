@@ -38,6 +38,8 @@ export const SettingsSchema = z.object({
   colourBlind: z.boolean(),
   /** M9: holding fire repeats the shot whenever the gun is ready (any weapon). */
   holdToFire: z.boolean(),
+  /** v1.1 (D-032, GDD §18.2): touch — the crosshair sits above the finger and the shot goes there. */
+  offsetCrosshair: z.boolean(),
 });
 export type Settings = z.infer<typeof SettingsSchema>;
 
@@ -57,6 +59,7 @@ export const DEFAULT_SETTINGS: Settings = {
   captions: false,
   colourBlind: false,
   holdToFire: false,
+  offsetCrosshair: false,
 };
 
 const shortId = z.string().max(80);

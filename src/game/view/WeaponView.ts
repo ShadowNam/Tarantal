@@ -8,6 +8,7 @@ import type { LivePrefs } from '../prefs';
 import type { Feel, Weapon } from '../../content/schemas';
 import type { GunClip } from '../assets/assetIndex';
 import { gunKey, TEX, type FinalGun } from '../assets/AssetManifest';
+import { CrosshairView } from './CrosshairView';
 
 const GUN_TEX_HEIGHT = 520;
 /** Width of the gun frame box (design px): rig tipX/originX are fractions of it. */
@@ -30,7 +31,11 @@ export class WeaponView {
   private displayScale = 1;
   /** e2e/dev only (art previews): the gun is frozen on one clip frame (kick and flash held). */
   private frozen = false;
-  private readonly reticle: Phaser.GameObjects.Image;
+  /** v1.1 (D-032): the gun's own crosshair (its root is what used to be the reticle image). */
+  readonly crosshair: CrosshairView;
+  /** e2e/dev only (v1.1 art previews): show this gun's crosshair whatever is equipped. */
+  crosshairPreview: string | null = null;
+  private readonly reticle: Phaser.GameObjects.Container;
   private readonly layer: Phaser.GameObjects.Container;
   private baseX = 0;
   private baseY = 0;
@@ -68,13 +73,15 @@ export class WeaponView {
         this.showIdle();
       },
     );
-    this.reticle = scene.add.image(0, 0, TEX.reticle).setVisible(false);
+    this.crosshair = new CrosshairView(scene, feel.guns, weapons);
+    this.reticle = this.crosshair.root;
     layer.add([this.flash, this.gun, this.reticle]);
     this.layer = layer;
   }
 
   /** Shows the active weapon's art (crate weapons have their own; others the shotgun). */
   setWeapon(weaponId: string): void {
+    this.crosshair.setWeapon(this.crosshairPreview ?? weaponId);
     if (this.frozen && this.weaponId !== '') return;
     // Same gun: only worth another look while its rig hasn't arrived (late group, D-029).
     const sameWeapon = weaponId === this.weaponId;
@@ -217,7 +224,7 @@ export class WeaponView {
   aim(x: number, y: number, showReticle: boolean): void {
     this.aimX = x;
     this.aimY = y;
-    this.reticle.setPosition(x, y);
+    this.crosshair.place(x, y);
     if (showReticle) {
       this.reticle.setVisible(true).setAlpha(1);
       if (this.touchMode) this.reticleHideAt = this.scene.time.now + 350;
@@ -321,7 +328,14 @@ export class WeaponView {
       // A @2x rig atlas (high tier) is drawn at half scale (FinalGun.scale).
       .setScale(scale * (this.rig?.scale ?? 1))
       .setAlpha(alpha);
-    if (this.touchMode && this.reticle.visible && this.scene.time.now > this.reticleHideAt) {
+    // A jittery crosshair (Mielie-Masjien) shakes every frame, not only when the aim moves.
+    if (this.reticle.visible) this.crosshair.place(this.aimX, this.aimY);
+    if (
+      this.touchMode &&
+      this.crosshairPreview === null &&
+      this.reticle.visible &&
+      this.scene.time.now > this.reticleHideAt
+    ) {
       this.reticle.setAlpha(Math.max(0, this.reticle.alpha - deltaMs / 250));
       if (this.reticle.alpha <= 0) this.reticle.setVisible(false);
     }

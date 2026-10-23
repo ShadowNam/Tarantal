@@ -15,6 +15,7 @@ import type { SimState } from '../../sim/types';
 import { TICKS_PER_SECOND } from '../../sim/clock';
 import { fill, t, tOr, type I18nKey } from '../../i18n/i18n';
 import { TEX } from '../assets/AssetManifest';
+import { ammoSlots, gunLookFor, roundsOf } from '../ui/gunLook';
 import type { GameContext } from '../GameContext';
 import { FONT } from '../view/Fx';
 import { formatAward, formatClock, formatMult, formatScore, popParts } from '../ui/format';
@@ -73,9 +74,12 @@ export class HudScene extends Phaser.Scene {
   private frenzyBack!: RoundRect;
   private frenzyFill!: RoundRect;
   private score!: Phaser.GameObjects.Text;
-  private shells: Phaser.GameObjects.Image[] = [];
-  /** Kettie: no belt; a stone and a draw bar fill as the band is pulled back. */
-  private drawStone!: Phaser.GameObjects.Image;
+  /** v1.1 (D-032): the gun's rounds on the belt slate (gunLook.ammoSlots), pooled images. */
+  private ammo: Phaser.GameObjects.Image[] = [];
+  /** e2e/dev only (art previews): show this gun's ammo with this many rounds instead of the
+   *  snapshot's weapon. */
+  private ammoPreview: { readonly weaponId: string; readonly rounds: number } | null = null;
+  /** Kettie: a draw bar fills as the band is pulled back (the stones sit in a pile beside it). */
   private drawBack!: RoundRect;
   private drawFill!: RoundRect;
   /** Longest draw seen since the last shot (the Boss Rule can double it). */
@@ -153,7 +157,7 @@ export class HudScene extends Phaser.Scene {
       offPrefs();
       offFonts();
     });
-    this.shells = [];
+    this.ammo = [];
     this.lastMul = 1;
     this.timerColor = '';
     this.lastState = null;
@@ -181,12 +185,10 @@ export class HudScene extends Phaser.Scene {
     this.frenzyBack = new RoundRect(this, C.ink, 0.85, 10);
     this.frenzyFill = new RoundRect(this, C.gold, 1, 8);
     this.score = text(64, '#1B1410', false).setOrigin(1, 0.5).setStroke('#F3EAD3', 0);
-    for (let i = 0; i < 8; i++) this.shells.push(this.add.image(0, 0, TEX.shell));
     this.drawBack = new RoundRect(this, 0xf3ead3, 0.25, 12);
     this.drawFill = new RoundRect(this, 0xffd25a, 1, 12);
     this.drawBack.hide();
     this.drawFill.hide();
-    this.drawStone = this.add.image(0, 0, TEX.stone).setScale(1.6).setVisible(false);
     this.drawTotal = 1;
     this.reload = text(56, '#FFD25A').setOrigin(0.5).setVisible(false);
     this.banner = text(84, '#FFD25A').setOrigin(0.5).setVisible(false);
@@ -464,9 +466,6 @@ export class HudScene extends Phaser.Scene {
     this.timer.setPosition(l.timer.x + l.timer.w / 2, l.timer.y + l.timer.h / 2);
     this.frenzyLabel.setPosition(l.frenzy.x, l.frenzy.y + l.frenzy.h / 2);
     this.score.setPosition(l.score.x + l.score.w - 24, l.score.y + l.score.h / 2);
-    this.shells.forEach((s, i) =>
-      s.setPosition(l.belt.x + 20 + 22 + i * 44, l.belt.y + l.belt.h / 2),
-    );
     this.reload.setPosition(
       l.reloadPrompt.x + l.reloadPrompt.w / 2,
       l.reloadPrompt.y + l.reloadPrompt.h / 2,
@@ -630,19 +629,11 @@ export class HudScene extends Phaser.Scene {
     }
     this.lastMul = s.frenzyMul;
 
-    // Belt: filled shells + flash on an empty click. A per-shell reload (Windbuks, Plaas-Pomp)
-    // fades the next shell in as it loads.
+    // Belt: the gun's own rounds (D-032) + a red flash on an empty click. A per-shell reload
+    // (Windbuks, Plaas-Pomp) fades the next round in as it loads.
     const flash = now < this.beltFlashUntil && !this.ctx.prefs.reduceFlashes;
-    const w = s.weapon;
-    const loading = w.reloading && w.perShellReload ? w.shells : -1;
-    this.shells.forEach((img, i) => {
-      const full = w.shells < 0 || i < w.shells || i === loading;
-      const key = full ? TEX.shell : TEX.shellEmpty;
-      if (img.texture.key !== key) img.setTexture(key);
-      img.setVisible(i < Math.max(0, w.magazine));
-      img.setAlpha(i === loading ? 0.35 + 0.65 * w.reloadProgress : 1);
-      img.setTint(flash ? 0xff4040 : 0xffffff);
-    });
+    const w = this.previewWeapon(s.weapon);
+    this.drawAmmo(w, l, flash);
     this.drawKettie(w);
     const empty = s.weapon.shells === 0 && !s.weapon.reloading;
     this.reload.setText(t('hud.reload')).setVisible(empty);
@@ -692,11 +683,59 @@ export class HudScene extends Phaser.Scene {
     if (this.ctx.hook) this.ctx.hook.captions = this.captions.map((c) => c.key);
   }
 
-  /** Kettie (no belt): a stone and a bar that fills as the next draw is ready. */
+  /** e2e/dev only: the snapshot's weapon, or the previewed gun with N rounds (art previews). */
+  private previewWeapon(w: SimState['weapon']): SimState['weapon'] {
+    const p = this.ammoPreview;
+    if (p === null) return w;
+    const def = this.ctx.content.weapons.weapons.find((x) => x.id === p.weaponId);
+    if (def === undefined) return w;
+    const full = roundsOf(def);
+    const total = def.kind === 'crate' && def.durationMs !== undefined ? def.durationMs : null;
+    return {
+      ...w,
+      id: def.id,
+      kind: def.kind,
+      magazine: full ?? -1,
+      shells: full === null ? -1 : Math.max(0, Math.min(full, p.rounds)),
+      reloading: false,
+      cooldownTicks: full === null && def.kind === 'primary' && p.rounds < 5 ? 1 : 0,
+      ticksLeft: total === null ? null : Math.round((total * p.rounds) / 100),
+      totalTicks: total,
+    };
+  }
+
+  /** e2e/dev only (v1.1 art previews): show `weaponId`'s ammo with `rounds` left (for a timed
+   *  crate gun, percent of its time; for the Kettie, fewer than 5 = the band drawn); null = live. */
+  previewAmmo(weaponId: string | null, rounds = 0): void {
+    this.ammoPreview = weaponId === null ? null : { weaponId, rounds };
+  }
+
+  private drawAmmo(w: SimState['weapon'], l: HudLayout, flash: boolean): void {
+    const look = gunLookFor(this.ctx.feel.guns, w.id);
+    const slots = ammoSlots(look.ammo, look.type, look.typeId, w, l.belt);
+    while (this.ammo.length < slots.length) this.ammo.push(this.add.image(0, 0, '__WHITE'));
+    this.ammo.forEach((img, i) => {
+      const slot = slots[i];
+      if (slot === undefined) {
+        if (img.visible) img.setVisible(false);
+        return;
+      }
+      if (img.texture.key !== slot.key) img.setTexture(slot.key);
+      img.setPosition(slot.x, slot.y).setVisible(true).setAlpha(slot.alpha);
+      // Hopper level: only the bottom `fill` of the full texture shows (crop keeps the position).
+      if (slot.fill < 1) {
+        const h = img.frame.realHeight;
+        img.setCrop(0, h * (1 - slot.fill), img.frame.realWidth, h * slot.fill);
+      } else if (img.isCropped) img.setCrop();
+      img.setTint(flash ? 0xff4040 : 0xffffff);
+    });
+    if (this.ctx.hook) this.ctx.hook.ammo = slots.map((x) => x.key);
+  }
+
+  /** Kettie (unlimited stones): a bar that fills as the next draw is ready, left of the pile. */
   private drawKettie(w: SimState['weapon']): void {
     const l = this.layoutNow;
     const show = w.kind === 'primary' && w.magazine < 0 && l !== null;
-    this.drawStone.setVisible(show);
     if (!show) {
       this.drawBack.hide();
       this.drawFill.hide();
@@ -705,11 +744,14 @@ export class HudScene extends Phaser.Scene {
     if (w.cooldownTicks > this.drawTotal || w.cooldownTicks === 0)
       this.drawTotal = Math.max(1, w.cooldownTicks);
     const ready = w.cooldownTicks === 0 ? 1 : 1 - w.cooldownTicks / this.drawTotal;
-    const x = l.belt.x + 20;
     const y = l.belt.y + l.belt.h / 2;
-    this.drawStone.setPosition(x + 26, y).setAlpha(ready >= 1 ? 1 : 0.5);
-    const bx = x + 64;
-    const bw = l.belt.w - 104;
+    const pile = gunLookFor(this.ctx.feel.guns, w.id);
+    const pileW =
+      pile.ammo.layout === 'pile'
+        ? (Math.min(3, pile.ammo.count) - 1) * pile.type.pitch + pile.type.width
+        : 0;
+    const bx = l.belt.x + 24;
+    const bw = l.belt.w - 24 - 20 - pileW - 24;
     this.drawBack.place(bx, y - 12, bw, 24);
     this.drawFill.place(bx, y - 12, Math.round(Math.max(24, bw * ready)), 24);
   }

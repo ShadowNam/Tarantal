@@ -117,9 +117,9 @@ describe('pack-atlases', () => {
       mkdirSync(dirname(join(src, p)), { recursive: true });
       writeFileSync(join(src, p), b);
     };
-    const shell = catalog.entries.get('ui/shell');
+    const shell = catalog.entries.get('ui/windsock');
     expect(shell?.kind).toBe('texture');
-    put('sprites/ui/shell.png', encodePng(blank(shell?.width ?? 1, shell?.height ?? 1)));
+    put('sprites/ui/windsock.png', encodePng(blank(shell?.width ?? 1, shell?.height ?? 1)));
     const ridge = catalog.layers.get('karoo/far_ridge');
     put('layers/karoo-autumn/far_ridge.png', encodePng(blank(ridge?.width ?? 1, 50)));
     // D-031: a layer sidecar marks interim art and asks for palette tiles.
@@ -136,7 +136,7 @@ describe('pack-atlases', () => {
     );
     expect(error).toBeNull();
     expect(index.initialGroups).toEqual(['common', 'karoo-autumn']);
-    expect(index.images['ui/shell']?.group).toBe('common');
+    expect(index.images['ui/windsock']?.group).toBe('common');
     expect(index.layers['karoo/far_ridge']?.tiles).toHaveLength(2);
     expect(index.layers['karoo/far_ridge']?.origin).toBe('interim');
     expect(index.layers['karoo/far_ridge']?.top).toBe(400);

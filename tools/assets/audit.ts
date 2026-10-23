@@ -94,6 +94,11 @@ function usages(
       if (!plays) return [];
       if (type !== 'voice') return ['src/game/audio/AudioDirector.ts'];
     }
+  } else if (kind === 'texture' && key.startsWith('ui/ammo/')) {
+    // v1.1 (D-032): ammo textures are named by their type in feel.json guns; used when a gun's
+    // ammo display uses that type (the HUD builds the key with ammoKeys()).
+    const type = key.slice('ui/ammo/'.length).replace(/_spent$/, '');
+    needles.push(new RegExp(`"type":\\s*"${type}"`));
   } else if (texName === undefined) {
     // Props and layers are named by their asset id in the biome files.
     needles.push(new RegExp(`"asset":\\s*"${key}"`));

@@ -49,90 +49,6 @@ function starD(points: number, outer: number, inner: number, rot = 0): string {
   return polyD(pts);
 }
 
-function shell(p: SpriteCtx): string {
-  const red = tone(p.c('shellRed'), 0.3, 0.3);
-  const brass = tone(p.c('gold'), 0.3, 0.4);
-  const id = nextId();
-  const hull = 'M-14 -40Q-14 -44 -10 -44L10 -44Q14 -44 14 -40L14 22L-14 22Z';
-  return g(
-    {},
-    el('clipPath', { id }, el('path', { d: hull })),
-    flat(hull, red.fill),
-    g(
-      { 'clip-path': `url(#${id})` },
-      flat('M5 -46L16 -46L16 24L5 24Z', red.dark),
-      flat('M-10 -40L-6 -40L-6 18L-10 18Z', red.light),
-      // Crimp folds at the top.
-      line('M-8 -44L-4 -36M0 -44L0 -36M8 -44L4 -36', pen(p, 1.6)),
-      line('M-14 -6L14 -6', { ink: red.dark, w: 2 }),
-    ),
-    el('path', {
-      d: hull,
-      fill: 'none',
-      stroke: p.ink,
-      'stroke-width': 3,
-      'stroke-linejoin': 'round',
-    }),
-    inked('M-16 20L16 20L16 40L-16 40Z', brass.fill, p.ink, 3),
-    flat('M6 22L15 22L15 38L6 38Z', brass.dark),
-    flat('M-13 23L-9 23L-9 37L-13 37Z', brass.light),
-    line('M-16 28L16 28', { ink: brass.dark, w: 2 }),
-  );
-}
-
-function shellEmpty(p: SpriteCtx): string {
-  // An empty belt loop: dashed cream outline and a faint shadow (shape, not colour, says empty).
-  const d = 'M-14 -40Q-14 -44 -10 -44L10 -44Q14 -44 14 -40L14 40L-14 40Z';
-  return g(
-    {},
-    flat(d, p.ink, { opacity: 0.22 }),
-    el('path', {
-      d,
-      fill: 'none',
-      stroke: p.c('cream'),
-      'stroke-width': 3,
-      'stroke-dasharray': '6 5',
-      opacity: 0.8,
-      'stroke-linejoin': 'round',
-    }),
-  );
-}
-
-function reticle(p: SpriteCtx): string {
-  // Ring = spread (70 px), centre dot = precision, ticks (bible §6). Cream on an ink keyline.
-  const cream = p.c('cream');
-  const ring = (w: number, c: string) =>
-    el('circle', { cx: 0, cy: 0, r: 70, fill: 'none', stroke: c, 'stroke-width': w });
-  const ticks = (w: number, c: string) =>
-    line('M0 -86L0 -56M0 56L0 86M-86 0L-56 0M56 0L86 0', { ink: c, w });
-  const notch = [45, 135, 225, 315]
-    .map((a) => {
-      const q = place(
-        [
-          [0, -66],
-          [0, -74],
-        ],
-        0,
-        0,
-        a,
-      );
-      const [x0, y0] = q[0] ?? [0, 0];
-      const [x1, y1] = q[1] ?? [0, 0];
-      return `M${r2(x0)} ${r2(y0)}L${r2(x1)} ${r2(y1)}`;
-    })
-    .join('');
-  return g(
-    {},
-    ring(10, p.ink),
-    ticks(10, p.ink),
-    ring(4.5, cream),
-    ticks(4.5, cream),
-    line(notch, { ink: p.c('shellRed'), w: 3 }),
-    inked(ellipseD(0, 0, 6.5, 6.5), p.c('shellRed'), p.ink, 3),
-    flat(ellipseD(-2, -2, 2, 2), '#FFD9C9'),
-  );
-}
-
 function badgeNo(p: SpriteCtx): string {
   const red = tone(p.c('shellRed'), 0.3, 0.3);
   return g(
@@ -853,9 +769,6 @@ function water(p: SpriteCtx): string {
 
 /** Every shared sprite key → its drawing (sizes/origins come from the placeholder manifest). */
 export const SPRITES: readonly SpriteSpec[] = [
-  { key: 'ui/shell', wobble: 0, draw: shell },
-  { key: 'ui/shell_empty', wobble: 0, draw: shellEmpty },
-  { key: 'ui/reticle', wobble: 0, draw: reticle },
   { key: 'ui/badge_no', wobble: 0, draw: badgeNo },
   { key: 'ui/windsock', wobble: 1, draw: windsock },
   { key: 'fx/feather', wobble: 0.6, draw: feather },

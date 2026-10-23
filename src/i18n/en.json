@@ -392,6 +392,7 @@
   "settings.captions": "Sound captions",
   "settings.colour_blind": "Don't-shoot marks",
   "settings.hold_to_fire": "Hold to fire",
+  "settings.offset_crosshair": "Offset crosshair (touch)",
   "caption.empty_click": "[click — empty gun]",
   "caption.reloaded": "[shells clack in]",
   "caption.penalty": "[record scratch — penalty]",

@@ -34,6 +34,7 @@ function tap(
   pointerType: 'mouse' | 'touch',
   dx: number,
   sy: number,
+  offsetPx = 0,
 ): Command[] {
   const canvas = fakeCanvas(width * scale, 1080 * scale);
   const queued: Command[] = [];
@@ -52,6 +53,7 @@ function tap(
       readyToFire: () => true,
       queue: (c) => queued.push(c),
       aim: () => undefined,
+      crosshairOffsetPx: () => offsetPx,
       fingerDown: () => undefined,
       toggleDebug: () => undefined,
     },
@@ -75,6 +77,17 @@ beforeEach(() => {
 });
 afterEach(() => {
   vi.unstubAllGlobals();
+});
+
+describe('InputMapper: offset crosshair (v1.1, GDD §18.2)', () => {
+  it('a touch tap fires straight above the finger; a mouse click is unchanged', () => {
+    expect(tap(1920, 1, 'touch', -100, 600, 70)).toEqual([{ t: 'fire', dx: -100, sy: 530 }]);
+    expect(tap(1920, 0.5, 'touch', -100, 600, 70)).toEqual([{ t: 'fire', dx: -100, sy: 530 }]);
+    expect(tap(1920, 1, 'mouse', -100, 600, 70)).toEqual([{ t: 'fire', dx: -100, sy: 600 }]);
+    expect(tap(1920, 1, 'touch', -100, 600, 0)).toEqual([{ t: 'fire', dx: -100, sy: 600 }]);
+    // Never above the top of the screen.
+    expect(tap(1920, 1, 'touch', 0, 30, 70)).toEqual([{ t: 'fire', dx: 0, sy: 0 }]);
+  });
 });
 
 describe('InputMapper: viewport width never reaches the sim', () => {

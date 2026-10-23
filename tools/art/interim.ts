@@ -17,7 +17,7 @@ import type { PlaneId } from '../../src/sim/types';
 import { encodePng, encodePng8 } from '../assets/image';
 import { NEAR_CLIPS } from '../assets/pack';
 import { CLIP_SPEC } from '../assets/targets';
-import { loadContent } from '../testContent';
+import { loadContent, loadFeel } from '../testContent';
 import { renderBirdFrame } from './birdFrames';
 import { birdSheets, contrastSheet, gunSheets } from './previews';
 import { renderGunFrame } from './gunFrames';
@@ -31,6 +31,7 @@ import {
 import { BIOME_PLANS } from './biomes';
 import { renderLayer, renderProp } from './landscape';
 import { renderSprite, SPRITES } from './sprites';
+import { AMMO_SPRITES } from './ammo';
 import { biomeSheets, flyerSheet, spriteSheet } from './scenerySheets';
 import { FLYER_FRAMES, FLYER_GROUPS, FLYERS, renderFlyerFrame } from './flyers';
 
@@ -251,8 +252,8 @@ if (wants('sprites')) {
   // Shared sprites: placeholder size and origin from the home biome's placeholder manifest.
   const home = content.biomes.find((b) => b.id === content.modes.modes.classic.biome);
   if (home === undefined) throw new Error('no home biome');
-  const m = createPlaceholderManifest(content, home);
-  for (const spec of SPRITES) {
+  const m = createPlaceholderManifest(content, home, [], loadFeel().guns.ammo);
+  for (const spec of [...SPRITES, ...AMMO_SPRITES]) {
     const png = join(src, 'sprites', `${spec.key}.png`);
     if (!oursFile(png)) {
       console.warn(`skip sprites/${spec.key}: a human delivery is there`);
@@ -260,8 +261,16 @@ if (wants('sprites')) {
     }
     const size = m.size(spec.key);
     if (size === null) throw new Error(`${spec.key}: no placeholder texture`);
-    put(png, encodePng8(renderSprite(cfg, spec, size, m.origin(spec.key))));
-    put(png.replace(/\.png$/, '.json'), await json({ origin: 'interim', encode: 'png8' }));
+    // v1.1 (D-032): HUD ammo is small, realistic and smoothly shaded: drawn at 4× and kept in
+    // full colour (a palette PNG would band its gradients).
+    const ammo = spec.key.startsWith('ui/ammo/');
+    const art = ammo ? { ...cfg, masterScale: 4 } : cfg;
+    const img = renderSprite(art, spec, size, m.origin(spec.key));
+    put(png, ammo ? encodePng(img) : encodePng8(img));
+    put(
+      png.replace(/\.png$/, '.json'),
+      await json(ammo ? { origin: 'interim' } : { origin: 'interim', encode: 'png8' }),
+    );
     console.log(`sprites/${spec.key}`);
   }
 }
