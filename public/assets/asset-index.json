@@ -702,6 +702,28 @@
       "width": 28,
       "height": 80
     },
+    "ui/ammo/rimfire22": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/ui_ammo_rimfire22.6f3f6af6f1a1.png",
+        "bytes": 844,
+        "hash": "6f3f6af6f1a1"
+      },
+      "width": 18,
+      "height": 54
+    },
+    "ui/ammo/rimfire22_spent": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/ui_ammo_rimfire22_spent.226c1affaf49.png",
+        "bytes": 584,
+        "hash": "226c1affaf49"
+      },
+      "width": 18,
+      "height": 54
+    },
     "ui/ammo/shell12": {
       "group": "common",
       "origin": "interim",
@@ -3187,6 +3209,24 @@
       "lufs": -14,
       "peakDb": -8.6
     },
+    "sfx/bolt": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/bolt.6bdf0f2f80c9.ogg",
+        "bytes": 6832,
+        "hash": "6bdf0f2f80c9"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/bolt.213a9ac44e13.mp3",
+        "bytes": 7094,
+        "hash": "213a9ac44e13"
+      },
+      "loop": false,
+      "lufs": -16.9,
+      "peakDb": -1
+    },
     "sfx/clang": {
       "group": "common",
       "origin": "interim",
@@ -3509,6 +3549,24 @@
       },
       "loop": false,
       "lufs": -19.2,
+      "peakDb": -1
+    },
+    "sfx/shotTweeTwee": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/shotTweeTwee.ddc765a7127b.ogg",
+        "bytes": 9541,
+        "hash": "ddc765a7127b"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/shotTweeTwee.9b8c79a66010.mp3",
+        "bytes": 6538,
+        "hash": "9b8c79a66010"
+      },
+      "loop": false,
+      "lufs": -22.1,
       "peakDb": -1
     },
     "sfx/shotVoorlaaier": {
@@ -3940,6 +3998,69 @@
             "reload/02",
             "reload/03",
             "reload/00"
+          ],
+          "fps": 12,
+          "loop": false
+        }
+      }
+    },
+    "twee_twee": {
+      "group": "ver",
+      "origin": "interim",
+      "x1": {
+        "pages": [
+          {
+            "image": {
+              "path": "assets/ver/guns/gun-twee_twee@1x-0.1cee9ec60ebe.png",
+              "bytes": 135554,
+              "hash": "1cee9ec60ebe"
+            },
+            "data": {
+              "path": "assets/ver/guns/gun-twee_twee@1x-0.dc59607af2a1.json",
+              "bytes": 2258,
+              "hash": "dc59607af2a1"
+            }
+          }
+        ]
+      },
+      "pivots": true,
+      "originX": 0.5,
+      "originY": 1,
+      "tipX": 0.2017,
+      "tipY": 0.1085,
+      "clips": {
+        "fire": {
+          "frames": [
+            "fire/00",
+            "fire/01",
+            "fire/02",
+            "fire/03"
+          ],
+          "fps": 24,
+          "loop": false
+        },
+        "flash": {
+          "frames": [
+            "flash/00",
+            "flash/01"
+          ],
+          "fps": 30,
+          "loop": false
+        },
+        "idle": {
+          "frames": [
+            "idle/00"
+          ],
+          "fps": 1,
+          "loop": false
+        },
+        "reload": {
+          "frames": [
+            "reload/00",
+            "reload/01",
+            "reload/02",
+            "reload/00",
+            "reload/04"
           ],
           "fps": 12,
           "loop": false

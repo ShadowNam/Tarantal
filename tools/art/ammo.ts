@@ -157,6 +157,67 @@ function shell12(spent: boolean): () => string {
   };
 }
 
+// ---------------------------------------------------------- .22 rimfire round (18 × 54, v1.3)
+
+function rimfire22(spent: boolean): () => string {
+  return () => {
+    // A short straight brass case with a rim, a heeled grey lead bullet with a lube groove.
+    // Spent: the empty case, its mouth open and sooty, the firing pin's crimp on the rim.
+    const brass = spent
+      ? cylinder('#4A3716', '#7A5E2A', '#A48546', '#CDB683')
+      : cylinder('#5A4113', '#A07828', '#DDB75E', '#FFF3C8');
+    const brassG = grad('h', brass);
+    const lead = grad('h', cylinder('#4C5156', '#7E858C', '#B9C0C6', '#F4F7F9'));
+    const out: string[] = [el('defs', {}, brassG.def, lead.def)];
+    out.push(shadow(1, 25, 9, 2));
+    // Case and rim.
+    out.push(path('M-5.2 -4L5.2 -4L5.2 19.5L-5.2 19.5Z', brassG.url));
+    out.push(
+      path('M-6.6 19L6.6 19L6.6 22.6Q6.6 23.4 5.8 23.4L-5.8 23.4Q-6.6 23.4 -6.6 22.6Z', brassG.url),
+    );
+    out.push(path('M-5.2 18.2L5.2 18.2L5.2 19.1L-5.2 19.1Z', '#2E220C', { opacity: 0.5 }));
+    if (spent) {
+      const mouth = grad('v', [
+        [0, '#0E0A06'],
+        [1, '#3A2A14'],
+      ]);
+      out.push(el('defs', {}, mouth.def));
+      out.push(path(ellipseD(0, -4, 5, 1.6), mouth.url));
+      out.push(path('M-5.2 -4L5.2 -4L5.2 1L-5.2 1Z', '#1A1208', { opacity: 0.3 }));
+      // Firing-pin crimp on the rim, a dark notch on its lit side.
+      out.push(path('M-4.6 19.4L-2.2 19.4L-2.6 22.8L-4.2 22.8Z', '#3A2A10', { opacity: 0.75 }));
+    } else {
+      // Bullet: a rounded ogive above the case mouth, a lube groove ring, the heel.
+      const bullet = smoothD(
+        [
+          [-4.7, -4],
+          [-4.7, -14],
+          [-3.6, -20.5],
+          [0, -24],
+          [3.6, -20.5],
+          [4.7, -14],
+          [4.7, -4],
+        ],
+        false,
+        0.7,
+      );
+      out.push(path(`${bullet}Z`, lead.url));
+      out.push(path('M-4.7 -8.6L4.7 -8.6L4.7 -7.4L-4.7 -7.4Z', '#3E4246', { opacity: 0.6 }));
+      out.push(path('M-4.7 -4.6L4.7 -4.6L4.7 -4L-4.7 -4Z', '#2A2D30', { opacity: 0.45 }));
+    }
+    // Brass edge at the mouth and a long specular streak (round and smooth).
+    out.push(
+      path('M-5.2 -4L5.2 -4L5.2 -3.2L-5.2 -3.2Z', '#FFF6D8', { opacity: spent ? 0.2 : 0.5 }),
+    );
+    out.push(
+      path(`M-2.9 ${spent ? -3 : -21}L-2 ${spent ? -3 : -21}L-2 22.5L-2.9 22.5Z`, '#FFFFFF', {
+        opacity: spent ? 0.1 : 0.28,
+      }),
+    );
+    return g({}, ...out);
+  };
+}
+
 // ------------------------------------------------------------- diabolo pellet (26 × 34)
 
 function diabolo(): string {
@@ -466,4 +527,6 @@ export const AMMO_SPRITES: readonly SpriteSpec[] = [
   { key: 'ui/ammo/paper_spent', wobble: 0, draw: paper(true) },
   { key: 'ui/ammo/kernel', wobble: 0, draw: hopper(true) },
   { key: 'ui/ammo/kernel_spent', wobble: 0, draw: hopper(false) },
+  { key: 'ui/ammo/rimfire22', wobble: 0, draw: rimfire22(false) },
+  { key: 'ui/ammo/rimfire22_spent', wobble: 0, draw: rimfire22(true) },
 ];

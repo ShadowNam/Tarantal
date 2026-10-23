@@ -1007,6 +1007,167 @@ function windbuks(x: Ctx, puff: number): string {
   return out.join('');
 }
 
+/** v1.3 (D-036) Die Twee-Twee, a generic .22 bolt-action: a slim blued barrel, a round receiver
+ *  with the bolt and its handle on the right (bolt 0 = closed, 1 = lifted and drawn back), a small
+ *  box magazine under it (mag 0 = in, 1 = out), a walnut stock. Little smoke, a small flash. */
+function tweeTwee(
+  x: Ctx,
+  s: { bolt: number; eject: number; smoke: number; glow: number; mag: number },
+): string {
+  const out: string[] = [];
+  out.push(stockButt(x, -138, 81));
+  // Slim tapered barrel, front blade on a ramp, rear leaf further back.
+  out.push(metal(x, taper(0, MUZZLE_Y + 4, 6.5, -246, 15), 'blued', 82, true, 5));
+  out.push(muzzleGlow(x, 0, MUZZLE_Y, s.glow));
+  out.push(
+    metal(
+      x,
+      [
+        [-8, MUZZLE_Y + 6],
+        [8, MUZZLE_Y + 6],
+        [9, MUZZLE_Y + 26],
+        [-9, MUZZLE_Y + 26],
+      ],
+      'blued',
+      83,
+      false,
+    ),
+  );
+  out.push(
+    el('path', {
+      d: `M-1.6 ${MUZZLE_Y - 4}L1.6 ${MUZZLE_Y - 4}L1.8 ${MUZZLE_Y + 8}L-1.8 ${MUZZLE_Y + 8}Z`,
+      fill: x.c('bluedShadow'),
+    }),
+  );
+  out.push(
+    metal(
+      x,
+      [
+        [-13, -330],
+        [13, -330],
+        [12, -318],
+        [-12, -318],
+      ],
+      'blued',
+      84,
+      false,
+    ),
+  );
+  out.push(el('path', { d: 'M-2.6 -331L2.6 -331L2 -324L-2 -324Z', fill: x.c('bluedShadow') }));
+  // Round receiver (a tube with a lit top line) and the bolt sliding in it.
+  const rec: Pt[] = [
+    [-22, -252],
+    [22, -252],
+    [24, -140],
+    [-24, -140],
+  ];
+  out.push(metal(x, rec, 'blued', 85, true, 9));
+  // Ejection port on the right: dark while closed, the bolt's bright body showing while open.
+  const dy = s.bolt * 46;
+  out.push(
+    inked(
+      polyD([
+        [6, -236],
+        [20, -236],
+        [21, -196],
+        [7, -196],
+      ]),
+      s.bolt > 0.3 ? x.c('steelHi') : x.c('bluedShadow'),
+      x.ink,
+      x.inner,
+    ),
+  );
+  // Bolt handle: a shank out to the right with a round knob; lifted and drawn back toward the
+  // player while the bolt works.
+  const lift = Math.min(1, s.bolt * 2);
+  const kx = 52 - lift * 18;
+  const ky = -168 + dy - lift * 26;
+  out.push(
+    el('path', {
+      d: `M22 ${r2(-176 + dy)}L${r2(kx)} ${r2(ky)}`,
+      stroke: x.c('steel'),
+      'stroke-width': 6,
+      'stroke-linecap': 'round',
+    }),
+  );
+  out.push(
+    el('path', {
+      d: `M22 ${r2(-176 + dy)}L${r2(kx)} ${r2(ky)}`,
+      stroke: x.c('steelHi'),
+      'stroke-width': 1.6,
+      'stroke-linecap': 'round',
+      opacity: 0.7,
+    }),
+  );
+  out.push(inked(ellipseD(kx, ky, 8.5, 8), x.c('steel'), x.c('steelShadow'), x.inner));
+  out.push(el('path', { d: ellipseD(kx - 2.5, ky - 2.5, 3, 2.6), fill: '#FFFFFF', opacity: 0.35 }));
+  // The bolt's rear (shroud) behind the receiver, drawn back with the bolt.
+  out.push(
+    metal(
+      x,
+      [
+        [-15, -146 + dy],
+        [15, -146 + dy],
+        [14, -128 + dy],
+        [-14, -128 + dy],
+      ],
+      'steel',
+      86,
+      false,
+    ),
+  );
+  // Five-round box magazine under the receiver (it drops out for the reload).
+  const my = s.mag * 70;
+  out.push(
+    g(
+      { opacity: 1 - s.mag * 0.6 },
+      metal(
+        x,
+        [
+          [-14, -222 + my],
+          [10, -222 + my],
+          [9, -176 + my],
+          [-13, -176 + my],
+        ],
+        'blued',
+        87,
+        false,
+        5,
+      ),
+    ),
+  );
+  // An empty .22 case flicks out of the port, small and bright.
+  if (s.eject > 0) {
+    const cx = 30 + s.eject * 70;
+    const cy = -214 - s.eject * 60;
+    const c = place(
+      [
+        [-2.4, -7],
+        [2.4, -7],
+        [2.4, 7],
+        [-2.4, 7],
+      ],
+      cx,
+      cy,
+      40 + s.eject * 300,
+      1,
+      1,
+    );
+    out.push(inked(polyD(c), x.c('brass'), x.c('brassShadow'), x.inner * 0.6));
+  }
+  out.push(
+    smoke(
+      x,
+      -4 - s.smoke * 8,
+      MUZZLE_Y - 16 - s.smoke * 26,
+      0.45 + s.smoke * 0.5,
+      s.smoke > 0 ? 0.8 - s.smoke * 0.55 : 0,
+      9,
+    ),
+  );
+  return out.join('');
+}
+
 function kettie(
   x: Ctx,
   s: { pouchY: number; pouchS: number; stone: boolean; wobble: number },
@@ -1666,6 +1827,29 @@ function clipFrames(id: GunId, clip: Exclude<GunClip, 'flash'>, n: number): Fram
       ];
       return R.slice(0, n).map((s) => (x: Ctx) => voorlaaier(x, s));
     }
+    case 'twee_twee': {
+      const T0 = { bolt: 0, eject: 0, smoke: 0, glow: 0, mag: 0 };
+      if (clip === 'idle') return [(x) => tweeTwee(x, T0)];
+      if (clip === 'fire') {
+        // The shot, then the bolt worked (lift, back with the case flicking out, home).
+        const F = [
+          { ...T0, glow: 1 },
+          { ...T0, smoke: 0.4, bolt: 0.5 },
+          { ...T0, smoke: 0.7, bolt: 1, eject: 0.6 },
+          { ...T0, smoke: 1, bolt: 0.3, eject: 1 },
+        ];
+        return F.slice(0, n).map((st) => (x: Ctx) => tweeTwee(x, st));
+      }
+      // Reload: bolt open, the magazine drops and a fresh one goes in, bolt home.
+      const R = [
+        { ...T0, bolt: 1 },
+        { ...T0, bolt: 1, mag: 1 },
+        { ...T0, bolt: 1, mag: 0.5 },
+        { ...T0, bolt: 1 },
+        { ...T0, bolt: 0.3 },
+      ];
+      return R.slice(0, n).map((st) => (x: Ctx) => tweeTwee(x, st));
+    }
     case 'mielie_masjien':
       if (clip === 'idle') return [(x) => mielieMasjien(x, { crank: 0, kernels: 0 })];
       return Array.from(
@@ -1725,6 +1909,12 @@ function flashFrames(id: GunId, n: number): Frame[] {
       return Array.from(
         { length: n },
         (_, k) => (x: Ctx) => burst(x, 0, 14, 88 * (1 - k * 0.15), 9, 41 + k, f(k) + 0.25),
+      );
+    case 'twee_twee':
+      // A rimfire: a small, quick flash.
+      return Array.from(
+        { length: n },
+        (_, k) => (x: Ctx) => burst(x, 0, 8, 34 * (1 - k * 0.3), 6, 51 + k, f(k) + 0.1),
       );
     case 'windbuks':
       return Array.from(

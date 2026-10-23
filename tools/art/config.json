@@ -286,6 +286,11 @@
         "angle": -14,
         "shift": 40,
         "widen": 1.3
+      },
+      "twee_twee": {
+        "angle": -22,
+        "shift": 62,
+        "widen": 1.15
       }
     },
     "lateLoad": {
@@ -323,6 +328,11 @@
       },
       "mielie_masjien": {
         "fire": 4,
+        "flash": 2
+      },
+      "twee_twee": {
+        "fire": 4,
+        "reload": 5,
         "flash": 2
       }
     }
