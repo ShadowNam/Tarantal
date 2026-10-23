@@ -1039,7 +1039,25 @@ export const GunLookSchema = obj({
   /** The style used until the Skiet-Skuur lets the player pick one. */
   crosshairStyle: id,
   /** Weapon id (content/weapons.json) → its ammo display and crosshair. */
-  weapons: z.record(id, obj({ ammo: AmmoDisplaySchema, crosshair: CrosshairSchema })),
+  weapons: z.record(
+    id,
+    obj({
+      ammo: AmmoDisplaySchema,
+      crosshair: CrosshairSchema,
+      /** v1.1: the gun's sounds (sfx ids): its shot, and on reload start, each shell loaded and
+       *  reload end (absent = silent). */
+      sfx: obj({
+        shot: id,
+        reloadStarted: id.optional(),
+        shellLoaded: id.optional(),
+        reloadFinished: id.optional(),
+        /** Played `afterShotMs` after a shot that leaves rounds (a crate gun's reload has no
+         *  reload events: the Voorlaaier's ramrod). */
+        afterShot: id.optional(),
+        afterShotMs: nonNeg.optional(),
+      }),
+    }),
+  ),
   /** GDD §18.2: Settings → offset crosshair (touch) puts it this far above the finger. */
   offsetCrosshairPx: pos,
 });

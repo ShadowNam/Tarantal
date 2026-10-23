@@ -70,8 +70,13 @@ function usages(
     needles.push(new RegExp(`"id":\\s*"${key.split('/')[1] ?? ''}"`));
   } else if (kind === 'sound') {
     const [type, id = ''] = key.split('/');
-    if (type === 'sfx') needles.push(new RegExp(`this\\.play\\('${id}'`));
-    else if (type === 'voice') {
+    if (type === 'sfx') {
+      needles.push(new RegExp(`this\\.play\\('${id}'`));
+      // v1.1 (D-032): a gun's own sounds are named in feel.json guns.weapons.<id>.sfx.
+      needles.push(
+        new RegExp(`"(shot|reloadStarted|shellLoaded|reloadFinished|afterShot)":\\s*"${id}"`),
+      );
+    } else if (type === 'voice') {
       const line = key.slice(6).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       // A secret's bark (biome files), or a line of one of Oupa's triggers (feel.json barks,
       // v1.0.1 D-028 §3) — a "lines" array, not just any quote of the key (i18n files have those).

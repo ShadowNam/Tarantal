@@ -1419,6 +1419,88 @@ centred pad with its notch. Lazy chunks (gzip): Bushveld 0.86, Kalahari 0.63, Ok
 B adds one hunt view per biome: `gfx2-{bushveld,kalahari,okavango}-*.png`), from
 `ART_PREVIEW=1 npx playwright test tests/e2e/art-preview-gfx2.spec.ts`.
 
+**D-032 v1.1 Gun feel: ammo display, crosshairs, interim sound (23 Oct 2026):** the first step of
+the approved long-range plan (`08-PROPOSAL-LONG-RANGE-AND-DAILY-MAPS.md`, "Ammo display and
+crosshairs per gun"); rules in GDD §17.1 and §18.2. Screen and audio only: no file in `src/sim/`
+or the sim content changed, golden replays unchanged, `npm run hunt -- --seed 42 --bot aim` hash
+`8ab8e33970ccd89f` as on main. Two PRs (D-030): `v1.1-ammo-crosshairs`, then `v1.1-audio` on it.
+Interpretations:
+(1) *Data, not code:* each gun's ammo display, crosshair and sounds are one entry in
+`content/client/feel.json → guns` (client file, outside the content hash). Ammo types name their
+size, spacing and what a fired round leaves (`spent: sprite | gone`); displays are a `belt` (one
+round per magazine slot or crate shot), a `pile` (unlimited: Kettie) or a `hopper` (timed crate
+gun: Mielie-Masjien, the kernel level follows the time left inside the texture's `fillBand`).
+Textures are `ui/ammo/<type>` and `ui/ammo/<type>_spent`; a runtime placeholder is drawn for every
+type from its size and two colours, so the .22 and rifle rounds (v1.3) need a data entry and an
+interim drawing only. `content:validate` checks every weapon has a look that fits it (a pile only
+for unlimited ammo, a hopper only for a timed crate gun, a "spread" ring only with spreadPx > 0, a
+drop line only with a projectile, known sound ids). A unit test adds a .22 as data only.
+(2) *Realistic, not cartoony (product owner):* the interim ammo (`tools/art/ammo.ts`) has no ink
+outline: gradient shading, specular streaks, contact shadows and material texture (hull
+extrusion lines, galvanised spangle, stone grain, paper crinkles), drawn at 4× and kept as
+full-colour PNG (a palette PNG banded the gradients). 12-gauge shells: red plastic hull, brass
+head; spent: dull hull with the star crimp opened. Windbuks: lead diabolos (waisted, hollow
+skirt); review: "too small and dark" → 50 × 64 px, bright lead with a light rim. Kettie: river
+stones in a 3-2 pile. Voorlaaier: review: "white candles" → brown kraft-paper twists with the lead
+ball out of the top and a twisted tail; spent: torn open, powder-stained. Mielie-Masjien: a
+galvanised hopper with a sight glass full of kernels. The old shared `ui/shell`, `ui/shell_empty`
+and `ui/reticle` keys are gone.
+(3) *Crosshairs show the spread:* built from shape parts as Phaser Shapes (no texture memory, no
+per-frame tessellation): a ring whose radius is the weapon's `spreadPx` — pellets land in a disc
+of that radius on every plane, so the ring is honest (Dubbelloop 70, Pomp 60: tighter, Voorlaaier
+300 with a hand-cut wobble and gaps, Mielie-Masjien 60 with a ±5 px jitter); Windbuks a fine dot
+with a 16 px ring; Kettie a V with a drop line marking the stone's drop at the mid and far bands
+(`projectile.dropPx`, the near 4 px is too small to mark). A dark keyline under every line keeps
+it readable on sky and veld. `guns.crosshairStyles` holds colours and line weight only: the
+Skiet-Skuur's crosshair styles (later) pick a style and keep the shape.
+(4) *Touch offset crosshair:* GDD §18.2 listed an "offset reticle" that was never built; the brief
+asked to keep it working, so it is built now as Settings → "Offset crosshair (touch)", off by
+default: the crosshair shows 70 px above the finger while it is down and the tap (or hold) fires
+there. The InputMapper only moves the point it already puts in the fire command (`dx`, `sy`), so
+replays, Daily and challenges are unaffected; aim assist works around that point. Saves without
+the field fall back to off (per-field defaults).
+(5) *Interim sound:* `npm run audio:interim` (`tools/audio/`, a small deterministic DSP kit:
+seeded noise, filters, Karplus-Strong plucks, struck bars, a Schroeder reverb) writes WAV masters
+with a `{ "origin": "interim" }` sidecar into `art-source/audio/`, the same path a sound
+designer's delivery takes; `assets:pack` reads the sidecar and the audit lists 46 INTERIM sounds.
+30 effects: the 22 existing keys plus each gun's own shot and reload (`shotPomp`, `shotWindbuks`,
+`shotKettie`, `shotVoorlaaier`, `shotMielie`, `rackPomp`, `cockWindbuks`, `ramrod`), chosen per
+gun by `guns.weapons.<id>.sfx` (shot, reload start, each shell, reload end); the synth stays the
+fallback for each key. Music: per biome three stems of the same 8 bars at 120 bpm (16 s seamless
+loops; the reverb tail is folded round), Karoo fingerpicked guitar in D, Bushveld marimba in G,
+Kalahari kalimba in A minor, Okavango guitar with marimba answers in F; calm = the instrument,
+build adds bass, shaker and kick, stampede doubles the pattern with clap and drums. Ambience:
+Karoo wind and birds, Bushveld wind, cicadas and birds, Kalahari dry wind and insects, Okavango
+water, frogs and reed birds. Voices stay text bubbles. Mute rules are the AudioDirector's, unchanged
+(first gesture, hidden tab, pause, ads); e2e proves the shipped files play after the first gesture
+and go silent on a hidden tab.
+*Loudness* (asset index, after the pack's normalising, art bible §10): music stems −16.0 LUFS
+(peaks −2.8 … −9.0 dBTP), ambience −20.0 LUFS (−2.9 … −4.9 dBTP), effects −14 LUFS where the
+−1 dBTP ceiling allows (alarm, sting, tick, ting, vuvuzela, whoosh, powerup, kek, kwe); short
+transients are held at the ceiling and come out quieter, as docs/06 §5 allows (shot −20.4, click
+−22.1, shotWindbuks −23.4 LUFS). Lengths: effects 0.03–1.8 s, stems 16 s, beds 16 s.
+(6) *Budgets:* sample rates were lowered to fit (music 22.05 kHz, ambience 16 kHz, mono): at
+32 kHz Okavango's chunk came to 1.50 MB. Measured (gzip, the larger of each Ogg/MP3 pair counted):
+first download **2.60 MB** web (was 1.89), poki and crazygames within 4 KB; lazy chunks Bushveld
+**1.33**, Kalahari **1.05**, Okavango **1.43**, late 1.03 MB. `npm run size` now reports each
+lazy chunk and `--strict` fails one over 1.5 MB (`tools/sizeBudget.ts lazyGroups`). Low-tier
+texture memory (Pixel 7, `textureBytes`): per biome 91.5 / 100.6 / 93.0 / 111.1 MB and the
+Season Run peak **126.9 MB**, unchanged from D-031 (the ammo textures, ~156 KB, replace the old
+shell and reticle textures, ~159 KB; crosshairs are shapes). Decoded audio is not texture memory:
+only the biome on screen keeps decoded music (M10), ~2 MB for three mono 16 s stems.
+(7) *Evidence:* `docs/art-preview/compare/v1.1-<gun>-<full|part>-<desktop-chromium|pixel7-landscape>.png`
+(before: main played for real, every gun showed the same red shells and reticle; after: the
+gun's own ammo and crosshair, from the e2e preview hook on a held frame);
+`tests/e2e/gun-look.spec.ts` checks every gun, full and partly spent, on desktop, Pixel 7 and
+iPhone 14 landscape (locally on Chromium emulation; CI runs WebKit), real Windbuks play, and the offset crosshair; visual baselines re-recorded in
+`mcr.microsoft.com/playwright:v1.56.1-noble`; `v1.1-texture-memory-{biomes,season}.json`.
+(8) *Playtest review fixes:* a crate gun reloads without events, so the Voorlaaier's ramrod is an
+`afterShot` sound (900 ms after a shot that leaves rounds); a bigger magazine (the Season Run's
+bandolier charm) packs the belt's rounds closer instead of spilling off the slate (also in
+left-handed mode); the crosshair ring follows the active power-ups' spread multiplier (Bush
+Buckshot ×2.5), exactly as the sim fires; infinite ammo (Chilli Biltong) shows a full belt and no
+RELOAD prompt; aiming keeps a crosshair style's opacity.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

@@ -26,6 +26,15 @@ export const SFX_IDS = [
   // M10 tally (GDD §17): count-up tick and the rank stamp thud.
   'tick',
   'thud',
+  // v1.1 (D-032): each gun's own shot and reload (feel.json guns.weapons.<id>.sfx).
+  'shotPomp',
+  'shotWindbuks',
+  'shotKettie',
+  'shotVoorlaaier',
+  'shotMielie',
+  'rackPomp',
+  'cockWindbuks',
+  'ramrod',
 ] as const;
 export type SfxId = (typeof SFX_IDS)[number];
 
@@ -70,6 +79,21 @@ export function playSfx(ctx: AudioContext, out: AudioNode, id: SfxId, noise: Aud
     o.stop(now + at + dur + 0.02);
   };
   switch (id) {
+    // v1.1: synth fallbacks for the per-gun sounds (used only while their recording is missing).
+    case 'shotPomp':
+    case 'shotVoorlaaier':
+      return playSfx(ctx, out, 'shot', noise);
+    case 'shotMielie':
+    case 'shotWindbuks':
+      tone('sine', 420, 140, 0.06, 0.4);
+      return 0.1;
+    case 'shotKettie':
+      tone('sawtooth', 260, 90, 0.1, 0.3);
+      return 0.15;
+    case 'rackPomp':
+    case 'cockWindbuks':
+    case 'ramrod':
+      return playSfx(ctx, out, 'shell', noise);
     case 'shot': {
       const s = noiseSrc();
       const f = ctx.createBiquadFilter();

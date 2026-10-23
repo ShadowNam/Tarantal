@@ -105,3 +105,34 @@ export function verdict(initialGzip: number): Verdict {
   if (initialGzip > BUDGET_BYTES) return 'over-budget';
   return 'ok';
 }
+
+/** v1.1 (D-032): each lazy chunk (a non-home biome, the `late` group) stays ≤ 1.5 MB gzip
+ *  (Tech §15; long-range plan: "each lazy biome chunk ≤ 1.5 MB"). */
+export const LAZY_CHUNK_BYTES = 1.5 * MB;
+
+/**
+ * Lazy files by the chunk they load with: asset files by their group folder
+ * (`assets/<group>/…`), a code chunk by the group its name starts (`bushveld-…js` →
+ * bushveld-winter). Anything else is `other`.
+ */
+export function lazyGroups(
+  lazy: readonly string[],
+  groups: readonly string[],
+): Map<string, string[]> {
+  const out = new Map<string, string[]>();
+  const add = (g: string, f: string): void => {
+    out.set(g, [...(out.get(g) ?? []), f]);
+  };
+  for (const f of lazy) {
+    const parts = f.split('/');
+    const dir = parts.length > 2 && parts[0] === 'assets' ? parts[1] : undefined;
+    if (dir !== undefined && groups.includes(dir)) {
+      add(dir, f);
+      continue;
+    }
+    const name = parts[parts.length - 1] ?? '';
+    const g = groups.find((id) => name.startsWith(`${id.split('-')[0] ?? id}-`));
+    add(g ?? 'other', f);
+  }
+  return out;
+}

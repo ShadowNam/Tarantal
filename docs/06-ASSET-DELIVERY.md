@@ -41,7 +41,7 @@ whatever isn't delivered stays on its placeholder.
 
 ```
 art-source/
-  sprites/<key>.png               one texture key, e.g. sprites/ui/shell.png → ui/shell
+  sprites/<key>.png               one texture key, e.g. sprites/ui/windsock.png → ui/windsock
   sprites/<key>.json              optional: { "originX": 0.5, "originY": 1 } (fractions)
   layers/<biome>/<layerId>.png    one parallax layer, full width with bleed (§4)
   layers/<biome>/<layerId>.json   optional: { "top": 630 } (design y of the top edge); interim
@@ -198,6 +198,15 @@ start higher (set `top` in the sidecar JSON), and transparent areas show the lay
 
 ## 5. Audio (bible §10, Tech §7 and §10)
 
+**Interim audio (v1.1, D-032).** Until your recordings arrive, every sound effect, each biome's
+three music stems and its ambience bed are code-made stand-ins written into `art-source/audio/`
+by `npm run audio:interim` (`tools/audio/`), each WAV with a sidecar `<name>.json` of
+`{ "origin": "interim" }`; the audit lists them as INTERIM. **To replace one, delete its `.wav`
+and `.json` and copy your WAV in** (no sidecar: it counts as final), then run `npm run
+assets:pack`. The generator never overwrites a WAV that has no interim sidecar. The interim music
+is 8 bars at 120 bpm (16 s loops, 22.05 kHz mono) and the ambience 16 s at 16 kHz mono, to keep
+each biome's lazy chunk under 1.5 MB; deliveries may be longer and stereo, within the size budget.
+
 **Masters:** WAV, 44.1 or 48 kHz, 16- or 24-bit PCM (or 32-bit float), mono or stereo. Leave
 about 1 dB of headroom and don't normalise: the tool measures integrated loudness (ITU-R BS.1770-4)
 and true peak, then applies one gain per file.
@@ -220,7 +229,11 @@ tempo-up).
 music sting), `vuvuzela`, `stamp` (whole-flock stamp), `scratch` (penalty record scratch),
 `stampede`, `ting` (secret part hit), `secret` (secret fanfare), `alarm` (bakkie alarm),
 `splash`, `clang` (pot), `kwe` (kwêvoël call), `crate`, `powerup`, `whoosh` (dust devil),
-`tick` (tally count-up tick) and `thud` (rank stamp thud on the tally). All 22 are required
+`tick` (tally count-up tick) and `thud` (rank stamp thud on the tally), and (v1.1, D-032) each
+gun's own sounds: `shotPomp`, `shotWindbuks` (air rifle), `shotKettie` (slingshot band),
+`shotVoorlaaier` (black powder), `shotMielie` (air "pok"), `rackPomp` (pump action),
+`cockWindbuks` (break-barrel cock and pellet) and `ramrod` (`shot` is the Dubbelloop's). Which gun
+plays which is in `content/client/feel.json → guns.weapons.<id>.sfx`. All 30 are required
 for `npm run assets:audit -- --strict` to pass. More of the bible's SFX list (variants ×3,
 hadeda call, UI clicks) needs a key in the game first: ask the developer for it.
 
@@ -290,7 +303,8 @@ are wanted later: add the key to `src/i18n/*.json` and to a trigger's `lines` in
 feel.json (`content:validate` checks the key exists); the audit then lists its voice key.
 
 **Size:** the home biome's (Karoo) music and ambience are in the first download, which must stay
-at or under 5 MB gzip in total (`npm run size`). Three 60 s stems at Vorbis q2 come to about 2 MB.
+at or under 3 MB gzip in total (v1.x plan; `npm run size` hard budget 5 MB), and every other
+biome's chunk at or under 1.5 MB (`npm run size -- --strict` fails above it). Three 60 s stems at Vorbis q2 come to about 2 MB.
 The other biomes' audio loads when that biome is first played.
 
 ## 6. Sprites (UI, FX, props, guns)
@@ -333,9 +347,14 @@ px = 1 design px), and the pack tool warns if it differs. Its origin defaults to
 | `secret/mark_hit` | 64 × 64 | common |
 | `secret/rotor` | 240 × 240 | common |
 | `ui/badge_no` | 64 × 64 | common |
-| `ui/reticle` | 180 × 180 | common |
-| `ui/shell` | 40 × 92 | common |
-| `ui/shell_empty` | 40 × 92 | common |
+| `ui/ammo/diabolo` | 50 × 64 | common |
+| `ui/ammo/kernel` | 150 × 84 | common |
+| `ui/ammo/kernel_spent` | 150 × 84 | common |
+| `ui/ammo/paper` | 28 × 80 | common |
+| `ui/ammo/paper_spent` | 28 × 80 | common |
+| `ui/ammo/shell12` | 30 × 84 | common |
+| `ui/ammo/shell12_spent` | 30 × 84 | common |
+| `ui/ammo/stone` | 38 × 30 | common |
 | `ui/windsock` | 150 × 60 | common |
 | `bushveld/aloe_a` | 360 × 400 | bushveld-winter |
 | `bushveld/aloe_b` | 380 × 400 | bushveld-winter |

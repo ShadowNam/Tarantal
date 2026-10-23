@@ -93,6 +93,8 @@ const sidecarOrigin = z
     encode: encoding,
   })
   .partial();
+/** v1.1 (D-032): `audio/<…>.json` next to a WAV: "interim" = code-made stand-in sound. */
+const sidecarAudio = z.strictObject({ origin: provenance }).partial();
 const sidecarLayer = z
   .strictObject({
     top: z.number(),
@@ -700,8 +702,11 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
     const norm = applyGain(pcm, gain);
     const name = slug(parts.slice(1).join('-'));
     const sub = `audio/${parts[0] ?? 'sfx'}`;
+    const side =
+      readJson(join(audioDir, rel.replace(/\.wav$/, '.json')), sidecarAudio, errors) ?? {};
     index.audio[key] = {
       group,
+      ...(side.origin === undefined ? {} : { origin: side.origin }),
       kind,
       ogg: emit(group, sub, name, 'ogg', await encodeOgg(norm, kind)),
       mp3: emit(group, sub, name, 'mp3', await encodeMp3(norm, kind)),

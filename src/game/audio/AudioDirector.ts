@@ -10,7 +10,7 @@ import type { SimEvent } from '../../sim/events';
 import { ambienceKey, musicKey, sfxKey, voiceKey, type FinalSound } from '../assets/AssetManifest';
 import { loadBytes } from '../assets/finalLoader';
 import { MusicMixer, STEMS, StemHold, type MusicSet, type Stem } from './music';
-import { createNoise, playSfx, type SfxId } from './synth';
+import { createNoise, playSfx, SFX_IDS, type SfxId } from './synth';
 
 const MAX_VOICES = 16;
 const MAX_PAN = 0.7;
@@ -64,6 +64,11 @@ export function biomeOfKey(key: string): string | null {
 }
 
 export type AudioTuning = Feel['audio'];
+export type GunSfx = Feel['guns']['weapons'][string]['sfx'];
+
+const DEFAULT_GUN_SFX: GunSfx = { shot: 'shot', shellLoaded: 'shell', reloadFinished: 'shell' };
+const isSfx = (id: string | undefined): id is SfxId =>
+  id !== undefined && (SFX_IDS as readonly string[]).includes(id);
 
 export class AudioDirector {
   private ctx: AudioContext | null = null;
@@ -93,10 +98,14 @@ export class AudioDirector {
   /** The Oupa line playing (or last played): a new one stops it. */
   private voiceSrc: AudioBufferSourceNode | null = null;
   private tallyCounting = false;
+  /** v1.1 (D-032): the gun in hand (its own shot and reload sounds, feel.json guns). */
+  private weapon = '';
 
   constructor(
     private readonly tuning: AudioTuning,
     private readonly env: AudioEnv,
+    /** weapon id → its sounds (feel.json guns.weapons.<id>.sfx); unknown guns use the shotgun's. */
+    private readonly gunSfx: Readonly<Record<string, GunSfx>> = {},
   ) {
     this.hold = new StemHold(tuning.stemHoldMs);
     env.onVisibility((hidden) => {
@@ -315,6 +324,25 @@ export class AudioDirector {
     else this.play('thud', 0);
   }
 
+  /** v1.1: the gun in hand (HuntScene, each frame): its reload sounds follow it. */
+  setWeapon(id: string): void {
+    this.weapon = id;
+  }
+
+  private gun(id: string = this.weapon): GunSfx {
+    return this.gunSfx[id] ?? DEFAULT_GUN_SFX;
+  }
+
+  /** A gun's sound for an event, if it has one. */
+  private playGun(
+    which: 'shot' | 'reloadStarted' | 'shellLoaded' | 'reloadFinished',
+    pan: number,
+    weapon?: string,
+  ): void {
+    const id = this.gun(weapon)[which];
+    if (isSfx(id)) this.play(id, pan);
+  }
+
   /** Plays the sounds for a frame's events. panOf maps an event to −1 (left) … +1 (right). */
   handle(events: readonly SimEvent[], panOf: (e: SimEvent) => number): void {
     if (this.ctx === null || this.muted) return;
@@ -322,16 +350,31 @@ export class AudioDirector {
     let sting = false;
     for (const e of events) {
       switch (e.type) {
-        case 'shotFired':
-          if (!shot) this.play('shot', panOf(e));
+        case 'shotFired': {
+          this.weapon = e.weapon;
+          if (!shot) this.playGun('shot', panOf(e), e.weapon);
           shot = true;
+          // A crate gun reloads without events: its reload sound follows the shot.
+          const g = this.gun(e.weapon);
+          if (isSfx(g.afterShot) && e.shellsLeft !== 0) {
+            const id = g.afterShot;
+            this.env.setTimer(() => {
+              if (!this.muted) this.play(id, 0.5);
+            }, g.afterShotMs ?? 0);
+          }
           break;
+        }
         case 'emptyClick':
           this.play('click', 0);
           break;
+        case 'reloadStarted':
+          this.playGun('reloadStarted', 0.5);
+          break;
         case 'shellLoaded':
+          this.playGun('shellLoaded', 0.5);
+          break;
         case 'reloadFinished':
-          this.play('shell', 0.5);
+          this.playGun('reloadFinished', 0.5);
           break;
         case 'targetBagged':
           this.play('poof', panOf(e));
@@ -379,8 +422,11 @@ export class AudioDirector {
         case 'crateOpened':
           this.play('crate', 0);
           break;
-        case 'powerupStarted':
         case 'weaponChanged':
+          this.weapon = e.weapon;
+          this.play('powerup', 0);
+          break;
+        case 'powerupStarted':
           this.play('powerup', 0);
           break;
         default:

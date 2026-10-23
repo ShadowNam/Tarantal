@@ -836,6 +836,7 @@ export class HuntScene extends Phaser.Scene {
     this.weapon.spreadMul = spreadMulOf(state.powerups, this.ctx.content.powerups.powerups);
     this.weapon.setWeapon(state.weapon.id);
     this.weapon.setReloading(state.weapon.reloading);
+    this.ctx.audio.setWeapon(state.weapon.id);
     if (this.ctx.hook) {
       const c = this.weapon.crosshair;
       this.ctx.hook.crosshair = {

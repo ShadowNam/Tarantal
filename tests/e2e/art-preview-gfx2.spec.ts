@@ -212,7 +212,7 @@ test('texture memory per biome on the low tier', async ({ page }, info) => {
   }
   mkdirSync(join(OUT, 'compare'), { recursive: true });
   writeFileSync(
-    join(OUT, 'compare', 'gfx2-texture-memory-biomes.json'),
+    join(OUT, 'compare', `${process.env['MEM_TAG'] || 'gfx2'}-texture-memory-biomes.json`),
     `${JSON.stringify({ unit: 'MB', tier: 'low', ...out }, null, 2)}\n`,
   );
 });
@@ -274,7 +274,7 @@ test('texture memory through a Season Run on the low tier', async ({ page }, inf
   }
   mkdirSync(join(OUT, 'compare'), { recursive: true });
   writeFileSync(
-    join(OUT, 'compare', 'gfx2-texture-memory-season.json'),
+    join(OUT, 'compare', `${process.env['MEM_TAG'] || 'gfx2'}-texture-memory-season.json`),
     `${JSON.stringify({ unit: 'MB', tier: 'low', peak: Math.max(...hunts.map((h) => h.mb)), hunts }, null, 2)}\n`,
   );
 });

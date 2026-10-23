@@ -51,6 +51,7 @@ describe('gun look content (D-032)', () => {
         ...guns.weapons,
         dubbelloop: {
           crosshair: gunLookFor(guns, 'dubbelloop').crosshair,
+          sfx: { shot: 'shot' },
           ammo: { layout: 'pile', type: 'shell12', count: 3 },
         },
       },
@@ -79,6 +80,7 @@ describe('gun look content (D-032)', () => {
       weapons: {
         ...guns.weapons,
         twee_twee: {
+          sfx: { shot: 'shot' },
           ammo: { layout: 'belt', type: 'rimfire22' },
           crosshair: { parts: [{ shape: 'cross', gap: 6, len: 18, width: 0.6 }], jitterPx: 0 },
         },

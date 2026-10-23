@@ -7,11 +7,13 @@
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { brotliCompressSync, constants, gzipSync } from 'node:zlib';
-import { ASSET_INDEX_PATH, parseAssetIndex } from '../src/game/assets/assetIndex';
+import { ASSET_INDEX_PATH, indexFiles, parseAssetIndex } from '../src/game/assets/assetIndex';
 import {
   BUDGET_BYTES,
   alternateAssetFiles,
+  LAZY_CHUNK_BYTES,
   lazyAssetFiles,
+  lazyGroups,
   MB,
   splitInitialLazy,
   verdict,
@@ -76,6 +78,7 @@ const line = (r: Row): string =>
 // M10: delivered art and audio of the non-home biomes load with their biome (asset index groups).
 const indexPath = join(dist, ASSET_INDEX_PATH);
 let lazyAssets = new Set<string>();
+let groups: string[] = [];
 let alternates = new Set<string>();
 if (existsSync(indexPath)) {
   const { index, error } = parseAssetIndex(JSON.parse(readFileSync(indexPath, 'utf8')));
@@ -84,6 +87,7 @@ if (existsSync(indexPath)) {
     process.exit(1);
   }
   lazyAssets = lazyAssetFiles(index);
+  groups = [...new Set(indexFiles(index).map((f) => f.group))].sort();
   alternates = alternateAssetFiles(index);
 }
 const split = splitInitialLazy(manifest, files, lazyAssets, alternates);
@@ -98,6 +102,14 @@ console.log(line({ ...ti, file: 'INITIAL TOTAL' }));
 console.log('lazy (loaded on first use):');
 console.log(lazy.length === 0 ? '  (none)' : lazy.map(line).join('\n'));
 console.log(line({ ...tl, file: 'LAZY TOTAL' }));
+// v1.1: each lazy chunk (a biome, the late group) on its own, against its 1.5 MB cap.
+const overChunks: string[] = [];
+console.log('lazy chunks (each ≤ 1.5 MB gzip):');
+for (const [g, fs] of [...lazyGroups(split.lazy, groups)].sort(([a], [b]) => (a < b ? -1 : 1))) {
+  const t = sum(lazy.filter((r) => fs.includes(r.file)));
+  console.log(line({ ...t, file: `  ${g}` }));
+  if (t.gz > LAZY_CHUNK_BYTES) overChunks.push(`${g} ${(t.gz / MB).toFixed(2)} MB`);
+}
 if (split.alternate.length > 0) {
   const alt = split.alternate.map(measure);
   console.log('alternates (the other audio format / atlas set; one player never downloads both):');
@@ -113,6 +125,14 @@ if (jsonOut !== undefined) {
   );
 }
 
+if (overChunks.length > 0) {
+  const msg = `size: lazy chunk over 1.5 MB gzip: ${overChunks.join(', ')}.`;
+  if (strict) {
+    console.error(`${msg} FAILED (--strict).`);
+    process.exit(1);
+  }
+  console.warn(`${msg} WARNING (CI runs --strict).`);
+}
 // Judge on gzip: every host serves it; brotli is a bonus.
 const v = verdict(ti.gz);
 const mb = (ti.gz / MB).toFixed(2);

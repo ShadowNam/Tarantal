@@ -2756,7 +2756,836 @@
       }
     }
   },
-  "audio": {},
+  "audio": {
+    "amb/bushveld-winter": {
+      "group": "bushveld-winter",
+      "origin": "interim",
+      "kind": "ambience",
+      "ogg": {
+        "path": "assets/bushveld-winter/audio/ambience/bushveld-winter.9caa69cd485a.ogg",
+        "bytes": 55164,
+        "hash": "9caa69cd485a"
+      },
+      "mp3": {
+        "path": "assets/bushveld-winter/audio/ambience/bushveld-winter.39f3395d4f5f.mp3",
+        "bytes": 111348,
+        "hash": "39f3395d4f5f"
+      },
+      "loop": true,
+      "lufs": -20,
+      "peakDb": -2.9
+    },
+    "amb/kalahari-summer": {
+      "group": "kalahari-summer",
+      "origin": "interim",
+      "kind": "ambience",
+      "ogg": {
+        "path": "assets/kalahari-summer/audio/ambience/kalahari-summer.be2fb5d98f23.ogg",
+        "bytes": 53666,
+        "hash": "be2fb5d98f23"
+      },
+      "mp3": {
+        "path": "assets/kalahari-summer/audio/ambience/kalahari-summer.4a2f54fe0013.mp3",
+        "bytes": 70236,
+        "hash": "4a2f54fe0013"
+      },
+      "loop": true,
+      "lufs": -20,
+      "peakDb": -5.4
+    },
+    "amb/karoo-autumn": {
+      "group": "karoo-autumn",
+      "origin": "interim",
+      "kind": "ambience",
+      "ogg": {
+        "path": "assets/karoo-autumn/audio/ambience/karoo-autumn.b683623ce69c.ogg",
+        "bytes": 52069,
+        "hash": "b683623ce69c"
+      },
+      "mp3": {
+        "path": "assets/karoo-autumn/audio/ambience/karoo-autumn.8ffe48cb20af.mp3",
+        "bytes": 64656,
+        "hash": "8ffe48cb20af"
+      },
+      "loop": true,
+      "lufs": -20,
+      "peakDb": -4.5
+    },
+    "amb/okavango-spring": {
+      "group": "okavango-spring",
+      "origin": "interim",
+      "kind": "ambience",
+      "ogg": {
+        "path": "assets/okavango-spring/audio/ambience/okavango-spring.66dc143a85d0.ogg",
+        "bytes": 53841,
+        "hash": "66dc143a85d0"
+      },
+      "mp3": {
+        "path": "assets/okavango-spring/audio/ambience/okavango-spring.57795302c8f2.mp3",
+        "bytes": 70776,
+        "hash": "57795302c8f2"
+      },
+      "loop": true,
+      "lufs": -20,
+      "peakDb": -3.1
+    },
+    "music/bushveld-winter/build": {
+      "group": "bushveld-winter",
+      "origin": "interim",
+      "kind": "music",
+      "ogg": {
+        "path": "assets/bushveld-winter/audio/music/bushveld-winter-build.8b28d8c2278a.ogg",
+        "bytes": 71631,
+        "hash": "8b28d8c2278a"
+      },
+      "mp3": {
+        "path": "assets/bushveld-winter/audio/music/bushveld-winter-build.a6a3dcc4b7a4.mp3",
+        "bytes": 134978,
+        "hash": "a6a3dcc4b7a4"
+      },
+      "loop": true,
+      "lufs": -16,
+      "peakDb": -7.8
+    },
+    "music/bushveld-winter/calm": {
+      "group": "bushveld-winter",
+      "origin": "interim",
+      "kind": "music",
+      "ogg": {
+        "path": "assets/bushveld-winter/audio/music/bushveld-winter-calm.6d0126930a93.ogg",
+        "bytes": 58327,
+        "hash": "6d0126930a93"
+      },
+      "mp3": {
+        "path": "assets/bushveld-winter/audio/music/bushveld-winter-calm.bace79e78f5b.mp3",
+        "bytes": 129993,
+        "hash": "bace79e78f5b"
+      },
+      "loop": true,
+      "lufs": -16,
+      "peakDb": -8
+    },
+    "music/bushveld-winter/stampede": {
+      "group": "bushveld-winter",
+      "origin": "interim",
+      "kind": "music",
+      "ogg": {
+        "path": "assets/bushveld-winter/audio/music/bushveld-winter-stampede.c192e7abc22c.ogg",
+        "bytes": 81299,
+        "hash": "c192e7abc22c"
+      },
+      "mp3": {
+        "path": "assets/bushveld-winter/audio/music/bushveld-winter-stampede.7988216029de.mp3",
+        "bytes": 119943,
+        "hash": "7988216029de"
+      },
+      "loop": true,
+      "lufs": -16,
+      "peakDb": -8
+    },
+    "music/kalahari-summer/build": {
+      "group": "kalahari-summer",
+      "origin": "interim",
+      "kind": "music",
+      "ogg": {
+        "path": "assets/kalahari-summer/audio/music/kalahari-summer-build.1ae80c175104.ogg",
+        "bytes": 70884,
+        "hash": "1ae80c175104"
+      },
+      "mp3": {
+        "path": "assets/kalahari-summer/audio/music/kalahari-summer-build.9cee9b176f6b.mp3",
+        "bytes": 135995,
+        "hash": "9cee9b176f6b"
+      },
+      "loop": true,
+      "lufs": -16,
+      "peakDb": -7.4
+    },
+    "music/kalahari-summer/calm": {
+      "group": "kalahari-summer",
+      "origin": "interim",
+      "kind": "music",
+      "ogg": {
+        "path": "assets/kalahari-summer/audio/music/kalahari-summer-calm.685be259709d.ogg",
+        "bytes": 53556,
+        "hash": "685be259709d"
+      },
+      "mp3": {
+        "path": "assets/kalahari-summer/audio/music/kalahari-summer-calm.92efd38bc8fb.mp3",
+        "bytes": 126325,
+        "hash": "92efd38bc8fb"
+      },
+      "loop": true,
+      "lufs": -16,
+      "peakDb": -8.9
+    },
+    "music/kalahari-summer/stampede": {
+      "group": "kalahari-summer",
+      "origin": "interim",
+      "kind": "music",
+      "ogg": {
+        "path": "assets/kalahari-summer/audio/music/kalahari-summer-stampede.8d6c1bbf86a8.ogg",
+        "bytes": 81572,
+        "hash": "8d6c1bbf86a8"
+      },
+      "mp3": {
+        "path": "assets/kalahari-summer/audio/music/kalahari-summer-stampede.f445d0a1c590.mp3",
+        "bytes": 118462,
+        "hash": "f445d0a1c590"
+      },
+      "loop": true,
+      "lufs": -16,
+      "peakDb": -7.7
+    },
+    "music/karoo-autumn/build": {
+      "group": "karoo-autumn",
+      "origin": "interim",
+      "kind": "music",
+      "ogg": {
+        "path": "assets/karoo-autumn/audio/music/karoo-autumn-build.531763276c75.ogg",
+        "bytes": 78138,
+        "hash": "531763276c75"
+      },
+      "mp3": {
+        "path": "assets/karoo-autumn/audio/music/karoo-autumn-build.f75724646391.mp3",
+        "bytes": 127607,
+        "hash": "f75724646391"
+      },
+      "loop": true,
+      "lufs": -16,
+      "peakDb": -3.6
+    },
+    "music/karoo-autumn/calm": {
+      "group": "karoo-autumn",
+      "origin": "interim",
+      "kind": "music",
+      "ogg": {
+        "path": "assets/karoo-autumn/audio/music/karoo-autumn-calm.449257d3579e.ogg",
+        "bytes": 75970,
+        "hash": "449257d3579e"
+      },
+      "mp3": {
+        "path": "assets/karoo-autumn/audio/music/karoo-autumn-calm.68cf92bc6f2b.mp3",
+        "bytes": 130245,
+        "hash": "68cf92bc6f2b"
+      },
+      "loop": true,
+      "lufs": -16,
+      "peakDb": -1.1
+    },
+    "music/karoo-autumn/stampede": {
+      "group": "karoo-autumn",
+      "origin": "interim",
+      "kind": "music",
+      "ogg": {
+        "path": "assets/karoo-autumn/audio/music/karoo-autumn-stampede.2dfd097c4825.ogg",
+        "bytes": 85256,
+        "hash": "2dfd097c4825"
+      },
+      "mp3": {
+        "path": "assets/karoo-autumn/audio/music/karoo-autumn-stampede.9614ed31befe.mp3",
+        "bytes": 133618,
+        "hash": "9614ed31befe"
+      },
+      "loop": true,
+      "lufs": -16,
+      "peakDb": -3.3
+    },
+    "music/okavango-spring/build": {
+      "group": "okavango-spring",
+      "origin": "interim",
+      "kind": "music",
+      "ogg": {
+        "path": "assets/okavango-spring/audio/music/okavango-spring-build.5891b4e886a2.ogg",
+        "bytes": 77005,
+        "hash": "5891b4e886a2"
+      },
+      "mp3": {
+        "path": "assets/okavango-spring/audio/music/okavango-spring-build.6cf763715c6f.mp3",
+        "bytes": 125179,
+        "hash": "6cf763715c6f"
+      },
+      "loop": true,
+      "lufs": -16,
+      "peakDb": -3.5
+    },
+    "music/okavango-spring/calm": {
+      "group": "okavango-spring",
+      "origin": "interim",
+      "kind": "music",
+      "ogg": {
+        "path": "assets/okavango-spring/audio/music/okavango-spring-calm.7726ec2fe33a.ogg",
+        "bytes": 75551,
+        "hash": "7726ec2fe33a"
+      },
+      "mp3": {
+        "path": "assets/okavango-spring/audio/music/okavango-spring-calm.92df9468437e.mp3",
+        "bytes": 130531,
+        "hash": "92df9468437e"
+      },
+      "loop": true,
+      "lufs": -16,
+      "peakDb": -3.8
+    },
+    "music/okavango-spring/stampede": {
+      "group": "okavango-spring",
+      "origin": "interim",
+      "kind": "music",
+      "ogg": {
+        "path": "assets/okavango-spring/audio/music/okavango-spring-stampede.6da1b4a28679.ogg",
+        "bytes": 84548,
+        "hash": "6da1b4a28679"
+      },
+      "mp3": {
+        "path": "assets/okavango-spring/audio/music/okavango-spring-stampede.e662f9b5fa66.mp3",
+        "bytes": 129168,
+        "hash": "e662f9b5fa66"
+      },
+      "loop": true,
+      "lufs": -16,
+      "peakDb": -3.5
+    },
+    "sfx/alarm": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/alarm.9a073d6ca165.ogg",
+        "bytes": 19430,
+        "hash": "9a073d6ca165"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/alarm.54150721aa66.mp3",
+        "bytes": 20452,
+        "hash": "54150721aa66"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -8.6
+    },
+    "sfx/clang": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/clang.e99a22e77be5.ogg",
+        "bytes": 7523,
+        "hash": "e99a22e77be5"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/clang.e312bca8ac55.mp3",
+        "bytes": 5698,
+        "hash": "e312bca8ac55"
+      },
+      "loop": false,
+      "lufs": -17.9,
+      "peakDb": -1
+    },
+    "sfx/click": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/click.50babf748b87.ogg",
+        "bytes": 4349,
+        "hash": "50babf748b87"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/click.8361e00094c4.mp3",
+        "bytes": 1694,
+        "hash": "8361e00094c4"
+      },
+      "loop": false,
+      "lufs": -22.1,
+      "peakDb": -1
+    },
+    "sfx/cockWindbuks": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/cockWindbuks.3b3f31c5efb2.ogg",
+        "bytes": 7094,
+        "hash": "3b3f31c5efb2"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/cockWindbuks.ca16f9594ec8.mp3",
+        "bytes": 6179,
+        "hash": "ca16f9594ec8"
+      },
+      "loop": false,
+      "lufs": -19.6,
+      "peakDb": -1
+    },
+    "sfx/crate": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/crate.d4eeca4caacb.ogg",
+        "bytes": 6249,
+        "hash": "d4eeca4caacb"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/crate.9a824611bb29.mp3",
+        "bytes": 3387,
+        "hash": "9a824611bb29"
+      },
+      "loop": false,
+      "lufs": -20.5,
+      "peakDb": -1
+    },
+    "sfx/kek": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/kek.c94e08975098.ogg",
+        "bytes": 7285,
+        "hash": "c94e08975098"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/kek.1f9585d99fb1.mp3",
+        "bytes": 4537,
+        "hash": "1f9585d99fb1"
+      },
+      "loop": false,
+      "lufs": -14.2,
+      "peakDb": -1
+    },
+    "sfx/kekAlarm": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/kekAlarm.e1c5ea20a3c4.ogg",
+        "bytes": 11540,
+        "hash": "e1c5ea20a3c4"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/kekAlarm.0e1da330d653.mp3",
+        "bytes": 10274,
+        "hash": "0e1da330d653"
+      },
+      "loop": false,
+      "lufs": -15.8,
+      "peakDb": -1
+    },
+    "sfx/kwe": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/kwe.1fc0d56f784d.ogg",
+        "bytes": 10549,
+        "hash": "1fc0d56f784d"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/kwe.5cf6107ebb78.mp3",
+        "bytes": 8841,
+        "hash": "5cf6107ebb78"
+      },
+      "loop": false,
+      "lufs": -14.5,
+      "peakDb": -1
+    },
+    "sfx/poof": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/poof.c5e628d73925.ogg",
+        "bytes": 7141,
+        "hash": "c5e628d73925"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/poof.d45cacdadfdc.mp3",
+        "bytes": 4382,
+        "hash": "d45cacdadfdc"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -1
+    },
+    "sfx/powerup": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/powerup.eff15da91437.ogg",
+        "bytes": 6875,
+        "hash": "eff15da91437"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/powerup.c694ddb9086f.mp3",
+        "bytes": 4530,
+        "hash": "c694ddb9086f"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -1.4
+    },
+    "sfx/rackPomp": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/rackPomp.b93e8fe33a20.ogg",
+        "bytes": 5740,
+        "hash": "b93e8fe33a20"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/rackPomp.e6385fefe9f9.mp3",
+        "bytes": 4222,
+        "hash": "e6385fefe9f9"
+      },
+      "loop": false,
+      "lufs": -16.9,
+      "peakDb": -1
+    },
+    "sfx/ramrod": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/ramrod.ff6e9cf4e1ee.ogg",
+        "bytes": 10863,
+        "hash": "ff6e9cf4e1ee"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/ramrod.457dd051feac.mp3",
+        "bytes": 9933,
+        "hash": "457dd051feac"
+      },
+      "loop": false,
+      "lufs": -15.5,
+      "peakDb": -1
+    },
+    "sfx/scratch": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/scratch.fe5ef17a8a24.ogg",
+        "bytes": 7174,
+        "hash": "fe5ef17a8a24"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/scratch.ba3bf851d9d4.mp3",
+        "bytes": 4904,
+        "hash": "ba3bf851d9d4"
+      },
+      "loop": false,
+      "lufs": -16.9,
+      "peakDb": -1
+    },
+    "sfx/secret": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/secret.c3882239e6fb.ogg",
+        "bytes": 9800,
+        "hash": "c3882239e6fb"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/secret.d8695b302e98.mp3",
+        "bytes": 7869,
+        "hash": "d8695b302e98"
+      },
+      "loop": false,
+      "lufs": -14.1,
+      "peakDb": -1
+    },
+    "sfx/shell": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/shell.d0719287ab08.ogg",
+        "bytes": 5454,
+        "hash": "d0719287ab08"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/shell.584e9221185b.mp3",
+        "bytes": 3651,
+        "hash": "584e9221185b"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -1
+    },
+    "sfx/shot": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/shot.861af20471eb.ogg",
+        "bytes": 12243,
+        "hash": "861af20471eb"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/shot.bb59c0b34780.mp3",
+        "bytes": 9061,
+        "hash": "bb59c0b34780"
+      },
+      "loop": false,
+      "lufs": -20.4,
+      "peakDb": -1
+    },
+    "sfx/shotKettie": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/shotKettie.06c992bc7eff.ogg",
+        "bytes": 5774,
+        "hash": "06c992bc7eff"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/shotKettie.db096d86b06e.mp3",
+        "bytes": 3388,
+        "hash": "db096d86b06e"
+      },
+      "loop": false,
+      "lufs": -19.8,
+      "peakDb": -1
+    },
+    "sfx/shotMielie": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/shotMielie.04b1de8d11dd.ogg",
+        "bytes": 4541,
+        "hash": "04b1de8d11dd"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/shotMielie.1ef48f66d210.mp3",
+        "bytes": 2033,
+        "hash": "1ef48f66d210"
+      },
+      "loop": false,
+      "lufs": -18.6,
+      "peakDb": -1
+    },
+    "sfx/shotPomp": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/shotPomp.049b4855a33f.ogg",
+        "bytes": 11488,
+        "hash": "049b4855a33f"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/shotPomp.00d2434e4286.mp3",
+        "bytes": 8594,
+        "hash": "00d2434e4286"
+      },
+      "loop": false,
+      "lufs": -19.2,
+      "peakDb": -1
+    },
+    "sfx/shotVoorlaaier": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/shotVoorlaaier.9f882608098d.ogg",
+        "bytes": 16578,
+        "hash": "9f882608098d"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/shotVoorlaaier.6cdd0f0f24b5.mp3",
+        "bytes": 12418,
+        "hash": "6cdd0f0f24b5"
+      },
+      "loop": false,
+      "lufs": -16.7,
+      "peakDb": -1
+    },
+    "sfx/shotWindbuks": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/shotWindbuks.ffcb3af5a5aa.ogg",
+        "bytes": 6242,
+        "hash": "ffcb3af5a5aa"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/shotWindbuks.ceada6957543.mp3",
+        "bytes": 3177,
+        "hash": "ceada6957543"
+      },
+      "loop": false,
+      "lufs": -23.4,
+      "peakDb": -1
+    },
+    "sfx/splash": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/splash.b388dbd0f581.ogg",
+        "bytes": 11101,
+        "hash": "b388dbd0f581"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/splash.b712b435c618.mp3",
+        "bytes": 8416,
+        "hash": "b712b435c618"
+      },
+      "loop": false,
+      "lufs": -16.8,
+      "peakDb": -1
+    },
+    "sfx/stamp": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/stamp.1670fac42b20.ogg",
+        "bytes": 5675,
+        "hash": "1670fac42b20"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/stamp.c1c8ee23579d.mp3",
+        "bytes": 3330,
+        "hash": "c1c8ee23579d"
+      },
+      "loop": false,
+      "lufs": -18.9,
+      "peakDb": -1
+    },
+    "sfx/stampede": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/stampede.3c982a73fd8c.ogg",
+        "bytes": 18019,
+        "hash": "3c982a73fd8c"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/stampede.6354f2215c54.mp3",
+        "bytes": 15165,
+        "hash": "6354f2215c54"
+      },
+      "loop": false,
+      "lufs": -17.4,
+      "peakDb": -1
+    },
+    "sfx/sting": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/sting.12dfb344ca14.ogg",
+        "bytes": 8105,
+        "hash": "12dfb344ca14"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/sting.f44482917cbc.mp3",
+        "bytes": 5440,
+        "hash": "f44482917cbc"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -2.4
+    },
+    "sfx/thud": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/thud.1b69bc6e3152.ogg",
+        "bytes": 4577,
+        "hash": "1b69bc6e3152"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/thud.8c49cfec22d6.mp3",
+        "bytes": 1926,
+        "hash": "8c49cfec22d6"
+      },
+      "loop": false,
+      "lufs": -15.4,
+      "peakDb": -1
+    },
+    "sfx/tick": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/tick.bb87e61ee796.ogg",
+        "bytes": 4160,
+        "hash": "bb87e61ee796"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/tick.2e3ebc922129.mp3",
+        "bytes": 1043,
+        "hash": "2e3ebc922129"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -3.4
+    },
+    "sfx/ting": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/ting.0283e06f6b37.ogg",
+        "bytes": 5037,
+        "hash": "0283e06f6b37"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/ting.36bcd665a9a5.mp3",
+        "bytes": 3020,
+        "hash": "36bcd665a9a5"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -2.6
+    },
+    "sfx/vuvuzela": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/vuvuzela.da71e457441a.ogg",
+        "bytes": 14705,
+        "hash": "da71e457441a"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/vuvuzela.e7cc5d653cf7.mp3",
+        "bytes": 13711,
+        "hash": "e7cc5d653cf7"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -5.4
+    },
+    "sfx/whoosh": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/whoosh.8fda7a75ef46.ogg",
+        "bytes": 13872,
+        "hash": "8fda7a75ef46"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/whoosh.3afea470bcd7.mp3",
+        "bytes": 11162,
+        "hash": "3afea470bcd7"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -2.1
+    }
+  },
   "guns": {
     "dubbelloop": {
       "group": "common",

@@ -603,6 +603,33 @@ it counts up and the rank stamp lands with a thud. Large-area flashes share a cl
 Onomatopoeia bubbles (KEK-KEK!, POOF!, KLAP!, CLANG!, BZZZT!) are part of the art style **and** an
 accessibility feature (visual captions for important sounds).
 
+### 17.1 Each gun's ammo, crosshair and sound (v1.1, D-032)
+Screen and audio only: none of this changes a game rule. Every gun's look and sounds live in
+`content/client/feel.json → guns`; adding a gun (the .22 and the Langloop in v1.3) is a data entry
+there plus one interim drawing in `tools/art/ammo.ts` and, if it has its own sound, one in
+`tools/audio/sfx.ts`.
+
+| Gun | Ammo on the HUD (bottom right) | Fired / spent | Crosshair | Shot / reload sound |
+|---|---|---|---|---|
+| Dubbelloop | 12-gauge shells, red hull, brass head (8) | dull hull, opened crimp | ring = pellet spread (70 px), dot, 4 ticks | shotgun boom / shell in |
+| Plaas-Pomp | the same shells (6) | as above | the same ring, tighter (60 px) | sharper boom / shell in, pump rack |
+| Windbuks | lead diabolo pellets (6), large and bright | gone | fine dot, small thin ring | air "pfft" / barrel break and cock |
+| Kettie | a pile of 5 river stones (unlimited) | the top stone is in the pouch while drawing | small V with a drop line marking where the stone falls at mid and far | rubber thwup |
+| Voorlaaier (crate) | brown paper cartridges with the lead ball out of the top (3) | torn open | very wide, rough ring (300 px spread) | deep black-powder boom / ramrod |
+| Mielie-Masjien (crate) | a hopper of mielie kernels | the level drops with the time left | jittery ring | air "pok" |
+
+- **Ring size = spread:** a ring whose radius is `spread` is the weapon's `spreadPx`, where its
+  pellets land on every plane (pellets fall in a disc of that radius, Tech §3.4), so the crosshair
+  is honest. The crosshair is built from shape parts (ring, dot, ticks, cross, V, drop line) in
+  feel.json; a **crosshair style** (the Skiet-Skuur cosmetic, later) only changes colours and line
+  weight (`guns.crosshairStyles`), never the shape.
+- **Belt:** loaded rounds on the left, spent ones on the right; a per-shell reload fades the next
+  round in. A red flash on an empty click as before. Tapping the belt still reloads.
+- **Sound:** each gun has its own shot and reload sounds (`guns.weapons.<id>.sfx`). Interim
+  code-made sounds ship for every sound key, plus per-biome music (calm / build / stampede) and an
+  ambience bed (art bible §10); recorded deliveries replace them key by key.
+- **Offset crosshair (touch, Settings):** see §18.2.
+
 ## 18. Controls and accessibility
 
 ### 18.1 Desktop
@@ -620,7 +647,11 @@ the screen to pan · Q vuvuzela · E consumable · Esc pause.
   (Growing every pellet's target let a touch shot drop two birds far more often than a mouse shot.)
 - Optional **"Kyk rond" (look around) tilt mode:** turn the phone to pan (DeviceOrientation; iOS asks
   permission after a tap). Novel, physical, and great in videos — opt-in only.
-- Optional **offset reticle**: reticle sits 70 px above the finger for precision players.
+- Optional **offset crosshair** (Settings → Sound & game, v1.1): on touch the crosshair sits
+  70 px above the finger (`feel.json guns.offsetCrosshairPx`) while it is down, and the tap fires
+  there, so the finger never hides the target. Off by default; the mouse is unaffected. The fire
+  command carries the crosshair's point, so replays and challenge links are unchanged. Touch aim
+  assist works as before (it rescues a near miss around that point).
 - Portrait: show an animated "draai jou foon" (turn your phone) card with a spinning tarentaal.
 
 ### 18.3 Accessibility checklist
