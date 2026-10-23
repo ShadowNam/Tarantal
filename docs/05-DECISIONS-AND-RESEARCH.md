@@ -1729,6 +1729,30 @@ equipped gun's; it re-uploads on demand. Low tier, Pixel 7: title 124.5 → 100.
 opened from it 125.0 → 101.0 MB (`tests/e2e/memory.spec.ts`, < 128 MB).
 (8) *Golden replays:* re-recorded with content hash and log v5 only; all 31 event hashes, event
 counts and scores are unchanged (no current map opens Ver and no current gun has a sight).
+(9) *Die Twee-Twee (PR B):* 5 rounds, 1.2 s magazine, 0.4 s bolt (fire cooldown), one bullet, no
+spread, hip spread 36 px, alert radius 180 ("fairly quiet": every shot can alert flocks near the
+impact), wind sensitivity 0.6, ×1.5 on the Ver plane, reaches Ver. Unlock "Unlock Nog Verder
+once" as a Notaboek challenge (new metric `bonusUnlocks` with a `bonus` filter; the bonus-map
+unlock is recorded before the hunt log is applied, so the .22 is ready for the first Nog Verder
+hunt). Interim art: a slim blued barrel, round receiver, bolt that lifts and draws back as the
+case flicks out, small box magazine, walnut stock; .22 rimfire ammo; a sharp crack and the bolt
+(synth fallbacks and interim recordings). The gun atlas joins the `ver` chunk (late is nearly full).
+(10) *Sight unlocks (defaulted):* iron from the start; the peep for 10 Ver birds (Notaboek, new
+metric `baggedVer`, reward type `sight`); the small scope at Bosveldjagter (rank). The Skiet-Skuur
+fits a sight per rifle (save `loadout.sights`, `unlocks.sights`, defaults for older saves); the
+hunt carries it (`ModeConfig.sight`), challenge links lend it (`s`), the admin page can pick any
+sight that fits.
+(11) *Nog Verder and Die Verste:* in every biome, after Verder in the unlock chain, both with
+`ver: true` (table in GDD §11.5). Defaulted: Die Verste does not require a scoped rifle (the
+proposal says "needs a scoped rifle"; enforcing it would lock out a player who unlocks it before
+the .22's scope — a shotgun can still play its far flock, it simply scores less). The title shows
+one button per bonus map open today.
+(12) *Bots:* `tools/rifleBot.ts` wraps every bot: with a rifle in hand a wanted shot becomes raise
+→ track the nearest target's body (error σ ÷ zoom) → release (plinker and random as soon as the
+sight is up; competent and aim wait for the breath to settle on far and Ver targets and hold off
+for the wind; nobody can cancel the sway). All bots skip planes their gun can't reach (a
+shotgun bot fired ~160 wasted shots at Ver birds per Nog Verder hunt before). Guns without
+sights are unchanged, so every existing golden and balance number holds.
 
 ## 3. Research notes (with sources)
 

@@ -383,6 +383,10 @@ unchanged. No layout = the biome as it is: every pre-v1.2 golden replay kept its
 weekday is chosen in the game layer (`src/meta/maps.ts → layoutForDay(utcDay)`), never in the
 sim. Light presets live in the client file `feel.json` (outside `contentHash`); `ParallaxView
 .applyLight` tints each layer's static art and adds haze rectangles under its fixtures and birds.
+v1.3 (D-036): bonus maps `nogVerder` and `dieVerste` follow `verder` (BONUS_MAP_IDS order is the
+unlock chain); a layout or bonus map with `ver: true` keeps the biome's `ver` layer, every other
+map drops it (`ResolvedMap.ver`). Fly-over plane weights may name `ver`; the Ver lane joins the
+draw only when its weight is > 0, so maps without it draw exactly as before.
 
 ## 4. Content system (`content/`, `src/content/`)
 
@@ -646,6 +650,9 @@ or "Send to GitHub" (a prefilled `issues/new?labels=playtest` link ≤ 7 KB, `sr
   (`biome/bonus` keys, valid only on `day`: they reset at UTC midnight) and `bests`
   (`biome/bonus` → score, rank); rules in `src/meta/bonusMaps.ts` (GDD §11.5). A bonus-map hunt
   never moves the Classic `bests`.
+  v1.3 adds (with defaults, no migration) `loadout.sights` (weapon id → fitted sight) and
+  `unlocks.sights` (sights earned by Notaboek challenges); `progress.fittedSight()` picks the
+  hunt's sight (fitted and unlocked, else the gun's default) and `HuntScene` puts it in the mode.
   M7 adds `daily` (a new section needs no migration: it defaults): `streak`, `bestStreak`,
   `bestScore`, `lastDay` (UTC day number of the last official attempt), `freezesUsed` (ISO weeks),
   `cosmetics` (streak milestones) and `history` (recent official attempts: day, score or null if
@@ -683,7 +690,8 @@ or "Send to GitHub" (a prefilled `issues/new?labels=playtest` link ≤ 7 KB, `sr
   through `PlatformAdapter.share` (§8): share sheet with text and link apart, else the clipboard.
 - Challenge URL: `/?c=<base64url(JSON {v, seed, mode, biome, weapon, score, by?, n?, h?, l?, b?})>` —
   `l`/`b` (v1.2) are the map's layout and bonus map; a link without them (made before v1.2)
-  plays the plain biome, unknown ids are rejected (`badShape`). The share line names the day.
+  plays the plain biome, unknown ids are rejected (`badShape`). `s` (v1.3) is the sender's rifle
+  sight, lent with the gun; one that doesn't fit the gun is rejected (`unknownWeapon`). The share line names the day.
   friend challenges only (trivially editable; no leaderboard trust). `mode` is `classic` or
   `daily`; `n` = daily number (for the card), `h` = first 8 hex of `contentHash` (a mismatch still
   plays, with a "game updated" note). `src/meta/challenge.ts` decodes with a length cap, strict Zod
