@@ -12,7 +12,8 @@
 import { el, g, polyD, r2, smoothD } from './svg';
 import { mix, nextId, shade, type Pen, type Pt, type Rnd } from './scenery';
 
-export type MountainKind = 'inselberg' | 'massif' | 'strata' | 'koppie' | 'boulders' | 'mesa';
+export type MountainKind =
+  'inselberg' | 'massif' | 'strata' | 'koppie' | 'boulders' | 'mesa' | 'spire';
 
 export interface RockColours {
   /** Mid tone of the rock in light. */
@@ -84,22 +85,53 @@ function profile(rnd: Rnd, m: Mountain): Pt[] {
       break;
     }
     case 'strata': {
-      // A saw-toothed ridge: several peaks, the slopes broken into steps.
-      let f = 0.04;
-      add(0.02, 0.15);
-      while (f < 0.92) {
-        const peakH = 0.6 + rnd() * 0.4;
-        add(f + 0.03, peakH * 0.7);
-        add(f + 0.06, peakH);
-        add(f + 0.09, peakH * 0.82 + jit(0.05));
-        f += 0.1 + rnd() * 0.08;
-        add(f, peakH * 0.55 + jit(0.08));
+      // D-035 round 2: tilted layers weather into cuestas: a long gentle dip slope rising to a
+      // crest, then a steep, stepped scarp; two or three of them, of different sizes.
+      let f = 0.03;
+      add(0.02, 0.1);
+      const dir = rnd() < 0.5 ? 1 : -1;
+      while (f < 0.9) {
+        const span = 0.28 + rnd() * 0.22;
+        const crestH = 0.55 + rnd() * 0.45;
+        const dip = span * 0.72;
+        const scarp = span - dip;
+        const a = dir > 0 ? dip : scarp;
+        const b = dir > 0 ? scarp : dip;
+        const low = 0.32 + rnd() * 0.15;
+        if (dir > 0) {
+          add(f + a * 0.5, low + (crestH - low) * 0.45 + jit(0.04));
+          add(f + a, crestH);
+          add(f + a + b * 0.35, crestH * 0.8);
+          add(f + a + b * 0.5, crestH * 0.72);
+          add(f + a + b * 0.85, low + 0.04);
+        } else {
+          add(f + a * 0.15, crestH * 0.72);
+          add(f + a * 0.5, crestH * 0.8);
+          add(f + a, crestH);
+          add(f + a + b * 0.5, low + (crestH - low) * 0.45 + jit(0.04));
+          add(f + a + b, low);
+        }
+        f += span;
       }
-      add(0.97, 0.18);
+      add(0.97, 0.12);
       break;
     }
     case 'koppie': {
-      // A pointed cone of piled boulders: knobbly flanks, a concave scree apron at the foot.
+      // D-035 round 2: a Karoo dolerite koppie: a rounded, lopsided hill strewn with boulders,
+      // its skyline broken by blocks; the crown sits off-centre.
+      const peak = 0.3 + rnd() * 0.4;
+      const n = 18;
+      for (let k = 1; k < n; k++) {
+        const f = k / n;
+        const u = f < peak ? (f / peak) * 0.5 : 0.5 + ((f - peak) / (1 - peak)) * 0.5;
+        const dome = Math.pow(Math.sin(u * Math.PI), 0.75);
+        const block = k % 3 === 0 ? 0.05 + rnd() * 0.05 : k % 3 === 1 ? -0.02 : 0.01;
+        add(f, Math.max(0.03, Math.min(1, dome * (0.88 + jit(0.1)) + block * dome)));
+      }
+      break;
+    }
+    case 'spire': {
+      // A single landmark spire per biome at most: a pointed cone of piled boulders.
       const peak = 0.42 + rnd() * 0.16;
       const n = 16;
       for (let k = 1; k < n; k++) {
@@ -154,9 +186,10 @@ const ROUGH: Readonly<Record<MountainKind, number>> = {
   inselberg: 0.06,
   massif: 0.2,
   strata: 0.32,
-  koppie: 0.24,
+  koppie: 0.12,
   boulders: 0.1,
   mesa: 0.07,
+  spire: 0.22,
 };
 
 /**
@@ -211,7 +244,8 @@ export function mountain(rnd: Rnd, m: Mountain, c: RockColours, pen: Pen, horizo
   const scree = hz(c.scree);
   const detail = 1 - m.haze; // texture opacity falls off with distance
   const pts = roughen(rnd, profile(rnd, m), ROUGH[m.kind], m.kind === 'mesa');
-  const smooth = m.kind === 'inselberg' || m.kind === 'boulders' ? 0.8 : 0.35;
+  const smooth =
+    m.kind === 'inselberg' || m.kind === 'boulders' ? 0.8 : m.kind === 'koppie' ? 0.65 : 0.35;
   const body = smoothD(pts, true, smooth);
   const id = nextId();
   const grad = nextId();
@@ -281,7 +315,7 @@ export function mountain(rnd: Rnd, m: Mountain, c: RockColours, pen: Pen, horizo
         ),
       );
     }
-  } else if (m.kind === 'koppie') {
+  } else if (m.kind === 'koppie' || m.kind === 'spire') {
     // Boulder outlines climbing the cone.
     for (let k = 0; k < 14; k++) {
       const by = base - h * (0.12 + rnd() * 0.75);
@@ -440,6 +474,8 @@ export function mountainRow(
     readonly height: readonly [number, number];
     readonly overlap: readonly [number, number];
     readonly haze: number;
+    /** D-035 round 2: one landmark spire at this fraction of the row (at most one per biome). */
+    readonly spireAt?: number;
   },
 ): Mountain[] {
   const total = kinds.reduce((s, k) => s + k.w, 0);
@@ -457,13 +493,34 @@ export function mountainRow(
     let kind = pick();
     if (kind === last && rnd() < 0.7) kind = pick(); // rarely two of a kind side by side
     last = kind;
-    const narrow = kind === 'koppie' || kind === 'boulders' || kind === 'inselberg';
-    const w = (o.width[0] + rnd() * (o.width[1] - o.width[0])) * (narrow ? 0.6 : 1);
+    const narrow = kind === 'boulders' || kind === 'inselberg' || kind === 'spire';
+    const w =
+      (o.width[0] + rnd() * (o.width[1] - o.width[0])) *
+      (narrow ? 0.6 : kind === 'koppie' ? 0.75 + rnd() * 0.3 : 1);
     const h =
       (o.height[0] + Math.pow(rnd(), 1.4) * (o.height[1] - o.height[0])) *
-      (kind === 'boulders' ? 0.45 : kind === 'inselberg' ? 1.15 : kind === 'mesa' ? 0.8 : 1);
+      (kind === 'boulders'
+        ? 0.45
+        : kind === 'inselberg'
+          ? 1.15
+          : kind === 'mesa'
+            ? 0.8
+            : kind === 'koppie'
+              ? 0.55 + rnd() * 0.3
+              : 1);
     out.push({ kind, x, base: o.base + rnd() * 8, w, h, haze: o.haze + (rnd() - 0.5) * 0.06 });
     x += w * (1 - (o.overlap[0] + rnd() * (o.overlap[1] - o.overlap[0])));
+  }
+  if (o.spireAt !== undefined) {
+    const w = o.width[0] * 0.75;
+    out.push({
+      kind: 'spire',
+      x: o.x0 + (o.x1 - o.x0) * o.spireAt - w / 2,
+      base: o.base + 4,
+      w,
+      h: o.height[1] * 0.95,
+      haze: o.haze,
+    });
   }
   // Paint the lower ones last within a row, so peaks never hide behind a smaller neighbour's top.
   return out.sort((a, b) => b.h - a.h);
