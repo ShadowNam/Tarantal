@@ -1777,10 +1777,15 @@ desktop Chromium, the Pixel 7 profile and real WebKit (iPhone 14, CI), and a sco
 played in each replays to the same events in Node (`tests/e2e/longrange.spec.ts`). Low-tier
 texture memory (Pixel 7): scoped Nog Verder 88.7 MB, the title after it 105.6 MB; after a
 crate-gun hunt 120.6 / title 105.6 / Skiet-Skuur 106.2 MB (`memory.spec.ts`, all < 128). Frame
-cost, medium tier, 4× CPU throttle, same-page A/B over three rounds: Pixel 7 median 18.3 ms open
-→ 18.9 ms scoped, desktop 18.5 → 18.6 ms; the perf smoke measured 19.4 ms on the same loaded box
-at the same time, so the scope itself costs 0.1–0.6 ms a frame (no extra camera; the absolute
-60 fps budget stays with `perf.spec.ts`). Sight pictures before | after on desktop, Pixel 7 and
+cost, medium tier, 4× CPU throttle, same-page A/B over three rounds (open view → scope raised,
+layer art culled to the zoomed view): our CPU time per frame, median, Pixel 7 17.6 → 17.8 ms,
+desktop 19.7 → 21.0 ms. The perf smoke (a plain Classic hunt) measured 19.4 ms average on the same
+loaded box (load ≈ 9) at the same time, so the absolute figures are the machine's, not the scope's.
+**Not fully evidenced:** the real frame time under the software rasterizer rises 30–40 % when
+scoped (Pixel 7 475 → 655 ms, desktop 422 → 539 ms median): zooming into the horizon stretches the
+thin far layers over the whole screen (more pixels to fill). On a GPU that fill is small, but this
+server has no GPU, so "60 fps scoped on the medium tier" needs a run on a real medium-tier device
+(follow-up; `ART_PREVIEW=1 PERF_STRICT=1` on a GPU machine). Sight pictures before | after on desktop, Pixel 7 and
 iPhone 14 landscape (local Chromium emulation of the device): `docs/art-preview/compare/
 v1.3-sight-{iron,peep,scope_small}-<project>.png`, the Skiet-Skuur `v1.3-shed-<project>.png`.
 
