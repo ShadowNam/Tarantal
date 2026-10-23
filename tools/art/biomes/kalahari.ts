@@ -666,10 +666,10 @@ export const KALAHARI_PLAN: BiomeArtPlan = {
   layers: {
     sky: { top: 0, height: 1080, encode: 'png', draw: sky },
     far_ridge: { top: 380, height: 280, draw: farRidge },
-    far_veld: { top: 548, height: 232, draw: farVeld },
+    far_veld: { top: 464, height: 232, draw: farVeld },
     mid: { top: 630, height: 280, draw: mid },
     near: { top: 820, height: 260, draw: near },
-    foreground: { top: 880, height: 200, draw: foreground },
+    foreground: { top: 880, height: 200, fadeTop: 28, draw: foreground },
   },
   props: {
     'kalahari/weaver_camelthorn': { draw: weaverCamelthorn },

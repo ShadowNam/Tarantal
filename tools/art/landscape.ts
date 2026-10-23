@@ -8,7 +8,7 @@ import { resize, type Rgba } from '../assets/image';
 import { biomePalette, type ArtConfig } from './config';
 import { renderSvg } from './raster';
 import { mix, resetIds, type Pen, type Rnd } from './scenery';
-import { g, prng, svgDoc, wobbleFilter } from './svg';
+import { el, g, prng, svgDoc, wobbleFilter } from './svg';
 
 export interface PaintCtx {
   /** Palette colour by name, already hazed toward the horizon for this layer. */
@@ -34,6 +34,9 @@ export interface LayerPlan {
   readonly height: number;
   /** Tile encoding: palette PNG (default) or full colour ('png', smooth skies: no banding). */
   readonly encode?: 'png' | 'png8';
+  /** D-035: px over which the art fades in at the top edge (tall grass tips taper out there
+   *  instead of being cut flat by the texture's edge). */
+  readonly fadeTop?: number;
   draw(ctx: LayerCtx): string;
 }
 
@@ -118,13 +121,36 @@ export function renderLayer(
     wob === null
       ? ''
       : wobbleFilter('wob', cfg.scenery.wobble.frequency, cfg.scenery.wobble[wob], 23);
+  const fade = lp.fadeTop ?? 0;
+  const mask =
+    fade <= 0
+      ? ''
+      : el(
+          'linearGradient',
+          {
+            id: 'fadeTopG',
+            x1: 0,
+            y1: lp.top,
+            x2: 0,
+            y2: lp.top + fade,
+            gradientUnits: 'userSpaceOnUse',
+          },
+          el('stop', { offset: 0, 'stop-color': '#fff', 'stop-opacity': 0 }),
+          el('stop', { offset: 1, 'stop-color': '#fff', 'stop-opacity': 1 }),
+        ) +
+        el(
+          'mask',
+          { id: 'fadeTop', maskUnits: 'userSpaceOnUse', x: 0, y: lp.top, width, height: lp.height },
+          el('rect', { x: 0, y: lp.top, width, height: lp.height, fill: 'url(#fadeTopG)' }),
+        );
+  const art = g(filter === '' ? {} : { filter: 'url(#wob)' }, body);
   return renderSvg(
     svgDoc(
       width,
       lp.height,
       [0, lp.top, width, lp.height],
-      filter,
-      g(filter === '' ? {} : { filter: 'url(#wob)' }, body),
+      filter + mask,
+      mask === '' ? art : g({ mask: 'url(#fadeTop)' }, art),
     ),
   );
 }

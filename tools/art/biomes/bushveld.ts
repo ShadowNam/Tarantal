@@ -13,7 +13,6 @@ import {
   nextId,
   shade,
   tone,
-  treeBlob,
   tuft,
   yAt,
   type Pen,
@@ -22,6 +21,7 @@ import {
   type Tone,
 } from '../scenery';
 import { el, ellipseD, g, inked, polyD, r2, smoothD } from '../svg';
+import { tree as leafyTree } from '../realism';
 import { aloeFlowers, aloeRosette, bush, groundBand, groundShadow, softSky } from './karoo';
 import { foregroundClumps, midScrub, nearGrass } from './common';
 
@@ -247,8 +247,9 @@ function farRidge(ctx: LayerCtx): string {
   const tree = tone(ctx.c('mopane'), 0.22, 0.2);
   for (let x = 0; x < ctx.width; x += 26 + ctx.rnd() * 50)
     parts.push(
-      treeBlob(
+      leafyTree(
         ctx.rnd,
+        'round',
         x,
         602 + ctx.rnd() * 6,
         24 + ctx.rnd() * 18,
@@ -291,8 +292,9 @@ function farVeld(ctx: LayerCtx): string {
   for (let x = 40; x < ctx.width; x += 140 + ctx.rnd() * 260) {
     const t = tree[ctx.rnd() < 0.6 ? 0 : 1] ?? tone(ctx.c('mopane'));
     parts.push(
-      treeBlob(
+      leafyTree(
         ctx.rnd,
+        'round',
         x,
         yAt(band.edge, x) + 4,
         34 + ctx.rnd() * 22,
@@ -734,10 +736,10 @@ export const BUSHVELD_PLAN: BiomeArtPlan = {
   layers: {
     sky: { top: 0, height: 1080, encode: 'png', draw: sky },
     far_ridge: { top: 380, height: 280, draw: farRidge },
-    far_veld: { top: 548, height: 232, draw: farVeld },
+    far_veld: { top: 464, height: 232, draw: farVeld },
     mid: { top: 630, height: 280, draw: mid },
     near: { top: 820, height: 260, draw: near },
-    foreground: { top: 880, height: 200, draw: foreground },
+    foreground: { top: 880, height: 200, fadeTop: 28, draw: foreground },
   },
   props: {
     'bushveld/baobab': { draw: baobab },

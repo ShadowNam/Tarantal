@@ -17,7 +17,6 @@ import {
   shade,
   stone,
   tone,
-  treeBlob,
   tuft,
   wire,
   yAt,
@@ -27,6 +26,7 @@ import {
   type Tone,
 } from '../scenery';
 import { el, ellipseD, g, inked, place, polyD, r2, smoothD } from '../svg';
+import { contactShadow, fillD, softPen, tree } from '../realism';
 import { cirrus, skyGradient, softCumulus, softDefs, type CloudColours } from '../skies';
 import {
   grassField,
@@ -402,92 +402,290 @@ function farRidge(ctx: LayerCtx): string {
   return g({}, ...parts);
 }
 
-function farmhouse(ctx: LayerCtx, x: number, base: number): string {
-  const pen = ctx.pen;
-  const wall = tone(ctx.c('wall'), 0.18, 0.1);
+/**
+ * D-035: the farmstead on the far veld, standing on the ground line (`ground` gives the line's y
+ * at any x): a whitewashed farmhouse with a corrugated red roof, a stoep, chimney, windows and a
+ * door; a beaten-earth yard with a low wall, a path down to the track, a tank on its stand, and
+ * bluegums and a pepper tree beside it, each on its own base with a contact shadow.
+ */
+function farmhouse(ctx: LayerCtx, x: number, ground: (x: number) => number): string {
+  const pen = softPen(ctx.pen, ctx.c('wall'), 0.7);
+  const base = ground(x) + 2;
+  const wall = ctx.c('wall');
+  const wallLit = shade(wall, 0.25);
+  const wallShade = shade(wall, -0.22);
   const roof = ctx.c('roof');
-  return g(
-    {},
-    treeBlob(
-      ctx.rnd,
-      x - 70,
-      base + 2,
-      60,
-      74,
-      tone(ctx.c('tree'), 0.22, 0.2),
-      ctx.c('trunk'),
-      pen,
-    ),
-    treeBlob(
-      ctx.rnd,
-      x + 90,
-      base + 3,
-      54,
-      66,
-      tone(ctx.c('tree'), 0.22, 0.2),
-      ctx.c('trunk'),
-      pen,
-    ),
-    inked(
-      polyD([
-        [x - 36, base],
-        [x - 36, base - 18],
-        [x + 30, base - 18],
-        [x + 30, base],
-      ]),
-      wall.fill,
-      pen.ink,
-      pen.w,
-    ),
-    flat(
-      polyD([
-        [x + 14, base],
-        [x + 14, base - 18],
-        [x + 30, base - 18],
-        [x + 30, base],
-      ]),
-      wall.dark,
-    ),
-    inked(
-      polyD([
-        [x - 42, base - 16],
-        [x - 30, base - 30],
-        [x + 26, base - 30],
-        [x + 36, base - 16],
-      ]),
-      roof,
-      pen.ink,
-      pen.w,
-    ),
-    flat(
-      polyD([
-        [x - 20, base],
-        [x - 20, base - 9],
-        [x - 14, base - 9],
-        [x - 14, base],
-      ]),
-      shade(wall.fill, -0.5),
-    ),
-    flat(
-      polyD([
-        [x + 2, base - 7],
-        [x + 2, base - 12],
-        [x + 9, base - 12],
-        [x + 9, base - 7],
-      ]),
-      '#6A8BA0',
-    ),
-    treeBlob(
-      ctx.rnd,
-      x + 54,
-      base + 4,
-      40,
-      50,
-      tone(ctx.c('tree'), 0.22, 0.2),
-      ctx.c('trunk'),
-      pen,
+  const leaves = tone(ctx.c('tree'), 0.3, 0.22);
+  const gum = tone(shade(ctx.c('tree'), -0.12), 0.3, 0.2);
+  const trunk = ctx.c('trunk');
+  const soil = mix(ctx.c('soil'), ctx.c('veldLight'), 0.55);
+  const parts: string[] = [];
+  // Bluegums behind the house (taller, darker), then the yard on the ground.
+  for (const [dx, w, h] of [
+    [-78, 32, 84],
+    [-58, 28, 72],
+    [70, 34, 86],
+  ] as const) {
+    const tx = x + dx;
+    parts.push(tree(ctx.rnd, 'bluegum', tx, ground(tx) + 2, w, h, gum, trunk, ctx.pen));
+  }
+  parts.push(fillD(ellipseD(x - 4, base + 5, 86, 7), soil, 0.75));
+  // The path from the door down to the track (widens toward the viewer).
+  parts.push(
+    fillD(
+      `M${r2(x - 12)} ${r2(base + 1)}C${r2(x - 16)} ${r2(base + 18)} ${r2(x - 40)} ${r2(base + 30)} ${r2(
+        x - 64,
+      )} ${r2(base + 58)}L${r2(x - 44)} ${r2(base + 58)}C${r2(x - 26)} ${r2(base + 30)} ${r2(
+        x - 6,
+      )} ${r2(base + 18)} ${r2(x - 4)} ${r2(base + 1)}Z`,
+      shade(soil, 0.12),
+      0.9,
     ),
   );
+  parts.push(contactShadow(x + 6, base + 1, 46, 3.5, 0.32));
+  // Tank on a stand (behind-right), corrugated.
+  const kx = x + 44;
+  parts.push(
+    g(
+      {},
+      el('path', {
+        d: `M${r2(kx - 7)} ${r2(base)}L${r2(kx - 6)} ${r2(base - 14)}M${r2(kx + 7)} ${r2(base)}L${r2(
+          kx + 6,
+        )} ${r2(base - 14)}M${r2(kx - 6.5)} ${r2(base - 7)}L${r2(kx + 6.5)} ${r2(base - 7)}`,
+        fill: 'none',
+        stroke: shade(ctx.c('metal'), -0.3),
+        'stroke-width': 1.2,
+      }),
+      el('rect', {
+        x: kx - 9,
+        y: base - 27,
+        width: 18,
+        height: 13,
+        rx: 2,
+        fill: ctx.c('metal'),
+        stroke: pen.ink,
+        'stroke-width': pen.w,
+      }),
+      el('path', {
+        d: [0, 1, 2, 3].map((k) => `M${r2(kx - 9)} ${r2(base - 24 + k * 3)}h18`).join(''),
+        stroke: shade(ctx.c('metal'), -0.25),
+        'stroke-width': 0.7,
+      }),
+      fillD(
+        polyD([
+          [kx + 3, base - 27],
+          [kx + 9, base - 27],
+          [kx + 9, base - 14],
+          [kx + 3, base - 14],
+        ]),
+        shade(ctx.c('metal'), -0.25),
+        0.6,
+      ),
+    ),
+  );
+  // The house: front wall (lit), gable end (shade), stoep.
+  const L = x - 36;
+  const R = x + 26;
+  const E = x + 38; // end wall edge (the gable seen at an angle)
+  const H = 22;
+  parts.push(
+    el('path', {
+      d: polyD([
+        [L, base],
+        [L, base - H],
+        [R, base - H],
+        [R, base],
+      ]),
+      fill: wallLit,
+      stroke: pen.ink,
+      'stroke-width': pen.w,
+      'stroke-linejoin': 'round',
+    }),
+    el('path', {
+      d: polyD([
+        [R, base],
+        [R, base - H],
+        [(R + E) / 2, base - H - 10],
+        [E, base - H + 2],
+        [E, base - 1],
+      ]),
+      fill: wallShade,
+      stroke: pen.ink,
+      'stroke-width': pen.w,
+      'stroke-linejoin': 'round',
+    }),
+    // A damp/dust line along the foot of the walls.
+    fillD(
+      polyD([
+        [L, base],
+        [L, base - 2.5],
+        [E, base - 3],
+        [E, base - 1],
+      ]),
+      shade(wall, -0.3),
+      0.5,
+    ),
+  );
+  // Windows (frames, panes catching the sky) and the door.
+  for (const wx of [L + 8, L + 36]) {
+    parts.push(
+      el('rect', {
+        x: wx,
+        y: base - 16,
+        width: 8,
+        height: 8,
+        fill: '#5E7F94',
+        stroke: shade(wall, -0.5),
+        'stroke-width': 0.9,
+      }),
+      fillD(
+        polyD([
+          [wx + 0.8, base - 15.2],
+          [wx + 4, base - 15.2],
+          [wx + 0.8, base - 11],
+        ]),
+        '#BFD7E3',
+        0.8,
+      ),
+      el('path', {
+        d: `M${r2(wx + 4)} ${r2(base - 16)}v8M${r2(wx)} ${r2(base - 12)}h8`,
+        stroke: shade(wall, -0.4),
+        'stroke-width': 0.6,
+      }),
+    );
+  }
+  parts.push(
+    el('rect', {
+      x: L + 22,
+      y: base - 13,
+      width: 7,
+      height: 13,
+      fill: shade(ctx.c('trunk'), -0.1),
+      stroke: shade(wall, -0.5),
+      'stroke-width': 0.9,
+    }),
+  );
+  // Main roof (corrugated: thin ridges), its shaded far slope, the ridge cap and a chimney.
+  const roofD = polyD([
+    [L - 5, base - H + 1],
+    [L + 4, base - H - 12],
+    [(R + E) / 2, base - H - 12],
+    [R + 3, base - H + 1],
+  ]);
+  const roofId = nextId();
+  const ridges: string[] = [];
+  for (let rx = L - 4; rx < R + 4; rx += 2.6)
+    ridges.push(`M${r2(rx)} ${r2(base - H + 1)}L${r2(rx + 4)} ${r2(base - H - 12)}`);
+  parts.push(
+    el('rect', {
+      x: L + 10,
+      y: base - H - 19,
+      width: 5,
+      height: 9,
+      fill: wallShade,
+      stroke: pen.ink,
+      'stroke-width': pen.w * 0.9,
+    }),
+    el('path', {
+      d: roofD,
+      fill: roof,
+      stroke: pen.ink,
+      'stroke-width': pen.w,
+      'stroke-linejoin': 'round',
+    }),
+    el('clipPath', { id: roofId }, el('path', { d: roofD })),
+    g(
+      { 'clip-path': `url(#${roofId})` },
+      el('path', { d: ridges.join(''), stroke: shade(roof, -0.25), 'stroke-width': 0.7 }),
+      fillD(
+        polyD([
+          [L - 6, base - H - 13],
+          [R + 6, base - H - 13],
+          [R + 6, base - H - 9],
+          [L - 6, base - H - 9],
+        ]),
+        shade(roof, 0.3),
+        0.6,
+      ),
+      // Rust streaks.
+      fillD(
+        polyD([
+          [L + 14, base - H - 12],
+          [L + 17, base - H - 12],
+          [L + 15, base - H + 1],
+          [L + 12, base - H + 1],
+        ]),
+        shade(roof, -0.3),
+        0.5,
+      ),
+    ),
+  );
+  // The stoep: a lean-to roof on thin posts along the front, with its shadow on the wall.
+  parts.push(
+    fillD(
+      polyD([
+        [L, base - 11],
+        [R, base - 11],
+        [R, base - 6],
+        [L, base - 6],
+      ]),
+      shade(wall, -0.35),
+      0.45,
+    ),
+    el('path', {
+      d: polyD([
+        [L - 3, base - 10],
+        [L + 1, base - 14.5],
+        [R - 1, base - 14.5],
+        [R + 3, base - 10],
+      ]),
+      fill: shade(roof, -0.12),
+      stroke: pen.ink,
+      'stroke-width': pen.w * 0.9,
+      'stroke-linejoin': 'round',
+    }),
+    el('path', {
+      d: [L, L + 20, L + 40, R]
+        .map((px) => `M${r2(px + 0.5)} ${r2(base - 10)}V${r2(base)}`)
+        .join(''),
+      stroke: shade(wall, -0.45),
+      'stroke-width': 1,
+    }),
+  );
+  // A low whitewashed yard wall in front, broken by the gate where the path leaves.
+  const wallY = base + 8;
+  for (const [a, b] of [
+    [x - 82, x - 24],
+    [x - 2, x + 62],
+  ] as const) {
+    parts.push(
+      el('path', {
+        d: polyD([
+          [a, wallY],
+          [a, wallY - 4],
+          [b, wallY - 4],
+          [b, wallY],
+        ]),
+        fill: shade(wall, -0.04),
+        stroke: pen.ink,
+        'stroke-width': pen.w * 0.8,
+      }),
+      fillD(
+        polyD([
+          [a, wallY],
+          [a, wallY - 1.2],
+          [b, wallY - 1.2],
+          [b, wallY],
+        ]),
+        shade(wall, -0.25),
+        0.6,
+      ),
+    );
+  }
+  // A pepper tree beside the yard, in front.
+  const px = x - 104;
+  parts.push(tree(ctx.rnd, 'pepper', px, ground(px) + 4, 44, 46, leaves, trunk, ctx.pen));
+  return g({}, ...parts);
 }
 
 function farWindpomp(ctx: LayerCtx, x: number, base: number): string {
@@ -552,7 +750,7 @@ function farVeld(ctx: LayerCtx): string {
   parts.push(line(smoothD(band.edge, false, 0.8), ctx.pen));
   // A farmstead with bluegums, a far windpomp and a stand of trees, on the horizon line.
   const fx = ctx.u(0.62);
-  parts.push(farmhouse(ctx, fx, yAt(band.edge, fx) + 4));
+  parts.push(farmhouse(ctx, fx, (x) => yAt(band.edge, x)));
   const wx = ctx.u(0.36);
   parts.push(farWindpomp(ctx, wx, yAt(band.edge, wx) + 3));
   for (const u of [0.08, 0.14, 0.88]) {
@@ -560,13 +758,14 @@ function farVeld(ctx: LayerCtx): string {
     for (let k = 0; k < 3; k++) {
       const tx = x + k * 34 + ctx.rnd() * 10;
       parts.push(
-        treeBlob(
+        tree(
           ctx.rnd,
+          k === 1 ? 'pepper' : 'round',
           tx,
           yAt(band.edge, tx) + 3,
           36 + ctx.rnd() * 14,
           46 + ctx.rnd() * 16,
-          tone(ctx.c('tree'), 0.22, 0.2),
+          tone(ctx.c('tree'), 0.3, 0.22),
           ctx.c('trunk'),
           ctx.pen,
         ),
@@ -1457,10 +1656,10 @@ export const KAROO_PLAN: BiomeArtPlan = {
   layers: {
     sky: { top: 0, height: 1080, encode: 'png', draw: sky },
     far_ridge: { top: 380, height: 280, draw: farRidge },
-    far_veld: { top: 548, height: 232, draw: farVeld },
+    far_veld: { top: 464, height: 232, draw: farVeld },
     mid: { top: 600, height: 310, draw: mid },
     near: { top: 820, height: 260, draw: near },
-    foreground: { top: 880, height: 200, draw: foreground },
+    foreground: { top: 880, height: 200, fadeTop: 28, draw: foreground },
   },
   props: {
     'karoo/windpomp': { draw: windpomp, frame: { w: 310, h: 560, ox: 225, oy: 210 } },

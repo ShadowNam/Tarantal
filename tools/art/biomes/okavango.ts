@@ -13,7 +13,6 @@ import {
   nextId,
   shade,
   tone,
-  treeBlob,
   tuft,
   yAt,
   type Pen,
@@ -21,6 +20,7 @@ import {
   type Tone,
 } from '../scenery';
 import { el, ellipseD, g, inked, polyD, r2, smoothD } from '../svg';
+import { tree as leafyTree } from '../realism';
 import { groundBand, softSky } from './karoo';
 import { foregroundClumps, midScrub, nearGrass } from './common';
 
@@ -259,8 +259,9 @@ function farRidge(ctx: LayerCtx): string {
   const backT = tone(mix(ctx.c('island'), horizon, 0.35), 0.15, 0.18);
   for (let x = -60; x < ctx.width; x += 30 + ctx.rnd() * 40)
     parts.push(
-      treeBlob(
+      leafyTree(
         ctx.rnd,
+        'round',
         x,
         640,
         60 + ctx.rnd() * 40,
@@ -280,8 +281,9 @@ function farRidge(ctx: LayerCtx): string {
         parts.push(palm(ctx.rnd, tx, 650, 90 + ctx.rnd() * 40, palmT, ctx.c('trunk'), ctx.pen));
       else
         parts.push(
-          treeBlob(
+          leafyTree(
             ctx.rnd,
+            'round',
             tx,
             652,
             70 + ctx.rnd() * 50,
@@ -970,10 +972,10 @@ export const OKAVANGO_PLAN: BiomeArtPlan = {
   layers: {
     sky: { top: 0, height: 1080, encode: 'png', draw: sky },
     far_ridge: { top: 380, height: 280, draw: farRidge },
-    far_veld: { top: 548, height: 232, draw: farVeld },
+    far_veld: { top: 464, height: 232, draw: farVeld },
     mid: { top: 630, height: 280, draw: mid },
     near: { top: 820, height: 260, draw: near },
-    foreground: { top: 880, height: 200, draw: foreground },
+    foreground: { top: 880, height: 200, fadeTop: 28, draw: foreground },
   },
   props: {
     'okavango/reeds_a': { draw: reeds(1) },
