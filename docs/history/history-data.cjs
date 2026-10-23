@@ -7,17 +7,17 @@ const meta = {
   title: 'Tarantal Madness',
   subtitle: 'Development history',
   tagline: 'How the game came together, from the first commit to today',
-  updated: '23 October 2026, 16:00 UTC',
+  updated: '23 October 2026, 18:10 UTC',
   period: '19–23 October 2026',
 };
 
 // "By the numbers" on 23 Oct 2026 (main at 067f013).
 const numbers = [
   ['Days since the first commit', '4'],
-  ['Commits on main', '497'],
-  ['Pull requests', '50 opened, 49 merged, 1 in progress'],
+  ['Commits on main', '524'],
+  ['Pull requests', '51 opened, all merged'],
   ['Game code (TypeScript, without tests)', 'about 31,000 lines'],
-  ['Automated tests', '848 unit tests in 93 files, 35 browser test suites on 3 device profiles'],
+  ['Automated tests', '851 unit tests in 94 files, 35 browser test suites on 3 device profiles'],
   ['Hunting areas', '4 (Karoo, Bushveld, Okavango, Kalahari), each with 7 weekday maps and a bonus map'],
   ['Guns', '6 (Dubbelloop, Windbuks, Kettie, Plaas-Pomp, Voorlaaier, Mielie-Masjien)'],
   ['Creatures', '13 (guineafowl and variants, bosses, flyers)'],
@@ -39,6 +39,7 @@ const evolution = [
   { img: 'evo-3-gfx2', caption: 'Graphics pass 2 (23 Oct): interim Karoo landscape, farmstead, water tank, bushes and sky.' },
   { img: 'evo-4-v11', caption: 'v1.1 (23 Oct): real shotgun shells in the ammo belt.' },
   { img: 'evo-5-v12', caption: 'v1.2 (23 Oct): a weekday map (overcast light, the bakkie moved).' },
+  { img: 'evo-6-gfx3', caption: 'Graphics pass 3 (23 Oct): rounded hills, the farmstead whole, semi-realistic guineafowl and gun.' },
 ];
 
 // Each stage: title, when (UTC), prs, decision, intro, bullets, feedback (what the product owner
@@ -335,10 +336,9 @@ const stages = [
     intro: 'A low-end-phone speed test kept failing on the shared test machine. Run alone, the frame cost is 11 ms against a 20 ms budget, so the game itself was fine; the test now runs in its own job.',
   },
   {
-    part: 'In progress',
     title: 'Graphics pass 3 — towards semi-realistic',
-    when: 'started 23 Oct 2026, 11:59',
-    prs: '#49 (open)',
+    when: '23 Oct 2026, 17:58 (started 11:59)',
+    prs: '#49',
     decision: 'D-035',
     feedback: [
       '"The farmhouse seems half cut, layers issue. Also the mountains can’t all be flat, look at mountains in Namibia and make them more interesting. The car detail needs to be better. And the detail on the guns needs a more realistic touch, they look too cartoony; the same applies for the birds. I see there is even a bird that has no texture at all." (23 Oct, about 11:40; spelling tidied)',
@@ -346,6 +346,8 @@ const stages = [
     bullets: [
       'Round 1 (done 15:05): the farmhouse stands whole; every area has varied, Namibia-inspired hills (layered mesas, granite domes like Spitzkoppe, a massif like the Brandberg); a detailed old bakkie with no badge; finer guns and guineafowl; the bird with no texture was the kwêvoël (grey go-away-bird) and is now textured.',
       'Round 2 (done 15:36, after Claude’s review notes): guns without cartoon outlines, with fine wood grain, blued steel, a real stock shape and a slim pump slide; a hump-backed, egg-shaped guineafowl with a small head on a slim barred neck, a small eye, ringed spots and a soft edge; rounded, lopsided koppies instead of cones; Kalahari dunes with curved crests and slip faces.',
+      'Code review fixes (done 17:33): the gun shed draws small picture icons instead of loading whole gun image sheets (about 1 MB instead of 16 MB or more; 101 MB in total after a hunt on a low-end phone, against a 128 MB limit); the last near-black gun edges went; the bakkie\u2019s spare wheel now hangs where it can be seen and shot.',
+      'Merged at 17:58 with all tests green: 851 unit tests, first download 2.9 MB of 3 MB. The game\u2019s rules did not change.',
     ],
     images: [
       { img: 'gfx3-mountains', caption: 'Round 1, before | after: hills in the Karoo, Kalahari, Bushveld and Okavango, and the farmhouse.' },
@@ -355,6 +357,8 @@ const stages = [
       { img: 'gfx3-r2-guns', caption: 'v1.2 | round 1 | round 2: the Dubbelloop (top) and the Pomp (bottom).', width: 520 },
       { img: 'gfx3-r2-birds', caption: 'v1.2 | round 1 | round 2: the guineafowl near (top) and at middle distance (bottom).' },
       { img: 'gfx3-r2-ridges', caption: 'Round 2: rounded Karoo koppies (top) and Kalahari dunes with curved crests (bottom).' },
+      { img: 'gfx3-final-karoo', caption: 'Before | after, in the game: the Karoo at the start of a hunt.' },
+      { img: 'gfx3-shed-iphone', caption: 'The Skiet-Skuur gun cards with their new pictures, on an iPhone 14 held sideways.' },
     ],
   },
 ];
@@ -365,7 +369,7 @@ const requests = [
   ['22 Oct', 'Realistic ammo per gun, sound effects, crosshairs per gun, a .22 with far targets, sights and zoom', 'Plan approved (#40); ammo, crosshairs and sound in v1.1; long range in v1.3 and v1.4'],
   ['22 Oct', 'Karoo look: fix the grass, bushes and sky', 'Done in graphics pass 2 (#41, #42)'],
   ['22 Oct, evening', '"Karoo approved … keep pushing, 24/7"', 'Claude checks in every 20 minutes, with an hourly backup check'],
-  ['23 Oct, 11:40', 'Farmhouse cut off, flat mountains, bakkie, guns and birds too cartoony, a bird with no texture', 'Graphics pass 3 (#49): rounds 1 and 2 done, being reviewed and merged'],
+  ['23 Oct, 11:40', 'Farmhouse cut off, flat mountains, bakkie, guns and birds too cartoony, a bird with no texture', 'Graphics pass 3, merged at 17:58 (#49) after two look rounds and a code review'],
   ['23 Oct, 11:50', 'An admin URL to test every level and give feedback', 'Live at 13:32 (#48)'],
   ['23 Oct, 12:00', 'A document of what is built, what is not, estimates and who does what', 'The Build Status doc, updated at every change'],
   ['23 Oct, 15:05', 'A training ground to test different guns, near and far', 'Queued after v1.3'],
@@ -373,8 +377,7 @@ const requests = [
 ];
 
 const next = [
-  ['Graphics pass 3', 'Finish round 2, before/after screenshots to the product owner, review, merge', 'Tank', 'about 17:00–18:00 UTC, 23 Oct'],
-  ['v1.3 Long range', 'A far layer only rifles reach; iron sight 1.5×, peep 2×, small scope 4×; hold to zoom with sway; the .22 (Die Twee-Twee); bonus maps Nog Verder and Die Verste', 'Tank', '6–8 h'],
+  ['v1.3 Long range (running since 18:00, 23 Oct)', 'First a memory fix (gun pictures freed after a hunt); a far layer only rifles reach; iron sight 1.5×, peep 2×, small scope 4×; hold to zoom with sway; the .22 (Die Twee-Twee); bonus maps Nog Verder and Die Verste', 'Tank', '6–8 h, about 02:00–04:00 UTC on 24 Oct'],
   ['Training ground (Skietbaan)', 'Try every gun on targets and birds at near, middle and far distance; hit statistics and spread; from the admin page', 'Tank', '3–4 h'],
   ['v1.4 Die Langloop + Namibië', 'A long rifle with a 3–9× scope; the Namibië area (Etosha salt pan with mirages, quiver trees, Namib dunes, a far waterhole)', 'Tank', '6–8 h'],
 ];
