@@ -118,6 +118,8 @@ test('every gun shows its own ammo and crosshair, full and partly spent', async 
   const ax = Math.round(h0.designWidth * AIM.x);
   const ay = Math.round(h0.designHeight * AIM.y);
   const extents: Record<string, number> = {};
+  // writeFileSync doesn't create folders (page.screenshot does); a fresh CI checkout has none.
+  mkdirSync(SCREENSHOTS, { recursive: true });
   for (const c of CASES) {
     for (const state of ['full', 'part'] as const) {
       await page.evaluate(
