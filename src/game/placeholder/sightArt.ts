@@ -9,7 +9,12 @@
 import { TEX, type CanvasSpec } from '../assets/AssetManifest';
 
 /** Texture px → design px for each picture (SightView draws them at this scale). */
-export const SIGHT_SCALE = { ironRear: 2, ironFront: 1, peep: 2.4, scope: 2.2 } as const;
+export const SIGHT_SCALE = { ironRear: 1.2, ironFront: 1, peep: 2.4, scope: 2.2 } as const;
+/** v1.3 review: the rear leaf sits this many design px below the post's tip (6 o'clock hold: the
+ *  bird stays in view above the leaf, the post tip is the aim point). */
+export const REAR_DROP_PX = 8;
+/** sight/iron_rear's notch: its bottom (texture y) and sides (x 196 … 284). */
+export const NOTCH = { depth: 78, left: 196, right: 284 } as const;
 /** Radius (texture px) of the clear middle of the peep and the scope's glass. */
 export const PEEP_CLEAR_R = 150;
 export const SCOPE_GLASS_R = 206;
@@ -21,7 +26,7 @@ export const IRON_PLATE = '#262B31';
 
 const BLUED = '#2C3138';
 /** Texture x of the barrel's sides at the bottom of sight/iron_rear (SightView continues it). */
-export const BARREL_BOTTOM = { left: 150, right: 330 } as const;
+export const BARREL_BOTTOM = { left: 205, right: 275 } as const;
 const BLUED_LIT = '#566070';
 const BLUED_DARK = '#15181C';
 
@@ -30,46 +35,45 @@ export function sightSpecs(): CanvasSpec[] {
     {
       key: TEX.sightIronRear,
       width: 480,
-      height: 400,
+      height: 320,
       originX: 240,
-      originY: 70,
+      originY: 40,
       draw(ctx) {
-        // The rear leaf close to the eye, out of focus (soft): a blade with rounded ends whose
-        // top edge is level with the post's tip, a square notch in the middle, on its base on
-        // the barrel. The barrel runs down toward the receiver, widening (perspective). Lit from
-        // the upper left: a bright top edge and left flank, darker toward the right.
-        ctx.filter = 'blur(2.5px)';
-        const barrel = ctx.createLinearGradient(170, 0, 310, 0);
-        barrel.addColorStop(0, BLUED_LIT);
-        barrel.addColorStop(0.3, BLUED);
-        barrel.addColorStop(1, BLUED_DARK);
-        ctx.fillStyle = barrel;
+        // The rear leaf close to the eye, out of focus (soft): a slim blade with rounded ends,
+        // its top edge at the origin, a wide square notch (light shows either side of the post),
+        // on a small base block; a slim stem below it (the barrel, widening toward the eye).
+        // Lit from the upper left: a bright top edge, darker toward the right.
+        ctx.filter = 'blur(2px)';
+        const stem = ctx.createLinearGradient(BARREL_BOTTOM.left, 0, BARREL_BOTTOM.right, 0);
+        stem.addColorStop(0, BLUED_LIT);
+        stem.addColorStop(0.3, BLUED);
+        stem.addColorStop(1, BLUED_DARK);
+        ctx.fillStyle = stem;
         ctx.beginPath();
-        ctx.moveTo(214, 110);
-        ctx.lineTo(266, 110);
-        ctx.lineTo(BARREL_BOTTOM.right, 400);
-        ctx.lineTo(BARREL_BOTTOM.left, 400);
+        ctx.moveTo(222, 96);
+        ctx.lineTo(258, 96);
+        ctx.lineTo(BARREL_BOTTOM.right, 320);
+        ctx.lineTo(BARREL_BOTTOM.left, 320);
         ctx.closePath();
         ctx.fill();
-        const leaf = ctx.createLinearGradient(0, 70, 0, 128);
+        ctx.fillStyle = BLUED_DARK;
+        ctx.fillRect(214, 78, 52, 22);
+        const leaf = ctx.createLinearGradient(0, 40, 0, 84);
         leaf.addColorStop(0, BLUED_LIT);
-        leaf.addColorStop(0.12, BLUED);
+        leaf.addColorStop(0.15, BLUED);
         leaf.addColorStop(1, BLUED_DARK);
         ctx.fillStyle = leaf;
         ctx.beginPath();
-        ctx.moveTo(52, 128);
-        ctx.quadraticCurveTo(40, 82, 70, 74);
-        ctx.lineTo(222, 70);
-        ctx.lineTo(225, 98);
-        ctx.lineTo(255, 98);
-        ctx.lineTo(258, 70);
-        ctx.lineTo(410, 74);
-        ctx.quadraticCurveTo(440, 82, 428, 128);
+        ctx.moveTo(52, 84);
+        ctx.quadraticCurveTo(40, 48, 64, 42);
+        ctx.lineTo(196, 40);
+        ctx.lineTo(196, NOTCH.depth);
+        ctx.lineTo(284, NOTCH.depth);
+        ctx.lineTo(284, 40);
+        ctx.lineTo(416, 42);
+        ctx.quadraticCurveTo(440, 48, 428, 84);
         ctx.closePath();
         ctx.fill();
-        // The leaf's base block on the barrel.
-        ctx.fillStyle = BLUED_DARK;
-        ctx.fillRect(196, 124, 88, 26);
         ctx.filter = 'none';
       },
     },
@@ -80,23 +84,28 @@ export function sightSpecs(): CanvasSpec[] {
       originX: 40,
       originY: 6,
       draw(ctx) {
-        // Post (square blade) on a ramp; the lit face on the left, a darker shade on the right.
-        const post = ctx.createLinearGradient(30, 0, 50, 0);
+        // A broad square post (in focus) on a ramp: the lit face on the left, the shadow face a
+        // darker shade of the same steel, a bright bevel along its top catching the key light.
+        const post = ctx.createLinearGradient(16, 0, 64, 0);
         post.addColorStop(0, BLUED_LIT);
-        post.addColorStop(0.5, BLUED);
+        post.addColorStop(0.45, BLUED);
         post.addColorStop(1, BLUED_DARK);
         ctx.fillStyle = post;
-        ctx.fillRect(31, 6, 18, 150);
+        ctx.fillRect(16, 6, 48, 150);
+        ctx.fillStyle = '#9DB3C8';
+        ctx.fillRect(16, 6, 48, 4);
+        ctx.fillStyle = 'rgba(157,179,200,0.35)';
+        ctx.fillRect(16, 10, 6, 140);
         const ramp = ctx.createLinearGradient(0, 150, 80, 150);
         ramp.addColorStop(0, BLUED_LIT);
         ramp.addColorStop(0.45, BLUED);
         ramp.addColorStop(1, BLUED_DARK);
         ctx.fillStyle = ramp;
         ctx.beginPath();
-        ctx.moveTo(31, 150);
-        ctx.lineTo(49, 150);
-        ctx.lineTo(76, 320);
-        ctx.lineTo(4, 320);
+        ctx.moveTo(16, 150);
+        ctx.lineTo(64, 150);
+        ctx.lineTo(78, 320);
+        ctx.lineTo(2, 320);
         ctx.closePath();
         ctx.fill();
       },

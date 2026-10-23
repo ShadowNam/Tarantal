@@ -7,6 +7,7 @@ import * as Phaser from 'phaser';
 import { TEX, type AssetManifest } from '../assets/AssetManifest';
 import {
   BARREL_BOTTOM,
+  REAR_DROP_PX,
   IRON_PLATE,
   PEEP_CLEAR_R,
   PEEP_DARK,
@@ -110,7 +111,7 @@ export class SightView {
     this.reticle?.setPosition(x, y);
     if (this.rear !== null) {
       // The barrel carries on below the texture down to the bottom of the screen.
-      this.rear.setPosition(x, y + rise);
+      this.rear.setPosition(x, y + rise + REAR_DROP_PX);
       const s = this.rear.scaleX;
       const left = this.rear.x + (BARREL_BOTTOM.left - this.rear.displayOriginX) * s;
       const bottom = this.rear.y + this.rear.displayHeight * (1 - this.rear.originY) - 2;
