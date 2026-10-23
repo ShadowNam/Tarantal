@@ -7,7 +7,7 @@
 // camera reaches a target. Close-ups are crops of the same frame, scaled up 2×.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { test, type Page, type TestInfo } from '@playwright/test';
+import { expect, test, type Page, type TestInfo } from '@playwright/test';
 import { PNG } from 'pngjs';
 import { composePair } from '../../tools/art/compare';
 import { boot, isTouchProject, startHunt, tapRect } from './helpers';
@@ -15,12 +15,18 @@ import { boot, isTouchProject, startHunt, tapRect } from './helpers';
 const OUT = join(import.meta.dirname, '..', '..', 'docs', 'art-preview');
 const RAW = join(OUT, 'screens');
 const PROFILES = ['desktop-chromium', 'pixel7-landscape'];
+/** UI screens are also checked on iPhone 14 landscape (CLAUDE.md); WebKit, or its local stand-in. */
+const UI_PROFILES = [...PROFILES, 'iphone14-landscape', 'iphone14-landscape-chromium-fallback'];
 const VARIANT = process.env['GFX3_VARIANT'] === 'before' ? 'before' : 'after';
 
 test.use({ serviceWorkers: 'block' });
 test.beforeEach(async ({ page }, info) => {
   test.skip(process.env['ART_PREVIEW'] !== '1', 'on demand: ART_PREVIEW=1');
-  test.skip(!PROFILES.includes(info.project.name), 'previews: desktop + Pixel 7 landscape');
+  const ui = info.title.startsWith('the Skiet-Skuur');
+  test.skip(
+    !(ui ? UI_PROFILES : PROFILES).includes(info.project.name),
+    'previews: desktop + Pixel 7 landscape (UI: + iPhone 14 landscape)',
+  );
   await page.addInitScript(() => {
     const key = 'tm.e2e.save.v1';
     if (localStorage.getItem(key) === null)
@@ -168,21 +174,56 @@ test('the Skiet-Skuur (gun icons)', async ({ page }, info) => {
   await page.waitForFunction(() => window.__TM__?.rects['shed'] !== undefined, null, {
     timeout: 60_000,
   });
-  // The guns other than the Dubbelloop arrive in the late group (D-029).
-  await page
-    .waitForFunction(
-      () =>
-        (window.__TM__?.assets.byBiome['karoo-autumn'] ?? []).filter(
-          (e) => e.key.startsWith('gun/') && e.status === 'interim',
-        ).length >= 6,
-      null,
-      { timeout: 60_000 },
-    )
-    .catch(() => undefined);
+  // Opened straight away: the guns other than the Dubbelloop arrive with the late group (D-029)
+  // while the shed is open, and the Guns tab must pick their pictures up (D-035 review).
   await tapRect(page, isTouchProject(info), 'shed');
   await page.waitForFunction(() => window.__TM__?.menu?.startsWith('shed') === true, null, {
     timeout: 60_000,
   });
+  await page.waitForFunction(() => (window.__TM__?.shedIcons ?? []).length >= 4, null, {
+    timeout: 90_000,
+  });
   await settle(page, false);
   write('gfx3-shed', info, await page.screenshot());
+});
+
+// D-035 review: the shed's gun icons are small canvases cropped from the decoded atlas pages; no
+// gun atlas goes to the GPU for them. Low tier (Pixel 7): texture memory at the end of a Karoo
+// hunt, then with the Skiet-Skuur open on the title after it (the shed must stay < 128 MB).
+test('texture memory: the Skiet-Skuur open after a hunt (low tier)', async ({ page }, info) => {
+  test.skip(info.project.name !== 'pixel7-landscape', 'measured on the Pixel 7 profile');
+  test.setTimeout(400_000);
+  await page.addInitScript(() => {
+    const key = 'tm.e2e.save.v1';
+    const save = JSON.parse(localStorage.getItem(key) ?? '{}') as {
+      settings?: Record<string, unknown>;
+    };
+    localStorage.setItem(
+      key,
+      JSON.stringify({ ...save, settings: { ...save.settings, quality: 'low' } }),
+    );
+  });
+  await boot(page, 'seed=42&huntSeconds=6&layout=none');
+  await startHunt(page, true);
+  await page.waitForFunction(() => window.__TM__?.scene === 'tally', null, { timeout: 300_000 });
+  const mb = async (): Promise<number> =>
+    Math.round(((await page.evaluate(() => window.__TM__?.textureBytes ?? 0)) / 1024 / 1024) * 10) /
+    10;
+  const hunt = await mb();
+  await tapRect(page, true, 'menu');
+  await page.waitForFunction(() => window.__TM__?.rects['shed'] !== undefined, null, {
+    timeout: 60_000,
+  });
+  await tapRect(page, true, 'shed');
+  await page.waitForFunction(() => (window.__TM__?.shedIcons ?? []).length >= 4, null, {
+    timeout: 90_000,
+  });
+  await page.waitForTimeout(500);
+  const shed = await mb();
+  mkdirSync(join(OUT, 'compare'), { recursive: true });
+  writeFileSync(
+    join(OUT, 'compare', 'gfx3-texture-memory-shed.json'),
+    `${JSON.stringify({ unit: 'MB', tier: 'low', huntEnd: hunt, shedOpenAfterHunt: shed }, null, 2)}\n`,
+  );
+  expect(shed).toBeLessThan(128);
 });

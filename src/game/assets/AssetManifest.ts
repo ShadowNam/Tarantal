@@ -14,7 +14,7 @@ import type {
   ImageEntry,
 } from './assetIndex';
 import { COMMON_GROUP, LATE_GROUP } from './assetIndex';
-import { checkAtlas, checkBirdAtlas } from './atlasCheck';
+import { atlasRegion, checkAtlas, checkBirdAtlas, type AtlasRegion } from './atlasCheck';
 import { loadBytes, loadImage, loadJson } from './finalLoader';
 
 /** A texture drawn at runtime onto a canvas. Origin is in texture pixels. */
@@ -196,6 +196,20 @@ export class AssetManifest {
   /** D-029: the delivered animated gun for a weapon id, or null (single image or placeholder). */
   finalGun(weaponId: string): FinalGun | null {
     return this.finalGuns.get(weaponId) ?? null;
+  }
+
+  /**
+   * D-035: a delivered gun's idle frame as a region of its decoded page image, for small icons
+   * (the Skiet-Skuur cards). Nothing goes to the GPU: the caller crops the region onto its own
+   * small canvas. Null while the gun's art is not in (the late group may still be downloading).
+   */
+  gunIdleImage(weaponId: string): { img: HTMLImageElement; region: AtlasRegion } | null {
+    const g = this.finalGuns.get(weaponId);
+    const name = g?.entry.clips.idle?.frames[0];
+    if (g === undefined || name === undefined) return null;
+    const region = atlasRegion(g.data, name);
+    const img = region === null ? undefined : g.img[region.page];
+    return region === null || img === undefined ? null : { img, region };
   }
 
   private mark(key: string, origin: AssetOrigin | undefined): void {
