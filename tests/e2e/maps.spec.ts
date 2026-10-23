@@ -4,7 +4,10 @@
 //   ART_PREVIEW=1 npx playwright test tests/e2e/maps.spec.ts \
 //     --project=desktop-chromium --project=pixel7-landscape
 // → docs/art-preview/compare/v1.2-karoo-<day|verder>-<project>.png (before = the plain biome).
-import { copyFileSync, mkdirSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { PNG } from 'pngjs';
+import { contrast } from '../../src/game/view/skyContrast';
+import { BIRD } from '../../tools/sky-contrast';
 import { join } from 'node:path';
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
 import { composePair } from '../../tools/art/compare';
@@ -184,6 +187,21 @@ test.describe('map previews', () => {
     writeFileSync(join(RAW, file), await page.screenshot());
   }
 
+  /** Median plumage:sky contrast in the fly-over band of a screenshot (centre half, y 17–38 %). */
+  function skyContrastOf(file: string): number {
+    const png = PNG.sync.read(readFileSync(join(RAW, file)));
+    const cs: number[] = [];
+    for (let yf = 0.17; yf <= 0.38; yf += 0.01)
+      for (let xf = 0.25; xf <= 0.75; xf += 0.01) {
+        const i = (Math.floor(png.height * yf) * png.width + Math.floor(png.width * xf)) * 4;
+        const rgb =
+          ((png.data[i] ?? 0) << 16) | ((png.data[i + 1] ?? 0) << 8) | (png.data[i + 2] ?? 0);
+        cs.push(contrast(rgb, BIRD));
+      }
+    cs.sort((a, b) => a - b);
+    return cs[cs.length >> 1] ?? 0;
+  }
+
   test('Karoo: plain, each weekday and Verder', async ({ page }, info) => {
     test.setTimeout(900_000);
     const p = info.project.name;
@@ -193,10 +211,18 @@ test.describe('map previews', () => {
       ...WEEKDAY_IDS.map((d) => [d, `layout=${d}`] as [string, string]),
       ['verder', 'layout=fri&bonus=verder'],
     ];
+    const sky: Record<string, number> = { plain: skyContrastOf(before) };
     for (const [name, query] of maps) {
-      await shot(page, info, query, `v1.2-karoo-${name}-after-${p}.png`);
+      const after = `v1.2-karoo-${name}-after-${p}.png`;
+      await shot(page, info, query, after);
       copyFileSync(join(RAW, before), join(RAW, `v1.2-karoo-${name}-before-${p}.png`));
       expect(composePair(`v1.2-karoo-${name}`, p)).toBe(true);
+      sky[name] = skyContrastOf(after);
     }
+    const out = join(RAW, '..', 'compare', `v1.2-sky-contrast-${p}.json`);
+    writeFileSync(out, `${JSON.stringify(sky, null, 2)}\n`);
+    // Fly-overs stay readable: ≥ 80 % of the plain sky's contrast (≈ 2.6 on the Karoo).
+    for (const [name, c] of Object.entries(sky))
+      expect(c, `${name} sky contrast`).toBeGreaterThanOrEqual(0.8 * (sky['plain'] ?? 0));
   });
 });

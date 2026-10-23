@@ -373,7 +373,7 @@
   "lights": {
     "dawn_mist": {
       "tint": {
-        "sky": "#F6DCD2",
+        "sky": "#FFF0EA",
         "far_ridge": "#D9D2DA",
         "far_veld": "#E2DAD8",
         "mid": "#E8E0DA",
@@ -415,7 +415,7 @@
     },
     "overcast": {
       "tint": {
-        "sky": "#A9B2BE",
+        "sky": "#EEF1F5",
         "far_ridge": "#AEB4BC",
         "far_veld": "#B8BCC2",
         "mid": "#C2C4C6",
@@ -432,7 +432,7 @@
     },
     "golden": {
       "tint": {
-        "sky": "#FFD49A",
+        "sky": "#FFF2DE",
         "far_ridge": "#F4C890",
         "far_veld": "#FFD8A2",
         "mid": "#FFDDAA",
@@ -449,7 +449,7 @@
     },
     "late_afternoon": {
       "tint": {
-        "sky": "#F2B890",
+        "sky": "#FFF0E2",
         "far_ridge": "#D8A890",
         "far_veld": "#EAB894",
         "mid": "#F0C4A0",
@@ -466,8 +466,8 @@
     },
     "dusk": {
       "tint": {
-        "sky": "#B488A8",
-        "far_ridge": "#7C6888",
+        "sky": "#FFE6EE",
+        "far_ridge": "#A890B0",
         "far_veld": "#8C7890",
         "mid": "#9C8898",
         "near": "#A898A0",
@@ -476,7 +476,7 @@
       "haze": [
         {
           "layer": "far_ridge",
-          "color": "#6A5478",
+          "color": "#9A82A8",
           "alpha": 0.22
         },
         {
