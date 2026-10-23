@@ -5,6 +5,7 @@
 // Usage: npx tsx tools/balance-sim.ts [--seeds 500] [--bots random,plinker,competent]
 //          [--input pointer|touch] [--mode classic|daily] [--omen on|off] [--workers N]
 //          [--biome <id>]  (M8: any biome; default the mode's)
+//          [--layout mon..sun] [--bonus verder]  (v1.2 maps; tools/map-report.ts runs them all)
 //          [--out tmp/x.json] [--json]
 //        npm run balance -- --run …   Season Runs per charm policy (see tools/season-sim.ts)
 // --omen overrides the mode's omen (modes.json: Classic off, Daily on).
@@ -19,7 +20,7 @@ import { BOT_KINDS, createBot, type BotKind } from './bots';
 import { withOverrides } from './contentOverrides';
 import { loadContent } from './testContent';
 
-interface Job {
+export interface Job {
   readonly bot: BotKind;
   readonly seeds: readonly number[];
   readonly input: InputKind;
@@ -28,6 +29,9 @@ interface Job {
   readonly omen?: boolean | undefined;
   /** Overrides the mode's biome (M8: each biome's own Classic report). */
   readonly biome?: string | undefined;
+  /** v1.2: weekday layout and bonus map (tools/map-report.ts: one report per map). */
+  readonly layout?: string | undefined;
+  readonly bonus?: string | undefined;
   /** Exploratory overrides (`--set path=json`), applied to a copy of the content. */
   readonly overrides?: readonly string[];
 }
@@ -81,6 +85,8 @@ export function playRows(job: Job): HuntRow[] {
         id: job.mode,
         ...(job.omen === undefined ? {} : { omen: job.omen }),
         ...(job.biome === undefined ? {} : { biome: job.biome }),
+        ...(job.layout === undefined ? {} : { layout: job.layout }),
+        ...(job.bonus === undefined ? {} : { bonus: job.bonus }),
       },
       inputKind: job.input,
     });
@@ -199,7 +205,7 @@ function arg(name: string, fallback: string): string {
   return i >= 0 ? (process.argv[i + 1] ?? fallback) : fallback;
 }
 
-function runWorker(job: Job): Promise<HuntRow[]> {
+export function runWorker(job: Job): Promise<HuntRow[]> {
   return new Promise((resolve, reject) => {
     const child = fork(fileURLToPath(import.meta.url), ['--worker'], {
       execArgv: ['--import', 'tsx'],
@@ -232,6 +238,8 @@ async function main(): Promise<void> {
   const omen = omenArg === 'on' ? true : omenArg === 'off' ? false : undefined;
   const biomeArg = arg('biome', '');
   const biome = biomeArg === '' ? undefined : biomeArg;
+  const layout = arg('layout', '') || undefined;
+  const bonus = arg('bonus', '') || undefined;
   const workers = Math.max(1, Number(arg('workers', String(availableParallelism()))));
   const overrides = process.argv.flatMap((a, i) =>
     a === '--set' ? [process.argv[i + 1] ?? ''] : [],
@@ -243,7 +251,17 @@ async function main(): Promise<void> {
   for (const bot of bots) {
     const chunk = Math.ceil(seeds / workers);
     for (let i = 0; i < all.length; i += chunk)
-      jobs.push({ bot, seeds: all.slice(i, i + chunk), input, mode, omen, biome, overrides });
+      jobs.push({
+        bot,
+        seeds: all.slice(i, i + chunk),
+        input,
+        mode,
+        omen,
+        biome,
+        layout,
+        bonus,
+        overrides,
+      });
   }
   // Run at most `workers` processes at a time.
   const results: HuntRow[] = [];
@@ -278,7 +296,7 @@ async function main(): Promise<void> {
     return;
   }
   console.log(
-    `Balance sim — ${mode}${biome === undefined ? '' : ` ${biome}`}${omen === undefined ? '' : `, omen ${omen ? 'on' : 'off'}`}, ${input}, ${seeds} seeds per bot, ${workers} workers, ${seconds.toFixed(0)} s`,
+    `Balance sim — ${mode}${biome === undefined ? '' : ` ${biome}`}${layout === undefined ? '' : ` ${layout}`}${bonus === undefined ? '' : `+${bonus}`}${omen === undefined ? '' : `, omen ${omen ? 'on' : 'off'}`}, ${input}, ${seeds} seeds per bot, ${workers} workers, ${seconds.toFixed(0)} s`,
   );
   if (overrides.length > 0) console.log(`overrides: ${overrides.join('  ')}`);
   console.log(formatTable(summaries));
