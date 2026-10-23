@@ -1197,8 +1197,11 @@ export function createSim(config: SimConfig): Sim {
 
   /** `how`: v1.3 rifles fire through the sight (swayed aim, no spread) or from the hip (the
    *  gun's hip spread). Returns false when the shot didn't go off. */
-  function fire(dx: number, sy: number, how?: 'sight' | 'hip'): boolean {
+  function fire(dx: number, sy: number, aimed?: 'sight' | 'hip'): boolean {
     const usingCrate = crateWeapon !== null;
+    // A rifle shot that didn't come through a raised sight (a plain fire command, a second
+    // finger's tap, auto-fire) is a hip shot: no shortcut past the sway (review of v1.3).
+    const how = aimed ?? (!usingCrate && sight !== null ? 'hip' : undefined);
     const shellsLeft = pullTrigger();
     if (shellsLeft === null) return false;
     const fx = effectsOf(powerups);

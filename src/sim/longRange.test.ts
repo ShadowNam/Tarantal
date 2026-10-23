@@ -220,6 +220,22 @@ describe('rifle sights: hold to zoom, release to fire (v1.3)', () => {
     expect(off).toBeLessThanOrEqual(40);
   });
 
+  it('a plain fire command with a rifle in hand is a hip shot (no shortcut past the sight)', () => {
+    const c = verContent();
+    const sim = newSim(c, { ...verMode(), omen: false });
+    sim.step([{ t: 'fire', dx: 100, sy: 500 }]);
+    const events = [...sim.drainEvents()];
+    expect(ofType(events, 'shotFired')[0]?.aim).toBe('hip');
+    const impact = ofType(events, 'pelletImpact')[0];
+    const off = Math.hypot((impact?.dx ?? 0) - 100, (impact?.sy ?? 0) - 500);
+    expect(off).toBeGreaterThan(0);
+    expect(off).toBeLessThanOrEqual(40);
+    // A shotgun's plain fire is unchanged (no aim field).
+    const s2 = newSim(c, verMode('dubbelloop'));
+    s2.step([{ t: 'fire', dx: 100, sy: 500 }]);
+    expect(ofType([...s2.drainEvents()], 'shotFired')[0]?.aim).toBeUndefined();
+  });
+
   it('a press and release in the same tick is a hip shot too', () => {
     const c = verContent();
     const sim = newSim(c, verMode());

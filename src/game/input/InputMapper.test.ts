@@ -316,6 +316,8 @@ describe('v1.3 rifles: hold to zoom, release to fire (D-036)', () => {
       canvas.emit('pointerdown', { ...e, ...at(-200, 500) });
       canvas.emit('pointermove', { ...e, ...at(-180, 520) });
       canvas.emit('pointermove', { ...e, ...at(-160, 540) });
+      // The tick of the press only sends the start (the runner sends perTick's commands first).
+      expect(mapper.perTick().filter((c) => c.t === 'aimMove')).toEqual([]);
       const tick = mapper.perTick();
       canvas.emit('pointerup', { ...e, ...at(-160, 540) });
       mapper.destroy();
@@ -360,6 +362,47 @@ describe('v1.3 rifles: hold to zoom, release to fire (D-036)', () => {
     canvas.emit('pointerup', { ...t, timeStamp: 80, ...at(0, 620) });
     mapper.destroy();
     expect(queued.map((c) => c.t)).toEqual(['aimStart', 'aimCancel', 'reload']);
+  });
+
+  it('a second finger while the sight is up does not fire (it may still reload)', () => {
+    const { canvas, queued, mapper, at } = rifleRig(1920, 1);
+    canvas.emit('pointerdown', {
+      pointerId: 1,
+      pointerType: 'touch',
+      button: 0,
+      timeStamp: 0,
+      ...at(0, 400),
+    });
+    canvas.emit('pointerdown', {
+      pointerId: 2,
+      pointerType: 'touch',
+      button: 0,
+      timeStamp: 10,
+      ...at(300, 300),
+    });
+    canvas.emit('pointerup', {
+      pointerId: 2,
+      pointerType: 'touch',
+      button: 0,
+      timeStamp: 60,
+      ...at(300, 300),
+    });
+    canvas.emit('pointerdown', {
+      pointerId: 3,
+      pointerType: 'touch',
+      button: 0,
+      timeStamp: 70,
+      ...at(900, 1000),
+    });
+    canvas.emit('pointerup', {
+      pointerId: 3,
+      pointerType: 'touch',
+      button: 0,
+      timeStamp: 120,
+      ...at(900, 1000),
+    });
+    mapper.destroy();
+    expect(queued.map((c) => c.t)).toEqual(['aimStart', 'reload']);
   });
 
   it('a gun without a sight still fires on press', () => {
