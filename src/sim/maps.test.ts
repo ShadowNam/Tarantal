@@ -34,7 +34,7 @@ function play(seed: number, mode: ModeConfig): { hash: string; score: number } {
   return { hash: h.digest(), score: sim.result().score };
 }
 
-/** Home x of each mid flock after the warm-up, played by the competent bot. */
+/** Home x of each mid flock (the warm-up one too), played by the competent bot. */
 function flockHomes(seed: number, layout: string | undefined): number[] {
   const mode: ModeConfig = layout === undefined ? { id: 'classic' } : { id: 'classic', layout };
   const sim = createSim({ seed, content, mode, inputKind: 'pointer' });
@@ -49,7 +49,7 @@ function flockHomes(seed: number, layout: string | undefined): number[] {
       if (seen.has(f.id)) continue;
       seen.add(f.id);
       const b = snap.birds.find((x) => x.flockId === f.id);
-      if (sim.tick > 1 && b?.plane === 'mid') out.push(b.x);
+      if (b?.plane === 'mid') out.push(b.x);
     }
   }
   return out;
@@ -144,7 +144,7 @@ describe('maps (v1.2)', () => {
     expect(findLayout(karoo, 'sat')?.light).toBe('dusk');
   });
 
-  it('feeding spots: later mid flocks forage in the spot far more often than without one', () => {
+  it('feeding spots: mid flocks (warm-up included) forage in the spot far more often than without one', () => {
     // Friday's mid spot is u 0.64–0.82 of the 3840 px mid layer. A flock spawns there whenever
     // the spot is out of view, else anywhere hidden.
     const inSpot = (layout: string | undefined): number => {

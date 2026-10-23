@@ -429,10 +429,10 @@
       "haze": [
         {
           "layer": "sky",
-          "color": "#B6BDC6",
-          "alpha": 0.4,
+          "color": "#AAB2BC",
+          "alpha": 0.42,
           "top": 0,
-          "bottom": 200
+          "bottom": 260
         },
         {
           "layer": "far_ridge",
@@ -442,16 +442,16 @@
       ],
       "clouds": [
         {
-          "color": "#8C94A0",
-          "alpha": 0.9,
-          "count": 9,
+          "color": "#7E8692",
+          "alpha": 0.92,
+          "count": 8,
           "y": [
-            70,
-            200
+            150,
+            250
           ],
           "w": [
-            420,
-            640
+            520,
+            760
           ]
         }
       ]

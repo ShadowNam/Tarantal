@@ -4,7 +4,7 @@
 //   ART_PREVIEW=1 npx playwright test tests/e2e/maps.spec.ts \
 //     --project=desktop-chromium --project=pixel7-landscape
 // → docs/art-preview/compare/v1.2-karoo-<day|verder>-<project>.png (before = the plain biome).
-import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { PNG } from 'pngjs';
 import { contrast } from '../../src/game/view/skyContrast';
 import { BIRD } from '../../tools/sky-contrast';
@@ -228,24 +228,34 @@ test.describe('map previews', () => {
     return cs[cs.length >> 1] ?? 0;
   }
 
+  // MAPS=mon,tue (optional) shoots only those maps (short runs); the plain "before" is shot when
+  // missing or when MAPS includes plain. The contrast JSON is merged across runs.
   test('Karoo: plain, each weekday and Verder', async ({ page }, info) => {
     test.setTimeout(900_000);
     const p = info.project.name;
+    const only = (process.env['MAPS'] ?? '').split(',').filter((m) => m !== '');
+    const want = (m: string): boolean => only.length === 0 || only.includes(m);
     const before = `v1.2-karoo-plain-${p}.png`;
-    await shot(page, info, 'layout=none', before);
+    if (want('plain') || !existsSync(join(RAW, before)))
+      await shot(page, info, 'layout=none', before);
     const maps: [string, string][] = [
       ...WEEKDAY_IDS.map((d) => [d, `layout=${d}`] as [string, string]),
       ['verder', 'layout=fri&bonus=verder'],
     ];
-    const sky: Record<string, number> = { plain: skyContrastOf(before) };
+    const out = join(RAW, '..', 'compare', `v1.2-sky-contrast-${p}.json`);
+    const sky = (existsSync(out) ? JSON.parse(readFileSync(out, 'utf8')) : {}) as Record<
+      string,
+      number
+    >;
+    sky['plain'] = skyContrastOf(before);
     for (const [name, query] of maps) {
+      if (!want(name)) continue;
       const after = `v1.2-karoo-${name}-after-${p}.png`;
       await shot(page, info, query, after);
       copyFileSync(join(RAW, before), join(RAW, `v1.2-karoo-${name}-before-${p}.png`));
       expect(composePair(`v1.2-karoo-${name}`, p)).toBe(true);
       sky[name] = skyContrastOf(after);
     }
-    const out = join(RAW, '..', 'compare', `v1.2-sky-contrast-${p}.json`);
     writeFileSync(out, `${JSON.stringify(sky, null, 2)}\n`);
     // Fly-overs stay readable: ≥ 80 % of the plain sky's contrast (≈ 2.6 on the Karoo).
     for (const [name, c] of Object.entries(sky))

@@ -557,7 +557,7 @@
           ]
         }
       ],
-      "cameraStartU": 0
+      "cameraStartU": 0.1
     },
     {
       "id": "tue",
@@ -600,7 +600,7 @@
       "pacing": {
         "flyoversMul": 1.15
       },
-      "cameraStartU": 0.82
+      "cameraStartU": 0.72
     },
     {
       "id": "wed",
@@ -630,7 +630,7 @@
           ]
         }
       ],
-      "cameraStartU": 0.62
+      "cameraStartU": 0.74
     },
     {
       "id": "thu",
@@ -663,7 +663,7 @@
           ]
         }
       ],
-      "cameraStartU": 0.9
+      "cameraStartU": 0.78
     },
     {
       "id": "fri",
@@ -692,7 +692,7 @@
           ]
         }
       ],
-      "cameraStartU": 0.32
+      "cameraStartU": 0.22
     },
     {
       "id": "sat",
@@ -713,7 +713,7 @@
           ]
         }
       ],
-      "cameraStartU": 0.18
+      "cameraStartU": 0.28
     },
     {
       "id": "sun",
@@ -732,7 +732,7 @@
           ]
         }
       ],
-      "cameraStartU": 1
+      "cameraStartU": 0.88
     }
   ],
   "bonusMaps": [
