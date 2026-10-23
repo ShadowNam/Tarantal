@@ -1,152 +1,152 @@
 {
   "tarentaal near peek": {
     "meanRgb": [
-      68,
-      70,
-      78
+      60,
+      64,
+      74
     ],
-    "luminance": 0.062,
+    "luminance": 0.051,
     "contrastVs": {
-      "veld": 4.26,
-      "veld light": 5.64,
-      "soil": 1.97,
-      "sky low": 6.79,
-      "sky high": 4.47
+      "veld": 4.69,
+      "veld light": 6.22,
+      "soil": 2.18,
+      "sky low": 7.49,
+      "sky high": 4.93
     }
   },
   "tarentaal mid forage_walk": {
     "meanRgb": [
-      60,
-      61,
+      55,
+      59,
       69
     ],
-    "luminance": 0.047,
+    "luminance": 0.044,
     "contrastVs": {
-      "veld": 4.88,
-      "veld light": 6.47,
-      "soil": 2.26,
-      "sky low": 7.79,
-      "sky high": 5.13
+      "veld": 5.07,
+      "veld light": 6.72,
+      "soil": 2.35,
+      "sky low": 8.09,
+      "sky high": 5.33
     }
   },
   "tarentaal mid flap": {
     "meanRgb": [
-      65,
-      67,
-      76
+      60,
+      64,
+      74
     ],
-    "luminance": 0.057,
+    "luminance": 0.051,
     "contrastVs": {
-      "veld": 4.45,
-      "veld light": 5.9,
-      "soil": 2.07,
-      "sky low": 7.11,
-      "sky high": 4.68
+      "veld": 4.69,
+      "veld light": 6.22,
+      "soil": 2.18,
+      "sky low": 7.49,
+      "sky high": 4.93
     }
   },
   "tarentaal far flap": {
     "meanRgb": [
-      98,
-      95,
-      93
+      93,
+      91,
+      91
     ],
-    "luminance": 0.116,
+    "luminance": 0.106,
     "contrastVs": {
-      "veld": 2.87,
-      "veld light": 3.8,
-      "soil": 1.33,
-      "sky low": 4.57,
-      "sky high": 3.01
+      "veld": 3.05,
+      "veld light": 4.04,
+      "soil": 1.42,
+      "sky low": 4.87,
+      "sky high": 3.21
     }
   },
   "tarentaal_wit mid forage_walk": {
     "meanRgb": [
-      182,
-      173,
-      166
+      207,
+      200,
+      193
     ],
-    "luminance": 0.426,
+    "luminance": 0.584,
     "contrastVs": {
-      "veld": 1,
-      "veld light": 1.32,
-      "soil": 2.16,
-      "sky low": 1.59,
-      "sky high": 1.05
+      "veld": 1.34,
+      "veld light": 1.01,
+      "soil": 2.88,
+      "sky low": 1.19,
+      "sky high": 1.27
     }
   },
   "tarentaal_lavendel mid forage_walk": {
     "meanRgb": [
-      120,
-      113,
-      136
+      129,
+      123,
+      152
     ],
-    "luminance": 0.176,
+    "luminance": 0.211,
     "contrastVs": {
-      "veld": 2.1,
-      "veld light": 2.79,
-      "soil": 1.03,
-      "sky low": 3.36,
-      "sky high": 2.21
+      "veld": 1.82,
+      "veld light": 2.41,
+      "soil": 1.18,
+      "sky low": 2.9,
+      "sky high": 1.91
     }
   },
   "kuifkop mid forage_walk": {
     "meanRgb": [
-      47,
-      45,
-      55
+      41,
+      42,
+      53
     ],
-    "luminance": 0.028,
+    "luminance": 0.024,
     "contrastVs": {
-      "veld": 6.12,
-      "veld light": 8.11,
-      "soil": 2.84,
-      "sky low": 9.77,
-      "sky high": 6.43
+      "veld": 6.43,
+      "veld light": 8.52,
+      "soil": 2.98,
+      "sky low": 10.26,
+      "sky high": 6.76
     }
   },
   "kuifkop_koning mid forage_walk": {
     "meanRgb": [
-      53,
-      49,
-      57
+      44,
+      44,
+      55
     ],
-    "luminance": 0.032,
+    "luminance": 0.026,
     "contrastVs": {
-      "veld": 5.76,
-      "veld light": 7.63,
-      "soil": 2.67,
-      "sky low": 9.19,
-      "sky high": 6.05
+      "veld": 6.24,
+      "veld light": 8.27,
+      "soil": 2.89,
+      "sky low": 9.95,
+      "sky high": 6.56
     }
   },
   "generaal mid forage_walk": {
     "meanRgb": [
       67,
-      66,
-      69
+      67,
+      70
     ],
-    "luminance": 0.055,
+    "luminance": 0.056,
     "contrastVs": {
-      "veld": 4.51,
-      "veld light": 5.98,
-      "soil": 2.09,
-      "sky low": 7.2,
-      "sky high": 4.74
+      "veld": 4.46,
+      "veld light": 5.91,
+      "soil": 2.07,
+      "sky low": 7.12,
+      "sky high": 4.69
     }
   },
   "ou_grys mid forage_walk": {
     "meanRgb": [
-      100,
-      101,
-      104
+      104,
+      107,
+      112
     ],
-    "luminance": 0.13,
+    "luminance": 0.146,
     "contrastVs": {
-      "veld": 2.64,
-      "veld light": 3.49,
-      "soil": 1.22,
-      "sky low": 4.21,
-      "sky high": 2.77
+      "veld": 2.42,
+      "veld light": 3.21,
+      "soil": 1.12,
+      "sky low": 3.86,
+      "sky high": 2.54
     }
   }
 }
