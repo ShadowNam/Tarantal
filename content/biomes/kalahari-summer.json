@@ -384,7 +384,8 @@
             0.32
           ]
         }
-      ]
+      ],
+      "cameraStartU": 0
     },
     {
       "id": "tue",
@@ -422,7 +423,8 @@
       ],
       "pacing": {
         "flyoversMul": 1.15
-      }
+      },
+      "cameraStartU": 0.72
     },
     {
       "id": "wed",
@@ -442,7 +444,17 @@
       "flushAsRunChance": 0.5,
       "pacing": {
         "flyoversMul": 0.8
-      }
+      },
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.5,
+            0.62
+          ]
+        }
+      ],
+      "cameraStartU": 0.62
     },
     {
       "id": "thu",
@@ -465,13 +477,23 @@
       },
       "pacing": {
         "flyoversMul": 1.1
-      }
+      },
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.62,
+            0.78
+          ]
+        }
+      ],
+      "cameraStartU": 0.9
     },
     {
       "id": "fri",
-      "light": "late_afternoon",
+      "light": "dusty_wind",
       "weather": "default",
-      "$comment": "Late afternoon: the weaver tree stands east; flocks gather under it to roost.",
+      "$comment": "Warm, dusty wind: the weaver tree stands east; flocks gather under it to roost.",
       "props": [
         {
           "id": "weaver_camelthorn",
@@ -497,7 +519,8 @@
             0.78
           ]
         }
-      ]
+      ],
+      "cameraStartU": 0.84
     },
     {
       "id": "sat",
@@ -508,7 +531,17 @@
         "flyoversMul": 0.7,
         "popupsMul": 0.7
       },
-      "pointsMul": 1.15
+      "pointsMul": 1.15,
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.28,
+            0.4
+          ]
+        }
+      ],
+      "cameraStartU": 0.18
     },
     {
       "id": "sun",
@@ -517,7 +550,17 @@
       "$comment": "Bright and calm: a relaxed map with extra pop-ups close by.",
       "pacing": {
         "popupsMul": 1.5
-      }
+      },
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.78,
+            0.9
+          ]
+        }
+      ],
+      "cameraStartU": 1
     }
   ],
   "bonusMaps": [

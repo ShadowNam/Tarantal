@@ -27,7 +27,13 @@ export function contrast(a: number, b: number): number {
 const hex = (s: string): number => parseInt(s.slice(1), 16);
 
 /** One sky pixel as drawn under these lights (sky tints multiply, sky hazes blend over). */
-export function litSky(rgb: number, lights: readonly Light[], skyLayer = 'sky'): number {
+export function litSky(
+  rgb: number,
+  lights: readonly Light[],
+  /** Design y of the pixel (haze bands cover only their own rows). */
+  y = 0,
+  skyLayer = 'sky',
+): number {
   let r = (rgb >> 16) & 0xff;
   let g = (rgb >> 8) & 0xff;
   let b = rgb & 0xff;
@@ -42,7 +48,7 @@ export function litSky(rgb: number, lights: readonly Light[], skyLayer = 'sky'):
   }
   for (const light of lights)
     for (const h of light.haze ?? []) {
-      if (h.layer !== skyLayer) continue;
+      if (h.layer !== skyLayer || y < (h.top ?? 0) || y >= (h.bottom ?? Infinity)) continue;
       const c = hex(h.color);
       r = r * (1 - h.alpha) + ((c >> 16) & 0xff) * h.alpha;
       g = g * (1 - h.alpha) + ((c >> 8) & 0xff) * h.alpha;
@@ -53,10 +59,10 @@ export function litSky(rgb: number, lights: readonly Light[], skyLayer = 'sky'):
 
 /** Median contrast of the bird colour against sky pixels under these lights. */
 export function medianSkyContrast(
-  sky: readonly number[],
+  sky: readonly { readonly rgb: number; readonly y: number }[],
   lights: readonly Light[],
   bird: number,
 ): number {
-  const cs = sky.map((p) => contrast(litSky(p, lights), bird)).sort((a, b) => a - b);
+  const cs = sky.map((p) => contrast(litSky(p.rgb, lights, p.y), bird)).sort((a, b) => a - b);
   return cs[cs.length >> 1] ?? 0;
 }

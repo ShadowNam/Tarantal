@@ -20,14 +20,14 @@ export const BIRD = 0x2e2f45;
 const root = join(import.meta.dirname, '..');
 
 /** Sky pixels of a biome's sky layer in the fly-over band, every 8th pixel each way. */
-export function skyBand(biome: Biome): number[] {
+export function skyBand(biome: Biome): { rgb: number; y: number }[] {
   const index = JSON.parse(readFileSync(join(root, 'public/assets/asset-index.json'), 'utf8')) as {
     layers: Record<string, { tiles: { path: string }[]; height: number }>;
   };
   const sky = biome.layers.find((l) => l.id === 'sky');
   const entry = sky === undefined ? undefined : index.layers[sky.asset];
   if (entry === undefined) throw new Error(`${biome.id}: no sky art`);
-  const out: number[] = [];
+  const out: { rgb: number; y: number }[] = [];
   for (const tile of entry.tiles) {
     const png = PNG.sync.read(readFileSync(join(root, 'public', tile.path)));
     const k = png.height / entry.height;
@@ -36,9 +36,9 @@ export function skyBand(biome: Biome): number[] {
       for (let x = 0; x < png.width; x += 8) {
         const i = (row * png.width + x) * 4;
         if ((png.data[i + 3] ?? 0) < 128) continue;
-        out.push(
-          ((png.data[i] ?? 0) << 16) | ((png.data[i + 1] ?? 0) << 8) | (png.data[i + 2] ?? 0),
-        );
+        const rgb =
+          ((png.data[i] ?? 0) << 16) | ((png.data[i + 1] ?? 0) << 8) | (png.data[i + 2] ?? 0);
+        out.push({ rgb, y });
       }
     }
   }

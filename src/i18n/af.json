@@ -435,7 +435,6 @@
   "map.light.midday": "Helder middag",
   "map.light.overcast": "Bewolk",
   "map.light.golden": "Goue middag",
-  "map.light.late_afternoon": "Laatmiddag",
   "map.light.dusk": "Skemer",
   "map.light.bright_calm": "Helder en stil",
   "map.name": "{day} · {light}",
@@ -447,5 +446,6 @@
   "title.verder_locked": "Klop {quota} om Verder oop te sluit",
   "title.verder_best": "Verder-beste: {score}",
   "tally.verder_unlocked": "Verder is vandag oop!",
-  "hud.tag_verder": "Verder · vêrder weg"
+  "hud.tag_verder": "Verder · vêrder weg",
+  "map.light.dusty_wind": "Warm stofwind"
 }

@@ -712,6 +712,8 @@ const mapOverrideShape = {
   ).optional(),
   feedingSpots: z.array(feedingSpotSchema).min(1).optional(),
   flyovers: flyoverRouteSchema.optional(),
+  /** Where the hunt opens along the pan (0 = west end, 1 = east end; absent = the middle). */
+  cameraStartU: fraction.optional(),
   /** calm = no biome weather in any mode; omen = weather on in Classic and Daily; default = the
    *  mode's (D-021: Classic off, Daily on). Season Run and FTUE hunts play no layout. */
   weather: z.enum(['calm', 'default', 'omen']).optional(),
@@ -898,6 +900,7 @@ export const BiomeSchema = obj({
    *  them; the biome's own apply to Season Run and FTUE hunts. */
   feedingSpots: z.array(feedingSpotSchema).min(1).optional(),
   flyovers: flyoverRouteSchema.optional(),
+  cameraStartU: fraction.optional(),
   /** v1.2: one layout per UTC weekday, Monday first. */
   layouts: z
     .array(LayoutSchema)
@@ -1166,6 +1169,19 @@ export const LightSchema = obj({
         alpha: fraction,
         top: nonNeg.optional(),
         bottom: nonNeg.optional(),
+      }),
+    )
+    .optional(),
+  /** Clouds on the sky layer: `count` soft ellipse clusters (Phaser shapes, no textures), each
+   *  `w` wide, centred between `y` (design px), spread evenly along the sky with a fixed jitter. */
+  clouds: z
+    .array(
+      obj({
+        color: hexColor,
+        alpha: fraction,
+        count: posInt,
+        y: range(nonNeg),
+        w: range(pos),
       }),
     )
     .optional(),

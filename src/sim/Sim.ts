@@ -19,7 +19,7 @@ import {
 import { duckBoss, spookBoss, updateScripted } from './birds/scripted';
 import { createCharmEngine, type FiredEffect, type TriggerContext } from './charms/interpreter';
 import { CHARM_SCRIPTS } from './charms/registry';
-import { clampCameraX, planeCentreX, planeToDx, tapToPlane } from './camera';
+import { clampCameraX, planeCentreX, planeToDx, quantiseHalf, tapToPlane } from './camera';
 import { sanitiseCommand } from './commands';
 import { msToTicks, secondsToTicks } from './clock';
 import { createDirector, type DirectorContext } from './director/SpawnDirector';
@@ -524,7 +524,12 @@ export function createSim(config: SimConfig): Sim {
   // --- state -----------------------------------------------------------------------------
   let tick = 0;
   let over = false;
-  let cameraX = clampCameraX((CAMERA_MIN_X + CAMERA_MAX_X) / 2);
+  // v1.2: a map may open the hunt elsewhere along the pan (on its feeding spot).
+  let cameraX = clampCameraX(
+    biome.cameraStartU === undefined
+      ? (CAMERA_MIN_X + CAMERA_MAX_X) / 2
+      : quantiseHalf(CAMERA_MIN_X + biome.cameraStartU * (CAMERA_MAX_X - CAMERA_MIN_X)),
+  );
   let score = 0;
   let streak = 0;
   let bestStreak = 0;

@@ -435,7 +435,6 @@
   "map.light.midday": "Bright midday",
   "map.light.overcast": "Overcast",
   "map.light.golden": "Golden afternoon",
-  "map.light.late_afternoon": "Late afternoon",
   "map.light.dusk": "Dusk",
   "map.light.bright_calm": "Bright and calm",
   "map.name": "{day} · {light}",
@@ -447,5 +446,6 @@
   "title.verder_locked": "Beat {quota} to unlock Verder",
   "title.verder_best": "Verder best: {score}",
   "tally.verder_unlocked": "Verder unlocked for today!",
-  "hud.tag_verder": "Verder · further"
+  "hud.tag_verder": "Verder · further",
+  "map.light.dusty_wind": "Warm, dusty wind"
 }

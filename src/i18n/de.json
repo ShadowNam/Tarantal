@@ -435,7 +435,6 @@
   "map.light.midday": "Heller Mittag",
   "map.light.overcast": "Bewölkt",
   "map.light.golden": "Goldener Nachmittag",
-  "map.light.late_afternoon": "Später Nachmittag",
   "map.light.dusk": "Dämmerung",
   "map.light.bright_calm": "Hell und windstill",
   "map.name": "{day} · {light}",
@@ -447,5 +446,6 @@
   "title.verder_locked": "Schlag {quota}, um Verder freizuschalten",
   "title.verder_best": "Verder-Rekord: {score}",
   "tally.verder_unlocked": "Verder heute freigeschaltet!",
-  "hud.tag_verder": "Verder · weiter weg"
+  "hud.tag_verder": "Verder · weiter weg",
+  "map.light.dusty_wind": "Warmer, staubiger Wind"
 }

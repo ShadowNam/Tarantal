@@ -199,6 +199,30 @@ export class ParallaxView {
             .setOrigin(0, 0);
           l.root.addAt(rect, l.root.getIndex(l.fixtures));
         }
+        // Clouds sit on the sky layer, spread evenly along it with a fixed jitter (the same
+        // sky every time this light is drawn).
+        if (l.id !== 'sky') continue;
+        for (const c of light.clouds ?? []) {
+          const color = parseInt(c.color.slice(1), 16);
+          for (let k = 0; k < c.count; k++) {
+            const j = (n: number): number => hash01(k * 7 + n + c.count * 131);
+            const w = c.w[0] + (c.w[1] - c.w[0]) * j(1);
+            const cx = -LAYER_BLEED_PX + ((k + 0.25 + 0.5 * j(2)) / c.count) * width;
+            const cy = c.y[0] + (c.y[1] - c.y[0]) * j(3);
+            const h = w * 0.28;
+            // A cluster: a wide flat base and three puffs on top.
+            const puffs: [number, number, number, number][] = [
+              [0, 0, w, h],
+              [-w * 0.22, -h * 0.35, w * 0.45, h * 1.1],
+              [w * 0.08, -h * 0.55, w * 0.5, h * 1.3],
+              [w * 0.3, -h * 0.25, w * 0.38, h * 0.9],
+            ];
+            for (const [ox, oy, ew, eh] of puffs) {
+              const e = l.root.scene.add.ellipse(cx + ox, cy + oy, ew, eh, color, c.alpha);
+              l.root.addAt(e, l.root.getIndex(l.fixtures));
+            }
+          }
+        }
       }
     });
   }
@@ -220,4 +244,11 @@ export function multiplyRgb(a: number, b: number): number {
   const ch = (shift: number): number =>
     Math.round((((a >> shift) & 0xff) * ((b >> shift) & 0xff)) / 255);
   return (ch(16) << 16) | (ch(8) << 8) | ch(0);
+}
+
+/** A fixed pseudo-random 0..1 from an integer (cloud placement; drawn only, never the sim). */
+function hash01(n: number): number {
+  let x = Math.imul(n ^ 0x9e3779b9, 0x85ebca6b);
+  x = Math.imul(x ^ (x >>> 13), 0xc2b2ae35);
+  return ((x ^ (x >>> 16)) >>> 0) / 0x1_0000_0000;
 }

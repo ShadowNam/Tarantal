@@ -88,6 +88,7 @@ function applyOverride(biome: Biome, o: Override): Biome {
     omen,
     ...(twist === undefined ? {} : { twist }),
     ...(o.feedingSpots === undefined ? {} : { feedingSpots: o.feedingSpots }),
+    ...(o.cameraStartU === undefined ? {} : { cameraStartU: o.cameraStartU }),
     ...(o.flyovers === undefined ? {} : { flyovers: { ...biome.flyovers, ...o.flyovers } }),
   };
 }

@@ -230,8 +230,20 @@ export function createDirector(deps: DirectorDeps): Director {
     const spaced = (x: number): boolean =>
       others.every((f) => f.members.every((b) => Math.abs(b.x - x) >= fp.spawnSpacingPx * ratio));
     const clampX = (x: number): number => Math.min(core - spread, Math.max(spread, x));
+    // v1.2: a map's feeding spots for this plane.
+    const spots = (biome.feedingSpots ?? []).filter((s) => s.plane === plane);
     if (ctx.tick === 0) {
-      // Warm-up (GDD §8): the first flocks forage in view.
+      // Warm-up (GDD §8): the first flocks forage in view — on a feeding spot where one is in view.
+      const half = fp.startInViewPx * ratio;
+      for (const spot of spots) {
+        const from = Math.max(spot.u[0] * core, centre - half);
+        const to = Math.min(spot.u[1] * core, centre + half);
+        if (from > to) continue;
+        for (let i = 0; i < PLACE_TRIES; i++) {
+          const x = clampX(flockRng.range(from, to));
+          if (spaced(x)) return x;
+        }
+      }
       for (let i = 0; i < PLACE_TRIES; i++) {
         const x = clampX(centre + flockRng.range(-fp.startInViewPx, fp.startInViewPx) * ratio);
         if (spaced(x)) return x;
@@ -240,8 +252,7 @@ export function createDirector(deps: DirectorDeps): Director {
     }
     const hidden = (x: number): boolean =>
       Math.abs(x - centre) > MAX_HALF_VIEW_WIDTH + spread + OUT_OF_VIEW_MARGIN_PX;
-    // v1.2: a map's feeding spots for this plane come first; anywhere else if none fits.
-    const spots = (biome.feedingSpots ?? []).filter((s) => s.plane === plane);
+    // v1.2: the feeding spots come first; anywhere else if none fits.
     if (spots.length > 0) {
       for (let i = 0; i < PLACE_TRIES; i++) {
         const spot = spots[flockRng.int(0, spots.length - 1)];

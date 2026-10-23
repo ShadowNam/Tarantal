@@ -556,7 +556,8 @@
             0.34
           ]
         }
-      ]
+      ],
+      "cameraStartU": 0
     },
     {
       "id": "tue",
@@ -598,7 +599,8 @@
       ],
       "pacing": {
         "flyoversMul": 1.15
-      }
+      },
+      "cameraStartU": 0.82
     },
     {
       "id": "wed",
@@ -618,7 +620,17 @@
       "flushAsRunChance": 0.5,
       "pacing": {
         "flyoversMul": 0.8
-      }
+      },
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.5,
+            0.62
+          ]
+        }
+      ],
+      "cameraStartU": 0.62
     },
     {
       "id": "thu",
@@ -641,13 +653,23 @@
       },
       "pacing": {
         "flyoversMul": 1.1
-      }
+      },
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.62,
+            0.78
+          ]
+        }
+      ],
+      "cameraStartU": 0.9
     },
     {
       "id": "fri",
-      "light": "late_afternoon",
+      "light": "dusty_wind",
       "weather": "default",
-      "$comment": "Late afternoon: flocks gather under the sausage tree before roosting.",
+      "$comment": "Warm, dusty wind: flocks gather under the sausage tree before roosting.",
       "props": [
         {
           "id": "sausage_tree",
@@ -669,7 +691,8 @@
             0.5
           ]
         }
-      ]
+      ],
+      "cameraStartU": 0.32
     },
     {
       "id": "sat",
@@ -680,7 +703,17 @@
         "flyoversMul": 0.7,
         "popupsMul": 0.7
       },
-      "pointsMul": 1.15
+      "pointsMul": 1.15,
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.28,
+            0.4
+          ]
+        }
+      ],
+      "cameraStartU": 0.18
     },
     {
       "id": "sun",
@@ -689,7 +722,17 @@
       "$comment": "Bright and calm: a relaxed map with extra pop-ups close by.",
       "pacing": {
         "popupsMul": 1.5
-      }
+      },
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.78,
+            0.9
+          ]
+        }
+      ],
+      "cameraStartU": 1
     }
   ],
   "bonusMaps": [

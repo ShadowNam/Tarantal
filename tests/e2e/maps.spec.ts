@@ -53,7 +53,7 @@ test.describe('maps (v1.2)', () => {
     expect(h.map).toMatchObject({
       layout: 'fri',
       bonus: 'verder',
-      lights: ['late_afternoon', 'verder_haze'],
+      lights: ['dusty_wind', 'verder_haze'],
     });
     // Friday's windpomp stands east (data), and the HUD says Verder.
     expect(h.map?.props['windpomp']).toBe(0.7);
