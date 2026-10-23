@@ -168,6 +168,17 @@ test('the Skiet-Skuur (gun icons)', async ({ page }, info) => {
   await page.waitForFunction(() => window.__TM__?.rects['shed'] !== undefined, null, {
     timeout: 60_000,
   });
+  // The guns other than the Dubbelloop arrive in the late group (D-029).
+  await page
+    .waitForFunction(
+      () =>
+        (window.__TM__?.assets.byBiome['karoo-autumn'] ?? []).filter(
+          (e) => e.key.startsWith('gun/') && e.status === 'interim',
+        ).length >= 6,
+      null,
+      { timeout: 60_000 },
+    )
+    .catch(() => undefined);
   await tapRect(page, isTouchProject(info), 'shed');
   await page.waitForFunction(() => window.__TM__?.menu?.startsWith('shed') === true, null, {
     timeout: 60_000,

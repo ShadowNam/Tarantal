@@ -134,6 +134,8 @@ const configSchema = z.object({
   guns: z
     .object({
       lineNear: z.number().positive(),
+      /** D-035: outline width × lineNear (thinner, softer semi-realistic outlines). */
+      outline: z.number().positive().max(1),
       /** Guns in the late download group (not needed to start the first hunt). */
       lateLoad: z.object({ $comment: z.string().optional(), ids: z.array(z.enum(GUN_IDS)) }),
       /** Per gun: how it sits in its frame (guns.ts poseFor). */

@@ -138,17 +138,19 @@ export class ShedScene extends Phaser.Scene {
             : this.unlockHint(w);
       drawButton(this, r, '', equipped ? 'selected' : equippable ? 'secondary' : 'locked', 30);
       const dark = equipped ? '#1B1410' : '#F3EAD3';
+      // D-035: the gun itself on its card (its first-person idle frame, when its art is in).
+      const icon = this.gunIcon(w.id, r, !unlocked);
       const name = this.add.text(
         r.x + 28,
         r.y + 22,
         tOr(`weapon.${w.id}`, w.id),
         textStyle(40, dark),
       );
-      fitText(name, r.w - 56);
+      fitText(name, r.w - 56 - icon);
       const sub = this.add
         .text(r.x + 28, r.y + r.h - 22, status, textStyle(28, dark))
         .setOrigin(0, 1);
-      fitText(sub, r.w - 56);
+      fitText(sub, r.w - 56 - icon);
       items.push({
         id: `shed.weapon.${w.id}`,
         rect: () => r,
@@ -160,6 +162,28 @@ export class ShedScene extends Phaser.Scene {
         },
       });
     });
+  }
+
+  /** The gun's idle frame at the right of its card; returns the width it takes (0 = none). */
+  private gunIcon(weaponId: string, r: Rect, locked: boolean): number {
+    const known = this.ctx.manifest.finalGun(weaponId);
+    if (known === null) return 0;
+    // Put on the GPU for this screen only: an atlas the shed added leaves with it, so the hunt's
+    // texture budget (low tier, D-029) is what it was.
+    const had = this.textures.exists(known.atlasKey);
+    const rig = this.ctx.manifest.ensureGun(this.textures, weaponId);
+    if (!had && rig !== null)
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+        if (this.textures.exists(rig.atlasKey)) this.textures.remove(rig.atlasKey);
+      });
+    const frame = rig?.entry.clips.idle?.frames[0];
+    if (rig === null || frame === undefined || !this.textures.exists(rig.atlasKey)) return 0;
+    const img = this.add.image(0, 0, rig.atlasKey, frame);
+    const h = r.h - 12;
+    img.setScale(h / Math.max(1, img.height)).setOrigin(1, 0.5);
+    img.setPosition(r.x + r.w - 16, r.y + r.h / 2);
+    if (locked) img.setAlpha(0.45);
+    return img.displayWidth + 16;
   }
 
   private unlockHint(w: PrimaryWeapon): string {

@@ -65,7 +65,51 @@ interface Ctx {
 
 const uid = (x: Ctx, p: string): string => `${p}${x.next++}`;
 
-/** A shape with one shadow (right edge, light from the top left), one highlight and an outline. */
+/** Mixes two #RRGGBB colours (t = 0 → a). */
+function mixHex(a: string, b: string, t: number): string {
+  const p = (h: string, i: number): number => parseInt(h.slice(i, i + 2), 16);
+  return `#${[1, 3, 5]
+    .map((i) =>
+      Math.round(p(a, i) + (p(b, i) - p(a, i)) * t)
+        .toString(16)
+        .padStart(2, '0'),
+    )
+    .join('')}`;
+}
+
+/**
+ * D-035: a rounded surface across `axis` (x1 y1 → x2 y2, the part's width): reflected light at
+ * the far edge, a highlight near the lit (left) edge, the body colour, then the shadow side.
+ */
+function roundGradient(
+  x: Ctx,
+  axis: readonly [number, number, number, number],
+  fill: string,
+  shadow: string,
+  hi: string,
+): { id: string; svg: string } {
+  const id = uid(x, 'gr');
+  const stop = (o: number, c: string): string => el('stop', { offset: o, 'stop-color': c });
+  return {
+    id,
+    svg: el(
+      'linearGradient',
+      { id, x1: axis[0], y1: axis[1], x2: axis[2], y2: axis[3], gradientUnits: 'userSpaceOnUse' },
+      stop(0, mixHex(shadow, fill, 0.5)),
+      stop(0.14, hi),
+      stop(0.3, fill),
+      stop(0.66, mixHex(fill, shadow, 0.75)),
+      stop(0.9, mixHex(shadow, '#000000', 0.18)),
+      stop(1, mixHex(shadow, hi, 0.35)),
+    ),
+  };
+}
+
+/**
+ * A shape with painterly shading (D-035): a rounded gradient across `axis` when given (else a flat
+ * fill), a soft shadow (right edge, light from the top left), a soft highlight, details, and a thin
+ * outline tinted toward the shadow colour.
+ */
 function shaded(
   x: Ctx,
   d: string,
@@ -75,15 +119,84 @@ function shaded(
   shadowD: string,
   hiD: string,
   extra = '',
+  axis?: readonly [number, number, number, number],
 ): string {
   const id = uid(x, 'c');
+  const grad = axis === undefined ? null : roundGradient(x, axis, fill, shadow, hi);
   return [
+    grad?.svg ?? '',
     el('clipPath', { id }, el('path', { d })),
-    el('path', { d, fill }),
-    el('path', { d: shadowD, fill: shadow, 'clip-path': `url(#${id})` }),
-    el('path', { d: hiD, fill: hi, 'clip-path': `url(#${id})` }),
+    el('path', { d, fill: grad === null ? fill : `url(#${grad.id})` }),
+    el('path', { d: shadowD, fill: shadow, opacity: 0.4, 'clip-path': `url(#${id})` }),
+    el('path', { d: hiD, fill: hi, opacity: 0.45, 'clip-path': `url(#${id})` }),
     extra === '' ? '' : g({ 'clip-path': `url(#${id})` }, extra),
-    el('path', { d, fill: 'none', stroke: x.ink, 'stroke-width': x.L, 'stroke-linejoin': 'round' }),
+    el('path', {
+      d,
+      fill: 'none',
+      stroke: mixHex(x.ink, shadow, 0.35),
+      'stroke-width': x.L,
+      'stroke-linejoin': 'round',
+    }),
+  ].join('');
+}
+
+/** A slotted screw head (D-035): domed steel, a slot at `rot` degrees, a glint. */
+function screw(x: Ctx, cx: number, cy: number, r: number, rot: number): string {
+  const a = (rot * Math.PI) / 180;
+  const dx = Math.cos(a) * r * 0.8;
+  const dy = Math.sin(a) * r * 0.8;
+  return [
+    el('path', {
+      d: ellipseD(cx, cy, r, r),
+      fill: x.c('steel'),
+      stroke: x.c('steelShadow'),
+      'stroke-width': Math.max(0.8, r * 0.25),
+    }),
+    el('path', {
+      d: `M${r2(cx - dx)} ${r2(cy - dy)}L${r2(cx + dx)} ${r2(cy + dy)}`,
+      stroke: x.c('bluedShadow'),
+      'stroke-width': Math.max(0.8, r * 0.35),
+      'stroke-linecap': 'round',
+    }),
+    el('path', {
+      d: ellipseD(cx - r * 0.35, cy - r * 0.4, r * 0.3, r * 0.22),
+      fill: x.c('steelHi'),
+    }),
+  ].join('');
+}
+
+/** A sling swivel (D-035): a stud on the wood and a steel loop hanging from it. */
+function swivel(x: Ctx, cx: number, cy: number, rot: number): string {
+  const loop = place(
+    [
+      [-7, 0],
+      [-8, 9],
+      [0, 15],
+      [8, 9],
+      [7, 0],
+    ],
+    cx,
+    cy,
+    rot,
+  );
+  return [
+    el('path', { d: ellipseD(cx, cy, 4.5, 3.2), fill: x.c('steelShadow') }),
+    el('path', {
+      d: smoothD(loop, false, 0.9),
+      fill: 'none',
+      stroke: x.c('steelShadow'),
+      'stroke-width': 3.6,
+      'stroke-linecap': 'round',
+    }),
+    el('path', {
+      d: smoothD(loop, false, 0.9),
+      fill: 'none',
+      stroke: x.c('steelHi'),
+      'stroke-width': 1.2,
+      'stroke-linecap': 'round',
+      opacity: 0.8,
+    }),
+    screw(x, cx, cy, 2.4, rot + 30),
   ].join('');
 }
 
@@ -100,11 +213,15 @@ function grain(
   const rnd = prng(seed);
   const lines: string[] = [];
   for (let k = 0; k < n; k++) {
-    const fx = x0 + ((k + 0.5) / n) * (x1 - x0) + (rnd() - 0.5) * 8;
+    const fx = x0 + ((k + 0.5) / n) * (x1 - x0) + (rnd() - 0.5) * 6;
     const pts: Pt[] = [];
-    for (let s = 0; s <= 8; s++) {
-      const t = s / 8;
-      pts.push([fx + Math.sin(t * 6 + k) * 4 + (t - 0.5) * (rnd() - 0.5) * 10, y0 + t * (y1 - y0)]);
+    const phase = rnd() * 6;
+    for (let s = 0; s <= 10; s++) {
+      const t = s / 10;
+      pts.push([
+        fx + Math.sin(t * 7 + phase) * 3 + (t - 0.5) * (rnd() - 0.5) * 6,
+        y0 + t * (y1 - y0),
+      ]);
     }
     lines.push(smoothD(pts, false));
     // An occasional knot.
@@ -113,14 +230,28 @@ function grain(
       lines.push(ellipseD(fx, ky, 4, 9));
     }
   }
-  return el('path', {
-    d: lines.join(''),
-    fill: 'none',
-    stroke: x.c('woodGrain'),
-    'stroke-width': x.inner * 0.6,
-    'stroke-linecap': 'round',
-    opacity: 0.55,
-  });
+  // Figure: a few broad, soft darker streaks under the fine grain (D-035).
+  let figure = '';
+  for (let k = 0; k < Math.max(2, Math.round(n / 3)); k++) {
+    const fx = x0 + rnd() * (x1 - x0);
+    figure += polyD([
+      [fx - 3, y0],
+      [fx + 4, y0],
+      [fx + 8 + (rnd() - 0.5) * 10, y1],
+      [fx - 1 + (rnd() - 0.5) * 10, y1],
+    ]);
+  }
+  return (
+    el('path', { d: figure, fill: x.c('woodGrain'), opacity: 0.16 }) +
+    el('path', {
+      d: lines.join(''),
+      fill: 'none',
+      stroke: x.c('woodGrain'),
+      'stroke-width': 0.9,
+      'stroke-linecap': 'round',
+      opacity: 0.5,
+    })
+  );
 }
 
 /** Short light scratches on metal (wear). */
@@ -138,7 +269,7 @@ function scratches(
   for (let k = 0; k < n; k++) {
     const sx = x0 + rnd() * (x1 - x0);
     const sy = y0 + rnd() * (y1 - y0);
-    const len = 6 + rnd() * 12;
+    const len = 3 + rnd() * 7;
     const a = -0.6 + rnd() * 1.2;
     d += `M${r2(sx)} ${r2(sy)}l${r2(Math.sin(a) * len)} ${r2(-Math.cos(a) * len * 0.4)}`;
   }
@@ -146,9 +277,9 @@ function scratches(
     d,
     fill: 'none',
     stroke: x.c('scratch'),
-    'stroke-width': 1.4,
+    'stroke-width': 0.7,
     'stroke-linecap': 'round',
-    opacity: 0.8,
+    opacity: 0.45,
   });
 }
 
@@ -207,6 +338,51 @@ function metal(
 ): string {
   const [x0, y0] = [Math.min(...pts.map((p) => p[0])), Math.min(...pts.map((p) => p[1]))];
   const [x1, y1] = [Math.max(...pts.map((p) => p[0])), Math.max(...pts.map((p) => p[1]))];
+  // Across the part (left edge → right edge at mid height): the rounded-surface gradient axis.
+  const [tl, tr, br, bl] = (pts.length === 4 ? pts : [pts[0], pts[1], pts[2], pts[3]]) as [
+    Pt,
+    Pt,
+    Pt,
+    Pt,
+  ];
+  const axis: [number, number, number, number] = [
+    (tl[0] + bl[0]) / 2,
+    (tl[1] + bl[1]) / 2,
+    (tr[0] + br[0]) / 2,
+    (tr[1] + br[1]) / 2,
+  ];
+  // Fine brushing along the length, a crisp specular line, bright wear on the lit edge.
+  const rnd = prng(seed * 7 + 1);
+  let brush = '';
+  for (let k = 0; k < 6; k++) {
+    const t = 0.1 + rnd() * 0.8;
+    const a: Pt = [tl[0] + (tr[0] - tl[0]) * t, tl[1] + (tr[1] - tl[1]) * t];
+    const b: Pt = [bl[0] + (br[0] - bl[0]) * t, bl[1] + (br[1] - bl[1]) * t];
+    brush += `M${r2(a[0])} ${r2(a[1])}L${r2(b[0])} ${r2(b[1])}`;
+  }
+  const spec = (t: number): string => {
+    const a: Pt = [tl[0] + (tr[0] - tl[0]) * t, tl[1] + (tr[1] - tl[1]) * t];
+    const b: Pt = [bl[0] + (br[0] - bl[0]) * t, bl[1] + (br[1] - bl[1]) * t];
+    return `M${r2(a[0])} ${r2(a[1] + 3)}L${r2(b[0])} ${r2(b[1] - 3)}`;
+  };
+  const detail =
+    el('path', { d: brush, stroke: x.c(`${kind}Hi`), 'stroke-width': 0.6, opacity: 0.25 }) +
+    el('path', {
+      d: spec(0.17),
+      stroke: '#FFFFFF',
+      'stroke-width': 1.3,
+      opacity: 0.45,
+      'stroke-linecap': 'round',
+    }) +
+    (wear
+      ? el('path', {
+          d: `M${r2(tl[0] + 1.5)} ${r2(tl[1] + 4)}L${r2(bl[0] + 1.5)} ${r2(bl[1] - 4)}`,
+          stroke: x.c('scratch'),
+          'stroke-width': 1.4,
+          'stroke-dasharray': '14 6 4 9',
+          opacity: 0.55,
+        }) + scratches(x, x0, y0, x1, y1, seed)
+      : '');
   return (
     sideFace(x, pts, x.c(`${kind}Shadow`), depth) +
     shaded(
@@ -217,7 +393,8 @@ function metal(
       x.c(`${kind}Hi`),
       shadowRight(pts),
       hiStripe(pts),
-      wear ? scratches(x, x0, y0, x1, y1, seed) : '',
+      detail,
+      axis,
     )
   );
 }
@@ -249,7 +426,8 @@ function wood(x: Ctx, pts: readonly Pt[], seed: number, light = false, smooth = 
     x.c(light ? 'lightWoodHi' : 'woodHi'),
     shadowD,
     hiD,
-    grain(x, x0, y0, x1, y1, seed, Math.max(4, Math.round(w / 22))),
+    grain(x, x0, y0, x1, y1, seed, Math.max(6, Math.round(w / 9))),
+    [x0, (y0 + y1) / 2, x1, (y0 + y1) / 2],
   );
 }
 
@@ -260,7 +438,7 @@ function checkering(x: Ctx, pts: readonly Pt[]): string {
   const ys = pts.map((p) => p[1]);
   const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
   let d = '';
-  for (let k = x0 - (y1 - y0); k < x1 + (y1 - y0); k += 9) {
+  for (let k = x0 - (y1 - y0); k < x1 + (y1 - y0); k += 5.5) {
     d += `M${r2(k)} ${r2(y0)}L${r2(k + (y1 - y0) * 0.6)} ${r2(y1)}M${r2(k)} ${r2(y1)}L${r2(k + (y1 - y0) * 0.6)} ${r2(y0)}`;
   }
   return [
@@ -268,9 +446,18 @@ function checkering(x: Ctx, pts: readonly Pt[]): string {
     el('path', {
       d,
       stroke: x.c('woodShadow'),
-      'stroke-width': 1.3,
+      'stroke-width': 0.9,
       fill: 'none',
+      opacity: 0.85,
       'clip-path': `url(#${id})`,
+    }),
+    // The checkered panel's cut border.
+    el('path', {
+      d: polyD(pts),
+      fill: 'none',
+      stroke: x.c('woodGrain'),
+      'stroke-width': 1.1,
+      opacity: 0.7,
     }),
   ].join('');
 }
@@ -410,7 +597,12 @@ function stockButt(x: Ctx, top: number, seed: number, light = false): string {
     inked(side, x.c(light ? 'lightWoodShadow' : 'woodShadow'), x.ink, x.L) +
     wood(x, pts, seed, light, 0.35) +
     checkering(x, wrist) +
-    triggerGuard(x, top)
+    triggerGuard(x, top) +
+    // Tang screw behind the guard, the rear sling swivel under the butt, buttplate screws.
+    screw(x, 38, top + 66, 3, 25) +
+    swivel(x, 80, -40, -30) +
+    screw(x, -40, -8, 3.2, 70) +
+    screw(x, 70, -8, 3.2, 10)
   );
 }
 
@@ -509,10 +701,10 @@ function dubbelloop(x: Ctx, s: DubbelState): string {
   // Engraving scrolls on the action.
   out.push(
     el('path', {
-      d: 'M-38 -222q10 -10 20 0t20 0M-4 -200q10 -10 20 0t20 0M-34 -184q8 -8 16 0',
+      d: 'M-38 -222q10 -10 20 0t20 0q6 -6 10 0M-4 -200q10 -10 20 0t20 0M-34 -184q8 -8 16 0t12 2M-40 -206q5 -5 10 0M20 -226q5 -6 10 0t8 2',
       fill: 'none',
       stroke: x.c('steelShadow'),
-      'stroke-width': 1.6,
+      'stroke-width': 0.9,
       'stroke-linecap': 'round',
     }),
   );
@@ -531,11 +723,12 @@ function dubbelloop(x: Ctx, s: DubbelState): string {
     ),
   );
   // Fore-end under the barrels (drops with them).
+  // A slim splinter fore-end: only its edges show beside the barrels from behind.
   const fore: Pt[] = [
-    [-50, hinge + (-392 - hinge) * k],
-    [50, hinge + (-392 - hinge) * k],
-    [56, hinge - 22 * k],
-    [-56, hinge - 22 * k],
+    [-34, hinge + (-372 - hinge) * k],
+    [34, hinge + (-372 - hinge) * k],
+    [47, hinge - 22 * k],
+    [-47, hinge - 22 * k],
   ];
   out.push(wood(x, fore, 21, false, 0.4));
   // Barrels with a rib between them.
@@ -725,9 +918,26 @@ function kettie(
   out.push(stroke(forkD, x.c('wood'), 30));
   out.push(stroke('M8 6L8 -196M8 -204Q42 -258 102 -398', x.c('woodShadow'), 10));
   out.push(stroke('M-8 0L-8 -190M-8 -206Q-36 -250 -86 -388', x.c('woodHi'), 5));
-  // Bark rings and nicks.
+  // Bark rings and nicks, then D-035 bark texture: broken lines along the grain on both sides
+  // of each limb, a knot, and a worn, polished patch where the hand holds it.
   out.push(
-    stroke('M-14 -60l28 4M-14 -120l28 -3M-60 -300l14 12M58 -296l-12 14', x.c('woodGrain'), 2.2),
+    stroke('M-14 -60l28 4M-14 -120l28 -3M-60 -300l14 12M58 -296l-12 14', x.c('woodGrain'), 1.6),
+  );
+  for (const [dx, dash, col, op] of [
+    [-9, '12 7 4 9', 'woodGrain', 0.7],
+    [6, '9 10 15 6', 'woodGrain', 0.6],
+    [-3, '5 14 8 11', 'woodHi', 0.6],
+  ] as const)
+    out.push(
+      g(
+        { transform: `translate(${dx} 0)` },
+        stroke(forkD, x.c(col), 1.4, { 'stroke-dasharray': dash, opacity: op }),
+      ),
+    );
+  out.push(
+    el('path', { d: ellipseD(4, -132, 6, 9), fill: x.c('woodShadow') }),
+    el('path', { d: ellipseD(3, -133, 2.5, 4), fill: x.c('woodGrain') }),
+    el('path', { d: ellipseD(-3, -40, 9, 34), fill: x.c('woodHi'), opacity: 0.25 }),
   );
   // Rubber bands from the fork tips to the pouch (wobble = a slight S when snapping forward).
   const pouch: Pt = [0, s.pouchY];
@@ -741,6 +951,14 @@ function kettie(
   for (const tip of [tipL, tipR]) {
     out.push(stroke(band(tip), x.ink, 9 + x.inner * 2));
     out.push(stroke(band(tip), x.c('rubber'), 9));
+    // Surgical tubing: a glossy highlight along the band, darker underside.
+    out.push(
+      g({ transform: 'translate(-2 0)' }, stroke(band(tip), '#F2A0A0', 2, { opacity: 0.7 })),
+      g(
+        { transform: 'translate(3 0)' },
+        stroke(band(tip), x.c('rubberShadow'), 2.4, { opacity: 0.8 }),
+      ),
+    );
   }
   // Leather pouch (and the stone in it).
   const pd = smoothD(
@@ -852,23 +1070,25 @@ function pomp(x: Ctx, s: { pump: number; eject: number; smoke: number; glow: num
   );
   // Ribbed pump fore-end slides back toward the player.
   const dy = s.pump * 68;
+  // D-035: a slim grooved slide under the barrel and magazine tube (not a fat drum).
   const fore: Pt[] = [
-    [-40, -386 + dy],
-    [40, -386 + dy],
-    [46, -284 + dy],
-    [-46, -284 + dy],
+    [-27, -398 + dy],
+    [27, -398 + dy],
+    [33, -272 + dy],
+    [-33, -272 + dy],
   ];
   out.push(wood(x, fore, 65, false, 0.3));
   out.push(
     el('path', {
-      d: Array.from({ length: 6 }, (_, i) => {
-        const y = -374 + dy + i * 16;
-        const w = 40 + (i / 6) * 6;
-        return `M${r2(-w + 4)} ${r2(y)}L${r2(w - 4)} ${r2(y)}`;
+      d: Array.from({ length: 11 }, (_, i) => {
+        const y = -388 + dy + i * 10.5;
+        const w = 27 + (i / 11) * 6;
+        return `M${r2(-w + 5)} ${r2(y)}Q0 ${r2(y + 2.5)} ${r2(w - 5)} ${r2(y)}`;
       }).join(''),
-      stroke: x.ink,
-      'stroke-width': x.inner,
+      stroke: x.c('woodGrain'),
+      'stroke-width': 1.6,
       'stroke-linecap': 'round',
+      opacity: 0.75,
     }),
   );
   if (s.eject > 0) out.push(shell(x, 50 + s.eject * 80, -210 - s.eject * 70, 60 + s.eject * 240));
@@ -1468,9 +1688,10 @@ export function gunFrameSvg(cfg: ArtConfig, id: GunId, clip: GunClip, frame: num
   const x: Ctx = {
     cfg,
     c: (name) => gunColour(cfg, name),
-    ink: cfg.ink,
-    L: cfg.guns.lineNear,
-    inner: cfg.guns.lineNear * cfg.birds.innerLine,
+    // D-035: thinner, softer outlines (semi-realistic); the ink leans toward cool blued steel.
+    ink: mixHex(cfg.ink, gunColour(cfg, 'bluedShadow'), 0.3),
+    L: cfg.guns.lineNear * cfg.guns.outline,
+    inner: cfg.guns.lineNear * cfg.guns.outline * cfg.birds.innerLine,
     next: 0,
   };
   const n = gunFrameCount(cfg, id, clip);
@@ -1510,7 +1731,9 @@ export function gunFrameSvg(cfg: ArtConfig, id: GunId, clip: GunClip, frame: num
  */
 export function widenX(markup: string, k: number): string {
   if (k === 1) return markup;
-  return markup.replace(/ d="([^"]*)"/g, (_, d: string) => ` d="${widenPath(d, k)}"`);
+  return markup
+    .replace(/ d="([^"]*)"/g, (_, d: string) => ` d="${widenPath(d, k)}"`)
+    .replace(/ (x1|x2)="(-?[\d.]+)"/g, (_, a: string, v: string) => ` ${a}="${r2(Number(v) * k)}"`);
 }
 
 const ARITY: Readonly<Record<string, number>> = {

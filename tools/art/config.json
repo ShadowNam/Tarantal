@@ -246,6 +246,7 @@
     "flashOuter": "#F07A2A",
     "scratch": "#C9CED3",
     "lineNear": 6,
+    "outline": 0.42,
     "poses": {
       "$comment": "Per gun: angle (deg, negative = barrels up-left toward the screen centre), shift (px right of the box centre) and widen (x scale of the drawing about the barrel line). Review 2: the long guns point into the scene at an angle with the stock bottom right, like the old placeholder's silhouette.",
       "dubbelloop": {
@@ -285,7 +286,7 @@
     },
     "wobble": {
       "frequency": 0.04,
-      "scale": 2.5
+      "scale": 1.0
     },
     "clips": {
       "$comment": "Frames per gun clip; fps for fire/flash per gun; reload clips are stretched to weapons.json reloadMs at runtime.",
