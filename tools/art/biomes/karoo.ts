@@ -8,9 +8,7 @@ import {
   flat,
   groundD,
   hatch,
-  koppie,
   line,
-  mesa,
   mix,
   nextId,
   post,
@@ -27,6 +25,7 @@ import {
 } from '../scenery';
 import { el, ellipseD, g, inked, place, polyD, r2, smoothD } from '../svg';
 import { contactShadow, fillD, softPen, tree } from '../realism';
+import { mountainRow, paintRow, rockColours } from '../mountains';
 import { cirrus, skyGradient, softCumulus, softDefs, type CloudColours } from '../skies';
 import {
   grassField,
@@ -375,31 +374,53 @@ export function bush(ctx: PaintCtx, x: number, y: number, s: number, pen: Pen): 
 }
 
 function farRidge(ctx: LayerCtx): string {
-  const parts: string[] = [];
+  // D-035: no longer a row of flat tops. A hazy back range (a dark massif with ravines, jagged
+  // strata ridges, a mesa or two), then nearer dolerite mesas, pointed koppies with scree, a
+  // granite inselberg and boulder heaps: varied heights and gaps, lit from the left.
   const horizon = ctx.raw('horizon');
-  const backPen: Pen = { ink: mix(ctx.pen.ink, horizon, 0.35), w: 1.5 };
-  const backTone = tone(mix(ctx.c('koppie'), horizon, 0.35), 0.15, 0.2);
-  const backCap = mix(ctx.c('koppieCap'), horizon, 0.35);
-  // A low continuous range behind.
-  for (let x = -120; x < ctx.width;) {
-    const w = 420 + ctx.rnd() * 420;
-    parts.push(mesa(ctx.rnd, x, 610, w, 70 + ctx.rnd() * 60, backTone, backCap, backPen));
-    x += w * (0.62 + ctx.rnd() * 0.2);
-  }
-  // Nearer mesas and koppies.
-  const t = tone(ctx.c('koppie'), 0.2, 0.22);
-  for (let x = -60; x < ctx.width;) {
-    if (ctx.rnd() < 0.62) {
-      const w = 260 + ctx.rnd() * 320;
-      parts.push(mesa(ctx.rnd, x, 650, w, 125 + ctx.rnd() * 85, t, ctx.c('koppieCap'), ctx.pen));
-      x += w + 60 + ctx.rnd() * 260;
-    } else {
-      const w = 140 + ctx.rnd() * 140;
-      parts.push(koppie(ctx.rnd, x, 650, w, 85 + ctx.rnd() * 55, t, ctx.pen));
-      x += w + 80 + ctx.rnd() * 240;
-    }
-  }
-  return g({}, ...parts);
+  const rock = rockColours(ctx.raw);
+  const back = mountainRow(
+    ctx.rnd,
+    [
+      { kind: 'massif', w: 2 },
+      { kind: 'strata', w: 2 },
+      { kind: 'mesa', w: 1.2 },
+    ],
+    {
+      x0: -160,
+      x1: ctx.width,
+      base: 612,
+      width: [420, 760],
+      height: [80, 175],
+      overlap: [0.15, 0.4],
+      haze: 0.5,
+    },
+  );
+  const front = mountainRow(
+    ctx.rnd,
+    [
+      { kind: 'mesa', w: 1.4 },
+      { kind: 'koppie', w: 2 },
+      { kind: 'inselberg', w: 0.8 },
+      { kind: 'strata', w: 1 },
+      { kind: 'boulders', w: 1 },
+    ],
+    {
+      x0: -80,
+      x1: ctx.width,
+      base: 650,
+      width: [260, 560],
+      height: [115, 245],
+      overlap: [-0.25, 0.15],
+      haze: 0.2,
+    },
+  );
+  const backPen: Pen = { ink: mix(ctx.pen.ink, horizon, 0.35), w: 1.4 };
+  return g(
+    {},
+    ...paintRow(ctx.rnd, back, rock, backPen, horizon),
+    ...paintRow(ctx.rnd, front, rock, ctx.pen, horizon),
+  );
 }
 
 /**

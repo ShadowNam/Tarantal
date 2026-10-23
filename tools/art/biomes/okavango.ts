@@ -20,6 +20,7 @@ import {
   type Tone,
 } from '../scenery';
 import { el, ellipseD, g, inked, polyD, r2, smoothD } from '../svg';
+import { mountainRow, paintRow, rockColours } from '../mountains';
 import { tree as leafyTree } from '../realism';
 import { groundBand, softSky } from './karoo';
 import { foregroundClumps, midScrub, nearGrass } from './common';
@@ -256,6 +257,29 @@ function farRidge(ctx: LayerCtx): string {
   const parts: string[] = [];
   const horizon = ctx.raw('horizon');
   const backPen: Pen = { ink: mix(ctx.pen.ink, horizon, 0.35), w: 1.5 };
+  // D-035: far beyond the flat delta, a few low quartzite hills in the haze (like the Tsodilo
+  // Hills at the panhandle): a long ridge, a knobbly koppie, wide gaps of open horizon.
+  const hills = mountainRow(
+    ctx.rnd,
+    [
+      { kind: 'massif', w: 1.4 },
+      { kind: 'strata', w: 1 },
+      { kind: 'koppie', w: 1 },
+      { kind: 'boulders', w: 0.6 },
+    ],
+    {
+      x0: 80,
+      x1: ctx.width - 200,
+      base: 640,
+      width: [300, 620],
+      height: [100, 175],
+      overlap: [-1.6, -0.6],
+      haze: 0.55,
+    },
+  );
+  parts.push(
+    ...paintRow(ctx.rnd, hills, rockColours(ctx.raw), { ink: backPen.ink, w: 1.3 }, horizon),
+  );
   const backT = tone(mix(ctx.c('island'), horizon, 0.35), 0.15, 0.18);
   for (let x = -60; x < ctx.width; x += 30 + ctx.rnd() * 40)
     parts.push(

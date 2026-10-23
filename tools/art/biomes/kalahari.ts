@@ -22,6 +22,7 @@ import {
   type Tone,
 } from '../scenery';
 import { el, ellipseD, g, inked, polyD, r2, smoothD } from '../svg';
+import { mountainRow, paintRow, rockColours } from '../mountains';
 import { bush, groundBand, groundShadow, softSky } from './karoo';
 import { foregroundClumps, midScrub, nearGrass } from './common';
 import { thunderhead } from '../skies';
@@ -209,6 +210,28 @@ function farRidge(ctx: LayerCtx): string {
   const parts: string[] = [];
   const horizon = ctx.raw('horizon');
   const backPen: Pen = { ink: mix(ctx.pen.ink, horizon, 0.35), w: 1.5 };
+  // D-035: beyond the dunes, a hazy range like the Namib escarpment: jagged layered ridges, a
+  // dark massif and a few granite inselbergs rising out of the sand.
+  const rock = rockColours(ctx.raw);
+  const range = mountainRow(
+    ctx.rnd,
+    [
+      { kind: 'strata', w: 2.2 },
+      { kind: 'massif', w: 1.2 },
+      { kind: 'inselberg', w: 1 },
+      { kind: 'koppie', w: 0.8 },
+    ],
+    {
+      x0: -160,
+      x1: ctx.width,
+      base: 616,
+      width: [380, 700],
+      height: [70, 190],
+      overlap: [-0.35, 0.2],
+      haze: 0.45,
+    },
+  );
+  parts.push(...paintRow(ctx.rnd, range, rock, { ink: backPen.ink, w: 1.4 }, horizon));
   for (let x = -200; x < ctx.width;) {
     const w = 420 + ctx.rnd() * 360;
     parts.push(

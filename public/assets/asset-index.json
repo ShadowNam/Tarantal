@@ -720,14 +720,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/bushveld-winter/layers/far_ridge-0.55b406b41610.png",
-          "bytes": 45791,
-          "hash": "55b406b41610"
+          "path": "assets/bushveld-winter/layers/far_ridge-0.1e64d7371623.png",
+          "bytes": 63274,
+          "hash": "1e64d7371623"
         },
         {
-          "path": "assets/bushveld-winter/layers/far_ridge-1.df5018017494.png",
-          "bytes": 21239,
-          "hash": "df5018017494"
+          "path": "assets/bushveld-winter/layers/far_ridge-1.9020196bb367.png",
+          "bytes": 33323,
+          "hash": "9020196bb367"
         }
       ],
       "tileWidth": 2048,
@@ -860,14 +860,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/kalahari-summer/layers/far_ridge-0.6467440ca1e6.png",
-          "bytes": 15099,
-          "hash": "6467440ca1e6"
+          "path": "assets/kalahari-summer/layers/far_ridge-0.c8ecdf0199b9.png",
+          "bytes": 40388,
+          "hash": "c8ecdf0199b9"
         },
         {
-          "path": "assets/kalahari-summer/layers/far_ridge-1.e6f1a29e3435.png",
-          "bytes": 7567,
-          "hash": "e6f1a29e3435"
+          "path": "assets/kalahari-summer/layers/far_ridge-1.d77007e9516b.png",
+          "bytes": 10737,
+          "hash": "d77007e9516b"
         }
       ],
       "tileWidth": 2048,
@@ -1000,14 +1000,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/karoo-autumn/layers/far_ridge-0.9d41fa78c652.png",
-          "bytes": 20896,
-          "hash": "9d41fa78c652"
+          "path": "assets/karoo-autumn/layers/far_ridge-0.638d760c7b62.png",
+          "bytes": 60727,
+          "hash": "638d760c7b62"
         },
         {
-          "path": "assets/karoo-autumn/layers/far_ridge-1.8109a4cb8270.png",
-          "bytes": 11295,
-          "hash": "8109a4cb8270"
+          "path": "assets/karoo-autumn/layers/far_ridge-1.4ff8547f088a.png",
+          "bytes": 27087,
+          "hash": "4ff8547f088a"
         }
       ],
       "tileWidth": 2048,
@@ -1140,14 +1140,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/okavango-spring/layers/far_ridge-0.c2587e2398fc.png",
-          "bytes": 60492,
-          "hash": "c2587e2398fc"
+          "path": "assets/okavango-spring/layers/far_ridge-0.a10000360cdf.png",
+          "bytes": 69730,
+          "hash": "a10000360cdf"
         },
         {
-          "path": "assets/okavango-spring/layers/far_ridge-1.97e302a03f11.png",
-          "bytes": 33982,
-          "hash": "97e302a03f11"
+          "path": "assets/okavango-spring/layers/far_ridge-1.e3361a7bf4fb.png",
+          "bytes": 33001,
+          "hash": "e3361a7bf4fb"
         }
       ],
       "tileWidth": 2048,
