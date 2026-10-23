@@ -553,6 +553,17 @@ v1.0.1 (D-028): entering capture mode shows a small "S slow · F freeze · C pan
 It runs on frame time, not hunt time (a freeze doesn't hold it), at most `hintMaxStepMs` per frame
 (a warm-up stall can't use it up unseen). Portal release builds have no capture mode, so no hint.
 
+### 8.2 Playtest admin (v1.2x, D-034)
+`https://shadownam.github.io/Tarantal/?admin=1` (or `npm run dev` → `/?admin=1`) opens the admin
+page instead of the title, on builds whose adapter has `adminPage` (web only; Poki and
+CrazyGames ignore it). It lists every playable map from content (biome × plain / Mon…Sun /
+bonus maps, the Daily with a date, each Season Run hunt) with options (gun incl. crate guns,
+seed, length, omen, forced event, Season quota ×) and a review per map (status, 1–5, notes).
+[Play] stores the pick in the admin save and reloads with `&play=1`; `main.ts` applies it like the
+e2e parameters (`src/game/admin/adminPlay.ts`). Everything runs on the `tm.admin.*` save and is
+unranked, so the player's progress is never touched. Feedback leaves as "Copy report" (markdown)
+or "Send to GitHub" (a prefilled `issues/new?labels=playtest` link ≤ 7 KB, `src/meta/admin.ts`).
+
 ## 9. Mobile web specifics (the gotchas)
 - **iPhone Safari has no element Fullscreen API** (iPad does; iOS 17.4 beta even removed an
   experimental flag). Don't show a fullscreen button there; instead show a one-time "Add to Home

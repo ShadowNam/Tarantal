@@ -1557,6 +1557,41 @@ their recorded hashes (`src/sim/replay/golden/v3-fixtures.json`).
 biome identical to v1.1 (no new textures; the Season Run plays no layout, so its 126.9 MB peak
 is unchanged by construction).
 
+**D-034 v1.2x Playtest admin page (23 Oct 2026):** the product owner asked for "an ADMIN url that
+I can activate in my browser that enables access to all the levels to test them … an admin page
+that lets me select a level, review and test them one by one and give feedback".
+(1) *Entry:* `?admin=1` opens the Admin scene instead of the title, only where the
+PlatformAdapter says so (`adminPage`: web true, Poki and CrazyGames false; `adminPageInBuild()`
+answers before the adapter exists, because the admin save must be chosen before the save loads).
+Portal builds show the normal title (unit test + `platform.spec.ts`).
+(2) *Own save:* admin pages use the storage namespace `admin.` (`tm.admin.*`, `tm.e2e.admin.*`
+under `?e2e`), like capture mode (D-027): admin hunts write only that save, so the player's
+bests, unlocks, streak and run are never touched. Every admin hunt is also unranked (practice
+Daily, no share or challenge link, no Verder unlock). The review save (`tm.admin.review`,
+Zod-checked, damaged → empty) holds per-entry status (not reviewed / OK / needs work), a 1–5
+rating and notes (≤ 4 000 chars), the shared options and the last hunt's seed and gun per entry.
+(3) *List from content:* each playable biome plain, its seven weekday layouts and its bonus
+maps; the Daily (with a date picker); each Season Run hunt (season × hunt pattern). New layouts
+and bonus maps appear on their own.
+(4) *Play = reload:* [Play] stores the entry and options and reloads with `&play=1`; boot applies
+them the way the e2e parameters are applied (biome, layout, bonus, seed, length, omen, Daily
+date) plus two content changes: Season quotas × multiplier and a forced event (at least once, in
+the first 5–30 % of the hunt, any mode, omen or not). Reloading keeps the content transforms out
+of the running game and runs the hunt through the normal code paths. The play card asks for one
+tap so audio may start. A crate gun is never a primary: Classic and Daily drop it in the first
+crate (the `?crate=` path), a Season Run rents it. A Season Run entry starts a fresh run on the
+admin save and jumps to that hunt (`RunFlow.jumpTo`).
+(5) *Way back:* the tally swaps [Season Run] for [Back to admin]; Menu, Quit and the run's title
+button come back to the play card, which has [Back to admin].
+(6) *Feedback out, no backend:* "Copy report" (markdown of every reviewed entry; if the clipboard
+is blocked the text is shown to copy by hand) and per entry "Send to GitHub", a prefilled
+`github.com/ShadowNam/Tarantal/issues/new?labels=playtest` link with map id, mode, gun, seed,
+build SHA (`__BUILD_SHA__`: `GITHUB_SHA` on CI, else git), user agent, viewport and notes, cut so
+the URL stays ≤ 7 000 chars. Screenshots are attached on GitHub.
+(7) *UI:* a DOM panel over the canvas (native selects, date input, textarea and touch scrolling;
+`touch-action: pan-y` on its scroll areas), i18n keys `admin.*` (English text in every table:
+admin is a tool for the team). Checked on desktop and Pixel 7 landscape (`admin.spec.ts`).
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

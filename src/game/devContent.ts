@@ -60,3 +60,28 @@ export function withDoppies(b: ContentBundle, n: number): ContentBundle {
     },
   };
 }
+
+/**
+ * v1.2x admin page (D-034): `event` takes place in every hunt of every biome that has it — at least
+ * once, early (first 5–30 % of the hunt), in every mode and without its omen.
+ */
+export function withForcedEvent(b: ContentBundle, event: string): ContentBundle {
+  return {
+    ...b,
+    biomes: b.biomes.map((biome) => ({
+      ...biome,
+      events: biome.events.map((e) => {
+        if (e.id !== event) return e;
+        // Drop the mode and omen filters; every other field stays as it is.
+        const forced = {
+          ...e,
+          perHunt: [Math.max(1, e.perHunt[0]), Math.max(1, e.perHunt[1])] as [number, number],
+          window: [0.05, 0.3] as [number, number],
+        };
+        delete forced.modes;
+        delete forced.omenOnly;
+        return forced;
+      }),
+    })),
+  };
+}

@@ -12,3 +12,6 @@ interface ImportMetaEnv {
 
 /** M10: package.json version, replaced at build time (vite.config.ts `define`). */
 declare const __APP_VERSION__: string;
+
+/** v1.2x (D-034): short commit SHA of the build (GITHUB_SHA on CI, else git, else "dev"). */
+declare const __BUILD_SHA__: string;

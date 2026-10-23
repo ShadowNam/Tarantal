@@ -60,6 +60,14 @@ content/                        starting tuning data (scoring, birds, weapons, p
 `.claude/skills/` contains the 28 Phaser 4 agent skills from the Phaser repo at tag v4.2.1. When you
 upgrade Phaser, replace those folders with the matching tag's `skills/` folder.
 
+## Playtest admin
+Open **https://shadownam.github.io/Tarantal/?admin=1** to test every map one by one: pick a map
+(each biome plain / Monday…Sunday / Verder, the Daily on any date, any Season Run hunt), set the
+gun, seed, length, weather, a forced event or the Season quota, press Play, then rate it and write
+notes. "Copy report" copies all notes as markdown; "Send to GitHub" opens a prefilled issue
+(attach screenshots there). Admin hunts are unranked and never touch your normal save.
+Web build only (docs/02 §8.2, D-034).
+
 ## Commands (from M0)
 `npm run dev` · `npm run check` (typecheck + lint + unit tests + content validation) ·
 `npm run test:e2e` · `npm run build` · `npm run size` · `npm run content:validate [-- --strict]`.

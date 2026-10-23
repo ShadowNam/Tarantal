@@ -5,6 +5,8 @@ import { AdGate, type Timers } from './adGate';
 import { CrazyGamesPlatform, type CrazyAdCallbacks, type CrazySdk } from './crazygames';
 import type { PlatformOptions } from './local';
 import { PokiPlatform, type PokiSdk } from './poki';
+import { adminPageInBuild } from './platform';
+import { WebPlatform } from './web';
 
 const opts: PlatformOptions = { log: false, adTimeoutMs: 1000, sdkTimeoutMs: 1000 };
 
@@ -342,5 +344,24 @@ describe('CrazyGamesPlatform (fake SDK)', () => {
     const p = await crazy(fakeCrazy());
     expect(p.shareUrl('https://x.test/?c=AbC')).toBe('https://crazygames.test/game/tarantal?c=AbC');
     expect(p.launchParam('c')).toBe('fromInvite');
+  });
+});
+
+describe('playtest admin page (D-034)', () => {
+  it('is on the web build only: portals ignore ?admin=1', () => {
+    expect(WebPlatform.ADMIN_PAGE).toBe(true);
+    expect(new WebPlatform({ ...opts, serviceWorker: false }).adminPage).toBe(true);
+    expect(new PokiPlatform(opts).adminPage).toBe(false);
+    expect(new CrazyGamesPlatform(opts).adminPage).toBe(false);
+  });
+
+  it('adminPageInBuild follows the build flag', () => {
+    vi.stubEnv('VITE_PLATFORM', 'poki');
+    expect(adminPageInBuild()).toBe(false);
+    vi.stubEnv('VITE_PLATFORM', 'crazygames');
+    expect(adminPageInBuild()).toBe(false);
+    vi.stubEnv('VITE_PLATFORM', '');
+    expect(adminPageInBuild()).toBe(true);
+    vi.unstubAllEnvs();
   });
 });

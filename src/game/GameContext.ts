@@ -21,6 +21,7 @@ import type { RunFlow } from './run/RunFlow';
 import type { DailyFlow } from './daily/DailyFlow';
 import type { Insets } from './layout';
 import type { Rect } from './ui/hudLayout';
+import type { AdminContext } from './admin/AdminContext';
 
 /** Read by Playwright (dev/test builds and ?e2e=1 only). */
 export interface TestHook {
@@ -32,7 +33,9 @@ export interface TestHook {
   portrait: boolean;
   /** 'start' = the title (kept from M2: the title's START is the old start card).
    *  'challenge' = the "beat this" card of a challenge link (M7). */
-  scene: 'start' | 'hunt' | 'tally' | 'run' | 'challenge';
+  scene: 'start' | 'hunt' | 'tally' | 'run' | 'challenge' | 'admin';
+  /** v1.2x (D-034): the admin page on screen (list or play card), or null. */
+  admin: { view: 'list' | 'play'; selected: string | null; entries: number } | null;
   /** Menu overlay on top of the scene: shed, settings, pause (null = none). */
   menu: string | null;
   /** M10: the self-hosted fonts loaded before the game drew any text. */
@@ -292,6 +295,10 @@ export interface GameContext {
   /** e2e/dev only (v1.2): ?layout=thu and ?bonus=verder play Classic hunts on that map. */
   readonly classicLayout: string | undefined;
   readonly classicBonus: string | undefined;
+  /** v1.2x admin page (D-034): Classic and Daily hunts play this gun (undefined = the loadout). */
+  readonly weaponOverride: string | undefined;
+  /** v1.2x (D-034): the playtest admin page (`?admin=1`, web builds), or null. */
+  readonly admin: AdminContext | null;
   /** Device hint before the first touch: coarse pointer → touch hints on the start card. */
   readonly coarsePointer: boolean;
   readonly reducedMotion: boolean;

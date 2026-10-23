@@ -56,6 +56,9 @@ export interface PlatformAdapter {
   readonly canShowExternalLinks: boolean;
   /** PWA extras (service worker, "Add to Home Screen" banner) belong to this build: web only. */
   readonly pwa: boolean;
+  /** v1.2x (D-034): `?admin=1` opens the playtest admin page. Web builds only (Pages, dev);
+   *  portal builds ignore the parameter and show the normal title. */
+  readonly adminPage: boolean;
   capabilities(): PlatformCapabilities;
   /** Enters fullscreen where capabilities().fullscreen is true. */
   requestFullscreen(): Promise<void>;

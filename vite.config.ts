@@ -1,3 +1,4 @@
+import { execSync } from 'node:child_process';
 import { createReadStream, existsSync, readFileSync, rmSync, statSync } from 'node:fs';
 import { extname, join } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
@@ -68,10 +69,23 @@ const version = (
   JSON.parse(readFileSync(join(import.meta.dirname, 'package.json'), 'utf8')) as { version: string }
 ).version;
 
+/** D-034: the commit a build was made from, for playtest reports (CI sets GITHUB_SHA). */
+function buildSha(): string {
+  const ci = process.env['GITHUB_SHA'];
+  if (ci !== undefined && ci !== '') return ci.slice(0, 7);
+  try {
+    return execSync('git rev-parse --short=7 HEAD', { stdio: ['ignore', 'pipe', 'ignore'] })
+      .toString()
+      .trim();
+  } catch {
+    return 'dev';
+  }
+}
+
 // Default export is required by Vite (config files are exempt from the named-exports rule).
 export default defineConfig({
   base: './',
-  define: { __APP_VERSION__: JSON.stringify(version) },
+  define: { __APP_VERSION__: JSON.stringify(version), __BUILD_SHA__: JSON.stringify(buildSha()) },
   plugins: [
     ...(portal ? [stripPwa()] : [serviceWorkerPlugin()]),
     ...(standin ? [standinAssets()] : []),

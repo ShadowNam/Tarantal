@@ -50,6 +50,9 @@ export class CrazyGamesPlatform extends LocalPlatform {
   readonly id = 'crazygames' as const;
   readonly canShowExternalLinks = false;
   readonly pwa = false;
+  /** D-034: no playtest admin page on a portal (`?admin=1` shows the normal title). */
+  static readonly ADMIN_PAGE = false;
+  readonly adminPage = CrazyGamesPlatform.ADMIN_PAGE;
   protected override readonly shareSheet = false;
   private sdk: CrazySdk | null = null;
   private inGameplay = false;

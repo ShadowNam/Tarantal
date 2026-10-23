@@ -52,7 +52,17 @@ import type { Settings } from './meta/saveSchema';
 import { setStorageNamespace, storageStatus } from './meta/storage';
 import { installErrorHook } from './platform/errors';
 import { LocalPlatform } from './platform/local';
-import { createPlatform, currentPlatformId } from './platform/platform';
+import { adminPageInBuild, createPlatform, currentPlatformId } from './platform/platform';
+import {
+  ADMIN_NAMESPACE,
+  adminEntries,
+  loadAdminSave,
+  storeAdminSave,
+  type AdminSave,
+} from './meta/admin';
+import type { AdminContext } from './game/admin/AdminContext';
+import { adminHuntSetup, type AdminHuntSetup } from './game/admin/adminPlay';
+import { AdminScene } from './game/scenes/AdminScene';
 import { AdBreaks } from './game/ads/AdBreaks';
 import { PrivacyScene } from './game/scenes/PrivacyScene';
 import { officialResultsAllowed, testHookPolicy } from './game/testHooks';
@@ -104,13 +114,20 @@ const capture =
     testHooksFlag: import.meta.env.VITE_TEST_HOOKS === '1',
     captureParam: params.get('capture') === '1',
   });
-if (hookPolicy.namespace !== null) setStorageNamespace(hookPolicy.namespace);
+// v1.2x (D-034): the playtest admin page (`?admin=1`), where the PlatformAdapter allows it (web
+// builds). It plays on its own save (`tm.admin.*`, or `tm.e2e.admin.*`), so admin hunts never
+// touch the player's bests, unlocks or progress.
+const adminOn = params.get('admin') === '1' && adminPageInBuild();
+if (adminOn) setStorageNamespace((hookPolicy.namespace ?? '') + ADMIN_NAMESPACE);
+else if (hookPolicy.namespace !== null) setStorageNamespace(hookPolicy.namespace);
 else if (capture) setStorageNamespace(CAPTURE_NAMESPACE);
 
 const save = new SaveStore();
 // e2e/dev only: ?ftue=0 starts as a returning player (older specs test Classic hunts).
 // M10 capture mode: no tutorial on the capture save (its prompts would be hidden).
 if (capture && !save.data.ftue.done) save.update((d) => captureSave(d));
+if (adminOn && !save.data.ftue.done)
+  save.update((d) => ({ ...d, ftue: { done: true, skipped: true, step: 'admin' } }));
 if (testHooks && params.get('ftue') === '0' && !save.data.ftue.done) {
   save.update((d) => ({ ...d, ftue: { done: true, skipped: true, step: 'param' } }));
 }
@@ -149,6 +166,8 @@ function cssSafeArea(): Insets {
 
 /** ?seed=42 fixes every hunt's seed (debugging); otherwise a fresh u32 per hunt. */
 function seedSource(): () => number {
+  const adminSeed = adminSetup?.seed;
+  if (adminSeed !== undefined) return () => adminSeed;
   const fixed = Number(params.get('seed'));
   if (params.has('seed') && Number.isInteger(fixed) && fixed >= 0) return () => fixed >>> 0;
   // Capture mode replays the same hunt every time (trailers, store shots).
@@ -197,6 +216,8 @@ function bonusParam(): string | undefined {
 
 /** e2e/dev only: ?today=YYYY-MM-DD fixes the UTC day of the Daily Hunt. */
 function todaySource(): () => number {
+  const adminDay = adminSetup?.today;
+  if (adminDay !== undefined) return () => adminDay;
   const fixed = testHooks ? parseDayKey(params.get('today') ?? '') : null;
   return fixed === null ? () => dayNumber(Date.now()) : () => fixed;
 }
@@ -229,6 +250,7 @@ const hook: TestHook = {
   over: false,
   inputKind: null,
   menu: null,
+  admin: null,
   capture: null,
   fontsReady: false,
   focus: null,
@@ -304,10 +326,23 @@ const withQuota =
   Number.isFinite(quotaMul) && quotaMul >= 0 ? withQuotaMul(withCrate, quotaMul) : withCrate;
 // e2e/dev only: ?doppies=1 — a run with (almost) no Doppies, to show Padstal offers it can't buy.
 const doppiesParam = testHooks && params.has('doppies') ? Number(params.get('doppies')) : NaN;
-const bundle =
+const devBundle =
   Number.isInteger(doppiesParam) && doppiesParam >= 0
     ? withDoppies(withQuota, doppiesParam)
     : withQuota;
+// D-034: `?admin=1&play=1` plays the hunt the admin page stored (its content changes too).
+let adminSave: AdminSave | null = adminOn ? loadAdminSave() : null;
+const adminList = adminOn ? adminEntries(devBundle, placeholderBiomes()) : [];
+const adminPlay = adminSave?.play ?? null;
+const adminEntry =
+  params.get('play') === '1' && adminPlay !== null
+    ? adminList.find((e) => e.id === adminPlay.entry)
+    : undefined;
+const adminSetup: AdminHuntSetup | null =
+  adminEntry === undefined || adminPlay === null
+    ? null
+    : adminHuntSetup(adminEntry, adminPlay.options, devBundle);
+const bundle = adminSetup?.content ?? devBundle;
 hook.boot['content'] = performance.now();
 const biomeId = bundle.modes.modes.classic.biome;
 const biome = bundle.biomes.find((b) => b.id === biomeId);
@@ -517,7 +552,7 @@ await loadFinalFor(biome);
 // bookmark doesn't show the card again.
 let pendingChallenge: ChallengeDecode | null = null;
 // Capture mode and `?e2e` on a public build (unranked) open no challenge links.
-const unranked = capture || !officialResults;
+const unranked = capture || !officialResults || adminOn;
 const challengeParam = unranked ? null : platform.launchParam('c');
 if (challengeParam !== null) {
   pendingChallenge = decodeChallenge(challengeParam, {
@@ -542,6 +577,40 @@ if (challengeParam !== null) {
 }
 const shareBase = (): string => `${window.location.origin}${window.location.pathname}`;
 const today = todaySource();
+
+/** Reloads this page with `admin=1` (and `play=1` for a stored play), keeping other params. */
+const adminNavigate = (play: boolean): void => {
+  const url = new URL(window.location.href);
+  url.searchParams.set('admin', '1');
+  if (play) url.searchParams.set('play', '1');
+  else url.searchParams.delete('play');
+  window.location.assign(url.toString());
+};
+const admin: AdminContext | null = adminOn
+  ? {
+      entries: adminList,
+      setup: adminSetup,
+      build: __BUILD_SHA__,
+      load: () => (adminSave ??= loadAdminSave()),
+      store: (s) => {
+        adminSave = s;
+        storeAdminSave(s);
+      },
+      back: () => {
+        adminNavigate(false);
+      },
+      playStored: () => {
+        adminNavigate(true);
+      },
+      played: (seed, gun) => {
+        const id = adminSetup?.entry.id;
+        if (id === undefined) return;
+        const s = loadAdminSave();
+        adminSave = { ...s, played: { ...s.played, [id]: { seed, gun } } };
+        storeAdminSave(adminSave);
+      },
+    }
+  : null;
 
 const ctx: GameContext = {
   content: bundle,
@@ -614,12 +683,14 @@ const ctx: GameContext = {
   safeArea: (): Insets =>
     (safeCache ??= safeAreaInDesignPx(cssSafeArea(), viewport(), designSize())),
   nextSeed: seedSource(),
-  huntSeconds: huntSecondsParam(),
+  huntSeconds: adminSetup === null ? huntSecondsParam() : adminSetup.huntSeconds,
   holdAtTick: holdAtParam(),
-  omen: omenParam(),
-  classicBiome: biomeParam(),
-  classicLayout: layoutParam(),
-  classicBonus: bonusParam(),
+  omen: adminSetup === null ? omenParam() : adminSetup.omen,
+  classicBiome: adminSetup === null ? biomeParam() : adminSetup.classicBiome,
+  classicLayout: adminSetup === null ? layoutParam() : adminSetup.classicLayout,
+  classicBonus: adminSetup === null ? bonusParam() : adminSetup.classicBonus,
+  weaponOverride: adminSetup?.weapon,
+  admin,
   coarsePointer,
   reducedMotion,
   paused: () => portrait || document.visibilityState === 'hidden' || ctx.menuPaused || contextLost,
@@ -660,6 +731,7 @@ const game: Phaser.Game = new Phaser.Game({
     new RunScene(ctx),
     new ChallengeScene(ctx),
     new PrivacyScene(ctx),
+    new AdminScene(ctx),
   ],
 });
 
