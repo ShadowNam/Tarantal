@@ -59,7 +59,8 @@ const uid = (x: Ctx, p: string): string => `${p}${x.next++}`;
  * are not plain colours).
  */
 function inked(d: string, fill: string, ink: string, width: number): string {
-  const edge = fill.startsWith('#') ? mixHex(fill, '#000000', 0.38) : ink;
+  // A gentle darkening: on dark materials (wood shadow, steel shadow) a strong one reads black.
+  const edge = fill.startsWith('#') ? mixHex(fill, '#000000', 0.22) : ink;
   return el('path', {
     d,
     fill,
@@ -162,7 +163,8 @@ function shaded(
     el('path', {
       d,
       fill: 'none',
-      stroke: mixHex(shadow, '#000000', 0.25),
+      // The part's own material, a shade darker (not its shadow tone, which is near black).
+      stroke: mixHex(mixHex(fill, shadow, 0.5), '#000000', 0.15),
       'stroke-width': 1.4,
       'stroke-linejoin': 'round',
     }),
@@ -534,7 +536,7 @@ function smoke(x: Ctx, cx: number, cy: number, size: number, alpha: number, seed
   const d = circles.join('');
   return g(
     { opacity: alpha },
-    el('path', { d, fill: 'none', stroke: x.ink, 'stroke-width': x.inner * 1.6 }),
+    el('path', { d, fill: 'none', stroke: x.c('smokeShadow'), 'stroke-width': x.inner * 1.6 }),
     el('path', { d, fill: x.c('smoke') }),
     el('path', {
       d: ellipseD(cx + 5 * size, cy + 6 * size, 10 * size, 6 * size),
@@ -991,7 +993,7 @@ function windbuks(x: Ctx, puff: number): string {
         el('path', {
           d: ellipseD(0, MUZZLE_Y - 14 - puff * 26, 8 + puff * 16, 4 + puff * 7),
           fill: 'none',
-          stroke: x.ink,
+          stroke: x.c('smokeShadow'),
           'stroke-width': x.inner * 1.8,
         }),
         el('path', {
@@ -1497,7 +1499,11 @@ function mielieMasjien(x: Ctx, s: { crank: number; kernels: number }): string {
   ];
   out.push(wood(x, crate, 103, true, 0.15));
   out.push(
-    el('path', { d: 'M-70 -220L70 -220M-72 -170L72 -170', stroke: x.ink, 'stroke-width': x.inner }),
+    el('path', {
+      d: 'M-70 -220L70 -220M-72 -170L72 -170',
+      stroke: x.c('lightWoodShadow'),
+      'stroke-width': x.inner,
+    }),
   );
   out.push(
     el('path', {
@@ -1544,7 +1550,7 @@ function mielieMasjien(x: Ctx, s: { crank: number; kernels: number }): string {
   out.push(
     el('path', {
       d: `M${axle[0]} ${axle[1]}L${r2(knob[0])} ${r2(knob[1])}`,
-      stroke: x.ink,
+      stroke: x.c('steelShadow'),
       'stroke-width': 10 + x.L,
       'stroke-linecap': 'round',
     }),
@@ -1729,7 +1735,7 @@ function flashFrames(id: GunId, n: number): Frame[] {
             el('path', {
               d: ellipseD(0, 0, 20 + k * 14, 9 + k * 6),
               fill: 'none',
-              stroke: x.ink,
+              stroke: x.c('smokeShadow'),
               'stroke-width': x.inner * 1.6,
             }),
             el('path', {
@@ -1741,7 +1747,7 @@ function flashFrames(id: GunId, n: number): Frame[] {
             el('path', {
               d: 'M-4 -6l4 -22l4 22z',
               fill: x.c('smoke'),
-              stroke: x.ink,
+              stroke: x.c('smokeShadow'),
               'stroke-width': x.inner * 0.6,
             }),
           ),
@@ -1756,7 +1762,7 @@ function flashFrames(id: GunId, n: number): Frame[] {
             el('path', {
               d: `M-40 ${10 - k * 10}q40 -30 80 0M-28 ${30 - k * 10}q28 -20 56 0`,
               fill: 'none',
-              stroke: x.ink,
+              stroke: x.c('smokeShadow'),
               'stroke-width': x.inner * 2.2,
               'stroke-linecap': 'round',
             }),

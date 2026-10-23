@@ -3594,14 +3594,14 @@
         "pages": [
           {
             "image": {
-              "path": "assets/common/guns/gun-dubbelloop@1x-0.2e33265cf7d6.png",
-              "bytes": 269753,
-              "hash": "2e33265cf7d6"
+              "path": "assets/common/guns/gun-dubbelloop@1x-0.cb753c6f66cd.png",
+              "bytes": 272794,
+              "hash": "cb753c6f66cd"
             },
             "data": {
-              "path": "assets/common/guns/gun-dubbelloop@1x-0.f68e379e8b6a.json",
+              "path": "assets/common/guns/gun-dubbelloop@1x-0.c1e7a9670e79.json",
               "bytes": 3238,
-              "hash": "f68e379e8b6a"
+              "hash": "c1e7a9670e79"
             }
           }
         ]
@@ -3661,14 +3661,14 @@
         "pages": [
           {
             "image": {
-              "path": "assets/late/guns/gun-kettie@1x-0.1fe04094e42d.png",
-              "bytes": 42563,
-              "hash": "1fe04094e42d"
+              "path": "assets/late/guns/gun-kettie@1x-0.e84f3b3f85f0.png",
+              "bytes": 42088,
+              "hash": "e84f3b3f85f0"
             },
             "data": {
-              "path": "assets/late/guns/gun-kettie@1x-0.0a662b3df7f1.json",
+              "path": "assets/late/guns/gun-kettie@1x-0.a3e1481732b6.json",
               "bytes": 1464,
-              "hash": "0a662b3df7f1"
+              "hash": "a3e1481732b6"
             }
           }
         ]
@@ -3713,14 +3713,14 @@
         "pages": [
           {
             "image": {
-              "path": "assets/late/guns/gun-mielie_masjien@1x-0.da29187d4a03.png",
-              "bytes": 104602,
-              "hash": "da29187d4a03"
+              "path": "assets/late/guns/gun-mielie_masjien@1x-0.1b5df399d007.png",
+              "bytes": 104758,
+              "hash": "1b5df399d007"
             },
             "data": {
-              "path": "assets/late/guns/gun-mielie_masjien@1x-0.204912494f9e.json",
+              "path": "assets/late/guns/gun-mielie_masjien@1x-0.93a66d9e2814.json",
               "bytes": 1492,
-              "hash": "204912494f9e"
+              "hash": "93a66d9e2814"
             }
           }
         ]
@@ -3765,14 +3765,14 @@
         "pages": [
           {
             "image": {
-              "path": "assets/late/guns/gun-pomp@1x-0.bd4307103b1b.png",
-              "bytes": 179958,
-              "hash": "bd4307103b1b"
+              "path": "assets/late/guns/gun-pomp@1x-0.c1f937f3366a.png",
+              "bytes": 176308,
+              "hash": "c1f937f3366a"
             },
             "data": {
-              "path": "assets/late/guns/gun-pomp@1x-0.cf92e34d8445.json",
+              "path": "assets/late/guns/gun-pomp@1x-0.d99329f4b806.json",
               "bytes": 2460,
-              "hash": "cf92e34d8445"
+              "hash": "d99329f4b806"
             }
           }
         ]
@@ -3829,14 +3829,14 @@
         "pages": [
           {
             "image": {
-              "path": "assets/late/guns/gun-voorlaaier@1x-0.0fd7839d5861.png",
-              "bytes": 220956,
-              "hash": "0fd7839d5861"
+              "path": "assets/late/guns/gun-voorlaaier@1x-0.2485ce26acff.png",
+              "bytes": 219577,
+              "hash": "2485ce26acff"
             },
             "data": {
-              "path": "assets/late/guns/gun-voorlaaier@1x-0.7c4854f79a59.json",
+              "path": "assets/late/guns/gun-voorlaaier@1x-0.3100d53832b7.json",
               "bytes": 3043,
-              "hash": "7c4854f79a59"
+              "hash": "3100d53832b7"
             }
           }
         ]
@@ -3896,14 +3896,14 @@
         "pages": [
           {
             "image": {
-              "path": "assets/late/guns/gun-windbuks@1x-0.c2a254a0ac22.png",
-              "bytes": 57114,
-              "hash": "c2a254a0ac22"
+              "path": "assets/late/guns/gun-windbuks@1x-0.c9ebe151e926.png",
+              "bytes": 59918,
+              "hash": "c9ebe151e926"
             },
             "data": {
-              "path": "assets/late/guns/gun-windbuks@1x-0.a2c15cd961bc.json",
+              "path": "assets/late/guns/gun-windbuks@1x-0.a4f1a73cfbf5.json",
               "bytes": 1273,
-              "hash": "a2c15cd961bc"
+              "hash": "a4f1a73cfbf5"
             }
           }
         ]
