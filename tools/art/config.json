@@ -54,9 +54,9 @@
     "puff": "#F4F1E8",
     "puffShadow": "#D9D2C2",
     "base": {
-      "plumage": "#363B4A",
-      "shadow": "#22252F",
-      "highlight": "#545B6E",
+      "plumage": "#2C303C",
+      "shadow": "#1D2029",
+      "highlight": "#4A5060",
       "dots": "#F4F1E8",
       "face": "#2F7DE1",
       "faceHi": "#6FB3FF",

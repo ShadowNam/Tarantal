@@ -1,6 +1,6 @@
 # Tarantal Madness — Art & Audio Bible
 
-Status: v1.0 baseline · 19 Oct 2026
+Status: v1.0 baseline · 19 Oct 2026 · amended 23 Oct 2026 (§1.1 semi-realistic pass, D-035)
 
 ## 1. Locked art direction: "Inked Bosveld Comic"
 
@@ -20,6 +20,33 @@ it reads clearly at speed, it suits slapstick, and it differentiates from Moorhu
    to tell tarentaal vs kwêvoël vs hadeda by silhouette alone (not colour) — accessibility rule.
 7. No real brands or logos anywhere (fictional windpomp vane, fictional bakkie badge), no text baked
    into backgrounds (all text is UI/i18n), no fake signatures or margin scribbles.
+
+### 1.1 Semi-realistic characters, guns, vehicles and mountains (D-035, 23 Oct 2026)
+The product owner, after playtesting: guns and birds "look too cartoony", "the car detail needs to
+be better", "the mountains can't all be flat". From graphics pass 3 on, **guns, birds, vehicles and
+mountains move from cartoon toward semi-realistic**; UI, FX, onomatopoeia and the slapstick tone
+stay comic. Rules that replace or refine §1 for those four:
+1. **Realistic proportions and materials.** The guineafowl has a small bare head on a slim neck,
+   the bony casque, blue-and-red facial skin and wattles, a round slate-grey body; guns have the
+   real parts of their type (splinter fore-end, grooved pump slide, slotted screws, sling swivels,
+   checkered wrists); the bakkie is a believable old single-cab pickup.
+2. **Painterly shading:** a lit side (upper left), a shadow side and reflected light as soft
+   gradients, plus material texture: blued or worn steel with a specular line and bright edge wear,
+   wood grain with figure, feather edges, rock cracks and strata. No hard flat fill + single
+   highlight blob.
+3. **Thinner, softer outlines:** guns 0.42 × the near weight; birds 0.55 (near), 0.65 (mid), 0.85
+   (far) × the plane weight; outlines lean toward the object's own shadow colour instead of the
+   warm black. Rule 4's *ratio* between planes stays.
+4. **Readability is not negotiable (rule 5):** the guineafowl stays the darkest, coolest shape in
+   the sky (plumage `#2C303C`, median fly-over contrast at or above v1.2's, `tools/sky-contrast.ts`),
+   the far plane keeps a few large spots and a thicker outline so flocks read as guineafowl, and the
+   head hitbox is unchanged (the drawn head is smaller inside it).
+5. **Mountains vary** (no flat-topped row, no repeating stamp): granite inselbergs (Spitzkoppe),
+   dark massifs with ravines (Brandberg), jagged strata ridges, pointed koppies with scree, boulder
+   heaps, and Karoo mesas where they fit, with aerial perspective on the back rows
+   (`tools/art/mountains.ts`).
+6. **Same budgets:** more detail comes from better drawing at the same texture sizes; download
+   growth is measured per pass (D-035).
 
 ## 2. Review of the existing concept art (project files)
 
@@ -42,22 +69,26 @@ reworked), with source files (PSD/Krita/Spine) kept as evidence of authorship.
 ## 3. Characters
 
 ### 3.1 Die Tarentaal (hero target)
-- **Shape:** round "bowling-ball with a tail" body, small head on a stretchy neck, bony **casque** on
-  top (exaggerated, slightly bent), cobalt-blue bare face, red wattles, huge white eyes with small
-  pupils (panic reads instantly), short sturdy legs that blur when running.
-- **Plumage:** slate blue-black with a dense field of small white dots; dots simplify to a few
-  larger dots at far plane (a dot texture that stays legible when scaled to 0.22).
+- **Shape (D-035, semi-realistic):** round body with a hunched back and drooping tail, a **small
+  bare head** on a slim neck (drawn at 0.66 × the head hitbox radius), the bony **casque** with
+  growth ridges, cobalt-blue bare face with **red skin at the back of the head**, red wattles, a
+  short horn-coloured bill, a realistic eye (dark brown iris, small pupil; it opens wider when
+  alarmed), slim scaled legs that blur when running.
+- **Plumage:** dark slate grey covered in fine white spots (finer and denser at near and mid,
+  feather edges at near), pale bars on the wing and flight feathers, a finely barred collar; at
+  the far plane the spots simplify to a few larger dots so the flock stays legible at 0.22.
 - **Personality beats:** dignified forager → frozen alert ("…") → total panic sprint → explosive
   clumsy take-off → dazed POOF with swirl eyes and stars.
 
 | Part | Hex |
 |---|---|
-| Plumage base / shadow | `#2E2F45` / `#1F2033` |
+| Plumage base / shadow / highlight | `#2C303C` / `#1D2029` / `#4A5060` (D-035; was `#2E2F45` / `#1F2033`) |
 | Dots | `#F4F1E8` |
 | Face skin / highlight | `#2F7DE1` / `#6FB3FF` |
 | Wattles | `#D7263D` |
-| Casque | `#C68B59` (bone highlight `#E2C08F`) |
-| Beak | `#E9A23B` |
+| Casque | `#C49A6C` (bone highlight `#E6C9A0`) |
+| Beak (horn) | `#C98F4E` |
+| Iris | `#4A2A18` |
 | Legs | `#6B5B4B` |
 | Ink | `#1B1410` |
 
