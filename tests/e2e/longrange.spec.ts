@@ -252,6 +252,9 @@ test.describe('long range (v1.3)', () => {
     const touch = isTouchProject(info);
     await rifleSave(page, 'scope_small', 'medium');
     await boot(page, `seed=42&today=${TODAY}&bonus=nogVerder&huntSeconds=60`);
+    // Like the perf smoke (perf.spec): our frame cost at 4× CPU throttle.
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
     await startHunt(page, touch);
     const at = await verFlock(page);
     const measure = async (): Promise<{
@@ -273,8 +276,10 @@ test.describe('long range (v1.3)', () => {
     });
     const scoped = await measure();
     await release(page);
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
     const report = {
       project: info.project.name,
+      throttle: 4,
       tier: (await hook(page)).quality.tier,
       unscoped: { cpuMs: open.cpu, realMs: open.real },
       scoped: { cpuMs: scoped.cpu, realMs: scoped.real },
