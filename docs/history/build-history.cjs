@@ -187,7 +187,7 @@ const titlePage = [
     spacing: { after: 480 },
     children: [new TextRun({ text: meta.tagline, size: 24, italics: true, color: C.grey })],
   }),
-  ...figure('evo-5-v12', 'The game on 23 October 2026: a Karoo hunt on a weekday map.'),
+  ...figure('evo-6-gfx3', 'The game on 23 October 2026, after graphics pass 3: a Karoo hunt.'),
   new Paragraph({
     alignment: AlignmentType.CENTER,
     spacing: { before: 480 },
