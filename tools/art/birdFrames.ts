@@ -21,14 +21,29 @@ export function birdShape(content: ContentBundle, creature: string): BirdShape {
   };
 }
 
+/** D-035: the outline colour for a bird whose darkest plumage tone is `shadow`. */
+export function softInk(cfg: ArtConfig, shadow: string): string {
+  const p = (h: string, k: number): number => parseInt(h.slice(k, k + 2), 16);
+  const t = cfg.birds.softInk;
+  return `#${[1, 3, 5]
+    .map((k) =>
+      Math.round(p(cfg.ink, k) + (p(shadow, k) - p(cfg.ink, k)) * t)
+        .toString(16)
+        .padStart(2, '0'),
+    )
+    .join('')}`;
+}
+
 export function planeLook(cfg: ArtConfig, content: ContentBundle, plane: PlaneId): Look {
   const p = content.scoring.planes[plane];
-  const line = p.lineWeightPx / p.scale;
+  // D-035: thinner outlines than the plane's comic line weight.
+  const line = (p.lineWeightPx / p.scale) * cfg.birds.outline[plane];
   return {
     line,
     inner: line * cfg.birds.innerLine,
     dotR: cfg.birds.dots[plane].r,
     dotSpacing: cfg.birds.dots[plane].spacing,
+    scallops: plane === 'near',
   };
 }
 
@@ -59,14 +74,16 @@ export function birdFrameSvg(
   const wob = cfg.birds.wobble[plane];
   let seed = 7;
   for (let k = 0; k < creature.length; k++) seed = (seed * 31 + creature.charCodeAt(k)) % 9973;
+  const pal = paletteFor(cfg, creature);
   const body = drawBird({
     pose,
     look: planeLook(cfg, content, plane),
-    pal: paletteFor(cfg, creature),
+    pal,
     parts: v.parts,
     dotScale: v.dotScale ?? 1,
     shape: birdShape(content, creature),
-    cfg,
+    // D-035: soft ink, leaning toward the bird's own shadow colour.
+    cfg: { ...cfg, ink: softInk(cfg, pal.shadow) },
     seed,
     frame,
     id: 'b',

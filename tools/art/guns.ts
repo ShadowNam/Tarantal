@@ -351,22 +351,13 @@ function metal(
     (tr[0] + br[0]) / 2,
     (tr[1] + br[1]) / 2,
   ];
-  // Fine brushing along the length, a crisp specular line, bright wear on the lit edge.
-  const rnd = prng(seed * 7 + 1);
-  let brush = '';
-  for (let k = 0; k < 6; k++) {
-    const t = 0.1 + rnd() * 0.8;
-    const a: Pt = [tl[0] + (tr[0] - tl[0]) * t, tl[1] + (tr[1] - tl[1]) * t];
-    const b: Pt = [bl[0] + (br[0] - bl[0]) * t, bl[1] + (br[1] - bl[1]) * t];
-    brush += `M${r2(a[0])} ${r2(a[1])}L${r2(b[0])} ${r2(b[1])}`;
-  }
+  // A crisp specular line and bright wear on the lit edge.
   const spec = (t: number): string => {
     const a: Pt = [tl[0] + (tr[0] - tl[0]) * t, tl[1] + (tr[1] - tl[1]) * t];
     const b: Pt = [bl[0] + (br[0] - bl[0]) * t, bl[1] + (br[1] - bl[1]) * t];
     return `M${r2(a[0])} ${r2(a[1] + 3)}L${r2(b[0])} ${r2(b[1] - 3)}`;
   };
   const detail =
-    el('path', { d: brush, stroke: x.c(`${kind}Hi`), 'stroke-width': 0.6, opacity: 0.25 }) +
     el('path', {
       d: spec(0.17),
       stroke: '#FFFFFF',
@@ -426,7 +417,7 @@ function wood(x: Ctx, pts: readonly Pt[], seed: number, light = false, smooth = 
     x.c(light ? 'lightWoodHi' : 'woodHi'),
     shadowD,
     hiD,
-    grain(x, x0, y0, x1, y1, seed, Math.max(6, Math.round(w / 9))),
+    grain(x, x0, y0, x1, y1, seed, Math.max(5, Math.round(w / 13))),
     [x0, (y0 + y1) / 2, x1, (y0 + y1) / 2],
   );
 }

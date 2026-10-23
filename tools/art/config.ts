@@ -93,6 +93,18 @@ const configSchema = z.object({
     /** Inner detail lines as a fraction of the plane's ink weight. */
     innerLine: z.number().positive().max(1),
     eyeWhite: hex,
+    /** D-035: the guineafowl's dark brown iris. */
+    iris: hex,
+    /** D-035: outline width × the plane's line weight (thinner, softer), and how far the ink
+     *  leans toward each bird's own shadow colour (0 = warm black). */
+    outline: z.object({
+      near: z.number().positive().max(1),
+      mid: z.number().positive().max(1),
+      far: z.number().positive().max(1),
+    }),
+    softInk: z.number().min(0).max(1),
+    /** D-035: drawn head radius × the head hitbox radius (smaller than the comic head). */
+    headScale: z.number().positive().max(1),
     star: hex,
     puff: hex,
     puffShadow: hex,

@@ -335,7 +335,7 @@ export function mountain(rnd: Rnd, m: Mountain, c: RockColours, pen: Pen, horizo
   }
   // Cracks and grit everywhere (fewer with distance).
   const cracks: string[] = [];
-  const nCracks = Math.round(((w * h) / 2200) * detail);
+  const nCracks = Math.round(((w * h) / 4400) * detail);
   for (let k = 0; k < nCracks; k++) {
     const cx = x + w * (0.08 + rnd() * 0.84);
     const top = topAt(pts, cx);
@@ -347,7 +347,7 @@ export function mountain(rnd: Rnd, m: Mountain, c: RockColours, pen: Pen, horizo
   // Painterly dapples: soft patches of lit and shadowed rock.
   const dLit: string[] = [];
   const dDark: string[] = [];
-  for (let k = 0; k < Math.round((w / 30) * detail) + 2; k++) {
+  for (let k = 0; k < Math.round((w / 60) * detail) + 1; k++) {
     const cx = x + w * (0.1 + rnd() * 0.8);
     const top = topAt(pts, cx);
     const cy = top + (base - top) * (0.15 + rnd() * 0.6);

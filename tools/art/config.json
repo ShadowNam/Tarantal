@@ -10,23 +10,23 @@
     "wobble": {
       "$comment": "Hand-drawn line wobble: turbulence frequency (per bird unit) and displacement (bird units) per plane; 0 = off.",
       "frequency": 0.03,
-      "near": 3,
-      "mid": 4,
+      "near": 1.2,
+      "mid": 1.6,
       "far": 0
     },
     "dots": {
-      "$comment": "White dot field (bible §3.1): radius and spacing in bird units per plane. Review 2: fewer, crisper dots (≥ ~2 screen px at every plane) so the body stays dark slate-navy and doesn't blur to grey; the far plane gets the fewest, largest dots.",
+      "$comment": "White dot field (bible §3.1): radius and spacing in bird units per plane. Review 2: fewer, crisper dots (≥ ~2 screen px at every plane) so the body stays dark slate-navy and doesn't blur to grey; the far plane gets the fewest, largest dots. D-035: finer, denser spots at near and mid (semi-realistic); the far plane keeps a few large ones so flocks stay readable.",
       "near": {
-        "r": 4.2,
-        "spacing": 20
+        "r": 2.9,
+        "spacing": 13
       },
       "mid": {
-        "r": 5,
-        "spacing": 26
+        "r": 4.2,
+        "spacing": 21
       },
       "far": {
-        "r": 11,
-        "spacing": 40
+        "r": 10,
+        "spacing": 36
       }
     },
     "dotVariety": {
@@ -37,26 +37,34 @@
       "bellyThin": 0.55,
       "tailThin": 0.35
     },
-    "legWidth": 11,
+    "legWidth": 8,
     "faceLine": 1.35,
     "wattleScale": 1.35,
     "innerLine": 0.55,
     "eyeWhite": "#FBF8EF",
+    "iris": "#4A2A18",
+    "outline": {
+      "near": 0.55,
+      "mid": 0.65,
+      "far": 0.85
+    },
+    "softInk": 0.3,
+    "headScale": 0.66,
     "star": "#F2C94C",
     "puff": "#F4F1E8",
     "puffShadow": "#D9D2C2",
     "base": {
-      "plumage": "#2E2F45",
-      "shadow": "#1F2033",
-      "highlight": "#3A3C58",
+      "plumage": "#363B4A",
+      "shadow": "#22252F",
+      "highlight": "#545B6E",
       "dots": "#F4F1E8",
       "face": "#2F7DE1",
       "faceHi": "#6FB3FF",
       "wattle": "#D7263D",
       "wattleShadow": "#A31A2E",
-      "casque": "#C68B59",
-      "casqueHi": "#E2C08F",
-      "beak": "#E9A23B",
+      "casque": "#C49A6C",
+      "casqueHi": "#E6C9A0",
+      "beak": "#C98F4E",
       "legs": "#6B5B4B"
     },
     "variants": {
@@ -92,7 +100,7 @@
           "face": "#5D7FB8",
           "faceHi": "#8FAEDD"
         },
-        "dotScale": 0.75,
+        "dotScale": 0.85,
         "parts": ["crest", "eyeRing"]
       },
       "kuifkop_koning": {
@@ -104,7 +112,7 @@
           "face": "#5D7FB8",
           "faceHi": "#8FAEDD"
         },
-        "dotScale": 0.75,
+        "dotScale": 0.85,
         "parts": ["crest", "eyeRing", "crown"]
       },
       "generaal": {

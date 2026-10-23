@@ -43,6 +43,8 @@ export function tree(
   leaves: Tone,
   bark: string,
   pen: Pen,
+  /** 0 … 1: leaf-cluster flecks (distant, hazed tree lines need few; they cost bytes). */
+  detail = 1,
 ): string {
   const soft = softPen(pen, leaves.fill, 0.6);
   const trunkTop = kind === 'acacia' ? 0.62 : kind === 'bluegum' ? 0.55 : 0.42;
@@ -80,14 +82,14 @@ export function tree(
   const lobeD = lobes.map(([lx, ly, rx, ry]) => ellipseD(lx, ly, rx, ry)).join('');
   const id = nextId();
   const flecks: string[] = [];
-  for (let k = 0; k < n * 3; k++) {
+  for (let k = 0; k < Math.round(n * 3 * detail); k++) {
     const [lx, ly, rx, ry] = lobes[k % n] ?? [tx, cy, w * 0.2, h * 0.2];
     const fx = lx + (rnd() - 0.6) * rx * 1.2;
     const fy = ly + (rnd() - 0.7) * ry * 1.1;
     flecks.push(ellipseD(fx, fy, rx * 0.22, ry * 0.18));
   }
   const darkFlecks: string[] = [];
-  for (let k = 0; k < n * 2; k++) {
+  for (let k = 0; k < Math.round(n * 2 * detail); k++) {
     const [lx, ly, rx, ry] = lobes[(k * 3) % n] ?? [tx, cy, w * 0.2, h * 0.2];
     darkFlecks.push(
       ellipseD(lx + (rnd() - 0.3) * rx, ly + (rnd() - 0.2) * ry, rx * 0.2, ry * 0.14),

@@ -13,6 +13,7 @@ import {
   nextId,
   shade,
   tone,
+  treeBlob,
   tuft,
   yAt,
   type Pen,
@@ -258,13 +259,12 @@ function farRidge(ctx: LayerCtx): string {
   const horizon = ctx.raw('horizon');
   const backPen: Pen = { ink: mix(ctx.pen.ink, horizon, 0.35), w: 1.5 };
   // D-035: far beyond the flat delta, a few low quartzite hills in the haze (like the Tsodilo
-  // Hills at the panhandle): a long ridge, a knobbly koppie, wide gaps of open horizon.
+  // Hills at the panhandle): long low ridges, knobbly koppies, wide gaps of open horizon.
   const hills = mountainRow(
     ctx.rnd,
     [
       { kind: 'massif', w: 1.4 },
-      { kind: 'strata', w: 1 },
-      { kind: 'koppie', w: 1 },
+      { kind: 'koppie', w: 1.4 },
       { kind: 'boulders', w: 0.6 },
     ],
     {
@@ -274,7 +274,7 @@ function farRidge(ctx: LayerCtx): string {
       width: [300, 620],
       height: [100, 175],
       overlap: [-1.6, -0.6],
-      haze: 0.55,
+      haze: 0.62,
     },
   );
   parts.push(
@@ -283,9 +283,10 @@ function farRidge(ctx: LayerCtx): string {
   const backT = tone(mix(ctx.c('island'), horizon, 0.35), 0.15, 0.18);
   for (let x = -60; x < ctx.width; x += 30 + ctx.rnd() * 40)
     parts.push(
-      leafyTree(
+      // The hazed back tree line keeps the simple crown: detail there is lost in the haze and
+      // costs download bytes (D-035).
+      treeBlob(
         ctx.rnd,
-        'round',
         x,
         640,
         60 + ctx.rnd() * 40,
@@ -315,6 +316,7 @@ function farRidge(ctx: LayerCtx): string {
             t,
             ctx.c('trunk'),
             ctx.pen,
+            0.25,
           ),
         );
     }
