@@ -450,7 +450,7 @@
     "late_afternoon": {
       "tint": {
         "sky": "#FFF0E2",
-        "far_ridge": "#D8A890",
+        "far_ridge": "#ECC4AE",
         "far_veld": "#EAB894",
         "mid": "#F0C4A0",
         "near": "#F2CAA8",
@@ -466,8 +466,8 @@
     },
     "dusk": {
       "tint": {
-        "sky": "#FFE6EE",
-        "far_ridge": "#A890B0",
+        "sky": "#FFF0F4",
+        "far_ridge": "#E2D2E4",
         "far_veld": "#8C7890",
         "mid": "#9C8898",
         "near": "#A898A0",
@@ -476,8 +476,8 @@
       "haze": [
         {
           "layer": "far_ridge",
-          "color": "#9A82A8",
-          "alpha": 0.22
+          "color": "#C8B0D0",
+          "alpha": 0.1
         },
         {
           "layer": "far_veld",
