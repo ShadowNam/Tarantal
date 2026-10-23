@@ -7,7 +7,7 @@ const meta = {
   title: 'Tarantal Madness',
   subtitle: 'Development history',
   tagline: 'How the game came together, from the first commit to today',
-  updated: '23 October 2026, 15:30 UTC',
+  updated: '23 October 2026, 16:00 UTC',
   period: '19–23 October 2026',
 };
 
@@ -95,7 +95,7 @@ const stages = [
       'Forage, then alert, then run, then flush into the air; the flock reacts to shots and misses.',
       'Juice pass 2: hit feedback, feathers, score pops.',
     ],
-    images: [{ img: 'renders/m03-hunt', caption: 'M3: a foraging flock.' }],
+    images: [{ img: 'renders/m03-extra-shot', caption: 'M3: the first foraging flock, a moment after a shot: "POOF!" and score pops.' }],
   },
   {
     title: 'M4 — The Karoo',
@@ -107,7 +107,7 @@ const stages = [
       'Secrets to shoot: the windpomp, the spare wheel, the potjie, the fence bell.',
       'Events (a hadeda, a crop sprayer you must not hit) and the area’s omen.',
     ],
-    images: [{ img: 'renders/m04-hunt', caption: 'M4: the complete Karoo level.' }],
+    images: [{ img: 'renders/m04-extra-pan', caption: 'M4: panning right along the Karoo level shows the bakkie, an agave and a bottle to shoot.' }],
   },
   {
     title: 'M5 — Menus, saves and the tutorial',
@@ -118,10 +118,7 @@ const stages = [
       'Safe saving (works even when the browser blocks storage), the title screen, the Skiet-Skuur (gun shed), settings and pause.',
       'A first-time tutorial for new players.',
     ],
-    images: [
-      { img: 'renders/m05-title', caption: 'M5: the title screen.' },
-      { img: 'renders/m05-hunt', caption: 'M5: a hunt.' },
-    ],
+    images: [{ img: 'renders/m05-title', caption: 'M5: the first real title screen, with the Skiet-Skuur and Settings.' }],
   },
   {
     part: 'Game modes',
@@ -135,7 +132,10 @@ const stages = [
       'The Padstal (farm stall) between hunts to buy charms; save and resume a run.',
       'From 21 Oct every merge is playable on the GitHub Pages test build.',
     ],
-    images: [{ img: 'renders/m06-hunt', caption: 'M6: a hunt with the Season Run in place.' }],
+    images: [
+      { img: 'renders/m06-extra-season-intro', caption: 'M6: the card before a Season Run hunt: autumn, hunt 1 of 3, the bag quota.' },
+      { img: 'renders/m06-extra-season-padstal', caption: 'M6: the Padstal between hunts, with four charms on offer.' },
+    ],
   },
   {
     title: 'M7 — Daily Hunt',
@@ -146,7 +146,10 @@ const stages = [
       'The same seeded hunt for everyone each day, with a streak (and a streak freeze).',
       'A share card and challenge links ("beat this score").',
     ],
-    images: [{ img: 'renders/m07-title', caption: 'M7: the title with the Daily button.' }],
+    images: [
+      { img: 'renders/m07-title', caption: 'M7: the title gains the Daily button and Season Run.' },
+      { img: 'renders/m07-extra-daily', caption: 'M7: a Daily Hunt, with its tag and the wind sock.' },
+    ],
   },
   {
     part: 'Content and platform',
@@ -162,10 +165,9 @@ const stages = [
       'The Season Run now travels through all four real seasons.',
     ],
     images: [
-      { img: 'renders/m08-hunt', caption: 'M8: a hunt after the four areas landed.' },
-      { img: 'renders/m08-extra-bushveld', caption: 'M8: the Bushveld (placeholder art).' },
-      { img: 'renders/m08-extra-okavango', caption: 'M8: the Okavango (placeholder art).' },
-      { img: 'renders/m08-extra-kalahari', caption: 'M8: the Kalahari (placeholder art).' },
+      { img: 'renders/m08-hunt-bushveld-winter', caption: 'M8: winter in the Bushveld (placeholder art).' },
+      { img: 'renders/m08-hunt-okavango-spring', caption: 'M8: spring in the Okavango (placeholder art).' },
+      { img: 'renders/m08-hunt-kalahari-summer', caption: 'M8: summer in the Kalahari (placeholder art).' },
     ],
   },
   {
@@ -179,7 +181,7 @@ const stages = [
       'Accessibility checklist; German and Dutch translations; Afrikaans complete.',
       'Touch aim assist that rescues a near miss instead of widening every shot.',
     ],
-    images: [{ img: 'renders/m09-title', caption: 'M9: the title screen.' }],
+    images: [{ img: 'renders/m09-hunt', caption: 'M9: the quality tiers add a vignette and colour grade.' }],
   },
   {
     part: 'Version 1.0',
@@ -194,7 +196,7 @@ const stages = [
     ],
     images: [
       { img: 'title-v100', caption: 'v1.0.0: the title screen (visual test baseline).' },
-      { img: 'evo-1-v100', caption: 'v1.0.0: a hunt (visual test baseline).' },
+      { img: 'renders/m10-hunt-mobile', caption: 'v1.0.0 on an iPhone-sized screen.' },
     ],
   },
   {
@@ -286,6 +288,7 @@ const stages = [
     images: [
       { img: 'v11-dubbelloop', caption: 'Before | after: the Dubbelloop’s shells and crosshair.' },
       { img: 'v11-kettie', caption: 'Before | after: the Kettie’s stones and crosshair.' },
+      { img: 'renders/v11-hunt', caption: 'v1.1: the shotgun crosshair over the flock.' },
     ],
   },
   {
@@ -298,12 +301,15 @@ const stages = [
       'Classic and the Daily play today’s map; replays and challenge links remember it.',
       'Beat the day’s target to unlock Verder, a bonus map further out; it resets at midnight UTC.',
     ],
+    feedbackLabel: 'Look review before merging',
     feedback: [
       'Claude’s look review: make each weekday’s light clearly different (Monday haze, Tuesday clear midday, Wednesday overcast, Thursday golden afternoon, Friday dusty wind, Saturday dusk, Sunday bright); give Saturday a real dusk glow; vary the feeding spots. All done before merging.',
     ],
     images: [
+      { img: 'renders/v12-title', caption: 'v1.2: the title names today’s map and the score that unlocks Verder.' },
       { img: 'v12-sheet1', caption: 'The Karoo, Monday to Thursday.' },
       { img: 'v12-sheet2', caption: 'The Karoo, Friday to Sunday and Verder.' },
+      { img: 'renders/v12-hunt-bonus-verder', caption: 'Verder: the flock far out at the horizon, in haze.' },
     ],
   },
   {
@@ -320,7 +326,7 @@ const stages = [
       'Choose the gun, seed, hunt length and weather; Play; come back to rate it (OK or Needs work, 1–5 stars, notes).',
       '"Send to GitHub" opens a pre-filled feedback issue; "Copy report" copies it. Admin hunts never touch normal progress. Web test build only.',
     ],
-    images: [{ img: 'renders/admin-extra-admin', caption: 'The admin page.' }],
+    images: [{ img: 'renders/admin-extra-admin-list', caption: 'The admin page: every map grouped by area and day, with options, review, stars and notes.' }],
   },
   {
     title: 'Speed tests run alone',
@@ -338,14 +344,17 @@ const stages = [
       '"The farmhouse seems half cut, layers issue. Also the mountains can’t all be flat, look at mountains in Namibia and make them more interesting. The car detail needs to be better. And the detail on the guns needs a more realistic touch, they look too cartoony; the same applies for the birds. I see there is even a bird that has no texture at all." (23 Oct, about 11:40; spelling tidied)',
     ],
     bullets: [
-      'Round 1 (done 15:05): the farmhouse stands whole; every area has varied, Namibia-inspired hills (layered mesas, granite domes like Spitzkoppe, a massif like the Brandberg); a detailed old bakkie with no badge; finer guns and guineafowl; the bird with no texture was the kwêvöel (grey go-away-bird) and is now textured.',
-      'Round 2 (running): guns without cartoon outlines and with real wood grain and blued steel; a hump-backed, egg-shaped guineafowl with a softer edge; rounder, boulder-strewn koppies instead of cones.',
+      'Round 1 (done 15:05): the farmhouse stands whole; every area has varied, Namibia-inspired hills (layered mesas, granite domes like Spitzkoppe, a massif like the Brandberg); a detailed old bakkie with no badge; finer guns and guineafowl; the bird with no texture was the kwêvoël (grey go-away-bird) and is now textured.',
+      'Round 2 (done 15:36, after Claude’s review notes): guns without cartoon outlines, with fine wood grain, blued steel, a real stock shape and a slim pump slide; a hump-backed, egg-shaped guineafowl with a small head on a slim barred neck, a small eye, ringed spots and a soft edge; rounded, lopsided koppies instead of cones; Kalahari dunes with curved crests and slip faces.',
     ],
     images: [
       { img: 'gfx3-mountains', caption: 'Round 1, before | after: hills in the Karoo, Kalahari, Bushveld and Okavango, and the farmhouse.' },
       { img: 'gfx3-bakkie', caption: 'Round 1, before | after: the bakkie.' },
-      { img: 'gfx3-birds', caption: 'Round 1, before | after: guineafowl (near and middle distance), the kwêvöel and the hadeda.' },
-      { img: 'gfx3-guns', caption: 'Round 1, before | after: the Dubbelloop and the Pomp. Round 2 removes the dark outline and adds real wood and steel.', width: 380 },
+      { img: 'gfx3-birds', caption: 'Round 1, before | after: guineafowl (near and middle distance), the kwêvoël and the hadeda.' },
+      { img: 'gfx3-guns', caption: 'Round 1, before | after: the Dubbelloop and the Pomp.', width: 380 },
+      { img: 'gfx3-r2-guns', caption: 'v1.2 | round 1 | round 2: the Dubbelloop (top) and the Pomp (bottom).', width: 520 },
+      { img: 'gfx3-r2-birds', caption: 'v1.2 | round 1 | round 2: the guineafowl near (top) and at middle distance (bottom).' },
+      { img: 'gfx3-r2-ridges', caption: 'Round 2: rounded Karoo koppies (top) and Kalahari dunes with curved crests (bottom).' },
     ],
   },
 ];
@@ -356,7 +365,7 @@ const requests = [
   ['22 Oct', 'Realistic ammo per gun, sound effects, crosshairs per gun, a .22 with far targets, sights and zoom', 'Plan approved (#40); ammo, crosshairs and sound in v1.1; long range in v1.3 and v1.4'],
   ['22 Oct', 'Karoo look: fix the grass, bushes and sky', 'Done in graphics pass 2 (#41, #42)'],
   ['22 Oct, evening', '"Karoo approved … keep pushing, 24/7"', 'Claude checks in every 20 minutes, with an hourly backup check'],
-  ['23 Oct, 11:40', 'Farmhouse cut off, flat mountains, bakkie, guns and birds too cartoony, a bird with no texture', 'Graphics pass 3 (#49), round 2 running'],
+  ['23 Oct, 11:40', 'Farmhouse cut off, flat mountains, bakkie, guns and birds too cartoony, a bird with no texture', 'Graphics pass 3 (#49): rounds 1 and 2 done, being reviewed and merged'],
   ['23 Oct, 11:50', 'An admin URL to test every level and give feedback', 'Live at 13:32 (#48)'],
   ['23 Oct, 12:00', 'A document of what is built, what is not, estimates and who does what', 'The Build Status doc, updated at every change'],
   ['23 Oct, 15:05', 'A training ground to test different guns, near and far', 'Queued after v1.3'],
@@ -409,7 +418,7 @@ const glossary = [
   ['Bakkie', 'Pickup truck'],
   ['Koppie', 'Small rocky hill'],
   ['Verder', '"Further": the bonus map'],
-  ['Kwêvöel', 'Grey go-away-bird'],
+  ['Kwêvoël', 'Grey go-away-bird'],
   ['Generaal, Ou Grys, Kuifkop Koning, Die Stormvoël', 'Boss birds'],
 ];
 

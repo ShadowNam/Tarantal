@@ -271,7 +271,7 @@ for (const s of data.stages) {
   chapters.push(para(metaBits, { run: { size: 18, color: C.grey }, spacing: { after: 120 } }));
   if (s.intro) chapters.push(para(s.intro));
   if (s.feedback?.length) {
-    chapters.push(label('What the product owner asked for'));
+    chapters.push(label(s.feedbackLabel ?? 'What the product owner asked for'));
     chapters.push(...feedbackBlock(s.feedback));
   }
   if (s.bullets?.length) {
