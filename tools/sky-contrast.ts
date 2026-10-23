@@ -63,7 +63,7 @@ export function skyContrastRows(content = loadContent(), feel: Feel = loadFeel()
     const sky = skyBand(biome);
     const plain = medianSkyContrast(sky, [], BIRD);
     rows.push({ biome: biome.id, map: 'plain', contrast: plain, ratio: 1 });
-    const verder = biome.bonusMaps.find((b) => b.id === 'verder');
+    const verder = biome.bonusMaps[0];
     for (const day of WEEKDAY_IDS) {
       const layout = biome.layouts.find((l) => l.id === day);
       const c = medianSkyContrast(sky, lights([layout?.light]), BIRD);
