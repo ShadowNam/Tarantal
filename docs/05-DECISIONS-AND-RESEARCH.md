@@ -1686,6 +1686,50 @@ whole frames `gfx3-*-centre` / `gfx3-karoo-right`; sprite sheets `gfx3-creatures
 `gfx3-tarentaal-sprites.png`, `gfx3-fixed-bird-kwevoel.png`. Recorded with
 `tests/e2e/art-preview-gfx3.spec.ts` (on demand, `ART_PREVIEW=1 GFX3_VARIANT=before|after`).
 
+**D-036 v1.3 Long range: the Ver plane, sights and zoom, Die Twee-Twee (23 Oct 2026):** builds
+the v1.3 part of the approved proposal (docs/08, 22 Oct). Rules now in GDD §5.2, §10.6 (and §10.1,
+§11.5 with PR B) and Tech §3.3, §3.4, §3.10, §6.
+(1) *Ver plane:* `scoring.planes.ver` = scale 0.10, base 50, scroll factor 0.22 (between the far
+ridge 0.15 and the far veld 0.35, so its birds stand on a strip at the foot of the ridge, y
+552–566), aim assist 6 px, line weight 1. Each biome has a `ver_veld` layer and Ver lanes; a map
+shows them only with `ver: true` (`resolveMap` drops the layer otherwise), so every existing map,
+replay and challenge link is unchanged. The guineafowl and its two rare variants may stand on it.
+(2) *Reach:* `reachesVer` on a primary (rifles). Everything else falls short — the proposal says
+"shotgun pellets and slingshot stones"; the air rifle too ("cannot reach Ver"), and crate guns,
+by default. Implemented as "the Ver slice is not tested", not as a range limit, so props and
+secrets behind the far plane behave exactly as before.
+(3) *Hold to zoom, release to fire:* new commands `aimStart/aimMove/aimRelease/aimCancel/zoom`
+rather than reusing `fireHold*` (they mean hold-to-fire for crate guns and Chilli Biltong, and old
+replays must keep their meaning). The aim is in unzoomed screen px, so the zoom is a pure view and
+a zoomed shot is device-independent (Tech §3.3). A press and release in the same tick is a hip
+shot; a release during the bolt fires nothing (`aimEnded: blocked`) — defaulted: simplest and
+readable; a queued shot would fire later than the player let go. Raising is allowed during a
+reload; the release is then blocked.
+(4) *Sights (content `weapons.json → sights`):* iron 1.5×/0.15 s, peep 2×/0.2 s, small scope
+4×/0.3 s (the proposal's numbers); sway amplitudes 2.5 / 2 / 3.5 unzoomed px, loops of 2.6–3.2 s,
+breath hold after 0.5 s for 3 s at ×0.25 / ×0.2 / ×0.15, then growing to ×2.2–2.5 over 1.5 s
+(starting points; the balance sim decides with the Twee-Twee). Sway is drawn from its own stream
+`sway` (two numbers per raise), so aiming never changes another system's randomness (unit test:
+the same bird events with and without raising and cancelling the sight).
+(5) *Zoom view:* the world layers (and the world's screen effects) are scaled around the aim
+point; the gun, crosshair, sight picture and full-screen overlays are not. No second camera (the
+proposal allowed one): one transform per layer costs nothing at 60 fps. The centre clamp keeps
+the zoomed view inside the unzoomed screen, so layer culling and the 300 px bleed stay valid.
+(6) *Pictures and Ver art:* sight pictures are placeholders drawn on canvases (no download) and
+interim SVG art (tools/art/sights.ts, D-035 look: blued steel lit from the upper left, edges in a
+darker shade of the material, the rear sight and peep out of focus, coated glass with a
+reflection). Ver birds reuse the far atlas (the mid atlas once zoomed past the far frames' size)
+scaled to 0.10 with a haze tint — no new bird atlases. The Ver strips and sight pictures form a new
+lazy asset group `ver` that downloads in the background like `late` (279.6 KB gzip), so the first
+download (2 920.7 KB web) and the Okavango chunk (1 516.6 KB) don't grow. Low-tier layer merges
+never cross a plane layer (the far ridge stays behind Ver birds).
+(7) *Memory fix (before the feature):* gun atlases were never released, so the title after a hunt
+that showed both crate guns kept every rig. Leaving a hunt now drops every gun atlas but the
+equipped gun's; it re-uploads on demand. Low tier, Pixel 7: title 124.5 → 100.5 MB, Skiet-Skuur
+opened from it 125.0 → 101.0 MB (`tests/e2e/memory.spec.ts`, < 128 MB).
+(8) *Golden replays:* re-recorded with content hash and log v5 only; all 31 event hashes, event
+counts and scores are unchanged (no current map opens Ver and no current gun has a sight).
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
