@@ -156,7 +156,8 @@ jobs:
           echo "pushed=true" >> "$GITHUB_OUTPUT"
           { echo "Re-recorded and pushed to \`$BRANCH\`:"; echo "$changed" | sed 's/^/- /'; } >> "$GITHUB_STEP_SUMMARY"
       # A push made with the workflow's token starts no workflows (a GitHub rule), so start the
-      # quick lane on the new commit by hand.
+      # quick lane on the new commit by hand. GitHub may also list a pull_request CI run "awaiting
+      # approval" for the bot's push: ignore it, this dispatched run is the real one.
       - name: Run CI on the new commit
         if: steps.c.outputs.pushed == 'true'
         env:

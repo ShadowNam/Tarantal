@@ -1297,7 +1297,9 @@ heaviest memory step on the build server, which ran out of memory twice in graph
 `mcr.microsoft.com/playwright` image as the e2e jobs, one job per baseline profile, with
 `--update-snapshots=changed` (only screens past the tolerance, or with no baseline yet, are
 written). It commits them to the PR branch as `github-actions[bot]` and starts the quick lane on
-that commit, because a push made with the workflow token starts no workflows. Start it by
+that commit, because a push made with the workflow token starts no workflows (GitHub may list a
+CI run "awaiting approval" for the bot's push; ignore it, the started quick lane is the real
+one). Start it by
 labelling the PR `update-baselines` (the label is removed when the run ends) or by hand with the
 branch name; it refuses `main` and stops if the branch moved while it recorded. Agents say in the
 PR which screens changed on purpose and pull before their next push; the reviewer checks the image
