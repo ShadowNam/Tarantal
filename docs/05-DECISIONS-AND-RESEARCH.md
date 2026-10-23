@@ -1501,6 +1501,50 @@ left-handed mode); the crosshair ring follows the active power-ups' spread multi
 Buckshot ×2.5), exactly as the sim fires; infinite ammo (Chilli Biltong) shows a full belt and no
 RELOAD prompt; aiming keeps a crosshair style's opacity.
 
+**D-033 v1.2 Day-of-week maps and bonus map Verder (23 Oct 2026):** the second step of the
+approved plan (`08-PROPOSAL-LONG-RANGE-AND-DAILY-MAPS.md`); rules in GDD §11.5, Tech §3.10–3.11
+(InputLog v4, maps), §11 (`bonusMaps` save) and §12 (link fields). Two PRs (D-030):
+`v1.2-weekday-maps` (content, sim, replay v4, links, light), `v1.2-verder` on it (unlock, reset,
+best, title, tuning, reports, previews). Interpretations:
+(1) *A map is the biome plus overrides.* Layouts and the bonus map are data in each biome file
+(`layouts`, exactly mon..sun; `bonusMaps`), resolved by one pure function (`src/sim/maps.ts`) so
+the sim, the views and the tools agree. Biome files keep `version: 1`: the fields are additive,
+every content file ships with the build and there is no older content to migrate.
+(2) *Old replays and links keep their map.* No layout = the plain biome. InputLog v4 appends the
+map after the mode block; v1–v3 logs decode without one. Challenge links get optional `l`/`b`
+(still `v: 1`); a link without them plays the plain biome. All 26 pre-v1.2 golden replays kept
+their event hashes and scores when the content changed; 5 map cases were added
+(Karoo thu/fri/sat, mon+Verder, a Bushveld wed Daily).
+(3) *Who plays a layout:* Classic and the Daily (the brief). The Season Run and the FTUE play the
+plain biome so their quotas, bosses and the lesson stay as tuned.
+(4) *Weather:* a layout says `calm`, `default` or `omen`. Calm beats the Daily's omen-on default
+(D-021) — "still air" on Monday is for everyone; an explicit `mode.omen` (e2e/dev) still wins.
+(5) *Feeding spots* only steer where new flocks spawn after the warm-up, and only when the spot is
+out of view (a flock never pops into sight); otherwise the old placement runs. *Routes* are lane
+weights, sky bands and an optional fixed direction (the coin is still drawn).
+(6) *Dusk "worth more"* is a base-points multiplier (×1.15 after tuning), applied before the
+pipeline so the breakdown and charms are unchanged.
+(7) *Light without textures:* multiply tints per layer and flat haze rectangles under each
+plane's birds; presets live in the client feel file (outside `contentHash`). First review found
+the dusk sky too dark for fly-overs (screenshot median plumage:sky contrast 1.39 vs 3.22 plain):
+sky tints are now near-white and the dusk glow sits on the ridge and ground layers.
+`tools/sky-contrast.ts` (and its test) keep every map ≥ 80 % of its plain sky's contrast; the
+preview spec checks the same on screenshots (Karoo: Sat 2.66, Fri 2.91, others ≥ 3.0).
+(8) *The quota that unlocks Verder* is the biome's Season Run plain-hunt quota (`run.json`
+`quotas[huntPattern.indexOf('plain')]`, Karoo 1 950), the "same number the Season Run uses".
+Classic and Daily hunts (practice too) on **today's** layout count; a challenge to another day's
+map doesn't. The unlock is for the UTC day the hunt started and is dropped if the hunt ends after
+midnight. Capture mode and `?e2e` on a public build unlock nothing (unranked).
+(9) *Verder is harder, as the proposal says, not just further.* As first written (mid + far
+flocks) bots scored +28 % (far birds pay 25). Tuned to one far flock, fly-overs mid 1 : far 3 and
+×0.8, pop-ups ×0.35, base points ×0.8: competent mean −5 … −26 % vs the plain biome, plinker
+quota pass 0–35 % (plain 13–75 %). Its own best lives in `bonusMaps.bests`; it never moves the
+Classic best but counts for rank titles. A Verder challenge link plays without the unlock.
+(10) *Budgets:* initial download +5.8 KB gzip (2 658.3 → 2 664.1 KB web; Poki/CrazyGames
+2 660.2/2 660.3 KB), lazy chunks unchanged (Okavango 1 463.1 KB), low-tier texture memory per
+biome identical to v1.1 (no new textures; the Season Run plays no layout, so its 126.9 MB peak
+is unchanged by construction).
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

@@ -335,10 +335,27 @@ cursor, unlock flags) is serialisable and saved after every Padstal so a closed 
 ### 3.10 Replays
 `InputLog = { v, seed, contentHash, mode, inputKind, aimAssist?, commands: [tickDelta, command][] }`
 (v2 since M5: an aim-assist byte follows the input kind; v1 logs still decode as `standard`; v3 since M6:
-a flag bit adds the Season Run block and `charmOrder` is a command), delta + varint encoded,
+a flag bit adds the Season Run block and `charmOrder` is a command; v4 since v1.2: the map — layout
+and bonus map ids, empty = none — follows the mode block, and a v1–v3 log decodes with none, so it
+replays on the plain biome it was played on), delta + varint encoded,
 then base64url'd (`src/sim/replay/inputLog.ts`). Deflate is applied outside the sim, at the
 share/challenge-link boundary (M7), because it needs async platform APIs (D-018). Used for: golden tests, bug reports (attach log), ghost replays, and
 (v1.x) server-side leaderboard validation by re-simulating in Node.
+
+### 3.11 Maps: weekday layouts and bonus maps (v1.2, D-033)
+`ModeConfig.layout` ('mon' … 'sun') and `ModeConfig.bonus` ('verder', needs a layout) are part of
+the hunt setup and of the replay (InputLog v4); only Classic and Daily may carry them.
+`src/sim/maps.ts → resolveMap(biome, layout, bonus)` is pure: it applies the layout, then the bonus
+map, to a copy of the biome (props moved, lanes merged, keyframe rates multiplied and flock targets
+replaced, wind strength multiplied, the twist's run share, `feedingSpots`, `flyovers`) and returns
+the map's weather (`calm | default | omen`; an explicit `mode.omen` still wins) and points
+multiplier (applied to a bird's base points, rounded). The rest of the sim reads only the resolved
+biome. The spawn director draws feeding-spot placement from the `flocks` stream and only when the
+map has spots; a fixed fly-over direction still draws the coin, so the `spawns` sequence is
+unchanged. No layout = the biome as it is: every pre-v1.2 golden replay kept its event hash. The
+weekday is chosen in the game layer (`src/meta/maps.ts → layoutForDay(utcDay)`), never in the
+sim. Light presets live in the client file `feel.json` (outside `contentHash`); `ParallaxView
+.applyLight` tints each layer's static art and adds haze rectangles under its fixtures and birds.
 
 ## 4. Content system (`content/`, `src/content/`)
 
@@ -581,6 +598,10 @@ It runs on frame time, not hunt time (a freeze doesn't hold it), at most `hintMa
   `notices`, `loadout`, `unlocks`, `notaboek` (progress + done), `birdBook` (creatures, secrets as
   `biome/propId`), `bests` per biome (Classic), `bestRank`, `stats`, and (M6) `run` — the Season
   Run in progress (`RunState`, null when none) — and `runStats` (started, won, best hunts cleared).
+  v1.2 adds `bonusMaps` (defaults, no migration): `day` (UTC day of the unlocks), `unlocked`
+  (`biome/bonus` keys, valid only on `day`: they reset at UTC midnight) and `bests`
+  (`biome/bonus` → score, rank); rules in `src/meta/bonusMaps.ts` (GDD §11.5). A bonus-map hunt
+  never moves the Classic `bests`.
   M7 adds `daily` (a new section needs no migration: it defaults): `streak`, `bestStreak`,
   `bestScore`, `lastDay` (UTC day number of the last official attempt), `freezesUsed` (ISO weeks),
   `cosmetics` (streak milestones) and `history` (recent official attempts: day, score or null if
@@ -616,7 +637,9 @@ It runs on frame time, not hunt time (a freeze doesn't hold it), at most `hintMa
   and change no streak, share card, daily best, Classic best or rank. Streak/freeze rules: GDD §15.
 - Share text is built locally (no server, `src/meta/share.ts`) in the player's language and sent
   through `PlatformAdapter.share` (§8): share sheet with text and link apart, else the clipboard.
-- Challenge URL: `/?c=<base64url(JSON {v, seed, mode, biome, weapon, score, by?, n?, h?})>` —
+- Challenge URL: `/?c=<base64url(JSON {v, seed, mode, biome, weapon, score, by?, n?, h?, l?, b?})>` —
+  `l`/`b` (v1.2) are the map's layout and bonus map; a link without them (made before v1.2)
+  plays the plain biome, unknown ids are rejected (`badShape`). The share line names the day.
   friend challenges only (trivially editable; no leaderboard trust). `mode` is `classic` or
   `daily`; `n` = daily number (for the card), `h` = first 8 hex of `contentHash` (a mismatch still
   plays, with a "game updated" note). `src/meta/challenge.ts` decodes with a length cap, strict Zod
