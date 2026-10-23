@@ -2,7 +2,7 @@
 // plane's @1x frame (docs/06 §3: box 620 × 400, sim position at (310, 230)).
 import type { BirdClip } from '../../src/game/assets/assetIndex';
 import type { ContentBundle } from '../../src/content/schemas';
-import type { PlaneId } from '../../src/sim/types';
+import type { ArtPlaneId as PlaneId } from '../../src/game/assets/artPlane';
 import { BIRD_BOX } from '../assets/targets';
 import type { Rgba } from '../assets/image';
 import { drawBird, type BirdShape, type Look } from './bird';

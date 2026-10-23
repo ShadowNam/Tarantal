@@ -117,8 +117,11 @@ export function createHumanBot(
     const c = creatures.get(b.creature);
     const body = c !== undefined && 'hitbox' in c ? c.hitbox.body : { ox: 0, oy: 0 };
     const stone = flight.get(weapon);
-    const travel = stone === undefined ? 0 : Math.round((stone.travelMs[b.plane] * 60) / 1000) + 1;
-    const drop = stone === undefined ? 0 : stone.dropPx[b.plane];
+    // Stones never reach the Ver plane (v1.3).
+    const band = b.plane === 'ver' ? null : b.plane;
+    const travel =
+      stone === undefined || band === null ? 0 : Math.round((stone.travelMs[band] * 60) / 1000) + 1;
+    const drop = stone === undefined || band === null ? 0 : stone.dropPx[band];
     const vx = before === undefined ? 0 : b.x - before.x;
     const vy = before === undefined ? 0 : b.y - before.y;
     const x = b.x + vx * (lag + travel) + body.ox * p.scale * b.facing;

@@ -13,6 +13,8 @@ export function sanitiseCommand(cmd: Command): Command | null {
     case 'fire':
     case 'fireHoldStart':
     case 'fireHoldMove':
+    case 'aimStart':
+    case 'aimMove':
       if (!Number.isFinite(cmd.dx) || !Number.isFinite(cmd.sy)) return null;
       return {
         t: cmd.t,
@@ -24,6 +26,10 @@ export function sanitiseCommand(cmd: Command): Command | null {
     case 'consumable':
       return Number.isFinite(cmd.slot) && cmd.slot >= 0 && cmd.slot < 16
         ? { t: 'consumable', slot: Math.trunc(cmd.slot) }
+        : null;
+    case 'zoom':
+      return Number.isFinite(cmd.step) && cmd.step >= 0 && cmd.step < 16
+        ? { t: 'zoom', step: Math.trunc(cmd.step) }
         : null;
     case 'charmOrder':
       return isPermutation(cmd.order) ? { t: 'charmOrder', order: [...cmd.order] } : null;

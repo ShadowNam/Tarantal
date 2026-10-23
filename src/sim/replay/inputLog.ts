@@ -17,8 +17,10 @@ import type {
 /** v2 (M5) adds the aim-assist level after the input kind; v1 logs still decode ('standard').
  *  v3 (M6) adds the Season Run block (charms, Boss Rule, consumables …) and charmOrder.
  *  v4 (v1.2, D-033) adds the map after the mode block: layout and bonus map ids ('' = none). A
- *  v1–v3 log decodes with neither, so it replays on the plain biome it was played on. */
-export const INPUT_LOG_VERSION = 4;
+ *  v1–v3 log decodes with neither, so it replays on the plain biome it was played on.
+ *  v5 (v1.3, D-036) adds the fitted sight after the map ('' = the gun's default) and the rifle
+ *  commands aimStart / aimMove / aimRelease / aimCancel / zoom. */
+export const INPUT_LOG_VERSION = 5;
 
 export interface InputLog {
   readonly v: number;
@@ -86,7 +88,15 @@ const OPS: readonly Command['t'][] = [
   'gadget',
   'consumable',
   'charmOrder',
+  // v5 (v1.3)
+  'aimStart',
+  'aimMove',
+  'aimRelease',
+  'aimCancel',
+  'zoom',
 ];
+/** Commands a v1–v4 log can hold (the v5 rifle commands come after them). */
+const V4_OPS = 9;
 // Append only: the index is the encoded value.
 const MODES: readonly ModeId[] = ['classic', 'daily', 'seasonHunt', 'ftue'];
 const INPUT_KINDS: readonly InputKind[] = ['pointer', 'touch'];
@@ -239,6 +249,8 @@ export function encodeInputLog(log: InputLog): Uint8Array {
   } else if (m.layout !== undefined || m.bonus !== undefined) {
     throw new Error('a layout or bonus map needs log version 4');
   }
+  if (log.v >= 5) w.ascii(m.sight ?? '');
+  else if (m.sight !== undefined) throw new Error('a sight needs log version 5');
 
   w.varint(log.commands.length);
   for (const [delta, cmd] of log.commands) {
@@ -248,8 +260,13 @@ export function encodeInputLog(log: InputLog): Uint8Array {
       case 'fire':
       case 'fireHoldStart':
       case 'fireHoldMove':
+      case 'aimStart':
+      case 'aimMove':
         w.half(cmd.dx);
         w.half(cmd.sy);
+        break;
+      case 'zoom':
+        w.varint(Math.max(0, Math.trunc(cmd.step)));
         break;
       case 'cameraTarget':
         w.half(cmd.cx);
@@ -297,12 +314,19 @@ export function decodeInputLog(bytes: Uint8Array): InputLog {
     if (layout !== '') mode.layout = layout;
     if (bonus !== '') mode.bonus = bonus;
   }
+  if (v >= 5) {
+    const sight = r.ascii();
+    if (sight !== '') mode.sight = sight;
+  }
 
   const count = r.varint();
   const commands: (readonly [number, Command])[] = [];
   for (let i = 0; i < count; i++) {
     const delta = r.varint();
-    const cmd = readCommand(r, OPS[r.byte()]);
+    const op = OPS[r.byte()];
+    if (v < 5 && op !== undefined && OPS.indexOf(op) >= V4_OPS)
+      throw new Error('bad replay command');
+    const cmd = readCommand(r, op);
     commands.push([delta, cmd]);
   }
   if (!r.done()) throw new Error('trailing bytes in replay log');
@@ -322,7 +346,11 @@ function readCommand(r: ByteReader, op: Command['t'] | undefined): Command {
     case 'fire':
     case 'fireHoldStart':
     case 'fireHoldMove':
+    case 'aimStart':
+    case 'aimMove':
       return { t: op, dx: r.half(), sy: r.half() };
+    case 'zoom':
+      return { t: op, step: r.varint() };
     case 'cameraTarget':
       return { t: op, cx: r.half() };
     case 'consumable':
@@ -335,6 +363,8 @@ function readCommand(r: ByteReader, op: Command['t'] | undefined): Command {
     case 'fireHoldEnd':
     case 'reload':
     case 'gadget':
+    case 'aimRelease':
+    case 'aimCancel':
       return { t: op };
     case undefined:
       throw new Error('bad replay command');

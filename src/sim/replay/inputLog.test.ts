@@ -68,6 +68,32 @@ describe('InputLog', () => {
     expect(() => encodeInputLog({ ...log, v: 3 })).toThrow();
   });
 
+  it('v5 (v1.3) carries the sight and the rifle commands; older logs can hold neither', () => {
+    const aim: Command[] = [
+      { t: 'aimStart', dx: -20.5, sy: 400 },
+      { t: 'aimMove', dx: -18, sy: 401.5 },
+      { t: 'zoom', step: 2 },
+      { t: 'aimRelease' },
+      { t: 'aimStart', dx: 0, sy: 0 },
+      { t: 'aimCancel' },
+    ];
+    const log: InputLog = {
+      v: INPUT_LOG_VERSION,
+      seed: 12,
+      contentHash: HASH,
+      mode: { id: 'classic', weapon: 'twee_twee', sight: 'peep', layout: 'mon', bonus: 'verder' },
+      inputKind: 'touch',
+      commands: aim.map((c, i) => [i, c] as const),
+    };
+    expect(INPUT_LOG_VERSION).toBe(5);
+    expect(decodeInputLogText(encodeInputLogText(log))).toEqual(log);
+    // A v4 log can't name a sight; a v4 byte stream holding a v5 command is corrupt.
+    expect(() => encodeInputLog({ ...log, v: 4 })).toThrow(/version 5/);
+    const noSight: InputLog = { ...log, mode: { id: 'classic' } };
+    const v4bytes = encodeInputLog({ ...noSight, v: 4 });
+    expect(() => decodeInputLog(v4bytes)).toThrow(/bad replay command/);
+  });
+
   it('still decodes v1 logs (pre-M5) as standard aim assist', () => {
     const v1: InputLog = {
       v: 1,

@@ -13,6 +13,7 @@ const geo: PlaneGeometry = {
   near: { scrollFactor: P.near.scrollFactor, scale: P.near.scale },
   mid: { scrollFactor: P.mid.scrollFactor, scale: P.mid.scale },
   far: { scrollFactor: P.far.scrollFactor, scale: P.far.scale },
+  ver: { scrollFactor: P.ver.scrollFactor, scale: P.ver.scale },
 };
 const CAM = 2000;
 const radiusOf = (id: string): number => {

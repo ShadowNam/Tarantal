@@ -28,7 +28,8 @@ const windowFraction = range(fraction);
 
 const version = z.literal(1);
 
-export const PlaneIdSchema = z.enum(['near', 'mid', 'far']);
+/** v1.3 (D-036): `ver` is the distant band behind the far plane (rifles only). */
+export const PlaneIdSchema = z.enum(['near', 'mid', 'far', 'ver']);
 export const ModeIdSchema = z.enum(['classic', 'daily', 'seasonHunt', 'ftue']);
 export const BagBehaviourSchema = z.enum(['forage', 'alert', 'run', 'flying']);
 
@@ -50,17 +51,27 @@ export const WorldEventIdSchema = z.enum([
 ]);
 export type WorldEventId = z.infer<typeof WorldEventIdSchema>;
 
+/** The three bands every gun reaches (near, mid, far): Kettie flight times and drops. */
 function perPlane<T extends z.ZodType>(item: T) {
   return obj({ near: item, mid: item, far: item });
 }
+/** Every plane including Ver (v1.3). */
+function allPlanes<T extends z.ZodType>(item: T) {
+  return obj({ near: item, mid: item, far: item, ver: item });
+}
 function somePlanes<T extends z.ZodType>(item: T) {
-  return obj({ near: item.optional(), mid: item.optional(), far: item.optional() });
+  return obj({
+    near: item.optional(),
+    mid: item.optional(),
+    far: item.optional(),
+    ver: item.optional(),
+  });
 }
 
 const shakeSchema = obj({ px: nonNeg, ms: nonNegInt });
 
 /** Score multipliers by plane; `all` applies to every plane. */
-const scoreMulSchema = obj({ all: pos.optional(), near: pos.optional(), mid: pos.optional(), far: pos.optional() })
+const scoreMulSchema = obj({ all: pos.optional(), near: pos.optional(), mid: pos.optional(), far: pos.optional(), ver: pos.optional() })
   .refine((m) => Object.keys(m).length > 0, 'scoreMul needs at least one entry');
 
 // ---------------------------------------------------------------------------------------------
@@ -68,7 +79,7 @@ const scoreMulSchema = obj({ all: pos.optional(), near: pos.optional(), mid: pos
 
 export const ScoringSchema = obj({
   version,
-  planes: perPlane(
+  planes: allPlanes(
     obj({
       base: posInt,
       scale: pos,
@@ -76,6 +87,9 @@ export const ScoringSchema = obj({
       aimAssistPx: nonNeg,
       lineWeightPx: pos,
     }),
+  ).refine(
+    (p) => p.ver.scrollFactor < p.far.scrollFactor && p.ver.scale < p.far.scale,
+    'the ver plane sits behind the far plane (smaller scroll factor and scale)',
   ),
   behaviourAdd: obj({ forage: nonNeg, alert: nonNeg, run: nonNeg, flying: nonNeg }),
   frenzyTiers: z
@@ -245,8 +259,8 @@ export const BirdsSchema = obj({
     .refine((f) => f.sizeMin <= f.sizeMax, 'sizeMin must be <= sizeMax'),
   /** Classic fly-overs (GDD §6.5) on the mid and far sky lanes. */
   flyoverDefaults: obj({
-    planeWeights: obj({ mid: nonNeg, far: nonNeg }).refine(
-      (w) => w.mid + w.far > 0,
+    planeWeights: obj({ mid: nonNeg, far: nonNeg, ver: nonNeg.optional() }).refine(
+      (w) => w.mid + w.far + (w.ver ?? 0) > 0,
       'planeWeights need at least one positive weight',
     ),
     groupSize: range(z.number().int().positive()),
@@ -298,7 +312,52 @@ const primaryWeaponSchema = obj({
     .nullable(),
   scoreMul: scoreMulSchema,
   shake: shakeSchema,
+  /** v1.3: the shot reaches the Ver plane (rifles). Absent = it falls short (shotguns, air
+   *  rifle, Kettie stones). */
+  reachesVer: z.boolean().optional(),
+  /** v1.3 rifles: hold to raise the sight and zoom, release to fire (GDD §10.6). */
+  aim: obj({
+    /** Sights that fit this gun (weapons.json sights), in upgrade order. */
+    sights: z.array(id).min(1),
+    /** Fitted when the player has chosen none. */
+    defaultSight: id,
+    /** A release before the sight is up fires from the hip: a disc of this radius (design px). */
+    hipSpreadPx: nonNeg,
+  })
+    .refine((a) => a.sights.includes(a.defaultSight), 'aim.defaultSight must be in aim.sights')
+    .optional(),
 });
+
+/** v1.3 (D-036): a sight the rifles can fit. Sway is design px of the unzoomed screen. */
+export const SightSchema = obj({
+  id,
+  nameKey: i18nKey,
+  /** Zoom steps (×). A fixed sight has one; a variable scope picks one with the zoom command. */
+  zoom: z
+    .array(z.number().min(1).max(12))
+    .min(1)
+    .refine((z2) => z2.every((v, i) => i === 0 || v > (z2[i - 1] ?? 0)), 'zoom steps ascend'),
+  /** Time from the press until the sight is up (a release before it is a hip shot). */
+  raiseMs: posInt,
+  /** Figure-eight sway: amplitude at the first zoom step, period of one loop. */
+  swayPx: nonNeg,
+  swayPeriodMs: posInt,
+  /** Extra sway per zoom step above the first (variable scopes: more sway at 9×). */
+  swayPerStep: nonNeg,
+  /** Breath hold: after holdAfterMs of holding the sway eases to holdMul for holdMs, then
+   *  grows to tiredMul over tireMs (you can't camp on a bird). */
+  breath: obj({
+    holdAfterMs: nonNegInt,
+    easeMs: posInt,
+    holdMs: posInt,
+    holdMul: fraction,
+    tireMs: posInt,
+    tiredMul: z.number().min(1),
+  }),
+  /** How the sight picture is drawn (client only). */
+  picture: z.enum(['iron', 'peep', 'scope']),
+});
+export type Sight = z.infer<typeof SightSchema>;
 
 const crateWeaponSchema = obj({
     id,
@@ -326,6 +385,8 @@ export type Weapon = z.infer<typeof WeaponSchema>;
 export const WeaponsSchema = obj({
   version,
   weapons: z.array(WeaponSchema).min(1),
+  /** v1.3: rifle sights (absent in content before v1.3). */
+  sights: z.array(SightSchema).default([]),
   gadgets: z
     .array(
       obj({
@@ -683,14 +744,17 @@ export const BonusMapIdSchema = z.enum(BONUS_MAP_IDS);
 
 /** Where flocks of a plane prefer to forage: u range (0..1 of the plane layer's core width). */
 const feedingSpotSchema = obj({
-  plane: z.enum(['mid', 'far']),
+  plane: z.enum(['mid', 'far', 'ver']),
   u: range(fraction),
 });
 
 /** Fly-over routes: which sky lane groups take (weights) and which way they all fly. */
 const flyoverRouteSchema = obj({
-  planeWeights: obj({ mid: nonNeg, far: nonNeg })
-    .refine((w) => w.mid + w.far > 0, 'planeWeights need at least one positive weight')
+  planeWeights: obj({ mid: nonNeg, far: nonNeg, ver: nonNeg.optional() })
+    .refine(
+      (w) => w.mid + w.far + (w.ver ?? 0) > 0,
+      'planeWeights need at least one positive weight',
+    )
     .optional(),
   /** 1 = every group flies left → right, −1 = right → left; absent = either way. */
   dir: z.union([z.literal(1), z.literal(-1)]).optional(),
@@ -729,6 +793,9 @@ const mapOverrideShape = {
   flushAsRunChance: fraction.optional(),
   /** Multiplies every bird's base points (rounded), e.g. dusk: fewer birds, worth more. */
   pointsMul: pos.optional(),
+  /** v1.3 (D-036): this map opens the Ver plane (the biome's `ver` layer and lanes). Maps
+   *  without it play as before: the Ver layer is left out of the map entirely. */
+  ver: z.boolean().optional(),
 };
 
 export const LayoutSchema = obj({

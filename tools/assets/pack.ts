@@ -28,6 +28,7 @@ import {
   COMMON_GROUP,
   GUN_CLIPS,
   LATE_GROUP,
+  VER_GROUP,
   type AssetIndex,
   type AudioKind,
   type BirdClip,
@@ -36,7 +37,7 @@ import {
   type GunEntry,
 } from '../../src/game/assets/assetIndex';
 import type { ContentBundle } from '../../src/content/schemas';
-import type { PlaneId } from '../../src/sim/types';
+import type { ArtPlaneId as PlaneId } from '../../src/game/assets/artPlane';
 import type { Catalog } from './catalog';
 import { encodeMp3, encodeOgg } from './encode';
 import {
@@ -98,6 +99,8 @@ const sidecarAudio = z.strictObject({ origin: provenance }).partial();
 const sidecarLayer = z
   .strictObject({
     top: z.number(),
+    /** v1.3: the layer's asset group (default its biome). The Ver strips use "ver" (D-036). */
+    group: z.literal(VER_GROUP),
     /** D-031: provenance and palette tiles, as for sprites (D-029). */
     origin: provenance,
     encode: encoding,
@@ -406,20 +409,21 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
       );
     const side = readJson(path.replace(/\.png$/, '.json'), sidecarLayer, errors) ?? {};
     const tiles: FileRef[] = [];
+    const layerGroup = side.group ?? biome;
     for (let x = 0, i = 0; x < img.width; x += TILE_WIDTH, i++) {
       const w = Math.min(TILE_WIDTH, img.width - x);
       tiles.push(
         emit(
-          biome,
+          layerGroup,
           'layers',
-          `${layerId}-${i}`,
+          layerGroup === biome ? `${layerId}-${i}` : `${biome}-${layerId}-${i}`,
           'png',
           (side.encode === 'png8' ? encodePng8 : encodePng)(crop(img, x, 0, w, img.height)),
         ),
       );
     }
     index.layers[spec.assetId] = {
-      group: biome,
+      group: layerGroup,
       ...(side.origin === undefined ? {} : { origin: side.origin }),
       tiles,
       tileWidth: TILE_WIDTH,

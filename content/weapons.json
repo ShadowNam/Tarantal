@@ -94,6 +94,44 @@
       "shake": { "px": 2, "ms": 40 }
     }
   ],
+  "sights": [
+    {
+      "$comment": "v1.3 (D-036): open sights, rear notch and front post. Quick and steady; a wide view.",
+      "id": "iron",
+      "nameKey": "sight.iron",
+      "zoom": [1.5],
+      "raiseMs": 150,
+      "swayPx": 2.5,
+      "swayPeriodMs": 2600,
+      "swayPerStep": 0,
+      "breath": { "holdAfterMs": 500, "easeMs": 250, "holdMs": 3000, "holdMul": 0.25, "tireMs": 1500, "tiredMul": 2.2 },
+      "picture": "iron"
+    },
+    {
+      "$comment": "Aperture (peep) sight: a small ring you look through. Steadier than the irons.",
+      "id": "peep",
+      "nameKey": "sight.peep",
+      "zoom": [2],
+      "raiseMs": 200,
+      "swayPx": 2,
+      "swayPeriodMs": 2800,
+      "swayPerStep": 0,
+      "breath": { "holdAfterMs": 500, "easeMs": 250, "holdMs": 3000, "holdMul": 0.2, "tireMs": 1500, "tiredMul": 2.2 },
+      "picture": "peep"
+    },
+    {
+      "$comment": "Small scope: round view, dark edge, fine crosshair. Slower to raise, sways more — iron sights stay quicker for mid and far birds.",
+      "id": "scope_small",
+      "nameKey": "sight.scope_small",
+      "zoom": [4],
+      "raiseMs": 300,
+      "swayPx": 3.5,
+      "swayPeriodMs": 3200,
+      "swayPerStep": 0,
+      "breath": { "holdAfterMs": 500, "easeMs": 300, "holdMs": 3000, "holdMul": 0.15, "tireMs": 1500, "tiredMul": 2.5 },
+      "picture": "scope"
+    }
+  ],
   "gadgets": [
     {
       "id": "vuvuzela",

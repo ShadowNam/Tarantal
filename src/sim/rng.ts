@@ -46,7 +46,9 @@ export type StreamName =
   | 'twist'
   | 'hop'
   // M8: the Kalahari storm's lightning and the Stormvoël's own flashes outside its boss hunt.
-  | 'storm';
+  | 'storm'
+  // v1.3: a raised sight's sway (phase and pace, drawn at each raise).
+  | 'sway';
 
 /** A stream's members are closures, so they are safe to pass around detached. */
 export interface RandomStream {

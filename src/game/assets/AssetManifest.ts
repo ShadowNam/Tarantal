@@ -13,7 +13,7 @@ import type {
   GunEntry,
   ImageEntry,
 } from './assetIndex';
-import { COMMON_GROUP, LATE_GROUP } from './assetIndex';
+import { COMMON_GROUP, LATE_GROUP, VER_GROUP } from './assetIndex';
 import { atlasRegion, checkAtlas, checkBirdAtlas, type AtlasRegion } from './atlasCheck';
 import { loadBytes, loadImage, loadJson } from './finalLoader';
 
@@ -246,10 +246,12 @@ export class AssetManifest {
         o.biome !== undefined &&
         group !== COMMON_GROUP &&
         group !== LATE_GROUP &&
+        group !== VER_GROUP &&
         group !== o.biome
       )
         return;
-      if (group === LATE_GROUP) late.push(job);
+      // v1.3: the Ver strips aren't needed to start a hunt either (only bonus maps show them).
+      if (group === LATE_GROUP || group === VER_GROUP) late.push(job);
       else jobs.push(job());
     };
     for (const [key, entry] of Object.entries(index.images)) {

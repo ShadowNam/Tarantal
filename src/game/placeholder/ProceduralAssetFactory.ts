@@ -4,7 +4,7 @@
 // AssetManifest, so real art can replace any key later. Rendering-only code: Math.random would be
 // allowed here, but a tiny seeded PRNG keeps the panorama identical between runs and screenshots.
 import type { AmmoType, Biome, ContentBundle } from '../../content/schemas';
-import type { PlaneId } from '../../sim/types';
+import type { ArtPlaneId as PlaneId } from '../assets/artPlane';
 import { coreWidth, LAYER_BLEED_PX } from '../../sim/world';
 import {
   AssetManifest,
@@ -22,7 +22,7 @@ import { STEMS } from '../audio/music';
 import { SFX_IDS } from '../audio/synth';
 import { ammoSpecs, arsenalSpecs } from './arsenalArt';
 import { omenSpecs } from './omenArt';
-import type { Band, BiomeArt } from './biomeArt';
+import { verBand, type Band, type BiomeArt } from './biomeArt';
 import { ellipse, ground, inked, INK, prng, tuft } from './draw';
 
 const KAROO = {
@@ -468,6 +468,8 @@ function bush(ctx: CanvasRenderingContext2D, x: number, y: number, s: number, li
 }
 
 const BANDS: Readonly<Record<string, Band>> = {
+  // v1.3: the Ver plane's strip (shown only on maps that open it).
+  ver_veld: verBand({ ground: '#E2BE80', haze: 'rgba(214,196,170,0.9)', scrub: '#8C8A62' }),
   sky: {
     top: 0,
     bottom: 1080,

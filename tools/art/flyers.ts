@@ -9,7 +9,7 @@
 // broad eagle wings with a white head, a giant casqued guineafowl.
 import type { BirdClip } from '../../src/game/assets/assetIndex';
 import type { ContentBundle } from '../../src/content/schemas';
-import type { PlaneId } from '../../src/sim/types';
+import type { ArtPlaneId as PlaneId } from '../../src/game/assets/artPlane';
 import type { Rgba } from '../assets/image';
 import { BIRD_BOX } from '../assets/targets';
 import { masterSize, planeLook } from './birdFrames';

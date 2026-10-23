@@ -12,8 +12,8 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { format } from 'prettier';
-import type { BirdClip } from '../../src/game/assets/assetIndex';
-import type { PlaneId } from '../../src/sim/types';
+import { VER_GROUP, type BirdClip } from '../../src/game/assets/assetIndex';
+import { isArtPlane, type ArtPlaneId as PlaneId } from '../../src/game/assets/artPlane';
 import { encodePng, encodePng8 } from '../assets/image';
 import { NEAR_CLIPS } from '../assets/pack';
 import { CLIP_SPEC } from '../assets/targets';
@@ -86,7 +86,8 @@ async function json(value: unknown): Promise<string> {
 
 const planesOf = (creature: string): PlaneId[] => {
   const c = content.birds.creatures.find((x) => x.id === creature);
-  return c === undefined ? [] : [...c.planes];
+  // Ver birds are drawn from the far/mid art (D-036): no art of their own.
+  return c === undefined ? [] : c.planes.filter(isArtPlane);
 };
 
 const groupOf = (creature: string): { group?: string } => {
@@ -219,6 +220,8 @@ if (wants('scenery')) {
           origin: 'interim',
           ...(enc === 'png8' ? { encode: 'png8' } : {}),
           top: lp?.top,
+          // v1.3: the Ver strips load in their own chunk (D-036).
+          ...(layer.plane === 'ver' ? { group: VER_GROUP } : {}),
         }),
       );
       console.log(`layers/${biome.id}/${layer.id}`);

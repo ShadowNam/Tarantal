@@ -5,7 +5,7 @@
 import * as Phaser from 'phaser';
 import type { LivePrefs } from '../prefs';
 import type { Biome, ContentBundle, Feel } from '../../content/schemas';
-import type { SimState } from '../../sim/types';
+import type { PlaneId, SimState } from '../../sim/types';
 import { coreWidth } from '../../sim/world';
 import { TEX } from '../assets/AssetManifest';
 import type { ParallaxView } from './ParallaxView';
@@ -62,7 +62,7 @@ export class WorldView {
   private readonly helper: Phaser.GameObjects.Image;
   /** Power-ups that bring a helper creature (helpers' `grants`, birds.json). */
   private readonly helperPowerups: ReadonlySet<string>;
-  private readonly planeScale: Readonly<Record<'near' | 'mid' | 'far', number>>;
+  private readonly planeScale: Readonly<Record<PlaneId, number>>;
   private nextGlintAt = 0;
   private windCredit = 0;
 
@@ -86,7 +86,12 @@ export class WorldView {
     this.biome = biome;
     this.screen = screen;
     const { planes } = content.scoring;
-    this.planeScale = { near: planes.near.scale, mid: planes.mid.scale, far: planes.far.scale };
+    this.planeScale = {
+      near: planes.near.scale,
+      mid: planes.mid.scale,
+      far: planes.far.scale,
+      ver: planes.ver.scale,
+    };
     this.midScroll = planes.mid.scrollFactor;
     this.helperPowerups = new Set(
       content.birds.creatures.flatMap((c) => (c.kind === 'helper' ? [c.grants] : [])),

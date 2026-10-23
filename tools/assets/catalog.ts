@@ -2,7 +2,7 @@
 // the game builds at runtime (one per playable biome). The pack tool checks deliveries against it;
 // the asset audit lists it. Placeholder draw functions are never called here.
 import type { ContentBundle } from '../../src/content/schemas';
-import type { PlaneId } from '../../src/sim/types';
+import type { ArtPlaneId as PlaneId } from '../../src/game/assets/artPlane';
 import { coreWidth, LAYER_BLEED_PX } from '../../src/sim/world';
 import { COMMON_GROUP } from '../../src/game/assets/assetIndex';
 import type { AssetKind } from '../../src/game/assets/AssetManifest';

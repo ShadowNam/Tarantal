@@ -69,9 +69,10 @@ describe('maps (v1.2)', () => {
     }
   });
 
-  it('no layout is the biome as it is', () => {
+  it('no layout is the biome as it is (without the Ver layer, which only some maps open)', () => {
     const m = resolveMap(karoo, undefined, undefined);
-    expect(m.biome).toBe(karoo);
+    expect(m.biome).toEqual({ ...karoo, layers: karoo.layers.filter((l) => l.plane !== 'ver') });
+    expect(m.ver).toBe(false);
     expect(m).toMatchObject({ layout: null, bonus: null, weather: 'default', pointsMul: 1 });
   });
 

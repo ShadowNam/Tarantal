@@ -22,6 +22,14 @@
       "scrollFactor": 0.35,
       "aimAssistPx": 18,
       "lineWeightPx": 2
+    },
+    "ver": {
+      "$comment": "v1.3 (D-036): the distant band behind the far plane, on the strip at the foot of the far ridge. Only rifles reach it (weapons.json reachesVer); birds are a few px unzoomed. Shows only on maps that open it (Nog Verder, Die Verste).",
+      "base": 50,
+      "scale": 0.1,
+      "scrollFactor": 0.22,
+      "aimAssistPx": 6,
+      "lineWeightPx": 1
     }
   },
   "behaviourAdd": {

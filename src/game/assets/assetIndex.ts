@@ -17,6 +17,12 @@ export const COMMON_GROUP = 'common';
  * then their keys show the placeholder. Not part of the first download.
  */
 export const LATE_GROUP = 'late';
+/**
+ * v1.3 (D-036): the Ver plane's landscape strips (one per biome). Only maps that open the Ver
+ * plane draw them, so they download in the background like the late group, in a chunk of their
+ * own (each lazy chunk ≤ 1.5 MB). Until then the Ver strip shows its placeholder.
+ */
+export const VER_GROUP = 'ver';
 
 /** Bird animation clips (art bible §3.4). */
 export const BIRD_CLIPS = [
