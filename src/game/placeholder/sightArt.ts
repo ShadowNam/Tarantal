@@ -6,14 +6,7 @@
 //   sight/iron_front  the front post on its ramp (origin: the post's tip = the aim point)
 //   sight/peep        the aperture ring, dark and soft, clear in the middle (origin: centre)
 //   sight/scope       the scope: dark tube ring and lens edge around clear glass (origin: centre)
-import type { CanvasSpec } from '../assets/AssetManifest';
-
-export const SIGHT_TEX = {
-  ironRear: 'sight/iron_rear',
-  ironFront: 'sight/iron_front',
-  peep: 'sight/peep',
-  scope: 'sight/scope',
-} as const;
+import { TEX, type CanvasSpec } from '../assets/AssetManifest';
 
 /** Texture px → design px for each picture (SightView draws them at this scale). */
 export const SIGHT_SCALE = { ironRear: 2, ironFront: 1, peep: 2.4, scope: 2.2 } as const;
@@ -35,7 +28,7 @@ const BLUED_DARK = '#15181C';
 export function sightSpecs(): CanvasSpec[] {
   return [
     {
-      key: SIGHT_TEX.ironRear,
+      key: TEX.sightIronRear,
       width: 480,
       height: 400,
       originX: 240,
@@ -81,7 +74,7 @@ export function sightSpecs(): CanvasSpec[] {
       },
     },
     {
-      key: SIGHT_TEX.ironFront,
+      key: TEX.sightIronFront,
       width: 80,
       height: 320,
       originX: 40,
@@ -108,8 +101,8 @@ export function sightSpecs(): CanvasSpec[] {
         ctx.fill();
       },
     },
-    ring(SIGHT_TEX.peep, PEEP_CLEAR_R, PEEP_DARK, false),
-    ring(SIGHT_TEX.scope, SCOPE_GLASS_R, SCOPE_DARK, true),
+    ring(TEX.sightPeep, PEEP_CLEAR_R, PEEP_DARK, false),
+    ring(TEX.sightScope, SCOPE_GLASS_R, SCOPE_DARK, true),
   ];
 }
 

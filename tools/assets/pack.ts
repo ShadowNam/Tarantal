@@ -92,6 +92,8 @@ const sidecarOrigin = z
     origin: provenance,
     /** D-029: "png8" writes a palette PNG (smaller; fine for flat-fill art). */
     encode: encoding,
+    /** v1.3: the long-range chunk (sight pictures, D-036) instead of the key's own group. */
+    group: z.literal(VER_GROUP),
   })
   .partial();
 /** v1.1 (D-032): `audio/<…>.json` next to a WAV: "interim" = code-made stand-in sound. */
@@ -373,12 +375,13 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
         `sprites/${key}.png is ${img.width}×${img.height}, the placeholder is ${cat.width}×${cat.height}: views place it at its own size`,
       );
     const side = readJson(path.replace(/\.png$/, '.json'), sidecarOrigin, errors) ?? {};
-    const { origin: made, encode, ...place } = side;
+    const { origin: made, encode, group: own, ...place } = side;
+    const imageGroup = own ?? cat.group;
     index.images[key] = {
-      group: cat.group,
+      group: imageGroup,
       ...(made === undefined ? {} : { origin: made }),
       file: emit(
-        cat.group,
+        imageGroup,
         'img',
         slug(key),
         'png',

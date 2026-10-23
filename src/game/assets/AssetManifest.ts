@@ -621,6 +621,11 @@ export const TEX = {
   pot: 'fx/pot',
   meerkat: 'helper/meerkat',
   windsock: 'ui/windsock',
+  // v1.3 (D-036): rifle sight pictures (SightView).
+  sightIronRear: 'sight/iron_rear',
+  sightIronFront: 'sight/iron_front',
+  sightPeep: 'sight/peep',
+  sightScope: 'sight/scope',
 } as const;
 
 /** First-person art for a weapon id (crate weapons get their own; unknown ids use the shotgun). */

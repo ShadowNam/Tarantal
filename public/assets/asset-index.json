@@ -603,6 +603,50 @@
       "width": 240,
       "height": 240
     },
+    "sight/iron_front": {
+      "group": "ver",
+      "origin": "interim",
+      "file": {
+        "path": "assets/ver/img/sight_iron_front.9a9d8f7c12f6.png",
+        "bytes": 4768,
+        "hash": "9a9d8f7c12f6"
+      },
+      "width": 80,
+      "height": 320
+    },
+    "sight/iron_rear": {
+      "group": "ver",
+      "origin": "interim",
+      "file": {
+        "path": "assets/ver/img/sight_iron_rear.7f88d82c8847.png",
+        "bytes": 36221,
+        "hash": "7f88d82c8847"
+      },
+      "width": 480,
+      "height": 400
+    },
+    "sight/peep": {
+      "group": "ver",
+      "origin": "interim",
+      "file": {
+        "path": "assets/ver/img/sight_peep.3d49fc365fc6.png",
+        "bytes": 109219,
+        "hash": "3d49fc365fc6"
+      },
+      "width": 512,
+      "height": 512
+    },
+    "sight/scope": {
+      "group": "ver",
+      "origin": "interim",
+      "file": {
+        "path": "assets/ver/img/sight_scope.fa45d2391817.png",
+        "bytes": 83562,
+        "hash": "fa45d2391817"
+      },
+      "width": 512,
+      "height": 512
+    },
     "ui/ammo/diabolo": {
       "group": "common",
       "origin": "interim",

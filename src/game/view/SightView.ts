@@ -4,7 +4,7 @@
 // (zoomView.ts), fading in with the raise. The world itself is zoomed by ParallaxView. Shapes and
 // rectangles for the reticle and the screen fill: crisp at any zoom, no extra texture memory.
 import * as Phaser from 'phaser';
-import type { AssetManifest } from '../assets/AssetManifest';
+import { TEX, type AssetManifest } from '../assets/AssetManifest';
 import {
   BARREL_BOTTOM,
   IRON_PLATE,
@@ -13,7 +13,6 @@ import {
   SCOPE_DARK,
   SCOPE_GLASS_R,
   SIGHT_SCALE,
-  SIGHT_TEX,
 } from '../placeholder/sightArt';
 import type { ZoomState } from './zoomView';
 
@@ -66,14 +65,14 @@ export class SightView {
         this.fills.push(add(this.scene.add.rectangle(0, 0, 1, 1, hex(color)).setOrigin(0, 0)));
     };
     if (picture === 'iron') {
-      this.front = image(SIGHT_TEX.ironFront, SIGHT_SCALE.ironFront);
-      this.rear = image(SIGHT_TEX.ironRear, SIGHT_SCALE.ironRear);
+      this.front = image(TEX.sightIronFront, SIGHT_SCALE.ironFront);
+      this.rear = image(TEX.sightIronRear, SIGHT_SCALE.ironRear);
       this.fills.push(add(this.scene.add.rectangle(0, 0, 1, 1, hex(IRON_PLATE)).setOrigin(0, 0)));
       return;
     }
     if (picture === 'peep') {
-      this.front = image(SIGHT_TEX.ironFront, SIGHT_SCALE.ironFront * 0.8);
-      this.ring = image(SIGHT_TEX.peep, SIGHT_SCALE.peep);
+      this.front = image(TEX.sightIronFront, SIGHT_SCALE.ironFront * 0.8);
+      this.ring = image(TEX.sightPeep, SIGHT_SCALE.peep);
       fill(PEEP_DARK);
       return;
     }
@@ -93,7 +92,7 @@ export class SightView {
       this.scene.add.rectangle(0, -(inner + r) / 2, thick, r - inner, ink),
     ]);
     this.reticle = add(ret);
-    this.ring = image(SIGHT_TEX.scope, SIGHT_SCALE.scope);
+    this.ring = image(TEX.sightScope, SIGHT_SCALE.scope);
     fill(SCOPE_DARK);
   }
 

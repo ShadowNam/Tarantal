@@ -32,6 +32,7 @@ import { BIOME_PLANS } from './biomes';
 import { renderLayer, renderProp } from './landscape';
 import { renderSprite, SPRITES } from './sprites';
 import { AMMO_SPRITES } from './ammo';
+import { SIGHT_SPRITES } from './sights';
 import { biomeSheets, flyerSheet, spriteSheet } from './scenerySheets';
 import { FLYER_FRAMES, FLYER_GROUPS, FLYERS, renderFlyerFrame } from './flyers';
 
@@ -256,7 +257,7 @@ if (wants('sprites')) {
   const home = content.biomes.find((b) => b.id === content.modes.modes.classic.biome);
   if (home === undefined) throw new Error('no home biome');
   const m = createPlaceholderManifest(content, home, [], loadFeel().guns.ammo);
-  for (const spec of [...SPRITES, ...AMMO_SPRITES]) {
+  for (const spec of [...SPRITES, ...AMMO_SPRITES, ...SIGHT_SPRITES]) {
     const png = join(src, 'sprites', `${spec.key}.png`);
     if (!oursFile(png)) {
       console.warn(`skip sprites/${spec.key}: a human delivery is there`);
@@ -267,12 +268,20 @@ if (wants('sprites')) {
     // v1.1 (D-032): HUD ammo is small, realistic and smoothly shaded: drawn at 4× and kept in
     // full colour (a palette PNG would band its gradients).
     const ammo = spec.key.startsWith('ui/ammo/');
+    // v1.3 (D-036): sight pictures are smooth gradients (full colour) in the long-range chunk.
+    const sight = spec.key.startsWith('sight/');
     const art = ammo ? { ...cfg, masterScale: 4 } : cfg;
     const img = renderSprite(art, spec, size, m.origin(spec.key));
-    put(png, ammo ? encodePng(img) : encodePng8(img));
+    put(png, ammo || sight ? encodePng(img) : encodePng8(img));
     put(
       png.replace(/\.png$/, '.json'),
-      await json(ammo ? { origin: 'interim' } : { origin: 'interim', encode: 'png8' }),
+      await json(
+        sight
+          ? { origin: 'interim', group: VER_GROUP }
+          : ammo
+            ? { origin: 'interim' }
+            : { origin: 'interim', encode: 'png8' },
+      ),
     );
     console.log(`sprites/${spec.key}`);
   }
