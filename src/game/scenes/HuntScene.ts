@@ -835,6 +835,7 @@ export class HuntScene extends Phaser.Scene {
     this.world.update(state, width, designSize().height);
     this.weapon.setWeapon(state.weapon.id);
     this.weapon.setReloading(state.weapon.reloading);
+    this.ctx.audio.setWeapon(state.weapon.id);
     if (this.ctx.hook) {
       const c = this.weapon.crosshair;
       this.ctx.hook.crosshair = {

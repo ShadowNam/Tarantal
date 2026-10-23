@@ -7,6 +7,7 @@ import { checkCrossRefs } from '../src/content/crossRefs';
 import { readContentDir, readI18nKeys } from '../src/content/loadNode';
 import { parseFeel } from '../src/content/feel';
 import { checkGunLook } from '../src/game/ui/gunLook';
+import { SFX_IDS } from '../src/game/audio/synth';
 import { parseDailyMeta } from '../src/content/daily';
 import { findEpochCopies } from './epochCheck';
 import { parseNotaboek } from '../src/content/notaboek';
@@ -80,6 +81,13 @@ for (const [trigger, cfg] of Object.entries(feel.feel.barks.triggers)) {
 // v1.1 (D-032): every weapon has its ammo display and crosshair, and they fit the weapon.
 for (const message of checkGunLook(feel.feel.guns, parsed.bundle.weapons.weapons))
   errors.push({ file: 'client/feel.json', message });
+for (const [gun, look] of Object.entries(feel.feel.guns.weapons))
+  for (const [event, sfx] of Object.entries(look.sfx))
+    if (sfx !== undefined && !(SFX_IDS as readonly string[]).includes(sfx))
+      errors.push({
+        file: 'client/feel.json',
+        message: `guns.weapons.${gun}.sfx.${event}: no sound "${sfx}" (src/game/audio/synth.ts SFX_IDS)`,
+      });
 // v1.0.1 (D-028 §2): the epoch lives only in meta/daily.json — no copy in game, tool or e2e code.
 const codeFiles = (dir: string): string[] =>
   readdirSync(join(root, dir), { withFileTypes: true }).flatMap((d) =>

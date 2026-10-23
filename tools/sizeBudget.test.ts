@@ -3,6 +3,7 @@ import { EMPTY_INDEX, type AssetIndex } from '../src/game/assets/assetIndex';
 import {
   alternateAssetFiles,
   lazyAssetFiles,
+  lazyGroups,
   MB,
   splitInitialLazy,
   verdict,
@@ -132,5 +133,27 @@ describe('size budget (M9)', () => {
     expect(verdict(4.9 * MB)).toBe('ok');
     expect(verdict(5.1 * MB)).toBe('over-budget');
     expect(verdict(8.1 * MB)).toBe('hard-fail');
+  });
+});
+
+describe('lazy chunks per biome (v1.1, D-032)', () => {
+  it('groups lazy files by asset group folder and by code chunk name', () => {
+    const g = lazyGroups(
+      [
+        'assets/bushveld-DnKz.js',
+        'assets/bushveld-winter/audio/music/calm.1.ogg',
+        'assets/okavango-spring/layers/near-0.png',
+        'assets/late/birds/x.png',
+        'assets/draw-abc.js',
+      ],
+      ['bushveld-winter', 'common', 'karoo-autumn', 'late', 'okavango-spring'],
+    );
+    expect(g.get('bushveld-winter')).toEqual([
+      'assets/bushveld-DnKz.js',
+      'assets/bushveld-winter/audio/music/calm.1.ogg',
+    ]);
+    expect(g.get('okavango-spring')).toHaveLength(1);
+    expect(g.get('late')).toHaveLength(1);
+    expect(g.get('other')).toEqual(['assets/draw-abc.js']);
   });
 });

@@ -387,7 +387,11 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') benchmark?.pause();
   else if (titleUp) benchmark?.resume();
 });
-const audio = new AudioDirector(feel.audio, browserAudioEnv(feel.assets.fileTimeoutMs));
+const audio = new AudioDirector(
+  feel.audio,
+  browserAudioEnv(feel.assets.fileTimeoutMs),
+  Object.fromEntries(Object.entries(feel.guns.weapons).map(([id, w]) => [id, w.sfx])),
+);
 hook.assets.recorded = audio.recorded;
 // Live values (read through the hook in page.evaluate).
 Object.defineProperties(hook, {
