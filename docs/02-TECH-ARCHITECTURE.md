@@ -435,6 +435,10 @@ final art in M10. Values live in `feel.json quality.tiers`.)
   music, voice, each with its Settings volume (master / effects / music / voice, art bible §10).
 - SFX: a delivered recording per key (`sfx/<id>`) when the asset index has one, else the
   placeholder synth (`synth.ts`). Stereo pan by screen x of the event (±0.7); voice limit 16.
+  v1.1 (D-032): a shot plays the firing gun's own sound (the `shotFired` event names the weapon)
+  and reload events the gun in hand's (`feel.json guns.weapons.<id>.sfx`); interim code-made
+  recordings (`npm run audio:interim`, origin `interim`) ship for every key until a delivery
+  replaces them.
 - Music (M10, `music.ts`): per biome, three looping stems (`music/<biome>/calm|build|stampede`)
   started together and crossfaded by intensity (`stemFor`: calm; build when a flock runs or
   flushes or Frenzy ≥ `buildAtFrenzy`; stampede in the Stampede; rising is immediate, calming
@@ -650,7 +654,7 @@ platform for now (neither portal SDK takes custom events or error reports).
 | Visual | Playwright `toHaveScreenshot` (`tests/e2e/visual.spec.ts`, M10): title, hunt held at tick 300 (seed 42, `?holdAt`), tally, Padstal, Settings ×2, privacy, on desktop-chromium + pixel7-landscape; baselines in `tests/e2e/visual-baselines/`, Linux/SwiftShader reference | ≤ 2 % pixels differ (colour threshold 0.25); re-record with `--update-snapshots` after an intentional change (art swap) and review the diff |
 | Perf | Headless Chrome, 4× CPU throttle, 30 s hunt (`tests/e2e/perf.spec.ts`) | avg frame ≤ 16.7 ms on medium tier: CPU cost per frame always; real frame time with `PERF_STRICT=1` on a GPU machine (D-019) |
 | Perf, low tier (M9) | Pixel 7 profile, 6× CPU throttle, quality low, 20 s hunt (`perf.spec.ts`) | CPU cost of a frame at 50 fps ≤ 20 ms: (CPU per frame − sim time) + 1.2 × sim tick cost (D-026) |
-| Size | `tools/size-check.ts` (`--strict` in CI, `--dir` per platform build) | initial (entry + static imports, from Vite's manifest) ≤ 5 MB gzip; hard fail at 8 MB; lazy chunks reported apart |
+| Size | `tools/size-check.ts` (`--strict` in CI, `--dir` per platform build) | initial (entry + static imports, from Vite's manifest) ≤ 5 MB gzip; hard fail at 8 MB; lazy chunks reported apart, each lazy chunk (a biome, the late group) ≤ 1.5 MB gzip under `--strict` (v1.1, D-032); the v1.x plan keeps the first download ≤ 3 MB |
 | Assets (M10) | `tools/asset-audit.ts` (`npm run assets:audit`) | every manifest key final/placeholder, size, where used; fails on unused deliveries/files/keys and missing files or keys; CI runs report mode, `--strict` (no placeholders) is the launch gate |
 | Sim cost | microbenchmark | `step()` ≤ 1.5 ms with 60 birds on a mid-range phone profile |
 

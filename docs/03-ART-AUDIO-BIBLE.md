@@ -164,7 +164,9 @@ chalk slate (`#2E3B33`), rubber-stamp gold (`#D8A73A`), shotgun-shell red (`#C83
 - First-person gun: bottom-centre-right; **on mobile, scale to 60 % and fade to 40 % opacity while a
   finger is down** so it never hides targets.
 - Reticle family: one consistent ring language — ring size = spread, centre dot = precision, tick
-  marks = wind drift, colour change on hover-over-target (desktop only).
+  marks = wind drift, colour change on hover-over-target (desktop only). v1.1 (D-032): each gun
+  has its own crosshair in that language and its own realistic (not cartoony) ammo on the belt:
+  GDD §17.1.
 - The game title is **not** shown during play (the mock-ups put it top-centre — that's marketing art).
 
 **Screens:** Title (burst-through sign + START HUNT), Skiet-Skuur (shed: loadout, Bird Book,
