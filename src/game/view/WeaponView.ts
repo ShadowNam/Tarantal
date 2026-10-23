@@ -80,8 +80,15 @@ export class WeaponView {
   }
 
   /** Shows the active weapon's art (crate weapons have their own; others the shotgun). */
+  /** v1.1: the active power-ups' spread multiplier (Bush Buckshot): the ring follows it. */
+  spreadMul = 1;
+
   setWeapon(weaponId: string): void {
-    this.crosshair.setWeapon(this.crosshairPreview ?? weaponId);
+    this.crosshair.setWeapon(
+      this.crosshairPreview ?? weaponId,
+      undefined,
+      this.crosshairPreview === null ? this.spreadMul : 1,
+    );
     if (this.frozen && this.weaponId !== '') return;
     // Same gun: only worth another look while its rig hasn't arrived (late group, D-029).
     const sameWeapon = weaponId === this.weaponId;
@@ -226,7 +233,7 @@ export class WeaponView {
     this.aimY = y;
     this.crosshair.place(x, y);
     if (showReticle) {
-      this.reticle.setVisible(true).setAlpha(1);
+      this.reticle.setVisible(true).setAlpha(this.crosshair.alpha);
       if (this.touchMode) this.reticleHideAt = this.scene.time.now + 350;
     }
   }

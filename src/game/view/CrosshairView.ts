@@ -28,8 +28,11 @@ export class CrosshairView {
   }
 
   /** Builds the weapon's crosshair in a style (the default style when unknown). */
-  setWeapon(weaponId: string, styleId: string = this.guns.crosshairStyle): void {
-    const sig = `${weaponId}|${styleId}`;
+  /** The style's opacity (aiming shows the crosshair at this, not at 1). */
+  alpha = 1;
+
+  setWeapon(weaponId: string, styleId: string = this.guns.crosshairStyle, spreadMul = 1): void {
+    const sig = `${weaponId}|${styleId}|${spreadMul}`;
     if (sig === this.signature) return;
     this.signature = sig;
     const style: CrosshairStyle | undefined =
@@ -40,7 +43,10 @@ export class CrosshairView {
     this.jitterPx = look.crosshair.jitterPx;
     this.prims = crosshairPrims(
       look.crosshair,
-      crosshairWeapon(this.weapons.find((w) => w.id === weaponId)),
+      crosshairWeapon(
+        this.weapons.find((w) => w.id === weaponId),
+        spreadMul,
+      ),
     );
     this.root.removeAll(true);
     const objs: Phaser.GameObjects.GameObject[] = [];
@@ -66,6 +72,7 @@ export class CrosshairView {
       }
     }
     this.root.add(objs);
+    this.alpha = style.alpha;
     this.root.setAlpha(style.alpha);
   }
 

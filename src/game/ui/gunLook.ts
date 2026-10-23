@@ -101,6 +101,7 @@ export type AmmoState = Pick<
   | 'cooldownTicks'
   | 'ticksLeft'
   | 'totalTicks'
+  | 'infinite'
 >;
 
 /**
@@ -157,12 +158,16 @@ export function ammoSlots(
     return out;
   }
   const n = Math.max(0, w.magazine);
-  const loaded = w.shells < 0 ? n : Math.min(n, w.shells);
+  // Infinite ammo (Chilli Biltong) keeps the belt full: the gun never runs dry.
+  const loaded = w.shells < 0 || w.infinite ? n : Math.min(n, w.shells);
   const loading = w.reloading && w.perShellReload && w.shells >= 0 ? w.shells : -1;
   const out: AmmoSlot[] = [];
   const right = rect.x + rect.w - pad - type.width / 2;
+  // A bigger magazine (Season Run charms) packs the rounds closer so the belt stays on its slate.
+  const room = rect.w - 2 * pad - type.width;
+  const pitch = n > 1 ? Math.min(type.pitch, room / (n - 1)) : type.pitch;
   for (let i = 0; i < n; i++) {
-    const x = right - (n - 1 - i) * type.pitch;
+    const x = right - (n - 1 - i) * pitch;
     if (i < loaded) out.push({ key: keys.full, x, y: cy, alpha: 1, fill: 1 });
     else if (i === loading)
       out.push({ key: keys.full, x, y: cy, alpha: 0.35 + 0.65 * w.reloadProgress, fill: 1 });
@@ -206,11 +211,15 @@ export interface CrosshairWeapon {
   readonly dropPx: readonly number[] | null;
 }
 
-export function crosshairWeapon(w: Weapon | undefined): CrosshairWeapon {
+/**
+ * The crosshair's numbers for a weapon. `spreadMul` is the active power-ups' spread multiplier
+ * (Bush Buckshot ×2.5): the sim fires at spreadPx × it, so the ring must too.
+ */
+export function crosshairWeapon(w: Weapon | undefined, spreadMul = 1): CrosshairWeapon {
   if (w === undefined) return { spreadPx: 0, dropPx: null };
   const p = w.kind === 'primary' ? w.projectile : null;
   return {
-    spreadPx: w.spreadPx,
+    spreadPx: w.spreadPx * spreadMul,
     dropPx: p === null ? null : [p.dropPx.near, p.dropPx.mid, p.dropPx.far],
   };
 }
@@ -348,6 +357,23 @@ export function crosshairExtent(prims: readonly CrosshairPrim[]): number {
   for (const p of prims) {
     if (p.kind === 'dot') m = Math.max(m, p.r);
     else for (const [x, y] of p.pts) m = Math.max(m, Math.abs(x), Math.abs(y));
+  }
+  return m;
+}
+
+/** The spread multiplier of the active power-ups (the sim's effectsOf().spreadMul, from the
+ *  snapshot's power-up ids and their content definitions). */
+export function spreadMulOf(
+  active: readonly { readonly id: string }[],
+  defs: readonly {
+    readonly id: string;
+    readonly effect: { readonly spreadMul?: number | undefined };
+  }[],
+): number {
+  let m = 1;
+  for (const p of active) {
+    const e = defs.find((d) => d.id === p.id)?.effect.spreadMul;
+    if (e !== undefined) m *= e;
   }
   return m;
 }

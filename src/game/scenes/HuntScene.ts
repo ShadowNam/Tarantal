@@ -37,7 +37,7 @@ import { Fx } from '../view/Fx';
 import { interpolateBirds, interpolateCamera } from '../view/interpolate';
 import { ParallaxView } from '../view/ParallaxView';
 import { WeaponView } from '../view/WeaponView';
-import { crosshairExtent } from '../ui/gunLook';
+import { crosshairExtent, spreadMulOf } from '../ui/gunLook';
 import { WorldView } from '../view/WorldView';
 import type { HudScene } from './HudScene';
 import type { PauseData } from './PauseScene';
@@ -833,6 +833,7 @@ export class HuntScene extends Phaser.Scene {
     const drawBirds = interpolateBirds(runner.prev, state, alpha);
     this.birds.update(drawBirds, state.tick);
     this.world.update(state, width, designSize().height);
+    this.weapon.spreadMul = spreadMulOf(state.powerups, this.ctx.content.powerups.powerups);
     this.weapon.setWeapon(state.weapon.id);
     this.weapon.setReloading(state.weapon.reloading);
     this.ctx.audio.setWeapon(state.weapon.id);
