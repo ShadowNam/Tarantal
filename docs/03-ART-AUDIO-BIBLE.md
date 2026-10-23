@@ -95,7 +95,7 @@ reworked), with source files (PSD/Krita/Spine) kept as evidence of authorship.
 | Casque | `#C49A6C` (bone highlight `#E6C9A0`) |
 | Beak (horn) | `#C98F4E` |
 | Iris | `#4A2A18` |
-| Legs | `#6B5B4B` |
+| Legs | `#3C3D42` (D-035; was `#6B5B4B`) |
 | Ink | `#1B1410` |
 
 ### 3.2 Variants and bosses (all built as **skins/attachments on the same rig**)

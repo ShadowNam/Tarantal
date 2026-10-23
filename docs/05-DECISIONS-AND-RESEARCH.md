@@ -1623,18 +1623,28 @@ range behind the dunes; Okavango: low Tsodilo-like hills in the haze.
 (3) *Bakkie:* an old single-cab pickup with no badge: panel gaps and swage line, door, chrome
 handle and keyhole, mirror, sky reflections in the glass, slatted grille, round headlight,
 indicators, tail lights, chrome bumpers, roll bar, tie-down hooks, treaded tyres on steel rims,
-dust, mud, dents and rust. The spare wheel (the secret, unchanged hit area) stands in the bin.
-(4) *Guns:* outlines 0.42 × the near weight and tinted, less wobble; metal with a rounded-surface
+dust, mud, dents and rust. The spare wheel (the secret, unchanged hit area) hangs on a bracket on
+the outside of the bin by the tailgate, leaning back 6°, so its whole hit ellipse shows the wheel
+(review of #49: drawn inside the bin, 58 % of the ellipse was plain panel).
+(4) *Guns:* outlines first 0.42 × the near weight and tinted (superseded in round 2, see (8):
+0.25 × and no dark contours at all), less wobble; metal with a rounded-surface
 gradient, specular line and edge wear; finer wood grain with figure; finer checkering with a cut
 border; slotted screws and a rear sling swivel; a slim Dubbelloop splinter fore-end and finer
 engraving; a slim grooved pump slide; bark and glossy tubing on the Kettie. The Skiet-Skuur's gun
-cards now show each gun (its idle frame; atlases the shed puts on the GPU leave with it, so the
-hunt's low-tier budget is untouched). The HUD's ammo belt keeps the v1.1 ammo (D-032).
-(5) *Birds:* the guineafowl rig gets a small bare head (0.66 × the head hitbox; hitboxes are
-unchanged), red skin behind the ridged casque, a slim neck with a barred collar, a realistic eye,
+cards now show each gun: its idle frame is cropped from the decoded atlas page onto a small canvas
+about the card's height (≈ 0.1–0.3 MB) and removed with the scene; no gun atlas goes to the GPU
+for it. (The first version uploaded each gun's whole atlas, 4–16 MB each; the review of #49
+measured the open shed after a Karoo hunt at 116.9 MB on the low tier, and past 128 MB after a
+crate-gun hunt. Now: 101.0 MB with the shed open after a Karoo hunt, hunt end 99.8 MB,
+`gfx3-texture-memory-shed.json`.) If the late group is still downloading, the Guns tab rebuilds
+once when it lands. The HUD's ammo belt keeps the v1.1 ammo (D-032).
+(5) *Birds:* the guineafowl rig gets a small bare head (first 0.66, final 0.48 × the head hitbox
+radius, see (8); hitboxes are unchanged, so the headshot area is about 4× the visible head — a
+generous target, left as it is: changing it is a sim change), red skin behind the ridged casque, a slim neck with a barred collar, a realistic eye,
 a horn bill, slate plumage under a radial light, finer spots at near and mid (far keeps a few
 large ones), barred wing feathers, feather scallops at near, slimmer scaled legs, and thinner
-soft outlines (near 0.55, mid 0.65, far 0.85). Variants and bosses follow. Every flyer part gets
+soft outlines (first near 0.55, mid 0.65, far 0.85; final 0.45 / 0.5 / 0.85 in a darker slate of
+the bird's own shadow, see (8)). Variants and bosses follow. Every flyer part gets
 a gradient, a feather-edge pattern and a soft outline. **The bird with no texture was the
 kwêvoël on the mid plane** (a flat grey silhouette, 15.7 KB): it is now a textured grey
 go-away-bird. The audit of every creature on every plane is `docs/art-preview/compare/gfx3-creatures.png`.
@@ -1651,14 +1661,16 @@ contrast is at or above v1.2's and every map keeps ≥ 82 % of its plain map
 (`tools/sky-contrast.ts`, `gfx3-sky-contrast.txt`). `art:interim` + `assets:pack` twice are
 byte-identical (1 130 files).
 (8) *Round 2 (the product owner's look review, 23 Oct: "still cartoony"):* guns lose every dark
-contour (parts edged in a darker shade of their own material), get dense fine grain with figure
+contour (outlines 0.25 × the near weight; parts edged in a 22 % darker shade of their own
+material, detail strokes in their material's shade), get dense fine grain with figure
 bands, an edge-darkening stain and a varnish highlight, tubular blued barrels worn grey at the
 edges with a long soft specular and a fine vent rib (less saturated steel), a pistol-grip curve,
 comb line and rubber butt pad, a slim forged trigger guard, a slim grooved Pomp slide, and soft
 contact shadows (receiver on wrist, barrels on fore-end). The guineafowl becomes a humped egg with
 a head of ~1/6 body length kept inside the content head circle (`content/birds.json` unchanged;
 crouch poses squash a little less so the body still covers its ellipse; `tools/art/fit.test.ts`
-passes), slate edges, no wing outline, a small round eye in a pale ring, ringed spots denser
+passes; head 0.48 × the hit radius, outlines 0.45 / 0.5 / 0.85 × the plane weight), slate edges,
+no wing outline, a small round eye in a pale ring, ringed spots denser
 toward the neck, slimmer grey-black legs. Koppies are rounded and lopsided, strata ridges are
 cuestas, one landmark spire at most (Kalahari); Kalahari dunes get a sinuous crest, slip face,
 graded slopes and ripples. Budgets after round 2: first download 2 910.9 KB gzip web (Poki 2 907.2,
