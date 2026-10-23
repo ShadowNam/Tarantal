@@ -1281,7 +1281,9 @@ don't run CI until retargeted, which re-triggers it. (2) *Playwright image.* E2E
 `package.json`. (3) *Working rules for agent tasks.* One or two PRs per job instead of a stack
 of five to eight; one review at the end of a job, not one per part; check-ins every ~20 min
 instead of hourly, and a cut-off turn is restarted at once. `E2E_SKIP` now takes
-comma-separated globs.
+comma-separated globs. *Fix (23 Oct):* a PR description edit or an unrelated label runs no jobs,
+but it shared the PR's concurrency group and cancelled the quick lane in progress (#43); such
+events now get their own `-noop` group.
 
 **D-031 Graphics pass 2: interim landscapes, props, other creatures and effects (22 Oct
 2026).** The product owner approved a second code-drawn interim pass (same route as D-029, human
