@@ -144,6 +144,20 @@ export const DailySaveSchema = z.object({
 });
 export type DailySave = z.infer<typeof DailySaveSchema>;
 
+/** v1.2 (D-033): bonus maps — today's unlocks (UTC day) and each bonus map's best. */
+export const BonusMapSaveSchema = z.object({
+  /** UTC day the unlocks were earned on (null = never); other days' unlocks are gone. */
+  day: z.number().int().nonnegative().nullable(),
+  /** "biome/bonus" keys unlocked on `day`. */
+  unlocked: z.array(z.string().max(120)).max(100),
+  /** "biome/bonus" → best score and its rank. */
+  bests: z.record(
+    z.string().max(120),
+    z.object({ score: z.number().int(), rank: z.string().max(80) }),
+  ),
+});
+export type BonusMapSave = z.infer<typeof BonusMapSaveSchema>;
+
 export const RunAdsSchema = z.object({
   /** The run these belong to (RunState.seed); another seed means a fresh run: all unused. */
   seed: z.number().int().nonnegative().nullable(),
@@ -191,6 +205,8 @@ const sections = {
   /** v1.0.1 (D-028 §3): UTC day of the last hunt started, for Oupa's first-hunt-of-the-day bark
    *  (a new section: older saves get the default, no migration). */
   barks: z.object({ lastHuntDay: z.number().int().nonnegative().nullable() }),
+  /** v1.2: bonus maps (a new section: older saves get the default, no migration). */
+  bonusMaps: BonusMapSaveSchema,
 } as const;
 
 export const SaveSchema = z.object({ v: z.literal(SAVE_VERSION), ...sections });
@@ -216,6 +232,7 @@ export function defaultSave(): SaveData {
     runAds: { seed: null, retries: 0, doubled: [] },
     device: { benchTier: null, benchAvgMs: null },
     barks: { lastHuntDay: null },
+    bonusMaps: { day: null, unlocked: [], bests: {} },
     daily: {
       streak: 0,
       bestStreak: 0,
