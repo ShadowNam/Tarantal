@@ -6,7 +6,9 @@ name: CI
 #   and perf timing specs. Stacked PRs (base is not main) don't run CI until they are retargeted
 #   to main, which re-triggers it.
 # - Full lane (push to main, nightly, manual, or a PR labelled `full-ci`): every profile, the
-#   Season Run, perf, portal and public-build jobs.
+#   Season Run, perf, portal and public-build jobs. The perf timing specs run alone (one worker,
+#   own job per profile): sharing a runner with another worker's test inflated the low-tier figure
+#   past its budget (D-030).
 # E2E jobs run inside the official Playwright image, so browsers and their system packages are
 # already installed (installing them took 1–22 min per job). Keep its tag equal to the
 # @playwright/test version in package.json.
@@ -67,17 +69,19 @@ jobs:
           )
           full=$(cat <<'JSON'
           [
-            {"project":"desktop-chromium","browser":"chromium","shard":"1/4","skip":"**/season-*.spec.ts"},
-            {"project":"desktop-chromium","browser":"chromium","shard":"2/4","skip":"**/season-*.spec.ts"},
-            {"project":"desktop-chromium","browser":"chromium","shard":"3/4","skip":"**/season-*.spec.ts"},
-            {"project":"desktop-chromium","browser":"chromium","shard":"4/4","skip":"**/season-*.spec.ts"},
+            {"project":"desktop-chromium","browser":"chromium","shard":"1/4","skip":"**/season-*.spec.ts,**/perf.spec.ts"},
+            {"project":"desktop-chromium","browser":"chromium","shard":"2/4","skip":"**/season-*.spec.ts,**/perf.spec.ts"},
+            {"project":"desktop-chromium","browser":"chromium","shard":"3/4","skip":"**/season-*.spec.ts,**/perf.spec.ts"},
+            {"project":"desktop-chromium","browser":"chromium","shard":"4/4","skip":"**/season-*.spec.ts,**/perf.spec.ts"},
             {"project":"desktop-chromium","browser":"chromium","shard":"season","only":"**/season-*.spec.ts","workers":1},
+            {"project":"desktop-chromium","browser":"chromium","shard":"perf","only":"**/perf.spec.ts","workers":1},
             {"project":"desktop-webkit","browser":"webkit","shard":"1/2"},
             {"project":"desktop-webkit","browser":"webkit","shard":"2/2"},
-            {"project":"pixel7-landscape","browser":"chromium","shard":"1/3","skip":"**/season-*.spec.ts"},
-            {"project":"pixel7-landscape","browser":"chromium","shard":"2/3","skip":"**/season-*.spec.ts"},
-            {"project":"pixel7-landscape","browser":"chromium","shard":"3/3","skip":"**/season-*.spec.ts"},
+            {"project":"pixel7-landscape","browser":"chromium","shard":"1/3","skip":"**/season-*.spec.ts,**/perf.spec.ts"},
+            {"project":"pixel7-landscape","browser":"chromium","shard":"2/3","skip":"**/season-*.spec.ts,**/perf.spec.ts"},
+            {"project":"pixel7-landscape","browser":"chromium","shard":"3/3","skip":"**/season-*.spec.ts,**/perf.spec.ts"},
             {"project":"pixel7-landscape","browser":"chromium","shard":"season","only":"**/season-*.spec.ts","workers":1},
+            {"project":"pixel7-landscape","browser":"chromium","shard":"perf","only":"**/perf.spec.ts","workers":1},
             {"project":"iphone14-landscape","browser":"webkit","shard":"1/1"},
             {"project":"pixel7-portrait","browser":"chromium","shard":"1/1"},
             {"project":"iphone14-portrait","browser":"webkit","shard":"1/1"},
