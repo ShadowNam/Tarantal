@@ -92,9 +92,9 @@ describe('maps (v1.2)', () => {
     const k0 = karoo.pacing.keyframes[1];
     const t0 = thu.biome.pacing.keyframes[1];
     const v0 = verder.biome.pacing.keyframes[1];
-    expect(t0?.flyoversPerMin).toBeCloseTo((k0?.flyoversPerMin ?? 0) * 1.25);
+    expect(t0?.flyoversPerMin).toBeCloseTo((k0?.flyoversPerMin ?? 0) * 1.1);
     expect(v0?.popupsPerMin).toBeCloseTo((k0?.popupsPerMin ?? 0) * 0.35);
-    expect(v0?.flocks).toEqual({ mid: 1, far: 1 });
+    expect(v0?.flocks).toEqual({ far: 1 });
     const w = karoo.omen.wind?.strength ?? [0, 0];
     expect(verder.biome.omen.wind?.strength[1]).toBeCloseTo(w[1] * 1.3 * 1.5);
     expect(verder.biome.flyovers?.planeWeights).toEqual({ mid: 1, far: 3 });
@@ -140,7 +140,7 @@ describe('maps (v1.2)', () => {
 
   it('a dusk map (pointsMul) pays more per bird', () => {
     const sat = resolveMap(karoo, 'sat', undefined);
-    expect(sat.pointsMul).toBe(1.3);
+    expect(sat.pointsMul).toBe(1.15);
     expect(findLayout(karoo, 'sat')?.light).toBe('dusk');
   });
 

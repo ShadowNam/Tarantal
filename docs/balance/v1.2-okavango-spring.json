@@ -1,0 +1,127 @@
+{
+  "biome": "okavango-spring",
+  "quota": 2600,
+  "seeds": 48,
+  "maps": [
+    {
+      "map": "plain (no layout)",
+      "plinkerP50": 2808,
+      "competentMean": 4142.708333333333,
+      "competentP50": 4228,
+      "competentPass": 1,
+      "plinkerPass": 0.6666666666666666
+    },
+    {
+      "map": "mon",
+      "plinkerP50": 2675,
+      "competentMean": 4105.333333333333,
+      "competentP50": 4061,
+      "competentPass": 1,
+      "plinkerPass": 0.5208333333333334
+    },
+    {
+      "map": "tue",
+      "plinkerP50": 2698,
+      "competentMean": 3855.0208333333335,
+      "competentP50": 3721,
+      "competentPass": 1,
+      "plinkerPass": 0.6041666666666666
+    },
+    {
+      "map": "wed",
+      "plinkerP50": 2431,
+      "competentMean": 4066.4791666666665,
+      "competentP50": 4085,
+      "competentPass": 1,
+      "plinkerPass": 0.3333333333333333
+    },
+    {
+      "map": "thu",
+      "plinkerP50": 2780,
+      "competentMean": 3895.3333333333335,
+      "competentP50": 3809,
+      "competentPass": 0.9791666666666666,
+      "plinkerPass": 0.5833333333333334
+    },
+    {
+      "map": "fri",
+      "plinkerP50": 2861,
+      "competentMean": 4176.229166666667,
+      "competentP50": 4187,
+      "competentPass": 1,
+      "plinkerPass": 0.6666666666666666
+    },
+    {
+      "map": "sat",
+      "plinkerP50": 2890,
+      "competentMean": 4374.3125,
+      "competentP50": 4499,
+      "competentPass": 0.9791666666666666,
+      "plinkerPass": 0.6666666666666666
+    },
+    {
+      "map": "sun",
+      "plinkerP50": 2733,
+      "competentMean": 4016.6458333333335,
+      "competentP50": 3843,
+      "competentPass": 1,
+      "plinkerPass": 0.5625
+    },
+    {
+      "map": "mon + verder",
+      "plinkerP50": 1830,
+      "competentMean": 3290.7083333333335,
+      "competentP50": 3158,
+      "competentPass": 0.8125,
+      "plinkerPass": 0.020833333333333332
+    },
+    {
+      "map": "tue + verder",
+      "plinkerP50": 2029,
+      "competentMean": 3494.9166666666665,
+      "competentP50": 3413,
+      "competentPass": 0.9166666666666666,
+      "plinkerPass": 0.041666666666666664
+    },
+    {
+      "map": "wed + verder",
+      "plinkerP50": 1828,
+      "competentMean": 3068.2916666666665,
+      "competentP50": 3023,
+      "competentPass": 0.75,
+      "plinkerPass": 0.08333333333333333
+    },
+    {
+      "map": "thu + verder",
+      "plinkerP50": 1931,
+      "competentMean": 3447.6875,
+      "competentP50": 3518,
+      "competentPass": 0.8958333333333334,
+      "plinkerPass": 0.041666666666666664
+    },
+    {
+      "map": "fri + verder",
+      "plinkerP50": 1849,
+      "competentMean": 3169.2083333333335,
+      "competentP50": 3013,
+      "competentPass": 0.8125,
+      "plinkerPass": 0.0625
+    },
+    {
+      "map": "sat + verder",
+      "plinkerP50": 1954,
+      "competentMean": 3290.5416666666665,
+      "competentP50": 3356,
+      "competentPass": 0.875,
+      "plinkerPass": 0.10416666666666667
+    },
+    {
+      "map": "sun + verder",
+      "plinkerP50": 1938,
+      "competentMean": 3319.7708333333335,
+      "competentP50": 3303,
+      "competentPass": 0.9166666666666666,
+      "plinkerPass": 0.041666666666666664
+    }
+  ]
+}

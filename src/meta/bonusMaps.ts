@@ -75,7 +75,8 @@ export function applyBonusResult(
   const todaysMap = result.layout !== null && result.layout === layoutForDay(huntDay);
   const next = nextBonus(result.bonus);
   const biome = content.biomes.find((b) => b.id === result.biome);
-  const exists = next !== null && biome?.bonusMaps.some((b) => b.id === next) === true;
+  const ids: readonly string[] = biome?.bonusMaps.map((b) => b.id) ?? [];
+  const exists = next !== null && ids.includes(next);
   if (
     huntDay !== today ||
     !todaysMap ||

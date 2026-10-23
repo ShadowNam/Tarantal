@@ -114,5 +114,8 @@ console.log(text);
 if (out !== '') {
   mkdirSync(dirname(out), { recursive: true });
   writeFileSync(out, `${text}\n`);
-  writeFileSync(out.replace(/\.md$/, '.json'), `${JSON.stringify({ biome, quota, seeds, maps: json }, null, 2)}\n`);
+  writeFileSync(
+    out.replace(/\.md$/, '.json'),
+    `${JSON.stringify({ biome, quota, seeds, maps: json }, null, 2)}\n`,
+  );
 }
