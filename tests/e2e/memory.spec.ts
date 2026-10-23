@@ -144,6 +144,8 @@ test('texture memory: a scoped Nog Verder hunt with the .22, and the title after
   await page.waitForFunction(() => window.__TM__?.rects['shed'] !== undefined, null, {
     timeout: 60_000,
   });
+  // The title's own reading (the hook samples it when the scene restarts, then every 30 frames).
+  await page.waitForFunction(() => window.__TM__?.scene === 'start', null, { timeout: 60_000 });
   await page.waitForTimeout(1000);
   const title = await page.evaluate(() => ({
     bytes: window.__TM__?.textureBytes ?? 0,
