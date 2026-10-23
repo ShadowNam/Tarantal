@@ -23,7 +23,7 @@ import { el, ellipseD, g, inked, polyD, r2, smoothD } from '../svg';
 import { mountainRow, paintRow, rockColours } from '../mountains';
 import { tree as leafyTree } from '../realism';
 import { aloeFlowers, aloeRosette, bush, groundBand, groundShadow, softSky } from './karoo';
-import { foregroundClumps, midScrub, nearGrass } from './common';
+import { foregroundClumps, midScrub, nearGrass, verVeld } from './common';
 
 // --- shapes --------------------------------------------------------------------------------
 
@@ -725,6 +725,12 @@ export const BUSHVELD_PLAN: BiomeArtPlan = {
   layers: {
     sky: { top: 0, height: 1080, encode: 'png', draw: sky },
     far_ridge: { top: 380, height: 280, draw: farRidge },
+    // v1.3: the Ver plane's strip (shown only on maps that open it).
+    ver_veld: {
+      top: 536,
+      height: 52,
+      draw: verVeld({ ground: 'grass', light: 'grassLight', scrub: 'bossie' }),
+    },
     far_veld: { top: 464, height: 232, draw: farVeld },
     mid: { top: 630, height: 280, draw: mid },
     near: { top: 820, height: 260, draw: near },

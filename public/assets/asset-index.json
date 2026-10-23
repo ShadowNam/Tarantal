@@ -855,6 +855,26 @@
       "top": 0,
       "height": 1080
     },
+    "bushveld/ver_veld": {
+      "group": "ver",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/ver/layers/bushveld-winter-ver_veld-0.7df039e5da84.png",
+          "bytes": 11273,
+          "hash": "7df039e5da84"
+        },
+        {
+          "path": "assets/ver/layers/bushveld-winter-ver_veld-1.b03df7fd2a97.png",
+          "bytes": 6561,
+          "hash": "b03df7fd2a97"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 536,
+      "height": 52
+    },
     "kalahari/far_ridge": {
       "group": "kalahari-summer",
       "origin": "interim",
@@ -994,6 +1014,26 @@
       "left": -300,
       "top": 0,
       "height": 1080
+    },
+    "kalahari/ver_veld": {
+      "group": "ver",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/ver/layers/kalahari-summer-ver_veld-0.bb80f74ac706.png",
+          "bytes": 11051,
+          "hash": "bb80f74ac706"
+        },
+        {
+          "path": "assets/ver/layers/kalahari-summer-ver_veld-1.80c02fc96ccc.png",
+          "bytes": 6569,
+          "hash": "80c02fc96ccc"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 536,
+      "height": 52
     },
     "karoo/far_ridge": {
       "group": "karoo-autumn",
@@ -1135,6 +1175,26 @@
       "top": 0,
       "height": 1080
     },
+    "karoo/ver_veld": {
+      "group": "ver",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/ver/layers/karoo-autumn-ver_veld-0.d42999769a42.png",
+          "bytes": 11149,
+          "hash": "d42999769a42"
+        },
+        {
+          "path": "assets/ver/layers/karoo-autumn-ver_veld-1.5718de69d180.png",
+          "bytes": 6968,
+          "hash": "5718de69d180"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 536,
+      "height": 52
+    },
     "okavango/far_ridge": {
       "group": "okavango-spring",
       "origin": "interim",
@@ -1274,6 +1334,26 @@
       "left": -300,
       "top": 0,
       "height": 1080
+    },
+    "okavango/ver_veld": {
+      "group": "ver",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/ver/layers/okavango-spring-ver_veld-0.8d39304de3d5.png",
+          "bytes": 11281,
+          "hash": "8d39304de3d5"
+        },
+        {
+          "path": "assets/ver/layers/okavango-spring-ver_veld-1.5cba5a18b704.png",
+          "bytes": 6445,
+          "hash": "5cba5a18b704"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 536,
+      "height": 52
     }
   },
   "birds": {
