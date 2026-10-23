@@ -1772,6 +1772,17 @@ for the wind), which is the skill gap the proposal wants.
 two bonus maps); the 31 existing event hashes, counts and scores are unchanged; three new ones
 (Twee-Twee + scope on Nog Verder, competent pointer; Twee-Twee iron on Die Verste, aim bot
 touch; the Pomp on a Bushveld Nog Verder, whose pellets fall short of the Ver birds).
+(15) *Evidence (PR B):* zoomed replays: the two rifle goldens give their Node event hash in
+desktop Chromium, the Pixel 7 profile and real WebKit (iPhone 14, CI), and a scoped .22 hunt
+played in each replays to the same events in Node (`tests/e2e/longrange.spec.ts`). Low-tier
+texture memory (Pixel 7): scoped Nog Verder 88.7 MB, the title after it 105.6 MB; after a
+crate-gun hunt 120.6 / title 105.6 / Skiet-Skuur 106.2 MB (`memory.spec.ts`, all < 128). Frame
+cost, medium tier, 4× CPU throttle, same-page A/B over three rounds: Pixel 7 median 18.3 ms open
+→ 18.9 ms scoped, desktop 18.5 → 18.6 ms; the perf smoke measured 19.4 ms on the same loaded box
+at the same time, so the scope itself costs 0.1–0.6 ms a frame (no extra camera; the absolute
+60 fps budget stays with `perf.spec.ts`). Sight pictures before | after on desktop, Pixel 7 and
+iPhone 14 landscape (local Chromium emulation of the device): `docs/art-preview/compare/
+v1.3-sight-{iron,peep,scope_small}-<project>.png`, the Skiet-Skuur `v1.3-shed-<project>.png`.
 
 ## 3. Research notes (with sources)
 
