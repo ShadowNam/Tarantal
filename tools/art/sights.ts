@@ -16,7 +16,7 @@ const PEEP_CLEAR_R = 150;
 const PEEP_DARK = '#17191C';
 const SCOPE_GLASS_R = 206;
 const SCOPE_DARK = '#070809';
-const BARREL_BOTTOM = { left: -90, right: 90 };
+const BARREL_BOTTOM = { left: -35, right: 35 };
 
 let ids = 0;
 const id = (name: string): string => `${name}${++ids}`;
@@ -56,74 +56,77 @@ const blur = (fid: string, sd: number): string =>
     el('feGaussianBlur', { stdDeviation: sd }),
   );
 
-/** Rear leaf (origin: the middle of the notch's top edge) and the barrel below it. */
+/** Rear leaf (origin: the middle of its top edge, level with the notch top) and the slim stem
+ *  below it. v1.3 review: a slimmer leaf and a wide notch, so light shows either side of the post. */
 function ironRear(): string {
   const f = id('soft');
   const leaf = id('leaf');
   const barrel = id('barrel');
   const sheen = id('sheen');
-  // Leaf: rounded ends, top edge level with the origin, a square notch 30 wide and 28 deep.
-  const leafD = 'M-188 58Q-200 12-170 4L-18 0L-15 28L15 28L18 0L170 4Q200 12 188 58Z';
+  // Rounded ends, top edge at y 0, a square notch 88 wide and 38 deep.
+  const leafD = 'M-188 44Q-200 8-176 2L-44 0L-44 38L44 38L44 0L176 2Q200 8 188 44Z';
   return g(
     {},
     el(
       'defs',
       {},
-      blur(f, 2.6),
+      blur(f, 2),
       linear(
         leaf,
-        [0, 0, 0, 58],
+        [0, 0, 0, 44],
         [
           [0, STEEL.lit],
-          [0.14, STEEL.mid],
+          [0.15, STEEL.mid],
           [1, STEEL.dark],
         ],
       ),
       linear(
         barrel,
-        [-70, 0, 90, 0],
+        [-35, 0, 35, 0],
         [
           [0, STEEL.lit],
-          [0.28, STEEL.mid],
+          [0.3, STEEL.mid],
           [1, STEEL.dark],
         ],
       ),
       linear(
         sheen,
-        [0, 40, 0, 330],
+        [0, 56, 0, 280],
         [
-          [0, STEEL.sky, 0.55],
+          [0, STEEL.sky, 0.5],
           [1, STEEL.sky, 0.08],
         ],
       ),
     ),
     g(
       { filter: `url(#${f})` },
-      // Barrel, widening toward the eye; a sky reflection along its upper left.
+      // The slim stem (barrel), widening toward the eye; a sky reflection along its left.
       el('path', {
-        d: `M-26 40L26 40L${BARREL_BOTTOM.right} 330L${BARREL_BOTTOM.left} 330Z`,
+        d: `M-18 56L18 56L${BARREL_BOTTOM.right} 280L${BARREL_BOTTOM.left} 280Z`,
         fill: `url(#${barrel})`,
       }),
-      el('path', { d: 'M-18 44L-8 44L-30 330L-62 330Z', fill: `url(#${sheen})` }),
+      el('path', { d: 'M-14 58L-8 58L-18 280L-30 280Z', fill: `url(#${sheen})` }),
       // The leaf's base block, a darker shade than the leaf.
-      el('rect', { x: -44, y: 54, width: 88, height: 26, rx: 4, fill: STEEL.dark }),
-      el('rect', { x: -44, y: 54, width: 88, height: 4, fill: STEEL.mid }),
+      el('rect', { x: -26, y: 38, width: 52, height: 22, rx: 3, fill: STEEL.dark }),
+      el('rect', { x: -26, y: 38, width: 52, height: 3, fill: STEEL.mid }),
       el('path', { d: leafD, fill: `url(#${leaf})` }),
       // Lit top edge of the leaf (the key light), broken by the notch.
-      el('path', { d: 'M-170 5L-18 1L-18 4L-170 8Z', fill: STEEL.sky, opacity: 0.6 }),
-      el('path', { d: 'M18 1L170 5L170 8L18 4Z', fill: STEEL.sky, opacity: 0.35 }),
+      el('path', { d: 'M-176 3L-44 1L-44 4L-176 6Z', fill: STEEL.sky, opacity: 0.6 }),
+      el('path', { d: 'M44 1L176 3L176 6L44 4Z', fill: STEEL.sky, opacity: 0.35 }),
     ),
   );
 }
 
-/** Front post on its ramp (origin: the post's tip = the aim point). Sharp: it is in focus. */
+/** Front post on its ramp (origin: the post's tip = the aim point). Sharp: it is in focus.
+ *  v1.3 review: a broad post (48 px) with a bright bevel along its top edge. */
 function ironFront(): string {
   const ramp = id('ramp');
+  const post = id('post');
   const grooves: string[] = [];
-  for (let y = 158; y < 300; y += 12)
+  for (let y = 152; y < 300; y += 12)
     grooves.push(
       el('path', {
-        d: `M${-9 - (y - 150) * 0.16} ${y}L${9 + (y - 150) * 0.16} ${y}`,
+        d: `M${-24 - (y - 144) * 0.09} ${y}L${24 + (y - 144) * 0.09} ${y}`,
         stroke: STEEL.dark,
         'stroke-width': 3,
         opacity: 0.7,
@@ -135,8 +138,17 @@ function ironFront(): string {
       'defs',
       {},
       linear(
+        post,
+        [-24, 0, 24, 0],
+        [
+          [0, STEEL.lit],
+          [0.45, STEEL.mid],
+          [1, STEEL.dark],
+        ],
+      ),
+      linear(
         ramp,
-        [-36, 0, 36, 0],
+        [-38, 0, 38, 0],
         [
           [0, STEEL.lit],
           [0.45, STEEL.mid],
@@ -144,14 +156,15 @@ function ironFront(): string {
         ],
       ),
     ),
-    // The post: lit left face, shaded right face, a bright bevel at the very top.
-    el('rect', { x: -9, y: 0, width: 9, height: 150, fill: STEEL.lit }),
-    el('rect', { x: 0, y: 0, width: 9, height: 150, fill: STEEL.mid }),
-    el('rect', { x: -9, y: 0, width: 18, height: 2.5, fill: STEEL.sky, opacity: 0.8 }),
-    el('path', { d: 'M-9 150L9 150L36 314L-36 314Z', fill: `url(#${ramp})` }),
+    // The post: lit left face, the shadow face a darker shade of the same steel, a bright
+    // bevel along the top catching the key light (no dark outline, D-035).
+    el('rect', { x: -24, y: 0, width: 48, height: 150, fill: `url(#${post})` }),
+    el('rect', { x: -24, y: 0, width: 48, height: 4, fill: STEEL.sky, opacity: 0.9 }),
+    el('rect', { x: -24, y: 4, width: 6, height: 140, fill: STEEL.sky, opacity: 0.3 }),
+    el('path', { d: 'M-24 144L24 144L38 314L-38 314Z', fill: `url(#${ramp})` }),
     ...grooves,
     // Dovetail base.
-    el('path', { d: 'M-36 290L36 290L30 314L-30 314Z', fill: STEEL.dark }),
+    el('path', { d: 'M-38 290L38 290L32 314L-32 314Z', fill: STEEL.dark }),
   );
 }
 

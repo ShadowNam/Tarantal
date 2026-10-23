@@ -39,6 +39,7 @@ import { SightView, type SightPicture } from '../view/SightView';
 import { NO_ZOOM, zoomFor, type ZoomState } from '../view/zoomView';
 import { ParallaxView } from '../view/ParallaxView';
 import { WeaponView } from '../view/WeaponView';
+import { planeToDx } from '../../sim/camera';
 import { crosshairExtent, spreadMulOf } from '../ui/gunLook';
 import { WorldView } from '../view/WorldView';
 import { textureBytes } from '../assets/textureBytes';
@@ -1087,6 +1088,22 @@ export class HuntScene extends Phaser.Scene {
       hook.birds = state.birds.length;
       hook.gadgetCharges = state.gadget?.charges ?? 0;
       hook.flocks = state.flocks.map((f) => `${f.id}:${f.state}`);
+      const ver = this.ctx.content.scoring.planes.ver;
+      const tarentaal = this.ctx.content.birds.creatures.find((c) => c.id === 'tarentaal');
+      const body = tarentaal !== undefined && 'hitbox' in tarentaal ? tarentaal.hitbox.body : null;
+      hook.verBirds = state.birds
+        .filter((b) => b.plane === 'ver' && b.hittable)
+        .map((b) => ({
+          id: b.id,
+          x:
+            width / 2 +
+            planeToDx(
+              state.cameraX,
+              ver.scrollFactor,
+              b.x + (body?.ox ?? 0) * ver.scale * b.facing,
+            ),
+          y: b.y + (body?.oy ?? 0) * ver.scale,
+        }));
       hook.flockSpots = state.flocks.map((f) => {
         const members = state.birds.filter((b) => b.flockId === f.id);
         const n = Math.max(1, members.length);

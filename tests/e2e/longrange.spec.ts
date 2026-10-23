@@ -29,6 +29,8 @@ const PREVIEW = process.env['ART_PREVIEW'] === '1';
 /** 2026-10-23 (a Friday): the UTC day the save's unlocks are for. */
 const TODAY = '2026-10-23';
 const DAY = 20749;
+/** Previews: 2026-10-19, a Monday (the Ver flock forages in the open, not behind the windpomp). */
+const PREVIEW_DAY = { key: '2026-10-19', n: 20745 } as const;
 
 test.use({ serviceWorkers: 'block' });
 
@@ -37,7 +39,7 @@ function gate(info: TestInfo): void {
 }
 
 /** A save with the .22 equipped, `sight` fitted (unlocked) and Nog Verder open today. */
-async function rifleSave(page: Page, sight: string, quality = 'medium'): Promise<void> {
+async function rifleSave(page: Page, sight: string, quality = 'medium', day = DAY): Promise<void> {
   await page.addInitScript(
     ([s, q, d]) => {
       localStorage.setItem(
@@ -57,7 +59,7 @@ async function rifleSave(page: Page, sight: string, quality = 'medium'): Promise
         }),
       );
     },
-    [sight, quality, DAY] as const,
+    [sight, quality, day] as const,
   );
 }
 
@@ -96,6 +98,32 @@ async function release(page: Page): Promise<void> {
     if (!canvas || init === undefined) return;
     canvas.dispatchEvent(new PointerEvent('pointerup', { ...init, buttons: 0 }));
   });
+}
+
+/** Keeps a held sight on a Ver bird: pointer = press + (bird − press) × zoom (fine aim). */
+async function trackBird(page: Page, id: number, px: number, py: number): Promise<void> {
+  await page.evaluate(
+    ([bid, ax, ay]) => {
+      const canvas = document.querySelector('#game canvas');
+      const h = window.__TM__;
+      const init = (window as { __TM_PRESS__?: PointerEventInit }).__TM_PRESS__;
+      const b = h?.verBirds.find((v) => v.id === bid);
+      if (!(canvas instanceof HTMLCanvasElement) || !h || init === undefined || b === undefined)
+        return;
+      const z = h.zoom.z;
+      const r = canvas.getBoundingClientRect();
+      const x = ax + (b.x - ax) * z;
+      const y = ay + (b.y - ay) * z;
+      canvas.dispatchEvent(
+        new PointerEvent('pointermove', {
+          ...init,
+          clientX: r.left + (x / h.designWidth) * r.width,
+          clientY: r.top + (y / h.designHeight) * r.height,
+        }),
+      );
+    },
+    [id, px, py] as const,
+  );
 }
 
 async function verFlock(page: Page): Promise<{ x: number; y: number }> {
@@ -196,22 +224,40 @@ test.describe('long range (v1.3)', () => {
       test.skip(!PREVIEW, 'on demand: ART_PREVIEW=1');
       test.setTimeout(400_000);
       const touch = isTouchProject(info);
-      await rifleSave(page, sight);
-      await boot(page, `seed=42&today=${TODAY}&bonus=nogVerder&huntSeconds=60`);
+      await rifleSave(page, sight, 'medium', PREVIEW_DAY.n);
+      await boot(page, `seed=42&today=${PREVIEW_DAY.key}&bonus=nogVerder&huntSeconds=60`);
       await startHunt(page, touch);
-      const at = await verFlock(page);
+      await verFlock(page);
+      // A Ver bird in view and clear of the windpomp (Friday's flock forages behind it): the
+      // sight comes up on it.
+      const bird = await page.evaluate(() => {
+        const h = window.__TM__;
+        if (!h) return null;
+        const pomp = h.secretSpots.find((p) => p.propId === 'windpomp')?.x ?? -9999;
+        return (
+          [...h.verBirds]
+            .filter((b) => b.x > 260 && b.x < h.designWidth - 260)
+            .sort((a, b) => Math.abs(b.x - pomp) - Math.abs(a.x - pomp))[0] ?? null
+        );
+      });
+      if (bird === null) throw new Error('no Ver bird in view');
       mkdirSync(SCREENS, { recursive: true });
       const name = `v1.3-sight-${sight}`;
       await page.screenshot({ path: join(SCREENS, `${name}-before-${info.project.name}.png`) });
-      await press(page, touch, at.x, at.y);
-      // Up, and the breath held (the sway settles): the picture you shoot through.
+      await press(page, touch, bird.x, bird.y);
+      // Up, and the breath held (the sway settles): the picture you shoot through, kept on the
+      // bird (it walks): the pointer moves by the bird's movement × the zoom (fine aim).
       await page.waitForFunction(() => (window.__TM__?.zoom.raise ?? 0) >= 1, null, {
         timeout: 60_000,
       });
       const t0 = (await hook(page)).tick;
-      await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) >= t + 50, t0, {
-        timeout: 60_000,
-      });
+      for (let k = 0; k < 6; k++) {
+        await trackBird(page, bird.id, bird.x, bird.y);
+        await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) >= t, t0 + 10 * (k + 1), {
+          timeout: 60_000,
+        });
+      }
+      await trackBird(page, bird.id, bird.x, bird.y);
       await page.screenshot({ path: join(SCREENS, `${name}-after-${info.project.name}.png`) });
       await release(page);
       // docs/art-preview/compare/<name>-<project>.png: the open view | the sight picture.

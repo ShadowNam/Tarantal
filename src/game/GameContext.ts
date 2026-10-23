@@ -147,6 +147,8 @@ export interface TestHook {
   safe: Rect | null;
   /** M4: shootable secret parts, crates and scripted birds in design px of the screen. */
   secretSpots: { propId: string; partId: string; x: number; y: number; ready: boolean }[];
+  /** v1.3: hittable Ver birds' body centres on the UNZOOMED screen (design px), for aiming. */
+  verBirds: { id: number; x: number; y: number }[];
   crateSpots: { id: number; x: number; y: number }[];
   specialBirds: { id: number; creature: string; phase: string; x: number; y: number }[];
   /** Active weapon id, power-up ids, wind (omen) and hunt length (bonus time grows it). */

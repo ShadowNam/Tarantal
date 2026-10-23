@@ -237,6 +237,7 @@ const hook: TestHook = {
   map: null,
   verder: false,
   bonusOpen: [],
+  verBirds: [],
   verderUnlocked: null,
   glare: null,
   omen: false,

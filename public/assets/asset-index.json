@@ -607,9 +607,9 @@
       "group": "ver",
       "origin": "interim",
       "file": {
-        "path": "assets/ver/img/sight_iron_front.9a9d8f7c12f6.png",
-        "bytes": 4768,
-        "hash": "9a9d8f7c12f6"
+        "path": "assets/ver/img/sight_iron_front.3faaf07d275e.png",
+        "bytes": 5893,
+        "hash": "3faaf07d275e"
       },
       "width": 80,
       "height": 320
@@ -618,12 +618,12 @@
       "group": "ver",
       "origin": "interim",
       "file": {
-        "path": "assets/ver/img/sight_iron_rear.7f88d82c8847.png",
-        "bytes": 36221,
-        "hash": "7f88d82c8847"
+        "path": "assets/ver/img/sight_iron_rear.4418ae0ff10a.png",
+        "bytes": 20849,
+        "hash": "4418ae0ff10a"
       },
       "width": 480,
-      "height": 400
+      "height": 320
     },
     "sight/peep": {
       "group": "ver",
