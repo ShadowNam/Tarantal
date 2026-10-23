@@ -29,7 +29,10 @@ describe('bonus maps (v1.2)', () => {
   it('the quota is the season plain-hunt quota (run.json)', () => {
     expect(quota).toBe(content.run.seasons.find((s) => s.biome === 'karoo-autumn')?.quotas[0]);
     expect(nextBonus(null)).toBe('verder');
-    expect(nextBonus('verder')).toBeNull();
+    // v1.3: Verder → Nog Verder → Die Verste, then nothing.
+    expect(nextBonus('verder')).toBe('nogVerder');
+    expect(nextBonus('nogVerder')).toBe('dieVerste');
+    expect(nextBonus('dieVerste')).toBeNull();
   });
 
   it('beating the quota on today’s map unlocks Verder for today', () => {
@@ -104,7 +107,18 @@ describe('bonus maps (v1.2)', () => {
     const c = applyBonusResult(b.save, v(2100, mon), mon, mon, content, KAROO);
     expect(c.newBest).toEqual({ previous: 1800 });
     expect(c.save.bests['karoo-autumn/verder']).toEqual({ score: 2100, rank: 'bosveldjagter' });
-    // A Verder hunt never unlocks another Verder (v1.3 adds Nog Verder).
-    expect(c.unlocked).toBeNull();
+    // v1.3: beating the quota on today's Verder unlocks Nog Verder (once).
+    expect(c.unlocked).toBe('nogVerder');
+    expect(isUnlocked(c.save, mon, 'karoo-autumn', 'nogVerder')).toBe(true);
+  });
+
+  it('v1.3: Nog Verder unlocks Die Verste; Die Verste unlocks nothing; each keeps its best', () => {
+    const on = (bonus: string, score: number) => hunt({ layout: layoutForDay(mon), bonus, score });
+    const a = applyBonusResult(empty, on('nogVerder', quota), mon, mon, content, KAROO);
+    expect(a.unlocked).toBe('dieVerste');
+    expect(a.save.bests['karoo-autumn/nogVerder']?.score).toBe(quota);
+    const b = applyBonusResult(a.save, on('dieVerste', quota + 5), mon, mon, content, KAROO);
+    expect(b.unlocked).toBeNull();
+    expect(b.save.bests['karoo-autumn/dieVerste']?.score).toBe(quota + 5);
   });
 });

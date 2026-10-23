@@ -17,7 +17,7 @@ import { TierFilters } from '../quality/TierFilters';
 import type { Challenge } from '../../meta/challenge';
 import { createHuntLogger, type HuntLogger } from '../../meta/huntLog';
 import { createShareLogger, type ShareLogger } from '../../meta/share';
-import { applyHunt, isWeaponEquippable, type HuntOutcome } from '../../meta/progress';
+import { applyHunt, fittedSight, isWeaponEquippable, type HuntOutcome } from '../../meta/progress';
 import { msToTicks } from '../../sim/clock';
 import type { SimEvent } from '../../sim/events';
 import { createRecorder, encodeInputLogText, type InputRecorder } from '../../sim/replay/inputLog';
@@ -44,7 +44,7 @@ import { WorldView } from '../view/WorldView';
 import { textureBytes } from '../assets/textureBytes';
 import { mapLights, mapOmen, resolveMap, type ResolvedMap } from '../../sim/maps';
 import { layoutForDay } from '../../meta/maps';
-import { applyBonusResult, isUnlocked } from '../../meta/bonusMaps';
+import { applyBonusResult, bonusSlug, isUnlocked } from '../../meta/bonusMaps';
 import { formatScore } from '../ui/format';
 import type { HudScene } from './HudScene';
 import type { PauseData } from './PauseScene';
@@ -444,6 +444,23 @@ export class HuntScene extends Phaser.Scene {
     this.ctx.installedManifest = this.manifest;
   }
 
+  /** v1.3: the mode with the rifle's sight (unchanged for guns without one or a set sight). */
+  private withSight(mode: ModeConfig): ModeConfig {
+    if (mode.sight !== undefined) return mode;
+    const gun =
+      mode.weapon ??
+      (mode.id === 'seasonHunt' ? undefined : this.ctx.content.modes.modes[mode.id].weapon);
+    if (gun === undefined) return mode;
+    const def = this.ctx.content.weapons.weapons.find((w) => w.id === gun);
+    if (def?.kind !== 'primary' || def.aim === undefined) return mode;
+    const override = this.ctx.sightOverride;
+    const sight =
+      override !== undefined && def.aim.sights.includes(override)
+        ? override
+        : fittedSight(gun, this.ctx.save.data, this.ctx.content);
+    return sight === undefined ? mode : { ...mode, sight };
+  }
+
   /** v1.3: the picture a fitted sight draws (weapons.json sights), or null for no sight. */
   private sightPicture(id: string | null): SightPicture | null {
     if (id === null) return null;
@@ -717,15 +734,18 @@ export class HuntScene extends Phaser.Scene {
         plan = {
           ...plan,
           mode: { ...plan.mode, bonus: classicBonus },
-          hudTag: tOr(`hud.tag_${classicBonus}`, classicBonus),
+          hudTag: tOr(`hud.tag_${bonusSlug(classicBonus)}`, classicBonus),
         };
     }
     this.plan = plan;
     this.modeId = plan?.mode.id ?? modeId;
     // A Season Run hunt comes from the run (seed, biome, weapon, charms, Boss Rule …).
     const runHunt = modeId === 'seasonHunt' ? this.ctx.run.setup(this.ctx.huntSeconds) : null;
-    const mode: ModeConfig = runHunt?.mode ??
+    const baseMode: ModeConfig = runHunt?.mode ??
       plan?.mode ?? { id: modeId, ...(weapon === undefined ? {} : { weapon }), ...extra };
+    // v1.3 (D-036): a rifle carries its sight — a challenge's, the admin page's, or the one
+    // fitted in the Skiet-Skuur (recorded in the replay with the mode).
+    const mode = this.withSight(baseMode);
     // The hunt's biome may not be the one behind the title (M8): swap the scenery first.
     const huntBiome =
       mode.biome ??
@@ -1195,8 +1215,14 @@ export class HuntScene extends Phaser.Scene {
       this.markFtueDone(false);
     }
     const plan = this.plan;
-    const outcome = this.recordProgress(result, plan === null || this.ctx.daily.ranked(plan));
-    const verder = this.recordBonus(result);
+    // The bonus-map unlock first: a Notaboek challenge counts it (v1.3: Nog Verder → the .22).
+    const bonus = this.recordBonus(result);
+    const verder = bonus.line;
+    const outcome = this.recordProgress(
+      result,
+      plan === null || this.ctx.daily.ranked(plan),
+      bonus.unlocked,
+    );
     const finished =
       plan === null ? null : this.ctx.daily.finish(plan, result, this.shareLog?.grid() ?? '');
     const extras =
@@ -1258,9 +1284,10 @@ export class HuntScene extends Phaser.Scene {
    * Returns the tally line it earned, or null. Capture mode and `?e2e` on a public build are
    * unranked and unlock nothing.
    */
-  private recordBonus(result: HuntResult): string | null {
-    if (this.ctx.daily.unranked) return null;
+  private recordBonus(result: HuntResult): { line: string | null; unlocked: string | null } {
+    if (this.ctx.daily.unranked) return { line: null, unlocked: null };
     let line: string | null = null;
+    let unlocked: string | null = null;
     this.ctx.save.update((d) => {
       const r = applyBonusResult(
         d.bonusMaps,
@@ -1270,17 +1297,23 @@ export class HuntScene extends Phaser.Scene {
         this.ctx.content,
         this.ctx.biome.id,
       );
-      if (r.unlocked !== null) line = t(`tally.${r.unlocked}_unlocked`);
+      unlocked = r.unlocked;
+      if (r.unlocked !== null)
+        line = tOr(`tally.${bonusSlug(r.unlocked)}_unlocked`, t('tally.verder_unlocked'));
       else if (r.newBest !== null && result.bonus !== null)
         line = fill(t('title.verder_best'), { score: formatScore(result.score) });
       if (this.ctx.hook) this.ctx.hook.verderUnlocked = r.unlocked;
       return { ...d, bonusMaps: r.save };
     });
-    return line;
+    return { line, unlocked };
   }
 
   /** Hunt log → save (stats, Bird Book, bests, rank, Notaboek) and hunt_end analytics. */
-  private recordProgress(result: HuntResult, ranked: boolean): HuntOutcome | null {
+  private recordProgress(
+    result: HuntResult,
+    ranked: boolean,
+    bonusUnlocked: string | null,
+  ): HuntOutcome | null {
     const logger = this.logger;
     this.ctx.platform.gameplayStop();
     this.ctx.platform.analytics('hunt_end', {
@@ -1297,7 +1330,13 @@ export class HuntScene extends Phaser.Scene {
     if (logger === null) return null;
     let outcome: HuntOutcome | null = null;
     this.ctx.save.update((d) => {
-      outcome = applyHunt(d, logger.finish(result), this.ctx.content, this.ctx.notaboek, ranked);
+      outcome = applyHunt(
+        d,
+        logger.finish(result, bonusUnlocked),
+        this.ctx.content,
+        this.ctx.notaboek,
+        ranked,
+      );
       return outcome.save;
     });
     return outcome;

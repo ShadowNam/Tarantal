@@ -8,6 +8,7 @@ import type { BirdView, Command, InputKind, SimState } from '../src/sim/types';
 import { CAMERA_MAX_X, CAMERA_MIN_X } from '../src/sim/world';
 
 import { createHumanBot } from './humanBots';
+import { inReach, RIFLE_STYLES, withRifle } from './rifleBot';
 
 /** random: sprays · aim: near-perfect M1 aimer (goldens) · plinker / competent: GDD §13.8. */
 export type BotKind = 'random' | 'aim' | 'plinker' | 'competent';
@@ -27,9 +28,16 @@ export function createBot(
   content: ContentBundle,
   inputKind: InputKind = 'pointer',
 ): Bot {
-  if (kind === 'plinker' || kind === 'competent')
-    return createHumanBot(kind, seed, content, inputKind);
-  return kind === 'random' ? randomBot(seed) : aimBot(seed, content);
+  // v1.3: every bot shoots a rifle by hold and release (a no-op for guns without sights).
+  const style =
+    kind === 'plinker' || kind === 'random' ? RIFLE_STYLES.impatient : RIFLE_STYLES.patient;
+  const inner =
+    kind === 'plinker' || kind === 'competent'
+      ? createHumanBot(kind, seed, content, inputKind)
+      : kind === 'random'
+        ? randomBot(seed)
+        : aimBot(seed, content);
+  return { kind, next: withRifle(inner, content, seed, style).next };
 }
 
 /** Sprays shots across the screen, pans at random, reloads when empty. */
@@ -76,7 +84,9 @@ function aimBot(seed: number, content: ContentBundle): Bot {
     kind: 'aim',
     next(s) {
       const out: Command[] = [];
-      const targets = s.birds.filter((b) => b.hittable && b.kind !== 'nonTarget');
+      const targets = s.birds.filter(
+        (b) => b.hittable && b.kind !== 'nonTarget' && inReach(content, s.weapon.id, b),
+      );
       const visible = targets
         .map((b) => ({ b, ...aimPoint(b, s.cameraX, s.weapon.id) }))
         .filter((t) => Math.abs(t.dx) < VIEW_HALF_WIDTH);

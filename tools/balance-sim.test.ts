@@ -7,6 +7,7 @@ const row = (bot: HuntRow['bot'], score: number, extra: Partial<HuntRow> = {}): 
   score,
   bagged: 10,
   wingShots: 4,
+  baggedVer: 0,
   wholeFlocks: 0,
   flushes: 0,
   twoFlies: 0,

@@ -5,7 +5,8 @@
 // Usage: npx tsx tools/balance-sim.ts [--seeds 500] [--bots random,plinker,competent]
 //          [--input pointer|touch] [--mode classic|daily] [--omen on|off] [--workers N]
 //          [--biome <id>]  (M8: any biome; default the mode's)
-//          [--layout mon..sun] [--bonus verder]  (v1.2 maps; tools/map-report.ts runs them all)
+//          [--layout mon..sun] [--bonus verder|nogVerder|dieVerste]  (v1.2/v1.3 maps)
+//          [--weapon <id>] [--sight iron|peep|scope_small]  (v1.3: e.g. the Twee-Twee)
 //          [--out tmp/x.json] [--json]
 //        npm run balance -- --run …   Season Runs per charm policy (see tools/season-sim.ts)
 // --omen overrides the mode's omen (modes.json: Classic off, Daily on).
@@ -32,6 +33,9 @@ export interface Job {
   /** v1.2: weekday layout and bonus map (tools/map-report.ts: one report per map). */
   readonly layout?: string | undefined;
   readonly bonus?: string | undefined;
+  /** v1.3: the gun (default: the mode's) and a rifle's sight (default: the gun's). */
+  readonly weapon?: string | undefined;
+  readonly sight?: string | undefined;
   /** Exploratory overrides (`--set path=json`), applied to a copy of the content. */
   readonly overrides?: readonly string[];
 }
@@ -51,6 +55,8 @@ export interface HuntRow {
   readonly secrets: number;
   readonly crates: number;
   readonly penalties: number;
+  /** v1.3: birds bagged on the Ver plane. */
+  readonly baggedVer: number;
 }
 
 export interface BotSummary {
@@ -73,6 +79,7 @@ export interface BotSummary {
   readonly secretsPerHunt: number;
   readonly cratesPerHunt: number;
   readonly penaltiesPerHunt: number;
+  readonly verPerHunt: number;
 }
 
 export function playRows(job: Job): HuntRow[] {
@@ -87,6 +94,8 @@ export function playRows(job: Job): HuntRow[] {
         ...(job.biome === undefined ? {} : { biome: job.biome }),
         ...(job.layout === undefined ? {} : { layout: job.layout }),
         ...(job.bonus === undefined ? {} : { bonus: job.bonus }),
+        ...(job.weapon === undefined ? {} : { weapon: job.weapon }),
+        ...(job.sight === undefined ? {} : { sight: job.sight }),
       },
       inputKind: job.input,
     });
@@ -110,6 +119,7 @@ export function playRows(job: Job): HuntRow[] {
       secrets: r.secrets,
       crates: r.crates,
       penalties: r.penalties,
+      baggedVer: r.baggedByPlane.ver,
     };
   });
 }
@@ -143,6 +153,7 @@ export function summarise(bot: BotKind, rows: readonly HuntRow[]): BotSummary {
     secretsPerHunt: sum((r) => r.secrets) / n,
     cratesPerHunt: sum((r) => r.crates) / n,
     penaltiesPerHunt: sum((r) => r.penalties) / n,
+    verPerHunt: sum((r) => r.baggedVer) / n,
   };
 }
 
@@ -189,11 +200,11 @@ function fmt(n: number): string {
 
 export function formatTable(rows: readonly BotSummary[]): string {
   const head =
-    '| bot | hunts | mean | p15 | p25 | p50 | p75 | p85 | wing-shot share | whole flocks / hunt | hunts with ≥1 | flushes / hunt | Twee Vlieë / hunt | accuracy | secrets / hunt | crates / hunt | penalties / hunt |';
-  const sep = '|' + '---|'.repeat(17);
+    '| bot | hunts | mean | p15 | p25 | p50 | p75 | p85 | wing-shot share | whole flocks / hunt | hunts with ≥1 | flushes / hunt | Twee Vlieë / hunt | accuracy | secrets / hunt | crates / hunt | penalties / hunt | Ver birds / hunt |';
+  const sep = '|' + '---|'.repeat(18);
   const lines = rows.map(
     (s) =>
-      `| ${s.bot} | ${s.hunts} | ${fmt(s.mean)} | ${fmt(s.p15)} | ${fmt(s.p25)} | ${fmt(s.p50)} | ${fmt(s.p75)} | ${fmt(s.p85)} | ${(s.wingShotShare * 100).toFixed(1)} % | ${s.wholeFlocksPerHunt.toFixed(2)} | ${(s.wholeFlockHuntRate * 100).toFixed(0)} % | ${s.flushesPerHunt.toFixed(1)} | ${s.twoFliesPerHunt.toFixed(1)} | ${(s.accuracy * 100).toFixed(0)} % | ${s.secretsPerHunt.toFixed(2)} | ${s.cratesPerHunt.toFixed(2)} | ${s.penaltiesPerHunt.toFixed(2)} |`,
+      `| ${s.bot} | ${s.hunts} | ${fmt(s.mean)} | ${fmt(s.p15)} | ${fmt(s.p25)} | ${fmt(s.p50)} | ${fmt(s.p75)} | ${fmt(s.p85)} | ${(s.wingShotShare * 100).toFixed(1)} % | ${s.wholeFlocksPerHunt.toFixed(2)} | ${(s.wholeFlockHuntRate * 100).toFixed(0)} % | ${s.flushesPerHunt.toFixed(1)} | ${s.twoFliesPerHunt.toFixed(1)} | ${(s.accuracy * 100).toFixed(0)} % | ${s.secretsPerHunt.toFixed(2)} | ${s.cratesPerHunt.toFixed(2)} | ${s.penaltiesPerHunt.toFixed(2)} | ${s.verPerHunt.toFixed(2)} |`,
   );
   return [head, sep, ...lines].join('\n');
 }
@@ -240,6 +251,8 @@ async function main(): Promise<void> {
   const biome = biomeArg === '' ? undefined : biomeArg;
   const layout = arg('layout', '') || undefined;
   const bonus = arg('bonus', '') || undefined;
+  const weapon = arg('weapon', '') || undefined;
+  const sight = arg('sight', '') || undefined;
   const workers = Math.max(1, Number(arg('workers', String(availableParallelism()))));
   const overrides = process.argv.flatMap((a, i) =>
     a === '--set' ? [process.argv[i + 1] ?? ''] : [],
@@ -258,6 +271,8 @@ async function main(): Promise<void> {
         mode,
         omen,
         biome,
+        weapon,
+        sight,
         layout,
         bonus,
         overrides,

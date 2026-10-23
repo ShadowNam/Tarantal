@@ -2265,6 +2265,7 @@ export function createSim(config: SimConfig): Sim {
         layout: setup.map.layout?.id ?? null,
         bonus: setup.map.bonus?.id ?? null,
         weapon: weapon.id,
+        sight: setup.sight?.id ?? null,
         score,
         ticks: tick,
         shots: stats.shots,

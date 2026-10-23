@@ -23,6 +23,7 @@ function result(score: number): HuntResult {
     layout: null,
     bonus: null,
     weapon: 'dubbelloop',
+    sight: null,
     score,
     ticks: 3600,
     shots: 0,

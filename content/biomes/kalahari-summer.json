@@ -56,8 +56,14 @@
   ],
   "lanes": {
     "ver": {
-      "groundY": [552, 566],
-      "skyY": [200, 360]
+      "groundY": [
+        552,
+        566
+      ],
+      "skyY": [
+        200,
+        360
+      ]
     },
     "far": {
       "groundY": [
@@ -595,6 +601,54 @@
         }
       },
       "pointsMul": 0.8
+    },
+    {
+      "$comment": "v1.3 (D-036) Nog Verder (further still): today's layout from further back again. The Ver plane opens: a flock on the strip at the foot of the far ridge, a Ver lane for fly-overs, fewer mid and near birds. Shotguns struggle; the .22 with a peep sight or scope shines (GDD §11.5).",
+      "id": "nogVerder",
+      "nameKey": "map.nog_verder",
+      "light": "nog_verder_haze",
+      "weather": "omen",
+      "flyovers": {
+        "planeWeights": {
+          "mid": 0.5,
+          "far": 2,
+          "ver": 1
+        }
+      },
+      "pacing": {
+        "popupsMul": 0.2,
+        "flyoversMul": 0.7,
+        "flocks": {
+          "far": 1,
+          "ver": 1
+        }
+      },
+      "pointsMul": 0.8,
+      "ver": true
+    },
+    {
+      "$comment": "v1.3 (D-036) Die Verste (the furthest): long range only. Mostly Ver birds — small dots unless you zoom in — and a far flock; a scoped rifle is the tool (not enforced: a shotgun can still play the far birds).",
+      "id": "dieVerste",
+      "nameKey": "map.die_verste",
+      "light": "verste_haze",
+      "weather": "omen",
+      "flyovers": {
+        "planeWeights": {
+          "mid": 0,
+          "far": 1,
+          "ver": 3
+        }
+      },
+      "pacing": {
+        "popupsMul": 0.1,
+        "flyoversMul": 0.6,
+        "flocks": {
+          "far": 1,
+          "ver": 2
+        }
+      },
+      "pointsMul": 0.8,
+      "ver": true
     }
   ]
 }

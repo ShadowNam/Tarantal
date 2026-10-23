@@ -118,6 +118,15 @@
           0.12,
           0.84
         ]
+      },
+      "rimfire22": {
+        "$comment": "v1.3: .22 rimfire rounds — a short brass case with a grey lead nose; a fired one leaves the empty brass.",
+        "width": 18,
+        "height": 54,
+        "pitch": 28,
+        "spent": "sprite",
+        "body": "#C9A04A",
+        "base": "#7E8286"
       }
     },
     "crosshairStyles": {
@@ -188,6 +197,32 @@
           "shot": "shotPomp",
           "shellLoaded": "shell",
           "reloadFinished": "rackPomp"
+        }
+      },
+      "twee_twee": {
+        "ammo": {
+          "layout": "belt",
+          "type": "rimfire22"
+        },
+        "crosshair": {
+          "parts": [
+            {
+              "shape": "cross",
+              "gap": 5,
+              "len": 16,
+              "width": 0.7
+            },
+            {
+              "shape": "dot",
+              "r": 1.6
+            }
+          ]
+        },
+        "sfx": {
+          "shot": "shotTweeTwee",
+          "afterShot": "bolt",
+          "afterShotMs": 220,
+          "reloadStarted": "bolt"
         }
       },
       "windbuks": {
@@ -579,6 +614,66 @@
           "color": "#D8A468",
           "alpha": 0.14,
           "top": 460
+        }
+      ]
+    },
+    "nog_verder_haze": {
+      "$comment": "Nog Verder: deeper distance haze; the Ver strip is pale and soft (birds stay crisp).",
+      "haze": [
+        {
+          "layer": "far_ridge",
+          "color": "#B8C8D8",
+          "alpha": 0.264
+        },
+        {
+          "layer": "ver_veld",
+          "color": "#C4D2DE",
+          "alpha": 0.18
+        },
+        {
+          "layer": "far_veld",
+          "color": "#B8C8D8",
+          "alpha": 0.192
+        },
+        {
+          "layer": "mid",
+          "color": "#B8C8D8",
+          "alpha": 0.12
+        },
+        {
+          "layer": "near",
+          "color": "#B8C8D8",
+          "alpha": 0.072
+        }
+      ]
+    },
+    "verste_haze": {
+      "$comment": "Die Verste: the most distance haze; a hot, pale horizon over the Ver strip.",
+      "haze": [
+        {
+          "layer": "far_ridge",
+          "color": "#B8C8D8",
+          "alpha": 0.308
+        },
+        {
+          "layer": "ver_veld",
+          "color": "#C4D2DE",
+          "alpha": 0.24
+        },
+        {
+          "layer": "far_veld",
+          "color": "#B8C8D8",
+          "alpha": 0.224
+        },
+        {
+          "layer": "mid",
+          "color": "#B8C8D8",
+          "alpha": 0.14
+        },
+        {
+          "layer": "near",
+          "color": "#B8C8D8",
+          "alpha": 0.084
         }
       ]
     }

@@ -155,6 +155,10 @@ export interface TestHook {
   biome: string;
   /** v1.2: the title offers Verder (today's map quota beaten), and the last hunt's unlock. */
   verder: boolean;
+  /** v1.3: the bonus maps the title offers today (verder, nogVerder, dieVerste). */
+  bonusOpen: string[];
+  /** v1.3: the Skiet-Skuur's sight row (the last rifle drawn) and its fitted sight. */
+  shedSights?: { weapon: string; fitted: string | null };
   verderUnlocked: string | null;
   /** v1.2: the map on screen (layout, bonus map, light presets drawn, prop u positions). */
   map: {
@@ -312,6 +316,8 @@ export interface GameContext {
   readonly classicBonus: string | undefined;
   /** v1.2x admin page (D-034): Classic and Daily hunts play this gun (undefined = the loadout). */
   readonly weaponOverride: string | undefined;
+  /** v1.3: the admin page's sight for a rifle (undefined = the Skiet-Skuur's). */
+  readonly sightOverride: string | undefined;
   /** v1.2x (D-034): the playtest admin page (`?admin=1`, web builds), or null. */
   readonly admin: AdminContext | null;
   /** Device hint before the first touch: coarse pointer → touch hints on the start card. */

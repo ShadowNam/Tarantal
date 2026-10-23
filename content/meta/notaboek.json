@@ -12,6 +12,8 @@
     { "id": "karoo_secrets_all", "metric": "distinctSecrets", "scope": "total", "target": 4, "biome": "karoo-autumn", "reward": { "type": "birdBookPage", "biome": "karoo-autumn" } },
     { "id": "whole_flock_x5", "metric": "wholeFlocks", "scope": "total", "target": 5, "reward": { "type": "charm", "id": "hele_swerm" } },
     { "id": "secrets_10", "metric": "secrets", "scope": "total", "target": 10, "reward": { "type": "charm", "id": "oupa_se_kaart" } },
+    { "id": "unlock_nog_verder", "metric": "bonusUnlocks", "scope": "total", "target": 1, "bonus": "nogVerder", "reward": { "type": "weapon", "id": "twee_twee" } },
+    { "id": "bag_10_ver", "metric": "baggedVer", "scope": "total", "target": 10, "reward": { "type": "sight", "id": "peep" } },
     { "id": "score_4000", "metric": "score", "scope": "hunt", "target": 4000, "reward": { "type": "charm", "id": "geheime_resep" } }
   ]
 }

@@ -105,6 +105,8 @@ export const OmenChoiceSchema = z.enum(['default', 'on', 'off']);
 export const AdminOptionsSchema = z.object({
   /** null = the mode's gun. */
   weapon: z.string().max(40).nullable(),
+  /** v1.3: a rifle's sight (null = the one fitted in the Skiet-Skuur; older saves: null). */
+  sight: z.string().max(40).nullable().default(null),
   /** null = a fresh seed every hunt. */
   seed: z.number().int().min(0).max(0xffffffff).nullable(),
   /** null = the mode's length; else seconds (a positive multiple of 0.5). */
@@ -145,6 +147,7 @@ export type AdminSave = z.infer<typeof AdminSaveSchema>;
 
 export const DEFAULT_OPTIONS: AdminOptions = {
   weapon: null,
+  sight: null,
   seed: null,
   huntSeconds: null,
   omen: 'default',

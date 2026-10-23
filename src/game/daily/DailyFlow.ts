@@ -24,6 +24,7 @@ import {
   type DailySetup,
 } from '../../meta/daily';
 import { layoutForDay } from '../../meta/maps';
+import { bonusSlug } from '../../meta/bonusMaps';
 import type { SaveStore } from '../../meta/save';
 import { buildShareText, groupThousands, type ShareMessage } from '../../meta/share';
 import type { PlatformAdapter } from '../../platform/PlatformAdapter';
@@ -170,7 +171,8 @@ export class DailyFlow {
       },
       daily: null,
       challenge: null,
-      hudTag: extra.bonus === undefined ? null : tOr(`hud.tag_${extra.bonus}`, extra.bonus),
+      hudTag:
+        extra.bonus === undefined ? null : tOr(`hud.tag_${bonusSlug(extra.bonus)}`, extra.bonus),
     };
   }
 
@@ -286,6 +288,7 @@ export class DailyFlow {
                     dailyNumber,
                     layout: result.layout,
                     bonus: result.bonus,
+                    sight: result.sight,
                   },
                   this.deps.contentHash,
                 ),

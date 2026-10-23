@@ -15,6 +15,11 @@ export function mapQuota(content: Pick<ContentBundle, 'run'>, biome: string): nu
   return q;
 }
 
+/** v1.3: a bonus map id as it appears in i18n keys (`title.nog_verder`, `tally.die_verste_unlocked`). */
+export function bonusSlug(id: string): string {
+  return id.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);
+}
+
 /** Save key of a biome's bonus map ("karoo-autumn/verder"). */
 export const bonusKey = (biome: string, bonus: string): string => `${biome}/${bonus}`;
 

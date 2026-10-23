@@ -353,6 +353,11 @@ export class TallyScene extends Phaser.Scene {
     for (const id of o.completed) {
       const c = this.ctx.notaboek.challenges.find((x) => x.id === id);
       if (c === undefined || c.reward.type === 'weapon') continue;
+      // v1.3: a sight for the rifles (fitted in the Skiet-Skuur).
+      if (c.reward.type === 'sight') {
+        parts.push(fill(t('tally.unlocked'), { weapon: tOr(`sight.${c.reward.id}`, c.reward.id) }));
+        continue;
+      }
       if (c.reward.type === 'charm') {
         parts.push(
           fill(t('tally.charm_unlocked'), { charm: tOr(`charm.${c.reward.id}`, c.reward.id) }),

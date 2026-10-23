@@ -35,6 +35,9 @@ export const SFX_IDS = [
   'rackPomp',
   'cockWindbuks',
   'ramrod',
+  // v1.3 (D-036): the .22's rimfire crack and its bolt.
+  'shotTweeTwee',
+  'bolt',
 ] as const;
 export type SfxId = (typeof SFX_IDS)[number];
 
@@ -85,12 +88,14 @@ export function playSfx(ctx: AudioContext, out: AudioNode, id: SfxId, noise: Aud
       return playSfx(ctx, out, 'shot', noise);
     case 'shotMielie':
     case 'shotWindbuks':
+    case 'shotTweeTwee':
       tone('sine', 420, 140, 0.06, 0.4);
       return 0.1;
     case 'shotKettie':
       tone('sawtooth', 260, 90, 0.1, 0.3);
       return 0.15;
     case 'rackPomp':
+    case 'bolt':
     case 'cockWindbuks':
     case 'ramrod':
       return playSfx(ctx, out, 'shell', noise);
