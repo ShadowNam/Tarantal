@@ -5,6 +5,8 @@ import type { DailyMeta } from '../content/schemas';
 import { sha256HexOfString } from '../content/hash';
 import type { ModeConfig } from '../sim/types';
 import { dayKey, isoWeekKey, parseDayKey } from './dailyCalendar';
+import type { WeekdayId } from '../content/schemas';
+import { layoutForDay } from './maps';
 import { defaultSave, type DailySave } from './saveSchema';
 
 /** u32 of the first 4 bytes (big-endian) of SHA-256("tm-daily|" + YYYY-MM-DD + "|" + contentHash). */
@@ -43,6 +45,8 @@ export interface DailySetup {
   readonly number: number;
   readonly seed: number;
   readonly biome: string;
+  /** v1.2: the day's layout (its UTC weekday). */
+  readonly layout: WeekdayId;
 }
 
 export function dailySetup(
@@ -61,12 +65,18 @@ export function dailySetup(
     number: dailyNumber(day, opts.meta.epoch),
     seed: dailySeed(key, opts.contentHash),
     biome: dailyBiome(day, opts.meta.biomeRotation, opts.playable, opts.fallbackBiome),
+    layout: layoutForDay(day),
   };
 }
 
 /** The sim mode of a daily hunt: Classic rules with the omen on (modes.json daily, D-021). */
 export function dailyMode(setup: DailySetup, weapon: string | undefined): ModeConfig {
-  return { id: 'daily', biome: setup.biome, ...(weapon === undefined ? {} : { weapon }) };
+  return {
+    id: 'daily',
+    biome: setup.biome,
+    layout: setup.layout,
+    ...(weapon === undefined ? {} : { weapon }),
+  };
 }
 
 // --- first attempt and streak ---------------------------------------------------------------

@@ -4,7 +4,12 @@
 // (no deflate: D-024). Decoding never throws: anything malformed, oversized or naming content
 // this build can't play is rejected with a reason. Pure.
 import { z } from 'zod';
-import type { ContentBundle, DailyMeta } from '../content/schemas';
+import {
+  BonusMapIdSchema,
+  WeekdayIdSchema,
+  type ContentBundle,
+  type DailyMeta,
+} from '../content/schemas';
 import { fromBase64Url, toBase64Url } from '../sim/replay/inputLog';
 import type { ModeConfig } from '../sim/types';
 
@@ -28,6 +33,10 @@ export const ChallengeSchema = z.strictObject({
   by: z.string().min(1).max(64).optional(),
   /** Daily number (#n) of a daily challenge, for the card. */
   n: z.number().int().min(1).max(1_000_000).optional(),
+  /** v1.2 (D-033): the map — weekday layout and bonus map. Absent (links made before v1.2) =
+   *  the plain biome, so an old link still plays the hunt it was made from. */
+  l: WeekdayIdSchema.optional(),
+  b: BonusMapIdSchema.optional(),
   /** contentHash prefix the hunt was played with. */
   h: z
     .string()
@@ -104,7 +113,16 @@ export function decodeChallenge(param: string, ctx: ChallengeContext): Challenge
 
 /** The hunt a challenge sets up: same seed, mode, biome and weapon as the sender's. */
 export function challengeHunt(c: Challenge): { readonly seed: number; readonly mode: ModeConfig } {
-  return { seed: c.seed, mode: { id: c.mode, biome: c.biome, weapon: c.weapon } };
+  return {
+    seed: c.seed,
+    mode: {
+      id: c.mode,
+      biome: c.biome,
+      weapon: c.weapon,
+      ...(c.l === undefined ? {} : { layout: c.l }),
+      ...(c.l === undefined || c.b === undefined ? {} : { bonus: c.b }),
+    },
+  };
 }
 
 /** A challenge for a finished hunt (the share link). */
@@ -116,6 +134,9 @@ export function challengeFor(
     readonly weapon: string;
     readonly score: number;
     readonly dailyNumber: number | null;
+    /** v1.2: the map played (null = the plain biome). */
+    readonly layout?: string | null;
+    readonly bonus?: string | null;
   },
   contentHash: string,
   by?: string,
@@ -128,6 +149,7 @@ export function challengeFor(
     weapon: hunt.weapon,
     score: hunt.score,
     ...(by === undefined ? {} : { by }),
+    ...mapFields(hunt.layout ?? null, hunt.bonus ?? null),
     // A day before the content epoch has no #n (dailyNumber ≤ 0): leave it out, never throw.
     ...(hunt.dailyNumber === null || hunt.dailyNumber < 1 ? {} : { n: hunt.dailyNumber }),
     h: contentHash.slice(0, CHALLENGE_HASH_CHARS),
@@ -144,4 +166,12 @@ export type ChallengeVerdict = 'win' | 'tie' | 'lose';
 
 export function compareToChallenge(score: number, c: Challenge): ChallengeVerdict {
   return score > c.score ? 'win' : score === c.score ? 'tie' : 'lose';
+}
+
+/** The link's map fields; ids this version doesn't know are left out (never throws). */
+function mapFields(layout: string | null, bonus: string | null): Pick<Challenge, 'l' | 'b'> {
+  const l = WeekdayIdSchema.safeParse(layout);
+  if (!l.success) return {};
+  const b = BonusMapIdSchema.safeParse(bonus);
+  return b.success ? { l: l.data, b: b.data } : { l: l.data };
 }
