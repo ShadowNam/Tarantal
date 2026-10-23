@@ -1650,6 +1650,22 @@ Season Run peak stays 126.9 MB by construction. Bird readability: the plumage is
 contrast is at or above v1.2's and every map keeps ≥ 82 % of its plain map
 (`tools/sky-contrast.ts`, `gfx3-sky-contrast.txt`). `art:interim` + `assets:pack` twice are
 byte-identical (1 130 files).
+(8) *Round 2 (the product owner's look review, 23 Oct: "still cartoony"):* guns lose every dark
+contour (parts edged in a darker shade of their own material), get dense fine grain with figure
+bands, an edge-darkening stain and a varnish highlight, tubular blued barrels worn grey at the
+edges with a long soft specular and a fine vent rib (less saturated steel), a pistol-grip curve,
+comb line and rubber butt pad, a slim forged trigger guard, a slim grooved Pomp slide, and soft
+contact shadows (receiver on wrist, barrels on fore-end). The guineafowl becomes a humped egg with
+a head of ~1/6 body length kept inside the content head circle (`content/birds.json` unchanged;
+crouch poses squash a little less so the body still covers its ellipse; `tools/art/fit.test.ts`
+passes), slate edges, no wing outline, a small round eye in a pale ring, ringed spots denser
+toward the neck, slimmer grey-black legs. Koppies are rounded and lopsided, strata ridges are
+cuestas, one landmark spire at most (Kalahari); Kalahari dunes get a sinuous crest, slip face,
+graded slopes and ripples. Budgets after round 2: first download 2 907.0 KB gzip web; lazy
+Bushveld 1 420.4, Kalahari 1 125.3, late 1 408.8, Okavango 1 505.9 KB; texture sizes unchanged;
+sky contrast unchanged (plain maps 6.50–8.49, every map ≥ 82 % of its plain one); `art:interim` +
+`assets:pack` twice byte-identical (1 130 files). Full-size crops: `gfx3-full-dubbelloop.png`,
+`gfx3-full-tarentaal-near.png`.
 (7) *Evidence:* `docs/art-preview/compare/gfx3-*.png` (before | after, desktop-chromium and
 pixel7-landscape): `gfx3-farmhouse`, `gfx3-mountains-{karoo,bushveld,kalahari,okavango}`,
 `gfx3-bakkie`, `gfx3-gun-<id>`, `gfx3-shed`, `gfx3-tarentaal-{near,mid,far}`, `gfx3-flyover`,

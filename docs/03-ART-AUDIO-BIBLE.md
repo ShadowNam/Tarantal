@@ -34,17 +34,21 @@ stay comic. Rules that replace or refine §1 for those four:
    gradients, plus material texture: blued or worn steel with a specular line and bright edge wear,
    wood grain with figure, feather edges, rock cracks and strata. No hard flat fill + single
    highlight blob.
-3. **Thinner, softer outlines:** guns 0.42 × the near weight; birds 0.55 (near), 0.65 (mid), 0.85
-   (far) × the plane weight; outlines lean toward the object's own shadow colour instead of the
-   warm black. Rule 4's *ratio* between planes stays.
+3. **No dark contours on guns; slate edges on birds** (round 2): every gun part is edged with a
+   1–2 px darker shade of its own material; birds are edged in a darker slate of their own shadow
+   colour at 0.45 (near), 0.5 (mid), 0.85 (far) × the plane weight; folded wings have no outline.
+   One key light (top left) with soft contact shadows where parts meet. Rule 4's *ratio* between
+   planes stays.
 4. **Readability is not negotiable (rule 5):** the guineafowl stays the darkest, coolest shape in
    the sky (plumage `#2C303C`, median fly-over contrast at or above v1.2's, `tools/sky-contrast.ts`),
    the far plane keeps a few large spots and a thicker outline so flocks read as guineafowl, and the
    head hitbox is unchanged (the drawn head is smaller inside it).
 5. **Mountains vary** (no flat-topped row, no repeating stamp): granite inselbergs (Spitzkoppe),
-   dark massifs with ravines (Brandberg), jagged strata ridges, pointed koppies with scree, boulder
-   heaps, and Karoo mesas where they fit, with aerial perspective on the back rows
-   (`tools/art/mountains.ts`).
+   dark massifs with ravines (Brandberg), cuesta ridges of tilted strata, rounded boulder-strewn
+   dolerite koppies with broken skylines, boulder heaps, and Karoo mesas where they fit, with
+   aerial perspective on the back rows. At most **one** pointed spire per biome, as a landmark
+   (`tools/art/mountains.ts`). Dunes have a sinuous crest, a sharp slip face, a graded windward
+   slope and fine ripples.
 6. **Same budgets:** more detail comes from better drawing at the same texture sizes; download
    growth is measured per pass (D-035).
 
@@ -69,14 +73,16 @@ reworked), with source files (PSD/Krita/Spine) kept as evidence of authorship.
 ## 3. Characters
 
 ### 3.1 Die Tarentaal (hero target)
-- **Shape (D-035, semi-realistic):** round body with a hunched back and drooping tail, a **small
-  bare head** on a slim neck (drawn at 0.66 × the head hitbox radius), the bony **casque** with
-  growth ridges, cobalt-blue bare face with **red skin at the back of the head**, red wattles, a
-  short horn-coloured bill, a realistic eye (dark brown iris, small pupil; it opens wider when
-  alarmed), slim scaled legs that blur when running.
-- **Plumage:** dark slate grey covered in fine white spots (finer and denser at near and mid,
-  feather edges at near), pale bars on the wing and flight feathers, a finely barred collar; at
-  the far plane the spots simplify to a few larger dots so the flock stays legible at 0.22.
+- **Shape (D-035, semi-realistic):** an egg-shaped body with a **hump** peaking behind the
+  middle, the rear sloping into a drooping tail; a **small bare head** (about 1/6 of the body
+  length, 0.48 × the head hitbox radius, always inside the hit circle) carried forward and low on a
+  slim neck; the bony **casque** with growth ridges, cobalt-blue bare face with **red skin at the
+  back of the head**, red wattles, a short horn-coloured bill, a small round dark eye in a pale
+  ring (no lids; the dazed POOF keeps its swirl), slim grey-black scaled legs.
+- **Plumage:** dark slate grey covered in fine white spots, each in a faint dark ring, smaller and
+  denser toward the neck and in loose rows on the folded wing (feather edges at near), pale bars on
+  the secondaries and flight feathers, a finely barred collar; at the far plane the spots simplify
+  to a few larger dots so the flock stays legible at 0.22.
 - **Personality beats:** dignified forager → frozen alert ("…") → total panic sprint → explosive
   clumsy take-off → dazed POOF with swirl eyes and stars.
 
