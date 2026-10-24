@@ -25,6 +25,14 @@ export class PaperDraw {
   /** Impacts drawn now (the test hook reads it). */
   count = 0;
 
+  get plane(): PaperView['plane'] {
+    return this.paper.plane;
+  }
+
+  get kind(): PaperView['kind'] {
+    return this.paper.kind;
+  }
+
   constructor(
     scene: Phaser.Scene,
     layer: Phaser.GameObjects.Container,

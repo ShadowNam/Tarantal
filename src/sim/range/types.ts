@@ -6,7 +6,7 @@ import type { Biome, ContentBundle } from '../../content/schemas';
 import type { Bird } from '../birds/Bird';
 import type { Flock } from '../flocks/Flock';
 import type { RandomStream } from '../rng';
-import type { PaperView, PlaneId, RangeConfig } from '../types';
+import type { PaperView, PlaneId, RangeConfig, RangeTarget } from '../types';
 
 /** What the program sees of the range each tick. Every live bird is the range's. */
 export interface RangeWorld {
@@ -25,8 +25,10 @@ export interface RangeStep {
 }
 
 export interface RangeProgram {
-  /** The paper targets (fixed for the session). */
+  /** The paper targets and steel plates (fixed for the session). */
   readonly papers: readonly PaperView[];
+  /** The kind of target a bird of the range is (null: not one of its birds, or gone). */
+  targetOf(birdId: number): RangeTarget | null;
   step(world: RangeWorld): RangeStep;
 }
 

@@ -11,7 +11,6 @@
   "range.dist_mid": "Mittel",
   "range.dist_far": "Weit",
   "range.dist_ver": "Ver",
-  "range.out_of_reach": "außer Reichweite",
   "range.target_paper": "Papierscheibe",
   "range.target_stand": "Stehender Vogel",
   "range.target_flyover": "Fliegender Vogel",
@@ -48,5 +47,12 @@
   "range.report_area": "Gebiet {area} · Licht: {day}",
   "range.report_unranked": "Ohne Wertung: keine Freischaltungen, kein Notaboek, keine Bestwerte, kein Daily, Rang oder Vogelbuch-Eintrag.",
   "range.more": "Mehr",
-  "range.less": "Weniger"
+  "range.less": "Weniger",
+  "range.reach_note": "Außerhalb der Reichweite dieser Waffe — Schüsse fallen zu kurz",
+  "range.col_short": "Zu kurz",
+  "range.line_short": "Zu kurz: {n} von {misses} Fehlschüssen",
+  "range.target_plate": "Stahlplatte",
+  "range.mixed_course": "Gemischter Parcours",
+  "range.dist_all": "Alle",
+  "range.target_mixed": "Gemischt"
 }

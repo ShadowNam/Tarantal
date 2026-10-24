@@ -60,6 +60,7 @@ export function cellLines(content: ContentBundle, c: RangeCell, withNote = true)
       rate: one(hitRate(c) * 100),
     }),
   ];
+  if (c.short > 0) lines.push(fill(rt('range.line_short'), { n: c.short, misses: misses(c) }));
   if (c.pellets > 1)
     lines.push(fill(rt('range.line_pellets'), { n: one(pelletsPerShot(c)), of: c.pellets }));
   const g = groupStats(c.impacts);

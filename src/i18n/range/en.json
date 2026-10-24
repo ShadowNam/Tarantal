@@ -11,7 +11,6 @@
   "range.dist_mid": "Middle",
   "range.dist_far": "Far",
   "range.dist_ver": "Ver",
-  "range.out_of_reach": "out of reach",
   "range.target_paper": "Paper target",
   "range.target_stand": "Standing bird",
   "range.target_flyover": "Flying bird",
@@ -48,5 +47,12 @@
   "range.report_area": "Area {area} · {day} light",
   "range.report_unranked": "Unranked: no unlocks, Notaboek, bests, Daily, rank or Bird Book entries.",
   "range.more": "More",
-  "range.less": "Less"
+  "range.less": "Less",
+  "range.reach_note": "Beyond this gun's reach — shots fall short",
+  "range.col_short": "Fell short",
+  "range.line_short": "Fell short: {n} of {misses} misses",
+  "range.target_plate": "Steel plate",
+  "range.mixed_course": "Mixed course",
+  "range.dist_all": "All",
+  "range.target_mixed": "Mixed"
 }

@@ -11,7 +11,6 @@
   "range.dist_mid": "Middel",
   "range.dist_far": "Ver",
   "range.dist_ver": "Baie ver",
-  "range.out_of_reach": "buite bereik",
   "range.target_paper": "Papierteiken",
   "range.target_stand": "Staande voël",
   "range.target_flyover": "Vlieënde voël",
@@ -48,5 +47,12 @@
   "range.report_area": "Gebied {area} · {day} se lig",
   "range.report_unranked": "Tel nie: geen ontsluitings, Notaboek, bestes, Daaglikse, rang of Voëlboek-inskrywings nie.",
   "range.more": "Meer",
-  "range.less": "Minder"
+  "range.less": "Minder",
+  "range.reach_note": "Buite hierdie geweer se bereik — skote val kort",
+  "range.col_short": "Te kort",
+  "range.line_short": "Te kort: {n} van {misses} mis",
+  "range.target_plate": "Staalplaat",
+  "range.mixed_course": "Gemengde baan",
+  "range.dist_all": "Almal",
+  "range.target_mixed": "Gemeng"
 }

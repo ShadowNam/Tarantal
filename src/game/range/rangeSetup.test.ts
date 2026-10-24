@@ -104,8 +104,15 @@ describe('range report', () => {
           sy: 0,
           shellsLeft: 7,
         },
-        { type: 'rangeShot', tick: 1, shotId: 1, plane: 'near', x: 0, y: 0 },
-        { type: 'paperHit', tick: 1, shotId: 1, paperId: 1, x: 3, y: 4 },
+        { type: 'rangeShot', tick: 1, shotId: 1, plane: 'near', target: 'paper', x: 0, y: 0 },
+        { type: 'paperHit', tick: 1, shotId: 1, paperId: 1, x: 3, y: 4, aimX: 0, aimY: 0 },
+        {
+          type: 'rangeOutcome',
+          tick: 1,
+          shotId: 1,
+          hits: [{ plane: 'near', target: 'paper', id: 1, pellets: 1 }],
+          short: false,
+        },
       ],
       sel,
     );
@@ -159,7 +166,7 @@ describe('range strings', () => {
     setLanguage('af');
     expect(rt('range.target_paper')).toBe('Papierteiken');
     setLanguage('de');
-    expect(rt('range.out_of_reach')).toBe('außer Reichweite');
+    expect(rt('range.col_short')).toBe('Zu kurz');
     setLanguage('en');
     expect(rt('range.title')).toBe('Skietbaan');
   });
@@ -185,8 +192,15 @@ describe('session table texts', () => {
             sy: 0,
             shellsLeft: 5,
           },
-          { type: 'rangeShot', tick: id, shotId: id, plane: 'mid', x: 0, y: 0 },
-          { type: 'paperHit', tick: id, shotId: id, paperId: 1, x, y },
+          { type: 'rangeShot', tick: id, shotId: id, plane: 'mid', target: 'paper', x: 0, y: 0 },
+          { type: 'paperHit', tick: id, shotId: id, paperId: 1, x, y, aimX: 0, aimY: 0 },
+          {
+            type: 'rangeOutcome',
+            tick: id,
+            shotId: id,
+            hits: [{ plane: 'mid', target: 'paper', id: 1, pellets: 1 }],
+            short: false,
+          },
         ],
         sel,
       );

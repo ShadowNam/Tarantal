@@ -36,9 +36,19 @@ export interface RangeHookState {
     readonly shots: number;
     readonly hits: number;
     readonly misses: number;
+    /** Misses that fell short of Ver (24 Oct update). */
+    readonly short: number;
     readonly pelletsOn: number;
     readonly impacts: number;
   } | null;
+  /** Every cell of this gun in the session (24 Oct: the mixed course fills several). */
+  readonly cells: readonly {
+    readonly plane: string;
+    readonly target: string;
+    readonly shots: number;
+    readonly hits: number;
+    readonly short: number;
+  }[];
   /** Impacts drawn on the paper target now. */
   readonly drawnImpacts: number;
   /** Paper targets on screen (design px, unzoomed) and their radius. */

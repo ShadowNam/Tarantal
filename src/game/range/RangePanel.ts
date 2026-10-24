@@ -158,10 +158,8 @@ export class RangeSetupPanel {
   }
 
   private set(c: RangeChoice): void {
-    const gun = rangeGuns(this.content).find((g) => g.id === c.gun);
-    // A gun that can't reach the chosen distance moves it in to the farthest it reaches.
-    const plane = gun !== undefined && !reaches(gun, c.plane) ? 'far' : c.plane;
-    this.choice = { ...c, plane };
+    // Every distance stays open for every gun (24 Oct): beyond its reach the shots fall short.
+    this.choice = c;
     this.h.change(this.choice);
     this.render();
   }
@@ -243,16 +241,18 @@ export class RangeSetupPanel {
         textContent: fill(rt('range.light'), { day: dayName(this.h.layout) }),
       }),
       el('h3', { textContent: rt('range.distance') }),
-      this.chips<PlaneId>(
-        'plane',
-        RANGE_PLANES,
-        c.plane,
-        distName,
-        (plane) => {
-          this.set({ ...this.choice, plane });
-        },
-        (plane) => (gun === undefined || reaches(gun, plane) ? null : rt('range.out_of_reach')),
-      ),
+      this.chips<PlaneId>('plane', RANGE_PLANES, c.plane, distName, (plane) => {
+        this.set({ ...this.choice, plane });
+      }),
+      ...(gun !== undefined && !reaches(gun, c.plane)
+        ? [
+            el('div', {
+              className: 'muted',
+              dataset: { role: 'reach-note' },
+              textContent: rt('range.reach_note'),
+            }),
+          ]
+        : []),
       el('h3', { textContent: rt('range.target') }),
       this.chips<RangeTarget>('target', RANGE_TARGETS, c.target, targetName, (target) => {
         this.set({ ...this.choice, target });
@@ -325,6 +325,7 @@ export class RangeSetupPanel {
         head('range.col_shots'),
         head('range.col_hits'),
         head('range.col_misses'),
+        head('range.col_short'),
         head('range.col_rate'),
         head('range.col_pellets'),
         head('range.col_group'),
@@ -343,6 +344,7 @@ export class RangeSetupPanel {
           n(String(cell.shots)),
           n(String(cell.hits)),
           n(String(misses(cell))),
+          n(String(cell.short)),
           n(one(hitRate(cell) * 100)),
           n(cell.pellets > 1 ? `${one(pelletsPerShot(cell))} / ${String(cell.pellets)}` : '–'),
           n(groupText(this.content, cell) ?? '–'),
@@ -433,10 +435,17 @@ export class RangeBar {
   }
 
   /** Shows the cell's stats (only touches the DOM when the text changed). */
-  update(cell: RangeCell): void {
-    const text = cell.shots === 0 ? [rt('range.none')] : cellLines(this.content, cell, false);
+  update(cell: RangeCell | null, mixed = false): void {
+    const text =
+      cell === null || cell.shots === 0
+        ? [rt('range.none')]
+        : [
+            // The mixed course: which cell the newest shot went to.
+            ...(mixed ? [`${distName(cell.plane)} · ${targetName(cell.target)}`] : []),
+            ...cellLines(this.content, cell, false),
+          ];
     // The body-width note is its own line (hidden on short screens: phones in landscape).
-    const note = cell.impacts.length > 0 ? bodyNote(this.content, cell) : null;
+    const note = cell !== null && cell.impacts.length > 0 ? bodyNote(this.content, cell) : null;
     const key = `${text.join('\n')}\n${String(note)}`;
     if (key === this.shown) return;
     this.shown = key;

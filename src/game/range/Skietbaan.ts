@@ -6,16 +6,17 @@ import type { InputKind, ModeConfig } from '../../sim/types';
 import { planeToDx } from '../../sim/camera';
 import type { SimEvent } from '../../sim/events';
 import { createRangeProgram } from '../../sim/range/program';
-import type { SimState } from '../../sim/types';
+import type { PlaneId, RangeTarget, SimState } from '../../sim/types';
 import type { RangeHookState } from '../GameContext';
 import { designSize } from '../layout';
 import { layoutForDay } from '../../meta/maps';
 import { PaperDraw } from './PaperDraw';
 import { RangeBar, RangeSetupPanel } from './RangePanel';
 import type { RangeHost, RangeMenuHost, RangeSession } from './RangeSession';
-import { defaultChoice, rangeGuns, rangeMode, reaches, type RangeChoice } from './rangeGuns';
-import { cellTitle, rangeReport } from './rangeReport';
-import { RangeStats, type RangeSelection } from './rangeStats';
+import { defaultChoice, rangeGuns, rangeMode, type RangeChoice } from './rangeGuns';
+import { cellTitle, gunNameById, rangeReport } from './rangeReport';
+import { rt } from './rangeI18n';
+import { RangeStats, type Impact, type RangeCell, type RangeSelection } from './rangeStats';
 
 /** The page's session: stats and the last choice survive scene restarts (not a reload). */
 const stats = new RangeStats();
@@ -50,6 +51,7 @@ function hookState(
     plane: c.plane,
     target: c.target,
     stats: null,
+    cells: [],
     drawnImpacts: 0,
     papers: [],
     birds: [],
@@ -110,7 +112,6 @@ class Session implements RangeSession {
   ) {
     const gun = rangeGuns(menu.content).find((g) => g.id === choice.gun);
     if (gun === undefined) throw new Error(`no range gun ${choice.gun}`);
-    if (!reaches(gun, choice.plane)) throw new Error(`${gun.id} does not reach ${choice.plane}`);
     this.mode = rangeMode(menu.content, choice, menu.today());
     this.seed = menu.nextSeed();
     this.sel = selection(menu, choice);
@@ -121,7 +122,7 @@ class Session implements RangeSession {
     stats.newSession();
     const content = this.menu.content;
     this.bar = new RangeBar(content, {
-      title: cellTitle(content, stats.cell(this.sel)),
+      title: this.title(),
       setup: () => {
         host.exit();
       },
@@ -149,9 +150,9 @@ class Session implements RangeSession {
       }
     }
     if (events.length > 0) stats.ingest(events, this.sel);
-    const cell = stats.cell(this.sel);
-    for (const p of this.papers) p.update(cell.impacts);
-    this.bar?.update(cell);
+    const cell = this.shown();
+    for (const p of this.papers) p.update(this.impactsOf(p.plane, p.kind));
+    this.bar?.update(cell, this.fixedCell() === null);
     const hook = this.menu.hook;
     if (hook) {
       const scoring = content.scoring.planes;
@@ -162,15 +163,26 @@ class Session implements RangeSession {
       const half = designSize().width / 2;
       hook.range = hookState(this.choice, 'range', {
         stats:
-          cell.shots === 0
+          cell === null || cell.shots === 0
             ? null
             : {
                 shots: cell.shots,
                 hits: cell.hits,
                 misses: cell.shots - cell.hits,
+                short: cell.short,
                 pelletsOn: cell.pelletsOn,
                 impacts: cell.impacts.length,
               },
+        cells: stats
+          .list()
+          .filter((c) => c.gun === this.sel.gun)
+          .map((c) => ({
+            plane: c.plane,
+            target: c.target,
+            shots: c.shots,
+            hits: c.hits,
+            short: c.short,
+          })),
         drawnImpacts: this.papers.reduce((n, p) => n + p.count, 0),
         papers: papers.map((p) => ({
           x: half + planeToDx(state.cameraX, scoring[p.plane].scrollFactor, p.x),
@@ -192,6 +204,29 @@ class Session implements RangeSession {
         }),
       });
     }
+  }
+
+  /** The single course's cell (null on the mixed course: its cells come with the shots). */
+  private fixedCell(): RangeCell | null {
+    const { plane, target } = this.sel;
+    if (plane === 'all' || target === 'mixed') return null;
+    return stats.cell({ ...this.sel, plane, target });
+  }
+
+  /** The cell the bar shows: the one the newest shot was counted for, else the course's. */
+  private shown(): RangeCell | null {
+    return stats.last?.cell ?? this.fixedCell();
+  }
+
+  private title(): string {
+    const cell = this.fixedCell();
+    if (cell !== null) return cellTitle(this.menu.content, cell);
+    return `${gunNameById(this.menu.content, this.sel.gun)} · ${rt('range.mixed_course')}`;
+  }
+
+  /** The impacts drawn on a paper: its plane and kind's cell for this gun. */
+  private impactsOf(plane: PlaneId, kind: RangeTarget): readonly Impact[] {
+    return stats.cell({ ...this.sel, plane, target: kind }).impacts;
   }
 
   detach(): void {

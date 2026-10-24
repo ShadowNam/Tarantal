@@ -148,15 +148,15 @@ test.describe('Skietbaan (training ground)', () => {
     await expect(page.locator('#tm-range [data-role=biome] button')).toHaveCount(4);
     await expect(page.locator('#tm-range [data-role=plane] button')).toHaveCount(4);
     await expect(page.locator('#tm-range [data-role=target] button')).toHaveCount(4);
-    // Shotguns can't reach Ver: it shows, marked out of reach.
+    // Shotguns can't reach Ver: it stays selectable, with a note that the shots fall short.
     await press(page, touch, '#tm-range [data-role=gun] [data-value=dubbelloop]');
     const ver = page.locator('#tm-range [data-role=plane] [data-value=ver]');
-    await expect(ver).toBeDisabled();
-    await expect(ver.locator('small')).toHaveText(/.+/);
-    // The .22 with the small scope at Ver, on the paper target.
-    await press(page, touch, '#tm-range [data-role=gun] [data-value="twee_twee:scope_small"]');
     await expect(ver).toBeEnabled();
     await press(page, touch, '#tm-range [data-role=plane] [data-value=ver]');
+    await expect(page.locator('#tm-range [data-role=reach-note]')).toBeVisible();
+    // The .22 with the small scope at Ver, on the paper target: no note.
+    await press(page, touch, '#tm-range [data-role=gun] [data-value="twee_twee:scope_small"]');
+    await expect(page.locator('#tm-range [data-role=reach-note]')).toHaveCount(0);
     await press(page, touch, '#tm-range [data-role=target] [data-value=paper]');
     await expect(ver).toHaveAttribute('aria-pressed', 'true');
     await page.screenshot({ path: `${SHOTS_DIR}/skietbaan-setup-${name}.png` });
