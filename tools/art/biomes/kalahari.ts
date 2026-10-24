@@ -17,9 +17,7 @@ import {
   tuft,
   yAt,
   type Pen,
-  type Pt,
   type Rnd,
-  type Tone,
 } from '../scenery';
 import { el, ellipseD, g, inked, polyD, r2, smoothD } from '../svg';
 import { mountainRow, paintRow, rockColours } from '../mountains';
@@ -27,6 +25,13 @@ import { bush, groundBand, groundShadow, softSky } from './karoo';
 import { foregroundClumps, midScrub, nearGrass, verVeld } from './common';
 import { thunderhead } from '../skies';
 import { tuftOf } from '../vegetation';
+import {
+  camelthornLook,
+  camelthornSpec,
+  camelthornTree,
+  deadCamelthorn,
+  nestTreeSpec,
+} from '../camelthorn';
 
 // --- shapes --------------------------------------------------------------------------------
 
@@ -136,54 +141,6 @@ function dune(
       'stroke-width': Math.max(0.8, pen.w * 0.5),
       'stroke-linejoin': 'round',
     }),
-  );
-}
-
-/** A camelthorn: short trunk, forked limbs, a flat umbrella crown (lit on top). */
-function camelthorn(
-  _rnd: Rnd,
-  x: number,
-  base: number,
-  s: number,
-  crown: Tone,
-  trunk: string,
-  pen: Pen,
-): string {
-  const limbs = `M${r2(x)} ${r2(base)}L${r2(x - 2 * s)} ${r2(base - 30 * s)}L${r2(x - 26 * s)} ${r2(base - 58 * s)}M${r2(x - 2 * s)} ${r2(base - 30 * s)}L${r2(x + 22 * s)} ${r2(base - 60 * s)}M${r2(x - 2 * s)} ${r2(base - 30 * s)}L${r2(x + 2 * s)} ${r2(base - 62 * s)}`;
-  const top = base - 62 * s;
-  const cr = smoothD(
-    [
-      [x - 60 * s, top + 6 * s],
-      [x - 50 * s, top - 6 * s],
-      [x - 20 * s, top - 12 * s],
-      [x + 20 * s, top - 13 * s],
-      [x + 52 * s, top - 7 * s],
-      [x + 62 * s, top + 5 * s],
-      [x + 20 * s, top + 9 * s],
-      [x - 24 * s, top + 9 * s],
-    ],
-    true,
-    0.8,
-  );
-  return g(
-    {},
-    el('path', {
-      d: limbs,
-      fill: 'none',
-      stroke: pen.ink,
-      'stroke-width': 5 * s + pen.w,
-      'stroke-linecap': 'round',
-    }),
-    el('path', {
-      d: limbs,
-      fill: 'none',
-      stroke: trunk,
-      'stroke-width': 5 * s,
-      'stroke-linecap': 'round',
-    }),
-    inked(cr, crown.fill, pen.ink, pen.w),
-    flat(ellipseD(x - 10 * s, top - 6 * s, 40 * s, 4 * s), crown.light),
-    flat(ellipseD(x + 10 * s, top + 6 * s, 46 * s, 3 * s), crown.dark),
   );
 }
 
@@ -377,19 +334,21 @@ function farVeld(ctx: LayerCtx): string {
     g({ 'clip-path': `url(#${band.clip})` }, ...inside),
     line(smoothD(band.edge, false, 0.8), ctx.pen),
   ];
-  const crown = tone(ctx.c('camelthorn'), 0.22, 0.22);
-  for (let x = 80; x < ctx.width; x += 280 + ctx.rnd() * 420)
+  // v1.4 B: the far-veld camelthorns use the layered tree at a small scale.
+  const look = camelthornLook(ctx.c, ctx.pen);
+  const kinds = ['mature', 'young', 'mature', 'old'] as const;
+  for (let x = 80, k = 0; x < ctx.width; x += 280 + ctx.rnd() * 420, k++) {
+    const kind = kinds[k % kinds.length] ?? 'mature';
+    const spec = camelthornSpec(kind, x, yAt(band.edge, x) + 6, kind === 'young' ? 0.42 : 0.2, 10);
     parts.push(
-      camelthorn(
+      camelthornTree(
         ctx.rnd,
-        x,
-        yAt(band.edge, x) + 6,
-        0.7 + ctx.rnd() * 0.3,
-        crown,
-        ctx.c('trunk'),
+        { ...spec, ground: false, dab: 1.3, density: 0.5, clumps: 22 },
+        look,
         ctx.pen,
-      ),
+      ).svg,
     );
+  }
   return g({}, ...parts);
 }
 
@@ -485,153 +444,12 @@ function foreground(ctx: LayerCtx): string {
 
 // --- props ---------------------------------------------------------------------------------
 
-/** A thorny limb: a tapered branch with a few white thorn ticks. */
-function limb(
-  x: number,
-  y: number,
-  dx: number,
-  dy: number,
-  w: number,
-  fill: string,
-  pen: Pen,
-): string {
-  const len = Math.hypot(dx, dy) || 1;
-  const nx = (-dy / len) * w * 0.5;
-  const ny = (dx / len) * w * 0.5;
-  const d = `M${r2(x - nx)} ${r2(y - ny)}Q${r2(x + dx * 0.5 - nx * 0.6)} ${r2(y + dy * 0.45 - ny * 0.6)} ${r2(x + dx)} ${r2(y + dy)}Q${r2(x + dx * 0.5 + nx * 0.6)} ${r2(y + dy * 0.55 + ny * 0.6)} ${r2(x + nx)} ${r2(y + ny)}Z`;
-  return inked(d, fill, pen.ink, pen.w);
-}
-
+/**
+ * v1.4 B (D-039): the camelthorn with the sociable-weaver family nest, drawn in layers at 2×
+ * (tools/art/camelthorn.ts). Content part: nest ellipse 150 × 46 at (0, −78); perch (150, −110).
+ */
 function weaverCamelthorn(ctx: PropCtx): string {
-  const pen = ctx.pen;
-  const bark = tone(ctx.c('trunk'), 0.25, 0.25);
-  const crown = tone(ctx.c('camelthorn'), 0.24, 0.24);
-  const thatch = tone(ctx.c('thatch'), 0.25, 0.25);
-  const { oy, h } = ctx.box;
-  const foot = oy + h / 2; // 260
-  const trunk = smoothD(
-    [
-      [-36, foot],
-      [-24, foot - 120],
-      [-26, -20],
-      [-10, -60],
-      [14, -60],
-      [26, -20],
-      [26, foot - 120],
-      [38, foot],
-    ],
-    true,
-    0.6,
-  );
-  // Sociable-weaver colony nest (content part: ellipse 150 × 46 at (0, −78)): a shaggy haystack
-  // of grass straws hanging in the canopy (GDD §11): ragged sides, a fringe of loose straws
-  // along the underside with the chamber entrances, the crown and branches over its top.
-  const rnd = ctx.rnd;
-  // A lumpy, rounded mass: bulging sides, a sagging belly, a fringe of loose straws underneath.
-  const outline: Pt[] = [];
-  outline.push([-150, -128], [-100, -146], [-40, -150], [30, -150], [100, -146], [152, -130]);
-  for (let y = -116; y <= -64; y += 10) {
-    const bulge = Math.sin(((y + 116) / 52) * Math.PI) * 16;
-    outline.push([160 + bulge + (rnd() - 0.5) * 10, y]);
-  }
-  for (let x = 166; x >= -166; x -= 6) {
-    const sag = Math.cos((x / 166) * (Math.PI / 2)) * 16; // the belly hangs lowest mid-way
-    const yb = -60 + sag + (rnd() - 0.5) * 5;
-    const long = rnd() < 0.3;
-    outline.push([x, yb]);
-    outline.push([x - 3, yb + (long ? 16 + rnd() * 14 : 4 + rnd() * 7)]);
-  }
-  for (let y = -64; y >= -116; y -= 10) {
-    const bulge = Math.sin(((y + 116) / 52) * Math.PI) * 16;
-    outline.push([-160 - bulge + (rnd() - 0.5) * 10, y]);
-  }
-  const nest = polyD(outline);
-  const id = nextId();
-  const straws: string[] = [];
-  const strawsLight: string[] = [];
-  for (let k = 0; k < 120; k++) {
-    const x = -150 + rnd() * 300;
-    const y = -136 + rnd() * 86;
-    const len = 8 + rnd() * 14;
-    const d = `M${r2(x)} ${r2(y)}l${r2((rnd() - 0.5) * 6)} ${r2(len)}`;
-    (rnd() < 0.35 ? strawsLight : straws).push(d);
-  }
-  const holes: string[] = [];
-  for (let k = 0; k < 8; k++)
-    holes.push(ellipseD(-120 + k * 34 + (rnd() - 0.5) * 10, -50 + (rnd() - 0.5) * 6, 7, 5));
-  const canopy = smoothD(
-    [
-      [-236, -150],
-      [-206, -188],
-      [-120, -208],
-      [0, -214],
-      [120, -208],
-      [214, -190],
-      [240, -150],
-      [170, -134],
-      [80, -140],
-      [0, -132],
-      [-90, -140],
-      [-170, -134],
-    ],
-    true,
-    0.8,
-  );
-  return g(
-    {},
-    groundShadow(0, foot + 4, 120, 12),
-    limb(-10, -40, -160, -110, 20, bark.fill, pen),
-    limb(10, -40, 170, -120, 20, bark.fill, pen),
-    limb(0, -50, 10, -150, 18, bark.fill, pen),
-    limb(-60, -100, -120, -60, 12, bark.fill, pen),
-    // Perch branch (content perch (150, −110)).
-    limb(60, -90, 120, -24, 12, bark.fill, pen),
-    inked(trunk, bark.fill, pen.ink, pen.w),
-    flat(
-      polyD([
-        [6, foot],
-        [10, -50],
-        [24, -20],
-        [26, foot],
-      ]),
-      bark.dark,
-    ),
-    el('clipPath', { id }, el('path', { d: nest })),
-    flat(nest, thatch.fill),
-    g(
-      { 'clip-path': `url(#${id})` },
-      flat(ellipseD(40, -44, 210, 42), thatch.dark),
-      flat(ellipseD(-70, -128, 80, 12), thatch.light),
-      el('path', {
-        d: straws.join(''),
-        stroke: thatch.dark,
-        'stroke-width': 2.2,
-        'stroke-linecap': 'round',
-        fill: 'none',
-      }),
-      el('path', {
-        d: strawsLight.join(''),
-        stroke: thatch.light,
-        'stroke-width': 2,
-        'stroke-linecap': 'round',
-        fill: 'none',
-      }),
-      flat(holes.join(''), '#2A2018'),
-    ),
-    el('path', {
-      d: nest,
-      fill: 'none',
-      stroke: pen.ink,
-      'stroke-width': pen.w * 0.8,
-      'stroke-linejoin': 'round',
-    }),
-    // Branches run into the nest; the flat crown sits over its top.
-    limb(-80, -110, -60, -60, 10, bark.fill, pen),
-    limb(70, -114, 70, -62, 10, bark.fill, pen),
-    inked(canopy, crown.fill, pen.ink, pen.w),
-    flat(ellipseD(-40, -200, 150, 8), crown.light),
-    flat(ellipseD(30, -150, 190, 8), crown.dark),
-  );
+  return camelthornTree(ctx.rnd, nestTreeSpec(), camelthornLook(ctx.c, ctx.pen), ctx.pen).svg;
 }
 
 function windpompSign(ctx: PropCtx): string {
@@ -679,49 +497,9 @@ function windpompSign(ctx: PropCtx): string {
   );
 }
 
-function deadCamelthorn(ctx: PropCtx): string {
-  const pen = ctx.pen;
-  const wood = tone(ctx.c('deadwood'), 0.28, 0.25);
-  const { oy, h } = ctx.box;
-  const foot = oy + h / 2; // 230
-  const trunk = smoothD(
-    [
-      [-34, foot],
-      [-24, foot - 100],
-      [-30, -10],
-      [-14, -50],
-      [16, -52],
-      [26, -10],
-      [24, foot - 100],
-      [36, foot],
-    ],
-    true,
-    0.6,
-  );
-  return g(
-    {},
-    groundShadow(0, foot + 4, 100, 10),
-    limb(-14, -30, -120, -130, 18, wood.fill, pen),
-    limb(-60, -100, -60, -110, 10, wood.fill, pen),
-    limb(14, -40, 130, -170, 18, wood.fill, pen),
-    limb(80, -130, 70, -50, 9, wood.fill, pen),
-    limb(0, -48, -10, -200, 14, wood.fill, pen),
-    // The secret branch stub (content part at (−90, −60), 40 × 22).
-    limb(-20, -20, -86, -42, 22, wood.fill, pen),
-    inked(ellipseD(-106, -62, 12, 10), wood.light, pen.ink, pen.w * 0.8),
-    flat(ellipseD(-106, -62, 6, 5), wood.dark),
-    inked(trunk, wood.fill, pen.ink, pen.w),
-    flat(
-      polyD([
-        [4, foot],
-        [8, -40],
-        [22, -10],
-        [24, foot],
-      ]),
-      wood.dark,
-    ),
-    line('M-10 40Q-14 120 -8 220M10 -20Q14 80 12 200', { ink: wood.dark, w: 3 }),
-  );
+/** v1.4 B: the dead camelthorn (secret branch stub at (−90, −60)), drawn at 2×. */
+function deadCamelthornProp(ctx: PropCtx): string {
+  return deadCamelthorn(ctx.rnd, camelthornLook(ctx.c, ctx.pen), ctx.pen);
 }
 
 function duneGrass(seed: number) {
@@ -792,9 +570,19 @@ export const KALAHARI_PLAN: BiomeArtPlan = {
     foreground: { top: 880, height: 200, fadeTop: 28, draw: foreground },
   },
   props: {
-    'kalahari/weaver_camelthorn': { draw: weaverCamelthorn },
+    'kalahari/weaver_camelthorn': {
+      draw: weaverCamelthorn,
+      master: 2,
+      wobble: false,
+      frame: { w: 580, h: 580, ox: 290, oy: 300 },
+    },
     'kalahari/windpomp_sign': { draw: windpompSign },
-    'kalahari/dead_camelthorn': { draw: deadCamelthorn },
+    'kalahari/dead_camelthorn': {
+      draw: deadCamelthornProp,
+      master: 2,
+      wobble: false,
+      frame: { w: 460, h: 540, ox: 230, oy: 300 },
+    },
     'kalahari/dune_grass_a': { draw: duneGrass(1) },
     'kalahari/dune_grass_b': { draw: duneGrass(2) },
   },

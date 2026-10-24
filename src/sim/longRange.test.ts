@@ -124,8 +124,9 @@ describe('the Ver plane (v1.3)', () => {
     const map = resolveMap(karoo, 'mon', 'verder');
     expect(map.ver).toBe(true);
     expect(map.biome.layers.find((l) => l.plane === 'ver')?.scrollFactor).toBe(0.22);
-    // The real content: no map opens it until Nog Verder (v1.3 PR B), so nothing changes.
-    for (const b of base.biomes)
+    // The real content: no season biome's weekday map opens it (only Nog Verder and Die Verste
+    // do); the Namibië area pack (v1.4 B, D-039) is built for long range and opens it every day.
+    for (const b of base.biomes.filter((x) => x.area === undefined))
       for (const l of b.layouts)
         expect(resolveMap(b, l.id, undefined).biome.layers.some((x) => x.plane === 'ver')).toBe(
           false,

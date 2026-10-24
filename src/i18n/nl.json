@@ -515,5 +515,19 @@
   "shed.fitted": "Gemonteerd",
   "admin.sight": "Sight",
   "admin.sight_default": "Skiet-Skuur's",
-  "admin.range": "Skietbaan"
+  "admin.range": "Skietbaan",
+  "biome.namibie": "Namibië — Etosha & Namib",
+  "share.biome.namibie": "Namibië",
+  "secret.nest_camelthorn": "Het nest van de republikeinwevers (niet doen!)",
+  "secret.quiver_egg": "De struisvogelei-veldfles in de kokerboom",
+  "bark.egg": "Ag nee, dat was mijn water!",
+  "title.area": "Gebied: {area}",
+  "area.title": "Waar jagen we?",
+  "area.locked": "Op slot",
+  "area.how": "Haal {bonus} in een willekeurig gebied om het te openen.",
+  "area.chosen": "Hier jagen we",
+  "area.pick": "Hier jagen",
+  "area.desc.karoo_autumn": "Opa's boerderij in de Karoo: het thuisveld.",
+  "area.desc.namibie": "De witte zoutpan van Etosha en de duinen van de Namib: wijd open, gemaakt voor verre schoten.",
+  "tally.area_unlocked": "{area} is open! Kies het onder Gebied op het titelscherm."
 }

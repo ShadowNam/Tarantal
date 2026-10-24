@@ -42,16 +42,11 @@ import { WeaponView } from '../view/WeaponView';
 import { planeToDx } from '../../sim/camera';
 import { crosshairExtent, spreadMulOf } from '../ui/gunLook';
 import { WorldView } from '../view/WorldView';
+import { WeaverView } from '../view/WeaverView';
 import { textureBytes } from '../assets/textureBytes';
 import { mapLights, mapOmen, resolveMap, type ResolvedMap } from '../../sim/maps';
 import { layoutForDay } from '../../meta/maps';
-import {
-  applyBonusResult,
-  bonusAllowsSight,
-  bonusKeys,
-  bonusSlug,
-  isUnlocked,
-} from '../../meta/bonusMaps';
+import { applyBonusResult, bonusKeys, bonusOpenFor, bonusSlug } from '../../meta/bonusMaps';
 import { formatScore } from '../ui/format';
 import type { HudScene } from './HudScene';
 import type { PauseData } from './PauseScene';
@@ -96,6 +91,8 @@ export class HuntScene extends Phaser.Scene {
   private fx!: Fx;
   private weapon!: WeaponView;
   private world!: WorldView;
+  /** v1.4 B (D-039): angry weavers out of a shot family nest. */
+  private weavers!: WeaverView;
   private debug!: DebugOverlay;
   private screen!: Phaser.GameObjects.Container;
   /** v1.3: screen overlays a sight's zoom never scales (glare, tints, rain), the sight picture,
@@ -262,7 +259,7 @@ export class HuntScene extends Phaser.Scene {
         id = c.run.current === null ? undefined : c.run.info().biome;
       else if (data.mode === 'daily') id = c.daily.todaySetup().biome;
       else if (data.mode === 'ftue') id = c.content.modes.modes.ftue.biome;
-      else id = c.classicBiome ?? c.content.modes.modes.classic.biome;
+      else id = c.classicBiome ?? c.classicArea();
     }
     const b = id === undefined ? undefined : c.content.biomes.find((x) => x.id === id);
     return b !== undefined && c.playableBiomes.includes(b.id) ? b : c.biome;
@@ -356,6 +353,14 @@ export class HuntScene extends Phaser.Scene {
       this.screenFixed,
     );
     this.world.secretGlow = lights.some((l) => l.secretGlow === true);
+    this.world.reducedMotion = this.ctx.reducedMotion;
+    const planes = this.ctx.content.scoring.planes;
+    this.weavers = new WeaverView(this, this.ctx.feel, mapBiome, this.parallax, {
+      near: planes.near.scale,
+      mid: planes.mid.scale,
+      far: planes.far.scale,
+      ver: planes.ver.scale,
+    });
     this.weapon = new WeaponView(
       this,
       this.ctx.feel,
@@ -655,6 +660,7 @@ export class HuntScene extends Phaser.Scene {
         if (!this.sys.isActive()) return;
         m.openSkietbaan({
           content: this.ctx.content,
+          // The admin page's tool (its own save): every playable biome, like admin hunts (D-039).
           playableBiomes: this.ctx.playableBiomes,
           hook: this.ctx.hook,
           today: () => this.ctx.today(),
@@ -825,11 +831,13 @@ export class HuntScene extends Phaser.Scene {
       bonus !== undefined &&
       modeId === 'classic' &&
       challenge === null &&
-      isUnlocked(save.bonusMaps, this.huntDay, this.ctx.biome.id, bonus) &&
+      // v1.4 B: the Classic area's bonus maps (Namibië's once picked), the same the title draws;
       // v1.3 (D-036): Die Verste starts only with a scope fitted (the title button says so).
-      bonusAllowsSight(
+      bonusOpenFor(
         this.ctx.content,
-        this.ctx.biome.id,
+        save.bonusMaps,
+        this.huntDay,
+        this.ctx.classicBiome ?? this.ctx.classicArea(),
         bonus,
         this.withSight({ id: 'classic', ...(weapon === undefined ? {} : { weapon }) }).sight,
       );
@@ -843,11 +851,11 @@ export class HuntScene extends Phaser.Scene {
       plainMode === null
         ? null
         : this.ctx.daily.plan(plainMode, challenge, weapon, extra, () => this.ctx.nextSeed());
-    const biomeParam = this.ctx.classicBiome;
+    // v1.4 B: ?biome= (dev), else the area picked on the title (D-039).
+    const biomeParam = this.ctx.classicBiome ?? this.ctx.classicArea();
     if (
       plan?.mode.id === 'classic' &&
       plan.challenge === null &&
-      biomeParam !== undefined &&
       this.ctx.playableBiomes.includes(biomeParam)
     )
       plan = { ...plan, mode: { ...plan.mode, biome: biomeParam } };
@@ -1185,6 +1193,13 @@ export class HuntScene extends Phaser.Scene {
     this.birds.setViewZoom(zoom.z);
     this.birds.update(drawBirds, state.tick);
     this.world.update(state, width, designSize().height);
+    const w0 = performance.now();
+    this.weavers.update(state);
+    if (this.ctx.hook) {
+      // v1.4 B (e2e perf): what the weavers and the mirage cost per frame.
+      this.ctx.hook.sceneryMs += performance.now() - w0 + this.world.mirageMs;
+      this.ctx.hook.sceneryFrames++;
+    }
     this.weapon.spreadMul = spreadMulOf(state.powerups, this.ctx.content.powerups.powerups);
     this.weapon.setWeapon(state.weapon.id);
     this.weapon.setReloading(state.weapon.reloading);
@@ -1300,6 +1315,8 @@ export class HuntScene extends Phaser.Scene {
       hook.weapon = state.weapon.id;
       hook.powerups = state.powerups.map((p) => p.id);
       hook.wind = state.wind;
+      hook.weavers = this.weavers.visibleCount;
+      hook.mirage = state.mirage;
       hook.durationTicks = state.durationTicks;
     }
 
@@ -1325,6 +1342,11 @@ export class HuntScene extends Phaser.Scene {
     this.fx.handle(events, width, state);
     this.birds.handle(events);
     const half = width / 2;
+    // v1.4 B: a shot family nest lets its weavers out; they chatter and scold (AudioDirector).
+    for (const b of this.weavers.handle(events)) {
+      this.ctx.audio.weavers(Math.max(-1, Math.min(1, (b.screenX - half) / half)));
+      if (this.ctx.hook) this.ctx.hook.weaverBursts++;
+    }
     // The Skietbaan scores nothing: no Whole-flock stamp sound or slow-mo there (D-037).
     const heard = this.range === null ? events : events.filter((e) => e.type !== 'flockWiped');
     this.ctx.audio.handle(heard, (e) => {
@@ -1482,7 +1504,7 @@ export class HuntScene extends Phaser.Scene {
         this.huntDay,
         this.ctx.today(),
         this.ctx.content,
-        this.ctx.biome.id,
+        this.ctx.classicArea(),
       );
       unlocked = r.unlocked;
       if (r.unlocked !== null)
@@ -1494,6 +1516,14 @@ export class HuntScene extends Phaser.Scene {
       if (this.ctx.hook) this.ctx.hook.verderUnlocked = r.unlocked;
       return { ...d, bonusMaps: r.save };
     });
+    // v1.4 B (D-039): reaching Die Verste unlocks the Namibië area for good.
+    for (const id of this.ctx.grantAreas()) {
+      const b = this.ctx.content.biomes.find((x) => x.id === id);
+      const area = fill(t('tally.area_unlocked'), {
+        area: b === undefined ? id : tOr(b.nameKey, id),
+      });
+      line = line === null ? area : `${line}  ·  ${area}`;
+    }
     return { line, unlocked };
   }
 
@@ -1666,6 +1696,7 @@ export class HuntScene extends Phaser.Scene {
     this.cleanups = [];
     this.birds.clear();
     this.world.clear();
+    this.weavers.clear();
     this.game.canvas.style.cursor = '';
   }
 }

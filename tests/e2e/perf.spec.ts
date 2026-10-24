@@ -96,6 +96,81 @@ test('perf smoke: 30 s hunt at 4× CPU throttle', async ({ page, browserName }, 
   expect(errors).toEqual([]);
 });
 
+// v1.4 B (D-039): Namibië on the Pixel 7 profile — the mirage on (Tuesday) and the weavers kept
+// out the whole hunt (the family nest shot every 2 s), same method and budget as the smoke.
+test('perf: Namibië mirage and angry weavers at 4× CPU throttle (Pixel 7)', async ({
+  page,
+  browserName,
+}, info) => {
+  test.skip(
+    info.project.name !== 'pixel7-landscape' || browserName !== 'chromium',
+    'measured on the Pixel 7 profile; CDP throttling needs Chromium',
+  );
+  test.setTimeout(400_000);
+  const touch = isTouchProject(info);
+  const errors = collectErrors(page);
+  await emulateCores(page);
+  await boot(page, 'biome=namibie&today=2026-10-20&seed=3&huntSeconds=30');
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  await startHunt(page, touch);
+  await page.waitForFunction(() => (window.__TM__?.tick ?? 0) > 30, null, { timeout: 120_000 });
+  // The nest tree stands at the west end: pan there first.
+  await page.keyboard.down('ArrowLeft');
+  await page.waitForFunction(
+    () =>
+      window.__TM__?.secretSpots.some((s) => s.partId === 'nest' && s.x > 200) === true ||
+      (window.__TM__?.cameraX ?? 9999) <= 961,
+    null,
+    { timeout: 120_000 },
+  );
+  await page.keyboard.up('ArrowLeft');
+  let maxWeavers = 0;
+  while (!(await hook(page)).over) {
+    const h = await hook(page);
+    maxWeavers = Math.max(maxWeavers, h.weavers);
+    const nest = h.secretSpots.find((s) => s.partId === 'nest');
+    if (nest !== undefined) await tapAt(page, touch, nest.x, nest.y);
+    if (h.shells === 0) {
+      await page.keyboard.press('Space');
+      if (touch) await tapAt(page, touch, h.designWidth * 0.5, h.designHeight * 0.5);
+    }
+    await waitTicks(page, 60);
+  }
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+  const h = await hook(page);
+  const real = stats(h.frameTimes.slice(30));
+  const cpu = stats(h.cpuFrameMs.slice(30));
+  const report = {
+    project: info.project.name,
+    tier: h.quality.tier,
+    throttle: 4,
+    mirage: h.mirage,
+    weaverBursts: h.weaverBursts,
+    maxWeavers,
+    // The weavers' and the mirage's own share of each frame (same page, so the box's load and
+    // software GL drop out).
+    sceneryMsPerFrame: h.sceneryFrames > 0 ? h.sceneryMs / h.sceneryFrames : 0,
+    realFrameMs: real,
+    cpuFrameMs: cpu,
+  };
+  console.log(`[perf] ${JSON.stringify(report)}`);
+  writeFileSync(info.outputPath('perf.json'), JSON.stringify(report, null, 2));
+  expect(h.mirage, 'the mirage is on (Tuesday, omen)').toBe(true);
+  expect(h.weaverBursts).toBeGreaterThan(0);
+  expect(maxWeavers).toBeGreaterThan(0);
+  expect(cpu.n).toBeGreaterThan(30);
+  // Their own cost: at most 1 ms a frame at 4× throttle (6 % of the frame budget).
+  expect(
+    report.sceneryMsPerFrame,
+    'weavers + mirage ms per frame, 4× throttle',
+  ).toBeLessThanOrEqual(1);
+  expect(cpu.avg, 'CPU cost per frame (ms), mirage + weavers, 4× throttle').toBeLessThanOrEqual(
+    BUDGET_MS,
+  );
+  expect(errors).toEqual([]);
+});
+
 // v1.3 (D-036) scoped phase: the same method and budget as the smoke above (30 s hunt, the same
 // auto quality tier — on a 4-core CI runner the Pixel 7 profile is low, desktop medium — 4× CPU
 // throttle, CPU cost per frame ≤ 16.7 ms asserted, real frame time with

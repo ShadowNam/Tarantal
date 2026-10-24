@@ -407,4 +407,28 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
       sight: 'scope_var',
     },
   },
+  // v1.4 B (D-039): Namibië — the mirage (Tuesday, omen on), the waterhole flock on Ver, the
+  // Langloop; and a shotgun hunt on the Thursday map (the family nest on the near plane).
+  {
+    name: 'classic-75-namibie-tue-langloop-aim-pointer',
+    seed: 75,
+    bot: 'aim',
+    mode: 'classic',
+    inputKind: 'pointer',
+    modeConfig: {
+      id: 'classic',
+      biome: 'namibie',
+      layout: 'tue',
+      weapon: 'langloop',
+      sight: 'scope_var',
+    },
+  },
+  {
+    name: 'classic-76-namibie-thu-competent-touch',
+    seed: 76,
+    bot: 'competent',
+    mode: 'classic',
+    inputKind: 'touch',
+    modeConfig: { id: 'classic', biome: 'namibie', layout: 'thu' },
+  },
 ];

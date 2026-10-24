@@ -5,7 +5,7 @@
 // link is all a client needs. No layout (replays before v1.2, Season Run, FTUE) = the biome as
 // it is.
 import type { Biome, BonusMap, Layout } from '../content/schemas';
-import type { PlaneId } from './types';
+import { PLANES, type PlaneId } from './types';
 
 /** How the map sets the biome weather against the mode's default. */
 export type MapWeather = 'calm' | 'default' | 'omen';
@@ -19,6 +19,8 @@ export interface ResolvedMap {
   readonly weather: MapWeather;
   /** Multiplies every bird's base points (1 = unchanged). */
   readonly pointsMul: number;
+  /** v1.4 B: per-plane points multipliers (the layout's × the bonus map's); absent = 1. */
+  readonly planePointsMul: Readonly<Partial<Record<PlaneId, number>>>;
   /** v1.3 (D-036): the map opens the Ver plane (its layer is in `biome.layers`). */
   readonly ver: boolean;
 }
@@ -28,9 +30,20 @@ export interface ResolvedMap {
  * biome) leaves it out, so its slices, spawns and art are exactly as before v1.3.
  */
 function withoutVer(biome: Biome): Biome {
-  return biome.layers.some((l) => l.plane === 'ver')
-    ? { ...biome, layers: biome.layers.filter((l) => l.plane !== 'ver') }
-    : biome;
+  if (!biome.layers.some((l) => l.plane === 'ver')) return biome;
+  // v1.4 B (D-039): a biome whose own pacing has Ver flocks (Namibië) drops them too on a map
+  // without the plane. The season biomes have none, so their maps are exactly as before.
+  const hasVerFlocks = biome.pacing.keyframes.some((k) => k.flocks.ver !== undefined);
+  const pacing = !hasVerFlocks
+    ? biome.pacing
+    : {
+        ...biome.pacing,
+        keyframes: biome.pacing.keyframes.map((k) => ({
+          ...k,
+          flocks: Object.fromEntries(Object.entries(k.flocks).filter(([p]) => p !== 'ver')),
+        })),
+      };
+  return { ...biome, pacing, layers: biome.layers.filter((l) => l.plane !== 'ver') };
 }
 
 type Override = Omit<BonusMap, 'id' | 'nameKey'>;
@@ -134,6 +147,7 @@ export function resolveMap(
       bonus: null,
       weather: 'default',
       pointsMul: 1,
+      planePointsMul: {},
       ver: openVer && hasVer,
     };
   }
@@ -155,7 +169,21 @@ export function resolveMap(
     weather:
       bonusWeather !== undefined && bonusWeather !== 'default' ? bonusWeather : layout.weather,
     pointsMul: (layout.pointsMul ?? 1) * (bonus?.pointsMul ?? 1),
+    planePointsMul: combinePlaneMul(layout.planePointsMul, bonus?.planePointsMul),
   };
+}
+
+/** Per-plane multipliers of a layout and a bonus map, multiplied together. */
+function combinePlaneMul(
+  a: Readonly<Partial<Record<PlaneId, number | undefined>>> | undefined,
+  b: Readonly<Partial<Record<PlaneId, number | undefined>>> | undefined,
+): Partial<Record<PlaneId, number>> {
+  const out: Partial<Record<PlaneId, number>> = {};
+  for (const p of PLANES) {
+    const v = (a?.[p] ?? 1) * (b?.[p] ?? 1);
+    if (v !== 1) out[p] = v;
+  }
+  return out;
 }
 
 /** Light preset ids of a map, drawn in order (the layout's, then the bonus map's). */

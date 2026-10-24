@@ -1,6 +1,7 @@
 // Applies a finished hunt to the save: stats, Bird Book, per-biome bests, best rank, Notaboek
 // challenges and the unlocks they grant (GDD §13.6, §14, §15). Pure: returns a new SaveData and
 // what changed, so the tally can celebrate it.
+import { bonusReachedAnywhere } from './areas';
 import type {
   ContentBundle,
   Notaboek,
@@ -75,11 +76,7 @@ function counts(c: NotaboekChallenge, log: HuntLog): boolean {
  * before the challenge existed (v1.3 players who reached Die Verste) still earns its reward.
  */
 function bonusReached(save: SaveData, bonus: string): boolean {
-  const suffix = `/${bonus}`;
-  return (
-    save.bonusMaps.unlocked.some((k) => k.endsWith(suffix)) ||
-    Object.keys(save.bonusMaps.bests).some((k) => k.endsWith(suffix))
-  );
+  return bonusReachedAnywhere(save, bonus);
 }
 
 const union = (a: readonly string[], b: readonly string[]): string[] =>

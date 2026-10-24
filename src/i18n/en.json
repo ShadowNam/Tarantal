@@ -515,5 +515,19 @@
   "shed.fitted": "Fitted",
   "admin.sight": "Sight",
   "admin.sight_default": "Skiet-Skuur's",
-  "admin.range": "Skietbaan"
+  "admin.range": "Skietbaan",
+  "biome.namibie": "Namibië — Etosha & Namib",
+  "share.biome.namibie": "Namibië",
+  "secret.nest_camelthorn": "The weavers' family nest (don't!)",
+  "secret.quiver_egg": "The ostrich-egg flask in the quiver tree",
+  "bark.egg": "Ag nee, that was my water!",
+  "title.area": "Area: {area}",
+  "area.title": "Where do we hunt?",
+  "area.locked": "Locked",
+  "area.how": "Reach {bonus} in any area to unlock it.",
+  "area.chosen": "Hunting here",
+  "area.pick": "Hunt here",
+  "area.desc.karoo_autumn": "Oupa's farm in the Karoo: the home ground.",
+  "area.desc.namibie": "Etosha's white salt pan and the Namib dunes: wide open, built for long range.",
+  "tally.area_unlocked": "{area} is open! Pick it under Area on the title."
 }

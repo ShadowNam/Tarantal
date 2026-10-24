@@ -402,6 +402,17 @@ unlock chain); a layout or bonus map with `ver: true` keeps the biome's `ver` la
 map drops it (`ResolvedMap.ver`). Fly-over plane weights may name `ver`; the Ver lane joins the
 draw only when its weight is > 0, so maps without it draw exactly as before.
 
+v1.4 B (D-039): a biome may be an **area pack** (`biome.area`: `unlockBonus`, `quota`), playable
+in Classic without a run season. `crossRefs` accepts it, and `mapQuota` reads its quota. Its omen
+can be the **mirage** (`omen.mirage`: `hazePx`, `verPx`, `hazePeriodSeconds`). It moves far and Ver
+birds sideways all hunt through the same `hazeDx` path as the Kalahari haze, so the hitbox moves
+with the bird, and the snapshot carries `mirage`. A map without the Ver plane also drops Ver flocks
+from its biome's own keyframes (only Namibië has any).
+A layout or bonus map may also set **`planePointsMul`** (per-plane multipliers on a bird's base
+points, on top of `pointsMul`; the layout's × the bonus map's, `ResolvedMap.planePointsMul`, applied
+in `Sim`'s `mapPoints`). Namibië uses it to make its plentiful Ver birds worth less; no value = 1,
+so every other map is unchanged.
+
 ## 4. Content system (`content/`, `src/content/`)
 
 - One Zod schema per file type in `schemas.ts`; types are `z.infer`'d — never hand-written twice.
@@ -471,6 +482,17 @@ draw only when its weight is > 0, so maps without it draw exactly as before.
 
 (Glare, heat haze and lightning are gameplay weather drawn on every tier; atlas sets arrive with
 final art in M10. Values live in `feel.json quality.tiers`.)
+
+v1.4 B (D-039):
+- **Angry weavers** (`src/game/view/WeaverView.ts`) are rendering only. A `secretPenalty` on a nest
+  (any penalty secret with `feel.json juice.weavers.barkKey`) starts a burst. The flight is a pure
+  function of the prop id, the event tick and the sim tick (`weaverFlight.ts`). The pool holds 36
+  sprites; the chatter is `AudioDirector.weavers()`.
+- **The mirage** (`WorldView.drawMirage`): a few soft strips over the far and Ver horizons. They
+  move on sim time and stay still with reduce flashes or reduced motion.
+- **2× props:** a prop plan's `master: 2` image is packed per plane (near and mid 2×, far and Ver
+  1×, `tools/assets/pack.ts PROP_PLANE_RES`). The asset index's image `scale` (design px per
+  texture px) is applied by `ParallaxView`.
 
 ## 6. Input (`src/game/input/InputMapper.ts`)
 - Pointer Events only (one code path for mouse/touch/pen); canvas CSS `touch-action: none`;
@@ -720,6 +742,11 @@ or "Send to GitHub" (a prefilled `issues/new?labels=playtest` link ≤ 7 KB, `sr
   `cosmetics` (streak milestones) and `history` (recent official attempts: day, score or null if
   abandoned, rank, whole flocks, share grid), bounded by `content/meta/daily.json`. M9 adds
   `runAds` (rewarded ads used by the run with `seed`: retries, doubled hunts; reset at run start).
+  v1.4 B adds `areas` (defaults, no migration): `unlocked` (area packs earned for good) and `classic`
+  (the area Classic plays, null = home). The rules live in `src/meta/areas.ts`: an area unlocks
+  once its `unlockBonus` is reached in any area; the chosen area falls back to home while locked;
+  `unlockedBiomes()` serves the Shed's bird book. The game stores new unlocks after each hunt and
+  on the title (`ctx.grantAreas`).
 - Season Run save (M6, `src/game/run/RunFlow.ts`): written at run start and after every step of
   the tally and the Padstal (open, buy, sell, reroll, reorder, leave), so a closed tab resumes on
   the same screen; a finished run leaves the save (the summary is shown from memory). Closing the

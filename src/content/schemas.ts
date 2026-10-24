@@ -802,6 +802,9 @@ const mapOverrideShape = {
   flushAsRunChance: fraction.optional(),
   /** Multiplies every bird's base points (rounded), e.g. dusk: fewer birds, worth more. */
   pointsMul: pos.optional(),
+  /** v1.4 B (D-039): multiplies the base points of birds on these planes, on top of pointsMul
+   *  (Namibië's weekday waterhole: Ver birds are plentiful there, so each is worth less). */
+  planePointsMul: somePlanes(pos).optional(),
   /** v1.3 (D-036): this map opens the Ver plane (the biome's `ver` layer and lanes). Maps
    *  without it play as before: the Ver layer is left out of the map entirely. */
   ver: z.boolean().optional(),
@@ -830,6 +833,10 @@ export const BiomeSchema = obj({
   id,
   season: id,
   nameKey: i18nKey,
+  /** v1.4 B (D-039): an area pack outside the Season Run (Namibië), played in Classic from the
+   *  title's area picker. It unlocks once `unlockBonus` is reached in any area; `quota` is its
+   *  maps' quota (the bonus-map unlock), as a season's plain-hunt quota is for the others. */
+  area: obj({ unlockBonus: BonusMapIdSchema, quota: posInt }).optional(),
   panoramaWidth: posInt,
   skyBand: obj({ top: nonNeg, bottom: nonNeg })
     .refine((b) => b.top < b.bottom, 'skyBand.top must be above bottom'),
@@ -920,6 +927,10 @@ export const BiomeSchema = obj({
         message: 'storm flashes closer than 1/maxFlashesPerSecond s',
       })
       .optional(),
+    /** v1.4 B (D-039) Namibië mirage: all hunt, far and Ver birds shimmer sideways in the heat
+     *  (hitboxes too, like the Kalahari haze) by hazePx × the plane's share (far 1, Ver verPx);
+     *  the renderer draws the shimmering pan. No flashes. */
+    mirage: obj({ hazePx: pos, verPx: nonNeg, hazePeriodSeconds: pos }).optional(),
     /** M8 Bushveld low sun: a glare band this wide (design px of the screen) on one side of the
      *  view, the side drawn from the omen stream at hunt start. Drawn only; no sim rule. */
     glare: obj({ widthPx: pos, alpha: fraction }).optional(),
@@ -1395,6 +1406,30 @@ export const FeelSchema = obj({
     /** Frenzy tier up: the meter label punches from this scale back to 1 over frenzyPunchMs. */
     frenzyPunchScale: z.number().min(1).max(3),
     frenzyPunchMs: pos,
+    /** v1.4 B (D-039): angry sociable weavers burst out of a shot family nest (rendering only,
+     *  driven by its secretPenalty event). A nest is any penalty secret with this bark. */
+    weavers: obj({
+      barkKey: i18nKey,
+      /** Birds per burst by the nest's plane. */
+      count: obj({
+        near: range(posInt),
+        mid: range(posInt),
+        far: range(posInt),
+        ver: range(posInt),
+      }),
+      /** Out of the holes, swirling, and back in (a hit while they are out restarts the swirl). */
+      outMs: pos,
+      swirlMs: pos,
+      settleMs: pos,
+      /** Hard cap on weaver sprites alive at once (pooled). */
+      poolCap: posInt,
+      /** Wingspan in design px on the near plane (scaled by the plane). */
+      sizePx: pos,
+      /** Share of near/mid birds that dart toward the camera once. */
+      dartChance: fraction,
+      /** Sim ticks per wingbeat frame. */
+      flapTicks: posInt,
+    }),
     /** GDD §17 Stampede: a warm sky tint fades in (steady, never pulsing) and the ground rumbles
      *  (a small camera shake every rumbleEveryMs, off with Settings → screen shake). */
     stampede: obj({

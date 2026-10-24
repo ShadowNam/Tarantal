@@ -70,7 +70,11 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
   const powerupIds = new Set(powerups.powerups.map((p) => p.id));
   const rankIds = new Set(scoring.ranks.map((r) => r.id));
   const bossRuleIds = new Set(Object.keys(run.bossRules));
-  const plannedBiomeIds = new Set(run.seasons.map((s) => s.biome));
+  // v1.4 B: area packs (biome.area) are playable without a season.
+  const plannedBiomeIds = new Set([
+    ...run.seasons.map((s) => s.biome),
+    ...biomes.filter((b) => b.area !== undefined).map((b) => b.id),
+  ]);
   const omenIds = new Set(run.seasons.map((s) => s.omen));
   const loadedBiomes = new Map<string, Biome>(biomes.map((b) => [b.id, b]));
   const definedEventIds = new Set(biomes.flatMap((b) => b.events.map((e) => e.id)));

@@ -165,3 +165,22 @@ describe('maps (v1.2)', () => {
     expect(fri).toBeGreaterThan(base * 2);
   });
 });
+
+describe('v1.4 B: per-plane points multipliers (planePointsMul)', () => {
+  it("a layout's and its bonus map's multiply; no value means 1 (and leaves the map as it was)", () => {
+    const c = structuredClone(loadContent());
+    const nam = c.biomes.find((b) => b.id === 'namibie');
+    if (nam === undefined) throw new Error('no namibie');
+    const tue = nam.layouts.find((l) => l.id === 'tue');
+    const verste = nam.bonusMaps.find((m) => m.id === 'dieVerste');
+    if (tue === undefined || verste === undefined) throw new Error('no map');
+    Object.assign(tue, { planePointsMul: { ver: 0.5, far: 0.8 } });
+    Object.assign(verste, { planePointsMul: { ver: 0.8 } });
+    expect(resolveMap(nam, 'tue', undefined).planePointsMul).toEqual({ ver: 0.5, far: 0.8 });
+    expect(resolveMap(nam, 'tue', 'dieVerste').planePointsMul).toEqual({ ver: 0.4, far: 0.8 });
+    const karoo = c.biomes.find((b) => b.id === 'karoo-autumn');
+    if (karoo === undefined) throw new Error('no karoo');
+    expect(resolveMap(karoo, 'mon', 'verder').planePointsMul).toEqual({});
+    expect(resolveMap(karoo, undefined, undefined).planePointsMul).toEqual({});
+  });
+});

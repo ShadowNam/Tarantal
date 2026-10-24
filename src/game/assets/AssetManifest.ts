@@ -229,6 +229,11 @@ export class AssetManifest {
     return f ? { x: f.originX ?? base.x, y: f.originY ?? base.y } : base;
   }
 
+  /** v1.4 B (D-039): display scale of a texture (design px per texture px; 2× art is 0.5). */
+  displayScale(key: string): number {
+    return this.finalImages.get(key)?.entry.scale ?? 1;
+  }
+
   /** Placeholder size of a texture key in texture px (the size a delivered image must match). */
   size(key: string): { width: number; height: number } | null {
     const s = this.specs.get(key);
@@ -600,6 +605,8 @@ export function birdKey(creature: string, plane: PlaneId, frame: BirdFrame): str
 export const TEX = {
   stone: 'fx/stone',
   glare: 'omen/glare',
+  // v1.4 B (D-039): a soft bright strip of the Namibië mirage (WorldView).
+  mirage: 'omen/mirage',
   water: 'biome/water',
   rain: 'omen/rain',
   rainbow: 'omen/rainbow',
@@ -627,6 +634,9 @@ export const TEX = {
   pot: 'fx/pot',
   meerkat: 'helper/meerkat',
   windsock: 'ui/windsock',
+  // v1.4 B (D-039): angry sociable weavers (WeaverView), shared by every biome with a nest.
+  weaverUp: 'fx/weaver_up',
+  weaverDown: 'fx/weaver_down',
   // v1.3 (D-036): rifle sight pictures (SightView).
   sightIronRear: 'sight/iron_rear',
   sightIronFront: 'sight/iron_front',

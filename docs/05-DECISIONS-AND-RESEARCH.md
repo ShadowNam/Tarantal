@@ -1938,6 +1938,79 @@ fit; the Skietbaan lists it (its gun list comes from content).
 shot sound in the common group, the cartridge sprites, the code); Poki 2 959.7 KB, CrazyGames
 2 959.8 KB, no range code in either.
 
+**D-039 v1.4 part B: the Namibië pack, the camelthorn and the angry weavers (24 Oct 2026):** the
+plan is `docs/04-BUILD-PLAN.md` §v1.4 and `docs/08-PROPOSAL-LONG-RANGE-AND-DAILY-MAPS.md` ("The
+Namibië pack"). Rules are in GDD §11 (Namibië) and Tech §3 / §5; the look is in the art bible §4.
+(1) *The camelthorn and the family nest first, at a higher bar:* the product owner's 24 Oct note
+("the graphics of that nest is terrible") led to `tools/art/camelthorn.ts`, which draws the trees
+in layers. **Trees:** furrowed bark lit and shaded on every limb; zig-zag limbs with rounded forks
+tapering into twigs; an umbrella crown of 30–60 feathery clumps with sky between them; grey
+half-moon pods; dappled shade. **Nest:** a domed haystack with a lower second lobe, a soft ragged
+change from the grey-brown roof to the golden sides, 2 000+ straws following the form, a hanging
+fringe, and 10–20 entrance holes in the underside (3:1 foreshortened ovals in the lower quarter).
+Limbs pass through the nest and clumps grow over its top. The plain variants (young, mature
+umbrella, old half-dead) were approved at checkpoint 1, the nest tree after a second round.
+**The product owner approved the camelthorn and the family nest on 24 Oct, 16:00.** Props can now
+be drawn at 2× (`master: 2`): `assets:pack` keeps 2× on near and mid, packs far and Ver at 1×, and
+writes a display `scale` into the asset index. The Kalahari's `weaver_camelthorn`,
+`dead_camelthorn` and far-veld camelthorns use the new drawing; their content geometry is
+unchanged. Why: these are the most looked-at props, and the Langloop's 3–9× scope magnifies them.
+(2) *Angry weavers (rendering only):* the nest's existing `secretPenalty` event (−10, 2 s cooldown)
+starts a burst of sociable weavers (`src/game/view/WeaverView.ts`): 8–15 on a near nest, 6–9 on
+mid, fewer on far and Ver (`feel.json juice.weavers`). They pour out of the holes, swirl, a few
+dart at the camera, and settle back after about 3.8 s; another hit while they are out keeps them
+out. A nest is any penalty secret with the weavers' bark. Paths are a pure function of the prop
+id, the event tick and the sim tick (`weaverFlight.ts`), so replays and `?holdAt` frames draw the
+same birds. A pool caps the sprites at 36. The chatter goes through the AudioDirector. The two
+sprite frames (≈1.6 KB each) and the sound (≈20 KB ogg) are tiny and shared, so they sit in the
+common group, not the Kalahari chunk.
+(3) *Namibië is an area pack outside the Season Run (Classic only):* the GDD lists it as a future
+biome pack, and the Season Run is four fixed seasons with one biome each; it isn't in the Daily
+rotation either. A new optional `biome.area` (`unlockBonus`, `quota`) marks it. It unlocks for good
+once Die Verste is reached in any area, unlocked for the day or played (`src/meta/areas.ts`), and
+is stored in a new save section `areas` (older saves get the default). There was no player-facing
+area picker, so the title gains an **[Area: …]** button. It opens one card per Classic area: the
+Karoo, and Namibië, locked with how to unlock it. Classic hunts, the title's best, today's map and
+the bonus maps then follow the chosen area.
+(4) *Who sees a locked area:* the Shed's bird book lists a locked area's secrets only once it is
+unlocked (`unlockedBiomes()`). The Daily, challenge links (a shared hunt plays the same for anyone
+who opens it), the admin page and the dev `?biome=` keep every playable biome. **The Skietbaan is
+an admin-page tool on its own save; it offers every playable biome, like admin hunts. If the range
+ever becomes player-facing, it must use `unlockedBiomes()`.**
+(5) *The mirage (omen):* far and Ver birds shimmer sideways all hunt (12 px far, 5 px Ver, with
+their hitboxes), on in the Tuesday and Thursday layouts and the bonus maps. It uses the Kalahari
+haze code path, and the snapshot says when it is on. The renderer draws a few soft strips over the
+pan that breathe on sim time (a ≥ 3 s cycle, never a flash). They are still with "reduce flashes"
+or reduced motion, and fewer on the low tier. Their measured cost with the weavers out is
+0.66 ms a frame at 4× throttle (Pixel 7 profile).
+(6) *Built for long range:* every weekday layout opens the Ver plane, with a waterhole flock on it.
+Since Namibië's own pacing has Ver flocks, a map without the Ver plane now drops them as well; the
+season biomes have none, so their maps are unchanged. Balance (`docs/balance/v1.4-namibie.md`):
+every gun and sight was measured on the seven weekday maps and on Saturday's three bonus maps.
+- **The review found** the scoped .22 at 5 125–6 418 competent (over the 4 500 cap), and the peep
+  and the Langloop over it on Friday, Saturday and Verder: the waterhole flock gives a rifle
+  14–19 Ver birds a hunt.
+- **Why not `pointsMul`:** a global cut big enough for the .22 would push the Dubbelloop out of
+  the Classic band.
+- **The fix:** a new map field, **`planePointsMul`** (per-plane multipliers on base points, the
+  layout's × the bonus map's, on top of `pointsMul`). It cuts only the Ver plane: weekday Ver
+  ×0.5–0.72 (Friday, which also has Ver fly-overs, and Saturday lowest) and Verder ×0.8.
+- **Now** (200 seeds, every gun and sight, table in the balance report) every cell is under
+  4 500. The scoped .22 is the strongest, just under the cap (Sunday 4 421, Tuesday 4 409), and
+  the shotguns, which can't reach Ver, stay in the band. Saturday's Ver multiplier was lowered
+  from ×0.55 to ×0.50 for a margin: the scoped .22 there went from 4 490 to 4 337 (re-measured at
+  de2d746).
+- **Bonus maps** are well under the cap: Saturday's Verder 4 234, Nog Verder 3 089, Die Verste
+  2 324.
+- The weekday layouts still score ×0.75 (dusk ×0.9). The area quota is 3 000.
+- **Golden replays:** two Namibië cases were added. After the tuning only the Tuesday Langloop
+  case changed its result (3 634 → 3 274); every other replay kept its events and score.
+(7) *Size:* the first download is **3 000.3 KB gzip** (2.93 MB), up 37 KB from 2 963.7 KB (the
+area code and strings, the content file, and the weaver sprites and chatter in the common group).
+Poki 2 996.2 KB, CrazyGames 2 996.3 KB. The Namibië chunk is **1 445.1 KB gzip** and the Kalahari
+1 498.5 KB, both under the 1.5 MB cap. Low-tier texture memory for a Kalahari hunt is 103.4 MB
+(it was 93 MB; the budget is 128 MB).
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

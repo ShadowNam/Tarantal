@@ -313,6 +313,16 @@ variable-scope zoom input, alert-all-flocks rule, unlock, Skiet-Skuur card, inte
 sim, input and e2e tests; `docs/balance/v1.4-langloop.md`; screenshots in
 `docs/art-preview/compare/v14-*.png`. First download 2 963.7 KB gzip (2.89 MB). Part B (Namibië)
 follows in its own PR.
+**Part B done (PR #64, D-039):**
+- The camelthorn and the family nest redrawn in layers at 2× (the Kalahari picks them up), approved
+  by the product owner on 24 Oct.
+- The angry weavers.
+- **The Namibië area pack:** Classic only, unlocked by Die Verste, with the title's area picker;
+  the mirage omen; seven weekday layouts, all with Ver open; bonus maps, a secret, interim art and
+  sound.
+- **Tests:** sim, unlock and e2e tests; `docs/balance/v1.4-namibie.md`; a perf test for the mirage
+  and the weavers on the Pixel 7 profile.
+- **Screenshots:** `docs/art-preview/compare/v14-camelthorn-*.png` and `v14-namibie-*.png`.
 
 ---
 

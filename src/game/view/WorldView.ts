@@ -12,10 +12,13 @@ import { TEX } from '../assets/AssetManifest';
 import type { ParallaxView } from './ParallaxView';
 import { FlashGate, type FlashLimiter } from './flashLimit';
 import { stampedeTintAlpha } from './juice';
+import { mirageLook } from './mirage';
 
 /** Rendering only: dust devils sway this much (radians) and this fast (ms per sway). */
 const DEVIL_SWAY = 0.08;
 const DEVIL_SWAY_MS = 260;
+/** v1.4 B: mirage strips on the far plane (half again on Ver), before the quality tier. */
+const MIRAGE_STRIPS = 10;
 /** At most this many wind particles alive at once. */
 const MAX_WIND_PARTICLES = 40;
 
@@ -71,6 +74,11 @@ export class WorldView {
 
   /** v1.2: the map's light makes ready secrets glow (dusk). */
   secretGlow = false;
+  /** v1.4 B: the OS asks for reduced motion (the mirage holds still). */
+  reducedMotion = false;
+  /** v1.4 B (D-039): the Namibië mirage strips, made the first frame the mirage is on. */
+  private mirageStrips:
+    { img: Phaser.GameObjects.Image; phase: number; base: number; sx: number }[] | null = null;
 
   constructor(
     scene: Phaser.Scene,
@@ -118,6 +126,7 @@ export class WorldView {
       this.drawStorm(s, width, height);
     if (s.stampedeActive || this.stampedeTint !== null)
       this.drawStampede(s.stampedeActive, width, height);
+    if (s.mirage || this.mirageStrips !== null) this.drawMirage(s);
     this.drawRings(s);
     this.drawHelper(s, width, height);
     this.blowWind(s, width, height);
@@ -204,6 +213,60 @@ export class WorldView {
       if (seen.has(id)) continue;
       img.destroy();
       this.crates.delete(id);
+    }
+  }
+
+  /**
+   * v1.4 B (D-039): heat shimmer over the white pan — a few soft bright strips along the far
+   * and Ver horizons that breathe and ripple on sim time (a held frame holds them). Cheap (at
+   * most MIRAGE_STRIPS images, fewer on the low tier), no flashes: a slow alpha drift only, and
+   * still with "reduce flashes" or reduced motion.
+   */
+  /** v1.4 B (e2e perf): ms the mirage took to draw this frame. */
+  mirageMs = 0;
+
+  private drawMirage(s: SimState): void {
+    const t0 = performance.now();
+    this.mirageDraw(s);
+    this.mirageMs = performance.now() - t0;
+  }
+
+  private mirageDraw(s: SimState): void {
+    if (this.mirageStrips === null) {
+      this.mirageStrips = [];
+      const n = Math.max(4, Math.round(MIRAGE_STRIPS * this.prefs.particleScale));
+      for (const layerId of ['ver_veld', 'far_veld']) {
+        const layer = this.parallax.layer(layerId);
+        const lane = this.biome.lanes[layerId === 'ver_veld' ? 'ver' : 'far'];
+        const ground = lane !== undefined && 'groundY' in lane ? lane.groundY : undefined;
+        if (layer === undefined || ground === undefined) continue;
+        const w = coreWidth(layer.scrollFactor);
+        const [y0] = ground;
+        const count = layerId === 'ver_veld' ? Math.ceil(n / 2) : n;
+        for (let i = 0; i < count; i++) {
+          // Fixed spots along the pan (golden-ratio spread): the same on every device.
+          const f = (i * 0.618034 + (layerId === 'ver_veld' ? 0.31 : 0)) % 1;
+          const img = this.scene.add
+            .image(f * w, y0 - 6 + ((i * 7) % 11), TEX.mirage)
+            .setDisplaySize(260 + ((i * 137) % 340), 10 + ((i * 5) % 9));
+          layer.fixtures.add(img);
+          this.mirageStrips.push({
+            img,
+            phase: i * 1.9,
+            base: 0.35 + ((i * 3) % 4) * 0.08,
+            sx: img.scaleX,
+          });
+        }
+      }
+    }
+    const still = this.prefs.reduceFlashes || this.reducedMotion;
+    const t = s.tick / TICKS_PER_SECOND;
+    for (const m of this.mirageStrips) {
+      m.img.setVisible(s.mirage);
+      if (!s.mirage) continue;
+      const look = mirageLook(m, t, still);
+      m.img.setAlpha(look.alpha);
+      m.img.setScale(m.sx * look.scaleX, m.img.scaleY);
     }
   }
 

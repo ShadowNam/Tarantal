@@ -212,6 +212,9 @@ const sections = {
   barks: z.object({ lastHuntDay: z.number().int().nonnegative().nullable() }),
   /** v1.2: bonus maps (a new section: older saves get the default, no migration). */
   bonusMaps: BonusMapSaveSchema,
+  /** v1.4 B (D-039): area packs unlocked for good (Namibië) and the area Classic plays (null =
+   *  the home area). A new section: older saves get the default, no migration. */
+  areas: z.object({ unlocked: ids, classic: z.string().max(80).nullable() }),
 } as const;
 
 export const SaveSchema = z.object({ v: z.literal(SAVE_VERSION), ...sections });
@@ -238,6 +241,7 @@ export function defaultSave(): SaveData {
     device: { benchTier: null, benchAvgMs: null },
     barks: { lastHuntDay: null },
     bonusMaps: { day: null, unlocked: [], bests: {} },
+    areas: { unlocked: [], classic: null },
     daily: {
       streak: 0,
       bestStreak: 0,

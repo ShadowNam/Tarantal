@@ -6,6 +6,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { collectErrors, hook, isLandscape, isTouchProject, tapAt, tapRect } from './helpers';
 import weaponsJson from '../../content/weapons.json' with { type: 'json' };
+import { loadContent } from '../../tools/testContent';
 
 /** The guns the Skietbaan lists, from content: each primary (a rifle once per sight), then the
  *  crate guns. */
@@ -15,6 +16,9 @@ const RANGE_GUN_COUNT = weaponsJson.weapons.reduce(
 );
 
 const PLATFORM = process.env['E2E_PLATFORM'] || 'web';
+/** v1.4 B (D-039): the admin Skietbaan offers every playable biome, like admin hunts (every
+ *  biome has art on the web build, so all are playable — Namibië too, locked or not). */
+const ALL_BIOMES = loadContent().biomes.map((b) => b.id);
 const SHOTS_DIR = 'docs/art-preview/compare';
 
 /** The device name of a project (a local Chromium stand-in for WebKit keeps the device's). */
@@ -195,10 +199,11 @@ test.describe('Skietbaan (training ground)', () => {
     });
     expect((await hook(page)).scene).toBe('skietbaan');
     await expect(page.locator('#tm-admin')).toHaveCount(0);
-    // Every gun, locked ones too (each rifle once per sight), the 4 biomes, 4 distances + All,
-    // 5 targets + Mixed.
+    // Every gun, locked ones too (each rifle once per sight), every playable biome (Namibië
+    // too on a fresh admin save), 4 distances + All, 5 targets + Mixed.
     await expect(page.locator('#tm-range [data-role=gun] button')).toHaveCount(RANGE_GUN_COUNT);
-    await expect(page.locator('#tm-range [data-role=biome] button')).toHaveCount(4);
+    await expect(page.locator('#tm-range [data-role=biome] button')).toHaveCount(ALL_BIOMES.length);
+    await expect(page.locator('#tm-range [data-role=biome] [data-value=namibie]')).toHaveCount(1);
     await expect(page.locator('#tm-range [data-role=plane] button')).toHaveCount(5);
     await expect(page.locator('#tm-range [data-role=target] button')).toHaveCount(6);
     // Shotguns can't reach Ver: it stays selectable, with a note that the shots fall short.

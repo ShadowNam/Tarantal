@@ -255,6 +255,17 @@ export interface TestHook {
   powerups: string[];
   wind: { dir: number; strength: number } | null;
   durationTicks: number;
+  /** v1.4 B (D-039): the area picker's cards, and the Classic area now. */
+  areas: { id: string; unlocked: boolean; chosen: boolean }[];
+  classicArea: string;
+  /** v1.4 B (D-039): angry weavers on screen now, and bursts started this hunt. */
+  weavers: number;
+  weaverBursts: number;
+  /** v1.4 B: the Namibië mirage is on in this hunt. */
+  mirage: boolean;
+  /** v1.4 B (perf): total ms spent drawing the weavers and the mirage, and the frames counted. */
+  sceneryMs: number;
+  sceneryFrames: number;
   /** M6: the Season Run on screen (Run scene view, run phase, hunt, doppies, charms, offers). */
   run: {
     view: string;
@@ -392,6 +403,12 @@ export interface GameContext {
   readonly omen: boolean | undefined;
   /** e2e/dev only: ?biome= plays Classic hunts in another playable biome (M8). */
   readonly classicBiome: string | undefined;
+  /** v1.4 B (D-039): the area Classic plays now (the title's area picker; home by default). */
+  classicArea(): string;
+  /** Picks the Classic area (saved; ignored if it is locked or not playable here). */
+  setClassicArea(id: string): void;
+  /** Stores area packs the save has earned (Die Verste reached); returns the new ones. */
+  grantAreas(): string[];
   /** e2e/dev only (v1.2): ?layout=thu and ?bonus=verder play Classic hunts on that map. */
   readonly classicLayout: string | undefined;
   readonly classicBonus: string | undefined;

@@ -94,6 +94,9 @@ const sidecarOrigin = z
     origin: provenance,
     /** D-029: "png8" writes a palette PNG (smaller; fine for flat-fill art). */
     encode: encoding,
+    /** v1.4 B (D-039): the image is drawn at this many texture px per design px (2 = a 2×
+     *  master). Packed per plane (PROP_PLANE_RES) and shown scaled by 1 / that resolution. */
+    master: z.number().int().min(1).max(4),
     /** v1.3: the long-range chunk (sight pictures, D-036) instead of the key's own group. */
     group: z.literal(VER_GROUP),
   })
@@ -376,13 +379,33 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
       );
       continue;
     }
-    const img = readPng(path);
-    if (img.width !== cat.width || img.height !== cat.height)
+    const side = readJson(path.replace(/\.png$/, '.json'), sidecarOrigin, errors) ?? {};
+    const { origin: made, encode, group: own, master = 1, ...place } = side;
+    const master0 = readPng(path);
+    // A 2× master is packed at the resolution its planes need (never above the master).
+    const res = Math.min(master, propPlaneRes(o.content, key));
+    const img =
+      res === master
+        ? master0
+        : resize(
+            master0,
+            Math.round((master0.width * res) / master),
+            Math.round((master0.height * res) / master),
+          );
+    const designW = Math.round(img.width / res);
+    const designH = Math.round(img.height / res);
+    if (master === 1 && (img.width !== cat.width || img.height !== cat.height))
       warnings.push(
         `sprites/${key}.png is ${img.width}×${img.height}, the placeholder is ${cat.width}×${cat.height}: views place it at its own size`,
       );
-    const side = readJson(path.replace(/\.png$/, '.json'), sidecarOrigin, errors) ?? {};
-    const { origin: made, encode, group: own, ...place } = side;
+    else if (
+      master > 1 &&
+      place.originX === undefined &&
+      (designW !== cat.width || designH !== cat.height)
+    )
+      warnings.push(
+        `sprites/${key}.png is ${master0.width}×${master0.height} at ${master}×, the placeholder is ${cat.width}×${cat.height}: views place it at its own size`,
+      );
     const imageGroup = own ?? cat.group;
     index.images[key] = {
       group: imageGroup,
@@ -396,6 +419,7 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
       ),
       width: img.width,
       height: img.height,
+      ...(res === 1 ? {} : { scale: 1 / res }),
       ...place,
     };
   }
@@ -808,4 +832,28 @@ export function solidRows(
     rows.push(best);
   }
   return { bucket, rows };
+}
+
+/**
+ * v1.4 B (D-039): texture px per design px a prop is packed at on each plane. Near and mid props
+ * are looked at closely (and through the Langloop's 3× sight), so they keep a 2× master; far and
+ * Ver props are small on screen and pack at 1×.
+ */
+export const PROP_PLANE_RES: Readonly<Record<string, number>> = {
+  near: 2,
+  mid: 2,
+  far: 1,
+  ver: 1,
+};
+
+/** The highest resolution any placement of texture `key` needs (1 when it is no prop). */
+export function propPlaneRes(content: ContentBundle, key: string): number {
+  let res = 0;
+  for (const b of content.biomes)
+    for (const p of b.props) {
+      if (p.asset !== key) continue;
+      const layer = b.layers.find((l) => l.id === p.layer);
+      res = Math.max(res, PROP_PLANE_RES[layer?.plane ?? 'near'] ?? 1);
+    }
+  return res === 0 ? 1 : res;
 }

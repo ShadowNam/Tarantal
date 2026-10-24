@@ -327,6 +327,12 @@ export class AudioDirector {
     else this.play('thud', 0);
   }
 
+  /** v1.4 B (D-039): the angry weavers out of a shot family nest chatter and scold. */
+  weavers(pan: number): void {
+    if (this.ctx === null || this.muted) return;
+    this.play('weavers', pan);
+  }
+
   /** v1.1: the gun in hand (HuntScene, each frame): its reload sounds follow it. */
   setWeapon(id: string): void {
     this.weapon = id;

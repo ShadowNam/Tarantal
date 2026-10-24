@@ -252,6 +252,7 @@ if (wants('scenery')) {
           origin: 'interim',
           encode: 'png8',
           ...(moved ? { originX: r.originX, originY: r.originY } : {}),
+          ...(r.master === 1 ? {} : { master: r.master }),
         }),
       );
       console.log(`sprites/${prop.asset}`);

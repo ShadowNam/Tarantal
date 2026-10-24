@@ -949,6 +949,53 @@ function star(ctx: CanvasRenderingContext2D, points: number, outer: number, inne
   ctx.closePath();
 }
 
+/**
+ * A sociable weaver in flight (rendering only; the interim art in tools/art redraws it): a
+ * sparrow-sized brown bird with a black chin and face and a scaly, pale-edged back.
+ */
+function weaver(ctx: CanvasRenderingContext2D, up: boolean): void {
+  const wing = (dir: number): void => {
+    ctx.beginPath();
+    ctx.moveTo(-6, -4);
+    ctx.quadraticCurveTo(-14, dir * 24, -34, dir * 26);
+    ctx.quadraticCurveTo(-18, dir * 10, 8, -2);
+    ctx.closePath();
+    inked(ctx, '#8A6A48', 2);
+  };
+  if (up) wing(-1);
+  // Tail, body and the pale-edged scaly back.
+  ctx.beginPath();
+  ctx.moveTo(-22, -2);
+  ctx.lineTo(-38, -6);
+  ctx.lineTo(-36, 4);
+  ctx.closePath();
+  inked(ctx, '#6E5238', 2);
+  ellipse(ctx, -4, 0, 22, 11);
+  inked(ctx, '#B39470', 2);
+  ctx.strokeStyle = '#EEE3CC';
+  ctx.lineWidth = 1.4;
+  for (const x of [-16, -9, -2, 5])
+    for (const y of [-6, -1]) {
+      ctx.beginPath();
+      ctx.arc(x, y, 3.2, Math.PI * 0.1, Math.PI * 0.9);
+      ctx.stroke();
+    }
+  // Head with the black face and chin, pale bill.
+  ellipse(ctx, 20, -3, 9, 8);
+  inked(ctx, '#9C7B57', 2);
+  ellipse(ctx, 23, 1, 6, 5);
+  ctx.fillStyle = '#1B1410';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(28, -3);
+  ctx.lineTo(36, -1);
+  ctx.lineTo(28, 2);
+  ctx.closePath();
+  ctx.fillStyle = '#C9C2B2';
+  ctx.fill();
+  if (!up) wing(1);
+}
+
 function centred(
   key: string,
   w: number,
@@ -1136,6 +1183,13 @@ function m4Specs(): CanvasSpec[] {
         ctx.fill();
       },
     },
+    // v1.4 B (D-039): an angry sociable weaver in flight, wings up and down (facing right).
+    centred(TEX.weaverUp, 96, 64, (ctx) => {
+      weaver(ctx, true);
+    }),
+    centred(TEX.weaverDown, 96, 64, (ctx) => {
+      weaver(ctx, false);
+    }),
     // Wind sock (HUD): a striped cone, origin at the pole top; rotated/stretched by the HUD.
     {
       key: TEX.windsock,
@@ -1253,6 +1307,7 @@ const LAZY_ART: Readonly<Record<string, () => Promise<BiomeArt>>> = {
   'bushveld-winter': () => import('./biomes/bushveld').then((m) => m.BUSHVELD_ART),
   'okavango-spring': () => import('./biomes/okavango').then((m) => m.OKAVANGO_ART),
   'kalahari-summer': () => import('./biomes/kalahari').then((m) => m.KALAHARI_ART),
+  namibie: () => import('./biomes/namibie').then((m) => m.NAMIBIE_ART),
 };
 const loadedArt = new Map<string, BiomeArt>([['karoo-autumn', KAROO_ART]]);
 const loadingArt = new Map<string, Promise<boolean>>();

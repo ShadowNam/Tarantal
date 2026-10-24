@@ -5,6 +5,25 @@ import { ellipse, inked, INK } from './draw';
 
 export function omenSpecs(): CanvasSpec[] {
   return [
+    // v1.4 B: the mirage — a soft, bright, sky-tinted strip that fades out at every edge.
+    {
+      key: TEX.mirage,
+      width: 256,
+      height: 32,
+      originX: 128,
+      originY: 16,
+      draw(ctx) {
+        ctx.save();
+        ctx.scale(8, 1);
+        const g = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+        g.addColorStop(0, 'rgba(250,252,255,0.95)');
+        g.addColorStop(0.5, 'rgba(226,238,252,0.55)');
+        g.addColorStop(1, 'rgba(226,238,252,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, 32, 32);
+        ctx.restore();
+      },
+    },
     // Low winter sun from the right edge: warm white fading to nothing (flipped for the left).
     {
       key: TEX.glare,

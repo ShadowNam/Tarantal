@@ -319,6 +319,8 @@ export interface SimState {
   } | null;
   /** Rain falling now (Okavango sun-showers; Kalahari storm). */
   readonly rain: boolean;
+  /** v1.4 B: the Namibië mirage is on (the renderer shimmers the pan). */
+  readonly mirage: boolean;
   /** A lightning flash is lighting the scene (storm, Die Stormvoël, his boss rule). */
   readonly lightning: boolean;
   /** Kettie stones in the air (render only), in fire order. */
