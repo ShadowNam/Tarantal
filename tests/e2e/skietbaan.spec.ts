@@ -156,6 +156,36 @@ async function fireAt(page: Page, touch: boolean, x: number, y: number): Promise
   );
 }
 
+/**
+ * Reloads an empty gun: a tap on the shell belt on touch; Space on desktop. The belt sits in the
+ * right edge-pan band (feel.json edgePanFraction, D-021), so clicking it with the real mouse would
+ * leave the pointer there and pan the camera away from the targets. Whatever DOM button had focus
+ * is blurred first, or Space would press that button instead.
+ */
+async function reload(page: Page, touch: boolean): Promise<void> {
+  if (touch) {
+    await tapRect(page, touch, 'belt');
+    return;
+  }
+  await page.evaluate(() => {
+    const el = document.activeElement;
+    if (el instanceof HTMLElement) el.blur();
+  });
+  await page.keyboard.press('Space');
+}
+
+/** Desktop: rests the real mouse at the canvas centre, outside both edge-pan bands. */
+async function parkMouse(page: Page, touch: boolean): Promise<void> {
+  if (touch) return;
+  const box = await page.locator('#game canvas').boundingBox();
+  if (box !== null) await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+}
+
+/** Fails loudly if the camera moved since `cam` (aim points read earlier would miss). */
+async function cameraStill(page: Page, cam: number): Promise<void> {
+  expect((await hook(page)).cameraX, 'the camera panned: the aim point is stale').toBe(cam);
+}
+
 /** Holds (or lets go of) the range's markers and plate swings for a screenshot. */
 async function hold(page: Page, on: boolean): Promise<void> {
   await page.evaluate((v) => {
@@ -334,7 +364,7 @@ test.describe('Skietbaan (training ground)', () => {
     let birdShots = 0;
     for (let i = 0; i < 40 && ((await hook(page)).range?.stats?.hits ?? 0) < 1; i++) {
       const now = await hook(page);
-      if (now.shells === 0 && !now.reloading) await tapRect(page, touch, 'belt');
+      if (now.shells === 0 && !now.reloading) await reload(page, touch);
       await ready(page);
       await page.waitForFunction(
         () =>
@@ -571,6 +601,7 @@ test.describe('Skietbaan (training ground)', () => {
         { timeout: 90_000 },
       );
       await paper(page);
+      await parkMouse(page, touch);
     };
     const setup = async (): Promise<void> => {
       await press(page, touch, '#tm-range-bar [data-action=setup]');
@@ -598,11 +629,13 @@ test.describe('Skietbaan (training ground)', () => {
     await start('near');
     expect(await plateMarks(0)).toEqual({ count: 0, drawn: 0 });
     const plate = await paper(page);
+    const cam = (await hook(page)).cameraX;
     let fired = 0;
     for (let i = 0; i < 60 && ((await hook(page)).range?.stats?.hits ?? 0) < 25; i++) {
       const now = await hook(page);
-      if (now.shells === 0 && !now.reloading) await tapRect(page, touch, 'belt');
+      if (now.shells === 0 && !now.reloading) await reload(page, touch);
       await ready(page);
+      await cameraStill(page, cam);
       await fireAt(page, touch, plate.x, plate.y);
       fired++;
       await page.waitForFunction((n) => window.__TM__?.range?.stats?.shots === n, fired, {
@@ -639,8 +672,12 @@ test.describe('Skietbaan (training ground)', () => {
     expect(await plateMarks(0)).toEqual({ count: 0, drawn: 0 });
 
     // A hit after the Repaint, then leaving the Skietbaan and coming back: freshly painted.
+    const now = await hook(page);
+    if (now.shells === 0 && !now.reloading) await reload(page, touch);
     await ready(page);
-    await fireAt(page, touch, plate.x, plate.y);
+    const back = await paper(page);
+    await cameraStill(page, cam);
+    await fireAt(page, touch, back.x, back.y);
     await page.waitForFunction(
       () => (window.__TM__?.range?.marks.find((x) => x.kind === 'plate')?.count ?? 0) > 0,
       null,
@@ -683,17 +720,21 @@ test.describe('Skietbaan (training ground)', () => {
       timeout: 90_000,
     });
     const plate = await paper(page);
+    await parkMouse(page, touch);
+    const cam = (await hook(page)).cameraX;
     // Two earlier marks, well before the hold.
     for (let i = 0; i < 2 && (await hook(page)).tick < FIRE_AT - 200; i++) {
       await ready(page);
+      await cameraStill(page, cam);
       const shots = (await hook(page)).shots;
       await fireAt(page, touch, plate.x + (i - 1) * plate.r * 0.4, plate.y);
       await page.waitForFunction((n) => (window.__TM__?.shots ?? 0) > n, shots, {
         timeout: 60_000,
       });
     }
-    // The gun is loaded and cool well before the last shot.
+    // The gun is loaded and cool well before the last shot, and the camera hasn't moved.
     await ready(page);
+    await cameraStill(page, cam);
     expect((await hook(page)).tick).toBeLessThan(FIRE_AT);
     // The last shot, fired from inside the page on the first frame at or after FIRE_AT (a
     // Playwright round trip could overshoot the hold).

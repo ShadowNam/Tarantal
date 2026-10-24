@@ -94,6 +94,8 @@ async function range(page: Page, touch: boolean, gun: string, plane: string, tar
     timeout: 60_000,
   });
   await page.waitForFunction(() => window.__TM__?.fontsReady === true, null, { timeout: 30_000 });
+  // The Start button may have left the mouse in an edge-pan band.
+  if (!touch) await park(page);
 }
 
 async function target(page: Page, kind: string): Promise<Target> {
@@ -102,10 +104,34 @@ async function target(page: Page, kind: string): Promise<Target> {
   return p;
 }
 
-/** Waits until the gun can fire again (a reload on the belt when it is empty). */
+/**
+ * Reloads an empty gun: a tap on the shell belt on touch; Space on desktop. The belt sits in the
+ * right edge-pan band (feel.json edgePanFraction, D-021), so clicking it with the real mouse would
+ * leave the pointer there and pan the camera off the targets. Whatever DOM button had focus is
+ * blurred first, or Space would press that button instead.
+ */
+async function reload(page: Page, touch: boolean): Promise<void> {
+  if (touch) {
+    await tapRect(page, touch, 'belt');
+    return;
+  }
+  await page.evaluate(() => {
+    const el = document.activeElement;
+    if (el instanceof HTMLElement) el.blur();
+  });
+  await page.keyboard.press('Space');
+}
+
+/** Fails loudly if the camera moved since `cam` (aim points read earlier would miss). */
+async function cameraStill(page: Page, cam: number): Promise<void> {
+  const now = (await hook(page)).cameraX;
+  if (now !== cam) throw new Error(`the camera panned (${String(cam)} → ${String(now)})`);
+}
+
+/** Waits until the gun can fire again (a reload when it is empty). */
 async function ready(page: Page, touch: boolean): Promise<void> {
   const now = await hook(page);
-  if (now.shells === 0 && !now.reloading) await tapRect(page, touch, 'belt');
+  if (now.shells === 0 && !now.reloading) await reload(page, touch);
   await page.waitForFunction(
     () => {
       const h = window.__TM__;
@@ -161,12 +187,21 @@ function spread(t: Target, i: number, n: number, fill = 0.72): { x: number; y: n
 }
 
 /** Fires tap-to-shoot shots until the target has `want` marks. */
-async function markUp(page: Page, touch: boolean, t: Target, kind: string, want: number, n = 30) {
+async function markUp(
+  page: Page,
+  touch: boolean,
+  t: Target,
+  kind: string,
+  want: number,
+  cam: number,
+  n = 30,
+) {
   const count = async (): Promise<number> =>
     (await hook(page)).range?.marks.find((m) => m.kind === kind)?.count ?? 0;
   for (let i = await count(), tries = 0; i < want && tries < want * 3; tries++) {
     await ready(page, touch);
     const p = spread(t, i, n);
+    await cameraStill(page, cam);
     const landed = (await hook(page)).range?.stats?.shots ?? 0;
     await pointer(page, touch, p.x, p.y);
     // The shot lands (counted in the stats), hit or miss.
@@ -190,10 +225,14 @@ async function markUp(page: Page, touch: boolean, t: Target, kind: string, want:
   });
 }
 
-/** Parks the mouse in the corner (desktop: no crosshair over the target). */
+/**
+ * Desktop: parks the mouse lower left, at 20% of the width — inside neither edge-pan band (the
+ * outer 12% each side, D-021) nor the close-up crop around a centred target, and it keeps the
+ * gun (which follows the pointer) out of the close-up. No crosshair over the target.
+ */
 async function park(page: Page): Promise<void> {
   const box = await page.locator('#game canvas').boundingBox();
-  if (box !== null) await page.mouse.move(box.x + box.width - 2, box.y + box.height - 2);
+  if (box !== null) await page.mouse.move(box.x + box.width * 0.2, box.y + box.height * 0.85);
   await page.waitForTimeout(800);
 }
 
@@ -203,11 +242,12 @@ test.describe('art preview: Skietbaan gongs (D-040)', () => {
     const touch = isTouchProject(info);
     await range(page, touch, 'windbuks', 'near', 'plate');
     const t = await target(page, 'plate');
+    const cam = (await hook(page)).cameraX;
     await page.waitForTimeout(2500);
     await park(page);
     await shots(page, info, 'clean', t);
     for (const n of [1, 10, 30]) {
-      await markUp(page, touch, t, 'plate', n);
+      await markUp(page, touch, t, 'plate', n, cam);
       await park(page);
       await shots(page, info, `hits${String(n)}`, t);
     }
@@ -218,9 +258,11 @@ test.describe('art preview: Skietbaan gongs (D-040)', () => {
     const touch = isTouchProject(info);
     await range(page, touch, 'langloop:scope_var', 'ver', 'plate');
     const t = await target(page, 'plate');
+    const cam = (await hook(page)).cameraX;
     // Three shots through the scope (hold: it comes up; let go: it fires).
     for (let i = 0; i < 3; i++) {
       await ready(page, touch);
+      await cameraStill(page, cam);
       const p = spread(t, i, 3, 0.5);
       const shots = (await hook(page)).shots;
       await pointer(page, touch, p.x, p.y, true);
@@ -232,7 +274,9 @@ test.describe('art preview: Skietbaan gongs (D-040)', () => {
         timeout: 60_000,
       });
     }
+    // The 3-round magazine is empty now: the reload must not pan the camera off the plate.
     await ready(page, touch);
+    await cameraStill(page, cam);
     // Raise the scope on the plate and hold it there for the picture.
     await pointer(page, touch, t.x, t.y, true);
     await page.waitForFunction(() => (window.__TM__?.zoom.raise ?? 0) >= 1, null, {
@@ -263,7 +307,7 @@ test.describe('art preview: Skietbaan gongs (D-040)', () => {
     const touch = isTouchProject(info);
     await range(page, touch, 'windbuks', 'near', 'paper');
     const t = await target(page, 'paper');
-    await markUp(page, touch, t, 'paper', 30);
+    await markUp(page, touch, t, 'paper', 30, (await hook(page)).cameraX);
     await park(page);
     await shots(page, info, 'paper30', t);
   });
