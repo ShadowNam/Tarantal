@@ -255,6 +255,7 @@ const hook: TestHook = {
   inputKind: null,
   menu: null,
   admin: null,
+  range: null,
   capture: null,
   fontsReady: false,
   focus: null,
@@ -352,8 +353,9 @@ const adminSetup: AdminHuntSetup | null =
 const bundle = adminSetup?.content ?? devBundle;
 hook.boot['content'] = performance.now();
 const biomeId = bundle.modes.modes.classic.biome;
-const biome = bundle.biomes.find((b) => b.id === biomeId);
-if (biome === undefined) throw new Error(`classic biome ${biomeId} missing`);
+const foundBiome = bundle.biomes.find((b) => b.id === biomeId);
+if (foundBiome === undefined) throw new Error(`classic biome ${biomeId} missing`);
+const biome: Biome = foundBiome;
 
 const initialDesign = designSizeFor(viewport().width, viewport().height);
 let portrait = isPortrait(viewport().width, viewport().height);
@@ -384,438 +386,447 @@ if (testHooks && platform instanceof LocalPlatform) {
 platform.loadingProgress(0);
 // Portals want their SDK ready before the game starts; it is bounded by sdkTimeoutMs, and a
 // blocked SDK only means no ads (the adapters never reject).
-hook.boot['platformStart'] = performance.now();
-await platform.init();
-hook.boot['platform'] = performance.now();
-const ads = new AdBreaks(platform);
-hook.ads = ads.counts;
-// Poki: no input reaches the game while an ad covers it (the hunt never runs during one).
-// From the request on, not only once the ad shows (a tap during the request must not start a
-// hunt under it, D-026).
-setMenuInputGate(() => platform.isAdBusy() || ads.busy);
+// The rest of boot waits on the platform SDK, the asset index and the fonts. It runs in an async
+// function rather than with top-level await: Rolldown merges chunks a lazy import shares with the
+// entry back into it only when no module uses top-level await (v1.3x, D-037: the Skietbaan's lazy
+// chunk would otherwise split the first download in two).
+async function boot(): Promise<void> {
+  hook.boot['platformStart'] = performance.now();
+  await platform.init();
+  hook.boot['platform'] = performance.now();
+  const ads = new AdBreaks(platform);
+  hook.ads = ads.counts;
+  // Poki: no input reaches the game while an ad covers it (the hunt never runs during one).
+  // From the request on, not only once the ad shows (a tap during the request must not start a
+  // hunt under it, D-026).
+  setMenuInputGate(() => platform.isAdBusy() || ads.busy);
 
-const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
-const device: DeviceHints = {
-  coarsePointer,
-  cores: navigator.hardwareConcurrency || 0,
-  // Chrome only; Safari and Firefox leave it out (0 = unknown).
-  memoryGb: (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 0,
-};
-const prefInputs = (): PrefInputs => ({
-  feel,
-  device,
-  reducedMotion,
-  bench: save.data.device.benchTier,
-});
-const prefs = computePrefs(save.data.settings, prefInputs());
-const prefListeners = new Set<() => void>();
-let relayout: (() => void) | null = null;
-/** Safe-area insets in design px; cleared by applyLayout (resize, rotation, tier change). */
-let safeCache: Insets | null = null;
-const applyTextLook = (): void => {
-  setTextLook(prefs.textScale, prefs.highContrast, feel.accessibility.contrastStroke);
-};
-applyTextLook();
-const prefsChanged = (): void => {
-  hook.quality.tier = prefs.tier;
-  applyTextLook();
-  // The render scale may have changed with the tier (applyLayout exists once the game does).
-  relayout?.();
-  for (const fn of prefListeners) fn();
-};
-hook.quality.tier = prefs.tier;
-// M9 title benchmark (Tech §5): 90 frames on the title once per page; "auto" follows the result
-// (saved per device, so the next visit starts on it). e2e runs skip it unless ?bench=1, so the
-// specs keep a fixed tier.
-const benchCfg = feel.quality.benchmark;
-const benchmark =
-  !testHooks || params.get('bench') === '1'
-    ? new FrameBenchmark(benchCfg.warmupFrames + benchCfg.frames, (frames) => {
-        const r = benchmarkTier(frames, feel, device);
-        hook.quality.benchRan = true;
-        if (r === null) return;
-        hook.quality.bench = r;
-        platform.analytics('perf_sample', { kind: 'benchmark', tier: r.tier, avgMs: r.avgMs });
-        save.update((d) => ({ ...d, device: { benchTier: r.tier, benchAvgMs: r.avgMs } }));
-      })
-    : null;
-let titleUp = false;
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') benchmark?.pause();
-  else if (titleUp) benchmark?.resume();
-});
-const audio = new AudioDirector(
-  feel.audio,
-  browserAudioEnv(feel.assets.fileTimeoutMs),
-  Object.fromEntries(Object.entries(feel.guns.weapons).map(([id, w]) => [id, w.sfx])),
-);
-hook.assets.recorded = audio.recorded;
-// Live values (read through the hook in page.evaluate).
-Object.defineProperties(hook, {
-  music: { enumerable: true, get: () => audio.music },
-  masterGain: { enumerable: true, get: () => audio.masterGain },
-});
-const applyAudio = (s: Settings): void => {
-  audio.setVolumes({
-    master: s.masterVolume,
-    sfx: s.sfxVolume,
-    music: s.musicVolume,
-    voice: s.voiceVolume,
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
+  const device: DeviceHints = {
+    coarsePointer,
+    cores: navigator.hardwareConcurrency || 0,
+    // Chrome only; Safari and Firefox leave it out (0 = unknown).
+    memoryGb: (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 0,
+  };
+  const prefInputs = (): PrefInputs => ({
+    feel,
+    device,
+    reducedMotion,
+    bench: save.data.device.benchTier,
   });
-};
-applyAudio(save.data.settings);
-platform.onAdChange((playing) => {
-  audio.setMuted('ad', playing);
-  hook.audioMuted = audio.muted;
-});
-// CrazyGames settings.muteAudio wins over the in-game volume.
-platform.onPortalMute((muted) => {
-  audio.setMuted('portal', muted);
-  hook.audioMuted = audio.muted;
-});
-let lastSettings = save.data.settings;
-let lastDevice = save.data.device;
-save.onChange((d) => {
-  if (d.device !== lastDevice) {
-    lastDevice = d.device;
+  const prefs = computePrefs(save.data.settings, prefInputs());
+  const prefListeners = new Set<() => void>();
+  let relayout: (() => void) | null = null;
+  /** Safe-area insets in design px; cleared by applyLayout (resize, rotation, tier change). */
+  let safeCache: Insets | null = null;
+  const applyTextLook = (): void => {
+    setTextLook(prefs.textScale, prefs.highContrast, feel.accessibility.contrastStroke);
+  };
+  applyTextLook();
+  const prefsChanged = (): void => {
+    hook.quality.tier = prefs.tier;
+    applyTextLook();
+    // The render scale may have changed with the tier (applyLayout exists once the game does).
+    relayout?.();
+    for (const fn of prefListeners) fn();
+  };
+  hook.quality.tier = prefs.tier;
+  // M9 title benchmark (Tech §5): 90 frames on the title once per page; "auto" follows the result
+  // (saved per device, so the next visit starts on it). e2e runs skip it unless ?bench=1, so the
+  // specs keep a fixed tier.
+  const benchCfg = feel.quality.benchmark;
+  const benchmark =
+    !testHooks || params.get('bench') === '1'
+      ? new FrameBenchmark(benchCfg.warmupFrames + benchCfg.frames, (frames) => {
+          const r = benchmarkTier(frames, feel, device);
+          hook.quality.benchRan = true;
+          if (r === null) return;
+          hook.quality.bench = r;
+          platform.analytics('perf_sample', { kind: 'benchmark', tier: r.tier, avgMs: r.avgMs });
+          save.update((d) => ({ ...d, device: { benchTier: r.tier, benchAvgMs: r.avgMs } }));
+        })
+      : null;
+  let titleUp = false;
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') benchmark?.pause();
+    else if (titleUp) benchmark?.resume();
+  });
+  const audio = new AudioDirector(
+    feel.audio,
+    browserAudioEnv(feel.assets.fileTimeoutMs),
+    Object.fromEntries(Object.entries(feel.guns.weapons).map(([id, w]) => [id, w.sfx])),
+  );
+  hook.assets.recorded = audio.recorded;
+  // Live values (read through the hook in page.evaluate).
+  Object.defineProperties(hook, {
+    music: { enumerable: true, get: () => audio.music },
+    masterGain: { enumerable: true, get: () => audio.masterGain },
+  });
+  const applyAudio = (s: Settings): void => {
+    audio.setVolumes({
+      master: s.masterVolume,
+      sfx: s.sfxVolume,
+      music: s.musicVolume,
+      voice: s.voiceVolume,
+    });
+  };
+  applyAudio(save.data.settings);
+  platform.onAdChange((playing) => {
+    audio.setMuted('ad', playing);
+    hook.audioMuted = audio.muted;
+  });
+  // CrazyGames settings.muteAudio wins over the in-game volume.
+  platform.onPortalMute((muted) => {
+    audio.setMuted('portal', muted);
+    hook.audioMuted = audio.muted;
+  });
+  let lastSettings = save.data.settings;
+  let lastDevice = save.data.device;
+  save.onChange((d) => {
+    if (d.device !== lastDevice) {
+      lastDevice = d.device;
+      applyPrefs(prefs, d.settings, prefInputs());
+      prefsChanged();
+    }
+    if (d.settings === lastSettings) return;
+    const changed = (Object.keys(d.settings) as (keyof Settings)[]).filter(
+      (k) => d.settings[k] !== lastSettings[k],
+    );
+    lastSettings = d.settings;
     applyPrefs(prefs, d.settings, prefInputs());
     prefsChanged();
-  }
-  if (d.settings === lastSettings) return;
-  const changed = (Object.keys(d.settings) as (keyof Settings)[]).filter(
-    (k) => d.settings[k] !== lastSettings[k],
-  );
-  lastSettings = d.settings;
-  applyPrefs(prefs, d.settings, prefInputs());
-  prefsChanged();
-  applyAudio(d.settings);
-  for (const k of changed)
-    platform.analytics('settings_change', { setting: k, value: d.settings[k] });
-});
-// Tech §9: save when the tab is hidden or closed (the store also writes on every change).
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') save.flush();
-});
-window.addEventListener('pagehide', () => {
-  save.flush();
-});
-const chrome = new DomChrome(platform, save);
-if (capture) chrome.hideInstallBanner();
-
-const hash = contentHash(bundle);
-// Biomes this build draws (M8: every biome with placeholder art). Their manifests are built on
-// first use; only the home biome's is made at boot.
-const drawable = new Set(placeholderBiomes());
-const playableBiomes = bundle.biomes.filter((b) => drawable.has(b.id)).map((b) => b.id);
-const manifests = new Map<string, AssetManifest>();
-const manifestFor = (b: Biome): AssetManifest => {
-  let m = manifests.get(b.id);
-  if (m === undefined) {
-    m = createPlaceholderManifest(bundle, b, allBarkLines(feel.barks), feel.guns.ammo);
-    manifests.set(b.id, m);
-  }
-  return m;
-};
-// M10: final files for a biome's manifest, loaded once (each failure keeps that placeholder).
-const { index: assetIndex, problem: indexProblem } = await indexLoad;
-hook.assets.problem = indexProblem;
-if (indexProblem !== null && !indexProblem.startsWith(ABSENT))
-  console.warn(`[assets] ${indexProblem}: using placeholders`);
-const finalLoads = new Map<string, Promise<void>>();
-const finalDone = new Set<string>();
-const loadFinalFor = (b: Biome): Promise<void> => {
-  let p = finalLoads.get(b.id);
-  if (p === undefined) {
-    const m = manifestFor(b);
-    p = (
-      assetIndex === null
-        ? Promise.resolve()
-        : m.loadFinal(assetIndex, {
-            atlasScale: prefs.tier === 'high' ? 2 : 1,
-            timeoutMs: feel.assets.fileTimeoutMs,
-            audioFormat: audio.fileFormat(),
-            biome: b.id,
-          })
-    ).then(() => {
-      finalDone.add(b.id);
-      hook.assets.byBiome[b.id] = m.entries();
-      // D-029: the late group arrives after boot; refresh the statuses when it has.
-      void m.lateLoaded.then(() => {
-        hook.assets.byBiome[b.id] = m.entries();
-      });
-      // Recordings arrive on their own (boot doesn't wait for them).
-      void m.takeSounds().then((files) => {
-        audio.addRecorded(files);
-        hook.assets.byBiome[b.id] = m.entries();
-      });
-    });
-    finalLoads.set(b.id, p);
-  }
-  return p;
-};
-await loadFinalFor(biome);
-// A challenge link (Tech §12): decoded once, then removed from the address bar so a reload or a
-// bookmark doesn't show the card again.
-let pendingChallenge: ChallengeDecode | null = null;
-// Capture mode and `?e2e` on a public build (unranked) open no challenge links.
-const unranked = capture || !officialResults || adminOn;
-const challengeParam = unranked ? null : platform.launchParam('c');
-if (challengeParam !== null) {
-  pendingChallenge = decodeChallenge(challengeParam, {
-    content: bundle,
-    playableBiomes,
-    contentHash: hash,
-    limits: loaded.daily.challenge,
+    applyAudio(d.settings);
+    for (const k of changed)
+      platform.analytics('settings_change', { setting: k, value: d.settings[k] });
   });
-  platform.analytics('challenge_open', {
-    ok: pendingChallenge.ok,
-    ...(pendingChallenge.ok
-      ? { mode: pendingChallenge.challenge.mode, contentChanged: pendingChallenge.contentChanged }
-      : { reason: pendingChallenge.reason }),
+  // Tech §9: save when the tab is hidden or closed (the store also writes on every change).
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') save.flush();
   });
-  try {
-    const url = new URL(window.location.href);
-    url.searchParams.delete('c');
-    window.history.replaceState(window.history.state, '', url.toString());
-  } catch {
-    // Some embeds forbid history changes; the card then shows again on reload, which is harmless.
-  }
-}
-const shareBase = (): string => `${window.location.origin}${window.location.pathname}`;
-const today = todaySource();
+  window.addEventListener('pagehide', () => {
+    save.flush();
+  });
+  const chrome = new DomChrome(platform, save);
+  if (capture) chrome.hideInstallBanner();
 
-/** Reloads this page with `admin=1` (and `play=1` for a stored play), keeping other params. */
-const adminNavigate = (play: boolean): void => {
-  const url = new URL(window.location.href);
-  url.searchParams.set('admin', '1');
-  if (play) url.searchParams.set('play', '1');
-  else url.searchParams.delete('play');
-  window.location.assign(url.toString());
-};
-const admin: AdminContext | null = adminOn
-  ? {
-      entries: adminList,
-      setup: adminSetup,
-      build: __BUILD_SHA__,
-      load: () => (adminSave ??= loadAdminSave()),
-      store: (s) => {
-        adminSave = s;
-        storeAdminSave(s);
-      },
-      back: () => {
-        adminNavigate(false);
-      },
-      playStored: () => {
-        adminNavigate(true);
-      },
-      played: (seed, gun) => {
-        const id = adminSetup?.entry.id;
-        if (id === undefined) return;
-        const s = loadAdminSave();
-        adminSave = { ...s, played: { ...s.played, [id]: { seed, gun } } };
-        storeAdminSave(adminSave);
-      },
+  const hash = contentHash(bundle);
+  // Biomes this build draws (M8: every biome with placeholder art). Their manifests are built on
+  // first use; only the home biome's is made at boot.
+  const drawable = new Set(placeholderBiomes());
+  const playableBiomes = bundle.biomes.filter((b) => drawable.has(b.id)).map((b) => b.id);
+  const manifests = new Map<string, AssetManifest>();
+  const manifestFor = (b: Biome): AssetManifest => {
+    let m = manifests.get(b.id);
+    if (m === undefined) {
+      m = createPlaceholderManifest(bundle, b, allBarkLines(feel.barks), feel.guns.ammo);
+      manifests.set(b.id, m);
     }
-  : null;
-
-const ctx: GameContext = {
-  content: bundle,
-  contentHash: hash,
-  feel,
-  biome,
-  manifest: manifestFor(biome),
-  playableBiomes,
-  manifestFor,
-  installedManifest: null,
-  biomeReady: (id) => biomeArtReady(id) && finalDone.has(id),
-  // The biome's placeholder art chunk, then its final files (if any were delivered).
-  loadBiome: async (id) => {
-    if (!(await loadBiomeArt(id))) return false;
-    const b = bundle.biomes.find((x) => x.id === id);
-    if (b !== undefined) await loadFinalFor(b);
-    return true;
-  },
-  huntBiome: biome,
-  audio,
-  flashes: new FlashLimiter(
-    feel.accessibility.maxLargeFlashesPerSec,
-    feel.accessibility.flashMergeMs,
-  ),
-  capture: capture ? new CaptureState(feel.capture, params.get('gun') !== '0') : null,
-  save,
-  notaboek: loaded.notaboek,
-  dailyMeta: loaded.daily,
-  barks: new BarkDirector(feel.barks, feel.audio.barkGapMs),
-  today,
-  daily: new DailyFlow({
-    content: bundle,
-    contentHash: hash,
-    meta: loaded.daily,
-    save,
-    platform,
-    today,
-    playableBiomes,
-    shareBase,
-    unranked,
-  }),
-  pendingChallenge,
-  platform,
-  ads,
-  run: new RunFlow(bundle, loaded.notaboek, save, platform),
-  prefs,
-  chrome,
-  titleShown: (scene) => {
-    if (benchmark === null || benchmark.done) return;
-    titleUp = true;
-    if (document.visibilityState === 'visible') benchmark.resume();
-    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      titleUp = false;
-      benchmark.pause();
-    });
-  },
-  onPrefsChange: (fn) => {
-    prefListeners.add(fn);
-    return () => prefListeners.delete(fn);
-  },
-  restartPage: () => {
-    window.location.reload();
-  },
-  applyLanguage: () => {
-    applyLanguage();
-    chrome.relabel();
-  },
-  menuPaused: false,
-  // getComputedStyle forces a style pass: computed once per layout, not every frame (M9 perf).
-  safeArea: (): Insets =>
-    (safeCache ??= safeAreaInDesignPx(cssSafeArea(), viewport(), designSize())),
-  nextSeed: seedSource(),
-  huntSeconds: adminSetup === null ? huntSecondsParam() : adminSetup.huntSeconds,
-  holdAtTick: holdAtParam(),
-  omen: adminSetup === null ? omenParam() : adminSetup.omen,
-  classicBiome: adminSetup === null ? biomeParam() : adminSetup.classicBiome,
-  classicLayout: adminSetup === null ? layoutParam() : adminSetup.classicLayout,
-  classicBonus: adminSetup === null ? bonusParam() : adminSetup.classicBonus,
-  weaponOverride: adminSetup?.weapon,
-  sightOverride: adminSetup?.sight,
-  admin,
-  coarsePointer,
-  reducedMotion,
-  paused: () => portrait || document.visibilityState === 'hidden' || ctx.menuPaused || contextLost,
-  debug: params.get('debug') === '1',
-  hook: testHooks ? hook : null,
-};
-
-// M10: Phaser draws text onto canvases once, so the self-hosted fonts must be ready first
-// (bounded by fontTimeoutMs; a slow or blocked font leaves the system font, as before).
-hook.fontsReady = await loadFonts(feel.assets.fontTimeoutMs);
-hook.boot['fonts'] = performance.now();
-setView(initialDesign, prefs.renderScale);
-const game: Phaser.Game = new Phaser.Game({
-  type: Phaser.WEBGL,
-  parent: 'game',
-  backgroundColor: '#1b1410',
-  scale: {
-    mode: Phaser.Scale.FIT,
-    autoCenter: Phaser.Scale.CENTER_BOTH,
-    width: renderSizeFor(initialDesign, prefs.renderScale).width,
-    height: renderSizeFor(initialDesign, prefs.renderScale).height,
-  },
-  // All input is Pointer Events + keys in InputMapper (Tech §6); all audio is AudioDirector.
-  input: { keyboard: false, mouse: false, touch: false, gamepad: false },
-  audio: { noAudio: true },
-  disableContextMenu: true,
-  // M9: low tier renders without antialiasing (fixed at boot: the tier of the last benchmark).
-  antialias: feel.quality.tiers[prefs.tier].antialias,
-  banner: false,
-  scene: [
-    new HuntScene(ctx),
-    new HudScene(ctx),
-    new TitleScene(ctx),
-    new ShedScene(ctx),
-    new SettingsScene(ctx),
-    new PauseScene(ctx),
-    new TallyScene(ctx),
-    new RunScene(ctx),
-    new ChallengeScene(ctx),
-    new PrivacyScene(ctx),
-    new AdminScene(ctx),
-  ],
-});
-
-// WebGL context loss (backgrounding, memory pressure; Tech §9): Phaser 4 restores the context
-// and re-uploads textures; the hunt holds still meanwhile so the run is never lost.
-game.events.once(Phaser.Core.Events.READY, () => {
-  const renderer = game.renderer;
-  if (!(renderer instanceof Phaser.Renderer.WebGL.WebGLRenderer)) return;
-  renderer.on(Phaser.Renderer.Events.LOSE_WEBGL, () => {
-    contextLost = true;
-  });
-  renderer.on(Phaser.Renderer.Events.RESTORE_WEBGL, () => {
-    contextLost = false;
-    hook.contextRestores++;
-  });
-});
-
-if (testHooks) {
-  window.__TM_TOOLS__ = {
-    contentHash: hash,
-    dailySeed: (key) => dailySeed(key, hash),
-    replay: (text) => {
-      const o = runReplay(decodeInputLogText(text), bundle);
-      return { eventHash: o.eventHash, eventCount: o.eventCount, score: o.result.score };
-    },
-    popBench: (n, mode) => {
-      const hunt = game.scene.getScene('Hunt');
-      return hunt instanceof HuntScene && hunt.sys.isActive() ? hunt.benchPops(n, mode) : null;
-    },
+    return m;
   };
-}
-
-if (testHooks) {
-  // CPU cost of each frame for the perf smoke (the part our code controls; GPU raster excluded).
-  let stepStart = 0;
-  game.events.on(Phaser.Core.Events.PRE_STEP, () => {
-    stepStart = performance.now();
-  });
-  game.events.on(Phaser.Core.Events.POST_RENDER, () => {
-    if (hook.scene === 'hunt' && !hook.over && hook.cpuFrameMs.length < 20_000) {
-      hook.cpuFrameMs.push(performance.now() - stepStart);
-      hook.cpuFrameScoped.push(hook.zoom.raise >= 1);
+  // M10: final files for a biome's manifest, loaded once (each failure keeps that placeholder).
+  const { index: assetIndex, problem: indexProblem } = await indexLoad;
+  hook.assets.problem = indexProblem;
+  if (indexProblem !== null && !indexProblem.startsWith(ABSENT))
+    console.warn(`[assets] ${indexProblem}: using placeholders`);
+  const finalLoads = new Map<string, Promise<void>>();
+  const finalDone = new Set<string>();
+  const loadFinalFor = (b: Biome): Promise<void> => {
+    let p = finalLoads.get(b.id);
+    if (p === undefined) {
+      const m = manifestFor(b);
+      p = (
+        assetIndex === null
+          ? Promise.resolve()
+          : m.loadFinal(assetIndex, {
+              atlasScale: prefs.tier === 'high' ? 2 : 1,
+              timeoutMs: feel.assets.fileTimeoutMs,
+              audioFormat: audio.fileFormat(),
+              biome: b.id,
+            })
+      ).then(() => {
+        finalDone.add(b.id);
+        hook.assets.byBiome[b.id] = m.entries();
+        // D-029: the late group arrives after boot; refresh the statuses when it has.
+        void m.lateLoaded.then(() => {
+          hook.assets.byBiome[b.id] = m.entries();
+        });
+        // Recordings arrive on their own (boot doesn't wait for them).
+        void m.takeSounds().then((files) => {
+          audio.addRecorded(files);
+          hook.assets.byBiome[b.id] = m.entries();
+        });
+      });
+      finalLoads.set(b.id, p);
     }
-  });
-}
-
-// Phaser's disableContextMenu only works through its own input managers, which are off; block
-// the menu here so a right-click (reload, or on the start card) never opens it.
-document.addEventListener('contextmenu', (e) => {
-  e.preventDefault();
-});
-
-function applyLayout(): void {
-  const view = viewport();
-  const size = designSizeFor(view.width, view.height);
-  portrait = isPortrait(view.width, view.height);
-  // M9: the canvas is the design size × the tier's render scale; cameras zoom to match.
-  setView(size, prefs.renderScale);
-  safeCache = null;
-  const canvas = renderSizeFor(size, prefs.renderScale);
-  const changed =
-    canvas.width !== game.scale.gameSize.width || canvas.height !== game.scale.gameSize.height;
-  if (changed) {
-    game.scale.setGameSize(canvas.width, canvas.height);
-    for (const scene of game.scene.getScenes(true)) fitCamera(scene.cameras.main);
+    return p;
+  };
+  await loadFinalFor(biome);
+  // A challenge link (Tech §12): decoded once, then removed from the address bar so a reload or a
+  // bookmark doesn't show the card again.
+  let pendingChallenge: ChallengeDecode | null = null;
+  // Capture mode and `?e2e` on a public build (unranked) open no challenge links.
+  const unranked = capture || !officialResults || adminOn;
+  const challengeParam = unranked ? null : platform.launchParam('c');
+  if (challengeParam !== null) {
+    pendingChallenge = decodeChallenge(challengeParam, {
+      content: bundle,
+      playableBiomes,
+      contentHash: hash,
+      limits: loaded.daily.challenge,
+    });
+    platform.analytics('challenge_open', {
+      ok: pendingChallenge.ok,
+      ...(pendingChallenge.ok
+        ? { mode: pendingChallenge.challenge.mode, contentChanged: pendingChallenge.contentChanged }
+        : { reason: pendingChallenge.reason }),
+    });
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('c');
+      window.history.replaceState(window.history.state, '', url.toString());
+    } catch {
+      // Some embeds forbid history changes; the card then shows again on reload, which is harmless.
+    }
   }
-  document.getElementById('rotate-card')?.classList.toggle('visible', portrait);
-  // Report what Phaser actually uses, so tests catch a setGameSize that didn't take effect.
-  // Design px are what the scenes and taps use; the canvas size is checked against it × scale.
-  hook.designWidth = designSize().width;
-  hook.designHeight = designSize().height;
-  hook.renderScale = prefs.renderScale;
-  hook.portrait = portrait;
+  const shareBase = (): string => `${window.location.origin}${window.location.pathname}`;
+  const today = todaySource();
+
+  /** Reloads this page with `admin=1` (and `play=1` for a stored play), keeping other params. */
+  const adminNavigate = (play: boolean): void => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('admin', '1');
+    if (play) url.searchParams.set('play', '1');
+    else url.searchParams.delete('play');
+    window.location.assign(url.toString());
+  };
+  const admin: AdminContext | null = adminOn
+    ? {
+        entries: adminList,
+        setup: adminSetup,
+        build: __BUILD_SHA__,
+        load: () => (adminSave ??= loadAdminSave()),
+        store: (s) => {
+          adminSave = s;
+          storeAdminSave(s);
+        },
+        back: () => {
+          adminNavigate(false);
+        },
+        playStored: () => {
+          adminNavigate(true);
+        },
+        played: (seed, gun) => {
+          const id = adminSetup?.entry.id;
+          if (id === undefined) return;
+          const s = loadAdminSave();
+          adminSave = { ...s, played: { ...s.played, [id]: { seed, gun } } };
+          storeAdminSave(adminSave);
+        },
+      }
+    : null;
+
+  const ctx: GameContext = {
+    content: bundle,
+    contentHash: hash,
+    feel,
+    biome,
+    manifest: manifestFor(biome),
+    playableBiomes,
+    manifestFor,
+    installedManifest: null,
+    biomeReady: (id) => biomeArtReady(id) && finalDone.has(id),
+    // The biome's placeholder art chunk, then its final files (if any were delivered).
+    loadBiome: async (id) => {
+      if (!(await loadBiomeArt(id))) return false;
+      const b = bundle.biomes.find((x) => x.id === id);
+      if (b !== undefined) await loadFinalFor(b);
+      return true;
+    },
+    huntBiome: biome,
+    audio,
+    flashes: new FlashLimiter(
+      feel.accessibility.maxLargeFlashesPerSec,
+      feel.accessibility.flashMergeMs,
+    ),
+    capture: capture ? new CaptureState(feel.capture, params.get('gun') !== '0') : null,
+    save,
+    notaboek: loaded.notaboek,
+    dailyMeta: loaded.daily,
+    barks: new BarkDirector(feel.barks, feel.audio.barkGapMs),
+    today,
+    daily: new DailyFlow({
+      content: bundle,
+      contentHash: hash,
+      meta: loaded.daily,
+      save,
+      platform,
+      today,
+      playableBiomes,
+      shareBase,
+      unranked,
+    }),
+    pendingChallenge,
+    platform,
+    ads,
+    run: new RunFlow(bundle, loaded.notaboek, save, platform),
+    prefs,
+    chrome,
+    titleShown: (scene) => {
+      if (benchmark === null || benchmark.done) return;
+      titleUp = true;
+      if (document.visibilityState === 'visible') benchmark.resume();
+      scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+        titleUp = false;
+        benchmark.pause();
+      });
+    },
+    onPrefsChange: (fn) => {
+      prefListeners.add(fn);
+      return () => prefListeners.delete(fn);
+    },
+    restartPage: () => {
+      window.location.reload();
+    },
+    applyLanguage: () => {
+      applyLanguage();
+      chrome.relabel();
+    },
+    menuPaused: false,
+    // getComputedStyle forces a style pass: computed once per layout, not every frame (M9 perf).
+    safeArea: (): Insets =>
+      (safeCache ??= safeAreaInDesignPx(cssSafeArea(), viewport(), designSize())),
+    nextSeed: seedSource(),
+    huntSeconds: adminSetup === null ? huntSecondsParam() : adminSetup.huntSeconds,
+    holdAtTick: holdAtParam(),
+    omen: adminSetup === null ? omenParam() : adminSetup.omen,
+    classicBiome: adminSetup === null ? biomeParam() : adminSetup.classicBiome,
+    classicLayout: adminSetup === null ? layoutParam() : adminSetup.classicLayout,
+    classicBonus: adminSetup === null ? bonusParam() : adminSetup.classicBonus,
+    weaponOverride: adminSetup?.weapon,
+    sightOverride: adminSetup?.sight,
+    admin,
+    coarsePointer,
+    reducedMotion,
+    paused: () =>
+      portrait || document.visibilityState === 'hidden' || ctx.menuPaused || contextLost,
+    debug: params.get('debug') === '1',
+    hook: testHooks ? hook : null,
+  };
+
+  // M10: Phaser draws text onto canvases once, so the self-hosted fonts must be ready first
+  // (bounded by fontTimeoutMs; a slow or blocked font leaves the system font, as before).
+  hook.fontsReady = await loadFonts(feel.assets.fontTimeoutMs);
+  hook.boot['fonts'] = performance.now();
+  setView(initialDesign, prefs.renderScale);
+  const game: Phaser.Game = new Phaser.Game({
+    type: Phaser.WEBGL,
+    parent: 'game',
+    backgroundColor: '#1b1410',
+    scale: {
+      mode: Phaser.Scale.FIT,
+      autoCenter: Phaser.Scale.CENTER_BOTH,
+      width: renderSizeFor(initialDesign, prefs.renderScale).width,
+      height: renderSizeFor(initialDesign, prefs.renderScale).height,
+    },
+    // All input is Pointer Events + keys in InputMapper (Tech §6); all audio is AudioDirector.
+    input: { keyboard: false, mouse: false, touch: false, gamepad: false },
+    audio: { noAudio: true },
+    disableContextMenu: true,
+    // M9: low tier renders without antialiasing (fixed at boot: the tier of the last benchmark).
+    antialias: feel.quality.tiers[prefs.tier].antialias,
+    banner: false,
+    scene: [
+      new HuntScene(ctx),
+      new HudScene(ctx),
+      new TitleScene(ctx),
+      new ShedScene(ctx),
+      new SettingsScene(ctx),
+      new PauseScene(ctx),
+      new TallyScene(ctx),
+      new RunScene(ctx),
+      new ChallengeScene(ctx),
+      new PrivacyScene(ctx),
+      new AdminScene(ctx),
+    ],
+  });
+
+  // WebGL context loss (backgrounding, memory pressure; Tech §9): Phaser 4 restores the context
+  // and re-uploads textures; the hunt holds still meanwhile so the run is never lost.
+  game.events.once(Phaser.Core.Events.READY, () => {
+    const renderer = game.renderer;
+    if (!(renderer instanceof Phaser.Renderer.WebGL.WebGLRenderer)) return;
+    renderer.on(Phaser.Renderer.Events.LOSE_WEBGL, () => {
+      contextLost = true;
+    });
+    renderer.on(Phaser.Renderer.Events.RESTORE_WEBGL, () => {
+      contextLost = false;
+      hook.contextRestores++;
+    });
+  });
+
+  if (testHooks) {
+    window.__TM_TOOLS__ = {
+      contentHash: hash,
+      dailySeed: (key) => dailySeed(key, hash),
+      replay: (text) => {
+        const o = runReplay(decodeInputLogText(text), bundle);
+        return { eventHash: o.eventHash, eventCount: o.eventCount, score: o.result.score };
+      },
+      popBench: (n, mode) => {
+        const hunt = game.scene.getScene('Hunt');
+        return hunt instanceof HuntScene && hunt.sys.isActive() ? hunt.benchPops(n, mode) : null;
+      },
+    };
+  }
+
+  if (testHooks) {
+    // CPU cost of each frame for the perf smoke (the part our code controls; GPU raster excluded).
+    let stepStart = 0;
+    game.events.on(Phaser.Core.Events.PRE_STEP, () => {
+      stepStart = performance.now();
+    });
+    game.events.on(Phaser.Core.Events.POST_RENDER, () => {
+      if (hook.scene === 'hunt' && !hook.over && hook.cpuFrameMs.length < 20_000) {
+        hook.cpuFrameMs.push(performance.now() - stepStart);
+        hook.cpuFrameScoped.push(hook.zoom.raise >= 1);
+      }
+    });
+  }
+
+  // Phaser's disableContextMenu only works through its own input managers, which are off; block
+  // the menu here so a right-click (reload, or on the start card) never opens it.
+  document.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+  });
+
+  function applyLayout(): void {
+    const view = viewport();
+    const size = designSizeFor(view.width, view.height);
+    portrait = isPortrait(view.width, view.height);
+    // M9: the canvas is the design size × the tier's render scale; cameras zoom to match.
+    setView(size, prefs.renderScale);
+    safeCache = null;
+    const canvas = renderSizeFor(size, prefs.renderScale);
+    const changed =
+      canvas.width !== game.scale.gameSize.width || canvas.height !== game.scale.gameSize.height;
+    if (changed) {
+      game.scale.setGameSize(canvas.width, canvas.height);
+      for (const scene of game.scene.getScenes(true)) fitCamera(scene.cameras.main);
+    }
+    document.getElementById('rotate-card')?.classList.toggle('visible', portrait);
+    // Report what Phaser actually uses, so tests catch a setGameSize that didn't take effect.
+    // Design px are what the scenes and taps use; the canvas size is checked against it × scale.
+    hook.designWidth = designSize().width;
+    hook.designHeight = designSize().height;
+    hook.renderScale = prefs.renderScale;
+    hook.portrait = portrait;
+  }
+
+  applyLayout();
+  relayout = applyLayout;
+  window.addEventListener('resize', applyLayout);
+  window.visualViewport?.addEventListener('resize', applyLayout);
 }
 
-applyLayout();
-relayout = applyLayout;
-window.addEventListener('resize', applyLayout);
-window.visualViewport?.addEventListener('resize', applyLayout);
+void boot();

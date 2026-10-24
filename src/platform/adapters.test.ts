@@ -1,11 +1,13 @@
 // Portal adapters against fake SDKs (M9): the same call shapes as the Poki HTML5 SDK and the
 // CrazyGames SDK v3. Real SDK runs (local/test modes) are in tests/e2e/platform.spec.ts.
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import { AdGate, type Timers } from './adGate';
 import { CrazyGamesPlatform, type CrazyAdCallbacks, type CrazySdk } from './crazygames';
 import type { PlatformOptions } from './local';
 import { PokiPlatform, type PokiSdk } from './poki';
-import { adminPageInBuild } from './platform';
+import { adminPageInBuild, BUILD_PLATFORMS } from './platform';
 import { WebPlatform } from './web';
 
 const opts: PlatformOptions = { log: false, adTimeoutMs: 1000, sdkTimeoutMs: 1000 };
@@ -344,6 +346,28 @@ describe('CrazyGamesPlatform (fake SDK)', () => {
     const p = await crazy(fakeCrazy());
     expect(p.shareUrl('https://x.test/?c=AbC')).toBe('https://crazygames.test/game/tarantal?c=AbC');
     expect(p.launchParam('c')).toBe('fromInvite');
+  });
+});
+
+describe('Skietbaan gate (D-037)', () => {
+  it('the range chunk is compiled out of exactly the builds whose adapter has no admin page', () => {
+    // HuntScene guards the Skietbaan's import() with the raw VITE_PLATFORM flag (a literal after
+    // Vite's replacement, so those builds drop the chunk). It must name the same platforms the
+    // adapters deny the admin page to.
+    const src = readFileSync(join(import.meta.dirname, '../game/scenes/HuntScene.ts'), 'utf8');
+    const body = src.slice(src.indexOf('private openSkietbaan(): void {'));
+    const guard = /if \(([^)]*)\) return;/.exec(body)?.[1] ?? '';
+    const named = [...guard.matchAll(/flag === '(\w+)'/g)].map((m) => m[1]).sort();
+    const admin: Record<(typeof BUILD_PLATFORMS)[number], boolean> = {
+      web: WebPlatform.ADMIN_PAGE,
+      poki: PokiPlatform.ADMIN_PAGE,
+      crazygames: CrazyGamesPlatform.ADMIN_PAGE,
+    };
+    expect(named).toEqual(BUILD_PLATFORMS.filter((p) => !admin[p]).sort());
+    // And it is the first thing the method does.
+    expect(body.indexOf('const flag = import.meta.env.VITE_PLATFORM;')).toBeLessThan(
+      body.indexOf("import('../range/Skietbaan')"),
+    );
   });
 });
 

@@ -103,6 +103,8 @@ async function copyText(text: string): Promise<boolean> {
 export interface AdminPanelHooks {
   /** The list or play page changed (e2e hook). */
   readonly onView?: (view: 'list' | 'play', selected: string | null) => void;
+  /** v1.3x (D-037): the Skietbaan button (the training ground; its code loads on demand). */
+  readonly onRange?: () => void;
 }
 
 export class AdminPanel {
@@ -169,6 +171,14 @@ export class AdminPanel {
         textContent: `${t('admin.unranked')} · ${this.admin.build}`,
       }),
       toast,
+      ...(this.hooks.onRange === undefined
+        ? []
+        : [
+            button(t('admin.range'), 'skietbaan', () => {
+              this.destroy();
+              this.hooks.onRange?.();
+            }),
+          ]),
       button(t('admin.copy'), 'copy-report', () => {
         void this.copyReport(toast);
       }),

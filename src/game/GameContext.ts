@@ -23,6 +23,30 @@ import type { Insets } from './layout';
 import type { Rect } from './ui/hudLayout';
 import type { AdminContext } from './admin/AdminContext';
 
+/** v1.3x (D-037) Skietbaan state for Playwright (filled by the lazy range chunk). */
+export interface RangeHookState {
+  readonly view: 'setup' | 'range';
+  /** The setup chosen (the range's, or the one the setup page shows). */
+  readonly gun: string;
+  readonly biome: string;
+  readonly plane: string;
+  readonly target: string;
+  /** The current cell's stats (null before its first shot). */
+  readonly stats: {
+    readonly shots: number;
+    readonly hits: number;
+    readonly misses: number;
+    readonly pelletsOn: number;
+    readonly impacts: number;
+  } | null;
+  /** Impacts drawn on the paper target now. */
+  readonly drawnImpacts: number;
+  /** Paper targets on screen (design px, unzoomed) and their radius. */
+  readonly papers: readonly { readonly x: number; readonly y: number; readonly r: number }[];
+  /** Range birds on screen (design px, unzoomed body centre). */
+  readonly birds: readonly { readonly x: number; readonly y: number }[];
+}
+
 /** Read by Playwright (dev/test builds and ?e2e=1 only). */
 export interface TestHook {
   ready: boolean;
@@ -33,9 +57,11 @@ export interface TestHook {
   portrait: boolean;
   /** 'start' = the title (kept from M2: the title's START is the old start card).
    *  'challenge' = the "beat this" card of a challenge link (M7). */
-  scene: 'start' | 'hunt' | 'tally' | 'run' | 'challenge' | 'admin';
+  scene: 'start' | 'hunt' | 'tally' | 'run' | 'challenge' | 'admin' | 'skietbaan' | 'range';
   /** v1.2x (D-034): the admin page on screen (list or play card), or null. */
   admin: { view: 'list' | 'play'; selected: string | null; entries: number } | null;
+  /** v1.3x (D-037): the Skietbaan (setup page or the range), or null. */
+  range: RangeHookState | null;
   /** Menu overlay on top of the scene: shed, settings, pause (null = none). */
   menu: string | null;
   /** M10: the self-hosted fonts loaded before the game drew any text. */
