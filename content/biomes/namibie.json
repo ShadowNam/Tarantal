@@ -389,7 +389,10 @@
         }
       ],
       "cameraStartU": 0.5,
-      "pointsMul": 0.75
+      "pointsMul": 0.75,
+      "planePointsMul": {
+        "ver": 0.7
+      }
     },
     {
       "id": "tue",
@@ -421,7 +424,10 @@
         }
       ],
       "cameraStartU": 0.3,
-      "pointsMul": 0.75
+      "pointsMul": 0.75,
+      "planePointsMul": {
+        "ver": 0.7
+      }
     },
     {
       "id": "wed",
@@ -456,7 +462,10 @@
         "flyoversMul": 0.85
       },
       "cameraStartU": 0.55,
-      "pointsMul": 0.75
+      "pointsMul": 0.75,
+      "planePointsMul": {
+        "ver": 0.72
+      }
     },
     {
       "id": "thu",
@@ -495,7 +504,10 @@
         }
       ],
       "cameraStartU": 0.78,
-      "pointsMul": 0.75
+      "pointsMul": 0.75,
+      "planePointsMul": {
+        "ver": 0.65
+      }
     },
     {
       "id": "fri",
@@ -530,7 +542,10 @@
         }
       ],
       "cameraStartU": 0.6,
-      "pointsMul": 0.75
+      "pointsMul": 0.75,
+      "planePointsMul": {
+        "ver": 0.5
+      }
     },
     {
       "id": "sat",
@@ -559,7 +574,10 @@
           ]
         }
       ],
-      "cameraStartU": 0.5
+      "cameraStartU": 0.5,
+      "planePointsMul": {
+        "ver": 0.55
+      }
     },
     {
       "id": "sun",
@@ -587,7 +605,10 @@
         }
       ],
       "cameraStartU": 0.45,
-      "pointsMul": 0.75
+      "pointsMul": 0.75,
+      "planePointsMul": {
+        "ver": 0.68
+      }
     }
   ],
   "bonusMaps": [
@@ -614,7 +635,10 @@
         }
       },
       "pointsMul": 0.95,
-      "ver": true
+      "ver": true,
+      "planePointsMul": {
+        "ver": 0.8
+      }
     },
     {
       "$comment": "Nog Verder: further still — two flocks out at the waterhole, a far flock, almost nothing close.",
