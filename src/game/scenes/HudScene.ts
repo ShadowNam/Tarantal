@@ -536,6 +536,9 @@ export class HudScene extends Phaser.Scene {
         pause: l.pause,
         quota: l.quota,
         charms: l.charms,
+        // v1.4: the variable scope's zoom buttons (shown on touch with a variable scope in hand).
+        zoomOut: l.zoomOut,
+        zoomIn: l.zoomIn,
         ...Object.fromEntries(l.items.map((r, i) => [`item${i}`, r])),
         ...(this.controls?.skip != null ? { skip: l.skip } : {}),
       };

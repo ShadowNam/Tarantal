@@ -510,7 +510,7 @@
   "notaboek.unlock_nog_verder": "Ontgrendel Nog Verder",
   "notaboek.unlock_die_verste": "Ontgrendel Die Verste",
   "notaboek.bag_10_ver": "Schiet {n} vogels op heel grote afstand",
-  "shed.sight": "Vizier voor de {weapon}",
+  "shed.sight": "{weapon}: vizier",
   "shed.reward_sight": "Ontgrendelt {sight}",
   "shed.fitted": "Gemonteerd",
   "admin.sight": "Sight",

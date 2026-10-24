@@ -510,7 +510,7 @@
   "notaboek.unlock_nog_verder": "Unlock Nog Verder",
   "notaboek.unlock_die_verste": "Unlock Die Verste",
   "notaboek.bag_10_ver": "Bag {n} birds at Ver distance",
-  "shed.sight": "Sight for the {weapon}",
+  "shed.sight": "{weapon}: sight",
   "shed.reward_sight": "Unlocks {sight}",
   "shed.fitted": "Fitted",
   "admin.sight": "Sight",

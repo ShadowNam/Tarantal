@@ -510,7 +510,7 @@
   "notaboek.unlock_nog_verder": "Sluit Nog Verder oop",
   "notaboek.unlock_die_verste": "Sluit Die Verste oop",
   "notaboek.bag_10_ver": "Skiet {n} voëls heel ver weg",
-  "shed.sight": "Visier vir die {weapon}",
+  "shed.sight": "{weapon}: visier",
   "shed.reward_sight": "Sluit {sight} oop",
   "shed.fitted": "Gemonteer",
   "admin.sight": "Sight",
