@@ -2718,70 +2718,70 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/namibie/layers/far_ridge-0.282661dbc2ac.png",
-          "bytes": 35807,
-          "hash": "282661dbc2ac"
+          "path": "assets/namibie/layers/far_ridge-0.e787c29e35d0.png",
+          "bytes": 45171,
+          "hash": "e787c29e35d0"
         },
         {
-          "path": "assets/namibie/layers/far_ridge-1.5819d0019feb.png",
-          "bytes": 17113,
-          "hash": "5819d0019feb"
+          "path": "assets/namibie/layers/far_ridge-1.810a94654363.png",
+          "bytes": 19659,
+          "hash": "810a94654363"
         }
       ],
       "tileWidth": 2048,
       "left": -300,
-      "top": 420,
-      "height": 200,
+      "top": 376,
+      "height": 214,
       "solid": {
         "bucket": 256,
         "rows": [
           [
-            142,
-            154
-          ],
-          [
-            164,
-            176
-          ],
-          [
-            140,
-            154
-          ],
-          [
-            162,
-            176
-          ],
-          [
             141,
-            155
+            150
           ],
           [
-            146,
-            157
+            128,
+            130
           ],
           [
-            146,
-            156
+            148,
+            153
           ],
           [
-            162,
-            176
+            129,
+            130
           ],
           [
-            161,
-            176
+            148,
+            149
           ],
           [
-            164,
-            176
+            144,
+            147
           ],
           [
-            164,
-            176
+            111,
+            125
           ],
           [
-            110,
-            135
+            142,
+            144
+          ],
+          [
+            143,
+            146
+          ],
+          [
+            167,
+            169
+          ],
+          [
+            124,
+            131
+          ],
+          [
+            142,
+            146
           ]
         ]
       }
@@ -3229,14 +3229,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/ver/layers/namibie-ver_veld-0.46c613fdef43.png",
-          "bytes": 12179,
-          "hash": "46c613fdef43"
+          "path": "assets/ver/layers/namibie-ver_veld-0.3d877692601f.png",
+          "bytes": 12582,
+          "hash": "3d877692601f"
         },
         {
-          "path": "assets/ver/layers/namibie-ver_veld-1.dc12bfc46c5d.png",
-          "bytes": 5947,
-          "hash": "dc12bfc46c5d"
+          "path": "assets/ver/layers/namibie-ver_veld-1.1ac3d8bbca65.png",
+          "bytes": 5814,
+          "hash": "1ac3d8bbca65"
         }
       ],
       "tileWidth": 2048,
@@ -3267,15 +3267,15 @@
             64
           ],
           [
-            30,
+            46,
             64
           ],
           [
-            31,
+            37,
             64
           ],
           [
-            30,
+            27,
             64
           ],
           [

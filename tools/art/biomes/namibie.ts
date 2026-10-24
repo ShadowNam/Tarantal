@@ -35,104 +35,6 @@ import {
 
 // --- shapes --------------------------------------------------------------------------------
 
-/**
- * A Namib dune in side view (after the Kalahari one): a long lit windward slope with fine wind
- * ripples up to a sharp brink, the steep slip face in shadow on the right.
- */
-function dune(
-  rnd: Rnd,
-  x: number,
-  base: number,
-  w: number,
-  h: number,
-  lit: string,
-  lee: string,
-  pen: Pen,
-): string {
-  const cx = x + w * (0.56 + rnd() * 0.12);
-  const top = base - h;
-  const sway = (rnd() - 0.5) * w * 0.05;
-  const windward = smoothD(
-    [
-      [x, base],
-      [x + w * 0.2, base - h * 0.2],
-      [x + w * 0.4, base - h * 0.55 + (rnd() - 0.5) * h * 0.08],
-      [cx - w * 0.08, top + h * 0.06],
-      [cx - w * 0.015, top + 1],
-      [cx, top],
-    ],
-    false,
-    0.6,
-  );
-  const leeD = `${windward}C${r2(cx + w * 0.06)} ${r2(top + h * 0.3)} ${r2(cx + w * 0.17)} ${r2(
-    top + h * 0.75,
-  )} ${r2(x + w)} ${r2(base)}Z`;
-  const crestLine = `M${r2(cx)} ${r2(top)}C${r2(cx - w * 0.05 + sway)} ${r2(top + h * 0.3)} ${r2(
-    cx + w * 0.03 - sway,
-  )} ${r2(top + h * 0.6)} ${r2(cx - w * 0.07)} ${r2(base)}`;
-  const litD = `${windward}${crestLine.replace(/^M[^C]+/, '')}L${r2(x)} ${r2(base)}Z`;
-  const gLit = nextId();
-  const gLee = nextId();
-  const clip = nextId();
-  const rip: string[] = [];
-  const nr = Math.max(2, Math.round(h / 7));
-  for (let k = 0; k < nr; k++) {
-    const yy = base - (h * (k + 0.5)) / nr;
-    const x0 = x + w * 0.05;
-    const x1 = cx - w * 0.02;
-    const amp = 0.8 + rnd() * 1;
-    let d = `M${r2(x0)} ${r2(yy)}`;
-    for (let s = 1; s <= 8; s++) {
-      const xs = x0 + ((x1 - x0) * s) / 8;
-      d += `Q${r2(xs - (x1 - x0) / 16)} ${r2(yy + (s % 2 === 0 ? amp : -amp))} ${r2(xs)} ${r2(yy)}`;
-    }
-    rip.push(d);
-  }
-  return g(
-    {},
-    el(
-      'linearGradient',
-      { id: gLit, x1: 0, y1: 0, x2: 0.25, y2: 1 },
-      el('stop', { offset: 0, 'stop-color': shade(lit, 0.2) }),
-      el('stop', { offset: 0.55, 'stop-color': lit }),
-      el('stop', { offset: 1, 'stop-color': shade(lit, -0.06) }),
-    ),
-    el(
-      'linearGradient',
-      { id: gLee, x1: 0, y1: 0, x2: 0, y2: 1 },
-      el('stop', { offset: 0, 'stop-color': shade(lee, -0.18) }),
-      el('stop', { offset: 0.6, 'stop-color': lee }),
-      el('stop', { offset: 1, 'stop-color': shade(lee, 0.1) }),
-    ),
-    el('path', { d: leeD, fill: `url(#${gLee})` }),
-    el('clipPath', { id: clip }, el('path', { d: litD })),
-    el('path', { d: litD, fill: `url(#${gLit})` }),
-    el('path', {
-      d: rip.join(''),
-      fill: 'none',
-      stroke: shade(lit, -0.16),
-      'stroke-width': 0.7,
-      opacity: 0.4,
-      'clip-path': `url(#${clip})`,
-    }),
-    el('path', {
-      d: crestLine,
-      fill: 'none',
-      stroke: shade(lit, 0.3),
-      'stroke-width': Math.max(0.8, pen.w * 0.45),
-      'stroke-linecap': 'round',
-      opacity: 0.75,
-    }),
-    el('path', {
-      d: leeD,
-      fill: 'none',
-      stroke: mix(pen.ink, lee, 0.6),
-      'stroke-width': Math.max(0.6, pen.w * 0.45),
-      'stroke-linejoin': 'round',
-    }),
-  );
-}
-
 /** A small camelthorn far away (the layered tree, few clumps, no ground). */
 function farCamelthorn(
   ctx: LayerCtx,
@@ -231,63 +133,302 @@ function sky(ctx: LayerCtx): string {
   });
 }
 
+/**
+ * A Sossusvlei dune (D-039 art fix): concave flanks that flatten into the pan, a sinuous knife-edge
+ * crest running from the peak down to the foot in an S, a sunlit apricot face on the left of the
+ * crest and a deep rust shadow face on the right (darkest right under the crest), soft wind
+ * ripples on the lit face. A star dune adds curving arms that run down its lit flank.
+ */
+function namibDune(
+  rnd: Rnd,
+  cx: number,
+  base: number,
+  w: number,
+  h: number,
+  lit: string,
+  lee: string,
+  pen: Pen,
+  star: boolean,
+): string {
+  const px = cx + (rnd() - 0.5) * w * 0.12;
+  const py = base - h;
+  // A long windward flank on the left, a shorter, steeper slip face on the right.
+  const lx = cx - w * (0.58 + rnd() * 0.12);
+  const rx = cx + w * (0.3 + rnd() * 0.1);
+  // Concave flanks: steep near the peak, nearly flat at the foot.
+  const left = `M${r2(lx)} ${r2(base)}C${r2(lx + w * 0.32)} ${r2(base - h * 0.03)} ${r2(
+    px - w * 0.14,
+  )} ${r2(py + h * 0.28)} ${r2(px)} ${r2(py)}`;
+  const right = `C${r2(px + w * 0.09)} ${r2(py + h * 0.3)} ${r2(rx - w * 0.26)} ${r2(
+    base - h * 0.03,
+  )} ${r2(rx)} ${r2(base)}`;
+  const outline = `${left}${right}Z`;
+  // The crest: an S from the peak to a point on the foot a little right of it.
+  const kx = px + w * (0.08 + rnd() * 0.12);
+  const s1 = (rnd() - 0.5) * w * 0.1;
+  const crest = `C${r2(px - w * 0.07 + s1)} ${r2(py + h * 0.38)} ${r2(kx + w * 0.11 - s1)} ${r2(
+    base - h * 0.42,
+  )} ${r2(kx)} ${r2(base)}`;
+  const litFace = `${left}${crest}Z`;
+  const gLit = nextId();
+  const gLee = nextId();
+  const clip = nextId();
+  const parts: string[] = [
+    el(
+      'linearGradient',
+      { id: gLit, x1: 0, y1: 0, x2: 0.15, y2: 1 },
+      el('stop', { offset: 0, 'stop-color': shade(lit, 0.22) }),
+      el('stop', { offset: 0.5, 'stop-color': lit }),
+      el('stop', { offset: 1, 'stop-color': mix(lit, lee, 0.18) }),
+    ),
+    el(
+      'linearGradient',
+      { id: gLee, x1: 0, y1: 0, x2: 0.6, y2: 0.4 },
+      el('stop', { offset: 0, 'stop-color': shade(lee, -0.28) }),
+      el('stop', { offset: 0.55, 'stop-color': lee }),
+      el('stop', { offset: 1, 'stop-color': shade(lee, 0.16) }),
+    ),
+    el('path', { d: outline, fill: `url(#${gLee})` }),
+    el('path', { d: litFace, fill: `url(#${gLit})` }),
+    el('clipPath', { id: clip }, el('path', { d: litFace })),
+  ];
+  // Soft wind ripples on the lit face: long shallow waves that curve up toward the crest.
+  const rip: string[] = [];
+  const nr = Math.max(3, Math.round(h / 6));
+  for (let k = 1; k < nr; k++) {
+    const t = k / nr;
+    const y0 = base - h * t * 0.92;
+    const x0 = lx + (px - lx) * t * 0.6 - w * 0.05;
+    const x1 = px + (kx - px) * (1 - t) + w * 0.02;
+    const amp = 0.5 + rnd() * 0.9;
+    let d = `M${r2(x0)} ${r2(y0 + h * 0.02)}`;
+    const n = 7;
+    for (let q = 1; q <= n; q++) {
+      const xq = x0 + ((x1 - x0) * q) / n;
+      const yq = y0 - Math.sin((q / n) * Math.PI) * h * 0.03;
+      d += `Q${r2(xq - (x1 - x0) / (2 * n))} ${r2(yq + (q % 2 === 0 ? amp : -amp))} ${r2(xq)} ${r2(yq)}`;
+    }
+    rip.push(d);
+  }
+  parts.push(
+    el('path', {
+      d: rip.join(''),
+      fill: 'none',
+      stroke: mix(lit, lee, 0.45),
+      'stroke-width': 0.7,
+      opacity: 0.35,
+      'clip-path': `url(#${clip})`,
+    }),
+  );
+  if (star) {
+    // Curving arms down the lit flank: each a ridge with a thin shadow sliver on its far side.
+    for (let k = 0; k < 2; k++) {
+      const f = 0.25 + k * 0.3 + rnd() * 0.1;
+      const ax = px + (lx - px) * f * 0.55;
+      const ay = py + h * (0.18 + f * 0.3);
+      const bx = lx + (px - lx) * (0.2 + k * 0.2);
+      const arm = `M${r2(ax)} ${r2(ay)}C${r2(ax - w * 0.06)} ${r2(ay + h * 0.2)} ${r2(
+        bx + w * 0.1,
+      )} ${r2(base - h * 0.18)} ${r2(bx)} ${r2(base)}`;
+      const sliver = `${arm}L${r2(bx + w * 0.07)} ${r2(base)}C${r2(bx + w * 0.16)} ${r2(
+        base - h * 0.16,
+      )} ${r2(ax + w * 0.01)} ${r2(ay + h * 0.22)} ${r2(ax)} ${r2(ay)}Z`;
+      parts.push(
+        el('path', { d: sliver, fill: lee, opacity: 0.55, 'clip-path': `url(#${clip})` }),
+        el('path', {
+          d: arm,
+          fill: 'none',
+          stroke: shade(lit, 0.32),
+          'stroke-width': 0.9,
+          'stroke-linecap': 'round',
+          opacity: 0.8,
+          'clip-path': `url(#${clip})`,
+        }),
+      );
+    }
+  }
+  // The knife edge: a dark line on the shadow side and a bright one on the lit side.
+  const crestD = `M${r2(px)} ${r2(py)}${crest}`;
+  parts.push(
+    el('path', {
+      d: crestD,
+      fill: 'none',
+      stroke: shade(lee, -0.35),
+      'stroke-width': 1.6,
+      'stroke-linecap': 'round',
+      opacity: 0.75,
+      transform: 'translate(0.9 0)',
+    }),
+    el('path', {
+      d: crestD,
+      fill: 'none',
+      stroke: shade(lit, 0.38),
+      'stroke-width': 0.9,
+      'stroke-linecap': 'round',
+      opacity: 0.85,
+    }),
+    el('path', {
+      d: outline,
+      fill: 'none',
+      stroke: mix(pen.ink, lee, 0.65),
+      'stroke-width': Math.max(0.5, pen.w * 0.35),
+      'stroke-linejoin': 'round',
+      opacity: 0.7,
+    }),
+  );
+  return g({}, ...parts);
+}
+
 function farRidge(ctx: LayerCtx): string {
   const parts: string[] = [];
   const horizon = ctx.raw('horizon');
-  const backPen: Pen = { ink: mix(ctx.pen.ink, horizon, 0.45), w: 1.2 };
-  // The back row: the big Namib dunes, very hazy, peaks well above the pan.
-  for (let x = -260; x < ctx.width;) {
-    const w = 420 + ctx.rnd() * 380;
+  // Three overlapping ranges, back to front: the back one big and hazy (a few star dunes), then
+  // a mid range, then small dunes in front; heights and widths vary, every crest an S.
+  const ranges = [
+    {
+      base: 549,
+      h0: 105,
+      h1: 165,
+      w0: 560,
+      w1: 900,
+      haze: 0.2,
+      s0: 0.4,
+      s1: 0.6,
+      star: 0.5,
+      ink: 0.45,
+    },
+    {
+      base: 552,
+      h0: 60,
+      h1: 105,
+      w0: 360,
+      w1: 600,
+      haze: 0.08,
+      s0: 0.5,
+      s1: 0.75,
+      star: 0.3,
+      ink: 0.25,
+    },
+    { base: 556, h0: 24, h1: 50, w0: 200, w1: 380, haze: 0, s0: 0.6, s1: 0.95, star: 0, ink: 0.1 },
+  ];
+  for (const r of ranges) {
+    const pen: Pen = { ink: mix(ctx.pen.ink, horizon, r.ink), w: 1.2 };
+    // Raw palette: each range's own haze is the only haze (the layer's would wash them out).
+    const lit = mix(ctx.raw('duneFar'), horizon, r.haze);
+    const lee = mix(ctx.raw('duneLee'), horizon, r.haze * 1.2);
+    for (let x = -300; x < ctx.width + 300;) {
+      const w = r.w0 + ctx.rnd() * (r.w1 - r.w0);
+      const h = r.h0 + ctx.rnd() * (r.h1 - r.h0);
+      parts.push(namibDune(ctx.rnd, x + w / 2, r.base, w, h, lit, lee, pen, ctx.rnd() < r.star));
+      x += w * (r.s0 + ctx.rnd() * (r.s1 - r.s0));
+    }
+    // A little haze over each range's foot, most on the farthest.
+    const haze = nextId();
     parts.push(
-      dune(
-        ctx.rnd,
-        x,
-        584,
-        w,
-        95 + ctx.rnd() * 60,
-        mix(ctx.c('duneFar'), horizon, 0.22),
-        mix(ctx.c('duneLee'), horizon, 0.3),
-        backPen,
+      el(
+        'linearGradient',
+        { id: haze, x1: 0, y1: 0, x2: 0, y2: 1 },
+        el('stop', { offset: 0, 'stop-color': horizon, 'stop-opacity': 0 }),
+        el('stop', { offset: 1, 'stop-color': horizon, 'stop-opacity': 0.25 + r.haze }),
       ),
+      el('rect', { x: 0, y: r.base - 30, width: ctx.width, height: 34, fill: `url(#${haze})` }),
     );
-    x += w * (0.38 + ctx.rnd() * 0.22);
   }
-  // The front row: lower, redder, sharper.
-  for (let x = -120; x < ctx.width;) {
-    const w = 280 + ctx.rnd() * 300;
-    parts.push(
-      dune(ctx.rnd, x, 596, w, 55 + ctx.rnd() * 55, ctx.c('duneLit'), ctx.c('duneLee'), ctx.pen),
-    );
-    x += w * (0.45 + ctx.rnd() * 0.3);
-  }
-  // Heat haze rising off the sand at the dunes' foot.
-  const haze = nextId();
+  // The bases flatten into the pan: a pale band of sand and salt at the foot of the front range.
+  const foot = nextId();
   parts.push(
     el(
       'linearGradient',
-      { id: haze, x1: 0, y1: 0, x2: 0, y2: 1 },
+      { id: foot, x1: 0, y1: 0, x2: 0, y2: 1 },
       el('stop', { offset: 0, 'stop-color': horizon, 'stop-opacity': 0 }),
-      el('stop', { offset: 1, 'stop-color': horizon, 'stop-opacity': 0.6 }),
+      el('stop', {
+        offset: 1,
+        'stop-color': mix(ctx.c('salt'), horizon, 0.3),
+        'stop-opacity': 0.85,
+      }),
     ),
-    el('rect', { x: 0, y: 536, width: ctx.width, height: 84, fill: `url(#${haze})` }),
+    el('rect', { x: 0, y: 548, width: ctx.width, height: 36, fill: `url(#${foot})` }),
   );
   return g({}, ...parts);
+}
+
+/** A tiny far animal at the waterhole: a springbok or a gemsbok (a few px), head down to drink. */
+function farAnimal(
+  x: number,
+  y: number,
+  k: number,
+  kind: 'springbok' | 'gemsbok',
+  facing: number,
+  drinking: boolean,
+): string {
+  const body = kind === 'gemsbok' ? '#6E5A4A' : '#9A6A42';
+  const belly = kind === 'gemsbok' ? '#E8E2D6' : '#F2EAD8';
+  const f = facing;
+  const head = drinking
+    ? `M${r2(x + f * 3.2 * k)} ${r2(y - 3.4 * k)}L${r2(x + f * 4.6 * k)} ${r2(y - 0.8 * k)}`
+    : `M${r2(x + f * 3.2 * k)} ${r2(y - 3.4 * k)}L${r2(x + f * 4.2 * k)} ${r2(y - 5.6 * k)}`;
+  const horns =
+    kind === 'gemsbok'
+      ? drinking
+        ? `M${r2(x + f * 4.4 * k)} ${r2(y - 1.2 * k)}l${r2(-f * 3 * k)} ${r2(-2.4 * k)}`
+        : `M${r2(x + f * 4.1 * k)} ${r2(y - 5.4 * k)}l${r2(-f * 1.6 * k)} ${r2(-3.4 * k)}`
+      : '';
+  return g(
+    {},
+    el('path', {
+      d: `M${r2(x - 2.6 * k)} ${r2(y - 2.4 * k)}l0 ${r2(2.4 * k)}M${r2(x - 1.6 * k)} ${r2(y - 2.4 * k)}l0 ${r2(2.4 * k)}M${r2(x + 1.8 * k)} ${r2(y - 2.4 * k)}l0 ${r2(2.4 * k)}M${r2(x + 2.6 * k)} ${r2(y - 2.4 * k)}l0 ${r2(2.4 * k)}`,
+      stroke: body,
+      'stroke-width': 0.5 * k,
+    }),
+    flat(ellipseD(x, y - 3.2 * k, 3.2 * k, 1.2 * k), body),
+    flat(ellipseD(x, y - 2.6 * k, 2.4 * k, 0.5 * k), belly, { opacity: 0.8 }),
+    el('path', { d: head, stroke: body, 'stroke-width': 0.9 * k, 'stroke-linecap': 'round' }),
+    horns === '' ? '' : el('path', { d: horns, stroke: '#2A2018', 'stroke-width': 0.35 * k }),
+  );
 }
 
 function verStrip(ctx: LayerCtx): string {
   const base = verVeld({ ground: 'saltShade', light: 'salt', scrub: 'bossieGrey' })(ctx);
   const parts: string[] = [base];
   const horizon = ctx.raw('horizon');
-  // The waterhole: a flat blue-grey sheen with a darker muddy rim, the sky's glare on it.
+  // The waterhole (D-039 art fix): a darker ring of trodden mud, a wet dark edge, the pale-blue
+  // water with the sky's glint on it, and a few springbok and gemsbok drinking at its edge.
   const wx = ctx.u(0.5);
   const half = (ctx.u(0.58) - ctx.u(0.42)) * 0.5;
-  const mud = mix(ctx.c('calcreteDark'), '#6E5E4C', 0.25);
+  const wy = 557;
+  const mud = '#7A6450';
   parts.push(
-    flat(ellipseD(wx, 557.5, half * 0.62, 3.4), mud, { opacity: 0.7 }),
-    flat(ellipseD(wx - half * 0.05, 557, half * 0.52, 2.4), ctx.c('water')),
-    flat(ellipseD(wx - half * 0.12, 556.4, half * 0.32, 0.9), ctx.c('waterLit'), { opacity: 0.85 }),
-    flat(ellipseD(wx + half * 0.3, 557.6, half * 0.14, 0.6), mix(ctx.c('waterLit'), horizon, 0.3)),
+    flat(ellipseD(wx, wy + 0.6, half * 0.82, 5.2), mix(ctx.c('calcreteDark'), mud, 0.45), {
+      opacity: 0.85,
+    }),
+    flat(ellipseD(wx, wy + 0.3, half * 0.66, 3.8), mud, { opacity: 0.9 }),
+    flat(ellipseD(wx - half * 0.03, wy, half * 0.58, 3.1), '#5E5244'),
+    flat(
+      ellipseD(wx - half * 0.04, wy - 0.2, half * 0.54, 2.6),
+      mix(ctx.c('water'), '#A9CCE0', 0.4),
+    ),
+    flat(ellipseD(wx - half * 0.14, wy - 0.9, half * 0.3, 0.7), '#F4FAFF', { opacity: 0.95 }),
+    flat(ellipseD(wx + half * 0.24, wy - 0.4, half * 0.12, 0.45), '#E6F2FA', { opacity: 0.8 }),
   );
+  const herd: [number, number, 'springbok' | 'gemsbok', number, boolean][] = [
+    [-0.48, 0.2, 'springbok', 1, true],
+    [-0.36, -0.6, 'springbok', 1, false],
+    [-0.22, 0.5, 'springbok', 1, true],
+    [0.18, 0.4, 'gemsbok', -1, true],
+    [0.33, -0.4, 'gemsbok', -1, false],
+    [0.46, 0.3, 'springbok', -1, true],
+  ];
+  for (const [f, dy, kind, facing, drinking] of herd)
+    parts.push(
+      farAnimal(
+        wx + f * half * 1.25,
+        wy + 4 + dy,
+        kind === 'gemsbok' ? 1.3 : 1.1,
+        kind,
+        facing,
+        drinking,
+      ),
+    );
   // A few small camelthorns round the water (hazed, no ink).
   const pen: Pen = { ink: mix(ctx.pen.ink, horizon, 0.5), w: 0.3 };
   const trees: [number, number, number, Exclude<CamelthornVariant, 'nest'>][] = [
@@ -942,7 +1083,7 @@ export const NAMIBIE_PLAN: BiomeArtPlan = {
   biome: 'namibie',
   layers: {
     sky: { top: 0, height: 1080, encode: 'png', draw: sky },
-    far_ridge: { top: 420, height: 200, draw: farRidge },
+    far_ridge: { top: 376, height: 214, draw: farRidge },
     ver_veld: { top: 524, height: 64, draw: verStrip },
     far_veld: { top: 464, height: 232, draw: farVeld },
     mid: { top: 630, height: 280, draw: mid },
