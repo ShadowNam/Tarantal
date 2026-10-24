@@ -88,3 +88,24 @@ export function areaCards(
     unlockBonus: b.area?.unlockBonus ?? null,
   }));
 }
+
+/**
+ * The playable biomes this save may pick by hand (the Skietbaan's area list, the bird book):
+ * every season biome, and an area pack only once it is unlocked. The Daily, challenge links and
+ * the admin page keep every playable biome (they must be the same for everyone, or are tools).
+ */
+export function unlockedBiomes(
+  content: Pick<ContentBundle, 'biomes'>,
+  save: Pick<SaveData, 'areas' | 'bonusMaps'>,
+  playable: readonly string[],
+): string[] {
+  return playable.filter((id) => {
+    const b = content.biomes.find((x) => x.id === id);
+    return b !== undefined && isAreaUnlocked(b, save);
+  });
+}
+
+/** `id` when it is in `list`, else the list's first (a stored choice that is now locked). */
+export function biomeOrFirst(id: string, list: readonly string[]): string {
+  return list.includes(id) ? id : (list[0] ?? id);
+}

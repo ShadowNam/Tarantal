@@ -6,6 +6,9 @@
 import { expect, test, type Page } from '@playwright/test';
 import { collectErrors, hook, isLandscape, isTouchProject, tapAt, tapRect } from './helpers';
 import weaponsJson from '../../content/weapons.json' with { type: 'json' };
+import { unlockedBiomes } from '../../src/meta/areas';
+import { defaultSave } from '../../src/meta/saveSchema';
+import { loadContent } from '../../tools/testContent';
 
 /** The guns the Skietbaan lists, from content: each primary (a rifle once per sight), then the
  *  crate guns. */
@@ -15,6 +18,11 @@ const RANGE_GUN_COUNT = weaponsJson.weapons.reduce(
 );
 
 const PLATFORM = process.env['E2E_PLATFORM'] || 'web';
+/** v1.4 B (D-039): the range lists the areas the player has unlocked (src/meta/areas.ts). Every
+ *  biome has art on the web build, so all of them are playable. */
+const CONTENT = loadContent();
+const ALL_BIOMES = CONTENT.biomes.map((b) => b.id);
+const FRESH_BIOMES = unlockedBiomes(CONTENT, defaultSave(), ALL_BIOMES).length;
 const SHOTS_DIR = 'docs/art-preview/compare';
 
 /** The device name of a project (a local Chromium stand-in for WebKit keeps the device's). */
@@ -195,10 +203,11 @@ test.describe('Skietbaan (training ground)', () => {
     });
     expect((await hook(page)).scene).toBe('skietbaan');
     await expect(page.locator('#tm-admin')).toHaveCount(0);
-    // Every gun, locked ones too (each rifle once per sight), the 4 biomes, 4 distances + All,
-    // 5 targets + Mixed.
+    // Every gun, locked ones too (each rifle once per sight), the unlocked areas (a fresh save:
+    // the 4 season biomes, not Namibië), 4 distances + All, 5 targets + Mixed.
     await expect(page.locator('#tm-range [data-role=gun] button')).toHaveCount(RANGE_GUN_COUNT);
-    await expect(page.locator('#tm-range [data-role=biome] button')).toHaveCount(4);
+    expect(FRESH_BIOMES).toBe(4);
+    await expect(page.locator('#tm-range [data-role=biome] button')).toHaveCount(FRESH_BIOMES);
     await expect(page.locator('#tm-range [data-role=plane] button')).toHaveCount(5);
     await expect(page.locator('#tm-range [data-role=target] button')).toHaveCount(6);
     // Shotguns can't reach Ver: it stays selectable, with a note that the shots fall short.
@@ -532,6 +541,39 @@ test.describe('Skietbaan (training ground)', () => {
     });
     expect(await storage(page)).toEqual(before);
     expect(errors).toEqual([]);
+  });
+
+  test('v1.4 B: with Namibië unlocked, the range offers it too', async ({ page }, info) => {
+    test.skip(PLATFORM !== 'web', 'the admin page is on web builds only');
+    test.skip(!isLandscape(info), 'the admin page is used in landscape');
+    test.setTimeout(240_000);
+    const touch = isTouchProject(info);
+    await page.addInitScript(() => {
+      localStorage.setItem(
+        'tm.e2e.save.v1',
+        JSON.stringify({
+          v: 1,
+          ftue: { done: true, skipped: false, step: '' },
+          areas: { unlocked: ['namibie'], classic: null },
+        }),
+      );
+    });
+    await page.goto('/?e2e=1&admin=1');
+    await page.waitForFunction(() => window.__TM__?.admin?.view === 'list', null, {
+      timeout: 90_000,
+    });
+    await press(page, touch, '#tm-admin [data-action=skietbaan]');
+    await page.waitForFunction(() => window.__TM__?.range?.view === 'setup', null, {
+      timeout: 60_000,
+    });
+    const open = unlockedBiomes(
+      CONTENT,
+      { ...defaultSave(), areas: { unlocked: ['namibie'], classic: null } },
+      ALL_BIOMES,
+    );
+    expect(open).toHaveLength(5);
+    await expect(page.locator('#tm-range [data-role=biome] button')).toHaveCount(open.length);
+    await expect(page.locator('#tm-range [data-role=biome] [data-value=namibie]')).toHaveCount(1);
   });
 
   test('no Skietbaan without ?admin=1: no button, no chunk', async ({ page }, info) => {

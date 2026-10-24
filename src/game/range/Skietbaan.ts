@@ -2,6 +2,7 @@
 // page picks a gun, area, distance and target; Start hands HuntScene a RangeSession (the range
 // mode and its spawn program) and the scene runs it through the real sim. Stats live here, in
 // memory, for the page's session: the range never reads or writes a save.
+import { biomeOrFirst } from '../../meta/areas';
 import type { InputKind, ModeConfig } from '../../sim/types';
 import { planeToDx } from '../../sim/camera';
 import type { SimEvent } from '../../sim/events';
@@ -76,8 +77,9 @@ function hookState(
 export function openSkietbaan(menu: RangeMenuHost): void {
   const content = menu.content;
   let c = choice ?? defaultChoice(content);
-  if (!menu.playableBiomes.includes(c.biome))
-    c = { ...c, biome: menu.playableBiomes[0] ?? c.biome };
+  // v1.4 B (D-039): only areas the player has unlocked (Namibië once Die Verste is reached);
+  // a stored choice that is locked falls back to the first one.
+  c = { ...c, biome: biomeOrFirst(c.biome, menu.playableBiomes) };
   choice = c;
   const hook = menu.hook;
   if (hook) {

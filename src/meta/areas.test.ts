@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { loadContent } from '../../tools/testContent';
-import { areaCards, classicAreaId, isAreaUnlocked, newlyUnlockedAreas } from './areas';
+import {
+  areaCards,
+  biomeOrFirst,
+  classicAreaId,
+  isAreaUnlocked,
+  newlyUnlockedAreas,
+  unlockedBiomes,
+} from './areas';
 import { defaultSave } from './saveSchema';
 
 const content = loadContent();
@@ -63,5 +70,17 @@ describe('area packs (v1.4 B, D-039)', () => {
         playable.filter((b) => b !== 'namibie'),
       ),
     ).toBe(content.modes.modes.classic.biome);
+  });
+
+  it('the Skietbaan and the bird book list only unlocked areas; a locked choice falls back', () => {
+    const fresh = defaultSave();
+    const list = unlockedBiomes(content, fresh, playable);
+    expect(list).toHaveLength(4);
+    expect(list).not.toContain('namibie');
+    expect(biomeOrFirst('namibie', list)).toBe(list[0]);
+    expect(biomeOrFirst('kalahari-summer', list)).toBe('kalahari-summer');
+    const open = { ...fresh, areas: { unlocked: ['namibie'], classic: null } };
+    expect(unlockedBiomes(content, open, playable)).toHaveLength(5);
+    expect(unlockedBiomes(content, open, playable)).toContain('namibie');
   });
 });

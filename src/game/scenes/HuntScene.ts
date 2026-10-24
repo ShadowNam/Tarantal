@@ -4,6 +4,7 @@
 // HUD / the hunt log (meta) / the FTUE director, then draw the interpolated snapshot. The scene
 // never writes into the sim: input reaches it only as Commands. Esc, P, the HUD pause button or
 // a hidden tab open the pause menu; the hunt clock holds while it is open.
+import { unlockedBiomes } from '../../meta/areas';
 import { designSize } from '../layout';
 import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
@@ -666,7 +667,11 @@ export class HuntScene extends Phaser.Scene {
         if (!this.sys.isActive()) return;
         m.openSkietbaan({
           content: this.ctx.content,
-          playableBiomes: this.ctx.playableBiomes,
+          playableBiomes: unlockedBiomes(
+            this.ctx.content,
+            this.ctx.save.data,
+            this.ctx.playableBiomes,
+          ),
           hook: this.ctx.hook,
           today: () => this.ctx.today(),
           nextSeed: () => this.ctx.nextSeed(),

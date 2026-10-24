@@ -1,6 +1,7 @@
 // Skiet-Skuur (GDD §13.7): the hub — equip the Classic weapon, the Bird Book v0 (creatures and
 // Karoo secrets seen), Oupa se Notaboek v0 (challenge progress and what each unlocks), and the
 // way to Settings. It is not a shop: everything here is unlocked by playing (GDD §13.6).
+import { unlockedBiomes } from '../../meta/areas';
 import { designSize } from '../layout';
 import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
@@ -341,8 +342,13 @@ export class ShedScene extends Phaser.Scene {
         label: tOr(`creature.${c.id}`, c.id),
         seen: book.creatures.includes(c.id),
       })),
+      // v1.4 B: a locked area pack keeps its secrets to itself until it is unlocked.
       ...this.ctx.content.biomes
-        .filter((b) => this.ctx.playableBiomes.includes(b.id))
+        .filter((b) =>
+          unlockedBiomes(this.ctx.content, this.ctx.save.data, this.ctx.playableBiomes).includes(
+            b.id,
+          ),
+        )
         .flatMap((b) =>
           b.props
             .filter((p) => p.secret !== undefined)
