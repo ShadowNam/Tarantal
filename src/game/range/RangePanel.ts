@@ -40,7 +40,9 @@ const CSS = `
 #tm-range button.btn[aria-pressed=true]{background:#F3EAD3;color:#1b1410;border-color:#FFD25A}
 #tm-range button.btn:disabled{opacity:.55;cursor:not-allowed}
 #tm-range button.btn small{display:block;font-size:11px;font-weight:400}
-#tm-range button.btn.primary{background:#d9a21b;border-color:#FFD25A;color:#1b1410;font-size:20px;padding:6px 36px;margin-top:12px}
+#tm-range button.btn.primary{background:#d9a21b;border-color:#FFD25A;color:#1b1410;font-size:20px;padding:6px 36px}
+#tm-range footer{flex:none;display:flex;align-items:center;gap:10px;padding:6px 12px;border-top:1px solid #5a4632;background:#2b211a}
+#tm-range footer .pick{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #tm-range .row,#tm-range-bar .row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 #tm-range table{border-collapse:collapse;width:100%;font-size:13px;margin-top:6px}
 #tm-range th,#tm-range td{border-bottom:1px solid #3a2e24;padding:3px 4px;text-align:left;vertical-align:top}
@@ -56,10 +58,9 @@ const CSS = `
 #tm-range-bar button.btn{min-height:40px;font-size:13px;padding:2px 8px}
 @media (max-height:500px){#tm-range{font-size:14px}#tm-range h1{font-size:17px}#tm-range header{padding:2px 10px}
   #tm-range h3{margin:4px 0 2px}#tm-range button.btn{min-height:40px;padding:2px 8px}
-  #tm-range button.btn.primary{font-size:17px;margin-top:6px}#tm-range-bar{font-size:11.5px;padding:4px 6px}
+  #tm-range button.btn.primary{font-size:17px}#tm-range footer{padding:3px 10px}#tm-range-bar{font-size:11.5px;padding:4px 6px}
   #tm-range-bar button.btn{min-height:36px}#tm-range-bar .note{display:none}
   #tm-range-bar .lines{margin:1px 0 2px}}
-#tm-range .choices button.btn.primary{position:sticky;bottom:6px;box-shadow:0 2px 10px rgba(0,0,0,.6)}
 `;
 
 function el<K extends keyof HTMLElementTagNameMap>(
@@ -244,7 +245,6 @@ export class RangeSetupPanel {
       this.chips<RangeTarget>('target', RANGE_TARGETS, c.target, targetName, (target) => {
         this.set({ ...this.choice, target });
       }),
-      start,
     );
     const stats = el(
       'div',
@@ -276,6 +276,17 @@ export class RangeSetupPanel {
         }),
       ),
       el('div', { className: 'cols' }, choices, stats),
+      // Start lives in a footer outside the scrolling area: always on screen, never over a choice.
+      el(
+        'footer',
+        {},
+        start,
+        el('span', {
+          className: 'muted pick',
+          dataset: { role: 'pick' },
+          textContent: `${gun === undefined ? c.gun : gunName(gun)} · ${biomeName(this.content, c.biome)} · ${distName(c.plane)} · ${targetName(c.target)}`,
+        }),
+      ),
     );
   }
 
