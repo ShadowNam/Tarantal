@@ -69,6 +69,8 @@
   "start.title": "Tippen zum Jagen",
   "start.hint_touch": "Tippen: schießen · Ziehen: umschauen · Nach unten wischen oder Patronen tippen: nachladen · Horn-Taste: Vuvuzela · Schieß auf Kisten und komische Dinge auf der Farm",
   "start.hint_mouse": "Klick: schießen · Rechtsklick oder Leertaste: nachladen · Q: Vuvuzela · A/D oder Bildschirmrand: umschauen · Schieß auf Kisten und komische Dinge auf der Farm",
+  "start.hint_rifle_touch": "Halten: zielen, loslassen: schießen · Auf die Patronen ziehen: abbrechen · Nach unten wischen oder Patronen tippen: nachladen · Bildschirmrand: umschauen · Horn-Taste: Vuvuzela",
+  "start.hint_rifle_mouse": "Halten: zielen, loslassen: schießen · Rechtsklick beim Zielen: abbrechen · Rechtsklick oder Leertaste: nachladen · Q: Vuvuzela · A/D oder Bildschirmrand: umschauen",
   "hud.reload": "LADEN!",
   "hud.frenzy": "Rausch",
   "hud.stampede": "STAMPEDE ×2",

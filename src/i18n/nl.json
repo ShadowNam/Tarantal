@@ -69,6 +69,8 @@
   "start.title": "Tik om te jagen",
   "start.hint_touch": "Tik om te schieten · Sleep om rond te kijken · Veeg omlaag of tik op de hulzen om te herladen · Hoornknop: Vuvuzela · Schiet op kratten en rare dingen op de boerderij",
   "start.hint_mouse": "Klik om te schieten · Rechtsklik of Spatie om te herladen · Q: Vuvuzela · A/D of schermranden om rond te kijken · Schiet op kratten en rare dingen op de boerderij",
+  "start.hint_rifle_touch": "Vasthouden om te richten, loslaten om te schieten · Schuif naar de hulzen om te annuleren · Veeg omlaag of tik op de hulzen om te herladen · Schermranden om rond te kijken · Hoornknop: Vuvuzela",
+  "start.hint_rifle_mouse": "Ingedrukt houden om te richten, loslaten om te schieten · Rechtsklik tijdens het richten om te annuleren · Rechtsklik of Spatie om te herladen · Q: Vuvuzela · A/D of schermranden om rond te kijken",
   "hud.reload": "HERLADEN!",
   "hud.frenzy": "Razernij",
   "hud.stampede": "STORMLOOP ×2",

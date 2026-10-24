@@ -69,6 +69,8 @@
   "start.title": "Tik om te jag",
   "start.hint_touch": "Tik om te skiet · Sleep om rond te kyk · Swiep af of tik die patrone om te herlaai · Toeter-knoppie: Vuvuzela · Skiet kratte en vreemde goed op die plaas",
   "start.hint_mouse": "Klik om te skiet · Regsklik of Spasie om te herlaai · Q: Vuvuzela · A/D of skermrande om rond te kyk · Skiet kratte en vreemde goed op die plaas",
+  "start.hint_rifle_touch": "Hou vas om te mik, los om te skiet · Gly na die patrone om te kanselleer · Swiep af of tik die patrone om te herlaai · Skermrande om rond te kyk · Toeter-knoppie: Vuvuzela",
+  "start.hint_rifle_mouse": "Hou in om te mik, los om te skiet · Regsklik terwyl jy mik om te kanselleer · Regsklik of Spasie om te herlaai · Q: Vuvuzela · A/D of skermrande om rond te kyk",
   "hud.reload": "LAAI!",
   "hud.frenzy": "Waansin",
   "hud.stampede": "STORMLOOP ×2",

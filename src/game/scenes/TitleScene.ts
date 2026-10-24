@@ -321,7 +321,16 @@ export class TitleScene extends Phaser.Scene {
         .text(
           width / 2,
           height - safe.bottom - 40,
-          t(this.ctx.coarsePointer ? 'start.hint_touch' : 'start.hint_mouse'),
+          // v1.3: with a rifle as the Classic gun, how to hold, fire and cancel the sight.
+          t(
+            gunSight !== undefined
+              ? this.ctx.coarsePointer
+                ? 'start.hint_rifle_touch'
+                : 'start.hint_rifle_mouse'
+              : this.ctx.coarsePointer
+                ? 'start.hint_touch'
+                : 'start.hint_mouse',
+          ),
           { ...textStyle(26), stroke: '#1B1410', strokeThickness: 5 },
         )
         .setOrigin(0.5);
