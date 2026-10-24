@@ -42,6 +42,8 @@ async function tapNest(page: Page, touch: boolean): Promise<boolean> {
 
 /** Pans left until the nest is on screen. */
 async function nestInView(page: Page): Promise<void> {
+  // The biome's art loads lazily: wait for the hunt to be running before panning.
+  await page.waitForFunction(() => (window.__TM__?.tick ?? 0) > 30, null, { timeout: 120_000 });
   await page.keyboard.down('ArrowLeft');
   await page.waitForFunction(
     () => {
@@ -49,7 +51,8 @@ async function nestInView(page: Page): Promise<void> {
       return (
         g?.secretSpots.some(
           (s) => s.partId === 'nest' && s.x > 200 && s.x < g.designWidth - 200,
-        ) === true || (g?.cameraX ?? 9999) <= 961
+        ) === true ||
+        (g !== undefined && g.cameraX > 0 && g.cameraX <= 961)
       );
     },
     null,
@@ -58,31 +61,39 @@ async function nestInView(page: Page): Promise<void> {
   await page.keyboard.up('ArrowLeft');
 }
 
-test('Kalahari: the family nest gives −10 and its weavers come out and settle back', async ({
-  page,
-}, info) => {
-  test.skip(!isLandscape(info), 'portrait shows the rotate card');
-  test.setTimeout(400_000);
-  const touch = isTouchProject(info);
-  const errors = collectErrors(page);
-  await boot(page, 'biome=kalahari-summer&seed=42&huntSeconds=60');
-  await startHunt(page, touch);
-  await nestInView(page);
-  const before = await hook(page);
-  expect(before.missingTextures).toEqual([]);
-  expect(await tapNest(page, touch), 'the nest is on screen').toBe(true);
-  await page.waitForFunction(() => (window.__TM__?.weaverBursts ?? 0) >= 1, null, {
-    timeout: 60_000,
+// The Kalahari nest is on the mid plane (a smaller burst), Namibië's on the near plane (8–15).
+for (const [biome, atLeast] of [
+  ['kalahari-summer', 4],
+  ['namibie', 7],
+] as const) {
+  test(`${biome}: the family nest gives −10 and its weavers come out and settle back`, async ({
+    page,
+  }, info) => {
+    test.skip(!isLandscape(info), 'portrait shows the rotate card');
+    test.setTimeout(400_000);
+    const touch = isTouchProject(info);
+    const errors = collectErrors(page);
+    await boot(page, `biome=${biome}&seed=42&huntSeconds=60`);
+    await startHunt(page, touch);
+    await nestInView(page);
+    const before = await hook(page);
+    expect(before.missingTextures).toEqual([]);
+    expect(await tapNest(page, touch), 'the nest is on screen').toBe(true);
+    await page.waitForFunction(() => (window.__TM__?.weaverBursts ?? 0) >= 1, null, {
+      timeout: 60_000,
+    });
+    const hitTick = (await hook(page)).tick;
+    await page.waitForFunction((n) => (window.__TM__?.weavers ?? 0) >= n, atLeast, {
+      timeout: 60_000,
+    });
+    const out = await hook(page);
+    expect(out.score).toBe(before.score - 10);
+    await page.screenshot({ path: `${SCREENSHOTS}/weavers-out-${biome}-${info.project.name}.png` });
+    // ~3–4 s later (sim time) they are all back in their holes.
+    await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) >= t + 60 * 4.5, hitTick, {
+      timeout: 300_000,
+    });
+    await page.waitForFunction(() => window.__TM__?.weavers === 0, null, { timeout: 30_000 });
+    expect(errors).toEqual([]);
   });
-  const hitTick = (await hook(page)).tick;
-  await page.waitForFunction(() => (window.__TM__?.weavers ?? 0) >= 4, null, { timeout: 60_000 });
-  const out = await hook(page);
-  expect(out.score).toBe(before.score - 10);
-  await page.screenshot({ path: `${SCREENSHOTS}/weavers-out-${info.project.name}.png` });
-  // ~3–4 s later (sim time) they are all back in their holes.
-  await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) >= t + 60 * 4.5, hitTick, {
-    timeout: 300_000,
-  });
-  await page.waitForFunction(() => window.__TM__?.weavers === 0, null, { timeout: 30_000 });
-  expect(errors).toEqual([]);
-});
+}
