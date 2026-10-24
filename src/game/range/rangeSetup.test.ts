@@ -40,6 +40,7 @@ describe('range guns', () => {
       'twee_twee:iron',
       'twee_twee:peep',
       'twee_twee:scope_small',
+      'langloop:scope_var',
       'voorlaaier',
       'mielie_masjien',
     ]);
@@ -48,7 +49,9 @@ describe('range guns', () => {
   it('only rifles reach Ver; every gun reaches near, middle and far', () => {
     for (const g of rangeGuns(content)) {
       for (const p of RANGE_PLANES)
-        expect(reaches(g, p), `${g.id} ${p}`).toBe(p !== 'ver' || g.weapon === 'twee_twee');
+        expect(reaches(g, p), `${g.id} ${p}`).toBe(
+          p !== 'ver' || g.weapon === 'twee_twee' || g.weapon === 'langloop',
+        );
     }
   });
 

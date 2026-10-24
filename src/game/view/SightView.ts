@@ -17,7 +17,7 @@ import {
 } from '../placeholder/sightArt';
 import type { ZoomState } from './zoomView';
 
-export type SightPicture = 'iron' | 'peep' | 'scope';
+export type SightPicture = 'iron' | 'peep' | 'scope' | 'scope_range';
 
 const hex = (c: string): number => Number.parseInt(c.slice(1), 16);
 
@@ -82,6 +82,24 @@ export class SightView {
     const thin = 2;
     const thick = 9;
     const inner = r * 0.42;
+    if (picture === 'scope_range') {
+      // v1.4 (D-038) Langloop: a fine cross with range marks below the centre for holding over
+      // (longer marks every other step), and thin posts toward the edge.
+      const step = r * 0.09;
+      ret.add([
+        this.scene.add.rectangle(0, 0, r * 2, thin * 0.75, ink),
+        this.scene.add.rectangle(0, 0, thin * 0.75, r * 2, ink),
+        this.scene.add.rectangle(-(inner + r) / 2, 0, r - inner, thick * 0.5, ink),
+        this.scene.add.rectangle((inner + r) / 2, 0, r - inner, thick * 0.5, ink),
+        this.scene.add.rectangle(0, -(inner + r) / 2, thick * 0.5, r - inner, ink),
+      ]);
+      for (let i = 1; i <= 4; i++)
+        ret.add(this.scene.add.rectangle(0, i * step, i % 2 === 0 ? 34 : 20, thin, ink));
+      this.reticle = add(ret);
+      this.ring = image(TEX.sightScope, SIGHT_SCALE.scope);
+      fill(SCOPE_DARK);
+      return;
+    }
     ret.add([
       this.scene.add.rectangle(0, 0, inner * 2, thin, ink),
       this.scene.add.rectangle(0, 0, thin, inner * 2, ink),
@@ -154,7 +172,8 @@ export class SightView {
   /** Radius (design px) of the clear view in the middle (peep and scope), or null (iron). */
   clearRadius(): number | null {
     if (this.picture === 'peep') return PEEP_CLEAR_R * SIGHT_SCALE.peep;
-    if (this.picture === 'scope') return SCOPE_GLASS_R * SIGHT_SCALE.scope;
+    if (this.picture === 'scope' || this.picture === 'scope_range')
+      return SCOPE_GLASS_R * SIGHT_SCALE.scope;
     return null;
   }
 }

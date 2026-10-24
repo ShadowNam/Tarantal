@@ -25,7 +25,7 @@ export function isScope(
   content: Pick<ContentBundle, 'weapons'>,
   sight: string | undefined,
 ): boolean {
-  return content.weapons.sights.find((s) => s.id === sight)?.picture === 'scope';
+  return content.weapons.sights.find((s) => s.id === sight)?.picture.startsWith('scope') === true;
 }
 
 /** v1.3 (D-036): whether a bonus map can start with this sight (Die Verste needs a scope). */
