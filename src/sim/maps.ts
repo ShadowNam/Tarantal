@@ -5,7 +5,7 @@
 // link is all a client needs. No layout (replays before v1.2, Season Run, FTUE) = the biome as
 // it is.
 import type { Biome, BonusMap, Layout } from '../content/schemas';
-import type { PlaneId } from './types';
+import { PLANES, type PlaneId } from './types';
 
 /** How the map sets the biome weather against the mode's default. */
 export type MapWeather = 'calm' | 'default' | 'omen';
@@ -19,6 +19,8 @@ export interface ResolvedMap {
   readonly weather: MapWeather;
   /** Multiplies every bird's base points (1 = unchanged). */
   readonly pointsMul: number;
+  /** v1.4 B: per-plane points multipliers (the layout's × the bonus map's); absent = 1. */
+  readonly planePointsMul: Readonly<Partial<Record<PlaneId, number>>>;
   /** v1.3 (D-036): the map opens the Ver plane (its layer is in `biome.layers`). */
   readonly ver: boolean;
 }
@@ -145,6 +147,7 @@ export function resolveMap(
       bonus: null,
       weather: 'default',
       pointsMul: 1,
+      planePointsMul: {},
       ver: openVer && hasVer,
     };
   }
@@ -166,7 +169,21 @@ export function resolveMap(
     weather:
       bonusWeather !== undefined && bonusWeather !== 'default' ? bonusWeather : layout.weather,
     pointsMul: (layout.pointsMul ?? 1) * (bonus?.pointsMul ?? 1),
+    planePointsMul: combinePlaneMul(layout.planePointsMul, bonus?.planePointsMul),
   };
+}
+
+/** Per-plane multipliers of a layout and a bonus map, multiplied together. */
+function combinePlaneMul(
+  a: Readonly<Partial<Record<PlaneId, number | undefined>>> | undefined,
+  b: Readonly<Partial<Record<PlaneId, number | undefined>>> | undefined,
+): Partial<Record<PlaneId, number>> {
+  const out: Partial<Record<PlaneId, number>> = {};
+  for (const p of PLANES) {
+    const v = (a?.[p] ?? 1) * (b?.[p] ?? 1);
+    if (v !== 1) out[p] = v;
+  }
+  return out;
 }
 
 /** Light preset ids of a map, drawn in order (the layout's, then the bonus map's). */

@@ -360,10 +360,13 @@ export function createSim(config: SimConfig): Sim {
         null);
   if (rangeCfg?.crate !== undefined && rangeCrate === null)
     throw new Error(`${rangeCfg.crate} is not a crate weapon`);
-  const { pointsMul } = setup.map;
-  /** v1.2: the map's points multiplier on a bird's base points (dusk: fewer birds, worth more). */
-  const mapPoints = (base: number): number =>
-    pointsMul === 1 ? base : Math.round(base * pointsMul);
+  const { pointsMul, planePointsMul } = setup.map;
+  /** v1.2: the map's points multiplier on a bird's base points (dusk: fewer birds, worth more);
+   *  v1.4 B: times the map's multiplier for the bird's plane. */
+  const mapPoints = (base: number, plane: PlaneId): number => {
+    const k = pointsMul * (planePointsMul[plane] ?? 1);
+    return k === 1 ? base : Math.round(base * k);
+  };
   /** Pacing and the event schedule use the hunt's original length; bonus time only moves the
    *  end and the Stampede (D-021). */
   const baseDurationTicks = secondsToTicks(setup.huntSeconds);
@@ -1571,7 +1574,7 @@ export function createSim(config: SimConfig): Sim {
       if (!ranged) {
         const s = scoreBag(
           {
-            base: mapPoints(c.baseOverride ?? scoring.planes[bird.plane].base),
+            base: mapPoints(c.baseOverride ?? scoring.planes[bird.plane].base, bird.plane),
             behaviourAdd: scoring.behaviourAdd[behaviour],
             weaponScoreMul: shot.scoreMul[bird.plane] ?? shot.scoreMul.all ?? 1,
             frenzyMul: fMul,

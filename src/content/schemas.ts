@@ -802,6 +802,9 @@ const mapOverrideShape = {
   flushAsRunChance: fraction.optional(),
   /** Multiplies every bird's base points (rounded), e.g. dusk: fewer birds, worth more. */
   pointsMul: pos.optional(),
+  /** v1.4 B (D-039): multiplies the base points of birds on these planes, on top of pointsMul
+   *  (Namibië's weekday waterhole: Ver birds are plentiful there, so each is worth less). */
+  planePointsMul: somePlanes(pos).optional(),
   /** v1.3 (D-036): this map opens the Ver plane (the biome's `ver` layer and lanes). Maps
    *  without it play as before: the Ver layer is left out of the map entirely. */
   ver: z.boolean().optional(),
