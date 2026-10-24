@@ -154,8 +154,8 @@ test.describe('long range (v1.3)', () => {
     ) as GoldenReplay[];
     await boot(page, `today=${TODAY}`);
     for (const name of [
-      'classic-71-karoo-nogverder-tweetwee-scope-competent-pointer',
-      'classic-72-karoo-dieverste-tweetwee-iron-aim-touch',
+      'classic-71-karoo-nogverder-tweetwee-iron-competent-pointer',
+      'classic-72-karoo-dieverste-tweetwee-scope-aim-touch',
     ]) {
       const g = goldens.find((x) => x.name === name);
       if (g === undefined) throw new Error(name);
@@ -166,6 +166,50 @@ test.describe('long range (v1.3)', () => {
         score: g.expected.score,
       });
     }
+  });
+
+  test('Die Verste needs a scope: locked with iron sights, open with the scope', async ({
+    page,
+  }, info) => {
+    gate(info);
+    test.setTimeout(120_000);
+    const touch = isTouchProject(info);
+    const errors = collectErrors(page);
+    await rifleSave(page, 'iron');
+    await boot(page, `today=${TODAY}`);
+    await page.waitForFunction(() => window.__TM__?.rects['dieVerste_locked'] !== undefined, null, {
+      timeout: 60_000,
+    });
+    let h = await hook(page);
+    expect(h.bonusOpen).toEqual(['verder', 'nogVerder']);
+    expect(h.bonusNeedsScope).toEqual(['dieVerste']);
+    if (PREVIEW) {
+      const dir = join(ROOT, 'docs', 'art-preview', 'compare');
+      mkdirSync(dir, { recursive: true });
+      await page.screenshot({
+        path: join(dir, `v1.3-die-verste-locked-${info.project.name}.png`),
+      });
+    }
+    // A tap on the locked button starts nothing.
+    await tapRect(page, touch, 'dieVerste_locked');
+    await page.waitForTimeout(1500);
+    h = await hook(page);
+    expect(h.scene).not.toBe('hunt');
+    expect(errors).toEqual([]);
+  });
+
+  test('Die Verste opens with a scope fitted', async ({ page }, info) => {
+    gate(info);
+    test.skip(PREVIEW, 'previews run on their own');
+    test.setTimeout(120_000);
+    await rifleSave(page, 'scope_small');
+    await boot(page, `today=${TODAY}`);
+    await page.waitForFunction(() => window.__TM__?.rects['dieVerste'] !== undefined, null, {
+      timeout: 60_000,
+    });
+    const h = await hook(page);
+    expect(h.bonusOpen).toEqual(['verder', 'nogVerder', 'dieVerste']);
+    expect(h.bonusNeedsScope).toEqual([]);
   });
 
   test('a scoped hunt: the sight zooms on a press, and its replay matches Node', async ({

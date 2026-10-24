@@ -17,7 +17,7 @@ import { TierFilters } from '../quality/TierFilters';
 import type { Challenge } from '../../meta/challenge';
 import { createHuntLogger, type HuntLogger } from '../../meta/huntLog';
 import { createShareLogger, type ShareLogger } from '../../meta/share';
-import { applyHunt, fittedSight, isWeaponEquippable, type HuntOutcome } from '../../meta/progress';
+import { applyHunt, huntSight, isWeaponEquippable, type HuntOutcome } from '../../meta/progress';
 import { msToTicks } from '../../sim/clock';
 import type { SimEvent } from '../../sim/events';
 import { createRecorder, encodeInputLogText, type InputRecorder } from '../../sim/replay/inputLog';
@@ -45,7 +45,7 @@ import { WorldView } from '../view/WorldView';
 import { textureBytes } from '../assets/textureBytes';
 import { mapLights, mapOmen, resolveMap, type ResolvedMap } from '../../sim/maps';
 import { layoutForDay } from '../../meta/maps';
-import { applyBonusResult, bonusSlug, isUnlocked } from '../../meta/bonusMaps';
+import { applyBonusResult, bonusAllowsSight, bonusSlug, isUnlocked } from '../../meta/bonusMaps';
 import { formatScore } from '../ui/format';
 import type { HudScene } from './HudScene';
 import type { PauseData } from './PauseScene';
@@ -455,13 +455,7 @@ export class HuntScene extends Phaser.Scene {
       mode.weapon ??
       (mode.id === 'seasonHunt' ? undefined : this.ctx.content.modes.modes[mode.id].weapon);
     if (gun === undefined) return mode;
-    const def = this.ctx.content.weapons.weapons.find((w) => w.id === gun);
-    if (def?.kind !== 'primary' || def.aim === undefined) return mode;
-    const override = this.ctx.sightOverride;
-    const sight =
-      override !== undefined && def.aim.sights.includes(override)
-        ? override
-        : fittedSight(gun, this.ctx.save.data, this.ctx.content);
+    const sight = huntSight(gun, this.ctx.save.data, this.ctx.content, this.ctx.sightOverride);
     return sight === undefined ? mode : { ...mode, sight };
   }
 
@@ -717,7 +711,14 @@ export class HuntScene extends Phaser.Scene {
       bonus !== undefined &&
       modeId === 'classic' &&
       challenge === null &&
-      isUnlocked(save.bonusMaps, this.huntDay, this.ctx.biome.id, bonus);
+      isUnlocked(save.bonusMaps, this.huntDay, this.ctx.biome.id, bonus) &&
+      // v1.3 (D-036): Die Verste starts only with a scope fitted (the title button says so).
+      bonusAllowsSight(
+        this.ctx.content,
+        this.ctx.biome.id,
+        bonus,
+        this.withSight({ id: 'classic', ...(weapon === undefined ? {} : { weapon }) }).sight,
+      );
     const extra = {
       ...(bonusOpen ? { bonus } : {}),
       ...(this.ctx.huntSeconds === undefined ? {} : { huntSeconds: this.ctx.huntSeconds }),

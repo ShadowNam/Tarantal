@@ -1,7 +1,16 @@
 // v1.2 (D-033): Verder unlock, UTC-midnight reset and its own best.
 import { describe, expect, it } from 'vitest';
 import { loadContent } from '../../tools/testContent';
-import { applyBonusResult, isUnlocked, mapQuota, nextBonus, unlocksOn } from './bonusMaps';
+import {
+  applyBonusResult,
+  bonusAllowsSight,
+  bonusSlug,
+  isScope,
+  isUnlocked,
+  mapQuota,
+  nextBonus,
+  unlocksOn,
+} from './bonusMaps';
 import { dayNumber } from './dailyCalendar';
 import { layoutForDay } from './maps';
 import { defaultSave } from './saveSchema';
@@ -120,5 +129,27 @@ describe('bonus maps (v1.2)', () => {
     const b = applyBonusResult(a.save, on('dieVerste', quota + 5), mon, mon, content, KAROO);
     expect(b.unlocked).toBeNull();
     expect(b.save.bests['karoo-autumn/dieVerste']?.score).toBe(quota + 5);
+  });
+});
+
+describe('bonus maps and sights (v1.3, D-036)', () => {
+  it('Die Verste starts only with a scope fitted, on every biome that has it', () => {
+    expect(isScope(content, 'scope_small')).toBe(true);
+    expect(isScope(content, 'iron')).toBe(false);
+    expect(isScope(content, undefined)).toBe(false);
+    for (const b of content.biomes) {
+      if (!b.bonusMaps.some((m) => m.id === 'dieVerste')) continue;
+      expect(bonusAllowsSight(content, b.id, 'dieVerste', 'scope_small'), b.id).toBe(true);
+      expect(bonusAllowsSight(content, b.id, 'dieVerste', 'peep'), b.id).toBe(false);
+      expect(bonusAllowsSight(content, b.id, 'dieVerste', undefined), b.id).toBe(false);
+      expect(bonusAllowsSight(content, b.id, 'nogVerder', undefined), b.id).toBe(true);
+      expect(bonusAllowsSight(content, b.id, 'verder', undefined), b.id).toBe(true);
+    }
+  });
+
+  it('i18n slugs: camelCase ids become snake_case keys', () => {
+    expect(bonusSlug('verder')).toBe('verder');
+    expect(bonusSlug('nogVerder')).toBe('nog_verder');
+    expect(bonusSlug('dieVerste')).toBe('die_verste');
   });
 });

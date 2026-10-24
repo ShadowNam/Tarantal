@@ -159,6 +159,8 @@ export interface TestHook {
   verder: boolean;
   /** v1.3: the bonus maps the title offers today (verder, nogVerder, dieVerste). */
   bonusOpen: string[];
+  /** v1.3: unlocked bonus maps the title shows locked because the gun has no scope fitted. */
+  bonusNeedsScope: string[];
   /** v1.3: the Skiet-Skuur's sight row (the last rifle drawn) and its fitted sight. */
   shedSights?: { weapon: string; fitted: string | null };
   verderUnlocked: string | null;

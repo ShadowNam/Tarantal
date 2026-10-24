@@ -20,6 +20,25 @@ export function bonusSlug(id: string): string {
   return id.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);
 }
 
+/** v1.3 (D-036): whether a sight is a scope (it draws the scope picture). */
+export function isScope(
+  content: Pick<ContentBundle, 'weapons'>,
+  sight: string | undefined,
+): boolean {
+  return content.weapons.sights.find((s) => s.id === sight)?.picture === 'scope';
+}
+
+/** v1.3 (D-036): whether a bonus map can start with this sight (Die Verste needs a scope). */
+export function bonusAllowsSight(
+  content: Pick<ContentBundle, 'weapons' | 'biomes'>,
+  biome: string,
+  bonus: string,
+  sight: string | undefined,
+): boolean {
+  const map = content.biomes.find((b) => b.id === biome)?.bonusMaps.find((m) => m.id === bonus);
+  return map?.needsScope !== true || isScope(content, sight);
+}
+
 /** Save key of a biome's bonus map ("karoo-autumn/verder"). */
 export const bonusKey = (biome: string, bonus: string): string => `${biome}/${bonus}`;
 

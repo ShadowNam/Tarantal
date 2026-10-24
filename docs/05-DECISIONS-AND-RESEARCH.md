@@ -1743,10 +1743,14 @@ fits a sight per rifle (save `loadout.sights`, `unlocks.sights`, defaults for ol
 hunt carries it (`ModeConfig.sight`), challenge links lend it (`s`), the admin page can pick any
 sight that fits.
 (11) *Nog Verder and Die Verste:* in every biome, after Verder in the unlock chain, both with
-`ver: true` (table in GDD §11.5). Defaulted: Die Verste does not require a scoped rifle (the
-proposal says "needs a scoped rifle"; enforcing it would lock out a player who unlocks it before
-the .22's scope — a shotgun can still play its far flock, it simply scores less). The title shows
-one button per bonus map open today.
+`ver: true` (table in GDD §11.5). **Die Verste needs a scoped rifle** (as the proposal says;
+review of v1.3 reversed the first default, which let any gun in): the map has `needsScope: true`
+and starts only when the Classic gun carries a sight whose picture is `scope` (the Skiet-Skuur
+fit, or the admin page's). Otherwise the title shows its button greyed out with "Needs a rifle
+with a scope" inside it (`title.needs_scope`, four languages) and a tap does nothing; the hunt
+start checks the same rule. A player can unlock Die Verste before the scope (Bosveldjagter): the
+unlock still lasts the day, and the button says what is missing. The title shows one button per
+bonus map open today.
 (12) *Bots:* `tools/rifleBot.ts` wraps every bot: with a rifle in hand a wanted shot becomes raise
 → track the nearest target's body (error σ ÷ zoom) → release (plinker and random as soon as the
 sight is up; competent and aim wait for the breath to settle on far and Ver targets and hold off

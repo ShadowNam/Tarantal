@@ -415,4 +415,62 @@ describe('content cross-references (v1.3, D-036)', () => {
     expect(text).toMatch(/Ver lane a fly-over weight/);
     expect(text).toMatch(/Ver feeding spot/);
   });
+
+  it('sight unlocks: a known rank, or a challenge that rewards that sight', () => {
+    const notaboek = loadNotaboek();
+    const badRank = checkCrossRefs(
+      parseOk(
+        (() => {
+          const c = clone();
+          const sights = asArr(asObj(c.files['weapons.json'])['sights']);
+          const scope = sights.find((x) => x['id'] === 'scope_small');
+          if (scope !== undefined) scope['unlock'] = { type: 'rank', id: 'no_such_rank' };
+          return c;
+        })(),
+      ),
+      { i18nKeys, notaboek },
+    ).errors.map((e) => e.message);
+    expect(badRank.join('\n')).toMatch(/sight "scope_small" unlocks at unknown rank/);
+    const missing = { ...notaboek, challenges: notaboek.challenges.filter((c) => c.id !== 'bag_10_ver') };
+    const noChallenge = checkCrossRefs(parseOk(raw), { i18nKeys, notaboek: missing }).errors;
+    expect(noChallenge.map((e) => e.message).join('\n')).toMatch(/sight "peep" unlock challenge "bag_10_ver"/);
+    const wrong = {
+      ...notaboek,
+      challenges: notaboek.challenges.map((c) =>
+        c.id === 'bag_10_ver' ? { ...c, reward: { type: 'sight' as const, id: 'scope_small' } } : c,
+      ),
+    };
+    const text = checkCrossRefs(parseOk(raw), { i18nKeys, notaboek: wrong })
+      .errors.map((e) => e.message)
+      .join('\n');
+    expect(text).toMatch(/challenge "bag_10_ver" must reward sight "peep"/);
+    expect(text).toMatch(/rewards sight "scope_small" but weapons.json does not unlock it/);
+  });
+
+  it('a sight reward names a real sight; the bonus filter only with bonusUnlocks', () => {
+    const notaboek = loadNotaboek();
+    const broken = {
+      ...notaboek,
+      challenges: notaboek.challenges.map((c) =>
+        c.id === 'bag_10_ver'
+          ? { ...c, reward: { type: 'sight' as const, id: 'telescope' }, bonus: 'verder' as const }
+          : c,
+      ),
+    };
+    const text = checkCrossRefs(parseOk(raw), { i18nKeys, notaboek: broken })
+      .errors.map((e) => e.message)
+      .join('\n');
+    expect(text).toMatch(/rewards unknown sight "telescope"/);
+    expect(text).toMatch(/bag_10_ver.*bonus filter only counts for metric bonusUnlocks/);
+  });
+
+  it('a map that needs a scope needs a rifle that fits one', () => {
+    const msgs = errorsOf((c) => {
+      for (const w of asArr(asObj(c.files['weapons.json'])['weapons'])) {
+        const aim = w['aim'];
+        if (aim !== undefined) asObj(aim)['sights'] = ['iron'];
+      }
+    });
+    expect(msgs.join('\n')).toMatch(/bonus map "dieVerste" needs a scope but no rifle/);
+  });
 });

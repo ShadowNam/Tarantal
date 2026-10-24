@@ -13,7 +13,8 @@ import { inputKindOf } from '../input/InputMapper';
 import type { InputKind } from '../../sim/types';
 import { formatScore } from '../ui/format';
 import { layoutForDay } from '../../meta/maps';
-import { bonusSlug, isUnlocked, mapQuota } from '../../meta/bonusMaps';
+import { bonusAllowsSight, bonusSlug, isUnlocked, mapQuota } from '../../meta/bonusMaps';
+import { huntSight, plainGun } from '../../meta/progress';
 import { BONUS_MAP_IDS } from '../../content/schemas';
 import { findLayout } from '../../sim/maps';
 import type { Rect } from '../ui/hudLayout';
@@ -167,6 +168,10 @@ export class TitleScene extends Phaser.Scene {
           isUnlocked(this.ctx.save.data.bonusMaps, this.ctx.today(), home, id),
       );
       const verderOpen = open.includes('verder');
+      const save = this.ctx.save.data;
+      const gun = plainGun(save, this.ctx.content, 'classic', this.ctx.weaponOverride);
+      const gunSight = huntSight(gun, save, this.ctx.content, this.ctx.sightOverride);
+      const scopeLocked: string[] = [];
       // Above the bottom row and the Daily status line over it (rowTop), whatever the safe area.
       const bonusW = open.length <= 1 ? 400 : Math.min(400, (width - 240) / open.length - 20);
       const y = Math.min(start.y + start.h + VERDER_BELOW_START, rowTop - VERDER_H);
@@ -177,6 +182,20 @@ export class TitleScene extends Phaser.Scene {
           w: bonusW,
           h: VERDER_H,
         };
+        // v1.3 (D-036): Die Verste needs a scope fitted — a grey button that says so instead.
+        if (!bonusAllowsSight(this.ctx.content, home, id, gunSight)) {
+          // The name on top, the reason under it, both inside the button (no room around it).
+          const { text } = drawButton(this, r, tOr(`title.${bonusSlug(id)}`, id), 'locked', 32);
+          text.setY(r.y + r.h * 0.34);
+          const why = this.add
+            .text(r.x + r.w / 2, r.y + r.h * 0.74, t('title.needs_scope'), textStyle(22, '#D9CBB0'))
+            .setOrigin(0.5);
+          fitText(why, r.w - 24);
+          scopeLocked.push(id);
+          // e2e: a tap on it must not start a hunt.
+          if (this.ctx.hook) this.ctx.hook.rects[`${id}_locked`] = r;
+          return;
+        }
         drawButton(this, r, tOr(`title.${bonusSlug(id)}`, id), 'selected', 40);
         items.push({
           id,
@@ -208,7 +227,8 @@ export class TitleScene extends Phaser.Scene {
           .setOrigin(0.5);
         fitText(locked, width - 240);
       }
-      if (this.ctx.hook) this.ctx.hook.bonusOpen = [...open];
+      if (this.ctx.hook) this.ctx.hook.bonusOpen = open.filter((id) => !scopeLocked.includes(id));
+      if (this.ctx.hook) this.ctx.hook.bonusNeedsScope = scopeLocked;
       if (this.ctx.hook) this.ctx.hook.verder = verderOpen;
       // Bottom row, left to right: Skiet-Skuur, Daily Hunt (M7), Season Run, Settings.
       const gap = 30;

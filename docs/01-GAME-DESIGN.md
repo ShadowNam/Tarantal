@@ -474,9 +474,10 @@ on the strip at the foot of the far ridge and a Ver fly-over lane.
 | Die Verste | 1 far + 2 Ver | 0 : 1 : 3 | ×0.1 / ×0.6 | ×0.65 | The most haze; a hot, pale horizon |
 
 Weather is on in all three (wind ×1.5 / ×1.6 / ×1.7 where there is wind). Shotguns struggle on Nog
-Verder (their pellets fall short of every Ver bird) and the Twee-Twee shines; Die Verste is built
-for a scoped rifle (not enforced: a shotgun can still play its far flock). The title shows one
-button per bonus map open today. Each keeps its own best and counts for rank titles.
+Verder (their pellets fall short of every Ver bird) and the Twee-Twee shines. **Die Verste needs
+a scoped rifle:** it starts only with a rifle that has a scope fitted in the Skiet-Skuur; until
+then its button is grey and says "Needs a rifle with a scope". The title shows one button per
+bonus map open today. Each keeps its own best and counts for rank titles.
 
 ## 12. Game modes
 

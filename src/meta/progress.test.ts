@@ -4,9 +4,11 @@ import type { HuntLog } from './huntLog';
 import {
   applyHunt,
   fittedSight,
+  huntSight,
   isSightUnlocked,
   isWeaponEquippable,
   isWeaponUnlocked,
+  plainGun,
 } from './progress';
 import { defaultSave, type SaveData } from './saveSchema';
 
@@ -199,6 +201,23 @@ describe('v1.3: the Twee-Twee and its sights (D-036)', () => {
       'scope_small',
     );
     expect(fittedSight('dubbelloop', save, content)).toBeUndefined();
+  });
+
+  it('Classic plays the loadout while it is equippable, else the mode gun; the admin gun wins', () => {
+    const classicGun = content.modes.modes.classic.weapon;
+    const locked = { ...defaultSave(), loadout: { weapon: 'twee_twee', sights: {} } };
+    expect(plainGun(locked, content, 'classic')).toBe(classicGun);
+    const owned = { ...locked, unlocks: { ...locked.unlocks, weapons: ['twee_twee'] } };
+    expect(plainGun(owned, content, 'classic')).toBe('twee_twee');
+    expect(plainGun(owned, content, 'classic', 'pomp')).toBe('pomp');
+  });
+
+  it('the admin sight wins when it fits the gun, else the fitted sight', () => {
+    const save = defaultSave();
+    expect(huntSight('twee_twee', save, content)).toBe('iron');
+    expect(huntSight('twee_twee', save, content, 'scope_small')).toBe('scope_small');
+    expect(huntSight('twee_twee', save, content, 'no_such_sight')).toBe('iron');
+    expect(huntSight('dubbelloop', save, content, 'scope_small')).toBeUndefined();
   });
 });
 

@@ -229,3 +229,35 @@ export function isWeaponEquippable(
 ): boolean {
   return isWeaponUnlocked(w, save, content) && w.kind === 'primary';
 }
+
+/**
+ * v1.3 (D-036): the gun a Classic or Daily hunt plays — the admin page's, else the Skiet-Skuur
+ * loadout while it is equippable, else the mode's own gun. The title reads it to tell whether a
+ * bonus map can start (Die Verste needs a scope).
+ */
+export function plainGun(
+  save: Pick<SaveData, 'unlocks' | 'bestRank' | 'loadout'>,
+  content: Pick<ContentBundle, 'scoring' | 'weapons' | 'modes'>,
+  mode: 'classic' | 'daily',
+  override?: string,
+): string {
+  if (override !== undefined) return override;
+  const loadout = content.weapons.weapons.find((w) => w.id === save.loadout.weapon);
+  return loadout !== undefined && isWeaponEquippable(loadout, save, content)
+    ? loadout.id
+    : content.modes.modes[mode].weapon;
+}
+
+/** v1.3: the sight a gun carries into a hunt — the admin page's if it fits, else the fitted one. */
+export function huntSight(
+  gun: string,
+  save: Pick<SaveData, 'unlocks' | 'bestRank' | 'loadout'>,
+  content: Pick<ContentBundle, 'scoring' | 'weapons'>,
+  override?: string,
+): string | undefined {
+  const def = content.weapons.weapons.find((w) => w.id === gun);
+  if (def?.kind !== 'primary' || def.aim === undefined) return undefined;
+  return override !== undefined && def.aim.sights.includes(override)
+    ? override
+    : fittedSight(gun, save, content);
+}

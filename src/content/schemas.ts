@@ -816,6 +816,9 @@ export const BonusMapSchema = obj({
   id: BonusMapIdSchema,
   nameKey: i18nKey,
   ...mapOverrideShape,
+  /** v1.3 (D-036): the map starts only with a rifle that has a scope fitted (a sight whose
+   *  picture is `scope`); the title's button says why otherwise. */
+  needsScope: z.boolean().optional(),
 });
 export type BonusMap = z.infer<typeof BonusMapSchema>;
 

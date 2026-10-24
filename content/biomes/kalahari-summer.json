@@ -629,6 +629,7 @@
     {
       "$comment": "v1.3 (D-036) Die Verste (the furthest): long range only. Mostly Ver birds — small dots unless you zoom in — and a far flock; a scoped rifle is the tool (not enforced: a shotgun can still play the far birds).",
       "id": "dieVerste",
+      "needsScope": true,
       "nameKey": "map.die_verste",
       "light": "verste_haze",
       "weather": "omen",
