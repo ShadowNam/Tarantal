@@ -39,6 +39,12 @@ export function bonusAllowsSight(
   return map?.needsScope !== true || isScope(content, sight);
 }
 
+/** v1.3: the i18n keys a bonus map's name, best line and unlock line use. */
+export function bonusKeys(id: string): { name: string; best: string; unlocked: string } {
+  const slug = bonusSlug(id);
+  return { name: `map.${slug}`, best: `title.${slug}_best`, unlocked: `tally.${slug}_unlocked` };
+}
+
 /** Save key of a biome's bonus map ("karoo-autumn/verder"). */
 export const bonusKey = (biome: string, bonus: string): string => `${biome}/${bonus}`;
 

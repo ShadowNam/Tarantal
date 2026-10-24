@@ -45,7 +45,13 @@ import { WorldView } from '../view/WorldView';
 import { textureBytes } from '../assets/textureBytes';
 import { mapLights, mapOmen, resolveMap, type ResolvedMap } from '../../sim/maps';
 import { layoutForDay } from '../../meta/maps';
-import { applyBonusResult, bonusAllowsSight, bonusSlug, isUnlocked } from '../../meta/bonusMaps';
+import {
+  applyBonusResult,
+  bonusAllowsSight,
+  bonusKeys,
+  bonusSlug,
+  isUnlocked,
+} from '../../meta/bonusMaps';
 import { formatScore } from '../ui/format';
 import type { HudScene } from './HudScene';
 import type { PauseData } from './PauseScene';
@@ -1339,9 +1345,11 @@ export class HuntScene extends Phaser.Scene {
       );
       unlocked = r.unlocked;
       if (r.unlocked !== null)
-        line = tOr(`tally.${bonusSlug(r.unlocked)}_unlocked`, t('tally.verder_unlocked'));
+        line = tOr(bonusKeys(r.unlocked).unlocked, t('tally.verder_unlocked'));
       else if (r.newBest !== null && result.bonus !== null)
-        line = fill(t('title.verder_best'), { score: formatScore(result.score) });
+        line = fill(tOr(bonusKeys(result.bonus).best, t('title.verder_best')), {
+          score: formatScore(result.score),
+        });
       if (this.ctx.hook) this.ctx.hook.verderUnlocked = r.unlocked;
       return { ...d, bonusMaps: r.save };
     });

@@ -2,6 +2,7 @@
 import type { ContentBundle } from '../../content/schemas';
 import { t, tOr } from '../../i18n/i18n';
 import type { AdminEntry, AdminOptions, EntryFacts } from '../../meta/admin';
+import { bonusSlug } from '../../meta/bonusMaps';
 
 function biomeName(content: ContentBundle, id: string | null): string {
   const b = content.biomes.find((x) => x.id === id);
@@ -18,7 +19,7 @@ export function entryLabel(e: AdminEntry, content: ContentBundle): string {
     )}`;
   const where =
     e.bonus !== null
-      ? tOr(`map.${e.bonus}`, e.bonus)
+      ? tOr(`map.${bonusSlug(e.bonus)}`, e.bonus)
       : e.layout === 'none' || e.layout === null
         ? t('admin.plain')
         : tOr(`map.day.${e.layout}`, e.layout);

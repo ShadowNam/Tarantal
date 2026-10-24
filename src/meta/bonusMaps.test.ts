@@ -1,9 +1,13 @@
 // v1.2 (D-033): Verder unlock, UTC-midnight reset and its own best.
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { BONUS_MAP_IDS } from '../content/schemas';
 import { loadContent } from '../../tools/testContent';
 import {
   applyBonusResult,
   bonusAllowsSight,
+  bonusKeys,
   bonusSlug,
   isScope,
   isUnlocked,
@@ -145,6 +149,18 @@ describe('bonus maps and sights (v1.3, D-036)', () => {
       expect(bonusAllowsSight(content, b.id, 'nogVerder', undefined), b.id).toBe(true);
       expect(bonusAllowsSight(content, b.id, 'verder', undefined), b.id).toBe(true);
     }
+  });
+
+  it('every bonus map has its name, best and unlock lines in all four languages', () => {
+    for (const lang of ['en', 'af', 'de', 'nl'] as const) {
+      const strings = JSON.parse(
+        readFileSync(join(import.meta.dirname, '..', 'i18n', `${lang}.json`), 'utf8'),
+      ) as Record<string, string>;
+      for (const id of BONUS_MAP_IDS)
+        for (const key of Object.values(bonusKeys(id)))
+          expect(strings[key], `${lang} ${key}`).toBeTypeOf('string');
+    }
+    expect(bonusKeys('nogVerder').best).toBe('title.nog_verder_best');
   });
 
   it('i18n slugs: camelCase ids become snake_case keys', () => {
