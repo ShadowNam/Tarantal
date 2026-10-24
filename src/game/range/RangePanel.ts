@@ -80,7 +80,7 @@ const CSS = `
   #tm-range-bar .lines{margin:1px 0 2px}
   #tm-range-bar:not(.open){max-width:min(300px,34vw)}
   #tm-range-bar:not(.open) b,#tm-range-bar:not(.open) .lines>div{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  #tm-range-bar:not(.open) .lines>div:not(:first-child),#tm-range-bar:not(.open) .full{display:none}
+  #tm-range-bar:not(.open) .lines>div:not(:first-child):not(.cell+div),#tm-range-bar:not(.open) .full{display:none}
   #tm-range-bar [data-action=more]{display:inline-block}}
 `;
 
@@ -472,8 +472,12 @@ export class RangeBar {
     const key = `${text.join('\n')}\n${String(note)}`;
     if (key === this.shown) return;
     this.shown = key;
+    // On the mixed course the first line names the cell; short screens keep it and the shots.
+    const labelled = mixed && cell !== null && cell.shots > 0;
     this.lines.replaceChildren(
-      ...text.map((l) => el('div', { textContent: l })),
+      ...text.map((l, i) =>
+        el('div', { textContent: l, ...(labelled && i === 0 ? { className: 'cell' } : {}) }),
+      ),
       ...(note === null ? [] : [el('div', { className: 'note muted', textContent: note })]),
     );
   }
