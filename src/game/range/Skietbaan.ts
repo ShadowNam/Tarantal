@@ -11,6 +11,8 @@ import type { RangeHookState } from '../GameContext';
 import { designSize } from '../layout';
 import { layoutForDay } from '../../meta/maps';
 import { PaperDraw } from './PaperDraw';
+import { PlateDraw } from './PlateDraw';
+import { loadRangeAssets, playRangeSound } from './rangeSounds';
 import { RangeBar, RangeSetupPanel } from './RangePanel';
 import type { RangeHost, RangeMenuHost, RangeSession } from './RangeSession';
 import { defaultChoice, isMixed, rangeGuns, rangeMode, type RangeChoice } from './rangeGuns';
@@ -103,6 +105,7 @@ class Session implements RangeSession {
   private host: RangeHost | null = null;
   private bar: RangeBar | null = null;
   private papers: PaperDraw[] = [];
+  private plates = new Map<number, PlateDraw>();
   private readonly sel: RangeSelection;
 
   constructor(
@@ -119,6 +122,7 @@ class Session implements RangeSession {
 
   attach(host: RangeHost): void {
     this.host = host;
+    void loadRangeAssets(host.scene.textures, host.audio);
     stats.newSession();
     const content = this.menu.content;
     this.bar = new RangeBar(content, {
@@ -150,12 +154,40 @@ class Session implements RangeSession {
     const content = this.menu.content;
     // The paper faces are drawn once their layer exists (the first frame after the views).
     const papers = state.range?.papers ?? [];
-    if (this.papers.length === 0 && papers.length > 0) {
+    if (this.papers.length + this.plates.size === 0 && papers.length > 0) {
       for (const p of papers) {
         const layer = host.overlay(p.plane);
-        if (layer !== null) this.papers.push(new PaperDraw(host.scene, layer, p));
+        if (layer === null) continue;
+        if (p.kind === 'plate') this.plates.set(p.id, new PlateDraw(host.scene, layer, p));
+        else this.papers.push(new PaperDraw(host.scene, layer, p));
       }
     }
+    // Steel plates swing and ring where the sim says a pellet struck (once per shot and plate).
+    let rung = '';
+    for (const e of events) {
+      if (e.type !== 'plateHit') continue;
+      const plate = this.plates.get(e.paperId);
+      const key = `${String(e.shotId)}:${String(e.paperId)}`;
+      if (plate === undefined || key === rung) continue;
+      rung = key;
+      plate.hit(e.x);
+      playRangeSound(host.audio, 'ding', this.pan(state, plate.plane, e.x));
+    }
+    // A paper target's thwack, a bird's hit (the plate rang above), once per shot and target.
+    for (const e of events) {
+      if (e.type !== 'rangeOutcome') continue;
+      for (const h of e.hits) {
+        if (h.target === 'plate') continue;
+        const at =
+          h.target === 'paper'
+            ? papers.find((p) => p.id === h.id)
+            : state.birds.find((b) => b.id === h.id);
+        const pan = at === undefined ? 0 : this.pan(state, h.plane, at.x);
+        playRangeSound(host.audio, h.target === 'paper' ? 'thwack' : 'hit', pan);
+      }
+    }
+    const dt = host.scene.game.loop.delta;
+    for (const p of this.plates.values()) p.update(dt);
     if (events.length > 0) stats.ingest(events, this.sel);
     const cell = this.shown();
     for (const p of this.papers) p.update(this.impactsOf(p.plane, p.kind));
@@ -217,6 +249,12 @@ class Session implements RangeSession {
     }
   }
 
+  /** Stereo pan of a plane point (−1 left … 1 right of the screen). */
+  private pan(state: SimState, plane: PlaneId, x: number): number {
+    const sf = this.menu.content.scoring.planes[plane].scrollFactor;
+    return planeToDx(state.cameraX, sf, x) / (designSize().width / 2);
+  }
+
   /** The single course's cell (null on the mixed course: its cells come with the shots). */
   private fixedCell(): RangeCell | null {
     const { plane, target } = this.sel;
@@ -245,6 +283,8 @@ class Session implements RangeSession {
     this.bar = null;
     for (const p of this.papers) p.destroy();
     this.papers = [];
+    for (const p of this.plates.values()) p.destroy();
+    this.plates.clear();
     this.host = null;
   }
 }

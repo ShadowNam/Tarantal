@@ -3,6 +3,7 @@
 // files referenced but missing, placeholder keys nothing uses. `--strict` (the launch gate) also
 // fails while any key is still a placeholder. Pure: the CLI (tools/asset-audit.ts) gathers the
 // inputs from disk.
+import { PLATE_TEX, RANGE_SOUNDS } from '../../src/game/range/rangeAssets';
 import type { AssetIndex, BirdClip } from '../../src/game/assets/assetIndex';
 import { clipFor, resolveClip } from '../../src/game/assets/birdClips';
 import type { BirdMotion, BirdPhase, PlaneId } from '../../src/sim/types';
@@ -44,7 +45,7 @@ export interface AuditInputs {
 }
 
 /** Files that define placeholders or the key tables: a mention there is not a use. */
-const DEFINITIONS = /^src\/game\/(placeholder\/|assets\/)/;
+const DEFINITIONS = /^src\/game\/(placeholder\/|assets\/|range\/rangeAssets\.ts$)/;
 
 function kb(bytes: number): string {
   return bytes >= 1024 * 1024
@@ -63,6 +64,11 @@ function usages(
   const quoted = (s: string): RegExp =>
     new RegExp(`['"\`]${s.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')}['"\`]`);
   if (texName !== undefined) needles.push(new RegExp(`\\bTEX\\.${texName}\\b`));
+  // 24 Oct update (D-037): the Skietbaan's own keys (src/game/range/rangeAssets.ts), used when
+  // the range draws PLATE_TEX or plays the sound by its name.
+  const rangeSound = Object.entries(RANGE_SOUNDS).find(([, k]) => k === key)?.[0];
+  if (rangeSound !== undefined) needles.push(new RegExp(`playRangeSound\\([^)]*'${rangeSound}'`));
+  if (key === PLATE_TEX) needles.push(/\bPLATE_TEX\b/);
   if (kind === 'texture' && key.startsWith('gun/')) {
     // gunKey(weaponId): used when the weapon exists in content and something draws gunKey().
     needles.push(new RegExp(`"id":\\s*"${key.slice(4)}"`));

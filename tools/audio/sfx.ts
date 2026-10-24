@@ -472,6 +472,45 @@ const SFX: Readonly<Record<string, () => Buf>> = {
   sting: () => marimbaRun([67, 71, 74, 79], 0.07, 0.6),
   secret: () => marimbaRun([72, 76, 79, 84, 88], 0.08, 0.8),
   powerup: () => marimbaRun([76, 81, 88], 0.06, 0.45),
+  // --- 24 Oct update (D-037): the Skietbaan's hit sounds (group "range", lazy) -------------
+  range_thwack: () => {
+    // A pellet through stiff card on a wooden frame: a papery snap and a dull knock.
+    const out = buf(0.22, SR);
+    mix(out, click(41, 2400, 0.03, 2), 0, SR, 0.9);
+    mix(
+      out,
+      shape(osc('sine', glide(190, 120, 0.08), 0.12, SR), SR, ad(0.002, 0.03)),
+      0.004,
+      SR,
+      0.7,
+    );
+    return fadeEnds(normalise(out), SR);
+  },
+  range_ding: () => {
+    // A steel gong plate: a bright strike over long inharmonic partials.
+    const x = bar(880, 1.4, SR, [
+      [1, 1, 0.5],
+      [2.41, 0.55, 0.32],
+      [3.93, 0.35, 0.2],
+      [5.4, 0.2, 0.12],
+    ]);
+    mix(x, click(42, 4200, 0.015, 3), 0, SR, 0.5);
+    return fadeEnds(normalise(x), SR);
+  },
+  range_hit: () => {
+    // A pellet on feathers: a soft thump with a puff.
+    const r = rng(43);
+    const out = buf(0.2, SR);
+    mix(out, shape(osc('sine', glide(150, 70, 0.08), 0.12, SR), SR, ad(0.002, 0.035)), 0, SR, 0.9);
+    mix(
+      out,
+      shape(bandpass(noise(0.15, SR, r), SR, 1500, 1.4), SR, ad(0.004, 0.04)),
+      0.005,
+      SR,
+      0.5,
+    );
+    return fadeEnds(normalise(out), SR);
+  },
 };
 
 /** A quick marimba arpeggio (stingers). */

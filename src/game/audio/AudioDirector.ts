@@ -18,6 +18,9 @@ const MAX_PAN = 0.7;
 const MUSIC: ReadonlySet<SfxId> = new Set<SfxId>(['sting', 'stampede']);
 
 /** Why audio is muted; any reason mutes. */
+/** Plays a synthesised sound into `out` now; returns its length in seconds. */
+export type Synth = (ctx: AudioContext, out: AudioNode, noise: AudioBuffer) => number;
+
 export type MuteReason = 'pause' | 'ad' | 'menu' | 'portal';
 
 export interface Volumes {
@@ -436,14 +439,24 @@ export class AudioDirector {
   }
 
   private play(id: SfxId, pan: number): void {
+    this.voice(sfxKey(id), pan, MUSIC.has(id) ? this.musicBus : this.sfxBus, (ctx, out, noise) =>
+      playSfx(ctx, out, id, noise),
+    );
+  }
+
+  /** 24 Oct (D-037): a sound a lazy chunk brings (its recording once added, else its synth). */
+  playExtra(key: string, pan: number, synth: Synth): void {
+    this.voice(key, pan, this.sfxBus, synth);
+  }
+
+  private voice(key: string, pan: number, bus: GainNode | null, synth: Synth): void {
     const { ctx, noise } = this;
-    const bus = MUSIC.has(id) ? this.musicBus : this.sfxBus;
     if (ctx === null || bus === null || noise === null || this.voices >= MAX_VOICES) return;
     const panner = ctx.createStereoPanner();
     panner.pan.value = Math.max(-MAX_PAN, Math.min(MAX_PAN, pan * MAX_PAN));
     panner.connect(bus);
     this.voices++;
-    const buf = this.buffers.get(sfxKey(id));
+    const buf = this.buffers.get(key);
     let seconds: number;
     if (buf !== undefined) {
       const src = ctx.createBufferSource();
@@ -452,7 +465,7 @@ export class AudioDirector {
       src.start();
       seconds = buf.duration;
     } else {
-      seconds = playSfx(ctx, panner, id, noise);
+      seconds = synth(ctx, panner, noise);
     }
     this.env.setTimer(
       () => {

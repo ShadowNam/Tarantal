@@ -570,6 +570,19 @@
       "width": 512,
       "height": 256
     },
+    "range/plate": {
+      "group": "range",
+      "origin": "interim",
+      "file": {
+        "path": "assets/range/img/range_plate.fd9278f4eea3.png",
+        "bytes": 31297,
+        "hash": "fd9278f4eea3"
+      },
+      "width": 208,
+      "height": 242,
+      "originX": 0.5,
+      "originY": 0.01652892561983471
+    },
     "secret/mark": {
       "group": "common",
       "origin": "interim",
@@ -3423,6 +3436,60 @@
       },
       "loop": false,
       "lufs": -15.5,
+      "peakDb": -1
+    },
+    "sfx/range_ding": {
+      "group": "range",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/range/audio/sfx/range_ding.7bd8994e1bc2.ogg",
+        "bytes": 8942,
+        "hash": "7bd8994e1bc2"
+      },
+      "mp3": {
+        "path": "assets/range/audio/sfx/range_ding.7e0385de6a2f.mp3",
+        "bytes": 7648,
+        "hash": "7e0385de6a2f"
+      },
+      "loop": false,
+      "lufs": -16.5,
+      "peakDb": -1
+    },
+    "sfx/range_hit": {
+      "group": "range",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/range/audio/sfx/range_hit.01e6eab50e15.ogg",
+        "bytes": 5245,
+        "hash": "01e6eab50e15"
+      },
+      "mp3": {
+        "path": "assets/range/audio/sfx/range_hit.fba4d48a6296.mp3",
+        "bytes": 2451,
+        "hash": "fba4d48a6296"
+      },
+      "loop": false,
+      "lufs": -15.4,
+      "peakDb": -1
+    },
+    "sfx/range_thwack": {
+      "group": "range",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/range/audio/sfx/range_thwack.7a978d5e1281.ogg",
+        "bytes": 4583,
+        "hash": "7a978d5e1281"
+      },
+      "mp3": {
+        "path": "assets/range/audio/sfx/range_thwack.32ecf0e5751e.mp3",
+        "bytes": 1902,
+        "hash": "32ecf0e5751e"
+      },
+      "loop": false,
+      "lufs": -16.2,
       "peakDb": -1
     },
     "sfx/scratch": {

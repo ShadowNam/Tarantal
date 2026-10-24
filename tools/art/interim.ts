@@ -2,9 +2,10 @@
 // art-source/ exactly like a human delivery (docs/06), marked `"origin": "interim"` in each rig.json.
 // Then run `npm run assets:pack`. A folder whose rig.json is not marked interim is a human delivery
 // and is never touched.
-//   --only birds|guns|scenery|sprites|flyers
+//   --only birds|guns|scenery|sprites|flyers|range
 //                         one part (none: sheets only). scenery = parallax layers + props (D-031),
-//                         sprites = shared FX/UI/crate sprites, flyers = non-target birds
+//                         sprites = shared FX/UI/crate sprites, flyers = non-target birds,
+//                         range = the Skietbaan's steel plate (24 Oct update)
 //   --biome <id>          scenery for one biome
 //   --creature <id>       one bird
 //   --gun <id>            one gun
@@ -33,6 +34,8 @@ import { renderLayer, renderProp } from './landscape';
 import { renderSprite, SPRITES } from './sprites';
 import { AMMO_SPRITES } from './ammo';
 import { SIGHT_SPRITES } from './sights';
+import { RANGE_SPRITES } from './rangeArt';
+import { PLATE_ORIGIN, PLATE_TEX_SIZE } from '../../src/game/range/rangeAssets';
 import { biomeSheets, flyerSheet, spriteSheet } from './scenerySheets';
 import { FLYER_FRAMES, FLYER_GROUPS, FLYERS, renderFlyerFrame } from './flyers';
 
@@ -284,6 +287,22 @@ if (wants('sprites')) {
             ? { origin: 'interim' }
             : { origin: 'interim', encode: 'png8' },
       ),
+    );
+    console.log(`sprites/${spec.key}`);
+  }
+}
+if (wants('range')) {
+  // 24 Oct update (D-037): the Skietbaan's steel plate (group "range" from the catalog: lazy).
+  for (const spec of RANGE_SPRITES) {
+    const png = join(src, 'sprites', `${spec.key}.png`);
+    if (!oursFile(png)) {
+      console.warn(`skip sprites/${spec.key}: a human delivery is there`);
+      continue;
+    }
+    put(png, encodePng(renderSprite(cfg, spec, PLATE_TEX_SIZE, PLATE_ORIGIN)));
+    put(
+      png.replace(/\.png$/, '.json'),
+      await json({ origin: 'interim', originX: PLATE_ORIGIN.x, originY: PLATE_ORIGIN.y }),
     );
     console.log(`sprites/${spec.key}`);
   }

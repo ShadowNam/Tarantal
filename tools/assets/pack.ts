@@ -36,6 +36,7 @@ import {
   type FileRef,
   type GunEntry,
 } from '../../src/game/assets/assetIndex';
+import { RANGE_GROUP } from '../../src/game/range/rangeAssets';
 import type { ContentBundle } from '../../src/content/schemas';
 import type { ArtPlaneId as PlaneId } from '../../src/game/assets/artPlane';
 import type { Catalog } from './catalog';
@@ -677,8 +678,11 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
     let key: string | null = null;
     let kind: AudioKind = 'sfx';
     let group = COMMON_GROUP;
-    if (parts[0] === 'sfx' && parts.length === 2) key = `sfx/${parts[1]}`;
-    else if (parts[0] === 'voice' && parts.length === 2) {
+    if (parts[0] === 'sfx' && parts.length === 2) {
+      key = `sfx/${parts[1]}`;
+      // 24 Oct update (D-037): the Skietbaan's sounds load with its lazy "range" group.
+      if (o.catalog.entries.get(key)?.group === RANGE_GROUP) group = RANGE_GROUP;
+    } else if (parts[0] === 'voice' && parts.length === 2) {
       key = `voice/${parts[1]}`;
       kind = 'voice';
     } else if (

@@ -3,6 +3,7 @@
 // `import('./Skietbaan')` from the admin page.
 import type * as Phaser from 'phaser';
 import type { ContentBundle } from '../../content/schemas';
+import type { AudioDirector } from '../audio/AudioDirector';
 import type { SimEvent } from '../../sim/events';
 import type { RangeProgramFactory } from '../../sim/range/types';
 import type { InputKind, ModeConfig, PlaneId, SimState } from '../../sim/types';
@@ -11,6 +12,10 @@ import type { TestHook } from '../GameContext';
 /** What HuntScene lends a running range. */
 export interface RangeHost {
   readonly scene: Phaser.Scene;
+  /** Sounds go through the game's AudioDirector (24 Oct: the range's hit sounds). */
+  readonly audio: AudioDirector;
+  /** The "reduce flashes" setting now. */
+  reduceFlashes(): boolean;
   /** The container above a plane's birds, in that plane's coordinates (null: no such layer). */
   overlay(plane: PlaneId): Phaser.GameObjects.Container | null;
   /** Back to the setup page (the bar's Setup button; the pause menu's Quit does the same). */
