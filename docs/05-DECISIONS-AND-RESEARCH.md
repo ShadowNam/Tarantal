@@ -1994,13 +1994,16 @@ every gun and sight was measured on the seven weekday maps and on Saturday's thr
   the Classic band.
 - **The fix:** a new map field, **`planePointsMul`** (per-plane multipliers on base points, the
   layout's × the bonus map's, on top of `pointsMul`). It cuts only the Ver plane: weekday Ver
-  ×0.5–0.72 (Friday, which also has Ver fly-overs, lowest) and Verder ×0.8.
-- **Now** (200 seeds, every gun and sight, table in the balance report) every weekday cell is
-  under 4 500. The scoped .22 is the strongest, just under the cap (Saturday 4 490, Sunday 4 421,
-  Tuesday 4 409), and the shotguns, which can't reach Ver, stay in the band. The weekday layouts
-  still score ×0.75 (dusk ×0.9). The area quota is 3 000.
-- **Golden replays:** only the Namibië Tuesday Langloop case changed (3 634 → 3 274). Golden replays: all 35 kept their events and scores; two
-Namibië cases were added.
+  ×0.5–0.72 (Friday, which also has Ver fly-overs, and Saturday lowest) and Verder ×0.8.
+- **Now** (200 seeds, every gun and sight, table in the balance report) every cell is under
+  4 500. The scoped .22 is the strongest, just under the cap (Saturday 4 490, Sunday 4 421,
+  Tuesday 4 409), and the shotguns, which can't reach Ver, stay in the band. Saturday's Ver
+  multiplier was then lowered from ×0.55 to ×0.50 for a margin.
+- **Bonus maps** are well under the cap: Saturday's Verder 4 234, Nog Verder 3 089, Die Verste
+  2 324.
+- The weekday layouts still score ×0.75 (dusk ×0.9). The area quota is 3 000.
+- **Golden replays:** two Namibië cases were added. After the tuning only the Tuesday Langloop
+  case changed its result (3 634 → 3 274); every other replay kept its events and score.
 (7) *Size:* the first download is **3 000.3 KB gzip** (2.93 MB), up 37 KB from 2 963.7 KB (the
 area code and strings, the content file, and the weaver sprites and chatter in the common group).
 Poki 2 996.2 KB, CrazyGames 2 996.3 KB. The Namibië chunk is **1 445.1 KB gzip** and the Kalahari
