@@ -142,42 +142,42 @@
         }
       },
       "mixed": {
-        "$comment": "Skietbaan mixed course (24 Oct update to D-037): targets on every distance at once. Per plane: how many static targets (paper, steel plate or a standing bird, the kinds drawn from the 'range' stream, each kind at least once on the course) and the dx spots they are drawn from (design px from the screen centre at the range's camera start). One fly-over and one small flock go on planes drawn from 'movers'; the flock takes a free spot of its plane.",
+        "$comment": "Skietbaan mixed course (24 Oct update to D-037): targets on every distance at once. Per plane: how many static targets (paper, steel plate or a standing bird, the kinds drawn from the 'range' stream, each kind at least once on the course) and the dx spots they are drawn from (design px from the screen centre at the range's camera start). One fly-over and one small flock go on planes drawn from 'movers'; the flock takes a free spot of its plane. Spots on different planes never overlap (any kinds; content cross-ref), so no target hides behind a nearer one.",
         "planes": {
           "near": {
             "count": 2,
             "dx": [
-              -560,
-              120,
-              600
+              -470,
+              0,
+              470
             ]
           },
           "mid": {
             "count": 2,
             "dx": [
-              -340,
-              340,
-              -620,
-              620
+              -230,
+              230,
+              -655,
+              655
             ]
           },
           "far": {
             "count": 3,
             "dx": [
-              -180,
-              180,
-              480,
-              -480
+              -130,
+              130,
+              -330,
+              330
             ]
           },
           "ver": {
             "count": 3,
             "dx": [
-              -400,
+              -440,
               0,
-              400,
-              -80,
-              260
+              440,
+              -560,
+              560
             ]
           }
         },

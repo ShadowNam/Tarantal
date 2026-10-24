@@ -2,6 +2,7 @@
 // Pure: returns errors and warnings. Warnings cover content that arrives in later milestones
 // (docs/04-BUILD-PLAN.md M0); `strict` turns them into errors (CI uses --strict from M8 on).
 import { coreWidth, DESIGN_HEIGHT } from '../sim/world';
+import { mixedOverlaps } from './rangeFootprint';
 import { WORLD_EVENT_HANDLERS } from '../sim/director/events';
 
 /** Half the narrowest visible design width (4:3, 1440 px; Tech §3.3). */
@@ -433,6 +434,8 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
       err('modes.json', `range mixed: ${total} static targets can't show all ${m.statics.length} kinds`);
     if (new Set(m.statics).size !== m.statics.length)
       err('modes.json', 'range mixed statics: each kind once');
+    // Review fix: no spot may hide (or take the shots of) a target on another plane.
+    for (const o of mixedOverlaps(bundle)) err('modes.json', `range mixed: ${o}`);
   }
 
   // --- world geometry (Tech §3.3) ----------------------------------------------------------

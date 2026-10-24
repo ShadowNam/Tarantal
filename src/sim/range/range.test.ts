@@ -9,6 +9,12 @@ import { createSim, type Sim } from '../Sim';
 import { WEEKDAY_IDS } from '../../content/schemas';
 import type { Command, ModeConfig, PlaneId, RangeConfig, RangeTarget } from '../types';
 import { createStream } from '../rng';
+import {
+  mixedOverlaps,
+  overlaps,
+  targetCircle,
+  type StaticKind,
+} from '../../content/rangeFootprint';
 import { createRangeProgram, mixedLayout } from './program';
 
 const content = base as Content;
@@ -392,8 +398,9 @@ describe('24 Oct update: the mixed course', () => {
     const hit = shoot(sim, fireAt(sim, near.plane, near.x, near.y));
     const out = ofType(hit, 'rangeOutcome')[0];
     expect(out?.hits).toEqual([{ plane: 'near', target: near.kind, id: near.id, pellets: 1 }]);
-    // Just beside the target: the shot is counted for it, and misses.
-    const miss = shoot(sim, fireAt(sim, near.plane, near.x - near.r * 1.3, near.y));
+    // Just below the target (nothing of another plane stands that low): the shot is counted
+    // for it, and misses.
+    const miss = shoot(sim, fireAt(sim, near.plane, near.x, near.y + near.r * 1.3));
     expect(ofType(miss, 'rangeShot')[0]).toMatchObject({ plane: near.plane, target: near.kind });
     expect(ofType(miss, 'rangeOutcome')[0]).toMatchObject({ hits: [], short: false });
   });
@@ -479,5 +486,27 @@ describe('review fix: Kettie stones stop on paper and plates', () => {
         expect(ofType(ev, target === 'paper' ? 'paperHit' : 'plateHit').length).toBe(hits.length);
       }
     }
+  });
+});
+
+describe('review fix: the mixed course hides no target behind a nearer one', () => {
+  it('500 seeds: no static target overlaps one on another plane at the start camera', () => {
+    const depth: Record<PlaneId, number> = { near: 0, mid: 1, far: 2, ver: 3 };
+    const hidden: string[] = [];
+    for (let seed = 1; seed <= 500; seed++) {
+      const statics = mixedLayout(setup.mixed, createStream(seed)).filter(
+        (s) => s.target === 'paper' || s.target === 'plate' || s.target === 'stand',
+      );
+      const circles = statics.map((s) => ({
+        s,
+        c: targetCircle(content, s.plane, s.target as StaticKind, s.dx),
+      }));
+      for (const a of circles)
+        for (const b of circles)
+          if (depth[a.s.plane] < depth[b.s.plane] && overlaps(a.c, b.c))
+            hidden.push(`seed ${String(seed)}: ${b.s.plane} ${b.s.target} behind ${a.s.plane}`);
+    }
+    expect(hidden).toEqual([]);
+    expect(mixedOverlaps(content)).toEqual([]);
   });
 });
