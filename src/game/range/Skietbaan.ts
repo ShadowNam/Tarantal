@@ -77,8 +77,7 @@ function hookState(
 export function openSkietbaan(menu: RangeMenuHost): void {
   const content = menu.content;
   let c = choice ?? defaultChoice(content);
-  // v1.4 B (D-039): only areas the player has unlocked (Namibië once Die Verste is reached);
-  // a stored choice that is locked falls back to the first one.
+  // A stored choice that is no longer offered falls back to the first biome.
   c = { ...c, biome: biomeOrFirst(c.biome, menu.playableBiomes) };
   choice = c;
   const hook = menu.hook;

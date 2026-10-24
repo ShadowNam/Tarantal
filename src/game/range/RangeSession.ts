@@ -42,7 +42,8 @@ export interface RangeSession {
 export interface RangeMenuHost {
   readonly content: ContentBundle;
   /** Biomes this build draws (the setup page offers these). */
-  /** v1.4 B: the biomes the player may pick (unlocked areas only, src/meta/areas.ts). */
+  /** Every playable biome: the Skietbaan is an admin-page tool on its own save (D-039). If it
+   *  ever becomes player-facing, pass unlockedBiomes() (src/meta/areas.ts) instead. */
   readonly playableBiomes: readonly string[];
   readonly hook: TestHook | null;
   /** UTC day (the range plays today's weekday light). */
