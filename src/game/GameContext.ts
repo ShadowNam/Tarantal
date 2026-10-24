@@ -141,11 +141,15 @@ export interface TestHook {
   frameTimes: number[];
   /** v1.3: per frameTimes sample, whether a sight was fully up. */
   frameScoped: boolean[];
+  /** v1.4 (#56): per frameTimes sample, whether the view was fully open (zoom 1, no sight). */
+  frameOpen: boolean[];
   /** CPU time per frame in ms (Phaser pre-step → post-render: sim, views, HUD, render
    *  submission; excludes GPU raster and idle) while a hunt is running. */
   cpuFrameMs: number[];
   /** v1.3: per cpuFrameMs sample, whether a sight was fully up (perf's scoped phase). */
   cpuFrameScoped: boolean[];
+  /** v1.4 (#56): per cpuFrameMs sample, whether the view was fully open (zoom 1). */
+  cpuFrameOpen: boolean[];
   /** M9: per hunt frame, the ms spent in sim ticks and how many ticks ran. */
   simFrameMs: number[];
   simFrameSteps: number[];

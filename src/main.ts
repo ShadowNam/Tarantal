@@ -280,7 +280,9 @@ const hook: TestHook = {
   frameTimes: [],
   cpuFrameMs: [],
   cpuFrameScoped: [],
+  cpuFrameOpen: [],
   frameScoped: [],
+  frameOpen: [],
   simFrameMs: [],
   simFrameSteps: [],
   replay: null,
@@ -790,6 +792,7 @@ async function boot(): Promise<void> {
       if (hook.scene === 'hunt' && !hook.over && hook.cpuFrameMs.length < 20_000) {
         hook.cpuFrameMs.push(performance.now() - stepStart);
         hook.cpuFrameScoped.push(hook.zoom.raise >= 1);
+        hook.cpuFrameOpen.push(hook.zoom.z === 1);
       }
     });
   }

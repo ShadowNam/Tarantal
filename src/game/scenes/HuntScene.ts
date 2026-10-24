@@ -1113,6 +1113,7 @@ export class HuntScene extends Phaser.Scene {
     if (hook && !this.ending && hook.frameTimes.length < MAX_FRAME_SAMPLES) {
       hook.frameTimes.push(delta);
       hook.frameScoped.push(hook.zoom.raise >= 1);
+      hook.frameOpen.push(hook.zoom.z === 1);
     }
 
     const simStart = hook ? performance.now() : 0;
