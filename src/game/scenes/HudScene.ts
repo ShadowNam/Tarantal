@@ -64,6 +64,15 @@ interface Pop {
   born: number;
 }
 
+/** Events whose HUD feedback is about score (pops, the Whole-flock stamp): none on the range. */
+const SCORE_FEEDBACK: ReadonlySet<SimEvent['type']> = new Set([
+  'scoreAwarded',
+  'bonusAwarded',
+  'penaltyApplied',
+  'flockWiped',
+  'comboChanged',
+]);
+
 export class HudScene extends Phaser.Scene {
   private readonly ctx: GameContext;
   private layoutNow: HudLayout | null = null;
@@ -125,6 +134,8 @@ export class HudScene extends Phaser.Scene {
   private season: SeasonHud | null = null;
   /** Kept here: the hunt sets it before launch() has created the scene. */
   private seasonInfo: { readonly quota: number } | null = null;
+  /** v1.3x (D-037): the HUD of a Skietbaan session (no timer, score or Frenzy). */
+  private rangeOn = false;
   /** v1.0.1 (D-028 §3): Oupa's bubble, and whether he barks this hunt (not in FTUE or capture). */
   private bubble: BarkBubble | null = null;
   private barksOn = false;
@@ -385,6 +396,22 @@ export class HudScene extends Phaser.Scene {
     this.season?.setSeason(info);
   }
 
+  /** v1.3x (D-037): the Skietbaan has no clock, score or Frenzy: only the belt and pause. */
+  setRange(on: boolean): void {
+    this.rangeOn = on;
+    this.hideScoring();
+  }
+
+  private hideScoring(): void {
+    if (!this.rangeOn || this.layoutNow === null) return;
+    for (const p of this.panels.slice(0, 4)) p.place(0, 0, 0, 0);
+    this.frenzyBack.place(0, 0, 0, 0);
+    this.frenzyFill.place(0, 0, 0, 0);
+    this.timer.setVisible(false);
+    this.score.setVisible(false);
+    this.frenzyLabel.setVisible(false);
+  }
+
   /**
    * v1.0.1 (D-028 §3): a hunt starts. Oupa barks in it unless `on` is false (the FTUE has its own
    * Oupa prompts; capture mode's footage has no HUD). The first hunt of a UTC day gets a greeting;
@@ -502,6 +529,7 @@ export class HudScene extends Phaser.Scene {
     this.sock.setPosition(l.windsock.x + 20, l.windsock.y + 14);
     this.gadgetDrawn = '';
     if (this.lastState) this.render(this.lastState, []);
+    this.hideScoring();
   };
 
   render(s: SimState, events: readonly SimEvent[]): void {
@@ -562,6 +590,8 @@ export class HudScene extends Phaser.Scene {
           );
         }
       }
+      // The Skietbaan has no score, bonuses or Frenzy: none of their labels show there (D-037).
+      if (this.rangeOn && SCORE_FEEDBACK.has(e.type)) continue;
       if (e.type === 'scoreAwarded')
         this.pushPop(`${popParts(e.points, e.mult)}  ${formatAward(e.award)}`, '#F3EAD3');
       else if (e.type === 'bonusAwarded') this.pushPop(formatAward(e.award), '#FFD25A');
@@ -572,6 +602,7 @@ export class HudScene extends Phaser.Scene {
         this.flushedFlocks.add(e.flockId);
       else if (e.type === 'flockRemoved') this.flushedFlocks.delete(e.flockId);
       else if (
+        !this.rangeOn &&
         e.type === 'targetBagged' &&
         e.behaviour === 'flying' &&
         e.flockId !== null &&
@@ -653,6 +684,7 @@ export class HudScene extends Phaser.Scene {
       y += 46;
       return true;
     });
+    this.hideScoring();
   }
 
   /** M9: captions for this frame's sound cues (only with Settings → captions). */

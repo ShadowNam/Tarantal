@@ -227,6 +227,8 @@ export function encodeInputLog(log: InputLog): Uint8Array {
   w.byte(INPUT_KINDS.indexOf(log.inputKind));
   if (log.v >= 2) w.byte(AIM_ASSIST.indexOf(log.aimAssist ?? 'standard'));
   const m = log.mode;
+  // v1.3x (D-037): the Skietbaan is endless and unranked; its sessions are never replay logs.
+  if (!MODES.includes(m.id)) throw new Error(`mode ${m.id} has no replay log`);
   w.byte(MODES.indexOf(m.id));
   let flags = 0;
   if (m.biome !== undefined) flags |= FLAG.biome;

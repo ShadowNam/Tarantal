@@ -112,6 +112,8 @@ export interface PelletResult {
   /** The secret part hit (with propId). */
   readonly partId: string | null;
   readonly crateId: number | null;
+  /** v1.3x (D-037): a Skietbaan paper target (absent everywhere else). */
+  readonly paperId?: number;
 }
 
 /** Things on a layer that move or come and go: crates and live secret parts (layer coords). */
@@ -127,6 +129,14 @@ export type HitExtra =
       readonly kind: 'secret';
       readonly propId: string;
       readonly partId: string;
+      readonly x: number;
+      readonly y: number;
+      readonly shape: OccluderShape;
+    }
+  /** v1.3x (D-037): a Skietbaan paper target. */
+  | {
+      readonly kind: 'paper';
+      readonly paperId: number;
       readonly x: number;
       readonly y: number;
       readonly shape: OccluderShape;
@@ -169,6 +179,7 @@ export function resolvePellet(
     }
     for (const e of extras.get(slice.layerId) ?? []) {
       if (!pointInOccluder(p.x, p.y, { propId: '', x: e.x, y: e.y, shape: e.shape })) continue;
+      if (e.kind === 'paper') return { ...NOTHING, paperId: e.paperId };
       return e.kind === 'crate'
         ? { ...NOTHING, crateId: e.crateId }
         : { ...NOTHING, propId: e.propId, partId: e.partId };

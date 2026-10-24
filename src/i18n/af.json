@@ -511,5 +511,6 @@
   "shed.reward_sight": "Sluit {sight} oop",
   "shed.fitted": "Gemonteer",
   "admin.sight": "Sight",
-  "admin.sight_default": "Skiet-Skuur's"
+  "admin.sight_default": "Skiet-Skuur's",
+  "admin.range": "Skietbaan"
 }

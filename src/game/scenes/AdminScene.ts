@@ -6,7 +6,8 @@ import { AdminPanel } from '../admin/AdminPanel';
 import type { GameContext } from '../GameContext';
 
 export type AdminData =
-  | { readonly view: 'list' }
+  /** `range` opens the Skietbaan (D-037). */
+  | { readonly view: 'list'; readonly range?: () => void }
   | { readonly view: 'play'; readonly start: (pointerType: string) => void };
 
 export class AdminScene extends Phaser.Scene {
@@ -32,6 +33,7 @@ export class AdminScene extends Phaser.Scene {
         )}x · ${this.ctx.prefs.tier} tier`,
       }),
       {
+        ...(data.view === 'list' && data.range !== undefined ? { onRange: data.range } : {}),
         onView: (view, selected) => {
           if (hook) {
             hook.scene = 'admin';

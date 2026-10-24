@@ -73,6 +73,27 @@ export type SimEvent =
       readonly crateId: number | null;
       /** Kettie stones only: the camera centre the shot was fired at (dx is relative to it). */
       readonly cx?: number;
+      /** v1.3x (D-037): the Skietbaan paper target it hit (absent everywhere else). */
+      readonly paperId?: number;
+    }
+  /** v1.3x (D-037) Skietbaan only: a shot's aim point on the range's plane (plane px; a rifle's
+   *  before the sway), the point its group is measured from. */
+  | {
+      readonly type: 'rangeShot';
+      readonly tick: number;
+      readonly shotId: number;
+      readonly plane: PlaneId;
+      readonly x: number;
+      readonly y: number;
+    }
+  /** v1.3x (D-037) Skietbaan only: a pellet on a paper target, where it struck (plane px). */
+  | {
+      readonly type: 'paperHit';
+      readonly tick: number;
+      readonly shotId: number;
+      readonly paperId: number;
+      readonly x: number;
+      readonly y: number;
     }
   | { readonly type: 'miss'; readonly tick: number; readonly shotId: number }
   /** M8 Okavango: a shot splashed into water (screen point for the camera `cx`). */

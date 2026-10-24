@@ -174,9 +174,14 @@ function resolveSetup(content: ContentBundle, config: SimConfig): HuntSetup {
   const { mode } = config;
   const defaults = mode.id === 'seasonHunt' ? undefined : content.modes.modes[mode.id];
   const tutorial = mode.id === 'ftue' ? content.modes.modes.ftue.tutorial : null;
+  const ranged = mode.id === 'range';
   const biomeId = mode.biome ?? defaults?.biome;
   const weaponId = mode.weapon ?? defaults?.weapon;
-  const huntSeconds = mode.huntSeconds ?? defaults?.huntSeconds ?? content.run.huntSeconds;
+  const timed = defaults !== undefined && 'huntSeconds' in defaults ? defaults : undefined;
+  // v1.3x (D-037): the Skietbaan has no clock (huntSeconds 0 = endless).
+  const huntSeconds = ranged
+    ? 0
+    : (mode.huntSeconds ?? timed?.huntSeconds ?? content.run.huntSeconds);
   if (biomeId === undefined || weaponId === undefined) {
     throw new Error(`mode ${mode.id} needs a biome and a weapon`);
   }
@@ -186,15 +191,18 @@ function resolveSetup(content: ContentBundle, config: SimConfig): HuntSetup {
   if (
     (mode.layout !== undefined || mode.bonus !== undefined) &&
     mode.id !== 'classic' &&
-    mode.id !== 'daily'
+    mode.id !== 'daily' &&
+    !(ranged && mode.bonus === undefined)
   )
     throw new Error(`mode ${mode.id} plays no layout`);
-  const map = resolveMap(baseBiome, mode.layout, mode.bonus);
-  const { biome } = map;
+  if (ranged !== (mode.range !== undefined)) throw new Error('a range block needs mode range');
+  // The Skietbaan always has the Ver plane open (any gun may try any distance).
+  const map = resolveMap(baseBiome, mode.layout, mode.bonus, ranged);
+  const biome = ranged ? rangeBiome(map.biome, content.modes.modes.range) : map.biome;
   const weapon = content.weapons.weapons.find((w) => w.id === weaponId);
   if (weapon?.kind !== 'primary') throw new Error(`${weaponId} is not a primary weapon`);
   // Replays store huntSeconds on the 0.5 grid, so only allow values that survive that.
-  if (!(huntSeconds > 0) || !Number.isInteger(huntSeconds * 2)) {
+  if (!ranged && (!(huntSeconds > 0) || !Number.isInteger(huntSeconds * 2))) {
     throw new Error('huntSeconds must be a positive multiple of 0.5');
   }
   for (const event of biome.events) {
@@ -206,11 +214,13 @@ function resolveSetup(content: ContentBundle, config: SimConfig): HuntSetup {
   }
   const season = mode.season ?? null;
   if (season !== null) checkSeason(content, mode.id, season);
-  const omen = mapOmen(
-    map.weather,
-    mode.omen,
-    (season === null ? defaults?.omen : season.kind === 'omen') ?? false,
-  );
+  const omen = ranged
+    ? false
+    : mapOmen(
+        map.weather,
+        mode.omen,
+        (season === null ? defaults?.omen : season.kind === 'omen') ?? false,
+      );
   return {
     biome,
     map,
@@ -221,6 +231,16 @@ function resolveSetup(content: ContentBundle, config: SimConfig): HuntSetup {
     season,
     sight: fittedSight(content, weapon, mode.sight),
   };
+}
+
+/** v1.3x (D-037): the range's biome — the range lanes added for planes the biome gives none. */
+function rangeBiome(biome: Biome, setup: ContentBundle['modes']['modes']['range']): Biome {
+  const lanes = { ...biome.lanes };
+  for (const plane of PLANES) {
+    const lane = setup.spots[plane].lane;
+    if (lane !== undefined) lanes[plane] = { ...lanes[plane], ...lane };
+  }
+  return { ...biome, lanes };
 }
 
 /** v1.3: the sight a rifle carries this hunt (the mode's choice, else the gun's default). */
@@ -324,6 +344,18 @@ export function createSim(config: SimConfig): Sim {
   const { scoring } = content;
   const setup = resolveSetup(content, config);
   const { biome, weapon } = setup;
+  // v1.3x (D-037) Skietbaan: endless and unscored; its targets come from the range program.
+  const rangeCfg = mode.id === 'range' ? (mode.range ?? null) : null;
+  if (rangeCfg !== null && config.rangeProgram === undefined)
+    throw new Error('mode range needs its spawn program (SimConfig.rangeProgram)');
+  const ranged = rangeCfg !== null;
+  const rangeCrate =
+    rangeCfg?.crate === undefined
+      ? null
+      : (content.weapons.weapons.find((w) => w.id === rangeCfg.crate && w.kind === 'crate') ??
+        null);
+  if (rangeCfg?.crate !== undefined && rangeCrate === null)
+    throw new Error(`${rangeCfg.crate} is not a crate weapon`);
   const { pointsMul } = setup.map;
   /** v1.2: the map's points multiplier on a bird's base points (dusk: fewer birds, worth more). */
   const mapPoints = (base: number): number =>
@@ -401,8 +433,9 @@ export function createSim(config: SimConfig): Sim {
   const vuvuzela = content.weapons.gadgets[0] ?? null;
   /** The gadget button: the Vuvuzela, or a charm that replaces it (Fluitjie: no charge limit,
    *  its own cooldown). */
-  const gadgetDef =
-    pass.gadget !== null
+  const gadgetDef = ranged
+    ? null
+    : pass.gadget !== null
       ? { id: pass.gadget.charm, cooldownMs: pass.gadget.cooldownMs, charges: -1, charm: true }
       : vuvuzela === null
         ? null
@@ -414,14 +447,16 @@ export function createSim(config: SimConfig): Sim {
             charm: false,
           };
   const gadgetCooldownTicks = gadgetDef === null ? 0 : msToTicks(gadgetDef.cooldownMs);
-  const baseSchedule = scheduleWorldEvents(
-    biome,
-    mode.id,
-    setup.omen,
-    durationTicks,
-    rng.stream('events'),
-    season?.kind === 'boss',
-  );
+  const baseSchedule = ranged
+    ? []
+    : scheduleWorldEvents(
+        biome,
+        mode.id,
+        setup.omen,
+        durationTicks,
+        rng.stream('events'),
+        season?.kind === 'boss',
+      );
   const schedule =
     pass.spawnRateMul.size === 0
       ? baseSchedule
@@ -488,7 +523,9 @@ export function createSim(config: SimConfig): Sim {
   let nextOwnFlash = -1;
   let scheduleCursor = 0;
   const crateCfg = content.powerups.crates;
-  const crateTicks = scheduleCrates(crateCfg, mode.id, durationTicks, rng.stream('crates'));
+  const crateTicks = ranged
+    ? []
+    : scheduleCrates(crateCfg, mode.id, durationTicks, rng.stream('crates'));
   let crateCursor = 0;
   const birdCreatures = new Map<string, BirdCreature>();
   for (const c of content.birds.creatures) if (c.kind !== 'helper') birdCreatures.set(c.id, c);
@@ -591,11 +628,23 @@ export function createSim(config: SimConfig): Sim {
   let tick = 0;
   let over = false;
   // v1.2: a map may open the hunt elsewhere along the pan (on its feeding spot).
+  const startU = ranged ? content.modes.modes.range.cameraU : biome.cameraStartU;
   let cameraX = clampCameraX(
-    biome.cameraStartU === undefined
+    startU === undefined
       ? (CAMERA_MIN_X + CAMERA_MAX_X) / 2
-      : quantiseHalf(CAMERA_MIN_X + biome.cameraStartU * (CAMERA_MAX_X - CAMERA_MIN_X)),
+      : quantiseHalf(CAMERA_MIN_X + startU * (CAMERA_MAX_X - CAMERA_MIN_X)),
   );
+  const rangeProgram =
+    rangeCfg === null || config.rangeProgram === undefined
+      ? null
+      : config.rangeProgram({
+          content,
+          biome,
+          range: rangeCfg,
+          cameraX,
+          rng: rng.stream('range'),
+        });
+  const papers = rangeProgram?.papers ?? [];
   let score = 0;
   let streak = 0;
   let bestStreak = 0;
@@ -609,7 +658,8 @@ export function createSim(config: SimConfig): Sim {
   let flocks: Flock[] = [];
   let gadgetCharges = gadgetDef?.charges ?? 0;
   let gadgetCooldown = 0;
-  const secrets: Secret[] = buildSecrets(biome);
+  // The Skietbaan has no secrets (nothing scores there).
+  const secrets: Secret[] = ranged ? [] : buildSecrets(biome);
   let lastSecretTick: number | null = null;
   let crates: Crate[] = [];
   const powerups: ActivePowerup[] = [];
@@ -1053,6 +1103,17 @@ export function createSim(config: SimConfig): Sim {
         shape: { type: 'ellipse', rx: c.rx, ry: c.ry },
       });
     }
+    for (const p of papers) {
+      const layerId = planeLayer.get(p.plane);
+      if (layerId === undefined) continue;
+      add(layerId, {
+        kind: 'paper',
+        paperId: p.id,
+        x: p.x,
+        y: p.y,
+        shape: { type: 'ellipse', rx: p.r, ry: p.r },
+      });
+    }
     for (const s of secrets) {
       for (const part of activeParts(s)) {
         add(s.layerId, {
@@ -1185,6 +1246,7 @@ export function createSim(config: SimConfig): Sim {
       propId: r.propId,
       partId: r.partId,
       crateId: r.crateId,
+      ...(r.paperId === undefined ? {} : { paperId: r.paperId }),
       ...(cx === null ? {} : { cx }),
     });
     return { dx: ldx, sy: psy, r };
@@ -1197,7 +1259,13 @@ export function createSim(config: SimConfig): Sim {
 
   /** `how`: v1.3 rifles fire through the sight (swayed aim, no spread) or from the hip (the
    *  gun's hip spread). Returns false when the shot didn't go off. */
-  function fire(dx: number, sy: number, aimed?: 'sight' | 'hip'): boolean {
+  function fire(
+    dx: number,
+    sy: number,
+    aimed?: 'sight' | 'hip',
+    /** Rifles through the sight: the aim point before the sway (the Skietbaan's aim point). */
+    aimAt: { readonly dx: number; readonly sy: number } = { dx, sy },
+  ): boolean {
     const usingCrate = crateWeapon !== null;
     // A rifle shot that didn't come through a raised sight (a plain fire command, a second
     // finger's tap, auto-fire) is a hip shot: no shortcut past the sway (review of v1.3).
@@ -1230,6 +1298,11 @@ export function createSim(config: SimConfig): Sim {
       ...(how === undefined ? {} : { aim: how }),
     });
     const ctx: ShotContext = { shotId, shot, shellIndex, lastShell, cx: cameraX };
+    if (rangeCfg !== null) {
+      // The Skietbaan's aim point on its plane: groups are measured from it.
+      const p = tapToPlane(cameraX, planeGeo[rangeCfg.plane].scrollFactor, aimAt.dx, aimAt.sy);
+      emit({ type: 'rangeShot', tick, shotId, plane: rangeCfg.plane, x: p.x, y: p.y });
+    }
 
     // Kettie: the stone is in the air; it resolves band by band in flyStones() (Tech §3.4).
     if (!usingCrate && !blast && bands !== null) {
@@ -1336,8 +1409,16 @@ export function createSim(config: SimConfig): Sim {
     const impacts: { dx: number; sy: number }[] = [];
     const partHits: { propId: string; partId: string }[] = [];
     const crateHits: number[] = [];
+    let paperHits = 0;
     for (const { dx: ldx, sy: lsy, r } of landed) {
       impacts.push({ dx: ldx, sy: lsy });
+      const paper = r.paperId === undefined ? undefined : papers.find((p) => p.id === r.paperId);
+      if (paper !== undefined) {
+        // Where on the paper (its plane's coordinates): the Skietbaan draws and measures it.
+        const p = tapToPlane(shotCx, planeGeo[paper.plane].scrollFactor, ldx, lsy);
+        emit({ type: 'paperHit', tick, shotId, paperId: paper.id, x: p.x, y: p.y });
+        paperHits++;
+      }
       if (r.birdId !== null) pelletsOn.set(r.birdId, (pelletsOn.get(r.birdId) ?? 0) + 1);
       const { propId, partId, crateId } = r;
       if (partId !== null && propId !== null) {
@@ -1369,7 +1450,7 @@ export function createSim(config: SimConfig): Sim {
       }
     }
     const touchedAny = damage.touched;
-    const hitThing = partHits.length > 0 || crateHits.length > 0;
+    const hitThing = partHits.length > 0 || crateHits.length > 0 || paperHits > 0;
 
     const targets = bagged.filter((x) => x.bird.creature.kind !== 'nonTarget');
     const nonTargets = bagged.filter((x) => x.bird.creature.kind === 'nonTarget');
@@ -1377,9 +1458,10 @@ export function createSim(config: SimConfig): Sim {
     // Frenzy first: this shot's bags score with the streak including this shot (D-018). A shot
     // that only hits a secret part or a crate leaves the streak alone (D-021).
     const onlyThings = hitThing && damage.outcomes.length === 0;
-    let newStreak = onlyThings ? streak : nextStreak(streak, targets.length > 0);
+    // The Skietbaan has no Frenzy: the streak stays 0.
+    let newStreak = ranged || onlyThings ? streak : nextStreak(streak, targets.length > 0);
     // Geheime Resep: a shot that bags nothing drops one Frenzy tier instead of resetting.
-    if (!onlyThings && targets.length === 0 && pass.frenzyMissBehaviour === 'dropTier')
+    if (!ranged && !onlyThings && targets.length === 0 && pass.frenzyMissBehaviour === 'dropTier')
       newStreak = dropTier(streak, scoring.frenzyTiers);
     if (newStreak !== streak) {
       streak = newStreak;
@@ -1432,27 +1514,30 @@ export function createSim(config: SimConfig): Sim {
         x: bird.x,
         y: bird.y,
       });
-      const s = scoreBag(
-        {
-          base: mapPoints(c.baseOverride ?? scoring.planes[bird.plane].base),
-          behaviourAdd: scoring.behaviourAdd[behaviour],
-          weaponScoreMul: shot.scoreMul[bird.plane] ?? shot.scoreMul.all ?? 1,
-          frenzyMul: fMul,
-          stampedeMul: stampedeMul(),
-          ...(groundZero ? { ruleMul: 0 } : {}),
-        },
-        bag?.modifiers ?? [],
-      );
-      score += s.award;
-      emit({
-        type: 'scoreAwarded',
-        tick,
-        birdId: bird.id,
-        points: s.points,
-        mult: s.mult,
-        award: s.award,
-        breakdown: s.breakdown,
-      });
+      // The Skietbaan scores nothing (its stats count the hits).
+      if (!ranged) {
+        const s = scoreBag(
+          {
+            base: mapPoints(c.baseOverride ?? scoring.planes[bird.plane].base),
+            behaviourAdd: scoring.behaviourAdd[behaviour],
+            weaponScoreMul: shot.scoreMul[bird.plane] ?? shot.scoreMul.all ?? 1,
+            frenzyMul: fMul,
+            stampedeMul: stampedeMul(),
+            ...(groundZero ? { ruleMul: 0 } : {}),
+          },
+          bag?.modifiers ?? [],
+        );
+        score += s.award;
+        emit({
+          type: 'scoreAwarded',
+          tick,
+          birdId: bird.id,
+          points: s.points,
+          mult: s.mult,
+          award: s.award,
+          breakdown: s.breakdown,
+        });
+      }
       stats.bagged++;
       stats.baggedByPlane[bird.plane]++;
       if (behaviour === 'flying') stats.wingShots++;
@@ -1464,6 +1549,7 @@ export function createSim(config: SimConfig): Sim {
       const c = bird.creature;
       if (c.kind !== 'nonTarget') continue;
       const points = pass.penaltyOverride.get(c.id) ?? c.penalty;
+      if (ranged) continue;
       score += points;
       stats.penalties++;
       emit({ type: 'penaltyApplied', tick, birdId: bird.id, creature: c.id, points });
@@ -1559,6 +1645,7 @@ export function createSim(config: SimConfig): Sim {
   }
 
   function awardBonus(bonus: BonusId, base: number, ruleMul = 1): void {
+    if (ranged) return;
     const charmMul =
       bonus === 'wholeFlock' || bonus === 'twoFlies' || bonus === 'secretChain'
         ? pass.bonusMul[bonus]
@@ -1853,7 +1940,7 @@ export function createSim(config: SimConfig): Sim {
     const up = isUp(a, sight);
     const sway = up ? swayAt(a, sight) : { dx: 0, dy: 0 };
     aim = null;
-    const fired = fire(a.dx + sway.dx, a.sy + sway.dy, up ? 'sight' : 'hip');
+    const fired = fire(a.dx + sway.dx, a.sy + sway.dy, up ? 'sight' : 'hip', a);
     emit({ type: 'aimEnded', tick, reason: fired ? (up ? 'fired' : 'hip') : 'blocked' });
   }
 
@@ -2075,7 +2162,11 @@ export function createSim(config: SimConfig): Sim {
       emit({ type: 'reloadFinished', tick, shells: weaponState.shells });
     if (crateWeapon !== null) {
       tickCrateWeapon(crateWeapon);
-      if (crateWeaponSpent(crateWeapon)) {
+      if (rangeCrate !== null && crateWeaponSpent(crateWeapon)) {
+        // The Skietbaan's reserve never runs out: a fresh load (its ramrod reload still runs).
+        crateWeapon.shotsLeft = crateWeapon.def.shots ?? null;
+        crateWeapon.ticksLeft = crateWeapon.totalTicks;
+      } else if (crateWeaponSpent(crateWeapon)) {
         crateWeapon = null;
         hold = null;
         emit({ type: 'weaponChanged', tick, weapon: weapon.id, kind: 'primary' });
@@ -2096,8 +2187,11 @@ export function createSim(config: SimConfig): Sim {
       else if (t === 'ready') emit({ type: 'secretReady', tick, propId: s.propId });
     }
 
-    addBirds(director.tick(directorContext()));
-    spawnFlocks();
+    if (ranged) rangeStep();
+    else {
+      addBirds(director.tick(directorContext()));
+      spawnFlocks();
+    }
 
     const slow = slowMoTicks > 0 ? slowMoScale : 1;
     creatureClock += Math.min(effectsOf(powerups).creatureTimeScale, slow);
@@ -2134,15 +2228,45 @@ export function createSim(config: SimConfig): Sim {
     }
 
     tick++;
-    if (tick >= durationTicks) {
+    if (!ranged && tick >= durationTicks) {
       over = true;
       charmTrigger('huntEnd');
       emit({ type: 'huntEnded', tick, score });
     }
   }
 
+  /** v1.3x (D-037): one tick of the Skietbaan's spawn program. */
+  function rangeStep(): void {
+    if (rangeProgram === null) return;
+    const r = rangeProgram.step({
+      tick,
+      birds,
+      nextBirdId: () => nextBirdId++,
+      spawnFlockAt: (plane, x, size) =>
+        director.spawnFlockAt(
+          { ...directorContext(), flocks, nextFlockId: () => nextFlockId++ },
+          plane,
+          x,
+          size,
+          rng.stream('range'),
+        ),
+    });
+    if (r.retire.length > 0) {
+      const gone = new Set(r.retire);
+      for (const id of r.retire)
+        emit({ type: 'birdDespawned', tick, birdId: id, reason: 'exited' });
+      birds = birds.filter((b) => !gone.has(b.id));
+      pruneFlocks(gone, 'exited');
+    }
+    addBirds(r.birds);
+    addFlocks(r.flocks);
+  }
+
   // Warm-up (GDD §8): the first flocks are already foraging in view at the first snapshot.
-  spawnFlocks();
+  if (ranged) {
+    if (rangeCrate !== null) armWeapon(rangeCrate.id);
+    rangeStep();
+  } else spawnFlocks();
   charmTrigger('huntStart');
 
   function rankFor(s: number): string {
@@ -2252,6 +2376,7 @@ export function createSim(config: SimConfig): Sim {
                 slowMo: slowMoTicks > 0,
               },
         over,
+        ...(ranged ? { range: { papers } } : {}),
       };
     },
     drainEvents() {

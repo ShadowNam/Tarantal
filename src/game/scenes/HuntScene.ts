@@ -60,6 +60,7 @@ import type { TallyData } from './TallyScene';
 import type { TitleData } from './TitleScene';
 import type { ChallengeData } from './ChallengeScene';
 import type { AdminData } from './AdminScene';
+import type { RangeHost, RangeSession } from '../range/RangeSession';
 
 export interface HuntData {
   /** Skip the title (the [Again] button) with this input kind. */
@@ -70,6 +71,17 @@ export interface HuntData {
   readonly challenge?: Challenge;
   /** v1.2: a bonus map on today's Classic map ([Again] after Verder, while it is unlocked). */
   readonly bonus?: string;
+  /** v1.3x (D-037): run this Skietbaan session (admin page only). */
+  readonly range?: RangeSession;
+  /** v1.3x: open the Skietbaan's setup page instead of the title (back from a range). */
+  readonly rangeMenu?: true;
+}
+
+/** v1.2 (D-033) the map on screen; v1.3x: `ver` keeps the Ver plane open (the Skietbaan). */
+interface MapChoice {
+  readonly layout?: string;
+  readonly bonus?: string;
+  readonly ver?: boolean;
 }
 
 const END_DELAY_MS = 900;
@@ -113,6 +125,8 @@ export class HuntScene extends Phaser.Scene {
   /** A commercial break before the next hunt is in flight (afterBreak is single-flight). */
   private breakPending = false;
   private modeId: ModeId = 'classic';
+  /** v1.3x (D-037): the Skietbaan session this scene runs, or null (every hunt). */
+  private range: RangeSession | null = null;
   /** M7: Classic/Daily/challenge setup (null for the FTUE and Season Run hunts). */
   private plan: HuntPlan | null = null;
   private shareLog: ShareLogger | null = null;
@@ -122,7 +136,7 @@ export class HuntScene extends Phaser.Scene {
   private biome!: Biome;
   private manifest!: AssetManifest;
   /** v1.2 (D-033): the map on screen — weekday layout and bonus map (undefined = plain biome). */
-  private map: { readonly layout?: string; readonly bonus?: string } = {};
+  private map: MapChoice = {};
   /** v1.2: UTC day the hunt started (its layout is that day's; Verder unlocks for that day). */
   private huntDay = 0;
   /** Real time of the next Stampede rumble shake. */
@@ -144,6 +158,7 @@ export class HuntScene extends Phaser.Scene {
       return;
     }
     this.runner = null;
+    this.range = data.range ?? null;
     this.captureHint = null;
     this.endAction = null;
     this.tierFilters = null;
@@ -224,8 +239,10 @@ export class HuntScene extends Phaser.Scene {
       document.removeEventListener('visibilitychange', onVisibility);
     });
 
-    if (data.autoStart !== undefined)
+    if (data.range !== undefined) this.begin(data.range.inputKind, null, 'range');
+    else if (data.autoStart !== undefined)
       this.begin(data.autoStart, null, data.mode ?? 'classic', data.challenge ?? null, data.bonus);
+    else if (data.rangeMenu === true) this.openSkietbaan();
     else this.showTitle();
     if (this.ctx.hook) {
       this.ctx.hook.ready = true;
@@ -236,8 +253,8 @@ export class HuntScene extends Phaser.Scene {
   /** The biome an auto-started hunt will play (the home biome for the title). */
   private initialBiome(data: HuntData): Biome {
     const c = this.ctx;
-    let id: string | undefined;
-    if (data.autoStart !== undefined) {
+    let id: string | undefined = data.range?.mode.biome;
+    if (data.range === undefined && data.autoStart !== undefined) {
       if (data.challenge !== undefined) id = data.challenge.biome;
       else if (data.mode === 'seasonHunt')
         id = c.run.current === null ? undefined : c.run.info().biome;
@@ -250,8 +267,11 @@ export class HuntScene extends Phaser.Scene {
   }
 
   /** v1.2: the map an auto-started hunt will play (the title shows today's Classic layout). */
-  private initialMap(data: HuntData): { readonly layout?: string; readonly bonus?: string } {
+  private initialMap(data: HuntData): MapChoice {
     const c = this.ctx;
+    const range = data.range?.mode;
+    if (range !== undefined)
+      return range.layout === undefined ? { ver: true } : { layout: range.layout, ver: true };
     if (data.autoStart !== undefined) {
       if (data.challenge !== undefined) {
         const l = data.challenge.l;
@@ -273,7 +293,7 @@ export class HuntScene extends Phaser.Scene {
     const { width } = designSize();
     fitCamera(this.cameras.main);
     // An id this biome lacks (a bad ?layout=) draws the plain biome rather than failing.
-    const map = safeResolveMap(this.biome, this.map.layout, this.map.bonus);
+    const map = safeResolveMap(this.biome, this.map.layout, this.map.bonus, this.map.ver);
     const mapBiome = map.biome;
     this.parallax = new ParallaxView(this, mapBiome, this.manifest, this.ctx.prefs.mergeLayers);
     const lights = mapLights(map).flatMap((id) => {
@@ -490,15 +510,24 @@ export class HuntScene extends Phaser.Scene {
     // Keep every gun the next hunt can start with: the loadout, the admin page's, the Season
     // Run's and a challenge's.
     const keep = new Set<string>([this.ctx.save.data.loadout.weapon]);
-    const extra = [this.ctx.weaponOverride, this.ctx.run.current?.weapon, data.challenge?.weapon];
+    const extra = [
+      this.ctx.weaponOverride,
+      this.ctx.run.current?.weapon,
+      data.challenge?.weapon,
+      data.range?.mode.weapon,
+      data.range?.mode.range?.crate,
+    ];
     for (const id of extra) if (id !== undefined) keep.add(id);
     for (const m of new Set([this.manifest, this.ctx.installedManifest]))
       m?.releaseGuns(this.textures, keep, this.anims);
   }
 
   /** M8: a hunt in another biome (Daily rotation, challenge, Season Run) swaps the scenery. */
-  private useBiome(id: string, map: { readonly layout?: string; readonly bonus?: string }): void {
-    const sameMap = map.layout === this.map.layout && map.bonus === this.map.bonus;
+  private useBiome(id: string, map: MapChoice): void {
+    const sameMap =
+      map.layout === this.map.layout &&
+      map.bonus === this.map.bonus &&
+      (map.ver === true) === (this.map.ver === true);
     if (id === this.biome.id) {
       if (sameMap) return;
       // v1.2: same biome, another map (props move, light changes): same textures, new views.
@@ -580,7 +609,13 @@ export class HuntScene extends Phaser.Scene {
     const setup = this.ctx.admin?.setup ?? null;
     const data: AdminData =
       setup === null
-        ? { view: 'list' }
+        ? {
+            view: 'list',
+            range: () => {
+              this.scene.stop('Admin');
+              this.openSkietbaan();
+            },
+          }
         : {
             view: 'play',
             start: (pointerType) => {
@@ -598,6 +633,68 @@ export class HuntScene extends Phaser.Scene {
     this.scene.launch('Admin', data);
     this.scene.bringToTop('Admin');
     if (this.ctx.hook) this.ctx.hook.scene = 'admin';
+  }
+
+  // --- Skietbaan (D-037) ---------------------------------------------------------------------
+
+  /** The Skietbaan's setup page, from its lazy chunk (admin page builds only). */
+  private openSkietbaan(): void {
+    // Builds with the admin page only (the PlatformAdapter's adminPage: web). Compared against
+    // the raw flag (a literal after Vite's replacement) so a portal build drops this import()
+    // and its chunk altogether; platform.spec checks the portal builds carry no such chunk.
+    const flag = import.meta.env.VITE_PLATFORM;
+    if (flag === 'poki' || flag === 'crazygames') return;
+    if (this.ctx.admin === null) return;
+    this.ctx.platform.loadingProgress(1);
+    if (this.ctx.hook) this.ctx.hook.scene = 'skietbaan';
+    import('../range/Skietbaan').then(
+      (m) => {
+        if (!this.sys.isActive()) return;
+        m.openSkietbaan({
+          content: this.ctx.content,
+          playableBiomes: this.ctx.playableBiomes,
+          hook: this.ctx.hook,
+          today: () => this.ctx.today(),
+          nextSeed: () => this.ctx.nextSeed(),
+          play: (session) => {
+            this.ctx.audio.unlock();
+            this.scene.restart({ range: session } satisfies HuntData);
+          },
+          back: () => {
+            this.showAdmin();
+          },
+        });
+      },
+      (err: unknown) => {
+        // The chunk didn't load (offline, a new deploy): back to the admin list.
+        console.warn('[skietbaan] could not load', err);
+        this.showAdmin();
+      },
+    );
+  }
+
+  /** What a running range may use of this scene. */
+  private rangeHost(): RangeHost {
+    return {
+      scene: this,
+      overlay: (plane) => {
+        try {
+          return this.parallax.plane(plane).overlay;
+        } catch {
+          return null;
+        }
+      },
+      exit: () => {
+        this.quitRange();
+      },
+    };
+  }
+
+  /** The range's Setup button or the pause menu's Quit: back to the setup page. */
+  private quitRange(): void {
+    this.ctx.platform.gameplayStop();
+    this.scene.stop('Hud');
+    this.scene.restart({ rangeMenu: true } satisfies HuntData);
   }
 
   // --- Season Run ---------------------------------------------------------------------------
@@ -691,6 +788,7 @@ export class HuntScene extends Phaser.Scene {
     bonus?: string,
   ): void {
     if (this.runner) return;
+    const range = this.range;
     this.huntDay = this.ctx.today();
     this.scene.stop('Title');
     this.scene.stop('Challenge');
@@ -760,11 +858,13 @@ export class HuntScene extends Phaser.Scene {
     this.modeId = plan?.mode.id ?? modeId;
     // A Season Run hunt comes from the run (seed, biome, weapon, charms, Boss Rule …).
     const runHunt = modeId === 'seasonHunt' ? this.ctx.run.setup(this.ctx.huntSeconds) : null;
-    const baseMode: ModeConfig = runHunt?.mode ??
+    const baseMode: ModeConfig = range?.mode ??
+      runHunt?.mode ??
       plan?.mode ?? { id: modeId, ...(weapon === undefined ? {} : { weapon }), ...extra };
     // v1.3 (D-036): a rifle carries its sight — a challenge's, the admin page's, or the one
-    // fitted in the Skiet-Skuur (recorded in the replay with the mode).
-    const mode = this.withSight(baseMode);
+    // fitted in the Skiet-Skuur (recorded in the replay with the mode). The Skietbaan names its
+    // own (D-037).
+    const mode = range === null ? this.withSight(baseMode) : baseMode;
     // The hunt's biome may not be the one behind the title (M8): swap the scenery first.
     const huntBiome =
       mode.biome ??
@@ -780,6 +880,7 @@ export class HuntScene extends Phaser.Scene {
     this.useBiome(huntBiome, {
       ...(mode.layout === undefined ? {} : { layout: mode.layout }),
       ...(mode.bonus === undefined ? {} : { bonus: mode.bonus }),
+      ...(range === null ? {} : { ver: true }),
     });
     if (!this.texturesDone) this.texturesDone = this.manifest.install(this.textures);
     this.manifest.prewarmBirds(this.textures);
@@ -797,8 +898,16 @@ export class HuntScene extends Phaser.Scene {
       );
     }
     const aimAssist = save.settings.aimAssist;
-    const seed = runHunt?.seed ?? plan?.seed ?? this.ctx.nextSeed();
-    const sim = createSim({ seed, content: this.ctx.content, mode, inputKind: kind, aimAssist });
+    const seed = range?.seed ?? runHunt?.seed ?? plan?.seed ?? this.ctx.nextSeed();
+    const sim = createSim({
+      seed,
+      content: this.ctx.content,
+      mode,
+      inputKind: kind,
+      aimAssist,
+      // v1.3x (D-037): the Skietbaan's spawn program (from its lazy chunk).
+      ...(range === null ? {} : { rangeProgram: range.rangeProgram }),
+    });
     this.recorder = createRecorder({
       seed,
       contentHash: this.ctx.contentHash,
@@ -806,17 +915,21 @@ export class HuntScene extends Phaser.Scene {
       inputKind: kind,
       aimAssist,
     });
-    this.logger = createHuntLogger(
-      (id) =>
-        this.ctx.content.birds.creatures
-          .find((c) => c.id === id)
-          ?.behaviours.includes('perchHigh') === true,
-    );
+    // The Skietbaan logs nothing for the save (D-037: unranked, no Bird Book, no stats).
+    this.logger =
+      range === null
+        ? createHuntLogger(
+            (id) =>
+              this.ctx.content.birds.creatures
+                .find((c) => c.id === id)
+                ?.behaviours.includes('perchHigh') === true,
+          )
+        : null;
     if (plan !== null) {
       this.ctx.daily.start(plan);
       this.shareLog = createShareLogger(this.ctx.dailyMeta.grid);
     }
-    this.ctx.admin?.played(seed, sim.snapshot().weapon.id);
+    if (range === null) this.ctx.admin?.played(seed, sim.snapshot().weapon.id);
     const durationTicks = sim.snapshot().durationTicks;
     this.ftue =
       modeId === 'ftue'
@@ -898,8 +1011,10 @@ export class HuntScene extends Phaser.Scene {
     this.weapon.setTouchMode(kind === 'touch');
     hud.setInputKind(kind);
     hud.setSeason(runHunt === null ? null : { quota: runHunt.info.quota });
-    // D-028 §3: Oupa barks in every hunt but his own lesson, and never in capture footage.
-    hud.startBarks(modeId !== 'ftue' && this.ctx.capture === null);
+    hud.setRange(range !== null);
+    // D-028 §3: Oupa barks in every hunt but his own lesson, and never in capture footage (nor
+    // on the Skietbaan).
+    hud.startBarks(modeId !== 'ftue' && this.ctx.capture === null && range === null);
     hud.setTag(plan?.hudTag ?? null);
     hud.setControls({
       pause: () => {
@@ -913,14 +1028,17 @@ export class HuntScene extends Phaser.Scene {
           : null,
     });
     this.ctx.platform.gameplayStart();
-    this.ctx.ads.huntStarted();
-    this.ctx.platform.analytics('hunt_start', {
-      mode: this.modeId,
-      biome: this.biome.id,
-      weapon: weapon ?? sim.snapshot().weapon.id,
-      inputKind: kind,
-      aimAssist,
-    });
+    // The Skietbaan is no hunt: no ad cadence, no hunt analytics.
+    if (range === null) {
+      this.ctx.ads.huntStarted();
+      this.ctx.platform.analytics('hunt_start', {
+        mode: this.modeId,
+        biome: this.biome.id,
+        weapon: weapon ?? sim.snapshot().weapon.id,
+        inputKind: kind,
+        aimAssist,
+      });
+    }
     this.game.canvas.style.cursor = kind === 'pointer' ? 'none' : '';
 
     const hook = this.ctx.hook;
@@ -956,6 +1074,7 @@ export class HuntScene extends Phaser.Scene {
       hook.flockLog = [];
       hook.hunts++;
     }
+    range?.attach(this.rangeHost());
   }
 
   override update(): void {
@@ -1006,6 +1125,7 @@ export class HuntScene extends Phaser.Scene {
     }
     const state = runner.state;
     if (events.length > 0) this.handleEvents(events, width, state);
+    this.range?.frame(events, state);
     this.applyCapture(runner, state.cameraX, delta);
     // e2e ?holdAt (visual baselines): once the sim holds, tweens and animations hold too, so a
     // delivered bird's clip or a fading pop is the same frame on every run.
@@ -1188,7 +1308,9 @@ export class HuntScene extends Phaser.Scene {
     this.fx.handle(events, width, state);
     this.birds.handle(events);
     const half = width / 2;
-    this.ctx.audio.handle(events, (e) => {
+    // The Skietbaan scores nothing: no Whole-flock stamp sound or slow-mo there (D-037).
+    const heard = this.range === null ? events : events.filter((e) => e.type !== 'flockWiped');
+    this.ctx.audio.handle(heard, (e) => {
       if (e.type === 'shotFired') return e.dx / half;
       if (e.type === 'targetBagged' || e.type === 'flockStateChanged' || e.type === 'flockWiped')
         return (this.parallax.screenX(e.plane, e.x) - half) / half;
@@ -1226,7 +1348,7 @@ export class HuntScene extends Phaser.Scene {
         bagged = true;
       } else if (e.type === 'bonusAwarded' && e.bonus === 'twoFlies') {
         this.runner?.hitStop(this.ctx.feel.juice.hitStopTwoFliesMs);
-      } else if (e.type === 'flockWiped') {
+      } else if (e.type === 'flockWiped' && this.range === null) {
         // GDD §6.4: slow-mo 0.3× for 0.4 s (scoring.json, so the rule and its feel stay together).
         const { scale, ms } = this.ctx.content.scoring.wholeFlock.slowMo;
         this.runner?.slowMo(scale, ms);
@@ -1421,6 +1543,7 @@ export class HuntScene extends Phaser.Scene {
       quit: () => {
         this.closePause(false);
         if (this.ftue) this.skipFtue();
+        else if (this.range !== null) this.quitRange();
         else this.quitToTitle();
       },
     };
@@ -1520,6 +1643,7 @@ export class HuntScene extends Phaser.Scene {
   }
 
   private teardown(): void {
+    this.range?.detach();
     this.scale.off(Phaser.Scale.Events.RESIZE, this.relayout);
     for (const fn of this.cleanups) fn();
     this.cleanups = [];
@@ -1530,11 +1654,11 @@ export class HuntScene extends Phaser.Scene {
 }
 
 /** resolveMap, or the plain biome for ids this biome lacks (a bad dev ?layout=). */
-function safeResolveMap(biome: Biome, layout?: string, bonus?: string): ResolvedMap {
+function safeResolveMap(biome: Biome, layout?: string, bonus?: string, ver = false): ResolvedMap {
   try {
-    return resolveMap(biome, layout, bonus);
+    return resolveMap(biome, layout, bonus, ver);
   } catch {
-    return resolveMap(biome, undefined, undefined);
+    return resolveMap(biome, undefined, undefined, ver);
   }
 }
 

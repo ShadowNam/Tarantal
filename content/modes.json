@@ -1,5 +1,5 @@
 {
-  "$comment": "Per-mode hunt setup. Season Run hunt length lives in run.json (huntSeconds); Season Run weapon and biome come from the run state. Omen (biome weather): Classic off, Daily on (D-021). FTUE (Oupa se Les, GDD §16): 60 s Karoo at gentler pacing, a generous first hit, Bles spooks a flock at 1/3 if the player hasn't, a flock flushes at 1/2.",
+  "$comment": "Per-mode hunt setup. Season Run hunt length lives in run.json (huntSeconds); Season Run weapon and biome come from the run state. Omen (biome weather): Classic off, Daily on (D-021). FTUE (Oupa se Les, GDD §16): 60 s Karoo at gentler pacing, a generous first hit, Bles spooks a flock at 1/3 if the player hasn't, a flock flushes at 1/2. Range: the admin-only Skietbaan (D-037).",
   "version": 1,
   "modes": {
     "classic": {
@@ -33,6 +33,88 @@
             "action": "flush"
           }
         ]
+      }
+    },
+    "range": {
+      "weapon": "dubbelloop",
+      "biome": "karoo-autumn",
+      "omen": false,
+      "creature": "tarentaal",
+      "cameraU": 0.5,
+      "respawnMs": 1500,
+      "paperRadiusPx": 120,
+      "flockSize": 5,
+      "spots": {
+        "near": {
+          "paper": [
+            {
+              "dx": 0,
+              "y": 700
+            }
+          ],
+          "stand": {
+            "dx": 0,
+            "y": 900
+          },
+          "flockDx": 0,
+          "flyY": 330,
+          "lane": {
+            "groundY": [
+              880,
+              950
+            ],
+            "skyY": [
+              150,
+              400
+            ]
+          },
+          "flyHalfPx": 1300
+        },
+        "mid": {
+          "paper": [
+            {
+              "dx": 0,
+              "y": 630
+            }
+          ],
+          "stand": {
+            "dx": 0,
+            "y": 725
+          },
+          "flockDx": 0,
+          "flyY": 300,
+          "flyHalfPx": 1300
+        },
+        "far": {
+          "paper": [
+            {
+              "dx": 0,
+              "y": 568
+            }
+          ],
+          "stand": {
+            "dx": 0,
+            "y": 598
+          },
+          "flockDx": 0,
+          "flyY": 220,
+          "flyHalfPx": 1000
+        },
+        "ver": {
+          "paper": [
+            {
+              "dx": 0,
+              "y": 546
+            }
+          ],
+          "stand": {
+            "dx": 0,
+            "y": 559
+          },
+          "flockDx": 0,
+          "flyY": 300,
+          "flyHalfPx": 700
+        }
       }
     }
   }

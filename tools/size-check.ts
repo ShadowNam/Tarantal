@@ -118,6 +118,26 @@ if (split.alternate.length > 0) {
 }
 console.log(line({ ...sum([ti, tl]), file: 'BUILD TOTAL' }));
 
+// v1.3x (D-037): the Skietbaan (admin-only training ground) is its own lazy chunk on builds with
+// the admin page, and absent from portal builds (their adapters have no admin page).
+const rangeKeys = Object.keys(manifest).filter((k) => k.includes('src/game/range/'));
+const rangeChunks = [
+  ...new Set(rangeKeys.map((k) => manifest[k]?.file).filter((f) => f !== undefined)),
+];
+const portal = distName !== 'dist';
+if (portal && rangeKeys.length > 0) {
+  console.error(`size: ${distName}/ carries Skietbaan code (${rangeKeys.join(', ')}) — FAILED.`);
+  process.exit(1);
+}
+if (rangeChunks.length > 0) {
+  const rc = sum(rangeChunks.map(measure));
+  console.log(line({ ...rc, file: `Skietbaan chunk (${rangeChunks.join(', ')})` }));
+  if (rangeChunks.some((f) => split.initial.includes(f))) {
+    console.error('size: the Skietbaan chunk is in the first download — FAILED.');
+    process.exit(1);
+  }
+} else console.log(`  Skietbaan: not in this build${portal ? ' (portal build, D-037)' : ''}`);
+
 if (jsonOut !== undefined) {
   writeFileSync(
     jsonOut,

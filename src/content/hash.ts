@@ -94,5 +94,16 @@ export function sha256HexOfString(text: string): string {
 
 /** contentHash of a validated bundle. */
 export function contentHash(bundle: ContentBundle): string {
-  return sha256HexOfString(canonicalJson(bundle));
+  return sha256HexOfString(canonicalJson(hashedContent(bundle)));
+}
+
+/**
+ * The part of the bundle the hash covers: everything but `modes.range` (v1.3x, D-037). The
+ * admin-only Skietbaan plays no ranked hunt, Daily, challenge or replay, so tuning it must not
+ * re-seed the Daily Hunt or mark challenge links and golden replays as made on other content.
+ */
+function hashedContent(bundle: ContentBundle): unknown {
+  const modes: Partial<ContentBundle['modes']['modes']> = { ...bundle.modes.modes };
+  delete modes.range;
+  return { ...bundle, modes: { ...bundle.modes, modes } };
 }

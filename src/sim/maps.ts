@@ -122,16 +122,19 @@ export function resolveMap(
   biome: Biome,
   layoutId: string | undefined,
   bonusId: string | undefined,
+  /** v1.3x (D-037): keep the Ver plane open whatever the map says (the Skietbaan). */
+  openVer = false,
 ): ResolvedMap {
+  const hasVer = biome.layers.some((l) => l.plane === 'ver');
   if (layoutId === undefined) {
     if (bonusId !== undefined) throw new Error(`bonus map ${bonusId} needs a layout`);
     return {
-      biome: withoutVer(biome),
+      biome: openVer ? biome : withoutVer(biome),
       layout: null,
       bonus: null,
       weather: 'default',
       pointsMul: 1,
-      ver: false,
+      ver: openVer && hasVer,
     };
   }
   const layout = findLayout(biome, layoutId);
@@ -141,7 +144,7 @@ export function resolveMap(
     throw new Error(`biome ${biome.id} has no bonus map ${bonusId}`);
   let resolved = applyOverride(biome, layout);
   if (bonus !== null) resolved = applyOverride(resolved, bonus);
-  const ver = (bonus?.ver ?? layout.ver ?? false) && biome.layers.some((l) => l.plane === 'ver');
+  const ver = (openVer || (bonus?.ver ?? layout.ver ?? false)) && hasVer;
   if (!ver) resolved = withoutVer(resolved);
   const bonusWeather = bonus?.weather;
   return {

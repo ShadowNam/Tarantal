@@ -13,6 +13,8 @@ export interface ReplayOutcome {
 }
 
 export function runReplay(log: InputLog, content: ContentBundle): ReplayOutcome {
+  // The Skietbaan never ends: it has no replay to run to the end (D-037).
+  if (log.mode.id === 'range') throw new Error('range sessions are not replays');
   const sim = createSim({
     seed: log.seed,
     content,

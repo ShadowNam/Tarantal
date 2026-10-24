@@ -397,8 +397,8 @@ draw only when its weight is > 0, so maps without it draw exactly as before.
   plane the creature uses, and each biome event's required fields for its handler kind).
   `--dir <path>` validates another content folder (used by the test that proves a broken
   cross-reference fails the CLI).
-- `contentHash` = SHA-256 of the canonicalised bundle; part of every replay, daily seed and score
-  submission (only official content counts for leaderboards).
+- `contentHash` = SHA-256 of the canonicalised bundle, except `modes.range` (see §8.3); part of
+  every replay, daily seed and score submission (only official content counts for leaderboards).
 - **Client-only feel** lives in `content/client/feel.json` (gesture thresholds, pan speeds, juice
   timings, HUD sizes, loop step cap, particle budget). It has a Zod schema and is validated by
   `content:validate`, but it is **not** part of the sim `ContentBundle` or `contentHash`: nothing in
@@ -600,6 +600,38 @@ seed, length, omen, forced event, Season quota ×) and a review per map (status,
 e2e parameters (`src/game/admin/adminPlay.ts`). Everything runs on the `tm.admin.*` save and is
 unranked, so the player's progress is never touched. Feedback leaves as "Copy report" (markdown)
 or "Send to GitHub" (a prefilled `issues/new?labels=playtest` link ≤ 7 KB, `src/meta/admin.ts`).
+
+### 8.3 Skietbaan: the range mode and its gating (v1.3x, D-037)
+- **Gating:** the admin page's Skietbaan button, so only builds whose adapter has `adminPage` (web).
+  The range's code is one lazy chunk (`src/game/range/` → `Skietbaan-*.js`, 8.7 KB gzip), loaded
+  by `HuntScene.openSkietbaan()`. Its `import()` sits behind the raw `VITE_PLATFORM` flag (a literal
+  after Vite's replacement), so Poki and CrazyGames builds drop it. `adapters.test.ts` checks the
+  guard names exactly the platforms without the admin page; `tools/size-check.ts` fails a portal
+  build that carries range code, or a web build whose range chunk is in the first download.
+  `main.ts` boots in an async function rather than with top-level await: Rolldown merges modules a
+  lazy chunk shares back into the entry only when no module uses top-level await.
+- **Sim:** mode `range` (`content/modes.json` `modes.range`, Zod + cross-refs) with
+  `ModeConfig.range = { plane, target, crate? }`. It is endless (no `huntEnded`), unscored (no
+  `scoreAwarded`, bonuses, penalties or Frenzy) and has no director spawns, world events, crates,
+  secrets, gadget or omen. The Ver plane is always open (`resolveMap(…, openVer)`). A crate gun
+  is armed at tick 0 and re-armed when spent. The targets come from a spawn program passed in as
+  `SimConfig.rangeProgram` (`src/sim/range/program.ts`, so its code ships in the lazy chunk): each
+  tick it may add birds or a flock (via the director's `spawnFlockAt`) and retire birds beyond
+  the range's half-width; randomness comes only from the `range` stream. Paper targets are
+  `HitExtra`s of kind `paper` on their plane's layer, so they are hit-tested front to back like
+  crates (props in front still stop pellets). Range-only events: `rangeShot` (the aim point on the
+  range's plane, a rifle's before the sway) and `paperHit`; `pelletImpact` gains `paperId` only
+  there. Every hunt's event stream is byte-identical, and the golden replays are unchanged.
+- **Hashes and replays:** `modes.range` is left out of `contentHash`, so tuning the range never
+  re-seeds the Daily or marks challenge links and replays as made on other content. Range
+  sessions are not replay logs: `encodeInputLog` and `runReplay` refuse mode `range`.
+- **Game:** `HuntScene` runs a `RangeSession` (`src/game/range/RangeSession.ts`, types only) through
+  the normal hunt path: views, sights and zoom, InputMapper, the HUD belt and pause, with the
+  clock, score and Frenzy hidden. It writes no save, admin save, hunt log, ad count or analytics.
+  The setup page and the stats bar are DOM (`RangePanel.ts`); paper targets and their holes are
+  Graphics on the plane's overlay layer (`PaperDraw.ts`). The stats (`rangeStats.ts`) are fed from
+  the events and kept in memory. Strings come from `src/i18n/range/<lang>.json`, checked by
+  `content:validate` like `src/i18n`.
 
 ## 9. Mobile web specifics (the gotchas)
 - **iPhone Safari has no element Fullscreen API** (iPad does; iOS 17.4 beta even removed an
