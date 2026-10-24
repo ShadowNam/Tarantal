@@ -18,12 +18,14 @@ const pen = { ink: '#1B1410', w: 3 };
 
 // v1.4 B (D-039): the detail floor the product owner asked for (24 Oct).
 describe('camelthorn and family nest detail', () => {
-  it('the nest has 1500+ straws and 10–20 entrance holes; the crown 30–60 clumps', () => {
+  it('the nest has 1500+ straws and 10–20 entrance holes in its underside; 30–60 clumps', () => {
     const art = camelthornTree(prng(7), nestTreeSpec(), camelthornLook(c, pen), pen);
     const nest = lastNestStats();
     expect(nest.straws).toBeGreaterThanOrEqual(1500);
     expect(nest.holes).toBeGreaterThanOrEqual(10);
     expect(nest.holes).toBeLessThanOrEqual(20);
+    // Refinement 1 (checkpoint 1): the entrances are in the underside — the lower quarter.
+    expect(nest.holeHeight).toBeLessThanOrEqual(0.25);
     expect(art.clumps).toBeGreaterThanOrEqual(30);
     expect(art.clumps).toBeLessThanOrEqual(60);
   });

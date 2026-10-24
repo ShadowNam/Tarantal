@@ -167,6 +167,8 @@ interface Limb {
   /** Width at each point. */
   readonly w: readonly number[];
   readonly dead?: boolean;
+  /** A rounded knuckle (disc radius) at the limb's start, where it forks off its parent. */
+  readonly knot?: number;
 }
 
 /** Zig-zag centre line from a to b: `kinks` angular bends alternating side to side. */
@@ -273,7 +275,9 @@ function limbSilhouette(limbs: readonly Limb[], look: CamelthornLook): string {
   const dead: string[] = [];
   const outlines = new Map<string, string[]>();
   for (const l of limbs) {
-    const d = band(densify(l, 5), -1, 1);
+    const knot =
+      l.knot === undefined ? '' : ellipseD(l.pts[0]?.[0] ?? 0, l.pts[0]?.[1] ?? 0, l.knot, l.knot);
+    const d = band(densify(l, 5), -1, 1) + knot;
     (l.dead ? dead : live).push(d);
     const w = r2(clamp(Math.max(...l.w) * 0.07, 0.5, 2) * 2);
     const o = outlines.get(w);
@@ -519,7 +523,91 @@ export interface CamelthornArt {
 }
 
 /** Limb tips where clumps gather, plus the limbs themselves. */
+/** A tapering limb from a to b with gentle kinks and rounded joints (two softening passes). */
+function bough(rnd: Rnd, a: Pt, b: Pt, w0: number, w1: number, kinks: number, amp: number): Limb {
+  const pts = soften(zigzag(rnd, a, b, kinks, amp));
+  return { pts, w: taper(pts, w0, w1) };
+}
+
+/** Width of a limb at the point nearest to p (to start a child limb as wide as its parent). */
+function widthNear(l: Limb, p: Pt): number {
+  let best = l.w[0] ?? 1;
+  let dist = Infinity;
+  l.pts.forEach((q, i) => {
+    const d = Math.hypot(q[0] - p[0], q[1] - p[1]);
+    if (d < dist) {
+      dist = d;
+      best = l.w[i] ?? best;
+    }
+  });
+  return best;
+}
+
+/**
+ * The nest tree (refinement 2): the mature umbrella's build — a short, thick, furrowed trunk
+ * that forks at different heights and angles into tapering limbs with rounded joints, the
+ * crown spreading wider than the nest. The nest sits on the upper limbs.
+ */
+function nestSkeleton(rnd: Rnd, s: CamelthornSpec): { limbs: Limb[]; tips: Pt[]; deadTips: Pt[] } {
+  const x = s.x;
+  const W = s.crownW;
+  const under = s.crownTop + s.crownDepth;
+  const limbs: Limb[] = [];
+  const tips: Pt[] = [];
+  const fork1: Pt = [x + s.lean, s.forkY];
+  const t0 = bough(rnd, [x, s.foot], fork1, s.trunkW, s.trunkW * 0.86, 1, 0.03);
+  /** A point a little way back inside a limb from its end: children start there, so the joint
+   *  is covered by wood instead of showing the parent's square end. */
+  const back = (l: Limb): Pt => {
+    const n = l.pts.length;
+    const end = l.pts[n - 1] ?? fork1;
+    const prev = l.pts[n - 2] ?? end;
+    const seg = Math.hypot(end[0] - prev[0], end[1] - prev[1]) || 1;
+    const f = Math.min(0.9, ((l.w[n - 1] ?? 4) * 1.6) / seg);
+    return [end[0] + (prev[0] - end[0]) * f, end[1] + (prev[1] - end[1]) * f];
+  };
+  // Root flare at the sand.
+  limbs.push({ pts: t0.pts, w: t0.w.map((w, i) => (i === 0 ? w * 1.3 : w)) });
+  const tw = s.trunkW * 0.86;
+  // Left limb: leans out early and forks again lower down.
+  const forkA: Pt = [x - W * 0.32, s.forkY - (s.forkY - under) * 0.3];
+  const A: Limb = { ...bough(rnd, back(t0), forkA, tw * 0.84, tw * 0.6, 0, 0), knot: tw * 0.5 };
+  // Right limb: the main stem, rising to a higher fork.
+  const forkB: Pt = [x + W * 0.18, s.forkY - (s.forkY - under) * 0.5];
+  const B: Limb = { ...bough(rnd, back(t0), forkB, tw * 0.9, tw * 0.66, 0, 0), knot: tw * 0.5 };
+  limbs.push(A, B);
+  const out = (from: Limb, a: Pt, b: Pt, k: number, kinks = 1): Limb => {
+    const w0 = widthNear(from, a) * k;
+    const b0 = bough(rnd, a, b, w0, Math.max(2.5, w0 * 0.2), kinks, 0.09);
+    const l: Limb = { ...b0, knot: widthNear(from, a) * 0.5 };
+    limbs.push(l);
+    tips.push(b);
+    return l;
+  };
+  const yC = (f: number): number => s.crownTop + s.crownDepth * f;
+  const A1 = out(A, forkA, [x - W * 0.86, yC(0.62)], 0.95, 2);
+  const A2 = out(A, forkA, [x - W * 0.3, yC(0.3)], 0.85, 2);
+  const B1 = out(B, forkB, [x + W * 0.05, yC(0.22)], 0.9, 2);
+  const B2 = out(B, forkB, [x + W * 0.84, yC(0.58)], 0.95, 2);
+  // A low side branch off the right limb, out under the crown edge.
+  const mid = B.pts[Math.floor(B.pts.length * 0.45)] ?? forkB;
+  out(B, mid, [x + W * 0.55, yC(0.85)], 0.5, 1);
+  // Secondary branches spreading through the crown from the upper limbs.
+  for (const l of [A1, A2, B1, B2]) {
+    for (const f of [0.55, 0.8]) {
+      const p = l.pts[Math.floor(l.pts.length * f)] ?? l.pts[0];
+      if (p === undefined) continue;
+      const side = rnd() < 0.5 ? -1 : 1;
+      const bx = clamp(p[0] + side * W * (0.15 + rnd() * 0.25), x - W * 0.95, x + W * 0.95);
+      const by = clamp(p[1] - s.crownDepth * (0.15 + rnd() * 0.3), yC(0.15), yC(0.8));
+      out(l, p, [bx, by], 0.6, 1);
+    }
+  }
+  return { limbs, tips, deadTips: [] };
+}
+
 function skeleton(rnd: Rnd, s: CamelthornSpec): { limbs: Limb[]; tips: Pt[]; deadTips: Pt[] } {
+  if (s.variant === 'nest') return nestSkeleton(rnd, s);
   const limbs: Limb[] = [];
   const tips: Pt[] = [];
   const deadTips: Pt[] = [];
@@ -530,7 +618,7 @@ function skeleton(rnd: Rnd, s: CamelthornSpec): { limbs: Limb[]; tips: Pt[]; dea
   limbs.push({ pts: trunkPts, w: tw });
   const under = s.crownTop + s.crownDepth;
   const young = s.variant === 'young';
-  const main = young ? 3 : s.variant === 'nest' ? 4 : 3 + Math.floor(rnd() * 2);
+  const main = young ? 3 : 3 + Math.floor(rnd() * 2);
   for (let k = 0; k < main; k++) {
     const f = main === 1 ? 0 : k / (main - 1) - 0.5; // −0.5 … 0.5
     const tx = s.x + f * s.crownW * 1.55 + (rnd() - 0.5) * s.crownW * 0.12;
@@ -545,15 +633,7 @@ function skeleton(rnd: Rnd, s: CamelthornSpec): { limbs: Limb[]; tips: Pt[]; dea
     // Secondary branches from the kinks, out and up to the crown.
     for (let i = 1; i < pts.length; i++) {
       const p = pts[i] as Pt;
-      // Below a nest the limbs stay few and clear (the nest sits on them).
-      const n =
-        s.variant === 'nest'
-          ? p[1] > s.crownTop + s.crownDepth * 1.3
-            ? 0
-            : 1
-          : young
-            ? 2
-            : 2 + Math.floor(rnd() * 2);
+      const n = young ? 2 : 2 + Math.floor(rnd() * 2);
       for (let b = 0; b < n; b++) {
         const side = b % 2 === 0 ? -1 : 1;
         const reach = s.crownW * (0.25 + rnd() * 0.35);
@@ -626,11 +706,23 @@ export function camelthornTree(
     clumps.push({ x, y, rx, ry, depth: rnd() });
   };
   for (const t of tips) addClump(t[0], t[1] - s.crownDepth * 0.1, s.variant === 'young' ? 1.6 : 1);
-  // The limbs that pass out of the nest end in foliage too.
-  for (const l of s.nest?.limbsOut ?? []) {
-    addClump(l[1][0], l[1][1] - s.crownDepth * 0.05, 1);
-    const c = clumps[clumps.length - 1];
-    if (c !== undefined) clumps[clumps.length - 1] = { ...c, depth: 0.9 };
+  // The limbs that pass out of the nest end in foliage too, and a few clumps hang in front of
+  // and over the nest's top edge, so it sits among the branches rather than under the crown.
+  const nest = s.nest;
+  if (nest !== undefined) {
+    const front = (x: number, y: number, size: number): void => {
+      addClump(x, y, size);
+      const c = clumps[clumps.length - 1];
+      if (c !== undefined) clumps[clumps.length - 1] = { ...c, depth: 0.9 };
+    };
+    for (const l of nest.limbsOut) front(l[1][0], l[1][1] - s.crownDepth * 0.05, 1);
+    const roofY = nest.cy - nest.top;
+    for (const f of [-0.72, -0.28, 0.12, 0.5, 0.82])
+      front(
+        nest.cx + f * nest.a + (rnd() - 0.5) * 16,
+        roofY + nest.top * (0.05 + rnd() * 0.2),
+        0.62,
+      );
   }
   let guard = 0;
   while (clumps.length < nClumps && guard++ < nClumps * 20) {
@@ -831,29 +923,55 @@ function nestMass(
   bottom: number,
   bumps: readonly number[],
 ): Mass {
-  const lumps = ringNoise(rnd, 3, 8, Math.min(a, top + bottom) * 0.22);
-  const fine = ringNoise(rnd, 14, 34, Math.min(a, top + bottom) * 0.16);
+  const lumps = ringNoise(rnd, 3, 7, Math.min(a, top + bottom) * 0.12);
+  const fine = ringNoise(rnd, 14, 34, Math.min(a, top + bottom) * 0.14);
+  // 2–3 irregular bulges on the sides (angle, size).
+  const bulges: { t: number; amp: number; w: number }[] = [];
+  const nb = 2 + Math.floor(rnd() * 2);
+  for (let k = 0; k < nb; k++) {
+    const side = k % 2 === 0 ? 0 : Math.PI;
+    bulges.push({
+      t: side + (rnd() - 0.3) * 0.9,
+      amp: a * (0.05 + rnd() * 0.06),
+      w: 0.3 + rnd() * 0.25,
+    });
+  }
+  const angDist = (p: number, q: number): number => {
+    const d = Math.abs(p - q) % (Math.PI * 2);
+    return Math.min(d, Math.PI * 2 - d);
+  };
   const pts: Pt[] = [];
-  const N = 220;
+  const N = 240;
   for (let k = 0; k < N; k++) {
     const t = (k / N) * Math.PI * 2;
     const c = Math.cos(t);
     const sn = Math.sin(t);
-    // Superellipse (fat sides), flatter roof, rounder belly with a sag toward the middle.
-    const sx = Math.sign(c) * Math.pow(Math.abs(c), 0.72);
     const up = sn < 0;
-    const sy = Math.sign(sn) * Math.pow(Math.abs(sn), up ? 0.85 : 0.95);
-    let x = cx + sx * a;
-    let y = cy + sy * (up ? top : bottom);
-    if (!up) y += Math.pow(Math.max(0, 1 - Math.abs(c)), 2) * bottom * 0.18;
+    // A haystack: a rounded dome narrowing toward its crest, fat bulging sides, and a flat-ish
+    // underside (seen a little from below) with a slight sag.
+    let x: number;
+    let y: number;
+    if (up) {
+      const narrow = 0.8 + 0.2 * (1 - Math.abs(sn));
+      x = cx + Math.sign(c) * Math.pow(Math.abs(c), 0.85) * a * narrow;
+      y = cy - top * Math.pow(Math.abs(sn), 1.15);
+    } else {
+      x = cx + Math.sign(c) * Math.pow(Math.abs(c), 0.6) * a;
+      y = cy + bottom * Math.pow(Math.abs(sn), 0.5);
+      y += Math.pow(Math.max(0, 1 - Math.abs(c)), 2) * bottom * 0.1;
+    }
     // The roof rises a little where a branch enters it.
-    if (up) for (const bx of bumps) y -= top * 0.14 * Math.exp(-Math.pow((x - bx) / (a * 0.12), 2));
-    const d = lumps(t) + fine(t);
+    if (up) for (const bx of bumps) y -= top * 0.16 * Math.exp(-Math.pow((x - bx) / (a * 0.13), 2));
+    let d = lumps(t) + fine(t);
+    for (const b of bulges) d += b.amp * Math.exp(-Math.pow(angDist(t, b.t) / b.w, 2));
     x += c * d;
-    y += sn * d * 0.8;
+    y += sn * d * 0.7;
     pts.push([x, y]);
   }
-  const eaveN = ringNoise(rnd, 4, 12, top * 0.5);
+  // An irregular eave: two incommensurate noises plus random steps, not a regular wave.
+  const eaveA = ringNoise(rnd, 2, 5, top * 0.35);
+  const eaveB = ringNoise(rnd, 9, 23, top * 0.45);
+  const eaveN = (t: number): number => eaveA(t) + eaveB(t * 1.37 + 0.6);
   const roofEdge = (x: number): number => {
     let best = cy - top;
     let dist = Infinity;
@@ -882,7 +1000,7 @@ function nestMass(
     top,
     bottom,
     eave: (x) =>
-      roofEdge(x) + top * 0.62 + eaveN((x / a) * 2) - Math.pow((x - cx) / a, 2) * top * 0.3,
+      roofEdge(x) + top * 0.7 + eaveN((x / a) * 2) - Math.pow((x - cx) / a, 2) * top * 0.35,
     bottomAt,
   };
 }
@@ -895,7 +1013,7 @@ function paintMass(
   nStraws: number,
   nHoles: number,
   strayScale: number,
-): { svg: string; straws: number; holes: number } {
+): { svg: string; straws: number; holes: number; holeHeight: number } {
   const clip = nextId();
   const body = polyD(m.pts);
   const defs: string[] = [el('clipPath', { id: clip }, el('path', { d: body }))];
@@ -961,7 +1079,9 @@ function paintMass(
     ),
   );
   const eaveD = polyD(roofPts, false);
-  const soft = blurFilter(Math.max(1.2, m.top * 0.06));
+  const roofSoft = blurFilter(Math.max(2, m.top * 0.14));
+  defs.push(roofSoft.def);
+  const soft = blurFilter(Math.max(1.6, m.top * 0.1));
   const softer = blurFilter(Math.max(2, m.bottom * 0.18));
   defs.push(soft.def, softer.def);
 
@@ -976,7 +1096,9 @@ function paintMass(
     placed++;
     const u = (x - m.cx) / m.a;
     const eave = m.eave(x);
-    const onRoof = y < eave;
+    // A soft, ragged change: near the eave a straw is roof thatch or side straw by chance.
+    const roofness = clamp((eave - y) / (m.top * 0.32) + 0.5 + (rnd() - 0.5) * 0.5, 0, 1);
+    const onRoof = rnd() < roofness;
     let ang: number;
     let len: number;
     let colour: string;
@@ -985,16 +1107,18 @@ function paintMass(
       // Down the slope: outward and down, steeper toward the rim.
       ang = Math.atan2(1, u * 1.6) + (rnd() - 0.5) * 0.3;
       len = m.top * (0.16 + rnd() * 0.3);
+      // Roof thatch near the eave is longer and hangs over the side straws (ragged edge).
+      if (y > eave - m.top * 0.25) len *= 1.5;
       const lum =
         0.5 +
         lightSide +
         (rnd() - 0.5) * 1.1 -
-        Math.max(0, (y - (eave - m.top * 0.2)) / (m.top * 0.2)) * 0.35;
+        Math.max(0, (y - (eave - m.top * 0.2)) / (m.top * 0.2)) * 0.25;
       colour = R[clamp(Math.round(lum * (R.length - 1)), 0, R.length - 1)] as string;
     } else {
       ang = Math.PI / 2 + u * 0.18 + (rnd() - 0.5) * 0.22;
       len = m.bottom * (0.14 + rnd() * 0.3);
-      const below = (y - eave) / Math.max(1, m.bottomAt(x) - eave); // 0 under the eave … 1 belly
+      const below = clamp((y - eave) / Math.max(1, m.bottomAt(x) - eave), 0, 1); // 0 eave … 1 belly
       // Deep shadow just under the overhang and on the belly, golden between.
       const lum =
         0.62 +
@@ -1071,51 +1195,67 @@ function paintMass(
       el('stop', { offset: 1, 'stop-color': shade(S[1] as string, -0.3) }),
     ),
   );
+  // Refinement 1: the entrances are in the flat-ish underside, seen from below — wide, thin
+  // foreshortened ovals (about 3:1) in the lower quarter, a few half hidden by the fringe.
   const holes: string[] = [];
   const rims = new StrokeBin();
-  const taken: Pt[] = [];
+  const veil = new StrokeBin();
+  const taken: { x: number; y: number; rx: number }[] = [];
+  const height = m.top + m.bottom;
+  /** How high the highest entrance sits above the belly (fraction of the nest's height). */
+  let highest = 0;
   let tries = 0;
-  while (taken.length < nHoles && tries++ < 400) {
-    const x = m.cx + (rnd() * 2 - 1) * m.a * 0.82;
+  while (taken.length < nHoles && tries++ < 600) {
+    const x = m.cx + (rnd() * 2 - 1) * m.a * 0.8;
     const bot = m.bottomAt(x);
-    const y = bot - m.bottom * (0.1 + Math.pow(rnd(), 1.4) * 0.5);
-    if (!inside(m.pts, x, y)) continue;
-    const rx = Math.max(2.2, m.a * (0.02 + rnd() * 0.016));
-    const ry = rx * (0.55 + rnd() * 0.25);
-    if (taken.some((t) => Math.hypot(t[0] - x, (t[1] - y) * 1.8) < rx * 3.4)) continue;
-    taken.push([x, y]);
+    const y = bot - height * (0.04 + rnd() * 0.17);
+    if (!inside(m.pts, x, y) || !inside(m.pts, x, y + 2)) continue;
+    const rx = Math.max(3, m.a * (0.032 + rnd() * 0.022));
+    const ry = rx / (2.7 + rnd() * 0.6);
+    if (taken.some((t) => Math.abs(t.x - x) < (t.rx + rx) * 1.25 && Math.abs(t.y - y) < ry * 4))
+      continue;
+    taken.push({ x, y, rx });
+    highest = Math.max(highest, (bot - y) / height);
     holes.push(
+      // Lighter straw rim, then the dark opening with its depth gradient and a shadowed far lip.
+      // The near (lower) lip is lit straw; the far lip falls into the opening's shadow.
       el('path', {
-        d: ellipseD(x, y + ry * 0.2, rx * 1.45, ry * 1.5),
-        fill: S[5],
-        opacity: 0.5,
+        d: ellipseD(x, y + ry * 0.45, rx * 1.3, ry * 1.6),
+        fill: S[4],
+        opacity: 0.42,
       }),
-      el('path', {
-        d: ellipseD(x, y + ry * 0.4, rx * 1.25, ry * 1.2),
-        fill: S[1],
-        opacity: 0.55,
-      }),
+      el('path', { d: ellipseD(x, y - ry * 0.1, rx * 1.15, ry * 1.4), fill: S[1], opacity: 0.55 }),
       el('path', { d: ellipseD(x, y, rx, ry), fill: `url(#${hole})` }),
       el('path', {
-        d: `M${r2(x - rx * 0.9)} ${r2(y - ry * 0.1)}Q${r2(x)} ${r2(y - ry * 1.15)} ${r2(x + rx * 0.9)} ${r2(y - ry * 0.1)}`,
+        d: `M${r2(x - rx * 0.92)} ${r2(y)}Q${r2(x)} ${r2(y - ry * 1.5)} ${r2(x + rx * 0.92)} ${r2(y)}`,
         fill: 'none',
-        stroke: '#0A0604',
-        'stroke-width': Math.max(0.6, ry * 0.3),
-        opacity: 0.7,
+        stroke: '#080503',
+        'stroke-width': Math.max(0.6, ry * 0.45),
+        opacity: 0.75,
       }),
     );
-    for (let j = 0; j < 7; j++) {
+    for (let j = 0; j < 8; j++) {
       const a = rnd() * Math.PI * 2;
-      const px = x + Math.cos(a) * rx * 1.35;
-      const py = y + Math.sin(a) * ry * 1.35;
-      const len = rx * (0.5 + rnd() * 0.7);
-      const b = a + Math.PI / 2 + (rnd() - 0.5);
+      const px = x + Math.cos(a) * rx * 1.3;
+      const py = y + Math.sin(a) * ry * 1.7;
+      const len = rx * (0.35 + rnd() * 0.5);
       rims.add(
-        S[4 + Math.floor(rnd() * 3)] as string,
+        S[3 + Math.floor(rnd() * 3)] as string,
         0.6,
-        `M${r2(px)} ${r2(py)}l${r2(Math.cos(b) * len)} ${r2(Math.sin(b) * len)}`,
+        `M${r2(px)} ${r2(py)}l${r2(Math.cos(a + Math.PI / 2) * len)} ${r2(Math.sin(a + Math.PI / 2) * len * 0.35)}`,
       );
     }
+    // Some entrances half hidden behind hanging straws.
+    if (rnd() < 0.55)
+      for (let j = 0; j < 4 + Math.floor(rnd() * 4); j++) {
+        const sx = x + (rnd() - 0.5) * rx * 2;
+        const len = ry * (3 + rnd() * 5);
+        veil.add(
+          S[2 + Math.floor(rnd() * 4)] as string,
+          rnd() < 0.4 ? 1 : 0.7,
+          `M${r2(sx)} ${r2(y - ry * 2.5)}q${r2((rnd() - 0.5) * 2)} ${r2(len * 0.5)} ${r2((rnd() - 0.5) * 3)} ${r2(len)}`,
+        );
+      }
   }
 
   const holeTotal = taken.length;
@@ -1126,8 +1266,11 @@ function paintMass(
       el('path', { d: body, fill: `url(#${vg})` }),
       g(
         { 'clip-path': `url(#${clip})` },
-        el('path', { d: roof, fill: `url(#${rg})`, opacity: 0.85 }),
-        bin.svg([...R, ...S]),
+        g(
+          { filter: `url(#${roofSoft.id})` },
+          el('path', { d: roof, fill: `url(#${rg})`, opacity: 0.8 }),
+        ),
+        bin.svg([...S, ...R]),
         el('path', { d: body, fill: `url(#${hg})` }),
         // Deep shadow under the roof overhang (soft, just below the eave).
         g(
@@ -1136,9 +1279,9 @@ function paintMass(
             d: eaveD,
             fill: 'none',
             stroke: S[0],
-            'stroke-width': Math.max(2, m.top * 0.18),
-            opacity: 0.55,
-            transform: `translate(0 ${r2(m.top * 0.12)})`,
+            'stroke-width': Math.max(3, m.top * 0.26),
+            opacity: 0.72,
+            transform: `translate(0 ${r2(m.top * 0.16)})`,
           }),
         ),
         // Belly shadow.
@@ -1152,6 +1295,7 @@ function paintMass(
         ),
         ...holes,
         rims.svg([]),
+        veil.svg(S),
       ),
       el('path', {
         d: body,
@@ -1165,13 +1309,18 @@ function paintMass(
     ),
     straws: bin.count + strays.count + rims.count,
     holes: holeTotal,
+    holeHeight: highest,
   };
 }
 
-let lastNest: { straws: number; holes: number } = { straws: 0, holes: 0 };
+let lastNest: { straws: number; holes: number; holeHeight: number } = {
+  straws: 0,
+  holes: 0,
+  holeHeight: 0,
+};
 
 /** The nest's straw and hole counts from the last weaverNest call (detail tests). */
-export function lastNestStats(): { straws: number; holes: number } {
+export function lastNestStats(): { straws: number; holes: number; holeHeight: number } {
   return lastNest;
 }
 
@@ -1189,7 +1338,11 @@ export function weaverNest(
   const lobeHoles = Math.max(2, Math.round(n.holes * 0.25));
   const pl = paintMass(rnd, lobe, look, Math.round(n.straws * 0.22), lobeHoles, 0.7);
   const pm = paintMass(rnd, main, look, n.straws, n.holes - pl.holes, 1);
-  lastNest = { straws: pl.straws + pm.straws, holes: pl.holes + pm.holes };
+  lastNest = {
+    straws: pl.straws + pm.straws,
+    holes: pl.holes + pm.holes,
+    holeHeight: Math.max(pl.holeHeight, pm.holeHeight),
+  };
   const shadow = blurFilter(Math.max(2, n.top * 0.16));
   const parts = [shadow.def];
   // The crown above darkens where the nest sits under it (and the nest's roof under the crown).
@@ -1215,15 +1368,14 @@ function nestFront(rnd: Rnd, n: NestSpec, look: CamelthornLook): string {
   const parts: string[] = [shadow.def];
   const shadows: string[] = [];
   for (const [from, to, w] of n.limbsOut) {
-    const pts = zigzag(rnd, from, to, 1, 0.1);
-    parts.push(drawLimb(rnd, { pts, w: taper(pts, w, w * 0.45) }, look, bark));
-    shadows.push(ellipseD(from[0] + w * 0.3, from[1] + w * 0.35, w * 1.6, w * 0.7));
+    parts.push(drawLimb(rnd, bough(rnd, from, to, w, w * 0.35, 1, 0.1), look, bark));
+    shadows.push(ellipseD(from[0] + w * 0.3, from[1] + w * 0.5, w * 2.2, w * 1));
   }
   return g(
     {},
     g(
       { filter: `url(#${shadow.id})` },
-      el('path', { d: shadows.join(''), fill: '#140E08', opacity: 0.55 }),
+      el('path', { d: shadows.join(''), fill: '#140E08', opacity: 0.62 }),
     ),
     ...parts,
     bark.svg([look.furrow]),
@@ -1275,27 +1427,29 @@ export function nestTreeSpec(): CamelthornSpec {
     variant: 'nest',
     x: 0,
     foot: 260,
-    crownW: 228,
-    crownTop: -240,
-    crownDepth: 112,
-    forkY: 140,
-    lean: 14,
-    trunkW: 54,
+    crownW: 240,
+    crownTop: -246,
+    crownDepth: 116,
+    forkY: 150,
+    lean: 10,
+    trunkW: 62,
     nest: {
       cx: 0,
-      cy: -86,
-      a: 148,
-      top: 52,
-      bottom: 46,
-      lobe: { x: 64, y: -40, rx: 54, ry: 26 },
+      cy: -84,
+      a: 142,
+      top: 70,
+      bottom: 44,
+      lobe: { x: 60, y: -30, rx: 58, ry: 30 },
       limbsOut: [
-        [[-58, -126], [-96, -206], 10],
-        [[38, -130], [74, -214], 10],
-        [[138, -102], [214, -148], 8],
-        [[-136, -96], [-206, -150], 7],
+        // Into the crown from the roof, and out of both sides.
+        [[-62, -136], [-104, -214], 11],
+        [[30, -144], [62, -226], 11],
+        [[132, -98], [218, -150], 9],
+        [[-134, -92], [-212, -146], 8],
+        [[96, -128], [150, -196], 7],
       ],
-      holes: 17,
-      straws: 2200,
+      holes: 16,
+      straws: 2300,
     },
   };
 }
