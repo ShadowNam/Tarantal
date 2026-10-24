@@ -1996,9 +1996,10 @@ every gun and sight was measured on the seven weekday maps and on Saturday's thr
   layout's × the bonus map's, on top of `pointsMul`). It cuts only the Ver plane: weekday Ver
   ×0.5–0.72 (Friday, which also has Ver fly-overs, and Saturday lowest) and Verder ×0.8.
 - **Now** (200 seeds, every gun and sight, table in the balance report) every cell is under
-  4 500. The scoped .22 is the strongest, just under the cap (Saturday 4 490, Sunday 4 421,
-  Tuesday 4 409), and the shotguns, which can't reach Ver, stay in the band. Saturday's Ver
-  multiplier was then lowered from ×0.55 to ×0.50 for a margin.
+  4 500. The scoped .22 is the strongest, just under the cap (Sunday 4 421, Tuesday 4 409), and
+  the shotguns, which can't reach Ver, stay in the band. Saturday's Ver multiplier was lowered
+  from ×0.55 to ×0.50 for a margin: the scoped .22 there went from 4 490 to 4 337 (re-measured at
+  de2d746).
 - **Bonus maps** are well under the cap: Saturday's Verder 4 234, Nog Verder 3 089, Die Verste
   2 324.
 - The weekday layouts still score ×0.75 (dusk ×0.9). The area quota is 3 000.
