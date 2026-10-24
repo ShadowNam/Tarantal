@@ -297,12 +297,15 @@
       "group": "kalahari-summer",
       "origin": "interim",
       "file": {
-        "path": "assets/kalahari-summer/img/kalahari_dead_camelthorn.b573b5b28cf3.png",
-        "bytes": 11436,
-        "hash": "b573b5b28cf3"
+        "path": "assets/kalahari-summer/img/kalahari_dead_camelthorn.02800ba9a423.png",
+        "bytes": 118423,
+        "hash": "02800ba9a423"
       },
-      "width": 400,
-      "height": 670
+      "width": 920,
+      "height": 1080,
+      "scale": 0.5,
+      "originX": 0.5,
+      "originY": 0.5555555555555556
     },
     "kalahari/dune_grass_a": {
       "group": "kalahari-summer",
@@ -330,12 +333,15 @@
       "group": "kalahari-summer",
       "origin": "interim",
       "file": {
-        "path": "assets/kalahari-summer/img/kalahari_weaver_camelthorn.1a8736688fa1.png",
-        "bytes": 17692,
-        "hash": "1a8736688fa1"
+        "path": "assets/kalahari-summer/img/kalahari_weaver_camelthorn.8806719ec744.png",
+        "bytes": 245307,
+        "hash": "8806719ec744"
       },
-      "width": 500,
-      "height": 740
+      "width": 1160,
+      "height": 1160,
+      "scale": 0.5,
+      "originX": 0.5,
+      "originY": 0.5172413793103449
     },
     "kalahari/windpomp_sign": {
       "group": "kalahari-summer",
@@ -1482,14 +1488,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/kalahari-summer/layers/far_veld-0.6250ca393fb2.png",
-          "bytes": 13108,
-          "hash": "6250ca393fb2"
+          "path": "assets/kalahari-summer/layers/far_veld-0.17d590a63b9d.png",
+          "bytes": 25974,
+          "hash": "17d590a63b9d"
         },
         {
-          "path": "assets/kalahari-summer/layers/far_veld-1.548dc3e1c8f7.png",
-          "bytes": 10053,
-          "hash": "548dc3e1c8f7"
+          "path": "assets/kalahari-summer/layers/far_veld-1.6591beb3ad30.png",
+          "bytes": 17539,
+          "hash": "6591beb3ad30"
         }
       ],
       "tileWidth": 2048,
@@ -1500,63 +1506,63 @@
         "bucket": 256,
         "rows": [
           [
-            112,
+            147,
+            182
+          ],
+          [
+            203,
             232
           ],
           [
-            112,
+            174,
             232
           ],
           [
-            113,
+            137,
+            187
+          ],
+          [
+            192,
             232
           ],
           [
-            112,
+            181,
+            218
+          ],
+          [
+            159,
             232
           ],
           [
-            112,
+            189,
             232
           ],
           [
-            112,
+            134,
+            168
+          ],
+          [
+            175,
             232
           ],
           [
-            109,
+            173,
+            227
+          ],
+          [
+            153,
             232
           ],
           [
-            110,
+            203,
             232
           ],
           [
-            112,
-            202
+            185,
+            207
           ],
           [
-            112,
-            232
-          ],
-          [
-            110,
-            232
-          ],
-          [
-            140,
-            232
-          ],
-          [
-            162,
-            232
-          ],
-          [
-            111,
-            232
-          ],
-          [
-            109,
+            172,
             232
           ]
         ]
