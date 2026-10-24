@@ -17,7 +17,7 @@ const WOOD = 0x6b4a2b;
 const WOOD_DARK = 0x4a321d;
 const STEEL = 0x8a9198;
 const PAINT = 0xefeadf;
-const FRAME_HALF = 1.35;
+const FRAME_HALF = 1.12;
 const POST_W = 0.12;
 const LEG_BELOW = 1.5;
 /** Swing: its amplitude (radians), decay time and period (ms). A hit kicks the plate out at
