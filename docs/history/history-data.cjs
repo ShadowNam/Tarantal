@@ -7,22 +7,22 @@ const meta = {
   title: 'Tarantal Madness',
   subtitle: 'Development history',
   tagline: 'How the game came together, from the first commit to today',
-  updated: '24 October 2026, 13:45 UTC',
+  updated: '24 October 2026, 21:45 UTC',
   period: '19–24 October 2026',
 };
 
-// "By the numbers" on 24 Oct 2026 (main at 987ea71).
+// "By the numbers" on 24 Oct 2026 (main at 701bf4c).
 const numbers = [
   ['Days since the first commit', '5'],
-  ['Commits on main', '640'],
-  ['Pull requests', '61 opened, 61 merged; v1.4 part B in progress'],
-  ['Game code (TypeScript, without tests)', 'about 38,000 lines'],
-  ['Automated tests', '994 unit tests, 40 browser test suites on 3 device profiles'],
-  ['Hunting areas', '4 (Karoo, Bushveld, Okavango, Kalahari), each with 7 weekday maps and 3 bonus maps (Verder, Nog Verder, Die Verste)'],
+  ['Commits on main', '672'],
+  ['Pull requests', '62 merged, plus this history update; the Skietbaan gongs in progress'],
+  ['Game code (TypeScript, without tests)', 'about 39,000 lines'],
+  ['Automated tests', '1,027 unit tests, 43 browser test suites on 3 device profiles'],
+  ['Hunting areas', '5: the four seasons (Karoo, Bushveld, Okavango, Kalahari) and Namibië, each with 7 weekday maps and 3 bonus maps (Verder, Nog Verder, Die Verste)'],
   ['Guns', '8 (Dubbelloop, Windbuks, Kettie, Plaas-Pomp, Die Twee-Twee with 3 sights, Die Langloop with a 3–9× scope, Voorlaaier, Mielie-Masjien)'],
   ['Creatures', '13 (guineafowl and variants, bosses, flyers)'],
   ['Languages', 'English, Afrikaans, German, Dutch'],
-  ['Design decisions logged', '38 (D-001 to D-038)'],
+  ['Design decisions logged', '39 (D-001 to D-039)'],
 ];
 
 const roles = [
@@ -484,6 +484,36 @@ const stages = [
       { img: 'v14-langloop-shed-iphone', caption: 'The Skiet-Skuur on an iPhone 14: Die Langloop equipped, with its variable scope row.' },
     ],
   },
+  {
+    title: 'v1.4 part B: the Namibië pack, camelthorn trees and the family nest, angry weavers',
+    when: '24 Oct 2026, 21:36 (started 24 Oct, 12:40)',
+    prs: '#64',
+    decision: 'D-039',
+    intro: 'A fifth hunting area, built for long range, and the first props drawn at the new, higher quality bar.',
+    bullets: [
+      'Camelthorn trees drawn in layers: furrowed bark lit and shaded on every limb, zig-zag branches, an umbrella crown of feathery clumps with sky between them, grey seed pods and dappled shade. The product owner approved them on 24 Oct.',
+      'The sociable weavers\u2019 family nest: a domed haystack with over 2 000 straws, a hanging fringe and 10–20 entrance holes underneath. Branches pass through it and leaves grow over the top.',
+      'Angry weavers: shooting the nest costs 10 points and sends 6–15 small birds pouring out of the holes; they swirl, a few dart at the camera, and settle back after about 4 seconds. Their flight is worked out from the hunt itself, so replays show the same birds.',
+      'Namibië: the white Etosha salt pan, red Namib dunes, quiver trees, camelthorns and a waterhole flock far out on the pan. Every weekday map opens the farthest (Ver) plane; on Tuesdays, Thursdays and the bonus maps the far birds shimmer in a mirage.',
+      'It unlocks for good once Die Verste is reached in any area. The title screen gains an area picker that shows Namibië locked, with how to unlock it.',
+      'Balance: every gun and sight was measured over 200 hunts on all seven weekday maps and Saturday\u2019s three bonus maps. A new per-plane points setting brought the scoped .22 (the strongest) under the 4 500 cap everywhere; its worst map is now 4 421.',
+      'First download still within the 3 MB budget; 1 027 unit tests.',
+    ],
+    feedbackLabel: 'Look reviews, independent review and fixes before merging',
+    feedback: [
+      'Product owner (24 Oct, 12:05): "the graphics of that nest is terrible … increase quality by 500 %". The trees and nest were redrawn first and shown as close-ups for approval before the rest of the area was built.',
+      'The independent review found four things, all fixed before the merge: the waterhole tree hid part of the far flock at the opening view (moved; a new check proves 0 % hidden), the scoped .22 scored over the cap, the bonus maps could open in the wrong area, and older saves could miss the unlock.',
+      'Tank\u2019s own browser tests kept overloading its server, so Claude took over the screenshot runs (desktop, Pixel 7 and iPhone 14) and the balance sweeps.',
+    ],
+    images: [
+      { img: 'v14b-pan-tue-pixel7', caption: 'Namibië on a Pixel 7 held sideways (Tuesday): the salt pan, the Namib dunes, quiver trees and the waterhole flock out on the pan.' },
+      { img: 'v14b-nest-closeup', caption: 'The family nest in its camelthorn (desktop close-up).' },
+      { img: 'v14b-weavers-pixel7', caption: 'The nest shot: angry weavers pour out and Oupa\u2019s nest bark appears (Pixel 7).' },
+      { img: 'v14b-flock-clear', caption: 'After the review fix: the waterhole flock stands clear of the trees at the opening view.' },
+      { img: 'v14b-scope-pixel7', caption: 'The waterhole flock through Die Langloop\u2019s scope (Pixel 7).' },
+      { img: 'v14b-locked-iphone', caption: 'The new area picker on an iPhone 14: Namibië locked until Die Verste is reached.' },
+    ],
+  },
 ];
 
 // The product owner's requests, in order.
@@ -502,12 +532,21 @@ const requests = [
   ['24 Oct, 05:45', 'More targets in the training ground: mixed targets at all distances, every distance for every gun, a sound or blink on every hit', 'Done (#61), with screenshots sent at the merge'],
   ['24 Oct, 12:05', 'Better graphics for the trees, bushes and fruit on every map; camelthorn trees in Namibia; a far more detailed weaver nest ("increase quality by 500%") with angry birds flying out when it is shot', 'Camelthorn and nest first in v1.4 part B, with close-ups for approval; then v1.5 for every map'],
   ['24 Oct, 12:18', 'Meerkat burrows on the desert maps: meerkats peek out and run from one burrow to another ("be creative")', 'Queued as v1.6: burrows, a sentinel, dashes, diving at shots, a Familiefoto secret'],
+  ['24 Oct, 16:00', 'Languages: voices and text for more languages', 'Queued as v1.5 Languages'],
+  ['24 Oct, 17:45', 'Clean steel gongs in the training ground, with every shot mark staying visible for the session; tin cans ("blikkies") on fence posts that somersault and can be juggled in the air', 'Queued: Skietbaan gongs next, then v1.8 Blikkies'],
+  ['24 Oct, 18:55', 'Five more ideas to keep the African feel (meerkats, a soundscape, a rain storm, a braai, a farm dog, veld cameos) and Daily specials on local days (Heritage Day braai, Christmas in summer, Halloween, New Year)', 'All queued as v1.6–v1.13; a list of Daily specials sent for the product owner to choose from'],
+  ['24 Oct, 20:35', 'Distant animals (like the giraffe) look rough; consider a bow and arrow later', 'Far animals added to v1.6 (veld art); bow and arrow noted as an idea for later'],
 ];
 
 const next = [
-  ['v1.4 part B: Namibië', 'The Namibië area (Etosha salt pan with mirages, quiver trees, dunes, a far waterhole). First new camelthorn trees and a much more detailed weaver nest, then angry weavers when the nest is shot', 'Tank', 'about 6 h (started 24 Oct, 12:40)'],
-  ['v1.5: better plants on every map', 'Trees, bushes, grass and their fruit redrawn at the new quality bar in every area', 'Tank', 'about 6 h'],
-  ['v1.6: meerkat colonies', 'Burrows on the desert maps; meerkats peek, stand guard, dash between burrows and dive when shots are fired; a Familiefoto secret', 'Tank', 'about 5 h'],
+  ['Skietbaan gongs', 'Clean steel plates in the training ground; every hit leaves a lead-splash mark that stays for the session; paper keeps every hole; a Repaint button', 'Tank', 'about 3 h'],
+  ['v1.5: languages', 'More languages for text and voices', 'Tank', 'about 5 h'],
+  ['v1.6: veld art and distant animals', 'Trees, bushes, grass and fruit at the new quality bar on every map, and better far animals (giraffe and others)', 'Tank', 'about 6 h'],
+  ['v1.7: meerkat colonies', 'Burrows on the desert maps; meerkats peek, stand guard, dash between burrows and dive when shots are fired', 'Tank', 'about 5 h'],
+  ['v1.8: blikkies', 'Tin cans on fence posts that somersault when hit and can be juggled in the air', 'Tank', 'about 5 h'],
+  ['v1.9–v1.13', 'Soundscape, the rain storm (reënbui), the braai, the farm dog (brakkie) and veld cameos', 'Tank', 'about 4–5 h each'],
+  ['Daily specials (Feesdae)', 'Holiday Dailies on local days; waiting for the product owner to choose which', 'Product owner, then Tank', 'after the choice'],
+  ['Idea for later', 'A bow and arrow', 'Product owner', 'not planned yet'],
 ];
 
 const decisions = [
@@ -534,6 +573,7 @@ const decisions = [
   ['D-036', 'v1.3 long range: the Ver plane, sights and zoom, the .22, Nog Verder and Die Verste'],
   ['D-037', 'Training ground (Skietbaan): admin and test build only, never touches the save, left out of the content fingerprint'],
   ['D-038', 'v1.4 part A: the faster scope view (#56) and Die Langloop'],
+  ['D-039', 'v1.4 part B: the Namibië pack, camelthorn trees and the family nest, angry weavers, per-plane points'],
 ];
 
 const glossary = [
