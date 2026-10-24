@@ -5,7 +5,7 @@
 // of the setup page and the range go to docs/art-preview/compare/skietbaan-*.png.
 import { expect, test, type Page } from '@playwright/test';
 import { collectErrors, hook, isLandscape, isTouchProject, tapAt, tapRect } from './helpers';
-import weaponsJson from '../../content/weapons.json';
+import weaponsJson from '../../content/weapons.json' with { type: 'json' };
 
 /** The guns the Skietbaan lists, from content: each primary (a rifle once per sight), then the
  *  crate guns. */
