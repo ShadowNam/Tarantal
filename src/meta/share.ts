@@ -6,6 +6,7 @@
 import type { DailyMeta } from '../content/schemas';
 import { fill, type Translator } from '../i18n/i18n';
 import type { SimEvent } from '../sim/events';
+import { bonusSlug } from './bonusMaps';
 
 export const GRID_GOOD = '🟩';
 export const GRID_OK = '🟨';
@@ -123,5 +124,5 @@ function mapLabel(input: ShareInput, tr: Translator): string {
   const bonus = input.bonus ?? null;
   return bonus === null
     ? fill(tr.text('share.map'), { day })
-    : fill(tr.text('share.map_bonus'), { day, bonus: tr.or(`map.${bonus}`, bonus) });
+    : fill(tr.text('share.map_bonus'), { day, bonus: tr.or(`map.${bonusSlug(bonus)}`, bonus) });
 }

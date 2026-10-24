@@ -17,7 +17,7 @@ import { TierFilters } from '../quality/TierFilters';
 import type { Challenge } from '../../meta/challenge';
 import { createHuntLogger, type HuntLogger } from '../../meta/huntLog';
 import { createShareLogger, type ShareLogger } from '../../meta/share';
-import { applyHunt, isWeaponEquippable, type HuntOutcome } from '../../meta/progress';
+import { applyHunt, huntSight, isWeaponEquippable, type HuntOutcome } from '../../meta/progress';
 import { msToTicks } from '../../sim/clock';
 import type { SimEvent } from '../../sim/events';
 import { createRecorder, encodeInputLogText, type InputRecorder } from '../../sim/replay/inputLog';
@@ -39,12 +39,19 @@ import { SightView, type SightPicture } from '../view/SightView';
 import { NO_ZOOM, zoomFor, type ZoomState } from '../view/zoomView';
 import { ParallaxView } from '../view/ParallaxView';
 import { WeaponView } from '../view/WeaponView';
+import { planeToDx } from '../../sim/camera';
 import { crosshairExtent, spreadMulOf } from '../ui/gunLook';
 import { WorldView } from '../view/WorldView';
 import { textureBytes } from '../assets/textureBytes';
 import { mapLights, mapOmen, resolveMap, type ResolvedMap } from '../../sim/maps';
 import { layoutForDay } from '../../meta/maps';
-import { applyBonusResult, isUnlocked } from '../../meta/bonusMaps';
+import {
+  applyBonusResult,
+  bonusAllowsSight,
+  bonusKeys,
+  bonusSlug,
+  isUnlocked,
+} from '../../meta/bonusMaps';
 import { formatScore } from '../ui/format';
 import type { HudScene } from './HudScene';
 import type { PauseData } from './PauseScene';
@@ -447,6 +454,17 @@ export class HuntScene extends Phaser.Scene {
     this.ctx.installedManifest = this.manifest;
   }
 
+  /** v1.3: the mode with the rifle's sight (unchanged for guns without one or a set sight). */
+  private withSight(mode: ModeConfig): ModeConfig {
+    if (mode.sight !== undefined) return mode;
+    const gun =
+      mode.weapon ??
+      (mode.id === 'seasonHunt' ? undefined : this.ctx.content.modes.modes[mode.id].weapon);
+    if (gun === undefined) return mode;
+    const sight = huntSight(gun, this.ctx.save.data, this.ctx.content, this.ctx.sightOverride);
+    return sight === undefined ? mode : { ...mode, sight };
+  }
+
   /** v1.3: the picture a fitted sight draws (weapons.json sights), or null for no sight. */
   private sightPicture(id: string | null): SightPicture | null {
     if (id === null) return null;
@@ -699,7 +717,14 @@ export class HuntScene extends Phaser.Scene {
       bonus !== undefined &&
       modeId === 'classic' &&
       challenge === null &&
-      isUnlocked(save.bonusMaps, this.huntDay, this.ctx.biome.id, bonus);
+      isUnlocked(save.bonusMaps, this.huntDay, this.ctx.biome.id, bonus) &&
+      // v1.3 (D-036): Die Verste starts only with a scope fitted (the title button says so).
+      bonusAllowsSight(
+        this.ctx.content,
+        this.ctx.biome.id,
+        bonus,
+        this.withSight({ id: 'classic', ...(weapon === undefined ? {} : { weapon }) }).sight,
+      );
     const extra = {
       ...(bonusOpen ? { bonus } : {}),
       ...(this.ctx.huntSeconds === undefined ? {} : { huntSeconds: this.ctx.huntSeconds }),
@@ -728,15 +753,18 @@ export class HuntScene extends Phaser.Scene {
         plan = {
           ...plan,
           mode: { ...plan.mode, bonus: classicBonus },
-          hudTag: tOr(`hud.tag_${classicBonus}`, classicBonus),
+          hudTag: tOr(`hud.tag_${bonusSlug(classicBonus)}`, classicBonus),
         };
     }
     this.plan = plan;
     this.modeId = plan?.mode.id ?? modeId;
     // A Season Run hunt comes from the run (seed, biome, weapon, charms, Boss Rule …).
     const runHunt = modeId === 'seasonHunt' ? this.ctx.run.setup(this.ctx.huntSeconds) : null;
-    const mode: ModeConfig = runHunt?.mode ??
+    const baseMode: ModeConfig = runHunt?.mode ??
       plan?.mode ?? { id: modeId, ...(weapon === undefined ? {} : { weapon }), ...extra };
+    // v1.3 (D-036): a rifle carries its sight — a challenge's, the admin page's, or the one
+    // fitted in the Skiet-Skuur (recorded in the replay with the mode).
+    const mode = this.withSight(baseMode);
     // The hunt's biome may not be the one behind the title (M8): swap the scenery first.
     const huntBiome =
       mode.biome ??
@@ -963,8 +991,10 @@ export class HuntScene extends Phaser.Scene {
     if (paused) return;
 
     const hook = this.ctx.hook;
-    if (hook && !this.ending && hook.frameTimes.length < MAX_FRAME_SAMPLES)
+    if (hook && !this.ending && hook.frameTimes.length < MAX_FRAME_SAMPLES) {
       hook.frameTimes.push(delta);
+      hook.frameScoped.push(hook.zoom.raise >= 1);
+    }
 
     const simStart = hook ? performance.now() : 0;
     const { events, steps } = runner.advance(delta);
@@ -1080,6 +1110,22 @@ export class HuntScene extends Phaser.Scene {
       hook.birds = state.birds.length;
       hook.gadgetCharges = state.gadget?.charges ?? 0;
       hook.flocks = state.flocks.map((f) => `${f.id}:${f.state}`);
+      const ver = this.ctx.content.scoring.planes.ver;
+      const tarentaal = this.ctx.content.birds.creatures.find((c) => c.id === 'tarentaal');
+      const body = tarentaal !== undefined && 'hitbox' in tarentaal ? tarentaal.hitbox.body : null;
+      hook.verBirds = state.birds
+        .filter((b) => b.plane === 'ver' && b.hittable)
+        .map((b) => ({
+          id: b.id,
+          x:
+            width / 2 +
+            planeToDx(
+              state.cameraX,
+              ver.scrollFactor,
+              b.x + (body?.ox ?? 0) * ver.scale * b.facing,
+            ),
+          y: b.y + (body?.oy ?? 0) * ver.scale,
+        }));
       hook.flockSpots = state.flocks.map((f) => {
         const members = state.birds.filter((b) => b.flockId === f.id);
         const n = Math.max(1, members.length);
@@ -1217,8 +1263,14 @@ export class HuntScene extends Phaser.Scene {
       this.markFtueDone(false);
     }
     const plan = this.plan;
-    const outcome = this.recordProgress(result, plan === null || this.ctx.daily.ranked(plan));
-    const verder = this.recordBonus(result);
+    // The bonus-map unlock first: a Notaboek challenge counts it (v1.3: Nog Verder → the .22).
+    const bonus = this.recordBonus(result);
+    const verder = bonus.line;
+    const outcome = this.recordProgress(
+      result,
+      plan === null || this.ctx.daily.ranked(plan),
+      bonus.unlocked,
+    );
     const finished =
       plan === null ? null : this.ctx.daily.finish(plan, result, this.shareLog?.grid() ?? '');
     const extras =
@@ -1280,9 +1332,10 @@ export class HuntScene extends Phaser.Scene {
    * Returns the tally line it earned, or null. Capture mode and `?e2e` on a public build are
    * unranked and unlock nothing.
    */
-  private recordBonus(result: HuntResult): string | null {
-    if (this.ctx.daily.unranked) return null;
+  private recordBonus(result: HuntResult): { line: string | null; unlocked: string | null } {
+    if (this.ctx.daily.unranked) return { line: null, unlocked: null };
     let line: string | null = null;
+    let unlocked: string | null = null;
     this.ctx.save.update((d) => {
       const r = applyBonusResult(
         d.bonusMaps,
@@ -1292,17 +1345,25 @@ export class HuntScene extends Phaser.Scene {
         this.ctx.content,
         this.ctx.biome.id,
       );
-      if (r.unlocked !== null) line = t(`tally.${r.unlocked}_unlocked`);
+      unlocked = r.unlocked;
+      if (r.unlocked !== null)
+        line = tOr(bonusKeys(r.unlocked).unlocked, t('tally.verder_unlocked'));
       else if (r.newBest !== null && result.bonus !== null)
-        line = fill(t('title.verder_best'), { score: formatScore(result.score) });
+        line = fill(tOr(bonusKeys(result.bonus).best, t('title.verder_best')), {
+          score: formatScore(result.score),
+        });
       if (this.ctx.hook) this.ctx.hook.verderUnlocked = r.unlocked;
       return { ...d, bonusMaps: r.save };
     });
-    return line;
+    return { line, unlocked };
   }
 
   /** Hunt log → save (stats, Bird Book, bests, rank, Notaboek) and hunt_end analytics. */
-  private recordProgress(result: HuntResult, ranked: boolean): HuntOutcome | null {
+  private recordProgress(
+    result: HuntResult,
+    ranked: boolean,
+    bonusUnlocked: string | null,
+  ): HuntOutcome | null {
     const logger = this.logger;
     this.ctx.platform.gameplayStop();
     this.ctx.platform.analytics('hunt_end', {
@@ -1319,7 +1380,13 @@ export class HuntScene extends Phaser.Scene {
     if (logger === null) return null;
     let outcome: HuntOutcome | null = null;
     this.ctx.save.update((d) => {
-      outcome = applyHunt(d, logger.finish(result), this.ctx.content, this.ctx.notaboek, ranked);
+      outcome = applyHunt(
+        d,
+        logger.finish(result, bonusUnlocked),
+        this.ctx.content,
+        this.ctx.notaboek,
+        ranked,
+      );
       return outcome.save;
     });
     return outcome;

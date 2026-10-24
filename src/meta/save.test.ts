@@ -120,6 +120,18 @@ describe('SaveData v1', () => {
     expect(repaired).toEqual([]);
   });
 
+  it('a v1.2 save without sights keeps its gun and unlocks and gets none (v1.3, no migration)', () => {
+    const old = {
+      ...defaultSave(),
+      loadout: { weapon: 'pomp' },
+      unlocks: { weapons: ['windbuks'] },
+    };
+    const { data, repaired } = repairSave(old);
+    expect(data.loadout).toEqual({ weapon: 'pomp', sights: {} });
+    expect(data.unlocks).toEqual({ weapons: ['windbuks'], sights: [] });
+    expect(repaired).toEqual([]);
+  });
+
   it('a damaged daily field falls back alone', () => {
     const d = defaultSave();
     const raw = { ...d, daily: { ...d.daily, streak: 5, freezesUsed: ['nope'] } };

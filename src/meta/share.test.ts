@@ -55,6 +55,18 @@ describe('share text (GDD §15)', () => {
     `);
   });
 
+  it('names v1.3 bonus maps by their i18n name (bonusSlug), never their id', () => {
+    for (const [lang, bonus, name] of [
+      ['en', 'nogVerder', 'Nog Verder'],
+      ['en', 'dieVerste', 'Die Verste'],
+      ['af', 'nogVerder', 'Nog Verder'],
+    ] as const) {
+      const text = buildShareText({ ...classic, layout: 'mon', bonus }, translator(lang)).text;
+      expect(text).toContain(name);
+      expect(text).not.toContain(bonus);
+    }
+  });
+
   it('keeps the link out of the text for navigator.share, and works without one', () => {
     const m = buildShareText(daily, translator('en'));
     expect(m.text).not.toContain('http');

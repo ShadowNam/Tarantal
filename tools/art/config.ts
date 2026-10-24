@@ -57,6 +57,7 @@ export const GUN_IDS = [
   'pomp',
   'voorlaaier',
   'mielie_masjien',
+  'twee_twee',
 ] as const;
 export type GunId = (typeof GUN_IDS)[number];
 

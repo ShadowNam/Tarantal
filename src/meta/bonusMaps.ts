@@ -15,6 +15,36 @@ export function mapQuota(content: Pick<ContentBundle, 'run'>, biome: string): nu
   return q;
 }
 
+/** v1.3: a bonus map id as it appears in i18n keys (`title.nog_verder`, `tally.die_verste_unlocked`). */
+export function bonusSlug(id: string): string {
+  return id.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);
+}
+
+/** v1.3 (D-036): whether a sight is a scope (it draws the scope picture). */
+export function isScope(
+  content: Pick<ContentBundle, 'weapons'>,
+  sight: string | undefined,
+): boolean {
+  return content.weapons.sights.find((s) => s.id === sight)?.picture === 'scope';
+}
+
+/** v1.3 (D-036): whether a bonus map can start with this sight (Die Verste needs a scope). */
+export function bonusAllowsSight(
+  content: Pick<ContentBundle, 'weapons' | 'biomes'>,
+  biome: string,
+  bonus: string,
+  sight: string | undefined,
+): boolean {
+  const map = content.biomes.find((b) => b.id === biome)?.bonusMaps.find((m) => m.id === bonus);
+  return map?.needsScope !== true || isScope(content, sight);
+}
+
+/** v1.3: the i18n keys a bonus map's name, best line and unlock line use. */
+export function bonusKeys(id: string): { name: string; best: string; unlocked: string } {
+  const slug = bonusSlug(id);
+  return { name: `map.${slug}`, best: `title.${slug}_best`, unlocked: `tally.${slug}_unlocked` };
+}
+
 /** Save key of a biome's bonus map ("karoo-autumn/verder"). */
 export const bonusKey = (biome: string, bonus: string): string => `${biome}/${bonus}`;
 

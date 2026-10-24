@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { loadContent, loadNotaboek } from '../../tools/testContent';
 import type { HuntLog } from './huntLog';
-import { applyHunt, isWeaponEquippable, isWeaponUnlocked } from './progress';
+import {
+  applyHunt,
+  fittedSight,
+  huntSight,
+  isSightUnlocked,
+  isWeaponEquippable,
+  isWeaponUnlocked,
+  plainGun,
+} from './progress';
 import { defaultSave, type SaveData } from './saveSchema';
 
 const content = loadContent();
@@ -21,6 +29,8 @@ function hunt(over: Partial<HuntLog> = {}): HuntLog {
     shots: 40,
     bagged: 20,
     baggedFar: 4,
+    baggedVer: 0,
+    bonusUnlocked: null,
     wingShots: 3,
     wholeFlocks: 0,
     secrets: 0,
@@ -149,6 +159,65 @@ describe('applyHunt', () => {
     const o = applyHunt(defaultSave(), hunt({ rank: 'plaaswerker' }), content, notaboek);
     expect(isWeaponEquippable(weapon('pomp'), o.save, content)).toBe(true);
     expect(isWeaponEquippable(weapon('dubbelloop'), defaultSave(), content)).toBe(true);
+  });
+});
+
+describe('v1.3: the Twee-Twee and its sights (D-036)', () => {
+  const sight = (id: string) => {
+    const x = content.weapons.sights.find((v) => v.id === id);
+    if (x === undefined) throw new Error(id);
+    return x;
+  };
+
+  it('unlocking Nog Verder once unlocks the Twee-Twee (any other unlock does not)', () => {
+    const verder = play(defaultSave(), [hunt({ bonusUnlocked: 'verder' })]);
+    expect(verder.unlocked).not.toContain('twee_twee');
+    const nog = play(verder.save, [hunt({ bonusUnlocked: 'nogVerder' })]);
+    expect(nog.unlocked).toEqual(['twee_twee']);
+    expect(isWeaponEquippable(weapon('twee_twee'), nog.save, content)).toBe(true);
+  });
+
+  it('iron from the start, the peep for 10 Ver birds (total), the scope at Bosveldjagter', () => {
+    const save = defaultSave();
+    expect(isSightUnlocked(sight('iron'), save, content)).toBe(true);
+    expect(isSightUnlocked(sight('peep'), save, content)).toBe(false);
+    expect(isSightUnlocked(sight('scope_small'), save, content)).toBe(false);
+    const o1 = applyHunt(save, hunt({ baggedVer: 6 }), content, notaboek);
+    expect(o1.unlockedSights).toEqual([]);
+    const o2 = applyHunt(o1.save, hunt({ baggedVer: 4 }), content, notaboek);
+    expect(o2.unlockedSights).toEqual(['peep']);
+    expect(isSightUnlocked(sight('peep'), o2.save, content)).toBe(true);
+    const ranked = { ...o2.save, bestRank: 'bosveldjagter' };
+    expect(isSightUnlocked(sight('scope_small'), ranked, content)).toBe(true);
+  });
+
+  it('a rifle carries the fitted sight if unlocked, else its default; other guns none', () => {
+    const save = {
+      ...defaultSave(),
+      loadout: { weapon: 'twee_twee', sights: { twee_twee: 'scope_small' } },
+    };
+    expect(fittedSight('twee_twee', save, content)).toBe('iron');
+    expect(fittedSight('twee_twee', { ...save, bestRank: 'bosveld_legend' }, content)).toBe(
+      'scope_small',
+    );
+    expect(fittedSight('dubbelloop', save, content)).toBeUndefined();
+  });
+
+  it('Classic plays the loadout while it is equippable, else the mode gun; the admin gun wins', () => {
+    const classicGun = content.modes.modes.classic.weapon;
+    const locked = { ...defaultSave(), loadout: { weapon: 'twee_twee', sights: {} } };
+    expect(plainGun(locked, content, 'classic')).toBe(classicGun);
+    const owned = { ...locked, unlocks: { ...locked.unlocks, weapons: ['twee_twee'] } };
+    expect(plainGun(owned, content, 'classic')).toBe('twee_twee');
+    expect(plainGun(owned, content, 'classic', 'pomp')).toBe('pomp');
+  });
+
+  it('the admin sight wins when it fits the gun, else the fitted sight', () => {
+    const save = defaultSave();
+    expect(huntSight('twee_twee', save, content)).toBe('iron');
+    expect(huntSight('twee_twee', save, content, 'scope_small')).toBe('scope_small');
+    expect(huntSight('twee_twee', save, content, 'no_such_sight')).toBe('iron');
+    expect(huntSight('dubbelloop', save, content, 'scope_small')).toBeUndefined();
   });
 });
 

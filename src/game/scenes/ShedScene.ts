@@ -7,7 +7,13 @@ import * as Phaser from 'phaser';
 import { textureBytes } from '../assets/textureBytes';
 import type { Weapon } from '../../content/schemas';
 import { fill, t, tOr } from '../../i18n/i18n';
-import { isWeaponEquippable, isWeaponUnlocked, secretKey } from '../../meta/progress';
+import {
+  fittedSight,
+  isSightUnlocked,
+  isWeaponEquippable,
+  isWeaponUnlocked,
+  secretKey,
+} from '../../meta/progress';
 import type { GameContext } from '../GameContext';
 import type { Rect } from '../ui/hudLayout';
 import { drawButton, fitText, Menu, textStyle, UI, type MenuItem } from '../ui/menu';
@@ -188,12 +194,82 @@ export class ShedScene extends Phaser.Scene {
         rect: () => r,
         enabled: () => equippable && !equipped,
         press: () => {
-          this.ctx.save.update((d) => ({ ...d, loadout: { weapon: w.id } }));
+          this.ctx.save.update((d) => ({ ...d, loadout: { ...d.loadout, weapon: w.id } }));
           this.focusAfterEquip = `shed.weapon.${w.id}`;
           rebuild();
         },
       });
     });
+    const rows = Math.ceil(weapons.length / cols);
+    this.sights(body.y + rows * (cardH + 20), body, items, rebuild);
+  }
+
+  /**
+   * v1.3 (D-036): under the gun cards, each unlocked rifle's sights — the fitted one, the ones
+   * you can fit, and the locked ones with what earns them (a Notaboek challenge or a rank).
+   */
+  private sights(top: number, body: Rect, items: MenuItem[], rebuild: () => void): void {
+    const save = this.ctx.save.data;
+    const rifles = this.ctx.content.weapons.weapons.filter(
+      (w): w is PrimaryWeapon =>
+        w.kind === 'primary' && w.aim !== undefined && isWeaponUnlocked(w, save, this.ctx.content),
+    );
+    let y = top;
+    for (const w of rifles) {
+      if (w.aim === undefined) continue;
+      const label = this.add
+        .text(
+          body.x,
+          y + 36,
+          fill(t('shed.sight'), { weapon: tOr(`weapon.${w.id}`, w.id) }),
+          textStyle(30, '#FFD25A'),
+        )
+        .setOrigin(0, 0.5);
+      fitText(label, body.w * 0.3);
+      const fitted = fittedSight(w.id, save, this.ctx.content);
+      const chipW = Math.min(
+        300,
+        (body.w * 0.7 - 20 * (w.aim.sights.length - 1)) / w.aim.sights.length,
+      );
+      let hint: string | null = null;
+      for (const [i, id] of w.aim.sights.entries()) {
+        const sight = this.ctx.content.weapons.sights.find((x) => x.id === id);
+        if (sight === undefined) continue;
+        const open = isSightUnlocked(sight, save, this.ctx.content);
+        const on = fitted === id;
+        const r: Rect = { x: body.x + body.w * 0.3 + i * (chipW + 20), y, w: chipW, h: 72 };
+        const name = tOr(sight.nameKey, id);
+        drawButton(
+          this,
+          r,
+          open ? name : `🔒 ${name}`,
+          on ? 'selected' : open ? 'secondary' : 'locked',
+          28,
+        );
+        if (!open && hint === null) hint = `${name}: ${this.unlockHint(sight)}`;
+        items.push({
+          id: `shed.sight.${w.id}.${id}`,
+          rect: () => r,
+          enabled: () => open && !on,
+          press: () => {
+            this.ctx.save.update((d) => ({
+              ...d,
+              loadout: { ...d.loadout, sights: { ...d.loadout.sights, [w.id]: id } },
+            }));
+            this.focusAfterEquip = `shed.sight.${w.id}.${id}`;
+            rebuild();
+          },
+        });
+      }
+      if (hint !== null) {
+        const h = this.add
+          .text(body.x + body.w * 0.3, y + 86, hint, textStyle(24, '#D9CBB0'))
+          .setOrigin(0, 0);
+        fitText(h, body.w * 0.7);
+      }
+      if (this.ctx.hook) this.ctx.hook.shedSights = { weapon: w.id, fitted: fitted ?? null };
+      y += 120;
+    }
   }
 
   /**
@@ -236,7 +312,7 @@ export class ShedScene extends Phaser.Scene {
     return icon.displayWidth + 16;
   }
 
-  private unlockHint(w: PrimaryWeapon): string {
+  private unlockHint(w: { readonly unlock: PrimaryWeapon['unlock'] }): string {
     const u = w.unlock;
     if (u.type === 'rank') return fill(t('shed.unlock_rank'), { rank: tOr(`rank.${u.id}`, u.id) });
     if (u.type === 'challenge') {
@@ -344,7 +420,9 @@ export class ShedScene extends Phaser.Scene {
           ? fill(t('shed.reward_weapon'), { weapon: tOr(`weapon.${c.reward.id}`, c.reward.id) })
           : c.reward.type === 'birdBookPage'
             ? t('shed.reward_page')
-            : '';
+            : c.reward.type === 'sight'
+              ? fill(t('shed.reward_sight'), { sight: tOr(`sight.${c.reward.id}`, c.reward.id) })
+              : '';
       if (reward !== '') {
         const r = this.add
           .text(body.x + body.w, y + rowH / 2, reward, textStyle(26, '#FFD25A'))

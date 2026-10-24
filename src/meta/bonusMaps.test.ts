@@ -1,7 +1,20 @@
 // v1.2 (D-033): Verder unlock, UTC-midnight reset and its own best.
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { BONUS_MAP_IDS } from '../content/schemas';
 import { loadContent } from '../../tools/testContent';
-import { applyBonusResult, isUnlocked, mapQuota, nextBonus, unlocksOn } from './bonusMaps';
+import {
+  applyBonusResult,
+  bonusAllowsSight,
+  bonusKeys,
+  bonusSlug,
+  isScope,
+  isUnlocked,
+  mapQuota,
+  nextBonus,
+  unlocksOn,
+} from './bonusMaps';
 import { dayNumber } from './dailyCalendar';
 import { layoutForDay } from './maps';
 import { defaultSave } from './saveSchema';
@@ -29,7 +42,10 @@ describe('bonus maps (v1.2)', () => {
   it('the quota is the season plain-hunt quota (run.json)', () => {
     expect(quota).toBe(content.run.seasons.find((s) => s.biome === 'karoo-autumn')?.quotas[0]);
     expect(nextBonus(null)).toBe('verder');
-    expect(nextBonus('verder')).toBeNull();
+    // v1.3: Verder → Nog Verder → Die Verste, then nothing.
+    expect(nextBonus('verder')).toBe('nogVerder');
+    expect(nextBonus('nogVerder')).toBe('dieVerste');
+    expect(nextBonus('dieVerste')).toBeNull();
   });
 
   it('beating the quota on today’s map unlocks Verder for today', () => {
@@ -104,7 +120,52 @@ describe('bonus maps (v1.2)', () => {
     const c = applyBonusResult(b.save, v(2100, mon), mon, mon, content, KAROO);
     expect(c.newBest).toEqual({ previous: 1800 });
     expect(c.save.bests['karoo-autumn/verder']).toEqual({ score: 2100, rank: 'bosveldjagter' });
-    // A Verder hunt never unlocks another Verder (v1.3 adds Nog Verder).
-    expect(c.unlocked).toBeNull();
+    // v1.3: beating the quota on today's Verder unlocks Nog Verder (once).
+    expect(c.unlocked).toBe('nogVerder');
+    expect(isUnlocked(c.save, mon, 'karoo-autumn', 'nogVerder')).toBe(true);
+  });
+
+  it('v1.3: Nog Verder unlocks Die Verste; Die Verste unlocks nothing; each keeps its best', () => {
+    const on = (bonus: string, score: number) => hunt({ layout: layoutForDay(mon), bonus, score });
+    const a = applyBonusResult(empty, on('nogVerder', quota), mon, mon, content, KAROO);
+    expect(a.unlocked).toBe('dieVerste');
+    expect(a.save.bests['karoo-autumn/nogVerder']?.score).toBe(quota);
+    const b = applyBonusResult(a.save, on('dieVerste', quota + 5), mon, mon, content, KAROO);
+    expect(b.unlocked).toBeNull();
+    expect(b.save.bests['karoo-autumn/dieVerste']?.score).toBe(quota + 5);
+  });
+});
+
+describe('bonus maps and sights (v1.3, D-036)', () => {
+  it('Die Verste starts only with a scope fitted, on every biome that has it', () => {
+    expect(isScope(content, 'scope_small')).toBe(true);
+    expect(isScope(content, 'iron')).toBe(false);
+    expect(isScope(content, undefined)).toBe(false);
+    for (const b of content.biomes) {
+      if (!b.bonusMaps.some((m) => m.id === 'dieVerste')) continue;
+      expect(bonusAllowsSight(content, b.id, 'dieVerste', 'scope_small'), b.id).toBe(true);
+      expect(bonusAllowsSight(content, b.id, 'dieVerste', 'peep'), b.id).toBe(false);
+      expect(bonusAllowsSight(content, b.id, 'dieVerste', undefined), b.id).toBe(false);
+      expect(bonusAllowsSight(content, b.id, 'nogVerder', undefined), b.id).toBe(true);
+      expect(bonusAllowsSight(content, b.id, 'verder', undefined), b.id).toBe(true);
+    }
+  });
+
+  it('every bonus map has its name, best and unlock lines in all four languages', () => {
+    for (const lang of ['en', 'af', 'de', 'nl'] as const) {
+      const strings = JSON.parse(
+        readFileSync(join(import.meta.dirname, '..', 'i18n', `${lang}.json`), 'utf8'),
+      ) as Record<string, string>;
+      for (const id of BONUS_MAP_IDS)
+        for (const key of Object.values(bonusKeys(id)))
+          expect(strings[key], `${lang} ${key}`).toBeTypeOf('string');
+    }
+    expect(bonusKeys('nogVerder').best).toBe('title.nog_verder_best');
+  });
+
+  it('i18n slugs: camelCase ids become snake_case keys', () => {
+    expect(bonusSlug('verder')).toBe('verder');
+    expect(bonusSlug('nogVerder')).toBe('nog_verder');
+    expect(bonusSlug('dieVerste')).toBe('die_verste');
   });
 });

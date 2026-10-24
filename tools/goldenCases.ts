@@ -347,4 +347,48 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
     inputKind: 'touch',
     modeConfig: { id: 'daily', biome: 'bushveld-winter', layout: 'wed' },
   },
+  // v1.3 (D-036): the Ver plane and rifles (hold to zoom, release to fire; InputLog v5).
+  {
+    name: 'classic-71-karoo-nogverder-tweetwee-iron-competent-pointer',
+    seed: 71,
+    bot: 'competent',
+    mode: 'classic',
+    inputKind: 'pointer',
+    modeConfig: {
+      id: 'classic',
+      layout: 'mon',
+      bonus: 'nogVerder',
+      weapon: 'twee_twee',
+      sight: 'iron',
+    },
+  },
+  // Die Verste starts only with a scope fitted (D-036).
+  {
+    name: 'classic-72-karoo-dieverste-tweetwee-scope-aim-touch',
+    seed: 72,
+    bot: 'aim',
+    mode: 'classic',
+    inputKind: 'touch',
+    modeConfig: {
+      id: 'classic',
+      layout: 'thu',
+      bonus: 'dieVerste',
+      weapon: 'twee_twee',
+      sight: 'scope_small',
+    },
+  },
+  {
+    name: 'classic-73-bushveld-nogverder-pomp-plinker-pointer',
+    seed: 73,
+    bot: 'plinker',
+    mode: 'classic',
+    inputKind: 'pointer',
+    modeConfig: {
+      id: 'classic',
+      biome: 'bushveld-winter',
+      layout: 'sat',
+      bonus: 'nogVerder',
+      weapon: 'pomp',
+    },
+  },
 ];

@@ -352,6 +352,8 @@ export interface HuntResult {
   readonly layout: string | null;
   readonly bonus: string | null;
   readonly weapon: string;
+  /** v1.3: the rifle's fitted sight (null = a gun without sights). */
+  readonly sight: string | null;
   readonly score: number;
   readonly ticks: number;
   readonly shots: number;

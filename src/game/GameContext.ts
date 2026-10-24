@@ -113,9 +113,13 @@ export interface TestHook {
   firstShotAtMs: number | null;
   /** Real frame-to-frame time in ms while a hunt is running (perf smoke). */
   frameTimes: number[];
+  /** v1.3: per frameTimes sample, whether a sight was fully up. */
+  frameScoped: boolean[];
   /** CPU time per frame in ms (Phaser pre-step → post-render: sim, views, HUD, render
    *  submission; excludes GPU raster and idle) while a hunt is running. */
   cpuFrameMs: number[];
+  /** v1.3: per cpuFrameMs sample, whether a sight was fully up (perf's scoped phase). */
+  cpuFrameScoped: boolean[];
   /** M9: per hunt frame, the ms spent in sim ticks and how many ticks ran. */
   simFrameMs: number[];
   simFrameSteps: number[];
@@ -147,6 +151,8 @@ export interface TestHook {
   safe: Rect | null;
   /** M4: shootable secret parts, crates and scripted birds in design px of the screen. */
   secretSpots: { propId: string; partId: string; x: number; y: number; ready: boolean }[];
+  /** v1.3: hittable Ver birds' body centres on the UNZOOMED screen (design px), for aiming. */
+  verBirds: { id: number; x: number; y: number }[];
   crateSpots: { id: number; x: number; y: number }[];
   specialBirds: { id: number; creature: string; phase: string; x: number; y: number }[];
   /** Active weapon id, power-up ids, wind (omen) and hunt length (bonus time grows it). */
@@ -155,6 +161,12 @@ export interface TestHook {
   biome: string;
   /** v1.2: the title offers Verder (today's map quota beaten), and the last hunt's unlock. */
   verder: boolean;
+  /** v1.3: the bonus maps the title offers today (verder, nogVerder, dieVerste). */
+  bonusOpen: string[];
+  /** v1.3: unlocked bonus maps the title shows locked because the gun has no scope fitted. */
+  bonusNeedsScope: string[];
+  /** v1.3: the Skiet-Skuur's sight row (the last rifle drawn) and its fitted sight. */
+  shedSights?: { weapon: string; fitted: string | null };
   verderUnlocked: string | null;
   /** v1.2: the map on screen (layout, bonus map, light presets drawn, prop u positions). */
   map: {
@@ -312,6 +324,8 @@ export interface GameContext {
   readonly classicBonus: string | undefined;
   /** v1.2x admin page (D-034): Classic and Daily hunts play this gun (undefined = the loadout). */
   readonly weaponOverride: string | undefined;
+  /** v1.3: the admin page's sight for a rifle (undefined = the Skiet-Skuur's). */
+  readonly sightOverride: string | undefined;
   /** v1.2x (D-034): the playtest admin page (`?admin=1`, web builds), or null. */
   readonly admin: AdminContext | null;
   /** Device hint before the first touch: coarse pointer → touch hints on the start card. */

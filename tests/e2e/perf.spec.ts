@@ -5,7 +5,7 @@
 //   - Real frame time avg ≤ 16.7 ms (60 fps) is asserted with PERF_STRICT=1, on a machine with a
 //     GPU. Headless CI and sandboxes rasterise WebGL in software (SwiftShader), where even an empty
 //     WebGL page can't hold 60 fps, so there it is reported only (D-019).
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { writeFileSync } from 'node:fs';
 import {
   boot,
@@ -20,6 +20,16 @@ import {
 
 const BUDGET_MS = 1000 / 60;
 
+/** PERF_CORES=4 reports that many cores, like a 4-core CI runner (which puts the Pixel 7
+ *  profile on the low tier), so a local run picks the same auto tier as CI. */
+async function emulateCores(page: Page): Promise<void> {
+  const cores = Number(process.env['PERF_CORES'] ?? '0');
+  if (cores > 0)
+    await page.addInitScript((n) => {
+      Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => n });
+    }, cores);
+}
+
 test('perf smoke: 30 s hunt at 4× CPU throttle', async ({ page, browserName }, info) => {
   test.skip(
     !['desktop-chromium', 'pixel7-landscape'].includes(info.project.name) ||
@@ -29,6 +39,7 @@ test('perf smoke: 30 s hunt at 4× CPU throttle', async ({ page, browserName }, 
   test.setTimeout(400_000);
   const touch = isTouchProject(info);
   const errors = collectErrors(page);
+  await emulateCores(page);
   await boot(page, 'seed=3&huntSeconds=30');
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
@@ -56,6 +67,7 @@ test('perf smoke: 30 s hunt at 4× CPU throttle', async ({ page, browserName }, 
   const cpu = stats(h.cpuFrameMs.slice(30));
   const report = {
     project: info.project.name,
+    tier: h.quality.tier,
     throttle: 4,
     // v1.0.1 (D-028 §4): how much the frame cost includes score pops (undefined before v1.0.1).
     score: h.score,
@@ -80,6 +92,113 @@ test('perf smoke: 30 s hunt at 4× CPU throttle', async ({ page, browserName }, 
   expect(cpu.avg, 'CPU cost per frame (ms) at 4× throttle').toBeLessThanOrEqual(BUDGET_MS);
   if (process.env['PERF_STRICT'] === '1') {
     expect(real.avg, 'real frame time (ms) at 4× throttle').toBeLessThanOrEqual(BUDGET_MS);
+  }
+  expect(errors).toEqual([]);
+});
+
+// v1.3 (D-036) scoped phase: the same method and budget as the smoke above (30 s hunt, the same
+// auto quality tier — on a 4-core CI runner the Pixel 7 profile is low, desktop medium — 4× CPU
+// throttle, CPU cost per frame ≤ 16.7 ms asserted, real frame time with
+// PERF_STRICT=1), with the .22 and its small scope on Nog Verder. The bot raises the sight on the
+// Ver flock, holds it about 1.5 s and fires, again and again. Only frames with the sight fully up
+// count (the zoomed world, the Ver birds and the sight picture are drawn).
+test('perf: scoped .22 on Nog Verder at 4× CPU throttle', async ({ page, browserName }, info) => {
+  test.skip(
+    !['desktop-chromium', 'pixel7-landscape'].includes(info.project.name) ||
+      browserName !== 'chromium',
+    'CDP throttling needs Chromium',
+  );
+  test.setTimeout(400_000);
+  const touch = isTouchProject(info);
+  const errors = collectErrors(page);
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      'tm.e2e.save.v1',
+      JSON.stringify({
+        v: 1,
+        ftue: { done: true, skipped: false, step: '' },
+        loadout: { weapon: 'twee_twee', sights: { twee_twee: 'scope_small' } },
+        unlocks: { weapons: ['twee_twee'], sights: [] },
+        bestRank: 'bosveldjagter',
+      }),
+    );
+  });
+  await emulateCores(page);
+  await boot(page, 'seed=3&huntSeconds=30&today=2026-10-19&bonus=nogVerder');
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  await startHunt(page, touch);
+  expect((await hook(page)).zoom.sight).toBe('scope_small');
+  const pointer = async (type: string, x: number, y: number): Promise<void> => {
+    await page.evaluate(
+      ([kind, dx, dy, t]) => {
+        const canvas = document.querySelector('#game canvas');
+        const h = window.__TM__;
+        if (!(canvas instanceof HTMLCanvasElement) || !h) return;
+        const r = canvas.getBoundingClientRect();
+        canvas.dispatchEvent(
+          new PointerEvent(kind, {
+            pointerId: t ? 21 : 1,
+            pointerType: t ? 'touch' : 'mouse',
+            button: 0,
+            buttons: kind === 'pointerup' ? 0 : 1,
+            clientX: r.left + (dx / h.designWidth) * r.width,
+            clientY: r.top + (dy / h.designHeight) * r.height,
+            bubbles: true,
+            cancelable: true,
+          }),
+        );
+      },
+      [type, x, y, touch] as const,
+    );
+  };
+  while (!(await hook(page)).over) {
+    const h = await hook(page);
+    const f = h.flockSpots.find((s) => s.plane === 'ver');
+    const x = Math.min(h.designWidth - 200, Math.max(200, f?.x ?? h.designWidth / 2));
+    const y = (f?.y ?? h.designHeight * 0.45) - 2;
+    if (h.shells === 0) {
+      await page.keyboard.press('Space');
+      await waitTicks(page, 60);
+      continue;
+    }
+    await pointer('pointerdown', x, y);
+    await waitTicks(page, 90);
+    await pointer('pointerup', x, y);
+    await waitTicks(page, 30);
+  }
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+  const h = await hook(page);
+  const scoped = (v: readonly number[]): number[] =>
+    v.slice(30).filter((_, k) => h.cpuFrameScoped[k + 30] === true);
+  const cpu = stats(scoped(h.cpuFrameMs));
+  // Real frame times are sampled in HuntScene with their own scoped flags.
+  const real = stats(h.frameTimes.slice(30).filter((_, k) => h.frameScoped[k + 30] === true));
+  const report = {
+    project: info.project.name,
+    phase: 'scoped',
+    tier: h.quality.tier,
+    throttle: 4,
+    sight: h.zoom.sight,
+    scopedShare: h.cpuFrameScoped.filter(Boolean).length / Math.max(1, h.cpuFrameScoped.length),
+    realFrameMs: real,
+    realFps: real.avg > 0 ? 1000 / real.avg : 0,
+    cpuFrameMs: cpu,
+    openCpuFrameMs: stats(
+      h.cpuFrameMs.slice(30).filter((_, k) => h.cpuFrameScoped[k + 30] !== true),
+    ),
+  };
+  console.log(`[perf] ${JSON.stringify(report)}`);
+  writeFileSync(info.outputPath('perf-scoped.json'), JSON.stringify(report, null, 2));
+  await info.attach('perf-scoped.json', {
+    body: JSON.stringify(report, null, 2),
+    contentType: 'application/json',
+  });
+
+  expect(cpu.n).toBeGreaterThan(30);
+  expect(cpu.avg, 'CPU cost per scoped frame (ms) at 4× throttle').toBeLessThanOrEqual(BUDGET_MS);
+  if (process.env['PERF_STRICT'] === '1') {
+    expect(real.avg, 'real scoped frame time (ms) at 4× throttle').toBeLessThanOrEqual(BUDGET_MS);
   }
   expect(errors).toEqual([]);
 });

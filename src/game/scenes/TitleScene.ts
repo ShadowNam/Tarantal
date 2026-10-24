@@ -13,7 +13,9 @@ import { inputKindOf } from '../input/InputMapper';
 import type { InputKind } from '../../sim/types';
 import { formatScore } from '../ui/format';
 import { layoutForDay } from '../../meta/maps';
-import { isUnlocked, mapQuota } from '../../meta/bonusMaps';
+import { bonusAllowsSight, bonusSlug, isUnlocked, mapQuota } from '../../meta/bonusMaps';
+import { huntSight, plainGun } from '../../meta/progress';
+import { BONUS_MAP_IDS } from '../../content/schemas';
 import { findLayout } from '../../sim/maps';
 import type { Rect } from '../ui/hudLayout';
 import { drawButton, fitText, Menu, textStyle, type MenuItem } from '../ui/menu';
@@ -156,21 +158,48 @@ export class TitleScene extends Phaser.Scene {
         )
         .setOrigin(0.5);
       fitText(mapLine, width - 200);
-      // v1.2: Verder — a button once today's map quota is beaten, else what unlocks it.
+      // v1.2: Verder — a button once today's map quota is beaten, else what unlocks it. v1.3:
+      // Nog Verder and Die Verste join it, side by side, as each is unlocked today (D-036).
       const home = this.ctx.biome.id;
-      const verderOpen = isUnlocked(this.ctx.save.data.bonusMaps, this.ctx.today(), home, 'verder');
+      const homeBonus = this.ctx.content.biomes.find((b) => b.id === home)?.bonusMaps ?? [];
+      const open = BONUS_MAP_IDS.filter(
+        (id) =>
+          homeBonus.some((m) => m.id === id) &&
+          isUnlocked(this.ctx.save.data.bonusMaps, this.ctx.today(), home, id),
+      );
+      const verderOpen = open.includes('verder');
+      const save = this.ctx.save.data;
+      const gun = plainGun(save, this.ctx.content, 'classic', this.ctx.weaponOverride);
+      const gunSight = huntSight(gun, save, this.ctx.content, this.ctx.sightOverride);
+      const scopeLocked: string[] = [];
       // Above the bottom row and the Daily status line over it (rowTop), whatever the safe area.
-      const verder: Rect = {
-        x: width / 2 - 200,
-        y: Math.min(start.y + start.h + VERDER_BELOW_START, rowTop - VERDER_H),
-        w: 400,
-        h: VERDER_H,
-      };
-      if (verderOpen) {
-        drawButton(this, verder, t('title.verder'), 'selected', 40);
+      const bonusW = open.length <= 1 ? 400 : Math.min(400, (width - 240) / open.length - 20);
+      const y = Math.min(start.y + start.h + VERDER_BELOW_START, rowTop - VERDER_H);
+      open.forEach((id, i) => {
+        const r: Rect = {
+          x: width / 2 - (open.length * (bonusW + 20) - 20) / 2 + i * (bonusW + 20),
+          y,
+          w: bonusW,
+          h: VERDER_H,
+        };
+        // v1.3 (D-036): Die Verste needs a scope fitted — a grey button that says so instead.
+        if (!bonusAllowsSight(this.ctx.content, home, id, gunSight)) {
+          // The name on top, the reason under it, both inside the button (no room around it).
+          const { text } = drawButton(this, r, tOr(`title.${bonusSlug(id)}`, id), 'locked', 32);
+          text.setY(r.y + r.h * 0.34);
+          const why = this.add
+            .text(r.x + r.w / 2, r.y + r.h * 0.74, t('title.needs_scope'), textStyle(22, '#D9CBB0'))
+            .setOrigin(0.5);
+          fitText(why, r.w - 24);
+          scopeLocked.push(id);
+          // e2e: a tap on it must not start a hunt.
+          if (this.ctx.hook) this.ctx.hook.rects[`${id}_locked`] = r;
+          return;
+        }
+        drawButton(this, r, tOr(`title.${bonusSlug(id)}`, id), 'selected', 40);
         items.push({
-          id: 'verder',
-          rect: () => verder,
+          id,
+          rect: () => r,
           trigger: 'down',
           press: (pointerType, pointerId) => {
             if (this.started) return;
@@ -180,15 +209,16 @@ export class TitleScene extends Phaser.Scene {
               pointerId === null ? 'pointer' : inputKindOf(pointerType),
               pointerId,
               'classic',
-              'verder',
+              id,
             );
           },
         });
-      } else {
+      });
+      if (open.length === 0) {
         const locked = this.add
           .text(
             width / 2,
-            verder.y + verder.h / 2,
+            y + VERDER_H / 2,
             fill(t('title.verder_locked'), {
               quota: formatScore(mapQuota(this.ctx.content, home)),
             }),
@@ -197,6 +227,8 @@ export class TitleScene extends Phaser.Scene {
           .setOrigin(0.5);
         fitText(locked, width - 240);
       }
+      if (this.ctx.hook) this.ctx.hook.bonusOpen = open.filter((id) => !scopeLocked.includes(id));
+      if (this.ctx.hook) this.ctx.hook.bonusNeedsScope = scopeLocked;
       if (this.ctx.hook) this.ctx.hook.verder = verderOpen;
       // Bottom row, left to right: Skiet-Skuur, Daily Hunt (M7), Season Run, Settings.
       const gap = 30;
@@ -289,7 +321,16 @@ export class TitleScene extends Phaser.Scene {
         .text(
           width / 2,
           height - safe.bottom - 40,
-          t(this.ctx.coarsePointer ? 'start.hint_touch' : 'start.hint_mouse'),
+          // v1.3: with a rifle as the Classic gun, how to hold, fire and cancel the sight.
+          t(
+            gunSight !== undefined
+              ? this.ctx.coarsePointer
+                ? 'start.hint_rifle_touch'
+                : 'start.hint_rifle_mouse'
+              : this.ctx.coarsePointer
+                ? 'start.hint_touch'
+                : 'start.hint_mouse',
+          ),
           { ...textStyle(26), stroke: '#1B1410', strokeThickness: 5 },
         )
         .setOrigin(0.5);

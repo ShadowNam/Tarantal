@@ -225,9 +225,14 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
   /** A rig's `group` override (D-029: "late" loads after the first download settles), checked. */
   const groupFor = (want: string | undefined, fallback: string, label: string): string => {
     if (want === undefined) return fallback;
-    if (want === COMMON_GROUP || want === LATE_GROUP || o.catalog.biomes.includes(want))
+    if (
+      want === COMMON_GROUP ||
+      want === LATE_GROUP ||
+      want === VER_GROUP ||
+      o.catalog.biomes.includes(want)
+    )
       return want;
-    errors.push(`${label}/rig.json: group "${want}" is not common, late or a biome id`);
+    errors.push(`${label}/rig.json: group "${want}" is not common, late, ver or a biome id`);
     return fallback;
   };
   const index: AssetIndex = {

@@ -232,6 +232,29 @@ const SFX: Readonly<Record<string, () => Buf>> = {
     mix(out, click(17, 1600, 0.05, 6), 0.38, SR, 1);
     return fadeEnds(normalise(out), SR);
   },
+  shotTweeTwee: () =>
+    // v1.3: a .22 rimfire — a sharp, small crack with little boom and a short slap-back.
+    gunshot({
+      seed: 21,
+      crack: 1.1,
+      boomHz: 150,
+      boom: 0.25,
+      bodyHz: 3600,
+      tail: 0.18,
+      len: 0.7,
+      echo: 0.18,
+    }),
+  bolt: () => {
+    // v1.3: the bolt worked: lift (clack), draw back (slide), push home, turn down (lock).
+    const r = rng(22);
+    const out = buf(0.42, SR);
+    mix(out, click(23, 1500, 0.04, 6), 0, SR, 0.9);
+    mix(out, shape(bandpass(noise(0.07, SR, r), SR, 2600, 2), SR, ad(0.004, 0.03)), 0.05, SR, 0.4);
+    mix(out, click(24, 3400, 0.02, 10), 0.13, SR, 0.5);
+    mix(out, shape(bandpass(noise(0.06, SR, r), SR, 2200, 2), SR, ad(0.004, 0.025)), 0.2, SR, 0.4);
+    mix(out, click(25, 1300, 0.05, 6), 0.3, SR, 1);
+    return fadeEnds(normalise(out), SR);
+  },
   ramrod: () => {
     // Muzzle-loader: ramrod scrapes down the barrel twice, taps home.
     const r = rng(18);

@@ -79,6 +79,42 @@ describe('challenge links (Tech §12)', () => {
     expect(param.length).toBeLessThan(220);
   });
 
+  it('v1.3: carries the rifle sight (s); a sight that does not fit the gun is refused', () => {
+    const sent = {
+      seed: 77,
+      mode: 'classic' as const,
+      biome: 'karoo-autumn',
+      weapon: 'twee_twee',
+      score: 2400,
+      dailyNumber: null,
+      layout: 'mon',
+      bonus: 'nogVerder',
+      sight: 'peep',
+    };
+    const c = challengeFor(sent, hash);
+    expect(c.s).toBe('peep');
+    const got = decodeChallenge(
+      new URL(challengeUrl('https://x.test/', c)).searchParams.get('c') ?? '',
+      ctx,
+    );
+    expect(got.ok).toBe(true);
+    if (!got.ok) return;
+    expect(challengeHunt(got.challenge).mode).toEqual({
+      id: 'classic',
+      biome: 'karoo-autumn',
+      weapon: 'twee_twee',
+      layout: 'mon',
+      bonus: 'nogVerder',
+      sight: 'peep',
+    });
+    const bad = toBase64Url(
+      new TextEncoder().encode(JSON.stringify({ ...c, weapon: 'dubbelloop' })),
+    );
+    expect(decodeChallenge(bad, ctx)).toEqual({ ok: false, reason: 'unknownWeapon' });
+    // No sight (a shotgun): no `s` in the link.
+    expect(challengeFor({ ...sent, weapon: 'dubbelloop', sight: null }, hash).s).toBeUndefined();
+  });
+
   it('v1.2: carries the map (l, b); a link without one plays the plain biome', () => {
     const sent = {
       seed: 99,

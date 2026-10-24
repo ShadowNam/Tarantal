@@ -37,6 +37,8 @@ export const ChallengeSchema = z.strictObject({
    *  the plain biome, so an old link still plays the hunt it was made from. */
   l: WeekdayIdSchema.optional(),
   b: BonusMapIdSchema.optional(),
+  /** v1.3 (D-036): the sight on the sender's rifle (absent = the gun's default). */
+  s: contentId.optional(),
   /** contentHash prefix the hunt was played with. */
   h: z
     .string()
@@ -104,6 +106,9 @@ export function decodeChallenge(param: string, ctx: ChallengeContext): Challenge
   const w = ctx.content.weapons.weapons.find((x) => x.id === c.weapon);
   // A challenge lends its gun for that hunt (unlocks don't matter), but only a primary.
   if (w === undefined || w.kind !== 'primary') return { ok: false, reason: 'unknownWeapon' };
+  // v1.3: a sight must fit that gun (it is lent with it, unlocked or not).
+  if (c.s !== undefined && w.aim?.sights.includes(c.s) !== true)
+    return { ok: false, reason: 'unknownWeapon' };
   const { by: rawBy, ...rest } = c;
   const by = cleanName(rawBy, ctx.limits.maxByChars);
   const challenge: Challenge = by === undefined ? rest : { ...rest, by };
@@ -124,6 +129,7 @@ export function challengeHunt(c: Challenge): { readonly seed: number; readonly m
       weapon: c.weapon,
       ...(c.l === undefined ? {} : { layout: c.l }),
       ...(c.l === undefined || c.b === undefined ? {} : { bonus: c.b }),
+      ...(c.s === undefined ? {} : { sight: c.s }),
     },
   };
 }
@@ -140,6 +146,8 @@ export function challengeFor(
     /** v1.2: the map played (null = the plain biome). */
     readonly layout?: string | null;
     readonly bonus?: string | null;
+    /** v1.3: the rifle's sight (null = none). */
+    readonly sight?: string | null;
   },
   contentHash: string,
   by?: string,
@@ -153,6 +161,7 @@ export function challengeFor(
     score: hunt.score,
     ...(by === undefined ? {} : { by }),
     ...mapFields(hunt.layout ?? null, hunt.bonus ?? null),
+    ...(hunt.sight === undefined || hunt.sight === null ? {} : { s: hunt.sight }),
     // A day before the content epoch has no #n (dailyNumber ≤ 0): leave it out, never throw.
     ...(hunt.dailyNumber === null || hunt.dailyNumber < 1 ? {} : { n: hunt.dailyNumber }),
     h: contentHash.slice(0, CHALLENGE_HASH_CHARS),

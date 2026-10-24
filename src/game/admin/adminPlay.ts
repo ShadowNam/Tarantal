@@ -20,6 +20,8 @@ export interface AdminHuntSetup {
   /** A primary gun (Classic, Daily, the run's). A crate gun comes in the first crate (Classic,
    *  Daily) or as the run's rental. */
   readonly weapon: string | undefined;
+  /** v1.3: a rifle's sight (any sight that fits it, locked or not). */
+  readonly sight: string | undefined;
   readonly runRental: string | undefined;
   readonly seed: number | undefined;
   readonly huntSeconds: number | undefined;
@@ -51,6 +53,7 @@ export function adminHuntSetup(
     classicLayout: entry.kind === 'classic' ? (entry.layout ?? undefined) : undefined,
     classicBonus: entry.kind === 'classic' ? (entry.bonus ?? undefined) : undefined,
     weapon: gun === undefined || gun.kind === 'crate' ? undefined : gun.id,
+    sight: options.sight ?? undefined,
     runRental: season && gun?.kind === 'crate' ? gun.id : undefined,
     seed: options.seed ?? undefined,
     huntSeconds: options.huntSeconds ?? undefined,

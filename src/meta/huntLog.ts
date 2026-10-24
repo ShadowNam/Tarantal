@@ -13,6 +13,10 @@ export interface HuntLog {
   readonly shots: number;
   readonly bagged: number;
   readonly baggedFar: number;
+  /** v1.3: birds bagged on the Ver plane. */
+  readonly baggedVer: number;
+  /** v1.3: the bonus map this hunt unlocked for today (bonusMaps.ts), or null. */
+  readonly bonusUnlocked: string | null;
   readonly wingShots: number;
   readonly wholeFlocks: number;
   readonly secrets: number;
@@ -27,7 +31,7 @@ export interface HuntLogger {
   add(events: readonly SimEvent[]): void;
   /** Creatures seen so far this hunt (the ⛔ first-sighting call-out reads it too). */
   readonly creaturesSeen: ReadonlySet<string>;
-  finish(result: HuntResult): HuntLog;
+  finish(result: HuntResult, bonusUnlocked?: string | null): HuntLog;
 }
 
 /**
@@ -49,7 +53,7 @@ export function createHuntLogger(
         else if (e.type === 'secretTriggered') secrets.add(e.propId);
       }
     },
-    finish(r) {
+    finish(r, bonusUnlocked = null) {
       return {
         mode: r.mode,
         biome: r.biome,
@@ -59,6 +63,8 @@ export function createHuntLogger(
         shots: r.shots,
         bagged: r.bagged,
         baggedFar: r.baggedByPlane.far,
+        baggedVer: r.baggedByPlane.ver,
+        bonusUnlocked,
         wingShots: r.wingShots,
         wholeFlocks: r.wholeFlocks,
         secrets: r.secrets,

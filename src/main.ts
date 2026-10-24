@@ -236,6 +236,9 @@ const hook: TestHook = {
   biome: '',
   map: null,
   verder: false,
+  bonusOpen: [],
+  bonusNeedsScope: [],
+  verBirds: [],
   verderUnlocked: null,
   glare: null,
   omen: false,
@@ -275,6 +278,8 @@ const hook: TestHook = {
   firstShotAtMs: null,
   frameTimes: [],
   cpuFrameMs: [],
+  cpuFrameScoped: [],
+  frameScoped: [],
   simFrameMs: [],
   simFrameSteps: [],
   replay: null,
@@ -692,6 +697,7 @@ const ctx: GameContext = {
   classicLayout: adminSetup === null ? layoutParam() : adminSetup.classicLayout,
   classicBonus: adminSetup === null ? bonusParam() : adminSetup.classicBonus,
   weaponOverride: adminSetup?.weapon,
+  sightOverride: adminSetup?.sight,
   admin,
   coarsePointer,
   reducedMotion,
@@ -775,6 +781,7 @@ if (testHooks) {
   game.events.on(Phaser.Core.Events.POST_RENDER, () => {
     if (hook.scene === 'hunt' && !hook.over && hook.cpuFrameMs.length < 20_000) {
       hook.cpuFrameMs.push(performance.now() - stepStart);
+      hook.cpuFrameScoped.push(hook.zoom.raise >= 1);
     }
   });
 }

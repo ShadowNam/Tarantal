@@ -332,6 +332,8 @@ const primaryWeaponSchema = obj({
 export const SightSchema = obj({
   id,
   nameKey: i18nKey,
+  /** How the sight is earned (the Skiet-Skuur fits it): start, a Notaboek challenge or a rank. */
+  unlock: unlockSchema,
   /** Zoom steps (×). A fixed sight has one; a variable scope picks one with the zoom command. */
   zoom: z
     .array(z.number().min(1).max(12))
@@ -741,8 +743,8 @@ const laneSchema = obj({
 export const WEEKDAY_IDS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
 export type WeekdayId = (typeof WEEKDAY_IDS)[number];
 export const WeekdayIdSchema = z.enum(WEEKDAY_IDS);
-/** Bonus maps in unlock order (v1.3 adds nogVerder and dieVerste). */
-export const BONUS_MAP_IDS = ['verder'] as const;
+/** Bonus maps in unlock order (v1.3 adds nogVerder and dieVerste, D-036). */
+export const BONUS_MAP_IDS = ['verder', 'nogVerder', 'dieVerste'] as const;
 export type BonusMapId = (typeof BONUS_MAP_IDS)[number];
 export const BonusMapIdSchema = z.enum(BONUS_MAP_IDS);
 
@@ -814,6 +816,9 @@ export const BonusMapSchema = obj({
   id: BonusMapIdSchema,
   nameKey: i18nKey,
   ...mapOverrideShape,
+  /** v1.3 (D-036): the map starts only with a rifle that has a scope fitted (a sight whose
+   *  picture is `scope`); the title's button says why otherwise. */
+  needsScope: z.boolean().optional(),
 });
 export type BonusMap = z.infer<typeof BonusMapSchema>;
 
@@ -1495,6 +1500,10 @@ export const NotaboekMetricSchema = z.enum([
   'score',
   /** Different secrets found in `biome` (a full Bird Book page). */
   'distinctSecrets',
+  /** v1.3: birds bagged on the Ver plane. */
+  'baggedVer',
+  /** v1.3: the hunt unlocked the challenge's `bonus` map for today (any bonus map if absent). */
+  'bonusUnlocks',
 ]);
 export type NotaboekMetric = z.infer<typeof NotaboekMetricSchema>;
 
@@ -1505,6 +1514,8 @@ const notaboekRewardSchema = z.discriminatedUnion('type', [
   obj({ type: z.literal('birdBookPage'), biome: id }),
   /** A tick in the Notaboek only. */
   obj({ type: z.literal('none') }),
+  /** v1.3: unlocks a rifle sight (weapons.json sights unlock {type: challenge} points back here). */
+  obj({ type: z.literal('sight'), id }),
   /** Adds a charm to the Season Run pool (GDD §13.6: unlocks widen the pool, never add power). */
   obj({ type: z.literal('charm'), id }),
 ]);
@@ -1521,6 +1532,8 @@ export const NotaboekSchema = obj({
         target: posInt,
         /** Required by distinctSecrets; otherwise counts any biome. */
         biome: id.optional(),
+        /** v1.3, bonusUnlocks only: the bonus map whose unlock counts. */
+        bonus: BonusMapIdSchema.optional(),
         /** Only hunts in these modes count (default: every mode). */
         modes: z.array(z.enum(['classic', 'daily', 'seasonHunt', 'ftue'])).optional(),
         reward: notaboekRewardSchema,

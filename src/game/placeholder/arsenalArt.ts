@@ -63,6 +63,40 @@ export function arsenalSpecs(): CanvasSpec[] {
       ]);
       inked(ctx, INK, 0);
     }),
+    // v1.3 Twee-Twee (.22 bolt-action): a slim barrel, round receiver with the bolt knob on the
+    // right, a small magazine, a walnut stock.
+    gun('twee_twee', (ctx) => {
+      poly(ctx, [
+        [-7, -505],
+        [7, -505],
+        [14, -250],
+        [-14, -250],
+      ]);
+      inked(ctx, STEEL, 5);
+      poly(ctx, [
+        [-22, -252],
+        [22, -252],
+        [24, -140],
+        [-24, -140],
+      ]);
+      inked(ctx, STEEL, 5);
+      ellipse(ctx, 52, -168, 9, 8);
+      inked(ctx, STEEL_LIGHT, 4);
+      poly(ctx, [
+        [-14, -222],
+        [10, -222],
+        [9, -176],
+        [-13, -176],
+      ]);
+      inked(ctx, STEEL, 4);
+      poly(ctx, [
+        [-34, -140],
+        [34, -140],
+        [96, 0],
+        [-70, 0],
+      ]);
+      inked(ctx, WOOD, 6);
+    }),
     // Kettie: forked stick held up, two rubber bands to a leather pouch with a stone.
     gun('kettie', (ctx) => {
       ctx.lineCap = 'round';

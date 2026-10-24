@@ -60,6 +60,7 @@ function result(plan: HuntPlan, score: number): HuntResult {
   return {
     seed: plan.seed,
     mode: plan.mode.id,
+    sight: null,
     layout: plan.mode.layout ?? null,
     bonus: plan.mode.bonus ?? null,
     biome: plan.mode.biome ?? 'karoo-autumn',

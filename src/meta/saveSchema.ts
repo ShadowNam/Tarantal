@@ -172,8 +172,13 @@ const sections = {
   ftue: z.object({ done: z.boolean(), skipped: z.boolean(), step: z.string().max(40) }),
   /** One-time UI notices (e.g. the iOS Add to Home Screen banner) already dismissed. */
   notices: ids,
-  loadout: z.object({ weapon: z.string().max(80) }),
-  unlocks: z.object({ weapons: ids }),
+  /** v1.3: `sights` = the sight fitted to each rifle (weapon id → sight id; older saves: none). */
+  loadout: z.object({
+    weapon: z.string().max(80),
+    sights: z.record(z.string().max(80), z.string().max(80)).default({}),
+  }),
+  /** v1.3: `sights` unlocked by Notaboek challenges (older saves: none). */
+  unlocks: z.object({ weapons: ids, sights: ids.default([]) }),
   notaboek: z.object({
     /** Challenge id → progress (counts toward `target`). */
     progress: z.record(z.string().max(80), count),
@@ -220,8 +225,8 @@ export function defaultSave(): SaveData {
     settings: { ...DEFAULT_SETTINGS },
     ftue: { done: false, skipped: false, step: '' },
     notices: [],
-    loadout: { weapon: 'dubbelloop' },
-    unlocks: { weapons: [] },
+    loadout: { weapon: 'dubbelloop', sights: {} },
+    unlocks: { weapons: [], sights: [] },
     notaboek: { progress: {}, done: [] },
     birdBook: { creatures: [], secrets: [] },
     bests: {},

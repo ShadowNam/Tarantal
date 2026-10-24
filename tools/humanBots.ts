@@ -13,6 +13,7 @@ import { planeToDx } from '../src/sim/camera';
 import { createStream, fnv1a32, type RandomStream } from '../src/sim/rng';
 import type { BirdView, Command, FlockView, InputKind, PlaneId, SimState } from '../src/sim/types';
 import { CAMERA_MAX_X, CAMERA_MIN_X } from '../src/sim/world';
+import { inReach, reachesVer } from './rifleBot';
 
 export type HumanStyle = 'plinker' | 'competent';
 
@@ -185,7 +186,7 @@ export function createHumanBot(
 
       // Everything visible, projected to where it is now.
       const aims = seen.birds
-        .filter((b) => b.hittable)
+        .filter((b) => b.hittable && inReach(content, now.weapon.id, b))
         .map((b) => project(b, before.get(b.id), cx, lag, now.weapon.id))
         .filter((a) => Math.abs(a.dx) < profile.viewHalfWidth && a.sy > 0 && a.sy < 1080);
       const blockers = aims.filter((a) => a.bird.kind === 'nonTarget');
@@ -310,8 +311,10 @@ export function createHumanBot(
 
   function chooseCamera(s: SimState, st: HumanStyle): number | null {
     // Flocks the style wants, nearest first; otherwise any target bird.
-    const wanted = s.flocks.filter((f) =>
-      st === 'competent' ? f.state !== 'settle' || f.alive >= 3 : f.state === 'forage',
+    const wanted = s.flocks.filter(
+      (f) =>
+        (f.plane !== 'ver' || reachesVer(content, s.weapon.id)) &&
+        (st === 'competent' ? f.state !== 'settle' || f.alive >= 3 : f.state === 'forage'),
     );
     let bestCx: number | null = null;
     let bestScore = -Infinity;
@@ -327,7 +330,9 @@ export function createHumanBot(
       }
     }
     if (bestCx !== null) return bestCx;
-    const any = s.birds.find((b) => b.hittable && b.kind !== 'nonTarget');
+    const any = s.birds.find(
+      (b) => b.hittable && b.kind !== 'nonTarget' && inReach(content, s.weapon.id, b),
+    );
     return any === undefined ? null : cameraFor(any.plane, any.x);
   }
 }

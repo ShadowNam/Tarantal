@@ -256,6 +256,7 @@ Design rule: few weapons, each with a distinct *verb*. Every weapon changes how 
 | `windbuks` | Die Windbuks (air rifle) | Bag 50 far-plane birds | 6 / 0.6 s per pellet | 1 pellet, no spread, slight wind drift | **Silent:** misses don't alert | ×1.5 on far plane |
 | `kettie` | Die Kettie (slingshot) | Whole-flock 3 times | ∞ / 0.35 s draw | 1 projectile, travel time + drop + wind | Misses alert small radius (120 px) | ×2 all hits |
 | `pomp` | Plaas-Pomp (pump shotgun) | Reach Plaaswerker rank | 6 / 0.7 s **per shell**, interruptible | 6 pellets, tighter spread | Alerts | ×1 |
+| `twee_twee` | Die Twee-Twee (.22 bolt-action, v1.3) | Unlock Nog Verder once | 5 / 1.2 s magazine; 0.4 s bolt between shots | 1 bullet; **hold to zoom, release to fire** (§10.6); reaches the Ver plane; hip shot 36 px | Fairly quiet: alerts 180 px | ×1.5 on the Ver plane |
 
 Kettie: a stone reaches the near / mid / far plane after 80 / 180 / 350 ms and drops on the way,
 so you lead moving birds and aim a touch high; it lands where you aimed in the world even if you
@@ -263,6 +264,12 @@ pan meanwhile. Under Kuifkop Koning's rule its draw takes twice as long (it has 
 Plaas-Pomp's reload was 0.35 s per shell in the first draft; with that it out-scored the
 Dubbelloop by ~43 % in the balance sim, so it is 0.7 s with a 60 px spread (D-025) — a different
 rhythm, not more power. Numbers live in `content/weapons.json`.
+
+The Twee-Twee (D-036) is the long-range gun: on the plain maps the shotguns still out-score it
+(Karoo, 500 seeds, competent bot: .22 iron 3 971, peep 3 849, scope 3 620 vs Dubbelloop 4 180 and
+Pomp 4 306), on Nog Verder and
+Die Verste it shines as its sight improves (iron → peep → small scope; figures in D-036). Every shot can alert the flocks near the impact, so unlike
+the silent Windbuks it can't plink a foraging flock without consequences.
 
 Note: the concept art shows a side-by-side double-barrel as Oupa's default gun; the earlier spec
 said over-and-under. **Side-by-side is canonical** (it reads better from first person). The 8-shell
@@ -321,8 +328,11 @@ Shotguns, the air rifle, the Kettie and the crate guns are unchanged (they fire 
   camp on a bird. A variable scope (v1.4) sways more per zoom step.
 - **Recorded:** raising the sight, the aim while it is up, the release, the cancel and the zoom
   step are commands in the replay. A zoomed shot lands on the same world point on every screen.
-- The sight a rifle carries is chosen in the Skiet-Skuur (§10.1, v1.3 PR B). Numbers live in
-  `content/weapons.json` (`sights`, each rifle's `aim` and `reachesVer`).
+- **Earning sights:** iron sights from the start; the **peep** for bagging 10 birds at Ver
+  distance (Notaboek, over all hunts); the **small scope** at the **Bosveldjagter** rank. The sight
+  a rifle carries is fitted in the Skiet-Skuur (§13.7), one per rifle, and kept between hunts; a
+  challenge link lends the sender's sight with the gun. Numbers live in `content/weapons.json`
+  (`sights` with their `unlock`, each rifle's `aim` and `reachesVer`).
 
 ### 10.5 Parking lot (good ideas cut from launch, with reason)
 Patat-Kanon (fun, but a second "line" weapon duplicates Voorlaaier's role — strong v1.x charm or
@@ -330,10 +340,9 @@ crate candidate), Kleilat mud-flinger (non-lethal gag; v1.x), .600 Nitro "Grofge
 big-game rifle reads wrong for a cartoon bird game), sawed-off coach gun (crime connotation, overlaps
 pump), Brno .22 bolt-action (overlaps Windbuks), Boerewors bolas/net gun (v1.x conservation mode).
 
-**Planned (approved 22 Oct 2026, not built):** a generic .22 bolt-action (Die Twee-Twee, v1.3) and a
-long-range rifle (Die Langloop, v1.4) come back with hold-to-zoom sights and a fourth, distant plane;
-the zoom and the new plane give the .22 its own job. Plan: `docs/08-PROPOSAL-LONG-RANGE-AND-DAILY-MAPS.md`.
-This section changes when they are built.
+**Reversed in v1.3 (D-036):** the .22 bolt-action is back as Die Twee-Twee (§10.1): hold-to-zoom
+sights and the fourth, distant plane give it its own job, apart from the Windbuks. The long-range
+rifle (Die Langloop) follows in v1.4. Plan: `docs/08-PROPOSAL-LONG-RANGE-AND-DAILY-MAPS.md`.
 
 ## 11. Biomes, seasons and weather
 
@@ -452,7 +461,24 @@ or Daily hunt on **today's** map, and stays open until **UTC midnight** (a hunt 
 midnight and ends after it unlocks nothing: its map is gone). The title shows a Verder button once
 it is open, else "Beat 1 950 to unlock Verder". Verder keeps **its own best** (not the Classic
 best) and counts for rank titles. A challenge link to a Verder hunt plays it without the unlock
-(like a lent gun). Nog Verder and Die Verste follow in v1.3.
+(like a lent gun).
+
+**Nog Verder (further still) and Die Verste (the furthest)** (v1.3, D-036) follow Verder in the
+same chain: beating the map's quota on today's Verder unlocks today's Nog Verder, beating it there
+unlocks Die Verste (the same quota, the same day rule). Both open the **Ver plane** (§5.2): a flock
+on the strip at the foot of the far ridge and a Ver fly-over lane.
+
+| Bonus map | Flocks | Fly-over lanes (mid : far : Ver) | Pop-ups / fly-overs | Points | Light |
+|---|---|---|---|---|---|
+| Verder | 1 far | 1 : 3 : 0 | ×0.35 / ×0.8 | ×0.8 | Blue distance haze |
+| Nog Verder | 1 far + 1 Ver | 0.5 : 2 : 1 | ×0.2 / ×0.7 | ×0.6 | Deeper haze; the Ver strip pale |
+| Die Verste | 1 far + 2 Ver | 0 : 1 : 3 | ×0.1 / ×0.6 | ×0.46 | The most haze; a hot, pale horizon |
+
+Weather is on in all three (wind ×1.5 / ×1.6 / ×1.7 where there is wind). Shotguns struggle on Nog
+Verder (their pellets fall short of every Ver bird) and the Twee-Twee shines. **Die Verste needs
+a scoped rifle:** it starts only with a rifle that has a scope fitted in the Skiet-Skuur; until
+then its button is grey and says "Needs a rifle with a scope". The title shows one button per
+bonus map open today. Each keeps its own best and counts for rank titles.
 
 ## 12. Game modes
 
@@ -569,7 +595,8 @@ never add raw power. ~60 challenges at v1.0. The M5 starter set (`content/meta/n
 8, counted over all hunts unless marked per-hunt: *Bag 50 far birds* → Windbuks, *Bag the whole
 flock 3 times* → Kettie (shown unlocked, playable from M8), first hunt, 25 wing shots, 2 500 in one
 hunt, 200 birds, 5 crates, every Karoo secret → Bird Book page. The Plaas-Pomp unlocks at the
-Plaaswerker rank.
+Plaaswerker rank. v1.3: *Unlock Nog Verder* → Die Twee-Twee, *Bag 10 birds at Ver distance* → the
+peep sight; the small scope at the Bosveldjagter rank.
 
 Between hunts the run shows a hunt card (season, quota, Boss Rule), the run tally (quota met or
 missed, doppies earned line by line) and the Padstal; after the last hunt or a missed quota, a
@@ -579,7 +606,9 @@ summary with the run record. Charms are reordered by dragging (Padstal and pause
 Hub screen: equip weapon for Classic/Daily, view unlocked charms, Bird Book, Notaboek, cosmetics
 (gun engravings, reticle styles, belt colours). It is **not** a points shop. v0 (M5): Guns
 (equip, or how to unlock), Bird Book (creatures and the biome's secrets; names once seen,
-"???" until then), Notaboek (progress bars and rewards), Settings. Cosmetics come later.
+"???" until then), Notaboek (progress bars and rewards), Settings. Cosmetics come later. v1.3: under
+the gun cards, each unlocked rifle's sights — the fitted one, the ones you can fit, and the locked
+ones with what earns them.
 
 ### 13.8 Balance tooling
 A headless balance simulator plays the deterministic sim over thousands of seeds with bots:

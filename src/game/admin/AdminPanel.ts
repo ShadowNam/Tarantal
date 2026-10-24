@@ -3,7 +3,7 @@
 // its review; the play page (after [Play] reloaded the game) is one card with [Play] and [Back].
 // Text goes through i18n keys. Mouse and touch, phone landscape included.
 import type { ContentBundle } from '../../content/schemas';
-import { fill, t, type I18nKey } from '../../i18n/i18n';
+import { fill, t, tOr, type I18nKey } from '../../i18n/i18n';
 import {
   adminReport,
   issueUrl,
@@ -302,6 +302,22 @@ export class AdminPanel {
           o.weapon ?? '',
           (v) => {
             setOpt({ weapon: v === '' ? null : v });
+          },
+        ),
+        // v1.3: the sight on a rifle (ignored for guns without sights).
+        select(
+          'sight',
+          'admin.sight',
+          [
+            ['', t('admin.sight_default')],
+            ...this.content.weapons.sights.map((x): [string, string] => [
+              x.id,
+              tOr(x.nameKey, x.id),
+            ]),
+          ],
+          o.sight ?? '',
+          (v) => {
+            setOpt({ sight: v === '' ? null : v });
           },
         ),
         el('label', {}, t('admin.seed'), seed),

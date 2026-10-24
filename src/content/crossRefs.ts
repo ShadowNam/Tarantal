@@ -99,6 +99,24 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
     for (const id of w.aim.sights)
       if (!sightIds.has(id)) err('weapons.json', `weapon "${w.id}" fits unknown sight "${id}"`);
   }
+  // A sight unlocks at a known rank, or by a Notaboek challenge that rewards that very sight.
+  for (const sight of weapons.sights) {
+    const u = sight.unlock;
+    if (u.type === 'rank' && !rankIds.has(u.id))
+      err('weapons.json', `sight "${sight.id}" unlocks at unknown rank "${u.id}"`);
+    if (u.type === 'challenge' && options.notaboek !== undefined) {
+      const ch = options.notaboek.challenges.find((c) => c.id === u.id);
+      if (ch === undefined)
+        err('weapons.json', `sight "${sight.id}" unlock challenge "${u.id}" is not in meta/notaboek.json`);
+      else if (ch.reward.type !== 'sight' || ch.reward.id !== sight.id)
+        err('meta/notaboek.json', `challenge "${u.id}" must reward sight "${sight.id}" (weapons.json unlock)`);
+    }
+  }
+  const scopeFits = weapons.weapons.some(
+    (w) =>
+      w.kind === 'primary' &&
+      w.aim?.sights.some((id) => weapons.sights.find((x) => x.id === id)?.picture === 'scope') === true,
+  );
   for (const w of weapons.weapons) {
     if (w.kind !== 'primary') continue;
     if (w.unlock.type === 'rank' && !rankIds.has(w.unlock.id)) {
@@ -131,6 +149,15 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
           err(nb, `challenge "${c.id}" rewards "${rewardId}" but weapons.json does not unlock it with this challenge`);
         }
       }
+      if (c.reward.type === 'sight') {
+        const rewardId = c.reward.id;
+        const sight = weapons.sights.find((x) => x.id === rewardId);
+        if (sight === undefined) err(nb, `challenge "${c.id}" rewards unknown sight "${rewardId}"`);
+        else if (sight.unlock.type !== 'challenge' || sight.unlock.id !== c.id)
+          err(nb, `challenge "${c.id}" rewards sight "${rewardId}" but weapons.json does not unlock it with this challenge`);
+      }
+      if (c.bonus !== undefined && c.metric !== 'bonusUnlocks')
+        err(nb, `challenge "${c.id}": the bonus filter only counts for metric bonusUnlocks`);
       if (c.reward.type === 'birdBookPage' && !plannedBiomeIds.has(c.reward.biome)) {
         err(nb, `challenge "${c.id}" rewards the page of unknown biome "${c.reward.biome}"`);
       }
@@ -297,6 +324,8 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
           err(file, `${where} opens the Ver plane but lanes.ver has no ground and sky lane`);
       }
       const verOpen = o.ver === true;
+      if ('needsScope' in o && o.needsScope === true && !scopeFits)
+        err(file, `${where} needs a scope but no rifle in weapons.json fits a sight with picture "scope"`);
       for (const s of o.feedingSpots ?? []) {
         if (lanes[s.plane]?.groundY === undefined || lanes[s.plane]?.skyY === undefined)
           err(file, `${where} feeding spot on plane "${s.plane}", which has no ground and sky lane`);
