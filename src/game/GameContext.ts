@@ -255,6 +255,9 @@ export interface TestHook {
   powerups: string[];
   wind: { dir: number; strength: number } | null;
   durationTicks: number;
+  /** v1.4 B (D-039): angry weavers on screen now, and bursts started this hunt. */
+  weavers: number;
+  weaverBursts: number;
   /** M6: the Season Run on screen (Run scene view, run phase, hunt, doppies, charms, offers). */
   run: {
     view: string;

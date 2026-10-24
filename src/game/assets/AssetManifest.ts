@@ -632,6 +632,9 @@ export const TEX = {
   pot: 'fx/pot',
   meerkat: 'helper/meerkat',
   windsock: 'ui/windsock',
+  // v1.4 B (D-039): angry sociable weavers (WeaverView), shared by every biome with a nest.
+  weaverUp: 'fx/weaver_up',
+  weaverDown: 'fx/weaver_down',
   // v1.3 (D-036): rifle sight pictures (SightView).
   sightIronRear: 'sight/iron_rear',
   sightIronFront: 'sight/iron_front',

@@ -46,6 +46,34 @@
     "shakeScale": 1,
     "frenzyPunchScale": 1.5,
     "frenzyPunchMs": 260,
+    "weavers": {
+      "barkKey": "bark.weavers",
+      "count": {
+        "near": [
+          9,
+          14
+        ],
+        "mid": [
+          6,
+          9
+        ],
+        "far": [
+          3,
+          5
+        ],
+        "ver": [
+          2,
+          3
+        ]
+      },
+      "outMs": 450,
+      "swirlMs": 2400,
+      "settleMs": 900,
+      "poolCap": 36,
+      "sizePx": 54,
+      "dartChance": 0.3,
+      "flapTicks": 3
+    },
     "stampede": {
       "tint": "#FF9F43",
       "tintAlpha": 0.12,

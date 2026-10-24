@@ -303,6 +303,8 @@ const hook: TestHook = {
   powerups: [],
   wind: null,
   durationTicks: 0,
+  weavers: 0,
+  weaverBursts: 0,
   run: null,
   seasonHud: null,
   huntSeed: null,

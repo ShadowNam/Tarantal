@@ -42,6 +42,7 @@ import { WeaponView } from '../view/WeaponView';
 import { planeToDx } from '../../sim/camera';
 import { crosshairExtent, spreadMulOf } from '../ui/gunLook';
 import { WorldView } from '../view/WorldView';
+import { WeaverView } from '../view/WeaverView';
 import { textureBytes } from '../assets/textureBytes';
 import { mapLights, mapOmen, resolveMap, type ResolvedMap } from '../../sim/maps';
 import { layoutForDay } from '../../meta/maps';
@@ -96,6 +97,8 @@ export class HuntScene extends Phaser.Scene {
   private fx!: Fx;
   private weapon!: WeaponView;
   private world!: WorldView;
+  /** v1.4 B (D-039): angry weavers out of a shot family nest. */
+  private weavers!: WeaverView;
   private debug!: DebugOverlay;
   private screen!: Phaser.GameObjects.Container;
   /** v1.3: screen overlays a sight's zoom never scales (glare, tints, rain), the sight picture,
@@ -356,6 +359,13 @@ export class HuntScene extends Phaser.Scene {
       this.screenFixed,
     );
     this.world.secretGlow = lights.some((l) => l.secretGlow === true);
+    const planes = this.ctx.content.scoring.planes;
+    this.weavers = new WeaverView(this, this.ctx.feel, mapBiome, this.parallax, {
+      near: planes.near.scale,
+      mid: planes.mid.scale,
+      far: planes.far.scale,
+      ver: planes.ver.scale,
+    });
     this.weapon = new WeaponView(
       this,
       this.ctx.feel,
@@ -1185,6 +1195,7 @@ export class HuntScene extends Phaser.Scene {
     this.birds.setViewZoom(zoom.z);
     this.birds.update(drawBirds, state.tick);
     this.world.update(state, width, designSize().height);
+    this.weavers.update(state);
     this.weapon.spreadMul = spreadMulOf(state.powerups, this.ctx.content.powerups.powerups);
     this.weapon.setWeapon(state.weapon.id);
     this.weapon.setReloading(state.weapon.reloading);
@@ -1300,6 +1311,7 @@ export class HuntScene extends Phaser.Scene {
       hook.weapon = state.weapon.id;
       hook.powerups = state.powerups.map((p) => p.id);
       hook.wind = state.wind;
+      hook.weavers = this.weavers.visibleCount;
       hook.durationTicks = state.durationTicks;
     }
 
@@ -1325,6 +1337,11 @@ export class HuntScene extends Phaser.Scene {
     this.fx.handle(events, width, state);
     this.birds.handle(events);
     const half = width / 2;
+    // v1.4 B: a shot family nest lets its weavers out; they chatter and scold (AudioDirector).
+    for (const b of this.weavers.handle(events)) {
+      this.ctx.audio.weavers(Math.max(-1, Math.min(1, (b.screenX - half) / half)));
+      if (this.ctx.hook) this.ctx.hook.weaverBursts++;
+    }
     // The Skietbaan scores nothing: no Whole-flock stamp sound or slow-mo there (D-037).
     const heard = this.range === null ? events : events.filter((e) => e.type !== 'flockWiped');
     this.ctx.audio.handle(heard, (e) => {
@@ -1666,6 +1683,7 @@ export class HuntScene extends Phaser.Scene {
     this.cleanups = [];
     this.birds.clear();
     this.world.clear();
+    this.weavers.clear();
     this.game.canvas.style.cursor = '';
   }
 }

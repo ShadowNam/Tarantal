@@ -310,6 +310,22 @@ const SFX: Readonly<Record<string, () => Buf>> = {
       mix(out, kekCall(27 + k, 1100 + r() * 400), r() * 0.7, SR, 0.5 + r() * 0.5);
     return fadeEnds(normalise(withReverb(out, SR, 0.2, 0.9)), SR);
   },
+  weavers: () => {
+    // v1.4 B: a colony of sociable weavers scolding: dozens of short, harsh "chip"/"tsik" calls
+    // from many birds, overlapping, over 1.6 s, with a thin outdoor reverb.
+    const r = rng(61);
+    const out = buf(1.6, SR);
+    for (let k = 0; k < 46; k++) {
+      const f0 = 2600 + r() * 1800;
+      const len = 0.03 + r() * 0.03;
+      const x = osc('saw', glide(f0 * 1.15, f0 * 0.75, len), len, SR);
+      const n = noise(len, SR, r);
+      for (let i = 0; i < x.length; i++) x[i] = (x[i] ?? 0) * 0.7 + (n[i] ?? 0) * 0.25;
+      bandpass(x, SR, f0, 3);
+      mix(out, shape(x, SR, ad(0.002, 0.012, len)), r() * 1.45, SR, 0.4 + r() * 0.6);
+    }
+    return fadeEnds(normalise(withReverb(out, SR, 0.12, 0.6)), SR);
+  },
   kwe: () => {
     // Grey go-away bird: a nasal, falling "kweh … kweh".
     const out = buf(0.75, SR);

@@ -7,7 +7,7 @@ import { resize, type Rgba } from '../assets/image';
 import type { ArtConfig } from './config';
 import { biomePalette } from './config';
 import { renderSvg } from './raster';
-import { flat, line, nextId, resetIds, shade, stone, tone, type Pen } from './scenery';
+import { flat, line, mix, nextId, resetIds, shade, stone, tone, type Pen } from './scenery';
 import { pick, stalk, tuftOf, type TuftKind } from './vegetation';
 import {
   el,
@@ -788,6 +788,8 @@ export const SPRITES: readonly SpriteSpec[] = [
   { key: 'fx/stone', wobble: 0, draw: pebble },
   { key: 'fx/splash', wobble: 0.8, draw: splash },
   { key: 'helper/meerkat', wobble: 1.5, draw: meerkat },
+  { key: 'fx/weaver_up', wobble: 0, draw: (p) => weaver(p, true) },
+  { key: 'fx/weaver_down', wobble: 0, draw: (p) => weaver(p, false) },
   { key: 'omen/glare', wobble: 0, draw: glare },
   { key: 'omen/rain', wobble: 0, draw: rain },
   { key: 'omen/rainbow', wobble: 0, draw: rainbow },
@@ -796,6 +798,110 @@ export const SPRITES: readonly SpriteSpec[] = [
   { key: 'secret/rotor', wobble: 0, draw: rotor },
   { key: 'biome/water', wobble: 1.5, draw: water },
 ];
+
+/**
+ * v1.4 B (D-039): a sociable weaver in flight (96 × 64, centred, facing right): a sparrow-sized
+ * brown bird with a black chin and face, a scaly back of dark feathers with pale edges, black
+ * flank bars and a pale bluish bill. Wings up or down for the wingbeat.
+ */
+function weaver(p: SpriteCtx, up: boolean): string {
+  const ink = mix(p.ink, '#4A3624', 0.4);
+  const brown = '#8C6A48';
+  const wing = (dir: number): string => {
+    const d = `M-4 -3Q-12 ${dir * 22} -34 ${dir * 27}Q-30 ${dir * 20} -26 ${dir * 17}Q-20 ${dir * 9} 8 -1Z`;
+    const bars: string[] = [];
+    for (let k = 0; k < 4; k++) {
+      const t = 0.3 + k * 0.17;
+      bars.push(`M${r2(-4 - 26 * t)} ${r2(dir * 24 * t)}l${r2(-4)} ${r2(dir * 5)}`);
+    }
+    return g(
+      {},
+      el('path', {
+        d,
+        fill: '#6E5136',
+        stroke: ink,
+        'stroke-width': 1.2,
+        'stroke-linejoin': 'round',
+      }),
+      el('path', {
+        d: bars.join(''),
+        stroke: '#E9DCC2',
+        'stroke-width': 1.4,
+        'stroke-linecap': 'round',
+        opacity: 0.8,
+      }),
+    );
+  };
+  const body = smoothD(
+    [
+      [-24, -1],
+      [-14, -9],
+      [4, -10],
+      [16, -6],
+      [18, 4],
+      [4, 10],
+      [-14, 8],
+    ],
+    true,
+    0.8,
+  );
+  const clip = nextId();
+  const grad = nextId();
+  // The scaly back: rows of dark feathers, each with a pale crescent edge.
+  const scales: string[] = [];
+  const edges: string[] = [];
+  for (let row = 0; row < 3; row++)
+    for (let k = 0; k < 6; k++) {
+      const x = -18 + k * 6 + (row % 2) * 3;
+      const y = -8 + row * 3.6;
+      scales.push(ellipseD(x, y, 3.4, 2.4));
+      edges.push(`M${r2(x - 3)} ${r2(y + 1)}Q${r2(x)} ${r2(y + 3.4)} ${r2(x + 3)} ${r2(y + 1)}`);
+    }
+  return g(
+    {},
+    el(
+      'linearGradient',
+      { id: grad, x1: 0, y1: 0, x2: 0, y2: 1 },
+      el('stop', { offset: 0, 'stop-color': shade(brown, -0.2) }),
+      el('stop', { offset: 1, 'stop-color': '#D9C7A6' }),
+    ),
+    up ? wing(-1) : '',
+    // Tail.
+    el('path', {
+      d: 'M-20 -2L-38 -7L-37 5Z',
+      fill: '#5E4430',
+      stroke: ink,
+      'stroke-width': 1.2,
+      'stroke-linejoin': 'round',
+    }),
+    el('clipPath', { id: clip }, el('path', { d: body })),
+    el('path', { d: body, fill: `url(#${grad})` }),
+    g(
+      { 'clip-path': `url(#${clip})` },
+      el('path', { d: scales.join(''), fill: '#5A4230' }),
+      el('path', { d: edges.join(''), fill: 'none', stroke: '#EFE4CC', 'stroke-width': 1.1 }),
+      // Black bars on the pale flank.
+      el('path', {
+        d: 'M-8 6l3 -3M-2 7l3 -3M4 7l3 -3',
+        stroke: '#1B1410',
+        'stroke-width': 1.4,
+        'stroke-linecap': 'round',
+      }),
+    ),
+    el('path', { d: body, fill: 'none', stroke: ink, 'stroke-width': 1.2 }),
+    // Head: brown crown, black face and chin, pale bill, a bright eye.
+    el('path', {
+      d: ellipseD(20, -3, 8.5, 7.5),
+      fill: '#A17E5A',
+      stroke: ink,
+      'stroke-width': 1.2,
+    }),
+    el('path', { d: 'M17 -2Q21 -6 27 -3Q28 3 24 6Q19 6 17 -2Z', fill: '#16100C' }),
+    el('path', { d: 'M27 -4L36 -1.5L27 1.5Z', fill: '#BFC4C2', stroke: ink, 'stroke-width': 0.8 }),
+    el('circle', { cx: 22.5, cy: -4.5, r: 1.3, fill: '#F6EEDC' }),
+    up ? '' : wing(1),
+  );
+}
 
 /** One sprite at its placeholder size; `origin` in fractions. */
 export function renderSprite(

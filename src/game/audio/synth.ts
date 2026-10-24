@@ -40,6 +40,8 @@ export const SFX_IDS = [
   'bolt',
   // v1.4 (D-038): the Langloop's heavy rifle crack.
   'shotLangloop',
+  // v1.4 B (D-039): angry sociable weavers chattering and scolding round a shot nest.
+  'weavers',
 ] as const;
 export type SfxId = (typeof SFX_IDS)[number];
 
@@ -188,6 +190,13 @@ export function playSfx(ctx: AudioContext, out: AudioNode, id: SfxId, noise: Aud
     case 'scratch':
       tone('sawtooth', 300, 80, 0.3, 0.3);
       return 0.3;
+    case 'weavers':
+      // Many small birds at once: quick, harsh "chip-chip" calls at jittered pitches.
+      for (let k = 0; k < 18; k++) {
+        const f = 3200 + ((k * 7919) % 1400);
+        tone('square', f, f * 0.7, 0.045, 0.06, k * 0.07 + ((k * 31) % 5) * 0.008);
+      }
+      return 1.4;
     case 'stampede':
       tone('sawtooth', 60, 45, 0.9, 0.35);
       tone('sine', 220, 440, 0.4, 0.2, 0.1);

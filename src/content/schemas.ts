@@ -1395,6 +1395,30 @@ export const FeelSchema = obj({
     /** Frenzy tier up: the meter label punches from this scale back to 1 over frenzyPunchMs. */
     frenzyPunchScale: z.number().min(1).max(3),
     frenzyPunchMs: pos,
+    /** v1.4 B (D-039): angry sociable weavers burst out of a shot family nest (rendering only,
+     *  driven by its secretPenalty event). A nest is any penalty secret with this bark. */
+    weavers: obj({
+      barkKey: i18nKey,
+      /** Birds per burst by the nest's plane. */
+      count: obj({
+        near: range(posInt),
+        mid: range(posInt),
+        far: range(posInt),
+        ver: range(posInt),
+      }),
+      /** Out of the holes, swirling, and back in (a hit while they are out restarts the swirl). */
+      outMs: pos,
+      swirlMs: pos,
+      settleMs: pos,
+      /** Hard cap on weaver sprites alive at once (pooled). */
+      poolCap: posInt,
+      /** Wingspan in design px on the near plane (scaled by the plane). */
+      sizePx: pos,
+      /** Share of near/mid birds that dart toward the camera once. */
+      dartChance: fraction,
+      /** Sim ticks per wingbeat frame. */
+      flapTicks: posInt,
+    }),
     /** GDD §17 Stampede: a warm sky tint fades in (steady, never pulsing) and the ground rumbles
      *  (a small camera shake every rumbleEveryMs, off with Settings → screen shake). */
     stampede: obj({
