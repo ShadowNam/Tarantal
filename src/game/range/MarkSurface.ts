@@ -262,7 +262,11 @@ export class MarkSurface {
     if (dt === undefined || i === this.shown) return;
     this.shown = i;
     this.image.setTexture(dt.key);
-    this.image.setScale(this.spec.width / dt.width, this.spec.height / dt.height);
+    // One uniform scale (from the width): each level's sides are rounded to even texels on their
+    // own, so a per-axis scale would differ by a hair, and under the rotated swing container the
+    // image's matrix would carry a slight skew. Uniform keeps it a plain rotation of a quad; the
+    // height is then within a texel of spec.height.
+    this.image.setScale(this.spec.width / dt.width);
   }
 
   destroy(): void {
