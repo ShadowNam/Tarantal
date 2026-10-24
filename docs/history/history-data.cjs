@@ -7,22 +7,22 @@ const meta = {
   title: 'Tarantal Madness',
   subtitle: 'Development history',
   tagline: 'How the game came together, from the first commit to today',
-  updated: '24 October 2026, 05:50 UTC',
+  updated: '24 October 2026, 13:45 UTC',
   period: '19–24 October 2026',
 };
 
-// "By the numbers" on 24 Oct 2026 (main at 611cc21).
+// "By the numbers" on 24 Oct 2026 (main at 987ea71).
 const numbers = [
   ['Days since the first commit', '5'],
-  ['Commits on main', '596'],
-  ['Pull requests', '56 opened, all merged'],
-  ['Game code (TypeScript, without tests)', 'about 35,800 lines'],
-  ['Automated tests', '954 unit tests, 39 browser test suites on 3 device profiles'],
+  ['Commits on main', '640'],
+  ['Pull requests', '61 opened, 61 merged; v1.4 part B in progress'],
+  ['Game code (TypeScript, without tests)', 'about 38,000 lines'],
+  ['Automated tests', '994 unit tests, 40 browser test suites on 3 device profiles'],
   ['Hunting areas', '4 (Karoo, Bushveld, Okavango, Kalahari), each with 7 weekday maps and 3 bonus maps (Verder, Nog Verder, Die Verste)'],
-  ['Guns', '7 (Dubbelloop, Windbuks, Kettie, Plaas-Pomp, Die Twee-Twee with 3 sights, Voorlaaier, Mielie-Masjien)'],
+  ['Guns', '8 (Dubbelloop, Windbuks, Kettie, Plaas-Pomp, Die Twee-Twee with 3 sights, Die Langloop with a 3–9× scope, Voorlaaier, Mielie-Masjien)'],
   ['Creatures', '13 (guineafowl and variants, bosses, flyers)'],
   ['Languages', 'English, Afrikaans, German, Dutch'],
-  ['Design decisions logged', '37 (D-001 to D-037)'],
+  ['Design decisions logged', '38 (D-001 to D-038)'],
 ];
 
 const roles = [
@@ -430,6 +430,60 @@ const stages = [
       { img: 'skietbaan-flyover-pixel7', caption: 'A flying bird bagged at middle distance on a Pixel 7; the stats shrink to a small box with "More".' },
     ],
   },
+  {
+    title: 'Training ground update: mixed targets, steel plates, hit feedback',
+    when: '24 Oct 2026, 10:21 (asked for at 05:45)',
+    prs: '#61',
+    decision: 'D-037 (update 24 Oct)',
+    intro: 'After the product owner played the training ground: more targets at once, every distance for every gun, and a clear reaction on every hit.',
+    bullets: [
+      'Mixed course: paper targets, steel plates, standing birds, a fly-over and a small flock at near, middle, far and Ver at the same time. Shuffle deals a new layout; the layout comes from the seed, so it is the same on every device.',
+      'Every distance for every gun: the Kettie or a shotgun can be tried at Ver. Their shots fall short as in a hunt and are counted as "fell short" in the stats.',
+      'Steel plates: a gong on a post that swings and rings when hit, easy to read at long range where paper holes are too small to see.',
+      'A reaction on every hit: paper blinks and thwacks, plates ring and swing, birds play a hit sound, and a HIT ring appears on the target, visible even at Ver without zooming. A miss shows a dust puff, or SHORT where the shot fell short.',
+      'Stats count each hit for the gun, distance and kind of target it struck, and each miss for the target nearest the aim.',
+      'First download +0.9 KB (2.94 MB of 3 MB); everything new loads with the training ground. 971 unit tests.',
+    ],
+    feedbackLabel: 'Look review and independent review before merging',
+    feedback: [
+      'The first Tank job kept losing its connection to Claude mid-turn; a fresh job with a short brief finished the work.',
+      'The independent review found that Kettie stones flew through paper targets and plates at near and middle distance, and that in about half of the mixed layouts a target stood behind a nearer one. Both were fixed: stones now stop on every target, the course was re-spaced, and a content check now rejects any layout where targets overlap. Rapid fire no longer floods the sound, and Shuffle always deals a new layout.',
+    ],
+    images: [
+      { img: 'skietbaan2-mixed', caption: 'The mixed course: targets at all four distances at once (desktop, after the re-spacing).' },
+      { img: 'skietbaan2-hit-far', caption: 'A hit on a far paper target: the HIT ring and the stats for that distance.' },
+      { img: 'skietbaan2-plate-iphone', caption: 'A steel plate hit at middle distance on an iPhone 14 held sideways.' },
+      { img: 'skietbaan2-kettie-short', caption: 'The Kettie at Ver: the stones fall short and each shot is marked SHORT.' },
+    ],
+  },
+  {
+    title: 'v1.4 part A: Die Langloop and a faster scope view',
+    when: '24 Oct 2026, 13:23 (started 05:40)',
+    prs: '#60',
+    decision: 'D-038',
+    intro: 'The long rifle from the approved long-range plan, after a fix for the scope view running slowly on phones (issue #56).',
+    bullets: [
+      'Faster scope view (issue #56): while zoomed, the game skips drawing what cannot be seen. On the Pixel 7 test profile the scoped view went from 1.33× to 0.78× the cost of the open view, and a browser test checks the picture is unchanged.',
+      'Die Langloop: a long rifle with 3 rounds, a 0.8 s bolt and a 1.5 s magazine change. It reaches the farthest (Ver) birds and scores ×2 there.',
+      'Variable scope at 3×, 6× and 9×: the mouse wheel or +/- keys on desktop, −/+ buttons beside the ammo on phones. Each step is recorded, so a replay comes out the same on every screen.',
+      'Very loud: every shot alerts every flock, so the player picks the bird before pressing.',
+      'Unlocked the first time Die Verste is unlocked in any area. Players who had already reached Die Verste get it on their next hunt.',
+      'Brass cartridges with pointed bullets and an empty case when spent, a thin crosshair, and interim gun art and shot sound.',
+      'Balance over 500 hunts per bot: below both shotguns on the plain maps and under the 4 500 cap on the long-range maps. First download 2.89 MB of 3 MB; 994 unit tests.',
+    ],
+    feedbackLabel: 'Look review and independent review before merging',
+    feedback: [
+      'Tank’s turns kept ending mid-step, and one earlier job lost its connection; a fresh job with a short brief finished the work.',
+      'Claude fixed two test problems on the way: a data file the browser tests could not load, and a dust devil that kept swaying in a frozen test frame.',
+      'The independent review found one gap: players who had already reached Die Verste in v1.3 would never get the Langloop. Claude fixed it, with a test, before merging. It also noted that the scoped .22 still scores slightly higher on the farthest maps; that is recorded as a trade-off for the product owner to decide.',
+    ],
+    images: [
+      { img: 'v14-langloop-3x', caption: 'Die Langloop at 3× on Die Verste (desktop): the scope ring, the fine cross with range marks, and 3 brass cartridges.' },
+      { img: 'v14-langloop-9x-pixel7', caption: 'At 9× on a Pixel 7 held sideways, with the −/+ zoom buttons beside the ammo.' },
+      { img: 'v14-langloop-ammo', caption: 'Open view after one shot: two cartridges left and an empty case.' },
+      { img: 'v14-langloop-shed-iphone', caption: 'The Skiet-Skuur on an iPhone 14: Die Langloop equipped, with its variable scope row.' },
+    ],
+  },
 ];
 
 // The product owner's requests, in order.
@@ -445,10 +499,15 @@ const requests = [
   ['23 Oct, 15:20', 'A Word document with the build pictures and history', 'This document'],
   ['23 Oct, 20:50', 'Let GitHub record the screenshot baselines', 'Done (#55)'],
   ['23 Oct, 21:15', 'Keep the build file updated with an infographic every 2–3 hours; keep Tank building overnight', 'The build board and the status doc, refreshed every 2–3 hours and after each merge; v1.3 merged overnight'],
+  ['24 Oct, 05:45', 'More targets in the training ground: mixed targets at all distances, every distance for every gun, a sound or blink on every hit', 'Done (#61), with screenshots sent at the merge'],
+  ['24 Oct, 12:05', 'Better graphics for the trees, bushes and fruit on every map; camelthorn trees in Namibia; a far more detailed weaver nest ("increase quality by 500%") with angry birds flying out when it is shot', 'Camelthorn and nest first in v1.4 part B, with close-ups for approval; then v1.5 for every map'],
+  ['24 Oct, 12:18', 'Meerkat burrows on the desert maps: meerkats peek out and run from one burrow to another ("be creative")', 'Queued as v1.6: burrows, a sentinel, dashes, diving at shots, a Familiefoto secret'],
 ];
 
 const next = [
-  ['v1.4 Die Langloop + Namibië', 'A long rifle with a 3–9× scope; the Namibië area (Etosha salt pan with mirages, quiver trees, Namib dunes, a far waterhole); first the scoped drawing cost (issue #56)', 'Tank', '6–8 h (started 24 Oct, 05:40)'],
+  ['v1.4 part B: Namibië', 'The Namibië area (Etosha salt pan with mirages, quiver trees, dunes, a far waterhole). First new camelthorn trees and a much more detailed weaver nest, then angry weavers when the nest is shot', 'Tank', 'about 6 h (started 24 Oct, 12:40)'],
+  ['v1.5: better plants on every map', 'Trees, bushes, grass and their fruit redrawn at the new quality bar in every area', 'Tank', 'about 6 h'],
+  ['v1.6: meerkat colonies', 'Burrows on the desert maps; meerkats peek, stand guard, dash between burrows and dive when shots are fired; a Familiefoto secret', 'Tank', 'about 5 h'],
 ];
 
 const decisions = [
@@ -474,6 +533,7 @@ const decisions = [
   ['D-035', 'Art direction: semi-realistic (graphics pass 3)'],
   ['D-036', 'v1.3 long range: the Ver plane, sights and zoom, the .22, Nog Verder and Die Verste'],
   ['D-037', 'Training ground (Skietbaan): admin and test build only, never touches the save, left out of the content fingerprint'],
+  ['D-038', 'v1.4 part A: the faster scope view (#56) and Die Langloop'],
 ];
 
 const glossary = [

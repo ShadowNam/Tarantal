@@ -1890,9 +1890,11 @@ Rules are in GDD §10.1 and §10.6 and Tech §3.3–3.4.
 (1) *#56, a zoomed view draws only what can show:* while a sight is up, ParallaxView skips layer
 rows outside the zoomed view, outside a ring sight's square once it is fully up (the sight fill
 and the ring cover the rest), and behind nearer opaque bands. The picture is unchanged (an e2e
-test shoots a frozen scoped frame with the culling on and off). CI, Pixel 7 profile, real frame
-time: the open hunt **177 → 88 ms**, the scoped .22 on Nog Verder **456 → 140 ms**, the open Nog
-Verder 344 → 179 ms; scoped / open went from **1.33× to 0.78×** (desktop was 1.26× before).
+test shoots a frozen scoped frame with the culling on and off). The result is the ratio: on the
+CI Pixel 7 profile, scoped / open real frame time went from **1.33× to 0.78×** (desktop was 1.26×
+before). The absolute times of those two runs (open hunt 177 → 88 ms, scoped .22 on Nog Verder
+456 → 140 ms, open Nog Verder 344 → 179 ms) also include runner-to-runner variance: the open-view
+path did not change, so its drop is not the fix's doing.
 Why: on a phone the scope made the game slower exactly when the player needs it steady.
 *For a later look:* a Ver map's open view still costs about **2× a plain map** (179 vs 88 ms on
 the Pixel 7 profile), because it draws the extra Ver plane and its haze. It is not blocking, but
@@ -1915,9 +1917,18 @@ player picks the bird before pressing. windSensitivity 0.5 uses the existing win
 Pomp (4 306) and the .22 (3 620–3 971); Nog Verder 4 082 and Die Verste 3 976, under the 4 500
 cap. The M3 "plinker ≥ 25 % below competent" check fails on Classic (9 %), because the loud shot
 removes the competent player's flock play; the gun is not meant for plain maps.
+*Trade-off, recorded on purpose:* on the Ver maps the scoped .22 still out-scores the Langloop
+(Die Verste 4 291 vs 3 976; 4 114 at 9×) and bags more Ver birds per hunt (22.1 vs 18.3). The
+Langloop cannot pass the .22 on Nog Verder without breaking the 4 500 cap (Ver ×2.3 gives
+4 506). Its edge is ×2 per Ver bird and the steadier 9× picture for a person, which the bot does
+not model. So docs/08's "the only Ver specialist" reads as "the Ver specialist by feel, not by
+the bots' score". Making it win on Die Verste would mean lowering the .22's Ver numbers: a v1.3
+balance change for its own PR, if the product owner wants it.
 (6) *Unlock:* the first time the player unlocks Die Verste in any area (Notaboek challenge
 `unlock_die_verste`, metric `bonusUnlocks` with `bonus: dieVerste`); it is saved through
-`src/meta/storage.ts` like every other unlock.
+`src/meta/storage.ts` like every other unlock. A save that already reached Die Verste before
+v1.4 (a best on it, or unlocked today, in any area) counts too: its next hunt grants the
+Langloop (`bonusReached` in `src/meta/progress.ts`, for one-off bonus-unlock challenges).
 (7) *Look and sound:* ammo is brass rifle cartridges with pointed copper bullets, an empty case
 when spent; the crosshair is a thin cross. The gun art, the cartridges and the shot sound are
 interim (D-029) and listed so in `assets:audit`. The gun sits in the lazy Ver asset group like

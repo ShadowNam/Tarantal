@@ -250,4 +250,34 @@ describe('v1.4: Die Langloop unlock (D-038)', () => {
       expect(fittedSight('langloop', o.save, content)).toBe('scope_var');
     }
   });
+
+  it('a save that already reached Die Verste before v1.4 gets the Langloop on its next hunt', () => {
+    // v1.3 shape: Die Verste played (a best) on an earlier day, no Notaboek progress for it.
+    const played: SaveData = {
+      ...defaultSave(),
+      bonusMaps: {
+        day: 20_380,
+        unlocked: [],
+        bests: { 'karoo-autumn/dieVerste': { score: 3_900, rank: 'bosveldjagter' } },
+      },
+    };
+    const o = play(played, [hunt()]);
+    expect(o.unlocked).toEqual(['langloop']);
+    expect(isWeaponEquippable(weapon('langloop'), o.save, content)).toBe(true);
+    // Unlocked today but not yet played counts too; Nog Verder alone does not.
+    const today: SaveData = {
+      ...defaultSave(),
+      bonusMaps: { day: 20_385, unlocked: ['kalahari-summer/dieVerste'], bests: {} },
+    };
+    expect(play(today, [hunt()]).unlocked).toContain('langloop');
+    const nogOnly: SaveData = {
+      ...defaultSave(),
+      bonusMaps: {
+        day: 20_385,
+        unlocked: ['karoo-autumn/nogVerder'],
+        bests: { 'karoo-autumn/verder': { score: 2_000, rank: 'stadsjapie' } },
+      },
+    };
+    expect(play(nogOnly, [hunt()]).unlocked).not.toContain('langloop');
+  });
 });
