@@ -134,6 +134,23 @@ export class SightView {
     }
   }
 
+  /**
+   * v1.4 (#56): with a ring sight (peep or scope) fully up, the screen outside the ring's square
+   * is covered by the opaque sight fill and the ring's dark edge: the zoomed world only needs
+   * drawing inside it (zoomed screen px). Null while the picture is still fading in, or for iron
+   * sights (the world shows around them).
+   */
+  opaqueOutside(v: ZoomState): { x0: number; y0: number; x1: number; y1: number } | null {
+    if (this.ring === null || v.raise < 1) return null;
+    const half = this.ring.displayWidth / 2;
+    return {
+      x0: v.reticleX - half,
+      y0: v.reticleY - half,
+      x1: v.reticleX + half,
+      y1: v.reticleY + half,
+    };
+  }
+
   /** Radius (design px) of the clear view in the middle (peep and scope), or null (iron). */
   clearRadius(): number | null {
     if (this.picture === 'peep') return PEEP_CLEAR_R * SIGHT_SCALE.peep;

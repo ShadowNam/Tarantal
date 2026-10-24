@@ -37,6 +37,11 @@ export interface LayerArt {
   readonly top: number;
   /** Textures are drawn at 1/scale resolution and displayed scaled up (soft layers like the sky). */
   readonly scale: number;
+  /** v1.4 (#56): delivered art's opaque rows per bucket (asset index); none for placeholders. */
+  readonly solid?: {
+    readonly bucket: number;
+    readonly rows: readonly (readonly [number, number] | null)[];
+  };
 }
 
 /** D-029: `interim` = delivered, but code-drawn stand-in art (tools/art/), not the launch art. */
@@ -284,6 +289,7 @@ export class AssetManifest {
               left: entry.left,
               top: entry.top,
               scale: 1,
+              ...(entry.solid === undefined ? {} : { solid: entry.solid }),
             },
           });
         }),

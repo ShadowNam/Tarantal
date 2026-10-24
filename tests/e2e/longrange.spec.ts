@@ -7,6 +7,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
+import { PNG } from 'pngjs';
 import { loadContent } from '../../tools/testContent';
 import type { GoldenReplay } from '../../tools/goldenCases';
 import { decodeInputLogText } from '../../src/sim/replay/inputLog';
@@ -261,6 +262,78 @@ test.describe('long range (v1.3)', () => {
     expect(node.result.score).toBe(h.result?.score);
     expect(errors).toEqual([]);
   });
+
+  // v1.4 (#56, D-038): while zoomed, ParallaxView skips what can't show (outside the view or the
+  // scope's square, rows behind nearer opaque bands). The picture must not change: a frozen
+  // scoped frame (?holdAt) is shot with the culling off and on; they may differ only by as much
+  // as two shots of the same setting do. The world fill (screens' worth of layer pixels) drops.
+  for (const sight of ['scope_small', 'iron'] as const) {
+    test(`scoped culling (#56) draws the same picture: ${sight}`, async ({ page }, info) => {
+      gate(info);
+      test.setTimeout(300_000);
+      const touch = isTouchProject(info);
+      const HOLD = 600;
+      await rifleSave(page, sight, 'medium', PREVIEW_DAY.n);
+      await boot(
+        page,
+        `seed=42&today=${PREVIEW_DAY.key}&bonus=nogVerder&huntSeconds=60&holdAt=${HOLD}`,
+      );
+      await startHunt(page, touch);
+      const at = await verFlock(page);
+      expect((await hook(page)).tick, 'time to raise before the hold').toBeLessThan(HOLD - 40);
+      await press(page, touch, at.x, at.y);
+      await page.waitForFunction(
+        (t) => (window.__TM__?.tick ?? 0) >= t && (window.__TM__?.zoom.raise ?? 0) >= 1,
+        HOLD,
+        { timeout: 120_000 },
+      );
+      const frames = (n: number): Promise<void> =>
+        page.evaluate(
+          (k) =>
+            new Promise<void>((done) => {
+              const step = (i: number): void => {
+                if (i <= 0) done();
+                else
+                  requestAnimationFrame(() => {
+                    step(i - 1);
+                  });
+              };
+              step(k);
+            }),
+          n,
+        );
+      const shot = async (cull: boolean): Promise<{ png: PNG; fill: number }> => {
+        await page.evaluate((on) => window.__TM_TOOLS__?.scopeCull(on), cull);
+        await frames(4);
+        const fill = (await hook(page)).zoom.fill;
+        return { png: PNG.sync.read(await page.screenshot()), fill };
+      };
+      const on1 = await shot(true);
+      const off = await shot(false);
+      const on2 = await shot(true);
+      await page.evaluate(() => window.__TM_TOOLS__?.scopeCull(true));
+      const diff = (a: PNG, b: PNG): number => {
+        let n = 0;
+        for (let i = 0; i < a.data.length; i += 4) {
+          const d =
+            Math.abs((a.data[i] ?? 0) - (b.data[i] ?? 0)) +
+            Math.abs((a.data[i + 1] ?? 0) - (b.data[i + 1] ?? 0)) +
+            Math.abs((a.data[i + 2] ?? 0) - (b.data[i + 2] ?? 0));
+          if (d > 24) n++;
+        }
+        return n / (a.data.length / 4);
+      };
+      const noise = diff(on1.png, on2.png);
+      const culled = diff(off.png, on2.png);
+      console.log(
+        `[scope-cull] ${info.project.name} ${sight}: fill ${off.fill} → ${on2.fill} screens; ` +
+          `pixels differing ${(culled * 100).toFixed(3)} % (noise ${(noise * 100).toFixed(3)} %)`,
+      );
+      expect(culled, 'culling changes the scoped picture').toBeLessThanOrEqual(noise + 0.002);
+      expect(on2.fill).toBeLessThan(off.fill);
+      await release(page);
+    });
+  }
 
   for (const sight of ['iron', 'peep', 'scope_small'] as const) {
     test(`preview: the ${sight} sight picture on a Ver flock`, async ({ page }, info) => {

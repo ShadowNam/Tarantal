@@ -44,6 +44,7 @@ import {
   blank,
   blit,
   crop,
+  decodePng,
   encodePng,
   encodePng8,
   opaqueBounds,
@@ -418,15 +419,21 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
     const side = readJson(path.replace(/\.png$/, '.json'), sidecarLayer, errors) ?? {};
     const tiles: FileRef[] = [];
     const layerGroup = side.group ?? biome;
+    const solidOf: ([number, number] | null)[] = [];
     for (let x = 0, i = 0; x < img.width; x += TILE_WIDTH, i++) {
       const w = Math.min(TILE_WIDTH, img.width - x);
+      const bytes = (side.encode === 'png8' ? encodePng8 : encodePng)(
+        crop(img, x, 0, w, img.height),
+      );
+      // v1.4 (#56): measured on the tile as shipped (png8 quantises some alpha).
+      solidOf.push(...solidRows(decodePng(bytes), SOLID_BUCKET_PX).rows);
       tiles.push(
         emit(
           layerGroup,
           'layers',
           layerGroup === biome ? `${layerId}-${i}` : `${biome}-${layerId}-${i}`,
           'png',
-          (side.encode === 'png8' ? encodePng8 : encodePng)(crop(img, x, 0, w, img.height)),
+          bytes,
         ),
       );
     }
@@ -438,6 +445,8 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
       left: spec.left,
       top: side.top ?? spec.top,
       height: img.height,
+      // v1.4 (#56): rows that hide what is behind them, for the zoomed view's culling.
+      solid: { bucket: SOLID_BUCKET_PX, rows: solidOf },
     };
   }
 
@@ -762,4 +771,37 @@ function sortKeys<T>(v: T): T {
       .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
       .map(([k, x]) => [k, sortKeys(x)]),
   ) as T;
+}
+
+/** v1.4 (#56): bucket width (art px) of a layer's opaque-row profile; divides TILE_WIDTH. */
+export const SOLID_BUCKET_PX = 256;
+
+/**
+ * v1.4 (#56, D-038): per `bucket`-px column strip of a layer's art, the longest run of rows that
+ * are fully opaque (alpha 255) across the whole strip, as [first, end) rows from the art's top,
+ * or null. A zoomed view skips what such rows of a nearer layer hide (src/game/view/scopeCull.ts).
+ */
+export function solidRows(
+  img: Rgba,
+  bucket: number,
+): { bucket: number; rows: ([number, number] | null)[] } {
+  const rows: ([number, number] | null)[] = [];
+  for (let bx = 0; bx < img.width; bx += bucket) {
+    const x1 = Math.min(img.width, bx + bucket);
+    let best: [number, number] | null = null;
+    let start = -1;
+    for (let y = 0; y <= img.height; y++) {
+      let opaque = y < img.height;
+      for (let x = bx; opaque && x < x1; x++)
+        opaque = img.data[(y * img.width + x) * 4 + 3] === 255;
+      if (opaque) {
+        if (start < 0) start = y;
+      } else if (start >= 0) {
+        if (best === null || y - start > best[1] - best[0]) best = [start, y];
+        start = -1;
+      }
+    }
+    rows.push(best);
+  }
+  return { bucket, rows };
 }

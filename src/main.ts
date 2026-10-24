@@ -249,7 +249,7 @@ const hook: TestHook = {
   stones: 0,
   ammo: [],
   crosshair: { weapon: '', extent: 0, visible: false, x: 0, y: 0 },
-  zoom: { z: 1, raise: 0, reticleX: 0, reticleY: 0, sight: null },
+  zoom: { z: 1, raise: 0, reticleX: 0, reticleY: 0, sight: null, fill: 0 },
   shots: 0,
   over: false,
   inputKind: null,
@@ -774,6 +774,9 @@ async function boot(): Promise<void> {
       replay: (text) => {
         const o = runReplay(decodeInputLogText(text), bundle);
         return { eventHash: o.eventHash, eventCount: o.eventCount, score: o.result.score };
+      },
+      scopeCull: (on) => {
+        HuntScene.cullZoomed = on;
       },
       popBench: (n, mode) => {
         const hunt = game.scene.getScene('Hunt');

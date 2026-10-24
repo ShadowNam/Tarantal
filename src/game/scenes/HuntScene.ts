@@ -106,6 +106,8 @@ export class HuntScene extends Phaser.Scene {
   private sight!: SightView;
   /** The rifle zoom view of the last frame (NO_ZOOM when no sight is up). */
   private zoomView: ZoomState = NO_ZOOM(1920, 1080);
+  /** v1.4 (#56): e2e only (__TM_TOOLS__.scopeCull): the zoomed view's culling, on by default. */
+  static cullZoomed = true;
   private runner: HuntRunner | null = null;
   /** v1.0.1 (D-028 §5): capture mode's key hint while it shows. */
   private captureHint: Phaser.GameObjects.Text | null = null;
@@ -296,6 +298,7 @@ export class HuntScene extends Phaser.Scene {
     const map = safeResolveMap(this.biome, this.map.layout, this.map.bonus, this.map.ver);
     const mapBiome = map.biome;
     this.parallax = new ParallaxView(this, mapBiome, this.manifest, this.ctx.prefs.mergeLayers);
+    this.parallax.measureFill = this.ctx.hook !== null;
     const lights = mapLights(map).flatMap((id) => {
       const light = this.ctx.feel.lights[id];
       return light === undefined ? [] : [light];
@@ -1159,11 +1162,13 @@ export class HuntScene extends Phaser.Scene {
       height,
     );
     this.zoomView = zoom;
-    this.parallax.setZoom(zoom.z, zoom.cx, zoom.cy);
+    this.sight.setPicture(this.sightPicture(state.weapon.sight));
+    // v1.4 (#56): a fully raised ring sight hides the screen outside its square.
+    this.parallax.cullZoomed = HuntScene.cullZoomed;
+    this.parallax.setZoom(zoom.z, zoom.cx, zoom.cy, this.sight.opaqueOutside(zoom));
     this.parallax.update(cam, width);
     this.screen.setPosition(width / 2 - zoom.cx * zoom.z, height / 2 - zoom.cy * zoom.z);
     this.screen.setScale(zoom.z);
-    this.sight.setPicture(this.sightPicture(state.weapon.sight));
     this.sight.update(zoom, width, height);
     this.weapon.setScoped(zoom.raise);
     const drawBirds = interpolateBirds(runner.prev, state, alpha);
@@ -1186,6 +1191,7 @@ export class HuntScene extends Phaser.Scene {
       // v1.3: the rifle zoom view (the reticle is where a release fires, on screen).
       const z = this.zoomView;
       this.ctx.hook.zoom = {
+        fill: Math.round(this.parallax.fill * 1000) / 1000,
         z: Math.round(z.z * 1000) / 1000,
         raise: Math.round(z.raise * 1000) / 1000,
         reticleX: Math.round(z.reticleX * 10) / 10,

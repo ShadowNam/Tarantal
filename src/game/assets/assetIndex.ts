@@ -83,6 +83,14 @@ const layerEntry = z.object({
   left: z.number(),
   top: z.number(),
   height: z.number().int().positive(),
+  /** v1.4 (#56): per `bucket` art px, the rows [from, to) fully opaque across it (from the art's
+   *  top), or null — a zoomed view skips what they hide. Absent on older indexes. */
+  solid: z
+    .object({
+      bucket: z.number().int().positive(),
+      rows: z.array(z.tuple([z.number().int(), z.number().int()]).nullable()),
+    })
+    .optional(),
 });
 
 const atlasPage = z.object({ image: fileRef, data: fileRef });
