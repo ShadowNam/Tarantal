@@ -2011,6 +2011,48 @@ Poki 2 996.2 KB, CrazyGames 2 996.3 KB. The Namibië chunk is **1 445.1 KB gzip*
 1 498.5 KB, both under the 1.5 MB cap. Low-tier texture memory for a Kalahari hunt is 103.4 MB
 (it was 93 MB; the budget is 128 MB).
 
+**D-040 Skietbaan: clean steel gongs with lasting hit marks (24 Oct 2026):** the product owner
+(24 Oct, ~17:45): "The metal gongs need to be clean. And when shot, the shot should be visible and
+stay visible during the session. I want to see consistency." Rules: GDD §12.1; look: art bible
+§5.1; code: Tech §8.3. Rendering only — no sim change, the golden replays are untouched.
+(1) *What was wrong:* the plate art baked 14 random grey "old hit" pocks into the face, so it
+looked dirty before the first shot and real hits could not be told from fake ones; a plate hit
+only swung the plate (on the wall clock) and drew nothing; paper drew only the newest
+`GROUP_IMPACTS = 20` holes, so older ones vanished mid-session; the frame was flat rectangles.
+(2) *Clean plate:* `range/plate` is redrawn at 2× (disc radius 200 texture px), freshly painted
+(an even off-white face, soft light from the upper left), a clean bevelled steel rim and clean
+chains; `range/plate_frame` is new: camelthorn timber posts and crossbar at the v1.4 bar.
+(3) *Marks from the sim's impacts:* one mark per `paperHit`/`plateHit`, at that point, sized by
+gun class (shot / rifle / heavy) and plane, shaped from shot id, tick and pellet index (no
+per-frame random; detmath trig). Plate marks are drawn in the plate's swinging frame; the swing
+and the newest mark's 1.25 s glint run on the snapshot tick, so `?holdAt` holds them.
+(4) *One rule for paper and steel:* every hit stays for the Skietbaan visit, per (area, distance,
+kind, target index), through gun swaps, the scope and setup switches; leaving the Skietbaan clears
+them, and Repaint / New paper / Fresh targets clears them on purpose. `GROUP_IMPACTS` now only
+bounds the group-size stats.
+- **Why a visit, not the page:** the product owner asked for "the session"; a visit is what a
+  shooter sees as one session at the range, and coming back to fresh paint matches a real range.
+- **Why the target index in the key:** the mixed course has several plates per plane; the index
+  (by the sim's order) keeps each one's marks, and offsets over the radius keep marks on the face
+  when a Shuffle moves the target.
+(5) *Cost:* marks are baked into `DynamicTexture`s, ≤ 400 per target (past it the oldest 50 go
+and the target re-bakes once), so the per-frame cost is one image per target however many hits.
+Mipmaps can only be switched on game-wide in Phaser 4 (every power-of-two texture would change,
+and every visual baseline), so each target keeps its own small chain: level 0 sized for the 9×
+scope (≤ 512 px), each lower level a half-size box filter of the one above; the view shows the
+level with ≥ 1 texel per screen pixel. Every level and the frame filter LINEAR, also on the low
+tier (whose antialias-off default is NEAREST).
+(6) *Tests:* unit (`rangeMarks.test.ts`): marks at the impact points, deterministic shapes (one
+pinned), 25 hits all stay, per-target keys, Repaint and leaving clear, the cap holds and keeps the
+newest, target indices, the newest glint, the sim-time swing. e2e (`skietbaan.spec.ts`, CI): 25
+air-rifle hits on a near plate → 25 marks baked; still 25 after a gun swap and after mid and back;
+Repaint → 0; leaving and coming back → 0; a `?holdAt` frame with marks is the same twice.
+Previews: `tests/e2e/art-preview-gongs.spec.ts` (ART_PREVIEW=1).
+(7) *Size:* the first download is **3 000.7 KB gzip** (D-039 recorded 3 000.3 KB); nothing new
+loads with it. The Skietbaan chunk is 17.1 KB gzip. The lazy `range` group's art is the plate at
+67.8 KB gzip (was 31.3 KB at 1×) and the new frame at 20.1 KB. `assets:audit` lists both as
+interim. No visual.spec screen shows the range, so no baselines change.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

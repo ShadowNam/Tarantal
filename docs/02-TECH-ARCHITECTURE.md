@@ -681,9 +681,21 @@ or "Send to GitHub" (a prefilled `issues/new?labels=playtest` link ≤ 7 KB, `sr
   the normal hunt path: views, sights and zoom, InputMapper, the HUD belt and pause, with the
   clock, score and Frenzy hidden. It writes no save, admin save, hunt log, ad count or analytics.
   The setup page and the stats bar are DOM (`RangePanel.ts`); paper targets and their holes are
-  Graphics on the plane's overlay layer (`PaperDraw.ts`). The stats (`rangeStats.ts`) are fed from
+  Graphics on the plane's overlay layer (`PaperDraw.ts`; the holes are baked, see below). The stats (`rangeStats.ts`) are fed from
   the events and kept in memory. Strings come from `src/i18n/range/<lang>.json`, checked by
   `content:validate` like `src/i18n`.
+- **Hit marks (D-040):** `rangeMarks.ts` (pure) turns each `paperHit`/`plateHit` into a `Mark`
+  (offset from the target's centre over its radius, size from the gun class and plane scale, a
+  shape seed from shot id, tick and pellet index; shapes use `sim/detmath` trig) and keeps them in
+  a module-level `MarkStore` for the visit, keyed `area|plane|kind|index` (index among the
+  snapshot's targets of that plane and kind). Leaving the setup page for the admin list clears
+  it; the bar's Repaint clears the session's keys. Capped at 400 per target (past it the oldest
+  50 go and the target re-bakes). `MarkSurface.ts` bakes them into `DynamicTexture`s (a plate's
+  face too): level 0 sized for the strongest sight × render scale (≤ 512 px), each lower level
+  half of the one above, the shown level picked each frame from the plane root's zoom × camera
+  zoom; LINEAR on every tier; a WebGL context restore re-bakes. New marks are appended to level 0
+  (one draw) and the lower levels re-stamped. The plate's swing and the newest mark's glint run
+  on the snapshot tick (`rangeHold` freezes that tick), never the wall clock. No sim change.
 
 ## 9. Mobile web specifics (the gotchas)
 - **iPhone Safari has no element Fullscreen API** (iPad does; iOS 17.4 beta even removed an

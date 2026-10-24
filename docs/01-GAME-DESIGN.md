@@ -530,7 +530,22 @@ does this gun really shoot at that distance?" without the pressure of a hunt.
   flock (`modes.range.mixed`: per-plane counts and spots, each kind at least once). The layout
   comes from the session's seed; **Shuffle** in the bar starts again with a new one. Bagged birds
   come back after `respawnMs`.
-- **Steel plate:** a round gong hanging from a crossbar; a hit swings it and rings it ("ding").
+- **Steel plate:** a round gong hanging from a crossbar on two timber posts; a hit swings it and
+  rings it ("ding"). It starts every Skietbaan visit **freshly painted** (D-040): an even
+  off-white face, no old hits.
+- **Hit marks (D-040, product owner 24 Oct: "the shot should be visible and stay visible during
+  the session"):** every pellet the sim puts on a plate or a paper target leaves a mark at that
+  exact point — on steel a lead splash (a silver-grey star where the paint flaked off, a darker
+  centre, a few spatter flecks), on paper a hole. Its size goes with the gun (a shot pellet small,
+  the .22 medium, the Langloop or a Kettie stone large) and the distance; its shape comes from the
+  impact itself, so a replay or a held frame draws the same marks on every device. A plate's
+  marks swing with it. The newest mark is highlighted for 1.25 s, then settles.
+- **One rule for paper and steel (D-040):** every hit stays for the whole **visit** (from opening
+  the Skietbaan to leaving it for the admin list): through more shots, gun swaps, the scope, and
+  switching to another setup and back. Marks are kept per area, distance, target kind and target
+  number. Leaving the Skietbaan clears them; **Repaint** (plate), **New paper** (paper) or **Fresh
+  targets** (mixed course) in the bar clears that setup's targets on purpose, as shooters do. At
+  most 400 marks are kept per target (the oldest 50 go past that).
 - **Feedback (24 Oct):** a hit paper blinks (≤ 150 ms, local) and thwacks, a plate swings and
   dings, a bird gets a hit sound on top of its bag reactions. Every target hit shows an expanding
   ring and "HIT" for 0.6 s, coloured by distance and big enough to read at Ver without a scope; a
@@ -542,7 +557,8 @@ does this gun really shoot at that distance?" without the pressure of a hunt.
   `respawnMs` after it is bagged or has left; a flock still reacts to shots like a hunt flock.
 - **Stats** per gun × distance × target: shots, hits, misses (and how many **fell short** of Ver),
   hit %, pellets on target per shot
-  (multi-pellet guns); on the paper target the last 20 holes, the group's mean radius and extreme
+  (multi-pellet guns); on the paper target the group of the last 20 holes (every hole is drawn;
+  only the stats stop at 20): its mean radius and extreme
   spread (px, and % of a guineafowl's body width at that distance) and its centre relative to the
   aim point. Reset and "Copy report". Kept for the page's session only. On the mixed course a
   hit counts for the target it put the most pellets on, a miss for the target nearest the aim
