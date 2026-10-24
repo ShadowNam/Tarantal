@@ -1,6 +1,7 @@
 // v1.3x (D-037) Skietbaan choices: every gun (locked ones too; a rifle once per sight), the
 // distances and targets, and how a choice becomes the range's mode. Pure.
 import type { ContentBundle } from '../../content/schemas';
+import { fnv1a32 } from '../../sim/rng';
 import { layoutForDay } from '../../meta/maps';
 import type { ModeConfig, PlaneId, RangeTarget } from '../../sim/types';
 
@@ -117,4 +118,10 @@ export function bodyWidthPx(content: ContentBundle, plane: PlaneId): number {
   const c = content.birds.creatures.find((x) => x.id === content.modes.modes.range.creature);
   if (c === undefined || c.kind === 'helper') return 0;
   return 2 * c.hitbox.body.rx * content.scoring.planes[plane].scale;
+}
+
+/** The seed of a session after `n` Shuffles of one with `base` (n 0: base). Deterministic, and a
+ *  new layout each time even when the seed source is fixed (review fix). */
+export function shuffleSeed(base: number, n: number): number {
+  return n === 0 ? base : fnv1a32(`${String(base)}:shuffle:${String(n)}`) >>> 0;
 }

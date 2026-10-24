@@ -17,6 +17,7 @@ import {
   defaultChoice,
   pickPlane,
   pickTarget,
+  shuffleSeed,
   rangeGuns,
   rangeMode,
   reaches,
@@ -278,5 +279,26 @@ describe('24 Oct update: short in the report', () => {
     expect(text).toContain('Kettie · Ver · Paper target');
     expect(text).toContain('Shots 2 · hits 0 · misses 2 · 0.0 %');
     expect(text).toContain('Fell short: 2 of 2 misses');
+  });
+});
+
+describe('review fix: Shuffle seeds', () => {
+  it('every Shuffle of a fixed base seed is a new, repeatable seed and a new layout', () => {
+    const seeds = [0, 1, 2, 3, 4, 5].map((n) => shuffleSeed(42, n));
+    expect(seeds[0]).toBe(42);
+    expect(new Set(seeds).size).toBe(seeds.length);
+    expect(shuffleSeed(42, 3)).toBe(seeds[3]);
+    const layout = (seed: number): string =>
+      JSON.stringify(
+        createSim({
+          seed,
+          content,
+          mode: { id: 'range', biome: 'karoo-autumn', range: { plane: 'all', target: 'mixed' } },
+          inputKind: 'pointer',
+          rangeProgram: createRangeProgram,
+        }).snapshot().range?.papers,
+      );
+    const layouts = new Set(seeds.map(layout));
+    expect(layouts.size).toBeGreaterThan(3);
   });
 });

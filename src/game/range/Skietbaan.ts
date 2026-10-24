@@ -16,7 +16,14 @@ import { RangeFeedback } from './RangeFeedback';
 import { loadRangeAssets, playRangeSound } from './rangeSounds';
 import { RangeBar, RangeSetupPanel } from './RangePanel';
 import type { RangeHost, RangeMenuHost, RangeSession } from './RangeSession';
-import { defaultChoice, isMixed, rangeGuns, rangeMode, type RangeChoice } from './rangeGuns';
+import {
+  defaultChoice,
+  isMixed,
+  rangeGuns,
+  rangeMode,
+  shuffleSeed,
+  type RangeChoice,
+} from './rangeGuns';
 import { cellTitle, gunNameById, rangeReport } from './rangeReport';
 import { rt } from './rangeI18n';
 import { RangeStats, type Impact, type RangeCell, type RangeSelection } from './rangeStats';
@@ -106,6 +113,7 @@ class Session implements RangeSession {
   readonly mode: ModeConfig;
   readonly rangeProgram = createRangeProgram;
   readonly seed: number;
+  private readonly base: number;
   private host: RangeHost | null = null;
   private bar: RangeBar | null = null;
   private papers: PaperDraw[] = [];
@@ -121,11 +129,14 @@ class Session implements RangeSession {
     private readonly menu: RangeMenuHost,
     private readonly choice: RangeChoice,
     readonly inputKind: InputKind,
+    /** A Shuffle: the first session's seed and how many shuffles since (none: a new seed). */
+    private readonly shuffled: { readonly base: number; readonly n: number } | null = null,
   ) {
     const gun = rangeGuns(menu.content).find((g) => g.id === choice.gun);
     if (gun === undefined) throw new Error(`no range gun ${choice.gun}`);
     this.mode = rangeMode(menu.content, choice, menu.today());
-    this.seed = menu.nextSeed();
+    this.base = shuffled?.base ?? menu.nextSeed();
+    this.seed = shuffleSeed(this.base, shuffled?.n ?? 0);
     this.sel = selection(menu, choice);
   }
 
@@ -148,7 +159,13 @@ class Session implements RangeSession {
       ...(isMixed(this.choice)
         ? {
             shuffle: () => {
-              host.replay(new Session(this.menu, this.choice, this.inputKind));
+              // Every Shuffle is a new layout, even when the seed source is fixed (?seed=N).
+              host.replay(
+                new Session(this.menu, this.choice, this.inputKind, {
+                  base: this.base,
+                  n: (this.shuffled?.n ?? 0) + 1,
+                }),
+              );
             },
           }
         : {}),
