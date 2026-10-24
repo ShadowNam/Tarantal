@@ -288,6 +288,18 @@ updated on purpose; replay of a zoomed hunt identical on desktop and mobile view
 reports before and after; medium tier holds 60 fps while scoped; Playwright screenshots of each
 sight picture on desktop and both phones.
 
+## v1.3x — Training ground (Skietbaan), admin only (24 Oct 2026, D-037)
+Scope: a playtest tool on the admin page: any gun (locked ones too, the .22 per sight) in any
+biome at near / middle / far / Ver against a paper target, a standing bird, a fly-over or a small
+flock, through the real sim (mode `range`: no clock, score, Frenzy or penalties, an endless
+reserve), with per gun × distance stats (hits, pellets per shot, group size and centre on paper)
+and a copyable report. Web builds only, lazy-loaded, never touches a save (GDD §12.1, Tech §8.3).
+Done when: range-mode determinism, spawn program, hit and group maths tested; content validation
+covers the range and its spots; e2e on desktop, Pixel 7 and iPhone 14 landscape (the .22 with the
+small scope at Ver, the Dubbelloop on paper, the save byte-identical, no button without
+`?admin=1`); portal builds carry no range code; first download growth only the main-bundle hooks;
+screenshots in `docs/art-preview/compare/skietbaan-*.png`.
+
 ## v1.4 — Die Langloop and the Namibië pack
 Scope: **Die Langloop** (long-range rifle, 3 rounds, variable scope 3–9×, alerts every flock,
 unlocked by reaching Die Verste); the **Namibië** biome (Etosha salt pan with mirages, quiver trees,

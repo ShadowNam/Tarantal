@@ -1827,6 +1827,45 @@ fixed-size draw while zoomed: no filter, mask or render texture beyond the tier'
 SightView's fills are clipped to the screen. The remaining ~1.5× is overdraw: zooming into the
 horizon stretches the stacked far layers and haze bands over the whole screen.
 
+**D-037 v1.3x Training ground (Skietbaan), admin only (24 Oct 2026):** on 23 Oct the product owner
+asked for "a Training ground to test different guns, near and far". It is a playtest tool, so it
+lives on the admin page (D-034) and nowhere else. Rules are in GDD §12.1 and Tech §8.3.
+(1) *Gating:* it is reached only through the admin page's button, so only on builds whose
+adapter has `adminPage` (web). The code is a lazy chunk whose `import()` the portal builds
+compile out (guard on the raw `VITE_PLATFORM` flag, checked against the adapters by a unit test
+and by `size-check`, which fails a portal build carrying range code). Why: the portals never get
+a playtest tool, and players never download it.
+(2) *Real sim:* the range is mode `range` in the sim, not a mock-up, so spread, sway, hip shots,
+reach, occluding props and touch aim assist are what a hunt gives. It has no clock, score,
+Frenzy, penalties or weather, because those add pressure and noise, not information. The
+reserve is endless but reloads stay, because the reload rhythm is part of how a gun feels. A
+crate gun is re-armed when spent. The targets are a deterministic spawn program for the chosen
+plane. Paper spots, the standing-bird spot, fly-over heights, the range's half-width, flock size,
+respawn delay and paper size are content (`modes.range`). The program is injected
+(`SimConfig.rangeProgram`) so its code loads with the chunk.
+(3) *Never touches the save:* unranked, with no unlocks, Notaboek, bests, Daily, rank or Bird Book
+entries. No hunt log, admin-save write, ad cadence or analytics. Stats live in memory for the
+page's session. The e2e test proves localStorage is byte-identical before and after a session.
+(4) *Content hash:* `modes.range` is left out of `contentHash`, so adding or tuning the range
+re-seeds no Daily and marks no challenge link or golden replay as stale. Range sessions are never
+replay logs.
+(5) *Stats:* kept per gun × distance × target, because a paper hit and a bird hit are different
+questions. A shot is a hit when a pellet lands on the target, which is the same as a hunt's bag
+at `pelletsToBag` 1. Groups are measured from each shot's own aim point (a rifle's before the
+sway, so the sway shows in the group) over the newest 20 paper impacts: mean radius, extreme
+spread, and the centre's offset. Percentages are of the guineafowl's body width at that distance
+(2 × hitbox rx × plane scale), so "a group of 40 % at far" reads directly as "most shots would
+hit".
+(6) *Strings:* all through i18n keys in en/af/de/nl, in the range's own tables
+(`src/i18n/range/`), so they ship with the chunk. `content:validate` checks them like `src/i18n`.
+(7) *Size:* the first download grows by **1.1 KB gzip, 2 940.7 → 2 941.8 KB**. That is the range
+hooks that must be in the main bundle: the sim's `range` mode branches and paper hit-test, the
+`modes.range` content and schema, the HuntScene and HUD wiring, the admin button and its string.
+The setup page, stats, paper drawing, spawn program and strings (8.7 KB gzip) are lazy. Without
+moving `main.ts` off top-level await, Rolldown split the entry in two and added another 1.3 KB;
+it now merges the shared modules back. Portal builds: 2 937.8 KB (Poki), 2 937.9 KB (CrazyGames),
+no range code.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

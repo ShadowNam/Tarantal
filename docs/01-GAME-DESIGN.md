@@ -493,6 +493,23 @@ bonus map open today. Each keeps its own best and counts for rank titles.
 5. **Ewige Droogte (Endless)** — v1.x: after the Season Run finale, continue with escalating quotas
    for leaderboard bragging.
 
+### 12.1 Skietbaan (training ground) — playtest tool, admin page only (v1.3x, D-037)
+Not a player mode: a button on the playtest admin page (`?admin=1`, web builds). It answers "how
+does this gun really shoot at that distance?" without the pressure of a hunt.
+- **Setup:** any gun, locked ones too (the Twee-Twee once per sight; the crate guns as well), any of
+  the 4 biomes on today's weekday light, near / middle / far / Ver (a gun that can't reach Ver shows
+  it as "out of reach", as in a hunt), and a target: a paper target, a standing bird, a fly-over or
+  a small flock.
+- **Rules:** the real sim, so a hit there is a hit in a hunt (spread, sway, hip shots, reach, touch
+  aim assist). No clock, no score, no Frenzy, no penalties, no weather; reloads still happen, but
+  the reserve never runs out (a crate gun is re-armed when spent). A bird target comes back
+  `respawnMs` after it is bagged or has left; a flock still reacts to shots like a hunt flock.
+- **Stats** per gun × distance × target: shots, hits, misses, hit %, pellets on target per shot
+  (multi-pellet guns); on the paper target the last 20 holes, the group's mean radius and extreme
+  spread (px, and % of a guineafowl's body width at that distance) and its centre relative to the
+  aim point. Reset and "Copy report". Kept for the page's session only.
+- **Unranked:** no unlocks, Notaboek, bests, Daily, rank or Bird Book; the save is never written.
+
 ## 13. Season Run (roguelite) in detail
 
 ### 13.1 Structure
