@@ -2026,7 +2026,7 @@ chains; `range/plate_frame` is new: camelthorn timber posts and crossbar at the 
 gun class (shot / rifle / heavy) and plane, shaped from shot id, tick and pellet index (no
 per-frame random; detmath trig). Plate marks are drawn in the plate's swinging frame; the swing
 and the newest mark's 1.25 s glint run on the snapshot tick, so `?holdAt` holds them.
-(4) *One rule for paper and steel:* every hit stays for the Skietbaan visit, per (area, distance,
+(4) *One rule for paper and steel:* every hit stays for the Skietbaan visit, per (area, course, distance,
 kind, target index), through gun swaps, the scope and setup switches; leaving the Skietbaan clears
 them, and Repaint / New paper / Fresh targets clears them on purpose. `GROUP_IMPACTS` now only
 bounds the group-size stats.
@@ -2035,6 +2035,9 @@ bounds the group-size stats.
 - **Why the target index in the key:** the mixed course has several plates per plane; the index
   (by the sim's order) keeps each one's marks, and offsets over the radius keep marks on the face
   when a Shuffle moves the target.
+- **Why the course in the key (review):** without it the mixed course's near plate shared marks
+  with the near plate course, and "Fresh targets" on the mixed course wiped the plate course's
+  marks. Each course (`mixed`, or the single course's target kind) now keeps its own.
 (5) *Cost:* marks are baked into `DynamicTexture`s, ≤ 400 per target (past it the oldest 50 go
 and the target re-bakes once), so the per-frame cost is one image per target however many hits.
 Mipmaps can only be switched on game-wide in Phaser 4 (every power-of-two texture would change,

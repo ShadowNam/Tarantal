@@ -542,7 +542,7 @@ does this gun really shoot at that distance?" without the pressure of a hunt.
   marks swing with it. The newest mark is highlighted for 1.25 s, then settles.
 - **One rule for paper and steel (D-040):** every hit stays for the whole **visit** (from opening
   the Skietbaan to leaving it for the admin list): through more shots, gun swaps, the scope, and
-  switching to another setup and back. Marks are kept per area, distance, target kind and target
+  switching to another setup and back. Marks are kept per area, course (the mixed course has its own), distance, target kind and target
   number. Leaving the Skietbaan clears them; **Repaint** (plate), **New paper** (paper) or **Fresh
   targets** (mixed course) in the bar clears that setup's targets on purpose, as shooters do. At
   most 400 marks are kept per target (the oldest 50 go past that).

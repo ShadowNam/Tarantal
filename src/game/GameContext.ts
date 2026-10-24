@@ -51,7 +51,7 @@ export interface RangeHookState {
   }[];
   /** Holes drawn on the paper targets now (D-040: every hole of the visit, not only 20). */
   readonly drawnImpacts: number;
-  /** D-040: each paper or plate on the range, its marks for the visit (key: area|distance|kind|
+  /** D-040: each paper or plate on the range, its marks for the visit (key: area|course|distance|kind|
    *  index) and how many are baked on it now. */
   readonly marks: readonly {
     readonly key: string;

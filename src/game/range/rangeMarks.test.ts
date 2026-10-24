@@ -12,13 +12,20 @@ import {
   NEWEST_TICKS,
   targetIndices,
   targetKey,
+  courseOf,
   swingAngle,
   type MarkImpact,
 } from './rangeMarks';
 import type { PaperView } from '../../sim/types';
 
 const plate: PaperView = { id: 7, kind: 'plate', plane: 'mid', x: 1200, y: 640, r: 50 };
-const key = targetKey('karoo-autumn', 'mid', 'plate', 0);
+const key = targetKey({
+  biome: 'karoo-autumn',
+  course: 'plate',
+  plane: 'mid',
+  kind: 'plate',
+  index: 0,
+});
 
 function impact(n: number, over: Partial<MarkImpact> = {}): MarkImpact {
   return { shotId: n, tick: 100 + n * 30, pellet: 0, x: 1200 + (n % 7), y: 640 - (n % 5), ...over };
@@ -95,15 +102,48 @@ describe('Skietbaan hit marks (D-040)', () => {
 
   it('marks are kept per target: another target, another list', () => {
     const store = new MarkStore();
-    const other = targetKey('karoo-autumn', 'near', 'plate', 0);
+    const other = targetKey({
+      biome: 'karoo-autumn',
+      course: 'plate',
+      plane: 'near',
+      kind: 'plate',
+      index: 0,
+    });
     store.add(key, makeMark(impact(1), plate, 0.16, 1));
     expect(store.count(other)).toBe(0);
     expect(store.count(key)).toBe(1);
   });
 
+  it('the course is in the key: the mixed course keeps its own marks', () => {
+    const near = { biome: 'karoo-autumn', plane: 'near', kind: 'plate', index: 0 } as const;
+    const plateCourse = targetKey({
+      ...near,
+      course: courseOf({ plane: 'near', target: 'plate' }),
+    });
+    const mixed = targetKey({ ...near, course: courseOf({ plane: 'all', target: 'mixed' }) });
+    expect(courseOf({ plane: 'all', target: 'mixed' })).toBe('mixed');
+    expect(courseOf({ plane: 'near', target: 'paper' })).toBe('paper');
+    expect(mixed).not.toBe(plateCourse);
+    // Fresh targets on the mixed course clears its plate, not the plate course's.
+    const store = new MarkStore();
+    store.add(plateCourse, makeMark(impact(1), plate, 0.16, 1));
+    store.add(mixed, makeMark(impact(2), plate, 0.16, 1));
+    store.clear([mixed]);
+    expect(store.count(mixed)).toBe(0);
+    expect(store.count(plateCourse)).toBe(1);
+    // Other areas keep theirs too.
+    expect(targetKey({ ...near, biome: 'namibie', course: 'plate' })).not.toBe(plateCourse);
+  });
+
   it('Repaint clears those targets; leaving clears them all', () => {
     const store = new MarkStore();
-    const paper = targetKey('karoo-autumn', 'mid', 'paper', 0);
+    const paper = targetKey({
+      biome: 'karoo-autumn',
+      course: 'paper',
+      plane: 'mid',
+      kind: 'paper',
+      index: 0,
+    });
     for (let n = 1; n <= 5; n++) {
       store.add(key, makeMark(impact(n), plate, 0.16, 1));
       store.add(paper, makeMark(impact(n), plate, 0.1, 1));

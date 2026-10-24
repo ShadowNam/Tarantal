@@ -36,6 +36,7 @@ import {
   MarkStore,
   targetIndices,
   targetKey,
+  courseOf,
   type MarkClass,
 } from './rangeMarks';
 
@@ -251,7 +252,16 @@ class Session implements RangeSession {
       for (const p of papers) {
         const layer = host.overlay(p.plane);
         if (layer === null) continue;
-        this.keys.set(p.id, targetKey(this.choice.biome, p.plane, p.kind, index.get(p.id) ?? 0));
+        this.keys.set(
+          p.id,
+          targetKey({
+            biome: this.choice.biome,
+            course: courseOf(this.choice),
+            plane: p.plane,
+            kind: p.kind,
+            index: index.get(p.id) ?? 0,
+          }),
+        );
         if (p.kind === 'plate') this.plates.set(p.id, new PlateDraw(host.scene, layer, p, max));
         else this.papers.push(new PaperDraw(host.scene, layer, p, max));
       }

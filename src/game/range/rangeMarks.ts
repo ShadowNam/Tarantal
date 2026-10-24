@@ -1,13 +1,14 @@
 // Skietbaan gongs (D-040): the hit marks on the range's paper targets and steel plates. Pure (no
 // Phaser, no DOM): Skietbaan.ts feeds it the sim's paperHit/plateHit events and the draw classes
 // bake what it holds. Every impact leaves a mark for the whole Skietbaan visit (paper and steel
-// alike), kept per (area, distance, target kind, target index) so a gun swap, the scope or a
+// alike), kept per (area, course, distance, target kind, target index) so a gun swap, the scope or a
 // switch to another setup and back keep them; leaving the Skietbaan or Repaint clears them.
 // A mark's shape comes from the impact itself (shot id, tick, pellet index), never from a
 // per-frame random, so a replay, a held frame and every device draw the same marks.
 import { cos, sin } from '../../sim/detmath';
 import { fnv1a32 } from '../../sim/rng';
 import type { PaperView, PlaneId } from '../../sim/types';
+import { isMixed, type RangePlaneChoice, type RangeTargetChoice } from './rangeGuns';
 
 /** Marks kept (and drawn) per target; past it the oldest MARK_TRIM go at once (one re-bake). */
 export const MARK_CAP = 400;
@@ -85,9 +86,24 @@ export function makeMark(
   };
 }
 
-/** A target's key: area, distance, kind and its index among the same plane and kind. */
-export function targetKey(biome: string, plane: PlaneId, kind: string, index: number): string {
-  return `${biome}|${plane}|${kind}|${String(index)}`;
+/** The course a setup sets out: the mixed course, or one distance's single target kind. Marks
+ *  are kept per course, so the mixed course's plates never share marks with the plate course. */
+export function courseOf(c: {
+  readonly plane: RangePlaneChoice;
+  readonly target: RangeTargetChoice;
+}): string {
+  return isMixed(c) ? 'mixed' : c.target;
+}
+
+/** A target's key: area, course, distance, kind and its index among the same plane and kind. */
+export function targetKey(t: {
+  readonly biome: string;
+  readonly course: string;
+  readonly plane: PlaneId;
+  readonly kind: string;
+  readonly index: number;
+}): string {
+  return `${t.biome}|${t.course}|${t.plane}|${t.kind}|${String(t.index)}`;
 }
 
 /** Each target's index among the targets of its plane and kind (by the sim's order). */

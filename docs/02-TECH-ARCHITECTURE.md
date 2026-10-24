@@ -687,7 +687,8 @@ or "Send to GitHub" (a prefilled `issues/new?labels=playtest` link ≤ 7 KB, `sr
 - **Hit marks (D-040):** `rangeMarks.ts` (pure) turns each `paperHit`/`plateHit` into a `Mark`
   (offset from the target's centre over its radius, size from the gun class and plane scale, a
   shape seed from shot id, tick and pellet index; shapes use `sim/detmath` trig) and keeps them in
-  a module-level `MarkStore` for the visit, keyed `area|plane|kind|index` (index among the
+  a module-level `MarkStore` for the visit, keyed `area|course|plane|kind|index` (course: `mixed` or the single course's target kind, so
+  the mixed course never shares marks with the paper or plate course; index among the
   snapshot's targets of that plane and kind). Leaving the setup page for the admin list clears
   it; the bar's Repaint clears the session's keys. Capped at 400 per target (past it the oldest
   50 go and the target re-bakes). `MarkSurface.ts` bakes them into `DynamicTexture`s (a plate's
