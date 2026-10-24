@@ -294,6 +294,8 @@ test.describe('Skietbaan (training ground)', () => {
       timeout: 60_000,
     });
     await expect(page.locator('#tm-range [data-role=stats] [data-cell]')).toHaveCount(3);
+    // The session table (below the choices on a phone) in view for the screenshot.
+    await page.locator('#tm-range [data-role=stats]').scrollIntoViewIfNeeded();
     await page.screenshot({ path: `${SHOTS_DIR}/skietbaan-setup-stats-${name}.png` });
     await press(page, touch, '#tm-range [data-action=back]');
     await page.waitForFunction(() => window.__TM__?.admin?.view === 'list', null, {
