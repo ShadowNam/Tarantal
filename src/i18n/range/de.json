@@ -46,5 +46,7 @@
   "range.report_title": "Tarantal Madness Skietbaan-Bericht",
   "range.report_build": "Build {build} · {viewport} · {device}",
   "range.report_area": "Gebiet {area} · Licht: {day}",
-  "range.report_unranked": "Ohne Wertung: keine Freischaltungen, kein Notaboek, keine Bestwerte, kein Daily, Rang oder Vogelbuch-Eintrag."
+  "range.report_unranked": "Ohne Wertung: keine Freischaltungen, kein Notaboek, keine Bestwerte, kein Daily, Rang oder Vogelbuch-Eintrag.",
+  "range.more": "Mehr",
+  "range.less": "Weniger"
 }

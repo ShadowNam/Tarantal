@@ -46,5 +46,7 @@
   "range.report_title": "Tarantal Madness Skietbaan report",
   "range.report_build": "Build {build} · {viewport} · {device}",
   "range.report_area": "Area {area} · {day} light",
-  "range.report_unranked": "Unranked: no unlocks, Notaboek, bests, Daily, rank or Bird Book entries."
+  "range.report_unranked": "Unranked: no unlocks, Notaboek, bests, Daily, rank or Bird Book entries.",
+  "range.more": "More",
+  "range.less": "Less"
 }

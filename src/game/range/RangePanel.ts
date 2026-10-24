@@ -52,7 +52,9 @@ const CSS = `
 #tm-range textarea{width:100%;min-height:120px;font:12px/1.3 monospace;color:#1b1410;background:#F3EAD3;border-radius:6px;-webkit-user-select:text;user-select:text}
 #tm-range-bar{position:fixed;z-index:15;left:calc(env(safe-area-inset-left) + 8px);top:calc(env(safe-area-inset-top) + 8px);
   max-width:min(440px,40vw);background:rgba(27,20,16,.82);color:#F3EAD3;border:2px solid #8a7458;border-radius:10px;
-  padding:6px 8px;font:13px/1.3 'Baloo 2',system-ui,sans-serif;pointer-events:auto;touch-action:manipulation}
+  padding:6px 8px;font:13px/1.3 'Baloo 2',system-ui,sans-serif;pointer-events:none;touch-action:manipulation}
+#tm-range-bar button{pointer-events:auto}
+#tm-range-bar [data-action=more]{display:none}
 #tm-range-bar b{color:#FFD25A}
 #tm-range-bar .lines{margin:2px 0 4px}
 #tm-range-bar button.btn{min-height:40px;font-size:13px;padding:2px 8px}
@@ -60,7 +62,11 @@ const CSS = `
   #tm-range h3{margin:4px 0 2px}#tm-range button.btn{min-height:40px;padding:2px 8px}
   #tm-range button.btn.primary{font-size:17px}#tm-range footer{padding:3px 10px}#tm-range-bar{font-size:11.5px;padding:4px 6px}
   #tm-range-bar button.btn{min-height:36px}#tm-range-bar .note{display:none}
-  #tm-range-bar .lines{margin:1px 0 2px}}
+  #tm-range-bar .lines{margin:1px 0 2px}
+  #tm-range-bar:not(.open){max-width:min(300px,34vw)}
+  #tm-range-bar:not(.open) b,#tm-range-bar:not(.open) .lines>div{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #tm-range-bar:not(.open) .lines>div:not(:first-child),#tm-range-bar:not(.open) .full{display:none}
+  #tm-range-bar [data-action=more]{display:inline-block}}
 `;
 
 function el<K extends keyof HTMLElementTagNameMap>(
@@ -370,6 +376,16 @@ export class RangeBar {
     ensureStyle();
     this.lines = el('div', { className: 'lines', dataset: { role: 'lines' } });
     this.toast = el('span', { className: 'toast' });
+    // Short screens (phones in landscape) show the title, the shots line, Setup and More; More
+    // opens the full stats with Reset and Copy (CSS: max-height 500px).
+    const more = button(rt('range.more'), { action: 'more' }, () => {
+      const open = this.root.classList.toggle('open');
+      more.textContent = rt(open ? 'range.less' : 'range.more');
+    });
+    const full = (b: HTMLButtonElement): HTMLButtonElement => {
+      b.classList.add('full');
+      return b;
+    };
     this.root = el(
       'div',
       { id: 'tm-range-bar' },
@@ -381,23 +397,30 @@ export class RangeBar {
         button(rt('range.setup'), { action: 'setup' }, () => {
           h.setup();
         }),
-        button(rt('range.reset'), { action: 'reset' }, () => {
-          h.reset();
-        }),
-        button(rt('range.copy'), { action: 'copy-report' }, () => {
-          void copyText(h.report()).then((ok) => {
-            this.toast.textContent = rt(ok ? 'range.copied' : 'range.copy_failed');
-          });
-        }),
+        more,
+        full(
+          button(rt('range.reset'), { action: 'reset' }, () => {
+            h.reset();
+          }),
+        ),
+        full(
+          button(rt('range.copy'), { action: 'copy-report' }, () => {
+            void copyText(h.report()).then((ok) => {
+              this.toast.textContent = rt(ok ? 'range.copied' : 'range.copy_failed');
+            });
+          }),
+        ),
         this.toast,
       ),
     );
     stopKeys(this.root);
-    // Taps on the bar never reach the canvas (no shot, no pan).
-    for (const type of ['pointerdown', 'pointerup', 'pointermove'] as const)
-      this.root.addEventListener(type, (e) => {
-        e.stopPropagation();
-      });
+    // The bar's text lets taps through to the game (pointer-events: none); its buttons take
+    // them, and a tap on a button never reaches the game (no shot, no pan).
+    for (const b of this.root.querySelectorAll('button'))
+      for (const type of ['pointerdown', 'pointerup', 'pointermove'] as const)
+        b.addEventListener(type, (e) => {
+          e.stopPropagation();
+        });
     document.body.appendChild(this.root);
   }
 

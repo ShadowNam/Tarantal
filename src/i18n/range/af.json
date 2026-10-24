@@ -46,5 +46,7 @@
   "range.report_title": "Tarantal Madness Skietbaan-verslag",
   "range.report_build": "Bou {build} · {viewport} · {device}",
   "range.report_area": "Gebied {area} · {day} se lig",
-  "range.report_unranked": "Tel nie: geen ontsluitings, Notaboek, bestes, Daaglikse, rang of Voëlboek-inskrywings nie."
+  "range.report_unranked": "Tel nie: geen ontsluitings, Notaboek, bestes, Daaglikse, rang of Voëlboek-inskrywings nie.",
+  "range.more": "Meer",
+  "range.less": "Minder"
 }

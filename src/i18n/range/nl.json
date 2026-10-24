@@ -46,5 +46,7 @@
   "range.report_title": "Tarantal Madness Skietbaan-verslag",
   "range.report_build": "Build {build} · {viewport} · {device}",
   "range.report_area": "Gebied {area} · licht van {day}",
-  "range.report_unranked": "Telt niet mee: geen ontgrendelingen, Notaboek, records, Daily, rang of Vogelboek-items."
+  "range.report_unranked": "Telt niet mee: geen ontgrendelingen, Notaboek, records, Daily, rang of Vogelboek-items.",
+  "range.more": "Meer",
+  "range.less": "Minder"
 }
