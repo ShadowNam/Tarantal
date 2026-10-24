@@ -92,6 +92,9 @@ export interface TestHook {
   admin: { view: 'list' | 'play'; selected: string | null; entries: number } | null;
   /** v1.3x (D-037): the Skietbaan (setup page or the range), or null. */
   range: RangeHookState | null;
+  /** 24 Oct update, e2e only: true holds the Skietbaan's markers and plate swings still (a
+   *  screenshot under software GL is slower than a 0.6 s marker). */
+  rangeHold?: boolean;
   /** Menu overlay on top of the scene: shed, settings, pause (null = none). */
   menu: string | null;
   /** M10: the self-hosted fonts loaded before the game drew any text. */

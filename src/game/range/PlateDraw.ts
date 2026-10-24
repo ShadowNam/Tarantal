@@ -20,7 +20,8 @@ const PAINT = 0xefeadf;
 const FRAME_HALF = 1.35;
 const POST_W = 0.12;
 const LEG_BELOW = 1.5;
-/** Swing: its amplitude (radians), decay time and period (ms); a new hit starts it again. */
+/** Swing: its amplitude (radians), decay time and period (ms). A hit kicks the plate out at
+ *  once (a struck plate jumps), then it swings back and settles; a new hit starts it again. */
 const SWING_RAD = 0.32;
 const SWING_TAU_MS = 900;
 const SWING_PERIOD_MS = 620;
@@ -105,7 +106,7 @@ export class PlateDraw {
   private angle(): number {
     if (this.amp === 0) return 0;
     const w = (2 * Math.PI) / SWING_PERIOD_MS;
-    return this.amp * Math.exp(-this.t / SWING_TAU_MS) * Math.sin(w * this.t);
+    return this.amp * Math.exp(-this.t / SWING_TAU_MS) * Math.cos(w * this.t);
   }
 
   /** Each frame: the art swaps in once loaded; the swing runs on. */

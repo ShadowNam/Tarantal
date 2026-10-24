@@ -119,6 +119,50 @@ async function ready(page: Page): Promise<void> {
   await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) >= t + 40, t0, { timeout: 60_000 });
 }
 
+/** Fires at a design point from inside the page (pointerdown + pointerup at once). */
+async function fireAt(page: Page, touch: boolean, x: number, y: number): Promise<void> {
+  await page.evaluate(
+    ([dx, dy, t]) => {
+      const canvas = document.querySelector('#game canvas');
+      const h = window.__TM__;
+      if (!(canvas instanceof HTMLCanvasElement) || !h) throw new Error('no game');
+      const r = canvas.getBoundingClientRect();
+      const init = {
+        pointerId: t ? 23 : 1,
+        pointerType: t ? 'touch' : 'mouse',
+        button: 0,
+        buttons: 1,
+        clientX: r.left + (dx / h.designWidth) * r.width,
+        clientY: r.top + (dy / h.designHeight) * r.height,
+        bubbles: true,
+        cancelable: true,
+      };
+      canvas.dispatchEvent(new PointerEvent('pointerdown', init));
+      canvas.dispatchEvent(new PointerEvent('pointerup', { ...init, buttons: 0 }));
+    },
+    [x, y, touch] as const,
+  );
+}
+
+/** Holds (or lets go of) the range's markers and plate swings for a screenshot. */
+async function hold(page: Page, on: boolean): Promise<void> {
+  await page.evaluate((v) => {
+    if (window.__TM__) window.__TM__.rangeHold = v;
+  }, on);
+}
+
+/** Opens the Skietbaan's setup page from the admin list. */
+async function openRange(page: Page, touch: boolean): Promise<void> {
+  await page.goto('/?e2e=1&admin=1');
+  await page.waitForFunction(() => window.__TM__?.admin?.view === 'list', null, {
+    timeout: 90_000,
+  });
+  await press(page, touch, '#tm-admin [data-action=skietbaan]');
+  await page.waitForFunction(() => window.__TM__?.range?.view === 'setup', null, {
+    timeout: 60_000,
+  });
+}
+
 test.describe('Skietbaan (training ground)', () => {
   test.skip(PLATFORM !== 'web', 'web build only (portal builds carry no admin page)');
 
@@ -308,6 +352,180 @@ test.describe('Skietbaan (training ground)', () => {
     expect(errors).toEqual([]);
   });
 
+  test('24 Oct: the mixed course (near and far hits, markers), a Kettie at Ver falls short', async ({
+    page,
+  }, info) => {
+    test.skip(!isLandscape(info), 'the admin page is used in landscape');
+    test.setTimeout(420_000);
+    const errors = collectErrors(page);
+    const touch = isTouchProject(info);
+    const name = device(info.project.name);
+    await openRange(page, touch);
+    const before = await storage(page);
+
+    // The air rifle on the mixed course: All picks Mixed.
+    await press(page, touch, '#tm-range [data-role=gun] [data-value=windbuks]');
+    await press(page, touch, '#tm-range [data-role=plane] [data-value=all]');
+    await expect(page.locator('#tm-range [data-role=target] [data-value=mixed]')).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    // Ver is on the course and beyond the air rifle's reach: the note says so.
+    await expect(page.locator('#tm-range [data-role=reach-note]')).toBeVisible();
+    await page.screenshot({ path: `${SHOTS_DIR}/skietbaan2-setup-mixed-${name}.png` });
+    await press(page, touch, '#tm-range [data-action=start]');
+    await page.waitForFunction(
+      () => window.__TM__?.range?.view === 'range' && window.__TM__.range.target === 'mixed',
+      null,
+      { timeout: 90_000 },
+    );
+    await expect(page.locator('#tm-range-bar [data-action=shuffle]')).toBeVisible();
+    await paper(page);
+    // Every distance has a target; Shuffle until a paper or plate stands near and far in view.
+    type Static = { x: number; y: number; r: number; plane: string; kind: string };
+    const inView = (p: Static, w: number): boolean => p.x > 140 && p.x < w - 140;
+    const pickTargets = async (): Promise<{ near: Static; far: Static } | null> => {
+      const h = await hook(page);
+      const ps = h.range?.papers ?? [];
+      const near = ps.find((p) => p.plane === 'near' && inView(p, h.designWidth));
+      const far = ps.find((p) => p.plane === 'far' && inView(p, h.designWidth));
+      return near !== undefined && far !== undefined ? { near, far } : null;
+    };
+    let targets = await pickTargets();
+    for (let i = 0; i < 12 && targets === null; i++) {
+      const seed = (await hook(page)).range?.seed;
+      await press(page, touch, '#tm-range-bar [data-action=shuffle]');
+      await page.waitForFunction(
+        (s) =>
+          window.__TM__?.range?.view === 'range' &&
+          window.__TM__.range.seed !== s &&
+          window.__TM__.range.papers.length > 0,
+        seed,
+        { timeout: 90_000 },
+      );
+      targets = await pickTargets();
+    }
+    if (targets === null) throw new Error('no near and far paper or plate after 12 shuffles');
+    let h = await hook(page);
+    expect(
+      new Set([...(h.range?.papers ?? []), ...(h.range?.birds ?? [])].map((t) => t.plane)),
+    ).toEqual(new Set(['near', 'mid', 'far', 'ver']));
+    await page.screenshot({ path: `${SHOTS_DIR}/skietbaan2-mixed-course-${name}.png` });
+
+    // One shot at the near target, one at the far one: each gets its HIT marker.
+    for (const t of [targets.near, targets.far]) {
+      await ready(page);
+      const hits = (await hook(page)).range?.feedback?.hit ?? 0;
+      if (t === targets.far) await hold(page, true);
+      await fireAt(page, touch, t.x, t.y);
+      await page.waitForFunction(
+        ([n, plane]) =>
+          (window.__TM__?.range?.feedback?.hit ?? 0) > n &&
+          window.__TM__?.range?.feedback?.lastHit === plane,
+        [hits, t.plane] as const,
+        { timeout: 60_000 },
+      );
+    }
+    await page.screenshot({ path: `${SHOTS_DIR}/skietbaan2-hit-far-${name}.png` });
+    h = await hook(page);
+    const fb = h.range?.feedback;
+    expect(fb?.pulses ?? 0).toBeGreaterThanOrEqual(2);
+    const kinds = [targets.near.kind, targets.far.kind];
+    expect(fb?.blinks ?? 0).toBe(kinds.filter((k) => k === 'paper').length);
+    expect(fb?.swings ?? 0).toBe(kinds.filter((k) => k === 'plate').length);
+    await hold(page, false);
+    const cells = h.range?.cells ?? [];
+    expect(
+      cells.some((c) => c.plane === 'near' && c.target === targets.near.kind && c.hits === 1),
+    ).toBe(true);
+    expect(
+      cells.some((c) => c.plane === 'far' && c.target === targets.far.kind && c.hits === 1),
+    ).toBe(true);
+
+    // The setup table shows both distances.
+    await press(page, touch, '#tm-range-bar [data-action=setup]');
+    await page.waitForFunction(() => window.__TM__?.range?.view === 'setup', null, {
+      timeout: 60_000,
+    });
+    const table = page.locator('#tm-range [data-role=stats]');
+    await expect(table.locator(`[data-cell="windbuks|near|${targets.near.kind}"]`)).toHaveCount(1);
+    await expect(table.locator(`[data-cell="windbuks|far|${targets.far.kind}"]`)).toHaveCount(1);
+
+    // Steel plates on their own at middle distance: a hit swings the plate (held for the shot).
+    await press(page, touch, '#tm-range [data-role=target] [data-value=plate]');
+    await press(page, touch, '#tm-range [data-role=plane] [data-value=mid]');
+    await press(page, touch, '#tm-range [data-action=start]');
+    await page.waitForFunction(
+      () => window.__TM__?.range?.view === 'range' && window.__TM__.range.target === 'plate',
+      null,
+      { timeout: 90_000 },
+    );
+    const plate = await paper(page);
+    expect((await hook(page)).range?.papers[0]?.kind).toBe('plate');
+    await ready(page);
+    // Held from the shot: the plate stays kicked out and its HIT marker up for the screenshot.
+    await hold(page, true);
+    await fireAt(page, touch, plate.x, plate.y);
+    await page.waitForFunction(() => (window.__TM__?.range?.feedback?.swings ?? 0) > 0, null, {
+      timeout: 60_000,
+    });
+    await page.screenshot({ path: `${SHOTS_DIR}/skietbaan2-plate-${name}.png` });
+    await hold(page, false);
+    await press(page, touch, '#tm-range-bar [data-action=setup]');
+    await page.waitForFunction(() => window.__TM__?.range?.view === 'setup', null, {
+      timeout: 60_000,
+    });
+
+    // The Kettie at Ver on the paper target: its stones fall short.
+    await press(page, touch, '#tm-range [data-role=gun] [data-value=kettie]');
+    await press(page, touch, '#tm-range [data-role=plane] [data-value=ver]');
+    await press(page, touch, '#tm-range [data-role=target] [data-value=paper]');
+    await expect(page.locator('#tm-range [data-role=reach-note]')).toBeVisible();
+    await press(page, touch, '#tm-range [data-action=start]');
+    await page.waitForFunction(
+      () => window.__TM__?.range?.view === 'range' && window.__TM__.range.plane === 'ver',
+      null,
+      { timeout: 90_000 },
+    );
+    const ver = await paper(page);
+    for (let i = 0; i < 3; i++) {
+      // The Kettie has no belt (endless stones): wait out its fire cooldown only.
+      const t0 = (await hook(page)).tick;
+      await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) >= t + 40, t0, {
+        timeout: 60_000,
+      });
+      // Held from the first stone: all three SHORT markers stay up for the screenshot.
+      if (i === 0) await hold(page, true);
+      const shots = (await hook(page)).shots;
+      await fireAt(page, touch, ver.x + (i - 1) * 150, ver.y);
+      await page.waitForFunction((n) => (window.__TM__?.shots ?? 0) > n, shots, {
+        timeout: 60_000,
+      });
+    }
+    await page.waitForFunction(() => window.__TM__?.range?.stats?.short === 3, null, {
+      timeout: 60_000,
+    });
+    h = await hook(page);
+    expect(h.range?.stats).toMatchObject({ shots: 3, hits: 0, misses: 3, short: 3 });
+    expect(h.range?.feedback?.short ?? 0).toBe(3);
+    await expect(page.locator('#tm-range-bar [data-role=lines]')).toContainText('3');
+    await page.screenshot({ path: `${SHOTS_DIR}/skietbaan2-kettie-ver-short-${name}.png` });
+    await hold(page, false);
+
+    // The table's "fell short" column, then back to the admin list; the save is byte-identical.
+    await press(page, touch, '#tm-range-bar [data-action=setup]');
+    await page.waitForFunction(() => window.__TM__?.range?.view === 'setup', null, {
+      timeout: 60_000,
+    });
+    await expect(table.locator('[data-cell="kettie|ver|paper"] td').nth(6)).toHaveText('3');
+    await press(page, touch, '#tm-range [data-action=back]');
+    await page.waitForFunction(() => window.__TM__?.admin?.view === 'list', null, {
+      timeout: 60_000,
+    });
+    expect(await storage(page)).toEqual(before);
+    expect(errors).toEqual([]);
+  });
+
   test('no Skietbaan without ?admin=1: no button, no chunk', async ({ page }, info) => {
     test.skip(!isLandscape(info), 'landscape profiles');
     const errors = collectErrors(page);
@@ -322,7 +540,7 @@ test.describe('Skietbaan (training ground)', () => {
     const loaded = await page.evaluate(() =>
       performance.getEntriesByType('resource').map((e) => e.name),
     );
-    expect(loaded.filter((n) => /Skietbaan/i.test(n))).toEqual([]);
+    expect(loaded.filter((n) => /Skietbaan|assets\/range\//i.test(n))).toEqual([]);
     expect(errors).toEqual([]);
   });
 });

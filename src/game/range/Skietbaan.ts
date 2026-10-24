@@ -173,7 +173,7 @@ class Session implements RangeSession {
       }
     }
     this.feedback(host, events, state);
-    const dt = host.scene.game.loop.delta;
+    const dt = this.menu.hook?.rangeHold === true ? 0 : host.scene.game.loop.delta;
     for (const p of this.plates.values()) p.update(dt);
     for (const p of this.papers) p.tick(dt);
     this.marks?.update(dt);

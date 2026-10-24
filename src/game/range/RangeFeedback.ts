@@ -29,8 +29,8 @@ const RING_LINE_PX = 4;
 const FILL_ALPHA = 0.25;
 const FILL_ALPHA_REDUCED = 0.08;
 const TEXT_PX = 26;
-const DUST = 0xc9b48a;
-const PUFF_PX = 14;
+const DUST = 0xb89d6e;
+const PUFF_PX = 18;
 
 export type MarkerKind = 'hit' | 'miss' | 'short';
 

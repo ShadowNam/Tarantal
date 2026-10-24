@@ -245,3 +245,38 @@ describe('24 Oct update: the mixed course choice', () => {
     expect(rangeMode(content, mixed, 0).range).toMatchObject({ plane: 'all', target: 'mixed' });
   });
 });
+
+describe('24 Oct update: short in the report', () => {
+  it('a cell with shots that fell short says so in its lines (bar, Copy report)', () => {
+    setLanguage('en');
+    const s = new RangeStats();
+    const sel = { gun: 'kettie', plane: 'ver' as const, target: 'paper' as const, pellets: 1 };
+    for (const id of [1, 2])
+      s.ingest(
+        [
+          {
+            type: 'shotFired',
+            tick: id,
+            shotId: id,
+            weapon: 'kettie',
+            dx: 0,
+            sy: 0,
+            shellsLeft: 0,
+          },
+          { type: 'rangeShot', tick: id, shotId: id, plane: 'ver', target: 'paper', x: 0, y: 0 },
+          { type: 'rangeOutcome', tick: id, shotId: id, hits: [], short: true },
+        ],
+        sel,
+      );
+    const text = rangeReport(content, s.list(), {
+      build: 'abc1234',
+      viewport: '1280×720 @1x',
+      device: 'test',
+      biome: 'karoo-autumn',
+      layout: 'fri',
+    });
+    expect(text).toContain('Kettie · Ver · Paper target');
+    expect(text).toContain('Shots 2 · hits 0 · misses 2 · 0.0 %');
+    expect(text).toContain('Fell short: 2 of 2 misses');
+  });
+});
