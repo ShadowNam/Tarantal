@@ -991,8 +991,10 @@ export class HuntScene extends Phaser.Scene {
     if (paused) return;
 
     const hook = this.ctx.hook;
-    if (hook && !this.ending && hook.frameTimes.length < MAX_FRAME_SAMPLES)
+    if (hook && !this.ending && hook.frameTimes.length < MAX_FRAME_SAMPLES) {
       hook.frameTimes.push(delta);
+      hook.frameScoped.push(hook.zoom.raise >= 1);
+    }
 
     const simStart = hook ? performance.now() : 0;
     const { events, steps } = runner.advance(delta);

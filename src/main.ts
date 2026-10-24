@@ -278,6 +278,8 @@ const hook: TestHook = {
   firstShotAtMs: null,
   frameTimes: [],
   cpuFrameMs: [],
+  cpuFrameScoped: [],
+  frameScoped: [],
   simFrameMs: [],
   simFrameSteps: [],
   replay: null,
@@ -779,6 +781,7 @@ if (testHooks) {
   game.events.on(Phaser.Core.Events.POST_RENDER, () => {
     if (hook.scene === 'hunt' && !hook.over && hook.cpuFrameMs.length < 20_000) {
       hook.cpuFrameMs.push(performance.now() - stepStart);
+      hook.cpuFrameScoped.push(hook.zoom.raise >= 1);
     }
   });
 }

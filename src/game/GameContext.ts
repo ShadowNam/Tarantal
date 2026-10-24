@@ -113,9 +113,13 @@ export interface TestHook {
   firstShotAtMs: number | null;
   /** Real frame-to-frame time in ms while a hunt is running (perf smoke). */
   frameTimes: number[];
+  /** v1.3: per frameTimes sample, whether a sight was fully up. */
+  frameScoped: boolean[];
   /** CPU time per frame in ms (Phaser pre-step → post-render: sim, views, HUD, render
    *  submission; excludes GPU raster and idle) while a hunt is running. */
   cpuFrameMs: number[];
+  /** v1.3: per cpuFrameMs sample, whether a sight was fully up (perf's scoped phase). */
+  cpuFrameScoped: boolean[];
   /** M9: per hunt frame, the ms spent in sim ticks and how many ticks ran. */
   simFrameMs: number[];
   simFrameSteps: number[];
