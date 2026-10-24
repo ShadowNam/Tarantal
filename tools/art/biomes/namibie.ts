@@ -505,6 +505,9 @@ function farVeld(ctx: LayerCtx): string {
     const kind = kinds[k % kinds.length] ?? 'mature';
     const s = kind === 'young' ? 0.18 : 0.12 + ctx.rnd() * 0.04;
     const foot = yAt(band.edge, x) + 6 + ctx.rnd() * 14;
+    // D-039 review: keep the sightline to the waterhole (Ver u 0.42–0.56) open at every layout's
+    // opening camera, flocks wandering included — no far tree between u 0.34 and 0.72.
+    if (x > ctx.u(0.34) && x < ctx.u(0.72)) continue;
     parts.push(
       flat(ellipseD(x + 50 * s, foot, 150 * s, 12 * s), mix(ctx.c('saltCrack'), '#8A7E6C', 0.3), {
         opacity: 0.35,

@@ -134,7 +134,7 @@
     {
       "id": "camelthorn_mature",
       "layer": "mid",
-      "u": 0.5,
+      "u": 0.22,
       "y": 700,
       "asset": "namibie/camelthorn_mature",
       "occluder": {
@@ -143,7 +143,8 @@
         "h": 90,
         "ox": 0,
         "oy": -45
-      }
+      },
+      "$comment": "Off the waterhole line: a mid prop between u 0.34 and 0.68 would hide the Ver feeding spots at some layout's opening camera (tools/verOcclusion.test.ts)."
     },
     {
       "id": "camelthorn_old",
@@ -442,6 +443,13 @@
             0.6,
             0.76
           ]
+        },
+        {
+          "plane": "ver",
+          "u": [
+            0.44,
+            0.56
+          ]
         }
       ],
       "pacing": {
@@ -464,6 +472,10 @@
         {
           "id": "quiver_egg",
           "u": 0.3
+        },
+        {
+          "id": "quiver_tree",
+          "u": 0.92
         }
       ],
       "feedingSpots": [
@@ -477,8 +489,8 @@
         {
           "plane": "ver",
           "u": [
-            0.3,
-            0.42
+            0.44,
+            0.54
           ]
         }
       ],
@@ -507,6 +519,13 @@
           "u": [
             0.5,
             0.66
+          ]
+        },
+        {
+          "plane": "ver",
+          "u": [
+            0.46,
+            0.56
           ]
         }
       ],
@@ -557,6 +576,13 @@
           "u": [
             0.44,
             0.56
+          ]
+        },
+        {
+          "plane": "ver",
+          "u": [
+            0.42,
+            0.54
           ]
         }
       ],

@@ -2791,14 +2791,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/namibie/layers/far_veld-0.9bf8ee7bf32e.png",
-          "bytes": 39364,
-          "hash": "9bf8ee7bf32e"
+          "path": "assets/namibie/layers/far_veld-0.b6006cdb029b.png",
+          "bytes": 37305,
+          "hash": "b6006cdb029b"
         },
         {
-          "path": "assets/namibie/layers/far_veld-1.bdc4c213e0d4.png",
-          "bytes": 29707,
-          "hash": "bdc4c213e0d4"
+          "path": "assets/namibie/layers/far_veld-1.44e8adb5d667.png",
+          "bytes": 29187,
+          "hash": "44e8adb5d667"
         }
       ],
       "tileWidth": 2048,
@@ -2829,7 +2829,7 @@
             179
           ],
           [
-            120,
+            111,
             210
           ],
           [
@@ -2837,7 +2837,7 @@
             232
           ],
           [
-            118,
+            112,
             182
           ],
           [
@@ -2850,11 +2850,11 @@
           ],
           [
             111,
-            193
+            194
           ],
           [
-            129,
-            208
+            121,
+            206
           ],
           [
             111,
@@ -2865,7 +2865,7 @@
             232
           ],
           [
-            118,
+            111,
             232
           ]
         ]
