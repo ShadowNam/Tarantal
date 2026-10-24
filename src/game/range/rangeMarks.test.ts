@@ -46,13 +46,18 @@ describe('Skietbaan hit marks (D-040)', () => {
   });
 
   it('the shape comes from the impact: same impact, same shape; another pellet, another', () => {
-    const a = impactSeed({ shotId: 3, tick: 400, pellet: 0 });
-    expect(impactSeed({ shotId: 3, tick: 400, pellet: 0 })).toBe(a);
+    const a = impactSeed({ shotId: 3, tick: 400, pellet: 0 }, 1);
+    expect(impactSeed({ shotId: 3, tick: 400, pellet: 0 }, 1)).toBe(a);
     expect(markShape(a)).toEqual(markShape(a));
-    const b = impactSeed({ shotId: 3, tick: 400, pellet: 1 });
-    const c = impactSeed({ shotId: 3, tick: 401, pellet: 0 });
-    const d = impactSeed({ shotId: 4, tick: 400, pellet: 0 });
+    const b = impactSeed({ shotId: 3, tick: 400, pellet: 1 }, 1);
+    const c = impactSeed({ shotId: 3, tick: 401, pellet: 0 }, 1);
+    const d = impactSeed({ shotId: 4, tick: 400, pellet: 0 }, 1);
     expect(new Set([a, b, c, d]).size).toBe(4);
+    // The same impact in a later range session (ids and ticks restart): another shape.
+    const later = impactSeed({ shotId: 3, tick: 400, pellet: 0 }, 2);
+    expect(later).not.toBe(a);
+    expect(markShape(later)).not.toEqual(markShape(a));
+    expect(makeMark(impact(1), plate, 0.16, 2).seed).toBe(impactSeed(impact(1), 2));
     expect(markShape(b)).not.toEqual(markShape(a));
     // A star with flecks, inside a sane radius.
     const s = markShape(a);
@@ -63,7 +68,7 @@ describe('Skietbaan hit marks (D-040)', () => {
   });
 
   it('a shape is a pure function of the seed (pinned: replays and devices agree)', () => {
-    const s = markShape(impactSeed({ shotId: 1, tick: 60, pellet: 0 }));
+    const s = markShape(impactSeed({ shotId: 1, tick: 60, pellet: 0 }, 1));
     const round = (n: number): number => Math.round(n * 1e6) / 1e6;
     expect({
       points: s.star.length,
@@ -72,13 +77,13 @@ describe('Skietbaan hit marks (D-040)', () => {
       flecks: s.flecks.length,
     }).toMatchInlineSnapshot(`
       {
-        "core": 0.395697,
+        "core": 0.385794,
         "first": [
-          -0.212647,
-          -0.83021,
+          0.933901,
+          -0.006988,
         ],
         "flecks": 4,
-        "points": 14,
+        "points": 20,
       }
     `);
   });

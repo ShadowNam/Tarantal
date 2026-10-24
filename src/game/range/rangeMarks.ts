@@ -3,8 +3,9 @@
 // bake what it holds. Every impact leaves a mark for the whole Skietbaan visit (paper and steel
 // alike), kept per (area, course, distance, target kind, target index) so a gun swap, the scope or a
 // switch to another setup and back keep them; leaving the Skietbaan or Repaint clears them.
-// A mark's shape comes from the impact itself (shot id, tick, pellet index), never from a
-// per-frame random, so a replay, a held frame and every device draw the same marks.
+// A mark's shape comes from the impact itself (shot id, tick, pellet index, and the range session
+// it landed in), never from a per-frame random, so a replay, a held frame and every device draw
+// the same marks.
 import type { z } from 'zod';
 import type { MarkSizeSchema, Weapon } from '../../content/schemas';
 import { cos, sin } from '../../sim/detmath';
@@ -68,8 +69,14 @@ export interface MarkImpact {
   readonly y: number;
 }
 
-export function impactSeed(i: Pick<MarkImpact, 'shotId' | 'tick' | 'pellet'>): number {
-  return fnv1a32(`${String(i.shotId)}:${String(i.tick)}:${String(i.pellet)}`);
+/** A mark's shape seed: the impact (shot id, tick, pellet index) and the range session it
+ *  landed in. Shot ids and ticks restart with each session's sim, so the session number keeps a
+ *  later session's marks from repeating earlier shapes; within a session it is deterministic. */
+export function impactSeed(
+  i: Pick<MarkImpact, 'shotId' | 'tick' | 'pellet'>,
+  visit: number,
+): number {
+  return fnv1a32(`${String(visit)}:${String(i.shotId)}:${String(i.tick)}:${String(i.pellet)}`);
 }
 
 export function makeMark(
@@ -82,7 +89,7 @@ export function makeMark(
     u: (i.x - target.x) / target.r,
     v: (i.y - target.y) / target.r,
     size,
-    seed: impactSeed(i),
+    seed: impactSeed(i, visit),
     tick: i.tick,
     visit,
   };

@@ -2014,7 +2014,8 @@ Poki 2 996.2 KB, CrazyGames 2 996.3 KB. The Namibië chunk is **1 445.1 KB gzip*
 **D-040 Skietbaan: clean steel gongs with lasting hit marks (24 Oct 2026):** the product owner
 (24 Oct, ~17:45): "The metal gongs need to be clean. And when shot, the shot should be visible and
 stay visible during the session. I want to see consistency." Rules: GDD §12.1; look: art bible
-§5.1; code: Tech §8.3. Rendering only — no sim change, the golden replays are untouched.
+§5.1; code: Tech §8.3. Rendering only — no sim change. The golden replays were re-recorded once, only because
+the content hash moved (`markSize` in weapons.json); every case kept its events and score.
 (1) *What was wrong:* the plate art baked 14 random grey "old hit" pocks into the face, so it
 looked dirty before the first shot and real hits could not be told from fake ones; a plate hit
 only swung the plate (on the wall clock) and drew nothing; paper drew only the newest
@@ -2024,8 +2025,9 @@ only swung the plate (on the wall clock) and drew nothing; paper drew only the n
 chains; `range/plate_frame` is new: camelthorn timber posts and crossbar at the v1.4 bar.
 (3) *Marks from the sim's impacts:* one mark per `paperHit`/`plateHit`, at that point, sized by
 the gun's `markSize` in `content/weapons.json` (`pellet` / `rifle` / `heavy`; unset: `pellet` for
-a multi-pellet gun, else `rifle` — the Langloop and the Kettie say `heavy`) and the plane, shaped from shot id, tick and pellet index (no
-per-frame random; detmath trig). Plate marks are drawn in the plate's swinging frame; the swing
+a multi-pellet gun, else `rifle` — the Langloop and the Kettie say `heavy`) and the plane, shaped from the range session, shot id, tick
+and pellet index (no per-frame random; detmath trig; the session number keeps marks from
+repeating the shapes of an earlier session, whose shot ids and ticks restart). Plate marks are drawn in the plate's swinging frame; the swing
 and the newest mark's 1.25 s glint run on the snapshot tick, so `?holdAt` holds them.
 (4) *One rule for paper and steel:* every hit stays for the Skietbaan visit, per (area, course, distance,
 kind, target index), through gun swaps, the scope and setup switches; leaving the Skietbaan clears
