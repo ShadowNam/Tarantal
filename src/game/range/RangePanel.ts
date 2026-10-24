@@ -182,6 +182,9 @@ export class RangeSetupPanel {
   }
 
   private render(): void {
+    // A tap re-renders the page: keep the scroll where it was (Distance and Target are below the
+    // fold on a phone).
+    const scrollTop = this.root.querySelector('.cols')?.scrollTop ?? 0;
     const c = this.choice;
     const guns = rangeGuns(this.content);
     const gun = guns.find((g) => g.id === c.gun);
@@ -265,6 +268,7 @@ export class RangeSetupPanel {
       this.table(),
       fallback,
     );
+    const cols = el('div', { className: 'cols', dataset: { role: 'scroll' } }, choices, stats);
     this.root.replaceChildren(
       el(
         'header',
@@ -275,7 +279,7 @@ export class RangeSetupPanel {
           this.h.back();
         }),
       ),
-      el('div', { className: 'cols' }, choices, stats),
+      cols,
       // Start lives in a footer outside the scrolling area: always on screen, never over a choice.
       el(
         'footer',
@@ -288,6 +292,7 @@ export class RangeSetupPanel {
         }),
       ),
     );
+    cols.scrollTop = scrollTop;
   }
 
   private table(): HTMLElement {
