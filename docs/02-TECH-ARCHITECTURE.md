@@ -408,6 +408,10 @@ can be the **mirage** (`omen.mirage`: `hazePx`, `verPx`, `hazePeriodSeconds`). I
 birds sideways all hunt through the same `hazeDx` path as the Kalahari haze, so the hitbox moves
 with the bird, and the snapshot carries `mirage`. A map without the Ver plane also drops Ver flocks
 from its biome's own keyframes (only Namibië has any).
+A layout or bonus map may also set **`planePointsMul`** (per-plane multipliers on a bird's base
+points, on top of `pointsMul`; the layout's × the bonus map's, `ResolvedMap.planePointsMul`, applied
+in `Sim`'s `mapPoints`). Namibië uses it to make its plentiful Ver birds worth less; no value = 1,
+so every other map is unchanged.
 
 ## 4. Content system (`content/`, `src/content/`)
 

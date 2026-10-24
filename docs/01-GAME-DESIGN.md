@@ -389,8 +389,12 @@ Thursday layouts and on the bonus maps.
 - **Secrets:** a camelthorn with a **sociable-weaver family nest** on the near plane (don't shoot
   it: −10 every 2 s, and the angry weavers burst out); an **ostrich-egg water flask** in a quiver
   tree (+60, the roosting birds burst out).
-- **Numbers:** its maps' quota is 3 000 (`biome.area.quota`), and the weekday layouts score ×0.75
-  (dusk ×0.9) so the scoped Langloop stays in the Classic band (`docs/balance/v1.4-namibie.md`).
+- **Numbers:** its maps' quota is 3 000 (`biome.area.quota`).
+  - The weekday layouts score ×0.75 (dusk ×0.9).
+  - The waterhole's plentiful Ver birds are worth less on the weekday maps (`planePointsMul`, Ver
+    ×0.5–0.72, Verder ×0.8 on top), so no gun or sight goes over the 4 500 competent mean.
+  - The scoped .22 is the strongest tool here, just under the cap; the shotguns stay in the
+    Classic band (`docs/balance/v1.4-namibie.md`).
   The other weekday and bonus-map rules are as in §11.5.
 
 ### 11.1 Secrets per biome (launch)

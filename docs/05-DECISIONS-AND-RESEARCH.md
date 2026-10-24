@@ -1985,10 +1985,21 @@ or reduced motion, and fewer on the low tier. Their measured cost with the weave
 0.66 ms a frame at 4× throttle (Pixel 7 profile).
 (6) *Built for long range:* every weekday layout opens the Ver plane, with a waterhole flock on it.
 Since Namibië's own pacing has Ver flocks, a map without the Ver plane now drops them as well; the
-season biomes have none, so their maps are unchanged. Balance (`docs/balance/v1.4-namibie.md`): on
-the Tuesday map the scoped Langloop is the best gun (competent 4 370), the Dubbelloop 3 518, and
-both are in the Classic band. The weekday layouts score ×0.75 (dusk ×0.9): at ×1 the Langloop
-made 5 709. The area quota is 3 000. Golden replays: all 35 kept their events and scores; two
+season biomes have none, so their maps are unchanged. Balance (`docs/balance/v1.4-namibie.md`):
+every gun and sight was measured on the seven weekday maps and on Saturday's three bonus maps.
+- **The review found** the scoped .22 at 5 125–6 418 competent (over the 4 500 cap), and the peep
+  and the Langloop over it on Friday, Saturday and Verder: the waterhole flock gives a rifle
+  14–19 Ver birds a hunt.
+- **Why not `pointsMul`:** a global cut big enough for the .22 would push the Dubbelloop out of
+  the Classic band.
+- **The fix:** a new map field, **`planePointsMul`** (per-plane multipliers on base points, the
+  layout's × the bonus map's, on top of `pointsMul`). It cuts only the Ver plane: weekday Ver
+  ×0.5–0.72 (Friday, which also has Ver fly-overs, lowest) and Verder ×0.8.
+- **Now** (200 seeds, every gun and sight, table in the balance report) every weekday cell is
+  under 4 500. The scoped .22 is the strongest, just under the cap (Saturday 4 490, Sunday 4 421,
+  Tuesday 4 409), and the shotguns, which can't reach Ver, stay in the band. The weekday layouts
+  still score ×0.75 (dusk ×0.9). The area quota is 3 000.
+- **Golden replays:** only the Namibië Tuesday Langloop case changed (3 634 → 3 274). Golden replays: all 35 kept their events and scores; two
 Namibië cases were added.
 (7) *Size:* the first download is **3 000.3 KB gzip** (2.93 MB), up 37 KB from 2 963.7 KB (the
 area code and strings, the content file, and the weaver sprites and chatter in the common group).
