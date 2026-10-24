@@ -229,6 +229,11 @@ export class AssetManifest {
     return f ? { x: f.originX ?? base.x, y: f.originY ?? base.y } : base;
   }
 
+  /** v1.4 B (D-039): display scale of a texture (design px per texture px; 2× art is 0.5). */
+  displayScale(key: string): number {
+    return this.finalImages.get(key)?.entry.scale ?? 1;
+  }
+
   /** Placeholder size of a texture key in texture px (the size a delivered image must match). */
   size(key: string): { width: number; height: number } | null {
     const s = this.specs.get(key);

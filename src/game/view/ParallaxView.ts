@@ -195,7 +195,8 @@ export class ParallaxView {
         add(
           scene.add
             .image(prop.u * coreWidth(layer.scrollFactor), prop.y, prop.asset)
-            .setOrigin(o.x, o.y),
+            .setOrigin(o.x, o.y)
+            .setScale(manifest.displayScale(prop.asset)),
         );
       }
       const fixtures = scene.add.container(0, 0);

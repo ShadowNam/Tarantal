@@ -61,6 +61,11 @@ export interface PropPlan {
     readonly ox: number;
     readonly oy: number;
   };
+  /** v1.4 B (D-039): draw resolution in texture px per design px (default 1). A master of 2
+   *  delivers a 2× image (sidecar `master: 2`); assets:pack scales it per plane. */
+  readonly master?: number;
+  /** False = no hand-drawn wobble (fine, detailed art that the displacement would smear). */
+  readonly wobble?: boolean;
 }
 
 export interface BiomeArtPlan {
@@ -169,6 +174,8 @@ export interface RenderedProp {
   /** Origin as fractions (written to the sidecar only when it differs from the placeholder's). */
   readonly originX: number;
   readonly originY: number;
+  /** Texture px per design px of `img` (PropPlan.master). */
+  readonly master: number;
 }
 
 /**
@@ -198,8 +205,9 @@ export function renderProp(
     prop,
     box: propBox(prop),
   };
-  const k = cfg.masterScale;
-  const wob = WOBBLE_OF[layerId] ?? null;
+  const master = pp.master ?? 1;
+  const k = cfg.masterScale * master;
+  const wob = pp.wobble === false ? null : (WOBBLE_OF[layerId] ?? null);
   const filter = wobbleFilter(
     'wob',
     cfg.scenery.wobble.frequency,
@@ -215,7 +223,34 @@ export function renderProp(
       g(filter === '' ? {} : { filter: 'url(#wob)' }, pp.draw(ctx)),
     ),
   );
-  return { img: resize(big, f.w, f.h), originX: f.ox / f.w, originY: f.oy / f.h };
+  return {
+    img: resize(big, f.w * master, f.h * master),
+    originX: f.ox / f.w,
+    originY: f.oy / f.h,
+    master,
+  };
 }
 
 export type { ContentBundle };
+
+/**
+ * v1.4 B: any drawing in a biome's palette (as seen on `layerId`) at `master` × design px, for
+ * previews and for shared art that has no prop of its own yet. No wobble.
+ */
+export function renderLoose(
+  cfg: ArtConfig,
+  biome: string,
+  layerId: string,
+  seedKey: string,
+  frame: { w: number; h: number; ox: number; oy: number },
+  master: number,
+  draw: (ctx: PaintCtx) => string,
+): Rgba {
+  resetIds();
+  const ctx = paint(cfg, biome, layerId, seedKey);
+  const k = cfg.masterScale * master;
+  const big = renderSvg(
+    svgDoc(frame.w * k, frame.h * k, [-frame.ox, -frame.oy, frame.w, frame.h], '', draw(ctx)),
+  );
+  return resize(big, frame.w * master, frame.h * master);
+}

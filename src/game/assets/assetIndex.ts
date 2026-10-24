@@ -67,6 +67,8 @@ const imageEntry = z.object({
   file: fileRef,
   width: z.number().int().positive(),
   height: z.number().int().positive(),
+  /** v1.4 B (D-039): design px per texture px (0.5 = a 2× image); absent = 1. */
+  scale: z.number().positive().optional(),
   /** Origin as fractions of the image; absent = the placeholder's origin. */
   originX: fraction.optional(),
   originY: fraction.optional(),

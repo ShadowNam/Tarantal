@@ -21,6 +21,8 @@ interface Sidecar {
   readonly top?: number;
   readonly originX?: number;
   readonly originY?: number;
+  /** v1.4 B: texture px per design px. */
+  readonly master?: number;
 }
 
 function json(path: string): Sidecar | null {
@@ -86,8 +88,11 @@ export function composeScene(
       if (prop.layer !== layer.id) continue;
       const p = join(SRC, 'sprites', `${prop.asset}.png`);
       if (!existsSync(p)) continue;
-      const img = read(p);
       const side = json(p.replace(/\.png$/, '.json'));
+      const raw = read(p);
+      const k = side?.master ?? 1;
+      const img =
+        k === 1 ? raw : resize(raw, Math.round(raw.width / k), Math.round(raw.height / k));
       const base = originOf(prop.asset);
       const ox = (side?.originX ?? base.x) * img.width;
       const oy = (side?.originY ?? base.y) * img.height;
