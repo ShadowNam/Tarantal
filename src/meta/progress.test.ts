@@ -233,3 +233,21 @@ describe('practice Daily hunts (M7 first-attempt rule)', () => {
     expect(official.save.bestRank).toBe('bosveld_legend');
   });
 });
+
+describe('v1.4: Die Langloop unlock (D-038)', () => {
+  it('unlocking Die Verste once, in any area, unlocks the Langloop; Verder and Nog Verder do not', () => {
+    const early = play(defaultSave(), [
+      hunt({ bonusUnlocked: 'verder' }),
+      hunt({ bonusUnlocked: 'nogVerder' }),
+    ]);
+    expect(early.unlocked).not.toContain('langloop');
+    expect(isWeaponEquippable(weapon('langloop'), early.save, content)).toBe(false);
+    for (const biome of ['karoo-autumn', 'bushveld-winter', 'kalahari-summer']) {
+      const o = play(early.save, [hunt({ biome, bonusUnlocked: 'dieVerste' })]);
+      expect(o.unlocked).toEqual(['langloop']);
+      expect(isWeaponEquippable(weapon('langloop'), o.save, content)).toBe(true);
+      // Its only sight comes with it.
+      expect(fittedSight('langloop', o.save, content)).toBe('scope_var');
+    }
+  });
+});

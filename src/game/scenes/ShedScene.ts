@@ -27,6 +27,9 @@ export interface ShedData extends OverlayData {
   readonly tab?: Tab;
 }
 
+/** v1.4: one rifle's sight row under the gun cards (chips, then a hint line). */
+const SIGHT_ROW_H = 120;
+
 export class ShedScene extends Phaser.Scene {
   private readonly ctx: GameContext;
 
@@ -136,7 +139,13 @@ export class ShedScene extends Phaser.Scene {
     );
     const cols = 2;
     const cardW = (body.w - 30) / cols;
-    const cardH = Math.min(150, (body.h - 30) / Math.ceil(weapons.length / cols));
+    // v1.4: leave room under the cards for each unlocked rifle's sight row (the Twee-Twee and the
+    // Langloop), so the last one stays clear of the Back button.
+    const sightRows = weapons.filter(
+      (w) => w.aim !== undefined && isWeaponUnlocked(w, save, this.ctx.content),
+    ).length;
+    const cardRows = Math.ceil(weapons.length / cols);
+    const cardH = Math.min(150, (body.h - sightRows * SIGHT_ROW_H) / cardRows - 20);
     // D-035 review: the guns other than the Dubbelloop arrive with the late group (D-029); if it
     // is still downloading, rebuild this tab once it lands so their pictures appear.
     if (
@@ -268,7 +277,7 @@ export class ShedScene extends Phaser.Scene {
         fitText(h, body.w * 0.7);
       }
       if (this.ctx.hook) this.ctx.hook.shedSights = { weapon: w.id, fitted: fitted ?? null };
-      y += 120;
+      y += SIGHT_ROW_H;
     }
   }
 

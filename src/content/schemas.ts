@@ -316,6 +316,8 @@ const primaryWeaponSchema = obj({
   /** v1.3: the shot reaches the Ver plane (rifles). Absent = it falls short (shotguns, air
    *  rifle, Kettie stones). */
   reachesVer: z.boolean().optional(),
+  /** v1.4 (D-038): very loud — every shot threatens every flock (Die Langloop). */
+  alertsAllFlocks: z.boolean().optional(),
   /** v1.3 rifles: hold to raise the sight and zoom, release to fire (GDD §10.6). */
   aim: obj({
     /** Sights that fit this gun (weapons.json sights), in upgrade order. */
@@ -362,7 +364,7 @@ export const SightSchema = obj({
     tiredMul: z.number().min(1),
   }),
   /** How the sight picture is drawn (client only). */
-  picture: z.enum(['iron', 'peep', 'scope']),
+  picture: z.enum(['iron', 'peep', 'scope', 'scope_range']),
 });
 export type Sight = z.infer<typeof SightSchema>;
 
@@ -1352,6 +1354,8 @@ export const FeelSchema = obj({
     edgePanFraction: fraction,
     edgePanPxPerSec: pos,
     keyPanPxPerSec: pos,
+    /** v1.4 (D-038): mouse-wheel travel (px, lines × 33) for one variable-scope zoom step. */
+    wheelZoomStepPx: pos,
   }),
   juice: obj({
     hitStopMs: nonNeg,
@@ -1423,6 +1427,8 @@ export const FeelSchema = obj({
     /** Power-up / crate-weapon chips under the Frenzy meter. */
     chipW: pos,
     chipH: pos,
+    /** v1.4 (D-038): the variable scope's on-screen − / + buttons (touch), squares ≥ 64 px. */
+    zoomButtonPx: z.number().min(64),
   }),
   /** v1.1 (D-032): per-gun ammo display and crosshair. */
   guns: GunLookSchema,

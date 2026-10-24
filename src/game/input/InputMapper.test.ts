@@ -499,3 +499,127 @@ describe('v1.3 rifles: hold to zoom, release to fire (D-036)', () => {
     expect(queued).toEqual([{ t: 'fire', dx: 30, sy: 400 }]);
   });
 });
+
+describe('v1.4 variable scope zoom input (D-038)', () => {
+  const ZOOMS = [3, 6, 9];
+  function zoomRig(width: number, scale: number, now: { t: number }) {
+    const canvas = fakeCanvas(width * scale, 1080 * scale);
+    const queued: Command[] = [];
+    const keys = new Map<string, (e: unknown) => void>();
+    vi.stubGlobal('window', {
+      addEventListener: (type: string, fn: (e: unknown) => void) => keys.set(type, fn),
+      removeEventListener: () => undefined,
+    });
+    const state = { step: 0 };
+    const mapper = new InputMapper(
+      canvas as unknown as HTMLCanvasElement,
+      feel,
+      {
+        designSize: () => ({ width, height: 1080 }),
+        isOnBelt: () => false,
+        isOnGadget: () => false,
+        itemAt: () => null,
+        isOnUi: () => false,
+        pause: () => undefined,
+        holdToFire: () => false,
+        weaponHolds: () => false,
+        readyToFire: () => true,
+        sightZoom: () => ZOOMS[state.step] ?? 3,
+        zoomSteps: () => ({ zooms: ZOOMS, step: state.step }),
+        // Touch buttons: − at the bottom-left corner, + beside it.
+        zoomButtonAt: (x, y) => (y > 980 ? (x < 100 ? -1 : x < 200 ? 1 : null) : null),
+        queue: (c) => queued.push(c),
+        aim: () => undefined,
+        fingerDown: () => undefined,
+        toggleDebug: () => undefined,
+      },
+      0,
+      () => now.t,
+    );
+    mapper.setEnabled(true);
+    const at = (x: number, y: number) => ({ clientX: 10 + x * scale, clientY: 20 + y * scale });
+    const key = (code: string) => {
+      keys.get('keydown')?.({ code, repeat: false, preventDefault: () => undefined });
+    };
+    return { canvas, queued, mapper, at, key, state };
+  }
+
+  it('wheel and +/- send clamped integer zoom steps; quick steps add up before the snapshot', () => {
+    const now = { t: 0 };
+    const r = zoomRig(1920, 1, now);
+    r.canvas.emit('wheel', { deltaY: -100, deltaMode: 0 });
+    r.canvas.emit('wheel', { deltaY: -100, deltaMode: 0 });
+    r.canvas.emit('wheel', { deltaY: -100, deltaMode: 0 }); // already at the top step
+    now.t = 1000;
+    r.state.step = 2;
+    r.key('Minus');
+    now.t = 2000;
+    r.state.step = 1;
+    r.key('NumpadSubtract');
+    r.key('Equal');
+    r.mapper.destroy();
+    expect(r.queued).toEqual([
+      { t: 'zoom', step: 1 },
+      { t: 'zoom', step: 2 },
+      { t: 'zoom', step: 1 },
+      { t: 'zoom', step: 0 },
+      { t: 'zoom', step: 1 },
+    ]);
+    // Small trackpad moves add up (three of 15 px stay under a step); Firefox lines count 33 px.
+    const s = zoomRig(1920, 1, { t: 0 });
+    for (let i = 0; i < 3; i++) s.canvas.emit('wheel', { deltaY: -15, deltaMode: 0 });
+    expect(s.queued).toEqual([]);
+    s.canvas.emit('wheel', { deltaY: -15, deltaMode: 0 });
+    s.canvas.emit('wheel', { deltaY: -2, deltaMode: 1 });
+    s.mapper.destroy();
+    expect(s.queued).toEqual([
+      { t: 'zoom', step: 1 },
+      { t: 'zoom', step: 2 },
+    ]);
+  });
+
+  it('touch: the zoom buttons step the zoom and never fire, even while a finger holds the sight', () => {
+    const r = zoomRig(1920, 1, { t: 0 });
+    const t = { pointerType: 'touch', button: 0, timeStamp: 0 };
+    r.canvas.emit('pointerdown', { ...t, pointerId: 1, ...r.at(960, 500) });
+    r.canvas.emit('pointerdown', { ...t, pointerId: 2, ...r.at(150, 1000) });
+    r.canvas.emit('pointerup', { ...t, pointerId: 2, ...r.at(150, 1000) });
+    r.mapper.destroy();
+    expect(r.queued).toEqual([
+      { t: 'aimStart', dx: 0, sy: 500 },
+      { t: 'zoom', step: 1 },
+    ]);
+  });
+
+  it('a press right after a step fine-aims with the new zoom, before the snapshot shows it', () => {
+    const r = zoomRig(1920, 1, { t: 0 });
+    const e = { pointerId: 1, pointerType: 'mouse', button: 0, timeStamp: 0 };
+    r.canvas.emit('wheel', { deltaY: -100, deltaMode: 0 }); // 6× asked; the sim is still at 3×
+    r.canvas.emit('pointerdown', { ...e, ...r.at(760, 500) });
+    r.mapper.perTick();
+    r.canvas.emit('pointermove', { ...e, ...r.at(820, 560) }); // ÷6 → +10, +10
+    const tick = r.mapper.perTick();
+    r.mapper.destroy();
+    expect(tick.filter((q) => q.t === 'aimMove')).toEqual([{ t: 'aimMove', dx: -190, sy: 510 }]);
+  });
+
+  it('a zoom step while the sight is up keeps the aim point and divides later moves by the new zoom', () => {
+    for (const [width, scale] of [
+      [1920, 1],
+      [2520, 0.4],
+    ] as const) {
+      const r = zoomRig(width, scale, { t: 0 });
+      const e = { pointerId: 1, pointerType: 'mouse', button: 0, timeStamp: 0 };
+      const c = width / 2;
+      r.canvas.emit('pointerdown', { ...e, ...r.at(c - 200, 500) });
+      r.mapper.perTick();
+      r.canvas.emit('pointermove', { ...e, ...r.at(c - 170, 530) }); // ÷3 → +10, +10
+      r.canvas.emit('wheel', { deltaY: -100, deltaMode: 0 }); // 6×
+      r.canvas.emit('pointermove', { ...e, ...r.at(c - 110, 590) }); // ÷6 → +10, +10
+      const tick = r.mapper.perTick();
+      r.mapper.destroy();
+      expect(r.queued.filter((q) => q.t === 'zoom')).toEqual([{ t: 'zoom', step: 1 }]);
+      expect(tick.filter((q) => q.t === 'aimMove')).toEqual([{ t: 'aimMove', dx: -180, sy: 520 }]);
+    }
+  });
+});

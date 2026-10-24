@@ -480,7 +480,9 @@ describe('content cross-references (v1.3, D-036)', () => {
     const msgs = errorsOf((c) => {
       for (const w of asArr(asObj(c.files['weapons.json'])['weapons'])) {
         const aim = w['aim'];
-        if (aim !== undefined) asObj(aim)['sights'] = ['iron'];
+        if (aim === undefined) continue;
+        asObj(aim)['sights'] = ['iron'];
+        asObj(aim)['defaultSight'] = 'iron';
       }
     });
     expect(msgs.join('\n')).toMatch(/bonus map "dieVerste" needs a scope but no rifle/);

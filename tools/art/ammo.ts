@@ -517,6 +517,73 @@ function hopper(full: boolean): (p: SpriteCtx) => string {
   };
 }
 
+// -------------------------------------------- Langloop rifle cartridge (22 × 92, v1.4, D-038)
+
+function rifleRound(spent: boolean): () => string {
+  return () => {
+    // A long bottlenecked brass case (body, shoulder, neck), an extractor groove and rim at the
+    // base, a pointed copper-jacketed bullet. Spent: the empty case, its neck open and sooty,
+    // the primer struck.
+    const brass = spent
+      ? cylinder('#4A3716', '#7A5E2A', '#A48546', '#CDB683')
+      : cylinder('#5A4113', '#A07828', '#DDB75E', '#FFF3C8');
+    const brassG = grad('h', brass);
+    const copper = grad('h', cylinder('#4E2412', '#8E4A26', '#C9784A', '#FFD2B0'));
+    const out: string[] = [el('defs', {}, brassG.def, copper.def)];
+    out.push(shadow(1, 44, 11, 2.4));
+    // Body, shoulder and neck as one outline.
+    out.push(
+      path(
+        'M-6.6 37L-6.6 -2L-6.2 -4L-3.4 -11L-3.4 -19L3.4 -19L3.4 -11L6.2 -4L6.6 -2L6.6 37Z',
+        brassG.url,
+      ),
+    );
+    // Shoulder line (a darker ring where the case steps in).
+    out.push(path('M-6.4 -3.4L6.4 -3.4L6.2 -2.2L-6.2 -2.2Z', '#3A2A10', { opacity: 0.35 }));
+    // Extractor groove and rim.
+    out.push(path('M-5.4 37L5.4 37L5.4 39.4L-5.4 39.4Z', '#3A2A10', { opacity: 0.65 }));
+    out.push(
+      path('M-6.6 39.2L6.6 39.2L6.6 43Q6.6 43.8 5.8 43.8L-5.8 43.8Q-6.6 43.8 -6.6 43Z', brassG.url),
+    );
+    if (spent) {
+      const mouth = grad('v', [
+        [0, '#0E0A06'],
+        [1, '#3A2A14'],
+      ]);
+      out.push(el('defs', {}, mouth.def));
+      out.push(path(ellipseD(0, -19, 3.4, 1.2), mouth.url));
+      out.push(path('M-3.4 -19L3.4 -19L3.4 -14L-3.4 -14Z', '#1A1208', { opacity: 0.35 }));
+    } else {
+      // Pointed spitzer bullet: a long ogive to a sharp tip, a cannelure ring at the case mouth.
+      const bullet = smoothD(
+        [
+          [-3.4, -19],
+          [-3.4, -26],
+          [-2.4, -36],
+          [0, -45],
+          [2.4, -36],
+          [3.4, -26],
+          [3.4, -19],
+        ],
+        false,
+        0.55,
+      );
+      out.push(path(`${bullet}Z`, copper.url));
+      out.push(path('M-3.4 -21.4L3.4 -21.4L3.4 -20.4L-3.4 -20.4Z', '#4E2412', { opacity: 0.55 }));
+    }
+    // Brass edge at the mouth and a long specular streak (round and polished).
+    out.push(
+      path('M-3.4 -19L3.4 -19L3.4 -18.2L-3.4 -18.2Z', '#FFF6D8', { opacity: spent ? 0.2 : 0.5 }),
+    );
+    out.push(
+      path(`M-3.8 -1L-2.8 -1L-2.8 42.5L-3.8 42.5Z`, '#FFFFFF', { opacity: spent ? 0.1 : 0.28 }),
+    );
+    if (!spent)
+      out.push(path('M-1.9 -34L-1.2 -34L-1.4 -20L-2.2 -20Z', '#FFFFFF', { opacity: 0.35 }));
+    return g({}, ...out);
+  };
+}
+
 /** Every interim ammo sprite (sizes come from feel.json guns.ammo via the placeholder manifest). */
 export const AMMO_SPRITES: readonly SpriteSpec[] = [
   { key: 'ui/ammo/shell12', wobble: 0, draw: shell12(false) },
@@ -529,4 +596,6 @@ export const AMMO_SPRITES: readonly SpriteSpec[] = [
   { key: 'ui/ammo/kernel_spent', wobble: 0, draw: hopper(false) },
   { key: 'ui/ammo/rimfire22', wobble: 0, draw: rimfire22(false) },
   { key: 'ui/ammo/rimfire22_spent', wobble: 0, draw: rimfire22(true) },
+  { key: 'ui/ammo/rifle', wobble: 0, draw: rifleRound(false) },
+  { key: 'ui/ammo/rifle_spent', wobble: 0, draw: rifleRound(true) },
 ];

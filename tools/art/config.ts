@@ -58,6 +58,7 @@ export const GUN_IDS = [
   'voorlaaier',
   'mielie_masjien',
   'twee_twee',
+  'langloop',
 ] as const;
 export type GunId = (typeof GUN_IDS)[number];
 

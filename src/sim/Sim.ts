@@ -46,6 +46,7 @@ import { moveFlock } from './flocks/steering';
 import {
   reactionTargets,
   shotThreats,
+  loudShotThreats,
   type FlockThreat,
   type PlaneGeometry,
   type ReactionEffect,
@@ -337,6 +338,8 @@ interface ShotStats {
   readonly scoreMul: PrimaryWeapon['scoreMul'];
   /** v1.3: reaches the Ver plane (rifles); everything else falls short of it. */
   readonly reachesVer: boolean;
+  /** v1.4: every shot threatens every flock (Die Langloop). */
+  readonly alertsAllFlocks: boolean;
 }
 
 export function createSim(config: SimConfig): Sim {
@@ -1021,7 +1024,10 @@ export function createSim(config: SimConfig): Sim {
   }
 
   function statsOf(
-    w: Omit<ShotStats, 'reachesVer'> & { readonly reachesVer?: boolean | undefined },
+    w: Omit<ShotStats, 'reachesVer' | 'alertsAllFlocks'> & {
+      readonly reachesVer?: boolean | undefined;
+      readonly alertsAllFlocks?: boolean | undefined;
+    },
   ): ShotStats {
     return {
       id: w.id,
@@ -1031,6 +1037,7 @@ export function createSim(config: SimConfig): Sim {
       windSensitivity: w.windSensitivity,
       scoreMul: w.scoreMul,
       reachesVer: w.reachesVer === true,
+      alertsAllFlocks: w.alertsAllFlocks === true,
     };
   }
 
@@ -1656,8 +1663,16 @@ export function createSim(config: SimConfig): Sim {
     const rainMul = raining() ? (showers?.alertRadiusMul ?? 1) : 1;
     const radius =
       shot.alertRadiusPx * pass.alertRadiusMul * (miss ? pass.missAlertMul : 1) * rainMul;
-    const threatened = shotThreats(flocks, impacts, shotCx, radius, planeGeo, baggedFlockIds);
-    threaten(threatened, radius > 0 ? 'shot' : 'silentBag');
+    const near = shotThreats(flocks, impacts, shotCx, radius, planeGeo, baggedFlockIds);
+    threaten(near, radius > 0 ? 'shot' : 'silentBag');
+    // v1.4 (D-038): a very loud gun alerts every other flock too (unless a charm or the rain
+    // silenced the shot to nothing).
+    const loud =
+      shot.alertsAllFlocks && radius > 0
+        ? loudShotThreats(flocks, near, impacts, shotCx, planeGeo)
+        : [];
+    threaten(loud, 'shot');
+    const threatened = loud.length === 0 ? near : [...near, ...loud];
     splashThreats(landed, shotCx, threatened, baggedFlockIds);
     if (targets.length > 0) stats.hitShots++;
     if (miss) {
@@ -1987,6 +2002,8 @@ export function createSim(config: SimConfig): Sim {
     const next = clampStep(step, sight);
     if (next === zoomStep) return;
     zoomStep = next;
+    // v1.4 (D-038): a held sight changes zoom at once (scroll / +/- while aiming).
+    if (aim !== null) aim.step = next;
     emit({ type: 'zoomChanged', tick, step: next, zoom: sight.zoom[next] ?? 1 });
   }
 

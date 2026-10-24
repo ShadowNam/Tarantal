@@ -148,6 +148,15 @@ export interface Sim {
   leaves the screen. The reticle is drawn where the shot's unzoomed point shows. Device width
   never enters the sim, so a zoomed shot names the same world point on every screen (unit test
   across 4:3 – 21:9 and both phones).
+- **Zoom steps (v1.4, D-038):** a variable scope's zoom is a `zoom` command carrying an integer
+  step index (`sanitiseCommand` truncates it and drops a negative one; the sim clamps it to the
+  sight's `zoom` list). The InputMapper sends one per wheel notch (`feel.input.wheelZoomStepPx`
+  of travel, lines × 33), per + / − key, or per tap on the HUD's − / + buttons (touch,
+  `feel.hud.zoomButtonPx`). A step while the sight is up applies at once (`aim.step`) and
+  re-anchors fine aim at the current aim point, so later moves divide by the new zoom. The view
+  zoom comes from `SimState.aim.zoom`, so the replay drives it too. Unit test: one zoomed
+  Langloop hunt played through the InputMapper on desktop, Pixel 7 and iPhone 14 screens gives
+  the same commands and the same events (`src/game/input/zoomReplay.test.ts`).
 - Hitboxes: per animation state, body ellipse + head circle, defined in `birds.json` in sprite-local
   units; scaled by plane. When `inputKind = 'touch'`, radii grow by `aimAssistPx[plane]`.
 - Occluders: per-prop polygons/ellipses from biome JSON; a pellet stops at the first occluder or
@@ -202,6 +211,11 @@ export interface Sim {
   progress × (sin θ, ½ sin 2θ)`, θ = 2π·t·pace/period + phase (detmath). A reload or a crate weapon
   lowers the sight (`aimEnded` with the reason); a blocked release fires nothing. `SimState.aim`
   carries the sight, its zoom, progress, aim, sway and breath for the renderer.
+- **Very loud shots (v1.4, D-038):** a primary with `alertsAllFlocks` (the Langloop) threatens
+  every flock with a shot, not just those within its alert radius: after the radius threats,
+  `loudShotThreats` adds each other flock with members, once per shot, from the shot's mean
+  impact projected onto that flock's plane (`flockThreatened` source `shot`). A charm or the rain
+  that silences the shot to radius 0 silences this too.
 - Every resolution emits events: `ShotFired`, `PelletImpact`, `TargetBagged`, `Miss`, `FlockAlerted`,
   `FlockFlushed`, `SecretTriggered`, `ComboChanged`, `ScoreAwarded`, `PenaltyApplied`, …
 - Water (M8 Okavango, `biome.twist.splash`): a pellet that stopped on nothing (no bird, prop or

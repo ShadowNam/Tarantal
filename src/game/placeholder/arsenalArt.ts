@@ -97,6 +97,41 @@ export function arsenalSpecs(): CanvasSpec[] {
       ]);
       inked(ctx, WOOD, 6);
     }),
+    // v1.4 Langloop: a heavy barrel, a long scope tube on top, the bolt knob, a walnut stock.
+    gun('langloop', (ctx) => {
+      poly(ctx, [
+        [-10, -505],
+        [10, -505],
+        [17, -250],
+        [-17, -250],
+      ]);
+      inked(ctx, STEEL, 5);
+      poly(ctx, [
+        [-24, -262],
+        [24, -262],
+        [26, -136],
+        [-26, -136],
+      ]);
+      inked(ctx, STEEL, 5);
+      poly(ctx, [
+        [-27, -346],
+        [27, -346],
+        [17, -296],
+        [16, -140],
+        [-16, -140],
+        [-17, -296],
+      ]);
+      inked(ctx, STEEL, 5);
+      ellipse(ctx, 60, -160, 10, 10);
+      inked(ctx, STEEL_LIGHT, 4);
+      poly(ctx, [
+        [-36, -136],
+        [36, -136],
+        [98, 0],
+        [-72, 0],
+      ]);
+      inked(ctx, WOOD, 6);
+    }),
     // Kettie: forked stick held up, two rubber bands to a leather pouch with a stone.
     gun('kettie', (ctx) => {
       ctx.lineCap = 'round';

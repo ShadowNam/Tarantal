@@ -11,6 +11,16 @@ import { planeCentreX } from '../../sim/camera';
 import type { PlaneId } from '../../sim/types';
 import { coreWidth, DESIGN_HEIGHT, LAYER_BLEED_PX } from '../../sim/world';
 import { TEX, type AssetManifest } from '../assets/AssetManifest';
+import {
+  coverOver,
+  intersect,
+  tileProfile,
+  uncoveredSpan,
+  zoomedViewRect,
+  type Band,
+  type Rect,
+  type SolidProfile,
+} from './scopeCull';
 
 export interface LayerNode {
   readonly id: string;
@@ -29,6 +39,22 @@ interface StaticArt {
   readonly img: Phaser.GameObjects.Image;
   readonly left: number;
   readonly right: number;
+  /** v1.4 (#56): its y extent, and its opaque rows (delivered layer tiles only). */
+  readonly top: number;
+  readonly bottom: number;
+  readonly solid: SolidProfile | null;
+  /** The layer rect it is cropped to in a zoomed view right now, or null. */
+  crop: Rect | null;
+}
+
+/** v1.4 (#56): a haze band or cloud puff in a layer, with its full (open view) geometry. */
+interface ShapeArt {
+  readonly shape: Phaser.GameObjects.Rectangle | Phaser.GameObjects.Ellipse;
+  /** Layer px, top-left and size as built. */
+  readonly rect: Rect;
+  /** Haze bands are cropped to the view; cloud puffs are only hidden outside it. */
+  readonly crop: boolean;
+  changed: boolean;
 }
 
 /** Off-screen culling margin (design px): camera shake and gun kick never move further. */
@@ -39,8 +65,24 @@ export class ParallaxView {
   private readonly byPlane = new Map<PlaneId, LayerNode>();
   /** Per layer (same order as `layers`): static art, hidden while off screen (M9 perf). */
   private readonly statics: StaticArt[][] = [];
+  /** v1.4 (#56): per layer, its haze bands and cloud puffs (applyLight). */
+  private readonly shapes: ShapeArt[][] = [];
+  /** v1.4 (#56): per layer, hidden whole by the zoomed view's culling. */
+  private readonly culledRoot: boolean[] = [];
   /** v1.3 (D-036): the rifle's zoom view (zoomView.ts), applied at the next update. */
-  private zoom = { z: 1, cx: 0, cy: 0, on: false };
+  private zoom: { z: number; cx: number; cy: number; on: boolean; clip: Rect | null } = {
+    z: 1,
+    cx: 0,
+    cy: 0,
+    on: false,
+    clip: null,
+  };
+  /** v1.4 (#56): cull what a zoomed view can't show (e2e turns it off to compare pictures). */
+  cullZoomed = true;
+  /** v1.4 (#56, e2e hook): measure the world layers' fill (see `fill`) on each update. */
+  measureFill = false;
+  /** Screens' worth of world-layer pixels drawn in the last update (art, haze, clouds). */
+  fill = 0;
 
   constructor(
     scene: Phaser.Scene,
@@ -81,33 +123,56 @@ export class ParallaxView {
       if (merged.has(layer.id)) continue;
       const root = scene.add.container(0, 0);
       const statics: StaticArt[] = [];
-      const add = (img: Phaser.GameObjects.Image): void => {
+      const add = (img: Phaser.GameObjects.Image, solid: SolidProfile | null = null): void => {
         root.add(img);
         const left = img.x - img.originX * img.displayWidth;
-        statics.push({ img, left, right: left + img.displayWidth });
+        const top = img.y - img.originY * img.displayHeight;
+        statics.push({
+          img,
+          left,
+          right: left + img.displayWidth,
+          top,
+          bottom: top + img.displayHeight,
+          solid,
+          crop: null,
+        });
+      };
+      // A tile's slice of the layer's opaque-row profile (delivered art at scale 1 only).
+      const profileOf = (
+        a: NonNullable<ReturnType<AssetManifest['layer']>>,
+        i: number,
+        x: number,
+        sx: number,
+      ): SolidProfile | null => {
+        if (a.solid === undefined || a.scale !== 1) return null;
+        const per = Math.max(1, Math.round(a.tileWidth / a.solid.bucket));
+        return tileProfile(a.solid, x, a.top, sx, i * per, per);
       };
       this.statics.push(statics);
+      this.shapes.push([]);
+      this.culledRoot.push(false);
       const extra = merges.get(layer.id);
       if (extra !== undefined) {
         const art = manifest.layer(extra.asset);
         const k = coreWidth(layer.scrollFactor) / coreWidth(extra.scrollFactor);
         art?.tiles.forEach((key, i) => {
+          const x = (art.left + i * art.tileWidth) * k;
           add(
             scene.add
-              .image((art.left + i * art.tileWidth) * k, art.top, key)
+              .image(x, art.top, key)
               .setOrigin(0, 0)
               .setScale(art.scale * k, art.scale),
+            profileOf(art, i, x, k),
           );
         });
       }
       const art = manifest.layer(layer.asset);
       if (art !== undefined) {
         art.tiles.forEach((key, i) => {
+          const x = art.left + i * art.tileWidth;
           add(
-            scene.add
-              .image(art.left + i * art.tileWidth, art.top, key)
-              .setOrigin(0, 0)
-              .setScale(art.scale),
+            scene.add.image(x, art.top, key).setOrigin(0, 0).setScale(art.scale),
+            profileOf(art, i, x, 1),
           );
         });
       }
@@ -169,12 +234,17 @@ export class ParallaxView {
    * zoomed view stays inside the unzoomed screen (zoomView.ts clamps the centre), so the culling
    * below stays right. z = 1 turns it off.
    */
-  setZoom(z: number, cx: number, cy: number): void {
-    this.zoom = { z, cx, cy, on: z !== 1 };
+  setZoom(z: number, cx: number, cy: number, clip: Rect | null = null): void {
+    this.zoom = { z, cx, cy, on: z !== 1, clip };
   }
 
   /** Positions every layer for camera centre cx on a screen `width` design px wide. */
   update(cx: number, width: number): void {
+    if (this.zoom.on && this.cullZoomed) {
+      this.updateCulled(cx, width);
+      return;
+    }
+    this.restoreCulled();
     const { z, cx: zx, cy: zy, on } = this.zoom;
     this.layers.forEach((l, i) => {
       const base = width / 2 - planeCentreX(cx, l.scrollFactor);
@@ -197,6 +267,119 @@ export class ParallaxView {
         if (a.img.visible !== on) a.img.setVisible(on);
       }
     });
+    if (this.measureFill) this.fill = this.measure(width, z, zx, zy, on);
+  }
+
+  /**
+   * v1.4 (#56, D-038): a zoomed view draws only what can show (scopeCull.ts). Front to back:
+   * each layer is cropped to the view rect minus the rows nearer layers' opaque bands hide; a
+   * layer hidden everywhere isn't drawn at all; its own opaque band then hides layers behind it.
+   */
+  private updateCulled(cx: number, width: number): void {
+    const { z, cx: zx, cy: zy, clip } = this.zoom;
+    const view = zoomedViewRect(z, zx, zy, width, DESIGN_HEIGHT, clip, CULL_MARGIN_PX);
+    const covered: Band[] = [];
+    for (let i = this.layers.length - 1; i >= 0; i--) {
+      const l = this.layers[i];
+      if (l === undefined) continue;
+      const base = width / 2 - planeCentreX(cx, l.scrollFactor);
+      l.root.setPosition(width / 2 + (base - zx) * z, DESIGN_HEIGHT / 2 - zy * z).setScale(z);
+      const span = uncoveredSpan(view.y0, view.y1, covered);
+      if (span === null) {
+        if (l.root.visible) l.root.setVisible(false);
+        this.culledRoot[i] = true;
+        continue;
+      }
+      if (this.culledRoot[i] === true) {
+        l.root.setVisible(true);
+        this.culledRoot[i] = false;
+      }
+      const lr: Rect = { x0: view.x0 - base, x1: view.x1 - base, y0: span.y0, y1: span.y1 };
+      const profiles: SolidProfile[] = [];
+      for (const a of this.statics[i] ?? []) {
+        if (a.solid !== null) profiles.push(a.solid);
+        const r = intersect(lr, { x0: a.left, y0: a.top, x1: a.right, y1: a.bottom });
+        if (r === null) {
+          if (a.img.visible) a.img.setVisible(false);
+          continue;
+        }
+        if (!a.img.visible) a.img.setVisible(true);
+        cropTo(a, r);
+      }
+      for (const sh of this.shapes[i] ?? []) {
+        const r = intersect(lr, sh.rect);
+        if (r === null) {
+          if (sh.shape.visible) sh.shape.setVisible(false);
+          sh.changed = true;
+          continue;
+        }
+        if (!sh.shape.visible) sh.shape.setVisible(true);
+        if (sh.crop) {
+          sh.shape.setPosition(r.x0, r.y0).setSize(r.x1 - r.x0, r.y1 - r.y0);
+          sh.changed = true;
+        }
+      }
+      const cover = coverOver(profiles, lr.x0, lr.x1);
+      if (cover !== null) covered.push(cover);
+    }
+    if (this.measureFill) this.fill = this.measure(width, z, zx, zy, true);
+  }
+
+  /** Back to the open view's drawing: no crops, every layer, haze and cloud as built. */
+  private restoreCulled(): void {
+    this.layers.forEach((l, i) => {
+      if (this.culledRoot[i] === true) {
+        l.root.setVisible(true);
+        this.culledRoot[i] = false;
+      }
+      for (const a of this.statics[i] ?? []) {
+        if (a.crop !== null) {
+          a.img.setCrop();
+          a.crop = null;
+        }
+      }
+      for (const sh of this.shapes[i] ?? []) {
+        if (!sh.changed) continue;
+        sh.changed = false;
+        sh.shape.setVisible(true);
+        if (sh.crop)
+          sh.shape
+            .setPosition(sh.rect.x0, sh.rect.y0)
+            .setSize(sh.rect.x1 - sh.rect.x0, sh.rect.y1 - sh.rect.y0);
+      }
+    });
+  }
+
+  /**
+   * Screens' worth of world-layer pixels the last update drew: each visible image, haze band
+   * and cloud puff (cropped where it is) intersected with the screen, summed, over the screen's
+   * area. Birds, FX and the sight picture are not counted.
+   */
+  private measure(width: number, z: number, zx: number, zy: number, on: boolean): number {
+    const view = on
+      ? zoomedViewRect(z, zx, zy, width, DESIGN_HEIGHT, null, 0)
+      : { x0: 0, y0: 0, x1: width, y1: DESIGN_HEIGHT };
+    let area = 0;
+    this.layers.forEach((l, i) => {
+      if (!l.root.visible) return;
+      const off = l.root.x / l.root.scaleX - (on ? width / 2 / z - zx : 0);
+      const add = (r: Rect): void => {
+        const s = intersect(view, { x0: r.x0 + off, x1: r.x1 + off, y0: r.y0, y1: r.y1 });
+        if (s !== null) area += (s.x1 - s.x0) * (s.y1 - s.y0);
+      };
+      for (const a of this.statics[i] ?? []) {
+        if (!a.img.visible) continue;
+        add(a.crop ?? { x0: a.left, y0: a.top, x1: a.right, y1: a.bottom });
+      }
+      for (const sh of this.shapes[i] ?? []) {
+        if (!sh.shape.visible) continue;
+        const g = sh.shape;
+        const x0 = g.x - g.originX * g.width;
+        const y0 = g.y - g.originY * g.height;
+        add({ x0, y0, x1: x0 + g.width, y1: y0 + g.height });
+      }
+    });
+    return (area * z * z) / (width * DESIGN_HEIGHT);
   }
 
   /**
@@ -230,6 +413,12 @@ export class ParallaxView {
             )
             .setOrigin(0, 0);
           l.root.addAt(rect, l.root.getIndex(l.fixtures));
+          this.shapes[i]?.push({
+            shape: rect,
+            rect: { x0: -LAYER_BLEED_PX, y0: top, x1: width - LAYER_BLEED_PX, y1: bottom },
+            crop: true,
+            changed: false,
+          });
         }
         // Clouds sit on the sky layer, spread evenly along it with a fixed jitter (the same
         // sky every time this light is drawn).
@@ -252,6 +441,17 @@ export class ParallaxView {
             for (const [ox, oy, ew, eh] of puffs) {
               const e = l.root.scene.add.ellipse(cx + ox, cy + oy, ew, eh, color, c.alpha);
               l.root.addAt(e, l.root.getIndex(l.fixtures));
+              this.shapes[i]?.push({
+                shape: e,
+                rect: {
+                  x0: cx + ox - ew / 2,
+                  y0: cy + oy - eh / 2,
+                  x1: cx + ox + ew / 2,
+                  y1: cy + oy + eh / 2,
+                },
+                crop: false,
+                changed: false,
+              });
             }
           }
         }
@@ -283,4 +483,26 @@ function hash01(n: number): number {
   let x = Math.imul(n ^ 0x9e3779b9, 0x85ebca6b);
   x = Math.imul(x ^ (x >>> 13), 0xc2b2ae35);
   return ((x ^ (x >>> 16)) >>> 0) / 0x1_0000_0000;
+}
+
+/** Crops an image to layer rect r (texture px, rounded outwards: never less than shows). */
+function cropTo(a: StaticArt, r: Rect): void {
+  const img = a.img;
+  const sx = img.scaleX;
+  const sy = img.scaleY;
+  const x0 = Math.max(0, Math.floor((r.x0 - a.left) / sx));
+  const y0 = Math.max(0, Math.floor((r.y0 - a.top) / sy));
+  const x1 = Math.max(x0 + 1, Math.min(img.frame.width, Math.ceil((r.x1 - a.left) / sx)));
+  const y1 = Math.max(y0 + 1, Math.min(img.frame.height, Math.ceil((r.y1 - a.top) / sy)));
+  const c = a.crop;
+  const next = {
+    x0: a.left + x0 * sx,
+    y0: a.top + y0 * sy,
+    x1: a.left + x1 * sx,
+    y1: a.top + y1 * sy,
+  };
+  if (c !== null && c.x0 === next.x0 && c.y0 === next.y0 && c.x1 === next.x1 && c.y1 === next.y1)
+    return;
+  img.setCrop(x0, y0, x1 - x0, y1 - y0);
+  a.crop = next;
 }

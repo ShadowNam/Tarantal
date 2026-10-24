@@ -139,7 +139,15 @@ export interface TestHook {
   ammo: string[];
   crosshair: { weapon: string; extent: number; visible: boolean; x: number; y: number };
   /** v1.3: the rifle zoom view: zoom, raise 0..1, the reticle on screen (design px), the sight. */
-  zoom: { z: number; raise: number; reticleX: number; reticleY: number; sight: string | null };
+  zoom: {
+    z: number;
+    raise: number;
+    reticleX: number;
+    reticleY: number;
+    sight: string | null;
+    /** v1.4 (#56): screens' worth of world-layer pixels drawn in the last frame. */
+    fill: number;
+  };
   shots: number;
   over: boolean;
   inputKind: InputKind | null;
@@ -174,11 +182,15 @@ export interface TestHook {
   frameTimes: number[];
   /** v1.3: per frameTimes sample, whether a sight was fully up. */
   frameScoped: boolean[];
+  /** v1.4 (#56): per frameTimes sample, whether the view was fully open (zoom 1, no sight). */
+  frameOpen: boolean[];
   /** CPU time per frame in ms (Phaser pre-step → post-render: sim, views, HUD, render
    *  submission; excludes GPU raster and idle) while a hunt is running. */
   cpuFrameMs: number[];
   /** v1.3: per cpuFrameMs sample, whether a sight was fully up (perf's scoped phase). */
   cpuFrameScoped: boolean[];
+  /** v1.4 (#56): per cpuFrameMs sample, whether the view was fully open (zoom 1). */
+  cpuFrameOpen: boolean[];
   /** M9: per hunt frame, the ms spent in sim ticks and how many ticks ran. */
   simFrameMs: number[];
   simFrameSteps: number[];
@@ -305,6 +317,8 @@ export interface TestTools {
   replay(log: string): { eventHash: string; eventCount: number; score: number };
   /** v1.0.1 (D-028 §4): `n` world score pops now, pooled BitmapText or canvas Text; sync ms. */
   popBench(n: number, mode: 'bitmap' | 'text'): number | null;
+  /** v1.4 (#56): turn the zoomed view's culling on or off (pictures must match either way). */
+  scopeCull(on: boolean): void;
 }
 
 export interface GameContext {

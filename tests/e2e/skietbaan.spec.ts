@@ -5,6 +5,14 @@
 // of the setup page and the range go to docs/art-preview/compare/skietbaan-*.png.
 import { expect, test, type Page } from '@playwright/test';
 import { collectErrors, hook, isLandscape, isTouchProject, tapAt, tapRect } from './helpers';
+import weaponsJson from '../../content/weapons.json' with { type: 'json' };
+
+/** The guns the Skietbaan lists, from content: each primary (a rifle once per sight), then the
+ *  crate guns. */
+const RANGE_GUN_COUNT = weaponsJson.weapons.reduce(
+  (n, w) => n + ('aim' in w ? w.aim.sights.length : 1),
+  0,
+);
 
 const PLATFORM = process.env['E2E_PLATFORM'] || 'web';
 const SHOTS_DIR = 'docs/art-preview/compare';
@@ -187,9 +195,9 @@ test.describe('Skietbaan (training ground)', () => {
     });
     expect((await hook(page)).scene).toBe('skietbaan');
     await expect(page.locator('#tm-admin')).toHaveCount(0);
-    // Every gun, locked ones too (the .22 once per sight), the 4 biomes, 4 distances + All,
+    // Every gun, locked ones too (each rifle once per sight), the 4 biomes, 4 distances + All,
     // 5 targets + Mixed.
-    await expect(page.locator('#tm-range [data-role=gun] button')).toHaveCount(9);
+    await expect(page.locator('#tm-range [data-role=gun] button')).toHaveCount(RANGE_GUN_COUNT);
     await expect(page.locator('#tm-range [data-role=biome] button')).toHaveCount(4);
     await expect(page.locator('#tm-range [data-role=plane] button')).toHaveCount(5);
     await expect(page.locator('#tm-range [data-role=target] button')).toHaveCount(6);

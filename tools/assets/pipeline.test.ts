@@ -9,7 +9,7 @@ import { loadContent } from '../testContent';
 import { buildCatalog } from './catalog';
 import { blank, encodePng, readPng, resize } from './image';
 import { applyGain, integratedLufs, normaliseGainDb, truePeakDb } from './loudness';
-import { nearlySame, packAssets } from './pack';
+import { nearlySame, packAssets, solidRows } from './pack';
 import { shelfPack, shelfPackPages } from './shelfPack';
 import { readWav, writeWav, type Pcm } from './wav';
 
@@ -227,4 +227,50 @@ describe('pack-atlases', () => {
     expect(bad.errors.some((e) => e.includes('not_a_key'))).toBe(true);
     expect(bad.errors.some((e) => e.includes('guns/pomp/recoil'))).toBe(true);
   }, 60_000);
+});
+
+describe('layer opaque rows (v1.4, #56)', () => {
+  it('solidRows finds the longest fully opaque run per bucket', () => {
+    const img = blank(4, 6);
+    // Columns 0–1 opaque in rows 1–4, columns 2–3 opaque in rows 2–5.
+    for (let y = 0; y < 6; y++)
+      for (let x = 0; x < 4; x++) {
+        const on = x < 2 ? y >= 1 && y < 5 : y >= 2;
+        img.data[(y * 4 + x) * 4 + 3] = on ? 255 : 254;
+      }
+    expect(solidRows(img, 2).rows).toEqual([
+      [1, 5],
+      [2, 6],
+    ]);
+    expect(solidRows(img, 4).rows).toEqual([[2, 5]]);
+  });
+
+  it('every opaque row in the shipped index is opaque in the shipped tile', () => {
+    const root = join(import.meta.dirname, '..', '..', 'public');
+    const { index, error } = parseAssetIndex(
+      JSON.parse(readFileSync(join(root, ASSET_INDEX_PATH), 'utf8')) as unknown,
+    );
+    expect(error).toBeNull();
+    let checked = 0;
+    for (const [id, e] of Object.entries(index.layers)) {
+      const solid = e.solid;
+      expect(solid, id).toBeDefined();
+      if (solid === undefined) continue;
+      const per = e.tileWidth / solid.bucket;
+      e.tiles.forEach((t, ti) => {
+        const png = PNG.sync.read(readFileSync(join(root, t.path)));
+        for (let b = 0; b < per; b++) {
+          const r = solid.rows[ti * per + b];
+          const x0 = b * solid.bucket;
+          if (!r || x0 >= png.width) continue;
+          for (let y = r[0]; y < r[1]; y++)
+            for (let x = x0; x < Math.min(png.width, x0 + solid.bucket); x++)
+              if (png.data[(y * png.width + x) * 4 + 3] !== 255)
+                throw new Error(`${id} tile ${ti} (${x}, ${y}) is not opaque`);
+          checked++;
+        }
+      });
+    }
+    expect(checked).toBeGreaterThan(100);
+  });
 });
