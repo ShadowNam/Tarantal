@@ -152,6 +152,30 @@ for (const f of readdirSync(i18nDir).filter((x) => /^[a-z]{2}\.json$/.test(x) &&
   for (const issue of checkLanguage(f.slice(0, 2), enTable, readTable(f)))
     errors.push({ file, message: `"${issue.key}": ${issue.message}` });
 }
+// v1.3x (D-037): the Skietbaan's own string tables (src/i18n/range/<lang>.json, lazy chunk) —
+// the same rules: every language has every key of range/en.json, and no language is missing.
+const rangeDir = join(i18nDir, 'range');
+const readRange = (f: string): Record<string, unknown> =>
+  JSON.parse(readFileSync(join(rangeDir, f), 'utf8')) as Record<string, unknown>;
+const rangeFiles = readdirSync(rangeDir).filter((x) => /^[a-z]{2}\.json$/.test(x));
+for (const message of checkLanguageSet(
+  LANGUAGES,
+  rangeFiles.map((x) => x.slice(0, 2)),
+))
+  errors.push({ file: 'i18n/range/', message });
+const rangeEn = readRange('en.json');
+for (const f of rangeFiles) {
+  const file = `i18n/range/${f}`;
+  fileNames.push(file);
+  if (f === 'en.json') {
+    for (const key of Object.keys(rangeEn))
+      if (!key.startsWith('range.'))
+        errors.push({ file, message: `"${key}": range strings are named range.*` });
+    continue;
+  }
+  for (const issue of checkLanguage(f.slice(0, 2), rangeEn, readRange(f)))
+    errors.push({ file, message: `"${issue.key}": ${issue.message}` });
+}
 fileNames.sort();
 
 for (const name of fileNames) {
