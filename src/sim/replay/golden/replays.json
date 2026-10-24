@@ -97,17 +97,8 @@
       "season": {
         "kind": "boss",
         "boss": "generaal",
-        "charms": [
-          "grondwerk",
-          "vlerkskoot",
-          "rooi_patrone",
-          "kettingreaksie",
-          "generaal_se_pot"
-        ],
-        "consumables": [
-          null,
-          null
-        ],
+        "charms": ["grondwerk", "vlerkskoot", "rooi_patrone", "kettingreaksie", "generaal_se_pot"],
+        "consumables": [null, null],
         "rental": null,
         "runShellBonus": 1
       }
@@ -140,10 +131,7 @@
           "haelstorm",
           "kwevoel_se_seen"
         ],
-        "consumables": [
-          "boeretroos",
-          null
-        ],
+        "consumables": ["boeretroos", null],
         "rental": "voorlaaier",
         "runShellBonus": 0
       }
@@ -169,17 +157,8 @@
       "season": {
         "kind": "boss",
         "boss": "stormvoel",
-        "charms": [
-          "fluitjie",
-          "boeretroos_fles",
-          "hele_swerm",
-          "geheime_resep",
-          "hadeda_fluit"
-        ],
-        "consumables": [
-          null,
-          null
-        ],
+        "charms": ["fluitjie", "boeretroos_fles", "hele_swerm", "geheime_resep", "hadeda_fluit"],
+        "consumables": [null, null],
         "rental": null,
         "runShellBonus": 0
       }
@@ -259,13 +238,8 @@
       "season": {
         "kind": "boss",
         "boss": "kuifkop_koning",
-        "charms": [
-          "snelhand"
-        ],
-        "consumables": [
-          null,
-          null
-        ],
+        "charms": ["snelhand"],
+        "consumables": [null, null],
         "rental": null,
         "runShellBonus": 0
       }
@@ -327,13 +301,8 @@
       "season": {
         "kind": "boss",
         "boss": "ou_grys",
-        "charms": [
-          "vlerkskoot"
-        ],
-        "consumables": [
-          null,
-          null
-        ],
+        "charms": ["vlerkskoot"],
+        "consumables": [null, null],
         "rental": null,
         "runShellBonus": 0
       }
@@ -414,14 +383,8 @@
       "season": {
         "kind": "boss",
         "boss": "kuifkop_koning",
-        "charms": [
-          "snelhand",
-          "vlerkskoot"
-        ],
-        "consumables": [
-          null,
-          null
-        ],
+        "charms": ["snelhand", "vlerkskoot"],
+        "consumables": [null, null],
         "rental": null,
         "runShellBonus": 0
       }
@@ -502,14 +465,8 @@
       "season": {
         "kind": "boss",
         "boss": "stormvoel",
-        "charms": [
-          "vlerkskoot",
-          "oupa_se_bril"
-        ],
-        "consumables": [
-          null,
-          null
-        ],
+        "charms": ["vlerkskoot", "oupa_se_bril"],
+        "consumables": [null, null],
         "rental": null,
         "runShellBonus": 0
       }
