@@ -707,14 +707,27 @@
       "group": "range",
       "origin": "interim",
       "file": {
-        "path": "assets/range/img/range_plate.fd9278f4eea3.png",
-        "bytes": 31297,
-        "hash": "fd9278f4eea3"
+        "path": "assets/range/img/range_plate.156cf7686eee.png",
+        "bytes": 75672,
+        "hash": "156cf7686eee"
       },
-      "width": 208,
-      "height": 242,
+      "width": 416,
+      "height": 484,
       "originX": 0.5,
       "originY": 0.01652892561983471
+    },
+    "range/plate_frame": {
+      "group": "range",
+      "origin": "interim",
+      "file": {
+        "path": "assets/range/img/range_plate_frame.9200fc49bf52.png",
+        "bytes": 22426,
+        "hash": "9200fc49bf52"
+      },
+      "width": 499,
+      "height": 609,
+      "originX": 0.5,
+      "originY": 0.07290640394088671
     },
     "secret/mark": {
       "group": "common",

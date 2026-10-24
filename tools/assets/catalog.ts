@@ -13,6 +13,8 @@ import {
 } from '../../src/game/placeholder/ProceduralAssetFactory';
 import { allBarkLines } from '../../src/game/audio/barks';
 import {
+  PLATE_FRAME_TEX,
+  PLATE_FRAME_TEX_SIZE,
   PLATE_TEX,
   PLATE_TEX_SIZE,
   RANGE_GROUP,
@@ -109,6 +111,14 @@ export async function buildCatalog(content: ContentBundle): Promise<Catalog> {
     group: RANGE_GROUP,
     biomes: everyBiome,
     ...PLATE_TEX_SIZE,
+  });
+  // D-040: the plate's posts and crossbar (interim art at 2×, like the plate).
+  entries.set(PLATE_FRAME_TEX, {
+    key: PLATE_FRAME_TEX,
+    kind: 'texture',
+    group: RANGE_GROUP,
+    biomes: everyBiome,
+    ...PLATE_FRAME_TEX_SIZE,
   });
   for (const key of Object.values(RANGE_SOUNDS))
     entries.set(key, { key, kind: 'sound', group: RANGE_GROUP, biomes: everyBiome });

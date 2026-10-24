@@ -35,7 +35,6 @@ import { renderSprite, SPRITES } from './sprites';
 import { AMMO_SPRITES } from './ammo';
 import { SIGHT_SPRITES } from './sights';
 import { RANGE_SPRITES } from './rangeArt';
-import { PLATE_ORIGIN, PLATE_TEX_SIZE } from '../../src/game/range/rangeAssets';
 import { biomeSheets, flyerSheet, spriteSheet } from './scenerySheets';
 import { FLYER_FRAMES, FLYER_GROUPS, FLYERS, renderFlyerFrame } from './flyers';
 
@@ -294,17 +293,17 @@ if (wants('sprites')) {
   }
 }
 if (wants('range')) {
-  // 24 Oct update (D-037): the Skietbaan's steel plate (group "range" from the catalog: lazy).
+  // 24 Oct update (D-037): the Skietbaan's steel plate and its frame (D-040; group "range" from the catalog: lazy).
   for (const spec of RANGE_SPRITES) {
     const png = join(src, 'sprites', `${spec.key}.png`);
     if (!oursFile(png)) {
       console.warn(`skip sprites/${spec.key}: a human delivery is there`);
       continue;
     }
-    put(png, encodePng(renderSprite(cfg, spec, PLATE_TEX_SIZE, PLATE_ORIGIN)));
+    put(png, encodePng(renderSprite(cfg, spec, spec.size, spec.origin)));
     put(
       png.replace(/\.png$/, '.json'),
-      await json({ origin: 'interim', originX: PLATE_ORIGIN.x, originY: PLATE_ORIGIN.y }),
+      await json({ origin: 'interim', originX: spec.origin.x, originY: spec.origin.y }),
     );
     console.log(`sprites/${spec.key}`);
   }

@@ -4,7 +4,7 @@
 import { fetchAssetIndex, loadBytes, loadImage } from '../assets/finalLoader';
 import type { FinalSound } from '../assets/AssetManifest';
 import type { AudioDirector, Synth } from '../audio/AudioDirector';
-import { PLATE_TEX, RANGE_SOUNDS, type RangeSound } from './rangeAssets';
+import { PLATE_FRAME_TEX, PLATE_TEX, RANGE_SOUNDS, type RangeSound } from './rangeAssets';
 
 /** How long one file may take (as feel.json assets.fileTimeoutMs); then the stand-in stays. */
 const FILE_TIMEOUT_MS = 15_000;
@@ -91,11 +91,14 @@ export function loadRangeAssets(
     }
     audio.addRecorded(files);
   });
+  // The plate and its frame (D-040): each swaps in for the code-drawn stand-in once it arrives.
   const art = index.then(async (ix) => {
-    const entry = ix?.images[PLATE_TEX];
-    if (entry === undefined || textures.exists(PLATE_TEX)) return;
-    const img = await loadImage(entry.file.path, FILE_TIMEOUT_MS);
-    if (img !== null && !textures.exists(PLATE_TEX)) textures.addImage(PLATE_TEX, img);
+    for (const key of [PLATE_TEX, PLATE_FRAME_TEX]) {
+      const entry = ix?.images[key];
+      if (entry === undefined || textures.exists(key)) continue;
+      const img = await loadImage(entry.file.path, FILE_TIMEOUT_MS);
+      if (img !== null && !textures.exists(key)) textures.addImage(key, img);
+    }
   });
   return Promise.all([sounds, art]).then(() => undefined);
 }
