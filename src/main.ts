@@ -2,6 +2,8 @@ import { BONUS_MAP_IDS, WEEKDAY_IDS, type Biome } from './content/schemas';
 // Boot: save (settings + progress) → i18n → content (validated) → platform adapter →
 // placeholder assets → Phaser game with the flexible-width layout (Tech §5). Opens on the title
 // over the live panorama: one giant START HUNT, so the first shot is seconds away (GDD §16).
+import { AreaScene } from './game/scenes/AreaScene';
+import { classicAreaId, newlyUnlockedAreas } from './meta/areas';
 import * as Phaser from 'phaser';
 import { contentHash } from './content/hash';
 import { DailyFlow } from './game/daily/DailyFlow';
@@ -303,6 +305,8 @@ const hook: TestHook = {
   powerups: [],
   wind: null,
   durationTicks: 0,
+  areas: [],
+  classicArea: '',
   weavers: 0,
   weaverBursts: 0,
   run: null,
@@ -705,6 +709,19 @@ async function boot(): Promise<void> {
     holdAtTick: holdAtParam(),
     omen: adminSetup === null ? omenParam() : adminSetup.omen,
     classicBiome: adminSetup === null ? biomeParam() : adminSetup.classicBiome,
+    classicArea: () => classicAreaId(bundle, save.data, playableBiomes),
+    setClassicArea: (id) => {
+      save.update((d) => ({ ...d, areas: { ...d.areas, classic: id } }));
+    },
+    grantAreas: () => {
+      const fresh = newlyUnlockedAreas(bundle, save.data);
+      if (fresh.length > 0)
+        save.update((d) => ({
+          ...d,
+          areas: { ...d.areas, unlocked: [...d.areas.unlocked, ...fresh].sort() },
+        }));
+      return fresh;
+    },
     classicLayout: adminSetup === null ? layoutParam() : adminSetup.classicLayout,
     classicBonus: adminSetup === null ? bonusParam() : adminSetup.classicBonus,
     weaponOverride: adminSetup?.weapon,
@@ -751,6 +768,7 @@ async function boot(): Promise<void> {
       new RunScene(ctx),
       new ChallengeScene(ctx),
       new PrivacyScene(ctx),
+      new AreaScene(ctx),
       new AdminScene(ctx),
     ],
   });

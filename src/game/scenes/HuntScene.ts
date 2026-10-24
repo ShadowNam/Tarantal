@@ -265,7 +265,7 @@ export class HuntScene extends Phaser.Scene {
         id = c.run.current === null ? undefined : c.run.info().biome;
       else if (data.mode === 'daily') id = c.daily.todaySetup().biome;
       else if (data.mode === 'ftue') id = c.content.modes.modes.ftue.biome;
-      else id = c.classicBiome ?? c.content.modes.modes.classic.biome;
+      else id = c.classicBiome ?? c.classicArea();
     }
     const b = id === undefined ? undefined : c.content.biomes.find((x) => x.id === id);
     return b !== undefined && c.playableBiomes.includes(b.id) ? b : c.biome;
@@ -359,6 +359,7 @@ export class HuntScene extends Phaser.Scene {
       this.screenFixed,
     );
     this.world.secretGlow = lights.some((l) => l.secretGlow === true);
+    this.world.reducedMotion = this.ctx.reducedMotion;
     const planes = this.ctx.content.scoring.planes;
     this.weavers = new WeaverView(this, this.ctx.feel, mapBiome, this.parallax, {
       near: planes.near.scale,
@@ -853,11 +854,11 @@ export class HuntScene extends Phaser.Scene {
       plainMode === null
         ? null
         : this.ctx.daily.plan(plainMode, challenge, weapon, extra, () => this.ctx.nextSeed());
-    const biomeParam = this.ctx.classicBiome;
+    // v1.4 B: ?biome= (dev), else the area picked on the title (D-039).
+    const biomeParam = this.ctx.classicBiome ?? this.ctx.classicArea();
     if (
       plan?.mode.id === 'classic' &&
       plan.challenge === null &&
-      biomeParam !== undefined &&
       this.ctx.playableBiomes.includes(biomeParam)
     )
       plan = { ...plan, mode: { ...plan.mode, biome: biomeParam } };
@@ -1499,7 +1500,7 @@ export class HuntScene extends Phaser.Scene {
         this.huntDay,
         this.ctx.today(),
         this.ctx.content,
-        this.ctx.biome.id,
+        this.ctx.classicArea(),
       );
       unlocked = r.unlocked;
       if (r.unlocked !== null)
@@ -1511,6 +1512,14 @@ export class HuntScene extends Phaser.Scene {
       if (this.ctx.hook) this.ctx.hook.verderUnlocked = r.unlocked;
       return { ...d, bonusMaps: r.save };
     });
+    // v1.4 B (D-039): reaching Die Verste unlocks the Namibië area for good.
+    for (const id of this.ctx.grantAreas()) {
+      const b = this.ctx.content.biomes.find((x) => x.id === id);
+      const area = fill(t('tally.area_unlocked'), {
+        area: b === undefined ? id : tOr(b.nameKey, id),
+      });
+      line = line === null ? area : `${line}  ·  ${area}`;
+    }
     return { line, unlocked };
   }
 

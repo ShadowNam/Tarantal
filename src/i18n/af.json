@@ -515,5 +515,19 @@
   "shed.fitted": "Gemonteer",
   "admin.sight": "Sight",
   "admin.sight_default": "Skiet-Skuur's",
-  "admin.range": "Skietbaan"
+  "admin.range": "Skietbaan",
+  "biome.namibie": "Namibië — Etosha en Namib",
+  "share.biome.namibie": "Namibië",
+  "secret.nest_camelthorn": "Die versamelvoëls se nes (moenie!)",
+  "secret.quiver_egg": "Die volstruiseier-waterfles in die kokerboom",
+  "bark.egg": "Ag nee, dit was my water!",
+  "title.area": "Gebied: {area}",
+  "area.title": "Waar jag ons?",
+  "area.locked": "Gesluit",
+  "area.how": "Haal {bonus} in enige gebied om dit oop te sluit.",
+  "area.chosen": "Ons jag hier",
+  "area.pick": "Jag hier",
+  "area.desc.karoo_autumn": "Oupa se plaas in die Karoo: die tuisveld.",
+  "area.desc.namibie": "Etosha se wit soutpan en die Namib-duine: wyd oop, gebou vir ver skote.",
+  "tally.area_unlocked": "{area} is oop! Kies dit onder Gebied op die titelskerm."
 }

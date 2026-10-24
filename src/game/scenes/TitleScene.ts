@@ -61,6 +61,8 @@ export class TitleScene extends Phaser.Scene {
     fitCamera(this.cameras.main);
     const safe = this.ctx.safeArea();
     const returning = this.ctx.save.data.ftue.done;
+    // v1.4 B: a save that reached Die Verste before the Namibië pack existed gets it now.
+    this.ctx.grantAreas();
     const mode: ModeId = returning ? 'classic' : 'ftue';
 
     this.add.rectangle(0, 0, width, height, 0x1b1410, 0.4).setOrigin(0);
@@ -125,8 +127,36 @@ export class TitleScene extends Phaser.Scene {
       },
     ];
 
+    // v1.4 B (D-039): [Area: …] above START opens the area picker (returning players; Namibië
+    // shows there locked until Die Verste is reached). Hidden under a challenge notice.
+    if (returning && data.notice === undefined && this.ctx.capture === null) {
+      const areaId = this.ctx.classicArea();
+      const b = this.ctx.content.biomes.find((x) => x.id === areaId);
+      const areaRect: Rect = { x: width / 2 - 260, y: start.y - 100, w: 520, h: 76 };
+      const { text } = drawButton(
+        this,
+        areaRect,
+        fill(t('title.area'), {
+          area: b === undefined ? areaId : tOr(`share.${b.nameKey}`, tOr(b.nameKey, areaId)),
+        }),
+        'secondary',
+        34,
+      );
+      fitText(text, areaRect.w - 40);
+      items.push({
+        id: 'area',
+        rect: () => areaRect,
+        press: () => {
+          this.openOverlay('Area');
+        },
+      });
+      if (this.ctx.hook) this.ctx.hook.classicArea = areaId;
+    }
+
     if (returning) {
-      const best = this.ctx.save.data.bests[this.ctx.biome.id];
+      // v1.4 B (D-039): the area Classic plays (the area picker), home by default.
+      const area = this.ctx.classicArea();
+      const best = this.ctx.save.data.bests[area];
       const rank = this.ctx.save.data.bestRank;
       const line = [
         rank === null ? null : tOr(`rank.${rank}`, rank),
@@ -149,7 +179,7 @@ export class TitleScene extends Phaser.Scene {
         .text(
           width / 2,
           start.y + start.h + 112,
-          fill(t('title.map'), { map: todayMapName(this.ctx) }),
+          fill(t('title.map'), { map: todayMapName(this.ctx, area) }),
           {
             ...textStyle(32, '#FFE7A8'),
             stroke: '#1B1410',
@@ -160,7 +190,7 @@ export class TitleScene extends Phaser.Scene {
       fitText(mapLine, width - 200);
       // v1.2: Verder — a button once today's map quota is beaten, else what unlocks it. v1.3:
       // Nog Verder and Die Verste join it, side by side, as each is unlocked today (D-036).
-      const home = this.ctx.biome.id;
+      const home = area;
       const homeBonus = this.ctx.content.biomes.find((b) => b.id === home)?.bonusMaps ?? [];
       const open = BONUS_MAP_IDS.filter(
         (id) =>
@@ -361,7 +391,7 @@ export class TitleScene extends Phaser.Scene {
   }
 
   /** Skiet-Skuur or Settings on top of the title; the title rebuilds when it closes. */
-  private openOverlay(key: 'Shed' | 'Settings'): void {
+  private openOverlay(key: 'Shed' | 'Settings' | 'Area'): void {
     // START (or the run) was pressed: its break or hunt is on its way (D-026).
     if (this.started) return;
     this.menu?.setActive(false);
@@ -378,9 +408,10 @@ export class TitleScene extends Phaser.Scene {
 }
 
 /** "Monday · Dawn mist": today's Classic layout of the home biome. */
-export function todayMapName(ctx: GameContext): string {
+export function todayMapName(ctx: GameContext, biomeId: string = ctx.biome.id): string {
   const id = ctx.classicLayout ?? layoutForDay(ctx.today());
-  const layout = findLayout(ctx.biome, id);
+  const biome = ctx.content.biomes.find((b) => b.id === biomeId) ?? ctx.biome;
+  const layout = findLayout(biome, id);
   return fill(t('map.name'), {
     day: tOr(`map.day.${id}`, id),
     light: layout === undefined ? '' : tOr(`map.light.${layout.light}`, layout.light),

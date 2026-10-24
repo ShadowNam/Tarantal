@@ -515,5 +515,19 @@
   "shed.fitted": "Montiert",
   "admin.sight": "Sight",
   "admin.sight_default": "Skiet-Skuur's",
-  "admin.range": "Skietbaan"
+  "admin.range": "Skietbaan",
+  "biome.namibie": "Namibia — Etosha & Namib",
+  "share.biome.namibie": "Namibia",
+  "secret.nest_camelthorn": "Das Nest der Siedelweber (nicht!)",
+  "secret.quiver_egg": "Die Straußenei-Flasche im Köcherbaum",
+  "bark.egg": "Ach nee, das war mein Wasser!",
+  "title.area": "Gebiet: {area}",
+  "area.title": "Wo jagen wir?",
+  "area.locked": "Gesperrt",
+  "area.how": "Erreiche {bonus} in einem beliebigen Gebiet, um es freizuschalten.",
+  "area.chosen": "Hier wird gejagt",
+  "area.pick": "Hier jagen",
+  "area.desc.karoo_autumn": "Opas Farm in der Karoo: das Heimatrevier.",
+  "area.desc.namibie": "Die weiße Salzpfanne der Etosha und die Dünen der Namib: weit offen, für weite Schüsse.",
+  "tally.area_unlocked": "{area} ist offen! Wähle es unter Gebiet auf dem Titelbild."
 }
