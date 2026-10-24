@@ -1308,7 +1308,9 @@ export class HuntScene extends Phaser.Scene {
     this.fx.handle(events, width, state);
     this.birds.handle(events);
     const half = width / 2;
-    this.ctx.audio.handle(events, (e) => {
+    // The Skietbaan scores nothing: no Whole-flock stamp sound or slow-mo there (D-037).
+    const heard = this.range === null ? events : events.filter((e) => e.type !== 'flockWiped');
+    this.ctx.audio.handle(heard, (e) => {
       if (e.type === 'shotFired') return e.dx / half;
       if (e.type === 'targetBagged' || e.type === 'flockStateChanged' || e.type === 'flockWiped')
         return (this.parallax.screenX(e.plane, e.x) - half) / half;
@@ -1346,7 +1348,7 @@ export class HuntScene extends Phaser.Scene {
         bagged = true;
       } else if (e.type === 'bonusAwarded' && e.bonus === 'twoFlies') {
         this.runner?.hitStop(this.ctx.feel.juice.hitStopTwoFliesMs);
-      } else if (e.type === 'flockWiped') {
+      } else if (e.type === 'flockWiped' && this.range === null) {
         // GDD §6.4: slow-mo 0.3× for 0.4 s (scoring.json, so the rule and its feel stay together).
         const { scale, ms } = this.ctx.content.scoring.wholeFlock.slowMo;
         this.runner?.slowMo(scale, ms);

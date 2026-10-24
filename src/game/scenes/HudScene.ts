@@ -64,6 +64,15 @@ interface Pop {
   born: number;
 }
 
+/** Events whose HUD feedback is about score (pops, the Whole-flock stamp): none on the range. */
+const SCORE_FEEDBACK: ReadonlySet<SimEvent['type']> = new Set([
+  'scoreAwarded',
+  'bonusAwarded',
+  'penaltyApplied',
+  'flockWiped',
+  'comboChanged',
+]);
+
 export class HudScene extends Phaser.Scene {
   private readonly ctx: GameContext;
   private layoutNow: HudLayout | null = null;
@@ -581,6 +590,8 @@ export class HudScene extends Phaser.Scene {
           );
         }
       }
+      // The Skietbaan has no score, bonuses or Frenzy: none of their labels show there (D-037).
+      if (this.rangeOn && SCORE_FEEDBACK.has(e.type)) continue;
       if (e.type === 'scoreAwarded')
         this.pushPop(`${popParts(e.points, e.mult)}  ${formatAward(e.award)}`, '#F3EAD3');
       else if (e.type === 'bonusAwarded') this.pushPop(formatAward(e.award), '#FFD25A');
@@ -591,6 +602,7 @@ export class HudScene extends Phaser.Scene {
         this.flushedFlocks.add(e.flockId);
       else if (e.type === 'flockRemoved') this.flushedFlocks.delete(e.flockId);
       else if (
+        !this.rangeOn &&
         e.type === 'targetBagged' &&
         e.behaviour === 'flying' &&
         e.flockId !== null &&
