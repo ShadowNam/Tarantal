@@ -1720,8 +1720,10 @@ interim SVG art (tools/art/sights.ts, D-035 look: blued steel lit from the upper
 darker shade of the material, the rear sight and peep out of focus, coated glass with a
 reflection). Ver birds reuse the far atlas (the mid atlas once zoomed past the far frames' size)
 scaled to 0.10 with a haze tint — no new bird atlases. The Ver strips and sight pictures form a new
-lazy asset group `ver` that downloads in the background like `late` (279.6 KB gzip), so the first
-download (2 920.7 KB web) and the Okavango chunk (1 516.6 KB) don't grow. Low-tier layer merges
+lazy asset group `ver` that downloads in the background like `late` (279.6 KB gzip in PR A; 395.5 KB
+with PR B's .22 gun atlas), so the first download (2 920.7 KB web in PR A; 2 940.7 KB gzip with PR B,
+57.4 % of the 5 MB budget: the .22's sounds, rimfire ammo images and strings stay in the first
+download, about 20 KB) and the Okavango chunk (1 516.6 KB) don't grow. Low-tier layer merges
 never cross a plane layer (the far ridge stays behind Ver birds).
 (7) *Memory fix (before the feature):* gun atlases were never released, so the title after a hunt
 that showed both crate guns kept every rig. Leaving a hunt now drops every gun atlas but the
@@ -1741,7 +1743,11 @@ case flicks out, small box magazine, walnut stock; .22 rimfire ammo; a sharp cra
 metric `baggedVer`, reward type `sight`); the small scope at Bosveldjagter (rank). The Skiet-Skuur
 fits a sight per rifle (save `loadout.sights`, `unlocks.sights`, defaults for older saves); the
 hunt carries it (`ModeConfig.sight`), challenge links lend it (`s`), the admin page can pick any
-sight that fits.
+sight that fits. Note: the order is not iron → peep → scope for most players. Bosveldjagter is an
+early rank (a competent Classic hunt reaches it), while 10 Ver birds take a few Nog Verder hunts
+with the iron sights, so the scope often arrives before the peep. That is acceptable: the scope is
+slower to raise and sways more, so the peep stays useful on Nog Verder, and Die Verste needs the
+scope anyway.
 (11) *Nog Verder and Die Verste:* in every biome, after Verder in the unlock chain, both with
 `ver: true` (table in GDD §11.5). **Die Verste needs a scoped rifle** (as the proposal says;
 review of v1.3 reversed the first default, which let any gun in): the map has `needsScope: true`
@@ -1757,25 +1763,29 @@ sight is up; competent and aim wait for the breath to settle on far and Ver targ
 for the wind; nobody can cancel the sway). All bots skip planes their gun can't reach (a
 shotgun bot fired ~160 wasted shots at Ver birds per Nog Verder hunt before). Guns without
 sights are unchanged, so every existing golden and balance number holds.
-(13) *Balance (500 seeds, competent / plinker / random, `docs/balance/v1.3-long-range.md`):*
-before = main 5aa4f31. Classic Karoo 4 180 / 2 407 / 267 and Monday Verder 3 649 / 1 684 / 249,
-**identical after** (no existing gun or map changed). The Twee-Twee on Classic: iron 2 684 /
-3 046, peep 2 696 / 2 976, scope 2 629 / 2 770 — below the shotguns on plain maps, as intended.
-On Nog Verder (Monday): Dubbelloop 3 324 / 1 372, .22 iron 3 205 / 1 110, peep 3 783 / 1 005,
-scope 4 554 / 877 (Ver birds 13.8–14.1 a hunt for the competent bot); Die Verste: Dubbelloop
-2 700 / 862, scoped .22 4 809 / 731 (17.7 Ver birds). Tuned once: the first pass (points ×0.8 on
-both) gave a scoped Die Verste 5 861, 40 % above a Classic hunt — a score farm for rank titles —
-so Nog Verder pays ×0.75 and Die Verste ×0.65 (defaulted; the scoped .22 now sits 9–15 % above
-Classic, the reward for the hardest unlock). Two M3 gates fail outside their scope and are left:
-"plinker ≥ 25 % below competent" for the .22 on plain maps (the competent bot's strategy is
-flock escalation for a spread gun; with 5 single bullets plinking scores more — a bot model
-limit, not a balance issue), and "competent ≤ 4 500" for the scoped .22 on the bonus maps.
-The plinker struggles at range (12–22 % accuracy: it neither waits for the breath nor holds off
-for the wind), which is the skill gap the proposal wants.
+(13) *Balance (500 seeds, competent / plinker, `docs/balance/v1.3-long-range.md`):* unchanged guns
+and maps are identical to main 5aa4f31 (Classic Dubbelloop 4 180 / 2 407, Monday Verder 3 649 /
+1 684). Review of v1.3 found two bot faults that hid the .22's real level: the rifle bot lowered
+its sight for anything that wasn't a bird (no crates, no secret parts), and a free shot held a
+point while the sight came up, so a moving crate or part had gone. With the bot fixed, the .22 out-scored the
+shotguns on Classic, so it was tuned: scoreMul near ×0.75, mid ×0.75 (far ×1, Ver ×1.5). Classic
+now: iron 3 971 / 2 680, peep 3 849 / 2 648, scope 3 620 / 2 654, below Dubbelloop 4 180 and Pomp
+4 306, and every M3 gate passes for every gun (the plinker is 27–33 % below the competent bot with
+the .22). Bonus maps: the first pass (points ×0.75 / ×0.65) gave a scoped Nog Verder 5 040 and Die
+Verste 5 476 at 100 seeds, a score farm for rank titles (bonus-map hunts count for ranks, §11.5),
+over the 4 500 cap. So **Nog Verder pays ×0.6 and Die Verste ×0.46**: the scoped .22 then scores
+about what a competent Classic hunt with the Dubbelloop does (worth the hardest unlocks, no
+farm). Final, competent / plinker: Nog Verder Dubbelloop 2 789 / 1 121, Pomp 2 230 / 1 352,
+Windbuks 804 / 489, Kettie 1 108 / 477, .22 iron 3 319 / 865, peep 3 852 / 781, scope 4 441 / 683;
+Die Verste scoped .22 4 291 / 504 (the only gun it takes, (11)). Competent ≤ 4 500 on every map
+and gun. The plinker struggles at range (12–22 % accuracy: it neither waits for the breath nor holds
+off for the wind), which is the skill gap the proposal wants.
 (14) *Golden replays (PR B):* re-recorded on purpose for the content (the .22, sight unlocks, the
-two bonus maps); the 31 existing event hashes, counts and scores are unchanged; three new ones
-(Twee-Twee + scope on Nog Verder, competent pointer; Twee-Twee iron on Die Verste, aim bot
-touch; the Pomp on a Bushveld Nog Verder, whose pellets fall short of the Ver birds).
+two bonus maps), then for the bot fix and the tuning (13). The 31 existing event hashes, counts
+and scores are unchanged. Three new ones: the .22 with iron sights on Nog Verder (competent,
+pointer); the scoped .22 on Die Verste (aim bot, touch; Die Verste can't start with iron sights
+any more); the Pomp on a Bushveld Nog Verder, whose pellets fall short of the Ver birds.
+`golden:update` formats its output with Prettier, so lint passes as written.
 (15) *Evidence (PR B):* zoomed replays: the two rifle goldens give their Node event hash in
 desktop Chromium, the Pixel 7 profile and real WebKit (iPhone 14, CI), and a scoped .22 hunt
 played in each replays to the same events in Node (`tests/e2e/longrange.spec.ts`). Low-tier
@@ -1791,7 +1801,17 @@ thin far layers over the whole screen (more pixels to fill). On a GPU that fill 
 server has no GPU, so "60 fps scoped on the medium tier" needs a run on a real medium-tier device
 (follow-up; `ART_PREVIEW=1 PERF_STRICT=1` on a GPU machine). Sight pictures before | after on desktop, Pixel 7 and
 iPhone 14 landscape (local Chromium emulation of the device): `docs/art-preview/compare/
-v1.3-sight-{iron,peep,scope_small}-<project>.png`, the Skiet-Skuur `v1.3-shed-<project>.png`.
+v1.3-sight-{iron,peep,scope_small}-<project>.png`, the Skiet-Skuur `v1.3-shed-<project>.png`. CI perf shards (4-core runners, SwiftShader, 4× throttle): `perf.spec.ts` has a scoped phase,
+the .22 with its scope on Nog Verder, with the same method and CPU budget as the smoke. CPU per
+frame, p50 / p95: Pixel 7 open 7.3 / 14.9 ms, scoped 6.8 / 10.9; desktop open 8.1 / 15.2, scoped 8.0 /
+12.3 (budget 16.7 average). Real frame time looked like 3.2× on Pixel 7 (131 → 417 ms) against
+1.5× on desktop (270 → 408). That was a tier mismatch, not the scope: a 4-core runner puts the
+coarse-pointer Pixel 7 profile on the low tier (render scale 0.67, no vignette, merged far
+layers), and the scoped phase forced medium. It now uses the same auto tier as the smoke and both
+reports print the tier (`PERF_CORES=4` reproduces CI's tier locally). The hunt camera has no
+fixed-size draw while zoomed: no filter, mask or render texture beyond the tier's vignette, and
+SightView's fills are clipped to the screen. The remaining ~1.5× is overdraw: zooming into the
+horizon stretches the stacked far layers and haze bands over the whole screen.
 
 ## 3. Research notes (with sources)
 
