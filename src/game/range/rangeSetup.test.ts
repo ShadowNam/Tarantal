@@ -1,5 +1,7 @@
 // v1.3x (D-037) Skietbaan setup: the guns offered, reach, the mode a choice becomes, the report
 // and the range's own string tables.
+import { readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { loadContent } from '../../../tools/testContent';
 import { setLanguage, LANGUAGES } from '../../i18n/i18n';
@@ -19,7 +21,7 @@ import {
   RANGE_PLANES,
 } from './rangeGuns';
 import { rt } from './rangeI18n';
-import { rangeReport } from './rangeReport';
+import { centreText, groupText, rangeReport } from './rangeReport';
 import { RangeStats } from './rangeStats';
 
 const content = loadContent();
@@ -160,5 +162,58 @@ describe('range strings', () => {
     expect(rt('range.out_of_reach')).toBe('außer Reichweite');
     setLanguage('en');
     expect(rt('range.title')).toBe('Skietbaan');
+  });
+});
+
+describe('session table texts', () => {
+  it('group with % of body width, and the centre vs aim', () => {
+    setLanguage('en');
+    const s = new RangeStats();
+    const sel = { gun: 'windbuks', plane: 'mid' as const, target: 'paper' as const, pellets: 1 };
+    for (const [id, x, y] of [
+      [1, 10, 0],
+      [2, 0, 10],
+    ] as const)
+      s.ingest(
+        [
+          {
+            type: 'shotFired',
+            tick: id,
+            shotId: id,
+            weapon: 'windbuks',
+            dx: 0,
+            sy: 0,
+            shellsLeft: 5,
+          },
+          { type: 'rangeShot', tick: id, shotId: id, plane: 'mid', x: 0, y: 0 },
+          { type: 'paperHit', tick: id, shotId: id, paperId: 1, x, y },
+        ],
+        sel,
+      );
+    const cell = s.cell(sel);
+    // Centre (5, 5): 5 px right, 5 px low. Mean radius √50, spread √200; body at mid 110 px.
+    expect(centreText(cell)).toBe('5.0 px right, 5.0 px low');
+    const mr = Math.sqrt(50);
+    const es = Math.sqrt(200);
+    const pct = (v: number): string => ((v / 110) * 100).toFixed(1);
+    expect(groupText(content, cell)).toBe(
+      `${mr.toFixed(1)} px (${pct(mr)} %) · ${es.toFixed(1)} px (${pct(es)} %)`,
+    );
+    expect(groupText(content, s.cell({ ...sel, target: 'stand' }))).toBeNull();
+    expect(centreText(s.cell({ ...sel, target: 'stand' }))).toBeNull();
+  });
+
+  it('every range string key is used by the range code', () => {
+    const dir = import.meta.dirname;
+    const src = readdirSync(dir)
+      .filter((f) => f.endsWith('.ts') && !f.endsWith('.test.ts'))
+      .map((f) => readFileSync(join(dir, f), 'utf8'))
+      .join('\n');
+    // Keys built from ids (`range.dist_${plane}`) count through their prefix.
+    const prefixes = [...src.matchAll(/`(range\.[a-z_]+)\$\{/g)].map((m) => m[1] ?? '');
+    const unused = Object.keys(en).filter(
+      (k) => !src.includes(`'${k}'`) && !prefixes.some((p) => p !== '' && k.startsWith(p)),
+    );
+    expect(unused).toEqual([]);
   });
 });

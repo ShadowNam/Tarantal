@@ -11,13 +11,15 @@ import {
   biomeName,
   bodyNote,
   cellLines,
-  cellTitle,
+  centreText,
   dayName,
   distName,
+  groupText,
   gunName,
+  gunNameById,
   targetName,
 } from './rangeReport';
-import { groupStats, hitRate, misses, pelletsPerShot, type RangeCell } from './rangeStats';
+import { hitRate, misses, pelletsPerShot, type RangeCell } from './rangeStats';
 
 const STYLE_ID = 'tm-range-style';
 const CSS = `
@@ -44,6 +46,7 @@ const CSS = `
 #tm-range footer{flex:none;display:flex;align-items:center;gap:10px;padding:6px 12px;border-top:1px solid #5a4632;background:#2b211a}
 #tm-range footer .pick{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #tm-range .row,#tm-range-bar .row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+#tm-range .table{overflow-x:auto;touch-action:pan-x pan-y;-webkit-overflow-scrolling:touch}
 #tm-range table{border-collapse:collapse;width:100%;font-size:13px;margin-top:6px}
 #tm-range th,#tm-range td{border-bottom:1px solid #3a2e24;padding:3px 4px;text-align:left;vertical-align:top}
 #tm-range th{color:#C9BFA6;font-weight:600}
@@ -271,7 +274,7 @@ export class RangeSetupPanel {
           void this.copy(toast, fallback);
         }),
       ),
-      this.table(),
+      el('div', { className: 'table' }, this.table()),
       fallback,
     );
     const cols = el('div', { className: 'cols', dataset: { role: 'scroll' } }, choices, stats);
@@ -317,28 +320,33 @@ export class RangeSetupPanel {
         'tr',
         {},
         head('range.col_gun'),
+        head('range.col_dist'),
+        head('range.col_target'),
         head('range.col_shots'),
         head('range.col_hits'),
         head('range.col_misses'),
         head('range.col_rate'),
         head('range.col_pellets'),
         head('range.col_group'),
+        head('range.col_centre'),
       ),
     );
     for (const cell of cells) {
-      const g = groupStats(cell.impacts);
       const n = (v: string): HTMLElement => el('td', { className: 'n', textContent: v });
       table.append(
         el(
           'tr',
           { dataset: { cell: `${cell.gun}|${cell.plane}|${cell.target}` } },
-          el('td', { textContent: cellTitle(this.content, cell) }),
+          el('td', { textContent: gunNameById(this.content, cell.gun) }),
+          el('td', { textContent: distName(cell.plane) }),
+          el('td', { textContent: targetName(cell.target) }),
           n(String(cell.shots)),
           n(String(cell.hits)),
           n(String(misses(cell))),
           n(one(hitRate(cell) * 100)),
           n(cell.pellets > 1 ? `${one(pelletsPerShot(cell))} / ${String(cell.pellets)}` : '–'),
-          n(g === null ? '–' : `${one(g.meanRadius)} · ${one(g.extremeSpread)} px`),
+          n(groupText(this.content, cell) ?? '–'),
+          n(centreText(cell) ?? '–'),
         ),
       );
     }

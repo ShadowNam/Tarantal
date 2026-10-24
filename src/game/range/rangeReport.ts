@@ -85,6 +85,24 @@ export function cellLines(content: ContentBundle, c: RangeCell, withNote = true)
   return lines;
 }
 
+/** "12.3 px (11.2 %) · 40.0 px (36.4 %)": mean radius · extreme spread, with % of body width. */
+export function groupText(content: ContentBundle, c: RangeCell): string | null {
+  const g = groupStats(c.impacts);
+  if (g === null) return null;
+  const w = bodyWidthPx(content, c.plane);
+  const part = (px: number): string => `${one(px)} px (${one(pctOfBody(px, w))} %)`;
+  return `${part(g.meanRadius)} · ${part(g.extremeSpread)}`;
+}
+
+/** "3.0 px right, 2.0 px high": the group's centre relative to the aim point. */
+export function centreText(c: RangeCell): string | null {
+  const g = groupStats(c.impacts);
+  if (g === null) return null;
+  const x = `${one(Math.abs(g.offsetX))} px ${rt(g.offsetX < 0 ? 'range.left' : 'range.right')}`;
+  const y = `${one(Math.abs(g.offsetY))} px ${rt(g.offsetY < 0 ? 'range.high' : 'range.low')}`;
+  return `${x}, ${y}`;
+}
+
 export interface ReportWhere {
   readonly build: string;
   readonly viewport: string;
