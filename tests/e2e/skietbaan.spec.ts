@@ -164,8 +164,8 @@ async function hold(page: Page, on: boolean): Promise<void> {
 }
 
 /** Opens the Skietbaan's setup page from the admin list. */
-async function openRange(page: Page, touch: boolean): Promise<void> {
-  await page.goto('/?e2e=1&admin=1');
+async function openRange(page: Page, touch: boolean, query = ''): Promise<void> {
+  await page.goto(`/?e2e=1&admin=1${query}`);
   await page.waitForFunction(() => window.__TM__?.admin?.view === 'list', null, {
     timeout: 90_000,
   });
@@ -284,10 +284,18 @@ test.describe('Skietbaan (training ground)', () => {
     await page.waitForFunction(() => (window.__TM__?.range?.drawnImpacts ?? 0) > 0, null, {
       timeout: 30_000,
     });
+    // D-040: every hole is drawn (only the group stats stop at 20).
+    await page.waitForFunction(
+      () => window.__TM__?.range?.drawnImpacts === window.__TM__?.range?.marks[0]?.count,
+      null,
+      { timeout: 30_000 },
+    );
     h = await hook(page);
     expect(h.range?.stats?.shots).toBe(2);
     expect(h.range?.stats?.impacts ?? 0).toBeGreaterThan(0);
-    expect(h.range?.drawnImpacts).toBe(Math.min(20, h.range?.stats?.impacts ?? 0));
+    expect(h.range?.drawnImpacts ?? 0).toBeGreaterThanOrEqual(
+      Math.min(20, h.range?.stats?.impacts ?? 0),
+    );
     await page.screenshot({ path: `${SHOTS_DIR}/skietbaan-range-near-${name}.png` });
 
     // A bird target: the Dubbelloop at middle distance on the fly-over, fired at until one is
@@ -536,6 +544,159 @@ test.describe('Skietbaan (training ground)', () => {
       timeout: 60_000,
     });
     expect(await storage(page)).toEqual(before);
+    expect(errors).toEqual([]);
+  });
+
+  // D-040 (product owner, 24 Oct: "when shot, the shot should be visible and stay visible during
+  // the session"): 25 hits on one plate leave 25 marks; they stay through a gun swap and a switch
+  // of distance and back; Repaint clears them; leaving the Skietbaan clears them.
+  test('D-040: 25 hits on a plate stay through a gun swap and a distance switch', async ({
+    page,
+  }, info) => {
+    test.skip(!isLandscape(info), 'the admin page is used in landscape');
+    test.setTimeout(600_000);
+    const errors = collectErrors(page);
+    const touch = isTouchProject(info);
+    await openRange(page, touch, '&seed=42');
+    const start = async (plane: string): Promise<void> => {
+      await press(page, touch, `#tm-range [data-role=plane] [data-value=${plane}]`);
+      await press(page, touch, '#tm-range [data-action=start]');
+      await page.waitForFunction(
+        (pl) => window.__TM__?.range?.view === 'range' && window.__TM__.range.plane === pl,
+        plane,
+        { timeout: 90_000 },
+      );
+      await paper(page);
+    };
+    const setup = async (): Promise<void> => {
+      await press(page, touch, '#tm-range-bar [data-action=setup]');
+      await page.waitForFunction(() => window.__TM__?.range?.view === 'setup', null, {
+        timeout: 60_000,
+      });
+    };
+    /** The plate's marks on the hook once the bake has caught up with the store. */
+    const plateMarks = async (n: number): Promise<{ count: number; drawn: number }> => {
+      await page.waitForFunction(
+        (want) => {
+          const m = window.__TM__?.range?.marks.find((x) => x.kind === 'plate');
+          return m !== undefined && m.count === want && m.drawn === want;
+        },
+        n,
+        { timeout: 60_000 },
+      );
+      const m = (await hook(page)).range?.marks.find((x) => x.kind === 'plate');
+      return { count: m?.count ?? -1, drawn: m?.drawn ?? -1 };
+    };
+
+    // The air rifle (one pellet a shot), near, on the steel plate.
+    await press(page, touch, '#tm-range [data-role=gun] [data-value=windbuks]');
+    await press(page, touch, '#tm-range [data-role=target] [data-value=plate]');
+    await start('near');
+    expect(await plateMarks(0)).toEqual({ count: 0, drawn: 0 });
+    const plate = await paper(page);
+    let fired = 0;
+    for (let i = 0; i < 60 && ((await hook(page)).range?.stats?.hits ?? 0) < 25; i++) {
+      const now = await hook(page);
+      if (now.shells === 0 && !now.reloading) await tapRect(page, touch, 'belt');
+      await ready(page);
+      await fireAt(page, touch, plate.x, plate.y);
+      fired++;
+      await page.waitForFunction((n) => window.__TM__?.range?.stats?.shots === n, fired, {
+        timeout: 60_000,
+      });
+    }
+    const h = await hook(page);
+    expect(h.range?.stats?.hits).toBe(25);
+    expect(h.range?.stats?.pelletsOn).toBe(25);
+    // Every hit is marked, past the 20 the group stats keep.
+    expect(await plateMarks(25)).toEqual({ count: 25, drawn: 25 });
+    expect(h.range?.stats?.impacts).toBe(20);
+
+    // A gun swap (the Kettie, same plate): the marks are still there.
+    await setup();
+    await press(page, touch, '#tm-range [data-role=gun] [data-value=kettie]');
+    await start('near');
+    expect((await hook(page)).weapon).toBe('kettie');
+    expect(await plateMarks(25)).toEqual({ count: 25, drawn: 25 });
+
+    // Another distance has its own clean plate; back near, the 25 are there again.
+    await setup();
+    await start('mid');
+    expect(await plateMarks(0)).toEqual({ count: 0, drawn: 0 });
+    await setup();
+    await start('near');
+    expect(await plateMarks(25)).toEqual({ count: 25, drawn: 25 });
+
+    // Repaint clears them on purpose.
+    await expect(page.locator('#tm-range-bar [data-action=repaint]')).toBeVisible();
+    await press(page, touch, '#tm-range-bar [data-action=repaint]');
+    expect(await plateMarks(0)).toEqual({ count: 0, drawn: 0 });
+
+    // A hit after the Repaint, then leaving the Skietbaan and coming back: freshly painted.
+    await ready(page);
+    await fireAt(page, touch, plate.x, plate.y);
+    await page.waitForFunction(
+      () => (window.__TM__?.range?.marks.find((x) => x.kind === 'plate')?.count ?? 0) > 0,
+      null,
+      { timeout: 60_000 },
+    );
+    await setup();
+    await press(page, touch, '#tm-range [data-action=back]');
+    await page.waitForFunction(() => window.__TM__?.admin?.view === 'list', null, {
+      timeout: 60_000,
+    });
+    await press(page, touch, '#tm-admin [data-action=skietbaan]');
+    await page.waitForFunction(() => window.__TM__?.range?.view === 'setup', null, {
+      timeout: 60_000,
+    });
+    await press(page, touch, '#tm-range [data-action=start]');
+    await page.waitForFunction(() => window.__TM__?.range?.view === 'range', null, {
+      timeout: 90_000,
+    });
+    await paper(page);
+    expect(await plateMarks(0)).toEqual({ count: 0, drawn: 0 });
+    expect(errors).toEqual([]);
+  });
+
+  test('D-040: a held frame with marks is drawn the same twice', async ({ page }, info) => {
+    test.skip(!isLandscape(info), 'the admin page is used in landscape');
+    test.setTimeout(420_000);
+    const errors = collectErrors(page);
+    const touch = isTouchProject(info);
+    // The range holds at tick 900 (?holdAt): marks, the plate's swing and the newest mark's glint
+    // all run on sim time, so the held picture can't change.
+    await openRange(page, touch, '&seed=42&holdAt=900');
+    await press(page, touch, '#tm-range [data-role=gun] [data-value=windbuks]');
+    await press(page, touch, '#tm-range [data-role=target] [data-value=plate]');
+    await press(page, touch, '#tm-range [data-role=plane] [data-value=near]');
+    await press(page, touch, '#tm-range [data-action=start]');
+    await page.waitForFunction(() => window.__TM__?.range?.view === 'range', null, {
+      timeout: 90_000,
+    });
+    const plate = await paper(page);
+    for (let i = 0; i < 3 && (await hook(page)).tick < 600; i++) {
+      await ready(page);
+      if ((await hook(page)).tick >= 600) break;
+      const shots = (await hook(page)).shots;
+      await fireAt(page, touch, plate.x + (i - 1) * plate.r * 0.4, plate.y);
+      await page.waitForFunction((n) => (window.__TM__?.shots ?? 0) > n, shots, {
+        timeout: 60_000,
+      });
+    }
+    await page.waitForFunction(() => (window.__TM__?.tick ?? 0) >= 900, null, {
+      timeout: 120_000,
+    });
+    const m = (await hook(page)).range?.marks.find((x) => x.kind === 'plate');
+    expect(m?.count ?? 0).toBeGreaterThan(0);
+    expect(m?.drawn).toBe(m?.count);
+    // The DOM bar's pulse animation is not on the canvas; the hit marker has faded by now.
+    await page.waitForTimeout(1500);
+    const canvas = page.locator('#game canvas');
+    const a = await canvas.screenshot();
+    await page.waitForTimeout(700);
+    const b = await canvas.screenshot();
+    expect(a.equals(b)).toBe(true);
+    expect((await hook(page)).tick).toBe(900);
     expect(errors).toEqual([]);
   });
 
