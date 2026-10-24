@@ -143,8 +143,6 @@ export interface SetupHandlers {
   readonly start: (pointerType: string) => void;
   readonly back: () => void;
   readonly reset: () => void;
-  /** D-040: paper and plate courses: Repaint / New paper clears the targets' marks. */
-  readonly repaint?: { readonly label: string; readonly run: () => void };
   readonly report: () => string;
 }
 
