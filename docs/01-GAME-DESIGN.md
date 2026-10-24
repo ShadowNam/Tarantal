@@ -634,7 +634,8 @@ never add raw power. ~60 challenges at v1.0. The M5 starter set (`content/meta/n
 flock 3 times* → Kettie (shown unlocked, playable from M8), first hunt, 25 wing shots, 2 500 in one
 hunt, 200 birds, 5 crates, every Karoo secret → Bird Book page. The Plaas-Pomp unlocks at the
 Plaaswerker rank. v1.3: *Unlock Nog Verder* → Die Twee-Twee, *Bag 10 birds at Ver distance* → the
-peep sight; the small scope at the Bosveldjagter rank.
+peep sight; the small scope at the Bosveldjagter rank. v1.4: *Unlock Die Verste* → Die Langloop
+(a save that reached Die Verste before v1.4 gets it on its next hunt, D-038).
 
 Between hunts the run shows a hunt card (season, quota, Boss Rule), the run tally (quota met or
 missed, doppies earned line by line) and the Padstal; after the last hunt or a missed quota, a
@@ -751,7 +752,7 @@ accessibility feature (visual captions for important sounds).
 
 ### 17.1 Each gun's ammo, crosshair and sound (v1.1, D-032)
 Screen and audio only: none of this changes a game rule. Every gun's look and sounds live in
-`content/client/feel.json → guns`; adding a gun (the .22 and the Langloop in v1.3) is a data entry
+`content/client/feel.json → guns`; adding a gun (the .22 in v1.3, the Langloop in v1.4) is a data entry
 there plus one interim drawing in `tools/art/ammo.ts` and, if it has its own sound, one in
 `tools/audio/sfx.ts`.
 
@@ -763,6 +764,7 @@ there plus one interim drawing in `tools/art/ammo.ts` and, if it has its own sou
 | Kettie | a pile of 5 river stones (unlimited) | the top stone is in the pouch while drawing | small V with a drop line marking where the stone falls at mid and far | rubber thwup |
 | Voorlaaier (crate) | brown paper cartridges with the lead ball out of the top (3) | torn open | very wide, rough ring (300 px spread) | deep black-powder boom / ramrod |
 | Mielie-Masjien (crate) | a hopper of mielie kernels | the level drops with the time left | jittery ring | air "pok" |
+| Die Langloop (v1.4) | brass rifle cartridges with pointed copper bullets (3) | an empty brass case | thin cross (one bullet, no ring); raised: the scope ring with a fine cross and range marks | loud rifle crack, then the bolt / bolt |
 
 - **Ring size = spread:** a ring whose radius is `spread` is the weapon's `spreadPx`, where its
   pellets land on every plane (pellets fall in a disc of that radius, Tech §3.4), so the crosshair

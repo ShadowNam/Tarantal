@@ -69,6 +69,19 @@ function counts(c: NotaboekChallenge, log: HuntLog): boolean {
   return true;
 }
 
+/**
+ * v1.4 (D-038): the save already shows this bonus map reached in some area (unlocked today, or
+ * played: it has a best). A one-off "unlock it" challenge then counts as met, so a save from
+ * before the challenge existed (v1.3 players who reached Die Verste) still earns its reward.
+ */
+function bonusReached(save: SaveData, bonus: string): boolean {
+  const suffix = `/${bonus}`;
+  return (
+    save.bonusMaps.unlocked.some((k) => k.endsWith(suffix)) ||
+    Object.keys(save.bonusMaps.bests).some((k) => k.endsWith(suffix))
+  );
+}
+
 const union = (a: readonly string[], b: readonly string[]): string[] =>
   [...new Set([...a, ...b])].sort();
 
@@ -129,6 +142,13 @@ export function applyHunt(
       const v = metricValue(c.metric, log);
       value = c.scope === 'total' ? value + v : Math.max(value, v);
     }
+    if (
+      c.metric === 'bonusUnlocks' &&
+      c.bonus !== undefined &&
+      c.target === 1 &&
+      bonusReached(save, c.bonus)
+    )
+      value = Math.max(value, c.target);
     progress[c.id] = Math.min(value, c.target);
     if (value >= c.target) {
       done.add(c.id);
