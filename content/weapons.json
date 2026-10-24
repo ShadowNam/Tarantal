@@ -123,6 +123,8 @@
       "raiseMs": 150,
       "swayPx": 2.5,
       "swayPeriodMs": 2600,
+      "swayPace": [0.85, 1.15],
+      "swayHeight": 0.5,
       "swayPerStep": 0,
       "breath": { "holdAfterMs": 500, "easeMs": 250, "holdMs": 3000, "holdMul": 0.25, "tireMs": 1500, "tiredMul": 2.2 },
       "picture": "iron"
@@ -136,6 +138,8 @@
       "raiseMs": 200,
       "swayPx": 2,
       "swayPeriodMs": 2800,
+      "swayPace": [0.85, 1.15],
+      "swayHeight": 0.5,
       "swayPerStep": 0,
       "breath": { "holdAfterMs": 500, "easeMs": 250, "holdMs": 3000, "holdMul": 0.2, "tireMs": 1500, "tiredMul": 2.2 },
       "picture": "peep"
@@ -149,6 +153,8 @@
       "raiseMs": 300,
       "swayPx": 3.5,
       "swayPeriodMs": 3200,
+      "swayPace": [0.85, 1.15],
+      "swayHeight": 0.5,
       "swayPerStep": 0,
       "breath": { "holdAfterMs": 500, "easeMs": 300, "holdMs": 3000, "holdMul": 0.15, "tireMs": 1500, "tiredMul": 2.5 },
       "picture": "scope"

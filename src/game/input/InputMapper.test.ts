@@ -5,6 +5,7 @@ import { parseFeel } from '../../content/feel';
 import feelJson from '../../../content/client/feel.json';
 import type { Command } from '../../sim/types';
 import { InputMapper } from './InputMapper';
+import { sanitiseCommand } from '../../sim/commands';
 
 const parsed = parseFeel(feelJson);
 if (!parsed.ok) throw new Error('feel.json invalid');
@@ -403,6 +404,86 @@ describe('v1.3 rifles: hold to zoom, release to fire (D-036)', () => {
     });
     mapper.destroy();
     expect(queued.map((c) => c.t)).toEqual(['aimStart', 'reload']);
+  });
+
+  it('a zoomed aim is the same command on every screen width (Tech §3.3)', () => {
+    // The same press offset from the centre and the same finger movement in design px, on a
+    // 4:3, a 16:9 and a 21:9 screen at different CSS scales: the same aimStart and aimMove.
+    const runs = (
+      [
+        [1440, 0.7],
+        [1920, 1],
+        [2520, 0.45],
+      ] as const
+    ).map(([width, scale]) => {
+      const { canvas, queued, mapper, at } = rifleRig(width, scale, 4);
+      const t = { pointerId: 9, pointerType: 'touch', button: 0 };
+      canvas.emit('pointerdown', { ...t, timeStamp: 0, ...at(-140, 520) });
+      mapper.perTick();
+      canvas.emit('pointermove', { ...t, timeStamp: 20, ...at(-100, 480) });
+      const moves = mapper.perTick();
+      mapper.destroy();
+      // As the sim accepts them (quantised to 0.5 design px, like every recorded command).
+      return [...queued, ...moves]
+        .filter((c) => c.t === 'aimStart' || c.t === 'aimMove')
+        .map((c) => sanitiseCommand(c));
+    });
+    expect(runs[0]).toEqual([
+      { t: 'aimStart', dx: -140, sy: 520 },
+      { t: 'aimMove', dx: -130, sy: 510 },
+    ]);
+    for (const r of runs) expect(r).toEqual(runs[0]);
+  });
+
+  it('losing the window or turning input off lowers a raised sight (aimCancel)', () => {
+    const listeners = new Map<string, () => void>();
+    vi.stubGlobal('window', {
+      addEventListener: (type: string, fn: () => void) => listeners.set(type, fn),
+      removeEventListener: () => undefined,
+    });
+    const a = rifleRig(1920, 1);
+    a.canvas.emit('pointerdown', {
+      pointerId: 1,
+      pointerType: 'mouse',
+      button: 0,
+      timeStamp: 0,
+      ...a.at(0, 500),
+    });
+    listeners.get('blur')?.();
+    expect(a.queued.map((c) => c.t)).toEqual(['aimStart', 'aimCancel']);
+    a.mapper.destroy();
+    const b = rifleRig(1920, 1);
+    b.canvas.emit('pointerdown', {
+      pointerId: 2,
+      pointerType: 'touch',
+      button: 0,
+      timeStamp: 0,
+      ...b.at(0, 500),
+    });
+    b.mapper.setEnabled(false);
+    expect(b.queued.map((c) => c.t)).toEqual(['aimStart', 'aimCancel']);
+    b.mapper.destroy();
+  });
+
+  it('dropAim: when the sim lowers the sight, the release sends nothing more', () => {
+    const { canvas, queued, mapper, at } = rifleRig(1920, 1);
+    canvas.emit('pointerdown', {
+      pointerId: 4,
+      pointerType: 'touch',
+      button: 0,
+      timeStamp: 0,
+      ...at(0, 500),
+    });
+    mapper.dropAim();
+    canvas.emit('pointerup', {
+      pointerId: 4,
+      pointerType: 'touch',
+      button: 0,
+      timeStamp: 50,
+      ...at(0, 500),
+    });
+    mapper.destroy();
+    expect(queued.map((c) => c.t)).toEqual(['aimStart']);
   });
 
   it('a gun without a sight still fires on press', () => {

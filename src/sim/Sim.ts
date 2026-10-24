@@ -1829,7 +1829,7 @@ export function createSim(config: SimConfig): Sim {
 
   function startAim(dx: number, sy: number): void {
     if (sight === null || !rifleInHand() || aim !== null) return;
-    aim = raiseSight(dx, sy, zoomStep, swayRng);
+    aim = raiseSight(dx, sy, zoomStep, swayRng, sight);
     emit({
       type: 'aimStarted',
       tick,

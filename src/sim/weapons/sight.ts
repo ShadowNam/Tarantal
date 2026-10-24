@@ -19,6 +19,8 @@ export interface SightTiming {
   readonly swayPx: number;
   readonly swayPerStep: number;
   readonly swayPeriodTicks: number;
+  readonly swayPace: readonly [number, number];
+  readonly swayHeight: number;
   readonly holdAfterTicks: number;
   readonly easeTicks: number;
   readonly holdTicks: number;
@@ -35,6 +37,8 @@ export function sightTiming(s: Sight): SightTiming {
     swayPx: s.swayPx,
     swayPerStep: s.swayPerStep,
     swayPeriodTicks: Math.max(1, msToTicks(s.swayPeriodMs)),
+    swayPace: s.swayPace,
+    swayHeight: s.swayHeight,
     holdAfterTicks: msToTicks(s.breath.holdAfterMs),
     easeTicks: Math.max(1, msToTicks(s.breath.easeMs)),
     holdTicks: Math.max(1, msToTicks(s.breath.holdMs)),
@@ -58,9 +62,15 @@ export interface Aim {
 }
 
 /** Starts a raise: two draws from the sway stream (always two, whatever the sight). */
-export function raiseSight(dx: number, sy: number, step: number, rng: RandomStream): Aim {
+export function raiseSight(
+  dx: number,
+  sy: number,
+  step: number,
+  rng: RandomStream,
+  t: Pick<SightTiming, 'swayPace'>,
+): Aim {
   const phase = rng.range(0, 2 * Math.PI);
-  const pace = rng.range(0.85, 1.15);
+  const pace = rng.range(t.swayPace[0], t.swayPace[1]);
   return { dx, sy, heldTicks: 0, phase, pace, step };
 }
 
@@ -96,7 +106,7 @@ export function swayAt(a: Aim, t: SightTiming): { dx: number; dy: number } {
   if (amp === 0) return { dx: 0, dy: 0 };
   const w = ((2 * Math.PI) / t.swayPeriodTicks) * a.pace;
   const th = w * a.heldTicks + a.phase;
-  return { dx: amp * sin(th), dy: amp * 0.5 * sin(2 * th) };
+  return { dx: amp * sin(th), dy: amp * t.swayHeight * sin(2 * th) };
 }
 
 /** The zoom step clamped to the sight's steps. */

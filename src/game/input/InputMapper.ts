@@ -154,6 +154,22 @@ export class InputMapper {
    *  a hold, so a finger can drag-pan again. */
   cancelHold(): void {
     if (this.holdPointer !== null) this.endHold(this.holdPointer);
+    this.dropAim();
+  }
+
+  /**
+   * v1.3: the sim lowered the sight on its own (a crate gun armed, a reload, a release it
+   * couldn't fire): forget the aim hold without sending anything. The pointer is ignored until it
+   * lifts, so its release isn't a tap or a second release.
+   */
+  dropAim(): void {
+    const a = this.aimHold;
+    if (a === null) return;
+    this.aimHold = null;
+    this.aimNext = null;
+    this.aimStartPending = false;
+    this.ignored.add(a.id);
+    if (a.touch) this.pan.setEdgeDirection(0);
   }
 
   /** Ignore this pointer until it lifts (e.g. the tap that started the hunt). */

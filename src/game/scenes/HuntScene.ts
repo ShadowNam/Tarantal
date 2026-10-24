@@ -180,7 +180,7 @@ export class HuntScene extends Phaser.Scene {
     this.manifest =
       this.biome.id === this.ctx.biome.id ? this.ctx.manifest : this.ctx.manifestFor(this.biome);
     this.swapManifest();
-    this.releaseGuns();
+    this.releaseGuns(data);
     // The test hook reads texture memory right after the release (not 30 frames later, which is
     // seconds under software GL on CI).
     if (this.ctx.hook) this.sampleTextures(this.ctx.hook);
@@ -478,12 +478,20 @@ export class HuntScene extends Phaser.Scene {
   }
 
   /**
-   * v1.3: leaving a hunt (this scene restarts for the title, [Again] or the next hunt) drops the
-   * gun atlases of every gun but the equipped one, so a hunt that used both crate guns doesn't
-   * keep them on the GPU (low tier < 128 MB). A gun shown again uploads on demand (ensureGun).
+   * v1.3: on the low tier, leaving a hunt (this scene restarts for the title, [Again] or the next
+   * hunt) drops the gun atlases of every gun the next hunt can't start with, so a hunt that used
+   * both crate guns doesn't keep them on the GPU (< 128 MB). A gun shown again uploads on demand
+   * (ensureGun).
    */
-  private releaseGuns(): void {
-    const keep = new Set([this.ctx.save.data.loadout.weapon]);
+  private releaseGuns(data: HuntData): void {
+    // Only the low tier needs the room (its 128 MB budget); on the others the rigs stay, so a
+    // crate gun never re-uploads mid-hunt (a hitch on phones).
+    if (this.ctx.prefs.tier !== 'low') return;
+    // Keep every gun the next hunt can start with: the loadout, the admin page's, the Season
+    // Run's and a challenge's.
+    const keep = new Set<string>([this.ctx.save.data.loadout.weapon]);
+    const extra = [this.ctx.weaponOverride, this.ctx.run.current?.weapon, data.challenge?.weapon];
+    for (const id of extra) if (id !== undefined) keep.add(id);
     for (const m of new Set([this.manifest, this.ctx.installedManifest]))
       m?.releaseGuns(this.textures, keep, this.anims);
   }
@@ -1014,14 +1022,19 @@ export class HuntScene extends Phaser.Scene {
     const cam = interpolateCamera(runner.prev, state, alpha);
     // v1.3 (D-036): a raised rifle sight zooms the world around the aim point (zoomView.ts).
     const { height } = designSize();
-    const zoom = zoomFor(interpolateAim(runner.prev, state, alpha), width, height);
+    // The hunt is over: the sight comes down (the tally never opens over a frozen scope view).
+    const zoom = zoomFor(
+      runner.over ? null : interpolateAim(runner.prev, state, alpha),
+      width,
+      height,
+    );
     this.zoomView = zoom;
     this.parallax.setZoom(zoom.z, zoom.cx, zoom.cy);
     this.parallax.update(cam, width);
     this.screen.setPosition(width / 2 - zoom.cx * zoom.z, height / 2 - zoom.cy * zoom.z);
     this.screen.setScale(zoom.z);
     this.sight.setPicture(this.sightPicture(state.weapon.sight));
-    this.sight.update(zoom, height);
+    this.sight.update(zoom, width, height);
     this.weapon.setScoped(zoom.raise);
     const drawBirds = interpolateBirds(runner.prev, state, alpha);
     this.birds.setViewZoom(zoom.z);
@@ -1194,6 +1207,12 @@ export class HuntScene extends Phaser.Scene {
         }
       } else if (e.type === 'weaponChanged') {
         this.mapper?.cancelHold();
+      } else if (
+        e.type === 'aimEnded' &&
+        (e.reason === 'weapon' || e.reason === 'reload' || e.reason === 'blocked')
+      ) {
+        // v1.3: the sim lowered the sight itself: the input stops holding it too.
+        this.mapper?.dropAim();
       } else if (e.type === 'targetBagged') {
         bagged = true;
       } else if (e.type === 'bonusAwarded' && e.bonus === 'twoFlies') {
