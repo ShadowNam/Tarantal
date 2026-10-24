@@ -56,5 +56,7 @@
   "range.dist_all": "Alle",
   "range.target_mixed": "Gemengd",
   "range.reach_note_mixed": "Heel ver is buiten het bereik van dit wapen — schoten daar vallen te kort",
-  "range.shuffle": "Schudden"
+  "range.shuffle": "Schudden",
+  "range.mark_hit": "RAAK",
+  "range.mark_short": "TE KORT"
 }

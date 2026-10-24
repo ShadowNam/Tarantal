@@ -56,5 +56,7 @@
   "range.dist_all": "Alle",
   "range.target_mixed": "Gemischt",
   "range.reach_note_mixed": "Ver liegt außerhalb der Reichweite dieser Waffe — Schüsse dorthin fallen zu kurz",
-  "range.shuffle": "Mischen"
+  "range.shuffle": "Mischen",
+  "range.mark_hit": "TREFFER",
+  "range.mark_short": "ZU KURZ"
 }

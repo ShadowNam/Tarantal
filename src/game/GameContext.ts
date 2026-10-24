@@ -64,6 +64,17 @@ export interface RangeHookState {
   readonly birds: readonly { readonly x: number; readonly y: number; readonly plane: string }[];
   /** The session's seed (the mixed course's Shuffle draws a new one). */
   readonly seed?: number;
+  /** 24 Oct update: hit feedback so far — markers by kind, the last hit marker's distance,
+   *  paper blinks, plate swings, the bar's hit pulses. */
+  readonly feedback?: {
+    readonly hit: number;
+    readonly miss: number;
+    readonly short: number;
+    readonly lastHit: string | null;
+    readonly blinks: number;
+    readonly swings: number;
+    readonly pulses: number;
+  };
 }
 
 /** Read by Playwright (dev/test builds and ?e2e=1 only). */

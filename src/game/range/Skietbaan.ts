@@ -12,6 +12,7 @@ import { designSize } from '../layout';
 import { layoutForDay } from '../../meta/maps';
 import { PaperDraw } from './PaperDraw';
 import { PlateDraw } from './PlateDraw';
+import { RangeFeedback } from './RangeFeedback';
 import { loadRangeAssets, playRangeSound } from './rangeSounds';
 import { RangeBar, RangeSetupPanel } from './RangePanel';
 import type { RangeHost, RangeMenuHost, RangeSession } from './RangeSession';
@@ -106,6 +107,9 @@ class Session implements RangeSession {
   private bar: RangeBar | null = null;
   private papers: PaperDraw[] = [];
   private plates = new Map<number, PlateDraw>();
+  private marks: RangeFeedback | null = null;
+  /** Range shots in the air: where each was counted (its miss marker goes there). */
+  private readonly aims = new Map<number, { plane: PlaneId; x: number; y: number }>();
   private readonly sel: RangeSelection;
 
   constructor(
@@ -123,6 +127,12 @@ class Session implements RangeSession {
   attach(host: RangeHost): void {
     this.host = host;
     void loadRangeAssets(host.scene.textures, host.audio);
+    this.marks = new RangeFeedback(
+      host.scene,
+      (plane) => host.overlay(plane),
+      { hit: rt('range.mark_hit'), short: rt('range.mark_short') },
+      () => host.reduceFlashes(),
+    );
     stats.newSession();
     const content = this.menu.content;
     this.bar = new RangeBar(content, {
@@ -162,33 +172,14 @@ class Session implements RangeSession {
         else this.papers.push(new PaperDraw(host.scene, layer, p));
       }
     }
-    // Steel plates swing and ring where the sim says a pellet struck (once per shot and plate).
-    let rung = '';
-    for (const e of events) {
-      if (e.type !== 'plateHit') continue;
-      const plate = this.plates.get(e.paperId);
-      const key = `${String(e.shotId)}:${String(e.paperId)}`;
-      if (plate === undefined || key === rung) continue;
-      rung = key;
-      plate.hit(e.x);
-      playRangeSound(host.audio, 'ding', this.pan(state, plate.plane, e.x));
-    }
-    // A paper target's thwack, a bird's hit (the plate rang above), once per shot and target.
-    for (const e of events) {
-      if (e.type !== 'rangeOutcome') continue;
-      for (const h of e.hits) {
-        if (h.target === 'plate') continue;
-        const at =
-          h.target === 'paper'
-            ? papers.find((p) => p.id === h.id)
-            : state.birds.find((b) => b.id === h.id);
-        const pan = at === undefined ? 0 : this.pan(state, h.plane, at.x);
-        playRangeSound(host.audio, h.target === 'paper' ? 'thwack' : 'hit', pan);
-      }
-    }
+    this.feedback(host, events, state);
     const dt = host.scene.game.loop.delta;
     for (const p of this.plates.values()) p.update(dt);
-    if (events.length > 0) stats.ingest(events, this.sel);
+    for (const p of this.papers) p.tick(dt);
+    this.marks?.update(dt);
+    const landed = events.length > 0 ? stats.ingest(events, this.sel) : [];
+    // The bar's hit counter pulses on a hit.
+    if (landed.some((r) => r.hit)) this.bar?.pulse();
     const cell = this.shown();
     for (const p of this.papers) p.update(this.impactsOf(p.plane, p.kind));
     this.bar?.update(cell, this.fixedCell() === null);
@@ -202,6 +193,13 @@ class Session implements RangeSession {
       const half = designSize().width / 2;
       hook.range = hookState(this.choice, 'range', {
         seed: this.seed,
+        feedback: {
+          ...(this.marks?.shown ?? { hit: 0, miss: 0, short: 0 }),
+          lastHit: this.marks?.lastHit ?? null,
+          blinks: this.papers.reduce((n, p) => n + p.blinks, 0),
+          swings: [...this.plates.values()].reduce((n, p) => n + p.hits, 0),
+          pulses: this.bar?.pulses ?? 0,
+        },
         stats:
           cell === null || cell.shots === 0
             ? null
@@ -249,6 +247,67 @@ class Session implements RangeSession {
     }
   }
 
+  /**
+   * 24 Oct update: what the player sees and hears of each shot, from the sim's range events —
+   * plates swing and ring at plateHit; at rangeOutcome a paper blinks and thwacks, a bird gets
+   * its hit sound, every target hit gets a HIT marker, and a miss a dust puff or SHORT.
+   */
+  private feedback(host: RangeHost, events: readonly SimEvent[], state: SimState): void {
+    const content = this.menu.content;
+    const papers = state.range?.papers ?? [];
+    let rung = '';
+    for (const e of events) {
+      if (e.type === 'rangeShot') {
+        this.aims.set(e.shotId, { plane: e.plane, x: e.x, y: e.y });
+        // Only the last few shots can still land (a Kettie stone is in the air < 1 s).
+        if (this.aims.size > 64) {
+          const oldest = this.aims.keys().next();
+          if (oldest.done !== true) this.aims.delete(oldest.value);
+        }
+      } else if (e.type === 'plateHit') {
+        // Once per shot and plate (a shotgun puts several pellets on it).
+        const plate = this.plates.get(e.paperId);
+        const key = `${String(e.shotId)}:${String(e.paperId)}`;
+        if (plate === undefined || key === rung) continue;
+        rung = key;
+        plate.hit(e.x);
+        playRangeSound(host.audio, 'ding', this.pan(state, plate.plane, e.x));
+      } else if (e.type === 'rangeOutcome') {
+        const aim = this.aims.get(e.shotId);
+        this.aims.delete(e.shotId);
+        if (e.hits.length === 0) {
+          if (aim !== undefined) this.marks?.miss(aim.plane, aim.x, aim.y, e.short);
+          continue;
+        }
+        for (const h of e.hits) {
+          if (h.target === 'paper' || h.target === 'plate') {
+            const p = papers.find((x) => x.id === h.id);
+            if (p === undefined) continue;
+            this.marks?.hit(h.plane, p.x, p.y, p.r);
+            if (h.target === 'plate') continue;
+            this.papers.find((x) => x.id === h.id)?.blink(host.reduceFlashes());
+            playRangeSound(host.audio, 'thwack', this.pan(state, h.plane, p.x));
+          } else {
+            const b = state.birds.find((x) => x.id === h.id);
+            if (b === undefined) continue;
+            const sc = content.scoring.planes[b.plane].scale;
+            const body = this.body();
+            const x = b.x + (body?.ox ?? 0) * sc * b.facing;
+            const y = b.y + (body?.oy ?? 0) * sc;
+            this.marks?.hit(h.plane, x, y, (body?.rx ?? 40) * sc);
+            playRangeSound(host.audio, 'hit', this.pan(state, h.plane, x));
+          }
+        }
+      }
+    }
+  }
+
+  private body(): { rx: number; ox: number; oy: number } | null {
+    const content = this.menu.content;
+    const c = content.birds.creatures.find((x) => x.id === content.modes.modes.range.creature);
+    return c !== undefined && 'hitbox' in c ? c.hitbox.body : null;
+  }
+
   /** Stereo pan of a plane point (−1 left … 1 right of the screen). */
   private pan(state: SimState, plane: PlaneId, x: number): number {
     const sf = this.menu.content.scoring.planes[plane].scrollFactor;
@@ -285,6 +344,9 @@ class Session implements RangeSession {
     this.papers = [];
     for (const p of this.plates.values()) p.destroy();
     this.plates.clear();
+    this.marks?.destroy();
+    this.marks = null;
+    this.aims.clear();
     this.host = null;
   }
 }

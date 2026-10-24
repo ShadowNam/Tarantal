@@ -56,5 +56,7 @@
   "range.dist_all": "All",
   "range.target_mixed": "Mixed",
   "range.reach_note_mixed": "Ver is beyond this gun's reach — shots there fall short",
-  "range.shuffle": "Shuffle"
+  "range.shuffle": "Shuffle",
+  "range.mark_hit": "HIT",
+  "range.mark_short": "SHORT"
 }

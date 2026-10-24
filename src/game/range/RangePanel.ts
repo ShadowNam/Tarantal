@@ -69,7 +69,9 @@ const CSS = `
 #tm-range-bar button{pointer-events:auto}
 #tm-range-bar [data-action=more]{display:none}
 #tm-range-bar b{color:#FFD25A}
-#tm-range-bar .lines{margin:2px 0 4px}
+#tm-range-bar .lines{margin:2px 0 4px;transform-origin:left center}
+#tm-range-bar .lines.pulse{animation:tm-range-pulse .35s ease-out}
+@keyframes tm-range-pulse{0%{transform:scale(1.08);color:#FFD25A}100%{transform:scale(1)}}
 #tm-range-bar button.btn{min-height:40px;font-size:13px;padding:2px 8px}
 @media (max-height:500px){#tm-range{font-size:14px}#tm-range h1{font-size:17px}#tm-range header{padding:2px 10px}
   #tm-range h3{margin:4px 0 2px}#tm-range button.btn{min-height:40px;padding:2px 8px}
@@ -390,6 +392,8 @@ export class RangeBar {
   private readonly lines: HTMLElement;
   private readonly toast: HTMLElement;
   private shown = '';
+  /** Hit pulses so far (the test hook reads it). */
+  pulses = 0;
 
   constructor(
     private readonly content: ContentBundle,
@@ -472,6 +476,15 @@ export class RangeBar {
       ...text.map((l) => el('div', { textContent: l })),
       ...(note === null ? [] : [el('div', { className: 'note muted', textContent: note })]),
     );
+  }
+
+  /** A hit: the stats lines pulse once (24 Oct update). */
+  pulse(): void {
+    this.pulses++;
+    this.lines.classList.remove('pulse');
+    // Restart the animation: read layout between removing and adding the class.
+    void this.lines.getBoundingClientRect();
+    this.lines.classList.add('pulse');
   }
 
   destroy(): void {
