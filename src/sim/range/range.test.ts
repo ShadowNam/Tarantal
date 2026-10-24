@@ -465,3 +465,19 @@ describe('24 Oct update: short', () => {
     expect(ofType(miss, 'rangeOutcome')[0]).toMatchObject({ hits: [], short: false });
   });
 });
+
+describe('review fix: Kettie stones stop on paper and plates', () => {
+  it('hits near and mid paper targets and plates (the stone stops on the first one it meets)', () => {
+    for (const plane of ['near', 'mid'] as const) {
+      for (const target of ['paper', 'plate'] as const) {
+        const sim = rangeSim({ plane, target }, { weapon: 'kettie' });
+        const p = paperOf(sim);
+        let ev: SimEvent[] = [];
+        for (let i = 0; i < 5; i++) ev = ev.concat(shoot(sim, fireAt(sim, plane, p.x, p.y), 120));
+        const hits = ofType(ev, 'rangeOutcome').filter((o) => o.hits.length > 0);
+        expect(hits.length, `${plane} ${target}`).toBeGreaterThanOrEqual(4);
+        expect(ofType(ev, target === 'paper' ? 'paperHit' : 'plateHit').length).toBe(hits.length);
+      }
+    }
+  });
+});

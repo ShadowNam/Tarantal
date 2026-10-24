@@ -1367,8 +1367,13 @@ export function createSim(config: SimConfig): Sim {
         // Bands are built without the Ver layer: a stone falls short of it.
         const geo = bandGeometry(stats.bagged === 0 ? firstHitGeometry : geometry, band);
         const r = resolvePellet(f.dx, psy, f.cx, geo, hitBirds(), hitExtras(), driftOn(drift));
+        // A paper target or steel plate (the range only) stops a stone too.
         const stopped =
-          r.birdId !== null || r.propId !== null || r.crateId !== null || f.next >= bands.length;
+          r.birdId !== null ||
+          r.propId !== null ||
+          r.crateId !== null ||
+          r.paperId !== undefined ||
+          f.next >= bands.length;
         if (!stopped) continue;
         resolveShot(ctx, [landPellet(f.shotId, f.dx, psy, r, drift, f.cx)]);
         done = true;
