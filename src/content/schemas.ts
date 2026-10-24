@@ -342,6 +342,10 @@ export const SightSchema = obj({
   /** Figure-eight sway: amplitude at the first zoom step, period of one loop. */
   swayPx: nonNeg,
   swayPeriodMs: posInt,
+  /** Each raise draws its loop pace (× the loop rate) from this range (rng.stream('sway')). */
+  swayPace: range(pos),
+  /** Height of the figure-eight as a fraction of its width. */
+  swayHeight: fraction,
   /** Extra sway per zoom step above the first (variable scopes: more sway at 9×). */
   swayPerStep: nonNeg,
   /** Breath hold: after holdAfterMs of holding the sway eases to holdMul for holdMs, then

@@ -325,7 +325,7 @@ describe('sway and the breath hold (v1.3)', () => {
   });
 
   it('sways in a figure-eight within the sight amplitude, far less while the breath is held', () => {
-    const a = raiseSight(0, 500, 0, createStream(9));
+    const a = raiseSight(0, 500, 0, createStream(9), sight);
     let steadyMax = 0;
     let heldMax = 0;
     for (let t = sight.raiseTicks; t < 30; t++) {
@@ -333,7 +333,7 @@ describe('sway and the breath hold (v1.3)', () => {
       const s = swayAt(a, sight);
       steadyMax = Math.max(steadyMax, Math.hypot(s.dx, s.dy));
       expect(Math.abs(s.dx)).toBeLessThanOrEqual(sight.swayPx + 1e-9);
-      expect(Math.abs(s.dy)).toBeLessThanOrEqual(sight.swayPx / 2 + 1e-9);
+      expect(Math.abs(s.dy)).toBeLessThanOrEqual(sight.swayPx * sight.swayHeight + 1e-9);
     }
     for (let t = 60; t < 200; t++) {
       a.heldTicks = t;
