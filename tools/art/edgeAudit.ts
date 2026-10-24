@@ -34,7 +34,7 @@ const pngs = (dir: string): string[] =>
   );
 
 /** Scenery prop folders (FX, UI, omen and crate sprites are effects that may fill their frame). */
-const PROP_DIRS = ['karoo', 'bushveld', 'kalahari', 'okavango', 'secret', 'helper'];
+const PROP_DIRS = ['karoo', 'bushveld', 'kalahari', 'okavango', 'namibie', 'secret', 'helper'];
 /** Sprites meant to touch an edge: a water strip tiles sideways. */
 const EDGE_OK = new Set(['sprites/biome/water.png']);
 

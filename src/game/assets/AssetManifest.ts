@@ -605,6 +605,8 @@ export function birdKey(creature: string, plane: PlaneId, frame: BirdFrame): str
 export const TEX = {
   stone: 'fx/stone',
   glare: 'omen/glare',
+  // v1.4 B (D-039): a soft bright strip of the Namibië mirage (WorldView).
+  mirage: 'omen/mirage',
   water: 'biome/water',
   rain: 'omen/rain',
   rainbow: 'omen/rainbow',

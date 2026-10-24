@@ -96,6 +96,18 @@ const STYLES: Readonly<Record<string, Style>> = {
     lead: 'guitarMarimba',
     seed: 404,
   },
+  // v1.4 B (D-039): i – iv – VII – i in D minor, slow kalimba over the open pan.
+  namibie: {
+    root: 50,
+    chords: [
+      [0, 3, 7],
+      [5, 8, 12],
+      [-2, 2, 5],
+      [0, 3, 7],
+    ],
+    lead: 'kalimba',
+    seed: 505,
+  },
 };
 
 export const MUSIC_BIOMES: readonly string[] = Object.keys(STYLES);
@@ -337,6 +349,12 @@ export function renderAmbience(biome: string): Buf {
       birds(9, 2400, 0.12);
       break;
     }
+    case 'namibie':
+      // The open pan: a wide, thin wind, a few larks far off, a faint dry-grass rustle.
+      wind(620, 0.9, [1, 2]);
+      insects(6200, 0.07, 22);
+      birds(4, 3400, 0.07);
+      break;
     default:
       throw new Error(`no interim ambience for ${biome}`);
   }

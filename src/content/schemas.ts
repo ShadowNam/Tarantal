@@ -830,6 +830,10 @@ export const BiomeSchema = obj({
   id,
   season: id,
   nameKey: i18nKey,
+  /** v1.4 B (D-039): an area pack outside the Season Run (Namibië), played in Classic from the
+   *  title's area picker. It unlocks once `unlockBonus` is reached in any area; `quota` is its
+   *  maps' quota (the bonus-map unlock), as a season's plain-hunt quota is for the others. */
+  area: obj({ unlockBonus: BonusMapIdSchema, quota: posInt }).optional(),
   panoramaWidth: posInt,
   skyBand: obj({ top: nonNeg, bottom: nonNeg })
     .refine((b) => b.top < b.bottom, 'skyBand.top must be above bottom'),
@@ -920,6 +924,10 @@ export const BiomeSchema = obj({
         message: 'storm flashes closer than 1/maxFlashesPerSecond s',
       })
       .optional(),
+    /** v1.4 B (D-039) Namibië mirage: all hunt, far and Ver birds shimmer sideways in the heat
+     *  (hitboxes too, like the Kalahari haze) by hazePx × the plane's share (far 1, Ver verPx);
+     *  the renderer draws the shimmering pan. No flashes. */
+    mirage: obj({ hazePx: pos, verPx: nonNeg, hazePeriodSeconds: pos }).optional(),
     /** M8 Bushveld low sun: a glare band this wide (design px of the screen) on one side of the
      *  view, the side drawn from the omen stream at hunt start. Drawn only; no sim rule. */
     glare: obj({ widthPx: pos, alpha: fraction }).optional(),

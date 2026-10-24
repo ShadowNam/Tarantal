@@ -500,6 +500,10 @@ export function createSim(config: SimConfig): Sim {
   const storm = setup.omen ? (biome.omen.storm ?? null) : null;
   const stormTick = storm === null ? null : Math.floor(storm.stormAt * baseDurationTicks);
   const hazePeriodTicks = storm === null ? 1 : Math.max(1, secondsToTicks(storm.hazePeriodSeconds));
+  // v1.4 B (D-039): the Namibië mirage (omen): far and Ver birds shimmer all hunt.
+  const mirage = setup.omen ? (biome.omen.mirage ?? null) : null;
+  const miragePeriodTicks =
+    mirage === null ? 1 : Math.max(1, secondsToTicks(mirage.hazePeriodSeconds));
   const stormRng = rng.stream('storm');
   const voelRule = ((): {
     every: readonly [number, number];
@@ -1208,6 +1212,10 @@ export function createSim(config: SimConfig): Sim {
   /** Kalahari heat haze (omen, before the storm): far-plane birds wobble sideways — the hitbox
    *  with them, so what you see is what you hit (D-025). */
   function hazeDx(b: Bird): number {
+    if (mirage !== null && (b.plane === 'far' || b.plane === 'ver')) {
+      const px = b.plane === 'far' ? mirage.hazePx : mirage.verPx;
+      return px * sin((2 * Math.PI * tick) / miragePeriodTicks + b.id * 1.7);
+    }
     if (storm === null || b.plane !== 'far' || stormActive()) return 0;
     return storm.hazePx * sin((2 * Math.PI * tick) / hazePeriodTicks + b.id * 1.7);
   }
@@ -2404,6 +2412,7 @@ export function createSim(config: SimConfig): Sim {
         dustDevils: dustDevils.map(dustDevilView),
         glare,
         rain: raining() || stormActive(),
+        mirage: mirage !== null,
         lightning: lightningLeft > 0,
         projectiles: flights.map((f) => ({
           shotId: f.shotId,

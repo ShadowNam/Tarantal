@@ -1,0 +1,643 @@
+{
+  "$comment": "v1.4 B (D-039) Namibië — Etosha & Namib: an area pack outside the Season Run (Classic only), unlocked by reaching Die Verste in any area. Wide open and built for long range: the white salt pan with its mirage, Namib dunes on the horizon, a waterhole far out where flocks feed (Ver), quiver trees and camelthorns, one with a sociable-weaver family nest on the near plane (don't shoot it: −10, the weavers scold). Omen (on in tue/thu and the bonus maps): the mirage shimmers far and Ver birds (hitboxes too).",
+  "version": 1,
+  "id": "namibie",
+  "season": "droog",
+  "nameKey": "biome.namibie",
+  "area": {
+    "unlockBonus": "dieVerste",
+    "quota": 3000
+  },
+  "panoramaWidth": 3840,
+  "skyBand": {
+    "top": 80,
+    "bottom": 420
+  },
+  "layers": [
+    {
+      "id": "sky",
+      "scrollFactor": 0.05,
+      "asset": "namibie/sky",
+      "lowTierMergeWith": null
+    },
+    {
+      "id": "far_ridge",
+      "scrollFactor": 0.15,
+      "asset": "namibie/far_ridge",
+      "lowTierMergeWith": "far_veld"
+    },
+    {
+      "$comment": "The Ver plane: the far edge of the pan, with the waterhole and its camelthorns.",
+      "id": "ver_veld",
+      "scrollFactor": 0.22,
+      "asset": "namibie/ver_veld",
+      "plane": "ver"
+    },
+    {
+      "id": "far_veld",
+      "scrollFactor": 0.35,
+      "asset": "namibie/far_veld",
+      "plane": "far"
+    },
+    {
+      "id": "mid",
+      "scrollFactor": 0.6,
+      "asset": "namibie/mid",
+      "plane": "mid"
+    },
+    {
+      "id": "near",
+      "scrollFactor": 1.0,
+      "asset": "namibie/near",
+      "plane": "near"
+    },
+    {
+      "id": "foreground",
+      "scrollFactor": 1.2,
+      "asset": "namibie/foreground",
+      "occludes": true
+    }
+  ],
+  "lanes": {
+    "ver": {
+      "groundY": [
+        548,
+        562
+      ],
+      "skyY": [
+        190,
+        350
+      ]
+    },
+    "far": {
+      "groundY": [
+        585,
+        612
+      ],
+      "skyY": [
+        120,
+        300
+      ]
+    },
+    "mid": {
+      "groundY": [
+        690,
+        760
+      ],
+      "skyY": [
+        160,
+        420
+      ]
+    },
+    "near": {
+      "popupY": [
+        880,
+        960
+      ]
+    }
+  },
+  "props": [
+    {
+      "$comment": "The family nest on the near plane: a camelthorn on the red dune edge at the west end of the pan, drawn 1.8× the Kalahari one.",
+      "id": "nest_camelthorn",
+      "layer": "near",
+      "u": 0.16,
+      "y": 562,
+      "asset": "namibie/nest_camelthorn",
+      "occluder": {
+        "type": "rect",
+        "w": 108,
+        "h": 540,
+        "ox": 0,
+        "oy": 198
+      },
+      "secret": {
+        "$comment": "Don't shoot the sociable-weaver family nest: the weavers scold you, −10 (every 2 s you keep at it).",
+        "type": "singleHit",
+        "part": {
+          "id": "nest",
+          "shape": {
+            "type": "ellipse",
+            "rx": 270,
+            "ry": 83,
+            "ox": 0,
+            "oy": -140
+          }
+        },
+        "cooldownSeconds": 2,
+        "reward": {
+          "penalty": 10,
+          "barkKey": "bark.weavers"
+        }
+      }
+    },
+    {
+      "id": "camelthorn_mature",
+      "layer": "mid",
+      "u": 0.5,
+      "y": 700,
+      "asset": "namibie/camelthorn_mature",
+      "occluder": {
+        "type": "rect",
+        "w": 34,
+        "h": 90,
+        "ox": 0,
+        "oy": -45
+      }
+    },
+    {
+      "id": "camelthorn_old",
+      "layer": "mid",
+      "u": 0.86,
+      "y": 706,
+      "asset": "namibie/camelthorn_old",
+      "occluder": {
+        "type": "rect",
+        "w": 32,
+        "h": 84,
+        "ox": 0,
+        "oy": -42
+      }
+    },
+    {
+      "id": "camelthorn_young",
+      "layer": "mid",
+      "u": 0.33,
+      "y": 712,
+      "asset": "namibie/camelthorn_young"
+    },
+    {
+      "id": "quiver_tree",
+      "layer": "mid",
+      "u": 0.68,
+      "y": 716,
+      "asset": "namibie/quiver_tree",
+      "occluder": {
+        "type": "rect",
+        "w": 30,
+        "h": 120,
+        "ox": 0,
+        "oy": -60
+      }
+    },
+    {
+      "id": "quiver_egg",
+      "layer": "mid",
+      "u": 0.08,
+      "y": 712,
+      "asset": "namibie/quiver_egg",
+      "occluder": {
+        "type": "rect",
+        "w": 30,
+        "h": 110,
+        "ox": 0,
+        "oy": -55
+      },
+      "secret": {
+        "$comment": "Shoot the ostrich-egg water flask hanging in the old quiver tree: it bursts, the birds roosting round it burst out, +60.",
+        "type": "singleHit",
+        "part": {
+          "id": "egg",
+          "shape": {
+            "type": "ellipse",
+            "rx": 16,
+            "ry": 20,
+            "ox": 38,
+            "oy": -118
+          }
+        },
+        "oncePerHunt": true,
+        "reward": {
+          "points": 60,
+          "at": "quiver_egg",
+          "flushBirds": 8,
+          "barkKey": "bark.egg"
+        }
+      }
+    },
+    {
+      "id": "pan_grass_a",
+      "layer": "foreground",
+      "u": 0.05,
+      "y": 985,
+      "asset": "namibie/pan_grass_a",
+      "occluder": {
+        "type": "ellipse",
+        "rx": 140,
+        "ry": 110,
+        "ox": 0,
+        "oy": 0
+      }
+    },
+    {
+      "id": "pan_grass_b",
+      "layer": "foreground",
+      "u": 0.93,
+      "y": 990,
+      "asset": "namibie/pan_grass_b",
+      "occluder": {
+        "type": "ellipse",
+        "rx": 150,
+        "ry": 110,
+        "ox": 0,
+        "oy": 0
+      }
+    }
+  ],
+  "events": [
+    {
+      "id": "hadeda",
+      "creature": "hadeda",
+      "perHunt": [
+        0,
+        1
+      ],
+      "window": [
+        0.2,
+        0.8
+      ]
+    }
+  ],
+  "omen": {
+    "id": "mirage",
+    "mirage": {
+      "hazePx": 12,
+      "verPx": 5,
+      "hazePeriodSeconds": 2.2
+    },
+    "wind": {
+      "strength": [
+        0.3,
+        0.8
+      ],
+      "directionChangeSeconds": [
+        14,
+        24
+      ],
+      "tailwindSpeedMul": 1.3,
+      "headwindSpeedMul": 0.75,
+      "driftPxAtFar": 40
+    },
+    "visual": {
+      "windSock": true,
+      "dust": true
+    }
+  },
+  "pacing": {
+    "keyframes": [
+      {
+        "t": 0.0,
+        "flocks": {
+          "far": 1,
+          "ver": 1
+        },
+        "flyoversPerMin": 2,
+        "popupsPerMin": 1
+      },
+      {
+        "t": 0.17,
+        "flocks": {
+          "mid": 1,
+          "far": 1,
+          "ver": 1
+        },
+        "flyoversPerMin": 3,
+        "popupsPerMin": 2
+      },
+      {
+        "t": 0.5,
+        "flocks": {
+          "mid": 1,
+          "far": 1,
+          "ver": 1
+        },
+        "flyoversPerMin": 4,
+        "popupsPerMin": 2
+      },
+      {
+        "t": 0.83,
+        "flocks": {
+          "mid": 1,
+          "far": 2,
+          "ver": 1
+        },
+        "flyoversPerMin": 5,
+        "popupsPerMin": 3
+      },
+      {
+        "t": 1.0,
+        "flocks": {
+          "mid": 1,
+          "far": 2,
+          "ver": 1
+        },
+        "flyoversPerMin": 5,
+        "popupsPerMin": 3
+      }
+    ],
+    "stampede": {
+      "flyoversPerMin": 9,
+      "popupsPerMin": 6,
+      "flockState": "run"
+    },
+    "maxBirdsOnScreen": 60,
+    "maxFlocks": 8,
+    "$comment": "Mostly far and Ver birds (long range); a mid flock and a few near pop-ups so a shotgun still has a hunt. Tuned against the Classic balance report (docs/balance/v1.4-namibie.md)."
+  },
+  "spawnTable": [
+    {
+      "creature": "tarentaal",
+      "weight": 100
+    },
+    {
+      "creature": "tarentaal_lavendel",
+      "weight": 2
+    },
+    {
+      "creature": "tarentaal_wit",
+      "weight": 1
+    }
+  ],
+  "music": {
+    "calm": "namibie_calm",
+    "build": "namibie_build",
+    "stampede": "namibie_stampede"
+  },
+  "ambience": "namibie_pan_bed",
+  "layouts": [
+    {
+      "id": "mon",
+      "light": "dawn_mist",
+      "weather": "calm",
+      "$comment": "Cool dawn on the pan: flocks drink at the waterhole far out; no mirage yet.",
+      "ver": true,
+      "feedingSpots": [
+        {
+          "plane": "ver",
+          "u": [
+            0.42,
+            0.56
+          ]
+        },
+        {
+          "plane": "far",
+          "u": [
+            0.4,
+            0.6
+          ]
+        }
+      ],
+      "cameraStartU": 0.5,
+      "pointsMul": 0.75
+    },
+    {
+      "id": "tue",
+      "light": "midday",
+      "weather": "omen",
+      "$comment": "White-hot midday: the mirage shimmers over the whole pan.",
+      "ver": true,
+      "feedingSpots": [
+        {
+          "plane": "far",
+          "u": [
+            0.18,
+            0.3
+          ]
+        },
+        {
+          "plane": "far",
+          "u": [
+            0.7,
+            0.84
+          ]
+        },
+        {
+          "plane": "ver",
+          "u": [
+            0.5,
+            0.6
+          ]
+        }
+      ],
+      "cameraStartU": 0.3,
+      "pointsMul": 0.75
+    },
+    {
+      "id": "wed",
+      "light": "overcast",
+      "weather": "default",
+      "$comment": "Overcast: flocks spread along the pan edge, closer in.",
+      "ver": true,
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.4,
+            0.6
+          ]
+        },
+        {
+          "plane": "far",
+          "u": [
+            0.6,
+            0.76
+          ]
+        }
+      ],
+      "pacing": {
+        "flyoversMul": 0.85
+      },
+      "cameraStartU": 0.55,
+      "pointsMul": 0.75
+    },
+    {
+      "id": "thu",
+      "light": "golden",
+      "weather": "omen",
+      "$comment": "Golden afternoon on the dune edge: the family nest stands east; mirage on.",
+      "ver": true,
+      "props": [
+        {
+          "id": "nest_camelthorn",
+          "u": 0.82
+        },
+        {
+          "id": "quiver_egg",
+          "u": 0.3
+        }
+      ],
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.62,
+            0.78
+          ]
+        },
+        {
+          "plane": "ver",
+          "u": [
+            0.3,
+            0.42
+          ]
+        }
+      ],
+      "cameraStartU": 0.78,
+      "pointsMul": 0.75
+    },
+    {
+      "id": "fri",
+      "light": "dusty_wind",
+      "weather": "default",
+      "$comment": "Dusty wind off the Namib: high fly-overs far out.",
+      "ver": true,
+      "flyovers": {
+        "planeWeights": {
+          "mid": 0.6,
+          "far": 1.5,
+          "ver": 1
+        }
+      },
+      "pacing": {
+        "flyoversMul": 1.15
+      },
+      "feedingSpots": [
+        {
+          "plane": "far",
+          "u": [
+            0.5,
+            0.66
+          ]
+        }
+      ],
+      "cameraStartU": 0.6,
+      "pointsMul": 0.75
+    },
+    {
+      "id": "sat",
+      "light": "dusk",
+      "weather": "default",
+      "$comment": "Dusk at the waterhole: fewer birds, worth more; secrets glow.",
+      "ver": true,
+      "pacing": {
+        "flyoversMul": 0.7,
+        "popupsMul": 0.7
+      },
+      "pointsMul": 0.9,
+      "feedingSpots": [
+        {
+          "plane": "ver",
+          "u": [
+            0.44,
+            0.56
+          ]
+        },
+        {
+          "plane": "far",
+          "u": [
+            0.44,
+            0.58
+          ]
+        }
+      ],
+      "cameraStartU": 0.5
+    },
+    {
+      "id": "sun",
+      "light": "bright_calm",
+      "weather": "calm",
+      "$comment": "Bright and calm: a relaxed map, a flock close in under the camelthorns.",
+      "ver": true,
+      "pacing": {
+        "popupsMul": 1.5
+      },
+      "feedingSpots": [
+        {
+          "plane": "mid",
+          "u": [
+            0.44,
+            0.56
+          ]
+        }
+      ],
+      "cameraStartU": 0.45,
+      "pointsMul": 0.75
+    }
+  ],
+  "bonusMaps": [
+    {
+      "$comment": "Verder: today's layout from further back — more far birds, fewer near ones, the mirage on. Unlocked by beating the area's quota on today's map.",
+      "id": "verder",
+      "nameKey": "map.verder",
+      "light": "verder_haze",
+      "weather": "omen",
+      "flyovers": {
+        "planeWeights": {
+          "mid": 0.6,
+          "far": 3,
+          "ver": 1
+        }
+      },
+      "pacing": {
+        "popupsMul": 0.3,
+        "flyoversMul": 0.8,
+        "flocks": {
+          "mid": 1,
+          "far": 2,
+          "ver": 1
+        }
+      },
+      "pointsMul": 0.95,
+      "ver": true
+    },
+    {
+      "$comment": "Nog Verder: further still — two flocks out at the waterhole, a far flock, almost nothing close.",
+      "id": "nogVerder",
+      "nameKey": "map.nog_verder",
+      "light": "nog_verder_haze",
+      "weather": "omen",
+      "flyovers": {
+        "planeWeights": {
+          "mid": 0.3,
+          "far": 2,
+          "ver": 1.5
+        }
+      },
+      "pacing": {
+        "popupsMul": 0.2,
+        "flyoversMul": 0.7,
+        "flocks": {
+          "far": 1,
+          "ver": 2
+        }
+      },
+      "pointsMul": 0.6,
+      "ver": true
+    },
+    {
+      "$comment": "Die Verste: long range only — the waterhole flocks and Ver fly-overs; a scoped rifle is the tool.",
+      "id": "dieVerste",
+      "needsScope": true,
+      "nameKey": "map.die_verste",
+      "light": "verste_haze",
+      "weather": "omen",
+      "flyovers": {
+        "planeWeights": {
+          "mid": 0,
+          "far": 1,
+          "ver": 3
+        }
+      },
+      "pacing": {
+        "popupsMul": 0.1,
+        "flyoversMul": 0.6,
+        "flocks": {
+          "far": 1,
+          "ver": 2
+        }
+      },
+      "pointsMul": 0.46,
+      "ver": true
+    }
+  ]
+}

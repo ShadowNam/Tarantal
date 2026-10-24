@@ -1307,6 +1307,7 @@ const LAZY_ART: Readonly<Record<string, () => Promise<BiomeArt>>> = {
   'bushveld-winter': () => import('./biomes/bushveld').then((m) => m.BUSHVELD_ART),
   'okavango-spring': () => import('./biomes/okavango').then((m) => m.OKAVANGO_ART),
   'kalahari-summer': () => import('./biomes/kalahari').then((m) => m.KALAHARI_ART),
+  namibie: () => import('./biomes/namibie').then((m) => m.NAMIBIE_ART),
 };
 const loadedArt = new Map<string, BiomeArt>([['karoo-autumn', KAROO_ART]]);
 const loadingArt = new Map<string, Promise<boolean>>();

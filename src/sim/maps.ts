@@ -28,9 +28,20 @@ export interface ResolvedMap {
  * biome) leaves it out, so its slices, spawns and art are exactly as before v1.3.
  */
 function withoutVer(biome: Biome): Biome {
-  return biome.layers.some((l) => l.plane === 'ver')
-    ? { ...biome, layers: biome.layers.filter((l) => l.plane !== 'ver') }
-    : biome;
+  if (!biome.layers.some((l) => l.plane === 'ver')) return biome;
+  // v1.4 B (D-039): a biome whose own pacing has Ver flocks (Namibië) drops them too on a map
+  // without the plane. The season biomes have none, so their maps are exactly as before.
+  const hasVerFlocks = biome.pacing.keyframes.some((k) => k.flocks.ver !== undefined);
+  const pacing = !hasVerFlocks
+    ? biome.pacing
+    : {
+        ...biome.pacing,
+        keyframes: biome.pacing.keyframes.map((k) => ({
+          ...k,
+          flocks: Object.fromEntries(Object.entries(k.flocks).filter(([p]) => p !== 'ver')),
+        })),
+      };
+  return { ...biome, pacing, layers: biome.layers.filter((l) => l.plane !== 'ver') };
 }
 
 type Override = Omit<BonusMap, 'id' | 'nameKey'>;

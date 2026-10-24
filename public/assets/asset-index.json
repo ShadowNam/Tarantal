@@ -455,6 +455,111 @@
       "originX": 0.7258064516129032,
       "originY": 0.375
     },
+    "namibie/camelthorn_mature": {
+      "group": "namibie",
+      "origin": "interim",
+      "file": {
+        "path": "assets/namibie/img/namibie_camelthorn_mature.4f45483e941a.png",
+        "bytes": 96807,
+        "hash": "4f45483e941a"
+      },
+      "width": 800,
+      "height": 592,
+      "scale": 0.5,
+      "originX": 0.49,
+      "originY": 0.8716216216216216
+    },
+    "namibie/camelthorn_old": {
+      "group": "namibie",
+      "origin": "interim",
+      "file": {
+        "path": "assets/namibie/img/namibie_camelthorn_old.42b6682eda56.png",
+        "bytes": 76963,
+        "hash": "42b6682eda56"
+      },
+      "width": 780,
+      "height": 592,
+      "scale": 0.5,
+      "originX": 0.5,
+      "originY": 0.8716216216216216
+    },
+    "namibie/camelthorn_young": {
+      "group": "namibie",
+      "origin": "interim",
+      "file": {
+        "path": "assets/namibie/img/namibie_camelthorn_young.3c4889cf11d0.png",
+        "bytes": 35740,
+        "hash": "3c4889cf11d0"
+      },
+      "width": 460,
+      "height": 480,
+      "scale": 0.5,
+      "originX": 0.5,
+      "originY": 0.8333333333333334
+    },
+    "namibie/nest_camelthorn": {
+      "group": "namibie",
+      "origin": "interim",
+      "file": {
+        "path": "assets/namibie/img/namibie_nest_camelthorn.30b1c6d7c455.png",
+        "bytes": 234399,
+        "hash": "30b1c6d7c455"
+      },
+      "width": 1044,
+      "height": 1044,
+      "originX": 0.5,
+      "originY": 0.5172413793103449
+    },
+    "namibie/pan_grass_a": {
+      "group": "namibie",
+      "origin": "interim",
+      "file": {
+        "path": "assets/namibie/img/namibie_pan_grass_a.0863449462c8.png",
+        "bytes": 21561,
+        "hash": "0863449462c8"
+      },
+      "width": 360,
+      "height": 380
+    },
+    "namibie/pan_grass_b": {
+      "group": "namibie",
+      "origin": "interim",
+      "file": {
+        "path": "assets/namibie/img/namibie_pan_grass_b.c4062b0cfd62.png",
+        "bytes": 22518,
+        "hash": "c4062b0cfd62"
+      },
+      "width": 380,
+      "height": 380
+    },
+    "namibie/quiver_egg": {
+      "group": "namibie",
+      "origin": "interim",
+      "file": {
+        "path": "assets/namibie/img/namibie_quiver_egg.505055f46645.png",
+        "bytes": 32980,
+        "hash": "505055f46645"
+      },
+      "width": 480,
+      "height": 508,
+      "scale": 0.5,
+      "originX": 0.48333333333333334,
+      "originY": 0.9212598425196851
+    },
+    "namibie/quiver_tree": {
+      "group": "namibie",
+      "origin": "interim",
+      "file": {
+        "path": "assets/namibie/img/namibie_quiver_tree.21f63b35e288.png",
+        "bytes": 32863,
+        "hash": "21f63b35e288"
+      },
+      "width": 480,
+      "height": 524,
+      "scale": 0.5,
+      "originX": 0.5,
+      "originY": 0.9236641221374046
+    },
     "okavango/hippo": {
       "group": "okavango-spring",
       "origin": "interim",
@@ -2608,6 +2713,594 @@
         ]
       }
     },
+    "namibie/far_ridge": {
+      "group": "namibie",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/namibie/layers/far_ridge-0.282661dbc2ac.png",
+          "bytes": 35807,
+          "hash": "282661dbc2ac"
+        },
+        {
+          "path": "assets/namibie/layers/far_ridge-1.5819d0019feb.png",
+          "bytes": 17113,
+          "hash": "5819d0019feb"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 420,
+      "height": 200,
+      "solid": {
+        "bucket": 256,
+        "rows": [
+          [
+            142,
+            154
+          ],
+          [
+            164,
+            176
+          ],
+          [
+            140,
+            154
+          ],
+          [
+            162,
+            176
+          ],
+          [
+            141,
+            155
+          ],
+          [
+            146,
+            157
+          ],
+          [
+            146,
+            156
+          ],
+          [
+            162,
+            176
+          ],
+          [
+            161,
+            176
+          ],
+          [
+            164,
+            176
+          ],
+          [
+            164,
+            176
+          ],
+          [
+            110,
+            135
+          ]
+        ]
+      }
+    },
+    "namibie/far_veld": {
+      "group": "namibie",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/namibie/layers/far_veld-0.9bf8ee7bf32e.png",
+          "bytes": 39364,
+          "hash": "9bf8ee7bf32e"
+        },
+        {
+          "path": "assets/namibie/layers/far_veld-1.bdc4c213e0d4.png",
+          "bytes": 29707,
+          "hash": "bdc4c213e0d4"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 464,
+      "height": 232,
+      "solid": {
+        "bucket": 256,
+        "rows": [
+          [
+            112,
+            183
+          ],
+          [
+            176,
+            232
+          ],
+          [
+            112,
+            218
+          ],
+          [
+            111,
+            204
+          ],
+          [
+            122,
+            179
+          ],
+          [
+            120,
+            210
+          ],
+          [
+            137,
+            232
+          ],
+          [
+            118,
+            182
+          ],
+          [
+            158,
+            232
+          ],
+          [
+            154,
+            232
+          ],
+          [
+            111,
+            193
+          ],
+          [
+            129,
+            208
+          ],
+          [
+            111,
+            170
+          ],
+          [
+            154,
+            232
+          ],
+          [
+            118,
+            232
+          ]
+        ]
+      }
+    },
+    "namibie/foreground": {
+      "group": "namibie",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/namibie/layers/foreground-0.827518319823.png",
+          "bytes": 14810,
+          "hash": "827518319823"
+        },
+        {
+          "path": "assets/namibie/layers/foreground-1.5c06e8fb76e4.png",
+          "bytes": 15547,
+          "hash": "5c06e8fb76e4"
+        },
+        {
+          "path": "assets/namibie/layers/foreground-2.c32b00808e4d.png",
+          "bytes": 23374,
+          "hash": "c32b00808e4d"
+        },
+        {
+          "path": "assets/namibie/layers/foreground-3.e48f51863ddc.png",
+          "bytes": 3697,
+          "hash": "e48f51863ddc"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 880,
+      "height": 200,
+      "solid": {
+        "bucket": 256,
+        "rows": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      }
+    },
+    "namibie/mid": {
+      "group": "namibie",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/namibie/layers/mid-0.347db0e05429.png",
+          "bytes": 43411,
+          "hash": "347db0e05429"
+        },
+        {
+          "path": "assets/namibie/layers/mid-1.cf8dec34a011.png",
+          "bytes": 43393,
+          "hash": "cf8dec34a011"
+        },
+        {
+          "path": "assets/namibie/layers/mid-2.da98a6654028.png",
+          "bytes": 5439,
+          "hash": "da98a6654028"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 630,
+      "height": 280,
+      "solid": {
+        "bucket": 256,
+        "rows": [
+          [
+            132,
+            207
+          ],
+          [
+            197,
+            280
+          ],
+          [
+            103,
+            280
+          ],
+          [
+            201,
+            280
+          ],
+          [
+            132,
+            280
+          ],
+          [
+            166,
+            280
+          ],
+          [
+            111,
+            245
+          ],
+          [
+            116,
+            261
+          ],
+          [
+            107,
+            280
+          ],
+          [
+            111,
+            185
+          ],
+          [
+            109,
+            232
+          ],
+          [
+            35,
+            112
+          ],
+          [
+            34,
+            93
+          ],
+          [
+            102,
+            198
+          ],
+          [
+            225,
+            280
+          ],
+          [
+            166,
+            280
+          ],
+          [
+            37,
+            163
+          ],
+          [
+            36,
+            280
+          ]
+        ]
+      }
+    },
+    "namibie/near": {
+      "group": "namibie",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/namibie/layers/near-0.d143674c6819.png",
+          "bytes": 62413,
+          "hash": "d143674c6819"
+        },
+        {
+          "path": "assets/namibie/layers/near-1.9fe4e3bfc40d.png",
+          "bytes": 58076,
+          "hash": "9fe4e3bfc40d"
+        },
+        {
+          "path": "assets/namibie/layers/near-2.29f9578ffbba.png",
+          "bytes": 31579,
+          "hash": "29f9578ffbba"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 820,
+      "height": 260,
+      "solid": {
+        "bucket": 256,
+        "rows": [
+          [
+            30,
+            260
+          ],
+          [
+            31,
+            260
+          ],
+          [
+            31,
+            260
+          ],
+          [
+            34,
+            260
+          ],
+          [
+            35,
+            260
+          ],
+          [
+            35,
+            260
+          ],
+          [
+            32,
+            260
+          ],
+          [
+            33,
+            260
+          ],
+          [
+            34,
+            260
+          ],
+          [
+            30,
+            260
+          ],
+          [
+            26,
+            260
+          ],
+          [
+            31,
+            260
+          ],
+          [
+            31,
+            260
+          ],
+          [
+            33,
+            260
+          ],
+          [
+            28,
+            260
+          ],
+          [
+            30,
+            260
+          ],
+          [
+            30,
+            260
+          ],
+          [
+            30,
+            260
+          ],
+          [
+            25,
+            260
+          ],
+          [
+            29,
+            260
+          ],
+          [
+            33,
+            260
+          ],
+          [
+            24,
+            260
+          ],
+          [
+            23,
+            260
+          ]
+        ]
+      }
+    },
+    "namibie/sky": {
+      "group": "namibie",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/namibie/layers/sky-0.4a8661d45528.png",
+          "bytes": 58493,
+          "hash": "4a8661d45528"
+        },
+        {
+          "path": "assets/namibie/layers/sky-1.1464aa6b4ead.png",
+          "bytes": 21006,
+          "hash": "1464aa6b4ead"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 0,
+      "height": 1080,
+      "solid": {
+        "bucket": 256,
+        "rows": [
+          [
+            0,
+            1080
+          ],
+          [
+            0,
+            1080
+          ],
+          [
+            0,
+            1080
+          ],
+          [
+            0,
+            1080
+          ],
+          [
+            0,
+            1080
+          ],
+          [
+            0,
+            1080
+          ],
+          [
+            0,
+            1080
+          ],
+          [
+            0,
+            1080
+          ],
+          [
+            0,
+            1080
+          ],
+          [
+            0,
+            1080
+          ],
+          [
+            0,
+            1080
+          ]
+        ]
+      }
+    },
+    "namibie/ver_veld": {
+      "group": "ver",
+      "origin": "interim",
+      "tiles": [
+        {
+          "path": "assets/ver/layers/namibie-ver_veld-0.46c613fdef43.png",
+          "bytes": 12179,
+          "hash": "46c613fdef43"
+        },
+        {
+          "path": "assets/ver/layers/namibie-ver_veld-1.dc12bfc46c5d.png",
+          "bytes": 5947,
+          "hash": "dc12bfc46c5d"
+        }
+      ],
+      "tileWidth": 2048,
+      "left": -300,
+      "top": 524,
+      "height": 64,
+      "solid": {
+        "bucket": 256,
+        "rows": [
+          [
+            24,
+            64
+          ],
+          [
+            23,
+            64
+          ],
+          [
+            24,
+            64
+          ],
+          [
+            22,
+            64
+          ],
+          [
+            24,
+            64
+          ],
+          [
+            30,
+            64
+          ],
+          [
+            31,
+            64
+          ],
+          [
+            30,
+            64
+          ],
+          [
+            23,
+            64
+          ],
+          [
+            24,
+            64
+          ],
+          [
+            23,
+            64
+          ],
+          [
+            22,
+            64
+          ],
+          [
+            23,
+            64
+          ]
+        ]
+      }
+    },
     "okavango/far_ridge": {
       "group": "okavango-spring",
       "origin": "interim",
@@ -4729,6 +5422,24 @@
       "lufs": -20,
       "peakDb": -4.5
     },
+    "amb/namibie": {
+      "group": "namibie",
+      "origin": "interim",
+      "kind": "ambience",
+      "ogg": {
+        "path": "assets/namibie/audio/ambience/namibie.33ed0ec369a8.ogg",
+        "bytes": 52972,
+        "hash": "33ed0ec369a8"
+      },
+      "mp3": {
+        "path": "assets/namibie/audio/ambience/namibie.515c4efc89bc.mp3",
+        "bytes": 65268,
+        "hash": "515c4efc89bc"
+      },
+      "loop": true,
+      "lufs": -20,
+      "peakDb": -4.3
+    },
     "amb/okavango-spring": {
       "group": "okavango-spring",
       "origin": "interim",
@@ -4908,6 +5619,60 @@
       "loop": true,
       "lufs": -16,
       "peakDb": -3.3
+    },
+    "music/namibie/build": {
+      "group": "namibie",
+      "origin": "interim",
+      "kind": "music",
+      "ogg": {
+        "path": "assets/namibie/audio/music/namibie-build.6c7536ec5ba7.ogg",
+        "bytes": 75132,
+        "hash": "6c7536ec5ba7"
+      },
+      "mp3": {
+        "path": "assets/namibie/audio/music/namibie-build.e56fefade8f2.mp3",
+        "bytes": 132662,
+        "hash": "e56fefade8f2"
+      },
+      "loop": true,
+      "lufs": -16,
+      "peakDb": -7.8
+    },
+    "music/namibie/calm": {
+      "group": "namibie",
+      "origin": "interim",
+      "kind": "music",
+      "ogg": {
+        "path": "assets/namibie/audio/music/namibie-calm.8cf8d5f5e3d8.ogg",
+        "bytes": 51011,
+        "hash": "8cf8d5f5e3d8"
+      },
+      "mp3": {
+        "path": "assets/namibie/audio/music/namibie-calm.78266ab634a1.mp3",
+        "bytes": 126152,
+        "hash": "78266ab634a1"
+      },
+      "loop": true,
+      "lufs": -16,
+      "peakDb": -8.7
+    },
+    "music/namibie/stampede": {
+      "group": "namibie",
+      "origin": "interim",
+      "kind": "music",
+      "ogg": {
+        "path": "assets/namibie/audio/music/namibie-stampede.bb1c7921f82f.ogg",
+        "bytes": 82674,
+        "hash": "bb1c7921f82f"
+      },
+      "mp3": {
+        "path": "assets/namibie/audio/music/namibie-stampede.2b58ed59cb66.mp3",
+        "bytes": 114815,
+        "hash": "2b58ed59cb66"
+      },
+      "loop": true,
+      "lufs": -16,
+      "peakDb": -8.3
     },
     "music/okavango-spring/build": {
       "group": "okavango-spring",

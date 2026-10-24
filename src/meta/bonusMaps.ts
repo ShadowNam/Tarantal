@@ -6,8 +6,11 @@ import type { HuntResult } from '../sim/types';
 import { layoutForDay } from './maps';
 import type { BonusMapSave } from './saveSchema';
 
-/** A map's quota: its season's plain-hunt quota in run.json (the number the Season Run uses). */
-export function mapQuota(content: Pick<ContentBundle, 'run'>, biome: string): number {
+/** A map's quota: its season's plain-hunt quota in run.json (the number the Season Run uses), or an area pack's own. */
+export function mapQuota(content: Pick<ContentBundle, 'run' | 'biomes'>, biome: string): number {
+  // v1.4 B: an area pack (Namibië) has no season; its maps' quota is in the biome file.
+  const area = content.biomes.find((b) => b.id === biome)?.area;
+  if (area !== undefined) return area.quota;
   const season = content.run.seasons.find((s) => s.biome === biome);
   const i = content.run.huntPattern.indexOf('plain');
   const q = season?.quotas[i < 0 ? 0 : i];
