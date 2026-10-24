@@ -244,6 +244,19 @@ const SFX: Readonly<Record<string, () => Buf>> = {
       len: 0.7,
       echo: 0.18,
     }),
+  shotLangloop: () =>
+    // v1.4: a full-bore rifle — a hard supersonic crack, a deep boom, and a long echo rolling
+    // back off the far ridge (it carries to every flock).
+    gunshot({
+      seed: 31,
+      crack: 1.4,
+      boomHz: 70,
+      boom: 0.85,
+      bodyHz: 2400,
+      tail: 0.55,
+      len: 1.6,
+      echo: 0.42,
+    }),
   bolt: () => {
     // v1.3: the bolt worked: lift (clack), draw back (slide), push home, turn down (lock).
     const r = rng(22);

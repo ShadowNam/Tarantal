@@ -57,8 +57,9 @@ export interface Aim {
   /** Loop phase (radians) and pace (× the sight's loop rate), drawn at the raise. */
   readonly phase: number;
   readonly pace: number;
-  /** Zoom step at the press (a zoom change while raised applies from the next raise). */
-  readonly step: number;
+  /** Zoom step: the step at the press; v1.4 (D-038) a zoom command while held changes it at once
+   *  (variable scope: the view and the sway follow it). */
+  step: number;
 }
 
 /** Starts a raise: two draws from the sway stream (always two, whatever the sight). */

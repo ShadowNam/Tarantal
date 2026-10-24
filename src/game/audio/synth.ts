@@ -38,6 +38,8 @@ export const SFX_IDS = [
   // v1.3 (D-036): the .22's rimfire crack and its bolt.
   'shotTweeTwee',
   'bolt',
+  // v1.4 (D-038): the Langloop's heavy rifle crack.
+  'shotLangloop',
 ] as const;
 export type SfxId = (typeof SFX_IDS)[number];
 
@@ -85,6 +87,7 @@ export function playSfx(ctx: AudioContext, out: AudioNode, id: SfxId, noise: Aud
     // v1.1: synth fallbacks for the per-gun sounds (used only while their recording is missing).
     case 'shotPomp':
     case 'shotVoorlaaier':
+    case 'shotLangloop':
       return playSfx(ctx, out, 'shot', noise);
     case 'shotMielie':
     case 'shotWindbuks':

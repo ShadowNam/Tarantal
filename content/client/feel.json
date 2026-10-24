@@ -127,6 +127,15 @@
         "spent": "sprite",
         "body": "#C9A04A",
         "base": "#7E8286"
+      },
+      "rifle": {
+        "$comment": "v1.4 (D-038): Langloop rifle cartridges — a long bottlenecked brass case with a pointed copper bullet; a fired one leaves the empty brass.",
+        "width": 22,
+        "height": 92,
+        "pitch": 36,
+        "spent": "sprite",
+        "body": "#C9A04A",
+        "base": "#B87333"
       }
     },
     "crosshairStyles": {
@@ -197,6 +206,28 @@
           "shot": "shotPomp",
           "shellLoaded": "shell",
           "reloadFinished": "rackPomp"
+        }
+      },
+      "langloop": {
+        "ammo": {
+          "layout": "belt",
+          "type": "rifle"
+        },
+        "crosshair": {
+          "parts": [
+            {
+              "shape": "cross",
+              "gap": 6,
+              "len": 20,
+              "width": 0.6
+            }
+          ]
+        },
+        "sfx": {
+          "shot": "shotLangloop",
+          "afterShot": "bolt",
+          "afterShotMs": 380,
+          "reloadStarted": "bolt"
         }
       },
       "twee_twee": {

@@ -87,6 +87,26 @@
       "aim": { "sights": ["iron", "peep", "scope_small"], "defaultSight": "iron", "hipSpreadPx": 36 }
     },
     {
+      "$comment": "v1.4 (D-038) Die Langloop: a generic long-range rifle. 3 rounds, a 1.5 s magazine change and a 0.8 s bolt between shots; hold to raise the variable scope (3x / 6x / 9x, stepped with the wheel, +/- or the on-screen buttons), release to fire. Very loud: every shot alerts every flock. Reaches Ver (x2 there). Unlocked by unlocking Die Verste once (Notaboek).",
+      "id": "langloop",
+      "kind": "primary",
+      "unlock": { "type": "challenge", "id": "unlock_die_verste" },
+      "magazine": 3,
+      "reloadMs": 1500,
+      "perShellReload": false,
+      "fireCooldownMs": 800,
+      "pellets": 1,
+      "spreadPx": 0,
+      "alertRadiusPx": 400,
+      "windSensitivity": 0.5,
+      "projectile": null,
+      "scoreMul": { "near": 0.5, "mid": 0.5, "ver": 2 },
+      "shake": { "px": 6, "ms": 140 },
+      "reachesVer": true,
+      "alertsAllFlocks": true,
+      "aim": { "sights": ["scope_var"], "defaultSight": "scope_var", "hipSpreadPx": 60 }
+    },
+    {
       "id": "voorlaaier",
       "kind": "crate",
       "shots": 3,
@@ -158,6 +178,21 @@
       "swayPerStep": 0,
       "breath": { "holdAfterMs": 500, "easeMs": 300, "holdMs": 3000, "holdMul": 0.15, "tireMs": 1500, "tiredMul": 2.5 },
       "picture": "scope"
+    },
+    {
+      "$comment": "v1.4 (D-038): the Langloop's variable scope, 3x to 9x in three steps. Range marks below the crosshair for holding over. Slowest to raise; sways more at each step up (swayPerStep), settles hard on a held breath.",
+      "id": "scope_var",
+      "nameKey": "sight.scope_var",
+      "unlock": { "type": "start" },
+      "zoom": [3, 6, 9],
+      "raiseMs": 350,
+      "swayPx": 3.5,
+      "swayPeriodMs": 3400,
+      "swayPace": [0.85, 1.15],
+      "swayHeight": 0.5,
+      "swayPerStep": 1.75,
+      "breath": { "holdAfterMs": 500, "easeMs": 300, "holdMs": 3000, "holdMul": 0.12, "tireMs": 1500, "tiredMul": 2.5 },
+      "picture": "scope_range"
     }
   ],
   "gadgets": [
