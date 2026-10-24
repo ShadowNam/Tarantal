@@ -54,6 +54,9 @@ export function withRifle(
   const creatures = new Map(content.birds.creatures.map((c) => [c.id, c]));
   const sights = new Map(content.weapons.sights.map((s) => [s.id, s]));
   let target: number | null = null;
+  /** The raise is for something that isn't a bird (a crate, a secret part): hold the point the
+   *  bot wanted and release (review of v1.3: the bot never shot crates or secrets). */
+  let freeShot = false;
   // The wind's drift at full strength (only biomes with wind have it; the windsock shows it).
   const driftAtFar =
     content.biomes.find((b) => b.omen.wind !== undefined)?.omen.wind?.driftPxAtFar ?? 0;
@@ -107,6 +110,7 @@ export function withRifle(
         if (want === undefined || w.reloading || w.shells === 0) return out;
         const b = pick(s, want.dx, want.sy);
         target = b?.id ?? null;
+        freeShot = b === null;
         err = { x: (gauss() * style.sigmaPx) / zoom, y: (gauss() * style.sigmaPx) / zoom };
         out.push({ t: 'aimStart', dx: want.dx, sy: want.sy });
         return out;
@@ -116,8 +120,12 @@ export function withRifle(
       if (b === undefined && target !== null) {
         // It left or was bagged: lower the sight and pick again next time.
         target = null;
+        freeShot = false;
         return [...out.filter((c) => c.t !== 'reload'), { t: 'aimCancel' }];
       }
+      // A free shot follows the point the bot still wants (a falling crate, a turning part).
+      if (b === undefined && want !== undefined)
+        out.push({ t: 'aimMove', dx: want.dx + err.x, sy: want.sy + err.y });
       if (b !== undefined) {
         const p = bodyAt(b, s.cameraX);
         // A patient shooter holds off for the wind at the far and Ver planes; the sway is not
@@ -137,7 +145,7 @@ export function withRifle(
       const far = b !== undefined && (b.plane === 'far' || b.plane === 'ver');
       const ready =
         up && (!style.patient || !far || (aim.breath === 'held' && aim.heldTicks >= settleTicks));
-      if (style.patient && target === null) return [...out, { t: 'aimCancel' }];
+      if (style.patient && target === null && !freeShot) return [...out, { t: 'aimCancel' }];
       if ((ready || aim.heldTicks >= style.maxHoldTicks) && w.cooldownTicks === 0)
         out.push({ t: 'aimRelease' });
       // Never reload mid-aim (it would lower the sight).

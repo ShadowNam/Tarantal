@@ -81,7 +81,7 @@
       "alertRadiusPx": 180,
       "windSensitivity": 0.6,
       "projectile": null,
-      "scoreMul": { "ver": 1.5 },
+      "scoreMul": { "near": 0.75, "mid": 0.75, "ver": 1.5 },
       "shake": { "px": 2, "ms": 60 },
       "reachesVer": true,
       "aim": { "sights": ["iron", "peep", "scope_small"], "defaultSight": "iron", "hipSpreadPx": 36 }
