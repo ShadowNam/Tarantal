@@ -2,14 +2,15 @@
 // page picks a gun, area, distance and target; Start hands HuntScene a RangeSession (the range
 // mode and its spawn program) and the scene runs it through the real sim. Stats live here, in
 // memory, for the page's session: the range never reads or writes a save.
+import type * as Phaser from 'phaser';
 import { biomeOrFirst } from '../../meta/areas';
 import type { InputKind, ModeConfig } from '../../sim/types';
 import { planeToDx } from '../../sim/camera';
 import type { SimEvent } from '../../sim/events';
 import { createRangeProgram } from '../../sim/range/program';
-import type { PlaneId, RangeTarget, SimState } from '../../sim/types';
+import type { PlaneId, SimState } from '../../sim/types';
 import type { RangeHookState } from '../GameContext';
-import { designSize } from '../layout';
+import { designSize, renderScale } from '../layout';
 import { layoutForDay } from '../../meta/maps';
 import { PaperDraw } from './PaperDraw';
 import { PlateDraw } from './PlateDraw';
@@ -27,7 +28,16 @@ import {
 } from './rangeGuns';
 import { cellTitle, gunNameById, rangeReport } from './rangeReport';
 import { rt } from './rangeI18n';
-import { RangeStats, type Impact, type RangeCell, type RangeSelection } from './rangeStats';
+import { RangeStats, type RangeCell, type RangeSelection } from './rangeStats';
+import {
+  makeMark,
+  markClass,
+  markSize,
+  MarkStore,
+  targetIndices,
+  targetKey,
+  type MarkClass,
+} from './rangeMarks';
 
 /** Rendering only (review fix): a plate rings, a paper blinks at most once per this (ms). */
 const FEEDBACK_COOLDOWN_MS = 180;
@@ -35,6 +45,10 @@ const FEEDBACK_COOLDOWN_MS = 180;
 /** The page's session: stats and the last choice survive scene restarts (not a reload). */
 const stats = new RangeStats();
 let choice: RangeChoice | null = null;
+/** D-040: every target's hit marks for this Skietbaan visit (cleared when it is left). */
+const marks = new MarkStore();
+/** Range sessions started (a mark remembers its own: only the current one's newest glints). */
+let visits = 0;
 
 function where(menu: RangeMenuHost, c: RangeChoice): Parameters<typeof rangeReport>[2] {
   return {
@@ -67,6 +81,7 @@ function hookState(
     stats: null,
     cells: [],
     drawnImpacts: 0,
+    marks: [],
     papers: [],
     birds: [],
     ...extra,
@@ -100,6 +115,8 @@ export function openSkietbaan(menu: RangeMenuHost): void {
       menu.play(new Session(menu, now, pointerType === 'mouse' ? 'pointer' : 'touch'));
     },
     back: () => {
+      // Leaving the Skietbaan: the next visit's targets are freshly painted.
+      marks.clear();
       panel.destroy();
       menu.back();
     },
@@ -125,6 +142,14 @@ class Session implements RangeSession {
   /** Range shots in the air: where each was counted (its miss marker goes there). */
   private readonly aims = new Map<number, { plane: PlaneId; x: number; y: number }>();
   private readonly sel: RangeSelection;
+  /** D-040: this session's number, its targets' mark keys, the gun's mark class. */
+  private readonly visit = ++visits;
+  private readonly keys = new Map<number, string>();
+  private readonly markCls: MarkClass;
+  /** Pellets so far per shot and target (a mark's pellet index). */
+  private readonly pellets = new Map<string, number>();
+  /** The view's sim tick: the snapshot's, or where it was when the range was held (e2e). */
+  private viewTick = 0;
 
   constructor(
     private readonly menu: RangeMenuHost,
@@ -139,6 +164,22 @@ class Session implements RangeSession {
     this.base = shuffled?.base ?? menu.nextSeed();
     this.seed = shuffleSeed(this.base, shuffled?.n ?? 0);
     this.sel = selection(menu, choice);
+    this.markCls = markClass(gun.weapon, gun.pellets);
+  }
+
+  /** Screen px per plane px at the strongest sight (the mark bakes' level 0 is sized for it). */
+  private maxScreenScale(): number {
+    let z = 1;
+    for (const s of this.menu.content.weapons.sights) for (const v of s.zoom) z = Math.max(z, v);
+    return z * renderScale();
+  }
+
+  /** Screen px per plane px on a plane's overlay now (its zoom × the camera's render scale). */
+  private screenScale(layer: Phaser.GameObjects.Container | null): number {
+    const cam = this.host?.scene.cameras.main.zoom ?? 1;
+    // Phaser types parentContainer as always set; a layer outside a plane root has none.
+    const root = layer?.parentContainer as Phaser.GameObjects.Container | null | undefined;
+    return (root?.scaleX ?? 1) * cam;
   }
 
   attach(host: RangeHost): void {
@@ -173,6 +214,23 @@ class Session implements RangeSession {
       reset: () => {
         stats.reset();
       },
+      ...(this.choice.target === 'paper' || this.choice.target === 'plate' || isMixed(this.choice)
+        ? {
+            repaint: {
+              label: rt(
+                this.choice.target === 'paper'
+                  ? 'range.new_paper'
+                  : this.choice.target === 'plate'
+                    ? 'range.repaint'
+                    : 'range.fresh_targets',
+              ),
+              run: () => {
+                // On purpose, as shooters do: this setup's targets start clean.
+                marks.clear(this.keys.values());
+              },
+            },
+          }
+        : {}),
       report: () => rangeReport(content, stats.list(), where(this.menu, this.choice)),
     });
     if (this.menu.hook) {
@@ -188,23 +246,37 @@ class Session implements RangeSession {
     // The paper faces are drawn once their layer exists (the first frame after the views).
     const papers = state.range?.papers ?? [];
     if (this.papers.length + this.plates.size === 0 && papers.length > 0) {
+      const index = targetIndices(papers);
+      const max = this.maxScreenScale();
       for (const p of papers) {
         const layer = host.overlay(p.plane);
         if (layer === null) continue;
-        if (p.kind === 'plate') this.plates.set(p.id, new PlateDraw(host.scene, layer, p));
-        else this.papers.push(new PaperDraw(host.scene, layer, p));
+        this.keys.set(p.id, targetKey(this.choice.biome, p.plane, p.kind, index.get(p.id) ?? 0));
+        if (p.kind === 'plate') this.plates.set(p.id, new PlateDraw(host.scene, layer, p, max));
+        else this.papers.push(new PaperDraw(host.scene, layer, p, max));
       }
     }
+    const held = this.menu.hook?.rangeHold === true;
+    if (!held) this.viewTick = state.tick;
+    this.collectMarks(events, state);
     this.feedback(host, events, state);
-    const dt = this.menu.hook?.rangeHold === true ? 0 : host.scene.game.loop.delta;
-    for (const p of this.plates.values()) p.update(dt);
+    const dt = held ? 0 : host.scene.game.loop.delta;
+    for (const p of [...this.plates.values(), ...this.papers]) {
+      const key = this.keys.get(p.id) ?? '';
+      p.update({
+        tick: this.viewTick,
+        marks: marks.marks(key),
+        epoch: marks.epoch(key),
+        visit: this.visit,
+        screenScale: this.screenScale(host.overlay(p.plane)),
+      });
+    }
     for (const p of this.papers) p.tick(dt);
     this.marks?.update(dt);
     const landed = events.length > 0 ? stats.ingest(events, this.sel) : [];
     // The bar's hit counter pulses on a hit.
     if (landed.some((r) => r.hit)) this.bar?.pulse();
     const cell = this.shown();
-    for (const p of this.papers) p.update(this.impactsOf(p.plane, p.kind));
     this.bar?.update(cell, this.fixedCell() === null);
     const hook = this.menu.hook;
     if (hook) {
@@ -245,6 +317,16 @@ class Session implements RangeSession {
             short: c.short,
           })),
         drawnImpacts: this.papers.reduce((n, p) => n + p.count, 0),
+        marks: papers.map((p) => {
+          const key = this.keys.get(p.id) ?? '';
+          const d = this.plates.get(p.id) ?? this.papers.find((x) => x.id === p.id);
+          return {
+            key,
+            kind: p.kind,
+            count: marks.count(key),
+            drawn: d === undefined ? 0 : d instanceof PlateDraw ? d.drawn : d.count,
+          };
+        }),
         papers: papers.map((p) => ({
           x: half + planeToDx(state.cameraX, scoring[p.plane].scrollFactor, p.x),
           y: p.y,
@@ -293,7 +375,7 @@ class Session implements RangeSession {
         const key = `${String(e.shotId)}:${String(e.paperId)}`;
         if (plate === undefined || key === rung) continue;
         rung = key;
-        plate.hit(e.x);
+        plate.hit(e.x, e.tick);
         // Rapid fire (the Mielie-Masjien): one ding per plate per cooldown, so the long rings
         // don't fill the voice limit and drop the gunshots.
         if (this.cooled(`ding:${String(e.paperId)}`))
@@ -369,9 +451,32 @@ class Session implements RangeSession {
     return `${gunNameById(this.menu.content, this.sel.gun)} · ${rt('range.mixed_course')}`;
   }
 
-  /** The impacts drawn on a paper: its plane and kind's cell for this gun. */
-  private impactsOf(plane: PlaneId, kind: RangeTarget): readonly Impact[] {
-    return stats.cell({ ...this.sel, plane, target: kind }).impacts;
+  /**
+   * D-040: every pellet the sim put on a paper or plate (paperHit/plateHit) leaves a mark at that
+   * point, on that target's marks for the visit. Its size comes from the gun and the plane, its
+   * shape from the impact (shot id, tick, pellet index).
+   */
+  private collectMarks(events: readonly SimEvent[], state: SimState): void {
+    const papers = state.range?.papers ?? [];
+    for (const e of events) {
+      if (e.type !== 'paperHit' && e.type !== 'plateHit') continue;
+      const p = papers.find((x) => x.id === e.paperId);
+      const key = this.keys.get(e.paperId);
+      if (p === undefined || key === undefined) continue;
+      const pk = `${String(e.shotId)}:${String(e.paperId)}`;
+      const pellet = this.pellets.get(pk) ?? 0;
+      this.pellets.set(pk, pellet + 1);
+      if (this.pellets.size > 256) {
+        const oldest = this.pellets.keys().next();
+        if (oldest.done !== true) this.pellets.delete(oldest.value);
+      }
+      const scale = this.menu.content.scoring.planes[p.plane].scale;
+      const size = markSize(p.kind, this.markCls, scale, p.r);
+      marks.add(
+        key,
+        makeMark({ shotId: e.shotId, tick: e.tick, pellet, x: e.x, y: e.y }, p, size, this.visit),
+      );
+    }
   }
 
   detach(): void {
@@ -384,6 +489,8 @@ class Session implements RangeSession {
     this.marks?.destroy();
     this.marks = null;
     this.aims.clear();
+    this.pellets.clear();
+    this.keys.clear();
     this.lastFeedback.clear();
     this.host = null;
   }

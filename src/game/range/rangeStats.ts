@@ -4,7 +4,8 @@
 import type { SimEvent } from '../../sim/events';
 import type { PlaneId, RangeTarget } from '../../sim/types';
 
-/** How many paper impacts are drawn and measured (the newest). */
+/** How many impacts the group-size stats measure (the newest). Only the stats: every hole and
+ *  mark is drawn for the whole Skietbaan visit (rangeMarks.ts, D-040). */
 export const GROUP_IMPACTS = 20;
 /** Shots tracked until their pellets land (far more than can be in the air at once). */
 const OPEN_SHOTS = 64;
@@ -31,7 +32,7 @@ export interface RangeCell {
   short: number;
   /** Pellets that landed on the target, over every shot. */
   pelletsOn: number;
-  /** The newest paper impacts, oldest first (at most GROUP_IMPACTS). */
+  /** The newest paper impacts, oldest first (at most GROUP_IMPACTS; for the group stats). */
   impacts: Impact[];
 }
 
