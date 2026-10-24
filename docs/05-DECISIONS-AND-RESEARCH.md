@@ -2039,8 +2039,8 @@ bounds the group-size stats.
 and the target re-bakes once), so the per-frame cost is one image per target however many hits.
 Mipmaps can only be switched on game-wide in Phaser 4 (every power-of-two texture would change,
 and every visual baseline), so each target keeps its own small chain: level 0 sized for the 9×
-scope (≤ 512 px), each lower level a half-size box filter of the one above; the view shows the
-level with ≥ 1 texel per screen pixel. Every level and the frame filter LINEAR, also on the low
+scope (≤ 1 024 px: a near plate is about 1:1 up to 4×, softer beyond; far and Ver stay sharp at 9×), each lower level a half-size box filter of the one above; the view shows the
+level with ≥ 1 texel per screen pixel. Every level, the plate art and the frame filter LINEAR, also on the low
 tier (whose antialias-off default is NEAREST).
 (6) *Tests:* unit (`rangeMarks.test.ts`): marks at the impact points, deterministic shapes (one
 pinned), 25 hits all stay, per-target keys, Repaint and leaving clear, the cap holds and keeps the

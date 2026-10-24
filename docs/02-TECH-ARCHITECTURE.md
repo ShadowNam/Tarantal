@@ -691,7 +691,7 @@ or "Send to GitHub" (a prefilled `issues/new?labels=playtest` link ≤ 7 KB, `sr
   snapshot's targets of that plane and kind). Leaving the setup page for the admin list clears
   it; the bar's Repaint clears the session's keys. Capped at 400 per target (past it the oldest
   50 go and the target re-bakes). `MarkSurface.ts` bakes them into `DynamicTexture`s (a plate's
-  face too): level 0 sized for the strongest sight × render scale (≤ 512 px), each lower level
+  face too): level 0 sized for the strongest sight × render scale (≤ 1 024 px), each lower level
   half of the one above, the shown level picked each frame from the plane root's zoom × camera
   zoom; LINEAR on every tier; a WebGL context restore re-bakes. New marks are appended to level 0
   (one draw) and the lower levels re-stamped. The plate's swing and the newest mark's glint run

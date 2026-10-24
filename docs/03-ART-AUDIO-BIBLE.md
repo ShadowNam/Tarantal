@@ -250,7 +250,7 @@ Semi-realistic (D-035): no dark contours, light from the upper left. Interim art
   third.
 - **Filtering:** marks (and, for a plate, its face) are baked per target into a small chain of textures (each level half the
   one above, like mipmaps), and the view shows the level with at least one texel per screen pixel;
-  every level and the frame filter LINEAR, also on the low tier (whose default is NEAREST).
+  every level, the plate art and the frame filter LINEAR, also on the low tier (whose default is NEAREST).
 
 ## 6. HUD and UI
 

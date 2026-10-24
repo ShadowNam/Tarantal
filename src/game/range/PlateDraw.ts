@@ -139,6 +139,8 @@ export class PlateDraw {
   /** The clean painted face at level 0 of the bake (`s` texels per plane px). */
   private drawFace(dt: Phaser.Textures.DynamicTexture, s: number): void {
     if (this.scene.textures.exists(PLATE_TEX)) {
+      // LINEAR on every tier (the low tier's antialias-off default is NEAREST: a jagged rim).
+      this.scene.textures.get(PLATE_TEX).setFilter(Phaser.Textures.FilterMode.LINEAR);
       dt.stamp(PLATE_TEX, undefined, 0, 0, {
         originX: 0,
         originY: 0,
@@ -166,6 +168,8 @@ export class PlateDraw {
       .fillStyle(PAINT, 1)
       .fillCircle(cx, cy, R * 0.9);
     dt.draw(gfx);
+    // draw() only queues the Graphics: render before it is destroyed.
+    dt.render();
     gfx.destroy();
   }
 

@@ -286,7 +286,11 @@ test.describe('Skietbaan (training ground)', () => {
     });
     // D-040: every hole is drawn (only the group stats stop at 20).
     await page.waitForFunction(
-      () => window.__TM__?.range?.drawnImpacts === window.__TM__?.range?.marks[0]?.count,
+      () =>
+        window.__TM__?.range?.drawnImpacts ===
+        window.__TM__?.range?.marks
+          .filter((m) => m.kind === 'paper')
+          .reduce((n, m) => n + m.count, 0),
       null,
       { timeout: 30_000 },
     );
@@ -619,8 +623,10 @@ test.describe('Skietbaan (training ground)', () => {
     expect((await hook(page)).weapon).toBe('kettie');
     expect(await plateMarks(25)).toEqual({ count: 25, drawn: 25 });
 
-    // Another distance has its own clean plate; back near, the 25 are there again.
+    // Another distance (and the air rifle again) has its own clean plate; back near, the 25 are
+    // there again.
     await setup();
+    await press(page, touch, '#tm-range [data-role=gun] [data-value=windbuks]');
     await start('mid');
     expect(await plateMarks(0)).toEqual({ count: 0, drawn: 0 });
     await setup();

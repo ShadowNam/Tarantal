@@ -11,8 +11,9 @@
 import * as Phaser from 'phaser';
 import { markShape, type Mark } from './rangeMarks';
 
-/** Largest level-0 side (texels): ~1 MB of GPU memory per target at most. */
-const MAX_SIDE = 512;
+/** Largest level-0 side (texels): a near plate is ~240 plane px, so this keeps it near 1:1 at a
+ *  4× scope (≤ 4 MB for level 0, ~5.3 MB with the chain; far and Ver targets are far smaller). */
+const MAX_SIDE = 1024;
 /** Smallest level side worth keeping. */
 const MIN_SIDE = 16;
 
