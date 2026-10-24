@@ -1,5 +1,5 @@
 {
- "asOf": "2026-10-24T05:50:00Z",
+ "asOf": "2026-10-24T10:25:00Z",
  "done": [
   {
    "phase": "Foundations",
@@ -232,6 +232,14 @@
     58
    ],
    "prlabel": "#58"
+  },
+  {
+   "phase": "Version 1.x",
+   "step": "Training ground update: mixed targets, steel plates, hit feedback",
+   "prs": [
+    61
+   ],
+   "prlabel": "#61"
   }
  ],
  "open": [
@@ -240,31 +248,31 @@
    "step": "v1.4 A: scope speed fix + Die Langloop",
    "status": "running",
    "start": "2026-10-24T05:40:00Z",
-   "end": "2026-10-24T10:00:00Z",
-   "prlabel": "Tank 8f60807c"
+   "end": "2026-10-24T14:00:00Z",
+   "prlabel": "PR #60"
   },
   {
    "phase": "Version 1.x",
    "step": "v1.4 B: the Namibië area",
    "status": "next",
-   "start": "2026-10-24T10:00:00Z",
-   "end": "2026-10-24T14:00:00Z"
+   "start": "2026-10-24T14:00:00Z",
+   "end": "2026-10-24T18:00:00Z"
   }
  ],
  "checklist": [
   {
    "item": "Measure the scope view's drawing cost against the open view, same map (issue #56)",
-   "status": "running",
-   "where": "PR A"
+   "status": "done",
+   "where": "PR #60 (1.33× → 0.78×)"
   },
   {
-   "item": "Cut the scope view's overdraw (target ≤ 1.5× the open view on a Pixel 7)",
-   "status": "next",
-   "where": "PR A"
+   "item": "Cut the scope view's drawing cost (Pixel 7: scoped 456 → 140 ms, open hunt 177 → 88 ms)",
+   "status": "done",
+   "where": "PR #60"
   },
   {
    "item": "Die Langloop: 3 rounds, 3–9× scope, loud (alerts every flock)",
-   "status": "next",
+   "status": "running",
    "where": "PR A"
   },
   {
@@ -306,12 +314,12 @@
  "numbers": [
   {
    "metric": "Unit tests",
-   "value": 954,
+   "value": 965,
    "note": "on main, plus 39 browser test suites on 3 devices"
   },
   {
    "metric": "First download (KB)",
-   "value": 2941.8,
+   "value": 2942.7,
    "note": "on main; budget 3,072 KB (3 MB)"
   }
  ],

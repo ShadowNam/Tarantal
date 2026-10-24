@@ -7,17 +7,17 @@ const meta = {
   title: 'Tarantal Madness',
   subtitle: 'Development history',
   tagline: 'How the game came together, from the first commit to today',
-  updated: '24 October 2026, 05:50 UTC',
+  updated: '24 October 2026, 10:35 UTC',
   period: '19–24 October 2026',
 };
 
-// "By the numbers" on 24 Oct 2026 (main at 611cc21).
+// "By the numbers" on 24 Oct 2026 (main at 987ea71).
 const numbers = [
   ['Days since the first commit', '5'],
-  ['Commits on main', '596'],
-  ['Pull requests', '56 opened, all merged'],
-  ['Game code (TypeScript, without tests)', 'about 35,800 lines'],
-  ['Automated tests', '954 unit tests, 39 browser test suites on 3 device profiles'],
+  ['Commits on main', '618'],
+  ['Pull requests', '59 opened, 58 merged, 1 in progress (v1.4)'],
+  ['Game code (TypeScript, without tests)', 'about 37,000 lines'],
+  ['Automated tests', '971 unit tests, 39 browser test suites on 3 device profiles'],
   ['Hunting areas', '4 (Karoo, Bushveld, Okavango, Kalahari), each with 7 weekday maps and 3 bonus maps (Verder, Nog Verder, Die Verste)'],
   ['Guns', '7 (Dubbelloop, Windbuks, Kettie, Plaas-Pomp, Die Twee-Twee with 3 sights, Voorlaaier, Mielie-Masjien)'],
   ['Creatures', '13 (guineafowl and variants, bosses, flyers)'],
@@ -430,6 +430,32 @@ const stages = [
       { img: 'skietbaan-flyover-pixel7', caption: 'A flying bird bagged at middle distance on a Pixel 7; the stats shrink to a small box with "More".' },
     ],
   },
+  {
+    title: 'Training ground update: mixed targets, steel plates, hit feedback',
+    when: '24 Oct 2026, 10:21 (asked for at 05:45)',
+    prs: '#61',
+    decision: 'D-037 (update 24 Oct)',
+    intro: 'After the product owner played the training ground: more targets at once, every distance for every gun, and a clear reaction on every hit.',
+    bullets: [
+      'Mixed course: paper targets, steel plates, standing birds, a fly-over and a small flock at near, middle, far and Ver at the same time. Shuffle deals a new layout; the layout comes from the seed, so it is the same on every device.',
+      'Every distance for every gun: the Kettie or a shotgun can be tried at Ver. Their shots fall short as in a hunt and are counted as "fell short" in the stats.',
+      'Steel plates: a gong on a post that swings and rings when hit, easy to read at long range where paper holes are too small to see.',
+      'A reaction on every hit: paper blinks and thwacks, plates ring and swing, birds play a hit sound, and a HIT ring appears on the target, visible even at Ver without zooming. A miss shows a dust puff, or SHORT where the shot fell short.',
+      'Stats count each hit for the gun, distance and kind of target it struck, and each miss for the target nearest the aim.',
+      'First download +0.9 KB (2.94 MB of 3 MB); everything new loads with the training ground. 971 unit tests.',
+    ],
+    feedbackLabel: 'Look review and independent review before merging',
+    feedback: [
+      'The first Tank job kept losing its connection to Claude mid-turn; a fresh job with a short brief finished the work.',
+      'The independent review found that Kettie stones flew through paper targets and plates at near and middle distance, and that in about half of the mixed layouts a target stood behind a nearer one. Both were fixed: stones now stop on every target, the course was re-spaced, and a content check now rejects any layout where targets overlap. Rapid fire no longer floods the sound, and Shuffle always deals a new layout.',
+    ],
+    images: [
+      { img: 'skietbaan2-mixed', caption: 'The mixed course: targets at all four distances at once (desktop, after the re-spacing).' },
+      { img: 'skietbaan2-hit-far', caption: 'A hit on a far paper target: the HIT ring and the stats for that distance.' },
+      { img: 'skietbaan2-plate-iphone', caption: 'A steel plate hit at middle distance on an iPhone 14 held sideways.' },
+      { img: 'skietbaan2-kettie-short', caption: 'The Kettie at Ver: the stones fall short and each shot is marked SHORT.' },
+    ],
+  },
 ];
 
 // The product owner's requests, in order.
@@ -445,6 +471,7 @@ const requests = [
   ['23 Oct, 15:20', 'A Word document with the build pictures and history', 'This document'],
   ['23 Oct, 20:50', 'Let GitHub record the screenshot baselines', 'Done (#55)'],
   ['23 Oct, 21:15', 'Keep the build file updated with an infographic every 2–3 hours; keep Tank building overnight', 'The build board and the status doc, refreshed every 2–3 hours and after each merge; v1.3 merged overnight'],
+  ['24 Oct, 05:45', 'More targets in the training ground: mixed targets at all distances, every distance for every gun, a sound or blink on every hit', 'Done (#61), with screenshots sent at the merge'],
 ];
 
 const next = [
