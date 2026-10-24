@@ -1168,6 +1168,206 @@ function tweeTwee(
   return out.join('');
 }
 
+/** v1.4 (D-038) Die Langloop: a heavy bolt-action with a long variable scope on top. */
+function langloop(
+  x: Ctx,
+  s: { bolt: number; eject: number; smoke: number; glow: number; load: number },
+): string {
+  const out: string[] = [];
+  out.push(stockButt(x, -132, 91));
+  // Heavy tapered barrel with a slotted muzzle brake.
+  out.push(metal(x, taper(0, MUZZLE_Y + 22, 9, -246, 18), 'blued', 92, true, 6));
+  out.push(muzzleGlow(x, 0, MUZZLE_Y, s.glow));
+  out.push(
+    metal(
+      x,
+      [
+        [-11, MUZZLE_Y - 2],
+        [11, MUZZLE_Y - 2],
+        [11, MUZZLE_Y + 26],
+        [-11, MUZZLE_Y + 26],
+      ],
+      'blued',
+      93,
+      false,
+      4,
+    ),
+  );
+  for (const dy of [6, 14]) {
+    out.push(
+      el('path', {
+        d: `M-11 ${MUZZLE_Y + dy}L11 ${MUZZLE_Y + dy}L11 ${MUZZLE_Y + dy + 3}L-11 ${MUZZLE_Y + dy + 3}Z`,
+        fill: x.c('bluedShadow'),
+      }),
+    );
+  }
+  // Receiver (a long tube) and the bolt.
+  out.push(
+    metal(
+      x,
+      [
+        [-24, -262],
+        [24, -262],
+        [26, -136],
+        [-26, -136],
+      ],
+      'blued',
+      94,
+      true,
+      9,
+    ),
+  );
+  const dy = s.bolt * 54;
+  out.push(
+    inked(
+      polyD([
+        [7, -246],
+        [22, -246],
+        [23, -198],
+        [8, -198],
+      ]),
+      s.bolt > 0.3 ? x.c('steelHi') : x.c('bluedShadow'),
+      x.ink,
+      x.inner,
+    ),
+  );
+  // Rounds pushed down into the open action while it reloads (three, one by one).
+  if (s.load > 0) {
+    const shown = Math.min(3, Math.ceil(s.load * 3));
+    for (let k = 0; k < shown; k++) {
+      const c = place(
+        [
+          [-3.2, -12],
+          [3.2, -12],
+          [3.2, 12],
+          [-3.2, 12],
+        ],
+        14,
+        -236 + k * 14,
+        90,
+        1,
+        1,
+      );
+      out.push(inked(polyD(c), x.c('brass'), x.c('brassShadow'), x.inner * 0.6));
+    }
+  }
+  // Bolt handle: a long shank down and out to the right with a big round knob.
+  const lift = Math.min(1, s.bolt * 2);
+  const kx = 60 - lift * 20;
+  const ky = -160 + dy - lift * 30;
+  for (const [colour, w, a] of [
+    [x.c('steel'), 7, 1],
+    [x.c('steelHi'), 1.8, 0.7],
+  ] as const) {
+    out.push(
+      el('path', {
+        d: `M24 ${r2(-172 + dy)}L${r2(kx)} ${r2(ky)}`,
+        stroke: colour,
+        'stroke-width': w,
+        'stroke-linecap': 'round',
+        opacity: a,
+      }),
+    );
+  }
+  out.push(inked(ellipseD(kx, ky, 10.5, 10), x.c('steel'), x.c('steelShadow'), x.inner));
+  out.push(el('path', { d: ellipseD(kx - 3, ky - 3, 3.6, 3), fill: '#FFFFFF', opacity: 0.35 }));
+  out.push(
+    metal(
+      x,
+      [
+        [-16, -142 + dy],
+        [16, -142 + dy],
+        [15, -122 + dy],
+        [-15, -122 + dy],
+      ],
+      'steel',
+      95,
+      false,
+    ),
+  );
+  // The scope on top: rings, the main tube, turrets, the wide objective bell and the eyepiece.
+  for (const ry of [-250, -168]) {
+    out.push(
+      metal(
+        x,
+        [
+          [-20, ry - 8],
+          [20, ry - 8],
+          [20, ry + 8],
+          [-20, ry + 8],
+        ],
+        'blued',
+        96 + ry,
+        false,
+      ),
+    );
+  }
+  out.push(metal(x, taper(0, -300, 16, -140, 16), 'blued', 97, true, 7));
+  out.push(metal(x, taper(0, -346, 27, -296, 17), 'blued', 98, true, 8));
+  out.push(el('path', { d: ellipseD(0, -346, 24, 6), fill: x.c('bluedShadow'), opacity: 0.9 }));
+  out.push(el('path', { d: ellipseD(-6, -347, 8, 2.2), fill: '#9FC3D8', opacity: 0.55 }));
+  out.push(metal(x, taper(0, -150, 18, -118, 21), 'blued', 99, true, 6));
+  // Elevation turret on top (a ribbed cap) and the windage turret on the right.
+  out.push(
+    metal(
+      x,
+      [
+        [-9, -232],
+        [9, -232],
+        [9, -212],
+        [-9, -212],
+      ],
+      'steel',
+      100,
+      false,
+      3,
+    ),
+  );
+  out.push(
+    metal(
+      x,
+      [
+        [16, -226],
+        [30, -226],
+        [30, -210],
+        [16, -210],
+      ],
+      'steel',
+      101,
+      false,
+      3,
+    ),
+  );
+  // A long empty case flicks out of the port.
+  if (s.eject > 0) {
+    const c = place(
+      [
+        [-3.2, -12],
+        [3.2, -12],
+        [3.2, 12],
+        [-3.2, 12],
+      ],
+      34 + s.eject * 80,
+      -222 - s.eject * 66,
+      40 + s.eject * 300,
+      1,
+      1,
+    );
+    out.push(inked(polyD(c), x.c('brass'), x.c('brassShadow'), x.inner * 0.6));
+  }
+  out.push(
+    smoke(
+      x,
+      -4 - s.smoke * 10,
+      MUZZLE_Y - 18 - s.smoke * 32,
+      0.6 + s.smoke * 0.6,
+      s.smoke > 0 ? 0.85 - s.smoke * 0.55 : 0,
+      19,
+    ),
+  );
+  return out.join('');
+}
+
 function kettie(
   x: Ctx,
   s: { pouchY: number; pouchS: number; stone: boolean; wobble: number },
@@ -1850,6 +2050,29 @@ function clipFrames(id: GunId, clip: Exclude<GunClip, 'flash'>, n: number): Fram
       ];
       return R.slice(0, n).map((st) => (x: Ctx) => tweeTwee(x, st));
     }
+    case 'langloop': {
+      const L0 = { bolt: 0, eject: 0, smoke: 0, glow: 0, load: 0 };
+      if (clip === 'idle') return [(x) => langloop(x, L0)];
+      if (clip === 'fire') {
+        const F = [
+          { ...L0, glow: 1 },
+          { ...L0, smoke: 0.4 },
+          { ...L0, smoke: 0.6, bolt: 0.6 },
+          { ...L0, smoke: 0.8, bolt: 1, eject: 0.6 },
+          { ...L0, smoke: 1, bolt: 0.3, eject: 1 },
+        ];
+        return F.slice(0, n).map((st) => (x: Ctx) => langloop(x, st));
+      }
+      // Reload: bolt open, three rounds pressed into the magazine, bolt home.
+      const R = [
+        { ...L0, bolt: 1 },
+        { ...L0, bolt: 1, load: 0.34 },
+        { ...L0, bolt: 1, load: 0.67 },
+        { ...L0, bolt: 1, load: 1 },
+        { ...L0, bolt: 0.3 },
+      ];
+      return R.slice(0, n).map((st) => (x: Ctx) => langloop(x, st));
+    }
     case 'mielie_masjien':
       if (clip === 'idle') return [(x) => mielieMasjien(x, { crank: 0, kernels: 0 })];
       return Array.from(
@@ -1909,6 +2132,15 @@ function flashFrames(id: GunId, n: number): Frame[] {
       return Array.from(
         { length: n },
         (_, k) => (x: Ctx) => burst(x, 0, 14, 88 * (1 - k * 0.15), 9, 41 + k, f(k) + 0.25),
+      );
+    case 'langloop':
+      // A full-bore rifle through a muzzle brake: a bigger flash, thrown to the sides.
+      return Array.from(
+        { length: n },
+        (_, k) => (x: Ctx) =>
+          burst(x, 0, 6, 48 * (1 - k * 0.25), 6, 61 + k, f(k) + 0.15) +
+          burst(x, -22, 16, 22 * (1 - k * 0.3), 5, 71 + k, f(k)) +
+          burst(x, 22, 16, 22 * (1 - k * 0.3), 5, 81 + k, f(k)),
       );
     case 'twee_twee':
       // A rimfire: a small, quick flash.

@@ -13,7 +13,8 @@
     "inertiaStopPxPerSec": 20,
     "edgePanFraction": 0.12,
     "edgePanPxPerSec": 1400,
-    "keyPanPxPerSec": 1600
+    "keyPanPxPerSec": 1600,
+    "wheelZoomStepPx": 50
   },
   "juice": {
     "hitStopMs": 20,
@@ -70,7 +71,8 @@
     "popStackSize": 4,
     "gadgetPx": 120,
     "chipW": 260,
-    "chipH": 48
+    "chipH": 48,
+    "zoomButtonPx": 88
   },
   "guns": {
     "$comment": "v1.1 (D-032, GDD §17.1): what each gun shows — its ammo on the HUD (realistic interim art ui/ammo/<type> and ui/ammo/<type>_spent, 1 texture px per design px) and its crosshair, built from shape parts. A ring with r \"spread\" is the weapon's spreadPx: where its pellets land, the same on every plane. The crosshair style (Skiet-Skuur cosmetic, later) only recolours. Adding a gun's look is data here plus one drawing in tools/art.",
@@ -127,6 +129,15 @@
         "spent": "sprite",
         "body": "#C9A04A",
         "base": "#7E8286"
+      },
+      "rifle": {
+        "$comment": "v1.4 (D-038): Langloop rifle cartridges — a long bottlenecked brass case with a pointed copper bullet; a fired one leaves the empty brass.",
+        "width": 22,
+        "height": 92,
+        "pitch": 36,
+        "spent": "sprite",
+        "body": "#C9A04A",
+        "base": "#B87333"
       }
     },
     "crosshairStyles": {
@@ -197,6 +208,28 @@
           "shot": "shotPomp",
           "shellLoaded": "shell",
           "reloadFinished": "rackPomp"
+        }
+      },
+      "langloop": {
+        "ammo": {
+          "layout": "belt",
+          "type": "rifle"
+        },
+        "crosshair": {
+          "parts": [
+            {
+              "shape": "cross",
+              "gap": 6,
+              "len": 20,
+              "width": 0.6
+            }
+          ]
+        },
+        "sfx": {
+          "shot": "shotLangloop",
+          "afterShot": "bolt",
+          "afterShotMs": 380,
+          "reloadStarted": "bolt"
         }
       },
       "twee_twee": {

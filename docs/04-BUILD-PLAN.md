@@ -308,6 +308,11 @@ weekday layouts, omen, secret and interim art and sound.
 Done when: the biome passes its Classic balance report; its lazy chunk ≤ 1.5 MB gzip and the first
 download still ≤ 3 MB; Langloop sim tests and balance report; Playwright screenshots on desktop and
 both phones.
+**Part A done (PR #60, D-038):** the #56 scoped drawing cost fix; Die Langloop with its
+variable-scope zoom input, alert-all-flocks rule, unlock, Skiet-Skuur card, interim art and sound;
+sim, input and e2e tests; `docs/balance/v1.4-langloop.md`; screenshots in
+`docs/art-preview/compare/v14-*.png`. First download 2 963.7 KB gzip (2.89 MB). Part B (Namibië)
+follows in its own PR.
 
 ---
 

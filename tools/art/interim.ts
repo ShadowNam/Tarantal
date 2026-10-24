@@ -196,7 +196,8 @@ if (only === undefined || only === 'guns') {
         ...tipFor(cfg, id),
         ...(cfg.guns.lateLoad.ids.includes(id) ? { group: 'late' } : {}),
         // v1.3 (D-036): the .22 lives in the long-range chunk (the late one is nearly full).
-        ...(id === 'twee_twee' ? { group: VER_GROUP } : {}),
+        // v1.4 (D-038): so does the Langloop.
+        ...(id === 'twee_twee' || id === 'langloop' ? { group: VER_GROUP } : {}),
       }),
     );
     console.log(`guns/${id}: ${gunClipNames(cfg, id).join(', ')}`);

@@ -102,6 +102,9 @@ export class HudScene extends Phaser.Scene {
   private lastState: SimState | null = null;
   private timerColor = '';
   private gadgetPanel!: BakedDrawing;
+  /** v1.4 (D-038): the variable scope's zoom row (− / + buttons on touch, the zoom label). */
+  private zoomPanel!: BakedDrawing;
+  private zoomText!: Phaser.GameObjects.Text;
   /** Horizontal shake of the Vuvuzela button (tweened when it is denied). */
   private readonly gadgetShake = { x: 0 };
   private gadgetCharges!: Phaser.GameObjects.Text;
@@ -204,6 +207,8 @@ export class HudScene extends Phaser.Scene {
     this.reload = text(56, '#FFD25A').setOrigin(0.5).setVisible(false);
     this.banner = text(84, '#FFD25A').setOrigin(0.5).setVisible(false);
     this.gadgetPanel = new BakedDrawing(this, 'hud.gadget');
+    this.zoomPanel = new BakedDrawing(this, 'hud.zoom');
+    this.zoomText = text(40, '#F3EAD3', false).setOrigin(0.5).setVisible(false);
     this.gadgetShake.x = 0;
     this.gadgetCharges = text(40, '#F3EAD3', false).setOrigin(0.5);
     this.gadgetKey = text(26, '#1B1410', false).setOrigin(0.5).setStroke('#F3EAD3', 0);
@@ -383,6 +388,60 @@ export class HudScene extends Phaser.Scene {
     );
   }
 
+  /** v1.4 (D-038): the variable scope's zoom steps for the gun in hand, or null. */
+  zoomOf(
+    w: SimState['weapon'] | undefined,
+  ): { readonly zooms: readonly number[]; readonly step: number } | null {
+    if (w?.kind !== 'primary' || w.sight === null) return null;
+    const zooms = this.ctx.content.weapons.sights.find((x) => x.id === w.sight)?.zoom;
+    return zooms !== undefined && zooms.length > 1 ? { zooms, step: w.zoomStep } : null;
+  }
+
+  /** v1.4: the touch zoom button under (x, y) (−1 out, +1 in), or null (none, or a mouse). */
+  zoomButtonAt(x: number, y: number): -1 | 1 | null {
+    const l = this.layoutNow;
+    if (l === null || this.inputKind === 'pointer' || this.zoomOf(this.lastState?.weapon) === null)
+      return null;
+    if (rectContains(l.zoomOut, x, y)) return -1;
+    if (rectContains(l.zoomIn, x, y)) return 1;
+    return null;
+  }
+
+  private drawZoom(s: SimState): void {
+    const l = this.layoutNow;
+    const z = this.zoomOf(s.weapon);
+    if (l === null || z === null) {
+      this.zoomPanel.image.setVisible(false);
+      this.zoomText.setVisible(false);
+      return;
+    }
+    const zoom = z.zooms[z.step] ?? 1;
+    this.zoomText
+      .setText(`${formatMult(zoom)}×`)
+      .setPosition(l.zoomLabel.x + l.zoomLabel.w / 2, l.zoomLabel.y + l.zoomLabel.h / 2)
+      .setVisible(true);
+    const buttons = this.inputKind !== 'pointer';
+    const x0 = l.zoomOut.x;
+    const w = l.zoomIn.x + l.zoomIn.w - x0;
+    const h = l.zoomOut.h;
+    const key = `${z.step}:${z.zooms.length}:${buttons}:${w}:${h}`;
+    this.zoomPanel.draw(x0, l.zoomOut.y, w, h, key, (g) => {
+      // The label's slate, and on touch the two round buttons (dimmed at the ends of the range).
+      const lx = l.zoomLabel.x - x0;
+      g.fillStyle(C.ink, 0.75).fillRoundedRect(lx, h * 0.18, l.zoomLabel.w, h * 0.64, 14);
+      if (!buttons) return;
+      const btn = (bx: number, on: boolean, plus: boolean): void => {
+        const r = h / 2;
+        g.fillStyle(C.ink, 0.9).fillCircle(bx + r, r, r);
+        g.fillStyle(on ? C.enamel : 0x7a7466, 1).fillCircle(bx + r, r, r - 6);
+        g.fillStyle(C.ink, 1).fillRect(bx + r - r * 0.45, r - 5, r * 0.9, 10);
+        if (plus) g.fillRect(bx + r - 5, r - r * 0.45, 10, r * 0.9);
+      };
+      btn(0, z.step > 0, false);
+      btn(l.zoomIn.x - x0, z.step < z.zooms.length - 1, true);
+    });
+  }
+
   /** Mouse players see the Q key hint on the gadget button. */
   setInputKind(kind: InputKind): void {
     this.inputKind = kind;
@@ -477,6 +536,9 @@ export class HudScene extends Phaser.Scene {
         pause: l.pause,
         quota: l.quota,
         charms: l.charms,
+        // v1.4: the variable scope's zoom buttons (shown on touch with a variable scope in hand).
+        zoomOut: l.zoomOut,
+        zoomIn: l.zoomIn,
         ...Object.fromEntries(l.items.map((r, i) => [`item${i}`, r])),
         ...(this.controls?.skip != null ? { skip: l.skip } : {}),
       };
@@ -616,6 +678,7 @@ export class HudScene extends Phaser.Scene {
     }
     if (banner.length > 0) this.showBanner(banner.join(' · '));
     this.drawGadget(s);
+    this.drawZoom(s);
     this.drawChips(s);
     this.drawWindsock(s);
 

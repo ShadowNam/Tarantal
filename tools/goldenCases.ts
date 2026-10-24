@@ -391,4 +391,20 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
       weapon: 'pomp',
     },
   },
+  // v1.4 (D-038): Die Langloop on Die Verste (very loud: every shot alerts every flock).
+  {
+    name: 'classic-74-kalahari-dieverste-langloop-aim-pointer',
+    seed: 74,
+    bot: 'aim',
+    mode: 'classic',
+    inputKind: 'pointer',
+    modeConfig: {
+      id: 'classic',
+      biome: 'kalahari-summer',
+      layout: 'tue',
+      bonus: 'dieVerste',
+      weapon: 'langloop',
+      sight: 'scope_var',
+    },
+  },
 ];

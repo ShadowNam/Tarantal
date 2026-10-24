@@ -174,6 +174,12 @@ test('perf: scoped .22 on Nog Verder at 4× CPU throttle', async ({ page, browse
   const cpu = stats(scoped(h.cpuFrameMs));
   // Real frame times are sampled in HuntScene with their own scoped flags.
   const real = stats(h.frameTimes.slice(30).filter((_, k) => h.frameScoped[k + 30] === true));
+  // v1.4 (#56): the like-for-like baseline — frames of this same hunt (same map, tier, throttle)
+  // with the view fully open (zoom 1: between shots and reloads). Frames while the sight is
+  // still coming up or going down are in neither set.
+  const openReal = stats(h.frameTimes.slice(30).filter((_, k) => h.frameOpen[k + 30] === true));
+  const openCpu = stats(h.cpuFrameMs.slice(30).filter((_, k) => h.cpuFrameOpen[k + 30] === true));
+  const ratio = (a: number, b: number): number => (b > 0 ? Math.round((a / b) * 100) / 100 : 0);
   const report = {
     project: info.project.name,
     phase: 'scoped',
@@ -184,11 +190,18 @@ test('perf: scoped .22 on Nog Verder at 4× CPU throttle', async ({ page, browse
     realFrameMs: real,
     realFps: real.avg > 0 ? 1000 / real.avg : 0,
     cpuFrameMs: cpu,
-    openCpuFrameMs: stats(
-      h.cpuFrameMs.slice(30).filter((_, k) => h.cpuFrameScoped[k + 30] !== true),
-    ),
+    openRealFrameMs: openReal,
+    openCpuFrameMs: openCpu,
+    // Scoped ÷ open on the median (p50) and the mean: under software GL only ratios mean anything.
+    scopedOpenRealRatio: { p50: ratio(real.p50, openReal.p50), avg: ratio(real.avg, openReal.avg) },
+    scopedOpenCpuRatio: { p50: ratio(cpu.p50, openCpu.p50), avg: ratio(cpu.avg, openCpu.avg) },
   };
   console.log(`[perf] ${JSON.stringify(report)}`);
+  console.log(
+    `[perf-ratio] ${info.project.name} (${h.quality.tier}): scoped/open real frame ` +
+      `p50 ${report.scopedOpenRealRatio.p50}× (${real.p50.toFixed(0)} / ${openReal.p50.toFixed(0)} ms), ` +
+      `avg ${report.scopedOpenRealRatio.avg}×; CPU p50 ${report.scopedOpenCpuRatio.p50}×`,
+  );
   writeFileSync(info.outputPath('perf-scoped.json'), JSON.stringify(report, null, 2));
   await info.attach('perf-scoped.json', {
     body: JSON.stringify(report, null, 2),
@@ -196,6 +209,7 @@ test('perf: scoped .22 on Nog Verder at 4× CPU throttle', async ({ page, browse
   });
 
   expect(cpu.n).toBeGreaterThan(30);
+  expect(openReal.n, 'open frames in the scoped hunt').toBeGreaterThan(10);
   expect(cpu.avg, 'CPU cost per scoped frame (ms) at 4× throttle').toBeLessThanOrEqual(BUDGET_MS);
   if (process.env['PERF_STRICT'] === '1') {
     expect(real.avg, 'real scoped frame time (ms) at 4× throttle').toBeLessThanOrEqual(BUDGET_MS);

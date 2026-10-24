@@ -71,6 +71,26 @@ export function shotThreats(
   return out;
 }
 
+/**
+ * v1.4 (D-038) a very loud shot (Die Langloop, `alertsAllFlocks`): every flock the shot's own
+ * radius didn't reach is threatened too, wherever it is — one threat per flock per shot (GDD
+ * §6.1). The threat comes from the shot's mean impact projected onto each flock's plane.
+ * Returned in flock order.
+ */
+export function loudShotThreats(
+  flocks: readonly Flock[],
+  already: readonly FlockThreat[],
+  impacts: readonly ShotImpact[],
+  cameraX: number,
+  geo: PlaneGeometry,
+): FlockThreat[] {
+  const hit = new Set(already.map((t) => t.flock.id));
+  const mean = impacts.reduce((s, i) => s + i.dx, 0) / Math.max(1, impacts.length);
+  return flocks
+    .filter((f) => !hit.has(f.id) && f.members.length > 0)
+    .map((f) => ({ flock: f, x: planeCentreX(cameraX, geo[f.plane].scrollFactor) + mean }));
+}
+
 /** A flock is visible when any member is within the reference half-width of the screen centre. */
 export function isFlockVisible(f: Flock, cameraX: number, geo: PlaneGeometry): boolean {
   const centre = planeCentreX(cameraX, geo[f.plane].scrollFactor);

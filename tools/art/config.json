@@ -291,6 +291,11 @@
         "angle": -22,
         "shift": 62,
         "widen": 1.15
+      },
+      "langloop": {
+        "angle": -22,
+        "shift": 66,
+        "widen": 1.15
       }
     },
     "lateLoad": {
@@ -332,6 +337,11 @@
       },
       "twee_twee": {
         "fire": 4,
+        "reload": 5,
+        "flash": 2
+      },
+      "langloop": {
+        "fire": 5,
         "reload": 5,
         "flash": 2
       }

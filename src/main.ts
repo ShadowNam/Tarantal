@@ -249,7 +249,7 @@ const hook: TestHook = {
   stones: 0,
   ammo: [],
   crosshair: { weapon: '', extent: 0, visible: false, x: 0, y: 0 },
-  zoom: { z: 1, raise: 0, reticleX: 0, reticleY: 0, sight: null },
+  zoom: { z: 1, raise: 0, reticleX: 0, reticleY: 0, sight: null, fill: 0 },
   shots: 0,
   over: false,
   inputKind: null,
@@ -280,7 +280,9 @@ const hook: TestHook = {
   frameTimes: [],
   cpuFrameMs: [],
   cpuFrameScoped: [],
+  cpuFrameOpen: [],
   frameScoped: [],
+  frameOpen: [],
   simFrameMs: [],
   simFrameSteps: [],
   replay: null,
@@ -773,6 +775,9 @@ async function boot(): Promise<void> {
         const o = runReplay(decodeInputLogText(text), bundle);
         return { eventHash: o.eventHash, eventCount: o.eventCount, score: o.result.score };
       },
+      scopeCull: (on) => {
+        HuntScene.cullZoomed = on;
+      },
       popBench: (n, mode) => {
         const hunt = game.scene.getScene('Hunt');
         return hunt instanceof HuntScene && hunt.sys.isActive() ? hunt.benchPops(n, mode) : null;
@@ -790,6 +795,7 @@ async function boot(): Promise<void> {
       if (hook.scene === 'hunt' && !hook.over && hook.cpuFrameMs.length < 20_000) {
         hook.cpuFrameMs.push(performance.now() - stepStart);
         hook.cpuFrameScoped.push(hook.zoom.raise >= 1);
+        hook.cpuFrameOpen.push(hook.zoom.z === 1);
       }
     });
   }

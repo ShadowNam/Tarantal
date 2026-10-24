@@ -15,6 +15,12 @@ export function blank(width: number, height: number): Rgba {
   return { width, height, data: new Uint8Array(width * height * 4) };
 }
 
+/** v1.4: decodes PNG bytes (any colour type, incl. palette) to straight RGBA. */
+export function decodePng(bytes: Uint8Array): Rgba {
+  const png = PNG.sync.read(Buffer.from(bytes));
+  return { width: png.width, height: png.height, data: new Uint8Array(png.data) };
+}
+
 export function readPng(path: string): Rgba {
   const png = PNG.sync.read(readFileSync(path));
   return { width: png.width, height: png.height, data: new Uint8Array(png.data) };

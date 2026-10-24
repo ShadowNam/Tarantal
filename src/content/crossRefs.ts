@@ -119,7 +119,7 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
   const scopeFits = weapons.weapons.some(
     (w) =>
       w.kind === 'primary' &&
-      w.aim?.sights.some((id) => weapons.sights.find((x) => x.id === id)?.picture === 'scope') === true,
+      w.aim?.sights.some((id) => weapons.sights.find((x) => x.id === id)?.picture.startsWith('scope') === true) === true,
   );
   for (const w of weapons.weapons) {
     if (w.kind !== 'primary') continue;
