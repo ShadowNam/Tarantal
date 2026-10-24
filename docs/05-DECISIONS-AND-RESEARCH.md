@@ -1990,6 +1990,11 @@ the Tuesday map the scoped Langloop is the best gun (competent 4 370), the Dubbe
 both are in the Classic band. The weekday layouts score ×0.75 (dusk ×0.9): at ×1 the Langloop
 made 5 709. The area quota is 3 000. Golden replays: all 35 kept their events and scores; two
 Namibië cases were added.
+(7) *Size:* the first download is **3 000.3 KB gzip** (2.93 MB), up 37 KB from 2 963.7 KB (the
+area code and strings, the content file, and the weaver sprites and chatter in the common group).
+Poki 2 996.2 KB, CrazyGames 2 996.3 KB. The Namibië chunk is **1 445.1 KB gzip** and the Kalahari
+1 498.5 KB, both under the 1.5 MB cap. Low-tier texture memory for a Kalahari hunt is 103.4 MB
+(it was 93 MB; the budget is 128 MB).
 
 ## 3. Research notes (with sources)
 
