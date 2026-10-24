@@ -20,8 +20,6 @@ import type { ZoomState } from './zoomView';
 export type SightPicture = 'iron' | 'peep' | 'scope';
 
 const hex = (c: string): number => Number.parseInt(c.slice(1), 16);
-/** Screen fill around the ring: further than the widest screen from any reticle position. */
-const FILL = 6000;
 
 export class SightView {
   private readonly root: Phaser.GameObjects.Container;
@@ -98,7 +96,7 @@ export class SightView {
   }
 
   /** Places the picture at the reticle and fades it in with the raise. */
-  update(v: ZoomState, height: number): void {
+  update(v: ZoomState, width: number, height: number): void {
     const on = this.picture !== null && v.raise > 0.02;
     this.root.setVisible(on);
     if (!on) return;
@@ -117,16 +115,22 @@ export class SightView {
       const bottom = this.rear.y + this.rear.displayHeight * (1 - this.rear.originY) - 2;
       this.fills[0]
         ?.setPosition(left, bottom)
-        .setSize((BARREL_BOTTOM.right - BARREL_BOTTOM.left) * s, height + FILL);
+        .setSize((BARREL_BOTTOM.right - BARREL_BOTTOM.left) * s, Math.max(0, height - bottom));
     }
     if (this.ring !== null) {
       this.ring.setPosition(x, y);
       const half = this.ring.displayWidth / 2;
       const [l, r, t, b] = this.fills;
-      l?.setPosition(x - half - FILL, y - FILL).setSize(FILL + 1, FILL * 2);
-      r?.setPosition(x + half - 1, y - FILL).setSize(FILL + 1, FILL * 2);
-      t?.setPosition(x - half, y - half - FILL).setSize(half * 2, FILL + 1);
-      b?.setPosition(x - half, y + half - 1).setSize(half * 2, FILL + 1);
+      // The screen around the ring's square, clipped to the screen (v1.3 review: no 6 000 px
+      // rectangles for the rasterizer to clip every frame).
+      const x0 = Math.max(0, x - half);
+      const x1 = Math.min(width, x + half);
+      const y0 = Math.max(0, y - half);
+      const y1 = Math.min(height, y + half);
+      l?.setPosition(0, 0).setSize(Math.max(0, x0 + 1), height);
+      r?.setPosition(x1 - 1, 0).setSize(Math.max(0, width - x1 + 1), height);
+      t?.setPosition(x0, 0).setSize(Math.max(0, x1 - x0), Math.max(0, y0 + 1));
+      b?.setPosition(x0, y1 - 1).setSize(Math.max(0, x1 - x0), Math.max(0, height - y1 + 1));
     }
   }
 
