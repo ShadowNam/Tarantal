@@ -3,6 +3,9 @@
 // (docs/04-BUILD-PLAN.md M0); `strict` turns them into errors (CI uses --strict from M8 on).
 import { coreWidth, DESIGN_HEIGHT } from '../sim/world';
 import { WORLD_EVENT_HANDLERS } from '../sim/director/events';
+
+/** Half the narrowest visible design width (4:3, 1440 px; Tech §3.3). */
+const MIN_HALF_VIEW_WIDTH = 720;
 import { CHARM_SCRIPTS } from '../sim/charms/registry';
 import type { Biome, Charm, ContentBundle, Creature, DailyMeta, Notaboek } from './schemas';
 
@@ -388,6 +391,21 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
         if (p.y - r < 0 || p.y + r > DESIGN_HEIGHT)
           err(file, `range ${plane} paper target at y ${p.y} (radius ${r}) leaves the screen`);
       }
+      const pr = rangeSetup.plateRadiusPx * scoring.planes[plane].scale;
+      for (const p of spot.plate) {
+        if (p.y - pr < 0 || p.y + pr > DESIGN_HEIGHT)
+          err(file, `range ${plane} steel plate at y ${p.y} (radius ${pr}) leaves the screen`);
+      }
+      // 24 Oct update: the mixed course's spots stay inside the narrowest screen (4:3).
+      for (const dx of rangeSetup.mixed.planes[plane].dx) {
+        if (Math.abs(dx) > MIN_HALF_VIEW_WIDTH - r)
+          err(file, `range mixed ${plane} spot dx ${dx} leaves a 4:3 screen`);
+      }
+      if (
+        rangeSetup.mixed.movers.flock.includes(plane) &&
+        rangeSetup.mixed.planes[plane].count >= rangeSetup.mixed.planes[plane].dx.length
+      )
+        err(file, `range mixed ${plane}: a flock plane needs a dx spot the static targets leave free`);
       for (const [what, y] of [
         ['stand', spot.stand.y],
         ['flyY', spot.flyY],
@@ -406,6 +424,15 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
           err(file, `range flockSize ${rangeSetup.flockSize} > biomes/${biome.id}.json maxBirdsOnScreen`);
       }
     }
+  }
+
+  {
+    const m = rangeSetup.mixed;
+    const total = (['near', 'mid', 'far', 'ver'] as const).reduce((n, p) => n + m.planes[p].count, 0);
+    if (total < m.statics.length)
+      err('modes.json', `range mixed: ${total} static targets can't show all ${m.statics.length} kinds`);
+    if (new Set(m.statics).size !== m.statics.length)
+      err('modes.json', 'range mixed statics: each kind once');
   }
 
   // --- world geometry (Tech §3.3) ----------------------------------------------------------

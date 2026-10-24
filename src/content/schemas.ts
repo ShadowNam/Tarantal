@@ -1027,6 +1027,8 @@ const rangeSpotSchema = obj({ dx: z.number(), y: nonNeg });
 const rangePlaneSchema = obj({
   /** Paper targets (fixed; centre of each circle). */
   paper: z.array(rangeSpotSchema).min(1),
+  /** Steel plates (24 Oct update): a round gong on a post; the centre of each plate. */
+  plate: z.array(rangeSpotSchema).min(1),
   /** The standing bird (it stands still and respawns when bagged). */
   stand: rangeSpotSchema,
   /** The small flock's home x (dx from the screen centre); it forages on the plane's lane. */
@@ -1052,9 +1054,29 @@ const rangeSchema = modeSetupSchema.omit({ huntSeconds: true }).extend({
   respawnMs: posInt,
   /** Paper target radius at plane scale 1 (scaled by each plane's scale). */
   paperRadiusPx: pos,
+  /** Steel plate radius at plane scale 1 (scaled like the paper). */
+  plateRadiusPx: pos,
   /** Birds in the small flock (at least the 3 a flock needs). */
   flockSize: z.number().int().min(3),
   spots: allPlanes(rangePlaneSchema),
+  /** 24 Oct update (D-037): the mixed course — targets on every distance at once. */
+  mixed: obj({
+    /** Per plane: how many static targets, and the dx spots (from the screen centre at the
+     *  camera start) they are drawn from. */
+    planes: allPlanes(
+      obj({ count: z.number().int().min(1), dx: z.array(z.number()).min(1) }).refine(
+        (p) => p.count <= p.dx.length,
+        'mixed count must not exceed its dx spots',
+      ),
+    ),
+    /** Kinds a static target is drawn from; each one is on the course at least once. */
+    statics: z.array(z.enum(['paper', 'plate', 'stand'])).min(1),
+    /** The planes the one fly-over and the one small flock are drawn from. */
+    movers: obj({
+      flyover: z.array(z.enum(['near', 'mid', 'far', 'ver'])).min(1),
+      flock: z.array(z.enum(['near', 'mid', 'far', 'ver'])).min(1),
+    }),
+  }),
 });
 
 export const ModesSchema = obj({
