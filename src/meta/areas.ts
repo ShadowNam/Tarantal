@@ -2,7 +2,7 @@
 // the title's area picker. An area pack unlocks for good once its `area.unlockBonus` bonus map
 // (Die Verste) is reached in any area: unlocked for a day, or played (it has a best). Pure: the
 // game layer saves the result through src/meta/storage.ts.
-import type { Biome, ContentBundle } from '../content/schemas';
+import type { Biome, ContentBundle, Notaboek } from '../content/schemas';
 import type { SaveData } from './saveSchema';
 
 export interface AreaCard {
@@ -23,23 +23,41 @@ export function classicAreas(
   return home === undefined ? packs : [home, ...packs];
 }
 
-/** The save shows this bonus map reached somewhere: unlocked (any day) or played (a best). */
-export function bonusReachedAnywhere(save: Pick<SaveData, 'bonusMaps'>, bonus: string): boolean {
+/** Save fields the area rules read (`notaboek` only for the challenge backfill). */
+type AreaSave = Pick<SaveData, 'areas' | 'bonusMaps'> & Partial<Pick<SaveData, 'notaboek'>>;
+
+/**
+ * The save shows this bonus map reached somewhere: unlocked (any day), played (a best), or its
+ * Notaboek "unlock it" challenge done (a tester who unlocked Die Verste on the v1.4 A build but
+ * never played it, D-039 review).
+ */
+export function bonusReachedAnywhere(
+  save: Pick<SaveData, 'bonusMaps'> & Partial<Pick<SaveData, 'notaboek'>>,
+  bonus: string,
+  notaboek?: Pick<Notaboek, 'challenges'>,
+): boolean {
   const suffix = `/${bonus}`;
+  const done = save.notaboek?.done ?? [];
   return (
     save.bonusMaps.unlocked.some((k) => k.endsWith(suffix)) ||
-    Object.keys(save.bonusMaps.bests).some((k) => k.endsWith(suffix))
+    Object.keys(save.bonusMaps.bests).some((k) => k.endsWith(suffix)) ||
+    (notaboek?.challenges.some(
+      (c) => c.metric === 'bonusUnlocks' && c.bonus === bonus && done.includes(c.id),
+    ) ??
+      false)
   );
 }
 
 /** Whether Classic can play `biome` (the home area and seasons always; area packs once earned). */
 export function isAreaUnlocked(
   biome: Pick<Biome, 'id' | 'area'>,
-  save: Pick<SaveData, 'areas' | 'bonusMaps'>,
+  save: AreaSave,
+  notaboek?: Pick<Notaboek, 'challenges'>,
 ): boolean {
   if (biome.area === undefined) return true;
   return (
-    save.areas.unlocked.includes(biome.id) || bonusReachedAnywhere(save, biome.area.unlockBonus)
+    save.areas.unlocked.includes(biome.id) ||
+    bonusReachedAnywhere(save, biome.area.unlockBonus, notaboek)
   );
 }
 
@@ -50,14 +68,15 @@ export function isAreaUnlocked(
  */
 export function newlyUnlockedAreas(
   content: Pick<ContentBundle, 'biomes'>,
-  save: Pick<SaveData, 'areas' | 'bonusMaps'>,
+  save: AreaSave,
+  notaboek?: Pick<Notaboek, 'challenges'>,
 ): string[] {
   return content.biomes
     .filter(
       (b) =>
         b.area !== undefined &&
         !save.areas.unlocked.includes(b.id) &&
-        bonusReachedAnywhere(save, b.area.unlockBonus),
+        bonusReachedAnywhere(save, b.area.unlockBonus, notaboek),
     )
     .map((b) => b.id);
 }
@@ -65,43 +84,48 @@ export function newlyUnlockedAreas(
 /** The biome Classic plays: the saved choice when it is still playable and unlocked, else home. */
 export function classicAreaId(
   content: Pick<ContentBundle, 'biomes' | 'modes'>,
-  save: Pick<SaveData, 'areas' | 'bonusMaps'>,
+  save: AreaSave,
   playable: readonly string[],
+  notaboek?: Pick<Notaboek, 'challenges'>,
 ): string {
   const home = content.modes.modes.classic.biome;
   const chosen = save.areas.classic;
   if (chosen === null) return home;
   const b = content.biomes.find((x) => x.id === chosen);
-  return b !== undefined && playable.includes(b.id) && isAreaUnlocked(b, save) ? b.id : home;
+  return b !== undefined && playable.includes(b.id) && isAreaUnlocked(b, save, notaboek)
+    ? b.id
+    : home;
 }
 
 /** One card per Classic area for the picker. */
 export function areaCards(
   content: Pick<ContentBundle, 'biomes' | 'modes'>,
-  save: Pick<SaveData, 'areas' | 'bonusMaps'>,
+  save: AreaSave,
   playable: readonly string[],
+  notaboek?: Pick<Notaboek, 'challenges'>,
 ): AreaCard[] {
   return classicAreas(content, playable).map((b) => ({
     biome: b.id,
     nameKey: b.nameKey,
-    unlocked: isAreaUnlocked(b, save),
+    unlocked: isAreaUnlocked(b, save, notaboek),
     unlockBonus: b.area?.unlockBonus ?? null,
   }));
 }
 
 /**
- * The playable biomes this save may pick by hand (the Skietbaan's area list, the bird book):
- * every season biome, and an area pack only once it is unlocked. The Daily, challenge links and
- * the admin page keep every playable biome (they must be the same for everyone, or are tools).
+ * The playable biomes this save may pick by hand (the bird book): every season biome, and an area
+ * pack only once it is unlocked. The Daily, challenge links and the admin page (and its
+ * Skietbaan) keep every playable biome (D-039).
  */
 export function unlockedBiomes(
   content: Pick<ContentBundle, 'biomes'>,
-  save: Pick<SaveData, 'areas' | 'bonusMaps'>,
+  save: AreaSave,
   playable: readonly string[],
+  notaboek?: Pick<Notaboek, 'challenges'>,
 ): string[] {
   return playable.filter((id) => {
     const b = content.biomes.find((x) => x.id === id);
-    return b !== undefined && isAreaUnlocked(b, save);
+    return b !== undefined && isAreaUnlocked(b, save, notaboek);
   });
 }
 

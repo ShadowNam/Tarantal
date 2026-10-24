@@ -712,12 +712,12 @@ async function boot(): Promise<void> {
     holdAtTick: holdAtParam(),
     omen: adminSetup === null ? omenParam() : adminSetup.omen,
     classicBiome: adminSetup === null ? biomeParam() : adminSetup.classicBiome,
-    classicArea: () => classicAreaId(bundle, save.data, playableBiomes),
+    classicArea: () => classicAreaId(bundle, save.data, playableBiomes, loaded.notaboek),
     setClassicArea: (id) => {
       save.update((d) => ({ ...d, areas: { ...d.areas, classic: id } }));
     },
     grantAreas: () => {
-      const fresh = newlyUnlockedAreas(bundle, save.data);
+      const fresh = newlyUnlockedAreas(bundle, save.data, loaded.notaboek);
       if (fresh.length > 0)
         save.update((d) => ({
           ...d,

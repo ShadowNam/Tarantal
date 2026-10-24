@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { loadContent } from '../../tools/testContent';
+import { loadContent, loadNotaboek } from '../../tools/testContent';
 import {
   areaCards,
   biomeOrFirst,
@@ -82,5 +82,15 @@ describe('area packs (v1.4 B, D-039)', () => {
     const open = { ...fresh, areas: { unlocked: ['namibie'], classic: null } };
     expect(unlockedBiomes(content, open, playable)).toHaveLength(5);
     expect(unlockedBiomes(content, open, playable)).toContain('namibie');
+  });
+
+  it('a done "unlock Die Verste" Notaboek challenge counts as reaching it (v1.4 A testers)', () => {
+    const notaboek = loadNotaboek();
+    const save = { ...defaultSave(), notaboek: { progress: {}, done: ['unlock_die_verste'] } };
+    expect(isAreaUnlocked(namibie, save)).toBe(false);
+    expect(isAreaUnlocked(namibie, save, notaboek)).toBe(true);
+    expect(newlyUnlockedAreas(content, save, notaboek)).toEqual(['namibie']);
+    const other = { ...defaultSave(), notaboek: { progress: {}, done: ['unlock_nog_verder'] } };
+    expect(isAreaUnlocked(namibie, other, notaboek)).toBe(false);
   });
 });

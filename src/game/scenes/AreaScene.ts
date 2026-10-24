@@ -37,7 +37,12 @@ export class AreaScene extends Phaser.Scene {
       .text(px + panelW / 2, py + 60, t('area.title'), textStyle(60, '#FFD25A'))
       .setOrigin(0.5);
 
-    const cards = areaCards(this.ctx.content, this.ctx.save.data, this.ctx.playableBiomes);
+    const cards = areaCards(
+      this.ctx.content,
+      this.ctx.save.data,
+      this.ctx.playableBiomes,
+      this.ctx.notaboek,
+    );
     const chosen = this.ctx.classicArea();
     const gap = 40;
     const cardW = (panelW - 120 - gap * (cards.length - 1)) / Math.max(1, cards.length);

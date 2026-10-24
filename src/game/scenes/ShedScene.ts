@@ -345,9 +345,12 @@ export class ShedScene extends Phaser.Scene {
       // v1.4 B: a locked area pack keeps its secrets to itself until it is unlocked.
       ...this.ctx.content.biomes
         .filter((b) =>
-          unlockedBiomes(this.ctx.content, this.ctx.save.data, this.ctx.playableBiomes).includes(
-            b.id,
-          ),
+          unlockedBiomes(
+            this.ctx.content,
+            this.ctx.save.data,
+            this.ctx.playableBiomes,
+            this.ctx.notaboek,
+          ).includes(b.id),
         )
         .flatMap((b) =>
           b.props

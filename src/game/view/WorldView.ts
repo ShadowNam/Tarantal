@@ -12,14 +12,13 @@ import { TEX } from '../assets/AssetManifest';
 import type { ParallaxView } from './ParallaxView';
 import { FlashGate, type FlashLimiter } from './flashLimit';
 import { stampedeTintAlpha } from './juice';
+import { mirageLook } from './mirage';
 
 /** Rendering only: dust devils sway this much (radians) and this fast (ms per sway). */
 const DEVIL_SWAY = 0.08;
 const DEVIL_SWAY_MS = 260;
 /** v1.4 B: mirage strips on the far plane (half again on Ver), before the quality tier. */
 const MIRAGE_STRIPS = 10;
-/** Radians per second of the mirage's breathe (2π / 2.1 ≈ a 3 s cycle). */
-const MIRAGE_BREATHE = 2.1;
 /** At most this many wind particles alive at once. */
 const MAX_WIND_PARTICLES = 40;
 
@@ -265,13 +264,9 @@ export class WorldView {
     for (const m of this.mirageStrips) {
       m.img.setVisible(s.mirage);
       if (!s.mirage) continue;
-      if (still) {
-        m.img.setAlpha(m.base);
-        continue;
-      }
-      // A slow breathe (≥ 3 s per cycle, never a flash) and a gentle sideways ripple.
-      m.img.setAlpha(m.base * (0.6 + 0.4 * Math.sin(t * MIRAGE_BREATHE + m.phase)));
-      m.img.setScale(m.sx * (1 + 0.08 * Math.sin(t * 1.3 + m.phase * 0.7)), m.img.scaleY);
+      const look = mirageLook(m, t, still);
+      m.img.setAlpha(look.alpha);
+      m.img.setScale(m.sx * look.scaleX, m.img.scaleY);
     }
   }
 
