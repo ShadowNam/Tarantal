@@ -67,6 +67,20 @@ describe('SaveData v1', () => {
     expect(b.data.bests['karoo-autumn']?.score).toBe(2840);
   });
 
+  it('v1.4: an unlocked, equipped Langloop survives a reopened tab', () => {
+    const a = new SaveStore();
+    a.update((d) => ({
+      ...d,
+      unlocks: { ...d.unlocks, weapons: [...d.unlocks.weapons, 'langloop'] },
+      loadout: { ...d.loadout, weapon: 'langloop' },
+    }));
+    expect(readText('save.v1')).toContain('langloop');
+    resetStorageForTests();
+    const b = new SaveStore();
+    expect(b.data.unlocks.weapons).toContain('langloop');
+    expect(b.data.loadout.weapon).toBe('langloop');
+  });
+
   it('a corrupted save falls back to defaults and keeps the bad text for bug reports', () => {
     store.set('tm.save.v1', '{"v":1,"settings":{"leftHa');
     const s = new SaveStore();
