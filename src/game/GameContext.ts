@@ -261,6 +261,11 @@ export interface TestHook {
   /** v1.4 B (D-039): angry weavers on screen now, and bursts started this hunt. */
   weavers: number;
   weaverBursts: number;
+  /** v1.4 B: the Namibië mirage is on in this hunt. */
+  mirage: boolean;
+  /** v1.4 B (perf): total ms spent drawing the weavers and the mirage, and the frames counted. */
+  sceneryMs: number;
+  sceneryFrames: number;
   /** M6: the Season Run on screen (Run scene view, run phase, hunt, doppies, charms, offers). */
   run: {
     view: string;

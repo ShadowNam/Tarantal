@@ -223,7 +223,16 @@ export class WorldView {
    * most MIRAGE_STRIPS images, fewer on the low tier), no flashes: a slow alpha drift only, and
    * still with "reduce flashes" or reduced motion.
    */
+  /** v1.4 B (e2e perf): ms the mirage took to draw this frame. */
+  mirageMs = 0;
+
   private drawMirage(s: SimState): void {
+    const t0 = performance.now();
+    this.mirageDraw(s);
+    this.mirageMs = performance.now() - t0;
+  }
+
+  private mirageDraw(s: SimState): void {
     if (this.mirageStrips === null) {
       this.mirageStrips = [];
       const n = Math.max(4, Math.round(MIRAGE_STRIPS * this.prefs.particleScale));

@@ -1196,7 +1196,13 @@ export class HuntScene extends Phaser.Scene {
     this.birds.setViewZoom(zoom.z);
     this.birds.update(drawBirds, state.tick);
     this.world.update(state, width, designSize().height);
+    const w0 = performance.now();
     this.weavers.update(state);
+    if (this.ctx.hook) {
+      // v1.4 B (e2e perf): what the weavers and the mirage cost per frame.
+      this.ctx.hook.sceneryMs += performance.now() - w0 + this.world.mirageMs;
+      this.ctx.hook.sceneryFrames++;
+    }
     this.weapon.spreadMul = spreadMulOf(state.powerups, this.ctx.content.powerups.powerups);
     this.weapon.setWeapon(state.weapon.id);
     this.weapon.setReloading(state.weapon.reloading);
@@ -1313,6 +1319,7 @@ export class HuntScene extends Phaser.Scene {
       hook.powerups = state.powerups.map((p) => p.id);
       hook.wind = state.wind;
       hook.weavers = this.weavers.visibleCount;
+      hook.mirage = state.mirage;
       hook.durationTicks = state.durationTicks;
     }
 
