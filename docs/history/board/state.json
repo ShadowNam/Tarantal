@@ -1,5 +1,5 @@
 {
- "asOf": "2026-10-24T02:40:00Z",
+ "asOf": "2026-10-24T05:50:00Z",
  "done": [
   {
    "phase": "Foundations",
@@ -224,26 +224,98 @@
     54
    ],
    "prlabel": "#53, #54"
+  },
+  {
+   "phase": "Version 1.x",
+   "step": "Training ground (Skietbaan)",
+   "prs": [
+    58
+   ],
+   "prlabel": "#58"
   }
  ],
  "open": [
   {
    "phase": "Version 1.x",
-   "step": "Training ground (Skietbaan)",
+   "step": "v1.4 A: scope speed fix + Die Langloop",
    "status": "running",
-   "start": "2026-10-24T02:25:00Z",
-   "end": "2026-10-24T06:30:00Z",
-   "prlabel": "Tank e3ce98b0"
+   "start": "2026-10-24T05:40:00Z",
+   "end": "2026-10-24T10:00:00Z",
+   "prlabel": "Tank 8f60807c"
   },
   {
    "phase": "Version 1.x",
-   "step": "v1.4 Die Langloop + Namibië",
+   "step": "v1.4 B: the Namibië area",
    "status": "next",
-   "start": "2026-10-24T06:30:00Z",
-   "end": "2026-10-24T14:30:00Z"
+   "start": "2026-10-24T10:00:00Z",
+   "end": "2026-10-24T14:00:00Z"
   }
  ],
  "checklist": [
+  {
+   "item": "Measure the scope view's drawing cost against the open view, same map (issue #56)",
+   "status": "running",
+   "where": "PR A"
+  },
+  {
+   "item": "Cut the scope view's overdraw (target ≤ 1.5× the open view on a Pixel 7)",
+   "status": "next",
+   "where": "PR A"
+  },
+  {
+   "item": "Die Langloop: 3 rounds, 3–9× scope, loud (alerts every flock)",
+   "status": "next",
+   "where": "PR A"
+  },
+  {
+   "item": "Langloop tests, balance report, replays re-recorded",
+   "status": "next",
+   "where": "PR A"
+  },
+  {
+   "item": "Langloop screenshots on desktop and both phones",
+   "status": "next",
+   "where": "PR A"
+  },
+  {
+   "item": "Namibië area: salt pan with mirages, quiver trees, dunes, far waterhole",
+   "status": "next",
+   "where": "PR B"
+  },
+  {
+   "item": "Namibië: 7 weekday maps, bonus maps, omen, secret, sound",
+   "status": "next",
+   "where": "PR B"
+  },
+  {
+   "item": "Namibië unlock (reach Die Verste), loads only when opened",
+   "status": "next",
+   "where": "PR B"
+  },
+  {
+   "item": "Namibië balance report and screenshots",
+   "status": "next",
+   "where": "PR B"
+  },
+  {
+   "item": "Code review, look review, merge",
+   "status": "next",
+   "where": "PR A, PR B"
+  }
+ ],
+ "numbers": [
+  {
+   "metric": "Unit tests",
+   "value": 954,
+   "note": "on main, plus 39 browser test suites on 3 devices"
+  },
+  {
+   "metric": "First download (KB)",
+   "value": 2941.8,
+   "note": "on main; budget 3,072 KB (3 MB)"
+  }
+ ],
+ "checklist_v13": [
   {
    "item": "Memory fix: gun pictures freed after a hunt",
    "status": "done",
@@ -330,16 +402,61 @@
    "where": "merged 24 Oct 02:24"
   }
  ],
- "numbers": [
+ "checklist_skietbaan": [
   {
-   "metric": "Unit tests",
-   "value": 908,
-   "note": "on main, plus 37 browser test suites on 3 devices"
+   "item": "Range mode in the real sim: no timer, score or Frenzy; endless ammo, reloads kept",
+   "status": "done",
+   "where": "PR #58"
   },
   {
-   "metric": "First download (KB)",
-   "value": 2940.7,
-   "note": "on main; budget 3,072 KB (3 MB)"
+   "item": "Stats: shots, hits, pellets per shot, group size and centre",
+   "status": "done",
+   "where": "PR #58"
+  },
+  {
+   "item": "Skietbaan button on the admin page, only in the web test build",
+   "status": "done",
+   "where": "PR #58"
+  },
+  {
+   "item": "Setup page: 9 guns, 4 areas, near to Ver, 4 target types",
+   "status": "done",
+   "where": "PR #58"
+  },
+  {
+   "item": "Never touches the save (checked byte for byte)",
+   "status": "done",
+   "where": "PR #58"
+  },
+  {
+   "item": "Strings in English, Afrikaans, German, Dutch",
+   "status": "done",
+   "where": "PR #58"
+  },
+  {
+   "item": "Code review: hunts unchanged, portal builds clean",
+   "status": "done",
+   "where": "review 04:38"
+  },
+  {
+   "item": "Phone fixes: Start always visible, stats bar out of the way",
+   "status": "done",
+   "where": "PR #58"
+  },
+  {
+   "item": "Browser test: shoot a flying bird",
+   "status": "done",
+   "where": "PR #58"
+  },
+  {
+   "item": "New phone screenshots, final checks",
+   "status": "done",
+   "where": "PR #58"
+  },
+  {
+   "item": "Merge into main",
+   "status": "done",
+   "where": "merged 05:38"
   }
  ]
 }
