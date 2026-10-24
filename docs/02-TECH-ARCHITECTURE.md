@@ -397,7 +397,7 @@ draw only when its weight is > 0, so maps without it draw exactly as before.
   plane the creature uses, and each biome event's required fields for its handler kind).
   `--dir <path>` validates another content folder (used by the test that proves a broken
   cross-reference fails the CLI).
-- `contentHash` = SHA-256 of the canonicalised bundle; part of every replay, daily seed and score
+- `contentHash` = SHA-256 of the canonicalised bundle, except `modes.range` (see §8.3); part of every replay, daily seed and score
   submission (only official content counts for leaderboards).
 - **Client-only feel** lives in `content/client/feel.json` (gesture thresholds, pan speeds, juice
   timings, HUD sizes, loop step cap, particle budget). It has a Zod schema and is validated by
