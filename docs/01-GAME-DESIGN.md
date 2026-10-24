@@ -257,6 +257,7 @@ Design rule: few weapons, each with a distinct *verb*. Every weapon changes how 
 | `kettie` | Die Kettie (slingshot) | Whole-flock 3 times | ∞ / 0.35 s draw | 1 projectile, travel time + drop + wind | Misses alert small radius (120 px) | ×2 all hits |
 | `pomp` | Plaas-Pomp (pump shotgun) | Reach Plaaswerker rank | 6 / 0.7 s **per shell**, interruptible | 6 pellets, tighter spread | Alerts | ×1 |
 | `twee_twee` | Die Twee-Twee (.22 bolt-action, v1.3) | Unlock Nog Verder once | 5 / 1.2 s magazine; 0.4 s bolt between shots | 1 bullet; **hold to zoom, release to fire** (§10.6); reaches the Ver plane; hip shot 36 px | Fairly quiet: alerts 180 px | ×1.5 on the Ver plane |
+| `langloop` | Die Langloop (long-range rifle, v1.4, D-038) | Unlock Die Verste once, in any area | 3 / 1.5 s magazine; 0.8 s bolt between shots | 1 bullet; variable scope 3× / 6× / 9× (§10.6); reaches the Ver plane; wind sensitivity 0.5; hip shot 60 px | **Very loud: every shot alerts every flock** | ×2 on the Ver plane; ×0.65 near and mid |
 
 Kettie: a stone reaches the near / mid / far plane after 80 / 180 / 350 ms and drops on the way,
 so you lead moving birds and aim a touch high; it lands where you aimed in the world even if you
@@ -313,6 +314,7 @@ Shotguns, the air rifle, the Kettie and the crate guns are unchanged (they fire 
 | Iron (open) | 1.5× | Rear notch (soft, near the eye) and the front post | 0.15 s | 2.5 | ×0.25 |
 | Peep (aperture) | 2× | A soft dark ring around a clear circle, the front post in it | 0.2 s | 2 | ×0.2 |
 | Small scope | 4× | Dark tube ring and lens edge, coated glass, duplex reticle | 0.3 s | 3.5 | ×0.15 |
+| Variable scope (Langloop, v1.4) | 3× / 6× / 9× | The scope ring with a fine cross and range marks below the centre for holding over | 0.35 s | 3.5, +1.75 per step | ×0.12 |
 
 - **Aim:** while the sight is up the aim moves by the pointer's movement divided by the zoom
   (finer than normal). Holding near a screen edge pans; the view never shows past the screen's own
@@ -326,6 +328,10 @@ Shotguns, the air rifle, the Kettie and the crate guns are unchanged (they fire 
   links). About **0.5 s** after the press the shooter holds their breath and the sway eases to the
   sight's breath-hold factor for **3 s**; after that it grows to 2.2–2.5× over 1.5 s, so you can't
   camp on a bird. A variable scope (v1.4) sways more per zoom step.
+- **Variable scope (v1.4, D-038):** the Langloop's scope steps between 3×, 6× and 9×: the mouse
+  wheel or + / − on desktop, the − / + buttons beside the ammo on touch (a label shows the zoom).
+  A step works with the sight up or down; with it up, the view changes at once and the aim point
+  stays where it was. The next raise starts at the last step.
 - **Recorded:** raising the sight, the aim while it is up, the release, the cancel and the zoom
   step are commands in the replay. A zoomed shot lands on the same world point on every screen.
 - **Earning sights:** iron sights from the start; the **peep** for bagging 10 birds at Ver
@@ -342,7 +348,7 @@ pump), Brno .22 bolt-action (overlaps Windbuks), Boerewors bolas/net gun (v1.x c
 
 **Reversed in v1.3 (D-036):** the .22 bolt-action is back as Die Twee-Twee (§10.1): hold-to-zoom
 sights and the fourth, distant plane give it its own job, apart from the Windbuks. The long-range
-rifle (Die Langloop) follows in v1.4. Plan: `docs/08-PROPOSAL-LONG-RANGE-AND-DAILY-MAPS.md`.
+rifle (Die Langloop) arrived in v1.4 (D-038). Plan: `docs/08-PROPOSAL-LONG-RANGE-AND-DAILY-MAPS.md`.
 
 ## 11. Biomes, seasons and weather
 

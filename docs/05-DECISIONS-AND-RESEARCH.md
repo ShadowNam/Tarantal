@@ -1884,6 +1884,49 @@ under "reduce flashes". (e) *Size:* the plate art and sounds are interim (D-029)
 download grew by 868 bytes gzip (2 941.8 → 2 942.7 KB); the Skietbaan chunk is 13.8 KB gzip
 (was 9.1 KB) plus 43.6 KB of range assets loaded with it.
 
+**D-038 v1.4 part A: the scoped drawing cost (#56) and Die Langloop (24 Oct 2026):** the plan
+is `docs/08-PROPOSAL-LONG-RANGE-AND-DAILY-MAPS.md` (the Langloop row and the ammo/crosshair table).
+Rules are in GDD §10.1 and §10.6 and Tech §3.3–3.4.
+(1) *#56, a zoomed view draws only what can show:* while a sight is up, ParallaxView skips layer
+rows outside the zoomed view, outside a ring sight's square once it is fully up (the sight fill
+and the ring cover the rest), and behind nearer opaque bands. The picture is unchanged (an e2e
+test shoots a frozen scoped frame with the culling on and off). CI, Pixel 7 profile, real frame
+time: the open hunt **177 → 88 ms**, the scoped .22 on Nog Verder **456 → 140 ms**, the open Nog
+Verder 344 → 179 ms; scoped / open went from **1.33× to 0.78×** (desktop was 1.26× before).
+Why: on a phone the scope made the game slower exactly when the player needs it steady.
+*For a later look:* a Ver map's open view still costs about **2× a plain map** (179 vs 88 ms on
+the Pixel 7 profile), because it draws the extra Ver plane and its haze. It is not blocking, but
+it is the next thing to profile.
+(2) *Die Langloop:* a generic long-range rifle with a farm name, not a real model. 3 rounds,
+1.5 s magazine change, 0.8 s bolt; hold to raise the scope, release to fire; reaches Ver.
+Its numbers live in `content/weapons.json`. Why: the .22 is the quiet, patient rifle; the
+Langloop is the one loud, precise shot at the furthest birds.
+(3) *Variable scope:* 3× / 6× / 9× (`scope_var`), stepped with the wheel, + / − or the touch
+buttons beside the ammo. Each step is a recorded `zoom` command with an integer step, so a zoomed
+shot names the same world point on every screen and replays exactly. A step while the sight is
+up applies at once and keeps the aim point. Higher steps sway more (`swayPerStep` 1.75); the
+breath hold settles hardest (×0.12). The picture is the scope ring with a fine cross and range
+marks below the centre.
+(4) *Very loud:* every shot alerts every flock (`alertsAllFlocks`), once per flock per shot.
+Why: it is the price of the reach and the ×2; after one shot the whole veld is awake, so a
+player picks the bird before pressing. windSensitivity 0.5 uses the existing wind model.
+(5) *Score:* ×2 on the Ver plane; near and mid ×0.65 (tuned from ×0.5,
+`docs/balance/v1.4-langloop.md`). Classic competent 2 537, below the Dubbelloop (4 180), the
+Pomp (4 306) and the .22 (3 620–3 971); Nog Verder 4 082 and Die Verste 3 976, under the 4 500
+cap. The M3 "plinker ≥ 25 % below competent" check fails on Classic (9 %), because the loud shot
+removes the competent player's flock play; the gun is not meant for plain maps.
+(6) *Unlock:* the first time the player unlocks Die Verste in any area (Notaboek challenge
+`unlock_die_verste`, metric `bonusUnlocks` with `bonus: dieVerste`); it is saved through
+`src/meta/storage.ts` like every other unlock.
+(7) *Look and sound:* ammo is brass rifle cartridges with pointed copper bullets, an empty case
+when spent; the crosshair is a thin cross. The gun art, the cartridges and the shot sound are
+interim (D-029) and listed so in `assets:audit`. The gun sits in the lazy Ver asset group like
+the .22. The Skiet-Skuur lists it from content and now sizes its cards so both rifles' sight rows
+fit; the Skietbaan lists it (its gun list comes from content).
+(8) *Size:* the first download is **2 963.7 KB gzip** (2.89 MB), up 21 KB from 2 942.7 KB (the
+shot sound in the common group, the cartridge sprites, the code); Poki 2 959.7 KB, CrazyGames
+2 959.8 KB, no range code in either.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
