@@ -11,7 +11,7 @@ export type Projectile = NonNullable<Extract<Weapon, { kind: 'primary' }>['proje
 
 /** One depth band of the flight: the layers the stone crosses at `ticks` after the shot. */
 export interface ProjectileBand {
-  readonly plane: PlaneId;
+  readonly plane: Exclude<PlaneId, 'ver'>;
   /** Ticks after the shot when the stone is at this band. */
   readonly ticks: number;
   /** Screen px the stone has dropped by then. */
@@ -28,9 +28,9 @@ export interface ProjectileBand {
 export function projectileBands(
   p: Projectile,
   slices: readonly Slice[],
-  planeFactor: Readonly<Record<PlaneId, number>>,
+  planeFactor: Readonly<Record<Exclude<PlaneId, 'ver'>, number>>,
 ): ProjectileBand[] {
-  const bandOf = (f: number): PlaneId =>
+  const bandOf = (f: number): Exclude<PlaneId, 'ver'> =>
     f >= planeFactor.near ? 'near' : f >= planeFactor.mid ? 'mid' : 'far';
   return (['near', 'mid', 'far'] as const).map((plane) => ({
     plane,

@@ -1,3 +1,4 @@
+import { isArtPlane } from '../assets/artPlane';
 import { describe, expect, it } from 'vitest';
 import { loadContent } from '../../../tools/testContent';
 import en from '../../i18n/en.json';
@@ -33,7 +34,8 @@ describe('placeholder manifest', () => {
   it('has art for every bird the biome can spawn, on each of its planes', () => {
     for (const c of content.birds.creatures) {
       if (c.kind === 'helper' || (c.biomes && !c.biomes.includes(biome.id))) continue;
-      for (const plane of c.planes) {
+      // Ver birds are drawn from the far/mid art (D-036): no frames of their own.
+      for (const plane of c.planes.filter(isArtPlane)) {
         for (const frame of ['up', 'down', 'stand'] as const) {
           expect(m.has(m.bird(c.id, plane, frame)), `${c.id}/${plane}/${frame}`).toBe(true);
         }
@@ -46,7 +48,7 @@ describe('placeholder manifest', () => {
   it('draws every bird so its whole hitbox is inside the texture (what you see is what you hit)', () => {
     for (const c of content.birds.creatures) {
       if (c.kind === 'helper') continue;
-      for (const plane of c.planes) {
+      for (const plane of c.planes.filter(isArtPlane)) {
         const key = m.bird(c.id, plane, 'up');
         if (!key.startsWith(`bird/${c.id}/`)) continue;
         const o = m.origin(key);

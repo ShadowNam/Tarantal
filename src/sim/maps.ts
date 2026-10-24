@@ -19,6 +19,18 @@ export interface ResolvedMap {
   readonly weather: MapWeather;
   /** Multiplies every bird's base points (1 = unchanged). */
   readonly pointsMul: number;
+  /** v1.3 (D-036): the map opens the Ver plane (its layer is in `biome.layers`). */
+  readonly ver: boolean;
+}
+
+/**
+ * v1.3: a biome's Ver layer belongs only to maps that open it. Every other map (and the plain
+ * biome) leaves it out, so its slices, spawns and art are exactly as before v1.3.
+ */
+function withoutVer(biome: Biome): Biome {
+  return biome.layers.some((l) => l.plane === 'ver')
+    ? { ...biome, layers: biome.layers.filter((l) => l.plane !== 'ver') }
+    : biome;
 }
 
 type Override = Omit<BonusMap, 'id' | 'nameKey'>;
@@ -37,7 +49,7 @@ function applyOverride(biome: Biome, o: Override): Biome {
   let lanes = biome.lanes;
   if (o.lanes !== undefined) {
     const next: { -readonly [K in PlaneId]?: Biome['lanes'][K] } = { ...biome.lanes };
-    for (const plane of ['near', 'mid', 'far'] as const) {
+    for (const plane of ['near', 'mid', 'far', 'ver'] as const) {
       const over = o.lanes[plane];
       if (over === undefined) continue;
       // $comment is carried over harmlessly (content comments are ignored everywhere).
@@ -113,7 +125,14 @@ export function resolveMap(
 ): ResolvedMap {
   if (layoutId === undefined) {
     if (bonusId !== undefined) throw new Error(`bonus map ${bonusId} needs a layout`);
-    return { biome, layout: null, bonus: null, weather: 'default', pointsMul: 1 };
+    return {
+      biome: withoutVer(biome),
+      layout: null,
+      bonus: null,
+      weather: 'default',
+      pointsMul: 1,
+      ver: false,
+    };
   }
   const layout = findLayout(biome, layoutId);
   if (layout === undefined) throw new Error(`biome ${biome.id} has no layout ${layoutId}`);
@@ -122,9 +141,12 @@ export function resolveMap(
     throw new Error(`biome ${biome.id} has no bonus map ${bonusId}`);
   let resolved = applyOverride(biome, layout);
   if (bonus !== null) resolved = applyOverride(resolved, bonus);
+  const ver = (bonus?.ver ?? layout.ver ?? false) && biome.layers.some((l) => l.plane === 'ver');
+  if (!ver) resolved = withoutVer(resolved);
   const bonusWeather = bonus?.weather;
   return {
     biome: resolved,
+    ver,
     layout,
     bonus,
     weather:

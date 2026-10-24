@@ -90,6 +90,15 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
   }
 
   // --- weapons.json ------------------------------------------------------------------------
+  // v1.3 (D-036): sights and the rifles that fit them.
+  const sightIds = new Set(weapons.sights.map((x) => x.id));
+  checkUnique('weapons.json', 'sight', weapons.sights.map((x) => x.id), err);
+  for (const sight of weapons.sights) i18n('weapons.json', sight.nameKey);
+  for (const w of weapons.weapons) {
+    if (w.kind !== 'primary' || w.aim === undefined) continue;
+    for (const id of w.aim.sights)
+      if (!sightIds.has(id)) err('weapons.json', `weapon "${w.id}" fits unknown sight "${id}"`);
+  }
   for (const w of weapons.weapons) {
     if (w.kind !== 'primary') continue;
     if (w.unlock.type === 'rank' && !rankIds.has(w.unlock.id)) {
@@ -278,17 +287,31 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
       if (o.windMul !== undefined && biome.omen.wind === undefined)
         err(file, `${where} sets windMul but omen "${biome.omen.id}" has no wind`);
       const lanes = { ...biome.lanes };
-      for (const plane of ['near', 'mid', 'far'] as const)
+      for (const plane of ['near', 'mid', 'far', 'ver'] as const)
         if (o.lanes?.[plane] !== undefined) lanes[plane] = { ...lanes[plane], ...o.lanes[plane] };
+      // v1.3 (D-036): a map that opens the Ver plane needs the biome's ver layer and Ver lanes.
+      if (o.ver === true) {
+        if (!biome.layers.some((l) => l.plane === 'ver'))
+          err(file, `${where} opens the Ver plane but the biome has no layer with plane "ver"`);
+        if (lanes.ver?.groundY === undefined || lanes.ver.skyY === undefined)
+          err(file, `${where} opens the Ver plane but lanes.ver has no ground and sky lane`);
+      }
+      const verOpen = o.ver === true;
       for (const s of o.feedingSpots ?? []) {
         if (lanes[s.plane]?.groundY === undefined || lanes[s.plane]?.skyY === undefined)
           err(file, `${where} feeding spot on plane "${s.plane}", which has no ground and sky lane`);
+        if (s.plane === 'ver' && !verOpen)
+          err(file, `${where} has a Ver feeding spot but doesn't open the Ver plane (ver: true)`);
       }
       const w = o.flyovers?.planeWeights;
-      if (w !== undefined && (['mid', 'far'] as const).every((p) => w[p] === 0 || lanes[p]?.skyY === undefined))
+      if (w !== undefined && (['mid', 'far'] as const).every((p) => w[p] === 0 || lanes[p]?.skyY === undefined) && !((w.ver ?? 0) > 0 && verOpen && lanes.ver?.skyY !== undefined))
         err(file, `${where} fly-over weights pick no plane with a sky lane`);
-      for (const plane of ['near', 'mid', 'far'] as const) {
+      if (w !== undefined && (w.ver ?? 0) > 0 && (!verOpen || lanes.ver?.skyY === undefined))
+        err(file, `${where} gives the Ver lane a fly-over weight but has no open Ver plane with a sky lane`);
+      for (const plane of ['near', 'mid', 'far', 'ver'] as const) {
         const n = o.pacing?.flocks?.[plane];
+        if (plane === 'ver' && n !== undefined && n > 0 && !verOpen)
+          err(file, `${where} wants Ver flocks but doesn't open the Ver plane (ver: true)`);
         const lane = lanes[plane];
         if (n !== undefined && n > 0 && (lane?.groundY === undefined || lane.skyY === undefined))
           err(file, `${where} wants flocks on plane "${plane}", which has no ground and sky lane`);

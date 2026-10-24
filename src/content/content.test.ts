@@ -350,3 +350,69 @@ describe('content cross-references', () => {
     }
   }, 30_000);
 });
+
+describe('content cross-references (v1.3, D-036)', () => {
+  const errorsOf = (mutate: (c: ReturnType<typeof clone>) => void): string[] => {
+    const c = clone();
+    mutate(c);
+    const r = checkCrossRefs(parseOk(c), { i18nKeys });
+    // Missing i18n keys are warnings (like every other screen's), the rest errors.
+    return [...r.errors, ...r.warnings].map((e) => e.message);
+  };
+  const verder = (c: ReturnType<typeof clone>): Json => {
+    const karoo = asObj(c.biomes['biomes/karoo-autumn.json']);
+    const v = asArr(karoo['bonusMaps'])[0];
+    if (v === undefined) throw new Error('no bonus map');
+    return v;
+  };
+
+  it('a rifle may only fit sights that exist', () => {
+    const msgs = errorsOf((c) => {
+      const w = asObj(c.files['weapons.json']);
+      asArr(w['weapons']).push({
+        ...asArr(w['weapons'])[0],
+        id: 'rifle_x',
+        reachesVer: true,
+        aim: { sights: ['iron', 'nope'], defaultSight: 'iron', hipSpreadPx: 30 },
+      });
+    });
+    expect(msgs.join('\n')).toMatch(/fits unknown sight "nope"/);
+  });
+
+  it('a sight name must be in i18n', () => {
+    const msgs = errorsOf((c) => {
+      const sights = asArr(asObj(c.files['weapons.json'])['sights']);
+      const first = sights[0];
+      if (first !== undefined) first['nameKey'] = 'sight.missing_name';
+    });
+    expect(msgs.join('\n')).toMatch(/sight\.missing_name/);
+  });
+
+  it('a map that opens the Ver plane needs a ver layer and Ver lanes', () => {
+    const noLayer = errorsOf((c) => {
+      verder(c)['ver'] = true;
+      const karoo = asObj(c.biomes['biomes/karoo-autumn.json']);
+      karoo['layers'] = asArr(karoo['layers']).filter((l) => l['plane'] !== 'ver');
+    });
+    expect(noLayer.join('\n')).toMatch(/no layer with plane "ver"/);
+    const noLanes = errorsOf((c) => {
+      verder(c)['ver'] = true;
+      const lanes = asObj(asObj(c.biomes['biomes/karoo-autumn.json'])['lanes']);
+      delete lanes['ver'];
+    });
+    expect(noLanes.join('\n')).toMatch(/lanes\.ver has no ground and sky lane/);
+  });
+
+  it('Ver flocks, spots and fly-over weights need an open Ver plane', () => {
+    const msgs = errorsOf((c) => {
+      const v = verder(c);
+      v['pacing'] = { flocks: { ver: 1 } };
+      v['flyovers'] = { planeWeights: { mid: 1, far: 1, ver: 2 } };
+      v['feedingSpots'] = [{ plane: 'ver', u: [0.2, 0.4] }];
+    });
+    const text = msgs.join('\n');
+    expect(text).toMatch(/wants Ver flocks but doesn't open the Ver plane/);
+    expect(text).toMatch(/Ver lane a fly-over weight/);
+    expect(text).toMatch(/Ver feeding spot/);
+  });
+});

@@ -2,7 +2,7 @@
 // the crest, camelthorn trees — one carrying a sociable-weaver mega-nest (a huge communal
 // haystack in the canopy, not hanging balls), a dead camelthorn with a dry branch, a windpomp
 // with its sign, and dune grass. The storm sky is an overlay drawn by WorldView. Rendering only.
-import type { Band, BiomeArt } from '../biomeArt';
+import { verBand, type Band, type BiomeArt } from '../biomeArt';
 import { ellipse, ground, inked, INK, tuft } from '../draw';
 
 const C = {
@@ -50,6 +50,8 @@ function camelthorn(ctx: CanvasRenderingContext2D, x: number, y: number, s: numb
 }
 
 const BANDS: Readonly<Record<string, Band>> = {
+  // v1.3: the Ver plane's strip (shown only on maps that open it).
+  ver_veld: verBand({ ground: '#E7A46A', haze: 'rgba(226,190,160,0.9)', scrub: '#8D7A52' }),
   sky: {
     top: 0,
     bottom: 1080,

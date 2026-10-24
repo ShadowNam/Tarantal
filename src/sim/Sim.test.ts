@@ -578,10 +578,10 @@ describe('touch aim assist rescues a clean miss only (M9, D-026)', () => {
       throw new Error('content');
     const precise: ShotGeometry = {
       slices: buildSlices(biome),
-      planeScale: { near: 1, mid: 0.5, far: 0.22 },
-      assistPx: { near: 0, mid: 0, far: 0 },
+      planeScale: { near: 1, mid: 0.5, far: 0.22, ver: 0.1 },
+      assistPx: { near: 0, mid: 0, far: 0, ver: 0 },
     };
-    const assisted: ShotGeometry = { ...precise, assistPx: { near: 8, mid: 14, far: 18 } };
+    const assisted: ShotGeometry = { ...precise, assistPx: { near: 8, mid: 14, far: 18, ver: 6 } };
     // Camera at the left end: every plane's centre x is 960, so dx 0 is plane x 960.
     const cx = CAMERA_MIN_X;
     const bird: HitBird = {
@@ -594,7 +594,7 @@ describe('touch aim assist rescues a clean miss only (M9, D-026)', () => {
       hittable: true,
       snappable: true,
     };
-    const birds = { near: [], mid: [], far: [bird] };
+    const birds = { near: [], mid: [], far: [bird], ver: [] };
     const crate = {
       kind: 'crate' as const,
       crateId: 3,

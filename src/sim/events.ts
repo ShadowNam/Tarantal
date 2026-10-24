@@ -28,6 +28,35 @@ export type SimEvent =
       readonly dx: number;
       readonly sy: number;
       readonly shellsLeft: number;
+      /** v1.3 rifles: fired through the raised sight, or from the hip (released early). Absent
+       *  for every other gun (older event streams stay byte-identical). */
+      readonly aim?: 'sight' | 'hip';
+    }
+  /** v1.3 (D-036): a rifle's sight starts to come up at the aim point (unzoomed screen px). */
+  | {
+      readonly type: 'aimStarted';
+      readonly tick: number;
+      readonly sight: string;
+      readonly zoom: number;
+      readonly dx: number;
+      readonly sy: number;
+    }
+  /** The sight is up: a release now fires through it. */
+  | { readonly type: 'aimRaised'; readonly tick: number; readonly sight: string }
+  /** Breath held (sway settles) or let go (sway grows): audio and the sight picture react. */
+  | { readonly type: 'aimBreath'; readonly tick: number; readonly breath: 'held' | 'tired' }
+  /** The sight came down: fired, hip shot, cancelled (right-click / slide onto the ammo), or
+   *  dropped (the shot could not go off, a reload, or another gun took over). */
+  | {
+      readonly type: 'aimEnded';
+      readonly tick: number;
+      readonly reason: 'fired' | 'hip' | 'cancel' | 'blocked' | 'reload' | 'weapon';
+    }
+  | {
+      readonly type: 'zoomChanged';
+      readonly tick: number;
+      readonly step: number;
+      readonly zoom: number;
     }
   | {
       readonly type: 'pelletImpact';

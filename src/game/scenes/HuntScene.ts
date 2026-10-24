@@ -29,12 +29,14 @@ import { stemFor } from '../audio/music';
 import { rumbleDue } from '../view/juice';
 import type { HuntPlan } from '../daily/DailyFlow';
 import { FtueDirector, type FtueStep } from '../ftue/FtueDirector';
-import type { GameContext } from '../GameContext';
+import type { GameContext, TestHook } from '../GameContext';
 import { HuntRunner } from '../HuntRunner';
 import { InputMapper, inputKindOf } from '../input/InputMapper';
 import { BirdView } from '../view/BirdView';
 import { Fx } from '../view/Fx';
-import { interpolateBirds, interpolateCamera } from '../view/interpolate';
+import { interpolateAim, interpolateBirds, interpolateCamera } from '../view/interpolate';
+import { SightView, type SightPicture } from '../view/SightView';
+import { NO_ZOOM, zoomFor, type ZoomState } from '../view/zoomView';
 import { ParallaxView } from '../view/ParallaxView';
 import { WeaponView } from '../view/WeaponView';
 import { crosshairExtent, spreadMulOf } from '../ui/gunLook';
@@ -77,6 +79,14 @@ export class HuntScene extends Phaser.Scene {
   private world!: WorldView;
   private debug!: DebugOverlay;
   private screen!: Phaser.GameObjects.Container;
+  /** v1.3: screen overlays a sight's zoom never scales (glare, tints, rain), the sight picture,
+   *  and the gun with its crosshair — in that order above the zoomed world. */
+  private screenFixed!: Phaser.GameObjects.Container;
+  private sightLayer!: Phaser.GameObjects.Container;
+  private gunLayer!: Phaser.GameObjects.Container;
+  private sight!: SightView;
+  /** The rifle zoom view of the last frame (NO_ZOOM when no sight is up). */
+  private zoomView: ZoomState = NO_ZOOM(1920, 1080);
   private runner: HuntRunner | null = null;
   /** v1.0.1 (D-028 §5): capture mode's key hint while it shows. */
   private captureHint: Phaser.GameObjects.Text | null = null;
@@ -169,6 +179,10 @@ export class HuntScene extends Phaser.Scene {
     this.manifest =
       this.biome.id === this.ctx.biome.id ? this.ctx.manifest : this.ctx.manifestFor(this.biome);
     this.swapManifest();
+    this.releaseGuns(data);
+    // The test hook reads texture memory right after the release (not 30 frames later, which is
+    // seconds under software GL on CI).
+    if (this.ctx.hook) this.sampleTextures(this.ctx.hook);
     this.ctx.huntBiome = this.biome;
     this.ctx.audio.setBiome(this.biome.id);
     this.ctx.audio.resetIntensity();
@@ -276,6 +290,10 @@ export class HuntScene extends Phaser.Scene {
       this.ctx.hook.quality.filters = this.tierFilters.active;
     }
     this.screen = this.add.container(0, 0);
+    this.screenFixed = this.add.container(0, 0);
+    this.sightLayer = this.add.container(0, 0);
+    this.gunLayer = this.add.container(0, 0);
+    this.sight = new SightView(this, this.sightLayer, this.manifest);
     this.birds = new BirdView(
       this,
       this.manifest,
@@ -305,12 +323,13 @@ export class HuntScene extends Phaser.Scene {
       this.screen,
       this.ctx.prefs,
       this.ctx.flashes,
+      this.screenFixed,
     );
     this.world.secretGlow = lights.some((l) => l.secretGlow === true);
     this.weapon = new WeaponView(
       this,
       this.ctx.feel,
-      this.screen,
+      this.gunLayer,
       this.ctx.prefs,
       // The gun's atlas goes to the GPU when it is first shown (D-029).
       (id) => this.manifest.ensureGun(this.textures, id),
@@ -426,6 +445,37 @@ export class HuntScene extends Phaser.Scene {
     if (prev !== null && prev !== this.manifest)
       prev.release(this.textures, this.manifest, this.anims);
     this.ctx.installedManifest = this.manifest;
+  }
+
+  /** v1.3: the picture a fitted sight draws (weapons.json sights), or null for no sight. */
+  private sightPicture(id: string | null): SightPicture | null {
+    if (id === null) return null;
+    return this.ctx.content.weapons.sights.find((s) => s.id === id)?.picture ?? null;
+  }
+
+  /** D-029 texture memory for the test hook, and (v1.3) which gun atlases are on the GPU. */
+  private sampleTextures(hook: TestHook): void {
+    hook.textureBytes = textureBytes(this.textures);
+    hook.gunAtlases = this.textures.getTextureKeys().filter((k) => k.startsWith('final:gun/'));
+  }
+
+  /**
+   * v1.3: on the low tier, leaving a hunt (this scene restarts for the title, [Again] or the next
+   * hunt) drops the gun atlases of every gun the next hunt can't start with, so a hunt that used
+   * both crate guns doesn't keep them on the GPU (< 128 MB). A gun shown again uploads on demand
+   * (ensureGun).
+   */
+  private releaseGuns(data: HuntData): void {
+    // Only the low tier needs the room (its 128 MB budget); on the others the rigs stay, so a
+    // crate gun never re-uploads mid-hunt (a hitch on phones).
+    if (this.ctx.prefs.tier !== 'low') return;
+    // Keep every gun the next hunt can start with: the loadout, the admin page's, the Season
+    // Run's and a challenge's.
+    const keep = new Set<string>([this.ctx.save.data.loadout.weapon]);
+    const extra = [this.ctx.weaponOverride, this.ctx.run.current?.weapon, data.challenge?.weapon];
+    for (const id of extra) if (id !== undefined) keep.add(id);
+    for (const m of new Set([this.manifest, this.ctx.installedManifest]))
+      m?.releaseGuns(this.textures, keep, this.anims);
   }
 
   /** M8: a hunt in another biome (Daily rotation, challenge, Season Run) swaps the scenery. */
@@ -766,6 +816,13 @@ export class HuntScene extends Phaser.Scene {
         holdToFire: () =>
           (this.runner?.state.weapon.holdToFire ?? false) || this.ctx.prefs.holdToFire,
         weaponHolds: () => this.runner?.state.weapon.holdToFire ?? false,
+        // v1.3: a rifle in hand (its fitted sight's zoom) holds to zoom and releases to fire.
+        sightZoom: () => {
+          const w = this.runner?.state.weapon;
+          if (w?.kind !== 'primary' || w.sight === null) return null;
+          const s = this.ctx.content.weapons.sights.find((x) => x.id === w.sight);
+          return s?.zoom[w.zoomStep] ?? s?.zoom[0] ?? null;
+        },
         readyToFire: () => {
           const w = this.runner?.state.weapon;
           return (
@@ -897,6 +954,8 @@ export class HuntScene extends Phaser.Scene {
         if (this.texturesDone && this.ctx.hook)
           this.ctx.hook.boot['allTextures'] ??= performance.now();
       }
+      // v1.3: texture memory on the title too (after a hunt), about twice a second.
+      if (this.ctx.hook && this.game.loop.frame % 30 === 0) this.sampleTextures(this.ctx.hook);
       return;
     }
     const paused = this.ctx.paused();
@@ -940,8 +999,24 @@ export class HuntScene extends Phaser.Scene {
 
     const alpha = runner.alpha;
     const cam = interpolateCamera(runner.prev, state, alpha);
+    // v1.3 (D-036): a raised rifle sight zooms the world around the aim point (zoomView.ts).
+    const { height } = designSize();
+    // The hunt is over: the sight comes down (the tally never opens over a frozen scope view).
+    const zoom = zoomFor(
+      runner.over ? null : interpolateAim(runner.prev, state, alpha),
+      width,
+      height,
+    );
+    this.zoomView = zoom;
+    this.parallax.setZoom(zoom.z, zoom.cx, zoom.cy);
     this.parallax.update(cam, width);
+    this.screen.setPosition(width / 2 - zoom.cx * zoom.z, height / 2 - zoom.cy * zoom.z);
+    this.screen.setScale(zoom.z);
+    this.sight.setPicture(this.sightPicture(state.weapon.sight));
+    this.sight.update(zoom, width, height);
+    this.weapon.setScoped(zoom.raise);
     const drawBirds = interpolateBirds(runner.prev, state, alpha);
+    this.birds.setViewZoom(zoom.z);
     this.birds.update(drawBirds, state.tick);
     this.world.update(state, width, designSize().height);
     this.weapon.spreadMul = spreadMulOf(state.powerups, this.ctx.content.powerups.powerups);
@@ -956,6 +1031,15 @@ export class HuntScene extends Phaser.Scene {
         visible: c.root.visible && c.root.alpha > 0,
         x: Math.round(c.root.x),
         y: Math.round(c.root.y),
+      };
+      // v1.3: the rifle zoom view (the reticle is where a release fires, on screen).
+      const z = this.zoomView;
+      this.ctx.hook.zoom = {
+        z: Math.round(z.z * 1000) / 1000,
+        raise: Math.round(z.raise * 1000) / 1000,
+        reticleX: Math.round(z.reticleX * 10) / 10,
+        reticleY: Math.round(z.reticleY * 10) / 10,
+        sight: state.weapon.sight,
       };
     }
     const safe = this.ctx.safeArea();
@@ -985,7 +1069,7 @@ export class HuntScene extends Phaser.Scene {
       hook.score = state.score;
       hook.shells = state.weapon.shells;
       // D-029: GPU texture memory (RGBA bytes of every texture source), sampled twice a second.
-      if (state.tick % 30 === 0) hook.textureBytes = textureBytes(this.textures);
+      if (state.tick % 30 === 0) this.sampleTextures(hook);
       hook.magazine = state.weapon.magazine;
       hook.reloading = state.weapon.reloading;
       hook.stones = state.projectiles.length;
@@ -1001,7 +1085,7 @@ export class HuntScene extends Phaser.Scene {
         const n = Math.max(1, members.length);
         const x = members.reduce((t, b) => t + this.parallax.screenX(b.plane, b.x), 0) / n;
         const y = members.reduce((t, b) => t + b.y, 0) / n;
-        return { id: f.id, state: f.state, alive: f.alive, x, y };
+        return { id: f.id, state: f.state, alive: f.alive, x, y, plane: f.plane };
       });
       hook.secretSpots = state.secrets.flatMap((sec) => {
         const layer = this.parallax.layer(sec.layerId);
@@ -1086,6 +1170,12 @@ export class HuntScene extends Phaser.Scene {
         }
       } else if (e.type === 'weaponChanged') {
         this.mapper?.cancelHold();
+      } else if (
+        e.type === 'aimEnded' &&
+        (e.reason === 'weapon' || e.reason === 'reload' || e.reason === 'blocked')
+      ) {
+        // v1.3: the sim lowered the sight itself: the input stops holding it too.
+        this.mapper?.dropAim();
       } else if (e.type === 'targetBagged') {
         bagged = true;
       } else if (e.type === 'bonusAwarded' && e.bonus === 'twoFlies') {

@@ -28,6 +28,7 @@ import {
   COMMON_GROUP,
   GUN_CLIPS,
   LATE_GROUP,
+  VER_GROUP,
   type AssetIndex,
   type AudioKind,
   type BirdClip,
@@ -36,7 +37,7 @@ import {
   type GunEntry,
 } from '../../src/game/assets/assetIndex';
 import type { ContentBundle } from '../../src/content/schemas';
-import type { PlaneId } from '../../src/sim/types';
+import type { ArtPlaneId as PlaneId } from '../../src/game/assets/artPlane';
 import type { Catalog } from './catalog';
 import { encodeMp3, encodeOgg } from './encode';
 import {
@@ -91,6 +92,8 @@ const sidecarOrigin = z
     origin: provenance,
     /** D-029: "png8" writes a palette PNG (smaller; fine for flat-fill art). */
     encode: encoding,
+    /** v1.3: the long-range chunk (sight pictures, D-036) instead of the key's own group. */
+    group: z.literal(VER_GROUP),
   })
   .partial();
 /** v1.1 (D-032): `audio/<…>.json` next to a WAV: "interim" = code-made stand-in sound. */
@@ -98,6 +101,8 @@ const sidecarAudio = z.strictObject({ origin: provenance }).partial();
 const sidecarLayer = z
   .strictObject({
     top: z.number(),
+    /** v1.3: the layer's asset group (default its biome). The Ver strips use "ver" (D-036). */
+    group: z.literal(VER_GROUP),
     /** D-031: provenance and palette tiles, as for sprites (D-029). */
     origin: provenance,
     encode: encoding,
@@ -370,12 +375,13 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
         `sprites/${key}.png is ${img.width}×${img.height}, the placeholder is ${cat.width}×${cat.height}: views place it at its own size`,
       );
     const side = readJson(path.replace(/\.png$/, '.json'), sidecarOrigin, errors) ?? {};
-    const { origin: made, encode, ...place } = side;
+    const { origin: made, encode, group: own, ...place } = side;
+    const imageGroup = own ?? cat.group;
     index.images[key] = {
-      group: cat.group,
+      group: imageGroup,
       ...(made === undefined ? {} : { origin: made }),
       file: emit(
-        cat.group,
+        imageGroup,
         'img',
         slug(key),
         'png',
@@ -406,20 +412,21 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
       );
     const side = readJson(path.replace(/\.png$/, '.json'), sidecarLayer, errors) ?? {};
     const tiles: FileRef[] = [];
+    const layerGroup = side.group ?? biome;
     for (let x = 0, i = 0; x < img.width; x += TILE_WIDTH, i++) {
       const w = Math.min(TILE_WIDTH, img.width - x);
       tiles.push(
         emit(
-          biome,
+          layerGroup,
           'layers',
-          `${layerId}-${i}`,
+          layerGroup === biome ? `${layerId}-${i}` : `${biome}-${layerId}-${i}`,
           'png',
           (side.encode === 'png8' ? encodePng8 : encodePng)(crop(img, x, 0, w, img.height)),
         ),
       );
     }
     index.layers[spec.assetId] = {
-      group: biome,
+      group: layerGroup,
       ...(side.origin === undefined ? {} : { origin: side.origin }),
       tiles,
       tileWidth: TILE_WIDTH,

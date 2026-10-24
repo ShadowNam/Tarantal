@@ -42,7 +42,7 @@ function result(score: number, over: Partial<HuntResult> = {}): HuntResult {
     hitShots: 0,
     accuracy: 0,
     bagged: 0,
-    baggedByPlane: { near: 0, mid: 0, far: 0 },
+    baggedByPlane: { near: 0, mid: 0, far: 0, ver: 0 },
     wingShots: 0,
     penalties: 0,
     emptyClicks: 0,

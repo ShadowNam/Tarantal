@@ -12,8 +12,8 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { format } from 'prettier';
-import type { BirdClip } from '../../src/game/assets/assetIndex';
-import type { PlaneId } from '../../src/sim/types';
+import { VER_GROUP, type BirdClip } from '../../src/game/assets/assetIndex';
+import { isArtPlane, type ArtPlaneId as PlaneId } from '../../src/game/assets/artPlane';
 import { encodePng, encodePng8 } from '../assets/image';
 import { NEAR_CLIPS } from '../assets/pack';
 import { CLIP_SPEC } from '../assets/targets';
@@ -32,6 +32,7 @@ import { BIOME_PLANS } from './biomes';
 import { renderLayer, renderProp } from './landscape';
 import { renderSprite, SPRITES } from './sprites';
 import { AMMO_SPRITES } from './ammo';
+import { SIGHT_SPRITES } from './sights';
 import { biomeSheets, flyerSheet, spriteSheet } from './scenerySheets';
 import { FLYER_FRAMES, FLYER_GROUPS, FLYERS, renderFlyerFrame } from './flyers';
 
@@ -86,7 +87,8 @@ async function json(value: unknown): Promise<string> {
 
 const planesOf = (creature: string): PlaneId[] => {
   const c = content.birds.creatures.find((x) => x.id === creature);
-  return c === undefined ? [] : [...c.planes];
+  // Ver birds are drawn from the far/mid art (D-036): no art of their own.
+  return c === undefined ? [] : c.planes.filter(isArtPlane);
 };
 
 const groupOf = (creature: string): { group?: string } => {
@@ -219,6 +221,8 @@ if (wants('scenery')) {
           origin: 'interim',
           ...(enc === 'png8' ? { encode: 'png8' } : {}),
           top: lp?.top,
+          // v1.3: the Ver strips load in their own chunk (D-036).
+          ...(layer.plane === 'ver' ? { group: VER_GROUP } : {}),
         }),
       );
       console.log(`layers/${biome.id}/${layer.id}`);
@@ -253,7 +257,7 @@ if (wants('sprites')) {
   const home = content.biomes.find((b) => b.id === content.modes.modes.classic.biome);
   if (home === undefined) throw new Error('no home biome');
   const m = createPlaceholderManifest(content, home, [], loadFeel().guns.ammo);
-  for (const spec of [...SPRITES, ...AMMO_SPRITES]) {
+  for (const spec of [...SPRITES, ...AMMO_SPRITES, ...SIGHT_SPRITES]) {
     const png = join(src, 'sprites', `${spec.key}.png`);
     if (!oursFile(png)) {
       console.warn(`skip sprites/${spec.key}: a human delivery is there`);
@@ -264,12 +268,20 @@ if (wants('sprites')) {
     // v1.1 (D-032): HUD ammo is small, realistic and smoothly shaded: drawn at 4× and kept in
     // full colour (a palette PNG would band its gradients).
     const ammo = spec.key.startsWith('ui/ammo/');
+    // v1.3 (D-036): sight pictures are smooth gradients (full colour) in the long-range chunk.
+    const sight = spec.key.startsWith('sight/');
     const art = ammo ? { ...cfg, masterScale: 4 } : cfg;
     const img = renderSprite(art, spec, size, m.origin(spec.key));
-    put(png, ammo ? encodePng(img) : encodePng8(img));
+    put(png, ammo || sight ? encodePng(img) : encodePng8(img));
     put(
       png.replace(/\.png$/, '.json'),
-      await json(ammo ? { origin: 'interim' } : { origin: 'interim', encode: 'png8' }),
+      await json(
+        sight
+          ? { origin: 'interim', group: VER_GROUP }
+          : ammo
+            ? { origin: 'interim' }
+            : { origin: 'interim', encode: 'png8' },
+      ),
     );
     console.log(`sprites/${spec.key}`);
   }

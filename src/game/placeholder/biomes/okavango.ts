@@ -3,7 +3,7 @@
 // hippo in the channel and a frog on a lily pad. The water channels themselves are drawn by
 // WorldView from the biome's splash zones, so the art always matches where shots splash.
 // Rendering only.
-import type { Band, BiomeArt } from '../biomeArt';
+import { verBand, type Band, type BiomeArt } from '../biomeArt';
 import { ellipse, ground, inked, INK, tuft } from '../draw';
 
 const C = {
@@ -81,6 +81,8 @@ function reedClump(ctx: CanvasRenderingContext2D, w: number, h: number, line: nu
 }
 
 const BANDS: Readonly<Record<string, Band>> = {
+  // v1.3: the Ver plane's strip (shown only on maps that open it).
+  ver_veld: verBand({ ground: '#A9B87E', haze: 'rgba(190,204,184,0.9)', scrub: '#5B7350' }),
   sky: {
     top: 0,
     bottom: 1080,

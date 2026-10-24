@@ -1,9 +1,10 @@
 // Public sim types (Tech §3.1). The Phaser layer, tools and replays depend on these shapes.
 import type { ContentBundle } from '../content/schemas';
 
-export type PlaneId = 'near' | 'mid' | 'far';
+/** v1.3 (D-036): `ver` is the distant band behind the far plane; only rifles reach it. */
+export type PlaneId = 'near' | 'mid' | 'far' | 'ver';
 /** Front-to-back order used by shot resolution. */
-export const PLANES: readonly PlaneId[] = ['near', 'mid', 'far'];
+export const PLANES: readonly PlaneId[] = ['near', 'mid', 'far', 'ver'];
 
 export type ModeId = 'classic' | 'daily' | 'seasonHunt' | 'ftue';
 export type InputKind = 'pointer' | 'touch';
@@ -30,6 +31,8 @@ export interface ModeConfig {
   readonly layout?: string;
   /** v1.2: a bonus map on top of the layout ('verder'). Needs a layout. */
   readonly bonus?: string;
+  /** v1.3: the sight fitted to a rifle (weapons.json sights; absent = the gun's default). */
+  readonly sight?: string;
 }
 
 /** GDD §13.1: hunt 1 plain, hunt 2 Omen (weather on), hunt 3 Boss Hunt (boss + Boss Rule). */
@@ -78,7 +81,16 @@ export type Command =
   /** Season Run: use a consumable slot; the slot after the last one is the weapon rental. */
   | { readonly t: 'consumable'; readonly slot: number }
   /** Season Run: reorder charms (pause screen). New slot i holds old slot order[i]. */
-  | { readonly t: 'charmOrder'; readonly order: readonly number[] };
+  | { readonly t: 'charmOrder'; readonly order: readonly number[] }
+  /** v1.3 rifles (D-036): press = raise the sight at this point of the UNZOOMED screen (dx from
+   *  the centre, sy from the top), move = aim there, release = fire (a hip shot if the sight is
+   *  not up yet), cancel = lower it without firing. */
+  | { readonly t: 'aimStart'; readonly dx: number; readonly sy: number }
+  | { readonly t: 'aimMove'; readonly dx: number; readonly sy: number }
+  | { readonly t: 'aimRelease' }
+  | { readonly t: 'aimCancel' }
+  /** v1.3: the zoom step of the fitted sight (variable scopes; a fixed sight has one step). */
+  | { readonly t: 'zoom'; readonly step: number };
 
 export type CommandType = Command['t'];
 
@@ -231,6 +243,29 @@ export interface WeaponView {
   /** Reloads one shell per step (Windbuks, Plaas-Pomp). */
   readonly perShellReload: boolean;
   readonly cooldownTicks: number;
+  /** v1.3: the fitted sight of a rifle (hold to zoom, release to fire), else null. */
+  readonly sight: string | null;
+  /** v1.3: the sight's zoom step (index into its zoom list). */
+  readonly zoomStep: number;
+}
+
+/** v1.3 (D-036): a raised (or rising) sight. Positions are design px of the unzoomed screen. */
+export interface AimView {
+  readonly sight: string;
+  /** Zoom of the fitted sight at its current step (×), reached when progress is 1. */
+  readonly zoom: number;
+  /** 0..1 while the sight comes up; 1 = up (a release fires through the sight). */
+  readonly progress: number;
+  /** The aim point the player holds (dx from the centre, sy from the top). */
+  readonly dx: number;
+  readonly sy: number;
+  /** Sway now: the shot goes off at (dx + swayDx, sy + swayDy). */
+  readonly swayDx: number;
+  readonly swayDy: number;
+  /** raising · steady (up, breathing) · held (breath held: settled) · tired (held too long). */
+  readonly breath: 'raising' | 'steady' | 'held' | 'tired';
+  /** Ticks since the press. */
+  readonly heldTicks: number;
 }
 
 export interface SimState {
@@ -268,6 +303,8 @@ export interface SimState {
   readonly lightning: boolean;
   /** Kettie stones in the air (render only), in fire order. */
   readonly projectiles: readonly ProjectileView[];
+  /** v1.3: the rifle's sight while it is raised or rising, else null. */
+  readonly aim: AimView | null;
   /** Season Run hunts only. */
   readonly season: SeasonView | null;
   readonly over: boolean;

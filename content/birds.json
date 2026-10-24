@@ -92,7 +92,8 @@
       "planes": [
         "near",
         "mid",
-        "far"
+        "far",
+        "ver"
       ],
       "behaviours": [
         "flock",
@@ -127,7 +128,8 @@
       "rare": true,
       "planes": [
         "mid",
-        "far"
+        "far",
+        "ver"
       ],
       "behaviours": [
         "flock",
@@ -164,7 +166,8 @@
       "rare": true,
       "planes": [
         "mid",
-        "far"
+        "far",
+        "ver"
       ],
       "behaviours": [
         "flock",

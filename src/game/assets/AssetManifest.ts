@@ -13,7 +13,7 @@ import type {
   GunEntry,
   ImageEntry,
 } from './assetIndex';
-import { COMMON_GROUP, LATE_GROUP } from './assetIndex';
+import { COMMON_GROUP, LATE_GROUP, VER_GROUP } from './assetIndex';
 import { atlasRegion, checkAtlas, checkBirdAtlas, type AtlasRegion } from './atlasCheck';
 import { loadBytes, loadImage, loadJson } from './finalLoader';
 
@@ -246,10 +246,12 @@ export class AssetManifest {
         o.biome !== undefined &&
         group !== COMMON_GROUP &&
         group !== LATE_GROUP &&
+        group !== VER_GROUP &&
         group !== o.biome
       )
         return;
-      if (group === LATE_GROUP) late.push(job);
+      // v1.3: the Ver strips aren't needed to start a hunt either (only bonus maps show them).
+      if (group === LATE_GROUP || group === VER_GROUP) late.push(job);
       else jobs.push(job());
     };
     for (const [key, entry] of Object.entries(index.images)) {
@@ -491,7 +493,8 @@ export class AssetManifest {
    * won't prewarm at hunt start (bosses, late variants, biome creatures). Shared keys (UI, FX,
    * first-download birds) stay. Decoded images stay cached here, so install() / ensureBird()
    * re-add them when needed. With `anims`, the removed atlases' animations go too (they hold
-   * frames of the removed textures; BirdView recreates them on first use). Gun atlases are kept.
+   * frames of the removed textures; BirdView recreates them on first use). Gun atlases are kept
+   * here; releaseGuns() drops the ones not equipped when a hunt ends.
    * Call it only once nothing draws the old biome's objects. Returns the removed keys.
    */
   release(
@@ -518,6 +521,30 @@ export class AssetManifest {
         const key = `final:${id}/${clip}`;
         if (anims?.exists(key) === true) anims.remove(key);
       }
+    }
+    return removed;
+  }
+
+  /**
+   * v1.3 (low-tier memory): removes every delivered gun atlas except the guns in `keep` (the
+   * equipped one), with the animations made from it (WeaponView keys them `${atlasKey}/${clip}`).
+   * Call it when leaving a hunt, once nothing draws those guns. The decoded pages stay cached
+   * here, so ensureGun() uploads a gun again the next time it is shown. Returns the removed keys.
+   */
+  releaseGuns(
+    textures: Phaser.Textures.TextureManager,
+    keep: ReadonlySet<string>,
+    anims?: Phaser.Animations.AnimationManager,
+  ): string[] {
+    const removed: string[] = [];
+    for (const [id, g] of this.finalGuns) {
+      if (keep.has(id) || !textures.exists(g.atlasKey)) continue;
+      for (const clip of Object.keys(g.entry.clips)) {
+        const key = `${g.atlasKey}/${clip}`;
+        if (anims?.exists(key) === true) anims.remove(key);
+      }
+      textures.remove(g.atlasKey);
+      removed.push(g.atlasKey);
     }
     return removed;
   }
@@ -594,6 +621,11 @@ export const TEX = {
   pot: 'fx/pot',
   meerkat: 'helper/meerkat',
   windsock: 'ui/windsock',
+  // v1.3 (D-036): rifle sight pictures (SightView).
+  sightIronRear: 'sight/iron_rear',
+  sightIronFront: 'sight/iron_front',
+  sightPeep: 'sight/peep',
+  sightScope: 'sight/scope',
 } as const;
 
 /** First-person art for a weapon id (crate weapons get their own; unknown ids use the shotgun). */

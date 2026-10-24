@@ -2,6 +2,7 @@
 // autumn sky, flat-topped dolerite mesas and koppies in hazy lilac, karoo bossies, a dirt farm
 // track, a wire fence, the windpomp + corrugated reservoir, a rusty fictional bakkie, a potjie on
 // a fire, a fence-post bell and aloes. Light from the upper left. D-031.
+import { verVeld } from './common';
 import type { BiomeArtPlan, LayerCtx, PaintCtx, PropCtx } from '../landscape';
 import {
   edgePts,
@@ -1961,6 +1962,12 @@ export const KAROO_PLAN: BiomeArtPlan = {
   layers: {
     sky: { top: 0, height: 1080, encode: 'png', draw: sky },
     far_ridge: { top: 380, height: 280, draw: farRidge },
+    // v1.3: the Ver plane's strip (shown only on maps that open it).
+    ver_veld: {
+      top: 536,
+      height: 52,
+      draw: verVeld({ ground: 'veld', light: 'veldLight', scrub: 'bossie' }),
+    },
     far_veld: { top: 464, height: 232, draw: farVeld },
     mid: { top: 600, height: 310, draw: mid },
     near: { top: 820, height: 260, draw: near },

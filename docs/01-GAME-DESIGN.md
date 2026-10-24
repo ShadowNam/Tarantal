@@ -84,8 +84,11 @@ animations. Aim for PEGI 7 / ESRB E10+ (the current Moorhuhn 2 console release i
 | Near (pop-ups) | 1.0 (largest) | 5 | Curious birds pop up from the grass, stare, duck. Easy, cheap. |
 | Mid | 0.5 | 10 | Where flocks forage and run. The main stage. |
 | Far | 0.22 | 25 | Fly-overs and distant flocks. Small, fast, wind-affected. |
+| **Ver** (v1.3) | 0.10 | 50 | Distant flocks on the strip at the foot of the far ridge, a few px unzoomed. **Rifles only:** shotgun pellets, air-rifle pellets, crate guns and Kettie stones fall short. Only on maps that open it (the bonus maps Nog Verder and Die Verste, §11.5). |
 
 Moorhuhn's original paid 25 for the farthest birds; we keep 5 / 10 / 25 so the instinct transfers.
+The Ver plane (D-036) sits behind the far plane (scroll factor 0.22, between the far ridge and the
+far veld); a rifle's zoom is how you see and hit it (§10.6).
 
 ### 5.3 Scoring pipeline (exact order — implement exactly this)
 
@@ -292,6 +295,34 @@ belt is a deliberate arcade abstraction.
 
 Picking a power-up up again refreshes it. A shell power-up counts the shots after the one that
 picked it up.
+
+### 10.6 Rifles: sights and zoom (v1.3, D-036)
+Rifles fire with **hold and release**: hold the fire button (or finger) to raise the sight and zoom
+in where you pressed, aim, and the shot goes off when you let go; the view zooms back out.
+Shotguns, the air rifle, the Kettie and the crate guns are unchanged (they fire on the press).
+
+| Sight | Zoom | Picture | Raise | Sway (unzoomed px) | Breath hold |
+|---|---|---|---|---|---|
+| Iron (open) | 1.5× | Rear notch (soft, near the eye) and the front post | 0.15 s | 2.5 | ×0.25 |
+| Peep (aperture) | 2× | A soft dark ring around a clear circle, the front post in it | 0.2 s | 2 | ×0.2 |
+| Small scope | 4× | Dark tube ring and lens edge, coated glass, duplex reticle | 0.3 s | 3.5 | ×0.15 |
+
+- **Aim:** while the sight is up the aim moves by the pointer's movement divided by the zoom
+  (finer than normal). Holding near a screen edge pans; the view never shows past the screen's own
+  edges, so aiming at the very edge moves the reticle off-centre instead.
+- **Hip shot:** let go before the sight is up and the shot fires at once, without the sight, with
+  the gun's hip spread (a disc around the aim point).
+- **Cancel:** right-click while holding (desktop) or slide the finger onto the ammo display
+  (phone) lowers the sight without a shot. A reload (Space, right-click when not holding, flick
+  down, a tap on the ammo) also lowers it. A release while the bolt is still cycling is dropped.
+- **Sway:** a slow figure-eight, from its own random stream (identical in replays and challenge
+  links). About **0.5 s** after the press the shooter holds their breath and the sway eases to the
+  sight's breath-hold factor for **3 s**; after that it grows to 2.2–2.5× over 1.5 s, so you can't
+  camp on a bird. A variable scope (v1.4) sways more per zoom step.
+- **Recorded:** raising the sight, the aim while it is up, the release, the cancel and the zoom
+  step are commands in the replay. A zoomed shot lands on the same world point on every screen.
+- The sight a rifle carries is chosen in the Skiet-Skuur (§10.1, v1.3 PR B). Numbers live in
+  `content/weapons.json` (`sights`, each rifle's `aim` and `reachesVer`).
 
 ### 10.5 Parking lot (good ideas cut from launch, with reason)
 Patat-Kanon (fun, but a second "line" weapon duplicates Voorlaaier's role — strong v1.x charm or

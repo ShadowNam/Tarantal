@@ -39,6 +39,8 @@ export class ParallaxView {
   private readonly byPlane = new Map<PlaneId, LayerNode>();
   /** Per layer (same order as `layers`): static art, hidden while off screen (M9 perf). */
   private readonly statics: StaticArt[][] = [];
+  /** v1.3 (D-036): the rifle's zoom view (zoomView.ts), applied at the next update. */
+  private zoom = { z: 1, cx: 0, cy: 0, on: false };
 
   constructor(
     scene: Phaser.Scene,
@@ -61,7 +63,16 @@ export class ParallaxView {
         src === undefined ||
         src.plane !== undefined ||
         biome.props.some((p) => p.layer === from) ||
-        (biome.twist?.splash?.zones ?? []).some((z) => z.layer === from);
+        (biome.twist?.splash?.zones ?? []).some((z) => z.layer === from) ||
+        // v1.3: never across a plane layer between them (the far ridge stays behind the Ver
+        // plane's birds on maps that open it).
+        (dst !== undefined &&
+          biome.layers.some(
+            (l) =>
+              l.plane !== undefined &&
+              l.scrollFactor > src.scrollFactor &&
+              l.scrollFactor < dst.scrollFactor,
+          ));
       if (!busy && dst !== undefined && dst.scrollFactor > src.scrollFactor) merges.set(into, src);
     }
     const merged = new Set([...merges.values()].map((l) => l.id));
@@ -153,13 +164,34 @@ export class ParallaxView {
     return node;
   }
 
+  /**
+   * v1.3: zoom the world by z around the unzoomed screen point (cx, cy) — a raised sight. The
+   * zoomed view stays inside the unzoomed screen (zoomView.ts clamps the centre), so the culling
+   * below stays right. z = 1 turns it off.
+   */
+  setZoom(z: number, cx: number, cy: number): void {
+    this.zoom = { z, cx, cy, on: z !== 1 };
+  }
+
   /** Positions every layer for camera centre cx on a screen `width` design px wide. */
   update(cx: number, width: number): void {
+    const { z, cx: zx, cy: zy, on } = this.zoom;
     this.layers.forEach((l, i) => {
-      l.root.x = width / 2 - planeCentreX(cx, l.scrollFactor);
+      const base = width / 2 - planeCentreX(cx, l.scrollFactor);
+      if (on) {
+        // Screen point p shows at C + (p − c) × z (zoomView.ts).
+        l.root.setPosition(width / 2 + (base - zx) * z, DESIGN_HEIGHT / 2 - zy * z).setScale(z);
+      } else if (l.root.scale !== 1 || l.root.y !== 0) {
+        l.root.setPosition(base, 0).setScale(1);
+      } else {
+        l.root.x = base;
+      }
       // Static art outside the screen isn't drawn (most of a 6 000 px layer is off screen).
-      const from = -l.root.x - CULL_MARGIN_PX;
-      const to = -l.root.x + width + CULL_MARGIN_PX;
+      // v1.3: zoomed in, only the unzoomed screen span the zoomed view shows: [c − C/z, c + C/z].
+      const viewFrom = on ? zx - width / 2 / z : 0;
+      const viewTo = on ? zx + width / 2 / z : width;
+      const from = -base + viewFrom - CULL_MARGIN_PX;
+      const to = -base + viewTo + CULL_MARGIN_PX;
       for (const a of this.statics[i] ?? []) {
         const on = a.right >= from && a.left <= to;
         if (a.img.visible !== on) a.img.setVisible(on);
@@ -232,10 +264,10 @@ export class ParallaxView {
     return this.layers.find((l) => l.id === id);
   }
 
-  /** Screen x (design px) of a point at layer x on plane p. */
+  /** Screen x (design px) of a point at layer x on plane p (zoomed while a sight is up). */
   screenX(p: PlaneId, x: number): number {
     const node = this.plane(p);
-    return node.root.x + x;
+    return node.root.x + x * node.root.scaleX;
   }
 }
 

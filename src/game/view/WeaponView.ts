@@ -249,6 +249,14 @@ export class WeaponView {
     this.reticle.setVisible(false);
   }
 
+  /** v1.3: 0..1 how far a rifle's sight is up. The gun drops out of view and the crosshair
+   *  hides; the sight picture (SightView) takes over. */
+  private scoped = 0;
+  setScoped(raise: number): void {
+    this.scoped = raise;
+    if (raise > 0) this.reticle.setVisible(false);
+  }
+
   fired(): void {
     if (this.frozen) return;
     this.kick = 1;
@@ -329,13 +337,18 @@ export class WeaponView {
     this.gun
       .setPosition(
         this.baseX + dx * 0.08,
-        this.baseY + this.kick * j.gunKickPx + GUN_TEX_HEIGHT * 0.12 * scale,
+        this.baseY +
+          this.kick * j.gunKickPx +
+          GUN_TEX_HEIGHT * 0.12 * scale +
+          // v1.3: raising a sight brings the gun up to the eye: here it leaves the bottom edge.
+          this.scoped * GUN_TEX_HEIGHT * scale,
       )
       .setRotation(lean - this.kick * 0.06)
       // A @2x rig atlas (high tier) is drawn at half scale (FinalGun.scale).
       .setScale(scale * (this.rig?.scale ?? 1))
-      .setAlpha(alpha);
+      .setAlpha(alpha * (1 - this.scoped));
     // A jittery crosshair (Mielie-Masjien) shakes every frame, not only when the aim moves.
+    if (this.scoped > 0) this.reticle.setVisible(false);
     if (this.reticle.visible) this.crosshair.place(this.aimX, this.aimY);
     if (
       this.touchMode &&

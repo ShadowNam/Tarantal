@@ -3,7 +3,8 @@
 // varied height. Each biome passes its own palette names; every placement comes from the layer's
 // seeded PRNG.
 import type { LayerCtx } from '../landscape';
-import { stone, tone, type Pen, type Tone } from '../scenery';
+import { flat, groundD, mix, nextId, stone, tone, type Pen, type Tone } from '../scenery';
+import { el, ellipseD, g } from '../svg';
 import { grassField, pick, stalk, tuftOf, type TuftKind, type Weighted } from '../vegetation';
 import { bush, grassTones } from './karoo';
 
@@ -139,3 +140,112 @@ export function foregroundClumps(
 }
 
 export const stoneTone = (c: string): Tone => tone(c, 0.25, 0.22);
+
+/**
+ * v1.3 (D-036): the Ver plane's layer — a strip of distant plain at the foot of the far ridge.
+ * Birds stand on it at y 552–566, a few px tall; the far veld's horizon (≈ 573) hides its lower
+ * edge. Semi-realistic distance (D-035): no ink at all, colours hazed toward the horizon (the
+ * config haze for ver_veld), a soft lit-from-the-left tonal ramp, rows of tiny shrubs whose
+ * shadow side is a darker shade of their own colour, and a bright heat line where it meets the
+ * ridge. Each biome passes its own palette names.
+ */
+export function verVeld(names: {
+  readonly ground: string;
+  readonly light: string;
+  readonly scrub: string;
+}): (ctx: LayerCtx) => string {
+  return (ctx) => {
+    const parts: string[] = [];
+    const ground = ctx.c(names.ground);
+    const light = ctx.c(names.light);
+    const horizon = ctx.raw('horizon');
+    const grad = nextId();
+    parts.push(
+      el(
+        'defs',
+        {},
+        el(
+          'linearGradient',
+          { id: grad, x1: 0, y1: 0, x2: 0, y2: 1 },
+          el('stop', { offset: 0, 'stop-color': mix(light, horizon, 0.5) }),
+          el('stop', { offset: 0.45, 'stop-color': light }),
+          el('stop', { offset: 1, 'stop-color': ground }),
+        ),
+      ),
+    );
+    // The plain: a gently rolling top edge, fading into the ridge's foot.
+    parts.push(
+      flat(groundD(ctx.rnd, -40, ctx.width + 40, 546, 2.5, 120, ctx.bottom + 20), `url(#${grad})`),
+    );
+    // Long soft streaks (pans, tracks, grass patches) along the plain.
+    for (let k = 0; k < ctx.width / 90; k++) {
+      const x = ctx.rnd() * ctx.width;
+      const y = 554 + ctx.rnd() * 26;
+      parts.push(
+        flat(
+          ellipseD(x, y, 24 + ctx.rnd() * 60, 0.8 + ctx.rnd() * 1.4),
+          mix(ground, light, ctx.rnd() < 0.5 ? 0.15 : 0.85),
+          { opacity: 0.7 },
+        ),
+      );
+    }
+    // Rows of distant shrubs: a lit crown, its shadow side (a darker shade of its own colour)
+    // and a soft contact shadow on the ground, smaller and paler toward the ridge.
+    const scrub = ctx.c(names.scrub);
+    const shadow = mix(scrub, '#2A2520', 0.3);
+    const lit = mix(scrub, horizon, 0.25);
+    const groundShadow = mix(ground, '#3A2E22', 0.28);
+    const items: { y: number; svg: string }[] = [];
+    for (let x = ctx.rnd() * 6; x < ctx.width; x += 3 + ctx.rnd() * 14) {
+      const y = 550 + Math.pow(ctx.rnd(), 0.8) * 32;
+      const k = (y - 550) / 32;
+      const s = 0.9 + k * 1.8 + ctx.rnd() * 0.7;
+      const fade = 0.35 * (1 - k);
+      items.push({
+        y,
+        svg: g(
+          {},
+          flat(ellipseD(x + s * 0.9, y, s * 1.5, s * 0.35), groundShadow, { opacity: 0.55 }),
+          flat(ellipseD(x + s * 0.25, y - s * 0.55, s * 1.25, s * 0.7), mix(shadow, horizon, fade)),
+          flat(ellipseD(x - s * 0.3, y - s * 0.75, s * 0.9, s * 0.5), mix(lit, horizon, fade)),
+        ),
+      });
+    }
+    // Now and then a stand of distant trees (acacia-like crowns on thin trunks).
+    for (let x = 60 + ctx.rnd() * 200; x < ctx.width; x += 180 + ctx.rnd() * 420) {
+      const n = 1 + Math.floor(ctx.rnd() * 3);
+      for (let i = 0; i < n; i++) {
+        const tx = x + i * (5 + ctx.rnd() * 5);
+        const y = 553 + ctx.rnd() * 10;
+        const h = 6 + ctx.rnd() * 4;
+        const w = 4 + ctx.rnd() * 3;
+        items.push({
+          y,
+          svg: g(
+            {},
+            flat(ellipseD(tx + w * 0.8, y, w * 1.2, 0.8), groundShadow, { opacity: 0.6 }),
+            flat(
+              `M${tx - 0.35} ${y}L${tx - 0.25} ${y - h * 0.65}L${tx + 0.25} ${y - h * 0.65}L${tx + 0.35} ${y}Z`,
+              shadow,
+            ),
+            flat(ellipseD(tx + w * 0.15, y - h * 0.72, w, h * 0.22), shadow),
+            flat(ellipseD(tx - w * 0.2, y - h * 0.8, w * 0.75, h * 0.15), lit),
+          ),
+        });
+      }
+    }
+    items.sort((a, b) => a.y - b.y);
+    parts.push(...items.map((i) => i.svg));
+    // Heat shimmer: a thin bright line where the plain meets the ridge.
+    parts.push(
+      flat(
+        groundD(ctx.rnd, -40, ctx.width + 40, 545.5, 0.6, 200, 547.5),
+        mix(horizon, '#FFFFFF', 0.4),
+        {
+          opacity: 0.55,
+        },
+      ),
+    );
+    return g({}, ...parts);
+  };
+}

@@ -15,7 +15,12 @@ export function flockTargetsAt(pacing: Biome['pacing'], t: number): Record<Plane
   const clamped = Math.min(1, Math.max(0, t));
   let key = keys[0];
   for (const k of keys) if (k.t <= clamped) key = k;
-  return { near: key?.flocks.near ?? 0, mid: key?.flocks.mid ?? 0, far: key?.flocks.far ?? 0 };
+  return {
+    near: key?.flocks.near ?? 0,
+    mid: key?.flocks.mid ?? 0,
+    far: key?.flocks.far ?? 0,
+    ver: key?.flocks.ver ?? 0,
+  };
 }
 
 /** Linear interpolation of the pacing keyframes at t ∈ [0, 1]. */

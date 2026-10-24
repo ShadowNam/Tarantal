@@ -7,7 +7,7 @@
 // crates fall → dust devils → tick++ → end check. Shots therefore resolve against the positions the player saw in the
 // previous snapshot. A shot resolves damage first (a bag scores at the behaviour the bird had),
 // then Whole Flock, then the threats it makes (GDD §6.1–6.4).
-import type { Biome, ContentBundle } from '../content/schemas';
+import type { Biome, ContentBundle, Sight } from '../content/schemas';
 import {
   behaviourOf,
   isHittable,
@@ -85,6 +85,7 @@ import { twoFliesBonus, wholeFlockBonus } from './scoring/bonuses';
 import { dropTier, frenzyMul, frenzyTier, nextStreak } from './scoring/frenzy';
 import { scoreBag, scoreEventBonus } from './scoring/pipeline';
 import type {
+  AimView,
   BagBehaviour,
   BirdView,
   Command,
@@ -116,6 +117,16 @@ import {
   type ShotGeometry,
 } from './weapons/hitTest';
 import { pelletOffsets } from './weapons/pellets';
+import {
+  breathAt,
+  clampStep,
+  isUp,
+  raiseProgress,
+  raiseSight,
+  sightTiming,
+  swayAt,
+  type Aim,
+} from './weapons/sight';
 import { bandGeometry, projectileBands, type Flight } from './weapons/projectile';
 import {
   createWeaponState,
@@ -153,6 +164,8 @@ interface HuntSetup {
   readonly tutorial: Tutorial | null;
   /** Season Run hunt (mode 'seasonHunt' with a season block), else null. */
   readonly season: SeasonHuntConfig | null;
+  /** v1.3: the rifle's fitted sight (hold to zoom, release to fire), else null. */
+  readonly sight: Sight | null;
 }
 
 type Tutorial = ContentBundle['modes']['modes']['ftue']['tutorial'];
@@ -198,7 +211,34 @@ function resolveSetup(content: ContentBundle, config: SimConfig): HuntSetup {
     mode.omen,
     (season === null ? defaults?.omen : season.kind === 'omen') ?? false,
   );
-  return { biome, map, weapon, huntSeconds, omen, tutorial, season };
+  return {
+    biome,
+    map,
+    weapon,
+    huntSeconds,
+    omen,
+    tutorial,
+    season,
+    sight: fittedSight(content, weapon, mode.sight),
+  };
+}
+
+/** v1.3: the sight a rifle carries this hunt (the mode's choice, else the gun's default). */
+function fittedSight(
+  content: ContentBundle,
+  weapon: PrimaryWeapon,
+  chosen: string | undefined,
+): Sight | null {
+  const aim = weapon.aim;
+  if (aim === undefined) {
+    if (chosen !== undefined) throw new Error(`${weapon.id} takes no sight`);
+    return null;
+  }
+  const id = chosen ?? aim.defaultSight;
+  if (!aim.sights.includes(id)) throw new Error(`${weapon.id} does not fit sight ${id}`);
+  const sight = content.weapons.sights.find((x) => x.id === id);
+  if (sight === undefined) throw new Error(`unknown sight ${id}`);
+  return sight;
 }
 
 /** A Season Run block must name real content (the run builds it; replays carry it). */
@@ -274,6 +314,8 @@ interface ShotStats {
   readonly alertRadiusPx: number;
   readonly windSensitivity: number;
   readonly scoreMul: PrimaryWeapon['scoreMul'];
+  /** v1.3: reaches the Ver plane (rifles); everything else falls short of it. */
+  readonly reachesVer: boolean;
 }
 
 export function createSim(config: SimConfig): Sim {
@@ -353,6 +395,7 @@ export function createSim(config: SimConfig): Sim {
     near: { scrollFactor: scoring.planes.near.scrollFactor, scale: scoring.planes.near.scale },
     mid: { scrollFactor: scoring.planes.mid.scrollFactor, scale: scoring.planes.mid.scale },
     far: { scrollFactor: scoring.planes.far.scrollFactor, scale: scoring.planes.far.scale },
+    ver: { scrollFactor: scoring.planes.ver.scrollFactor, scale: scoring.planes.ver.scale },
   };
   const stampedeFlockState = biome.pacing.stampede.flockState ?? null;
   const vuvuzela = content.weapons.gadgets[0] ?? null;
@@ -471,6 +514,7 @@ export function createSim(config: SimConfig): Sim {
       near: scoring.planes.near.scale,
       mid: scoring.planes.mid.scale,
       far: scoring.planes.far.scale,
+      ver: scoring.planes.ver.scale,
     },
     assistPx:
       inputKind === 'touch'
@@ -478,18 +522,24 @@ export function createSim(config: SimConfig): Sim {
             near: scoring.planes.near.aimAssistPx * assistMul,
             mid: scoring.planes.mid.aimAssistPx * assistMul,
             far: scoring.planes.far.aimAssistPx * assistMul,
+            ver: scoring.planes.ver.aimAssistPx * assistMul,
           }
-        : { near: 0, mid: 0, far: 0 },
+        : { near: 0, mid: 0, far: 0, ver: 0 },
   };
   /** Kettie flight bands (delayed hitscan, Tech §3.4); null for hitscan weapons. */
   const bands =
     weapon.projectile === null
       ? null
-      : projectileBands(weapon.projectile, geometry.slices, {
-          near: planeGeo.near.scrollFactor,
-          mid: planeGeo.mid.scrollFactor,
-          far: planeGeo.far.scrollFactor,
-        });
+      : projectileBands(
+          weapon.projectile,
+          // Stones fall short of the Ver plane (v1.3): its layer is never in their flight.
+          geometry.slices.filter((sl) => sl.plane !== 'ver'),
+          {
+            near: planeGeo.near.scrollFactor,
+            mid: planeGeo.mid.scrollFactor,
+            far: planeGeo.far.scrollFactor,
+          },
+        );
   // FTUE "generous first hit" (GDD §16): wider radii until the first bag.
   const firstHitGeometry: ShotGeometry =
     firstHitAssistPx > 0
@@ -499,6 +549,7 @@ export function createSim(config: SimConfig): Sim {
             near: geometry.assistPx.near + firstHitAssistPx,
             mid: geometry.assistPx.mid + firstHitAssistPx,
             far: geometry.assistPx.far + firstHitAssistPx,
+            ver: geometry.assistPx.ver + firstHitAssistPx,
           },
         }
       : geometry;
@@ -506,7 +557,11 @@ export function createSim(config: SimConfig): Sim {
   // instead of growing every pellet's target. Hitscan pellets resolve at the real hitboxes (plus
   // the FTUE's first-hit help); pointer input never has assist, so its shots are unchanged.
   const touchAssistPx = geometry.assistPx;
-  const touchAssist = touchAssistPx.near > 0 || touchAssistPx.mid > 0 || touchAssistPx.far > 0;
+  const touchAssist =
+    touchAssistPx.near > 0 ||
+    touchAssistPx.mid > 0 ||
+    touchAssistPx.far > 0 ||
+    touchAssistPx.ver > 0;
   const withoutTouchAssist = (g: ShotGeometry): ShotGeometry =>
     touchAssist
       ? {
@@ -515,11 +570,22 @@ export function createSim(config: SimConfig): Sim {
             near: g.assistPx.near - touchAssistPx.near,
             mid: g.assistPx.mid - touchAssistPx.mid,
             far: g.assistPx.far - touchAssistPx.far,
+            ver: g.assistPx.ver - touchAssistPx.ver,
           },
         }
       : g;
   const preciseGeometry = withoutTouchAssist(geometry);
   const preciseFirstHitGeometry = withoutTouchAssist(firstHitGeometry);
+  /** v1.3: a shot that falls short of the Ver plane never meets anything on its layer. */
+  const hasVer = geometry.slices.some((sl) => sl.plane === 'ver');
+  const reach = (g: ShotGeometry, ver: boolean): ShotGeometry =>
+    ver || !hasVer ? g : { ...g, slices: g.slices.filter((sl) => sl.plane !== 'ver') };
+
+  // v1.3 rifles (D-036): the fitted sight, its zoom step and the sight while it is held.
+  const sight = setup.sight === null ? null : sightTiming(setup.sight);
+  const swayRng = rng.stream('sway');
+  let zoomStep = 0;
+  let aim: Aim | null = null;
 
   // --- state -----------------------------------------------------------------------------
   let tick = 0;
@@ -618,7 +684,7 @@ export function createSim(config: SimConfig): Sim {
     shots: 0,
     hitShots: 0,
     bagged: 0,
-    baggedByPlane: { near: 0, mid: 0, far: 0 } as Record<PlaneId, number>,
+    baggedByPlane: { near: 0, mid: 0, far: 0, ver: 0 } as Record<PlaneId, number>,
     wingShots: 0,
     penalties: 0,
     emptyClicks: 0,
@@ -898,7 +964,9 @@ export function createSim(config: SimConfig): Sim {
     return statsOf(crateWeapon?.def ?? weapon);
   }
 
-  function statsOf(w: ShotStats & { readonly id: string }): ShotStats {
+  function statsOf(
+    w: Omit<ShotStats, 'reachesVer'> & { readonly reachesVer?: boolean | undefined },
+  ): ShotStats {
     return {
       id: w.id,
       pellets: w.pellets,
@@ -906,6 +974,7 @@ export function createSim(config: SimConfig): Sim {
       alertRadiusPx: w.alertRadiusPx,
       windSensitivity: w.windSensitivity,
       scoreMul: w.scoreMul,
+      reachesVer: w.reachesVer === true,
     };
   }
 
@@ -931,6 +1000,7 @@ export function createSim(config: SimConfig): Sim {
     if (def?.kind !== 'crate') return;
     crateWeapon = armCrateWeapon(def);
     hold = null;
+    endAim('weapon');
     emit({ type: 'weaponChanged', tick, weapon: def.id, kind: 'crate' });
   }
 
@@ -999,7 +1069,7 @@ export function createSim(config: SimConfig): Sim {
 
   /** Birds as hit-test targets, front-most first per plane (higher ids are drawn on top). */
   function hitBirds(): Record<PlaneId, HitBird[]> {
-    const byPlane: Record<PlaneId, HitBird[]> = { near: [], mid: [], far: [] };
+    const byPlane: Record<PlaneId, HitBird[]> = { near: [], mid: [], far: [], ver: [] };
     for (let i = birds.length - 1; i >= 0; i--) {
       const b = birds[i];
       if (b === undefined) continue;
@@ -1098,7 +1168,7 @@ export function createSim(config: SimConfig): Sim {
     const plane = r.birdId === null ? null : (birds.find((b) => b.id === r.birdId)?.plane ?? null);
     const landedFar =
       r.birdId !== null
-        ? plane === 'far'
+        ? plane === 'far' || plane === 'ver'
         : r.crateId !== null
           ? crateCfg.plane === 'far'
           : r.propId !== null
@@ -1125,10 +1195,15 @@ export function createSim(config: SimConfig): Sim {
     return (f: number): number => (f <= farFactor ? drift : 0);
   }
 
-  function fire(dx: number, sy: number): void {
+  /** `how`: v1.3 rifles fire through the sight (swayed aim, no spread) or from the hip (the
+   *  gun's hip spread). Returns false when the shot didn't go off. */
+  function fire(dx: number, sy: number, aimed?: 'sight' | 'hip'): boolean {
     const usingCrate = crateWeapon !== null;
+    // A rifle shot that didn't come through a raised sight (a plain fire command, a second
+    // finger's tap, auto-fire) is a hip shot: no shortcut past the sway (review of v1.3).
+    const how = aimed ?? (!usingCrate && sight !== null ? 'hip' : undefined);
     const shellsLeft = pullTrigger();
-    if (shellsLeft === null) return;
+    if (shellsLeft === null) return false;
     const fx = effectsOf(powerups);
     // Haelstorm: every nth primary shot goes off as a crate-weapon blast (a normal shell).
     let blast = false;
@@ -1144,26 +1219,39 @@ export function createSim(config: SimConfig): Sim {
     const lastShell = shellIndex !== null && shellsLeft === 0;
     const shotId = nextShotId++;
     stats.shots++;
-    emit({ type: 'shotFired', tick, shotId, weapon: shot.id, dx, sy, shellsLeft });
+    emit({
+      type: 'shotFired',
+      tick,
+      shotId,
+      weapon: shot.id,
+      dx,
+      sy,
+      shellsLeft,
+      ...(how === undefined ? {} : { aim: how }),
+    });
     const ctx: ShotContext = { shotId, shot, shellIndex, lastShell, cx: cameraX };
 
     // Kettie: the stone is in the air; it resolves band by band in flyStones() (Tech §3.4).
     if (!usingCrate && !blast && bands !== null) {
       flights.push({ shotId, dx, sy, cx: cameraX, firedTick: tick, next: 0 });
       stoneShots.set(shotId, ctx);
-      return;
+      return true;
     }
 
     const byPlane = hitBirds();
     const extras = hitExtras();
     const drift = shotDrift(shot);
+    const hip = how === 'hip' && !usingCrate && !blast ? (weapon.aim?.hipSpreadPx ?? 0) : 0;
     const offsets = pelletOffsets(
       shot.pellets,
-      shot.spreadPx * fx.spreadMul,
+      (shot.spreadPx + hip) * fx.spreadMul,
       rng.stream('pellets'),
     );
-    const assisted = stats.bagged === 0 ? firstHitGeometry : geometry;
-    const precise = stats.bagged === 0 ? preciseFirstHitGeometry : preciseGeometry;
+    const assisted = reach(stats.bagged === 0 ? firstHitGeometry : geometry, shot.reachesVer);
+    const precise = reach(
+      stats.bagged === 0 ? preciseFirstHitGeometry : preciseGeometry,
+      shot.reachesVer,
+    );
     // Touch assist rescues a clean miss only (resolvePattern, D-026); pointer never has it.
     const pellets = resolvePattern(
       dx,
@@ -1178,6 +1266,7 @@ export function createSim(config: SimConfig): Sim {
     );
     const landed = pellets.map((p) => landPellet(shotId, p.pdx, p.psy, p.r, drift, null));
     resolveShot(ctx, landed);
+    return true;
   }
 
   /** Kettie stones in fire order: each reaches its next band, is tested there, and stops at the
@@ -1194,6 +1283,7 @@ export function createSim(config: SimConfig): Sim {
         f.next++;
         const drift = shotDrift(ctx.shot);
         const psy = f.sy + band.dropPx;
+        // Bands are built without the Ver layer: a stone falls short of it.
         const geo = bandGeometry(stats.bagged === 0 ? firstHitGeometry : geometry, band);
         const r = resolvePellet(f.dx, psy, f.cx, geo, hitBirds(), hitExtras(), driftOn(drift));
         const stopped =
@@ -1690,7 +1780,27 @@ export function createSim(config: SimConfig): Sim {
       case 'fireHoldEnd':
         hold = null;
         return;
+      case 'aimStart':
+        startAim(cmd.dx, cmd.sy);
+        return;
+      case 'aimMove':
+        if (aim !== null) {
+          aim.dx = cmd.dx;
+          aim.sy = cmd.sy;
+        }
+        return;
+      case 'aimRelease':
+        releaseAim();
+        return;
+      case 'aimCancel':
+        endAim('cancel');
+        return;
+      case 'zoom':
+        setZoom(cmd.step);
+        return;
       case 'reload':
+        // A reload lowers a raised sight first (v1.3).
+        if (crateWeapon === null) endAim('reload');
         // Crate weapons reload themselves (Voorlaaier ramrod) or never (Mielie-Masjien).
         if (crateWeapon === null && startReload(weaponState, timing)) {
           emit({ type: 'reloadStarted', tick, perShell: timing.perShell });
@@ -1711,6 +1821,76 @@ export function createSim(config: SimConfig): Sim {
           emit({ type: 'charmsReordered', tick, charms: charms.order() });
         return;
     }
+  }
+
+  // --- rifle sights (v1.3, D-036) ------------------------------------------------------------
+  /** A rifle's hold applies only while the rifle itself is in hand (not a crate weapon). */
+  const rifleInHand = (): boolean => sight !== null && crateWeapon === null;
+
+  function startAim(dx: number, sy: number): void {
+    if (sight === null || !rifleInHand() || aim !== null) return;
+    aim = raiseSight(dx, sy, zoomStep, swayRng, sight);
+    emit({
+      type: 'aimStarted',
+      tick,
+      sight: sight.id,
+      zoom: sight.zoom[zoomStep] ?? 1,
+      dx,
+      sy,
+    });
+  }
+
+  function endAim(reason: 'cancel' | 'blocked' | 'reload' | 'weapon' | 'fired' | 'hip'): void {
+    if (aim === null) return;
+    aim = null;
+    emit({ type: 'aimEnded', tick, reason });
+  }
+
+  /** Release: through the sight once it is up (aim + sway), else from the hip (aim point). */
+  function releaseAim(): void {
+    const a = aim;
+    if (a === null || sight === null) return;
+    const up = isUp(a, sight);
+    const sway = up ? swayAt(a, sight) : { dx: 0, dy: 0 };
+    aim = null;
+    const fired = fire(a.dx + sway.dx, a.sy + sway.dy, up ? 'sight' : 'hip');
+    emit({ type: 'aimEnded', tick, reason: fired ? (up ? 'fired' : 'hip') : 'blocked' });
+  }
+
+  function setZoom(step: number): void {
+    if (sight === null) return;
+    const next = clampStep(step, sight);
+    if (next === zoomStep) return;
+    zoomStep = next;
+    emit({ type: 'zoomChanged', tick, step: next, zoom: sight.zoom[next] ?? 1 });
+  }
+
+  /** One tick of a held sight: it comes up, then the breath settles and tires (events only on
+   *  the change). Runs after the commands, so a press and release in one tick is a hip shot. */
+  function tickAim(): void {
+    if (aim === null || sight === null) return;
+    const before = breathAt(aim.heldTicks, sight).breath;
+    aim.heldTicks++;
+    if (aim.heldTicks === sight.raiseTicks) emit({ type: 'aimRaised', tick, sight: sight.id });
+    const after = breathAt(aim.heldTicks, sight).breath;
+    if (after !== before && (after === 'held' || after === 'tired'))
+      emit({ type: 'aimBreath', tick, breath: after });
+  }
+
+  function aimView(): AimView | null {
+    if (aim === null || sight === null) return null;
+    const sway = swayAt(aim, sight);
+    return {
+      sight: sight.id,
+      zoom: sight.zoom[aim.step] ?? 1,
+      progress: raiseProgress(aim, sight),
+      dx: aim.dx,
+      sy: aim.sy,
+      swayDx: sway.dx,
+      swayDy: sway.dy,
+      breath: breathAt(aim.heldTicks, sight).breath,
+      heldTicks: aim.heldTicks,
+    };
   }
 
   /** Season Run consumables (GDD §10.4): one use each. The slot after the last is the rental. */
@@ -1887,6 +2067,7 @@ export function createSim(config: SimConfig): Sim {
 
     for (const cmd of commands) apply(cmd);
     if (hold !== null && holdFires()) fire(hold.dx, hold.sy);
+    tickAim();
 
     const w = tickWeapon(weaponState, timing);
     if (w === 'shellLoaded') emit({ type: 'shellLoaded', tick, shells: weaponState.shells });
@@ -1987,6 +2168,8 @@ export function createSim(config: SimConfig): Sim {
         infinite: cw.shotsLeft === null,
         ticksLeft: cw.ticksLeft,
         totalTicks: cw.totalTicks,
+        sight: null,
+        zoomStep: 0,
       };
     }
     const fx = effectsOf(powerups);
@@ -2003,6 +2186,8 @@ export function createSim(config: SimConfig): Sim {
       infinite: fx.infiniteAmmo || timing.magazine < 0,
       ticksLeft: null,
       totalTicks: null,
+      sight: sight?.id ?? null,
+      zoomStep,
     };
   }
 
@@ -2049,6 +2234,7 @@ export function createSim(config: SimConfig): Sim {
           age: tick - f.firedTick,
           flightTicks: bands?.at(-1)?.ticks ?? 1,
         })),
+        aim: aimView(),
         season:
           season === null
             ? null

@@ -31,3 +31,26 @@ export function interpolateBirds(prev: SimState, cur: SimState, alpha: number): 
 export function interpolateCamera(prev: SimState, cur: SimState, alpha: number): number {
   return lerp(prev.cameraX, cur.cameraX, alpha);
 }
+
+/**
+ * v1.3: the raised sight at alpha between the last two snapshots (raise progress and sway move
+ * smoothly at any frame rate). Null when no sight is up in `cur`.
+ */
+export function interpolateAim(
+  prev: SimState,
+  cur: SimState,
+  alpha: number,
+): { zoom: number; progress: number; dx: number; sy: number } | null {
+  const c = cur.aim;
+  if (c === null) return null;
+  const p = prev.aim;
+  const t = p === null ? 1 : alpha;
+  const from = p ?? c;
+  return {
+    zoom: c.zoom,
+    progress: lerp(from.progress, c.progress, t),
+    // The shot point: where the player aims plus the sway now.
+    dx: lerp(from.dx + from.swayDx, c.dx + c.swayDx, t),
+    sy: lerp(from.sy + from.swayDy, c.sy + c.swayDy, t),
+  };
+}

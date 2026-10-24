@@ -70,7 +70,7 @@ function result(plan: HuntPlan, score: number): HuntResult {
     hitShots: 20,
     accuracy: 0.5,
     bagged: 25,
-    baggedByPlane: { near: 5, mid: 15, far: 5 },
+    baggedByPlane: { near: 5, mid: 15, far: 5, ver: 0 },
     wingShots: 4,
     penalties: 0,
     emptyClicks: 0,

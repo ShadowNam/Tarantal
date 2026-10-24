@@ -67,7 +67,8 @@ function aimBot(seed: number, content: ContentBundle): Bot {
     const c = creatures.get(b.creature);
     const body = c !== undefined && 'hitbox' in c ? c.hitbox.body : { ox: 0, oy: 0 };
     const x = b.x + body.ox * p.scale * b.facing;
-    const drop = drops.get(weapon)?.[b.plane] ?? 0;
+    // Stones never reach the Ver plane (v1.3): nothing to aim higher for there.
+    const drop = b.plane === 'ver' ? 0 : (drops.get(weapon)?.[b.plane] ?? 0);
     return { dx: planeToDx(cx, p.scrollFactor, x), sy: b.y + body.oy * p.scale - drop };
   };
 

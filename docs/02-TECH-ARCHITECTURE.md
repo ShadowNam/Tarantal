@@ -136,8 +136,18 @@ export interface Sim {
 - **Tap → plane position:** `planeX = (cx − 960) × f + 960 + dx`, where `dx` is the tap's distance
   from the screen centre in design px; `planeY = sy`. Both the Phaser layer and the sim use this one
   function (`src/sim/camera.ts`).
-- Planes: `near` (scrollFactor 1.0, scale 1.0), `mid` (0.6, 0.5), `far` (0.35, 0.22). Birds belong to
+- Planes: `near` (scrollFactor 1.0, scale 1.0), `mid` (0.6, 0.5), `far` (0.35, 0.22), and since v1.3
+  `ver` (0.22, 0.10; D-036) on each biome's `ver_veld` layer, which `resolveMap` leaves out of every
+  map that doesn't set `ver: true`. Birds belong to
   exactly one plane; each plane has 2–3 y-lanes for ground birds and a sky band for flyers.
+- **Zoomed taps (v1.3):** rifle commands carry the aim in design px of the **unzoomed** screen
+  (dx from the centre, sy from the top), exactly like `fire`. The zoom is only a view
+  (`src/game/view/zoomView.ts`): every world layer is scaled by `z` around a centre `c`, so an
+  unzoomed screen point `p` shows at `C + (p − c) × z`; the centre eases from the screen centre to
+  the aim point while the sight comes up and is clamped to `[C/z, size − C/z]` so the view never
+  leaves the screen. The reticle is drawn where the shot's unzoomed point shows. Device width
+  never enters the sim, so a zoomed shot names the same world point on every screen (unit test
+  across 4:3 – 21:9 and both phones).
 - Hitboxes: per animation state, body ellipse + head circle, defined in `birds.json` in sprite-local
   units; scaled by plane. When `inputKind = 'touch'`, radii grow by `aimAssistPx[plane]`.
 - Occluders: per-prop polygons/ellipses from biome JSON; a pellet stops at the first occluder or
@@ -178,6 +188,20 @@ export interface Sim {
   the hunt ends is dropped (it counts as a shot, not a miss). `pelletImpact.cx` carries the
   firing camera for stones; `SimState.projectiles` lists stones in the air (render only). No new
   command or RNG stream: the replay stays v3.
+- **Reach (v1.3):** a slice whose plane is `ver` is skipped unless the shot's weapon has
+  `reachesVer` (rifles). Shotgun pellets, air-rifle pellets, crate guns and Haelstorm blasts fall
+  short; Kettie bands are built without the Ver layer. A missed pellet on the Ver layer lands
+  downwind like a far one.
+- **Rifles (v1.3, `src/sim/weapons/sight.ts`):** a primary with an `aim` block takes `aimStart`
+  (raise at a point), `aimMove`, `aimRelease`, `aimCancel` and `zoom` (step of the fitted sight)
+  commands; a crate weapon in hand ignores them. `aimStart` draws two numbers (loop phase, pace)
+  from `rng.stream('sway')`. Each tick after the commands the hold counts up (`aimRaised` when it
+  reaches `raiseMs`, `aimBreath` on `held` / `tired`). A release once the sight is up fires a normal
+  shot at aim + sway (`shotFired.aim = 'sight'`); an earlier one fires at the aim point with
+  `spreadPx + hipSpreadPx` (`'hip'`). Sway = `(swayPx + swayPerStep × step) × breath(t) ×
+  progress × (sin θ, ½ sin 2θ)`, θ = 2π·t·pace/period + phase (detmath). A reload or a crate weapon
+  lowers the sight (`aimEnded` with the reason); a blocked release fires nothing. `SimState.aim`
+  carries the sight, its zoom, progress, aim, sway and breath for the renderer.
 - Every resolution emits events: `ShotFired`, `PelletImpact`, `TargetBagged`, `Miss`, `FlockAlerted`,
   `FlockFlushed`, `SecretTriggered`, `ComboChanged`, `ScoreAwarded`, `PenaltyApplied`, …
 - Water (M8 Okavango, `biome.twist.splash`): a pellet that stopped on nothing (no bird, prop or
@@ -337,7 +361,10 @@ cursor, unlock flags) is serialisable and saved after every Padstal so a closed 
 (v2 since M5: an aim-assist byte follows the input kind; v1 logs still decode as `standard`; v3 since M6:
 a flag bit adds the Season Run block and `charmOrder` is a command; v4 since v1.2: the map — layout
 and bonus map ids, empty = none — follows the mode block, and a v1–v3 log decodes with none, so it
-replays on the plain biome it was played on), delta + varint encoded,
+replays on the plain biome it was played on; v5 since v1.3: the fitted sight follows the map, '' =
+the gun's default, and the rifle commands `aimStart`/`aimMove` (positions), `aimRelease`,
+`aimCancel` and `zoom` (step) are appended to the op table — a v1–v4 log holding one is corrupt),
+delta + varint encoded,
 then base64url'd (`src/sim/replay/inputLog.ts`). Deflate is applied outside the sim, at the
 share/challenge-link boundary (M7), because it needs async platform APIs (D-018). Used for: golden tests, bug reports (attach log), ghost replays, and
 (v1.x) server-side leaderboard validation by re-simulating in Node.
@@ -433,6 +460,12 @@ final art in M10. Values live in `feel.json quality.tiers`.)
 - Converts device input → sim `Command`s; owns gesture recognition (tap vs drag vs flick-down) and
   pan inertia (exponential decay, max 2 400 design px/s).
 - Desktop edge-pan (outer 12 %), keyboard pan, right-click reload (suppress context menu).
+- Rifles (v1.3, D-036): while the snapshot's weapon has a sight, a press sends `aimStart` at the
+  pointer (pointer captured), moves become `aimMove` at `press + (pointer − press) / zoom`
+  (at most one per tick, so replay logs stay small), the release sends `aimRelease`. Right-click
+  while holding sends `aimCancel` instead of a reload; on touch a slide onto the ammo display
+  cancels (the finger is then ignored until it lifts), a flick down cancels and reloads, and the
+  screen edges pan.
 - Phaser's own input and sound managers are disabled; `InputMapper` listens to Pointer Events on
   the canvas and keys on `window`. Gesture recognition (`gestures.ts`) and pan integration
   (`panController.ts`, advanced once per sim tick, sends `cameraTarget` only when it changes) are

@@ -13,10 +13,16 @@
 //   press starts it at once. A finger first stays an ordinary gesture: only once it has been
 //   still (< tapMaxMovePx) for touchHoldMs does it become the hold, so a tap still fires once and
 //   a drag still pans, a flick still reloads (D-026). This hold doesn't edge-pan.
+//   v1.3 rifles (D-036, GDD §10.6 — the snapshot's weapon has a sight): pressing raises the sight
+//   at the pointer (aimStart), moving aims finer than normal (the move ÷ the sight's zoom, aimMove
+//   at most once a tick), letting go fires (aimRelease; the sim makes an early one a hip shot).
+//   Cancel: right-click while holding, or slide the finger onto the ammo display (aimCancel). A
+//   held finger pans only at the screen edges; a flick down still reloads (it cancels the aim).
 // Positions are converted to design px of the visible screen; the fire command carries dx from
 // the screen centre (never an absolute x — the sim doesn't know the viewport width).
 import type { Feel } from '../../content/schemas';
 import type { Command, InputKind } from '../../sim/types';
+import { fineAim } from '../view/zoomView';
 import { GestureRecognizer } from './gestures';
 import { edgeDirection, PanController } from './panController';
 
@@ -39,6 +45,8 @@ export interface InputHost {
   weaponHolds(): boolean;
   /** The gun can fire this tick (loaded, not reloading, no cooldown): repeat-fire only then. */
   readyToFire(): boolean;
+  /** v1.3: the zoom of the rifle's fitted sight when a rifle is in hand, else null. */
+  sightZoom?(): number | null;
   queue(cmd: Command): void;
   /** Cursor/finger position for the reticle and gun lean. */
   aim(x: number, y: number, fromTap: boolean): void;
@@ -71,6 +79,14 @@ export class InputMapper {
   private repeating = false;
   /** Touch + Settings → hold to fire: a finger that may still become a hold (see the header). */
   private pendingHold: { id: number; x: number; y: number; at: number } | null = null;
+  /** v1.3: the pointer holding a rifle's sight up and where it pressed (design px). */
+  private aimHold: { id: number; x: number; y: number; zoom: number; touch: boolean } | null = null;
+  /** The aim point (unzoomed design px) last sent, and the newest one not yet sent. */
+  private aimSent = { x: 0, y: 0 };
+  /** aimStart is queued for this frame: moves wait a tick (the runner sends perTick's commands
+   *  before the queued ones, and the sim drops a move before its start). */
+  private aimStartPending = false;
+  private aimNext: { x: number; y: number } | null = null;
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -113,6 +129,7 @@ export class InputMapper {
       this.onKey(e as KeyboardEvent, false);
     });
     this.on(window, 'blur', () => {
+      this.endAim('cancel');
       if (this.holdPointer !== null) this.endHold(this.holdPointer);
       this.keysDown.clear();
       this.pan.setKeyDirection(0);
@@ -124,6 +141,7 @@ export class InputMapper {
   setEnabled(on: boolean): void {
     this.enabled = on;
     if (!on) {
+      this.endAim('cancel');
       if (this.holdPointer !== null) this.endHold(this.holdPointer);
       this.pan.setEdgeDirection(0);
       this.pan.setKeyDirection(0);
@@ -136,6 +154,22 @@ export class InputMapper {
    *  a hold, so a finger can drag-pan again. */
   cancelHold(): void {
     if (this.holdPointer !== null) this.endHold(this.holdPointer);
+    this.dropAim();
+  }
+
+  /**
+   * v1.3: the sim lowered the sight on its own (a crate gun armed, a reload, a release it
+   * couldn't fire): forget the aim hold without sending anything. The pointer is ignored until it
+   * lifts, so its release isn't a tap or a second release.
+   */
+  dropAim(): void {
+    const a = this.aimHold;
+    if (a === null) return;
+    this.aimHold = null;
+    this.aimNext = null;
+    this.aimStartPending = false;
+    this.ignored.add(a.id);
+    if (a.touch) this.pan.setEdgeDirection(0);
   }
 
   /** Ignore this pointer until it lifts (e.g. the tap that started the hunt). */
@@ -157,6 +191,17 @@ export class InputMapper {
     }
     const cx = this.pan.tick();
     const cmds: Command[] = cx === null ? [] : [{ t: 'cameraTarget', cx }];
+    // v1.3: at most one aim move a tick (a fast mouse makes several pointer moves per tick).
+    const next = this.aimNext;
+    if (this.aimStartPending) this.aimStartPending = false;
+    else if (this.aimHold !== null && next !== null) {
+      this.aimNext = null;
+      if (Math.abs(next.x - this.aimSent.x) >= 0.5 || Math.abs(next.y - this.aimSent.y) >= 0.5) {
+        this.aimSent = next;
+        const { width } = this.host.designSize();
+        cmds.push({ t: 'aimMove', dx: next.x - width / 2, sy: next.y });
+      }
+    }
     if (this.repeating && this.holdPointer !== null && this.host.readyToFire()) {
       const { width } = this.host.designSize();
       cmds.push({ t: 'fire', dx: this.lastHold.x - width / 2, sy: this.lastHold.y });
@@ -214,6 +259,44 @@ export class InputMapper {
     else this.host.queue({ t: 'fireHoldEnd' });
   }
 
+  /** v1.3: the sight's zoom if a rifle is in hand, else null. */
+  private rifleZoom(): number | null {
+    return this.host.sightZoom?.() ?? null;
+  }
+
+  private startAim(id: number, x: number, y: number, zoom: number, touch: boolean): void {
+    const { width } = this.host.designSize();
+    this.aimHold = { id, x, y, zoom, touch };
+    this.aimSent = { x, y };
+    this.aimNext = null;
+    this.aimStartPending = true;
+    this.host.queue({ t: 'aimStart', dx: x - width / 2, sy: y });
+    this.host.aim(x, y, false);
+  }
+
+  /** The pointer moved to (x, y) while the sight is up: aim finer, by the zoom. */
+  private moveAim(x: number, y: number): void {
+    const a = this.aimHold;
+    if (a === null) return;
+    const { width, height } = this.host.designSize();
+    this.aimNext = fineAim({ x: a.x, y: a.y }, { x: a.x, y: a.y }, { x, y }, a.zoom, width, height);
+  }
+
+  /** Release fires (the newest aim goes first); cancel lowers the sight without a shot. */
+  private endAim(kind: 'release' | 'cancel'): void {
+    const a = this.aimHold;
+    if (a === null) return;
+    const next = this.aimNext;
+    if (kind === 'release' && next !== null) {
+      const { width } = this.host.designSize();
+      this.host.queue({ t: 'aimMove', dx: next.x - width / 2, sy: next.y });
+    }
+    this.aimHold = null;
+    this.aimNext = null;
+    this.host.queue({ t: kind === 'release' ? 'aimRelease' : 'aimCancel' });
+    if (a.touch) this.pan.setEdgeDirection(0);
+  }
+
   /** Where a finger aims: the finger, or (offset crosshair) straight above it. Mouse: the cursor. */
   private aimPoint(p: { x: number; y: number }, mouse: boolean): { x: number; y: number } {
     const off = mouse ? 0 : (this.host.crosshairOffsetPx?.() ?? 0);
@@ -234,15 +317,26 @@ export class InputMapper {
     const onButton =
       this.host.isOnBelt(p.x, p.y) || this.host.isOnGadget(p.x, p.y) || item !== null;
     if (e.pointerType === 'mouse') {
+      const zoom = this.rifleZoom();
       if (e.button === 0) {
         this.host.aim(p.x, p.y, false);
         if (this.host.isOnBelt(p.x, p.y)) this.host.queue({ t: 'reload' });
         else if (this.host.isOnGadget(p.x, p.y)) this.host.queue({ t: 'gadget' });
         else if (item !== null) this.host.queue({ t: 'consumable', slot: item });
-        else if (this.host.holdToFire()) this.startHold(e.pointerId, p.x, p.y);
+        else if (zoom !== null && this.aimHold === null) {
+          // The pointer keeps reporting outside the canvas while the sight is up.
+          try {
+            this.canvas.setPointerCapture(e.pointerId);
+          } catch {
+            // Synthetic pointers can't always be captured.
+          }
+          this.startAim(e.pointerId, p.x, p.y, zoom, false);
+        } else if (this.host.holdToFire()) this.startHold(e.pointerId, p.x, p.y);
         else this.fireAt(p.x, p.y);
       } else if (e.button === 2) {
-        this.host.queue({ t: 'reload' });
+        // Right-click while the sight is up cancels it; otherwise it reloads.
+        if (this.aimHold !== null) this.endAim('cancel');
+        else this.host.queue({ t: 'reload' });
       }
       return;
     }
@@ -250,6 +344,23 @@ export class InputMapper {
       this.canvas.setPointerCapture(e.pointerId);
     } catch {
       // Synthetic pointers can't always be captured; gestures still work without it.
+    }
+    const zoom = this.rifleZoom();
+    // While one finger holds the sight up, other fingers only work the buttons (a tap must not
+    // fire past the sight).
+    if (!onButton && zoom !== null && this.aimHold !== null) {
+      this.ignored.add(e.pointerId);
+      return;
+    }
+    if (!onButton && zoom !== null && this.aimHold === null && this.holdPointer === null) {
+      // A rifle: the sight comes up under the finger (or the offset crosshair); the gesture is
+      // still tracked so a flick down reloads.
+      const a = this.aimPoint(p, false);
+      this.pan.hold();
+      this.gestures.down(e.pointerId, p.x, p.y, e.timeStamp);
+      this.host.fingerDown(true);
+      this.startAim(e.pointerId, a.x, a.y, zoom, true);
+      return;
     }
     if (
       !onButton &&
@@ -289,6 +400,23 @@ export class InputMapper {
     )
       this.pendingHold = null; // it moved: a drag or a flick, not a hold
     const mouse = e.pointerType === 'mouse';
+    if (this.aimHold?.id === e.pointerId) {
+      const { width } = this.host.designSize();
+      if (!mouse) {
+        this.gestures.move(e.pointerId, p.x, p.y, e.timeStamp);
+        // Sliding onto the ammo display cancels; the finger is then ignored until it lifts.
+        if (this.host.isOnBelt(p.x, p.y)) {
+          this.endAim('cancel');
+          this.gestures.cancel(e.pointerId);
+          this.ignored.add(e.pointerId);
+          return;
+        }
+      }
+      const a = this.aimPoint(p, mouse);
+      this.moveAim(a.x, a.y);
+      this.pan.setEdgeDirection(edgeDirection(p.x, width, this.feel.input.edgePanFraction));
+      return;
+    }
     const a = this.aimPoint(p, mouse);
     if (e.pointerId === this.holdPointer) this.moveHold(a.x, a.y);
     if (mouse) {
@@ -313,6 +441,20 @@ export class InputMapper {
   private onUp(e: PointerEvent): void {
     if (this.pendingHold?.id === e.pointerId) this.pendingHold = null; // lifted first: a tap
     if (this.ignored.delete(e.pointerId)) return;
+    if (this.aimHold?.id === e.pointerId) {
+      if (e.pointerType === 'mouse') {
+        this.endAim('release');
+        return;
+      }
+      const p = this.toDesign(e.clientX, e.clientY);
+      const end = this.gestures.up(e.pointerId, p.x, p.y, e.timeStamp);
+      if (this.gestures.activePointers === 0) this.host.fingerDown(false);
+      if (end.kind === 'flickDown') {
+        this.endAim('cancel');
+        this.host.queue({ t: 'reload' });
+      } else this.endAim('release');
+      return;
+    }
     if (e.pointerId === this.holdPointer) {
       this.endHold(e.pointerId);
       if (e.pointerType !== 'mouse') {
@@ -352,6 +494,7 @@ export class InputMapper {
   private onCancel(e: PointerEvent): void {
     if (this.pendingHold?.id === e.pointerId) this.pendingHold = null;
     this.ignored.delete(e.pointerId);
+    if (this.aimHold?.id === e.pointerId) this.endAim('cancel');
     if (e.pointerId === this.holdPointer) {
       this.endHold(e.pointerId);
       this.pan.setEdgeDirection(0);

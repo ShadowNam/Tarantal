@@ -5,7 +5,7 @@
 import * as Phaser from 'phaser';
 import type { LivePrefs } from '../prefs';
 import type { Biome, ContentBundle, Feel } from '../../content/schemas';
-import type { SimState } from '../../sim/types';
+import type { PlaneId, SimState } from '../../sim/types';
 import { coreWidth } from '../../sim/world';
 import { TEX } from '../assets/AssetManifest';
 import type { ParallaxView } from './ParallaxView';
@@ -59,10 +59,12 @@ export class WorldView {
   private readonly rings: Phaser.GameObjects.Image[] = [];
   private readonly windBits: Phaser.GameObjects.Image[] = [];
   private readonly screen: Phaser.GameObjects.Container;
+  /** v1.3: full-screen overlays (glare, tints, storm, rain) that a sight's zoom never scales. */
+  private readonly fixed: Phaser.GameObjects.Container;
   private readonly helper: Phaser.GameObjects.Image;
   /** Power-ups that bring a helper creature (helpers' `grants`, birds.json). */
   private readonly helperPowerups: ReadonlySet<string>;
-  private readonly planeScale: Readonly<Record<'near' | 'mid' | 'far', number>>;
+  private readonly planeScale: Readonly<Record<PlaneId, number>>;
   private nextGlintAt = 0;
   private windCredit = 0;
 
@@ -78,7 +80,9 @@ export class WorldView {
     screen: Phaser.GameObjects.Container,
     private readonly prefs: LivePrefs,
     flashes: FlashLimiter,
+    fixed: Phaser.GameObjects.Container = screen,
   ) {
+    this.fixed = fixed;
     this.stormFlash = new FlashGate(flashes);
     this.scene = scene;
     this.feel = feel;
@@ -86,7 +90,12 @@ export class WorldView {
     this.biome = biome;
     this.screen = screen;
     const { planes } = content.scoring;
-    this.planeScale = { near: planes.near.scale, mid: planes.mid.scale, far: planes.far.scale };
+    this.planeScale = {
+      near: planes.near.scale,
+      mid: planes.mid.scale,
+      far: planes.far.scale,
+      ver: planes.ver.scale,
+    };
     this.midScroll = planes.mid.scrollFactor;
     this.helperPowerups = new Set(
       content.birds.creatures.flatMap((c) => (c.kind === 'helper' ? [c.grants] : [])),
@@ -236,8 +245,8 @@ export class WorldView {
     if (this.flashLight === null) {
       this.gloom = this.scene.add.rectangle(0, 0, width, height, 0x1c2230).setOrigin(0, 0);
       this.flashLight = this.scene.add.rectangle(0, 0, width, height, 0xe8f1ff).setOrigin(0, 0);
-      this.screen.addAt(this.gloom, 0);
-      this.screen.addAt(this.flashLight, 1);
+      this.fixed.addAt(this.gloom, 0);
+      this.fixed.addAt(this.flashLight, 1);
     }
     if (this.stormSize.w !== width || this.stormSize.h !== height) {
       this.stormSize = { w: width, h: height };
@@ -265,7 +274,7 @@ export class WorldView {
         .setOrigin(0, 0)
         .setAlpha(0)
         .setVisible(false);
-      this.screen.addAt(this.stampedeTint, 0);
+      this.fixed.addAt(this.stampedeTint, 0);
     }
     const tint = this.stampedeTint;
     if (tint.width !== width || tint.height !== height) tint.setSize(width, height);
@@ -306,7 +315,7 @@ export class WorldView {
         frequency: rate > 0 ? 1000 / rate : -1,
         emitting: false,
       });
-      this.screen.add(this.rain);
+      this.fixed.add(this.rain);
       // The rainbow hangs in the sky layer, behind the land and the birds.
       const sky = this.parallax.layers[0];
       if (flags.rainbow === true && sky !== undefined) {
@@ -329,7 +338,7 @@ export class WorldView {
   private drawGlare(g: NonNullable<SimState['glare']>, width: number, height: number): void {
     if (this.glare === null) {
       this.glare = this.scene.add.image(0, 0, TEX.glare).setAlpha(g.alpha);
-      this.screen.addAt(this.glare, 0);
+      this.fixed.addAt(this.glare, 0);
     }
     this.glare
       .setOrigin(1, 0)

@@ -25,11 +25,17 @@ describe('pacing', () => {
       near: 0,
       mid: keys[0]?.flocks.mid ?? 0,
       far: keys[0]?.flocks.far ?? 0,
+      ver: 0,
     });
     expect(at(k1.t - 0.001)).toEqual(at(0));
-    expect(at(k1.t)).toEqual({ near: 0, mid: k1.flocks.mid ?? 0, far: k1.flocks.far ?? 0 });
+    expect(at(k1.t)).toEqual({ near: 0, mid: k1.flocks.mid ?? 0, far: k1.flocks.far ?? 0, ver: 0 });
     const last = keys[keys.length - 1];
-    expect(at(1)).toEqual({ near: 0, mid: last?.flocks.mid ?? 0, far: last?.flocks.far ?? 0 });
+    expect(at(1)).toEqual({
+      near: 0,
+      mid: last?.flocks.mid ?? 0,
+      far: last?.flocks.far ?? 0,
+      ver: 0,
+    });
   });
 
   it('switches to the surge profile during the Stampede', () => {

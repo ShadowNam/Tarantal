@@ -487,5 +487,8 @@
   "admin.copy": "Copy report",
   "admin.copied": "Report copied",
   "admin.copy_failed": "Copy blocked: select the text below",
-  "admin.back": "Back to admin"
+  "admin.back": "Back to admin",
+  "sight.iron": "Kimme und Korn",
+  "sight.peep": "Diopter",
+  "sight.scope_small": "Kleines Zielfernrohr"
 }

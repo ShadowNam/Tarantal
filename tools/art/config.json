@@ -345,6 +345,7 @@
       "$comment": "Aerial perspective: how far each layer's colours (and ink) are mixed toward the biome's horizon colour.",
       "sky": 0,
       "far_ridge": 0.3,
+      "ver_veld": 0.34,
       "far_veld": 0.18,
       "mid": 0.04,
       "near": 0,
@@ -353,6 +354,7 @@
     "lines": {
       "$comment": "Ink width (design px) per layer (bible §1.4: far 2, mid 4, near 6).",
       "far_ridge": 2,
+      "ver_veld": 1,
       "far_veld": 2,
       "mid": 4,
       "near": 6,

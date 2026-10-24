@@ -3,7 +3,7 @@
 // silhouette line-up against the kwêvoël and hadeda (bible §1 rule 6).
 import type { ContentBundle } from '../../src/content/schemas';
 import type { BirdClip } from '../../src/game/assets/assetIndex';
-import type { PlaneId } from '../../src/sim/types';
+import type { ArtPlaneId as PlaneId } from '../../src/game/assets/artPlane';
 import { NEAR_CLIPS } from '../assets/pack';
 import { BIRD_BOX, CLIP_SPEC } from '../assets/targets';
 import type { Rgba } from '../assets/image';

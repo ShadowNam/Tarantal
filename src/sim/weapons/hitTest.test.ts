@@ -22,8 +22,8 @@ const hitbox = tarentaal.hitbox;
 
 const geometry: ShotGeometry = {
   slices: buildSlices(biome),
-  planeScale: { near: 1, mid: 0.5, far: 0.22 },
-  assistPx: { near: 0, mid: 0, far: 0 },
+  planeScale: { near: 1, mid: 0.5, far: 0.22, ver: 0.1 },
+  assistPx: { near: 0, mid: 0, far: 0, ver: 0 },
 };
 const CX = 960; // left camera end: every plane's centre x is 960 (tapToPlane at dx 0)
 
@@ -31,7 +31,7 @@ function bird(id: number, plane: PlaneId, x: number, y: number, facing: 1 | -1 =
   return { id, plane, x, y, facing, hitbox, hittable: true, snappable: true };
 }
 function planes(list: HitBird[]): Record<PlaneId, HitBird[]> {
-  const out: Record<PlaneId, HitBird[]> = { near: [], mid: [], far: [] };
+  const out: Record<PlaneId, HitBird[]> = { near: [], mid: [], far: [], ver: [] };
   for (const b of [...list].sort((a, z) => z.id - a.id)) out[b.plane].push(b);
   return out;
 }
@@ -61,15 +61,17 @@ describe('hitboxes (body ellipse + head circle, scaled by plane)', () => {
 });
 
 describe('front-to-back resolution', () => {
-  it('orders layers by scroll factor: foreground, near, mid, far', () => {
+  it('orders layers by scroll factor: foreground, near, mid, far, ver (v1.3)', () => {
     expect(geometry.slices.map((s) => s.layerId)).toEqual([
       'foreground',
       'near',
       'mid',
       'far_veld',
+      'ver_veld',
       'far_ridge',
       'sky',
     ]);
+    expect(geometry.slices.find((s) => s.layerId === 'ver_veld')?.plane).toBe('ver');
   });
 
   it('a near bird shields a mid bird behind it, which shields a far bird', () => {
@@ -143,7 +145,7 @@ describe('hit rule: pellets on target ≥ min(pelletsToBag, weapon.pellets)', ()
 });
 
 describe('touch aim assist rescues a miss (M9, D-026)', () => {
-  const assisted: ShotGeometry = { ...geometry, assistPx: { near: 8, mid: 14, far: 18 } };
+  const assisted: ShotGeometry = { ...geometry, assistPx: { near: 8, mid: 14, far: 18, ver: 6 } };
 
   it('an aim point inside the grown hitbox snaps onto the bird body centre', () => {
     const b = bird(1, 'far', 1000, 300);

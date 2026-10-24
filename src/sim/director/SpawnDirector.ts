@@ -80,7 +80,7 @@ export function createDirector(deps: DirectorDeps): Director {
   const { content, biome, durationTicks, spawns, flockParams: fp } = deps;
   const flockRng = deps.flocks;
   const rateMul = deps.rateMul ?? 1;
-  const flockRetryAt: Record<PlaneId, number> = { near: 0, mid: 0, far: 0 };
+  const flockRetryAt: Record<PlaneId, number> = { near: 0, mid: 0, far: 0, ver: 0 };
   const { planes } = content.scoring;
   const flyover = content.birds.flyoverDefaults;
   const popup = content.birds.popupDefaults;
@@ -165,11 +165,17 @@ export function createDirector(deps: DirectorDeps): Director {
   }
 
   function spawnFlyoverGroup(ctx: DirectorContext): Bird[] {
-    const lanes: PlaneId[] = ['mid', 'far'];
-    // v1.2: a map's fly-over routes may weight the sky lanes and fix the direction.
+    // v1.2: a map's fly-over routes may weight the sky lanes and fix the direction. v1.3: the
+    // Ver lane joins only on maps that give it a weight (else the draw is exactly as before).
     const planeWeights = biome.flyovers?.planeWeights ?? flyover.planeWeights;
+    const verLane = biome.lanes.ver?.skyY !== undefined && (planeWeights.ver ?? 0) > 0;
+    const lanes: PlaneId[] = verLane ? ['mid', 'far', 'ver'] : ['mid', 'far'];
     const weights = lanes.map((p) =>
-      biome.lanes[p]?.skyY === undefined ? 0 : planeWeights[p as 'mid' | 'far'],
+      biome.lanes[p]?.skyY === undefined
+        ? 0
+        : p === 'ver'
+          ? (planeWeights.ver ?? 0)
+          : planeWeights[p as 'mid' | 'far'],
     );
     const plane = lanes[spawns.weightedIndex(weights)];
     const sky = plane === undefined ? undefined : biome.lanes[plane]?.skyY;
