@@ -42,6 +42,11 @@ export interface HudLayout {
   /** v1.0.1 (D-028 §3): Oupa's speech bubble, left column under the chips — clear of the belt,
    *  score, pops, pause and gadget, and never a tap target (taps pass through it). */
   readonly bark: Rect;
+  /** v1.4 (D-038): the variable scope's zoom row above the reload prompt, at the belt's outer
+   *  edge: − button, the zoom label, + button (buttons on touch only). */
+  readonly zoomOut: Rect;
+  readonly zoomLabel: Rect;
+  readonly zoomIn: Rect;
 }
 
 /** Consumable slots + the rental slot (run.json consumableSlots 2, + 1). */
@@ -57,6 +62,7 @@ export interface HudSizing {
   readonly gadgetPx: number;
   readonly chipW: number;
   readonly chipH: number;
+  readonly zoomButtonPx: number;
 }
 
 /** Oupa's bubble slot height (design px): three lines at the bubble's text size. */
@@ -131,6 +137,13 @@ export function hudLayout(
     w: itemPx,
     h: itemPx,
   }));
+  const zb = s.zoomButtonPx;
+  const zoomRowW = zb * 2 + 2 * 10 + 96;
+  const zoomX = mirrored ? belt.x : belt.x + belt.w - zoomRowW;
+  const zoomY = reloadPrompt.y - 12 - zb;
+  const zoomOut: Rect = { x: zoomX, y: zoomY, w: zb, h: zb };
+  const zoomLabel: Rect = { x: zoomX + zb + 10, y: zoomY, w: 96, h: zb };
+  const zoomIn: Rect = { x: zoomLabel.x + zoomLabel.w + 10, y: zoomY, w: zb, h: zb };
   return {
     safe,
     timer,
@@ -157,6 +170,9 @@ export function hudLayout(
       w: frenzy.w,
       h: BARK_H,
     },
+    zoomOut,
+    zoomLabel,
+    zoomIn,
   };
 }
 

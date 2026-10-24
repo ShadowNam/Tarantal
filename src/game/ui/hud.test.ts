@@ -3,7 +3,14 @@ import { designSizeFor, safeAreaInDesignPx } from '../layout';
 import { formatAward, formatClock, formatScore, popParts } from './format';
 import { hudLayout, rectContains, type Rect } from './hudLayout';
 
-const sizing = { marginPx: 28, beltTapMinPx: 64, gadgetPx: 120, chipW: 260, chipH: 48 };
+const sizing = {
+  marginPx: 28,
+  beltTapMinPx: 64,
+  gadgetPx: 120,
+  chipW: 260,
+  chipH: 48,
+  zoomButtonPx: 88,
+};
 const inside = (outer: Rect, r: Rect) =>
   r.x >= outer.x &&
   r.y >= outer.y &&
@@ -40,6 +47,9 @@ describe('HUD layout at 16:9, 19.5:9 and 4:3', () => {
           l.charms,
           ...l.items,
           l.bark,
+          l.zoomOut,
+          l.zoomLabel,
+          l.zoomIn,
         ];
         for (const p of parts) expect(inside(l.safe, p)).toBe(true);
         for (let i = 0; i < parts.length; i++)
@@ -52,6 +62,10 @@ describe('HUD layout at 16:9, 19.5:9 and 4:3', () => {
         expect(Math.min(l.gadget.w, l.gadget.h)).toBeGreaterThanOrEqual(64);
         expect(rectContains(l.belt, l.belt.x + 5, l.belt.y + 5)).toBe(true);
         expect(Math.min(l.pause.w, l.pause.h, l.skip.h)).toBeGreaterThanOrEqual(64);
+        // v1.4: the zoom buttons are ≥ 64 px tap targets.
+        expect(Math.min(l.zoomIn.w, l.zoomIn.h, l.zoomOut.w, l.zoomOut.h)).toBeGreaterThanOrEqual(
+          64,
+        );
         // Left-handed mirrors the bottom row: belt on the left, gadget on the right.
         const beltLeft = l.belt.x < size.width / 2;
         expect(beltLeft).toBe(mirrored);

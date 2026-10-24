@@ -18,6 +18,10 @@
 //   at most once a tick), letting go fires (aimRelease; the sim makes an early one a hip shot).
 //   Cancel: right-click while holding, or slide the finger onto the ammo display (aimCancel). A
 //   held finger pans only at the screen edges; a flick down still reloads (it cancels the aim).
+//   v1.4 variable scope (D-038): the mouse wheel and + / − step the zoom; on touch the − / +
+//   buttons beside the ammo do. Each step is one `zoom` command (an integer step index), so the
+//   replay holds it and the sim clamps it. A step while the sight is up re-anchors fine aim, so
+//   the aim point stays put and later moves are divided by the new zoom.
 // Positions are converted to design px of the visible screen; the fire command carries dx from
 // the screen centre (never an absolute x — the sim doesn't know the viewport width).
 import type { Feel } from '../../content/schemas';
@@ -47,6 +51,10 @@ export interface InputHost {
   readyToFire(): boolean;
   /** v1.3: the zoom of the rifle's fitted sight when a rifle is in hand, else null. */
   sightZoom?(): number | null;
+  /** v1.4: a variable scope in hand: its zoom per step and the current step, else null. */
+  zoomSteps?(): { readonly zooms: readonly number[]; readonly step: number } | null;
+  /** v1.4: the touch zoom button under (x, y): −1 (out), +1 (in), or null. */
+  zoomButtonAt?(x: number, y: number): -1 | 1 | null;
   queue(cmd: Command): void;
   /** Cursor/finger position for the reticle and gun lean. */
   aim(x: number, y: number, fromTap: boolean): void;
@@ -80,7 +88,23 @@ export class InputMapper {
   /** Touch + Settings → hold to fire: a finger that may still become a hold (see the header). */
   private pendingHold: { id: number; x: number; y: number; at: number } | null = null;
   /** v1.3: the pointer holding a rifle's sight up and where it pressed (design px). */
-  private aimHold: { id: number; x: number; y: number; zoom: number; touch: boolean } | null = null;
+  private aimHold: {
+    id: number;
+    /** Pointer and aim point at the (re-)anchor: fine aim moves from here. */
+    x: number;
+    y: number;
+    ax: number;
+    ay: number;
+    /** The pointer's latest position (re-anchors on a zoom step). */
+    px: number;
+    py: number;
+    zoom: number;
+    touch: boolean;
+  } | null = null;
+  /** v1.4: the zoom step last asked for (the snapshot lags a tick behind quick steps). */
+  private zoomAsked: { step: number; at: number } | null = null;
+  /** Wheel travel not yet turned into a step. */
+  private wheelAcc = 0;
   /** The aim point (unzoomed design px) last sent, and the newest one not yet sent. */
   private aimSent = { x: 0, y: 0 };
   /** aimStart is queued for this frame: moves wait a tick (the runner sends perTick's commands
@@ -118,6 +142,9 @@ export class InputMapper {
         this.pan.setEdgeDirection(0);
         this.endHold((e as PointerEvent).pointerId);
       }
+    });
+    this.on(canvas, 'wheel', (e) => {
+      this.onWheel(e as WheelEvent);
     });
     this.on(canvas, 'contextmenu', (e) => {
       e.preventDefault();
@@ -266,7 +293,7 @@ export class InputMapper {
 
   private startAim(id: number, x: number, y: number, zoom: number, touch: boolean): void {
     const { width } = this.host.designSize();
-    this.aimHold = { id, x, y, zoom, touch };
+    this.aimHold = { id, x, y, ax: x, ay: y, px: x, py: y, zoom, touch };
     this.aimSent = { x, y };
     this.aimNext = null;
     this.aimStartPending = true;
@@ -279,7 +306,55 @@ export class InputMapper {
     const a = this.aimHold;
     if (a === null) return;
     const { width, height } = this.host.designSize();
-    this.aimNext = fineAim({ x: a.x, y: a.y }, { x: a.x, y: a.y }, { x, y }, a.zoom, width, height);
+    a.px = x;
+    a.py = y;
+    this.aimNext = fineAim(
+      { x: a.ax, y: a.ay },
+      { x: a.x, y: a.y },
+      { x, y },
+      a.zoom,
+      width,
+      height,
+    );
+  }
+
+  /**
+   * v1.4 (D-038): one zoom step in (+1) or out (−1) on a variable scope. Sends the clamped step
+   * index; a raised sight re-anchors fine aim at the current aim point and pointer.
+   */
+  zoomBy(delta: -1 | 1): void {
+    if (!this.enabled) return;
+    const z = this.host.zoomSteps?.() ?? null;
+    if (z === null || z.zooms.length < 2) return;
+    // A step asked for in the last quarter second counts (the snapshot may not show it yet).
+    const asked = this.zoomAsked;
+    const from = asked !== null && this.now() - asked.at < 250 ? asked.step : z.step;
+    const step = Math.min(z.zooms.length - 1, Math.max(0, from + delta));
+    if (step === from) return;
+    this.zoomAsked = { step, at: this.now() };
+    this.host.queue({ t: 'zoom', step });
+    const a = this.aimHold;
+    if (a === null) return;
+    const aim = this.aimNext ?? this.aimSent;
+    a.ax = aim.x;
+    a.ay = aim.y;
+    a.x = a.px;
+    a.y = a.py;
+    a.zoom = z.zooms[step] ?? a.zoom;
+  }
+
+  private onWheel(e: WheelEvent): void {
+    e.preventDefault();
+    if (!this.enabled || (this.host.zoomSteps?.() ?? null) === null) return;
+    // Lines (Firefox) and pages count as 33 px and 800 px.
+    const unit = e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? 800 : 1;
+    const per = this.feel.input.wheelZoomStepPx;
+    this.wheelAcc += e.deltaY * unit;
+    // Wheel up (negative deltaY) zooms in; one step per event at most.
+    if (Math.abs(this.wheelAcc) < per) return;
+    const delta = this.wheelAcc < 0 ? 1 : -1;
+    this.wheelAcc = 0;
+    this.zoomBy(delta);
   }
 
   /** Release fires (the newest aim goes first); cancel lowers the sight without a shot. */
@@ -310,6 +385,13 @@ export class InputMapper {
     if (this.host.isOnUi(p.x, p.y)) {
       // A finger on a HUD control must not become a tap or drag when it lifts. (A mouse press is
       // simply dropped: its id is reused, and a release off the canvas would leave it ignored.)
+      if (e.pointerType !== 'mouse') this.ignored.add(e.pointerId);
+      return;
+    }
+    const zoomButton = this.host.zoomButtonAt?.(p.x, p.y) ?? null;
+    if (zoomButton !== null) {
+      // v1.4: a zoom button never fires or pans; a finger on it is ignored until it lifts.
+      this.zoomBy(zoomButton);
       if (e.pointerType !== 'mouse') this.ignored.add(e.pointerId);
       return;
     }
@@ -525,6 +607,20 @@ export class InputMapper {
     if (digit >= 0) {
       e.preventDefault();
       if (down && !e.repeat) this.host.queue({ t: 'consumable', slot: digit });
+      return;
+    }
+    // v1.4: + / − step a variable scope (= is + without Shift).
+    const zoomKey: Record<string, -1 | 1> = {
+      Equal: 1,
+      NumpadAdd: 1,
+      Minus: -1,
+      NumpadSubtract: -1,
+    };
+    const zk = zoomKey[e.code];
+    if (zk !== undefined) {
+      if ((this.host.zoomSteps?.() ?? null) === null) return;
+      e.preventDefault();
+      if (down) this.zoomBy(zk);
       return;
     }
     if (e.code === 'KeyQ') {

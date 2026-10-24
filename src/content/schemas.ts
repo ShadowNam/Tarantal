@@ -1354,6 +1354,8 @@ export const FeelSchema = obj({
     edgePanFraction: fraction,
     edgePanPxPerSec: pos,
     keyPanPxPerSec: pos,
+    /** v1.4 (D-038): mouse-wheel travel (px, lines × 33) for one variable-scope zoom step. */
+    wheelZoomStepPx: pos,
   }),
   juice: obj({
     hitStopMs: nonNeg,
@@ -1425,6 +1427,8 @@ export const FeelSchema = obj({
     /** Power-up / crate-weapon chips under the Frenzy meter. */
     chipW: pos,
     chipH: pos,
+    /** v1.4 (D-038): the variable scope's on-screen − / + buttons (touch), squares ≥ 64 px. */
+    zoomButtonPx: z.number().min(64),
   }),
   /** v1.1 (D-032): per-gun ammo display and crosshair. */
   guns: GunLookSchema,

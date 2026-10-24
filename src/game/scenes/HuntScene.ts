@@ -974,6 +974,9 @@ export class HuntScene extends Phaser.Scene {
           const s = this.ctx.content.weapons.sights.find((x) => x.id === w.sight);
           return s?.zoom[w.zoomStep] ?? s?.zoom[0] ?? null;
         },
+        // v1.4 (D-038): a variable scope's steps, and the touch zoom buttons beside the ammo.
+        zoomSteps: () => hud.zoomOf(this.runner?.state.weapon),
+        zoomButtonAt: (x, y) => hud.zoomButtonAt(x, y),
         readyToFire: () => {
           const w = this.runner?.state.weapon;
           return (
