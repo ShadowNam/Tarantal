@@ -260,7 +260,8 @@ class Session implements RangeSession {
     if (!held) this.viewTick = state.tick;
     this.collectMarks(events, state);
     this.feedback(host, events, state);
-    const dt = held ? 0 : host.scene.game.loop.delta;
+    // Markers and the paper blink run on the wall clock: they hold with rangeHold or ?holdAt.
+    const dt = held || host.simHeld() ? 0 : host.scene.game.loop.delta;
     for (const p of [...this.plates.values(), ...this.papers]) {
       const key = this.keys.get(p.id) ?? '';
       p.update({
@@ -325,6 +326,9 @@ class Session implements RangeSession {
             kind: p.kind,
             count: marks.count(key),
             drawn: d === undefined ? 0 : d instanceof PlateDraw ? d.drawn : d.count,
+            swing: d instanceof PlateDraw ? d.rotation : 0,
+            lit: d?.glinting ?? false,
+            lastTick: marks.marks(key).at(-1)?.tick ?? null,
           };
         }),
         papers: papers.map((p) => ({

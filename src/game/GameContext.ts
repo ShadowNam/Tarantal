@@ -58,6 +58,12 @@ export interface RangeHookState {
     readonly kind: string;
     readonly count: number;
     readonly drawn: number;
+    /** A plate's swing angle now (radians; 0 for paper or a still plate). */
+    readonly swing: number;
+    /** The newest mark is highlighted now. */
+    readonly lit: boolean;
+    /** The sim tick the newest mark landed (null: none). */
+    readonly lastTick: number | null;
   }[];
   /** Paper targets on screen (design px, unzoomed) and their radius. */
   readonly papers: readonly {

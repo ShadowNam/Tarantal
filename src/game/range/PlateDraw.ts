@@ -42,6 +42,10 @@ export class PlateDraw {
   private amp = 0;
   private hitTick = 0;
   private lit: Mark | null = null;
+  /** The newest mark is highlighted now (the test hook reads it). */
+  get glinting(): boolean {
+    return this.lit !== null && this.litFade > 0;
+  }
   private litFade = -1;
   /** Swings so far (the test hook reads it). */
   hits = 0;

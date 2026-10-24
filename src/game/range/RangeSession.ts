@@ -16,6 +16,8 @@ export interface RangeHost {
   readonly audio: AudioDirector;
   /** The "reduce flashes" setting now. */
   reduceFlashes(): boolean;
+  /** e2e ?holdAt: the sim has stopped at its hold tick (the range's wall-clock bits hold too). */
+  simHeld(): boolean;
   /** The container above a plane's birds, in that plane's coordinates (null: no such layer). */
   overlay(plane: PlaneId): Phaser.GameObjects.Container | null;
   /** Back to the setup page (the bar's Setup button; the pause menu's Quit does the same). */

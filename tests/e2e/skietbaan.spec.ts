@@ -669,9 +669,12 @@ test.describe('Skietbaan (training ground)', () => {
     test.setTimeout(420_000);
     const errors = collectErrors(page);
     const touch = isTouchProject(info);
-    // The range holds at tick 900 (?holdAt): marks, the plate's swing and the newest mark's glint
-    // all run on sim time, so the held picture can't change.
-    await openRange(page, touch, '&seed=42&holdAt=900');
+    // The range holds at tick HOLD (?holdAt). The last shot lands within ~30 ticks before it, so
+    // the held frame has the plate mid-swing and the newest mark glinting: both run on sim time
+    // and must not move (a wall-clock swing would keep swinging under the hold).
+    const HOLD = 900;
+    const FIRE_AT = HOLD - 32;
+    await openRange(page, touch, `&seed=42&holdAt=${String(HOLD)}`);
     await press(page, touch, '#tm-range [data-role=gun] [data-value=windbuks]');
     await press(page, touch, '#tm-range [data-role=target] [data-value=plate]');
     await press(page, touch, '#tm-range [data-role=plane] [data-value=near]');
@@ -680,29 +683,71 @@ test.describe('Skietbaan (training ground)', () => {
       timeout: 90_000,
     });
     const plate = await paper(page);
-    for (let i = 0; i < 3 && (await hook(page)).tick < 600; i++) {
+    // Two earlier marks, well before the hold.
+    for (let i = 0; i < 2 && (await hook(page)).tick < FIRE_AT - 200; i++) {
       await ready(page);
-      if ((await hook(page)).tick >= 600) break;
       const shots = (await hook(page)).shots;
       await fireAt(page, touch, plate.x + (i - 1) * plate.r * 0.4, plate.y);
       await page.waitForFunction((n) => (window.__TM__?.shots ?? 0) > n, shots, {
         timeout: 60_000,
       });
     }
-    await page.waitForFunction(() => (window.__TM__?.tick ?? 0) >= 900, null, {
+    // The gun is loaded and cool well before the last shot.
+    await ready(page);
+    expect((await hook(page)).tick).toBeLessThan(FIRE_AT);
+    // The last shot, fired from inside the page on the first frame at or after FIRE_AT (a
+    // Playwright round trip could overshoot the hold).
+    await page.evaluate(
+      ([x, y, t, at]) =>
+        new Promise<void>((resolve) => {
+          const step = (): void => {
+            const h = window.__TM__;
+            const canvas = document.querySelector('#game canvas');
+            if (!h || !(canvas instanceof HTMLCanvasElement) || h.tick < at) {
+              requestAnimationFrame(step);
+              return;
+            }
+            const r = canvas.getBoundingClientRect();
+            const init = {
+              pointerId: t ? 23 : 1,
+              pointerType: t ? 'touch' : 'mouse',
+              button: 0,
+              buttons: 1,
+              clientX: r.left + (x / h.designWidth) * r.width,
+              clientY: r.top + (y / h.designHeight) * r.height,
+              bubbles: true,
+              cancelable: true,
+            };
+            canvas.dispatchEvent(new PointerEvent('pointerdown', init));
+            canvas.dispatchEvent(new PointerEvent('pointerup', { ...init, buttons: 0 }));
+            resolve();
+          };
+          step();
+        }),
+      [plate.x + plate.r * 0.3, plate.y - plate.r * 0.2, touch, FIRE_AT] as const,
+    );
+    await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) >= t, HOLD, {
       timeout: 120_000,
     });
-    const m = (await hook(page)).range?.marks.find((x) => x.kind === 'plate');
-    expect(m?.count ?? 0).toBeGreaterThan(0);
+    await page.waitForTimeout(500);
+    const h = await hook(page);
+    expect(h.tick).toBe(HOLD);
+    const m = h.range?.marks.find((x) => x.kind === 'plate');
+    expect(m?.count ?? 0).toBeGreaterThanOrEqual(1);
     expect(m?.drawn).toBe(m?.count);
-    // The DOM bar's pulse animation is not on the canvas; the hit marker has faded by now.
-    await page.waitForTimeout(1500);
+    // The last mark landed just before the hold: the plate is swinging and the mark glints.
+    expect(m?.lastTick ?? 0).toBeGreaterThanOrEqual(FIRE_AT);
+    expect(m?.lastTick ?? HOLD).toBeLessThan(HOLD);
+    expect(Math.abs(m?.swing ?? 0)).toBeGreaterThan(0.001);
+    expect(m?.lit).toBe(true);
     const canvas = page.locator('#game canvas');
     const a = await canvas.screenshot();
     await page.waitForTimeout(700);
     const b = await canvas.screenshot();
     expect(a.equals(b)).toBe(true);
-    expect((await hook(page)).tick).toBe(900);
+    const after = (await hook(page)).range?.marks.find((x) => x.kind === 'plate');
+    expect(after?.swing).toBe(m?.swing);
+    expect(after?.lit).toBe(true);
     expect(errors).toEqual([]);
   });
 

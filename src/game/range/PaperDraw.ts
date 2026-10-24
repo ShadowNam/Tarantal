@@ -29,6 +29,10 @@ export class PaperDraw {
   private readonly surface: MarkSurface;
   private readonly newest: Phaser.GameObjects.Graphics;
   private lit: unknown = null;
+  /** The newest mark is highlighted now (the test hook reads it). */
+  get glinting(): boolean {
+    return this.lit !== null && this.litFade > 0;
+  }
   private litFade = -1;
   private readonly flash: Phaser.GameObjects.Graphics;
   private blinkLeft = 0;
