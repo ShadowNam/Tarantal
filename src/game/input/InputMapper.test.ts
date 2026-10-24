@@ -591,6 +591,18 @@ describe('v1.4 variable scope zoom input (D-038)', () => {
     ]);
   });
 
+  it('a press right after a step fine-aims with the new zoom, before the snapshot shows it', () => {
+    const r = zoomRig(1920, 1, { t: 0 });
+    const e = { pointerId: 1, pointerType: 'mouse', button: 0, timeStamp: 0 };
+    r.canvas.emit('wheel', { deltaY: -100, deltaMode: 0 }); // 6× asked; the sim is still at 3×
+    r.canvas.emit('pointerdown', { ...e, ...r.at(760, 500) });
+    r.mapper.perTick();
+    r.canvas.emit('pointermove', { ...e, ...r.at(820, 560) }); // ÷6 → +10, +10
+    const tick = r.mapper.perTick();
+    r.mapper.destroy();
+    expect(tick.filter((q) => q.t === 'aimMove')).toEqual([{ t: 'aimMove', dx: -190, sy: 510 }]);
+  });
+
   it('a zoom step while the sight is up keeps the aim point and divides later moves by the new zoom', () => {
     for (const [width, scale] of [
       [1920, 1],

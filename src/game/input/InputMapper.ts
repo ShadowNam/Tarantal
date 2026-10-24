@@ -288,7 +288,12 @@ export class InputMapper {
 
   /** v1.3: the sight's zoom if a rifle is in hand, else null. */
   private rifleZoom(): number | null {
-    return this.host.sightZoom?.() ?? null;
+    const zoom = this.host.sightZoom?.() ?? null;
+    // v1.4: a zoom step asked for moments ago may not be in the snapshot yet; the sight will come
+    // up at that step, so fine aim divides by its zoom.
+    const asked = this.zoomAsked;
+    if (zoom === null || asked === null || this.now() - asked.at >= 250) return zoom;
+    return this.host.zoomSteps?.()?.zooms[asked.step] ?? zoom;
   }
 
   private startAim(id: number, x: number, y: number, zoom: number, touch: boolean): void {

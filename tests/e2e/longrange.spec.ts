@@ -311,25 +311,46 @@ test.describe('long range (v1.3)', () => {
       const on1 = await shot(true);
       const off = await shot(false);
       const on2 = await shot(true);
+      const off2 = await shot(false);
       await page.evaluate(() => window.__TM_TOOLS__?.scopeCull(true));
-      const diff = (a: PNG, b: PNG): number => {
-        let n = 0;
-        for (let i = 0; i < a.data.length; i += 4) {
-          const d =
-            Math.abs((a.data[i] ?? 0) - (b.data[i] ?? 0)) +
-            Math.abs((a.data[i + 1] ?? 0) - (b.data[i + 1] ?? 0)) +
-            Math.abs((a.data[i + 2] ?? 0) - (b.data[i + 2] ?? 0));
-          if (d > 24) n++;
+      const w = on1.png.width;
+      const n = on1.png.data.length / 4;
+      const px = (a: PNG, b: PNG, i: number): boolean =>
+        Math.abs((a.data[i] ?? 0) - (b.data[i] ?? 0)) +
+          Math.abs((a.data[i + 1] ?? 0) - (b.data[i + 1] ?? 0)) +
+          Math.abs((a.data[i + 2] ?? 0) - (b.data[i + 2] ?? 0)) >
+        24;
+      // Screen and world effects keep animating under holdAt (rain streaks, the dust devil, the
+      // windsock), so two shots of the same setting differ a little. Anything that moved between
+      // two shots of one setting, grown by a few px, is animation; a pixel counts against the
+      // culling only outside it, where both culled shots differ from both unculled ones.
+      const moving = new Uint8Array(n);
+      let noisy = 0;
+      for (let k = 0; k < n; k++)
+        if (px(on1.png, on2.png, k * 4) || px(off.png, off2.png, k * 4)) {
+          noisy++;
+          const x = k % w;
+          const y = (k - x) / w;
+          for (let dy = -6; dy <= 6; dy++)
+            for (let dx = -6; dx <= 6; dx++) {
+              const xx = x + dx;
+              const yy = y + dy;
+              if (xx >= 0 && xx < w && yy >= 0 && yy * w + xx < n) moving[yy * w + xx] = 1;
+            }
         }
-        return n / (a.data.length / 4);
-      };
-      const noise = diff(on1.png, on2.png);
-      const culled = diff(off.png, on2.png);
+      let changed = 0;
+      for (let k = 0; k < n; k++) {
+        if (moving[k] === 1) continue;
+        const i = k * 4;
+        if (px(off.png, on1.png, i) && px(off2.png, on2.png, i)) changed++;
+      }
+      const noise = noisy / n;
+      const culled = changed / n;
       console.log(
         `[scope-cull] ${info.project.name} ${sight}: fill ${off.fill} → ${on2.fill} screens; ` +
-          `pixels differing ${(culled * 100).toFixed(3)} % (noise ${(noise * 100).toFixed(3)} %)`,
+          `pixels changed by culling ${(culled * 100).toFixed(3)} % (animating ${(noise * 100).toFixed(3)} %)`,
       );
-      expect(culled, 'culling changes the scoped picture').toBeLessThanOrEqual(noise + 0.002);
+      expect(culled, 'culling changes the scoped picture').toBeLessThanOrEqual(0.002);
       expect(on2.fill).toBeLessThan(off.fill);
       await release(page);
     });
