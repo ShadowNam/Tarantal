@@ -30,7 +30,8 @@ const version = z.literal(1);
 
 /** v1.3 (D-036): `ver` is the distant band behind the far plane (rifles only). */
 export const PlaneIdSchema = z.enum(['near', 'mid', 'far', 'ver']);
-export const ModeIdSchema = z.enum(['classic', 'daily', 'seasonHunt', 'ftue']);
+/** v1.3x (D-037): `range` is the admin-only Skietbaan (training ground), never a hunt. */
+export const ModeIdSchema = z.enum(['classic', 'daily', 'seasonHunt', 'ftue', 'range']);
 export const BagBehaviourSchema = z.enum(['forage', 'alert', 'run', 'flying']);
 
 /** World-event ids (Tech §3.6). Each gets a handler in director/events.ts. */
@@ -1018,6 +1019,44 @@ const tutorialSchema = obj({
   ),
 });
 
+/** A spot on a range plane: dx design px from the screen centre at the range's camera start,
+ *  y design px from the top. */
+const rangeSpotSchema = obj({ dx: z.number(), y: nonNeg });
+
+/** v1.3x (D-037) Skietbaan: where one plane's targets stand. */
+const rangePlaneSchema = obj({
+  /** Paper targets (fixed; centre of each circle). */
+  paper: z.array(rangeSpotSchema).min(1),
+  /** The standing bird (it stands still and respawns when bagged). */
+  stand: rangeSpotSchema,
+  /** The small flock's home x (dx from the screen centre); it forages on the plane's lane. */
+  flockDx: z.number(),
+  /** Fly-over height (one bird across the view, back and forth). */
+  flyY: nonNeg,
+  /** The range's half-width (plane px either side of the screen centre): a fly-over enters and
+   *  leaves there, and any bird beyond it has left the range (a flushed flock flying off). */
+  flyHalfPx: pos,
+  /** A flock lane for a plane the biomes give none (near: pop-ups only). */
+  lane: obj({ groundY: range(nonNeg), skyY: range(nonNeg) }).optional(),
+});
+
+/** v1.3x (D-037) the Skietbaan: no timer, score, Frenzy or penalties; unranked; endless. */
+const rangeSchema = modeSetupSchema.omit({ huntSeconds: true }).extend({
+  /** The range never has weather (wind would move every group). */
+  omen: z.literal(false),
+  /** The creature of the bird targets (and whose body width the group is compared with). */
+  creature: id,
+  /** Camera start along the pan (0..1); the spots are placed from it. */
+  cameraU: fraction,
+  /** A bird target that was bagged or left comes back after this long. */
+  respawnMs: posInt,
+  /** Paper target radius at plane scale 1 (scaled by each plane's scale). */
+  paperRadiusPx: pos,
+  /** Birds in the small flock (at least the 3 a flock needs). */
+  flockSize: z.number().int().min(3),
+  spots: allPlanes(rangePlaneSchema),
+});
+
 export const ModesSchema = obj({
   version,
   /** Classic, Daily and FTUE setup. Season Run hunts take their length from run.json. */
@@ -1025,8 +1064,10 @@ export const ModesSchema = obj({
     classic: modeSetupSchema,
     daily: modeSetupSchema,
     ftue: modeSetupSchema.extend({ tutorial: tutorialSchema }),
+    range: rangeSchema,
   }),
 });
+export type RangeSetup = z.infer<typeof rangeSchema>;
 export type Modes = z.infer<typeof ModesSchema>;
 
 // ---------------------------------------------------------------------------------------------

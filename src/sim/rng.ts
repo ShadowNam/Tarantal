@@ -48,7 +48,9 @@ export type StreamName =
   // M8: the Kalahari storm's lightning and the Stormvoël's own flashes outside its boss hunt.
   | 'storm'
   // v1.3: a raised sight's sway (phase and pace, drawn at each raise).
-  | 'sway';
+  | 'sway'
+  // v1.3x (D-037): the Skietbaan's spawn program (fly-over bob, flock placement).
+  | 'range';
 
 /** A stream's members are closures, so they are safe to pass around detached. */
 export interface RandomStream {

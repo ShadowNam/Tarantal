@@ -1,12 +1,26 @@
 // Public sim types (Tech §3.1). The Phaser layer, tools and replays depend on these shapes.
 import type { ContentBundle } from '../content/schemas';
+import type { RangeProgramFactory } from './range/types';
 
 /** v1.3 (D-036): `ver` is the distant band behind the far plane; only rifles reach it. */
 export type PlaneId = 'near' | 'mid' | 'far' | 'ver';
 /** Front-to-back order used by shot resolution. */
 export const PLANES: readonly PlaneId[] = ['near', 'mid', 'far', 'ver'];
 
-export type ModeId = 'classic' | 'daily' | 'seasonHunt' | 'ftue';
+/** v1.3x (D-037): `range` is the admin-only Skietbaan (training ground): endless, unscored. */
+export type ModeId = 'classic' | 'daily' | 'seasonHunt' | 'ftue' | 'range';
+
+/** Skietbaan targets: paper targets, a standing bird, a fly-over, a small flock. */
+export type RangeTarget = 'paper' | 'stand' | 'flyover' | 'flock';
+
+/** v1.3x (D-037): what the Skietbaan puts up (mode 'range' only). */
+export interface RangeConfig {
+  /** The distance (plane) the targets stand at. */
+  readonly plane: PlaneId;
+  readonly target: RangeTarget;
+  /** A crate weapon to shoot instead of the primary (re-armed whenever it is spent). */
+  readonly crate?: string;
+}
 export type InputKind = 'pointer' | 'touch';
 
 /** Behaviour of a bird at the moment it is bagged (scoring.json behaviourAdd). */
@@ -33,6 +47,8 @@ export interface ModeConfig {
   readonly bonus?: string;
   /** v1.3: the sight fitted to a rifle (weapons.json sights; absent = the gun's default). */
   readonly sight?: string;
+  /** v1.3x (D-037), mode 'range' only: the Skietbaan's targets. */
+  readonly range?: RangeConfig;
 }
 
 /** GDD §13.1: hunt 1 plain, hunt 2 Omen (weather on), hunt 3 Boss Hunt (boss + Boss Rule). */
@@ -66,6 +82,9 @@ export interface SimConfig {
   readonly inputKind: InputKind;
   /** Touch aim-assist level (default 'standard'); recorded in the replay. Mouse is always 0. */
   readonly aimAssist?: AimAssistLevel;
+  /** v1.3x (D-037), mode 'range' only: the Skietbaan's spawn program (src/sim/range). Passed in
+   *  rather than imported, so its code loads with the admin page's lazy chunk. */
+  readonly rangeProgram?: RangeProgramFactory;
 }
 
 export type Command =
@@ -308,6 +327,21 @@ export interface SimState {
   /** Season Run hunts only. */
   readonly season: SeasonView | null;
   readonly over: boolean;
+  /** v1.3x (D-037): the Skietbaan's paper targets (mode 'range' only). */
+  readonly range?: RangeView;
+}
+
+/** A paper target: a circle on its plane (plane px; r already scaled by the plane). */
+export interface PaperView {
+  readonly id: number;
+  readonly plane: PlaneId;
+  readonly x: number;
+  readonly y: number;
+  readonly r: number;
+}
+
+export interface RangeView {
+  readonly papers: readonly PaperView[];
 }
 
 export interface ProjectileView {

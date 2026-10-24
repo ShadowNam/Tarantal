@@ -474,3 +474,56 @@ describe('content cross-references (v1.3, D-036)', () => {
     expect(msgs.join('\n')).toMatch(/bonus map "dieVerste" needs a scope but no rifle/);
   });
 });
+
+describe('the Skietbaan range (modes.json range, D-037)', () => {
+  /** modes.json's range entry in a fresh copy, to corrupt. */
+  function rangeOf(c: ReturnType<typeof clone>): Json {
+    return asObj(asObj(asObj(c.files['modes.json']).modes).range);
+  }
+  const spot = (r: Json, plane: string): Json => asObj(asObj(r.spots)[plane]);
+  const errorsOf = (c: ReturnType<typeof clone>): string[] =>
+    checkCrossRefs(parseOk(c), { i18nKeys }).errors.map((e) => e.message);
+
+  it('has a spot set for every plane and passes the cross-references', () => {
+    const range = parseOk(raw).modes.modes.range;
+    expect(Object.keys(range.spots).sort()).toEqual(['far', 'mid', 'near', 'ver']);
+    expect(checkCrossRefs(parseOk(raw), { i18nKeys }).errors).toEqual([]);
+  });
+
+  it('rejects a range with weather, a missing plane, a timer, or a flock too small', () => {
+    for (const [corrupt, path] of [
+      [(r: Json) => (r.omen = true), 'omen'],
+      [(r: Json) => delete asObj(r.spots).ver, 'ver'],
+      [(r: Json) => (r.huntSeconds = 90), 'huntSeconds'],
+      [(r: Json) => (r.flockSize = 2), 'flockSize'],
+      [(r: Json) => (spot(r, 'mid').paper = []), 'paper'],
+    ] as const) {
+      const c = clone();
+      corrupt(rangeOf(c));
+      const result = parseContent(c);
+      expect(result.ok, path).toBe(false);
+    }
+  });
+
+  it('catches a crate gun as its weapon, a creature that cannot fly, and off-screen spots', () => {
+    const c = clone();
+    const r = rangeOf(c);
+    r.weapon = 'voorlaaier';
+    r.creature = 'nobody';
+    spot(r, 'near').paper = [{ dx: 0, y: 1000 }];
+    spot(r, 'far').flyY = 1200;
+    const msgs = errorsOf(c);
+    expect(msgs.some((m) => m.includes('"range" weapon "voorlaaier" is not a primary'))).toBe(true);
+    expect(msgs.some((m) => m.includes('range creature "nobody"'))).toBe(true);
+    expect(msgs.some((m) => m.includes('near paper target at y 1000'))).toBe(true);
+    expect(msgs.some((m) => m.includes('far flyY y 1200'))).toBe(true);
+  });
+
+  it('needs its own flock lane on a plane the biomes give none (near)', () => {
+    const c = clone();
+    delete spot(rangeOf(c), 'near').lane;
+    expect(errorsOf(c).some((m) => m.includes('range near') && m.includes('no flock lane'))).toBe(
+      true,
+    );
+  });
+});

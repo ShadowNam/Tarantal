@@ -27,4 +27,15 @@ describe('content hash', () => {
     expect(contentHash(tweaked)).not.toBe(contentHash(bundle));
     expect(contentHash(structuredClone(bundle))).toBe(contentHash(bundle));
   });
+
+  it('leaves the admin-only Skietbaan out (D-037): tuning it re-seeds no Daily', () => {
+    const bundle = loadContent();
+    const tweaked = structuredClone(bundle);
+    tweaked.modes.modes.range.respawnMs += 500;
+    tweaked.modes.modes.range.spots.mid.flyY += 10;
+    expect(contentHash(tweaked)).toBe(contentHash(bundle));
+    // The rest of modes.json still counts.
+    tweaked.modes.modes.classic.huntSeconds += 1;
+    expect(contentHash(tweaked)).not.toBe(contentHash(bundle));
+  });
 });

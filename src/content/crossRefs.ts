@@ -1,7 +1,7 @@
 // Cross-file reference checks for a parsed ContentBundle (Tech §4, .claude/rules/content.md).
 // Pure: returns errors and warnings. Warnings cover content that arrives in later milestones
 // (docs/04-BUILD-PLAN.md M0); `strict` turns them into errors (CI uses --strict from M8 on).
-import { coreWidth } from '../sim/world';
+import { coreWidth, DESIGN_HEIGHT } from '../sim/world';
 import { WORLD_EVENT_HANDLERS } from '../sim/director/events';
 import { CHARM_SCRIPTS } from '../sim/charms/registry';
 import type { Biome, Charm, ContentBundle, Creature, DailyMeta, Notaboek } from './schemas';
@@ -366,6 +366,45 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
     }
     if (!loadedBiomes.has(setup.biome)) {
       err('modes.json', `mode "${modeId}" biome "${setup.biome}" has no biome file`);
+    }
+  }
+
+  // --- modes.json range (v1.3x Skietbaan, D-037) ---------------------------------------------
+  const rangeSetup = modes.modes.range;
+  {
+    const file = 'modes.json';
+    const weapon = weapons.weapons.find((w) => w.id === rangeSetup.weapon);
+    if (weapon?.kind !== 'primary')
+      err(file, `mode "range" weapon "${rangeSetup.weapon}" is not a primary weapon`);
+    if (!loadedBiomes.has(rangeSetup.biome))
+      err(file, `mode "range" biome "${rangeSetup.biome}" has no biome file`);
+    const c = creatures.get(rangeSetup.creature);
+    if (c?.kind !== 'target' || !(c.speeds.fly > 0))
+      err(file, `range creature "${rangeSetup.creature}" must be a target bird that flies`);
+    for (const plane of ['near', 'mid', 'far', 'ver'] as const) {
+      const spot = rangeSetup.spots[plane];
+      const r = rangeSetup.paperRadiusPx * scoring.planes[plane].scale;
+      for (const p of spot.paper) {
+        if (p.y - r < 0 || p.y + r > DESIGN_HEIGHT)
+          err(file, `range ${plane} paper target at y ${p.y} (radius ${r}) leaves the screen`);
+      }
+      for (const [what, y] of [
+        ['stand', spot.stand.y],
+        ['flyY', spot.flyY],
+      ] as const) {
+        if (y > DESIGN_HEIGHT) err(file, `range ${plane} ${what} y ${y} is below the screen`);
+      }
+      if (c !== undefined && c.kind === 'target' && !c.planes.includes(plane))
+        err(file, `range creature "${c.id}" never appears on the ${plane} plane`);
+      for (const biome of biomes) {
+        if (!biome.layers.some((l) => l.plane === plane))
+          err(file, `range ${plane}: biomes/${biome.id}.json has no ${plane} layer`);
+        const lane = biome.lanes[plane];
+        if (spot.lane === undefined && (lane?.groundY === undefined || lane.skyY === undefined))
+          err(file, `range ${plane}: biomes/${biome.id}.json has no flock lane; give spots.${plane}.lane`);
+        if (rangeSetup.flockSize > biome.pacing.maxBirdsOnScreen)
+          err(file, `range flockSize ${rangeSetup.flockSize} > biomes/${biome.id}.json maxBirdsOnScreen`);
+      }
     }
   }
 
