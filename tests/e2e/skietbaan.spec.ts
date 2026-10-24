@@ -4,7 +4,7 @@
 // afterwards. Without ?admin=1 there is no Skietbaan button and its chunk never loads. Screenshots
 // of the setup page and the range go to docs/art-preview/compare/skietbaan-*.png.
 import { expect, test, type Page } from '@playwright/test';
-import { collectErrors, hook, isLandscape, isTouchProject, tapAt } from './helpers';
+import { collectErrors, hook, isLandscape, isTouchProject, tapAt, tapRect } from './helpers';
 
 const PLATFORM = process.env['E2E_PLATFORM'] || 'web';
 const SHOTS_DIR = 'docs/art-preview/compare';
@@ -64,6 +64,35 @@ async function letGo(page: Page): Promise<void> {
     if (!canvas || init === undefined) return;
     canvas.dispatchEvent(new PointerEvent('pointerup', { ...init, buttons: 0 }));
   });
+}
+
+/**
+ * Taps the first range bird on screen from inside the page (pointerdown + pointerup at once): the
+ * sim applies the shot before its birds move on the next tick, so no lead is needed even at a few
+ * frames a second. False when no bird is in view yet.
+ */
+async function tapBird(page: Page, touch: boolean): Promise<boolean> {
+  return page.evaluate((t) => {
+    const canvas = document.querySelector('#game canvas');
+    const h = window.__TM__;
+    if (!(canvas instanceof HTMLCanvasElement) || !h) throw new Error('no game');
+    const b = h.range?.birds.find((v) => v.x > 120 && v.x < h.designWidth - 120);
+    if (b === undefined) return false;
+    const r = canvas.getBoundingClientRect();
+    const init = {
+      pointerId: t ? 22 : 1,
+      pointerType: t ? 'touch' : 'mouse',
+      button: 0,
+      buttons: 1,
+      clientX: r.left + (b.x / h.designWidth) * r.width,
+      clientY: r.top + (b.y / h.designHeight) * r.height,
+      bubbles: true,
+      cancelable: true,
+    };
+    canvas.dispatchEvent(new PointerEvent('pointerdown', init));
+    canvas.dispatchEvent(new PointerEvent('pointerup', { ...init, buttons: 0 }));
+    return true;
+  }, touch);
 }
 
 async function paper(page: Page): Promise<{ x: number; y: number; r: number }> {
@@ -203,12 +232,68 @@ test.describe('Skietbaan (training ground)', () => {
     expect(h.range?.drawnImpacts).toBe(Math.min(20, h.range?.stats?.impacts ?? 0));
     await page.screenshot({ path: `${SHOTS_DIR}/skietbaan-range-near-${name}.png` });
 
-    // Setup again: both rows in the session's stats; then back to the admin list.
+    // A bird target: the Dubbelloop at middle distance on the fly-over, fired at until one is
+    // bagged (a bounded number of shots, reloading on the belt when it is empty).
     await press(page, touch, '#tm-range-bar [data-action=setup]');
     await page.waitForFunction(() => window.__TM__?.range?.view === 'setup', null, {
       timeout: 60_000,
     });
-    await expect(page.locator('#tm-range [data-role=stats] [data-cell]')).toHaveCount(2);
+    await press(page, touch, '#tm-range [data-role=plane] [data-value=mid]');
+    // The setup page keeps its scroll position when a choice is tapped (Target is below the fold
+    // on a phone): bring it into view, then tap it without any further scrolling.
+    const scroller = page.locator('#tm-range [data-role=scroll]');
+    const flyover = page.locator('#tm-range [data-role=target] [data-value=flyover]');
+    await flyover.scrollIntoViewIfNeeded();
+    const scrolled = await scroller.evaluate((e) => e.scrollTop);
+    if (touch) await flyover.tap();
+    else await flyover.click();
+    await expect(page.locator('#tm-range [data-role=target] [data-value=flyover]')).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(Math.abs((await scroller.evaluate((e) => e.scrollTop)) - scrolled)).toBeLessThanOrEqual(
+      1,
+    );
+    await expect(page.locator('#tm-range [data-action=start]')).toBeInViewport();
+    await press(page, touch, '#tm-range [data-action=start]');
+    await page.waitForFunction(
+      () => window.__TM__?.range?.view === 'range' && window.__TM__.range.target === 'flyover',
+      null,
+      { timeout: 90_000 },
+    );
+    let birdShots = 0;
+    for (let i = 0; i < 40 && ((await hook(page)).range?.stats?.hits ?? 0) < 1; i++) {
+      const now = await hook(page);
+      if (now.shells === 0 && !now.reloading) await tapRect(page, touch, 'belt');
+      await ready(page);
+      await page.waitForFunction(
+        () =>
+          (window.__TM__?.range?.birds ?? []).some(
+            (b) => b.x > 120 && b.x < (window.__TM__?.designWidth ?? 0) - 120,
+          ),
+        null,
+        { timeout: 60_000 },
+      );
+      const shots = (await hook(page)).shots;
+      if (!(await tapBird(page, touch))) continue;
+      await page.waitForFunction((n) => (window.__TM__?.shots ?? 0) > n, shots, {
+        timeout: 60_000,
+      });
+      birdShots++;
+    }
+    h = await hook(page);
+    expect(h.range?.stats?.hits ?? 0).toBeGreaterThanOrEqual(1);
+    expect(h.range?.stats?.shots).toBe(birdShots);
+    expect(h.range?.drawnImpacts).toBe(0);
+    expect(h.score).toBe(0);
+    await page.screenshot({ path: `${SHOTS_DIR}/skietbaan-range-flyover-${name}.png` });
+
+    // Setup again: every row in the session's stats; then back to the admin list.
+    await press(page, touch, '#tm-range-bar [data-action=setup]');
+    await page.waitForFunction(() => window.__TM__?.range?.view === 'setup', null, {
+      timeout: 60_000,
+    });
+    await expect(page.locator('#tm-range [data-role=stats] [data-cell]')).toHaveCount(3);
     await page.screenshot({ path: `${SHOTS_DIR}/skietbaan-setup-stats-${name}.png` });
     await press(page, touch, '#tm-range [data-action=back]');
     await page.waitForFunction(() => window.__TM__?.admin?.view === 'list', null, {
