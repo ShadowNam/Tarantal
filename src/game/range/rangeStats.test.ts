@@ -18,28 +18,34 @@ import {
 } from './rangeStats';
 
 const SEL: RangeSelection = { gun: 'dubbelloop', plane: 'mid', target: 'paper', pellets: 8 };
+const MID = { gun: 'dubbelloop', plane: 'mid', target: 'paper', pellets: 8 } as const;
 const shot = (shotId: number, tick = shotId): SimEvent[] => [
   { type: 'shotFired', tick, shotId, weapon: 'dubbelloop', dx: 0, sy: 500, shellsLeft: 1 },
-  { type: 'rangeShot', tick, shotId, plane: 'mid', x: 100, y: 500 },
+  { type: 'rangeShot', tick, shotId, plane: 'mid', target: 'paper', x: 100, y: 500 },
 ];
-const paper = (shotId: number, x: number, y: number): SimEvent => ({
+const paper = (shotId: number, x: number, y: number, paperId = 1): SimEvent => ({
   type: 'paperHit',
   tick: shotId,
   shotId,
-  paperId: 1,
+  paperId,
   x,
   y,
+  aimX: 100,
+  aimY: 500,
 });
-const pellet = (shotId: number, birdId: number | null): SimEvent => ({
-  type: 'pelletImpact',
+type Hit = Extract<SimEvent, { type: 'rangeOutcome' }>['hits'][number];
+const outcome = (shotId: number, hits: readonly Hit[] = [], short = false): SimEvent => ({
+  type: 'rangeOutcome',
   tick: shotId,
   shotId,
-  dx: 0,
-  sy: 0,
-  birdId,
-  propId: null,
-  partId: null,
-  crateId: null,
+  hits,
+  short,
+});
+const onPaper = (pellets: number, id = 1, plane: Hit['plane'] = 'mid'): Hit => ({
+  plane,
+  target: 'paper',
+  id,
+  pellets,
 });
 
 describe('group maths', () => {
@@ -91,13 +97,14 @@ describe('group maths', () => {
 describe('hit stats', () => {
   it('counts shots, hits (a shot with a pellet on target), misses and pellets per shot', () => {
     const s = new RangeStats();
-    s.ingest([...shot(1), paper(1, 100, 500), paper(1, 104, 497), pellet(1, null)], SEL);
-    s.ingest([...shot(2), pellet(2, null)], SEL);
-    s.ingest([...shot(3), paper(3, 90, 510)], SEL);
-    const c = s.cell(SEL);
+    s.ingest([...shot(1), paper(1, 100, 500), paper(1, 104, 497), outcome(1, [onPaper(2)])], SEL);
+    s.ingest([...shot(2), outcome(2)], SEL);
+    s.ingest([...shot(3), paper(3, 90, 510), outcome(3, [onPaper(1)])], SEL);
+    const c = s.cell(MID);
     expect(c.shots).toBe(3);
     expect(c.hits).toBe(2);
     expect(misses(c)).toBe(1);
+    expect(c.short).toBe(0);
     expect(hitRate(c)).toBeCloseTo(2 / 3, 12);
     expect(c.pelletsOn).toBe(3);
     expect(pelletsPerShot(c)).toBe(1);
@@ -108,29 +115,65 @@ describe('hit stats', () => {
     ]);
   });
 
-  it('bird targets: every pellet on a bird counts, the shot is a hit once', () => {
+  it('bird targets: the shot is a hit once, its pellets on the bird count', () => {
     const s = new RangeStats();
-    const sel: RangeSelection = { ...SEL, target: 'flock' };
-    s.ingest([...shot(1), pellet(1, 4), pellet(1, 4), pellet(1, 5), pellet(1, null)], sel);
-    s.ingest([...shot(2), pellet(2, null)], sel);
-    const c = s.cell(sel);
-    expect([c.shots, c.hits, c.pelletsOn]).toEqual([2, 1, 3]);
+    const bird = (id: number, pellets: number): Hit => ({
+      plane: 'mid',
+      target: 'flock',
+      id,
+      pellets,
+    });
+    s.ingest([...shot(1), outcome(1, [bird(4, 2), bird(5, 1)])], SEL);
+    s.ingest([...shot(2), outcome(2)], SEL);
+    const c = s.cell({ ...MID, target: 'flock' });
+    // Shot 1 counts for the bird with the most pellets (2); shot 2's miss for the paper.
+    expect([c.shots, c.hits, c.pelletsOn]).toEqual([1, 1, 2]);
     expect(c.impacts).toEqual([]);
+    expect(s.cell(MID).shots).toBe(1);
   });
 
   it('a stone that lands frames later still counts for its own shot', () => {
     const s = new RangeStats();
     s.ingest(shot(1), SEL);
     s.ingest(shot(2), SEL);
-    s.ingest([paper(1, 101, 500)], SEL);
-    expect(s.cell(SEL).hits).toBe(1);
+    expect(s.cell(MID).shots).toBe(0);
+    s.ingest([paper(1, 101, 500), outcome(1, [onPaper(1)])], SEL);
+    expect(s.cell(MID).hits).toBe(1);
+    expect(s.last?.shotId).toBe(1);
+  });
+
+  it('a miss that fell short of Ver counts as short for the target it was counted for', () => {
+    const s = new RangeStats();
+    const sel: RangeSelection = { gun: 'kettie', plane: 'ver', target: 'paper', pellets: 1 };
+    s.ingest(
+      [
+        { type: 'shotFired', tick: 1, shotId: 1, weapon: 'kettie', dx: 0, sy: 500, shellsLeft: 1 },
+        { type: 'rangeShot', tick: 1, shotId: 1, plane: 'ver', target: 'paper', x: 0, y: 0 },
+        outcome(1, [], true),
+      ],
+      sel,
+    );
+    const c = s.cell({ ...sel, plane: 'ver', target: 'paper' });
+    expect([c.shots, c.hits, misses(c), c.short]).toEqual([1, 0, 1, 1]);
+    expect(s.last).toMatchObject({ hit: false, short: true });
+  });
+
+  it('the mixed course: a hit counts for the target hit, a miss for the target aimed at', () => {
+    const s = new RangeStats();
+    const sel: RangeSelection = { ...SEL, plane: 'all', target: 'mixed' };
+    s.ingest([...shot(1), paper(1, 50, 50, 3), outcome(1, [onPaper(1, 3, 'far')])], sel);
+    s.ingest([...shot(2), outcome(2)], sel);
+    expect(
+      s.list().map((c) => `${c.plane} ${c.target} ${String(c.shots)}/${String(c.hits)}`),
+    ).toEqual(['far paper 1/1', 'mid paper 1/0']);
+    expect(s.cell({ ...MID, plane: 'far' }).impacts).toHaveLength(1);
   });
 
   it('keeps the newest GROUP_IMPACTS impacts', () => {
     const s = new RangeStats();
     for (let i = 1; i <= GROUP_IMPACTS + 5; i++)
-      s.ingest([...shot(i), paper(i, 100 + i, 500)], SEL);
-    const imp = s.cell(SEL).impacts;
+      s.ingest([...shot(i), paper(i, 100 + i, 500), outcome(i, [onPaper(1)])], SEL);
+    const imp = s.cell(MID).impacts;
     expect(imp).toHaveLength(GROUP_IMPACTS);
     expect(imp[0]?.x).toBe(106);
     expect(imp.at(-1)?.x).toBe(100 + GROUP_IMPACTS + 5);
@@ -138,9 +181,16 @@ describe('hit stats', () => {
 
   it('cells are per gun, distance and target; reset clears them all', () => {
     const s = new RangeStats();
-    s.ingest(shot(1), SEL);
+    s.ingest([...shot(1), outcome(1)], SEL);
     s.newSession();
-    s.ingest(shot(1), { ...SEL, gun: 'twee_twee:scope_small', plane: 'ver', pellets: 1 });
+    s.ingest(
+      [
+        { type: 'shotFired', tick: 1, shotId: 1, weapon: 'twee_twee', dx: 0, sy: 0, shellsLeft: 1 },
+        { type: 'rangeShot', tick: 1, shotId: 1, plane: 'ver', target: 'paper', x: 0, y: 0 },
+        outcome(1),
+      ],
+      { ...SEL, gun: 'twee_twee:scope_small', plane: 'ver', pellets: 1 },
+    );
     expect(s.list().map((c) => `${c.gun} ${c.plane}`)).toEqual([
       'dubbelloop mid',
       'twee_twee:scope_small ver',
@@ -180,7 +230,7 @@ describe('through the real sim', () => {
       fired += ev.filter((e) => e.type === 'shotFired').length;
       s.ingest(ev, SEL);
     }
-    const c = s.cell(SEL);
+    const c = s.cell(MID);
     expect(c.shots).toBe(fired);
     expect(c.pelletsOn).toBe(paperHits);
     expect(c.hits).toBeGreaterThan(0);

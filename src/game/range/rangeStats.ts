@@ -9,7 +9,7 @@ export const GROUP_IMPACTS = 20;
 /** Shots tracked until their pellets land (far more than can be in the air at once). */
 const OPEN_SHOTS = 64;
 
-/** One pellet on the paper, and the aim point of the shot it came from (plane px). */
+/** One pellet on a paper target or plate, and its shot's aim point on that plane (plane px). */
 export interface Impact {
   readonly x: number;
   readonly y: number;
@@ -27,6 +27,8 @@ export interface RangeCell {
   shots: number;
   /** Shots that put at least one pellet on the target (a paper target, or a bird it hit). */
   hits: number;
+  /** Misses that fell short of Ver (a gun that can't reach it; 24 Oct update). */
+  short: number;
   /** Pellets that landed on the target, over every shot. */
   pelletsOn: number;
   /** The newest paper impacts, oldest first (at most GROUP_IMPACTS). */
@@ -93,31 +95,53 @@ export function pctOfBody(px: number, bodyWidthPx: number): number {
   return bodyWidthPx > 0 ? (px / bodyWidthPx) * 100 : 0;
 }
 
-/** What the range is shooting now (stats go to this cell). */
+/** What the range is shooting now: the gun; the plane and kind ('all'/'mixed' on the mixed
+ *  course, where each shot goes to the cell of the target it hit or was counted for). */
 export interface RangeSelection {
   readonly gun: string;
-  readonly plane: PlaneId;
-  readonly target: RangeTarget;
+  readonly plane: PlaneId | 'all';
+  readonly target: RangeTarget | 'mixed';
   readonly pellets: number;
 }
 
+/** How the last landed shot went (the overlay's markers and the bar read it). */
+export interface ShotResult {
+  readonly shotId: number;
+  readonly cell: RangeCell;
+  readonly hit: boolean;
+  readonly short: boolean;
+}
+
+interface OpenShot {
+  readonly gun: string;
+  readonly pellets: number;
+  plane: PlaneId | null;
+  target: RangeTarget | null;
+  /** Paper and plate impacts of this shot, until it lands. */
+  impacts: (Impact & { paperId: number })[];
+}
+
 /**
- * Every cell of the page's session. `ingest` reads a frame's events: shots are counted at
- * shotFired, their aim point at rangeShot, and a shot is a hit at its first pellet on the
- * target (a Kettie stone lands ticks later, so shots are tracked by id until then).
+ * Every cell of the page's session. `ingest` reads a frame's events (24 Oct update): a shot is
+ * opened at shotFired, takes the target a miss counts for at rangeShot, collects its paper and
+ * plate impacts, and is counted at rangeOutcome — for the target it put the most pellets on
+ * (first on a tie), else for the rangeShot target ("short" when it fell short of Ver). A Kettie
+ * stone lands ticks later, so shots are tracked by id until then.
  */
 export class RangeStats {
   private readonly cells = new Map<string, RangeCell>();
-  /** Shots of this session still able to land: id → its cell, aim point, and whether it hit. */
-  private readonly open = new Map<
-    number,
-    { cell: RangeCell; aimX: number; aimY: number; hit: boolean }
-  >();
+  private readonly open = new Map<number, OpenShot>();
   /** Bumped by reset(): a sim started before it reports into nothing. */
   private epoch = 0;
+  private lastResult: ShotResult | null = null;
 
   get generation(): number {
     return this.epoch;
+  }
+
+  /** The newest landed shot of this session (null: none since the session or a reset). */
+  get last(): ShotResult | null {
+    return this.lastResult;
   }
 
   /** All cells with at least one shot, in first-shot order. */
@@ -125,34 +149,57 @@ export class RangeStats {
     return [...this.cells.values()].filter((c) => c.shots > 0);
   }
 
-  cell(sel: RangeSelection): RangeCell {
+  cell(sel: {
+    readonly gun: string;
+    readonly plane: PlaneId;
+    readonly target: RangeTarget;
+    readonly pellets: number;
+  }): RangeCell {
     const key = cellKey(sel.gun, sel.plane, sel.target);
     let c = this.cells.get(key);
     if (c === undefined) {
-      c = { ...sel, shots: 0, hits: 0, pelletsOn: 0, impacts: [] };
+      c = {
+        gun: sel.gun,
+        plane: sel.plane,
+        target: sel.target,
+        pellets: sel.pellets,
+        shots: 0,
+        hits: 0,
+        short: 0,
+        pelletsOn: 0,
+        impacts: [],
+      };
       this.cells.set(key, c);
     }
     return c;
   }
 
-  /** A new range session (another setup): shot ids start again at 1. */
+  /** A new range session (another setup or a shuffle): shot ids start again at 1. */
   newSession(): void {
     this.open.clear();
+    this.lastResult = null;
   }
 
   reset(): void {
     this.cells.clear();
     this.open.clear();
+    this.lastResult = null;
     this.epoch++;
   }
 
-  ingest(events: readonly SimEvent[], sel: RangeSelection): void {
+  /** Reads a frame's events; returns the shots that landed in it, in order. */
+  ingest(events: readonly SimEvent[], sel: RangeSelection): ShotResult[] {
+    const landed: ShotResult[] = [];
     for (const e of events) {
       switch (e.type) {
         case 'shotFired': {
-          const cell = this.cell(sel);
-          cell.shots++;
-          this.open.set(e.shotId, { cell, aimX: NaN, aimY: NaN, hit: false });
+          this.open.set(e.shotId, {
+            gun: sel.gun,
+            pellets: sel.pellets,
+            plane: null,
+            target: null,
+            impacts: [],
+          });
           // Only the last few shots can still land (a Kettie stone is in the air < 1 s).
           if (this.open.size > OPEN_SHOTS) {
             const oldest = this.open.keys().next();
@@ -163,36 +210,50 @@ export class RangeStats {
         case 'rangeShot': {
           const s = this.open.get(e.shotId);
           if (s !== undefined) {
-            s.aimX = e.x;
-            s.aimY = e.y;
+            s.plane = e.plane;
+            s.target = e.target;
           }
           break;
         }
-        case 'paperHit': {
+        case 'paperHit':
+        case 'plateHit': {
           const s = this.open.get(e.shotId);
-          if (s === undefined) break;
-          this.land(s);
-          s.cell.impacts.push({ x: e.x, y: e.y, aimX: s.aimX, aimY: s.aimY });
-          if (s.cell.impacts.length > GROUP_IMPACTS) s.cell.impacts.shift();
+          if (s !== undefined)
+            s.impacts.push({ x: e.x, y: e.y, aimX: e.aimX, aimY: e.aimY, paperId: e.paperId });
           break;
         }
-        case 'pelletImpact': {
-          // Bird targets: every pellet that stopped on a bird (all the range's birds are targets).
+        case 'rangeOutcome': {
           const s = this.open.get(e.shotId);
-          if (s !== undefined && e.birdId !== null) this.land(s);
+          if (s === undefined) break;
+          this.open.delete(e.shotId);
+          let top: (typeof e.hits)[number] | null = null;
+          for (const h of e.hits) if (top === null || h.pellets > top.pellets) top = h;
+          const plane = top?.plane ?? s.plane;
+          const target = top?.target ?? s.target;
+          if (plane === null || target === null) break;
+          const cell = this.cell({ gun: s.gun, plane, target, pellets: s.pellets });
+          cell.shots++;
+          if (top !== null) {
+            cell.hits++;
+            cell.pelletsOn += top.pellets;
+            if (top.target === 'paper' || top.target === 'plate') {
+              const id = top.id;
+              for (const i of s.impacts)
+                if (i.paperId === id)
+                  cell.impacts.push({ x: i.x, y: i.y, aimX: i.aimX, aimY: i.aimY });
+              if (cell.impacts.length > GROUP_IMPACTS)
+                cell.impacts.splice(0, cell.impacts.length - GROUP_IMPACTS);
+            }
+          } else if (e.short) cell.short++;
+          const r: ShotResult = { shotId: e.shotId, cell, hit: top !== null, short: e.short };
+          this.lastResult = r;
+          landed.push(r);
           break;
         }
         default:
           break;
       }
     }
-  }
-
-  private land(s: { cell: RangeCell; hit: boolean }): void {
-    s.cell.pelletsOn++;
-    if (!s.hit) {
-      s.hit = true;
-      s.cell.hits++;
-    }
+    return landed;
   }
 }

@@ -15,6 +15,9 @@ import { createSim } from '../../sim/Sim';
 import {
   bodyWidthPx,
   defaultChoice,
+  pickPlane,
+  pickTarget,
+  shuffleSeed,
   rangeGuns,
   rangeMode,
   reaches,
@@ -104,8 +107,15 @@ describe('range report', () => {
           sy: 0,
           shellsLeft: 7,
         },
-        { type: 'rangeShot', tick: 1, shotId: 1, plane: 'near', x: 0, y: 0 },
-        { type: 'paperHit', tick: 1, shotId: 1, paperId: 1, x: 3, y: 4 },
+        { type: 'rangeShot', tick: 1, shotId: 1, plane: 'near', target: 'paper', x: 0, y: 0 },
+        { type: 'paperHit', tick: 1, shotId: 1, paperId: 1, x: 3, y: 4, aimX: 0, aimY: 0 },
+        {
+          type: 'rangeOutcome',
+          tick: 1,
+          shotId: 1,
+          hits: [{ plane: 'near', target: 'paper', id: 1, pellets: 1 }],
+          short: false,
+        },
       ],
       sel,
     );
@@ -159,7 +169,7 @@ describe('range strings', () => {
     setLanguage('af');
     expect(rt('range.target_paper')).toBe('Papierteiken');
     setLanguage('de');
-    expect(rt('range.out_of_reach')).toBe('außer Reichweite');
+    expect(rt('range.col_short')).toBe('Zu kurz');
     setLanguage('en');
     expect(rt('range.title')).toBe('Skietbaan');
   });
@@ -185,8 +195,15 @@ describe('session table texts', () => {
             sy: 0,
             shellsLeft: 5,
           },
-          { type: 'rangeShot', tick: id, shotId: id, plane: 'mid', x: 0, y: 0 },
-          { type: 'paperHit', tick: id, shotId: id, paperId: 1, x, y },
+          { type: 'rangeShot', tick: id, shotId: id, plane: 'mid', target: 'paper', x: 0, y: 0 },
+          { type: 'paperHit', tick: id, shotId: id, paperId: 1, x, y, aimX: 0, aimY: 0 },
+          {
+            type: 'rangeOutcome',
+            tick: id,
+            shotId: id,
+            hits: [{ plane: 'mid', target: 'paper', id: 1, pellets: 1 }],
+            short: false,
+          },
         ],
         sel,
       );
@@ -215,5 +232,73 @@ describe('session table texts', () => {
       (k) => !src.includes(`'${k}'`) && !prefixes.some((p) => p !== '' && k.startsWith(p)),
     );
     expect(unused).toEqual([]);
+  });
+});
+
+describe('24 Oct update: the mixed course choice', () => {
+  it('All picks Mixed and Mixed picks All; leaving one leaves the other', () => {
+    const c = defaultChoice(content);
+    expect(pickPlane(c, 'all')).toMatchObject({ plane: 'all', target: 'mixed' });
+    expect(pickTarget(c, 'mixed')).toMatchObject({ plane: 'all', target: 'mixed' });
+    const mixed = pickTarget(c, 'mixed');
+    expect(pickPlane(mixed, 'far')).toMatchObject({ plane: 'far', target: 'paper' });
+    expect(pickTarget(mixed, 'plate')).toMatchObject({ plane: 'near', target: 'plate' });
+    expect(rangeMode(content, mixed, 0).range).toMatchObject({ plane: 'all', target: 'mixed' });
+  });
+});
+
+describe('24 Oct update: short in the report', () => {
+  it('a cell with shots that fell short says so in its lines (bar, Copy report)', () => {
+    setLanguage('en');
+    const s = new RangeStats();
+    const sel = { gun: 'kettie', plane: 'ver' as const, target: 'paper' as const, pellets: 1 };
+    for (const id of [1, 2])
+      s.ingest(
+        [
+          {
+            type: 'shotFired',
+            tick: id,
+            shotId: id,
+            weapon: 'kettie',
+            dx: 0,
+            sy: 0,
+            shellsLeft: 0,
+          },
+          { type: 'rangeShot', tick: id, shotId: id, plane: 'ver', target: 'paper', x: 0, y: 0 },
+          { type: 'rangeOutcome', tick: id, shotId: id, hits: [], short: true },
+        ],
+        sel,
+      );
+    const text = rangeReport(content, s.list(), {
+      build: 'abc1234',
+      viewport: '1280×720 @1x',
+      device: 'test',
+      biome: 'karoo-autumn',
+      layout: 'fri',
+    });
+    expect(text).toContain('Kettie · Ver · Paper target');
+    expect(text).toContain('Shots 2 · hits 0 · misses 2 · 0.0 %');
+    expect(text).toContain('Fell short: 2 of 2 misses');
+  });
+});
+
+describe('review fix: Shuffle seeds', () => {
+  it('every Shuffle of a fixed base seed is a new, repeatable seed and a new layout', () => {
+    const seeds = [0, 1, 2, 3, 4, 5].map((n) => shuffleSeed(42, n));
+    expect(seeds[0]).toBe(42);
+    expect(new Set(seeds).size).toBe(seeds.length);
+    expect(shuffleSeed(42, 3)).toBe(seeds[3]);
+    const layout = (seed: number): string =>
+      JSON.stringify(
+        createSim({
+          seed,
+          content,
+          mode: { id: 'range', biome: 'karoo-autumn', range: { plane: 'all', target: 'mixed' } },
+          inputKind: 'pointer',
+          rangeProgram: createRangeProgram,
+        }).snapshot().range?.papers,
+      );
+    const layouts = new Set(seeds.map(layout));
+    expect(layouts.size).toBeGreaterThan(3);
   });
 });

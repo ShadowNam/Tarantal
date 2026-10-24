@@ -17,13 +17,34 @@ const POST_W = 0.14;
 const POST_H = 1.2;
 const HOLE_R = 0.045;
 const MIN_HOLE_PX = 1;
+/** 24 Oct update: a hit blinks the face (≤ 150 ms, local); "reduce flashes" dims it. */
+const BLINK_MS = 120;
+const BLINK = 0xffd25a;
+const BLINK_ALPHA = 0.85;
+const BLINK_ALPHA_REDUCED = 0.3;
 
 export class PaperDraw {
   private readonly face: Phaser.GameObjects.Graphics;
   private readonly holes: Phaser.GameObjects.Graphics;
+  private readonly flash: Phaser.GameObjects.Graphics;
+  private blinkLeft = 0;
+  /** Blinks so far (the test hook reads it). */
+  blinks = 0;
   private drawn = '';
   /** Impacts drawn now (the test hook reads it). */
   count = 0;
+
+  get id(): number {
+    return this.paper.id;
+  }
+
+  get plane(): PaperView['plane'] {
+    return this.paper.plane;
+  }
+
+  get kind(): PaperView['kind'] {
+    return this.paper.kind;
+  }
 
   constructor(
     scene: Phaser.Scene,
@@ -42,7 +63,9 @@ export class PaperDraw {
     for (let i = 1; i <= RINGS; i++) this.face.strokeCircle(x, y, (r * i) / RINGS);
     this.face.fillStyle(BULL, 1).fillCircle(x, y, r / RINGS / 2);
     this.holes = scene.add.graphics();
-    layer.add([this.face, this.holes]);
+    this.flash = scene.add.graphics();
+    this.flash.setVisible(false);
+    layer.add([this.face, this.holes, this.flash]);
   }
 
   /** Draws the impacts (redrawn only when they changed). */
@@ -64,8 +87,27 @@ export class PaperDraw {
     this.count = on.length;
   }
 
+  /** The sim says a pellet struck this paper: the face blinks once. */
+  blink(reduced: boolean): void {
+    const { x, y, r } = this.paper;
+    this.flash
+      .clear()
+      .fillStyle(BLINK, reduced ? BLINK_ALPHA_REDUCED : BLINK_ALPHA)
+      .fillCircle(x, y, r)
+      .setVisible(true);
+    this.blinkLeft = BLINK_MS;
+    this.blinks++;
+  }
+
+  tick(dtMs: number): void {
+    if (this.blinkLeft <= 0) return;
+    this.blinkLeft -= dtMs;
+    if (this.blinkLeft <= 0) this.flash.setVisible(false);
+  }
+
   destroy(): void {
     this.face.destroy();
     this.holes.destroy();
+    this.flash.destroy();
   }
 }

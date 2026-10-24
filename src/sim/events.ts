@@ -3,7 +3,7 @@
 import type { WorldEventId } from '../content/schemas';
 import { fnv1a32 } from './rng';
 import type { BreakdownStep } from './scoring/pipeline';
-import type { BagBehaviour, BirdMotion, FlockState, PlaneId } from './types';
+import type { BagBehaviour, BirdMotion, FlockState, PlaneId, RangeTarget } from './types';
 
 /** What threatened a flock (GDD §6.2). */
 export type ThreatSource = 'shot' | 'silentBag' | 'event' | 'gadget' | 'splash';
@@ -82,9 +82,40 @@ export type SimEvent =
       readonly type: 'rangeShot';
       readonly tick: number;
       readonly shotId: number;
+      /** The target the shot is counted for if it hits nothing (24 Oct: the one nearest the aim
+       *  point on screen; one plane and kind outside the mixed course). x, y: the aim on its
+       *  plane. */
       readonly plane: PlaneId;
+      readonly target: RangeTarget;
       readonly x: number;
       readonly y: number;
+    }
+  | {
+      /** 24 Oct update (D-037): a pellet, bullet or stone on a steel plate. */
+      readonly type: 'plateHit';
+      readonly tick: number;
+      readonly shotId: number;
+      readonly paperId: number;
+      readonly x: number;
+      readonly y: number;
+      /** The shot's aim point on the same plane (24 Oct: groups are measured from it). */
+      readonly aimX: number;
+      readonly aimY: number;
+    }
+  | {
+      /** 24 Oct update (D-037): a range shot has landed. `hits`: each target it put a pellet on
+       *  (its plane, kind and pellets; `id` = paper/plate id or bird id). None = a miss, counted
+       *  for the rangeShot target; `short` when that target is at Ver and the gun can't reach. */
+      readonly type: 'rangeOutcome';
+      readonly tick: number;
+      readonly shotId: number;
+      readonly hits: readonly {
+        readonly plane: PlaneId;
+        readonly target: RangeTarget;
+        readonly id: number;
+        readonly pellets: number;
+      }[];
+      readonly short: boolean;
     }
   /** v1.3x (D-037) Skietbaan only: a pellet on a paper target, where it struck (plane px). */
   | {
@@ -94,6 +125,9 @@ export type SimEvent =
       readonly paperId: number;
       readonly x: number;
       readonly y: number;
+      /** The shot's aim point on the same plane (24 Oct: groups are measured from it). */
+      readonly aimX: number;
+      readonly aimY: number;
     }
   | { readonly type: 'miss'; readonly tick: number; readonly shotId: number }
   /** M8 Okavango: a shot splashed into water (screen point for the camera `cx`). */

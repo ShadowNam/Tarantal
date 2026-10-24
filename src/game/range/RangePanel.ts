@@ -4,9 +4,19 @@
 // string through i18n keys. Lives in the range's lazy chunk.
 import type { ContentBundle } from '../../content/schemas';
 import { fill } from '../../i18n/i18n';
-import type { PlaneId, RangeTarget } from '../../sim/types';
 import { rt, type RangeKey } from './rangeI18n';
-import { RANGE_PLANES, RANGE_TARGETS, reaches, rangeGuns, type RangeChoice } from './rangeGuns';
+import {
+  isMixed,
+  PLANE_CHOICES,
+  pickPlane,
+  pickTarget,
+  reaches,
+  rangeGuns,
+  TARGET_CHOICES,
+  type RangeChoice,
+  type RangePlaneChoice,
+  type RangeTargetChoice,
+} from './rangeGuns';
 import {
   biomeName,
   bodyNote,
@@ -59,7 +69,9 @@ const CSS = `
 #tm-range-bar button{pointer-events:auto}
 #tm-range-bar [data-action=more]{display:none}
 #tm-range-bar b{color:#FFD25A}
-#tm-range-bar .lines{margin:2px 0 4px}
+#tm-range-bar .lines{margin:2px 0 4px;transform-origin:left center}
+#tm-range-bar .lines.pulse{animation:tm-range-pulse .35s ease-out}
+@keyframes tm-range-pulse{0%{transform:scale(1.08);color:#FFD25A}100%{transform:scale(1)}}
 #tm-range-bar button.btn{min-height:40px;font-size:13px;padding:2px 8px}
 @media (max-height:500px){#tm-range{font-size:14px}#tm-range h1{font-size:17px}#tm-range header{padding:2px 10px}
   #tm-range h3{margin:4px 0 2px}#tm-range button.btn{min-height:40px;padding:2px 8px}
@@ -68,7 +80,7 @@ const CSS = `
   #tm-range-bar .lines{margin:1px 0 2px}
   #tm-range-bar:not(.open){max-width:min(300px,34vw)}
   #tm-range-bar:not(.open) b,#tm-range-bar:not(.open) .lines>div{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  #tm-range-bar:not(.open) .lines>div:not(:first-child),#tm-range-bar:not(.open) .full{display:none}
+  #tm-range-bar:not(.open) .lines>div:not(:first-child):not(.cell+div),#tm-range-bar:not(.open) .full{display:none}
   #tm-range-bar [data-action=more]{display:inline-block}}
 `;
 
@@ -158,10 +170,8 @@ export class RangeSetupPanel {
   }
 
   private set(c: RangeChoice): void {
-    const gun = rangeGuns(this.content).find((g) => g.id === c.gun);
-    // A gun that can't reach the chosen distance moves it in to the farthest it reaches.
-    const plane = gun !== undefined && !reaches(gun, c.plane) ? 'far' : c.plane;
-    this.choice = { ...c, plane };
+    // Every distance stays open for every gun (24 Oct): beyond its reach the shots fall short.
+    this.choice = c;
     this.h.change(this.choice);
     this.render();
   }
@@ -243,19 +253,21 @@ export class RangeSetupPanel {
         textContent: fill(rt('range.light'), { day: dayName(this.h.layout) }),
       }),
       el('h3', { textContent: rt('range.distance') }),
-      this.chips<PlaneId>(
-        'plane',
-        RANGE_PLANES,
-        c.plane,
-        distName,
-        (plane) => {
-          this.set({ ...this.choice, plane });
-        },
-        (plane) => (gun === undefined || reaches(gun, plane) ? null : rt('range.out_of_reach')),
-      ),
+      this.chips<RangePlaneChoice>('plane', PLANE_CHOICES, c.plane, distName, (plane) => {
+        this.set(pickPlane(this.choice, plane));
+      }),
+      ...(gun !== undefined && !reaches(gun, c.plane)
+        ? [
+            el('div', {
+              className: 'muted',
+              dataset: { role: 'reach-note' },
+              textContent: rt(isMixed(c) ? 'range.reach_note_mixed' : 'range.reach_note'),
+            }),
+          ]
+        : []),
       el('h3', { textContent: rt('range.target') }),
-      this.chips<RangeTarget>('target', RANGE_TARGETS, c.target, targetName, (target) => {
-        this.set({ ...this.choice, target });
+      this.chips<RangeTargetChoice>('target', TARGET_CHOICES, c.target, targetName, (target) => {
+        this.set(pickTarget(this.choice, target));
       }),
     );
     const stats = el(
@@ -325,6 +337,7 @@ export class RangeSetupPanel {
         head('range.col_shots'),
         head('range.col_hits'),
         head('range.col_misses'),
+        head('range.col_short'),
         head('range.col_rate'),
         head('range.col_pellets'),
         head('range.col_group'),
@@ -343,6 +356,7 @@ export class RangeSetupPanel {
           n(String(cell.shots)),
           n(String(cell.hits)),
           n(String(misses(cell))),
+          n(String(cell.short)),
           n(one(hitRate(cell) * 100)),
           n(cell.pellets > 1 ? `${one(pelletsPerShot(cell))} / ${String(cell.pellets)}` : '–'),
           n(groupText(this.content, cell) ?? '–'),
@@ -366,6 +380,8 @@ export class RangeSetupPanel {
 export interface BarHandlers {
   readonly title: string;
   readonly setup: () => void;
+  /** The mixed course only: re-rolls the layout with a new seed. */
+  readonly shuffle?: () => void;
   readonly reset: () => void;
   readonly report: () => string;
 }
@@ -376,6 +392,8 @@ export class RangeBar {
   private readonly lines: HTMLElement;
   private readonly toast: HTMLElement;
   private shown = '';
+  /** Hit pulses so far (the test hook reads it). */
+  pulses = 0;
 
   constructor(
     private readonly content: ContentBundle,
@@ -405,6 +423,13 @@ export class RangeBar {
         button(rt('range.setup'), { action: 'setup' }, () => {
           h.setup();
         }),
+        ...(h.shuffle === undefined
+          ? []
+          : [
+              button(rt('range.shuffle'), { action: 'shuffle' }, () => {
+                h.shuffle?.();
+              }),
+            ]),
         more,
         full(
           button(rt('range.reset'), { action: 'reset' }, () => {
@@ -433,17 +458,37 @@ export class RangeBar {
   }
 
   /** Shows the cell's stats (only touches the DOM when the text changed). */
-  update(cell: RangeCell): void {
-    const text = cell.shots === 0 ? [rt('range.none')] : cellLines(this.content, cell, false);
+  update(cell: RangeCell | null, mixed = false): void {
+    const text =
+      cell === null || cell.shots === 0
+        ? [rt('range.none')]
+        : [
+            // The mixed course: which cell the newest shot went to.
+            ...(mixed ? [`${distName(cell.plane)} · ${targetName(cell.target)}`] : []),
+            ...cellLines(this.content, cell, false),
+          ];
     // The body-width note is its own line (hidden on short screens: phones in landscape).
-    const note = cell.impacts.length > 0 ? bodyNote(this.content, cell) : null;
+    const note = cell !== null && cell.impacts.length > 0 ? bodyNote(this.content, cell) : null;
     const key = `${text.join('\n')}\n${String(note)}`;
     if (key === this.shown) return;
     this.shown = key;
+    // On the mixed course the first line names the cell; short screens keep it and the shots.
+    const labelled = mixed && cell !== null && cell.shots > 0;
     this.lines.replaceChildren(
-      ...text.map((l) => el('div', { textContent: l })),
+      ...text.map((l, i) =>
+        el('div', { textContent: l, ...(labelled && i === 0 ? { className: 'cell' } : {}) }),
+      ),
       ...(note === null ? [] : [el('div', { className: 'note muted', textContent: note })]),
     );
+  }
+
+  /** A hit: the stats lines pulse once (24 Oct update). */
+  pulse(): void {
+    this.pulses++;
+    this.lines.classList.remove('pulse');
+    // Restart the animation: read layout between removing and adding the class.
+    void this.lines.getBoundingClientRect();
+    this.lines.classList.add('pulse');
   }
 
   destroy(): void {

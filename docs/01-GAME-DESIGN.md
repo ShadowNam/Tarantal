@@ -497,17 +497,32 @@ bonus map open today. Each keeps its own best and counts for rank titles.
 Not a player mode: a button on the playtest admin page (`?admin=1`, web builds). It answers "how
 does this gun really shoot at that distance?" without the pressure of a hunt.
 - **Setup:** any gun, locked ones too (the Twee-Twee once per sight; the crate guns as well), any of
-  the 4 biomes on today's weekday light, near / middle / far / Ver (a gun that can't reach Ver shows
-  it as "out of reach", as in a hunt), and a target: a paper target, a standing bird, a fly-over or
-  a small flock.
+  the 4 biomes on today's weekday light, near / middle / far / Ver / **All**, and a target: a paper
+  target, a **steel plate**, a standing bird, a fly-over, a small flock or **Mixed**. Every distance
+  is open to every gun (24 Oct): beyond a gun's reach a note says "shots fall short", and they do,
+  as in a hunt (only rifles reach Ver).
+- **Mixed course (24 Oct):** All + Mixed (picking one picks the other) sets out paper targets,
+  steel plates and standing birds on all four distances at once, plus one fly-over and one small
+  flock (`modes.range.mixed`: per-plane counts and spots, each kind at least once). The layout
+  comes from the session's seed; **Shuffle** in the bar starts again with a new one. Bagged birds
+  come back after `respawnMs`.
+- **Steel plate:** a round gong hanging from a crossbar; a hit swings it and rings it ("ding").
+- **Feedback (24 Oct):** a hit paper blinks (≤ 150 ms, local) and thwacks, a plate swings and
+  dings, a bird gets a hit sound on top of its bag reactions. Every target hit shows an expanding
+  ring and "HIT" for 0.6 s, coloured by distance and big enough to read at Ver without a scope; a
+  miss puffs dust where it was counted, or shows "SHORT". The bar's stats pulse on a hit.
+  "Reduce flashes" dims the blink and the ring.
 - **Rules:** the real sim, so a hit there is a hit in a hunt (spread, sway, hip shots, reach, touch
   aim assist). No clock, no score, no Frenzy, no penalties, no weather; reloads still happen, but
   the reserve never runs out (a crate gun is re-armed when spent). A bird target comes back
   `respawnMs` after it is bagged or has left; a flock still reacts to shots like a hunt flock.
-- **Stats** per gun × distance × target: shots, hits, misses, hit %, pellets on target per shot
+- **Stats** per gun × distance × target: shots, hits, misses (and how many **fell short** of Ver),
+  hit %, pellets on target per shot
   (multi-pellet guns); on the paper target the last 20 holes, the group's mean radius and extreme
   spread (px, and % of a guineafowl's body width at that distance) and its centre relative to the
-  aim point. Reset and "Copy report". Kept for the page's session only.
+  aim point. Reset and "Copy report". Kept for the page's session only. On the mixed course a
+  hit counts for the target it put the most pellets on, a miss for the target nearest the aim
+  point on screen.
 - **Unranked:** no unlocks, Notaboek, bests, Daily, rank or Bird Book; the save is never written.
 
 ## 13. Season Run (roguelite) in detail

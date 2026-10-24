@@ -677,6 +677,8 @@ export class HuntScene extends Phaser.Scene {
   private rangeHost(): RangeHost {
     return {
       scene: this,
+      audio: this.ctx.audio,
+      reduceFlashes: () => this.ctx.prefs.reduceFlashes,
       overlay: (plane) => {
         try {
           return this.parallax.plane(plane).overlay;
@@ -686,6 +688,11 @@ export class HuntScene extends Phaser.Scene {
       },
       exit: () => {
         this.quitRange();
+      },
+      replay: (session) => {
+        this.ctx.platform.gameplayStop();
+        this.scene.stop('Hud');
+        this.scene.restart({ range: session } satisfies HuntData);
       },
     };
   }

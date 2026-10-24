@@ -11,7 +11,6 @@
   "range.dist_mid": "Midden",
   "range.dist_far": "Ver",
   "range.dist_ver": "Heel ver",
-  "range.out_of_reach": "buiten bereik",
   "range.target_paper": "Papieren schijf",
   "range.target_stand": "Staande vogel",
   "range.target_flyover": "Vliegende vogel",
@@ -48,5 +47,16 @@
   "range.report_area": "Gebied {area} · licht van {day}",
   "range.report_unranked": "Telt niet mee: geen ontgrendelingen, Notaboek, records, Daily, rang of Vogelboek-items.",
   "range.more": "Meer",
-  "range.less": "Minder"
+  "range.less": "Minder",
+  "range.reach_note": "Buiten het bereik van dit wapen — schoten vallen te kort",
+  "range.col_short": "Te kort",
+  "range.line_short": "Te kort: {n} van {misses} missers",
+  "range.target_plate": "Stalen plaat",
+  "range.mixed_course": "Gemengd parcours",
+  "range.dist_all": "Alle",
+  "range.target_mixed": "Gemengd",
+  "range.reach_note_mixed": "Heel ver is buiten het bereik van dit wapen — schoten daar vallen te kort",
+  "range.shuffle": "Schudden",
+  "range.mark_hit": "RAAK",
+  "range.mark_short": "TE KORT"
 }

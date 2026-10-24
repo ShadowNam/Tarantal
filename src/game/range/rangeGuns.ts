@@ -1,11 +1,37 @@
 // v1.3x (D-037) Skietbaan choices: every gun (locked ones too; a rifle once per sight), the
 // distances and targets, and how a choice becomes the range's mode. Pure.
 import type { ContentBundle } from '../../content/schemas';
+import { fnv1a32 } from '../../sim/rng';
 import { layoutForDay } from '../../meta/maps';
 import type { ModeConfig, PlaneId, RangeTarget } from '../../sim/types';
 
 export const RANGE_PLANES: readonly PlaneId[] = ['near', 'mid', 'far', 'ver'];
-export const RANGE_TARGETS: readonly RangeTarget[] = ['paper', 'stand', 'flyover', 'flock'];
+export const RANGE_TARGETS: readonly RangeTarget[] = [
+  'paper',
+  'plate',
+  'stand',
+  'flyover',
+  'flock',
+];
+/** The setup page's distance and target chips: 'all' + 'mixed' is the mixed course (24 Oct). */
+export type RangePlaneChoice = PlaneId | 'all';
+export type RangeTargetChoice = RangeTarget | 'mixed';
+export const PLANE_CHOICES: readonly RangePlaneChoice[] = [...RANGE_PLANES, 'all'];
+export const TARGET_CHOICES: readonly RangeTargetChoice[] = [...RANGE_TARGETS, 'mixed'];
+
+/** The mixed course is 'all' distances with 'mixed' targets: picking one picks the other, and
+ *  leaving one leaves the other (back to near / the paper target). */
+export function pickPlane(c: RangeChoice, plane: RangePlaneChoice): RangeChoice {
+  if (plane === 'all') return { ...c, plane, target: 'mixed' };
+  return { ...c, plane, target: c.target === 'mixed' ? 'paper' : c.target };
+}
+
+export function pickTarget(c: RangeChoice, target: RangeTargetChoice): RangeChoice {
+  if (target === 'mixed') return { ...c, plane: 'all', target };
+  return { ...c, target, plane: c.plane === 'all' ? 'near' : c.plane };
+}
+
+export const isMixed = (c: { readonly plane: RangePlaneChoice }): boolean => c.plane === 'all';
 
 /** A gun as the range offers it. */
 export interface RangeGun {
@@ -50,16 +76,16 @@ export function rangeGuns(content: ContentBundle): RangeGun[] {
   return out;
 }
 
-/** A gun reaches a distance (only rifles reach Ver, as in a hunt). */
-export function reaches(gun: RangeGun, plane: PlaneId): boolean {
-  return plane !== 'ver' || gun.reachesVer;
+/** A gun reaches a distance (only rifles reach Ver, as in a hunt; the mixed course has Ver). */
+export function reaches(gun: RangeGun, plane: RangePlaneChoice): boolean {
+  return (plane !== 'ver' && plane !== 'all') || gun.reachesVer;
 }
 
 export interface RangeChoice {
   readonly gun: string;
   readonly biome: string;
-  readonly plane: PlaneId;
-  readonly target: RangeTarget;
+  readonly plane: RangePlaneChoice;
+  readonly target: RangeTargetChoice;
 }
 
 /** The setup page's first choice: modes.json range (its gun, Karoo), near, the paper target. */
@@ -92,4 +118,10 @@ export function bodyWidthPx(content: ContentBundle, plane: PlaneId): number {
   const c = content.birds.creatures.find((x) => x.id === content.modes.modes.range.creature);
   if (c === undefined || c.kind === 'helper') return 0;
   return 2 * c.hitbox.body.rx * content.scoring.planes[plane].scale;
+}
+
+/** The seed of a session after `n` Shuffles of one with `base` (n 0: base). Deterministic, and a
+ *  new layout each time even when the seed source is fixed (review fix). */
+export function shuffleSeed(base: number, n: number): number {
+  return n === 0 ? base : fnv1a32(`${String(base)}:shuffle:${String(n)}`) >>> 0;
 }

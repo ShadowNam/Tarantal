@@ -92,6 +92,7 @@ import type {
   FlockState,
   HuntResult,
   PlaneId,
+  RangeTarget,
   SeasonHuntConfig,
   SimConfig,
   SimState,
@@ -645,6 +646,11 @@ export function createSim(config: SimConfig): Sim {
           rng: rng.stream('range'),
         });
   const papers = rangeProgram?.papers ?? [];
+  /** Range shots not yet landed: the target a miss is counted for, and the aim (screen). */
+  const rangeShots = new Map<
+    number,
+    { plane: PlaneId; target: RangeTarget; cx: number; dx: number; sy: number }
+  >();
   let score = 0;
   let streak = 0;
   let bestStreak = 0;
@@ -1298,10 +1304,12 @@ export function createSim(config: SimConfig): Sim {
       ...(how === undefined ? {} : { aim: how }),
     });
     const ctx: ShotContext = { shotId, shot, shellIndex, lastShell, cx: cameraX };
-    if (rangeCfg !== null) {
+    if (rangeProgram !== null) {
       // The Skietbaan's aim point on its plane: groups are measured from it.
-      const p = tapToPlane(cameraX, planeGeo[rangeCfg.plane].scrollFactor, aimAt.dx, aimAt.sy);
-      emit({ type: 'rangeShot', tick, shotId, plane: rangeCfg.plane, x: p.x, y: p.y });
+      const aimed = rangeProgram.aimTarget(cameraX, aimAt.dx, aimAt.sy, birds);
+      const p = tapToPlane(cameraX, planeGeo[aimed.plane].scrollFactor, aimAt.dx, aimAt.sy);
+      rangeShots.set(shotId, { ...aimed, cx: cameraX, dx: aimAt.dx, sy: aimAt.sy });
+      emit({ type: 'rangeShot', tick, shotId, ...aimed, x: p.x, y: p.y });
     }
 
     // Kettie: the stone is in the air; it resolves band by band in flyStones() (Tech §3.4).
@@ -1359,8 +1367,13 @@ export function createSim(config: SimConfig): Sim {
         // Bands are built without the Ver layer: a stone falls short of it.
         const geo = bandGeometry(stats.bagged === 0 ? firstHitGeometry : geometry, band);
         const r = resolvePellet(f.dx, psy, f.cx, geo, hitBirds(), hitExtras(), driftOn(drift));
+        // A paper target or steel plate (the range only) stops a stone too.
         const stopped =
-          r.birdId !== null || r.propId !== null || r.crateId !== null || f.next >= bands.length;
+          r.birdId !== null ||
+          r.propId !== null ||
+          r.crateId !== null ||
+          r.paperId !== undefined ||
+          f.next >= bands.length;
         if (!stopped) continue;
         resolveShot(ctx, [landPellet(f.shotId, f.dx, psy, r, drift, f.cx)]);
         done = true;
@@ -1410,14 +1423,30 @@ export function createSim(config: SimConfig): Sim {
     const partHits: { propId: string; partId: string }[] = [];
     const crateHits: number[] = [];
     let paperHits = 0;
+    /** Range: pellets per paper target or steel plate, in landing order. */
+    const paperPellets = new Map<number, number>();
     for (const { dx: ldx, sy: lsy, r } of landed) {
       impacts.push({ dx: ldx, sy: lsy });
       const paper = r.paperId === undefined ? undefined : papers.find((p) => p.id === r.paperId);
       if (paper !== undefined) {
-        // Where on the paper (its plane's coordinates): the Skietbaan draws and measures it.
-        const p = tapToPlane(shotCx, planeGeo[paper.plane].scrollFactor, ldx, lsy);
-        emit({ type: 'paperHit', tick, shotId, paperId: paper.id, x: p.x, y: p.y });
+        // Where on the paper (its plane's coordinates): the Skietbaan draws and measures it,
+        // against the shot's aim point on the same plane.
+        const sfp = planeGeo[paper.plane].scrollFactor;
+        const p = tapToPlane(shotCx, sfp, ldx, lsy);
+        const aimed = rangeShots.get(shotId);
+        const a = aimed === undefined ? p : tapToPlane(aimed.cx, sfp, aimed.dx, aimed.sy);
+        emit({
+          type: paper.kind === 'plate' ? 'plateHit' : 'paperHit',
+          tick,
+          shotId,
+          paperId: paper.id,
+          x: p.x,
+          y: p.y,
+          aimX: a.x,
+          aimY: a.y,
+        });
         paperHits++;
+        paperPellets.set(paper.id, (paperPellets.get(paper.id) ?? 0) + 1);
       }
       if (r.birdId !== null) pelletsOn.set(r.birdId, (pelletsOn.get(r.birdId) ?? 0) + 1);
       const { propId, partId, crateId } = r;
@@ -1426,6 +1455,15 @@ export function createSim(config: SimConfig): Sim {
           partHits.push({ propId, partId });
       }
       if (crateId !== null && !crateHits.includes(crateId)) crateHits.push(crateId);
+    }
+
+    if (rangeProgram !== null) {
+      // 24 Oct update (D-037): what the shot hit, or that it missed (short: of Ver).
+      const aimed = rangeShots.get(shotId);
+      rangeShots.delete(shotId);
+      const hits = rangeProgram.hits(paperPellets, pelletsOn, birds);
+      const short = hits.length === 0 && aimed?.plane === 'ver' && !shot.reachesVer;
+      emit({ type: 'rangeOutcome', tick, shotId, hits, short });
     }
 
     // Damage, in bird order (stable).

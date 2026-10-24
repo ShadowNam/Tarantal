@@ -36,15 +36,45 @@ export interface RangeHookState {
     readonly shots: number;
     readonly hits: number;
     readonly misses: number;
+    /** Misses that fell short of Ver (24 Oct update). */
+    readonly short: number;
     readonly pelletsOn: number;
     readonly impacts: number;
   } | null;
+  /** Every cell of this gun in the session (24 Oct: the mixed course fills several). */
+  readonly cells: readonly {
+    readonly plane: string;
+    readonly target: string;
+    readonly shots: number;
+    readonly hits: number;
+    readonly short: number;
+  }[];
   /** Impacts drawn on the paper target now. */
   readonly drawnImpacts: number;
   /** Paper targets on screen (design px, unzoomed) and their radius. */
-  readonly papers: readonly { readonly x: number; readonly y: number; readonly r: number }[];
-  /** Range birds on screen (design px, unzoomed body centre). */
-  readonly birds: readonly { readonly x: number; readonly y: number }[];
+  readonly papers: readonly {
+    readonly x: number;
+    readonly y: number;
+    readonly r: number;
+    readonly plane: string;
+    /** 'paper' or 'plate' (24 Oct update). */
+    readonly kind: string;
+  }[];
+  /** Range birds on screen (design px, unzoomed body centre) and their plane. */
+  readonly birds: readonly { readonly x: number; readonly y: number; readonly plane: string }[];
+  /** The session's seed (the mixed course's Shuffle draws a new one). */
+  readonly seed?: number;
+  /** 24 Oct update: hit feedback so far — markers by kind, the last hit marker's distance,
+   *  paper blinks, plate swings, the bar's hit pulses. */
+  readonly feedback?: {
+    readonly hit: number;
+    readonly miss: number;
+    readonly short: number;
+    readonly lastHit: string | null;
+    readonly blinks: number;
+    readonly swings: number;
+    readonly pulses: number;
+  };
 }
 
 /** Read by Playwright (dev/test builds and ?e2e=1 only). */
@@ -62,6 +92,9 @@ export interface TestHook {
   admin: { view: 'list' | 'play'; selected: string | null; entries: number } | null;
   /** v1.3x (D-037): the Skietbaan (setup page or the range), or null. */
   range: RangeHookState | null;
+  /** 24 Oct update, e2e only: true holds the Skietbaan's markers and plate swings still (a
+   *  screenshot under software GL is slower than a 0.6 s marker). */
+  rangeHold?: boolean;
   /** Menu overlay on top of the scene: shed, settings, pause (null = none). */
   menu: string | null;
   /** M10: the self-hosted fonts loaded before the game drew any text. */
