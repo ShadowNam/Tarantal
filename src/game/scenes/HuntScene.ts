@@ -687,6 +687,11 @@ export class HuntScene extends Phaser.Scene {
       exit: () => {
         this.quitRange();
       },
+      replay: (session) => {
+        this.ctx.platform.gameplayStop();
+        this.scene.stop('Hud');
+        this.scene.restart({ range: session } satisfies HuntData);
+      },
     };
   }
 

@@ -13,7 +13,7 @@ import { layoutForDay } from '../../meta/maps';
 import { PaperDraw } from './PaperDraw';
 import { RangeBar, RangeSetupPanel } from './RangePanel';
 import type { RangeHost, RangeMenuHost, RangeSession } from './RangeSession';
-import { defaultChoice, rangeGuns, rangeMode, type RangeChoice } from './rangeGuns';
+import { defaultChoice, isMixed, rangeGuns, rangeMode, type RangeChoice } from './rangeGuns';
 import { cellTitle, gunNameById, rangeReport } from './rangeReport';
 import { rt } from './rangeI18n';
 import { RangeStats, type Impact, type RangeCell, type RangeSelection } from './rangeStats';
@@ -126,6 +126,13 @@ class Session implements RangeSession {
       setup: () => {
         host.exit();
       },
+      ...(isMixed(this.choice)
+        ? {
+            shuffle: () => {
+              host.replay(new Session(this.menu, this.choice, this.inputKind));
+            },
+          }
+        : {}),
       reset: () => {
         stats.reset();
       },
@@ -162,6 +169,7 @@ class Session implements RangeSession {
       const body = creature !== undefined && 'hitbox' in creature ? creature.hitbox.body : null;
       const half = designSize().width / 2;
       hook.range = hookState(this.choice, 'range', {
+        seed: this.seed,
         stats:
           cell === null || cell.shots === 0
             ? null
@@ -188,6 +196,8 @@ class Session implements RangeSession {
           x: half + planeToDx(state.cameraX, scoring[p.plane].scrollFactor, p.x),
           y: p.y,
           r: p.r,
+          plane: p.plane,
+          kind: p.kind,
         })),
         birds: state.birds.map((b) => {
           const sc = scoring[b.plane].scale;
@@ -200,6 +210,7 @@ class Session implements RangeSession {
                 b.x + (body?.ox ?? 0) * sc * b.facing,
               ),
             y: b.y + (body?.oy ?? 0) * sc,
+            plane: b.plane,
           };
         }),
       });

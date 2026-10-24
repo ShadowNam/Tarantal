@@ -4,9 +4,19 @@
 // string through i18n keys. Lives in the range's lazy chunk.
 import type { ContentBundle } from '../../content/schemas';
 import { fill } from '../../i18n/i18n';
-import type { PlaneId, RangeTarget } from '../../sim/types';
 import { rt, type RangeKey } from './rangeI18n';
-import { RANGE_PLANES, RANGE_TARGETS, reaches, rangeGuns, type RangeChoice } from './rangeGuns';
+import {
+  isMixed,
+  PLANE_CHOICES,
+  pickPlane,
+  pickTarget,
+  reaches,
+  rangeGuns,
+  TARGET_CHOICES,
+  type RangeChoice,
+  type RangePlaneChoice,
+  type RangeTargetChoice,
+} from './rangeGuns';
 import {
   biomeName,
   bodyNote,
@@ -241,21 +251,21 @@ export class RangeSetupPanel {
         textContent: fill(rt('range.light'), { day: dayName(this.h.layout) }),
       }),
       el('h3', { textContent: rt('range.distance') }),
-      this.chips<PlaneId>('plane', RANGE_PLANES, c.plane, distName, (plane) => {
-        this.set({ ...this.choice, plane });
+      this.chips<RangePlaneChoice>('plane', PLANE_CHOICES, c.plane, distName, (plane) => {
+        this.set(pickPlane(this.choice, plane));
       }),
       ...(gun !== undefined && !reaches(gun, c.plane)
         ? [
             el('div', {
               className: 'muted',
               dataset: { role: 'reach-note' },
-              textContent: rt('range.reach_note'),
+              textContent: rt(isMixed(c) ? 'range.reach_note_mixed' : 'range.reach_note'),
             }),
           ]
         : []),
       el('h3', { textContent: rt('range.target') }),
-      this.chips<RangeTarget>('target', RANGE_TARGETS, c.target, targetName, (target) => {
-        this.set({ ...this.choice, target });
+      this.chips<RangeTargetChoice>('target', TARGET_CHOICES, c.target, targetName, (target) => {
+        this.set(pickTarget(this.choice, target));
       }),
     );
     const stats = el(
@@ -368,6 +378,8 @@ export class RangeSetupPanel {
 export interface BarHandlers {
   readonly title: string;
   readonly setup: () => void;
+  /** The mixed course only: re-rolls the layout with a new seed. */
+  readonly shuffle?: () => void;
   readonly reset: () => void;
   readonly report: () => string;
 }
@@ -407,6 +419,13 @@ export class RangeBar {
         button(rt('range.setup'), { action: 'setup' }, () => {
           h.setup();
         }),
+        ...(h.shuffle === undefined
+          ? []
+          : [
+              button(rt('range.shuffle'), { action: 'shuffle' }, () => {
+                h.shuffle?.();
+              }),
+            ]),
         more,
         full(
           button(rt('range.reset'), { action: 'reset' }, () => {

@@ -52,9 +52,18 @@ export interface RangeHookState {
   /** Impacts drawn on the paper target now. */
   readonly drawnImpacts: number;
   /** Paper targets on screen (design px, unzoomed) and their radius. */
-  readonly papers: readonly { readonly x: number; readonly y: number; readonly r: number }[];
-  /** Range birds on screen (design px, unzoomed body centre). */
-  readonly birds: readonly { readonly x: number; readonly y: number }[];
+  readonly papers: readonly {
+    readonly x: number;
+    readonly y: number;
+    readonly r: number;
+    readonly plane: string;
+    /** 'paper' or 'plate' (24 Oct update). */
+    readonly kind: string;
+  }[];
+  /** Range birds on screen (design px, unzoomed body centre) and their plane. */
+  readonly birds: readonly { readonly x: number; readonly y: number; readonly plane: string }[];
+  /** The session's seed (the mixed course's Shuffle draws a new one). */
+  readonly seed?: number;
 }
 
 /** Read by Playwright (dev/test builds and ?e2e=1 only). */

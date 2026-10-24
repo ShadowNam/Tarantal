@@ -8,7 +8,8 @@ import { hashEvents, type SimEvent } from '../events';
 import { createSim, type Sim } from '../Sim';
 import { WEEKDAY_IDS } from '../../content/schemas';
 import type { Command, ModeConfig, PlaneId, RangeConfig, RangeTarget } from '../types';
-import { createRangeProgram } from './program';
+import { createStream } from '../rng';
+import { createRangeProgram, mixedLayout } from './program';
 
 const content = base as Content;
 const setup = content.modes.modes.range;
@@ -50,7 +51,7 @@ function fireAt(sim: Sim, plane: PlaneId, x: number, y: number): Command {
   return { t: 'fire', dx: planeToDx(sim.snapshot().cameraX, sf(plane), x), sy: y };
 }
 
-function paperOf(sim: Sim): { x: number; y: number; r: number; plane: PlaneId } {
+function paperOf(sim: Sim): { x: number; y: number; r: number; plane: PlaneId; kind: string } {
   const p = sim.snapshot().range?.papers[0];
   if (p === undefined) throw new Error('no paper target');
   return p;
@@ -203,14 +204,24 @@ describe('paper targets', () => {
   });
 });
 
-/** True when a sway-free, spread-free pellet at (x, y) lands on the paper. */
+/** True when a sway-free, spread-free pellet at (x, y) lands on the paper (or the plate). */
 function centreHit(sim: Sim, plane: PlaneId, x: number, y: number): boolean {
+  return centreHitKind(sim, plane, x, y, 'paperHit');
+}
+
+function centreHitKind(
+  sim: Sim,
+  plane: PlaneId,
+  x: number,
+  y: number,
+  kind: 'paperHit' | 'plateHit',
+): boolean {
   sim.step([{ t: 'aimCancel' }]);
   sim.drainEvents();
   const w = sim.snapshot().weapon;
   if (w.sight === null) {
     const ev = step(sim, 1, [fireAt(sim, plane, x, y)]);
-    return ofType(ev, 'paperHit').length === 1;
+    return ofType(ev, kind).length === 1;
   }
   // A rifle: raise the sight and release when the sway is smallest (test the geometry only).
   const dx = planeToDx(sim.snapshot().cameraX, sf(plane), x);
@@ -221,7 +232,7 @@ function centreHit(sim: Sim, plane: PlaneId, x: number, y: number): boolean {
     step(sim, 1);
   }
   const ev = step(sim, 1, [{ t: 'aimRelease' }]);
-  return ofType(ev, 'paperHit').length === 1;
+  return ofType(ev, kind).length === 1;
 }
 
 describe('reach', () => {
@@ -324,5 +335,133 @@ describe('determinism', () => {
     expect(session({ plane: 'mid', target: 'flock' }, 'dubbelloop', 11, 'pointer')).not.toBe(
       session({ plane: 'mid', target: 'flock' }, 'dubbelloop', 12, 'pointer'),
     );
+  });
+});
+
+describe('24 Oct update: the mixed course', () => {
+  const MIXED: RangeConfig = { plane: 'all', target: 'mixed' };
+
+  it('lays out every kind on all four distances, from the range stream', () => {
+    for (let seed = 1; seed <= 40; seed++) {
+      const slots = mixedLayout(setup.mixed, createStream(seed));
+      expect(new Set(slots.map((s) => s.plane)), `seed ${String(seed)}`).toEqual(
+        new Set(PLANE_IDS),
+      );
+      for (const kind of setup.mixed.statics)
+        expect(
+          slots.some((s) => s.target === kind),
+          `${kind} seed ${String(seed)}`,
+        ).toBe(true);
+      expect(slots.filter((s) => s.target === 'flyover')).toHaveLength(1);
+      expect(slots.filter((s) => s.target === 'flock')).toHaveLength(1);
+      // Each plane's static count; no two targets of a plane on one spot.
+      for (const plane of PLANE_IDS) {
+        const mine = slots.filter((s) => s.plane === plane && s.target !== 'flyover');
+        expect(new Set(mine.map((s) => s.dx)).size).toBe(mine.length);
+        expect(mine.filter((s) => s.target !== 'flock')).toHaveLength(
+          setup.mixed.planes[plane].count,
+        );
+      }
+    }
+  });
+
+  it('is the same for a seed and changes with it (Shuffle draws a new seed)', () => {
+    const layout = (seed: number): string =>
+      JSON.stringify(rangeSim(MIXED, {}, seed).snapshot().range?.papers);
+    expect(layout(3)).toBe(layout(3));
+    const seen = new Set([3, 4, 5, 6, 7, 8].map(layout));
+    expect(seen.size).toBeGreaterThan(1);
+  });
+
+  it('puts up its birds on the course', () => {
+    for (let seed = 1; seed <= 6; seed++) {
+      const sim = rangeSim(MIXED, { weapon: 'twee_twee', sight: 'scope_small' }, seed);
+      step(sim, 5);
+      const birds = sim.snapshot().birds;
+      // The flock (5) and the fly-over at least; standing birds where the layout has them.
+      expect(birds.length, `seed ${String(seed)}`).toBeGreaterThanOrEqual(setup.flockSize + 1);
+    }
+  });
+
+  it('counts a hit for the target hit, a miss for the target nearest the aim point', () => {
+    // The air rifle: one pellet, no spread, no sight.
+    const sim = rangeSim(MIXED, { weapon: 'windbuks' }, 9);
+    const papers = sim.snapshot().range?.papers ?? [];
+    const near = papers.find((p) => p.plane === 'near');
+    if (near === undefined) throw new Error('no near static target');
+    const hit = shoot(sim, fireAt(sim, near.plane, near.x, near.y));
+    const out = ofType(hit, 'rangeOutcome')[0];
+    expect(out?.hits).toEqual([{ plane: 'near', target: near.kind, id: near.id, pellets: 1 }]);
+    // Just beside the target: the shot is counted for it, and misses.
+    const miss = shoot(sim, fireAt(sim, near.plane, near.x - near.r * 1.3, near.y));
+    expect(ofType(miss, 'rangeShot')[0]).toMatchObject({ plane: near.plane, target: near.kind });
+    expect(ofType(miss, 'rangeOutcome')[0]).toMatchObject({ hits: [], short: false });
+  });
+
+  it('a mixed session replayed twice gives the same event hash', () => {
+    const run = (seed: number): string => {
+      const sim = rangeSim(MIXED, { weapon: 'dubbelloop' }, seed, 'touch');
+      const all: SimEvent[] = [...sim.drainEvents()];
+      for (let t = 0; t < 60 * 30; t++) {
+        const s = sim.snapshot();
+        const targets = [...(s.range?.papers ?? []), ...s.birds];
+        const target = targets[t % Math.max(1, targets.length)];
+        const cmds: Command[] = [];
+        if (t % 41 === 0 && target !== undefined)
+          cmds.push(fireAt(sim, target.plane, target.x + ((t * 5) % 21) - 10, target.y));
+        if (t % 197 === 0) cmds.push({ t: 'reload' });
+        sim.step(cmds);
+        all.push(...sim.drainEvents());
+      }
+      expect(ofType(all, 'rangeOutcome').length).toBeGreaterThan(10);
+      return hashEvents(all);
+    };
+    expect(run(21)).toBe(run(21));
+    expect(run(21)).not.toBe(run(22));
+  });
+});
+
+describe('24 Oct update: steel plates', () => {
+  it('stand on every plane, sized by plateRadiusPx, and ring on a hit (plateHit)', () => {
+    for (const plane of PLANE_IDS) {
+      const weapon = plane === 'ver' ? 'twee_twee' : 'dubbelloop';
+      const sim = rangeSim(
+        { plane, target: 'plate' },
+        weapon === 'twee_twee' ? { weapon, sight: 'scope_small' } : { weapon },
+      );
+      const p = paperOf(sim);
+      expect(p).toMatchObject({ kind: 'plate', plane });
+      expect(p.r).toBeCloseTo(setup.plateRadiusPx * content.scoring.planes[plane].scale, 9);
+      // The rifle at Ver through its sight; a shotgun's few shots on the nearer plates.
+      if (weapon === 'twee_twee') {
+        expect(centreHitKind(sim, plane, p.x, p.y, 'plateHit'), plane).toBe(true);
+        continue;
+      }
+      let ev: SimEvent[] = [];
+      for (let i = 0; i < 4; i++) ev = ev.concat(shoot(sim, fireAt(sim, plane, p.x, p.y)));
+      expect(ofType(ev, 'paperHit'), plane).toHaveLength(0);
+      expect(ofType(ev, 'plateHit').length, plane).toBeGreaterThan(0);
+      expect(
+        ofType(ev, 'rangeOutcome').some((o) => o.hits[0]?.target === 'plate'),
+        plane,
+      ).toBe(true);
+    }
+  });
+});
+
+describe('24 Oct update: short', () => {
+  it('a Kettie at Ver: every shot misses as short; the .22 is never short', () => {
+    const sim = rangeSim({ plane: 'ver', target: 'paper' }, { weapon: 'kettie' });
+    const p = paperOf(sim);
+    let ev: SimEvent[] = [];
+    for (let i = 0; i < 4; i++) ev = ev.concat(shoot(sim, fireAt(sim, 'ver', p.x, p.y), 200));
+    const outs = ofType(ev, 'rangeOutcome');
+    expect(outs).toHaveLength(4);
+    for (const o of outs) expect(o).toMatchObject({ hits: [], short: true });
+    // A shotgun miss on a plane it reaches is a plain miss.
+    const near = rangeSim({ plane: 'near', target: 'paper' });
+    const q = paperOf(near);
+    const miss = shoot(near, fireAt(near, 'near', q.x + q.r * 4, q.y - q.r * 3));
+    expect(ofType(miss, 'rangeOutcome')[0]).toMatchObject({ hits: [], short: false });
   });
 });

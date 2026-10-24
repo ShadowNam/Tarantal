@@ -5,7 +5,32 @@ import { layoutForDay } from '../../meta/maps';
 import type { ModeConfig, PlaneId, RangeTarget } from '../../sim/types';
 
 export const RANGE_PLANES: readonly PlaneId[] = ['near', 'mid', 'far', 'ver'];
-export const RANGE_TARGETS: readonly RangeTarget[] = ['paper', 'stand', 'flyover', 'flock'];
+export const RANGE_TARGETS: readonly RangeTarget[] = [
+  'paper',
+  'plate',
+  'stand',
+  'flyover',
+  'flock',
+];
+/** The setup page's distance and target chips: 'all' + 'mixed' is the mixed course (24 Oct). */
+export type RangePlaneChoice = PlaneId | 'all';
+export type RangeTargetChoice = RangeTarget | 'mixed';
+export const PLANE_CHOICES: readonly RangePlaneChoice[] = [...RANGE_PLANES, 'all'];
+export const TARGET_CHOICES: readonly RangeTargetChoice[] = [...RANGE_TARGETS, 'mixed'];
+
+/** The mixed course is 'all' distances with 'mixed' targets: picking one picks the other, and
+ *  leaving one leaves the other (back to near / the paper target). */
+export function pickPlane(c: RangeChoice, plane: RangePlaneChoice): RangeChoice {
+  if (plane === 'all') return { ...c, plane, target: 'mixed' };
+  return { ...c, plane, target: c.target === 'mixed' ? 'paper' : c.target };
+}
+
+export function pickTarget(c: RangeChoice, target: RangeTargetChoice): RangeChoice {
+  if (target === 'mixed') return { ...c, plane: 'all', target };
+  return { ...c, target, plane: c.plane === 'all' ? 'near' : c.plane };
+}
+
+export const isMixed = (c: { readonly plane: RangePlaneChoice }): boolean => c.plane === 'all';
 
 /** A gun as the range offers it. */
 export interface RangeGun {
@@ -50,16 +75,16 @@ export function rangeGuns(content: ContentBundle): RangeGun[] {
   return out;
 }
 
-/** A gun reaches a distance (only rifles reach Ver, as in a hunt). */
-export function reaches(gun: RangeGun, plane: PlaneId): boolean {
-  return plane !== 'ver' || gun.reachesVer;
+/** A gun reaches a distance (only rifles reach Ver, as in a hunt; the mixed course has Ver). */
+export function reaches(gun: RangeGun, plane: RangePlaneChoice): boolean {
+  return (plane !== 'ver' && plane !== 'all') || gun.reachesVer;
 }
 
 export interface RangeChoice {
   readonly gun: string;
   readonly biome: string;
-  readonly plane: PlaneId;
-  readonly target: RangeTarget;
+  readonly plane: RangePlaneChoice;
+  readonly target: RangeTargetChoice;
 }
 
 /** The setup page's first choice: modes.json range (its gun, Karoo), near, the paper target. */

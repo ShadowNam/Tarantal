@@ -54,5 +54,7 @@
   "range.target_plate": "Stahlplatte",
   "range.mixed_course": "Gemischter Parcours",
   "range.dist_all": "Alle",
-  "range.target_mixed": "Gemischt"
+  "range.target_mixed": "Gemischt",
+  "range.reach_note_mixed": "Ver liegt außerhalb der Reichweite dieser Waffe — Schüsse dorthin fallen zu kurz",
+  "range.shuffle": "Mischen"
 }

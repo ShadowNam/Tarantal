@@ -143,11 +143,12 @@ test.describe('Skietbaan (training ground)', () => {
     });
     expect((await hook(page)).scene).toBe('skietbaan');
     await expect(page.locator('#tm-admin')).toHaveCount(0);
-    // Every gun, locked ones too (the .22 once per sight), the 4 biomes, 4 distances, 4 targets.
+    // Every gun, locked ones too (the .22 once per sight), the 4 biomes, 4 distances + All,
+    // 5 targets + Mixed.
     await expect(page.locator('#tm-range [data-role=gun] button')).toHaveCount(9);
     await expect(page.locator('#tm-range [data-role=biome] button')).toHaveCount(4);
-    await expect(page.locator('#tm-range [data-role=plane] button')).toHaveCount(4);
-    await expect(page.locator('#tm-range [data-role=target] button')).toHaveCount(4);
+    await expect(page.locator('#tm-range [data-role=plane] button')).toHaveCount(5);
+    await expect(page.locator('#tm-range [data-role=target] button')).toHaveCount(6);
     // Shotguns can't reach Ver: it stays selectable, with a note that the shots fall short.
     await press(page, touch, '#tm-range [data-role=gun] [data-value=dubbelloop]');
     const ver = page.locator('#tm-range [data-role=plane] [data-value=ver]');

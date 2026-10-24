@@ -15,6 +15,8 @@ export interface RangeHost {
   overlay(plane: PlaneId): Phaser.GameObjects.Container | null;
   /** Back to the setup page (the bar's Setup button; the pause menu's Quit does the same). */
   exit(): void;
+  /** Runs another session in place of this one (the mixed course's Shuffle: a new seed). */
+  replay(session: RangeSession): void;
 }
 
 /** One range session: the sim setup HuntScene starts, and the overlay that rides on it. */

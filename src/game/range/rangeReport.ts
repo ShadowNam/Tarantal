@@ -30,8 +30,8 @@ export function gunNameById(content: ContentBundle, id: string): string {
   return gun === undefined ? id : gunName(gun);
 }
 
-export const distName = (plane: PlaneId): string => rt(`range.dist_${plane}`);
-export const targetName = (target: RangeTarget): string => rt(`range.target_${target}`);
+export const distName = (plane: PlaneId | 'all'): string => rt(`range.dist_${plane}`);
+export const targetName = (target: RangeTarget | 'mixed'): string => rt(`range.target_${target}`);
 
 export function biomeName(content: ContentBundle, id: string): string {
   const b = content.biomes.find((x) => x.id === id);

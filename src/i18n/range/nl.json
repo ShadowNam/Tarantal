@@ -54,5 +54,7 @@
   "range.target_plate": "Stalen plaat",
   "range.mixed_course": "Gemengd parcours",
   "range.dist_all": "Alle",
-  "range.target_mixed": "Gemengd"
+  "range.target_mixed": "Gemengd",
+  "range.reach_note_mixed": "Heel ver is buiten het bereik van dit wapen — schoten daar vallen te kort",
+  "range.shuffle": "Schudden"
 }

@@ -15,6 +15,8 @@ import { createSim } from '../../sim/Sim';
 import {
   bodyWidthPx,
   defaultChoice,
+  pickPlane,
+  pickTarget,
   rangeGuns,
   rangeMode,
   reaches,
@@ -229,5 +231,17 @@ describe('session table texts', () => {
       (k) => !src.includes(`'${k}'`) && !prefixes.some((p) => p !== '' && k.startsWith(p)),
     );
     expect(unused).toEqual([]);
+  });
+});
+
+describe('24 Oct update: the mixed course choice', () => {
+  it('All picks Mixed and Mixed picks All; leaving one leaves the other', () => {
+    const c = defaultChoice(content);
+    expect(pickPlane(c, 'all')).toMatchObject({ plane: 'all', target: 'mixed' });
+    expect(pickTarget(c, 'mixed')).toMatchObject({ plane: 'all', target: 'mixed' });
+    const mixed = pickTarget(c, 'mixed');
+    expect(pickPlane(mixed, 'far')).toMatchObject({ plane: 'far', target: 'paper' });
+    expect(pickTarget(mixed, 'plate')).toMatchObject({ plane: 'near', target: 'plate' });
+    expect(rangeMode(content, mixed, 0).range).toMatchObject({ plane: 'all', target: 'mixed' });
   });
 });

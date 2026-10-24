@@ -54,5 +54,7 @@
   "range.target_plate": "Staalplaat",
   "range.mixed_course": "Gemengde baan",
   "range.dist_all": "Almal",
-  "range.target_mixed": "Gemeng"
+  "range.target_mixed": "Gemeng",
+  "range.reach_note_mixed": "Baie ver is buite hierdie geweer se bereik — skote daar val kort",
+  "range.shuffle": "Skommel"
 }
