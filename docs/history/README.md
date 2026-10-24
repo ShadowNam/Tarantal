@@ -23,3 +23,10 @@ merges.
    It needs the `docx` npm package. It is preinstalled globally in the Claude Code sandbox; anywhere
    else, use `npm i -g docx`. The script lists any missing images.
 4. Commit the data, the images and the rebuilt `.docx` together.
+
+## Build board
+
+`board/` holds the generator for the build board (the dashboard of steps, timings and figures that
+Claude refreshes every 2–3 hours). `gen.py` reads the merge history on `origin/main` and
+`state.json` (steps done, running and next, the current job's checklist, figures) and writes
+`milestones.json`, `v13.json` and `numbers.json` (not committed), which are uploaded to the board.

@@ -7,29 +7,29 @@ const meta = {
   title: 'Tarantal Madness',
   subtitle: 'Development history',
   tagline: 'How the game came together, from the first commit to today',
-  updated: '23 October 2026, 18:10 UTC',
-  period: '19–23 October 2026',
+  updated: '24 October 2026, 02:40 UTC',
+  period: '19–24 October 2026',
 };
 
-// "By the numbers" on 23 Oct 2026 (main at 067f013).
+// "By the numbers" on 24 Oct 2026 (main at 6d50755).
 const numbers = [
-  ['Days since the first commit', '4'],
-  ['Commits on main', '524'],
-  ['Pull requests', '51 opened, all merged'],
-  ['Game code (TypeScript, without tests)', 'about 31,000 lines'],
-  ['Automated tests', '851 unit tests in 94 files, 35 browser test suites on 3 device profiles'],
-  ['Hunting areas', '4 (Karoo, Bushveld, Okavango, Kalahari), each with 7 weekday maps and a bonus map'],
-  ['Guns', '6 (Dubbelloop, Windbuks, Kettie, Plaas-Pomp, Voorlaaier, Mielie-Masjien)'],
+  ['Days since the first commit', '5'],
+  ['Commits on main', '575'],
+  ['Pull requests', '54 opened, all merged'],
+  ['Game code (TypeScript, without tests)', 'about 33,500 lines'],
+  ['Automated tests', '908 unit tests, 37 browser test suites on 3 device profiles'],
+  ['Hunting areas', '4 (Karoo, Bushveld, Okavango, Kalahari), each with 7 weekday maps and 3 bonus maps (Verder, Nog Verder, Die Verste)'],
+  ['Guns', '7 (Dubbelloop, Windbuks, Kettie, Plaas-Pomp, Die Twee-Twee with 3 sights, Voorlaaier, Mielie-Masjien)'],
   ['Creatures', '13 (guineafowl and variants, bosses, flyers)'],
   ['Languages', 'English, Afrikaans, German, Dutch'],
-  ['Design decisions logged', '35 (D-001 to D-035)'],
+  ['Design decisions logged', '36 (D-001 to D-036)'],
 ];
 
 const roles = [
   ['Product owner', 'Sets the direction, approves looks, gives feedback; anything that needs an account, money, a real phone or a person'],
   ['Tank', 'Coding agent on the product owner’s server: writes the game code, interim art and sound, tests and docs for each job'],
-  ['Claude', 'Writes each job’s brief, checks in every 20 minutes, reviews looks and code, fixes small test and CI problems, merges on green tests, keeps the status doc and this history current'],
-  ['GitHub CI', 'Runs the tests on every pull request (about 15 minutes) and the full suite on every merge; publishes the test build to GitHub Pages'],
+  ['Claude', 'Writes each job’s brief, checks in every 10 minutes (with an hourly backup check), reviews looks and code, fixes small test and CI problems, merges on green tests, keeps the status doc and this history current'],
+  ['GitHub CI', 'Runs the tests on every pull request (about 15 minutes) and the full suite on every merge; records the visual-test screenshots; publishes the test build to GitHub Pages'],
 ];
 
 // The same moment of a hunt (fixed seed and tick, desktop) recorded at each stage.
@@ -361,25 +361,68 @@ const stages = [
       { img: 'gfx3-shed-iphone', caption: 'The Skiet-Skuur gun cards with their new pictures, on an iPhone 14 held sideways.' },
     ],
   },
+  {
+    title: 'Screenshot baselines recorded on GitHub',
+    when: '23 Oct 2026, 21:20',
+    prs: '#55',
+    decision: 'D-030',
+    intro: 'The visual tests compare each screen with a stored screenshot. Those reference screenshots are now taken by GitHub, not on the build server.',
+    feedback: ['"yes, let GitHub record the screenshot baselines" (23 Oct, about 20:50)'],
+    bullets: [
+      'Label a pull request update-baselines (or start the workflow by hand): GitHub renders the screens in the same browser image as the tests, commits the ones that changed to the branch and re-runs the tests.',
+      'The heavy screenshot container no longer runs on Tank’s server, which had been the slowest step there, and every machine now compares against the same pictures.',
+    ],
+  },
+  {
+    title: 'v1.3 — Long range: the Ver plane, sights and zoom, Die Twee-Twee',
+    when: '24 Oct 2026, 02:24 (started 23 Oct, 18:00; part A merged 02:14)',
+    prs: '#53, #54',
+    decision: 'D-036',
+    intro: 'The first rifle. A new farthest layer of the landscape that only rifles can reach, sights that zoom when you hold, and two harder bonus maps.',
+    bullets: [
+      'Memory first: gun pictures are freed after a hunt on low-end phones, so the game stays under their 128 MB limit (about 106 MB at most, down from 125 MB after a hunt with both crate guns).',
+      'The Ver plane: a farthest layer with its own flocks, feeding spots and fly-overs, reachable only with a rifle.',
+      'Hold to raise the sight and zoom, let go to fire; sway and a breath hold. Iron sight 1.5×, peep 2×, small scope 4×. Sliding onto the ammo (touch) or right-clicking (mouse) lowers it without firing.',
+      'Die Twee-Twee (.22, 5 rounds) with three sights fitted in the Skiet-Skuur and unlocked through rank and the Notaboek.',
+      'Bonus maps Nog Verder and Die Verste; Die Verste needs a rifle with a scope, and its button says so.',
+      'Replays of zoomed shots play out identically on desktop, Pixel 7 and iPhone.',
+      'Balance (500 hunts per bot): the .22 scores below both shotguns on the plain maps (3 971 / 3 849 / 3 620 with iron / peep / scope, against 4 180 and 4 306); on the bonus maps every gun stays under 4 500. First download 2.94 MB of 3 MB; 908 unit tests.',
+    ],
+    feedbackLabel: 'Look review and independent review before merging',
+    feedback: [
+      'Claude’s look review: the scope and peep looked right; the iron sight’s rear leaf covered too much of the view and its front post was a hairline. Redrawn with a slim leaf and a broad, lit post; the dark area fell from about 35–40 % of the view to 13–15 %.',
+      'The independent review found that the rifle test bot never shot crates or secrets, so the first balance figures were wrong. With the bot fixed, the .22 and the bonus maps were retuned (Nog Verder ×0.6, Die Verste ×0.46). It also restored the approved rule that Die Verste needs a scope and fixed the bonus-map names, a mid-hunt stutter when a crate gun loaded, the rifle hints in four languages and the replay tool’s file format.',
+      'Speed: the scoped view passes its CPU budget on desktop and Pixel 7. On the phone profile it draws about 2.6 times the pixels of an open hunt, because the far layers all fill the screen when zoomed in; that is tracked in issue #56 for a check on a real phone before v1.4’s stronger scope.',
+    ],
+    images: [
+      { img: 'v13-scope', caption: 'Open view | small scope 4× on Nog Verder, held on a Ver flock (desktop).' },
+      { img: 'v13-peep', caption: 'Open view | peep sight 2× (desktop).' },
+      { img: 'v13-iron', caption: 'Open view | iron sight 1.5×, after the redraw (desktop).' },
+      { img: 'v13-scope-pixel7', caption: 'The small scope on a Pixel 7 held sideways.' },
+      { img: 'v13-shed', caption: 'The Skiet-Skuur: the Twee-Twee with its three sights.' },
+      { img: 'v13-die-verste-locked', caption: 'The title: Die Verste locked until a scoped rifle is fitted; the rifle hints along the bottom.' },
+    ],
+  },
 ];
 
 // The product owner's requests, in order.
 const requests = [
   ['22 Oct', 'Fix the birds and the gun before merging graphics pass 1', 'Done in graphics pass 1 (#35, #36)'],
-  ['22 Oct', 'Realistic ammo per gun, sound effects, crosshairs per gun, a .22 with far targets, sights and zoom', 'Plan approved (#40); ammo, crosshairs and sound in v1.1; long range in v1.3 and v1.4'],
+  ['22 Oct', 'Realistic ammo per gun, sound effects, crosshairs per gun, a .22 with far targets, sights and zoom', 'Plan approved (#40); ammo, crosshairs and sound in v1.1; the .22, sights and zoom in v1.3 (#53, #54); the long rifle in v1.4'],
   ['22 Oct', 'Karoo look: fix the grass, bushes and sky', 'Done in graphics pass 2 (#41, #42)'],
-  ['22 Oct, evening', '"Karoo approved … keep pushing, 24/7"', 'Claude checks in every 20 minutes, with an hourly backup check'],
+  ['22 Oct, evening', '"Karoo approved … keep pushing, 24/7"', 'Claude checks in every 10 minutes, with an hourly backup check'],
   ['23 Oct, 11:40', 'Farmhouse cut off, flat mountains, bakkie, guns and birds too cartoony, a bird with no texture', 'Graphics pass 3, merged at 17:58 (#49) after two look rounds and a code review'],
   ['23 Oct, 11:50', 'An admin URL to test every level and give feedback', 'Live at 13:32 (#48)'],
   ['23 Oct, 12:00', 'A document of what is built, what is not, estimates and who does what', 'The Build Status doc, updated at every change'],
-  ['23 Oct, 15:05', 'A training ground to test different guns, near and far', 'Queued after v1.3'],
+  ['23 Oct, 15:05', 'A training ground to test different guns, near and far', 'Next, straight after v1.3'],
   ['23 Oct, 15:20', 'A Word document with the build pictures and history', 'This document'],
+  ['23 Oct, 20:50', 'Let GitHub record the screenshot baselines', 'Done (#55)'],
+  ['23 Oct, 21:15', 'Keep the build file updated with an infographic every 2–3 hours; keep Tank building overnight', 'The build board and the status doc, refreshed every 2–3 hours and after each merge; v1.3 merged overnight'],
 ];
 
 const next = [
-  ['v1.3 Long range (running since 18:00, 23 Oct)', 'First a memory fix (gun pictures freed after a hunt); a far layer only rifles reach; iron sight 1.5×, peep 2×, small scope 4×; hold to zoom with sway; the .22 (Die Twee-Twee); bonus maps Nog Verder and Die Verste', 'Tank', '6–8 h, about 02:00–04:00 UTC on 24 Oct'],
-  ['Training ground (Skietbaan)', 'Try every gun on targets and birds at near, middle and far distance; hit statistics and spread; from the admin page', 'Tank', '3–4 h'],
-  ['v1.4 Die Langloop + Namibië', 'A long rifle with a 3–9× scope; the Namibië area (Etosha salt pan with mirages, quiver trees, Namib dunes, a far waterhole)', 'Tank', '6–8 h'],
+  ['Training ground (Skietbaan)', 'Try every gun on targets and birds at near, middle, far and Ver distance; hit statistics and spread; from the admin page', 'Tank', '3–4 h'],
+  ['v1.4 Die Langloop + Namibië', 'A long rifle with a 3–9× scope; the Namibië area (Etosha salt pan with mirages, quiver trees, Namib dunes, a far waterhole); first the scoped drawing cost (issue #56)', 'Tank', '6–8 h'],
 ];
 
 const decisions = [
@@ -403,6 +446,7 @@ const decisions = [
   ['D-033', 'v1.2 day-of-week maps and Verder'],
   ['D-034', 'Playtest admin page'],
   ['D-035', 'Art direction: semi-realistic (graphics pass 3)'],
+  ['D-036', 'v1.3 long range: the Ver plane, sights and zoom, the .22, Nog Verder and Die Verste'],
 ];
 
 const glossary = [

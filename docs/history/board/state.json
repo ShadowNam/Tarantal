@@ -1,0 +1,345 @@
+{
+ "asOf": "2026-10-24T02:40:00Z",
+ "done": [
+  {
+   "phase": "Foundations",
+   "step": "M0 Scaffold and guardrails",
+   "prs": [
+    1
+   ],
+   "prlabel": "#1",
+   "fromInit": true
+  },
+  {
+   "phase": "Foundations",
+   "step": "M1 Game engine",
+   "prs": [
+    2
+   ],
+   "prlabel": "#2"
+  },
+  {
+   "phase": "Foundations",
+   "step": "M2 First playable hunt",
+   "prs": [
+    3
+   ],
+   "prlabel": "#3"
+  },
+  {
+   "phase": "Foundations",
+   "step": "M3 The flock",
+   "prs": [
+    4
+   ],
+   "prlabel": "#4"
+  },
+  {
+   "phase": "Foundations",
+   "step": "M4 The Karoo",
+   "prs": [
+    5
+   ],
+   "prlabel": "#5"
+  },
+  {
+   "phase": "Foundations",
+   "step": "M5 Menus, saves, tutorial",
+   "prs": [
+    6
+   ],
+   "prlabel": "#6"
+  },
+  {
+   "phase": "Game modes",
+   "step": "M6 Season Run",
+   "prs": [
+    7,
+    8,
+    9
+   ],
+   "prlabel": "#7–#9"
+  },
+  {
+   "phase": "Game modes",
+   "step": "M7 Daily Hunt",
+   "prs": [
+    10,
+    11
+   ],
+   "prlabel": "#10, #11"
+  },
+  {
+   "phase": "Content and platform",
+   "step": "M8 Three more areas, arsenal",
+   "prs": [
+    12,
+    13,
+    14,
+    15,
+    16
+   ],
+   "prlabel": "#12–#16"
+  },
+  {
+   "phase": "Content and platform",
+   "step": "M9 Platform, speed, languages",
+   "prs": [
+    17,
+    18,
+    19,
+    20,
+    21
+   ],
+   "prlabel": "#17–#21"
+  },
+  {
+   "phase": "Version 1.0",
+   "step": "M10 v1.0.0 soft-launch ready",
+   "prs": [
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29
+   ],
+   "prlabel": "#22–#29"
+  },
+  {
+   "phase": "Version 1.0",
+   "step": "v1.0.1 Clean-up",
+   "prs": [
+    30,
+    31,
+    33,
+    34,
+    37,
+    38
+   ],
+   "prlabel": "#30–#38"
+  },
+  {
+   "phase": "Version 1.0",
+   "step": "Faster CI lanes",
+   "prs": [
+    39
+   ],
+   "prlabel": "#39"
+  },
+  {
+   "phase": "The look",
+   "step": "Graphics pass 1: guns, guineafowl",
+   "prs": [
+    32,
+    35,
+    36
+   ],
+   "prlabel": "#32, #35, #36"
+  },
+  {
+   "phase": "The look",
+   "step": "Long-range plan approved",
+   "prs": [
+    40
+   ],
+   "prlabel": "#40"
+  },
+  {
+   "phase": "The look",
+   "step": "Graphics pass 2: landscapes",
+   "prs": [
+    41,
+    42
+   ],
+   "prlabel": "#41, #42"
+  },
+  {
+   "phase": "Version 1.x",
+   "step": "v1.1 Gun feel and sound",
+   "prs": [
+    43,
+    44,
+    45
+   ],
+   "prlabel": "#43–#45"
+  },
+  {
+   "phase": "Version 1.x",
+   "step": "v1.2 Weekday maps, Verder",
+   "prs": [
+    46,
+    47
+   ],
+   "prlabel": "#47"
+  },
+  {
+   "phase": "Version 1.x",
+   "step": "Playtest admin page",
+   "prs": [
+    48
+   ],
+   "prlabel": "#48"
+  },
+  {
+   "phase": "Version 1.x",
+   "step": "Speed tests run alone",
+   "prs": [
+    50
+   ],
+   "prlabel": "#50"
+  },
+  {
+   "phase": "Version 1.x",
+   "step": "Graphics pass 3: semi-realistic",
+   "prs": [
+    49
+   ],
+   "prlabel": "#49"
+  },
+  {
+   "phase": "Version 1.x",
+   "step": "Development history (Word)",
+   "prs": [
+    51,
+    52
+   ],
+   "prlabel": "#51, #52"
+  },
+  {
+   "phase": "Version 1.x",
+   "step": "GitHub records screenshot baselines",
+   "prs": [
+    55
+   ],
+   "prlabel": "#55"
+  },
+  {
+   "phase": "Version 1.x",
+   "step": "v1.3 Long range, sights, .22",
+   "prs": [
+    53,
+    54
+   ],
+   "prlabel": "#53, #54"
+  }
+ ],
+ "open": [
+  {
+   "phase": "Version 1.x",
+   "step": "Training ground (Skietbaan)",
+   "status": "running",
+   "start": "2026-10-24T02:25:00Z",
+   "end": "2026-10-24T06:30:00Z",
+   "prlabel": "Tank e3ce98b0"
+  },
+  {
+   "phase": "Version 1.x",
+   "step": "v1.4 Die Langloop + Namibië",
+   "status": "next",
+   "start": "2026-10-24T06:30:00Z",
+   "end": "2026-10-24T14:30:00Z"
+  }
+ ],
+ "checklist": [
+  {
+   "item": "Memory fix: gun pictures freed after a hunt",
+   "status": "done",
+   "where": "PR #53"
+  },
+  {
+   "item": "Far layer Ver, rifles only",
+   "status": "done",
+   "where": "PR #53"
+  },
+  {
+   "item": "Hold to zoom, release to fire, hip shot, cancel",
+   "status": "done",
+   "where": "PR #53"
+  },
+  {
+   "item": "Iron 1.5×, peep 2×, scope 4×, sway, breath hold",
+   "status": "done",
+   "where": "PR #53"
+  },
+  {
+   "item": "Die Twee-Twee (.22, 5 rounds)",
+   "status": "done",
+   "where": "PR #54"
+  },
+  {
+   "item": "Sights fitted in the Skiet-Skuur",
+   "status": "done",
+   "where": "PR #54"
+  },
+  {
+   "item": "Bonus maps Nog Verder and Die Verste",
+   "status": "done",
+   "where": "PR #54"
+  },
+  {
+   "item": "Admin page entries",
+   "status": "done",
+   "where": "PR #54"
+  },
+  {
+   "item": "Rifle replays identical in every browser",
+   "status": "done",
+   "where": "PR #54"
+  },
+  {
+   "item": "Sight screenshots: desktop, Pixel 7, iPhone 14",
+   "status": "done",
+   "where": "PR #53"
+  },
+  {
+   "item": "60 fps while scoped, memory under 128 MB",
+   "status": "done",
+   "where": "PR #54: CPU budget passes; phone drawing cost in issue #56"
+  },
+  {
+   "item": "Balance report after the change",
+   "status": "done",
+   "where": "PR #54: 500-seed table, all gates pass"
+  },
+  {
+   "item": "Rifle input fixes (hip shot, extra fingers, first aim move)",
+   "status": "done",
+   "where": "PR #53"
+  },
+  {
+   "item": "Iron sight look fix",
+   "status": "done",
+   "where": "PR #53"
+  },
+  {
+   "item": "Independent review",
+   "status": "done",
+   "where": "Claude; 10 fixes for Tank"
+  },
+  {
+   "item": "Review fixes (rifle bot, Die Verste scope rule, labels, checks)",
+   "status": "done",
+   "where": "PR #53, #54"
+  },
+  {
+   "item": "Screenshots to you, merge",
+   "status": "done",
+   "where": "merged 24 Oct 02:24"
+  }
+ ],
+ "numbers": [
+  {
+   "metric": "Unit tests",
+   "value": 908,
+   "note": "on main, plus 37 browser test suites on 3 devices"
+  },
+  {
+   "metric": "First download (KB)",
+   "value": 2940.7,
+   "note": "on main; budget 3,072 KB (3 MB)"
+  }
+ ]
+}
