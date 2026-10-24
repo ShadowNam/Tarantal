@@ -21,6 +21,9 @@ import { cellTitle, gunNameById, rangeReport } from './rangeReport';
 import { rt } from './rangeI18n';
 import { RangeStats, type Impact, type RangeCell, type RangeSelection } from './rangeStats';
 
+/** Rendering only (review fix): a plate rings, a paper blinks at most once per this (ms). */
+const FEEDBACK_COOLDOWN_MS = 180;
+
 /** The page's session: stats and the last choice survive scene restarts (not a reload). */
 const stats = new RangeStats();
 let choice: RangeChoice | null = null;
@@ -108,6 +111,8 @@ class Session implements RangeSession {
   private papers: PaperDraw[] = [];
   private plates = new Map<number, PlateDraw>();
   private marks: RangeFeedback | null = null;
+  /** Feedback key (a plate's ding, a paper's blink) → when it last ran (scene ms). */
+  private readonly lastFeedback = new Map<string, number>();
   /** Range shots in the air: where each was counted (its miss marker goes there). */
   private readonly aims = new Map<number, { plane: PlaneId; x: number; y: number }>();
   private readonly sel: RangeSelection;
@@ -271,7 +276,10 @@ class Session implements RangeSession {
         if (plate === undefined || key === rung) continue;
         rung = key;
         plate.hit(e.x);
-        playRangeSound(host.audio, 'ding', this.pan(state, plate.plane, e.x));
+        // Rapid fire (the Mielie-Masjien): one ding per plate per cooldown, so the long rings
+        // don't fill the voice limit and drop the gunshots.
+        if (this.cooled(`ding:${String(e.paperId)}`))
+          playRangeSound(host.audio, 'ding', this.pan(state, plate.plane, e.x));
       } else if (e.type === 'rangeOutcome') {
         const aim = this.aims.get(e.shotId);
         this.aims.delete(e.shotId);
@@ -285,6 +293,8 @@ class Session implements RangeSession {
             if (p === undefined) continue;
             this.marks?.hit(h.plane, p.x, p.y, p.r);
             if (h.target === 'plate') continue;
+            // One blink (and thwack) per paper per cooldown: rapid fire must not strobe it.
+            if (!this.cooled(`paper:${String(h.id)}`)) continue;
             this.papers.find((x) => x.id === h.id)?.blink(host.reduceFlashes());
             playRangeSound(host.audio, 'thwack', this.pan(state, h.plane, p.x));
           } else {
@@ -300,6 +310,15 @@ class Session implements RangeSession {
         }
       }
     }
+  }
+
+  /** True (and the clock restarts) when `key`'s feedback last ran FEEDBACK_COOLDOWN_MS ago. */
+  private cooled(key: string): boolean {
+    const now = this.host?.scene.time.now ?? 0;
+    const last = this.lastFeedback.get(key);
+    if (last !== undefined && now - last < FEEDBACK_COOLDOWN_MS) return false;
+    this.lastFeedback.set(key, now);
+    return true;
   }
 
   private body(): { rx: number; ox: number; oy: number } | null {
@@ -347,6 +366,7 @@ class Session implements RangeSession {
     this.marks?.destroy();
     this.marks = null;
     this.aims.clear();
+    this.lastFeedback.clear();
     this.host = null;
   }
 }

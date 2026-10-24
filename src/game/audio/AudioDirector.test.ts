@@ -301,4 +301,19 @@ describe('AudioDirector: each gun its own sounds (v1.1, D-032)', () => {
     expect(r.ctx.sources.length).toBe(at);
     expect(r.audio.masterGain).toBe(0);
   });
+  it('playExtra (the Skietbaan sounds) plays its synth, and nothing while muted', async () => {
+    const r = rig(undefined, guns);
+    r.audio.unlock();
+    await flush();
+    let calls = 0;
+    const synth = (): number => {
+      calls++;
+      return 0.1;
+    };
+    r.audio.playExtra('sfx/range_ding', 0, synth);
+    expect(calls).toBe(1);
+    r.audio.setMuted('ad', true);
+    r.audio.playExtra('sfx/range_ding', 0, synth);
+    expect(calls).toBe(1);
+  });
 });

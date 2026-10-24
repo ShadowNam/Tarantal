@@ -446,6 +446,7 @@ export class AudioDirector {
 
   /** 24 Oct (D-037): a sound a lazy chunk brings (its recording once added, else its synth). */
   playExtra(key: string, pan: number, synth: Synth): void {
+    if (this.ctx === null || this.muted) return;
     this.voice(key, pan, this.sfxBus, synth);
   }
 
