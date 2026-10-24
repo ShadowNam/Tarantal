@@ -37,6 +37,7 @@
     {
       "id": "kettie",
       "kind": "primary",
+      "markSize": "heavy",
       "unlock": { "type": "challenge", "id": "whole_flock_x3" },
       "magazine": -1,
       "reloadMs": 0,
@@ -90,6 +91,7 @@
       "$comment": "v1.4 (D-038) Die Langloop: a generic long-range rifle. 3 rounds, a 1.5 s magazine change and a 0.8 s bolt between shots; hold to raise the variable scope (3x / 6x / 9x, stepped with the wheel, +/- or the on-screen buttons), release to fire. Very loud: every shot alerts every flock. Reaches Ver (x2 there). Unlocked by unlocking Die Verste once (Notaboek).",
       "id": "langloop",
       "kind": "primary",
+      "markSize": "heavy",
       "unlock": { "type": "challenge", "id": "unlock_die_verste" },
       "magazine": 3,
       "reloadMs": 1500,

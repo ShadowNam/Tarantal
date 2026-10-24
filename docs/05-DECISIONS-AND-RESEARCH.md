@@ -2023,7 +2023,8 @@ only swung the plate (on the wall clock) and drew nothing; paper drew only the n
 (an even off-white face, soft light from the upper left), a clean bevelled steel rim and clean
 chains; `range/plate_frame` is new: camelthorn timber posts and crossbar at the v1.4 bar.
 (3) *Marks from the sim's impacts:* one mark per `paperHit`/`plateHit`, at that point, sized by
-gun class (shot / rifle / heavy) and plane, shaped from shot id, tick and pellet index (no
+the gun's `markSize` in `content/weapons.json` (`pellet` / `rifle` / `heavy`; unset: `pellet` for
+a multi-pellet gun, else `rifle` — the Langloop and the Kettie say `heavy`) and the plane, shaped from shot id, tick and pellet index (no
 per-frame random; detmath trig). Plate marks are drawn in the plate's swinging frame; the swing
 and the newest mark's 1.25 s glint run on the snapshot tick, so `?holdAt` holds them.
 (4) *One rule for paper and steel:* every hit stays for the Skietbaan visit, per (area, course, distance,

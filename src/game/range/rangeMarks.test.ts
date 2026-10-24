@@ -17,6 +17,7 @@ import {
   type MarkImpact,
 } from './rangeMarks';
 import type { PaperView } from '../../sim/types';
+import { loadContent } from '../../../tools/testContent';
 
 const plate: PaperView = { id: 7, kind: 'plate', plane: 'mid', x: 1200, y: 640, r: 50 };
 const key = targetKey({
@@ -83,11 +84,24 @@ describe('Skietbaan hit marks (D-040)', () => {
   });
 
   it('size: shot small, the .22 medium, the Langloop larger; scaled by plane', () => {
-    expect(markClass('dubbelloop', 8)).toBe('shot');
-    expect(markClass('twee_twee', 1)).toBe('rifle');
-    expect(markClass('langloop', 1)).toBe('heavy');
-    const near = (c: 'shot' | 'rifle' | 'heavy'): number => markSize('plate', c, 1, 100) * 100;
-    expect(near('shot')).toBeLessThan(near('rifle'));
+    // From weapon content: the Langloop and the Kettie say "heavy"; others default by pellets.
+    const weapons = loadContent().weapons.weapons;
+    const cls = (id: string): string => {
+      const w = weapons.find((x) => x.id === id);
+      if (w === undefined) throw new Error(id);
+      return markClass(w);
+    };
+    expect(cls('dubbelloop')).toBe('pellet');
+    expect(cls('twee_twee')).toBe('rifle');
+    expect(cls('windbuks')).toBe('rifle');
+    expect(cls('langloop')).toBe('heavy');
+    expect(cls('kettie')).toBe('heavy');
+    // A new gun with no markSize: a single bullet is a rifle, a shot shell is pellets.
+    expect(markClass({ pellets: 1 })).toBe('rifle');
+    expect(markClass({ pellets: 9 })).toBe('pellet');
+    expect(markClass({ pellets: 1, markSize: 'heavy' })).toBe('heavy');
+    const near = (c: 'pellet' | 'rifle' | 'heavy'): number => markSize('plate', c, 1, 100) * 100;
+    expect(near('pellet')).toBeLessThan(near('rifle'));
     expect(near('rifle')).toBeLessThan(near('heavy'));
     // At Ver (scale 0.1, r 10) the mark is a tenth as many px but the same share of the plate.
     expect(markSize('plate', 'rifle', 0.1, 10)).toBeCloseTo(markSize('plate', 'rifle', 1, 100), 9);

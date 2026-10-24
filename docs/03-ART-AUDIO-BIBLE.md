@@ -244,7 +244,8 @@ Semi-realistic (D-035): no dark contours, light from the upper left. Interim art
   the paint flaked off (light edge #DFE3E6, splash #B3B9BF), a darker lead centre (#5B6167), 3–6
   small spatter flecks around it (#9EA5AB). Paper — a dark punched hole with a faint ring of torn
   fibre. Radius at near (plane scale 1): steel 5 / 8 / 12 px, paper 3 / 4.5 / 6.5 px for a shot
-  pellet / a .22-class bullet / the Langloop or a Kettie stone; scaled with the plane. The shape
+  pellet / a .22-class bullet / the Langloop or a Kettie stone (the weapon's `markSize` in
+  `content/weapons.json`: `pellet` / `rifle` / `heavy`); scaled with the plane. The shape
   comes from the impact (shot id, tick, pellet index), never a per-frame random. The newest mark
   glints (a pale ring on steel, the yellow NEWEST disc on paper) for 1.25 s, fading over its last
   third.

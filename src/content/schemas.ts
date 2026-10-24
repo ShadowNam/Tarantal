@@ -290,6 +290,10 @@ const unlockSchema = z.discriminatedUnion('type', [
   obj({ type: z.literal('rank'), id }),
 ]);
 
+/** D-040: how big a hit mark this gun leaves on a Skietbaan plate or paper (rendering only).
+ *  Unset: "pellet" for a multi-pellet gun, else "rifle" (src/game/range/rangeMarks.ts). */
+export const MarkSizeSchema = z.enum(['pellet', 'rifle', 'heavy']);
+
 const primaryWeaponSchema = obj({
   id,
   kind: z.literal('primary'),
@@ -301,6 +305,8 @@ const primaryWeaponSchema = obj({
   interruptibleReload: z.boolean().optional(),
   fireCooldownMs: posInt,
   pellets: posInt,
+  /** D-040: the Skietbaan hit-mark size (unset: from the pellet count). */
+  markSize: MarkSizeSchema.optional(),
   spreadPx: nonNeg,
   alertRadiusPx: nonNeg,
   windSensitivity: nonNeg,
@@ -377,6 +383,8 @@ const crateWeaponSchema = obj({
     fireIntervalMs: posInt.optional(),
     reloadMs: nonNegInt.optional(),
     pellets: posInt,
+    /** D-040: the Skietbaan hit-mark size (unset: from the pellet count). */
+    markSize: MarkSizeSchema.optional(),
     spreadPx: nonNeg,
     alertRadiusPx: nonNeg,
     windSensitivity: nonNeg,

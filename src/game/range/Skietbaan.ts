@@ -165,7 +165,8 @@ class Session implements RangeSession {
     this.base = shuffled?.base ?? menu.nextSeed();
     this.seed = shuffleSeed(this.base, shuffled?.n ?? 0);
     this.sel = selection(menu, choice);
-    this.markCls = markClass(gun.weapon, gun.pellets);
+    const weapon = menu.content.weapons.weapons.find((w) => w.id === gun.weapon);
+    this.markCls = markClass(weapon ?? { pellets: gun.pellets });
   }
 
   /** Screen px per plane px at the strongest sight (the mark bakes' level 0 is sized for it). */

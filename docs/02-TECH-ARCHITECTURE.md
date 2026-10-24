@@ -685,7 +685,8 @@ or "Send to GitHub" (a prefilled `issues/new?labels=playtest` link ≤ 7 KB, `sr
   the events and kept in memory. Strings come from `src/i18n/range/<lang>.json`, checked by
   `content:validate` like `src/i18n`.
 - **Hit marks (D-040):** `rangeMarks.ts` (pure) turns each `paperHit`/`plateHit` into a `Mark`
-  (offset from the target's centre over its radius, size from the gun class and plane scale, a
+  (offset from the target's centre over its radius, size from the weapon's optional `markSize`
+  — `pellet` | `rifle` | `heavy`, default from the pellet count — and plane scale, a
   shape seed from shot id, tick and pellet index; shapes use `sim/detmath` trig) and keeps them in
   a module-level `MarkStore` for the visit, keyed `area|course|plane|kind|index` (course: `mixed` or the single course's target kind, so
   the mixed course never shares marks with the paper or plate course; index among the

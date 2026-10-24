@@ -5,6 +5,8 @@
 // switch to another setup and back keep them; leaving the Skietbaan or Repaint clears them.
 // A mark's shape comes from the impact itself (shot id, tick, pellet index), never from a
 // per-frame random, so a replay, a held frame and every device draw the same marks.
+import type { z } from 'zod';
+import type { MarkSizeSchema, Weapon } from '../../content/schemas';
 import { cos, sin } from '../../sim/detmath';
 import { fnv1a32 } from '../../sim/rng';
 import type { PaperView, PlaneId } from '../../sim/types';
@@ -16,19 +18,19 @@ export const MARK_TRIM = 50;
 /** The newest mark is highlighted for this long (sim ticks), then settles. */
 export const NEWEST_TICKS = 75;
 
-/** How big a gun's mark is: shot pellets small, a .22 medium, the Langloop (or a stone) large. */
-export type MarkClass = 'shot' | 'rifle' | 'heavy';
-/** Rendering only: guns whose single projectile leaves a large mark. */
-const HEAVY = new Set(['langloop', 'kettie']);
+/** How big a gun's mark is: shot pellets small, a .22 medium, the Langloop (or a stone) large.
+ *  From weapon content (`markSize`), defaulting from the pellet count. */
+export type MarkClass = z.infer<typeof MarkSizeSchema>;
 /** Mark radius in design px at plane scale 1 (near), by kind of target and class. */
 const MARK_PX: Readonly<Record<PaperView['kind'], Readonly<Record<MarkClass, number>>>> = {
-  plate: { shot: 5, rifle: 8, heavy: 12 },
-  paper: { shot: 3, rifle: 4.5, heavy: 6.5 },
+  plate: { pellet: 5, rifle: 8, heavy: 12 },
+  paper: { pellet: 3, rifle: 4.5, heavy: 6.5 },
 };
 
-export function markClass(weapon: string, pellets: number): MarkClass {
-  if (pellets > 1) return 'shot';
-  return HEAVY.has(weapon) ? 'heavy' : 'rifle';
+/** A weapon's mark size: its content `markSize`, else "pellet" for a multi-pellet gun, else
+ *  "rifle" (so a new rifle gets the .22's size until content says otherwise). */
+export function markClass(w: Pick<Weapon, 'pellets' | 'markSize'>): MarkClass {
+  return w.markSize ?? (w.pellets > 1 ? 'pellet' : 'rifle');
 }
 
 /** A mark's radius in units of the target's radius (the plane's scale is in both). */
