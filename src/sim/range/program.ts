@@ -19,6 +19,8 @@ export interface RangeSlot {
   readonly plane: PlaneId;
   readonly target: RangeTarget;
   readonly dx: number;
+  /** A paper or plate spot's own y (design px); absent (the mixed course): its kind's first. */
+  readonly y?: number;
 }
 
 type MixedSetup = ContentBundle['modes']['modes']['range']['mixed'];
@@ -76,8 +78,8 @@ function singleLayout(
   target: RangeTarget,
 ): RangeSlot[] {
   const spots = setup.spots[plane];
-  if (target === 'paper') return spots.paper.map((p) => ({ plane, target, dx: p.dx }));
-  if (target === 'plate') return spots.plate.map((p) => ({ plane, target, dx: p.dx }));
+  if (target === 'paper') return spots.paper.map((p) => ({ plane, target, dx: p.dx, y: p.y }));
+  if (target === 'plate') return spots.plate.map((p) => ({ plane, target, dx: p.dx, y: p.y }));
   if (target === 'stand') return [{ plane, target, dx: spots.stand.dx }];
   if (target === 'flock') return [{ plane, target, dx: spots.flockDx }];
   return [{ plane, target, dx: 0 }];
@@ -135,7 +137,7 @@ export const createRangeProgram: RangeProgramFactory = ({
         kind: slot.target,
         plane: slot.plane,
         x: centre(slot.plane) + slot.dx,
-        y: (plate ? spots.plate : spots.paper)[0]?.y ?? spots.stand.y,
+        y: slot.y ?? (plate ? spots.plate : spots.paper)[0]?.y ?? spots.stand.y,
         r: (plate ? setup.plateRadiusPx : setup.paperRadiusPx) * scale,
       });
     } else live.push({ slot, ids: [], dueAt: 0, dir: 1 });

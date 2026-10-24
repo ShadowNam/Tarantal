@@ -161,3 +161,29 @@ describe('paper', () => {
     expect(sim.snapshot().range?.papers).toHaveLength(setup.spots.far.paper.length);
   });
 });
+
+describe('review fix: each paper and plate spot keeps its own y', () => {
+  it('two spots at different heights stand at their own y', () => {
+    const two = structuredClone(content);
+    const near = two.modes.modes.range.spots.near;
+    (near as { paper: { dx: number; y: number }[] }).paper = [
+      { dx: -300, y: 650 },
+      { dx: 300, y: 760 },
+    ];
+    (near as { plate: { dx: number; y: number }[] }).plate = [
+      { dx: -300, y: 700 },
+      { dx: 300, y: 780 },
+    ];
+    for (const target of ['paper', 'plate'] as const) {
+      const sim = createSim({
+        seed: 1,
+        content: two,
+        mode: { id: 'range', biome: 'karoo-autumn', range: { plane: 'near', target } },
+        inputKind: 'pointer',
+        rangeProgram: createRangeProgram,
+      });
+      const ys = (sim.snapshot().range?.papers ?? []).map((p) => p.y);
+      expect(ys, target).toEqual(target === 'paper' ? [650, 760] : [700, 780]);
+    }
+  });
+});
