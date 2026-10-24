@@ -6,6 +6,7 @@ import * as Phaser from 'phaser';
 import type { LivePrefs } from '../prefs';
 import type { Biome, ContentBundle, Feel } from '../../content/schemas';
 import type { PlaneId, SimState } from '../../sim/types';
+import { TICKS_PER_SECOND } from '../../sim/clock';
 import { coreWidth } from '../../sim/world';
 import { TEX } from '../assets/AssetManifest';
 import type { ParallaxView } from './ParallaxView';
@@ -109,7 +110,7 @@ export class WorldView {
     const now = this.scene.time.now;
     this.drawSecrets(s, now);
     this.drawCrates(s);
-    this.drawDevils(s, now);
+    this.drawDevils(s);
     this.drawStones(s, width, height);
     if (s.glare !== null) this.drawGlare(s.glare, width, height);
     if (s.rain || this.rain !== null) this.drawRain(s.rain);
@@ -206,7 +207,9 @@ export class WorldView {
     }
   }
 
-  private drawDevils(s: SimState, now: number): void {
+  private drawDevils(s: SimState): void {
+    // Sway on sim time, not the wall clock: a held hunt (?holdAt) holds its dust devils too.
+    const simMs = (s.tick * 1000) / TICKS_PER_SECOND;
     const seen = new Set<number>();
     for (const d of s.dustDevils) {
       seen.add(d.id);
@@ -219,7 +222,7 @@ export class WorldView {
       img
         .setPosition(d.x, d.y)
         .setScale(d.radius / 150, d.radius / 150)
-        .setRotation(Math.sin(now / DEVIL_SWAY_MS + d.id) * DEVIL_SWAY);
+        .setRotation(Math.sin(simMs / DEVIL_SWAY_MS + d.id) * DEVIL_SWAY);
     }
     for (const [id, img] of this.devils) {
       if (seen.has(id)) continue;
