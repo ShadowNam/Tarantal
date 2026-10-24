@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { BONUS_MAP_IDS } from '../content/schemas';
 import { loadContent } from '../../tools/testContent';
 import {
+  bonusOpenFor,
   applyBonusResult,
   bonusAllowsSight,
   bonusKeys,
@@ -167,5 +168,23 @@ describe('bonus maps and sights (v1.3, D-036)', () => {
     expect(bonusSlug('verder')).toBe('verder');
     expect(bonusSlug('nogVerder')).toBe('nog_verder');
     expect(bonusSlug('dieVerste')).toBe('die_verste');
+  });
+});
+
+describe('v1.4 B: a bonus map opens for the Classic area that unlocked it', () => {
+  const c = loadContent();
+  const save = { day: 100, unlocked: ['namibie/verder', 'karoo-autumn/dieVerste'], bests: {} };
+  it('Namibië picked, namibie/verder unlocked today: Verder opens there, not in the Karoo', () => {
+    expect(bonusOpenFor(c, save, 100, 'namibie', 'verder', undefined)).toBe(true);
+    expect(bonusOpenFor(c, save, 100, 'karoo-autumn', 'verder', undefined)).toBe(false);
+  });
+  it("yesterday's unlock is gone; Die Verste still needs a scope", () => {
+    expect(bonusOpenFor(c, save, 101, 'namibie', 'verder', undefined)).toBe(false);
+    expect(bonusOpenFor(c, save, 100, 'karoo-autumn', 'dieVerste', undefined)).toBe(false);
+    expect(bonusOpenFor(c, save, 100, 'karoo-autumn', 'dieVerste', 'scope_small')).toBe(true);
+  });
+  it('an unknown area or bonus map never opens', () => {
+    expect(bonusOpenFor(c, save, 100, 'nowhere', 'verder', undefined)).toBe(false);
+    expect(bonusOpenFor(c, save, 100, 'namibie', 'nope', undefined)).toBe(false);
   });
 });

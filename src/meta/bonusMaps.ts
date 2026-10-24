@@ -42,6 +42,28 @@ export function bonusAllowsSight(
   return map?.needsScope !== true || isScope(content, sight);
 }
 
+/**
+ * v1.4 B (D-039 review): whether a Classic hunt in `area` can start on `bonus` today: the area has
+ * that bonus map, it is unlocked for today in that area, and the sight fits (Die Verste needs a
+ * scope). The title draws its bonus buttons for the chosen area; the hunt must check the same
+ * area, or a pressed Verder plays a plain hunt.
+ */
+export function bonusOpenFor(
+  content: Pick<ContentBundle, 'weapons' | 'biomes'>,
+  save: BonusMapSave,
+  day: number,
+  area: string,
+  bonus: string,
+  sight: string | undefined,
+): boolean {
+  const map = content.biomes.find((b) => b.id === area)?.bonusMaps.find((m) => m.id === bonus);
+  return (
+    map !== undefined &&
+    isUnlocked(save, day, area, bonus) &&
+    bonusAllowsSight(content, area, bonus, sight)
+  );
+}
+
 /** v1.3: the i18n keys a bonus map's name, best line and unlock line use. */
 export function bonusKeys(id: string): { name: string; best: string; unlocked: string } {
   const slug = bonusSlug(id);

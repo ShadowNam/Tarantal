@@ -159,3 +159,36 @@ test('Namibië: Die Verste reached opens it; Classic plays there and the Langloo
   expect((await hook(page)).weapon).toBe('langloop');
   expect(errors).toEqual([]);
 });
+
+test('Namibië: with Verder unlocked there today, the title starts Verder in Namibië', async ({
+  page,
+}, info) => {
+  gate(info);
+  test.setTimeout(300_000);
+  const touch = isTouchProject(info);
+  const errors = collectErrors(page);
+  await page.addInitScript((d) => {
+    localStorage.setItem(
+      'tm.e2e.save.v1',
+      JSON.stringify({
+        v: 1,
+        settings: { quality: 'medium' },
+        ftue: { done: true, skipped: false, step: '' },
+        areas: { unlocked: ['namibie'], classic: 'namibie' },
+        bonusMaps: { day: d, unlocked: ['namibie/verder'], bests: {} },
+      }),
+    );
+  }, DAY.n);
+  await boot(page, `seed=47&today=${DAY.key}&huntSeconds=20`);
+  await page.waitForFunction(() => window.__TM__?.rects['verder'] !== undefined, null, {
+    timeout: 60_000,
+  });
+  expect((await hook(page)).classicArea).toBe('namibie');
+  await tapRect(page, touch, 'verder');
+  await page.waitForFunction(
+    () => window.__TM__?.biome === 'namibie' && window.__TM__.map?.bonus === 'verder',
+    null,
+    { timeout: 120_000 },
+  );
+  expect(errors).toEqual([]);
+});

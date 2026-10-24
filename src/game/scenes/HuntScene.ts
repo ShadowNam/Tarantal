@@ -46,13 +46,7 @@ import { WeaverView } from '../view/WeaverView';
 import { textureBytes } from '../assets/textureBytes';
 import { mapLights, mapOmen, resolveMap, type ResolvedMap } from '../../sim/maps';
 import { layoutForDay } from '../../meta/maps';
-import {
-  applyBonusResult,
-  bonusAllowsSight,
-  bonusKeys,
-  bonusSlug,
-  isUnlocked,
-} from '../../meta/bonusMaps';
+import { applyBonusResult, bonusKeys, bonusOpenFor, bonusSlug } from '../../meta/bonusMaps';
 import { formatScore } from '../ui/format';
 import type { HudScene } from './HudScene';
 import type { PauseData } from './PauseScene';
@@ -837,11 +831,13 @@ export class HuntScene extends Phaser.Scene {
       bonus !== undefined &&
       modeId === 'classic' &&
       challenge === null &&
-      isUnlocked(save.bonusMaps, this.huntDay, this.ctx.biome.id, bonus) &&
+      // v1.4 B: the Classic area's bonus maps (Namibië's once picked), the same the title draws;
       // v1.3 (D-036): Die Verste starts only with a scope fitted (the title button says so).
-      bonusAllowsSight(
+      bonusOpenFor(
         this.ctx.content,
-        this.ctx.biome.id,
+        save.bonusMaps,
+        this.huntDay,
+        this.ctx.classicBiome ?? this.ctx.classicArea(),
         bonus,
         this.withSight({ id: 'classic', ...(weapon === undefined ? {} : { weapon }) }).sight,
       );
