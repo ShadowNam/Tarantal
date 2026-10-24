@@ -6,13 +6,13 @@
 // 'range' stream (the mixed layout, fly-over bob, flock placement).
 import type { ContentBundle } from '../../content/schemas';
 import { createFlyover, type Bird, type BirdCreature } from '../birds/Bird';
-import { planeCentreX } from '../camera';
+import { planeCentreX, planeToDx } from '../camera';
 import type { Flock } from '../flocks/Flock';
 import { msToTicks, TICKS_PER_SECOND } from '../clock';
 import type { RandomStream } from '../rng';
 import type { PaperView, PlaneId, RangeConfig, RangeTarget } from '../types';
 import { PLANES } from '../types';
-import type { RangeProgram, RangeProgramFactory, RangeWorld } from './types';
+import type { RangeHit, RangeProgram, RangeProgramFactory, RangeWorld } from './types';
 
 /** One target spot of the course (x, y in its plane's px; dx from the screen centre). */
 export interface RangeSlot {
@@ -191,6 +191,43 @@ export const createRangeProgram: RangeProgramFactory = ({
   return {
     papers,
     targetOf: (birdId) => kindOf.get(birdId) ?? null,
+    aimTarget(camX, dx, sy, birds) {
+      if (range.plane !== 'all' && range.target !== 'mixed')
+        return { plane: range.plane, target: range.target };
+      const all: { plane: PlaneId; target: RangeTarget; x: number; y: number }[] = papers.map(
+        (p) => ({ plane: p.plane, target: p.kind, x: p.x, y: p.y }),
+      );
+      for (const b of birds) {
+        const target = kindOf.get(b.id);
+        if (target !== undefined) all.push({ plane: b.plane, target, x: b.x, y: b.y });
+      }
+      let best: { plane: PlaneId; target: RangeTarget } = { plane: 'near', target: 'paper' };
+      let bestD = Infinity;
+      for (const t of all) {
+        const ex = planeToDx(camX, planes[t.plane].scrollFactor, t.x) - dx;
+        const ey = t.y - sy;
+        const d = ex * ex + ey * ey;
+        if (d < bestD) {
+          bestD = d;
+          best = { plane: t.plane, target: t.target };
+        }
+      }
+      return best;
+    },
+    hits(paperPellets, pelletsOn, birds) {
+      const out: RangeHit[] = [];
+      for (const [id, n] of paperPellets) {
+        const p = papers.find((x) => x.id === id);
+        if (p !== undefined) out.push({ plane: p.plane, target: p.kind, id, pellets: n });
+      }
+      for (const b of birds) {
+        const n = pelletsOn.get(b.id);
+        const target = kindOf.get(b.id);
+        if (n !== undefined && target !== undefined)
+          out.push({ plane: b.plane, target, id: b.id, pellets: n });
+      }
+      return out;
+    },
     step(world) {
       if (live.length === 0) return { birds: [], flocks: [], retire: [] };
       // A bird beyond its plane's range half-width has left it: a fly-over past the far side of

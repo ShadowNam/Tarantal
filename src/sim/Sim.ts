@@ -1304,9 +1304,9 @@ export function createSim(config: SimConfig): Sim {
       ...(how === undefined ? {} : { aim: how }),
     });
     const ctx: ShotContext = { shotId, shot, shellIndex, lastShell, cx: cameraX };
-    if (rangeCfg !== null) {
+    if (rangeProgram !== null) {
       // The Skietbaan's aim point on its plane: groups are measured from it.
-      const aimed = rangeAimTarget(aimAt.dx, aimAt.sy);
+      const aimed = rangeProgram.aimTarget(cameraX, aimAt.dx, aimAt.sy, birds);
       const p = tapToPlane(cameraX, planeGeo[aimed.plane].scrollFactor, aimAt.dx, aimAt.sy);
       rangeShots.set(shotId, { ...aimed, cx: cameraX, dx: aimAt.dx, sy: aimAt.sy });
       emit({ type: 'rangeShot', tick, shotId, ...aimed, x: p.x, y: p.y });
@@ -1452,7 +1452,14 @@ export function createSim(config: SimConfig): Sim {
       if (crateId !== null && !crateHits.includes(crateId)) crateHits.push(crateId);
     }
 
-    if (ranged) rangeOutcome(shotId, shot.reachesVer, paperPellets, pelletsOn);
+    if (rangeProgram !== null) {
+      // 24 Oct update (D-037): what the shot hit, or that it missed (short: of Ver).
+      const aimed = rangeShots.get(shotId);
+      rangeShots.delete(shotId);
+      const hits = rangeProgram.hits(paperPellets, pelletsOn, birds);
+      const short = hits.length === 0 && aimed?.plane === 'ver' && !shot.reachesVer;
+      emit({ type: 'rangeOutcome', tick, shotId, hits, short });
+    }
 
     // Damage, in bird order (stable).
     const damage = applyShotDamage(birds, pelletsOn, shot.pellets);
@@ -2259,61 +2266,6 @@ export function createSim(config: SimConfig): Sim {
       charmTrigger('huntEnd');
       emit({ type: 'huntEnded', tick, score });
     }
-  }
-
-  /**
-   * 24 Oct update (D-037): the target a range shot is counted for if it hits nothing — outside
-   * the mixed course the range's plane and kind; on it, the target nearest the aim point on
-   * screen (ties: papers and plates before birds, lower id first).
-   */
-  function rangeAimTarget(dx: number, sy: number): { plane: PlaneId; target: RangeTarget } {
-    if (rangeCfg === null || rangeProgram === null) return { plane: 'near', target: 'paper' };
-    if (rangeCfg.plane !== 'all' && rangeCfg.target !== 'mixed')
-      return { plane: rangeCfg.plane, target: rangeCfg.target };
-    const all: { plane: PlaneId; target: RangeTarget; x: number; y: number }[] = papers.map(
-      (p) => ({ plane: p.plane, target: p.kind, x: p.x, y: p.y }),
-    );
-    for (const b of birds) {
-      const target = rangeProgram.targetOf(b.id);
-      if (target !== null) all.push({ plane: b.plane, target, x: b.x, y: b.y });
-    }
-    let best: { plane: PlaneId; target: RangeTarget } | null = null;
-    let bestD = Infinity;
-    for (const t of all) {
-      const ex = planeToDx(cameraX, planeGeo[t.plane].scrollFactor, t.x) - dx;
-      const ey = t.y - sy;
-      const d = ex * ex + ey * ey;
-      if (d < bestD) {
-        bestD = d;
-        best = { plane: t.plane, target: t.target };
-      }
-    }
-    return best ?? { plane: 'near', target: 'paper' };
-  }
-
-  /** 24 Oct update (D-037): what a range shot hit (or that it missed, or fell short). */
-  function rangeOutcome(
-    shotId: number,
-    reachesVer: boolean,
-    paperPellets: ReadonlyMap<number, number>,
-    pelletsOn: ReadonlyMap<number, number>,
-  ): void {
-    const aimed = rangeShots.get(shotId);
-    rangeShots.delete(shotId);
-    if (rangeProgram === null) return;
-    const hits: { plane: PlaneId; target: RangeTarget; id: number; pellets: number }[] = [];
-    for (const [id, n] of paperPellets) {
-      const p = papers.find((x) => x.id === id);
-      if (p !== undefined) hits.push({ plane: p.plane, target: p.kind, id, pellets: n });
-    }
-    for (const b of birds) {
-      const n = pelletsOn.get(b.id);
-      const target = rangeProgram.targetOf(b.id);
-      if (n !== undefined && target !== null)
-        hits.push({ plane: b.plane, target, id: b.id, pellets: n });
-    }
-    const short = hits.length === 0 && aimed?.plane === 'ver' && !reachesVer;
-    emit({ type: 'rangeOutcome', tick, shotId, hits, short });
   }
 
   /** v1.3x (D-037): one tick of the Skietbaan's spawn program. */
