@@ -11,13 +11,14 @@ export const PLANES: readonly PlaneId[] = ['near', 'mid', 'far', 'ver'];
 export type ModeId = 'classic' | 'daily' | 'seasonHunt' | 'ftue' | 'range';
 
 /** Skietbaan targets: paper targets, a standing bird, a fly-over, a small flock. */
-export type RangeTarget = 'paper' | 'stand' | 'flyover' | 'flock';
+export type RangeTarget = 'paper' | 'plate' | 'stand' | 'flyover' | 'flock';
 
 /** v1.3x (D-037): what the Skietbaan puts up (mode 'range' only). */
 export interface RangeConfig {
-  /** The distance (plane) the targets stand at. */
-  readonly plane: PlaneId;
-  readonly target: RangeTarget;
+  /** The distance (plane) the targets stand at; 'all' = the mixed course (24 Oct update). */
+  readonly plane: PlaneId | 'all';
+  /** The kind of target; 'mixed' (with plane 'all') sets out every kind on every plane. */
+  readonly target: RangeTarget | 'mixed';
   /** A crate weapon to shoot instead of the primary (re-armed whenever it is spent). */
   readonly crate?: string;
 }
@@ -331,9 +332,11 @@ export interface SimState {
   readonly range?: RangeView;
 }
 
-/** A paper target: a circle on its plane (plane px; r already scaled by the plane). */
+/** A paper target or (24 Oct update) a steel plate: a circle on its plane (plane px; r already
+ *  scaled by the plane). */
 export interface PaperView {
   readonly id: number;
+  readonly kind: 'paper' | 'plate';
   readonly plane: PlaneId;
   readonly x: number;
   readonly y: number;

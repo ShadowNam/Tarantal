@@ -199,6 +199,18 @@ describe('content cross-references', () => {
     expect(text).toMatch(/two or more perchProps/);
   });
 
+  it('catch mixed-course spots on different planes that overlap (24 Oct review)', () => {
+    const c = clone();
+    const range = asObj(asObj(asObj(c.files['modes.json'])['modes'])['range']);
+    const planes = asObj(asObj(range['mixed'])['planes']);
+    // A mid spot right behind the near spot at dx 0.
+    asObj(planes['mid'])['dx'] = [0, 230, -655, 655];
+    const text = checkCrossRefs(parseOk(c), { i18nKeys })
+      .errors.map((e) => e.message)
+      .join('\n');
+    expect(text).toMatch(/range mixed: near \w+ at dx 0 overlaps mid \w+ at dx 0/);
+  });
+
   it('catch a biome that spawns an unknown creature', () => {
     const c = clone();
     const biome = asObj(c.biomes['biomes/karoo-autumn.json']);

@@ -43,6 +43,7 @@
       "cameraU": 0.5,
       "respawnMs": 1500,
       "paperRadiusPx": 120,
+      "plateRadiusPx": 100,
       "flockSize": 5,
       "spots": {
         "near": {
@@ -50,6 +51,12 @@
             {
               "dx": 0,
               "y": 700
+            }
+          ],
+          "plate": [
+            {
+              "dx": 0,
+              "y": 720
             }
           ],
           "stand": {
@@ -77,6 +84,12 @@
               "y": 630
             }
           ],
+          "plate": [
+            {
+              "dx": 0,
+              "y": 640
+            }
+          ],
           "stand": {
             "dx": 0,
             "y": 725
@@ -90,6 +103,12 @@
             {
               "dx": 0,
               "y": 568
+            }
+          ],
+          "plate": [
+            {
+              "dx": 0,
+              "y": 572
             }
           ],
           "stand": {
@@ -107,6 +126,12 @@
               "y": 546
             }
           ],
+          "plate": [
+            {
+              "dx": 0,
+              "y": 548
+            }
+          ],
           "stand": {
             "dx": 0,
             "y": 559
@@ -114,6 +139,63 @@
           "flockDx": 0,
           "flyY": 300,
           "flyHalfPx": 700
+        }
+      },
+      "mixed": {
+        "$comment": "Skietbaan mixed course (24 Oct update to D-037): targets on every distance at once. Per plane: how many static targets (paper, steel plate or a standing bird, the kinds drawn from the 'range' stream, each kind at least once on the course) and the dx spots they are drawn from (design px from the screen centre at the range's camera start). One fly-over and one small flock go on planes drawn from 'movers'; the flock takes a free spot of its plane. Spots on different planes never overlap (any kinds; content cross-ref), so no target hides behind a nearer one.",
+        "planes": {
+          "near": {
+            "count": 2,
+            "dx": [
+              -470,
+              0,
+              470
+            ]
+          },
+          "mid": {
+            "count": 2,
+            "dx": [
+              -230,
+              230,
+              -655,
+              655
+            ]
+          },
+          "far": {
+            "count": 3,
+            "dx": [
+              -130,
+              130,
+              -330,
+              330
+            ]
+          },
+          "ver": {
+            "count": 3,
+            "dx": [
+              -440,
+              0,
+              440,
+              -560,
+              560
+            ]
+          }
+        },
+        "statics": [
+          "paper",
+          "plate",
+          "stand"
+        ],
+        "movers": {
+          "flyover": [
+            "mid",
+            "far",
+            "ver"
+          ],
+          "flock": [
+            "mid",
+            "far"
+          ]
         }
       }
     }

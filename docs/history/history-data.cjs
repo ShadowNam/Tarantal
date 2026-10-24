@@ -7,22 +7,22 @@ const meta = {
   title: 'Tarantal Madness',
   subtitle: 'Development history',
   tagline: 'How the game came together, from the first commit to today',
-  updated: '24 October 2026, 02:40 UTC',
+  updated: '24 October 2026, 05:50 UTC',
   period: '19–24 October 2026',
 };
 
-// "By the numbers" on 24 Oct 2026 (main at 6d50755).
+// "By the numbers" on 24 Oct 2026 (main at 611cc21).
 const numbers = [
   ['Days since the first commit', '5'],
-  ['Commits on main', '575'],
-  ['Pull requests', '54 opened, all merged'],
-  ['Game code (TypeScript, without tests)', 'about 33,500 lines'],
-  ['Automated tests', '908 unit tests, 37 browser test suites on 3 device profiles'],
+  ['Commits on main', '596'],
+  ['Pull requests', '56 opened, all merged'],
+  ['Game code (TypeScript, without tests)', 'about 35,800 lines'],
+  ['Automated tests', '954 unit tests, 39 browser test suites on 3 device profiles'],
   ['Hunting areas', '4 (Karoo, Bushveld, Okavango, Kalahari), each with 7 weekday maps and 3 bonus maps (Verder, Nog Verder, Die Verste)'],
   ['Guns', '7 (Dubbelloop, Windbuks, Kettie, Plaas-Pomp, Die Twee-Twee with 3 sights, Voorlaaier, Mielie-Masjien)'],
   ['Creatures', '13 (guineafowl and variants, bosses, flyers)'],
   ['Languages', 'English, Afrikaans, German, Dutch'],
-  ['Design decisions logged', '36 (D-001 to D-036)'],
+  ['Design decisions logged', '37 (D-001 to D-037)'],
 ];
 
 const roles = [
@@ -403,6 +403,33 @@ const stages = [
       { img: 'v13-die-verste-locked', caption: 'The title: Die Verste locked until a scoped rifle is fitted; the rifle hints along the bottom.' },
     ],
   },
+  {
+    title: 'Training ground (Skietbaan)',
+    when: '24 Oct 2026, 05:38 (started 02:25)',
+    prs: '#58',
+    decision: 'D-037',
+    intro: 'A shooting range on the admin page: try any gun, locked ones too, at any distance and see exactly how it shoots, without the pressure of a hunt.',
+    bullets: [
+      'Pick a gun (all 9, including the Twee-Twee with each sight and the two crate guns), an area, a distance (near, middle, far or Ver; guns that can’t reach Ver say "out of reach") and a target: a paper target, a standing bird, a flying bird or a small flock.',
+      'It runs on the real game engine, so every hit is exactly what a hunt would give: no timer, score, Frenzy or penalties, endless spare ammo but reloads as normal. A test replays a range session twice and gets the same result.',
+      'Statistics per gun and distance: shots, hits, misses, hit %, shotgun pellets on target per shot; on paper, the last 20 holes are drawn with the group size (also as a % of a guineafowl’s width at that distance) and where the group centres against the aim. Reset and "Copy report".',
+      'It never touches the save: a browser test compares every stored value before and after a session, byte for byte.',
+      'Only in the GitHub Pages test build, from ?admin=1. The Poki and CrazyGames builds don’t contain it at all, and the size check fails any portal build that does. Its code loads only when opened (8.7 KB); the first download grew by 1.1 KB to 2.94 MB of 3 MB.',
+      'Strings in English, Afrikaans, German and Dutch; browser tests on desktop, Pixel 7 and iPhone 14 held sideways.',
+    ],
+    feedbackLabel: 'Look review and independent review before merging',
+    feedback: [
+      'The independent review found the code sound: hunts, Daily seeds and challenge links are unchanged (the range is left out of the content fingerprint), the portal builds are clean and the save is never written.',
+      'Claude’s look review on the phones: Start was off the bottom of a Pixel 7 screen, the page jumped back to the top after every tap, and the stats box hid the flying birds. Now Start sits in a footer with a summary of the choices, the page keeps its place, the stats shrink to a small box that lets taps through, and hunt-style score labels no longer show on the range. A browser test now also shoots a flying bird.',
+    ],
+    images: [
+      { img: 'skietbaan-stats', caption: 'The setup page with the session table (desktop). Ver is "out of reach" for the Dubbelloop.' },
+      { img: 'skietbaan-paper-near', caption: 'Dubbelloop at near on the paper target: 16 pellet holes from two shots, with the group size and centre.' },
+      { img: 'skietbaan-scope-ver', caption: 'The .22 with the small scope at Ver: four shots inside 1.4 px.' },
+      { img: 'skietbaan-setup-pixel7', caption: 'The setup page on a Pixel 7 held sideways, with Start in a footer that is always on screen.' },
+      { img: 'skietbaan-flyover-pixel7', caption: 'A flying bird bagged at middle distance on a Pixel 7; the stats shrink to a small box with "More".' },
+    ],
+  },
 ];
 
 // The product owner's requests, in order.
@@ -414,15 +441,14 @@ const requests = [
   ['23 Oct, 11:40', 'Farmhouse cut off, flat mountains, bakkie, guns and birds too cartoony, a bird with no texture', 'Graphics pass 3, merged at 17:58 (#49) after two look rounds and a code review'],
   ['23 Oct, 11:50', 'An admin URL to test every level and give feedback', 'Live at 13:32 (#48)'],
   ['23 Oct, 12:00', 'A document of what is built, what is not, estimates and who does what', 'The Build Status doc, updated at every change'],
-  ['23 Oct, 15:05', 'A training ground to test different guns, near and far', 'Next, straight after v1.3'],
+  ['23 Oct, 15:05', 'A training ground to test different guns, near and far', 'Done: the Skietbaan on the admin page (#58)'],
   ['23 Oct, 15:20', 'A Word document with the build pictures and history', 'This document'],
   ['23 Oct, 20:50', 'Let GitHub record the screenshot baselines', 'Done (#55)'],
   ['23 Oct, 21:15', 'Keep the build file updated with an infographic every 2–3 hours; keep Tank building overnight', 'The build board and the status doc, refreshed every 2–3 hours and after each merge; v1.3 merged overnight'],
 ];
 
 const next = [
-  ['Training ground (Skietbaan)', 'Try every gun on targets and birds at near, middle, far and Ver distance; hit statistics and spread; from the admin page', 'Tank', '3–4 h'],
-  ['v1.4 Die Langloop + Namibië', 'A long rifle with a 3–9× scope; the Namibië area (Etosha salt pan with mirages, quiver trees, Namib dunes, a far waterhole); first the scoped drawing cost (issue #56)', 'Tank', '6–8 h'],
+  ['v1.4 Die Langloop + Namibië', 'A long rifle with a 3–9× scope; the Namibië area (Etosha salt pan with mirages, quiver trees, Namib dunes, a far waterhole); first the scoped drawing cost (issue #56)', 'Tank', '6–8 h (started 24 Oct, 05:40)'],
 ];
 
 const decisions = [
@@ -447,6 +473,7 @@ const decisions = [
   ['D-034', 'Playtest admin page'],
   ['D-035', 'Art direction: semi-realistic (graphics pass 3)'],
   ['D-036', 'v1.3 long range: the Ver plane, sights and zoom, the .22, Nog Verder and Die Verste'],
+  ['D-037', 'Training ground (Skietbaan): admin and test build only, never touches the save, left out of the content fingerprint'],
 ];
 
 const glossary = [
@@ -460,7 +487,7 @@ const glossary = [
   ['Die Twee-Twee / Die Langloop', 'The .22 rifle / the long rifle (v1.3, v1.4)'],
   ['Skiet-Skuur', 'Gun shed: pick and unlock guns'],
   ['Padstal', 'Farm stall: the shop between Season Run hunts'],
-  ['Skietbaan', 'Shooting range (the planned training ground)'],
+  ['Skietbaan', 'Shooting range: the training ground on the admin page'],
   ['Oupa', 'Grandpa, who comments on your hunt'],
   ['Bakkie', 'Pickup truck'],
   ['Koppie', 'Small rocky hill'],

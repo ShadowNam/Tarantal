@@ -6,7 +6,7 @@ import type { Biome, ContentBundle } from '../../content/schemas';
 import type { Bird } from '../birds/Bird';
 import type { Flock } from '../flocks/Flock';
 import type { RandomStream } from '../rng';
-import type { PaperView, PlaneId, RangeConfig } from '../types';
+import type { PaperView, PlaneId, RangeConfig, RangeTarget } from '../types';
 
 /** What the program sees of the range each tick. Every live bird is the range's. */
 export interface RangeWorld {
@@ -24,9 +24,35 @@ export interface RangeStep {
   readonly retire: readonly number[];
 }
 
+/** One target a range shot hit (the rangeOutcome event's `hits`). */
+export interface RangeHit {
+  readonly plane: PlaneId;
+  readonly target: RangeTarget;
+  readonly id: number;
+  readonly pellets: number;
+}
+
 export interface RangeProgram {
-  /** The paper targets (fixed for the session). */
+  /** The paper targets and steel plates (fixed for the session). */
   readonly papers: readonly PaperView[];
+  /** The kind of target a bird of the range is (null: not one of its birds, or gone). */
+  targetOf(birdId: number): RangeTarget | null;
+  /** 24 Oct update: the target a shot is counted for if it hits nothing — outside the mixed
+   *  course the range's plane and kind; on it, the target nearest the aim point on screen
+   *  (ties: papers and plates before birds, lower id first). */
+  aimTarget(
+    cameraX: number,
+    dx: number,
+    sy: number,
+    birds: readonly Bird[],
+  ): { plane: PlaneId; target: RangeTarget };
+  /** 24 Oct update: each target a landed shot put pellets on (papers/plates by id, then birds
+   *  in their order), from its pellets per paper and per bird. */
+  hits(
+    paperPellets: ReadonlyMap<number, number>,
+    pelletsOn: ReadonlyMap<number, number>,
+    birds: readonly Bird[],
+  ): RangeHit[];
   step(world: RangeWorld): RangeStep;
 }
 

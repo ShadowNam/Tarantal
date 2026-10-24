@@ -30,8 +30,8 @@ export function gunNameById(content: ContentBundle, id: string): string {
   return gun === undefined ? id : gunName(gun);
 }
 
-export const distName = (plane: PlaneId): string => rt(`range.dist_${plane}`);
-export const targetName = (target: RangeTarget): string => rt(`range.target_${target}`);
+export const distName = (plane: PlaneId | 'all'): string => rt(`range.dist_${plane}`);
+export const targetName = (target: RangeTarget | 'mixed'): string => rt(`range.target_${target}`);
 
 export function biomeName(content: ContentBundle, id: string): string {
   const b = content.biomes.find((x) => x.id === id);
@@ -60,6 +60,7 @@ export function cellLines(content: ContentBundle, c: RangeCell, withNote = true)
       rate: one(hitRate(c) * 100),
     }),
   ];
+  if (c.short > 0) lines.push(fill(rt('range.line_short'), { n: c.short, misses: misses(c) }));
   if (c.pellets > 1)
     lines.push(fill(rt('range.line_pellets'), { n: one(pelletsPerShot(c)), of: c.pellets }));
   const g = groupStats(c.impacts);

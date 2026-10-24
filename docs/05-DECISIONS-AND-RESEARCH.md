@@ -1865,6 +1865,24 @@ The setup page, stats, paper drawing, spawn program and strings (8.7 KB gzip) ar
 moving `main.ts` off top-level await, Rolldown split the entry in two and added another 1.3 KB;
 it now merges the shared modules back. Portal builds: 2 937.8 KB (Poki), 2 937.9 KB (CrazyGames),
 no range code.
+*Update 24 Oct (mixed targets, plates, hit feedback):* after trying the range, the product owner
+asked for "more targets: an option to randomize different targets at different distances, from
+close to far, so one can test. Even if it's way too far for the Kettie, all the targets must be
+available. And the targets must react when hit", and confirmed "mixed targets at all distances".
+(a) *Every distance for every gun:* Ver is no longer a disabled chip; a note says the shots fall
+short. The reach rule is unchanged, so what you see is what a hunt does; those misses are
+counted as "short", because "I missed" and "it can't get there" are different answers.
+(b) *Mixed course:* All + Mixed sets out every kind on every plane at once, laid out from the
+seed (`range` stream; Shuffle = a new seed), so a tester compares distances in one session.
+A hit counts for the target it put the most pellets on, a miss for the target nearest the aim
+point on screen: that is the target the player meant. (c) *Steel plates:* a hit you can hear
+and see at any distance, the way real ranges confirm hits. (d) *Feedback* comes only from sim
+events (`plateHit`, `rangeOutcome`), so it can never disagree with the stats. HIT markers are
+sized in screen terms, not by the plane, so they read at Ver. All flashes are local and dimmed
+under "reduce flashes". (e) *Size:* the plate art and sounds are interim (D-029) in a lazy
+`range` asset group; the target-picking code lives in the lazy range program. The first
+download grew by 868 bytes gzip (2 941.8 → 2 942.7 KB); the Skietbaan chunk is 13.8 KB gzip
+(was 9.1 KB) plus 43.6 KB of range assets loaded with it.
 
 ## 3. Research notes (with sources)
 

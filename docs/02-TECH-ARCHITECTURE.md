@@ -625,6 +625,22 @@ or "Send to GitHub" (a prefilled `issues/new?labels=playtest` link ≤ 7 KB, `sr
 - **Hashes and replays:** `modes.range` is left out of `contentHash`, so tuning the range never
   re-seeds the Daily or marks challenge links and replays as made on other content. Range
   sessions are not replay logs: `encodeInputLog` and `runReplay` refuse mode `range`.
+- **24 Oct update (mixed course, plates, feedback):** `RangeConfig` takes `plane: 'all'` and
+  `target: 'mixed'`; the program lays the course out as slots (`rangeLayout`/`mixedLayout`, from
+  `modes.range.mixed` and the `range` stream) and respawns each bird slot on its own. Steel plates
+  are `PaperView`s of `kind: 'plate'` (radius `plateRadiusPx`), hit-tested like paper; a pellet on
+  one emits `plateHit` instead of `paperHit`. Both now carry the shot's aim point on that plane
+  (`aimX`, `aimY`). `rangeShot` names the target a miss is counted for (`RangeProgram.aimTarget`:
+  the range's plane and kind, or on the mixed course the target nearest the aim point on screen),
+  and every range shot ends in one `rangeOutcome` (`hits`: plane, kind, id and pellets of each
+  target hit, from `RangeProgram.hits`; `short` when it hit nothing, its target is at Ver and the
+  gun can't reach). Stats count shots at `rangeOutcome`. Feedback (`RangeFeedback.ts`,
+  `PlateDraw.ts`, `PaperDraw.blink`) is driven only by these events. The range's sounds play
+  through `AudioDirector.playExtra` (the recording once loaded, else the chunk's synth). Its
+  interim plate art and sounds (`src/game/range/rangeAssets.ts`) are in their own asset group,
+  `range`, which the range chunk loads (`rangeSounds.ts`) and the service worker doesn't
+  precache; `assets:audit` lists them as interim. The first download grew by 868 bytes gzip; the
+  Skietbaan chunk is 13.8 KB gzip, its assets 43.6 KB.
 - **Game:** `HuntScene` runs a `RangeSession` (`src/game/range/RangeSession.ts`, types only) through
   the normal hunt path: views, sights and zoom, InputMapper, the HUD belt and pause, with the
   clock, score and Frenzy hidden. It writes no save, admin save, hunt log, ad count or analytics.

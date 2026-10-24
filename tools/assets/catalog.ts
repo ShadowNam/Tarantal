@@ -12,6 +12,12 @@ import {
   placeholderBiomes,
 } from '../../src/game/placeholder/ProceduralAssetFactory';
 import { allBarkLines } from '../../src/game/audio/barks';
+import {
+  PLATE_TEX,
+  PLATE_TEX_SIZE,
+  RANGE_GROUP,
+  RANGE_SOUNDS,
+} from '../../src/game/range/rangeAssets';
 import { loadFeel } from '../testContent';
 
 export interface CatalogEntry {
@@ -94,6 +100,18 @@ export async function buildCatalog(content: ContentBundle): Promise<Catalog> {
       });
     }
   }
+  // 24 Oct update (D-037): the Skietbaan's plate and sounds, in their own lazy group (the range
+  // chunk loads them; no placeholder manifest has them).
+  const everyBiome = [...ids];
+  entries.set(PLATE_TEX, {
+    key: PLATE_TEX,
+    kind: 'texture',
+    group: RANGE_GROUP,
+    biomes: everyBiome,
+    ...PLATE_TEX_SIZE,
+  });
+  for (const key of Object.values(RANGE_SOUNDS))
+    entries.set(key, { key, kind: 'sound', group: RANGE_GROUP, biomes: everyBiome });
   return {
     homeBiome: content.modes.modes.classic.biome,
     biomes: ids,
