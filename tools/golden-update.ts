@@ -2,6 +2,7 @@
 // Run after an intentional sim/content change and say why in the commit message (CLAUDE.md).
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { format, resolveConfig } from 'prettier';
 import { encodeInputLogText } from '../src/sim/replay/inputLog';
 import { runReplay } from '../src/sim/replay/verify';
 import { GOLDEN_CASES, type GoldenReplay } from './goldenCases';
@@ -32,5 +33,8 @@ for (const c of GOLDEN_CASES) {
 
 const dir = join(import.meta.dirname, '..', 'src', 'sim', 'replay', 'golden');
 mkdirSync(dir, { recursive: true });
-writeFileSync(join(dir, 'replays.json'), `${JSON.stringify(out, null, 2)}\n`);
+const file = join(dir, 'replays.json');
+// Formatted like the rest of the repo, so `prettier --check` (npm run lint) passes as written.
+const prettier = (await resolveConfig(file)) ?? {};
+writeFileSync(file, await format(JSON.stringify(out, null, 2), { ...prettier, filepath: file }));
 console.log(`golden:update: wrote ${out.length} replays (content ${contentHash.slice(0, 12)}…)`);
