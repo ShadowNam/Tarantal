@@ -179,8 +179,47 @@ the ridge, windpomp + sign, dead camelthorn branch. Palette: dunes `#C8452B`/`#E
 `#7B8F3A`, storm sky `#3B4256`, lightning `#E8F1FF`. Weather: heat shimmer → thunderstorm, rain
 streaks, puddles. Lightning flashes must obey the ≤ 3 flashes/second rule and the reduce-flashes option.
 
-**Future · Namibië (Etosha & Namib)** — white salt pan with mirage, quiver trees, springbok, waterhole
-at dusk, tarentaal roosting in a tree.
+**Namibië (Etosha & Namib), v1.4 B (D-039).**
+- **Setting:** Etosha's white salt pan (faint polygon cracks, a bright mirage band at the horizon,
+  the shimmer drawn live) under Sossusvlei-style Namib dunes. The dunes stand in three overlapping
+  ranges. Each has a sinuous knife-edge crest that splits it into a sunlit apricot face and a rust
+  slip face, concave flanks flattening into the pan, soft ripples, and haze on the farthest range.
+- **The waterhole** on the Ver strip: a mud ring, pale-blue water with a sky glint, and springbok
+  and gemsbok drinking.
+- **Plants and ground:** quiver trees (a thick golden papery trunk, forked branches, blue-grey
+  rosettes), a pale calcrete pan edge, and the red dune edge in front with blonde grass.
+
+**The camelthorn** (Vachellia erioloba, kameeldoring), the signature tree of the Kalahari and
+Namibië:
+- **Trunk:** short and thick, dark grey-brown, with deeply furrowed, cracked bark (many vertical
+  strokes) and a lit and a shade side on every limb. It leans or forks low into 2–4 gnarled limbs.
+- **Branches:** angular zig-zag limbs with rounded forks that spread wide and taper into fine
+  twigs; a few bare dead branches poke out of the crown.
+- **Crown:** a broad, flat-topped umbrella, much wider than tall, built from 30–60 separate clumps
+  of feathery grey-green leaf dabs in three greens, with dark undersides, lit tops and sky between.
+- **Fruit:** velvety grey half-moon pods in the crown and on the ground.
+- **Ground:** a dappled shade circle on red sand with blonde grass tufts.
+- **Variants:** young (small, rounder), mature umbrella, old half-dead (one side bare), and one with
+  the family nest. They are drawn in layers by `tools/art/camelthorn.ts`, at 2× on near and mid.
+  The product owner approved them on 24 Oct 2026.
+
+**The sociable-weaver family nest:** a huge communal haystack of dry grass built over and among
+the limbs, often the size of a car.
+- **Shape:** a domed thatched roof rising into the crown and merging into the branches, irregular
+  bulging sides, a lower second lobe, and a flat-ish underside.
+- **Colour:** a weathered grey-brown roof blending raggedly into golden-to-tan sides, with sunlit
+  highlights, deep shadow under the overhang and on the belly, and soft contact shadows where limbs
+  enter.
+- **Texture:** 1 500+ individual straws following the form (thatch down the roof, sides hanging),
+  stray straws all round and a ragged fringe.
+- **Entrances:** 10–20 holes in the underside, seen from below: wide, thin dark ovals with a lit
+  straw lip, some half hidden by the fringe.
+
+**Angry weavers:** sparrow-sized brown sociable weavers with a black chin and face, a scaly back of
+dark feathers with pale edges, black flank bars and a pale bluish bill, drawn as two wingbeat
+frames. When a nest is shot they pour out of the holes, swirl round it chattering and scolding, a
+few dart at the camera, and they settle back after about 3–4 s; mid and far nests send smaller
+bursts.
 
 ## 5. Props, secrets, crates
 Each secret prop needs: idle, "hint glint" (4-frame shimmer), triggered state, and an occluder shape.

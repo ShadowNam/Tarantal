@@ -376,8 +376,22 @@ the Okavango (South American, listed invasive in South Africa and Namibia), no b
 Karoo farm (they belong to the Bushveld stage), sociable-weaver nests are giant communal haystacks,
 not hanging balls.
 
-**Future biome pack (v1.x):** *Namibië — Etosha & Namib*: white salt pan mirages, quiver trees
-(kokerbome), springbok herds, waterhole at dusk with roosting flocks. Strong local-market story.
+**Area pack (v1.4, D-039): *Namibië — Etosha & Namib*.** Etosha's white salt pan under the Namib
+dunes, quiver trees (kokerbome) and camelthorns, a waterhole far out on the Ver strip where flocks
+feed, springbok and gemsbok drinking there. It is built for long range: mostly far and Ver birds,
+and every weekday layout opens the Ver plane. Its omen is the **mirage**: far and Ver birds
+shimmer sideways all hunt, their hitboxes with them, with no flashes. It is on in the Tuesday and
+Thursday layouts and on the bonus maps.
+- **Where it plays:** Classic only, picked with the title's **Area** button. It is not a Season Run
+  season (the run stays four seasons) and not in the Daily rotation.
+- **Unlock:** reach Die Verste in any area; the unlock is kept for good. Until then its card on the
+  area picker is locked and says how to unlock it.
+- **Secrets:** a camelthorn with a **sociable-weaver family nest** on the near plane (don't shoot
+  it: −10 every 2 s, and the angry weavers burst out); an **ostrich-egg water flask** in a quiver
+  tree (+60, the roosting birds burst out).
+- **Numbers:** its maps' quota is 3 000 (`biome.area.quota`), and the weekday layouts score ×0.75
+  (dusk ×0.9) so the scoped Langloop stays in the Classic band (`docs/balance/v1.4-namibie.md`).
+  The other weekday and bonus-map rules are as in §11.5.
 
 ### 11.1 Secrets per biome (launch)
 | Biome | Secret | Trigger | Reward |
