@@ -11,6 +11,7 @@ import { planeCentreX } from '../../sim/camera';
 import type { PlaneId } from '../../sim/types';
 import { coreWidth, DESIGN_HEIGHT, LAYER_BLEED_PX } from '../../sim/world';
 import { TEX, type AssetManifest } from '../assets/AssetManifest';
+import { FAUNA_SPRITES } from './faunaSprites';
 import {
   CLOUD_DECKS,
   CLOUD_SPRITE_SCALE,
@@ -202,6 +203,17 @@ export class ParallaxView {
           scene.add
             .image(z.u * coreWidth(layer.scrollFactor) + sh.ox, z.y + sh.oy, TEX.water)
             .setDisplaySize(w, h),
+        );
+      }
+      // v1.6 (D-042): far animals, drawn at 3× and shown at 1/3 (crisp through a scope).
+      for (const f of FAUNA_SPRITES[biome.id] ?? []) {
+        if (f.layer !== layer.id || !manifest.has(f.key)) continue;
+        const o = manifest.origin(f.key);
+        add(
+          scene.add
+            .image(f.u * coreWidth(layer.scrollFactor), f.y, f.key)
+            .setOrigin(o.x, o.y)
+            .setScale(manifest.displayScale(f.key)),
         );
       }
       for (const prop of biome.props) {

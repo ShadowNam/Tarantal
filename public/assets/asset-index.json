@@ -121,6 +121,234 @@
       "width": 260,
       "height": 360
     },
+    "fauna/bushveld_elephants": {
+      "group": "bushveld-winter",
+      "origin": "interim",
+      "file": {
+        "path": "assets/bushveld-winter/img/fauna_bushveld_elephants.6b977c8487f1.png",
+        "bytes": 6609,
+        "hash": "6b977c8487f1"
+      },
+      "width": 510,
+      "height": 144,
+      "scale": 0.3333333333333333
+    },
+    "fauna/bushveld_giraffes_a": {
+      "group": "bushveld-winter",
+      "origin": "interim",
+      "file": {
+        "path": "assets/bushveld-winter/img/fauna_bushveld_giraffes_a.f27aff65a668.png",
+        "bytes": 10921,
+        "hash": "f27aff65a668"
+      },
+      "width": 450,
+      "height": 252,
+      "scale": 0.3333333333333333
+    },
+    "fauna/bushveld_giraffes_b": {
+      "group": "bushveld-winter",
+      "origin": "interim",
+      "file": {
+        "path": "assets/bushveld-winter/img/fauna_bushveld_giraffes_b.4ee058b10e31.png",
+        "bytes": 6796,
+        "hash": "4ee058b10e31"
+      },
+      "width": 330,
+      "height": 252,
+      "scale": 0.3333333333333333
+    },
+    "fauna/bushveld_wildebeest": {
+      "group": "bushveld-winter",
+      "origin": "interim",
+      "file": {
+        "path": "assets/bushveld-winter/img/fauna_bushveld_wildebeest.0c32e7d8fb2d.png",
+        "bytes": 4582,
+        "hash": "0c32e7d8fb2d"
+      },
+      "width": 420,
+      "height": 120,
+      "scale": 0.3333333333333333
+    },
+    "fauna/bushveld_zebra": {
+      "group": "bushveld-winter",
+      "origin": "interim",
+      "file": {
+        "path": "assets/bushveld-winter/img/fauna_bushveld_zebra.a509d561258c.png",
+        "bytes": 5434,
+        "hash": "a509d561258c"
+      },
+      "width": 540,
+      "height": 120,
+      "scale": 0.3333333333333333
+    },
+    "fauna/kalahari_ostrich": {
+      "group": "kalahari-summer",
+      "origin": "interim",
+      "file": {
+        "path": "assets/kalahari-summer/img/fauna_kalahari_ostrich.c536873582cc.png",
+        "bytes": 2200,
+        "hash": "c536873582cc"
+      },
+      "width": 270,
+      "height": 150,
+      "scale": 0.3333333333333333
+    },
+    "fauna/kalahari_springbok": {
+      "group": "kalahari-summer",
+      "origin": "interim",
+      "file": {
+        "path": "assets/kalahari-summer/img/fauna_kalahari_springbok.d5a95066b347.png",
+        "bytes": 4226,
+        "hash": "d5a95066b347"
+      },
+      "width": 600,
+      "height": 108,
+      "scale": 0.3333333333333333
+    },
+    "fauna/kalahari_wildebeest": {
+      "group": "kalahari-summer",
+      "origin": "interim",
+      "file": {
+        "path": "assets/kalahari-summer/img/fauna_kalahari_wildebeest.06cd4a6550dc.png",
+        "bytes": 4596,
+        "hash": "06cd4a6550dc"
+      },
+      "width": 480,
+      "height": 120,
+      "scale": 0.3333333333333333
+    },
+    "fauna/karoo_ostrich": {
+      "group": "karoo-autumn",
+      "origin": "interim",
+      "file": {
+        "path": "assets/karoo-autumn/img/fauna_karoo_ostrich.764db018c455.png",
+        "bytes": 3040,
+        "hash": "764db018c455"
+      },
+      "width": 360,
+      "height": 150,
+      "scale": 0.3333333333333333
+    },
+    "fauna/karoo_springbok_a": {
+      "group": "karoo-autumn",
+      "origin": "interim",
+      "file": {
+        "path": "assets/karoo-autumn/img/fauna_karoo_springbok_a.0ba9ec615a04.png",
+        "bytes": 5636,
+        "hash": "0ba9ec615a04"
+      },
+      "width": 690,
+      "height": 120,
+      "scale": 0.3333333333333333
+    },
+    "fauna/karoo_springbok_b": {
+      "group": "karoo-autumn",
+      "origin": "interim",
+      "file": {
+        "path": "assets/karoo-autumn/img/fauna_karoo_springbok_b.404c22d60170.png",
+        "bytes": 3228,
+        "hash": "404c22d60170"
+      },
+      "width": 390,
+      "height": 120,
+      "scale": 0.3333333333333333
+    },
+    "fauna/namibie_gemsbok": {
+      "group": "namibie",
+      "origin": "interim",
+      "file": {
+        "path": "assets/namibie/img/fauna_namibie_gemsbok.814c1403e305.png",
+        "bytes": 4773,
+        "hash": "814c1403e305"
+      },
+      "width": 480,
+      "height": 120,
+      "scale": 0.3333333333333333
+    },
+    "fauna/namibie_ostrich": {
+      "group": "namibie",
+      "origin": "interim",
+      "file": {
+        "path": "assets/namibie/img/fauna_namibie_ostrich.c7b6ea80bddb.png",
+        "bytes": 2256,
+        "hash": "c7b6ea80bddb"
+      },
+      "width": 270,
+      "height": 150,
+      "scale": 0.3333333333333333
+    },
+    "fauna/namibie_waterhole": {
+      "group": "ver",
+      "origin": "interim",
+      "file": {
+        "path": "assets/ver/img/fauna_namibie_waterhole.e59a20400def.png",
+        "bytes": 3863,
+        "hash": "e59a20400def"
+      },
+      "width": 1200,
+      "height": 90,
+      "scale": 0.3333333333333333
+    },
+    "fauna/namibie_zebra": {
+      "group": "namibie",
+      "origin": "interim",
+      "file": {
+        "path": "assets/namibie/img/fauna_namibie_zebra.0950be741f12.png",
+        "bytes": 4735,
+        "hash": "0950be741f12"
+      },
+      "width": 450,
+      "height": 120,
+      "scale": 0.3333333333333333
+    },
+    "fauna/okavango_elephants": {
+      "group": "okavango-spring",
+      "origin": "interim",
+      "file": {
+        "path": "assets/okavango-spring/img/fauna_okavango_elephants.641a2a895243.png",
+        "bytes": 6041,
+        "hash": "641a2a895243"
+      },
+      "width": 570,
+      "height": 150,
+      "scale": 0.3333333333333333
+    },
+    "fauna/okavango_lechwe": {
+      "group": "okavango-spring",
+      "origin": "interim",
+      "file": {
+        "path": "assets/okavango-spring/img/fauna_okavango_lechwe.6616547722ee.png",
+        "bytes": 6027,
+        "hash": "6616547722ee"
+      },
+      "width": 660,
+      "height": 102,
+      "scale": 0.3333333333333333
+    },
+    "fauna/okavango_wildebeest": {
+      "group": "okavango-spring",
+      "origin": "interim",
+      "file": {
+        "path": "assets/okavango-spring/img/fauna_okavango_wildebeest.e43f089afd24.png",
+        "bytes": 3671,
+        "hash": "e43f089afd24"
+      },
+      "width": 390,
+      "height": 120,
+      "scale": 0.3333333333333333
+    },
+    "fauna/okavango_zebra": {
+      "group": "okavango-spring",
+      "origin": "interim",
+      "file": {
+        "path": "assets/okavango-spring/img/fauna_okavango_zebra.e5e3136e09dc.png",
+        "bytes": 5562,
+        "hash": "e5e3136e09dc"
+      },
+      "width": 450,
+      "height": 120,
+      "scale": 0.3333333333333333
+    },
     "fx/bubble": {
       "group": "common",
       "origin": "interim",
@@ -1104,14 +1332,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/bushveld-winter/layers/far_veld-0.f85f8fe7881b.png",
-          "bytes": 18715,
-          "hash": "f85f8fe7881b"
+          "path": "assets/bushveld-winter/layers/far_veld-0.0f84f0c0ed09.png",
+          "bytes": 16014,
+          "hash": "0f84f0c0ed09"
         },
         {
-          "path": "assets/bushveld-winter/layers/far_veld-1.9a8a83f85fa4.png",
-          "bytes": 13559,
-          "hash": "9a8a83f85fa4"
+          "path": "assets/bushveld-winter/layers/far_veld-1.89eb6dd5c7be.png",
+          "bytes": 11931,
+          "hash": "89eb6dd5c7be"
         }
       ],
       "tileWidth": 2048,
@@ -1122,63 +1350,63 @@
         "bucket": 256,
         "rows": [
           [
-            181,
+            180,
             232
           ],
           [
-            116,
-            133
+            157,
+            176
           ],
           [
-            196,
-            232
+            112,
+            154
           ],
           [
-            163,
-            192
+            164,
+            195
           ],
           [
             145,
             198
           ],
           [
-            155,
-            182
+            156,
+            186
           ],
           [
-            186,
-            218
+            164,
+            219
           ],
           [
-            151,
-            177
+            113,
+            147
           ],
           [
-            180,
+            178,
             232
           ],
           [
-            157,
+            158,
             232
           ],
           [
             141,
-            183
+            184
           ],
           [
-            158,
+            161,
             189
           ],
           [
-            131,
-            199
+            115,
+            204
           ],
           [
-            116,
+            114,
             144
           ],
           [
-            110,
+            146,
             188
           ]
         ]
@@ -1692,14 +1920,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/kalahari-summer/layers/far_veld-0.00fb2c252edc.png",
-          "bytes": 18959,
-          "hash": "00fb2c252edc"
+          "path": "assets/kalahari-summer/layers/far_veld-0.2c4e0c8173ea.png",
+          "bytes": 18138,
+          "hash": "2c4e0c8173ea"
         },
         {
-          "path": "assets/kalahari-summer/layers/far_veld-1.52e0656744ea.png",
-          "bytes": 15627,
-          "hash": "52e0656744ea"
+          "path": "assets/kalahari-summer/layers/far_veld-1.8eade23ab87f.png",
+          "bytes": 14739,
+          "hash": "8eade23ab87f"
         }
       ],
       "tileWidth": 2048,
@@ -1718,23 +1946,23 @@
             212
           ],
           [
-            117,
+            116,
             151
           ],
           [
-            144,
-            216
-          ],
-          [
-            118,
-            171
-          ],
-          [
-            152,
+            145,
             200
           ],
           [
-            127,
+            116,
+            172
+          ],
+          [
+            152,
+            201
+          ],
+          [
+            128,
             232
           ],
           [
@@ -1742,23 +1970,23 @@
             201
           ],
           [
-            135,
+            136,
             187
           ],
           [
-            136,
-            171
+            135,
+            172
           ],
           [
             195,
-            227
+            228
           ],
           [
-            115,
+            114,
             191
           ],
           [
-            184,
+            183,
             232
           ],
           [
@@ -1766,7 +1994,7 @@
             154
           ],
           [
-            152,
+            151,
             232
           ]
         ]
@@ -2280,14 +2508,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/karoo-autumn/layers/far_veld-0.50538c1bf0aa.png",
-          "bytes": 18722,
-          "hash": "50538c1bf0aa"
+          "path": "assets/karoo-autumn/layers/far_veld-0.e3a6da7fc8f9.png",
+          "bytes": 16734,
+          "hash": "e3a6da7fc8f9"
         },
         {
-          "path": "assets/karoo-autumn/layers/far_veld-1.07edbb5083cc.png",
-          "bytes": 16967,
-          "hash": "07edbb5083cc"
+          "path": "assets/karoo-autumn/layers/far_veld-1.9803772e61d7.png",
+          "bytes": 16985,
+          "hash": "9803772e61d7"
         }
       ],
       "tileWidth": 2048,
@@ -2299,15 +2527,15 @@
         "rows": [
           [
             126,
-            161
+            160
           ],
           [
-            187,
-            226
+            138,
+            172
           ],
           [
-            184,
-            232
+            185,
+            229
           ],
           [
             194,
@@ -2318,15 +2546,15 @@
             200
           ],
           [
-            112,
-            151
+            163,
+            199
           ],
           [
             127,
             170
           ],
           [
-            182,
+            183,
             220
           ],
           [
@@ -2334,11 +2562,11 @@
             194
           ],
           [
-            142,
-            197
+            147,
+            196
           ],
           [
-            188,
+            187,
             221
           ],
           [
@@ -2346,8 +2574,8 @@
             196
           ],
           [
-            128,
-            157
+            203,
+            232
           ],
           [
             169,
@@ -2868,14 +3096,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/namibie/layers/far_veld-0.160851f0fd67.png",
-          "bytes": 28027,
-          "hash": "160851f0fd67"
+          "path": "assets/namibie/layers/far_veld-0.1e4bc5ff618f.png",
+          "bytes": 28568,
+          "hash": "1e4bc5ff618f"
         },
         {
-          "path": "assets/namibie/layers/far_veld-1.5370f28a3805.png",
-          "bytes": 22389,
-          "hash": "5370f28a3805"
+          "path": "assets/namibie/layers/far_veld-1.4ce206cc3bc7.png",
+          "bytes": 21974,
+          "hash": "4ce206cc3bc7"
         }
       ],
       "tileWidth": 2048,
@@ -2890,19 +3118,19 @@
             185
           ],
           [
-            183,
+            184,
             232
           ],
           [
-            188,
+            186,
             232
           ],
           [
-            135,
+            111,
             193
           ],
           [
-            140,
+            125,
             188
           ],
           [
@@ -2910,7 +3138,7 @@
             188
           ],
           [
-            171,
+            169,
             232
           ],
           [
@@ -2922,24 +3150,24 @@
             232
           ],
           [
-            158,
+            157,
             218
           ],
           [
-            141,
+            139,
             232
           ],
           [
-            143,
+            111,
             187
           ],
           [
-            129,
+            130,
             179
           ],
           [
             143,
-            214
+            213
           ],
           [
             111,
@@ -3306,14 +3534,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/ver/layers/namibie-ver_veld-0.d490397ec7a7.png",
-          "bytes": 12892,
-          "hash": "d490397ec7a7"
+          "path": "assets/ver/layers/namibie-ver_veld-0.dd3f0dd11593.png",
+          "bytes": 12402,
+          "hash": "dd3f0dd11593"
         },
         {
-          "path": "assets/ver/layers/namibie-ver_veld-1.100df0b59e9e.png",
-          "bytes": 5852,
-          "hash": "100df0b59e9e"
+          "path": "assets/ver/layers/namibie-ver_veld-1.cc72f7611e7a.png",
+          "bytes": 5946,
+          "hash": "cc72f7611e7a"
         }
       ],
       "tileWidth": 2048,
@@ -3324,52 +3552,52 @@
         "bucket": 256,
         "rows": [
           [
-            24,
+            39,
             64
           ],
           [
             23,
-            64
+            38
           ],
           [
-            41,
-            64
+            24,
+            47
           ],
           [
             22,
-            64
+            48
           ],
           [
             24,
             64
           ],
           [
-            46,
+            53,
             64
           ],
           [
-            38,
+            48,
             64
+          ],
+          [
+            51,
+            64
+          ],
+          [
+            23,
+            50
           ],
           [
             34,
             64
           ],
           [
-            23,
-            64
-          ],
-          [
-            24,
-            64
-          ],
-          [
-            23,
+            39,
             64
           ],
           [
             22,
-            64
+            55
           ],
           [
             23,
@@ -3420,14 +3648,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/okavango-spring/layers/far_veld-0.1978c607c433.png",
-          "bytes": 11780,
-          "hash": "1978c607c433"
+          "path": "assets/okavango-spring/layers/far_veld-0.64e6c61b33b3.png",
+          "bytes": 10789,
+          "hash": "64e6c61b33b3"
         },
         {
-          "path": "assets/okavango-spring/layers/far_veld-1.4ae41c8d157d.png",
-          "bytes": 8985,
-          "hash": "4ae41c8d157d"
+          "path": "assets/okavango-spring/layers/far_veld-1.a9e36ba4516b.png",
+          "bytes": 7902,
+          "hash": "a9e36ba4516b"
         }
       ],
       "tileWidth": 2048,
@@ -3438,7 +3666,7 @@
         "bucket": 256,
         "rows": [
           [
-            183,
+            182,
             232
           ],
           [
@@ -3446,15 +3674,15 @@
             163
           ],
           [
-            113,
-            164
+            112,
+            165
           ],
           [
-            120,
-            173
+            118,
+            186
           ],
           [
-            126,
+            118,
             171
           ],
           [
@@ -3463,34 +3691,34 @@
           ],
           [
             113,
-            172
-          ],
-          [
-            186,
-            232
-          ],
-          [
-            186,
-            232
+            184
           ],
           [
             119,
-            167
+            175
           ],
           [
-            113,
-            166
+            110,
+            180
+          ],
+          [
+            118,
+            170
+          ],
+          [
+            112,
+            168
           ],
           [
             184,
             232
           ],
           [
-            162,
+            161,
             232
           ],
           [
-            153,
+            149,
             232
           ],
           [

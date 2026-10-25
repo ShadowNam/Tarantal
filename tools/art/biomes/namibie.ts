@@ -10,7 +10,6 @@ import type { BiomeArtPlan, LayerCtx, PaintCtx, PropCtx } from '../landscape';
 import { plantLook, roundFruit, veldShrub } from '../flora';
 import { StrokeBin, zigzag } from '../camelthorn';
 import { boulder, graniteLook } from '../rocks';
-import { farAnimal as animal, herd as animalHerd, type AnimalKind, type Pose } from '../fauna';
 import {
   flat,
   groundD,
@@ -378,35 +377,7 @@ function verStrip(ctx: LayerCtx): string {
     flat(ellipseD(wx - half * 0.14, wy - 0.9, half * 0.3, 0.7), '#F4FAFF', { opacity: 0.95 }),
     flat(ellipseD(wx + half * 0.24, wy - 0.4, half * 0.12, 0.45), '#E6F2FA', { opacity: 0.8 }),
   );
-  // v1.6 (D-042): the drinkers redrawn with the fauna rig (head down at the water's edge,
-  // a few walking in or looking up), plus zebra, a giraffe and an ostrich pair.
-  const herd: [number, number, AnimalKind, 1 | -1, Pose, number][] = [
-    [-0.62, -0.5, 'giraffe', 1, 'alert', 8],
-    [-0.58, -0.4, 'giraffe', 1, 'drink', 13],
-    [-0.48, 0.2, 'springbok', 1, 'graze', 3.8],
-    [-0.4, -0.7, 'zebra', 1, 'walk', 4.2],
-    [-0.36, -0.6, 'springbok', 1, 'alert', 3.8],
-    [-0.3, 0.6, 'zebra', 1, 'graze', 4.2],
-    [-0.22, 0.5, 'springbok', 1, 'graze', 3.8],
-    [0.18, 0.4, 'gemsbok', -1, 'graze', 4.4],
-    [0.33, -0.4, 'gemsbok', -1, 'alert', 4.4],
-    [0.46, 0.3, 'springbok', -1, 'graze', 3.8],
-    [0.62, -0.5, 'ostrich', -1, 'walk', 7],
-    [0.68, -0.2, 'ostrich', -1, 'alert', 7],
-  ];
-  for (const [f, dy, kind, facing, pose, h] of herd)
-    parts.push(
-      animal({
-        kind,
-        pose,
-        x: wx + f * half * 1.25,
-        foot: wy + 4 + dy,
-        h,
-        facing,
-        phase: (f + 1) / 2,
-        tint: ctx.tint,
-      }),
-    );
+  // v1.6 (D-042): the drinkers are a sprite now (src/game/view/faunaSprites.ts).
   // A few small camelthorns round the water (hazed, no ink).
   const pen: Pen = { ink: mix(ctx.pen.ink, horizon, 0.5), w: 0.3 };
   const trees: [number, number, number, Exclude<CamelthornVariant, 'nest'>][] = [
@@ -496,12 +467,6 @@ function farVeld(ctx: LayerCtx): string {
       farCamelthorn(ctx, kind, x, foot, s, pen),
     );
   }
-  // v1.6 (D-042): gemsbok and ostriches out on the pan, low under the Ver strip.
-  parts.push(
-    animalHerd(ctx.rnd, 'gemsbok', ctx.u(0.62), 604, 15, 4, 120, ctx.tint),
-    animalHerd(ctx.rnd, 'ostrich', ctx.u(0.24), 600, 24, 2, 60, ctx.tint),
-    animalHerd(ctx.rnd, 'zebra', ctx.u(0.86), 606, 15, 4, 110, ctx.tint),
-  );
   // v1.6 (D-042): a few far quiver trees on the pan edge (outside the waterhole sightline).
   for (const u of [0.12, 0.27, 0.8, 0.93]) {
     const x = ctx.u(u) + (ctx.rnd() - 0.5) * 60;

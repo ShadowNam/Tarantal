@@ -5,7 +5,6 @@
 import { verVeld } from './common';
 import { plantLook, seedTuft, veldShrub, type ShrubKind } from '../flora';
 import { bluegum, pepperTree, sweetThorn } from '../species';
-import { herd } from '../fauna';
 import type { BiomeArtPlan, LayerCtx, PaintCtx, PropCtx } from '../landscape';
 import {
   edgePts,
@@ -892,19 +891,7 @@ function farVeld(ctx: LayerCtx): string {
       parts.push(sweetThorn(ctx.rnd, tx, yAt(band.edge, tx) + 3, 40 + ctx.rnd() * 18, ctx, 'far'));
     }
   }
-  // v1.6 (D-042): herds on the far veld (fauna rig, three poses, hazed for the plane).
-  {
-    const x = ctx.u(0.5);
-    parts.push(herd(ctx.rnd, 'springbok', x, yAt(band.edge, x) + 16, 12, 8, 170, ctx.tint));
-  }
-  {
-    const x = ctx.u(0.56);
-    parts.push(herd(ctx.rnd, 'springbok', x, yAt(band.edge, x) + 22, 12, 4, 90, ctx.tint));
-  }
-  {
-    const x = ctx.u(0.3);
-    parts.push(herd(ctx.rnd, 'ostrich', x, yAt(band.edge, x) + 14, 24, 3, 70, ctx.tint));
-  }
+  // v1.6 (D-042): the far animals are sprites now (src/game/view/faunaSprites.ts).
   return g({}, ...parts);
 }
 

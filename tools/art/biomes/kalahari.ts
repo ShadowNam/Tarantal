@@ -27,7 +27,7 @@ import { camelthornLook, camelthornSpec, camelthornTree, nestTreeSpec, pod } fro
 import { plantLook, seedTuft, veldShrub } from '../flora';
 import { shepherdsTree } from '../species';
 import { deadCamelthornTree } from '../deadTree';
-import { farAnimal as animal, herd } from '../fauna';
+import { farAnimal as animal } from '../fauna';
 import type { PaintCtx } from '../landscape';
 import { boulder, graniteLook } from '../rocks';
 
@@ -407,19 +407,7 @@ function farVeld(ctx: LayerCtx): string {
       ).svg,
     );
   }
-  // v1.6 (D-042): herds on the far veld (fauna rig, three poses, hazed for the plane).
-  {
-    const x = ctx.u(0.5);
-    parts.push(herd(ctx.rnd, 'springbok', x, yAt(band.edge, x) + 14, 12, 7, 150, ctx.tint));
-  }
-  {
-    const x = ctx.u(0.62);
-    parts.push(herd(ctx.rnd, 'ostrich', x, yAt(band.edge, x) + 12, 24, 2, 50, ctx.tint));
-  }
-  {
-    const x = ctx.u(0.8);
-    parts.push(herd(ctx.rnd, 'wildebeest', x, yAt(band.edge, x) + 16, 15, 4, 110, ctx.tint));
-  }
+  // v1.6 (D-042): the far animals are sprites now (src/game/view/faunaSprites.ts).
   return g({}, ...parts);
 }
 

@@ -24,6 +24,7 @@ import { omenSpecs } from './omenArt';
 import { verBand, type Band, type BiomeArt } from './biomeArt';
 import { sightSpecs } from './sightArt';
 import { ellipse, ground, inked, INK, prng, tuft } from './draw';
+import { FAUNA_FOOT, FAUNA_SPRITES } from '../view/faunaSprites';
 
 const KAROO = {
   skyTop: '#8DB8D8',
@@ -1438,6 +1439,18 @@ export function createPlaceholderManifest(
     m.addLayer(layer.asset, layerArt, tiles);
   });
   for (const prop of biome.props) m.addTexture(propSpec(prop, art));
+  // v1.6 (D-042): the far animals' sprites (drawn art only: the placeholder is empty).
+  for (const f of FAUNA_SPRITES[biome.id] ?? [])
+    m.addTexture({
+      key: f.key,
+      width: f.w,
+      height: f.h,
+      originX: f.w / 2,
+      originY: f.h - FAUNA_FOOT,
+      draw() {
+        // Nothing: without delivered art there are no far animals.
+      },
+    });
   for (const s of uiSpecs()) m.addTexture(s);
   for (const s of m4Specs()) m.addTexture(s);
   for (const s of arsenalSpecs()) m.addTexture(s);

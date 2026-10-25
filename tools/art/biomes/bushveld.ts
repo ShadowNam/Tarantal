@@ -25,7 +25,6 @@ import { foregroundClumps, midScrub, nearGrass, verVeld } from './common';
 import { plantLook, seedTuft, veldShrub } from '../flora';
 import { baobab as baobabTree, marula, mopane } from '../species';
 import { boulder, boulderPile as granitePile, graniteLook } from '../rocks';
-import { farAnimal as animal, herd } from '../fauna';
 import type { PaintCtx } from '../landscape';
 
 /** v1.6 (D-042): mopane scrub (butterfly leaves, olive and copper) as layered mounds. */
@@ -193,36 +192,7 @@ function farVeld(ctx: LayerCtx): string {
         : marula(ctx.rnd, x, foot, h * 1.1, ctx, 'far'),
     );
   }
-  // v1.6 (D-042): giraffes browsing among the trees (fauna rig), zebra, wildebeest and a few
-  // elephants on the far veld.
-  for (const [u, h, pose] of [
-    [0.18, 58, 'alert'],
-    [0.2, 52, 'graze'],
-    [0.207, 33, 'walk'],
-    [0.71, 56, 'walk'],
-    [0.715, 31, 'alert'],
-  ] as const) {
-    const x = ctx.u(u);
-    parts.push(
-      animal({
-        kind: 'giraffe',
-        pose,
-        x,
-        foot: yAt(band.edge, x) + 6,
-        h,
-        tint: ctx.tint,
-        phase: u,
-      }),
-    );
-  }
-  for (const [u, kind, dy, h, n, sp] of [
-    [0.5, 'zebra', 14, 15, 5, 130],
-    [0.42, 'wildebeest', 18, 15, 4, 100],
-    [0.86, 'elephant', 14, 24, 3, 120],
-  ] as const) {
-    const x = ctx.u(u);
-    parts.push(herd(ctx.rnd, kind, x, yAt(band.edge, x) + dy, h, n, sp, ctx.tint));
-  }
+  // v1.6 (D-042): the giraffes and herds are sprites now (src/game/view/faunaSprites.ts).
   // Frost mist lying over the far veld at dawn.
   parts.push(mist(ctx.rnd, -40, ctx.width + 40, 588, 26, ctx.raw('mist'), 0.5));
   return g({}, ...parts);

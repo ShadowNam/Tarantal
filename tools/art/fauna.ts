@@ -130,7 +130,7 @@ interface Colours {
 }
 
 const COATS: Readonly<Record<AnimalKind, Colours>> = {
-  giraffe: { coat: '#9C5C2E', lit: '#E6DAC2', shade: '#7A5A3E', belly: '#EAD9B4', mark: '#6A3A1C' },
+  giraffe: { coat: '#9C5C2E', lit: '#C8B08A', shade: '#7A5A3E', belly: '#E6D2A8', mark: '#6A3A1C' },
   springbok: {
     coat: '#C68E58',
     lit: '#DDAA74',
@@ -146,7 +146,7 @@ const COATS: Readonly<Record<AnimalKind, Colours>> = {
     belly: '#77726C',
     mark: '#E8E2D2',
   },
-  zebra: { coat: '#EEEAE0', lit: '#FAF8F2', shade: '#B8B2A8', belly: '#E2DED4', mark: '#24201E' },
+  zebra: { coat: '#E8E2D4', lit: '#F6F2E8', shade: '#A8A296', belly: '#DAD4C6', mark: '#1E1A18' },
   wildebeest: {
     coat: '#6E6A68',
     lit: '#8E8884',
@@ -562,7 +562,7 @@ function markings(
         el('path', {
           d: d.join(''),
           stroke: col.mark,
-          'stroke-width': Math.max(0.5, u * 0.035),
+          'stroke-width': Math.max(0.6, u * 0.05),
           fill: 'none',
         }),
         el('path', {
