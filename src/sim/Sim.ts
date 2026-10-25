@@ -62,13 +62,7 @@ import {
   tickPowerups,
   type ActivePowerup,
 } from './powerups';
-import {
-  crateView,
-  scheduleCrates,
-  spawnCrate,
-  tickCrate,
-  type Crate,
-} from './props/crates';
+import { crateView, scheduleCrates, spawnCrate, tickCrate, type Crate } from './props/crates';
 import {
   activeParts,
   buildSecrets,

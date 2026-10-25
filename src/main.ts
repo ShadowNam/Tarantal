@@ -357,7 +357,7 @@ const hook: TestHook = {
   huntRequests: 0,
   ads: null,
   audioMuted: false,
-  voice: { language: '', pack: 'none', played: [] },
+  voice: { language: '', pack: 'none', played: [], oupa: true },
   captions: [],
   quality: { tier: '', bench: null, benchRan: false, layers: 0, filters: [] },
   errors: [],
@@ -528,6 +528,7 @@ async function boot(): Promise<void> {
       voice: s.voiceVolume,
     });
     audio.setOupaVoice(oupaSpeaks(s.oupa));
+    hook.voice.oupa = audio.oupaVoiceOn;
     applyVoice?.(s);
   };
   /** v1.5 (D-041): Oupa's voice pack (set once the asset index is known, below). */

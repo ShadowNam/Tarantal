@@ -249,6 +249,8 @@ export interface TestHook {
     language: string;
     pack: 'none' | 'loading' | 'ready' | 'partial' | 'missing';
     played: string[];
+    /** v1.7b (D-046): Oupa's voice is allowed (Settings → Oupa's comments "On"). */
+    oupa: boolean;
   };
   /** M10: what the music plays (biome, audible stem) and the master gain (0 while muted). */
   readonly music: { id: string; stem: string | null } | null;
