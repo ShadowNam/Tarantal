@@ -2237,6 +2237,80 @@ failing or hung step still reloads (`src/platform/freshLoad.ts`, unit-tested). S
 gate), never in Poki/CrazyGames builds (no Skietbaan chunk; their `hardRefresh` is a plain
 reload). The setup page and the bar also show the build line. Tech §10.
 
+**D-043 v1.6b Reload power-ups: Blitslaai and Oupa Laai (25 Oct 2026):** the product owner
+(25 Oct): "Another power-up that should exist in the game is an AUTO reload, and a fast reload."
+Two crate power-ups (GDD §10.4), numbers in `content/powerups.json`.
+(1) *Blitslaai* (`reloadTimeMul` 0.35, 12 s): every reload step is `round(ticks × 0.35)`, where
+`ticks` already has Snelhand and the Boss Rule in it (they multiply), floored at
+`reloadFloorMs` 150 ms and never longer than it was. It covers full-belt reloads, each per-shell
+step, the Voorlaaier's ramrod and the Kettie's draw — the draw is the Kettie's reload for charms
+too (D-025), so treating it the same keeps one rule. The Mielie-Masjien's fire interval and the
+rifles' bolt are not reloads and stay. A reload step already running keeps the length it started
+with (no mid-step rescaling: simpler and the HUD ring never jumps); a per-shell gun takes each new
+round at the rate of the moment, so Blitslaai picked up or ending mid-reload changes the rounds
+still to come. The floor applies to what Blitslaai shortens (alone or on top of Snelhand); Snelhand
+alone never comes near it (the shortest, the Windbuks' 600 ms / 1.3, is 460 ms).
+(2) *Oupa Laai* (`autoReload`, `idleTopUpMs` 600, 12 s): the tick the gun is empty (after the shot
+resolves, the same tick) the reload starts by itself, no gesture; a per-shell gun also starts
+topping up once 0.6 s have passed since its last shot, one round per reload step, until full. The
+event is `reloadStarted` with `auto: true`; it fires the charm `reload` trigger like a manual
+reload. **An auto reload can always be cut by a shot**, even on the Windbuks whose own reload
+can't: otherwise the idle top-up would lock the player out of the shot they were lining up. It
+checks every tick, so a belt left empty when Chilli Biltong or a crate weapon ends reloads at
+once. Nothing happens while Chilli Biltong is active or a crate weapon is out.
+(3) *Crates and Padstal:* power-ups keep 85 of the 100 crate weight: Blitslaai 18, Oupa Laai 18,
+Chilli Biltong / Boeretroos / Bush Buckshot 25 → 14 each, Meerkat Spotter 10 → 7 (rounded to keep
+the sum); Voorlaaier 8 and Mielie-Masjien 7 unchanged. Padstal price 2 each.
+(4) *Determinism:* sim ticks only; replays carry the content hash, so logs from before this change
+are refused by `verifyReplay` like after any content change. Golden replays re-recorded; the frozen
+InputLog v3 Classic fixture still decodes and replays deterministically, its expected events
+re-derived (a different crate roll changes an open-loop bot log's outcome).
+(5) *Balance* (competent bot unless noted; `npx tsx tools/balance-sim.ts --seeds 500`):
+Classic Dubbelloop competent mean 4 180 → **4 258** (+1.9 %), plinker 2 407 → 2 455, random 267 →
+269; all three M3 gates pass. 200-seed cells, before → after: Kettie 4 713 → 4 782, Pomp 4 238 →
+4 389, Windbuks 3 039 → 3 041; Namibië long-range cap (4 500, D-038/D-039) still holds — scoped
+.22 Sunday 4 421 → 4 351, Tuesday 4 409 → 4 347, Thursday 4 378 → 4 352, Saturday 4 337 → 4 427;
+Langloop Saturday 3 515 → 3 512. Season Run (`--run --seeds 500`), pass rates before → after,
+every gate passes: Herfs 83.0 / 92.4 → 83.0 / 93.0 % (none / synergy), Winter 47.0 / 80.1 → 47.0 /
+77.0 %, **Lente synergy 64.1 → 69.6 %** (target ~60 % ± 10: inside, but at the edge), Somer
+0.0 / 34.6 → 0.0 / 34.9 %. Price 3 instead of 2 measured the same (69.5 %): the synergy bot buys a
+consumable whenever it can, and the new ones are simply useful. If Lente drifts over in a later
+change, the lever is Lente's quota, not these prices.
+(7) *Look and feel* (screen only): the existing four power-ups have no icon (a text chip with a
+timer bar, a plain crate); the two new ones keep that chip and add an icon at its left
+(`ui/pu_blitslaai`: a shell with a lightning bolt; `ui/pu_oupa_laai`: Oupa's hand holding two
+shells), shown for any power-up that has a `ui/pu_<id>` texture, a long name shrinking to fit
+beside it. While Blitslaai runs, small lightning glints (`fx/bolt`, local sprites, never a flash;
+steady and dimmer with "reduce flashes") hop along the rounds — two during a reload — and a
+reload starts with a quick metallic **zip** (`sfx/zip`) instead of the gun's own reload-start
+sound; the refill itself animates faster because it follows the sim's shorter reload. While Oupa
+Laai runs, his hand sits just outside the belt's inner end, clear of the rounds (mirrored in
+left-handed mode). His bark
+`bark.oupa_laai` ("Ek laai vir jou, my kind!" / "I'll load for you, my kind!" / "Ich lade für
+dich, mein Kind!" / nl "Ik laad wel voor je, m'n kind!") is the new trigger `oupaLaai`: the first
+auto reload after an Oupa Laai pickup (the director gets the `autoReload` ids from content, so
+another power-up's pickup doesn't re-arm it), held over the bark gap but dropped if Oupa Laai ends
+first; voiced in en/af/de with the existing interim
+TTS (`npm run audio:voice -- --only bark.oupa_laai`), Dutch text speaks Afrikaans as before. Names
+(`docs/i18n-names.md`): Lightning Load / Blitzladung / Bliksemlading, Oupa Loads / Oupa lädt /
+Oupa laadt; the Afrikaans-names toggle shows Blitslaai and Oupa Laai. The Padstal card of an item
+with a description (`item.<id>.desc`, only these two so far) shows it under the kind. All art and
+sound is interim (`origin: interim`, tools/art and tools/audio). No zip caption: captions are
+per event and the event doesn't say Blitslaai is on; "[reloaded]" still shows.
+(8) *Sizes* (`npm run size -- --strict`, gzip): first download **3 026.6 KB** (+13.1 KB over
+v1.5's 3 013.5 KB: the two icons, the bolt, the zip and the code); voice-en 627.8 KB, voice-af
+679.4 KB, voice-de 822.2 KB (each + one line). *Tests:* unit — `src/sim/reloadPowerups.test.ts`
+(reload times with each, both, + Snelhand, the floor, the Kettie draw, the Voorlaaier ramrod and
+the Mielie-Masjien interval, auto start on empty, no idle top-up on full-belt guns, per-shell idle
+top-up and its cut, Chilli Biltong, refresh on pickup, expiry, a scripted Season replay and Classic
+crate hunts replaying identically), weaponState, barks, AudioDirector, gunLook; e2e (CI) —
+`tests/e2e/reload-powerups.spec.ts` picks up each crate with `?crate=` on every landscape profile:
+chip icon, a reload in about a third of the time with glints, an empty belt reloading with no
+gesture and Oupa's line.
+(6) *Test fix:* `maps.test.ts` feeding-spot check used 4 seeds and a ×2 bar; the spot's own share
+is unchanged (0.52) but the no-spot share swings with the bot's luck (main itself gave 1.79× on
+seeds 21–28). Now 8 seeds and a ×1.7 bar.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

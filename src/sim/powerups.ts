@@ -1,5 +1,6 @@
 // Active power-ups (GDD §10.4): timed (ms) or counted in shells. Picking one up again refreshes
-// it. Effects combine: spread multipliers multiply, the creature time scale takes the slowest.
+// it. Effects combine: spread and reload-time multipliers multiply, the creature time scale takes
+// the slowest, the idle top-up delay takes the shortest.
 import type { Powerups } from '../content/schemas';
 import { msToTicks } from './clock';
 import type { PowerupView } from './types';
@@ -66,6 +67,12 @@ export interface PowerupEffects {
   /** 1 = normal speed. */
   readonly creatureTimeScale: number;
   readonly revealHidden: boolean;
+  /** Reload time factor (Blitslaai, v1.6b); factors multiply. 1 = normal. */
+  readonly reloadTimeMul: number;
+  /** Oupa Laai (v1.6b): an empty gun starts its reload by itself. */
+  readonly autoReload: boolean;
+  /** Ticks without a shot before a per-shell gun tops up by itself; null = never. */
+  readonly idleTopUpTicks: number | null;
 }
 
 export function effectsOf(list: readonly ActivePowerup[]): PowerupEffects {
@@ -74,6 +81,9 @@ export function effectsOf(list: readonly ActivePowerup[]): PowerupEffects {
   let spreadMul = 1;
   let creatureTimeScale = 1;
   let revealHidden = false;
+  let reloadTimeMul = 1;
+  let autoReload = false;
+  let idleTopUpTicks: number | null = null;
   for (const p of list) {
     const e = p.def.effect;
     if (e.autoFire === true) autoFire = true;
@@ -82,8 +92,23 @@ export function effectsOf(list: readonly ActivePowerup[]): PowerupEffects {
     if (e.creatureTimeScale !== undefined)
       creatureTimeScale = Math.min(creatureTimeScale, e.creatureTimeScale);
     if (e.revealHidden === true) revealHidden = true;
+    if (e.reloadTimeMul !== undefined) reloadTimeMul *= e.reloadTimeMul;
+    if (e.autoReload === true) autoReload = true;
+    if (e.idleTopUpMs !== undefined) {
+      const t = Math.max(1, msToTicks(e.idleTopUpMs));
+      idleTopUpTicks = idleTopUpTicks === null ? t : Math.min(idleTopUpTicks, t);
+    }
   }
-  return { autoFire, infiniteAmmo, spreadMul, creatureTimeScale, revealHidden };
+  return {
+    autoFire,
+    infiniteAmmo,
+    spreadMul,
+    creatureTimeScale,
+    revealHidden,
+    reloadTimeMul,
+    autoReload,
+    idleTopUpTicks,
+  };
 }
 
 export function powerupView(p: ActivePowerup): PowerupView {

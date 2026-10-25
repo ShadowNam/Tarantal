@@ -3,6 +3,20 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.6.1] — reload power-ups (25 Oct 2026)
+
+Decision record D-043. The crate weights changed, so replays from 1.6.0 are refused (new content
+hash) and the golden replays were re-recorded.
+
+### Added
+- **Blitslaai** (Lightning Load): for 12 s every reload runs at 35 % of its time, with lightning
+  glints on the belt and a quick zip.
+- **Oupa Laai** (Oupa Loads): for 12 s an empty gun reloads by itself and per-shell guns top up
+  after 0.6 s without a shot; Oupa's hand sits by the belt and he says so. A shot always cuts an
+  auto reload.
+- Both are in the crates and the Padstal (price 2), with icons on their HUD chips and voiced
+  lines in English, Afrikaans and German.
+
 ## [1.6.0] — veld art pass (25 Oct 2026)
 
 Decision record D-042. Rendering and loading only: the sim, the content hash, the Daily seeds and

@@ -513,14 +513,26 @@ export class RunScene extends Phaser.Scene {
         '#1B1410',
         r.w - 20,
       ).setAlpha(can ? 1 : 0.45);
+      // v1.6b (D-043): an item with a description (Blitslaai, Oupa Laai) says what it does under
+      // its kind; the others keep the kind alone.
+      const desc = tOr(`item.${o.id}.desc`, '');
       this.text(
         r.x + r.w / 2,
-        r.y + 100,
+        r.y + (desc === '' ? 100 : 88),
         t(o.kind === 'weapon' ? 'run.offer.weapon' : 'run.offer.consumable'),
         22,
         '#1B1410',
         r.w - 20,
       ).setAlpha(can ? 1 : 0.45);
+      if (desc !== '')
+        this.add
+          .text(r.x + r.w / 2, r.y + 108, desc, {
+            ...textStyle(19, '#1B1410'),
+            align: 'center',
+            wordWrap: { width: r.w - 28 },
+          })
+          .setOrigin(0.5, 0)
+          .setAlpha(can ? 1 : 0.45);
     }
     const c = this.ctx.content.charms.charms.find((x) => x.id === o.id);
     const rarity = c === undefined ? null : tOr(`rarity.${c.rarity}`, c.rarity);

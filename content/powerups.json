@@ -1,5 +1,5 @@
 {
-  "$comment": "Power-ups: crate drops in Classic/Daily, one-use consumables in the Season Run Padstal. Crate windows are fractions of hunt length.",
+  "$comment": "Power-ups: crate drops in Classic/Daily, one-use consumables in the Season Run Padstal. Crate windows are fractions of hunt length. v1.6b: power-ups stay 85 of the 100 crate weight with Blitslaai and Oupa Laai added (D-043).",
   "version": 1,
   "powerups": [
     {
@@ -34,8 +34,28 @@
       },
       "durationMs": 8000,
       "padstalPrice": 2
+    },
+    {
+      "$comment": "v1.6b (D-043) Blitslaai: every reload (and the Voorlaaier ramrod, and the Kettie draw) takes 35 % of its time, floored at reloadFloorMs.",
+      "id": "blitslaai",
+      "effect": {
+        "reloadTimeMul": 0.35
+      },
+      "durationMs": 12000,
+      "padstalPrice": 2
+    },
+    {
+      "$comment": "v1.6b (D-043) Oupa Laai: an empty gun reloads by itself; per-shell guns also top up after idleTopUpMs without a shot. Auto reloads can always be cut by a shot.",
+      "id": "oupa_laai",
+      "effect": {
+        "autoReload": true,
+        "idleTopUpMs": 600
+      },
+      "durationMs": 12000,
+      "padstalPrice": 2
     }
   ],
+  "reloadFloorMs": 150,
   "crates": {
     "modes": [
       "classic",
@@ -63,19 +83,27 @@
     "table": [
       {
         "id": "chilli_biltong",
-        "weight": 25
+        "weight": 14
       },
       {
         "id": "boeretroos",
-        "weight": 25
+        "weight": 14
       },
       {
         "id": "bush_buckshot",
-        "weight": 25
+        "weight": 14
       },
       {
         "id": "meerkat_spotter",
-        "weight": 10
+        "weight": 7
+      },
+      {
+        "id": "blitslaai",
+        "weight": 18
+      },
+      {
+        "id": "oupa_laai",
+        "weight": 18
       },
       {
         "id": "voorlaaier",

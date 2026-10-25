@@ -42,6 +42,8 @@ export const SFX_IDS = [
   'shotLangloop',
   // v1.4 B (D-039): angry sociable weavers chattering and scolding round a shot nest.
   'weavers',
+  // v1.6b (D-043): Blitslaai's quick metallic zip as the belt refills.
+  'zip',
 ] as const;
 export type SfxId = (typeof SFX_IDS)[number];
 
@@ -238,6 +240,10 @@ export function playSfx(ctx: AudioContext, out: AudioNode, id: SfxId, noise: Aud
       tone('sawtooth', 820, 520, 0.22, 0.18);
       tone('sawtooth', 820, 520, 0.22, 0.18, 0.3);
       return 0.55;
+    case 'zip':
+      tone('sawtooth', 900, 4200, 0.12, 0.18);
+      tone('triangle', 3000, 3100, 0.08, 0.15, 0.12);
+      return 0.22;
     case 'crate':
       tone('triangle', 300, 900, 0.12, 0.3);
       tone('square', 1200, 1600, 0.1, 0.1, 0.1);

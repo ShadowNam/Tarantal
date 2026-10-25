@@ -155,6 +155,8 @@ rather than translating word for word. The tables show the text each language fi
 | `item.boeretroos` | Boeretroos | Farm Coffee | Farmerkaffee | Boerenkoffie | boeretroos = coffee |
 | `item.bush_buckshot` | Bos-hael | Bush Buckshot | Busch-Schrot | Bos-hagel | already translated |
 | `item.meerkat_spotter` | Meerkat-uitkyk | Meerkat Spotter | Erdmännchen-Späher | Stokstaartjes-spotter | helper; already translated |
+| `item.blitslaai` | Blitslaai | Lightning Load | Blitzladung | Bliksemlading | v1.6b (D-043): blits = lightning, laai = load |
+| `item.oupa_laai` | Oupa Laai | Oupa Loads | Oupa lädt | Oupa laadt | v1.6b (D-043): Oupa loads for you (auto reload) |
 
 ### Ranks
 

@@ -338,6 +338,7 @@ const hook: TestHook = {
   classicArea: '',
   weavers: 0,
   weaverBursts: 0,
+  reloadFx: { chipIcons: [], bolts: 0, oupaHand: false, autoReloads: 0 },
   mirage: false,
   sceneryMs: 0,
   sceneryFrames: 0,
@@ -805,7 +806,13 @@ async function boot(): Promise<void> {
     save,
     notaboek: loaded.notaboek,
     dailyMeta: loaded.daily,
-    barks: new BarkDirector(feel.barks, feel.audio.barkGapMs),
+    barks: new BarkDirector(
+      feel.barks,
+      feel.audio.barkGapMs,
+      new Set(
+        bundle.powerups.powerups.filter((p) => p.effect.autoReload === true).map((p) => p.id),
+      ),
+    ),
     today,
     daily: new DailyFlow({
       content: bundle,

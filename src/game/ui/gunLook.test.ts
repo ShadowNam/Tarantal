@@ -9,6 +9,7 @@ import {
   crosshairWeapon,
   gunLookFor,
   pileRows,
+  reloadBoostsOf,
   spreadMulOf,
   type AmmoState,
 } from './gunLook';
@@ -228,6 +229,18 @@ describe('review fixes (v1.1)', () => {
     const s = slotsFor('dubbelloop', { shells: 0, infinite: true });
     expect(s.every((x) => x.key === 'ui/ammo/shell12')).toBe(true);
     expect(s).toHaveLength(8);
+  });
+
+  it('v1.6b: reload boosts from the running power-ups (Blitslaai fast, Oupa Laai auto)', () => {
+    const defs = loadContent().powerups.powerups;
+    expect(reloadBoostsOf([], defs)).toEqual({ fast: false, auto: false });
+    expect(reloadBoostsOf([{ id: 'blitslaai' }], defs)).toEqual({ fast: true, auto: false });
+    expect(reloadBoostsOf([{ id: 'oupa_laai' }], defs)).toEqual({ fast: false, auto: true });
+    expect(reloadBoostsOf([{ id: 'oupa_laai' }, { id: 'blitslaai' }], defs)).toEqual({
+      fast: true,
+      auto: true,
+    });
+    expect(reloadBoostsOf([{ id: 'chilli_biltong' }], defs)).toEqual({ fast: false, auto: false });
   });
 
   it('the ring follows a power-up spread multiplier (Bush Buckshot)', () => {

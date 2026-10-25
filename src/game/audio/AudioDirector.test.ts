@@ -343,6 +343,23 @@ describe('AudioDirector: each gun its own sounds (v1.1, D-032)', () => {
     expect(playedIds(r, at)).toEqual(['sfx/shell', 'sfx/rackPomp']);
   });
 
+  it("v1.6b: while Blitslaai runs a reload starts with the zip, else the gun's own sound", async () => {
+    const r = rig(undefined, guns);
+    r.audio.addRecorded(['zip', 'rackPomp', 'shell'].map((id) => file(sfxKey(id))));
+    r.audio.unlock();
+    await flush();
+    r.audio.setWeapon('dubbelloop');
+    const start = { type: 'reloadStarted', perShell: false } as unknown as SimEvent;
+    let at = r.ctx.sources.length;
+    r.audio.setFastReload(true);
+    r.audio.handle([start], () => 0);
+    expect(playedIds(r, at)).toEqual(['sfx/zip']);
+    r.audio.setFastReload(false);
+    at = r.ctx.sources.length;
+    r.audio.handle([start], () => 0);
+    expect(playedIds(r, at)).not.toContain('sfx/zip');
+  });
+
   it('the Voorlaaier (a crate gun, no reload events) plays its ramrod after a shot that leaves rounds', async () => {
     const timers: { fn: () => void; ms: number }[] = [];
     const r = rig(undefined, guns);
