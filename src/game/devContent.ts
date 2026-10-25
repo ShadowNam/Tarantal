@@ -85,3 +85,29 @@ export function withForcedEvent(b: ContentBundle, event: string): ContentBundle 
     })),
   };
 }
+
+/**
+ * v1.7 ?birds=0 (art previews of the meerkats): a hunt with no flocks, pop-ups, fly-over spawns,
+ * world events, Stampede surge or crates — only the director's opening fly-over crosses the far
+ * sky — so the colonies are the only thing on the veld. The colonies' own behaviour is unchanged (their stream draws the same numbers).
+ */
+export function withNoBirds(b: ContentBundle): ContentBundle {
+  return {
+    ...b,
+    powerups: { ...b.powerups, crates: { ...b.powerups.crates, perHunt: 0, windows: [] } },
+    biomes: b.biomes.map((x) => ({
+      ...x,
+      events: [],
+      pacing: {
+        ...x.pacing,
+        keyframes: x.pacing.keyframes.map((k) => ({
+          ...k,
+          flocks: {},
+          flyoversPerMin: 0,
+          popupsPerMin: 0,
+        })),
+        stampede: { ...x.pacing.stampede, flyoversPerMin: 0, popupsPerMin: 0 },
+      },
+    })),
+  };
+}

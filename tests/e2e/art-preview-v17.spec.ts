@@ -16,6 +16,7 @@ import { join } from 'node:path';
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
 import { blank, crop, decodePng, encodePng8, resize, type Rgba } from '../../tools/assets/image';
 import { loadContent } from '../../tools/testContent';
+import { withNoBirds } from '../../src/game/devContent';
 import { createSim } from '../../src/sim/Sim';
 import type { ColonyView, SimState } from '../../src/sim/types';
 import { boot, isTouchProject, startHunt } from './helpers';
@@ -24,15 +25,17 @@ const OUT = join(import.meta.dirname, '..', '..', 'docs', 'art-preview', 'compar
 const PROFILES = ['desktop-chromium', 'pixel7-landscape', 'iphone14-landscape'];
 /** The device name of a project (a local Chromium stand-in for WebKit keeps the device's). */
 const device = (name: string): string => name.replace(/-chromium-fallback$/, '');
-const SEED = 42;
+/** Seed 33: Monday's near colony has a pup in both deserts. */
+const SEED = 33;
 const SECONDS = 60;
-const CONTENT = loadContent();
+/** As the page's ?birds=0: no birds or world events, so the meerkats are the subject. */
+const CONTENT = withNoBirds(loadContent());
 /** No frame before this tick (the desert art group has loaded and the view has settled). */
 const EARLIEST = 420;
 
 type Biome = 'kalahari-summer' | 'namibie';
 const query = (biome: Biome, hold?: number): string =>
-  `seed=${SEED}&huntSeconds=${SECONDS}&biome=${biome}&layout=mon${hold === undefined ? '' : `&holdAt=${hold}`}`;
+  `seed=${SEED}&huntSeconds=${SECONDS}&biome=${biome}&layout=mon&birds=0${hold === undefined ? '' : `&holdAt=${hold}`}`;
 
 const OUT_POSES = ['sit', 'forage', 'sunbathe', 'sentinel'];
 
@@ -91,17 +94,22 @@ function save(name: string, info: TestInfo, img: Rgba): void {
   );
 }
 
-/** Nearest-neighbour 2× (close-ups stay crisp). */
-function twice(src: Rgba): Rgba {
-  const out = blank(src.width * 2, src.height * 2);
+/** Nearest-neighbour n× (close-ups stay crisp). */
+function scaled(src: Rgba, n: number): Rgba {
+  const out = blank(src.width * n, src.height * n);
   for (let y = 0; y < out.height; y++)
     for (let x = 0; x < out.width; x++) {
-      const si = ((y >> 1) * src.width + (x >> 1)) * 4;
+      const si = (Math.floor(y / n) * src.width + Math.floor(x / n)) * 4;
       const di = (y * out.width + x) * 4;
       for (let k = 0; k < 4; k++) out.data[di + k] = src.data[si + k] ?? 0;
     }
   return out;
 }
+
+/** A meerkat's standing height in design px: near colonies stand on y ≈ 966, mid on 812. */
+const tallPx = (y: number): number => (y > 900 ? 127 : 64);
+/** Close-ups show every meerkat at least this tall (the look round asks for ≥ 120 px). */
+const CLOSE_TALL = 150;
 
 /** Desktop: the real mouse rests at the bottom centre, outside both edge-pan bands. */
 async function park(page: Page, touch: boolean): Promise<void> {
@@ -133,7 +141,14 @@ async function shoot(
   page: Page,
   info: TestInfo,
   name: string,
-  focus: (m: { id: number; colony: string; pose: string; x: number; y: number }) => boolean,
+  focus: (m: {
+    id: number;
+    colony: string;
+    pose: string;
+    pup: boolean;
+    x: number;
+    y: number;
+  }) => boolean,
   halfW = 240,
 ): Promise<void> {
   const shot = decodePng(await page.locator('#game canvas').screenshot());
@@ -148,11 +163,15 @@ async function shoot(
   const cx = picked.reduce((t, m) => t + m.x, 0) / picked.length;
   const ground = Math.max(...picked.map((m) => m.y));
   const k = shot.width / g.w;
-  const x0 = Math.max(0, Math.round((cx - halfW) * k));
-  const x1 = Math.min(shot.width, Math.round((cx + halfW) * k));
-  const y0 = Math.max(0, Math.round((ground - 200) * k));
-  const y1 = Math.min(shot.height, Math.round((ground + 50) * k));
-  save(`${name}-closeup`, info, twice(crop(shot, x0, y0, x1 - x0, y1 - y0)));
+  // Zoom so the smallest picked meerkat stands ≥ CLOSE_TALL px, and the crop fits 1600 px.
+  const tall = Math.min(...picked.map((m) => tallPx(m.y)));
+  const n = Math.max(2, Math.ceil(CLOSE_TALL / (tall * k)));
+  const half = Math.min(halfW, 1600 / n / k / 2);
+  const x0 = Math.max(0, Math.round((cx - half) * k));
+  const x1 = Math.min(shot.width, Math.round((cx + half) * k));
+  const y0 = Math.max(0, Math.round((ground - tall * 1.6) * k));
+  const y1 = Math.min(shot.height, Math.round((ground + tall * 0.4) * k));
+  save(`${name}-closeup`, info, scaled(crop(shot, x0, y0, x1 - x0, y1 - y0), n));
 }
 
 /**
@@ -267,20 +286,41 @@ test('the sentinel on its mound', async ({ page }, info) => {
 
 test('a dash between burrows', async ({ page }, info) => {
   const touch = isTouchProject(info);
-  // The halfway stop of a dash: one standing to look, others of the line still running or
-  // standing too.
+  // Mid-dash: at least two adults of one colony running in a line, tails up.
+  const running = (c: ColonyView): number =>
+    c.meerkats.filter((m) => !m.pup && m.pose === 'run' && m.poseTicks >= 6).length;
   const { tick, state } = findTick('kalahari-summer', (s) =>
-    s.meerkats.some(
-      (c) =>
-        c.meerkats.some((m) => m.pose === 'stand') &&
-        c.meerkats.filter((m) => m.pose === 'run' || m.pose === 'stand').length >= 2,
-    ),
+    s.meerkats.some((c) => running(c) >= 2),
   );
-  const colony = state.meerkats.find((c) => c.meerkats.some((m) => m.pose === 'stand'))?.id;
+  const colony = state.meerkats.find((c) => running(c) >= 2)?.id;
   await boot(page, query('kalahari-summer', tick));
   await startHunt(page, touch);
   await held(page, touch, tick);
-  await shoot(page, info, 'dash', (m) => m.colony === colony, 300);
+  await shoot(page, info, 'dash', (m) => m.colony === colony && m.pose === 'run', 300);
+  const poses = await page.evaluate(() => window.__TM__?.meerkats.map((m) => m.pose) ?? []);
+  expect(poses.filter((p) => p === 'run').length).toBeGreaterThanOrEqual(2);
+});
+
+test('the sentinel and the pup, close up', async ({ page }, info) => {
+  const touch = isTouchProject(info);
+  // The near colony (the biggest on screen): a sentinel standing tall and the pup sitting.
+  const { tick } = findTick('kalahari-summer', (s) => {
+    const c = colonyOn(s, 'near');
+    return (
+      c?.meerkats.some((m) => m.pose === 'sentinel' && m.poseTicks >= 20) === true &&
+      c.meerkats.some((m) => m.pup && m.pose === 'sit')
+    );
+  });
+  await boot(page, query('kalahari-summer', tick));
+  await startHunt(page, touch);
+  await held(page, touch, tick);
+  await shoot(
+    page,
+    info,
+    'sentinel-pup',
+    (m) => m.y > 900 && (m.pose === 'sentinel' || (m.pup && m.pose === 'sit')),
+    220,
+  );
 });
 
 test('a Namibië colony', async ({ page }, info) => {
