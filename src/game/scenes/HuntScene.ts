@@ -25,7 +25,7 @@ import { createRecorder, encodeInputLogText, type InputRecorder } from '../../si
 import { createSim } from '../../sim/Sim';
 import type { HuntResult, InputKind, ModeConfig, ModeId, SimState } from '../../sim/types';
 import { CAMERA_MAX_X, CAMERA_MIN_X } from '../../sim/world';
-import { neededBeforeStart, type AssetManifest } from '../assets/AssetManifest';
+import { neededBeforeStart, TEX, type AssetManifest } from '../assets/AssetManifest';
 import { stemFor } from '../audio/music';
 import { rumbleDue } from '../view/juice';
 import type { HuntPlan } from '../daily/DailyFlow';
@@ -994,6 +994,12 @@ export class HuntScene extends Phaser.Scene {
     });
     if (!this.texturesDone) this.texturesDone = this.manifest.install(this.textures);
     if (this.manifest.upgrade(this.textures, 'sight/').length > 0) this.sight.reset();
+    if (this.ctx.hook)
+      this.ctx.hook.sightArt = !this.textures.exists(TEX.sightScope)
+        ? null
+        : this.textures.get(TEX.sightScope).getSourceImage() instanceof HTMLCanvasElement
+          ? 'placeholder'
+          : 'final';
     this.manifest.prewarmBirds(this.textures);
     if (this.ctx.hook) {
       this.ctx.hook.boot['huntStart'] ??= performance.now();

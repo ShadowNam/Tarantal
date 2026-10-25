@@ -542,14 +542,18 @@ export class AssetManifest {
   }
 
   /**
-   * v1.6 (D-042): swaps placeholders drawn earlier for delivered images that arrived since (keys
-   * starting with `prefix`). Only for art whose views are rebuilt afterwards (the sight pictures:
+   * v1.6 (D-042): swaps placeholders drawn earlier (by any manifest) for delivered images that
+   * arrived since (keys starting with `prefix`). Only for art whose views are rebuilt afterwards (the sight pictures:
    * HuntScene rebuilds them at every hunt start). Returns the swapped keys.
    */
   upgrade(textures: Phaser.Textures.TextureManager, prefix: string): string[] {
     const out: string[] = [];
     for (const [key, { img }] of this.finalImages) {
-      if (!key.startsWith(prefix) || !this.drawn.has(key) || !textures.exists(key)) continue;
+      if (!key.startsWith(prefix) || !textures.exists(key)) continue;
+      // A placeholder may have been drawn by another biome's manifest (the title's): it is a
+      // canvas texture, delivered art an image.
+      const src = textures.get(key).getSourceImage();
+      if (!this.drawn.has(key) && !(src instanceof HTMLCanvasElement)) continue;
       textures.remove(key);
       textures.addImage(key, img);
       this.drawn.delete(key);

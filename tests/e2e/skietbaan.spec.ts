@@ -284,6 +284,8 @@ test.describe('Skietbaan (training ground)', () => {
         timeout: 60_000,
       });
       if (i === 4) await page.screenshot({ path: `${SHOTS_DIR}/skietbaan-scope-${name}.png` });
+      // v1.6 (D-042): the scope picture is the delivered art, never the drawn placeholder.
+      if (i === 0) expect(await page.evaluate(() => window.__TM__?.sightArt)).toBe('final');
       await letGo(page);
       await page.waitForFunction((n) => (window.__TM__?.shots ?? 0) > n, shots, {
         timeout: 60_000,
