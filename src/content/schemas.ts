@@ -1187,6 +1187,8 @@ export const BARK_TRIGGERS = [
   'emptyClick',
   'rain',
   'crate',
+  // v1.6b (D-043): the first reload Oupa Laai starts by itself after a pickup.
+  'oupaLaai',
   'idle',
   'flush',
   'newBest',

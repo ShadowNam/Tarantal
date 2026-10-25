@@ -182,7 +182,9 @@ describe('voice packs (v1.5, D-041)', () => {
   });
 
   it('every voiced key has a file in every voice language (art-source and the asset index)', () => {
-    expect(LINES.length).toBe(44);
+    // 44 lines in v1.5; v1.6b adds Oupa Laai's bark.
+    expect(LINES.length).toBe(45);
+    expect(LINES).toContain('bark.oupa_laai');
     expect(LINES).toContain('bark.weavers');
     const index = parseAssetIndex(
       JSON.parse(readFileSync(join(root, 'public', 'assets', 'asset-index.json'), 'utf8')),

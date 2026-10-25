@@ -767,10 +767,105 @@ function water(p: SpriteCtx): string {
   );
 }
 
+/** A red shotgun shell standing up (brass head down), centred on (x, y), `h` tall. */
+function shellD(p: SpriteCtx, x: number, y: number, h: number, rot = 0): string {
+  const w = h * 0.36;
+  const red = tone(p.c('shellRed'), 0.3, 0.3);
+  const brassH = h * 0.3;
+  return g(
+    { transform: `translate(${r2(x)} ${r2(y)}) rotate(${r2(rot)})` },
+    inked(
+      `M${r2(-w / 2)} ${r2(-h / 2)}L${r2(w / 2)} ${r2(-h / 2)}L${r2(w / 2)} ${r2(h / 2 - brassH)}L${r2(-w / 2)} ${r2(h / 2 - brassH)}Z`,
+      red.fill,
+      p.ink,
+      2.5,
+    ),
+    flat(
+      `M${r2(w / 6)} ${r2(-h / 2 + 2)}L${r2(w / 2 - 2)} ${r2(-h / 2 + 2)}L${r2(w / 2 - 2)} ${r2(h / 2 - brassH)}L${r2(w / 6)} ${r2(h / 2 - brassH)}Z`,
+      red.dark,
+    ),
+    flat(
+      `M${r2(-w / 2 + 3)} ${r2(-h / 2 + 3)}L${r2(-w / 2 + 6)} ${r2(-h / 2 + 3)}L${r2(-w / 2 + 6)} ${r2(h / 2 - brassH - 3)}L${r2(-w / 2 + 3)} ${r2(h / 2 - brassH - 3)}Z`,
+      red.light,
+    ),
+    inked(
+      `M${r2(-w / 2 - 1.5)} ${r2(h / 2 - brassH)}L${r2(w / 2 + 1.5)} ${r2(h / 2 - brassH)}L${r2(w / 2 + 1.5)} ${r2(h / 2)}L${r2(-w / 2 - 1.5)} ${r2(h / 2)}Z`,
+      '#C9A13B',
+      p.ink,
+      2.5,
+    ),
+    flat(
+      `M${r2(-w / 2 + 1)} ${r2(h / 2 - brassH + 2)}L${r2(-w / 2 + 4)} ${r2(h / 2 - brassH + 2)}L${r2(-w / 2 + 4)} ${r2(h / 2 - 2)}L${r2(-w / 2 + 1)} ${r2(h / 2 - 2)}Z`,
+      '#F0D27A',
+    ),
+  );
+}
+
+/** A zig-zag lightning bolt centred on (0, 0), `h` tall. */
+function boltD(h: number): string {
+  const k = h / 56;
+  return polyD(
+    [
+      [6, -28],
+      [-12, 4],
+      [-1, 4],
+      [-8, 28],
+      [13, -6],
+      [2, -6],
+      [10, -28],
+    ].map(([x, y]) => [(x ?? 0) * k, (y ?? 0) * k] as [number, number]),
+  );
+}
+
+/** v1.6b (D-043) Blitslaai icon (HUD chip): a shell with a lightning bolt across it. */
+function puBlitslaai(p: SpriteCtx): string {
+  return g(
+    {},
+    shellD(p, -6, 2, 50, -12),
+    g({ transform: 'translate(9 -2) rotate(14)' }, inked(boltD(50), p.c('flashOuter'), p.ink, 3)),
+    g({ transform: 'translate(9 -2) rotate(14)' }, flat(boltD(26), p.c('flashCore'))),
+  );
+}
+
+/** v1.6b (D-043) Oupa Laai icon (HUD chip and belt): Oupa's weathered hand holding two shells,
+ *  his khaki cuff at the bottom right. */
+function puOupaLaai(p: SpriteCtx): string {
+  const skin = '#C98E62';
+  const skinDark = shade(skin, -0.25);
+  const khaki = '#A08A55';
+  const fingers = [-11, -3, 5].map((y, i) =>
+    inked(ellipseD(-4 + i * 1.5, y + 6, 10, 4.6), skin, p.ink, 2),
+  );
+  return g(
+    {},
+    shellD(p, -9, -6, 34, -18),
+    shellD(p, 3, -9, 34, 6),
+    // Palm and thumb under the shells, the fingers curled over their fronts.
+    inked('M-4 6Q10 -2 22 8L26 20Q14 28 0 24Q-8 18 -4 6Z', skin, p.ink, 2.5),
+    flat('M6 20Q14 22 22 18L24 22Q14 26 4 23Z', skinDark),
+    ...fingers,
+    inked('M12 2Q4 -4 -2 0Q2 6 12 8Z', skin, p.ink, 2),
+    inked('M18 14L30 10L32 26L22 30Z', khaki, p.ink, 2.5),
+    flat('M24 14L30 12L31 24L26 26Z', shade(khaki, -0.2)),
+  );
+}
+
+/** v1.6b (D-043) Blitslaai's glint on the belt: a small spark of lightning (a local sprite). */
+function boltGlint(p: SpriteCtx): string {
+  return g(
+    {},
+    inked(boltD(48), p.c('flashOuter'), p.ink, 2.5),
+    flat(boltD(24), '#FFFFFF', { opacity: 0.9 }),
+  );
+}
+
 /** Every shared sprite key → its drawing (sizes/origins come from the placeholder manifest). */
 export const SPRITES: readonly SpriteSpec[] = [
   { key: 'ui/badge_no', wobble: 0, draw: badgeNo },
   { key: 'ui/windsock', wobble: 1, draw: windsock },
+  { key: 'ui/pu_blitslaai', wobble: 0.6, draw: puBlitslaai },
+  { key: 'ui/pu_oupa_laai', wobble: 0.6, draw: puOupaLaai },
+  { key: 'fx/bolt', wobble: 0.4, draw: boltGlint },
   { key: 'fx/feather', wobble: 0.6, draw: feather },
   { key: 'fx/flash', wobble: 1.5, draw: flash },
   { key: 'fx/bubble', wobble: 2, draw: bubble },

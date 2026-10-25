@@ -995,6 +995,40 @@ function weaver(ctx: CanvasRenderingContext2D, up: boolean): void {
   if (!up) wing(1);
 }
 
+/** v1.6b: a red shell standing up, brass head down, centred on (x, y). */
+function placeholderShell(ctx: CanvasRenderingContext2D, x: number, y: number, h: number): void {
+  const w = h * 0.36;
+  ctx.fillStyle = '#C8302A';
+  ctx.fillRect(x - w / 2, y - h / 2, w, h * 0.7);
+  ctx.strokeStyle = INK;
+  ctx.lineWidth = 3;
+  ctx.strokeRect(x - w / 2, y - h / 2, w, h * 0.7);
+  ctx.fillStyle = '#C9A13B';
+  ctx.fillRect(x - w / 2 - 2, y + h * 0.2, w + 4, h * 0.3);
+  ctx.strokeRect(x - w / 2 - 2, y + h * 0.2, w + 4, h * 0.3);
+}
+
+/** v1.6b: a yellow zig-zag lightning bolt centred on (x, y). */
+function placeholderBolt(ctx: CanvasRenderingContext2D, x: number, y: number, h: number): void {
+  const k = h / 56;
+  const pts = [
+    [6, -28],
+    [-12, 4],
+    [-1, 4],
+    [-8, 28],
+    [13, -6],
+    [2, -6],
+    [10, -28],
+  ];
+  ctx.beginPath();
+  pts.forEach(([px = 0, py = 0], i) => {
+    if (i === 0) ctx.moveTo(x + px * k, y + py * k);
+    else ctx.lineTo(x + px * k, y + py * k);
+  });
+  ctx.closePath();
+  inked(ctx, '#FFD25A', 3);
+}
+
 function centred(
   key: string,
   w: number,
@@ -1188,6 +1222,23 @@ function m4Specs(): CanvasSpec[] {
     }),
     centred(TEX.weaverDown, 96, 64, (ctx) => {
       weaver(ctx, false);
+    }),
+    // v1.6b (D-043) reload power-up icons: a shell with a bolt (Blitslaai); a hand holding shells
+    // (Oupa Laai); and the small bolt glint on the belt.
+    centred(TEX.puBlitslaai, 64, 64, (ctx) => {
+      placeholderShell(ctx, -6, 2, 48);
+      placeholderBolt(ctx, 9, -2, 46);
+    }),
+    centred(TEX.puOupaLaai, 64, 64, (ctx) => {
+      placeholderShell(ctx, -9, -6, 32);
+      placeholderShell(ctx, 3, -9, 32);
+      ellipse(ctx, 6, 14, 18, 11);
+      inked(ctx, '#C98E62', 3);
+      ctx.fillStyle = '#A08A55';
+      ctx.fillRect(20, 10, 10, 18);
+    }),
+    centred(TEX.bolt, 40, 56, (ctx) => {
+      placeholderBolt(ctx, 0, 0, 48);
     }),
     // Wind sock (HUD): a striped cone, origin at the pole top; rotated/stretched by the HUD.
     {

@@ -113,6 +113,8 @@ export class AudioDirector {
   private tallyCounting = false;
   /** v1.1 (D-032): the gun in hand (its own shot and reload sounds, feel.json guns). */
   private weapon = '';
+  /** v1.6b (D-043): Blitslaai is running (HuntScene, each frame): reloads zip. */
+  private fastReload = false;
 
   constructor(
     private readonly tuning: AudioTuning,
@@ -401,6 +403,11 @@ export class AudioDirector {
     this.weapon = id;
   }
 
+  /** v1.6b (D-043): while Blitslaai runs, a reload starts with a quick metallic zip. */
+  setFastReload(on: boolean): void {
+    this.fastReload = on;
+  }
+
   private gun(id: string = this.weapon): GunSfx {
     return this.gunSfx[id] ?? DEFAULT_GUN_SFX;
   }
@@ -440,7 +447,8 @@ export class AudioDirector {
           this.play('click', 0);
           break;
         case 'reloadStarted':
-          this.playGun('reloadStarted', 0.5);
+          if (this.fastReload) this.play('zip', 0.5);
+          else this.playGun('reloadStarted', 0.5);
           break;
         case 'shellLoaded':
           this.playGun('shellLoaded', 0.5);

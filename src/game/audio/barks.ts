@@ -6,7 +6,7 @@
 //   - One bark per frame at most (the highest priority), at most one per `gapMs` overall (the
 //     bible's 6 s, audio.barkGapMs), and each trigger at most once per its own cooldownMs.
 //   - A trigger that can't speak because of the gap is dropped, except the "while it lasts" ones
-//     (idle, lastSeconds, quotaMet, boss, stampede), which try again on later frames; tally lines
+//     (idle, lastSeconds, quotaMet, boss, stampede, oupaLaai), which try again on later frames; tally lines
 //     can ask `waitMs` and retry.
 //   - The director is the only gap clock (the HUD's Phaser time). A secret's own bark (biome
 //     content, shown in the HUD banner) always speaks and claims the gap (`secret`), so no generic
@@ -52,6 +52,8 @@ export class BarkDirector {
   /** Event triggers that hold until said (a boss or the Stampede arrives during the gap). */
   private pending = new Set<BarkTrigger>();
   private bagged = new Set<number>();
+  /** v1.6b: Oupa Laai's first auto reload since the last pickup has been announced. */
+  private autoSaid = false;
 
   constructor(
     private readonly tuning: BarkTuning,
@@ -70,6 +72,7 @@ export class BarkDirector {
     this.quotaPending = false;
     this.pending = new Set();
     this.bagged = new Set();
+    this.autoSaid = false;
   }
 
   /** One hunt frame: this frame's events → at most one bark. */
@@ -120,6 +123,18 @@ export class BarkDirector {
           break;
         case 'crateOpened':
           cands.push('crate');
+          break;
+        case 'powerupStarted':
+          // A pickup (or a refresh) lets the next auto reload speak again.
+          this.autoSaid = false;
+          break;
+        case 'reloadStarted':
+          // v1.6b (D-043): only Oupa Laai starts a reload by itself. Held until said (the gap
+          // delays it at most a few seconds).
+          if (e.auto === true && !this.autoSaid) {
+            this.autoSaid = true;
+            this.pending.add('oupaLaai');
+          }
           break;
         case 'comboChanged':
           if (e.frenzyMul >= f.frenzyTopMul) cands.push('frenzyTop');

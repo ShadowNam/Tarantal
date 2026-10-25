@@ -15,7 +15,7 @@ import type { SimState } from '../../sim/types';
 import { TICKS_PER_SECOND } from '../../sim/clock';
 import { fill, t, tOr, type I18nKey } from '../../i18n/i18n';
 import { TEX } from '../assets/AssetManifest';
-import { ammoSlots, gunLookFor, roundsOf } from '../ui/gunLook';
+import { ammoSlots, gunLookFor, reloadBoostsOf, roundsOf } from '../ui/gunLook';
 import type { GameContext } from '../GameContext';
 import { FONT } from '../view/Fx';
 import { formatAward, formatClock, formatMult, formatScore, popParts } from '../ui/format';
@@ -118,6 +118,11 @@ export class HudScene extends Phaser.Scene {
   private chipBacks: RoundRect[] = [];
   private chipBars: RoundRect[] = [];
   private chipTexts: Phaser.GameObjects.Text[] = [];
+  /** v1.6b (D-043): a power-up's icon on its chip (ui/pu_<id>, when it has one). */
+  private chipIcons: Phaser.GameObjects.Image[] = [];
+  /** v1.6b: Blitslaai's lightning glints hopping along the belt, and Oupa Laai's hand on it. */
+  private bolts: Phaser.GameObjects.Image[] = [];
+  private oupaHand: Phaser.GameObjects.Image | null = null;
   private sockPole!: Phaser.GameObjects.Rectangle;
   private sock!: Phaser.GameObjects.Image;
   private callout!: Phaser.GameObjects.Text;
@@ -241,6 +246,14 @@ export class HudScene extends Phaser.Scene {
     this.chipTexts = [];
     for (let i = 0; i < MAX_CHIPS; i++)
       this.chipTexts.push(text(26, '#F3EAD3', false).setOrigin(0, 0.5));
+    this.chipIcons = [];
+    for (let i = 0; i < MAX_CHIPS; i++)
+      this.chipIcons.push(this.add.image(0, 0, TEX.puBlitslaai).setVisible(false));
+    // Above the belt's rounds (those images are made as the belt first draws).
+    this.bolts = [0, 1].map(() =>
+      this.add.image(0, 0, TEX.bolt).setDepth(2).setScale(0.5).setVisible(false),
+    );
+    this.oupaHand = this.add.image(0, 0, TEX.puOupaLaai).setDepth(2).setVisible(false);
     this.sockPole = this.add.rectangle(0, 0, 8, 1, C.ink, 1).setOrigin(0, 0).setVisible(false);
     this.sock = this.add.image(0, 0, TEX.windsock).setVisible(false);
     const so = { x: 6 / 150, y: 0.5 };
@@ -659,6 +672,8 @@ export class HudScene extends Phaser.Scene {
       else if (e.type === 'bonusAwarded') this.pushPop(formatAward(e.award), '#FFD25A');
       else if (e.type === 'penaltyApplied') this.pushPop(formatAward(e.points), '#FF6B5A');
       else if (e.type === 'emptyClick') this.beltFlashUntil = now + 220;
+      else if (e.type === 'reloadStarted' && e.auto === true && this.ctx.hook)
+        this.ctx.hook.reloadFx.autoReloads++;
       else if (e.type === 'stampedeStarted') this.showBanner(t('hud.stampede'));
       else if (e.type === 'flockStateChanged' && e.to === 'flush')
         this.flushedFlocks.add(e.flockId);
@@ -729,6 +744,7 @@ export class HudScene extends Phaser.Scene {
     const w = this.previewWeapon(s.weapon);
     this.drawAmmo(w, l, flash);
     this.drawKettie(w);
+    this.drawReloadBoosts(s, now, l);
     const empty = s.weapon.shells === 0 && !s.weapon.reloading && !s.weapon.infinite;
     this.reload.setText(t('hud.reload')).setVisible(empty);
     if (empty) this.reload.setScale(1 + 0.08 * Math.sin(now / 90));
@@ -827,6 +843,45 @@ export class HudScene extends Phaser.Scene {
     if (this.ctx.hook) this.ctx.hook.ammo = slots.map((x) => x.key);
   }
 
+  /**
+   * v1.6b (D-043): Blitslaai sparks small lightning glints along the rounds (two while a reload
+   * runs, hopping every 120 ms; steady and dimmer with "reduce flashes"); Oupa Laai puts his hand
+   * holding shells on the belt's inner corner. Both only with the primary gun out.
+   */
+  private drawReloadBoosts(s: SimState, now: number, l: HudLayout): void {
+    const boosts = reloadBoostsOf(s.powerups, this.ctx.content.powerups.powerups);
+    const primary = s.weapon.kind === 'primary' && !s.weapon.infinite;
+    const rounds = this.ammo.filter((a) => a.visible);
+    const want = primary && boosts.fast && rounds.length > 0 ? (s.weapon.reloading ? 2 : 1) : 0;
+    const calm = this.ctx.prefs.reduceFlashes;
+    const step = Math.floor(now / 120);
+    this.bolts.forEach((b, i) => {
+      const show = i < want;
+      b.setVisible(show);
+      if (!show) return;
+      const r = rounds[(step * 3 + i * 5) % rounds.length];
+      if (r === undefined) return;
+      const flicker = calm ? 0.55 : 0.6 + 0.4 * ((step + i) % 2);
+      b.setPosition(r.x, r.y - r.displayHeight * 0.15)
+        .setAlpha(flicker)
+        .setRotation(calm ? 0 : ((step + i) % 3) * 0.25 - 0.25);
+    });
+    const hand = this.oupaHand;
+    const showHand = primary && boosts.auto;
+    if (hand !== null) {
+      hand.setVisible(showHand);
+      if (showHand) {
+        const mirrored = this.ctx.prefs.leftHanded;
+        const x = mirrored ? l.belt.x + l.belt.w - 6 : l.belt.x + 6;
+        hand.setPosition(x, l.belt.y + 4).setScale(mirrored ? -0.9 : 0.9, 0.9);
+      }
+    }
+    if (this.ctx.hook) {
+      this.ctx.hook.reloadFx.bolts = want;
+      this.ctx.hook.reloadFx.oupaHand = showHand;
+    }
+  }
+
   /** Kettie (unlimited stones): a bar that fills as the next draw is ready, left of the pile. */
   private drawKettie(w: SimState['weapon']): void {
     const l = this.layoutNow;
@@ -856,7 +911,7 @@ export class HudScene extends Phaser.Scene {
     const l = this.layoutNow;
     if (l === null) return;
     const { chipW, chipH } = this.ctx.feel.hud;
-    const chips: { label: string; frac: number }[] = [];
+    const chips: { label: string; frac: number; icon: string | null }[] = [];
     if (s.weapon.kind === 'crate') {
       const w = s.weapon;
       const frac =
@@ -865,7 +920,7 @@ export class HudScene extends Phaser.Scene {
           : w.magazine > 0
             ? Math.max(0, w.shells) / w.magazine
             : 1;
-      chips.push({ label: tOr(`item.${w.id}`, w.id), frac });
+      chips.push({ label: tOr(`item.${w.id}`, w.id), frac, icon: null });
     }
     for (const p of s.powerups) {
       const frac =
@@ -875,11 +930,19 @@ export class HudScene extends Phaser.Scene {
             ? Math.min(1, p.shellsLeft / 6)
             : 1;
       const suffix = p.shellsLeft !== null ? ` ×${p.shellsLeft}` : '';
-      chips.push({ label: tOr(`item.${p.id}`, p.id) + suffix, frac });
+      const icon = `ui/pu_${p.id}`;
+      chips.push({
+        label: tOr(`item.${p.id}`, p.id) + suffix,
+        frac,
+        icon: this.textures.exists(icon) ? icon : null,
+      });
     }
+    if (this.ctx.hook) this.ctx.hook.reloadFx.chipIcons = chips.map((c) => c.icon);
     this.chipTexts.forEach((txt, i) => {
       const chip = chips[i];
+      const iconImg = this.chipIcons[i];
       txt.setVisible(chip !== undefined);
+      iconImg?.setVisible(chip?.icon != null);
       if (chip === undefined) {
         this.chipBacks[i]?.hide();
         this.chipBars[i]?.hide();
@@ -894,7 +957,18 @@ export class HudScene extends Phaser.Scene {
         6,
       );
       if (txt.text !== chip.label) txt.setText(chip.label);
-      txt.setPosition(l.chips.x + 14, y + chipH / 2 - 3);
+      // v1.6b: an icon sits at the chip's left; a long name shrinks to fit beside it.
+      const iconW = chip.icon === null ? 0 : chipH - 6;
+      if (iconImg !== undefined && chip.icon !== null) {
+        if (iconImg.texture.key !== chip.icon) iconImg.setTexture(chip.icon);
+        iconImg
+          .setDisplaySize(iconW, iconW)
+          .setPosition(l.chips.x + 6 + iconW / 2, y + chipH / 2 - 3);
+      }
+      const textX = l.chips.x + 14 + iconW;
+      const room = chipW - (textX - l.chips.x) - 10;
+      txt.setScale(txt.width > room ? room / txt.width : 1, 1);
+      txt.setPosition(textX, y + chipH / 2 - 3);
     });
   }
 

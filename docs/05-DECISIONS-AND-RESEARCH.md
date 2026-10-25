@@ -2166,6 +2166,24 @@ every gate passes: Herfs 83.0 / 92.4 → 83.0 / 93.0 % (none / synergy), Winter 
 0.0 / 34.6 → 0.0 / 34.9 %. Price 3 instead of 2 measured the same (69.5 %): the synergy bot buys a
 consumable whenever it can, and the new ones are simply useful. If Lente drifts over in a later
 change, the lever is Lente's quota, not these prices.
+(7) *Look and feel* (screen only): the existing four power-ups have no icon (a text chip with a
+timer bar, a plain crate); the two new ones keep that chip and add an icon at its left
+(`ui/pu_blitslaai`: a shell with a lightning bolt; `ui/pu_oupa_laai`: Oupa's hand holding two
+shells), shown for any power-up that has a `ui/pu_<id>` texture, a long name shrinking to fit
+beside it. While Blitslaai runs, small lightning glints (`fx/bolt`, local sprites, never a flash;
+steady and dimmer with "reduce flashes") hop along the rounds — two during a reload — and a
+reload starts with a quick metallic **zip** (`sfx/zip`) instead of the gun's own reload-start
+sound; the refill itself animates faster because it follows the sim's shorter reload. While Oupa
+Laai runs, his hand sits on the belt's inner corner (mirrored in left-handed mode). His bark
+`bark.oupa_laai` ("Ek laai vir jou, my kind!" / "I'll load for you, my kind!" / "Ich lade für
+dich, mein Kind!" / nl "Ik laad wel voor je, m'n kind!") is the new trigger `oupaLaai`: the first
+auto reload after a pickup, held over the bark gap; voiced in en/af/de with the existing interim
+TTS (`npm run audio:voice -- --only bark.oupa_laai`), Dutch text speaks Afrikaans as before. Names
+(`docs/i18n-names.md`): Lightning Load / Blitzladung / Bliksemlading, Oupa Loads / Oupa lädt /
+Oupa laadt; the Afrikaans-names toggle shows Blitslaai and Oupa Laai. The Padstal card of an item
+with a description (`item.<id>.desc`, only these two so far) shows it under the kind. All art and
+sound is interim (`origin: interim`, tools/art and tools/audio). No zip caption: captions are
+per event and the event doesn't say Blitslaai is on; "[reloaded]" still shows.
 (6) *Test fix:* `maps.test.ts` feeding-spot check used 4 seeds and a ×2 bar; the spot's own share
 is unchanged (0.52) but the no-spot share swings with the bot's luck (main itself gave 1.79× on
 seeds 21–28). Now 8 seeds and a ×1.7 bar.

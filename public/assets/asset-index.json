@@ -115,6 +115,17 @@
       "width": 260,
       "height": 360
     },
+    "fx/bolt": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/fx_bolt.f8daa86fa82b.png",
+        "bytes": 989,
+        "hash": "f8daa86fa82b"
+      },
+      "width": 40,
+      "height": 56
+    },
     "fx/bubble": {
       "group": "common",
       "origin": "interim",
@@ -945,6 +956,28 @@
         "path": "assets/common/img/ui_badge_no.0dc550b24232.png",
         "bytes": 977,
         "hash": "0dc550b24232"
+      },
+      "width": 64,
+      "height": 64
+    },
+    "ui/pu_blitslaai": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/ui_pu_blitslaai.f05d1ceb1485.png",
+        "bytes": 1815,
+        "hash": "f05d1ceb1485"
+      },
+      "width": 64,
+      "height": 64
+    },
+    "ui/pu_oupa_laai": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/ui_pu_oupa_laai.dc13a58565e5.png",
+        "bytes": 1772,
+        "hash": "dc13a58565e5"
       },
       "width": 64,
       "height": 64
@@ -6407,6 +6440,24 @@
       "lufs": -14,
       "peakDb": -2.1
     },
+    "sfx/zip": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/zip.e44dd3ab7579.ogg",
+        "bytes": 6585,
+        "hash": "e44dd3ab7579"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/zip.df5fcaf43c0e.mp3",
+        "bytes": 5530,
+        "hash": "df5fcaf43c0e"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -1.9
+    },
     "voice/af/bark.ag_nee": {
       "group": "voice-af",
       "origin": "interim",
@@ -6927,6 +6978,24 @@
       },
       "loop": false,
       "lufs": -16.7,
+      "peakDb": -1
+    },
+    "voice/af/bark.oupa_laai": {
+      "group": "voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-af/audio/voice/af-bark_oupa_laai.eed561f3ebbf.ogg",
+        "bytes": 13017,
+        "hash": "eed561f3ebbf"
+      },
+      "mp3": {
+        "path": "assets/voice-af/audio/voice/af-bark_oupa_laai.1b01df0b1bf9.mp3",
+        "bytes": 13634,
+        "hash": "1b01df0b1bf9"
+      },
+      "loop": false,
+      "lufs": -17.1,
       "peakDb": -1
     },
     "voice/af/bark.quota_met": {
@@ -7721,6 +7790,24 @@
       "lufs": -16,
       "peakDb": -6.9
     },
+    "voice/de/bark.oupa_laai": {
+      "group": "voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-de/audio/voice/de-bark_oupa_laai.2fcca910aca8.ogg",
+        "bytes": 18859,
+        "hash": "2fcca910aca8"
+      },
+      "mp3": {
+        "path": "assets/voice-de/audio/voice/de-bark_oupa_laai.9f35df2a7cdb.mp3",
+        "bytes": 19634,
+        "hash": "9f35df2a7cdb"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -7.1
+    },
     "voice/de/bark.quota_met": {
       "group": "voice-de",
       "origin": "interim",
@@ -8511,6 +8598,24 @@
       },
       "loop": false,
       "lufs": -17.8,
+      "peakDb": -1
+    },
+    "voice/en/bark.oupa_laai": {
+      "group": "voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-en/audio/voice/en-bark_oupa_laai.e4c68f178fee.ogg",
+        "bytes": 13265,
+        "hash": "e4c68f178fee"
+      },
+      "mp3": {
+        "path": "assets/voice-en/audio/voice/en-bark_oupa_laai.019d0b33379f.mp3",
+        "bytes": 14391,
+        "hash": "019d0b33379f"
+      },
+      "loop": false,
+      "lufs": -17.2,
       "peakDb": -1
     },
     "voice/en/bark.quota_met": {

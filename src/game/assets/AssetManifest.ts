@@ -635,6 +635,10 @@ export const TEX = {
   pot: 'fx/pot',
   meerkat: 'helper/meerkat',
   windsock: 'ui/windsock',
+  // v1.6b (D-043): reload power-up icons (HUD chips, the Oupa Laai belt mark) and the belt glint.
+  puBlitslaai: 'ui/pu_blitslaai',
+  puOupaLaai: 'ui/pu_oupa_laai',
+  bolt: 'fx/bolt',
   // v1.4 B (D-039): angry sociable weavers (WeaverView), shared by every biome with a nest.
   weaverUp: 'fx/weaver_up',
   weaverDown: 'fx/weaver_down',

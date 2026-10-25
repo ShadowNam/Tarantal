@@ -296,6 +296,9 @@ export interface TestHook {
   /** v1.4 B (D-039): angry weavers on screen now, and bursts started this hunt. */
   weavers: number;
   weaverBursts: number;
+  /** v1.6b (D-043): reload power-ups on the HUD — the chips' icon textures (null = none), the
+   *  lightning glints on the belt now, Oupa's hand on the belt, and auto reloads this page. */
+  reloadFx: { chipIcons: (string | null)[]; bolts: number; oupaHand: boolean; autoReloads: number };
   /** v1.4 B: the Namibië mirage is on in this hunt. */
   mirage: boolean;
   /** v1.4 B (perf): total ms spent drawing the weavers and the mirage, and the frames counted. */

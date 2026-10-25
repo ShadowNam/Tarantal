@@ -377,3 +377,25 @@ export function spreadMulOf(
   }
   return m;
 }
+
+/** v1.6b (D-043): which reload power-ups are running, read from the snapshot's power-up ids and
+ *  their content effects (Blitslaai: a reload-time factor below 1; Oupa Laai: auto reload). */
+export function reloadBoostsOf(
+  active: readonly { readonly id: string }[],
+  defs: readonly {
+    readonly id: string;
+    readonly effect: {
+      readonly reloadTimeMul?: number | undefined;
+      readonly autoReload?: boolean | undefined;
+    };
+  }[],
+): { readonly fast: boolean; readonly auto: boolean } {
+  let fast = false;
+  let auto = false;
+  for (const p of active) {
+    const e = defs.find((d) => d.id === p.id)?.effect;
+    if (e?.reloadTimeMul !== undefined && e.reloadTimeMul < 1) fast = true;
+    if (e?.autoReload === true) auto = true;
+  }
+  return { fast, auto };
+}
