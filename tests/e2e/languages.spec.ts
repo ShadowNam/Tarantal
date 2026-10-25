@@ -92,10 +92,11 @@ test.describe('languages (v1.5)', () => {
     });
     await startHunt(page, isTouchProject(info));
     // The greeting bark: its English caption shows, and the af line is heard.
-    await page.waitForFunction(() => window.__TM__?.bark != null, null, { timeout: 60_000 });
-    h = await hook(page);
-    expect(h.bark?.line).toBe(greeting);
-    expect(h.bark?.text).toBe((en as Record<string, string>)[greeting]);
+    const bark = await (
+      await page.waitForFunction(() => window.__TM__?.bark ?? null, null, { timeout: 60_000 })
+    ).jsonValue();
+    expect(bark?.line).toBe(greeting);
+    expect(bark?.text).toBe((en as Record<string, string>)[greeting]);
     await page.waitForFunction(
       (key) => window.__TM__?.voice.played.includes(key) === true,
       `voice/af/${greeting}`,
@@ -116,13 +117,16 @@ test.describe('languages (v1.5)', () => {
       if (r.url().includes('/assets/voice-')) voice.push(r.url());
     });
     await withSettings(page, { language: 'en', voiceVolume: 0 });
-    await boot(page, 'seed=42&huntSeconds=4');
+    await boot(page, 'seed=42&huntSeconds=30');
     await startHunt(page, isTouchProject(info));
-    // A bark fires (its English caption shows) …
-    await page.waitForFunction(() => window.__TM__?.bark != null, null, { timeout: 60_000 });
+    // A bark fires (its English caption shows) … Read it in the same call that sees it, so a
+    // caption that clears on a slow runner can't leave the next read empty.
+    const bark = await (
+      await page.waitForFunction(() => window.__TM__?.bark ?? null, null, { timeout: 60_000 })
+    ).jsonValue();
+    expect(bark?.line).toBe(greeting);
+    expect(bark?.text).toBe((en as Record<string, string>)[greeting]);
     const h = await hook(page);
-    expect(h.bark?.line).toBe(greeting);
-    expect(h.bark?.text).toBe((en as Record<string, string>)[greeting]);
     // … with no voice: no voice file was ever requested (the real check), nothing was played
     // and no pack was loaded.
     expect(voice).toEqual([]);
