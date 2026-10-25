@@ -997,3 +997,26 @@ export function seedTuft(
   }
   return g({}, ...parts);
 }
+
+/**
+ * A single bare branch from `a` to `b` (a perch, a snag), drawn like the tree's limbs: merged
+ * ink silhouette, lit and shade bands, bark texture of the given kind.
+ */
+export function bareBranch(
+  rnd: Rnd,
+  a: Pt,
+  b: Pt,
+  w0: number,
+  look: PlantLook,
+  bark: BarkKind,
+): string {
+  const pts = soften(zigzag(rnd, a, b, 2, 0.08));
+  const limb: Limb = { pts, w: taper(pts, w0, Math.max(1, w0 * 0.3)) };
+  const bin = new StrokeBin();
+  return g(
+    {},
+    limbSilhouette([limb], look),
+    bark === 'furrowed' ? drawLimb(rnd, limb, look, bin, false) : smoothLimb(rnd, limb, look, bark),
+    bin.svg([look.furrow]),
+  );
+}

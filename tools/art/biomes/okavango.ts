@@ -2,6 +2,8 @@
 // islands of jackalberry and ilala palms on the horizon, green grass cut by water channels, reed
 // beds and papyrus, a sausage tree, a hippo in the shallows, a lily pad with a reed frog, a
 // mokoro marker pole. No jacarandas (bible §2). Soft light from the upper left. D-031.
+import { bareBranch, plantLook, seedTuft } from '../flora';
+import { ilalaPalm, jackalberry, sausageTree as sausageSpecies } from '../species';
 import type { BiomeArtPlan, LayerCtx, PropCtx } from '../landscape';
 import {
   edgePts,
@@ -10,7 +12,6 @@ import {
   hatch,
   line,
   mix,
-  nextId,
   shade,
   tone,
   treeBlob,
@@ -22,60 +23,10 @@ import {
 } from '../scenery';
 import { el, ellipseD, g, inked, polyD, r2, smoothD } from '../svg';
 import { mountainRow, paintRow, rockColours } from '../mountains';
-import { tree as leafyTree } from '../realism';
 import { groundBand, softSky } from './karoo';
 import { foregroundClumps, midScrub, nearGrass, verVeld } from './common';
 
 // --- shapes --------------------------------------------------------------------------------
-
-/** An ilala fan palm: a thin curved trunk and a spiky fan crown. */
-function palm(
-  rnd: Rnd,
-  x: number,
-  base: number,
-  h: number,
-  t: Tone,
-  trunk: string,
-  pen: Pen,
-): string {
-  const lean = (rnd() - 0.5) * h * 0.25;
-  const tx = x + lean;
-  const ty = base - h;
-  const parts: string[] = [
-    el('path', {
-      d: `M${r2(x)} ${r2(base)}Q${r2(x + lean * 0.2)} ${r2(base - h * 0.5)} ${r2(tx)} ${r2(ty)}`,
-      fill: 'none',
-      stroke: pen.ink,
-      'stroke-width': h * 0.05 + pen.w,
-      'stroke-linecap': 'round',
-    }),
-    el('path', {
-      d: `M${r2(x)} ${r2(base)}Q${r2(x + lean * 0.2)} ${r2(base - h * 0.5)} ${r2(tx)} ${r2(ty)}`,
-      fill: 'none',
-      stroke: trunk,
-      'stroke-width': h * 0.05,
-      'stroke-linecap': 'round',
-    }),
-  ];
-  const fronds: string[] = [];
-  for (let k = 0; k < 9; k++) {
-    const a = Math.PI + (k / 8) * Math.PI + (rnd() - 0.5) * 0.2;
-    const r = h * (0.3 + rnd() * 0.1);
-    const ex = tx + Math.cos(a) * r;
-    const ey = ty + Math.sin(a) * r * 0.7 + (k === 0 || k === 8 ? r * 0.3 : 0);
-    fronds.push(`M${r2(tx)} ${r2(ty)}L${r2(ex - 3)} ${r2(ey)}L${r2(ex + 3)} ${r2(ey + 2)}Z`);
-  }
-  parts.push(
-    el('path', {
-      d: fronds.join(''),
-      fill: t.fill,
-      stroke: pen.ink,
-      'stroke-width': pen.w * 0.8,
-      'stroke-linejoin': 'round',
-    }),
-  );
-  return g({}, ...parts);
-}
 
 /** A reed: thin tapering stem with a feathery plume (Phragmites). */
 function reed(
@@ -94,26 +45,48 @@ function reed(
   return g(
     {},
     inked(d, stem, pen.ink, pen.w * 0.6),
-    inked(
-      smoothD(
+    // v1.6: a feathery plume, a soft spindle of fine drooping hairs, lit on the left.
+    el('path', {
+      d: smoothD(
         [
-          [tx - 6, ty + 30],
-          [tx - 8, ty + 10],
-          [tx + 2, ty - 8],
-          [tx + 8, ty + 12],
-          [tx + 4, ty + 30],
+          [tx - 6, ty + 32],
+          [tx - 9, ty + 10],
+          [tx + 1, ty - 9],
+          [tx + 9, ty + 12],
+          [tx + 5, ty + 32],
         ],
         true,
         0.8,
       ),
-      plume,
-      pen.ink,
-      pen.w * 0.5,
-    ),
+      fill: plume,
+      stroke: mix(pen.ink, plume, 0.5),
+      'stroke-width': pen.w * 0.35,
+    }),
+    el('path', {
+      d: Array.from({ length: 9 }, (_, k) => {
+        const yy = ty - 4 + k * 4;
+        const side = k % 2 === 0 ? -1 : 1;
+        return `M${r2(tx)} ${r2(yy)}q${r2(side * 6)} 2 ${r2(side * 9)} 9`;
+      }).join(''),
+      fill: 'none',
+      stroke: shade(plume, 0.3),
+      'stroke-width': 1,
+      'stroke-linecap': 'round',
+    }),
+    el('path', {
+      d: `M${r2(tx - 4)} ${r2(ty + 26)}Q${r2(tx - 7)} ${r2(ty + 8)} ${r2(tx)} ${r2(ty - 6)}`,
+      fill: 'none',
+      stroke: shade(plume, 0.45),
+      'stroke-width': 1.6,
+      'stroke-linecap': 'round',
+    }),
   );
 }
 
-/** A papyrus stem with its umbel (a starburst of thin rays). */
+/**
+ * A papyrus stem with its umbel (v1.6, D-042): a triangular stem and a loose mophead of many
+ * thin drooping rays, lit on top and shaded under, with tiny brown flower spikelets at the tips.
+ */
 function papyrus(
   x: number,
   base: number,
@@ -125,21 +98,28 @@ function papyrus(
 ): string {
   const tx = x + lean;
   const ty = base - h;
-  const rays: string[] = [];
-  for (let k = 0; k < 13; k++) {
-    const a = Math.PI * 1.08 + (k / 12) * Math.PI * 0.84;
-    const r = h * 0.2 * (0.8 + (k % 3) * 0.12);
-    rays.push(
-      `M${r2(tx)} ${r2(ty)}Q${r2(tx + Math.cos(a) * r * 0.6)} ${r2(ty + Math.sin(a) * r * 0.75)} ${r2(tx + Math.cos(a) * r)} ${r2(ty + Math.sin(a) * r * 0.55 + r * 0.25)}`,
-    );
+  const back: string[] = [];
+  const front: string[] = [];
+  const tips: string[] = [];
+  const n = 26;
+  for (let k = 0; k < n; k++) {
+    const f = k / (n - 1);
+    const a = Math.PI * (1.0 + f * 1.0) + Math.sin(k * 7.3) * 0.08;
+    const r = h * 0.22 * (0.75 + ((k * 5) % 7) * 0.05);
+    const ex = tx + Math.cos(a) * r;
+    const ey = ty + Math.sin(a) * r * 0.55 + r * (0.3 + Math.abs(Math.cos(a)) * 0.25);
+    const d = `M${r2(tx)} ${r2(ty)}Q${r2(tx + Math.cos(a) * r * 0.6)} ${r2(ty + Math.sin(a) * r * 0.75)} ${r2(ex)} ${r2(ey)}`;
+    (k % 3 === 0 ? back : front).push(d);
+    if (k % 2 === 0) tips.push(ellipseD(ex, ey, 1.6, 1.2));
   }
+  const rw = Math.max(1.2, h * 0.008);
   return g(
     {},
     el('path', {
       d: `M${r2(x)} ${r2(base)}Q${r2(x + lean * 0.3)} ${r2(base - h * 0.5)} ${r2(tx)} ${r2(ty)}`,
       fill: 'none',
       stroke: pen.ink,
-      'stroke-width': 4 + pen.w,
+      'stroke-width': 4 + pen.w * 0.6,
       'stroke-linecap': 'round',
     }),
     el('path', {
@@ -150,20 +130,41 @@ function papyrus(
       'stroke-linecap': 'round',
     }),
     el('path', {
-      d: rays.join(''),
+      d: `M${r2(x - 1)} ${r2(base)}Q${r2(x + lean * 0.3 - 1)} ${r2(base - h * 0.5)} ${r2(tx - 1)} ${r2(ty)}`,
       fill: 'none',
-      stroke: pen.ink,
-      'stroke-width': 3 + pen.w * 0.7,
+      stroke: shade(stem, 0.3),
+      'stroke-width': 1.2,
+    }),
+    el('path', {
+      d: [...back, ...front].join(''),
+      fill: 'none',
+      stroke: mix(pen.ink, head.dark, 0.5),
+      'stroke-width': rw + 1.4,
       'stroke-linecap': 'round',
     }),
     el('path', {
-      d: rays.join(''),
+      d: back.join(''),
       fill: 'none',
-      stroke: head.fill,
-      'stroke-width': 3,
+      stroke: head.dark,
+      'stroke-width': rw,
       'stroke-linecap': 'round',
     }),
-    flat(ellipseD(tx, ty, 5, 4), head.dark),
+    el('path', {
+      d: front.join(''),
+      fill: 'none',
+      stroke: head.fill,
+      'stroke-width': rw,
+      'stroke-linecap': 'round',
+    }),
+    el('path', {
+      d: front.slice(0, Math.ceil(front.length / 2)).join(''),
+      fill: 'none',
+      stroke: head.light,
+      'stroke-width': rw * 0.5,
+      'stroke-linecap': 'round',
+    }),
+    el('path', { d: tips.join(''), fill: '#8A6A3A' }),
+    flat(ellipseD(tx, ty, 4, 3), head.dark),
   );
 }
 
@@ -181,23 +182,55 @@ function lilyPad(
   const a2 = (14 * Math.PI) / 180;
   const ry = r * 0.35;
   const d = `M${r2(x)} ${r2(y)}L${r2(x + r * Math.cos(a1))} ${r2(y + ry * Math.sin(a1))}A${r2(r)} ${r2(ry)} 0 1 0 ${r2(x + r * Math.cos(a2))} ${r2(y + ry * Math.sin(a2))}Z`;
+  const veins: string[] = [];
+  for (let k = 0; k < 9; k++) {
+    const a = a2 + 0.25 + (k / 8) * (Math.PI * 2 - (a2 - a1) - 0.5);
+    veins.push(
+      `M${r2(x)} ${r2(y)}L${r2(x + Math.cos(a) * r * 0.85)} ${r2(y + Math.sin(a) * ry * 0.85)}`,
+    );
+  }
   const out = [
     inked(d, t.fill, pen.ink, pen.w),
+    flat(ellipseD(x + r * 0.15, y + ry * 0.3, r * 0.75, ry * 0.45), t.dark, { opacity: 0.6 }),
+    el('path', {
+      d: veins.join(''),
+      fill: 'none',
+      stroke: t.dark,
+      'stroke-width': 0.8,
+      opacity: 0.7,
+    }),
     flat(ellipseD(x - r * 0.3, y - r * 0.08, r * 0.35, r * 0.08), t.light),
   ];
   if (flower !== null) {
     const fx = x + r * 0.2;
     const fy = y - r * 0.1;
-    for (const a of [-50, -20, 10, 40])
+    // A water lily: pointed petals in two rings, the back ones shaded, a yellow heart.
+    for (const [a, k, c] of [
+      [-70, 0.42, shade(flower, -0.2)],
+      [-35, 0.48, shade(flower, -0.2)],
+      [35, 0.48, shade(flower, -0.2)],
+      [70, 0.42, shade(flower, -0.2)],
+      [-50, 0.4, flower],
+      [-15, 0.46, flower],
+      [15, 0.46, flower],
+      [50, 0.4, flower],
+    ] as const) {
+      const rad = (a * Math.PI) / 180;
+      const tipX = fx + Math.sin(rad) * r * k;
+      const tipY = fy - Math.cos(rad) * r * k * 0.9;
       out.push(
         inked(
-          `M${r2(fx)} ${r2(fy)}l${r2(Math.sin((a * Math.PI) / 180) * r * 0.35 - 4)} ${r2(-r * 0.35)}l8 0Z`,
-          flower,
-          pen.ink,
-          pen.w * 0.6,
+          `M${r2(fx - 3)} ${r2(fy)}Q${r2((fx + tipX) / 2 - 4)} ${r2((fy + tipY) / 2)} ${r2(tipX)} ${r2(tipY)}Q${r2((fx + tipX) / 2 + 4)} ${r2((fy + tipY) / 2)} ${r2(fx + 3)} ${r2(fy)}Z`,
+          c,
+          mix(pen.ink, flower, 0.4),
+          pen.w * 0.4,
         ),
       );
-    out.push(flat(ellipseD(fx, fy - 3, 4, 3), '#F2C94C'));
+    }
+    out.push(
+      flat(ellipseD(fx, fy - 3, 4, 3), '#F2C94C'),
+      flat(ellipseD(fx - 1, fy - 4, 1.6, 1.2), '#FFF0A0'),
+    );
   }
   return g({}, ...out);
 }
@@ -296,29 +329,13 @@ function farRidge(ctx: LayerCtx): string {
         backPen,
       ),
     );
-  const t = tone(ctx.c('island'), 0.22, 0.2);
-  const palmT = tone(ctx.c('palm'), 0.22, 0.2);
   for (let x = -40; x < ctx.width;) {
     const w = 240 + ctx.rnd() * 320;
     for (let k = 0; k < w / 50; k++) {
       const tx = x + k * 50 + ctx.rnd() * 20;
-      if (ctx.rnd() < 0.3)
-        parts.push(palm(ctx.rnd, tx, 650, 90 + ctx.rnd() * 40, palmT, ctx.c('trunk'), ctx.pen));
-      else
-        parts.push(
-          leafyTree(
-            ctx.rnd,
-            'round',
-            tx,
-            652,
-            70 + ctx.rnd() * 50,
-            80 + ctx.rnd() * 40,
-            t,
-            ctx.c('trunk'),
-            ctx.pen,
-            0.25,
-          ),
-        );
+      // v1.6 (D-042): ilala palms and jackalberries on the tree islands (far versions).
+      if (ctx.rnd() < 0.3) parts.push(ilalaPalm(ctx.rnd, tx, 650, 90 + ctx.rnd() * 40, ctx, 'far'));
+      else parts.push(jackalberry(ctx.rnd, tx, 652, 80 + ctx.rnd() * 40, ctx, 'far'));
     }
     x += w + 120 + ctx.rnd() * 300;
   }
@@ -352,11 +369,8 @@ function farVeld(ctx: LayerCtx): string {
     g({ 'clip-path': `url(#${band.clip})` }, ...inside),
     line(smoothD(band.edge, false, 0.8), ctx.pen),
   ];
-  const palmT = tone(ctx.c('palm'), 0.22, 0.2);
   for (let x = 120; x < ctx.width; x += 300 + ctx.rnd() * 500)
-    parts.push(
-      palm(ctx.rnd, x, yAt(band.edge, x) + 6, 60 + ctx.rnd() * 20, palmT, ctx.c('trunk'), ctx.pen),
-    );
+    parts.push(ilalaPalm(ctx.rnd, x, yAt(band.edge, x) + 6, 60 + ctx.rnd() * 20, ctx, 'far'));
   return g({}, ...parts);
 }
 
@@ -424,11 +438,28 @@ function mid(ctx: LayerCtx): string {
   }
   items.sort((a, b) => a.y - b.y);
   inside.push(...items.map((i) => i.svg));
+  // v1.6 (D-042): jackalberries and ilala palms on the mid plane's island edge.
+  const trees: string[] = [];
+  for (const [u, h, kind] of [
+    [0.16, 270, 'jackalberry'],
+    [0.64, 235, 'palm'],
+    [0.81, 250, 'jackalberry'],
+    [0.98, 205, 'palm'],
+  ] as const) {
+    const x = ctx.u(u);
+    const foot = yAt(band.edge, x) + 34;
+    trees.push(
+      kind === 'palm'
+        ? ilalaPalm(ctx.rnd, x, foot, h, ctx, 'mid')
+        : jackalberry(ctx.rnd, x, foot, h, ctx, 'mid'),
+    );
+  }
   return g(
     {},
     band.svg,
     g({ 'clip-path': `url(#${band.clip})` }, ...inside),
     line(smoothD(band.edge, false, 0.8), ctx.pen),
+    ...trees,
   );
 }
 
@@ -463,7 +494,25 @@ function near(ctx: LayerCtx): string {
       2.5,
     ),
   );
-  const items = nearGrass(ctx, { stone: tone(ctx.c('mud'), 0.25, 0.25), bushes: 0 });
+  const items = nearGrass(ctx, {
+    stone: tone(ctx.c('mud'), 0.25, 0.25),
+    bushes: 0,
+    tuft: (x, y, h, pen) =>
+      seedTuft(
+        ctx.rnd,
+        x,
+        y,
+        h,
+        {
+          base: ctx.c('grassDark'),
+          blade: ctx.c('grass'),
+          tip: ctx.c('grassLight'),
+          seed: ctx.c('plume'),
+        },
+        pen,
+        1 + Math.floor(ctx.rnd() * 3),
+      ),
+  });
   items.sort((a, b) => a.y - b.y);
   inside.push(...items.map((i) => i.svg));
   return g(
@@ -609,193 +658,19 @@ function mokoroPole(ctx: PropCtx): string {
   );
 }
 
+/**
+ * v1.6 (D-042): the sausage tree by the species art: a broad round crown, smooth grey-brown
+ * bark, maroon flowers and sausage fruit on long stalks. Content: the trunk occluder is centred
+ * at (0, 95), 70 × 330 (the foot at y 260); birds perch at (−130, −170) on a bare branch.
+ */
 function sausageTree(ctx: PropCtx): string {
-  const pen = ctx.pen;
-  const bark = tone(ctx.c('trunk'), 0.25, 0.25);
-  const leaf = tone(ctx.c('canopy'), 0.24, 0.22);
-  const { oy, h } = ctx.box;
-  const top = oy - h / 2; // −70
-  const foot = oy + h / 2; // 260
-  const trunk = smoothD(
-    [
-      [-44, foot],
-      [-34, foot - 80],
-      [-34, top + 10],
-      [-14, top - 40],
-      [16, top - 40],
-      [34, top + 10],
-      [36, foot - 80],
-      [48, foot],
-    ],
-    true,
-    0.6,
-  );
-  // Crown: separate leaf clusters on spreading limbs (gaps show the branches), each with its own
-  // shadow and highlight; back clusters first.
-  const clusterSeeds: [number, number, number][] = [
-    [-60, -296, 60],
-    [50, -298, 62],
-    [-130, -232, 58],
-    [130, -238, 58],
-    [0, -250, 66],
-    [-95, -180, 56],
-    [95, -184, 56],
-    [-150, -172, 42],
-    [150, -174, 42],
-  ];
-  const clusters = clusterSeeds.map(
-    ([x, y, r]) =>
-      [x + (ctx.rnd() - 0.5) * 16, y + (ctx.rnd() - 0.5) * 12, r * (0.9 + ctx.rnd() * 0.2)] as [
-        number,
-        number,
-        number,
-      ],
-  );
-  const clusterD = (cx: number, cy: number, r: number): string => {
-    let d = ellipseD(cx, cy, r * 0.62, r * 0.5);
-    for (let k = 0; k < 7; k++) {
-      const a2 = (k / 7) * Math.PI * 2 + ctx.rnd() * 0.4;
-      d += ellipseD(
-        cx + Math.cos(a2) * r * 0.55,
-        cy + Math.sin(a2) * r * 0.4,
-        r * (0.34 + ctx.rnd() * 0.1),
-        r * 0.3,
-      );
-    }
-    return d;
-  };
-  const limbsD = clusters
-    .map(
-      ([cx, cy]) =>
-        `M${r2(cx * 0.15)} ${r2(top - 10)}Q${r2(cx * 0.5)} ${r2((top + cy) / 2 - 20)} ${r2(cx)} ${r2(cy + 10)}`,
-    )
-    .join('');
-  const id = nextId();
-  const fruits: string[] = [];
-  for (const [fx, fy, len] of [
-    [-120, -150, 90],
-    [-60, -130, 110],
-    [40, -140, 100],
-    [110, -160, 80],
-    [150, -190, 70],
-    [-160, -180, 70],
-  ] as const) {
-    fruits.push(line(`M${fx} ${fy}L${fx + 3} ${fy + len}`, { ink: pen.ink, w: 2.5 }));
-    fruits.push(
-      inked(
-        smoothD(
-          [
-            [fx - 9, fy + len],
-            [fx - 8, fy + len - 4],
-            [fx + 3, fy + len - 6],
-            [fx + 13, fy + len],
-            [fx + 11, fy + len + 62],
-            [fx + 3, fy + len + 70],
-            [fx - 7, fy + len + 62],
-          ],
-          true,
-          0.8,
-        ),
-        ctx.c('sausage'),
-        pen.ink,
-        pen.w * 0.8,
-      ),
-    );
-  }
-  const flowers: string[] = [];
-  for (let k = 0; k < 27; k++)
-    flowers.push(
-      inked(
-        ellipseD(-170 + ctx.rnd() * 340, -280 + ctx.rnd() * 120, 7, 6),
-        ctx.c('flower'),
-        pen.ink,
-        2,
-      ),
-    );
-  return g(
-    {},
-    el('path', {
-      d: `M-20 ${top}Q-80 -120 -140 -160M20 ${top}Q90 -130 150 -170M0 ${top - 20}L0 -220`,
-      fill: 'none',
-      stroke: pen.ink,
-      'stroke-width': 26,
-      'stroke-linecap': 'round',
-    }),
-    el('path', {
-      d: `M-20 ${top}Q-80 -120 -140 -160M20 ${top}Q90 -130 150 -170M0 ${top - 20}L0 -220`,
-      fill: 'none',
-      stroke: bark.fill,
-      'stroke-width': 18,
-      'stroke-linecap': 'round',
-    }),
-    el('path', {
-      d: limbsD,
-      fill: 'none',
-      stroke: pen.ink,
-      'stroke-width': 14,
-      'stroke-linecap': 'round',
-    }),
-    el('path', {
-      d: limbsD,
-      fill: 'none',
-      stroke: bark.fill,
-      'stroke-width': 8,
-      'stroke-linecap': 'round',
-    }),
-    ...clusters.map(([cx, cy, r], i) => {
-      const d = clusterD(cx, cy, r);
-      const cid = `${id}c${i}`;
-      return g(
-        {},
-        el('path', {
-          d,
-          fill: pen.ink,
-          stroke: pen.ink,
-          'stroke-width': pen.w * 2,
-          'stroke-linejoin': 'round',
-        }),
-        el('clipPath', { id: cid }, el('path', { d })),
-        flat(d, i % 3 === 1 ? leaf.dark : leaf.fill),
-        g(
-          { 'clip-path': `url(#${cid})` },
-          flat(
-            ellipseD(cx + r * 0.3, cy + r * 0.35, r * 0.8, r * 0.45),
-            i % 3 === 1 ? shade(leaf.dark, -0.15) : leaf.dark,
-          ),
-          flat(ellipseD(cx - r * 0.3, cy - r * 0.35, r * 0.35, r * 0.18), leaf.light),
-          ...flowers.filter((_, k) => k % clusters.length === i),
-        ),
-      );
-    }),
-    // Perch branch out of the crown's underside (content perch (−130, −170)).
-    inked(
-      smoothD(
-        [
-          [-60, -150],
-          [-150, -168],
-          [-152, -162],
-          [-62, -140],
-        ],
-        true,
-        0.5,
-      ),
-      bark.fill,
-      pen.ink,
-      pen.w * 0.8,
-    ),
-    inked(trunk, bark.fill, pen.ink, pen.w),
-    flat(
-      polyD([
-        [10, foot],
-        [14, top - 30],
-        [34, top + 10],
-        [36, foot],
-      ]),
-      bark.dark,
-    ),
-    line('M-14 0Q-20 120 -16 250M20 -20Q26 100 22 250', { ink: bark.dark, w: 3 }),
-    ...fruits,
-  );
+  const t = sausageSpecies(ctx.rnd, 0, 260, 560, ctx, 'near', 9, { w: 205, depth: 0.4, fork: 0.5 });
+  const look = plantLook({
+    leaf: ctx.tint('#4F7A38'),
+    bark: ctx.tint('#7A6E62'),
+    ink: ctx.pen.ink,
+  });
+  return g({}, t.svg, bareBranch(ctx.rnd, [-6, -40], [-150, -166], 14, look, 'smooth'));
 }
 
 function hippo(ctx: PropCtx): string {
@@ -996,29 +871,36 @@ function papyrusClump(seed: number) {
 export const OKAVANGO_PLAN: BiomeArtPlan = {
   biome: 'okavango-spring',
   layers: {
-    sky: { top: 0, height: 1080, encode: 'png', draw: sky },
-    far_ridge: { top: 380, height: 280, draw: farRidge },
+    // v1.6 (D-042): a 256-colour sky (no visible banding) pays for the new trees.
+    sky: { top: 0, height: 1080, encode: 'png8', draw: sky },
+    // v1.6 (D-042): smaller palettes keep the biome chunk inside 1.5 MB.
+    far_ridge: { top: 380, height: 280, colours: 96, draw: farRidge },
     // v1.3: the Ver plane's strip (shown only on maps that open it).
     ver_veld: {
       top: 536,
       height: 52,
       draw: verVeld({ ground: 'grass', light: 'grassLight', scrub: 'bossie' }),
     },
-    far_veld: { top: 464, height: 232, draw: farVeld },
-    mid: { top: 630, height: 280, draw: mid },
-    near: { top: 820, height: 260, draw: near },
-    foreground: { top: 880, height: 200, fadeTop: 28, draw: foreground },
+    far_veld: { top: 464, height: 232, colours: 96, draw: farVeld },
+    mid: { top: 430, height: 480, colours: 112, draw: mid },
+    near: { top: 820, height: 260, colours: 112, draw: near },
+    foreground: { top: 880, height: 200, fadeTop: 28, colours: 128, draw: foreground },
   },
   props: {
-    'okavango/reeds_a': { draw: reeds(1) },
-    'okavango/reeds_b': { draw: reeds(2) },
-    'okavango/reeds_c': { draw: reeds(3) },
-    'okavango/reeds_d': { draw: reeds(4) },
+    'okavango/reeds_a': { colours: 112, draw: reeds(1) },
+    'okavango/reeds_b': { colours: 112, draw: reeds(2) },
+    'okavango/reeds_c': { colours: 112, draw: reeds(3) },
+    'okavango/reeds_d': { colours: 112, draw: reeds(4) },
     'okavango/mokoro_pole': { draw: mokoroPole },
-    'okavango/sausage_tree': { draw: sausageTree },
+    'okavango/sausage_tree': {
+      draw: sausageTree,
+      wobble: false,
+      colours: 128,
+      frame: { w: 480, h: 640, ox: 240, oy: 370 },
+    },
     'okavango/hippo': { draw: hippo },
     'okavango/lily_frog': { draw: lilyFrog },
-    'okavango/papyrus_a': { draw: papyrusClump(1) },
-    'okavango/papyrus_b': { draw: papyrusClump(2) },
+    'okavango/papyrus_a': { colours: 112, draw: papyrusClump(1) },
+    'okavango/papyrus_b': { colours: 112, draw: papyrusClump(2) },
   },
 };

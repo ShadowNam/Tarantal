@@ -263,6 +263,7 @@ export function sausageTree(
   p: Paint,
   detail: Detail,
   fruits?: number,
+  shape: { readonly w?: number; readonly depth?: number; readonly fork?: number } = {},
 ): TreeParts & { svg: string } {
   const lk = look(p, '#4F7A38', '#7A6E62', '#D8E0A0');
   const t = growTree(
@@ -271,11 +272,11 @@ export function sausageTree(
       x,
       foot,
       h,
-      w: h * 0.62,
-      depth: 0.5,
+      w: shape.w ?? h * 0.62,
+      depth: shape.depth ?? 0.5,
       crown: 'round',
       trunkW: Math.max(1.8, h * 0.1),
-      fork: 0.38,
+      fork: shape.fork ?? 0.38,
       limbs: 4,
       leaf: 'leafy',
       ...dabsFor(h),
@@ -299,7 +300,7 @@ export function sausageTree(
   const flowers =
     detail === 'far'
       ? ''
-      : pompoms(rnd, t, Math.round(h / 22), Math.max(0.8, h * 0.008), p.tint('#5E1A2A'));
+      : pompoms(rnd, t, Math.round(h / 45), Math.max(0.8, h * 0.005), p.tint('#6E1E30'));
   return { ...t, svg: treeSvg(t, '', flowers + fruit) };
 }
 
