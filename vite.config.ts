@@ -85,7 +85,12 @@ function buildSha(): string {
 // Default export is required by Vite (config files are exempt from the named-exports rule).
 export default defineConfig({
   base: './',
-  define: { __APP_VERSION__: JSON.stringify(version), __BUILD_SHA__: JSON.stringify(buildSha()) },
+  define: {
+    __APP_VERSION__: JSON.stringify(version),
+    __BUILD_SHA__: JSON.stringify(buildSha()),
+    // v1.6 (D-042): the build stamp's time (UTC, to the minute).
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString().slice(0, 16)),
+  },
   plugins: [
     ...(portal ? [stripPwa()] : [serviceWorkerPlugin()]),
     ...(standin ? [standinAssets()] : []),

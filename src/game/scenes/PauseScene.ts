@@ -8,6 +8,7 @@ import type { GameContext } from '../GameContext';
 import type { Rect } from '../ui/hudLayout';
 import { charmRow } from '../ui/charmCards';
 import { drawButton, Menu, textStyle, UI, type MenuItem } from '../ui/menu';
+import { menuStampShown, stampFor, StampLabel } from '../ui/StampLabel';
 
 export interface PauseData {
   readonly resume: () => void;
@@ -32,6 +33,13 @@ export class PauseScene extends Phaser.Scene {
     const { width, height } = designSize();
     fitCamera(this.cameras.main);
     this.add.rectangle(0, 0, width, height, UI.ink, 0.65).setOrigin(0);
+    // v1.6 (D-042): the build stamp, bottom left.
+    const safe = this.ctx.safeArea();
+    new StampLabel(this, this.ctx, menuStampShown(this.ctx)).place(
+      safe.left + 24,
+      height - safe.bottom - 6,
+      stampFor(this.ctx, this.ctx.huntBiome, this.ctx.manifestFor(this.ctx.huntBiome)),
+    );
     this.add
       .text(width / 2, height / 2 - 260, t('pause.title'), {
         ...textStyle(96, '#FFD25A'),

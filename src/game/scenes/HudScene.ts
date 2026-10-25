@@ -36,6 +36,7 @@ import {
   type PopText,
 } from '../ui/popFont';
 import { fontReadiness } from '../ui/fontReady';
+import { cornerStampShown, stampFor, StampLabel } from '../ui/StampLabel';
 import { updateCaptions, type CaptionLine } from '../audio/captions';
 
 export interface HudControls {
@@ -96,6 +97,8 @@ export class HudScene extends Phaser.Scene {
   private reload!: Phaser.GameObjects.Text;
   private banner!: Phaser.GameObjects.Text;
   private pops: Pop[] = [];
+  private buildStamp: StampLabel | null = null;
+  private stampFrames = 0;
   private popPool: PopPool | null = null;
   private beltFlashUntil = 0;
   private lastMul = 1;
@@ -156,6 +159,9 @@ export class HudScene extends Phaser.Scene {
 
   create(): void {
     this.pops = [];
+    // v1.6 (D-042): the build stamp, bottom left beside the gadget (or the belt, left-handed).
+    this.buildStamp = new StampLabel(this, this.ctx, cornerStampShown(this.ctx));
+    this.stampFrames = 0;
     // startBarks() (the hunt) may run before this create() (launch is deferred): keep its flags.
     this.bubble = new BarkBubble(this, this.ctx.feel.barks.fontPx);
     this.popPool = new PopPool(this);
@@ -520,6 +526,7 @@ export class HudScene extends Phaser.Scene {
       this.ctx.prefs.leftHanded,
     );
     this.layoutNow = l;
+    this.placeStamp();
     this.season?.relayout(l, width, height);
     const hook = this.ctx.hook;
     if (hook) {
@@ -594,7 +601,22 @@ export class HudScene extends Phaser.Scene {
     this.hideScoring();
   };
 
+  /** v1.6 (D-042): the stamp beside the gadget (the belt when left-handed), on the bottom edge. */
+  private placeStamp(): void {
+    const l = this.layoutNow;
+    if (this.buildStamp === null || l === null) return;
+    const beside = this.ctx.prefs.leftHanded ? l.belt : l.gadget;
+    const biome = this.ctx.huntBiome;
+    this.buildStamp.place(
+      beside.x + beside.w + 24,
+      l.safe.y + l.safe.h - 6,
+      stampFor(this.ctx, biome, this.ctx.manifestFor(biome)),
+    );
+  }
+
   render(s: SimState, events: readonly SimEvent[]): void {
+    // The art status can change while the late group loads: refresh the stamp now and then.
+    if (++this.stampFrames % 120 === 0) this.placeStamp();
     this.lastState = s;
     const l = this.layoutNow;
     if (l === null) return;

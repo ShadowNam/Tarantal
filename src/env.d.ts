@@ -15,3 +15,6 @@ declare const __APP_VERSION__: string;
 
 /** v1.2x (D-034): short commit SHA of the build (GITHUB_SHA on CI, else git, else "dev"). */
 declare const __BUILD_SHA__: string;
+
+/** v1.6 (D-042): UTC build time, ISO 8601 to the minute (the build stamp). */
+declare const __BUILD_TIME__: string;

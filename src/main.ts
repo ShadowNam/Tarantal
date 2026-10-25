@@ -33,6 +33,7 @@ import {
   fetchBytesUncached,
 } from './game/assets/finalLoader';
 import { showArtError, showUpdateBar } from './game/assets/artGate';
+import { buildInfo, buildLine } from './game/ui/buildStamp';
 import { VoicePacks } from './game/audio/voicePack';
 import {
   biomeArtReady,
@@ -360,6 +361,8 @@ const hook: TestHook = {
 if (testHooks) window.__TM__ = hook;
 
 hook.boot['script'] = performance.now();
+// v1.6 (D-042): which build this is, first thing in the console.
+console.info(`[build] ${buildLine(buildInfo())}`);
 const loaded = loadGameContent();
 const { feel } = loaded;
 // M10: the final-asset index, fetched while the platform SDK starts (absent = all placeholders).
@@ -726,7 +729,8 @@ async function boot(): Promise<void> {
     ? {
         entries: adminList,
         setup: adminSetup,
-        build: __BUILD_SHA__,
+        // v1.6 (D-042): the build stamp (version · commit · build time) in the page and reports.
+        build: buildLine(buildInfo()),
         load: () => (adminSave ??= loadAdminSave()),
         store: (s) => {
           adminSave = s;

@@ -40,6 +40,7 @@ import {
   courseOf,
   type MarkClass,
 } from './rangeMarks';
+import { buildInfo, buildLine } from '../ui/buildStamp';
 
 /** Rendering only (review fix): a plate rings, a paper blinks at most once per this (ms). */
 const FEEDBACK_COOLDOWN_MS = 180;
@@ -54,7 +55,7 @@ let visits = 0;
 
 function where(menu: RangeMenuHost, c: RangeChoice): Parameters<typeof rangeReport>[2] {
   return {
-    build: __BUILD_SHA__,
+    build: buildLine(buildInfo()),
     viewport: `${String(window.innerWidth)}×${String(window.innerHeight)} @${String(
       Math.round(window.devicePixelRatio * 100) / 100,
     )}x`,

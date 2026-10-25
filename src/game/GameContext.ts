@@ -121,6 +121,13 @@ export interface TestHook {
   /** 24 Oct update, e2e only: true holds the Skietbaan's markers and plate swings still (a
    *  screenshot under software GL is slower than a 0.6 s marker). */
   rangeHold?: boolean;
+  /** v1.6 (D-042): the build stamp on screen (text, whether it shows, its size and box). */
+  stamp?: {
+    text: string;
+    visible: boolean;
+    px: number;
+    rect: { x: number; y: number; w: number; h: number };
+  };
   /** v1.6 (D-042): the scope picture's texture at hunt start: delivered art or a drawn placeholder. */
   sightArt?: 'final' | 'placeholder' | null;
   /** Menu overlay on top of the scene: shed, settings, pause (null = none). */
