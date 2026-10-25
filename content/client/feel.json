@@ -767,10 +767,11 @@
     "hintPx": 30
   },
   "assets": {
-    "$comment": "M10 asset manifest (docs/06-ASSET-DELIVERY.md): how long boot waits for the final-asset index, and for each final file, before that key stays on its procedural placeholder.",
+    "$comment": "M10 asset manifest (docs/06-ASSET-DELIVERY.md): how long boot waits for the final-asset index, and for each final file, before that key stays on its procedural placeholder. v1.6 (D-042): a biome whose delivered art failed is retried artRetries times (the index fetched again each time) before a hunt shows the Retry message; hunts never start on placeholders (dev: ?art=placeholder).",
     "indexTimeoutMs": 3000,
     "fileTimeoutMs": 15000,
-    "fontTimeoutMs": 2500
+    "fontTimeoutMs": 2500,
+    "artRetries": 3
   },
   "platform": {
     "$comment": "Platform layer (Tech §8, M9): one deadline for a portal SDK's script + init at boot; the ad request timeout (until the SDK starts the ad; paused while the tab is hidden; no limit once the ad plays); error-report caps (no personal data: messages are trimmed, URLs reduced to file names).",

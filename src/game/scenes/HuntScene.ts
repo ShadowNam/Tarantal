@@ -9,8 +9,9 @@ import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
 import type { Biome, Weapon } from '../../content/schemas';
 import { DebugOverlay } from '../../debug/DebugOverlay';
+import { artSummary } from '../assets/artSummary';
 import { fill, t, tOr } from '../../i18n/i18n';
-import { textStyle } from '../ui/menu';
+import { drawButton, Menu, textStyle } from '../ui/menu';
 import { captureHintAlpha, type CaptureState } from '../capture';
 import { showDontShootBadge } from '../prefs';
 import { TierFilters } from '../quality/TierFilters';
@@ -779,18 +780,80 @@ export class HuntScene extends Phaser.Scene {
     this.ctx.ads.beforeHunt().then(next, next);
   }
 
-  /** Loads a biome's art chunk with a "Loading…" line and the portal's loading signals. */
+  /**
+   * Loads a biome's art chunk behind a veil with the area's name and the portal's loading
+   * signals. v1.6 (D-042): when the delivered art still fails after main.ts's bounded retries,
+   * a friendly message offers Retry (or Back); a hunt or the Skietbaan never starts on
+   * placeholders.
+   */
   private waitForBiome(id: string, then: (ok: boolean) => void): void {
     const { width, height } = designSize();
+    const b = this.ctx.content.biomes.find((x) => x.id === id);
+    const area = b === undefined ? id : tOr(b.nameKey, id);
+    const veil = this.add
+      .rectangle(width / 2, height / 2, width, height, 0x1b1410, 0.82)
+      .setDepth(9_999);
     const label = this.add
-      .text(width / 2, height / 2, t('ui.loading'), textStyle(48, '#F3EAD3'))
+      .text(width / 2, height / 2, fill(t('ui.loading_area'), { area }), textStyle(48, '#F3EAD3'))
       .setOrigin(0.5)
       .setDepth(10_000);
     this.ctx.platform.loadingProgress(0);
     void this.ctx.loadBiome(id).then((ok) => {
       this.ctx.platform.loadingProgress(1);
       if (label.active) label.destroy();
-      then(ok);
+      if (ok || !veil.active) {
+        if (veil.active) veil.destroy();
+        then(ok);
+        return;
+      }
+      if (this.ctx.hook) this.ctx.hook.menu = 'artFailed';
+      const msg = this.add
+        .text(width / 2, height / 2 - 120, fill(t('ui.art_failed'), { area }), {
+          ...textStyle(38, '#F3EAD3'),
+          align: 'center',
+          wordWrap: { width: Math.min(1400, width - 160) },
+        })
+        .setOrigin(0.5)
+        .setDepth(10_000);
+      const retry = { x: width / 2 - 430, y: height / 2 + 20, w: 400, h: 110 };
+      const back = { x: width / 2 + 30, y: height / 2 + 20, w: 400, h: 110 };
+      const r = drawButton(this, retry, t('ui.retry'), 'primary', 44);
+      const k = drawButton(this, back, t('ui.back'), 'secondary', 44);
+      for (const o of [r.g, r.text, k.g, k.text]) o.setDepth(10_001);
+      const clear = (): void => {
+        menu.destroy();
+        for (const o of [veil, msg, r.g, r.text, k.g, k.text]) o.destroy();
+        if (this.ctx.hook) this.ctx.hook.menu = null;
+      };
+      const menu = new Menu(
+        this,
+        [
+          {
+            id: 'art.retry',
+            rect: () => retry,
+            press: () => {
+              clear();
+              this.waitForBiome(id, then);
+            },
+          },
+          {
+            id: 'art.back',
+            rect: () => back,
+            press: () => {
+              clear();
+              then(false);
+            },
+          },
+        ],
+        {
+          onBack: () => {
+            clear();
+            then(false);
+          },
+          focus: 'art.retry',
+          hook: this.ctx.hook,
+        },
+      );
     });
   }
 
@@ -1233,6 +1296,7 @@ export class HuntScene extends Phaser.Scene {
       this.inputKind,
       safe.left + 40 + this.ctx.feel.hud.gadgetPx + this.ctx.feel.hud.marginPx,
       designSize().height - safe.bottom - 90,
+      this.debug.shown ? artSummary(this.manifest.entries()) : '',
     );
     const hud = this.scene.get('Hud') as HudScene;
     if (hud.sys.isActive()) {

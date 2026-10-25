@@ -31,12 +31,48 @@ export interface IndexLoad {
   readonly problem: string | null;
 }
 
-/** Reads the index; a missing index is normal (no final art delivered yet). */
-export async function fetchAssetIndex(timeoutMs: number): Promise<IndexLoad> {
+/** v1.6 (D-042): files that failed this page (path → why), for the console and the overlay. */
+const failedFiles = new Map<string, string>();
+
+/** Every delivered file that failed to load this page (newest last). */
+export function failedAssetFiles(): readonly { path: string; why: string }[] {
+  return [...failedFiles].map(([path, why]) => ({ path, why }));
+}
+
+/** Records a failed file once and names it in the console (never a silent placeholder). */
+function failed(path: string, why: string): null {
+  if (!failedFiles.has(path)) console.warn(`[assets] ${path}: ${why}`);
+  failedFiles.set(path, why);
+  return null;
+}
+
+/** A file came in after all (a retry): it no longer counts as failed. */
+function arrived<T>(path: string, v: T): T {
+  failedFiles.delete(path);
+  return v;
+}
+
+/**
+ * Reads the index; a missing index is normal (no final art delivered yet). v1.6 (D-042): a
+ * timeout, an HTTP error or an unreadable index is retried (`attempts`, with a short back-off)
+ * instead of leaving the whole session on placeholders.
+ */
+export async function fetchAssetIndex(timeoutMs: number, attempts = 3): Promise<IndexLoad> {
+  let last: IndexLoad = { index: null, problem: 'index not fetched' };
+  for (let k = 0; k < Math.max(1, attempts); k++) {
+    if (k > 0) await new Promise((r) => window.setTimeout(r, 400 * k));
+    last = await fetchIndexOnce(timeoutMs);
+    if (last.index !== null || last.problem?.startsWith(ABSENT) === true) return last;
+    console.warn(`[assets] ${ASSET_INDEX_PATH}: ${last.problem ?? 'failed'} (try ${k + 1})`);
+  }
+  return last;
+}
+
+async function fetchIndexOnce(timeoutMs: number): Promise<IndexLoad> {
   const get = async (): Promise<IndexLoad> => {
     try {
-      // no-cache asks the network to revalidate; the PWA worker may still serve its precached copy
-      // for one session after a deploy, which is consistent (it cached the matching files too).
+      // no-cache asks the network to revalidate; the service worker answers the index from the
+      // network first (v1.6), so a deploy never pairs a stale index with new files.
       const res = await fetch(ASSET_INDEX_PATH, { cache: 'no-cache' });
       // Static hosts answer 404; SPA-style servers (vite preview) send index.html instead. Both
       // mean "nothing delivered". Any other answer is parsed (a host may label JSON oddly), and
@@ -78,14 +114,20 @@ export function loadImage(path: string, timeoutMs: number): Promise<HTMLImageEle
     img.decoding = 'async';
     const load = new Promise<HTMLImageElement | null>((resolve) => {
       img.onload = () => {
-        resolve(img);
+        resolve(arrived(path, img));
       };
       img.onerror = () => {
-        resolve(null);
+        resolve(failed(path, 'image failed to load'));
       };
     });
     img.src = path;
-    p = forget(images, path, withTimeout(load, timeoutMs, null));
+    p = forget(
+      images,
+      path,
+      withTimeout(load, timeoutMs, null).then((v) =>
+        v === null && !failedFiles.has(path) ? failed(path, `timed out after ${timeoutMs} ms`) : v,
+      ),
+    );
   }
   return p;
 }
@@ -98,7 +140,11 @@ export function loadJson(path: string, timeoutMs: number): Promise<unknown> {
       jsons,
       path,
       withTimeout(
-        fetch(path).then((r) => (r.ok ? (r.json() as Promise<unknown>) : null)),
+        fetch(path).then((r) =>
+          r.ok
+            ? (r.json() as Promise<unknown>).then((v) => arrived(path, v))
+            : failed(path, `HTTP ${r.status}`),
+        ),
         timeoutMs,
         null,
       ),
@@ -115,7 +161,9 @@ export function loadBytes(path: string, timeoutMs: number): Promise<ArrayBuffer 
       buffers,
       path,
       withTimeout(
-        fetch(path).then((r) => (r.ok ? r.arrayBuffer() : null)),
+        fetch(path).then((r) =>
+          r.ok ? r.arrayBuffer().then((v) => arrived(path, v)) : failed(path, `HTTP ${r.status}`),
+        ),
         timeoutMs,
         null,
       ),

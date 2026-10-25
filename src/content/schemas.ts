@@ -1582,6 +1582,8 @@ export const FeelSchema = obj({
     fileTimeoutMs: pos,
     /** M10: longest wait at boot for the self-hosted fonts; after it text uses the system font. */
     fontTimeoutMs: pos,
+    /** v1.6 (D-042): retries (index fetched again) before a biome's missing art is reported. */
+    artRetries: z.number().int().min(0).max(10),
   }),
   platform: obj({
     /** Longest wait for a portal SDK script + init; after it the game runs without the SDK. */

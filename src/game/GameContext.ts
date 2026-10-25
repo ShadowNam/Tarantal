@@ -229,6 +229,8 @@ export interface TestHook {
     byBiome: Record<string, ManifestEntry[]>;
     /** Sound keys playing from a recorded file (decoded), not the synth. */
     recorded: string[];
+    /** v1.6 (D-042): delivered files that failed to load this page, with why. */
+    failed: readonly { path: string; why: string }[];
   };
   /**
    * v1.5 (D-041): Oupa's voice — the voice language in use, its pack's state (each language's

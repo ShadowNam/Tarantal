@@ -56,6 +56,11 @@ export interface PlatformAdapter {
   readonly canShowExternalLinks: boolean;
   /** PWA extras (service worker, "Add to Home Screen" banner) belong to this build: web only. */
   readonly pwa: boolean;
+  /**
+   * v1.6 (D-042): calls `show` when a new deploy's service worker has taken over this page (the
+   * page should offer a reload). Builds without a worker never call it.
+   */
+  onUpdateReady?(show: () => void): void;
   /** v1.2x (D-034): `?admin=1` opens the playtest admin page. Web builds only (Pages, dev);
    *  portal builds ignore the parameter and show the normal title. */
   readonly adminPage: boolean;

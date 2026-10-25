@@ -26,7 +26,13 @@ import { loadFonts } from './game/ui/fonts';
 import { FlashLimiter } from './game/view/flashLimit';
 import { setTextLook } from './game/ui/textLook';
 import type { AssetManifest } from './game/assets/AssetManifest';
-import { ABSENT, fetchAssetIndex, fetchBytesUncached } from './game/assets/finalLoader';
+import {
+  ABSENT,
+  failedAssetFiles,
+  fetchAssetIndex,
+  fetchBytesUncached,
+} from './game/assets/finalLoader';
+import { showArtError, showUpdateBar } from './game/assets/artGate';
 import { VoicePacks } from './game/audio/voicePack';
 import {
   biomeArtReady,
@@ -47,11 +53,13 @@ import { TallyScene } from './game/scenes/TallyScene';
 import { TitleScene } from './game/scenes/TitleScene';
 import { DomChrome } from './game/ui/DomChrome';
 import {
+  fill,
   isI18nKey,
   pickLanguage,
   setAfrikaansNames,
   setLanguage,
   t,
+  tOr,
   voiceLanguageFor,
   type Language,
 } from './i18n/i18n';
@@ -307,7 +315,7 @@ const hook: TestHook = {
   simFrameSteps: [],
   replay: null,
   hunts: 0,
-  assets: { problem: null, byBiome: {}, recorded: [] },
+  assets: { problem: null, byBiome: {}, recorded: [], failed: [] },
   music: null,
   masterGain: null,
   missingTextures: [],
@@ -568,7 +576,12 @@ async function boot(): Promise<void> {
     return m;
   };
   // M10: final files for a biome's manifest, loaded once (each failure keeps that placeholder).
-  const { index: assetIndex, problem: indexProblem } = await indexLoad;
+  // v1.6 (D-042): placeholders only on purpose (dev and test builds, ?art=placeholder); otherwise a
+  // hunt or the Skietbaan starts only when its delivered art is in (ensureArt below).
+  const placeholderArt = (testHooks || import.meta.env.DEV) && params.get('art') === 'placeholder';
+  const firstIndex = await indexLoad;
+  let assetIndex = placeholderArt ? null : firstIndex.index;
+  let indexProblem = placeholderArt ? `${ABSENT} (?art=placeholder)` : firstIndex.problem;
   hook.assets.problem = indexProblem;
   // v1.5 (D-041): the voice language (its own setting; "same" follows the text, Dutch → af). Its
   // pack loads lazily after the first gesture, never with the voice volume at 0.
@@ -624,7 +637,53 @@ async function boot(): Promise<void> {
     }
     return p;
   };
-  await loadFinalFor(biome);
+  /** True when nothing delivered for `b` is missing (or no art was delivered at all). */
+  const artOk = (b: Biome): boolean =>
+    assetIndex === null
+      ? (indexProblem ?? '').startsWith(ABSENT)
+      : manifestFor(b).missingFinal.length === 0;
+  /**
+   * v1.6 (D-042): loads a biome's delivered art, retrying (bounded) what failed. Each retry
+   * fetches the index again first: after a deploy the old index names files the host no longer
+   * has, and the new index names the new ones.
+   */
+  const ensureArt = async (b: Biome): Promise<boolean> => {
+    const tries = feel.assets.artRetries;
+    for (let k = 0; k <= tries; k++) {
+      if (k > 0) {
+        finalLoads.delete(b.id);
+        finalDone.delete(b.id);
+        await new Promise((r) => window.setTimeout(r, 500 * k));
+        const again = await fetchAssetIndex(feel.assets.indexTimeoutMs, 1);
+        if (again.index !== null) {
+          assetIndex = again.index;
+          indexProblem = again.problem;
+          hook.assets.problem = indexProblem;
+        }
+      }
+      await loadFinalFor(b);
+      hook.assets.failed = failedAssetFiles();
+      if (artOk(b)) return true;
+    }
+    console.warn(
+      `[assets] ${b.id}: art still missing after ${tries} retries: ${
+        assetIndex === null
+          ? (indexProblem ?? 'no index')
+          : manifestFor(b)
+              .missingFinal.map((m) => m.path)
+              .join(', ')
+      }`,
+    );
+    return false;
+  };
+  platform.onUpdateReady?.(() => {
+    showUpdateBar(t('ui.update_ready'), t('ui.update_reload'));
+  });
+  // The home biome's art before the title: a friendly message with Retry when it can't come.
+  while (!(await ensureArt(biome))) {
+    const area = tOr(biome.nameKey, biome.id);
+    await showArtError(fill(t('ui.art_failed'), { area }), t('ui.retry'));
+  }
   // A challenge link (Tech §12): decoded once, then removed from the address bar so a reload or a
   // bookmark doesn't show the card again.
   let pendingChallenge: ChallengeDecode | null = null;
@@ -698,13 +757,15 @@ async function boot(): Promise<void> {
     playableBiomes,
     manifestFor,
     installedManifest: null,
-    biomeReady: (id) => biomeArtReady(id) && finalDone.has(id),
+    biomeReady: (id) => {
+      const b = bundle.biomes.find((x) => x.id === id);
+      return biomeArtReady(id) && finalDone.has(id) && (b === undefined || artOk(b));
+    },
     // The biome's placeholder art chunk, then its final files (if any were delivered).
     loadBiome: async (id) => {
       if (!(await loadBiomeArt(id))) return false;
       const b = bundle.biomes.find((x) => x.id === id);
-      if (b !== undefined) await loadFinalFor(b);
-      return true;
+      return b === undefined ? true : ensureArt(b);
     },
     huntBiome: biome,
     audio,

@@ -40,6 +40,8 @@ describe('service worker generation', () => {
     expect(src).toMatch(/match\(abs\('.\/index.html'\), \{ ignoreSearch: true \}\)/);
     expect(src).toContain('self.skipWaiting()');
     expect(src).toContain('self.clients.claim()');
+    // v1.6 (D-042): the asset index is network first, so a deploy never pairs it with stale files.
+    expect(src).toContain("url.pathname.endsWith('/assets/asset-index.json')");
     // It must be valid JavaScript.
     expect(() => new Script(src)).not.toThrow();
   });

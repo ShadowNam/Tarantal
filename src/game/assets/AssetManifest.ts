@@ -217,6 +217,12 @@ export class AssetManifest {
     return region === null || img === undefined ? null : { img, region };
   }
 
+  /**
+   * v1.6 (D-042): delivered keys whose files failed in the last loadFinal (the late group not
+   * counted). A hunt never starts while this is not empty (main.ts retries, then asks).
+   */
+  missingFinal: readonly { key: string; path: string }[] = [];
+
   private mark(key: string, origin: AssetOrigin | undefined): void {
     if (origin === 'interim') this.interimKeys.add(key);
   }
@@ -249,7 +255,14 @@ export class AssetManifest {
     const jobs: Promise<void>[] = [];
     // D-029: the late group downloads after everything else (it isn't needed to start a hunt).
     const late: (() => Promise<void>)[] = [];
-    const queue = (group: string, job: () => Promise<void>): void => {
+    // v1.6 (D-042): what this load must deliver before a hunt may start (not the late group),
+    // checked once the jobs are done; a failure is a key with the file that failed.
+    const expect: { key: string; path: string; done: () => boolean }[] = [];
+    const queue = (
+      group: string,
+      job: () => Promise<void>,
+      need?: { key: string; path: string; done: () => boolean },
+    ): void => {
       // A key every biome has can still be delivered for one biome only (rig.json group): only
       // that biome's manifest loads it.
       if (
@@ -262,42 +275,55 @@ export class AssetManifest {
         return;
       // v1.3: the Ver strips aren't needed to start a hunt either (only bonus maps show them).
       if (group === LATE_GROUP || group === VER_GROUP) late.push(job);
-      else jobs.push(job());
+      else {
+        jobs.push(job());
+        if (need !== undefined) expect.push(need);
+      }
     };
     for (const [key, entry] of Object.entries(index.images)) {
       if (!this.specs.has(key) || this.layerOfTile.has(key)) continue;
-      queue(entry.group, () =>
-        loadImage(entry.file.path, o.timeoutMs).then((img) => {
-          if (img === null) return;
-          this.finalImages.set(key, { img, entry });
-          this.mark(key, entry.origin);
-        }),
+      queue(
+        entry.group,
+        () =>
+          loadImage(entry.file.path, o.timeoutMs).then((img) => {
+            if (img === null) return;
+            this.finalImages.set(key, { img, entry });
+            this.mark(key, entry.origin);
+          }),
+        { key, path: entry.file.path, done: () => this.finalImages.has(key) },
       );
     }
     for (const [id, entry] of Object.entries(index.layers)) {
       if (!this.layerArt.has(id)) continue;
-      queue(entry.group, () =>
-        Promise.all(entry.tiles.map((t) => loadImage(t.path, o.timeoutMs))).then((imgs) => {
-          // A layer is all or nothing: half a delivered panorama would show a seam.
-          if (imgs.some((i) => i === null)) return;
-          const tiles = imgs.map((img, i) => ({
-            key: `final:layer/${id}/${i}`,
-            // Safe: the line above returned if any image is null.
-            img: img as HTMLImageElement,
-          }));
-          this.mark(id, entry.origin);
-          this.finalLayers.set(id, {
-            tiles,
-            art: {
-              tiles: tiles.map((t) => t.key),
-              tileWidth: entry.tileWidth,
-              left: entry.left,
-              top: entry.top,
-              scale: 1,
-              ...(entry.solid === undefined ? {} : { solid: entry.solid }),
-            },
-          });
-        }),
+      queue(
+        entry.group,
+        () =>
+          Promise.all(entry.tiles.map((t) => loadImage(t.path, o.timeoutMs))).then((imgs) => {
+            // A layer is all or nothing: half a delivered panorama would show a seam.
+            if (imgs.some((i) => i === null)) return;
+            const tiles = imgs.map((img, i) => ({
+              key: `final:layer/${id}/${i}`,
+              // Safe: the line above returned if any image is null.
+              img: img as HTMLImageElement,
+            }));
+            this.mark(id, entry.origin);
+            this.finalLayers.set(id, {
+              tiles,
+              art: {
+                tiles: tiles.map((t) => t.key),
+                tileWidth: entry.tileWidth,
+                left: entry.left,
+                top: entry.top,
+                scale: 1,
+                ...(entry.solid === undefined ? {} : { solid: entry.solid }),
+              },
+            });
+          }),
+        {
+          key: id,
+          path: entry.tiles.map((t) => t.path).join(', '),
+          done: () => this.finalLayers.has(id),
+        },
       );
     }
     for (const [creature, planes] of Object.entries(index.birds)) {
@@ -306,7 +332,56 @@ export class AssetManifest {
         if (!this.specs.has(birdKey(creature, plane, 'stand'))) continue;
         const use2x = o.atlasScale === 2 && entry.x2 !== undefined;
         const atlas = use2x && entry.x2 !== undefined ? entry.x2 : entry.x1;
-        queue(entry.group, () =>
+        queue(
+          entry.group,
+          () =>
+            Promise.all(
+              atlas.pages.map((pg) =>
+                Promise.all([
+                  loadImage(pg.image.path, o.timeoutMs),
+                  loadJson(pg.data.path, o.timeoutMs),
+                ]),
+              ),
+            ).then((pages) => {
+              const imgs: HTMLImageElement[] = [];
+              const data: object[] = [];
+              for (const [img, d] of pages) {
+                // All pages or none: a missing page would leave clips without frames.
+                if (img === null || typeof d !== 'object' || d === null) return;
+                imgs.push(img);
+                data.push(d);
+              }
+              // Every clip's frames must exist in the pages (Phaser throws on a short clip).
+              const check = checkBirdAtlas(entry.clips, data);
+              if (check.dropped.length > 0)
+                console.warn(
+                  `[assets] ${creature} ${plane}: clips with missing frames dropped: ${check.dropped.join(', ')}`,
+                );
+              if (check.clips === null) return;
+              this.mark(`bird/${creature}/${plane}`, entry.origin);
+              this.finalBirds.set(`${creature}/${plane}`, {
+                atlasKey: `final:bird/${creature}/${plane}@${use2x ? 2 : 1}x`,
+                entry: { ...entry, clips: check.clips },
+                scale: use2x ? entry.scale / 2 : entry.scale,
+                img: imgs,
+                data,
+              });
+            }),
+          {
+            key: `bird/${creature}/${plane}`,
+            path: atlas.pages.map((pg) => pg.image.path).join(', '),
+            done: () => this.finalBirds.has(`${creature}/${plane}`),
+          },
+        );
+      }
+    }
+    for (const [id, entry] of Object.entries(index.guns)) {
+      if (!this.specs.has(gunKey(id))) continue;
+      const use2x = o.atlasScale === 2 && entry.x2 !== undefined;
+      const atlas = use2x && entry.x2 !== undefined ? entry.x2 : entry.x1;
+      queue(
+        entry.group,
+        () =>
           Promise.all(
             atlas.pages.map((pg) =>
               Promise.all([
@@ -318,66 +393,31 @@ export class AssetManifest {
             const imgs: HTMLImageElement[] = [];
             const data: object[] = [];
             for (const [img, d] of pages) {
-              // All pages or none: a missing page would leave clips without frames.
               if (img === null || typeof d !== 'object' || d === null) return;
               imgs.push(img);
               data.push(d);
             }
-            // Every clip's frames must exist in the pages (Phaser throws on a short clip).
-            const check = checkBirdAtlas(entry.clips, data);
+            const check = checkAtlas(entry.clips, data);
+            // Without its idle frame the gun can't stand still: keep the placeholder.
+            if (check.clips?.idle === undefined) return;
             if (check.dropped.length > 0)
               console.warn(
-                `[assets] ${creature} ${plane}: clips with missing frames dropped: ${check.dropped.join(', ')}`,
+                `[assets] gun ${id}: clips with missing frames dropped: ${check.dropped.join(', ')}`,
               );
-            if (check.clips === null) return;
-            this.mark(`bird/${creature}/${plane}`, entry.origin);
-            this.finalBirds.set(`${creature}/${plane}`, {
-              atlasKey: `final:bird/${creature}/${plane}@${use2x ? 2 : 1}x`,
+            if (entry.origin === 'interim') this.interimGuns.add(id);
+            this.finalGuns.set(id, {
+              atlasKey: `final:gun/${id}@${use2x ? 2 : 1}x`,
               entry: { ...entry, clips: check.clips },
-              scale: use2x ? entry.scale / 2 : entry.scale,
+              scale: use2x ? 0.5 : 1,
               img: imgs,
               data,
             });
           }),
-        );
-      }
-    }
-    for (const [id, entry] of Object.entries(index.guns)) {
-      if (!this.specs.has(gunKey(id))) continue;
-      const use2x = o.atlasScale === 2 && entry.x2 !== undefined;
-      const atlas = use2x && entry.x2 !== undefined ? entry.x2 : entry.x1;
-      queue(entry.group, () =>
-        Promise.all(
-          atlas.pages.map((pg) =>
-            Promise.all([
-              loadImage(pg.image.path, o.timeoutMs),
-              loadJson(pg.data.path, o.timeoutMs),
-            ]),
-          ),
-        ).then((pages) => {
-          const imgs: HTMLImageElement[] = [];
-          const data: object[] = [];
-          for (const [img, d] of pages) {
-            if (img === null || typeof d !== 'object' || d === null) return;
-            imgs.push(img);
-            data.push(d);
-          }
-          const check = checkAtlas(entry.clips, data);
-          // Without its idle frame the gun can't stand still: keep the placeholder.
-          if (check.clips?.idle === undefined) return;
-          if (check.dropped.length > 0)
-            console.warn(
-              `[assets] gun ${id}: clips with missing frames dropped: ${check.dropped.join(', ')}`,
-            );
-          if (entry.origin === 'interim') this.interimGuns.add(id);
-          this.finalGuns.set(id, {
-            atlasKey: `final:gun/${id}@${use2x ? 2 : 1}x`,
-            entry: { ...entry, clips: check.clips },
-            scale: use2x ? 0.5 : 1,
-            img: imgs,
-            data,
-          });
-        }),
+        {
+          key: gunKey(id),
+          path: atlas.pages.map((pg) => pg.image.path).join(', '),
+          done: () => this.finalGuns.has(id),
+        },
       );
     }
     // Sounds load beside the game, not before it: nothing plays before the first tap, so boot
@@ -399,6 +439,9 @@ export class AssetManifest {
     }
     this.soundsLoaded = Promise.all(sounds).then(() => undefined);
     await Promise.all(jobs);
+    this.missingFinal = expect.filter((e) => !e.done()).map((e) => ({ key: e.key, path: e.path }));
+    for (const m of this.missingFinal)
+      console.warn(`[assets] ${m.key}: delivered file failed to load (${m.path})`);
     this.lateLoaded = Promise.all(late.map((job) => job())).then(() => undefined);
   }
 
