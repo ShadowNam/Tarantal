@@ -1,6 +1,6 @@
 {
- "updated": "2026-10-25T19:54:00Z",
- "summary": "v1.6 Veld art is live on the test build (merged 25 Oct, 18:56). v1.6b reload power-ups is merged too (25 Oct, 20:42; version 1.6.1): Blitslaai and Oupa Laai in the crates and the Padstal. v1.7 meerkats has your fur and face notes in (round 3) and version 1.7.0; Claude's in-game screenshots and review come next. This Project overview page is being built now. Next, in this order: v1.7b power-ups explained + an Oupa on/off switch, v1.7c fruit that swings or drops, v1.7d Namibië veld life, v1.7e realistic Bushveld + a new secret cue instead of the star (mock-ups for you first), v1.8 Blikkies, v1.8b baboons, v1.8c The Harvest (a new mode), then v1.9–v1.13.",
+ "updated": "2026-10-25T20:06:00Z",
+ "summary": "v1.6 Veld art is live on the test build (merged 25 Oct, 18:56). v1.6b reload power-ups is merged too (25 Oct, 20:42; version 1.6.1): Blitslaai and Oupa Laai in the crates and the Padstal. v1.7 meerkats has your fur and face notes in (round 3) and version 1.7.0; Claude's in-game screenshots and review come next. This Project overview page went live on 25 Oct at about 22:10. Next, in this order: v1.7b power-ups explained + an Oupa on/off switch, v1.7c fruit that swings or drops, v1.7d Namibië veld life, v1.7e realistic Bushveld + a new secret cue instead of the star (mock-ups for you first), v1.8 Blikkies, v1.8b baboons, v1.8c The Harvest (a new mode), then v1.9–v1.13.",
  "current": {
   "version": "1.6.1",
   "commit": "133c85f"
@@ -39,8 +39,8 @@
   },
   {
    "label": "Pull requests merged",
-   "value": "74",
-   "note": "#1 to #75"
+   "value": "75",
+   "note": "#1 to #76"
   },
   {
    "label": "Unit tests",
@@ -318,7 +318,7 @@
   "project-overview": {
    "owner": "Claude",
    "status": "running",
-   "summary": "This page: the project at a glance in the admin page, with what needs you, what is being built, the roadmap with times and versions, your requests, ideas, and the whole history with images. It reads live data that Claude updates at every check-in, merge and screenshot round. Open it from the admin page (Project overview) or with ?admin=1&project=1 once it is merged.",
+   "summary": "This page: the project at a glance in the admin page, with what needs you, what is being built, the roadmap with times and versions, your requests, ideas, and the whole history with images. It reads live data that Claude updates at every check-in, merge and screenshot round. Open it from the admin page (Project overview) or with ?admin=1&project=1.",
    "requestedBy": "You, 25 Oct 19:51",
    "checklist": [
     {
@@ -342,11 +342,16 @@
      "at": "2026-10-25T19:32:00Z"
     },
     {
-     "text": "Full tests on GitHub and merge; then it is live on the test build",
-     "done": false
+     "text": "Full tests on GitHub (23 jobs) and merged (#76); live on the test build",
+     "done": true,
+     "at": "2026-10-25T20:06:00Z"
     }
    ],
    "links": [
+    {
+     "label": "Open it",
+     "url": "https://shadownam.github.io/Tarantal/?admin=1&project=1"
+    },
     {
      "label": "PR #76",
      "url": "https://github.com/ShadowNam/Tarantal/pull/76"
@@ -820,6 +825,21 @@
    "at": "2026-10-25T19:48:00Z",
    "kind": "tests",
    "text": "Independent review of v1.7: the meerkat rules work as asked (dive, alarm, −10 with cooldown, Familiefoto, Spotter, no stuck meerkats in 140 test hunts). One missing test and three small fixes went to Tank."
+  },
+  {
+   "at": "2026-10-25T20:06:00Z",
+   "kind": "merge",
+   "text": "The Project overview page is merged (#76) and goes live on the test build: admin page → Project overview.",
+   "links": [
+    {
+     "label": "Open it",
+     "url": "https://shadownam.github.io/Tarantal/?admin=1&project=1"
+    },
+    {
+     "label": "PR #76",
+     "url": "https://github.com/ShadowNam/Tarantal/pull/76"
+    }
+   ]
   }
  ]
 }
