@@ -23,16 +23,10 @@ import { mountainRow, paintRow, rockColours } from '../mountains';
 import { groundBand, groundShadow, softSky, windpompTower } from './karoo';
 import { foregroundClumps, midScrub, nearGrass, verVeld } from './common';
 import { thunderhead } from '../skies';
-import {
-  camelthornLook,
-  camelthornSpec,
-  camelthornTree,
-  deadCamelthorn,
-  nestTreeSpec,
-  pod,
-} from '../camelthorn';
+import { camelthornLook, camelthornSpec, camelthornTree, nestTreeSpec, pod } from '../camelthorn';
 import { plantLook, seedTuft, veldShrub } from '../flora';
 import { shepherdsTree } from '../species';
+import { deadCamelthornTree } from '../deadTree';
 import { farAnimal as animal, herd } from '../fauna';
 import type { PaintCtx } from '../landscape';
 import { boulder, graniteLook } from '../rocks';
@@ -623,7 +617,7 @@ function windpompSign(ctx: PropCtx): string {
 
 /** v1.4 B: the dead camelthorn (secret branch stub at (−90, −60)), drawn at 2×. */
 function deadCamelthornProp(ctx: PropCtx): string {
-  return deadCamelthorn(ctx.rnd, camelthornLook(ctx.c, ctx.pen), ctx.pen);
+  return deadCamelthornTree(ctx.rnd, camelthornLook(ctx.c, ctx.pen), ctx.pen);
 }
 
 /** v1.6 (D-042): a hummock of Bushman grass with tall silvery plumes (Stipagrostis). */
