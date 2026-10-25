@@ -13,7 +13,6 @@ import {
   isLandscape,
   isTouchProject,
   startHunt,
-  tapAt,
 } from './helpers';
 
 const COLONY = 'dune_colony';
@@ -54,6 +53,66 @@ async function colonyInView(page: Page): Promise<void> {
     { timeout: 300_000 },
   );
   await page.keyboard.up(key);
+  // Then wait for the camera to stop (10 ticks without moving), so the shots below land where
+  // they were aimed.
+  await page.waitForFunction(
+    () => {
+      const g = window.__TM__;
+      const w = window as unknown as { __camStill?: { x: number; t: number } };
+      if (g === undefined) return false;
+      if (w.__camStill?.x !== g.cameraX) {
+        w.__camStill = { x: g.cameraX, t: g.tick };
+        return false;
+      }
+      return g.tick - w.__camStill.t >= 10;
+    },
+    null,
+    { timeout: 60_000 },
+  );
+}
+
+/**
+ * Fires one shot in-page and waits until the sim has counted it. The point is worked out in the
+ * same page call from where things are now: `sand` is just right of the colony's burrows and above
+ * them (no meerkat in the way), `sky` is far left, high up. Pointer events go straight to the
+ * canvas, as in weavers.spec.ts and the −10 test: on WebKit's iPhone profile (CI, 25 Oct) no dive
+ * or photo followed a page.touchscreen tap after a held arrow key, while in-page shots worked.
+ */
+async function shootAt(page: Page, touch: boolean, aim: 'sand' | 'sky'): Promise<void> {
+  const before = await page.evaluate(
+    ([id, where, isTouch]) => {
+      const g = window.__TM__;
+      const canvas = document.querySelector<HTMLCanvasElement>('#game canvas');
+      if (g === undefined || canvas === null) throw new Error('game not booted');
+      let x = g.designWidth * 0.2;
+      let y = g.designHeight * 0.12;
+      if (where === 'sand') {
+        const ms = g.meerkats.filter((m) => m.colony === id);
+        x = Math.min(g.designWidth * 0.8, Math.max(...ms.map((m) => m.x)) + 120);
+        y = Math.max(...ms.map((m) => m.y)) - 170;
+      }
+      const r = canvas.getBoundingClientRect();
+      const init: PointerEventInit = {
+        clientX: r.left + (x / g.designWidth) * r.width,
+        clientY: r.top + (y / g.designHeight) * r.height,
+        pointerId: 932,
+        pointerType: isTouch ? 'touch' : 'mouse',
+        isPrimary: true,
+        button: 0,
+        buttons: 1,
+        bubbles: true,
+        cancelable: true,
+      };
+      const shots = g.shots;
+      canvas.dispatchEvent(new PointerEvent('pointerdown', init));
+      canvas.dispatchEvent(new PointerEvent('pointerup', { ...init, buttons: 0 }));
+      return shots;
+    },
+    [COLONY, aim, touch] as const,
+  );
+  await page.waitForFunction((n) => (window.__TM__?.shots ?? 0) > n, before, {
+    timeout: 60_000,
+  });
 }
 
 /** Waits until at least `n` meerkats of the colony are above ground. */
@@ -83,11 +142,7 @@ test.describe('meerkat colonies (v1.7, D-044)', () => {
     await outAtLeast(page, 2);
     await page.screenshot({ path: `${SCREENSHOTS}/meerkats-out-${info.project.name}.png` });
     // A shot into the sand just right of the burrows (no meerkat in the way: above them).
-    const h = await hook(page);
-    const ms = h.meerkats.filter((m) => m.colony === COLONY);
-    const right = Math.max(...ms.map((m) => m.x));
-    const ground = Math.max(...ms.map((m) => m.y));
-    await tapAt(page, touch, Math.min(h.designWidth * 0.8, right + 120), ground - 170);
+    await shootAt(page, touch, 'sand');
     // The colony dives: the log says so, and soon every meerkat is in a hole.
     await page.waitForFunction(
       () => window.__TM__?.meerkatLog.includes('dived:shot') === true,
@@ -208,22 +263,30 @@ test.describe('meerkat colonies (v1.7, D-044)', () => {
     await startHunt(page, touch);
     await colonyInView(page);
     // Holding fire counts from the first shot: one into the sky, far left of the colony.
-    const h = await hook(page);
-    await tapAt(page, touch, h.designWidth * 0.2, h.designHeight * 0.12);
-    // Then nothing: the family comes out, and after 4 s they line up for the photo.
+    await shootAt(page, touch, 'sky');
+    // Then nothing: the family comes out, and after 4 s they line up for the photo. If the hunt
+    // ends first, say where the colony was and what it was doing.
     const photo = await page.waitForFunction(
       (id) => {
         const g = window.__TM__;
-        if (g?.meerkatLog.includes('familiefoto') !== true) return null;
-        return {
-          row: g.meerkats.filter((m) => m.colony === id).map((m) => m.pose),
+        if (g === undefined) return null;
+        const ms = g.meerkats.filter((m) => m.colony === id);
+        const view = {
+          row: ms.map((m) => m.pose),
           score: g.score,
+          over: g.over,
+          tick: g.tick,
+          colonyX: ms.length === 0 ? null : Math.round(ms.reduce((t, m) => t + m.x, 0) / ms.length),
+          centre: Math.round(g.designWidth / 2),
+          log: g.meerkatLog.slice(-8),
         };
+        return g.meerkatLog.includes('familiefoto') || g.over ? view : null;
       },
       COLONY,
       { timeout: 480_000 },
     );
-    const at = (await photo.jsonValue()) as { row: string[]; score: number };
+    const at = (await photo.jsonValue()) as { row: string[]; score: number; over: boolean };
+    expect(at.over, `the hunt ended before the Familiefoto: ${JSON.stringify(at)}`).toBe(false);
     expect(at.row.length).toBeGreaterThanOrEqual(4);
     expect(at.row.every((p) => p === 'photo')).toBe(true);
     await page.screenshot({ path: `${SCREENSHOTS}/meerkats-familiefoto-${info.project.name}.png` });
