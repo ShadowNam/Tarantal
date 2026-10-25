@@ -6,8 +6,8 @@
 //     the first gesture unlocks audio, and Oupa's caption is the English line;
 //   - English text with "Afrikaans names" on: the Skiet-Skuur shows the Afrikaans gun names.
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
-import de from '../../src/i18n/de.json';
-import en from '../../src/i18n/en.json';
+import de from '../../src/i18n/de.json' with { type: 'json' };
+import en from '../../src/i18n/en.json' with { type: 'json' };
 import { loadFeel } from '../../tools/testContent';
 import {
   boot,
