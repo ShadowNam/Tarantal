@@ -1,6 +1,6 @@
 {
- "updated": "2026-10-25T17:58:00Z",
- "summary": "v1.6 Veld art is live on the test build (merged 25 Oct, 18:56): new trees, fruit, far animals, the windmill from your photos, the dassie, clouds, a version stamp on every map and the Skietbaan's Fresh load button. v1.6b reload power-ups is finishing its tests (one slow Skietbaan test is being fixed). v1.7 meerkats is in its look round: the redraw is in, your notes on more fur and nicer faces are next. Then v1.7b (fruit that swings or drops), v1.7c (Namibië veld life: grass, ostriches, oryx in the mirage, balloons) and v1.8 Blikkies. This Project overview page is being built now.",
+ "updated": "2026-10-25T18:13:00Z",
+ "summary": "v1.6 Veld art is live on the test build (merged 25 Oct, 18:56). v1.6b reload power-ups is re-running its full tests after Claude fixed a slow Skietbaan test (PR #75); it merges when green. v1.7 meerkats is in its look round (your notes on more fur and nicer faces are next). This Project overview page is being built now. Next, in this order: v1.7b power-ups explained + an Oupa on/off switch, v1.7c fruit that swings or drops, v1.7d Namibië veld life, v1.7e realistic Bushveld + a new secret cue instead of the star (mock-ups for you first), v1.8 Blikkies, v1.8b baboons, v1.8c The Harvest (a new mode), then v1.9–v1.13.",
  "current": {
   "version": "1.6.0",
   "commit": "4bd39f1",
@@ -168,13 +168,66 @@
      "caption": "The windmill, before | after"
     }
    ]
+  },
+  {
+   "id": "baboons-hit",
+   "kind": "decision",
+   "title": "Baboons and warthogs: what happens when they are hit?",
+   "asked": "2026-10-25T18:10:00Z",
+   "status": "answered",
+   "detail": "Scared off (family-friendly, portal-safe) or shot down like the guineafowl.",
+   "options": [
+    "Scared off",
+    "Shot down like guineafowl"
+   ],
+   "answer": "Shot down like guineafowl. Claude noted that game portals may rate it for older players.",
+   "answered": "2026-10-25T18:11:00Z"
+  },
+  {
+   "id": "harvest-where",
+   "kind": "decision",
+   "title": "Where does The Harvest live?",
+   "asked": "2026-10-25T18:10:00Z",
+   "status": "answered",
+   "options": [
+    "A new mode on the title screen",
+    "A Season Run stage",
+    "A Daily special"
+   ],
+   "detail": "Its own mode, a Season Run stage, or a Daily special.",
+   "answer": "A new mode on the title screen.",
+   "answered": "2026-10-25T18:11:00Z"
+  },
+  {
+   "id": "order",
+   "kind": "decision",
+   "title": "What comes first after the meerkats?",
+   "asked": "2026-10-25T18:10:00Z",
+   "status": "answered",
+   "detail": "Power-ups explained + the Oupa switch, or the earlier order.",
+   "answer": "Power-ups + Oupa first. The queue is renumbered in build order (v1.7b to v1.8c).",
+   "answered": "2026-10-25T18:11:00Z"
+  },
+  {
+   "id": "secret-cue",
+   "kind": "decision",
+   "title": "Coming: pick the new secret cue (instead of the star)",
+   "asked": "2026-10-25T18:13:00Z",
+   "status": "open",
+   "detail": "In v1.7e Tank first makes mock-ups of three options; Claude sends you screenshots and you pick one. Nothing to do until then.",
+   "options": [
+    "A. A small unique animal that always lives at each secret (Claude's recommendation)",
+    "B. Natural cues only (rustling grass, a dust puff, a glint only on metal)",
+    "C. No cue on the map; Oupa hints in words"
+   ],
+   "blocks": "v1.7e"
   }
  ],
  "jobs": {
   "v1.6b": {
    "owner": "Tank built it; Claude merges",
    "status": "review",
-   "summary": "Two new crate power-ups. Blitslaai: for 12 s every reload is much faster, with lightning glints on the belt. Oupa Laai: for 12 s an empty gun reloads by itself and Oupa says so. Full tests: 23 of 24 jobs passed; one slow Skietbaan test (25 hits on a steel plate) ran past its 7-minute limit, so Claude is fixing that test, then merges.",
+   "summary": "Two new crate power-ups. Blitslaai: for 12 s every reload is much faster, with lightning glints on the belt. Oupa Laai: for 12 s an empty gun reloads by itself and Oupa says so. Full tests: 23 of 24 jobs passed; one slow Skietbaan test (25 hits on a steel plate) ran past its 7-minute limit, so Claude split that test in two and made it faster (PR #75, ported here); the full tests are re-running.",
    "requestedBy": "You, 25 Oct 08:40: \"Another power-up … an AUTO reload, and a fast reload.\"",
    "checklist": [
     {
@@ -199,7 +252,7 @@
      "at": "2026-10-25T17:00:00Z"
     },
     {
-     "text": "Full tests on every device (one slow Skietbaan test to fix)",
+     "text": "Full tests on every device: a slow Skietbaan test overran twice; Claude split it (PR #75) and the tests are re-running",
      "done": false
     },
     {
@@ -211,6 +264,10 @@
     {
      "label": "PR #71",
      "url": "https://github.com/ShadowNam/Tarantal/pull/71"
+    },
+    {
+     "label": "PR #75",
+     "url": "https://github.com/ShadowNam/Tarantal/pull/75"
     }
    ]
   },
@@ -334,15 +391,35 @@
     }
    ]
   },
-  "v1.7b": {
+  "v1.7c": {
    "owner": "Tank",
    "summary": "Fruit you shoot reacts: the sausage tree's sausages, baobab and camelthorn pods and marula swing on their stalks or drop to the ground.",
    "requestedBy": "You, 25 Oct ~16:45: \"when shooting these fruits, make them swing or drop down.\""
   },
-  "v1.7c": {
+  "v1.7d": {
    "owner": "Tank",
    "summary": "Namibië first: much more detailed bushman grass and sand (no black lines between the distances), then a pair of ostriches at their nest (they run from nearby shots), a herd of oryx far away shimmering in the mirage, and hot-air balloons drifting by (not targets).",
    "requestedBy": "You, 25 Oct ~19:50: ostriches with a nest, oryx in the mirage, hot-air balloons; and \"the grass landscapes in the Namibia one also look very rough still\"."
+  },
+  "v1.7b": {
+   "owner": "Tank",
+   "summary": "A Power-ups section in the Gun Shed with a picture and a plain explanation of every power-up and crate gun (what it does, how long, how you get it, a tip). In the hunt: crates show what is inside, a short card on pickup says what it does, the chip counts down and blinks before it ends, and each power-up has a small visible effect. Plus a Settings switch: Oupa's comments On / Text only / Off.",
+   "requestedBy": "You, 25 Oct ~20:20: \"one is very unsure what they actually do\" and \"the option to have the grandfather mode enabled or not\"."
+  },
+  "v1.7e": {
+   "owner": "Tank",
+   "summary": "First, mock-ups of three ways to replace the star glint on secrets: (A) a small unique animal that always lives at each secret (e.g. a rock agama nodding on the dassie koppie, a lilac-breasted roller on the windmill) — Claude's pick and your idea; (B) natural cues only; (C) no cue, Oupa hints in words. You choose. Meanwhile: realistic Bushveld granite boulders and koppies, real ridges in the haze, textured winter veld, no black lines between the distances.",
+   "requestedBy": "You, 25 Oct ~20:20: \"the rocks and the middle distances look childish\" and \"that star thing is not working for me\"."
+  },
+  "v1.8b": {
+   "owner": "Tank",
+   "summary": "Chacma baboon troops on the ridges of most maps. Now and then raiders come down to cause trouble (steal Oupa's hat, raid fruit, throw fruit at the flock). A raider takes 2 hits and goes down like a guineafowl (your choice). Mothers with babies stay out of range and are never targets.",
+   "requestedBy": "You, 25 Oct ~20:20: \"the African baboon should also be present … pop up and do something naughty that might get them to eat a bullet or two\"."
+  },
+  "v1.8c": {
+   "owner": "Tank",
+   "summary": "A new mode on the title screen. The fence breaks, guineafowl, warthogs and baboons pour into the harvest field, and you have 30 seconds to hold them off while the farm workers fix the fence. A crop meter shows what you saved; the workers are never targets. Tank writes a short plan first.",
+   "requestedBy": "You, 25 Oct ~20:20: \"we could call it the harvest … you've got 30 seconds to shoot as many animals as possible while the fence gets repaired\"."
   }
  },
  "suggestions": [
@@ -360,7 +437,7 @@
    "from": "Claude",
    "date": "2026-10-25T18:00:00Z",
    "status": "queued",
-   "job": "v1.7c",
+   "job": "v1.7d",
    "detail": "The Kalahari ground has the same black line between distances and the same scribbly grass. v1.7c fixes it there too if it shares the drawing code."
   },
   {
@@ -386,14 +463,22 @@
    "date": "2026-10-25T04:45:00Z",
    "status": "idea",
    "detail": "The interim Afrikaans lines use an English voice. A real Afrikaans speaker would sound far better; it needs a person or a paid service, so it is your call."
+  },
+  {
+   "id": "portal-gentle",
+   "title": "A gentler option for game portals",
+   "from": "Claude",
+   "date": "2026-10-25T18:13:00Z",
+   "status": "idea",
+   "detail": "Baboons and warthogs go down like guineafowl (your choice). If Poki or CrazyGames ever ask for a younger rating, a content switch could make them flee instead, only in those builds."
   }
  ],
  "extraRequests": [
   {
    "date": "25 Oct, 16:45",
    "text": "When shooting the fruit (sausage tree), make it swing or drop down",
-   "outcome": "Queued as v1.7b",
-   "job": "v1.7b"
+   "outcome": "Queued as v1.7c",
+   "job": "v1.7c"
   },
   {
    "date": "25 Oct, ~19:47",
@@ -404,20 +489,62 @@
   {
    "date": "25 Oct, ~19:50",
    "text": "Namibië: at least two ostriches with a nest, oryx roaming far away with a mirage, hot-air balloons drifting by",
-   "outcome": "Queued as v1.7c",
-   "job": "v1.7c"
+   "outcome": "Queued as v1.7d",
+   "job": "v1.7d"
   },
   {
    "date": "25 Oct, ~19:50",
    "text": "The Namibië grass landscapes still look rough: much more detail",
-   "outcome": "Queued as v1.7c, first part",
-   "job": "v1.7c"
+   "outcome": "Queued as v1.7d, first part",
+   "job": "v1.7d"
   },
   {
    "date": "25 Oct, 19:51",
    "text": "A Project overview page in the admin: done, outstanding with dates and builds, open questions, history with images, kept up to date",
    "outcome": "Being built now (this page)",
    "job": "project-overview"
+  },
+  {
+   "date": "25 Oct, ~20:20",
+   "text": "The Gun Shed needs a section with pictures that explains every power-up; in the hunt it is unclear what they do",
+   "outcome": "Queued as v1.7b (next after the meerkats)",
+   "job": "v1.7b"
+  },
+  {
+   "date": "25 Oct, ~20:20",
+   "text": "A Settings option to switch Oupa (\"grandfather mode\") on or off",
+   "outcome": "Queued as v1.7b: Oupa's comments On / Text only / Off",
+   "job": "v1.7b"
+  },
+  {
+   "date": "25 Oct, ~20:20",
+   "text": "Namibië: ostriches with a nest, oryx in the mirage, hot-air balloons (again)",
+   "outcome": "Already queued as v1.7d",
+   "job": "v1.7d"
+  },
+  {
+   "date": "25 Oct, ~20:20",
+   "text": "Bushveld rocks and middle distance look childish: make them realistic",
+   "outcome": "Queued as v1.7e",
+   "job": "v1.7e"
+  },
+  {
+   "date": "25 Oct, ~20:20",
+   "text": "Replace the star effect on special spots with something better, e.g. a unique animal that always appears there",
+   "outcome": "v1.7e: three mock-ups for you to pick from first",
+   "job": "v1.7e"
+  },
+  {
+   "date": "25 Oct, ~20:20",
+   "text": "Baboons on the maps, sitting at the back of the mountains, popping up to do something naughty",
+   "outcome": "Queued as v1.8b",
+   "job": "v1.8b"
+  },
+  {
+   "date": "25 Oct, ~20:20",
+   "text": "A Harvest level: the fence breaks, animals flock to the crops, 30 s to hold them off while the fence is fixed",
+   "outcome": "Queued as v1.8c, a new mode on the title screen",
+   "job": "v1.8c"
   }
  ],
  "extraDecisions": [
@@ -563,6 +690,31 @@
      "url": "https://github.com/ShadowNam/Tarantal/pull/70"
     }
    ]
+  },
+  {
+   "at": "2026-10-25T18:11:00Z",
+   "kind": "decision",
+   "text": "You decided: baboons and warthogs go down like guineafowl; The Harvest is its own mode; power-ups + the Oupa switch come first after the meerkats."
+  },
+  {
+   "at": "2026-10-25T18:10:00Z",
+   "kind": "tests",
+   "text": "The slow Skietbaan test is split in two and shoots inside the page: 1.3 + 2.2 min instead of 5.2 min (desktop), passing on the Pixel 7 too. Fix PR #75, ported into #71.",
+   "links": [
+    {
+     "label": "PR #75",
+     "url": "https://github.com/ShadowNam/Tarantal/pull/75"
+    },
+    {
+     "label": "PR #71",
+     "url": "https://github.com/ShadowNam/Tarantal/pull/71"
+    }
+   ]
+  },
+  {
+   "at": "2026-10-25T18:08:00Z",
+   "kind": "request",
+   "text": "You asked for: power-ups explained in the Gun Shed, an Oupa switch, realistic Bushveld rocks, no more star on secrets, baboons, and The Harvest mode. All queued with briefs."
   }
  ]
 }
