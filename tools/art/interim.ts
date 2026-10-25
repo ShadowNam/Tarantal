@@ -2,10 +2,11 @@
 // art-source/ exactly like a human delivery (docs/06), marked `"origin": "interim"` in each rig.json.
 // Then run `npm run assets:pack`. A folder whose rig.json is not marked interim is a human delivery
 // and is never touched.
-//   --only birds|guns|scenery|sprites|flyers|range
+//   --only birds|guns|scenery|sprites|flyers|range|meerkats
 //                         one part (none: sheets only). scenery = parallax layers + props (D-031),
 //                         sprites = shared FX/UI/crate sprites, flyers = non-target birds,
-//                         range = the Skietbaan's steel plate (24 Oct update)
+//                         range = the Skietbaan's steel plate (24 Oct update),
+//                         meerkats = the desert colonies' sheet (v1.7, D-044)
 //   --biome <id>          scenery for one biome
 //   --creature <id>       one bird
 //   --gun <id>            one gun
@@ -32,6 +33,11 @@ import {
 import { BIOME_PLANS } from './biomes';
 import { renderLayer, renderLoose, renderProp } from './landscape';
 import { FAUNA_DRAW } from './faunaSheets';
+import { renderMeerkatSheet } from './meerkats';
+import { MEERKAT_SHEET, SHEET_MASTER } from '../../src/game/assets/desertAssets';
+
+/** v1.7 (D-044): palette size of the meerkat sheet (flat-shaded art; fits the desert chunk). */
+const MEERKAT_COLOURS = 96;
 import { FAUNA_FOOT, FAUNA_RES, FAUNA_SPRITES } from '../../src/game/view/faunaSprites';
 import { renderSprite, SPRITES } from './sprites';
 import { AMMO_SPRITES } from './ammo';
@@ -338,6 +344,26 @@ if (wants('range')) {
       await json({ origin: 'interim', originX: spec.origin.x, originY: spec.origin.y }),
     );
     console.log(`sprites/${spec.key}`);
+  }
+}
+if (wants('meerkats')) {
+  // v1.7 (D-044): the meerkat colonies' sheet, drawn at 2× (layout: desertAssets.ts). Its group
+  // ("desert", lazy, loaded with either desert map) comes from the catalog.
+  const png = join(src, 'sprites', `${MEERKAT_SHEET}.png`);
+  if (!oursFile(png)) console.warn(`skip sprites/${MEERKAT_SHEET}: a human delivery is there`);
+  else {
+    put(png, encodePng8(renderMeerkatSheet(), MEERKAT_COLOURS));
+    put(
+      png.replace(/\.png$/, '.json'),
+      await json({
+        origin: 'interim',
+        encode: 'png8',
+        master: SHEET_MASTER,
+        originX: 0,
+        originY: 0,
+      }),
+    );
+    console.log(`sprites/${MEERKAT_SHEET}`);
   }
 }
 if (wants('flyers')) {

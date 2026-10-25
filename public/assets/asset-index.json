@@ -121,6 +121,20 @@
       "width": 260,
       "height": 360
     },
+    "desert/meerkats": {
+      "group": "desert",
+      "origin": "interim",
+      "file": {
+        "path": "assets/desert/img/desert_meerkats.9ae66dc37edc.png",
+        "bytes": 83839,
+        "hash": "9ae66dc37edc"
+      },
+      "width": 1792,
+      "height": 1152,
+      "scale": 0.5,
+      "originX": 0,
+      "originY": 0
+    },
     "fauna/bushveld_elephants": {
       "group": "bushveld-winter",
       "origin": "interim",
@@ -6036,6 +6050,24 @@
       "lufs": -16.9,
       "peakDb": -1
     },
+    "sfx/camera_click": {
+      "group": "desert",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/desert/audio/sfx/camera_click.abd620b5315e.ogg",
+        "bytes": 6083,
+        "hash": "abd620b5315e"
+      },
+      "mp3": {
+        "path": "assets/desert/audio/sfx/camera_click.ce904221923e.mp3",
+        "bytes": 4460,
+        "hash": "ce904221923e"
+      },
+      "loop": false,
+      "lufs": -21,
+      "peakDb": -1
+    },
     "sfx/clang": {
       "group": "common",
       "origin": "interim",
@@ -6160,6 +6192,60 @@
       },
       "loop": false,
       "lufs": -14.5,
+      "peakDb": -1
+    },
+    "sfx/meerkat_alarm": {
+      "group": "desert",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/desert/audio/sfx/meerkat_alarm.1fab1198343b.ogg",
+        "bytes": 6327,
+        "hash": "1fab1198343b"
+      },
+      "mp3": {
+        "path": "assets/desert/audio/sfx/meerkat_alarm.63d2358192d8.mp3",
+        "bytes": 4694,
+        "hash": "63d2358192d8"
+      },
+      "loop": false,
+      "lufs": -14.6,
+      "peakDb": -1
+    },
+    "sfx/meerkat_chirp": {
+      "group": "desert",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/desert/audio/sfx/meerkat_chirp.b7aa94713f21.ogg",
+        "bytes": 5335,
+        "hash": "b7aa94713f21"
+      },
+      "mp3": {
+        "path": "assets/desert/audio/sfx/meerkat_chirp.4c0ffe5c355b.mp3",
+        "bytes": 3598,
+        "hash": "4c0ffe5c355b"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -5.7
+    },
+    "sfx/meerkat_dig": {
+      "group": "desert",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/desert/audio/sfx/meerkat_dig.6941eadb8ea5.ogg",
+        "bytes": 6297,
+        "hash": "6941eadb8ea5"
+      },
+      "mp3": {
+        "path": "assets/desert/audio/sfx/meerkat_dig.6db164c03208.mp3",
+        "bytes": 5605,
+        "hash": "6db164c03208"
+      },
+      "loop": false,
+      "lufs": -17.1,
       "peakDb": -1
     },
     "sfx/poof": {
