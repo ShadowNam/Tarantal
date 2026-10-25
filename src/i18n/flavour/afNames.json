@@ -105,7 +105,6 @@
     "secret.familiefoto": "The meerkats' Familiefoto",
     "hud.familiefoto": "FAMILIEFOTO!",
     "caption.meerkat_alarm": "[brandwag's alarm bark — meerkats dive]",
-    "creature.meerkat_sentinel": "Meerkat brandwag",
     "notaboek.familiefoto": "Take the meerkats' Familiefoto (hold your fire)"
   },
   "de": {
@@ -214,7 +213,6 @@
     "secret.familiefoto": "Das Familiefoto der Erdmännchen",
     "hud.familiefoto": "FAMILIEFOTO!",
     "caption.meerkat_alarm": "[Alarmruf des Brandwag — Erdmännchen tauchen ab]",
-    "creature.meerkat_sentinel": "Erdmännchen-Brandwag",
     "notaboek.familiefoto": "Mach das Familiefoto der Erdmännchen (nicht schießen)"
   },
   "nl": {
@@ -307,7 +305,6 @@
     "bark.run_won": "Het hele jaar! Bosveld-legende, m'n kind!",
     "secret.familiefoto": "De Familiefoto van de stokstaartjes",
     "caption.meerkat_alarm": "[alarmroep van de brandwag — stokstaartjes duiken weg]",
-    "creature.meerkat_sentinel": "Stokstaartjesbrandwag",
     "notaboek.familiefoto": "Maak de Familiefoto van de stokstaartjes (niet schieten)"
   }
 }

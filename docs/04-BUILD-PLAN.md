@@ -326,6 +326,20 @@ follows in its own PR.
 
 ---
 
+## v1.7 — Meerkat colonies on the desert maps (25 Oct 2026, D-044)
+
+Colonies of 4–8 meerkats in 3–5 burrows on every Kalahari and Namibië map, run by the sim. They
+peek, stand sentinel, forage, sunbathe, dash between burrows and dive. They react to shots, the
+Langloop and raptor alarms; an alarm alerts the nearest flock. A shot meerkat costs −10 and
+scolds. The Familiefoto secret, and the Spotter out of a burrow.
+**Done when:**
+- sim and e2e tests pass;
+- golden replays are re-recorded;
+- the balance sweep is within ±5 % on every desert map;
+- the art and sounds are in the lazy desert group (each chunk ≤ 1.5 MB, first download ≤ 3 MB);
+- the screenshot spec is written;
+- the docs and D-044 are written.
+
 ## After v1.0 (v1.x backlog)
 Leaderboards with server replay validation (`server/`), weekly seeded Season Run, Endless mode,
 ghost replays of top hunts, charm pack 2, gamepad, Capacitor iOS/Android builds, Steam desktop

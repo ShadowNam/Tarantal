@@ -12,7 +12,7 @@ import { VOICE_LANGUAGES } from '../../i18n/i18n';
 import { loadContent, loadFeel } from '../../../tools/testContent';
 
 const root = join(import.meta.dirname, '..', '..', '..');
-const LINES = voicedLines(loadFeel().barks, loadContent().biomes);
+const LINES = voicedLines(loadFeel().barks, loadContent().biomes, loadContent().birds.meerkats);
 /** Voiced keys with no file in a voice language yet (none today). */
 const GAPS: Readonly<Record<string, readonly string[]>> = {};
 
@@ -182,8 +182,9 @@ describe('voice packs (v1.5, D-041)', () => {
   });
 
   it('every voiced key has a file in every voice language (art-source and the asset index)', () => {
-    expect(LINES.length).toBe(44);
+    expect(LINES.length).toBe(46);
     expect(LINES).toContain('bark.weavers');
+    expect(LINES).toEqual(expect.arrayContaining(['bark.meerkat_scold', 'bark.familiefoto']));
     const index = parseAssetIndex(
       JSON.parse(readFileSync(join(root, 'public', 'assets', 'asset-index.json'), 'utf8')),
     ).index;

@@ -11,7 +11,14 @@ import type { SimState } from '../../sim/types';
 import { coreWidth } from '../../sim/world';
 import { TEX } from '../assets/AssetManifest';
 import type { ParallaxView } from './ParallaxView';
-import { CALM_HEADING, stepPump, vaneScaleX, wheelSquash, type PumpMotion } from './windpompMotion';
+import {
+  CALM_HEADING,
+  secretOwnsRotor,
+  stepPump,
+  vaneScaleX,
+  wheelSquash,
+  type PumpMotion,
+} from './windpompMotion';
 
 /** Where each windpomp prop's head sits (prop px from its content position) and its size. */
 const PUMPS: Readonly<Record<string, { ox: number; oy: number; scale: number }>> = {
@@ -26,6 +33,8 @@ const VANE_PIVOT = { x: 290 / 320, y: 70 / 140 } as const;
 
 interface Pump {
   readonly propId: string;
+  /** The prop's secret draws the wheel itself while live (secretOwnsRotor). */
+  readonly rotorSecret: boolean;
   readonly hubX: number;
   readonly hubY: number;
   readonly scale: number;
@@ -57,6 +66,7 @@ export class WindpompView {
       layer.fixtures.addAt(vane, 0);
       const pump: Pump = {
         propId: prop.id,
+        rotorSecret: secretOwnsRotor(prop.secret),
         hubX,
         hubY,
         scale: spec.scale,
@@ -91,10 +101,7 @@ export class WindpompView {
     this.lastTick = s.tick;
     for (const p of this.pumps) {
       p.motion = stepPump(p.motion, s.wind, dt);
-      this.pose(
-        p,
-        s.secrets.some((sec) => sec.propId === p.propId),
-      );
+      this.pose(p, p.rotorSecret && s.secrets.some((sec) => sec.propId === p.propId));
     }
   }
 

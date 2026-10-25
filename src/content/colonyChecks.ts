@@ -104,8 +104,11 @@ export function colonyIssues(bundle: ContentBundle, base: Biome): string[] {
       for (const o of spans)
         if (o.layer === c.layer && overlaps(o.span, span)) key(`overlaps colony "${o.id}"`);
       spans.push({ layer: c.layer, span, id: c.id });
-      // Standing meerkats, from the mounds' ground line up.
-      const band: [number, number] = [c.y + meerkatTop * scale, c.y];
+      // Standing meerkats, from the mounds' ground line up. The sentinel stands on the highest
+      // mound, and a peeking head rises from a hole on its mound, so the band starts that much
+      // higher (review of v1.7).
+      const highest = Math.max(...c.burrows.map((b) => b.mound));
+      const band: [number, number] = [c.y - highest + meerkatTop * scale, c.y];
       if (band[1] > 1080) key('sits below the screen');
       // Its own layer: props and secret parts it would cover (or that would cover it).
       for (const p of m.props) {
