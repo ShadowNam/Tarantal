@@ -466,7 +466,7 @@
           "id": "red_sand_colony",
           "layer": "near",
           "u": 0.12,
-          "y": 950,
+          "y": 966,
           "burrows": [
             {
               "dx": -140,
@@ -555,7 +555,7 @@
           "id": "red_sand_colony",
           "layer": "near",
           "u": 0.72,
-          "y": 950,
+          "y": 966,
           "burrows": [
             {
               "dx": -190,
@@ -651,7 +651,7 @@
           "id": "red_sand_colony",
           "layer": "near",
           "u": 0.88,
-          "y": 950,
+          "y": 966,
           "burrows": [
             {
               "dx": -170,
@@ -801,7 +801,7 @@
           "id": "red_sand_colony",
           "layer": "near",
           "u": 0.55,
-          "y": 950,
+          "y": 966,
           "burrows": [
             {
               "dx": -140,
@@ -929,7 +929,7 @@
           "id": "red_sand_colony",
           "layer": "near",
           "u": 0.92,
-          "y": 950,
+          "y": 966,
           "burrows": [
             {
               "dx": -190,

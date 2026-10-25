@@ -115,34 +115,69 @@ test.describe('meerkat colonies (v1.7, D-044)', () => {
     await startHunt(page, touch);
     await colonyInView(page);
     await outAtLeast(page, 1);
-    // Aim at the body of an adult that is out, inside the screen's middle.
-    const target = await page.evaluate((id) => {
-      const g = window.__TM__;
-      const m = g?.meerkats.find(
-        (x) =>
-          x.colony === id &&
-          !x.pup &&
-          x.hittable &&
-          ['sit', 'forage', 'sunbathe', 'sentinel'].includes(x.pose) &&
-          x.aimX > g.designWidth * 0.15 &&
-          x.aimX < g.designWidth * 0.85,
+    // Pick an adult that is out (inside the screen's middle) and tap its body in the same page
+    // call, so it can't have moved off between the two. A miss (it ran, or another meerkat or
+    // bird took the pellets) is tried again with a fresh pick.
+    let result: { before: number; after: number } | null = null;
+    for (let attempt = 0; attempt < 6 && result === null; attempt++) {
+      await outAtLeast(page, 1);
+      const before = await page.evaluate(
+        ([id, isTouch]) => {
+          const g = window.__TM__;
+          const canvas = document.querySelector<HTMLCanvasElement>('#game canvas');
+          if (g === undefined || canvas === null) return null;
+          const m = g.meerkats.find(
+            (x) =>
+              x.colony === id &&
+              !x.pup &&
+              x.hittable &&
+              ['sit', 'forage', 'sunbathe', 'sentinel'].includes(x.pose) &&
+              x.aimX > g.designWidth * 0.15 &&
+              x.aimX < g.designWidth * 0.85,
+          );
+          if (m === undefined) return null;
+          const r = canvas.getBoundingClientRect();
+          const init: PointerEventInit = {
+            clientX: r.left + (m.aimX / g.designWidth) * r.width,
+            clientY: r.top + (m.aimY / g.designHeight) * r.height,
+            pointerId: 931,
+            pointerType: isTouch ? 'touch' : 'mouse',
+            isPrimary: true,
+            button: 0,
+            buttons: 1,
+            bubbles: true,
+            cancelable: true,
+          };
+          const score = g.score;
+          canvas.dispatchEvent(new PointerEvent('pointerdown', init));
+          canvas.dispatchEvent(new PointerEvent('pointerup', { ...init, buttons: 0 }));
+          return score;
+        },
+        [COLONY, touch] as const,
       );
-      return m === undefined ? null : { x: m.aimX, y: m.aimY, score: g?.score ?? 0 };
-    }, COLONY);
-    expect(target, 'a meerkat is out on screen').not.toBeNull();
-    if (target === null) return;
-    await tapAt(page, touch, target.x, target.y);
-    // The hit and its points, read in one go.
-    const hit = await page.waitForFunction(
-      () => {
-        const g = window.__TM__;
-        return g?.meerkatLog.includes('hit:-10') === true ? { score: g.score } : null;
-      },
-      null,
-      { timeout: 120_000 },
-    );
-    const after = (await hit.jsonValue()) as { score: number };
-    expect(after.score).toBe(target.score - 10);
+      if (before === null) continue;
+      // The hit and the score, read in one go (a miss times out and tries again).
+      const hit = await page
+        .waitForFunction(
+          () => {
+            const g = window.__TM__;
+            return g?.meerkatLog.includes('hit:-10') === true ? { score: g.score } : null;
+          },
+          null,
+          { timeout: 60_000 },
+        )
+        .catch(() => null);
+      if (hit !== null)
+        result = { before, after: ((await hit.jsonValue()) as { score: number }).score };
+      else {
+        // Let the colony settle and the gun reload before the next try.
+        await page.keyboard.press('Space');
+        if (touch) await page.waitForTimeout(500);
+      }
+    }
+    expect(result, 'a meerkat was hit').not.toBeNull();
+    // The −10 (Saturday's flocks feed far from this colony, so no bird shares the shot).
+    expect(result?.after).toBe((result?.before ?? 0) - 10);
     // A moment later it pops its head out of the hole and scolds (the bark carries the −10).
     await page.waitForFunction(
       () =>

@@ -282,6 +282,39 @@ describe('meerkat colonies (v1.7, D-044)', () => {
     expect(points.length).toBeGreaterThanOrEqual(2);
   });
 
+  it('a shot pup tumbles, scolds and comes back; its colony can still give the Familiefoto', () => {
+    const c = quiet(KAL);
+    const mk = c.birds.meerkats;
+    mk.pupChance = 1;
+    mk.startOutShare = 1;
+    // The pup trails well behind its mother here, so it can sit clear of the adults.
+    mk.pupGapPx = 160;
+    mk.activities = { sit: 1, sentinel: 0, forage: 0, sunbathe: 0, dash: 1, dive: 0 };
+    const s = sim(c, mon('sat'), 5);
+    // A moment when the pup sits clear of the adults, so the shot finds the pup.
+    const clear = (col: ColonyView): MeerkatView | undefined =>
+      col.meerkats.find(
+        (m) =>
+          m.pup &&
+          m.pose === 'sit' &&
+          col.meerkats.every((o) => o.id === m.id || Math.abs(o.x - m.x) > 40),
+      );
+    waitFor(s, c, (col) => clear(col) !== undefined, 60 * 60);
+    const col = colony(s);
+    const pup = clear(col);
+    if (pup === undefined) throw new Error('no pup out');
+    const hit = shootMeerkat(s, c, pup, col);
+    expect(ofType(hit, 'meerkatHit')).toMatchObject([{ meerkatId: pup.id }]);
+    let scold: SimEvent[] = [];
+    for (let t = 0; t < 240 && scold.length === 0; t++)
+      scold = ofType(look(s, c, 1), 'meerkatScold');
+    expect(scold).toMatchObject([{ meerkatId: pup.id }]);
+    // Not stuck: it leaves the tumble and the scold, and is out with its family again.
+    waitFor(s, c, (x) => x.meerkats.find((m) => m.id === pup.id)?.pose === 'sit', 30 * 60);
+    const events = look(s, c, 40 * 60);
+    expect(ofType(events, 'familiefoto')).toHaveLength(1);
+  });
+
   it('the Familiefoto: hold fire with the whole family out and on screen → a row, +25, once', () => {
     const c = quiet(KAL);
     const s = sim(c, mon('sat'), 5);

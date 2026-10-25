@@ -228,7 +228,7 @@ export function createColony(
       mother: mother.id,
       x: mother.x - mother.facing * tuning.pupGapPx * scale,
       pose: mother.pose === 'hidden' ? 'hidden' : 'sit',
-      dur: mother.pose === 'hidden' ? mother.dur + 30 : 0,
+      dur: mother.pose === 'hidden' ? mother.dur + secondsToTicks(tuning.pup.startDelaySeconds) : 0,
       look: 0,
       cautious: false,
       shot: false,
@@ -400,7 +400,7 @@ function stepPup(c: ColonyState, p: Meerkat, ctx: ColonyCtx): void {
   }
   if (p.pose === 'hidden') {
     // Comes up a moment after its mother, at her burrow.
-    if (p.t < 20) return;
+    if (p.t < secondsToTicks(T.pup.emergeDelaySeconds)) return;
     p.burrow = mum.burrow;
     p.x = holeOf(c, p).x;
     p.y = holeOf(c, p).y;
@@ -409,7 +409,7 @@ function stepPup(c: ColonyState, p: Meerkat, ctx: ColonyCtx): void {
   }
   if (p.pose === 'emerge' || p.pose === 'dive') return;
   const want = mum.x - mum.facing * T.pupGapPx * c.scale;
-  if (Math.abs(want - p.x) > T.pupGapPx * c.scale * 0.6) {
+  if (Math.abs(want - p.x) > T.pupGapPx * c.scale * T.pup.followSlack) {
     if (p.pose !== 'run' || Math.abs(p.goalX - want) > 2) runTo(p, want, 'sit');
   } else if (p.pose === 'run' && Math.abs(p.goalX - p.x) <= 1) {
     arrive(c, p, ctx, 'sit');
@@ -460,6 +460,11 @@ export function stepColony(c: ColonyState, ctx: ColonyCtx): ColonyNote[] {
   }
   for (const m of c.meerkats) {
     m.t++;
+    // A shot pup tumbles into a hole and scolds like an adult, then follows its mother again.
+    if (m.pup && m.shot) {
+      stepAdult(c, m, ctx, notes);
+      continue;
+    }
     if (m.pup) {
       if (m.pose === 'run' && stepRun(c, m, T, 1) === 'there') arrive(c, m, ctx, m.then);
       else if (m.pose === 'dive' && m.t >= m.dur) setPose(m, 'hidden', 0);
@@ -539,7 +544,7 @@ function stepAdult(c: ColonyState, m: Meerkat, ctx: ColonyCtx, notes: ColonyNote
       return;
     case 'run': {
       if (c.phase === 'lineUp' && m.then !== 'photo') return;
-      const r = stepRun(c, m, T, m.then === 'dive' ? 1.4 : 1);
+      const r = stepRun(c, m, T, m.then === 'dive' ? T.diveRunMul : 1);
       if (r === 'there') arrive(c, m, ctx, m.then);
       // A dash stops halfway: stand tall and look round before running on.
       else if (r === 'halfway') setPose(m, 'stand', ticks(ctx.rng, T.dash.pauseSeconds));

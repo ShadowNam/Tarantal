@@ -2252,7 +2252,7 @@ snapshot and events, on sim ticks (held frames hold).
 (2) *Where.* `colonies` in the biome files: a layout's list replaces the biome's, and a bonus map
 keeps its layout's. 1–2 per desert map on the near and mid planes; the plain biome (Season Run) has
 one. Mid colonies sit on the ground line at y 812, below the flock lanes and above the near art's
-edge (≈ 845). Near ones sit at y 950, below the mid birds' band. `colonyChecks.ts` checks every
+edge (≈ 845). Near ones sit at y 966 (the review round, item 12), below the mid birds' band. `colonyChecks.ts` checks every
 map: a near or mid plane, inside the layer, clear of props, secret parts and the other colony, and
 never standing in front of the bird lanes or secrets of the planes behind.
 (3) *Behaviours and reactions* (all numbers in `birds.json → meerkats`):
@@ -2312,6 +2312,21 @@ Each is a chunk of its own under the 1 536 KB cap, as the brief suggested.
 (10) *Names* (docs/i18n-names.md): Familiefoto (`secret.familiefoto`, `hud.familiefoto`,
 `notaboek.familiefoto`), the sentinel (brandwag) in the alarm caption, and the scold, in
 en/af/de/nl, with Afrikaans flavour names for the toggle.
+*Review round (playtest-reviewer, 25 Oct).*
+(11) *A shot pup was stuck* in its tumble for the rest of the hunt: it never scolded, bullets
+passed through it, and its colony could never give the Familiefoto. A shot pup now tumbles, waits
+in the hole and scolds like an adult, then follows its mother again. A sim test shoots a pup.
+(12) *The "never hides birds" check ignored the mounds.* A sentinel stands on the highest mound,
+so the meerkats' band now starts that much higher. Monday's near colonies failed it, so every
+near colony moved from y 950 to 966, below the mid birds' band even on a 28 px mound. The test is
+`colonyChecks.test.ts`.
+(13) *Numbers out of the code:* the pup's start and emerge delays, how far its mother may get
+before it follows, and the dive's run speed are now `meerkats.pup` and `meerkats.diveRunMul`, at
+the same values.
+(14) *e2e:* the scold test picks its meerkat and taps it in one page call, retrying a miss.
+- **Golden replays** re-recorded: only Die Verste (classic-74) and Namibië Thursday (classic-76)
+  changed their events (meerkat positions); their scores are the same.
+- **Balance** was not re-swept for a 16 px shift of the near colonies.
 
 ## 3. Research notes (with sources)
 

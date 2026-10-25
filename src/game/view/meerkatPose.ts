@@ -26,6 +26,8 @@ export function meerkatFrame(
       case 'peek':
       case 'emerge':
       case 'dive':
+      case 'tumble':
+      case 'scold':
         return meerkatFrame({ ...m, pup: false });
       default:
         return 'pup_sit';

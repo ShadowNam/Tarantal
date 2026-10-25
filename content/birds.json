@@ -501,6 +501,8 @@
     "pupScale": 0.6,
     "pupChance": 0.5,
     "pupGapPx": 36,
+    "pup": { "startDelaySeconds": 0.5, "emergeDelaySeconds": 0.34, "followSlack": 0.6 },
+    "diveRunMul": 1.4,
     "startOutShare": 0.5,
     "hiddenSeconds": [1.5, 4.5],
     "peekSeconds": [1.0, 1.8],

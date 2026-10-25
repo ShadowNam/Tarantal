@@ -469,7 +469,7 @@
           "id": "gravel_colony",
           "layer": "near",
           "u": 0.4,
-          "y": 950,
+          "y": 966,
           "burrows": [
             {
               "dx": -140,
@@ -626,7 +626,7 @@
           "id": "gravel_colony",
           "layer": "near",
           "u": 0.7,
-          "y": 950,
+          "y": 966,
           "burrows": [
             {
               "dx": -170,
@@ -726,7 +726,7 @@
           "id": "gravel_colony",
           "layer": "near",
           "u": 0.3,
-          "y": 950,
+          "y": 966,
           "burrows": [
             {
               "dx": -190,
@@ -949,7 +949,7 @@
           "id": "gravel_colony",
           "layer": "near",
           "u": 0.6,
-          "y": 950,
+          "y": 966,
           "burrows": [
             {
               "dx": -140,

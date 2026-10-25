@@ -464,8 +464,8 @@ replaces the biome's (`resolveMap`); a bonus map keeps its layout's. Tuning is
   - each colony is on a near or mid plane layer and inside it;
   - its burrows are in order;
   - it is clear of the other colony and of props and secret parts on its own layer;
-  - its standing meerkats never overlap the bird lanes (ground, sky, pop-up) of the planes behind
-    it, or the secret parts on those layers;
+  - its standing meerkats, measured from the highest mound, never overlap the bird lanes (ground,
+    sky, pop-up) of the planes behind it, or the secret parts on those layers;
   - every map of a colony biome has 1–2 colonies.
 ## 4. Content system (`content/`, `src/content/`)
 
