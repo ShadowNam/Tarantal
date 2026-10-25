@@ -545,5 +545,14 @@
   "area.pick": "Hier jagen",
   "area.desc.karoo_autumn": "Opas Farm in der Karoo: das Heimatrevier.",
   "area.desc.namibie": "Die weiße Salzpfanne der Etosha und die Dünen der Namib: weit offen, für weite Schüsse.",
-  "tally.area_unlocked": "{area} ist offen! Wähle es unter Gebiet auf dem Titelbild."
+  "tally.area_unlocked": "{area} ist offen! Wähle es unter Gebiet auf dem Titelbild.",
+  "bark.meerkat_scold": "Wir sind keine Perlhühner!",
+  "bark.familiefoto": "Alle lächeln! Mooi, was für ein Familienfoto.",
+  "secret.familiefoto": "Das Familienfoto der Erdmännchen",
+  "hud.familiefoto": "FAMILIENFOTO!",
+  "caption.meerkat_alarm": "[Alarmruf des Wächters — Erdmännchen tauchen ab]",
+  "caption.meerkat_chirp": "[Erdmännchen zirpen]",
+  "caption.camera_click": "[Kamera klickt]",
+  "notaboek.familiefoto": "Mach das Familienfoto der Erdmännchen (nicht schießen)",
+  "creature.meerkat_sentinel": "Erdmännchen-Wächter"
 }

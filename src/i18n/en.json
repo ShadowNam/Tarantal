@@ -545,5 +545,14 @@
   "area.pick": "Hunt here",
   "area.desc.karoo_autumn": "Oupa's farm in the Karoo: the home ground.",
   "area.desc.namibie": "Etosha's white salt pan and the Namib dunes: wide open, built for long range.",
-  "tally.area_unlocked": "{area} is open! Pick it under Area on the title."
+  "tally.area_unlocked": "{area} is open! Pick it under Area on the title.",
+  "bark.meerkat_scold": "We're not guineafowl!",
+  "bark.familiefoto": "Everyone smile! Mooi, what a family photo.",
+  "secret.familiefoto": "The meerkats' family photo",
+  "hud.familiefoto": "FAMILY PHOTO!",
+  "caption.meerkat_alarm": "[sentinel's alarm bark — meerkats dive]",
+  "caption.meerkat_chirp": "[meerkats chirp]",
+  "caption.camera_click": "[camera clicks]",
+  "notaboek.familiefoto": "Take the meerkats' family photo (hold your fire)",
+  "creature.meerkat_sentinel": "Meerkat sentinel"
 }

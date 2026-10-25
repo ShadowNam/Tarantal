@@ -257,6 +257,19 @@
         0.2,
         0.8
       ]
+    },
+    {
+      "id": "cropSprayer",
+      "creature": "sproeier",
+      "perHunt": [
+        0,
+        1
+      ],
+      "window": [
+        0.3,
+        0.7
+      ],
+      "$comment": "v1.7 (D-044): Oom Faan's crop sprayer sometimes crosses the Namibië sky too, so the meerkat sentinels have something to bark at."
     }
   ],
   "omen": {
@@ -365,6 +378,36 @@
     "stampede": "namibie_stampede"
   },
   "ambience": "namibie_pan_bed",
+  "colonies": [
+    {
+      "id": "pan_colony",
+      "layer": "mid",
+      "u": 0.5,
+      "y": 812,
+      "burrows": [
+        {
+          "dx": -84,
+          "mound": 9
+        },
+        {
+          "dx": -30,
+          "mound": 13
+        },
+        {
+          "dx": 24,
+          "mound": 8
+        },
+        {
+          "dx": 80,
+          "mound": 11
+        }
+      ],
+      "family": [
+        5,
+        8
+      ]
+    }
+  ],
   "layouts": [
     {
       "id": "mon",
@@ -392,7 +435,61 @@
       "pointsMul": 0.75,
       "planePointsMul": {
         "ver": 0.7
-      }
+      },
+      "colonies": [
+        {
+          "id": "pan_colony",
+          "layer": "mid",
+          "u": 0.5,
+          "y": 812,
+          "burrows": [
+            {
+              "dx": -84,
+              "mound": 9
+            },
+            {
+              "dx": -30,
+              "mound": 13
+            },
+            {
+              "dx": 24,
+              "mound": 8
+            },
+            {
+              "dx": 80,
+              "mound": 11
+            }
+          ],
+          "family": [
+            5,
+            8
+          ]
+        },
+        {
+          "id": "gravel_colony",
+          "layer": "near",
+          "u": 0.4,
+          "y": 950,
+          "burrows": [
+            {
+              "dx": -140,
+              "mound": 18
+            },
+            {
+              "dx": -20,
+              "mound": 24
+            },
+            {
+              "dx": 120,
+              "mound": 15
+            }
+          ],
+          "family": [
+            4,
+            6
+          ]
+        }
+      ]
     },
     {
       "id": "tue",
@@ -427,7 +524,33 @@
       "pointsMul": 0.75,
       "planePointsMul": {
         "ver": 0.7
-      }
+      },
+      "colonies": [
+        {
+          "id": "pan_colony",
+          "layer": "mid",
+          "u": 0.28,
+          "y": 812,
+          "burrows": [
+            {
+              "dx": -70,
+              "mound": 10
+            },
+            {
+              "dx": -12,
+              "mound": 14
+            },
+            {
+              "dx": 52,
+              "mound": 9
+            }
+          ],
+          "family": [
+            4,
+            7
+          ]
+        }
+      ]
     },
     {
       "id": "wed",
@@ -465,7 +588,69 @@
       "pointsMul": 0.75,
       "planePointsMul": {
         "ver": 0.72
-      }
+      },
+      "colonies": [
+        {
+          "id": "pan_colony",
+          "layer": "mid",
+          "u": 0.6,
+          "y": 812,
+          "burrows": [
+            {
+              "dx": -96,
+              "mound": 8
+            },
+            {
+              "dx": -46,
+              "mound": 12
+            },
+            {
+              "dx": 4,
+              "mound": 10
+            },
+            {
+              "dx": 50,
+              "mound": 14
+            },
+            {
+              "dx": 98,
+              "mound": 9
+            }
+          ],
+          "family": [
+            5,
+            8
+          ]
+        },
+        {
+          "id": "gravel_colony",
+          "layer": "near",
+          "u": 0.7,
+          "y": 950,
+          "burrows": [
+            {
+              "dx": -170,
+              "mound": 16
+            },
+            {
+              "dx": -64,
+              "mound": 26
+            },
+            {
+              "dx": 44,
+              "mound": 14
+            },
+            {
+              "dx": 150,
+              "mound": 20
+            }
+          ],
+          "family": [
+            4,
+            6
+          ]
+        }
+      ]
     },
     {
       "id": "thu",
@@ -507,7 +692,69 @@
       "pointsMul": 0.75,
       "planePointsMul": {
         "ver": 0.65
-      }
+      },
+      "colonies": [
+        {
+          "id": "pan_colony",
+          "layer": "mid",
+          "u": 0.7,
+          "y": 812,
+          "burrows": [
+            {
+              "dx": -84,
+              "mound": 9
+            },
+            {
+              "dx": -30,
+              "mound": 13
+            },
+            {
+              "dx": 24,
+              "mound": 8
+            },
+            {
+              "dx": 80,
+              "mound": 11
+            }
+          ],
+          "family": [
+            4,
+            7
+          ]
+        },
+        {
+          "id": "gravel_colony",
+          "layer": "near",
+          "u": 0.3,
+          "y": 950,
+          "burrows": [
+            {
+              "dx": -190,
+              "mound": 14
+            },
+            {
+              "dx": -96,
+              "mound": 22
+            },
+            {
+              "dx": 0,
+              "mound": 16
+            },
+            {
+              "dx": 92,
+              "mound": 28
+            },
+            {
+              "dx": 186,
+              "mound": 15
+            }
+          ],
+          "family": [
+            4,
+            6
+          ]
+        }
+      ]
     },
     {
       "id": "fri",
@@ -545,7 +792,33 @@
       "pointsMul": 0.75,
       "planePointsMul": {
         "ver": 0.5
-      }
+      },
+      "colonies": [
+        {
+          "id": "pan_colony",
+          "layer": "mid",
+          "u": 0.55,
+          "y": 812,
+          "burrows": [
+            {
+              "dx": -70,
+              "mound": 10
+            },
+            {
+              "dx": -12,
+              "mound": 14
+            },
+            {
+              "dx": 52,
+              "mound": 9
+            }
+          ],
+          "family": [
+            5,
+            8
+          ]
+        }
+      ]
     },
     {
       "id": "sat",
@@ -577,7 +850,41 @@
       "cameraStartU": 0.5,
       "planePointsMul": {
         "ver": 0.5
-      }
+      },
+      "colonies": [
+        {
+          "id": "pan_colony",
+          "layer": "mid",
+          "u": 0.42,
+          "y": 812,
+          "burrows": [
+            {
+              "dx": -96,
+              "mound": 8
+            },
+            {
+              "dx": -46,
+              "mound": 12
+            },
+            {
+              "dx": 4,
+              "mound": 10
+            },
+            {
+              "dx": 50,
+              "mound": 14
+            },
+            {
+              "dx": 98,
+              "mound": 9
+            }
+          ],
+          "family": [
+            5,
+            8
+          ]
+        }
+      ]
     },
     {
       "id": "sun",
@@ -608,7 +915,61 @@
       "pointsMul": 0.75,
       "planePointsMul": {
         "ver": 0.68
-      }
+      },
+      "colonies": [
+        {
+          "id": "pan_colony",
+          "layer": "mid",
+          "u": 0.5,
+          "y": 812,
+          "burrows": [
+            {
+              "dx": -84,
+              "mound": 9
+            },
+            {
+              "dx": -30,
+              "mound": 13
+            },
+            {
+              "dx": 24,
+              "mound": 8
+            },
+            {
+              "dx": 80,
+              "mound": 11
+            }
+          ],
+          "family": [
+            5,
+            8
+          ]
+        },
+        {
+          "id": "gravel_colony",
+          "layer": "near",
+          "u": 0.6,
+          "y": 950,
+          "burrows": [
+            {
+              "dx": -140,
+              "mound": 18
+            },
+            {
+              "dx": -20,
+              "mound": 24
+            },
+            {
+              "dx": 120,
+              "mound": 15
+            }
+          ],
+          "family": [
+            4,
+            6
+          ]
+        }
+      ]
     }
   ],
   "bonusMaps": [

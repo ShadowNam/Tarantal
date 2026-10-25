@@ -101,7 +101,12 @@
     "charm.kwevoel_se_seen.desc": "Kwêvoël 3× as often; all bags ×2 while it calls",
     "admin.sight_default": "Skiet-Skuur's",
     "bark.legend": "Bosveld Legend!",
-    "bark.run_won": "The whole year! Bosveld Legend, my kind!"
+    "bark.run_won": "The whole year! Bosveld Legend, my kind!",
+    "secret.familiefoto": "The meerkats' Familiefoto",
+    "hud.familiefoto": "FAMILIEFOTO!",
+    "caption.meerkat_alarm": "[brandwag's alarm bark — meerkats dive]",
+    "creature.meerkat_sentinel": "Meerkat brandwag",
+    "notaboek.familiefoto": "Take the meerkats' Familiefoto (hold your fire)"
   },
   "de": {
     "weapon.dubbelloop": "Dubbelloop",
@@ -205,7 +210,12 @@
     "charm.kwevoel_se_seen.desc": "Kwêvoël 3× so oft; alle Vögel ×2, solange er ruft",
     "admin.sight_default": "Skiet-Skuur's",
     "bark.legend": "Bosveld-Legende!",
-    "bark.run_won": "Das ganze Jahr! Bosveld-Legende, Kind!"
+    "bark.run_won": "Das ganze Jahr! Bosveld-Legende, Kind!",
+    "secret.familiefoto": "Das Familiefoto der Erdmännchen",
+    "hud.familiefoto": "FAMILIEFOTO!",
+    "caption.meerkat_alarm": "[Alarmruf des Brandwag — Erdmännchen tauchen ab]",
+    "creature.meerkat_sentinel": "Erdmännchen-Brandwag",
+    "notaboek.familiefoto": "Mach das Familiefoto der Erdmännchen (nicht schießen)"
   },
   "nl": {
     "weapon.dubbelloop": "Dubbelloop",
@@ -294,6 +304,10 @@
     "charm.kwevoel_se_seen.desc": "Kwêvoël 3× zo vaak; alle vangsten ×2 als hij roept",
     "admin.sight_default": "Skiet-Skuur's",
     "bark.legend": "Bosveld-legende!",
-    "bark.run_won": "Het hele jaar! Bosveld-legende, m'n kind!"
+    "bark.run_won": "Het hele jaar! Bosveld-legende, m'n kind!",
+    "secret.familiefoto": "De Familiefoto van de stokstaartjes",
+    "caption.meerkat_alarm": "[alarmroep van de brandwag — stokstaartjes duiken weg]",
+    "creature.meerkat_sentinel": "Stokstaartjesbrandwag",
+    "notaboek.familiefoto": "Maak de Familiefoto van de stokstaartjes (niet schieten)"
   }
 }

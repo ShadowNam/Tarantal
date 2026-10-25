@@ -380,6 +380,36 @@
     "stampede": "kalahari_stampede"
   },
   "ambience": "kalahari_heat_bed",
+  "colonies": [
+    {
+      "id": "dune_colony",
+      "layer": "mid",
+      "u": 0.55,
+      "y": 812,
+      "burrows": [
+        {
+          "dx": -84,
+          "mound": 9
+        },
+        {
+          "dx": -30,
+          "mound": 13
+        },
+        {
+          "dx": 24,
+          "mound": 8
+        },
+        {
+          "dx": 80,
+          "mound": 11
+        }
+      ],
+      "family": [
+        5,
+        8
+      ]
+    }
+  ],
   "layouts": [
     {
       "id": "mon",
@@ -402,7 +432,61 @@
           ]
         }
       ],
-      "cameraStartU": 0.1
+      "cameraStartU": 0.1,
+      "colonies": [
+        {
+          "id": "dune_colony",
+          "layer": "mid",
+          "u": 0.36,
+          "y": 812,
+          "burrows": [
+            {
+              "dx": -84,
+              "mound": 9
+            },
+            {
+              "dx": -30,
+              "mound": 13
+            },
+            {
+              "dx": 24,
+              "mound": 8
+            },
+            {
+              "dx": 80,
+              "mound": 11
+            }
+          ],
+          "family": [
+            5,
+            8
+          ]
+        },
+        {
+          "id": "red_sand_colony",
+          "layer": "near",
+          "u": 0.12,
+          "y": 950,
+          "burrows": [
+            {
+              "dx": -140,
+              "mound": 18
+            },
+            {
+              "dx": -20,
+              "mound": 24
+            },
+            {
+              "dx": 120,
+              "mound": 15
+            }
+          ],
+          "family": [
+            4,
+            6
+          ]
+        }
+      ]
     },
     {
       "id": "tue",
@@ -441,7 +525,65 @@
       "pacing": {
         "flyoversMul": 1.15
       },
-      "cameraStartU": 0.62
+      "cameraStartU": 0.62,
+      "colonies": [
+        {
+          "id": "dune_colony",
+          "layer": "mid",
+          "u": 0.3,
+          "y": 812,
+          "burrows": [
+            {
+              "dx": -70,
+              "mound": 10
+            },
+            {
+              "dx": -12,
+              "mound": 14
+            },
+            {
+              "dx": 52,
+              "mound": 9
+            }
+          ],
+          "family": [
+            5,
+            8
+          ]
+        },
+        {
+          "id": "red_sand_colony",
+          "layer": "near",
+          "u": 0.72,
+          "y": 950,
+          "burrows": [
+            {
+              "dx": -190,
+              "mound": 14
+            },
+            {
+              "dx": -96,
+              "mound": 22
+            },
+            {
+              "dx": 0,
+              "mound": 16
+            },
+            {
+              "dx": 92,
+              "mound": 28
+            },
+            {
+              "dx": 186,
+              "mound": 15
+            }
+          ],
+          "family": [
+            4,
+            6
+          ]
+        }
+      ]
     },
     {
       "id": "wed",
@@ -471,7 +613,69 @@
           ]
         }
       ],
-      "cameraStartU": 0.74
+      "cameraStartU": 0.74,
+      "colonies": [
+        {
+          "id": "dune_colony",
+          "layer": "mid",
+          "u": 0.4,
+          "y": 812,
+          "burrows": [
+            {
+              "dx": -96,
+              "mound": 8
+            },
+            {
+              "dx": -46,
+              "mound": 12
+            },
+            {
+              "dx": 4,
+              "mound": 10
+            },
+            {
+              "dx": 50,
+              "mound": 14
+            },
+            {
+              "dx": 98,
+              "mound": 9
+            }
+          ],
+          "family": [
+            4,
+            7
+          ]
+        },
+        {
+          "id": "red_sand_colony",
+          "layer": "near",
+          "u": 0.88,
+          "y": 950,
+          "burrows": [
+            {
+              "dx": -170,
+              "mound": 16
+            },
+            {
+              "dx": -64,
+              "mound": 26
+            },
+            {
+              "dx": 44,
+              "mound": 14
+            },
+            {
+              "dx": 150,
+              "mound": 20
+            }
+          ],
+          "family": [
+            4,
+            6
+          ]
+        }
+      ]
     },
     {
       "id": "thu",
@@ -504,7 +708,37 @@
           ]
         }
       ],
-      "cameraStartU": 0.78
+      "cameraStartU": 0.78,
+      "colonies": [
+        {
+          "id": "dune_colony",
+          "layer": "mid",
+          "u": 0.55,
+          "y": 812,
+          "burrows": [
+            {
+              "dx": -84,
+              "mound": 9
+            },
+            {
+              "dx": -30,
+              "mound": 13
+            },
+            {
+              "dx": 24,
+              "mound": 8
+            },
+            {
+              "dx": 80,
+              "mound": 11
+            }
+          ],
+          "family": [
+            5,
+            8
+          ]
+        }
+      ]
     },
     {
       "id": "fri",
@@ -537,7 +771,57 @@
           ]
         }
       ],
-      "cameraStartU": 0.74
+      "cameraStartU": 0.74,
+      "colonies": [
+        {
+          "id": "dune_colony",
+          "layer": "mid",
+          "u": 0.16,
+          "y": 812,
+          "burrows": [
+            {
+              "dx": -70,
+              "mound": 10
+            },
+            {
+              "dx": -12,
+              "mound": 14
+            },
+            {
+              "dx": 52,
+              "mound": 9
+            }
+          ],
+          "family": [
+            4,
+            7
+          ]
+        },
+        {
+          "id": "red_sand_colony",
+          "layer": "near",
+          "u": 0.55,
+          "y": 950,
+          "burrows": [
+            {
+              "dx": -140,
+              "mound": 18
+            },
+            {
+              "dx": -20,
+              "mound": 24
+            },
+            {
+              "dx": 120,
+              "mound": 15
+            }
+          ],
+          "family": [
+            4,
+            6
+          ]
+        }
+      ]
     },
     {
       "id": "sat",
@@ -558,7 +842,41 @@
           ]
         }
       ],
-      "cameraStartU": 0.28
+      "cameraStartU": 0.28,
+      "colonies": [
+        {
+          "id": "dune_colony",
+          "layer": "mid",
+          "u": 0.62,
+          "y": 812,
+          "burrows": [
+            {
+              "dx": -96,
+              "mound": 8
+            },
+            {
+              "dx": -46,
+              "mound": 12
+            },
+            {
+              "dx": 4,
+              "mound": 10
+            },
+            {
+              "dx": 50,
+              "mound": 14
+            },
+            {
+              "dx": 98,
+              "mound": 9
+            }
+          ],
+          "family": [
+            5,
+            8
+          ]
+        }
+      ]
     },
     {
       "id": "sun",
@@ -577,7 +895,69 @@
           ]
         }
       ],
-      "cameraStartU": 0.88
+      "cameraStartU": 0.88,
+      "colonies": [
+        {
+          "id": "dune_colony",
+          "layer": "mid",
+          "u": 0.66,
+          "y": 812,
+          "burrows": [
+            {
+              "dx": -84,
+              "mound": 9
+            },
+            {
+              "dx": -30,
+              "mound": 13
+            },
+            {
+              "dx": 24,
+              "mound": 8
+            },
+            {
+              "dx": 80,
+              "mound": 11
+            }
+          ],
+          "family": [
+            5,
+            8
+          ]
+        },
+        {
+          "id": "red_sand_colony",
+          "layer": "near",
+          "u": 0.92,
+          "y": 950,
+          "burrows": [
+            {
+              "dx": -190,
+              "mound": 14
+            },
+            {
+              "dx": -96,
+              "mound": 22
+            },
+            {
+              "dx": 0,
+              "mound": 16
+            },
+            {
+              "dx": 92,
+              "mound": 28
+            },
+            {
+              "dx": 186,
+              "mound": 15
+            }
+          ],
+          "family": [
+            4,
+            6
+          ]
+        }
+      ]
     }
   ],
   "bonusMaps": [
