@@ -47,7 +47,7 @@
     },
     {
       "id": "near",
-      "scrollFactor": 1.0,
+      "scrollFactor": 1,
       "asset": "namibie/near",
       "plane": "near"
     },
@@ -300,7 +300,7 @@
   "pacing": {
     "keyframes": [
       {
-        "t": 0.0,
+        "t": 0,
         "flocks": {
           "far": 1,
           "ver": 1
@@ -339,7 +339,7 @@
         "popupsPerMin": 3
       },
       {
-        "t": 1.0,
+        "t": 1,
         "flocks": {
           "mid": 1,
           "far": 2,
@@ -382,7 +382,7 @@
     {
       "id": "pan_colony",
       "layer": "mid",
-      "u": 0.5,
+      "u": 0.416,
       "y": 812,
       "burrows": [
         {
@@ -440,7 +440,7 @@
         {
           "id": "pan_colony",
           "layer": "mid",
-          "u": 0.5,
+          "u": 0.416,
           "y": 812,
           "burrows": [
             {
@@ -468,20 +468,20 @@
         {
           "id": "gravel_colony",
           "layer": "near",
-          "u": 0.5,
+          "u": 0.44,
           "y": 966,
           "burrows": [
             {
-              "dx": -140,
+              "dx": -86,
               "mound": 18
             },
             {
-              "dx": -20,
-              "mound": 24
+              "dx": 0,
+              "mound": 26
             },
             {
-              "dx": 120,
-              "mound": 15
+              "dx": 84,
+              "mound": 16
             }
           ],
           "family": [
@@ -593,7 +593,7 @@
         {
           "id": "pan_colony",
           "layer": "mid",
-          "u": 0.6,
+          "u": 0.442,
           "y": 812,
           "burrows": [
             {
@@ -625,24 +625,20 @@
         {
           "id": "gravel_colony",
           "layer": "near",
-          "u": 0.531,
+          "u": 0.472,
           "y": 966,
           "burrows": [
             {
-              "dx": -170,
-              "mound": 16
+              "dx": -86,
+              "mound": 18
             },
             {
-              "dx": -64,
+              "dx": 0,
               "mound": 26
             },
             {
-              "dx": 44,
-              "mound": 14
-            },
-            {
-              "dx": 150,
-              "mound": 20
+              "dx": 84,
+              "mound": 16
             }
           ],
           "family": [
@@ -697,7 +693,7 @@
         {
           "id": "pan_colony",
           "layer": "mid",
-          "u": 0.7,
+          "u": 0.556,
           "y": 812,
           "burrows": [
             {
@@ -725,28 +721,20 @@
         {
           "id": "gravel_colony",
           "layer": "near",
-          "u": 0.675,
+          "u": 0.616,
           "y": 966,
           "burrows": [
             {
-              "dx": -190,
-              "mound": 14
-            },
-            {
-              "dx": -96,
-              "mound": 22
+              "dx": -86,
+              "mound": 18
             },
             {
               "dx": 0,
+              "mound": 26
+            },
+            {
+              "dx": 84,
               "mound": 16
-            },
-            {
-              "dx": 92,
-              "mound": 28
-            },
-            {
-              "dx": 186,
-              "mound": 15
             }
           ],
           "family": [
@@ -797,7 +785,7 @@
         {
           "id": "pan_colony",
           "layer": "mid",
-          "u": 0.55,
+          "u": 0.466,
           "y": 812,
           "burrows": [
             {
@@ -920,7 +908,7 @@
         {
           "id": "pan_colony",
           "layer": "mid",
-          "u": 0.5,
+          "u": 0.392,
           "y": 812,
           "burrows": [
             {
@@ -948,20 +936,20 @@
         {
           "id": "gravel_colony",
           "layer": "near",
-          "u": 0.469,
+          "u": 0.41,
           "y": 966,
           "burrows": [
             {
-              "dx": -140,
+              "dx": -86,
               "mound": 18
             },
             {
-              "dx": -20,
-              "mound": 24
+              "dx": 0,
+              "mound": 26
             },
             {
-              "dx": 120,
-              "mound": 15
+              "dx": 84,
+              "mound": 16
             }
           ],
           "family": [

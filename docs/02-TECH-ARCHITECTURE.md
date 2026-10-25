@@ -428,8 +428,9 @@ replaces the biome's (`resolveMap`); a bonus map keeps its layout's. Tuning is
 - **In `Sim.ts`:**
   - The colonies are built at hunt start (none in the Skietbaan); a `colonySpawned` event follows.
   - **Hit test:** each meerkat that can be hit is a `HitExtra` of kind `meerkat` (body and head
-    ellipses, scaled by the plane and mirrored by facing). It comes first among its layer's
-    extras: birds of the same plane are tested before it, props behind it after. A pellet that
+    ellipses, scaled by the plane and mirrored by facing). On its layer the order is: birds of the
+    same plane, then crates (drawn in the plane's overlay, over the meerkats), then meerkats, then
+    secret parts, then props. A pellet that
     stops on one carries `meerkatId` in `PelletResult` and `pelletImpact`; the field is absent
     everywhere else, so older event streams are byte-identical.
   - **Shots:** `shotAtColonies` runs after a shot lands. A hit is `meerkatHit` with `points`

@@ -211,9 +211,13 @@ async function watch(
           let x = g.designWidth * 0.8;
           let y = g.designHeight * 0.1;
           if (target === 'beside') {
-            const mid = g.meerkats.filter(
-              (m) => m.colony === g.meerkats.find((n) => n.y < 900)?.colony,
-            );
+            // The colony on screen nearest the centre (Monday's mid colony opens off a 16:9
+            // screen, beyond the weaver tree; the near one is in view).
+            const onScreen = g.meerkats.filter((n) => n.x > 0 && n.x < g.designWidth);
+            const centre = onScreen.sort(
+              (a, b) => Math.abs(a.x - g.designWidth / 2) - Math.abs(b.x - g.designWidth / 2),
+            )[0]?.colony;
+            const mid = g.meerkats.filter((m) => m.colony === centre);
             x = Math.min(g.designWidth * 0.85, Math.max(...mid.map((m) => m.x)) + 150);
             y = Math.max(...mid.map((m) => m.y)) - 170;
           } else if (typeof target === 'object') {
@@ -351,7 +355,13 @@ test('the dive after a shot', async ({ page }, info) => {
   // The shot lands in the sand beside the burrows; the frame is ~10–25 ticks later.
   await watch(page, touch, { at: tick, target: 'beside', holdAfter: 10, until: 'dived:shot' });
   await held(page, touch, await watchedHold(page));
-  await shoot(page, info, 'dive', (m) => m.y < 900, 300);
+  await shoot(
+    page,
+    info,
+    'dive',
+    (m) => m.pose === 'dive' || m.pose === 'run' || m.pose === 'hidden',
+    300,
+  );
 });
 
 test('the scold', async ({ page }, info) => {

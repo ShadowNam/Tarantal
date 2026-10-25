@@ -16,8 +16,9 @@ import {
 import { planeToDx } from './camera';
 import { hashEvents, type SimEvent } from './events';
 import { createSim, FAMILIEFOTO_SECRET, type Sim } from './Sim';
-import type { ColonyView, Command, MeerkatView, ModeConfig } from './types';
-import { CAMERA_MAX_X, CAMERA_MIN_X } from './world';
+import { secondsToTicks } from './clock';
+import type { ColonyView, Command, CrateView, MeerkatView, ModeConfig } from './types';
+import { CAMERA_MAX_X, CAMERA_MIN_X, coreWidth } from './world';
 
 const KAL = 'kalahari-summer';
 const mon = (layout = 'mon', biome = KAL): ModeConfig => ({ id: 'classic', biome, layout });
@@ -166,6 +167,32 @@ describe('meerkat colonies (v1.7, D-044)', () => {
     expect(dashers).toBeGreaterThanOrEqual(1);
   });
 
+  it('out of the burrow they keep about 0.7 body widths apart (sitting, foraging, standing)', () => {
+    const c = quiet(KAL);
+    const mk = c.birds.meerkats;
+    mk.activities = { sit: 1, sentinel: 0, forage: 2, sunbathe: 0, dash: 1, dive: 0 };
+    mk.startOutShare = 1;
+    mk.pupChance = 0;
+    // A small yard, so they would crowd without the rule.
+    mk.forageRadiusPx = 40;
+    const s = sim(c, mon('tue'), 5);
+    const k = c.scoring.planes[colony(s).plane].scale;
+    const min = mk.bodyWidthPx * mk.spacingBodyMul * k;
+    let checked = 0;
+    for (let i = 0; i < 60 * 60; i++) {
+      run(s, 1);
+      const settled = colony(s)
+        .meerkats.filter((m) => !m.pup && ['sit', 'forage', 'stand'].includes(m.pose))
+        .map((m) => m.x)
+        .sort((a, b) => a - b);
+      for (let j = 1; j < settled.length; j++) {
+        expect((settled[j] ?? 0) - (settled[j - 1] ?? 0)).toBeGreaterThanOrEqual(min - 0.01);
+        checked++;
+      }
+    }
+    expect(checked).toBeGreaterThan(1000);
+  });
+
   it('they sunbathe only on the early-light layout', () => {
     const c = quiet(KAL);
     const poses = (layout: string): Set<string> => {
@@ -239,7 +266,10 @@ describe('meerkat colonies (v1.7, D-044)', () => {
     const hit = shootMeerkat(s, c, target, col);
     const penalty = c.birds.meerkats.hit.penalty;
     expect(ofType(hit, 'meerkatHit')).toMatchObject([{ meerkatId: target.id, points: -penalty }]);
-    expect(ofType(hit, 'meerkatsDived')).toMatchObject([{ cause: 'hit' }]);
+    // (Another colony close by on screen may dive at the shot too.)
+    expect(ofType(hit, 'meerkatsDived')).toContainEqual(
+      expect.objectContaining({ colonyId: col.id, cause: 'hit' }),
+    );
     expect(ofType(hit, 'targetBagged')).toEqual([]);
     expect(s.snapshot().score).toBe(score - penalty);
     expect(colony(s).meerkats.find((m) => m.id === target.id)?.pose).toBe('tumble');
@@ -250,39 +280,117 @@ describe('meerkat colonies (v1.7, D-044)', () => {
     expect(colony(s).meerkats.find((m) => m.id === target.id)?.pose).toBe('scold');
     expect(colony(s).meerkats).toHaveLength(family);
     expect(s.result().penalties).toBe(1);
-    // A second hit within the cooldown (another colony member, or a peek) costs nothing.
-    const s2 = sim(c, mon('tue'), 5);
-    waitFor(s2, c, (x) => x.meerkats.filter((m) => outPose(m) && !m.pup).length >= 2);
-    const c2 = colony(s2);
-    const [m1, m2] = c2.meerkats.filter((m) => outPose(m) && !m.pup);
-    if (m1 === undefined || m2 === undefined) throw new Error('two not out');
-    shootMeerkat(s2, c, m1, c2);
-    run(s2, 1);
-    const fresh = colony(s2).meerkats.find((m) => m.id === m2.id);
-    if (fresh === undefined || fresh.pose === 'hidden' || !fresh.hittable) return; // already down: the cooldown case is covered by the unit below
-    const again = run(s2, 1, aimAt(sfOf(c, c2), fresh.x, fresh.y - 20));
-    for (const e of ofType(again, 'meerkatHit')) expect(e.points).toBe(0);
   });
 
-  it('the penalty cooldown: hits within cooldownSeconds cost nothing, after it they cost again', () => {
+  it('the penalty cooldown: a second hit inside it costs 0, a hit after it costs again', () => {
     const c = quiet(KAL);
-    // A meerkat that never goes down: no diving, never hidden for long.
     const mk = c.birds.meerkats;
     mk.activities = { sit: 1, sentinel: 0, forage: 0, sunbathe: 0, dash: 0, dive: 0 };
-    mk.shotDive.returnSeconds = [0.1, 0.1];
     mk.startOutShare = 1;
     mk.pupChance = 0;
-    const s = sim(c, mon('tue'), 5);
-    const points: number[] = [];
-    for (let shot = 0; shot < 8 && points.length < 3; shot++) {
-      waitFor(s, c, (col) => col.meerkats.some((m) => m.pose === 'sit'), 1200);
+    // They sit far from their holes and run home at dash speed, so after the first hit another
+    // one is still above ground for the second barrel.
+    mk.forageRadiusPx = 500;
+    mk.diveRunMul = 1;
+    // Back up soon after, for the hit after the cooldown.
+    mk.shotDive.returnSeconds = [0.2, 0.2];
+    mk.hiddenSeconds = [0.2, 0.3];
+    const s = sim(c, mon('sat'), 5);
+    const penalty = mk.hit.penalty;
+    const cooldown = secondsToTicks(mk.hit.cooldownSeconds);
+    /** Fires at a meerkat's body as it stands now, and returns the shot's meerkat hits. */
+    const fireAt = (
+      m: MeerkatView,
+      col: ColonyView,
+    ): Extract<SimEvent, { type: 'meerkatHit' }>[] => {
+      const box = m.pose === 'sentinel' || m.pose === 'stand' ? mk.hitboxes.tall : mk.hitboxes.low;
+      const k = c.scoring.planes[col.plane].scale;
+      const at = aimAt(sfOf(c, col), m.x + box.body.ox * k * m.facing, m.y + box.body.oy * k);
+      return ofType(run(s, 1, at), 'meerkatHit');
+    };
+    const ready = (): boolean =>
+      s.snapshot().weapon.cooldownTicks === 0 && s.snapshot().weapon.shells > 0;
+
+    waitFor(s, c, (col) => col.meerkats.filter((m) => m.pose === 'sit').length >= 2, 1200);
+    reloaded(s);
+    settle(s);
+    const col1 = colony(s);
+    const first = col1.meerkats.find((m) => m.pose === 'sit');
+    if (first === undefined) throw new Error('none sitting');
+    const t1 = s.tick;
+    const hit1 = fireAt(first, col1);
+    expect(hit1).toMatchObject([{ meerkatId: first.id, points: -penalty }]);
+
+    // The second barrel, as soon as the gun allows, at another meerkat still above ground.
+    let hit2: Extract<SimEvent, { type: 'meerkatHit' }>[] = [];
+    while (hit2.length === 0 && s.tick - t1 < cooldown - 1) {
+      const col = colony(s);
+      const other = col.meerkats.find((m) => m.id !== first.id && m.hittable && m.pose !== 'peek');
+      if (!ready() || other === undefined) run(s, 1);
+      else hit2 = fireAt(other, col);
+    }
+    expect(s.tick - t1).toBeLessThan(cooldown);
+    expect(hit2).toHaveLength(1);
+    expect(hit2[0]?.points).toBe(0);
+
+    // Past the cooldown, a hit costs again.
+    run(s, cooldown);
+    let hit3: Extract<SimEvent, { type: 'meerkatHit' }>[] = [];
+    for (let tries = 0; tries < 20 && hit3.length === 0; tries++) {
+      reloaded(s);
+      waitFor(s, c, (col) => col.meerkats.some((m) => m.pose === 'sit'), 1800);
+      settle(s);
       const col = colony(s);
       const m = col.meerkats.find((x) => x.pose === 'sit');
-      if (m === undefined) continue;
-      for (const e of ofType(shootMeerkat(s, c, m, col), 'meerkatHit')) points.push(e.points);
+      if (m !== undefined) hit3 = fireAt(m, col);
     }
-    expect(points[0]).toBe(-mk.hit.penalty);
-    expect(points.length).toBeGreaterThanOrEqual(2);
+    expect(hit3[0]?.points).toBe(-penalty);
+    expect(s.result().penalties).toBe(2);
+  });
+
+  it('a crate in front of a meerkat takes the shot: the crate opens and nothing is charged', () => {
+    const c = quiet(KAL);
+    c.powerups.crates.perHunt = 1;
+    c.powerups.crates.windows = [[0.05, 0.06]];
+    // Where the crate lands (the colonies draw nothing from the crates' stream).
+    const probe = sim(c, mon('sat'), 5);
+    let crate: CrateView | undefined;
+    for (let t = 0; t < 30 * 60 && crate === undefined; t++) {
+      run(probe, 1);
+      crate = probe.snapshot().crates.find((x) => x.landed);
+    }
+    if (crate === undefined) throw new Error('no crate landed');
+    const at = crate;
+    // A colony whose first burrow is right under the crate, a meerkat sitting at it, its body on
+    // the crate's centre.
+    const mk = c.birds.meerkats;
+    mk.activities = { sit: 1, sentinel: 0, forage: 0, sunbathe: 0, dash: 0, dive: 0 };
+    mk.startOutShare = 1;
+    mk.pupChance = 0;
+    mk.forageRadiusPx = 0;
+    const sat = biomeOf(c, KAL).layouts.find((l) => l.id === 'sat');
+    const def = sat?.colonies?.[0];
+    if (sat === undefined || def === undefined) throw new Error('no Saturday colony');
+    const k = c.scoring.planes.mid.scale;
+    sat.colonies = [
+      {
+        ...def,
+        u: (at.x - (def.burrows[0]?.dx ?? 0)) / coreWidth(c.scoring.planes.mid.scrollFactor),
+        y: at.y - mk.hitboxes.low.body.oy * k,
+      },
+    ];
+    const s = sim(c, mon('sat'), 5);
+    for (let t = 0; t < 30 * 60 && s.snapshot().crates.find((x) => x.landed) === undefined; t++)
+      run(s, 1);
+    const landed = s.snapshot().crates.find((x) => x.landed);
+    expect(landed).toMatchObject({ x: at.x, y: at.y });
+    // A meerkat sits right behind it.
+    const sitter = colony(s).meerkats.find((m) => m.hittable && Math.abs(m.x - at.x) < 2);
+    expect(sitter).toBeDefined();
+    const shot = run(s, 1, aimAt(c.scoring.planes.mid.scrollFactor, at.x, at.y));
+    expect(ofType(shot, 'crateOpened')).toHaveLength(1);
+    expect(ofType(shot, 'meerkatHit')).toEqual([]);
+    expect(s.snapshot().score).toBe(0);
   });
 
   it('a shot pup tumbles, scolds and comes back; its colony can still give the Familiefoto', () => {
@@ -313,8 +421,13 @@ describe('meerkat colonies (v1.7, D-044)', () => {
       scold = ofType(look(s, c, 1), 'meerkatScold');
     expect(scold).toMatchObject([{ meerkatId: pup.id }]);
     // Not stuck: it leaves the tumble and the scold, and is out with its family again.
-    waitFor(s, c, (x) => x.meerkats.find((m) => m.id === pup.id)?.pose === 'sit', 30 * 60);
-    const events = look(s, c, 40 * 60);
+    const events: SimEvent[] = [];
+    for (let t = 0; t < 30 * 60; t++) {
+      events.push(...look(s, c, 1));
+      if (colony(s).meerkats.find((m) => m.id === pup.id)?.pose === 'sit') break;
+    }
+    expect(colony(s).meerkats.find((m) => m.id === pup.id)?.pose).toBe('sit');
+    events.push(...look(s, c, 40 * 60));
     expect(ofType(events, 'familiefoto')).toHaveLength(1);
   });
 
@@ -382,16 +495,47 @@ describe('meerkat colonies (v1.7, D-044)', () => {
   it('a raptor or the crop sprayer overhead: the sentinel barks, they dive, the nearest flock is alerted', () => {
     const c = withMidFlock(quiet(KAL), KAL);
     const k = biomeOf(c, KAL);
-    // The crop sprayer crosses early, on the far plane.
-    k.events = [{ id: 'cropSprayer', creature: 'sproeier', perHunt: [1, 1], window: [0.06, 0.07] }];
+    // Two flocks on the mid plane (Tuesday has three feeding spots across the pan), so the
+    // nearest one is a real choice.
+    for (const kf of k.pacing.keyframes) kf.flocks = { mid: 2 };
+    // (Without the spawn spacing the second flock finds room on Tuesday's feeding spots.)
+    c.birds.flockDefaults.spawnSpacingPx = 0;
+    // The crop sprayer crosses on the far plane once both flocks are out.
+    k.events = [{ id: 'cropSprayer', creature: 'sproeier', perHunt: [1, 1], window: [0.3, 0.31] }];
     const s = sim(c, mon('tue'), 5);
-    const events = run(s, 90 * 60 - 1);
+    const events: SimEvent[] = [];
+    /** Each flock's distance from the alarmed colony in pan fractions, as the sim measures it. */
+    let distances: { id: number; d: number }[] = [];
+    for (let t = 0; t < 90 * 60 - 1; t++) {
+      const step = run(s, 1);
+      events.push(...step);
+      const alarm = ofType(step, 'meerkatAlarm')[0];
+      if (alarm !== undefined && distances.length === 0) {
+        const st = s.snapshot();
+        const col = st.meerkats.find((x) => x.id === alarm.colonyId);
+        if (col === undefined) throw new Error('no colony');
+        const cu =
+          col.burrows.reduce((t2, b) => t2 + b.x, 0) / col.burrows.length / coreWidth(sfOf(c, col));
+        distances = st.flocks.map((f) => {
+          const ms = st.birds.filter((b) => b.flockId === f.id);
+          const x = ms.reduce((t2, b) => t2 + b.x, 0) / Math.max(1, ms.length);
+          return {
+            id: f.id,
+            d: Math.abs(x / coreWidth(c.scoring.planes[f.plane].scrollFactor) - cu),
+          };
+        });
+      }
+    }
     const alarms = ofType(events, 'meerkatAlarm');
     expect(alarms.length).toBeGreaterThanOrEqual(1);
     const a = alarms[0];
     if (a === undefined) throw new Error('no alarm');
     expect(a.creature).toBe('sproeier');
-    expect(a.flockId).not.toBeNull();
+    // Two flocks, clearly at different distances: the nearer one heard it.
+    expect(distances.length).toBeGreaterThanOrEqual(2);
+    const sorted = [...distances].sort((x, y) => x.d - y.d);
+    expect((sorted[1]?.d ?? 0) - (sorted[0]?.d ?? 0)).toBeGreaterThan(0.02);
+    expect(a.flockId).toBe(sorted[0]?.id);
     const i = events.indexOf(a);
     const sameTick = events.filter((e) => e.tick === a.tick);
     expect(sameTick).toContainEqual(

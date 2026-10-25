@@ -2331,7 +2331,11 @@ map: a near or mid plane, inside the layer, clear of props, secret parts and the
 never standing in front of the bird lanes or secrets of the planes behind.
 (3) *Behaviours and reactions* (all numbers in `birds.json → meerkats`):
 - hidden → peek → emerge → sit, sentinel (on the highest mound), forage, sunbathe (Monday's dawn
-  light only), dash (1–4 in a line, stopping halfway to look), or dive;
+  light only), dash (1–4 in a file about one body length apart, `dash.gapBodyMul`, stopping
+  halfway to look), or dive;
+- spacing (review round 3): adults that sit, forage, sunbathe or stand keep at least
+  `spacingBodyMul` (0.7) body widths (`bodyWidthPx`, 76 at the near plane) apart; a spot that is
+  too close is nudged to the nearest clear one, counting where the others stand or will next stand;
 - a nearby shot sends the colony down; it comes back after 3–6 s, the scout first;
 - the Langloop (`alertsAllFlocks`) sends every colony down;
 - a raptor or the crop sprayer overhead sets off the sentinel's alarm, which also alerts the
