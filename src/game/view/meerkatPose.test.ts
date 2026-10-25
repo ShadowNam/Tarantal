@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { MEERKAT_FRAMES, RIM_FRAMES, sheetFrames, SHEET_H, SHEET_W } from '../assets/desertAssets';
+import {
+  MEERKAT_FRAMES,
+  MIRRORED_FRAMES,
+  RIM_FRAMES,
+  sheetFrames,
+  SHEET_H,
+  SHEET_W,
+} from '../assets/desertAssets';
 import { DIG_TICKS, meerkatFrame, RUN_TICKS } from './meerkatPose';
+
+const ALL: readonly string[] = [...MEERKAT_FRAMES, ...Object.keys(MIRRORED_FRAMES)];
 
 const m = (pose: Parameters<typeof meerkatFrame>[0]['pose'], extra = {}) => ({
   pose,
@@ -31,7 +40,7 @@ describe('meerkat frames (v1.7, D-044)', () => {
       for (const pup of [false, true]) {
         const f = meerkatFrame(m(pose, { pup }));
         expect(f, pose).not.toBeNull();
-        expect(MEERKAT_FRAMES).toContain(f);
+        expect(ALL).toContain(f);
       }
     }
   });
@@ -61,6 +70,13 @@ describe('meerkat frames (v1.7, D-044)', () => {
       expect(f.x + f.w).toBeLessThanOrEqual(SHEET_W);
       expect(f.y + f.h).toBeLessThanOrEqual(SHEET_H);
     }
-    for (const r of RIM_FRAMES) expect(MEERKAT_FRAMES).toContain(r);
+    for (const r of RIM_FRAMES) expect(ALL).toContain(r);
+    // A mirrored frame is its twin's cell, flipped by the view.
+    for (const [name, of] of Object.entries(MIRRORED_FRAMES)) {
+      const a = frames.find((f) => f.name === name);
+      const b = frames.find((f) => f.name === of);
+      expect(a?.mirror).toBe(true);
+      expect([a?.x, a?.y]).toEqual([b?.x, b?.y]);
+    }
   });
 });

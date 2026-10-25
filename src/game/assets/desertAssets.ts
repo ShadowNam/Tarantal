@@ -38,10 +38,9 @@ export const FOOT_Y = 136;
 export const SHEET_COLS = 8;
 export const SHEET_MASTER = 2;
 
+/** The frames drawn in the sheet's cells, in cell order. */
 export const MEERKAT_FRAMES = [
-  'peek_l',
   'peek_r',
-  'stand_l',
   'stand_c',
   'stand_r',
   'sit',
@@ -64,7 +63,13 @@ export const MEERKAT_FRAMES = [
   'pup_run_b',
   'flick',
 ] as const;
-export type MeerkatFrame = (typeof MEERKAT_FRAMES)[number];
+/**
+ * Frames that are another frame mirrored (look round 2: the left-looking peek and stand are the
+ * right-looking ones flipped, which keeps the sheet inside the download budget). They share the
+ * other frame's rect; the view flips them.
+ */
+export const MIRRORED_FRAMES = { peek_l: 'peek_r', stand_l: 'stand_r' } as const;
+export type MeerkatFrame = (typeof MEERKAT_FRAMES)[number] | keyof typeof MIRRORED_FRAMES;
 
 /** Mound variants (two cells wide each) in the sheet's last row. */
 export const MOUND_FRAMES = ['mound_a', 'mound_b', 'mound_c'] as const;
@@ -98,6 +103,8 @@ export interface SheetRect {
   /** Origin in the frame (design px). */
   readonly ox: number;
   readonly oy: number;
+  /** Another frame's rect, shown flipped (MIRRORED_FRAMES). */
+  readonly mirror?: boolean;
 }
 
 /** Every frame of the sheet in design px (×1). */
@@ -111,6 +118,10 @@ export function sheetFrames(): SheetRect[] {
     ox: FOOT_X,
     oy: FOOT_Y,
   }));
+  for (const [name, of] of Object.entries(MIRRORED_FRAMES)) {
+    const r = out.find((f) => f.name === of);
+    if (r !== undefined) out.push({ ...r, name, mirror: true });
+  }
   const row = (SHEET_ROWS - 1) * CELL_H;
   MOUND_FRAMES.forEach((name, i) => {
     out.push({

@@ -38,7 +38,7 @@ import { MEERKAT_SHEET, SHEET_MASTER } from '../../src/game/assets/desertAssets'
 
 /** v1.7 (D-044): palette size of the meerkat sheet (look round: 48 keeps the shading and lets
  *  the Kalahari chunk plus the desert chunk fit 1.5 MB). */
-const MEERKAT_COLOURS = 48;
+const MEERKAT_COLOURS = 32;
 import { FAUNA_FOOT, FAUNA_RES, FAUNA_SPRITES } from '../../src/game/view/faunaSprites';
 import { renderSprite, SPRITES } from './sprites';
 import { AMMO_SPRITES } from './ammo';

@@ -80,6 +80,7 @@ export function meerkatSpecs(): CanvasSpec[] {
       originY: 0,
       draw(ctx) {
         for (const f of sheetFrames()) {
+          if (f.mirror === true) continue;
           ctx.save();
           ctx.beginPath();
           ctx.rect(f.x, f.y, f.w, f.h);

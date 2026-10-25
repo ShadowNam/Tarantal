@@ -214,9 +214,11 @@ export class MeerkatView {
     const r = this.rect(name);
     if (img.frame.name !== name) img.setFrame(name);
     if (r !== undefined) img.setOrigin(r.ox / r.w, r.oy / r.h);
-    // Side views face their way; the camera-facing ones never flip.
-    const flip =
+    // Side views face their way; the camera-facing ones never flip; a mirrored frame (the
+    // left-looking peek and stand) is its twin flipped.
+    const turn =
       m.facing < 0 && name !== 'front' && !name.startsWith('stand') && !name.startsWith('peek');
+    const flip = turn !== (r?.mirror === true);
     img
       .setVisible(true)
       .setPosition(m.x, m.y)

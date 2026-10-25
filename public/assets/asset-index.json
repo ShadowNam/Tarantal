@@ -125,9 +125,9 @@
       "group": "desert",
       "origin": "interim",
       "file": {
-        "path": "assets/desert/img/desert_meerkats.a99ca4072870.png",
-        "bytes": 79086,
-        "hash": "a99ca4072870"
+        "path": "assets/desert/img/desert_meerkats.7cf6a8e08ddf.png",
+        "bytes": 92115,
+        "hash": "7cf6a8e08ddf"
       },
       "width": 1792,
       "height": 1152,
@@ -2019,24 +2019,24 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/kalahari-summer/layers/foreground-0.473d1cfee7d9.png",
-          "bytes": 21960,
-          "hash": "473d1cfee7d9"
+          "path": "assets/kalahari-summer/layers/foreground-0.c75033851887.png",
+          "bytes": 21506,
+          "hash": "c75033851887"
         },
         {
-          "path": "assets/kalahari-summer/layers/foreground-1.9a9ae981f9fa.png",
-          "bytes": 12758,
-          "hash": "9a9ae981f9fa"
+          "path": "assets/kalahari-summer/layers/foreground-1.fffc8ba85be8.png",
+          "bytes": 12481,
+          "hash": "fffc8ba85be8"
         },
         {
-          "path": "assets/kalahari-summer/layers/foreground-2.5e3991beeea4.png",
-          "bytes": 34220,
-          "hash": "5e3991beeea4"
+          "path": "assets/kalahari-summer/layers/foreground-2.57c5b59569da.png",
+          "bytes": 33345,
+          "hash": "57c5b59569da"
         },
         {
-          "path": "assets/kalahari-summer/layers/foreground-3.fb1fc4a5cd07.png",
-          "bytes": 1440,
-          "hash": "fb1fc4a5cd07"
+          "path": "assets/kalahari-summer/layers/foreground-3.5ac75c52d434.png",
+          "bytes": 1427,
+          "hash": "5ac75c52d434"
         }
       ],
       "tileWidth": 2048,
@@ -2079,19 +2079,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/kalahari-summer/layers/mid-0.8695b667fb0f.png",
-          "bytes": 80445,
-          "hash": "8695b667fb0f"
+          "path": "assets/kalahari-summer/layers/mid-0.e3d8bb6809b7.png",
+          "bytes": 77870,
+          "hash": "e3d8bb6809b7"
         },
         {
-          "path": "assets/kalahari-summer/layers/mid-1.bbcc7d1a0f40.png",
-          "bytes": 66648,
-          "hash": "bbcc7d1a0f40"
+          "path": "assets/kalahari-summer/layers/mid-1.043af55d16f2.png",
+          "bytes": 65234,
+          "hash": "043af55d16f2"
         },
         {
-          "path": "assets/kalahari-summer/layers/mid-2.568d9bc7d84d.png",
-          "bytes": 8208,
-          "hash": "568d9bc7d84d"
+          "path": "assets/kalahari-summer/layers/mid-2.aceefa409c20.png",
+          "bytes": 8029,
+          "hash": "aceefa409c20"
         }
       ],
       "tileWidth": 2048,
@@ -2102,52 +2102,52 @@
         "bucket": 256,
         "rows": [
           [
-            232,
-            298
+            434,
+            480
           ],
           [
-            286,
-            389
+            296,
+            335
           ],
           [
             299,
             351
           ],
           [
-            364,
+            413,
             480
           ],
           [
-            393,
+            414,
             480
           ],
           [
-            403,
+            411,
             480
           ],
           [
-            272,
+            278,
             362
           ],
           [
-            416,
+            231,
+            257
+          ],
+          [
+            423,
             480
           ],
           [
-            361,
-            480
-          ],
-          [
-            381,
+            390,
             480
           ],
           [
             234,
-            371
+            370
           ],
           [
             232,
-            320
+            319
           ],
           [
             232,
@@ -2158,7 +2158,7 @@
             293
           ],
           [
-            274,
+            284,
             444
           ],
           [
@@ -2166,7 +2166,7 @@
             480
           ],
           [
-            281,
+            338,
             480
           ],
           [
@@ -2181,19 +2181,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/kalahari-summer/layers/near-0.a04373895d5b.png",
-          "bytes": 56516,
-          "hash": "a04373895d5b"
+          "path": "assets/kalahari-summer/layers/near-0.0ed315d9bcb5.png",
+          "bytes": 54670,
+          "hash": "0ed315d9bcb5"
         },
         {
-          "path": "assets/kalahari-summer/layers/near-1.03e15e812a99.png",
-          "bytes": 86934,
-          "hash": "03e15e812a99"
+          "path": "assets/kalahari-summer/layers/near-1.91116ac9beb8.png",
+          "bytes": 83600,
+          "hash": "91116ac9beb8"
         },
         {
-          "path": "assets/kalahari-summer/layers/near-2.d9fa0b285c9a.png",
-          "bytes": 55421,
-          "hash": "d9fa0b285c9a"
+          "path": "assets/kalahari-summer/layers/near-2.85e5dbeb0c1c.png",
+          "bytes": 53451,
+          "hash": "85e5dbeb0c1c"
         }
       ],
       "tileWidth": 2048,
