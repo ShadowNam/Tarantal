@@ -124,6 +124,10 @@ export class AssetManifest {
   private soundsLoaded: Promise<void> = Promise.resolve();
   /** D-029: the late group's downloads (resolves when they have all settled). */
   lateLoaded: Promise<void> = Promise.resolve();
+  /** v1.6 (D-042): true once the last loadFinal's late group (incl. the Ver group) has settled. */
+  lateDone = true;
+  /** v1.6 (D-042): texture keys install() drew as placeholders (upgrade() can swap them). */
+  private readonly drawn = new Set<string>();
 
   addTexture(spec: CanvasSpec): void {
     this.specs.set(spec.key, spec);
@@ -442,7 +446,10 @@ export class AssetManifest {
     this.missingFinal = expect.filter((e) => !e.done()).map((e) => ({ key: e.key, path: e.path }));
     for (const m of this.missingFinal)
       console.warn(`[assets] ${m.key}: delivered file failed to load (${m.path})`);
-    this.lateLoaded = Promise.all(late.map((job) => job())).then(() => undefined);
+    this.lateDone = false;
+    this.lateLoaded = Promise.all(late.map((job) => job())).then(() => {
+      this.lateDone = true;
+    });
   }
 
   /**
@@ -529,8 +536,26 @@ export class AssetManifest {
       if (ctx === null) throw new Error('2D canvas unavailable');
       spec.draw(ctx);
       textures.addCanvas(spec.key, canvas);
+      this.drawn.add(spec.key);
     }
     return complete;
+  }
+
+  /**
+   * v1.6 (D-042): swaps placeholders drawn earlier for delivered images that arrived since (keys
+   * starting with `prefix`). Only for art whose views are rebuilt afterwards (the sight pictures:
+   * HuntScene rebuilds them at every hunt start). Returns the swapped keys.
+   */
+  upgrade(textures: Phaser.Textures.TextureManager, prefix: string): string[] {
+    const out: string[] = [];
+    for (const [key, { img }] of this.finalImages) {
+      if (!key.startsWith(prefix) || !this.drawn.has(key) || !textures.exists(key)) continue;
+      textures.remove(key);
+      textures.addImage(key, img);
+      this.drawn.delete(key);
+      out.push(key);
+    }
+    return out;
   }
 
   /** Every texture key this manifest puts in the texture manager (placeholders, final files). */

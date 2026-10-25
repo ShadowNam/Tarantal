@@ -857,6 +857,24 @@ export class HuntScene extends Phaser.Scene {
     });
   }
 
+  /** v1.6 (D-042): the late group (sight pictures) behind the loading veil, then `then`. */
+  private waitForLate(manifest: AssetManifest, then: () => void): void {
+    const { width, height } = designSize();
+    const veil = this.add
+      .rectangle(width / 2, height / 2, width, height, 0x1b1410, 0.82)
+      .setDepth(9_999);
+    const label = this.add
+      .text(width / 2, height / 2, t('ui.loading'), textStyle(48, '#F3EAD3'))
+      .setOrigin(0.5)
+      .setDepth(10_000);
+    void manifest.lateLoaded.then(() => {
+      if (!veil.active) return;
+      veil.destroy();
+      label.destroy();
+      then();
+    });
+  }
+
   // --- hunt -------------------------------------------------------------------------------------
 
   private begin(
@@ -959,12 +977,23 @@ export class HuntScene extends Phaser.Scene {
       });
       return;
     }
+    // v1.6 (D-042): a rifle's sight pictures come with the late Ver group; a scoped hunt or the
+    // Skietbaan waits for them, so the sight is never drawn from its placeholder.
+    const huntDef = this.ctx.content.biomes.find((b) => b.id === huntBiome);
+    const huntManifest = huntDef === undefined ? this.manifest : this.ctx.manifestFor(huntDef);
+    if ((range !== null || mode.sight !== undefined) && !huntManifest.lateDone) {
+      this.waitForLate(huntManifest, () => {
+        this.begin(kind, startPointer, modeId, challenge, bonus);
+      });
+      return;
+    }
     this.useBiome(huntBiome, {
       ...(mode.layout === undefined ? {} : { layout: mode.layout }),
       ...(mode.bonus === undefined ? {} : { bonus: mode.bonus }),
       ...(range === null ? {} : { ver: true }),
     });
     if (!this.texturesDone) this.texturesDone = this.manifest.install(this.textures);
+    if (this.manifest.upgrade(this.textures, 'sight/').length > 0) this.sight.reset();
     this.manifest.prewarmBirds(this.textures);
     if (this.ctx.hook) {
       this.ctx.hook.boot['huntStart'] ??= performance.now();
