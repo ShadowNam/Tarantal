@@ -2184,6 +2184,16 @@ Oupa laadt; the Afrikaans-names toggle shows Blitslaai and Oupa Laai. The Padsta
 with a description (`item.<id>.desc`, only these two so far) shows it under the kind. All art and
 sound is interim (`origin: interim`, tools/art and tools/audio). No zip caption: captions are
 per event and the event doesn't say Blitslaai is on; "[reloaded]" still shows.
+(8) *Sizes* (`npm run size -- --strict`, gzip): first download **3 026.6 KB** (+13.1 KB over
+v1.5's 3 013.5 KB: the two icons, the bolt, the zip and the code); voice-en 627.8 KB, voice-af
+679.4 KB, voice-de 822.2 KB (each + one line). *Tests:* unit — `src/sim/reloadPowerups.test.ts`
+(reload times with each, both, + Snelhand, the floor, the Kettie draw, the Voorlaaier ramrod and
+the Mielie-Masjien interval, auto start on empty, no idle top-up on full-belt guns, per-shell idle
+top-up and its cut, Chilli Biltong, refresh on pickup, expiry, a scripted Season replay and Classic
+crate hunts replaying identically), weaponState, barks, AudioDirector, gunLook; e2e (CI) —
+`tests/e2e/reload-powerups.spec.ts` picks up each crate with `?crate=` on every landscape profile:
+chip icon, a reload in about a third of the time with glints, an empty belt reloading with no
+gesture and Oupa's line.
 (6) *Test fix:* `maps.test.ts` feeding-spot check used 4 seeds and a ×2 bar; the spot's own share
 is unchanged (0.52) but the no-spot share swings with the bot's luck (main itself gave 1.79× on
 seeds 21–28). Now 8 seeds and a ×1.7 bar.
