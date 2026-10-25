@@ -371,6 +371,25 @@ describe('Skietbaan gate (D-037)', () => {
   });
 });
 
+describe('Project overview gate (D-045)', () => {
+  it('the overview chunk is compiled out of exactly the builds whose adapter has no admin page', () => {
+    // AdminScene guards the overview's import() the way HuntScene guards the Skietbaan's.
+    const src = readFileSync(join(import.meta.dirname, '../game/scenes/AdminScene.ts'), 'utf8');
+    const body = src.slice(src.indexOf('private openProject(panel: AdminPanel): void {'));
+    const guard = /if \(([^)]*)\) return;/.exec(body)?.[1] ?? '';
+    const named = [...guard.matchAll(/flag === '(\w+)'/g)].map((m) => m[1]).sort();
+    const admin: Record<(typeof BUILD_PLATFORMS)[number], boolean> = {
+      web: WebPlatform.ADMIN_PAGE,
+      poki: PokiPlatform.ADMIN_PAGE,
+      crazygames: CrazyGamesPlatform.ADMIN_PAGE,
+    };
+    expect(named).toEqual(BUILD_PLATFORMS.filter((p) => !admin[p]).sort());
+    const flagAt = body.indexOf('const flag = import.meta.env.VITE_PLATFORM;');
+    expect(flagAt).toBeGreaterThan(0);
+    expect(flagAt).toBeLessThan(body.indexOf("import('../project/ProjectOverview')"));
+  });
+});
+
 describe('playtest admin page (D-034)', () => {
   it('is on the web build only: portals ignore ?admin=1', () => {
     expect(WebPlatform.ADMIN_PAGE).toBe(true);
