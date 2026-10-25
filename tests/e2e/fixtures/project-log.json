@@ -1,0 +1,489 @@
+{
+  "schema": 1,
+  "updated": "2026-10-25T18:20:00Z",
+  "by": "Claude (supervisor)",
+  "summary": "v1.6, the veld art pass, is live on the test build. Reload power-ups (v1.6b) and the meerkat colonies (v1.7) are waiting for your look; this Project overview page (v1.7c) is being built now. The tin cans on the fence (v1.8) wait for your choice of cans.",
+  "current": { "version": "1.6.0", "commit": "4bd39f1", "deployed": "2026-10-25T17:12:00Z" },
+  "links": [
+    { "label": "Test build", "url": "https://shadownam.github.io/Tarantal/" },
+    { "label": "Admin page", "url": "https://shadownam.github.io/Tarantal/?admin=1" },
+    { "label": "Build board", "url": "https://claude.ai/artifact/0f6b7c2e-build-board" },
+    { "label": "Build status doc", "url": "https://claude.ai/artifact/5d1e9a40-status" },
+    { "label": "GitHub", "url": "https://github.com/ShadowNam/Tarantal" },
+    { "label": "Not allowed (dropped)", "url": "https://example.com/elsewhere" }
+  ],
+  "numbers": [
+    { "label": "Days since the first commit", "value": "6" },
+    { "label": "Pull requests merged", "value": "74", "note": "2 more in review" },
+    { "label": "Unit tests", "value": "1,098" },
+    { "label": "Browser test suites", "value": "48", "note": "on 3 device profiles" },
+    { "label": "First download", "value": "2.96 MB", "note": "budget 3 MB" },
+    { "label": "Hunting areas", "value": "5", "note": "7 weekday maps + 3 bonus maps each" }
+  ],
+  "needsYou": [
+    {
+      "id": "n-blikkies-cans",
+      "kind": "decision",
+      "title": "Blikkies: which cans go on the fence?",
+      "detail": "The tin cans for v1.8 can look three ways. All are drawn without any brand names. Pick one (or mix) and Tank starts the same hour.",
+      "asked": "2026-10-25T16:40:00Z",
+      "status": "open",
+      "options": [
+        "Red cooldrink cans, no labels",
+        "Plain food tins with hand-painted farm labels",
+        "A mix: paint tins, jam tins and a paraffin can"
+      ],
+      "blocks": "v1.8",
+      "images": [
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gongs-clean-pixel7.jpg",
+          "caption": "Where the cans will stand: the Skietbaan's fence line, next to the gongs."
+        }
+      ]
+    },
+    {
+      "id": "n-meerkat-look",
+      "kind": "feedback",
+      "title": "Meerkats (v1.7): do they look and move right?",
+      "detail": "Open the test build of PR #72 on your phone and play the Kalahari. Do the meerkats peek, stand guard and dash between burrows the way you pictured?",
+      "asked": "2026-10-25T17:50:00Z",
+      "status": "open",
+      "blocks": "v1.7",
+      "links": [{ "label": "PR #72", "url": "https://github.com/ShadowNam/Tarantal/pull/72" }],
+      "images": [
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-namibie.jpg",
+          "caption": "Kalahari pan where the burrows sit (before | after)."
+        }
+      ]
+    },
+    {
+      "id": "n-fresh-load",
+      "kind": "question",
+      "title": "Fresh load button: test builds only?",
+      "detail": "Should the Fresh load button also be in the shipped game, or only on the test build's admin page?",
+      "asked": "2026-10-25T09:10:00Z",
+      "status": "answered",
+      "answer": "Test builds only.",
+      "answered": "2026-10-25T09:32:00Z"
+    }
+  ],
+  "jobs": [
+    {
+      "id": "v1.3",
+      "version": "1.3.0",
+      "title": "Long range: the Ver plane, sights and zoom, Die Twee-Twee",
+      "phase": "Version 1.x",
+      "status": "done",
+      "start": "2026-10-23T14:10:00Z",
+      "end": "2026-10-24T01:20:00Z",
+      "owner": "Tank",
+      "prs": [53, 54],
+      "summary": "A far plane you can only reach with a rifle, iron sights, a peep sight and a scope, and the .22."
+    },
+    {
+      "id": "range",
+      "version": "1.3.0",
+      "title": "Training ground (Skietbaan) on the admin page",
+      "phase": "Version 1.x",
+      "status": "done",
+      "start": "2026-10-23T15:20:00Z",
+      "end": "2026-10-24T03:40:00Z",
+      "owner": "Tank",
+      "prs": [58],
+      "requestedBy": "Product owner, 23 Oct 15:05"
+    },
+    {
+      "id": "v1.5",
+      "version": "1.5.0",
+      "title": "Languages: text, voice and names for every audience",
+      "phase": "Version 1.x",
+      "status": "done",
+      "start": "2026-10-24T16:30:00Z",
+      "end": "2026-10-25T02:10:00Z",
+      "owner": "Tank",
+      "prs": [68],
+      "tests": "1,071 unit tests; languages.spec on desktop, Pixel 7 and iPhone 14."
+    },
+    {
+      "id": "v1.6",
+      "version": "1.6.0",
+      "title": "Veld art pass: trees, fruit, far animals and the windmill",
+      "phase": "Version 1.x",
+      "status": "done",
+      "start": "2026-10-25T02:45:00Z",
+      "end": "2026-10-25T14:56:00Z",
+      "owner": "Tank",
+      "prs": [70],
+      "summary": "Every map's plants at the camelthorn's standard, far animals with real anatomy, the windmill from your photos, the build stamp and the Fresh load button.",
+      "requestedBy": "Product owner, 24 Oct 12:05",
+      "checklist": [
+        { "text": "Plants on every map", "done": true, "at": "2026-10-25T06:30:00Z" },
+        { "text": "Far animals redrawn", "done": true, "at": "2026-10-25T08:10:00Z" },
+        {
+          "text": "Windmill from the reference photos",
+          "done": true,
+          "at": "2026-10-25T11:40:00Z"
+        },
+        { "text": "Art waits to load; no stale cache", "done": true, "at": "2026-10-25T12:20:00Z" },
+        { "text": "Review fixes", "done": true, "at": "2026-10-25T14:30:00Z" }
+      ],
+      "tests": "1,098 unit tests; art-preview-v16 on 3 devices.",
+      "images": [
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-windmill.jpg",
+          "caption": "Before | after: the Karoo windmill."
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-dassie.jpg",
+          "caption": "Before | after: the Bushveld dassie."
+        }
+      ]
+    },
+    {
+      "id": "hist-v1.6",
+      "title": "Development history: the v1.6 chapter",
+      "phase": "Version 1.x",
+      "status": "done",
+      "start": "2026-10-25T15:05:00Z",
+      "end": "2026-10-25T16:10:00Z",
+      "owner": "Claude",
+      "prs": [74]
+    },
+    {
+      "id": "v1.6b",
+      "version": "1.7.0",
+      "title": "Reload power-ups",
+      "phase": "Version 1.x",
+      "status": "review",
+      "start": "2026-10-25T05:10:00Z",
+      "end": "2026-10-25T19:30:00Z",
+      "estimate": true,
+      "owner": "Claude, then you",
+      "prs": [71],
+      "checklist": [
+        { "text": "Speed loader pick-up", "done": true },
+        { "text": "Belt refill on a streak", "done": true },
+        { "text": "HUD shows the power-up", "done": true },
+        { "text": "Tests on 3 devices", "done": true },
+        { "text": "Your look", "done": false }
+      ]
+    },
+    {
+      "id": "v1.7c",
+      "version": "1.7.0",
+      "title": "Project overview page in the admin",
+      "phase": "Version 1.x",
+      "status": "running",
+      "start": "2026-10-25T18:05:00Z",
+      "end": "2026-10-25T19:00:00Z",
+      "estimate": true,
+      "owner": "Claude",
+      "summary": "One page with what is done, what is being built and when, what is planned, what needs your answer, ideas and the whole history with its pictures.",
+      "requestedBy": "Product owner, 25 Oct 19:55",
+      "checklist": [
+        { "text": "Data format and schema", "done": true, "at": "2026-10-25T18:20:00Z" },
+        { "text": "Admin button and lazy chunk", "done": true },
+        { "text": "Overview tab", "done": true },
+        { "text": "Roadmap tab", "done": true },
+        { "text": "History tab with galleries", "done": true },
+        { "text": "Requests and Ideas tabs", "done": true },
+        { "text": "Lightbox", "done": true },
+        { "text": "Offline copy and errors", "done": false },
+        { "text": "Tests and screenshots on 3 devices", "done": false }
+      ],
+      "tests": "projectLog unit tests; project-overview.spec on desktop, Pixel 7 and iPhone 14."
+    },
+    {
+      "id": "v1.7",
+      "version": "1.7.0",
+      "title": "Meerkat colonies on the desert maps",
+      "phase": "Version 1.x",
+      "status": "review",
+      "start": "2026-10-25T03:00:00Z",
+      "end": "2026-10-25T20:00:00Z",
+      "estimate": true,
+      "owner": "Claude, then you",
+      "prs": [72],
+      "requestedBy": "Product owner, 24 Oct 12:18",
+      "checklist": [
+        { "text": "Burrows on the Kalahari and Namibië maps", "done": true },
+        { "text": "Peek, stand guard, dash and dive", "done": true },
+        { "text": "Shots scare the colony", "done": true },
+        { "text": "Your look", "done": false }
+      ]
+    },
+    {
+      "id": "v1.8",
+      "version": "1.8.0",
+      "title": "Blikkies: tin cans on the fence that somersault",
+      "phase": "Version 1.x",
+      "status": "blocked",
+      "owner": "Tank",
+      "summary": "Cans on fence posts that tumble when hit and can be juggled in the air. Waits for your choice of cans.",
+      "requestedBy": "Product owner, 24 Oct 17:45"
+    },
+    {
+      "id": "v1.7b",
+      "version": "1.7.0",
+      "title": "Fruit that swings and drops when shot",
+      "phase": "Version 1.x",
+      "status": "next",
+      "start": "2026-10-26T00:30:00Z",
+      "end": "2026-10-26T04:00:00Z",
+      "estimate": true,
+      "owner": "Tank",
+      "requestedBy": "Product owner, 25 Oct 14:45"
+    },
+    {
+      "id": "v1.9",
+      "version": "1.9.0",
+      "title": "Soundscape: birds, wind and the farm at dusk",
+      "phase": "Version 1.x",
+      "status": "next",
+      "start": "2026-10-26T04:30:00Z",
+      "end": "2026-10-26T09:00:00Z",
+      "estimate": true,
+      "owner": "Tank"
+    },
+    {
+      "id": "v1.10",
+      "version": "1.10.0",
+      "title": "The rain storm (reënbui)",
+      "phase": "Version 1.x",
+      "status": "later",
+      "start": "2026-10-26T20:00:00Z",
+      "end": "2026-10-27T01:00:00Z",
+      "estimate": true,
+      "owner": "Tank"
+    },
+    {
+      "id": "feesdae",
+      "title": "Daily specials on local days (Feesdae)",
+      "phase": "Version 1.x",
+      "status": "later",
+      "owner": "You, then Tank",
+      "summary": "Heritage Day braai, Christmas in summer, New Year. Waits for your pick of days."
+    }
+  ],
+  "suggestions": [
+    {
+      "id": "s-bow",
+      "title": "A bow and arrow",
+      "detail": "A silent weapon with a long draw: the flock doesn't flush on a miss.",
+      "from": "Product owner",
+      "date": "2026-10-24T18:35:00Z",
+      "status": "idea"
+    },
+    {
+      "id": "s-night",
+      "title": "A night hunt with a spotlight",
+      "detail": "Eyes shine in the beam; the omen becomes the moon phase.",
+      "from": "Claude",
+      "date": "2026-10-25T15:00:00Z",
+      "status": "idea"
+    },
+    {
+      "id": "s-dog",
+      "title": "The farm dog (brakkie)",
+      "detail": "Runs out to fetch what you shot and barks at the flock.",
+      "from": "Claude",
+      "date": "2026-10-24T17:00:00Z",
+      "status": "queued",
+      "job": "v1.10"
+    },
+    {
+      "id": "s-stamp",
+      "title": "A version number on every map",
+      "detail": "So a screenshot always says which build it came from.",
+      "from": "Product owner",
+      "date": "2026-10-25T05:20:00Z",
+      "status": "done",
+      "job": "v1.6"
+    },
+    {
+      "id": "s-boards",
+      "title": "Leaderboards on the test build",
+      "detail": "Not before the portals: they bring their own.",
+      "from": "Claude",
+      "date": "2026-10-23T10:00:00Z",
+      "status": "declined"
+    }
+  ],
+  "requests": [
+    {
+      "date": "23 Oct, 11:50",
+      "text": "An admin URL to test every level and give feedback",
+      "outcome": "Live at 13:32 (#48)"
+    },
+    {
+      "date": "24 Oct, 12:18",
+      "text": "Meerkat burrows on the desert maps: meerkats peek out and run from one burrow to another",
+      "outcome": "Built as v1.7 (#72), in review",
+      "job": "v1.7"
+    },
+    {
+      "date": "25 Oct, 07:20",
+      "text": "Map version numbers",
+      "outcome": "Done in v1.6 (#70): a build stamp on every map",
+      "job": "v1.6"
+    },
+    {
+      "date": "25 Oct, 14:45",
+      "text": "When shooting the fruit (sausage tree), make it swing or drop",
+      "outcome": "Queued as v1.7b",
+      "job": "v1.7b"
+    },
+    {
+      "date": "25 Oct, 19:55",
+      "text": "A process log page in the admin: what is done, what is outstanding, with date, time and build, so I don't have to keep asking",
+      "outcome": "Being built now as v1.7c",
+      "job": "v1.7c"
+    }
+  ],
+  "activity": [
+    {
+      "at": "2026-10-25T14:56:00Z",
+      "kind": "merge",
+      "text": "v1.6 veld art pass merged (#70).",
+      "links": [{ "label": "#70", "url": "https://github.com/ShadowNam/Tarantal/pull/70" }]
+    },
+    {
+      "at": "2026-10-25T15:20:00Z",
+      "kind": "screenshots",
+      "text": "v1.6 after screenshots on desktop, Pixel 7 and iPhone 14.",
+      "images": [
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-okavango.jpg",
+          "caption": "Okavango, before | after."
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-scope.jpg",
+          "caption": "The Langloop at 3× in the Skietbaan."
+        }
+      ]
+    },
+    {
+      "at": "2026-10-25T16:10:00Z",
+      "kind": "merge",
+      "text": "Development history: the v1.6 chapter (#74).",
+      "links": [{ "label": "#74", "url": "https://github.com/ShadowNam/Tarantal/pull/74" }]
+    },
+    {
+      "at": "2026-10-25T16:40:00Z",
+      "kind": "decision",
+      "text": "Asked you to pick the cans for v1.8 (Blikkies)."
+    },
+    {
+      "at": "2026-10-25T17:12:00Z",
+      "kind": "note",
+      "text": "The test build now runs 1.6.0 (4bd39f1)."
+    },
+    {
+      "at": "2026-10-25T17:40:00Z",
+      "kind": "tests",
+      "text": "v1.7 meerkats: all tests green on the PR (unit, e2e on 3 devices)."
+    },
+    {
+      "at": "2026-10-25T17:55:00Z",
+      "kind": "request",
+      "text": "You asked for a Project overview page in the admin."
+    }
+  ],
+  "history": [
+    {
+      "title": "v1.5 Languages: text, voice and names",
+      "when": "25 Oct 2026, 02:10",
+      "prs": "#68",
+      "decision": "D-041",
+      "intro": "The game speaks English, Afrikaans and German, with Dutch text, and every name was adjusted for its audience.",
+      "bullets": [
+        "Separate text and voice languages in Settings.",
+        "Oupa voiced in English, Afrikaans and German (interim voices).",
+        "An \"Afrikaans names\" switch keeps Dubbelloop, Windbuks and Kettie in any language."
+      ],
+      "images": [
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v15-de-title.jpg",
+          "caption": "The title screen in German (desktop)."
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v15-settings-iphone.jpg",
+          "caption": "Settings on an iPhone 14."
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/missing-v15-shot.jpg",
+          "caption": "A picture that is not on the server yet (shows this caption instead)."
+        }
+      ]
+    },
+    {
+      "title": "v1.6 Veld art: trees, fruit, far animals and the windmill",
+      "when": "25 Oct 2026, 16:56 (started 25 Oct, 04:45)",
+      "prs": "#70",
+      "decision": "D-042",
+      "intro": "Every map's trees, bushes, grass and fruit at the quality of the camelthorn, and far animals that look like animals.",
+      "bullets": [
+        "Plants redrawn on every map at the camelthorn quality bar.",
+        "Far animals redrawn with true body shapes; they stay sharp through the scope.",
+        "The windmill redrawn from your photos: 20 curved sails, several missing, one bent, rust.",
+        "A build stamp on every map, the title and the Skietbaan."
+      ],
+      "feedbackLabel": "Reviews and fixes before merging",
+      "feedback": [
+        "25 Oct, about 06:50: the windmill needs more detail and should turn with the wind.",
+        "About 07:00: the dassie \"needs to be increased a lot\".",
+        "The independent review found five issues, all fixed."
+      ],
+      "images": [
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-windmill.jpg",
+          "caption": "Before | after on a phone: the Karoo windmill."
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-giraffes-scope.jpg",
+          "caption": "Before | after: far giraffes through the scope."
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-dassie.jpg",
+          "caption": "Before | after: the Bushveld dassie."
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-dead-tree.jpg",
+          "caption": "Before | after: the Kalahari dead camelthorn and the new clouds."
+        }
+      ]
+    }
+  ],
+  "evolution": [
+    {
+      "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/evo-1-v100.jpg",
+      "caption": "v1.0.0 (21 Oct): code-drawn placeholder art."
+    },
+    {
+      "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/evo-2-gfx1.jpg",
+      "caption": "Graphics pass 1 (22 Oct): detailed guineafowl and a long double-barrel."
+    },
+    {
+      "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/evo-3-gfx2.jpg",
+      "caption": "Graphics pass 2 (23 Oct): the interim Karoo landscape."
+    },
+    {
+      "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/evo-6-gfx3.jpg",
+      "caption": "Graphics pass 3 (23 Oct): semi-realistic guineafowl and gun."
+    }
+  ],
+  "decisions": [
+    { "id": "D-034", "text": "Playtest admin page" },
+    { "id": "D-037", "text": "Training ground (Skietbaan): admin and test build only" },
+    { "id": "D-041", "text": "v1.5 Languages" },
+    { "id": "D-042", "text": "v1.6 Veld art pass" },
+    { "id": "D-045", "text": "Project overview page in the admin" }
+  ],
+  "glossary": [
+    { "term": "Tarentaal", "meaning": "Helmeted guineafowl, the game's quarry" },
+    { "term": "Skietbaan", "meaning": "Shooting range: the training ground on the admin page" },
+    { "term": "Blikkies", "meaning": "Tin cans" },
+    { "term": "Tank", "meaning": "The coding agent on your server" }
+  ]
+}
