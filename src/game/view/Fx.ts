@@ -55,6 +55,8 @@ export class Fx {
   private readonly locatePot: (birdId: number) => PotSpot | null;
   /** The plane crates land on (powerups.json). */
   private readonly cratePlane: PlaneId;
+  /** v1.7b (D-046): a crate's item name floats where it was shot (only without the HUD's card). */
+  itemLabels = true;
 
   constructor(
     scene: Phaser.Scene,
@@ -156,7 +158,10 @@ export class Fx {
           const layer = this.parallax.plane(this.cratePlane).overlay;
           if (layer) {
             this.spark(layer, e.x, e.y, 1.2);
-            this.label(layer, e.x, e.y - 80, tOr(`item.${e.item}`, e.item), '#FFD25A', 0.8);
+            // v1.7b (D-046): the HUD's pickup card names it now; the floating name stays only
+            // where there is no HUD (capture mode).
+            if (this.itemLabels)
+              this.label(layer, e.x, e.y - 80, tOr(`item.${e.item}`, e.item), '#FFD25A', 0.8);
           }
           break;
         }

@@ -359,6 +359,8 @@ export class HuntScene extends Phaser.Scene {
       this.ctx.content.powerups.crates.plane,
       this.ctx.prefs,
     );
+    // v1.7b (D-046): the pickup card says what a crate held; capture footage has no HUD.
+    this.fx.itemLabels = this.ctx.capture !== null;
     this.world = new WorldView(
       this,
       this.ctx.content,
