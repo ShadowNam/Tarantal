@@ -7,22 +7,22 @@ const meta = {
   title: 'Tarantal Madness',
   subtitle: 'Development history',
   tagline: 'How the game came together, from the first commit to today',
-  updated: '25 October 2026, 00:40 UTC',
-  period: '19–24 October 2026',
+  updated: '25 October 2026, 04:50 UTC',
+  period: '19–25 October 2026',
 };
 
-// "By the numbers" on 24 Oct 2026 (main at 5bfdfab).
+// "By the numbers" on 25 Oct 2026 (main at 7ad113f).
 const numbers = [
-  ['Days since the first commit', '5'],
-  ['Commits on main', '690'],
-  ['Pull requests', '64 merged, plus this history update; v1.5 Languages in progress'],
-  ['Game code (TypeScript, without tests)', 'about 39,000 lines'],
-  ['Automated tests', '1,039 unit tests, 43 browser test suites on 3 device profiles'],
+  ['Days since the first commit', '6'],
+  ['Commits on main', '721'],
+  ['Pull requests', '68 merged, plus this history update; v1.6 Veld art in progress'],
+  ['Game code (TypeScript, without tests)', 'about 40,500 lines'],
+  ['Automated tests', '1,066 unit tests, 46 browser test suites on 3 device profiles'],
   ['Hunting areas', '5: the four seasons (Karoo, Bushveld, Okavango, Kalahari) and Namibië, each with 7 weekday maps and 3 bonus maps (Verder, Nog Verder, Die Verste)'],
   ['Guns', '8 (Dubbelloop, Windbuks, Kettie, Plaas-Pomp, Die Twee-Twee with 3 sights, Die Langloop with a 3–9× scope, Voorlaaier, Mielie-Masjien)'],
   ['Creatures', '13 (guineafowl and variants, bosses, flyers)'],
-  ['Languages', 'English, Afrikaans, German, Dutch'],
-  ['Design decisions logged', '40 (D-001 to D-040)'],
+  ['Languages', 'English, Afrikaans, German and Dutch text; Oupa voiced in English, Afrikaans and German'],
+  ['Design decisions logged', '41 (D-001 to D-041)'],
 ];
 
 const roles = [
@@ -540,6 +540,35 @@ const stages = [
       { img: 'gongs-langloop-pixel7', caption: 'A gong at the farthest distance in Die Langloop\u2019s scope (Pixel 7).' },
     ],
   },
+  {
+    title: 'v1.5 Languages: text, voice and names for every audience',
+    when: '25 Oct 2026, 04:39 (started 25 Oct, 00:28)',
+    prs: '#68',
+    decision: 'D-041',
+    intro: 'The product owner wanted the game, the voice and the names in English, Afrikaans and German, so it works for more audiences.',
+    bullets: [
+      'Two separate settings: the text language (Auto, English, Afrikaans, German, Dutch) and the voice language (Same as text, English, Afrikaans, German). You can play with an Afrikaans voice and English subtitles. Dutch text uses the Afrikaans voice, the closest match.',
+      'Every name now has a proper English, German and Dutch version: guns, maps, the Gun Shed, the Notebook, the Bird Book, birds, secrets, charms, ranks and helpers. Dubbelloop becomes Double Barrel in English and Doppelflinte in German; Afrikaans keeps the farm names. Place names stay as they are.',
+      'An "Afrikaans names" switch keeps the Afrikaans flavour names in any language, for players who like them.',
+      'Oupa now speaks: his 43 comments and the short scolds are voiced in English, Afrikaans and German. The voices are interim, made offline with free, commercially usable text-to-speech (Kokoro, Apache-2.0). No good free Afrikaans voice exists, so the Afrikaans lines are read by the English voice using Afrikaans pronunciation rules; they can be swapped for a real voice later.',
+      'Only the chosen voice language is downloaded, after the first tap. Each voice pack is under 1 MB, and the first download is unchanged.',
+      'Share cards, the Daily share text and the end-of-hunt tally follow the text language.',
+    ],
+    feedbackLabel: 'Reviews and fixes before merging',
+    feedback: [
+      'Product owner (24 Oct): "I want options to have game and voice either German, English, Afrikaans. And text. Adjust also names accordingly, as the game needs to cater for multiple audiences."',
+      'Claude reviewed the names table before any files changed (German "Season Run" became "Saisonjagd").',
+      'The independent review found six things, all fixed before the merge: Oupa\u2019s first greeting was usually silent because the voice was still loading, a test never proved a voice line was heard, a failed download was never retried, an old language\u2019s voice stayed in memory, a stray build file was committed, and the setting hints were too small to read on phones.',
+      'On GitHub, a new voice test failed on the slow phone runner because it read Oupa\u2019s line twice and the line had already gone. Claude fixed the test.',
+    ],
+    images: [
+      { img: 'v15-de-title', caption: 'The title screen in German (desktop).' },
+      { img: 'v15-settings-iphone', caption: 'Settings on an iPhone 14: the text and voice languages and the "Afrikaans names" switch, with readable hints.' },
+      { img: 'v15-de-shed-pixel7', caption: 'The Gun Shed in German on a Pixel 7: Doppelflinte, Luftgewehr, Schleuder, Hof-Pumpe.' },
+      { img: 'v15-afnames-shed-pixel7', caption: 'English text with "Afrikaans names" on: Dubbelloop, Windbuks, Kettie and Plaas-Pomp keep their farm names.' },
+      { img: 'v15-af-tally-pixel7', caption: 'The end-of-hunt tally in Afrikaans (Bakkie-telling).' },
+    ],
+  },
 ];
 
 // The product owner's requests, in order.
@@ -558,15 +587,15 @@ const requests = [
   ['24 Oct, 05:45', 'More targets in the training ground: mixed targets at all distances, every distance for every gun, a sound or blink on every hit', 'Done (#61), with screenshots sent at the merge'],
   ['24 Oct, 12:05', 'Better graphics for the trees, bushes and fruit on every map; camelthorn trees in Namibia; a far more detailed weaver nest ("increase quality by 500%") with angry birds flying out when it is shot', 'Camelthorn and nest first in v1.4 part B, with close-ups for approval; then v1.5 for every map'],
   ['24 Oct, 12:18', 'Meerkat burrows on the desert maps: meerkats peek out and run from one burrow to another ("be creative")', 'Queued as v1.6: burrows, a sentinel, dashes, diving at shots, a Familiefoto secret'],
-  ['24 Oct, 16:00', 'Languages: voices and text for more languages', 'Queued as v1.5 Languages'],
+  ['24 Oct, 16:00', 'Languages: game, voice and text in German, English and Afrikaans, with names adjusted for each audience', 'Done in v1.5 (#68)'],
   ['24 Oct, 17:45', 'Clean steel gongs in the training ground, with every shot mark staying visible for the session; tin cans ("blikkies") on fence posts that somersault and can be juggled in the air', 'Gongs done (#66); Blikkies queued as v1.8'],
   ['24 Oct, 18:55', 'Five more ideas to keep the African feel (meerkats, a soundscape, a rain storm, a braai, a farm dog, veld cameos) and Daily specials on local days (Heritage Day braai, Christmas in summer, Halloween, New Year)', 'All queued as v1.6–v1.13; a list of Daily specials sent for the product owner to choose from'],
   ['24 Oct, 20:35', 'Distant animals (like the giraffe) look rough; consider a bow and arrow later', 'Far animals added to v1.6 (veld art); bow and arrow noted as an idea for later'],
 ];
 
 const next = [
-  ['v1.5: languages (in progress)', 'Separate text and voice languages (English, Afrikaans, German, Dutch text); proper names per language with an "Afrikaans names" option; Oupa voiced', 'Tank', 'about 5 h (started 25 Oct, 00:28)'],
-  ['v1.6: veld art and distant animals', 'Trees, bushes, grass and fruit at the new quality bar on every map, and better far animals (giraffe and others)', 'Tank', 'about 6 h'],
+  ['v1.6: veld art and distant animals (next)', 'Trees, bushes, grass and fruit at the new quality bar on every map, and better far animals (giraffe and others)', 'Tank', 'about 6 h'],
+  ['Final voices', 'Replace the interim text-to-speech voices with real or premium voices per language', 'Product owner', 'when chosen'],
   ['v1.7: meerkat colonies', 'Burrows on the desert maps; meerkats peek, stand guard, dash between burrows and dive when shots are fired', 'Tank', 'about 5 h'],
   ['v1.8: blikkies', 'Tin cans on fence posts that somersault when hit and can be juggled in the air', 'Tank', 'about 5 h'],
   ['v1.9–v1.13', 'Soundscape, the rain storm (reënbui), the braai, the farm dog (brakkie) and veld cameos', 'Tank', 'about 4–5 h each'],
@@ -600,6 +629,7 @@ const decisions = [
   ['D-038', 'v1.4 part A: the faster scope view (#56) and Die Langloop'],
   ['D-039', 'v1.4 part B: the Namibië pack, camelthorn trees and the family nest, angry weavers, per-plane points'],
   ['D-040', 'Skietbaan gongs: clean plates, lasting hit marks on steel and paper, mark size from the gun data'],
+  ['D-041', 'v1.5 Languages: separate text and voice languages, names per language with an "Afrikaans names" option, interim voices per language'],
 ];
 
 const glossary = [
