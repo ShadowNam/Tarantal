@@ -6914,6 +6914,24 @@
       "lufs": -17.8,
       "peakDb": -1
     },
+    "voice/af/bark.familiefoto": {
+      "group": "voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-af/audio/voice/af-bark_familiefoto.2ee111baf389.ogg",
+        "bytes": 20539,
+        "hash": "2ee111baf389"
+      },
+      "mp3": {
+        "path": "assets/voice-af/audio/voice/af-bark_familiefoto.cfb9f1aebf4e.mp3",
+        "bytes": 24900,
+        "hash": "cfb9f1aebf4e"
+      },
+      "loop": false,
+      "lufs": -17.8,
+      "peakDb": -1
+    },
     "voice/af/bark.farmer_yet": {
       "group": "voice-af",
       "origin": "interim",
@@ -7128,6 +7146,24 @@
       },
       "loop": false,
       "lufs": -16.8,
+      "peakDb": -1
+    },
+    "voice/af/bark.meerkat_scold": {
+      "group": "voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-af/audio/voice/af-bark_meerkat_scold.1fe25ef7f155.ogg",
+        "bytes": 14471,
+        "hash": "1fe25ef7f155"
+      },
+      "mp3": {
+        "path": "assets/voice-af/audio/voice/af-bark_meerkat_scold.96be2fb8a669.mp3",
+        "bytes": 15767,
+        "hash": "96be2fb8a669"
+      },
+      "loop": false,
+      "lufs": -16.4,
       "peakDb": -1
     },
     "voice/af/bark.mokoro": {
@@ -7706,6 +7742,24 @@
       "lufs": -16,
       "peakDb": -6.4
     },
+    "voice/de/bark.familiefoto": {
+      "group": "voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-de/audio/voice/de-bark_familiefoto.3112d6ac5564.ogg",
+        "bytes": 26060,
+        "hash": "3112d6ac5564"
+      },
+      "mp3": {
+        "path": "assets/voice-de/audio/voice/de-bark_familiefoto.7b7726f1bcf8.mp3",
+        "bytes": 28656,
+        "hash": "7b7726f1bcf8"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -6.1
+    },
     "voice/de/bark.farmer_yet": {
       "group": "voice-de",
       "origin": "interim",
@@ -7921,6 +7975,24 @@
       "loop": false,
       "lufs": -16,
       "peakDb": -7.3
+    },
+    "voice/de/bark.meerkat_scold": {
+      "group": "voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-de/audio/voice/de-bark_meerkat_scold.7dc150865b82.ogg",
+        "bytes": 18447,
+        "hash": "7dc150865b82"
+      },
+      "mp3": {
+        "path": "assets/voice-de/audio/voice/de-bark_meerkat_scold.1938b879bc69.mp3",
+        "bytes": 18983,
+        "hash": "1938b879bc69"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -7.4
     },
     "voice/de/bark.mokoro": {
       "group": "voice-de",
@@ -8498,6 +8570,24 @@
       "lufs": -18.4,
       "peakDb": -1
     },
+    "voice/en/bark.familiefoto": {
+      "group": "voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-en/audio/voice/en-bark_familiefoto.c5d92f654def.ogg",
+        "bytes": 20961,
+        "hash": "c5d92f654def"
+      },
+      "mp3": {
+        "path": "assets/voice-en/audio/voice/en-bark_familiefoto.0f2a0039afaf.mp3",
+        "bytes": 26417,
+        "hash": "0f2a0039afaf"
+      },
+      "loop": false,
+      "lufs": -19.3,
+      "peakDb": -1
+    },
     "voice/en/bark.farmer_yet": {
       "group": "voice-en",
       "origin": "interim",
@@ -8713,6 +8803,24 @@
       "loop": false,
       "lufs": -17,
       "peakDb": -1
+    },
+    "voice/en/bark.meerkat_scold": {
+      "group": "voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-en/audio/voice/en-bark_meerkat_scold.7b8bd1f03780.ogg",
+        "bytes": 11371,
+        "hash": "7b8bd1f03780"
+      },
+      "mp3": {
+        "path": "assets/voice-en/audio/voice/en-bark_meerkat_scold.ed01e47152e3.mp3",
+        "bytes": 11291,
+        "hash": "ed01e47152e3"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -1.2
     },
     "voice/en/bark.mokoro": {
       "group": "voice-en",

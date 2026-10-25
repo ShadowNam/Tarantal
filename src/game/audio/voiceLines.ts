@@ -1,7 +1,7 @@
 // v1.5 (D-041): the lines Oupa says out loud (art bible §10). Each is an i18n key: its text in the
 // text language is the caption, and its voice is the file voice/<voice language>/<key> from that
 // language's voice pack. Pure: from the bark tuning (feel.json barks) and the biomes' secrets.
-import type { Biome } from '../../content/schemas';
+import type { Biome, MeerkatTuning } from '../../content/schemas';
 import { VOICE_LANGUAGES, type VoiceLanguage } from '../../i18n/i18n';
 import { allBarkLines, type BarkTuning } from './barks';
 
@@ -21,10 +21,19 @@ export function voiceLanguageOfGroup(group: string): VoiceLanguage | null {
 
 /**
  * Every voiced key: Oupa's trigger lines, plus each secret's bark (the weavers' "Tsk-tsk-tsk!"
- * scold, the windpomp sign, the egg…), once each, sorted.
+ * scold, the windpomp sign, the egg…), and (v1.7, D-044) the meerkats' scold and Oupa's
+ * Familiefoto line, once each, sorted.
  */
-export function voicedLines(barks: BarkTuning, biomes: readonly Pick<Biome, 'props'>[]): string[] {
+export function voicedLines(
+  barks: BarkTuning,
+  biomes: readonly Pick<Biome, 'props'>[],
+  meerkats?: Pick<MeerkatTuning, 'hit' | 'familiefoto'>,
+): string[] {
   const out = new Set(allBarkLines(barks));
+  if (meerkats !== undefined) {
+    out.add(meerkats.hit.barkKey);
+    out.add(meerkats.familiefoto.barkKey);
+  }
   for (const b of biomes)
     for (const p of b.props) {
       const k = p.secret?.reward.barkKey;
