@@ -3,6 +3,7 @@
 import af from './af.json';
 import de from './de.json';
 import en from './en.json';
+import afNames from './flavour/afNames.json';
 import nl from './nl.json';
 
 export type I18nKey = keyof typeof en;
@@ -10,13 +11,44 @@ export type I18nKey = keyof typeof en;
 export const LANGUAGES = ['en', 'af', 'de', 'nl'] as const;
 export type Language = (typeof LANGUAGES)[number];
 
+/**
+ * v1.5 (D-041): the languages Oupa speaks (one lazy voice pack each). Dutch has no voice of its
+ * own: Dutch text with the voice on "same as text" uses the Afrikaans voice, the closest.
+ */
+export const VOICE_LANGUAGES = ['en', 'af', 'de'] as const;
+export type VoiceLanguage = (typeof VOICE_LANGUAGES)[number];
+export type VoiceSetting = 'same' | VoiceLanguage;
+
+/** The voice pack to use for a voice setting and the current text language. */
+export function voiceLanguageFor(setting: VoiceSetting, text: Language): VoiceLanguage {
+  if (setting !== 'same') return setting;
+  return text === 'nl' ? 'af' : text;
+}
+
 // Content validation checks that every language has every key (src/content/i18nCheck.ts).
 const tables: Record<Language, Partial<Record<I18nKey, string>>> = { en, af, de, nl };
 
+/**
+ * v1.5 (D-041): the Afrikaans flavour names. English, German and Dutch have their own names for
+ * guns, maps, charms, ranks…; this table holds each renamed key's pre-v1.5 text (the Afrikaans
+ * name, docs/i18n-names.md), used instead while Settings → "Afrikaans names" is on.
+ */
+const flavour: Partial<Record<Language, Partial<Record<I18nKey, string>>>> = afNames;
+
 let current: Language = 'en';
+let afrikaansNames = false;
 
 export function setLanguage(lang: Language): void {
   current = lang;
+}
+
+/** v1.5 (D-041): keep the Afrikaans names in any text language (Settings toggle). */
+export function setAfrikaansNames(on: boolean): void {
+  afrikaansNames = on;
+}
+
+export function getAfrikaansNames(): boolean {
+  return afrikaansNames;
 }
 
 export function getLanguage(): Language {
@@ -38,11 +70,16 @@ export function isI18nKey(key: string): key is I18nKey {
 }
 
 export function t(key: I18nKey): string {
-  return tables[current][key] ?? en[key];
+  return tIn(current, key);
 }
 
-/** Text of `key` in a given language (share text built for a fixed language, tests). */
+/** Text of `key` in a given language (share text built for a fixed language, tests). The
+ *  Afrikaans-names toggle applies here too, so share text shows the names the player sees. */
 export function tIn(lang: Language, key: I18nKey): string {
+  if (afrikaansNames) {
+    const name = flavour[lang]?.[key];
+    if (name !== undefined) return name;
+  }
   return tables[lang][key] ?? en[key];
 }
 

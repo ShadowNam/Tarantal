@@ -133,7 +133,10 @@ export class ShedScene extends Phaser.Scene {
 
   /** One card per primary weapon: equipped, equip, locked (with how to unlock) or "later". */
   private loadout(body: Rect, items: MenuItem[], rebuild: () => void): void {
-    if (this.ctx.hook) this.ctx.hook.shedIcons = [];
+    if (this.ctx.hook) {
+      this.ctx.hook.shedIcons = [];
+      this.ctx.hook.shedNames = [];
+    }
     const save = this.ctx.save.data;
     const weapons = this.ctx.content.weapons.weapons.filter(
       (w): w is PrimaryWeapon => w.kind === 'primary',
@@ -195,6 +198,7 @@ export class ShedScene extends Phaser.Scene {
         textStyle(40, dark),
       );
       fitText(name, r.w - 56 - icon);
+      this.ctx.hook?.shedNames?.push(name.text);
       const sub = this.add
         .text(r.x + 28, r.y + r.h - 22, status, textStyle(28, dark))
         .setOrigin(0, 1);

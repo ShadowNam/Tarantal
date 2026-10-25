@@ -2048,6 +2048,15 @@ and every visual baseline), so each target keeps its own small chain: level 0 si
 scope (≤ 1 024 px: a near plate is about 1:1 up to 4×, softer beyond; far and Ver stay sharp at 9×), each lower level a half-size box filter of the one above; the view shows the
 level with ≥ 1 texel per screen pixel. Every level, the plate art and the frame filter LINEAR, also on the low
 tier (whose antialias-off default is NEAREST).
+*Review (25 Oct, v1.5 CI):* a switch never froze the page (the CI trace of the timed-out run
+shows the mid course up in 0.8 s and no step over 7.5 s; the test simply outran its timeout, and
+a third of its time went on serialising the whole test hook). The bake was still wasteful, so:
+level 0 is the only texture made at once; a smaller level is made and rebuilt only when the zoom
+shows it, once per bake (a hit was 7 render passes, now 1 + the level shown); only new marks are
+drawn, at most `MARKS_PER_FRAME` (120) a frame, so a re-bake of 400 marks spreads over 4 frames.
+`MarkSurface.test.ts` counts the work with a fake scene; the hook's `range.bake` (render passes
+since the course started, slowest bake, bake textures alive) is checked after every switch in the
+25-hits e2e test (≤ 8 passes, < 2 s, ≤ 7 textures). Same pixels: no screen changes.
 (6) *Tests:* unit (`rangeMarks.test.ts`): marks at the impact points, deterministic shapes (one
 pinned), 25 hits all stay, per-target keys, Repaint and leaving clear, the cap holds and keeps the
 newest, target indices, the newest glint, the sim-time swing. e2e (`skietbaan.spec.ts`, CI): 25
@@ -2058,6 +2067,68 @@ Previews: `tests/e2e/art-preview-gongs.spec.ts` (ART_PREVIEW=1).
 loads with it. The Skietbaan chunk is 17.1 KB gzip. The lazy `range` group's art is the plate at
 67.8 KB gzip (was 31.3 KB at 1×) and the new frame at 20.1 KB. `assets:audit` lists both as
 interim. No visual.spec screen shows the range, so no baselines change.
+
+**D-041 v1.5 Languages: text, voice and names for every audience (25 Oct 2026):** the product
+owner (24 Oct): "I want options to have game and voice either German, English, Afrikaans. And
+text. Adjust also names accordingly, as the game needs to cater for multiple audiences."
+Presentation only: no sim, content or replay change (content hash and golden replays unchanged).
+(0) *What the code had:* text in en/af/de/nl through Settings → Language (Auto / English /
+Afrikaans / Deutsch / Nederlands); every language showed the Afrikaans names; Oupa's lines were
+text only — 39 trigger lines plus 5 secret barks (44 keys, not 43), with a voice volume already
+in Settings and `voice/<key>` placeholders waiting for recordings.
+(1) *Two settings* (GDD §18.3): **Text language** as before, Dutch kept; new **Voice language**
+(Same as text / English / Afrikaans / Deutsch). Dutch text on "Same as text" speaks Afrikaans (the
+closest; the hint says so). Captions, speech bubbles, share cards, the Daily share text and the
+tally follow the text. Saved in `SettingsSchema` (`voiceLanguage`, `afrikaansNames`); an old save
+loads them as "same" and off field by field, a damaged value falls back alone (tests in
+save.test.ts) — no version bump needed, the field-level salvage is the migration.
+(2) *Names* (`docs/i18n-names.md`, checked row by row against the language files by
+names.test.ts): English, German and Dutch get their own names for guns, crate guns, bonus maps,
+the Skiet-Skuur, Notaboek, Padstal, doppies, creatures, secrets, charms, ranks, seasons and the
+whole-flock stamp; Afrikaans keeps its names; place names stay (Namibië → Namibia). Oupa's spoken
+lines keep his Afrikaans exclamations. The **Afrikaans names** toggle (off by default) uses
+`src/i18n/flavour/afNames.json`, the pre-v1.5 text of every renamed key (names and the sentences
+that use them), in t() and tIn() (so share text follows it). A test scans every en/de string for
+Afrikaans name words; exceptions are allow-listed with a reason (bark.*, fx.*, admin.*, and
+"Windleser", which is good German). German Season Run: "Saisonjagd" (review). No new glyphs, so the
+fonts are unchanged.
+- **Why per-key flavour text, not name placeholders inside sentences:** it restores exactly what
+  players saw before v1.5, including grammar around the name, with no new syntax in the strings.
+(3) *Voice* (art bible §10.1): one pack per voice language, asset group `voice-<lang>`, loaded by
+`src/game/audio/voicePack.ts` only for the chosen language, after the first gesture, never at
+voice volume 0; the AudioDirector plays `voice/<lang>/<line>` (muted before the gesture, when
+hidden, paused and in ads; music ducks under it; one line at a time; none over the tally count-up)
+and keeps one language's buffers. Interim lines are offline TTS (`npm run audio:voice`), `origin:
+interim` in assets:audit: **en** Kokoro-82M v1.0 (Apache-2.0) via kokoro-onnx (MIT), voices
+bm_george 0.7 + am_fenrir 0.3; **af** the same voice reading eSpeak NG's Afrikaans phonemes (no
+commercially usable Afrikaans neural model exists: MMS-TTS is CC BY-NC, XTTS is CPML, Piper has
+none); **de** Thorsten-Voice/Kokoro (Apache-2.0, CC0 data) via kokoro (Apache-2.0). Rejected: Piper
+voices fine-tuned from lessac (research licence) or ryan (CC BY-NC-SA), and every NC model.
+No paid service, account or key; models download from public URLs, pinned by SHA-256. Oupa's
+delivery: slower (0.90–0.94) and lower (−1.5 / −2 semitones), Afrikaans words in en/de lines read
+with Afrikaans phonemes, IPA fixes for "Ouma" and the weavers' "tsk".
+- **Why a separate pack per language and not in the first download:** the first download was
+  3 000.7 KB of 3 072 KB; a pack is 0.6–0.8 MB.
+*Review fixes:* the first gesture anywhere starts the pack, and a bark whose line is still
+loading waits up to `audio.barkWaitMs` (1.5 s) and plays if it arrives in time. Files that failed
+are retried on a later bark, at most 3 fetch rounds per language. `VoicePacks` keeps no bytes,
+and the voice fetch skips finalLoader's page-long cache, so a voice language left behind leaves
+nothing in memory.
+(4) *Sizes* (`npm run size -- --strict`, gzip, the larger twin counted): first download **3 013.5 KB**
+(+12.8 KB: the name strings, the flavour table and the voice code; no audio); Poki 3 009.4 KB,
+CrazyGames 3 009.5 KB. Lazy voice groups: voice-en 614.2 KB, voice-af 666.5 KB, voice-de 803.6 KB
+(Ogg alone: 575 / 613 / 794 KB). The service worker caches them on first use.
+(5) *Tests:* unit — save fields, voiceLanguageFor, names scan + doc table + toggle + all four
+tables complete, share text in de and with the toggle, AudioDirector per-language voice and
+volume 0, voice packs per language and a file for every key in every language; e2e (CI,
+languages.spec.ts) — Deutsch text shows German gun names in the Skiet-Skuur, Afrikaans voice with
+English text fetches only the af pack and captions in English, voice volume 0 fetches nothing,
+the toggle with English text shows the Afrikaans gun names. Previews:
+`tests/e2e/art-preview-v15.spec.ts` (ART_PREVIEW=1). visual.spec screens change on purpose
+(Settings, and any screen showing a renamed name): re-recorded in CI.
+(6) *Open:* final human or premium voices are the product owner's decision (docs/06 §5 "How to
+deliver final voice packs" — a delivered WAV replaces the interim line per key); German and Dutch
+names want a native review (as D-026).
 
 ## 3. Research notes (with sources)
 

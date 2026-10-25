@@ -102,7 +102,13 @@ const sidecarOrigin = z
   })
   .partial();
 /** v1.1 (D-032): `audio/<…>.json` next to a WAV: "interim" = code-made stand-in sound. */
-const sidecarAudio = z.strictObject({ origin: provenance }).partial();
+const sidecarAudio = z
+  .strictObject({
+    origin: provenance,
+    /** v1.5 (D-041): how an interim file was made (TTS engine, model, licence); not shipped. */
+    source: z.string().max(300),
+  })
+  .partial();
 const sidecarLayer = z
   .strictObject({
     top: z.number(),
@@ -715,9 +721,11 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
       key = `sfx/${parts[1]}`;
       // 24 Oct update (D-037): the Skietbaan's sounds load with its lazy "range" group.
       if (o.catalog.entries.get(key)?.group === RANGE_GROUP) group = RANGE_GROUP;
-    } else if (parts[0] === 'voice' && parts.length === 2) {
-      key = `voice/${parts[1]}`;
+    } else if (parts[0] === 'voice' && parts.length === 3) {
+      // v1.5 (D-041): audio/voice/<lang>/<bark key>.wav, one lazy pack per voice language.
+      key = `voice/${parts[1]}/${parts[2]}`;
       kind = 'voice';
+      group = o.catalog.entries.get(key)?.group ?? group;
     } else if (
       parts[0] === 'music' &&
       parts.length === 3 &&

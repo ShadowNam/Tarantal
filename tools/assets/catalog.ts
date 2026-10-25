@@ -11,7 +11,9 @@ import {
   loadBiomeArt,
   placeholderBiomes,
 } from '../../src/game/placeholder/ProceduralAssetFactory';
-import { allBarkLines } from '../../src/game/audio/barks';
+import { voiceGroup, voicedLines } from '../../src/game/audio/voiceLines';
+import { voiceKey } from '../../src/game/assets/AssetManifest';
+import { VOICE_LANGUAGES } from '../../src/i18n/i18n';
 import {
   PLATE_FRAME_TEX,
   PLATE_FRAME_TEX_SIZE,
@@ -25,7 +27,7 @@ import { loadFeel } from '../testContent';
 export interface CatalogEntry {
   readonly key: string;
   readonly kind: AssetKind;
-  /** `common`, or the one biome that uses it (loads with that biome). */
+  /** `common`, the one biome that uses it (loads with that biome), or a lazy group. */
   readonly group: string;
   /** Biomes whose manifest has this key. */
   readonly biomes: readonly string[];
@@ -58,15 +60,13 @@ export interface Catalog {
 
 export async function buildCatalog(content: ContentBundle): Promise<Catalog> {
   const ids = placeholderBiomes();
-  // v1.0.1 (D-028 §3): Oupa's barks are common voice keys (feel.json barks lines).
-  const barkLines = allBarkLines(loadFeel().barks);
   const entries = new Map<string, CatalogEntry>();
   const layers = new Map<string, LayerSpec>();
   const birds = new Map<string, PlaneId[]>();
   for (const id of ids) {
     const biome = content.biomes.find((b) => b.id === id);
     if (biome === undefined || !(await loadBiomeArt(id))) continue;
-    const m = createPlaceholderManifest(content, biome, barkLines, loadFeel().guns.ammo);
+    const m = createPlaceholderManifest(content, biome, loadFeel().guns.ammo);
     for (const e of m.entries()) {
       const prev = entries.get(e.key);
       const biomes = [...(prev?.biomes ?? []), id];
@@ -122,6 +122,13 @@ export async function buildCatalog(content: ContentBundle): Promise<Catalog> {
   });
   for (const key of Object.values(RANGE_SOUNDS))
     entries.set(key, { key, kind: 'sound', group: RANGE_GROUP, biomes: everyBiome });
+  // v1.5 (D-041): Oupa's voice, one lazy pack per voice language (voice/<lang>/<bark key>): his
+  // trigger lines (feel.json barks) and every secret's bark.
+  for (const lang of VOICE_LANGUAGES)
+    for (const line of voicedLines(loadFeel().barks, content.biomes)) {
+      const key = voiceKey(lang, line);
+      entries.set(key, { key, kind: 'sound', group: voiceGroup(lang), biomes: everyBiome });
+    }
   return {
     homeBiome: content.modes.modes.classic.biome,
     biomes: ids,

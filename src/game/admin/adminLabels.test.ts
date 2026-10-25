@@ -13,9 +13,9 @@ const entries = adminEntries(
 describe('admin entry labels', () => {
   it('names every bonus map by its i18n name, never its id', () => {
     for (const [id, name] of [
-      ['verder', 'Verder'],
-      ['nogVerder', 'Nog Verder'],
-      ['dieVerste', 'Die Verste'],
+      ['verder', 'Further'],
+      ['nogVerder', 'Further Still'],
+      ['dieVerste', 'The Furthest'],
     ] as const) {
       const e = entries.find((x) => x.bonus === id);
       if (e === undefined) throw new Error(`no admin entry for ${id}`);

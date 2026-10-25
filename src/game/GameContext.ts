@@ -51,6 +51,18 @@ export interface RangeHookState {
   }[];
   /** Holes drawn on the paper targets now (D-040: every hole of the visit, not only 20). */
   readonly drawnImpacts: number;
+  /**
+   * D-040 review: the mark bakes' cost since this course started (MarkSurface bakeStats): render
+   * passes, marks drawn, the slowest and the last bake's ms, and the bake textures alive now
+   * (a switch must not leave the old ones behind).
+   */
+  readonly bake?: {
+    readonly renders: number;
+    readonly marks: number;
+    readonly maxBakeMs: number;
+    readonly lastBakeMs: number;
+    readonly liveTextures: number;
+  };
   /** D-040: each paper or plate on the range, its marks for the visit (key: area|course|distance|kind|
    *  index) and how many are baked on it now. */
   readonly marks: readonly {
@@ -218,6 +230,15 @@ export interface TestHook {
     /** Sound keys playing from a recorded file (decoded), not the synth. */
     recorded: string[];
   };
+  /**
+   * v1.5 (D-041): Oupa's voice — the voice language in use, its pack's state (each language's
+   * pack loads only when chosen) and the voice keys played from a recording (voice/<lang>/<line>).
+   */
+  voice: {
+    language: string;
+    pack: 'none' | 'loading' | 'ready' | 'partial' | 'missing';
+    played: string[];
+  };
   /** M10: what the music plays (biome, audible stem) and the master gain (0 while muted). */
   readonly music: { id: string; stem: string | null } | null;
   readonly masterGain: number | null;
@@ -325,6 +346,8 @@ export interface TestHook {
   };
   /** D-035 review: weapon ids whose picture the Skiet-Skuur's Guns tab shows. */
   shedIcons?: string[];
+  /** v1.5 (D-041): the gun names on the Guns tab's cards, as drawn (text language, toggle). */
+  shedNames?: string[];
   /** M9: the Padstal help card's text bottom and OK button top (no overlap: textBottom < okTop). */
   helpCard?: { textBottom: number; okTop: number };
   /** M9: sound captions on screen (i18n keys, newest first). */

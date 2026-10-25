@@ -535,8 +535,14 @@ v1.4 B (D-039):
   waits `stemHoldMs`). A missing stem falls back to the next calmer one. A biome change fades
   the old set out and the new one in (`biomeFadeMs`); ambience (`amb/<biome>`) loops beside it.
   With no music delivered there is none, and the synth flush sting and Stampede cue stay.
-- Oupa's barks (`voice/<barkKey>`, subtitled by the HUD banner): at most one per `barkGapMs`,
-  never during the tally count-up; music ducks by `duckDb` (−6 dB) under them.
+- Oupa's barks (`voice/<voice language>/<barkKey>`, subtitled by the HUD banner in the text
+  language): at most one per `barkGapMs`, never during the tally count-up; music ducks by
+  `duckDb` (−6 dB) under them. v1.5 (D-041): each voice language is a lazy asset group
+  (`voice-en|af|de`); `voicePack.ts` loads only the chosen one, after the first gesture and not
+  at voice volume 0, and the director keeps only that language's buffers. Text language,
+  voice language and the Afrikaans-names toggle (`setAfrikaansNames`, flavour table
+  `src/i18n/flavour/afNames.json`) are presentation only: never in the sim, the replay or the
+  content hash.
 - Mute on `visibilitychange` (and the context suspends), on pause, and whenever the platform
   adapter reports an ad (Poki rule) or the portal mutes (CrazyGames).
 - Formats (M10, D-027): Ogg Vorbis where `canPlayType` says "probably", else MP3 (Safari);

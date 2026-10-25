@@ -57,7 +57,7 @@ art-source/
   audio/sfx/<id>.wav              sound effects (§5)
   audio/music/<biome>/<stem>.wav  calm | build | stampede
   audio/ambience/<biome>.wav      one loop per biome
-  audio/voice/<id>.wav            Oupa barks (keys arrive with the bark list)
+  audio/voice/<lang>/<key>.wav    Oupa's lines, one folder per voice language (en, af, de)
 ```
 
 All images are 8-bit RGBA PNG with straight (not premultiplied) alpha, sRGB. Don't bake any text
@@ -243,20 +243,42 @@ hadeda call, UI clicks) needs a key in the game first: ask the developer for it.
 flock runs or flushes or the Frenzy reaches ×2, and **stampede** in the Stampede. A missing stem
 falls back to the next calmer one. Music ducks −6 dB under Oupa.
 
-**Voice keys** (Oupa's barks, file name = the bark's i18n key; the HUD shows the line as a
-subtitle): `bark.kos_is_reg` (Karoo), `bark.weavers` and `bark.sign` (Kalahari),
-`bark.mokoro` and `bark.kwaak` (Okavango), e.g. `audio/voice/bark.kos_is_reg.wav`. Record the
-EN/AF line as written in `src/i18n/en.json`.
+**Voices** (v1.5, D-041; art bible §10.1). Oupa speaks English, Afrikaans and German; the
+player picks the voice language in Settings. **One folder per voice language:**
+`audio/voice/en/`, `audio/voice/af/`, `audio/voice/de/`, each with one WAV per line, the file name
+being the line's i18n key, e.g. `audio/voice/af/bark.kos_is_reg.wav`. The pack tool puts each
+language in its own lazy group (`voice-en`, `voice-af`, `voice-de`): the game downloads only the
+chosen language's pack, after the first tap, and never in the first download. 44 lines per
+language: the 39 trigger lines below plus the 5 secret barks (`bark.kos_is_reg` Karoo,
+`bark.weavers` and `bark.sign` Kalahari, `bark.mokoro` and `bark.kwaak` Okavango, `bark.egg`
+Namibië; `bark.weavers` is the weavers scolding, not Oupa). Read each language's line as written
+in `src/i18n/<lang>.json` (en.json for English, af.json for Afrikaans, de.json for German),
+keeping Oupa's Afrikaans exclamations ("Mooi skoot", "my kind", "Jinne") in Afrikaans in every
+language. Short: most lines are 1–3 s. The HUD shows the line in the player's text language as
+a speech bubble whether or not a recording exists.
 
-**Oupa's launch barks** (v1.0.1, D-028): what triggers each line, and its text, live in
-`content/client/feel.json → barks` and `src/i18n/<lang>.json`; the HUD shows the line as a
-speech bubble whether or not a recording exists. One file per key, recorded in Oupa's EN/AF mix
-(the signature Afrikaans lines stay Afrikaans in every language; the en.json text is the
-reference, the af.json text is the Afrikaans read). Short: most lines are 1–2 s. `npm run
-assets:audit` lists each as `voice/bark.<id>` (placeholder until delivered). The 5 secret barks
-above are separate.
+**How to deliver final voice packs** (the product owner's choice of human or premium voices):
+1. Record or render the 44 lines for one language as WAV masters (as above; mono is fine).
+2. Name them `<key>.wav` and copy them into `art-source/audio/voice/<lang>/`, **deleting the
+   interim `<key>.wav` and its `<key>.json` sidecar** for each line you replace. A WAV with no
+   sidecar is final; `npm run audio:voice` never overwrites it. A pack may be delivered line by
+   line: the rest stay interim.
+3. Run `npm run assets:pack`, then `npm run assets:audit` (each line shows FINAL or INTERIM, per
+   language) and `npm run size -- --strict` (each voice group ≤ 1.5 MB gzip).
+4. A new voice language needs a developer: it is added to `VOICE_LANGUAGES` in `src/i18n/i18n.ts`
+   (and the Settings choice), then its folder is picked up the same way.
 
-| Voice key (`audio/voice/<key>.wav`) | Trigger(s) | EN line | AF line |
+**Interim voices** (v1.5): `npm run audio:voice` makes the interim packs offline with open-source
+TTS (`tools/audio/voice.ts`, `voice_tts.py`, `voice.config.json`; engines and licences in art
+bible §10.1, nothing needs an account or a key). Setup, once, in a Python 3.12 virtual
+environment outside the repo:
+`python3 -m venv ~/tts && ~/tts/bin/pip install kokoro-onnx espeakng-loader torch --index-url
+https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple && ~/tts/bin/pip
+install kokoro "misaki[en]"`, then `TTS_PYTHON=~/tts/bin/python npm run audio:voice [--lang de]
+[--only bark.x]`. The models (≈ 450 MB) download once into `tmp/tts-models/` from their public
+URLs and are checked by SHA-256. The trigger lines:
+
+| Voice key (`audio/voice/<lang>/<key>.wav`) | Trigger(s) | EN line | AF line |
 |---|---|---|---|
 | `bark.ag_nee` | missStreak | Ag nee man! | Ag nee man! |
 | `bark.aim` | missStreak | Aim, my kind, aim! | Mik, my kind, mik! |
@@ -274,7 +296,7 @@ above are separate.
 | `bark.kos_is_reg` | quotaMet | Kos is reg! | Kos is reg! |
 | `bark.laai` | emptyClick | Laai, laai, laai! | Laai, laai, laai! |
 | `bark.laughing` | missStreak | Those birds are laughing at you. | Daai voëls lag vir jou. |
-| `bark.legend` | legend | Bosveld Legend! | Bosveld-legende! |
+| `bark.legend` | legend | Bushveld Legend! | Bosveld-legende! |
 | `bark.lekker` | bagStreak | Lekker! Keep them coming! | Lekker! Hou so aan! |
 | `bark.los_kwevoel` | kwevoel | Los die kwêvoël uit! | Los die kwêvoël uit! |
 | `bark.mooi_skoot` | bagStreak | Mooi skoot, my kind! | Mooi skoot, my kind! |
@@ -286,7 +308,7 @@ above are separate.
 | `bark.on_fire` | frenzyTop | Now you're on fire! | Nou brand jy! |
 | `bark.quota_met` | quotaMet | That's the quota! Now show off. | Dis die kwota! Nou kan jy spog. |
 | `bark.rain` | rain | Rain! Now the birds will run. | Reën! Nou gaan die voëls hardloop. |
-| `bark.run_won` | runWon | The whole year! Bosveld Legend, my kind! | Die hele jaar! Bosveld-legende, my kind! |
+| `bark.run_won` | runWon | The whole year! Bushveld Legend, my kind! | Die hele jaar! Bosveld-legende, my kind! |
 | `bark.slaap` | idle | Are you asleep, my kind? | Slaap jy, my kind? |
 | `bark.stadsjapie` | badHunt, quotaMissed | Stadsjapie… | Stadsjapie… |
 | `bark.stampede` | stampede | Stampede! Hold on to your hat! | Stormloop! Hou jou hoed vas! |

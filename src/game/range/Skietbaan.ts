@@ -12,6 +12,7 @@ import type { PlaneId, SimState } from '../../sim/types';
 import type { RangeHookState } from '../GameContext';
 import { designSize, renderScale } from '../layout';
 import { layoutForDay } from '../../meta/maps';
+import { bakeStats } from './MarkSurface';
 import { PaperDraw } from './PaperDraw';
 import { PlateDraw } from './PlateDraw';
 import { RangeFeedback } from './RangeFeedback';
@@ -149,6 +150,10 @@ class Session implements RangeSession {
   private readonly markCls: MarkClass;
   /** Pellets so far per shot and target (a mark's pellet index). */
   private readonly pellets = new Map<string, number>();
+  /** D-040 review: the bake counters when this course started (the hook reports the change). */
+  private readonly bakeAt = { renders: bakeStats.renders, marks: bakeStats.marks };
+  private rendersSeen = bakeStats.renders;
+  private maxBakeMs = 0;
   /** The view's sim tick: the snapshot's, or where it was when the range was held (e2e). */
   private viewTick = 0;
 
@@ -283,6 +288,10 @@ class Session implements RangeSession {
         screenScale: this.screenScale(host.overlay(p.plane)),
       });
     }
+    if (bakeStats.renders !== this.rendersSeen) {
+      this.rendersSeen = bakeStats.renders;
+      this.maxBakeMs = Math.max(this.maxBakeMs, bakeStats.lastBakeMs);
+    }
     for (const p of this.papers) p.tick(dt);
     this.marks?.update(dt);
     const landed = events.length > 0 ? stats.ingest(events, this.sel) : [];
@@ -329,6 +338,13 @@ class Session implements RangeSession {
             short: c.short,
           })),
         drawnImpacts: this.papers.reduce((n, p) => n + p.count, 0),
+        bake: {
+          renders: bakeStats.renders - this.bakeAt.renders,
+          marks: bakeStats.marks - this.bakeAt.marks,
+          maxBakeMs: this.maxBakeMs,
+          lastBakeMs: bakeStats.lastBakeMs,
+          liveTextures: bakeStats.created - bakeStats.destroyed,
+        },
         marks: papers.map((p) => {
           const key = this.keys.get(p.id) ?? '';
           const d = this.plates.get(p.id) ?? this.papers.find((x) => x.id === p.id);

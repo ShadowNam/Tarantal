@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { translator } from '../i18n/i18n';
+import { setAfrikaansNames, translator } from '../i18n/i18n';
 import { loadContent, loadDailyMeta } from '../../tools/testContent';
 import { createSim } from '../sim/Sim';
 import type { SimEvent } from '../sim/events';
@@ -34,11 +34,11 @@ describe('share text (GDD §15)', () => {
   it('en', () => {
     const tr = translator('en');
     expect(show(buildShareText(daily, tr))).toMatchInlineSnapshot(`
-      "🐦 Tarantal Madness · Daily #142 · 2⎵840 · Bosveldjagter · 🟩🟩🟨🟩⬛ · 2× hele swerm
+      "🐦 Tarantal Madness · Daily #142 · 2⎵840 · Bushveld Hunter · 🟩🟩🟨🟩⬛ · 2× whole flock
       Beat me on this exact hunt: https://shadownam.github.io/Tarantal/?c=eyJ2IjoxfQ"
     `);
     expect(show(buildShareText(classic, tr))).toMatchInlineSnapshot(`
-      "🐦 Tarantal Madness · Classic · Karoo · 12⎵345 · Bosveld Legend · 🟩🟩🟨🟩⬛
+      "🐦 Tarantal Madness · Classic · Karoo · 12⎵345 · Bushveld Legend · 🟩🟩🟨🟩⬛
       Beat me on this exact hunt: https://shadownam.github.io/Tarantal/?c=eyJ2IjoxfQ"
     `);
   });
@@ -55,10 +55,26 @@ describe('share text (GDD §15)', () => {
     `);
   });
 
+  it('v1.5 (D-041): follows the text language, and the Afrikaans-names toggle', () => {
+    const de = buildShareText(daily, translator('de')).text;
+    expect(de).toContain('Buschjäger');
+    expect(de).toContain('2× ganzer Schwarm');
+    setAfrikaansNames(true);
+    try {
+      const en = buildShareText(daily, translator('en')).text;
+      expect(en).toContain('Bosveldjagter');
+      expect(en).toContain('2× hele swerm');
+      expect(en).toContain('Daily #142');
+    } finally {
+      setAfrikaansNames(false);
+    }
+  });
+
   it('names v1.3 bonus maps by their i18n name (bonusSlug), never their id', () => {
     for (const [lang, bonus, name] of [
-      ['en', 'nogVerder', 'Nog Verder'],
-      ['en', 'dieVerste', 'Die Verste'],
+      ['en', 'nogVerder', 'Further Still'],
+      ['en', 'dieVerste', 'The Furthest'],
+      ['de', 'nogVerder', 'Noch weiter'],
       ['af', 'nogVerder', 'Nog Verder'],
     ] as const) {
       const text = buildShareText({ ...classic, layout: 'mon', bonus }, translator(lang)).text;

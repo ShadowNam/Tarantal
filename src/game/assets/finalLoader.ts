@@ -123,3 +123,16 @@ export function loadBytes(path: string, timeoutMs: number): Promise<ArrayBuffer 
   }
   return p;
 }
+
+/**
+ * v1.5 (D-041): raw bytes without the page-long cache above (Oupa's voice packs: a language left
+ * behind must not stay in memory). A failure resolves to null; the browser's HTTP cache and the
+ * service worker still serve a repeat fetch.
+ */
+export function fetchBytesUncached(path: string, timeoutMs: number): Promise<ArrayBuffer | null> {
+  return withTimeout(
+    fetch(path).then((r) => (r.ok ? r.arrayBuffer() : null)),
+    timeoutMs,
+    null,
+  );
+}

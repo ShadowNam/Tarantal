@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import af from './af.json';
 import en from './en.json';
-import { fill, isI18nKey, pickLanguage, setLanguage, t } from './i18n';
+import { fill, isI18nKey, pickLanguage, setLanguage, t, voiceLanguageFor } from './i18n';
 
 describe('i18n tables', () => {
   it('af has no key that en lacks, and every string is non-empty', () => {
@@ -54,5 +54,15 @@ describe('i18n tables', () => {
     expect(pickLanguage(['de-DE'])).toBe('de');
     expect(pickLanguage(['nl-BE', 'en'])).toBe('nl');
     expect(pickLanguage(['fr-FR'])).toBe('en');
+  });
+
+  it('v1.5 (D-041): the voice follows the text unless set; Dutch text speaks Afrikaans', () => {
+    expect(voiceLanguageFor('same', 'en')).toBe('en');
+    expect(voiceLanguageFor('same', 'af')).toBe('af');
+    expect(voiceLanguageFor('same', 'de')).toBe('de');
+    expect(voiceLanguageFor('same', 'nl')).toBe('af');
+    expect(voiceLanguageFor('af', 'en')).toBe('af');
+    expect(voiceLanguageFor('de', 'nl')).toBe('de');
+    expect(voiceLanguageFor('en', 'af')).toBe('en');
   });
 });

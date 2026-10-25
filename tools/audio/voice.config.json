@@ -1,0 +1,94 @@
+{
+  "$comment": "v1.5 (D-041) interim TTS for Oupa's voice: `npm run audio:voice` (tools/audio/voice.ts, tools/audio/voice_tts.py; setup in docs/06-ASSET-DELIVERY.md §5). Per voice language: engine, voice, speed (1 = model default), pitch in semitones (applied by resampling, which also slows the line by the same ratio), the lead-in silence and the eSpeak NG language used for phonemes. Words of Oupa's Afrikaans inside an English or German line are read with Afrikaans phonemes (afPhrases); /…/ in a `say` line is raw IPA and `ipa` lists words read as written. Licences: docs/05 D-041 and docs/03 §10.",
+  "sampleRate": 22050,
+  "leadMs": 40,
+  "tailMs": 120,
+  "languages": {
+    "en": {
+      "engine": "kokoro-onnx",
+      "voice": {
+        "bm_george": 0.7,
+        "am_fenrir": 0.3
+      },
+      "espeak": "en-gb",
+      "speed": 0.94,
+      "pitch": -1.5
+    },
+    "af": {
+      "engine": "kokoro-onnx",
+      "voice": {
+        "bm_george": 0.7,
+        "am_fenrir": 0.3
+      },
+      "espeak": "af",
+      "speed": 0.9,
+      "pitch": -1.5
+    },
+    "de": {
+      "engine": "kokoro-thorsten",
+      "voice": "thorsten",
+      "espeak": "de",
+      "speed": 0.92,
+      "pitch": -2
+    }
+  },
+  "lines": {
+    "bark.weavers": {
+      "$comment": "the weavers' scold, not Oupa: higher, quicker, the tsk as clicks",
+      "speed": 1.12,
+      "pitch": 5
+    },
+    "bark.kwaak": {
+      "$comment": "a frog",
+      "speed": 0.9,
+      "pitch": -4
+    }
+  },
+  "say": {
+    "en": {
+      "bark.weavers": "/tsː, tsː, tsː!/ Leave our nest!"
+    },
+    "af": {
+      "bark.weavers": "/tsː, tsː, tsː!/ Los ons nes!"
+    },
+    "de": {
+      "bark.weavers": "/tsː, tsː, tsː!/ Lass unser Nest!",
+      "bark.sign": "Windpumpen-Schild: plus fünf Sekunden!"
+    }
+  },
+  "sayAll": {
+    "en": {
+      "+5 s": "plus five seconds"
+    },
+    "af": {
+      "+5 s": "plus vyf sekondes"
+    }
+  },
+  "afPhrases": [
+    "Ag nee man",
+    "Ag nee",
+    "Ach nee",
+    "Mooi skoot",
+    "my kind",
+    "Môre",
+    "Lekker",
+    "Jinne",
+    "kyk hoe hardloop hulle",
+    "Los die kwêvoël uit",
+    "Die hele swerm",
+    "Twee vlieë met een klap",
+    "Laai, laai, laai",
+    "Kos is reg",
+    "Stadsjapie",
+    "Haai",
+    "tarentaal",
+    "Ouma",
+    "Kwaak",
+    "veld",
+    "Windpomp"
+  ],
+  "ipa": {
+    "Ouma": "ˈœʊma",
+    "Oupa": "ˈœʊpa"
+  }
+}

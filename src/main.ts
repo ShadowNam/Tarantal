@@ -9,7 +9,7 @@ import { contentHash } from './content/hash';
 import { DailyFlow } from './game/daily/DailyFlow';
 import { loadGameContent } from './content/loadBrowser';
 import { AudioDirector, browserAudioEnv } from './game/audio/AudioDirector';
-import { BarkDirector, allBarkLines } from './game/audio/barks';
+import { BarkDirector } from './game/audio/barks';
 import { withDoppies, withQuotaMul, withTestCrate } from './game/devContent';
 import type { GameContext, TestHook, TestTools } from './game/GameContext';
 import {
@@ -26,7 +26,8 @@ import { loadFonts } from './game/ui/fonts';
 import { FlashLimiter } from './game/view/flashLimit';
 import { setTextLook } from './game/ui/textLook';
 import type { AssetManifest } from './game/assets/AssetManifest';
-import { ABSENT, fetchAssetIndex } from './game/assets/finalLoader';
+import { ABSENT, fetchAssetIndex, fetchBytesUncached } from './game/assets/finalLoader';
+import { VoicePacks } from './game/audio/voicePack';
 import {
   biomeArtReady,
   createPlaceholderManifest,
@@ -45,7 +46,15 @@ import { ShedScene } from './game/scenes/ShedScene';
 import { TallyScene } from './game/scenes/TallyScene';
 import { TitleScene } from './game/scenes/TitleScene';
 import { DomChrome } from './game/ui/DomChrome';
-import { isI18nKey, pickLanguage, setLanguage, t } from './i18n/i18n';
+import {
+  isI18nKey,
+  pickLanguage,
+  setAfrikaansNames,
+  setLanguage,
+  t,
+  voiceLanguageFor,
+  type Language,
+} from './i18n/i18n';
 import { decodeChallenge, type ChallengeDecode } from './meta/challenge';
 import { dailySeed } from './meta/daily';
 import { dayNumber, parseDayKey } from './meta/dailyCalendar';
@@ -134,10 +143,19 @@ if (testHooks && params.get('ftue') === '0' && !save.data.ftue.done) {
   save.update((d) => ({ ...d, ftue: { done: true, skipped: true, step: 'param' } }));
 }
 
+/** User-activation events that may start Web Audio (v1.5: the first one unlocks it). */
+const GESTURES = ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'] as const;
+
+/** The text language a settings object picks (Auto follows the browser). */
+function textLanguageOf(s: Settings): Language {
+  return s.language === 'auto' ? pickLanguage(navigator.languages) : s.language;
+}
+
 function applyLanguage(): void {
-  const lang = save.data.settings.language;
-  setLanguage(lang === 'auto' ? pickLanguage(navigator.languages) : lang);
-  document.documentElement.lang = lang === 'auto' ? pickLanguage(navigator.languages) : lang;
+  const lang = textLanguageOf(save.data.settings);
+  setLanguage(lang);
+  setAfrikaansNames(save.data.settings.afrikaansNames);
+  document.documentElement.lang = lang;
   for (const el of document.querySelectorAll<HTMLElement>('[data-i18n]')) {
     const key = el.dataset['i18n'];
     if (key !== undefined && isI18nKey(key)) el.textContent = t(key);
@@ -326,6 +344,7 @@ const hook: TestHook = {
   huntRequests: 0,
   ads: null,
   audioMuted: false,
+  voice: { language: '', pack: 'none', played: [] },
   captions: [],
   quality: { tier: '', bench: null, benchRan: false, layers: 0, filters: [] },
   errors: [],
@@ -469,6 +488,16 @@ async function boot(): Promise<void> {
     Object.fromEntries(Object.entries(feel.guns.weapons).map(([id, w]) => [id, w.sfx])),
   );
   hook.assets.recorded = audio.recorded;
+  // v1.5 (D-041): the first gesture anywhere (title, menus, Settings, the Skiet-Skuur) unlocks
+  // audio, so Oupa's voice pack starts loading then and is usually in before the first hunt's
+  // greeting. Scenes still unlock on their own taps too; unlock() is idempotent. These are the
+  // events browsers accept as a user activation for audio (iOS: touchend and click).
+  const firstGesture = (): void => {
+    audio.unlock();
+    if (!audio.running) return;
+    for (const type of GESTURES) document.removeEventListener(type, firstGesture, true);
+  };
+  for (const type of GESTURES) document.addEventListener(type, firstGesture, true);
   // Live values (read through the hook in page.evaluate).
   Object.defineProperties(hook, {
     music: { enumerable: true, get: () => audio.music },
@@ -481,7 +510,10 @@ async function boot(): Promise<void> {
       music: s.musicVolume,
       voice: s.voiceVolume,
     });
+    applyVoice?.(s);
   };
+  /** v1.5 (D-041): Oupa's voice pack (set once the asset index is known, below). */
+  let applyVoice: ((s: Settings) => void) | null = null;
   applyAudio(save.data.settings);
   platform.onAdChange((playing) => {
     audio.setMuted('ad', playing);
@@ -530,7 +562,7 @@ async function boot(): Promise<void> {
   const manifestFor = (b: Biome): AssetManifest => {
     let m = manifests.get(b.id);
     if (m === undefined) {
-      m = createPlaceholderManifest(bundle, b, allBarkLines(feel.barks), feel.guns.ammo);
+      m = createPlaceholderManifest(bundle, b, feel.guns.ammo);
       manifests.set(b.id, m);
     }
     return m;
@@ -538,6 +570,26 @@ async function boot(): Promise<void> {
   // M10: final files for a biome's manifest, loaded once (each failure keeps that placeholder).
   const { index: assetIndex, problem: indexProblem } = await indexLoad;
   hook.assets.problem = indexProblem;
+  // v1.5 (D-041): the voice language (its own setting; "same" follows the text, Dutch → af). Its
+  // pack loads lazily after the first gesture, never with the voice volume at 0.
+  const voicePacks = new VoicePacks(audio, assetIndex, {
+    // Uncached: a voice language left behind keeps no bytes (finalLoader's loadBytes caches).
+    loadBytes: (path) => fetchBytesUncached(path, feel.assets.fileTimeoutMs),
+    onState: (lang, state) => {
+      if (hook.voice.language === lang) hook.voice.pack = state;
+    },
+  });
+  audio.onMissingLine(() => {
+    voicePacks.retry();
+  });
+  hook.voice.played = audio.voicePlayed;
+  applyVoice = (s: Settings): void => {
+    const lang = voiceLanguageFor(s.voiceLanguage, textLanguageOf(s));
+    if (hook.voice.language !== lang) hook.voice.pack = 'none';
+    hook.voice.language = lang;
+    voicePacks.use(lang, s.voiceVolume > 0 && s.masterVolume > 0);
+  };
+  applyVoice(save.data.settings);
   if (indexProblem !== null && !indexProblem.startsWith(ABSENT))
     console.warn(`[assets] ${indexProblem}: using placeholders`);
   const finalLoads = new Map<string, Promise<void>>();

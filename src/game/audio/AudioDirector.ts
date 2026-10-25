@@ -100,6 +100,16 @@ export class AudioDirector {
   private readonly hold: StemHold;
   /** The Oupa line playing (or last played): a new one stops it. */
   private voiceSrc: AudioBufferSourceNode | null = null;
+  /** v1.5 (D-041): the voice language whose pack Oupa speaks from (voice/<lang>/<line>). */
+  private voiceLang = 'en';
+  /** Voice keys said from a recording on this page (test hook; newest last, capped). */
+  readonly voicePlayed: string[] = [];
+  /** v1.5: a bark whose line hadn't arrived: it plays if the line is decoded by `until`. */
+  private waiting: { line: string; until: number } | null = null;
+  /** v1.5: told when Oupa speaks a line that isn't loaded (the voice pack retries failures). */
+  private missingLine: (() => void) | null = null;
+  /** Called once, on the first unlock (the voice pack downloads only once audio can play). */
+  private readonly unlockFns: (() => void)[] = [];
   private tallyCounting = false;
   /** v1.1 (D-032): the gun in hand (its own shot and reload sounds, feel.json guns). */
   private weapon = '';
@@ -145,12 +155,41 @@ export class AudioDirector {
         this.applyGain();
         this.decodePending();
         this.refreshMusic();
+        for (const fn of this.unlockFns.splice(0)) fn();
       }
       if (this.ctx.state !== 'running') this.ctx.resume().catch(() => undefined);
     } catch {
       // No audio is better than no game.
       this.ctx = null;
     }
+  }
+
+  /** v1.5 (D-041): `fn` runs whenever a bark finds its line not loaded (VoicePacks.retry). */
+  onMissingLine(fn: () => void): void {
+    this.missingLine = fn;
+  }
+
+  /** v1.5 (D-041): runs `fn` once audio has been unlocked by a gesture (now, if it has). */
+  onUnlocked(fn: () => void): void {
+    if (this.ctx !== null) fn();
+    else this.unlockFns.push(fn);
+  }
+
+  /**
+   * v1.5 (D-041): Oupa speaks this voice language. Another language's decoded lines are released
+   * (only one pack is kept in memory); its recordings come from voicePack.ts.
+   */
+  setVoiceLanguage(lang: string): void {
+    if (lang === this.voiceLang) return;
+    this.voiceLang = lang;
+    const mine = (key: string): boolean =>
+      !key.startsWith('voice/') || key.startsWith(`voice/${lang}/`);
+    this.pending = this.pending.filter((f) => mine(f.key));
+    for (const key of [...this.buffers.keys()]) if (!mine(key)) this.buffers.delete(key);
+  }
+
+  get voiceLanguage(): string {
+    return this.voiceLang;
   }
 
   /** The recorded format this browser plays: Ogg Vorbis where sure, else MP3 (Safari). */
@@ -172,6 +211,8 @@ export class AudioDirector {
   addRecorded(files: readonly FinalSound[]): void {
     const known = new Set([...this.pending.map((f) => f.key), ...this.buffers.keys()]);
     for (const f of files) {
+      // v1.5: a voice pack that arrives after the language changed is not kept.
+      if (f.key.startsWith('voice/') && !f.key.startsWith(`voice/${this.voiceLang}/`)) continue;
       if (biomeOfKey(f.key) !== null) this.musicFiles.set(f.key, f);
       else if (!known.has(f.key)) this.pending.push(f);
     }
@@ -210,8 +251,16 @@ export class AudioDirector {
     // A biome left while decoding doesn't keep its music.
     const biome = biomeOfKey(f.key);
     if (buf === null || (biome !== null && biome !== this.biome)) return;
+    // v1.5: nor does a voice language left while decoding.
+    if (f.key.startsWith('voice/') && !f.key.startsWith(`voice/${this.voiceLang}/`)) return;
     this.buffers.set(f.key, buf);
     if (!this.recorded.includes(f.key)) this.recorded.push(f.key);
+    // v1.5: the bark waiting for this line plays now, if it's still in time.
+    const w = this.waiting;
+    if (w !== null && f.key === voiceKey(this.voiceLang, w.line)) {
+      this.waiting = null;
+      if (this.env.now() <= w.until) this.bark(w.line);
+    }
   }
 
   /** M10: the biome whose music and ambience play (title and hunts). Other biomes' decoded music
@@ -265,7 +314,7 @@ export class AudioDirector {
   }
 
   /**
-   * M10: Oupa says `barkKey` if a recording was delivered, never over the tally count-up; the
+   * M10: Oupa says `barkKey` (v1.5: from the voice language's pack) if a recording was delivered, never over the tally count-up; the
    * music ducks under it. Returns whether it played. v1.0.1 (D-028 review): how often he speaks
    * is the BarkDirector's call (one gap clock for bubbles and voice, so a secret's bark is never
    * silenced by an earlier generic one); here only one Oupa voice plays at a time — a new line
@@ -273,9 +322,21 @@ export class AudioDirector {
    */
   bark(barkKey: string): boolean {
     const { ctx, voiceBus, duck } = this;
-    const buf = this.buffers.get(voiceKey(barkKey));
-    if (ctx === null || voiceBus === null || duck === null || buf === undefined) return false;
+    const key = voiceKey(this.voiceLang, barkKey);
+    const buf = this.buffers.get(key);
+    // A newer bark replaces one still waiting for its line.
+    this.waiting = null;
     if (this.muted || this.tallyCounting) return false;
+    // v1.5 (D-041): no voice at all with the voice (or master) volume at 0, and no music duck.
+    if (this.volumes.voice <= 0 || this.volumes.master <= 0) return false;
+    if (buf === undefined) {
+      this.missingLine?.();
+      // v1.5: the voice pack may still be on its way (it starts on the first gesture): wait a
+      // short, bounded time for this line (feel.json audio.barkWaitMs).
+      this.waiting = { line: barkKey, until: this.env.now() + this.tuning.barkWaitMs };
+      return false;
+    }
+    if (ctx === null || voiceBus === null || duck === null) return false;
     try {
       this.voiceSrc?.stop();
     } catch {
@@ -286,6 +347,8 @@ export class AudioDirector {
     src.buffer = buf;
     src.connect(voiceBus);
     src.start();
+    this.voicePlayed.push(key);
+    if (this.voicePlayed.length > 50) this.voicePlayed.shift();
     const t = ctx.currentTime;
     const low = 10 ** (this.tuning.duckDb / 20);
     const attack = this.tuning.duckAttackMs / 1000;

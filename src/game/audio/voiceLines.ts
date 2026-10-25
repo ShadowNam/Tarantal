@@ -1,0 +1,34 @@
+// v1.5 (D-041): the lines Oupa says out loud (art bible §10). Each is an i18n key: its text in the
+// text language is the caption, and its voice is the file voice/<voice language>/<key> from that
+// language's voice pack. Pure: from the bark tuning (feel.json barks) and the biomes' secrets.
+import type { Biome } from '../../content/schemas';
+import { VOICE_LANGUAGES, type VoiceLanguage } from '../../i18n/i18n';
+import { allBarkLines, type BarkTuning } from './barks';
+
+/** Asset group of one voice language's pack (lazy: only the chosen language downloads). */
+export const VOICE_GROUP_PREFIX = 'voice-';
+
+export function voiceGroup(lang: VoiceLanguage): string {
+  return `${VOICE_GROUP_PREFIX}${lang}`;
+}
+
+/** The voice language a pack group belongs to, or null for any other group. */
+export function voiceLanguageOfGroup(group: string): VoiceLanguage | null {
+  if (!group.startsWith(VOICE_GROUP_PREFIX)) return null;
+  const lang = group.slice(VOICE_GROUP_PREFIX.length);
+  return VOICE_LANGUAGES.find((l) => l === lang) ?? null;
+}
+
+/**
+ * Every voiced key: Oupa's trigger lines, plus each secret's bark (the weavers' "Tsk-tsk-tsk!"
+ * scold, the windpomp sign, the egg…), once each, sorted.
+ */
+export function voicedLines(barks: BarkTuning, biomes: readonly Pick<Biome, 'props'>[]): string[] {
+  const out = new Set(allBarkLines(barks));
+  for (const b of biomes)
+    for (const p of b.props) {
+      const k = p.secret?.reward.barkKey;
+      if (k !== undefined) out.add(k);
+    }
+  return [...out].sort();
+}

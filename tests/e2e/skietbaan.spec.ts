@@ -111,8 +111,8 @@ async function paper(page: Page): Promise<{ x: number; y: number; r: number }> {
   await page.waitForFunction(() => (window.__TM__?.range?.papers.length ?? 0) > 0, null, {
     timeout: 60_000,
   });
-  const p = (await hook(page)).range?.papers[0];
-  if (p === undefined) throw new Error('no paper target');
+  const p = await page.evaluate(() => window.__TM__?.range?.papers[0] ?? null);
+  if (p === null) throw new Error('no paper target');
   return p;
 }
 
@@ -126,8 +126,9 @@ async function ready(page: Page): Promise<void> {
     null,
     { timeout: 60_000 },
   );
-  // The fire cooldown has no hook field: a few ticks more covers it.
-  const t0 = (await hook(page)).tick;
+  // The fire cooldown has no hook field: a few ticks more covers it. (Read only the tick: the
+  // whole hook takes ~0.6 s to serialise under software GL.)
+  const t0 = await page.evaluate(() => window.__TM__?.tick ?? 0);
   await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) >= t + 40, t0, { timeout: 60_000 });
 }
 
@@ -183,7 +184,20 @@ async function parkMouse(page: Page, touch: boolean): Promise<void> {
 
 /** Fails loudly if the camera moved since `cam` (aim points read earlier would miss). */
 async function cameraStill(page: Page, cam: number): Promise<void> {
-  expect((await hook(page)).cameraX, 'the camera panned: the aim point is stale').toBe(cam);
+  const now = await page.evaluate(() => window.__TM__?.cameraX ?? NaN);
+  expect(now, 'the camera panned: the aim point is stale').toBe(cam);
+}
+
+/** The few hook fields a shooting loop needs, without serialising the whole hook. */
+async function gunState(page: Page): Promise<{ hits: number; shells: number; reloading: boolean }> {
+  return page.evaluate(() => {
+    const h = window.__TM__;
+    return {
+      hits: h?.range?.stats?.hits ?? 0,
+      shells: h?.shells ?? 0,
+      reloading: h?.reloading ?? false,
+    };
+  });
 }
 
 /** Holds (or lets go of) the range's markers and plate swings for a screenshot. */
@@ -588,7 +602,10 @@ test.describe('Skietbaan (training ground)', () => {
     page,
   }, info) => {
     test.skip(!isLandscape(info), 'the admin page is used in landscape');
-    test.setTimeout(600_000);
+    // Every wait below is bounded on its own, so a stall fails at its step. CI trace (5c3e0aa):
+    // no step stalled; the test simply needs ~3–4 min on a loaded desktop runner (25 shots at
+    // ~6 s, ~2.5 s a DOM click), so 240 s was too tight. The loop now reads single hook fields.
+    test.setTimeout(420_000);
     const errors = collectErrors(page);
     const touch = isTouchProject(info);
     await openRange(page, touch, '&seed=42');
@@ -603,10 +620,30 @@ test.describe('Skietbaan (training ground)', () => {
       await paper(page);
       await parkMouse(page, touch);
     };
+    /** A button of the range's top bar: visible within 15 s, then pressed, the mouse parked. */
+    const barButton = async (action: string): Promise<void> => {
+      const b = page.locator(`#tm-range-bar [data-action=${action}]`);
+      await expect(b, `the bar's ${action} button`).toBeVisible({ timeout: 15_000 });
+      try {
+        if (touch) await b.tap({ timeout: 15_000 });
+        else await b.click({ timeout: 15_000 });
+      } catch (e) {
+        // Visible but never "stable" or hit-testable (the stats line pulses on each hit): press
+        // it through the DOM, which runs the same handler, and say so in the log.
+        console.warn(
+          `bar ${action}: pointer press failed (${String(e).split('\n')[0]}); DOM click`,
+        );
+        await b.evaluate((el) => {
+          (el as HTMLButtonElement).click();
+        });
+      }
+      // The bar sits in the left edge-pan band: never leave the mouse there (D-021).
+      await parkMouse(page, touch);
+    };
     const setup = async (): Promise<void> => {
-      await press(page, touch, '#tm-range-bar [data-action=setup]');
+      await barButton('setup');
       await page.waitForFunction(() => window.__TM__?.range?.view === 'setup', null, {
-        timeout: 60_000,
+        timeout: 30_000,
       });
     };
     /** The plate's marks on the hook once the bake has caught up with the store. */
@@ -619,8 +656,22 @@ test.describe('Skietbaan (training ground)', () => {
         n,
         { timeout: 60_000 },
       );
-      const m = (await hook(page)).range?.marks.find((x) => x.kind === 'plate');
-      return { count: m?.count ?? -1, drawn: m?.drawn ?? -1 };
+      return page.evaluate(() => {
+        const m = window.__TM__?.range?.marks.find((x) => x.kind === 'plate');
+        return { count: m?.count ?? -1, drawn: m?.drawn ?? -1 };
+      });
+    };
+    /**
+     * A course switch stays cheap (D-040 review): since the course started, at most a level-0
+     * bake plus the chain down to the level on screen (≤ 8 render passes), no bake slower than
+     * 2 s, and no bake textures left behind by the course before (one target: ≤ 7 levels).
+     */
+    const bakeCheap = async (): Promise<void> => {
+      const b = await page.evaluate(() => window.__TM__?.range?.bake ?? null);
+      expect(b, 'the range reports its bake cost').not.toBeNull();
+      expect(b?.renders ?? 99, 'render passes since the switch').toBeLessThanOrEqual(8);
+      expect(b?.maxBakeMs ?? 99_999, 'the slowest bake (ms)').toBeLessThan(2000);
+      expect(b?.liveTextures ?? 99, 'bake textures alive').toBeLessThanOrEqual(7);
     };
 
     // The air rifle (one pellet a shot), near, on the steel plate.
@@ -628,11 +679,12 @@ test.describe('Skietbaan (training ground)', () => {
     await press(page, touch, '#tm-range [data-role=target] [data-value=plate]');
     await start('near');
     expect(await plateMarks(0)).toEqual({ count: 0, drawn: 0 });
+    await bakeCheap();
     const plate = await paper(page);
     const cam = (await hook(page)).cameraX;
     let fired = 0;
-    for (let i = 0; i < 60 && ((await hook(page)).range?.stats?.hits ?? 0) < 25; i++) {
-      const now = await hook(page);
+    for (let i = 0; i < 60 && (await gunState(page)).hits < 25; i++) {
+      const now = await gunState(page);
       if (now.shells === 0 && !now.reloading) await reload(page, touch);
       await ready(page);
       await cameraStill(page, cam);
@@ -653,8 +705,9 @@ test.describe('Skietbaan (training ground)', () => {
     await setup();
     await press(page, touch, '#tm-range [data-role=gun] [data-value=kettie]');
     await start('near');
-    expect((await hook(page)).weapon).toBe('kettie');
+    expect(await page.evaluate(() => window.__TM__?.weapon)).toBe('kettie');
     expect(await plateMarks(25)).toEqual({ count: 25, drawn: 25 });
+    await bakeCheap();
 
     // Another distance (and the air rifle again) has its own clean plate; back near, the 25 are
     // there again.
@@ -662,17 +715,18 @@ test.describe('Skietbaan (training ground)', () => {
     await press(page, touch, '#tm-range [data-role=gun] [data-value=windbuks]');
     await start('mid');
     expect(await plateMarks(0)).toEqual({ count: 0, drawn: 0 });
+    await bakeCheap();
     await setup();
     await start('near');
     expect(await plateMarks(25)).toEqual({ count: 25, drawn: 25 });
+    await bakeCheap();
 
     // Repaint clears them on purpose.
-    await expect(page.locator('#tm-range-bar [data-action=repaint]')).toBeVisible();
-    await press(page, touch, '#tm-range-bar [data-action=repaint]');
+    await barButton('repaint');
     expect(await plateMarks(0)).toEqual({ count: 0, drawn: 0 });
 
     // A hit after the Repaint, then leaving the Skietbaan and coming back: freshly painted.
-    const now = await hook(page);
+    const now = await gunState(page);
     if (now.shells === 0 && !now.reloading) await reload(page, touch);
     await ready(page);
     const back = await paper(page);

@@ -29,6 +29,7 @@
     "assets:audit": "tsx tools/asset-audit.ts",
     "art:interim": "tsx tools/art/interim.ts",
     "audio:interim": "tsx tools/audio/interim.ts",
+    "audio:voice": "tsx tools/audio/voice.ts",
     "fonts:build": "tsx tools/make-fonts.ts",
     "portal:shots": "VITE_TEST_HOOKS=1 npm run build && tsx tools/portal-shots.ts",
     "release": "tsx tools/release.ts"

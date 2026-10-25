@@ -133,7 +133,7 @@ describe('range report', () => {
     expect(text).toContain('Build abc1234');
     expect(text).toContain('Karoo Farm — Autumn · Friday light');
     expect(text).toContain('Unranked');
-    expect(text).toContain('Dubbelloop · Near · Paper target');
+    expect(text).toContain('Double Barrel · Near · Paper target');
     expect(text).toContain('Shots 1 · hits 1 · misses 0 · 100.0 %');
     expect(text).toContain('Pellets on target: 1.0 of 8 per shot');
     expect(text).toContain('Centre 3.0 px right, 4.0 px low of the aim');
@@ -279,7 +279,7 @@ describe('24 Oct update: short in the report', () => {
       biome: 'karoo-autumn',
       layout: 'fri',
     });
-    expect(text).toContain('Kettie · Ver · Paper target');
+    expect(text).toContain('Slingshot · Ver · Paper target');
     expect(text).toContain('Shots 2 · hits 0 · misses 2 · 0.0 %');
     expect(text).toContain('Fell short: 2 of 2 misses');
   });

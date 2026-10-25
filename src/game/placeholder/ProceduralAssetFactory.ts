@@ -13,7 +13,6 @@ import {
   ambienceKey,
   musicKey,
   sfxKey,
-  voiceKey,
   TEX,
   type BirdFrame,
   type CanvasSpec,
@@ -1349,13 +1348,12 @@ export function loadBiomeArt(id: string): Promise<boolean> {
 }
 
 /**
- * `barkLines` (v1.0.1, D-028 §3): Oupa's bark lines (feel.json barks), each a silent `voice/<line>`
- * placeholder until its recording is delivered.
+ * A biome's textures and sounds. v1.5 (D-041): Oupa's voice lines are not here: each voice
+ * language is its own lazy pack (src/game/audio/voicePack.ts), whatever the biome.
  */
 export function createPlaceholderManifest(
   content: ContentBundle,
   biome: Biome,
-  barkLines: readonly string[] = [],
   /** v1.1 (D-032): feel.json guns.ammo — a placeholder per ammo type (full and spent). */
   ammoTypes: Readonly<Record<string, AmmoType>> = {},
 ): AssetManifest {
@@ -1397,14 +1395,8 @@ export function createPlaceholderManifest(
   for (const s of ammoSpecs(ammoTypes)) m.addTexture(s);
   for (const s of omenSpecs()) m.addTexture(s);
   for (const id of SFX_IDS) m.addSound(sfxKey(id));
-  // M10: music and ambience are silent placeholders until recordings are delivered; so are Oupa's
-  // barks (their subtitles show either way).
+  // M10: music and ambience are silent placeholders until recordings are delivered.
   for (const stem of STEMS) m.addSound(musicKey(biome.id, stem));
   m.addSound(ambienceKey(biome.id));
-  for (const prop of biome.props) {
-    const bark = prop.secret?.reward.barkKey;
-    if (bark !== undefined) m.addSound(voiceKey(bark));
-  }
-  for (const line of barkLines) if (!m.has(voiceKey(line))) m.addSound(voiceKey(line));
   return m;
 }

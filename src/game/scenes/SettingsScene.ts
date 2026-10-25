@@ -1,5 +1,5 @@
 // Settings (GDD §18.3, M5): audio sliders, screen shake, reduce flashes, aim assist, left-handed,
-// language and quality tier. Opened from the title, the Skiet-Skuur and the pause menu. Every
+// text and voice language (v1.5), Afrikaans names and quality tier. Opened from the title, the Skiet-Skuur and the pause menu. Every
 // change is written to the save at once (SaveStore → storage.ts) and reaches the game through
 // ctx.prefs / the AudioDirector (main.ts listens to the save); aim assist goes into the next
 // hunt's SimConfig (recorded in its replay). A language change rebuilds this screen.
@@ -52,6 +52,12 @@ const LANG: Choice<'language'> = {
   values: ['auto', 'en', 'af', 'de', 'nl'],
   label: (v) => `settings.lang.${v}`,
 };
+/** v1.5 (D-041): Oupa's voice, separate from the text (captions follow the text). */
+const VOICE: Choice<'voiceLanguage'> = {
+  key: 'voiceLanguage',
+  values: ['same', 'en', 'af', 'de'],
+  label: (v) => `settings.voice.${v}`,
+};
 const QUALITY: Choice<'quality'> = {
   key: 'quality',
   values: ['auto', 'low', 'medium', 'high'],
@@ -60,6 +66,32 @@ const QUALITY: Choice<'quality'> = {
 
 const ROW_H = 96;
 const ROW_GAP = 18;
+/** v1.5: Sound & game has six rows per column (voice language, Afrikaans names). */
+const ROW_H_TIGHT = 80;
+const ROW_GAP_TIGHT = 8;
+/**
+ * v1.5 review: a hint is its own line under its row, across the whole column, at HINT_PX and
+ * never scaled below HINT_MIN_PX (24, the smallest text elsewhere); too long even then, it
+ * wraps. Both columns leave the band after the same rows (HINT_ROWS), so they stay aligned.
+ */
+const HINT_PX = 26;
+const HINT_MIN_PX = 24;
+const HINT_BAND = 40;
+const HINT_ROWS: readonly number[] = [1, 4];
+
+/** Fits a hint into `maxW`: scaled down to at most HINT_MIN_PX / HINT_PX, then wrapped. */
+function fitHint(text: Phaser.GameObjects.Text, maxW: number): void {
+  text.setScale(1);
+  if (text.width <= maxW) return;
+  const floor = HINT_MIN_PX / HINT_PX;
+  const scale = Math.max(floor, maxW / text.width);
+  text.setScale(scale);
+  if (text.width > maxW) text.setWordWrapWidth(maxW / scale, true);
+}
+
+function hintRect(text: Phaser.GameObjects.Text): Rect {
+  return { x: text.x, y: text.y, w: text.displayWidth, h: text.displayHeight };
+}
 
 export class SettingsScene extends Phaser.Scene {
   private readonly ctx: GameContext;
@@ -92,12 +124,26 @@ export class SettingsScene extends Phaser.Scene {
     const colW = (panelW - 120) / 2;
     const ctrlW = Math.min(360, colW * 0.5);
     const items: MenuItem[] = [];
-    const row = (col: 0 | 1, i: number, labelKey: I18nKey): Rect => {
+    const page = data.page === 1 ? 1 : 0;
+    const rowH = page === 0 ? ROW_H_TIGHT : ROW_H;
+    const rowGap = page === 0 ? ROW_GAP_TIGHT : ROW_GAP;
+    /** Design px of the hint bands above row `i` (page 0 only). */
+    const bands = (i: number): number =>
+      page === 0 ? HINT_ROWS.filter((r) => r < i).length * HINT_BAND : 0;
+    /** A row's label (and an optional hint line under it); returns the control's rect. */
+    const row = (col: 0 | 1, i: number, labelKey: I18nKey, hintKey?: I18nKey): Rect => {
       const x = px + 40 + col * (colW + 40);
-      const y = py + 210 + i * (ROW_H + ROW_GAP);
-      const label = this.add.text(x, y + ROW_H / 2, t(labelKey), textStyle(36)).setOrigin(0, 0.5);
+      const y = py + 210 + i * (rowH + rowGap) + bands(i);
+      const label = this.add.text(x, y + rowH / 2, t(labelKey), textStyle(36)).setOrigin(0, 0.5);
       fitText(label, colW - ctrlW - 30);
-      return { x: x + colW - ctrlW, y, w: ctrlW, h: ROW_H };
+      if (hintKey !== undefined) {
+        const hint = this.add
+          .text(x, y + rowH + 2, t(hintKey), textStyle(HINT_PX, '#E3E9DF'))
+          .setOrigin(0, 0);
+        fitHint(hint, colW);
+        if (this.ctx.hook) this.ctx.hook.rects[`hint.${hintKey}`] = hintRect(hint);
+      }
+      return { x: x + colW - ctrlW, y, w: ctrlW, h: rowH };
     };
 
     const slider = (
@@ -165,8 +211,9 @@ export class SettingsScene extends Phaser.Scene {
       labelKey: I18nKey,
       get: () => boolean,
       put: (on: boolean) => void,
+      hintKey?: I18nKey,
     ): void => {
-      const rect = row(col, i, labelKey);
+      const rect = row(col, i, labelKey, hintKey);
       const flip = (): void => {
         put(!get());
       };
@@ -179,14 +226,15 @@ export class SettingsScene extends Phaser.Scene {
       );
     };
 
-    const choice = <K extends 'aimAssist' | 'language' | 'quality' | 'textSize'>(
+    const choice = <K extends 'aimAssist' | 'language' | 'voiceLanguage' | 'quality' | 'textSize'>(
       col: 0 | 1,
       i: number,
       labelKey: I18nKey,
       c: Choice<K>,
       after?: () => void,
+      hintKey?: I18nKey,
     ): void => {
-      const rect = row(col, i, labelKey);
+      const rect = row(col, i, labelKey, hintKey);
       const step = (d: -1 | 1): void => {
         const cur = c.values.indexOf(s()[c.key]);
         const next = c.values[(cur + d + c.values.length) % c.values.length];
@@ -206,7 +254,6 @@ export class SettingsScene extends Phaser.Scene {
 
     // M9: two pages (GDD §18.3 adds text size, contrast, captions, colour-blind aids and hold
     // to fire): tabs at the top, ←/→ or a tap switches.
-    const page = data.page === 1 ? 1 : 0;
     const tabW = Math.min(520, (panelW - 120) / 2);
     const tabs: Rect[] = [0, 1].map((i) => ({
       x: px + panelW / 2 + (i === 0 ? -tabW - 10 : 10),
@@ -246,8 +293,10 @@ export class SettingsScene extends Phaser.Scene {
         | 'captions'
         | 'colourBlind'
         | 'holdToFire'
-        | 'offsetCrosshair',
+        | 'offsetCrosshair'
+        | 'afrikaansNames',
       after?: () => void,
+      hintKey?: I18nKey,
     ): void => {
       toggle(
         col,
@@ -258,6 +307,7 @@ export class SettingsScene extends Phaser.Scene {
           set({ [key]: on });
           after?.();
         },
+        hintKey,
       );
     };
     // Text size and contrast restyle every text: rebuild this screen with the row still focused.
@@ -270,8 +320,10 @@ export class SettingsScene extends Phaser.Scene {
       slider(0, 1, 'settings.sfx', 'sfxVolume');
       slider(0, 2, 'settings.music', 'musicVolume');
       slider(0, 3, 'settings.voice', 'voiceVolume');
+      // v1.5 (D-041): Oupa's voice language; "same as text" with Dutch text is Afrikaans.
+      choice(0, 4, 'settings.voice_language', VOICE, undefined, 'settings.voice_hint');
       // M9: the privacy screen (what is stored, what is sent, clear my data).
-      const privacy = row(0, 4, 'settings.privacy');
+      const privacy = row(0, 5, 'settings.privacy');
       drawButton(this, privacy, t('settings.privacy_open'), 'secondary', 34);
       items.push({
         id: 'settings.privacy',
@@ -290,16 +342,28 @@ export class SettingsScene extends Phaser.Scene {
           this.scene.bringToTop('Privacy');
         },
       });
-      choice(1, 0, 'settings.aim', AIM);
-      flag(1, 1, 'settings.left_handed', 'leftHanded');
-      flag(1, 2, 'settings.hold_to_fire', 'holdToFire');
-      // v1.1 (GDD §18.2): touch only — the crosshair sits above the finger.
-      flag(1, 4, 'settings.offset_crosshair', 'offsetCrosshair');
-      choice(1, 3, 'settings.language', LANG, () => {
+      choice(1, 0, 'settings.language', LANG, () => {
         this.ctx.applyLanguage();
         // Every label changes: rebuild with the language row still focused.
         restyle('settings.language')();
       });
+      // v1.5 (D-041): the Afrikaans flavour names in any text language (names change: rebuild).
+      flag(
+        1,
+        1,
+        'settings.af_names',
+        'afrikaansNames',
+        () => {
+          this.ctx.applyLanguage();
+          restyle('settings.af_names')();
+        },
+        'settings.af_names_hint',
+      );
+      choice(1, 2, 'settings.aim', AIM);
+      flag(1, 3, 'settings.left_handed', 'leftHanded');
+      flag(1, 4, 'settings.hold_to_fire', 'holdToFire');
+      // v1.1 (GDD §18.2): touch only — the crosshair sits above the finger.
+      flag(1, 5, 'settings.offset_crosshair', 'offsetCrosshair');
     } else {
       toggle(
         0,
