@@ -243,7 +243,7 @@ if (wants('scenery')) {
       const size = m.size(prop.asset);
       if (size === null) throw new Error(`${prop.asset}: no placeholder size`);
       const r = renderProp(cfg, plan, biome, prop, size, m.origin(prop.asset));
-      put(png, encodePng8(r.img));
+      put(png, encodePng8(r.img, plan.props[prop.asset]?.colours));
       const moved = plan.props[prop.asset]?.frame !== undefined;
       put(
         png.replace(/\.png$/, '.json'),

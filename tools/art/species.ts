@@ -349,6 +349,8 @@ export interface BaobabOpts {
   readonly pods?: readonly { x: number; y: number; rx: number; ry: number }[];
   /** Random pods besides those. */
   readonly extraPods?: number;
+  /** Trunk girth × (default 1). */
+  readonly girth?: number;
 }
 
 /**
@@ -369,8 +371,8 @@ export function baobab(
   const lk = plantLook({ leaf: p.tint('#7A8048'), bark, ink: p.pen.ink });
   const trunkH = h * 0.58;
   const top = foot - trunkH;
-  const wBase = h * 0.25;
-  const wTop = h * 0.2;
+  const wBase = h * 0.25 * (o.girth ?? 1);
+  const wTop = h * 0.2 * (o.girth ?? 1);
   const n = ringNoise(rnd, 2, 6, 1);
   // Trunk outline: bulging, wider at the foot, a flared root base.
   const left: Pt[] = [];

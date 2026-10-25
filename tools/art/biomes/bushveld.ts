@@ -21,9 +21,41 @@ import {
 } from '../scenery';
 import { el, ellipseD, g, inked, polyD, r2, smoothD } from '../svg';
 import { mountainRow, paintRow, rockColours } from '../mountains';
-import { tree as leafyTree } from '../realism';
-import { aloeFlowers, aloeRosette, bush, groundBand, groundShadow, softSky } from './karoo';
+import { aloeFlowers, aloeRosette, groundBand, groundShadow, softSky } from './karoo';
 import { foregroundClumps, midScrub, nearGrass, verVeld } from './common';
+import { plantLook, seedTuft, veldShrub } from '../flora';
+import { baobab as baobabTree, marula, mopane } from '../species';
+import type { PaintCtx } from '../landscape';
+
+/** v1.6 (D-042): mopane scrub (butterfly leaves, olive and copper) as layered mounds. */
+function mopaneScrub(ctx: PaintCtx, x: number, y: number, s: number, pen: Pen): string {
+  const copper = ctx.rnd() < 0.25;
+  const look = plantLook({
+    leaf: copper ? mix(ctx.c('mopane'), ctx.c('mopaneCopper'), 0.5) : ctx.c('mopane'),
+    bark: ctx.c('twig'),
+    ink: pen.ink,
+    sun: ctx.c('bleached'),
+  });
+  return veldShrub(ctx.rnd, x, y, s, 'mopane', look, pen);
+}
+
+/** v1.6: pale dry winter grass with seed heads. */
+function winterTuft(ctx: PaintCtx, x: number, y: number, h: number, pen: Pen): string {
+  return seedTuft(
+    ctx.rnd,
+    x,
+    y,
+    h,
+    {
+      base: shade(ctx.c('grassDark'), -0.15),
+      blade: ctx.c('grass'),
+      tip: ctx.c('bleached'),
+      seed: ctx.c('seed'),
+    },
+    pen,
+    1 + Math.floor(ctx.rnd() * 3),
+  );
+}
 
 // --- shapes --------------------------------------------------------------------------------
 
@@ -116,37 +148,6 @@ function giraffe(x: number, base: number, s: number, colour: string, up: boolean
   );
 }
 
-/** A bare baobab silhouette for the far layers (fat trunk, root-like crown). */
-function farBaobab(x: number, base: number, s: number, c: string, pen: Pen): string {
-  const trunk = polyD([
-    [x - 16 * s, base],
-    [x - 13 * s, base - 30 * s],
-    [x - 9 * s, base - 46 * s],
-    [x + 9 * s, base - 46 * s],
-    [x + 13 * s, base - 30 * s],
-    [x + 16 * s, base],
-  ]);
-  const branches = `M${x - 6 * s} ${base - 44 * s}l-14 ${-12 * s}l-6 ${-4 * s}M${x - 2 * s} ${base - 46 * s}l-3 ${-18 * s}M${x + 4 * s} ${base - 46 * s}l10 ${-16 * s}l4 ${-6 * s}M${x + 8 * s} ${base - 44 * s}l16 ${-6 * s}`;
-  return g(
-    {},
-    el('path', {
-      d: branches,
-      fill: 'none',
-      stroke: pen.ink,
-      'stroke-width': 4 * s + pen.w,
-      'stroke-linecap': 'round',
-    }),
-    el('path', {
-      d: branches,
-      fill: 'none',
-      stroke: c,
-      'stroke-width': 4 * s,
-      'stroke-linecap': 'round',
-    }),
-    inked(trunk, c, pen.ink, pen.w),
-  );
-}
-
 /** A low frost-mist band (flat, translucent, soft lobed edges). */
 function mist(
   rnd: Rnd,
@@ -233,22 +234,10 @@ function farRidge(ctx: LayerCtx): string {
     ...paintRow(ctx.rnd, front, rock, ctx.pen, horizon),
   );
   // A line of mopane along the foot of the hills, and a baobab or two.
-  const tree = tone(ctx.c('mopane'), 0.22, 0.2);
+  // v1.6 (D-042): mopane woodland along the foot of the hills, and a baobab or two.
   for (let x = 0; x < ctx.width; x += 26 + ctx.rnd() * 50)
-    parts.push(
-      leafyTree(
-        ctx.rnd,
-        'round',
-        x,
-        602 + ctx.rnd() * 6,
-        24 + ctx.rnd() * 18,
-        22 + ctx.rnd() * 12,
-        tree,
-        ctx.c('trunk'),
-        ctx.pen,
-      ),
-    );
-  for (const u of [0.3, 0.77]) parts.push(farBaobab(ctx.u(u), 604, 1, ctx.c('baobab'), ctx.pen));
+    parts.push(mopane(ctx.rnd, x, 602 + ctx.rnd() * 6, 22 + ctx.rnd() * 14, ctx, 'far', 0.4));
+  for (const u of [0.3, 0.77]) parts.push(baobabTree(ctx.rnd, ctx.u(u), 606, 64, ctx, 'far'));
   return g({}, ...parts);
 }
 
@@ -267,7 +256,10 @@ function farVeld(ctx: LayerCtx): string {
     const y = 584 + Math.pow(ctx.rnd(), 1.3) * 170;
     far.push({
       y,
-      svg: bush(ctx, x, y, 3 + ((y - 580) / 170) * 7 + ctx.rnd() * 2, { ink: ctx.pen.ink, w: 1.2 }),
+      svg: mopaneScrub(ctx, x, y, 3 + ((y - 580) / 170) * 7 + ctx.rnd() * 2, {
+        ink: ctx.pen.ink,
+        w: 1.2,
+      }),
     });
   }
   far.sort((p, q) => p.y - q.y);
@@ -277,21 +269,14 @@ function farVeld(ctx: LayerCtx): string {
     g({ 'clip-path': `url(#${band.clip})` }, ...inside),
     line(smoothD(band.edge, false, 0.8), ctx.pen),
   ];
-  const tree = [tone(ctx.c('mopane'), 0.22, 0.2), tone(ctx.c('mopaneCopper'), 0.22, 0.2)];
+  // v1.6: far mopane and marula, simpler versions of the mid-plane trees.
   for (let x = 40; x < ctx.width; x += 140 + ctx.rnd() * 260) {
-    const t = tree[ctx.rnd() < 0.6 ? 0 : 1] ?? tone(ctx.c('mopane'));
+    const foot = yAt(band.edge, x) + 4;
+    const h = 38 + ctx.rnd() * 20;
     parts.push(
-      leafyTree(
-        ctx.rnd,
-        'round',
-        x,
-        yAt(band.edge, x) + 4,
-        34 + ctx.rnd() * 22,
-        38 + ctx.rnd() * 18,
-        t,
-        ctx.c('trunk'),
-        ctx.pen,
-      ),
+      ctx.rnd() < 0.7
+        ? mopane(ctx.rnd, x, foot, h, ctx, 'far', 0.5)
+        : marula(ctx.rnd, x, foot, h * 1.1, ctx, 'far'),
     );
   }
   const giraffeC = mix(ctx.c('giraffe'), ctx.raw('horizon'), 0.25);
@@ -378,14 +363,34 @@ function mid(ctx: LayerCtx): string {
       2,
     ),
   );
-  const items = midScrub(ctx, { bushes: 0.85, stone: tone(ctx.c('granite'), 0.25, 0.2) });
+  const items = midScrub(ctx, {
+    bushes: 0.85,
+    stone: tone(ctx.c('granite'), 0.25, 0.2),
+    shrub: (x, y, s, pen) => mopaneScrub(ctx, x, y, s, pen),
+  });
   items.sort((a, b) => a.y - b.y);
   inside.push(...items.map((i) => i.svg));
+  // v1.6 (D-042): a marula with its fallen fruit and two winter mopane on the mid plane.
+  const trees: string[] = [];
+  for (const [u, h, kind] of [
+    [0.54, 240, 'marula'],
+    [0.73, 205, 'mopane'],
+    [0.96, 185, 'mopane'],
+  ] as const) {
+    const x = ctx.u(u);
+    const foot = yAt(band.edge, x) + 40;
+    trees.push(
+      kind === 'marula'
+        ? marula(ctx.rnd, x, foot, h, ctx, 'mid')
+        : mopane(ctx.rnd, x, foot, h, ctx, 'mid', 0.5),
+    );
+  }
   return g(
     {},
     band.svg,
     g({ 'clip-path': `url(#${band.clip})` }, ...inside),
     line(smoothD(band.edge, false, 0.8), ctx.pen),
+    ...trees,
   );
 }
 
@@ -411,7 +416,12 @@ function near(ctx: LayerCtx): string {
       2.5,
     ),
   );
-  const items = nearGrass(ctx, { stone: tone(ctx.c('granite'), 0.25, 0.2), bushes: 0.6 });
+  const items = nearGrass(ctx, {
+    stone: tone(ctx.c('granite'), 0.25, 0.2),
+    bushes: 0.6,
+    shrub: (x, y, s, pen) => mopaneScrub(ctx, x, y, s, pen),
+    tuft: (x, y, h, pen) => winterTuft(ctx, x, y, h, pen),
+  });
   items.sort((a, b) => a.y - b.y);
   inside.push(...items.map((i) => i.svg));
   return g(
@@ -461,101 +471,21 @@ function foreground(ctx: LayerCtx): string {
 
 // --- props ---------------------------------------------------------------------------------
 
-/** A tapering branch path from (x, y) by (dx, dy) with width w at its base. */
-function branch(x: number, y: number, dx: number, dy: number, w: number): string {
-  const len = Math.hypot(dx, dy) || 1;
-  const nx = (-dy / len) * w * 0.5;
-  const ny = (dx / len) * w * 0.5;
-  return `M${r2(x - nx)} ${r2(y - ny)}Q${r2(x + dx * 0.5 - nx * 0.7)} ${r2(y + dy * 0.45 - ny * 0.7)} ${r2(x + dx)} ${r2(y + dy)}Q${r2(x + dx * 0.5 + nx * 0.7)} ${r2(y + dy * 0.55 + ny * 0.7)} ${r2(x + nx)} ${r2(y + ny)}Z`;
-}
-
+/**
+ * v1.6 (D-042): the kremetart in winter, drawn by the species art (bible §4.2). Content: the
+ * occluder rect is centred at (0, 95), 150 × 330 (the foot at y 260); the secret pod hangs at
+ * (110, −120), 22 × 34, and birds perch at (−120, −215), on a limb's tip.
+ */
 function baobab(ctx: PropCtx): string {
-  const pen = ctx.pen;
-  const bark = tone(ctx.c('baobab'), 0.25, 0.22);
-  const { oy, h } = ctx.box;
-  const top = oy - h / 2; // −70
-  const foot = oy + h / 2; // 260
-  const trunk = smoothD(
-    [
-      [-96, foot],
-      [-84, foot - 60],
-      [-80, foot - 180],
-      [-70, top + 30],
-      [-52, top - 10],
-      [52, top - 12],
-      [72, top + 30],
-      [82, foot - 170],
-      [88, foot - 60],
-      [100, foot],
+  return baobabTree(ctx.rnd, 0, 260, 540, ctx, 'near', {
+    girth: 0.72,
+    reach: [
+      [-124, -214],
+      [158, -252],
     ],
-    true,
-    0.6,
-  );
-  const id = nextId();
-  // Leafless winter crown: thick limbs splaying up like roots, then twigs.
-  const limbs: [number, number, number, number, number][] = [
-    [-40, top - 4, -110, -150, 30],
-    [-20, top - 8, -60, -230, 26],
-    [10, top - 10, 30, -250, 24],
-    [36, top - 6, 120, -170, 28],
-    [50, top, 170, -60, 20],
-    [-52, top, -170, -70, 20],
-  ];
-  const limbD = limbs.map(([x, y, dx, dy, w]) => branch(x, y, dx, dy, w)).join('');
-  const twigs: string[] = [];
-  for (const [x, y, dx, dy] of limbs) {
-    const ex = x + dx;
-    const ey = y + dy;
-    twigs.push(
-      `M${r2(ex)} ${r2(ey)}l${r2(dx * 0.25)} ${r2(-30)}M${r2(ex)} ${r2(ey)}l${r2(-dx * 0.15 - 20)} ${r2(-36)}M${r2(ex - dx * 0.3)} ${r2(ey - dy * 0.3)}l${r2(dx > 0 ? 34 : -34)} -24`,
-    );
-  }
-  // The secret pod (content part at (110, −120), 22 × 34) hangs on a stalk from the right limb.
-  const pod = g(
-    {},
-    line('M96 -176Q104 -160 110 -150', pen, 3),
-    inked(ellipseD(110, -120, 20, 32), ctx.c('pod'), pen.ink, pen.w),
-    flat(ellipseD(104, -130, 6, 12), shade(ctx.c('pod'), 0.35)),
-    flat(ellipseD(116, -108, 8, 14), shade(ctx.c('pod'), -0.2)),
-  );
-  return g(
-    {},
-    groundShadow(10, foot + 4, 150, 16),
-    el('path', {
-      d: twigs.join(''),
-      fill: 'none',
-      stroke: pen.ink,
-      'stroke-width': 7,
-      'stroke-linecap': 'round',
-    }),
-    el('path', {
-      d: twigs.join(''),
-      fill: 'none',
-      stroke: bark.fill,
-      'stroke-width': 3,
-      'stroke-linecap': 'round',
-    }),
-    inked(limbD, bark.fill, pen.ink, pen.w),
-    el('clipPath', { id }, el('path', { d: trunk })),
-    flat(trunk, bark.fill),
-    g(
-      { 'clip-path': `url(#${id})` },
-      flat(ellipseD(-70, foot - 100, 70, 260), bark.dark),
-      flat(ellipseD(48, top + 120, 24, 120), bark.light),
-      line(
-        'M-30 -40Q-40 80 -36 250M10 -50Q4 80 14 250M44 -30Q56 90 54 250M-56 60Q-66 160 -62 250',
-        { ink: bark.dark, w: 3 },
-      ),
-    ),
-    el('path', {
-      d: trunk,
-      fill: 'none',
-      stroke: pen.ink,
-      'stroke-width': pen.w,
-      'stroke-linejoin': 'round',
-    }),
-    pod,
-  );
+    pods: [{ x: 110, y: -120, rx: 21, ry: 33 }],
+    extraPods: 5,
+  });
 }
 
 function dassieKoppie(ctx: PropCtx): string {
@@ -724,20 +654,28 @@ export const BUSHVELD_PLAN: BiomeArtPlan = {
   biome: 'bushveld-winter',
   layers: {
     sky: { top: 0, height: 1080, encode: 'png', draw: sky },
-    far_ridge: { top: 380, height: 280, draw: farRidge },
+    // v1.6 (D-042): smaller palettes keep the biome chunk inside 1.5 MB.
+    far_ridge: { top: 380, height: 280, colours: 96, draw: farRidge },
     // v1.3: the Ver plane's strip (shown only on maps that open it).
     ver_veld: {
       top: 536,
       height: 52,
       draw: verVeld({ ground: 'grass', light: 'grassLight', scrub: 'bossie' }),
     },
-    far_veld: { top: 464, height: 232, draw: farVeld },
-    mid: { top: 630, height: 280, draw: mid },
-    near: { top: 820, height: 260, draw: near },
-    foreground: { top: 880, height: 200, fadeTop: 28, draw: foreground },
+    far_veld: { top: 464, height: 232, colours: 96, draw: farVeld },
+    // v1.6: taller, for the marula's and mopanes' crowns.
+    mid: { top: 430, height: 480, colours: 128, draw: mid },
+    near: { top: 820, height: 260, colours: 128, draw: near },
+    foreground: { top: 880, height: 200, fadeTop: 28, colours: 128, draw: foreground },
   },
   props: {
-    'bushveld/baobab': { draw: baobab },
+    'bushveld/baobab': {
+      draw: baobab,
+      master: 2,
+      wobble: false,
+      frame: { w: 600, h: 640, ox: 300, oy: 360 },
+      colours: 128,
+    },
     'bushveld/dassie_koppie': { draw: dassieKoppie },
     'bushveld/boulder_crack': { draw: boulder(true) },
     'bushveld/boulder_a': { draw: boulder(false) },

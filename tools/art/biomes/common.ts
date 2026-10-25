@@ -18,6 +18,8 @@ export function midScrub(
     readonly bushes: number;
     readonly stone: Tone;
     readonly avoid?: (x: number, y: number) => boolean;
+    /** v1.6 (D-042): the biome's own shrub (default: the generic bush). */
+    readonly shrub?: (x: number, y: number, s: number, pen: Pen) => string;
   },
 ): Item[] {
   const items: Item[] = [];
@@ -27,7 +29,13 @@ export function midScrub(
     if (o.avoid?.(x, y) !== true && ctx.rnd() < o.bushes) {
       const pen: Pen = { ink: ctx.pen.ink, w: s < 16 ? 2.5 : ctx.pen.w };
       if (ctx.rnd() < 0.1) items.push({ y, svg: stoneAt(ctx, x, y, s * 0.6, o.stone, pen) });
-      else items.push({ y, svg: bush(ctx, x, y, s * (0.9 + ctx.rnd() * 0.7), pen) });
+      else {
+        const size = s * (0.9 + ctx.rnd() * 0.7);
+        items.push({
+          y,
+          svg: o.shrub === undefined ? bush(ctx, x, y, size, pen) : o.shrub(x, y, size, pen),
+        });
+      }
     }
     x += ctx.rnd() < 0.15 ? 140 + ctx.rnd() * 160 : 18 + ctx.rnd() * 70;
   }
@@ -56,7 +64,14 @@ function stoneAt(ctx: LayerCtx, x: number, y: number, r: number, t: Tone, pen: P
 /** Near layer: clustered grass (a calmer band where the pop-ups rise), stones, twigs, stalks. */
 export function nearGrass(
   ctx: LayerCtx,
-  o: { readonly stone: Tone; readonly bushes?: number; readonly gap?: number },
+  o: {
+    readonly stone: Tone;
+    readonly bushes?: number;
+    readonly gap?: number;
+    /** v1.6 (D-042): the biome's own shrub and seed-head tuft. */
+    readonly shrub?: (x: number, y: number, s: number, pen: Pen) => string;
+    readonly tuft?: (x: number, y: number, h: number, pen: Pen) => string;
+  },
 ): Item[] {
   const pen: Pen = { ink: ctx.pen.ink, w: 5 };
   const items = grassField(ctx.rnd, {
@@ -82,8 +97,18 @@ export function nearGrass(
   ) {
     if (nb <= 0) break;
     const y = 960 + ctx.rnd() * 60;
-    items.push({ y, svg: bush(ctx, x, y, 24 + ctx.rnd() * 18, pen) });
+    const size = 24 + ctx.rnd() * 18;
+    items.push({
+      y,
+      svg: o.shrub === undefined ? bush(ctx, x, y, size, pen) : o.shrub(x, y, size, pen),
+    });
   }
+  if (o.tuft !== undefined)
+    for (let x = 60 + ctx.rnd() * 200; x < ctx.width; x += 140 + ctx.rnd() * 320) {
+      const y = 880 + ctx.rnd() * 190;
+      if (y > 905 && y < 965) continue;
+      items.push({ y, svg: o.tuft(x, y, 34 + ((y - 860) / 220) * 26, { ink: ctx.pen.ink, w: 3 }) });
+    }
   return items;
 }
 

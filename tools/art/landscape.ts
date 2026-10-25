@@ -70,6 +70,8 @@ export interface PropPlan {
   readonly master?: number;
   /** False = no hand-drawn wobble (fine, detailed art that the displacement would smear). */
   readonly wobble?: boolean;
+  /** v1.6 (D-042): png8 palette size (default 256). */
+  readonly colours?: number;
 }
 
 export interface BiomeArtPlan {

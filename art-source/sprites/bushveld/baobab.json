@@ -1,1 +1,7 @@
-{ "origin": "interim", "encode": "png8" }
+{
+  "origin": "interim",
+  "encode": "png8",
+  "originX": 0.5,
+  "originY": 0.5625,
+  "master": 2
+}
