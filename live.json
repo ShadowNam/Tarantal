@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-25T23:33:00Z",
+ "updated": "2026-10-25T23:42:00Z",
  "summary": "v1.7 meerkats is merged (26 Oct, 00:55; version 1.7.0): meerkat families on every Kalahari and Namibië map, with your fur and face notes in. v1.6 Veld art, v1.6b reload power-ups and this Project overview went in earlier on 25 Oct. Now: Tank has built every part of v1.7b (power-ups explained in the Gun Shed and in the hunt, and Oupa's comments On / Text only / Off in Settings); Claude is taking its screenshots, then reviews, runs the full tests and merges (expected about 03:30). Next, in this order: v1.7c fruit that swings or drops, v1.7d Namibië veld life, v1.7e realistic Bushveld + a new secret cue instead of the star (mock-ups for you first), v1.8 Blikkies, v1.8b baboons, v1.8c The Harvest (a new mode), then v1.9–v1.13.",
  "current": {
   "version": "1.7.0",
@@ -414,7 +414,12 @@
      "at": "2026-10-25T22:38:00Z"
     },
     {
-     "text": "Claude's screenshots on desktop, Pixel 7 and iPhone 14",
+     "text": "Claude's screenshots on desktop, Pixel 7 and iPhone 14 (round 1: 36 shots)",
+     "done": true,
+     "at": "2026-10-25T23:40:00Z"
+    },
+    {
+     "text": "Fixes from the screenshots: a bigger crate icon, no double item name, stockier Meerkat Spotter and Voorlaaier icons",
      "done": false
     },
     {
@@ -985,6 +990,31 @@
     {
      "label": "History (Word)",
      "url": "https://github.com/ShadowNam/Tarantal/raw/main/docs/history/Tarantal-Development-History.docx"
+    }
+   ]
+  },
+  {
+   "at": "2026-10-25T23:40:00Z",
+   "kind": "screenshots",
+   "text": "v1.7b round 1: 36 screenshots on desktop, Pixel 7 and iPhone 14. The Gun Shed's Power-ups tab, the pickup card, the countdown chips and the Oupa switch read well on every device. Tank is fixing four things: the crate's icon is too small, the old floating item name still shows, and two icons are too thin at chip size. Then Claude's review, the full tests and the merge.",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17b-shed-iphone.jpg",
+     "caption": "The Gun Shed: the new Power-ups tab on an iPhone 14"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17b-pickup-card.jpg",
+     "caption": "The pickup card the first time you get Farm Coffee, with its chip counting down (top left)"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17b-settings-pixel7.jpg",
+     "caption": "Settings on a Pixel 7: Oupa's comments On / Text only / Off"
+    }
+   ],
+   "links": [
+    {
+     "label": "PR #77",
+     "url": "https://github.com/ShadowNam/Tarantal/pull/77"
     }
    ]
   }
