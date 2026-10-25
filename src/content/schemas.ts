@@ -1735,6 +1735,8 @@ export const NotaboekMetricSchema = z.enum([
   'baggedVer',
   /** v1.3: the hunt unlocked the challenge's `bonus` map for today (any bonus map if absent). */
   'bonusUnlocks',
+  /** v1.7 (D-044): the meerkats' Familiefoto taken (the secret, on any desert map). */
+  'familiefotos',
 ]);
 export type NotaboekMetric = z.infer<typeof NotaboekMetricSchema>;
 

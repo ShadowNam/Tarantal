@@ -4,11 +4,19 @@
 // sunbathe / dash / dive); the colony reacts to nearby shots, alarms and hits, and lines up for
 // the Familiefoto. Pure and deterministic: every random draw comes from the hunt's 'meerkats'
 // stream, in colony then meerkat-id order; every number comes from birds.json `meerkats`.
-import type { Colony as ColonyDef, MeerkatTuning } from '../../content/schemas';
+import type { Biome, Colony as ColonyDef, MeerkatTuning } from '../../content/schemas';
 import { secondsToTicks } from '../clock';
 import type { RandomStream } from '../rng';
 import type { PlaneId } from '../types';
 import { coreWidth } from '../world';
+
+/** The propId a Familiefoto's secretTriggered carries (it has no prop): the Bird Book key. */
+export const FAMILIEFOTO_SECRET = 'familiefoto';
+
+/** A biome with meerkat colonies on any of its maps (it has the Familiefoto secret). */
+export function hasColonies(b: Pick<Biome, 'colonies' | 'layouts'>): boolean {
+  return (b.colonies ?? []).length > 0 || b.layouts.some((l) => (l.colonies ?? []).length > 0);
+}
 
 /**
  * hidden (in a burrow) · peek (head out, looking left and right) · emerge (climbing out) · sit ·

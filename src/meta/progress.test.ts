@@ -281,3 +281,14 @@ describe('v1.4: Die Langloop unlock (D-038)', () => {
     expect(play(nogOnly, [hunt()]).unlocked).not.toContain('langloop');
   });
 });
+
+describe('v1.7: the Familiefoto challenge (D-044)', () => {
+  it('a hunt with the Familiefoto completes it and fills the Bird Book entry', () => {
+    const r = play(defaultSave(), [
+      hunt({ biome: 'kalahari-summer', secrets: 1, secretsFound: ['familiefoto'] }),
+    ]);
+    expect(r.completed).toContain('familiefoto');
+    expect(r.save.birdBook.secrets).toContain('kalahari-summer/familiefoto');
+    expect(play(defaultSave(), [hunt()]).completed).not.toContain('familiefoto');
+  });
+});

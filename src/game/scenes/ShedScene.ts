@@ -2,6 +2,7 @@
 // Karoo secrets seen), Oupa se Notaboek v0 (challenge progress and what each unlocks), and the
 // way to Settings. It is not a shop: everything here is unlocked by playing (GDD §13.6).
 import { unlockedBiomes } from '../../meta/areas';
+import { FAMILIEFOTO_SECRET, hasColonies } from '../../sim/meerkats/colony';
 import { designSize } from '../layout';
 import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
@@ -362,7 +363,18 @@ export class ShedScene extends Phaser.Scene {
             .map((p) => ({
               label: `★ ${tOr(`secret.${p.id}`, p.id)}`,
               seen: book.secrets.includes(secretKey(b.id, p.id)),
-            })),
+            }))
+            // v1.7 (D-044): a biome with meerkat colonies has the Familiefoto too.
+            .concat(
+              hasColonies(b)
+                ? [
+                    {
+                      label: `★ ${t('secret.familiefoto')}`,
+                      seen: book.secrets.includes(secretKey(b.id, FAMILIEFOTO_SECRET)),
+                    },
+                  ]
+                : [],
+            ),
         ),
     ];
     const seen = entries.filter((e) => e.seen).length;

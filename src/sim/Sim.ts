@@ -145,6 +145,7 @@ import {
 import { CAMERA_MAX_X, CAMERA_MIN_X, coreWidth } from './world';
 import { mapOmen, resolveMap, type ResolvedMap } from './maps';
 import {
+  FAMILIEFOTO_SECRET,
   createColony,
   diveColony,
   familyOut,
@@ -156,8 +157,7 @@ import {
   type ColonyState,
 } from './meerkats/colony';
 
-/** v1.7 (D-044): the propId a Familiefoto's secretTriggered carries (it has no prop). */
-export const FAMILIEFOTO_SECRET = 'familiefoto';
+export { FAMILIEFOTO_SECRET };
 
 export interface Sim {
   /** Advances exactly one tick (1/60 s). A no-op once the hunt is over. */

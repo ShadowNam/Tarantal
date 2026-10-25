@@ -72,4 +72,19 @@ describe('hunt log', () => {
     ] as unknown as SimEvent[]);
     expect(log.creaturesSeen.has('kwevoel')).toBe(true);
   });
+
+  it('v1.7 (D-044): a meerkat colony counts the meerkat as seen; the Familiefoto is a secret', () => {
+    const log = createHuntLogger();
+    log.add([
+      { type: 'colonySpawned', tick: 0, colonyId: 'dune', plane: 'mid', x: 1, y: 812, family: 6 },
+      { type: 'secretTriggered', tick: 900, propId: 'familiefoto', partId: 'dune' },
+    ]);
+    expect(log.creaturesSeen.has('meerkat')).toBe(true);
+    const result = {
+      mode: 'classic',
+      biome: 'kalahari-summer',
+      baggedByPlane: { near: 0, mid: 0, far: 0, ver: 0 },
+    } as unknown as HuntResult;
+    expect(log.finish(result).secretsFound).toEqual(['familiefoto']);
+  });
 });
