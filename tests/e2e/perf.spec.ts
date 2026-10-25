@@ -171,6 +171,57 @@ test('perf: Namibië mirage and angry weavers at 4× CPU throttle (Pixel 7)', as
   expect(errors).toEqual([]);
 });
 
+// v1.7 (D-044): the Kalahari's Monday map on the Pixel 7 profile — two meerkat colonies (near and
+// mid) in view from the start, the near one at the opening camera. Same method and budget as the
+// smoke; the colonies' own drawing at most 1 ms a frame at 4× throttle.
+test('perf: Kalahari meerkat colonies at 4× CPU throttle (Pixel 7)', async ({
+  page,
+  browserName,
+}, info) => {
+  test.skip(
+    info.project.name !== 'pixel7-landscape' || browserName !== 'chromium',
+    'measured on the Pixel 7 profile; CDP throttling needs Chromium',
+  );
+  test.setTimeout(400_000);
+  const touch = isTouchProject(info);
+  const errors = collectErrors(page);
+  await emulateCores(page);
+  await boot(page, 'biome=kalahari-summer&layout=mon&seed=3&huntSeconds=30');
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  await startHunt(page, touch);
+  await page.waitForFunction(() => (window.__TM__?.tick ?? 0) > 30, null, { timeout: 120_000 });
+  let maxOut = 0;
+  while (!(await hook(page)).over) {
+    const h = await hook(page);
+    maxOut = Math.max(maxOut, h.meerkats.filter((m) => m.pose !== 'hidden').length);
+    await waitTicks(page, 60);
+  }
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+  const h = await hook(page);
+  const real = stats(h.frameTimes.slice(30));
+  const cpu = stats(h.cpuFrameMs.slice(30));
+  const report = {
+    project: info.project.name,
+    tier: h.quality.tier,
+    throttle: 4,
+    maxMeerkatsOut: maxOut,
+    meerkatMsPerFrame: h.sceneryFrames > 0 ? h.meerkatMs / h.sceneryFrames : 0,
+    realFrameMs: real,
+    cpuFrameMs: cpu,
+  };
+  console.log(`[perf] ${JSON.stringify(report)}`);
+  writeFileSync(info.outputPath('perf.json'), JSON.stringify(report, null, 2));
+  expect(maxOut, 'meerkats came out').toBeGreaterThan(0);
+  expect(cpu.n).toBeGreaterThan(30);
+  expect(
+    report.meerkatMsPerFrame,
+    'meerkat colonies ms per frame, 4× throttle',
+  ).toBeLessThanOrEqual(1);
+  expect(cpu.avg, 'CPU cost per frame (ms), meerkats, 4× throttle').toBeLessThanOrEqual(BUDGET_MS);
+  expect(errors).toEqual([]);
+});
+
 // v1.3 (D-036) scoped phase: the same method and budget as the smoke above (30 s hunt, the same
 // auto quality tier — on a 4-core CI runner the Pixel 7 profile is low, desktop medium — 4× CPU
 // throttle, CPU cost per frame ≤ 16.7 ms asserted, real frame time with
