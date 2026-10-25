@@ -432,6 +432,13 @@ export const PowerupsSchema = obj({
               creatureTimeScale: z.number().gt(0).max(1).optional(),
               spreadMul: pos.optional(),
               revealHidden: z.boolean().optional(),
+              /** v1.6b Blitslaai: every reload takes this share of its time (floored, see
+               *  reloadFloorMs). */
+              reloadTimeMul: z.number().gt(0).max(1).optional(),
+              /** v1.6b Oupa Laai: an empty gun starts its reload by itself. */
+              autoReload: z.boolean().optional(),
+              /** v1.6b Oupa Laai: per-shell guns top up after this long without a shot. */
+              idleTopUpMs: posInt.optional(),
             })
             .refine((e) => Object.keys(e).length > 0, 'effect needs at least one entry'),
           durationMs: posInt.optional(),
@@ -443,6 +450,8 @@ export const PowerupsSchema = obj({
         }),
     )
     .min(1),
+  /** v1.6b: no reload (or Kettie draw) shortened by power-ups and charms goes below this. */
+  reloadFloorMs: posInt,
   crates: obj({
     modes: z.array(ModeIdSchema),
     perHunt: nonNegInt,

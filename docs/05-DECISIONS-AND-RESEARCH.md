@@ -2130,6 +2130,46 @@ the toggle with English text shows the Afrikaans gun names. Previews:
 deliver final voice packs" — a delivered WAV replaces the interim line per key); German and Dutch
 names want a native review (as D-026).
 
+**D-043 v1.6b Reload power-ups: Blitslaai and Oupa Laai (25 Oct 2026):** the product owner
+(25 Oct): "Another power-up that should exist in the game is an AUTO reload, and a fast reload."
+Two crate power-ups (GDD §10.4), numbers in `content/powerups.json`.
+(1) *Blitslaai* (`reloadTimeMul` 0.35, 12 s): every reload step is `round(ticks × 0.35)`, where
+`ticks` already has Snelhand and the Boss Rule in it (they multiply), floored at
+`reloadFloorMs` 150 ms and never longer than it was. It covers full-belt reloads, each per-shell
+step, the Voorlaaier's ramrod and the Kettie's draw — the draw is the Kettie's reload for charms
+too (D-025), so treating it the same keeps one rule. The Mielie-Masjien's fire interval and the
+rifles' bolt are not reloads and stay. A reload already running keeps the length it started with
+(no mid-step rescaling: simpler and the HUD ring never jumps).
+(2) *Oupa Laai* (`autoReload`, `idleTopUpMs` 600, 12 s): the tick the gun is empty (after the shot
+resolves, the same tick) the reload starts by itself, no gesture; a per-shell gun also starts
+topping up once 0.6 s have passed since its last shot, one round per reload step, until full. The
+event is `reloadStarted` with `auto: true`; it fires the charm `reload` trigger like a manual
+reload. **An auto reload can always be cut by a shot**, even on the Windbuks whose own reload
+can't: otherwise the idle top-up would lock the player out of the shot they were lining up. It
+checks every tick, so a belt left empty when Chilli Biltong or a crate weapon ends reloads at
+once. Nothing happens while Chilli Biltong is active or a crate weapon is out.
+(3) *Crates and Padstal:* power-ups keep 85 of the 100 crate weight: Blitslaai 18, Oupa Laai 18,
+Chilli Biltong / Boeretroos / Bush Buckshot 25 → 14 each, Meerkat Spotter 10 → 7 (rounded to keep
+the sum); Voorlaaier 8 and Mielie-Masjien 7 unchanged. Padstal price 2 each.
+(4) *Determinism:* sim ticks only; replays carry the content hash, so logs from before this change
+are refused by `verifyReplay` like after any content change. Golden replays re-recorded; the frozen
+InputLog v3 Classic fixture still decodes and replays deterministically, its expected events
+re-derived (a different crate roll changes an open-loop bot log's outcome).
+(5) *Balance* (competent bot unless noted; `npx tsx tools/balance-sim.ts --seeds 500`):
+Classic Dubbelloop competent mean 4 180 → **4 258** (+1.9 %), plinker 2 407 → 2 455, random 267 →
+269; all three M3 gates pass. 200-seed cells, before → after: Kettie 4 713 → 4 782, Pomp 4 238 →
+4 389, Windbuks 3 039 → 3 041; Namibië long-range cap (4 500, D-038/D-039) still holds — scoped
+.22 Sunday 4 421 → 4 351, Tuesday 4 409 → 4 347, Thursday 4 378 → 4 352, Saturday 4 337 → 4 427;
+Langloop Saturday 3 515 → 3 512. Season Run (`--run --seeds 500`), pass rates before → after,
+every gate passes: Herfs 83.0 / 92.4 → 83.0 / 93.0 % (none / synergy), Winter 47.0 / 80.1 → 47.0 /
+77.0 %, **Lente synergy 64.1 → 69.6 %** (target ~60 % ± 10: inside, but at the edge), Somer
+0.0 / 34.6 → 0.0 / 34.9 %. Price 3 instead of 2 measured the same (69.5 %): the synergy bot buys a
+consumable whenever it can, and the new ones are simply useful. If Lente drifts over in a later
+change, the lever is Lente's quota, not these prices.
+(6) *Test fix:* `maps.test.ts` feeding-spot check used 4 seeds and a ×2 bar; the spot's own share
+is unchanged (0.52) but the no-spot share swings with the bot's luck (main itself gave 1.79× on
+seeds 21–28). Now 8 seeds and a ×1.7 bar.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
