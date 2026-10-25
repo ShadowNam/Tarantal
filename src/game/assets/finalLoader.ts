@@ -25,6 +25,21 @@ function withTimeout<T>(p: Promise<T>, ms: number, fallback: T): Promise<T> {
 /** Problem text when no index was delivered (normal until art lands): not worth a warning. */
 export const ABSENT = 'no asset index';
 
+/**
+ * v1.6 (D-042 review): may the page run without an asset index? Only on purpose
+ * (`?art=placeholder`, `placeholderArt`) or in a test build (dev server, Vitest, CI e2e builds
+ * with VITE_TEST_HOOKS=1), where tests serve none on purpose. Every production build ships its
+ * index, so there an absent one (a 404, an HTML soft-404) is a failure like any other: retried,
+ * then the Retry message.
+ */
+export function absentIndexAccepted(
+  problem: string | null,
+  o: { readonly placeholderArt: boolean; readonly testBuild: boolean },
+): boolean {
+  if (problem === null || !problem.startsWith(ABSENT)) return false;
+  return o.placeholderArt || o.testBuild;
+}
+
 export interface IndexLoad {
   readonly index: AssetIndex | null;
   /** Why there is no index (absent, invalid, timed out), for the test hook and the console. */

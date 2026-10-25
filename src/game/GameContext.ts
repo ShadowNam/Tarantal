@@ -12,7 +12,7 @@ import type { AnalyticsRecord } from '../platform/local';
 import type { HuntResult, InputKind } from '../sim/types';
 import type { LivePrefs } from './prefs';
 import type { DomChrome } from './ui/DomChrome';
-import type { AssetManifest, ManifestEntry } from './assets/AssetManifest';
+import type { AssetManifest, LateNeed, ManifestEntry } from './assets/AssetManifest';
 import type { FlashLimiter } from './view/flashLimit';
 import type { CaptureState } from './capture';
 import type { BarkDirector } from './audio/barks';
@@ -401,6 +401,11 @@ export interface GameContext {
   biomeReady(id: string): boolean;
   /** M9: loads a biome's art chunk (lazy biome bundles); false if it failed. */
   loadBiome(id: string): Promise<boolean>;
+  /**
+   * v1.6 (D-042): waits for a loaded biome's late groups and retries (bounded) the Ver-group
+   * files a scoped hunt or the Skietbaan needs (`need`); false if they still failed.
+   */
+  loadLateArt(id: string, need: LateNeed): Promise<boolean>;
   /** M8: the biome of the hunt on screen (the home biome between hunts). */
   huntBiome: Biome;
   readonly audio: AudioDirector;
