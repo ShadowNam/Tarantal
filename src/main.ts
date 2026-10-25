@@ -28,6 +28,7 @@ import { setTextLook } from './game/ui/textLook';
 import type { AssetManifest } from './game/assets/AssetManifest';
 import {
   ABSENT,
+  absentIndexAccepted,
   failedAssetFiles,
   fetchAssetIndex,
   fetchBytesUncached,
@@ -609,8 +610,15 @@ async function boot(): Promise<void> {
     voicePacks.use(lang, s.voiceVolume > 0 && s.masterVolume > 0);
   };
   applyVoice(save.data.settings);
-  if (indexProblem !== null && !indexProblem.startsWith(ABSENT))
-    console.warn(`[assets] ${indexProblem}: using placeholders`);
+  // v1.6 (D-042 review): an absent index is fine only on purpose or in a test build (dev, Vitest,
+  // VITE_TEST_HOOKS=1 e2e builds); a production build ships one, so there it is retried below.
+  const testBuild =
+    import.meta.env.DEV ||
+    import.meta.env.MODE === 'test' ||
+    import.meta.env.VITE_TEST_HOOKS === '1';
+  const absentOk = (): boolean => absentIndexAccepted(indexProblem, { placeholderArt, testBuild });
+  if (indexProblem !== null && !absentOk())
+    console.warn(`[assets] ${indexProblem}: retrying the asset index`);
   const finalLoads = new Map<string, Promise<void>>();
   const finalDone = new Set<string>();
   const loadFinalFor = (b: Biome): Promise<void> => {
@@ -643,11 +651,9 @@ async function boot(): Promise<void> {
     }
     return p;
   };
-  /** True when nothing delivered for `b` is missing (or no art was delivered at all). */
+  /** True when nothing delivered for `b` is missing (or no index, where that is accepted). */
   const artOk = (b: Biome): boolean =>
-    assetIndex === null
-      ? (indexProblem ?? '').startsWith(ABSENT)
-      : manifestFor(b).missingFinal.length === 0;
+    assetIndex === null ? absentOk() : manifestFor(b).missingFinal.length === 0;
   /**
    * v1.6 (D-042): loads a biome's delivered art, retrying (bounded) what failed. Each retry
    * fetches the index again first: after a deploy the old index names files the host no longer
