@@ -1316,6 +1316,8 @@ export class HudScene extends Phaser.Scene {
     firstPickup: string | null,
   ): void {
     if (!this.barksOn || this.bubble === null) return;
+    // v1.7b (D-046): Oupa's comments switched off (the pause menu's Settings): his bubble goes.
+    if (!oupaShows(this.ctx.prefs.oupa)) this.bubble.hide();
     const quota = this.seasonInfo?.quota;
     const quotaReached = quota !== undefined && this.lastScore < quota && s.score >= quota;
     this.lastScore = s.score;

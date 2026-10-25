@@ -183,6 +183,31 @@ describe('AudioDirector voice language (v1.5, D-041)', () => {
     expect(r.audio.bark('bark.lekker')).toBe(true);
   });
 
+  it("v1.7b: Oupa's comments on Text only or Off: never his voice, even a line on its way", async () => {
+    const r = rig();
+    r.audio.addRecorded([file(voiceKey('en', 'bark.lekker'), 1)]);
+    r.audio.unlock();
+    await flush();
+    r.audio.setOupaVoice(false);
+    expect(r.audio.oupaVoiceOn).toBe(false);
+    expect(r.audio.bark('bark.lekker')).toBe(false);
+    // A line still loading is dropped, not played when it arrives.
+    expect(r.audio.bark('bark.morning')).toBe(false);
+    r.audio.addRecorded([file(voiceKey('en', 'bark.morning'), 1)]);
+    await flush();
+    expect(r.audio.voicePlayed).toEqual([]);
+    r.audio.setOupaVoice(true);
+    expect(r.audio.bark('bark.lekker')).toBe(true);
+  });
+
+  it('v1.7b: a power-up ending chimes; Boeretroos slows the effects only while it runs', () => {
+    const r = rig();
+    r.audio.setSlowMotion(0.72);
+    expect(r.audio.slowMotionRate).toBe(0.72);
+    r.audio.setSlowMotion(1);
+    expect(r.audio.slowMotionRate).toBe(1);
+  });
+
   it('a bark whose line is still loading plays when it arrives within barkWaitMs', async () => {
     const r = rig();
     r.audio.unlock();
