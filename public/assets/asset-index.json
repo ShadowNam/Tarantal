@@ -56,9 +56,9 @@
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/bushveld_boulder_a.88393a55ef59.png",
-        "bytes": 6787,
-        "hash": "88393a55ef59"
+        "path": "assets/bushveld-winter/img/bushveld_boulder_a.9cc3045ea5cf.png",
+        "bytes": 6327,
+        "hash": "9cc3045ea5cf"
       },
       "width": 310,
       "height": 244
@@ -67,9 +67,9 @@
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/bushveld_boulder_b.1b41d26155f8.png",
-        "bytes": 6229,
-        "hash": "1b41d26155f8"
+        "path": "assets/bushveld-winter/img/bushveld_boulder_b.e257473ca97c.png",
+        "bytes": 5859,
+        "hash": "e257473ca97c"
       },
       "width": 290,
       "height": 232
@@ -78,9 +78,9 @@
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/bushveld_boulder_crack.16332768d294.png",
-        "bytes": 7047,
-        "hash": "16332768d294"
+        "path": "assets/bushveld-winter/img/bushveld_boulder_crack.d967e9881606.png",
+        "bytes": 7706,
+        "hash": "d967e9881606"
       },
       "width": 330,
       "height": 250
@@ -89,12 +89,15 @@
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/bushveld_dassie_koppie.e60a7c1a09af.png",
-        "bytes": 12226,
-        "hash": "e60a7c1a09af"
+        "path": "assets/bushveld-winter/img/bushveld_dassie_koppie.ec0a8ec0e2c0.png",
+        "bytes": 36771,
+        "hash": "ec0a8ec0e2c0"
       },
-      "width": 500,
-      "height": 340
+      "width": 1120,
+      "height": 600,
+      "scale": 0.5,
+      "originX": 0.5,
+      "originY": 0.6333333333333333
     },
     "crate/box": {
       "group": "common",
@@ -383,9 +386,9 @@
       "group": "kalahari-summer",
       "origin": "interim",
       "file": {
-        "path": "assets/kalahari-summer/img/kalahari_windpomp_sign.49aca3be58ce.png",
-        "bytes": 31611,
-        "hash": "49aca3be58ce"
+        "path": "assets/kalahari-summer/img/kalahari_windpomp_sign.3d6897136f6a.png",
+        "bytes": 31719,
+        "hash": "3d6897136f6a"
       },
       "width": 640,
       "height": 880,
@@ -1145,24 +1148,24 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/bushveld-winter/layers/foreground-0.9ada655ab7a7.png",
-          "bytes": 26760,
-          "hash": "9ada655ab7a7"
+          "path": "assets/bushveld-winter/layers/foreground-0.f2d7290e271a.png",
+          "bytes": 27037,
+          "hash": "f2d7290e271a"
         },
         {
-          "path": "assets/bushveld-winter/layers/foreground-1.088a46186135.png",
-          "bytes": 16905,
-          "hash": "088a46186135"
+          "path": "assets/bushveld-winter/layers/foreground-1.708e82a1bc1c.png",
+          "bytes": 21692,
+          "hash": "708e82a1bc1c"
         },
         {
-          "path": "assets/bushveld-winter/layers/foreground-2.abea686e44f0.png",
-          "bytes": 13957,
-          "hash": "abea686e44f0"
+          "path": "assets/bushveld-winter/layers/foreground-2.9511c897a144.png",
+          "bytes": 10526,
+          "hash": "9511c897a144"
         },
         {
-          "path": "assets/bushveld-winter/layers/foreground-3.0e4bb18dac2c.png",
-          "bytes": 8380,
-          "hash": "0e4bb18dac2c"
+          "path": "assets/bushveld-winter/layers/foreground-3.67c0d9056c65.png",
+          "bytes": 126,
+          "hash": "67c0d9056c65"
         }
       ],
       "tileWidth": 2048,
@@ -1205,19 +1208,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/bushveld-winter/layers/mid-0.ad408bfa5df3.png",
-          "bytes": 76304,
-          "hash": "ad408bfa5df3"
+          "path": "assets/bushveld-winter/layers/mid-0.12aaab93900e.png",
+          "bytes": 77119,
+          "hash": "12aaab93900e"
         },
         {
-          "path": "assets/bushveld-winter/layers/mid-1.362201092246.png",
-          "bytes": 116217,
-          "hash": "362201092246"
+          "path": "assets/bushveld-winter/layers/mid-1.6cd3ec883985.png",
+          "bytes": 116449,
+          "hash": "6cd3ec883985"
         },
         {
-          "path": "assets/bushveld-winter/layers/mid-2.df25c3ac3b01.png",
-          "bytes": 15481,
-          "hash": "df25c3ac3b01"
+          "path": "assets/bushveld-winter/layers/mid-2.e00d2c416452.png",
+          "bytes": 15528,
+          "hash": "e00d2c416452"
         }
       ],
       "tileWidth": 2048,
@@ -1228,7 +1231,7 @@
         "bucket": 256,
         "rows": [
           [
-            359,
+            355,
             389
           ],
           [
@@ -1236,36 +1239,36 @@
             323
           ],
           [
-            231,
-            326
+            230,
+            325
           ],
           [
-            431,
+            430,
             480
           ],
           [
-            435,
+            432,
             480
           ],
           [
-            295,
-            333
+            227,
+            268
           ],
           [
-            343,
+            333,
             391
           ],
           [
             233,
-            253
+            256
           ],
           [
-            234,
-            266
+            296,
+            339
           ],
           [
             278,
-            320
+            321
           ],
           [
             232,
@@ -1273,14 +1276,14 @@
           ],
           [
             233,
-            298
+            299
           ],
           [
-            282,
+            280,
             313
           ],
           [
-            450,
+            447,
             480
           ],
           [
@@ -1288,16 +1291,16 @@
             334
           ],
           [
-            271,
-            335
+            268,
+            337
           ],
           [
             231,
-            278
+            279
           ],
           [
-            349,
-            391
+            347,
+            394
           ]
         ]
       }
@@ -1307,19 +1310,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/bushveld-winter/layers/near-0.2e120561e57f.png",
-          "bytes": 68793,
-          "hash": "2e120561e57f"
+          "path": "assets/bushveld-winter/layers/near-0.f08d8fe126a7.png",
+          "bytes": 69331,
+          "hash": "f08d8fe126a7"
         },
         {
-          "path": "assets/bushveld-winter/layers/near-1.bd55a41df66a.png",
-          "bytes": 77690,
-          "hash": "bd55a41df66a"
+          "path": "assets/bushveld-winter/layers/near-1.f1246f0cc7c7.png",
+          "bytes": 78657,
+          "hash": "f1246f0cc7c7"
         },
         {
-          "path": "assets/bushveld-winter/layers/near-2.fa5e883ffe01.png",
-          "bytes": 55336,
-          "hash": "fa5e883ffe01"
+          "path": "assets/bushveld-winter/layers/near-2.c79b6a4457ef.png",
+          "bytes": 55854,
+          "hash": "c79b6a4457ef"
         }
       ],
       "tileWidth": 2048,
@@ -1429,14 +1432,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/bushveld-winter/layers/sky-0.29a818443e89.png",
-          "bytes": 79033,
-          "hash": "29a818443e89"
+          "path": "assets/bushveld-winter/layers/sky-0.4de133af3ce6.png",
+          "bytes": 37126,
+          "hash": "4de133af3ce6"
         },
         {
-          "path": "assets/bushveld-winter/layers/sky-1.4e34b01a4ac8.png",
-          "bytes": 22735,
-          "hash": "4e34b01a4ac8"
+          "path": "assets/bushveld-winter/layers/sky-1.4d521378e248.png",
+          "bytes": 12264,
+          "hash": "4d521378e248"
         }
       ],
       "tileWidth": 2048,
@@ -1733,24 +1736,24 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/kalahari-summer/layers/foreground-0.0e4ec9b96df0.png",
-          "bytes": 22484,
-          "hash": "0e4ec9b96df0"
+          "path": "assets/kalahari-summer/layers/foreground-0.473d1cfee7d9.png",
+          "bytes": 21960,
+          "hash": "473d1cfee7d9"
         },
         {
-          "path": "assets/kalahari-summer/layers/foreground-1.88f7b51fe738.png",
-          "bytes": 26417,
-          "hash": "88f7b51fe738"
+          "path": "assets/kalahari-summer/layers/foreground-1.9a9ae981f9fa.png",
+          "bytes": 12758,
+          "hash": "9a9ae981f9fa"
         },
         {
-          "path": "assets/kalahari-summer/layers/foreground-2.2fb877422143.png",
-          "bytes": 12973,
-          "hash": "2fb877422143"
+          "path": "assets/kalahari-summer/layers/foreground-2.5e3991beeea4.png",
+          "bytes": 34220,
+          "hash": "5e3991beeea4"
         },
         {
-          "path": "assets/kalahari-summer/layers/foreground-3.cbefb84ce44b.png",
-          "bytes": 2559,
-          "hash": "cbefb84ce44b"
+          "path": "assets/kalahari-summer/layers/foreground-3.fb1fc4a5cd07.png",
+          "bytes": 1440,
+          "hash": "fb1fc4a5cd07"
         }
       ],
       "tileWidth": 2048,
@@ -2909,24 +2912,24 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/namibie/layers/foreground-0.d5df108ce907.png",
-          "bytes": 14047,
-          "hash": "d5df108ce907"
+          "path": "assets/namibie/layers/foreground-0.719e1cb611e3.png",
+          "bytes": 13991,
+          "hash": "719e1cb611e3"
         },
         {
-          "path": "assets/namibie/layers/foreground-1.4f62376ebade.png",
-          "bytes": 14716,
-          "hash": "4f62376ebade"
+          "path": "assets/namibie/layers/foreground-1.afc93e345b62.png",
+          "bytes": 25641,
+          "hash": "afc93e345b62"
         },
         {
-          "path": "assets/namibie/layers/foreground-2.3ad82d073149.png",
-          "bytes": 22016,
-          "hash": "3ad82d073149"
+          "path": "assets/namibie/layers/foreground-2.fecd003acb17.png",
+          "bytes": 8839,
+          "hash": "fecd003acb17"
         },
         {
-          "path": "assets/namibie/layers/foreground-3.56e5c4995ad9.png",
-          "bytes": 3383,
-          "hash": "56e5c4995ad9"
+          "path": "assets/namibie/layers/foreground-3.67c0d9056c65.png",
+          "bytes": 126,
+          "hash": "67c0d9056c65"
         }
       ],
       "tileWidth": 2048,

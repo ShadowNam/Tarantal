@@ -17,14 +17,14 @@ import {
   yAt,
   type Pen,
   type Rnd,
-  type Tone,
 } from '../scenery';
 import { el, ellipseD, g, inked, r2, smoothD } from '../svg';
 import { mountainRow, paintRow, rockColours } from '../mountains';
-import { aloeFlowers, aloeRosette, groundBand, groundShadow, softSky } from './karoo';
+import { aloeFlowers, aloeRosette, groundBand, softSky } from './karoo';
 import { foregroundClumps, midScrub, nearGrass, verVeld } from './common';
 import { plantLook, seedTuft, veldShrub } from '../flora';
 import { baobab as baobabTree, marula, mopane } from '../species';
+import { boulder, boulderPile as granitePile, graniteLook } from '../rocks';
 import { farAnimal as animal, herd } from '../fauna';
 import type { PaintCtx } from '../landscape';
 
@@ -59,65 +59,6 @@ function winterTuft(ctx: PaintCtx, x: number, y: number, h: number, pen: Pen): s
 }
 
 // --- shapes --------------------------------------------------------------------------------
-
-/** A pile of rounded granite boulders (koppie) centred on x, standing on base. */
-function boulderPile(
-  rnd: Rnd,
-  x: number,
-  base: number,
-  w: number,
-  h: number,
-  t: Tone,
-  pen: Pen,
-  n = 6,
-): string {
-  const parts: string[] = [];
-  const rocks: [number, number, number, number][] = [];
-  for (let k = 0; k < n; k++) {
-    const f = k / Math.max(1, n - 1) - 0.5;
-    const rw = w * (0.22 + rnd() * 0.12);
-    const rh = h * (0.32 + rnd() * 0.14);
-    const top = 1 - Math.abs(f) * 1.4;
-    rocks.push([x + f * w * 0.75, base - rh * 0.5 - Math.max(0, top) * h * 0.45, rw, rh]);
-  }
-  rocks.sort((a, b) => a[1] - b[1]);
-  for (const [rx, ry, rw, rh] of rocks) {
-    const d = smoothD(
-      [
-        [rx - rw, ry + rh * 0.4],
-        [rx - rw * 0.9, ry - rh * 0.3],
-        [rx - rw * 0.3, ry - rh * 0.55],
-        [rx + rw * 0.5, ry - rh * 0.45],
-        [rx + rw, ry],
-        [rx + rw * 0.85, ry + rh * 0.5],
-        [rx - rw * 0.2, ry + rh * 0.55],
-      ],
-      true,
-      0.8,
-    );
-    const id = nextId();
-    parts.push(
-      g(
-        {},
-        el('clipPath', { id }, el('path', { d })),
-        flat(d, t.fill),
-        g(
-          { 'clip-path': `url(#${id})` },
-          flat(ellipseD(rx - rw * 0.45, ry + rh * 0.25, rw * 0.75, rh * 0.6), t.dark),
-          flat(ellipseD(rx + rw * 0.3, ry - rh * 0.3, rw * 0.35, rh * 0.14), t.light),
-        ),
-        el('path', {
-          d,
-          fill: 'none',
-          stroke: pen.ink,
-          'stroke-width': pen.w,
-          'stroke-linejoin': 'round',
-        }),
-      ),
-    );
-  }
-  return g({}, ...parts);
-}
 
 /** A low frost-mist band (flat, translucent, soft lobed edges). */
 function mist(
@@ -426,7 +367,7 @@ function foreground(ctx: LayerCtx): string {
   const pen = ctx.pen;
   const parts = foregroundClumps(ctx, [ctx.u(0.06), ctx.u(0.92)], (x) =>
     ctx.rnd() < 0.6
-      ? boulderPile(ctx.rnd, x, 1100, 220, 140, tone(ctx.c('granite'), 0.28, 0.2), pen, 3)
+      ? granitePile(ctx.rnd, x, 1100, 220, 140, graniteLook(ctx.tint, pen, ctx.c('grass')), pen, 3)
       : g(
           {},
           inked(
@@ -478,119 +419,150 @@ function baobab(ctx: PropCtx): string {
   });
 }
 
-function dassieKoppie(ctx: PropCtx): string {
-  const pen = ctx.pen;
-  const t = tone(ctx.c('granite'), 0.26, 0.2);
-  const fur = tone(ctx.c('dassie'), 0.25, 0.25);
-  // The dassie (rock hyrax) peeks over the top rock: content part at (40, −82), 30 × 22.
-  const dassie = g(
-    {},
-    inked(
-      smoothD(
-        [
-          [8, -70],
-          [14, -94],
-          [40, -104],
-          [66, -96],
-          [72, -72],
-        ],
-        true,
-        0.7,
-      ),
-      fur.fill,
-      pen.ink,
-      pen.w,
-    ),
-    flat(ellipseD(46, -96, 14, 4), fur.light),
-    inked(ellipseD(26, -100, 5, 4), fur.dark, pen.ink, 2),
-    flat(ellipseD(60, -90, 4, 4), pen.ink),
-    flat(ellipseD(70, -82, 3, 2.5), pen.ink),
+/**
+ * v1.6 (D-042, product owner 25 Oct): the rock hyrax (dassie) at 2×, lying on the top boulder,
+ * facing right, inside its content part (ellipse 30 × 22 at (40, −82)): a compact round-backed
+ * body with no tail, grey-brown fur in fine strokes, a cream belly and chin, short rounded ears,
+ * a dark eye with a pale ring, a blunt snout and dark nose, the dark dorsal gland spot, its front
+ * paws on the rock; lit from the upper left, a contact shadow on the stone.
+ */
+function dassie(rnd: Rnd, tint: (hex: string) => string): string {
+  const fur = tint('#7E6A58');
+  const furLit = tint('#A8927C');
+  const furDark = tint('#4E4036');
+  const cream = tint('#E2D2B6');
+  const ink = '#2A211C';
+  const body = smoothD(
+    [
+      [14, -64],
+      [12, -76],
+      [20, -90],
+      [36, -96],
+      [52, -94],
+      [60, -88],
+      [66, -84],
+      [70, -79],
+      [68, -73],
+      [60, -70],
+      [56, -64],
+    ],
+    true,
+    0.75,
   );
+  const id = nextId();
+  // Fine fur strokes following the body's curve: lit along the back, darker low.
+  const byColour = new Map<string, string[]>();
+  for (let k = 0; k < 160; k++) {
+    const t = rnd();
+    const x = 16 + t * 46;
+    const top = -94 + Math.pow((t - 0.45) * 2, 2) * 18;
+    const y = top + rnd() * (-64 - top);
+    const v = (y - top) / (-64 - top);
+    const c = v < 0.25 ? furLit : v > 0.7 ? furDark : rnd() < 0.5 ? fur : shade(fur, -0.12);
+    const ang = -0.4 + t * 0.9 + (rnd() - 0.5) * 0.3;
+    const d = `M${r2(x)} ${r2(y)}l${r2(Math.cos(ang) * 3.2)} ${r2(Math.sin(ang) * 1.6 + 1)}`;
+    byColour.set(c, [...(byColour.get(c) ?? []), d]);
+  }
   return g(
     {},
-    groundShadow(0, 82, 220, 16),
-    boulderPile(ctx.rnd, 60, 40, 140, 150, t, pen, 3),
-    dassie,
-    boulderPile(ctx.rnd, -20, 92, 320, 150, t, pen, 6),
-    tuft(ctx.rnd, -180, 92, 46, tone(ctx.c('grass'), 0.22, 0.25), pen),
-    tuft(ctx.rnd, 170, 94, 40, tone(ctx.c('grassLight'), 0.22, 0.2), pen),
+    // Contact shadow on the stone.
+    el('path', { d: ellipseD(40, -63, 30, 3), fill: '#1E1814', opacity: 0.35 }),
+    // Hind foot tucked under, behind the body.
+    el('path', { d: ellipseD(20, -64.5, 6, 2.6), fill: furDark, stroke: ink, 'stroke-width': 0.8 }),
+    el('path', {
+      d: body,
+      fill: fur,
+      stroke: ink,
+      'stroke-width': 1.3,
+      'stroke-linejoin': 'round',
+    }),
+    el('clipPath', { id }, el('path', { d: body })),
+    g(
+      { 'clip-path': `url(#${id})` },
+      // Shade under the belly and the haunch, a lit back.
+      el('path', { d: ellipseD(38, -64, 28, 8), fill: furDark, opacity: 0.6 }),
+      el('path', { d: ellipseD(30, -94, 18, 6), fill: furLit, opacity: 0.7 }),
+      ...[...byColour].map(([c, ds]) =>
+        el('path', {
+          d: ds.join(''),
+          fill: 'none',
+          stroke: c,
+          'stroke-width': 0.9,
+          'stroke-linecap': 'round',
+        }),
+      ),
+      // The dorsal gland spot (dark, a pale rim) and the cream chin, throat and belly.
+      el('path', { d: ellipseD(33, -94.5, 3.4, 1.4), fill: furDark, opacity: 0.9 }),
+      el('path', {
+        d: smoothD(
+          [
+            [56, -66],
+            [62, -74],
+            [68, -76],
+            [66, -70],
+            [60, -65],
+          ],
+          true,
+          0.7,
+        ),
+        fill: cream,
+      }),
+      el('path', { d: ellipseD(40, -66, 12, 2.6), fill: cream, opacity: 0.7 }),
+    ),
+    // Front paws on the rock.
+    el('path', {
+      d: ellipseD(58, -64.5, 4.2, 2.2),
+      fill: furDark,
+      stroke: ink,
+      'stroke-width': 0.8,
+    }),
+    el('path', { d: ellipseD(64, -64.2, 3.6, 2), fill: fur, stroke: ink, 'stroke-width': 0.8 }),
+    // Short rounded ears.
+    el('path', {
+      d: ellipseD(52, -93.5, 3.2, 2.6),
+      fill: furDark,
+      stroke: ink,
+      'stroke-width': 0.8,
+    }),
+    el('path', { d: ellipseD(52.4, -93.2, 1.6, 1.3), fill: tint('#B89A86') }),
+    // The eye: dark, a pale ring, a catchlight.
+    el('path', { d: ellipseD(61.5, -85.5, 2.6, 2.3), fill: tint('#D8CBB4') }),
+    el('path', { d: ellipseD(61.6, -85.4, 1.8, 1.7), fill: '#140F0C' }),
+    el('path', { d: ellipseD(61, -86.1, 0.55, 0.5), fill: '#FFFFFF' }),
+    // A blunt snout, the dark nose, the mouth line and a few whiskers.
+    el('path', { d: ellipseD(69.4, -79.4, 1.8, 1.5), fill: '#1A1410' }),
+    el('path', { d: 'M68 -76.6q-1.6 1 -3.4 0.6', fill: 'none', stroke: ink, 'stroke-width': 0.7 }),
+    el('path', {
+      d: 'M67 -79l7 -2M67 -78.4l7 0.6M66.6 -77.8l6 2',
+      fill: 'none',
+      stroke: tint('#3A302A'),
+      'stroke-width': 0.45,
+    }),
   );
 }
 
-function boulder(crack: boolean) {
+/** v1.6 (D-042): the dassie's koppie: faceted granite with lichen, cracks and an aloe. */
+function dassieKoppie(ctx: PropCtx): string {
+  const look = graniteLook(ctx.tint, ctx.pen, ctx.c('grass'));
+  return g(
+    {},
+    // The back rocks, the dassie's rock (its top at about y −63), the front heap.
+    granitePile(ctx.rnd, 150, 40, 170, 120, look, ctx.pen, 2),
+    boulder(ctx.rnd, 42, 2, 116, 66, look, ctx.pen, { grass: false }),
+    dassie(ctx.rnd, ctx.tint),
+    granitePile(ctx.rnd, -40, 92, 320, 150, look, ctx.pen, 5, { aloe: true }),
+  );
+}
+
+function boulderProp(crack: boolean) {
   return (ctx: PropCtx): string => {
-    const pen = ctx.pen;
-    const t = tone(ctx.c('granite'), 0.26, 0.2);
+    const look = graniteLook(ctx.tint, ctx.pen, ctx.c('grass'));
     const { w, h } = ctx.box;
-    const rx = w / 2;
     const ry = h / 2;
-    const d = smoothD(
-      [
-        [-rx, ry * 0.7],
-        [-rx * 0.96, -ry * 0.2],
-        [-rx * 0.6, -ry * 0.85],
-        [0, -ry * 1.02],
-        [rx * 0.6, -ry * 0.8],
-        [rx * 0.98, -ry * 0.1],
-        [rx, ry * 0.7],
-      ],
-      true,
-      0.8,
-    );
-    const id = nextId();
-    const lichen = [
-      [-rx * 0.4, -ry * 0.5, 16, 7],
-      [rx * 0.3, -ry * 0.62, 12, 5],
-    ] as const;
-    return g(
-      {},
-      groundShadow(0, ry * 0.75, rx * 1.1, 12),
-      el('clipPath', { id }, el('path', { d })),
-      flat(d, t.fill),
-      g(
-        { 'clip-path': `url(#${id})` },
-        flat(ellipseD(-rx * 0.35, ry * 0.4, rx * 0.95, ry * 0.75), t.dark),
-        flat(ellipseD(rx * 0.32, -ry * 0.62, rx * 0.35, ry * 0.12), t.light),
-        ...lichen.map(([x, y, a, b]) => flat(ellipseD(x, y, a, b), ctx.c('lichen'))),
-        // Crack (content part at (−10, −30)): a dark split with a hollow.
-        crack
-          ? g(
-              {},
-              inked('M-30 -100L-14 -54L-24 -30L-8 0L-18 40L-4 80', 'none', pen.ink, pen.w),
-              inked(
-                smoothD(
-                  [
-                    [-36, -44],
-                    [-12, -56],
-                    [16, -36],
-                    [10, -12],
-                    [-26, -10],
-                  ],
-                  true,
-                  0.8,
-                ),
-                '#2A211C',
-                pen.ink,
-                pen.w,
-              ),
-              flat(ellipseD(-4, -24, 10, 6), '#4A3A30'),
-            )
-          : line(
-              `M${r2(rx * 0.1)} ${r2(-ry)}l-8 ${r2(ry * 0.6)}l10 ${r2(ry * 0.5)}`,
-              pen,
-              pen.w * 0.7,
-            ),
-      ),
-      el('path', {
-        d,
-        fill: 'none',
-        stroke: pen.ink,
-        'stroke-width': pen.w,
-        'stroke-linejoin': 'round',
-      }),
-      tuft(ctx.rnd, -rx * 0.8, ry * 0.75, 40, tone(ctx.c('grass'), 0.22, 0.25), pen),
-      tuft(ctx.rnd, rx * 0.85, ry * 0.75, 34, tone(ctx.c('grassLight'), 0.22, 0.2), pen),
-    );
+    // Content: the crack part sits at (−10, −30), 32 × 28; birds perch on the top (y ≈ −60).
+    return boulder(ctx.rnd, 0, ry * 0.75, w * 0.98, ry * 1.8, look, ctx.pen, {
+      ...(crack ? { crack: { x: -10, y: -30, len: 70 } } : {}),
+    });
   };
 }
 
@@ -643,7 +615,8 @@ function redAloes(rosettes: readonly (readonly [number, number, number])[]) {
 export const BUSHVELD_PLAN: BiomeArtPlan = {
   biome: 'bushveld-winter',
   layers: {
-    sky: { top: 0, height: 1080, encode: 'png', draw: sky },
+    // v1.6 (D-042): a 256-colour sky (no visible banding), as the Karoo's and the Okavango's.
+    sky: { top: 0, height: 1080, encode: 'png8', draw: sky },
     // v1.6 (D-042): smaller palettes keep the biome chunk inside 1.5 MB.
     far_ridge: { top: 380, height: 280, colours: 96, draw: farRidge },
     // v1.3: the Ver plane's strip (shown only on maps that open it).
@@ -666,10 +639,16 @@ export const BUSHVELD_PLAN: BiomeArtPlan = {
       frame: { w: 600, h: 640, ox: 300, oy: 360 },
       colours: 128,
     },
-    'bushveld/dassie_koppie': { draw: dassieKoppie },
-    'bushveld/boulder_crack': { draw: boulder(true) },
-    'bushveld/boulder_a': { draw: boulder(false) },
-    'bushveld/boulder_b': { draw: boulder(false) },
+    'bushveld/dassie_koppie': {
+      draw: dassieKoppie,
+      master: 2,
+      wobble: false,
+      colours: 128,
+      frame: { w: 560, h: 300, ox: 280, oy: 190 },
+    },
+    'bushveld/boulder_crack': { draw: boulderProp(true), wobble: false, colours: 112 },
+    'bushveld/boulder_a': { draw: boulderProp(false), wobble: false, colours: 112 },
+    'bushveld/boulder_b': { draw: boulderProp(false), wobble: false, colours: 112 },
     'bushveld/aloe_a': {
       draw: redAloes([
         [-30, 44, 104],

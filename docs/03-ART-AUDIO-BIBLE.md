@@ -175,7 +175,7 @@ koppies `#8E7FA6`, aloe flowers `#E2552C`. Weather: wind sock, dust devils, flyi
 
 **Winter · Bushveld** — frost mist at dawn, baobabs, mopane, granite koppies, red flowering aloes,
 dry pale grass, giraffe silhouettes, dassie on a rock. Palette: sky `#B9D7EA`, grass `#C9B98F`,
-granite `#D07A3E`, aloe `#E04A2B`, baobab bark `#8D7F74`. Weather: low sun glare (lens flare one side),
+granite `#A8977F` (grey-ochre since v1.6, D-042; the far koppies keep their warm rock), aloe `#E04A2B`, baobab bark `#8D7F74`. Weather: low sun glare (lens flare one side),
 breath-fog puffs from birds.
 - *Plants (v1.6, D-042):* the **baobab** (kremetart): a massive smooth grey bottle trunk (lit left,
   shade right, long vertical folds, soft wrinkles), thick limbs splaying up like roots into crooked

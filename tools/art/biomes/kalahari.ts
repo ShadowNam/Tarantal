@@ -12,7 +12,6 @@ import {
   nextId,
   post,
   shade,
-  stone,
   tone,
   tuft,
   yAt,
@@ -36,6 +35,7 @@ import { plantLook, seedTuft, veldShrub } from '../flora';
 import { shepherdsTree } from '../species';
 import { farAnimal as animal, herd } from '../fauna';
 import type { PaintCtx } from '../landscape';
+import { boulder, graniteLook } from '../rocks';
 
 /** v1.6 (D-042): driedoring, a grey, open, spiny shrub of the red sand. */
 function driedoring(ctx: PaintCtx, x: number, y: number, s: number, pen: Pen): string {
@@ -549,7 +549,16 @@ function foreground(ctx: LayerCtx): string {
   return g(
     {},
     ...foregroundClumps(ctx, [ctx.u(0.05), ctx.u(0.93)], (x) =>
-      stone(ctx.rnd, x, 1084, 46 + ctx.rnd() * 20, tone(ctx.c('stone'), 0.28, 0.25), pen),
+      // v1.6 (D-042): weathered boulders like the Bushveld's, in this biome's rock.
+      boulder(
+        ctx.rnd,
+        x,
+        1092,
+        120 + ctx.rnd() * 50,
+        70 + ctx.rnd() * 26,
+        graniteLook(ctx.tint, pen, ctx.c('grass'), '#A8806A'),
+        pen,
+      ),
     ),
   );
 }

@@ -9,6 +9,7 @@
 import type { BiomeArtPlan, LayerCtx, PaintCtx, PropCtx } from '../landscape';
 import { plantLook, roundFruit, veldShrub } from '../flora';
 import { StrokeBin, zigzag } from '../camelthorn';
+import { boulder, graniteLook } from '../rocks';
 import { farAnimal as animal, herd as animalHerd, type AnimalKind, type Pose } from '../fauna';
 import {
   flat,
@@ -17,7 +18,6 @@ import {
   mix,
   nextId,
   shade,
-  stone,
   tone,
   yAt,
   type Pen,
@@ -653,7 +653,16 @@ function foreground(ctx: LayerCtx): string {
   return g(
     {},
     ...foregroundClumps(ctx, [ctx.u(0.05), ctx.u(0.93)], (x) =>
-      stone(ctx.rnd, x, 1084, 46 + ctx.rnd() * 20, tone(ctx.c('stone'), 0.28, 0.25), pen),
+      // v1.6 (D-042): weathered boulders like the Bushveld's, in this biome's rock.
+      boulder(
+        ctx.rnd,
+        x,
+        1092,
+        120 + ctx.rnd() * 50,
+        70 + ctx.rnd() * 26,
+        graniteLook(ctx.tint, pen, ctx.c('grass'), '#B0A090'),
+        pen,
+      ),
     ),
   );
 }
