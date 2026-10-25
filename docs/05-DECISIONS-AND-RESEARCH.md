@@ -2048,6 +2048,15 @@ and every visual baseline), so each target keeps its own small chain: level 0 si
 scope (≤ 1 024 px: a near plate is about 1:1 up to 4×, softer beyond; far and Ver stay sharp at 9×), each lower level a half-size box filter of the one above; the view shows the
 level with ≥ 1 texel per screen pixel. Every level, the plate art and the frame filter LINEAR, also on the low
 tier (whose antialias-off default is NEAREST).
+*Review (25 Oct, v1.5 CI):* a switch never froze the page (the CI trace of the timed-out run
+shows the mid course up in 0.8 s and no step over 7.5 s; the test simply outran its timeout, and
+a third of its time went on serialising the whole test hook). The bake was still wasteful, so:
+level 0 is the only texture made at once; a smaller level is made and rebuilt only when the zoom
+shows it, once per bake (a hit was 7 render passes, now 1 + the level shown); only new marks are
+drawn, at most `MARKS_PER_FRAME` (120) a frame, so a re-bake of 400 marks spreads over 4 frames.
+`MarkSurface.test.ts` counts the work with a fake scene; the hook's `range.bake` (render passes
+since the course started, slowest bake, bake textures alive) is checked after every switch in the
+25-hits e2e test (≤ 8 passes, < 2 s, ≤ 7 textures). Same pixels: no screen changes.
 (6) *Tests:* unit (`rangeMarks.test.ts`): marks at the impact points, deterministic shapes (one
 pinned), 25 hits all stay, per-target keys, Repaint and leaving clear, the cap holds and keeps the
 newest, target indices, the newest glint, the sim-time swing. e2e (`skietbaan.spec.ts`, CI): 25
