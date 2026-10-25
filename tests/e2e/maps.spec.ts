@@ -55,9 +55,9 @@ test.describe('maps (v1.2)', () => {
       bonus: 'verder',
       lights: ['dusty_wind', 'verder_haze'],
     });
-    // Friday's windpomp stands east (data), and the HUD says Verder.
+    // Friday's windpomp stands east (data), and the HUD names the bonus map (English, D-041).
     expect(h.map?.props['windpomp']).toBe(0.7);
-    expect(h.hudTag).toBe('Verder · further');
+    expect(h.hudTag).toBe('Further · bonus map');
     await waitScene(page, 'tally');
     h = await hook(page);
     expect(h.result).toMatchObject({ layout: 'fri', bonus: 'verder' });
@@ -129,7 +129,7 @@ test.describe('maps (v1.2)', () => {
     await waitScene(page, 'tally');
     let h = await hook(page);
     expect(h.verderUnlocked).toBe('verder');
-    expect(h.tally?.news ?? '').toContain('Verder unlocked for today!');
+    expect(h.tally?.news ?? '').toContain('Further unlocked for today!');
     await tapRect(page, touch, 'menu');
     await waitScene(page, 'start');
     await page.waitForFunction(() => window.__TM__?.rects['verder'] !== undefined);

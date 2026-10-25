@@ -588,7 +588,9 @@ test.describe('Skietbaan (training ground)', () => {
     page,
   }, info) => {
     test.skip(!isLandscape(info), 'the admin page is used in landscape');
-    test.setTimeout(600_000);
+    // Every wait below is bounded on its own, so a stall fails with its step's message instead of
+    // running into the test timeout (it once hung 600 s in setup() on desktop CI).
+    test.setTimeout(240_000);
     const errors = collectErrors(page);
     const touch = isTouchProject(info);
     await openRange(page, touch, '&seed=42');
@@ -603,10 +605,30 @@ test.describe('Skietbaan (training ground)', () => {
       await paper(page);
       await parkMouse(page, touch);
     };
+    /** A button of the range's top bar: visible within 15 s, then pressed, the mouse parked. */
+    const barButton = async (action: string): Promise<void> => {
+      const b = page.locator(`#tm-range-bar [data-action=${action}]`);
+      await expect(b, `the bar's ${action} button`).toBeVisible({ timeout: 15_000 });
+      try {
+        if (touch) await b.tap({ timeout: 15_000 });
+        else await b.click({ timeout: 15_000 });
+      } catch (e) {
+        // Visible but never "stable" or hit-testable (the stats line pulses on each hit): press
+        // it through the DOM, which runs the same handler, and say so in the log.
+        console.warn(
+          `bar ${action}: pointer press failed (${String(e).split('\n')[0]}); DOM click`,
+        );
+        await b.evaluate((el) => {
+          (el as HTMLButtonElement).click();
+        });
+      }
+      // The bar sits in the left edge-pan band: never leave the mouse there (D-021).
+      await parkMouse(page, touch);
+    };
     const setup = async (): Promise<void> => {
-      await press(page, touch, '#tm-range-bar [data-action=setup]');
+      await barButton('setup');
       await page.waitForFunction(() => window.__TM__?.range?.view === 'setup', null, {
-        timeout: 60_000,
+        timeout: 30_000,
       });
     };
     /** The plate's marks on the hook once the bake has caught up with the store. */
@@ -667,8 +689,7 @@ test.describe('Skietbaan (training ground)', () => {
     expect(await plateMarks(25)).toEqual({ count: 25, drawn: 25 });
 
     // Repaint clears them on purpose.
-    await expect(page.locator('#tm-range-bar [data-action=repaint]')).toBeVisible();
-    await press(page, touch, '#tm-range-bar [data-action=repaint]');
+    await barButton('repaint');
     expect(await plateMarks(0)).toEqual({ count: 0, drawn: 0 });
 
     // A hit after the Repaint, then leaving the Skietbaan and coming back: freshly painted.
