@@ -61,12 +61,14 @@ test.describe('portal build', () => {
 
   test('?admin=1 is ignored: the normal title, no admin page (D-034)', async ({ page }) => {
     await routeSdk(page);
-    await boot(page, 'admin=1');
+    // D-045: nor the Project overview, even when asked for directly.
+    await boot(page, 'admin=1&project=1');
     await waitScene(page, 'start');
     const h = await hook(page);
     expect(h.platform).toBe(PLATFORM);
     expect(h.admin).toBeNull();
     await expect(page.locator('#tm-admin')).toHaveCount(0);
+    await expect(page.locator('#tm-project')).toHaveCount(0);
     expect(
       await page.evaluate(() => Object.keys(localStorage).some((k) => k.includes('admin'))),
     ).toBe(false);
