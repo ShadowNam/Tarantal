@@ -255,8 +255,7 @@ function spark(p: SpriteCtx): string {
 }
 
 function crateBox(p: SpriteCtx): string {
-  // Wooden ammo crate in 3/4: planked front, top lid, cross brace, stencilled shell symbol (no
-  // letters or red cross).
+  // Wooden ammo crate in 3/4: planked front, top lid, cross brace (no letters or red cross).
   const wood = tone(p.c('wood'), 0.3, 0.25);
   const front = polyD([
     [-62, -36],
@@ -277,15 +276,7 @@ function crateBox(p: SpriteCtx): string {
     [44, 62],
   ]);
   const planks = line('M-62 -3L44 -3M-62 30L44 30', { ink: wood.dark, w: 3 });
-  // Stencilled shell symbol (stencil bridges break the shape, as a spray stencil would).
-  const cream = p.c('cream');
-  const stencil = g(
-    { opacity: 0.88 },
-    flat('M-11 -22Q-11 -26 -7 -26L7 -26Q11 -26 11 -22L11 12L-11 12Z', cream),
-    flat('M-14 16L14 16L14 30L-14 30Z', cream),
-    flat('M-12 -4L12 -4L12 0L-12 0Z', wood.fill),
-    flat('M-2 16L2 16L2 30L-2 30Z', wood.fill),
-  );
+  // v1.7b (D-046): no stencil on the front: the game puts the item's icon there (WorldView).
   return g(
     {},
     inked(side, wood.dark, p.ink, 4),
@@ -295,7 +286,6 @@ function crateBox(p: SpriteCtx): string {
     planks,
     line('M-58 -32L40 58', { ink: shade(wood.fill, -0.35), w: 9 }),
     line('M-58 -32L40 58', { ink: wood.light, w: 3 }),
-    stencil,
     ...[
       [-56, -30],
       [38, -30],
@@ -306,7 +296,8 @@ function crateBox(p: SpriteCtx): string {
 }
 
 function crateChute(p: SpriteCtx): string {
-  // Patched canvas parachute (origin = crate centre), rigging lines, the crate.
+  // Canvas parachute (origin = crate centre), rigging lines, the crate. v1.7b: no patch on the
+  // canopy (it read as a stray square beside the item's icon).
   const canvas = tone(p.c('cream'), 0.18, 0.15);
   const canopy = smoothD(
     [
@@ -342,8 +333,6 @@ function crateChute(p: SpriteCtx): string {
         ink: canvas.dark,
         w: 3,
       }),
-      inked('M-86 -254L-56 -258L-54 -232L-84 -228Z', p.c('patch'), p.ink, 2),
-      line('M-84 -250l26 -3M-83 -240l26 -3', { ink: shade(p.c('patch'), -0.3), w: 1.5 }),
       flat(ellipseD(-40, -270, 22, 8), canvas.light),
     ),
     el('path', {

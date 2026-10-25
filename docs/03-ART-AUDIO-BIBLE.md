@@ -366,8 +366,10 @@ steam wisps; **Bush Buckshot** — a fat red shell bursting into a wide spray of
 Spotter** — the helper meerkat with its binoculars; **Die Voorlaaier** — the muzzle-loader's
 silhouette (octagonal barrel, ramrod, brass butt plate, a puff at the muzzle); **Mielie-Masjien** —
 the green corn cannon with a cob in its hopper and kernels flying. Blitslaai and Oupa Laai (v1.6b)
-moved to the same 128 px size. A crate shows its item's icon on a cream disc on its canopy (and on
-the landed box's face). About 3 KB each (PNG-8); all eight 26 KB, in the first download.
+moved to the same 128 px size. A crate shows its item's icon, fully opaque on a cream disc with a
+dark ring: big on the canopy while it falls (74 px radius at the near plane, drawn above the
+scenery so haze never fades it) and on the box's planked front, where the stencil used to be (the
+canopy's canvas patch and the stencil are gone from the art). About 3 KB each (PNG-8); all eight 26 KB, in the first download.
 
 ### 5.1 Skietbaan targets (D-037, D-040)
 Semi-realistic (D-035): no dark contours, light from the upper left. Interim art from

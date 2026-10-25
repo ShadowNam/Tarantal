@@ -50,8 +50,8 @@ export class WorldView {
     number,
     {
       img: Phaser.GameObjects.Image;
-      disc: Phaser.GameObjects.Arc | null;
-      pic: Phaser.GameObjects.Image | null;
+      /** v1.7b: the item's icon on the canopy and on the box front (screen layer). */
+      tags: { disc: Phaser.GameObjects.Arc; pic: Phaser.GameObjects.Image }[];
       icon: string | null;
     }
   >();
@@ -221,17 +221,21 @@ export class WorldView {
         const layer = this.parallax.plane(c.plane).overlay;
         const img = this.scene.add.image(c.x, c.y, key);
         layer?.add(img);
-        // v1.7b (D-046): what it holds, on a cream disc on the canopy (and then on the box).
+        // v1.7b (D-046): what it holds, fully opaque on a cream disc with a dark ring: big on
+        // the canopy while it falls, and on the box's front (where the stencil was). Drawn in the
+        // screen layer, above every scenery layer, so no haze band or light tint washes it out.
         const icon = c.item === null ? null : powerupIcon(c.item);
         const shown = icon !== null && this.scene.textures.exists(icon) ? icon : null;
-        const disc =
+        const tags =
           shown === null
-            ? null
-            : this.scene.add.circle(0, 0, 1, 0xf3ead3, 1).setStrokeStyle(4, 0x1b1410, 1);
-        const pic = shown === null ? null : this.scene.add.image(0, 0, shown);
-        if (disc !== null) layer?.add(disc);
-        if (pic !== null) layer?.add(pic);
-        art = { img, disc, pic, icon: shown };
+            ? []
+            : [0, 1].map(() => {
+                const disc = this.scene.add.circle(0, 0, 1, 0xf3ead3, 1);
+                const pic = this.scene.add.image(0, 0, shown);
+                this.screen.add([disc, pic]);
+                return { disc, pic };
+              });
+        art = { img, tags, icon: shown };
         this.crates.set(c.id, art);
       }
       const img = art.img;
@@ -240,22 +244,36 @@ export class WorldView {
       const o = chute ? { x: 0.5, y: 290 / 360 } : { x: 0.5, y: 0.5 };
       const scale = c.plane === 'near' ? 1 : c.plane === 'mid' ? 0.55 : 0.3;
       img.setOrigin(o.x, o.y).setPosition(c.x, c.y).setScale(scale);
-      if (art.disc !== null && art.pic !== null) {
-        // On the canopy while it falls; on the box's face once it lands (texture px × scale).
-        const y = c.y + (chute ? -244 : -4) * scale;
-        const r = (chute ? 42 : 54) * scale;
-        art.disc
-          .setPosition(c.x, y)
+      const sx = this.parallax.screenX(c.plane, c.x);
+      // [canopy, box front] in texture px from the crate centre: the canopy's middle, and the
+      // planked front's middle (the box art is the same on the chute and on the ground).
+      const spots = [
+        { show: chute, dx: 0, dy: -240, r: 74 },
+        { show: true, dx: -9, dy: 13, r: 40 },
+      ];
+      art.tags.forEach((t, i) => {
+        const spot = spots[i];
+        const on = spot !== undefined && spot.show;
+        t.disc.setVisible(on);
+        t.pic.setVisible(on);
+        if (!on) return;
+        const r = spot.r * scale;
+        const x = sx + spot.dx * scale;
+        const y = c.y + spot.dy * scale;
+        t.disc
+          .setPosition(x, y)
           .setRadius(r)
-          .setStrokeStyle(Math.max(2, 5 * scale), 0x1b1410, 1);
-        art.pic.setPosition(c.x, y).setDisplaySize(r * 1.75, r * 1.75);
-      }
+          .setStrokeStyle(Math.max(3, 9 * scale), 0x1b1410, 1);
+        t.pic.setPosition(x, y).setDisplaySize(r * 1.7, r * 1.7);
+      });
     }
     for (const [id, art] of this.crates) {
       if (seen.has(id)) continue;
       art.img.destroy();
-      art.disc?.destroy();
-      art.pic?.destroy();
+      for (const t of art.tags) {
+        t.disc.destroy();
+        t.pic.destroy();
+      }
       this.crates.delete(id);
     }
   }
@@ -643,8 +661,10 @@ export class WorldView {
     this.secretArt.clear();
     for (const c of this.crates.values()) {
       c.img.destroy();
-      c.disc?.destroy();
-      c.pic?.destroy();
+      for (const t of c.tags) {
+        t.disc.destroy();
+        t.pic.destroy();
+      }
     }
     this.crates.clear();
     for (const d of this.devils.values()) d.destroy();

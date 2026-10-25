@@ -103,9 +103,9 @@
       "group": "common",
       "origin": "interim",
       "file": {
-        "path": "assets/common/img/crate_box.0fed528eb1ea.png",
-        "bytes": 2519,
-        "hash": "0fed528eb1ea"
+        "path": "assets/common/img/crate_box.0a376be74b06.png",
+        "bytes": 2236,
+        "hash": "0a376be74b06"
       },
       "width": 160,
       "height": 160
@@ -114,9 +114,9 @@
       "group": "common",
       "origin": "interim",
       "file": {
-        "path": "assets/common/img/crate_chute.1fa3a2fe87ac.png",
-        "bytes": 8854,
-        "hash": "1fa3a2fe87ac"
+        "path": "assets/common/img/crate_chute.bd04dba03e9f.png",
+        "bytes": 7955,
+        "hash": "bd04dba03e9f"
       },
       "width": 260,
       "height": 360
