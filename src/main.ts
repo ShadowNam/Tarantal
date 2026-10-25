@@ -25,7 +25,7 @@ import { fitCamera } from './game/view/fitCamera';
 import { loadFonts } from './game/ui/fonts';
 import { FlashLimiter } from './game/view/flashLimit';
 import { setTextLook } from './game/ui/textLook';
-import type { AssetManifest } from './game/assets/AssetManifest';
+import { neededLateMissing, type AssetManifest, type LateNeed } from './game/assets/AssetManifest';
 import {
   ABSENT,
   absentIndexAccepted,
@@ -651,15 +651,22 @@ async function boot(): Promise<void> {
     }
     return p;
   };
-  /** True when nothing delivered for `b` is missing (or no index, where that is accepted). */
-  const artOk = (b: Biome): boolean =>
-    assetIndex === null ? absentOk() : manifestFor(b).missingFinal.length === 0;
+  /**
+   * True when nothing delivered for `b` is missing (or no index, where that is accepted). With
+   * `late`, also none of the Ver-group files that hunt needs (once the late groups settled).
+   */
+  const artOk = (b: Biome, late?: LateNeed): boolean =>
+    assetIndex === null
+      ? absentOk()
+      : manifestFor(b).missingFinal.length === 0 &&
+        (late === undefined || neededLateMissing(manifestFor(b).missingLate, late).length === 0);
   /**
    * v1.6 (D-042): loads a biome's delivered art, retrying (bounded) what failed. Each retry
    * fetches the index again first: after a deploy the old index names files the host no longer
-   * has, and the new index names the new ones.
+   * has, and the new index names the new ones. With `late` (a scoped hunt, the Skietbaan), it
+   * also waits for the late groups and retries the Ver-group files that hunt needs.
    */
-  const ensureArt = async (b: Biome): Promise<boolean> => {
+  const ensureArt = async (b: Biome, late?: LateNeed): Promise<boolean> => {
     const tries = feel.assets.artRetries;
     for (let k = 0; k <= tries; k++) {
       if (k > 0) {
@@ -674,16 +681,18 @@ async function boot(): Promise<void> {
         }
       }
       await loadFinalFor(b);
+      if (late !== undefined) await manifestFor(b).lateLoaded;
       hook.assets.failed = failedAssetFiles();
-      if (artOk(b)) return true;
+      if (artOk(b, late)) return true;
     }
+    const m = manifestFor(b);
+    const missing = [
+      ...m.missingFinal,
+      ...(late === undefined ? [] : neededLateMissing(m.missingLate, late)),
+    ];
     console.warn(
       `[assets] ${b.id}: art still missing after ${tries} retries: ${
-        assetIndex === null
-          ? (indexProblem ?? 'no index')
-          : manifestFor(b)
-              .missingFinal.map((m) => m.path)
-              .join(', ')
+        assetIndex === null ? (indexProblem ?? 'no index') : missing.map((x) => x.path).join(', ')
       }`,
     );
     return false;
@@ -781,6 +790,10 @@ async function boot(): Promise<void> {
       if (!(await loadBiomeArt(id))) return false;
       const b = bundle.biomes.find((x) => x.id === id);
       return b === undefined ? true : ensureArt(b);
+    },
+    loadLateArt: async (id, need) => {
+      const b = bundle.biomes.find((x) => x.id === id);
+      return b === undefined ? true : ensureArt(b, need);
     },
     huntBiome: biome,
     audio,

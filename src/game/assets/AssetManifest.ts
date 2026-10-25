@@ -91,6 +91,40 @@ export interface FinalLoadOptions {
 
 export type BirdFrame = 'up' | 'down' | 'stand';
 
+/** v1.6 (D-042): a delivered key whose file failed, with the group it was delivered in. */
+export interface MissingFile {
+  readonly key: string;
+  readonly path: string;
+  readonly group: string;
+}
+
+/** v1.6 (D-042): what a hunt needs of the background-loaded Ver group (all of it waits otherwise). */
+export interface LateNeed {
+  /** A rifle's sight pictures (`sight/*`): a scoped hunt or the Skietbaan. */
+  readonly sight: boolean;
+  /** The map opens the Ver plane: its strip (and Ver-only props). */
+  readonly ver: boolean;
+  /** The hunt's weapon: its gun rig when it is delivered with the Ver group (the rifles). */
+  readonly weapon?: string;
+}
+
+/**
+ * v1.6 (D-042): the Ver-group files a hunt needs that failed to load. The late group (rare
+ * variants, other guns) keeps its placeholders as before: nothing here starts on them.
+ */
+export function neededLateMissing(
+  missing: readonly MissingFile[],
+  need: LateNeed,
+): readonly MissingFile[] {
+  return missing.filter((m) => {
+    if (m.group !== VER_GROUP) return false;
+    if (m.key.startsWith('sight/')) return need.sight;
+    const gun = /^gun\/(.+)$/.exec(m.key);
+    if (gun !== null) return gun[1] === need.weapon;
+    return need.ver;
+  });
+}
+
 export const MAX_TILE_WIDTH = 2048;
 
 export class AssetManifest {
@@ -227,6 +261,13 @@ export class AssetManifest {
    */
   missingFinal: readonly { key: string; path: string }[] = [];
 
+  /**
+   * v1.6 (D-042): delivered late and Ver-group keys whose files failed in the last loadFinal,
+   * known once `lateLoaded` has settled (empty before). HuntScene asks neededLateMissing() which
+   * of them a scoped hunt or the Skietbaan needs; main.ts retries those, then asks.
+   */
+  missingLate: readonly MissingFile[] = [];
+
   private mark(key: string, origin: AssetOrigin | undefined): void {
     if (origin === 'interim') this.interimKeys.add(key);
   }
@@ -262,6 +303,8 @@ export class AssetManifest {
     // v1.6 (D-042): what this load must deliver before a hunt may start (not the late group),
     // checked once the jobs are done; a failure is a key with the file that failed.
     const expect: { key: string; path: string; done: () => boolean }[] = [];
+    // v1.6 (D-042): the same for the late and Ver groups, checked once they have settled.
+    const expectLate: { key: string; path: string; group: string; done: () => boolean }[] = [];
     const queue = (
       group: string,
       job: () => Promise<void>,
@@ -278,8 +321,10 @@ export class AssetManifest {
       )
         return;
       // v1.3: the Ver strips aren't needed to start a hunt either (only bonus maps show them).
-      if (group === LATE_GROUP || group === VER_GROUP) late.push(job);
-      else {
+      if (group === LATE_GROUP || group === VER_GROUP) {
+        late.push(job);
+        if (need !== undefined) expectLate.push({ ...need, group });
+      } else {
         jobs.push(job());
         if (need !== undefined) expect.push(need);
       }
@@ -447,7 +492,11 @@ export class AssetManifest {
     for (const m of this.missingFinal)
       console.warn(`[assets] ${m.key}: delivered file failed to load (${m.path})`);
     this.lateDone = false;
+    this.missingLate = [];
     this.lateLoaded = Promise.all(late.map((job) => job())).then(() => {
+      this.missingLate = expectLate
+        .filter((e) => !e.done())
+        .map((e) => ({ key: e.key, path: e.path, group: e.group }));
       this.lateDone = true;
     });
   }
