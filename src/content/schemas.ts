@@ -212,6 +212,98 @@ export const CreatureSchema = z.discriminatedUnion('kind', [
 ]);
 export type Creature = z.infer<typeof CreatureSchema>;
 
+/**
+ * v1.7 (D-044): the meerkat colonies of the desert maps (GDD §11, Tech §3.12). Tuning only: where
+ * the colonies sit is in the biome files. Sizes and speeds are design px at plane scale 1 (the
+ * near plane), scaled by the colony's plane like a bird's hitbox; times in seconds.
+ */
+const meerkatActivity = obj({
+  sit: nonNeg,
+  sentinel: nonNeg,
+  forage: nonNeg,
+  sunbathe: nonNeg,
+  dash: nonNeg,
+  dive: nonNeg,
+});
+export const MeerkatsSchema = obj({
+  /** Hit shapes from the feet (sim position): standing tall, low (sit, dig, run) and a peeking
+   *  head; mirrored by facing like a bird's. */
+  hitboxes: obj({ tall: hitboxSchema, low: hitboxSchema, peek: hitboxSchema }),
+  /** A pup's size against an adult's. */
+  pupScale: z.number().gt(0).max(1),
+  /** Chance a colony has a pup trailing its mother. */
+  pupChance: fraction,
+  /** Distance a pup keeps behind its mother. */
+  pupGapPx: pos,
+  /** Share of the family above ground when the hunt starts. */
+  startOutShare: fraction,
+  hiddenSeconds: range(pos),
+  peekSeconds: range(pos),
+  /** A peek that ends with the meerkat coming out (else it ducks again). */
+  emergeChance: fraction,
+  emergeSeconds: pos,
+  diveSeconds: pos,
+  /** Weights of what an adult does next once it is out. */
+  activities: meerkatActivity,
+  activitySeconds: obj({
+    sit: range(pos),
+    sentinel: range(pos),
+    forage: range(pos),
+    sunbathe: range(pos),
+  }),
+  /** How long the sentinel holds each head turn. */
+  lookSeconds: range(pos),
+  /** Foraging spots lie within this distance of the meerkat's burrow. */
+  forageRadiusPx: pos,
+  runPxPerSec: pos,
+  /** A dash: 1–4 run in a line to another burrow, stopping halfway to stand and look. */
+  dash: obj({
+    group: range(z.number().int().min(1).max(4)),
+    gapPx: pos,
+    pauseSeconds: range(pos),
+  }),
+  /** Layout lights (feel.json lights) early enough for sunbathing (belly to the sun). */
+  sunbatheLights: z.array(id),
+  /** No shot for this long: the colony is calm (nobody dives, the hidden come out). */
+  calmSeconds: pos,
+  /** A shot whose impact lands within radiusPx (plane px) of the colony on its plane sends it
+   *  down; it comes back after returnSeconds, one head first, then the rest. */
+  shotDive: obj({
+    radiusPx: pos,
+    returnSeconds: range(pos),
+    staggerSeconds: range(nonNeg),
+  }),
+  /** A raptor or the crop sprayer over a colony (within radiusU of the pan): the sentinel barks
+   *  and everyone dives; the nearest guineafowl flock hears it and is alerted. */
+  alarm: obj({
+    creatures: z.array(id).min(1),
+    radiusU: z.number().gt(0).max(0.5),
+    alertsNearestFlock: z.boolean(),
+  }),
+  /** Shooting a meerkat: never hurt; it tumbles into the nearest hole, then pops out and
+   *  scolds. Points off, at most once per cooldown per colony (like the weaver nest). */
+  hit: obj({
+    penalty: posInt,
+    cooldownSeconds: pos,
+    tumbleSeconds: pos,
+    scoldDelaySeconds: pos,
+    scoldSeconds: pos,
+    barkKey: i18nKey,
+  }),
+  /** The Familiefoto secret: once per hunt, the whole family out and no shot for holdSeconds
+   *  while the colony is within onScreenHalfPx of the screen centre (fits a 4:3 screen). */
+  familiefoto: obj({
+    holdSeconds: pos,
+    bonus: posInt,
+    onScreenHalfPx: z.number().positive().max(720),
+    rowGapPx: pos,
+    lineUpSeconds: pos,
+    poseSeconds: pos,
+    barkKey: i18nKey,
+  }),
+});
+export type MeerkatTuning = z.infer<typeof MeerkatsSchema>;
+
 export const BirdsSchema = obj({
   version,
   flockDefaults: obj({
@@ -278,6 +370,8 @@ export const BirdsSchema = obj({
     spawnHalfWidthPx: z.number().positive().max(720),
   }),
   creatures: z.array(CreatureSchema).min(1),
+  /** v1.7 (D-044): the desert maps' meerkat colonies (behaviour and rules). */
+  meerkats: MeerkatsSchema,
 });
 export type Birds = z.infer<typeof BirdsSchema>;
 
@@ -741,6 +835,21 @@ const secretSchema = z.discriminatedUnion('type', [
   }),
 ]);
 
+/**
+ * v1.7 (D-044): a meerkat colony on a near or mid plane layer: 3–5 burrows on low sand mounds
+ * (dx from the colony's u, mound height, layer px) and a family of 4–8.
+ */
+export const ColonySchema = obj({
+  id,
+  layer: id,
+  u: fraction,
+  /** The ground line of the mounds (design px). */
+  y: z.number(),
+  burrows: z.array(obj({ dx: z.number(), mound: pos })).min(3).max(5),
+  family: range(z.number().int().min(4).max(8)),
+});
+export type Colony = z.infer<typeof ColonySchema>;
+
 const laneSchema = obj({
   groundY: range(nonNeg).optional(),
   skyY: range(nonNeg).optional(),
@@ -816,6 +925,8 @@ const mapOverrideShape = {
   /** v1.3 (D-036): this map opens the Ver plane (the biome's `ver` layer and lanes). Maps
    *  without it play as before: the Ver layer is left out of the map entirely. */
   ver: z.boolean().optional(),
+  /** v1.7 (D-044): the map's meerkat colonies, replacing the biome's (1–2 on the desert maps). */
+  colonies: z.array(ColonySchema).max(2).optional(),
 };
 
 export const LayoutSchema = obj({
@@ -999,6 +1110,8 @@ export const BiomeSchema = obj({
   feedingSpots: z.array(feedingSpotSchema).min(1).optional(),
   flyovers: flyoverRouteSchema.optional(),
   cameraStartU: fraction.optional(),
+  /** v1.7 (D-044): meerkat colonies (layouts may replace them; absent = none). */
+  colonies: z.array(ColonySchema).max(2).optional(),
   /** v1.2: one layout per UTC weekday, Monday first. */
   layouts: z
     .array(LayoutSchema)

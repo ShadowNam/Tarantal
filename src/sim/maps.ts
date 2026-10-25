@@ -1,6 +1,6 @@
 // Day-of-week maps and bonus maps (v1.2, GDD §11.5, Tech §3.11, D-033). A map is a biome with
 // overrides applied: the layout of a weekday (light, prop positions, feeding spots, fly-over
-// routes, weather, pacing), then optionally a bonus map (Verder) on top. Pure: the same
+// routes, weather, pacing, meerkat colonies), then optionally a bonus map (Verder) on top. Pure: the same
 // (biome, layout, bonus) always gives the same map, so the map id in a replay or a challenge
 // link is all a client needs. No layout (replays before v1.2, Season Run, FTUE) = the biome as
 // it is.
@@ -114,6 +114,8 @@ function applyOverride(biome: Biome, o: Override): Biome {
     ...(twist === undefined ? {} : { twist }),
     ...(o.feedingSpots === undefined ? {} : { feedingSpots: o.feedingSpots }),
     ...(o.cameraStartU === undefined ? {} : { cameraStartU: o.cameraStartU }),
+    // v1.7 (D-044): a map's colonies replace the biome's (a bonus map keeps its layout's).
+    ...(o.colonies === undefined ? {} : { colonies: o.colonies }),
     ...(o.flyovers === undefined ? {} : { flyovers: { ...biome.flyovers, ...o.flyovers } }),
   };
 }
