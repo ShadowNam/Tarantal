@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-25T20:58:00Z",
+ "updated": "2026-10-25T21:29:00Z",
  "summary": "v1.6 Veld art is live on the test build (merged 25 Oct, 18:56). v1.6b reload power-ups is merged too (25 Oct, 20:42; version 1.6.1): Blitslaai and Oupa Laai in the crates and the Padstal. v1.7 meerkats has your fur and face notes in (round 3) and version 1.7.0; Claude's in-game screenshots and review come next. This Project overview page went live on 25 Oct at about 22:10. Next, in this order: v1.7b power-ups explained + an Oupa on/off switch, v1.7c fruit that swings or drops, v1.7d Namibië veld life, v1.7e realistic Bushveld + a new secret cue instead of the star (mock-ups for you first), v1.8 Blikkies, v1.8b baboons, v1.8c The Harvest (a new mode), then v1.9–v1.13.",
  "current": {
   "version": "1.6.1",
@@ -288,7 +288,7 @@
      "at": "2026-10-25T20:58:00Z"
     },
     {
-     "text": "Full tests and merge",
+     "text": "Full tests and a balance re-check (colonies moved), then merge",
      "done": false
     }
    ],
@@ -372,7 +372,34 @@
   "v1.7b": {
    "owner": "Tank",
    "summary": "A Power-ups section in the Gun Shed with a picture and a plain explanation of every power-up and crate gun (what it does, how long, how you get it, a tip). In the hunt: crates show what is inside, a short card on pickup says what it does, the chip counts down and blinks before it ends, and each power-up has a small visible effect. Plus a Settings switch: Oupa's comments On / Text only / Off.",
-   "requestedBy": "You, 25 Oct ~20:20: \"one is very unsure what they actually do\" and \"the option to have the grandfather mode enabled or not\"."
+   "requestedBy": "You, 25 Oct ~20:20: \"one is very unsure what they actually do\" and \"the option to have the grandfather mode enabled or not\".",
+   "status": "running",
+   "checklist": [
+    {
+     "text": "Icons for every power-up and crate gun",
+     "done": false
+    },
+    {
+     "text": "A Power-ups section in the Gun Shed",
+     "done": false
+    },
+    {
+     "text": "Clear in the hunt: crate icons, pickup card, countdown chips, small effects, tally",
+     "done": false
+    },
+    {
+     "text": "Settings: Oupa's comments On / Text only / Off",
+     "done": false
+    },
+    {
+     "text": "Tests, docs and checks",
+     "done": false
+    },
+    {
+     "text": "Claude's screenshots, review, full tests and merge",
+     "done": false
+    }
+   ]
   },
   "v1.7e": {
    "owner": "Tank",
@@ -860,6 +887,11 @@
      "caption": "Round 3: peeking out on an iPhone 14"
     }
    ]
+  },
+  {
+   "at": "2026-10-25T21:31:00Z",
+   "kind": "note",
+   "text": "Tank finished every v1.7 fix (spacing, pup, gun clearance); Claude merged main into it and started the full tests and a balance re-check. Tank started v1.7b (power-ups explained + the Oupa switch) in a fresh session."
   }
  ]
 }
