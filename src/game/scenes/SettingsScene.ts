@@ -67,8 +67,31 @@ const QUALITY: Choice<'quality'> = {
 const ROW_H = 96;
 const ROW_GAP = 18;
 /** v1.5: Sound & game has six rows per column (voice language, Afrikaans names). */
-const ROW_H_TIGHT = 84;
-const ROW_GAP_TIGHT = 12;
+const ROW_H_TIGHT = 80;
+const ROW_GAP_TIGHT = 8;
+/**
+ * v1.5 review: a hint is its own line under its row, across the whole column, at HINT_PX and
+ * never scaled below HINT_MIN_PX (24, the smallest text elsewhere); too long even then, it
+ * wraps. Both columns leave the band after the same rows (HINT_ROWS), so they stay aligned.
+ */
+const HINT_PX = 26;
+const HINT_MIN_PX = 24;
+const HINT_BAND = 40;
+const HINT_ROWS: readonly number[] = [1, 4];
+
+/** Fits a hint into `maxW`: scaled down to at most HINT_MIN_PX / HINT_PX, then wrapped. */
+function fitHint(text: Phaser.GameObjects.Text, maxW: number): void {
+  text.setScale(1);
+  if (text.width <= maxW) return;
+  const floor = HINT_MIN_PX / HINT_PX;
+  const scale = Math.max(floor, maxW / text.width);
+  text.setScale(scale);
+  if (text.width > maxW) text.setWordWrapWidth(maxW / scale, true);
+}
+
+function hintRect(text: Phaser.GameObjects.Text): Rect {
+  return { x: text.x, y: text.y, w: text.displayWidth, h: text.displayHeight };
+}
 
 export class SettingsScene extends Phaser.Scene {
   private readonly ctx: GameContext;
@@ -104,18 +127,21 @@ export class SettingsScene extends Phaser.Scene {
     const page = data.page === 1 ? 1 : 0;
     const rowH = page === 0 ? ROW_H_TIGHT : ROW_H;
     const rowGap = page === 0 ? ROW_GAP_TIGHT : ROW_GAP;
-    /** A row's label (and an optional small hint under it); returns the control's rect. */
+    /** Design px of the hint bands above row `i` (page 0 only). */
+    const bands = (i: number): number =>
+      page === 0 ? HINT_ROWS.filter((r) => r < i).length * HINT_BAND : 0;
+    /** A row's label (and an optional hint line under it); returns the control's rect. */
     const row = (col: 0 | 1, i: number, labelKey: I18nKey, hintKey?: I18nKey): Rect => {
       const x = px + 40 + col * (colW + 40);
-      const y = py + 210 + i * (rowH + rowGap);
-      const labelY = hintKey === undefined ? y + rowH / 2 : y + rowH * 0.34;
-      const label = this.add.text(x, labelY, t(labelKey), textStyle(36)).setOrigin(0, 0.5);
+      const y = py + 210 + i * (rowH + rowGap) + bands(i);
+      const label = this.add.text(x, y + rowH / 2, t(labelKey), textStyle(36)).setOrigin(0, 0.5);
       fitText(label, colW - ctrlW - 30);
       if (hintKey !== undefined) {
         const hint = this.add
-          .text(x, y + rowH * 0.8, t(hintKey), textStyle(22, '#C9D3C5'))
-          .setOrigin(0, 0.5);
-        fitText(hint, colW - ctrlW - 30);
+          .text(x, y + rowH + 2, t(hintKey), textStyle(HINT_PX, '#E3E9DF'))
+          .setOrigin(0, 0);
+        fitHint(hint, colW);
+        if (this.ctx.hook) this.ctx.hook.rects[`hint.${hintKey}`] = hintRect(hint);
       }
       return { x: x + colW - ctrlW, y, w: ctrlW, h: rowH };
     };
