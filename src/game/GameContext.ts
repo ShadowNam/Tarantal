@@ -218,6 +218,15 @@ export interface TestHook {
     /** Sound keys playing from a recorded file (decoded), not the synth. */
     recorded: string[];
   };
+  /**
+   * v1.5 (D-041): Oupa's voice — the voice language in use, its pack's state (each language's
+   * pack loads only when chosen) and the voice keys played from a recording (voice/<lang>/<line>).
+   */
+  voice: {
+    language: string;
+    pack: 'none' | 'loading' | 'ready' | 'missing';
+    played: string[];
+  };
   /** M10: what the music plays (biome, audible stem) and the master gain (0 while muted). */
   readonly music: { id: string; stem: string | null } | null;
   readonly masterGain: number | null;

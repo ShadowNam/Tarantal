@@ -45,7 +45,14 @@ import { ShedScene } from './game/scenes/ShedScene';
 import { TallyScene } from './game/scenes/TallyScene';
 import { TitleScene } from './game/scenes/TitleScene';
 import { DomChrome } from './game/ui/DomChrome';
-import { isI18nKey, pickLanguage, setLanguage, t } from './i18n/i18n';
+import {
+  isI18nKey,
+  pickLanguage,
+  setLanguage,
+  t,
+  voiceLanguageFor,
+  type Language,
+} from './i18n/i18n';
 import { decodeChallenge, type ChallengeDecode } from './meta/challenge';
 import { dailySeed } from './meta/daily';
 import { dayNumber, parseDayKey } from './meta/dailyCalendar';
@@ -134,10 +141,15 @@ if (testHooks && params.get('ftue') === '0' && !save.data.ftue.done) {
   save.update((d) => ({ ...d, ftue: { done: true, skipped: true, step: 'param' } }));
 }
 
+/** The text language a settings object picks (Auto follows the browser). */
+function textLanguageOf(s: Settings): Language {
+  return s.language === 'auto' ? pickLanguage(navigator.languages) : s.language;
+}
+
 function applyLanguage(): void {
-  const lang = save.data.settings.language;
-  setLanguage(lang === 'auto' ? pickLanguage(navigator.languages) : lang);
-  document.documentElement.lang = lang === 'auto' ? pickLanguage(navigator.languages) : lang;
+  const lang = textLanguageOf(save.data.settings);
+  setLanguage(lang);
+  document.documentElement.lang = lang;
   for (const el of document.querySelectorAll<HTMLElement>('[data-i18n]')) {
     const key = el.dataset['i18n'];
     if (key !== undefined && isI18nKey(key)) el.textContent = t(key);
@@ -326,6 +338,7 @@ const hook: TestHook = {
   huntRequests: 0,
   ads: null,
   audioMuted: false,
+  voice: { language: '', pack: 'none', played: [] },
   captions: [],
   quality: { tier: '', bench: null, benchRan: false, layers: 0, filters: [] },
   errors: [],
@@ -481,6 +494,8 @@ async function boot(): Promise<void> {
       music: s.musicVolume,
       voice: s.voiceVolume,
     });
+    // v1.5 (D-041): the voice language (its own setting; "same" follows the text, Dutch → af).
+    hook.voice.language = voiceLanguageFor(s.voiceLanguage, textLanguageOf(s));
   };
   applyAudio(save.data.settings);
   platform.onAdChange((playing) => {

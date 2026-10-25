@@ -10,6 +10,20 @@ export type I18nKey = keyof typeof en;
 export const LANGUAGES = ['en', 'af', 'de', 'nl'] as const;
 export type Language = (typeof LANGUAGES)[number];
 
+/**
+ * v1.5 (D-041): the languages Oupa speaks (one lazy voice pack each). Dutch has no voice of its
+ * own: Dutch text with the voice on "same as text" uses the Afrikaans voice, the closest.
+ */
+export const VOICE_LANGUAGES = ['en', 'af', 'de'] as const;
+export type VoiceLanguage = (typeof VOICE_LANGUAGES)[number];
+export type VoiceSetting = 'same' | VoiceLanguage;
+
+/** The voice pack to use for a voice setting and the current text language. */
+export function voiceLanguageFor(setting: VoiceSetting, text: Language): VoiceLanguage {
+  if (setting !== 'same') return setting;
+  return text === 'nl' ? 'af' : text;
+}
+
 // Content validation checks that every language has every key (src/content/i18nCheck.ts).
 const tables: Record<Language, Partial<Record<I18nKey, string>>> = { en, af, de, nl };
 

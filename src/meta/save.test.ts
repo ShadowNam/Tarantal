@@ -122,6 +122,56 @@ describe('SaveData v1', () => {
     expect(r.data.ftue.done).toBe(true);
   });
 
+  it('v1.5 (D-041): a save from before the language split loads with both new settings off', () => {
+    const old: Record<string, unknown> = { ...defaultSave().settings, language: 'de' };
+    delete old['voiceLanguage'];
+    delete old['afrikaansNames'];
+    store.set('tm.save.v1', JSON.stringify({ ...defaultSave(), settings: old }));
+    const r = loadSave();
+    // Missing fields take their defaults without counting as a repair; the rest is kept.
+    expect(r.status).toBe('loaded');
+    expect(r.data.settings.language).toBe('de');
+    expect(r.data.settings.voiceLanguage).toBe('same');
+    expect(r.data.settings.afrikaansNames).toBe(false);
+  });
+
+  it('v1.5 (D-041): corrupted voice language or names toggle fall back alone', () => {
+    const good = defaultSave();
+    store.set(
+      'tm.save.v1',
+      JSON.stringify({
+        ...good,
+        settings: { ...good.settings, language: 'nl', voiceLanguage: 'fr', afrikaansNames: 'yes' },
+      }),
+    );
+    const r = loadSave();
+    expect(r.status).toBe('repaired');
+    expect(r.repaired).toEqual(
+      expect.arrayContaining(['settings.voiceLanguage', 'settings.afrikaansNames']),
+    );
+    expect(r.data.settings.language).toBe('nl');
+    expect(r.data.settings.voiceLanguage).toBe('same');
+    expect(r.data.settings.afrikaansNames).toBe(false);
+  });
+
+  it('v1.5 (D-041): both new settings round-trip and a v0 save migrates to their defaults', () => {
+    const a = new SaveStore();
+    a.update((d) => ({
+      ...d,
+      settings: { ...d.settings, language: 'en', voiceLanguage: 'af', afrikaansNames: true },
+    }));
+    const b = new SaveStore();
+    expect(b.data.settings.voiceLanguage).toBe('af');
+    expect(b.data.settings.afrikaansNames).toBe(true);
+    resetStorageForTests();
+    fakeLocalStorage();
+    store.set('tm.settings.screenShake', 'false');
+    const m = new SaveStore();
+    expect(m.status).toBe('migrated');
+    expect(m.data.settings.voiceLanguage).toBe('same');
+    expect(m.data.settings.afrikaansNames).toBe(false);
+  });
+
   it('an M6 save without the daily section gets the default (no migration, M7)', () => {
     const old: Record<string, unknown> = {
       ...defaultSave(),

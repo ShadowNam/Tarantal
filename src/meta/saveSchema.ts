@@ -14,6 +14,8 @@ const count = z.number().int().nonnegative();
 export const AimAssistSchema = z.enum(['off', 'low', 'standard']);
 export const QualitySettingSchema = z.enum(['auto', 'low', 'medium', 'high']);
 export const LanguageSettingSchema = z.enum(['auto', 'en', 'af', 'de', 'nl']);
+/** v1.5 (D-041): Oupa's voice language; `same` follows the text (Dutch text → the Afrikaans voice). */
+export const VoiceLanguageSettingSchema = z.enum(['same', 'en', 'af', 'de']);
 
 export const SettingsSchema = z.object({
   masterVolume: volume,
@@ -26,7 +28,12 @@ export const SettingsSchema = z.object({
   reduceFlashes: z.boolean(),
   aimAssist: AimAssistSchema,
   leftHanded: z.boolean(),
+  /** The text language (menus, captions, subtitles, share text, tally). */
   language: LanguageSettingSchema,
+  /** v1.5 (D-041): the voice language, separate from the text (captions follow the text). */
+  voiceLanguage: VoiceLanguageSettingSchema,
+  /** v1.5 (D-041): keep the Afrikaans flavour names (guns, maps, charms…) in any text language. */
+  afrikaansNames: z.boolean(),
   quality: QualitySettingSchema,
   /** M9 accessibility (GDD §18.3): menu, tally and caption text 1× or `largeTextScale`. */
   textSize: z.enum(['normal', 'large']),
@@ -53,6 +60,8 @@ export const DEFAULT_SETTINGS: Settings = {
   aimAssist: 'standard',
   leftHanded: false,
   language: 'auto',
+  voiceLanguage: 'same',
+  afrikaansNames: false,
   quality: 'auto',
   textSize: 'normal',
   highContrast: false,
