@@ -44,6 +44,7 @@ import {
 import { fontReadiness } from '../ui/fontReady';
 import { cornerStampShown, stampFor, StampLabel } from '../ui/StampLabel';
 import { updateCaptions, type CaptionLine } from '../audio/captions';
+import { FAMILIEFOTO_SECRET } from '../../sim/meerkats/colony';
 
 export interface HudControls {
   readonly pause: () => void;
@@ -684,7 +685,23 @@ export class HudScene extends Phaser.Scene {
     this.updateBarks(s, events, now, l, firstPickup);
     const banner: string[] = [];
     for (const e of events) {
-      if (e.type === 'secretTriggered') {
+      if (e.type === 'secretTriggered' && e.propId === FAMILIEFOTO_SECRET) {
+        // v1.7 (D-044): the Familiefoto has its own banner and line (the familiefoto event).
+      } else if (e.type === 'familiefoto') {
+        const mk = this.ctx.content.birds.meerkats;
+        banner.push(t('hud.familiefoto'));
+        this.ctx.audio.bark(mk.familiefoto.barkKey);
+      } else if (e.type === 'meerkatHit') {
+        // v1.7: a shot meerkat — points off (none inside the colony's cooldown).
+        if (e.points < 0) this.pushPop(formatAward(e.points), '#FF6B5A');
+      } else if (e.type === 'meerkatScold') {
+        // It pops out of its hole and scolds: "We're not guineafowl!"
+        if (e.points < 0) {
+          const bark = this.ctx.content.birds.meerkats.hit.barkKey;
+          banner.push(tOr(bark, bark));
+          this.ctx.audio.bark(bark);
+        }
+      } else if (e.type === 'secretTriggered') {
         const reward = this.ctx.huntBiome.props.find((p) => p.id === e.propId)?.secret?.reward;
         const bark = reward?.barkKey;
         // v1.7b (D-046): with Oupa's comments off, the banner says only that a secret went off.
@@ -1301,9 +1318,12 @@ export class HudScene extends Phaser.Scene {
   private secretBarkIn(events: readonly SimEvent[]): boolean {
     return events.some(
       (e) =>
-        (e.type === 'secretTriggered' || e.type === 'secretPenalty') &&
-        this.ctx.huntBiome.props.find((p) => p.id === e.propId)?.secret?.reward.barkKey !==
-          undefined,
+        // v1.7 (D-044): the meerkats' scold and the Familiefoto line count too.
+        (e.type === 'meerkatScold' && e.points < 0) ||
+        e.type === 'familiefoto' ||
+        ((e.type === 'secretTriggered' || e.type === 'secretPenalty') &&
+          this.ctx.huntBiome.props.find((p) => p.id === e.propId)?.secret?.reward.barkKey !==
+            undefined),
     );
   }
 

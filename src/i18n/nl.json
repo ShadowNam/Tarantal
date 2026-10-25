@@ -603,5 +603,13 @@
   "settings.oupa.on": "Aan",
   "settings.oupa.text": "Alleen tekst",
   "settings.oupa.off": "Uit",
-  "tally.powerups": "Gebruikte power-ups"
+  "tally.powerups": "Gebruikte power-ups",
+  "bark.meerkat_scold": "Wij zijn geen parelhoenders!",
+  "bark.familiefoto": "Iedereen lachen! Mooi, wat een familiefoto.",
+  "secret.familiefoto": "De familiefoto van de stokstaartjes",
+  "hud.familiefoto": "FAMILIEFOTO!",
+  "caption.meerkat_alarm": "[alarmroep van de wachter — stokstaartjes duiken weg]",
+  "caption.meerkat_chirp": "[stokstaartjes tjirpen]",
+  "caption.camera_click": "[camera klikt]",
+  "notaboek.familiefoto": "Maak de familiefoto van de stokstaartjes (niet schieten)"
 }

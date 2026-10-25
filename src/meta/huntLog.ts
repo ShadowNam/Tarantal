@@ -51,6 +51,8 @@ export function createHuntLogger(
         if (e.type === 'birdSpawned' && !sightedOnCall(e.creature)) creatures.add(e.creature);
         else if (e.type === 'birdCalled') creatures.add(e.creature);
         else if (e.type === 'secretTriggered') secrets.add(e.propId);
+        // v1.7 (D-044): a desert map's meerkat colony counts the meerkat as seen.
+        else if (e.type === 'colonySpawned') creatures.add('meerkat');
       }
     },
     finish(r, bonusUnlocked = null) {

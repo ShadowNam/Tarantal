@@ -117,6 +117,8 @@ rather than translating word for word. The tables show the text each language fi
 | `secret.boulder_crack` | Die gekraakte rots | The cracked boulder | Der gespaltene Felsbrocken | Het gebarsten rotsblok |  |
 | `secret.nest_camelthorn` | Die versamelvoëls se nes (moenie!) | The weavers' family nest (don't!) | Das Nest der Siedelweber (nicht!) | Het nest van de republikeinwevers (niet doen!) |  |
 | `secret.quiver_egg` | Die volstruiseier-waterfles in die kokerboom | The ostrich-egg flask in the quiver tree | Die Straußenei-Flasche im Köcherbaum | De struisvogelei-veldfles in de kokerboom |  |
+| `secret.familiefoto` | Die meerkatte se familiefoto | The meerkats' family photo | Das Familienfoto der Erdmännchen | De familiefoto van de stokstaartjes | v1.7: the meerkats' secret; the toggle shows "Familiefoto" |
+| `hud.familiefoto` | FAMILIEFOTO! | FAMILY PHOTO! | FAMILIENFOTO! | FAMILIEFOTO! | v1.7: the banner when it is taken |
 
 ### Charms (Season Run)
 
@@ -225,6 +227,8 @@ These follow the names above (and the toggle brings back their pre-v1.5 text too
 | `title.verder_locked` | Klop {quota} om Verder oop te sluit | Beat {quota} to unlock Further | Schlag {quota}, dann ist Weiter frei | Versla {quota} om Verder te openen | |
 | `title.verder_best` | Verder-beste: {score} | Further best: {score} | Weiter-Rekord: {score} | Verder-record: {score} | |
 | `tally.verder_unlocked` | Verder is vandag oop! | Further unlocked for today! | Weiter ist heute frei! | Verder vandaag open! | |
+| `caption.meerkat_alarm` | [brandwag se alarmblaf — meerkatte duik] | [sentinel's alarm bark — meerkats dive] | [Alarmruf des Wächters — Erdmännchen tauchen ab] | [alarmroep van de wachter — stokstaartjes duiken weg] | v1.7: brandwag = the meerkat sentinel; the toggle says "brandwag" |
+| `notaboek.familiefoto` | Neem die meerkatte se familiefoto (hou jou vuur) | Take the meerkats' family photo (hold your fire) | Mach das Familienfoto der Erdmännchen (nicht schießen) | Maak de familiefoto van de stokstaartjes (niet schieten) | v1.7 |
 | `hud.tag_verder` | Verder · vêrder weg | Further · bonus map | Weiter · Bonuskarte | Verder · bonuskaart | |
 | `title.nog_verder_best` | Nog Verder-beste: {score} | Further Still best: {score} | Noch-weiter-Rekord: {score} | Nog Verder-record: {score} | |
 | `title.die_verste_best` | Die Verste-beste: {score} | The Furthest best: {score} | Am-weitesten-Rekord: {score} | Het Verst-record: {score} | |
@@ -249,3 +253,4 @@ These follow the names above (and the toggle brings back their pre-v1.5 text too
 | `admin.sight_default` | Skiet-Skuur's | Gun Shed's | Wie im Waffenschuppen | Zoals in de Schietschuur | |
 | `bark.legend` | Bosveld-legende! | Bushveld Legend! | Buschveld-Legende! | Bosveldlegende! | |
 | `bark.run_won` | Die hele jaar! Bosveld-legende, my kind! | The whole year! Bushveld Legend, my kind! | Das ganze Jahr! Buschveld-Legende, Kind! | Het hele jaar! Bosveldlegende, m'n kind! | |
+

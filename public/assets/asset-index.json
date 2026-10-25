@@ -121,6 +121,20 @@
       "width": 260,
       "height": 360
     },
+    "desert/meerkats": {
+      "group": "desert",
+      "origin": "interim",
+      "file": {
+        "path": "assets/desert/img/desert_meerkats.7cf6a8e08ddf.png",
+        "bytes": 92115,
+        "hash": "7cf6a8e08ddf"
+      },
+      "width": 1792,
+      "height": 1152,
+      "scale": 0.5,
+      "originX": 0,
+      "originY": 0
+    },
     "fauna/bushveld_elephants": {
       "group": "bushveld-winter",
       "origin": "interim",
@@ -2104,24 +2118,24 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/kalahari-summer/layers/foreground-0.473d1cfee7d9.png",
-          "bytes": 21960,
-          "hash": "473d1cfee7d9"
+          "path": "assets/kalahari-summer/layers/foreground-0.c75033851887.png",
+          "bytes": 21506,
+          "hash": "c75033851887"
         },
         {
-          "path": "assets/kalahari-summer/layers/foreground-1.9a9ae981f9fa.png",
-          "bytes": 12758,
-          "hash": "9a9ae981f9fa"
+          "path": "assets/kalahari-summer/layers/foreground-1.fffc8ba85be8.png",
+          "bytes": 12481,
+          "hash": "fffc8ba85be8"
         },
         {
-          "path": "assets/kalahari-summer/layers/foreground-2.5e3991beeea4.png",
-          "bytes": 34220,
-          "hash": "5e3991beeea4"
+          "path": "assets/kalahari-summer/layers/foreground-2.57c5b59569da.png",
+          "bytes": 33345,
+          "hash": "57c5b59569da"
         },
         {
-          "path": "assets/kalahari-summer/layers/foreground-3.fb1fc4a5cd07.png",
-          "bytes": 1440,
-          "hash": "fb1fc4a5cd07"
+          "path": "assets/kalahari-summer/layers/foreground-3.5ac75c52d434.png",
+          "bytes": 1427,
+          "hash": "5ac75c52d434"
         }
       ],
       "tileWidth": 2048,
@@ -2164,19 +2178,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/kalahari-summer/layers/mid-0.8695b667fb0f.png",
-          "bytes": 80445,
-          "hash": "8695b667fb0f"
+          "path": "assets/kalahari-summer/layers/mid-0.e3d8bb6809b7.png",
+          "bytes": 77870,
+          "hash": "e3d8bb6809b7"
         },
         {
-          "path": "assets/kalahari-summer/layers/mid-1.bbcc7d1a0f40.png",
-          "bytes": 66648,
-          "hash": "bbcc7d1a0f40"
+          "path": "assets/kalahari-summer/layers/mid-1.043af55d16f2.png",
+          "bytes": 65234,
+          "hash": "043af55d16f2"
         },
         {
-          "path": "assets/kalahari-summer/layers/mid-2.568d9bc7d84d.png",
-          "bytes": 8208,
-          "hash": "568d9bc7d84d"
+          "path": "assets/kalahari-summer/layers/mid-2.aceefa409c20.png",
+          "bytes": 8029,
+          "hash": "aceefa409c20"
         }
       ],
       "tileWidth": 2048,
@@ -2187,52 +2201,52 @@
         "bucket": 256,
         "rows": [
           [
-            232,
-            298
+            434,
+            480
           ],
           [
-            286,
-            389
+            296,
+            335
           ],
           [
             299,
             351
           ],
           [
-            364,
+            413,
             480
           ],
           [
-            393,
+            414,
             480
           ],
           [
-            403,
+            411,
             480
           ],
           [
-            272,
+            278,
             362
           ],
           [
-            416,
+            231,
+            257
+          ],
+          [
+            423,
             480
           ],
           [
-            361,
-            480
-          ],
-          [
-            381,
+            390,
             480
           ],
           [
             234,
-            371
+            370
           ],
           [
             232,
-            320
+            319
           ],
           [
             232,
@@ -2243,7 +2257,7 @@
             293
           ],
           [
-            274,
+            284,
             444
           ],
           [
@@ -2251,7 +2265,7 @@
             480
           ],
           [
-            281,
+            338,
             480
           ],
           [
@@ -2266,19 +2280,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/kalahari-summer/layers/near-0.a04373895d5b.png",
-          "bytes": 56516,
-          "hash": "a04373895d5b"
+          "path": "assets/kalahari-summer/layers/near-0.0ed315d9bcb5.png",
+          "bytes": 54670,
+          "hash": "0ed315d9bcb5"
         },
         {
-          "path": "assets/kalahari-summer/layers/near-1.03e15e812a99.png",
-          "bytes": 86934,
-          "hash": "03e15e812a99"
+          "path": "assets/kalahari-summer/layers/near-1.91116ac9beb8.png",
+          "bytes": 83600,
+          "hash": "91116ac9beb8"
         },
         {
-          "path": "assets/kalahari-summer/layers/near-2.d9fa0b285c9a.png",
-          "bytes": 55421,
-          "hash": "d9fa0b285c9a"
+          "path": "assets/kalahari-summer/layers/near-2.85e5dbeb0c1c.png",
+          "bytes": 53451,
+          "hash": "85e5dbeb0c1c"
         }
       ],
       "tileWidth": 2048,
@@ -6135,6 +6149,24 @@
       "lufs": -16.9,
       "peakDb": -1
     },
+    "sfx/camera_click": {
+      "group": "desert",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/desert/audio/sfx/camera_click.abd620b5315e.ogg",
+        "bytes": 6083,
+        "hash": "abd620b5315e"
+      },
+      "mp3": {
+        "path": "assets/desert/audio/sfx/camera_click.ce904221923e.mp3",
+        "bytes": 4460,
+        "hash": "ce904221923e"
+      },
+      "loop": false,
+      "lufs": -21,
+      "peakDb": -1
+    },
     "sfx/clang": {
       "group": "common",
       "origin": "interim",
@@ -6259,6 +6291,60 @@
       },
       "loop": false,
       "lufs": -14.5,
+      "peakDb": -1
+    },
+    "sfx/meerkat_alarm": {
+      "group": "desert",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/desert/audio/sfx/meerkat_alarm.1fab1198343b.ogg",
+        "bytes": 6327,
+        "hash": "1fab1198343b"
+      },
+      "mp3": {
+        "path": "assets/desert/audio/sfx/meerkat_alarm.63d2358192d8.mp3",
+        "bytes": 4694,
+        "hash": "63d2358192d8"
+      },
+      "loop": false,
+      "lufs": -14.6,
+      "peakDb": -1
+    },
+    "sfx/meerkat_chirp": {
+      "group": "desert",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/desert/audio/sfx/meerkat_chirp.b7aa94713f21.ogg",
+        "bytes": 5335,
+        "hash": "b7aa94713f21"
+      },
+      "mp3": {
+        "path": "assets/desert/audio/sfx/meerkat_chirp.4c0ffe5c355b.mp3",
+        "bytes": 3598,
+        "hash": "4c0ffe5c355b"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -5.7
+    },
+    "sfx/meerkat_dig": {
+      "group": "desert",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/desert/audio/sfx/meerkat_dig.6941eadb8ea5.ogg",
+        "bytes": 6297,
+        "hash": "6941eadb8ea5"
+      },
+      "mp3": {
+        "path": "assets/desert/audio/sfx/meerkat_dig.6db164c03208.mp3",
+        "bytes": 5605,
+        "hash": "6db164c03208"
+      },
+      "loop": false,
+      "lufs": -17.1,
       "peakDb": -1
     },
     "sfx/poof": {
@@ -6963,6 +7049,24 @@
       "lufs": -17.8,
       "peakDb": -1
     },
+    "voice/af/bark.familiefoto": {
+      "group": "voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-af/audio/voice/af-bark_familiefoto.2ee111baf389.ogg",
+        "bytes": 20539,
+        "hash": "2ee111baf389"
+      },
+      "mp3": {
+        "path": "assets/voice-af/audio/voice/af-bark_familiefoto.cfb9f1aebf4e.mp3",
+        "bytes": 24900,
+        "hash": "cfb9f1aebf4e"
+      },
+      "loop": false,
+      "lufs": -17.8,
+      "peakDb": -1
+    },
     "voice/af/bark.farmer_yet": {
       "group": "voice-af",
       "origin": "interim",
@@ -7177,6 +7281,24 @@
       },
       "loop": false,
       "lufs": -16.8,
+      "peakDb": -1
+    },
+    "voice/af/bark.meerkat_scold": {
+      "group": "voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-af/audio/voice/af-bark_meerkat_scold.1fe25ef7f155.ogg",
+        "bytes": 14471,
+        "hash": "1fe25ef7f155"
+      },
+      "mp3": {
+        "path": "assets/voice-af/audio/voice/af-bark_meerkat_scold.96be2fb8a669.mp3",
+        "bytes": 15767,
+        "hash": "96be2fb8a669"
+      },
+      "loop": false,
+      "lufs": -16.4,
       "peakDb": -1
     },
     "voice/af/bark.mokoro": {
@@ -7773,6 +7895,24 @@
       "lufs": -16,
       "peakDb": -6.4
     },
+    "voice/de/bark.familiefoto": {
+      "group": "voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-de/audio/voice/de-bark_familiefoto.3112d6ac5564.ogg",
+        "bytes": 26060,
+        "hash": "3112d6ac5564"
+      },
+      "mp3": {
+        "path": "assets/voice-de/audio/voice/de-bark_familiefoto.7b7726f1bcf8.mp3",
+        "bytes": 28656,
+        "hash": "7b7726f1bcf8"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -6.1
+    },
     "voice/de/bark.farmer_yet": {
       "group": "voice-de",
       "origin": "interim",
@@ -7988,6 +8128,24 @@
       "loop": false,
       "lufs": -16,
       "peakDb": -7.3
+    },
+    "voice/de/bark.meerkat_scold": {
+      "group": "voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-de/audio/voice/de-bark_meerkat_scold.7dc150865b82.ogg",
+        "bytes": 18447,
+        "hash": "7dc150865b82"
+      },
+      "mp3": {
+        "path": "assets/voice-de/audio/voice/de-bark_meerkat_scold.1938b879bc69.mp3",
+        "bytes": 18983,
+        "hash": "1938b879bc69"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -7.4
     },
     "voice/de/bark.mokoro": {
       "group": "voice-de",
@@ -8583,6 +8741,24 @@
       "lufs": -18.4,
       "peakDb": -1
     },
+    "voice/en/bark.familiefoto": {
+      "group": "voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-en/audio/voice/en-bark_familiefoto.c5d92f654def.ogg",
+        "bytes": 20961,
+        "hash": "c5d92f654def"
+      },
+      "mp3": {
+        "path": "assets/voice-en/audio/voice/en-bark_familiefoto.0f2a0039afaf.mp3",
+        "bytes": 26417,
+        "hash": "0f2a0039afaf"
+      },
+      "loop": false,
+      "lufs": -19.3,
+      "peakDb": -1
+    },
     "voice/en/bark.farmer_yet": {
       "group": "voice-en",
       "origin": "interim",
@@ -8798,6 +8974,24 @@
       "loop": false,
       "lufs": -17,
       "peakDb": -1
+    },
+    "voice/en/bark.meerkat_scold": {
+      "group": "voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-en/audio/voice/en-bark_meerkat_scold.7b8bd1f03780.ogg",
+        "bytes": 11371,
+        "hash": "7b8bd1f03780"
+      },
+      "mp3": {
+        "path": "assets/voice-en/audio/voice/en-bark_meerkat_scold.ed01e47152e3.mp3",
+        "bytes": 11291,
+        "hash": "ed01e47152e3"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -1.2
     },
     "voice/en/bark.mokoro": {
       "group": "voice-en",

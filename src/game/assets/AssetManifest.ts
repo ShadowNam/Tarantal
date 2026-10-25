@@ -14,6 +14,7 @@ import type {
   ImageEntry,
 } from './assetIndex';
 import { COMMON_GROUP, LATE_GROUP, VER_GROUP } from './assetIndex';
+import { DESERT_GROUP } from './desertAssets';
 import { atlasRegion, checkAtlas, checkBirdAtlas, type AtlasRegion } from './atlasCheck';
 import { loadBytes, loadImage, loadJson } from './finalLoader';
 
@@ -317,6 +318,8 @@ export class AssetManifest {
         group !== COMMON_GROUP &&
         group !== LATE_GROUP &&
         group !== VER_GROUP &&
+        // v1.7 (D-044): only a desert map's manifest lists the desert keys (others skip them).
+        group !== DESERT_GROUP &&
         group !== o.biome
       )
         return;

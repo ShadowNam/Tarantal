@@ -603,5 +603,13 @@
   "settings.oupa.on": "Aan",
   "settings.oupa.text": "Net teks",
   "settings.oupa.off": "Af",
-  "tally.powerups": "Krag-ops gebruik"
+  "tally.powerups": "Krag-ops gebruik",
+  "bark.meerkat_scold": "Ons is nie tarentale nie!",
+  "bark.familiefoto": "Almal glimlag! Mooi, wat 'n familiefoto.",
+  "secret.familiefoto": "Die meerkatte se familiefoto",
+  "hud.familiefoto": "FAMILIEFOTO!",
+  "caption.meerkat_alarm": "[brandwag se alarmblaf — meerkatte duik]",
+  "caption.meerkat_chirp": "[meerkatte tjirp]",
+  "caption.camera_click": "[kamera klik]",
+  "notaboek.familiefoto": "Neem die meerkatte se familiefoto (hou jou vuur)"
 }

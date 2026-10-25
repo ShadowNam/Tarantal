@@ -114,6 +114,8 @@ export interface PelletResult {
   readonly crateId: number | null;
   /** v1.3x (D-037): a Skietbaan paper target (absent everywhere else). */
   readonly paperId?: number;
+  /** v1.7 (D-044): a meerkat of a desert colony (absent everywhere else). */
+  readonly meerkatId?: number;
 }
 
 /** Things on a layer that move or come and go: crates and live secret parts (layer coords). */
@@ -137,6 +139,14 @@ export type HitExtra =
   | {
       readonly kind: 'paper';
       readonly paperId: number;
+      readonly x: number;
+      readonly y: number;
+      readonly shape: OccluderShape;
+    }
+  /** v1.7 (D-044): a meerkat's body or head (a non-target: points off, never hurt). */
+  | {
+      readonly kind: 'meerkat';
+      readonly meerkatId: number;
       readonly x: number;
       readonly y: number;
       readonly shape: OccluderShape;
@@ -180,6 +190,7 @@ export function resolvePellet(
     for (const e of extras.get(slice.layerId) ?? []) {
       if (!pointInOccluder(p.x, p.y, { propId: '', x: e.x, y: e.y, shape: e.shape })) continue;
       if (e.kind === 'paper') return { ...NOTHING, paperId: e.paperId };
+      if (e.kind === 'meerkat') return { ...NOTHING, meerkatId: e.meerkatId };
       return e.kind === 'crate'
         ? { ...NOTHING, crateId: e.crateId }
         : { ...NOTHING, propId: e.propId, partId: e.partId };
@@ -259,9 +270,13 @@ export function resolvePattern(
     });
   const pellets = at(0, 0);
   if (assisted === null) return pellets;
-  // A crate or secret part hit is a hit too: never thrown away for a snap.
+  // A crate, secret part or meerkat hit is a hit too: never thrown away for a snap.
   const hit = pellets.some(
-    (p) => p.r.birdId !== null || p.r.crateId !== null || p.r.partId !== null,
+    (p) =>
+      p.r.birdId !== null ||
+      p.r.crateId !== null ||
+      p.r.partId !== null ||
+      p.r.meerkatId !== undefined,
   );
   if (hit) return pellets;
   const snap = assistSnap(dx, sy, cx, assisted, birdsByPlane, extras, driftDx);

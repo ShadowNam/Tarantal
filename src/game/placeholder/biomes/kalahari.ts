@@ -4,6 +4,7 @@
 // with its sign, and dune grass. The storm sky is an overlay drawn by WorldView. Rendering only.
 import { verBand, type Band, type BiomeArt } from '../biomeArt';
 import { ellipse, ground, inked, INK, tuft } from '../draw';
+import { meerkatSpecs } from '../meerkatArt';
 
 const C = {
   skyTop: '#7FAFD6',
@@ -231,6 +232,8 @@ function drawProp(ctx: CanvasRenderingContext2D, id: string, w: number, h: numbe
 export const KALAHARI_ART: BiomeArt = {
   bands: BANDS,
   drawProp,
+  // v1.7 (D-044): the meerkat colonies' sheet (shared with the other desert map).
+  extraTextures: meerkatSpecs,
   propPad: {
     weaver_camelthorn: { top: 220, side: 220 },
     dead_camelthorn: { top: 220, side: 170 },

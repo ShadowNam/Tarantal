@@ -10,7 +10,7 @@ import { DailyFlow } from './game/daily/DailyFlow';
 import { loadGameContent } from './content/loadBrowser';
 import { AudioDirector, browserAudioEnv } from './game/audio/AudioDirector';
 import { BarkDirector } from './game/audio/barks';
-import { withDoppies, withQuotaMul, withTestCrate } from './game/devContent';
+import { withDoppies, withNoBirds, withQuotaMul, withTestCrate } from './game/devContent';
 import type { GameContext, TestHook, TestTools } from './game/GameContext';
 import {
   designSize,
@@ -339,6 +339,9 @@ const hook: TestHook = {
   classicArea: '',
   weavers: 0,
   weaverBursts: 0,
+  meerkats: [],
+  meerkatLog: [],
+  meerkatMs: 0,
   reloadFx: { chipIcons: [], bolts: 0, oupaHand: false, autoReloads: 0 },
   mirage: false,
   sceneryMs: 0,
@@ -379,10 +382,12 @@ const withQuota =
   Number.isFinite(quotaMul) && quotaMul >= 0 ? withQuotaMul(withCrate, quotaMul) : withCrate;
 // e2e/dev only: ?doppies=1 — a run with (almost) no Doppies, to show Padstal offers it can't buy.
 const doppiesParam = testHooks && params.has('doppies') ? Number(params.get('doppies')) : NaN;
-const devBundle =
+const withDop =
   Number.isInteger(doppiesParam) && doppiesParam >= 0
     ? withDoppies(withQuota, doppiesParam)
     : withQuota;
+// e2e/dev only (v1.7 meerkat previews): ?birds=0 — no birds or world events, colonies only.
+const devBundle = testHooks && params.get('birds') === '0' ? withNoBirds(withDop) : withDop;
 // D-034: `?admin=1&play=1` plays the hunt the admin page stored (its content changes too).
 let adminSave: AdminSave | null = adminOn ? loadAdminSave() : null;
 const adminList = adminOn ? adminEntries(devBundle, placeholderBiomes()) : [];

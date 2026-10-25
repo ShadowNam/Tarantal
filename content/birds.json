@@ -490,5 +490,69 @@
       ],
       "grants": "meerkat_spotter"
     }
-  ]
+  ],
+  "meerkats": {
+    "$comment": "v1.7 (D-044): the desert maps' meerkat colonies (Kalahari, Namibië). Non-targets that live in burrows: never hurt; a shot one tumbles into a hole and scolds (penalty, with the weaver nest's 2 s cooldown). Sizes and speeds are design px at plane scale 1 (near), scaled by the colony's plane; times in seconds. Where the colonies sit is in the biome files (colonies, per layout).",
+    "hitboxes": {
+      "tall": { "body": { "rx": 20, "ry": 46, "ox": 0, "oy": -50 }, "head": { "r": 17, "ox": 3, "oy": -110 } },
+      "low": { "body": { "rx": 38, "ry": 24, "ox": -6, "oy": -26 }, "head": { "r": 16, "ox": 34, "oy": -46 } },
+      "peek": { "body": { "rx": 17, "ry": 17, "ox": 0, "oy": -14 } }
+    },
+    "pupScale": 0.6,
+    "pupChance": 0.5,
+    "pupGapPx": 56,
+    "pup": { "startDelaySeconds": 0.5, "emergeDelaySeconds": 0.34, "followSlack": 0.6, "minGapBodyMul": 0.6 },
+    "diveRunMul": 1.4,
+    "startOutShare": 0.5,
+    "hiddenSeconds": [1.5, 4.5],
+    "peekSeconds": [1.0, 1.8],
+    "emergeChance": 0.65,
+    "emergeSeconds": 0.35,
+    "diveSeconds": 0.3,
+    "activities": { "sit": 2, "sentinel": 1.2, "forage": 3, "sunbathe": 2, "dash": 1.2, "dive": 0.8 },
+    "activitySeconds": {
+      "sit": [2, 5],
+      "sentinel": [5, 10],
+      "forage": [3, 7],
+      "sunbathe": [4, 8]
+    },
+    "lookSeconds": 0.9,
+    "forageRadiusPx": 90,
+    "bodyWidthPx": 76,
+    "spacingBodyMul": 0.7,
+    "runPxPerSec": 300,
+    "dash": { "group": [1, 4], "gapBodyMul": 1, "pauseSeconds": [0.6, 1.2] },
+    "sunbatheLights": ["dawn_mist"],
+    "calmSeconds": 2.5,
+    "shotDive": {
+      "$comment": "radiusPx: plane px on the colony's own plane around its burrows.",
+      "radiusPx": 420,
+      "returnSeconds": [3, 6],
+      "staggerSeconds": [0.5, 1.6]
+    },
+    "alarm": {
+      "$comment": "A raptor or the crop sprayer within radiusU (share of the pan) of a colony: the sentinel barks, the colony dives, the nearest guineafowl flock is alerted.",
+      "creatures": ["sproeier", "stormvoel", "visarend"],
+      "radiusU": 0.08,
+      "alertsNearestFlock": true
+    },
+    "hit": {
+      "penalty": 10,
+      "cooldownSeconds": 2,
+      "tumbleSeconds": 0.5,
+      "scoldDelaySeconds": 0.6,
+      "scoldSeconds": 1.6,
+      "barkKey": "bark.meerkat_scold"
+    },
+    "familiefoto": {
+      "$comment": "Secret, once per hunt: the whole family out, no shot for holdSeconds with the colony within onScreenHalfPx of the screen centre (inside a 4:3 screen).",
+      "holdSeconds": 4,
+      "bonus": 25,
+      "onScreenHalfPx": 600,
+      "rowGapPx": 64,
+      "lineUpSeconds": 1.6,
+      "poseSeconds": 2.5,
+      "barkKey": "bark.familiefoto"
+    }
+  }
 }

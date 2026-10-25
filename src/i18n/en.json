@@ -603,5 +603,13 @@
   "settings.oupa.on": "On",
   "settings.oupa.text": "Text only",
   "settings.oupa.off": "Off",
-  "tally.powerups": "Power-ups used"
+  "tally.powerups": "Power-ups used",
+  "bark.meerkat_scold": "We're not guineafowl!",
+  "bark.familiefoto": "Everyone smile! Mooi, what a family photo.",
+  "secret.familiefoto": "The meerkats' family photo",
+  "hud.familiefoto": "FAMILY PHOTO!",
+  "caption.meerkat_alarm": "[sentinel's alarm bark — meerkats dive]",
+  "caption.meerkat_chirp": "[meerkats chirp]",
+  "caption.camera_click": "[camera clicks]",
+  "notaboek.familiefoto": "Take the meerkats' family photo (hold your fire)"
 }

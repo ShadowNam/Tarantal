@@ -2311,6 +2311,162 @@ gesture and Oupa's line.
 is unchanged (0.52) but the no-spot share swings with the bot's luck (main itself gave 1.79× on
 seeds 21–28). Now 8 seeds and a ×1.7 bar.
 
+**D-044 v1.7 meerkat colonies on the desert maps (25 Oct 2026):** the product owner (24 Oct):
+"the desert stages should have small meerkat holes, and occasionally have them peek out and run
+from one nest to the other. Be creative." (D-043 is v1.6b, PR #71.) Rules in GDD §11.2, the sim
+in Tech §3.12, the look in the art bible §3.5. The Meerkat Spotter helper is kept; these are a
+separate, living family.
+(1) *Sim entities, not decoration.* Meerkats are deterministic non-target ground animals in the
+sim (`src/sim/meerkats/colony.ts`), on their own stream `rng.stream('meerkats')`. They are
+hit-testable as a new `HitExtra` kind and emit typed events (`colonySpawned`, `meerkatHit`,
+`meerkatScold`, `meerkatsDived`, `meerkatAlarm`, `familiefoto`). The game layer only draws from the
+snapshot and events, on sim ticks (held frames hold).
+- **Why in the sim:** they stop pellets, cost points, react to shots and alert flocks, so replays,
+  challenge links and the Daily must play them identically on every device.
+(2) *Where.* `colonies` in the biome files: a layout's list replaces the biome's, and a bonus map
+keeps its layout's. 1–2 per desert map on the near and mid planes; the plain biome (Season Run) has
+one. Mid colonies sit on the ground line at y 812, below the flock lanes and above the near art's
+edge (≈ 845). Near ones sit at y 966 (the review round, item 12), below the mid birds' band. `colonyChecks.ts` checks every
+map: a near or mid plane, inside the layer, clear of props, secret parts and the other colony, and
+never standing in front of the bird lanes or secrets of the planes behind.
+(3) *Behaviours and reactions* (all numbers in `birds.json → meerkats`):
+- hidden → peek → emerge → sit, sentinel (on the highest mound), forage, sunbathe (Monday's dawn
+  light only), dash (1–4 in a file about one body length apart, `dash.gapBodyMul`, stopping
+  halfway to look), or dive;
+- spacing (review round 3): adults that sit, forage, sunbathe or stand keep at least
+  `spacingBodyMul` (0.7) body widths (`bodyWidthPx`, 76 at the near plane) apart; a spot that is
+  too close is nudged to the nearest clear one, counting where the others stand or will next stand;
+  the sentinel's post is kept clear the same way (those by it step aside); a pup trails its mother
+  by `pupGapPx` (56) and never closer than `pup.minGapBodyMul` (0.6) of her body width;
+- a nearby shot sends the colony down; it comes back after 3–6 s, the scout first;
+- the Langloop (`alertsAllFlocks`) sends every colony down;
+- a raptor or the crop sprayer overhead sets off the sentinel's alarm, which also alerts the
+  nearest guineafowl flock (threat source `meerkatAlarm`);
+- a shot meerkat: −10 with the weaver nest's 2 s cooldown (per colony), a tumble and a scold.
+- **Natural dives stay when the colony is calm.** "Calm" (2.5 s without a shot) only makes the
+  hidden come out sooner and every peek end outside. An earlier draft also stopped dives when
+  calm, so a colony nobody shot at never dived.
+- **A meerkat hit counts as hitting a thing** (like a secret part): the shot is not a miss and the
+  streak is kept, as with the weaver nest.
+- **Namibië gains the crop sprayer** (0–1 per hunt) so its sentinels have something to bark at;
+  no new flyer art was needed.
+(4) *Familiefoto* (a secret: Bird Book, the Notaboek challenge `familiefoto`, the new metric
+`familiefotos`). Once a hunt: hold fire 4 s after the first shot, with a colony within 600 px of
+the screen centre and its whole family out. The family lines up facing the camera, a camera click
+sounds, and it pays +25 through `secretTriggered` (propId `familiefoto`), so the secret count,
+chain and charms see it. "On screen" uses a fixed half-width that fits 4:3, so the device's
+viewport never enters the sim.
+- **Why after the first shot:** with no shots at all the photo came 5 s into a hunt while the
+  player was still looking round. "Holding fire" means pausing after you have started shooting.
+(5) *Art and sound in a shared lazy group.* The sheet (`desert/meerkats`, 24 frames and 3 mounds,
+interim at 2× in `tools/art/meerkats.ts`, 96-colour PNG8, 84 KB) and four sounds (chirp, alarm
+bark, dig, camera click) are in a new asset group **`desert`**, loaded with either desert map.
+- **Why a new group:** a key both deserts use would otherwise fall into the common group, the
+  first download, which had 40 KB left. The Kalahari chunk had about 95 KB left.
+- The meerkat placeholder drawing rides in the desert biome chunks (`BiomeArt.extraTextures`).
+- On desert maps the Meerkat Spotter climbs out of a burrow mound.
+- **Voice:** the scold ("We're not guineafowl!") and Oupa's Familiefoto line in en/af/de, with the
+  v1.5 interim TTS (46 lines per language).
+(6) *Balance* (`docs/balance/v1.7-meerkats.md`, `tools/meerkat-sweep.sh`): before/after on the
+same build, the colonies removed by `--set`. Dubbelloop, 500 seeds, 20 maps: −0.9 % to +4.4 %.
+Rifles against the 4 500 cap: Namibië under (max 4 442).
+- **A finding from before v1.7:** the scoped .22 is over the cap on the Kalahari's Nog Verder and
+  Die Verste: 4 612–5 578 before the colonies, slightly lower after. v1.3 checked the cap on the
+  Karoo only. It is left for its own points change (for example a Kalahari bonus-map
+  `planePointsMul`, as D-039 did for Namibië).
+(7) *Golden replays* were re-recorded on purpose: the content hash changed for all 37. Only the 7
+desert cases changed their events.
+(8) *Sizes* (`npm run size -- --strict`, gzip): the first download is 3 041.7 KB (was 3 032.1 KB;
+the colony code). The desert chunk is 100.7 KB. The Kalahari (1 438.8 KB) and Namibië (1 373.5 KB)
+chunks are unchanged. A Kalahari hunt downloads its chunk plus the desert chunk, 1 539.5 KB in all.
+Each is a chunk of its own under the 1 536 KB cap, as the brief suggested.
+(9) *Tests:*
+- sim tests for the rules (`src/sim/meerkats.test.ts`), the frame mapping, the meta and the
+  captions;
+- e2e for a hunt (`tests/e2e/meerkats.spec.ts`: dive after a shot, −10 and the scold, the
+  Familiefoto);
+- a Pixel 7 perf case (the colonies ≤ 1 ms a frame at 4× throttle);
+- the screenshot spec `tests/e2e/art-preview-v17.spec.ts`. The e2e and screenshots run on CI and
+  the supervisor's machine. For it an e2e-only page hold (`__TM_HOLD_AT__`) freezes the sim right
+  after an event.
+(10) *Names* (docs/i18n-names.md): Familiefoto (`secret.familiefoto`, `hud.familiefoto`,
+`notaboek.familiefoto`), the sentinel (brandwag) in the alarm caption, and the scold, in
+en/af/de/nl, with Afrikaans flavour names for the toggle.
+*Review round (playtest-reviewer, 25 Oct).*
+(11) *A shot pup was stuck* in its tumble for the rest of the hunt: it never scolded, bullets
+passed through it, and its colony could never give the Familiefoto. A shot pup now tumbles, waits
+in the hole and scolds like an adult, then follows its mother again. A sim test shoots a pup.
+(12) *The "never hides birds" check ignored the mounds.* A sentinel stands on the highest mound,
+so the meerkats' band now starts that much higher. Monday's near colonies failed it, so every
+near colony moved from y 950 to 966, below the mid birds' band even on a 28 px mound. The test is
+`colonyChecks.test.ts`.
+(13) *Numbers out of the code:* the pup's start and emerge delays, how far its mother may get
+before it follows, and the dive's run speed are now `meerkats.pup` and `meerkats.diveRunMul`, at
+the same values.
+(14) *e2e:* the scold test picks its meerkat and taps it in one page call, retrying a miss.
+- **Golden replays** re-recorded: only Die Verste (classic-74) and Namibië Thursday (classic-76)
+  changed their events (meerkat positions); their scores are the same.
+- **Balance** was not re-swept for a 16 px shift of the near colonies.
+*Look round (the supervisor's screenshots, 25 Oct; #70 merged into main, then main into this
+branch).*
+(15) *The meerkats looked flat* (grey-brown figures, a plain face), below the v1.4/v1.6 bar. The
+sheet was redrawn from one rig (`tools/art/meerkats.ts`):
+- a torso grown along a spine, with back and belly widths;
+- a cream belly and throat clearly lighter than the back, which is tan to grey-brown with faint
+  bands and fine fur strokes;
+- light from the upper left, a shaded side, haunches, and tapered legs and tail (black tip);
+- the dark eye mask with a small bright eye, a crescent ear and a dark nose;
+- the sentinel chin up, its paws together at the belly;
+- the pup smaller and fluffier, with a bigger head;
+- the run low and stretched, tail up.
+(16) *Burrows:* each mound has 2–3 dark oval holes with an inner shadow and a lit front lip, fresh
+lighter sand fanned out from each hole, scratch marks and tiny tracks.
+(17) *Clear of the HUD:* `colonyHud.test.ts` checks every colony's screen rect against the
+gadget, item slots, belt, reload prompt, timer, Frenzy and score. It runs at every desert map's
+opening view, on desktop 16:9, the Pixel 7 and the iPhone 14 (its insets), right- and
+left-handed.
+- **Near colonies always sit in the bottom HUD row's band,** so they now open in the middle of the
+  view. Three Kalahari mid colonies (Tuesday, Wednesday, Saturday) moved toward the centre,
+  because the iPhone's reload prompt sits higher.
+- **Why only the opening view:** the near plane pans 1:1, so a colony can pass under a corner
+  later, as pop-up birds do.
+- **Balance**, re-measured on the moved maps: −0.6 % to +2.5 % against no colonies.
+- **Golden replays:** only classic-74 and classic-76 changed their events.
+(18) *What one hunt downloads:* a Kalahari hunt loads its chunk and the desert chunk. The sheet is
+now a 48-colour PNG8 (79 KB; it keeps the shading), so the desert chunk is 96.1 KB, and Kalahari +
+desert is **1 534.9 KB** (cap 1 536). Namibië + desert is 1 469.6 KB. `npm run size -- --strict`
+now checks each colony biome's chunk plus the desert chunk.
+*Look round 2 (the product owner, 25 Oct ~19:47: "a little bit more hairy … a tick more furry,
+and a little bit nicer faces").*
+(20) *Fur:* every figure is drawn as fur.
+- The smooth ink outline is replaced by a broken edge of short tufts that lean the way the fur
+  grows.
+- Curved strokes in three tones follow each part's form; the cheeks are fluffy, and the pup is
+  rounder and fluffier.
+- A body's parts are drawn in passes (edges, then fills, then fur), so the haunch blends into
+  the body.
+- The arms have volume and small dark claws.
+(21) *Faces:* a teardrop mask sloping to the nose (not round goggles), a small almond eye with a
+white catch-light, a pale brow, a short tapering muzzle with a small nose and a mouth line, low
+crescent ears and fuller cheeks, in the front and side views.
+(22) *Poses:*
+- The Familiefoto pose is shorter than the side-view sentinel, with a shaded cream belly,
+  haunches, hind feet and the tail on the sand.
+- The runs bend at the knee (reached out, gathered, pushing, in flight).
+(23) *Budget:*
+- The left-looking peek and stand are now the right-looking frames mirrored by the view
+  (`MIRRORED_FRAMES`, two cells freed).
+- The sheet is 32 colours (92 KB; no visible loss against 48).
+- The Kalahari's interim near, foreground and mid layers went from 128 to 96, 96 and 112 colours,
+  with no visible banding.
+- Kalahari 1 426.2 KB + desert 108.7 KB = **1 534.9 KB**. The first download is 3 055.0 KB after
+  merging v1.6b; Poki 3 049.7, CrazyGames 3 049.9 KB.
+- Version 1.7.0.
+(19) *Screenshot spec:* seed 33 (Monday's near colony has a pup) with a new dev/e2e-only
+`?birds=0` (no flocks, pop-ups, fly-over spawns, events or crates), so the meerkats are the
+subject. The Familiefoto shows a clear row, the dash is held mid-run, and there is a
+sentinel-and-pup close-up. Every close-up shows each meerkat at least 150 px tall.
+
 **D-045 Project overview page in the admin (25 Oct 2026):** the product owner asked: "add to the
 admin page a process log page, where the whole build file with all the images is present, but on
 top it should have all the stuff that has been ticked off, all the stuff that we have done and all

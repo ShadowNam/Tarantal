@@ -36,9 +36,11 @@ function ours(wav: string): boolean {
   }
 }
 
-const lines = voicedLines(loadFeel().barks, loadContent().biomes).filter(
-  (l) => only === undefined || only.includes(l),
-);
+const lines = voicedLines(
+  loadFeel().barks,
+  loadContent().biomes,
+  loadContent().birds.meerkats,
+).filter((l) => only === undefined || only.includes(l));
 const jobs: { lang: string; key: string; text: string; out: string }[] = [];
 for (const lang of langs) {
   if (!(VOICE_LANGUAGES as readonly string[]).includes(lang)) throw new Error(`no voice ${lang}`);

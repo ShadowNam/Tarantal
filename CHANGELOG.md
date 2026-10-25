@@ -3,6 +3,56 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.7.1] — power-ups explained, and an Oupa switch (25 Oct 2026)
+
+Decision record D-046. What the power-ups do and their numbers are unchanged. A crate's contents
+are now rolled when it drops (so it can show them), which changes the event stream: replays from
+1.7.0 are refused and the golden replays were re-recorded (36 of 37 keep their score).
+
+### Added
+- **Icons** for every power-up and crate gun: Chilli Biltong, Boeretroos, Bush Buckshot, Meerkat
+  Spotter, Blitslaai, Oupa Laai, the Voorlaaier and the Mielie-Masjien.
+- **Gun Shed → Power-ups**: a card for each one with its icon, what it does (numbers from the
+  game's content), how to get it and a tip; ones not found yet are darker but still explained.
+- **In the hunt:** a falling crate shows what it holds; picking something up shows a short card
+  (the full explanation and a word from Oupa the first time); chips count down the seconds or
+  shells left, blink at the end and chime when they run out; Boeretroos warms the screen's edges
+  and slows the sound, Chilli Biltong shows ∞ on the belt and sparks at the muzzle, Bush Buckshot
+  rings the crosshair; captions name the item; the tally lists the power-ups used.
+- **Settings → Oupa's comments: On / Text only / Off.** Off silences his bubbles and voice
+  everywhere; instructions still show. Also in the pause menu's Settings.
+
+### Changed
+- The Padstal shows what every item does, with its numbers.
+- The "CRATE: …" banner gave way to the pickup card.
+
+## [1.7.0] — meerkat colonies on the desert maps (25 Oct 2026)
+
+Decision record D-044. The desert content changed (the colonies, and the crop sprayer over
+Namibië), so replays from 1.6.1 are refused (new content hash) and the golden replays were
+re-recorded: only the 7 desert cases changed their events.
+
+### Added
+- **Meerkat colonies** on every Kalahari and Namibië map, near and mid: 3–5 burrows on sand
+  mounds and a family of 4–8, sometimes with a pup. They peek, keep a sentinel on the highest
+  mound, dig, sunbathe at dawn, dash between burrows and dive.
+- **They react:** a nearby shot or the Langloop sends them down (they come back a head at a
+  time); a raptor or the crop sprayer overhead sets off the sentinel's alarm, which also alerts
+  the nearest guineafowl flock.
+- **Don't shoot them:** a shot meerkat is never hurt. It tumbles into a hole and scolds ("We're
+  not guineafowl!"), for −10, at most once every 2 s per colony.
+- **Familiefoto**, a new secret: hold your fire with a whole family out on screen and they line up
+  for a photo (+25). It is in the Bird Book and the Notaboek.
+- The Meerkat Spotter climbs out of a burrow on the desert maps.
+- Interim art (a furry, rigged sheet drawn at 2×) and sounds (chirps, the alarm bark, digging,
+  the camera click), in their own lazy download with either desert map. Voiced lines in
+  English, Afrikaans and German; text in en/af/de/nl.
+
+### Changed
+- Oom Faan's crop sprayer sometimes crosses the Namibië sky too.
+- The Kalahari's interim near, foreground and mid layers use smaller palettes, so a Kalahari hunt
+  (its chunk plus the desert chunk) stays within 1.5 MB.
+
 ## [1.6.1] — reload power-ups (25 Oct 2026)
 
 Decision record D-043. The crate weights changed, so replays from 1.6.0 are refused (new content
