@@ -2130,6 +2130,58 @@ the toggle with English text shows the Afrikaans gun names. Previews:
 deliver final voice packs" — a delivered WAV replaces the interim line per key); German and Dutch
 names want a native review (as D-026).
 
+**D-042 v1.6 veld art pass: trees, shrubs, fruit and distant animals on every map (25 Oct
+2026):** the product owner (24 Oct): better graphics for the terrain on all maps (trees, bushes,
+grass, fruit), with the v1.4 camelthorn and family nest (D-039) as the bar; and (24 Oct, ~22:35
+Namibia time) after testing the Skietbaan: the far animals "look like rough shapes, not animals"
+(the giraffes). Still interim art (D-031) in the D-035 style, replaceable key by key. Rendering
+only: no sim, content-rule or replay change (content hash and golden replays unchanged).
+(1) *One plant kit* (`tools/art/flora.ts`): the camelthorn's limb and clump drawing (its helpers
+exported from `camelthorn.ts`, its own output unchanged) grown into a tree engine with crown
+shapes (umbrella, round, oval, spread, vase, irregular), leaf styles (feathery, leafy, butterfly)
+and bark styles (furrowed, smooth with folds, flaky plates), plus pods, pompoms, thorns, round and
+hanging fruit, layered veld shrubs (renosterbos, ganna, mopane scrub, driedoring) and seed-head
+grass tufts. Far trees are a few ragged clumps with a lit cap and plain limbs (no dabs: they
+cost bytes and can't be seen). Species in `tools/art/species.ts`; layer and prop contexts get
+`tint()` (the plane's aerial haze for any colour).
+(2) *Per biome* (bible §4.2, each species checked against "Biome-accurate flora/fauna"):
+**Karoo** sweet thorns (pompoms, sickle pods, white thorns) on the mid plane and in far stands
+instead of the lollipop trees, renosterbos/ganna mounds, golden seed-head tufts. **Bushveld** the
+kremetart prop redrawn at 2× (pods on stalks; the secret pod and the perch kept), a marula with
+fallen yellow fruit and winter mopane (olive and copper butterfly leaves) on the mid plane, far
+mopane/marula/baobabs, mopane scrub, pale seed-head grass. **Okavango** the sausage-tree prop
+redrawn (a bare branch at the content perch), jackalberries and ilala palms on the mid plane and
+the far islands, finer papyrus, feathery reeds, pointed water lilies. **Kalahari** (the v1.4
+camelthorns and nest kept) grey pods in the shade, shepherd's trees, Bushman grass with silvery
+plumes, driedoring. **Namibië** quiver trees in yellow winter flower (props, and new ones on the
+mid and far planes outside the waterhole sightline), !nara hummocks with melons on the dune edge.
+To fit the mid-plane trees the interim mid layers start higher (docs/06 §4).
+(3) *Distant animals* (`tools/art/fauna.ts`): one quadruped rig (sloping back, haunches, jointed
+legs, neck and head by pose) with species proportions and markings (giraffe, springbok, gemsbok,
+elephant, zebra, blue wildebeest, red lechwe) and the ostrich, in three poses (grazing, walking,
+head up), a lit back, shaded belly and far legs, a soft ground shadow, no ink. They replace the
+Bushveld giraffes, the Kalahari crest gemsbok and the Namibië waterhole drinkers, and new herds
+stand on every far veld. They are drawn at their plane's size into the layer (no sprite scaling);
+the scope still magnifies the layer texture as before.
+(4) *Budgets* (`npm run size -- --strict`, gzip): first download **3 046.2 KB** (2.97 MB; was
+3 014.1 KB; limit 3 MB = 3 072 KB); Poki 3 042.0 KB, CrazyGames 3 042.1 KB. Lazy biome chunks
+(limit 1.5 MB = 1 536 KB): Bushveld 1 517.3 KB, Okavango 1 532.7 KB (was 1 516.5), Kalahari
+1 483.9 KB (was 1 498.6), Namibië 1 427.4 KB (was 1 442.6). Paid for by smaller palettes on the
+busy interim layers and big props (96–128 colours, `LayerPlan.colours` / `PropPlan.colours`,
+`encodePng8(img, colours)`) and a 256-colour Okavango sky (no visible banding; was full colour,
+D-031). Low-tier texture memory grows by the taller mid layers (about +3 to +4.5 MB a biome) and
+the 2× baobab (about +5 MB in the Bushveld): measured by memory.spec / the v1.6 preview run (CI and
+the supervisor), budget 128 MB.
+- **Why smaller palettes and not fewer trees:** the brief says not to drop near-plane detail
+  first; flat inked art loses almost nothing at 96–128 colours (checked on close-ups), and it
+  frees ~8 % of each layer.
+(5) *Previews:* `tests/e2e/art-preview-v16.spec.ts` (ART_PREVIEW=1, V16_VARIANT=before|after):
+per biome the centre view, the main tree close up, the far plane at 2× and the far animals through
+the Langloop's scope in the Skietbaan, on desktop, Pixel 7 and iPhone 14 landscape →
+`docs/art-preview/compare/v16-veld-*.png`. visual.spec screens change on purpose (all seven show
+the Karoo): title, settings-sound, settings-access, privacy, hunt, tally, padstal.
+(6) *Names:* no new player-facing names (no new Bird Book entries), so no i18n changes.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
