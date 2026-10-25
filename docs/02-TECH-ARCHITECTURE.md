@@ -109,7 +109,7 @@ export interface Sim {
   frame (cap 5 to avoid spiral of death) and interpolates rendering between the last two snapshots.
 - **No** `Math.random`, `Date`, `performance.now`, DOM, `window`, Phaser imports, or async inside `sim/`.
   Enforced by ESLint `no-restricted-imports`/`no-restricted-globals` on `src/sim/**`.
-- **RNG:** `sfc32` seeded via `splitmix32`, with **named streams** (`rng.stream('spawns')`,
+- **RNG:** `sfc32` seeded via `splitmix32`, with **named streams** (v1.7 adds `'meerkats'`, §3.12) (`rng.stream('spawns')`,
   `'pellets'`, `'flockNoise'`, `'charms'`, `'shop'`, `'lightning'`, `'twist'` …) so adding randomness in one system doesn't shift
   every other system's sequence.
 - **Cross-browser determinism:** `+ − × ÷` and `Math.sqrt` are safe. `Math.sin/cos/atan2/exp/pow/log`
@@ -413,6 +413,60 @@ points, on top of `pointsMul`; the layout's × the bonus map's, `ResolvedMap.pla
 in `Sim`'s `mapPoints`). Namibië uses it to make its plentiful Ver birds worth less; no value = 1,
 so every other map is unchanged.
 
+
+### 3.12 Meerkat colonies (v1.7, D-044)
+Where: `colonies` in a biome or a layout (`ColonySchema`: id, a near or mid plane layer, `u`, the
+mounds' ground `y`, 3–5 burrows as `dx` and `mound` height, a family range of 4–8). A layout's list
+replaces the biome's (`resolveMap`); a bonus map keeps its layout's. Tuning is
+`birds.json → meerkats` (`MeerkatsSchema`): hit shapes per pose, timings, activity weights,
+`shotDive`, `alarm`, `hit` and `familiefoto`.
+
+- **Sim:** `src/sim/meerkats/colony.ts` is pure: `createColony`, `stepColony`, `diveColony`,
+  `hitMeerkat`, `lineUp`. Every draw comes from **`rng.stream('meerkats')`**, in colony order
+  (content order), then meerkat id. Colonies step with the creatures (Boeretroos slows them). A
+  hunt without colonies draws nothing from the stream, so other systems never shift.
+- **In `Sim.ts`:**
+  - The colonies are built at hunt start (none in the Skietbaan); a `colonySpawned` event follows.
+  - **Hit test:** each meerkat that can be hit is a `HitExtra` of kind `meerkat` (body and head
+    ellipses, scaled by the plane and mirrored by facing). It comes first among its layer's
+    extras: birds of the same plane are tested before it, props behind it after. A pellet that
+    stops on one carries `meerkatId` in `PelletResult` and `pelletImpact`; the field is absent
+    everywhere else, so older event streams are byte-identical.
+  - **Shots:** `shotAtColonies` runs after a shot lands. A hit is `meerkatHit` with `points`
+    (−penalty, or 0 inside the colony's cooldown). A colony dives (`meerkatsDived`, cause `hit`,
+    `loud` or `shot`) when one of its meerkats is hit, for a gun with `alertsAllFlocks`, or for an
+    impact within `shotDive.radiusPx` (measured on the colony's plane, from the span of its
+    burrows). A meerkat hit counts as hitting a thing, like a secret part: the shot is no miss
+    and the streak is unchanged.
+  - **Alarms:** `colonyAlarms` runs each tick. A bird of `alarm.creatures` within `alarm.radiusU`
+    (pan fraction, comparing `x / coreWidth` across planes) sets off one alarm per bird per
+    colony: `meerkatAlarm` (with the flock alerted), a threat of source `meerkatAlarm` to the
+    nearest flock that isn't flushing, then a dive.
+  - **Familiefoto:** `tickColonies` counts each colony's held fire. It starts at 0 on a shot,
+    with the colony off screen, or before the hunt's first shot. "On screen" is
+    |`planeToDx(cameraX, f, centre)`| ≤ `onScreenHalfPx`, which fits a 4:3 screen, so the device
+    never enters. With the hold at `holdSeconds` and the family out, the colony lines up. When it
+    stands in the row, `familiefoto` fires, then `secretTriggered` with propId `familiefoto` and
+    its bonus. Paid once a hunt.
+- **Snapshot:** `SimState.meerkats` (`ColonyView`: burrows, ground, phase, and each meerkat's
+  position, facing, pose, head turn, ticks in pose and whether it can be hit).
+- **Game layer:**
+  - `MeerkatView` draws mounds and meerkats from one sheet (`desertAssets.ts`), choosing frames by
+    pose on sim ticks (`meerkatPose.ts`).
+  - The HUD shows the −10, the scold bark (when penalised) and the Familiefoto banner.
+  - The AudioDirector plays the scratch on a penalised hit. The colonies' own sounds go through
+    `playExtra` (`meerkatSounds.ts`).
+  - On desert maps `WorldView` shows the Meerkat Spotter climbing out of a burrow.
+- **Assets:** the sheet and the four sounds load in their own lazy group **`desert`** with either
+  desert map. The catalog puts them there (`isDesertKey`), the manifest loads the group for a
+  manifest that lists the keys, and `size-check` budgets it as its own chunk.
+- **Content checks** (`src/content/colonyChecks.ts`, on every map a biome can play):
+  - each colony is on a near or mid plane layer and inside it;
+  - its burrows are in order;
+  - it is clear of the other colony and of props and secret parts on its own layer;
+  - its standing meerkats never overlap the bird lanes (ground, sky, pop-up) of the planes behind
+    it, or the secret parts on those layers;
+  - every map of a colony biome has 1–2 colonies.
 ## 4. Content system (`content/`, `src/content/`)
 
 - One Zod schema per file type in `schemas.ts`; types are `z.infer`'d — never hand-written twice.

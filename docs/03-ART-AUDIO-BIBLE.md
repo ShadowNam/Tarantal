@@ -116,7 +116,8 @@ reworked), with source files (PSD/Krita/Spine) kept as evidence of authorship.
   "HAA-HAA-HADEDA!".
 - **Fish eagle (Okavango):** white head and chest, chestnut belly — majestic, protected.
 - **Crop sprayer:** yellow fictional biplane trailing a mist.
-- **Meerkat spotter (helper):** pops up with binoculars; friendly.
+- **Meerkat spotter (helper):** pops up with binoculars; friendly. On the desert maps (v1.7) it
+  climbs out of a burrow mound instead of rising from nowhere.
 
 ### 3.4 Animation list (per rig) — frame counts for frame-by-frame, or clips for Spine
 | Clip | Frames @ fps | Notes |
@@ -140,6 +141,34 @@ reworked), with source files (PSD/Krita/Spine) kept as evidence of authorship.
 **Recommended tool:** Spine (skeletal + mesh deform for squash-and-stretch; variants as skins;
 official `spine-phaser-v4` runtime). Spine is paid software with its own licence terms for runtime
 use — check them. Fallback: frame-by-frame in Krita/Aseprite → TexturePacker/free-tex-packer atlases.
+
+### 3.5 Meerkat colonies (v1.7, D-044)
+A living family of meerkats in the desert veld (Kalahari, Namibië), separate from the cartoon
+Spotter. Semi-realistic (D-035) at the v1.4 camelthorn bar: drawn at 2×, layered shading, no flat
+shapes; light from the upper left.
+- **Look:**
+  - tan to grey-brown fur, lit to the upper left and shaded grey-brown on the far side;
+  - faint darker bands across the back;
+  - a pale cream belly, throat and face;
+  - dark eye patches (with a small glint), small dark ears and a dark nose;
+  - a thin tail with a black tip;
+  - a slim, upright body. Standing, the front paws are held in front of the belly (the
+    sentinel's pose).
+- **Frames:** one sheet, 112 × 144 design px cells, feet at (56, 136), facing right; the layout
+  is in `src/game/assets/desertAssets.ts`.
+  - Peek: two frames, head and shoulders above the hole's rim, looking left and right.
+  - Standing: head turned left, at the camera, right; the bark (mouth open); the front-facing
+    photo pose.
+  - Sit (on its haunches, leaning forward), sunbathe (sitting back, belly up), dig (2 frames).
+  - Run: 4 frames, tail up.
+  - Dive (2 frames: hindquarters and tail, then the tail tip), emerge, the scold head (front,
+    mouth open, at the rim), and a curled tumble.
+  - Pup: sit and a 2-frame run, smaller with the same markings. A sand flick.
+- **Burrows:** three low sand mounds (two cells wide each), hole centre at (112, 92). Each has a
+  dark, deep hole with a lit far lip, a fan of freshly dug sand down the front, loose grains,
+  pebbles and tiny tracks. The game scales a mound's height to the content's `mound`.
+- **Interim art:** `tools/art/meerkats.ts` (`npm run art:interim -- --only meerkats`), a
+  96-colour palette PNG, 84 KB.
 
 ## 4. Biomes
 
@@ -430,11 +459,18 @@ Max one bark per 6 s; never over a tally count-up.
 → barks`), text in en/af/de/nl, a speech bubble as its subtitle, and a `voice/bark.<id>` key waiting
 for the recording (`docs/06-ASSET-DELIVERY.md` lists them).
 
+**Meerkats (v1.7, D-044):** soft contact chirps when a head pops up, the sentinel's harsh
+double alarm bark, paws scratching sand, and the Familiefoto's soft camera click
+(`sfx/meerkat_chirp`, `sfx/meerkat_alarm`, `sfx/meerkat_dig`, `sfx/camera_click`). They are
+interim, from `tools/audio/sfx.ts`, in the lazy desert group. Chirps and digging come only from a
+colony on screen, at most one cue per colony every 40 ticks.
+
 ### 10.1 Oupa's voice in English, Afrikaans and German (v1.5, D-041)
 
 **What is voiced:** the 39 lines of Oupa's triggers (`feel.json → barks`) and the 5 secret barks
 (including the weavers' "Tsk-tsk-tsk! Leave our nest!" scold), 44 keys, the same keys as the
-captions. **Voice language** (Settings → Sound & game: Same as text / English / Afrikaans /
+captions. v1.7 (D-044) adds the meerkats' scold (`bark.meerkat_scold`, "We're not guineafowl!")
+and Oupa's Familiefoto line (`bark.familiefoto`): 46 keys. **Voice language** (Settings → Sound & game: Same as text / English / Afrikaans /
 Deutsch) is separate from the text language: the speech bubble (the caption) always follows the
 text, so an Afrikaans voice with English subtitles works. Dutch text on "Same as text" uses the
 Afrikaans voice (the closest).
