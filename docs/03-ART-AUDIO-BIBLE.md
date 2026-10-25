@@ -180,8 +180,17 @@ shapes; light from the upper left.
   - the pup smaller and fluffier, with a bigger head;
   - the run low and stretched, tail up.
 
-  It is a 48-colour palette PNG, 79 KB, which keeps a Kalahari hunt's download (its chunk plus
-  the desert chunk) under 1.5 MB.
+  Look round 2 (the product owner, 25 Oct: furrier, nicer faces):
+  - fur everywhere: a broken edge of short tufts leaning with the fur, curved strokes in three
+    tones that follow the form, fluffy cheeks;
+  - a teardrop mask sloping to the nose, with a small almond eye and a white catch-light;
+  - a pale brow, a short tapering muzzle with a small nose and a mouth line, low crescent ears;
+  - the haunch blended into the body; arms with volume and small dark claws; knees bent in the
+    run.
+
+  The left-looking peek and stand are the right-looking frames, flipped. It is a 32-colour
+  palette PNG, 92 KB; a Kalahari hunt's download (its chunk plus the desert chunk) stays under
+  1.5 MB.
 
 ## 4. Biomes
 

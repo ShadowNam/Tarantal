@@ -2430,6 +2430,32 @@ left-handed.
 now a 48-colour PNG8 (79 KB; it keeps the shading), so the desert chunk is 96.1 KB, and Kalahari +
 desert is **1 534.9 KB** (cap 1 536). Namibië + desert is 1 469.6 KB. `npm run size -- --strict`
 now checks each colony biome's chunk plus the desert chunk.
+*Look round 2 (the product owner, 25 Oct ~19:47: "a little bit more hairy … a tick more furry,
+and a little bit nicer faces").*
+(20) *Fur:* every figure is drawn as fur.
+- The smooth ink outline is replaced by a broken edge of short tufts that lean the way the fur
+  grows.
+- Curved strokes in three tones follow each part's form; the cheeks are fluffy, and the pup is
+  rounder and fluffier.
+- A body's parts are drawn in passes (edges, then fills, then fur), so the haunch blends into
+  the body.
+- The arms have volume and small dark claws.
+(21) *Faces:* a teardrop mask sloping to the nose (not round goggles), a small almond eye with a
+white catch-light, a pale brow, a short tapering muzzle with a small nose and a mouth line, low
+crescent ears and fuller cheeks, in the front and side views.
+(22) *Poses:*
+- The Familiefoto pose is shorter than the side-view sentinel, with a shaded cream belly,
+  haunches, hind feet and the tail on the sand.
+- The runs bend at the knee (reached out, gathered, pushing, in flight).
+(23) *Budget:*
+- The left-looking peek and stand are now the right-looking frames mirrored by the view
+  (`MIRRORED_FRAMES`, two cells freed).
+- The sheet is 32 colours (92 KB; no visible loss against 48).
+- The Kalahari's interim near, foreground and mid layers went from 128 to 96, 96 and 112 colours,
+  with no visible banding.
+- Kalahari 1 426.2 KB + desert 108.7 KB = **1 534.9 KB**. The first download is 3 055.0 KB after
+  merging v1.6b; Poki 3 049.7, CrazyGames 3 049.9 KB.
+- Version 1.7.0.
 (19) *Screenshot spec:* seed 33 (Monday's near colony has a pup) with a new dev/e2e-only
 `?birds=0` (no flocks, pop-ups, fly-over spawns, events or crates), so the meerkats are the
 subject. The Familiefoto shows a clear row, the dash is held mid-run, and there is a
