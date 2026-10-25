@@ -7,6 +7,7 @@ import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
 import { fill, getLanguage, t, tOr, translator, type I18nKey } from '../../i18n/i18n';
 import { shortText } from '../ui/powerupGuide';
+import { powerupIcon } from '../ui/powerupIcons';
 import type { RunState, ShopOffer } from '../../sim/run/run';
 import type { GameContext } from '../GameContext';
 import { charmRow, drawCharmCard, RARITY_COLOR } from '../ui/charmCards';
@@ -34,6 +35,8 @@ export interface RunData {
   readonly title: () => void;
   /** Start a fresh run (the summary's [New run]); the scene then shows its hunt card. */
   readonly newRun: () => void;
+  /** v1.7b (D-046): the tally view: power-ups and crate guns used in the hunt just played. */
+  readonly powerups?: readonly string[];
 }
 
 /** The view that fits a saved run's phase (resume). */
@@ -216,6 +219,23 @@ export class RunScene extends Phaser.Scene {
 
   // --- run tally ----------------------------------------------------------------------------
 
+  /** v1.7b (D-046): "Power-ups used" and their icons in the panel's top-right corner. */
+  private usedRow(ids: readonly string[]): void {
+    if (this.ctx.hook) this.ctx.hook.tallyPowerups = [...ids];
+    if (ids.length === 0) return;
+    const p = this.panel;
+    const size = 52;
+    let x = p.x + p.w - 40;
+    const y = p.y + 44;
+    for (let i = ids.length - 1; i >= 0; i--) {
+      const icon = powerupIcon(ids[i] ?? '');
+      if (!this.textures.exists(icon)) continue;
+      this.add.image(x - size / 2, y, icon).setDisplaySize(size, size);
+      x -= size + 10;
+    }
+    this.add.text(x - 6, y, t('tally.powerups'), textStyle(28, '#FFD25A')).setOrigin(1, 0.5);
+  }
+
   private tally(run: RunState, items: MenuItem[]): string {
     const p = this.panel;
     const cx = p.x + p.w / 2;
@@ -238,6 +258,7 @@ export class RunScene extends Phaser.Scene {
         48,
       );
     }
+    this.usedRow(this.data_.powerups ?? []);
     const pay = last?.doppies ?? null;
     if (pay !== null) {
       const rows: [string, number][] = [

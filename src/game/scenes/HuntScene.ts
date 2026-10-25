@@ -139,6 +139,8 @@ export class HuntScene extends Phaser.Scene {
   /** M7: Classic/Daily/challenge setup (null for the FTUE and Season Run hunts). */
   private plan: HuntPlan | null = null;
   private shareLog: ShareLogger | null = null;
+  /** v1.7b (D-046): power-ups and crate guns picked up this hunt (the tally lists them). */
+  private usedPowerups: string[] = [];
   /** The pause between the hunt's end and the tally, on the wall clock (see afterRealMs). */
   private endAction: { readonly at: number; readonly run: () => void } | null = null;
   /** The biome on screen and its manifest (the home biome until a hunt in another starts). */
@@ -177,6 +179,7 @@ export class HuntScene extends Phaser.Scene {
     this.ftue = null;
     this.plan = null;
     this.shareLog = null;
+    this.usedPowerups = [];
     this.pausedByMenu = false;
     this.ctx.menuPaused = false;
     this.cleanups = [];
@@ -756,6 +759,7 @@ export class HuntScene extends Phaser.Scene {
   private launchRun(view: RunView): void {
     const data: RunData = {
       view,
+      ...(view === 'tally' ? { powerups: [...this.usedPowerups] } : {}),
       hunt: (pointerType) => {
         this.afterBreak(() => {
           this.scene.stop('Run');
@@ -1336,6 +1340,15 @@ export class HuntScene extends Phaser.Scene {
     this.rumble(state.stampedeActive && !runner.over, now, width);
     this.logger?.add(events);
     this.shareLog?.add(events);
+    for (const e of events) {
+      const id =
+        e.type === 'powerupStarted'
+          ? e.powerup
+          : e.type === 'weaponChanged' && e.kind === 'crate'
+            ? e.weapon
+            : null;
+      if (id !== null && !this.usedPowerups.includes(id)) this.usedPowerups.push(id);
+    }
     if (this.ftue) {
       this.ftue.update(events, state.tick, {
         shells: state.weapon.shells,
@@ -1640,6 +1653,7 @@ export class HuntScene extends Phaser.Scene {
       this.scene.stop('Hud');
       const data: TallyData = {
         result,
+        powerups: [...this.usedPowerups],
         outcome,
         ftue,
         extras,
