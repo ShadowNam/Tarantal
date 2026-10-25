@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "updated": "2026-10-25T23:05:00Z",
+ "updated": "2026-10-25T23:33:00Z",
  "by": "Claude",
  "summary": "v1.7 meerkats is merged (26 Oct, 00:55; version 1.7.0): meerkat families on every Kalahari and Namibië map, with your fur and face notes in. v1.6 Veld art, v1.6b reload power-ups and this Project overview went in earlier on 25 Oct. Now: Tank has built every part of v1.7b (power-ups explained in the Gun Shed and in the hunt, and Oupa's comments On / Text only / Off in Settings); Claude is taking its screenshots, then reviews, runs the full tests and merges (expected about 03:30). Next, in this order: v1.7c fruit that swings or drops, v1.7d Namibië veld life, v1.7e realistic Bushveld + a new secret cue instead of the star (mock-ups for you first), v1.8 Blikkies, v1.8b baboons, v1.8c The Harvest (a new mode), then v1.9–v1.13.",
  "current": {
@@ -1085,6 +1085,20 @@
    "prs": [
     76
    ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/po-overview.jpg",
+     "caption": "The Overview tab: what needs the product owner, what is being built now and what comes next."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/po-roadmap.jpg",
+     "caption": "The Roadmap tab: every job with its build number and expected time."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/po-history-phone.jpg",
+     "caption": "The History tab on an iPhone 14, with the build pictures."
+    }
+   ],
    "summary": "This page: the project at a glance in the admin page, with what needs you, what is being built, the roadmap with times and versions, your requests, ideas, and the whole history with images. It reads live data that Claude updates at every check-in, merge and screenshot round. Open it from the admin page (Project overview) or with ?admin=1&project=1.",
    "owner": "Claude",
    "checklist": [
@@ -1553,7 +1567,7 @@
   {
    "date": "24 Oct, 14:18",
    "text": "Meerkat burrows on the desert maps: meerkats peek out and run from one burrow to another (\"be creative\")",
-   "outcome": "Built as v1.7 (#72), in review"
+   "outcome": "Done in v1.7 (#72)"
   },
   {
    "date": "24 Oct, 18:00",
@@ -1621,9 +1635,59 @@
    "outcome": "Done in v1.6 (#70): the Fresh load button in the Skietbaan (test builds)"
   },
   {
+   "date": "25 Oct, early morning",
+   "text": "An automatic reload and a fast reload as power-ups",
+   "outcome": "Done in v1.6b (#71): Blitslaai and Oupa Laai"
+  },
+  {
    "date": "25 Oct, 16:45",
    "text": "When shooting the fruit (sausage tree), make it swing or drop",
-   "outcome": "Queued as v1.7b"
+   "outcome": "Queued as v1.7c"
+  },
+  {
+   "date": "25 Oct, 19:45",
+   "text": "The meerkats \"a little bit more hairy … a tick more furry, and a little bit nicer faces\"",
+   "outcome": "Done in v1.7 (#72), look round 3"
+  },
+  {
+   "date": "25 Oct, 19:48",
+   "text": "Namibië: at least two ostriches with a nest, oryx far away in a mirage, hot-air balloons drifting by; the grass and landscape much more detailed",
+   "outcome": "Queued as v1.7d (Namibië veld life)"
+  },
+  {
+   "date": "25 Oct, 19:51",
+   "text": "A Project overview page in the admin: what is done and outstanding with dates and expected builds, open questions and decisions, what is built and what will be, suggestions, and the history with its pictures, kept up to date",
+   "outcome": "Done (#76), live at 20:06"
+  },
+  {
+   "date": "25 Oct, 20:03",
+   "text": "A Gun Shed section that explains every power-up with pictures, and clearer power-ups in the hunt",
+   "outcome": "Being built as v1.7b"
+  },
+  {
+   "date": "25 Oct, 20:03",
+   "text": "A Settings option to switch Oupa’s comments off",
+   "outcome": "Being built in v1.7b: Oupa’s comments On / Text only / Off"
+  },
+  {
+   "date": "25 Oct, 20:03",
+   "text": "The Bushveld rocks and middle distance look childish; replace the star glint on secrets with something else, such as a unique animal",
+   "outcome": "Queued as v1.7e, with mock-ups first"
+  },
+  {
+   "date": "25 Oct, 20:03",
+   "text": "Baboons on the maps that pop up and do something naughty",
+   "outcome": "Queued as v1.8b; they are shot down like guineafowl (the product owner’s choice)"
+  },
+  {
+   "date": "25 Oct, 20:03",
+   "text": "\"The Harvest\": 30 seconds to shoot the animals raiding the crops while farm workers fix the fence",
+   "outcome": "Queued as v1.8c, a new mode on the title screen (the product owner’s choice)"
+  },
+  {
+   "date": "25 Oct, 22:58",
+   "text": "Keep building overnight on the recommended options; retry Tank, and start a new session if it hangs again",
+   "outcome": "Building overnight"
   },
   {
    "date": "25 Oct, 16:45",
@@ -1699,6 +1763,21 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-25T23:32:00Z",
+   "kind": "merge",
+   "text": "The history document has three new chapters (v1.6b reload power-ups, this Project overview, v1.7 meerkats) with 11 pictures; they show on the History tab now.",
+   "links": [
+    {
+     "label": "PR #78",
+     "url": "https://github.com/ShadowNam/Tarantal/pull/78"
+    },
+    {
+     "label": "History (Word)",
+     "url": "https://github.com/ShadowNam/Tarantal/raw/main/docs/history/Tarantal-Development-History.docx"
+    }
+   ]
+  },
   {
    "at": "2026-10-25T23:00:00Z",
    "kind": "note",
@@ -2870,6 +2949,122 @@
      "caption": "Before | after on a phone: Namibië with quiver trees in yellow flower, !nara hummocks and far animals on the pan."
     }
    ]
+  },
+  {
+   "title": "v1.6b Reload power-ups: Blitslaai and Oupa Laai",
+   "when": "25 Oct 2026, 20:43 (started 25 Oct, 08:45)",
+   "prs": "#71, #75",
+   "decision": "D-043",
+   "intro": "The product owner asked for \"an AUTO reload, and a fast reload\" as power-ups.",
+   "bullets": [
+    "Blitslaai (Lightning Load): for 12 seconds every reload takes about a third of the time. It covers full-belt reloads, shell-by-shell reloads, the Voorlaaier’s ramrod and the Kettie’s draw. Small lightning glints hop along the rounds and a reload starts with a quick metallic zip.",
+    "Oupa Laai (Oupa Loads): for 12 seconds the gun reloads by itself the moment it is empty, and a shell-by-shell gun tops up when you pause. Oupa’s hand sits by the belt and he says \"I’ll load for you, my kind!\" (in English, Afrikaans and German). A shot always cuts an automatic reload, so it never locks you out of a shot.",
+    "Both come from supply crates in any hunt and cost 2 coins at the Padstal in a Season Run. They are the first power-ups with icons on their HUD chips.",
+    "Balance: the competent bot’s Classic score rose 1.9 %; every Season Run gate still passes (spring with good buys is 69.6 %, inside its target).",
+    "First download 3,026.6 KB of 3 MB (+13 KB for the icons, the glints, the zip and the code)."
+   ],
+   "feedbackLabel": "Reviews and fixes before merging",
+   "feedback": [
+    "Main, with v1.6, was merged in as version 1.6.1. Claude changed one browser test so it always checks the lightning icon, not only sometimes.",
+    "A slow Skietbaan browser test (the D-040 gongs) timed out on GitHub, on main as well. Claude split it into two tests that shoot inside the page (#75), and the same fix went into this PR.",
+    "Screenshots of both power-ups on desktop and a phone were taken after the merge."
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16b-blitslaai.jpg",
+     "caption": "On a phone: the Lightning Load chip with its icon at the top left, during a Karoo hunt."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16b-oupa-laai.jpg",
+     "caption": "The Oupa Loads chip, and Oupa’s hand by the belt (bottom right) while it runs."
+    }
+   ]
+  },
+  {
+   "title": "The Project overview page in the admin",
+   "when": "25 Oct 2026, 22:06 (asked for at 17:51)",
+   "prs": "#76",
+   "decision": "D-045",
+   "intro": "The product owner wanted one place to see the project’s status without asking: what is done and outstanding with dates and expected builds, open questions and decisions, what is built and what will be, suggestions, and the history with its pictures.",
+   "bullets": [
+    "A \"Project overview\" button on the admin page (test builds only; players never download it).",
+    "Tabs: Overview (needs you, now building, up next, last done, numbers, links and recent activity), Roadmap (running, planned and done, each with its build number and expected time), Requests, Ideas, and History with pictures that open full size.",
+    "Every time is shown in Namibia time.",
+    "Claude updates the data on its own branch (project-log) at every merge and screenshot round, so the page is current within about 5 minutes, with no new build or deploy.",
+    "If the connection drops, the last copy that loaded is shown and marked as an offline copy.",
+    "Links and pictures are only accepted from the project’s own GitHub and Claude pages, so a crafted link can’t show a fake status.",
+    "Works on desktop, Pixel 7 and iPhone 14, with the page’s own text in English, Afrikaans, German and Dutch."
+   ],
+   "feedbackLabel": "Reviews and fixes before merging",
+   "feedback": [
+    "Claude’s own review moved \"now building\" to the top, put the roadmap in running → planned → done order, and kept lettered options (A, B, C) from being numbered twice.",
+    "The product owner looked before it was merged (\"I don’t see the Project page\"); it went live 25 minutes later."
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/po-overview.jpg",
+     "caption": "The Overview tab: what needs the product owner, what is being built now and what comes next."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/po-roadmap.jpg",
+     "caption": "The Roadmap tab: every job with its build number and expected time."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/po-history-phone.jpg",
+     "caption": "The History tab on an iPhone 14, with the build pictures."
+    }
+   ]
+  },
+  {
+   "title": "v1.7 Meerkat colonies on the desert maps",
+   "when": "26 Oct 2026, 00:55 (started 25 Oct, 15:00)",
+   "prs": "#72",
+   "decision": "D-044",
+   "intro": "The product owner asked for meerkat holes on the desert maps, with meerkats that \"peek out and run from one nest to the other. Be creative.\"",
+   "bullets": [
+    "One or two meerkat colonies on every Kalahari and Namibië map, on burrow mounds with dark holes, fresh sand and tracks.",
+    "The meerkats peek, come out, sit, forage and sunbathe in Monday’s dawn light. A sentinel stands guard on the highest mound, and they dash between burrows in a file, stopping halfway to look. A pup follows its mother.",
+    "They react to the hunt: a shot nearby sends the colony down (the scout comes back first after 3–6 seconds); the Langloop sends every colony down; a raptor or the crop sprayer overhead sets off the sentinel’s alarm bark, which also alerts the nearest guineafowl flock.",
+    "Shooting a meerkat costs 10 points; it tumbles, then scolds you (\"We’re not guineafowl!\").",
+    "A new secret, the Familiefoto: hold fire for 4 seconds with a whole family out near the middle of the screen and they line up for a photo, with a camera click, for +25. It is in the Bird Book and has a Notaboek challenge.",
+    "They are part of the game’s rules, not decoration, so replays, challenge links and the Daily Hunt play them the same on every device.",
+    "Balance: on all 20 desert maps the scores stay within −1.2 % and +2.5 % of the same maps without colonies.",
+    "The meerkat art and sounds load with either desert map. A Kalahari hunt downloads 1,534.9 KB of its 1,536 KB limit; the first download is 3,055 KB."
+   ],
+   "feedbackLabel": "Reviews and fixes before merging",
+   "feedback": [
+    "Claude’s first look round: the meerkats looked flat, below the camelthorn quality bar. Redrawn with a rounded body, a cream belly, shading, an eye mask and a fluffier pup; the burrows got holes with shadows and fresh sand.",
+    "The independent review found a shot pup that stayed stuck for the rest of the hunt, and a placement check that ignored the mounds. Both fixed, with tests.",
+    "Colonies were moved so none sits under the HUD on desktop, Pixel 7 or iPhone 14, and so they stay clear of the gun. Meerkats now keep a body width apart.",
+    "Product owner (25 Oct, about 17:45): \"a little bit more hairy … a tick more furry, and a little bit nicer faces\". Round 3 drew every meerkat as fur, with a teardrop eye mask, a small eye with a catch-light and a short muzzle.",
+    "On GitHub, a browser test expected −10 for a meerkat shot but got +29: a bird near the moved colony shared the shot. The game was right; the test now takes a shot the meerkat gets alone. The balance was re-checked on all 20 maps after the move."
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v17-familiefoto.jpg",
+     "caption": "The Familiefoto in the Kalahari: hold fire and the family lines up for a photo (+25)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v17-familiefoto-closeup.jpg",
+     "caption": "Close-up of the Familiefoto, with the pup at the end of the row."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v17-sentinel-pup.jpg",
+     "caption": "Close-up: the sentinel on the highest mound, the pup by its mother, and the burrow holes."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v17-scold.jpg",
+     "caption": "A meerkat scolds after being shot (\"We’re not guineafowl!\")."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v17-namibie.jpg",
+     "caption": "Two Namibië colonies on a Sunday, clear of the gun and the HUD."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v17-rounds.jpg",
+     "caption": "The three look rounds of the meerkat sheet: the first draft, the redraw, and round 3 with more fur and nicer faces (times in Namibia time)."
+    }
+   ]
   }
  ],
  "evolution": [
@@ -3006,6 +3201,18 @@
   {
    "id": "D-042",
    "text": "v1.6 Veld art pass: plants, far animals, clouds, the windmill and dassie, art that waits to load, the build stamp"
+  },
+  {
+   "id": "D-043",
+   "text": "v1.6b Reload power-ups: Blitslaai and Oupa Laai"
+  },
+  {
+   "id": "D-044",
+   "text": "v1.7 Meerkat colonies: living colonies in the game rules, the Familiefoto secret, a shared desert download"
+  },
+  {
+   "id": "D-045",
+   "text": "The Project overview page in the admin, fed from its own branch"
   },
   {
    "id": "D-043",
