@@ -317,7 +317,6 @@
   },
   "project-overview": {
    "owner": "Claude",
-   "status": "running",
    "summary": "This page: the project at a glance in the admin page, with what needs you, what is being built, the roadmap with times and versions, your requests, ideas, and the whole history with images. It reads live data that Claude updates at every check-in, merge and screenshot round. Open it from the admin page (Project overview) or with ?admin=1&project=1.",
    "requestedBy": "You, 25 Oct 19:51",
    "checklist": [
