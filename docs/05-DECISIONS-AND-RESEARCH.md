@@ -2327,6 +2327,39 @@ the same values.
 - **Golden replays** re-recorded: only Die Verste (classic-74) and Namibië Thursday (classic-76)
   changed their events (meerkat positions); their scores are the same.
 - **Balance** was not re-swept for a 16 px shift of the near colonies.
+*Look round (the supervisor's screenshots, 25 Oct; #70 merged into main, then main into this
+branch).*
+(15) *The meerkats looked flat* (grey-brown figures, a plain face), below the v1.4/v1.6 bar. The
+sheet was redrawn from one rig (`tools/art/meerkats.ts`):
+- a torso grown along a spine, with back and belly widths;
+- a cream belly and throat clearly lighter than the back, which is tan to grey-brown with faint
+  bands and fine fur strokes;
+- light from the upper left, a shaded side, haunches, and tapered legs and tail (black tip);
+- the dark eye mask with a small bright eye, a crescent ear and a dark nose;
+- the sentinel chin up, its paws together at the belly;
+- the pup smaller and fluffier, with a bigger head;
+- the run low and stretched, tail up.
+(16) *Burrows:* each mound has 2–3 dark oval holes with an inner shadow and a lit front lip, fresh
+lighter sand fanned out from each hole, scratch marks and tiny tracks.
+(17) *Clear of the HUD:* `colonyHud.test.ts` checks every colony's screen rect against the
+gadget, item slots, belt, reload prompt, timer, Frenzy and score. It runs at every desert map's
+opening view, on desktop 16:9, the Pixel 7 and the iPhone 14 (its insets), right- and
+left-handed.
+- **Near colonies always sit in the bottom HUD row's band,** so they now open in the middle of the
+  view. Three Kalahari mid colonies (Tuesday, Wednesday, Saturday) moved toward the centre,
+  because the iPhone's reload prompt sits higher.
+- **Why only the opening view:** the near plane pans 1:1, so a colony can pass under a corner
+  later, as pop-up birds do.
+- **Balance**, re-measured on the moved maps: −0.6 % to +2.5 % against no colonies.
+- **Golden replays:** only classic-74 and classic-76 changed their events.
+(18) *What one hunt downloads:* a Kalahari hunt loads its chunk and the desert chunk. The sheet is
+now a 48-colour PNG8 (79 KB; it keeps the shading), so the desert chunk is 96.1 KB, and Kalahari +
+desert is **1 534.9 KB** (cap 1 536). Namibië + desert is 1 469.6 KB. `npm run size -- --strict`
+now checks each colony biome's chunk plus the desert chunk.
+(19) *Screenshot spec:* seed 33 (Monday's near colony has a pup) with a new dev/e2e-only
+`?birds=0` (no flocks, pop-ups, fly-over spawns, events or crates), so the meerkats are the
+subject. The Familiefoto shows a clear row, the dash is held mid-run, and there is a
+sentinel-and-pup close-up. Every close-up shows each meerkat at least 150 px tall.
 
 ## 3. Research notes (with sources)
 

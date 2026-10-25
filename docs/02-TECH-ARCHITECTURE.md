@@ -467,6 +467,13 @@ replaces the biome's (`resolveMap`); a bonus map keeps its layout's. Tuning is
   - its standing meerkats, measured from the highest mound, never overlap the bird lanes (ground,
     sky, pop-up) of the planes behind it, or the secret parts on those layers;
   - every map of a colony biome has 1–2 colonies.
+- **Clear of the HUD** (`src/game/ui/colonyHud.test.ts`): at each desert map's opening camera,
+  every colony's screen rect stays clear of the HUD corners. It is checked on desktop, the Pixel 7
+  and the iPhone 14, right- and left-handed.
+- **Download:** `size-check` adds the desert chunk to each colony biome's chunk (what one hunt
+  downloads) and fails `--strict` above 1.5 MB.
+- **Previews:** `?birds=0` (dev and e2e builds only, `devContent.withNoBirds`) plays a hunt
+  without flocks, pop-ups, fly-over spawns, events or crates.
 ## 4. Content system (`content/`, `src/content/`)
 
 - One Zod schema per file type in `schemas.ts`; types are `z.infer`'d — never hand-written twice.

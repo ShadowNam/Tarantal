@@ -164,11 +164,24 @@ shapes; light from the upper left.
   - Dive (2 frames: hindquarters and tail, then the tail tip), emerge, the scold head (front,
     mouth open, at the rim), and a curled tumble.
   - Pup: sit and a 2-frame run, smaller with the same markings. A sand flick.
-- **Burrows:** three low sand mounds (two cells wide each), hole centre at (112, 92). Each has a
-  dark, deep hole with a lit far lip, a fan of freshly dug sand down the front, loose grains,
-  pebbles and tiny tracks. The game scales a mound's height to the content's `mound`.
-- **Interim art:** `tools/art/meerkats.ts` (`npm run art:interim -- --only meerkats`), a
-  96-colour palette PNG, 84 KB.
+- **Burrows:** three low sand mounds (two cells wide each), the main hole's centre at (112, 92).
+  - Each mound has 2–3 dark oval holes, each with an inner shadow under the back rim and a lit
+    front lip.
+  - Fresh, lighter sand fans out downhill from each hole.
+  - Loose grains, pebbles, scratch marks and tiny tracks lie round them. The game scales a mound's height to the content's `mound`.
+- **Interim art:** `tools/art/meerkats.ts` (`npm run art:interim -- --only meerkats`). One rig
+  builds every pose (look round, 25 Oct):
+  - a torso grown along a spine with back and belly widths;
+  - the cream belly and throat clearly lighter than the banded, fur-stroked back;
+  - lit from the upper left with a shaded side;
+  - haunches, and tapered legs and tail;
+  - the eye mask with a small bright eye inside, a crescent ear and a dark nose;
+  - the sentinel chin up with its paws together at the belly;
+  - the pup smaller and fluffier, with a bigger head;
+  - the run low and stretched, tail up.
+
+  It is a 48-colour palette PNG, 79 KB, which keeps a Kalahari hunt's download (its chunk plus
+  the desert chunk) under 1.5 MB.
 
 ## 4. Biomes
 
