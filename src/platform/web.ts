@@ -1,6 +1,7 @@
 // Plain web / PWA build (VITE_PLATFORM=web, the default). No ads, no portal SDK. Analytics and
 // error reports stay on the device (LocalPlatform). Registers the service worker in production
 // builds (offline play).
+import { freshLoad } from './freshLoad';
 import { LocalPlatform, type PlatformOptions } from './local';
 import { BUILD_MESSAGE, shouldOfferUpdate } from './swUpdate';
 
@@ -69,6 +70,26 @@ export class WebPlatform extends LocalPlatform {
       });
     }
     return Promise.resolve();
+  }
+
+  /** D-042 (14): the Skietbaan's Fresh load — no worker, no `tm-*` caches, `?fresh=<now>`. */
+  override hardRefresh(): Promise<void> {
+    // A missing API (no service worker, no Cache Storage outside a secure context) throws inside
+    // its step, which freshLoad catches: the reload still happens.
+    return freshLoad({
+      href: window.location.href,
+      now: Date.now(),
+      registrations: () => navigator.serviceWorker.getRegistrations(),
+      cacheKeys: () => window.caches.keys(),
+      deleteCache: (key) => window.caches.delete(key),
+      wait: (ms) =>
+        new Promise((resolve) => {
+          window.setTimeout(resolve, ms);
+        }),
+      go: (url) => {
+        window.location.replace(url);
+      },
+    });
   }
 
   onUpdateReady(show: () => void): void {

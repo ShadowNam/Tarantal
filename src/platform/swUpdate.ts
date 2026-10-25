@@ -3,6 +3,9 @@
 // it with its own. Navigations are network first, so after a deploy the page usually already runs
 // the new build when the new worker takes over: then there is nothing to reload. Pure (unit-tested).
 
+/** Every Cache Storage name the worker makes starts with this (`tm-<version>`). */
+export const CACHE_PREFIX = 'tm-';
+
 /** The message a page posts to its worker (over a MessageChannel) to ask for the worker's build. */
 export const BUILD_MESSAGE = 'tm-build';
 
