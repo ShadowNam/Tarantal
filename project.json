@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "updated": "2026-10-25T20:06:00Z",
+ "updated": "2026-10-25T20:58:00Z",
  "by": "Claude",
  "summary": "v1.6 Veld art is live on the test build (merged 25 Oct, 18:56). v1.6b reload power-ups is merged too (25 Oct, 20:42; version 1.6.1): Blitslaai and Oupa Laai in the crates and the Padstal. v1.7 meerkats has your fur and face notes in (round 3) and version 1.7.0; Claude's in-game screenshots and review come next. This Project overview page went live on 25 Oct at about 22:10. Next, in this order: v1.7b power-ups explained + an Oupa on/off switch, v1.7c fruit that swings or drops, v1.7d Namibië veld life, v1.7e realistic Bushveld + a new secret cue instead of the star (mock-ups for you first), v1.8 Blikkies, v1.8b baboons, v1.8c The Harvest (a new mode), then v1.9–v1.13.",
  "current": {
@@ -1200,8 +1200,9 @@
      "at": "2026-10-25T19:23:00Z"
     },
     {
-     "text": "New screenshots (Claude, running now) and your look",
-     "done": false
+     "text": "New screenshots on desktop and both phones (round 3)",
+     "done": true,
+     "at": "2026-10-25T20:55:00Z"
     },
     {
      "text": "Claude's independent review: no gameplay bugs; one missing test and three small fixes sent to Tank",
@@ -1209,8 +1210,9 @@
      "at": "2026-10-25T19:48:00Z"
     },
     {
-     "text": "Tank: the review fixes (a cooldown test, crate-over-meerkat hit order, the alarm test, one content number)",
-     "done": false
+     "text": "Tank: the review fixes, colonies clear of the gun, meerkats spaced apart",
+     "done": true,
+     "at": "2026-10-25T20:58:00Z"
     },
     {
      "text": "Full tests and merge",
@@ -1219,20 +1221,20 @@
    ],
    "images": [
     {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17-familiefoto-closeup-desktop.png",
+     "caption": "Round 3 in the game: the Familiefoto row (desktop)"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-sentinel-pup-closeup-pixel7-landscape.png",
+     "caption": "Round 3: the sentinel on a Pixel 7 (still bunched; spacing fixed after this shot)"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-peek-closeup-iphone14-landscape.png",
+     "caption": "Round 3: peeking out on an iPhone 14"
+    },
+    {
      "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17-meerkats-rounds.jpg",
      "caption": "The meerkat sheet over three rounds; round 3 (bottom, 20:52) has your fur and face notes in"
-    },
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-sentinel-closeup-pixel7-landscape.png",
-     "caption": "Round 1: the sentinel close-up (Pixel 7), before the redraw"
-    },
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-familiefoto-pixel7-landscape.png",
-     "caption": "Round 1: the Familiefoto (Pixel 7); the flock was in the way"
-    },
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-dash-desktop-chromium.png",
-     "caption": "Round 1: the Kalahari colony (desktop)"
     }
    ],
    "links": [
@@ -1648,6 +1650,25 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-25T20:58:00Z",
+   "kind": "screenshots",
+   "text": "v1.7 round-3 screenshots on desktop, Pixel 7 and iPhone 14. Tank fixed the review points, moved colonies out from behind the gun and spaced the meerkats apart (in a fresh session after connection drops).",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17-familiefoto-closeup-desktop.png",
+     "caption": "Round 3 in the game: the Familiefoto row (desktop)"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-sentinel-pup-closeup-pixel7-landscape.png",
+     "caption": "Round 3: the sentinel on a Pixel 7 (still bunched; spacing fixed after this shot)"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-peek-closeup-iphone14-landscape.png",
+     "caption": "Round 3: peeking out on an iPhone 14"
+    }
+   ]
+  },
   {
    "at": "2026-10-25T20:06:00Z",
    "kind": "merge",
