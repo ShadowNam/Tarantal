@@ -7,22 +7,22 @@ const meta = {
   title: 'Tarantal Madness',
   subtitle: 'Development history',
   tagline: 'How the game came together, from the first commit to today',
-  updated: '24 October 2026, 21:45 UTC',
+  updated: '25 October 2026, 00:40 UTC',
   period: '19–24 October 2026',
 };
 
-// "By the numbers" on 24 Oct 2026 (main at 701bf4c).
+// "By the numbers" on 24 Oct 2026 (main at 5bfdfab).
 const numbers = [
   ['Days since the first commit', '5'],
-  ['Commits on main', '672'],
-  ['Pull requests', '62 merged, plus this history update; the Skietbaan gongs in progress'],
+  ['Commits on main', '690'],
+  ['Pull requests', '64 merged, plus this history update; v1.5 Languages in progress'],
   ['Game code (TypeScript, without tests)', 'about 39,000 lines'],
-  ['Automated tests', '1,027 unit tests, 43 browser test suites on 3 device profiles'],
+  ['Automated tests', '1,039 unit tests, 43 browser test suites on 3 device profiles'],
   ['Hunting areas', '5: the four seasons (Karoo, Bushveld, Okavango, Kalahari) and Namibië, each with 7 weekday maps and 3 bonus maps (Verder, Nog Verder, Die Verste)'],
   ['Guns', '8 (Dubbelloop, Windbuks, Kettie, Plaas-Pomp, Die Twee-Twee with 3 sights, Die Langloop with a 3–9× scope, Voorlaaier, Mielie-Masjien)'],
   ['Creatures', '13 (guineafowl and variants, bosses, flyers)'],
   ['Languages', 'English, Afrikaans, German, Dutch'],
-  ['Design decisions logged', '39 (D-001 to D-039)'],
+  ['Design decisions logged', '40 (D-001 to D-040)'],
 ];
 
 const roles = [
@@ -514,6 +514,32 @@ const stages = [
       { img: 'v14b-locked-iphone', caption: 'The new area picker on an iPhone 14: Namibië locked until Die Verste is reached.' },
     ],
   },
+  {
+    title: 'Skietbaan gongs: clean steel plates with lasting hit marks',
+    when: '25 Oct 2026, 00:25 (started 24 Oct, 21:37)',
+    prs: '#66',
+    decision: 'D-040',
+    intro: 'The product owner asked for clean steel gongs on the training ground, with every shot visible for the whole session.',
+    bullets: [
+      'A freshly painted plate every visit: the fake "old hits" baked into the plate picture are gone. The plate has a clean bevelled steel rim and chains, and hangs from a timber frame with grain and bolts, drawn at double resolution so it stays sharp in the 3\u20139\u00d7 scope.',
+      'Every hit leaves a lead-splash mark exactly where the bullet struck: a silver star with a dark centre and small flecks, sized by the gun. A shotgun pellet leaves a small mark, the .22 a medium one, and the Langloop and Kettie a large one. Each mark\u2019s shape comes from the shot itself, so a replay draws the same marks.',
+      'Marks swing with the plate, and the newest one glints for a moment.',
+      'Steel and paper follow one rule: every mark and hole stays for the whole visit, through gun swaps, the scope and switching distances (paper used to show only the last 20). New buttons clear them on purpose: Repaint, New paper and Fresh targets.',
+      'Up to 400 marks per target are baked into one picture, so phones stay fast.',
+    ],
+    feedbackLabel: 'Reviews and fixes before merging',
+    feedback: [
+      'Product owner (24 Oct, 17:45): "The metal gongs need to be clean. And when shot, the shot should be visible and stay visible during the session. I want to see consistency."',
+      'The independent review found that the plate drawn before its picture loaded came out blank, a test that could not catch the bug it was meant for, marks shared between courses, and gun sizes written into the code instead of the gun data. Tank fixed all of them.',
+      'Claude\u2019s screenshots showed no targets at all. A browser check found the cause in the tests rather than the game: the test mouse rested at the screen edge, which scrolls the view, so the shots went where the plate used to be. The tests now reload with a key and fail loudly if the view moves.',
+    ],
+    images: [
+      { img: 'gongs-clean-pixel7', caption: 'A freshly painted gong on its timber frame (Pixel 7 close-up).' },
+      { img: 'gongs-hits30-iphone', caption: 'After 30 shots with the air rifle: 30 hits, every mark still there (iPhone 14 held sideways).' },
+      { img: 'gongs-paper30', caption: 'Paper with 30 holes: paper now keeps every hole too.' },
+      { img: 'gongs-langloop-pixel7', caption: 'A gong at the farthest distance in Die Langloop\u2019s scope (Pixel 7).' },
+    ],
+  },
 ];
 
 // The product owner's requests, in order.
@@ -533,14 +559,13 @@ const requests = [
   ['24 Oct, 12:05', 'Better graphics for the trees, bushes and fruit on every map; camelthorn trees in Namibia; a far more detailed weaver nest ("increase quality by 500%") with angry birds flying out when it is shot', 'Camelthorn and nest first in v1.4 part B, with close-ups for approval; then v1.5 for every map'],
   ['24 Oct, 12:18', 'Meerkat burrows on the desert maps: meerkats peek out and run from one burrow to another ("be creative")', 'Queued as v1.6: burrows, a sentinel, dashes, diving at shots, a Familiefoto secret'],
   ['24 Oct, 16:00', 'Languages: voices and text for more languages', 'Queued as v1.5 Languages'],
-  ['24 Oct, 17:45', 'Clean steel gongs in the training ground, with every shot mark staying visible for the session; tin cans ("blikkies") on fence posts that somersault and can be juggled in the air', 'Queued: Skietbaan gongs next, then v1.8 Blikkies'],
+  ['24 Oct, 17:45', 'Clean steel gongs in the training ground, with every shot mark staying visible for the session; tin cans ("blikkies") on fence posts that somersault and can be juggled in the air', 'Gongs done (#66); Blikkies queued as v1.8'],
   ['24 Oct, 18:55', 'Five more ideas to keep the African feel (meerkats, a soundscape, a rain storm, a braai, a farm dog, veld cameos) and Daily specials on local days (Heritage Day braai, Christmas in summer, Halloween, New Year)', 'All queued as v1.6–v1.13; a list of Daily specials sent for the product owner to choose from'],
   ['24 Oct, 20:35', 'Distant animals (like the giraffe) look rough; consider a bow and arrow later', 'Far animals added to v1.6 (veld art); bow and arrow noted as an idea for later'],
 ];
 
 const next = [
-  ['Skietbaan gongs', 'Clean steel plates in the training ground; every hit leaves a lead-splash mark that stays for the session; paper keeps every hole; a Repaint button', 'Tank', 'about 3 h'],
-  ['v1.5: languages', 'More languages for text and voices', 'Tank', 'about 5 h'],
+  ['v1.5: languages (in progress)', 'Separate text and voice languages (English, Afrikaans, German, Dutch text); proper names per language with an "Afrikaans names" option; Oupa voiced', 'Tank', 'about 5 h (started 25 Oct, 00:28)'],
   ['v1.6: veld art and distant animals', 'Trees, bushes, grass and fruit at the new quality bar on every map, and better far animals (giraffe and others)', 'Tank', 'about 6 h'],
   ['v1.7: meerkat colonies', 'Burrows on the desert maps; meerkats peek, stand guard, dash between burrows and dive when shots are fired', 'Tank', 'about 5 h'],
   ['v1.8: blikkies', 'Tin cans on fence posts that somersault when hit and can be juggled in the air', 'Tank', 'about 5 h'],
@@ -574,6 +599,7 @@ const decisions = [
   ['D-037', 'Training ground (Skietbaan): admin and test build only, never touches the save, left out of the content fingerprint'],
   ['D-038', 'v1.4 part A: the faster scope view (#56) and Die Langloop'],
   ['D-039', 'v1.4 part B: the Namibië pack, camelthorn trees and the family nest, angry weavers, per-plane points'],
+  ['D-040', 'Skietbaan gongs: clean plates, lasting hit marks on steel and paper, mark size from the gun data'],
 ];
 
 const glossary = [
