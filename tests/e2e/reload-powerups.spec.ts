@@ -215,6 +215,12 @@ test('Blitslaai: its chip, a reload in about a third of the time, glints on the 
   await boot(page, 'seed=7&huntSeconds=90&crate=blitslaai');
   await startHunt(page, touch);
   await pickUp(page, touch, 'blitslaai');
+  // The chip shows its icon while the power-up runs (12 s of sim time, so check it straight away).
+  await page.waitForFunction(
+    () => window.__TM__?.reloadFx.chipIcons.includes('ui/pu_blitslaai') ?? false,
+    null,
+    { timeout: 60_000 },
+  );
   const r = await shootAndReload(page, touch);
   const h = await hook(page);
   expect(h.weapon).toBe('dubbelloop');
@@ -224,7 +230,6 @@ test('Blitslaai: its chip, a reload in about a third of the time, glints on the 
   expect(r.ticks).toBeLessThanOrEqual(FAST + 8);
   expect(r.ticks).toBeLessThan(NORMAL - 10);
   expect(r.bolts).toBeGreaterThan(0);
-  if (h.powerups.includes('blitslaai')) expect(h.reloadFx.chipIcons).toContain('ui/pu_blitslaai');
   await page.screenshot({ path: `${SCREENSHOTS}/reload-blitslaai-${info.project.name}.png` });
   expect(errors).toEqual([]);
 });

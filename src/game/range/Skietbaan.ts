@@ -40,6 +40,7 @@ import {
   courseOf,
   type MarkClass,
 } from './rangeMarks';
+import { buildInfo, buildLine } from '../ui/buildStamp';
 
 /** Rendering only (review fix): a plate rings, a paper blinks at most once per this (ms). */
 const FEEDBACK_COOLDOWN_MS = 180;
@@ -54,7 +55,7 @@ let visits = 0;
 
 function where(menu: RangeMenuHost, c: RangeChoice): Parameters<typeof rangeReport>[2] {
   return {
-    build: __BUILD_SHA__,
+    build: buildLine(buildInfo()),
     viewport: `${String(window.innerWidth)}×${String(window.innerHeight)} @${String(
       Math.round(window.devicePixelRatio * 100) / 100,
     )}x`,
@@ -62,6 +63,12 @@ function where(menu: RangeMenuHost, c: RangeChoice): Parameters<typeof rangeRepo
     biome: c.biome,
     layout: layoutForDay(menu.today()),
   };
+}
+
+/** D-042 (14): the build line on the setup page and the bar (none with ?stamp=0, as the stamp). */
+function panelBuild(): string | null {
+  const masked = new URLSearchParams(window.location.search).get('stamp') === '0';
+  return masked ? null : buildLine(buildInfo());
 }
 
 function selection(menu: RangeMenuHost, c: RangeChoice): RangeSelection {
@@ -126,6 +133,8 @@ export function openSkietbaan(menu: RangeMenuHost): void {
       stats.reset();
     },
     report: () => rangeReport(content, stats.list(), where(menu, choice ?? c)),
+    build: panelBuild(),
+    freshLoad: menu.freshLoad,
   });
 }
 
@@ -239,6 +248,8 @@ class Session implements RangeSession {
           }
         : {}),
       report: () => rangeReport(content, stats.list(), where(this.menu, this.choice)),
+      build: panelBuild(),
+      freshLoad: this.menu.freshLoad,
     });
     if (this.menu.hook) {
       this.menu.hook.scene = 'range';

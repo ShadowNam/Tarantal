@@ -2130,6 +2130,113 @@ the toggle with English text shows the Afrikaans gun names. Previews:
 deliver final voice packs" — a delivered WAV replaces the interim line per key); German and Dutch
 names want a native review (as D-026).
 
+**D-042 v1.6 veld art pass: trees, shrubs, fruit and distant animals on every map (25 Oct
+2026):** the product owner (24 Oct): better graphics for the terrain on all maps (trees, bushes,
+grass, fruit), with the v1.4 camelthorn and family nest (D-039) as the bar; and (24 Oct, ~22:35
+Namibia time) after testing the Skietbaan: the far animals "look like rough shapes, not animals"
+(the giraffes). Still interim art (D-031) in the D-035 style, replaceable key by key. Rendering
+only: no sim, content-rule or replay change (content hash and golden replays unchanged).
+(1) *One plant kit* (`tools/art/flora.ts`): the camelthorn's limb and clump drawing (its helpers
+exported from `camelthorn.ts`, its own output unchanged) grown into a tree engine with crown
+shapes (umbrella, round, oval, spread, vase, irregular), leaf styles (feathery, leafy, butterfly)
+and bark styles (furrowed, smooth with folds, flaky plates), plus pods, pompoms, thorns, round and
+hanging fruit, layered veld shrubs (renosterbos, ganna, mopane scrub, driedoring) and seed-head
+grass tufts. Far trees are a few ragged clumps with a lit cap and plain limbs (no dabs: they
+cost bytes and can't be seen). Species in `tools/art/species.ts`; layer and prop contexts get
+`tint()` (the plane's aerial haze for any colour).
+(2) *Per biome* (bible §4.2, each species checked against "Biome-accurate flora/fauna"):
+**Karoo** sweet thorns (pompoms, sickle pods, white thorns) on the mid plane and in far stands
+instead of the lollipop trees, renosterbos/ganna mounds, golden seed-head tufts. **Bushveld** the
+kremetart prop redrawn at 2× (pods on stalks; the secret pod and the perch kept), a marula with
+fallen yellow fruit and winter mopane (olive and copper butterfly leaves) on the mid plane, far
+mopane/marula/baobabs, mopane scrub, pale seed-head grass. **Okavango** the sausage-tree prop
+redrawn (a bare branch at the content perch), jackalberries and ilala palms on the mid plane and
+the far islands, finer papyrus, feathery reeds, pointed water lilies. **Kalahari** (the v1.4
+camelthorns and nest kept) grey pods in the shade, shepherd's trees, Bushman grass with silvery
+plumes, driedoring. **Namibië** quiver trees in yellow winter flower (props, and new ones on the
+mid and far planes outside the waterhole sightline), !nara hummocks with melons on the dune edge.
+To fit the mid-plane trees the interim mid layers start higher (docs/06 §4).
+(3) *Distant animals* (`tools/art/fauna.ts`): one quadruped rig (sloping back, haunches, jointed
+legs, neck and head by pose) with species proportions and markings (giraffe, springbok, gemsbok,
+elephant, zebra, blue wildebeest, red lechwe) and the ostrich, in three poses (grazing, walking,
+head up), a lit back, shaded belly and far legs, a soft ground shadow, no ink. They replace the
+Bushveld giraffes, the Kalahari crest gemsbok and the Namibië waterhole drinkers, and new herds
+stand on every far veld. They are drawn at their plane's size into the layer (no sprite scaling);
+the scope still magnifies the layer texture as before.
+(4) *Budgets* (`npm run size -- --strict`, gzip): first download **3 046.2 KB** (2.97 MB; was
+3 014.1 KB; limit 3 MB = 3 072 KB); Poki 3 042.0 KB, CrazyGames 3 042.1 KB. Lazy biome chunks
+(limit 1.5 MB = 1 536 KB): Bushveld 1 517.3 KB, Okavango 1 532.7 KB (was 1 516.5), Kalahari
+1 483.9 KB (was 1 498.6), Namibië 1 427.4 KB (was 1 442.6). Paid for by smaller palettes on the
+busy interim layers and big props (96–128 colours, `LayerPlan.colours` / `PropPlan.colours`,
+`encodePng8(img, colours)`) and a 256-colour Okavango sky (no visible banding; was full colour,
+D-031). Low-tier texture memory grows by the taller mid layers (about +3 to +4.5 MB a biome) and
+the 2× baobab (about +5 MB in the Bushveld): measured by memory.spec / the v1.6 preview run (CI and
+the supervisor), budget 128 MB.
+- **Why smaller palettes and not fewer trees:** the brief says not to drop near-plane detail
+  first; flat inked art loses almost nothing at 96–128 colours (checked on close-ups), and it
+  frees ~8 % of each layer.
+(5) *Previews:* `tests/e2e/art-preview-v16.spec.ts` (ART_PREVIEW=1, V16_VARIANT=before|after):
+per biome the centre view, the main tree close up, the far plane at 2× and the far animals through
+the Langloop's scope in the Skietbaan, on desktop, Pixel 7 and iPhone 14 landscape →
+`docs/art-preview/compare/v16-veld-*.png`. visual.spec screens change on purpose (all seven show
+the Karoo): title, settings-sound, settings-access, privacy, hunt, tally, padstal.
+(6) *Names:* no new player-facing names (no new Bird Book entries). i18n: seven new UI keys in
+each language for the art gate and the build stamp (`ui.loading_area`, `ui.art_failed`,
+`ui.retry`, `ui.update_ready`, `ui.update_reload`, `stamp.art_ok`, `stamp.art_missing`; items 7
+and 11), and `ui.update_dismiss` (item 13).
+*Review round (25 Oct: the product owner's live test, the supervisor's look notes).* Rendering
+only for the art; no sim, content-rule or replay change.
+(7) *Placeholder art on the live build* (Kalahari Skietbaan, Brave; a hard reload fixed it).
+Causes: the worker served the asset index cache-first, so after a deploy a running page held an
+index whose lazy files the host no longer had; a slow index fetch left the whole session on
+placeholders; failed files fell back silently. Fix: a bounded index retry, a per-biome art gate
+(`missingFinal`, `ensureArt()` with `feel.assets.artRetries` retries, the index fetched again
+each time), a veil with the area's name and then a Retry/Back message (a DOM panel at boot);
+placeholders only with `?art=placeholder` on dev and test builds; index and HTML network first
+in the worker, failed answers never cached, a Reload bar when a new deploy takes over; failed
+files named in the console and the test hook; the debug overlay's art line. Nothing in the load
+path reads pixels back or calls a third party (Brave Shields). Tech §10.
+(8) *The scope's pale ring* was the procedural placeholder sight (a pale lens edge): the sight
+pictures come with the late Ver group, and a placeholder drawn by the title's manifest was never
+swapped. Rifle hunts and the Skietbaan now wait for the late group, and `upgrade()` replaces a
+drawn sight placeholder whichever manifest drew it. The scope looks like main's (same file).
+(9) *Windpomp* (bible §4.2 review round): the wheel always shows (20 sails, one every 18°, so the
+secret's marks at 0°/90°/180°/270° each sit on a sail; redrawn from the owner's reference photos:
+free sail tips, no outer rim, two rings across the sails, weathered and rusty, 6 sails lost in no
+pattern, 1 bent, 1 torn, never a marked one), the tower at 2×, the head turns into the omen wind and the wheel
+spins on sim time (`windpompMotion.ts`, unit-tested); the live secret keeps the sim's rotor
+exactly. The Kalahari sign stands by a smaller windpomp; far windpomps have a bladed wheel.
+(10) *Dassie and rocks, giraffes, far animals, dead tree, far trees, clouds*: bible §4.2 review
+round. The far animals became 3× sprites (crisp in the scope, solid, haze as tint, never alpha);
+the Bushveld granite palette went grey-ochre.
+(11) *Build stamp*: `v1.6.0 · <sha> · <UTC time> · <area> · <day> · art ok` on the title, hunts and
+the Skietbaan (web; bottom edge between the items row and the belt), in Settings and the pause
+menu (every build), the admin page, the reports and the boot console; i18n for the area, day and
+art status; unit and e2e tests; visual baselines use `?stamp=0`. The version is 1.6.0.
+(12) *Budgets after the round* (`npm run size -- --strict`, gzip): first download **3 032.1 KB**
+(2.96 MB of 3 MB); Poki 3 027.7 KB, CrazyGames 3 027.8 KB. Biome chunks: Bushveld 1 490.0,
+Okavango 1 509.5, Kalahari 1 438.8, Namibië 1 373.5 KB (limit 1 536); Ver 537.8 KB. Paid for by
+the gradient-only skies (the clouds are 5 KB sprites; every sky is a 256-colour palette) and
+smaller palettes on busy layers. Low-tier texture memory, estimated from the texture sizes
+(measured on CI by memory.spec): Karoo ≈ 98, Bushveld ≈ 113, Okavango ≈ 118, Kalahari ≈ 110 MB
+(budget 128).
+- **Why the far animals are sprites and not a sharper far layer:** a 3× far-veld layer would be
+  9× its texture memory; the herds are a few small boxes.
+(13) *PR #70 review fixes:* scoped hunts and the Skietbaan check and retry the Ver-group files
+they need (`missingLate`, `neededLateMissing()`, `ensureArt()`), then Retry/Back; the Reload bar
+shows only when the new worker serves another build, sits bottom centre with a ×, never in capture
+mode; production builds treat an absent asset index as a failure (only dev/test builds and
+`?art=placeholder` run without one). Tech §10.
+(14) *Skietbaan "Fresh load" button (dev builds)* (product owner, 25 Oct: force a fresh map load
+after a deploy without a manual hard refresh): on the setup page's header and the range bar (behind
+More on phones), `PlatformAdapter.hardRefresh()` unregisters the game's service worker (its scope
+only: Pages shares one origin), deletes the `tm-*` caches and reloads with `?fresh=<now>`, every
+other parameter kept (`?admin=1` lands back on the admin page); the save is untouched and a
+failing or hung step still reloads (`src/platform/freshLoad.ts`, unit-tested). Shown where
+`freshLoadShown()`: the web build's admin page (dev server and GitHub Pages; the Skietbaan's own
+gate), never in Poki/CrazyGames builds (no Skietbaan chunk; their `hardRefresh` is a plain
+reload). The setup page and the bar also show the build line. Tech §10.
+
 **D-043 v1.6b Reload power-ups: Blitslaai and Oupa Laai (25 Oct 2026):** the product owner
 (25 Oct): "Another power-up that should exist in the game is an AUTO reload, and a fast reload."
 Two crate power-ups (GDD §10.4), numbers in `content/powerups.json`.

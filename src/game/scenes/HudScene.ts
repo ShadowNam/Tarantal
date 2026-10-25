@@ -36,6 +36,7 @@ import {
   type PopText,
 } from '../ui/popFont';
 import { fontReadiness } from '../ui/fontReady';
+import { cornerStampShown, stampFor, StampLabel } from '../ui/StampLabel';
 import { updateCaptions, type CaptionLine } from '../audio/captions';
 
 export interface HudControls {
@@ -96,6 +97,8 @@ export class HudScene extends Phaser.Scene {
   private reload!: Phaser.GameObjects.Text;
   private banner!: Phaser.GameObjects.Text;
   private pops: Pop[] = [];
+  private buildStamp: StampLabel | null = null;
+  private stampFrames = 0;
   private popPool: PopPool | null = null;
   private beltFlashUntil = 0;
   private lastMul = 1;
@@ -161,6 +164,9 @@ export class HudScene extends Phaser.Scene {
 
   create(): void {
     this.pops = [];
+    // v1.6 (D-042): the build stamp, bottom left beside the gadget (or the belt, left-handed).
+    this.buildStamp = new StampLabel(this, this.ctx, cornerStampShown(this.ctx));
+    this.stampFrames = 0;
     // startBarks() (the hunt) may run before this create() (launch is deferred): keep its flags.
     this.bubble = new BarkBubble(this, this.ctx.feel.barks.fontPx);
     this.popPool = new PopPool(this);
@@ -533,6 +539,7 @@ export class HudScene extends Phaser.Scene {
       this.ctx.prefs.leftHanded,
     );
     this.layoutNow = l;
+    this.placeStamp();
     this.season?.relayout(l, width, height);
     const hook = this.ctx.hook;
     if (hook) {
@@ -607,7 +614,32 @@ export class HudScene extends Phaser.Scene {
     this.hideScoring();
   };
 
+  /**
+   * v1.6 (D-042): the stamp on the bottom edge, centred in the gap between the gadget's items
+   * row and the belt (mirrored when left-handed): never over the belt, the reload hint, the
+   * gadget or the items, on desktop and on phones.
+   */
+  private placeStamp(): void {
+    const l = this.layoutNow;
+    if (this.buildStamp === null || l === null) return;
+    const ends = l.items
+      .flatMap((r) => [r.x, r.x + r.w])
+      .concat([l.gadget.x, l.gadget.x + l.gadget.w]);
+    const left = this.ctx.prefs.leftHanded ? l.belt.x + l.belt.w : Math.max(...ends);
+    const right = this.ctx.prefs.leftHanded ? Math.min(...ends) : l.belt.x;
+    const gap = Math.max(200, right - left - 48);
+    const biome = this.ctx.huntBiome;
+    this.buildStamp.place(
+      (left + right) / 2,
+      l.safe.y + l.safe.h - 6,
+      stampFor(this.ctx, biome, this.ctx.manifestFor(biome)),
+      gap,
+    );
+  }
+
   render(s: SimState, events: readonly SimEvent[]): void {
+    // The art status can change while the late group loads: refresh the stamp now and then.
+    if (++this.stampFrames % 120 === 0) this.placeStamp();
     this.lastState = s;
     const l = this.layoutNow;
     if (l === null) return;

@@ -11,6 +11,16 @@ import { planeCentreX } from '../../sim/camera';
 import type { PlaneId } from '../../sim/types';
 import { coreWidth, DESIGN_HEIGHT, LAYER_BLEED_PX } from '../../sim/world';
 import { TEX, type AssetManifest } from '../assets/AssetManifest';
+import { FAUNA_SPRITES } from './faunaSprites';
+import {
+  CLOUD_DECKS,
+  CLOUD_SPRITE_SCALE,
+  CLOUD_TEX,
+  driftX,
+  gloomTint,
+  layoutDeck,
+  type CloudPlace,
+} from './clouds';
 import {
   coverOver,
   intersect,
@@ -83,6 +93,12 @@ export class ParallaxView {
   measureFill = false;
   /** Screens' worth of world-layer pixels drawn in the last update (art, haze, clouds). */
   fill = 0;
+
+  /** v1.6 (D-042): drifting clouds on the sky layer (clouds.ts), and how grey the weather is. */
+  private readonly clouds: { img: Phaser.GameObjects.Image; place: CloudPlace }[] = [];
+  private cloudSpan = { left: 0, span: 1 };
+  private gloom = 0;
+  private lastCloudTick: number | null = null;
 
   constructor(
     scene: Phaser.Scene,
@@ -189,6 +205,17 @@ export class ParallaxView {
             .setDisplaySize(w, h),
         );
       }
+      // v1.6 (D-042): far animals, drawn at 3× and shown at 1/3 (crisp through a scope).
+      for (const f of FAUNA_SPRITES[biome.id] ?? []) {
+        if (f.layer !== layer.id || !manifest.has(f.key)) continue;
+        const o = manifest.origin(f.key);
+        add(
+          scene.add
+            .image(f.u * coreWidth(layer.scrollFactor), f.y, f.key)
+            .setOrigin(o.x, o.y)
+            .setScale(manifest.displayScale(f.key)),
+        );
+      }
       for (const prop of biome.props) {
         if (prop.layer !== layer.id || !manifest.has(prop.asset)) continue;
         const o = manifest.origin(prop.asset);
@@ -222,6 +249,46 @@ export class ParallaxView {
       if (plane !== null) this.byPlane.set(plane, node);
     }
     this.layers = nodes;
+    // v1.6 (D-042): the biome's fair-weather cloud deck on the sky layer.
+    const sky = nodes.find((n) => n.id === 'sky');
+    if (sky !== undefined) {
+      const left = -LAYER_BLEED_PX;
+      const span = coreWidth(sky.scrollFactor) + LAYER_BLEED_PX * 2;
+      this.cloudSpan = { left, span };
+      let seed = 7;
+      for (let k = 0; k < biome.id.length; k++) seed = (seed * 31 + biome.id.charCodeAt(k)) % 99991;
+      for (const c of layoutDeck(CLOUD_DECKS[biome.id] ?? [], left, span, seed))
+        this.addCloud(sky, c);
+    }
+  }
+
+  private addCloud(sky: LayerNode, place: CloudPlace): void {
+    const key = CLOUD_TEX[place.kind];
+    const img = sky.root.scene.add.image(place.x, place.y, key).setOrigin(0.5, 0.75);
+    const k = place.w / Math.max(1, img.width * CLOUD_SPRITE_SCALE);
+    img
+      .setScale(k * CLOUD_SPRITE_SCALE)
+      .setTint(Number.parseInt(place.tint.slice(1), 16))
+      .setAlpha(place.alpha);
+    sky.root.addAt(img, sky.root.getIndex(sky.fixtures));
+    this.clouds.push({ img, place });
+  }
+
+  /**
+   * v1.6 (D-042): moves the clouds to sim time `tick` (a held frame holds still) and greys them
+   * toward the rain colour while `weather` is on (rain or a storm), easing over a few seconds.
+   */
+  driftClouds(tick: number, weather: boolean): void {
+    const dt = this.lastCloudTick === null ? 0 : Math.max(0, tick - this.lastCloudTick) / 60;
+    this.lastCloudTick = tick;
+    const target = weather ? 1 : 0;
+    const before = this.gloom;
+    this.gloom = target + (this.gloom - target) * Math.exp(-0.6 * dt);
+    const seconds = tick / 60;
+    for (const c of this.clouds) {
+      c.img.x = driftX(c.place.x, c.place.speed, seconds, this.cloudSpan.left, this.cloudSpan.span);
+      if (Math.abs(this.gloom - before) > 1e-4) c.img.setTint(gloomTint(c.place.tint, this.gloom));
+    }
   }
 
   plane(p: PlaneId): LayerNode {
@@ -422,38 +489,21 @@ export class ParallaxView {
           });
         }
         // Clouds sit on the sky layer, spread evenly along it with a fixed jitter (the same
-        // sky every time this light is drawn).
+        // sky every time this light is drawn). v1.6 (D-042): soft cloud sprites, drifting, in
+        // the light's colour (heavy grey decks use the wide cumulus).
         if (l.id !== 'sky') continue;
         for (const c of light.clouds ?? []) {
-          const color = parseInt(c.color.slice(1), 16);
           for (let k = 0; k < c.count; k++) {
             const j = (n: number): number => hash01(k * 7 + n + c.count * 131);
-            const w = c.w[0] + (c.w[1] - c.w[0]) * j(1);
-            const cx = -LAYER_BLEED_PX + ((k + 0.25 + 0.5 * j(2)) / c.count) * width;
-            const cy = c.y[0] + (c.y[1] - c.y[0]) * j(3);
-            const h = w * 0.28;
-            // A cluster: a wide flat base and three puffs on top.
-            const puffs: [number, number, number, number][] = [
-              [0, 0, w, h],
-              [-w * 0.22, -h * 0.35, w * 0.45, h * 1.1],
-              [w * 0.08, -h * 0.55, w * 0.5, h * 1.3],
-              [w * 0.3, -h * 0.25, w * 0.38, h * 0.9],
-            ];
-            for (const [ox, oy, ew, eh] of puffs) {
-              const e = l.root.scene.add.ellipse(cx + ox, cy + oy, ew, eh, color, c.alpha);
-              l.root.addAt(e, l.root.getIndex(l.fixtures));
-              this.shapes[i]?.push({
-                shape: e,
-                rect: {
-                  x0: cx + ox - ew / 2,
-                  y0: cy + oy - eh / 2,
-                  x1: cx + ox + ew / 2,
-                  y1: cy + oy + eh / 2,
-                },
-                crop: false,
-                changed: false,
-              });
-            }
+            this.addCloud(l, {
+              kind: c.alpha >= 0.9 && c.color !== '#FFFFFF' ? 'wide' : 'cumulus',
+              x: -LAYER_BLEED_PX + ((k + 0.25 + 0.5 * j(1)) / c.count) * width,
+              y: c.y[0] + (c.y[1] - c.y[0]) * j(3),
+              w: c.w[0] + (c.w[1] - c.w[0]) * j(2),
+              speed: 4 + 3 * j(4),
+              tint: c.color,
+              alpha: c.alpha,
+            });
           }
         }
       }

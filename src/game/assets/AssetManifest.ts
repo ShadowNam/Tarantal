@@ -91,6 +91,40 @@ export interface FinalLoadOptions {
 
 export type BirdFrame = 'up' | 'down' | 'stand';
 
+/** v1.6 (D-042): a delivered key whose file failed, with the group it was delivered in. */
+export interface MissingFile {
+  readonly key: string;
+  readonly path: string;
+  readonly group: string;
+}
+
+/** v1.6 (D-042): what a hunt needs of the background-loaded Ver group (all of it waits otherwise). */
+export interface LateNeed {
+  /** A rifle's sight pictures (`sight/*`): a scoped hunt or the Skietbaan. */
+  readonly sight: boolean;
+  /** The map opens the Ver plane: its strip (and Ver-only props). */
+  readonly ver: boolean;
+  /** The hunt's weapon: its gun rig when it is delivered with the Ver group (the rifles). */
+  readonly weapon?: string;
+}
+
+/**
+ * v1.6 (D-042): the Ver-group files a hunt needs that failed to load. The late group (rare
+ * variants, other guns) keeps its placeholders as before: nothing here starts on them.
+ */
+export function neededLateMissing(
+  missing: readonly MissingFile[],
+  need: LateNeed,
+): readonly MissingFile[] {
+  return missing.filter((m) => {
+    if (m.group !== VER_GROUP) return false;
+    if (m.key.startsWith('sight/')) return need.sight;
+    const gun = /^gun\/(.+)$/.exec(m.key);
+    if (gun !== null) return gun[1] === need.weapon;
+    return need.ver;
+  });
+}
+
 export const MAX_TILE_WIDTH = 2048;
 
 export class AssetManifest {
@@ -124,6 +158,10 @@ export class AssetManifest {
   private soundsLoaded: Promise<void> = Promise.resolve();
   /** D-029: the late group's downloads (resolves when they have all settled). */
   lateLoaded: Promise<void> = Promise.resolve();
+  /** v1.6 (D-042): true once the last loadFinal's late group (incl. the Ver group) has settled. */
+  lateDone = true;
+  /** v1.6 (D-042): texture keys install() drew as placeholders (upgrade() can swap them). */
+  private readonly drawn = new Set<string>();
 
   addTexture(spec: CanvasSpec): void {
     this.specs.set(spec.key, spec);
@@ -217,6 +255,19 @@ export class AssetManifest {
     return region === null || img === undefined ? null : { img, region };
   }
 
+  /**
+   * v1.6 (D-042): delivered keys whose files failed in the last loadFinal (the late group not
+   * counted). A hunt never starts while this is not empty (main.ts retries, then asks).
+   */
+  missingFinal: readonly { key: string; path: string }[] = [];
+
+  /**
+   * v1.6 (D-042): delivered late and Ver-group keys whose files failed in the last loadFinal,
+   * known once `lateLoaded` has settled (empty before). HuntScene asks neededLateMissing() which
+   * of them a scoped hunt or the Skietbaan needs; main.ts retries those, then asks.
+   */
+  missingLate: readonly MissingFile[] = [];
+
   private mark(key: string, origin: AssetOrigin | undefined): void {
     if (origin === 'interim') this.interimKeys.add(key);
   }
@@ -249,7 +300,16 @@ export class AssetManifest {
     const jobs: Promise<void>[] = [];
     // D-029: the late group downloads after everything else (it isn't needed to start a hunt).
     const late: (() => Promise<void>)[] = [];
-    const queue = (group: string, job: () => Promise<void>): void => {
+    // v1.6 (D-042): what this load must deliver before a hunt may start (not the late group),
+    // checked once the jobs are done; a failure is a key with the file that failed.
+    const expect: { key: string; path: string; done: () => boolean }[] = [];
+    // v1.6 (D-042): the same for the late and Ver groups, checked once they have settled.
+    const expectLate: { key: string; path: string; group: string; done: () => boolean }[] = [];
+    const queue = (
+      group: string,
+      job: () => Promise<void>,
+      need?: { key: string; path: string; done: () => boolean },
+    ): void => {
       // A key every biome has can still be delivered for one biome only (rig.json group): only
       // that biome's manifest loads it.
       if (
@@ -261,43 +321,58 @@ export class AssetManifest {
       )
         return;
       // v1.3: the Ver strips aren't needed to start a hunt either (only bonus maps show them).
-      if (group === LATE_GROUP || group === VER_GROUP) late.push(job);
-      else jobs.push(job());
+      if (group === LATE_GROUP || group === VER_GROUP) {
+        late.push(job);
+        if (need !== undefined) expectLate.push({ ...need, group });
+      } else {
+        jobs.push(job());
+        if (need !== undefined) expect.push(need);
+      }
     };
     for (const [key, entry] of Object.entries(index.images)) {
       if (!this.specs.has(key) || this.layerOfTile.has(key)) continue;
-      queue(entry.group, () =>
-        loadImage(entry.file.path, o.timeoutMs).then((img) => {
-          if (img === null) return;
-          this.finalImages.set(key, { img, entry });
-          this.mark(key, entry.origin);
-        }),
+      queue(
+        entry.group,
+        () =>
+          loadImage(entry.file.path, o.timeoutMs).then((img) => {
+            if (img === null) return;
+            this.finalImages.set(key, { img, entry });
+            this.mark(key, entry.origin);
+          }),
+        { key, path: entry.file.path, done: () => this.finalImages.has(key) },
       );
     }
     for (const [id, entry] of Object.entries(index.layers)) {
       if (!this.layerArt.has(id)) continue;
-      queue(entry.group, () =>
-        Promise.all(entry.tiles.map((t) => loadImage(t.path, o.timeoutMs))).then((imgs) => {
-          // A layer is all or nothing: half a delivered panorama would show a seam.
-          if (imgs.some((i) => i === null)) return;
-          const tiles = imgs.map((img, i) => ({
-            key: `final:layer/${id}/${i}`,
-            // Safe: the line above returned if any image is null.
-            img: img as HTMLImageElement,
-          }));
-          this.mark(id, entry.origin);
-          this.finalLayers.set(id, {
-            tiles,
-            art: {
-              tiles: tiles.map((t) => t.key),
-              tileWidth: entry.tileWidth,
-              left: entry.left,
-              top: entry.top,
-              scale: 1,
-              ...(entry.solid === undefined ? {} : { solid: entry.solid }),
-            },
-          });
-        }),
+      queue(
+        entry.group,
+        () =>
+          Promise.all(entry.tiles.map((t) => loadImage(t.path, o.timeoutMs))).then((imgs) => {
+            // A layer is all or nothing: half a delivered panorama would show a seam.
+            if (imgs.some((i) => i === null)) return;
+            const tiles = imgs.map((img, i) => ({
+              key: `final:layer/${id}/${i}`,
+              // Safe: the line above returned if any image is null.
+              img: img as HTMLImageElement,
+            }));
+            this.mark(id, entry.origin);
+            this.finalLayers.set(id, {
+              tiles,
+              art: {
+                tiles: tiles.map((t) => t.key),
+                tileWidth: entry.tileWidth,
+                left: entry.left,
+                top: entry.top,
+                scale: 1,
+                ...(entry.solid === undefined ? {} : { solid: entry.solid }),
+              },
+            });
+          }),
+        {
+          key: id,
+          path: entry.tiles.map((t) => t.path).join(', '),
+          done: () => this.finalLayers.has(id),
+        },
       );
     }
     for (const [creature, planes] of Object.entries(index.birds)) {
@@ -306,7 +381,56 @@ export class AssetManifest {
         if (!this.specs.has(birdKey(creature, plane, 'stand'))) continue;
         const use2x = o.atlasScale === 2 && entry.x2 !== undefined;
         const atlas = use2x && entry.x2 !== undefined ? entry.x2 : entry.x1;
-        queue(entry.group, () =>
+        queue(
+          entry.group,
+          () =>
+            Promise.all(
+              atlas.pages.map((pg) =>
+                Promise.all([
+                  loadImage(pg.image.path, o.timeoutMs),
+                  loadJson(pg.data.path, o.timeoutMs),
+                ]),
+              ),
+            ).then((pages) => {
+              const imgs: HTMLImageElement[] = [];
+              const data: object[] = [];
+              for (const [img, d] of pages) {
+                // All pages or none: a missing page would leave clips without frames.
+                if (img === null || typeof d !== 'object' || d === null) return;
+                imgs.push(img);
+                data.push(d);
+              }
+              // Every clip's frames must exist in the pages (Phaser throws on a short clip).
+              const check = checkBirdAtlas(entry.clips, data);
+              if (check.dropped.length > 0)
+                console.warn(
+                  `[assets] ${creature} ${plane}: clips with missing frames dropped: ${check.dropped.join(', ')}`,
+                );
+              if (check.clips === null) return;
+              this.mark(`bird/${creature}/${plane}`, entry.origin);
+              this.finalBirds.set(`${creature}/${plane}`, {
+                atlasKey: `final:bird/${creature}/${plane}@${use2x ? 2 : 1}x`,
+                entry: { ...entry, clips: check.clips },
+                scale: use2x ? entry.scale / 2 : entry.scale,
+                img: imgs,
+                data,
+              });
+            }),
+          {
+            key: `bird/${creature}/${plane}`,
+            path: atlas.pages.map((pg) => pg.image.path).join(', '),
+            done: () => this.finalBirds.has(`${creature}/${plane}`),
+          },
+        );
+      }
+    }
+    for (const [id, entry] of Object.entries(index.guns)) {
+      if (!this.specs.has(gunKey(id))) continue;
+      const use2x = o.atlasScale === 2 && entry.x2 !== undefined;
+      const atlas = use2x && entry.x2 !== undefined ? entry.x2 : entry.x1;
+      queue(
+        entry.group,
+        () =>
           Promise.all(
             atlas.pages.map((pg) =>
               Promise.all([
@@ -318,66 +442,31 @@ export class AssetManifest {
             const imgs: HTMLImageElement[] = [];
             const data: object[] = [];
             for (const [img, d] of pages) {
-              // All pages or none: a missing page would leave clips without frames.
               if (img === null || typeof d !== 'object' || d === null) return;
               imgs.push(img);
               data.push(d);
             }
-            // Every clip's frames must exist in the pages (Phaser throws on a short clip).
-            const check = checkBirdAtlas(entry.clips, data);
+            const check = checkAtlas(entry.clips, data);
+            // Without its idle frame the gun can't stand still: keep the placeholder.
+            if (check.clips?.idle === undefined) return;
             if (check.dropped.length > 0)
               console.warn(
-                `[assets] ${creature} ${plane}: clips with missing frames dropped: ${check.dropped.join(', ')}`,
+                `[assets] gun ${id}: clips with missing frames dropped: ${check.dropped.join(', ')}`,
               );
-            if (check.clips === null) return;
-            this.mark(`bird/${creature}/${plane}`, entry.origin);
-            this.finalBirds.set(`${creature}/${plane}`, {
-              atlasKey: `final:bird/${creature}/${plane}@${use2x ? 2 : 1}x`,
+            if (entry.origin === 'interim') this.interimGuns.add(id);
+            this.finalGuns.set(id, {
+              atlasKey: `final:gun/${id}@${use2x ? 2 : 1}x`,
               entry: { ...entry, clips: check.clips },
-              scale: use2x ? entry.scale / 2 : entry.scale,
+              scale: use2x ? 0.5 : 1,
               img: imgs,
               data,
             });
           }),
-        );
-      }
-    }
-    for (const [id, entry] of Object.entries(index.guns)) {
-      if (!this.specs.has(gunKey(id))) continue;
-      const use2x = o.atlasScale === 2 && entry.x2 !== undefined;
-      const atlas = use2x && entry.x2 !== undefined ? entry.x2 : entry.x1;
-      queue(entry.group, () =>
-        Promise.all(
-          atlas.pages.map((pg) =>
-            Promise.all([
-              loadImage(pg.image.path, o.timeoutMs),
-              loadJson(pg.data.path, o.timeoutMs),
-            ]),
-          ),
-        ).then((pages) => {
-          const imgs: HTMLImageElement[] = [];
-          const data: object[] = [];
-          for (const [img, d] of pages) {
-            if (img === null || typeof d !== 'object' || d === null) return;
-            imgs.push(img);
-            data.push(d);
-          }
-          const check = checkAtlas(entry.clips, data);
-          // Without its idle frame the gun can't stand still: keep the placeholder.
-          if (check.clips?.idle === undefined) return;
-          if (check.dropped.length > 0)
-            console.warn(
-              `[assets] gun ${id}: clips with missing frames dropped: ${check.dropped.join(', ')}`,
-            );
-          if (entry.origin === 'interim') this.interimGuns.add(id);
-          this.finalGuns.set(id, {
-            atlasKey: `final:gun/${id}@${use2x ? 2 : 1}x`,
-            entry: { ...entry, clips: check.clips },
-            scale: use2x ? 0.5 : 1,
-            img: imgs,
-            data,
-          });
-        }),
+        {
+          key: gunKey(id),
+          path: atlas.pages.map((pg) => pg.image.path).join(', '),
+          done: () => this.finalGuns.has(id),
+        },
       );
     }
     // Sounds load beside the game, not before it: nothing plays before the first tap, so boot
@@ -399,7 +488,17 @@ export class AssetManifest {
     }
     this.soundsLoaded = Promise.all(sounds).then(() => undefined);
     await Promise.all(jobs);
-    this.lateLoaded = Promise.all(late.map((job) => job())).then(() => undefined);
+    this.missingFinal = expect.filter((e) => !e.done()).map((e) => ({ key: e.key, path: e.path }));
+    for (const m of this.missingFinal)
+      console.warn(`[assets] ${m.key}: delivered file failed to load (${m.path})`);
+    this.lateDone = false;
+    this.missingLate = [];
+    this.lateLoaded = Promise.all(late.map((job) => job())).then(() => {
+      this.missingLate = expectLate
+        .filter((e) => !e.done())
+        .map((e) => ({ key: e.key, path: e.path, group: e.group }));
+      this.lateDone = true;
+    });
   }
 
   /**
@@ -486,8 +585,30 @@ export class AssetManifest {
       if (ctx === null) throw new Error('2D canvas unavailable');
       spec.draw(ctx);
       textures.addCanvas(spec.key, canvas);
+      this.drawn.add(spec.key);
     }
     return complete;
+  }
+
+  /**
+   * v1.6 (D-042): swaps placeholders drawn earlier (by any manifest) for delivered images that
+   * arrived since (keys starting with `prefix`). Only for art whose views are rebuilt afterwards (the sight pictures:
+   * HuntScene rebuilds them at every hunt start). Returns the swapped keys.
+   */
+  upgrade(textures: Phaser.Textures.TextureManager, prefix: string): string[] {
+    const out: string[] = [];
+    for (const [key, { img }] of this.finalImages) {
+      if (!key.startsWith(prefix) || !textures.exists(key)) continue;
+      // A placeholder may have been drawn by another biome's manifest (the title's): it is a
+      // canvas texture, delivered art an image.
+      const src = textures.get(key).getSourceImage();
+      if (!this.drawn.has(key) && !(src instanceof HTMLCanvasElement)) continue;
+      textures.remove(key);
+      textures.addImage(key, img);
+      this.drawn.delete(key);
+      out.push(key);
+    }
+    return out;
   }
 
   /** Every texture key this manifest puts in the texture manager (placeholders, final files). */
@@ -621,6 +742,13 @@ export const TEX = {
   gun: 'gun/dubbelloop',
   // M4: secrets, crates, omen, boss, helpers, crate weapons.
   rotor: 'secret/rotor',
+  /** v1.6 (D-042): the windpomp's turning head (gearbox, tail boom, vane); WindpompView. */
+  windpompVane: 'fx/windpomp_vane',
+  /** v1.6 (D-042): soft cloud sprites (shown at 2×, tinted per biome; src/game/view/clouds.ts). */
+  cloudCumulus: 'sky/cloud_cumulus',
+  cloudWide: 'sky/cloud_wide',
+  cloudCirrus: 'sky/cloud_cirrus',
+  cloudTower: 'sky/cloud_tower',
   mark: 'secret/mark',
   markHit: 'secret/mark_hit',
   glint: 'fx/glint',

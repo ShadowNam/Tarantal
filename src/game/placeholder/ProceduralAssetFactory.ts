@@ -24,6 +24,7 @@ import { omenSpecs } from './omenArt';
 import { verBand, type Band, type BiomeArt } from './biomeArt';
 import { sightSpecs } from './sightArt';
 import { ellipse, ground, inked, INK, prng, tuft } from './draw';
+import { FAUNA_FOOT, FAUNA_SPRITES } from '../view/faunaSprites';
 
 const KAROO = {
   skyTop: '#8DB8D8',
@@ -1066,6 +1067,57 @@ function m4Specs(): CanvasSpec[] {
       ellipse(ctx, 0, 0, 14, 14);
       inked(ctx, KAROO.rust, 4);
     }),
+    // v1.6 (D-042): the windpomp head: gearbox, tail boom and vane, trailing left of the pivot.
+    {
+      key: TEX.windpompVane,
+      width: 320,
+      height: 140,
+      originX: 290,
+      originY: 70,
+      draw(ctx) {
+        ctx.translate(290, 70);
+        ctx.beginPath();
+        ctx.moveTo(-6, -3);
+        ctx.lineTo(-206, 7);
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = KAROO.metalDark;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(-262, -40);
+        ctx.lineTo(-196, -30);
+        ctx.lineTo(-194, 44);
+        ctx.lineTo(-262, 56);
+        ctx.closePath();
+        inked(ctx, KAROO.metal, 3);
+        ctx.beginPath();
+        ctx.rect(-22, -22, 44, 36);
+        inked(ctx, KAROO.metalDark, 3);
+      },
+    },
+    // v1.6 (D-042): soft clouds (shown at 2×): white lobes with a grey flat base.
+    ...(
+      [
+        [TEX.cloudCumulus, 200, 96],
+        [TEX.cloudWide, 260, 96],
+        [TEX.cloudCirrus, 300, 56],
+        [TEX.cloudTower, 200, 150],
+      ] as const
+    ).map(([key, w, h]) =>
+      centred(key, w, h, (ctx) => {
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        for (const [x, y, r] of [
+          [-w * 0.22, h * 0.1, h * 0.28],
+          [0, -h * 0.05, h * 0.36],
+          [w * 0.22, h * 0.1, h * 0.26],
+        ] as const) {
+          ellipse(ctx, x, y, r * 1.3, r);
+          ctx.fill();
+        }
+        ctx.fillStyle = 'rgba(180,192,204,0.7)';
+        ellipse(ctx, 0, h * 0.3, w * 0.38, h * 0.08);
+        ctx.fill();
+      }),
+    ),
     // A painted red target mark on a shootable secret part; grey cross once hit.
     centred(TEX.mark, 64, 64, (ctx) => {
       ellipse(ctx, 0, 0, 24, 24);
@@ -1438,6 +1490,18 @@ export function createPlaceholderManifest(
     m.addLayer(layer.asset, layerArt, tiles);
   });
   for (const prop of biome.props) m.addTexture(propSpec(prop, art));
+  // v1.6 (D-042): the far animals' sprites (drawn art only: the placeholder is empty).
+  for (const f of FAUNA_SPRITES[biome.id] ?? [])
+    m.addTexture({
+      key: f.key,
+      width: f.w,
+      height: f.h,
+      originX: f.w / 2,
+      originY: f.h - FAUNA_FOOT,
+      draw() {
+        // Nothing: without delivered art there are no far animals.
+      },
+    });
   for (const s of uiSpecs()) m.addTexture(s);
   for (const s of m4Specs()) m.addTexture(s);
   for (const s of arsenalSpecs()) m.addTexture(s);

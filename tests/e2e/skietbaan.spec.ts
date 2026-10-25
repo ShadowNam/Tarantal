@@ -250,6 +250,8 @@ test.describe('Skietbaan (training ground)', () => {
     await expect(page.locator('#tm-range [data-role=biome] [data-value=namibie]')).toHaveCount(1);
     await expect(page.locator('#tm-range [data-role=plane] button')).toHaveCount(5);
     await expect(page.locator('#tm-range [data-role=target] button')).toHaveCount(6);
+    // D-042 (14): the web build offers Fresh load (not pressed: it reloads the page).
+    await expect(page.locator('#tm-range [data-action=fresh-load]')).toHaveCount(1);
     // Shotguns can't reach Ver: it stays selectable, with a note that the shots fall short.
     await press(page, touch, '#tm-range [data-role=gun] [data-value=dubbelloop]');
     const ver = page.locator('#tm-range [data-role=plane] [data-value=ver]');
@@ -273,6 +275,7 @@ test.describe('Skietbaan (training ground)', () => {
     expect(h.weapon).toBe('twee_twee');
     expect(h.range?.plane).toBe('ver');
     await expect(page.locator('#tm-range-bar')).toBeVisible();
+    await expect(page.locator('#tm-range-bar [data-action=fresh-load]')).toHaveCount(1);
 
     // 5 shots through the scope at the Ver paper target (hold: the scope comes up; let go: fire).
     const target = await paper(page);
@@ -284,6 +287,8 @@ test.describe('Skietbaan (training ground)', () => {
         timeout: 60_000,
       });
       if (i === 4) await page.screenshot({ path: `${SHOTS_DIR}/skietbaan-scope-${name}.png` });
+      // v1.6 (D-042): the scope picture is the delivered art, never the drawn placeholder.
+      if (i === 0) expect(await page.evaluate(() => window.__TM__?.sightArt)).toBe('final');
       await letGo(page);
       await page.waitForFunction((n) => (window.__TM__?.shots ?? 0) > n, shots, {
         timeout: 60_000,

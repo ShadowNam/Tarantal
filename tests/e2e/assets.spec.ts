@@ -132,35 +132,68 @@ test('the shipped interim art loads as interim (D-029)', async ({ page }, info) 
   expect(errors).toEqual([]);
 });
 
-test('a broken delivered file falls back for its key only', async ({ page }, info) => {
-  test.skip(!isLandscape(info), 'portrait shows the rotate card');
-  const errors = collectErrors(page);
-  // Every tile of the mid layer fails: the layer is all-or-nothing, the birds still swap.
-  await serveStandins(page, /\/layers\/mid-1\./);
-  await boot(page, 'seed=42');
-  const st = await statuses(page);
-  expect(st['karoo/mid']).toBe('placeholder');
-  expect(st['bird/tarentaal/mid']).toBe('final');
-  await startHunt(page, isTouchProject(info));
-  expect((await hook(page)).missingTextures).toEqual([]);
-  expect(errors.filter((e) => !/404|Failed to load resource/.test(e))).toEqual([]);
-});
-
-test('a corrupt bird atlas falls back to placeholder frames; the hunt plays on', async ({
+// v1.6 (D-042): a delivered file that keeps failing no longer falls back silently: the game says
+// so (naming the file in the console) and offers Retry; it never starts on placeholders.
+test('a delivered file that keeps failing stops the start with a Retry message', async ({
   page,
 }, info) => {
   test.skip(!isLandscape(info), 'portrait shows the rotate card');
-  const errors = collectErrors(page);
-  // The mid-plane atlas data arrives as {} (no frames): every mid clip would have 0 frames.
+  test.setTimeout(180_000);
+  const warnings: string[] = [];
+  page.on('console', (m) => {
+    if (m.type() === 'warning') warnings.push(m.text());
+  });
+  // Every tile request of the mid layer fails (all retries too).
+  let broken = true;
+  await serveStandins(page, null);
+  await page.route(/\/layers\/mid-1\./, (r) =>
+    broken ? r.fulfill({ status: 404, body: '' }) : r.fallback(),
+  );
+  await page.goto('/?e2e=1&seed=42&layout=none&ftue=0');
+  await expect(page.locator('#tm-art-error')).toBeVisible({ timeout: 90_000 });
+  expect(warnings.some((w) => /layers\/mid-1\..*HTTP 404|mid-1\..*failed/.test(w))).toBe(true);
+  expect(await page.evaluate(() => window.__TM__?.ready === true)).toBe(false);
+  // The connection is back: Retry boots the game with the art in.
+  broken = false;
+  await page.locator('#tm-art-error button').click();
+  await page.waitForFunction(() => window.__TM__?.ready === true, null, { timeout: 90_000 });
+  expect((await statuses(page))['karoo/mid']).toBe('final');
+});
+
+test('a corrupt bird atlas stops the start with a Retry message', async ({ page }, info) => {
+  test.skip(!isLandscape(info), 'portrait shows the rotate card');
+  test.setTimeout(180_000);
+  // The mid-plane atlas data arrives as {} (no frames): it can't be used, so it counts as missing.
   await serveStandins(page, null, { match: /tarentaal-mid@1x-0\..*\.json$/, edit: () => ({}) });
-  await boot(page, 'seed=42');
-  const st = await statuses(page);
-  expect(st['bird/tarentaal/mid']).toBe('placeholder');
-  expect(st['bird/tarentaal/far']).toBe('final');
+  await page.goto('/?e2e=1&seed=42&layout=none&ftue=0');
+  await expect(page.locator('#tm-art-error')).toBeVisible({ timeout: 90_000 });
+});
+
+// v1.6 (D-042): a biome pack that fails once (a deploy, a dropped connection) is fetched again;
+// the hunt then starts with every delivered key in: none on its placeholder.
+test('a pack that fails once is retried; the hunt never starts on placeholders', async ({
+  page,
+}, info) => {
+  test.skip(!isLandscape(info), 'portrait shows the rotate card');
+  test.setTimeout(240_000);
+  let failures = 0;
+  await page.route(/kalahari-summer\/layers\/mid-0\./, (r) => {
+    if (failures === 0) {
+      failures++;
+      return r.fulfill({ status: 404, body: '' });
+    }
+    return r.fallback();
+  });
+  await boot(page, 'seed=42&biome=kalahari-summer&huntSeconds=4');
+  // The Kalahari pack is lazy: it is fetched when the hunt starts, not at boot.
   await startHunt(page, isTouchProject(info));
-  await waitTicks(page, 240);
-  expect((await hook(page)).missingTextures).toEqual([]);
-  expect(errors.filter((e) => !/404|Failed to load resource/.test(e))).toEqual([]);
+  expect(failures).toBe(1);
+  const h = await hook(page);
+  const entries = h.assets.byBiome['kalahari-summer'] ?? [];
+  const layers = entries.filter((e) => e.kind === 'layer');
+  expect(layers.length).toBeGreaterThan(4);
+  for (const e of layers) expect(e.status, e.key).not.toBe('placeholder');
+  expect(h.assets.failed.filter((f) => f.path.includes('kalahari'))).toEqual([]);
 });
 
 test('a clip naming a frame the atlas lacks is dropped; its fallback plays', async ({

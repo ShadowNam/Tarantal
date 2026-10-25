@@ -61,5 +61,7 @@
   "range.reach_note_mixed": "Ver is beyond this gun's reach — shots there fall short",
   "range.shuffle": "Shuffle",
   "range.mark_hit": "HIT",
-  "range.mark_short": "SHORT"
+  "range.mark_short": "SHORT",
+  "range.fresh_load": "Fresh load",
+  "range.fresh_load_hint": "Clear the cached game files and reload this map"
 }

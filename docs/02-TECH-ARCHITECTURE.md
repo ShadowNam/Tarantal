@@ -734,6 +734,35 @@ or "Send to GitHub" (a prefilled `issues/new?labels=playtest` link ≤ 7 KB, `sr
   synth, for sounds). Every key reports `final`/`placeholder` (`entries()`, the audit, the test
   hook). Files belong to `common` or to one biome; non-initial groups load with their biome and
   are lazy for the size budget and the service worker.
+- **Art gate (v1.6, D-042):** a hunt or the Skietbaan never starts on placeholders. The index
+  fetch retries (bounded); `AssetManifest.missingFinal` lists delivered keys whose files failed
+  (the late group not counted) and `main.ts ensureArt()` retries a biome `feel.assets.artRetries`
+  times, fetching the index again each time (a deploy changes the hashed names). The home biome
+  gates the title (a DOM message with Retry, `src/game/assets/artGate.ts`); other biomes gate
+  their hunt behind a veil with the area's name, then a Retry/Back message. Rifle hunts and the
+  Skietbaan also wait for the late Ver group: `AssetManifest.missingLate` lists its failed files
+  once it settles, `neededLateMissing()` picks the ones the hunt needs (sight pictures, the map's
+  Ver strip, a rifle's rig), and `ensureArt()` retries those the same way before the Retry/Back
+  message; `upgrade()` swaps a sight placeholder drawn earlier by any manifest. A production
+  build ships its index, so there an absent index (404, HTML soft-404) is a failure like any
+  other; only dev, Vitest and `VITE_TEST_HOOKS=1` (CI e2e) builds run without one
+  (`absentIndexAccepted()`). Placeholders on purpose: `?art=placeholder` (dev and
+  test builds). Every failed file is named in a console warning and in the test hook
+  (`assets.failed`); the debug overlay shows `art: interim · N placeholder`.
+- **Service worker (v1.6):** the asset index and HTML are network first (the cached copy only
+  offline); other files cache first; a failed answer is never cached or replaced. The worker
+  names its build (`<sha>@<build time>`, `src/platform/swUpdate.ts`) when the page asks; a new
+  worker taking over a running page shows a Reload bar (`PlatformAdapter.onUpdateReady`) only
+  when that build differs from the page's. The bar sits bottom centre above the safe area, has a
+  × to dismiss it, and never shows in capture mode. `PlatformAdapter.hardRefresh()` (D-042 (14),
+  the Skietbaan's "Fresh load", web admin-page builds only) unregisters the game's worker, deletes
+  its `tm-*` caches (`CACHE_PREFIX`) and reloads with `?fresh=<now>`, keeping the other
+  parameters and the save; portal adapters just reload.
+- **Build stamp (v1.6):** `src/game/ui/buildStamp.ts` formats `v<version> · <sha> · <UTC build
+  time>` (Vite defines `__APP_VERSION__`, `__BUILD_SHA__`, `__BUILD_TIME__`) plus the area,
+  weekday and art status; a small corner label on the title, hunts and the Skietbaan (web), a
+  line in Settings and the pause menu (every build), the admin page and reports, the boot
+  console. Hidden in capture mode and with `?stamp=0` (visual baselines).
 - Characters: frame-by-frame atlases for v1 (D-027). Spine (one rig, variants as skins) is
   exported to frames per skin; a Spine runtime is a v1.x option. Bird clips follow art bible
   §3.4 (`src/game/assets/birdClips.ts` maps sim motion/phase → clip, with fallbacks).

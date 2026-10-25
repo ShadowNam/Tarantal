@@ -34,7 +34,7 @@ export function adminPageInBuild(): boolean {
 }
 
 export function createPlatform(
-  opts: PlatformOptions & { readonly serviceWorker: boolean },
+  opts: PlatformOptions & { readonly serviceWorker: boolean; readonly buildId?: string },
 ): PlatformAdapter {
   // Compared against the raw flag (a literal after Vite's replacement) so the minifier drops the
   // other adapters: a portal build carries no other portal's SDK URL.

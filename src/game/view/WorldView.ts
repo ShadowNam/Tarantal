@@ -13,6 +13,7 @@ import type { ParallaxView } from './ParallaxView';
 import { FlashGate, type FlashLimiter } from './flashLimit';
 import { stampedeTintAlpha } from './juice';
 import { mirageLook } from './mirage';
+import { WindpompView } from './WindpompView';
 
 /** Rendering only: dust devils sway this much (radians) and this fast (ms per sway). */
 const DEVIL_SWAY = 0.08;
@@ -71,6 +72,8 @@ export class WorldView {
   private readonly planeScale: Readonly<Record<PlaneId, number>>;
   private nextGlintAt = 0;
   private windCredit = 0;
+  /** v1.6 (D-042): the windpomps' turning heads and wheels. */
+  private readonly windpomps: WindpompView;
 
   /** v1.2: the map's light makes ready secrets glow (dusk). */
   secretGlow = false;
@@ -111,11 +114,14 @@ export class WorldView {
     );
     this.helper = scene.add.image(0, 0, TEX.meerkat).setVisible(false);
     screen.add(this.helper);
+    this.windpomps = new WindpompView(scene, biome, parallax);
   }
 
   /** Draws this frame. `width`/`height` are the visible design size. */
   update(s: SimState, width: number, height: number): void {
     const now = this.scene.time.now;
+    this.windpomps.update(s);
+    this.parallax.driftClouds(s.tick, s.rain || s.lightning);
     this.drawSecrets(s, now);
     this.drawCrates(s);
     this.drawDevils(s);
@@ -527,6 +533,7 @@ export class WorldView {
   }
 
   clear(): void {
+    this.windpomps.clear();
     for (const a of this.secretArt.values()) {
       a.rotor?.destroy();
       for (const m of a.marks.values()) m.destroy();

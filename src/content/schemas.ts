@@ -1343,8 +1343,9 @@ export const LightSchema = obj({
       }),
     )
     .optional(),
-  /** Clouds on the sky layer: `count` soft ellipse clusters (Phaser shapes, no textures), each
-   *  `w` wide, centred between `y` (design px), spread evenly along the sky with a fixed jitter. */
+  /** Clouds on the sky layer: `count` soft clouds, each `w` wide, their base between `y` (design
+   *  px), spread evenly along the sky with a fixed jitter, tinted `color`. v1.6 (D-042): drawn
+   *  with the cloud sprites (src/game/view/clouds.ts) and drifting on sim time. */
   clouds: z
     .array(
       obj({
@@ -1593,6 +1594,8 @@ export const FeelSchema = obj({
     fileTimeoutMs: pos,
     /** M10: longest wait at boot for the self-hosted fonts; after it text uses the system font. */
     fontTimeoutMs: pos,
+    /** v1.6 (D-042): retries (index fetched again) before a biome's missing art is reported. */
+    artRetries: z.number().int().min(0).max(10),
   }),
   platform: obj({
     /** Longest wait for a portal SDK script + init; after it the game runs without the SDK. */

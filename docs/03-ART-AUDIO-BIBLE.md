@@ -1,6 +1,6 @@
 # Tarantal Madness — Art & Audio Bible
 
-Status: v1.0 baseline · 19 Oct 2026 · amended 23 Oct 2026 (§1.1 semi-realistic pass, D-035)
+Status: v1.0 baseline · 19 Oct 2026 · amended 23 Oct 2026 (§1.1 semi-realistic pass, D-035) · 25 Oct 2026 (§4.2 veld art pass, D-042)
 
 ## 1. Locked art direction: "Inked Bosveld Comic"
 
@@ -163,21 +163,53 @@ Low quality tier merges far ridge into far veld (5 layers).
 reservoir, rusty bakkie (fictional), wire fence + wooden posts, aloes, potjie on a small fire, fence-post
 bell, distant springbok. Palette: sky `#8DB8D8 → #F2D8A7`, veld `#E3A23B`, soil `#B8562C`, far
 koppies `#8E7FA6`, aloe flowers `#E2552C`. Weather: wind sock, dust devils, flying leaves.
+- *Plants (v1.6, D-042):* **sweet thorn** (*Vachellia karroo*, soetdoring) on the mid plane and in
+  stands along the far veld: a forked dark red-brown trunk with furrowed bark, an irregular rounded
+  crown of separate feathery clumps (dark undersides, lit tops, sky between), white paired thorns
+  on the outer limbs, yellow pompom flowers and curved brown sickle pods. **Karoo bushes** as
+  layered mounds: renosterbos (fine, grey-green, rounded) and ganna (olive, upright and twiggy),
+  with ragged leafy edges, a woody base and a contact shadow. **Golden grass tufts** with cream
+  seed heads. Aloes with orange-red candelabra spikes (props, unchanged).
+- *Far animals:* springbok herds (cinnamon back, dark flank band, white belly, lyre horns) and a
+  few ostriches near the farm.
 
 **Winter · Bushveld** — frost mist at dawn, baobabs, mopane, granite koppies, red flowering aloes,
 dry pale grass, giraffe silhouettes, dassie on a rock. Palette: sky `#B9D7EA`, grass `#C9B98F`,
-granite `#D07A3E`, aloe `#E04A2B`, baobab bark `#8D7F74`. Weather: low sun glare (lens flare one side),
+granite `#A8977F` (grey-ochre since v1.6, D-042; the far koppies keep their warm rock), aloe `#E04A2B`, baobab bark `#8D7F74`. Weather: low sun glare (lens flare one side),
 breath-fog puffs from birds.
+- *Plants (v1.6, D-042):* the **baobab** (kremetart): a massive smooth grey bottle trunk (lit left,
+  shade right, long vertical folds, soft wrinkles), thick limbs splaying up like roots into crooked
+  bare winter branches, velvety grey-green pods on long stalks (the secret pod is one of them).
+  **Mopane:** a narrow upright crown of butterfly-shaped paired leaves, olive with clumps turned
+  copper, dark rough bark; mopane scrub as low mounds. **Marula:** grey flaky bark in plates, a
+  spreading half-bare winter crown, yellow fruit lying in its shade. Red aloes (props), pale dry
+  grass with seed heads.
+- *Far animals:* giraffes (patches, ossicones, a sloping back, browsing or head up), zebra,
+  blue wildebeest and elephants.
 
 **Lente · Okavango** — papyrus and reeds, ilala palms, jackalberry + sausage trees, water lilies,
 muddy channels, mokoro marker pole, hippo, lechwe, fish eagle. Palette: water `#6FA8B6`, reeds
 `#6FAE4A`, papyrus `#9BC75A`, sky `#9CCBEB`, lilies `#F2E9E4`/`#E9A1C0`. Weather: sun-showers,
 rainbow, insect swarms.
+- *Plants (v1.6, D-042):* **jackalberry:** a tall, dense, dark evergreen crown on a rough dark
+  trunk, small yellow-orange fruit up close. **Sausage tree** (*Kigelia*): a broad round crown,
+  smooth grey-brown bark, long grey-brown sausage fruit on rope-like stalks, a few maroon flowers.
+  **Ilala palm:** one or two slender ringed stems, round heads of stiff ribbed fan leaves (old ones
+  hanging brown), clusters of glossy brown fruit. **Papyrus** umbels of many fine drooping rays with
+  brown spikelets, **reeds** with feathery plumes, veined **lily pads** with pointed-petal water
+  lilies, green seed-head grass.
+- *Far animals:* elephants, red lechwe (black forelegs), zebra and wildebeest on the floodplain.
 
 **Somer · Kalahari** — red dunes, camelthorn trees with **sociable-weaver mega-nests**, gemsbok on
 the ridge, windpomp + sign, dead camelthorn branch. Palette: dunes `#C8452B`/`#E0703A`, camelthorn
 `#7B8F3A`, storm sky `#3B4256`, lightning `#E8F1FF`. Weather: heat shimmer → thunderstorm, rain
 streaks, puddles. Lightning flashes must obey the ≤ 3 flashes/second rule and the reduce-flashes option.
+- *Plants (v1.6, D-042):* the v1.4 camelthorns and family nest stay. New: **grey velvety
+  camelthorn pods** lying in the trees' shade; **shepherd's trees** (*Boscia albitrunca*, witgat):
+  a pale smooth trunk under a dense grey-green dome; **Bushman grass** (*Stipagrostis*) with
+  silvery feathery plumes; **driedoring** as grey, open, spiny mounds.
+- *Far animals:* gemsbok on the dune crest (stripe, face mask, long straight horns), springbok,
+  ostriches and blue wildebeest.
 
 **Namibië (Etosha & Namib), v1.4 B (D-039).**
 - **Setting:** Etosha's white salt pan (faint polygon cracks, a bright mirage band at the horizon,
@@ -188,6 +220,54 @@ streaks, puddles. Lightning flashes must obey the ≤ 3 flashes/second rule and 
   and gemsbok drinking.
 - **Plants and ground:** quiver trees (a thick golden papery trunk, forked branches, blue-grey
   rosettes), a pale calcrete pan edge, and the red dune edge in front with blonde grass.
+- **Plants (v1.6, D-042):** quiver trees in **winter flower** (short branched spikes of
+  canary-yellow racemes over the rosettes), on the props and now also on the mid and far planes in
+  other shapes (never in the waterhole sightline); **!nara** (*Acanthosicyos horridus*) hummocks on
+  the red dune edge: tangled leafless grey-green stems with pale paired spines, sand banked against
+  them, round warty melons from green to yellow; grey pan shrubs.
+- **Far animals:** at the waterhole springbok and gemsbok drink, with zebra, a giraffe and a pair
+  of ostriches; gemsbok, ostriches and zebra out on the pan.
+
+**How the veld is drawn (v1.6, D-042).** Every tree, shrub and grass tuft is built the
+camelthorn's way (`tools/art/flora.ts`, species in `tools/art/species.ts`): an irregular
+silhouette, never a geometric shape; foliage as separate clumps of leaf dabs with gaps where sky or
+ground shows; lit tops and shaded undersides (light from the upper left); textured bark (furrowed,
+smooth with folds, or flaky plates); a soft ground contact shadow; each tree grown from the layer's
+seeded random stream, so no two repeat. Distant planes get simpler versions: far trees are a few
+ragged clumps with a lit cap and plain limbs, no dabs. Distant animals (`tools/art/fauna.ts`) share
+one rig with species proportions and markings, three poses (grazing, walking, head up), a lit back,
+a shaded belly and far legs, a soft ground shadow and no ink (edged in a darker shade of their own
+colour, D-035 rule 3). Species follow the decision log's "Biome-accurate flora/fauna".
+
+**v1.6 review round (D-042, 25 Oct).**
+- **Windpomp:** a classic multi-blade farm wheel, after the product owner's reference photos (25 Oct):
+  20 galvanised sails, one every 18°, narrow at the hub and wide at the slanted tips, which stand
+  free (no outer rim); two thin rings run across the sails (at 40 % and 70 % of the radius) and
+  six rods tie the hub to them. Old and weathered: every sail a slightly different grey, rust on
+  the tips, at the rivets and in streaks, rusty rings. Six sails lost in no pattern, one bent and
+  one torn short; never one of the secret's four marked sails at 0°, 90°, 180° and 270°) on a braced angle-iron tower (ladder, pump rod, platform,
+  footings, bolts, rust), drawn at 2×. The head (gearbox, tail boom, riveted vane) turns into
+  the omen wind and the wheel spins on sim time (fast in wind, a slow idle when calm); when the
+  secret is live, the sim's rotor is the wheel, face-on. A service plank carries the kwêvoël.
+- **Rocks:** weathered grey/ochre granite (`tools/art/rocks.ts`): domed, faceted, iron stains,
+  peeling sheets, lichen, cracks, dark crevices, grass or a small aloe in the cracks; never
+  orange balloons. **The dassie** (rock hyrax) at 2× inside its unchanged hit part: round back,
+  no tail, grey-brown fur strokes, cream chin and belly, short rounded ears, dark eye with a
+  pale ring, blunt snout, the dorsal spot.
+- **Giraffes:** their own drawing (high withers, sloping back, deep chest, neck as long as the
+  front legs, knobbly knees, dark hooves, tufted tail, two tufted ossicones, side ears, a cream
+  net between angular chestnut patches); browsing, walking, head up, drinking; calves.
+- **Far animals** are sprites drawn at 3× (`src/game/view/faunaSprites.ts`), crisp through a
+  scope, with half the plane's haze as tint (never alpha), solid to the hooves.
+- **Dead camelthorn:** a weathered acacia skeleton (continuous taper, acacia forks, a wide
+  umbrella, twig clusters, silver-grey wood with long cracks, peeling strips, knots; the dry
+  branch ends in a splintered break).
+- **Far trees** are broken canopies (small leaf clusters with sky between), each in its
+  species' silhouette; Karoo farm trees are bluegums and a pepper tree.
+- **Clouds:** soft billowing cumulus and cirrus sprites (merged billows brightening to a sunlit
+  top, a flat grey-blue base, blurred, no outline, no dots), a deck per biome that drifts on sim
+  time and greys over in rain; the Kalahari storm is a cumulonimbus with cream tops, never a
+  flat-topped shape. The skies are only their gradients (plus the Bushveld's horizon dust).
 
 **The camelthorn** (Vachellia erioloba, kameeldoring), the signature tree of the Kalahari and
 Namibië:

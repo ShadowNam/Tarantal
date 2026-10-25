@@ -116,6 +116,9 @@ function usages(
     // ammo display uses that type (the HUD builds the key with ammoKeys()).
     const type = key.slice('ui/ammo/'.length).replace(/_spent$/, '');
     needles.push(new RegExp(`"type":\\s*"${type}"`));
+  } else if (kind === 'texture' && key.startsWith('fauna/')) {
+    // v1.6 (D-042): far animal sprites, placed by name from src/game/view/faunaSprites.ts.
+    needles.push(quoted(key));
   } else if (texName === undefined) {
     // Props and layers are named by their asset id in the biome files.
     needles.push(new RegExp(`"asset":\\s*"${key}"`));

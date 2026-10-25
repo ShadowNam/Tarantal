@@ -21,6 +21,7 @@ import {
   UI,
   type MenuItem,
 } from '../ui/menu';
+import { menuStampShown, stampFor, StampLabel } from '../ui/StampLabel';
 
 export interface OverlayData {
   readonly close: () => void;
@@ -110,6 +111,13 @@ export class SettingsScene extends Phaser.Scene {
     const px = (width - panelW) / 2;
     const py = (height - panelH) / 2;
     this.add.rectangle(0, 0, width, height, UI.ink, 0.6).setOrigin(0);
+    // v1.6 (D-042): the build stamp above the panel's top-left corner (portal builds show it
+    // only here and in the pause menu).
+    new StampLabel(this, this.ctx, menuStampShown(this.ctx)).place(
+      px,
+      py - 18,
+      stampFor(this.ctx, this.ctx.huntBiome, this.ctx.manifestFor(this.ctx.huntBiome)),
+    );
     const g = this.add.graphics();
     g.fillStyle(UI.wood, 1).fillRoundedRect(px - 12, py - 12, panelW + 24, panelH + 24, 26);
     g.fillStyle(UI.slate, 1).fillRoundedRect(px, py, panelW, panelH, 18);
