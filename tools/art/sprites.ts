@@ -1170,34 +1170,85 @@ function puBushBuckshot(p: SpriteCtx): string {
   );
 }
 
-/** v1.7b (D-046) Meerkat Spotter icon: the helper meerkat with its binoculars, made small. */
+/** v1.7b (D-046) Meerkat Spotter icon: a stocky meerkat in profile, sitting up, its paws holding
+ *  a pair of binoculars to its eyes and looking out to the right, filling the square (the helper
+ *  sprite read as a thin stick at chip size). */
 function puMeerkatSpotter(p: SpriteCtx): string {
-  return g({ transform: 'translate(0 30) scale(0.39)' }, meerkat(p));
+  const fur = tone(p.c('meerkat'), 0.25, 0.28);
+  const dark = shade(p.c('meerkat'), -0.55);
+  const steel = tone('#3A3F44', 0.3, 0.45);
+  return g(
+    { transform: 'translate(-2 1)' },
+    // Tail down behind, curling at the ground.
+    inked('M-14 26Q-28 28 -27 16Q-24 24 -14 22Z', fur.dark, p.ink, 2),
+    // Body: a fat pear sitting up, pale belly at the front, dark back stripes.
+    inked('M-20 30Q-26 8 -12 -4L4 -4Q16 6 14 30Z', fur.fill, p.ink, 2.6),
+    flat('M2 -2Q14 8 12 29L5 29Q8 10 -2 0Z', fur.light),
+    line('M-20 12l6 -2M-21 19l6 -2M-20 25l6 -1', { ink: fur.dark, w: 2.2 }),
+    // Hind foot at the front.
+    inked(ellipseD(8, 30, 7, 2.6), fur.dark, p.ink, 1.8),
+    // Head: round skull, a pointed snout to the right, a small dark ear at the back.
+    inked(ellipseD(-9, -15, 3.6, 3.2), dark, p.ink, 1.6),
+    inked(
+      'M-14 -14Q-15 -27 -2 -27Q8 -27 12 -20L18 -14Q19 -11 16 -10L4 -6Q-10 -2 -14 -14Z',
+      fur.fill,
+      p.ink,
+      2.6,
+    ),
+    flat('M4 -10L16 -12L15 -10L4 -7Z', fur.light),
+    flat(ellipseD(17.5, -12.5, 1.8, 1.6), p.ink),
+    // The binoculars at its eye, pointing out to the right: two barrels, the front lens.
+    inked('M2 -27L19 -27Q22 -27 22 -24L22 -19Q22 -16 19 -16L2 -16Z', steel.fill, p.ink, 2.2),
+    flat('M4 -25.4L19 -25.4L19 -24L4 -24Z', steel.light),
+    line('M2 -21.5L22 -21.5', { ink: p.ink, w: 1.4 }),
+    inked(ellipseD(23, -21.5, 2.6, 5.6), '#1B2A3A', p.ink, 1.8),
+    flat(ellipseD(23.4, -23.6, 0.9, 1.5), '#BFE3F0'),
+    // Its arm up from the chest, the paw gripping the binoculars from below.
+    inked('M-10 4Q-6 -6 1 -15L6 -14Q0 -4 -5 6Z', fur.fill, p.ink, 2),
+    inked(ellipseD(4, -15.5, 4, 3.2), fur.light, p.ink, 1.8),
+    // The ear on top (drawn last so it shows), the dark eye ring behind the eyepiece, the mouth.
+    inked(ellipseD(-9, -20, 3.4, 3), dark, p.ink, 1.6),
+    flat(ellipseD(0, -21.5, 3.4, 4), dark),
+    line('M10 -7.5Q14 -7 17 -9', { ink: p.ink, w: 1.4 }),
+  );
 }
 
-/** v1.7b (D-046) The Voorlaaier's icon: a muzzle-loader's silhouette, ramrod under the barrel. */
+/** v1.7b (D-046) The Voorlaaier's icon: a stout blunderbuss — a thick stock, a heavy barrel with
+ *  a flared bell, the ramrod under it and a puff of black-powder smoke at the muzzle. */
 function puVoorlaaier(p: SpriteCtx): string {
   const wood = tone(p.c('wood'), 0.28, 0.25);
   const steel = tone(p.c('metalDark'), 0.3, 0.35);
+  const brass = '#C9A13B';
+  const smoke = p.c('smoke');
   return g(
-    { transform: 'scale(0.88) rotate(-28)' },
-    // Long octagonal barrel, the ramrod under it, the brass-capped stock behind.
-    inked('M-6 -3L34 -3L34 1L-6 2Z', steel.fill, p.ink, 2.2),
-    flat('M-4 -2L33 -2L33 -1L-4 -1Z', steel.light),
-    line('M-2 5L30 4', { ink: p.ink, w: 2.2 }),
+    { transform: 'translate(-4 2) scale(0.86) rotate(-16)' },
+    // The smoke behind the bell.
+    inked(ellipseD(33, -9, 5.5, 5), smoke, p.ink, 1.8),
+    inked(ellipseD(36, 0, 6.5, 6), smoke, p.ink, 1.8),
+    inked(ellipseD(31, 6, 4.5, 4), smoke, p.ink, 1.8),
+    // The ramrod (wood, brass tip) under the barrel.
+    line('M-4 6L25 5', { ink: p.ink, w: 4.6 }),
+    line('M-4 6L25 5', { ink: wood.light, w: 2.2 }),
+    inked('M24 3.4L28 3.3L28 6.6L24 6.7Z', brass, p.ink, 1.4),
+    // Heavy barrel and its flared bell, two brass bands.
+    inked('M-7 -5L22 -5L30 -10L30 7L22 2L-7 3Z', steel.fill, p.ink, 2.6),
+    flat('M-5 -3.6L21 -3.6L28 -7.6L28 -5L21 -1.6L-5 -1.6Z', steel.light),
+    flat('M-5 1L21 0.6L28 4.6L28 5.6L21 1.6L-5 2Z', steel.dark),
+    inked('M3 -5.5L7 -5.5L7 3.5L3 3.5Z', brass, p.ink, 1.4),
+    inked('M14 -5.5L17 -5.5L17 3L14 3Z', brass, p.ink, 1.4),
+    // The stock: thick, brass butt plate; the lock plate, hammer and trigger guard.
     inked(
-      'M-34 4Q-34 -4 -26 -5L-6 -4L-4 4L-8 6Q-14 8 -18 12L-30 14Q-35 12 -34 4Z',
+      'M-33 7Q-34 -5 -24 -7L-6 -6L-4 5L-10 8Q-16 10 -20 17L-31 19Q-35 15 -33 7Z',
       wood.fill,
       p.ink,
-      2.5,
+      2.8,
     ),
-    flat('M-30 10L-18 9Q-14 6 -9 5L-18 12L-30 13Z', wood.dark),
-    inked('M-35 2L-31 1L-30 14L-34 13Z', '#C9A13B', p.ink, 1.8),
-    // Hammer and trigger guard.
-    inked('M-8 -4L-11 -10L-7 -11L-4 -4Z', steel.fill, p.ink, 1.8),
-    line('M-12 6Q-12 11 -6 10', { ink: p.ink, w: 2 }),
-    // A puff of smoke at the muzzle.
-    inked(ellipseD(37, -6, 4.5, 3.5), p.c('smoke'), p.ink, 1.6),
+    flat('M-30 15L-20 14Q-16 8 -9 6L-19 13L-30 17Z', wood.dark),
+    flat('M-27 -3L-10 -4L-10 -2L-27 -1Z', wood.light),
+    inked('M-35 4L-31 2L-30 19L-34 18Z', brass, p.ink, 1.8),
+    inked('M-14 -4L-6 -4L-6 1L-14 1Z', steel.fill, p.ink, 1.6),
+    inked('M-10 -4L-13 -11L-8 -12L-6 -4Z', steel.fill, p.ink, 1.8),
+    line('M-14 6Q-14 12 -7 11', { ink: p.ink, w: 2.2 }),
   );
 }
 

@@ -1317,9 +1317,9 @@
       "group": "common",
       "origin": "interim",
       "file": {
-        "path": "assets/common/img/ui_pu_meerkat_spotter.f2010937fbee.png",
-        "bytes": 2986,
-        "hash": "f2010937fbee"
+        "path": "assets/common/img/ui_pu_meerkat_spotter.fdfbc5befe7b.png",
+        "bytes": 3232,
+        "hash": "fdfbc5befe7b"
       },
       "width": 128,
       "height": 128
@@ -1350,9 +1350,9 @@
       "group": "common",
       "origin": "interim",
       "file": {
-        "path": "assets/common/img/ui_pu_voorlaaier.de6a395513e7.png",
-        "bytes": 2486,
-        "hash": "de6a395513e7"
+        "path": "assets/common/img/ui_pu_voorlaaier.e1b59970ef93.png",
+        "bytes": 3376,
+        "hash": "e1b59970ef93"
       },
       "width": 128,
       "height": 128

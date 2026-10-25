@@ -363,8 +363,10 @@ in the D-035 look (ink outline, one shadow and one highlight per surface), drawn
 cards (148 px): **Chilli Biltong** — a strip of biltong (fat edge, spice flecks) with a red chilli
 across it; **Boeretroos** — a blue enamel mug with a cream rim and a chip, coffee in it, three
 steam wisps; **Bush Buckshot** — a fat red shell bursting into a wide spray of pellets; **Meerkat
-Spotter** — the helper meerkat with its binoculars; **Die Voorlaaier** — the muzzle-loader's
-silhouette (octagonal barrel, ramrod, brass butt plate, a puff at the muzzle); **Mielie-Masjien** —
+Spotter** — a stocky meerkat in profile, sitting up, holding binoculars to its eye and looking out
+to the right (the helper sprite shrunk read as a thin stick); **Die Voorlaaier** — a stout
+blunderbuss: thick stock, heavy barrel with a flared bell and brass bands, the ramrod under it
+and a puff of black-powder smoke at the muzzle; **Mielie-Masjien** —
 the green corn cannon with a cob in its hopper and kernels flying. Blitslaai and Oupa Laai (v1.6b)
 moved to the same 128 px size. A crate shows its item's icon, fully opaque on a cream disc with a
 dark ring: big on the canopy while it falls (74 px radius at the near plane, drawn above the
