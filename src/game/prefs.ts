@@ -27,6 +27,8 @@ export interface LivePrefs {
   holdToFire: boolean;
   /** v1.1: touch shots go to a crosshair this many design px above the finger (0 = off). */
   crosshairOffsetPx: number;
+  /** v1.7b (D-046): Oupa's comments (voice and bubble, bubble only, or none). */
+  oupa: Settings['oupa'];
 }
 
 type TierLook = Feel['quality']['tiers']['low'];
@@ -60,6 +62,7 @@ export function computePrefs(s: Settings, i: PrefInputs): LivePrefs {
     colourBlind: s.colourBlind,
     holdToFire: s.holdToFire,
     crosshairOffsetPx: s.offsetCrosshair ? i.feel.guns.offsetCrosshairPx : 0,
+    oupa: s.oupa,
   };
 }
 

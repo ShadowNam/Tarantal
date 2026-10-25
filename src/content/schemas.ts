@@ -1484,6 +1484,25 @@ export const FeelSchema = obj({
     chipH: pos,
     /** v1.4 (D-038): the variable scope's on-screen − / + buttons (touch), squares ≥ 64 px. */
     zoomButtonPx: z.number().min(64),
+    /** v1.7b (D-046): power-up clarity — the pickup card, the chip's last-seconds blink and the
+     *  local looks while a power-up runs. */
+    powerups: obj({
+      /** The pickup card stays this long (a power-up already met on this save). */
+      cardMs: pos,
+      /** …and this long the first time (its full explanation). */
+      cardFirstMs: pos,
+      /** Slide in / out. */
+      cardSlideMs: pos,
+      /** A chip blinks over this many last ms (steady with "reduce flashes"). */
+      blinkMs: pos,
+      blinkPeriodMs: pos,
+      /** Boeretroos: the warm edge tint's alpha at the screen edge (fades to 0 inward). */
+      slowTintAlpha: z.number().min(0).max(1),
+      /** Boeretroos: effects and gun sounds play at this rate (slower and lower). */
+      slowSoundRate: z.number().min(0.25).max(1),
+      /** Chilli Biltong: sparks per shot at the muzzle. */
+      chilliSparks: posInt,
+    }),
   }),
   /** v1.1 (D-032): per-gun ammo display and crosshair. */
   guns: GunLookSchema,

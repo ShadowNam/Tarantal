@@ -363,6 +363,27 @@ export interface TestHook {
   shedIcons?: string[];
   /** v1.5 (D-041): the gun names on the Guns tab's cards, as drawn (text language, toggle). */
   shedNames?: string[];
+  /** v1.7b (D-046): the pickup card on screen (null = none): what it says and where. */
+  pickupCard?: {
+    id: string;
+    first: boolean;
+    name: string;
+    line: string;
+    rect: { x: number; y: number; w: number; h: number };
+  } | null;
+  /** v1.7b: the HUD chips as drawn: name, countdown ("8 s" / "×6"), ending (blinking), icon. */
+  chips?: { id: string; label: string; time: string; ending: boolean; icon: string | null }[];
+  /** v1.7b: power-up looks on now (Boeretroos edges and sound rate, Chilli's ∞ on the belt,
+   *  Bush Buckshot's ring, Chilli's sparks made so far). */
+  powerupLooks?: {
+    slowTint: boolean;
+    soundRate: number;
+    infinity: boolean;
+    spreadRing?: boolean;
+    sparks?: number;
+  };
+  /** v1.7b: the tally's "Power-ups used" row (ids, in order of first use). */
+  tallyPowerups?: string[];
   /** v1.7b (D-046): the Gun Shed's Power-ups tab: each card as drawn, and the list's scroll. */
   shedPowerups?: {
     cards: { id: string; name: string; effect: string; found: boolean; icon: boolean }[];

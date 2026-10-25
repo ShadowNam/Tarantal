@@ -44,6 +44,8 @@ export const SFX_IDS = [
   'weavers',
   // v1.6b (D-043): Blitslaai's quick metallic zip as the belt refills.
   'zip',
+  // v1.7b (D-046): a power-up (or crate gun) runs out: the pickup chime, descending and soft.
+  'powerEnd',
 ] as const;
 export type SfxId = (typeof SFX_IDS)[number];
 
@@ -253,6 +255,11 @@ export function playSfx(ctx: AudioContext, out: AudioNode, id: SfxId, noise: Aud
         tone('sine', f, f * 1.02, 0.12, 0.2, k * 0.06);
       });
       return 0.35;
+    case 'powerEnd':
+      [1320, 990, 660].forEach((f, k) => {
+        tone('sine', f, f * 0.98, 0.07, 0.22, k * 0.1);
+      });
+      return 0.5;
     case 'whoosh': {
       const s = noiseSrc();
       const f = ctx.createBiquadFilter();

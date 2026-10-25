@@ -47,6 +47,10 @@ export interface HudLayout {
   readonly zoomOut: Rect;
   readonly zoomLabel: Rect;
   readonly zoomIn: Rect;
+  /** v1.7b (D-046): the pickup card, top centre under the pause button (over the Season Run's
+   *  charm row for its 2 s), between the left and right HUD columns: never over the crosshair or the flock
+   *  in the middle. `h` is the most it may use. */
+  readonly pickup: Rect;
 }
 
 /** Consumable slots + the rental slot (run.json consumableSlots 2, + 1). */
@@ -173,7 +177,14 @@ export function hudLayout(
     zoomOut,
     zoomLabel,
     zoomIn,
+    pickup: pickupRect(mid, score.x, top + PAUSE_PX + 14),
   };
+}
+
+/** v1.7b (D-046): the pickup card's slot (see HudLayout.pickup). */
+function pickupRect(mid: number, scoreX: number, top: number): Rect {
+  const w = Math.max(440, Math.min(820, 2 * (scoreX - 24 - mid)));
+  return { x: mid - w / 2, y: top, w, h: 230 };
 }
 
 /** A bubble needs this much width (design px) to sit beside a tally panel. */

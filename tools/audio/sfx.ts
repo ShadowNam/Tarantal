@@ -522,6 +522,8 @@ const SFX: Readonly<Record<string, () => Buf>> = {
   sting: () => marimbaRun([67, 71, 74, 79], 0.07, 0.6),
   secret: () => marimbaRun([72, 76, 79, 84, 88], 0.08, 0.8),
   powerup: () => marimbaRun([76, 81, 88], 0.06, 0.45),
+  // v1.7b (D-046): a power-up runs out — the pickup chime turned around, slower and softer.
+  powerEnd: () => marimbaRun([84, 79, 72], 0.1, 0.55).map((v) => v * 0.55),
   // --- 24 Oct update (D-037): the Skietbaan's hit sounds (group "range", lazy) -------------
   range_thwack: () => {
     // A pellet through stiff card on a wooden frame: a papery snap and a dull knock.

@@ -1375,6 +1375,11 @@ export class HuntScene extends Phaser.Scene {
       this.ctx.hook.sceneryFrames++;
     }
     this.weapon.spreadMul = spreadMulOf(state.powerups, this.ctx.content.powerups.powerups);
+    // v1.7b (D-046): Chilli Biltong's sparks at the muzzle.
+    this.weapon.chilli = state.powerups.some(
+      (p) =>
+        this.ctx.content.powerups.powerups.find((d) => d.id === p.id)?.effect.infiniteAmmo === true,
+    );
     this.weapon.setWeapon(state.weapon.id);
     this.weapon.setReloading(state.weapon.reloading);
     this.ctx.audio.setWeapon(state.weapon.id);
@@ -1414,6 +1419,11 @@ export class HuntScene extends Phaser.Scene {
     const hud = this.scene.get('Hud') as HudScene;
     if (hud.sys.isActive()) {
       hud.render(state, events);
+      const looks = this.ctx.hook?.powerupLooks;
+      if (looks !== undefined) {
+        looks.spreadRing = this.weapon.crosshair.boosted;
+        looks.sparks = this.weapon.chilliSparks;
+      }
       if (this.ftue) hud.setFtuePrompt(this.ftuePrompt(), this.ftueHand(state));
     }
 

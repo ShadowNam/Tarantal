@@ -44,6 +44,7 @@ import {
   placeholderBiomes,
 } from './game/placeholder/ProceduralAssetFactory';
 import { applyPrefs, computePrefs, type PrefInputs } from './game/prefs';
+import { oupaSpeaks } from './game/audio/oupaMode';
 import { ChallengeScene } from './game/scenes/ChallengeScene';
 import { HudScene } from './game/scenes/HudScene';
 import { HuntScene } from './game/scenes/HuntScene';
@@ -526,6 +527,7 @@ async function boot(): Promise<void> {
       music: s.musicVolume,
       voice: s.voiceVolume,
     });
+    audio.setOupaVoice(oupaSpeaks(s.oupa));
     applyVoice?.(s);
   };
   /** v1.5 (D-041): Oupa's voice pack (set once the asset index is known, below). */

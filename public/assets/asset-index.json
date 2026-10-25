@@ -6279,6 +6279,24 @@
       "lufs": -16,
       "peakDb": -1
     },
+    "sfx/powerEnd": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/powerEnd.74c0c8953d32.ogg",
+        "bytes": 7336,
+        "hash": "74c0c8953d32"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/powerEnd.0d70e517b18f.mp3",
+        "bytes": 5417,
+        "hash": "0d70e517b18f"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -3.3
+    },
     "sfx/powerup": {
       "group": "common",
       "origin": "interim",

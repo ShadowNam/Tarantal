@@ -3,7 +3,7 @@
 // reads the same information. Shown by the HUD when Settings → captions is on, whatever the
 // volume. Cues already shown as words on screen (POOF!, the score pops, the whole-flock stamp)
 // get none. Pure.
-import type { I18nKey } from '../../i18n/i18n';
+import { isI18nKey, type I18nKey } from '../../i18n/i18n';
 import type { SimEvent } from '../../sim/events';
 
 export function captionFor(e: SimEvent): I18nKey | null {
@@ -39,9 +39,37 @@ export function captionFor(e: SimEvent): I18nKey | null {
       return 'caption.kwe';
     case 'crateOpened':
       return 'caption.crate';
+    // v1.7b (D-046): what the power-up does ("[Farm Coffee: everything slows]"), and when it
+    // ends ("[Farm Coffee wears off]"; the HUD fills {item}).
     case 'powerupStarted':
+      return itemCaption(e.powerup);
     case 'weaponChanged':
-      return 'caption.powerup';
+      return e.kind === 'crate' ? itemCaption(e.weapon) : 'caption.pu_end';
+    case 'powerupEnded':
+      return 'caption.pu_end';
+    default:
+      return null;
+  }
+}
+
+function itemCaption(id: string): I18nKey {
+  const key = `caption.pu.${id}`;
+  return isI18nKey(key) ? key : 'caption.powerup';
+}
+
+/** v1.7b: the power-up or crate gun a caption names (`{item}`), if any. `crate` follows the
+ *  crate gun in hand, so its end names it. */
+export function captionItem(e: SimEvent, crate: { id: string | null }): string | null {
+  switch (e.type) {
+    case 'powerupStarted':
+      return e.powerup;
+    case 'powerupEnded':
+      return e.powerup;
+    case 'weaponChanged': {
+      const was = crate.id;
+      crate.id = e.kind === 'crate' ? e.weapon : null;
+      return e.kind === 'crate' ? e.weapon : was;
+    }
     default:
       return null;
   }
@@ -49,6 +77,8 @@ export function captionFor(e: SimEvent): I18nKey | null {
 
 export interface CaptionLine {
   readonly key: I18nKey;
+  /** v1.7b: the item the line names (fills `{item}`). */
+  readonly item?: string;
   /** ms (scene clock) when it goes. */
   until: number;
 }
@@ -59,7 +89,7 @@ export interface CaptionLine {
  */
 export function updateCaptions(
   lines: readonly CaptionLine[],
-  lastShown: Map<I18nKey, number>,
+  lastShown: Map<string, number>,
   events: readonly SimEvent[],
   now: number,
   cfg: {
@@ -67,20 +97,24 @@ export function updateCaptions(
     readonly captionMax: number;
     readonly captionRepeatMs: number;
   },
+  crate: { id: string | null } = { id: null },
 ): CaptionLine[] {
   let next = lines.filter((l) => l.until > now);
   for (const e of events) {
+    const item = captionItem(e, crate);
     const key = captionFor(e);
     if (key === null) continue;
-    const on = next.find((l) => l.key === key);
+    const same = (l: CaptionLine): boolean => l.key === key && (l.item ?? null) === item;
+    const on = next.find(same);
     if (on !== undefined) {
       on.until = now + cfg.captionMs;
       continue;
     }
-    const last = lastShown.get(key);
+    const id = item === null ? key : `${key}|${item}`;
+    const last = lastShown.get(id);
     if (last !== undefined && now - last < cfg.captionRepeatMs) continue;
-    lastShown.set(key, now);
-    next = [{ key, until: now + cfg.captionMs }, ...next];
+    lastShown.set(id, now);
+    next = [{ key, ...(item === null ? {} : { item }), until: now + cfg.captionMs }, ...next];
   }
   return next.slice(0, cfg.captionMax);
 }

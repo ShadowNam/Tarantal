@@ -45,4 +45,45 @@ describe('sound captions (M9, GDD §18.3)', () => {
     expect(updateCaptions([], last, [ev({ type: 'birdCalled' })], 1200, cfg)).toEqual([]);
     expect(updateCaptions([], last, [ev({ type: 'birdCalled' })], 1700, cfg)).toHaveLength(1);
   });
+
+  it('v1.7b: a power-up says what it does and when it ends, naming the item', () => {
+    const last = new Map<string, number>();
+    const crate = { id: null as string | null };
+    let lines = updateCaptions(
+      [],
+      last,
+      [ev({ type: 'powerupStarted', powerup: 'boeretroos' })],
+      0,
+      cfg,
+      crate,
+    );
+    expect(lines).toEqual([{ key: 'caption.pu.boeretroos', item: 'boeretroos', until: 2000 }]);
+    expect(en['caption.pu.boeretroos']).toBe('[{item}: everything slows]');
+    lines = updateCaptions(
+      lines,
+      last,
+      [
+        ev({ type: 'weaponChanged', weapon: 'voorlaaier', kind: 'crate' }),
+        ev({ type: 'powerupEnded', powerup: 'boeretroos' }),
+      ],
+      100,
+      cfg,
+      crate,
+    );
+    expect(lines.map((l) => [l.key, l.item])).toEqual([
+      ['caption.pu_end', 'boeretroos'],
+      ['caption.pu.voorlaaier', 'voorlaaier'],
+      ['caption.pu.boeretroos', 'boeretroos'],
+    ]);
+    // The crate gun used up: its end names it.
+    lines = updateCaptions(
+      [],
+      last,
+      [ev({ type: 'weaponChanged', weapon: 'dubbelloop', kind: 'primary' })],
+      5000,
+      cfg,
+      crate,
+    );
+    expect(lines.map((l) => [l.key, l.item])).toEqual([['caption.pu_end', 'voorlaaier']]);
+  });
 });
