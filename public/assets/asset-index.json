@@ -1063,14 +1063,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/bushveld-winter/layers/far_veld-0.734218cd4b79.png",
-          "bytes": 18767,
-          "hash": "734218cd4b79"
+          "path": "assets/bushveld-winter/layers/far_veld-0.b3a35f7c00bd.png",
+          "bytes": 19261,
+          "hash": "b3a35f7c00bd"
         },
         {
-          "path": "assets/bushveld-winter/layers/far_veld-1.cef7e20ec7af.png",
-          "bytes": 13419,
-          "hash": "cef7e20ec7af"
+          "path": "assets/bushveld-winter/layers/far_veld-1.fa5813ed8a86.png",
+          "bytes": 13680,
+          "hash": "fa5813ed8a86"
         }
       ],
       "tileWidth": 2048,
@@ -1086,35 +1086,35 @@
           ],
           [
             114,
-            154
+            153
           ],
           [
             112,
-            156
+            160
           ],
           [
             161,
-            194
+            196
           ],
           [
-            144,
-            200
+            145,
+            199
           ],
           [
-            153,
-            183
+            155,
+            186
           ],
           [
-            114,
-            159
+            162,
+            227
           ],
           [
-            180,
-            211
+            150,
+            208
           ],
           [
             117,
-            172
+            175
           ],
           [
             153,
@@ -1126,15 +1126,15 @@
           ],
           [
             158,
-            191
+            189
           ],
           [
-            114,
-            203
+            115,
+            204
           ],
           [
             116,
-            146
+            164
           ],
           [
             111,
@@ -2827,14 +2827,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/namibie/layers/far_veld-0.5c9738cc4f2f.png",
-          "bytes": 28804,
-          "hash": "5c9738cc4f2f"
+          "path": "assets/namibie/layers/far_veld-0.160851f0fd67.png",
+          "bytes": 28027,
+          "hash": "160851f0fd67"
         },
         {
-          "path": "assets/namibie/layers/far_veld-1.5939ffd5102a.png",
-          "bytes": 22978,
-          "hash": "5939ffd5102a"
+          "path": "assets/namibie/layers/far_veld-1.5370f28a3805.png",
+          "bytes": 22389,
+          "hash": "5370f28a3805"
         }
       ],
       "tileWidth": 2048,
@@ -2846,7 +2846,7 @@
         "rows": [
           [
             112,
-            186
+            185
           ],
           [
             183,
@@ -2857,11 +2857,11 @@
             232
           ],
           [
-            128,
+            135,
             193
           ],
           [
-            138,
+            140,
             188
           ],
           [
@@ -2877,12 +2877,12 @@
             202
           ],
           [
-            145,
+            146,
             232
           ],
           [
             158,
-            219
+            218
           ],
           [
             141,
@@ -2893,7 +2893,7 @@
             187
           ],
           [
-            128,
+            129,
             179
           ],
           [
@@ -3265,14 +3265,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/ver/layers/namibie-ver_veld-0.0d0bb4d32d04.png",
-          "bytes": 12795,
-          "hash": "0d0bb4d32d04"
+          "path": "assets/ver/layers/namibie-ver_veld-0.d490397ec7a7.png",
+          "bytes": 12892,
+          "hash": "d490397ec7a7"
         },
         {
-          "path": "assets/ver/layers/namibie-ver_veld-1.1d8b7b3e070e.png",
-          "bytes": 5795,
-          "hash": "1d8b7b3e070e"
+          "path": "assets/ver/layers/namibie-ver_veld-1.100df0b59e9e.png",
+          "bytes": 5852,
+          "hash": "100df0b59e9e"
         }
       ],
       "tileWidth": 2048,
@@ -3284,11 +3284,11 @@
         "rows": [
           [
             24,
-            41
+            64
           ],
           [
             23,
-            50
+            64
           ],
           [
             41,
@@ -3296,22 +3296,22 @@
           ],
           [
             22,
-            39
+            64
           ],
           [
             24,
             64
           ],
           [
-            53,
+            46,
             64
           ],
           [
-            40,
+            38,
             64
           ],
           [
-            53,
+            34,
             64
           ],
           [

@@ -196,7 +196,9 @@ function farVeld(ctx: LayerCtx): string {
   for (const [u, h, pose] of [
     [0.18, 58, 'alert'],
     [0.2, 52, 'graze'],
+    [0.207, 33, 'walk'],
     [0.71, 56, 'walk'],
+    [0.715, 31, 'alert'],
   ] as const) {
     const x = ctx.u(u);
     parts.push(

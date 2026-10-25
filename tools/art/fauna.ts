@@ -8,12 +8,13 @@
 //
 // Sizes: `h` is the animal's height at the shoulder (giraffe: at the head) in design px. Drawn
 // facing right; `facing` −1 mirrors it. Coordinates: the feet stand on y = foot.
-import { mix, shade, type Pt } from './scenery';
+import { mix, nextId, shade, type Pt } from './scenery';
 import { el, ellipseD, g, polyD, r2 } from './svg';
 
 export type AnimalKind =
   'giraffe' | 'springbok' | 'gemsbok' | 'elephant' | 'zebra' | 'wildebeest' | 'lechwe' | 'ostrich';
-export type Pose = 'graze' | 'walk' | 'alert';
+/** v1.6: 'drink' (the giraffe's splay-legged drink; others treat it as grazing). */
+export type Pose = 'graze' | 'walk' | 'alert' | 'drink';
 
 /** Proportions in body units (1 = the body's length). */
 interface Build {
@@ -29,7 +30,7 @@ interface Build {
   readonly headW: number;
   readonly legW: number;
   /** Neck angle (deg above the horizontal) per pose. */
-  readonly neckUp: Readonly<Record<Pose, number>>;
+  readonly neckUp: Readonly<Record<Exclude<Pose, 'drink'>, number>>;
   readonly tail: number;
 }
 
@@ -129,7 +130,7 @@ interface Colours {
 }
 
 const COATS: Readonly<Record<AnimalKind, Colours>> = {
-  giraffe: { coat: '#D2A468', lit: '#E8C48C', shade: '#9A7044', belly: '#E6D2AE', mark: '#7A4A26' },
+  giraffe: { coat: '#9C5C2E', lit: '#E6DAC2', shade: '#7A5A3E', belly: '#EAD9B4', mark: '#6A3A1C' },
   springbok: {
     coat: '#C68E58',
     lit: '#DDAA74',
@@ -171,6 +172,15 @@ export interface AnimalOpts {
   readonly phase?: number;
 }
 
+/** A small deterministic stream from an animal's placement (its coat pattern). */
+function seeded(o: AnimalOpts): () => number {
+  let s = Math.round(o.x * 7 + o.foot * 13 + o.h * 101) >>> 0 || 1;
+  return () => {
+    s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
+    return s / 4294967296;
+  };
+}
+
 /** Tapered stroke between two points as a quad (w0 at a, w1 at b). */
 function quad(a: Pt, b: Pt, w0: number, w1: number): string {
   const dx = b[0] - a[0];
@@ -207,10 +217,16 @@ export function farAnimal(o: AnimalOpts): string {
     belly: tint(c.belly),
     mark: tint(c.mark),
   };
-  const body = o.kind === 'ostrich' ? ostrich(o, col) : quadruped(o, col);
+  const body =
+    o.kind === 'ostrich'
+      ? ostrich(o, col)
+      : o.kind === 'giraffe'
+        ? giraffeArt(o, col, seeded(o))
+        : quadruped(o.pose === 'drink' ? { ...o, pose: 'graze' } : o, col);
   const s = o.h;
+  const wide = o.kind === 'giraffe' ? 0.3 : o.kind === 'ostrich' ? 0.35 : 0.75;
   const shadow = el('path', {
-    d: ellipseD(s * 0.08, 0.4, s * 0.75, Math.max(0.6, s * 0.07)),
+    d: ellipseD(s * 0.02, 0.4, s * wide, Math.max(0.6, s * 0.07 * (wide / 0.75))),
     fill: '#2A1E16',
     opacity: 0.28,
   });
@@ -248,7 +264,7 @@ function quadruped(o: AnimalOpts, col: Colours): string {
   }
   const shoulder = rot([rx * 0.72, -ry * 0.45]);
   const rump = rot([-rx * 0.82, -ry * 0.3]);
-  const ang = (b.neckUp[o.pose] * Math.PI) / 180;
+  const ang = (b.neckUp[o.pose === 'drink' ? 'graze' : o.pose] * Math.PI) / 180;
   const neckY = shoulder[1] - Math.sin(ang) * b.neck * u;
   // Grazing heads reach the ground.
   const neckEnd: Pt = [
@@ -714,4 +730,274 @@ export function herd(
   }
   items.sort((a, b) => a.y - b.y);
   return g({}, ...items.map((i) => i.svg));
+}
+
+// --- the giraffe (v1.6 D-042 review: "detail needs to become more realistic") ----------------
+
+/** Lowers the forequarters (drinking: the front legs splay and the chest drops). */
+function lowered(p: Pt, drop: number): Pt {
+  const f = Math.min(1, Math.max(0, (p[0] + 0.25) / 0.42));
+  return [p[0], p[1] + drop * f];
+}
+
+/**
+ * A giraffe drawn from its own anatomy, in units of its height (ossicone tips in the head-up
+ * pose = 1), facing right, feet on y = 0: high withers and a back sloping down to the rump, a
+ * deep chest, a neck about as long as the front legs, long thin legs with knobbly knees, pale
+ * lower legs and dark hooves, a tufted tail, a short dark mane, a tapered head with two tufted
+ * ossicones and ears out to the side; a cream net between irregular chestnut patches (smaller on
+ * the legs), a lit back and a shaded belly. Poses: graze = browsing (neck forward, head up to
+ * the leaves), walk (a pace: legs of one side together), alert (head up), drink (front legs
+ * splayed, the head down to the ground).
+ */
+function giraffeArt(o: AnimalOpts, col: Colours, rnd: () => number): string {
+  const H = o.h;
+  const drink = o.pose === 'drink';
+  const drop = drink ? 0.14 : 0;
+  const P = (x: number, y: number): Pt => {
+    const q = lowered([x, y], drop);
+    return [q[0] * H, q[1] * H];
+  };
+  const net = col.belly;
+  const patch = col.coat;
+  const patchEdge = col.mark;
+  const lower = col.lit;
+  const ink = shade(col.shade, -0.35);
+  const ew = Math.max(0.35, H * 0.004);
+  // Body: withers high, the back sloping to a rounded rump, a deep chest.
+  const body = polyD([
+    P(0.1, -0.64),
+    P(0.02, -0.62),
+    P(-0.1, -0.575),
+    P(-0.2, -0.54),
+    P(-0.245, -0.5),
+    P(-0.25, -0.45),
+    P(-0.23, -0.41),
+    P(-0.17, -0.385),
+    P(-0.02, -0.39),
+    P(0.09, -0.4),
+    P(0.15, -0.425),
+    P(0.175, -0.47),
+    P(0.18, -0.53),
+    P(0.165, -0.58),
+  ]);
+  // Neck: from the shoulders, its length about the front legs'.
+  const ang =
+    ((drink ? -58 : o.pose === 'graze' ? 38 : o.pose === 'walk' ? 52 : 70) * Math.PI) / 180;
+  const base = P(0.12, -0.6);
+  const L = (drink ? 0.4 : 0.37) * H;
+  const end: Pt = [base[0] + Math.cos(ang) * L, base[1] - Math.sin(ang) * L];
+  const nx = -Math.sin(ang);
+  const ny = -Math.cos(ang);
+  const wB = 0.15 * H;
+  const wT = 0.045 * H;
+  // The back edge runs from the withers, the front edge from the chest.
+  const neck = polyD([
+    [base[0] - nx * wB * 0.6 - Math.cos(ang) * wB * 0.4, base[1] - ny * wB * 0.6],
+    [end[0] - nx * wT * 0.5, end[1] - ny * wT * 0.5],
+    [end[0] + nx * wT * 0.5, end[1] + ny * wT * 0.5],
+    [base[0] + nx * wB * 0.55 + Math.cos(ang) * wB * 0.5, base[1] + ny * wB * 0.7],
+  ]);
+  // Head: pointing forward-down from the poll (down to the water when drinking).
+  const hAng = drink ? -1.45 : ang - (o.pose === 'alert' ? 1.25 : 1.0);
+  const hl = 0.11 * H;
+  const hd: Pt = [Math.cos(hAng), -Math.sin(hAng)];
+  const hn: Pt = [-hd[1], hd[0]];
+  const muzzle: Pt = [end[0] + hd[0] * hl, end[1] + hd[1] * hl];
+  const head = polyD([
+    [end[0] + hn[0] * 0.03 * H - hd[0] * 0.015 * H, end[1] + hn[1] * 0.03 * H - hd[1] * 0.015 * H],
+    [muzzle[0] + hn[0] * 0.016 * H, muzzle[1] + hn[1] * 0.016 * H],
+    [muzzle[0] + hd[0] * 0.008 * H, muzzle[1] + hd[1] * 0.008 * H],
+    [muzzle[0] - hn[0] * 0.018 * H, muzzle[1] - hn[1] * 0.018 * H],
+    [end[0] - hn[0] * 0.032 * H, end[1] - hn[1] * 0.032 * H],
+  ]);
+  // The poll (top of the head) for the ossicones and ears: the side away from the jaw.
+  const up = hn[1] < 0 ? hn : ([-hn[0], -hn[1]] as Pt);
+  const poll: Pt = [end[0] + up[0] * 0.025 * H, end[1] + up[1] * 0.025 * H];
+  // Legs: front pair under the chest, hind pair under the rump; knees knobbly.
+  const ph = (o.phase ?? 0) * Math.PI * 2;
+  const stride = o.pose === 'walk' ? 0.08 : 0.015;
+  const spread = drink ? 0.15 : 0;
+  const legs: { top: Pt; foot: number; far: boolean; front: boolean }[] = [
+    { top: P(-0.165, -0.42), foot: -0.17 + Math.sin(ph) * stride, far: true, front: false },
+    { top: P(0.07, -0.43), foot: 0.08 + Math.sin(ph) * stride - spread, far: true, front: true },
+    { top: P(-0.205, -0.42), foot: -0.2 - Math.sin(ph) * stride, far: false, front: false },
+    { top: P(0.115, -0.43), foot: 0.12 - Math.sin(ph) * stride + spread, far: false, front: true },
+  ];
+  const legParts: string[] = [];
+  const patches: string[] = [];
+  const lowerParts: string[] = [];
+  for (const l of legs) {
+    const fx = l.foot * H;
+    const kneeY = (l.front ? -0.22 : -0.24) * H * (drink && l.front ? 0.8 : 1);
+    const knee: Pt = [l.top[0] + (fx - l.top[0]) * 0.55 + (l.front ? 0.01 : -0.02) * H, kneeY];
+    const wU = (l.front ? 0.04 : 0.055) * H;
+    const upper = polyD([
+      [l.top[0] - wU / 2, l.top[1]],
+      [knee[0] - 0.012 * H, knee[1]],
+      [knee[0] + 0.012 * H, knee[1]],
+      [l.top[0] + wU / 2, l.top[1]],
+    ]);
+    const shin = polyD([
+      [knee[0] - 0.011 * H, knee[1]],
+      [fx - 0.008 * H, -0.012 * H],
+      [fx + 0.008 * H, -0.012 * H],
+      [knee[0] + 0.011 * H, knee[1]],
+    ]);
+    const c = l.far ? shade(patch, -0.15) : patch;
+    const lowC = l.far ? shade(lower, -0.2) : lower;
+    legParts.push(
+      el('path', {
+        d: upper,
+        fill: l.far ? shade(net, -0.18) : net,
+        stroke: ink,
+        'stroke-width': ew,
+      }),
+      el('path', { d: shin, fill: lowC, stroke: ink, 'stroke-width': ew }),
+      el('path', {
+        d: ellipseD(knee[0], knee[1], 0.016 * H, 0.014 * H),
+        fill: lowC,
+        stroke: ink,
+        'stroke-width': ew,
+      }),
+      el('path', { d: ellipseD(fx, -0.008 * H, 0.012 * H, 0.009 * H), fill: '#2A2420' }),
+    );
+    // Small patches on the upper leg.
+    for (let k = 0; k < 3; k++) {
+      const f = 0.2 + k * 0.28;
+      const px = l.top[0] + (knee[0] - l.top[0]) * f;
+      const py = l.top[1] + (knee[1] - l.top[1]) * f;
+      patches.push(ellipseD(px, py, wU * 0.3, 0.012 * H));
+    }
+    lowerParts.push(c);
+  }
+  const farLegs = legParts.slice(0, 8);
+  const nearLegs = legParts.slice(8);
+  // Coat: chestnut patches on a jittered grid, clipped to the body and neck, cream between.
+  const coatId = nextId();
+  const cell = 0.058 * H;
+  const bodyPatches: string[] = [];
+  for (let gy = -1.05 * H; gy < -0.36 * H; gy += cell)
+    for (let gx = -0.28 * H; gx < 0.36 * H; gx += cell) {
+      const cx = gx + (rnd() - 0.5) * cell * 0.35;
+      const cy = gy + (rnd() - 0.5) * cell * 0.35;
+      const r = cell * (0.47 + rnd() * 0.06);
+      const pts: Pt[] = [];
+      const sides = 5 + Math.floor(rnd() * 3);
+      for (let k = 0; k < sides; k++) {
+        const a = (k / sides) * Math.PI * 2 + rnd() * 0.4;
+        const rr = r * (0.8 + rnd() * 0.3);
+        pts.push([cx + Math.cos(a) * rr, cy + Math.sin(a) * rr]);
+      }
+      bodyPatches.push(polyD(pts));
+    }
+  const tail = `M${r2(P(-0.235, -0.5)[0])} ${r2(P(-0.235, -0.5)[1])}Q${r2(-0.27 * H)} ${r2(-0.38 * H)} ${r2(-0.26 * H)} ${r2(-0.27 * H)}`;
+  const mane = `M${r2(base[0] - nx * wB * 0.6 - Math.cos(ang) * wB * 0.4)} ${r2(base[1] - ny * wB * 0.6)}L${r2(end[0] - nx * wT * 0.5)} ${r2(end[1] - ny * wT * 0.5)}`;
+  const ossi = (dx: number): string => {
+    const b: Pt = [poll[0] + hd[0] * dx * H, poll[1] + hd[1] * dx * H];
+    const t: Pt = [
+      b[0] + up[0] * 0.045 * H - hd[0] * 0.01 * H,
+      b[1] + up[1] * 0.045 * H - hd[1] * 0.01 * H,
+    ];
+    return `M${r2(b[0])} ${r2(b[1])}L${r2(t[0])} ${r2(t[1])}`;
+  };
+  const ossiTips = (dx: number): Pt => {
+    const b: Pt = [poll[0] + hd[0] * dx * H, poll[1] + hd[1] * dx * H];
+    return [
+      b[0] + up[0] * 0.045 * H - hd[0] * 0.01 * H,
+      b[1] + up[1] * 0.045 * H - hd[1] * 0.01 * H,
+    ];
+  };
+  const t1 = ossiTips(0.0);
+  const t2 = ossiTips(0.018);
+  const earBase: Pt = [poll[0] - hd[0] * 0.01 * H, poll[1] - hd[1] * 0.01 * H];
+  const ear = polyD([
+    earBase,
+    [
+      earBase[0] - hd[0] * 0.04 * H + up[0] * 0.012 * H,
+      earBase[1] - hd[1] * 0.04 * H + up[1] * 0.012 * H,
+    ],
+    [
+      earBase[0] - hd[0] * 0.035 * H - up[0] * 0.006 * H,
+      earBase[1] - hd[1] * 0.035 * H - up[1] * 0.006 * H,
+    ],
+  ]);
+  return g(
+    {},
+    ...farLegs,
+    el('path', { d: tail, fill: 'none', stroke: ink, 'stroke-width': Math.max(0.5, 0.01 * H) }),
+    el('path', { d: ellipseD(-0.26 * H, -0.26 * H, 0.012 * H, 0.03 * H), fill: '#2A2018' }),
+    el('path', {
+      d: body + neck,
+      fill: net,
+      stroke: ink,
+      'stroke-width': ew,
+      'stroke-linejoin': 'round',
+    }),
+    el('clipPath', { id: coatId }, el('path', { d: body + neck })),
+    g(
+      { 'clip-path': `url(#${coatId})` },
+      el('path', {
+        d: bodyPatches.join(''),
+        fill: patch,
+        stroke: patchEdge,
+        'stroke-width': Math.max(0.25, H * 0.002),
+      }),
+      // Lit back and neck front, shaded belly.
+      el('path', {
+        d: ellipseD(-0.04 * H, -0.62 * H, 0.22 * H, 0.06 * H),
+        fill: '#FFF4DC',
+        opacity: 0.22,
+      }),
+      el('path', {
+        d: ellipseD(0, -0.39 * H + drop * H * 0.5, 0.26 * H, 0.06 * H),
+        fill: '#2A1A10',
+        opacity: 0.3,
+      }),
+    ),
+    el('path', { d: patches.join(''), fill: patch }),
+    ...nearLegs,
+    el('path', {
+      d: mane,
+      fill: 'none',
+      stroke: shade(patch, 0.1),
+      'stroke-width': Math.max(0.5, 0.009 * H),
+      'stroke-linecap': 'round',
+      'stroke-dasharray': `${r2(0.012 * H)} ${r2(0.006 * H)}`,
+    }),
+    el('path', { d: ear, fill: net, stroke: ink, 'stroke-width': ew }),
+    el('path', {
+      d: head,
+      fill: shade(net, -0.05),
+      stroke: ink,
+      'stroke-width': ew,
+      'stroke-linejoin': 'round',
+    }),
+    el('path', {
+      d: ellipseD(end[0] + hd[0] * hl * 0.45, end[1] + hd[1] * hl * 0.45, 0.022 * H, 0.016 * H),
+      fill: patch,
+      opacity: 0.8,
+    }),
+    el('path', {
+      d: ellipseD(
+        end[0] + hd[0] * hl * 0.3 + up[0] * 0.012 * H,
+        end[1] + hd[1] * hl * 0.3 + up[1] * 0.012 * H,
+        0.006 * H,
+        0.006 * H,
+      ),
+      fill: '#1A1410',
+    }),
+    el('path', {
+      d: ossi(0) + ossi(0.018),
+      fill: 'none',
+      stroke: shade(net, -0.25),
+      'stroke-width': Math.max(0.5, 0.009 * H),
+      'stroke-linecap': 'round',
+    }),
+    el('path', {
+      d:
+        ellipseD(t1[0], t1[1], 0.007 * H, 0.007 * H) + ellipseD(t2[0], t2[1], 0.007 * H, 0.007 * H),
+      fill: '#2A2018',
+    }),
+  );
 }

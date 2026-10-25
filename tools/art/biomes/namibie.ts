@@ -381,7 +381,8 @@ function verStrip(ctx: LayerCtx): string {
   // v1.6 (D-042): the drinkers redrawn with the fauna rig (head down at the water's edge,
   // a few walking in or looking up), plus zebra, a giraffe and an ostrich pair.
   const herd: [number, number, AnimalKind, 1 | -1, Pose, number][] = [
-    [-0.58, -0.4, 'giraffe', 1, 'alert', 13],
+    [-0.62, -0.5, 'giraffe', 1, 'alert', 8],
+    [-0.58, -0.4, 'giraffe', 1, 'drink', 13],
     [-0.48, 0.2, 'springbok', 1, 'graze', 3.8],
     [-0.4, -0.7, 'zebra', 1, 'walk', 4.2],
     [-0.36, -0.6, 'springbok', 1, 'alert', 3.8],
