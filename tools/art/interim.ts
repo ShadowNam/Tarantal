@@ -219,7 +219,7 @@ if (wants('scenery')) {
       const lp = plan.layers[layer.id];
       const enc = lp?.encode ?? 'png8';
       const img = renderLayer(cfg, plan, layer);
-      put(png, enc === 'png8' ? encodePng8(img) : encodePng(img));
+      put(png, enc === 'png8' ? encodePng8(img, lp?.colours) : encodePng(img));
       put(
         png.replace(/\.png$/, '.json'),
         await json({

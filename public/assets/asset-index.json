@@ -2143,14 +2143,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/karoo-autumn/layers/far_ridge-0.922cf01dee4c.png",
-          "bytes": 59211,
-          "hash": "922cf01dee4c"
+          "path": "assets/karoo-autumn/layers/far_ridge-0.fcb487d56339.png",
+          "bytes": 49683,
+          "hash": "fcb487d56339"
         },
         {
-          "path": "assets/karoo-autumn/layers/far_ridge-1.72833ccb37dc.png",
-          "bytes": 26028,
-          "hash": "72833ccb37dc"
+          "path": "assets/karoo-autumn/layers/far_ridge-1.9ee4ca254393.png",
+          "bytes": 21507,
+          "hash": "9ee4ca254393"
         }
       ],
       "tileWidth": 2048,
@@ -2161,52 +2161,52 @@
         "bucket": 256,
         "rows": [
           [
-            158,
-            211
+            164,
+            186
           ],
           [
-            249,
-            259
+            254,
+            264
           ],
           [
-            198,
-            244
-          ],
-          [
-            193,
-            253
-          ],
-          [
-            223,
-            229
-          ],
-          [
-            178,
-            233
-          ],
-          [
-            230,
-            237
-          ],
-          [
-            226,
-            237
-          ],
-          [
-            212,
-            227
-          ],
-          [
-            185,
-            196
+            210,
+            245
           ],
           [
             150,
-            240
+            173
           ],
           [
-            221,
-            272
+            220,
+            222
+          ],
+          [
+            256,
+            273
+          ],
+          [
+            231,
+            237
+          ],
+          [
+            199,
+            205
+          ],
+          [
+            215,
+            227
+          ],
+          [
+            183,
+            208
+          ],
+          [
+            150,
+            170
+          ],
+          [
+            238,
+            256
           ]
         ]
       }
@@ -2216,14 +2216,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/karoo-autumn/layers/far_veld-0.bfacf750ce01.png",
-          "bytes": 18636,
-          "hash": "bfacf750ce01"
+          "path": "assets/karoo-autumn/layers/far_veld-0.6a9de0fb1b3b.png",
+          "bytes": 16465,
+          "hash": "6a9de0fb1b3b"
         },
         {
-          "path": "assets/karoo-autumn/layers/far_veld-1.a461cc2ae1a0.png",
-          "bytes": 17688,
-          "hash": "a461cc2ae1a0"
+          "path": "assets/karoo-autumn/layers/far_veld-1.bd6a0946da51.png",
+          "bytes": 16722,
+          "hash": "bd6a0946da51"
         }
       ],
       "tileWidth": 2048,
@@ -2234,60 +2234,60 @@
         "bucket": 256,
         "rows": [
           [
-            111,
-            152
-          ],
-          [
-            138,
-            213
-          ],
-          [
-            185,
+            167,
             232
           ],
           [
-            136,
-            184
+            126,
+            188
           ],
           [
-            120,
-            213
-          ],
-          [
-            112,
-            175
-          ],
-          [
-            145,
+            141,
             232
           ],
           [
-            142,
+            139,
+            183
+          ],
+          [
+            126,
+            217
+          ],
+          [
+            158,
+            223
+          ],
+          [
+            175,
             232
           ],
           [
-            123,
+            169,
             232
           ],
           [
-            130,
-            209
-          ],
-          [
-            187,
+            139,
             232
           ],
           [
-            155,
+            150,
+            199
+          ],
+          [
+            118,
+            179
+          ],
+          [
+            133,
             206
           ],
           [
-            151,
-            232
+            111,
+            161
           ],
           [
-            168,
-            232
+            123,
+            179
           ],
           [
             107,
@@ -2301,19 +2301,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/karoo-autumn/layers/foreground-0.2ed613e25c79.png",
-          "bytes": 33624,
-          "hash": "2ed613e25c79"
+          "path": "assets/karoo-autumn/layers/foreground-0.7b4ecee92949.png",
+          "bytes": 30885,
+          "hash": "7b4ecee92949"
         },
         {
-          "path": "assets/karoo-autumn/layers/foreground-1.c02971d50478.png",
-          "bytes": 17545,
-          "hash": "c02971d50478"
+          "path": "assets/karoo-autumn/layers/foreground-1.cb725bb44f40.png",
+          "bytes": 16071,
+          "hash": "cb725bb44f40"
         },
         {
-          "path": "assets/karoo-autumn/layers/foreground-2.eeb78c12810a.png",
-          "bytes": 20068,
-          "hash": "eeb78c12810a"
+          "path": "assets/karoo-autumn/layers/foreground-2.b566de25597c.png",
+          "bytes": 18394,
+          "hash": "b566de25597c"
         },
         {
           "path": "assets/karoo-autumn/layers/foreground-3.67c0d9056c65.png",
@@ -2361,99 +2361,99 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/karoo-autumn/layers/mid-0.f15fac58a679.png",
-          "bytes": 83172,
-          "hash": "f15fac58a679"
+          "path": "assets/karoo-autumn/layers/mid-0.443e90da89bb.png",
+          "bytes": 109554,
+          "hash": "443e90da89bb"
         },
         {
-          "path": "assets/karoo-autumn/layers/mid-1.ccad3bdd1fcb.png",
-          "bytes": 77283,
-          "hash": "ccad3bdd1fcb"
+          "path": "assets/karoo-autumn/layers/mid-1.cc8094d78cde.png",
+          "bytes": 103416,
+          "hash": "cc8094d78cde"
         },
         {
-          "path": "assets/karoo-autumn/layers/mid-2.50b7da849733.png",
-          "bytes": 16345,
-          "hash": "50b7da849733"
+          "path": "assets/karoo-autumn/layers/mid-2.ef82a7eaf218.png",
+          "bytes": 15201,
+          "hash": "ef82a7eaf218"
         }
       ],
       "tileWidth": 2048,
       "left": -300,
-      "top": 600,
-      "height": 310,
+      "top": 430,
+      "height": 480,
       "solid": {
         "bucket": 256,
         "rows": [
           [
-            60,
+            265,
+            288
+          ],
+          [
+            284,
+            329
+          ],
+          [
+            258,
+            282
+          ],
+          [
+            311,
+            379
+          ],
+          [
+            413,
+            480
+          ],
+          [
+            240,
+            252
+          ],
+          [
+            272,
             310
           ],
           [
-            61,
-            310
+            285,
+            323
           ],
           [
-            60,
-            310
+            423,
+            480
           ],
           [
-            62,
-            310
+            400,
+            418
           ],
           [
-            62,
-            310
+            466,
+            480
           ],
           [
-            58,
-            310
+            437,
+            480
           ],
           [
-            55,
-            310
+            391,
+            480
           ],
           [
-            60,
-            310
+            386,
+            438
           ],
           [
-            62,
-            310
+            300,
+            312
           ],
           [
-            62,
-            310
+            240,
+            273
           ],
           [
-            61,
-            310
+            257,
+            270
           ],
           [
-            59,
-            310
-          ],
-          [
-            62,
-            310
-          ],
-          [
-            61,
-            310
-          ],
-          [
-            59,
-            310
-          ],
-          [
-            59,
-            310
-          ],
-          [
-            61,
-            310
-          ],
-          [
-            59,
-            310
+            422,
+            480
           ]
         ]
       }
@@ -2463,19 +2463,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/karoo-autumn/layers/near-0.13f8cebec2a0.png",
-          "bytes": 67254,
-          "hash": "13f8cebec2a0"
+          "path": "assets/karoo-autumn/layers/near-0.4c409ea1a904.png",
+          "bytes": 69376,
+          "hash": "4c409ea1a904"
         },
         {
-          "path": "assets/karoo-autumn/layers/near-1.a306073dceb6.png",
-          "bytes": 77057,
-          "hash": "a306073dceb6"
+          "path": "assets/karoo-autumn/layers/near-1.353e7761081c.png",
+          "bytes": 78736,
+          "hash": "353e7761081c"
         },
         {
-          "path": "assets/karoo-autumn/layers/near-2.ae26ce036f02.png",
-          "bytes": 64047,
-          "hash": "ae26ce036f02"
+          "path": "assets/karoo-autumn/layers/near-2.fba393875985.png",
+          "bytes": 63239,
+          "hash": "fba393875985"
         }
       ],
       "tileWidth": 2048,

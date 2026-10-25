@@ -273,8 +273,8 @@ export function clumpMasses(clumps: readonly Clump[], look: PlantLook, rnd: Rnd)
     {},
     el('path', { d: dark.join(''), fill: leaf[1] }),
     el('path', { d: body.join(''), fill: leaf[3] }),
-    el('path', { d: lit.join(''), fill: leaf[5], opacity: 0.8 }),
-    el('path', { d: holes.join(''), fill: leaf[1], opacity: 0.9 }),
+    el('path', { d: lit.join(''), fill: leaf[leaf.length - 1], opacity: 0.8 }),
+    el('path', { d: holes.join(''), fill: leaf[2], opacity: 0.9 }),
   );
 }
 
@@ -620,11 +620,13 @@ export function hangingFruit(
   const low = lowFront(t);
   const out: string[] = [];
   const used: number[] = [];
-  for (let k = 0; k < n && low.length > 0; k++) {
+  let placed = 0;
+  for (let k = 0; placed < n && k < n * 6 && low.length > 0; k++) {
     const cl = low[Math.floor(rnd() * low.length)] as Clump;
     const x0 = cl.x + (rnd() - 0.5) * cl.rx;
     if (used.some((u) => Math.abs(u - x0) < w * 2.2)) continue;
     used.push(x0);
+    placed++;
     const y0 = cl.y + cl.ry * 0.3;
     const sl = stalk[0] + rnd() * (stalk[1] - stalk[0]);
     const sway = (rnd() - 0.5) * sl * 0.12;
@@ -698,8 +700,8 @@ export function veldShrub(
   pen: Pen,
 ): string {
   const leaf = look.leaf;
-  const tall = kind === 'ganna' ? 1.25 : kind === 'driedoring' ? 1.1 : 0.85;
-  const wide = kind === 'renoster' ? 1.3 : kind === 'ganna' ? 0.95 : 1.1;
+  const tall = kind === 'ganna' ? 1.3 : kind === 'driedoring' ? 1.1 : 1.05;
+  const wide = kind === 'renoster' ? 1.15 : kind === 'ganna' ? 0.95 : 1.1;
   const nM = 2 + Math.floor(rnd() * 3);
   const mounds: { x: number; y: number; rx: number; ry: number; n: (t: number) => number }[] = [];
   for (let k = 0; k < nM; k++) {
@@ -711,22 +713,21 @@ export function veldShrub(
       y: y - ry * 0.55 - (1 - Math.abs(f)) * s * 0.1,
       rx,
       ry,
-      n: ringNoise(rnd, 3, kind === 'driedoring' ? 11 : 8, kind === 'driedoring' ? 0.7 : 0.45),
+      n: ringNoise(rnd, 3, 13, kind === 'driedoring' ? 0.95 : 0.75),
     });
   }
   // Back mounds first (higher and smaller), front ones over them.
   mounds.sort((a, b) => a.y - b.y);
-  const ring = (m: (typeof mounds)[number], k = 1): string => {
+  /** A mound's rim from ground to ground (rounded sides into the ground), left to right. */
+  const rim = (m: (typeof mounds)[number]): Pt[] => {
     const pts: Pt[] = [];
-    const steps = 22;
+    const steps = 26;
     for (let i = 0; i < steps; i++) {
-      const t = Math.PI + (i / (steps - 1)) * Math.PI; // the upper half, left to right
-      const r = (1 + m.n(t) * 0.35) * k;
-      pts.push([m.x + Math.cos(t) * m.rx * r, m.y + Math.sin(t) * m.ry * r]);
+      const t = Math.PI * 0.86 + (i / (steps - 1)) * Math.PI * 1.28;
+      const r = 1 + m.n(t) * 0.35;
+      pts.push([m.x + Math.cos(t) * m.rx * r, Math.min(y, m.y + Math.sin(t) * m.ry * r)]);
     }
-    // Flat-ish base at the ground.
-    pts.push([m.x + m.rx * 0.9 * k, y], [m.x - m.rx * 0.9 * k, y]);
-    return polyD(pts);
+    return pts;
   };
   const parts: string[] = [];
   const blur = blurFilter(Math.max(0.6, s * 0.06));
@@ -762,16 +763,20 @@ export function veldShrub(
   const ink = mix(pen.ink, leaf[1] as string, 0.45);
   const lineW = Math.max(0.5, pen.w * 0.35);
   for (const m of mounds) {
-    const d = ring(m);
+    const edge = rim(m);
+    const d = polyD(edge);
     const id = nextId();
     parts.push(
+      // A broken outline over the top only (gaps where light catches the edge), then the fill.
       el('path', {
-        d,
-        fill: leaf[2],
+        d: polyD(edge, false),
+        fill: 'none',
         stroke: ink,
-        'stroke-width': lineW,
+        'stroke-width': lineW * 2,
         'stroke-linejoin': 'round',
+        'stroke-dasharray': `${r2(s * 0.5 + 3)} ${r2(Math.max(1, s * 0.12))}`,
       }),
+      el('path', { d, fill: leaf[2] }),
       el('clipPath', { id }, el('path', { d })),
     );
     const inner: string[] = [
@@ -820,6 +825,26 @@ export function veldShrub(
       inner.push(bin.svg(leaf));
     }
     parts.push(g({ 'clip-path': `url(#${id})` }, ...inner));
+    if (s >= 6) {
+      // A leafy fringe over the top edge: the silhouette breaks into sprigs.
+      const fringe = new StrokeBin();
+      const dab = Math.max(0.8, s * 0.07);
+      for (let k = 0; k < Math.round(m.rx / Math.max(1, dab * 0.9)); k++) {
+        const t = Math.PI * (1.05 + rnd() * 0.9);
+        const r = 1 + m.n(t) * 0.35;
+        const px = m.x + Math.cos(t) * m.rx * r;
+        const py = m.y + Math.sin(t) * m.ry * r;
+        const up = Math.sin(t) < -0.5;
+        const c = leaf[up && Math.cos(t) < 0.2 ? 4 : 2] as string;
+        const ang = t + (rnd() - 0.5) * 0.8;
+        fringe.add(
+          c,
+          Math.max(0.5, Math.round(dab * 0.5 * 4) / 4),
+          `M${r2(px - Math.cos(ang) * dab * 0.4)} ${r2(py - Math.sin(ang) * dab * 0.4)}l${r2(Math.cos(ang) * dab * 1.2)} ${r2(Math.sin(ang) * dab * 1.2)}`,
+        );
+      }
+      parts.push(fringe.svg(leaf));
+    }
   }
   // Twigs out of the top and sides (spiny on driedoring, upright on ganna).
   const twigs: string[] = [];

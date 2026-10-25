@@ -36,6 +36,8 @@ export interface LayerPlan {
   readonly height: number;
   /** Tile encoding: palette PNG (default) or full colour ('png', smooth skies: no banding). */
   readonly encode?: 'png' | 'png8';
+  /** v1.6 (D-042): palette size for png8 (default 256): fewer colours, fewer bytes. */
+  readonly colours?: number;
   /** D-035: px over which the art fades in at the top edge (tall grass tips taper out there
    *  instead of being cut flat by the texture's edge). */
   readonly fadeTop?: number;

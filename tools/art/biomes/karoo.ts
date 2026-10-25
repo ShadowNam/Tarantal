@@ -3,6 +3,8 @@
 // track, a wire fence, the windpomp + corrugated reservoir, a rusty fictional bakkie, a potjie on
 // a fire, a fence-post bell and aloes. Light from the upper left. D-031.
 import { verVeld } from './common';
+import { plantLook, seedTuft, veldShrub, type ShrubKind } from '../flora';
+import { sweetThorn } from '../species';
 import type { BiomeArtPlan, LayerCtx, PaintCtx, PropCtx } from '../landscape';
 import {
   edgePts,
@@ -371,6 +373,41 @@ export function bush(ctx: PaintCtx, x: number, y: number, s: number, pen: Pen): 
     ctx.c('twig'),
     pen,
     shrubShape(ctx.rnd),
+  );
+}
+
+/**
+ * v1.6 (D-042): a Karoo bush (renosterbos, fine and grey-green, or ganna, olive and twiggy) as
+ * layered mounds; tiny on the far veld, textured on mid and near.
+ */
+export function karooBush(ctx: PaintCtx, x: number, y: number, s: number, pen: Pen): string {
+  const kind: ShrubKind = ctx.rnd() < 0.6 ? 'renoster' : 'ganna';
+  const leaf =
+    kind === 'renoster' ? mix(ctx.c('bossieGrey'), ctx.c('bossie'), 0.5) : ctx.c('bossie');
+  const look = plantLook({
+    leaf: ctx.rnd() < 0.15 ? mix(leaf, ctx.c('autumn'), 0.45) : leaf,
+    bark: ctx.c('twig'),
+    ink: pen.ink,
+    sun: ctx.c('bleached'),
+  });
+  return veldShrub(ctx.rnd, x, y, s, kind, look, pen);
+}
+
+/** v1.6: a golden veld tuft with seed heads (straw blades, pale tips, cream heads). */
+export function veldTuft(ctx: PaintCtx, x: number, y: number, h: number, pen: Pen): string {
+  return seedTuft(
+    ctx.rnd,
+    x,
+    y,
+    h,
+    {
+      base: shade(ctx.c('straw'), -0.22),
+      blade: ctx.c('straw'),
+      tip: ctx.c('bleached'),
+      seed: ctx.c('seed'),
+    },
+    pen,
+    1 + Math.floor(ctx.rnd() * 3),
   );
 }
 
@@ -764,7 +801,7 @@ function farVeld(ctx: LayerCtx): string {
   for (let x = ctx.rnd() * 40; x < ctx.width; x += 14 + ctx.rnd() * 46) {
     const y = 584 + Math.pow(ctx.rnd(), 1.3) * 170;
     const s = 3 + ((y - 580) / 170) * 7 + ctx.rnd() * 2;
-    far.push({ y, svg: bush(ctx, x, y, s, { ink: ctx.pen.ink, w: 1.2 }) });
+    far.push({ y, svg: karooBush(ctx, x, y, s, { ink: ctx.pen.ink, w: 1.2 }) });
   }
   far.sort((a, b) => a.y - b.y);
   inside.push(...far.map((i) => i.svg));
@@ -775,23 +812,12 @@ function farVeld(ctx: LayerCtx): string {
   parts.push(farmhouse(ctx, fx, (x) => yAt(band.edge, x)));
   const wx = ctx.u(0.36);
   parts.push(farWindpomp(ctx, wx, yAt(band.edge, wx) + 3));
+  // v1.6: stands of sweet thorn along a dry riverbed line, as far trees (a few clumps each).
   for (const u of [0.08, 0.14, 0.88]) {
     const x = ctx.u(u);
     for (let k = 0; k < 3; k++) {
-      const tx = x + k * 34 + ctx.rnd() * 10;
-      parts.push(
-        tree(
-          ctx.rnd,
-          k === 1 ? 'pepper' : 'round',
-          tx,
-          yAt(band.edge, tx) + 3,
-          36 + ctx.rnd() * 14,
-          46 + ctx.rnd() * 16,
-          tone(ctx.c('tree'), 0.3, 0.22),
-          ctx.c('trunk'),
-          ctx.pen,
-        ),
-      );
+      const tx = x + k * 30 + ctx.rnd() * 12;
+      parts.push(sweetThorn(ctx.rnd, tx, yAt(band.edge, tx) + 3, 40 + ctx.rnd() * 18, ctx, 'far'));
     }
   }
   return g({}, ...parts);
@@ -923,7 +949,7 @@ function mid(ctx: LayerCtx): string {
           y,
           svg: stone(ctx.rnd, x, y, s * 0.6, tone(ctx.c('stone'), 0.25, 0.25), pen),
         });
-      else items.push({ y, svg: bush(ctx, x, y, s * (0.9 + ctx.rnd() * 0.7), pen) });
+      else items.push({ y, svg: karooBush(ctx, x, y, s * (0.9 + ctx.rnd() * 0.7), pen) });
     }
     x += ctx.rnd() < 0.15 ? 140 + ctx.rnd() * 160 : 18 + ctx.rnd() * 70;
   }
@@ -975,6 +1001,14 @@ function mid(ctx: LayerCtx): string {
       1.5,
     ),
   );
+  // v1.6 (D-042): two sweet thorns in front of the fence, with pompoms, pods and thorns.
+  for (const [u, h] of [
+    [0.4, 250],
+    [0.9, 200],
+  ] as const) {
+    const x = ctx.u(u);
+    parts.push(sweetThorn(ctx.rnd, x, yAt(band.edge, x) + 46, h, ctx, 'mid'));
+  }
   return g({}, ...parts);
 }
 
@@ -1040,7 +1074,16 @@ function near(ctx: LayerCtx): string {
   });
   for (let x = 200 + ctx.rnd() * 300; x < ctx.width; x += 450 + ctx.rnd() * 800) {
     const y = 960 + ctx.rnd() * 60;
-    items.push({ y, svg: bush(ctx, x, y, 24 + ctx.rnd() * 18, pen) });
+    items.push({ y, svg: karooBush(ctx, x, y, 24 + ctx.rnd() * 18, pen) });
+  }
+  // Golden tufts with seed heads among the grass.
+  for (let x = 60 + ctx.rnd() * 200; x < ctx.width; x += 140 + ctx.rnd() * 320) {
+    const y = 880 + ctx.rnd() * 190;
+    if (y > 905 && y < 965) continue;
+    items.push({
+      y,
+      svg: veldTuft(ctx, x, y, 34 + ((y - 860) / 220) * 26, { ink: ctx.pen.ink, w: 3 }),
+    });
   }
   items.sort((a, b) => a.y - b.y);
   inside.push(...items.map((i) => i.svg));
@@ -1961,17 +2004,19 @@ export const KAROO_PLAN: BiomeArtPlan = {
   biome: 'karoo-autumn',
   layers: {
     sky: { top: 0, height: 1080, encode: 'png', draw: sky },
-    far_ridge: { top: 380, height: 280, draw: farRidge },
+    // v1.6 (D-042): 128-colour palettes keep the home biome inside the 3 MB first download.
+    far_ridge: { top: 380, height: 280, colours: 128, draw: farRidge },
     // v1.3: the Ver plane's strip (shown only on maps that open it).
     ver_veld: {
       top: 536,
       height: 52,
       draw: verVeld({ ground: 'veld', light: 'veldLight', scrub: 'bossie' }),
     },
-    far_veld: { top: 464, height: 232, draw: farVeld },
-    mid: { top: 600, height: 310, draw: mid },
-    near: { top: 820, height: 260, draw: near },
-    foreground: { top: 880, height: 200, fadeTop: 28, draw: foreground },
+    far_veld: { top: 464, height: 232, colours: 128, draw: farVeld },
+    // v1.6: taller, for the sweet thorns' crowns.
+    mid: { top: 430, height: 480, colours: 128, draw: mid },
+    near: { top: 820, height: 260, colours: 128, draw: near },
+    foreground: { top: 880, height: 200, fadeTop: 28, colours: 128, draw: foreground },
   },
   props: {
     'karoo/windpomp': { draw: windpomp, frame: { w: 310, h: 560, ox: 225, oy: 210 } },
