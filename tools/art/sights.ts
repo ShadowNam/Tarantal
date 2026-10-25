@@ -225,16 +225,17 @@ function scope(): string {
           [1, '#0A0B0D'],
         ],
       ),
-      // Glass: a shade darker toward the edge (the tube's shadow), a green-blue coating there.
+      // Glass: a thin dark band at the very edge (the tube's shadow) and a hint of green-blue
+      // coating. Kept narrow (v1.6 review): a wide band read as grey fog over the bright skies.
       radial(vig, R, [
         [0, '#000000', 0],
-        [0.82, '#000000', 0],
-        [1, '#000000', 0.38],
+        [0.94, '#000000', 0],
+        [1, '#000000', 0.6],
       ]),
       radial(coat, R, [
         [0, '#5FB3A3', 0],
-        [0.9, '#5FB3A3', 0],
-        [1, '#5FB3A3', 0.22],
+        [0.97, '#5FB3A3', 0],
+        [1, '#5FB3A3', 0.12],
       ]),
     ),
     el('rect', { x: -256, y: -256, width: 512, height: 512, fill: `url(#${dark})` }),
@@ -262,7 +263,7 @@ function scope(): string {
     el('path', {
       d: `M${-R * 0.78} ${-R * 0.18}A${R * 0.86} ${R * 0.86} 0 0 1 ${-R * 0.22} ${-R * 0.8}A${R * 0.98} ${R * 0.98} 0 0 0 ${-R * 0.78} ${-R * 0.18}Z`,
       fill: '#FFFFFF',
-      opacity: 0.1,
+      opacity: 0.05,
     }),
   );
 }
