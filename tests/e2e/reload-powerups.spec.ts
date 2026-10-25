@@ -16,7 +16,6 @@ import {
   hook,
   isLandscape,
   isTouchProject,
-  reload,
   startHunt,
   waitTicks,
 } from './helpers';
@@ -113,6 +112,99 @@ async function fireShots(page: Page, touch: boolean, n: number): Promise<number>
   );
 }
 
+interface ReloadWatch {
+  /** Ticks from the reload starting to the belt full again. */
+  readonly ticks: number;
+  /** Most glints seen on the belt while it reloaded. */
+  readonly bolts: number;
+  /** Blitslaai was still running when the reload started. */
+  readonly fastAtStart: boolean;
+  readonly shells: number;
+}
+
+/**
+ * All inside the page (no round trips while the 12 s power-up runs): fires two shots into the sky,
+ * waits out the cooldown, taps the belt (a reload for mouse and touch alike), then watches the
+ * reload frame by frame until the belt is full.
+ */
+async function shootAndReload(page: Page, touch: boolean): Promise<ReloadWatch> {
+  return page.evaluate(
+    (isTouch) =>
+      new Promise<ReloadWatch>((resolve, reject) => {
+        const canvas = document.querySelector<HTMLCanvasElement>('#game canvas');
+        const h = window.__TM__;
+        const belt = h?.rects['belt'];
+        if (!canvas || !h || !belt) {
+          reject(new Error('game or belt not ready'));
+          return;
+        }
+        const r = canvas.getBoundingClientRect();
+        let id = 980;
+        const tap = (x: number, y: number): void => {
+          const init: PointerEventInit = {
+            clientX: r.left + (x / h.designWidth) * r.width,
+            clientY: r.top + (y / h.designHeight) * r.height,
+            pointerId: id++,
+            pointerType: isTouch ? 'touch' : 'mouse',
+            isPrimary: true,
+            button: 0,
+            buttons: 1,
+            bubbles: true,
+            cancelable: true,
+          };
+          canvas.dispatchEvent(new PointerEvent('pointerdown', init));
+          canvas.dispatchEvent(new PointerEvent('pointerup', { ...init, buttons: 0 }));
+        };
+        const startShots = h.shots;
+        let phase: 'shoot' | 'settle' | 'reload' | 'watch' = 'shoot';
+        let lastTick = -99;
+        let start: number | null = null;
+        let bolts = 0;
+        let fastAtStart = false;
+        const loop = (): void => {
+          if (h.over) {
+            reject(new Error('the hunt ended first'));
+            return;
+          }
+          if (phase === 'shoot') {
+            if (h.shots - startShots >= 2) {
+              phase = 'settle';
+              lastTick = h.tick;
+            } else if (h.tick - lastTick >= 12) {
+              lastTick = h.tick;
+              tap(h.designWidth * (0.4 + 0.05 * (h.shots - startShots)), h.designHeight * 0.12);
+            }
+          } else if (phase === 'settle') {
+            if (!h.reloading && h.tick - lastTick >= 12) {
+              phase = 'reload';
+              lastTick = h.tick;
+              tap(belt.x + belt.w / 2, belt.y + belt.h / 2);
+            }
+          } else {
+            if (h.reloading && start === null) {
+              start = h.tick;
+              fastAtStart = h.powerups.includes('blitslaai');
+              phase = 'watch';
+            }
+            if (h.reloading) bolts = Math.max(bolts, h.reloadFx.bolts);
+            if (phase === 'watch' && !h.reloading) {
+              resolve({ ticks: h.tick - (start ?? h.tick), bolts, fastAtStart, shells: h.shells });
+              return;
+            }
+            // The tap didn't take (a frame lost it): tap again.
+            if (phase === 'reload' && h.tick - lastTick >= 30) {
+              lastTick = h.tick;
+              tap(belt.x + belt.w / 2, belt.y + belt.h / 2);
+            }
+          }
+          requestAnimationFrame(loop);
+        };
+        loop();
+      }),
+    touch,
+  );
+}
+
 test('Blitslaai: its chip, a reload in about a third of the time, glints on the belt', async ({
   page,
 }, info) => {
@@ -123,38 +215,16 @@ test('Blitslaai: its chip, a reload in about a third of the time, glints on the 
   await boot(page, 'seed=7&huntSeconds=90&crate=blitslaai');
   await startHunt(page, touch);
   await pickUp(page, touch, 'blitslaai');
-  const h0 = await hook(page);
-  expect(h0.weapon).toBe('dubbelloop');
-  expect(h0.reloadFx.chipIcons).toContain('ui/pu_blitslaai');
-
-  expect(await fireShots(page, touch, 2)).toBe(2);
-  await page.waitForFunction(() => window.__TM__?.reloading === false, null, { timeout: 60_000 });
-  await reload(page, touch);
-  // Watch the reload from inside the page: the ticks it takes and the glints while it runs.
-  const seen = await page.waitForFunction(
-    () => {
-      const h = window.__TM__;
-      if (!h) return null;
-      const w = window as unknown as {
-        __rp?: { start: number | null; bolts: number; end: number | null };
-      };
-      const s = (w.__rp ??= { start: null, bolts: 0, end: null });
-      if (h.reloading && s.start === null) s.start = h.tick;
-      if (h.reloading) s.bolts = Math.max(s.bolts, h.reloadFx.bolts);
-      if (s.start !== null && !h.reloading && s.end === null) s.end = h.tick;
-      return s.end !== null
-        ? { ticks: s.end - (s.start ?? 0), bolts: s.bolts, shells: h.shells }
-        : null;
-    },
-    null,
-    { timeout: 60_000, polling: 'raf' },
-  );
-  const r = (await seen.jsonValue()) as { ticks: number; bolts: number; shells: number };
+  const r = await shootAndReload(page, touch);
+  const h = await hook(page);
+  expect(h.weapon).toBe('dubbelloop');
+  expect(r.fastAtStart).toBe(true);
   expect(r.shells).toBe(MAG);
-  // Frames under software GL are long: allow a few ticks either side of the sim's count.
+  // The sim counts exactly; a frame can see the start or end a few ticks late on software GL.
   expect(r.ticks).toBeLessThanOrEqual(FAST + 8);
   expect(r.ticks).toBeLessThan(NORMAL - 10);
   expect(r.bolts).toBeGreaterThan(0);
+  if (h.powerups.includes('blitslaai')) expect(h.reloadFx.chipIcons).toContain('ui/pu_blitslaai');
   await page.screenshot({ path: `${SCREENSHOTS}/reload-blitslaai-${info.project.name}.png` });
   expect(errors).toEqual([]);
 });
@@ -169,22 +239,28 @@ test('Oupa Laai: its chip and hand; an empty belt reloads by itself and Oupa say
   await boot(page, 'seed=7&huntSeconds=90&crate=oupa_laai');
   await startHunt(page, touch);
   await pickUp(page, touch, 'oupa_laai');
-  const h0 = await hook(page);
-  expect(h0.reloadFx.chipIcons).toContain('ui/pu_oupa_laai');
-  expect(h0.reloadFx.oupaHand).toBe(true);
-  await page.screenshot({ path: `${SCREENSHOTS}/reload-oupa-laai-${info.project.name}.png` });
-
-  // Empty the belt (no reload gesture anywhere in this test).
+  // Empty the belt at once (no reload gesture anywhere in this test); the chip, the hand and the
+  // auto reload are read in the same frame-by-frame watch, while the 12 s still run.
+  // (The tap that opened the crate was a shot too: fire what is left.)
   const left = (await hook(page)).shells;
   expect(await fireShots(page, touch, left)).toBe(left);
-  await page.waitForFunction(
+  const seen = await page.waitForFunction(
     (mag) => {
       const h = window.__TM__;
-      return h !== undefined && h.reloadFx.autoReloads > 0 && h.shells === mag && !h.reloading;
+      if (!h) return null;
+      const w = window as unknown as { __op?: { chip: boolean; hand: boolean } };
+      const s = (w.__op ??= { chip: false, hand: false });
+      if (h.reloadFx.chipIcons.includes('ui/pu_oupa_laai')) s.chip = true;
+      if (h.reloadFx.oupaHand) s.hand = true;
+      return h.reloadFx.autoReloads > 0 && h.shells === mag && !h.reloading ? { ...s } : null;
     },
     MAG,
-    { timeout: 90_000 },
+    { timeout: 90_000, polling: 'raf' },
   );
+  const s = (await seen.jsonValue()) as { chip: boolean; hand: boolean };
+  expect(s.chip).toBe(true);
+  expect(s.hand).toBe(true);
+  await page.screenshot({ path: `${SCREENSHOTS}/reload-oupa-laai-${info.project.name}.png` });
   // Oupa's line: said once the bark gap allows (a few seconds at most).
   await page.waitForFunction(() => window.__TM__?.barks.includes('bark.oupa_laai') === true, null, {
     timeout: 90_000,

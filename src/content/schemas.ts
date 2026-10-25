@@ -450,7 +450,7 @@ export const PowerupsSchema = obj({
         }),
     )
     .min(1),
-  /** v1.6b: no reload (or Kettie draw) shortened by power-ups and charms goes below this. */
+  /** v1.6b: no reload (or Kettie draw) shortened by a power-up goes below this (Snelhand included). */
   reloadFloorMs: posInt,
   crates: obj({
     modes: z.array(ModeIdSchema),

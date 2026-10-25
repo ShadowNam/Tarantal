@@ -717,7 +717,13 @@ async function boot(): Promise<void> {
     save,
     notaboek: loaded.notaboek,
     dailyMeta: loaded.daily,
-    barks: new BarkDirector(feel.barks, feel.audio.barkGapMs),
+    barks: new BarkDirector(
+      feel.barks,
+      feel.audio.barkGapMs,
+      new Set(
+        bundle.powerups.powerups.filter((p) => p.effect.autoReload === true).map((p) => p.id),
+      ),
+    ),
     today,
     daily: new DailyFlow({
       content: bundle,

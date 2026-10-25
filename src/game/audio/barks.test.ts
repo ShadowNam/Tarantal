@@ -39,7 +39,7 @@ const bag = (shotId: number, birdId = shotId): SimEvent => ({
 
 describe('BarkDirector (v1.0.1, D-028 §3)', () => {
   it("v1.6b: Oupa Laai's first auto reload after a pickup says his line, held over the gap", () => {
-    const d = new BarkDirector(T, GAP);
+    const d = new BarkDirector(T, GAP, new Set(['oupa_laai']));
     d.startHunt(0);
     const start: SimEvent = {
       type: 'powerupStarted',
@@ -71,7 +71,31 @@ describe('BarkDirector (v1.0.1, D-028 §3)', () => {
     // Later auto reloads stay quiet until the next pickup (and the trigger's cooldown).
     expect(d.hunt([auto], frame(3 * GAP))).toBeNull();
     const cd = T.triggers.oupaLaai.cooldownMs;
-    expect(d.hunt([start, auto], frame(GAP + 1 + cd + 1))?.line).toBe('bark.oupa_laai');
+    // Another power-up's pickup doesn't re-arm it.
+    const chilli: SimEvent = {
+      type: 'powerupStarted',
+      tick: 3,
+      powerup: 'chilli_biltong',
+      source: 'crate',
+    };
+    expect(d.hunt([chilli, auto], frame(GAP + 1 + cd + 1))).toBeNull();
+    expect(d.hunt([start, auto], frame(GAP + 2 + cd + 1))?.line).toBe('bark.oupa_laai');
+  });
+
+  it('v1.6b: a held Oupa Laai line is dropped when the power-up runs out', () => {
+    const d = new BarkDirector(T, GAP, new Set(['oupa_laai']));
+    d.startHunt(0);
+    const crate = {
+      type: 'crateOpened',
+      tick: 1,
+      crateId: 1,
+      item: 'oupa_laai',
+      itemType: 'powerup',
+    } as SimEvent;
+    expect(d.hunt([crate], frame(0))?.line).toBe('bark.crate');
+    d.hunt([{ type: 'reloadStarted', tick: 2, perShell: false, auto: true }], frame(100));
+    d.hunt([{ type: 'powerupEnded', tick: 3, powerup: 'oupa_laai' }], frame(200));
+    expect(d.hunt([], frame(GAP + 1))).toBeNull();
   });
 
   it('fires on a bag streak and a miss streak of the configured length', () => {

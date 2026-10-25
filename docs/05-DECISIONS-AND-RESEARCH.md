@@ -2138,8 +2138,11 @@ Two crate power-ups (GDD §10.4), numbers in `content/powerups.json`.
 `reloadFloorMs` 150 ms and never longer than it was. It covers full-belt reloads, each per-shell
 step, the Voorlaaier's ramrod and the Kettie's draw — the draw is the Kettie's reload for charms
 too (D-025), so treating it the same keeps one rule. The Mielie-Masjien's fire interval and the
-rifles' bolt are not reloads and stay. A reload already running keeps the length it started with
-(no mid-step rescaling: simpler and the HUD ring never jumps).
+rifles' bolt are not reloads and stay. A reload step already running keeps the length it started
+with (no mid-step rescaling: simpler and the HUD ring never jumps); a per-shell gun takes each new
+round at the rate of the moment, so Blitslaai picked up or ending mid-reload changes the rounds
+still to come. The floor applies to what Blitslaai shortens (alone or on top of Snelhand); Snelhand
+alone never comes near it (the shortest, the Windbuks' 600 ms / 1.3, is 460 ms).
 (2) *Oupa Laai* (`autoReload`, `idleTopUpMs` 600, 12 s): the tick the gun is empty (after the shot
 resolves, the same tick) the reload starts by itself, no gesture; a per-shell gun also starts
 topping up once 0.6 s have passed since its last shot, one round per reload step, until full. The
@@ -2174,10 +2177,13 @@ beside it. While Blitslaai runs, small lightning glints (`fx/bolt`, local sprite
 steady and dimmer with "reduce flashes") hop along the rounds — two during a reload — and a
 reload starts with a quick metallic **zip** (`sfx/zip`) instead of the gun's own reload-start
 sound; the refill itself animates faster because it follows the sim's shorter reload. While Oupa
-Laai runs, his hand sits on the belt's inner corner (mirrored in left-handed mode). His bark
+Laai runs, his hand sits just outside the belt's inner end, clear of the rounds (mirrored in
+left-handed mode). His bark
 `bark.oupa_laai` ("Ek laai vir jou, my kind!" / "I'll load for you, my kind!" / "Ich lade für
 dich, mein Kind!" / nl "Ik laad wel voor je, m'n kind!") is the new trigger `oupaLaai`: the first
-auto reload after a pickup, held over the bark gap; voiced in en/af/de with the existing interim
+auto reload after an Oupa Laai pickup (the director gets the `autoReload` ids from content, so
+another power-up's pickup doesn't re-arm it), held over the bark gap but dropped if Oupa Laai ends
+first; voiced in en/af/de with the existing interim
 TTS (`npm run audio:voice -- --only bark.oupa_laai`), Dutch text speaks Afrikaans as before. Names
 (`docs/i18n-names.md`): Lightning Load / Blitzladung / Bliksemlading, Oupa Loads / Oupa lädt /
 Oupa laadt; the Afrikaans-names toggle shows Blitslaai and Oupa Laai. The Padstal card of an item

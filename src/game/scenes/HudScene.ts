@@ -846,7 +846,7 @@ export class HudScene extends Phaser.Scene {
   /**
    * v1.6b (D-043): Blitslaai sparks small lightning glints along the rounds (two while a reload
    * runs, hopping every 120 ms; steady and dimmer with "reduce flashes"); Oupa Laai puts his hand
-   * holding shells on the belt's inner corner. Both only with the primary gun out.
+   * holding shells just outside the belt's inner end. Both only with the primary gun out.
    */
   private drawReloadBoosts(s: SimState, now: number, l: HudLayout): void {
     const boosts = reloadBoostsOf(s.powerups, this.ctx.content.powerups.powerups);
@@ -872,8 +872,9 @@ export class HudScene extends Phaser.Scene {
       hand.setVisible(showHand);
       if (showHand) {
         const mirrored = this.ctx.prefs.leftHanded;
-        const x = mirrored ? l.belt.x + l.belt.w - 6 : l.belt.x + 6;
-        hand.setPosition(x, l.belt.y + 4).setScale(mirrored ? -0.9 : 0.9, 0.9);
+        // Just outside the belt's inner end, so it never covers a round.
+        const x = mirrored ? l.belt.x + l.belt.w + 32 : l.belt.x - 32;
+        hand.setPosition(x, l.belt.y + l.belt.h / 2).setScale(mirrored ? -0.9 : 0.9, 0.9);
       }
     }
     if (this.ctx.hook) {

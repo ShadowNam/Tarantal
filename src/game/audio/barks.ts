@@ -59,6 +59,8 @@ export class BarkDirector {
     private readonly tuning: BarkTuning,
     /** At most one bark per this many ms (audio.barkGapMs). */
     private readonly gapMs: number,
+    /** v1.6b: power-ups that reload by themselves (powerups.json effect.autoReload). */
+    private readonly autoReloadIds: ReadonlySet<string> = new Set(),
   ) {}
 
   /** A new hunt starts at `tick` (per-hunt streaks and once-only lines reset). */
@@ -125,8 +127,12 @@ export class BarkDirector {
           cands.push('crate');
           break;
         case 'powerupStarted':
-          // A pickup (or a refresh) lets the next auto reload speak again.
-          this.autoSaid = false;
+          // An Oupa Laai pickup (or refresh) lets the next auto reload speak again.
+          if (this.autoReloadIds.has(e.powerup)) this.autoSaid = false;
+          break;
+        case 'powerupEnded':
+          // Not said by the time it ran out: too late now.
+          if (this.autoReloadIds.has(e.powerup)) this.pending.delete('oupaLaai');
           break;
         case 'reloadStarted':
           // v1.6b (D-043): only Oupa Laai starts a reload by itself. Held until said (the gap

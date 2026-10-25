@@ -38,11 +38,11 @@ const snelMul =
 function seasonSim(
   weapon: string,
   consumables: readonly string[],
-  opts: { charms?: string[]; rental?: string | null; c?: ContentBundle } = {},
+  opts: { charms?: string[]; rental?: string | null; c?: ContentBundle; boss?: string } = {},
 ): Sim {
   const season: SeasonHuntConfig = {
-    kind: 'plain',
-    boss: null,
+    kind: opts.boss === undefined ? 'plain' : 'boss',
+    boss: opts.boss ?? null,
     charms: opts.charms ?? [],
     consumables,
     rental: opts.rental ?? null,
@@ -144,6 +144,34 @@ describe('Blitslaai (reload time)', () => {
     const both = seasonSim('dubbelloop', ['oupa_laai', 'blitslaai']);
     useAll(both, 2);
     expect(manualReloadTicks(both)).toBe(fast);
+  });
+
+  it("multiplies with Kuifkop Koning's doubled reload (Boss Rule)", () => {
+    const boss = 'kuifkop_koning';
+    expect(manualReloadTicks(seasonSim('dubbelloop', [], { boss }))).toBe(2 * base);
+    const sim = seasonSim('dubbelloop', ['blitslaai'], { boss });
+    useAll(sim, 1);
+    expect(manualReloadTicks(sim)).toBe(Math.round(2 * base * blitsMul));
+  });
+
+  it('picked up mid per-shell reload: the running round keeps its time, the next is fast', () => {
+    const pomp = msToTicks(primary('pomp').reloadMs);
+    const sim = seasonSim('pomp', ['blitslaai']);
+    for (let i = 0; i < 3; i++) {
+      waitCooldown(sim);
+      step(sim, [FIRE]);
+    }
+    waitCooldown(sim);
+    step(sim, [{ t: 'reload' }]);
+    step(sim, [{ t: 'consumable', slot: 0 }]);
+    // Ticks counted from the reload command's tick (1) and the pickup's (2).
+    const at: number[] = [];
+    for (let n = 3; n < 400 && at.length < 2; n++) {
+      const ev = step(sim);
+      if (ev.some((e) => e.type === 'shellLoaded' || e.type === 'reloadFinished')) at.push(n);
+    }
+    expect(at[0]).toBe(pomp);
+    expect((at[1] ?? 0) - (at[0] ?? 0)).toBe(Math.round(pomp * blitsMul));
   });
 
   it(`never goes below the ${content.powerups.reloadFloorMs} ms floor`, () => {
@@ -323,6 +351,26 @@ describe('Oupa Laai (auto reload)', () => {
     expect(sim.snapshot().weapon.shells).toBe(0);
     // Chilli Biltong wore off at the end of that tick: the auto reload starts on the next one.
     expect(step(sim).find((e) => e.type === 'reloadStarted')).toMatchObject({ auto: true });
+  });
+
+  it('a crate gun used up on an empty belt hands back a gun that reloads at once', () => {
+    const sim = seasonSim('dubbelloop', ['oupa_laai'], { rental: 'voorlaaier' });
+    // Empty the belt first (no Oupa Laai yet: it stays empty).
+    for (let i = 0; i < mag; i++) {
+      waitCooldown(sim);
+      step(sim, [FIRE]);
+    }
+    expect(sim.snapshot().weapon.shells).toBe(0);
+    step(sim, [{ t: 'consumable', slot: 1 }]); // the Voorlaaier
+    step(sim, [{ t: 'consumable', slot: 0 }]); // Oupa Laai: nothing to do while it's out
+    const ev: SimEvent[] = [];
+    for (let i = 0; i < 600 && sim.snapshot().weapon.kind === 'crate'; i++)
+      ev.push(...step(sim, sim.snapshot().weapon.cooldownTicks === 0 ? [FIRE] : []));
+    expect(ev.some((e) => e.type === 'reloadStarted')).toBe(false);
+    const back = ev.find((e) => e.type === 'weaponChanged' && e.kind === 'primary');
+    expect(back).toBeDefined();
+    const started = step(sim).find((e) => e.type === 'reloadStarted');
+    expect(started).toMatchObject({ auto: true, tick: (back?.tick ?? 0) + 1 });
   });
 
   it('shots under Chilli Biltong count as shots for the idle top-up', () => {
