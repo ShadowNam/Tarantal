@@ -19,12 +19,13 @@ import {
   type Rnd,
   type Tone,
 } from '../scenery';
-import { el, ellipseD, g, inked, polyD, r2, smoothD } from '../svg';
+import { el, ellipseD, g, inked, r2, smoothD } from '../svg';
 import { mountainRow, paintRow, rockColours } from '../mountains';
 import { aloeFlowers, aloeRosette, groundBand, groundShadow, softSky } from './karoo';
 import { foregroundClumps, midScrub, nearGrass, verVeld } from './common';
 import { plantLook, seedTuft, veldShrub } from '../flora';
 import { baobab as baobabTree, marula, mopane } from '../species';
+import { farAnimal as animal, herd } from '../fauna';
 import type { PaintCtx } from '../landscape';
 
 /** v1.6 (D-042): mopane scrub (butterfly leaves, olive and copper) as layered mounds. */
@@ -116,36 +117,6 @@ function boulderPile(
     );
   }
   return g({}, ...parts);
-}
-
-/** A far giraffe: a small flat silhouette, browsing (neck forward) or upright. */
-function giraffe(x: number, base: number, s: number, colour: string, up: boolean): string {
-  const neck = up
-    ? `M${x + 10 * s} ${base - 34 * s}L${x + 14 * s} ${base - 62 * s}L${x + 20 * s} ${base - 62 * s}L${x + 16 * s} ${base - 32 * s}Z`
-    : `M${x + 10 * s} ${base - 34 * s}L${x + 26 * s} ${base - 52 * s}L${x + 30 * s} ${base - 48 * s}L${x + 16 * s} ${base - 30 * s}Z`;
-  const head = up
-    ? ellipseD(x + 20 * s, base - 63 * s, 5 * s, 3 * s)
-    : ellipseD(x + 32 * s, base - 51 * s, 5 * s, 3 * s);
-  return g(
-    {},
-    flat(
-      polyD([
-        [x - 14 * s, base - 30 * s],
-        [x + 14 * s, base - 36 * s],
-        [x + 14 * s, base - 26 * s],
-        [x - 12 * s, base - 22 * s],
-      ]),
-      colour,
-    ),
-    el('path', {
-      d: `M${x - 11 * s} ${base - 24 * s}L${x - 12 * s} ${base}M${x - 6 * s} ${base - 24 * s}L${x - 5 * s} ${base}M${x + 8 * s} ${base - 28 * s}L${x + 9 * s} ${base}M${x + 12 * s} ${base - 28 * s}L${x + 14 * s} ${base}`,
-      stroke: colour,
-      'stroke-width': 2 * s,
-      'stroke-linecap': 'round',
-    }),
-    flat(neck, colour),
-    flat(head, colour),
-  );
 }
 
 /** A low frost-mist band (flat, translucent, soft lobed edges). */
@@ -279,14 +250,33 @@ function farVeld(ctx: LayerCtx): string {
         : marula(ctx.rnd, x, foot, h * 1.1, ctx, 'far'),
     );
   }
-  const giraffeC = mix(ctx.c('giraffe'), ctx.raw('horizon'), 0.25);
-  for (const [u, s, up] of [
-    [0.18, 1.05, true],
-    [0.2, 0.95, false],
-    [0.71, 1, true],
+  // v1.6 (D-042): giraffes browsing among the trees (fauna rig), zebra, wildebeest and a few
+  // elephants on the far veld.
+  for (const [u, h, pose] of [
+    [0.18, 58, 'alert'],
+    [0.2, 52, 'graze'],
+    [0.71, 56, 'walk'],
   ] as const) {
     const x = ctx.u(u);
-    parts.push(giraffe(x, yAt(band.edge, x) + 6, s, giraffeC, up));
+    parts.push(
+      animal({
+        kind: 'giraffe',
+        pose,
+        x,
+        foot: yAt(band.edge, x) + 6,
+        h,
+        tint: ctx.tint,
+        phase: u,
+      }),
+    );
+  }
+  for (const [u, kind, dy, h, n, sp] of [
+    [0.5, 'zebra', 14, 15, 5, 130],
+    [0.42, 'wildebeest', 18, 15, 4, 100],
+    [0.86, 'elephant', 14, 24, 3, 120],
+  ] as const) {
+    const x = ctx.u(u);
+    parts.push(herd(ctx.rnd, kind, x, yAt(band.edge, x) + dy, h, n, sp, ctx.tint));
   }
   // Frost mist lying over the far veld at dawn.
   parts.push(mist(ctx.rnd, -40, ctx.width + 40, 588, 26, ctx.raw('mist'), 0.5));

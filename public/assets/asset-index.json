@@ -336,9 +336,9 @@
       "group": "kalahari-summer",
       "origin": "interim",
       "file": {
-        "path": "assets/kalahari-summer/img/kalahari_dune_grass_a.f313c683f42c.png",
-        "bytes": 25102,
-        "hash": "f313c683f42c"
+        "path": "assets/kalahari-summer/img/kalahari_dune_grass_a.258f7bdf41ae.png",
+        "bytes": 21292,
+        "hash": "258f7bdf41ae"
       },
       "width": 360,
       "height": 380
@@ -347,9 +347,9 @@
       "group": "kalahari-summer",
       "origin": "interim",
       "file": {
-        "path": "assets/kalahari-summer/img/kalahari_dune_grass_b.5b22f54e6052.png",
-        "bytes": 25051,
-        "hash": "5b22f54e6052"
+        "path": "assets/kalahari-summer/img/kalahari_dune_grass_b.c0977cca7a9b.png",
+        "bytes": 21360,
+        "hash": "c0977cca7a9b"
       },
       "width": 380,
       "height": 380
@@ -1045,14 +1045,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/bushveld-winter/layers/far_veld-0.d54615d59eb7.png",
-          "bytes": 17356,
-          "hash": "d54615d59eb7"
+          "path": "assets/bushveld-winter/layers/far_veld-0.734218cd4b79.png",
+          "bytes": 18767,
+          "hash": "734218cd4b79"
         },
         {
-          "path": "assets/bushveld-winter/layers/far_veld-1.5b42591afc05.png",
-          "bytes": 12597,
-          "hash": "5b42591afc05"
+          "path": "assets/bushveld-winter/layers/far_veld-1.cef7e20ec7af.png",
+          "bytes": 13419,
+          "hash": "cef7e20ec7af"
         }
       ],
       "tileWidth": 2048,
@@ -1063,63 +1063,63 @@
         "bucket": 256,
         "rows": [
           [
-            168,
+            179,
             232
           ],
           [
-            111,
-            177
+            114,
+            154
           ],
           [
-            173,
-            232
+            112,
+            156
           ],
           [
-            159,
-            195
+            161,
+            194
           ],
           [
-            145,
-            199
+            144,
+            200
           ],
           [
-            155,
-            185
+            153,
+            183
           ],
           [
-            164,
-            219
+            114,
+            159
           ],
           [
-            151,
-            184
+            180,
+            211
           ],
           [
             117,
-            171
+            172
           ],
           [
             153,
             232
           ],
           [
-            141,
-            184
+            140,
+            185
           ],
           [
-            156,
-            196
-          ],
-          [
-            111,
-            203
+            158,
+            191
           ],
           [
             114,
-            144
+            203
           ],
           [
-            110,
+            116,
+            146
+          ],
+          [
+            111,
             189
           ]
         ]
@@ -1560,14 +1560,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/kalahari-summer/layers/far_ridge-0.926b3a7be715.png",
-          "bytes": 41129,
-          "hash": "926b3a7be715"
+          "path": "assets/kalahari-summer/layers/far_ridge-0.f822129d9acb.png",
+          "bytes": 41043,
+          "hash": "f822129d9acb"
         },
         {
-          "path": "assets/kalahari-summer/layers/far_ridge-1.2c18feb34fb4.png",
-          "bytes": 14974,
-          "hash": "2c18feb34fb4"
+          "path": "assets/kalahari-summer/layers/far_ridge-1.f86d9045ba39.png",
+          "bytes": 14562,
+          "hash": "f86d9045ba39"
         }
       ],
       "tileWidth": 2048,
@@ -1578,28 +1578,28 @@
         "bucket": 256,
         "rows": [
           [
-            255,
+            258,
             280
           ],
           [
-            256,
-            277
+            158,
+            168
           ],
           [
             226,
             280
           ],
           [
-            269,
-            273
+            228,
+            229
           ],
           [
             229,
-            280
+            272
           ],
           [
-            255,
-            267
+            272,
+            280
           ],
           [
             175,
@@ -1614,16 +1614,16 @@
             280
           ],
           [
-            274,
-            280
+            228,
+            231
           ],
           [
-            254,
+            257,
             280
           ],
           [
             202,
-            237
+            227
           ]
         ]
       }
@@ -1633,14 +1633,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/kalahari-summer/layers/far_veld-0.e46c1ea9fef1.png",
-          "bytes": 21130,
-          "hash": "e46c1ea9fef1"
+          "path": "assets/kalahari-summer/layers/far_veld-0.564a4f53e73d.png",
+          "bytes": 21947,
+          "hash": "564a4f53e73d"
         },
         {
-          "path": "assets/kalahari-summer/layers/far_veld-1.e7ba7ea53a99.png",
-          "bytes": 14168,
-          "hash": "e7ba7ea53a99"
+          "path": "assets/kalahari-summer/layers/far_veld-1.602af8a8705d.png",
+          "bytes": 15230,
+          "hash": "602af8a8705d"
         }
       ],
       "tileWidth": 2048,
@@ -1651,7 +1651,7 @@
         "bucket": 256,
         "rows": [
           [
-            191,
+            189,
             232
           ],
           [
@@ -1663,12 +1663,12 @@
             151
           ],
           [
-            145,
-            216
+            143,
+            198
           ],
           [
             116,
-            172
+            175
           ],
           [
             152,
@@ -1687,7 +1687,7 @@
             187
           ],
           [
-            136,
+            135,
             171
           ],
           [
@@ -1695,15 +1695,15 @@
             228
           ],
           [
-            115,
+            114,
             192
           ],
           [
-            184,
+            183,
             232
           ],
           [
-            117,
+            116,
             155
           ],
           [
@@ -2221,14 +2221,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/karoo-autumn/layers/far_veld-0.6a9de0fb1b3b.png",
-          "bytes": 16465,
-          "hash": "6a9de0fb1b3b"
+          "path": "assets/karoo-autumn/layers/far_veld-0.5d8c044fd7f2.png",
+          "bytes": 18531,
+          "hash": "5d8c044fd7f2"
         },
         {
-          "path": "assets/karoo-autumn/layers/far_veld-1.bd6a0946da51.png",
-          "bytes": 16722,
-          "hash": "bd6a0946da51"
+          "path": "assets/karoo-autumn/layers/far_veld-1.794b45fd9340.png",
+          "bytes": 16648,
+          "hash": "794b45fd9340"
         }
       ],
       "tileWidth": 2048,
@@ -2239,35 +2239,35 @@
         "bucket": 256,
         "rows": [
           [
-            167,
+            166,
             232
           ],
           [
-            126,
-            188
-          ],
-          [
-            141,
-            232
-          ],
-          [
-            139,
+            136,
             183
           ],
           [
-            126,
+            141,
+            185
+          ],
+          [
+            139,
+            182
+          ],
+          [
+            136,
             217
           ],
           [
-            158,
+            159,
             223
           ],
           [
-            175,
+            183,
             232
           ],
           [
-            169,
+            173,
             232
           ],
           [
@@ -2276,23 +2276,23 @@
           ],
           [
             150,
-            199
+            197
           ],
           [
-            118,
-            179
+            119,
+            166
           ],
           [
-            133,
-            206
+            139,
+            197
           ],
           [
             111,
-            161
+            159
           ],
           [
             123,
-            179
+            175
           ],
           [
             107,
@@ -2809,14 +2809,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/namibie/layers/far_veld-0.1e4bc5ff618f.png",
-          "bytes": 28568,
-          "hash": "1e4bc5ff618f"
+          "path": "assets/namibie/layers/far_veld-0.5c9738cc4f2f.png",
+          "bytes": 28804,
+          "hash": "5c9738cc4f2f"
         },
         {
-          "path": "assets/namibie/layers/far_veld-1.4ce206cc3bc7.png",
-          "bytes": 21974,
-          "hash": "4ce206cc3bc7"
+          "path": "assets/namibie/layers/far_veld-1.5939ffd5102a.png",
+          "bytes": 22978,
+          "hash": "5939ffd5102a"
         }
       ],
       "tileWidth": 2048,
@@ -2828,22 +2828,22 @@
         "rows": [
           [
             112,
-            185
+            186
           ],
           [
-            184,
+            183,
             232
           ],
           [
-            186,
+            188,
             232
           ],
           [
-            111,
+            128,
             193
           ],
           [
-            125,
+            138,
             188
           ],
           [
@@ -2851,7 +2851,7 @@
             188
           ],
           [
-            169,
+            171,
             232
           ],
           [
@@ -2859,28 +2859,28 @@
             202
           ],
           [
-            146,
+            145,
             232
           ],
           [
-            157,
-            218
+            158,
+            219
           ],
           [
-            139,
+            141,
             232
           ],
           [
-            111,
+            143,
             187
           ],
           [
-            130,
+            128,
             179
           ],
           [
             143,
-            213
+            214
           ],
           [
             111,
@@ -3247,14 +3247,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/ver/layers/namibie-ver_veld-0.3d877692601f.png",
-          "bytes": 12582,
-          "hash": "3d877692601f"
+          "path": "assets/ver/layers/namibie-ver_veld-0.0d0bb4d32d04.png",
+          "bytes": 12795,
+          "hash": "0d0bb4d32d04"
         },
         {
-          "path": "assets/ver/layers/namibie-ver_veld-1.1ac3d8bbca65.png",
-          "bytes": 5814,
-          "hash": "1ac3d8bbca65"
+          "path": "assets/ver/layers/namibie-ver_veld-1.1d8b7b3e070e.png",
+          "bytes": 5795,
+          "hash": "1d8b7b3e070e"
         }
       ],
       "tileWidth": 2048,
@@ -3266,34 +3266,34 @@
         "rows": [
           [
             24,
-            64
+            41
           ],
           [
             23,
-            64
+            50
           ],
           [
-            24,
+            41,
             64
           ],
           [
             22,
-            64
+            39
           ],
           [
             24,
             64
           ],
           [
-            46,
+            53,
             64
           ],
           [
-            37,
+            40,
             64
           ],
           [
-            27,
+            53,
             64
           ],
           [
@@ -3367,14 +3367,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/okavango-spring/layers/far_veld-0.ebb2eea6647b.png",
-          "bytes": 11730,
-          "hash": "ebb2eea6647b"
+          "path": "assets/okavango-spring/layers/far_veld-0.7d06b0a3028a.png",
+          "bytes": 12759,
+          "hash": "7d06b0a3028a"
         },
         {
-          "path": "assets/okavango-spring/layers/far_veld-1.6ed1c3a561fc.png",
-          "bytes": 8610,
-          "hash": "6ed1c3a561fc"
+          "path": "assets/okavango-spring/layers/far_veld-1.7b7cd2fc414f.png",
+          "bytes": 9794,
+          "hash": "7b7cd2fc414f"
         }
       ],
       "tileWidth": 2048,
@@ -3385,7 +3385,7 @@
         "bucket": 256,
         "rows": [
           [
-            182,
+            183,
             232
           ],
           [
@@ -3394,14 +3394,14 @@
           ],
           [
             112,
-            165
+            164
           ],
           [
-            118,
-            186
+            119,
+            173
           ],
           [
-            118,
+            126,
             171
           ],
           [
@@ -3410,23 +3410,23 @@
           ],
           [
             113,
-            184
+            172
+          ],
+          [
+            186,
+            232
+          ],
+          [
+            186,
+            232
           ],
           [
             119,
-            175
-          ],
-          [
-            110,
-            180
-          ],
-          [
-            118,
-            170
+            167
           ],
           [
             112,
-            168
+            166
           ],
           [
             184,
@@ -3512,99 +3512,99 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/okavango-spring/layers/mid-0.8c39745d0467.png",
-          "bytes": 59718,
-          "hash": "8c39745d0467"
+          "path": "assets/okavango-spring/layers/mid-0.5fd97a62ed89.png",
+          "bytes": 59818,
+          "hash": "5fd97a62ed89"
         },
         {
-          "path": "assets/okavango-spring/layers/mid-1.ca11cbc1b09d.png",
-          "bytes": 68362,
-          "hash": "ca11cbc1b09d"
+          "path": "assets/okavango-spring/layers/mid-1.32ed1924c7c1.png",
+          "bytes": 70058,
+          "hash": "32ed1924c7c1"
         },
         {
-          "path": "assets/okavango-spring/layers/mid-2.7f79dc059bd7.png",
-          "bytes": 6867,
-          "hash": "7f79dc059bd7"
+          "path": "assets/okavango-spring/layers/mid-2.6680264960b8.png",
+          "bytes": 6879,
+          "hash": "6680264960b8"
         }
       ],
       "tileWidth": 2048,
       "left": -300,
-      "top": 430,
-      "height": 480,
+      "top": 380,
+      "height": 530,
       "solid": {
         "bucket": 256,
         "rows": [
           [
-            231,
-            331
+            281,
+            379
+          ],
+          [
+            370,
+            434
+          ],
+          [
+            471,
+            530
+          ],
+          [
+            359,
+            385
+          ],
+          [
+            362,
+            443
           ],
           [
             320,
-            384
+            355
           ],
           [
-            421,
-            480
+            396,
+            436
           ],
           [
-            309,
-            336
-          ],
-          [
-            312,
-            393
-          ],
-          [
-            270,
-            305
-          ],
-          [
-            346,
-            386
-          ],
-          [
-            226,
-            380
-          ],
-          [
-            300,
-            381
-          ],
-          [
-            346,
-            396
+            276,
+            430
           ],
           [
             350,
-            396
+            431
           ],
           [
-            227,
-            376
+            396,
+            446
           ],
           [
-            229,
-            310
+            400,
+            443
           ],
           [
-            421,
-            480
+            277,
+            426
           ],
           [
-            231,
-            296
+            279,
+            360
           ],
           [
-            284,
-            408
+            471,
+            530
           ],
           [
-            316,
-            397
+            281,
+            347
           ],
           [
-            283,
-            406
+            333,
+            458
+          ],
+          [
+            369,
+            447
+          ],
+          [
+            332,
+            456
           ]
         ]
       }

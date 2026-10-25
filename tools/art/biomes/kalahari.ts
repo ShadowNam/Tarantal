@@ -34,6 +34,7 @@ import {
 } from '../camelthorn';
 import { plantLook, seedTuft, veldShrub } from '../flora';
 import { shepherdsTree } from '../species';
+import { farAnimal as animal, herd } from '../fauna';
 import type { PaintCtx } from '../landscape';
 
 /** v1.6 (D-042): driedoring, a grey, open, spiny shrub of the red sand. */
@@ -209,31 +210,6 @@ function dune(
 }
 
 /** A gemsbok silhouette: straight long horns, black-and-white face hidden at this size. */
-function gemsbok(x: number, base: number, s: number, c: string): string {
-  return g(
-    {},
-    flat(
-      smoothD(
-        [
-          [x - 16 * s, base - 22 * s],
-          [x + 14 * s, base - 24 * s],
-          [x + 16 * s, base - 14 * s],
-          [x - 14 * s, base - 12 * s],
-        ],
-        true,
-        0.6,
-      ),
-      c,
-    ),
-    el('path', {
-      d: `M${x - 12 * s} ${base - 14 * s}L${x - 13 * s} ${base}M${x - 7 * s} ${base - 14 * s}L${x - 6 * s} ${base}M${x + 9 * s} ${base - 16 * s}L${x + 10 * s} ${base}M${x + 13 * s} ${base - 16 * s}L${x + 14 * s} ${base}M${x + 14 * s} ${base - 22 * s}L${x + 20 * s} ${base - 30 * s}M${x + 20 * s} ${base - 30 * s}L${x + 12 * s} ${base - 54 * s}M${x + 21 * s} ${base - 30 * s}L${x + 15 * s} ${base - 55 * s}M${x - 16 * s} ${base - 20 * s}L${x - 20 * s} ${base - 10 * s}`,
-      stroke: c,
-      'stroke-width': 2 * s,
-      'stroke-linecap': 'round',
-    }),
-    flat(ellipseD(x + 21 * s, base - 29 * s, 4 * s, 3 * s), c),
-  );
-}
 
 /** Wind ripples on sand: short parallel curved strokes. */
 function ripples(
@@ -337,7 +313,7 @@ function farRidge(ctx: LayerCtx): string {
   }
   // Gemsbok on a crest (bible), tiny: on the front dune whose crest is nearest u = 0.43, drawn
   // right after it (D-035 round 2: they stand on the sand, not in the air).
-  const gem = mix(ctx.c('gemsbok'), horizon, 0.2);
+  const gem = (c: string): string => mix(c, horizon, 0.3);
   const want = ctx.u(0.43);
   const front: { svg: string; crest: { x: number; y: number } }[] = [];
   for (let x = -100; x < ctx.width;) {
@@ -366,8 +342,24 @@ function farRidge(ctx: LayerCtx): string {
     parts.push(d.svg);
     if (d === near)
       parts.push(
-        gemsbok(d.crest.x - 34, d.crest.y + 9, 0.9, gem),
-        gemsbok(d.crest.x - 12, d.crest.y + 3, 0.85, gem),
+        animal({
+          kind: 'gemsbok',
+          pose: 'walk',
+          x: d.crest.x - 34,
+          foot: d.crest.y + 9,
+          h: 13,
+          tint: gem,
+          phase: 0.2,
+        }),
+        animal({
+          kind: 'gemsbok',
+          pose: 'alert',
+          x: d.crest.x - 12,
+          foot: d.crest.y + 3,
+          h: 12.5,
+          tint: gem,
+          phase: 0.7,
+        }),
       );
   }
   return g({}, ...parts);
@@ -420,6 +412,19 @@ function farVeld(ctx: LayerCtx): string {
         ctx.pen,
       ).svg,
     );
+  }
+  // v1.6 (D-042): herds on the far veld (fauna rig, three poses, hazed for the plane).
+  {
+    const x = ctx.u(0.5);
+    parts.push(herd(ctx.rnd, 'springbok', x, yAt(band.edge, x) + 14, 12, 7, 150, ctx.tint));
+  }
+  {
+    const x = ctx.u(0.62);
+    parts.push(herd(ctx.rnd, 'ostrich', x, yAt(band.edge, x) + 12, 24, 2, 50, ctx.tint));
+  }
+  {
+    const x = ctx.u(0.8);
+    parts.push(herd(ctx.rnd, 'wildebeest', x, yAt(band.edge, x) + 16, 15, 4, 110, ctx.tint));
   }
   return g({}, ...parts);
 }
@@ -634,8 +639,8 @@ function duneGrass(seed: number) {
     ];
     const order = [0, 6, 1, 5, 2, 4, 3];
     for (const k of order) {
-      const x = -100 + k * 33 + (ctx.rnd() - 0.5) * 12 + (seed % 2) * 6;
-      const hh = 120 + ctx.rnd() * 50 - Math.abs(k - 3) * 14;
+      const x = -84 + k * 28 + (ctx.rnd() - 0.5) * 10 + (seed % 2) * 4;
+      const hh = 112 + ctx.rnd() * 40 - Math.abs(k - 3) * 14;
       parts.push(duneTuft(ctx, x, 118 + Math.abs(k - 3) * 2, hh, pen, 2 + ((k + seed) % 2)));
     }
     return g({}, ...parts);

@@ -4,6 +4,7 @@
 // mokoro marker pole. No jacarandas (bible §2). Soft light from the upper left. D-031.
 import { bareBranch, plantLook, seedTuft } from '../flora';
 import { ilalaPalm, jackalberry, sausageTree as sausageSpecies } from '../species';
+import { herd } from '../fauna';
 import type { BiomeArtPlan, LayerCtx, PropCtx } from '../landscape';
 import {
   edgePts,
@@ -371,6 +372,23 @@ function farVeld(ctx: LayerCtx): string {
   ];
   for (let x = 120; x < ctx.width; x += 300 + ctx.rnd() * 500)
     parts.push(ilalaPalm(ctx.rnd, x, yAt(band.edge, x) + 6, 60 + ctx.rnd() * 20, ctx, 'far'));
+  // v1.6 (D-042): herds on the far veld (fauna rig, three poses, hazed for the plane).
+  {
+    const x = ctx.u(0.5);
+    parts.push(herd(ctx.rnd, 'elephant', x, yAt(band.edge, x) + 18, 24, 3, 140, ctx.tint));
+  }
+  {
+    const x = ctx.u(0.62);
+    parts.push(herd(ctx.rnd, 'lechwe', x, yAt(band.edge, x) + 16, 12, 8, 170, ctx.tint));
+  }
+  {
+    const x = ctx.u(0.3);
+    parts.push(herd(ctx.rnd, 'zebra', x, yAt(band.edge, x) + 14, 15, 4, 110, ctx.tint));
+  }
+  {
+    const x = ctx.u(0.84);
+    parts.push(herd(ctx.rnd, 'wildebeest', x, yAt(band.edge, x) + 14, 15, 3, 90, ctx.tint));
+  }
   return g({}, ...parts);
 }
 
@@ -882,7 +900,7 @@ export const OKAVANGO_PLAN: BiomeArtPlan = {
       draw: verVeld({ ground: 'grass', light: 'grassLight', scrub: 'bossie' }),
     },
     far_veld: { top: 464, height: 232, colours: 96, draw: farVeld },
-    mid: { top: 430, height: 480, colours: 112, draw: mid },
+    mid: { top: 380, height: 530, colours: 112, draw: mid },
     near: { top: 820, height: 260, colours: 112, draw: near },
     foreground: { top: 880, height: 200, fadeTop: 28, colours: 128, draw: foreground },
   },
