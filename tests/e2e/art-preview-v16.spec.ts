@@ -1,4 +1,6 @@
-// v1.6 veld art pass (D-042) previews, on demand (not part of the regular suite). For every biome:
+// v1.6 veld art pass (D-042) previews, on demand (not part of the regular suite). Look notes
+// (25 Oct) add the sky and far view per biome and close-ups (CLOSEUPS: windpomp calm and windy,
+// the Kalahari windpomp and dead tree, the dassie and the giraffes, with 3× crops). For every biome:
 // the hunt's centre view, a close-up of its main tree (and its fruit), a strip of the far plane
 // (its animals) scaled 2×, and the far animals through the Langloop's variable scope in the
 // Skietbaan. Each run records one variant: V16_VARIANT=before on main, =after on the pass. Run one
@@ -31,6 +33,40 @@ const PROFILES = ['desktop-chromium', 'pixel7-landscape', 'iphone14-landscape'];
 const device = (name: string): string => name.replace(/-chromium-fallback$/, '');
 const VARIANT = process.env['V16_VARIANT'] === 'before' ? 'before' : 'after';
 const HOLD = 600;
+
+/**
+ * v1.6 look notes (25 Oct): close-ups of single things, each a hunt panned to put a layer point
+ * mid-screen: [name, biome, extra query, layer, u, crop half-width, crop y0, y1, 3× crop?].
+ * The 3× crop is a small box round (dx, dy) from the point, scaled up 3× (nearest).
+ */
+const CLOSEUPS = [
+  ['karoo-windpomp-calm', 'karoo-autumn', 'omen=0', 'mid', 0.22, 300, 150, 800, null],
+  ['karoo-windpomp-windy', 'karoo-autumn', 'omen=1', 'mid', 0.22, 300, 150, 800, null],
+  ['kalahari-windpomp', 'kalahari-summer', 'omen=0', 'mid', 0.46, 260, 300, 800, null],
+  ['kalahari-deadtree', 'kalahari-summer', 'omen=0', 'mid', 0.74, 300, 200, 800, null],
+  [
+    'bushveld-dassie',
+    'bushveld-winter',
+    'omen=0',
+    'mid',
+    0.62,
+    320,
+    420,
+    800,
+    [40, -82 + 660, 110, 70],
+  ],
+  [
+    'bushveld-giraffes',
+    'bushveld-winter',
+    'omen=0',
+    'far_veld',
+    0.19,
+    260,
+    470,
+    640,
+    [0, 545, 120, 50],
+  ],
+] as const;
 const CONTENT = loadContent();
 
 /** Core width of a layer (art bible §4.1): 1920 + 3200 × its scroll factor. */
@@ -155,6 +191,18 @@ function twice(src: Rgba): Rgba {
   return out;
 }
 
+/** Nearest-neighbour 3× (a small detail seen as the scope would). */
+function thrice(src: Rgba): Rgba {
+  const out = blank(src.width * 3, src.height * 3);
+  for (let y = 0; y < out.height; y++)
+    for (let x = 0; x < out.width; x++) {
+      const si = (Math.floor(y / 3) * src.width + Math.floor(x / 3)) * 4;
+      const di = (y * out.width + x) * 4;
+      for (let k = 0; k < 4; k++) out.data[di + k] = src.data[si + k] ?? 0;
+    }
+  return out;
+}
+
 /** A design-px box of a canvas screenshot, clamped to it. */
 function cropDesign(
   img: Rgba,
@@ -238,6 +286,9 @@ for (const b of BIOMES) {
     save(`${short}-centre`, info, shot);
     // The far plane's strip (Ver, far veld, far ridge foot), middle half, 2×.
     save(`${short}-far`, info, twice(cropDesign(shot, d, d.w * 0.25, 470, d.w * 0.75, 640)));
+    // v1.6 look notes (25 Oct): the sky (clouds) and the whole far view, full width.
+    save(`${short}-sky`, info, cropDesign(shot, d, 0, 0, d.w, 620));
+    save(`${short}-farview`, info, cropDesign(shot, d, 0, 400, d.w, 700));
   });
 
   test(`${short}: the main tree close up`, async ({ page }, info) => {
@@ -339,5 +390,28 @@ for (const b of BIOMES) {
       await page.waitForTimeout(1500);
     }
     expect(n, 'no far animal point was on screen').toBeGreaterThan(0);
+  });
+}
+
+for (const [name, biome, query, layer, u, half, y0, y1, zoom] of CLOSEUPS) {
+  test(`close-up: ${name}`, async ({ page }, info) => {
+    const touch = isTouchProject(info);
+    await boot(page, `seed=42&huntSeconds=20&biome=${biome}&holdAt=${HOLD}&${query}`);
+    await startHunt(page, touch);
+    await park(page, touch);
+    const cx = await panTo(page, cameraFor(biome, layer, u));
+    await held(page, touch);
+    const d = await design(page);
+    const x = d.w / 2 + dxOf(biome, layer, u, cx);
+    const shot = await canvasShot(page);
+    save(name, info, cropDesign(shot, d, x - half, y0, x + half, y1));
+    if (zoom !== null) {
+      const [dx, y, hw, hh] = zoom;
+      save(
+        `${name}-3x`,
+        info,
+        thrice(cropDesign(shot, d, x + dx - hw, y - hh, x + dx + hw, y + hh)),
+      );
+    }
   });
 }
