@@ -19,6 +19,31 @@ const inside = (outer: Rect, r: Rect) =>
 const overlap = (a: Rect, b: Rect) =>
   a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
 
+describe('v1.7b pickup card slot (D-046)', () => {
+  for (const [name, vw, vh] of [
+    ['16:9', 1920, 1080],
+    ['19.5:9', 844, 390],
+    ['4:3', 1024, 768],
+  ] as const)
+    it(`${name}: top centre, clear of the left column, the score plate and the middle`, () => {
+      const size = designSizeFor(vw, vh);
+      const l = hudLayout(
+        size.width,
+        size.height,
+        { top: 0, right: 0, bottom: 0, left: 0 },
+        sizing,
+      );
+      const p = l.pickup;
+      expect(inside(l.safe, p)).toBe(true);
+      expect(Math.abs(p.x + p.w / 2 - size.width / 2)).toBeLessThan(1);
+      for (const r of [l.timer, l.frenzy, l.chips, l.score, l.quota, l.pause, l.bark])
+        expect(overlap(p, r)).toBe(false);
+      // Never down to the crosshair and the flock in the middle.
+      expect(p.y + p.h).toBeLessThan(size.height * 0.42);
+      expect(p.w).toBeGreaterThanOrEqual(440);
+    });
+});
+
 describe('HUD layout at 16:9, 19.5:9 and 4:3', () => {
   const cases = [
     { name: '16:9', vw: 1920, vh: 1080, insets: { top: 0, right: 0, bottom: 0, left: 0 } },

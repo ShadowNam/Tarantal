@@ -177,14 +177,17 @@ export function hudLayout(
     zoomOut,
     zoomLabel,
     zoomIn,
-    pickup: pickupRect(mid, score.x, top + PAUSE_PX + 14),
+    pickup: pickupRect(mid, score.x, frenzy.x + frenzy.w, top + PAUSE_PX + 14),
   };
 }
 
 /** v1.7b (D-046): the pickup card's slot (see HudLayout.pickup). */
-function pickupRect(mid: number, scoreX: number, top: number): Rect {
-  const w = Math.max(440, Math.min(820, 2 * (scoreX - 24 - mid)));
-  return { x: mid - w / 2, y: top, w, h: 230 };
+function pickupRect(mid: number, scoreX: number, leftColumn: number, top: number): Rect {
+  // Clear of the left column (timer, Frenzy, chips) and centred; it may pass under the score
+  // plate's column only below the plate (it starts under the pause button).
+  const room = Math.min(2 * (mid - leftColumn - 24), Math.max(2 * (scoreX - 24 - mid), 0) + 160);
+  const w = Math.max(440, Math.min(820, room));
+  return { x: mid - w / 2, y: top, w, h: 260 };
 }
 
 /** A bubble needs this much width (design px) to sit beside a tally panel. */

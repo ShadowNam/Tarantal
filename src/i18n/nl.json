@@ -611,5 +611,6 @@
   "caption.meerkat_alarm": "[alarmroep van de wachter — stokstaartjes duiken weg]",
   "caption.meerkat_chirp": "[stokstaartjes tjirpen]",
   "caption.camera_click": "[camera klikt]",
-  "notaboek.familiefoto": "Maak de familiefoto van de stokstaartjes (niet schieten)"
+  "notaboek.familiefoto": "Maak de familiefoto van de stokstaartjes (niet schieten)",
+  "hud.seconds_left": "{n} s"
 }

@@ -459,9 +459,11 @@ export class ShedScene extends Phaser.Scene {
       clientToDesign(canvas, e.clientX, e.clientY, designSize());
     const inView = (p: { x: number; y: number }): boolean =>
       p.x >= view.x && p.x <= view.x + view.w && p.y >= view.y && p.y <= view.y + view.h;
+    // Not while Settings (opened from here) covers the shed.
+    const covered = (): boolean => this.scene.isActive('Settings');
     const onDown = (e: PointerEvent): void => {
       const p = designY(e);
-      if (inView(p)) drag = { id: e.pointerId, y: p.y, from: scroll };
+      if (inView(p) && !covered()) drag = { id: e.pointerId, y: p.y, from: scroll };
     };
     const onMove = (e: PointerEvent): void => {
       if (drag === null || drag.id !== e.pointerId) return;
@@ -471,7 +473,7 @@ export class ShedScene extends Phaser.Scene {
       if (drag?.id === e.pointerId) drag = null;
     };
     const onWheel = (e: WheelEvent): void => {
-      if (!inView(designY(e))) return;
+      if (!inView(designY(e)) || covered()) return;
       e.preventDefault();
       setScroll(scroll + e.deltaY);
     };
@@ -492,10 +494,16 @@ export class ShedScene extends Phaser.Scene {
       this.cameras.main.ignore(list);
       cam.ignore(this.children.list.filter((o) => o !== list));
       // ↑/↓ (the menu moves its focus first): bring the focused card into view.
+      // The menu's focus ring is drawn by the main camera, under the list: a card's own ring is
+      // drawn in the list.
+      const ring = this.add.graphics();
+      list.add(ring);
       const onKey = (): void => {
         const i = cards.findIndex((c) => menu.focusedId === `shed.powerup.${c.id}`);
         const r = cardRects[i];
+        ring.clear();
         if (r === undefined) return;
+        ring.lineStyle(6, UI.focus, 1).strokeRoundedRect(r.x + 4, r.y + 4, r.w - 8, r.h - 8, 18);
         if (r.y - scroll < view.y) setScroll(r.y - view.y);
         else if (r.y + r.h - scroll > view.y + view.h) setScroll(r.y + r.h - view.y - view.h);
       };

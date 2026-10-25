@@ -389,6 +389,9 @@ export interface TestHook {
     name: string;
     line: string;
     rect: { x: number; y: number; w: number; h: number };
+    /** Where the card's text ends (design px): never below the card. */
+    textBottom: number;
+    lineScale: number;
   } | null;
   /** v1.7b: the HUD chips as drawn: name, countdown ("8 s" / "×6"), ending (blinking), icon. */
   chips?: { id: string; label: string; time: string; ending: boolean; icon: string | null }[];

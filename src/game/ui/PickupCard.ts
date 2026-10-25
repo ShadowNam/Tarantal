@@ -20,6 +20,8 @@ export interface PickupInfo {
 }
 
 const PAD = 16;
+/** The line's sizes tried in turn (1 = 30 px design). */
+const LINE_SCALES = [1, 0.92, 0.85, 0.78, 0.72] as const;
 const DEPTH = 40;
 
 export class PickupCard {
@@ -33,6 +35,7 @@ export class PickupCard {
   private fromTick = 0;
   private untilTick = 0;
   private box: Rect = { x: 0, y: 0, w: 0, h: 0 };
+  private textBottom = 0;
 
   constructor(scene: Phaser.Scene) {
     this.bg = scene.add.graphics().setDepth(DEPTH);
@@ -60,16 +63,29 @@ export class PickupCard {
     const tagW = info.first ? this.tag.width + 16 : 0;
     fitText(this.name, textW - tagW);
     this.tag.setPosition(textX + this.name.displayWidth + 16, slot.y + PAD + 8);
-    this.line
-      .setText(info.line)
-      .setScale(1)
-      .setWordWrapWidth(textW, true)
-      .setPosition(textX, slot.y + PAD + this.name.displayHeight + 4);
+    // The line wraps to the text column; a long one (a first pickup's full sentence, German on a
+    // 4:3 screen, large text) shrinks, wrapping wider, until it fits the slot (never below
+    // MIN_LINE_SCALE of its size; at the floor it is cut to what fits, which a slot of 260 px
+    // never needs with the shipped strings).
+    const top = slot.y + PAD + this.name.displayHeight + 4;
+    const room = slot.y + slot.h - PAD - top;
+    this.line.setText(info.line).setPosition(textX, top);
+    for (const k of LINE_SCALES) {
+      this.line.setScale(k).setWordWrapWidth(textW / k, true);
+      if (this.line.displayHeight <= room) break;
+    }
+    if (this.line.displayHeight > room) {
+      const k = this.line.scaleY;
+      const lineH = this.line.displayHeight / Math.max(1, this.line.getWrappedText().length);
+      this.line.setMaxLines(Math.max(1, Math.floor(room / Math.max(1, lineH))));
+      this.line.setScale(k);
+    } else this.line.setMaxLines(0);
     const h = Math.min(
       slot.h,
       Math.max(iconBox + 2 * PAD, this.line.y + this.line.displayHeight + PAD - slot.y),
     );
     this.box = { x: slot.x, y: slot.y, w: slot.w, h };
+    this.textBottom = Math.round(this.line.y + this.line.displayHeight);
     this.bg.clear();
     this.bg.fillStyle(UI.ink, 0.9).fillRoundedRect(slot.x, slot.y, slot.w, h, 18);
     this.bg
@@ -116,12 +132,29 @@ export class PickupCard {
     this.setVisible(false);
   }
 
-  /** The card on screen now (id, first, its text and box), or null. */
-  get shown(): { id: string; first: boolean; name: string; line: string; rect: Rect } | null {
+  /** The card on screen now (id, first, its text, its box and where its text really ends, and
+   *  the line's scale), or null. */
+  get shown(): {
+    id: string;
+    first: boolean;
+    name: string;
+    line: string;
+    rect: Rect;
+    textBottom: number;
+    lineScale: number;
+  } | null {
     const i = this.info;
     return i === null
       ? null
-      : { id: i.id, first: i.first, name: i.name, line: i.line, rect: this.box };
+      : {
+          id: i.id,
+          first: i.first,
+          name: i.name,
+          line: i.line,
+          rect: this.box,
+          textBottom: this.textBottom,
+          lineScale: this.line.scaleY,
+        };
   }
 
   private parts(): { setAlpha(a: number): unknown }[] {

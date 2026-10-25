@@ -1003,7 +1003,8 @@ export class HudScene extends Phaser.Scene {
     const { chipW, chipH } = this.ctx.feel.hud;
     const look = this.ctx.feel.hud.powerups;
     const tps = TICKS_PER_SECOND;
-    const secs = (ticks: number): string => `${Math.ceil(ticks / tps)} s`;
+    const secs = (ticks: number): string =>
+      fill(t('hud.seconds_left'), { n: Math.ceil(ticks / tps) });
     const chips: {
       id: string;
       label: string;
@@ -1342,11 +1343,17 @@ export class HudScene extends Phaser.Scene {
     const quotaReached = quota !== undefined && this.lastScore < quota && s.score >= quota;
     this.lastScore = s.score;
     let bark: Bark | null = null;
-    if (this.firstTodayPending) {
+    // v1.7b (D-046): a power-up's first pickup on this save gets Oupa's word on it. It claims the
+    // gap before the frame's pick, so a held line (boss, Stampede, quota, Oupa Laai) stays held
+    // for later instead of being picked now and lost.
+    const pickupLine = firstPickup === null ? null : `bark.pu.${firstPickup}`;
+    if (pickupLine !== null && isI18nKey(pickupLine)) bark = this.ctx.barks.claim(pickupLine, now);
+    if (bark === null && this.firstTodayPending) {
       this.firstTodayPending = false;
       bark = this.ctx.barks.say('firstToday', now);
     }
-    bark ??= this.ctx.barks.hunt(events, {
+    // Always read the frame's events (streaks, held triggers); within the gap it picks nothing.
+    const picked = this.ctx.barks.hunt(events, {
       nowMs: now,
       tick: s.tick,
       ticksLeft: s.ticksLeft,
@@ -1354,9 +1361,7 @@ export class HudScene extends Phaser.Scene {
       frenzyTopMul: Math.max(...this.ctx.content.scoring.frenzyTiers.map((f) => f.mul)),
       quotaReached,
     });
-    // v1.7b (D-046): a power-up's first pickup on this save gets Oupa's word on it.
-    const pickupLine = firstPickup === null ? null : `bark.pu.${firstPickup}`;
-    if (pickupLine !== null && isI18nKey(pickupLine)) bark = this.ctx.barks.claim(pickupLine, now);
+    bark ??= picked;
     if (bark !== null) sayBark(this.ctx, this.bubble, bark.line, l.bark, now);
   }
 

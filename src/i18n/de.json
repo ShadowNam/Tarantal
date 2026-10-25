@@ -611,5 +611,6 @@
   "caption.meerkat_alarm": "[Alarmruf des Wächters — Erdmännchen tauchen ab]",
   "caption.meerkat_chirp": "[Erdmännchen zirpen]",
   "caption.camera_click": "[Kamera klickt]",
-  "notaboek.familiefoto": "Mach das Familienfoto der Erdmännchen (nicht schießen)"
+  "notaboek.familiefoto": "Mach das Familienfoto der Erdmännchen (nicht schießen)",
+  "hud.seconds_left": "{n} s"
 }

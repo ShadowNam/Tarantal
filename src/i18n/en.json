@@ -611,5 +611,6 @@
   "caption.meerkat_alarm": "[sentinel's alarm bark — meerkats dive]",
   "caption.meerkat_chirp": "[meerkats chirp]",
   "caption.camera_click": "[camera clicks]",
-  "notaboek.familiefoto": "Take the meerkats' family photo (hold your fire)"
+  "notaboek.familiefoto": "Take the meerkats' family photo (hold your fire)",
+  "hud.seconds_left": "{n} s"
 }

@@ -219,21 +219,27 @@ export class RunScene extends Phaser.Scene {
 
   // --- run tally ----------------------------------------------------------------------------
 
-  /** v1.7b (D-046): "Power-ups used" and their icons in the panel's top-right corner. */
+  /** v1.7b (D-046): "Power-ups used" and their icons in the panel's top-right corner: the label
+   *  on top, the icons under it, right-aligned, clear of the centred quota title. */
   private usedRow(ids: readonly string[]): void {
     if (this.ctx.hook) this.ctx.hook.tallyPowerups = [...ids];
     if (ids.length === 0) return;
     const p = this.panel;
-    const size = 52;
-    let x = p.x + p.w - 40;
-    const y = p.y + 44;
+    const size = 46;
+    const right = p.x + p.w - 36;
+    const label = this.add
+      .text(right, p.y + 26, t('tally.powerups'), textStyle(24, '#FFD25A'))
+      .setOrigin(1, 0);
+    fitText(label, Math.max(160, p.w / 2 - 300));
+    let x = right;
     for (let i = ids.length - 1; i >= 0; i--) {
       const icon = powerupIcon(ids[i] ?? '');
       if (!this.textures.exists(icon)) continue;
-      this.add.image(x - size / 2, y, icon).setDisplaySize(size, size);
-      x -= size + 10;
+      this.add
+        .image(x - size / 2, p.y + 26 + label.displayHeight + 8 + size / 2, icon)
+        .setDisplaySize(size, size);
+      x -= size + 8;
     }
-    this.add.text(x - 6, y, t('tally.powerups'), textStyle(28, '#FFD25A')).setOrigin(1, 0.5);
   }
 
   private tally(run: RunState, items: MenuItem[]): string {

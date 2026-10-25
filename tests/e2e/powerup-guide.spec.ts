@@ -220,6 +220,8 @@ test('a crate pickup: its card says what it does, and its chip counts down', asy
   // Top centre, clear of the middle of the screen (the crosshair and the flock).
   const h0 = await hook(page);
   expect(card.rect.y + card.rect.h).toBeLessThan(h0.designHeight * 0.4);
+  // Its text stays inside the card (a long sentence shrinks to fit).
+  expect(card.textBottom).toBeLessThanOrEqual(card.rect.y + card.rect.h);
   // The chip: its icon, its name and seconds that go down; the slow-motion look is on.
   const counted = await page.waitForFunction(
     () => {
