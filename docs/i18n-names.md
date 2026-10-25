@@ -9,7 +9,7 @@ rather than translating word for word. The tables show the text each language fi
 - **Place names stay** (Karoo, Kalahari, Okavango, Etosha, Namib; Namibië → Namibia / Namibia /
   Namibië). So do Oupa, Ouma and the neighbour's names (Faan, Bles).
 - **"Afrikaans names" toggle** (Settings → Sound & game, off by default): in English, German or
-  Dutch it brings back the Afrikaans flavour names. It does this per key: `src/i18n/afNames.json`
+  Dutch it brings back the Afrikaans flavour names. It does this per key: `src/i18n/flavour/afNames.json`
   holds the pre-v1.5 text of every key this change renamed (the names and the sentences that use
   them), and `t()` uses it while the toggle is on. Afrikaans text is unaffected.
 - **Oupa's barks** keep their Afrikaans exclamations in every language ("Mooi skoot!", "Ag nee

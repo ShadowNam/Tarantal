@@ -120,7 +120,7 @@ describe('DailyFlow', () => {
     const { flow } = setup();
     const classic = flow.plan('classic', null, undefined, { bonus: 'verder' }, () => 42);
     expect(classic.mode).toMatchObject({ id: 'classic', layout: 'wed', bonus: 'verder' });
-    expect(classic.hudTag).toBe('Verder · further');
+    expect(classic.hudTag).toBe('Further · bonus map');
     const daily = flow.plan('daily', null, undefined, { bonus: 'verder' }, seedNever);
     expect(daily.mode.bonus).toBeUndefined();
     expect(daily.mode.layout).toBe('wed');
@@ -158,7 +158,7 @@ describe('DailyFlow', () => {
       { day: DAY, score: 2840, rank: 'bosveldjagter', wholeFlocks: 2, grid: '🟩🟩🟨🟩⬛' },
     ]);
     expect(x.share?.text).toContain(
-      'Daily #1 · Wednesday · 2\u00a0840 · Bosveldjagter · 🟩🟩🟨🟩⬛ · 2× hele swerm',
+      'Daily #1 · Wednesday · 2\u00a0840 · Bushveld Hunter · 🟩🟩🟨🟩⬛ · 2× whole flock',
     );
     const param = new URL(x.share?.url ?? '').searchParams.get('c') ?? '';
     const decoded = decodeChallenge(param, {

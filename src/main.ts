@@ -48,6 +48,7 @@ import { DomChrome } from './game/ui/DomChrome';
 import {
   isI18nKey,
   pickLanguage,
+  setAfrikaansNames,
   setLanguage,
   t,
   voiceLanguageFor,
@@ -149,6 +150,7 @@ function textLanguageOf(s: Settings): Language {
 function applyLanguage(): void {
   const lang = textLanguageOf(save.data.settings);
   setLanguage(lang);
+  setAfrikaansNames(save.data.settings.afrikaansNames);
   document.documentElement.lang = lang;
   for (const el of document.querySelectorAll<HTMLElement>('[data-i18n]')) {
     const key = el.dataset['i18n'];
