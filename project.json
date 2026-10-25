@@ -1071,6 +1071,16 @@
     }
    ],
    "tests": "Full CI green on every device (23 jobs); 1,129 unit tests.",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/reload-blitslaai-pixel7-landscape.jpg",
+     "caption": "Blitslaai on the Pixel 7: the \"Lightning Load\" chip (top left) and glints on the belt"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/reload-oupa-laai-pixel7-landscape.jpg",
+     "caption": "Oupa Laai on the Pixel 7: the \"Oupa Loads\" chip and his hand by the belt"
+    }
+   ],
    "links": [
     {
      "label": "PR #71",
@@ -1626,6 +1636,21 @@
  ],
  "activity": [
   {
+   "at": "2026-10-25T18:47:00Z",
+   "kind": "screenshots",
+   "text": "v1.6b screenshots on the Pixel 7. The chips are small: v1.7b makes power-ups much clearer.",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/reload-blitslaai-pixel7-landscape.jpg",
+     "caption": "Blitslaai on the Pixel 7: the \"Lightning Load\" chip (top left) and glints on the belt"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/reload-oupa-laai-pixel7-landscape.jpg",
+     "caption": "Oupa Laai on the Pixel 7: the \"Oupa Loads\" chip and his hand by the belt"
+    }
+   ]
+  },
+  {
    "at": "2026-10-25T18:42:00Z",
    "kind": "merge",
    "text": "v1.6b reload power-ups merged (#71, version 1.6.1): Blitslaai (fast reloads) and Oupa Laai (auto reload).",
@@ -1633,6 +1658,16 @@
     {
      "label": "PR #71",
      "url": "https://github.com/ShadowNam/Tarantal/pull/71"
+    }
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/reload-blitslaai-pixel7-landscape.jpg",
+     "caption": "Blitslaai on the Pixel 7: the \"Lightning Load\" chip (top left) and glints on the belt"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/reload-oupa-laai-pixel7-landscape.jpg",
+     "caption": "Oupa Laai on the Pixel 7: the \"Oupa Loads\" chip and his hand by the belt"
     }
    ]
   },
