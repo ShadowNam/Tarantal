@@ -116,12 +116,14 @@ test.describe('meerkat colonies (v1.7, D-044)', () => {
     await colonyInView(page);
     await outAtLeast(page, 1);
     // Pick an adult that is out (inside the screen's middle) and tap its body in the same page
-    // call, so it can't have moved off between the two. A miss (it ran, or another meerkat or
-    // bird took the pellets) is tried again with a fresh pick.
+    // call, so it can't have moved off between the two. The shot counts when the meerkat log gets a
+    // new "hit:" entry. A shot that also bagged a bird (the colonies sit nearer the flocks since
+    // b857284) or landed in the penalty cooldown (hit:0) is tried again after the cooldown, so the
+    // score shows the meerkat's −10 alone. A miss is tried again with a fresh pick.
     let result: { before: number; after: number } | null = null;
-    for (let attempt = 0; attempt < 6 && result === null; attempt++) {
+    for (let attempt = 0; attempt < 8 && result === null; attempt++) {
       await outAtLeast(page, 1);
-      const before = await page.evaluate(
+      const shot = await page.evaluate(
         ([id, isTouch]) => {
           const g = window.__TM__;
           const canvas = document.querySelector<HTMLCanvasElement>('#game canvas');
@@ -148,35 +150,42 @@ test.describe('meerkat colonies (v1.7, D-044)', () => {
             bubbles: true,
             cancelable: true,
           };
-          const score = g.score;
+          const out = { score: g.score, log: g.meerkatLog.length };
           canvas.dispatchEvent(new PointerEvent('pointerdown', init));
           canvas.dispatchEvent(new PointerEvent('pointerup', { ...init, buttons: 0 }));
-          return score;
+          return out;
         },
         [COLONY, touch] as const,
       );
-      if (before === null) continue;
-      // The hit and the score, read in one go (a miss times out and tries again).
+      if (shot === null) continue;
+      // The hit entry and the score, read in one go (a miss times out and tries again).
       const hit = await page
         .waitForFunction(
-          () => {
+          (from) => {
             const g = window.__TM__;
-            return g?.meerkatLog.includes('hit:-10') === true ? { score: g.score } : null;
+            const entry = g?.meerkatLog.slice(from).find((x) => x.startsWith('hit:'));
+            return g === undefined || entry === undefined ? null : { entry, score: g.score };
           },
-          null,
+          shot.log,
           { timeout: 60_000 },
         )
         .catch(() => null);
-      if (hit !== null)
-        result = { before, after: ((await hit.jsonValue()) as { score: number }).score };
+      const seen =
+        hit === null ? null : ((await hit.jsonValue()) as { entry: string; score: number });
+      if (seen !== null && seen.entry === 'hit:-10' && seen.score === shot.score - 10)
+        result = { before: shot.score, after: seen.score };
       else {
-        // Let the colony settle and the gun reload before the next try.
+        // Let the penalty cooldown pass, the colony settle and the gun reload before the next try.
+        const t0 = await page.evaluate(() => window.__TM__?.tick ?? 0);
+        await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) >= t + 150, t0, {
+          timeout: 120_000,
+        });
         await page.keyboard.press('Space');
         if (touch) await page.waitForTimeout(500);
       }
     }
-    expect(result, 'a meerkat was hit').not.toBeNull();
-    // The −10 (Saturday's flocks feed far from this colony, so no bird shares the shot).
+    expect(result, 'a meerkat was hit on its own').not.toBeNull();
+    // The −10, and nothing else from that shot.
     expect(result?.after).toBe((result?.before ?? 0) - 10);
     // A moment later it pops its head out of the hole and scolds (the bark carries the −10).
     await page.waitForFunction(
