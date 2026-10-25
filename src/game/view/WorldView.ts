@@ -9,6 +9,7 @@ import type { PlaneId, SimState } from '../../sim/types';
 import { TICKS_PER_SECOND } from '../../sim/clock';
 import { coreWidth } from '../../sim/world';
 import { TEX } from '../assets/AssetManifest';
+import { powerupIcon } from '../ui/powerupIcons';
 import type { ParallaxView } from './ParallaxView';
 import { FlashGate, type FlashLimiter } from './flashLimit';
 import { stampedeTintAlpha } from './juice';
@@ -44,7 +45,15 @@ export class WorldView {
   private readonly parallax: ParallaxView;
   private readonly biome: Biome;
   private readonly secretArt = new Map<string, SecretArt>();
-  private readonly crates = new Map<number, Phaser.GameObjects.Image>();
+  private readonly crates = new Map<
+    number,
+    {
+      img: Phaser.GameObjects.Image;
+      disc: Phaser.GameObjects.Arc | null;
+      pic: Phaser.GameObjects.Image | null;
+      icon: string | null;
+    }
+  >();
   private readonly devils = new Map<number, Phaser.GameObjects.Image>();
   private readonly stones = new Map<number, Phaser.GameObjects.Image>();
   private glare: Phaser.GameObjects.Image | null = null;
@@ -204,22 +213,53 @@ export class WorldView {
     for (const c of s.crates) {
       seen.add(c.id);
       const key = c.landed ? TEX.crateBox : TEX.crateChute;
-      let img = this.crates.get(c.id);
-      if (img === undefined) {
-        img = this.scene.add.image(c.x, c.y, key);
-        this.parallax.plane(c.plane).overlay?.add(img);
-        this.crates.set(c.id, img);
+      let art = this.crates.get(c.id);
+      if (art === undefined) {
+        const layer = this.parallax.plane(c.plane).overlay;
+        const img = this.scene.add.image(c.x, c.y, key);
+        layer?.add(img);
+        // v1.7b (D-046): what it holds, on a cream disc on the canopy (and then on the box).
+        const icon = c.item === null ? null : powerupIcon(c.item);
+        const shown = icon !== null && this.scene.textures.exists(icon) ? icon : null;
+        const disc =
+          shown === null
+            ? null
+            : this.scene.add.circle(0, 0, 1, 0xf3ead3, 1).setStrokeStyle(4, 0x1b1410, 1);
+        const pic = shown === null ? null : this.scene.add.image(0, 0, shown);
+        if (disc !== null) layer?.add(disc);
+        if (pic !== null) layer?.add(pic);
+        art = { img, disc, pic, icon: shown };
+        this.crates.set(c.id, art);
       }
+      const img = art.img;
       if (img.texture.key !== key) img.setTexture(key);
-      const o = img.texture.key === TEX.crateChute ? { x: 0.5, y: 290 / 360 } : { x: 0.5, y: 0.5 };
+      const chute = img.texture.key === TEX.crateChute;
+      const o = chute ? { x: 0.5, y: 290 / 360 } : { x: 0.5, y: 0.5 };
       const scale = c.plane === 'near' ? 1 : c.plane === 'mid' ? 0.55 : 0.3;
       img.setOrigin(o.x, o.y).setPosition(c.x, c.y).setScale(scale);
+      if (art.disc !== null && art.pic !== null) {
+        // On the canopy while it falls; on the box's face once it lands (texture px × scale).
+        const y = c.y + (chute ? -244 : -4) * scale;
+        const r = (chute ? 42 : 54) * scale;
+        art.disc
+          .setPosition(c.x, y)
+          .setRadius(r)
+          .setStrokeStyle(Math.max(2, 5 * scale), 0x1b1410, 1);
+        art.pic.setPosition(c.x, y).setDisplaySize(r * 1.75, r * 1.75);
+      }
     }
-    for (const [id, img] of this.crates) {
+    for (const [id, art] of this.crates) {
       if (seen.has(id)) continue;
-      img.destroy();
+      art.img.destroy();
+      art.disc?.destroy();
+      art.pic?.destroy();
       this.crates.delete(id);
     }
+  }
+
+  /** v1.7b (D-046): the icon a crate shows (null = none drawn yet, or no icon). */
+  crateIcon(id: number): string | null {
+    return this.crates.get(id)?.icon ?? null;
   }
 
   /**
@@ -539,7 +579,11 @@ export class WorldView {
       for (const m of a.marks.values()) m.destroy();
     }
     this.secretArt.clear();
-    for (const c of this.crates.values()) c.destroy();
+    for (const c of this.crates.values()) {
+      c.img.destroy();
+      c.disc?.destroy();
+      c.pic?.destroy();
+    }
     this.crates.clear();
     for (const d of this.devils.values()) d.destroy();
     this.devils.clear();

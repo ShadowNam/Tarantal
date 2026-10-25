@@ -270,7 +270,8 @@ export interface TestHook {
   secretSpots: { propId: string; partId: string; x: number; y: number; ready: boolean }[];
   /** v1.3: hittable Ver birds' body centres on the UNZOOMED screen (design px), for aiming. */
   verBirds: { id: number; x: number; y: number }[];
-  crateSpots: { id: number; x: number; y: number }[];
+  /** v1.7b: each crate's item and the icon drawn on it (null = none). */
+  crateSpots: { id: number; x: number; y: number; item: string | null; icon: string | null }[];
   specialBirds: { id: number; creature: string; phase: string; x: number; y: number }[];
   /** Active weapon id, power-up ids, wind (omen) and hunt length (bonus time grows it). */
   weapon: string;

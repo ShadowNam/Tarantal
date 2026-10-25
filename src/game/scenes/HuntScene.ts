@@ -1480,6 +1480,8 @@ export class HuntScene extends Phaser.Scene {
         id: c.id,
         x: this.parallax.screenX(c.plane, c.x),
         y: c.y,
+        item: c.item,
+        icon: this.world.crateIcon(c.id),
       }));
       hook.specialBirds = state.birds
         .filter((b) => b.motion === 'perch' || b.motion === 'boss' || b.motion === 'hop')
