@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-25T19:24:00Z",
+ "updated": "2026-10-25T19:34:00Z",
  "summary": "v1.6 Veld art is live on the test build (merged 25 Oct, 18:56). v1.6b reload power-ups is merged too (25 Oct, 20:42; version 1.6.1): Blitslaai and Oupa Laai in the crates and the Padstal. v1.7 meerkats has your fur and face notes in (round 3) and version 1.7.0; Claude's in-game screenshots and review come next. This Project overview page is being built now. Next, in this order: v1.7b power-ups explained + an Oupa on/off switch, v1.7c fruit that swings or drops, v1.7d Namibië veld life, v1.7e realistic Bushveld + a new secret cue instead of the star (mock-ups for you first), v1.8 Blikkies, v1.8b baboons, v1.8c The Harvest (a new mode), then v1.9–v1.13.",
  "current": {
   "version": "1.6.1",
@@ -273,11 +273,11 @@
      "at": "2026-10-25T19:23:00Z"
     },
     {
-     "text": "New screenshots (Claude) and your look",
+     "text": "New screenshots (Claude, running now) and your look",
      "done": false
     },
     {
-     "text": "Claude's independent review",
+     "text": "Claude's independent review (running now)",
      "done": false
     },
     {
@@ -313,7 +313,7 @@
   "project-overview": {
    "owner": "Claude",
    "status": "running",
-   "summary": "This page: the project at a glance in the admin page, with what needs you, what is being built, the roadmap with times and versions, your requests, ideas, and the whole history with images. It reads live data that Claude updates at every check-in, merge and screenshot round.",
+   "summary": "This page: the project at a glance in the admin page, with what needs you, what is being built, the roadmap with times and versions, your requests, ideas, and the whole history with images. It reads live data that Claude updates at every check-in, merge and screenshot round. Open it from the admin page (Project overview) or with ?admin=1&project=1 once it is merged.",
    "requestedBy": "You, 25 Oct 19:51",
    "checklist": [
     {
@@ -322,16 +322,29 @@
      "at": "2026-10-25T17:58:00Z"
     },
     {
-     "text": "The page: Overview, Roadmap, History, Requests, Ideas",
-     "done": false
+     "text": "The page: Overview, Roadmap, History, Requests, Ideas, the lightbox, offline copy",
+     "done": true,
+     "at": "2026-10-25T19:10:00Z"
     },
     {
-     "text": "Tests and screenshots on desktop, Pixel 7 and iPhone 14",
-     "done": false
+     "text": "Claude's review with the real data: Now building beside Needs you, open work first on the Roadmap, cleaner option labels",
+     "done": true,
+     "at": "2026-10-25T19:30:00Z"
     },
     {
-     "text": "Merge and deploy to the test build",
+     "text": "Tests on desktop, Pixel 7 and iPhone 14 (9 of 9 locally; 1,162 unit tests)",
+     "done": true,
+     "at": "2026-10-25T19:32:00Z"
+    },
+    {
+     "text": "Full tests on GitHub and merge; then it is live on the test build",
      "done": false
+    }
+   ],
+   "links": [
+    {
+     "label": "PR #76",
+     "url": "https://github.com/ShadowNam/Tarantal/pull/76"
     }
    ]
   },
@@ -773,6 +786,28 @@
     {
      "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17-meerkats-rounds.jpg",
      "caption": "The meerkat sheet over three rounds; round 3 (bottom, 20:52) has your fur and face notes in"
+    }
+   ]
+  },
+  {
+   "at": "2026-10-25T19:33:00Z",
+   "kind": "tests",
+   "text": "The Project overview page passed its tests on desktop, Pixel 7 and iPhone 14 and is up for merge (PR #76).",
+   "links": [
+    {
+     "label": "PR #76",
+     "url": "https://github.com/ShadowNam/Tarantal/pull/76"
+    }
+   ]
+  },
+  {
+   "at": "2026-10-25T19:28:00Z",
+   "kind": "note",
+   "text": "Tank finished the meerkats (version 1.7.0, round 3 art). Claude is taking the in-game screenshots and running the independent review.",
+   "links": [
+    {
+     "label": "PR #72",
+     "url": "https://github.com/ShadowNam/Tarantal/pull/72"
     }
    ]
   }
