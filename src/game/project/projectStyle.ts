@@ -71,6 +71,7 @@ export const PROJECT_CSS = `
 #tm-project .nhead .chip{margin-top:1px}
 #tm-project ol.opts{margin:2px 0 6px;padding-left:26px;list-style:upper-alpha}
 #tm-project ol.opts li{padding:1px 0}
+#tm-project ol.opts.own{list-style:none;padding-left:4px}
 #tm-project .answer{color:var(--ok);font-weight:700}
 #tm-project .jline{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
 #tm-project .jline .t{flex:1 1 160px;min-width:0;font-weight:700}

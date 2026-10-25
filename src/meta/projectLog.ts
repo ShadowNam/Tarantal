@@ -483,3 +483,21 @@ export function suggestionGroups(
 export function findJob(log: Pick<ProjectLog, 'jobs'>, id: string | undefined): Job | undefined {
   return id === undefined ? undefined : log.jobs.find((j) => j.id === id);
 }
+
+/** True when every option already carries its own label ("1. …", "10 (maybe). …", "A. …"), so the
+ *  list mustn't add letters of its own ("A. 1. Halloween"). */
+export function optionsLabelled(options: readonly string[]): boolean {
+  return (
+    options.length > 0 &&
+    options.every((o) => /^\s*(?:\d{1,2}|[A-Z])(?:\s*\([^)]*\))?[.)]\s/.test(o))
+  );
+}
+
+/** A job's extra links without the ones that repeat its own pull requests (shown as #N already). */
+export function extraLinks(job: Pick<Job, 'prs' | 'links'>): Link[] {
+  const prs = new Set(job.prs ?? []);
+  return (job.links ?? []).filter((l) => {
+    const m = /\/pull\/(\d+)\/?$/.exec(l.url);
+    return m === null || !prs.has(Number(m[1]));
+  });
+}

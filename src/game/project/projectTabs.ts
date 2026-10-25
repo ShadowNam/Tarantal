@@ -4,6 +4,7 @@
 // text as textContent. Lives in the page's lazy chunk.
 import {
   checklistProgress,
+  extraLinks,
   findJob,
   formatNamibia,
   groupJobs,
@@ -13,6 +14,7 @@ import {
   newestFirst,
   nextUp,
   openNeeds,
+  optionsLabelled,
   recentlyDone,
   settledNeeds,
   suggestionGroups,
@@ -226,10 +228,13 @@ function overview(ctx: ViewContext): HTMLElement {
     para(log.summary),
     el('p', { className: 'muted', textContent: `${build} ${pf('project.by', { who: log.by })}` }),
   );
-  const colA = el('div', { className: 'col' }, needs(ctx), now(ctx), activity(ctx));
+  // Wide screens: what needs the product owner on the left; what is being built now at the top
+  // of the right column, so both show without scrolling (narrow screens use the o1–o7 order).
+  const colA = el('div', { className: 'col' }, needs(ctx), activity(ctx));
   const colB = el(
     'div',
     { className: 'col' },
+    now(ctx),
     upNext(ctx),
     lastDone(ctx),
     ...numbers(ctx),
@@ -284,7 +289,11 @@ function needCard(n: NeedsYou, ctx: ViewContext): HTMLElement {
   if (n.options !== undefined && n.options.length > 0)
     card.append(
       el('div', { className: 'label', textContent: pt('project.options') }),
-      el('ol', { className: 'opts' }, ...n.options.map((o) => el('li', { textContent: o }))),
+      el(
+        'ol',
+        { className: optionsLabelled(n.options) ? 'opts own' : 'opts' },
+        ...n.options.map((o) => el('li', { textContent: o })),
+      ),
     );
   if (n.answer !== undefined)
     card.append(
@@ -337,7 +346,7 @@ function activeCard(job: Job, ctx: ViewContext): HTMLElement {
   );
   if (job.summary !== undefined && job.status === 'blocked')
     card.append(para(job.summary, 'small'));
-  const refs = [...prLinks(job.prs), ...(job.links ?? []).map((l) => linkEl(l))];
+  const refs = [...prLinks(job.prs), ...extraLinks(job).map((l) => linkEl(l))];
   if (refs.length > 0) card.append(el('div', { className: 'links' }, ...refs));
   if (p !== null)
     card.append(
@@ -454,8 +463,9 @@ let rowIds = 0;
 function roadmap(ctx: ViewContext): HTMLElement {
   const g = groupJobs(ctx.log.jobs);
   const view = el('div', { className: 'tabview' });
-  for (const group of ['done', 'active', 'planned'] as const) {
-    const jobs = g[group];
+  // What is moving comes first; the long done list follows, newest first (History has the story).
+  for (const group of ['active', 'planned', 'done'] as const) {
+    const jobs = group === 'done' ? newestFirst(g.done) : g[group];
     view.append(
       el(
         'section',
@@ -539,7 +549,7 @@ function jobDetails(job: Job, ctx: ViewContext): Node[] {
   ].filter((x) => x !== '');
   if (facts.length > 0)
     out.push(el('div', { className: 'muted meta-line', textContent: facts.join(' · ') }));
-  out.push(...linksRow(job.links), ...gallery(job.images ?? [], ctx.show, job.title));
+  out.push(...linksRow(extraLinks(job)), ...gallery(job.images ?? [], ctx.show, job.title));
   return out;
 }
 

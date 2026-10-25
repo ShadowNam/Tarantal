@@ -29,6 +29,8 @@ import {
   withCacheBuster,
   type Job,
   type ProjectLog,
+  optionsLabelled,
+  extraLinks,
 } from './projectLog';
 
 const FIXTURE = join(import.meta.dirname, '../../tests/e2e/fixtures/project-log.json');
@@ -367,5 +369,32 @@ describe('offline copy', () => {
     ).toBeNull();
     expect(decodeCache(encodeCache('yesterday', raw))).toBeNull();
     expect(decodeCache(encodeCache('2026-10-25T18:30:00Z', { ...raw, schema: 9 }))).toBeNull();
+  });
+});
+
+describe('optionsLabelled', () => {
+  it('sees options that carry their own number or letter', () => {
+    expect(
+      optionsLabelled(['1. Halloween', '2. Christmas', '10 (maybe). World Wildlife Day']),
+    ).toBe(true);
+    expect(optionsLabelled(['A. A small animal', 'B. Natural cues', 'C. No cue'])).toBe(true);
+  });
+  it('lets the list letter plain options (and a mixed list)', () => {
+    expect(optionsLabelled(['Keep the interim voices', 'Real voice actors'])).toBe(false);
+    expect(optionsLabelled(['1. Halloween', 'Christmas'])).toBe(false);
+    expect(optionsLabelled([])).toBe(false);
+  });
+});
+
+describe('extraLinks', () => {
+  it("drops links to the job's own pull requests and keeps the rest", () => {
+    const links = [
+      { label: 'PR #72', url: 'https://github.com/ShadowNam/Tarantal/pull/72' },
+      { label: 'PR #75', url: 'https://github.com/ShadowNam/Tarantal/pull/75' },
+      { label: 'Test build', url: 'https://shadownam.github.io/Tarantal/' },
+    ];
+    expect(extraLinks({ prs: [72], links }).map((l) => l.label)).toEqual(['PR #75', 'Test build']);
+    expect(extraLinks({ links }).length).toBe(3);
+    expect(extraLinks({ prs: [72] })).toEqual([]);
   });
 });
