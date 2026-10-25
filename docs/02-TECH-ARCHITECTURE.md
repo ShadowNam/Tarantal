@@ -767,6 +767,43 @@ or "Send to GitHub" (a prefilled `issues/new?labels=playtest` link ≤ 7 KB, `sr
   (one draw) and the lower levels re-stamped. The plate's swing and the newest mark's glint run
   on the snapshot tick (`rangeHold` freezes that tick), never the wall clock. No sim change.
 
+### 8.4 Project overview (D-045)
+The admin page's **Project overview** button (`data-action="project"`, or `?admin=1&project=1` as
+a bookmark) opens a full-screen DOM page, `#tm-project`, with the build's status for the product
+owner: Overview (needs you, now building, next up, recently done, numbers, links, latest
+activity), Roadmap, History (stages, pictures, evolution, decisions, glossary), Requests, Ideas.
+- **Data:** one JSON file the supervisor publishes on the git branch `project-log` (no CI there;
+  it changes many times a day without a deploy):
+  `https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/project.json` (CORS `*`, CDN
+  cache ~5 min), fetched with `?t=<now>` and `cache: 'no-store'`, 15 s timeout. `?projectData=<url>`
+  loads another copy (tests, previews) when that URL is https on an allowed host (a
+  `raw.githubusercontent.com` file only from the ShadowNam account). Format, schema
+  and how to update it: `docs/project/README.md`; the Zod schema and every pure helper (allowlist,
+  Namibia-time formatting, grouping and sort orders, the offline copy) are `src/meta/projectLog.ts`
+  (unit-tested against `tests/e2e/fixtures/project-log.json`).
+- **Safety:** every string is set as `textContent`; links and pictures are kept only when https on
+  `github.com`, `raw.githubusercontent.com`, `shadownam.github.io` or `claude.ai` (no credentials,
+  no other port), others are dropped silently; links open in a new tab with
+  `rel="noopener noreferrer"`.
+- **Gating:** shown where `freshLoadShown()` is true (the web build's admin page: dev server and
+  GitHub Pages), on the list page. `AdminScene.openProject()` loads `src/game/project/` as its own
+  lazy chunk behind the raw `VITE_PLATFORM` guard, like the Skietbaan (§8.3): `adapters.test.ts`
+  checks the guard, `size-check` fails a portal build carrying the code or a web build with the
+  chunk in the first download. The first download grew by 0.5 KB gzip (the button, its string,
+  the guard); the chunk is 15.4 KB gzip. Strings are `src/i18n/project/<lang>.json`, checked by
+  `content:validate` like the range's; the log's own text is English data.
+- **Fallback:** "Loading the project log…", then the page. A failed load (network, HTTP error,
+  timeout) shows a message with Retry; a file that fails the schema shows "could not be read" and
+  the first Zod issue in small text. The last good log is saved through `src/meta/storage.ts`
+  (`project.lastGood`, re-checked against the schema when read) and shown under the error as
+  "Offline copy from <time>". Times are Namibia time (`Africa/Windhoek`, UTC+2).
+- **Page:** tabs scroll sideways on phones; the body scrolls with `touch-action: pan-y`; every
+  button and link is ≥ 44 px; a compact two-row header below 500 px height (iPhone 14 landscape).
+  Pictures are lazy thumbnails; a tap opens the lightbox (full picture, caption, previous/next by
+  button, arrow key or swipe, "open full size", Escape or ✕ closes; the page under it doesn't
+  scroll). A picture that fails to load shows its caption in a box. While open, `project=1` stays
+  in the address (`history.replaceState`), so a reload returns to it; Back drops it.
+
 ## 9. Mobile web specifics (the gotchas)
 - **iPhone Safari has no element Fullscreen API** (iPad does; iOS 17.4 beta even removed an
   experimental flag). Don't show a fullscreen button there; instead show a one-time "Add to Home

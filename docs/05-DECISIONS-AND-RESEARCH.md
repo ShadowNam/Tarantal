@@ -2467,6 +2467,46 @@ crescent ears and fuller cheeks, in the front and side views.
 subject. The Familiefoto shows a clear row, the dash is held mid-run, and there is a
 sentinel-and-pup close-up. Every close-up shows each meerkat at least 150 px tall.
 
+**D-045 Project overview page in the admin (25 Oct 2026):** the product owner asked: "add to the
+admin page a process log page, where the whole build file with all the images is present, but on
+top it should have all the stuff that has been ticked off, all the stuff that we have done and all
+the stuff that is still outstanding, with date and time and which build one can expect it, so that
+I don't have to keep on asking … what questions are unresolved, stuff I need to give feedback on or
+make decisions on, what has been built, what will be built, possible suggestions, and also the
+history page which shows the total build process. And as you publish photos and tests, that all
+gets added there." Rules in Tech §8.4; the data format in `docs/project/README.md`.
+(1) *One data file on its own branch:* the supervisor (Claude) publishes `project.json` on the git
+branch `project-log`, read from `raw.githubusercontent.com` (CORS `*`). Why: the status changes
+many times a day; a branch without CI updates in seconds without a build, a deploy or a review, and
+the test build never has to change for news to show. The page adds `?t=<now>` (the CDN still
+caches ~5 min). `?projectData=` points the page at another copy for tests and previews; on
+`raw.githubusercontent.com` only the ShadowNam account's files, since that host serves anyone's
+and a crafted link must not show the product owner a fake list of decisions.
+(2) *Schema in code, forgiving where it costs nothing:* `src/meta/projectLog.ts` (Zod, types by
+`z.infer`) needs `schema: 1`, the time, the summary, the current build, the jobs and the needs-you
+items; the other lists may be left out (read as empty) and unknown fields are ignored, so a
+hand-edited file with a missing glossary still shows the status. A broken file shows "could not
+be read" and the first Zod issue, so whoever edits it sees what to fix.
+(3) *Allowlist:* the file comes from outside the build, so every string goes in as text, never
+HTML, and links and pictures are kept only when https on `github.com`, `raw.githubusercontent.com`,
+`shadownam.github.io` or `claude.ai` (the hosts the team publishes to); anything else is dropped
+silently. Links open in a new tab without opener or referrer.
+(4) *Gating:* exactly where the Skietbaan's Fresh load is (`freshLoadShown()`: the web build's
+admin page on the dev server and GitHub Pages), never in Poki or CrazyGames builds: the page is a
+lazy chunk behind the raw `VITE_PLATFORM` guard (D-037), checked by a unit test and `size-check`.
+Players never download it; the first download grew by 0.5 KB gzip (the button, its string, the
+guard), the chunk is 15.4 KB gzip.
+(5) *Offline copy:* the last log that loaded is kept on the device (through `storage.ts`, which may
+throw) and shown, marked "Offline copy from <time>", when a load fails, so a weak connection in the
+veld still shows the last status.
+(6) *Namibia time:* every time is shown in `Africa/Windhoek` (UTC+2), labelled once in the header;
+the file stays in UTC. Chrome strings are in en/af/de/nl in the page's own lazy tables
+(`src/i18n/project/`); the log's text is English data.
+(7) *Tests:* `projectLog.test.ts` (schema, allowlist, time formatting, selections and orders, the
+offline copy); `project-overview.spec.ts` on desktop, Pixel 7 and iPhone 14 (landscape; portrait
+also passes) with the log and pictures served by `page.route` (no network), screenshots in
+`docs/art-preview/compare/project-overview-*.png`. No sim, content or replay change.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

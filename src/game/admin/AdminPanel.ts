@@ -24,6 +24,7 @@ const ADMIN_CSS = `
   background:rgba(27,20,16,.95);color:#F3EAD3;font:15px/1.35 'Baloo 2',system-ui,sans-serif;
   padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
   env(safe-area-inset-left);box-sizing:border-box}
+#tm-admin[hidden]{display:none}
 #tm-admin *{box-sizing:border-box}
 #tm-admin header{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid #5a4632;flex-wrap:wrap}
 #tm-admin h1{font-size:20px;margin:0;color:#FFD25A}
@@ -53,6 +54,7 @@ const ADMIN_CSS = `
   border:2px solid #8a7458;background:#3a2e24;color:#F3EAD3;cursor:pointer;touch-action:manipulation}
 #tm-admin button.btn.primary{background:#d9a21b;border-color:#FFD25A;color:#1b1410;font-size:18px;padding:6px 28px}
 #tm-admin button.btn[aria-pressed=true]{background:#F3EAD3;color:#1b1410}
+#tm-admin button.btn.project{border-color:#FFD25A;color:#FFD25A}
 #tm-admin .star{font-size:22px;min-width:44px;padding:0 4px}
 #tm-admin .toast{color:#FFD25A;font-size:13px}
 #tm-admin .card{margin:auto;max-width:640px;width:calc(100% - 32px);background:#2b211a;border:2px solid #8a7458;border-radius:14px;padding:18px;text-align:center}
@@ -105,6 +107,8 @@ export interface AdminPanelHooks {
   readonly onView?: (view: 'list' | 'play', selected: string | null) => void;
   /** v1.3x (D-037): the Skietbaan button (the training ground; its code loads on demand). */
   readonly onRange?: () => void;
+  /** D-045: the Project overview button (its code loads on demand; the web build's page only). */
+  readonly onProject?: () => void;
 }
 
 export class AdminPanel {
@@ -132,6 +136,13 @@ export class AdminPanel {
 
   destroy(): void {
     this.root.remove();
+  }
+
+  /** D-045: hidden under the Project overview; shown again on its Back (focus on its button). */
+  setHidden(hidden: boolean): void {
+    this.root.hidden = hidden;
+    if (!hidden)
+      this.root.querySelector<HTMLElement>('[data-action=project]')?.focus({ preventScroll: true });
   }
 
   private update(fn: (s: AdminSave) => AdminSave): void {
@@ -172,6 +183,18 @@ export class AdminPanel {
         textContent: `${t('admin.unranked')} · ${this.admin.build}`,
       }),
       toast,
+      ...(this.hooks.onProject === undefined
+        ? []
+        : [
+            button(
+              t('admin.project'),
+              'project',
+              () => {
+                this.hooks.onProject?.();
+              },
+              'btn project',
+            ),
+          ]),
       ...(this.hooks.onRange === undefined
         ? []
         : [

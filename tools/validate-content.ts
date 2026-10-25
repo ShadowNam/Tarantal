@@ -152,29 +152,32 @@ for (const f of readdirSync(i18nDir).filter((x) => /^[a-z]{2}\.json$/.test(x) &&
   for (const issue of checkLanguage(f.slice(0, 2), enTable, readTable(f)))
     errors.push({ file, message: `"${issue.key}": ${issue.message}` });
 }
-// v1.3x (D-037): the Skietbaan's own string tables (src/i18n/range/<lang>.json, lazy chunk) —
-// the same rules: every language has every key of range/en.json, and no language is missing.
-const rangeDir = join(i18nDir, 'range');
-const readRange = (f: string): Record<string, unknown> =>
-  JSON.parse(readFileSync(join(rangeDir, f), 'utf8')) as Record<string, unknown>;
-const rangeFiles = readdirSync(rangeDir).filter((x) => /^[a-z]{2}\.json$/.test(x));
-for (const message of checkLanguageSet(
-  LANGUAGES,
-  rangeFiles.map((x) => x.slice(0, 2)),
-))
-  errors.push({ file: 'i18n/range/', message });
-const rangeEn = readRange('en.json');
-for (const f of rangeFiles) {
-  const file = `i18n/range/${f}`;
-  fileNames.push(file);
-  if (f === 'en.json') {
-    for (const key of Object.keys(rangeEn))
-      if (!key.startsWith('range.'))
-        errors.push({ file, message: `"${key}": range strings are named range.*` });
-    continue;
+// v1.3x (D-037): the Skietbaan's own string tables (src/i18n/range/<lang>.json, lazy chunk), and
+// D-045: the Project overview's (src/i18n/project/) — the same rules: every language has every
+// key of <dir>/en.json, no language is missing, and the keys are named <dir>.*.
+for (const lazyDir of ['range', 'project']) {
+  const dir = join(i18nDir, lazyDir);
+  const read = (f: string): Record<string, unknown> =>
+    JSON.parse(readFileSync(join(dir, f), 'utf8')) as Record<string, unknown>;
+  const files = readdirSync(dir).filter((x) => /^[a-z]{2}\.json$/.test(x));
+  for (const message of checkLanguageSet(
+    LANGUAGES,
+    files.map((x) => x.slice(0, 2)),
+  ))
+    errors.push({ file: `i18n/${lazyDir}/`, message });
+  const base = read('en.json');
+  for (const f of files) {
+    const file = `i18n/${lazyDir}/${f}`;
+    fileNames.push(file);
+    if (f === 'en.json') {
+      for (const key of Object.keys(base))
+        if (!key.startsWith(`${lazyDir}.`))
+          errors.push({ file, message: `"${key}": ${lazyDir} strings are named ${lazyDir}.*` });
+      continue;
+    }
+    for (const issue of checkLanguage(f.slice(0, 2), base, read(f)))
+      errors.push({ file, message: `"${issue.key}": ${issue.message}` });
   }
-  for (const issue of checkLanguage(f.slice(0, 2), rangeEn, readRange(f)))
-    errors.push({ file, message: `"${issue.key}": ${issue.message}` });
 }
 fileNames.sort();
 

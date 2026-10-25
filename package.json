@@ -22,6 +22,7 @@
     "check": "npm run typecheck && npm run lint && npm run test && npm run content:validate",
     "size": "tsx tools/size-check.ts",
     "golden:update": "tsx tools/golden-update.ts",
+    "project:check": "tsx tools/project-log-check.ts",
     "hunt": "tsx tools/run-hunt.ts",
     "balance": "tsx tools/balance-sim.ts",
     "assets:pack": "tsx tools/pack-atlases.ts",
