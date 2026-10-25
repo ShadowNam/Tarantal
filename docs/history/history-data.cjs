@@ -7,22 +7,22 @@ const meta = {
   title: 'Tarantal Madness',
   subtitle: 'Development history',
   tagline: 'How the game came together, from the first commit to today',
-  updated: '25 October 2026, 04:50 UTC',
+  updated: '25 October 2026, 17:00 UTC',
   period: '19–25 October 2026',
 };
 
-// "By the numbers" on 25 Oct 2026 (main at 7ad113f).
+// "By the numbers" on 25 Oct 2026 (main at 58ba640).
 const numbers = [
   ['Days since the first commit', '6'],
-  ['Commits on main', '721'],
-  ['Pull requests', '68 merged, plus this history update; v1.6 Veld art in progress'],
-  ['Game code (TypeScript, without tests)', 'about 40,500 lines'],
-  ['Automated tests', '1,066 unit tests, 46 browser test suites on 3 device profiles'],
+  ['Commits on main', '768'],
+  ['Pull requests', '70 merged, plus this history update; v1.6b reload power-ups and v1.7 meerkat colonies ready for review'],
+  ['Game code (TypeScript, without tests)', 'about 42,000 lines'],
+  ['Automated tests', '1,098 unit tests, 48 browser test suites on 3 device profiles'],
   ['Hunting areas', '5: the four seasons (Karoo, Bushveld, Okavango, Kalahari) and Namibië, each with 7 weekday maps and 3 bonus maps (Verder, Nog Verder, Die Verste)'],
   ['Guns', '8 (Dubbelloop, Windbuks, Kettie, Plaas-Pomp, Die Twee-Twee with 3 sights, Die Langloop with a 3–9× scope, Voorlaaier, Mielie-Masjien)'],
   ['Creatures', '13 (guineafowl and variants, bosses, flyers)'],
   ['Languages', 'English, Afrikaans, German and Dutch text; Oupa voiced in English, Afrikaans and German'],
-  ['Design decisions logged', '41 (D-001 to D-041)'],
+  ['Design decisions logged', '42 (D-001 to D-042)'],
 ];
 
 const roles = [
@@ -569,6 +569,45 @@ const stages = [
       { img: 'v15-af-tally-pixel7', caption: 'The end-of-hunt tally in Afrikaans (Bakkie-telling).' },
     ],
   },
+  {
+    title: 'v1.6 Veld art: trees, fruit, far animals and the windmill',
+    when: '25 Oct 2026, 16:56 (started 25 Oct, 04:45)',
+    prs: '#70',
+    decision: 'D-042',
+    intro: 'The product owner wanted every map’s trees, bushes, grass and fruit at the quality of the camelthorn, and far animals that look like animals, not rough shapes.',
+    bullets: [
+      'Plants redrawn on every map at the camelthorn quality bar. Karoo: sweet thorns and aloes, renosterbos and ganna bushes. Bushveld: a baobab with hanging pods, mopane and marula with fallen fruit. Okavango: the sausage tree, jackalberries, ilala palms, papyrus and water lilies. Kalahari: shepherd’s trees, camelthorn pods and silvery Bushman grass. Namibië: quiver trees in yellow flower and !nara melons on the dunes.',
+      'Far animals redrawn with true body shapes: giraffes with real anatomy, patches and calves, springbok, gemsbok, zebra, wildebeest, elephants, lechwe and ostriches. They stay sharp through the scope.',
+      'Far trees are drawn per species with broken crowns, instead of blobs. Each area has realistic, softly drifting clouds of its own.',
+      'The dassie is bigger and more lifelike, on grey granite boulders. The dead camelthorn in the Kalahari is now a weathered tree skeleton.',
+      'The windmill was redrawn from the product owner’s photos: 20 curved sheet-metal sails, several missing, one bent and one torn, with rust. It turns into the wind and spins on windy days. The Kalahari windmill now has its wheel.',
+      'The placeholder-art bug is fixed: a hunt or the Skietbaan waits for its art behind a loading veil and retries if a file fails; the offline cache no longer serves an old file list after a new version goes live; a bar offers a reload when a new version is ready.',
+      'A build stamp on every map, the title and the Skietbaan: version, commit, date, area, weekday and whether the art loaded (for example "v1.6.0 · 89ec664 · 25 Oct 12:11 · Okavango · Sun · art ok").',
+      'A "Fresh load" button in the Skietbaan (test builds only) clears the game’s caches and reloads, without a manual hard refresh. The save is untouched.',
+      'The pale ring inside the scope is gone: it was the placeholder sight showing before the real one loaded.',
+      'Only the look changed: the game’s rules and replays are the same. First download 2.96 MB of 3 MB; every area pack within its 1.5 MB limit. 1 098 unit tests.',
+    ],
+    feedbackLabel: 'Reviews and fixes before merging',
+    feedback: [
+      'Product owner (25 Oct, about 06:50): the windmill needs more detail, a wheel with missing blades, and it should turn with the wind and spin.',
+      'About 07:00: the dassie "needs to be increased a lot". About 07:05: the giraffes’ "detail needs to become more realistic". About 07:10: the far trees look like blobs.',
+      'About 07:10–07:15: placeholder art on a MacBook Air in Brave, fixed by a hard reload. Claude traced it to the offline cache keeping an old file list after a deploy.',
+      'About 07:20: a version number on every map. About 07:25: the Kalahari dead tree "needs a lot of work" and the clouds "need to be more realistic".',
+      'Later, from the product owner’s photos of a real windmill: "not that ring on the outside … more missing ones, in random order … old and rusted". The redraw was approved: "looks great, implement it". The product owner also asked for the Fresh load button.',
+      'The independent review found five issues, all fixed: the reload bar showed when nothing had changed and sat over the game; a missing file list on the live site was not treated as an error; the scope and far-plane files that load late were not checked and retried; and parts of the view were not rebuilt once late art arrived.',
+      'Claude fixed the scope’s pale ring and the Kalahari windmill, whose wheel was hidden while the sign’s secret was live.',
+      'On GitHub, a loading test checked a retry counter too early (fixed); one long training-ground test timed out once on the slow runner and passed on a re-run.',
+    ],
+    images: [
+      { img: 'v16-windmill', caption: 'Before | after on a phone: the Karoo windmill, redrawn from the product owner’s photos, with missing and bent sails and rust.' },
+      { img: 'v16-giraffes-scope', caption: 'Before | after: far giraffes through the scope, now with patches, true proportions and a calf.' },
+      { img: 'v16-dassie', caption: 'Before | after: the Bushveld dassie, bigger and lifelike, on grey granite.' },
+      { img: 'v16-dead-tree', caption: 'Before | after on a phone: the Kalahari dead camelthorn and the new clouds.' },
+      { img: 'v16-okavango', caption: 'Before | after on a phone: the Okavango sausage tree, ilala palms and clouds, with the build stamp along the bottom.' },
+      { img: 'v16-scope', caption: 'Before | after in the Skietbaan: Die Langloop at 3× in the Bushveld. The pale ring is gone; giraffes and the dassie on granite.' },
+      { img: 'v16-namibie', caption: 'Before | after on a phone: Namibië with quiver trees in yellow flower, !nara hummocks and far animals on the pan.' },
+    ],
+  },
 ];
 
 // The product owner's requests, in order.
@@ -585,21 +624,32 @@ const requests = [
   ['23 Oct, 20:50', 'Let GitHub record the screenshot baselines', 'Done (#55)'],
   ['23 Oct, 21:15', 'Keep the build file updated with an infographic every 2–3 hours; keep Tank building overnight', 'The build board and the status doc, refreshed every 2–3 hours and after each merge; v1.3 merged overnight'],
   ['24 Oct, 05:45', 'More targets in the training ground: mixed targets at all distances, every distance for every gun, a sound or blink on every hit', 'Done (#61), with screenshots sent at the merge'],
-  ['24 Oct, 12:05', 'Better graphics for the trees, bushes and fruit on every map; camelthorn trees in Namibia; a far more detailed weaver nest ("increase quality by 500%") with angry birds flying out when it is shot', 'Camelthorn and nest first in v1.4 part B, with close-ups for approval; then v1.5 for every map'],
-  ['24 Oct, 12:18', 'Meerkat burrows on the desert maps: meerkats peek out and run from one burrow to another ("be creative")', 'Queued as v1.6: burrows, a sentinel, dashes, diving at shots, a Familiefoto secret'],
+  ['24 Oct, 12:05', 'Better graphics for the trees, bushes and fruit on every map; camelthorn trees in Namibia; a far more detailed weaver nest ("increase quality by 500%") with angry birds flying out when it is shot', 'Camelthorn and nest first in v1.4 part B, with close-ups for approval; the plants on every map done in v1.6 (#70)'],
+  ['24 Oct, 12:18', 'Meerkat burrows on the desert maps: meerkats peek out and run from one burrow to another ("be creative")', 'Built as v1.7 (#72), in review'],
   ['24 Oct, 16:00', 'Languages: game, voice and text in German, English and Afrikaans, with names adjusted for each audience', 'Done in v1.5 (#68)'],
   ['24 Oct, 17:45', 'Clean steel gongs in the training ground, with every shot mark staying visible for the session; tin cans ("blikkies") on fence posts that somersault and can be juggled in the air', 'Gongs done (#66); Blikkies queued as v1.8'],
   ['24 Oct, 18:55', 'Five more ideas to keep the African feel (meerkats, a soundscape, a rain storm, a braai, a farm dog, veld cameos) and Daily specials on local days (Heritage Day braai, Christmas in summer, Halloween, New Year)', 'All queued as v1.6–v1.13; a list of Daily specials sent for the product owner to choose from'],
-  ['24 Oct, 20:35', 'Distant animals (like the giraffe) look rough; consider a bow and arrow later', 'Far animals added to v1.6 (veld art); bow and arrow noted as an idea for later'],
+  ['24 Oct, 20:35', 'Distant animals (like the giraffe) look rough; consider a bow and arrow later', 'Done in v1.6 (#70); bow and arrow noted as an idea for later'],
+  ['25 Oct, 06:50', 'The windmill: more detail, a wheel with missing blades, turning with the wind and spinning', 'Done in v1.6 (#70)'],
+  ['25 Oct, 07:00', 'The dassie "needs to be increased a lot"', 'Done in v1.6 (#70)'],
+  ['25 Oct, 07:05', 'The giraffes\u2019 "detail needs to become more realistic"', 'Done in v1.6 (#70)'],
+  ['25 Oct, 07:10', 'The far trees look like blobs', 'Done in v1.6 (#70): far trees per species'],
+  ['25 Oct, 07:10', 'Placeholder art on a MacBook Air in Brave until a hard reload', 'Fixed in v1.6 (#70): the art waits to load and retries; no stale cache after a deploy'],
+  ['25 Oct, 07:20', 'Map version numbers', 'Done in v1.6 (#70): a build stamp on every map'],
+  ['25 Oct, 07:25', 'The Kalahari dead tree "needs a lot of work"; the clouds "need to be more realistic"', 'Done in v1.6 (#70)'],
+  ['25 Oct, morning', 'The windmill redrawn from the reference photos: no outer ring, more missing blades in random order, old and rusted', 'Approved ("looks great, implement it") and done in v1.6 (#70)'],
+  ['25 Oct', 'A button to force a fresh map load after a deploy', 'Done in v1.6 (#70): the Fresh load button in the Skietbaan (test builds)'],
+  ['25 Oct, 14:45', 'When shooting the fruit (sausage tree), make it swing or drop', 'Queued as v1.7b'],
 ];
 
 const next = [
-  ['v1.6: veld art and distant animals (next)', 'Trees, bushes, grass and fruit at the new quality bar on every map, and better far animals (giraffe and others)', 'Tank', 'about 6 h'],
-  ['Final voices', 'Replace the interim text-to-speech voices with real or premium voices per language', 'Product owner', 'when chosen'],
-  ['v1.7: meerkat colonies', 'Burrows on the desert maps; meerkats peek, stand guard, dash between burrows and dive when shots are fired', 'Tank', 'about 5 h'],
+  ['v1.6b: reload power-ups', 'Reload power-ups; in review (#71)', 'Claude, then the product owner', 'review'],
+  ['v1.7: meerkat colonies', 'Burrows on the desert maps; meerkats peek, stand guard, dash between burrows and dive when shots are fired. In review (#72)', 'Claude, then the product owner', 'review'],
+  ['v1.7b: fruit that swings and drops', 'Shot fruit (such as the sausage tree\u2019s) swings or falls', 'Tank', 'about 3\u20134 h'],
   ['v1.8: blikkies', 'Tin cans on fence posts that somersault when hit and can be juggled in the air', 'Tank', 'about 5 h'],
-  ['v1.9–v1.13', 'Soundscape, the rain storm (reënbui), the braai, the farm dog (brakkie) and veld cameos', 'Tank', 'about 4–5 h each'],
+  ['v1.9\u2013v1.13', 'Soundscape, the rain storm (re\u00ebnbui), the braai, the farm dog (brakkie) and veld cameos', 'Tank', 'about 4\u20135 h each'],
   ['Daily specials (Feesdae)', 'Holiday Dailies on local days; waiting for the product owner to choose which', 'Product owner, then Tank', 'after the choice'],
+  ['Final voices', 'Replace the interim text-to-speech voices with real or premium voices per language', 'Product owner', 'when chosen'],
   ['Idea for later', 'A bow and arrow', 'Product owner', 'not planned yet'],
 ];
 
@@ -630,6 +680,7 @@ const decisions = [
   ['D-039', 'v1.4 part B: the Namibië pack, camelthorn trees and the family nest, angry weavers, per-plane points'],
   ['D-040', 'Skietbaan gongs: clean plates, lasting hit marks on steel and paper, mark size from the gun data'],
   ['D-041', 'v1.5 Languages: separate text and voice languages, names per language with an "Afrikaans names" option, interim voices per language'],
+  ['D-042', 'v1.6 Veld art pass: plants, far animals, clouds, the windmill and dassie, art that waits to load, the build stamp'],
 ];
 
 const glossary = [
