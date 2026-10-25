@@ -63,6 +63,7 @@ import type { TitleData } from './TitleScene';
 import type { ChallengeData } from './ChallengeScene';
 import type { AdminData } from './AdminScene';
 import type { RangeHost, RangeSession } from '../range/RangeSession';
+import { freshLoadShown } from '../../platform/freshLoad';
 
 export interface HuntData {
   /** Skip the title (the [Again] button) with this input kind. */
@@ -685,6 +686,12 @@ export class HuntScene extends Phaser.Scene {
           back: () => {
             this.showAdmin();
           },
+          // D-042 (14): dev builds only (the web build's admin page: dev server, GitHub Pages).
+          freshLoad: freshLoadShown(this.ctx.platform)
+            ? () => {
+                void this.ctx.platform.hardRefresh();
+              }
+            : null,
         });
       },
       (err: unknown) => {

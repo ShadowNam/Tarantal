@@ -754,7 +754,10 @@ or "Send to GitHub" (a prefilled `issues/new?labels=playtest` link ≤ 7 KB, `sr
   names its build (`<sha>@<build time>`, `src/platform/swUpdate.ts`) when the page asks; a new
   worker taking over a running page shows a Reload bar (`PlatformAdapter.onUpdateReady`) only
   when that build differs from the page's. The bar sits bottom centre above the safe area, has a
-  × to dismiss it, and never shows in capture mode.
+  × to dismiss it, and never shows in capture mode. `PlatformAdapter.hardRefresh()` (D-042 (14),
+  the Skietbaan's "Fresh load", web admin-page builds only) unregisters the game's worker, deletes
+  its `tm-*` caches (`CACHE_PREFIX`) and reloads with `?fresh=<now>`, keeping the other
+  parameters and the save; portal adapters just reload.
 - **Build stamp (v1.6):** `src/game/ui/buildStamp.ts` formats `v<version> · <sha> · <UTC build
   time>` (Vite defines `__APP_VERSION__`, `__BUILD_SHA__`, `__BUILD_TIME__`) plus the area,
   weekday and art status; a small corner label on the title, hunts and the Skietbaan (web), a

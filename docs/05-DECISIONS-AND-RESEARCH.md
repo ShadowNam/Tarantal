@@ -2200,8 +2200,10 @@ path reads pixels back or calls a third party (Brave Shields). Tech §10.
 pictures come with the late Ver group, and a placeholder drawn by the title's manifest was never
 swapped. Rifle hunts and the Skietbaan now wait for the late group, and `upgrade()` replaces a
 drawn sight placeholder whichever manifest drew it. The scope looks like main's (same file).
-(9) *Windpomp* (bible §4.2 review round): the wheel always shows (20 blades, one every 18°, so the
-secret's marks at 0°/90°/180°/270° each sit on a blade; 2 missing, 1 bent, never a marked one), the tower at 2×, the head turns into the omen wind and the wheel
+(9) *Windpomp* (bible §4.2 review round): the wheel always shows (20 sails, one every 18°, so the
+secret's marks at 0°/90°/180°/270° each sit on a sail; redrawn from the owner's reference photos:
+free sail tips, no outer rim, two rings across the sails, weathered and rusty, 6 sails lost in no
+pattern, 1 bent, 1 torn, never a marked one), the tower at 2×, the head turns into the omen wind and the wheel
 spins on sim time (`windpompMotion.ts`, unit-tested); the live secret keeps the sim's rotor
 exactly. The Kalahari sign stands by a smaller windpomp; far windpomps have a bladed wheel.
 (10) *Dassie and rocks, giraffes, far animals, dead tree, far trees, clouds*: bible §4.2 review
@@ -2225,6 +2227,15 @@ they need (`missingLate`, `neededLateMissing()`, `ensureArt()`), then Retry/Back
 shows only when the new worker serves another build, sits bottom centre with a ×, never in capture
 mode; production builds treat an absent asset index as a failure (only dev/test builds and
 `?art=placeholder` run without one). Tech §10.
+(14) *Skietbaan "Fresh load" button (dev builds)* (product owner, 25 Oct: force a fresh map load
+after a deploy without a manual hard refresh): on the setup page's header and the range bar (behind
+More on phones), `PlatformAdapter.hardRefresh()` unregisters the game's service worker (its scope
+only: Pages shares one origin), deletes the `tm-*` caches and reloads with `?fresh=<now>`, every
+other parameter kept (`?admin=1` lands back on the admin page); the save is untouched and a
+failing or hung step still reloads (`src/platform/freshLoad.ts`, unit-tested). Shown where
+`freshLoadShown()`: the web build's admin page (dev server and GitHub Pages; the Skietbaan's own
+gate), never in Poki/CrazyGames builds (no Skietbaan chunk; their `hardRefresh` is a plain
+reload). The setup page and the bar also show the build line. Tech §10.
 
 ## 3. Research notes (with sources)
 
