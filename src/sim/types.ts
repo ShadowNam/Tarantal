@@ -216,6 +216,8 @@ export interface CrateView {
   readonly y: number;
   /** Falling under its parachute, or on the ground. */
   readonly landed: boolean;
+  /** v1.7b (D-046): the power-up or crate gun inside (shown on the crate), or null. */
+  readonly item: string | null;
 }
 
 export interface PowerupView {

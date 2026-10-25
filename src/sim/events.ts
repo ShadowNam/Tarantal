@@ -328,6 +328,8 @@ export type SimEvent =
       readonly crateId: number;
       readonly plane: PlaneId;
       readonly x: number;
+      /** v1.7b (D-046): what it holds (power-up or crate-weapon id), or null. */
+      readonly item: string | null;
     }
   | {
       readonly type: 'crateOpened';
