@@ -25,6 +25,8 @@ import { verBand, type Band, type BiomeArt } from './biomeArt';
 import { sightSpecs } from './sightArt';
 import { ellipse, ground, inked, INK, prng, tuft } from './draw';
 import { FAUNA_FOOT, FAUNA_SPRITES } from '../view/faunaSprites';
+import { hasColonies } from '../../sim/meerkats/colony';
+import { MEERKAT_SOUNDS } from '../assets/desertAssets';
 
 const KAROO = {
   skyTop: '#8DB8D8',
@@ -1451,6 +1453,9 @@ export function createPlaceholderManifest(
         // Nothing: without delivered art there are no far animals.
       },
     });
+  for (const s of art.extraTextures?.() ?? []) m.addTexture(s);
+  // v1.7 (D-044): a map with meerkat colonies plays their sounds (the desert group).
+  if (hasColonies(biome)) for (const key of Object.values(MEERKAT_SOUNDS)) m.addSound(key);
   for (const s of uiSpecs()) m.addTexture(s);
   for (const s of m4Specs()) m.addTexture(s);
   for (const s of arsenalSpecs()) m.addTexture(s);

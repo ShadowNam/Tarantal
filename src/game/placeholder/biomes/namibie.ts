@@ -5,6 +5,7 @@
 // grass mounds. The mirage shimmer itself is drawn by the game. Rendering only.
 import { verBand, type Band, type BiomeArt } from '../biomeArt';
 import { ellipse, ground, inked, INK, tuft } from '../draw';
+import { meerkatSpecs } from '../meerkatArt';
 
 const C = {
   skyTop: '#8DBCE0',
@@ -276,6 +277,8 @@ function drawProp(ctx: CanvasRenderingContext2D, id: string, w: number, h: numbe
 export const NAMIBIE_ART: BiomeArt = {
   bands: BANDS,
   drawProp,
+  // v1.7 (D-044): the meerkat colonies' sheet (shared with the other desert map).
+  extraTextures: meerkatSpecs,
   propPad: {
     nest_camelthorn: { top: 420, side: 468 },
     camelthorn_mature: { top: 160, side: 200 },

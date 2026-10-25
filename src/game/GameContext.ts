@@ -307,6 +307,23 @@ export interface TestHook {
   /** v1.4 B (D-039): angry weavers on screen now, and bursts started this hunt. */
   weavers: number;
   weaverBursts: number;
+  /** v1.7 (D-044): the meerkats now (screen feet, body centre to aim at, pose), and the hunt's
+   *  meerkat events in order ("hit:-10", "scold:-10", "dived:shot", "alarm:sproeier",
+   *  "familiefoto"), at most 200. */
+  meerkats: {
+    id: number;
+    colony: string;
+    pose: string;
+    pup: boolean;
+    x: number;
+    y: number;
+    aimX: number;
+    aimY: number;
+    hittable: boolean;
+  }[];
+  meerkatLog: string[];
+  /** v1.7 (perf): ms spent drawing the meerkat colonies, summed with the frames counted. */
+  meerkatMs: number;
   /** v1.4 B: the Namibië mirage is on in this hunt. */
   mirage: boolean;
   /** v1.4 B (perf): total ms spent drawing the weavers and the mirage, and the frames counted. */

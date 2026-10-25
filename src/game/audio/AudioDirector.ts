@@ -456,6 +456,10 @@ export class AudioDirector {
         case 'secretPenalty':
           this.play('scratch', 0);
           break;
+        case 'meerkatHit':
+          // v1.7 (D-044): a shot meerkat; inside the colony's cooldown it costs nothing.
+          if (e.points < 0) this.play('scratch', 0);
+          break;
         case 'stampedeStarted':
           this.play('stampede', 0);
           break;
