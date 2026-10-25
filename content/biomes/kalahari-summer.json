@@ -465,7 +465,7 @@
         {
           "id": "red_sand_colony",
           "layer": "near",
-          "u": 0.12,
+          "u": 0.25,
           "y": 966,
           "burrows": [
             {
@@ -530,7 +530,7 @@
         {
           "id": "dune_colony",
           "layer": "mid",
-          "u": 0.3,
+          "u": 0.45,
           "y": 812,
           "burrows": [
             {
@@ -554,7 +554,7 @@
         {
           "id": "red_sand_colony",
           "layer": "near",
-          "u": 0.72,
+          "u": 0.575,
           "y": 966,
           "burrows": [
             {
@@ -618,7 +618,7 @@
         {
           "id": "dune_colony",
           "layer": "mid",
-          "u": 0.4,
+          "u": 0.55,
           "y": 812,
           "burrows": [
             {
@@ -650,7 +650,7 @@
         {
           "id": "red_sand_colony",
           "layer": "near",
-          "u": 0.88,
+          "u": 0.65,
           "y": 966,
           "burrows": [
             {
@@ -800,7 +800,7 @@
         {
           "id": "red_sand_colony",
           "layer": "near",
-          "u": 0.55,
+          "u": 0.65,
           "y": 966,
           "burrows": [
             {
@@ -847,7 +847,7 @@
         {
           "id": "dune_colony",
           "layer": "mid",
-          "u": 0.62,
+          "u": 0.38,
           "y": 812,
           "burrows": [
             {
@@ -928,7 +928,7 @@
         {
           "id": "red_sand_colony",
           "layer": "near",
-          "u": 0.92,
+          "u": 0.738,
           "y": 966,
           "burrows": [
             {

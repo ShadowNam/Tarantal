@@ -70,3 +70,13 @@ namibie	mon	before	default	competent	3470	2.73
 namibie	mon	after	default	random	333	3.29
 namibie	mon	after	default	plinker	2399	0.98
 namibie	mon	after	default	competent	3470	2.77
+kalahari-summer	mon	after2	default	competent	4038	2.08
+kalahari-summer	tue	after2	default	competent	3739	0.54
+kalahari-summer	wed	after2	default	competent	3928	0.92
+kalahari-summer	fri	after2	default	competent	4346	0.86
+kalahari-summer	sat	after2	default	competent	4412	1.98
+kalahari-summer	sun	after2	default	competent	3701	1.30
+namibie	mon	after2	default	competent	3504	2.78
+namibie	wed	after2	default	competent	3437	2.74
+namibie	thu	after2	default	competent	3789	2.22
+namibie	sun	after2	default	competent	3529	2.80

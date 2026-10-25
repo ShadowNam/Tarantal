@@ -187,7 +187,10 @@ describe('meerkat colonies (v1.7, D-044)', () => {
     waitFor(s, c, (col) => col.meerkats.filter((m) => outPose(m)).length >= 3);
     const before = colony(s);
     const shot = shootNear(s, c, before);
-    expect(ofType(shot, 'meerkatsDived')).toMatchObject([{ colonyId: before.id, cause: 'shot' }]);
+    // (The near colony may stand close in front on screen and dive too.)
+    expect(ofType(shot, 'meerkatsDived')).toContainEqual(
+      expect.objectContaining({ colonyId: before.id, cause: 'shot' }),
+    );
     expect(ofType(shot, 'meerkatHit')).toEqual([]);
     // Everyone is down within a second or so.
     let downAt = -1;
