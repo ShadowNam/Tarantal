@@ -9,8 +9,9 @@ import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
 import type { Biome, Weapon } from '../../content/schemas';
 import { DebugOverlay } from '../../debug/DebugOverlay';
+import { artSummary } from '../assets/artSummary';
 import { fill, t, tOr } from '../../i18n/i18n';
-import { textStyle } from '../ui/menu';
+import { drawButton, Menu, textStyle } from '../ui/menu';
 import { captureHintAlpha, type CaptureState } from '../capture';
 import { showDontShootBadge } from '../prefs';
 import { TierFilters } from '../quality/TierFilters';
@@ -24,7 +25,13 @@ import { createRecorder, encodeInputLogText, type InputRecorder } from '../../si
 import { createSim } from '../../sim/Sim';
 import type { HuntResult, InputKind, ModeConfig, ModeId, SimState } from '../../sim/types';
 import { CAMERA_MAX_X, CAMERA_MIN_X } from '../../sim/world';
-import { neededBeforeStart, type AssetManifest } from '../assets/AssetManifest';
+import {
+  neededBeforeStart,
+  neededLateMissing,
+  TEX,
+  type AssetManifest,
+  type LateNeed,
+} from '../assets/AssetManifest';
 import { stemFor } from '../audio/music';
 import { rumbleDue } from '../view/juice';
 import type { HuntPlan } from '../daily/DailyFlow';
@@ -56,6 +63,7 @@ import type { TitleData } from './TitleScene';
 import type { ChallengeData } from './ChallengeScene';
 import type { AdminData } from './AdminScene';
 import type { RangeHost, RangeSession } from '../range/RangeSession';
+import { freshLoadShown } from '../../platform/freshLoad';
 
 export interface HuntData {
   /** Skip the title (the [Again] button) with this input kind. */
@@ -118,6 +126,8 @@ export class HuntScene extends Phaser.Scene {
   private cleanups: (() => void)[] = [];
   private lastFrameAt: number | null = null;
   private texturesDone = false;
+  /** v1.6 (D-042): the late art came in after the views were built (waitForLate): rebuild them. */
+  private viewsStale = false;
   private tierFilters: TierFilters | null = null;
   /** M9: create() is waiting for a biome's art; there are no views to update yet. */
   private viewsPending = false;
@@ -289,6 +299,7 @@ export class HuntScene extends Phaser.Scene {
 
   /** Every view of the hunt for the scene's biome and map (another biome or map rebuilds them). */
   private buildViews(): void {
+    this.viewsStale = false;
     const { width } = designSize();
     fitCamera(this.cameras.main);
     // An id this biome lacks (a bad ?layout=) draws the plain biome rather than failing.
@@ -537,10 +548,13 @@ export class HuntScene extends Phaser.Scene {
       map.bonus === this.map.bonus &&
       (map.ver === true) === (this.map.ver === true);
     if (id === this.biome.id) {
-      if (sameMap) return;
+      if (sameMap && !this.viewsStale) return;
       // v1.2: same biome, another map (props move, light changes): same textures, new views.
       for (const obj of [...this.children.list]) obj.destroy();
       this.map = map;
+      // v1.6 (D-042): delivered files that came in since (late Ver strips) go in first; no
+      // placeholder is drawn here.
+      if (this.viewsStale) this.manifest.install(this.textures, () => false);
       this.buildViews();
       return;
     }
@@ -672,6 +686,12 @@ export class HuntScene extends Phaser.Scene {
           back: () => {
             this.showAdmin();
           },
+          // D-042 (14): dev builds only (the web build's admin page: dev server, GitHub Pages).
+          freshLoad: freshLoadShown(this.ctx.platform)
+            ? () => {
+                void this.ctx.platform.hardRefresh();
+              }
+            : null,
         });
       },
       (err: unknown) => {
@@ -779,18 +799,142 @@ export class HuntScene extends Phaser.Scene {
     this.ctx.ads.beforeHunt().then(next, next);
   }
 
-  /** Loads a biome's art chunk with a "Loading…" line and the portal's loading signals. */
+  /**
+   * Loads a biome's art chunk behind a veil with the area's name and the portal's loading
+   * signals. v1.6 (D-042): when the delivered art still fails after main.ts's bounded retries,
+   * a friendly message offers Retry (or Back); a hunt or the Skietbaan never starts on
+   * placeholders.
+   */
   private waitForBiome(id: string, then: (ok: boolean) => void): void {
     const { width, height } = designSize();
+    const b = this.ctx.content.biomes.find((x) => x.id === id);
+    const area = b === undefined ? id : tOr(b.nameKey, id);
+    const veil = this.add
+      .rectangle(width / 2, height / 2, width, height, 0x1b1410, 0.82)
+      .setDepth(9_999);
     const label = this.add
-      .text(width / 2, height / 2, t('ui.loading'), textStyle(48, '#F3EAD3'))
+      .text(width / 2, height / 2, fill(t('ui.loading_area'), { area }), textStyle(48, '#F3EAD3'))
       .setOrigin(0.5)
       .setDepth(10_000);
     this.ctx.platform.loadingProgress(0);
     void this.ctx.loadBiome(id).then((ok) => {
       this.ctx.platform.loadingProgress(1);
       if (label.active) label.destroy();
-      then(ok);
+      if (ok || !veil.active) {
+        if (veil.active) veil.destroy();
+        then(ok);
+        return;
+      }
+      this.showArtFailed(
+        veil,
+        area,
+        () => {
+          this.waitForBiome(id, then);
+        },
+        () => {
+          then(false);
+        },
+      );
+    });
+  }
+
+  /**
+   * v1.6 (D-042): the art-failed message over `veil` (the area's name, Retry and Back). Retry and
+   * Back clear it, veil included, then call their function.
+   */
+  private showArtFailed(
+    veil: Phaser.GameObjects.Rectangle,
+    area: string,
+    retryFn: () => void,
+    backFn: () => void,
+  ): void {
+    const { width, height } = designSize();
+    if (this.ctx.hook) this.ctx.hook.menu = 'artFailed';
+    const msg = this.add
+      .text(width / 2, height / 2 - 120, fill(t('ui.art_failed'), { area }), {
+        ...textStyle(38, '#F3EAD3'),
+        align: 'center',
+        wordWrap: { width: Math.min(1400, width - 160) },
+      })
+      .setOrigin(0.5)
+      .setDepth(10_000);
+    const retry = { x: width / 2 - 430, y: height / 2 + 20, w: 400, h: 110 };
+    const back = { x: width / 2 + 30, y: height / 2 + 20, w: 400, h: 110 };
+    const r = drawButton(this, retry, t('ui.retry'), 'primary', 44);
+    const k = drawButton(this, back, t('ui.back'), 'secondary', 44);
+    for (const o of [r.g, r.text, k.g, k.text]) o.setDepth(10_001);
+    const clear = (): void => {
+      menu.destroy();
+      for (const o of [veil, msg, r.g, r.text, k.g, k.text]) o.destroy();
+      if (this.ctx.hook) this.ctx.hook.menu = null;
+    };
+    const menu = new Menu(
+      this,
+      [
+        {
+          id: 'art.retry',
+          rect: () => retry,
+          press: () => {
+            clear();
+            retryFn();
+          },
+        },
+        {
+          id: 'art.back',
+          rect: () => back,
+          press: () => {
+            clear();
+            backFn();
+          },
+        },
+      ],
+      {
+        onBack: () => {
+          clear();
+          backFn();
+        },
+        focus: 'art.retry',
+        hook: this.ctx.hook,
+      },
+    );
+  }
+
+  /**
+   * v1.6 (D-042): the late groups (sight pictures, Ver strips, the rifles) behind the loading
+   * veil, then `then(true)`. When files the hunt needs (`need`) still fail after main.ts's
+   * bounded retries, the same message as waitForBiome offers Retry or Back (`then(false)`).
+   */
+  private waitForLate(id: string, need: LateNeed, then: (ok: boolean) => void): void {
+    const { width, height } = designSize();
+    const b = this.ctx.content.biomes.find((x) => x.id === id);
+    const area = b === undefined ? id : tOr(b.nameKey, id);
+    const veil = this.add
+      .rectangle(width / 2, height / 2, width, height, 0x1b1410, 0.82)
+      .setDepth(9_999);
+    const label = this.add
+      .text(width / 2, height / 2, t('ui.loading'), textStyle(48, '#F3EAD3'))
+      .setOrigin(0.5)
+      .setDepth(10_000);
+    void this.ctx.loadLateArt(id, need).then((ok) => {
+      if (label.active) label.destroy();
+      if (!veil.active) return;
+      if (ok) {
+        veil.destroy();
+        // The views were built before the files came in: rebuild them (useBiome).
+        this.viewsStale = true;
+        then(true);
+        return;
+      }
+      this.showArtFailed(
+        veil,
+        area,
+        () => {
+          this.waitForLate(id, need, then);
+        },
+        () => {
+          then(false);
+        },
+      );
     });
   }
 
@@ -896,12 +1040,41 @@ export class HuntScene extends Phaser.Scene {
       });
       return;
     }
+    // v1.6 (D-042): a rifle's sight pictures (and the Ver strips, the rifles' rigs) come with the
+    // late Ver group; a scoped hunt or the Skietbaan waits for them, retrying files that failed,
+    // so the sight and the Ver strip are never drawn from their placeholders.
+    const huntDef = this.ctx.content.biomes.find((b) => b.id === huntBiome);
+    const huntManifest = huntDef === undefined ? this.manifest : this.ctx.manifestFor(huntDef);
+    if (range !== null || mode.sight !== undefined) {
+      const gun =
+        mode.weapon ??
+        (mode.id === 'seasonHunt' ? undefined : this.ctx.content.modes.modes[mode.id].weapon);
+      const need: LateNeed = {
+        sight: mode.sight !== undefined,
+        ver: safeResolveMap(huntDef ?? this.biome, mode.layout, mode.bonus, range !== null).ver,
+        ...(gun === undefined ? {} : { weapon: gun }),
+      };
+      if (!huntManifest.lateDone || neededLateMissing(huntManifest.missingLate, need).length > 0) {
+        this.waitForLate(huntDef?.id ?? this.biome.id, need, (ok) => {
+          if (ok) this.begin(kind, startPointer, modeId, challenge, bonus);
+          else this.scene.restart((range === null ? {} : { rangeMenu: true }) satisfies HuntData);
+        });
+        return;
+      }
+    }
     this.useBiome(huntBiome, {
       ...(mode.layout === undefined ? {} : { layout: mode.layout }),
       ...(mode.bonus === undefined ? {} : { bonus: mode.bonus }),
       ...(range === null ? {} : { ver: true }),
     });
     if (!this.texturesDone) this.texturesDone = this.manifest.install(this.textures);
+    if (this.manifest.upgrade(this.textures, 'sight/').length > 0) this.sight.reset();
+    if (this.ctx.hook)
+      this.ctx.hook.sightArt = !this.textures.exists(TEX.sightScope)
+        ? null
+        : this.textures.get(TEX.sightScope).getSourceImage() instanceof HTMLCanvasElement
+          ? 'placeholder'
+          : 'final';
     this.manifest.prewarmBirds(this.textures);
     if (this.ctx.hook) {
       this.ctx.hook.boot['huntStart'] ??= performance.now();
@@ -1233,6 +1406,7 @@ export class HuntScene extends Phaser.Scene {
       this.inputKind,
       safe.left + 40 + this.ctx.feel.hud.gadgetPx + this.ctx.feel.hud.marginPx,
       designSize().height - safe.bottom - 90,
+      this.debug.shown ? artSummary(this.manifest.entries()) : '',
     );
     const hud = this.scene.get('Hud') as HudScene;
     if (hud.sys.isActive()) {

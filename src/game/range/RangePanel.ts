@@ -55,6 +55,7 @@ const CSS = `
 #tm-range button.btn.primary{background:#d9a21b;border-color:#FFD25A;color:#1b1410;font-size:20px;padding:6px 36px}
 #tm-range footer{flex:none;display:flex;align-items:center;gap:10px;padding:6px 12px;border-top:1px solid #5a4632;background:#2b211a}
 #tm-range footer .pick{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#tm-range footer .build,#tm-range-bar .build{flex:none;font-size:11px;opacity:.75;white-space:nowrap}
 #tm-range .row,#tm-range-bar .row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 #tm-range .table{overflow-x:auto;touch-action:pan-x pan-y;-webkit-overflow-scrolling:touch}
 #tm-range table{border-collapse:collapse;width:100%;font-size:13px;margin-top:6px}
@@ -120,6 +121,19 @@ async function copyText(text: string): Promise<boolean> {
 
 const one = (n: number): string => n.toFixed(1);
 
+/**
+ * D-042 (14), dev builds only: "Fresh load" clears the cached game files and reloads this page
+ * (PlatformAdapter.hardRefresh). Pressed once: it stays disabled while the page reloads.
+ */
+function freshLoadButton(run: () => void): HTMLButtonElement {
+  const b = button(rt('range.fresh_load'), { action: 'fresh-load' }, () => {
+    b.disabled = true;
+    run();
+  });
+  b.title = rt('range.fresh_load_hint');
+  return b;
+}
+
 function ensureStyle(): void {
   if (document.getElementById(STYLE_ID) === null)
     document.head.appendChild(el('style', { id: STYLE_ID, textContent: CSS }));
@@ -144,6 +158,10 @@ export interface SetupHandlers {
   readonly back: () => void;
   readonly reset: () => void;
   readonly report: () => string;
+  /** The build line (buildStamp.buildLine), or null when the stamp is masked (?stamp=0). */
+  readonly build: string | null;
+  /** D-042 (14): dev builds only (freshLoadShown); null hides the Fresh load button. */
+  readonly freshLoad: (() => void) | null;
 }
 
 /** The setup page. */
@@ -295,6 +313,7 @@ export class RangeSetupPanel {
         'header',
         {},
         el('h1', { textContent: rt('range.title') }),
+        ...(this.h.freshLoad === null ? [] : [freshLoadButton(this.h.freshLoad)]),
         el('span', { className: 'muted grow', textContent: rt('range.subtitle') }),
         button(rt('range.back'), { action: 'back' }, () => {
           this.h.back();
@@ -311,6 +330,15 @@ export class RangeSetupPanel {
           dataset: { role: 'pick' },
           textContent: `${gun === undefined ? c.gun : gunName(gun)} · ${biomeName(this.content, c.biome)} · ${distName(c.plane)} · ${targetName(c.target)}`,
         }),
+        ...(this.h.build === null
+          ? []
+          : [
+              el('span', {
+                className: 'muted build',
+                dataset: { role: 'build' },
+                textContent: this.h.build,
+              }),
+            ]),
       ),
     );
     cols.scrollTop = scrollTop;
@@ -386,6 +414,10 @@ export interface BarHandlers {
   /** D-040: paper and plate courses: Repaint / New paper clears the targets' marks. */
   readonly repaint?: { readonly label: string; readonly run: () => void };
   readonly report: () => string;
+  /** The build line (buildStamp.buildLine), or null when the stamp is masked (?stamp=0). */
+  readonly build: string | null;
+  /** D-042 (14): dev builds only (freshLoadShown); null hides the Fresh load button. */
+  readonly freshLoad: (() => void) | null;
 }
 
 /** The stats bar over a running range (top-left, where a hunt's clock would be). */
@@ -405,7 +437,8 @@ export class RangeBar {
     this.lines = el('div', { className: 'lines', dataset: { role: 'lines' } });
     this.toast = el('span', { className: 'toast' });
     // Short screens (phones in landscape) show the title, the shots line, Setup and More; More
-    // opens the full stats with Reset and Copy (CSS: max-height 500px).
+    // opens the full stats with Reset, Copy, Fresh load and the build line (CSS: max-height
+    // 500px; the hunt's corner stamp shows the build there meanwhile).
     const more = button(rt('range.more'), { action: 'more' }, () => {
       const open = this.root.classList.toggle('open');
       more.textContent = rt(open ? 'range.less' : 'range.more');
@@ -452,8 +485,18 @@ export class RangeBar {
             });
           }),
         ),
+        ...(h.freshLoad === null ? [] : [full(freshLoadButton(h.freshLoad))]),
         this.toast,
       ),
+      ...(h.build === null
+        ? []
+        : [
+            el('div', {
+              className: 'muted build full',
+              dataset: { role: 'build' },
+              textContent: h.build,
+            }),
+          ]),
     );
     stopKeys(this.root);
     // The bar's text lets taps through to the game (pointer-events: none); its buttons take

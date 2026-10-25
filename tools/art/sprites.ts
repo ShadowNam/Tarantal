@@ -7,6 +7,7 @@ import { resize, type Rgba } from '../assets/image';
 import type { ArtConfig } from './config';
 import { biomePalette } from './config';
 import { renderSvg } from './raster';
+import { billowCloud } from './skies';
 import { flat, line, mix, nextId, resetIds, shade, stone, tone, type Pen } from './scenery';
 import { pick, stalk, tuftOf, type TuftKind } from './vegetation';
 import {
@@ -694,55 +695,286 @@ function markHit(p: SpriteCtx): string {
   );
 }
 
+/**
+ * v1.6 (D-042, product owner 25 Oct, from reference photos of farm windpomps): the classic
+ * multi-blade wheel. 20 galvanised sheet-steel sails (one every 18°), narrow at the hub end and
+ * wide at the tip, the tips cut on a slant and standing FREE (no outer rim). Two thin rings run
+ * across the sails (r 44 where they start, r 78 across their middle) and six rods tie the hub to
+ * the rings. Old and weathered: each sail a slightly different grey, rust on the tips, at the
+ * ring rivets and in streaks, rusty rings. Damage in no pattern: six sails lost, one bent, one
+ * torn short. The secret's four marked sails sit at 0°, 90°, 180° and 270° (radius 72, the parts
+ * turn with the wheel), i.e. k = 0, 5, 10 and 15: never lost, bent or torn. Lit from the upper
+ * left; each sail carries its own lit leading edge and shaded trailing half.
+ */
 function rotor(p: SpriteCtx): string {
-  // Windpomp wheel (secret parts sit at radius 72): 16 curved steel sails between two rings, a
-  // hub with a rusty cap. Each sail has its own lit and shaded half, so it reads at any rotation.
-  const steel = tone(p.c('metal'), 0.28, 0.3);
+  const steel = '#A9AFB3';
+  const lit = '#D6DADC';
+  const dark = '#6C7276';
+  const ink = mix(p.ink, dark, 0.35);
+  // Weathered rust: browner than the paint rust, so it reads as old iron, not pink, on the grey.
+  const rust = mix(p.c('rust'), '#5A3A22', 0.35);
+  const n = 20;
+  const r0 = 42;
+  const ringIn = 44;
+  const ringMid = 78;
+  const missing = new Set([2, 3, 7, 11, 13, 18]);
+  const bent = 8;
+  const torn = 16;
+  // A fixed per-sail "random" in [0, 1): the weathering differs sail to sail but never between
+  // runs (interim art must regenerate byte for byte).
+  const rnd = (k: number, salt: number): number => (((k + 1) * 7919 + salt * 104729) % 997) / 997;
   const parts: string[] = [];
-  const n = 16;
   for (let k = 0; k < n; k++) {
-    const a = (k * 360) / n;
-    const blade: [number, number][] = [
-      [-5, -28],
-      [-15, -106],
-      [15, -108],
-      [6, -28],
-    ];
-    parts.push(inked(polyD(place(blade, 0, 0, a)), steel.fill, p.ink, 2));
+    if (missing.has(k)) continue;
+    const a = (k * 360) / n + (k === bent ? 8 : 0);
+    const r1 = k === bent ? 98 : k === torn ? 86 : 108;
+    // The tip: a slanted cut, or a torn ragged edge.
+    const tip: [number, number][] =
+      k === torn
+        ? [
+            [-10, -(r1 - 3)],
+            [-6, -(r1 + 3)],
+            [-2, -(r1 - 2)],
+            [3, -(r1 + 4)],
+            [10, -r1],
+          ]
+        : [
+            [-12, -(r1 - 3)],
+            [-11, -(r1 + 1)],
+            [13, -(r1 + 4)],
+            [14, -r1],
+          ];
+    const sail: [number, number][] = [[-3, -r0], ...tip, [3, -r0]];
+    const tint = mix(steel, rnd(k, 1) < 0.5 ? '#8E9396' : '#A39A8E', 0.15 + rnd(k, 2) * 0.35);
     parts.push(
-      flat(
-        polyD(
+      el('path', {
+        d: polyD(place(sail, 0, 0, a)),
+        fill: tint,
+        stroke: ink,
+        'stroke-width': 1.5,
+        'stroke-linejoin': 'round',
+      }),
+    );
+    // Trailing half in shadow, leading edge lit.
+    const half: [number, number][] = [[0.5, -r0], [1, -(r1 + 2.5)], ...tip.slice(-2), [2.5, -r0]];
+    parts.push(el('path', { d: polyD(place(half, 0, 0, a)), fill: dark, opacity: 0.45 }));
+    parts.push(
+      el('path', {
+        d: polyD(
           place(
             [
-              [0, -28],
-              [0, -107],
-              [15, -108],
-              [6, -28],
+              [-3, -(r0 + 2)],
+              [-11.5, -(r1 - 4)],
             ],
             0,
             0,
             a,
           ),
+          false,
         ),
-        steel.dark,
-      ),
+        fill: 'none',
+        stroke: lit,
+        'stroke-width': 1.4,
+        'stroke-linecap': 'round',
+      }),
+    );
+    // Rust: a tip patch on most sails, a streak running out from the outer ring's rivet on some.
+    if (rnd(k, 3) < 0.7) {
+      const d = 8 + rnd(k, 4) * 10;
+      parts.push(
+        el('path', {
+          d: polyD(
+            place(
+              [
+                [-10.5, -(r1 - d)],
+                [-12, -(r1 - 3)],
+                [13, -(r1 + 3)],
+                [12, -(r1 - d + 2)],
+              ],
+              0,
+              0,
+              a,
+            ),
+          ),
+          fill: rust,
+          opacity: 0.25 + rnd(k, 5) * 0.35,
+        }),
+      );
+    }
+    if (rnd(k, 6) < 0.55) {
+      const x = -3 + rnd(k, 7) * 7;
+      parts.push(
+        el('path', {
+          d: polyD(
+            place(
+              [
+                [x - 1, -(ringMid + 2)],
+                [x - 1.6, -(ringMid + 14 + rnd(k, 8) * 10)],
+                [x + 1.2, -(ringMid + 12)],
+                [x + 1, -(ringMid + 2)],
+              ],
+              0,
+              0,
+              a,
+            ),
+          ),
+          fill: shade(rust, -0.15),
+          opacity: 0.5,
+        }),
+      );
+    }
+    // Rivets where the sail meets the rings.
+    for (const r of [ringIn + 3, ringMid]) {
+      const [[x, y]] = place([[0, -r]], 0, 0, a) as [[number, number]];
+      parts.push(el('path', { d: ellipseD(x, y, 1.5, 1.5), fill: shade(rust, -0.3) }));
+    }
+  }
+  const arms: string[] = [];
+  for (let k = 0; k < 6; k++) {
+    const a = (k * Math.PI) / 3 + 0.17;
+    arms.push(
+      `M${r2(Math.cos(a) * 14)} ${r2(Math.sin(a) * 14)}L${r2(Math.cos(a) * ringMid)} ${r2(Math.sin(a) * ringMid)}`,
     );
   }
+  const bolts: string[] = [];
+  for (let k = 0; k < 6; k++) {
+    const a = (k * Math.PI) / 3;
+    bolts.push(ellipseD(Math.cos(a) * 10.5, Math.sin(a) * 10.5, 1.6, 1.6));
+  }
+  // A rusty ring: the steel band with rust showing through in broken lengths.
+  const ring = (r: number, w: number, dash: string): string[] => [
+    el('circle', { cx: 0, cy: 0, r, fill: 'none', stroke: ink, 'stroke-width': w + 2 }),
+    el('circle', { cx: 0, cy: 0, r, fill: 'none', stroke: dark, 'stroke-width': w }),
+    el('circle', {
+      cx: 0,
+      cy: 0,
+      r,
+      fill: 'none',
+      stroke: rust,
+      'stroke-width': w,
+      'stroke-dasharray': dash,
+      opacity: 0.6,
+    }),
+  ];
   return g(
     {},
+    // The rods behind the sails, then the sails, then the rings across them, then the hub.
+    el('path', {
+      d: arms.join(''),
+      fill: 'none',
+      stroke: ink,
+      'stroke-width': 4.4,
+      'stroke-linecap': 'round',
+    }),
+    el('path', {
+      d: arms.join(''),
+      fill: 'none',
+      stroke: dark,
+      'stroke-width': 2.4,
+      'stroke-linecap': 'round',
+    }),
     ...parts,
-    el('circle', { cx: 0, cy: 0, r: 106, fill: 'none', stroke: p.ink, 'stroke-width': 6 }),
-    el('circle', { cx: 0, cy: 0, r: 106, fill: 'none', stroke: steel.dark, 'stroke-width': 2.5 }),
-    el('circle', { cx: 0, cy: 0, r: 58, fill: 'none', stroke: p.ink, 'stroke-width': 5 }),
-    el('circle', { cx: 0, cy: 0, r: 58, fill: 'none', stroke: steel.light, 'stroke-width': 2 }),
-    ...Array.from({ length: 8 }, (_, k) =>
-      line(`M0 0L${r2(Math.cos((k * Math.PI) / 4) * 58)} ${r2(Math.sin((k * Math.PI) / 4) * 58)}`, {
-        ink: p.ink,
-        w: 3,
-      }),
-    ),
-    inked(ellipseD(0, 0, 17, 17), p.c('rust'), p.ink, 4),
-    flat(ellipseD(-5, -6, 5, 4), shade(p.c('rust'), 0.4)),
+    ...ring(ringMid, 2.2, '9 14 4 22'),
+    ...ring(ringIn, 2.6, '6 10 12 18'),
+    el('path', {
+      d: 'M-55 -55A78 78 0 0 1 30 -72',
+      fill: 'none',
+      stroke: lit,
+      'stroke-width': 1,
+      opacity: 0.7,
+    }),
+    // Hub: a cast plate with six bolts and a rusty grease cap.
+    el('circle', { cx: 0, cy: 0, r: 17, fill: dark, stroke: ink, 'stroke-width': 2.5 }),
+    el('path', { d: bolts.join(''), fill: lit }),
+    el('circle', { cx: 0, cy: 0, r: 7, fill: rust, stroke: ink, 'stroke-width': 1.6 }),
+    el('circle', { cx: -2, cy: -2.5, r: 2.2, fill: shade(rust, 0.45) }),
+  );
+}
+
+/**
+ * v1.6 (D-042): the windpomp's turning head without the wheel: the gearbox on its turntable
+ * (origin = the pivot over the tower), the tail boom and the vane (a riveted sheet with a
+ * stiffener, faded paint, rust, no lettering). Drawn trailing to the left; the view flips and
+ * foreshortens it as the head swings with the wind.
+ */
+function windpompVane(p: SpriteCtx): string {
+  const steel = '#A9AFB3';
+  const lit = '#D6DADC';
+  const dark = '#6C7276';
+  const ink = mix(p.ink, dark, 0.35);
+  const rust = p.c('rust');
+  const paint = '#B8B4A4';
+  return g(
+    {},
+    // Tail boom: two tubes meeting at the vane, with a stay.
+    el('path', {
+      d: 'M-6 -4L-206 6M-6 4L-206 10M-60 -2L-150 -26L-206 2',
+      fill: 'none',
+      stroke: ink,
+      'stroke-width': 5,
+      'stroke-linecap': 'round',
+    }),
+    el('path', {
+      d: 'M-6 -4L-206 6M-6 4L-206 10',
+      fill: 'none',
+      stroke: steel,
+      'stroke-width': 2.6,
+      'stroke-linecap': 'round',
+    }),
+    el('path', { d: 'M-60 -2L-150 -26L-206 2', fill: 'none', stroke: dark, 'stroke-width': 1.8 }),
+    // The vane: a tall sheet, riveted, with a stiffener and rust running from the rivets.
+    el('path', {
+      d: 'M-262 -40L-196 -30L-194 44L-262 56Z',
+      fill: paint,
+      stroke: ink,
+      'stroke-width': 3,
+      'stroke-linejoin': 'round',
+    }),
+    el('path', { d: 'M-228 -35L-196 -30L-194 44L-228 50Z', fill: shade(paint, -0.22) }),
+    el('path', {
+      d: 'M-260 -36L-198 -27',
+      fill: 'none',
+      stroke: shade(paint, 0.3),
+      'stroke-width': 2,
+    }),
+    el('path', {
+      d: 'M-229 -34L-228 50',
+      fill: 'none',
+      stroke: shade(paint, -0.4),
+      'stroke-width': 2.4,
+    }),
+    el('path', {
+      d: 'M-250 -20l3 30l-2 14M-214 -10l2 26',
+      fill: 'none',
+      stroke: rust,
+      'stroke-width': 2.2,
+      opacity: 0.55,
+    }),
+    el('path', {
+      d: [-28, -8, 14, 36]
+        .map((y) => `${ellipseD(-256, y, 1.5, 1.5)}${ellipseD(-201, y * 0.85, 1.5, 1.5)}`)
+        .join(''),
+      fill: shade(paint, -0.45),
+    }),
+    // The gearbox head on its turntable, an oil cap and the pump rod's crank housing.
+    el('path', {
+      d: 'M-22 -22L18 -22L22 14L-24 14Z',
+      fill: steel,
+      stroke: ink,
+      'stroke-width': 3,
+      'stroke-linejoin': 'round',
+    }),
+    el('path', { d: 'M0 -22L18 -22L22 14L2 14Z', fill: dark, opacity: 0.6 }),
+    el('path', { d: 'M-20 -19L14 -19', fill: 'none', stroke: lit, 'stroke-width': 2 }),
+    el('path', { d: ellipseD(-6, -26, 6, 4), fill: rust, stroke: ink, 'stroke-width': 2 }),
+    el('path', { d: 'M-28 14L28 14L26 22L-26 22Z', fill: dark, stroke: ink, 'stroke-width': 2.4 }),
+    el('path', {
+      d: 'M-14 0l2 6M8 -8l3 10',
+      fill: 'none',
+      stroke: rust,
+      'stroke-width': 2,
+      opacity: 0.5,
+    }),
   );
 }
 
@@ -765,6 +997,74 @@ function water(p: SpriteCtx): string {
     line('M-84 -10l30 0M-10 2l38 0M54 -12l26 0M-50 12l20 0', { ink: w.light, w: 3 }),
     flat(ellipseD(-60, -15, 24, 3), w.light),
   );
+}
+
+/**
+ * v1.6 (D-042, product owner: "the clouds need to be more realistic"): soft clouds, drawn small
+ * (shown at 2×: soft edges need no resolution, and it keeps them a few KB) in white and neutral
+ * grey; the game tints them per biome and weather. No ink: rounded lobes with sunlit tops, a
+ * soft grey-blue flat base, blurred edges.
+ */
+function cloudSprite(kind: 'cumulus' | 'wide' | 'cirrus' | 'tower') {
+  return (p: SpriteCtx): string => {
+    const blur = nextId();
+    const grad = nextId();
+    const defs = el(
+      'defs',
+      {},
+      el(
+        'filter',
+        { id: blur, x: '-20%', y: '-30%', width: '140%', height: '160%' },
+        el('feGaussianBlur', { stdDeviation: kind === 'cirrus' ? 2.2 : 1.6 }),
+      ),
+      el(
+        'linearGradient',
+        { id: grad, x1: 0, y1: 0, x2: 0, y2: 1 },
+        el('stop', { offset: 0, 'stop-color': '#FFFFFF' }),
+        el('stop', { offset: 0.55, 'stop-color': '#EEF1F4' }),
+        el('stop', { offset: 1, 'stop-color': '#B4C0CC' }),
+      ),
+    );
+    if (kind === 'cirrus') {
+      const d: string[] = [];
+      for (let k = 0; k < 9; k++) {
+        const y = -14 + p.rnd() * 28;
+        const x0 = -140 + p.rnd() * 60;
+        const len = 110 + p.rnd() * 90;
+        d.push(
+          `M${r2(x0)} ${r2(y)}q${r2(len * 0.5)} ${r2(-6 - p.rnd() * 8)} ${r2(len)} ${r2(2 + p.rnd() * 8)}`,
+        );
+      }
+      return g(
+        {},
+        defs,
+        el('path', {
+          d: d.join(''),
+          fill: 'none',
+          stroke: '#FFFFFF',
+          'stroke-width': 5,
+          'stroke-linecap': 'round',
+          opacity: 0.75,
+          filter: `url(#${blur})`,
+        }),
+        el('path', {
+          d: d.slice(0, 4).join(''),
+          fill: 'none',
+          stroke: '#FFFFFF',
+          'stroke-width': 1.6,
+          'stroke-linecap': 'round',
+          opacity: 0.8,
+        }),
+      );
+    }
+    // v1.6 look note D: soft billows (no dotted highlights), a flat grey-blue base.
+    const tones = { base: '#B4C0CE', body: '#E4E9EE', top: '#FFFFFF' };
+    if (kind === 'tower')
+      return g({}, defs, billowCloud(p.rnd, 0, 66, 150, 70, tones, { towers: 2, blur: 1.6 }));
+    if (kind === 'wide')
+      return g({}, defs, billowCloud(p.rnd, 0, 38, 228, 62, tones, { blur: 1.4 }));
+    return g({}, defs, billowCloud(p.rnd, 0, 38, 168, 70, tones, { blur: 1.4 }));
+  };
 }
 
 /** Every shared sprite key → its drawing (sizes/origins come from the placeholder manifest). */
@@ -796,6 +1096,11 @@ export const SPRITES: readonly SpriteSpec[] = [
   { key: 'secret/mark', wobble: 0.8, draw: mark },
   { key: 'secret/mark_hit', wobble: 0.8, draw: markHit },
   { key: 'secret/rotor', wobble: 0, draw: rotor },
+  { key: 'fx/windpomp_vane', wobble: 0, draw: windpompVane },
+  { key: 'sky/cloud_cumulus', wobble: 0, draw: cloudSprite('cumulus') },
+  { key: 'sky/cloud_wide', wobble: 0, draw: cloudSprite('wide') },
+  { key: 'sky/cloud_cirrus', wobble: 0, draw: cloudSprite('cirrus') },
+  { key: 'sky/cloud_tower', wobble: 0, draw: cloudSprite('tower') },
   { key: 'biome/water', wobble: 1.5, draw: water },
 ];
 

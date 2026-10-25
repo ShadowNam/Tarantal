@@ -67,6 +67,7 @@ import {
   TRUE_PEAK_CEILING_DB,
 } from './targets';
 import { readWav } from './wav';
+import { FAUNA_RES } from '../../src/game/view/faunaSprites';
 
 export interface PackOptions {
   /** art-source/ (or a stand-in source folder). */
@@ -856,6 +857,8 @@ export const PROP_PLANE_RES: Readonly<Record<string, number>> = {
 
 /** The highest resolution any placement of texture `key` needs (1 when it is no prop). */
 export function propPlaneRes(content: ContentBundle, key: string): number {
+  // v1.6 (D-042): far animals stay at their 3× master (they are seen through scopes).
+  if (key.startsWith('fauna/')) return FAUNA_RES;
   let res = 0;
   for (const b of content.biomes)
     for (const p of b.props) {

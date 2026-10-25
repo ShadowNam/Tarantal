@@ -19,6 +19,7 @@ import { BONUS_MAP_IDS } from '../../content/schemas';
 import { findLayout } from '../../sim/maps';
 import type { Rect } from '../ui/hudLayout';
 import { drawButton, fitText, Menu, textStyle, type MenuItem } from '../ui/menu';
+import { cornerStampShown, stampFor, StampLabel } from '../ui/StampLabel';
 
 export interface TitleData {
   /** Starts the hunt; pointerId is the pressing pointer (null from the keyboard). */
@@ -66,6 +67,12 @@ export class TitleScene extends Phaser.Scene {
     const mode: ModeId = returning ? 'classic' : 'ftue';
 
     this.add.rectangle(0, 0, width, height, 0x1b1410, 0.4).setOrigin(0);
+    // v1.6 (D-042): the build stamp, bottom left.
+    new StampLabel(this, this.ctx, cornerStampShown(this.ctx)).place(
+      safe.left + 24,
+      height - safe.bottom - 6,
+      stampFor(this.ctx, this.ctx.biome, this.ctx.manifest),
+    );
     const logo = this.add
       .text(width / 2, safe.top + 150, t('app.title'), {
         ...textStyle(110, '#FFD25A'),

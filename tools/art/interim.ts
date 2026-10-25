@@ -30,7 +30,9 @@ import {
   loadBiomeArt,
 } from '../../src/game/placeholder/ProceduralAssetFactory';
 import { BIOME_PLANS } from './biomes';
-import { renderLayer, renderProp } from './landscape';
+import { renderLayer, renderLoose, renderProp } from './landscape';
+import { FAUNA_DRAW } from './faunaSheets';
+import { FAUNA_FOOT, FAUNA_RES, FAUNA_SPRITES } from '../../src/game/view/faunaSprites';
 import { renderSprite, SPRITES } from './sprites';
 import { AMMO_SPRITES } from './ammo';
 import { SIGHT_SPRITES } from './sights';
@@ -219,7 +221,7 @@ if (wants('scenery')) {
       const lp = plan.layers[layer.id];
       const enc = lp?.encode ?? 'png8';
       const img = renderLayer(cfg, plan, layer);
-      put(png, enc === 'png8' ? encodePng8(img) : encodePng(img));
+      put(png, enc === 'png8' ? encodePng8(img, lp?.colours) : encodePng(img));
       put(
         png.replace(/\.png$/, '.json'),
         await json({
@@ -243,7 +245,7 @@ if (wants('scenery')) {
       const size = m.size(prop.asset);
       if (size === null) throw new Error(`${prop.asset}: no placeholder size`);
       const r = renderProp(cfg, plan, biome, prop, size, m.origin(prop.asset));
-      put(png, encodePng8(r.img));
+      put(png, encodePng8(r.img, plan.props[prop.asset]?.colours));
       const moved = plan.props[prop.asset]?.frame !== undefined;
       put(
         png.replace(/\.png$/, '.json'),
@@ -255,6 +257,36 @@ if (wants('scenery')) {
         }),
       );
       console.log(`sprites/${prop.asset}`);
+    }
+    // v1.6 (D-042): the far animals' sprites, drawn at 3× (src/game/view/faunaSprites.ts).
+    for (const f of FAUNA_SPRITES[biome.id] ?? []) {
+      const png = join(src, 'sprites', `${f.key}.png`);
+      if (!oursFile(png)) {
+        console.warn(`skip sprites/${f.key}: a human delivery is there`);
+        continue;
+      }
+      const draw = FAUNA_DRAW[f.key];
+      if (draw === undefined) throw new Error(`${f.key}: no drawing in tools/art/faunaSheets.ts`);
+      const img = renderLoose(
+        cfg,
+        biome.id,
+        f.layer,
+        f.key,
+        { w: f.w, h: f.h, ox: f.w / 2, oy: f.h - FAUNA_FOOT },
+        FAUNA_RES,
+        draw,
+      );
+      put(png, encodePng8(img, 128));
+      put(
+        png.replace(/\.png$/, '.json'),
+        await json({
+          origin: 'interim',
+          encode: 'png8',
+          master: FAUNA_RES,
+          ...(f.layer === 'ver_veld' ? { group: VER_GROUP } : {}),
+        }),
+      );
+      console.log(`sprites/${f.key}`);
     }
   }
 }

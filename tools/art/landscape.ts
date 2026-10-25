@@ -17,6 +17,8 @@ export interface PaintCtx {
   readonly raw: (name: string) => string;
   readonly pen: Pen;
   readonly rnd: Rnd;
+  /** v1.6 (D-042): any colour hazed toward the horizon like this layer's palette. */
+  readonly tint: (hex: string) => string;
 }
 
 export interface LayerCtx extends PaintCtx {
@@ -34,6 +36,8 @@ export interface LayerPlan {
   readonly height: number;
   /** Tile encoding: palette PNG (default) or full colour ('png', smooth skies: no banding). */
   readonly encode?: 'png' | 'png8';
+  /** v1.6 (D-042): palette size for png8 (default 256): fewer colours, fewer bytes. */
+  readonly colours?: number;
   /** D-035: px over which the art fades in at the top edge (tall grass tips taper out there
    *  instead of being cut flat by the texture's edge). */
   readonly fadeTop?: number;
@@ -66,6 +70,8 @@ export interface PropPlan {
   readonly master?: number;
   /** False = no hand-drawn wobble (fine, detailed art that the displacement would smear). */
   readonly wobble?: boolean;
+  /** v1.6 (D-042): png8 palette size (default 256). */
+  readonly colours?: number;
 }
 
 export interface BiomeArtPlan {
@@ -97,6 +103,7 @@ function paint(cfg: ArtConfig, biome: string, layerId: string, seedKey: string):
   return {
     raw: pal,
     c: (name) => mix(pal(name), horizon, haze),
+    tint: (hex) => mix(hex, horizon, haze),
     pen: { ink: mix(cfg.ink, horizon, haze * 1.6), w: cfg.scenery.lines[layerId] ?? 4 },
     rnd: prng(seedOf(seedKey)),
   };

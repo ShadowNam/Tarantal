@@ -99,11 +99,12 @@ export function crop(src: Rgba, x: number, y: number, width: number, height: num
 /**
  * Palette PNG (≤ 256 colours incl. alpha) via UPNG's deterministic quantiser (D-029). Flat-fill
  * comic art loses almost nothing and the file is 3–4× smaller than RGBA, which is what keeps the
- * interim atlases inside the 5 MB first download.
+ * interim atlases inside the 5 MB first download. v1.6 (D-042): `colours` < 256 for busy interim
+ * layers in the first download (the packer keeps a palette that already fits).
  */
-export function encodePng8(img: Rgba): Uint8Array {
+export function encodePng8(img: Rgba, colours = 256): Uint8Array {
   const buf = img.data.buffer.slice(img.data.byteOffset, img.data.byteOffset + img.data.byteLength);
-  return new Uint8Array(UPNG.encode([buf as ArrayBuffer], img.width, img.height, 256));
+  return new Uint8Array(UPNG.encode([buf as ArrayBuffer], img.width, img.height, colours));
 }
 
 /** The smallest rectangle holding every pixel with alpha above 0, or null if the image is empty. */

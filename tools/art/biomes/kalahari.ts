@@ -12,7 +12,6 @@ import {
   nextId,
   post,
   shade,
-  stone,
   tone,
   tuft,
   yAt,
@@ -21,17 +20,77 @@ import {
 } from '../scenery';
 import { el, ellipseD, g, inked, polyD, r2, smoothD } from '../svg';
 import { mountainRow, paintRow, rockColours } from '../mountains';
-import { bush, groundBand, groundShadow, softSky } from './karoo';
+import { groundBand, groundShadow, softSky, windpompTower } from './karoo';
 import { foregroundClumps, midScrub, nearGrass, verVeld } from './common';
 import { thunderhead } from '../skies';
-import { tuftOf } from '../vegetation';
-import {
-  camelthornLook,
-  camelthornSpec,
-  camelthornTree,
-  deadCamelthorn,
-  nestTreeSpec,
-} from '../camelthorn';
+import { camelthornLook, camelthornSpec, camelthornTree, nestTreeSpec, pod } from '../camelthorn';
+import { plantLook, seedTuft, veldShrub } from '../flora';
+import { shepherdsTree } from '../species';
+import { deadCamelthornTree } from '../deadTree';
+import { farAnimal as animal } from '../fauna';
+import type { PaintCtx } from '../landscape';
+import { boulder, graniteLook } from '../rocks';
+
+/** v1.6 (D-042): driedoring, a grey, open, spiny shrub of the red sand. */
+function driedoring(ctx: PaintCtx, x: number, y: number, s: number, pen: Pen): string {
+  const look = plantLook({
+    leaf: mix(ctx.c('greyGreen'), ctx.c('shrub'), ctx.rnd() * 0.5),
+    bark: ctx.c('deadwood'),
+    ink: pen.ink,
+    sun: ctx.c('grassPale'),
+  });
+  return veldShrub(ctx.rnd, x, y, s, 'driedoring', look, pen);
+}
+
+/** v1.6: Bushman grass (Stipagrostis): blonde blades with silvery feathery plumes. */
+function duneTuft(
+  ctx: PaintCtx,
+  x: number,
+  y: number,
+  h: number,
+  pen: Pen,
+  heads?: number,
+): string {
+  return seedTuft(
+    ctx.rnd,
+    x,
+    y,
+    h,
+    {
+      base: shade(ctx.c('grass'), -0.25),
+      blade: ctx.c('grass'),
+      tip: ctx.c('grassPale'),
+      seed: mix(ctx.c('seed'), '#FFFFFF', 0.3),
+    },
+    pen,
+    heads ?? 1 + Math.floor(ctx.rnd() * 3),
+    true,
+  );
+}
+
+/** v1.6: grey velvety camelthorn pods lying in a tree's shade. */
+function fallenPods(
+  ctx: PaintCtx,
+  x: number,
+  foot: number,
+  spread: number,
+  n: number,
+  len: number,
+): string {
+  const look = camelthornLook(ctx.c, ctx.pen);
+  const out: string[] = [];
+  for (let k = 0; k < n; k++)
+    out.push(
+      pod(
+        x + (ctx.rnd() - 0.5) * spread * 2,
+        foot + (ctx.rnd() - 0.3) * len * 0.8,
+        len * (0.8 + ctx.rnd() * 0.4),
+        (ctx.rnd() - 0.5) * 0.8 + (ctx.rnd() < 0.5 ? 0 : Math.PI),
+        look,
+      ),
+    );
+  return g({}, ...out);
+}
 
 // --- shapes --------------------------------------------------------------------------------
 
@@ -145,31 +204,6 @@ function dune(
 }
 
 /** A gemsbok silhouette: straight long horns, black-and-white face hidden at this size. */
-function gemsbok(x: number, base: number, s: number, c: string): string {
-  return g(
-    {},
-    flat(
-      smoothD(
-        [
-          [x - 16 * s, base - 22 * s],
-          [x + 14 * s, base - 24 * s],
-          [x + 16 * s, base - 14 * s],
-          [x - 14 * s, base - 12 * s],
-        ],
-        true,
-        0.6,
-      ),
-      c,
-    ),
-    el('path', {
-      d: `M${x - 12 * s} ${base - 14 * s}L${x - 13 * s} ${base}M${x - 7 * s} ${base - 14 * s}L${x - 6 * s} ${base}M${x + 9 * s} ${base - 16 * s}L${x + 10 * s} ${base}M${x + 13 * s} ${base - 16 * s}L${x + 14 * s} ${base}M${x + 14 * s} ${base - 22 * s}L${x + 20 * s} ${base - 30 * s}M${x + 20 * s} ${base - 30 * s}L${x + 12 * s} ${base - 54 * s}M${x + 21 * s} ${base - 30 * s}L${x + 15 * s} ${base - 55 * s}M${x - 16 * s} ${base - 20 * s}L${x - 20 * s} ${base - 10 * s}`,
-      stroke: c,
-      'stroke-width': 2 * s,
-      'stroke-linecap': 'round',
-    }),
-    flat(ellipseD(x + 21 * s, base - 29 * s, 4 * s, 3 * s), c),
-  );
-}
 
 /** Wind ripples on sand: short parallel curved strokes. */
 function ripples(
@@ -220,10 +254,9 @@ function sky(ctx: LayerCtx): string {
       streaks: 3,
     }),
   ];
-  const storm = { lit: ctx.raw('stormLit'), body: ctx.raw('storm'), base: ctx.raw('stormBase') };
   for (let x = 120 + ctx.rnd() * 300; x < ctx.width; x += 700 + ctx.rnd() * 600) {
-    const w = 260 + ctx.rnd() * 160;
-    parts.push(thunderhead(ctx.rnd, x, 600, w, 190 + ctx.rnd() * 50, storm, ctx.raw('stormBase')));
+    const w = 200 + ctx.rnd() * 100;
+    parts.push(thunderhead(ctx.rnd, x, 600, w, 250 + ctx.rnd() * 40));
   }
   return g({}, ...parts);
 }
@@ -273,7 +306,7 @@ function farRidge(ctx: LayerCtx): string {
   }
   // Gemsbok on a crest (bible), tiny: on the front dune whose crest is nearest u = 0.43, drawn
   // right after it (D-035 round 2: they stand on the sand, not in the air).
-  const gem = mix(ctx.c('gemsbok'), horizon, 0.2);
+  const gem = (c: string): string => mix(c, horizon, 0.3);
   const want = ctx.u(0.43);
   const front: { svg: string; crest: { x: number; y: number } }[] = [];
   for (let x = -100; x < ctx.width;) {
@@ -302,8 +335,24 @@ function farRidge(ctx: LayerCtx): string {
     parts.push(d.svg);
     if (d === near)
       parts.push(
-        gemsbok(d.crest.x - 34, d.crest.y + 9, 0.9, gem),
-        gemsbok(d.crest.x - 12, d.crest.y + 3, 0.85, gem),
+        animal({
+          kind: 'gemsbok',
+          pose: 'walk',
+          x: d.crest.x - 34,
+          foot: d.crest.y + 9,
+          h: 13,
+          tint: gem,
+          phase: 0.2,
+        }),
+        animal({
+          kind: 'gemsbok',
+          pose: 'alert',
+          x: d.crest.x - 12,
+          foot: d.crest.y + 3,
+          h: 12.5,
+          tint: gem,
+          phase: 0.7,
+        }),
       );
   }
   return g({}, ...parts);
@@ -324,7 +373,10 @@ function farVeld(ctx: LayerCtx): string {
     const y = 584 + Math.pow(ctx.rnd(), 1.3) * 170;
     far.push({
       y,
-      svg: bush(ctx, x, y, 3 + ((y - 580) / 170) * 6 + ctx.rnd() * 2, { ink: ctx.pen.ink, w: 1.2 }),
+      svg: driedoring(ctx, x, y, 3 + ((y - 580) / 170) * 6 + ctx.rnd() * 2, {
+        ink: ctx.pen.ink,
+        w: 1.2,
+      }),
     });
   }
   far.sort((p, q) => p.y - q.y);
@@ -339,6 +391,11 @@ function farVeld(ctx: LayerCtx): string {
   const kinds = ['mature', 'young', 'mature', 'old'] as const;
   for (let x = 80, k = 0; x < ctx.width; x += 280 + ctx.rnd() * 420, k++) {
     const kind = kinds[k % kinds.length] ?? 'mature';
+    // v1.6 (D-042): now and then a shepherd's tree among the camelthorns.
+    if (k % 3 === 2) {
+      parts.push(shepherdsTree(ctx.rnd, x, yAt(band.edge, x) + 6, 46 + ctx.rnd() * 14, ctx, 'far'));
+      continue;
+    }
     const spec = camelthornSpec(kind, x, yAt(band.edge, x) + 6, kind === 'young' ? 0.42 : 0.2, 10);
     parts.push(
       camelthornTree(
@@ -349,6 +406,7 @@ function farVeld(ctx: LayerCtx): string {
       ).svg,
     );
   }
+  // v1.6 (D-042): the far animals are sprites now (src/game/view/faunaSprites.ts).
   return g({}, ...parts);
 }
 
@@ -389,14 +447,44 @@ function mid(ctx: LayerCtx): string {
       2,
     ),
   );
-  const items = midScrub(ctx, { bushes: 0.45, stone: tone(ctx.c('stone'), 0.25, 0.25) });
+  const items = midScrub(ctx, {
+    bushes: 0.45,
+    stone: tone(ctx.c('stone'), 0.25, 0.25),
+    shrub: (x, y, sz, pen) => driedoring(ctx, x, y, sz, pen),
+  });
+  // v1.6 (D-042): grey pods in the shade of the weaver tree (u 0.2) and the dead camelthorn
+  // (u 0.74), whose feet stand at about y 740 and 750; blonde plume grass round them.
+  for (const [u, foot] of [
+    [0.2, 742],
+    [0.74, 752],
+  ] as const) {
+    items.push({ y: foot, svg: fallenPods(ctx, ctx.u(u), foot, 170, 14, 13) });
+    for (let k = 0; k < 4; k++) {
+      const x = ctx.u(u) + (ctx.rnd() - 0.5) * 360;
+      const y = foot + 4 + ctx.rnd() * 14;
+      items.push({
+        y,
+        svg: duneTuft(ctx, x, y, 26 + ctx.rnd() * 10, { ink: ctx.pen.ink, w: 2.5 }),
+      });
+    }
+  }
   items.sort((a, b) => a.y - b.y);
   inside.push(...items.map((i) => i.svg));
+  // Shepherd's trees (witgat) on the mid plane, with a few pods blown under them.
+  const trees: string[] = [];
+  for (const [u, h] of [
+    [0.37, 200],
+    [0.93, 175],
+  ] as const) {
+    const x = ctx.u(u);
+    trees.push(shepherdsTree(ctx.rnd, x, yAt(band.edge, x) + 40, h, ctx, 'mid'));
+  }
   return g(
     {},
     band.svg,
     g({ 'clip-path': `url(#${band.clip})` }, ...inside),
     line(smoothD(band.edge, false, 0.8), ctx.pen),
+    ...trees,
   );
 }
 
@@ -421,7 +509,12 @@ function near(ctx: LayerCtx): string {
       3,
     ),
   );
-  const items = nearGrass(ctx, { stone: tone(ctx.c('stone'), 0.25, 0.25), bushes: 0.3 });
+  const items = nearGrass(ctx, {
+    stone: tone(ctx.c('stone'), 0.25, 0.25),
+    bushes: 0.3,
+    shrub: (x, y, sz, pen) => driedoring(ctx, x, y, sz, pen),
+    tuft: (x, y, h, pen) => duneTuft(ctx, x, y, h, pen),
+  });
   items.sort((a, b) => a.y - b.y);
   inside.push(...items.map((i) => i.svg));
   return g(
@@ -437,7 +530,16 @@ function foreground(ctx: LayerCtx): string {
   return g(
     {},
     ...foregroundClumps(ctx, [ctx.u(0.05), ctx.u(0.93)], (x) =>
-      stone(ctx.rnd, x, 1084, 46 + ctx.rnd() * 20, tone(ctx.c('stone'), 0.28, 0.25), pen),
+      // v1.6 (D-042): weathered boulders like the Bushveld's, in this biome's rock.
+      boulder(
+        ctx.rnd,
+        x,
+        1092,
+        120 + ctx.rnd() * 50,
+        70 + ctx.rnd() * 26,
+        graniteLook(ctx.tint, pen, ctx.c('grass'), '#A8806A'),
+        pen,
+      ),
     ),
   );
 }
@@ -461,6 +563,9 @@ function windpompSign(ctx: PropCtx): string {
   const paint = ctx.c('paint');
   return g(
     {},
+    // v1.6 (D-042): the windpomp the sign stands by (its head and wheel turn live: WindpompView,
+    // hub at (92, −186)).
+    g({ transform: 'translate(92 0)' }, windpompTower(ctx, 124, -176, false)),
     groundShadow(10, 122, 40, 6),
     post(0, 122, 240, 22, wood, pen),
     inked(
@@ -499,9 +604,10 @@ function windpompSign(ctx: PropCtx): string {
 
 /** v1.4 B: the dead camelthorn (secret branch stub at (−90, −60)), drawn at 2×. */
 function deadCamelthornProp(ctx: PropCtx): string {
-  return deadCamelthorn(ctx.rnd, camelthornLook(ctx.c, ctx.pen), ctx.pen);
+  return deadCamelthornTree(ctx.rnd, camelthornLook(ctx.c, ctx.pen), ctx.pen);
 }
 
+/** v1.6 (D-042): a hummock of Bushman grass with tall silvery plumes (Stipagrostis). */
 function duneGrass(seed: number) {
   return (ctx: PropCtx): string => {
     const pen = ctx.pen;
@@ -524,30 +630,11 @@ function duneGrass(seed: number) {
         pen.w,
       ),
     ];
-    const a = tone(ctx.c('grass'), 0.22, 0.25);
-    const b = tone(ctx.c('grassPale'), 0.22, 0.2);
-    for (let k = 0; k < 7; k++) {
-      const x = -96 + k * 32 + (ctx.rnd() - 0.5) * 12;
-      const hh = 130 + ctx.rnd() * 60 - Math.abs(k - 3) * 16;
-      parts.push(
-        tuftOf(
-          k % 3 === 0 ? 'upright' : 'fan',
-          ctx.rnd,
-          x,
-          120,
-          hh,
-          k % 2 === seed % 2 ? a : b,
-          pen,
-          ctx.c('seed'),
-        ),
-      );
-    }
-    // Feathery seed heads (Stipagrostis), pale.
-    for (let k = 0; k < 6; k++) {
-      const x = -90 + k * 36 + (ctx.rnd() - 0.5) * 20;
-      const top = -60 - ctx.rnd() * 110;
-      parts.push(line(`M${r2(x)} 60Q${r2(x - 6)} ${r2(top + 40)} ${r2(x + 4)} ${r2(top)}`, pen, 3));
-      parts.push(inked(ellipseD(x + 4, top + 10, 7, 18), ctx.c('seed'), pen.ink, 2));
+    const order = [0, 6, 1, 5, 2, 4, 3];
+    for (const k of order) {
+      const x = -84 + k * 28 + (ctx.rnd() - 0.5) * 10 + (seed % 2) * 4;
+      const hh = 112 + ctx.rnd() * 40 - Math.abs(k - 3) * 14;
+      parts.push(duneTuft(ctx, x, 118 + Math.abs(k - 3) * 2, hh, pen, 2 + ((k + seed) % 2)));
     }
     return g({}, ...parts);
   };
@@ -556,18 +643,20 @@ function duneGrass(seed: number) {
 export const KALAHARI_PLAN: BiomeArtPlan = {
   biome: 'kalahari-summer',
   layers: {
-    sky: { top: 0, height: 1080, encode: 'png', draw: sky },
-    far_ridge: { top: 380, height: 280, draw: farRidge },
+    // v1.6 (D-042): a 256-colour sky, as the other biomes'.
+    sky: { top: 0, height: 1080, encode: 'png8', draw: sky },
+    // v1.6 (D-042): smaller palettes keep the biome chunk inside 1.5 MB.
+    far_ridge: { top: 380, height: 280, colours: 96, draw: farRidge },
     // v1.3: the Ver plane's strip (shown only on maps that open it).
     ver_veld: {
       top: 536,
       height: 52,
       draw: verVeld({ ground: 'sand', light: 'sandLight', scrub: 'bossie' }),
     },
-    far_veld: { top: 464, height: 232, draw: farVeld },
-    mid: { top: 630, height: 280, draw: mid },
-    near: { top: 820, height: 260, draw: near },
-    foreground: { top: 880, height: 200, fadeTop: 28, draw: foreground },
+    far_veld: { top: 464, height: 232, colours: 112, draw: farVeld },
+    mid: { top: 430, height: 480, colours: 128, draw: mid },
+    near: { top: 820, height: 260, colours: 128, draw: near },
+    foreground: { top: 880, height: 200, fadeTop: 28, colours: 128, draw: foreground },
   },
   props: {
     'kalahari/weaver_camelthorn': {
@@ -576,7 +665,13 @@ export const KALAHARI_PLAN: BiomeArtPlan = {
       wobble: false,
       frame: { w: 580, h: 580, ox: 290, oy: 300 },
     },
-    'kalahari/windpomp_sign': { draw: windpompSign },
+    'kalahari/windpomp_sign': {
+      draw: windpompSign,
+      master: 2,
+      colours: 96,
+      wobble: false,
+      frame: { w: 320, h: 440, ox: 120, oy: 310 },
+    },
     'kalahari/dead_camelthorn': {
       draw: deadCamelthornProp,
       master: 2,

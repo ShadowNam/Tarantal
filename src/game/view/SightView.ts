@@ -41,6 +41,11 @@ export class SightView {
     layer.add(this.root);
   }
 
+  /** v1.6 (D-042): drops the picture so the next setPicture() rebuilds it (new textures). */
+  reset(): void {
+    this.setPicture(null);
+  }
+
   /** Which picture this gun's sight draws (rebuilt only when it changes). */
   setPicture(picture: SightPicture | null): void {
     if (picture === this.picture) return;

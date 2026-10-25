@@ -75,6 +75,8 @@ export class DebugOverlay {
     inputKind: InputKind,
     x: number,
     y: number,
+    /** v1.6 (D-042): e.g. "art: interim · 1 placeholder". */
+    art = '',
   ): void {
     if (!this.visible) return;
     const planes = this.content.scoring.planes;
@@ -121,7 +123,7 @@ export class DebugOverlay {
     this.text
       .setPosition(x, y)
       .setText(
-        `FPS ${fps}  tick ${state.tick}/${state.durationTicks}  cam ${state.cameraX.toFixed(1)}  birds ${state.birds.length}  input ${inputKind}\nflocks ${state.flocks.map((f) => `f${f.id} ${f.state} ${f.alive}/${f.spawnSize}${f.eligible ? '' : ' ✗'}`).join(' · ') || '—'}`,
+        `FPS ${fps}  tick ${state.tick}/${state.durationTicks}  cam ${state.cameraX.toFixed(1)}  birds ${state.birds.length}  input ${inputKind}${art === '' ? '' : `  ${art}`}\nflocks ${state.flocks.map((f) => `f${f.id} ${f.state} ${f.alive}/${f.spawnSize}${f.eligible ? '' : ' ✗'}`).join(' · ') || '—'}`,
       );
   }
 }

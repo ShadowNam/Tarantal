@@ -25,8 +25,17 @@ import { fitCamera } from './game/view/fitCamera';
 import { loadFonts } from './game/ui/fonts';
 import { FlashLimiter } from './game/view/flashLimit';
 import { setTextLook } from './game/ui/textLook';
-import type { AssetManifest } from './game/assets/AssetManifest';
-import { ABSENT, fetchAssetIndex, fetchBytesUncached } from './game/assets/finalLoader';
+import { neededLateMissing, type AssetManifest, type LateNeed } from './game/assets/AssetManifest';
+import {
+  ABSENT,
+  absentIndexAccepted,
+  failedAssetFiles,
+  fetchAssetIndex,
+  fetchBytesUncached,
+} from './game/assets/finalLoader';
+import { showArtError, showUpdateBar } from './game/assets/artGate';
+import { buildInfo, buildLine } from './game/ui/buildStamp';
+import { buildIdOf } from './platform/swUpdate';
 import { VoicePacks } from './game/audio/voicePack';
 import {
   biomeArtReady,
@@ -47,11 +56,13 @@ import { TallyScene } from './game/scenes/TallyScene';
 import { TitleScene } from './game/scenes/TitleScene';
 import { DomChrome } from './game/ui/DomChrome';
 import {
+  fill,
   isI18nKey,
   pickLanguage,
   setAfrikaansNames,
   setLanguage,
   t,
+  tOr,
   voiceLanguageFor,
   type Language,
 } from './i18n/i18n';
@@ -307,7 +318,7 @@ const hook: TestHook = {
   simFrameSteps: [],
   replay: null,
   hunts: 0,
-  assets: { problem: null, byBiome: {}, recorded: [] },
+  assets: { problem: null, byBiome: {}, recorded: [], failed: [] },
   music: null,
   masterGain: null,
   missingTextures: [],
@@ -352,6 +363,8 @@ const hook: TestHook = {
 if (testHooks) window.__TM__ = hook;
 
 hook.boot['script'] = performance.now();
+// v1.6 (D-042): which build this is, first thing in the console.
+console.info(`[build] ${buildLine(buildInfo())}`);
 const loaded = loadGameContent();
 const { feel } = loaded;
 // M10: the final-asset index, fetched while the platform SDK starts (absent = all placeholders).
@@ -393,6 +406,8 @@ let contextLost = false;
 
 const platform = createPlatform({
   serviceWorker: import.meta.env.PROD,
+  // v1.6 (D-042): the worker names its build; the update bar shows only when it differs.
+  buildId: buildIdOf(buildInfo().sha, buildInfo().time),
   log: params.get('debug') === '1',
   adTimeoutMs: feel.platform.adTimeoutMs,
   sdkTimeoutMs: feel.platform.sdkTimeoutMs,
@@ -568,7 +583,12 @@ async function boot(): Promise<void> {
     return m;
   };
   // M10: final files for a biome's manifest, loaded once (each failure keeps that placeholder).
-  const { index: assetIndex, problem: indexProblem } = await indexLoad;
+  // v1.6 (D-042): placeholders only on purpose (dev and test builds, ?art=placeholder); otherwise a
+  // hunt or the Skietbaan starts only when its delivered art is in (ensureArt below).
+  const placeholderArt = (testHooks || import.meta.env.DEV) && params.get('art') === 'placeholder';
+  const firstIndex = await indexLoad;
+  let assetIndex = placeholderArt ? null : firstIndex.index;
+  let indexProblem = placeholderArt ? `${ABSENT} (?art=placeholder)` : firstIndex.problem;
   hook.assets.problem = indexProblem;
   // v1.5 (D-041): the voice language (its own setting; "same" follows the text, Dutch → af). Its
   // pack loads lazily after the first gesture, never with the voice volume at 0.
@@ -590,8 +610,15 @@ async function boot(): Promise<void> {
     voicePacks.use(lang, s.voiceVolume > 0 && s.masterVolume > 0);
   };
   applyVoice(save.data.settings);
-  if (indexProblem !== null && !indexProblem.startsWith(ABSENT))
-    console.warn(`[assets] ${indexProblem}: using placeholders`);
+  // v1.6 (D-042 review): an absent index is fine only on purpose or in a test build (dev, Vitest,
+  // VITE_TEST_HOOKS=1 e2e builds); a production build ships one, so there it is retried below.
+  const testBuild =
+    import.meta.env.DEV ||
+    import.meta.env.MODE === 'test' ||
+    import.meta.env.VITE_TEST_HOOKS === '1';
+  const absentOk = (): boolean => absentIndexAccepted(indexProblem, { placeholderArt, testBuild });
+  if (indexProblem !== null && !absentOk())
+    console.warn(`[assets] ${indexProblem}: retrying the asset index`);
   const finalLoads = new Map<string, Promise<void>>();
   const finalDone = new Set<string>();
   const loadFinalFor = (b: Biome): Promise<void> => {
@@ -624,7 +651,62 @@ async function boot(): Promise<void> {
     }
     return p;
   };
-  await loadFinalFor(biome);
+  /**
+   * True when nothing delivered for `b` is missing (or no index, where that is accepted). With
+   * `late`, also none of the Ver-group files that hunt needs (once the late groups settled).
+   */
+  const artOk = (b: Biome, late?: LateNeed): boolean =>
+    assetIndex === null
+      ? absentOk()
+      : manifestFor(b).missingFinal.length === 0 &&
+        (late === undefined || neededLateMissing(manifestFor(b).missingLate, late).length === 0);
+  /**
+   * v1.6 (D-042): loads a biome's delivered art, retrying (bounded) what failed. Each retry
+   * fetches the index again first: after a deploy the old index names files the host no longer
+   * has, and the new index names the new ones. With `late` (a scoped hunt, the Skietbaan), it
+   * also waits for the late groups and retries the Ver-group files that hunt needs.
+   */
+  const ensureArt = async (b: Biome, late?: LateNeed): Promise<boolean> => {
+    const tries = feel.assets.artRetries;
+    for (let k = 0; k <= tries; k++) {
+      if (k > 0) {
+        finalLoads.delete(b.id);
+        finalDone.delete(b.id);
+        await new Promise((r) => window.setTimeout(r, 500 * k));
+        const again = await fetchAssetIndex(feel.assets.indexTimeoutMs, 1);
+        if (again.index !== null) {
+          assetIndex = again.index;
+          indexProblem = again.problem;
+          hook.assets.problem = indexProblem;
+        }
+      }
+      await loadFinalFor(b);
+      if (late !== undefined) await manifestFor(b).lateLoaded;
+      hook.assets.failed = failedAssetFiles();
+      if (artOk(b, late)) return true;
+    }
+    const m = manifestFor(b);
+    const missing = [
+      ...m.missingFinal,
+      ...(late === undefined ? [] : neededLateMissing(m.missingLate, late)),
+    ];
+    console.warn(
+      `[assets] ${b.id}: art still missing after ${tries} retries: ${
+        assetIndex === null ? (indexProblem ?? 'no index') : missing.map((x) => x.path).join(', ')
+      }`,
+    );
+    return false;
+  };
+  // Never in capture mode (?capture=1): marketing shots show the game only.
+  if (!capture)
+    platform.onUpdateReady?.(() => {
+      showUpdateBar(t('ui.update_ready'), t('ui.update_reload'), t('ui.update_dismiss'));
+    });
+  // The home biome's art before the title: a friendly message with Retry when it can't come.
+  while (!(await ensureArt(biome))) {
+    const area = tOr(biome.nameKey, biome.id);
+    await showArtError(fill(t('ui.art_failed'), { area }), t('ui.retry'));
+  }
   // A challenge link (Tech §12): decoded once, then removed from the address bar so a reload or a
   // bookmark doesn't show the card again.
   let pendingChallenge: ChallengeDecode | null = null;
@@ -667,7 +749,8 @@ async function boot(): Promise<void> {
     ? {
         entries: adminList,
         setup: adminSetup,
-        build: __BUILD_SHA__,
+        // v1.6 (D-042): the build stamp (version · commit · build time) in the page and reports.
+        build: buildLine(buildInfo()),
         load: () => (adminSave ??= loadAdminSave()),
         store: (s) => {
           adminSave = s;
@@ -698,13 +781,19 @@ async function boot(): Promise<void> {
     playableBiomes,
     manifestFor,
     installedManifest: null,
-    biomeReady: (id) => biomeArtReady(id) && finalDone.has(id),
+    biomeReady: (id) => {
+      const b = bundle.biomes.find((x) => x.id === id);
+      return biomeArtReady(id) && finalDone.has(id) && (b === undefined || artOk(b));
+    },
     // The biome's placeholder art chunk, then its final files (if any were delivered).
     loadBiome: async (id) => {
       if (!(await loadBiomeArt(id))) return false;
       const b = bundle.biomes.find((x) => x.id === id);
-      if (b !== undefined) await loadFinalFor(b);
-      return true;
+      return b === undefined ? true : ensureArt(b);
+    },
+    loadLateArt: async (id, need) => {
+      const b = bundle.biomes.find((x) => x.id === id);
+      return b === undefined ? true : ensureArt(b, need);
     },
     huntBiome: biome,
     audio,

@@ -174,6 +174,16 @@ export abstract class LocalPlatform implements PlatformAdapter {
     this.analytics('error', { source: report.source, message: report.message });
   }
 
+  /** A plain reload: portal builds have no worker or caches of their own (web.ts overrides). */
+  hardRefresh(): Promise<void> {
+    try {
+      window.location.reload();
+    } catch {
+      // Nothing else to try.
+    }
+    return Promise.resolve();
+  }
+
   /** Fullscreen button rules for this build (portals have their own fullscreen control). */
   protected fullscreenAllowed(d: DeviceInfo): boolean {
     return canShowFullscreenButton(d);

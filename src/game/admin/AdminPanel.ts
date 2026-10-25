@@ -168,6 +168,7 @@ export class AdminPanel {
       }),
       el('span', {
         className: 'muted grow',
+        dataset: { role: 'stamp' },
         textContent: `${t('admin.unranked')} · ${this.admin.build}`,
       }),
       toast,

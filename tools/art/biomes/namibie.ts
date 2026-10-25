@@ -6,7 +6,10 @@
 // trees of tools/art/camelthorn.ts, one with the sociable-weaver family nest), quiver trees
 // (Aloidendron dichotomum, one with an ostrich-egg water flask) and grass mounds. Light from the
 // upper left, thin soft outlines (D-035).
-import type { BiomeArtPlan, LayerCtx, PropCtx } from '../landscape';
+import type { BiomeArtPlan, LayerCtx, PaintCtx, PropCtx } from '../landscape';
+import { plantLook, roundFruit, veldShrub } from '../flora';
+import { StrokeBin, zigzag } from '../camelthorn';
+import { boulder, graniteLook } from '../rocks';
 import {
   flat,
   groundD,
@@ -14,7 +17,6 @@ import {
   mix,
   nextId,
   shade,
-  stone,
   tone,
   yAt,
   type Pen,
@@ -22,7 +24,7 @@ import {
   type Rnd,
 } from '../scenery';
 import { el, ellipseD, g, inked, r2, smoothD } from '../svg';
-import { bush, groundBand, groundShadow, softSky } from './karoo';
+import { groundBand, groundShadow, softSky } from './karoo';
 import { foregroundClumps, midScrub, nearGrass, verVeld } from './common';
 import { tuftOf } from '../vegetation';
 import {
@@ -352,41 +354,6 @@ function farRidge(ctx: LayerCtx): string {
   return g({}, ...parts);
 }
 
-/** A tiny far animal at the waterhole: a springbok or a gemsbok (a few px), head down to drink. */
-function farAnimal(
-  x: number,
-  y: number,
-  k: number,
-  kind: 'springbok' | 'gemsbok',
-  facing: number,
-  drinking: boolean,
-): string {
-  const body = kind === 'gemsbok' ? '#6E5A4A' : '#9A6A42';
-  const belly = kind === 'gemsbok' ? '#E8E2D6' : '#F2EAD8';
-  const f = facing;
-  const head = drinking
-    ? `M${r2(x + f * 3.2 * k)} ${r2(y - 3.4 * k)}L${r2(x + f * 4.6 * k)} ${r2(y - 0.8 * k)}`
-    : `M${r2(x + f * 3.2 * k)} ${r2(y - 3.4 * k)}L${r2(x + f * 4.2 * k)} ${r2(y - 5.6 * k)}`;
-  const horns =
-    kind === 'gemsbok'
-      ? drinking
-        ? `M${r2(x + f * 4.4 * k)} ${r2(y - 1.2 * k)}l${r2(-f * 3 * k)} ${r2(-2.4 * k)}`
-        : `M${r2(x + f * 4.1 * k)} ${r2(y - 5.4 * k)}l${r2(-f * 1.6 * k)} ${r2(-3.4 * k)}`
-      : '';
-  return g(
-    {},
-    el('path', {
-      d: `M${r2(x - 2.6 * k)} ${r2(y - 2.4 * k)}l0 ${r2(2.4 * k)}M${r2(x - 1.6 * k)} ${r2(y - 2.4 * k)}l0 ${r2(2.4 * k)}M${r2(x + 1.8 * k)} ${r2(y - 2.4 * k)}l0 ${r2(2.4 * k)}M${r2(x + 2.6 * k)} ${r2(y - 2.4 * k)}l0 ${r2(2.4 * k)}`,
-      stroke: body,
-      'stroke-width': 0.5 * k,
-    }),
-    flat(ellipseD(x, y - 3.2 * k, 3.2 * k, 1.2 * k), body),
-    flat(ellipseD(x, y - 2.6 * k, 2.4 * k, 0.5 * k), belly, { opacity: 0.8 }),
-    el('path', { d: head, stroke: body, 'stroke-width': 0.9 * k, 'stroke-linecap': 'round' }),
-    horns === '' ? '' : el('path', { d: horns, stroke: '#2A2018', 'stroke-width': 0.35 * k }),
-  );
-}
-
 function verStrip(ctx: LayerCtx): string {
   const base = verVeld({ ground: 'saltShade', light: 'salt', scrub: 'bossieGrey' })(ctx);
   const parts: string[] = [base];
@@ -410,25 +377,7 @@ function verStrip(ctx: LayerCtx): string {
     flat(ellipseD(wx - half * 0.14, wy - 0.9, half * 0.3, 0.7), '#F4FAFF', { opacity: 0.95 }),
     flat(ellipseD(wx + half * 0.24, wy - 0.4, half * 0.12, 0.45), '#E6F2FA', { opacity: 0.8 }),
   );
-  const herd: [number, number, 'springbok' | 'gemsbok', number, boolean][] = [
-    [-0.48, 0.2, 'springbok', 1, true],
-    [-0.36, -0.6, 'springbok', 1, false],
-    [-0.22, 0.5, 'springbok', 1, true],
-    [0.18, 0.4, 'gemsbok', -1, true],
-    [0.33, -0.4, 'gemsbok', -1, false],
-    [0.46, 0.3, 'springbok', -1, true],
-  ];
-  for (const [f, dy, kind, facing, drinking] of herd)
-    parts.push(
-      farAnimal(
-        wx + f * half * 1.25,
-        wy + 4 + dy,
-        kind === 'gemsbok' ? 1.3 : 1.1,
-        kind,
-        facing,
-        drinking,
-      ),
-    );
+  // v1.6 (D-042): the drinkers are a sprite now (src/game/view/faunaSprites.ts).
   // A few small camelthorns round the water (hazed, no ink).
   const pen: Pen = { ink: mix(ctx.pen.ink, horizon, 0.5), w: 0.3 };
   const trees: [number, number, number, Exclude<CamelthornVariant, 'nest'>][] = [
@@ -493,7 +442,10 @@ function farVeld(ctx: LayerCtx): string {
   const far: { y: number; svg: string }[] = [];
   for (let x = ctx.rnd() * 200; x < ctx.width; x += 90 + ctx.rnd() * 260) {
     const y = 600 + Math.pow(ctx.rnd(), 1.2) * 90;
-    far.push({ y, svg: bush(ctx, x, y, 2 + ((y - 600) / 90) * 4, { ink: ctx.pen.ink, w: 0.8 }) });
+    far.push({
+      y,
+      svg: panShrub(ctx, x, y, 2 + ((y - 600) / 90) * 4, { ink: ctx.pen.ink, w: 0.8 }),
+    });
   }
   far.sort((p, q) => p.y - q.y);
   inside.push(...far.map((i) => i.svg));
@@ -513,6 +465,13 @@ function farVeld(ctx: LayerCtx): string {
         opacity: 0.35,
       }),
       farCamelthorn(ctx, kind, x, foot, s, pen),
+    );
+  }
+  // v1.6 (D-042): a few far quiver trees on the pan edge (outside the waterhole sightline).
+  for (const u of [0.12, 0.27, 0.8, 0.93]) {
+    const x = ctx.u(u) + (ctx.rnd() - 0.5) * 60;
+    parts.push(
+      layerQuiver(ctx, x, yAt(band.edge, x) + 10 + ctx.rnd() * 10, 34 + ctx.rnd() * 10, 0.5),
     );
   }
   return g({}, ...parts);
@@ -549,9 +508,24 @@ function mid(ctx: LayerCtx): string {
     specks += ellipseD(x, y, r * 1.4, r * 0.7);
   }
   inside.push(flat(specks, ctx.c('calcreteDark'), { opacity: 0.5 }));
-  const items = midScrub(ctx, { bushes: 0.28, stone: tone(ctx.c('stone'), 0.25, 0.25) });
+  const items = midScrub(ctx, {
+    bushes: 0.28,
+    stone: tone(ctx.c('stone'), 0.25, 0.25),
+    shrub: (x, y, sz, pen) => panShrub(ctx, x, y, sz, pen),
+  });
   items.sort((a, b) => a.y - b.y);
   inside.push(...items.map((i) => i.svg));
+  // v1.6 (D-042): quiver trees in winter flower on the calcrete edge (clear of the props and
+  // of the waterhole sightline in the middle).
+  const trees: string[] = [];
+  for (const [u, h] of [
+    [0.13, 150],
+    [0.785, 165],
+    [0.975, 140],
+  ] as const) {
+    const x = ctx.u(u);
+    trees.push(layerQuiver(ctx, x, yAt(band.edge, x) + 44, h, 0.6));
+  }
   return g(
     {},
     band.svg,
@@ -560,6 +534,7 @@ function mid(ctx: LayerCtx): string {
       ink: mix(ctx.pen.ink, ctx.c('calcreteDark'), 0.45),
       w: 1.6,
     }),
+    ...trees,
   );
 }
 
@@ -618,7 +593,17 @@ function near(ctx: LayerCtx): string {
       2,
     ),
   );
-  const items = nearGrass(ctx, { stone: tone(ctx.c('stone'), 0.25, 0.25), bushes: 0.25 });
+  const items = nearGrass(ctx, {
+    stone: tone(ctx.c('stone'), 0.25, 0.25),
+    bushes: 0.25,
+    shrub: (x, y, sz, pen) => panShrub(ctx, x, y, sz, pen),
+  });
+  // v1.6 (D-042): !nara hummocks with their melons on the red dune edge (clear of the band
+  // where the pop-ups rise).
+  for (let x = 260 + ctx.rnd() * 300; x < ctx.width; x += 700 + ctx.rnd() * 700) {
+    const y = ctx.rnd() < 0.5 ? 880 + ctx.rnd() * 20 : 975 + ctx.rnd() * 70;
+    items.push({ y, svg: naraHummock(ctx, x, y, 48 + ((y - 870) / 200) * 30) });
+  }
   items.sort((a, b) => a.y - b.y);
   inside.push(...items.map((i) => i.svg));
   return g(
@@ -634,7 +619,16 @@ function foreground(ctx: LayerCtx): string {
   return g(
     {},
     ...foregroundClumps(ctx, [ctx.u(0.05), ctx.u(0.93)], (x) =>
-      stone(ctx.rnd, x, 1084, 46 + ctx.rnd() * 20, tone(ctx.c('stone'), 0.28, 0.25), pen),
+      // v1.6 (D-042): weathered boulders like the Bushveld's, in this biome's rock.
+      boulder(
+        ctx.rnd,
+        x,
+        1092,
+        120 + ctx.rnd() * 50,
+        70 + ctx.rnd() * 26,
+        graniteLook(ctx.tint, pen, ctx.c('grass'), '#B0A090'),
+        pen,
+      ),
     ),
   );
 }
@@ -701,7 +695,7 @@ function quiverSkeleton(
 }
 
 /** A rosette of blue-grey succulent leaves at a branch tip, splayed upward and outward. */
-function rosette(rnd: Rnd, x: number, y: number, r: number, ctx: PropCtx, pen: Pen): string {
+function rosette(rnd: Rnd, x: number, y: number, r: number, ctx: PaintCtx, pen: Pen): string {
   const leaf = ctx.c('quiverLeaf');
   const dark = ctx.c('quiverLeafDark');
   const back: string[] = [];
@@ -750,11 +744,184 @@ function rosette(rnd: Rnd, x: number, y: number, r: number, ctx: PropCtx, pen: P
   );
 }
 
+/** A quiver tree's flower spike: a stalk forking into 2–3 short yellow racemes. */
+function quiverFlowers(rnd: Rnd, x: number, y: number, h: number, pen: Pen): string {
+  const stalk = '#9A8A50';
+  const yellow = '#F2C632';
+  const dark = '#C08A1C';
+  const parts: string[] = [];
+  const n = 2 + Math.floor(rnd() * 2);
+  const fork: Pt = [x + (rnd() - 0.5) * 2, y - h * 0.4];
+  parts.push(
+    el('path', {
+      d: `M${r2(x)} ${r2(y)}L${r2(fork[0])} ${r2(fork[1])}`,
+      stroke: stalk,
+      'stroke-width': 1.4,
+      fill: 'none',
+    }),
+  );
+  for (let k = 0; k < n; k++) {
+    const f = n === 1 ? 0 : k / (n - 1) - 0.5;
+    const bx = fork[0] + f * h * 0.6;
+    const by = fork[1] - h * (0.2 + rnd() * 0.1);
+    parts.push(
+      el('path', {
+        d: `M${r2(fork[0])} ${r2(fork[1])}Q${r2(bx)} ${r2(fork[1])} ${r2(bx)} ${r2(by)}`,
+        stroke: stalk,
+        'stroke-width': 1.1,
+        fill: 'none',
+      }),
+    );
+    // The raceme: a short cylinder of tubular flowers, darker underneath.
+    const rh = h * (0.32 + rnd() * 0.1);
+    const rw = 2.4;
+    parts.push(
+      el('path', {
+        d: `M${r2(bx)} ${r2(by)}L${r2(bx)} ${r2(by - rh)}`,
+        stroke: mix(pen.ink, dark, 0.5),
+        'stroke-width': rw * 2 + 1,
+        'stroke-linecap': 'round',
+      }),
+      el('path', {
+        d: `M${r2(bx)} ${r2(by)}L${r2(bx)} ${r2(by - rh)}`,
+        stroke: yellow,
+        'stroke-width': rw * 2,
+        'stroke-linecap': 'round',
+      }),
+      el('path', {
+        d: `M${r2(bx + rw * 0.5)} ${r2(by)}L${r2(bx + rw * 0.5)} ${r2(by - rh)}`,
+        stroke: dark,
+        'stroke-width': rw * 0.8,
+        'stroke-linecap': 'round',
+        opacity: 0.7,
+      }),
+      el('path', {
+        d: Array.from({ length: 4 }, (_, i) => {
+          const yy = by - rh * (0.15 + i * 0.22);
+          return `M${r2(bx - rw)} ${r2(yy)}l${r2(-1.2)} 1.6M${r2(bx + rw)} ${r2(yy)}l1.2 1.6`;
+        }).join(''),
+        stroke: yellow,
+        'stroke-width': 0.9,
+        'stroke-linecap': 'round',
+      }),
+    );
+  }
+  return g({}, ...parts);
+}
+
+/**
+ * v1.6 (D-042): a !nara hummock (Acanthosicyos horridus) on the dune sand: a mound of tangled
+ * leafless green-grey stems with paired spines, sand banked against it, and a few round spiny
+ * melons, green to yellow.
+ */
+function naraHummock(ctx: PaintCtx, x: number, y: number, s: number): string {
+  const rnd = ctx.rnd;
+  const stem = mix('#7E9A5A', ctx.c('greyGreen'), 0.4);
+  const ramp = [shade(stem, -0.4), shade(stem, -0.2), stem, shade(stem, 0.2), shade(stem, 0.38)];
+  const parts: string[] = [
+    // Sand piled under and round it, and its shadow.
+    el('path', {
+      d: ellipseD(x + s * 0.15, y + 1, s * 1.35, s * 0.16),
+      fill: '#2A1A14',
+      opacity: 0.25,
+    }),
+    el('path', {
+      d: `M${r2(x - s * 1.3)} ${r2(y + 1)}Q${r2(x - s * 0.4)} ${r2(y - s * 0.32)} ${r2(x + s * 0.2)} ${r2(y - s * 0.28)}Q${r2(x + s * 0.9)} ${r2(y - s * 0.2)} ${r2(x + s * 1.3)} ${r2(y + 1)}Z`,
+      fill: shade(ctx.c('sandLight'), 0.08),
+    }),
+  ];
+  // Tangled stems: many short zig-zag strokes over a dome, darker at the base, lit on top.
+  const bin = new StrokeBin();
+  const n = Math.round(s * 14);
+  for (let k = 0; k < n; k++) {
+    const u = rnd() * 2 - 1;
+    const top = y - s * 0.75 * Math.sqrt(Math.max(0, 1 - u * u)) - s * 0.15;
+    const px = x + u * s * 1.05;
+    const py = top + (y - s * 0.12 - top) * Math.pow(rnd(), 0.7);
+    const v = (py - top) / Math.max(1, y - top);
+    const lum = 1 - v * 1.6 - u * 0.35 + (rnd() - 0.5) * 0.6;
+    const c = ramp[Math.max(0, Math.min(4, Math.round(2 + lum * 1.4)))] as string;
+    const ang = -Math.PI / 2 + (rnd() - 0.5) * 2.6;
+    const len = s * (0.12 + rnd() * 0.16);
+    const pts = zigzag(
+      rnd,
+      [px, py],
+      [px + Math.cos(ang) * len, py + Math.sin(ang) * len],
+      2,
+      0.25,
+    );
+    bin.add(c, Math.max(0.8, s * 0.035), `M${pts.map((p) => `${r2(p[0])} ${r2(p[1])}`).join('L')}`);
+  }
+  parts.push(bin.svg(ramp));
+  // Spines: pale paired ticks on the upper stems.
+  let spines = '';
+  for (let k = 0; k < Math.round(s * 1.2); k++) {
+    const u = rnd() * 2 - 1;
+    const px = x + u * s;
+    const py = y - s * 0.7 * Math.sqrt(Math.max(0, 1 - u * u)) * (0.6 + rnd() * 0.4) - s * 0.1;
+    spines += `M${r2(px)} ${r2(py)}l${r2(-s * 0.04)} ${r2(-s * 0.05)}M${r2(px)} ${r2(py)}l${r2(s * 0.04)} ${r2(-s * 0.05)}`;
+  }
+  parts.push(
+    el('path', {
+      d: spines,
+      stroke: '#E8E2C8',
+      'stroke-width': Math.max(0.5, s * 0.012),
+      fill: 'none',
+    }),
+  );
+  // Melons: round, warty, green with paler bands; one ripening yellow.
+  const m = 2 + Math.floor(rnd() * 3);
+  for (let k = 0; k < m; k++) {
+    const mx = x + (rnd() - 0.5) * s * 1.6;
+    const my = y - s * 0.06 - rnd() * s * 0.2;
+    const r = s * (0.14 + rnd() * 0.04);
+    const ripe = k === 0 && rnd() < 0.6;
+    parts.push(roundFruit(mx, my, r, ripe ? '#D9B23A' : '#8DA84A'));
+    let warts = '';
+    for (let i = 0; i < 7; i++) {
+      const a = rnd() * Math.PI * 2;
+      const rr = Math.sqrt(rnd()) * r * 0.8;
+      warts += ellipseD(mx + Math.cos(a) * rr, my + Math.sin(a) * rr * 0.9, r * 0.09, r * 0.09);
+    }
+    parts.push(el('path', { d: warts, fill: ripe ? '#8A6A1E' : '#4E6A2A', opacity: 0.8 }));
+  }
+  return g({}, ...parts);
+}
+
+/** v1.6: a grey shrub of the pan edge and dunes. */
+function panShrub(ctx: PaintCtx, x: number, y: number, s: number, pen: Pen): string {
+  const look = plantLook({
+    leaf: mix(ctx.c('bossieGrey'), ctx.c('bossie'), ctx.rnd() * 0.6),
+    bark: ctx.c('twig'),
+    ink: pen.ink,
+    sun: ctx.c('grassPale'),
+  });
+  return veldShrub(ctx.rnd, x, y, s, ctx.rnd() < 0.5 ? 'driedoring' : 'renoster', look, pen);
+}
+
+/** A quiver tree standing on a layer: drawn at its foot (x, foot), `k` × its prop size. */
+function layerQuiver(ctx: PaintCtx, x: number, foot: number, h: number, flowers: number): string {
+  const k = h / 200;
+  const t = quiverTree(ctx, 200, {
+    lean: (ctx.rnd() - 0.5) * 8,
+    levels: ctx.rnd() < 0.5 ? 3 : 4,
+    crown: 0.9 + ctx.rnd() * 0.25,
+    flowers,
+  });
+  return g({ transform: `translate(${r2(x)} ${r2(foot)}) scale(${r2(k)})` }, t.svg);
+}
+
 /** A quiver tree with its foot at (0, 0), `h` tall. Returns the art and its limbs. */
 function quiverTree(
-  ctx: PropCtx,
+  ctx: PaintCtx,
   h: number,
-  o: { readonly lean: number; readonly levels: number; readonly crown: number },
+  o: {
+    readonly lean: number;
+    readonly levels: number;
+    readonly crown: number;
+    /** v1.6 (D-042): share of the rosettes in winter flower (0 … 1). */
+    readonly flowers?: number;
+  },
 ): { svg: string; limbs: Branch[] } {
   const pen: Pen = { ink: ctx.pen.ink, w: Math.min(ctx.pen.w, 2.2) };
   const rnd = ctx.rnd;
@@ -919,6 +1086,11 @@ function quiverTree(
   // Rosettes, back to front (higher ones behind).
   const rs = [...tips].sort((p, q) => p[1] - q[1]);
   for (const t of rs) parts.push(rosette(rnd, t[0], t[1], 12 + rnd() * 5, ctx, pen));
+  // v1.6 (D-042): winter flowers: short branched spikes of canary-yellow racemes above some
+  // rosettes (June–July).
+  for (const t of rs)
+    if (rnd() < (o.flowers ?? 0))
+      parts.push(quiverFlowers(rnd, t[0], t[1] - 6, 16 + rnd() * 6, pen));
   // Blonde tufts at the foot.
   const a = tone(ctx.c('grass'), 0.22, 0.25);
   const b = tone(ctx.c('grassPale'), 0.22, 0.2);
@@ -933,12 +1105,12 @@ function quiverTree(
 }
 
 function quiverProp(ctx: PropCtx): string {
-  return quiverTree(ctx, 205, { lean: -3, levels: 4, crown: 1 }).svg;
+  return quiverTree(ctx, 205, { lean: -3, levels: 4, crown: 1, flowers: 0.55 }).svg;
 }
 
 /** The quiver tree with the ostrich-egg water flask (the secret part at (38, −118), 16 × 20). */
 function quiverEgg(ctx: PropCtx): string {
-  const tree = quiverTree(ctx, 196, { lean: 4, levels: 4, crown: 1.05 });
+  const tree = quiverTree(ctx, 196, { lean: 4, levels: 4, crown: 1.05, flowers: 0.35 });
   const ex = 38;
   const ey = -118;
   const pen: Pen = { ink: ctx.pen.ink, w: 1.6 };
@@ -1085,13 +1257,15 @@ function panGrass(seed: number) {
 export const NAMIBIE_PLAN: BiomeArtPlan = {
   biome: 'namibie',
   layers: {
-    sky: { top: 0, height: 1080, encode: 'png', draw: sky },
-    far_ridge: { top: 376, height: 214, draw: farRidge },
+    // v1.6 (D-042): a 256-colour sky, as the other biomes'.
+    sky: { top: 0, height: 1080, encode: 'png8', draw: sky },
+    // v1.6 (D-042): smaller palettes keep the biome chunk inside 1.5 MB.
+    far_ridge: { top: 376, height: 214, colours: 96, draw: farRidge },
     ver_veld: { top: 524, height: 64, draw: verStrip },
-    far_veld: { top: 464, height: 232, draw: farVeld },
-    mid: { top: 630, height: 280, draw: mid },
-    near: { top: 820, height: 260, draw: near },
-    foreground: { top: 880, height: 200, fadeTop: 28, draw: foreground },
+    far_veld: { top: 464, height: 232, colours: 112, draw: farVeld },
+    mid: { top: 500, height: 410, colours: 128, draw: mid },
+    near: { top: 820, height: 260, colours: 128, draw: near },
+    foreground: { top: 880, height: 200, fadeTop: 28, colours: 128, draw: foreground },
   },
   props: {
     'namibie/nest_camelthorn': {

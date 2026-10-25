@@ -86,16 +86,16 @@ export function camelthornLook(c: PaletteFn, pen: Pen): CamelthornLook {
 
 // --- small helpers ---------------------------------------------------------------------------
 
-const clamp = (v: number, a: number, b: number): number => Math.min(b, Math.max(a, v));
+export const clamp = (v: number, a: number, b: number): number => Math.min(b, Math.max(a, v));
 
 /** A smooth periodic noise: a sum of sines with random phases (k = lo … hi, amplitude ∝ 1/k). */
-function ringNoise(rnd: Rnd, lo: number, hi: number, amp: number): (t: number) => number {
+export function ringNoise(rnd: Rnd, lo: number, hi: number, amp: number): (t: number) => number {
   const terms: { k: number; a: number; p: number }[] = [];
   for (let k = lo; k <= hi; k++) terms.push({ k, a: (amp / k) * (0.5 + rnd()), p: rnd() * 7 });
   return (t) => terms.reduce((s, q) => s + q.a * Math.sin(q.k * t + q.p), 0);
 }
 
-function inside(pts: readonly Pt[], x: number, y: number): boolean {
+export function inside(pts: readonly Pt[], x: number, y: number): boolean {
   let c = false;
   for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
     const [xi, yi] = pts[i] as Pt;
@@ -106,7 +106,7 @@ function inside(pts: readonly Pt[], x: number, y: number): boolean {
 }
 
 /** Collects stroke segments per (colour, width) and emits one <path> each. */
-class StrokeBin {
+export class StrokeBin {
   private readonly bins = new Map<string, string[]>();
   private extra = 0;
   /** Counts strokes drawn elsewhere (in a limb's own bin). */
@@ -147,7 +147,7 @@ class StrokeBin {
   }
 }
 
-function blurFilter(sd: number): { id: string; def: string } {
+export function blurFilter(sd: number): { id: string; def: string } {
   const id = nextId();
   return {
     id,
@@ -161,7 +161,7 @@ function blurFilter(sd: number): { id: string; def: string } {
 
 // --- bark ------------------------------------------------------------------------------------
 
-interface Limb {
+export interface Limb {
   /** Centre line, base to tip. */
   readonly pts: readonly Pt[];
   /** Width at each point. */
@@ -172,7 +172,7 @@ interface Limb {
 }
 
 /** Zig-zag centre line from a to b: `kinks` angular bends alternating side to side. */
-function zigzag(rnd: Rnd, a: Pt, b: Pt, kinks: number, amp: number): Pt[] {
+export function zigzag(rnd: Rnd, a: Pt, b: Pt, kinks: number, amp: number): Pt[] {
   const pts: Pt[] = [a];
   const dx = b[0] - a[0];
   const dy = b[1] - a[1];
@@ -191,7 +191,7 @@ function zigzag(rnd: Rnd, a: Pt, b: Pt, kinks: number, amp: number): Pt[] {
 }
 
 /** One Chaikin pass that keeps the ends: the zig-zag stays angular but its joints round off. */
-function soften(pts: readonly Pt[]): Pt[] {
+export function soften(pts: readonly Pt[]): Pt[] {
   if (pts.length < 3) return [...pts];
   const out: Pt[] = [pts[0] as Pt];
   for (let i = 0; i < pts.length - 1; i++) {
@@ -205,7 +205,7 @@ function soften(pts: readonly Pt[]): Pt[] {
 }
 
 /** Linear width taper along a polyline (by arc length). */
-function taper(pts: readonly Pt[], w0: number, w1: number): number[] {
+export function taper(pts: readonly Pt[], w0: number, w1: number): number[] {
   const seg: number[] = [0];
   for (let i = 1; i < pts.length; i++) {
     const p = pts[i] as Pt;
@@ -217,7 +217,7 @@ function taper(pts: readonly Pt[], w0: number, w1: number): number[] {
 }
 
 /** Densified copy (each segment split into `n` pieces) with interpolated widths. */
-function densify(l: Limb, n: number): Limb {
+export function densify(l: Limb, n: number): Limb {
   const pts: Pt[] = [];
   const w: number[] = [];
   for (let i = 0; i < l.pts.length - 1; i++) {
@@ -237,7 +237,7 @@ function densify(l: Limb, n: number): Limb {
 }
 
 /** Unit normal at point i, pointed to the shade side (away from the upper-left light). */
-function shadeNormal(pts: readonly Pt[], i: number): Pt {
+export function shadeNormal(pts: readonly Pt[], i: number): Pt {
   const a = pts[Math.max(0, i - 1)] as Pt;
   const b = pts[Math.min(pts.length - 1, i + 1)] as Pt;
   const dx = b[0] - a[0];
@@ -253,7 +253,7 @@ function shadeNormal(pts: readonly Pt[], i: number): Pt {
 }
 
 /** A band of the limb between normal offsets f0 and f1 (× half width), as a closed path. */
-function band(l: Limb, f0: number, f1: number): string {
+export function band(l: Limb, f0: number, f1: number): string {
   const a: Pt[] = [];
   const b: Pt[] = [];
   for (let i = 0; i < l.pts.length; i++) {
@@ -270,7 +270,7 @@ function band(l: Limb, f0: number, f1: number): string {
  * The limbs as one merged silhouette: every outline first, then every fill over them, so the
  * joints (trunk into limbs, limbs into branches) show no seams.
  */
-function limbSilhouette(limbs: readonly Limb[], look: CamelthornLook): string {
+export function limbSilhouette(limbs: readonly Limb[], look: CamelthornLook): string {
   const live: string[] = [];
   const dead: string[] = [];
   const outlines = new Map<string, string[]>();
@@ -301,7 +301,7 @@ function limbSilhouette(limbs: readonly Limb[], look: CamelthornLook): string {
 }
 
 /** One limb: soft outline, base fill, shade and lit bands, furrows, ridges and cracks. */
-function drawLimb(
+export function drawLimb(
   rnd: Rnd,
   limb: Limb,
   look: CamelthornLook,
@@ -383,7 +383,7 @@ function drawLimb(
 
 // --- foliage ---------------------------------------------------------------------------------
 
-interface Clump {
+export interface Clump {
   readonly x: number;
   readonly y: number;
   readonly rx: number;
@@ -393,7 +393,7 @@ interface Clump {
 }
 
 /** A clump's lumpy underside shadow mass (keeps the clump's core dense). */
-function clumpCore(rnd: Rnd, c: Clump): string {
+export function clumpCore(rnd: Rnd, c: Clump): string {
   const n = ringNoise(rnd, 3, 9, 0.5);
   const pts: Pt[] = [];
   for (let k = 0; k < 28; k++) {
@@ -408,7 +408,7 @@ function clumpCore(rnd: Rnd, c: Clump): string {
  * Foliage of a set of clumps: per depth layer, a dark core per clump, then feathery leaf dabs
  * coloured by height in the clump (dark underside → lit top) and by side (lit left).
  */
-function foliage(
+export function foliage(
   rnd: Rnd,
   clumps: readonly Clump[],
   look: CamelthornLook,
@@ -459,7 +459,7 @@ function foliage(
 // --- pods ------------------------------------------------------------------------------------
 
 /** A grey velvety half-moon pod (ear-shaped), length `len`, at angle `ang`. */
-function pod(x: number, y: number, len: number, ang: number, look: CamelthornLook): string {
+export function pod(x: number, y: number, len: number, ang: number, look: CamelthornLook): string {
   const ca = Math.cos(ang);
   const sa = Math.sin(ang);
   const P = (u: number, v: number): string =>
@@ -524,13 +524,21 @@ export interface CamelthornArt {
 
 /** Limb tips where clumps gather, plus the limbs themselves. */
 /** A tapering limb from a to b with gentle kinks and rounded joints (two softening passes). */
-function bough(rnd: Rnd, a: Pt, b: Pt, w0: number, w1: number, kinks: number, amp: number): Limb {
+export function bough(
+  rnd: Rnd,
+  a: Pt,
+  b: Pt,
+  w0: number,
+  w1: number,
+  kinks: number,
+  amp: number,
+): Limb {
   const pts = soften(zigzag(rnd, a, b, kinks, amp));
   return { pts, w: taper(pts, w0, w1) };
 }
 
 /** Width of a limb at the point nearest to p (to start a child limb as wide as its parent). */
-function widthNear(l: Limb, p: Pt): number {
+export function widthNear(l: Limb, p: Pt): number {
   let best = l.w[0] ?? 1;
   let dist = Infinity;
   l.pts.forEach((q, i) => {
@@ -659,7 +667,7 @@ function skeleton(rnd: Rnd, s: CamelthornSpec): { limbs: Limb[]; tips: Pt[]; dea
 }
 
 /** Fine twigs fanning from a tip (thin zig-zag strokes). */
-function twigs(
+export function twigs(
   rnd: Rnd,
   tip: Pt,
   s: CamelthornSpec,

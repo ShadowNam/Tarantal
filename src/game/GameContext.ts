@@ -12,7 +12,7 @@ import type { AnalyticsRecord } from '../platform/local';
 import type { HuntResult, InputKind } from '../sim/types';
 import type { LivePrefs } from './prefs';
 import type { DomChrome } from './ui/DomChrome';
-import type { AssetManifest, ManifestEntry } from './assets/AssetManifest';
+import type { AssetManifest, LateNeed, ManifestEntry } from './assets/AssetManifest';
 import type { FlashLimiter } from './view/flashLimit';
 import type { CaptureState } from './capture';
 import type { BarkDirector } from './audio/barks';
@@ -121,6 +121,15 @@ export interface TestHook {
   /** 24 Oct update, e2e only: true holds the Skietbaan's markers and plate swings still (a
    *  screenshot under software GL is slower than a 0.6 s marker). */
   rangeHold?: boolean;
+  /** v1.6 (D-042): the build stamp on screen (text, whether it shows, its size and box). */
+  stamp?: {
+    text: string;
+    visible: boolean;
+    px: number;
+    rect: { x: number; y: number; w: number; h: number };
+  };
+  /** v1.6 (D-042): the scope picture's texture at hunt start: delivered art or a drawn placeholder. */
+  sightArt?: 'final' | 'placeholder' | null;
   /** Menu overlay on top of the scene: shed, settings, pause (null = none). */
   menu: string | null;
   /** M10: the self-hosted fonts loaded before the game drew any text. */
@@ -229,6 +238,8 @@ export interface TestHook {
     byBiome: Record<string, ManifestEntry[]>;
     /** Sound keys playing from a recorded file (decoded), not the synth. */
     recorded: string[];
+    /** v1.6 (D-042): delivered files that failed to load this page, with why. */
+    failed: readonly { path: string; why: string }[];
   };
   /**
    * v1.5 (D-041): Oupa's voice — the voice language in use, its pack's state (each language's
@@ -390,6 +401,11 @@ export interface GameContext {
   biomeReady(id: string): boolean;
   /** M9: loads a biome's art chunk (lazy biome bundles); false if it failed. */
   loadBiome(id: string): Promise<boolean>;
+  /**
+   * v1.6 (D-042): waits for a loaded biome's late groups and retries (bounded) the Ver-group
+   * files a scoped hunt or the Skietbaan needs (`need`); false if they still failed.
+   */
+  loadLateArt(id: string, need: LateNeed): Promise<boolean>;
   /** M8: the biome of the hunt on screen (the home biome between hunts). */
   huntBiome: Biome;
   readonly audio: AudioDirector;
