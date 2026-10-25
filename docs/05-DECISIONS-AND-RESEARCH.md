@@ -2225,6 +2225,15 @@ they need (`missingLate`, `neededLateMissing()`, `ensureArt()`), then Retry/Back
 shows only when the new worker serves another build, sits bottom centre with a ×, never in capture
 mode; production builds treat an absent asset index as a failure (only dev/test builds and
 `?art=placeholder` run without one). Tech §10.
+(14) *Skietbaan "Fresh load" button (dev builds)* (product owner, 25 Oct: force a fresh map load
+after a deploy without a manual hard refresh): on the setup page's header and the range bar (behind
+More on phones), `PlatformAdapter.hardRefresh()` unregisters the game's service worker (its scope
+only: Pages shares one origin), deletes the `tm-*` caches and reloads with `?fresh=<now>`, every
+other parameter kept (`?admin=1` lands back on the admin page); the save is untouched and a
+failing or hung step still reloads (`src/platform/freshLoad.ts`, unit-tested). Shown where
+`freshLoadShown()`: the web build's admin page (dev server and GitHub Pages; the Skietbaan's own
+gate), never in Poki/CrazyGames builds (no Skietbaan chunk; their `hardRefresh` is a plain
+reload). The setup page and the bar also show the build line. Tech §10.
 
 ## 3. Research notes (with sources)
 

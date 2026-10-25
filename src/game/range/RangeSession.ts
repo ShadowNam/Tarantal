@@ -55,4 +55,9 @@ export interface RangeMenuHost {
   play(session: RangeSession): void;
   /** Back to the admin list. */
   back(): void;
+  /**
+   * D-042 (14): "Fresh load" (PlatformAdapter.hardRefresh: no worker, no cached game files, a
+   * reload with the same parameters). Null where the build hides it (freshLoadShown: portals).
+   */
+  readonly freshLoad: (() => void) | null;
 }

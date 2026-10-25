@@ -65,6 +65,12 @@ function where(menu: RangeMenuHost, c: RangeChoice): Parameters<typeof rangeRepo
   };
 }
 
+/** D-042 (14): the build line on the setup page and the bar (none with ?stamp=0, as the stamp). */
+function panelBuild(): string | null {
+  const masked = new URLSearchParams(window.location.search).get('stamp') === '0';
+  return masked ? null : buildLine(buildInfo());
+}
+
 function selection(menu: RangeMenuHost, c: RangeChoice): RangeSelection {
   const gun = rangeGuns(menu.content).find((g) => g.id === c.gun);
   return { gun: c.gun, plane: c.plane, target: c.target, pellets: gun?.pellets ?? 1 };
@@ -127,6 +133,8 @@ export function openSkietbaan(menu: RangeMenuHost): void {
       stats.reset();
     },
     report: () => rangeReport(content, stats.list(), where(menu, choice ?? c)),
+    build: panelBuild(),
+    freshLoad: menu.freshLoad,
   });
 }
 
@@ -240,6 +248,8 @@ class Session implements RangeSession {
           }
         : {}),
       report: () => rangeReport(content, stats.list(), where(this.menu, this.choice)),
+      build: panelBuild(),
+      freshLoad: this.menu.freshLoad,
     });
     if (this.menu.hook) {
       this.menu.hook.scene = 'range';
