@@ -7,22 +7,22 @@ const meta = {
   title: 'Tarantal Madness',
   subtitle: 'Development history',
   tagline: 'How the game came together, from the first commit to today',
-  updated: '25 October 2026, 17:00 UTC',
+  updated: '25 October 2026, 23:00 UTC',
   period: '19–25 October 2026',
 };
 
-// "By the numbers" on 25 Oct 2026 (main at 58ba640).
+// "By the numbers" on 25 Oct 2026 (main at d57a840).
 const numbers = [
   ['Days since the first commit', '6'],
-  ['Commits on main', '768'],
-  ['Pull requests', '70 merged, plus this history update; v1.6b reload power-ups and v1.7 meerkat colonies ready for review'],
-  ['Game code (TypeScript, without tests)', 'about 42,000 lines'],
-  ['Automated tests', '1,098 unit tests, 48 browser test suites on 3 device profiles'],
+  ['Commits on main', '831'],
+  ['Pull requests', '74 merged, plus this history update; v1.7b power-ups explained is being built'],
+  ['Game code (TypeScript, without tests)', 'about 47,000 lines'],
+  ['Automated tests', '1,194 unit tests, 52 browser test suites on 3 device profiles'],
   ['Hunting areas', '5: the four seasons (Karoo, Bushveld, Okavango, Kalahari) and Namibië, each with 7 weekday maps and 3 bonus maps (Verder, Nog Verder, Die Verste)'],
   ['Guns', '8 (Dubbelloop, Windbuks, Kettie, Plaas-Pomp, Die Twee-Twee with 3 sights, Die Langloop with a 3–9× scope, Voorlaaier, Mielie-Masjien)'],
-  ['Creatures', '13 (guineafowl and variants, bosses, flyers)'],
+  ['Creatures', '13 (guineafowl and variants, bosses, flyers), plus meerkat colonies on the desert maps'],
   ['Languages', 'English, Afrikaans, German and Dutch text; Oupa voiced in English, Afrikaans and German'],
-  ['Design decisions logged', '42 (D-001 to D-042)'],
+  ['Design decisions logged', '45 (D-001 to D-045)'],
 ];
 
 const roles = [
@@ -608,6 +608,89 @@ const stages = [
       { img: 'v16-namibie', caption: 'Before | after on a phone: Namibië with quiver trees in yellow flower, !nara hummocks and far animals on the pan.' },
     ],
   },
+  {
+    title: 'v1.6b Reload power-ups: Blitslaai and Oupa Laai',
+    when: '25 Oct 2026, 18:43 (started 25 Oct, 06:45)',
+    prs: '#71, #75',
+    decision: 'D-043',
+    intro: 'The product owner asked for "an AUTO reload, and a fast reload" as power-ups.',
+    bullets: [
+      'Blitslaai (Lightning Load): for 12 seconds every reload takes about a third of the time. It covers full-belt reloads, shell-by-shell reloads, the Voorlaaier’s ramrod and the Kettie’s draw. Small lightning glints hop along the rounds and a reload starts with a quick metallic zip.',
+      'Oupa Laai (Oupa Loads): for 12 seconds the gun reloads by itself the moment it is empty, and a shell-by-shell gun tops up when you pause. Oupa’s hand sits by the belt and he says "I’ll load for you, my kind!" (in English, Afrikaans and German). A shot always cuts an automatic reload, so it never locks you out of a shot.',
+      'Both come from supply crates in any hunt and cost 2 coins at the Padstal in a Season Run. They are the first power-ups with icons on their HUD chips.',
+      'Balance: the competent bot’s Classic score rose 1.9 %; every Season Run gate still passes (spring with good buys is 69.6 %, inside its target).',
+      'First download 3,026.6 KB of 3 MB (+13 KB for the icons, the glints, the zip and the code).',
+    ],
+    feedbackLabel: 'Reviews and fixes before merging',
+    feedback: [
+      'Main, with v1.6, was merged in as version 1.6.1. Claude changed one browser test so it always checks the lightning icon, not only sometimes.',
+      'A slow Skietbaan browser test (the D-040 gongs) timed out on GitHub, on main as well. Claude split it into two tests that shoot inside the page (#75), and the same fix went into this PR.',
+      'Screenshots of both power-ups on desktop and a phone were taken after the merge.',
+    ],
+    images: [
+      { img: 'v16b-blitslaai', caption: 'On a phone: the Lightning Load chip with its icon at the top left, during a Karoo hunt.' },
+      { img: 'v16b-oupa-laai', caption: 'The Oupa Loads chip, and Oupa’s hand by the belt (bottom right) while it runs.' },
+    ],
+  },
+  {
+    title: 'The Project overview page in the admin',
+    when: '25 Oct 2026, 20:06 (asked for at 17:51)',
+    prs: '#76',
+    decision: 'D-045',
+    intro: 'The product owner wanted one place to see the project’s status without asking: what is done and outstanding with dates and expected builds, open questions and decisions, what is built and what will be, suggestions, and the history with its pictures.',
+    bullets: [
+      'A "Project overview" button on the admin page (test builds only; players never download it).',
+      'Tabs: Overview (needs you, now building, up next, last done, numbers, links and recent activity), Roadmap (running, planned and done, each with its build number and expected time), Requests, Ideas, and History with pictures that open full size.',
+      'Every time is shown in Namibia time.',
+      'Claude updates the data on its own branch (project-log) at every merge and screenshot round, so the page is current within about 5 minutes, with no new build or deploy.',
+      'If the connection drops, the last copy that loaded is shown and marked as an offline copy.',
+      'Links and pictures are only accepted from the project’s own GitHub and Claude pages, so a crafted link can’t show a fake status.',
+      'Works on desktop, Pixel 7 and iPhone 14, with the page’s own text in English, Afrikaans, German and Dutch.',
+    ],
+    feedbackLabel: 'Reviews and fixes before merging',
+    feedback: [
+      'Claude’s own review moved "now building" to the top, put the roadmap in running → planned → done order, and kept lettered options (A, B, C) from being numbered twice.',
+      'The product owner looked before it was merged ("I don’t see the Project page"); it went live 25 minutes later.',
+    ],
+    images: [
+      { img: 'po-overview', caption: 'The Overview tab: what needs the product owner, what is being built now and what comes next.' },
+      { img: 'po-roadmap', caption: 'The Roadmap tab: every job with its build number and expected time.' },
+      { img: 'po-history-phone', caption: 'The History tab on an iPhone 14, with the build pictures.' },
+    ],
+  },
+  {
+    title: 'v1.7 Meerkat colonies on the desert maps',
+    when: '25 Oct 2026, 22:55 (started 25 Oct, 13:00)',
+    prs: '#72',
+    decision: 'D-044',
+    intro: 'The product owner asked for meerkat holes on the desert maps, with meerkats that "peek out and run from one nest to the other. Be creative."',
+    bullets: [
+      'One or two meerkat colonies on every Kalahari and Namibië map, on burrow mounds with dark holes, fresh sand and tracks.',
+      'The meerkats peek, come out, sit, forage and sunbathe in Monday’s dawn light. A sentinel stands guard on the highest mound, and they dash between burrows in a file, stopping halfway to look. A pup follows its mother.',
+      'They react to the hunt: a shot nearby sends the colony down (the scout comes back first after 3–6 seconds); the Langloop sends every colony down; a raptor or the crop sprayer overhead sets off the sentinel’s alarm bark, which also alerts the nearest guineafowl flock.',
+      'Shooting a meerkat costs 10 points; it tumbles, then scolds you ("We’re not guineafowl!").',
+      'A new secret, the Familiefoto: hold fire for 4 seconds with a whole family out near the middle of the screen and they line up for a photo, with a camera click, for +25. It is in the Bird Book and has a Notaboek challenge.',
+      'They are part of the game’s rules, not decoration, so replays, challenge links and the Daily Hunt play them the same on every device.',
+      'Balance: on all 20 desert maps the scores stay within −1.2 % and +2.5 % of the same maps without colonies.',
+      'The meerkat art and sounds load with either desert map. A Kalahari hunt downloads 1,534.9 KB of its 1,536 KB limit; the first download is 3,055 KB.',
+    ],
+    feedbackLabel: 'Reviews and fixes before merging',
+    feedback: [
+      'Claude’s first look round: the meerkats looked flat, below the camelthorn quality bar. Redrawn with a rounded body, a cream belly, shading, an eye mask and a fluffier pup; the burrows got holes with shadows and fresh sand.',
+      'The independent review found a shot pup that stayed stuck for the rest of the hunt, and a placement check that ignored the mounds. Both fixed, with tests.',
+      'Colonies were moved so none sits under the HUD on desktop, Pixel 7 or iPhone 14, and so they stay clear of the gun. Meerkats now keep a body width apart.',
+      'Product owner (25 Oct, about 17:45): "a little bit more hairy … a tick more furry, and a little bit nicer faces". Round 3 drew every meerkat as fur, with a teardrop eye mask, a small eye with a catch-light and a short muzzle.',
+      'On GitHub, a browser test expected −10 for a meerkat shot but got +29: a bird near the moved colony shared the shot. The game was right; the test now takes a shot the meerkat gets alone. The balance was re-checked on all 20 maps after the move.',
+    ],
+    images: [
+      { img: 'v17-familiefoto', caption: 'The Familiefoto in the Kalahari: hold fire and the family lines up for a photo (+25).' },
+      { img: 'v17-familiefoto-closeup', caption: 'Close-up of the Familiefoto, with the pup at the end of the row.' },
+      { img: 'v17-sentinel-pup', caption: 'Close-up: the sentinel on the highest mound, the pup by its mother, and the burrow holes.' },
+      { img: 'v17-scold', caption: 'A meerkat scolds after being shot ("We’re not guineafowl!").' },
+      { img: 'v17-namibie', caption: 'Two Namibië colonies on a Sunday, clear of the gun and the HUD.' },
+      { img: 'v17-rounds', caption: 'The three look rounds of the meerkat sheet: the first draft, the redraw, and round 3 with more fur and nicer faces (times in Namibia time).' },
+    ],
+  },
 ];
 
 // The product owner's requests, in order.
@@ -625,7 +708,7 @@ const requests = [
   ['23 Oct, 21:15', 'Keep the build file updated with an infographic every 2–3 hours; keep Tank building overnight', 'The build board and the status doc, refreshed every 2–3 hours and after each merge; v1.3 merged overnight'],
   ['24 Oct, 05:45', 'More targets in the training ground: mixed targets at all distances, every distance for every gun, a sound or blink on every hit', 'Done (#61), with screenshots sent at the merge'],
   ['24 Oct, 12:05', 'Better graphics for the trees, bushes and fruit on every map; camelthorn trees in Namibia; a far more detailed weaver nest ("increase quality by 500%") with angry birds flying out when it is shot', 'Camelthorn and nest first in v1.4 part B, with close-ups for approval; the plants on every map done in v1.6 (#70)'],
-  ['24 Oct, 12:18', 'Meerkat burrows on the desert maps: meerkats peek out and run from one burrow to another ("be creative")', 'Built as v1.7 (#72), in review'],
+  ['24 Oct, 12:18', 'Meerkat burrows on the desert maps: meerkats peek out and run from one burrow to another ("be creative")', 'Done in v1.7 (#72)'],
   ['24 Oct, 16:00', 'Languages: game, voice and text in German, English and Afrikaans, with names adjusted for each audience', 'Done in v1.5 (#68)'],
   ['24 Oct, 17:45', 'Clean steel gongs in the training ground, with every shot mark staying visible for the session; tin cans ("blikkies") on fence posts that somersault and can be juggled in the air', 'Gongs done (#66); Blikkies queued as v1.8'],
   ['24 Oct, 18:55', 'Five more ideas to keep the African feel (meerkats, a soundscape, a rain storm, a braai, a farm dog, veld cameos) and Daily specials on local days (Heritage Day braai, Christmas in summer, Halloween, New Year)', 'All queued as v1.6–v1.13; a list of Daily specials sent for the product owner to choose from'],
@@ -639,17 +722,31 @@ const requests = [
   ['25 Oct, 07:25', 'The Kalahari dead tree "needs a lot of work"; the clouds "need to be more realistic"', 'Done in v1.6 (#70)'],
   ['25 Oct, morning', 'The windmill redrawn from the reference photos: no outer ring, more missing blades in random order, old and rusted', 'Approved ("looks great, implement it") and done in v1.6 (#70)'],
   ['25 Oct', 'A button to force a fresh map load after a deploy', 'Done in v1.6 (#70): the Fresh load button in the Skietbaan (test builds)'],
-  ['25 Oct, 14:45', 'When shooting the fruit (sausage tree), make it swing or drop', 'Queued as v1.7b'],
+  ['25 Oct, early morning', 'An automatic reload and a fast reload as power-ups', 'Done in v1.6b (#71): Blitslaai and Oupa Laai'],
+  ['25 Oct, 14:45', 'When shooting the fruit (sausage tree), make it swing or drop', 'Queued as v1.7c'],
+  ['25 Oct, 17:45', 'The meerkats "a little bit more hairy … a tick more furry, and a little bit nicer faces"', 'Done in v1.7 (#72), look round 3'],
+  ['25 Oct, 17:48', 'Namibië: at least two ostriches with a nest, oryx far away in a mirage, hot-air balloons drifting by; the grass and landscape much more detailed', 'Queued as v1.7d (Namibië veld life)'],
+  ['25 Oct, 17:51', 'A Project overview page in the admin: what is done and outstanding with dates and expected builds, open questions and decisions, what is built and what will be, suggestions, and the history with its pictures, kept up to date', 'Done (#76), live at 20:06'],
+  ['25 Oct, 18:03', 'A Gun Shed section that explains every power-up with pictures, and clearer power-ups in the hunt', 'Being built as v1.7b'],
+  ['25 Oct, 18:03', 'A Settings option to switch Oupa’s comments off', 'Being built in v1.7b: Oupa’s comments On / Text only / Off'],
+  ['25 Oct, 18:03', 'The Bushveld rocks and middle distance look childish; replace the star glint on secrets with something else, such as a unique animal', 'Queued as v1.7e, with mock-ups first'],
+  ['25 Oct, 18:03', 'Baboons on the maps that pop up and do something naughty', 'Queued as v1.8b; they are shot down like guineafowl (the product owner’s choice)'],
+  ['25 Oct, 18:03', '"The Harvest": 30 seconds to shoot the animals raiding the crops while farm workers fix the fence', 'Queued as v1.8c, a new mode on the title screen (the product owner’s choice)'],
+  ['25 Oct, 20:58', 'Keep building overnight on the recommended options; retry Tank, and start a new session if it hangs again', 'Building overnight'],
 ];
 
 const next = [
-  ['v1.6b: reload power-ups', 'Reload power-ups; in review (#71)', 'Claude, then the product owner', 'review'],
-  ['v1.7: meerkat colonies', 'Burrows on the desert maps; meerkats peek, stand guard, dash between burrows and dive when shots are fired. In review (#72)', 'Claude, then the product owner', 'review'],
-  ['v1.7b: fruit that swings and drops', 'Shot fruit (such as the sausage tree\u2019s) swings or falls', 'Tank', 'about 3\u20134 h'],
+  ['v1.7b: power-ups explained, and an Oupa switch', 'A Gun Shed section with a picture and a plain explanation of every power-up and crate gun; crates that show what is inside, a pickup card, countdown chips and small visible effects in the hunt; Oupa’s comments On / Text only / Off in Settings', 'Tank', 'building now'],
+  ['v1.7c: fruit that swings and drops', 'Shot fruit (such as the sausage tree\u2019s) swings or falls', 'Tank', 'about 3\u20134 h'],
+  ['v1.7d: Namibië veld life', 'Detailed grass and sand, ostriches at their nest, an oryx herd in the mirage, hot-air balloons', 'Tank', 'about 5 h'],
+  ['v1.7e: Bushveld rocks, middle distance and the secret cue', 'Realistic rocks and middle distance; a unique animal at each secret instead of the star glint (mock-ups first)', 'Tank, then the product owner', 'about 5 h'],
   ['v1.8: blikkies', 'Tin cans on fence posts that somersault when hit and can be juggled in the air', 'Tank', 'about 5 h'],
+  ['v1.8b: baboons', 'Baboons that pop up and get up to mischief, shot down like guineafowl', 'Tank', 'about 5 h'],
+  ['v1.8c: The Harvest', 'A new mode on the title screen: 30 seconds to keep the animals off the crops while farm workers fix the fence', 'Tank', 'about 6 h'],
   ['v1.9\u2013v1.13', 'Soundscape, the rain storm (re\u00ebnbui), the braai, the farm dog (brakkie) and veld cameos', 'Tank', 'about 4\u20135 h each'],
-  ['Daily specials (Feesdae)', 'Holiday Dailies on local days; waiting for the product owner to choose which', 'Product owner, then Tank', 'after the choice'],
+  ['Daily specials (Feesdae)', 'Holiday Dailies on local days; waiting for the product owner to choose which (Halloween is on 31 Oct)', 'Product owner, then Tank', 'after the choice'],
   ['Final voices', 'Replace the interim text-to-speech voices with real or premium voices per language', 'Product owner', 'when chosen'],
+  ['Suggestion', 'Bring the scoped .22 back under the long-range cap on the Kalahari’s Nog Verder and Die Verste', 'Claude', 'not planned yet'],
   ['Idea for later', 'A bow and arrow', 'Product owner', 'not planned yet'],
 ];
 
@@ -681,6 +778,9 @@ const decisions = [
   ['D-040', 'Skietbaan gongs: clean plates, lasting hit marks on steel and paper, mark size from the gun data'],
   ['D-041', 'v1.5 Languages: separate text and voice languages, names per language with an "Afrikaans names" option, interim voices per language'],
   ['D-042', 'v1.6 Veld art pass: plants, far animals, clouds, the windmill and dassie, art that waits to load, the build stamp'],
+  ['D-043', 'v1.6b Reload power-ups: Blitslaai and Oupa Laai'],
+  ['D-044', 'v1.7 Meerkat colonies: living colonies in the game rules, the Familiefoto secret, a shared desert download'],
+  ['D-045', 'The Project overview page in the admin, fed from its own branch'],
 ];
 
 const glossary = [
