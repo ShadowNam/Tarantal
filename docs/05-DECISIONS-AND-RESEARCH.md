@@ -2351,6 +2351,80 @@ offline copy); `project-overview.spec.ts` on desktop, Pixel 7 and iPhone 14 (lan
 also passes) with the log and pictures served by `page.route` (no network), screenshots in
 `docs/art-preview/compare/project-overview-*.png`. No sim, content or replay change.
 
+**D-046 v1.7b Power-ups explained, and an Oupa switch (25 Oct 2026):** the product owner (25 Oct,
+~20:20 Namibia time): "In the gun shed there needs to be a section that explains, with pictures,
+all the power-ups the game has, and what each does. When one collects these power-ups, one is very
+unsure what they actually do. The game indicates too little what is actually happening." And: "Add
+under Settings the option to have the grandfather mode enabled or not. Some people would be
+irritated by always having a grandfather give his input." What the power-ups do and their numbers
+are unchanged (GDD §10.4, §13.7, §18.3).
+(1) *Icons* for all six power-ups and both crate guns (art bible §5): interim art at 2× in the
+D-035 look, 128 px textures (Blitslaai and Oupa Laai moved up from 64 px so all eight match and
+stay crisp on the Gun Shed's 148 px cards). 26 KB together (PNG-8): small enough for the first
+download, so the HUD, the crates and the shed never wait for a lazy group.
+(2) *The crate shows its contents, rolled when it drops.* Options were a "?" (contents secret until
+shot) or the real item. The real item answers the brief directly, and choosing to shoot a crate or
+not is a small, fair decision. The roll moved from `openCrate` to `spawnCrate`, on the same
+`crates` stream right after the crate's position, so a hunt whose crates are each shot before the
+next drops draws exactly the same numbers; only an unshot crate changes the next one's roll.
+`CrateView.item` and `crateSpawned.item` carry it. Golden replays re-recorded: every event hash
+changes (the new field); 36 of 37 keep score and event count, `daily-65-bushveld-wed-aim-touch` goes
+16 966 → 15 886 (a crate it never shot). The frozen v3 Classic fixture's hash is re-derived (score
+and count unchanged). Replays carry the content hash and the build, as after any sim change.
+(3) *Words built from content.* `src/game/ui/powerupGuide.ts` builds each sentence from
+`powerups.json` (durations, shells, multipliers, `idleTopUpMs`, Padstal price), `weapons.json`
+(crate guns' shots, pellets, ramrod, duration) and `run.json` (rental price); i18n strings hold
+only placeholders. A unit test changes every number in content and checks each card follows it.
+50 % reads "half speed" (`guide.half`), other factors "37 % speed". Decimals use a comma in af, de
+and nl. The Padstal card now shows the same short line for every item; v1.6b's hard-coded
+`item.<id>.desc` strings ("35 %") are gone.
+(4) *Gun Shed → Power-ups tab*: eight cards (icon, name, sentence, how to get it, tip); not yet
+found = darker card with "Not found yet", still fully explained. The list scrolls by drag, wheel
+or ↑/↓; it is drawn by a second camera whose viewport is the list window (clipping that works on
+WebGL and Canvas without masks); each card is a menu item whose rect is its visible part.
+(5) *Pickup card* (top centre under the pause button, `HudLayout.pickup`; never over the
+crosshair or the flock): about 2 s, or 3.5 s with the full sentence and "New!" the first time on a
+save (`powerups.seen`, a new save section, no migration). It is timed on sim ticks, so a held
+frame holds it. A banner arriving while it is up drops below it. It replaces the old "CRATE:
+{item}" banner (and its "Hold to fire" hint: the Mielie-Masjien's line says it).
+(6) *Oupa's first word on each power-up* (`bark.pu.<id>`, en/af/de/nl) is spoken when its card
+first shows: `BarkDirector.claim` speaks now and claims the 6 s gap, like a secret's bark (the card
+is up only briefly). These eight lines have text only for now: the interim TTS models aren't on
+this build server. Voicing them means adding them to `voicedLines` (src/game/audio/voiceLines.ts,
+which the asset catalogue and `npm run audio:voice` read) in the same change as the recordings, so
+the audit never lists a voice key without files. Until then the bubble shows and he says nothing.
+(7) *While it runs*: the chip adds the seconds (or shells) left at its right; the last 2 s blink
+on sim time (steady red with "reduce flashes"); `powerEnd` (a descending, softer pickup chime)
+plays when a power-up ends or a crate gun is used up. Looks, all local: Boeretroos — warm edge
+gradients on 16 % of each side (fade in/out over 0.5 s; the centre stays clear; not a flash) and
+effects played at 0.72 rate on buffer sources (music and voice untouched); Chilli Biltong — a ∞
+over the belt and 4 chilli sparks per shot (× the tier's particle scale, dimmed by reduce flashes);
+Bush Buckshot — a warm ring just outside the widened crosshair. Numbers in
+`feel.json → hud.powerups`. The GDD's old "screen edges glow red" for Chilli Biltong became the ∞
+and sparks: a glowing edge was Boeretroos' cue now, and two power-ups with screen-edge looks
+would read alike.
+(8) *Captions* name the item: `caption.pu.<id>` on pickup ("[Farm Coffee: everything slows]") and
+`caption.pu_end` at the end, with `{item}` filled by the HUD (the crate gun's end names the gun it
+was). *Tally:* a "Power-ups used" row (icons and names, icons only if the names don't fit) on
+Classic and Daily tallies; icons in the corner of the Season Run tally.
+(9) *Settings → Oupa's comments: On / Text only / Off* (`settings.oupa`, default On). Two gates:
+`sayBark` shows nothing when Off and voices only when On; the AudioDirector refuses his voice
+unless On (covering secret barks and a line still loading). Off also drops a secret's bark text
+from its banner. Instructions stay: the lesson's prompts and the pickup card are plain HUD text;
+Oupa Laai keeps his hand on the belt. Sound & game's left column has seven rows now, so its rows
+are 68 px (≥ 64 px). The pause menu opens the same Settings scene.
+(10) *Tests:* unit — `powerupGuide.test.ts` (sentences follow every content number, all languages
+filled, how-to lines, decimals), `powerupsSeen.test.ts` (first-pickup memory, old saves),
+`oupaMode.test.ts` (three states, prefs, repair), `crateContents.test.ts` (rolled at spawn, the
+shown item is the one given), captions and AudioDirector cases. e2e (CI, landscape profiles) —
+`tests/e2e/powerup-guide.spec.ts`: eight cards with icons and scrolling; a `?crate=boeretroos`
+pickup's crate icon, card text and countdown; Oupa Off and Text only; the Settings switch.
+Screenshots — `tests/e2e/art-preview-v17b.spec.ts` (ART_PREVIEW=1). The in-page hold hook
+(`__TM_HOLD_AT__`) is v1.7's, ported unchanged for that spec.
+(11) *Sizes* (`npm run size -- --strict`, gzip): first download **3 083.6 KB** (+38.7 KB over main's 3 044.9 KB: the
+six new icons and the two redrawn at 128 px, the `powerEnd` chime, the strings in four languages and
+the code); 61.7 % of the 5 MB budget. Voice packs unchanged (en 627.8 KB, af 679.4 KB, de 822.2 KB).
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

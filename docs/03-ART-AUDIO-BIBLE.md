@@ -306,6 +306,17 @@ Each secret prop needs: idle, "hint glint" (4-frame shimmer), triggered state, a
 Crates: wooden ammo crate on a patched canvas parachute (Oupa's initials stencilled).
 Power-up icons (from `4.jpeg`, refined): chilli biltong strip with flame, blue enamel mug with steam,
 bundle of red shells, meerkat with binoculars.
+v1.7b (D-046): every power-up and crate gun has an icon, interim art from `tools/art/sprites.ts`
+in the D-035 look (ink outline, one shadow and one highlight per surface), drawn in a 64-unit box at
+2× and shown on a **128 px** texture so it reads at HUD-chip size (42 px) and big on the Gun Shed's
+cards (148 px): **Chilli Biltong** — a strip of biltong (fat edge, spice flecks) with a red chilli
+across it; **Boeretroos** — a blue enamel mug with a cream rim and a chip, coffee in it, three
+steam wisps; **Bush Buckshot** — a fat red shell bursting into a wide spray of pellets; **Meerkat
+Spotter** — the helper meerkat with its binoculars; **Die Voorlaaier** — the muzzle-loader's
+silhouette (octagonal barrel, ramrod, brass butt plate, a puff at the muzzle); **Mielie-Masjien** —
+the green corn cannon with a cob in its hopper and kernels flying. Blitslaai and Oupa Laai (v1.6b)
+moved to the same 128 px size. A crate shows its item's icon on a cream disc on its canopy (and on
+the landed box's face). About 3 KB each (PNG-8); all eight 26 KB, in the first download.
 
 ### 5.1 Skietbaan targets (D-037, D-040)
 Semi-realistic (D-035): no dark contours, light from the upper left. Interim art from
@@ -349,6 +360,12 @@ chalk slate (`#2E3B33`), rubber-stamp gold (`#D8A73A`), shotgun-shell red (`#C83
   marks = wind drift, colour change on hover-over-target (desktop only). v1.1 (D-032): each gun
   has its own crosshair in that language and its own realistic (not cartoony) ammo on the belt:
   GDD §17.1.
+- v1.7b (D-046): power-up chips (icon, name, seconds or shells left, a bar) under the Frenzy meter;
+  the pickup card slides in at the top centre under the pause button (ink slate, gold rim, the icon
+  on a cream disc, gold name, cream line; a coral "New!" the first time). Boeretroos' warm edge
+  tint is `#E89A3C` fading to nothing inward over 16 % of the screen; Chilli Biltong's ∞ is chilli
+  orange `#FF6B3A` on an ink keyline; Bush Buckshot's ring is `#FF8A3A` on the crosshair's keyline.
+  The end chime `powerEnd` is the pickup chime turned around, slower and softer.
 - The game title is **not** shown during play (the mock-ups put it top-centre — that's marketing art).
 
 **Screens:** Title (burst-through sign + START HUNT), Skiet-Skuur (shed: loadout, Bird Book,
