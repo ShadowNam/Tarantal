@@ -195,6 +195,15 @@ start higher (set `top` in the sidecar JSON), and transparent areas show the lay
   interim layers are quantised to fewer palette colours (96–128, `LayerPlan.colours` in
   `tools/art/`) to stay inside the download budgets, and the Okavango sky is a 256-colour palette
   PNG (`"encode": "png8"`) instead of full colour. Final art keeps the normal rules.
+- **v1.6 review round keys (D-042):** `fx/windpomp_vane` (the windpomp's turning head, 320 ×
+  140, origin at the pivot (290, 70), drawn trailing left), `secret/rotor` (now always shown on
+  the windpomps), `sky/cloud_cumulus | cloud_wide | cloud_cirrus | cloud_tower` (drawn at half
+  size, shown at 2×, white and grey: the game tints them), and `fauna/<biome>_<group>` (the far
+  animals, 3× masters with `master: 3`, one sprite per herd; placement, box and feet line in
+  `src/game/view/faunaSprites.ts`; the Namibië waterhole sprite is in the Ver group). Props at 2×:
+  `karoo/windpomp`, `kalahari/windpomp_sign` (with its windpomp, frame 320 × 440, origin (120,
+  310)), `bushveld/dassie_koppie` (frame 560 × 300, origin (280, 190)). Every interim sky is a
+  256-colour palette PNG now (`"encode": "png8"`), gradients only.
 - **Interim props resized in v1.6:** `bushveld/baobab` is a 2× master (sidecar `master: 2`), frame
   600 × 640 design px with the content origin at (300, 360); `okavango/sausage_tree` is 1×, frame
   480 × 640 with the origin at (240, 370). The secret pod (110, −120), the perches (−120, −215) and

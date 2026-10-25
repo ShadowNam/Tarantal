@@ -3,6 +3,27 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.6.0] — veld art pass (25 Oct 2026)
+
+Decision record D-042. Rendering and loading only: the sim, the content hash, the Daily seeds and
+every replay are unchanged.
+
+### Added
+- Every map's trees, shrubs, grass and fruit redrawn to the camelthorn's standard: sweet thorns,
+  renosterbos and ganna (Karoo); baobab, marula and mopane (Bushveld); sausage tree,
+  jackalberry, ilala palms, papyrus and water lilies (Okavango); shepherd's trees, camelthorn
+  pods and Bushman grass (Kalahari); quiver trees in flower and !nara melons (Namibië).
+- Distant animals with real anatomy and poses (giraffes with calves, springbok, gemsbok, zebra,
+  wildebeest, elephants, lechwe, ostriches), crisp through a rifle scope.
+- The windpomp's wheel turns with the wind and spins; a dassie and weathered granite; a dead
+  camelthorn; soft drifting clouds.
+- A small build stamp (version, commit, build time, area, day, art status) on every map.
+
+### Fixed
+- A hunt or the Skietbaan never starts on placeholder art (a slow or stale asset index); a new
+  deploy offers a reload.
+- The scope never shows the placeholder sight picture.
+
 ## [1.0.1] — cleanup (22 Oct 2026)
 
 Cleanup after the soft launch build (decision record D-028). Gameplay, the sim and the content

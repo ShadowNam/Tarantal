@@ -734,6 +734,24 @@ or "Send to GitHub" (a prefilled `issues/new?labels=playtest` link ≤ 7 KB, `sr
   synth, for sounds). Every key reports `final`/`placeholder` (`entries()`, the audit, the test
   hook). Files belong to `common` or to one biome; non-initial groups load with their biome and
   are lazy for the size budget and the service worker.
+- **Art gate (v1.6, D-042):** a hunt or the Skietbaan never starts on placeholders. The index
+  fetch retries (bounded); `AssetManifest.missingFinal` lists delivered keys whose files failed
+  (the late group not counted) and `main.ts ensureArt()` retries a biome `feel.assets.artRetries`
+  times, fetching the index again each time (a deploy changes the hashed names). The home biome
+  gates the title (a DOM message with Retry, `src/game/assets/artGate.ts`); other biomes gate
+  their hunt behind a veil with the area's name, then a Retry/Back message. Rifle hunts and the
+  Skietbaan also wait for the late Ver group (the sight pictures), and `upgrade()` swaps a sight
+  placeholder drawn earlier by any manifest. Placeholders on purpose: `?art=placeholder` (dev and
+  test builds). Every failed file is named in a console warning and in the test hook
+  (`assets.failed`); the debug overlay shows `art: interim · N placeholder`.
+- **Service worker (v1.6):** the asset index and HTML are network first (the cached copy only
+  offline); other files cache first; a failed answer is never cached or replaced. A new worker
+  taking over a running page shows a Reload bar (`PlatformAdapter.onUpdateReady`).
+- **Build stamp (v1.6):** `src/game/ui/buildStamp.ts` formats `v<version> · <sha> · <UTC build
+  time>` (Vite defines `__APP_VERSION__`, `__BUILD_SHA__`, `__BUILD_TIME__`) plus the area,
+  weekday and art status; a small corner label on the title, hunts and the Skietbaan (web), a
+  line in Settings and the pause menu (every build), the admin page and reports, the boot
+  console. Hidden in capture mode and with `?stamp=0` (visual baselines).
 - Characters: frame-by-frame atlases for v1 (D-027). Spine (one rig, variants as skins) is
   exported to frames per skin; a Spine runtime is a v1.x option. Bird clips follow art bible
   §3.4 (`src/game/assets/birdClips.ts` maps sim motion/phase → clip, with fallbacks).

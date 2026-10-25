@@ -239,6 +239,33 @@ one rig with species proportions and markings, three poses (grazing, walking, he
 a shaded belly and far legs, a soft ground shadow and no ink (edged in a darker shade of their own
 colour, D-035 rule 3). Species follow the decision log's "Biome-accurate flora/fauna".
 
+**v1.6 review round (D-042, 25 Oct).**
+- **Windpomp:** a classic multi-blade farm wheel (18 curved galvanised blades on two rims, six
+  sail arms, a bolted hub, rust; blades at 60° and 240° missing, 140° bent: never one of the
+  secret's four marked blades) on a braced angle-iron tower (ladder, pump rod, platform,
+  footings, bolts, rust), drawn at 2×. The head (gearbox, tail boom, riveted vane) turns into
+  the omen wind and the wheel spins on sim time (fast in wind, a slow idle when calm); when the
+  secret is live, the sim's rotor is the wheel, face-on. A service plank carries the kwêvoël.
+- **Rocks:** weathered grey/ochre granite (`tools/art/rocks.ts`): domed, faceted, iron stains,
+  peeling sheets, lichen, cracks, dark crevices, grass or a small aloe in the cracks; never
+  orange balloons. **The dassie** (rock hyrax) at 2× inside its unchanged hit part: round back,
+  no tail, grey-brown fur strokes, cream chin and belly, short rounded ears, dark eye with a
+  pale ring, blunt snout, the dorsal spot.
+- **Giraffes:** their own drawing (high withers, sloping back, deep chest, neck as long as the
+  front legs, knobbly knees, dark hooves, tufted tail, two tufted ossicones, side ears, a cream
+  net between angular chestnut patches); browsing, walking, head up, drinking; calves.
+- **Far animals** are sprites drawn at 3× (`src/game/view/faunaSprites.ts`), crisp through a
+  scope, with half the plane's haze as tint (never alpha), solid to the hooves.
+- **Dead camelthorn:** a weathered acacia skeleton (continuous taper, acacia forks, a wide
+  umbrella, twig clusters, silver-grey wood with long cracks, peeling strips, knots; the dry
+  branch ends in a splintered break).
+- **Far trees** are broken canopies (small leaf clusters with sky between), each in its
+  species' silhouette; Karoo farm trees are bluegums and a pepper tree.
+- **Clouds:** soft billowing cumulus and cirrus sprites (merged billows brightening to a sunlit
+  top, a flat grey-blue base, blurred, no outline, no dots), a deck per biome that drifts on sim
+  time and greys over in rain; the Kalahari storm is a cumulonimbus with cream tops, never a
+  flat-topped shape. The skies are only their gradients (plus the Bushveld's horizon dust).
+
 **The camelthorn** (Vachellia erioloba, kameeldoring), the signature tree of the Kalahari and
 Namibië:
 - **Trunk:** short and thick, dark grey-brown, with deeply furrowed, cracked bark (many vertical

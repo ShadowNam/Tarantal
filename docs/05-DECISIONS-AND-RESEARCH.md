@@ -2181,6 +2181,42 @@ the Langloop's scope in the Skietbaan, on desktop, Pixel 7 and iPhone 14 landsca
 `docs/art-preview/compare/v16-veld-*.png`. visual.spec screens change on purpose (all seven show
 the Karoo): title, settings-sound, settings-access, privacy, hunt, tally, padstal.
 (6) *Names:* no new player-facing names (no new Bird Book entries), so no i18n changes.
+*Review round (25 Oct: the product owner's live test, the supervisor's look notes).* Rendering
+only for the art; no sim, content-rule or replay change.
+(7) *Placeholder art on the live build* (Kalahari Skietbaan, Brave; a hard reload fixed it).
+Causes: the worker served the asset index cache-first, so after a deploy a running page held an
+index whose lazy files the host no longer had; a slow index fetch left the whole session on
+placeholders; failed files fell back silently. Fix: a bounded index retry, a per-biome art gate
+(`missingFinal`, `ensureArt()` with `feel.assets.artRetries` retries, the index fetched again
+each time), a veil with the area's name and then a Retry/Back message (a DOM panel at boot);
+placeholders only with `?art=placeholder` on dev and test builds; index and HTML network first
+in the worker, failed answers never cached, a Reload bar when a new deploy takes over; failed
+files named in the console and the test hook; the debug overlay's art line. Nothing in the load
+path reads pixels back or calls a third party (Brave Shields). Tech §10.
+(8) *The scope's pale ring* was the procedural placeholder sight (a pale lens edge): the sight
+pictures come with the late Ver group, and a placeholder drawn by the title's manifest was never
+swapped. Rifle hunts and the Skietbaan now wait for the late group, and `upgrade()` replaces a
+drawn sight placeholder whichever manifest drew it. The scope looks like main's (same file).
+(9) *Windpomp* (bible §4.2 review round): the wheel always shows (18 blades, 2 missing, 1 bent,
+never a marked secret blade), the tower at 2×, the head turns into the omen wind and the wheel
+spins on sim time (`windpompMotion.ts`, unit-tested); the live secret keeps the sim's rotor
+exactly. The Kalahari sign stands by a smaller windpomp; far windpomps have a bladed wheel.
+(10) *Dassie and rocks, giraffes, far animals, dead tree, far trees, clouds*: bible §4.2 review
+round. The far animals became 3× sprites (crisp in the scope, solid, haze as tint, never alpha);
+the Bushveld granite palette went grey-ochre.
+(11) *Build stamp*: `v1.6.0 · <sha> · <UTC time> · <area> · <day> · art ok` on the title, hunts and
+the Skietbaan (web; bottom edge between the items row and the belt), in Settings and the pause
+menu (every build), the admin page, the reports and the boot console; i18n for the area, day and
+art status; unit and e2e tests; visual baselines use `?stamp=0`. The version is 1.6.0.
+(12) *Budgets after the round* (`npm run size -- --strict`, gzip): first download **3 032.1 KB**
+(2.96 MB of 3 MB); Poki 3 027.7 KB, CrazyGames 3 027.8 KB. Biome chunks: Bushveld 1 490.0,
+Okavango 1 509.5, Kalahari 1 438.8, Namibië 1 373.5 KB (limit 1 536); Ver 537.8 KB. Paid for by
+the gradient-only skies (the clouds are 5 KB sprites; every sky is a 256-colour palette) and
+smaller palettes on busy layers. Low-tier texture memory, estimated from the texture sizes
+(measured on CI by memory.spec): Karoo ≈ 98, Bushveld ≈ 113, Okavango ≈ 118, Kalahari ≈ 110 MB
+(budget 128).
+- **Why the far animals are sprites and not a sharper far layer:** a 3× far-veld layer would be
+  9× its texture memory; the herds are a few small boxes.
 
 ## 3. Research notes (with sources)
 
