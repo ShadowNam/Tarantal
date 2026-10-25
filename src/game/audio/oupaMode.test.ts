@@ -33,7 +33,7 @@ describe("Settings → Oupa's comments (D-046)", () => {
   it('an older save without the setting keeps its other settings and gets On', () => {
     const settings: Record<string, unknown> = { ...DEFAULT_SETTINGS, captions: true };
     delete settings['oupa'];
-    const { data } = repairSave({ ...defaultSave(), settings } as Record<string, unknown>);
+    const { data } = repairSave({ ...defaultSave(), settings });
     expect(data.settings.oupa).toBe('on');
     expect(data.settings.captions).toBe(true);
   });
