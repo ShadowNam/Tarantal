@@ -2200,8 +2200,10 @@ path reads pixels back or calls a third party (Brave Shields). Tech §10.
 pictures come with the late Ver group, and a placeholder drawn by the title's manifest was never
 swapped. Rifle hunts and the Skietbaan now wait for the late group, and `upgrade()` replaces a
 drawn sight placeholder whichever manifest drew it. The scope looks like main's (same file).
-(9) *Windpomp* (bible §4.2 review round): the wheel always shows (20 blades, one every 18°, so the
-secret's marks at 0°/90°/180°/270° each sit on a blade; 2 missing, 1 bent, never a marked one), the tower at 2×, the head turns into the omen wind and the wheel
+(9) *Windpomp* (bible §4.2 review round): the wheel always shows (20 sails, one every 18°, so the
+secret's marks at 0°/90°/180°/270° each sit on a sail; redrawn from the owner's reference photos:
+free sail tips, no outer rim, two rings across the sails, weathered and rusty, 6 sails lost in no
+pattern, 1 bent, 1 torn, never a marked one), the tower at 2×, the head turns into the omen wind and the wheel
 spins on sim time (`windpompMotion.ts`, unit-tested); the live secret keeps the sim's rotor
 exactly. The Kalahari sign stands by a smaller windpomp; far windpomps have a bladed wheel.
 (10) *Dassie and rocks, giraffes, far animals, dead tree, far trees, clouds*: bible §4.2 review

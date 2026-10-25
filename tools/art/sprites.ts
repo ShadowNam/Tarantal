@@ -696,98 +696,144 @@ function markHit(p: SpriteCtx): string {
 }
 
 /**
- * v1.6 (D-042, product owner 25 Oct): the classic multi-blade farm windpomp wheel. 20 curved
- * galvanised sheet-steel blades (one every 18°) between an outer and an inner rim, six sail arms
- * to a hub with bolts and a rusty cap, rust streaks; two blades lost and one bent. The secret's
- * four marked blades sit at 0°, 90°, 180° and 270° (radius 72, parts turn with the wheel), which
- * are blades k = 0, 5, 10 and 15: never missing or bent (blades at 54° and 234° are missing,
- * 144° is bent). Lit from the upper left; the wheel
- * turns, so each blade carries its own lit leading edge and shaded trailing half.
+ * v1.6 (D-042, product owner 25 Oct, from reference photos of farm windpomps): the classic
+ * multi-blade wheel. 20 galvanised sheet-steel sails (one every 18°), narrow at the hub end and
+ * wide at the tip, the tips cut on a slant and standing FREE (no outer rim). Two thin rings run
+ * across the sails (r 44 where they start, r 78 across their middle) and six rods tie the hub to
+ * the rings. Old and weathered: each sail a slightly different grey, rust on the tips, at the
+ * ring rivets and in streaks, rusty rings. Damage in no pattern: six sails lost, one bent, one
+ * torn short. The secret's four marked sails sit at 0°, 90°, 180° and 270° (radius 72, the parts
+ * turn with the wheel), i.e. k = 0, 5, 10 and 15: never lost, bent or torn. Lit from the upper
+ * left; each sail carries its own lit leading edge and shaded trailing half.
  */
 function rotor(p: SpriteCtx): string {
   const steel = '#A9AFB3';
   const lit = '#D6DADC';
   const dark = '#6C7276';
   const ink = mix(p.ink, dark, 0.35);
-  const rust = p.c('rust');
+  // Weathered rust: browner than the paint rust, so it reads as old iron, not pink, on the grey.
+  const rust = mix(p.c('rust'), '#5A3A22', 0.35);
   const n = 20;
-  const missing = new Set([3, 13]);
-  const bent = new Set([8]);
-  const blades: string[] = [];
-  const shades: string[] = [];
-  const edges: string[] = [];
-  const rusts: string[] = [];
+  const r0 = 42;
+  const ringIn = 44;
+  const ringMid = 78;
+  const missing = new Set([2, 3, 7, 11, 13, 18]);
+  const bent = 8;
+  const torn = 16;
+  // A fixed per-sail "random" in [0, 1): the weathering differs sail to sail but never between
+  // runs (interim art must regenerate byte for byte).
+  const rnd = (k: number, salt: number): number => (((k + 1) * 7919 + salt * 104729) % 997) / 997;
+  const parts: string[] = [];
   for (let k = 0; k < n; k++) {
     if (missing.has(k)) continue;
-    const a = (k * 360) / n + (bent.has(k) ? 7 : 0);
-    const r1 = bent.has(k) ? 96 : 104;
-    // A curved sail: wider at the rim, its tip swept a little (the blade's pitch).
-    const pts: [number, number][] = [
-      [-4, -34],
-      [-10, -70],
-      [-14, -r1 + 2],
-      [-12, -r1],
-      [14, -r1 - 1],
-      [15, -r1 + 4],
-      [10, -70],
-      [5, -34],
-    ];
-    blades.push(polyD(place(pts, 0, 0, a)));
-    shades.push(
-      polyD(
-        place(
-          [
-            [1, -34],
-            [3, -70],
-            [4, -r1 + 2],
-            [14, -r1 - 1],
-            [15, -r1 + 4],
-            [10, -70],
-            [5, -34],
-          ],
-          0,
-          0,
-          a,
-        ),
-      ),
+    const a = (k * 360) / n + (k === bent ? 8 : 0);
+    const r1 = k === bent ? 98 : k === torn ? 86 : 108;
+    // The tip: a slanted cut, or a torn ragged edge.
+    const tip: [number, number][] =
+      k === torn
+        ? [
+            [-10, -(r1 - 3)],
+            [-6, -(r1 + 3)],
+            [-2, -(r1 - 2)],
+            [3, -(r1 + 4)],
+            [10, -r1],
+          ]
+        : [
+            [-12, -(r1 - 3)],
+            [-11, -(r1 + 1)],
+            [13, -(r1 + 4)],
+            [14, -r1],
+          ];
+    const sail: [number, number][] = [[-3, -r0], ...tip, [3, -r0]];
+    const tint = mix(steel, rnd(k, 1) < 0.5 ? '#8E9396' : '#A39A8E', 0.15 + rnd(k, 2) * 0.35);
+    parts.push(
+      el('path', {
+        d: polyD(place(sail, 0, 0, a)),
+        fill: tint,
+        stroke: ink,
+        'stroke-width': 1.5,
+        'stroke-linejoin': 'round',
+      }),
     );
-    edges.push(
-      polyD(
-        place(
-          [
-            [-4, -36],
-            [-10, -70],
-            [-13, -r1 + 2],
-          ],
-          0,
-          0,
-          a,
-        ),
-        false,
-      ),
-    );
-    if (k % 4 === 1)
-      rusts.push(
-        polyD(
+    // Trailing half in shadow, leading edge lit.
+    const half: [number, number][] = [[0.5, -r0], [1, -(r1 + 2.5)], ...tip.slice(-2), [2.5, -r0]];
+    parts.push(el('path', { d: polyD(place(half, 0, 0, a)), fill: dark, opacity: 0.45 }));
+    parts.push(
+      el('path', {
+        d: polyD(
           place(
             [
-              [2, -60],
-              [4, -r1 + 6],
-              [8, -r1 + 4],
-              [6, -62],
+              [-3, -(r0 + 2)],
+              [-11.5, -(r1 - 4)],
             ],
             0,
             0,
             a,
           ),
+          false,
         ),
+        fill: 'none',
+        stroke: lit,
+        'stroke-width': 1.4,
+        'stroke-linecap': 'round',
+      }),
+    );
+    // Rust: a tip patch on most sails, a streak running out from the outer ring's rivet on some.
+    if (rnd(k, 3) < 0.7) {
+      const d = 8 + rnd(k, 4) * 10;
+      parts.push(
+        el('path', {
+          d: polyD(
+            place(
+              [
+                [-10.5, -(r1 - d)],
+                [-12, -(r1 - 3)],
+                [13, -(r1 + 3)],
+                [12, -(r1 - d + 2)],
+              ],
+              0,
+              0,
+              a,
+            ),
+          ),
+          fill: rust,
+          opacity: 0.25 + rnd(k, 5) * 0.35,
+        }),
       );
+    }
+    if (rnd(k, 6) < 0.55) {
+      const x = -3 + rnd(k, 7) * 7;
+      parts.push(
+        el('path', {
+          d: polyD(
+            place(
+              [
+                [x - 1, -(ringMid + 2)],
+                [x - 1.6, -(ringMid + 14 + rnd(k, 8) * 10)],
+                [x + 1.2, -(ringMid + 12)],
+                [x + 1, -(ringMid + 2)],
+              ],
+              0,
+              0,
+              a,
+            ),
+          ),
+          fill: shade(rust, -0.15),
+          opacity: 0.5,
+        }),
+      );
+    }
+    // Rivets where the sail meets the rings.
+    for (const r of [ringIn + 3, ringMid]) {
+      const [[x, y]] = place([[0, -r]], 0, 0, a) as [[number, number]];
+      parts.push(el('path', { d: ellipseD(x, y, 1.5, 1.5), fill: shade(rust, -0.3) }));
+    }
   }
   const arms: string[] = [];
   for (let k = 0; k < 6; k++) {
     const a = (k * Math.PI) / 3 + 0.17;
     arms.push(
-      `M${r2(Math.cos(a) * 14)} ${r2(Math.sin(a) * 14)}L${r2(Math.cos(a) * 104)} ${r2(Math.sin(a) * 104)}`,
+      `M${r2(Math.cos(a) * 14)} ${r2(Math.sin(a) * 14)}L${r2(Math.cos(a) * ringMid)} ${r2(Math.sin(a) * ringMid)}`,
     );
   }
   const bolts: string[] = [];
@@ -795,55 +841,47 @@ function rotor(p: SpriteCtx): string {
     const a = (k * Math.PI) / 3;
     bolts.push(ellipseD(Math.cos(a) * 10.5, Math.sin(a) * 10.5, 1.6, 1.6));
   }
+  // A rusty ring: the steel band with rust showing through in broken lengths.
+  const ring = (r: number, w: number, dash: string): string[] => [
+    el('circle', { cx: 0, cy: 0, r, fill: 'none', stroke: ink, 'stroke-width': w + 2 }),
+    el('circle', { cx: 0, cy: 0, r, fill: 'none', stroke: dark, 'stroke-width': w }),
+    el('circle', {
+      cx: 0,
+      cy: 0,
+      r,
+      fill: 'none',
+      stroke: rust,
+      'stroke-width': w,
+      'stroke-dasharray': dash,
+      opacity: 0.6,
+    }),
+  ];
   return g(
     {},
-    // Arms behind the sails, then the sails, their shaded halves, lit edges and rust.
+    // The rods behind the sails, then the sails, then the rings across them, then the hub.
     el('path', {
       d: arms.join(''),
       fill: 'none',
       stroke: ink,
-      'stroke-width': 5,
+      'stroke-width': 4.4,
       'stroke-linecap': 'round',
     }),
     el('path', {
       d: arms.join(''),
       fill: 'none',
       stroke: dark,
-      'stroke-width': 3,
+      'stroke-width': 2.4,
       'stroke-linecap': 'round',
     }),
+    ...parts,
+    ...ring(ringMid, 2.2, '9 14 4 22'),
+    ...ring(ringIn, 2.6, '6 10 12 18'),
     el('path', {
-      d: blades.join(''),
-      fill: steel,
-      stroke: ink,
-      'stroke-width': 1.6,
-      'stroke-linejoin': 'round',
-    }),
-    el('path', { d: shades.join(''), fill: dark, opacity: 0.55 }),
-    el('path', {
-      d: edges.join(''),
+      d: 'M-55 -55A78 78 0 0 1 30 -72',
       fill: 'none',
       stroke: lit,
-      'stroke-width': 1.6,
-      'stroke-linecap': 'round',
-    }),
-    el('path', { d: rusts.join(''), fill: rust, opacity: 0.45 }),
-    // Outer rim (a flat steel band) and inner rim, with their highlights.
-    el('circle', { cx: 0, cy: 0, r: 103, fill: 'none', stroke: ink, 'stroke-width': 6 }),
-    el('circle', { cx: 0, cy: 0, r: 103, fill: 'none', stroke: steel, 'stroke-width': 3.6 }),
-    el('path', {
-      d: 'M-73 -73A103 103 0 0 1 40 -95',
-      fill: 'none',
-      stroke: lit,
-      'stroke-width': 1.4,
-    }),
-    el('circle', { cx: 0, cy: 0, r: 52, fill: 'none', stroke: ink, 'stroke-width': 4.6 }),
-    el('circle', { cx: 0, cy: 0, r: 52, fill: 'none', stroke: steel, 'stroke-width': 2.6 }),
-    el('path', {
-      d: 'M-37 -37A52 52 0 0 1 20 -48',
-      fill: 'none',
-      stroke: lit,
-      'stroke-width': 1.2,
+      'stroke-width': 1,
+      opacity: 0.7,
     }),
     // Hub: a cast plate with six bolts and a rusty grease cap.
     el('circle', { cx: 0, cy: 0, r: 17, fill: dark, stroke: ink, 'stroke-width': 2.5 }),
