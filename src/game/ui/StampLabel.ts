@@ -51,16 +51,29 @@ export class StampLabel {
       .setVisible(shown);
   }
 
-  /** Bottom-left anchor (design px) and the current text. */
-  place(x: number, y: number, text: string): void {
-    this.text.setPosition(x, y).setText(text);
+  /**
+   * Bottom anchor (design px) and the current text: bottom-left, or bottom-centre with `maxW`
+   * (it wraps to two lines when the gap is narrow, e.g. 4:3).
+   */
+  place(x: number, y: number, text: string, maxW?: number): void {
+    this.text
+      .setOrigin(maxW === undefined ? 0 : 0.5, 1)
+      .setAlign(maxW === undefined ? 'left' : 'center')
+      .setWordWrapWidth(maxW ?? null)
+      .setPosition(x, y)
+      .setText(text);
     const hook = this.ctx.hook;
     if (hook)
       hook.stamp = {
         text,
         visible: this.shown,
         px: STAMP_PX,
-        rect: { x, y: y - this.text.height, w: this.text.width, h: this.text.height },
+        rect: {
+          x: x - this.text.width * this.text.originX,
+          y: y - this.text.height,
+          w: this.text.width,
+          h: this.text.height,
+        },
       };
   }
 }

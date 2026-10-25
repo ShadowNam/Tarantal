@@ -601,16 +601,26 @@ export class HudScene extends Phaser.Scene {
     this.hideScoring();
   };
 
-  /** v1.6 (D-042): the stamp beside the gadget (the belt when left-handed), on the bottom edge. */
+  /**
+   * v1.6 (D-042): the stamp on the bottom edge, centred in the gap between the gadget's items
+   * row and the belt (mirrored when left-handed): never over the belt, the reload hint, the
+   * gadget or the items, on desktop and on phones.
+   */
   private placeStamp(): void {
     const l = this.layoutNow;
     if (this.buildStamp === null || l === null) return;
-    const beside = this.ctx.prefs.leftHanded ? l.belt : l.gadget;
+    const ends = l.items
+      .flatMap((r) => [r.x, r.x + r.w])
+      .concat([l.gadget.x, l.gadget.x + l.gadget.w]);
+    const left = this.ctx.prefs.leftHanded ? l.belt.x + l.belt.w : Math.max(...ends);
+    const right = this.ctx.prefs.leftHanded ? Math.min(...ends) : l.belt.x;
+    const gap = Math.max(200, right - left - 48);
     const biome = this.ctx.huntBiome;
     this.buildStamp.place(
-      beside.x + beside.w + 24,
+      (left + right) / 2,
       l.safe.y + l.safe.h - 6,
       stampFor(this.ctx, biome, this.ctx.manifestFor(biome)),
+      gap,
     );
   }
 

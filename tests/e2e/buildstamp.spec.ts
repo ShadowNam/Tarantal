@@ -40,7 +40,8 @@ test('the build stamp on the title and in a hunt', async ({ page }, info) => {
   expect(stamp?.text).toMatch(STAMP);
   if (stamp === undefined) return;
   inside(stamp.rect);
-  for (const id of ['timer', 'score', 'belt', 'gadget', 'pause', 'reloadPrompt', 'quota']) {
+  const hud = ['timer', 'score', 'belt', 'gadget', 'pause', 'reloadPrompt', 'quota', 'charms'];
+  for (const id of [...hud, ...Object.keys(h.rects).filter((k) => /^item\d+$/.test(k))]) {
     const r = h.rects[id];
     if (r !== undefined) expect(overlaps(stamp.rect, r), `stamp over ${id}`).toBe(false);
   }
