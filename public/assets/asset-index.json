@@ -829,6 +829,50 @@
       "width": 512,
       "height": 512
     },
+    "sky/cloud_cirrus": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/sky_cloud_cirrus.2619a509515b.png",
+        "bytes": 6291,
+        "hash": "2619a509515b"
+      },
+      "width": 300,
+      "height": 56
+    },
+    "sky/cloud_cumulus": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/sky_cloud_cumulus.748623424485.png",
+        "bytes": 4377,
+        "hash": "748623424485"
+      },
+      "width": 200,
+      "height": 96
+    },
+    "sky/cloud_tower": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/sky_cloud_tower.0774cd064c60.png",
+        "bytes": 5045,
+        "hash": "0774cd064c60"
+      },
+      "width": 200,
+      "height": 150
+    },
+    "sky/cloud_wide": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/sky_cloud_wide.3bc0749ad3be.png",
+        "bytes": 5277,
+        "hash": "3bc0749ad3be"
+      },
+      "width": 260,
+      "height": 96
+    },
     "ui/ammo/diabolo": {
       "group": "common",
       "origin": "interim",
@@ -1429,14 +1473,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/bushveld-winter/layers/sky-0.4de133af3ce6.png",
-          "bytes": 37126,
-          "hash": "4de133af3ce6"
+          "path": "assets/bushveld-winter/layers/sky-0.3790a280c5d4.png",
+          "bytes": 7601,
+          "hash": "3790a280c5d4"
         },
         {
-          "path": "assets/bushveld-winter/layers/sky-1.4d521378e248.png",
-          "bytes": 12264,
-          "hash": "4d521378e248"
+          "path": "assets/bushveld-winter/layers/sky-1.8990de9ced55.png",
+          "bytes": 4521,
+          "hash": "8990de9ced55"
         }
       ],
       "tileWidth": 2048,
@@ -2017,14 +2061,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/kalahari-summer/layers/sky-0.3ada7f895aba.png",
-          "bytes": 106413,
-          "hash": "3ada7f895aba"
+          "path": "assets/kalahari-summer/layers/sky-0.d38ab0755ce9.png",
+          "bytes": 97093,
+          "hash": "d38ab0755ce9"
         },
         {
-          "path": "assets/kalahari-summer/layers/sky-1.4107a653f8a3.png",
-          "bytes": 42511,
-          "hash": "4107a653f8a3"
+          "path": "assets/kalahari-summer/layers/sky-1.b3814c285ff6.png",
+          "bytes": 47211,
+          "hash": "b3814c285ff6"
         }
       ],
       "tileWidth": 2048,
@@ -2605,14 +2649,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/karoo-autumn/layers/sky-0.b9fc0d20f506.png",
-          "bytes": 34019,
-          "hash": "b9fc0d20f506"
+          "path": "assets/karoo-autumn/layers/sky-0.e42cdaad6101.png",
+          "bytes": 5549,
+          "hash": "e42cdaad6101"
         },
         {
-          "path": "assets/karoo-autumn/layers/sky-1.9ca42b0a2ca3.png",
-          "bytes": 12061,
-          "hash": "9ca42b0a2ca3"
+          "path": "assets/karoo-autumn/layers/sky-1.ca1aa5c4e202.png",
+          "bytes": 3849,
+          "hash": "ca1aa5c4e202"
         }
       ],
       "tileWidth": 2048,
@@ -3193,14 +3237,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/namibie/layers/sky-0.4a8661d45528.png",
-          "bytes": 58493,
-          "hash": "4a8661d45528"
+          "path": "assets/namibie/layers/sky-0.f10385918b68.png",
+          "bytes": 10676,
+          "hash": "f10385918b68"
         },
         {
-          "path": "assets/namibie/layers/sky-1.1464aa6b4ead.png",
-          "bytes": 21006,
-          "hash": "1464aa6b4ead"
+          "path": "assets/namibie/layers/sky-1.0078c1fac277.png",
+          "bytes": 4703,
+          "hash": "0078c1fac277"
         }
       ],
       "tileWidth": 2048,
@@ -3745,14 +3789,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/okavango-spring/layers/sky-0.4cefa79c845e.png",
-          "bytes": 41995,
-          "hash": "4cefa79c845e"
+          "path": "assets/okavango-spring/layers/sky-0.eeeef048271a.png",
+          "bytes": 5301,
+          "hash": "eeeef048271a"
         },
         {
-          "path": "assets/okavango-spring/layers/sky-1.b15ab9bb996c.png",
-          "bytes": 10453,
-          "hash": "b15ab9bb996c"
+          "path": "assets/okavango-spring/layers/sky-1.44d1f0fef3e2.png",
+          "bytes": 3575,
+          "hash": "44d1f0fef3e2"
         }
       ],
       "tileWidth": 2048,

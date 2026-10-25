@@ -959,6 +959,132 @@ function water(p: SpriteCtx): string {
   );
 }
 
+/**
+ * v1.6 (D-042, product owner: "the clouds need to be more realistic"): soft clouds, drawn small
+ * (shown at 2×: soft edges need no resolution, and it keeps them a few KB) in white and neutral
+ * grey; the game tints them per biome and weather. No ink: rounded lobes with sunlit tops, a
+ * soft grey-blue flat base, blurred edges.
+ */
+function cloudSprite(kind: 'cumulus' | 'wide' | 'cirrus' | 'tower') {
+  return (p: SpriteCtx): string => {
+    const blur = nextId();
+    const grad = nextId();
+    const clip = nextId();
+    const defs = el(
+      'defs',
+      {},
+      el(
+        'filter',
+        { id: blur, x: '-20%', y: '-30%', width: '140%', height: '160%' },
+        el('feGaussianBlur', { stdDeviation: kind === 'cirrus' ? 2.2 : 1.6 }),
+      ),
+      el(
+        'linearGradient',
+        { id: grad, x1: 0, y1: 0, x2: 0, y2: 1 },
+        el('stop', { offset: 0, 'stop-color': '#FFFFFF' }),
+        el('stop', { offset: 0.55, 'stop-color': '#EEF1F4' }),
+        el('stop', { offset: 1, 'stop-color': '#B4C0CC' }),
+      ),
+    );
+    if (kind === 'cirrus') {
+      const d: string[] = [];
+      for (let k = 0; k < 9; k++) {
+        const y = -14 + p.rnd() * 28;
+        const x0 = -140 + p.rnd() * 60;
+        const len = 110 + p.rnd() * 90;
+        d.push(
+          `M${r2(x0)} ${r2(y)}q${r2(len * 0.5)} ${r2(-6 - p.rnd() * 8)} ${r2(len)} ${r2(2 + p.rnd() * 8)}`,
+        );
+      }
+      return g(
+        {},
+        defs,
+        el('path', {
+          d: d.join(''),
+          fill: 'none',
+          stroke: '#FFFFFF',
+          'stroke-width': 5,
+          'stroke-linecap': 'round',
+          opacity: 0.75,
+          filter: `url(#${blur})`,
+        }),
+        el('path', {
+          d: d.slice(0, 4).join(''),
+          fill: 'none',
+          stroke: '#FFFFFF',
+          'stroke-width': 1.6,
+          'stroke-linecap': 'round',
+          opacity: 0.8,
+        }),
+      );
+    }
+    // Lobes overlapping by half, larger and higher toward the middle (a tower stacks them high),
+    // on a wide flat base: one merged body, soft radial highlights on the sunlit domes.
+    const w = kind === 'wide' ? 118 : kind === 'tower' ? 70 : 84;
+    const base = kind === 'tower' ? 66 : 38;
+    const lobes: [number, number, number][] = [];
+    const n = kind === 'wide' ? 11 : 8;
+    for (let k = 0; k < n; k++) {
+      const f = k / (n - 1) - 0.5;
+      const bump = 1 - Math.abs(f) * 1.3;
+      const r = (kind === 'tower' ? 15 : 13) * (0.75 + bump * 0.6) * (0.85 + p.rnd() * 0.3);
+      lobes.push([f * w * 1.7 + (p.rnd() - 0.5) * 6, base - r * 0.55 - bump * 12, r]);
+    }
+    const rows = kind === 'tower' ? 7 : 2;
+    for (let k = 0; k < rows; k++) {
+      const r = (kind === 'tower' ? 17 - k * 1.2 : 15) * (0.85 + p.rnd() * 0.3);
+      const spreadX = kind === 'tower' ? 26 - k * 2 : w * 0.7;
+      lobes.push([(p.rnd() - 0.5) * spreadX, base - 26 - k * (kind === 'tower' ? 13 : 9), r]);
+      if (kind === 'tower')
+        lobes.push([(p.rnd() - 0.5) * spreadX + 12, base - 30 - k * 13, r * 0.8]);
+    }
+    const body =
+      ellipseD(0, base - 6, w * 0.95, 9) +
+      lobes.map(([x, y, r]) => ellipseD(x, y, r, r * 0.9)).join('');
+    const top = Math.min(...lobes.map(([, y, r]) => y - r));
+    const glow = nextId();
+    const highlights = lobes
+      .filter(([, y, r]) => y - r < top + (kind === 'tower' ? 60 : 22))
+      .map(([x, y, r]) =>
+        el('circle', {
+          cx: r2(x - r * 0.22),
+          cy: r2(y - r * 0.3),
+          r: r2(r * 0.8),
+          fill: `url(#${glow})`,
+        }),
+      )
+      .join('');
+    return g(
+      {},
+      defs,
+      el(
+        'defs',
+        {},
+        el(
+          'radialGradient',
+          { id: glow },
+          el('stop', { offset: 0, 'stop-color': '#FFFFFF', 'stop-opacity': 0.95 }),
+          el('stop', { offset: 1, 'stop-color': '#FFFFFF', 'stop-opacity': 0 }),
+        ),
+      ),
+      el(
+        'clipPath',
+        { id: clip },
+        el('rect', { x: -200, y: -200, width: 400, height: base + 200 }),
+      ),
+      g(
+        { filter: `url(#${blur})` },
+        g(
+          { 'clip-path': `url(#${clip})` },
+          el('path', { d: body, fill: `url(#${grad})` }),
+          highlights,
+          el('path', { d: ellipseD(0, base - 3, w * 0.85, 5), fill: '#A8B4C2', opacity: 0.55 }),
+        ),
+      ),
+    );
+  };
+}
+
 /** Every shared sprite key → its drawing (sizes/origins come from the placeholder manifest). */
 export const SPRITES: readonly SpriteSpec[] = [
   { key: 'ui/badge_no', wobble: 0, draw: badgeNo },
@@ -989,6 +1115,10 @@ export const SPRITES: readonly SpriteSpec[] = [
   { key: 'secret/mark_hit', wobble: 0.8, draw: markHit },
   { key: 'secret/rotor', wobble: 0, draw: rotor },
   { key: 'fx/windpomp_vane', wobble: 0, draw: windpompVane },
+  { key: 'sky/cloud_cumulus', wobble: 0, draw: cloudSprite('cumulus') },
+  { key: 'sky/cloud_wide', wobble: 0, draw: cloudSprite('wide') },
+  { key: 'sky/cloud_cirrus', wobble: 0, draw: cloudSprite('cirrus') },
+  { key: 'sky/cloud_tower', wobble: 0, draw: cloudSprite('tower') },
   { key: 'biome/water', wobble: 1.5, draw: water },
 ];
 

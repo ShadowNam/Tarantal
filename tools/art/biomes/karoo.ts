@@ -30,7 +30,7 @@ import {
 import { el, ellipseD, g, inked, place, polyD, r2, smoothD } from '../svg';
 import { contactShadow, fillD, softPen } from '../realism';
 import { mountainRow, paintRow, rockColours } from '../mountains';
-import { cirrus, skyGradient, softCumulus, softDefs, type CloudColours } from '../skies';
+import { skyGradient, softDefs, type CloudColours } from '../skies';
 import {
   grassField,
   pick,
@@ -307,39 +307,39 @@ export function softSky(
   o: {
     stops: readonly (readonly [number, string])[];
     cloud: CloudColours;
-    /** Base line of the cumulus banks and their height range. */
+    /** Unused since v1.6 (the clouds are sprites now); kept so the biome calls stay as they were. */
     base?: number;
     size?: readonly [number, number];
     streaks?: number;
+    /** v1.6: a warm dust haze over the horizon (Bushveld), its colour and strength. */
+    dust?: { readonly colour: string; readonly alpha: number };
   },
 ): string {
+  // v1.6 (D-042, product owner: "the clouds need to be more realistic"): the sky layer is only
+  // its gradient now (and a horizon haze); the clouds are soft sprites that drift on sim time
+  // (src/game/view/clouds.ts), so no grey disc or white lens is baked into the sky any more.
   const parts: string[] = [softDefs(), skyGradient(ctx.width, 1080, o.stops)];
-  const streak = mix(o.cloud.lit, o.stops[1]?.[1] ?? o.cloud.lit, 0.25);
-  const n = o.streaks ?? 4;
-  for (let k = 0; k < n; k++) {
-    const x = ((k + ctx.rnd() * 0.6) / n) * ctx.width;
-    parts.push(cirrus(ctx.rnd, x, 120 + ctx.rnd() * 230, 220 + ctx.rnd() * 300, streak, 0.45));
-  }
-  const base = o.base ?? 560;
-  const [h0, h1] = o.size ?? [60, 110];
-  for (let x = -100 + ctx.rnd() * 120; x < ctx.width;) {
-    const w = 200 + ctx.rnd() * 260;
-    const h = h0 + ctx.rnd() * (h1 - h0);
-    parts.push(softCumulus(ctx.rnd, x, base + ctx.rnd() * 30, w, h, o.cloud));
-    x += w * (0.7 + ctx.rnd() * 0.9);
-  }
-  // A few small fair-weather clouds just under the flyer band.
-  for (let x = 300 + ctx.rnd() * 300; x < ctx.width; x += 900 + ctx.rnd() * 700)
+  if (o.dust !== undefined) {
+    const id = nextId();
     parts.push(
-      softCumulus(
-        ctx.rnd,
-        x,
-        470 + ctx.rnd() * 30,
-        110 + ctx.rnd() * 80,
-        34 + ctx.rnd() * 16,
-        o.cloud,
+      el(
+        'defs',
+        {},
+        el(
+          'linearGradient',
+          { id, x1: 0, y1: 0, x2: 0, y2: 1 },
+          el('stop', { offset: 0, 'stop-color': o.dust.colour, 'stop-opacity': 0 }),
+          el('stop', {
+            offset: 0.6,
+            'stop-color': o.dust.colour,
+            'stop-opacity': o.dust.alpha * 0.6,
+          }),
+          el('stop', { offset: 1, 'stop-color': o.dust.colour, 'stop-opacity': o.dust.alpha }),
+        ),
       ),
+      el('rect', { x: 0, y: 420, width: ctx.width, height: 220, fill: `url(#${id})` }),
     );
+  }
   return g({}, ...parts);
 }
 

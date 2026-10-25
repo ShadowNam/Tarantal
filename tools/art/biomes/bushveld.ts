@@ -94,6 +94,8 @@ function sky(ctx: LayerCtx): string {
       },
       size: [45, 85],
       streaks: 5,
+      // v1.6: a hazy winter horizon with dust in the air.
+      dust: { colour: '#D8B48C', alpha: 0.45 },
     }),
     mist(ctx.rnd, -40, ctx.width + 40, 610, 70, ctx.raw('mist'), 0.55),
   );

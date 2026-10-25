@@ -1059,6 +1059,30 @@ function m4Specs(): CanvasSpec[] {
         inked(ctx, KAROO.metalDark, 3);
       },
     },
+    // v1.6 (D-042): soft clouds (shown at 2×): white lobes with a grey flat base.
+    ...(
+      [
+        [TEX.cloudCumulus, 200, 96],
+        [TEX.cloudWide, 260, 96],
+        [TEX.cloudCirrus, 300, 56],
+        [TEX.cloudTower, 200, 150],
+      ] as const
+    ).map(([key, w, h]) =>
+      centred(key, w, h, (ctx) => {
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        for (const [x, y, r] of [
+          [-w * 0.22, h * 0.1, h * 0.28],
+          [0, -h * 0.05, h * 0.36],
+          [w * 0.22, h * 0.1, h * 0.26],
+        ] as const) {
+          ellipse(ctx, x, y, r * 1.3, r);
+          ctx.fill();
+        }
+        ctx.fillStyle = 'rgba(180,192,204,0.7)';
+        ellipse(ctx, 0, h * 0.3, w * 0.38, h * 0.08);
+        ctx.fill();
+      }),
+    ),
     // A painted red target mark on a shootable secret part; grey cross once hit.
     centred(TEX.mark, 64, 64, (ctx) => {
       ellipse(ctx, 0, 0, 24, 24);

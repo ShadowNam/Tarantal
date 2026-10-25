@@ -121,6 +121,7 @@ export class WorldView {
   update(s: SimState, width: number, height: number): void {
     const now = this.scene.time.now;
     this.windpomps.update(s);
+    this.parallax.driftClouds(s.tick, s.rain || s.lightning);
     this.drawSecrets(s, now);
     this.drawCrates(s);
     this.drawDevils(s);

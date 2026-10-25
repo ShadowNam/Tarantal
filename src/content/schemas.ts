@@ -1332,8 +1332,9 @@ export const LightSchema = obj({
       }),
     )
     .optional(),
-  /** Clouds on the sky layer: `count` soft ellipse clusters (Phaser shapes, no textures), each
-   *  `w` wide, centred between `y` (design px), spread evenly along the sky with a fixed jitter. */
+  /** Clouds on the sky layer: `count` soft clouds, each `w` wide, their base between `y` (design
+   *  px), spread evenly along the sky with a fixed jitter, tinted `color`. v1.6 (D-042): drawn
+   *  with the cloud sprites (src/game/view/clouds.ts) and drifting on sim time. */
   clouds: z
     .array(
       obj({

@@ -256,8 +256,8 @@ function sky(ctx: LayerCtx): string {
   ];
   const storm = { lit: ctx.raw('stormLit'), body: ctx.raw('storm'), base: ctx.raw('stormBase') };
   for (let x = 120 + ctx.rnd() * 300; x < ctx.width; x += 700 + ctx.rnd() * 600) {
-    const w = 260 + ctx.rnd() * 160;
-    parts.push(thunderhead(ctx.rnd, x, 600, w, 190 + ctx.rnd() * 50, storm, ctx.raw('stormBase')));
+    const w = 200 + ctx.rnd() * 100;
+    parts.push(thunderhead(ctx.rnd, x, 600, w, 250 + ctx.rnd() * 40, storm, ctx.raw('stormBase')));
   }
   return g({}, ...parts);
 }

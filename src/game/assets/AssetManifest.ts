@@ -695,6 +695,11 @@ export const TEX = {
   rotor: 'secret/rotor',
   /** v1.6 (D-042): the windpomp's turning head (gearbox, tail boom, vane); WindpompView. */
   windpompVane: 'fx/windpomp_vane',
+  /** v1.6 (D-042): soft cloud sprites (shown at 2×, tinted per biome; src/game/view/clouds.ts). */
+  cloudCumulus: 'sky/cloud_cumulus',
+  cloudWide: 'sky/cloud_wide',
+  cloudCirrus: 'sky/cloud_cirrus',
+  cloudTower: 'sky/cloud_tower',
   mark: 'secret/mark',
   markHit: 'secret/mark_hit',
   glint: 'fx/glint',

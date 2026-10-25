@@ -143,9 +143,9 @@ export function cirrus(
 }
 
 /**
- * A distant thunderhead (Kalahari): one tall, lumpy tower of cumulus lobes (wide at the base,
- * cauliflower top) with a soft anvil spreading from its top, a sunlit top fading to a shaded
- * flat base, faint rain shafts below. Grey-violet, kept lighter than the navy birds.
+ * v1.6 (D-042): a towering cumulonimbus. Cauliflower towers rising from a dark flat base (the
+ * tallest in the middle, never a flat top: no mesa), sunlit domes upper left, shaded flanks, a
+ * thin wispy anvil streaming off the top, grey rain shafts; soft edges, no ink.
  */
 export function thunderhead(
   rnd: Rnd,
@@ -157,53 +157,78 @@ export function thunderhead(
   rain: string,
 ): string {
   const shafts: string[] = [];
-  for (let k = 0; k < 5; k++) {
-    const rx = x + w * (0.2 + k * 0.15 + (rnd() - 0.5) * 0.05);
-    shafts.push(`M${r2(rx)} ${r2(base - 4)}l${r2(-14 - rnd() * 8)} ${r2(70 + rnd() * 40)}`);
+  for (let k = 0; k < 6; k++) {
+    const rx = x + w * (0.18 + k * 0.13 + (rnd() - 0.5) * 0.05);
+    shafts.push(`M${r2(rx)} ${r2(base - 4)}l${r2(-10 - rnd() * 10)} ${r2(60 + rnd() * 50)}`);
   }
-  const lobes: [number, number, number][] = [];
-  const rows = 6;
-  for (let r = 0; r < rows; r++) {
-    const f = r / (rows - 1); // 0 base … 1 top
-    const rowW = w * (1 - f * 0.45);
-    const cy = base - h * 0.12 - f * h * 0.72;
-    const n = 4 - Math.floor(f * 2);
-    for (let k = 0; k < n; k++) {
-      const cx = x + w / 2 + (k / Math.max(1, n - 1) - 0.5) * rowW * 0.8 + (rnd() - 0.5) * w * 0.06;
-      lobes.push([cx, cy + (rnd() - 0.5) * h * 0.05, rowW * (0.24 + rnd() * 0.06)]);
+  // Towers: columns of lobes, the middle ones tallest, each column's top a rounded dome.
+  const towers = 4 + Math.floor(rnd() * 2);
+  const lobes: [number, number, number, number][] = [];
+  const domes: [number, number, number][] = [];
+  for (let t = 0; t < towers; t++) {
+    const f = t / (towers - 1) - 0.5;
+    const tx = x + w / 2 + f * w * 0.55 + (rnd() - 0.5) * w * 0.05;
+    const th = h * (1 - Math.abs(f) * 1.1 + (rnd() - 0.5) * 0.15);
+    const r0 = w * (0.15 + rnd() * 0.03);
+    for (let y = base - r0 * 0.5, k = 0; y > base - th && k < 24; k++) {
+      const r = r0 * Math.max(0.55, 1 - k * 0.04) * (0.9 + rnd() * 0.2);
+      lobes.push([tx + (rnd() - 0.5) * r * 0.7, y, r, k]);
+      lobes.push([tx + (rnd() < 0.5 ? -1 : 1) * r * (0.6 + rnd() * 0.4), y - r * 0.15, r * 0.8, k]);
+      y -= r * (0.45 + rnd() * 0.15);
     }
+    const last = lobes[lobes.length - 1];
+    if (last !== undefined) domes.push([last[0], last[1], last[2]]);
   }
-  const body = lobes.map(([cx, cy, r]) => ellipseD(cx, cy, r, r * 0.85)).join('');
-  const ay = base - h * 0.95;
-  const anvil = smoothD(
-    [
-      [x + w * 0.22, ay + h * 0.1],
-      [x - w * 0.05, ay + h * 0.02],
-      [x + w * 0.2, ay - h * 0.08],
-      [x + w * 0.7, ay - h * 0.11],
-      [x + w * 1.25, ay - h * 0.04],
-      [x + w * 1.05, ay + h * 0.05],
-      [x + w * 0.78, ay + h * 0.12],
-    ],
-    true,
-    0.8,
+  // A broad base mass the towers rise from.
+  for (let k = 0; k <= 6; k++) {
+    const r = w * (0.17 + rnd() * 0.04);
+    lobes.push([x + w * (0.05 + (k / 6) * 0.9), base - r * 0.45, r, 0]);
+  }
+  const body = lobes.map(([cx, cy, r]) => ellipseD(cx, cy, r, r * 0.88)).join('');
+  const lit = domes
+    .map(([cx, cy, r]) => ellipseD(cx - r * 0.25, cy - r * 0.3, r * 0.62, r * 0.48))
+    .join('');
+  const shadeSide = lobes
+    .filter((_, i) => i % 2 === 0)
+    .map(([cx, cy, r]) => ellipseD(cx + r * 0.35, cy + r * 0.25, r * 0.6, r * 0.55))
+    .join('');
+  // The anvil: thin wisps streaming downwind from the tallest tower's top.
+  const tall = domes.reduce(
+    (a, b) => (b[1] < a[1] ? b : a),
+    domes[0] ?? [x + w / 2, base - h, w * 0.2],
   );
+  const wisps: string[] = [];
+  for (let k = 0; k < 9; k++) {
+    const y0 = tall[1] - tall[2] * 0.6 + (rnd() - 0.5) * tall[2] * 0.5;
+    const len = w * (0.5 + rnd() * 0.6);
+    wisps.push(
+      `M${r2(tall[0] - tall[2] * 0.4)} ${r2(y0)}q${r2(len * 0.5)} ${r2(-6 - rnd() * 10)} ${r2(len)} ${r2(4 + rnd() * 10)}`,
+    );
+  }
   const clip = nextId();
   const grad = nextId();
-  const top = base - h * 1.1;
+  const top = base - h * 1.15;
   return g(
     {},
     el('path', {
       d: shafts.join(''),
       stroke: rain,
-      'stroke-width': 9,
+      'stroke-width': 10,
       'stroke-linecap': 'round',
-      opacity: 0.35,
+      opacity: 0.3,
       filter: 'url(#softer)',
       fill: 'none',
     }),
     g(
       { filter: 'url(#soft)' },
+      el('path', {
+        d: wisps.join(''),
+        fill: 'none',
+        stroke: mix(c.lit, c.body, 0.35),
+        'stroke-width': 7,
+        'stroke-linecap': 'round',
+        opacity: 0.5,
+      }),
       el(
         'defs',
         {},
@@ -211,17 +236,21 @@ export function thunderhead(
           'linearGradient',
           { id: grad, gradientUnits: 'userSpaceOnUse', x1: 0, y1: top, x2: 0, y2: base },
           el('stop', { offset: 0, 'stop-color': c.lit }),
-          el('stop', { offset: 0.5, 'stop-color': c.body }),
+          el('stop', { offset: 0.55, 'stop-color': c.body }),
           el('stop', { offset: 1, 'stop-color': c.base }),
         ),
       ),
-      flat(anvil, mix(c.lit, c.body, 0.3)),
       el(
         'clipPath',
         { id: clip },
         el('rect', { x: x - w, y: top - h, width: w * 3, height: base - top + h }),
       ),
-      g({ 'clip-path': `url(#${clip})` }, el('path', { d: body, fill: `url(#${grad})` })),
+      g(
+        { 'clip-path': `url(#${clip})` },
+        el('path', { d: body, fill: `url(#${grad})` }),
+        el('path', { d: shadeSide, fill: c.base, opacity: 0.35 }),
+        el('path', { d: lit, fill: c.lit, opacity: 0.7 }),
+      ),
     ),
   );
 }
