@@ -336,9 +336,9 @@
       "group": "kalahari-summer",
       "origin": "interim",
       "file": {
-        "path": "assets/kalahari-summer/img/kalahari_dune_grass_a.491fff055112.png",
-        "bytes": 21028,
-        "hash": "491fff055112"
+        "path": "assets/kalahari-summer/img/kalahari_dune_grass_a.f313c683f42c.png",
+        "bytes": 25102,
+        "hash": "f313c683f42c"
       },
       "width": 360,
       "height": 380
@@ -347,9 +347,9 @@
       "group": "kalahari-summer",
       "origin": "interim",
       "file": {
-        "path": "assets/kalahari-summer/img/kalahari_dune_grass_b.a784b35add18.png",
-        "bytes": 19668,
-        "hash": "a784b35add18"
+        "path": "assets/kalahari-summer/img/kalahari_dune_grass_b.5b22f54e6052.png",
+        "bytes": 25051,
+        "hash": "5b22f54e6052"
       },
       "width": 380,
       "height": 380
@@ -1560,14 +1560,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/kalahari-summer/layers/far_ridge-0.c25f9899c8bc.png",
-          "bytes": 57741,
-          "hash": "c25f9899c8bc"
+          "path": "assets/kalahari-summer/layers/far_ridge-0.926b3a7be715.png",
+          "bytes": 41129,
+          "hash": "926b3a7be715"
         },
         {
-          "path": "assets/kalahari-summer/layers/far_ridge-1.e8b6b32c35c3.png",
-          "bytes": 20701,
-          "hash": "e8b6b32c35c3"
+          "path": "assets/kalahari-summer/layers/far_ridge-1.2c18feb34fb4.png",
+          "bytes": 14974,
+          "hash": "2c18feb34fb4"
         }
       ],
       "tileWidth": 2048,
@@ -1578,11 +1578,11 @@
         "bucket": 256,
         "rows": [
           [
-            258,
+            255,
             280
           ],
           [
-            268,
+            256,
             277
           ],
           [
@@ -1590,23 +1590,23 @@
             280
           ],
           [
-            256,
-            257
+            269,
+            273
           ],
           [
-            227,
-            274
-          ],
-          [
-            271,
+            229,
             280
+          ],
+          [
+            255,
+            267
           ],
           [
             175,
             184
           ],
           [
-            214,
+            217,
             266
           ],
           [
@@ -1614,16 +1614,16 @@
             280
           ],
           [
-            224,
-            231
+            274,
+            280
           ],
           [
             254,
             280
           ],
           [
-            203,
-            227
+            202,
+            237
           ]
         ]
       }
@@ -1633,14 +1633,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/kalahari-summer/layers/far_veld-0.17d590a63b9d.png",
-          "bytes": 25974,
-          "hash": "17d590a63b9d"
+          "path": "assets/kalahari-summer/layers/far_veld-0.e46c1ea9fef1.png",
+          "bytes": 21130,
+          "hash": "e46c1ea9fef1"
         },
         {
-          "path": "assets/kalahari-summer/layers/far_veld-1.6591beb3ad30.png",
-          "bytes": 17539,
-          "hash": "6591beb3ad30"
+          "path": "assets/kalahari-summer/layers/far_veld-1.e7ba7ea53a99.png",
+          "bytes": 14168,
+          "hash": "e7ba7ea53a99"
         }
       ],
       "tileWidth": 2048,
@@ -1651,63 +1651,63 @@
         "bucket": 256,
         "rows": [
           [
-            147,
-            182
-          ],
-          [
-            203,
+            191,
             232
           ],
           [
-            174,
+            179,
+            212
+          ],
+          [
+            117,
+            151
+          ],
+          [
+            145,
+            216
+          ],
+          [
+            116,
+            172
+          ],
+          [
+            152,
+            200
+          ],
+          [
+            128,
             232
-          ],
-          [
-            137,
-            187
-          ],
-          [
-            192,
-            232
-          ],
-          [
-            181,
-            218
           ],
           [
             159,
+            201
+          ],
+          [
+            135,
+            187
+          ],
+          [
+            136,
+            171
+          ],
+          [
+            195,
+            228
+          ],
+          [
+            115,
+            192
+          ],
+          [
+            184,
             232
           ],
           [
-            189,
-            232
+            117,
+            155
           ],
           [
-            134,
-            168
-          ],
-          [
-            175,
-            232
-          ],
-          [
-            173,
-            227
-          ],
-          [
-            153,
-            232
-          ],
-          [
-            203,
-            232
-          ],
-          [
-            185,
-            207
-          ],
-          [
-            172,
+            152,
             232
           ]
         ]
@@ -1718,24 +1718,24 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/kalahari-summer/layers/foreground-0.0ca2d0a17904.png",
-          "bytes": 23964,
-          "hash": "0ca2d0a17904"
+          "path": "assets/kalahari-summer/layers/foreground-0.0e4ec9b96df0.png",
+          "bytes": 22484,
+          "hash": "0e4ec9b96df0"
         },
         {
-          "path": "assets/kalahari-summer/layers/foreground-1.26f06ebba386.png",
-          "bytes": 27824,
-          "hash": "26f06ebba386"
+          "path": "assets/kalahari-summer/layers/foreground-1.88f7b51fe738.png",
+          "bytes": 26417,
+          "hash": "88f7b51fe738"
         },
         {
-          "path": "assets/kalahari-summer/layers/foreground-2.03f156a3cb41.png",
-          "bytes": 13762,
-          "hash": "03f156a3cb41"
+          "path": "assets/kalahari-summer/layers/foreground-2.2fb877422143.png",
+          "bytes": 12973,
+          "hash": "2fb877422143"
         },
         {
-          "path": "assets/kalahari-summer/layers/foreground-3.a25533661422.png",
-          "bytes": 2765,
-          "hash": "a25533661422"
+          "path": "assets/kalahari-summer/layers/foreground-3.cbefb84ce44b.png",
+          "bytes": 2559,
+          "hash": "cbefb84ce44b"
         }
       ],
       "tileWidth": 2048,
@@ -1778,99 +1778,99 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/kalahari-summer/layers/mid-0.502a7c87dabe.png",
-          "bytes": 65625,
-          "hash": "502a7c87dabe"
+          "path": "assets/kalahari-summer/layers/mid-0.8695b667fb0f.png",
+          "bytes": 80445,
+          "hash": "8695b667fb0f"
         },
         {
-          "path": "assets/kalahari-summer/layers/mid-1.c2a560738c5e.png",
-          "bytes": 59322,
-          "hash": "c2a560738c5e"
+          "path": "assets/kalahari-summer/layers/mid-1.bbcc7d1a0f40.png",
+          "bytes": 66648,
+          "hash": "bbcc7d1a0f40"
         },
         {
-          "path": "assets/kalahari-summer/layers/mid-2.7dd3dd24eb98.png",
-          "bytes": 10861,
-          "hash": "7dd3dd24eb98"
+          "path": "assets/kalahari-summer/layers/mid-2.568d9bc7d84d.png",
+          "bytes": 8208,
+          "hash": "568d9bc7d84d"
         }
       ],
       "tileWidth": 2048,
       "left": -300,
-      "top": 630,
-      "height": 280,
+      "top": 430,
+      "height": 480,
       "solid": {
         "bucket": 256,
         "rows": [
           [
-            32,
-            280
+            232,
+            298
           ],
           [
-            33,
-            280
+            286,
+            389
           ],
           [
-            30,
-            280
+            299,
+            351
           ],
           [
-            33,
-            280
+            364,
+            480
           ],
           [
-            30,
-            280
+            393,
+            480
           ],
           [
-            33,
-            280
+            403,
+            480
           ],
           [
-            31,
-            280
+            272,
+            362
           ],
           [
-            31,
-            280
+            416,
+            480
           ],
           [
-            30,
-            280
+            361,
+            480
           ],
           [
-            34,
-            280
+            381,
+            480
           ],
           [
-            34,
-            280
+            234,
+            371
           ],
           [
-            32,
-            280
+            232,
+            320
           ],
           [
-            32,
-            280
+            232,
+            317
           ],
           [
-            30,
-            280
+            230,
+            293
           ],
           [
-            31,
-            280
+            274,
+            444
           ],
           [
-            25,
-            280
+            378,
+            480
           ],
           [
-            29,
-            280
+            281,
+            480
           ],
           [
-            29,
-            280
+            281,
+            376
           ]
         ]
       }
@@ -1880,19 +1880,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/kalahari-summer/layers/near-0.2b3c794f7337.png",
-          "bytes": 58365,
-          "hash": "2b3c794f7337"
+          "path": "assets/kalahari-summer/layers/near-0.a04373895d5b.png",
+          "bytes": 56516,
+          "hash": "a04373895d5b"
         },
         {
-          "path": "assets/kalahari-summer/layers/near-1.a6329036aa88.png",
-          "bytes": 85795,
-          "hash": "a6329036aa88"
+          "path": "assets/kalahari-summer/layers/near-1.03e15e812a99.png",
+          "bytes": 86934,
+          "hash": "03e15e812a99"
         },
         {
-          "path": "assets/kalahari-summer/layers/near-2.0d30515452d8.png",
-          "bytes": 58112,
-          "hash": "0d30515452d8"
+          "path": "assets/kalahari-summer/layers/near-2.d9fa0b285c9a.png",
+          "bytes": 55421,
+          "hash": "d9fa0b285c9a"
         }
       ],
       "tileWidth": 2048,

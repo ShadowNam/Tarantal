@@ -21,17 +21,81 @@ import {
 } from '../scenery';
 import { el, ellipseD, g, inked, polyD, r2, smoothD } from '../svg';
 import { mountainRow, paintRow, rockColours } from '../mountains';
-import { bush, groundBand, groundShadow, softSky } from './karoo';
+import { groundBand, groundShadow, softSky } from './karoo';
 import { foregroundClumps, midScrub, nearGrass, verVeld } from './common';
 import { thunderhead } from '../skies';
-import { tuftOf } from '../vegetation';
 import {
   camelthornLook,
   camelthornSpec,
   camelthornTree,
   deadCamelthorn,
   nestTreeSpec,
+  pod,
 } from '../camelthorn';
+import { plantLook, seedTuft, veldShrub } from '../flora';
+import { shepherdsTree } from '../species';
+import type { PaintCtx } from '../landscape';
+
+/** v1.6 (D-042): driedoring, a grey, open, spiny shrub of the red sand. */
+function driedoring(ctx: PaintCtx, x: number, y: number, s: number, pen: Pen): string {
+  const look = plantLook({
+    leaf: mix(ctx.c('greyGreen'), ctx.c('shrub'), ctx.rnd() * 0.5),
+    bark: ctx.c('deadwood'),
+    ink: pen.ink,
+    sun: ctx.c('grassPale'),
+  });
+  return veldShrub(ctx.rnd, x, y, s, 'driedoring', look, pen);
+}
+
+/** v1.6: Bushman grass (Stipagrostis): blonde blades with silvery feathery plumes. */
+function duneTuft(
+  ctx: PaintCtx,
+  x: number,
+  y: number,
+  h: number,
+  pen: Pen,
+  heads?: number,
+): string {
+  return seedTuft(
+    ctx.rnd,
+    x,
+    y,
+    h,
+    {
+      base: shade(ctx.c('grass'), -0.25),
+      blade: ctx.c('grass'),
+      tip: ctx.c('grassPale'),
+      seed: mix(ctx.c('seed'), '#FFFFFF', 0.3),
+    },
+    pen,
+    heads ?? 1 + Math.floor(ctx.rnd() * 3),
+    true,
+  );
+}
+
+/** v1.6: grey velvety camelthorn pods lying in a tree's shade. */
+function fallenPods(
+  ctx: PaintCtx,
+  x: number,
+  foot: number,
+  spread: number,
+  n: number,
+  len: number,
+): string {
+  const look = camelthornLook(ctx.c, ctx.pen);
+  const out: string[] = [];
+  for (let k = 0; k < n; k++)
+    out.push(
+      pod(
+        x + (ctx.rnd() - 0.5) * spread * 2,
+        foot + (ctx.rnd() - 0.3) * len * 0.8,
+        len * (0.8 + ctx.rnd() * 0.4),
+        (ctx.rnd() - 0.5) * 0.8 + (ctx.rnd() < 0.5 ? 0 : Math.PI),
+        look,
+      ),
+    );
+  return g({}, ...out);
+}
 
 // --- shapes --------------------------------------------------------------------------------
 
@@ -324,7 +388,10 @@ function farVeld(ctx: LayerCtx): string {
     const y = 584 + Math.pow(ctx.rnd(), 1.3) * 170;
     far.push({
       y,
-      svg: bush(ctx, x, y, 3 + ((y - 580) / 170) * 6 + ctx.rnd() * 2, { ink: ctx.pen.ink, w: 1.2 }),
+      svg: driedoring(ctx, x, y, 3 + ((y - 580) / 170) * 6 + ctx.rnd() * 2, {
+        ink: ctx.pen.ink,
+        w: 1.2,
+      }),
     });
   }
   far.sort((p, q) => p.y - q.y);
@@ -339,6 +406,11 @@ function farVeld(ctx: LayerCtx): string {
   const kinds = ['mature', 'young', 'mature', 'old'] as const;
   for (let x = 80, k = 0; x < ctx.width; x += 280 + ctx.rnd() * 420, k++) {
     const kind = kinds[k % kinds.length] ?? 'mature';
+    // v1.6 (D-042): now and then a shepherd's tree among the camelthorns.
+    if (k % 3 === 2) {
+      parts.push(shepherdsTree(ctx.rnd, x, yAt(band.edge, x) + 6, 46 + ctx.rnd() * 14, ctx, 'far'));
+      continue;
+    }
     const spec = camelthornSpec(kind, x, yAt(band.edge, x) + 6, kind === 'young' ? 0.42 : 0.2, 10);
     parts.push(
       camelthornTree(
@@ -389,14 +461,44 @@ function mid(ctx: LayerCtx): string {
       2,
     ),
   );
-  const items = midScrub(ctx, { bushes: 0.45, stone: tone(ctx.c('stone'), 0.25, 0.25) });
+  const items = midScrub(ctx, {
+    bushes: 0.45,
+    stone: tone(ctx.c('stone'), 0.25, 0.25),
+    shrub: (x, y, sz, pen) => driedoring(ctx, x, y, sz, pen),
+  });
+  // v1.6 (D-042): grey pods in the shade of the weaver tree (u 0.2) and the dead camelthorn
+  // (u 0.74), whose feet stand at about y 740 and 750; blonde plume grass round them.
+  for (const [u, foot] of [
+    [0.2, 742],
+    [0.74, 752],
+  ] as const) {
+    items.push({ y: foot, svg: fallenPods(ctx, ctx.u(u), foot, 170, 14, 13) });
+    for (let k = 0; k < 4; k++) {
+      const x = ctx.u(u) + (ctx.rnd() - 0.5) * 360;
+      const y = foot + 4 + ctx.rnd() * 14;
+      items.push({
+        y,
+        svg: duneTuft(ctx, x, y, 26 + ctx.rnd() * 10, { ink: ctx.pen.ink, w: 2.5 }),
+      });
+    }
+  }
   items.sort((a, b) => a.y - b.y);
   inside.push(...items.map((i) => i.svg));
+  // Shepherd's trees (witgat) on the mid plane, with a few pods blown under them.
+  const trees: string[] = [];
+  for (const [u, h] of [
+    [0.37, 200],
+    [0.93, 175],
+  ] as const) {
+    const x = ctx.u(u);
+    trees.push(shepherdsTree(ctx.rnd, x, yAt(band.edge, x) + 40, h, ctx, 'mid'));
+  }
   return g(
     {},
     band.svg,
     g({ 'clip-path': `url(#${band.clip})` }, ...inside),
     line(smoothD(band.edge, false, 0.8), ctx.pen),
+    ...trees,
   );
 }
 
@@ -421,7 +523,12 @@ function near(ctx: LayerCtx): string {
       3,
     ),
   );
-  const items = nearGrass(ctx, { stone: tone(ctx.c('stone'), 0.25, 0.25), bushes: 0.3 });
+  const items = nearGrass(ctx, {
+    stone: tone(ctx.c('stone'), 0.25, 0.25),
+    bushes: 0.3,
+    shrub: (x, y, sz, pen) => driedoring(ctx, x, y, sz, pen),
+    tuft: (x, y, h, pen) => duneTuft(ctx, x, y, h, pen),
+  });
   items.sort((a, b) => a.y - b.y);
   inside.push(...items.map((i) => i.svg));
   return g(
@@ -502,6 +609,7 @@ function deadCamelthornProp(ctx: PropCtx): string {
   return deadCamelthorn(ctx.rnd, camelthornLook(ctx.c, ctx.pen), ctx.pen);
 }
 
+/** v1.6 (D-042): a hummock of Bushman grass with tall silvery plumes (Stipagrostis). */
 function duneGrass(seed: number) {
   return (ctx: PropCtx): string => {
     const pen = ctx.pen;
@@ -524,30 +632,11 @@ function duneGrass(seed: number) {
         pen.w,
       ),
     ];
-    const a = tone(ctx.c('grass'), 0.22, 0.25);
-    const b = tone(ctx.c('grassPale'), 0.22, 0.2);
-    for (let k = 0; k < 7; k++) {
-      const x = -96 + k * 32 + (ctx.rnd() - 0.5) * 12;
-      const hh = 130 + ctx.rnd() * 60 - Math.abs(k - 3) * 16;
-      parts.push(
-        tuftOf(
-          k % 3 === 0 ? 'upright' : 'fan',
-          ctx.rnd,
-          x,
-          120,
-          hh,
-          k % 2 === seed % 2 ? a : b,
-          pen,
-          ctx.c('seed'),
-        ),
-      );
-    }
-    // Feathery seed heads (Stipagrostis), pale.
-    for (let k = 0; k < 6; k++) {
-      const x = -90 + k * 36 + (ctx.rnd() - 0.5) * 20;
-      const top = -60 - ctx.rnd() * 110;
-      parts.push(line(`M${r2(x)} 60Q${r2(x - 6)} ${r2(top + 40)} ${r2(x + 4)} ${r2(top)}`, pen, 3));
-      parts.push(inked(ellipseD(x + 4, top + 10, 7, 18), ctx.c('seed'), pen.ink, 2));
+    const order = [0, 6, 1, 5, 2, 4, 3];
+    for (const k of order) {
+      const x = -100 + k * 33 + (ctx.rnd() - 0.5) * 12 + (seed % 2) * 6;
+      const hh = 120 + ctx.rnd() * 50 - Math.abs(k - 3) * 14;
+      parts.push(duneTuft(ctx, x, 118 + Math.abs(k - 3) * 2, hh, pen, 2 + ((k + seed) % 2)));
     }
     return g({}, ...parts);
   };
@@ -557,17 +646,18 @@ export const KALAHARI_PLAN: BiomeArtPlan = {
   biome: 'kalahari-summer',
   layers: {
     sky: { top: 0, height: 1080, encode: 'png', draw: sky },
-    far_ridge: { top: 380, height: 280, draw: farRidge },
+    // v1.6 (D-042): smaller palettes keep the biome chunk inside 1.5 MB.
+    far_ridge: { top: 380, height: 280, colours: 96, draw: farRidge },
     // v1.3: the Ver plane's strip (shown only on maps that open it).
     ver_veld: {
       top: 536,
       height: 52,
       draw: verVeld({ ground: 'sand', light: 'sandLight', scrub: 'bossie' }),
     },
-    far_veld: { top: 464, height: 232, draw: farVeld },
-    mid: { top: 630, height: 280, draw: mid },
-    near: { top: 820, height: 260, draw: near },
-    foreground: { top: 880, height: 200, fadeTop: 28, draw: foreground },
+    far_veld: { top: 464, height: 232, colours: 112, draw: farVeld },
+    mid: { top: 430, height: 480, colours: 128, draw: mid },
+    near: { top: 820, height: 260, colours: 128, draw: near },
+    foreground: { top: 880, height: 200, fadeTop: 28, colours: 128, draw: foreground },
   },
   props: {
     'kalahari/weaver_camelthorn': {
