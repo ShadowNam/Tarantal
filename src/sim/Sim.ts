@@ -733,7 +733,7 @@ export function createSim(config: SimConfig): Sim {
   let creatureClock = 0;
   // Season Run state.
   let primaryShots = 0;
-  /** v1.6b Oupa Laai: ticks since the last primary shot (the per-shell idle top-up). */
+  /** v1.6b Oupa Laai: ticks since the last shot of any gun (the per-shell idle top-up). */
   let ticksSinceShot = 0;
   let huntDoppies = 0;
   let shellCapacityGain = 0;
@@ -1111,11 +1111,13 @@ export function createSim(config: SimConfig): Sim {
   function pullTrigger(): number | null {
     if (crateWeapon !== null) {
       if (!tryFireCrate(crateWeapon, reloadLen)) return null;
+      ticksSinceShot = 0;
       return crateWeapon.shotsLeft ?? -1;
     }
     if (effectsOf(powerups).infiniteAmmo) {
       // Chilli Biltong: no shells used, no reload (GDD §10.4).
       if (weaponState.cooldownTicks > 0) return null;
+      ticksSinceShot = 0;
       if (isReloading(weaponState)) {
         weaponState.reloadTicks = 0;
         emit({ type: 'reloadInterrupted', tick, shells: weaponState.shells });

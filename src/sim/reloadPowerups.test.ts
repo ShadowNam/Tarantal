@@ -325,6 +325,28 @@ describe('Oupa Laai (auto reload)', () => {
     expect(step(sim).find((e) => e.type === 'reloadStarted')).toMatchObject({ auto: true });
   });
 
+  it('shots under Chilli Biltong count as shots for the idle top-up', () => {
+    const sim = seasonSim('pomp', ['oupa_laai', 'chilli_biltong']);
+    for (let i = 0; i < 2; i++) {
+      waitCooldown(sim);
+      step(sim, [FIRE]);
+    }
+    step(sim, [{ t: 'consumable', slot: 0 }]);
+    step(sim, [{ t: 'consumable', slot: 1 }]);
+    // Keep firing while Chilli Biltong lasts; the last of those shots starts the idle wait.
+    let lastShot = -1;
+    for (let i = 0; i < msToTicks(powerup('chilli_biltong').durationMs ?? 0) + 5; i++) {
+      const ev = step(sim, sim.snapshot().weapon.cooldownTicks === 0 ? [FIRE] : []);
+      const shot = ev.find((e) => e.type === 'shotFired');
+      if (shot !== undefined) lastShot = shot.tick;
+      if (ev.some((e) => e.type === 'powerupEnded' && e.powerup === 'chilli_biltong')) break;
+    }
+    let started: SimEvent | undefined;
+    for (let i = 0; i < 3 * idleTicks && started === undefined; i++)
+      started = step(sim).find((e) => e.type === 'reloadStarted');
+    expect(started?.tick).toBe(lastShot + idleTicks);
+  });
+
   it('Blitslaai has nothing to shorten under Chilli Biltong (no reload, no shells used)', () => {
     const sim = seasonSim('dubbelloop', ['chilli_biltong', 'blitslaai']);
     useAll(sim, 2);
