@@ -9,6 +9,7 @@ import de from './de.json';
 import en from './en.json';
 import afNames from './flavour/afNames.json';
 import nl from './nl.json';
+import { checkLanguage } from '../content/i18nCheck';
 import { isI18nKey, setAfrikaansNames, setLanguage, t, translator, type Language } from './i18n';
 
 const TABLES: Record<Language, Record<string, string>> = { en, af, de, nl };
@@ -190,5 +191,12 @@ describe('v1.5 names (D-041)', () => {
     setLanguage('en');
     expect(t('weapon.dubbelloop')).toBe('Double Barrel');
     expect(t('map.verder')).toBe('Further');
+  });
+});
+
+describe('v1.5 language tables (D-041)', () => {
+  it('en, af, de and nl each have every key, with the same placeholders', () => {
+    const issues = (['af', 'de', 'nl'] as const).flatMap((l) => checkLanguage(l, en, TABLES[l]));
+    expect(issues).toEqual([]);
   });
 });

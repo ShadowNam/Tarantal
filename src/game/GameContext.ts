@@ -334,6 +334,8 @@ export interface TestHook {
   };
   /** D-035 review: weapon ids whose picture the Skiet-Skuur's Guns tab shows. */
   shedIcons?: string[];
+  /** v1.5 (D-041): the gun names on the Guns tab's cards, as drawn (text language, toggle). */
+  shedNames?: string[];
   /** M9: the Padstal help card's text bottom and OK button top (no overlap: textBottom < okTop). */
   helpCard?: { textBottom: number; okTop: number };
   /** M9: sound captions on screen (i18n keys, newest first). */
