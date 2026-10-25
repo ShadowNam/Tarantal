@@ -284,6 +284,27 @@ export function spacedSpot(c: ColonyState, m: Meerkat, x: number, T: MeerkatTuni
   return best ?? x;
 }
 
+/** The sentinel takes the highest mound: adults settled too close to it step aside (around
+ *  it, not under it), and one standing there in a dash runs on. */
+function makeRoom(c: ColonyState, sentinel: Meerkat, x: number, T: MeerkatTuning): void {
+  const min = T.bodyWidthPx * T.spacingBodyMul * c.scale;
+  const near = (p: number): boolean => Math.abs(p - x) < min - 1e-6;
+  for (const o of c.meerkats) {
+    if (o === sentinel || o.pup || o.shot) continue;
+    if (o.pose === 'run') {
+      // On the way to a place by the post: a halfway stop or a goal elsewhere.
+      if (o.pauseX !== null && near(o.pauseX)) o.pauseX = spacedSpot(c, o, o.pauseX, T);
+      else if (o.then !== 'dive' && o.then !== 'sentinel' && near(o.goalX))
+        o.goalX = spacedSpot(c, o, o.goalX, T);
+      continue;
+    }
+    if (!near(o.x)) continue;
+    if (o.pose === 'sit' || o.pose === 'forage' || o.pose === 'sunbathe') {
+      runTo(o, spacedSpot(c, o, o.x, T), o.pose);
+    } else if (o.pose === 'stand') o.t = o.dur;
+  }
+}
+
 function runTo(m: Meerkat, x: number, then: Then, pauseX: number | null = null): void {
   m.goalX = x;
   m.then = then;
@@ -383,6 +404,7 @@ function choose(
       c.sentinel = m.id;
       const post = c.burrows[c.post] ?? hole;
       runTo(m, post.x, 'sentinel');
+      makeRoom(c, m, post.x, T);
       return;
     }
     case 'dive':
@@ -455,7 +477,9 @@ function stepPup(c: ColonyState, p: Meerkat, ctx: ColonyCtx): void {
   }
   if (p.pose === 'emerge' || p.pose === 'dive') return;
   const want = mum.x - mum.facing * T.pupGapPx * c.scale;
-  if (Math.abs(want - p.x) > T.pupGapPx * c.scale * T.pup.followSlack) {
+  // Close by, but never inside her outline.
+  const tooClose = Math.abs(mum.x - p.x) < T.bodyWidthPx * T.pup.minGapBodyMul * c.scale;
+  if (tooClose || Math.abs(want - p.x) > T.pupGapPx * c.scale * T.pup.followSlack) {
     if (p.pose !== 'run' || Math.abs(p.goalX - want) > 2) runTo(p, want, 'sit');
   } else if (p.pose === 'run' && Math.abs(p.goalX - p.x) <= 1) {
     arrive(c, p, ctx, 'sit');

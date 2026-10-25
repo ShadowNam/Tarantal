@@ -63,4 +63,50 @@ describe('meerkat dash file (v1.7, D-044)', () => {
     expect((row[1] ?? 0) - (row[0] ?? 0)).toBeCloseTo(gap, 6);
     expect((row[2] ?? 0) - (row[1] ?? 0)).toBeCloseTo(gap, 6);
   });
+
+  it('a pup stays close to its mother but never sits inside her outline', () => {
+    const T = structuredClone(base.birds.meerkats);
+    T.pupChance = 1;
+    T.startOutShare = 1;
+    let checked = 0;
+    for (const seed of [1, 2, 3, 4, 5, 6]) {
+      const rng = createStream(seed);
+      let id = 0;
+      const c = createColony(
+        {
+          id: 'test',
+          layer: 'mid',
+          u: 0.5,
+          y: 900,
+          burrows: [
+            { dx: -120, mound: 10 },
+            { dx: 0, mound: 20 },
+            { dx: 120, mound: 10 },
+          ],
+          family: [4, 6],
+        },
+        { id: 'mid', scrollFactor: 1, plane: 'near' },
+        1,
+        T,
+        rng,
+        () => ++id,
+        false,
+      );
+      const ctx: ColonyCtx = { tuning: T, rng, sunbathe: false, calm: true };
+      const pup = c.meerkats.find((m) => m.pup);
+      const mum = c.meerkats.find((m) => m.id === pup?.mother);
+      if (pup === undefined || mum === undefined) throw new Error('no pup');
+      for (let t = 0; t < 60 * 60; t++) {
+        stepColony(c, ctx);
+        if (pup.pose !== 'sit' || c.phase === 'lineUp' || c.phase === 'photo') continue;
+        checked++;
+        const d = Math.abs(pup.x - mum.x);
+        expect(d).toBeGreaterThanOrEqual(T.bodyWidthPx * T.pup.minGapBodyMul - 1e-6);
+        // Close: never further off than the gap plus its follow slack (unless she runs).
+        if (mum.pose !== 'run')
+          expect(d).toBeLessThanOrEqual(T.pupGapPx * (1 + T.pup.followSlack) + 1e-6);
+      }
+    }
+    expect(checked).toBeGreaterThan(1000);
+  });
 });

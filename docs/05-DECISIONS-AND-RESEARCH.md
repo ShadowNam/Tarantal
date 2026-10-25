@@ -2336,6 +2336,8 @@ never standing in front of the bird lanes or secrets of the planes behind.
 - spacing (review round 3): adults that sit, forage, sunbathe or stand keep at least
   `spacingBodyMul` (0.7) body widths (`bodyWidthPx`, 76 at the near plane) apart; a spot that is
   too close is nudged to the nearest clear one, counting where the others stand or will next stand;
+  the sentinel's post is kept clear the same way (those by it step aside); a pup trails its mother
+  by `pupGapPx` (56) and never closer than `pup.minGapBodyMul` (0.6) of her body width;
 - a nearby shot sends the colony down; it comes back after 3–6 s, the scout first;
 - the Langloop (`alertsAllFlocks`) sends every colony down;
 - a raptor or the crop sprayer overhead sets off the sentinel's alarm, which also alerts the

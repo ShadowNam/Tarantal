@@ -233,11 +233,17 @@ export const MeerkatsSchema = obj({
   pupScale: z.number().gt(0).max(1),
   /** Chance a colony has a pup trailing its mother. */
   pupChance: fraction,
-  /** Distance a pup keeps behind its mother. */
+  /** Distance a pup keeps behind its mother (more than pup.minGapBodyMul body widths). */
   pupGapPx: pos,
   /** A pup: how long after its mother it comes up (hunt start; after she emerges), and how far
    *  past pupGapPx she may get before it runs after her (a share of the gap). */
-  pup: obj({ startDelaySeconds: nonNeg, emergeDelaySeconds: nonNeg, followSlack: pos }),
+  pup: obj({
+    startDelaySeconds: nonNeg,
+    emergeDelaySeconds: nonNeg,
+    followSlack: pos,
+    /** Closest a pup may be to its mother (in her body widths): outside her outline. */
+    minGapBodyMul: pos,
+  }),
   /** Running for a hole (a dive) is this much faster than a dash. */
   diveRunMul: z.number().min(1),
   /** Share of the family above ground when the hunt starts. */

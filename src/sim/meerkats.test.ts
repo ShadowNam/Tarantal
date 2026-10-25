@@ -5,6 +5,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   aimAt,
+  base,
   biomeOf,
   ofType,
   quiet,
@@ -167,10 +168,10 @@ describe('meerkat colonies (v1.7, D-044)', () => {
     expect(dashers).toBeGreaterThanOrEqual(1);
   });
 
-  it('out of the burrow they keep about 0.7 body widths apart (sitting, foraging, standing)', () => {
+  it('out of the burrow they keep about 0.7 body widths apart (sitting, foraging, standing, the sentinel)', () => {
     const c = quiet(KAL);
     const mk = c.birds.meerkats;
-    mk.activities = { sit: 1, sentinel: 0, forage: 2, sunbathe: 0, dash: 1, dive: 0 };
+    mk.activities = { sit: 1, sentinel: 1, forage: 2, sunbathe: 0, dash: 1, dive: 0 };
     mk.startOutShare = 1;
     mk.pupChance = 0;
     // A small yard, so they would crowd without the rule.
@@ -182,7 +183,7 @@ describe('meerkat colonies (v1.7, D-044)', () => {
     for (let i = 0; i < 60 * 60; i++) {
       run(s, 1);
       const settled = colony(s)
-        .meerkats.filter((m) => !m.pup && ['sit', 'forage', 'stand'].includes(m.pose))
+        .meerkats.filter((m) => !m.pup && ['sit', 'forage', 'stand', 'sentinel'].includes(m.pose))
         .map((m) => m.x)
         .sort((a, b) => a - b);
       for (let j = 1; j < settled.length; j++) {
@@ -191,6 +192,37 @@ describe('meerkat colonies (v1.7, D-044)', () => {
       }
     }
     expect(checked).toBeGreaterThan(1000);
+  });
+
+  it('no two adults overlap past the spacing rule, over a hunt on every desert map and seed', () => {
+    const settledPoses = ['sit', 'forage', 'sunbathe', 'stand', 'sentinel'];
+    let checked = 0;
+    const bad: string[] = [];
+    for (const biome of [KAL, 'namibie']) {
+      const c = structuredClone(base) as Content;
+      const mk = c.birds.meerkats;
+      for (const seed of [1, 2, 3, 4]) {
+        const s = sim(c, mon('mon', biome), seed);
+        for (let t = 0; t < 60 * 60; t++) {
+          run(s, 1);
+          for (const col of s.snapshot().meerkats) {
+            if (col.phase === 'lineUp' || col.phase === 'photo') continue;
+            const min = mk.bodyWidthPx * mk.spacingBodyMul * c.scoring.planes[col.plane].scale;
+            const xs = col.meerkats
+              .filter((m) => !m.pup && settledPoses.includes(m.pose))
+              .map((m) => m.x)
+              .sort((a, b) => a - b);
+            for (let j = 1; j < xs.length; j++) {
+              checked++;
+              const gap = (xs[j] ?? 0) - (xs[j - 1] ?? 0);
+              if (gap < min - 0.01) bad.push(`${biome} seed ${seed} t ${t}: ${gap.toFixed(1)}`);
+            }
+          }
+        }
+      }
+    }
+    expect(bad.slice(0, 5)).toEqual([]);
+    expect(checked).toBeGreaterThan(5000);
   });
 
   it('they sunbathe only on the early-light layout', () => {
