@@ -47,7 +47,7 @@ import { NO_ZOOM, zoomFor, type ZoomState } from '../view/zoomView';
 import { ParallaxView } from '../view/ParallaxView';
 import { WeaponView } from '../view/WeaponView';
 import { planeToDx } from '../../sim/camera';
-import { crosshairExtent, spreadMulOf } from '../ui/gunLook';
+import { crosshairExtent, reloadBoostsOf, spreadMulOf } from '../ui/gunLook';
 import { WorldView } from '../view/WorldView';
 import { WeaverView } from '../view/WeaverView';
 import { MeerkatView } from '../view/MeerkatView';
@@ -1410,6 +1410,9 @@ export class HuntScene extends Phaser.Scene {
     this.weapon.setWeapon(state.weapon.id);
     this.weapon.setReloading(state.weapon.reloading);
     this.ctx.audio.setWeapon(state.weapon.id);
+    this.ctx.audio.setFastReload(
+      reloadBoostsOf(state.powerups, this.ctx.content.powerups.powerups).fast,
+    );
     if (this.ctx.hook) {
       const c = this.weapon.crosshair;
       this.ctx.hook.crosshair = {

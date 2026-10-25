@@ -902,6 +902,13 @@
           "bark.rain"
         ]
       },
+      "oupaLaai": {
+        "priority": 52,
+        "cooldownMs": 20000,
+        "lines": [
+          "bark.oupa_laai"
+        ]
+      },
       "crate": {
         "priority": 25,
         "cooldownMs": 30000,

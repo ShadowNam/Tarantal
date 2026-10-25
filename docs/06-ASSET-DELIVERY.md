@@ -251,7 +251,8 @@ music sting), `vuvuzela`, `stamp` (whole-flock stamp), `scratch` (penalty record
 `tick` (tally count-up tick) and `thud` (rank stamp thud on the tally), and (v1.1, D-032) each
 gun's own sounds: `shotPomp`, `shotWindbuks` (air rifle), `shotKettie` (slingshot band),
 `shotVoorlaaier` (black powder), `shotMielie` (air "pok"), `rackPomp` (pump action),
-`cockWindbuks` (break-barrel cock and pellet) and `ramrod` (`shot` is the Dubbelloop's). Which gun
+`cockWindbuks` (break-barrel cock and pellet) and `ramrod` (`shot` is the Dubbelloop's), and
+(v1.6b, D-043) `zip` (Blitslaai: a quick metallic zip as the belt refills fast). Which gun
 plays which is in `content/client/feel.json → guns.weapons.<id>.sfx`. All 30 are required
 for `npm run assets:audit -- --strict` to pass. More of the bible's SFX list (variants ×3,
 hadeda call, UI clicks) needs a key in the game first: ask the developer for it.
@@ -318,6 +319,7 @@ URLs and are checked by SHA-256. The trigger lines:
 | `bark.laughing` | missStreak | Those birds are laughing at you. | Daai voëls lag vir jou. |
 | `bark.legend` | legend | Bushveld Legend! | Bosveld-legende! |
 | `bark.lekker` | bagStreak | Lekker! Keep them coming! | Lekker! Hou so aan! |
+| `bark.oupa_laai` | oupaLaai (v1.6b) | I'll load for you, my kind! | Ek laai vir jou, my kind! |
 | `bark.los_kwevoel` | kwevoel | Los die kwêvoël uit! | Los die kwêvoël uit! |
 | `bark.mooi_skoot` | bagStreak | Mooi skoot, my kind! | Mooi skoot, my kind! |
 | `bark.morning` | firstToday | Môre, my kind! The birds are up early. | Môre, my kind! Die voëls is vroeg op. |
@@ -373,6 +375,7 @@ px = 1 design px), and the pack tool warns if it differs. Its origin defaults to
 | `fx/dust_devil` | 300 × 520 | common |
 | `fx/feather` | 24 × 48 | common |
 | `fx/flash` | 200 × 200 | common |
+| `fx/bolt` | 40 × 56 | common |
 | `fx/glint` | 96 × 96 | common |
 | `fx/grass_tuft` | 260 × 110 | common |
 | `fx/leaf` | 28 × 16 | common |
@@ -406,6 +409,8 @@ px = 1 design px), and the pack tool warns if it differs. Its origin defaults to
 | `ui/ammo/shell12` | 30 × 84 | common |
 | `ui/ammo/shell12_spent` | 30 × 84 | common |
 | `ui/ammo/stone` | 38 × 30 | common |
+| `ui/pu_blitslaai` | 64 × 64 | common |
+| `ui/pu_oupa_laai` | 64 × 64 | common |
 | `ui/windsock` | 150 × 60 | common |
 | `bushveld/aloe_a` | 360 × 400 | bushveld-winter |
 | `bushveld/aloe_b` | 380 × 400 | bushveld-winter |

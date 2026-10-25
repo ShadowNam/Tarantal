@@ -182,7 +182,9 @@ describe('voice packs (v1.5, D-041)', () => {
   });
 
   it('every voiced key has a file in every voice language (art-source and the asset index)', () => {
-    expect(LINES.length).toBe(46);
+    // 44 lines in v1.5; v1.6b adds Oupa Laai's bark, v1.7 the meerkats' scold and Familiefoto.
+    expect(LINES.length).toBe(47);
+    expect(LINES).toContain('bark.oupa_laai');
     expect(LINES).toContain('bark.weavers');
     expect(LINES).toEqual(expect.arrayContaining(['bark.meerkat_scold', 'bark.familiefoto']));
     const index = parseAssetIndex(

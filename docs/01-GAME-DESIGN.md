@@ -302,9 +302,17 @@ belt is a deliberate arcade abstraction.
 | `boeretroos` | Boeretroos (enamel mug of coffee) | Birds (and their flock timers) move at 50 %; your aim/reload at 100 % | 10 s |
 | `bush_buckshot` | Bush Buckshot | Spread ×2.5 for the next 6 shells | 6 shells |
 | `meerkat_spotter` | Meerkat Spotter | Hidden birds/secrets get glowing rings (v1.7: on the desert maps the meerkat climbs out of a burrow mound) | 8 s |
+| `blitslaai` | Blitslaai (Lightning Load, v1.6b) | Every reload takes 35 % of its time: full-belt reloads, each per-shell step, the Voorlaaier's ramrod and the Kettie's draw (its reload, D-025) | 12 s |
+| `oupa_laai` | Oupa Laai (Oupa Loads, v1.6b) | Auto reload: the moment the gun is empty its reload starts by itself; per-shell guns (Windbuks, Plaas-Pomp) also top up whenever you haven't fired for 0.6 s. A shot can always cut an auto reload. Reload time unchanged | 12 s |
 
 Picking a power-up up again refreshes it. A shell power-up counts the shots after the one that
-picked it up.
+picked it up. Reload power-ups (D-043): Blitslaai multiplies with Snelhand and the Boss Rule, and
+nothing it shortens goes below 150 ms (`powerups.json → reloadFloorMs`); a reload step already
+running keeps the length it started with (a per-shell gun takes each new round at the rate of the
+moment). Neither does anything while Chilli Biltong is active (no reload
+then) or for the Mielie-Masjien (no reload); Oupa Laai has nothing to do for the Voorlaaier (its
+ramrod is already automatic) or the Kettie (never empty). Crates: power-ups keep 85 of the 100
+weight (Blitslaai 18, Oupa Laai 18, the other four 14 / 14 / 14 / 7); Padstal price 2 each.
 
 ### 10.6 Rifles: sights and zoom (v1.3, D-036)
 Rifles fire with **hold and release**: hold the fire button (or finger) to raise the sight and zoom

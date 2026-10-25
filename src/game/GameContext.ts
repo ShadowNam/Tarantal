@@ -324,6 +324,9 @@ export interface TestHook {
   meerkatLog: string[];
   /** v1.7 (perf): ms spent drawing the meerkat colonies, summed with the frames counted. */
   meerkatMs: number;
+  /** v1.6b (D-043): reload power-ups on the HUD — the chips' icon textures (null = none), the
+   *  lightning glints on the belt now, Oupa's hand on the belt, and auto reloads this page. */
+  reloadFx: { chipIcons: (string | null)[]; bolts: number; oupaHand: boolean; autoReloads: number };
   /** v1.4 B: the Namibië mirage is on in this hunt. */
   mirage: boolean;
   /** v1.4 B (perf): total ms spent drawing the weavers and the mirage, and the frames counted. */

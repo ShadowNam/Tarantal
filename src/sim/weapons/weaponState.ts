@@ -37,10 +37,14 @@ export interface WeaponState {
   cooldownTicks: number;
   /** Ticks until the current reload step completes; 0 = not reloading. */
   reloadTicks: number;
+  /** Length of the current reload step (power-ups can shorten it, v1.6b). */
+  reloadStep: number;
+  /** The reload started by itself (Oupa Laai, v1.6b): a shot may always cut it. */
+  auto: boolean;
 }
 
 export function createWeaponState(t: WeaponTiming): WeaponState {
-  return { shells: t.magazine, cooldownTicks: 0, reloadTicks: 0 };
+  return { shells: t.magazine, cooldownTicks: 0, reloadTicks: 0, reloadStep: 0, auto: false };
 }
 
 export const isReloading = (s: WeaponState): boolean => s.reloadTicks > 0;
@@ -61,8 +65,9 @@ export function tryFire(s: WeaponState, t: WeaponTiming): FireOutcome {
   if (s.cooldownTicks > 0) return { kind: 'blocked' };
   let interrupted = false;
   if (isReloading(s)) {
-    if (!(t.perShell && t.interruptible && s.shells > 0)) return { kind: 'blocked' };
+    if (!(t.perShell && (t.interruptible || s.auto) && s.shells > 0)) return { kind: 'blocked' };
     s.reloadTicks = 0;
+    s.auto = false;
     interrupted = true;
   }
   if (!unlimited(t) && s.shells <= 0) return { kind: 'empty' };
@@ -71,32 +76,49 @@ export function tryFire(s: WeaponState, t: WeaponTiming): FireOutcome {
   return { kind: 'fired', interrupted };
 }
 
-/** Starts a reload. Returns false when there is nothing to do. */
-export function startReload(s: WeaponState, t: WeaponTiming): boolean {
+/** Starts a reload. Returns false when there is nothing to do. `stepTicks` is the length of a
+ *  reload step with power-ups applied; `auto` marks a reload that started by itself. */
+export function startReload(
+  s: WeaponState,
+  t: WeaponTiming,
+  stepTicks: number = t.reloadTicks,
+  auto = false,
+): boolean {
   if (unlimited(t) || isReloading(s) || s.shells >= t.magazine) return false;
-  s.reloadTicks = t.reloadTicks;
+  s.reloadTicks = Math.max(1, stepTicks);
+  s.reloadStep = s.reloadTicks;
+  s.auto = auto;
   return true;
 }
 
 export type TickOutcome = 'shellLoaded' | 'reloadFinished' | null;
 
-/** Advances timers by one tick. */
-export function tickWeapon(s: WeaponState, t: WeaponTiming): TickOutcome {
+/** Advances timers by one tick. `stepTicks` is the length of the next per-shell step. */
+export function tickWeapon(
+  s: WeaponState,
+  t: WeaponTiming,
+  stepTicks: number = t.reloadTicks,
+): TickOutcome {
   if (s.cooldownTicks > 0) s.cooldownTicks--;
   if (!isReloading(s)) return null;
   s.reloadTicks--;
   if (s.reloadTicks > 0) return null;
   if (!t.perShell) {
     s.shells = t.magazine;
+    s.auto = false;
     return 'reloadFinished';
   }
   s.shells++;
-  if (s.shells >= t.magazine) return 'reloadFinished';
-  s.reloadTicks = t.reloadTicks;
+  if (s.shells >= t.magazine) {
+    s.auto = false;
+    return 'reloadFinished';
+  }
+  s.reloadTicks = Math.max(1, stepTicks);
+  s.reloadStep = s.reloadTicks;
   return 'shellLoaded';
 }
 
 /** 0..1 progress of the current reload step. */
-export function reloadProgress(s: WeaponState, t: WeaponTiming): number {
-  return isReloading(s) ? 1 - s.reloadTicks / t.reloadTicks : 0;
+export function reloadProgress(s: WeaponState): number {
+  return isReloading(s) && s.reloadStep > 0 ? 1 - s.reloadTicks / s.reloadStep : 0;
 }

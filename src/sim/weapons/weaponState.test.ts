@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { loadContent } from '../../../tools/testContent';
 import {
   createWeaponState,
+  reloadProgress,
   startReload,
   tickWeapon,
   tryFire,
@@ -108,5 +109,30 @@ describe('per-shell reloads', () => {
     const s = createWeaponState(t);
     for (let i = 0; i < 50; i++) expect(fireReady(s, t).kind).toBe('fired');
     expect(startReload(s, t)).toBe(false);
+  });
+
+  it('v1.6b: a shortened reload step reports progress against its own length', () => {
+    const t = weaponTiming(primary('dubbelloop'));
+    const s = createWeaponState(t);
+    fireReady(s, t);
+    expect(startReload(s, t, 20)).toBe(true);
+    for (let i = 0; i < 10; i++) tickWeapon(s, t);
+    expect(reloadProgress(s)).toBeCloseTo(0.5);
+    for (let i = 0; i < 10; i++) tickWeapon(s, t);
+    expect(s.shells).toBe(t.magazine);
+  });
+
+  it('v1.6b: an auto reload of a non-interruptible per-shell gun can be cut by a shot', () => {
+    const t = weaponTiming(primary('windbuks'));
+    expect(t.interruptible).toBe(false);
+    const s = createWeaponState(t);
+    fireReady(s, t);
+    fireReady(s, t);
+    startReload(s, t, t.reloadTicks, true);
+    for (let i = 0; i < t.reloadTicks; i++) tickWeapon(s, t);
+    expect(s.shells).toBe(t.magazine - 1);
+    const out = tryFire(s, t);
+    expect(out).toEqual({ kind: 'fired', interrupted: true });
+    expect(s.auto).toBe(false);
   });
 });

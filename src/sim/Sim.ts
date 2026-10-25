@@ -423,6 +423,7 @@ export function createSim(config: SimConfig): Sim {
           bossRule === 'reloadDouble' ? 2 : 1,
         );
   const weaponState = createWeaponState(timing);
+  const reloadFloorTicks = Math.max(1, msToTicks(content.powerups.reloadFloorMs));
   const fParams = flockParams(content);
   const flockRng = rng.stream('flockNoise');
   const twistRng = rng.stream('twist');
@@ -789,6 +790,8 @@ export function createSim(config: SimConfig): Sim {
   let creatureClock = 0;
   // Season Run state.
   let primaryShots = 0;
+  /** v1.6b Oupa Laai: ticks since the last shot of any gun (the per-shell idle top-up). */
+  let ticksSinceShot = 0;
   let huntDoppies = 0;
   let shellCapacityGain = 0;
   let bossesBagged = 0;
@@ -1128,6 +1131,35 @@ export function createSim(config: SimConfig): Sim {
     emit({ type: 'powerupStarted', tick, powerup: id, source });
   }
 
+  /** v1.6b: a reload step (or the Kettie draw, or the Voorlaaier ramrod) with power-ups applied.
+   *  Blitslaai multiplies on top of Snelhand and the Boss Rule; never below reloadFloorMs (and
+   *  never longer than it was). */
+  function reloadLen(ticks: number): number {
+    const mul = effectsOf(powerups).reloadTimeMul;
+    if (mul === 1) return ticks;
+    return Math.min(ticks, Math.max(reloadFloorTicks, Math.round(ticks * mul)));
+  }
+
+  /** v1.6b Oupa Laai: an empty gun starts its reload by itself; a per-shell gun also tops up
+   *  after a while without a shot. Nothing to do under Chilli Biltong or with a crate weapon. */
+  function autoReload(): void {
+    const idle = ticksSinceShot++;
+    if (crateWeapon !== null || timing.magazine < 0 || isReloading(weaponState)) return;
+    const fx = effectsOf(powerups);
+    if (!fx.autoReload || fx.infiniteAmmo) return;
+    const empty = weaponState.shells <= 0;
+    const topUp =
+      timing.perShell &&
+      fx.idleTopUpTicks !== null &&
+      idle >= fx.idleTopUpTicks &&
+      weaponState.cooldownTicks === 0;
+    if (!empty && !topUp) return;
+    if (!startReload(weaponState, timing, reloadLen(timing.reloadTicks), true)) return;
+    endAim('reload');
+    emit({ type: 'reloadStarted', tick, perShell: timing.perShell, auto: true });
+    charmTrigger('reload');
+  }
+
   function endPowerups(ids: readonly string[]): void {
     for (const id of ids) emit({ type: 'powerupEnded', tick, powerup: id });
   }
@@ -1145,12 +1177,14 @@ export function createSim(config: SimConfig): Sim {
    *  shot doesn't go off. */
   function pullTrigger(): number | null {
     if (crateWeapon !== null) {
-      if (!tryFireCrate(crateWeapon)) return null;
+      if (!tryFireCrate(crateWeapon, reloadLen)) return null;
+      ticksSinceShot = 0;
       return crateWeapon.shotsLeft ?? -1;
     }
     if (effectsOf(powerups).infiniteAmmo) {
       // Chilli Biltong: no shells used, no reload (GDD §10.4).
       if (weaponState.cooldownTicks > 0) return null;
+      ticksSinceShot = 0;
       if (isReloading(weaponState)) {
         weaponState.reloadTicks = 0;
         emit({ type: 'reloadInterrupted', tick, shells: weaponState.shells });
@@ -1168,6 +1202,9 @@ export function createSim(config: SimConfig): Sim {
     if (outcome.interrupted) {
       emit({ type: 'reloadInterrupted', tick, shells: weaponState.shells + 1 });
     }
+    ticksSinceShot = 0;
+    // The Kettie's draw is its reload (D-025): Blitslaai shortens it too (D-043).
+    if (timing.magazine < 0) weaponState.cooldownTicks = reloadLen(weaponState.cooldownTicks);
     return weaponState.shells;
   }
 
@@ -2261,7 +2298,10 @@ export function createSim(config: SimConfig): Sim {
         // A reload lowers a raised sight first (v1.3).
         if (crateWeapon === null) endAim('reload');
         // Crate weapons reload themselves (Voorlaaier ramrod) or never (Mielie-Masjien).
-        if (crateWeapon === null && startReload(weaponState, timing)) {
+        if (
+          crateWeapon === null &&
+          startReload(weaponState, timing, reloadLen(timing.reloadTicks))
+        ) {
           emit({ type: 'reloadStarted', tick, perShell: timing.perShell });
           charmTrigger('reload');
         }
@@ -2531,10 +2571,11 @@ export function createSim(config: SimConfig): Sim {
     if (hold !== null && holdFires()) fire(hold.dx, hold.sy);
     tickAim();
 
-    const w = tickWeapon(weaponState, timing);
+    const w = tickWeapon(weaponState, timing, reloadLen(timing.reloadTicks));
     if (w === 'shellLoaded') emit({ type: 'shellLoaded', tick, shells: weaponState.shells });
     else if (w === 'reloadFinished')
       emit({ type: 'reloadFinished', tick, shells: weaponState.shells });
+    autoReload();
     if (crateWeapon !== null) {
       tickCrateWeapon(crateWeapon);
       if (rangeCrate !== null && crateWeaponSpent(crateWeapon)) {
@@ -2664,7 +2705,8 @@ export function createSim(config: SimConfig): Sim {
         shells: cw.shotsLeft ?? -1,
         magazine: cw.def.shots ?? -1,
         reloading,
-        reloadProgress: reloading ? 1 - cw.cooldownTicks / cw.cooldownLength : 0,
+        reloadProgress:
+          reloading && cw.cooldownStep > 0 ? 1 - cw.cooldownTicks / cw.cooldownStep : 0,
         perShellReload: false,
         cooldownTicks: cw.cooldownTicks,
         holdToFire: cw.def.holdToFire === true,
@@ -2682,7 +2724,7 @@ export function createSim(config: SimConfig): Sim {
       shells: timing.magazine < 0 ? -1 : weaponState.shells,
       magazine: timing.magazine,
       reloading: isReloading(weaponState),
-      reloadProgress: reloadProgress(weaponState, timing),
+      reloadProgress: reloadProgress(weaponState),
       perShellReload: timing.perShell,
       cooldownTicks: weaponState.cooldownTicks,
       holdToFire: fx.autoFire,

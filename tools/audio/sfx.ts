@@ -287,6 +287,27 @@ const SFX: Readonly<Record<string, () => Buf>> = {
     mix(out, click(21, 2600, 0.03, 10), 0.8, SR, 0.5);
     return fadeEnds(normalise(out), SR);
   },
+  zip: () => {
+    // v1.6b (D-043) Blitslaai: the belt refills in a blink — a fast rising metallic zip of shells
+    // sliding into their loops, with a bright brass ting at the end.
+    const r = rng(41);
+    const out = buf(0.36, SR);
+    mix(
+      out,
+      shape(
+        bandpass(noise(0.16, SR, r), SR, glide(1400, 6200, 0.16), 4),
+        SR,
+        (t) => Math.min(1, t / 0.02) * (t < 0.16 ? 1 - t / 0.2 : 0),
+      ),
+      0,
+      SR,
+      0.7,
+    );
+    for (let k = 0; k < 6; k++)
+      mix(out, click(42 + k, 2400 + k * 500, 0.012, 12), k * 0.025, SR, 0.35);
+    mix(out, click(49, 5200, 0.12, 30), 0.17, SR, 0.6);
+    return fadeEnds(normalise(out), SR);
+  },
   // --- birds and hits ---------------------------------------------------------------------
   poof: () => {
     const r = rng(22);

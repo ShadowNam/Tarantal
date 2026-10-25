@@ -214,7 +214,13 @@ export type SimEvent =
       readonly streak: number;
       readonly frenzyMul: number;
     }
-  | { readonly type: 'reloadStarted'; readonly tick: number; readonly perShell: boolean }
+  | {
+      readonly type: 'reloadStarted';
+      readonly tick: number;
+      readonly perShell: boolean;
+      /** v1.6b: started by itself (Oupa Laai). */
+      readonly auto?: boolean;
+    }
   | { readonly type: 'shellLoaded'; readonly tick: number; readonly shells: number }
   | { readonly type: 'reloadFinished'; readonly tick: number; readonly shells: number }
   | { readonly type: 'reloadInterrupted'; readonly tick: number; readonly shells: number }
