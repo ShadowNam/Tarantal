@@ -136,7 +136,7 @@
    "asked": "2026-10-25T04:45:00Z",
    "status": "open",
    "detail": "No good free Afrikaans voice exists, so the interim Afrikaans lines are read by an English voice using Afrikaans pronunciation rules. Is it good enough for now?",
-   "blocks": "The choice of final voices"
+   "blocks": "The final voices decision"
   },
   {
    "id": "final-voices",
@@ -149,8 +149,7 @@
     "Keep the interim voices for now",
     "Real voice actors per language (needs money and an account: you arrange it)",
     "A premium text-to-speech service (needs an account: you arrange it)"
-   ],
-   "blocks": "Nothing urgent"
+   ]
   },
   {
    "id": "windmill-look",
@@ -206,20 +205,6 @@
    "detail": "Power-ups explained + the Oupa switch, or the earlier order.",
    "answer": "Power-ups + Oupa first. The queue is renumbered in build order (v1.7b to v1.8c).",
    "answered": "2026-10-25T18:11:00Z"
-  },
-  {
-   "id": "secret-cue",
-   "kind": "decision",
-   "title": "Coming: pick the new secret cue (instead of the star)",
-   "asked": "2026-10-25T18:13:00Z",
-   "status": "open",
-   "detail": "In v1.7e Tank first makes mock-ups of three options; Claude sends you screenshots and you pick one. Nothing to do until then.",
-   "options": [
-    "A. A small unique animal that always lives at each secret (Claude's recommendation)",
-    "B. Natural cues only (rustling grass, a dust puff, a glint only on metal)",
-    "C. No cue on the map; Oupa hints in words"
-   ],
-   "blocks": "v1.7e"
   }
  ],
  "jobs": {
