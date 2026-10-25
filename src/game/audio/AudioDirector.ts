@@ -106,6 +106,8 @@ export class AudioDirector {
   readonly voicePlayed: string[] = [];
   /** v1.5: a bark whose line hadn't arrived: it plays if the line is decoded by `until`. */
   private waiting: { line: string; until: number } | null = null;
+  /** v1.5: told when Oupa speaks a line that isn't loaded (the voice pack retries failures). */
+  private missingLine: (() => void) | null = null;
   /** Called once, on the first unlock (the voice pack downloads only once audio can play). */
   private readonly unlockFns: (() => void)[] = [];
   private tallyCounting = false;
@@ -160,6 +162,11 @@ export class AudioDirector {
       // No audio is better than no game.
       this.ctx = null;
     }
+  }
+
+  /** v1.5 (D-041): `fn` runs whenever a bark finds its line not loaded (VoicePacks.retry). */
+  onMissingLine(fn: () => void): void {
+    this.missingLine = fn;
   }
 
   /** v1.5 (D-041): runs `fn` once audio has been unlocked by a gesture (now, if it has). */
@@ -323,6 +330,7 @@ export class AudioDirector {
     // v1.5 (D-041): no voice at all with the voice (or master) volume at 0, and no music duck.
     if (this.volumes.voice <= 0 || this.volumes.master <= 0) return false;
     if (buf === undefined) {
+      this.missingLine?.();
       // v1.5: the voice pack may still be on its way (it starts on the first gesture): wait a
       // short, bounded time for this line (feel.json audio.barkWaitMs).
       this.waiting = { line: barkKey, until: this.env.now() + this.tuning.barkWaitMs };

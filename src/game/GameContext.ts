@@ -236,7 +236,7 @@ export interface TestHook {
    */
   voice: {
     language: string;
-    pack: 'none' | 'loading' | 'ready' | 'missing';
+    pack: 'none' | 'loading' | 'ready' | 'partial' | 'missing';
     played: string[];
   };
   /** M10: what the music plays (biome, audible stem) and the master gain (0 while muted). */

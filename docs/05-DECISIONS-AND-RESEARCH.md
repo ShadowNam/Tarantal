@@ -2109,6 +2109,11 @@ delivery: slower (0.90–0.94) and lower (−1.5 / −2 semitones), Afrikaans wo
 with Afrikaans phonemes, IPA fixes for "Ouma" and the weavers' "tsk".
 - **Why a separate pack per language and not in the first download:** the first download was
   3 000.7 KB of 3 072 KB; a pack is 0.6–0.8 MB.
+*Review fixes:* the first gesture anywhere starts the pack, and a bark whose line is still
+loading waits up to `audio.barkWaitMs` (1.5 s) and plays if it arrives in time. Files that failed
+are retried on a later bark, at most 3 fetch rounds per language. `VoicePacks` keeps no bytes,
+and the voice fetch skips finalLoader's page-long cache, so a voice language left behind leaves
+nothing in memory.
 (4) *Sizes* (`npm run size -- --strict`, gzip, the larger twin counted): first download **3 013.5 KB**
 (+12.8 KB: the name strings, the flavour table and the voice code; no audio); Poki 3 009.4 KB,
 CrazyGames 3 009.5 KB. Lazy voice groups: voice-en 614.2 KB, voice-af 666.5 KB, voice-de 803.6 KB

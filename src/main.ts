@@ -26,7 +26,7 @@ import { loadFonts } from './game/ui/fonts';
 import { FlashLimiter } from './game/view/flashLimit';
 import { setTextLook } from './game/ui/textLook';
 import type { AssetManifest } from './game/assets/AssetManifest';
-import { ABSENT, fetchAssetIndex, loadBytes } from './game/assets/finalLoader';
+import { ABSENT, fetchAssetIndex, fetchBytesUncached } from './game/assets/finalLoader';
 import { VoicePacks } from './game/audio/voicePack';
 import {
   biomeArtReady,
@@ -573,10 +573,14 @@ async function boot(): Promise<void> {
   // v1.5 (D-041): the voice language (its own setting; "same" follows the text, Dutch → af). Its
   // pack loads lazily after the first gesture, never with the voice volume at 0.
   const voicePacks = new VoicePacks(audio, assetIndex, {
-    loadBytes: (path) => loadBytes(path, feel.assets.fileTimeoutMs),
+    // Uncached: a voice language left behind keeps no bytes (finalLoader's loadBytes caches).
+    loadBytes: (path) => fetchBytesUncached(path, feel.assets.fileTimeoutMs),
     onState: (lang, state) => {
       if (hook.voice.language === lang) hook.voice.pack = state;
     },
+  });
+  audio.onMissingLine(() => {
+    voicePacks.retry();
   });
   hook.voice.played = audio.voicePlayed;
   applyVoice = (s: Settings): void => {
