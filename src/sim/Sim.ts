@@ -89,6 +89,7 @@ import type {
   AimView,
   BagBehaviour,
   BirdView,
+  ColonyView,
   Command,
   FlockState,
   HuntResult,
@@ -143,6 +144,20 @@ import {
 } from './weapons/weaponState';
 import { CAMERA_MAX_X, CAMERA_MIN_X, coreWidth } from './world';
 import { mapOmen, resolveMap, type ResolvedMap } from './maps';
+import {
+  createColony,
+  diveColony,
+  familyOut,
+  hitMeerkat,
+  lineUp,
+  shapeOf,
+  stepColony,
+  type ColonyCtx,
+  type ColonyState,
+} from './meerkats/colony';
+
+/** v1.7 (D-044): the propId a Familiefoto's secretTriggered carries (it has no prop). */
+export const FAMILIEFOTO_SECRET = 'familiefoto';
 
 export interface Sim {
   /** Advances exactly one tick (1/60 s). A no-op once the hunt is over. */
@@ -678,6 +693,48 @@ export function createSim(config: SimConfig): Sim {
   const secrets: Secret[] = ranged ? [] : buildSecrets(biome);
   let lastSecretTick: number | null = null;
   let crates: Crate[] = [];
+  // v1.7 (D-044): the desert maps' meerkat colonies (none in the Skietbaan).
+  const mk = content.birds.meerkats;
+  const meerkatRng = rng.stream('meerkats');
+  let nextMeerkatId = 1;
+  const sunbatheLight =
+    (setup.map.layout?.light ?? null) !== null &&
+    mk.sunbatheLights.includes(setup.map.layout?.light ?? '');
+  const colonies: ColonyState[] = [];
+  if (!ranged) {
+    for (const def of biome.colonies ?? []) {
+      const layer = layerById.get(def.layer);
+      const plane = layer?.plane;
+      if (layer === undefined || plane === undefined) continue;
+      colonies.push(
+        createColony(
+          def,
+          { id: layer.id, scrollFactor: layer.scrollFactor, plane },
+          scoring.planes[plane].scale,
+          mk,
+          meerkatRng,
+          () => nextMeerkatId++,
+          sunbatheLight,
+        ),
+      );
+    }
+  }
+  const mkCalmTicks = secondsToTicks(mk.calmSeconds);
+  const mkCooldownTicks = secondsToTicks(mk.hit.cooldownSeconds);
+  const mkHoldTicks = secondsToTicks(mk.familiefoto.holdSeconds);
+  /** The tick of the last shot (calm colonies, the Familiefoto's held fire). */
+  let lastShotTick = -mkCalmTicks;
+  /** The Familiefoto: paid once per hunt; the colony lining up for it now. */
+  let photoDone = false;
+  let photoColony: ColonyState | null = null;
+  /** Points of each shot meerkat's hit, said again when it scolds. */
+  const scoldPoints = new Map<number, number>();
+  const colonyCtx = (): ColonyCtx => ({
+    tuning: mk,
+    rng: meerkatRng,
+    sunbathe: sunbatheLight,
+    calm: tick - lastShotTick >= mkCalmTicks,
+  });
   const powerups: ActivePowerup[] = [];
   let crateWeapon: CrateWeaponState | null = null;
   /** Kettie stones in the air, in fire order, and their shots. */
@@ -770,6 +827,16 @@ export function createSim(config: SimConfig): Sim {
   const airMul = (sign: number): number => windSpeedMul(wind, sign);
 
   emit({ type: 'huntStarted', tick: 0, durationTicks, stampedeAtTick });
+  for (const c of colonies)
+    emit({
+      type: 'colonySpawned',
+      tick: 0,
+      colonyId: c.id,
+      plane: c.plane,
+      x: c.cx,
+      y: c.ground,
+      family: c.meerkats.length,
+    });
   if (wind !== null) emit({ type: 'windChanged', tick: 0, dir: wind.dir, strength: wind.strength });
 
   function directorContext(): DirectorContext {
@@ -1112,6 +1179,30 @@ export function createSim(config: SimConfig): Sim {
       if (list === undefined) out.set(layerId, [e]);
       else list.push(e);
     };
+    // v1.7: meerkats stand in front of everything else on their layer.
+    for (const c of colonies) {
+      for (const m of c.meerkats) {
+        const kind = shapeOf(m.pose);
+        if (kind === null) continue;
+        const box = mk.hitboxes[kind];
+        const k = c.scale * (m.pup ? mk.pupScale : 1);
+        add(c.layerId, {
+          kind: 'meerkat',
+          meerkatId: m.id,
+          x: m.x + box.body.ox * k * m.facing,
+          y: m.y + box.body.oy * k,
+          shape: { type: 'ellipse', rx: box.body.rx * k, ry: box.body.ry * k },
+        });
+        if (box.head !== undefined)
+          add(c.layerId, {
+            kind: 'meerkat',
+            meerkatId: m.id,
+            x: m.x + box.head.ox * k * m.facing,
+            y: m.y + box.head.oy * k,
+            shape: { type: 'ellipse', rx: box.head.r * k, ry: box.head.r * k },
+          });
+      }
+    }
     for (const c of crates) {
       const layerId = planeLayer.get(c.plane);
       if (layerId === undefined) continue;
@@ -1254,11 +1345,13 @@ export function createSim(config: SimConfig): Sim {
     const landedFar =
       r.birdId !== null
         ? plane === 'far' || plane === 'ver'
-        : r.crateId !== null
-          ? crateCfg.plane === 'far'
-          : r.propId !== null
-            ? (propLayerFactor.get(r.propId) ?? 1) <= farFactor
-            : true;
+        : r.meerkatId !== undefined
+          ? false
+          : r.crateId !== null
+            ? crateCfg.plane === 'far'
+            : r.propId !== null
+              ? (propLayerFactor.get(r.propId) ?? 1) <= farFactor
+              : true;
     const ldx = landedFar ? pdx + drift : pdx;
     emit({
       type: 'pelletImpact',
@@ -1271,6 +1364,7 @@ export function createSim(config: SimConfig): Sim {
       partId: r.partId,
       crateId: r.crateId,
       ...(r.paperId === undefined ? {} : { paperId: r.paperId }),
+      ...(r.meerkatId === undefined ? {} : { meerkatId: r.meerkatId }),
       ...(cx === null ? {} : { cx }),
     });
     return { dx: ldx, sy: psy, r };
@@ -1311,6 +1405,7 @@ export function createSim(config: SimConfig): Sim {
     const lastShell = shellIndex !== null && shellsLeft === 0;
     const shotId = nextShotId++;
     stats.shots++;
+    lastShotTick = tick;
     emit({
       type: 'shotFired',
       tick,
@@ -1391,6 +1486,7 @@ export function createSim(config: SimConfig): Sim {
           r.propId !== null ||
           r.crateId !== null ||
           r.paperId !== undefined ||
+          r.meerkatId !== undefined ||
           f.next >= bands.length;
         if (!stopped) continue;
         resolveShot(ctx, [landPellet(f.shotId, f.dx, psy, r, drift, f.cx)]);
@@ -1440,6 +1536,7 @@ export function createSim(config: SimConfig): Sim {
     const impacts: { dx: number; sy: number }[] = [];
     const partHits: { propId: string; partId: string }[] = [];
     const crateHits: number[] = [];
+    const meerkatHits: number[] = [];
     let paperHits = 0;
     /** Range: pellets per paper target or steel plate, in landing order. */
     const paperPellets = new Map<number, number>();
@@ -1473,6 +1570,8 @@ export function createSim(config: SimConfig): Sim {
           partHits.push({ propId, partId });
       }
       if (crateId !== null && !crateHits.includes(crateId)) crateHits.push(crateId);
+      if (r.meerkatId !== undefined && !meerkatHits.includes(r.meerkatId))
+        meerkatHits.push(r.meerkatId);
     }
 
     if (rangeProgram !== null) {
@@ -1506,7 +1605,8 @@ export function createSim(config: SimConfig): Sim {
       }
     }
     const touchedAny = damage.touched;
-    const hitThing = partHits.length > 0 || crateHits.length > 0 || paperHits > 0;
+    const hitThing =
+      partHits.length > 0 || crateHits.length > 0 || paperHits > 0 || meerkatHits.length > 0;
 
     const targets = bagged.filter((x) => x.bird.creature.kind !== 'nonTarget');
     const nonTargets = bagged.filter((x) => x.bird.creature.kind === 'nonTarget');
@@ -1674,6 +1774,7 @@ export function createSim(config: SimConfig): Sim {
     const rainMul = raining() ? (showers?.alertRadiusMul ?? 1) : 1;
     const radius =
       shot.alertRadiusPx * pass.alertRadiusMul * (miss ? pass.missAlertMul : 1) * rainMul;
+    shotAtColonies(shotId, meerkatHits, impacts, shotCx, radius > 0, shot.alertsAllFlocks);
     const near = shotThreats(flocks, impacts, shotCx, radius, planeGeo, baggedFlockIds);
     threaten(near, radius > 0 ? 'shot' : 'silentBag');
     // v1.4 (D-038): a very loud gun alerts every other flock too (unless a charm or the rain
@@ -1786,17 +1887,7 @@ export function createSim(config: SimConfig): Sim {
       emit({ type: 'secretPenalty', tick, propId: s.propId, partId, points: -reward.penalty });
       return;
     }
-    stats.secrets++;
-    emit({ type: 'secretTriggered', tick, propId: s.propId, partId });
-    charmTrigger('secret');
-    if (reward.points !== undefined) awardBonus('secret', reward.points);
-    // Secret chain (GDD §9): two secrets within withinSeconds.
-    if (lastSecretTick !== null && tick - lastSecretTick <= chainTicks) {
-      awardBonus('secretChain', scoring.secretChain.bonus);
-      lastSecretTick = null;
-    } else {
-      lastSecretTick = tick;
-    }
+    secretFound(s.propId, partId, reward.points);
     if (reward.event !== undefined) emit({ type: 'worldEvent', tick, event: reward.event });
     const at = reward.at === undefined ? undefined : biome.props.find((p) => p.id === reward.at);
     const atLayer = at === undefined ? undefined : layerById.get(at.layer);
@@ -1838,6 +1929,223 @@ export function createSim(config: SimConfig): Sim {
     }
     if (reward.addTimeSeconds !== undefined) addTime(secondsToTicks(reward.addTimeSeconds));
     if (reward.powerup !== undefined) startPowerup(reward.powerup, 'secret');
+  }
+
+  /** A secret paid out: counted, its points, and the secret chain (GDD §9). */
+  function secretFound(propId: string, partId: string, points: number | undefined): void {
+    stats.secrets++;
+    emit({ type: 'secretTriggered', tick, propId, partId });
+    charmTrigger('secret');
+    if (points !== undefined) awardBonus('secret', points);
+    // Secret chain (GDD §9): two secrets within withinSeconds.
+    if (lastSecretTick !== null && tick - lastSecretTick <= chainTicks) {
+      awardBonus('secretChain', scoring.secretChain.bonus);
+      lastSecretTick = null;
+    } else {
+      lastSecretTick = tick;
+    }
+  }
+
+  // --- meerkat colonies (v1.7, D-044) -------------------------------------------------------
+  function diveNow(c: ColonyState, cause: 'shot' | 'loud' | 'alarm' | 'hit'): void {
+    if (photoColony === c) photoColony = null;
+    if (!diveColony(c, colonyCtx())) return;
+    emit({
+      type: 'meerkatsDived',
+      tick,
+      colonyId: c.id,
+      cause,
+      plane: c.plane,
+      x: c.cx,
+      y: c.ground,
+    });
+  }
+
+  /** A shot's meerkat hits (points off, cooldown), then which colonies dive: the hit one, every
+   *  one for a very loud gun, and any with an impact within shotDive.radiusPx on its plane. A
+   *  silenced shot (alert radius 0) only scares the colony it hit. */
+  function shotAtColonies(
+    shotId: number,
+    hits: readonly number[],
+    impacts: readonly { dx: number; sy: number }[],
+    cx: number,
+    heard: boolean,
+    loud: boolean,
+  ): void {
+    if (colonies.length === 0) return;
+    const scared = new Map<ColonyState, 'shot' | 'loud' | 'hit'>();
+    for (const id of hits) {
+      const c = colonies.find((x) => x.meerkats.some((m) => m.id === id));
+      const m = c?.meerkats.find((x) => x.id === id);
+      if (c === undefined || m === undefined || shapeOf(m.pose) === null) continue;
+      const points = c.cooldown > 0 ? 0 : -mk.hit.penalty;
+      if (points < 0) {
+        score += points;
+        stats.penalties++;
+        c.cooldown = mkCooldownTicks;
+      }
+      scoldPoints.set(m.id, points);
+      emit({
+        type: 'meerkatHit',
+        tick,
+        shotId,
+        colonyId: c.id,
+        meerkatId: m.id,
+        plane: c.plane,
+        x: m.x,
+        y: m.y,
+        points,
+      });
+      hitMeerkat(c, m, mk);
+      scared.set(c, 'hit');
+    }
+    if (heard) {
+      for (const c of colonies) {
+        if (scared.has(c)) continue;
+        if (loud) {
+          scared.set(c, 'loud');
+          continue;
+        }
+        const left = Math.min(...c.burrows.map((b) => b.x));
+        const right = Math.max(...c.burrows.map((b) => b.x));
+        const close = impacts.some((imp) => {
+          const p = tapToPlane(cx, c.scrollFactor, imp.dx, imp.sy);
+          const ox = p.x < left ? left - p.x : p.x > right ? p.x - right : 0;
+          const oy = p.y - c.ground;
+          return ox * ox + oy * oy <= mk.shotDive.radiusPx * mk.shotDive.radiusPx;
+        });
+        if (close) scared.set(c, 'shot');
+      }
+    }
+    for (const c of colonies) {
+      const cause = scared.get(c);
+      if (cause !== undefined) diveNow(c, cause);
+    }
+  }
+
+  /** Alarm: a raptor or the crop sprayer over a colony. The sentinel (or any meerkat up) barks,
+   *  the colony dives, and the nearest guineafowl flock hears it (GDD §11). */
+  function colonyAlarms(): void {
+    for (const c of colonies) {
+      const cu = c.cx / coreWidth(c.scrollFactor);
+      for (const b of birds) {
+        if (!mk.alarm.creatures.includes(b.creature.id) || c.alarmedBy.includes(b.id)) continue;
+        const bu = b.x / coreWidth(planeGeo[b.plane].scrollFactor);
+        if (Math.abs(bu - cu) > mk.alarm.radiusU) continue;
+        c.alarmedBy.push(b.id);
+        const up = c.meerkats.filter((m) => !m.shot && shapeOf(m.pose) !== null);
+        const caller = up.find((m) => m.id === c.sentinel) ?? up.find((m) => !m.pup);
+        if (caller === undefined) continue;
+        let flockId: number | null = null;
+        if (mk.alarm.alertsNearestFlock) {
+          let best: { f: Flock; d: number } | null = null;
+          for (const f of flocks) {
+            if (f.members.length === 0 || f.state === 'flush') continue;
+            const fu = centroid(f).x / coreWidth(planeGeo[f.plane].scrollFactor);
+            const d = Math.abs(fu - cu);
+            if (best === null || d < best.d) best = { f, d };
+          }
+          if (best !== null) {
+            flockId = best.f.id;
+            threaten(
+              [{ flock: best.f, x: cu * coreWidth(planeGeo[best.f.plane].scrollFactor) }],
+              'meerkatAlarm',
+            );
+          }
+        }
+        emit({
+          type: 'meerkatAlarm',
+          tick,
+          colonyId: c.id,
+          meerkatId: caller.id,
+          creature: b.creature.id,
+          flockId,
+          plane: c.plane,
+          x: caller.x,
+          y: caller.y,
+        });
+        diveNow(c, 'alarm');
+      }
+    }
+  }
+
+  /** Held fire with a colony on screen and the whole family out: the Familiefoto line-up (once
+   *  per hunt). The cooldown of each colony's penalty runs here too (sim ticks). */
+  function tickColonies(): void {
+    const shotNow = lastShotTick === tick;
+    if (photoColony !== null && photoColony.phase !== 'lineUp') photoColony = null;
+    for (const c of colonies) {
+      if (c.cooldown > 0) c.cooldown--;
+      const onScreen =
+        Math.abs(planeToDx(cameraX, c.scrollFactor, c.cx)) <= mk.familiefoto.onScreenHalfPx;
+      // "Holding fire" starts with the first shot of the hunt (not the opening look round).
+      c.hold = shotNow || !onScreen || stats.shots === 0 ? 0 : c.hold + 1;
+      if (
+        !photoDone &&
+        photoColony === null &&
+        c.phase === 'normal' &&
+        c.hold >= mkHoldTicks &&
+        familyOut(c)
+      ) {
+        lineUp(c, mk);
+        photoColony = c;
+      }
+    }
+  }
+
+  function stepColonies(): void {
+    for (const c of colonies) {
+      for (const note of stepColony(c, colonyCtx())) {
+        if (note.kind === 'scold') {
+          const m = note.meerkat;
+          emit({
+            type: 'meerkatScold',
+            tick,
+            colonyId: c.id,
+            meerkatId: m.id,
+            plane: c.plane,
+            x: m.x,
+            y: m.y,
+            points: scoldPoints.get(m.id) ?? 0,
+          });
+        } else if (!photoDone) {
+          photoDone = true;
+          photoColony = null;
+          emit({
+            type: 'familiefoto',
+            tick,
+            colonyId: c.id,
+            family: c.meerkats.length,
+            plane: c.plane,
+            x: c.cx,
+            y: c.ground,
+          });
+          secretFound(FAMILIEFOTO_SECRET, c.id, mk.familiefoto.bonus);
+        }
+      }
+    }
+  }
+
+  function colonyView(c: ColonyState): ColonyView {
+    return {
+      id: c.id,
+      layerId: c.layerId,
+      plane: c.plane,
+      burrows: c.burrows,
+      ground: c.ground,
+      phase: c.phase,
+      meerkats: c.meerkats.map((m) => ({
+        id: m.id,
+        pup: m.pup,
+        x: m.x,
+        y: m.y,
+        facing: m.facing,
+        pose: m.pose,
+        look: m.look,
+        poseTicks: m.t,
+        hittable: shapeOf(m.pose) !== null,
+      })),
+    };
   }
 
   /** Bonus time (GDD §8): the end and a Stampede that hasn't started move later. */
@@ -2124,6 +2432,7 @@ export function createSim(config: SimConfig): Sim {
 
   /** Flocks and birds move one step (skipped every other tick under Boeretroos). */
   function stepCreatures(): void {
+    stepColonies();
     const exitedMembers: Bird[] = [];
     for (const f of flocks) {
       emitTransition(f, tickFsm(f, fParams, flockRng));
@@ -2269,6 +2578,10 @@ export function createSim(config: SimConfig): Sim {
     }
     // Stones land after the birds moved: leading the target is the skill (Tech §3.4).
     flyStones();
+    if (colonies.length > 0) {
+      colonyAlarms();
+      tickColonies();
+    }
 
     if (crates.length > 0) {
       const expired = crates.filter((c) => tickCrate(c));
@@ -2410,6 +2723,7 @@ export function createSim(config: SimConfig): Sim {
               },
         secrets: secrets.map(secretView),
         crates: crates.map(crateView),
+        meerkats: colonies.map(colonyView),
         powerups: powerups.map(powerupView),
         wind: windView(wind),
         dustDevils: dustDevils.map(dustDevilView),

@@ -50,7 +50,9 @@ export type StreamName =
   // v1.3: a raised sight's sway (phase and pace, drawn at each raise).
   | 'sway'
   // v1.3x (D-037): the Skietbaan's spawn program (fly-over bob, flock placement).
-  | 'range';
+  | 'range'
+  // v1.7 (D-044): the desert maps' meerkat colonies (families, behaviour, timings).
+  | 'meerkats';
 
 /** A stream's members are closures, so they are safe to pass around detached. */
 export interface RandomStream {

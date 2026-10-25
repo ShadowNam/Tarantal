@@ -1,5 +1,6 @@
 // Public sim types (Tech §3.1). The Phaser layer, tools and replays depend on these shapes.
 import type { ContentBundle } from '../content/schemas';
+import type { ColonyPhase, MeerkatPose } from './meerkats/colony';
 import type { RangeProgramFactory } from './range/types';
 
 /** v1.3 (D-036): `ver` is the distant band behind the far plane; only rifles reach it. */
@@ -209,6 +210,34 @@ export interface SecretView {
   readonly cooldownTicks: number;
 }
 
+/** v1.7 (D-044): one meerkat of a desert colony (layer coordinates of its colony). */
+export interface MeerkatView {
+  readonly id: number;
+  readonly pup: boolean;
+  /** Feet (or, in a hole, the hole) on the colony's layer. */
+  readonly x: number;
+  readonly y: number;
+  readonly facing: 1 | -1;
+  readonly pose: MeerkatPose;
+  /** Head turn: −1 left, 0 at the camera, +1 right. */
+  readonly look: -1 | 0 | 1;
+  /** Ticks in this pose (animation phase). */
+  readonly poseTicks: number;
+  readonly hittable: boolean;
+}
+
+export interface ColonyView {
+  readonly id: string;
+  readonly layerId: string;
+  readonly plane: PlaneId;
+  /** Holes on their mounds (layer px). */
+  readonly burrows: readonly { readonly x: number; readonly y: number; readonly mound: number }[];
+  readonly ground: number;
+  readonly phase: ColonyPhase;
+  /** Sorted by id; a pup last. */
+  readonly meerkats: readonly MeerkatView[];
+}
+
 export interface CrateView {
   readonly id: number;
   readonly plane: PlaneId;
@@ -307,6 +336,8 @@ export interface SimState {
   /** Biome secrets in content order. */
   readonly secrets: readonly SecretView[];
   readonly crates: readonly CrateView[];
+  /** v1.7 (D-044): the map's meerkat colonies (none outside the desert maps). */
+  readonly meerkats: readonly ColonyView[];
   readonly powerups: readonly PowerupView[];
   /** Null when the omen is off or the biome has no wind. */
   readonly wind: WindView | null;
