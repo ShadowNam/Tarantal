@@ -264,7 +264,7 @@ export const MeerkatsSchema = obj({
   }),
   /** Layout lights (feel.json lights) early enough for sunbathing (belly to the sun). */
   sunbatheLights: z.array(id),
-  /** No shot for this long: the colony is calm (nobody dives, the hidden come out). */
+  /** No shot for this long: the colony is calm (the hidden come out sooner, every peek emerges). */
   calmSeconds: pos,
   /** A shot whose impact lands within radiusPx (plane px) of the colony on its plane sends it
    *  down; it comes back after returnSeconds, one head first, then the rest. */

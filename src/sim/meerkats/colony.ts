@@ -136,7 +136,7 @@ export interface ColonyCtx {
   readonly rng: RandomStream;
   /** The map's light allows sunbathing (an early-light layout). */
   readonly sunbathe: boolean;
-  /** No shot for calmSeconds: nobody dives, the hidden come out. */
+  /** No shot for calmSeconds: the hidden come out sooner, and every peek ends outside. */
   readonly calm: boolean;
 }
 
@@ -305,7 +305,6 @@ function choose(
     (a) =>
       !(a === 'sentinel' && c.sentinel !== null) &&
       !(a === 'sunbathe' && !ctx.sunbathe) &&
-      !(a === 'dive' && ctx.calm) &&
       T.activities[a] > 0,
   );
   const total = allowed.reduce((s, a) => s + T.activities[a], 0);
