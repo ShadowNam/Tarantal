@@ -1,12 +1,11 @@
 {
  "schema": 1,
- "updated": "2026-10-25T18:15:00Z",
+ "updated": "2026-10-25T18:43:00Z",
  "by": "Claude",
- "summary": "v1.6 Veld art is live on the test build (merged 25 Oct, 18:56). v1.6b reload power-ups is re-running its full tests after Claude fixed a slow Skietbaan test (PR #75); it merges when green. v1.7 meerkats is in its look round (your notes on more fur and nicer faces are next). This Project overview page is being built now. Next, in this order: v1.7b power-ups explained + an Oupa on/off switch, v1.7c fruit that swings or drops, v1.7d Namibië veld life, v1.7e realistic Bushveld + a new secret cue instead of the star (mock-ups for you first), v1.8 Blikkies, v1.8b baboons, v1.8c The Harvest (a new mode), then v1.9–v1.13.",
+ "summary": "v1.6 Veld art is live on the test build (merged 25 Oct, 18:56). v1.6b reload power-ups is merged too (25 Oct, 20:42; version 1.6.1): Blitslaai and Oupa Laai in the crates and the Padstal. v1.7 meerkats is in its look round (your notes on more fur and nicer faces are next). This Project overview page is being built now. Next, in this order: v1.7b power-ups explained + an Oupa on/off switch, v1.7c fruit that swings or drops, v1.7d Namibië veld life, v1.7e realistic Bushveld + a new secret cue instead of the star (mock-ups for you first), v1.8 Blikkies, v1.8b baboons, v1.8c The Harvest (a new mode), then v1.9–v1.13.",
  "current": {
-  "version": "1.6.0",
-  "commit": "4bd39f1",
-  "deployed": "2026-10-25T17:35:43Z"
+  "version": "1.6.1",
+  "commit": "133c85f"
  },
  "links": [
   {
@@ -37,17 +36,17 @@
  "numbers": [
   {
    "label": "Version on the test build",
-   "value": "1.6.0",
-   "note": "commit 4bd39f1, deployed 25 Oct 19:35"
+   "value": "1.6.1",
+   "note": "commit 133c85f, deploying after the merge at 20:42"
   },
   {
    "label": "Pull requests merged",
-   "value": "72",
-   "note": "#1 to #74"
+   "value": "74",
+   "note": "#1 to #75"
   },
   {
    "label": "Unit tests",
-   "value": "1,098",
+   "value": "1,129",
    "note": "plus 48 browser test suites on 3 devices"
   },
   {
@@ -1028,19 +1027,18 @@
   },
   {
    "id": "v1.6b",
-   "title": "v1.6b: reload power-ups (Blitslaai fast reload, Oupa Laai auto reload) (your request, 25 Oct)",
+   "title": "v1.6b Reload power-ups: Blitslaai (fast reload) and Oupa Laai (auto reload)",
    "phase": "Version 1.x",
-   "status": "review",
-   "start": "2026-10-25T11:15:00Z",
-   "end": "2026-10-25T19:45:00Z",
-   "estimate": true,
+   "status": "done",
+   "start": "2026-10-25T11:57:26Z",
+   "end": "2026-10-25T18:43:07Z",
+   "estimate": false,
    "prs": [
-    71,
-    75
+    71
    ],
    "version": "1.6.1",
-   "summary": "Two new crate power-ups. Blitslaai: for 12 s every reload is much faster, with lightning glints on the belt. Oupa Laai: for 12 s an empty gun reloads by itself and Oupa says so. Full tests: 23 of 24 jobs passed; one slow Skietbaan test (25 hits on a steel plate) ran past its 7-minute limit, so Claude split that test in two and made it faster (PR #75, ported here); the full tests are re-running.",
-   "owner": "Tank built it; Claude merges",
+   "summary": "Two new crate power-ups. Blitslaai: for 12 s every reload is much faster, with lightning glints on the belt. Oupa Laai: for 12 s an empty gun reloads by itself and Oupa says so. Merged 25 Oct 20:42 after all 23 test jobs passed.",
+   "owner": "Tank built it; Claude merged it",
    "checklist": [
     {
      "text": "Blitslaai (fast reload) and Oupa Laai (auto reload) in the game",
@@ -1064,22 +1062,19 @@
      "at": "2026-10-25T17:00:00Z"
     },
     {
-     "text": "Full tests on every device: a slow Skietbaan test overran twice; Claude split it (PR #75) and the tests are re-running",
-     "done": false
+     "text": "Full tests on every device: all 23 jobs green (after the Skietbaan test fix, PR #75)",
+     "done": true
     },
     {
      "text": "Merge into main and deploy to the test build",
-     "done": false
+     "done": true
     }
    ],
+   "tests": "Full CI green on every device (23 jobs); 1,129 unit tests.",
    "links": [
     {
      "label": "PR #71",
      "url": "https://github.com/ShadowNam/Tarantal/pull/71"
-    },
-    {
-     "label": "PR #75",
-     "url": "https://github.com/ShadowNam/Tarantal/pull/75"
     }
    ],
    "requestedBy": "You, 25 Oct 08:40: \"Another power-up … an AUTO reload, and a fast reload.\""
@@ -1630,6 +1625,28 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-25T18:42:00Z",
+   "kind": "merge",
+   "text": "v1.6b reload power-ups merged (#71, version 1.6.1): Blitslaai (fast reloads) and Oupa Laai (auto reload).",
+   "links": [
+    {
+     "label": "PR #71",
+     "url": "https://github.com/ShadowNam/Tarantal/pull/71"
+    }
+   ]
+  },
+  {
+   "at": "2026-10-25T18:40:00Z",
+   "kind": "merge",
+   "text": "The Skietbaan test fix merged (#75): main's slowest test now runs in two short parts.",
+   "links": [
+    {
+     "label": "PR #75",
+     "url": "https://github.com/ShadowNam/Tarantal/pull/75"
+    }
+   ]
+  },
   {
    "at": "2026-10-25T18:17:00Z",
    "kind": "note",
