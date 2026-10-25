@@ -54,7 +54,8 @@ function dxOf(biome: string, layer: string, u: number, cx: number): number {
 }
 
 /**
- * Per biome: the main tree for the close-up (a layer point and the design-y band it spans), and
+ * Per biome: the main tree for the close-up (v1.6: the baobab, sausage tree and weaver camelthorn
+ * crops start higher, so their crowns are not cut; their "before" close-ups need a re-run) (a layer point and the design-y band it spans), and
  * the far animals the scope looks at (a layer point and the design y of their bodies). The new
  * art keeps its animals on these points, so before and after look at the same place.
  */
@@ -69,7 +70,7 @@ const BIOMES = [
   },
   {
     id: 'bushveld-winter',
-    tree: { layer: 'mid', u: 0.3, y0: 430, y1: 960 },
+    tree: { layer: 'mid', u: 0.3, y0: 100, y1: 960 },
     far: [
       { layer: 'far_veld', u: 0.71, y: 562 },
       { layer: 'far_veld', u: 0.5, y: 572 },
@@ -77,7 +78,7 @@ const BIOMES = [
   },
   {
     id: 'okavango-spring',
-    tree: { layer: 'mid', u: 0.47, y0: 430, y1: 960 },
+    tree: { layer: 'mid', u: 0.47, y0: 100, y1: 960 },
     far: [
       { layer: 'far_veld', u: 0.5, y: 576 },
       { layer: 'far_veld', u: 0.62, y: 578 },
@@ -85,7 +86,7 @@ const BIOMES = [
   },
   {
     id: 'kalahari-summer',
-    tree: { layer: 'mid', u: 0.2, y0: 430, y1: 960 },
+    tree: { layer: 'mid', u: 0.2, y0: 160, y1: 960 },
     far: [
       { layer: 'far_veld', u: 0.5, y: 576 },
       { layer: 'far_ridge', u: 0.43, y: 520 },
