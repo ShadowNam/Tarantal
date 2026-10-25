@@ -2180,7 +2180,10 @@ per biome the centre view, the main tree close up, the far plane at 2× and the 
 the Langloop's scope in the Skietbaan, on desktop, Pixel 7 and iPhone 14 landscape →
 `docs/art-preview/compare/v16-veld-*.png`. visual.spec screens change on purpose (all seven show
 the Karoo): title, settings-sound, settings-access, privacy, hunt, tally, padstal.
-(6) *Names:* no new player-facing names (no new Bird Book entries), so no i18n changes.
+(6) *Names:* no new player-facing names (no new Bird Book entries). i18n: seven new UI keys in
+each language for the art gate and the build stamp (`ui.loading_area`, `ui.art_failed`,
+`ui.retry`, `ui.update_ready`, `ui.update_reload`, `stamp.art_ok`, `stamp.art_missing`; items 7
+and 11), and `ui.update_dismiss` (item 13).
 *Review round (25 Oct: the product owner's live test, the supervisor's look notes).* Rendering
 only for the art; no sim, content-rule or replay change.
 (7) *Placeholder art on the live build* (Kalahari Skietbaan, Brave; a hard reload fixed it).
@@ -2217,6 +2220,11 @@ smaller palettes on busy layers. Low-tier texture memory, estimated from the tex
 (budget 128).
 - **Why the far animals are sprites and not a sharper far layer:** a 3× far-veld layer would be
   9× its texture memory; the herds are a few small boxes.
+(13) *PR #70 review fixes:* scoped hunts and the Skietbaan check and retry the Ver-group files
+they need (`missingLate`, `neededLateMissing()`, `ensureArt()`), then Retry/Back; the Reload bar
+shows only when the new worker serves another build, sits bottom centre with a ×, never in capture
+mode; production builds treat an absent asset index as a failure (only dev/test builds and
+`?art=placeholder` run without one). Tech §10.
 
 ## 3. Research notes (with sources)
 
