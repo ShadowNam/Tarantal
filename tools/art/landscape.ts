@@ -17,6 +17,8 @@ export interface PaintCtx {
   readonly raw: (name: string) => string;
   readonly pen: Pen;
   readonly rnd: Rnd;
+  /** v1.6 (D-042): any colour hazed toward the horizon like this layer's palette. */
+  readonly tint: (hex: string) => string;
 }
 
 export interface LayerCtx extends PaintCtx {
@@ -97,6 +99,7 @@ function paint(cfg: ArtConfig, biome: string, layerId: string, seedKey: string):
   return {
     raw: pal,
     c: (name) => mix(pal(name), horizon, haze),
+    tint: (hex) => mix(hex, horizon, haze),
     pen: { ink: mix(cfg.ink, horizon, haze * 1.6), w: cfg.scenery.lines[layerId] ?? 4 },
     rnd: prng(seedOf(seedKey)),
   };
