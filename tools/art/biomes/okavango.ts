@@ -15,7 +15,6 @@ import {
   mix,
   shade,
   tone,
-  treeBlob,
   tuft,
   yAt,
   type Pen,
@@ -314,20 +313,16 @@ function farRidge(ctx: LayerCtx): string {
   parts.push(
     ...paintRow(ctx.rnd, hills, rockColours(ctx.raw), { ink: backPen.ink, w: 1.3 }, horizon),
   );
-  const backT = tone(mix(ctx.c('island'), horizon, 0.35), 0.15, 0.18);
-  for (let x = -60; x < ctx.width; x += 30 + ctx.rnd() * 40)
+  for (let x = -60; x < ctx.width; x += 48 + ctx.rnd() * 44)
+    // v1.6 (D-042): the hazed back tree line as far jackalberries (broken canopies, more haze).
     parts.push(
-      // The hazed back tree line keeps the simple crown: detail there is lost in the haze and
-      // costs download bytes (D-035).
-      treeBlob(
+      jackalberry(
         ctx.rnd,
         x,
-        640,
-        60 + ctx.rnd() * 40,
-        50 + ctx.rnd() * 30,
-        backT,
-        mix(ctx.c('trunk'), horizon, 0.35),
-        backPen,
+        642,
+        100 + ctx.rnd() * 40,
+        { tint: (c) => mix(ctx.tint(c), horizon, 0.35), pen: backPen },
+        'far',
       ),
     );
   for (let x = -40; x < ctx.width;) {
@@ -892,33 +887,33 @@ export const OKAVANGO_PLAN: BiomeArtPlan = {
     // v1.6 (D-042): a 256-colour sky (no visible banding) pays for the new trees.
     sky: { top: 0, height: 1080, encode: 'png8', draw: sky },
     // v1.6 (D-042): smaller palettes keep the biome chunk inside 1.5 MB.
-    far_ridge: { top: 380, height: 280, colours: 96, draw: farRidge },
+    far_ridge: { top: 380, height: 280, colours: 64, draw: farRidge },
     // v1.3: the Ver plane's strip (shown only on maps that open it).
     ver_veld: {
       top: 536,
       height: 52,
       draw: verVeld({ ground: 'grass', light: 'grassLight', scrub: 'bossie' }),
     },
-    far_veld: { top: 464, height: 232, colours: 96, draw: farVeld },
-    mid: { top: 380, height: 530, colours: 112, draw: mid },
-    near: { top: 820, height: 260, colours: 112, draw: near },
-    foreground: { top: 880, height: 200, fadeTop: 28, colours: 128, draw: foreground },
+    far_veld: { top: 464, height: 232, colours: 64, draw: farVeld },
+    mid: { top: 380, height: 530, colours: 96, draw: mid },
+    near: { top: 820, height: 260, colours: 80, draw: near },
+    foreground: { top: 880, height: 200, fadeTop: 28, colours: 96, draw: foreground },
   },
   props: {
-    'okavango/reeds_a': { colours: 112, draw: reeds(1) },
-    'okavango/reeds_b': { colours: 112, draw: reeds(2) },
-    'okavango/reeds_c': { colours: 112, draw: reeds(3) },
-    'okavango/reeds_d': { colours: 112, draw: reeds(4) },
+    'okavango/reeds_a': { colours: 80, draw: reeds(1) },
+    'okavango/reeds_b': { colours: 80, draw: reeds(2) },
+    'okavango/reeds_c': { colours: 80, draw: reeds(3) },
+    'okavango/reeds_d': { colours: 80, draw: reeds(4) },
     'okavango/mokoro_pole': { draw: mokoroPole },
     'okavango/sausage_tree': {
       draw: sausageTree,
       wobble: false,
-      colours: 128,
+      colours: 96,
       frame: { w: 480, h: 640, ox: 240, oy: 370 },
     },
     'okavango/hippo': { draw: hippo },
     'okavango/lily_frog': { draw: lilyFrog },
-    'okavango/papyrus_a': { colours: 112, draw: papyrusClump(1) },
-    'okavango/papyrus_b': { colours: 112, draw: papyrusClump(2) },
+    'okavango/papyrus_a': { colours: 80, draw: papyrusClump(1) },
+    'okavango/papyrus_b': { colours: 80, draw: papyrusClump(2) },
   },
 };

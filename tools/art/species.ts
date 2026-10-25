@@ -23,7 +23,7 @@ import {
   type Limb,
 } from './camelthorn';
 import {
-  clumpMasses,
+  clumpSpeckle,
   fallenFruit,
   growTree,
   hangingFruit,
@@ -150,7 +150,7 @@ export function mopane(
   const turned = t.clumps.filter((c) => c.depth >= 0.42 && rnd() < copper);
   const over =
     detail === 'far'
-      ? clumpMasses(turned, cu, rnd)
+      ? clumpSpeckle(turned, cu, rnd)
       : leafMass(rnd, turned, cu, density * 0.9, dab * 1.2, 'butterfly');
   return treeSvg(t, '', over);
 }
@@ -761,4 +761,91 @@ export function ilalaPalm(
     }
   }
   return g({}, ...parts);
+}
+
+// --- farm trees (Karoo farmstead) ---------------------------------------------------------
+
+/**
+ * Bluegum (Eucalyptus, planted round Karoo farmsteads): a tall pale smooth trunk with peeling
+ * bark, a narrow, open crown of drooping blue-green clumps high up.
+ */
+export function bluegum(
+  rnd: Rnd,
+  x: number,
+  foot: number,
+  h: number,
+  p: Paint,
+  detail: Detail,
+): string {
+  const lk = look(p, '#7A927C', '#D2CBBE', '#E0E8D8');
+  const t = growTree(
+    rnd,
+    {
+      x,
+      foot,
+      h,
+      w: h * (0.2 + rnd() * 0.06),
+      depth: 0.62,
+      crown: 'irregular',
+      trunkW: Math.max(1.2, h * 0.045),
+      fork: 0.5,
+      limbs: 3,
+      lean: (rnd() - 0.5) * h * 0.05,
+      leaf: 'feather',
+      ...dabsFor(h),
+      clumps: clumpsFor(detail, 34),
+      bark: 'smooth',
+      bare: 0.05,
+      detail,
+    },
+    lk,
+  );
+  return treeSvg(t);
+}
+
+/**
+ * Pepper tree (Schinus molle, the old farmyard shade tree): a short gnarled trunk and a broad
+ * weeping crown, its clumps hanging in curtains.
+ */
+export function pepperTree(
+  rnd: Rnd,
+  x: number,
+  foot: number,
+  h: number,
+  p: Paint,
+  detail: Detail,
+): string {
+  const lk = look(p, '#6E8A4E', '#5E4A3C', '#D8E0A8');
+  const t = growTree(
+    rnd,
+    {
+      x,
+      foot,
+      h,
+      w: h * 0.55,
+      depth: 0.75,
+      crown: 'round',
+      trunkW: Math.max(1.4, h * 0.08),
+      fork: 0.22,
+      limbs: 4,
+      leaf: 'feather',
+      ...dabsFor(h),
+      clumps: clumpsFor(detail, 30),
+      bark: 'furrowed',
+      detail,
+    },
+    lk,
+  );
+  // Weeping curtains: clumps stretched downward under the crown.
+  const hang = t.clumps
+    .filter((c) => c.depth > 0.4)
+    .slice(0, 8)
+    .map((c) => ({ ...c, y: c.y + c.ry * 1.3, ry: c.ry * 1.4, rx: c.rx * 0.6 }));
+  return treeSvg(
+    t,
+    '',
+    detail === 'far'
+      ? clumpSpeckle(hang, lk, rnd)
+      : leafMass(rnd, hang, lk, dabsFor(h).density, dabsFor(h).dab, 'feather'),
+  );
 }

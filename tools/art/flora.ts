@@ -278,6 +278,38 @@ export function clumpMasses(clumps: readonly Clump[], look: PlantLook, rnd: Rnd)
   );
 }
 
+/**
+ * v1.6 (D-042 review: "the trees in the far background look like blobs"): a far crown as a
+ * broken canopy. Each clump is a scatter of small leaf clusters with sky between them: dark ones
+ * low and right, mid ones, lit ones upper left, so the edge is ragged and the crown reads as
+ * foliage on its limbs, not a solid shape. Cheap: a few ellipses per clump, three fills.
+ */
+export function clumpSpeckle(clumps: readonly Clump[], look: PlantLook, rnd: Rnd): string {
+  const leaf = look.leaf;
+  const dark: string[] = [];
+  const body: string[] = [];
+  const lit: string[] = [];
+  for (const c of clumps) {
+    const r = Math.max(0.7, Math.min(c.rx, c.ry) * 0.42);
+    const n = Math.max(4, Math.round((c.rx * c.ry) / (r * r * 2)));
+    for (let k = 0; k < n; k++) {
+      const a = rnd() * Math.PI * 2;
+      const rr = Math.sqrt(rnd()) * 1.05;
+      const x = c.x + Math.cos(a) * c.rx * rr;
+      const y = c.y + Math.sin(a) * c.ry * rr;
+      const v = (y - c.y) / c.ry - ((x - c.x) / c.rx) * 0.4 + (rnd() - 0.5) * 0.6;
+      const e = ellipseD(x, y, r * (0.8 + rnd() * 0.5), r * (0.6 + rnd() * 0.4));
+      (v > 0.35 ? dark : v < -0.45 ? lit : body).push(e);
+    }
+  }
+  return g(
+    {},
+    el('path', { d: dark.join(''), fill: leaf[1] }),
+    el('path', { d: body.join(''), fill: leaf[3] }),
+    el('path', { d: lit.join(''), fill: leaf[leaf.length - 1] }),
+  );
+}
+
 /** One limb in a smooth (baobab, shepherd's tree) or flaky (marula) bark. */
 export function smoothLimb(
   rnd: Rnd,
@@ -416,7 +448,7 @@ export function growTree(rnd: Rnd, s: TreeSpec, look: PlantLook): TreeParts {
   const front = clumps.filter((c) => c.depth >= 0.42);
   const backLook = { ...look, leaf: look.leaf.slice(0, -1) };
   const foliage = (cs: readonly Clump[], lk: PlantLook): string =>
-    far ? clumpMasses(cs, lk, rnd) : leafMass(rnd, cs, lk, s.density, s.dab, s.leaf);
+    far ? clumpSpeckle(cs, lk, rnd) : leafMass(rnd, cs, lk, s.density, s.dab, s.leaf);
   // Wood: twigs, the merged silhouette, then each limb's texture (thick limbs last).
   const twigBin = new StrokeBin();
   if (!far)

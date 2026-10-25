@@ -4,7 +4,7 @@
 // a fire, a fence-post bell and aloes. Light from the upper left. D-031.
 import { verVeld } from './common';
 import { plantLook, seedTuft, veldShrub, type ShrubKind } from '../flora';
-import { sweetThorn } from '../species';
+import { bluegum, pepperTree, sweetThorn } from '../species';
 import { herd } from '../fauna';
 import type { BiomeArtPlan, LayerCtx, PaintCtx, PropCtx } from '../landscape';
 import {
@@ -28,7 +28,7 @@ import {
   type Tone,
 } from '../scenery';
 import { el, ellipseD, g, inked, place, polyD, r2, smoothD } from '../svg';
-import { contactShadow, fillD, softPen, tree } from '../realism';
+import { contactShadow, fillD, softPen } from '../realism';
 import { mountainRow, paintRow, rockColours } from '../mountains';
 import { cirrus, skyGradient, softCumulus, softDefs, type CloudColours } from '../skies';
 import {
@@ -475,19 +475,16 @@ function farmhouse(ctx: LayerCtx, x: number, ground: (x: number) => number): str
   const wallLit = shade(wall, 0.25);
   const wallShade = shade(wall, -0.22);
   const roof = ctx.c('roof');
-  const leaves = tone(ctx.c('tree'), 0.3, 0.22);
-  const gum = tone(shade(ctx.c('tree'), -0.12), 0.3, 0.2);
-  const trunk = ctx.c('trunk');
   const soil = mix(ctx.c('soil'), ctx.c('veldLight'), 0.55);
   const parts: string[] = [];
   // Bluegums behind the house (taller, darker), then the yard on the ground.
-  for (const [dx, w, h] of [
+  for (const [dx, , h] of [
     [-78, 32, 84],
     [-58, 28, 72],
     [70, 34, 86],
   ] as const) {
     const tx = x + dx;
-    parts.push(tree(ctx.rnd, 'bluegum', tx, ground(tx) + 2, w, h, gum, trunk, ctx.pen));
+    parts.push(bluegum(ctx.rnd, tx, ground(tx) + 2, h * 1.05, ctx, 'far'));
   }
   parts.push(fillD(ellipseD(x - 4, base + 5, 86, 7), soil, 0.75));
   // The path from the door down to the track (widens toward the viewer).
@@ -744,7 +741,7 @@ function farmhouse(ctx: LayerCtx, x: number, ground: (x: number) => number): str
   }
   // A pepper tree beside the yard, in front.
   const px = x - 104;
-  parts.push(tree(ctx.rnd, 'pepper', px, ground(px) + 4, 44, 46, leaves, trunk, ctx.pen));
+  parts.push(pepperTree(ctx.rnd, px, ground(px) + 4, 50, ctx, 'far'));
   return g({}, ...parts);
 }
 
