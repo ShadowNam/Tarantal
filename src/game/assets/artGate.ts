@@ -32,15 +32,21 @@ export function showArtError(message: string, retry: string): Promise<void> {
   });
 }
 
-/** v1.6 (D-042): a small bar offering a reload when a new deploy took over the page. */
-export function showUpdateBar(message: string, reload: string): void {
+/**
+ * v1.6 (D-042): a small bar offering a reload when a new deploy took over the page. Bottom centre
+ * above the safe-area inset (clear of the HUD's pause and skip buttons at the top), with × to
+ * dismiss it. The caller never shows it in capture mode.
+ */
+export function showUpdateBar(message: string, reload: string, dismiss: string): void {
   if (document.getElementById('tm-update') !== null) return;
   const bar = document.createElement('div');
   bar.id = 'tm-update';
   bar.setAttribute('role', 'status');
   bar.style.cssText =
-    'position:fixed;left:50%;top:12px;transform:translateX(-50%);display:flex;gap:16px;' +
-    'align-items:center;padding:10px 16px;border-radius:14px;background:#1B1410;color:#F3EAD3;' +
+    'position:fixed;left:50%;bottom:calc(12px + env(safe-area-inset-bottom));' +
+    'transform:translateX(-50%);display:flex;gap:12px;align-items:center;' +
+    'max-width:calc(100vw - 32px);box-sizing:border-box;padding:8px 8px 8px 16px;' +
+    'border-radius:14px;background:#1B1410;color:#F3EAD3;' +
     'font:600 18px system-ui,sans-serif;z-index:1000;box-shadow:0 4px 12px #0006';
   const text = document.createElement('span');
   text.textContent = message;
@@ -53,6 +59,17 @@ export function showUpdateBar(message: string, reload: string): void {
   button.addEventListener('click', () => {
     window.location.reload();
   });
-  bar.append(text, button);
+  const close = document.createElement('button');
+  close.type = 'button';
+  close.textContent = '\u00D7';
+  close.setAttribute('aria-label', dismiss);
+  close.title = dismiss;
+  close.style.cssText =
+    'font:800 24px/1 system-ui,sans-serif;border:0;border-radius:10px;background:transparent;' +
+    'color:#F3EAD3;cursor:pointer;min-width:44px;min-height:44px';
+  close.addEventListener('click', () => {
+    bar.remove();
+  });
+  bar.append(text, button, close);
   document.body.append(bar);
 }

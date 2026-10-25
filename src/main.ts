@@ -34,6 +34,7 @@ import {
 } from './game/assets/finalLoader';
 import { showArtError, showUpdateBar } from './game/assets/artGate';
 import { buildInfo, buildLine } from './game/ui/buildStamp';
+import { buildIdOf } from './platform/swUpdate';
 import { VoicePacks } from './game/audio/voicePack';
 import {
   biomeArtReady,
@@ -404,6 +405,8 @@ let contextLost = false;
 
 const platform = createPlatform({
   serviceWorker: import.meta.env.PROD,
+  // v1.6 (D-042): the worker names its build; the update bar shows only when it differs.
+  buildId: buildIdOf(buildInfo().sha, buildInfo().time),
   log: params.get('debug') === '1',
   adTimeoutMs: feel.platform.adTimeoutMs,
   sdkTimeoutMs: feel.platform.sdkTimeoutMs,
@@ -679,9 +682,11 @@ async function boot(): Promise<void> {
     );
     return false;
   };
-  platform.onUpdateReady?.(() => {
-    showUpdateBar(t('ui.update_ready'), t('ui.update_reload'));
-  });
+  // Never in capture mode (?capture=1): marketing shots show the game only.
+  if (!capture)
+    platform.onUpdateReady?.(() => {
+      showUpdateBar(t('ui.update_ready'), t('ui.update_reload'), t('ui.update_dismiss'));
+    });
   // The home biome's art before the title: a friendly message with Retry when it can't come.
   while (!(await ensureArt(biome))) {
     const area = tOr(biome.nameKey, biome.id);

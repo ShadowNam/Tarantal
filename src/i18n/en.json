@@ -398,6 +398,7 @@
   "ui.retry": "Retry",
   "ui.update_ready": "A new version of the game is ready.",
   "ui.update_reload": "Reload",
+  "ui.update_dismiss": "Dismiss",
   "stamp.art_ok": "art ok",
   "stamp.art_missing": "{n} placeholder",
   "settings.page.game": "Sound & game",

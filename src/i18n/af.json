@@ -398,6 +398,7 @@
   "ui.retry": "Probeer weer",
   "ui.update_ready": "'n Nuwe weergawe van die speletjie is gereed.",
   "ui.update_reload": "Herlaai",
+  "ui.update_dismiss": "Maak toe",
   "stamp.art_ok": "prente reg",
   "stamp.art_missing": "{n} plekhouers",
   "settings.page.game": "Klank en spel",

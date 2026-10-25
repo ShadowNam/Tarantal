@@ -2,6 +2,7 @@ import { execSync } from 'node:child_process';
 import { createReadStream, existsSync, readFileSync, rmSync, statSync } from 'node:fs';
 import { extname, join } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
+import { buildIdOf } from './src/platform/swUpdate';
 import { serviceWorkerPlugin } from './tools/serviceWorker';
 
 // One build per platform (M9, Tech §8): VITE_PLATFORM=web (default, the PWA in dist/) or a
@@ -82,17 +83,21 @@ function buildSha(): string {
   }
 }
 
+const sha = buildSha();
+// v1.6 (D-042): the build stamp's time (UTC, to the minute).
+const builtAt = new Date().toISOString().slice(0, 16);
+
 // Default export is required by Vite (config files are exempt from the named-exports rule).
 export default defineConfig({
   base: './',
   define: {
     __APP_VERSION__: JSON.stringify(version),
-    __BUILD_SHA__: JSON.stringify(buildSha()),
-    // v1.6 (D-042): the build stamp's time (UTC, to the minute).
-    __BUILD_TIME__: JSON.stringify(new Date().toISOString().slice(0, 16)),
+    __BUILD_SHA__: JSON.stringify(sha),
+    __BUILD_TIME__: JSON.stringify(builtAt),
   },
   plugins: [
-    ...(portal ? [stripPwa()] : [serviceWorkerPlugin()]),
+    // The worker names this build, so a page offers a reload only when it runs another (D-042).
+    ...(portal ? [stripPwa()] : [serviceWorkerPlugin(buildIdOf(sha, builtAt))]),
     ...(standin ? [standinAssets()] : []),
   ],
   build: {

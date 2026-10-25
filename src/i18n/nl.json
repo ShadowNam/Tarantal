@@ -398,6 +398,7 @@
   "ui.retry": "Opnieuw",
   "ui.update_ready": "Er is een nieuwe versie van het spel.",
   "ui.update_reload": "Herladen",
+  "ui.update_dismiss": "Sluiten",
   "stamp.art_ok": "beelden ok",
   "stamp.art_missing": "{n} plaatshouders",
   "settings.page.game": "Geluid & spel",

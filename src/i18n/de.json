@@ -398,6 +398,7 @@
   "ui.retry": "Erneut versuchen",
   "ui.update_ready": "Eine neue Version des Spiels ist bereit.",
   "ui.update_reload": "Neu laden",
+  "ui.update_dismiss": "Schließen",
   "stamp.art_ok": "Bilder ok",
   "stamp.art_missing": "{n} Platzhalter",
   "settings.page.game": "Ton & Spiel",
