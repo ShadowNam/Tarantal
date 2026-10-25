@@ -14,3 +14,5 @@ CLAUDE.local.md
 tests/e2e/__screenshots__/
 release/
 docs/art-preview/screens/
+__pycache__/
+*.pyc
