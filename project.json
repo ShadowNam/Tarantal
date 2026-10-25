@@ -1,0 +1,2647 @@
+{
+ "schema": 1,
+ "updated": "2026-10-25T17:58:00Z",
+ "by": "Claude",
+ "summary": "v1.6 Veld art is live on the test build (merged 25 Oct, 18:56): new trees, fruit, far animals, the windmill from your photos, the dassie, clouds, a version stamp on every map and the Skietbaan's Fresh load button. v1.6b reload power-ups is finishing its tests (one slow Skietbaan test is being fixed). v1.7 meerkats is in its look round: the redraw is in, your notes on more fur and nicer faces are next. Then v1.7b (fruit that swings or drops), v1.7c (Namibië veld life: grass, ostriches, oryx in the mirage, balloons) and v1.8 Blikkies. This Project overview page is being built now.",
+ "current": {
+  "version": "1.6.0",
+  "commit": "4bd39f1",
+  "deployed": "2026-10-25T17:35:43Z"
+ },
+ "links": [
+  {
+   "label": "Test build",
+   "url": "https://shadownam.github.io/Tarantal/"
+  },
+  {
+   "label": "Admin page",
+   "url": "https://shadownam.github.io/Tarantal/?admin=1"
+  },
+  {
+   "label": "Build board",
+   "url": "https://claude.ai/artifact/AUkRY4o5xyd2yuiPzTm2fM"
+  },
+  {
+   "label": "Status doc",
+   "url": "https://claude.ai/artifact/6rM3Vm6wcnSELT4ehR5V7o"
+  },
+  {
+   "label": "History (Word)",
+   "url": "https://github.com/ShadowNam/Tarantal/raw/main/docs/history/Tarantal-Development-History.docx"
+  },
+  {
+   "label": "Pull requests",
+   "url": "https://github.com/ShadowNam/Tarantal/pulls"
+  }
+ ],
+ "numbers": [
+  {
+   "label": "Version on the test build",
+   "value": "1.6.0",
+   "note": "commit 4bd39f1, deployed 25 Oct 19:35"
+  },
+  {
+   "label": "Pull requests merged",
+   "value": "72",
+   "note": "#1 to #74"
+  },
+  {
+   "label": "Unit tests",
+   "value": "1,098",
+   "note": "plus 48 browser test suites on 3 devices"
+  },
+  {
+   "label": "First download",
+   "value": "2.96 MB",
+   "note": "budget 3 MB"
+  },
+  {
+   "label": "Hunting areas",
+   "value": "5",
+   "note": "Karoo, Bushveld, Okavango, Kalahari, Namibië; 7 weekday maps + 3 bonus maps each"
+  },
+  {
+   "label": "Guns",
+   "value": "8"
+  },
+  {
+   "label": "Languages",
+   "value": "4",
+   "note": "English, Afrikaans, German, Dutch; Oupa voiced in 3"
+  },
+  {
+   "label": "Decisions logged",
+   "value": "42",
+   "note": "D-001 to D-042 on main; D-043 to D-045 in review"
+  }
+ ],
+ "needsYou": [
+  {
+   "id": "daily-specials",
+   "kind": "decision",
+   "title": "Pick the holiday Daily specials (Feesdae)",
+   "asked": "2026-10-24T18:58:55Z",
+   "status": "open",
+   "detail": "On a special day everyone gets the same themed Daily Hunt: decorations, one twist rule, Oupa's lines, a music sting and a special share card. Halloween is on 31 Oct: if you pick it, the job moves up so it is ready in time. Reply with the numbers (\"1–9\" takes all my picks).",
+   "options": [
+    "1. Halloween, 31 Oct: \"Spookjag\", a dusk hunt with owls, bats, pumpkin lanterns and guineafowl in witch hats",
+    "2. Christmas, 25 Dec: Christmas in the sun, tinsel on the camelthorn, Oupa in a Santa hat and shorts",
+    "3. New Year: a countdown hunt with party hats, small fireworks and double points in the last 10 s",
+    "4. Heritage Day (Braai Day), 24 Sep: the big braai hunt",
+    "5. Easter weekend: painted guineafowl eggs hidden for bonus points",
+    "6. Valentine's Day, 14 Feb: rosy-faced lovebirds fly through in pairs",
+    "7. Spring flowers (late Aug–Sep, one week): the Karoo carpeted in daisies",
+    "8. April Fools, 1 Apr: plastic decoy guineafowl, −5 and \"Gotcha!\"",
+    "9. Africa Day, 25 May: drums, every cameo animal out, \"Did you know?\" facts",
+    "10 (maybe). World Wildlife Day, 3 Mar: a camera-only Daily",
+    "11 (maybe). Women's Day, 9 Aug: Ouma's hunt (needs an Ouma voice)",
+    "12 (maybe). Workers' Day, 1 May: Oupa's day off, Brakkie runs the show",
+    "13 (maybe). Namibian Independence Day, 21 Mar: Namibië open to everyone, kept light"
+   ],
+   "blocks": "The Feesdae job (Halloween needs it by 31 Oct)"
+  },
+  {
+   "id": "v16-look",
+   "kind": "check",
+   "title": "Look at v1.6 on the test build",
+   "asked": "2026-10-25T16:57:00Z",
+   "status": "open",
+   "detail": "Hard-refresh first. New: trees, fruit and far animals on every map, the windmill, the dassie, the Kalahari dead tree, clouds, a version stamp on every map, and the Fresh load button in the Skietbaan. Tell me anything that still looks rough (the Namibië grass you flagged is already in v1.7c).",
+   "links": [
+    {
+     "label": "Test build",
+     "url": "https://shadownam.github.io/Tarantal/"
+    },
+    {
+     "label": "Admin page",
+     "url": "https://shadownam.github.io/Tarantal/?admin=1"
+    }
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-windmill.jpg",
+     "caption": "Windmill, before | after"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-giraffes-scope.jpg",
+     "caption": "Giraffes through the scope, before | after"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-dassie.jpg",
+     "caption": "The dassie, before | after"
+    }
+   ]
+  },
+  {
+   "id": "voice-sample",
+   "kind": "feedback",
+   "title": "Listen to Oupa's voice samples (the Afrikaans one most of all)",
+   "asked": "2026-10-25T04:45:00Z",
+   "status": "open",
+   "detail": "No good free Afrikaans voice exists, so the interim Afrikaans lines are read by an English voice using Afrikaans pronunciation rules. Is it good enough for now?",
+   "blocks": "The choice of final voices"
+  },
+  {
+   "id": "final-voices",
+   "kind": "decision",
+   "title": "Final voices: keep the interim ones or get real voices?",
+   "asked": "2026-10-25T04:39:00Z",
+   "status": "open",
+   "detail": "Oupa is voiced with free interim text-to-speech in English, Afrikaans and German. Real or premium voices can replace them line by line later.",
+   "options": [
+    "Keep the interim voices for now",
+    "Real voice actors per language (needs money and an account: you arrange it)",
+    "A premium text-to-speech service (needs an account: you arrange it)"
+   ],
+   "blocks": "Nothing urgent"
+  },
+  {
+   "id": "windmill-look",
+   "kind": "decision",
+   "title": "The windmill wheel: which look?",
+   "asked": "2026-10-25T13:56:00Z",
+   "status": "answered",
+   "detail": "You sent photos of a real farm windmill; Claude redrew the wheel with curved sails, missing and bent blades and rust.",
+   "answer": "\"The windmill you made looks great, implement it.\" Done in v1.6.",
+   "answered": "2026-10-25T14:03:00Z",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-windmill.jpg",
+     "caption": "The windmill, before | after"
+    }
+   ]
+  }
+ ],
+ "jobs": [
+  {
+   "id": "M0",
+   "title": "M0 Scaffold and guardrails",
+   "phase": "Foundations",
+   "status": "done",
+   "start": "2026-10-19T17:52:48Z",
+   "end": "2026-10-19T20:33:20Z",
+   "estimate": false,
+   "prs": [
+    1
+   ],
+   "summary": "The project started from a build kit: the game design, architecture, art bible and build plan, written before any code."
+  },
+  {
+   "id": "M1",
+   "title": "M1 Game engine",
+   "phase": "Foundations",
+   "status": "done",
+   "start": "2026-10-19T20:39:45Z",
+   "end": "2026-10-19T21:15:54Z",
+   "estimate": false,
+   "prs": [
+    2
+   ],
+   "summary": "A whole hunt ran without graphics: from a seed, the content and the player’s inputs to a result."
+  },
+  {
+   "id": "M2",
+   "title": "M2 First playable hunt",
+   "phase": "Foundations",
+   "status": "done",
+   "start": "2026-10-20T07:05:33Z",
+   "end": "2026-10-20T11:10:52Z",
+   "estimate": false,
+   "prs": [
+    3
+   ],
+   "summary": "The game became playable in the browser with placeholder art.",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/m02-title.jpg",
+     "caption": "M2: the start card."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/m02-hunt.jpg",
+     "caption": "M2: the first playable hunt."
+    }
+   ]
+  },
+  {
+   "id": "M3",
+   "title": "M3 The flock",
+   "phase": "Foundations",
+   "status": "done",
+   "start": "2026-10-20T11:33:31Z",
+   "end": "2026-10-20T13:17:04Z",
+   "estimate": false,
+   "prs": [
+    4
+   ],
+   "summary": "The signature mechanic: guineafowl behave like a real flock.",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/m03-extra-shot.jpg",
+     "caption": "M3: the first foraging flock, a moment after a shot: \"POOF!\" and score pops."
+    }
+   ]
+  },
+  {
+   "id": "M4",
+   "title": "M4 The Karoo",
+   "phase": "Foundations",
+   "status": "done",
+   "start": "2026-10-20T13:33:03Z",
+   "end": "2026-10-20T16:19:13Z",
+   "estimate": false,
+   "prs": [
+    5
+   ],
+   "summary": "The home level, built entirely from content files.",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/m04-extra-pan.jpg",
+     "caption": "M4: panning right along the Karoo level shows the bakkie, an agave and a bottle to shoot."
+    }
+   ]
+  },
+  {
+   "id": "M5",
+   "title": "M5 Menus, saves, tutorial",
+   "phase": "Foundations",
+   "status": "done",
+   "start": "2026-10-20T16:49:45Z",
+   "end": "2026-10-20T18:41:29Z",
+   "estimate": false,
+   "prs": [
+    6
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/m05-title.jpg",
+     "caption": "M5: the first real title screen, with the Skiet-Skuur and Settings."
+    }
+   ]
+  },
+  {
+   "id": "M6",
+   "title": "M6 Season Run",
+   "phase": "Game modes",
+   "status": "done",
+   "start": "2026-10-20T19:07:46Z",
+   "end": "2026-10-21T06:58:29Z",
+   "estimate": false,
+   "prs": [
+    7,
+    8,
+    9
+   ],
+   "summary": "A roguelite run through four seasons.",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/m06-extra-season-intro.jpg",
+     "caption": "M6: the card before a Season Run hunt: autumn, hunt 1 of 3, the bag quota."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/m06-extra-season-padstal.jpg",
+     "caption": "M6: the Padstal between hunts, with four charms on offer."
+    }
+   ]
+  },
+  {
+   "id": "M7",
+   "title": "M7 Daily Hunt",
+   "phase": "Game modes",
+   "status": "done",
+   "start": "2026-10-21T08:00:45Z",
+   "end": "2026-10-21T11:08:19Z",
+   "estimate": false,
+   "prs": [
+    10,
+    11
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/m07-title.jpg",
+     "caption": "M7: the title gains the Daily button and Season Run."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/m07-extra-daily.jpg",
+     "caption": "M7: a Daily Hunt, with its tag and the wind sock."
+    }
+   ]
+  },
+  {
+   "id": "M8",
+   "title": "M8 Three more areas, arsenal",
+   "phase": "Content and platform",
+   "status": "done",
+   "start": "2026-10-21T13:04:05Z",
+   "end": "2026-10-21T17:04:46Z",
+   "estimate": false,
+   "prs": [
+    12,
+    13,
+    14,
+    15,
+    16
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/m08-hunt-bushveld-winter.jpg",
+     "caption": "M8: winter in the Bushveld (placeholder art)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/m08-hunt-okavango-spring.jpg",
+     "caption": "M8: spring in the Okavango (placeholder art)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/m08-hunt-kalahari-summer.jpg",
+     "caption": "M8: summer in the Kalahari (placeholder art)."
+    }
+   ]
+  },
+  {
+   "id": "M9",
+   "title": "M9 Platform, speed, languages",
+   "phase": "Content and platform",
+   "status": "done",
+   "start": "2026-10-21T18:03:44Z",
+   "end": "2026-10-21T21:31:41Z",
+   "estimate": false,
+   "prs": [
+    17,
+    18,
+    19,
+    20,
+    21
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/m09-hunt.jpg",
+     "caption": "M9: the quality tiers add a vignette and colour grade."
+    }
+   ]
+  },
+  {
+   "id": "M10",
+   "title": "M10 v1.0.0 soft-launch ready",
+   "phase": "Version 1.0",
+   "status": "done",
+   "start": "2026-10-21T22:09:12Z",
+   "end": "2026-10-22T01:26:10Z",
+   "estimate": false,
+   "prs": [
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29
+   ],
+   "version": "1.0.0",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/title-v100.jpg",
+     "caption": "v1.0.0: the title screen (visual test baseline)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/m10-hunt-mobile.jpg",
+     "caption": "v1.0.0 on an iPhone-sized screen."
+    }
+   ]
+  },
+  {
+   "id": "v1.0.1",
+   "title": "v1.0.1 Clean-up",
+   "phase": "Version 1.0",
+   "status": "done",
+   "start": "2026-10-22T07:35:41Z",
+   "end": "2026-10-22T14:19:36Z",
+   "estimate": false,
+   "prs": [
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38
+   ],
+   "version": "1.0.1",
+   "summary": "An art generator and atlas pipeline, six first-person guns with recoil and reload, and detailed guineafowl. Human art can replace it later.",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx1-dubbelloop.jpg",
+     "caption": "Before | after: the Dubbelloop."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx1-flock.jpg",
+     "caption": "Before | after: a foraging flock."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx1-generaal.jpg",
+     "caption": "Before | after: the boss Generaal."
+    }
+   ]
+  },
+  {
+   "id": "faster-ci-lanes",
+   "title": "Faster CI lanes",
+   "phase": "Version 1.0",
+   "status": "done",
+   "start": "2026-10-22T15:37:08Z",
+   "end": "2026-10-22T16:04:27Z",
+   "estimate": false,
+   "prs": [
+    39
+   ],
+   "summary": "The product owner found the build loop too slow. Tests on a pull request went from about 48 minutes to about 15."
+  },
+  {
+   "id": "graphics-pass-1-guns-guineafowl",
+   "title": "Graphics pass 1: guns, guineafowl",
+   "phase": "The look",
+   "status": "done",
+   "start": "2026-10-22T09:35:57Z",
+   "end": "2026-10-22T17:19:16Z",
+   "estimate": false,
+   "prs": [
+    32,
+    35,
+    36
+   ],
+   "summary": "An art generator and atlas pipeline, six first-person guns with recoil and reload, and detailed guineafowl. Human art can replace it later.",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx1-dubbelloop.jpg",
+     "caption": "Before | after: the Dubbelloop."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx1-flock.jpg",
+     "caption": "Before | after: a foraging flock."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx1-generaal.jpg",
+     "caption": "Before | after: the boss Generaal."
+    }
+   ]
+  },
+  {
+   "id": "long-range-plan-approved",
+   "title": "Long-range plan approved",
+   "phase": "The look",
+   "status": "done",
+   "start": "2026-10-22T18:37:17Z",
+   "end": "2026-10-22T18:54:51Z",
+   "estimate": false,
+   "prs": [
+    40
+   ],
+   "summary": "The product owner’s list after graphics pass 1 became an approved plan (docs/08), split into v1.1 to v1.4."
+  },
+  {
+   "id": "graphics-pass-2-landscapes",
+   "title": "Graphics pass 2: landscapes",
+   "phase": "The look",
+   "status": "done",
+   "start": "2026-10-22T19:22:10Z",
+   "end": "2026-10-23T00:05:34Z",
+   "estimate": false,
+   "prs": [
+    41,
+    42
+   ],
+   "summary": "Interim landscapes, props, other creatures and effects for the Karoo, Bushveld, Kalahari and Okavango.",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx2-karoo.jpg",
+     "caption": "Before | after: the Karoo."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx2-bushveld.jpg",
+     "caption": "Before | after: the Bushveld."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx2-kalahari.jpg",
+     "caption": "Before | after: the Kalahari."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx2-okavango.jpg",
+     "caption": "Before | after: the Okavango."
+    }
+   ]
+  },
+  {
+   "id": "v1.1",
+   "title": "v1.1 Gun feel and sound",
+   "phase": "Version 1.x",
+   "status": "done",
+   "start": "2026-10-23T01:34:22Z",
+   "end": "2026-10-23T04:40:09Z",
+   "estimate": false,
+   "prs": [
+    43,
+    44,
+    45
+   ],
+   "version": "1.1.0",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v11-dubbelloop.jpg",
+     "caption": "Before | after: the Dubbelloop’s shells and crosshair."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v11-kettie.jpg",
+     "caption": "Before | after: the Kettie’s stones and crosshair."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/v11-hunt.jpg",
+     "caption": "v1.1: the shotgun crosshair over the flock."
+    }
+   ]
+  },
+  {
+   "id": "v1.2",
+   "title": "v1.2 Weekday maps, Verder",
+   "phase": "Version 1.x",
+   "status": "done",
+   "start": "2026-10-23T08:08:44Z",
+   "end": "2026-10-23T11:57:11Z",
+   "estimate": false,
+   "prs": [
+    47
+   ],
+   "version": "1.2.0",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/v12-title.jpg",
+     "caption": "v1.2: the title names today’s map and the score that unlocks Verder."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v12-sheet1.jpg",
+     "caption": "The Karoo, Monday to Thursday."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v12-sheet2.jpg",
+     "caption": "The Karoo, Friday to Sunday and Verder."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/v12-hunt-bonus-verder.jpg",
+     "caption": "Verder: the flock far out at the horizon, in haze."
+    }
+   ]
+  },
+  {
+   "id": "playtest-admin-page",
+   "title": "Playtest admin page",
+   "phase": "Version 1.x",
+   "status": "done",
+   "start": "2026-10-23T12:40:51Z",
+   "end": "2026-10-23T13:30:27Z",
+   "estimate": false,
+   "prs": [
+    48
+   ],
+   "summary": "Open the test site with ?admin=1 to reach every level directly.",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/admin-extra-admin-list.jpg",
+     "caption": "The admin page: every map grouped by area and day, with options, review, stars and notes."
+    }
+   ]
+  },
+  {
+   "id": "speed-tests-run-alone",
+   "title": "Speed tests run alone",
+   "phase": "Version 1.x",
+   "status": "done",
+   "start": "2026-10-23T13:54:02Z",
+   "end": "2026-10-23T14:10:27Z",
+   "estimate": false,
+   "prs": [
+    50
+   ],
+   "summary": "A low-end-phone speed test kept failing on the shared test machine. Run alone, the frame cost is 11 ms against a 20 ms budget, so the game itself was fine; the test now runs in its own job."
+  },
+  {
+   "id": "graphics-pass-3-semi-realistic",
+   "title": "Graphics pass 3: semi-realistic",
+   "phase": "Version 1.x",
+   "status": "done",
+   "start": "2026-10-23T12:59:49Z",
+   "end": "2026-10-23T17:58:46Z",
+   "estimate": false,
+   "prs": [
+    49
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx3-mountains.jpg",
+     "caption": "Round 1, before | after: hills in the Karoo, Kalahari, Bushveld and Okavango, and the farmhouse."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx3-bakkie.jpg",
+     "caption": "Round 1, before | after: the bakkie."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx3-birds.jpg",
+     "caption": "Round 1, before | after: guineafowl (near and middle distance), the kwêvoël and the hadeda."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx3-guns.jpg",
+     "caption": "Round 1, before | after: the Dubbelloop and the Pomp."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx3-r2-guns.jpg",
+     "caption": "v1.2 | round 1 | round 2: the Dubbelloop (top) and the Pomp (bottom)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx3-r2-birds.jpg",
+     "caption": "v1.2 | round 1 | round 2: the guineafowl near (top) and at middle distance (bottom)."
+    }
+   ]
+  },
+  {
+   "id": "development-history-word",
+   "title": "Development history (Word)",
+   "phase": "Version 1.x",
+   "status": "done",
+   "start": "2026-10-23T15:25:30Z",
+   "end": "2026-10-23T18:23:42Z",
+   "estimate": false,
+   "prs": [
+    51,
+    52
+   ]
+  },
+  {
+   "id": "github-records-screenshot-baselines",
+   "title": "GitHub records screenshot baselines",
+   "phase": "Version 1.x",
+   "status": "done",
+   "start": "2026-10-23T20:55:59Z",
+   "end": "2026-10-23T21:20:26Z",
+   "estimate": false,
+   "prs": [
+    55
+   ],
+   "summary": "The visual tests compare each screen with a stored screenshot. Those reference screenshots are now taken by GitHub, not on the build server."
+  },
+  {
+   "id": "v1.3",
+   "title": "v1.3 Long range, sights, .22",
+   "phase": "Version 1.x",
+   "status": "done",
+   "start": "2026-10-23T18:26:07Z",
+   "end": "2026-10-24T02:24:40Z",
+   "estimate": false,
+   "prs": [
+    53,
+    54
+   ],
+   "version": "1.3.0",
+   "summary": "The first rifle. A new farthest layer of the landscape that only rifles can reach, sights that zoom when you hold, and two harder bonus maps.",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v13-scope.jpg",
+     "caption": "Open view | small scope 4× on Nog Verder, held on a Ver flock (desktop)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v13-peep.jpg",
+     "caption": "Open view | peep sight 2× (desktop)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v13-iron.jpg",
+     "caption": "Open view | iron sight 1.5×, after the redraw (desktop)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v13-scope-pixel7.jpg",
+     "caption": "The small scope on a Pixel 7 held sideways."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v13-shed.jpg",
+     "caption": "The Skiet-Skuur: the Twee-Twee with its three sights."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v13-die-verste-locked.jpg",
+     "caption": "The title: Die Verste locked until a scoped rifle is fitted; the rifle hints along the bottom."
+    }
+   ]
+  },
+  {
+   "id": "training-ground-skietbaan",
+   "title": "Training ground (Skietbaan)",
+   "phase": "Version 1.x",
+   "status": "done",
+   "start": "2026-10-24T02:54:47Z",
+   "end": "2026-10-24T05:38:29Z",
+   "estimate": false,
+   "prs": [
+    58
+   ],
+   "summary": "A shooting range on the admin page: try any gun, locked ones too, at any distance and see exactly how it shoots, without the pressure of a hunt.",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/skietbaan-stats.jpg",
+     "caption": "The setup page with the session table (desktop). Ver is \"out of reach\" for the Dubbelloop."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/skietbaan-paper-near.jpg",
+     "caption": "Dubbelloop at near on the paper target: 16 pellet holes from two shots, with the group size and centre."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/skietbaan-scope-ver.jpg",
+     "caption": "The .22 with the small scope at Ver: four shots inside 1.4 px."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/skietbaan-setup-pixel7.jpg",
+     "caption": "The setup page on a Pixel 7 held sideways, with Start in a footer that is always on screen."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/skietbaan-flyover-pixel7.jpg",
+     "caption": "A flying bird bagged at middle distance on a Pixel 7; the stats shrink to a small box with \"More\"."
+    }
+   ]
+  },
+  {
+   "id": "training-ground-update-mixed-targets-ste",
+   "title": "Training ground update: mixed targets, steel plates, hit feedback",
+   "phase": "Version 1.x",
+   "status": "done",
+   "start": "2026-10-24T06:44:18Z",
+   "end": "2026-10-24T10:21:03Z",
+   "estimate": false,
+   "prs": [
+    61
+   ],
+   "summary": "After the product owner played the training ground: more targets at once, every distance for every gun, and a clear reaction on every hit.",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/skietbaan2-mixed.jpg",
+     "caption": "The mixed course: targets at all four distances at once (desktop, after the re-spacing)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/skietbaan2-hit-far.jpg",
+     "caption": "A hit on a far paper target: the HIT ring and the stats for that distance."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/skietbaan2-plate-iphone.jpg",
+     "caption": "A steel plate hit at middle distance on an iPhone 14 held sideways."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/skietbaan2-kettie-short.jpg",
+     "caption": "The Kettie at Ver: the stones fall short and each shot is marked SHORT."
+    }
+   ]
+  },
+  {
+   "id": "v1.4 A",
+   "title": "v1.4 A: scope speed fix + Die Langloop",
+   "phase": "Version 1.x",
+   "status": "done",
+   "start": "2026-10-24T05:41:34Z",
+   "end": "2026-10-24T13:23:10Z",
+   "estimate": false,
+   "prs": [
+    60
+   ],
+   "version": "1.4.0",
+   "summary": "The long rifle from the approved long-range plan, after a fix for the scope view running slowly on phones (issue #56).",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v14-langloop-3x.jpg",
+     "caption": "Die Langloop at 3× on Die Verste (desktop): the scope ring, the fine cross with range marks, and 3 brass cartridges."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v14-langloop-9x-pixel7.jpg",
+     "caption": "At 9× on a Pixel 7 held sideways, with the −/+ zoom buttons beside the ammo."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v14-langloop-ammo.jpg",
+     "caption": "Open view after one shot: two cartridges left and an empty case."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v14-langloop-shed-iphone.jpg",
+     "caption": "The Skiet-Skuur on an iPhone 14: Die Langloop equipped, with its variable scope row."
+    }
+   ]
+  },
+  {
+   "id": "v1.4 B",
+   "title": "v1.4 B: Namibië area + camelthorn trees, family nest, angry weavers",
+   "phase": "Version 1.x",
+   "status": "done",
+   "start": "2026-10-24T13:37:29Z",
+   "end": "2026-10-24T21:36:35Z",
+   "estimate": false,
+   "prs": [
+    64
+   ],
+   "version": "1.4.0",
+   "summary": "A fifth hunting area, built for long range, and the first props drawn at the new, higher quality bar.",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v14b-pan-tue-pixel7.jpg",
+     "caption": "Namibië on a Pixel 7 held sideways (Tuesday): the salt pan, the Namib dunes, quiver trees and the waterhole flock out on the pan."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v14b-nest-closeup.jpg",
+     "caption": "The family nest in its camelthorn (desktop close-up)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v14b-weavers-pixel7.jpg",
+     "caption": "The nest shot: angry weavers pour out and Oupa’s nest bark appears (Pixel 7)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v14b-flock-clear.jpg",
+     "caption": "After the review fix: the waterhole flock stands clear of the trees at the opening view."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v14b-scope-pixel7.jpg",
+     "caption": "The waterhole flock through Die Langloop’s scope (Pixel 7)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v14b-locked-iphone.jpg",
+     "caption": "The new area picker on an iPhone 14: Namibië locked until Die Verste is reached."
+    }
+   ]
+  },
+  {
+   "id": "skietbaan-gongs-clean-steel-plates-every",
+   "title": "Skietbaan gongs: clean steel plates; every hit stays visible for the session",
+   "phase": "Version 1.x",
+   "status": "done",
+   "start": "2026-10-24T21:51:04Z",
+   "end": "2026-10-25T00:25:42Z",
+   "estimate": false,
+   "prs": [
+    66
+   ],
+   "summary": "The product owner asked for clean steel gongs on the training ground, with every shot visible for the whole session.",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gongs-clean-pixel7.jpg",
+     "caption": "A freshly painted gong on its timber frame (Pixel 7 close-up)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gongs-hits30-iphone.jpg",
+     "caption": "After 30 shots with the air rifle: 30 hits, every mark still there (iPhone 14 held sideways)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gongs-paper30.jpg",
+     "caption": "Paper with 30 holes: paper now keeps every hole too."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gongs-langloop-pixel7.jpg",
+     "caption": "A gong at the farthest distance in Die Langloop’s scope (Pixel 7)."
+    }
+   ]
+  },
+  {
+   "id": "v1.5",
+   "title": "v1.5 Languages: text and voice in English, Afrikaans, German; names per language; Oupa voiced",
+   "phase": "Version 1.x",
+   "status": "done",
+   "start": "2026-10-25T00:41:15Z",
+   "end": "2026-10-25T04:39:06Z",
+   "estimate": false,
+   "prs": [
+    68
+   ],
+   "version": "1.5.0",
+   "summary": "The product owner wanted the game, the voice and the names in English, Afrikaans and German, so it works for more audiences.",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v15-de-title.jpg",
+     "caption": "The title screen in German (desktop)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v15-settings-iphone.jpg",
+     "caption": "Settings on an iPhone 14: the text and voice languages and the \"Afrikaans names\" switch, with readable hints."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v15-de-shed-pixel7.jpg",
+     "caption": "The Gun Shed in German on a Pixel 7: Doppelflinte, Luftgewehr, Schleuder, Hof-Pumpe."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v15-afnames-shed-pixel7.jpg",
+     "caption": "English text with \"Afrikaans names\" on: Dubbelloop, Windbuks, Kettie and Plaas-Pomp keep their farm names."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v15-af-tally-pixel7.jpg",
+     "caption": "The end-of-hunt tally in Afrikaans (Bakkie-telling)."
+    }
+   ]
+  },
+  {
+   "id": "v1.6",
+   "title": "v1.6 Veld art: trees, fruit and far animals on every map; the windmill, dassie, dead tree, clouds; art that waits to load; a build stamp on every map",
+   "phase": "Version 1.x",
+   "status": "done",
+   "start": "2026-10-25T04:44:39Z",
+   "end": "2026-10-25T16:56:41Z",
+   "estimate": false,
+   "prs": [
+    70
+   ],
+   "version": "1.6.0",
+   "summary": "The product owner wanted every map’s trees, bushes, grass and fruit at the quality of the camelthorn, and far animals that look like animals, not rough shapes.",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-windmill.jpg",
+     "caption": "Before | after on a phone: the Karoo windmill, redrawn from the product owner’s photos, with missing and bent sails and rust."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-giraffes-scope.jpg",
+     "caption": "Before | after: far giraffes through the scope, now with patches, true proportions and a calf."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-dassie.jpg",
+     "caption": "Before | after: the Bushveld dassie, bigger and lifelike, on grey granite."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-dead-tree.jpg",
+     "caption": "Before | after on a phone: the Kalahari dead camelthorn and the new clouds."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-okavango.jpg",
+     "caption": "Before | after on a phone: the Okavango sausage tree, ilala palms and clouds, with the build stamp along the bottom."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-scope.jpg",
+     "caption": "Before | after in the Skietbaan: Die Langloop at 3× in the Bushveld. The pale ring is gone; giraffes and the dassie on granite."
+    }
+   ]
+  },
+  {
+   "id": "v1.6b",
+   "title": "v1.6b: reload power-ups (Blitslaai fast reload, Oupa Laai auto reload) (your request, 25 Oct)",
+   "phase": "Version 1.x",
+   "status": "review",
+   "start": "2026-10-25T11:15:00Z",
+   "end": "2026-10-25T19:30:00Z",
+   "estimate": true,
+   "prs": [
+    71
+   ],
+   "version": "1.6.1",
+   "summary": "Two new crate power-ups. Blitslaai: for 12 s every reload is much faster, with lightning glints on the belt. Oupa Laai: for 12 s an empty gun reloads by itself and Oupa says so. Full tests: 23 of 24 jobs passed; one slow Skietbaan test (25 hits on a steel plate) ran past its 7-minute limit, so Claude is fixing that test, then merges.",
+   "owner": "Tank built it; Claude merges",
+   "checklist": [
+    {
+     "text": "Blitslaai (fast reload) and Oupa Laai (auto reload) in the game",
+     "done": true
+    },
+    {
+     "text": "Icons on the HUD chips, belt glints, Oupa's hand and his voiced line",
+     "done": true
+    },
+    {
+     "text": "Balance check: every gate passes",
+     "done": true
+    },
+    {
+     "text": "Independent review and its fixes",
+     "done": true
+    },
+    {
+     "text": "v1.6 merged in, version 1.6.1",
+     "done": true,
+     "at": "2026-10-25T17:00:00Z"
+    },
+    {
+     "text": "Full tests on every device (one slow Skietbaan test to fix)",
+     "done": false
+    },
+    {
+     "text": "Merge into main and deploy to the test build",
+     "done": false
+    }
+   ],
+   "links": [
+    {
+     "label": "PR #71",
+     "url": "https://github.com/ShadowNam/Tarantal/pull/71"
+    }
+   ],
+   "requestedBy": "You, 25 Oct 08:40: \"Another power-up … an AUTO reload, and a fast reload.\""
+  },
+  {
+   "id": "v1.7",
+   "title": "v1.7: meerkat colonies on the desert maps",
+   "phase": "Version 1.x",
+   "status": "running",
+   "start": "2026-10-25T13:00:00Z",
+   "end": "2026-10-25T22:30:00Z",
+   "estimate": true,
+   "prs": [
+    72
+   ],
+   "version": "1.7.0",
+   "summary": "Meerkat families live on every Kalahari and Namibië map: they peek, keep a sentinel, dig, dash between burrows and dive when you shoot nearby. Shooting one costs −10 (it is never hurt). Secret: hold fire while the whole family is out and they line up for a Familiefoto (+25).",
+   "owner": "Tank; Claude reviews",
+   "checklist": [
+    {
+     "text": "Colonies on every desert map, in the game rules (peek, sentinel, dig, dash, dive)",
+     "done": true
+    },
+    {
+     "text": "They dive at nearby shots and the Langloop; the sentinel's alarm alerts the guineafowl",
+     "done": true
+    },
+    {
+     "text": "Shooting a meerkat: −10 and a scold, never harmed",
+     "done": true
+    },
+    {
+     "text": "Familiefoto secret (+25) and the Meerkat Spotter climbing out of a burrow",
+     "done": true
+    },
+    {
+     "text": "Sounds and voiced lines (English, Afrikaans, German)",
+     "done": true
+    },
+    {
+     "text": "Balance: −0.9 % to +4.4 % on all 20 desert maps (limit 5 %)",
+     "done": true
+    },
+    {
+     "text": "Tank's own review and fixes",
+     "done": true
+    },
+    {
+     "text": "First screenshots: 42 shots on desktop and both phones",
+     "done": true,
+     "at": "2026-10-25T17:31:00Z"
+    },
+    {
+     "text": "Look round: eye masks, back bands, cream bellies, three-holed burrows",
+     "done": true,
+     "at": "2026-10-25T17:26:00Z"
+    },
+    {
+     "text": "Colonies kept clear of the on-screen buttons",
+     "done": true,
+     "at": "2026-10-25T17:49:00Z"
+    },
+    {
+     "text": "Your notes: more fur and nicer faces",
+     "done": false
+    },
+    {
+     "text": "v1.6 and v1.6b merged in, version 1.7.0",
+     "done": false
+    },
+    {
+     "text": "New screenshots (Claude) and your look",
+     "done": false
+    },
+    {
+     "text": "Claude's independent review",
+     "done": false
+    },
+    {
+     "text": "Full tests and merge",
+     "done": false
+    }
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17-meerkat-sheet-r2.jpg",
+     "caption": "The redrawn meerkat sheet, round 2 (17:26 UTC): masks, bands, cream bellies, three-holed burrows. Your fur and face notes come next."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-sentinel-closeup-pixel7-landscape.png",
+     "caption": "Round 1: the sentinel close-up (Pixel 7), before the redraw"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-familiefoto-pixel7-landscape.png",
+     "caption": "Round 1: the Familiefoto (Pixel 7); the flock was in the way"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-dash-desktop-chromium.png",
+     "caption": "Round 1: the Kalahari colony (desktop)"
+    }
+   ],
+   "links": [
+    {
+     "label": "PR #72",
+     "url": "https://github.com/ShadowNam/Tarantal/pull/72"
+    }
+   ],
+   "requestedBy": "You, 24 Oct: \"small meerkat holes … peek out and run from one nest to the other. Be creative.\""
+  },
+  {
+   "id": "project-overview",
+   "title": "Project overview page in the admin: status, needs-you, roadmap, history with images (your request, 25 Oct)",
+   "phase": "Version 1.x",
+   "status": "running",
+   "start": "2026-10-25T17:55:00Z",
+   "end": "2026-10-25T21:30:00Z",
+   "estimate": true,
+   "summary": "This page: the project at a glance in the admin page, with what needs you, what is being built, the roadmap with times and versions, your requests, ideas, and the whole history with images. It reads live data that Claude updates at every check-in, merge and screenshot round.",
+   "owner": "Claude",
+   "checklist": [
+    {
+     "text": "Live data branch and the generator (Claude)",
+     "done": true,
+     "at": "2026-10-25T17:58:00Z"
+    },
+    {
+     "text": "The page: Overview, Roadmap, History, Requests, Ideas",
+     "done": false
+    },
+    {
+     "text": "Tests and screenshots on desktop, Pixel 7 and iPhone 14",
+     "done": false
+    },
+    {
+     "text": "Merge and deploy to the test build",
+     "done": false
+    }
+   ],
+   "requestedBy": "You, 25 Oct 19:51"
+  },
+  {
+   "id": "v1.7b",
+   "title": "v1.7b: fruit that swings or drops when shot (sausage tree and others) (your request, 25 Oct)",
+   "phase": "Version 1.x",
+   "status": "next",
+   "start": "2026-10-25T22:30:00Z",
+   "end": "2026-10-26T02:00:00Z",
+   "estimate": true,
+   "version": "1.7.1",
+   "summary": "Fruit you shoot reacts: the sausage tree's sausages, baobab and camelthorn pods and marula swing on their stalks or drop to the ground.",
+   "owner": "Tank",
+   "requestedBy": "You, 25 Oct ~16:45: \"when shooting these fruits, make them swing or drop down.\""
+  },
+  {
+   "id": "v1.7c",
+   "title": "v1.7c: Namibië veld life: detailed grass and sand, ostriches and their nest, oryx in the mirage, hot-air balloons (your request, 25 Oct)",
+   "phase": "Version 1.x",
+   "status": "next",
+   "start": "2026-10-26T02:00:00Z",
+   "end": "2026-10-26T08:00:00Z",
+   "estimate": true,
+   "version": "1.7.2",
+   "summary": "Namibië first: much more detailed bushman grass and sand (no black lines between the distances), then a pair of ostriches at their nest (they run from nearby shots), a herd of oryx far away shimmering in the mirage, and hot-air balloons drifting by (not targets).",
+   "owner": "Tank",
+   "requestedBy": "You, 25 Oct ~19:50: ostriches with a nest, oryx in the mirage, hot-air balloons; and \"the grass landscapes in the Namibia one also look very rough still\"."
+  },
+  {
+   "id": "v1.8",
+   "title": "v1.8: Blikkies — tin cans on fence posts to shoot off and juggle in the air",
+   "phase": "Version 1.x",
+   "status": "next",
+   "start": "2026-10-26T08:00:00Z",
+   "end": "2026-10-26T13:30:00Z",
+   "estimate": true,
+   "version": "1.8.0"
+  },
+  {
+   "id": "v1.9",
+   "title": "v1.9: the veld soundscape and local music (doves, hadedas, cicadas, fish eagle; marimba, mbira, drums)",
+   "phase": "Version 1.x",
+   "status": "next",
+   "start": "2026-10-26T13:30:00Z",
+   "end": "2026-10-26T18:30:00Z",
+   "estimate": true,
+   "version": "1.9.0"
+  },
+  {
+   "id": "v1.10",
+   "title": "v1.10: Reënbui — the first rain and the flying-ant feast",
+   "phase": "Version 1.x",
+   "status": "next",
+   "start": "2026-10-26T18:30:00Z",
+   "end": "2026-10-26T23:30:00Z",
+   "estimate": true,
+   "version": "1.10.0"
+  },
+  {
+   "id": "v1.11",
+   "title": "v1.11: Die Braai — the day ends at Oupa's fire under the Milky Way",
+   "phase": "Version 1.x",
+   "status": "next",
+   "start": "2026-10-26T23:30:00Z",
+   "end": "2026-10-27T04:30:00Z",
+   "estimate": true,
+   "version": "1.11.0"
+  },
+  {
+   "id": "v1.12",
+   "title": "v1.12: Brakkie, the farm dog",
+   "phase": "Version 1.x",
+   "status": "next",
+   "start": "2026-10-27T04:30:00Z",
+   "end": "2026-10-27T10:30:00Z",
+   "estimate": true,
+   "version": "1.12.0"
+  },
+  {
+   "id": "v1.13",
+   "title": "v1.13: veld cameos — warthogs, baboons, springbok, elephants, ostrich, dung beetle",
+   "phase": "Version 1.x",
+   "status": "next",
+   "start": "2026-10-27T10:30:00Z",
+   "end": "2026-10-27T16:30:00Z",
+   "estimate": true,
+   "version": "1.13.0"
+  }
+ ],
+ "suggestions": [
+  {
+   "id": "kalahari-22",
+   "title": "Retune the scoped .22 on the Kalahari's two farthest bonus maps",
+   "from": "Claude (found by Tank in v1.7)",
+   "date": "2026-10-25T16:40:00Z",
+   "status": "idea",
+   "detail": "It scores 4,612–5,578 on Nog Verder and Die Verste, over the 4,500 cap every other long-range map keeps. It predates the meerkats. A small tuning job: fewer far-distance points on those two maps, as Namibië got in v1.4."
+  },
+  {
+   "id": "kalahari-grass",
+   "title": "Give the Kalahari the same grass and sand pass as Namibië",
+   "from": "Claude",
+   "date": "2026-10-25T18:00:00Z",
+   "status": "queued",
+   "job": "v1.7c",
+   "detail": "The Kalahari ground has the same black line between distances and the same scribbly grass. v1.7c fixes it there too if it shares the drawing code."
+  },
+  {
+   "id": "feesdae",
+   "title": "Daily specials on special days (Feesdae)",
+   "from": "Claude",
+   "date": "2026-10-24T18:58:55Z",
+   "status": "idea",
+   "detail": "Themed Daily Hunts on holidays; waiting for your pick (see Needs you)."
+  },
+  {
+   "id": "bow",
+   "title": "A bow and arrow",
+   "from": "You",
+   "date": "2026-10-24T18:35:00Z",
+   "status": "idea",
+   "detail": "Noted for later; not planned yet."
+  },
+  {
+   "id": "af-voice",
+   "title": "A real Afrikaans voice for Oupa",
+   "from": "Claude",
+   "date": "2026-10-25T04:45:00Z",
+   "status": "idea",
+   "detail": "The interim Afrikaans lines use an English voice. A real Afrikaans speaker would sound far better; it needs a person or a paid service, so it is your call."
+  }
+ ],
+ "requests": [
+  {
+   "date": "22 Oct",
+   "text": "Fix the birds and the gun before merging graphics pass 1",
+   "outcome": "Done in graphics pass 1 (#35, #36)"
+  },
+  {
+   "date": "22 Oct",
+   "text": "Realistic ammo per gun, sound effects, crosshairs per gun, a .22 with far targets, sights and zoom",
+   "outcome": "Plan approved (#40); ammo, crosshairs and sound in v1.1; the .22, sights and zoom in v1.3 (#53, #54); the long rifle in v1.4"
+  },
+  {
+   "date": "22 Oct",
+   "text": "Karoo look: fix the grass, bushes and sky",
+   "outcome": "Done in graphics pass 2 (#41, #42)"
+  },
+  {
+   "date": "22 Oct, evening",
+   "text": "\"Karoo approved … keep pushing, 24/7\"",
+   "outcome": "Claude checks in every 10 minutes, with an hourly backup check"
+  },
+  {
+   "date": "23 Oct, 13:40",
+   "text": "Farmhouse cut off, flat mountains, bakkie, guns and birds too cartoony, a bird with no texture",
+   "outcome": "Graphics pass 3, merged at 17:58 (#49) after two look rounds and a code review"
+  },
+  {
+   "date": "23 Oct, 13:50",
+   "text": "An admin URL to test every level and give feedback",
+   "outcome": "Live at 13:32 (#48)"
+  },
+  {
+   "date": "23 Oct, 14:00",
+   "text": "A document of what is built, what is not, estimates and who does what",
+   "outcome": "The Build Status doc, updated at every change"
+  },
+  {
+   "date": "23 Oct, 17:05",
+   "text": "A training ground to test different guns, near and far",
+   "outcome": "Done: the Skietbaan on the admin page (#58)"
+  },
+  {
+   "date": "23 Oct, 17:20",
+   "text": "A Word document with the build pictures and history",
+   "outcome": "This document"
+  },
+  {
+   "date": "23 Oct, 22:50",
+   "text": "Let GitHub record the screenshot baselines",
+   "outcome": "Done (#55)"
+  },
+  {
+   "date": "23 Oct, 23:15",
+   "text": "Keep the build file updated with an infographic every 2–3 hours; keep Tank building overnight",
+   "outcome": "The build board and the status doc, refreshed every 2–3 hours and after each merge; v1.3 merged overnight"
+  },
+  {
+   "date": "24 Oct, 07:45",
+   "text": "More targets in the training ground: mixed targets at all distances, every distance for every gun, a sound or blink on every hit",
+   "outcome": "Done (#61), with screenshots sent at the merge"
+  },
+  {
+   "date": "24 Oct, 14:05",
+   "text": "Better graphics for the trees, bushes and fruit on every map; camelthorn trees in Namibia; a far more detailed weaver nest (\"increase quality by 500%\") with angry birds flying out when it is shot",
+   "outcome": "Camelthorn and nest first in v1.4 part B, with close-ups for approval; the plants on every map done in v1.6 (#70)"
+  },
+  {
+   "date": "24 Oct, 14:18",
+   "text": "Meerkat burrows on the desert maps: meerkats peek out and run from one burrow to another (\"be creative\")",
+   "outcome": "Built as v1.7 (#72), in review"
+  },
+  {
+   "date": "24 Oct, 18:00",
+   "text": "Languages: game, voice and text in German, English and Afrikaans, with names adjusted for each audience",
+   "outcome": "Done in v1.5 (#68)"
+  },
+  {
+   "date": "24 Oct, 19:45",
+   "text": "Clean steel gongs in the training ground, with every shot mark staying visible for the session; tin cans (\"blikkies\") on fence posts that somersault and can be juggled in the air",
+   "outcome": "Gongs done (#66); Blikkies queued as v1.8"
+  },
+  {
+   "date": "24 Oct, 20:55",
+   "text": "Five more ideas to keep the African feel (meerkats, a soundscape, a rain storm, a braai, a farm dog, veld cameos) and Daily specials on local days (Heritage Day braai, Christmas in summer, Halloween, New Year)",
+   "outcome": "All queued as v1.6–v1.13; a list of Daily specials sent for the product owner to choose from"
+  },
+  {
+   "date": "24 Oct, 22:35",
+   "text": "Distant animals (like the giraffe) look rough; consider a bow and arrow later",
+   "outcome": "Done in v1.6 (#70); bow and arrow noted as an idea for later"
+  },
+  {
+   "date": "25 Oct, 08:50",
+   "text": "The windmill: more detail, a wheel with missing blades, turning with the wind and spinning",
+   "outcome": "Done in v1.6 (#70)"
+  },
+  {
+   "date": "25 Oct, 09:00",
+   "text": "The dassie \"needs to be increased a lot\"",
+   "outcome": "Done in v1.6 (#70)"
+  },
+  {
+   "date": "25 Oct, 09:05",
+   "text": "The giraffes’ \"detail needs to become more realistic\"",
+   "outcome": "Done in v1.6 (#70)"
+  },
+  {
+   "date": "25 Oct, 09:10",
+   "text": "The far trees look like blobs",
+   "outcome": "Done in v1.6 (#70): far trees per species"
+  },
+  {
+   "date": "25 Oct, 09:10",
+   "text": "Placeholder art on a MacBook Air in Brave until a hard reload",
+   "outcome": "Fixed in v1.6 (#70): the art waits to load and retries; no stale cache after a deploy"
+  },
+  {
+   "date": "25 Oct, 09:20",
+   "text": "Map version numbers",
+   "outcome": "Done in v1.6 (#70): a build stamp on every map"
+  },
+  {
+   "date": "25 Oct, 09:25",
+   "text": "The Kalahari dead tree \"needs a lot of work\"; the clouds \"need to be more realistic\"",
+   "outcome": "Done in v1.6 (#70)"
+  },
+  {
+   "date": "25 Oct, morning",
+   "text": "The windmill redrawn from the reference photos: no outer ring, more missing blades in random order, old and rusted",
+   "outcome": "Approved (\"looks great, implement it\") and done in v1.6 (#70)"
+  },
+  {
+   "date": "25 Oct",
+   "text": "A button to force a fresh map load after a deploy",
+   "outcome": "Done in v1.6 (#70): the Fresh load button in the Skietbaan (test builds)"
+  },
+  {
+   "date": "25 Oct, 16:45",
+   "text": "When shooting the fruit (sausage tree), make it swing or drop",
+   "outcome": "Queued as v1.7b"
+  },
+  {
+   "date": "25 Oct, 16:45",
+   "text": "When shooting the fruit (sausage tree), make it swing or drop down",
+   "outcome": "Queued as v1.7b",
+   "job": "v1.7b"
+  },
+  {
+   "date": "25 Oct, ~19:47",
+   "text": "The meerkats: a bit more hairy and furry, and nicer faces",
+   "outcome": "Sent to Tank for the v1.7 look round",
+   "job": "v1.7"
+  },
+  {
+   "date": "25 Oct, ~19:50",
+   "text": "Namibië: at least two ostriches with a nest, oryx roaming far away with a mirage, hot-air balloons drifting by",
+   "outcome": "Queued as v1.7c",
+   "job": "v1.7c"
+  },
+  {
+   "date": "25 Oct, ~19:50",
+   "text": "The Namibië grass landscapes still look rough: much more detail",
+   "outcome": "Queued as v1.7c, first part",
+   "job": "v1.7c"
+  },
+  {
+   "date": "25 Oct, 19:51",
+   "text": "A Project overview page in the admin: done, outstanding with dates and builds, open questions, history with images, kept up to date",
+   "outcome": "Being built now (this page)",
+   "job": "project-overview"
+  }
+ ],
+ "activity": [
+  {
+   "at": "2026-10-25T17:58:00Z",
+   "kind": "note",
+   "text": "Project overview: the live data is published; the page itself is being built."
+  },
+  {
+   "at": "2026-10-25T17:51:00Z",
+   "kind": "request",
+   "text": "You asked for a Project overview page in the admin."
+  },
+  {
+   "at": "2026-10-25T17:50:00Z",
+   "kind": "request",
+   "text": "You asked for detailed Namibië grass, ostriches with a nest, oryx in the mirage and hot-air balloons: queued as v1.7c."
+  },
+  {
+   "at": "2026-10-25T17:47:00Z",
+   "kind": "request",
+   "text": "You asked for furrier meerkats with nicer faces: going to Tank with the look round."
+  },
+  {
+   "at": "2026-10-25T17:45:00Z",
+   "kind": "tests",
+   "text": "v1.6b full tests: 23 of 24 jobs passed; one slow Skietbaan test timed out twice. Claude is fixing the test.",
+   "links": [
+    {
+     "label": "PR #71",
+     "url": "https://github.com/ShadowNam/Tarantal/pull/71"
+    }
+   ]
+  },
+  {
+   "at": "2026-10-25T17:35:43Z",
+   "kind": "note",
+   "text": "The test build now runs v1.6 (commit 4bd39f1). Hard-refresh once to get the new art.",
+   "links": [
+    {
+     "label": "Test build",
+     "url": "https://shadownam.github.io/Tarantal/"
+    }
+   ]
+  },
+  {
+   "at": "2026-10-25T17:33:00Z",
+   "kind": "merge",
+   "text": "The development history got its v1.6 chapter (#74).",
+   "links": [
+    {
+     "label": "PR #74",
+     "url": "https://github.com/ShadowNam/Tarantal/pull/74"
+    }
+   ]
+  },
+  {
+   "at": "2026-10-25T17:31:00Z",
+   "kind": "screenshots",
+   "text": "v1.7 meerkats, first-round screenshots: 42 shots on desktop, Pixel 7 and iPhone 14.",
+   "links": [
+    {
+     "label": "PR #72",
+     "url": "https://github.com/ShadowNam/Tarantal/pull/72"
+    }
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-sentinel-closeup-pixel7-landscape.png",
+     "caption": "The sentinel close-up (Pixel 7)"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-familiefoto-pixel7-landscape.png",
+     "caption": "The Familiefoto (Pixel 7)"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-namibie-desktop-chromium.png",
+     "caption": "A Namibië colony (desktop)"
+    }
+   ]
+  },
+  {
+   "at": "2026-10-25T17:26:00Z",
+   "kind": "note",
+   "text": "Tank pushed the meerkat redraw (round 2): eye masks, back bands, cream bellies, three-holed burrows.",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17-meerkat-sheet-r2.jpg",
+     "caption": "The redrawn meerkat sheet, round 2 (17:26 UTC): masks, bands, cream bellies, three-holed burrows. Your fur and face notes come next."
+    }
+   ]
+  },
+  {
+   "at": "2026-10-25T16:56:00Z",
+   "kind": "merge",
+   "text": "v1.6 Veld art merged (#70): trees, fruit, far animals, the windmill, the dassie, clouds, art that waits to load, a version stamp on every map.",
+   "links": [
+    {
+     "label": "PR #70",
+     "url": "https://github.com/ShadowNam/Tarantal/pull/70"
+    }
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-windmill.jpg",
+     "caption": "Windmill"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-giraffes-scope.jpg",
+     "caption": "Giraffes through the scope"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-dead-tree.jpg",
+     "caption": "The Kalahari dead tree"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-namibie.jpg",
+     "caption": "Namibië"
+    }
+   ]
+  },
+  {
+   "at": "2026-10-25T16:50:00Z",
+   "kind": "tests",
+   "text": "v1.6 full tests passed on every device (desktop Chromium and WebKit, Pixel 7, iPhone 14, portals, perf).",
+   "links": [
+    {
+     "label": "PR #70",
+     "url": "https://github.com/ShadowNam/Tarantal/pull/70"
+    }
+   ]
+  }
+ ],
+ "history": [
+  {
+   "title": "M0 — Scaffold and guardrails",
+   "when": "19 Oct 2026, 22:33",
+   "prs": "#1",
+   "decision": "D-017",
+   "intro": "The project started from a build kit: the game design, architecture, art bible and build plan, written before any code.",
+   "bullets": [
+    "Phaser 4 (pinned), TypeScript in strict mode, Vite, Zod for content, Vitest and Playwright for tests, ESLint and Prettier.",
+    "The ground rule: the game’s rules (\"the sim\") are pure, deterministic code that never touches the screen, so every hunt can be replayed exactly.",
+    "All tuning numbers live in JSON content files, checked by schemas."
+   ],
+   "images": []
+  },
+  {
+   "title": "M1 — Deterministic game engine",
+   "when": "19 Oct 2026, 23:15",
+   "prs": "#2",
+   "decision": "D-018",
+   "intro": "A whole hunt ran without graphics: from a seed, the content and the player’s inputs to a result.",
+   "bullets": [
+    "60 ticks per second; named random streams so spawns, pellets and events never disturb each other.",
+    "Own sine, cosine and exponent maths, so every browser and phone computes the same numbers.",
+    "Scoring, guns, pellet spread, hit tests and replays; \"golden\" replays fail the tests if any rule changes by accident."
+   ],
+   "images": []
+  },
+  {
+   "title": "M2 — First playable hunt",
+   "when": "20 Oct 2026, 13:10",
+   "prs": "#3",
+   "decision": "D-019",
+   "intro": "The game became playable in the browser with placeholder art.",
+   "bullets": [
+    "A 90-second Classic hunt on a panning, layered landscape (near, middle and far planes).",
+    "Click or tap to shoot, right-click or tap the shell belt to reload; timer, score and shells on screen.",
+    "Desktop and phone (Pointer Events, no browser zoom or scrolling)."
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/m02-title.jpg",
+     "caption": "M2: the start card."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/m02-hunt.jpg",
+     "caption": "M2: the first playable hunt."
+    }
+   ]
+  },
+  {
+   "title": "M3 — The Flock",
+   "when": "20 Oct 2026, 15:17",
+   "prs": "#4",
+   "decision": "D-020",
+   "intro": "The signature mechanic: guineafowl behave like a real flock.",
+   "bullets": [
+    "Forage, then alert, then run, then flush into the air; the flock reacts to shots and misses.",
+    "Juice pass 2: hit feedback, feathers, score pops."
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/m03-extra-shot.jpg",
+     "caption": "M3: the first foraging flock, a moment after a shot: \"POOF!\" and score pops."
+    }
+   ]
+  },
+  {
+   "title": "M4 — The Karoo",
+   "when": "20 Oct 2026, 18:19",
+   "prs": "#5",
+   "decision": "D-021",
+   "intro": "The home level, built entirely from content files.",
+   "bullets": [
+    "Secrets to shoot: the windpomp, the spare wheel, the potjie, the fence bell.",
+    "Events (a hadeda, a crop sprayer you must not hit) and the area’s omen."
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/m04-extra-pan.jpg",
+     "caption": "M4: panning right along the Karoo level shows the bakkie, an agave and a bottle to shoot."
+    }
+   ]
+  },
+  {
+   "title": "M5 — Menus, saves and the tutorial",
+   "when": "20 Oct 2026, 20:41",
+   "prs": "#6",
+   "decision": "D-022",
+   "intro": "",
+   "bullets": [
+    "Safe saving (works even when the browser blocks storage), the title screen, the Skiet-Skuur (gun shed), settings and pause.",
+    "A first-time tutorial for new players."
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/m05-title.jpg",
+     "caption": "M5: the first real title screen, with the Skiet-Skuur and Settings."
+    }
+   ]
+  },
+  {
+   "title": "M6 — Season Run",
+   "when": "21 Oct 2026, 07:14 and 06:58",
+   "prs": "#7, #8 (and #9: the playable test build on GitHub Pages)",
+   "decision": "D-023",
+   "intro": "A roguelite run through four seasons.",
+   "bullets": [
+    "Quotas per hunt, charms that change the rules, boss hunts and omen hunts.",
+    "The Padstal (farm stall) between hunts to buy charms; save and resume a run.",
+    "From 21 Oct every merge is playable on the GitHub Pages test build."
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/m06-extra-season-intro.jpg",
+     "caption": "M6: the card before a Season Run hunt: autumn, hunt 1 of 3, the bag quota."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/m06-extra-season-padstal.jpg",
+     "caption": "M6: the Padstal between hunts, with four charms on offer."
+    }
+   ]
+  },
+  {
+   "title": "M7 — Daily Hunt",
+   "when": "21 Oct 2026, 12:27 and 11:08",
+   "prs": "#10, #11",
+   "decision": "D-024",
+   "intro": "",
+   "bullets": [
+    "The same seeded hunt for everyone each day, with a streak (and a streak freeze).",
+    "A share card and challenge links (\"beat this score\")."
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/m07-title.jpg",
+     "caption": "M7: the title gains the Daily button and Season Run."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/m07-extra-daily.jpg",
+     "caption": "M7: a Daily Hunt, with its tag and the wind sock."
+    }
+   ]
+  },
+  {
+   "title": "M8 — Three more areas and the arsenal",
+   "when": "21 Oct 2026, 16:05–17:04",
+   "prs": "#12–#16",
+   "decision": "D-025",
+   "intro": "",
+   "bullets": [
+    "New guns: the Kettie (catapult, stones fly a moment before they land), the Plaas-Pomp and the Windbuks.",
+    "Winter in the Bushveld: running flocks, dassie and boulder secrets, the boss Ou Grys, winter glare.",
+    "Spring in the Okavango: splashing water, sun-showers, crested guineafowl hopping out of the reeds, the boss Kuifkop Koning.",
+    "Summer in the Kalahari: heat haze turning into a storm, lightning, Die Stormvoël, a weaver nest.",
+    "The Season Run now travels through all four real seasons."
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/m08-hunt-bushveld-winter.jpg",
+     "caption": "M8: winter in the Bushveld (placeholder art)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/m08-hunt-okavango-spring.jpg",
+     "caption": "M8: spring in the Okavango (placeholder art)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/m08-hunt-kalahari-summer.jpg",
+     "caption": "M8: summer in the Kalahari (placeholder art)."
+    }
+   ]
+  },
+  {
+   "title": "M9 — Platform, speed, accessibility, languages",
+   "when": "21 Oct 2026, 22:30–21:31",
+   "prs": "#17–#21",
+   "decision": "D-026",
+   "intro": "",
+   "bullets": [
+    "Builds for the web, Poki and CrazyGames; ads only between hunts, a rewarded retry, a privacy screen.",
+    "Quality tiers for slower phones, areas downloaded only when needed, a size budget enforced by the tests.",
+    "Accessibility checklist; German and Dutch translations; Afrikaans complete.",
+    "Touch aim assist that rescues a near miss instead of widening every shot."
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/m09-hunt.jpg",
+     "caption": "M9: the quality tiers add a vignette and colour grade."
+    }
+   ]
+  },
+  {
+   "title": "M10 — v1.0.0, ready for a soft launch",
+   "when": "22 Oct 2026, 03:25",
+   "prs": "#22–#29",
+   "decision": "D-027",
+   "intro": "",
+   "bullets": [
+    "An asset pipeline with one switch between final and placeholder art; an audit of every asset.",
+    "Recorded audio with a fallback, music and ambience per area; a juice pass on the tally and the Stampede.",
+    "A capture mode for trailers, self-hosted fonts, visual regression tests, and the portal submission kit."
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/title-v100.jpg",
+     "caption": "v1.0.0: the title screen (visual test baseline)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/m10-hunt-mobile.jpg",
+     "caption": "v1.0.0 on an iPhone-sized screen."
+    }
+   ]
+  },
+  {
+   "title": "v1.0.1 — Clean-up",
+   "when": "22 Oct 2026, 10:34–14:19",
+   "prs": "#30, #31, #33, #34, #37, #38",
+   "decision": "D-028",
+   "intro": "",
+   "bullets": [
+    "The public build keeps the Daily unranked until launch; the Daily start date is one content value.",
+    "Faster score pops; a key hint in capture mode.",
+    "Oupa’s barks: 43 lines as text now, voice later.",
+    "A balance check across all modes (no changes needed)."
+   ],
+   "images": []
+  },
+  {
+   "title": "Faster delivery",
+   "when": "22 Oct 2026, 18:04",
+   "prs": "#39",
+   "decision": "D-030",
+   "intro": "The product owner found the build loop too slow. Tests on a pull request went from about 48 minutes to about 15.",
+   "bullets": [
+    "A quick test lane on pull requests and the full suite on every merge to main.",
+    "Tests run inside the official Playwright image (installing browsers had cost up to 22 minutes per job).",
+    "Working rules: one or two pull requests per job, check-ins every 20 minutes, and a stalled agent turn is restarted at once."
+   ],
+   "images": []
+  },
+  {
+   "title": "Graphics pass 1 — detailed guns and guineafowl",
+   "when": "22 Oct 2026, 18:45–17:19",
+   "prs": "#32, #35, #36",
+   "decision": "D-029",
+   "intro": "An art generator and atlas pipeline, six first-person guns with recoil and reload, and detailed guineafowl. Human art can replace it later.",
+   "bullets": [],
+   "feedback": [
+    "Birds looked grey and washed out → back to dark slate with bright cobalt faces so they pop against the veld.",
+    "The shotgun read as a stubby revolver from behind → redrawn as a long double-barrel pointing into the scene.",
+    "Download size and memory rose sharply → trimmed for low-end phones."
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx1-dubbelloop.jpg",
+     "caption": "Before | after: the Dubbelloop."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx1-flock.jpg",
+     "caption": "Before | after: a foraging flock."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx1-generaal.jpg",
+     "caption": "Before | after: the boss Generaal."
+    }
+   ]
+  },
+  {
+   "title": "The long-range plan",
+   "when": "22 Oct 2026, 20:54",
+   "prs": "#40",
+   "intro": "The product owner’s list after graphics pass 1 became an approved plan (docs/08), split into v1.1 to v1.4.",
+   "bullets": [],
+   "feedback": [
+    "Ammo on screen must match each gun and look real: shells, stones, air-rifle pellets, .22 rounds.",
+    "Sound effects are very important.",
+    "The crosshair should change per gun.",
+    "A .22 long rifle, targets much further away, iron sights, peep sight and a low-power scope with zoom.",
+    "Voices for Oupa through a text-to-speech subscription (needs the product owner’s account; later)."
+   ],
+   "images": []
+  },
+  {
+   "title": "Graphics pass 2 — landscapes for all four areas",
+   "when": "23 Oct 2026, 01:18 and 23 Oct 00:05",
+   "prs": "#41, #42",
+   "decision": "D-031",
+   "intro": "Interim landscapes, props, other creatures and effects for the Karoo, Bushveld, Kalahari and Okavango.",
+   "bullets": [],
+   "feedback": [
+    "Grass was stamped in a repeating pattern → varied tufts, stones and stalks in irregular clusters.",
+    "Bushes were flat green blobs → twiggy Karoo bossies with light and shadow.",
+    "The sky was plain → an autumn gradient with soft cumulus.",
+    "A dark band behind the Kalahari dunes read as a glitch → a distant thunderhead.",
+    "\"Karoo approved, carry on with the other areas\" (22 Oct, evening), together with the standing instruction to keep development going around the clock."
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx2-karoo.jpg",
+     "caption": "Before | after: the Karoo."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx2-bushveld.jpg",
+     "caption": "Before | after: the Bushveld."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx2-kalahari.jpg",
+     "caption": "Before | after: the Kalahari."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx2-okavango.jpg",
+     "caption": "Before | after: the Okavango."
+    }
+   ]
+  },
+  {
+   "title": "v1.1 — Gun feel",
+   "when": "23 Oct 2026, 06:24 and 04:40",
+   "prs": "#43, #44 (and #45: a CI fix)",
+   "decision": "D-032",
+   "intro": "",
+   "bullets": [
+    "Realistic ammo per gun: shotgun shells, stones, air-rifle pellets, paper cartridges, a mielie-kernel hopper.",
+    "A crosshair per gun that shows its spread; an offset crosshair on touch screens so the finger doesn’t hide the target.",
+    "30 interim sound effects, plus music and ambience for each area."
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v11-dubbelloop.jpg",
+     "caption": "Before | after: the Dubbelloop’s shells and crosshair."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v11-kettie.jpg",
+     "caption": "Before | after: the Kettie’s stones and crosshair."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/v11-hunt.jpg",
+     "caption": "v1.1: the shotgun crosshair over the flock."
+    }
+   ]
+  },
+  {
+   "title": "v1.2 — Day-of-week maps and the bonus map Verder",
+   "when": "23 Oct 2026, 13:57",
+   "prs": "#47 (includes #46)",
+   "decision": "D-033",
+   "intro": "",
+   "bullets": [
+    "Seven layouts per area, one per weekday (UTC): light, props, feeding spots, fly-over routes and weather change.",
+    "Classic and the Daily play today’s map; replays and challenge links remember it.",
+    "Beat the day’s target to unlock Verder, a bonus map further out; it resets at midnight UTC."
+   ],
+   "feedbackLabel": "Look review before merging",
+   "feedback": [
+    "Claude’s look review: make each weekday’s light clearly different (Monday haze, Tuesday clear midday, Wednesday overcast, Thursday golden afternoon, Friday dusty wind, Saturday dusk, Sunday bright); give Saturday a real dusk glow; vary the feeding spots. All done before merging."
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/v12-title.jpg",
+     "caption": "v1.2: the title names today’s map and the score that unlocks Verder."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v12-sheet1.jpg",
+     "caption": "The Karoo, Monday to Thursday."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v12-sheet2.jpg",
+     "caption": "The Karoo, Friday to Sunday and Verder."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/v12-hunt-bonus-verder.jpg",
+     "caption": "Verder: the flock far out at the horizon, in haze."
+    }
+   ]
+  },
+  {
+   "title": "Playtest admin page",
+   "when": "23 Oct 2026, 15:30 (requested 11:50, live 13:32)",
+   "prs": "#48",
+   "decision": "D-034",
+   "intro": "Open the test site with ?admin=1 to reach every level directly.",
+   "bullets": [
+    "Lists all 49 levels: each area plain, its seven weekday maps and Verder, the Daily on any date, and every Season Run stage.",
+    "Choose the gun, seed, hunt length and weather; Play; come back to rate it (OK or Needs work, 1–5 stars, notes).",
+    "\"Send to GitHub\" opens a pre-filled feedback issue; \"Copy report\" copies it. Admin hunts never touch normal progress. Web test build only."
+   ],
+   "feedback": [
+    "\"I want an ADMIN url that I can activate in my browser that enables access to all the levels to test them … select a level, review and test them one by one and give feedback.\" (spelling tidied)"
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/renders/admin-extra-admin-list.jpg",
+     "caption": "The admin page: every map grouped by area and day, with options, review, stars and notes."
+    }
+   ]
+  },
+  {
+   "title": "Speed tests run alone",
+   "when": "23 Oct 2026, 16:10",
+   "prs": "#50",
+   "intro": "A low-end-phone speed test kept failing on the shared test machine. Run alone, the frame cost is 11 ms against a 20 ms budget, so the game itself was fine; the test now runs in its own job.",
+   "bullets": [],
+   "images": []
+  },
+  {
+   "title": "Graphics pass 3 — towards semi-realistic",
+   "when": "23 Oct 2026, 19:58 (started 11:59)",
+   "prs": "#49",
+   "decision": "D-035",
+   "intro": "",
+   "bullets": [
+    "Round 1 (done 15:05): the farmhouse stands whole; every area has varied, Namibia-inspired hills (layered mesas, granite domes like Spitzkoppe, a massif like the Brandberg); a detailed old bakkie with no badge; finer guns and guineafowl; the bird with no texture was the kwêvoël (grey go-away-bird) and is now textured.",
+    "Round 2 (done 15:36, after Claude’s review notes): guns without cartoon outlines, with fine wood grain, blued steel, a real stock shape and a slim pump slide; a hump-backed, egg-shaped guineafowl with a small head on a slim barred neck, a small eye, ringed spots and a soft edge; rounded, lopsided koppies instead of cones; Kalahari dunes with curved crests and slip faces.",
+    "Code review fixes (done 17:33): the gun shed draws small picture icons instead of loading whole gun image sheets (about 1 MB instead of 16 MB or more; 101 MB in total after a hunt on a low-end phone, against a 128 MB limit); the last near-black gun edges went; the bakkie’s spare wheel now hangs where it can be seen and shot.",
+    "Merged at 17:58 with all tests green: 851 unit tests, first download 2.9 MB of 3 MB. The game’s rules did not change."
+   ],
+   "feedback": [
+    "\"The farmhouse seems half cut, layers issue. Also the mountains can’t all be flat, look at mountains in Namibia and make them more interesting. The car detail needs to be better. And the detail on the guns needs a more realistic touch, they look too cartoony; the same applies for the birds. I see there is even a bird that has no texture at all.\" (23 Oct, about 11:40; spelling tidied)"
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx3-mountains.jpg",
+     "caption": "Round 1, before | after: hills in the Karoo, Kalahari, Bushveld and Okavango, and the farmhouse."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx3-bakkie.jpg",
+     "caption": "Round 1, before | after: the bakkie."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx3-birds.jpg",
+     "caption": "Round 1, before | after: guineafowl (near and middle distance), the kwêvoël and the hadeda."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx3-guns.jpg",
+     "caption": "Round 1, before | after: the Dubbelloop and the Pomp."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx3-r2-guns.jpg",
+     "caption": "v1.2 | round 1 | round 2: the Dubbelloop (top) and the Pomp (bottom)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx3-r2-birds.jpg",
+     "caption": "v1.2 | round 1 | round 2: the guineafowl near (top) and at middle distance (bottom)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx3-r2-ridges.jpg",
+     "caption": "Round 2: rounded Karoo koppies (top) and Kalahari dunes with curved crests (bottom)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx3-final-karoo.jpg",
+     "caption": "Before | after, in the game: the Karoo at the start of a hunt."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gfx3-shed-iphone.jpg",
+     "caption": "The Skiet-Skuur gun cards with their new pictures, on an iPhone 14 held sideways."
+    }
+   ]
+  },
+  {
+   "title": "Screenshot baselines recorded on GitHub",
+   "when": "23 Oct 2026, 23:20",
+   "prs": "#55",
+   "decision": "D-030",
+   "intro": "The visual tests compare each screen with a stored screenshot. Those reference screenshots are now taken by GitHub, not on the build server.",
+   "bullets": [
+    "Label a pull request update-baselines (or start the workflow by hand): GitHub renders the screens in the same browser image as the tests, commits the ones that changed to the branch and re-runs the tests.",
+    "The heavy screenshot container no longer runs on Tank’s server, which had been the slowest step there, and every machine now compares against the same pictures."
+   ],
+   "feedback": [
+    "\"yes, let GitHub record the screenshot baselines\" (23 Oct, about 20:50)"
+   ],
+   "images": []
+  },
+  {
+   "title": "v1.3 — Long range: the Ver plane, sights and zoom, Die Twee-Twee",
+   "when": "24 Oct 2026, 04:24 (started 23 Oct, 20:00; part A merged 02:14)",
+   "prs": "#53, #54",
+   "decision": "D-036",
+   "intro": "The first rifle. A new farthest layer of the landscape that only rifles can reach, sights that zoom when you hold, and two harder bonus maps.",
+   "bullets": [
+    "Memory first: gun pictures are freed after a hunt on low-end phones, so the game stays under their 128 MB limit (about 106 MB at most, down from 125 MB after a hunt with both crate guns).",
+    "The Ver plane: a farthest layer with its own flocks, feeding spots and fly-overs, reachable only with a rifle.",
+    "Hold to raise the sight and zoom, let go to fire; sway and a breath hold. Iron sight 1.5×, peep 2×, small scope 4×. Sliding onto the ammo (touch) or right-clicking (mouse) lowers it without firing.",
+    "Die Twee-Twee (.22, 5 rounds) with three sights fitted in the Skiet-Skuur and unlocked through rank and the Notaboek.",
+    "Bonus maps Nog Verder and Die Verste; Die Verste needs a rifle with a scope, and its button says so.",
+    "Replays of zoomed shots play out identically on desktop, Pixel 7 and iPhone.",
+    "Balance (500 hunts per bot): the .22 scores below both shotguns on the plain maps (3 971 / 3 849 / 3 620 with iron / peep / scope, against 4 180 and 4 306); on the bonus maps every gun stays under 4 500. First download 2.94 MB of 3 MB; 908 unit tests."
+   ],
+   "feedbackLabel": "Look review and independent review before merging",
+   "feedback": [
+    "Claude’s look review: the scope and peep looked right; the iron sight’s rear leaf covered too much of the view and its front post was a hairline. Redrawn with a slim leaf and a broad, lit post; the dark area fell from about 35–40 % of the view to 13–15 %.",
+    "The independent review found that the rifle test bot never shot crates or secrets, so the first balance figures were wrong. With the bot fixed, the .22 and the bonus maps were retuned (Nog Verder ×0.6, Die Verste ×0.46). It also restored the approved rule that Die Verste needs a scope and fixed the bonus-map names, a mid-hunt stutter when a crate gun loaded, the rifle hints in four languages and the replay tool’s file format.",
+    "Speed: the scoped view passes its CPU budget on desktop and Pixel 7. On the phone profile it draws about 2.6 times the pixels of an open hunt, because the far layers all fill the screen when zoomed in; that is tracked in issue #56 for a check on a real phone before v1.4’s stronger scope."
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v13-scope.jpg",
+     "caption": "Open view | small scope 4× on Nog Verder, held on a Ver flock (desktop)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v13-peep.jpg",
+     "caption": "Open view | peep sight 2× (desktop)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v13-iron.jpg",
+     "caption": "Open view | iron sight 1.5×, after the redraw (desktop)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v13-scope-pixel7.jpg",
+     "caption": "The small scope on a Pixel 7 held sideways."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v13-shed.jpg",
+     "caption": "The Skiet-Skuur: the Twee-Twee with its three sights."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v13-die-verste-locked.jpg",
+     "caption": "The title: Die Verste locked until a scoped rifle is fitted; the rifle hints along the bottom."
+    }
+   ]
+  },
+  {
+   "title": "Training ground (Skietbaan)",
+   "when": "24 Oct 2026, 07:38 (started 02:25)",
+   "prs": "#58",
+   "decision": "D-037",
+   "intro": "A shooting range on the admin page: try any gun, locked ones too, at any distance and see exactly how it shoots, without the pressure of a hunt.",
+   "bullets": [
+    "Pick a gun (all 9, including the Twee-Twee with each sight and the two crate guns), an area, a distance (near, middle, far or Ver; guns that can’t reach Ver say \"out of reach\") and a target: a paper target, a standing bird, a flying bird or a small flock.",
+    "It runs on the real game engine, so every hit is exactly what a hunt would give: no timer, score, Frenzy or penalties, endless spare ammo but reloads as normal. A test replays a range session twice and gets the same result.",
+    "Statistics per gun and distance: shots, hits, misses, hit %, shotgun pellets on target per shot; on paper, the last 20 holes are drawn with the group size (also as a % of a guineafowl’s width at that distance) and where the group centres against the aim. Reset and \"Copy report\".",
+    "It never touches the save: a browser test compares every stored value before and after a session, byte for byte.",
+    "Only in the GitHub Pages test build, from ?admin=1. The Poki and CrazyGames builds don’t contain it at all, and the size check fails any portal build that does. Its code loads only when opened (8.7 KB); the first download grew by 1.1 KB to 2.94 MB of 3 MB.",
+    "Strings in English, Afrikaans, German and Dutch; browser tests on desktop, Pixel 7 and iPhone 14 held sideways."
+   ],
+   "feedbackLabel": "Look review and independent review before merging",
+   "feedback": [
+    "The independent review found the code sound: hunts, Daily seeds and challenge links are unchanged (the range is left out of the content fingerprint), the portal builds are clean and the save is never written.",
+    "Claude’s look review on the phones: Start was off the bottom of a Pixel 7 screen, the page jumped back to the top after every tap, and the stats box hid the flying birds. Now Start sits in a footer with a summary of the choices, the page keeps its place, the stats shrink to a small box that lets taps through, and hunt-style score labels no longer show on the range. A browser test now also shoots a flying bird."
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/skietbaan-stats.jpg",
+     "caption": "The setup page with the session table (desktop). Ver is \"out of reach\" for the Dubbelloop."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/skietbaan-paper-near.jpg",
+     "caption": "Dubbelloop at near on the paper target: 16 pellet holes from two shots, with the group size and centre."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/skietbaan-scope-ver.jpg",
+     "caption": "The .22 with the small scope at Ver: four shots inside 1.4 px."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/skietbaan-setup-pixel7.jpg",
+     "caption": "The setup page on a Pixel 7 held sideways, with Start in a footer that is always on screen."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/skietbaan-flyover-pixel7.jpg",
+     "caption": "A flying bird bagged at middle distance on a Pixel 7; the stats shrink to a small box with \"More\"."
+    }
+   ]
+  },
+  {
+   "title": "Training ground update: mixed targets, steel plates, hit feedback",
+   "when": "24 Oct 2026, 12:21 (asked for at 05:45)",
+   "prs": "#61",
+   "decision": "D-037 (update 24 Oct)",
+   "intro": "After the product owner played the training ground: more targets at once, every distance for every gun, and a clear reaction on every hit.",
+   "bullets": [
+    "Mixed course: paper targets, steel plates, standing birds, a fly-over and a small flock at near, middle, far and Ver at the same time. Shuffle deals a new layout; the layout comes from the seed, so it is the same on every device.",
+    "Every distance for every gun: the Kettie or a shotgun can be tried at Ver. Their shots fall short as in a hunt and are counted as \"fell short\" in the stats.",
+    "Steel plates: a gong on a post that swings and rings when hit, easy to read at long range where paper holes are too small to see.",
+    "A reaction on every hit: paper blinks and thwacks, plates ring and swing, birds play a hit sound, and a HIT ring appears on the target, visible even at Ver without zooming. A miss shows a dust puff, or SHORT where the shot fell short.",
+    "Stats count each hit for the gun, distance and kind of target it struck, and each miss for the target nearest the aim.",
+    "First download +0.9 KB (2.94 MB of 3 MB); everything new loads with the training ground. 971 unit tests."
+   ],
+   "feedbackLabel": "Look review and independent review before merging",
+   "feedback": [
+    "The first Tank job kept losing its connection to Claude mid-turn; a fresh job with a short brief finished the work.",
+    "The independent review found that Kettie stones flew through paper targets and plates at near and middle distance, and that in about half of the mixed layouts a target stood behind a nearer one. Both were fixed: stones now stop on every target, the course was re-spaced, and a content check now rejects any layout where targets overlap. Rapid fire no longer floods the sound, and Shuffle always deals a new layout."
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/skietbaan2-mixed.jpg",
+     "caption": "The mixed course: targets at all four distances at once (desktop, after the re-spacing)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/skietbaan2-hit-far.jpg",
+     "caption": "A hit on a far paper target: the HIT ring and the stats for that distance."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/skietbaan2-plate-iphone.jpg",
+     "caption": "A steel plate hit at middle distance on an iPhone 14 held sideways."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/skietbaan2-kettie-short.jpg",
+     "caption": "The Kettie at Ver: the stones fall short and each shot is marked SHORT."
+    }
+   ]
+  },
+  {
+   "title": "v1.4 part A: Die Langloop and a faster scope view",
+   "when": "24 Oct 2026, 15:23 (started 05:40)",
+   "prs": "#60",
+   "decision": "D-038",
+   "intro": "The long rifle from the approved long-range plan, after a fix for the scope view running slowly on phones (issue #56).",
+   "bullets": [
+    "Faster scope view (issue #56): while zoomed, the game skips drawing what cannot be seen. On the Pixel 7 test profile the scoped view went from 1.33× to 0.78× the cost of the open view, and a browser test checks the picture is unchanged.",
+    "Die Langloop: a long rifle with 3 rounds, a 0.8 s bolt and a 1.5 s magazine change. It reaches the farthest (Ver) birds and scores ×2 there.",
+    "Variable scope at 3×, 6× and 9×: the mouse wheel or +/- keys on desktop, −/+ buttons beside the ammo on phones. Each step is recorded, so a replay comes out the same on every screen.",
+    "Very loud: every shot alerts every flock, so the player picks the bird before pressing.",
+    "Unlocked the first time Die Verste is unlocked in any area. Players who had already reached Die Verste get it on their next hunt.",
+    "Brass cartridges with pointed bullets and an empty case when spent, a thin crosshair, and interim gun art and shot sound.",
+    "Balance over 500 hunts per bot: below both shotguns on the plain maps and under the 4 500 cap on the long-range maps. First download 2.89 MB of 3 MB; 994 unit tests."
+   ],
+   "feedbackLabel": "Look review and independent review before merging",
+   "feedback": [
+    "Tank’s turns kept ending mid-step, and one earlier job lost its connection; a fresh job with a short brief finished the work.",
+    "Claude fixed two test problems on the way: a data file the browser tests could not load, and a dust devil that kept swaying in a frozen test frame.",
+    "The independent review found one gap: players who had already reached Die Verste in v1.3 would never get the Langloop. Claude fixed it, with a test, before merging. It also noted that the scoped .22 still scores slightly higher on the farthest maps; that is recorded as a trade-off for the product owner to decide."
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v14-langloop-3x.jpg",
+     "caption": "Die Langloop at 3× on Die Verste (desktop): the scope ring, the fine cross with range marks, and 3 brass cartridges."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v14-langloop-9x-pixel7.jpg",
+     "caption": "At 9× on a Pixel 7 held sideways, with the −/+ zoom buttons beside the ammo."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v14-langloop-ammo.jpg",
+     "caption": "Open view after one shot: two cartridges left and an empty case."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v14-langloop-shed-iphone.jpg",
+     "caption": "The Skiet-Skuur on an iPhone 14: Die Langloop equipped, with its variable scope row."
+    }
+   ]
+  },
+  {
+   "title": "v1.4 part B: the Namibië pack, camelthorn trees and the family nest, angry weavers",
+   "when": "24 Oct 2026, 23:36 (started 24 Oct, 14:40)",
+   "prs": "#64",
+   "decision": "D-039",
+   "intro": "A fifth hunting area, built for long range, and the first props drawn at the new, higher quality bar.",
+   "bullets": [
+    "Camelthorn trees drawn in layers: furrowed bark lit and shaded on every limb, zig-zag branches, an umbrella crown of feathery clumps with sky between them, grey seed pods and dappled shade. The product owner approved them on 24 Oct.",
+    "The sociable weavers’ family nest: a domed haystack with over 2 000 straws, a hanging fringe and 10–20 entrance holes underneath. Branches pass through it and leaves grow over the top.",
+    "Angry weavers: shooting the nest costs 10 points and sends 6–15 small birds pouring out of the holes; they swirl, a few dart at the camera, and settle back after about 4 seconds. Their flight is worked out from the hunt itself, so replays show the same birds.",
+    "Namibië: the white Etosha salt pan, red Namib dunes, quiver trees, camelthorns and a waterhole flock far out on the pan. Every weekday map opens the farthest (Ver) plane; on Tuesdays, Thursdays and the bonus maps the far birds shimmer in a mirage.",
+    "It unlocks for good once Die Verste is reached in any area. The title screen gains an area picker that shows Namibië locked, with how to unlock it.",
+    "Balance: every gun and sight was measured over 200 hunts on all seven weekday maps and Saturday’s three bonus maps. A new per-plane points setting brought the scoped .22 (the strongest) under the 4 500 cap everywhere; its worst map is now 4 421.",
+    "First download still within the 3 MB budget; 1 027 unit tests."
+   ],
+   "feedbackLabel": "Look reviews, independent review and fixes before merging",
+   "feedback": [
+    "Product owner (24 Oct, 12:05): \"the graphics of that nest is terrible … increase quality by 500 %\". The trees and nest were redrawn first and shown as close-ups for approval before the rest of the area was built.",
+    "The independent review found four things, all fixed before the merge: the waterhole tree hid part of the far flock at the opening view (moved; a new check proves 0 % hidden), the scoped .22 scored over the cap, the bonus maps could open in the wrong area, and older saves could miss the unlock.",
+    "Tank’s own browser tests kept overloading its server, so Claude took over the screenshot runs (desktop, Pixel 7 and iPhone 14) and the balance sweeps."
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v14b-pan-tue-pixel7.jpg",
+     "caption": "Namibië on a Pixel 7 held sideways (Tuesday): the salt pan, the Namib dunes, quiver trees and the waterhole flock out on the pan."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v14b-nest-closeup.jpg",
+     "caption": "The family nest in its camelthorn (desktop close-up)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v14b-weavers-pixel7.jpg",
+     "caption": "The nest shot: angry weavers pour out and Oupa’s nest bark appears (Pixel 7)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v14b-flock-clear.jpg",
+     "caption": "After the review fix: the waterhole flock stands clear of the trees at the opening view."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v14b-scope-pixel7.jpg",
+     "caption": "The waterhole flock through Die Langloop’s scope (Pixel 7)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v14b-locked-iphone.jpg",
+     "caption": "The new area picker on an iPhone 14: Namibië locked until Die Verste is reached."
+    }
+   ]
+  },
+  {
+   "title": "Skietbaan gongs: clean steel plates with lasting hit marks",
+   "when": "25 Oct 2026, 02:25 (started 24 Oct, 23:37)",
+   "prs": "#66",
+   "decision": "D-040",
+   "intro": "The product owner asked for clean steel gongs on the training ground, with every shot visible for the whole session.",
+   "bullets": [
+    "A freshly painted plate every visit: the fake \"old hits\" baked into the plate picture are gone. The plate has a clean bevelled steel rim and chains, and hangs from a timber frame with grain and bolts, drawn at double resolution so it stays sharp in the 3–9× scope.",
+    "Every hit leaves a lead-splash mark exactly where the bullet struck: a silver star with a dark centre and small flecks, sized by the gun. A shotgun pellet leaves a small mark, the .22 a medium one, and the Langloop and Kettie a large one. Each mark’s shape comes from the shot itself, so a replay draws the same marks.",
+    "Marks swing with the plate, and the newest one glints for a moment.",
+    "Steel and paper follow one rule: every mark and hole stays for the whole visit, through gun swaps, the scope and switching distances (paper used to show only the last 20). New buttons clear them on purpose: Repaint, New paper and Fresh targets.",
+    "Up to 400 marks per target are baked into one picture, so phones stay fast."
+   ],
+   "feedbackLabel": "Reviews and fixes before merging",
+   "feedback": [
+    "Product owner (24 Oct, 17:45): \"The metal gongs need to be clean. And when shot, the shot should be visible and stay visible during the session. I want to see consistency.\"",
+    "The independent review found that the plate drawn before its picture loaded came out blank, a test that could not catch the bug it was meant for, marks shared between courses, and gun sizes written into the code instead of the gun data. Tank fixed all of them.",
+    "Claude’s screenshots showed no targets at all. A browser check found the cause in the tests rather than the game: the test mouse rested at the screen edge, which scrolls the view, so the shots went where the plate used to be. The tests now reload with a key and fail loudly if the view moves."
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gongs-clean-pixel7.jpg",
+     "caption": "A freshly painted gong on its timber frame (Pixel 7 close-up)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gongs-hits30-iphone.jpg",
+     "caption": "After 30 shots with the air rifle: 30 hits, every mark still there (iPhone 14 held sideways)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gongs-paper30.jpg",
+     "caption": "Paper with 30 holes: paper now keeps every hole too."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/gongs-langloop-pixel7.jpg",
+     "caption": "A gong at the farthest distance in Die Langloop’s scope (Pixel 7)."
+    }
+   ]
+  },
+  {
+   "title": "v1.5 Languages: text, voice and names for every audience",
+   "when": "25 Oct 2026, 06:39 (started 25 Oct, 02:28)",
+   "prs": "#68",
+   "decision": "D-041",
+   "intro": "The product owner wanted the game, the voice and the names in English, Afrikaans and German, so it works for more audiences.",
+   "bullets": [
+    "Two separate settings: the text language (Auto, English, Afrikaans, German, Dutch) and the voice language (Same as text, English, Afrikaans, German). You can play with an Afrikaans voice and English subtitles. Dutch text uses the Afrikaans voice, the closest match.",
+    "Every name now has a proper English, German and Dutch version: guns, maps, the Gun Shed, the Notebook, the Bird Book, birds, secrets, charms, ranks and helpers. Dubbelloop becomes Double Barrel in English and Doppelflinte in German; Afrikaans keeps the farm names. Place names stay as they are.",
+    "An \"Afrikaans names\" switch keeps the Afrikaans flavour names in any language, for players who like them.",
+    "Oupa now speaks: his 43 comments and the short scolds are voiced in English, Afrikaans and German. The voices are interim, made offline with free, commercially usable text-to-speech (Kokoro, Apache-2.0). No good free Afrikaans voice exists, so the Afrikaans lines are read by the English voice using Afrikaans pronunciation rules; they can be swapped for a real voice later.",
+    "Only the chosen voice language is downloaded, after the first tap. Each voice pack is under 1 MB, and the first download is unchanged.",
+    "Share cards, the Daily share text and the end-of-hunt tally follow the text language."
+   ],
+   "feedbackLabel": "Reviews and fixes before merging",
+   "feedback": [
+    "Product owner (24 Oct): \"I want options to have game and voice either German, English, Afrikaans. And text. Adjust also names accordingly, as the game needs to cater for multiple audiences.\"",
+    "Claude reviewed the names table before any files changed (German \"Season Run\" became \"Saisonjagd\").",
+    "The independent review found six things, all fixed before the merge: Oupa’s first greeting was usually silent because the voice was still loading, a test never proved a voice line was heard, a failed download was never retried, an old language’s voice stayed in memory, a stray build file was committed, and the setting hints were too small to read on phones.",
+    "On GitHub, a new voice test failed on the slow phone runner because it read Oupa’s line twice and the line had already gone. Claude fixed the test."
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v15-de-title.jpg",
+     "caption": "The title screen in German (desktop)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v15-settings-iphone.jpg",
+     "caption": "Settings on an iPhone 14: the text and voice languages and the \"Afrikaans names\" switch, with readable hints."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v15-de-shed-pixel7.jpg",
+     "caption": "The Gun Shed in German on a Pixel 7: Doppelflinte, Luftgewehr, Schleuder, Hof-Pumpe."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v15-afnames-shed-pixel7.jpg",
+     "caption": "English text with \"Afrikaans names\" on: Dubbelloop, Windbuks, Kettie and Plaas-Pomp keep their farm names."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v15-af-tally-pixel7.jpg",
+     "caption": "The end-of-hunt tally in Afrikaans (Bakkie-telling)."
+    }
+   ]
+  },
+  {
+   "title": "v1.6 Veld art: trees, fruit, far animals and the windmill",
+   "when": "25 Oct 2026, 18:56 (started 25 Oct, 06:45)",
+   "prs": "#70",
+   "decision": "D-042",
+   "intro": "The product owner wanted every map’s trees, bushes, grass and fruit at the quality of the camelthorn, and far animals that look like animals, not rough shapes.",
+   "bullets": [
+    "Plants redrawn on every map at the camelthorn quality bar. Karoo: sweet thorns and aloes, renosterbos and ganna bushes. Bushveld: a baobab with hanging pods, mopane and marula with fallen fruit. Okavango: the sausage tree, jackalberries, ilala palms, papyrus and water lilies. Kalahari: shepherd’s trees, camelthorn pods and silvery Bushman grass. Namibië: quiver trees in yellow flower and !nara melons on the dunes.",
+    "Far animals redrawn with true body shapes: giraffes with real anatomy, patches and calves, springbok, gemsbok, zebra, wildebeest, elephants, lechwe and ostriches. They stay sharp through the scope.",
+    "Far trees are drawn per species with broken crowns, instead of blobs. Each area has realistic, softly drifting clouds of its own.",
+    "The dassie is bigger and more lifelike, on grey granite boulders. The dead camelthorn in the Kalahari is now a weathered tree skeleton.",
+    "The windmill was redrawn from the product owner’s photos: 20 curved sheet-metal sails, several missing, one bent and one torn, with rust. It turns into the wind and spins on windy days. The Kalahari windmill now has its wheel.",
+    "The placeholder-art bug is fixed: a hunt or the Skietbaan waits for its art behind a loading veil and retries if a file fails; the offline cache no longer serves an old file list after a new version goes live; a bar offers a reload when a new version is ready.",
+    "A build stamp on every map, the title and the Skietbaan: version, commit, date, area, weekday and whether the art loaded (for example \"v1.6.0 · 89ec664 · 25 Oct 12:11 · Okavango · Sun · art ok\").",
+    "A \"Fresh load\" button in the Skietbaan (test builds only) clears the game’s caches and reloads, without a manual hard refresh. The save is untouched.",
+    "The pale ring inside the scope is gone: it was the placeholder sight showing before the real one loaded.",
+    "Only the look changed: the game’s rules and replays are the same. First download 2.96 MB of 3 MB; every area pack within its 1.5 MB limit. 1 098 unit tests."
+   ],
+   "feedbackLabel": "Reviews and fixes before merging",
+   "feedback": [
+    "Product owner (25 Oct, about 06:50): the windmill needs more detail, a wheel with missing blades, and it should turn with the wind and spin.",
+    "About 07:00: the dassie \"needs to be increased a lot\". About 07:05: the giraffes’ \"detail needs to become more realistic\". About 07:10: the far trees look like blobs.",
+    "About 07:10–07:15: placeholder art on a MacBook Air in Brave, fixed by a hard reload. Claude traced it to the offline cache keeping an old file list after a deploy.",
+    "About 07:20: a version number on every map. About 07:25: the Kalahari dead tree \"needs a lot of work\" and the clouds \"need to be more realistic\".",
+    "Later, from the product owner’s photos of a real windmill: \"not that ring on the outside … more missing ones, in random order … old and rusted\". The redraw was approved: \"looks great, implement it\". The product owner also asked for the Fresh load button.",
+    "The independent review found five issues, all fixed: the reload bar showed when nothing had changed and sat over the game; a missing file list on the live site was not treated as an error; the scope and far-plane files that load late were not checked and retried; and parts of the view were not rebuilt once late art arrived.",
+    "Claude fixed the scope’s pale ring and the Kalahari windmill, whose wheel was hidden while the sign’s secret was live.",
+    "On GitHub, a loading test checked a retry counter too early (fixed); one long training-ground test timed out once on the slow runner and passed on a re-run."
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-windmill.jpg",
+     "caption": "Before | after on a phone: the Karoo windmill, redrawn from the product owner’s photos, with missing and bent sails and rust."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-giraffes-scope.jpg",
+     "caption": "Before | after: far giraffes through the scope, now with patches, true proportions and a calf."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-dassie.jpg",
+     "caption": "Before | after: the Bushveld dassie, bigger and lifelike, on grey granite."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-dead-tree.jpg",
+     "caption": "Before | after on a phone: the Kalahari dead camelthorn and the new clouds."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-okavango.jpg",
+     "caption": "Before | after on a phone: the Okavango sausage tree, ilala palms and clouds, with the build stamp along the bottom."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-scope.jpg",
+     "caption": "Before | after in the Skietbaan: Die Langloop at 3× in the Bushveld. The pale ring is gone; giraffes and the dassie on granite."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-namibie.jpg",
+     "caption": "Before | after on a phone: Namibië with quiver trees in yellow flower, !nara hummocks and far animals on the pan."
+    }
+   ]
+  }
+ ],
+ "evolution": [
+  {
+   "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/evo-1-v100.jpg",
+   "caption": "v1.0.0 (21 Oct): code-drawn placeholder art."
+  },
+  {
+   "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/evo-2-gfx1.jpg",
+   "caption": "Graphics pass 1 (22 Oct): detailed guineafowl and a long double-barrel."
+  },
+  {
+   "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/evo-3-gfx2.jpg",
+   "caption": "Graphics pass 2 (23 Oct): interim Karoo landscape, farmstead, water tank, bushes and sky."
+  },
+  {
+   "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/evo-4-v11.jpg",
+   "caption": "v1.1 (23 Oct): real shotgun shells in the ammo belt."
+  },
+  {
+   "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/evo-5-v12.jpg",
+   "caption": "v1.2 (23 Oct): a weekday map (overcast light, the bakkie moved)."
+  },
+  {
+   "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/evo-6-gfx3.jpg",
+   "caption": "Graphics pass 3 (23 Oct): rounded hills, the farmstead whole, semi-realistic guineafowl and gun."
+  }
+ ],
+ "decisions": [
+  {
+   "id": "D-001–D-016",
+   "text": "Before code: engine, the sim/render split, data-driven content, landscape only, mobile input, no fullscreen on iPhone, monetisation, art direction, budget, name, flock tempo, charm order, build order"
+  },
+  {
+   "id": "D-017",
+   "text": "M0 toolchain and scaling"
+  },
+  {
+   "id": "D-018",
+   "text": "M1 game rules in the engine"
+  },
+  {
+   "id": "D-019",
+   "text": "M2 game-layer rules"
+  },
+  {
+   "id": "D-020",
+   "text": "M3 flock rules and balance"
+  },
+  {
+   "id": "D-021",
+   "text": "M4 Karoo rules"
+  },
+  {
+   "id": "D-022",
+   "text": "M5 saves, menus, tutorial"
+  },
+  {
+   "id": "D-023",
+   "text": "M6 Season Run"
+  },
+  {
+   "id": "D-024",
+   "text": "M7 Daily Hunt, share card, challenge links"
+  },
+  {
+   "id": "D-025",
+   "text": "M8 remaining areas and arsenal"
+  },
+  {
+   "id": "D-026",
+   "text": "M9 platform, performance, accessibility, languages"
+  },
+  {
+   "id": "D-027",
+   "text": "M10 final art and audio integration"
+  },
+  {
+   "id": "D-028",
+   "text": "v1.0.1 clean-up"
+  },
+  {
+   "id": "D-029",
+   "text": "Graphics pass 1"
+  },
+  {
+   "id": "D-030",
+   "text": "Faster delivery: CI lanes and working rules"
+  },
+  {
+   "id": "D-031",
+   "text": "Graphics pass 2"
+  },
+  {
+   "id": "D-032",
+   "text": "v1.1 gun feel"
+  },
+  {
+   "id": "D-033",
+   "text": "v1.2 day-of-week maps and Verder"
+  },
+  {
+   "id": "D-034",
+   "text": "Playtest admin page"
+  },
+  {
+   "id": "D-035",
+   "text": "Art direction: semi-realistic (graphics pass 3)"
+  },
+  {
+   "id": "D-036",
+   "text": "v1.3 long range: the Ver plane, sights and zoom, the .22, Nog Verder and Die Verste"
+  },
+  {
+   "id": "D-037",
+   "text": "Training ground (Skietbaan): admin and test build only, never touches the save, left out of the content fingerprint"
+  },
+  {
+   "id": "D-038",
+   "text": "v1.4 part A: the faster scope view (#56) and Die Langloop"
+  },
+  {
+   "id": "D-039",
+   "text": "v1.4 part B: the Namibië pack, camelthorn trees and the family nest, angry weavers, per-plane points"
+  },
+  {
+   "id": "D-040",
+   "text": "Skietbaan gongs: clean plates, lasting hit marks on steel and paper, mark size from the gun data"
+  },
+  {
+   "id": "D-041",
+   "text": "v1.5 Languages: separate text and voice languages, names per language with an \"Afrikaans names\" option, interim voices per language"
+  },
+  {
+   "id": "D-042",
+   "text": "v1.6 Veld art pass: plants, far animals, clouds, the windmill and dassie, art that waits to load, the build stamp"
+  },
+  {
+   "id": "D-043",
+   "text": "v1.6b reload power-ups: Blitslaai and Oupa Laai (in review, #71)"
+  },
+  {
+   "id": "D-044",
+   "text": "v1.7 meerkat colonies on the desert maps (in review, #72)"
+  },
+  {
+   "id": "D-045",
+   "text": "Project overview page in the admin, with live data on the project-log branch (in progress)"
+  }
+ ],
+ "glossary": [
+  {
+   "term": "Tarentaal",
+   "meaning": "Helmeted guineafowl, the game’s quarry"
+  },
+  {
+   "term": "Dubbelloop",
+   "meaning": "Double-barrelled shotgun"
+  },
+  {
+   "term": "Plaas-Pomp",
+   "meaning": "Farm pump-action shotgun"
+  },
+  {
+   "term": "Windbuks",
+   "meaning": "Air rifle"
+  },
+  {
+   "term": "Kettie",
+   "meaning": "Catapult (slingshot)"
+  },
+  {
+   "term": "Voorlaaier",
+   "meaning": "Muzzle-loader"
+  },
+  {
+   "term": "Mielie-Masjien",
+   "meaning": "A home-made gun that fires maize kernels"
+  },
+  {
+   "term": "Die Twee-Twee / Die Langloop",
+   "meaning": "The .22 rifle / the long rifle (v1.3, v1.4)"
+  },
+  {
+   "term": "Skiet-Skuur",
+   "meaning": "Gun shed: pick and unlock guns"
+  },
+  {
+   "term": "Padstal",
+   "meaning": "Farm stall: the shop between Season Run hunts"
+  },
+  {
+   "term": "Skietbaan",
+   "meaning": "Shooting range: the training ground on the admin page"
+  },
+  {
+   "term": "Oupa",
+   "meaning": "Grandpa, who comments on your hunt"
+  },
+  {
+   "term": "Bakkie",
+   "meaning": "Pickup truck"
+  },
+  {
+   "term": "Koppie",
+   "meaning": "Small rocky hill"
+  },
+  {
+   "term": "Verder",
+   "meaning": "\"Further\": the bonus map"
+  },
+  {
+   "term": "Kwêvoël",
+   "meaning": "Grey go-away-bird"
+  },
+  {
+   "term": "Generaal, Ou Grys, Kuifkop Koning, Die Stormvoël",
+   "meaning": "Boss birds"
+  }
+ ]
+}

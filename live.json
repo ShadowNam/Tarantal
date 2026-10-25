@@ -1,0 +1,568 @@
+{
+ "updated": "2026-10-25T17:58:00Z",
+ "summary": "v1.6 Veld art is live on the test build (merged 25 Oct, 18:56): new trees, fruit, far animals, the windmill from your photos, the dassie, clouds, a version stamp on every map and the Skietbaan's Fresh load button. v1.6b reload power-ups is finishing its tests (one slow Skietbaan test is being fixed). v1.7 meerkats is in its look round: the redraw is in, your notes on more fur and nicer faces are next. Then v1.7b (fruit that swings or drops), v1.7c (Namibië veld life: grass, ostriches, oryx in the mirage, balloons) and v1.8 Blikkies. This Project overview page is being built now.",
+ "current": {
+  "version": "1.6.0",
+  "commit": "4bd39f1",
+  "deployed": "2026-10-25T17:35:43Z"
+ },
+ "links": [
+  {
+   "label": "Test build",
+   "url": "https://shadownam.github.io/Tarantal/"
+  },
+  {
+   "label": "Admin page",
+   "url": "https://shadownam.github.io/Tarantal/?admin=1"
+  },
+  {
+   "label": "Build board",
+   "url": "https://claude.ai/artifact/AUkRY4o5xyd2yuiPzTm2fM"
+  },
+  {
+   "label": "Status doc",
+   "url": "https://claude.ai/artifact/6rM3Vm6wcnSELT4ehR5V7o"
+  },
+  {
+   "label": "History (Word)",
+   "url": "https://github.com/ShadowNam/Tarantal/raw/main/docs/history/Tarantal-Development-History.docx"
+  },
+  {
+   "label": "Pull requests",
+   "url": "https://github.com/ShadowNam/Tarantal/pulls"
+  }
+ ],
+ "numbers": [
+  {
+   "label": "Version on the test build",
+   "value": "1.6.0",
+   "note": "commit 4bd39f1, deployed 25 Oct 19:35"
+  },
+  {
+   "label": "Pull requests merged",
+   "value": "72",
+   "note": "#1 to #74"
+  },
+  {
+   "label": "Unit tests",
+   "value": "1,098",
+   "note": "plus 48 browser test suites on 3 devices"
+  },
+  {
+   "label": "First download",
+   "value": "2.96 MB",
+   "note": "budget 3 MB"
+  },
+  {
+   "label": "Hunting areas",
+   "value": "5",
+   "note": "Karoo, Bushveld, Okavango, Kalahari, Namibië; 7 weekday maps + 3 bonus maps each"
+  },
+  {
+   "label": "Guns",
+   "value": "8"
+  },
+  {
+   "label": "Languages",
+   "value": "4",
+   "note": "English, Afrikaans, German, Dutch; Oupa voiced in 3"
+  },
+  {
+   "label": "Decisions logged",
+   "value": "42",
+   "note": "D-001 to D-042 on main; D-043 to D-045 in review"
+  }
+ ],
+ "needsYou": [
+  {
+   "id": "daily-specials",
+   "kind": "decision",
+   "title": "Pick the holiday Daily specials (Feesdae)",
+   "asked": "2026-10-24T18:58:55Z",
+   "status": "open",
+   "detail": "On a special day everyone gets the same themed Daily Hunt: decorations, one twist rule, Oupa's lines, a music sting and a special share card. Halloween is on 31 Oct: if you pick it, the job moves up so it is ready in time. Reply with the numbers (\"1–9\" takes all my picks).",
+   "options": [
+    "1. Halloween, 31 Oct: \"Spookjag\", a dusk hunt with owls, bats, pumpkin lanterns and guineafowl in witch hats",
+    "2. Christmas, 25 Dec: Christmas in the sun, tinsel on the camelthorn, Oupa in a Santa hat and shorts",
+    "3. New Year: a countdown hunt with party hats, small fireworks and double points in the last 10 s",
+    "4. Heritage Day (Braai Day), 24 Sep: the big braai hunt",
+    "5. Easter weekend: painted guineafowl eggs hidden for bonus points",
+    "6. Valentine's Day, 14 Feb: rosy-faced lovebirds fly through in pairs",
+    "7. Spring flowers (late Aug–Sep, one week): the Karoo carpeted in daisies",
+    "8. April Fools, 1 Apr: plastic decoy guineafowl, −5 and \"Gotcha!\"",
+    "9. Africa Day, 25 May: drums, every cameo animal out, \"Did you know?\" facts",
+    "10 (maybe). World Wildlife Day, 3 Mar: a camera-only Daily",
+    "11 (maybe). Women's Day, 9 Aug: Ouma's hunt (needs an Ouma voice)",
+    "12 (maybe). Workers' Day, 1 May: Oupa's day off, Brakkie runs the show",
+    "13 (maybe). Namibian Independence Day, 21 Mar: Namibië open to everyone, kept light"
+   ],
+   "blocks": "The Feesdae job (Halloween needs it by 31 Oct)"
+  },
+  {
+   "id": "v16-look",
+   "kind": "check",
+   "title": "Look at v1.6 on the test build",
+   "asked": "2026-10-25T16:57:00Z",
+   "status": "open",
+   "detail": "Hard-refresh first. New: trees, fruit and far animals on every map, the windmill, the dassie, the Kalahari dead tree, clouds, a version stamp on every map, and the Fresh load button in the Skietbaan. Tell me anything that still looks rough (the Namibië grass you flagged is already in v1.7c).",
+   "links": [
+    {
+     "label": "Test build",
+     "url": "https://shadownam.github.io/Tarantal/"
+    },
+    {
+     "label": "Admin page",
+     "url": "https://shadownam.github.io/Tarantal/?admin=1"
+    }
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-windmill.jpg",
+     "caption": "Windmill, before | after"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-giraffes-scope.jpg",
+     "caption": "Giraffes through the scope, before | after"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-dassie.jpg",
+     "caption": "The dassie, before | after"
+    }
+   ]
+  },
+  {
+   "id": "voice-sample",
+   "kind": "feedback",
+   "title": "Listen to Oupa's voice samples (the Afrikaans one most of all)",
+   "asked": "2026-10-25T04:45:00Z",
+   "status": "open",
+   "detail": "No good free Afrikaans voice exists, so the interim Afrikaans lines are read by an English voice using Afrikaans pronunciation rules. Is it good enough for now?",
+   "blocks": "The choice of final voices"
+  },
+  {
+   "id": "final-voices",
+   "kind": "decision",
+   "title": "Final voices: keep the interim ones or get real voices?",
+   "asked": "2026-10-25T04:39:00Z",
+   "status": "open",
+   "detail": "Oupa is voiced with free interim text-to-speech in English, Afrikaans and German. Real or premium voices can replace them line by line later.",
+   "options": [
+    "Keep the interim voices for now",
+    "Real voice actors per language (needs money and an account: you arrange it)",
+    "A premium text-to-speech service (needs an account: you arrange it)"
+   ],
+   "blocks": "Nothing urgent"
+  },
+  {
+   "id": "windmill-look",
+   "kind": "decision",
+   "title": "The windmill wheel: which look?",
+   "asked": "2026-10-25T13:56:00Z",
+   "status": "answered",
+   "detail": "You sent photos of a real farm windmill; Claude redrew the wheel with curved sails, missing and bent blades and rust.",
+   "answer": "\"The windmill you made looks great, implement it.\" Done in v1.6.",
+   "answered": "2026-10-25T14:03:00Z",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-windmill.jpg",
+     "caption": "The windmill, before | after"
+    }
+   ]
+  }
+ ],
+ "jobs": {
+  "v1.6b": {
+   "owner": "Tank built it; Claude merges",
+   "status": "review",
+   "summary": "Two new crate power-ups. Blitslaai: for 12 s every reload is much faster, with lightning glints on the belt. Oupa Laai: for 12 s an empty gun reloads by itself and Oupa says so. Full tests: 23 of 24 jobs passed; one slow Skietbaan test (25 hits on a steel plate) ran past its 7-minute limit, so Claude is fixing that test, then merges.",
+   "requestedBy": "You, 25 Oct 08:40: \"Another power-up … an AUTO reload, and a fast reload.\"",
+   "checklist": [
+    {
+     "text": "Blitslaai (fast reload) and Oupa Laai (auto reload) in the game",
+     "done": true
+    },
+    {
+     "text": "Icons on the HUD chips, belt glints, Oupa's hand and his voiced line",
+     "done": true
+    },
+    {
+     "text": "Balance check: every gate passes",
+     "done": true
+    },
+    {
+     "text": "Independent review and its fixes",
+     "done": true
+    },
+    {
+     "text": "v1.6 merged in, version 1.6.1",
+     "done": true,
+     "at": "2026-10-25T17:00:00Z"
+    },
+    {
+     "text": "Full tests on every device (one slow Skietbaan test to fix)",
+     "done": false
+    },
+    {
+     "text": "Merge into main and deploy to the test build",
+     "done": false
+    }
+   ],
+   "links": [
+    {
+     "label": "PR #71",
+     "url": "https://github.com/ShadowNam/Tarantal/pull/71"
+    }
+   ]
+  },
+  "v1.7": {
+   "owner": "Tank; Claude reviews",
+   "status": "running",
+   "summary": "Meerkat families live on every Kalahari and Namibië map: they peek, keep a sentinel, dig, dash between burrows and dive when you shoot nearby. Shooting one costs −10 (it is never hurt). Secret: hold fire while the whole family is out and they line up for a Familiefoto (+25).",
+   "requestedBy": "You, 24 Oct: \"small meerkat holes … peek out and run from one nest to the other. Be creative.\"",
+   "checklist": [
+    {
+     "text": "Colonies on every desert map, in the game rules (peek, sentinel, dig, dash, dive)",
+     "done": true
+    },
+    {
+     "text": "They dive at nearby shots and the Langloop; the sentinel's alarm alerts the guineafowl",
+     "done": true
+    },
+    {
+     "text": "Shooting a meerkat: −10 and a scold, never harmed",
+     "done": true
+    },
+    {
+     "text": "Familiefoto secret (+25) and the Meerkat Spotter climbing out of a burrow",
+     "done": true
+    },
+    {
+     "text": "Sounds and voiced lines (English, Afrikaans, German)",
+     "done": true
+    },
+    {
+     "text": "Balance: −0.9 % to +4.4 % on all 20 desert maps (limit 5 %)",
+     "done": true
+    },
+    {
+     "text": "Tank's own review and fixes",
+     "done": true
+    },
+    {
+     "text": "First screenshots: 42 shots on desktop and both phones",
+     "done": true,
+     "at": "2026-10-25T17:31:00Z"
+    },
+    {
+     "text": "Look round: eye masks, back bands, cream bellies, three-holed burrows",
+     "done": true,
+     "at": "2026-10-25T17:26:00Z"
+    },
+    {
+     "text": "Colonies kept clear of the on-screen buttons",
+     "done": true,
+     "at": "2026-10-25T17:49:00Z"
+    },
+    {
+     "text": "Your notes: more fur and nicer faces",
+     "done": false
+    },
+    {
+     "text": "v1.6 and v1.6b merged in, version 1.7.0",
+     "done": false
+    },
+    {
+     "text": "New screenshots (Claude) and your look",
+     "done": false
+    },
+    {
+     "text": "Claude's independent review",
+     "done": false
+    },
+    {
+     "text": "Full tests and merge",
+     "done": false
+    }
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17-meerkat-sheet-r2.jpg",
+     "caption": "The redrawn meerkat sheet, round 2 (17:26 UTC): masks, bands, cream bellies, three-holed burrows. Your fur and face notes come next."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-sentinel-closeup-pixel7-landscape.png",
+     "caption": "Round 1: the sentinel close-up (Pixel 7), before the redraw"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-familiefoto-pixel7-landscape.png",
+     "caption": "Round 1: the Familiefoto (Pixel 7); the flock was in the way"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-dash-desktop-chromium.png",
+     "caption": "Round 1: the Kalahari colony (desktop)"
+    }
+   ],
+   "links": [
+    {
+     "label": "PR #72",
+     "url": "https://github.com/ShadowNam/Tarantal/pull/72"
+    }
+   ]
+  },
+  "project-overview": {
+   "owner": "Claude",
+   "status": "running",
+   "summary": "This page: the project at a glance in the admin page, with what needs you, what is being built, the roadmap with times and versions, your requests, ideas, and the whole history with images. It reads live data that Claude updates at every check-in, merge and screenshot round.",
+   "requestedBy": "You, 25 Oct 19:51",
+   "checklist": [
+    {
+     "text": "Live data branch and the generator (Claude)",
+     "done": true,
+     "at": "2026-10-25T17:58:00Z"
+    },
+    {
+     "text": "The page: Overview, Roadmap, History, Requests, Ideas",
+     "done": false
+    },
+    {
+     "text": "Tests and screenshots on desktop, Pixel 7 and iPhone 14",
+     "done": false
+    },
+    {
+     "text": "Merge and deploy to the test build",
+     "done": false
+    }
+   ]
+  },
+  "v1.7b": {
+   "owner": "Tank",
+   "summary": "Fruit you shoot reacts: the sausage tree's sausages, baobab and camelthorn pods and marula swing on their stalks or drop to the ground.",
+   "requestedBy": "You, 25 Oct ~16:45: \"when shooting these fruits, make them swing or drop down.\""
+  },
+  "v1.7c": {
+   "owner": "Tank",
+   "summary": "Namibië first: much more detailed bushman grass and sand (no black lines between the distances), then a pair of ostriches at their nest (they run from nearby shots), a herd of oryx far away shimmering in the mirage, and hot-air balloons drifting by (not targets).",
+   "requestedBy": "You, 25 Oct ~19:50: ostriches with a nest, oryx in the mirage, hot-air balloons; and \"the grass landscapes in the Namibia one also look very rough still\"."
+  }
+ },
+ "suggestions": [
+  {
+   "id": "kalahari-22",
+   "title": "Retune the scoped .22 on the Kalahari's two farthest bonus maps",
+   "from": "Claude (found by Tank in v1.7)",
+   "date": "2026-10-25T16:40:00Z",
+   "status": "idea",
+   "detail": "It scores 4,612–5,578 on Nog Verder and Die Verste, over the 4,500 cap every other long-range map keeps. It predates the meerkats. A small tuning job: fewer far-distance points on those two maps, as Namibië got in v1.4."
+  },
+  {
+   "id": "kalahari-grass",
+   "title": "Give the Kalahari the same grass and sand pass as Namibië",
+   "from": "Claude",
+   "date": "2026-10-25T18:00:00Z",
+   "status": "queued",
+   "job": "v1.7c",
+   "detail": "The Kalahari ground has the same black line between distances and the same scribbly grass. v1.7c fixes it there too if it shares the drawing code."
+  },
+  {
+   "id": "feesdae",
+   "title": "Daily specials on special days (Feesdae)",
+   "from": "Claude",
+   "date": "2026-10-24T18:58:55Z",
+   "status": "idea",
+   "detail": "Themed Daily Hunts on holidays; waiting for your pick (see Needs you)."
+  },
+  {
+   "id": "bow",
+   "title": "A bow and arrow",
+   "from": "You",
+   "date": "2026-10-24T18:35:00Z",
+   "status": "idea",
+   "detail": "Noted for later; not planned yet."
+  },
+  {
+   "id": "af-voice",
+   "title": "A real Afrikaans voice for Oupa",
+   "from": "Claude",
+   "date": "2026-10-25T04:45:00Z",
+   "status": "idea",
+   "detail": "The interim Afrikaans lines use an English voice. A real Afrikaans speaker would sound far better; it needs a person or a paid service, so it is your call."
+  }
+ ],
+ "extraRequests": [
+  {
+   "date": "25 Oct, 16:45",
+   "text": "When shooting the fruit (sausage tree), make it swing or drop down",
+   "outcome": "Queued as v1.7b",
+   "job": "v1.7b"
+  },
+  {
+   "date": "25 Oct, ~19:47",
+   "text": "The meerkats: a bit more hairy and furry, and nicer faces",
+   "outcome": "Sent to Tank for the v1.7 look round",
+   "job": "v1.7"
+  },
+  {
+   "date": "25 Oct, ~19:50",
+   "text": "Namibië: at least two ostriches with a nest, oryx roaming far away with a mirage, hot-air balloons drifting by",
+   "outcome": "Queued as v1.7c",
+   "job": "v1.7c"
+  },
+  {
+   "date": "25 Oct, ~19:50",
+   "text": "The Namibië grass landscapes still look rough: much more detail",
+   "outcome": "Queued as v1.7c, first part",
+   "job": "v1.7c"
+  },
+  {
+   "date": "25 Oct, 19:51",
+   "text": "A Project overview page in the admin: done, outstanding with dates and builds, open questions, history with images, kept up to date",
+   "outcome": "Being built now (this page)",
+   "job": "project-overview"
+  }
+ ],
+ "extraDecisions": [
+  {
+   "id": "D-043",
+   "text": "v1.6b reload power-ups: Blitslaai and Oupa Laai (in review, #71)"
+  },
+  {
+   "id": "D-044",
+   "text": "v1.7 meerkat colonies on the desert maps (in review, #72)"
+  },
+  {
+   "id": "D-045",
+   "text": "Project overview page in the admin, with live data on the project-log branch (in progress)"
+  }
+ ],
+ "activity": [
+  {
+   "at": "2026-10-25T17:58:00Z",
+   "kind": "note",
+   "text": "Project overview: the live data is published; the page itself is being built."
+  },
+  {
+   "at": "2026-10-25T17:51:00Z",
+   "kind": "request",
+   "text": "You asked for a Project overview page in the admin."
+  },
+  {
+   "at": "2026-10-25T17:50:00Z",
+   "kind": "request",
+   "text": "You asked for detailed Namibië grass, ostriches with a nest, oryx in the mirage and hot-air balloons: queued as v1.7c."
+  },
+  {
+   "at": "2026-10-25T17:47:00Z",
+   "kind": "request",
+   "text": "You asked for furrier meerkats with nicer faces: going to Tank with the look round."
+  },
+  {
+   "at": "2026-10-25T17:45:00Z",
+   "kind": "tests",
+   "text": "v1.6b full tests: 23 of 24 jobs passed; one slow Skietbaan test timed out twice. Claude is fixing the test.",
+   "links": [
+    {
+     "label": "PR #71",
+     "url": "https://github.com/ShadowNam/Tarantal/pull/71"
+    }
+   ]
+  },
+  {
+   "at": "2026-10-25T17:35:43Z",
+   "kind": "note",
+   "text": "The test build now runs v1.6 (commit 4bd39f1). Hard-refresh once to get the new art.",
+   "links": [
+    {
+     "label": "Test build",
+     "url": "https://shadownam.github.io/Tarantal/"
+    }
+   ]
+  },
+  {
+   "at": "2026-10-25T17:33:00Z",
+   "kind": "merge",
+   "text": "The development history got its v1.6 chapter (#74).",
+   "links": [
+    {
+     "label": "PR #74",
+     "url": "https://github.com/ShadowNam/Tarantal/pull/74"
+    }
+   ]
+  },
+  {
+   "at": "2026-10-25T17:31:00Z",
+   "kind": "screenshots",
+   "text": "v1.7 meerkats, first-round screenshots: 42 shots on desktop, Pixel 7 and iPhone 14.",
+   "links": [
+    {
+     "label": "PR #72",
+     "url": "https://github.com/ShadowNam/Tarantal/pull/72"
+    }
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-sentinel-closeup-pixel7-landscape.png",
+     "caption": "The sentinel close-up (Pixel 7)"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-familiefoto-pixel7-landscape.png",
+     "caption": "The Familiefoto (Pixel 7)"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-namibie-desktop-chromium.png",
+     "caption": "A Namibië colony (desktop)"
+    }
+   ]
+  },
+  {
+   "at": "2026-10-25T17:26:00Z",
+   "kind": "note",
+   "text": "Tank pushed the meerkat redraw (round 2): eye masks, back bands, cream bellies, three-holed burrows.",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17-meerkat-sheet-r2.jpg",
+     "caption": "The redrawn meerkat sheet, round 2 (17:26 UTC): masks, bands, cream bellies, three-holed burrows. Your fur and face notes come next."
+    }
+   ]
+  },
+  {
+   "at": "2026-10-25T16:56:00Z",
+   "kind": "merge",
+   "text": "v1.6 Veld art merged (#70): trees, fruit, far animals, the windmill, the dassie, clouds, art that waits to load, a version stamp on every map.",
+   "links": [
+    {
+     "label": "PR #70",
+     "url": "https://github.com/ShadowNam/Tarantal/pull/70"
+    }
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-windmill.jpg",
+     "caption": "Windmill"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-giraffes-scope.jpg",
+     "caption": "Giraffes through the scope"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-dead-tree.jpg",
+     "caption": "The Kalahari dead tree"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-namibie.jpg",
+     "caption": "Namibië"
+    }
+   ]
+  },
+  {
+   "at": "2026-10-25T16:50:00Z",
+   "kind": "tests",
+   "text": "v1.6 full tests passed on every device (desktop Chromium and WebKit, Pixel 7, iPhone 14, portals, perf).",
+   "links": [
+    {
+     "label": "PR #70",
+     "url": "https://github.com/ShadowNam/Tarantal/pull/70"
+    }
+   ]
+  }
+ ]
+}
