@@ -696,11 +696,12 @@ function markHit(p: SpriteCtx): string {
 }
 
 /**
- * v1.6 (D-042, product owner 25 Oct): the classic multi-blade farm windpomp wheel. 18 curved
- * galvanised sheet-steel blades between an outer and an inner rim, six sail arms to a hub with
- * bolts and a rusty cap, rust streaks; two blades lost and one bent. The secret's four marked
- * blades sit at 0°, 90°, 180° and 270° (radius 72, parts turn with the wheel): no gap is ever
- * there (blades at 60° and 240° are missing, 140° is bent). Lit from the upper left; the wheel
+ * v1.6 (D-042, product owner 25 Oct): the classic multi-blade farm windpomp wheel. 20 curved
+ * galvanised sheet-steel blades (one every 18°) between an outer and an inner rim, six sail arms
+ * to a hub with bolts and a rusty cap, rust streaks; two blades lost and one bent. The secret's
+ * four marked blades sit at 0°, 90°, 180° and 270° (radius 72, parts turn with the wheel), which
+ * are blades k = 0, 5, 10 and 15: never missing or bent (blades at 54° and 234° are missing,
+ * 144° is bent). Lit from the upper left; the wheel
  * turns, so each blade carries its own lit leading edge and shaded trailing half.
  */
 function rotor(p: SpriteCtx): string {
@@ -709,9 +710,9 @@ function rotor(p: SpriteCtx): string {
   const dark = '#6C7276';
   const ink = mix(p.ink, dark, 0.35);
   const rust = p.c('rust');
-  const n = 18;
-  const missing = new Set([3, 12]);
-  const bent = new Set([7]);
+  const n = 20;
+  const missing = new Set([3, 13]);
+  const bent = new Set([8]);
   const blades: string[] = [];
   const shades: string[] = [];
   const edges: string[] = [];

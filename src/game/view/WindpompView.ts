@@ -21,6 +21,9 @@ const PUMPS: Readonly<Record<string, { ox: number; oy: number; scale: number }>>
   'kalahari/windpomp_sign': { ox: 92, oy: -186, scale: 0.6 },
 };
 
+/** The head's pivot (the gearbox over the turntable) in fx/windpomp_vane, as fractions (docs/06). */
+const VANE_PIVOT = { x: 290 / 320, y: 70 / 140 } as const;
+
 interface Pump {
   readonly propId: string;
   readonly hubX: number;
@@ -44,7 +47,9 @@ export class WindpompView {
       if (spec === undefined || layer === undefined || def === undefined) continue;
       const hubX = prop.u * coreWidth(def.scrollFactor) + spec.ox;
       const hubY = prop.y + spec.oy;
-      const vane = scene.add.image(hubX, hubY, TEX.windpompVane);
+      const vane = scene.add
+        .image(hubX, hubY, TEX.windpompVane)
+        .setOrigin(VANE_PIVOT.x, VANE_PIVOT.y);
       const wheel = scene.add.image(0, 0, TEX.rotor);
       const wheelBox = scene.add.container(hubX, hubY, [wheel]);
       // Behind the secret's own rotor and marks (added to the fixtures later).

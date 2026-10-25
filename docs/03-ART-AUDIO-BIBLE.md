@@ -240,9 +240,9 @@ a shaded belly and far legs, a soft ground shadow and no ink (edged in a darker 
 colour, D-035 rule 3). Species follow the decision log's "Biome-accurate flora/fauna".
 
 **v1.6 review round (D-042, 25 Oct).**
-- **Windpomp:** a classic multi-blade farm wheel (18 curved galvanised blades on two rims, six
-  sail arms, a bolted hub, rust; blades at 60° and 240° missing, 140° bent: never one of the
-  secret's four marked blades) on a braced angle-iron tower (ladder, pump rod, platform,
+- **Windpomp:** a classic multi-blade farm wheel (20 curved galvanised blades, one every 18°, on two
+  rims, six sail arms, a bolted hub, rust; blades at 54° and 234° missing, 144° bent: never one
+  of the secret's four marked blades at 0°, 90°, 180° and 270°) on a braced angle-iron tower (ladder, pump rod, platform,
   footings, bolts, rust), drawn at 2×. The head (gearbox, tail boom, riveted vane) turns into
   the omen wind and the wheel spins on sim time (fast in wind, a slow idle when calm); when the
   secret is live, the sim's rotor is the wheel, face-on. A service plank carries the kwêvoël.
