@@ -1216,7 +1216,19 @@ export function createSim(config: SimConfig): Sim {
       if (list === undefined) out.set(layerId, [e]);
       else list.push(e);
     };
-    // v1.7: meerkats stand in front of everything else on their layer.
+    for (const c of crates) {
+      const layerId = planeLayer.get(c.plane);
+      if (layerId === undefined) continue;
+      add(layerId, {
+        kind: 'crate',
+        crateId: c.id,
+        x: c.x,
+        y: c.y,
+        shape: { type: 'ellipse', rx: c.rx, ry: c.ry },
+      });
+    }
+    // v1.7: meerkats come after the crates (a crate is drawn in the plane's overlay, over the
+    // meerkats in the layer's fixtures) and before the secret parts.
     for (const c of colonies) {
       for (const m of c.meerkats) {
         const kind = shapeOf(m.pose);
@@ -1239,17 +1251,6 @@ export function createSim(config: SimConfig): Sim {
             shape: { type: 'ellipse', rx: box.head.r * k, ry: box.head.r * k },
           });
       }
-    }
-    for (const c of crates) {
-      const layerId = planeLayer.get(c.plane);
-      if (layerId === undefined) continue;
-      add(layerId, {
-        kind: 'crate',
-        crateId: c.id,
-        x: c.x,
-        y: c.y,
-        shape: { type: 'ellipse', rx: c.rx, ry: c.ry },
-      });
     }
     for (const p of papers) {
       const layerId = planeLayer.get(p.plane);

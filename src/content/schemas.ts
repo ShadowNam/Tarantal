@@ -257,7 +257,7 @@ export const MeerkatsSchema = obj({
     sunbathe: range(pos),
   }),
   /** How long the sentinel holds each head turn. */
-  lookSeconds: range(pos),
+  lookSeconds: pos,
   /** Foraging spots lie within this distance of the meerkat's burrow. */
   forageRadiusPx: pos,
   runPxPerSec: pos,

@@ -516,7 +516,7 @@
       "forage": [3, 7],
       "sunbathe": [4, 8]
     },
-    "lookSeconds": [0.7, 1.1],
+    "lookSeconds": 0.9,
     "forageRadiusPx": 90,
     "runPxPerSec": 300,
     "dash": { "group": [1, 4], "gapPx": 46, "pauseSeconds": [0.6, 1.2] },

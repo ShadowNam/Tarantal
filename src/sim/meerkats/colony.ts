@@ -559,7 +559,7 @@ function stepAdult(c: ColonyState, m: Meerkat, ctx: ColonyCtx, notes: ColonyNote
       return;
     case 'sentinel': {
       // Head turns: left, the camera, right, the camera …
-      const turn = Math.max(1, secondsToTicks((T.lookSeconds[0] + T.lookSeconds[1]) / 2));
+      const turn = Math.max(1, secondsToTicks(T.lookSeconds));
       const step = Math.floor(m.t / turn) % 4;
       m.look = step === 0 ? -1 : step === 2 ? 1 : 0;
       if (m.t >= m.dur) {
