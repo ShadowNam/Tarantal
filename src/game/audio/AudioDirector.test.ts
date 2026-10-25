@@ -183,6 +183,35 @@ describe('AudioDirector voice language (v1.5, D-041)', () => {
     expect(r.audio.bark('bark.lekker')).toBe(true);
   });
 
+  it('a bark whose line is still loading plays when it arrives within barkWaitMs', async () => {
+    const r = rig();
+    r.audio.unlock();
+    // The greeting fires before the pack is in: no voice yet (the caption shows regardless).
+    expect(r.audio.bark('bark.morning')).toBe(false);
+    r.advance(tuning.barkWaitMs / 2);
+    r.audio.addRecorded([file(voiceKey('en', 'bark.morning'), 1)]);
+    await flush();
+    expect(r.audio.voicePlayed).toEqual(['voice/en/bark.morning']);
+  });
+
+  it('a line that arrives after barkWaitMs, or after a newer bark, stays silent', async () => {
+    const r = rig();
+    r.audio.unlock();
+    expect(r.audio.bark('bark.morning')).toBe(false);
+    r.advance(tuning.barkWaitMs + 1);
+    r.audio.addRecorded([file(voiceKey('en', 'bark.morning'), 1)]);
+    await flush();
+    expect(r.audio.voicePlayed).toEqual([]);
+    // A newer bark replaces the waiting one: the old line arriving later says nothing.
+    expect(r.audio.bark('bark.lekker')).toBe(false);
+    expect(r.audio.bark('bark.aim')).toBe(false);
+    r.audio.addRecorded([file(voiceKey('en', 'bark.lekker'), 1)]);
+    await flush();
+    expect(r.audio.voicePlayed).toEqual([]);
+    expect(tuning.barkWaitMs).toBeGreaterThan(0);
+    expect(tuning.barkWaitMs).toBeLessThanOrEqual(3000);
+  });
+
   it('runs unlock callbacks once, on the first gesture (or at once after it)', () => {
     const r = rig();
     const seen: string[] = [];

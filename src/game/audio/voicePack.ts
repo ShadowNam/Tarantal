@@ -1,7 +1,8 @@
 // v1.5 (D-041): Oupa's voice packs. Each voice language (en, af, de) is its own lazy asset group
 // (`voice-<lang>`, tools/assets/pack.ts), never part of the first download. Only the chosen voice
-// language's pack is fetched, after the first gesture has unlocked audio (nothing can play
-// before), and not at all while the voice volume is 0. Changing the voice language fetches the
+// language's pack is fetched, after the first gesture anywhere has unlocked audio (main.ts listens
+// on the document; nothing can play before), and not at all while the voice volume is 0. A bark
+// that comes before its line has arrived waits up to feel.json audio.barkWaitMs (AudioDirector). Changing the voice language fetches the
 // new pack; the AudioDirector keeps only the current language's lines in memory. A missing index
 // or file leaves Oupa silent (his speech bubble is the caption either way).
 import type { AssetIndex } from '../assets/assetIndex';

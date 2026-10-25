@@ -104,6 +104,8 @@ export class AudioDirector {
   private voiceLang = 'en';
   /** Voice keys said from a recording on this page (test hook; newest last, capped). */
   readonly voicePlayed: string[] = [];
+  /** v1.5: a bark whose line hadn't arrived: it plays if the line is decoded by `until`. */
+  private waiting: { line: string; until: number } | null = null;
   /** Called once, on the first unlock (the voice pack downloads only once audio can play). */
   private readonly unlockFns: (() => void)[] = [];
   private tallyCounting = false;
@@ -246,6 +248,12 @@ export class AudioDirector {
     if (f.key.startsWith('voice/') && !f.key.startsWith(`voice/${this.voiceLang}/`)) return;
     this.buffers.set(f.key, buf);
     if (!this.recorded.includes(f.key)) this.recorded.push(f.key);
+    // v1.5: the bark waiting for this line plays now, if it's still in time.
+    const w = this.waiting;
+    if (w !== null && f.key === voiceKey(this.voiceLang, w.line)) {
+      this.waiting = null;
+      if (this.env.now() <= w.until) this.bark(w.line);
+    }
   }
 
   /** M10: the biome whose music and ambience play (title and hunts). Other biomes' decoded music
@@ -309,10 +317,18 @@ export class AudioDirector {
     const { ctx, voiceBus, duck } = this;
     const key = voiceKey(this.voiceLang, barkKey);
     const buf = this.buffers.get(key);
-    if (ctx === null || voiceBus === null || duck === null || buf === undefined) return false;
+    // A newer bark replaces one still waiting for its line.
+    this.waiting = null;
     if (this.muted || this.tallyCounting) return false;
     // v1.5 (D-041): no voice at all with the voice (or master) volume at 0, and no music duck.
     if (this.volumes.voice <= 0 || this.volumes.master <= 0) return false;
+    if (buf === undefined) {
+      // v1.5: the voice pack may still be on its way (it starts on the first gesture): wait a
+      // short, bounded time for this line (feel.json audio.barkWaitMs).
+      this.waiting = { line: barkKey, until: this.env.now() + this.tuning.barkWaitMs };
+      return false;
+    }
+    if (ctx === null || voiceBus === null || duck === null) return false;
     try {
       this.voiceSrc?.stop();
     } catch {

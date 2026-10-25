@@ -740,7 +740,7 @@
     }
   },
   "audio": {
-    "$comment": "M10 AudioDirector (art bible §10, Tech §7): master headroom; music stems crossfade by intensity (build from a fleeing flock or Frenzy ×buildAtFrenzy, stampede in the Stampede) and hold stemHoldMs before calming down; biome changes fade over biomeFadeMs; music ducks under Oupa's barks, at most one bark per barkGapMs (kept by the BarkDirector for bubbles and voice alike; a secret's bark claims it, D-028).",
+    "$comment": "M10 AudioDirector (art bible §10, Tech §7): master headroom; music stems crossfade by intensity (build from a fleeing flock or Frenzy ×buildAtFrenzy, stampede in the Stampede) and hold stemHoldMs before calming down; biome changes fade over biomeFadeMs; music ducks under Oupa's barks, at most one bark per barkGapMs (kept by the BarkDirector for bubbles and voice alike; a secret's bark claims it, D-028). v1.5 (D-041): a bark whose voice line is still downloading waits up to barkWaitMs and plays if it arrives in time; its caption shows at once.",
     "masterLevel": 0.6,
     "crossfadeMs": 1200,
     "biomeFadeMs": 1500,
@@ -749,7 +749,8 @@
     "duckDb": -6,
     "duckAttackMs": 80,
     "duckReleaseMs": 600,
-    "barkGapMs": 6000
+    "barkGapMs": 6000,
+    "barkWaitMs": 1500
   },
   "capture": {
     "$comment": "M10 marketing capture mode (?capture=1; web and dev builds, never a shipped portal build): hides the hunt HUD and reticle, plays seed unless ?seed= is given, S cycles speeds, F freezes, C sweeps the camera end to end (turning panTurnPx before each end). ?gun=0 also hides the gun. v1.0.1 (D-028): entering capture mode shows a small key hint (capture.hint, hintPx design px) for hintMs, then fades it over hintFadeMs on frame time (a freeze does not stop it; each frame counts at most hintMaxStepMs, so a warm-up stall can't use it up) and removes it.",

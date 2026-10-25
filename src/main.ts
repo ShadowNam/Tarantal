@@ -143,6 +143,9 @@ if (testHooks && params.get('ftue') === '0' && !save.data.ftue.done) {
   save.update((d) => ({ ...d, ftue: { done: true, skipped: true, step: 'param' } }));
 }
 
+/** User-activation events that may start Web Audio (v1.5: the first one unlocks it). */
+const GESTURES = ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'] as const;
+
 /** The text language a settings object picks (Auto follows the browser). */
 function textLanguageOf(s: Settings): Language {
   return s.language === 'auto' ? pickLanguage(navigator.languages) : s.language;
@@ -485,6 +488,16 @@ async function boot(): Promise<void> {
     Object.fromEntries(Object.entries(feel.guns.weapons).map(([id, w]) => [id, w.sfx])),
   );
   hook.assets.recorded = audio.recorded;
+  // v1.5 (D-041): the first gesture anywhere (title, menus, Settings, the Skiet-Skuur) unlocks
+  // audio, so Oupa's voice pack starts loading then and is usually in before the first hunt's
+  // greeting. Scenes still unlock on their own taps too; unlock() is idempotent. These are the
+  // events browsers accept as a user activation for audio (iOS: touchend and click).
+  const firstGesture = (): void => {
+    audio.unlock();
+    if (!audio.running) return;
+    for (const type of GESTURES) document.removeEventListener(type, firstGesture, true);
+  };
+  for (const type of GESTURES) document.addEventListener(type, firstGesture, true);
   // Live values (read through the hook in page.evaluate).
   Object.defineProperties(hook, {
     music: { enumerable: true, get: () => audio.music },
