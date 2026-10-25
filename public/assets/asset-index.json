@@ -539,9 +539,9 @@
       "group": "namibie",
       "origin": "interim",
       "file": {
-        "path": "assets/namibie/img/namibie_quiver_egg.505055f46645.png",
-        "bytes": 32980,
-        "hash": "505055f46645"
+        "path": "assets/namibie/img/namibie_quiver_egg.d2c074bd04db.png",
+        "bytes": 33966,
+        "hash": "d2c074bd04db"
       },
       "width": 480,
       "height": 508,
@@ -553,9 +553,9 @@
       "group": "namibie",
       "origin": "interim",
       "file": {
-        "path": "assets/namibie/img/namibie_quiver_tree.21f63b35e288.png",
-        "bytes": 32863,
-        "hash": "21f63b35e288"
+        "path": "assets/namibie/img/namibie_quiver_tree.a8a5bd6c98d0.png",
+        "bytes": 35688,
+        "hash": "a8a5bd6c98d0"
       },
       "width": 480,
       "height": 524,
@@ -2736,14 +2736,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/namibie/layers/far_ridge-0.e787c29e35d0.png",
-          "bytes": 45171,
-          "hash": "e787c29e35d0"
+          "path": "assets/namibie/layers/far_ridge-0.c9d0792305aa.png",
+          "bytes": 31699,
+          "hash": "c9d0792305aa"
         },
         {
-          "path": "assets/namibie/layers/far_ridge-1.810a94654363.png",
-          "bytes": 19659,
-          "hash": "810a94654363"
+          "path": "assets/namibie/layers/far_ridge-1.255afcb97034.png",
+          "bytes": 13356,
+          "hash": "255afcb97034"
         }
       ],
       "tileWidth": 2048,
@@ -2754,52 +2754,52 @@
         "bucket": 256,
         "rows": [
           [
-            141,
-            150
-          ],
-          [
-            128,
-            130
-          ],
-          [
-            148,
-            153
-          ],
-          [
-            129,
-            130
-          ],
-          [
-            148,
-            149
-          ],
-          [
-            144,
-            147
-          ],
-          [
-            111,
-            125
-          ],
-          [
-            142,
-            144
-          ],
-          [
-            143,
-            146
-          ],
-          [
-            167,
+            139,
             169
           ],
           [
-            124,
-            131
+            128,
+            154
           ],
           [
-            142,
-            146
+            147,
+            162
+          ],
+          [
+            127,
+            152
+          ],
+          [
+            162,
+            175
+          ],
+          [
+            117,
+            150
+          ],
+          [
+            117,
+            149
+          ],
+          [
+            140,
+            155
+          ],
+          [
+            127,
+            157
+          ],
+          [
+            132,
+            164
+          ],
+          [
+            124,
+            147
+          ],
+          [
+            102,
+            134
           ]
         ]
       }
@@ -2809,14 +2809,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/namibie/layers/far_veld-0.b6006cdb029b.png",
-          "bytes": 37305,
-          "hash": "b6006cdb029b"
+          "path": "assets/namibie/layers/far_veld-0.1e4bc5ff618f.png",
+          "bytes": 28568,
+          "hash": "1e4bc5ff618f"
         },
         {
-          "path": "assets/namibie/layers/far_veld-1.44e8adb5d667.png",
-          "bytes": 29187,
-          "hash": "44e8adb5d667"
+          "path": "assets/namibie/layers/far_veld-1.4ce206cc3bc7.png",
+          "bytes": 21974,
+          "hash": "4ce206cc3bc7"
         }
       ],
       "tileWidth": 2048,
@@ -2828,59 +2828,59 @@
         "rows": [
           [
             112,
-            183
+            185
           ],
           [
-            176,
+            184,
+            232
+          ],
+          [
+            186,
+            232
+          ],
+          [
+            111,
+            193
+          ],
+          [
+            125,
+            188
+          ],
+          [
+            111,
+            188
+          ],
+          [
+            169,
             232
           ],
           [
             112,
+            202
+          ],
+          [
+            146,
+            232
+          ],
+          [
+            157,
             218
           ],
           [
-            111,
-            204
+            139,
+            232
           ],
           [
-            122,
+            111,
+            187
+          ],
+          [
+            130,
             179
           ],
           [
-            111,
-            210
-          ],
-          [
-            137,
-            232
-          ],
-          [
-            112,
-            182
-          ],
-          [
-            158,
-            232
-          ],
-          [
-            154,
-            232
-          ],
-          [
-            111,
-            194
-          ],
-          [
-            121,
-            206
-          ],
-          [
-            111,
-            170
-          ],
-          [
-            154,
-            232
+            143,
+            213
           ],
           [
             111,
@@ -2894,24 +2894,24 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/namibie/layers/foreground-0.827518319823.png",
-          "bytes": 14810,
-          "hash": "827518319823"
+          "path": "assets/namibie/layers/foreground-0.d5df108ce907.png",
+          "bytes": 14047,
+          "hash": "d5df108ce907"
         },
         {
-          "path": "assets/namibie/layers/foreground-1.5c06e8fb76e4.png",
-          "bytes": 15547,
-          "hash": "5c06e8fb76e4"
+          "path": "assets/namibie/layers/foreground-1.4f62376ebade.png",
+          "bytes": 14716,
+          "hash": "4f62376ebade"
         },
         {
-          "path": "assets/namibie/layers/foreground-2.c32b00808e4d.png",
-          "bytes": 23374,
-          "hash": "c32b00808e4d"
+          "path": "assets/namibie/layers/foreground-2.3ad82d073149.png",
+          "bytes": 22016,
+          "hash": "3ad82d073149"
         },
         {
-          "path": "assets/namibie/layers/foreground-3.e48f51863ddc.png",
-          "bytes": 3697,
-          "hash": "e48f51863ddc"
+          "path": "assets/namibie/layers/foreground-3.56e5c4995ad9.png",
+          "bytes": 3383,
+          "hash": "56e5c4995ad9"
         }
       ],
       "tileWidth": 2048,
@@ -2954,99 +2954,99 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/namibie/layers/mid-0.347db0e05429.png",
-          "bytes": 43411,
-          "hash": "347db0e05429"
+          "path": "assets/namibie/layers/mid-0.9b7981e33173.png",
+          "bytes": 43418,
+          "hash": "9b7981e33173"
         },
         {
-          "path": "assets/namibie/layers/mid-1.cf8dec34a011.png",
-          "bytes": 43393,
-          "hash": "cf8dec34a011"
+          "path": "assets/namibie/layers/mid-1.27f3daa157f5.png",
+          "bytes": 53216,
+          "hash": "27f3daa157f5"
         },
         {
-          "path": "assets/namibie/layers/mid-2.da98a6654028.png",
-          "bytes": 5439,
-          "hash": "da98a6654028"
+          "path": "assets/namibie/layers/mid-2.ef4d60229980.png",
+          "bytes": 11503,
+          "hash": "ef4d60229980"
         }
       ],
       "tileWidth": 2048,
       "left": -300,
-      "top": 630,
-      "height": 280,
+      "top": 500,
+      "height": 410,
       "solid": {
         "bucket": 256,
         "rows": [
           [
-            132,
-            207
+            275,
+            410
           ],
           [
-            197,
-            280
+            268,
+            337
           ],
           [
-            103,
-            280
+            198,
+            321
           ],
           [
-            201,
-            280
+            256,
+            314
           ],
           [
-            132,
-            280
+            228,
+            304
           ],
           [
-            166,
-            280
+            189,
+            219
           ],
           [
-            111,
-            245
+            330,
+            410
           ],
           [
-            116,
-            261
+            316,
+            410
           ],
           [
-            107,
-            280
+            260,
+            315
           ],
           [
-            111,
-            185
+            285,
+            354
           ],
           [
-            109,
-            232
+            278,
+            360
           ],
           [
-            35,
-            112
+            165,
+            356
           ],
           [
-            34,
-            93
+            209,
+            295
           ],
           [
-            102,
-            198
+            368,
+            410
           ],
           [
-            225,
-            280
+            360,
+            410
           ],
           [
-            166,
-            280
+            213,
+            264
           ],
           [
-            37,
-            163
+            379,
+            410
           ],
           [
-            36,
-            280
+            191,
+            273
           ]
         ]
       }
@@ -3056,19 +3056,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/namibie/layers/near-0.d143674c6819.png",
-          "bytes": 62413,
-          "hash": "d143674c6819"
+          "path": "assets/namibie/layers/near-0.e543635d0cce.png",
+          "bytes": 61258,
+          "hash": "e543635d0cce"
         },
         {
-          "path": "assets/namibie/layers/near-1.9fe4e3bfc40d.png",
-          "bytes": 58076,
-          "hash": "9fe4e3bfc40d"
+          "path": "assets/namibie/layers/near-1.72d182b646cb.png",
+          "bytes": 59019,
+          "hash": "72d182b646cb"
         },
         {
-          "path": "assets/namibie/layers/near-2.29f9578ffbba.png",
-          "bytes": 31579,
-          "hash": "29f9578ffbba"
+          "path": "assets/namibie/layers/near-2.ba87d44aa470.png",
+          "bytes": 33650,
+          "hash": "ba87d44aa470"
         }
       ],
       "tileWidth": 2048,
