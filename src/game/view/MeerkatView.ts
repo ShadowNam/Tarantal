@@ -65,6 +65,8 @@ export class MeerkatView {
     if (!this.scene.textures.exists(MEERKAT_SHEET)) return false;
     const tex = this.scene.textures.get(MEERKAT_SHEET);
     if (tex === this.sheet) return true;
+    // A delivered sheet replaced the one drawn so far (and maybe its scale): rebuild the images.
+    if (this.sheet !== null) this.dropImages();
     // Texture px per design px: a 2× sheet holds twice the design size.
     const k = 1 / this.manifest.displayScale(MEERKAT_SHEET);
     for (const f of this.frames) {
@@ -275,6 +277,18 @@ export class MeerkatView {
         };
       }),
     );
+  }
+
+  /** Destroys the colony images (built again from the snapshot next frame). */
+  private dropImages(): void {
+    for (const a of this.art.values()) {
+      for (const m of a.mounds) m.destroy();
+      for (const i of a.kats.values()) i.destroy();
+      for (const f of a.flicks.values()) f.destroy();
+    }
+    this.art.clear();
+    for (const p of this.puffs) p.img.destroy();
+    this.puffs.length = 0;
   }
 
   clear(): void {

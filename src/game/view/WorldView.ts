@@ -520,7 +520,14 @@ export class WorldView {
   ): void {
     const x = width * 0.2;
     const holeY = height - 34;
-    if (this.burrow === null) {
+    // A delivered sheet may replace the drawn one: the burrow follows it once its frames exist
+    // (MeerkatView adds them).
+    const tex = this.scene.textures.get(MEERKAT_SHEET);
+    if (this.burrow !== null && this.burrow.texture !== tex) {
+      this.burrow.destroy();
+      this.burrow = null;
+    }
+    if (this.burrow === null && tex.has('mound_b')) {
       this.burrow = this.scene.add.image(x, holeY, MEERKAT_SHEET, 'mound_b');
       const r = sheetFrames().find((f) => f.name === 'mound_b');
       if (r !== undefined) this.burrow.setOrigin(r.ox / r.w, r.oy / r.h);
@@ -528,7 +535,7 @@ export class WorldView {
     }
     const k = 1 / this.burrowScale();
     this.burrow
-      .setVisible(true)
+      ?.setVisible(true)
       .setPosition(x, holeY)
       .setScale(0.9 / k);
     const left = active.ticksLeft ?? 0;
