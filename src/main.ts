@@ -9,7 +9,7 @@ import { contentHash } from './content/hash';
 import { DailyFlow } from './game/daily/DailyFlow';
 import { loadGameContent } from './content/loadBrowser';
 import { AudioDirector, browserAudioEnv } from './game/audio/AudioDirector';
-import { BarkDirector, allBarkLines } from './game/audio/barks';
+import { BarkDirector } from './game/audio/barks';
 import { withDoppies, withQuotaMul, withTestCrate } from './game/devContent';
 import type { GameContext, TestHook, TestTools } from './game/GameContext';
 import {
@@ -26,7 +26,8 @@ import { loadFonts } from './game/ui/fonts';
 import { FlashLimiter } from './game/view/flashLimit';
 import { setTextLook } from './game/ui/textLook';
 import type { AssetManifest } from './game/assets/AssetManifest';
-import { ABSENT, fetchAssetIndex } from './game/assets/finalLoader';
+import { ABSENT, fetchAssetIndex, loadBytes } from './game/assets/finalLoader';
+import { VoicePacks } from './game/audio/voicePack';
 import {
   biomeArtReady,
   createPlaceholderManifest,
@@ -496,9 +497,10 @@ async function boot(): Promise<void> {
       music: s.musicVolume,
       voice: s.voiceVolume,
     });
-    // v1.5 (D-041): the voice language (its own setting; "same" follows the text, Dutch → af).
-    hook.voice.language = voiceLanguageFor(s.voiceLanguage, textLanguageOf(s));
+    applyVoice?.(s);
   };
+  /** v1.5 (D-041): Oupa's voice pack (set once the asset index is known, below). */
+  let applyVoice: ((s: Settings) => void) | null = null;
   applyAudio(save.data.settings);
   platform.onAdChange((playing) => {
     audio.setMuted('ad', playing);
@@ -547,7 +549,7 @@ async function boot(): Promise<void> {
   const manifestFor = (b: Biome): AssetManifest => {
     let m = manifests.get(b.id);
     if (m === undefined) {
-      m = createPlaceholderManifest(bundle, b, allBarkLines(feel.barks), feel.guns.ammo);
+      m = createPlaceholderManifest(bundle, b, feel.guns.ammo);
       manifests.set(b.id, m);
     }
     return m;
@@ -555,6 +557,22 @@ async function boot(): Promise<void> {
   // M10: final files for a biome's manifest, loaded once (each failure keeps that placeholder).
   const { index: assetIndex, problem: indexProblem } = await indexLoad;
   hook.assets.problem = indexProblem;
+  // v1.5 (D-041): the voice language (its own setting; "same" follows the text, Dutch → af). Its
+  // pack loads lazily after the first gesture, never with the voice volume at 0.
+  const voicePacks = new VoicePacks(audio, assetIndex, {
+    loadBytes: (path) => loadBytes(path, feel.assets.fileTimeoutMs),
+    onState: (lang, state) => {
+      if (hook.voice.language === lang) hook.voice.pack = state;
+    },
+  });
+  hook.voice.played = audio.voicePlayed;
+  applyVoice = (s: Settings): void => {
+    const lang = voiceLanguageFor(s.voiceLanguage, textLanguageOf(s));
+    if (hook.voice.language !== lang) hook.voice.pack = 'none';
+    hook.voice.language = lang;
+    voicePacks.use(lang, s.voiceVolume > 0 && s.masterVolume > 0);
+  };
+  applyVoice(save.data.settings);
   if (indexProblem !== null && !indexProblem.startsWith(ABSENT))
     console.warn(`[assets] ${indexProblem}: using placeholders`);
   const finalLoads = new Map<string, Promise<void>>();

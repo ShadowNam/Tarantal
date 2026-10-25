@@ -84,7 +84,12 @@ function usages(
         new RegExp(`"(shot|reloadStarted|shellLoaded|reloadFinished|afterShot)":\\s*"${id}"`),
       );
     } else if (type === 'voice') {
-      const line = key.slice(6).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      // v1.5 (D-041): voice/<lang>/<bark key>.
+      const line = key
+        .split('/')
+        .slice(2)
+        .join('/')
+        .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       // A secret's bark (biome files), or a line of one of Oupa's triggers (feel.json barks,
       // v1.0.1 D-028 §3) — a "lines" array, not just any quote of the key (i18n files have those).
       needles.push(new RegExp(`"barkKey":\\s*"${line}"`));

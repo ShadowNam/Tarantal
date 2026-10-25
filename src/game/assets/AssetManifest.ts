@@ -593,8 +593,9 @@ export function musicKey(biome: string, stem: string): string {
 export function ambienceKey(biome: string): string {
   return `amb/${biome}`;
 }
-export function voiceKey(barkKey: string): string {
-  return `voice/${barkKey}`;
+/** v1.5 (D-041): one line of a voice language's pack (voice/<lang>/<bark key>). */
+export function voiceKey(lang: string, barkKey: string): string {
+  return `voice/${lang}/${barkKey}`;
 }
 
 export function birdKey(creature: string, plane: PlaneId, frame: BirdFrame): string {

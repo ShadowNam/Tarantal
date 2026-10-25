@@ -350,6 +350,53 @@ Max one bark per 6 s; never over a tally count-up.
 → barks`), text in en/af/de/nl, a speech bubble as its subtitle, and a `voice/bark.<id>` key waiting
 for the recording (`docs/06-ASSET-DELIVERY.md` lists them).
 
+### 10.1 Oupa's voice in English, Afrikaans and German (v1.5, D-041)
+
+**What is voiced:** the 39 lines of Oupa's triggers (`feel.json → barks`) and the 5 secret barks
+(including the weavers' "Tsk-tsk-tsk! Leave our nest!" scold), 44 keys, the same keys as the
+captions. **Voice language** (Settings → Sound & game: Same as text / English / Afrikaans /
+Deutsch) is separate from the text language: the speech bubble (the caption) always follows the
+text, so an Afrikaans voice with English subtitles works. Dutch text on "Same as text" uses the
+Afrikaans voice (the closest).
+
+**Delivery:** one pack per voice language, asset group `voice-<lang>` (`art-source/audio/voice/<lang>/<key>.wav`
+→ `public/assets/voice-<lang>/`). Only the chosen language's pack downloads, after the first
+gesture (nothing can play before), and none while the voice volume is 0; it is never part of the
+first download. Ogg Vorbis q3 with the MP3 V5 twin (Safari), −16 LUFS like any voice. It plays
+through the AudioDirector: muted before the first gesture, while the page is hidden, paused or
+in an ad; the music ducks under it; one line at a time; never over the tally count-up.
+
+**Character:** Oupa is an older Afrikaner farmer, dry and proud, sometimes scandalised. The
+interim voices are slowed and lowered (`tools/audio/voice.config.json`): en/af speed 0.94/0.90,
+pitch −1.5 semitones; de speed 0.92, pitch −2 (Thorsten's voice is younger). The resampled pitch
+also slows the line by the same ratio: unhurried, with the model's own pauses at commas. His
+Afrikaans words inside an English or German line ("Mooi skoot", "my kind", "Jinne", "Ouma") are
+read with Afrikaans phonemes. The weavers' scold is higher and quicker (+5 semitones), the frog's
+"Kwaak!" lower.
+
+**Interim TTS engines and licences** (made offline by `npm run audio:voice`, all `origin:
+interim` in `assets:audit`; no account, key or payment; no NonCommercial model):
+
+| Voice | Engine | Model / voice | Licence | Commercial use of the audio | Source |
+|---|---|---|---|---|---|
+| en | kokoro-onnx 0.6.1 | Kokoro-82M v1.0 (int8), voices bm_george 0.7 + am_fenrir 0.3; eSpeak NG en-gb phonemes | engine MIT; model Apache-2.0 (trained on permissive / public-domain audio); eSpeak NG GPL-3.0 (a build tool; its output is not covered) | yes | https://github.com/thewh1teagle/kokoro-onnx · https://huggingface.co/hexgrad/Kokoro-82M · https://github.com/espeak-ng/espeak-ng |
+| af | kokoro-onnx 0.6.1 | the same Kokoro-82M voice reading eSpeak NG's **Afrikaans** phonemes (rule-based) | as en | yes | as en |
+| de | kokoro 0.9.4 (PyTorch, CPU) | Thorsten-Voice/Kokoro (German fine-tune of Kokoro-82M on the Thorsten-Voice dataset); eSpeak NG de phonemes | engine Apache-2.0; model Apache-2.0; dataset CC0 | yes | https://huggingface.co/Thorsten-Voice/Kokoro · https://www.thorsten-voice.de |
+
+**No commercially usable Afrikaans neural voice exists** (checked 25 Oct 2026): Meta's MMS-TTS
+`afr` is CC BY-NC 4.0, Coqui XTTS-v2 uses the non-commercial CPML, and Piper has no Afrikaans
+voice. So the Afrikaans pack is the English Kokoro voice driven by eSpeak NG's Afrikaans
+pronunciation rules: understandable, with a slight English colour. It is swappable key by key.
+
+**Rejected for licence reasons:** most Piper voices (en, de incl. thorsten) are fine-tuned from
+`lessac` (Blizzard 2013 research-only licence) or `ryan` (CC BY-NC-SA); `hfc_*`, `semaine`,
+`pavoque` are CC BY-NC-SA; MMS-TTS is CC BY-NC; XTTS is CPML. The public-domain Piper voices
+`norman`/`john` (LibriVox, trained from scratch) were the fallback for English.
+
+**Final voices** are the product owner's decision (docs/06 §5 "voices"): a delivered WAV at
+`art-source/audio/voice/<lang>/<key>.wav` without an interim sidecar replaces the interim line for
+that key; the generator never overwrites it.
+
 **SFX list (MVP):** dubbelloop shot ×3 variants, empty click, break-open + shell insert + snap shut,
 belt refill, pellet thuds (ground, wood, metal CLANG for the pot), feather POOF ×4, bird alarm ×6,
 take-off wing burst ×3, run patter loop, vuvuzela BZZZT, windpomp creak + blade pings + water gush,

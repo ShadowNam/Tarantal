@@ -262,7 +262,7 @@ if (wants('sprites')) {
   // Shared sprites: placeholder size and origin from the home biome's placeholder manifest.
   const home = content.biomes.find((b) => b.id === content.modes.modes.classic.biome);
   if (home === undefined) throw new Error('no home biome');
-  const m = createPlaceholderManifest(content, home, [], loadFeel().guns.ammo);
+  const m = createPlaceholderManifest(content, home, loadFeel().guns.ammo);
   for (const spec of [...SPRITES, ...AMMO_SPRITES, ...SIGHT_SPRITES]) {
     const png = join(src, 'sprites', `${spec.key}.png`);
     if (!oursFile(png)) {

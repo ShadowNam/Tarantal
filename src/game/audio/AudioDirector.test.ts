@@ -122,7 +122,7 @@ describe('AudioDirector (M10)', () => {
   });
 
   it('barks: only delivered ones, one voice at a time, never over the tally; music ducks −6 dB', async () => {
-    r.audio.addRecorded([file(voiceKey('bark.kos_is_reg'), 2)]);
+    r.audio.addRecorded([file(voiceKey('en', 'bark.kos_is_reg'), 2)]);
     r.audio.unlock();
     await flush();
     expect(r.audio.bark('bark.missing')).toBe(false);
@@ -142,6 +142,57 @@ describe('AudioDirector (M10)', () => {
     expect(voices()).toHaveLength(2);
     expect(first?.stoppedAt).not.toBeNull();
     expect(voices().at(-1)?.stoppedAt).toBeNull();
+  });
+});
+
+describe('AudioDirector voice language (v1.5, D-041)', () => {
+  const buffers = (r: ReturnType<typeof rig>) =>
+    [...(r.audio as unknown as { buffers: Map<string, unknown> }).buffers.keys()].sort();
+
+  it('speaks from the chosen language only and keeps one pack in memory', async () => {
+    const r = rig();
+    r.audio.setVoiceLanguage('af');
+    r.audio.addRecorded([
+      file(voiceKey('af', 'bark.kos_is_reg'), 1),
+      // A pack for another language arriving late is not kept.
+      file(voiceKey('de', 'bark.kos_is_reg'), 1),
+    ]);
+    r.audio.unlock();
+    await flush();
+    expect(buffers(r)).toEqual(['voice/af/bark.kos_is_reg']);
+    expect(r.audio.bark('bark.kos_is_reg')).toBe(true);
+    expect(r.audio.voicePlayed).toEqual(['voice/af/bark.kos_is_reg']);
+    r.audio.setVoiceLanguage('de');
+    expect(buffers(r)).toEqual([]);
+    expect(r.audio.bark('bark.kos_is_reg')).toBe(false);
+    r.audio.addRecorded([file(voiceKey('de', 'bark.kos_is_reg'), 1)]);
+    await flush();
+    expect(r.audio.bark('bark.kos_is_reg')).toBe(true);
+    expect(r.audio.voicePlayed.at(-1)).toBe('voice/de/bark.kos_is_reg');
+  });
+
+  it('no voice at all with the voice volume at 0 (and no music duck)', async () => {
+    const r = rig();
+    r.audio.addRecorded([file(voiceKey('en', 'bark.lekker'), 1)]);
+    r.audio.unlock();
+    await flush();
+    r.audio.setVolumes({ master: 1, sfx: 1, music: 1, voice: 0 });
+    expect(r.audio.bark('bark.lekker')).toBe(false);
+    expect(r.audio.voicePlayed).toEqual([]);
+    r.audio.setVolumes({ master: 1, sfx: 1, music: 1, voice: 0.5 });
+    expect(r.audio.bark('bark.lekker')).toBe(true);
+  });
+
+  it('runs unlock callbacks once, on the first gesture (or at once after it)', () => {
+    const r = rig();
+    const seen: string[] = [];
+    r.audio.onUnlocked(() => seen.push('a'));
+    expect(seen).toEqual([]);
+    r.audio.unlock();
+    r.audio.unlock();
+    expect(seen).toEqual(['a']);
+    r.audio.onUnlocked(() => seen.push('b'));
+    expect(seen).toEqual(['a', 'b']);
   });
 });
 
