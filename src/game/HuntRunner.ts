@@ -90,9 +90,19 @@ export class HuntRunner {
     return this.sim.result();
   }
 
+  /** v1.7 e2e only: a hold tick set from the page (art previews freeze right after an event). */
+  holdAt: number | undefined = undefined;
+
+  private holdTick(): number | undefined {
+    const a = this.opts.holdAtTick;
+    const b = this.holdAt;
+    return a === undefined ? b : b === undefined ? a : Math.min(a, b);
+  }
+
   /** The sim reached its e2e hold tick (?holdAt) and stays there. */
   get held(): boolean {
-    return this.opts.holdAtTick !== undefined && this.sim.tick >= this.opts.holdAtTick;
+    const hold = this.holdTick();
+    return hold !== undefined && this.sim.tick >= hold;
   }
 
   advance(dtMs: number): FrameResult {
@@ -115,7 +125,8 @@ export class HuntRunner {
 
     let steps = 0;
     while (this.accumulator >= STEP_MS && steps < this.opts.maxStepsPerFrame) {
-      if (this.opts.holdAtTick !== undefined && this.sim.tick >= this.opts.holdAtTick) {
+      const hold = this.holdTick();
+      if (hold !== undefined && this.sim.tick >= hold) {
         this.accumulator = 0;
         break;
       }

@@ -397,6 +397,12 @@ export class HuntScene extends Phaser.Scene {
       (id) => this.manifest.ensureGun(this.textures, id),
       this.ctx.content.weapons.weapons,
     );
+    // e2e/dev only (v1.7 art previews): hold the sim at a tick from inside the page (a rAF watcher
+    // freezes the frame right after an event: the Familiefoto, a scold).
+    if (this.ctx.hook)
+      (window as { __TM_HOLD_AT__?: (tick: number) => void }).__TM_HOLD_AT__ = (tick) => {
+        if (this.runner !== null) this.runner.holdAt = tick;
+      };
     // e2e/dev only (D-029 art previews): freeze the gun on a clip frame for screenshots.
     if (this.ctx.hook)
       (window as { __TM_GUN__?: WeaponView['pose'] }).__TM_GUN__ = (id, clip, frame) => {
