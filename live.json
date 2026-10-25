@@ -1,6 +1,6 @@
 {
- "updated": "2026-10-25T18:43:00Z",
- "summary": "v1.6 Veld art is live on the test build (merged 25 Oct, 18:56). v1.6b reload power-ups is merged too (25 Oct, 20:42; version 1.6.1): Blitslaai and Oupa Laai in the crates and the Padstal. v1.7 meerkats is in its look round (your notes on more fur and nicer faces are next). This Project overview page is being built now. Next, in this order: v1.7b power-ups explained + an Oupa on/off switch, v1.7c fruit that swings or drops, v1.7d Namibië veld life, v1.7e realistic Bushveld + a new secret cue instead of the star (mock-ups for you first), v1.8 Blikkies, v1.8b baboons, v1.8c The Harvest (a new mode), then v1.9–v1.13.",
+ "updated": "2026-10-25T19:24:00Z",
+ "summary": "v1.6 Veld art is live on the test build (merged 25 Oct, 18:56). v1.6b reload power-ups is merged too (25 Oct, 20:42; version 1.6.1): Blitslaai and Oupa Laai in the crates and the Padstal. v1.7 meerkats has your fur and face notes in (round 3) and version 1.7.0; Claude's in-game screenshots and review come next. This Project overview page is being built now. Next, in this order: v1.7b power-ups explained + an Oupa on/off switch, v1.7c fruit that swings or drops, v1.7d Namibië veld life, v1.7e realistic Bushveld + a new secret cue instead of the star (mock-ups for you first), v1.8 Blikkies, v1.8b baboons, v1.8c The Harvest (a new mode), then v1.9–v1.13.",
  "current": {
   "version": "1.6.1",
   "commit": "133c85f"
@@ -263,12 +263,14 @@
      "at": "2026-10-25T17:55:00Z"
     },
     {
-     "text": "Your notes: more fur and nicer faces (sent to Tank at 20:17 with Claude's notes on the body, the Familiefoto pose and the run legs; Tank is working on it)",
-     "done": false
+     "text": "Your notes: more fur and nicer faces, plus Claude's notes (blended hips, the front-facing pose, bent running legs)",
+     "done": true,
+     "at": "2026-10-25T18:52:00Z"
     },
     {
-     "text": "v1.6 merged in (done); v1.6b and version 1.7.0 once #71 is on main",
-     "done": false
+     "text": "v1.6 and v1.6b merged in, version 1.7.0",
+     "done": true,
+     "at": "2026-10-25T19:23:00Z"
     },
     {
      "text": "New screenshots (Claude) and your look",
@@ -285,8 +287,8 @@
    ],
    "images": [
     {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17-meerkat-sheet-r2.jpg",
-     "caption": "The redrawn meerkat sheet, round 2 (17:26 UTC): masks, bands, cream bellies, three-holed burrows. Your fur and face notes come next."
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17-meerkats-rounds.jpg",
+     "caption": "The meerkat sheet over three rounds; round 3 (bottom, 20:52) has your fur and face notes in"
     },
     {
      "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-sentinel-closeup-pixel7-landscape.png",
@@ -760,6 +762,17 @@
     {
      "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/reload-oupa-laai-pixel7-landscape.jpg",
      "caption": "Oupa Laai on the Pixel 7: the \"Oupa Loads\" chip and his hand by the belt"
+    }
+   ]
+  },
+  {
+   "at": "2026-10-25T18:52:00Z",
+   "kind": "screenshots",
+   "text": "Meerkats round 3: furrier, nicer faces (teardrop masks, small bright eyes), bent running legs. In-game close-ups next.",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17-meerkats-rounds.jpg",
+     "caption": "The meerkat sheet over three rounds; round 3 (bottom, 20:52) has your fur and face notes in"
     }
    ]
   }
