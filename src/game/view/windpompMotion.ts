@@ -3,6 +3,7 @@
 //
 // Heading h in −1 … 1: 0 = the wheel faces the viewer; h > 0 = the wheel faces left (into a wind
 // blowing left → right, dir +1) and the vane trails to the right; h < 0 = the opposite.
+import type { Biome } from '../../content/schemas';
 import type { WindView } from '../../sim/types';
 
 export interface PumpMotion {
@@ -51,4 +52,13 @@ export function wheelSquash(heading: number): number {
 export function vaneScaleX(heading: number): number {
   const len = 0.22 + 0.78 * Math.abs(heading);
   return heading > 0 ? -len : len;
+}
+
+/**
+ * Whether a prop's secret draws its own wheel (WorldView's rotor: a multi-hit secret with a
+ * rotor). Only then does this view hide its wheel while the secret is live; another secret on the
+ * same prop (the Kalahari sign) must not take the wheel away.
+ */
+export function secretOwnsRotor(secret: Biome['props'][number]['secret']): boolean {
+  return secret?.type === 'multiHit' && secret.rotor !== undefined;
 }

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { base } from '../../../tools/simHarness';
 import {
   CALM_HEADING,
+  secretOwnsRotor,
   stepPump,
   targetHeading,
   vaneScaleX,
@@ -39,5 +41,18 @@ describe('windpomp motion (v1.6, D-042)', () => {
     expect(wheelSquash(0)).toBe(1);
     expect(wheelSquash(WIND_HEADING)).toBeGreaterThan(0.4);
     expect(wheelSquash(WIND_HEADING)).toBeLessThan(0.6);
+  });
+});
+
+describe('secretOwnsRotor', () => {
+  it('is true only for a multi-hit secret with a rotor (the Karoo windpomp)', () => {
+    const prop = (biome: string, id: string) =>
+      base.biomes.find((b) => b.id === biome)?.props.find((p) => p.id === id);
+    const karoo = prop('karoo-autumn', 'windpomp');
+    const kalahari = prop('kalahari-summer', 'windpomp_sign');
+    expect(secretOwnsRotor(karoo?.secret)).toBe(true);
+    // The Kalahari sign's single-hit secret must not hide the windpomp's wheel.
+    expect(secretOwnsRotor(kalahari?.secret)).toBe(false);
+    expect(secretOwnsRotor(undefined)).toBe(false);
   });
 });
