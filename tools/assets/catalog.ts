@@ -5,6 +5,7 @@ import type { ContentBundle } from '../../src/content/schemas';
 import type { ArtPlaneId as PlaneId } from '../../src/game/assets/artPlane';
 import { coreWidth, LAYER_BLEED_PX } from '../../src/sim/world';
 import { COMMON_GROUP } from '../../src/game/assets/assetIndex';
+import { DESERT_GROUP, isDesertKey } from '../../src/game/assets/desertAssets';
 import type { AssetKind } from '../../src/game/assets/AssetManifest';
 import {
   createPlaceholderManifest,
@@ -74,7 +75,8 @@ export async function buildCatalog(content: ContentBundle): Promise<Catalog> {
       entries.set(e.key, {
         key: e.key,
         kind: e.kind,
-        group: biomes.length === 1 ? id : COMMON_GROUP,
+        // v1.7 (D-044): the meerkats' sheet and sounds load with either desert map.
+        group: isDesertKey(e.key) ? DESERT_GROUP : biomes.length === 1 ? id : COMMON_GROUP,
         biomes,
         ...(size === null ? {} : size),
       });
