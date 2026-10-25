@@ -301,7 +301,7 @@ belt is a deliberate arcade abstraction.
 | `chilli_biltong` | Chilli Biltong | Auto-fire (hold to fire), no shells used, no reload, screen edges glow red | 8 s |
 | `boeretroos` | Boeretroos (enamel mug of coffee) | Birds (and their flock timers) move at 50 %; your aim/reload at 100 % | 10 s |
 | `bush_buckshot` | Bush Buckshot | Spread ×2.5 for the next 6 shells | 6 shells |
-| `meerkat_spotter` | Meerkat Spotter | Hidden birds/secrets get glowing rings | 8 s |
+| `meerkat_spotter` | Meerkat Spotter | Hidden birds/secrets get glowing rings (v1.7: on the desert maps the meerkat climbs out of a burrow mound) | 8 s |
 | `blitslaai` | Blitslaai (Lightning Load, v1.6b) | Every reload takes 35 % of its time: full-belt reloads, each per-shell step, the Voorlaaier's ramrod and the Kettie's draw (its reload, D-025) | 12 s |
 | `oupa_laai` | Oupa Laai (Oupa Loads, v1.6b) | Auto reload: the moment the gun is empty its reload starts by itself; per-shell guns (Windbuks, Plaas-Pomp) also top up whenever you haven't fired for 0.6 s. A shot can always cut an auto reload. Reload time unchanged | 12 s |
 
@@ -423,6 +423,7 @@ Thursday layouts and on the bonus maps.
 | Kalahari | Dead camelthorn branch | Shoot the dry branch | Snaps; roosting flock bursts out, +50 |
 | Kalahari | Windpomp sign | Shoot the sign | **+5 s bonus time** |
 | Kalahari | Weaver nest | **Don't shoot it** | Weavers scold you, −10 (scenery joke) |
+| Kalahari, Namibië | **Familiefoto** (v1.7) | Hold fire for 4 s with a meerkat colony on screen and its whole family out | They stand in a row facing the camera, a camera click, +25, once a hunt |
 
 Bushveld as built (M8, D-025): the twist is on in every mode — each flock has a 60 % chance
 (`twist.flushAsRunChance`) of being one that keeps running when a threat would flush it; the
@@ -450,6 +451,43 @@ Classic he brings his own lightning; in his boss hunt the Boss Rule's lightning 
 flash from any source keeps at least ½ s from the last (≤ 2 a second), and "reduce flashes" dims
 them. The weaver nest costs 10 each time you hit it (every 2 s at most) and is not a secret
 found. Numbers live in `content/biomes/kalahari-summer.json`.
+
+### 11.2 Meerkat colonies on the desert maps (v1.7, D-044)
+
+The product owner (24 Oct): "the desert stages should have small meerkat holes, and occasionally
+have them peek out and run from one nest to the other." Every Kalahari and Namibië map (each
+weekday layout, its bonus maps, and the plain biome of the Season Run) has **1–2 colonies** on the
+near and mid planes. Each colony has 3–5 burrows on low sand mounds and a family of 4–8 meerkats,
+sometimes with a pup that trails its mother. They are non-targets: never hurt, never removed.
+
+- **What they do** (a small state machine, weights and timings in `birds.json → meerkats`):
+  - **hidden** in a burrow;
+  - **peek:** a head pops out, looks left and right, and either ducks or comes out;
+  - **sentinel:** one stands tall on the highest mound, front paws at its belly, turning its head;
+  - **forage:** digging, flicking sand;
+  - **sunbathe:** on the early-light layout (Monday's dawn), belly to the sun;
+  - **dash:** 1–4 run in a file to another burrow, tails up, about one body length apart, and stop halfway to stand and look;
+  - **dive:** back into a hole.
+- **A nearby shot** (an impact within 420 px of the burrows on the colony's own plane) sends the
+  colony down. After 3–6 s one head comes up first; when it comes out the rest follow, a head at a
+  time. A silenced shot (alert radius 0) only scares a colony it hit.
+- **The Langloop** (a gun that alerts every flock) sends every colony down.
+- **Alarm:** when a raptor (Die Stormvoël on the Kalahari) or Oom Faan's crop sprayer flies over
+  a colony, the sentinel (or any meerkat that is up) gives an alarm bark and the colony dashes for
+  its holes. The nearest guineafowl flock hears it and is **alerted**, as real birds listen to
+  meerkats. Namibië now has the crop sprayer too (0–1 a hunt).
+- **Shooting a meerkat:** a puff of sand, it tumbles into the nearest hole, then pops its head out
+  and scolds ("Ons is nie tarentale nie!" / "We're not guineafowl!"). It costs **−10**, at most
+  once per 2 s per colony (the weaver nest's cooldown). Like a hit on the nest, it doesn't break
+  the Frenzy streak.
+- **Familiefoto** (a secret, in the Bird Book and the Notaboek): once a hunt, when the player
+  holds fire for **4 s** after their first shot, with a colony within 600 px of the screen's
+  centre and its whole family above ground, the family lines up facing the camera. A soft camera
+  click, Oupa's line, and **+25** (a secret found: it counts for the secret chain and charms).
+  A quiet colony is a curious one: 2.5 s after the last shot the hidden ones come out sooner and
+  every peek ends with the meerkat coming out.
+- **Balance:** competent scores change by −0.9 % to +4.4 % on every desert map
+  (`docs/balance/v1.7-meerkats.md`).
 
 ### 11.5 Day-of-week maps and bonus map Verder (v1.2, D-033)
 

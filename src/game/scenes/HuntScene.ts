@@ -50,6 +50,8 @@ import { planeToDx } from '../../sim/camera';
 import { crosshairExtent, reloadBoostsOf, spreadMulOf } from '../ui/gunLook';
 import { WorldView } from '../view/WorldView';
 import { WeaverView } from '../view/WeaverView';
+import { MeerkatView } from '../view/MeerkatView';
+import { playMeerkatSound } from '../audio/meerkatSounds';
 import { textureBytes } from '../assets/textureBytes';
 import { mapLights, mapOmen, resolveMap, type ResolvedMap } from '../../sim/maps';
 import { layoutForDay } from '../../meta/maps';
@@ -101,6 +103,8 @@ export class HuntScene extends Phaser.Scene {
   private world!: WorldView;
   /** v1.4 B (D-039): angry weavers out of a shot family nest. */
   private weavers!: WeaverView;
+  /** v1.7 (D-044): the desert maps' meerkat colonies. */
+  private meerkats!: MeerkatView;
   private debug!: DebugOverlay;
   private screen!: Phaser.GameObjects.Container;
   /** v1.3: screen overlays a sight's zoom never scales (glare, tints, rain), the sight picture,
@@ -372,6 +376,18 @@ export class HuntScene extends Phaser.Scene {
       far: planes.far.scale,
       ver: planes.ver.scale,
     });
+    this.meerkats = new MeerkatView(
+      this,
+      this.manifest,
+      this.parallax,
+      this.ctx.content.birds.meerkats,
+      {
+        near: planes.near.scale,
+        mid: planes.mid.scale,
+        far: planes.far.scale,
+        ver: planes.ver.scale,
+      },
+    );
     this.weapon = new WeaponView(
       this,
       this.ctx.feel,
@@ -381,6 +397,12 @@ export class HuntScene extends Phaser.Scene {
       (id) => this.manifest.ensureGun(this.textures, id),
       this.ctx.content.weapons.weapons,
     );
+    // e2e/dev only (v1.7 art previews): hold the sim at a tick from inside the page (a rAF watcher
+    // freezes the frame right after an event: the Familiefoto, a scold).
+    if (this.ctx.hook)
+      (window as { __TM_HOLD_AT__?: (tick: number) => void }).__TM_HOLD_AT__ = (tick) => {
+        if (this.runner !== null) this.runner.holdAt = tick;
+      };
     // e2e/dev only (D-029 art previews): freeze the gun on a clip frame for screenshots.
     if (this.ctx.hook)
       (window as { __TM_GUN__?: WeaponView['pose'] }).__TM_GUN__ = (id, clip, frame) => {
@@ -1267,6 +1289,8 @@ export class HuntScene extends Phaser.Scene {
       hook.replay = null;
       hook.over = false;
       hook.flockLog = [];
+      hook.meerkatLog = [];
+      hook.meerkats = [];
       hook.hunts++;
     }
     range?.attach(this.rangeHost());
@@ -1369,7 +1393,15 @@ export class HuntScene extends Phaser.Scene {
     this.world.update(state, width, designSize().height);
     const w0 = performance.now();
     this.weavers.update(state);
+    this.meerkats.update(state);
+    for (const cue of this.meerkats.cues) {
+      const pan = (cue.screenX - width / 2) / (width / 2);
+      // Only colonies on screen (or just off it) are heard.
+      if (Math.abs(pan) <= 1.2)
+        playMeerkatSound(this.ctx.audio, cue.sound, Math.max(-1, Math.min(1, pan)));
+    }
     if (this.ctx.hook) {
+      this.ctx.hook.meerkatMs += this.meerkats.ms;
       // v1.4 B (e2e perf): what the weavers and the mirage cost per frame.
       this.ctx.hook.sceneryMs += performance.now() - w0 + this.world.mirageMs;
       this.ctx.hook.sceneryFrames++;
@@ -1494,6 +1526,7 @@ export class HuntScene extends Phaser.Scene {
       hook.powerups = state.powerups.map((p) => p.id);
       hook.wind = state.wind;
       hook.weavers = this.weavers.visibleCount;
+      hook.meerkats = this.meerkats.spots();
       hook.mirage = state.mirage;
       hook.durationTicks = state.durationTicks;
     }
@@ -1521,6 +1554,28 @@ export class HuntScene extends Phaser.Scene {
     this.birds.handle(events);
     const half = width / 2;
     // v1.4 B: a shot family nest lets its weavers out; they chatter and scold (AudioDirector).
+    this.meerkats.handle(events);
+    // v1.7 (D-044): the sentinel's alarm bark and the Familiefoto's camera click.
+    for (const e of events) {
+      if (e.type === 'meerkatAlarm')
+        playMeerkatSound(
+          this.ctx.audio,
+          'alarm',
+          (this.parallax.screenX(e.plane, e.x) - half) / half,
+        );
+      else if (e.type === 'familiefoto') playMeerkatSound(this.ctx.audio, 'click', 0);
+    }
+    if (this.ctx.hook) {
+      const log = this.ctx.hook.meerkatLog;
+      for (const e of events) {
+        if (log.length >= 200) break;
+        if (e.type === 'meerkatHit') log.push(`hit:${e.points}`);
+        else if (e.type === 'meerkatScold') log.push(`scold:${e.points}`);
+        else if (e.type === 'meerkatsDived') log.push(`dived:${e.cause}`);
+        else if (e.type === 'meerkatAlarm') log.push(`alarm:${e.creature}`);
+        else if (e.type === 'familiefoto') log.push('familiefoto');
+      }
+    }
     for (const b of this.weavers.handle(events)) {
       this.ctx.audio.weavers(Math.max(-1, Math.min(1, (b.screenX - half) / half)));
       if (this.ctx.hook) this.ctx.hook.weaverBursts++;
@@ -1875,6 +1930,7 @@ export class HuntScene extends Phaser.Scene {
     this.birds.clear();
     this.world.clear();
     this.weavers.clear();
+    this.meerkats.clear();
     this.game.canvas.style.cursor = '';
   }
 }

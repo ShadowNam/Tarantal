@@ -14,6 +14,7 @@ import { FlashGate, type FlashLimiter } from './flashLimit';
 import { stampedeTintAlpha } from './juice';
 import { mirageLook } from './mirage';
 import { WindpompView } from './WindpompView';
+import { MEERKAT_SHEET, SHEET_W, sheetFrames } from '../assets/desertAssets';
 
 /** Rendering only: dust devils sway this much (radians) and this fast (ms per sway). */
 const DEVIL_SWAY = 0.08;
@@ -67,6 +68,8 @@ export class WorldView {
   /** v1.3: full-screen overlays (glare, tints, storm, rain) that a sight's zoom never scales. */
   private readonly fixed: Phaser.GameObjects.Container;
   private readonly helper: Phaser.GameObjects.Image;
+  /** v1.7 (D-044): the burrow the Spotter climbs out of on the desert maps. */
+  private burrow: Phaser.GameObjects.Image | null = null;
   /** Power-ups that bring a helper creature (helpers' `grants`, birds.json). */
   private readonly helperPowerups: ReadonlySet<string>;
   private readonly planeScale: Readonly<Record<PlaneId, number>>;
@@ -487,6 +490,11 @@ export class WorldView {
     const active = s.powerups.find((p) => this.helperPowerups.has(p.id));
     if (active === undefined) {
       this.helper.setVisible(false);
+      this.burrow?.setVisible(false);
+      return;
+    }
+    if (s.meerkats.length > 0 && this.scene.textures.exists(MEERKAT_SHEET)) {
+      this.helperFromBurrow(active, width, height);
       return;
     }
     // Stands up bottom-left (beside the gadget button), sinks for the last half second.
@@ -494,8 +502,62 @@ export class WorldView {
     const sink = Math.min(1, left / 30);
     this.helper
       .setVisible(true)
+      .setOrigin(0.5, 0.5)
+      .setCrop()
       .setPosition(width * 0.2, height + 210 * (1 - sink) - 10)
       .setScale(0.9);
+  }
+
+  /**
+   * v1.7 (D-044): on the desert maps the Meerkat Spotter climbs out of a burrow (a mound with a
+   * hole bottom-left) instead of rising from nowhere, and goes back down it at the end. Nothing
+   * of it shows below the hole's rim. Paced by the power-up's ticks (sim time).
+   */
+  private helperFromBurrow(
+    active: SimState['powerups'][number],
+    width: number,
+    height: number,
+  ): void {
+    const x = width * 0.2;
+    const holeY = height - 34;
+    // A delivered sheet may replace the drawn one: the burrow follows it once its frames exist
+    // (MeerkatView adds them).
+    const tex = this.scene.textures.get(MEERKAT_SHEET);
+    if (this.burrow !== null && this.burrow.texture !== tex) {
+      this.burrow.destroy();
+      this.burrow = null;
+    }
+    if (this.burrow === null && tex.has('mound_b')) {
+      this.burrow = this.scene.add.image(x, holeY, MEERKAT_SHEET, 'mound_b');
+      const r = sheetFrames().find((f) => f.name === 'mound_b');
+      if (r !== undefined) this.burrow.setOrigin(r.ox / r.w, r.oy / r.h);
+      this.screen.addAt(this.burrow, this.screen.getIndex(this.helper));
+    }
+    const k = 1 / this.burrowScale();
+    this.burrow
+      ?.setVisible(true)
+      .setPosition(x, holeY)
+      .setScale(0.9 / k);
+    const left = active.ticksLeft ?? 0;
+    const since = (active.totalTicks ?? left) - left;
+    const rise = Math.max(0, Math.min(1, since / 30, left / 30));
+    const scale = 0.9;
+    const dh = this.helper.height * scale;
+    // Feet a third of the way down the burrow when fully out; all the way down at rise 0.
+    const bottom = holeY + dh * 0.3 + (1 - rise) * dh * 0.7;
+    const visible = Math.max(0, (holeY - (bottom - dh)) / scale);
+    this.helper
+      .setVisible(rise > 0)
+      .setOrigin(0.5, 1)
+      .setPosition(x, bottom)
+      .setScale(scale)
+      .setCrop(0, 0, this.helper.width, visible);
+  }
+
+  /** Display scale of the delivered sheet (2× art is 0.5), from the texture's size. */
+  private burrowScale(): number {
+    const src = this.scene.textures.get(MEERKAT_SHEET).getSourceImage();
+    return src.width > SHEET_W ? SHEET_W / src.width : 1;
   }
 
   /** Omen visual flags: leaves and dust blowing downwind, more in a strong wind. */
@@ -543,6 +605,8 @@ export class WorldView {
     this.crates.clear();
     for (const d of this.devils.values()) d.destroy();
     this.devils.clear();
+    this.burrow?.destroy();
+    this.burrow = null;
     for (const r of this.rings) r.destroy();
     this.rings.length = 0;
     for (const b of this.windBits) b.destroy();

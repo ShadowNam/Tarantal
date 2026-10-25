@@ -5,6 +5,7 @@ import type { ContentBundle } from '../../src/content/schemas';
 import type { ArtPlaneId as PlaneId } from '../../src/game/assets/artPlane';
 import { coreWidth, LAYER_BLEED_PX } from '../../src/sim/world';
 import { COMMON_GROUP } from '../../src/game/assets/assetIndex';
+import { DESERT_GROUP, isDesertKey } from '../../src/game/assets/desertAssets';
 import type { AssetKind } from '../../src/game/assets/AssetManifest';
 import {
   createPlaceholderManifest,
@@ -74,7 +75,8 @@ export async function buildCatalog(content: ContentBundle): Promise<Catalog> {
       entries.set(e.key, {
         key: e.key,
         kind: e.kind,
-        group: biomes.length === 1 ? id : COMMON_GROUP,
+        // v1.7 (D-044): the meerkats' sheet and sounds load with either desert map.
+        group: isDesertKey(e.key) ? DESERT_GROUP : biomes.length === 1 ? id : COMMON_GROUP,
         biomes,
         ...(size === null ? {} : size),
       });
@@ -125,7 +127,7 @@ export async function buildCatalog(content: ContentBundle): Promise<Catalog> {
   // v1.5 (D-041): Oupa's voice, one lazy pack per voice language (voice/<lang>/<bark key>): his
   // trigger lines (feel.json barks) and every secret's bark.
   for (const lang of VOICE_LANGUAGES)
-    for (const line of voicedLines(loadFeel().barks, content.biomes)) {
+    for (const line of voicedLines(loadFeel().barks, content.biomes, content.birds.meerkats)) {
       const key = voiceKey(lang, line);
       entries.set(key, { key, kind: 'sound', group: voiceGroup(lang), biomes: everyBiome });
     }

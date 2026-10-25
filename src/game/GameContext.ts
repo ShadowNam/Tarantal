@@ -307,6 +307,23 @@ export interface TestHook {
   /** v1.4 B (D-039): angry weavers on screen now, and bursts started this hunt. */
   weavers: number;
   weaverBursts: number;
+  /** v1.7 (D-044): the meerkats now (screen feet, body centre to aim at, pose), and the hunt's
+   *  meerkat events in order ("hit:-10", "scold:-10", "dived:shot", "alarm:sproeier",
+   *  "familiefoto"), at most 200. */
+  meerkats: {
+    id: number;
+    colony: string;
+    pose: string;
+    pup: boolean;
+    x: number;
+    y: number;
+    aimX: number;
+    aimY: number;
+    hittable: boolean;
+  }[];
+  meerkatLog: string[];
+  /** v1.7 (perf): ms spent drawing the meerkat colonies, summed with the frames counted. */
+  meerkatMs: number;
   /** v1.6b (D-043): reload power-ups on the HUD — the chips' icon textures (null = none), the
    *  lightning glints on the belt now, Oupa's hand on the belt, and auto reloads this page. */
   reloadFx: { chipIcons: (string | null)[]; bolts: number; oupaHand: boolean; autoReloads: number };

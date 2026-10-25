@@ -3,6 +3,7 @@
 // (docs/04-BUILD-PLAN.md M0); `strict` turns them into errors (CI uses --strict from M8 on).
 import { coreWidth, DESIGN_HEIGHT } from '../sim/world';
 import { mixedOverlaps } from './rangeFootprint';
+import { colonyIssues } from './colonyChecks';
 import { WORLD_EVENT_HANDLERS } from '../sim/director/events';
 
 /** Half the narrowest visible design width (4:3, 1440 px; Tech §3.3). */
@@ -96,6 +97,13 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
       err('birds.json', `helper "${c.id}" grants unknown power-up "${c.grants}"`);
     }
   }
+
+  // v1.7 (D-044): the meerkat colonies' alarm listens for real fly-over creatures.
+  for (const id of birds.meerkats.alarm.creatures) {
+    if (!creatures.has(id)) err('birds.json', `meerkats.alarm lists unknown creature "${id}"`);
+  }
+  i18n('birds.json', birds.meerkats.hit.barkKey);
+  i18n('birds.json', birds.meerkats.familiefoto.barkKey);
 
   // --- weapons.json ------------------------------------------------------------------------
   // v1.3 (D-036): sights and the rifles that fit them.
@@ -355,6 +363,8 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
       }
     }
     for (const b of biome.bonusMaps) i18n(file, b.nameKey);
+    // v1.7 (D-044): meerkat colonies on every map of the biome.
+    for (const m of colonyIssues(bundle, biome)) err(file, m);
     for (const entry of biome.spawnTable) {
       const c = creatures.get(entry.creature);
       if (c === undefined) err(file, `spawnTable uses unknown creature "${entry.creature}"`);

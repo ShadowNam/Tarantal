@@ -268,7 +268,7 @@ player picks the voice language in Settings. **One folder per voice language:**
 `audio/voice/en/`, `audio/voice/af/`, `audio/voice/de/`, each with one WAV per line, the file name
 being the line's i18n key, e.g. `audio/voice/af/bark.kos_is_reg.wav`. The pack tool puts each
 language in its own lazy group (`voice-en`, `voice-af`, `voice-de`): the game downloads only the
-chosen language's pack, after the first tap, and never in the first download. 44 lines per
+chosen language's pack, after the first tap, and never in the first download. 46 lines per
 language: the 39 trigger lines below plus the 5 secret barks (`bark.kos_is_reg` Karoo,
 `bark.weavers` and `bark.sign` Kalahari, `bark.mokoro` and `bark.kwaak` Okavango, `bark.egg`
 Namibië; `bark.weavers` is the weavers scolding, not Oupa). Read each language's line as written
@@ -278,7 +278,8 @@ language. Short: most lines are 1–3 s. The HUD shows the line in the player's 
 a speech bubble whether or not a recording exists.
 
 **How to deliver final voice packs** (the product owner's choice of human or premium voices):
-1. Record or render the 44 lines for one language as WAV masters (as above; mono is fine).
+1. Record or render the 46 lines for one language as WAV masters (as above; mono is fine). v1.7
+   (D-044) added `bark.meerkat_scold` (a meerkat scolding, not Oupa) and `bark.familiefoto`.
 2. Name them `<key>.wav` and copy them into `art-source/audio/voice/<lang>/`, **deleting the
    interim `<key>.wav` and its `<key>.json` sidecar** for each line you replace. A WAV with no
    sidecar is final; `npm run audio:voice` never overwrites it. A pack may be delivered line by
@@ -350,6 +351,14 @@ at or under 3 MB gzip in total (v1.x plan; `npm run size` hard budget 5 MB), and
 biome's chunk at or under 1.5 MB (`npm run size -- --strict` fails above it). Three 60 s stems at Vorbis q2 come to about 2 MB.
 The other biomes' audio loads when that biome is first played.
 
+**Desert group (v1.7, D-044).** The meerkat colonies' sheet `desert/meerkats` and their four
+sounds (`sfx/meerkat_chirp`, `sfx/meerkat_alarm`, `sfx/meerkat_dig`, `sfx/camera_click`) are
+shared by the Kalahari and Namibië. They load in their own lazy group, `desert`, with either map,
+never in the first download. The sheet is a grid of 112 × 144 cells (eight to a row, feet at
+(56, 136), facing right), and its last row holds three mounds two cells wide (hole at (112, 92)).
+The frame order and art notes are in `src/game/assets/desertAssets.ts` and the art bible §3.5.
+Deliver the whole sheet with the same layout, at any multiple (the sidecar's `master`).
+
 ## 6. Sprites (UI, FX, props, guns)
 
 A delivered sprite should match its placeholder's size: views place it at its own size (1 texture
@@ -384,6 +393,7 @@ px = 1 design px), and the pack tool warns if it differs. Its origin defaults to
 | `gun/voorlaaier` | 420 × 520 | common |
 | `gun/windbuks` | 420 × 520 | common |
 | `helper/meerkat` | 120 × 220 | common |
+| `desert/meerkats` | 896 × 576 (deliver at 2×: 1792 × 1152, sidecar `"master": 2`) | desert |
 | `omen/glare` | 256 × 64 | common |
 | `omen/rain` | 6 × 40 | common |
 | `omen/rainbow` | 512 × 256 | common |

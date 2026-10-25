@@ -654,9 +654,9 @@ export const KALAHARI_PLAN: BiomeArtPlan = {
       draw: verVeld({ ground: 'sand', light: 'sandLight', scrub: 'bossie' }),
     },
     far_veld: { top: 464, height: 232, colours: 112, draw: farVeld },
-    mid: { top: 430, height: 480, colours: 128, draw: mid },
-    near: { top: 820, height: 260, colours: 128, draw: near },
-    foreground: { top: 880, height: 200, fadeTop: 28, colours: 128, draw: foreground },
+    mid: { top: 430, height: 480, colours: 112, draw: mid },
+    near: { top: 820, height: 260, colours: 96, draw: near },
+    foreground: { top: 880, height: 200, fadeTop: 28, colours: 96, draw: foreground },
   },
   props: {
     'kalahari/weaver_camelthorn': {

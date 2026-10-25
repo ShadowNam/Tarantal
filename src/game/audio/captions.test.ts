@@ -46,3 +46,28 @@ describe('sound captions (M9, GDD §18.3)', () => {
     expect(updateCaptions([], last, [ev({ type: 'birdCalled' })], 1700, cfg)).toHaveLength(1);
   });
 });
+
+describe('v1.7 meerkat captions (D-044)', () => {
+  const at = { tick: 1, colonyId: 'c', meerkatId: 2, plane: 'mid' as const, x: 0, y: 0 };
+  it('a penalised hit, the scold, the alarm and the photo each have a caption', () => {
+    expect(captionFor({ type: 'meerkatHit', shotId: 1, points: -10, ...at })).toBe(
+      'caption.penalty',
+    );
+    expect(captionFor({ type: 'meerkatHit', shotId: 1, points: 0, ...at })).toBeNull();
+    expect(captionFor({ type: 'meerkatScold', points: -10, ...at })).toBe('caption.meerkat_chirp');
+    expect(captionFor({ type: 'meerkatAlarm', creature: 'sproeier', flockId: null, ...at })).toBe(
+      'caption.meerkat_alarm',
+    );
+    expect(
+      captionFor({
+        type: 'familiefoto',
+        tick: 1,
+        colonyId: 'c',
+        family: 6,
+        plane: 'mid',
+        x: 0,
+        y: 0,
+      }),
+    ).toBe('caption.camera_click');
+  });
+});

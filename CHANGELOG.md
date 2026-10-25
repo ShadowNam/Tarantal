@@ -3,6 +3,33 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.7.0] — meerkat colonies on the desert maps (25 Oct 2026)
+
+Decision record D-044. The desert content changed (the colonies, and the crop sprayer over
+Namibië), so replays from 1.6.1 are refused (new content hash) and the golden replays were
+re-recorded: only the 7 desert cases changed their events.
+
+### Added
+- **Meerkat colonies** on every Kalahari and Namibië map, near and mid: 3–5 burrows on sand
+  mounds and a family of 4–8, sometimes with a pup. They peek, keep a sentinel on the highest
+  mound, dig, sunbathe at dawn, dash between burrows and dive.
+- **They react:** a nearby shot or the Langloop sends them down (they come back a head at a
+  time); a raptor or the crop sprayer overhead sets off the sentinel's alarm, which also alerts
+  the nearest guineafowl flock.
+- **Don't shoot them:** a shot meerkat is never hurt. It tumbles into a hole and scolds ("We're
+  not guineafowl!"), for −10, at most once every 2 s per colony.
+- **Familiefoto**, a new secret: hold your fire with a whole family out on screen and they line up
+  for a photo (+25). It is in the Bird Book and the Notaboek.
+- The Meerkat Spotter climbs out of a burrow on the desert maps.
+- Interim art (a furry, rigged sheet drawn at 2×) and sounds (chirps, the alarm bark, digging,
+  the camera click), in their own lazy download with either desert map. Voiced lines in
+  English, Afrikaans and German; text in en/af/de/nl.
+
+### Changed
+- Oom Faan's crop sprayer sometimes crosses the Namibië sky too.
+- The Kalahari's interim near, foreground and mid layers use smaller palettes, so a Kalahari hunt
+  (its chunk plus the desert chunk) stays within 1.5 MB.
+
 ## [1.6.1] — reload power-ups (25 Oct 2026)
 
 Decision record D-043. The crate weights changed, so replays from 1.6.0 are refused (new content

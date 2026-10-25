@@ -1,6 +1,7 @@
 // Applies a finished hunt to the save: stats, Bird Book, per-biome bests, best rank, Notaboek
 // challenges and the unlocks they grant (GDD §13.6, §14, §15). Pure: returns a new SaveData and
 // what changed, so the tally can celebrate it.
+import { FAMILIEFOTO_SECRET } from '../sim/meerkats/colony';
 import { bonusReachedAnywhere } from './areas';
 import type {
   ContentBundle,
@@ -58,6 +59,8 @@ function metricValue(m: NotaboekMetric, log: HuntLog): number {
       return log.score;
     case 'distinctSecrets':
       return 0; // counted from the Bird Book below
+    case 'familiefotos':
+      return log.secretsFound.includes(FAMILIEFOTO_SECRET) ? 1 : 0;
   }
 }
 

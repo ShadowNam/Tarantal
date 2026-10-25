@@ -6,7 +6,14 @@ import type { BreakdownStep } from './scoring/pipeline';
 import type { BagBehaviour, BirdMotion, FlockState, PlaneId, RangeTarget } from './types';
 
 /** What threatened a flock (GDD §6.2). */
-export type ThreatSource = 'shot' | 'silentBag' | 'event' | 'gadget' | 'splash';
+export type ThreatSource =
+  | 'shot'
+  | 'silentBag'
+  | 'event'
+  | 'gadget'
+  | 'splash'
+  // v1.7 (D-044): a meerkat sentinel's alarm bark (the nearest flock listens).
+  | 'meerkatAlarm';
 /** Why a flock changed state. */
 export type FlockCause =
   'threat' | 'window' | 'timeout' | 'landed' | 'settled' | 'gadget' | 'event' | 'stampede';
@@ -75,6 +82,8 @@ export type SimEvent =
       readonly cx?: number;
       /** v1.3x (D-037): the Skietbaan paper target it hit (absent everywhere else). */
       readonly paperId?: number;
+      /** v1.7 (D-044): the meerkat it hit (absent everywhere else). */
+      readonly meerkatId?: number;
     }
   /** v1.3x (D-037) Skietbaan only: a shot's aim point on the range's plane (plane px; a rifle's
    *  before the sway), the point its group is measured from. */
@@ -425,6 +434,74 @@ export type SimEvent =
       readonly tick: number;
       readonly ticks: number;
       readonly scale: number;
+    }
+  /** v1.7 (D-044): a meerkat colony on the map (hunt start). x, y: its centre on its layer. */
+  | {
+      readonly type: 'colonySpawned';
+      readonly tick: number;
+      readonly colonyId: string;
+      readonly plane: PlaneId;
+      readonly x: number;
+      readonly y: number;
+      readonly family: number;
+    }
+  /** A meerkat was shot: it tumbles into a hole, never hurt. points: the penalty (negative), or
+   *  0 inside the colony's cooldown. */
+  | {
+      readonly type: 'meerkatHit';
+      readonly tick: number;
+      readonly shotId: number;
+      readonly colonyId: string;
+      readonly meerkatId: number;
+      readonly plane: PlaneId;
+      readonly x: number;
+      readonly y: number;
+      readonly points: number;
+    }
+  /** The shot meerkat pops its head out of the hole and scolds (points: its hit's). */
+  | {
+      readonly type: 'meerkatScold';
+      readonly tick: number;
+      readonly colonyId: string;
+      readonly meerkatId: number;
+      readonly plane: PlaneId;
+      readonly x: number;
+      readonly y: number;
+      readonly points: number;
+    }
+  /** The colony dashed for its holes: a shot nearby, a loud gun, an alarm or a hit. */
+  | {
+      readonly type: 'meerkatsDived';
+      readonly tick: number;
+      readonly colonyId: string;
+      readonly cause: 'shot' | 'loud' | 'alarm' | 'hit';
+      readonly plane: PlaneId;
+      readonly x: number;
+      readonly y: number;
+    }
+  /** The sentinel barks: a raptor or the crop sprayer overhead. flockId: the guineafowl flock
+   *  that heard it (null: none, or the content turns that off). */
+  | {
+      readonly type: 'meerkatAlarm';
+      readonly tick: number;
+      readonly colonyId: string;
+      readonly meerkatId: number;
+      readonly creature: string;
+      readonly flockId: number | null;
+      readonly plane: PlaneId;
+      readonly x: number;
+      readonly y: number;
+    }
+  /** The Familiefoto: the whole family stands in a row facing the camera (click). A
+   *  secretTriggered (propId "familiefoto") and its bonus follow. */
+  | {
+      readonly type: 'familiefoto';
+      readonly tick: number;
+      readonly colonyId: string;
+      readonly family: number;
+      readonly plane: PlaneId;
+      readonly x: number;
+      readonly y: number;
     }
   | { readonly type: 'huntEnded'; readonly tick: number; readonly score: number };
 

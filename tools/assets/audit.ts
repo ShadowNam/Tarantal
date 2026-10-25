@@ -9,6 +9,7 @@ import { clipFor, resolveClip } from '../../src/game/assets/birdClips';
 import type { BirdMotion, BirdPhase, PlaneId } from '../../src/sim/types';
 import type { AssetKind, AssetStatus } from '../../src/game/assets/AssetManifest';
 import type { Catalog } from './catalog';
+import { MEERKAT_SHEET, MEERKAT_SOUNDS } from '../../src/game/assets/desertAssets';
 
 export interface AuditRow {
   readonly key: string;
@@ -68,6 +69,14 @@ function usages(
   // the range draws PLATE_TEX or plays the sound by its name.
   const rangeSound = Object.entries(RANGE_SOUNDS).find(([, k]) => k === key)?.[0];
   if (rangeSound !== undefined) needles.push(new RegExp(`playRangeSound\\([^)]*'${rangeSound}'`));
+  // v1.7 (D-044): the desert keys (src/game/assets/desertAssets.ts): the sheet by its constant,
+  // a sound when it is played by name or queued as a view cue.
+  if (key === MEERKAT_SHEET) needles.push(/\bMEERKAT_SHEET\b/);
+  const meerkatSound = Object.entries(MEERKAT_SOUNDS).find(([, k]) => k === key)?.[0];
+  if (meerkatSound !== undefined) {
+    needles.push(new RegExp(`playMeerkatSound\\([^)]*'${meerkatSound}'`));
+    needles.push(new RegExp(`cue = '${meerkatSound}'`));
+  }
   if (key === PLATE_TEX) needles.push(/\bPLATE_TEX\b/);
   if (key === PLATE_FRAME_TEX) needles.push(/\bPLATE_FRAME_TEX\b/);
   if (kind === 'texture' && key.startsWith('gun/')) {

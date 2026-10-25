@@ -561,6 +561,59 @@ const SFX: Readonly<Record<string, () => Buf>> = {
     );
     return fadeEnds(normalise(out), SR);
   },
+  // --- v1.7 (D-044): the meerkat colonies (group "desert", lazy) ----------------------------
+  meerkat_chirp: () => {
+    // Soft contact peeps: two short, rising, slightly breathy notes.
+    const r = rng(51);
+    const out = buf(0.3, SR);
+    for (const [at, f] of [
+      [0, 2300],
+      [0.11, 2550],
+    ] as const) {
+      const tone = shape(osc('sine', glide(f, f * 1.3, 0.07), 0.08, SR), SR, ad(0.006, 0.05));
+      const air = shape(bandpass(noise(0.08, SR, r), SR, f * 1.2, 6), SR, ad(0.004, 0.04));
+      mix(out, tone, at, SR, 0.8);
+      mix(out, air, at, SR, 0.25);
+    }
+    return fadeEnds(normalise(out, 0.6), SR);
+  },
+  meerkat_alarm: () => {
+    // The sentinel's alarm: a harsh, nasal double bark.
+    const r = rng(52);
+    const out = buf(0.42, SR);
+    for (const at of [0, 0.17]) {
+      const len = 0.12;
+      const x = osc('saw', glide(980, 640, len), len, SR);
+      const n = noise(len, SR, r);
+      for (let i = 0; i < x.length; i++) x[i] = (x[i] ?? 0) * 0.7 + (n[i] ?? 0) * 0.5;
+      bandpass(x, SR, 1500, 1.8);
+      mix(out, shape(saturate(x, 2.4), SR, ad(0.004, 0.05, len)), at, SR, 1);
+    }
+    return fadeEnds(normalise(out), SR);
+  },
+  meerkat_dig: () => {
+    // Paws scratching loose sand: three gritty swipes.
+    const r = rng(53);
+    const out = buf(0.36, SR);
+    for (const at of [0, 0.1, 0.22])
+      mix(
+        out,
+        shape(bandpass(noise(0.07, SR, r), SR, 3400, 1.2), SR, ad(0.003, 0.03)),
+        at,
+        SR,
+        0.7,
+      );
+    return fadeEnds(normalise(out, 0.5), SR);
+  },
+  camera_click: () => {
+    // A soft shutter: the click of the blades and a short wind-on whirr.
+    const r = rng(54);
+    const out = buf(0.32, SR);
+    mix(out, click(55, 4200, 0.02, 3), 0, SR, 0.9);
+    mix(out, click(56, 2600, 0.02, 4), 0.045, SR, 0.6);
+    mix(out, shape(bandpass(noise(0.16, SR, r), SR, 1200, 3), SR, ad(0.01, 0.08)), 0.09, SR, 0.25);
+    return fadeEnds(normalise(out, 0.55), SR);
+  },
 };
 
 /** A quick marimba arpeggio (stingers). */

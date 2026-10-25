@@ -551,5 +551,13 @@
   "area.pick": "Hier jagen",
   "area.desc.karoo_autumn": "Opa's boerderij in de Karoo: het thuisveld.",
   "area.desc.namibie": "De witte zoutpan van Etosha en de duinen van de Namib: wijd open, gemaakt voor verre schoten.",
-  "tally.area_unlocked": "{area} is open! Kies het onder Gebied op het titelscherm."
+  "tally.area_unlocked": "{area} is open! Kies het onder Gebied op het titelscherm.",
+  "bark.meerkat_scold": "Wij zijn geen parelhoenders!",
+  "bark.familiefoto": "Iedereen lachen! Mooi, wat een familiefoto.",
+  "secret.familiefoto": "De familiefoto van de stokstaartjes",
+  "hud.familiefoto": "FAMILIEFOTO!",
+  "caption.meerkat_alarm": "[alarmroep van de wachter — stokstaartjes duiken weg]",
+  "caption.meerkat_chirp": "[stokstaartjes tjirpen]",
+  "caption.camera_click": "[camera klikt]",
+  "notaboek.familiefoto": "Maak de familiefoto van de stokstaartjes (niet schieten)"
 }

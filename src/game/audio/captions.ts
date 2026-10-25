@@ -15,6 +15,15 @@ export function captionFor(e: SimEvent): I18nKey | null {
     case 'penaltyApplied':
     case 'secretPenalty':
       return 'caption.penalty';
+    // v1.7 (D-044): the meerkats.
+    case 'meerkatHit':
+      return e.points < 0 ? 'caption.penalty' : null;
+    case 'meerkatScold':
+      return 'caption.meerkat_chirp';
+    case 'meerkatAlarm':
+      return 'caption.meerkat_alarm';
+    case 'familiefoto':
+      return 'caption.camera_click';
     case 'stampedeStarted':
       return 'caption.stampede';
     case 'flockStateChanged':
