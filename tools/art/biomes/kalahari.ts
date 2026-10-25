@@ -254,10 +254,9 @@ function sky(ctx: LayerCtx): string {
       streaks: 3,
     }),
   ];
-  const storm = { lit: ctx.raw('stormLit'), body: ctx.raw('storm'), base: ctx.raw('stormBase') };
   for (let x = 120 + ctx.rnd() * 300; x < ctx.width; x += 700 + ctx.rnd() * 600) {
     const w = 200 + ctx.rnd() * 100;
-    parts.push(thunderhead(ctx.rnd, x, 600, w, 250 + ctx.rnd() * 40, storm, ctx.raw('stormBase')));
+    parts.push(thunderhead(ctx.rnd, x, 600, w, 250 + ctx.rnd() * 40));
   }
   return g({}, ...parts);
 }
@@ -644,7 +643,8 @@ function duneGrass(seed: number) {
 export const KALAHARI_PLAN: BiomeArtPlan = {
   biome: 'kalahari-summer',
   layers: {
-    sky: { top: 0, height: 1080, encode: 'png', draw: sky },
+    // v1.6 (D-042): a 256-colour sky, as the other biomes'.
+    sky: { top: 0, height: 1080, encode: 'png8', draw: sky },
     // v1.6 (D-042): smaller palettes keep the biome chunk inside 1.5 MB.
     far_ridge: { top: 380, height: 280, colours: 96, draw: farRidge },
     // v1.3: the Ver plane's strip (shown only on maps that open it).

@@ -1257,7 +1257,8 @@ function panGrass(seed: number) {
 export const NAMIBIE_PLAN: BiomeArtPlan = {
   biome: 'namibie',
   layers: {
-    sky: { top: 0, height: 1080, encode: 'png', draw: sky },
+    // v1.6 (D-042): a 256-colour sky, as the other biomes'.
+    sky: { top: 0, height: 1080, encode: 'png8', draw: sky },
     // v1.6 (D-042): smaller palettes keep the biome chunk inside 1.5 MB.
     far_ridge: { top: 376, height: 214, colours: 96, draw: farRidge },
     ver_veld: { top: 524, height: 64, draw: verStrip },

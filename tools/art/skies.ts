@@ -143,114 +143,151 @@ export function cirrus(
 }
 
 /**
- * v1.6 (D-042): a towering cumulonimbus. Cauliflower towers rising from a dark flat base (the
- * tallest in the middle, never a flat top: no mesa), sunlit domes upper left, shaded flanks, a
- * thin wispy anvil streaming off the top, grey rain shafts; soft edges, no ink.
+ * v1.6 (D-042 look note D): a cumulonimbus in the Kalahari light: a broad billowing mass with a
+ * tower or two (billowCloud), warm cream tops, a flat grey-blue base, a thin wispy anvil and grey
+ * rain shafts; soft edges, no outline, no highlight dots, no purple cast.
  */
-export function thunderhead(
-  rnd: Rnd,
-  x: number,
-  base: number,
-  w: number,
-  h: number,
-  c: CloudColours,
-  rain: string,
-): string {
+export function thunderhead(rnd: Rnd, x: number, base: number, w: number, h: number): string {
+  const tones: BillowColours = { base: '#8C98AC', body: '#C6CCD6', top: '#FFF2DE' };
   const shafts: string[] = [];
   for (let k = 0; k < 6; k++) {
-    const rx = x + w * (0.18 + k * 0.13 + (rnd() - 0.5) * 0.05);
+    const rx = x + w * (0.25 + k * 0.1 + (rnd() - 0.5) * 0.05);
     shafts.push(`M${r2(rx)} ${r2(base - 4)}l${r2(-10 - rnd() * 10)} ${r2(60 + rnd() * 50)}`);
   }
-  // Towers: columns of lobes, the middle ones tallest, each column's top a rounded dome.
-  const towers = 4 + Math.floor(rnd() * 2);
-  const lobes: [number, number, number, number][] = [];
-  const domes: [number, number, number][] = [];
-  for (let t = 0; t < towers; t++) {
-    const f = t / (towers - 1) - 0.5;
-    const tx = x + w / 2 + f * w * 0.55 + (rnd() - 0.5) * w * 0.05;
-    const th = h * (1 - Math.abs(f) * 1.1 + (rnd() - 0.5) * 0.15);
-    const r0 = w * (0.15 + rnd() * 0.03);
-    for (let y = base - r0 * 0.5, k = 0; y > base - th && k < 24; k++) {
-      const r = r0 * Math.max(0.55, 1 - k * 0.04) * (0.9 + rnd() * 0.2);
-      lobes.push([tx + (rnd() - 0.5) * r * 0.7, y, r, k]);
-      lobes.push([tx + (rnd() < 0.5 ? -1 : 1) * r * (0.6 + rnd() * 0.4), y - r * 0.15, r * 0.8, k]);
-      y -= r * (0.45 + rnd() * 0.15);
-    }
-    const last = lobes[lobes.length - 1];
-    if (last !== undefined) domes.push([last[0], last[1], last[2]]);
-  }
-  // A broad base mass the towers rise from.
-  for (let k = 0; k <= 6; k++) {
-    const r = w * (0.17 + rnd() * 0.04);
-    lobes.push([x + w * (0.05 + (k / 6) * 0.9), base - r * 0.45, r, 0]);
-  }
-  const body = lobes.map(([cx, cy, r]) => ellipseD(cx, cy, r, r * 0.88)).join('');
-  const lit = domes
-    .map(([cx, cy, r]) => ellipseD(cx - r * 0.25, cy - r * 0.3, r * 0.62, r * 0.48))
-    .join('');
-  const shadeSide = lobes
-    .filter((_, i) => i % 2 === 0)
-    .map(([cx, cy, r]) => ellipseD(cx + r * 0.35, cy + r * 0.25, r * 0.6, r * 0.55))
-    .join('');
-  // The anvil: thin wisps streaming downwind from the tallest tower's top.
-  const tall = domes.reduce(
-    (a, b) => (b[1] < a[1] ? b : a),
-    domes[0] ?? [x + w / 2, base - h, w * 0.2],
-  );
   const wisps: string[] = [];
-  for (let k = 0; k < 9; k++) {
-    const y0 = tall[1] - tall[2] * 0.6 + (rnd() - 0.5) * tall[2] * 0.5;
-    const len = w * (0.5 + rnd() * 0.6);
+  const ay = base - h * 1.05;
+  for (let k = 0; k < 8; k++) {
+    const y0 = ay + (rnd() - 0.5) * h * 0.12;
+    const len = w * (0.4 + rnd() * 0.5);
     wisps.push(
-      `M${r2(tall[0] - tall[2] * 0.4)} ${r2(y0)}q${r2(len * 0.5)} ${r2(-6 - rnd() * 10)} ${r2(len)} ${r2(4 + rnd() * 10)}`,
+      `M${r2(x + w * 0.45)} ${r2(y0)}q${r2(len * 0.5)} ${r2(-4 - rnd() * 8)} ${r2(len)} ${r2(3 + rnd() * 8)}`,
     );
   }
-  const clip = nextId();
-  const grad = nextId();
-  const top = base - h * 1.15;
   return g(
     {},
     el('path', {
       d: shafts.join(''),
-      stroke: rain,
+      stroke: '#8C96A8',
       'stroke-width': 10,
       'stroke-linecap': 'round',
       opacity: 0.3,
       filter: 'url(#softer)',
       fill: 'none',
     }),
-    g(
-      { filter: 'url(#soft)' },
-      el('path', {
-        d: wisps.join(''),
-        fill: 'none',
-        stroke: mix(c.lit, c.body, 0.35),
-        'stroke-width': 7,
-        'stroke-linecap': 'round',
-        opacity: 0.5,
-      }),
+    el('path', {
+      d: wisps.join(''),
+      fill: 'none',
+      stroke: '#F2EADC',
+      'stroke-width': 6,
+      'stroke-linecap': 'round',
+      opacity: 0.45,
+      filter: 'url(#soft)',
+    }),
+    billowCloud(rnd, x + w / 2, base, w, h, tones, { towers: 2 }),
+  );
+}
+
+/** v1.6 (D-042 look note D): a cloud's three tones, base (shade) to sunlit top. */
+export interface BillowColours {
+  readonly base: string;
+  readonly body: string;
+  readonly top: string;
+}
+
+/**
+ * v1.6 (D-042 look note D): a soft, irregular cumulus mass. Cauliflower billows (ragged lobes,
+ * bigger and higher toward the middle, `towers` of them stacking up for a cumulonimbus) in three
+ * tonal layers that brighten toward the sunlit top (upper left), cut flat at `base` with a
+ * slightly darker grey-blue base; blurred, no outline, no highlight dots.
+ */
+export function billowCloud(
+  rnd: Rnd,
+  x: number,
+  base: number,
+  w: number,
+  h: number,
+  c: BillowColours,
+  o: { readonly towers?: number; readonly blur?: number } = {},
+): string {
+  const lobes: [number, number, number][] = [];
+  const env = (u: number): number => h * Math.pow(Math.max(0, 1 - Math.abs(u)), 0.7);
+  // Rows of billows filling the envelope from the base up (sized to the cloud, so a tall
+  // cumulonimbus is as full as a flat fair-weather cumulus).
+  const rows = Math.max(3, Math.round(h / (w * 0.16)));
+  const unit = Math.min(w * 0.15, (h / rows) * 1.1);
+  for (let r = 0; r < rows; r++) {
+    const f = r / rows;
+    const half = Math.max(0.12, Math.pow(1 - f, 0.6) * 0.5);
+    const n = Math.max(2, Math.round((half * 2 * w) / (unit * 1.3)));
+    for (let k = 0; k < n; k++) {
+      const u = (n === 1 ? 0 : (k / (n - 1) - 0.5) * 2 * half) + (rnd() - 0.5) * 0.06;
+      const cy = base - unit * 0.7 - f * (h - unit * 1.2) + (rnd() - 0.5) * unit * 0.3;
+      if (base - cy > env(u * 2) + unit * 0.4) continue;
+      lobes.push([x + u * w, cy, unit * (0.85 + rnd() * 0.35)]);
+    }
+  }
+  for (let t = 0; t < (o.towers ?? 0); t++) {
+    const tx = x + (rnd() - 0.5) * w * 0.3;
+    let y = base - h * 0.55;
+    for (let k = 0; k < 5; k++) {
+      const rad = unit * (1.05 - k * 0.08) * (0.9 + rnd() * 0.2);
+      lobes.push([tx + (rnd() - 0.5) * rad * 0.8, y, rad]);
+      lobes.push([tx + (rnd() < 0.5 ? -1 : 1) * rad * 0.7, y + rad * 0.3, rad * 0.8]);
+      y -= rad * 0.7;
+    }
+  }
+  const ragged = (
+    dx: number,
+    dy: number,
+    k: number,
+    pick: (l: [number, number, number]) => boolean,
+  ): string =>
+    lobes
+      .filter(pick)
+      .map(([lx, ly, rad]) => {
+        const n = 13;
+        const pts: Pt[] = [];
+        const ph = rnd() * 6;
+        for (let i = 0; i < n; i++) {
+          const a = (i / n) * Math.PI * 2;
+          const rr = rad * k * (1 + 0.12 * Math.sin(a * 3 + ph) + 0.06 * Math.sin(a * 5 + ph * 2));
+          pts.push([lx + dx * rad + Math.cos(a) * rr, ly + dy * rad + Math.sin(a) * rr * 0.9]);
+        }
+        return smoothD(pts, true, 0.9);
+      })
+      .join('');
+  const top = Math.min(...lobes.map(([, ly, rad]) => ly - rad));
+  const upper = (l: [number, number, number]): boolean => l[1] < top + (base - top) * 0.6;
+  const most = (l: [number, number, number]): boolean => l[1] < top + (base - top) * 0.85;
+  const blur = nextId();
+  const clip = nextId();
+  return g(
+    {},
+    el(
+      'defs',
+      {},
       el(
-        'defs',
-        {},
-        el(
-          'linearGradient',
-          { id: grad, gradientUnits: 'userSpaceOnUse', x1: 0, y1: top, x2: 0, y2: base },
-          el('stop', { offset: 0, 'stop-color': c.lit }),
-          el('stop', { offset: 0.55, 'stop-color': c.body }),
-          el('stop', { offset: 1, 'stop-color': c.base }),
-        ),
+        'filter',
+        { id: blur, x: '-30%', y: '-40%', width: '160%', height: '180%' },
+        el('feGaussianBlur', { stdDeviation: r2(o.blur ?? Math.max(1.2, w * 0.012)) }),
       ),
       el(
         'clipPath',
         { id: clip },
-        el('rect', { x: x - w, y: top - h, width: w * 3, height: base - top + h }),
+        el('rect', { x: x - w * 2, y: top - h * 2, width: w * 4, height: base - top + h * 2 }),
       ),
-      g(
-        { 'clip-path': `url(#${clip})` },
-        el('path', { d: body, fill: `url(#${grad})` }),
-        el('path', { d: shadeSide, fill: c.base, opacity: 0.35 }),
-        el('path', { d: lit, fill: c.lit, opacity: 0.7 }),
-      ),
+    ),
+    g(
+      { filter: `url(#${blur})`, 'clip-path': `url(#${clip})` },
+      el('path', { d: ragged(0, 0, 1, () => true), fill: c.base }),
+      el('path', { d: ragged(-0.06, -0.12, 0.9, () => true), fill: c.body }),
+      el('path', { d: ragged(-0.2, -0.28, 0.78, most), fill: mix(c.body, c.top, 0.55) }),
+      el('path', { d: ragged(-0.3, -0.4, 0.5, upper), fill: c.top }),
+      // The flat base: a slightly darker grey-blue band along the bottom.
+      el('path', {
+        d: ellipseD(x, base - h * 0.04, w * 0.46, h * 0.07),
+        fill: mix(c.base, '#5E6A80', 0.2),
+      }),
     ),
   );
 }

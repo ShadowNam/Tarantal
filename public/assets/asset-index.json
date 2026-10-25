@@ -1072,9 +1072,9 @@
       "group": "common",
       "origin": "interim",
       "file": {
-        "path": "assets/common/img/sky_cloud_cumulus.748623424485.png",
-        "bytes": 4377,
-        "hash": "748623424485"
+        "path": "assets/common/img/sky_cloud_cumulus.748800b18301.png",
+        "bytes": 6118,
+        "hash": "748800b18301"
       },
       "width": 200,
       "height": 96
@@ -1083,9 +1083,9 @@
       "group": "common",
       "origin": "interim",
       "file": {
-        "path": "assets/common/img/sky_cloud_tower.0774cd064c60.png",
-        "bytes": 5045,
-        "hash": "0774cd064c60"
+        "path": "assets/common/img/sky_cloud_tower.b30bf61ab206.png",
+        "bytes": 6580,
+        "hash": "b30bf61ab206"
       },
       "width": 200,
       "height": 150
@@ -1094,9 +1094,9 @@
       "group": "common",
       "origin": "interim",
       "file": {
-        "path": "assets/common/img/sky_cloud_wide.3bc0749ad3be.png",
-        "bytes": 5277,
-        "hash": "3bc0749ad3be"
+        "path": "assets/common/img/sky_cloud_wide.dfabf3f80643.png",
+        "bytes": 6052,
+        "hash": "dfabf3f80643"
       },
       "width": 260,
       "height": 96
@@ -2289,14 +2289,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/kalahari-summer/layers/sky-0.d38ab0755ce9.png",
-          "bytes": 97093,
-          "hash": "d38ab0755ce9"
+          "path": "assets/kalahari-summer/layers/sky-0.3f28cb51286a.png",
+          "bytes": 55582,
+          "hash": "3f28cb51286a"
         },
         {
-          "path": "assets/kalahari-summer/layers/sky-1.b3814c285ff6.png",
-          "bytes": 47211,
-          "hash": "b3814c285ff6"
+          "path": "assets/kalahari-summer/layers/sky-1.17aa563a3f8f.png",
+          "bytes": 20184,
+          "hash": "17aa563a3f8f"
         }
       ],
       "tileWidth": 2048,
@@ -3465,14 +3465,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/namibie/layers/sky-0.f10385918b68.png",
-          "bytes": 10676,
-          "hash": "f10385918b68"
+          "path": "assets/namibie/layers/sky-0.3a9890be045f.png",
+          "bytes": 5325,
+          "hash": "3a9890be045f"
         },
         {
-          "path": "assets/namibie/layers/sky-1.0078c1fac277.png",
-          "bytes": 4703,
-          "hash": "0078c1fac277"
+          "path": "assets/namibie/layers/sky-1.8e2f683eabfa.png",
+          "bytes": 3603,
+          "hash": "8e2f683eabfa"
         }
       ],
       "tileWidth": 2048,

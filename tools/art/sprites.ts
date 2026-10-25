@@ -7,6 +7,7 @@ import { resize, type Rgba } from '../assets/image';
 import type { ArtConfig } from './config';
 import { biomePalette } from './config';
 import { renderSvg } from './raster';
+import { billowCloud } from './skies';
 import { flat, line, mix, nextId, resetIds, shade, stone, tone, type Pen } from './scenery';
 import { pick, stalk, tuftOf, type TuftKind } from './vegetation';
 import {
@@ -969,7 +970,6 @@ function cloudSprite(kind: 'cumulus' | 'wide' | 'cirrus' | 'tower') {
   return (p: SpriteCtx): string => {
     const blur = nextId();
     const grad = nextId();
-    const clip = nextId();
     const defs = el(
       'defs',
       {},
@@ -1018,70 +1018,13 @@ function cloudSprite(kind: 'cumulus' | 'wide' | 'cirrus' | 'tower') {
         }),
       );
     }
-    // Lobes overlapping by half, larger and higher toward the middle (a tower stacks them high),
-    // on a wide flat base: one merged body, soft radial highlights on the sunlit domes.
-    const w = kind === 'wide' ? 118 : kind === 'tower' ? 70 : 84;
-    const base = kind === 'tower' ? 66 : 38;
-    const lobes: [number, number, number][] = [];
-    const n = kind === 'wide' ? 11 : 8;
-    for (let k = 0; k < n; k++) {
-      const f = k / (n - 1) - 0.5;
-      const bump = 1 - Math.abs(f) * 1.3;
-      const r = (kind === 'tower' ? 15 : 13) * (0.75 + bump * 0.6) * (0.85 + p.rnd() * 0.3);
-      lobes.push([f * w * 1.7 + (p.rnd() - 0.5) * 6, base - r * 0.55 - bump * 12, r]);
-    }
-    const rows = kind === 'tower' ? 7 : 2;
-    for (let k = 0; k < rows; k++) {
-      const r = (kind === 'tower' ? 17 - k * 1.2 : 15) * (0.85 + p.rnd() * 0.3);
-      const spreadX = kind === 'tower' ? 26 - k * 2 : w * 0.7;
-      lobes.push([(p.rnd() - 0.5) * spreadX, base - 26 - k * (kind === 'tower' ? 13 : 9), r]);
-      if (kind === 'tower')
-        lobes.push([(p.rnd() - 0.5) * spreadX + 12, base - 30 - k * 13, r * 0.8]);
-    }
-    const body =
-      ellipseD(0, base - 6, w * 0.95, 9) +
-      lobes.map(([x, y, r]) => ellipseD(x, y, r, r * 0.9)).join('');
-    const top = Math.min(...lobes.map(([, y, r]) => y - r));
-    const glow = nextId();
-    const highlights = lobes
-      .filter(([, y, r]) => y - r < top + (kind === 'tower' ? 60 : 22))
-      .map(([x, y, r]) =>
-        el('circle', {
-          cx: r2(x - r * 0.22),
-          cy: r2(y - r * 0.3),
-          r: r2(r * 0.8),
-          fill: `url(#${glow})`,
-        }),
-      )
-      .join('');
-    return g(
-      {},
-      defs,
-      el(
-        'defs',
-        {},
-        el(
-          'radialGradient',
-          { id: glow },
-          el('stop', { offset: 0, 'stop-color': '#FFFFFF', 'stop-opacity': 0.95 }),
-          el('stop', { offset: 1, 'stop-color': '#FFFFFF', 'stop-opacity': 0 }),
-        ),
-      ),
-      el(
-        'clipPath',
-        { id: clip },
-        el('rect', { x: -200, y: -200, width: 400, height: base + 200 }),
-      ),
-      g(
-        { filter: `url(#${blur})` },
-        g(
-          { 'clip-path': `url(#${clip})` },
-          el('path', { d: body, fill: `url(#${grad})` }),
-          highlights,
-          el('path', { d: ellipseD(0, base - 3, w * 0.85, 5), fill: '#A8B4C2', opacity: 0.55 }),
-        ),
-      ),
-    );
+    // v1.6 look note D: soft billows (no dotted highlights), a flat grey-blue base.
+    const tones = { base: '#B4C0CE', body: '#E4E9EE', top: '#FFFFFF' };
+    if (kind === 'tower')
+      return g({}, defs, billowCloud(p.rnd, 0, 66, 150, 70, tones, { towers: 2, blur: 1.6 }));
+    if (kind === 'wide')
+      return g({}, defs, billowCloud(p.rnd, 0, 38, 228, 62, tones, { blur: 1.4 }));
+    return g({}, defs, billowCloud(p.rnd, 0, 38, 168, 70, tones, { blur: 1.4 }));
   };
 }
 
