@@ -766,6 +766,13 @@ export const TEX = {
   // v1.6b (D-043): reload power-up icons (HUD chips, the Oupa Laai belt mark) and the belt glint.
   puBlitslaai: 'ui/pu_blitslaai',
   puOupaLaai: 'ui/pu_oupa_laai',
+  // v1.7b (D-046): the other power-ups' and the crate guns' icons (powerupIcon()).
+  puChilliBiltong: 'ui/pu_chilli_biltong',
+  puBoeretroos: 'ui/pu_boeretroos',
+  puBushBuckshot: 'ui/pu_bush_buckshot',
+  puMeerkatSpotter: 'ui/pu_meerkat_spotter',
+  puVoorlaaier: 'ui/pu_voorlaaier',
+  puMielieMasjien: 'ui/pu_mielie_masjien',
   bolt: 'fx/bolt',
   // v1.4 B (D-039): angry sociable weavers (WeaverView), shared by every biome with a nest.
   weaverUp: 'fx/weaver_up',

@@ -1082,6 +1082,169 @@ function puOupaLaai(p: SpriteCtx): string {
   );
 }
 
+/** v1.7b (D-046) Chilli Biltong icon: a strip of dried biltong, a red chilli across it. */
+function puChilliBiltong(p: SpriteCtx): string {
+  const meat = tone('#7A2E22', 0.3, 0.25);
+  const chilli = tone(p.c('shellRed'), 0.3, 0.35);
+  const strip = smoothD(
+    [
+      [-26, 14],
+      [-20, 4],
+      [-4, -10],
+      [14, -22],
+      [24, -24],
+      [27, -16],
+      [16, -4],
+      [0, 10],
+      [-14, 22],
+      [-24, 24],
+    ],
+    true,
+    0.7,
+  );
+  const specks: string[] = [];
+  for (let k = 0; k < 9; k++) {
+    const t = k / 8;
+    const x = -20 + t * 40 + (p.rnd() - 0.5) * 6;
+    const y = 14 - t * 32 + (p.rnd() - 0.5) * 6;
+    specks.push(flat(ellipseD(x, y, 1.2, 1.2), k % 2 === 0 ? '#2A1A12' : '#C9862C'));
+  }
+  return g(
+    {},
+    inked(strip, meat.fill, p.ink, 2.5),
+    // The fat edge along the top of the strip, the darker cut face below.
+    flat('M-20 6Q-4 -8 14 -20L22 -22Q8 -10 -16 10Z', '#E9D6A2', { opacity: 0.85 }),
+    flat('M-12 20Q4 8 18 -6L24 -14Q10 6 -16 22Z', meat.dark),
+    ...specks,
+    // The chilli: a curved pod, green cap and stalk at the top left.
+    inked('M-10 -16Q6 -18 18 -4Q26 8 22 20Q16 8 6 0Q-4 -8 -12 -10Z', chilli.fill, p.ink, 2.5),
+    flat('M-4 -14Q8 -14 16 -4Q12 -8 2 -12Z', chilli.light),
+    flat('M12 4Q20 10 21 17Q17 9 10 6Z', chilli.dark),
+    inked('M-14 -18Q-9 -20 -8 -14Q-10 -9 -14 -10Q-17 -14 -14 -18Z', '#5E8C3A', p.ink, 2),
+    line('M-14 -18Q-18 -24 -14 -28', pen(p, 2.5)),
+  );
+}
+
+/** v1.7b (D-046) Boeretroos icon: a blue enamel mug of farm coffee, steaming. */
+function puBoeretroos(p: SpriteCtx): string {
+  const enamel = tone(p.c('enamel'), 0.3, 0.3);
+  const steam = (x: number): string =>
+    line(`M${x} -12Q${x - 5} -18 ${x} -23Q${x + 5} -28 ${x} -32`, { ink: p.c('cream'), w: 3 }, 3, {
+      opacity: '0.85',
+    });
+  return g(
+    { transform: 'translate(0 3)' },
+    steam(-8),
+    steam(2),
+    steam(10),
+    // Handle on the right, then the body, its rim and the coffee.
+    inked('M14 -2Q28 -2 28 9Q28 20 14 20L14 15Q22 15 22 9Q22 3 14 3Z', enamel.fill, p.ink, 2.5),
+    inked('M-18 -6L16 -6L14 24Q-1 28 -16 24Z', enamel.fill, p.ink, 2.5),
+    flat('M6 -4L14 -4L12 23Q8 25 4 25Z', enamel.dark),
+    flat('M-14 -2L-10 -2L-11 20L-14 20Z', enamel.light),
+    // Chipped enamel: a dark spot near the base.
+    flat(ellipseD(-6, 18, 3, 2), '#1B1410'),
+    inked(ellipseD(-1, -6, 17, 4.5), p.c('cream'), p.ink, 2.5),
+    flat(ellipseD(-1, -5.5, 13, 3), '#5A3418'),
+    flat(ellipseD(-5, -6.5, 4, 1), '#8B5A2B'),
+  );
+}
+
+/** v1.7b (D-046) Bush Buckshot icon: a fat shell bursting into a wide spray of pellets. */
+function puBushBuckshot(p: SpriteCtx): string {
+  const pellets: string[] = [];
+  const rays: string[] = [];
+  for (let k = 0; k < 11; k++) {
+    const a = ((k / 10) * 2 - 1) * 0.75;
+    const r = 18 + p.rnd() * 14;
+    const x = -2 + Math.cos(a) * r;
+    const y = -4 + Math.sin(a) * r * 1.2;
+    pellets.push(inked(ellipseD(x, y, 2.6, 2.6), '#4A4A48', p.ink, 1.5));
+  }
+  for (const a of [-0.6, -0.2, 0.2, 0.6]) {
+    const x0 = -2 + Math.cos(a) * 6;
+    const y0 = -4 + Math.sin(a) * 6;
+    const x1 = -2 + Math.cos(a) * 30;
+    const y1 = -4 + Math.sin(a) * 34;
+    rays.push(line(`M${r2(x0)} ${r2(y0)}L${r2(x1)} ${r2(y1)}`, { ink: p.c('flashOuter'), w: 3 }));
+  }
+  return g(
+    { transform: 'translate(5 2) scale(0.9)' },
+    // The burst at the shell's mouth, the spray fanning out to the right.
+    inked(starD(8, 13, 6, 0.2), p.c('flashOuter'), p.ink, 2, {
+      transform: 'translate(-4 -4)',
+    }),
+    flat(starD(8, 7, 3.5, 0.2), p.c('flashCore'), { transform: 'translate(-4 -4)' }),
+    ...rays,
+    ...pellets,
+    shellD(p, -18, 2, 40, -75),
+  );
+}
+
+/** v1.7b (D-046) Meerkat Spotter icon: the helper meerkat with its binoculars, made small. */
+function puMeerkatSpotter(p: SpriteCtx): string {
+  return g({ transform: 'translate(0 30) scale(0.39)' }, meerkat(p));
+}
+
+/** v1.7b (D-046) The Voorlaaier's icon: a muzzle-loader's silhouette, ramrod under the barrel. */
+function puVoorlaaier(p: SpriteCtx): string {
+  const wood = tone(p.c('wood'), 0.28, 0.25);
+  const steel = tone(p.c('metalDark'), 0.3, 0.35);
+  return g(
+    { transform: 'scale(0.88) rotate(-28)' },
+    // Long octagonal barrel, the ramrod under it, the brass-capped stock behind.
+    inked('M-6 -3L34 -3L34 1L-6 2Z', steel.fill, p.ink, 2.2),
+    flat('M-4 -2L33 -2L33 -1L-4 -1Z', steel.light),
+    line('M-2 5L30 4', { ink: p.ink, w: 2.2 }),
+    inked(
+      'M-34 4Q-34 -4 -26 -5L-6 -4L-4 4L-8 6Q-14 8 -18 12L-30 14Q-35 12 -34 4Z',
+      wood.fill,
+      p.ink,
+      2.5,
+    ),
+    flat('M-30 10L-18 9Q-14 6 -9 5L-18 12L-30 13Z', wood.dark),
+    inked('M-35 2L-31 1L-30 14L-34 13Z', '#C9A13B', p.ink, 1.8),
+    // Hammer and trigger guard.
+    inked('M-8 -4L-11 -10L-7 -11L-4 -4Z', steel.fill, p.ink, 1.8),
+    line('M-12 6Q-12 11 -6 10', { ink: p.ink, w: 2 }),
+    // A puff of smoke at the muzzle.
+    inked(ellipseD(37, -6, 4.5, 3.5), p.c('smoke'), p.ink, 1.6),
+  );
+}
+
+/** v1.7b (D-046) The Mielie-Masjien's icon: a fat corn cannon, a mielie cob in its hopper. */
+function puMielieMasjien(p: SpriteCtx): string {
+  const steel = tone(p.c('metal'), 0.3, 0.3);
+  const green = tone('#5E7A3A', 0.3, 0.3);
+  const corn = tone(p.c('rb3'), 0.25, 0.3);
+  const kernels: string[] = [];
+  for (let row = 0; row < 3; row++)
+    for (let k = 0; k < 4; k++)
+      kernels.push(flat(ellipseD(-9 + k * 5 + (row % 2) * 2, -24 + row * 4, 1.8, 1.5), corn.dark));
+  return g(
+    { transform: 'translate(1 3) scale(0.86)' },
+    // The cob standing in the hopper (husk leaves either side).
+    inked(ellipseD(-2, -20, 11, 7), corn.fill, p.ink, 2),
+    ...kernels,
+    inked('M-14 -14Q-18 -24 -12 -30Q-12 -20 -8 -14Z', green.fill, p.ink, 1.8),
+    inked('M10 -14Q16 -24 10 -30Q10 -20 4 -14Z', green.fill, p.ink, 1.8),
+    // Hopper, the fat barrel with its bands, the crank and the bipod legs.
+    inked('M-14 -14L10 -14L6 -4L-10 -4Z', steel.dark, p.ink, 2.2),
+    inked('M-26 -6L22 -8Q30 -8 30 0Q30 8 22 8L-26 8Q-30 1 -26 -6Z', green.fill, p.ink, 2.5),
+    flat('M-24 3L24 3Q28 3 27 6L-25 6Z', green.dark),
+    flat('M-22 -3L22 -5L22 -3L-22 -1Z', green.light),
+    inked('M8 -8L12 -8L12 8L8 8Z', steel.fill, p.ink, 1.6),
+    inked('M-12 -6L-8 -6L-8 8L-12 8Z', steel.fill, p.ink, 1.6),
+    inked(ellipseD(30, 0, 3, 7), '#2A2422', p.ink, 2),
+    line('M-26 0L-32 -6L-34 -2', { ink: p.ink, w: 2.5 }),
+    line('M-14 8L-20 24M2 8L8 24', { ink: p.ink, w: 3 }),
+    // Kernels flying out of the muzzle.
+    inked(ellipseD(26, -14, 2.4, 2), corn.fill, p.ink, 1.4),
+    inked(ellipseD(33, -18, 2.4, 2), corn.fill, p.ink, 1.4),
+    inked(ellipseD(30, -24, 2.4, 2), corn.fill, p.ink, 1.4),
+  );
+}
+
 /** v1.6b (D-043) Blitslaai's glint on the belt: a small spark of lightning (a local sprite). */
 function boltGlint(p: SpriteCtx): string {
   return g(
@@ -1163,8 +1326,24 @@ function cloudSprite(kind: 'cumulus' | 'wide' | 'cirrus' | 'tower') {
 export const SPRITES: readonly SpriteSpec[] = [
   { key: 'ui/badge_no', wobble: 0, draw: badgeNo },
   { key: 'ui/windsock', wobble: 1, draw: windsock },
-  { key: 'ui/pu_blitslaai', wobble: 0.6, draw: puBlitslaai },
-  { key: 'ui/pu_oupa_laai', wobble: 0.6, draw: puOupaLaai },
+  // v1.7b (D-046): every power-up and crate gun has an icon, drawn in a 64-unit box and shown
+  // on a 128 px texture (crisp on HUD chips, crates and the Gun Shed's big cards).
+  ...(
+    [
+      ['blitslaai', puBlitslaai],
+      ['oupa_laai', puOupaLaai],
+      ['chilli_biltong', puChilliBiltong],
+      ['boeretroos', puBoeretroos],
+      ['bush_buckshot', puBushBuckshot],
+      ['meerkat_spotter', puMeerkatSpotter],
+      ['voorlaaier', puVoorlaaier],
+      ['mielie_masjien', puMielieMasjien],
+    ] as const
+  ).map(([id, draw]) => ({
+    key: `ui/pu_${id}`,
+    wobble: 0.6,
+    draw: (p: SpriteCtx) => g({ transform: 'scale(2)' }, draw(p)),
+  })),
   { key: 'fx/bolt', wobble: 0.4, draw: boltGlint },
   { key: 'fx/feather', wobble: 0.6, draw: feather },
   { key: 'fx/flash', wobble: 1.5, draw: flash },

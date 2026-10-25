@@ -1277,11 +1277,14 @@ function m4Specs(): CanvasSpec[] {
     }),
     // v1.6b (D-043) reload power-up icons: a shell with a bolt (Blitslaai); a hand holding shells
     // (Oupa Laai); and the small bolt glint on the belt.
-    centred(TEX.puBlitslaai, 64, 64, (ctx) => {
+    // v1.7b (D-046): every icon is a 128 px texture drawn in a 64-unit box (scaled 2×).
+    centred(TEX.puBlitslaai, 128, 128, (ctx) => {
+      ctx.scale(2, 2);
       placeholderShell(ctx, -6, 2, 48);
       placeholderBolt(ctx, 9, -2, 46);
     }),
-    centred(TEX.puOupaLaai, 64, 64, (ctx) => {
+    centred(TEX.puOupaLaai, 128, 128, (ctx) => {
+      ctx.scale(2, 2);
       placeholderShell(ctx, -9, -6, 32);
       placeholderShell(ctx, 3, -9, 32);
       ellipse(ctx, 6, 14, 18, 11);
@@ -1289,6 +1292,31 @@ function m4Specs(): CanvasSpec[] {
       ctx.fillStyle = '#A08A55';
       ctx.fillRect(20, 10, 10, 18);
     }),
+    // v1.7b placeholders: one plain shape in the icon's main colour each.
+    ...(
+      [
+        [TEX.puChilliBiltong, '#7A2E22', 'strip'],
+        [TEX.puBoeretroos, '#2D5DA8', 'mug'],
+        [TEX.puBushBuckshot, '#C8302A', 'shell'],
+        [TEX.puMeerkatSpotter, '#C9A16B', 'disc'],
+        [TEX.puVoorlaaier, '#8B5A2B', 'gun'],
+        [TEX.puMielieMasjien, '#5E7A3A', 'gun'],
+      ] as const
+    ).map(([key, colour, shape]) =>
+      centred(key, 128, 128, (ctx) => {
+        ctx.scale(2, 2);
+        if (shape === 'shell') {
+          placeholderShell(ctx, -12, 0, 44);
+          return;
+        }
+        ctx.beginPath();
+        if (shape === 'strip') ctx.rect(-26, -8, 52, 16);
+        else if (shape === 'mug') ctx.rect(-16, -14, 30, 34);
+        else if (shape === 'gun') ctx.rect(-30, -5, 60, 10);
+        else ctx.arc(0, 0, 24, 0, Math.PI * 2);
+        inked(ctx, colour, 3);
+      }),
+    ),
     centred(TEX.bolt, 40, 56, (ctx) => {
       placeholderBolt(ctx, 0, 0, 48);
     }),

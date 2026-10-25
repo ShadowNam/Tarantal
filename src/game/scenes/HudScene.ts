@@ -15,6 +15,7 @@ import type { SimState } from '../../sim/types';
 import { TICKS_PER_SECOND } from '../../sim/clock';
 import { fill, t, tOr, type I18nKey } from '../../i18n/i18n';
 import { TEX } from '../assets/AssetManifest';
+import { powerupIcon } from '../ui/powerupIcons';
 import { ammoSlots, gunLookFor, reloadBoostsOf, roundsOf } from '../ui/gunLook';
 import type { GameContext } from '../GameContext';
 import { FONT } from '../view/Fx';
@@ -906,7 +907,7 @@ export class HudScene extends Phaser.Scene {
         const mirrored = this.ctx.prefs.leftHanded;
         // Just outside the belt's inner end, so it never covers a round.
         const x = mirrored ? l.belt.x + l.belt.w + 32 : l.belt.x - 32;
-        hand.setPosition(x, l.belt.y + l.belt.h / 2).setScale(mirrored ? -0.9 : 0.9, 0.9);
+        hand.setPosition(x, l.belt.y + l.belt.h / 2).setScale(mirrored ? -0.45 : 0.45, 0.45);
       }
     }
     if (this.ctx.hook) {
@@ -953,17 +954,22 @@ export class HudScene extends Phaser.Scene {
           : w.magazine > 0
             ? Math.max(0, w.shells) / w.magazine
             : 1;
-      chips.push({ label: tOr(`item.${w.id}`, w.id), frac, icon: null });
+      const icon = powerupIcon(w.id);
+      chips.push({
+        label: tOr(`item.${w.id}`, w.id),
+        frac,
+        icon: this.textures.exists(icon) ? icon : null,
+      });
     }
     for (const p of s.powerups) {
       const frac =
         p.ticksLeft !== null && p.totalTicks !== null
           ? p.ticksLeft / p.totalTicks
           : p.shellsLeft !== null
-            ? Math.min(1, p.shellsLeft / 6)
+            ? Math.min(1, p.shellsLeft / this.shellsOf(p.id))
             : 1;
       const suffix = p.shellsLeft !== null ? ` ×${p.shellsLeft}` : '';
-      const icon = `ui/pu_${p.id}`;
+      const icon = powerupIcon(p.id);
       chips.push({
         label: tOr(`item.${p.id}`, p.id) + suffix,
         frac,
@@ -1003,6 +1009,12 @@ export class HudScene extends Phaser.Scene {
       txt.setScale(txt.width > room ? room / txt.width : 1, 1);
       txt.setPosition(textX, y + chipH / 2 - 3);
     });
+  }
+
+  /** A shell-counted power-up's full count (powerups.json durationShells; 1 if none). */
+  private shellsOf(id: string): number {
+    const def = this.ctx.content.powerups.powerups.find((x) => x.id === id);
+    return Math.max(1, def?.durationShells ?? 1);
   }
 
   /** Omen hunts: the sock points downwind and stands out straighter in a strong wind. */
