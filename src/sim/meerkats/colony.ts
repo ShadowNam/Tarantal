@@ -69,7 +69,7 @@ export function isOut(pose: MeerkatPose): boolean {
 }
 
 /** What a running meerkat does when it gets there. */
-type Then = 'sit' | 'sentinel' | 'forage' | 'dive' | 'photo';
+type Then = 'sit' | 'sentinel' | 'forage' | 'sunbathe' | 'dive' | 'photo';
 
 export interface Meerkat {
   readonly id: number;
@@ -214,7 +214,7 @@ export function createColony(
     c.meerkats.push(m);
     if (rng.chance(tuning.startOutShare)) {
       const spot = hole.x + rng.range(-1, 1) * tuning.forageRadiusPx * scale;
-      m.x = spot;
+      m.x = spacedSpot(c, m, spot, tuning);
       m.y = def.y;
       choose(c, m, ctx, ['sit', 'forage', 'sunbathe']);
     }
@@ -256,6 +256,34 @@ function setPose(m: Meerkat, pose: MeerkatPose, dur: number): void {
   if (pose !== 'peek' && pose !== 'sentinel' && pose !== 'stand') m.look = 0;
 }
 
+/**
+ * The nearest spot to `x` that keeps spacingBodyMul body widths from every other adult that is
+ * out (where it stands, or where a runner will next stand: its dash's halfway stop, else its
+ * goal); `x` itself when nothing is that close, or when no such spot is found. Pups keep to their
+ * mothers and are left out.
+ */
+export function spacedSpot(c: ColonyState, m: Meerkat, x: number, T: MeerkatTuning): number {
+  const min = T.bodyWidthPx * T.spacingBodyMul * c.scale;
+  const taken: number[] = [];
+  for (const o of c.meerkats) {
+    if (o === m || o.pup || o.shot) continue;
+    if (o.pose === 'hidden' || o.pose === 'peek' || o.pose === 'dive' || o.pose === 'tumble')
+      continue;
+    if (o.pose === 'run' && o.then === 'dive') continue;
+    taken.push(o.pose === 'run' ? (o.pauseX ?? o.goalX) : o.x);
+  }
+  // A small epsilon: a spot exactly `min` away counts as clear.
+  const clear = (p: number): boolean => taken.every((t) => Math.abs(p - t) >= min - 1e-6);
+  if (clear(x)) return x;
+  let best: number | null = null;
+  for (const t of taken) {
+    for (const p of [t - min, t + min]) {
+      if (clear(p) && (best === null || Math.abs(p - x) < Math.abs(best - x))) best = p;
+    }
+  }
+  return best ?? x;
+}
+
 function runTo(m: Meerkat, x: number, then: Then, pauseX: number | null = null): void {
   m.goalX = x;
   m.then = then;
@@ -267,6 +295,15 @@ function runTo(m: Meerkat, x: number, then: Then, pauseX: number | null = null):
 /** Starts what a running meerkat was running to (or an activity in place). */
 function arrive(c: ColonyState, m: Meerkat, ctx: ColonyCtx, then: Then): void {
   const T = ctx.tuning;
+  // Settling down (sit, forage, sunbathe) too close to another adult: a step aside first. The
+  // spot is clear of every other's place and goal, so this ends there.
+  if (!m.pup && (then === 'sit' || then === 'forage' || then === 'sunbathe')) {
+    const spot = spacedSpot(c, m, m.x, T);
+    if (Math.abs(spot - m.x) > 0.5) {
+      runTo(m, spot, then);
+      return;
+    }
+  }
   switch (then) {
     case 'dive':
       m.burrow = nearestBurrow(c, m.x);
@@ -290,6 +327,10 @@ function arrive(c: ColonyState, m: Meerkat, ctx: ColonyCtx, then: Then): void {
     case 'forage':
       m.y = c.ground;
       setPose(m, 'forage', ticks(ctx.rng, T.activitySeconds.forage));
+      return;
+    case 'sunbathe':
+      m.y = c.ground;
+      setPose(m, 'sunbathe', ticks(ctx.rng, T.activitySeconds.sunbathe));
       return;
     case 'sit':
       m.y = c.ground;
@@ -328,14 +369,15 @@ function choose(
   const hole = holeOf(c, m);
   switch (pick) {
     case 'sit':
-      arrive(c, m, ctx, 'sit');
-      return;
     case 'sunbathe':
-      m.y = c.ground;
-      setPose(m, 'sunbathe', ticks(ctx.rng, T.activitySeconds.sunbathe));
+      arrive(c, m, ctx, pick);
       return;
     case 'forage':
-      runTo(m, hole.x + ctx.rng.range(-1, 1) * T.forageRadiusPx * c.scale, 'forage');
+      runTo(
+        m,
+        spacedSpot(c, m, hole.x + ctx.rng.range(-1, 1) * T.forageRadiusPx * c.scale, T),
+        'forage',
+      );
       return;
     case 'sentinel': {
       c.sentinel = m.id;
@@ -352,9 +394,9 @@ function choose(
   }
 }
 
-/** 1–4 (the leader and calm neighbours) run in a line to another burrow, tails up, stopping
- *  halfway to stand and look. */
-function dash(c: ColonyState, leader: Meerkat, ctx: ColonyCtx): void {
+/** 1–4 (the leader and calm neighbours) run in a file to another burrow, tails up, about a body
+ *  length apart, stopping halfway to stand and look (exported for its test). */
+export function dash(c: ColonyState, leader: Meerkat, ctx: ColonyCtx): void {
   const T = ctx.tuning;
   const others = c.burrows.map((_, i) => i).filter((i) => i !== leader.burrow);
   const to = others[ctx.rng.int(0, others.length - 1)] ?? leader.burrow;
@@ -375,13 +417,17 @@ function dash(c: ColonyState, leader: Meerkat, ctx: ColonyCtx): void {
   calmNow.sort((a, b) => Math.abs(a.x - leader.x) - Math.abs(b.x - leader.x) || a.id - b.id);
   const line = [leader, ...calmNow.slice(0, want - 1)];
   const dir = target.x >= leader.x ? 1 : -1;
-  const gap = T.dash.gapPx * c.scale;
+  // Nose to tail: about one body length apart.
+  const gap = T.bodyWidthPx * T.dash.gapBodyMul * c.scale;
   const mid = (leader.x + target.x) / 2;
   line.forEach((m, i) => {
     m.burrow = to;
     runTo(m, target.x - dir * gap * i, 'sit', mid - dir * gap * i);
     m.facing = dir;
   });
+  // The halfway stop is a place to stand: clear of the others standing (the file's own stops are
+  // a body length apart already).
+  for (const m of line) if (m.pauseX !== null) m.pauseX = spacedSpot(c, m, m.pauseX, T);
 }
 
 /** A pup follows its mother: out when she is out, down when she goes down. */

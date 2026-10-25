@@ -466,7 +466,7 @@ sometimes with a pup that trails its mother. They are non-targets: never hurt, n
   - **sentinel:** one stands tall on the highest mound, front paws at its belly, turning its head;
   - **forage:** digging, flicking sand;
   - **sunbathe:** on the early-light layout (Monday's dawn), belly to the sun;
-  - **dash:** 1–4 run in a line to another burrow, tails up, and stop halfway to stand and look;
+  - **dash:** 1–4 run in a file to another burrow, tails up, about one body length apart, and stop halfway to stand and look;
   - **dive:** back into a hole.
 - **A nearby shot** (an impact within 420 px of the burrows on the colony's own plane) sends the
   colony down. After 3–6 s one head comes up first; when it comes out the rest follow, a head at a

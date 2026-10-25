@@ -167,6 +167,32 @@ describe('meerkat colonies (v1.7, D-044)', () => {
     expect(dashers).toBeGreaterThanOrEqual(1);
   });
 
+  it('out of the burrow they keep about 0.7 body widths apart (sitting, foraging, standing)', () => {
+    const c = quiet(KAL);
+    const mk = c.birds.meerkats;
+    mk.activities = { sit: 1, sentinel: 0, forage: 2, sunbathe: 0, dash: 1, dive: 0 };
+    mk.startOutShare = 1;
+    mk.pupChance = 0;
+    // A small yard, so they would crowd without the rule.
+    mk.forageRadiusPx = 40;
+    const s = sim(c, mon('tue'), 5);
+    const k = c.scoring.planes[colony(s).plane].scale;
+    const min = mk.bodyWidthPx * mk.spacingBodyMul * k;
+    let checked = 0;
+    for (let i = 0; i < 60 * 60; i++) {
+      run(s, 1);
+      const settled = colony(s)
+        .meerkats.filter((m) => !m.pup && ['sit', 'forage', 'stand'].includes(m.pose))
+        .map((m) => m.x)
+        .sort((a, b) => a - b);
+      for (let j = 1; j < settled.length; j++) {
+        expect((settled[j] ?? 0) - (settled[j - 1] ?? 0)).toBeGreaterThanOrEqual(min - 0.01);
+        checked++;
+      }
+    }
+    expect(checked).toBeGreaterThan(1000);
+  });
+
   it('they sunbathe only on the early-light layout', () => {
     const c = quiet(KAL);
     const poses = (layout: string): Set<string> => {
@@ -395,8 +421,13 @@ describe('meerkat colonies (v1.7, D-044)', () => {
       scold = ofType(look(s, c, 1), 'meerkatScold');
     expect(scold).toMatchObject([{ meerkatId: pup.id }]);
     // Not stuck: it leaves the tumble and the scold, and is out with its family again.
-    waitFor(s, c, (x) => x.meerkats.find((m) => m.id === pup.id)?.pose === 'sit', 30 * 60);
-    const events = look(s, c, 40 * 60);
+    const events: SimEvent[] = [];
+    for (let t = 0; t < 30 * 60; t++) {
+      events.push(...look(s, c, 1));
+      if (colony(s).meerkats.find((m) => m.id === pup.id)?.pose === 'sit') break;
+    }
+    expect(colony(s).meerkats.find((m) => m.id === pup.id)?.pose).toBe('sit');
+    events.push(...look(s, c, 40 * 60));
     expect(ofType(events, 'familiefoto')).toHaveLength(1);
   });
 

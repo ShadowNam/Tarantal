@@ -260,11 +260,18 @@ export const MeerkatsSchema = obj({
   lookSeconds: pos,
   /** Foraging spots lie within this distance of the meerkat's burrow. */
   forageRadiusPx: pos,
+  /** An adult's body width at plane scale 1 (on all fours, the sheet's art); the spacing below
+   *  is in these. */
+  bodyWidthPx: pos,
+  /** Out of the burrow (sitting, standing, foraging, sunbathing) adults keep at least this many
+   *  body widths between them. */
+  spacingBodyMul: pos,
   runPxPerSec: pos,
   /** A dash: 1–4 run in a line to another burrow, stopping halfway to stand and look. */
   dash: obj({
     group: range(z.number().int().min(1).max(4)),
-    gapPx: pos,
+    /** The file's spacing, in body widths (one: nose to tail). */
+    gapBodyMul: pos,
     pauseSeconds: range(pos),
   }),
   /** Layout lights (feel.json lights) early enough for sunbathing (belly to the sun). */
