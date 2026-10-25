@@ -61,5 +61,7 @@
   "range.reach_note_mixed": "Baie ver is buite hierdie geweer se bereik — skote daar val kort",
   "range.shuffle": "Skommel",
   "range.mark_hit": "RAAK",
-  "range.mark_short": "TE KORT"
+  "range.mark_short": "TE KORT",
+  "range.fresh_load": "Vars laai",
+  "range.fresh_load_hint": "Vee die gekaste speellêers uit en laai hierdie kaart weer"
 }

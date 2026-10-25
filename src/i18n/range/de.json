@@ -61,5 +61,7 @@
   "range.reach_note_mixed": "Ver liegt außerhalb der Reichweite dieser Waffe — Schüsse dorthin fallen zu kurz",
   "range.shuffle": "Mischen",
   "range.mark_hit": "TREFFER",
-  "range.mark_short": "ZU KURZ"
+  "range.mark_short": "ZU KURZ",
+  "range.fresh_load": "Neu laden",
+  "range.fresh_load_hint": "Zwischengespeicherte Spieldateien löschen und diese Karte neu laden"
 }

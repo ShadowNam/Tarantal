@@ -61,6 +61,13 @@ export interface PlatformAdapter {
    * page should offer a reload). Builds without a worker never call it.
    */
   onUpdateReady?(show: () => void): void;
+  /**
+   * v1.6 (D-042 (14)): reloads the page past every cache this build controls. Web: unregisters
+   * the game's service worker, deletes its `tm-*` caches and reloads with `?fresh=<now>` (other
+   * parameters kept). Portals: a plain reload (their page owns caching). Never touches the save;
+   * a failing step still reloads.
+   */
+  hardRefresh(): Promise<void>;
   /** v1.2x (D-034): `?admin=1` opens the playtest admin page. Web builds only (Pages, dev);
    *  portal builds ignore the parameter and show the normal title. */
   readonly adminPage: boolean;
