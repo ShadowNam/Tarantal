@@ -2577,9 +2577,18 @@ shown item is the one given), captions and AudioDirector cases. e2e (CI, landsca
 pickup's crate icon, card text and countdown; Oupa Off and Text only; the Settings switch.
 Screenshots — `tests/e2e/art-preview-v17b.spec.ts` (ART_PREVIEW=1). The in-page hold hook
 (`__TM_HOLD_AT__`) is v1.7's, ported unchanged for that spec.
-(11) *Sizes* (`npm run size -- --strict`, gzip): first download **3 083.6 KB** (+38.7 KB over main's 3 044.9 KB: the
-six new icons and the two redrawn at 128 px, the `powerEnd` chime, the strings in four languages and
-the code); 61.7 % of the 5 MB budget. Voice packs unchanged (en 627.8 KB, af 679.4 KB, de 822.2 KB).
+(11) *Sizes* (`npm run size -- --strict`, gzip, after merging v1.7): first download **3 094.7 KB**
+(+39.7 KB over v1.7's 3 055.0 KB: the six new icons and the two redrawn at 128 px, the `powerEnd`
+chime, the strings in four languages and the code); 60.4 % of the 5 MB budget. Voice packs carry
+no new lines (en 663.8 KB, af 718.3 KB, de 867.6 KB, v1.7's sizes).
+(12) *Review* (playtest-reviewer): a first pickup's full sentence could overflow the card on 4:3
+or in German/Dutch/Afrikaans — the line now shrinks (to 72 %) and wraps wider until it fits a
+260 px slot sized clear of the left HUD column, and the hook reports where the text ends; Oupa's
+first-pickup line claims the gap before the frame's pick, so a held line (boss, Stampede, quota,
+Oupa Laai) waits instead of being lost; the Gun Shed list draws its own focus ring and ignores drag
+and wheel while Settings covers it; the Season Run tally's row moved clear of its title; the
+chip's "s" goes through i18n. Visual baselines that change: `settings-sound` (the new row, 68 px
+rows) and `padstal` (every offer shows its line).
 
 ## 3. Research notes (with sources)
 
