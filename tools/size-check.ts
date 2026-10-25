@@ -19,6 +19,9 @@ import {
   verdict,
   type ViteManifest,
 } from './sizeBudget';
+import { DESERT_GROUP } from '../src/game/assets/desertAssets';
+import { hasColonies } from '../src/sim/meerkats/colony';
+import { loadContent } from './testContent';
 
 function arg(name: string): string | undefined {
   const i = process.argv.indexOf(name);
@@ -109,6 +112,21 @@ for (const [g, fs] of [...lazyGroups(split.lazy, groups)].sort(([a], [b]) => (a 
   const t = sum(lazy.filter((r) => fs.includes(r.file)));
   console.log(line({ ...t, file: `  ${g}` }));
   if (t.gz > LAZY_CHUNK_BYTES) overChunks.push(`${g} ${(t.gz / MB).toFixed(2)} MB`);
+}
+// v1.7 (D-044): a desert hunt downloads its biome's chunk and the shared desert chunk; the cap is
+// for what one hunt downloads, so each pair is checked too.
+const chunks = lazyGroups(split.lazy, groups);
+const gzOf = (g: string): number =>
+  sum(lazy.filter((r) => (chunks.get(g) ?? []).includes(r.file))).gz;
+if (chunks.has(DESERT_GROUP)) {
+  console.log('a desert hunt (biome chunk + desert chunk, ≤ 1.5 MB gzip together):');
+  for (const b of loadContent().biomes.filter(hasColonies)) {
+    if (!chunks.has(b.id)) continue;
+    const both = gzOf(b.id) + gzOf(DESERT_GROUP);
+    console.log(`    ${`${b.id} + ${DESERT_GROUP}`.padEnd(42)} ${kb(both)} gz`);
+    if (both > LAZY_CHUNK_BYTES)
+      overChunks.push(`${b.id} + ${DESERT_GROUP} ${(both / MB).toFixed(2)} MB`);
+  }
 }
 if (split.alternate.length > 0) {
   const alt = split.alternate.map(measure);
