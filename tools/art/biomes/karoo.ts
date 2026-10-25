@@ -748,24 +748,95 @@ function farmhouse(ctx: LayerCtx, x: number, ground: (x: number) => number): str
   return g({}, ...parts);
 }
 
-function farWindpomp(ctx: LayerCtx, x: number, base: number): string {
-  const pen: Pen = { ink: ctx.pen.ink, w: 1.5 };
-  const top = base - 46;
+/**
+ * v1.6 (D-042): a far windpomp (about 60 px): a braced lattice tower, the wheel seen a little
+ * from the side (blades as spokes, a rim, two missing), the head and the vane trailing left.
+ * Hazed for its plane, no ink beyond a darker shade of the steel.
+ */
+export function farWindpomp(
+  ctx: { tint: (hex: string) => string },
+  x: number,
+  base: number,
+  k = 1,
+): string {
+  const steel = ctx.tint('#A9AFB3');
+  const dark = ctx.tint('#5E6468');
+  const lit = ctx.tint('#DADEE0');
+  const top = base - 46 * k;
+  const legs = `M${r2(x - 7 * k)} ${r2(base)}L${r2(x - 1.5 * k)} ${r2(top)}M${r2(x + 7 * k)} ${r2(base)}L${r2(x + 1.5 * k)} ${r2(top)}`;
+  const braces: string[] = [];
+  for (let i = 0; i < 4; i++) {
+    const y0 = base - (46 * k * i) / 4;
+    const y1 = base - (46 * k * (i + 1)) / 4;
+    const h0 = 7 * k - (5.5 * k * i) / 4;
+    const h1 = 7 * k - (5.5 * k * (i + 1)) / 4;
+    braces.push(
+      `M${r2(x - h0)} ${r2(y0)}L${r2(x + h1)} ${r2(y1)}M${r2(x + h0)} ${r2(y0)}L${r2(x - h1)} ${r2(y1)}`,
+    );
+  }
+  const hubX = x + 1.5 * k;
+  const hubY = top - 3 * k;
+  const rx = 6 * k;
+  const ry = 9 * k;
+  const spokes: string[] = [];
+  for (let b = 0; b < 18; b++) {
+    if (b === 3 || b === 12) continue;
+    const a = (b * Math.PI * 2) / 18;
+    spokes.push(
+      `M${r2(hubX)} ${r2(hubY)}L${r2(hubX + Math.cos(a) * rx)} ${r2(hubY + Math.sin(a) * ry)}`,
+    );
+  }
   return g(
     {},
-    line(
-      `M${r2(x - 7)} ${r2(base)}L${r2(x - 1.5)} ${r2(top)}M${r2(x + 7)} ${r2(base)}L${r2(x + 1.5)} ${r2(top)}M${r2(x - 5)} ${r2(base - 14)}L${r2(x + 5)} ${r2(base - 14)}M${r2(x - 3.5)} ${r2(base - 28)}L${r2(x + 3.5)} ${r2(base - 28)}`,
-      pen,
-    ),
-    el('circle', {
-      cx: x,
-      cy: top - 2,
-      r: 8,
-      fill: mix(ctx.c('metal'), ctx.raw('horizon'), 0.2),
-      stroke: pen.ink,
-      'stroke-width': 1.5,
+    el('path', {
+      d: ellipseD(x + 3 * k, base + 0.5, 10 * k, 1.4 * k),
+      fill: '#3A2A1E',
+      opacity: 0.25,
     }),
-    line(`M${r2(x)} ${r2(top - 2)}l-14 1`, pen),
+    el('path', {
+      d: braces.join(''),
+      fill: 'none',
+      stroke: dark,
+      'stroke-width': Math.max(0.5, 0.7 * k),
+    }),
+    el('path', {
+      d: legs,
+      fill: 'none',
+      stroke: dark,
+      'stroke-width': Math.max(0.9, 1.6 * k),
+      'stroke-linecap': 'round',
+    }),
+    el('path', {
+      d: `M${r2(hubX)} ${r2(hubY)}l${r2(-12 * k)} ${r2(1 * k)}`,
+      fill: 'none',
+      stroke: dark,
+      'stroke-width': Math.max(0.6, 1 * k),
+    }),
+    el('path', {
+      d: `M${r2(hubX - 12 * k)} ${r2(hubY - 3.5 * k)}l${r2(-4 * k)} ${r2(-0.5 * k)}l0 ${r2(8 * k)}l${r2(4 * k)} ${r2(-1 * k)}Z`,
+      fill: steel,
+      stroke: dark,
+      'stroke-width': Math.max(0.4, 0.5 * k),
+    }),
+    el('path', {
+      d: spokes.join(''),
+      fill: 'none',
+      stroke: steel,
+      'stroke-width': Math.max(0.6, 1.1 * k),
+    }),
+    el('path', {
+      d: ellipseD(hubX, hubY, rx, ry),
+      fill: 'none',
+      stroke: dark,
+      'stroke-width': Math.max(0.5, 0.8 * k),
+    }),
+    el('path', {
+      d: `M${r2(hubX - rx * 0.7)} ${r2(hubY - ry * 0.7)}A${r2(rx)} ${r2(ry)} 0 0 1 ${r2(hubX + rx * 0.2)} ${r2(hubY - ry)}`,
+      fill: 'none',
+      stroke: lit,
+      'stroke-width': Math.max(0.4, 0.6 * k),
+    }),
+    el('path', { d: ellipseD(hubX, hubY, 1.4 * k, 1.4 * k), fill: dark }),
   );
 }
 
@@ -813,6 +884,9 @@ function farVeld(ctx: LayerCtx): string {
   parts.push(farmhouse(ctx, fx, (x) => yAt(band.edge, x)));
   const wx = ctx.u(0.36);
   parts.push(farWindpomp(ctx, wx, yAt(band.edge, wx) + 3));
+  // v1.6: a second one by the farmstead.
+  const wx2 = ctx.u(0.66);
+  parts.push(farWindpomp(ctx, wx2, yAt(band.edge, wx2) + 5, 0.8));
   // v1.6: stands of sweet thorn along a dry riverbed line, as far trees (a few clumps each).
   for (const u of [0.08, 0.14, 0.88]) {
     const x = ctx.u(u);
@@ -1184,114 +1258,298 @@ export function groundShadow(x: number, y: number, rx: number, ry: number): stri
   return flat(ellipseD(x, y, rx, ry), '#5A3418', { opacity: 0.28 });
 }
 
+/**
+ * v1.6 (D-042, product owner 25 Oct): the windpomp tower at the D-039 bar, drawn at 2×. Four
+ * galvanised angle-iron legs on concrete footings (3/4 view: the back pair darker), X-braces and
+ * girts at every level with bolts at the joints, a ladder up the front-left leg, the pump rod
+ * down the middle to the pump head and the pipe to the reservoir, a timber platform, rust. The
+ * turning head (gearbox, tail boom, vane) and the wheel are drawn live by WindpompView, so they
+ * swing with the wind and the wheel turns; a service plank reaches out left to the kwêvoël's
+ * perch (−150, −92: its feet at y ≈ −31), which no longer hangs on the turning boom.
+ */
 function windpomp(ctx: PropCtx): string {
-  const pen = ctx.pen;
-  const steel = tone(ctx.c('metal'), 0.3, 0.25);
   const { h, oy } = ctx.box;
-  const base = oy + h / 2; // tower foot (310)
-  const top = oy - h / 2 + 10; // platform (−60)
-  const legs = (dx: number, w: number, col: string) =>
-    line(
-      `M${r2(-45 + dx)} ${r2(base)}L${r2(-8 + dx)} ${r2(top)}M${r2(45 + dx)} ${r2(base)}L${r2(8 + dx)} ${r2(top)}`,
-      { ink: col, w },
-      w,
-    );
-  const braces: string[] = [];
-  const levels = 6;
+  // Tower foot (310) and platform (−60).
+  return windpompTower(ctx, oy + h / 2, oy - h / 2 + 10, true);
+}
+
+/** The tower from its foot `base` up to the platform `top`, with the service plank or not. */
+export function windpompTower(ctx: PaintCtx, base: number, top: number, plank: boolean): string {
+  const steel = '#A9AFB3';
+  const lit = '#D6DADC';
+  const dark = '#6C7276';
+  const ink = mix(ctx.pen.ink, dark, 0.3);
+  const rust = ctx.tint('#9A4B2A');
+  const wood = tone(ctx.c('wood'), 0.3, 0.22);
+  const levels = Math.max(4, Math.round((base - top) / 53));
+  const yAtLevel = (k: number): number => base - ((base - top) * k) / levels;
+  const half = (k: number): number => 46 - (36 * k) / levels;
+  const leg = (side: -1 | 1, dx: number): string =>
+    `M${r2(side * 46 + dx)} ${r2(base)}L${r2(side * 10 + dx * 0.4)} ${r2(top)}`;
+  const parts: string[] = [groundShadow(10, base + 3, 64, 9)];
+  // Back legs and their braces (3/4 view: offset right and up, darker).
+  const backBraces: string[] = [];
   for (let k = 0; k < levels; k++) {
-    const y0 = base - ((base - top) * k) / levels;
-    const y1 = base - ((base - top) * (k + 1)) / levels;
-    const hw0 = 45 - (37 * k) / levels;
-    const hw1 = 45 - (37 * (k + 1)) / levels;
-    braces.push(
-      `M${r2(-hw0)} ${r2(y0)}L${r2(hw1)} ${r2(y1)}M${r2(hw0)} ${r2(y0)}L${r2(-hw1)} ${r2(y1)}M${r2(-hw1)} ${r2(y1)}L${r2(hw1)} ${r2(y1)}`,
+    const y0 = yAtLevel(k);
+    const y1 = yAtLevel(k + 1);
+    backBraces.push(
+      `M${r2(-half(k) + 16)} ${r2(y0 - 6)}L${r2(half(k + 1) + 16)} ${r2(y1 - 6)}M${r2(half(k) + 16)} ${r2(y0 - 6)}L${r2(-half(k + 1) + 16)} ${r2(y1 - 6)}`,
     );
   }
-  return g(
-    {},
-    groundShadow(10, base + 2, 66, 9),
-    // Back legs (3/4 view), then bracing, front legs, pump rod and the pipe to the reservoir.
-    legs(14, 4, shade(steel.fill, -0.35)),
-    line(braces.join(''), { ink: pen.ink, w: 2.2 }, 2.2),
-    line(braces.join(''), { ink: steel.light, w: 0.9 }, 0.9),
-    legs(0, 7, pen.ink),
-    legs(0, 3.5, steel.fill),
-    line(`M0 ${r2(top)}L0 ${r2(base - 18)}`, { ink: pen.ink, w: 3 }, 3),
+  parts.push(
+    el('path', {
+      d: backBraces.join(''),
+      fill: 'none',
+      stroke: shade(dark, -0.2),
+      'stroke-width': 1.6,
+    }),
+    el('path', {
+      d: leg(-1, 16) + leg(1, 16),
+      fill: 'none',
+      stroke: ink,
+      'stroke-width': 5.5,
+      'stroke-linecap': 'round',
+      transform: 'translate(0 -6)',
+    }),
+    el('path', {
+      d: leg(-1, 16) + leg(1, 16),
+      fill: 'none',
+      stroke: dark,
+      'stroke-width': 3,
+      'stroke-linecap': 'round',
+      transform: 'translate(0 -6)',
+    }),
+  );
+  // The pump rod down the middle and the pump head with the pipe to the reservoir.
+  parts.push(
+    el('path', {
+      d: `M2 ${r2(top + 4)}L2 ${r2(base - 26)}`,
+      fill: 'none',
+      stroke: ink,
+      'stroke-width': 4,
+    }),
+    el('path', {
+      d: `M2 ${r2(top + 4)}L2 ${r2(base - 26)}`,
+      fill: 'none',
+      stroke: lit,
+      'stroke-width': 1.6,
+    }),
     inked(
       polyD([
-        [-12, base],
-        [-12, base - 22],
-        [12, base - 22],
-        [12, base],
+        [-13, base],
+        [-13, base - 26],
+        [15, base - 26],
+        [15, base],
       ]),
-      steel.dark,
-      pen.ink,
+      dark,
+      ink,
       3,
-    ),
-    inked(
-      polyD([
-        [10, base - 12],
-        [74, base - 12],
-        [74, base - 4],
-        [10, base - 4],
-      ]),
-      steel.fill,
-      pen.ink,
-      2.5,
-    ),
-    // Platform and head (the rotor itself is the secret's own sprite, secret/rotor).
-    inked(
-      polyD([
-        [-22, top + 4],
-        [22, top + 4],
-        [18, top - 2],
-        [-18, top - 2],
-      ]),
-      ctx.c('wood'),
-      pen.ink,
-      3,
-    ),
-    // Tail boom and vane (fictional plain vane: no lettering). The kwêvoël perches on the boom:
-    // its content perch (−150, −92) puts its feet at y ≈ −31 at mid scale, so the boom dips to meet it.
-    inked(
-      polyD([
-        [0, top - 14],
-        [-168, top + 27],
-        [-168, top + 32],
-        [0, top - 6],
-      ]),
-      steel.dark,
-      pen.ink,
-      3,
-    ),
-    inked(
-      smoothD(
-        [
-          [-205, top + 28],
-          [-140, top + 28],
-          [-146, top + 74],
-          [-200, top + 82],
-          [-212, top + 54],
-        ],
-        true,
-        0.4,
-      ),
-      steel.fill,
-      pen.ink,
-      3.5,
     ),
     flat(
       polyD([
-        [-176, top + 32],
-        [-146, top + 32],
-        [-150, top + 70],
-        [-176, top + 52],
+        [-11, base - 24],
+        [-3, base - 24],
+        [-3, base - 2],
+        [-11, base - 2],
       ]),
-      steel.dark,
+      lit,
+      { opacity: 0.6 },
     ),
-    line(`M${-196} ${top + 38}l42 0`, { ink: steel.light, w: 2.5 }, 2.5),
-    inked(ellipseD(0, top - 10, 16, 14), ctx.c('rust'), pen.ink, 3),
+    inked(
+      polyD([
+        [12, base - 14],
+        [76, base - 14],
+        [76, base - 5],
+        [12, base - 5],
+      ]),
+      steel,
+      ink,
+      2.5,
+    ),
+    flat(
+      polyD([
+        [14, base - 13],
+        [74, base - 13],
+        [74, base - 11],
+        [14, base - 11],
+      ]),
+      lit,
+    ),
+    flat(
+      polyD([
+        [30, base - 9],
+        [34, base - 9],
+        [36, base - 4],
+        [28, base - 4],
+      ]),
+      rust,
+      { opacity: 0.6 },
+    ),
   );
+  // Front braces and girts, then the front legs, footings and bolts.
+  const braces: string[] = [];
+  const girts: string[] = [];
+  const bolts: string[] = [];
+  for (let k = 0; k < levels; k++) {
+    const y0 = yAtLevel(k);
+    const y1 = yAtLevel(k + 1);
+    braces.push(
+      `M${r2(-half(k))} ${r2(y0)}L${r2(half(k + 1))} ${r2(y1)}M${r2(half(k))} ${r2(y0)}L${r2(-half(k + 1))} ${r2(y1)}`,
+    );
+    girts.push(`M${r2(-half(k + 1))} ${r2(y1)}L${r2(half(k + 1))} ${r2(y1)}`);
+    bolts.push(ellipseD(-half(k + 1), y1, 1.8, 1.8), ellipseD(half(k + 1), y1, 1.8, 1.8));
+    bolts.push(ellipseD(0, (y0 + y1) / 2 + (half(k) - half(k + 1)) / 4, 1.5, 1.5));
+  }
+  parts.push(
+    el('path', {
+      d: braces.join('') + girts.join(''),
+      fill: 'none',
+      stroke: ink,
+      'stroke-width': 3,
+    }),
+    el('path', { d: braces.join(''), fill: 'none', stroke: steel, 'stroke-width': 1.4 }),
+    el('path', { d: girts.join(''), fill: 'none', stroke: lit, 'stroke-width': 1.4 }),
+    el('path', {
+      d: leg(-1, 0) + leg(1, 0),
+      fill: 'none',
+      stroke: ink,
+      'stroke-width': 8,
+      'stroke-linecap': 'round',
+    }),
+    el('path', {
+      d: leg(-1, 0) + leg(1, 0),
+      fill: 'none',
+      stroke: steel,
+      'stroke-width': 4.4,
+      'stroke-linecap': 'round',
+    }),
+    // The angle iron's lit flange on the left of each leg.
+    el('path', { d: leg(-1, -1.5) + leg(1, -1.5), fill: 'none', stroke: lit, 'stroke-width': 1.4 }),
+    el('path', { d: bolts.join(''), fill: shade(dark, -0.2) }),
+    inked(
+      polyD([
+        [-56, base + 4],
+        [-56, base - 6],
+        [-36, base - 6],
+        [-36, base + 4],
+      ]),
+      '#B8B0A0',
+      ink,
+      2,
+    ),
+    inked(
+      polyD([
+        [36, base + 4],
+        [36, base - 6],
+        [56, base - 6],
+        [56, base + 4],
+      ]),
+      '#B8B0A0',
+      ink,
+      2,
+    ),
+  );
+  // Rust bleeding from a few joints.
+  const rusty: string[] = [];
+  for (const k of [1, 3, 4, 6]) {
+    const y = yAtLevel(k);
+    const x = (k % 2 === 0 ? -1 : 1) * half(k);
+    rusty.push(`M${r2(x)} ${r2(y + 2)}l${r2((k % 2 === 0 ? 1 : -1) * 1.5)} 12`);
+  }
+  parts.push(
+    el('path', { d: rusty.join(''), fill: 'none', stroke: rust, 'stroke-width': 2, opacity: 0.55 }),
+  );
+  // The ladder up the front-left leg (rails and rungs).
+  const ladder: string[] = [];
+  for (let k = 0; k < 22; k++) {
+    const f = k / 22;
+    const y = base - 10 - (base - top - 20) * f;
+    const x = -46 + (46 - 10) * ((base - y) / (base - top)) + 6;
+    ladder.push(`M${r2(x - 4)} ${r2(y)}l10 0`);
+  }
+  parts.push(
+    el('path', {
+      d: `M-34 ${r2(base)}L-2 ${r2(top + 6)}M-26 ${r2(base)}L4 ${r2(top + 6)}`,
+      fill: 'none',
+      stroke: ink,
+      'stroke-width': 2.6,
+    }),
+    el('path', { d: ladder.join(''), fill: 'none', stroke: ink, 'stroke-width': 2 }),
+    el('path', { d: ladder.join(''), fill: 'none', stroke: lit, 'stroke-width': 0.8 }),
+  );
+  // The timber platform at the top, and the service plank out to the left (the perch).
+  parts.push(
+    inked(
+      polyD([
+        [-30, top + 6],
+        [30, top + 6],
+        [26, top - 2],
+        [-26, top - 2],
+      ]),
+      wood.fill,
+      ink,
+      3,
+    ),
+    flat(
+      polyD([
+        [-28, top + 4],
+        [28, top + 4],
+        [26, top + 1],
+        [-26, top + 1],
+      ]),
+      wood.dark,
+    ),
+    ...(plank
+      ? [
+          inked(
+            polyD([
+              [-182, top + 27],
+              [-20, top + 1],
+              [-20, top + 7],
+              [-182, top + 33],
+            ]),
+            wood.fill,
+            ink,
+            2.6,
+          ),
+          flat(
+            polyD([
+              [-182, top + 31],
+              [-20, top + 5],
+              [-20, top + 7],
+              [-182, top + 33],
+            ]),
+            wood.dark,
+          ),
+          el('path', {
+            d: `M-150 ${r2(top + 30)}L-30 ${r2(top + 70)}`,
+            fill: 'none',
+            stroke: ink,
+            'stroke-width': 4,
+          }),
+          el('path', {
+            d: `M-150 ${r2(top + 30)}L-30 ${r2(top + 70)}`,
+            fill: 'none',
+            stroke: dark,
+            'stroke-width': 2,
+          }),
+          el('path', { d: ellipseD(-30, top + 70, 2, 2), fill: lit }),
+        ]
+      : []),
+    // The turntable collar the head sits on.
+    inked(
+      polyD([
+        [-16, top - 2],
+        [16, top - 2],
+        [12, top - 12],
+        [-12, top - 12],
+      ]),
+      dark,
+      ink,
+      2.4,
+    ),
+  );
+  return g({}, ...parts);
 }
 
 function reservoir(ctx: PropCtx): string {
@@ -2017,7 +2275,8 @@ function aloes(rosettes: readonly (readonly [number, number, number])[]) {
 export const KAROO_PLAN: BiomeArtPlan = {
   biome: 'karoo-autumn',
   layers: {
-    sky: { top: 0, height: 1080, encode: 'png', draw: sky },
+    // v1.6 (D-042): a 256-colour sky (no visible banding), as the Okavango's.
+    sky: { top: 0, height: 1080, encode: 'png8', draw: sky },
     // v1.6 (D-042): 128-colour palettes keep the home biome inside the 3 MB first download.
     far_ridge: { top: 380, height: 280, colours: 128, draw: farRidge },
     // v1.3: the Ver plane's strip (shown only on maps that open it).
@@ -2033,7 +2292,13 @@ export const KAROO_PLAN: BiomeArtPlan = {
     foreground: { top: 880, height: 200, fadeTop: 28, colours: 128, draw: foreground },
   },
   props: {
-    'karoo/windpomp': { draw: windpomp, frame: { w: 310, h: 560, ox: 225, oy: 210 } },
+    'karoo/windpomp': {
+      draw: windpomp,
+      master: 2,
+      colours: 96,
+      wobble: false,
+      frame: { w: 310, h: 560, ox: 225, oy: 210 },
+    },
     'karoo/reservoir': { draw: reservoir },
     'karoo/bakkie': { draw: bakkie },
     'karoo/potjie': { draw: potjie },

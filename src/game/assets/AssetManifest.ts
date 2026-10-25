@@ -689,6 +689,8 @@ export const TEX = {
   gun: 'gun/dubbelloop',
   // M4: secrets, crates, omen, boss, helpers, crate weapons.
   rotor: 'secret/rotor',
+  /** v1.6 (D-042): the windpomp's turning head (gearbox, tail boom, vane); WindpompView. */
+  windpompVane: 'fx/windpomp_vane',
   mark: 'secret/mark',
   markHit: 'secret/mark_hit',
   glint: 'fx/glint',

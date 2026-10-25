@@ -21,7 +21,7 @@ import {
 } from '../scenery';
 import { el, ellipseD, g, inked, polyD, r2, smoothD } from '../svg';
 import { mountainRow, paintRow, rockColours } from '../mountains';
-import { groundBand, groundShadow, softSky } from './karoo';
+import { groundBand, groundShadow, softSky, windpompTower } from './karoo';
 import { foregroundClumps, midScrub, nearGrass, verVeld } from './common';
 import { thunderhead } from '../skies';
 import {
@@ -573,6 +573,9 @@ function windpompSign(ctx: PropCtx): string {
   const paint = ctx.c('paint');
   return g(
     {},
+    // v1.6 (D-042): the windpomp the sign stands by (its head and wheel turn live: WindpompView,
+    // hub at (92, −186)).
+    g({ transform: 'translate(92 0)' }, windpompTower(ctx, 124, -176, false)),
     groundShadow(10, 122, 40, 6),
     post(0, 122, 240, 22, wood, pen),
     inked(
@@ -671,7 +674,13 @@ export const KALAHARI_PLAN: BiomeArtPlan = {
       wobble: false,
       frame: { w: 580, h: 580, ox: 290, oy: 300 },
     },
-    'kalahari/windpomp_sign': { draw: windpompSign },
+    'kalahari/windpomp_sign': {
+      draw: windpompSign,
+      master: 2,
+      colours: 96,
+      wobble: false,
+      frame: { w: 320, h: 440, ox: 120, oy: 310 },
+    },
     'kalahari/dead_camelthorn': {
       draw: deadCamelthornProp,
       master: 2,

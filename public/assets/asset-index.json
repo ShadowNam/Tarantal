@@ -307,6 +307,17 @@
       "width": 96,
       "height": 64
     },
+    "fx/windpomp_vane": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/fx_windpomp_vane.756717faefee.png",
+        "bytes": 3571,
+        "hash": "756717faefee"
+      },
+      "width": 320,
+      "height": 140
+    },
     "helper/meerkat": {
       "group": "common",
       "origin": "interim",
@@ -372,12 +383,15 @@
       "group": "kalahari-summer",
       "origin": "interim",
       "file": {
-        "path": "assets/kalahari-summer/img/kalahari_windpomp_sign.653633271428.png",
-        "bytes": 5064,
-        "hash": "653633271428"
+        "path": "assets/kalahari-summer/img/kalahari_windpomp_sign.49aca3be58ce.png",
+        "bytes": 31611,
+        "hash": "49aca3be58ce"
       },
-      "width": 204,
-      "height": 410
+      "width": 640,
+      "height": 880,
+      "scale": 0.5,
+      "originX": 0.375,
+      "originY": 0.7045454545454546
     },
     "karoo/aloe_a": {
       "group": "karoo-autumn",
@@ -449,12 +463,13 @@
       "group": "karoo-autumn",
       "origin": "interim",
       "file": {
-        "path": "assets/karoo-autumn/img/karoo_windpomp.ba510cde9606.png",
-        "bytes": 11532,
-        "hash": "ba510cde9606"
+        "path": "assets/karoo-autumn/img/karoo_windpomp.9a011053a561.png",
+        "bytes": 35406,
+        "hash": "9a011053a561"
       },
-      "width": 310,
-      "height": 560,
+      "width": 620,
+      "height": 1120,
+      "scale": 0.5,
       "originX": 0.7258064516129032,
       "originY": 0.375
     },
@@ -760,9 +775,9 @@
       "group": "common",
       "origin": "interim",
       "file": {
-        "path": "assets/common/img/secret_rotor.49bb2d09c185.png",
-        "bytes": 16038,
-        "hash": "49bb2d09c185"
+        "path": "assets/common/img/secret_rotor.0849b7c50449.png",
+        "bytes": 16303,
+        "hash": "0849b7c50449"
       },
       "width": 240,
       "height": 240
@@ -2221,14 +2236,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/karoo-autumn/layers/far_veld-0.5d8c044fd7f2.png",
-          "bytes": 18531,
-          "hash": "5d8c044fd7f2"
+          "path": "assets/karoo-autumn/layers/far_veld-0.67a50a318421.png",
+          "bytes": 18542,
+          "hash": "67a50a318421"
         },
         {
-          "path": "assets/karoo-autumn/layers/far_veld-1.794b45fd9340.png",
-          "bytes": 16648,
-          "hash": "794b45fd9340"
+          "path": "assets/karoo-autumn/layers/far_veld-1.b8c93932634f.png",
+          "bytes": 16768,
+          "hash": "b8c93932634f"
         }
       ],
       "tileWidth": 2048,
@@ -2239,23 +2254,23 @@
         "bucket": 256,
         "rows": [
           [
-            166,
+            167,
             232
           ],
           [
             136,
-            183
+            184
           ],
           [
             141,
-            185
+            232
           ],
           [
-            139,
-            182
+            137,
+            180
           ],
           [
-            136,
+            140,
             217
           ],
           [
@@ -2272,7 +2287,7 @@
           ],
           [
             139,
-            232
+            229
           ],
           [
             150,
@@ -2287,12 +2302,12 @@
             197
           ],
           [
-            111,
-            159
+            127,
+            161
           ],
           [
-            123,
-            175
+            183,
+            214
           ],
           [
             107,
@@ -2590,14 +2605,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/karoo-autumn/layers/sky-0.49cd738b217c.png",
-          "bytes": 78882,
-          "hash": "49cd738b217c"
+          "path": "assets/karoo-autumn/layers/sky-0.b9fc0d20f506.png",
+          "bytes": 34019,
+          "hash": "b9fc0d20f506"
         },
         {
-          "path": "assets/karoo-autumn/layers/sky-1.1a9e71049a26.png",
-          "bytes": 23988,
-          "hash": "1a9e71049a26"
+          "path": "assets/karoo-autumn/layers/sky-1.9ca42b0a2ca3.png",
+          "bytes": 12061,
+          "hash": "9ca42b0a2ca3"
         }
       ],
       "tileWidth": 2048,

@@ -1032,6 +1032,33 @@ function m4Specs(): CanvasSpec[] {
       ellipse(ctx, 0, 0, 14, 14);
       inked(ctx, KAROO.rust, 4);
     }),
+    // v1.6 (D-042): the windpomp head: gearbox, tail boom and vane, trailing left of the pivot.
+    {
+      key: TEX.windpompVane,
+      width: 320,
+      height: 140,
+      originX: 290,
+      originY: 70,
+      draw(ctx) {
+        ctx.translate(290, 70);
+        ctx.beginPath();
+        ctx.moveTo(-6, -3);
+        ctx.lineTo(-206, 7);
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = KAROO.metalDark;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(-262, -40);
+        ctx.lineTo(-196, -30);
+        ctx.lineTo(-194, 44);
+        ctx.lineTo(-262, 56);
+        ctx.closePath();
+        inked(ctx, KAROO.metal, 3);
+        ctx.beginPath();
+        ctx.rect(-22, -22, 44, 36);
+        inked(ctx, KAROO.metalDark, 3);
+      },
+    },
     // A painted red target mark on a shootable secret part; grey cross once hit.
     centred(TEX.mark, 64, 64, (ctx) => {
       ellipse(ctx, 0, 0, 24, 24);
