@@ -185,8 +185,9 @@ test('a pack that fails once is retried; the hunt never starts on placeholders',
     return r.fallback();
   });
   await boot(page, 'seed=42&biome=kalahari-summer&huntSeconds=4');
-  expect(failures).toBe(1);
+  // The Kalahari pack is lazy: it is fetched when the hunt starts, not at boot.
   await startHunt(page, isTouchProject(info));
+  expect(failures).toBe(1);
   const h = await hook(page);
   const entries = h.assets.byBiome['kalahari-summer'] ?? [];
   const layers = entries.filter((e) => e.kind === 'layer');
