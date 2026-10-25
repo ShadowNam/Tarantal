@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "updated": "2026-10-25T18:13:00Z",
+ "updated": "2026-10-25T18:15:00Z",
  "by": "Claude",
  "summary": "v1.6 Veld art is live on the test build (merged 25 Oct, 18:56). v1.6b reload power-ups is re-running its full tests after Claude fixed a slow Skietbaan test (PR #75); it merges when green. v1.7 meerkats is in its look round (your notes on more fur and nicer faces are next). This Project overview page is being built now. Next, in this order: v1.7b power-ups explained + an Oupa on/off switch, v1.7c fruit that swings or drops, v1.7d Namibië veld life, v1.7e realistic Bushveld + a new secret cue instead of the star (mock-ups for you first), v1.8 Blikkies, v1.8b baboons, v1.8c The Harvest (a new mode), then v1.9–v1.13.",
  "current": {
@@ -1143,11 +1143,16 @@
      "at": "2026-10-25T17:49:00Z"
     },
     {
-     "text": "Your notes: more fur and nicer faces",
+     "text": "Screenshot spec reframed: the Familiefoto row clear of the flock, a mid-dash shot, a sentinel-and-pup close-up, meerkats ≥ 150 px tall in close-ups",
+     "done": true,
+     "at": "2026-10-25T17:55:00Z"
+    },
+    {
+     "text": "Your notes: more fur and nicer faces (sent to Tank at 20:17 with Claude's notes on the body, the Familiefoto pose and the run legs; Tank is working on it)",
      "done": false
     },
     {
-     "text": "v1.6 and v1.6b merged in, version 1.7.0",
+     "text": "v1.6 merged in (done); v1.6b and version 1.7.0 once #71 is on main",
      "done": false
     },
     {
@@ -1625,6 +1630,11 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-25T18:17:00Z",
+   "kind": "note",
+   "text": "Tank finished the meerkat look round (eye masks, bands, burrows, colonies clear of the buttons, 48-colour sheet, Kalahari + desert 1,534.9 of 1,536 KB). Your fur and face notes are now with Tank."
+  },
   {
    "at": "2026-10-25T18:11:00Z",
    "kind": "decision",
