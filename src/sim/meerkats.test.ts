@@ -240,7 +240,10 @@ describe('meerkat colonies (v1.7, D-044)', () => {
     const hit = shootMeerkat(s, c, target, col);
     const penalty = c.birds.meerkats.hit.penalty;
     expect(ofType(hit, 'meerkatHit')).toMatchObject([{ meerkatId: target.id, points: -penalty }]);
-    expect(ofType(hit, 'meerkatsDived')).toMatchObject([{ cause: 'hit' }]);
+    // (Another colony close by on screen may dive at the shot too.)
+    expect(ofType(hit, 'meerkatsDived')).toContainEqual(
+      expect.objectContaining({ colonyId: col.id, cause: 'hit' }),
+    );
     expect(ofType(hit, 'targetBagged')).toEqual([]);
     expect(s.snapshot().score).toBe(score - penalty);
     expect(colony(s).meerkats.find((m) => m.id === target.id)?.pose).toBe('tumble');
