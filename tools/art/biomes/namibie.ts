@@ -655,7 +655,7 @@ function near(ctx: LayerCtx): string {
   // where the pop-ups rise).
   for (let x = 260 + ctx.rnd() * 300; x < ctx.width; x += 700 + ctx.rnd() * 700) {
     const y = ctx.rnd() < 0.5 ? 880 + ctx.rnd() * 20 : 975 + ctx.rnd() * 70;
-    items.push({ y, svg: naraHummock(ctx, x, y, 48 + ((y - 870) / 200) * 30, ctx.pen) });
+    items.push({ y, svg: naraHummock(ctx, x, y, 48 + ((y - 870) / 200) * 30) });
   }
   items.sort((a, b) => a.y - b.y);
   inside.push(...items.map((i) => i.svg));
@@ -858,7 +858,7 @@ function quiverFlowers(rnd: Rnd, x: number, y: number, h: number, pen: Pen): str
  * leafless green-grey stems with paired spines, sand banked against it, and a few round spiny
  * melons, green to yellow.
  */
-function naraHummock(ctx: PaintCtx, x: number, y: number, s: number, pen: Pen): string {
+function naraHummock(ctx: PaintCtx, x: number, y: number, s: number): string {
   const rnd = ctx.rnd;
   const stem = mix('#7E9A5A', ctx.c('greyGreen'), 0.4);
   const ramp = [shade(stem, -0.4), shade(stem, -0.2), stem, shade(stem, 0.2), shade(stem, 0.38)];
@@ -929,7 +929,6 @@ function naraHummock(ctx: PaintCtx, x: number, y: number, s: number, pen: Pen): 
     }
     parts.push(el('path', { d: warts, fill: ripe ? '#8A6A1E' : '#4E6A2A', opacity: 0.8 }));
   }
-  void pen;
   return g({}, ...parts);
 }
 
