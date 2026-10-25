@@ -1,42 +1,58 @@
-// 24 Oct update (D-037) Skietbaan steel plate: a round gong hanging from a crossbar on two posts.
-// It swings about its hang point when the sim says a pellet struck it (plateHit). The face is
-// the interim art (range/plate) once the range group has loaded, else drawn here. Drawn on the
-// plane's overlay layer in plane coordinates, like the paper targets. Rendering only.
+// Skietbaan steel plate (D-037; clean gongs with lasting hit marks, D-040): a round gong hanging
+// from a crossbar on two posts. Freshly painted each Skietbaan visit; every pellet the sim says
+// struck it (plateHit) leaves a lead-splash mark at that point, drawn in the plate's own swinging
+// frame and baked (MarkSurface) so hundreds of marks cost one image. A hit swings the plate on sim
+// time (the snapshot tick), so a held frame (?holdAt) holds the swing too. The face and frame are
+// the interim art (range/plate, range/plate_frame) once the range group has loaded, else drawn
+// here. Drawn on the plane's overlay layer in plane coordinates. Rendering only.
 import * as Phaser from 'phaser';
+import { TICKS_PER_SECOND } from '../../sim/clock';
 import type { PaperView } from '../../sim/types';
+import { drawNewest, MarkSurface, type TargetFrame } from './MarkSurface';
+import { newestLit, NEWEST_TICKS, swingAngle, type Mark } from './rangeMarks';
 import {
+  FRAME_HALF,
+  FRAME_LEG_BELOW,
+  FRAME_POST,
+  PLATE_CY,
   PLATE_DISC_R,
-  PLATE_HANG_PX,
+  PLATE_FRAME_ORIGIN,
+  PLATE_FRAME_TEX,
   PLATE_ORIGIN,
   PLATE_TEX,
   PLATE_TEX_SIZE,
 } from './rangeAssets';
 
-// Rendering only: the frame's colours and sizes (fractions of the plate radius), the swing.
-const WOOD = 0x6b4a2b;
-const WOOD_DARK = 0x4a321d;
-const STEEL = 0x8a9198;
-const PAINT = 0xefeadf;
-const FRAME_HALF = 1.12;
-const POST_W = 0.12;
-const LEG_BELOW = 1.5;
-/** Swing: its amplitude (radians), decay time and period (ms). A hit kicks the plate out at
- *  once (a struck plate jumps), then it swings back and settles; a new hit starts it again. */
+// Rendering only: the stand-in frame's and face's colours (before the art arrives), the swing.
+const WOOD = 0x8a6440;
+const WOOD_LIT = 0xb08559;
+const WOOD_DARK = 0x4b321d;
+const STEEL = 0x8e969d;
+const STEEL_LIT = 0xdfe3e6;
+const PAINT = 0xf3f1ea;
+/** A hit kicks the plate out by this much (radians), away from the side that was hit. */
 const SWING_RAD = 0.32;
-const SWING_TAU_MS = 900;
-const SWING_PERIOD_MS = 620;
-
-/** Disc centre below the hang point, texture px. */
-const CY = PLATE_HANG_PX + PLATE_DISC_R - PLATE_ORIGIN.y * PLATE_TEX_SIZE.height;
 
 export class PlateDraw {
-  private readonly frame: Phaser.GameObjects.Graphics;
+  private frame: Phaser.GameObjects.Image | Phaser.GameObjects.Graphics;
   private readonly swing: Phaser.GameObjects.Container;
-  private face: Phaser.GameObjects.Image | Phaser.GameObjects.Graphics;
+  private readonly surface: MarkSurface;
+  private readonly newest: Phaser.GameObjects.Graphics;
+  private hasArt: boolean;
   private amp = 0;
-  private t = 0;
+  private hitTick = 0;
+  private lit: Mark | null = null;
+  /** The newest mark is highlighted now (the test hook reads it). */
+  get glinting(): boolean {
+    return this.lit !== null && this.litFade > 0;
+  }
+  private litFade = -1;
   /** Swings so far (the test hook reads it). */
   hits = 0;
+
+  get id(): number {
+    return this.plate.id;
+  }
 
   get plane(): PaperView['plane'] {
     return this.plate.plane;
@@ -46,88 +62,168 @@ export class PlateDraw {
     return this.plate.kind;
   }
 
+  /** Marks baked on the plate now (the test hook reads it). */
+  get drawn(): number {
+    return this.surface.drawn;
+  }
+
   /** The hang point (plane px): rings and markers take the disc from it. */
   private readonly hangY: number;
+  /** Plane px per texture px. */
+  private readonly k: number;
 
   constructor(
     private readonly scene: Phaser.Scene,
-    layer: Phaser.GameObjects.Container,
+    private readonly layer: Phaser.GameObjects.Container,
     private readonly plate: PaperView,
+    maxScreenScale: number,
   ) {
     const { x, y, r } = plate;
-    const k = r / PLATE_DISC_R;
-    this.hangY = y - CY * k;
-    const half = r * FRAME_HALF;
-    const post = Math.max(1, r * POST_W);
-    const ground = y + r * LEG_BELOW;
-    this.frame = scene.add.graphics();
-    this.frame
-      .fillStyle(WOOD, 1)
-      .fillRect(x - half - post / 2, this.hangY - post, post, ground - this.hangY + post)
-      .fillRect(x + half - post / 2, this.hangY - post, post, ground - this.hangY + post)
-      .fillStyle(WOOD_DARK, 1)
-      .fillRect(x - half - post / 2, this.hangY - post * 1.5, half * 2 + post, post);
+    this.k = r / PLATE_DISC_R;
+    this.hangY = y - PLATE_CY * this.k;
+    this.frame = this.makeFrame();
     this.swing = scene.add.container(x, this.hangY);
-    this.face = this.makeFace();
-    this.swing.add(this.face);
+    this.hasArt = scene.textures.exists(PLATE_TEX);
+    const w = PLATE_TEX_SIZE.width * this.k;
+    const h = PLATE_TEX_SIZE.height * this.k;
+    const top = PLATE_ORIGIN.y * PLATE_TEX_SIZE.height;
+    this.surface = new MarkSurface(
+      scene,
+      {
+        width: w,
+        height: h,
+        centreX: 0.5,
+        centreY: (top + PLATE_CY) / PLATE_TEX_SIZE.height,
+        r,
+        maxScreenScale,
+        look: 'steel',
+      },
+      (dt, s) => {
+        this.drawFace(dt, s);
+      },
+    );
+    this.surface.image.setPosition(0, PLATE_CY * this.k);
+    this.newest = scene.add.graphics();
+    this.newest.setPosition(0, PLATE_CY * this.k);
+    this.swing.add([this.surface.image, this.newest]);
     layer.add([this.frame, this.swing]);
   }
 
-  private makeFace(): Phaser.GameObjects.Image | Phaser.GameObjects.Graphics {
-    const k = this.plate.r / PLATE_DISC_R;
-    if (this.scene.textures.exists(PLATE_TEX))
+  private makeFrame(): Phaser.GameObjects.Image | Phaser.GameObjects.Graphics {
+    const { x, r } = this.plate;
+    if (this.scene.textures.exists(PLATE_FRAME_TEX)) {
+      this.scene.textures.get(PLATE_FRAME_TEX).setFilter(Phaser.Textures.FilterMode.LINEAR);
       return this.scene.add
-        .image(0, 0, PLATE_TEX)
-        .setOrigin(PLATE_ORIGIN.x, PLATE_ORIGIN.y)
-        .setScale(k);
-    // Before the art arrives: chains, steel rim and painted face.
-    const r = this.plate.r;
-    const cy = CY * k;
-    const line = Math.max(0.5, r * 0.03);
-    return this.scene.add
-      .graphics()
-      .lineStyle(line, STEEL, 1)
-      .lineBetween(-r * 0.15, 0, -r * 0.42, cy - r * 0.86)
-      .lineBetween(r * 0.15, 0, r * 0.42, cy - r * 0.86)
-      .fillStyle(STEEL, 1)
-      .fillCircle(0, cy, r)
-      .fillStyle(PAINT, 1)
-      .fillCircle(0, cy, r * 0.9);
+        .image(x, this.hangY, PLATE_FRAME_TEX)
+        .setOrigin(PLATE_FRAME_ORIGIN.x, PLATE_FRAME_ORIGIN.y)
+        .setScale(this.k);
+    }
+    // Before the art arrives: two posts (lit left edge) and a crossbar.
+    const half = r * FRAME_HALF;
+    const post = Math.max(1, r * FRAME_POST);
+    const ground = this.plate.y + r * FRAME_LEG_BELOW;
+    const top = this.hangY - post * 1.6;
+    const gfx = this.scene.add.graphics();
+    for (const px of [x - half, x + half]) {
+      gfx
+        .fillStyle(WOOD, 1)
+        .fillRect(px - post / 2, top, post, ground - top)
+        .fillStyle(WOOD_LIT, 1)
+        .fillRect(px - post / 2, top, post * 0.3, ground - top)
+        .fillStyle(WOOD_DARK, 1)
+        .fillRect(px + post * 0.25, top, post * 0.25, ground - top);
+    }
+    return gfx
+      .fillStyle(WOOD, 1)
+      .fillRect(x - half - post * 0.8, top, half * 2 + post * 1.6, post * 1.1)
+      .fillStyle(WOOD_LIT, 1)
+      .fillRect(x - half - post * 0.8, top, half * 2 + post * 1.6, post * 0.3);
   }
 
-  /** A pellet struck at plane x: it swings away from the side that was hit. */
-  hit(atX: number): void {
+  /** The clean painted face at level 0 of the bake (`s` texels per plane px). */
+  private drawFace(dt: Phaser.Textures.DynamicTexture, s: number): void {
+    if (this.scene.textures.exists(PLATE_TEX)) {
+      // LINEAR on every tier (the low tier's antialias-off default is NEAREST: a jagged rim).
+      this.scene.textures.get(PLATE_TEX).setFilter(Phaser.Textures.FilterMode.LINEAR);
+      dt.stamp(PLATE_TEX, undefined, 0, 0, {
+        originX: 0,
+        originY: 0,
+        scale: s * this.k,
+      });
+      return;
+    }
+    // Before the art arrives: chains, a steel rim with a lit edge, the painted face.
+    const kk = s * this.k;
+    const cx = (PLATE_TEX_SIZE.width / 2) * kk;
+    const hang = PLATE_ORIGIN.y * PLATE_TEX_SIZE.height * kk;
+    const cy = hang + PLATE_CY * kk;
+    const R = PLATE_DISC_R * kk;
+    const gfx = this.scene.make.graphics({}, false);
+    gfx
+      .lineStyle(Math.max(0.5, R * 0.03), STEEL, 1)
+      .lineBetween(cx - R * 0.15, hang, cx - R * 0.42, cy - R * 0.86)
+      .lineBetween(cx + R * 0.15, hang, cx + R * 0.42, cy - R * 0.86)
+      .fillStyle(STEEL, 1)
+      .fillCircle(cx, cy, R)
+      .lineStyle(Math.max(0.5, R * 0.03), STEEL_LIT, 1)
+      .beginPath()
+      .arc(cx, cy, R * 0.95, Math.PI * 0.95, Math.PI * 1.6)
+      .strokePath()
+      .fillStyle(PAINT, 1)
+      .fillCircle(cx, cy, R * 0.9);
+    dt.draw(gfx);
+    // draw() only queues the Graphics: render before it is destroyed.
+    dt.render();
+    gfx.destroy();
+  }
+
+  /** A pellet struck at plane x on sim tick `tick`: it swings away from the side that was hit. */
+  hit(atX: number, tick: number): void {
     const dir = atX >= this.plate.x ? -1 : 1;
     this.amp = dir * SWING_RAD;
-    this.t = 0;
+    this.hitTick = tick;
     this.hits++;
   }
 
-  private angle(): number {
-    if (this.amp === 0) return 0;
-    const w = (2 * Math.PI) / SWING_PERIOD_MS;
-    return this.amp * Math.exp(-this.t / SWING_TAU_MS) * Math.cos(w * this.t);
+  /** The swing now (radians; tests and the hook read it). */
+  get rotation(): number {
+    return this.swing.rotation;
   }
 
-  /** Each frame: the art swaps in once loaded; the swing runs on. */
-  update(dtMs: number): void {
-    if (this.face instanceof Phaser.GameObjects.Graphics && this.scene.textures.exists(PLATE_TEX)) {
-      this.face.destroy();
-      this.face = this.makeFace();
-      this.swing.add(this.face);
+  /** Each frame: the art swaps in once loaded, the marks bake, the swing runs on sim time. */
+  update(f: TargetFrame): void {
+    if (
+      this.frame instanceof Phaser.GameObjects.Graphics &&
+      this.scene.textures.exists(PLATE_FRAME_TEX)
+    ) {
+      this.frame.destroy();
+      this.frame = this.makeFrame();
+      this.layer.addAt(this.frame, this.layer.getIndex(this.swing));
     }
-    if (this.amp === 0) return;
-    this.t += dtMs;
-    if (this.t > SWING_TAU_MS * 5) {
-      this.amp = 0;
-      this.swing.rotation = 0;
-      return;
+    if (!this.hasArt && this.scene.textures.exists(PLATE_TEX)) {
+      this.hasArt = true;
+      this.surface.invalidate();
     }
-    this.swing.rotation = this.angle();
+    this.surface.sync(f.marks, f.epoch);
+    this.surface.pick(f.screenScale);
+    const ms = ((f.tick - this.hitTick) * 1000) / TICKS_PER_SECOND;
+    this.swing.rotation = swingAngle(this.amp, ms);
+    // The newest mark glints, then fades into a normal mark over its last third.
+    const lit = newestLit(f.marks, f.visit, f.tick);
+    const age = lit === null ? 0 : f.tick - lit.tick;
+    const fade = lit === null ? 0 : Math.min(1, ((NEWEST_TICKS - age) / NEWEST_TICKS) * 3);
+    const step = Math.round(fade * 8) / 8;
+    if (lit !== this.lit || step !== this.litFade) {
+      this.lit = lit;
+      this.litFade = step;
+      this.newest.clear();
+      if (lit !== null && step > 0) drawNewest(this.newest, 'steel', 0, 0, this.plate.r, lit, step);
+    }
   }
 
   destroy(): void {
     this.frame.destroy();
+    this.surface.destroy();
     this.swing.destroy();
   }
 }

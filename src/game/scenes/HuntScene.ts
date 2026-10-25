@@ -688,6 +688,7 @@ export class HuntScene extends Phaser.Scene {
       scene: this,
       audio: this.ctx.audio,
       reduceFlashes: () => this.ctx.prefs.reduceFlashes,
+      simHeld: () => this.runner?.held === true,
       overlay: (plane) => {
         try {
           return this.parallax.plane(plane).overlay;

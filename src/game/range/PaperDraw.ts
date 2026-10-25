@@ -1,22 +1,23 @@
-// v1.3x (D-037) Skietbaan paper targets: the face on its post, and the newest impacts on it.
-// Drawn on the plane's overlay layer in plane coordinates, so it pans and zooms with the world
-// (a raised scope magnifies the holes too). Rendering only: hits come from the sim.
+// v1.3x (D-037) Skietbaan paper targets: the face on its post, and every hole in it (D-040: the
+// same rule as the steel plates — each pellet the sim put on the paper stays for the whole
+// Skietbaan visit, baked by MarkSurface; the newest is highlighted briefly). Drawn on the plane's
+// overlay layer in plane coordinates, so it pans and zooms with the world (a raised scope
+// magnifies the holes too). Rendering only: hits come from the sim.
 import * as Phaser from 'phaser';
 import type { PaperView } from '../../sim/types';
-import type { Impact } from './rangeStats';
+import { drawNewest, MarkSurface, type TargetFrame } from './MarkSurface';
+import { newestLit, NEWEST_TICKS } from './rangeMarks';
 
 // Rendering only (D-037): colours of the face and rings, and sizes as fractions of the radius.
 const FACE = 0xf3ead3;
 const INK = 0x1b1410;
 const BULL = 0xc8302a;
 const POST = 0x6b4a2b;
-const HOLE = 0x1b1410;
-const NEWEST = 0xffd25a;
 const RINGS = 4;
 const POST_W = 0.14;
 const POST_H = 1.2;
-const HOLE_R = 0.045;
-const MIN_HOLE_PX = 1;
+/** The baked holes cover the face and a little torn edge around it (fractions of r). */
+const HOLES_EXTENT = 1.08;
 /** 24 Oct update: a hit blinks the face (≤ 150 ms, local); "reduce flashes" dims it. */
 const BLINK_MS = 120;
 const BLINK = 0xffd25a;
@@ -25,14 +26,22 @@ const BLINK_ALPHA_REDUCED = 0.3;
 
 export class PaperDraw {
   private readonly face: Phaser.GameObjects.Graphics;
-  private readonly holes: Phaser.GameObjects.Graphics;
+  private readonly surface: MarkSurface;
+  private readonly newest: Phaser.GameObjects.Graphics;
+  private lit: unknown = null;
+  /** The newest mark is highlighted now (the test hook reads it). */
+  get glinting(): boolean {
+    return this.lit !== null && this.litFade > 0;
+  }
+  private litFade = -1;
   private readonly flash: Phaser.GameObjects.Graphics;
   private blinkLeft = 0;
   /** Blinks so far (the test hook reads it). */
   blinks = 0;
-  private drawn = '';
-  /** Impacts drawn now (the test hook reads it). */
-  count = 0;
+  /** Holes drawn now (the test hook reads it). */
+  get count(): number {
+    return this.surface.drawn;
+  }
 
   get id(): number {
     return this.paper.id;
@@ -50,6 +59,7 @@ export class PaperDraw {
     scene: Phaser.Scene,
     layer: Phaser.GameObjects.Container,
     private readonly paper: PaperView,
+    maxScreenScale: number,
   ) {
     const { x, y, r } = paper;
     this.face = scene.add.graphics();
@@ -62,29 +72,40 @@ export class PaperDraw {
       .lineStyle(line, INK, 1);
     for (let i = 1; i <= RINGS; i++) this.face.strokeCircle(x, y, (r * i) / RINGS);
     this.face.fillStyle(BULL, 1).fillCircle(x, y, r / RINGS / 2);
-    this.holes = scene.add.graphics();
+    this.surface = new MarkSurface(
+      scene,
+      {
+        width: r * HOLES_EXTENT * 2,
+        height: r * HOLES_EXTENT * 2,
+        centreX: 0.5,
+        centreY: 0.5,
+        r,
+        maxScreenScale,
+        look: 'paper',
+      },
+      null,
+    );
+    this.surface.image.setPosition(x, y);
+    this.newest = scene.add.graphics();
     this.flash = scene.add.graphics();
     this.flash.setVisible(false);
-    layer.add([this.face, this.holes, this.flash]);
+    layer.add([this.face, this.surface.image, this.newest, this.flash]);
   }
 
-  /** Draws the impacts (redrawn only when they changed). */
-  update(impacts: readonly Impact[]): void {
-    const last = impacts.at(-1);
-    const key = `${String(impacts.length)}:${String(last?.x)}:${String(last?.y)}`;
-    if (key === this.drawn) return;
-    this.drawn = key;
-    const r = Math.max(MIN_HOLE_PX, this.paper.r * HOLE_R);
-    this.holes.clear();
-    // Only holes on this paper (impacts are on the paper by construction; guard all the same).
-    const on = impacts.filter(
-      (i) => Math.hypot(i.x - this.paper.x, i.y - this.paper.y) <= this.paper.r + r,
-    );
-    on.forEach((i, n) => {
-      const newest = n === on.length - 1;
-      this.holes.fillStyle(newest ? NEWEST : HOLE, 1).fillCircle(i.x, i.y, newest ? r * 1.4 : r);
-    });
-    this.count = on.length;
+  /** Bakes new holes, picks the bake's level for the zoom, highlights the newest briefly. */
+  update(f: TargetFrame): void {
+    this.surface.sync(f.marks, f.epoch);
+    this.surface.pick(f.screenScale);
+    const lit = newestLit(f.marks, f.visit, f.tick);
+    const age = lit === null ? 0 : f.tick - lit.tick;
+    const fade = lit === null ? 0 : Math.min(1, ((NEWEST_TICKS - age) / NEWEST_TICKS) * 3);
+    const step = Math.round(fade * 8) / 8;
+    if (lit === this.lit && step === this.litFade) return;
+    this.lit = lit;
+    this.litFade = step;
+    this.newest.clear();
+    const { x, y, r } = this.paper;
+    if (lit !== null && step > 0) drawNewest(this.newest, 'paper', x, y, r, lit, step);
   }
 
   /** The sim says a pellet struck this paper: the face blinks once. */
@@ -107,7 +128,8 @@ export class PaperDraw {
 
   destroy(): void {
     this.face.destroy();
-    this.holes.destroy();
+    this.surface.destroy();
+    this.newest.destroy();
     this.flash.destroy();
   }
 }

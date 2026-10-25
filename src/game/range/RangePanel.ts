@@ -383,6 +383,8 @@ export interface BarHandlers {
   /** The mixed course only: re-rolls the layout with a new seed. */
   readonly shuffle?: () => void;
   readonly reset: () => void;
+  /** D-040: paper and plate courses: Repaint / New paper clears the targets' marks. */
+  readonly repaint?: { readonly label: string; readonly run: () => void };
   readonly report: () => string;
 }
 
@@ -428,6 +430,13 @@ export class RangeBar {
           : [
               button(rt('range.shuffle'), { action: 'shuffle' }, () => {
                 h.shuffle?.();
+              }),
+            ]),
+        ...(h.repaint === undefined
+          ? []
+          : [
+              button(h.repaint.label, { action: 'repaint' }, () => {
+                h.repaint?.run();
               }),
             ]),
         more,

@@ -227,6 +227,32 @@ Crates: wooden ammo crate on a patched canvas parachute (Oupa's initials stencil
 Power-up icons (from `4.jpeg`, refined): chilli biltong strip with flame, blue enamel mug with steam,
 bundle of red shells, meerkat with binoculars.
 
+### 5.1 Skietbaan targets (D-037, D-040)
+Semi-realistic (D-035): no dark contours, light from the upper left. Interim art from
+`npm run art:interim -- --only range` (`tools/art/rangeArt.ts`), group `range` (lazy).
+- **Steel plate (`range/plate`):** drawn at **2×** (disc radius 200 texture px for a
+  plateRadiusPx-100 plate) and scaled per plane, so it stays crisp from Ver at 1× to the 9× scope.
+  Freshly painted every visit: an even off-white face (#FBFAF5 → #DCD9D0) with a soft light from
+  the upper left and a faint sheen, **never** baked hit marks. A clean mild-steel rim with a small
+  bevel: the outer edge lit upper left and shaded lower right, an inner lip the other way round.
+  Clean chains (alternating front and side links) to two welded hanger tabs with bolts.
+- **Frame (`range/plate_frame`):** two posts and a crossbar of weathered camelthorn timber at the
+  v1.4 quality bar: a lit left side and a shaded right side, grain lines and knots, the crossbar
+  lit along its top, four bolts, two eye bolts the chains hang from, a dark band where the posts go
+  into the ground. Same 2× scale, its origin at the plate's hang point.
+- **Hit marks (drawn by the game, `MarkSurface.ts`):** steel — a silver-grey 7–11-point star where
+  the paint flaked off (light edge #DFE3E6, splash #B3B9BF), a darker lead centre (#5B6167), 3–6
+  small spatter flecks around it (#9EA5AB). Paper — a dark punched hole with a faint ring of torn
+  fibre. Radius at near (plane scale 1): steel 5 / 8 / 12 px, paper 3 / 4.5 / 6.5 px for a shot
+  pellet / a .22-class bullet / the Langloop or a Kettie stone (the weapon's `markSize` in
+  `content/weapons.json`: `pellet` / `rifle` / `heavy`); scaled with the plane. The shape
+  comes from the impact (shot id, tick, pellet index), never a per-frame random. The newest mark
+  glints (a pale ring on steel, the yellow NEWEST disc on paper) for 1.25 s, fading over its last
+  third.
+- **Filtering:** marks (and, for a plate, its face) are baked per target into a small chain of textures (each level half the
+  one above, like mipmaps), and the view shows the level with at least one texel per screen pixel;
+  every level, the plate art and the frame filter LINEAR, also on the low tier (whose default is NEAREST).
+
 ## 6. HUD and UI
 
 **Materials:** weathered wood signs (`#8B5A2B`), cream enamel with blue rim (`#F3EAD3` / `#2D5DA8`),

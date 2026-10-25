@@ -49,8 +49,22 @@ export interface RangeHookState {
     readonly hits: number;
     readonly short: number;
   }[];
-  /** Impacts drawn on the paper target now. */
+  /** Holes drawn on the paper targets now (D-040: every hole of the visit, not only 20). */
   readonly drawnImpacts: number;
+  /** D-040: each paper or plate on the range, its marks for the visit (key: area|course|distance|kind|
+   *  index) and how many are baked on it now. */
+  readonly marks: readonly {
+    readonly key: string;
+    readonly kind: string;
+    readonly count: number;
+    readonly drawn: number;
+    /** A plate's swing angle now (radians; 0 for paper or a still plate). */
+    readonly swing: number;
+    /** The newest mark is highlighted now. */
+    readonly lit: boolean;
+    /** The sim tick the newest mark landed (null: none). */
+    readonly lastTick: number | null;
+  }[];
   /** Paper targets on screen (design px, unzoomed) and their radius. */
   readonly papers: readonly {
     readonly x: number;

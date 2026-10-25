@@ -3,7 +3,7 @@
 // files referenced but missing, placeholder keys nothing uses. `--strict` (the launch gate) also
 // fails while any key is still a placeholder. Pure: the CLI (tools/asset-audit.ts) gathers the
 // inputs from disk.
-import { PLATE_TEX, RANGE_SOUNDS } from '../../src/game/range/rangeAssets';
+import { PLATE_FRAME_TEX, PLATE_TEX, RANGE_SOUNDS } from '../../src/game/range/rangeAssets';
 import type { AssetIndex, BirdClip } from '../../src/game/assets/assetIndex';
 import { clipFor, resolveClip } from '../../src/game/assets/birdClips';
 import type { BirdMotion, BirdPhase, PlaneId } from '../../src/sim/types';
@@ -69,6 +69,7 @@ function usages(
   const rangeSound = Object.entries(RANGE_SOUNDS).find(([, k]) => k === key)?.[0];
   if (rangeSound !== undefined) needles.push(new RegExp(`playRangeSound\\([^)]*'${rangeSound}'`));
   if (key === PLATE_TEX) needles.push(/\bPLATE_TEX\b/);
+  if (key === PLATE_FRAME_TEX) needles.push(/\bPLATE_FRAME_TEX\b/);
   if (kind === 'texture' && key.startsWith('gun/')) {
     // gunKey(weaponId): used when the weapon exists in content and something draws gunKey().
     needles.push(new RegExp(`"id":\\s*"${key.slice(4)}"`));
