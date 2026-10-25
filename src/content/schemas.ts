@@ -1543,6 +1543,9 @@ export const FeelSchema = obj({
     /** At most one bark per barkGapMs (bible: 6 s; the BarkDirector keeps it, D-028), never while
      *  the tally counts up. */
     barkGapMs: nonNeg,
+    /** v1.5 (D-041): a bark whose voice line is still downloading waits up to this long, then
+     *  plays if the line arrived (its caption shows at once either way). */
+    barkWaitMs: nonNeg,
   }),
   barks: obj({
     /** Speech bubble: shown bubbleMs, faded in and out over fadeMs; text size (design px). */

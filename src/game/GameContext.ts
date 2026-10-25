@@ -51,6 +51,18 @@ export interface RangeHookState {
   }[];
   /** Holes drawn on the paper targets now (D-040: every hole of the visit, not only 20). */
   readonly drawnImpacts: number;
+  /**
+   * D-040 review: the mark bakes' cost since this course started (MarkSurface bakeStats): render
+   * passes, marks drawn, the slowest and the last bake's ms, and the bake textures alive now
+   * (a switch must not leave the old ones behind).
+   */
+  readonly bake?: {
+    readonly renders: number;
+    readonly marks: number;
+    readonly maxBakeMs: number;
+    readonly lastBakeMs: number;
+    readonly liveTextures: number;
+  };
   /** D-040: each paper or plate on the range, its marks for the visit (key: area|course|distance|kind|
    *  index) and how many are baked on it now. */
   readonly marks: readonly {
@@ -224,7 +236,7 @@ export interface TestHook {
    */
   voice: {
     language: string;
-    pack: 'none' | 'loading' | 'ready' | 'missing';
+    pack: 'none' | 'loading' | 'ready' | 'partial' | 'missing';
     played: string[];
   };
   /** M10: what the music plays (biome, audible stem) and the master gain (0 while muted). */

@@ -82,20 +82,29 @@ test.describe('languages (v1.5)', () => {
     expect(voice).toEqual([]);
     let h = await hook(page);
     expect(h.voice.language).toBe('af');
+    // The first gesture anywhere (a key on the title, before any button) unlocks audio and
+    // starts the af pack, so it is in before the hunt's greeting.
+    await page.keyboard.press('Shift');
+    const file = `af-${greeting.replace('.', '_')}.`;
+    await expect.poll(() => voice.some((v) => v.includes(file)), { timeout: 60_000 }).toBe(true);
+    await page.waitForFunction(() => window.__TM__?.voice.pack === 'ready', null, {
+      timeout: 60_000,
+    });
     await startHunt(page, isTouchProject(info));
-    // The greeting bark: its English caption shows.
+    // The greeting bark: its English caption shows, and the af line is heard.
     await page.waitForFunction(() => window.__TM__?.bark != null, null, { timeout: 60_000 });
     h = await hook(page);
     expect(h.bark?.line).toBe(greeting);
     expect(h.bark?.text).toBe((en as Record<string, string>)[greeting]);
-    // The af file for that bark was requested (the pack loads after the gesture), and no other
-    // language's pack.
-    const file = `af-${greeting.replace('.', '_')}.`;
-    await expect.poll(() => voice.some((v) => v.includes(file)), { timeout: 60_000 }).toBe(true);
+    await page.waitForFunction(
+      (key) => window.__TM__?.voice.played.includes(key) === true,
+      `voice/af/${greeting}`,
+      { timeout: 30_000 },
+    );
+    h = await hook(page);
+    expect(h.voice.played.every((k) => k.startsWith('voice/af/'))).toBe(true);
+    // Only the af pack was ever requested.
     expect(voice.every((v) => v.startsWith('af '))).toBe(true);
-    await page.waitForFunction(() => window.__TM__?.voice.pack === 'ready', null, {
-      timeout: 60_000,
-    });
     expect(errors).toEqual([]);
   });
 
@@ -109,9 +118,16 @@ test.describe('languages (v1.5)', () => {
     await withSettings(page, { language: 'en', voiceVolume: 0 });
     await boot(page, 'seed=42&huntSeconds=4');
     await startHunt(page, isTouchProject(info));
+    // A bark fires (its English caption shows) …
     await page.waitForFunction(() => window.__TM__?.bark != null, null, { timeout: 60_000 });
+    const h = await hook(page);
+    expect(h.bark?.line).toBe(greeting);
+    expect(h.bark?.text).toBe((en as Record<string, string>)[greeting]);
+    // … with no voice: no voice file was ever requested (the real check), nothing was played
+    // and no pack was loaded.
     expect(voice).toEqual([]);
-    expect((await hook(page)).voice.played).toEqual([]);
+    expect(h.voice.played).toEqual([]);
+    expect(h.voice.pack).toBe('none');
   });
 
   test('"Afrikaans names" on with English text: the Skiet-Skuur shows the Afrikaans gun names', async ({

@@ -26,7 +26,7 @@ import { loadFonts } from './game/ui/fonts';
 import { FlashLimiter } from './game/view/flashLimit';
 import { setTextLook } from './game/ui/textLook';
 import type { AssetManifest } from './game/assets/AssetManifest';
-import { ABSENT, fetchAssetIndex, loadBytes } from './game/assets/finalLoader';
+import { ABSENT, fetchAssetIndex, fetchBytesUncached } from './game/assets/finalLoader';
 import { VoicePacks } from './game/audio/voicePack';
 import {
   biomeArtReady,
@@ -142,6 +142,9 @@ if (adminOn && !save.data.ftue.done)
 if (testHooks && params.get('ftue') === '0' && !save.data.ftue.done) {
   save.update((d) => ({ ...d, ftue: { done: true, skipped: true, step: 'param' } }));
 }
+
+/** User-activation events that may start Web Audio (v1.5: the first one unlocks it). */
+const GESTURES = ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'] as const;
 
 /** The text language a settings object picks (Auto follows the browser). */
 function textLanguageOf(s: Settings): Language {
@@ -485,6 +488,16 @@ async function boot(): Promise<void> {
     Object.fromEntries(Object.entries(feel.guns.weapons).map(([id, w]) => [id, w.sfx])),
   );
   hook.assets.recorded = audio.recorded;
+  // v1.5 (D-041): the first gesture anywhere (title, menus, Settings, the Skiet-Skuur) unlocks
+  // audio, so Oupa's voice pack starts loading then and is usually in before the first hunt's
+  // greeting. Scenes still unlock on their own taps too; unlock() is idempotent. These are the
+  // events browsers accept as a user activation for audio (iOS: touchend and click).
+  const firstGesture = (): void => {
+    audio.unlock();
+    if (!audio.running) return;
+    for (const type of GESTURES) document.removeEventListener(type, firstGesture, true);
+  };
+  for (const type of GESTURES) document.addEventListener(type, firstGesture, true);
   // Live values (read through the hook in page.evaluate).
   Object.defineProperties(hook, {
     music: { enumerable: true, get: () => audio.music },
@@ -560,10 +573,14 @@ async function boot(): Promise<void> {
   // v1.5 (D-041): the voice language (its own setting; "same" follows the text, Dutch → af). Its
   // pack loads lazily after the first gesture, never with the voice volume at 0.
   const voicePacks = new VoicePacks(audio, assetIndex, {
-    loadBytes: (path) => loadBytes(path, feel.assets.fileTimeoutMs),
+    // Uncached: a voice language left behind keeps no bytes (finalLoader's loadBytes caches).
+    loadBytes: (path) => fetchBytesUncached(path, feel.assets.fileTimeoutMs),
     onState: (lang, state) => {
       if (hook.voice.language === lang) hook.voice.pack = state;
     },
+  });
+  audio.onMissingLine(() => {
+    voicePacks.retry();
   });
   hook.voice.played = audio.voicePlayed;
   applyVoice = (s: Settings): void => {

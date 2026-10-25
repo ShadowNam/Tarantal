@@ -52,6 +52,8 @@ Everything else supports them. If scope must shrink, protect those two.
   Bosveld Legend.
 - **Oupa:** off-screen narrator voice. Dry, proud, occasionally scandalised. Afrikaans-English barks
   ("Mooi skoot, my kind!", "Ag nee man!", "Jinne, kyk hoe hardloop hulle!"). Never mean.
+  v1.5 (D-041): he speaks English, Afrikaans or German (Settings → voice language), keeping his
+  Afrikaans exclamations in each; his lines are subtitled in the text language.
 - **Die Tarentaal:** the star. Plump, polka-dotted, blue-faced, red-wattled, bony casque, enormous
   panicked eyes, legs that blur when it runs. Comically dignified until it panics (always).
 - **Generaal Tarentaal & friends:** boss birds with accessories (pot helmet, eye patch, crest crown).
@@ -860,6 +862,21 @@ repeatedly and can be moved to aim (this hold doesn't edge-pan). Text size Large
 High contrast puts a black outline on all light text. Sound captions show a line such as
 "[kek-kek — alarm call]" for every sound cue that has no words on screen already. Don't-shoot marks
 keep the ⛔ badge over every don't-shoot creature, not only at its first sighting.
+v1.5 (D-041): **Sound & game** has six rows a column: master / SFX / music / voice volume,
+**voice language** and privacy on the left; **text language**, **Afrikaans names**, aim assist,
+left-handed, hold to fire and offset crosshair on the right.
+- **Text language** (Auto / English / Afrikaans / Deutsch / Nederlands) is every word on screen:
+  menus, the tally, captions and Oupa's speech bubbles (his subtitles), share cards, the Daily
+  share text.
+- **Voice language** (Same as text / English / Afrikaans / Deutsch) is what Oupa speaks; it can
+  differ from the text (an Afrikaans voice with English subtitles). Dutch text on "Same as text"
+  uses the Afrikaans voice, the closest; the setting's hint says so. Voice volume 0 = no voice at
+  all (nothing is even downloaded). Art bible §10.1.
+- **Afrikaans names** (off by default): English, German and Dutch have their own names for the
+  guns, maps, the Skiet-Skuur, charms, ranks and so on (`docs/i18n-names.md`); with this on they
+  show the Afrikaans names, as before v1.5, in any text language (share text too).
+- Both settings are in the save's settings section; a save from before v1.5 loads them as "Same
+  as text" and off, and a damaged value falls back on its own.
 
 ## 19. Monetisation and ethics guardrails
 - **Web portals (launch):** free; portal ads only at natural breaks (between hunts/runs), never during
@@ -907,3 +924,9 @@ stofduiwel (dust devil) · donderstorm (thunderstorm) · herfs/winter/lente/some
 gelukbringer (lucky charm) · notaboek (notebook) · voëlboek (bird book) · Mooi skoot! (nice shot) ·
 Ag nee man! (oh no, man) · Jinne! (gosh) · Lekker! (great) · Kos is reg! (food's ready).
 Have a native speaker review every player-facing string before launch.
+v1.5 (D-041): this glossary is the Afrikaans side. English, German and Dutch players see their
+own names (Double Barrel / Doppelflinte, Further / Weiter, Gun Shed / Waffenschuppen, …): the
+full table, with the meaning of each pun, is `docs/i18n-names.md`. Place names stay (Karoo,
+Kalahari, Okavango; Namibië → Namibia), so do Oupa and Ouma; Oupa's spoken lines keep his
+Afrikaans exclamations in every language. Settings → Afrikaans names brings the Afrikaans names
+back in any language.

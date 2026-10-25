@@ -360,8 +360,11 @@ text, so an Afrikaans voice with English subtitles works. Dutch text on "Same as
 Afrikaans voice (the closest).
 
 **Delivery:** one pack per voice language, asset group `voice-<lang>` (`art-source/audio/voice/<lang>/<key>.wav`
-→ `public/assets/voice-<lang>/`). Only the chosen language's pack downloads, after the first
-gesture (nothing can play before), and none while the voice volume is 0; it is never part of the
+→ `public/assets/voice-<lang>/`). Only the chosen language's pack downloads. It starts on the first gesture anywhere (the title, a menu,
+Settings, the Skiet-Skuur: a document-level listener unlocks audio), so it is usually in before
+the first hunt's greeting. A bark whose line is still on its way waits up to `barkWaitMs`
+(1.5 s, `content/client/feel.json → audio`) and plays if the line arrives in time; its caption
+shows at once either way. None of it downloads while the voice volume is 0; it is never part of the
 first download. Ogg Vorbis q3 with the MP3 V5 twin (Safari), −16 LUFS like any voice. It plays
 through the AudioDirector: muted before the first gesture, while the page is hidden, paused or
 in an ad; the music ducks under it; one line at a time; never over the tally count-up.

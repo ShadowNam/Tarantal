@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { parseAssetIndex, type AssetIndex } from '../assets/assetIndex';
 import type { FinalSound } from '../assets/AssetManifest';
 import type { AudioDirector } from './AudioDirector';
-import { VoicePacks, voicePackEntries, type VoicePackState } from './voicePack';
+import { MAX_ATTEMPTS, VoicePacks, voicePackEntries, type VoicePackState } from './voicePack';
 import { voiceGroup, voicedLines, voiceLanguageOfGroup } from './voiceLines';
 import { VOICE_LANGUAGES } from '../../i18n/i18n';
 import { loadContent, loadFeel } from '../../../tools/testContent';
@@ -46,7 +46,7 @@ function fakeIndex(): AssetIndex {
   };
 }
 
-function rig() {
+function rig(fail: (path: string, n: number) => boolean = () => false) {
   let unlocked = false;
   const waiting: (() => void)[] = [];
   const added: FinalSound[] = [];
@@ -65,7 +65,8 @@ function rig() {
   const packs = new VoicePacks(audio as unknown as AudioDirector, fakeIndex(), {
     loadBytes: (p) => {
       fetched.push(p);
-      return Promise.resolve(new ArrayBuffer(4));
+      const n = fetched.filter((x) => x === p).length;
+      return Promise.resolve(fail(p, n) ? null : new ArrayBuffer(4));
     },
     onState: (l, s) => states.push([l, s]),
   });
@@ -111,6 +112,63 @@ describe('voice packs (v1.5, D-041)', () => {
     await flush();
     expect(r.fetched.filter((p) => p.startsWith('assets/voice-en/'))).toHaveLength(2);
     expect(r.fetched.some((p) => p.startsWith('assets/voice-af/'))).toBe(false);
+  });
+
+  it('a partial failure is not cached: a later bark retries only the failed file, bounded', async () => {
+    // The lekker file fails twice, then loads.
+    const r = rig((p, n) => p.includes('bark.lekker') && n <= 2);
+    r.unlock();
+    r.packs.use('af', true);
+    await flush();
+    expect(r.states.at(-1)).toEqual(['af', 'partial']);
+    expect(r.packs.delivered).toBe(1);
+    r.packs.retry();
+    await flush();
+    expect(r.states.at(-1)).toEqual(['af', 'partial']);
+    r.packs.retry();
+    await flush();
+    expect(r.states.at(-1)).toEqual(['af', 'ready']);
+    // Only the failed file was fetched again; the good one once.
+    expect(r.fetched.filter((p) => p.includes('kos_is_reg'))).toHaveLength(1);
+    expect(r.fetched.filter((p) => p.includes('lekker'))).toHaveLength(3);
+    expect(r.added.map((f) => f.key).sort()).toEqual([
+      'voice/af/bark.kos_is_reg',
+      'voice/af/bark.lekker',
+    ]);
+  });
+
+  it(`a file that keeps failing is fetched at most ${String(MAX_ATTEMPTS)} times`, async () => {
+    const r = rig((p) => p.includes('bark.lekker'));
+    r.unlock();
+    r.packs.use('en', true);
+    for (let i = 0; i < 10; i++) {
+      await flush();
+      r.packs.retry();
+    }
+    await flush();
+    expect(r.fetched.filter((p) => p.includes('lekker'))).toHaveLength(MAX_ATTEMPTS);
+    expect(r.states.at(-1)).toEqual(['en', 'partial']);
+  });
+
+  it('a voice language change forgets the old one: switching back fetches it again', async () => {
+    const r = rig();
+    r.unlock();
+    r.packs.use('en', true);
+    await flush();
+    expect(r.packs.delivered).toBe(2);
+    r.packs.use('de', true);
+    // Nothing of en is tracked any more (and VoicePacks never keeps bytes).
+    expect(r.packs.delivered).toBe(0);
+    await flush();
+    expect(r.packs.delivered).toBe(2);
+    r.packs.use('en', true);
+    await flush();
+    expect(r.fetched.filter((p) => p.startsWith('assets/voice-en/'))).toHaveLength(4);
+    // A language left while its fetch is in flight is dropped when it lands.
+    r.packs.use('af', true);
+    r.packs.use('de', true);
+    await flush();
+    expect(r.added.filter((f) => f.key.startsWith('voice/af/'))).toHaveLength(0);
   });
 
   it('a pack groups only its own language', () => {
