@@ -1,9 +1,9 @@
 {
- "updated": "2026-10-25T21:48:00Z",
- "summary": "v1.6 Veld art is live on the test build (merged 25 Oct, 18:56). v1.6b reload power-ups is merged too (25 Oct, 20:42; version 1.6.1): Blitslaai and Oupa Laai in the crates and the Padstal. v1.7 meerkats has your fur and face notes in (round 3) and version 1.7.0; Claude's in-game screenshots and review come next. This Project overview page went live on 25 Oct at about 22:10. Next, in this order: v1.7b power-ups explained + an Oupa on/off switch, v1.7c fruit that swings or drops, v1.7d Namibië veld life, v1.7e realistic Bushveld + a new secret cue instead of the star (mock-ups for you first), v1.8 Blikkies, v1.8b baboons, v1.8c The Harvest (a new mode), then v1.9–v1.13.",
+ "updated": "2026-10-25T23:05:00Z",
+ "summary": "v1.7 meerkats is merged (26 Oct, 00:55; version 1.7.0): meerkat families on every Kalahari and Namibië map, with your fur and face notes in. v1.6 Veld art, v1.6b reload power-ups and this Project overview went in earlier on 25 Oct. Now: Tank has built every part of v1.7b (power-ups explained in the Gun Shed and in the hunt, and Oupa's comments On / Text only / Off in Settings); Claude is taking its screenshots, then reviews, runs the full tests and merges (expected about 03:30). Next, in this order: v1.7c fruit that swings or drops, v1.7d Namibië veld life, v1.7e realistic Bushveld + a new secret cue instead of the star (mock-ups for you first), v1.8 Blikkies, v1.8b baboons, v1.8c The Harvest (a new mode), then v1.9–v1.13.",
  "current": {
-  "version": "1.6.1",
-  "commit": "133c85f"
+  "version": "1.7.0",
+  "commit": "d57a840"
  },
  "links": [
   {
@@ -209,8 +209,7 @@
  ],
  "jobs": {
   "v1.7": {
-   "owner": "Tank; Claude reviews",
-   "status": "running",
+   "owner": "Tank built it; Claude reviewed and merged it",
    "summary": "Meerkat families live on every Kalahari and Namibië map: they peek, keep a sentinel, dig, dash between burrows and dive when you shoot nearby. Shooting one costs −10 (it is never hurt). Secret: hold fire while the whole family is out and they line up for a Familiefoto (+25).",
    "requestedBy": "You, 24 Oct: \"small meerkat holes … peek out and run from one nest to the other. Be creative.\"",
    "checklist": [
@@ -289,7 +288,12 @@
     },
     {
      "text": "Balance re-check passed; full tests re-running after a test fix, then merge",
-     "done": false
+     "done": true
+    },
+    {
+     "text": "Merged after all 23 test jobs passed (26 Oct, 00:55)",
+     "done": true,
+     "at": "2026-10-25T22:55:00Z"
     }
    ],
    "images": [
@@ -377,26 +381,44 @@
    "checklist": [
     {
      "text": "Icons for every power-up and crate gun",
-     "done": false
+     "done": true,
+     "at": "2026-10-25T21:46:00Z"
     },
     {
      "text": "A Power-ups section in the Gun Shed",
-     "done": false
+     "done": true,
+     "at": "2026-10-25T21:57:00Z"
     },
     {
-     "text": "Clear in the hunt: crate icons, pickup card, countdown chips, small effects, tally",
-     "done": false
+     "text": "Crates show what they hold (decided when the crate drops)",
+     "done": true,
+     "at": "2026-10-25T22:02:00Z"
+    },
+    {
+     "text": "Pickup card, countdown chips that blink before the end, a small look for each power-up",
+     "done": true,
+     "at": "2026-10-25T22:17:00Z"
+    },
+    {
+     "text": "The tally lists the power-ups you used",
+     "done": true,
+     "at": "2026-10-25T22:22:00Z"
     },
     {
      "text": "Settings: Oupa's comments On / Text only / Off",
+     "done": true
+    },
+    {
+     "text": "Browser tests and the screenshot setup",
+     "done": true,
+     "at": "2026-10-25T22:38:00Z"
+    },
+    {
+     "text": "Claude's screenshots on desktop, Pixel 7 and iPhone 14",
      "done": false
     },
     {
-     "text": "Tests, docs and checks",
-     "done": false
-    },
-    {
-     "text": "Claude's screenshots, review, full tests and merge",
+     "text": "Review, full tests and merge",
      "done": false
     }
    ]
@@ -897,6 +919,59 @@
    "at": "2026-10-25T21:58:00Z",
    "kind": "tests",
    "text": "v1.7 balance re-checked after the colony moves: all 20 desert maps within −1.2 % … +2.5 % (limit 5 %). One browser test had assumed no bird near the colony; Claude fixed the test (the game was right) and the full tests are re-running."
+  },
+  {
+   "at": "2026-10-25T22:55:00Z",
+   "kind": "merge",
+   "text": "v1.7 meerkats is merged (#72) as version 1.7.0, after all 23 test jobs passed. Two browser tests needed fixing on the way (the game was right both times): one assumed no bird near the colony, the other fired its shot in a way the iPhone browser on GitHub ignored.",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17-familiefoto-final.jpg",
+     "caption": "The Familiefoto in the Kalahari (final build)"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17-sentinel-pup-final.jpg",
+     "caption": "The sentinel and the pup, close up"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17-namibie-final.jpg",
+     "caption": "Two Namibië colonies, clear of the gun and the buttons"
+    }
+   ],
+   "links": [
+    {
+     "label": "PR #72",
+     "url": "https://github.com/ShadowNam/Tarantal/pull/72"
+    }
+   ]
+  },
+  {
+   "at": "2026-10-25T22:44:00Z",
+   "kind": "note",
+   "text": "Tank pushed every part of v1.7b: icons for all eight power-ups and crate guns, the Gun Shed's Power-ups tab, crates that show what they hold, the pickup card, countdown chips, a look for each power-up, the tally list and Oupa's switch. Claude started the screenshots. Two icons (Meerkat Spotter, Voorlaaier) are too thin at chip size; that note goes to Tank when its turn ends.",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17b-icons.png",
+     "caption": "The eight icons, big and at chip size"
+    }
+   ],
+   "links": [
+    {
+     "label": "PR #77",
+     "url": "https://github.com/ShadowNam/Tarantal/pull/77"
+    }
+   ]
+  },
+  {
+   "at": "2026-10-25T23:00:00Z",
+   "kind": "note",
+   "text": "The history document gets three new chapters: v1.6b, this Project overview, and v1.7 meerkats, with 11 pictures (PR #78).",
+   "links": [
+    {
+     "label": "PR #78",
+     "url": "https://github.com/ShadowNam/Tarantal/pull/78"
+    }
+   ]
   }
  ]
 }
