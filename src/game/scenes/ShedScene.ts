@@ -2,7 +2,7 @@
 // Karoo secrets seen), Oupa se Notaboek v0 (challenge progress and what each unlocks), and the
 // way to Settings. It is not a shop: everything here is unlocked by playing (GDD §13.6).
 import { unlockedBiomes } from '../../meta/areas';
-import { designSize } from '../layout';
+import { designSize, renderScale } from '../layout';
 import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
 import { textureBytes } from '../assets/textureBytes';
@@ -15,14 +15,17 @@ import {
   isWeaponUnlocked,
   secretKey,
 } from '../../meta/progress';
-import type { GameContext } from '../GameContext';
+import type { GameContext, TestHook } from '../GameContext';
 import type { Rect } from '../ui/hudLayout';
 import { drawButton, fitText, Menu, textStyle, UI, type MenuItem } from '../ui/menu';
+import { getLanguage, translator } from '../../i18n/i18n';
+import { clientToDesign } from '../input/screenButtons';
+import { guideCards } from '../ui/powerupGuide';
 import type { OverlayData } from './SettingsScene';
 
 type PrimaryWeapon = Extract<Weapon, { kind: 'primary' }>;
-type Tab = 'loadout' | 'birdbook' | 'notaboek';
-const TABS: readonly Tab[] = ['loadout', 'birdbook', 'notaboek'];
+type Tab = 'loadout' | 'powerups' | 'birdbook' | 'notaboek';
+const TABS: readonly Tab[] = ['loadout', 'powerups', 'birdbook', 'notaboek'];
 
 export interface ShedData extends OverlayData {
   readonly tab?: Tab;
@@ -58,8 +61,8 @@ export class ShedScene extends Phaser.Scene {
     const rebuild = (patch: Partial<ShedData>): void => {
       this.time.delayedCall(0, () => this.scene.restart({ ...data, ...patch }));
     };
-    // Tabs + Settings along the top.
-    const tabW = Math.min(360, (panelW - 100) / 4);
+    // Tabs + Settings along the top (v1.7b: a fourth tab, Power-ups, next to the guns).
+    const tabW = Math.min(320, (panelW - 60 - 14 * TABS.length) / (TABS.length + 1));
     TABS.forEach((id, i) => {
       const r: Rect = { x: px + 30 + i * (tabW + 14), y: py + 28, w: tabW, h: 84 };
       drawButton(this, r, t(`shed.tab.${id}`), id === tab ? 'selected' : 'secondary', 34);
@@ -89,10 +92,13 @@ export class ShedScene extends Phaser.Scene {
     });
 
     const body: Rect = { x: px + 30, y: py + 140, w: panelW - 60, h: panelH - 280 };
+    /** v1.7b: the Power-ups tab finishes its scrolling list once the menu exists. */
+    let afterMenu: ((menu: Menu) => void) | null = null;
     if (tab === 'loadout')
       this.loadout(body, items, () => {
         rebuild({ tab, focus: this.focusAfterEquip });
       });
+    else if (tab === 'powerups') afterMenu = this.powerupsTab(body, items);
     else if (tab === 'birdbook') this.birdBook(body);
     else this.notaboekTab(body);
 
@@ -114,6 +120,7 @@ export class ShedScene extends Phaser.Scene {
       hook: this.ctx.hook,
       showFocus: data.focus !== undefined,
     });
+    afterMenu?.(menu);
     if (this.ctx.hook) {
       this.ctx.hook.menu = `shed.${tab}`;
       // D-035 review: texture memory with the shed open (its gun icons included).
@@ -324,6 +331,179 @@ export class ShedScene extends Phaser.Scene {
     if (locked) icon.setAlpha(0.45);
     this.ctx.hook?.shedIcons?.push(weaponId);
     return icon.displayWidth + 16;
+  }
+
+  /**
+   * v1.7b (D-046, GDD §13.7): one card per power-up and crate gun: the big icon, its name, one
+   * sentence of what it does (numbers from content), how you get it and a tip. Ones not picked
+   * up yet are darker and say "Not found yet", but explain themselves all the same (no secrets).
+   * The list scrolls by drag, wheel or ↑/↓ through the cards. It is drawn by a second camera
+   * whose viewport is the list's window, so cards scrolled out of it are clipped on any renderer.
+   * Returns what to finish once the menu exists.
+   */
+  private powerupsTab(body: Rect, items: MenuItem[]): (menu: Menu) => void {
+    const lang = getLanguage();
+    const tr = translator(lang);
+    const seen = this.ctx.save.data.powerups.seen;
+    const cards = guideCards(this.ctx.content, seen, tr, lang);
+    const head = this.add.text(
+      body.x,
+      body.y - 8,
+      tr.text('guide.head').replace('{stall}', tr.text('run.padstal')),
+      textStyle(28, '#FFD25A'),
+    );
+    fitText(head, body.w);
+    const view: Rect = { x: body.x, y: body.y + 44, w: body.w, h: body.h - 30 };
+    const list = this.add.container(0, 0);
+    const pad = 22;
+    const iconBox = 176;
+    const textX = view.x + pad + iconBox + 30;
+    const textW = view.x + view.w - pad - textX;
+    const gap = 18;
+    const cardRects: Rect[] = [];
+    let y = view.y;
+    const hookCards: NonNullable<TestHook['shedPowerups']>['cards'] = [];
+    for (const c of cards) {
+      const dim = !c.found;
+      const g = this.add.graphics();
+      list.add(g);
+      const name = this.add.text(
+        textX,
+        y + pad - 4,
+        c.name,
+        textStyle(42, dim ? '#E3D7BC' : '#FFD25A'),
+      );
+      list.add(name);
+      let nameRoom = textW;
+      if (dim) {
+        const tag = this.add
+          .text(
+            view.x + view.w - pad,
+            y + pad + 4,
+            tr.text('guide.not_found'),
+            textStyle(28, '#B9B09A'),
+          )
+          .setOrigin(1, 0);
+        list.add(tag);
+        nameRoom -= tag.displayWidth + 24;
+      }
+      fitText(name, nameRoom);
+      const para = (text: string, top: number, size: number, color: string): number => {
+        const tx = this.add.text(textX, top, text, {
+          ...textStyle(size, color),
+          wordWrap: { width: textW, useAdvancedWrap: true },
+        });
+        list.add(tx);
+        return top + tx.displayHeight;
+      };
+      let ty = para(c.effect, y + pad + 54, 32, '#F3EAD3') + 10;
+      ty = para(c.how.map((h) => `• ${h}`).join('\n'), ty, 26, '#D9CBB0') + 8;
+      if (c.tip !== '')
+        ty = para(tr.text('guide.tip_label').replace('{tip}', c.tip), ty, 26, '#FFD25A');
+      const h = Math.max(iconBox + 2 * pad, ty - y + pad);
+      g.fillStyle(UI.ink, 1).fillRoundedRect(view.x, y, view.w, h, 20);
+      g.fillStyle(dim ? 0x1f2722 : 0x3e5146, 1).fillRoundedRect(
+        view.x + 3,
+        y + 3,
+        view.w - 6,
+        h - 6,
+        18,
+      );
+      const cx = view.x + pad + iconBox / 2;
+      const cy = y + h / 2;
+      g.fillStyle(dim ? 0x4a4a42 : UI.enamel, 1).fillCircle(cx, cy, iconBox / 2);
+      g.lineStyle(4, UI.ink, 1).strokeCircle(cx, cy, iconBox / 2);
+      const hasIcon = this.textures.exists(c.icon);
+      if (hasIcon) {
+        const icon = this.add.image(cx, cy, c.icon).setDisplaySize(iconBox - 28, iconBox - 28);
+        if (dim) icon.setAlpha(0.75);
+        list.add(icon);
+      }
+      cardRects.push({ x: view.x, y, w: view.w, h });
+      hookCards.push({ id: c.id, name: c.name, effect: c.effect, found: c.found, icon: hasIcon });
+      y += h + gap;
+    }
+    const maxScroll = Math.max(0, y - gap - (view.y + view.h));
+    let scroll = 0;
+    const s = renderScale();
+    const cam = this.cameras.add(view.x * s, view.y * s, view.w * s, view.h * s);
+    cam.setOrigin(0, 0).setZoom(s);
+    const publish = (): void => {
+      if (this.ctx.hook) this.ctx.hook.shedPowerups = { cards: hookCards, scroll, maxScroll };
+    };
+    let menuRef: Menu | null = null;
+    const setScroll = (v: number): void => {
+      scroll = Math.round(Math.min(maxScroll, Math.max(0, v)));
+      cam.setScroll(view.x, view.y + scroll);
+      menuRef?.refresh();
+      publish();
+    };
+    // Each card is a menu item (keyboard focus walks the list); its rect is the part on screen.
+    cards.forEach((c, i) => {
+      items.push({
+        id: `shed.powerup.${c.id}`,
+        rect: () => {
+          const r = cardRects[i] ?? view;
+          const top = Math.max(view.y, r.y - scroll);
+          const bottom = Math.min(view.y + view.h, r.y - scroll + r.h);
+          return { x: r.x, y: top, w: r.w, h: Math.max(0, bottom - top) };
+        },
+        press: () => undefined,
+      });
+    });
+    // Drag (touch or mouse) and the wheel scroll the list.
+    const canvas = this.game.canvas;
+    let drag: { id: number; y: number; from: number } | null = null;
+    const designY = (e: PointerEvent | WheelEvent): { x: number; y: number } =>
+      clientToDesign(canvas, e.clientX, e.clientY, designSize());
+    const inView = (p: { x: number; y: number }): boolean =>
+      p.x >= view.x && p.x <= view.x + view.w && p.y >= view.y && p.y <= view.y + view.h;
+    const onDown = (e: PointerEvent): void => {
+      const p = designY(e);
+      if (inView(p)) drag = { id: e.pointerId, y: p.y, from: scroll };
+    };
+    const onMove = (e: PointerEvent): void => {
+      if (drag === null || drag.id !== e.pointerId) return;
+      setScroll(drag.from - (designY(e).y - drag.y));
+    };
+    const onUp = (e: PointerEvent): void => {
+      if (drag?.id === e.pointerId) drag = null;
+    };
+    const onWheel = (e: WheelEvent): void => {
+      if (!inView(designY(e))) return;
+      e.preventDefault();
+      setScroll(scroll + e.deltaY);
+    };
+    canvas.addEventListener('pointerdown', onDown);
+    canvas.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    canvas.addEventListener('wheel', onWheel, { passive: false });
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      canvas.removeEventListener('pointerdown', onDown);
+      canvas.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      canvas.removeEventListener('wheel', onWheel);
+      if (this.ctx.hook) delete this.ctx.hook.shedPowerups;
+    });
+    return (menu) => {
+      menuRef = menu;
+      // The list camera draws only the list; the main camera everything else.
+      this.cameras.main.ignore(list);
+      cam.ignore(this.children.list.filter((o) => o !== list));
+      // ↑/↓ (the menu moves its focus first): bring the focused card into view.
+      const onKey = (): void => {
+        const i = cards.findIndex((c) => menu.focusedId === `shed.powerup.${c.id}`);
+        const r = cardRects[i];
+        if (r === undefined) return;
+        if (r.y - scroll < view.y) setScroll(r.y - view.y);
+        else if (r.y + r.h - scroll > view.y + view.h) setScroll(r.y + r.h - view.y - view.h);
+      };
+      window.addEventListener('keydown', onKey);
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+        window.removeEventListener('keydown', onKey);
+      });
+      setScroll(0);
+    };
   }
 
   private unlockHint(w: { readonly unlock: PrimaryWeapon['unlock'] }): string {

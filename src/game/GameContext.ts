@@ -362,6 +362,12 @@ export interface TestHook {
   shedIcons?: string[];
   /** v1.5 (D-041): the gun names on the Guns tab's cards, as drawn (text language, toggle). */
   shedNames?: string[];
+  /** v1.7b (D-046): the Gun Shed's Power-ups tab: each card as drawn, and the list's scroll. */
+  shedPowerups?: {
+    cards: { id: string; name: string; effect: string; found: boolean; icon: boolean }[];
+    scroll: number;
+    maxScroll: number;
+  };
   /** M9: the Padstal help card's text bottom and OK button top (no overlap: textBottom < okTop). */
   helpCard?: { textBottom: number; okTop: number };
   /** M9: sound captions on screen (i18n keys, newest first). */

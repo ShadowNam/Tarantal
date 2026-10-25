@@ -5,7 +5,8 @@
 import { designSize } from '../layout';
 import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
-import { fill, t, tOr, type I18nKey } from '../../i18n/i18n';
+import { fill, getLanguage, t, tOr, translator, type I18nKey } from '../../i18n/i18n';
+import { shortText } from '../ui/powerupGuide';
 import type { RunState, ShopOffer } from '../../sim/run/run';
 import type { GameContext } from '../GameContext';
 import { charmRow, drawCharmCard, RARITY_COLOR } from '../ui/charmCards';
@@ -513,9 +514,10 @@ export class RunScene extends Phaser.Scene {
         '#1B1410',
         r.w - 20,
       ).setAlpha(can ? 1 : 0.45);
-      // v1.6b (D-043): an item with a description (Blitslaai, Oupa Laai) says what it does under
-      // its kind; the others keep the kind alone.
-      const desc = tOr(`item.${o.id}.desc`, '');
+      // v1.7b (D-046): every consumable and rental says what it does under its kind (the pickup
+      // card's short line, its numbers from content).
+      const lang = getLanguage();
+      const desc = shortText(this.ctx.content, o.id, translator(lang), lang);
       this.text(
         r.x + r.w / 2,
         r.y + (desc === '' ? 100 : 88),

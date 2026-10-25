@@ -47,6 +47,8 @@ export const SettingsSchema = z.object({
   holdToFire: z.boolean(),
   /** v1.1 (D-032, GDD §18.2): touch — the crosshair sits above the finger and the shot goes there. */
   offsetCrosshair: z.boolean(),
+  /** v1.7b (D-046): Oupa's comments — voice and bubble, the bubble only, or none at all. */
+  oupa: z.enum(['on', 'text', 'off']),
 });
 export type Settings = z.infer<typeof SettingsSchema>;
 
@@ -69,6 +71,7 @@ export const DEFAULT_SETTINGS: Settings = {
   colourBlind: false,
   holdToFire: false,
   offsetCrosshair: false,
+  oupa: 'on',
 };
 
 const shortId = z.string().max(80);
@@ -224,6 +227,9 @@ const sections = {
   /** v1.4 B (D-039): area packs unlocked for good (Namibië) and the area Classic plays (null =
    *  the home area). A new section: older saves get the default, no migration. */
   areas: z.object({ unlocked: ids, classic: z.string().max(80).nullable() }),
+  /** v1.7b (D-046): power-ups and crate guns picked up at least once (the first pickup gets the
+   *  long card; the Gun Shed marks the others "Not found yet"). A new section: no migration. */
+  powerups: z.object({ seen: ids }),
 } as const;
 
 export const SaveSchema = z.object({ v: z.literal(SAVE_VERSION), ...sections });
@@ -251,6 +257,7 @@ export function defaultSave(): SaveData {
     barks: { lastHuntDay: null },
     bonusMaps: { day: null, unlocked: [], bests: {} },
     areas: { unlocked: [], classic: null },
+    powerups: { seen: [] },
     daily: {
       streak: 0,
       bestStreak: 0,
