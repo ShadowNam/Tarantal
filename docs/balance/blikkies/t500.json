@@ -89,5 +89,44 @@
     "weg": 0,
     "bestChain": 0.756,
     "maxChain": 4
+  },
+  "bushveld-winter.thu.before": {
+    "id": "bushveld-winter.thu.before",
+    "label": "Bushveld thu (near fence) · before",
+    "seeds": 500,
+    "mean": 4578.544,
+    "canMean": 0,
+    "canShare": 0,
+    "knocks": 0,
+    "airHits": 0,
+    "weg": 0,
+    "bestChain": 0,
+    "maxChain": 0
+  },
+  "bushveld-winter.thu.apexJuggler": {
+    "id": "bushveld-winter.thu.apexJuggler",
+    "label": "Bushveld thu (near fence) · apexJuggler",
+    "seeds": 500,
+    "mean": 3841.876,
+    "canMean": 246.338,
+    "canShare": 0.06411919593448617,
+    "knocks": 4,
+    "airHits": 19.004,
+    "weg": 3.858,
+    "bestChain": 6.062,
+    "maxChain": 10
+  },
+  "bushveld-winter.sat.competent": {
+    "id": "bushveld-winter.sat.competent",
+    "label": "Bushveld sat (far fence) · competent",
+    "seeds": 500,
+    "mean": 4994.058,
+    "canMean": 4.08,
+    "canShare": 0.0008169708882035411,
+    "knocks": 0.376,
+    "airHits": 0.02,
+    "weg": 0,
+    "bestChain": 0.016,
+    "maxChain": 1
   }
 }
