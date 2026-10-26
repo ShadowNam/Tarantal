@@ -1308,6 +1308,15 @@ const rangeSchema = modeSetupSchema.omit({ huntSeconds: true }).extend({
   plateRadiusPx: pos,
   /** Birds in the small flock (at least the 3 a flock needs). */
   flockSize: z.number().int().min(3),
+  /** v1.8 (D-050): the Blikkies target — a short fence in the screen centre at the chosen
+   *  distance (posts as in a layout's fence), its ground line per plane; fresh cans stand on it
+   *  respawnMs after the last one landed or left. */
+  cans: obj({
+    kind: z.enum(['wood', 'dropper', 'kraal']),
+    posts: z.array(obj({ dx: z.number(), h: pos })).min(3).max(6),
+    cans: z.array(obj({ post: nonNegInt, type: CanTypeSchema })).min(1).max(6),
+    groundY: allPlanes(z.number()),
+  }),
   spots: allPlanes(rangePlaneSchema),
   /** 24 Oct update (D-037): the mixed course — targets on every distance at once. */
   mixed: obj({

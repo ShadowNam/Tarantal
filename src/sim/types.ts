@@ -12,7 +12,8 @@ export const PLANES: readonly PlaneId[] = ['near', 'mid', 'far', 'ver'];
 export type ModeId = 'classic' | 'daily' | 'seasonHunt' | 'ftue' | 'range';
 
 /** Skietbaan targets: paper targets, a standing bird, a fly-over, a small flock. */
-export type RangeTarget = 'paper' | 'plate' | 'stand' | 'flyover' | 'flock';
+/** v1.8 (D-050): `cans` — Blikkies on a short fence (the sim's tin cans, one plane). */
+export type RangeTarget = 'paper' | 'plate' | 'stand' | 'flyover' | 'flock' | 'cans';
 
 /** v1.3x (D-037): what the Skietbaan puts up (mode 'range' only). */
 export interface RangeConfig {

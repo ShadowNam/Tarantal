@@ -63,5 +63,8 @@
   "range.mark_hit": "RAAK",
   "range.mark_short": "TE KORT",
   "range.fresh_load": "Vars laai",
-  "range.fresh_load_hint": "Vee die gekaste speellêers uit en laai hierdie kaart weer"
+  "range.fresh_load_hint": "Vee die gekaste speellêers uit en laai hierdie kaart weer",
+  "range.target_cans": "Blikkies",
+  "range.line_cans_knock": "Afgeskiet: {knocks} in {shots} skote ({per} per skoot)",
+  "range.line_cans_air": "In die lug: {hits} van {shots} skote raak ({rate} %) · langste ketting {chain}"
 }

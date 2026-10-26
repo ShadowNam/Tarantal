@@ -439,6 +439,10 @@ class Session implements RangeSession {
             if (!this.cooled(`paper:${String(h.id)}`)) continue;
             this.papers.find((x) => x.id === h.id)?.blink(host.reduceFlashes());
             playRangeSound(host.audio, 'thwack', this.pan(state, h.plane, p.x));
+          } else if (h.target === 'cans') {
+            // v1.8 (D-050): a tin can (its clink and dents are the CanView's).
+            const c = state.cans?.cans.find((x) => x.id === h.id);
+            if (c !== undefined) this.marks?.hit(h.plane, c.x, c.y, Math.max(c.hitR, c.r + c.half));
           } else {
             const b = state.birds.find((x) => x.id === h.id);
             if (b === undefined) continue;

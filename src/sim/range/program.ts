@@ -79,6 +79,8 @@ function singleLayout(
   target: RangeTarget,
 ): RangeSlot[] {
   const spots = setup.spots[plane];
+  // v1.8 (D-050): the Blikkies fence is the sim's (cans/cans.ts): no slot here.
+  if (target === 'cans') return [];
   if (target === 'paper') return spots.paper.map((p) => ({ plane, target, dx: p.dx, y: p.y }));
   if (target === 'plate') return spots.plate.map((p) => ({ plane, target, dx: p.dx, y: p.y }));
   if (target === 'stand') return [{ plane, target, dx: spots.stand.dx }];

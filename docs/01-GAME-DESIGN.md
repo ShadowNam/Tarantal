@@ -703,6 +703,11 @@ does this gun really shoot at that distance?" without the pressure of a hunt.
   aim point. Reset and "Copy report". Kept for the page's session only. On the mixed course a
   hit counts for the target it put the most pellets on, a miss for the target nearest the aim
   point on screen.
+- **Blikkies (v1.8, D-050):** a short fence of three posts with a tin can on each, in the screen
+  centre at any one distance (near, mid, far or Ver; not on the mixed course), with the hunt's
+  juggling rules (§11.3). Fresh cans stand up `respawnMs` after the last one landed or flew out of
+  sight. Its report adds knock-offs per shot, air-hit accuracy (air hits of the shots fired while
+  a can was in the air) and the longest chain.
 - **Unranked:** no unlocks, Notaboek, bests, Daily, rank or Bird Book; the save is never written.
 
 ## 13. Season Run (roguelite) in detail

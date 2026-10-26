@@ -241,3 +241,52 @@ describe('through the real sim', () => {
     expect(Math.abs(g?.offsetX ?? 99)).toBeLessThan(content.weapons.weapons[0]?.spreadPx ?? 70);
   });
 });
+
+describe('Blikkies stats (v1.8, D-050)', () => {
+  const CANS: RangeSelection = { gun: 'dubbelloop', plane: 'mid', target: 'cans', pellets: 8 };
+  const fired = (shotId: number): SimEvent[] => [
+    {
+      type: 'shotFired',
+      tick: shotId,
+      shotId,
+      weapon: 'dubbelloop',
+      dx: 0,
+      sy: 500,
+      shellsLeft: 1,
+    },
+    { type: 'rangeShot', tick: shotId, shotId, plane: 'mid', target: 'cans', x: 100, y: 500 },
+  ];
+  const can = (shotId: number, chain: number): SimEvent => ({
+    type: chain === 0 ? 'canKnocked' : 'canJuggled',
+    tick: shotId,
+    shotId,
+    canId: 2_000_000,
+    plane: 'mid',
+    x: 100,
+    y: 500,
+    chain,
+    pellets: 3,
+    side: 0,
+    marks: [],
+    points: 0,
+  });
+  const onCan: Hit = { plane: 'mid', target: 'cans', id: 2_000_000, pellets: 3 };
+
+  it('counts knock-offs per shot, air shots and air hits, and the longest chain', () => {
+    const s = new RangeStats();
+    // Shot 1 knocks the can off; shot 2 (it is in the air) hits it again; shot 3 misses it in
+    // the air; then it lands, and shot 4 (nothing in the air) misses.
+    s.ingest([...fired(1), outcome(1, [onCan]), can(1, 0)], CANS);
+    s.ingest([...fired(2), outcome(2, [onCan]), can(2, 1)], CANS);
+    s.ingest([...fired(3), outcome(3)], CANS);
+    s.ingest(
+      [{ type: 'canLanded', tick: 9, canId: 2_000_000, plane: 'mid', x: 0, y: 0, final: true }],
+      CANS,
+    );
+    s.ingest([...fired(4), outcome(4)], CANS);
+    const c = s.cell(CANS);
+    expect(c.shots).toBe(4);
+    expect(c.hits).toBe(2);
+    expect(c.cans).toEqual({ knocks: 1, airShots: 2, airHits: 1, bestChain: 1 });
+  });
+});

@@ -19,6 +19,7 @@ import {
 import { duckBoss, spookBoss, updateScripted } from './birds/scripted';
 import {
   BLIKKIESDANS_SECRET,
+  CAN_ID_BASE,
   canCapsule,
   canLocal,
   canPoints,
@@ -754,8 +755,34 @@ export function createSim(config: SimConfig): Sim {
   const spookTally = { bats: 0, owls: 0 };
   // v1.8 (D-050): the day's fence and its tin cans (Classic and Daily maps; never the Skietbaan's
   // hunt map, which sets its own up, the Season Run or the FTUE: they play no layout).
-  const blik: Blikkies | null =
-    ranged || setup.map.fence === null
+  // v1.8 (D-050): the Skietbaan's Blikkies target — a short fence in the screen centre at the
+  // chosen distance; fresh cans (new ids) respawnMs after the last one landed or left.
+  const rangeCans =
+    rangeCfg !== null && rangeCfg.target === 'cans' && rangeCfg.plane !== 'all'
+      ? { setup: content.modes.modes.range.cans, plane: rangeCfg.plane }
+      : null;
+  const rangeFence = (gen: number): Blikkies | null => {
+    if (rangeCans === null) return null;
+    const sf = scoring.planes[rangeCans.plane].scrollFactor;
+    const { kind, posts, cans: onPosts, groundY } = rangeCans.setup;
+    return startCans({
+      fence: {
+        plane: rangeCans.plane,
+        u: planeCentreX(cameraX, sf) / coreWidth(sf),
+        kind,
+        posts,
+        cans: onPosts,
+      },
+      biome: { ...biome, fenceY: groundY },
+      cans: content.birds.cans,
+      planes: scoring.planes,
+      tuningRefScale: scoring.tuningRefScale,
+      idBase: CAN_ID_BASE + gen * 100,
+    });
+  };
+  let blik: Blikkies | null = ranged
+    ? rangeFence(0)
+    : setup.map.fence === null
       ? null
       : startCans({
           fence: setup.map.fence,
@@ -764,6 +791,8 @@ export function createSim(config: SimConfig): Sim {
           planes: scoring.planes,
           tuningRefScale: scoring.tuningRefScale,
         });
+  let canGen = 0;
+  let canRespawnAt = -1;
   let canPointsPaid = 0;
   if (!ranged) {
     for (const def of biome.colonies ?? []) {
@@ -1733,6 +1762,9 @@ export function createSim(config: SimConfig): Sim {
       const aimed = rangeShots.get(shotId);
       rangeShots.delete(shotId);
       const hits = rangeProgram.hits(paperPellets, pelletsOn, birds);
+      // v1.8 (D-050): the Blikkies target's cans.
+      for (const [id, h] of canHits)
+        hits.push({ plane: blik?.fence.plane ?? 'near', target: 'cans', id, pellets: h.n });
       const short = hits.length === 0 && aimed?.plane === 'ver' && !shot.reachesVer;
       emit({ type: 'rangeOutcome', tick, shotId, hits, short });
     }
@@ -2076,6 +2108,20 @@ export function createSim(config: SimConfig): Sim {
   /** v1.8: the cans in flight move; a landing rattles, a can out of the top pays Weg!. */
   function tickCans(): void {
     if (blik === null) return;
+    // The Skietbaan: fresh cans once every can is down or gone.
+    if (
+      rangeCans !== null &&
+      blik.cans.every((c) => c.body.state === 'landed' || c.body.state === 'gone')
+    ) {
+      if (canRespawnAt < 0)
+        canRespawnAt = tick + Math.max(1, msToTicks(content.modes.modes.range.respawnMs));
+      else if (tick >= canRespawnAt) {
+        canGen++;
+        canRespawnAt = -1;
+        blik = rangeFence(canGen);
+        if (blik === null) return;
+      }
+    }
     for (const { can, r } of stepCans(blik)) {
       if (r === 'gone') {
         const points = awardBonus('canWeg', canPoints(scoring.cans, can.plane, 'weg'));

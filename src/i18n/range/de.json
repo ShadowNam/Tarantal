@@ -63,5 +63,8 @@
   "range.mark_hit": "TREFFER",
   "range.mark_short": "ZU KURZ",
   "range.fresh_load": "Neu laden",
-  "range.fresh_load_hint": "Zwischengespeicherte Spieldateien löschen und diese Karte neu laden"
+  "range.fresh_load_hint": "Zwischengespeicherte Spieldateien löschen und diese Karte neu laden",
+  "range.target_cans": "Blikkies",
+  "range.line_cans_knock": "Abgeschossen: {knocks} in {shots} Schüssen ({per} pro Schuss)",
+  "range.line_cans_air": "In der Luft: {hits} von {shots} Schüssen getroffen ({rate} %) · längste Kette {chain}"
 }

@@ -510,3 +510,58 @@ describe('review fix: the mixed course hides no target behind a nearer one', () 
     expect(mixedOverlaps(content)).toEqual([]);
   });
 });
+
+/** A sway-free, spread-free shot at (x, y): the windbuks, or the .22 with its sight up. */
+function cleanShot(sim: Sim, plane: PlaneId, x: number, y: number): SimEvent[] {
+  if (sim.snapshot().weapon.sight === null) return step(sim, 2, [fireAt(sim, plane, x, y)]);
+  const dx = planeToDx(sim.snapshot().cameraX, sf(plane), x);
+  step(sim, 1, [{ t: 'aimStart', dx, sy: y }]);
+  for (let i = 0; i < 600; i++) {
+    const a = sim.snapshot().aim;
+    if (a !== null && a.progress >= 1 && Math.hypot(a.swayDx, a.swayDy) < 0.5) break;
+    step(sim, 1);
+  }
+  return step(sim, 2, [{ t: 'aimRelease' }]);
+}
+
+describe('Skietbaan Blikkies target (v1.8, D-050)', () => {
+  it('a fence of cans in the screen centre at every distance; hits count for the cans', () => {
+    for (const plane of PLANE_IDS) {
+      const weapon = plane === 'ver' ? 'twee_twee' : 'windbuks';
+      const s = rangeSim({ plane, target: 'cans' }, { weapon });
+      const v = s.snapshot().cans;
+      expect(v?.plane, plane).toBe(plane);
+      expect(v?.cans.length).toBe(setup.cans.cans.length);
+      const mid = v?.cans[1];
+      if (mid === undefined) throw new Error('no can');
+      // The middle can stands in the screen centre.
+      expect(Math.abs(planeToDx(s.snapshot().cameraX, sf(plane), mid.x))).toBeLessThan(1);
+      const ev = cleanShot(s, plane, mid.x, mid.y);
+      const out = ofType(ev, 'rangeOutcome')[0];
+      expect(
+        out?.hits.map((h) => h.target),
+        plane,
+      ).toEqual(['cans']);
+      expect(ofType(ev, 'canKnocked').length).toBe(1);
+      // Unscored, like the rest of the range.
+      expect(s.snapshot().score).toBe(0);
+    }
+  });
+
+  it('fresh cans stand up respawnMs after the last one is down', () => {
+    const s = rangeSim({ plane: 'mid', target: 'cans' }, { weapon: 'windbuks' });
+    const first = s.snapshot().cans?.cans.map((c) => c.id) ?? [];
+    for (const id of first) {
+      const c = s.snapshot().cans?.cans.find((x) => x.id === id);
+      if (c === undefined) continue;
+      step(s, 60);
+      cleanShot(s, 'mid', c.x, c.y);
+    }
+    expect(s.snapshot().cans?.cans.every((c) => c.state !== 'rest')).toBe(true);
+    step(s, 300 + msToTicks(setup.respawnMs));
+    const now = s.snapshot().cans?.cans ?? [];
+    expect(now.length).toBe(first.length);
+    expect(now.every((c) => c.state === 'rest')).toBe(true);
+    expect(now.some((c) => first.includes(c.id))).toBe(false);
+  });
+});

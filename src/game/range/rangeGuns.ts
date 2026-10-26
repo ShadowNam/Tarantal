@@ -12,6 +12,8 @@ export const RANGE_TARGETS: readonly RangeTarget[] = [
   'stand',
   'flyover',
   'flock',
+  // v1.8 (D-050): Blikkies on a short fence (one distance at a time).
+  'cans',
 ];
 /** The setup page's distance and target chips: 'all' + 'mixed' is the mixed course (24 Oct). */
 export type RangePlaneChoice = PlaneId | 'all';

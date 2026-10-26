@@ -63,6 +63,23 @@ export function cellLines(content: ContentBundle, c: RangeCell, withNote = true)
   if (c.short > 0) lines.push(fill(rt('range.line_short'), { n: c.short, misses: misses(c) }));
   if (c.pellets > 1)
     lines.push(fill(rt('range.line_pellets'), { n: one(pelletsPerShot(c)), of: c.pellets }));
+  // v1.8 (D-050): Blikkies — knock-offs per shot, air-hit accuracy, the longest chain.
+  if (c.target === 'cans') {
+    const k = c.cans;
+    lines.push(
+      fill(rt('range.line_cans_knock'), {
+        knocks: k.knocks,
+        shots: c.shots,
+        per: (c.shots === 0 ? 0 : k.knocks / c.shots).toFixed(2),
+      }),
+      fill(rt('range.line_cans_air'), {
+        hits: k.airHits,
+        shots: k.airShots,
+        rate: one(k.airShots === 0 ? 0 : (Math.min(k.airHits, k.airShots) / k.airShots) * 100),
+        chain: k.bestChain,
+      }),
+    );
+  }
   const g = groupStats(c.impacts);
   if (g !== null) {
     const w = bodyWidthPx(content, c.plane);

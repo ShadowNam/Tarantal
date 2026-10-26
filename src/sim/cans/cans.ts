@@ -70,6 +70,8 @@ export interface CanDeps {
   readonly cans: Cans;
   readonly planes: Scoring['planes'];
   readonly tuningRefScale: number;
+  /** The first can's id (the Skietbaan puts up fresh cans with new ids). */
+  readonly idBase?: number;
 }
 
 /** Sets the fence and its cans up (null when the map has no fence or no ground line for it). */
@@ -93,7 +95,7 @@ export function startCans(d: CanDeps): Blikkies | null {
     const half = t.half * p.scale;
     const extent = r + half;
     cans.push({
-      id: CAN_ID_BASE + i,
+      id: (d.idBase ?? CAN_ID_BASE) + i,
       plane: fence.plane,
       type: c.type,
       post: c.post,

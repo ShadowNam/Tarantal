@@ -135,6 +135,14 @@ export class CanView {
     if (this.fence === null) this.buildFence(c, node.fixtures, scale, k);
     const before = new Map((prev?.cans?.cans ?? []).map((x) => [x.id, x]));
     const blur = (this.look.blurDegPerSec * Math.PI) / 180 / 60;
+    // The Skietbaan puts up fresh cans (new ids): the old ones go.
+    if (this.cans.size > c.cans.length)
+      for (const [id, d] of this.cans)
+        if (!c.cans.some((x) => x.id === id)) {
+          d.root.destroy();
+          d.shadow.destroy();
+          this.cans.delete(id);
+        }
     for (const can of c.cans) {
       let d = this.cans.get(can.id);
       if (d === undefined) {
