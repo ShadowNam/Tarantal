@@ -2798,7 +2798,7 @@ speeds, alert radii, crate drops, dust devils, Skietbaan) are now × plane scale
 plane scale; bird atlases are packed at the new sizes (the asset index records each atlas's packed
 scale, so a dev override draws correctly). (5) *Still shootable* (sim, content): a body hit radius
 is at least `planes.*.minHitRadiusPx` for every input — far 18 px, Ver 10 px (heads scale as
-drawn; a floored head made a 36 px-wide target); touch assist mid 14 → 10, far 18 → 12 (the floor
+drawn; a floored head made a 36 px-wide target); touch assist far 18 → 12, mid kept at 14 (the floor
 already widens far birds); far points 25 → 22 (`tune`). Pellet spread unchanged. (6) *Balance*
 (`tools/perspective-sweep.ts`, tables in `perspective.md`): see the 500-seed tables there; every
 gate that passed before passes. (7) *Size:* first download 3 071.5 → 2 965.2 KB gzip on the web

@@ -3,7 +3,7 @@
   "version": 1,
   "tuningRefScale": 0.5,
   "planes": {
-    "$comment": "D-049 (perspective): scale sizes everything on a plane (art, hitboxes, spacing, speeds via tuningRefScale). minHitRadiusPx floors the body hit radii for every input (far 18, Ver 10) so small far birds stay shootable; touch aimAssistPx mid 10 / far 12 (was 14 / 18: the floor already widens far birds); far base 25 -> 22 keeps competent Classic within +2 %. Numbers: docs/balance/perspective.md.",
+    "$comment": "D-049 (perspective): scale sizes everything on a plane (art, hitboxes, spacing, speeds via tuningRefScale). minHitRadiusPx floors the body hit radii for every input (far 18, Ver 10) so small far birds stay shootable; touch aimAssistPx far 12 (was 18: the floor already widens far birds; mid stays 14); far base 25 -> 22 keeps competent Classic within +2 %. Numbers: docs/balance/perspective.md.",
     "near": {
       "base": 5,
       "scale": 1.0,
@@ -16,7 +16,7 @@
       "base": 10,
       "scale": 0.42,
       "scrollFactor": 0.6,
-      "aimAssistPx": 10,
+      "aimAssistPx": 14,
       "minHitRadiusPx": 0,
       "lineWeightPx": 4
     },

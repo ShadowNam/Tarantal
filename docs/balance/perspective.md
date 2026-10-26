@@ -33,8 +33,8 @@ for a far plane about 0.03 scale, and the birds at 0.22.
   devils) is now written at `scoring.tuningRefScale` (0.5) and scaled by plane scale ÷ 0.5, so it
   shrinks with the birds on every plane.
 - **Still shootable**: a body hit radius is at least 18 px on the far plane and 10 px on the Ver
-  plane (`planes.*.minHitRadiusPx`, mouse and touch; heads scale as drawn); touch assist mid
-  14 → 10 and far 18 → 12; far points 25 → 22 (chosen with the 100-seed sweeps below).
+  plane (`planes.*.minHitRadiusPx`, mouse and touch; heads scale as drawn); touch assist far 18 → 12 (mid
+  stays 14); far points 25 → 22 (chosen with the 100-seed sweeps below).
 - **Size**: bird atlases packed at the new sizes; first download 3 071.5 → 2 965.2 KB gzip (web),
   −106 KB.
 
@@ -171,7 +171,7 @@ cells under the 4 500 cap) and the Season Run (`tools/balance-sim.ts --run`). Be
 | + far floor 18 (head floored too), Ver 8 | 4 397 / 2 381 | 4 635 / — (over 4 500) |
 | + mid floor 40 | 4 889 / 2 616 (over 4 500) | — |
 | body-only floor far 18, far points 25 | 4 323 / 2 191 | 4 503 / 2 312 |
-| **chosen**: body floor far 18 / Ver 10, assist mid 10 / far 12, far points 22 | **4 234 / 2 104** | **4 410 / 2 220** |
+| body floor far 18 / Ver 10, assist mid 10 / far 12, far points 22 | **4 234 / 2 104** | **4 410 / 2 220** |
 
 A bigger hit area helps the competent bot more than the plinker (it shoots more far birds), so
 the floor stops at 18 px. The plinker loses about 9–14 %: mid birds are 16 % smaller and no floor
