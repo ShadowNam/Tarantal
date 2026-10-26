@@ -71,18 +71,19 @@ export const FAUNA_DRAW: Readonly<Record<string, Draw>> = {
   'fauna/kalahari_wildebeest': group('wildebeest', 15, 4, 110),
   // The waterhole on the Ver strip (its water is in the layer, centred on u 0.5). D-049: the
   // animals stand 5× their v1.6 heights (and depth offsets) at the same spots, in proportion to
-  // the Ver birds (0.07); scaling the sprite instead would spread them off the water.
+  // the Ver birds (0.07); scaling the sprite instead would spread them off the water. Most stand
+  // head up (alert or walking): a grazing head hides behind the front legs at this size.
   'fauna/namibie_waterhole': placed([
     ['giraffe', 'alert', -165, -0.5 * W, 8 * W, 1],
     ['giraffe', 'drink', -152, 0 * W, 13 * W, 1],
-    ['springbok', 'graze', -126, 0.2 * W, 3.8 * W, 1],
+    ['springbok', 'alert', -126, 0.2 * W, 3.8 * W, 1],
     ['zebra', 'walk', -105, -0.7 * W, 4.2 * W, 1],
     ['springbok', 'alert', -95, -0.6 * W, 3.8 * W, 1],
-    ['zebra', 'graze', -79, 0.6 * W, 4.2 * W, 1],
+    ['zebra', 'alert', -79, 0.6 * W, 4.2 * W, 1],
     ['springbok', 'graze', -58, 0.5 * W, 3.8 * W, 1],
-    ['gemsbok', 'graze', 47, 0.4 * W, 4.4 * W, -1],
+    ['gemsbok', 'walk', 47, 0.4 * W, 4.4 * W, -1],
     ['gemsbok', 'alert', 87, -0.4 * W, 4.4 * W, -1],
-    ['springbok', 'graze', 121, 0.3 * W, 3.8 * W, -1],
+    ['springbok', 'walk', 121, 0.3 * W, 3.8 * W, -1],
     ['ostrich', 'walk', 163, -0.5 * W, 7 * W, -1],
     ['ostrich', 'alert', 178, -0.2 * W, 7 * W, -1],
   ]),
