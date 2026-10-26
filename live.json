@@ -1,6 +1,6 @@
 {
- "updated": "2026-10-26T08:21:00Z",
- "summary": "Merged and live on the test build: v1.7 meerkats (Kalahari and Namibië only), v1.7b power-ups explained + Oupa's comments switch, and now v1.7c (07:34): fruit that swings or drops when shot, with the redrawn sausages and baobab pods (version 1.7.2). Now: Tank is building the Halloween Spookjag (ready before 31 Oct). Then, in this order: perspective (birds smaller with distance), v1.8 Blikkies (moved up), Karoo polish (HD aloes, the boiling potjie), far animals in HD, makalani palms in the Okavango, tree life (baobab residents, a better sausage tree, weavers around their nest) and optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
+ "updated": "2026-10-26T09:02:00Z",
+ "summary": "Live on the test build: v1.7c (1.7.2), fruit that swings or drops. Halloween Spookjag (PR #80): all 15 review fixes are in (hats on the heads, carved glowing lanterns, a spooky dusk, owls across the moon); Claude is taking the final screenshots and fixing the last small title overlap, then the full tests and the merge, well before 31 Oct. Tank has started the next job: birds smaller with distance on every map. Then: v1.8 Blikkies, Karoo polish, far animals in HD, makalani palms, tree life, optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
   "version": "1.7.1",
   "commit": "1bbedc7"
@@ -1308,6 +1308,11 @@
    "at": "2026-10-26T08:20:00Z",
    "kind": "note",
    "text": "Dropbox backup set up (/AI-DEV/Tarantal-Madness): the first status file, 12 job briefs and the working rules. A new dated status file follows every merge."
+  },
+  {
+   "at": "2026-10-26T09:00:00Z",
+   "kind": "note",
+   "text": "Halloween: Tank finished all 15 review fixes; Claude's after-fix screenshots look right (dark dusk, hats on heads, carved lanterns, owls across the moon). Tank started the perspective job (birds smaller with distance)."
   }
  ]
 }
