@@ -411,7 +411,8 @@ export class FeesdagSceneView {
         const n = Math.floor(((tick + t.id * 7) * fps) / 60) % 4;
         const i = n === 3 ? 1 : n;
         setFrame(d.img, this.key, `${t.kind}_${i}` as HalloweenFrame);
-        d.img.setPosition(x, y).setScale(s * t.facing, s);
+        const k = t.kind === 'owl' ? s * this.look.owlScale : s;
+        d.img.setPosition(x, y).setScale(k * t.facing, k);
       }
     }
     for (const [id, d] of this.drawn) {

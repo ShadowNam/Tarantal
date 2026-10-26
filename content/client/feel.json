@@ -1176,7 +1176,8 @@
           "color": "#0C0A1E",
           "alpha": 0.55,
           "inner": 0.55
-        }
+        },
+        "owlScale": 2.2
       }
     }
   }

@@ -205,15 +205,43 @@ test('a pumpkin lantern lit, then shot out', async ({ page }, info) => {
   await shoot(page, info, 'lantern-out', { x: at.x - 120, y: at.y - 110, w: 240, h: 200 });
 });
 
+/**
+ * Pans (arrow keys, short presses) until a flyer of `kind` is inside the view's middle, so the
+ * hold below finds it (?spook=early brings three owls in the first 40 % of the hunt). The real
+ * mouse stays parked; the keys are the hunt's own pan controls on every profile.
+ */
+async function panToFlyer(page: Page, kind: 'owl' | 'bat', margin: number): Promise<void> {
+  for (let i = 0; i < 400; i++) {
+    const t = await page.evaluate((k) => {
+      const g = window.__TM__;
+      const f = g?.spook?.things.find((x) => x.kind === k);
+      return g === undefined || f === undefined ? null : { x: f.x, w: g.designWidth };
+    }, kind);
+    if (t === null) {
+      await page.waitForTimeout(200);
+      continue;
+    }
+    if (t.x > margin && t.x < t.w - margin) return;
+    const key = t.x <= margin ? 'ArrowLeft' : 'ArrowRight';
+    await page.keyboard.down(key);
+    await page.waitForTimeout(300);
+    await page.keyboard.up(key);
+  }
+}
+
 for (const kind of ['owl', 'bat'] as const)
   test(`${kind === 'owl' ? 'the spotted eagle-owl' : 'a bat'} crossing the view`, async ({
     page,
   }, info) => {
     const touch = isTouchProject(info);
-    await boot(page, `${QUERY}&huntSeconds=90`);
+    // Early owls and bats, no birds in the way (the close-up shows the flyer itself).
+    await boot(page, `${QUERY}&huntSeconds=90&spook=early&birds=0`);
     await startSpookjag(page, touch);
-    const at = await holdOn(page, kind, kind === 'owl' ? 320 : 220);
-    const r = kind === 'owl' ? { w: 420, h: 240 } : { w: 220, h: 150 };
+    const margin = kind === 'owl' ? 340 : 240;
+    await panToFlyer(page, kind, margin);
+    await park(page, touch);
+    const at = await holdOn(page, kind, margin - 40);
+    const r = kind === 'owl' ? { w: 520, h: 300 } : { w: 240, h: 160 };
     await shoot(page, info, kind, { x: at.x - r.w / 2, y: at.y - r.h / 2, w: r.w, h: r.h });
   });
 

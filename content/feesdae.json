@@ -21,6 +21,10 @@
             "mid",
             "far"
           ],
+          "skyY": [
+            210,
+            430
+          ],
           "perHunt": [
             7,
             10
@@ -41,8 +45,11 @@
         },
         "owls": {
           "planes": [
-            "mid",
-            "far"
+            "mid"
+          ],
+          "skyY": [
+            250,
+            370
           ],
           "perHunt": [
             2,
@@ -58,9 +65,10 @@
             900,
             1600
           ],
-          "rx": 120,
-          "ry": 62,
-          "points": -10
+          "rx": 220,
+          "ry": 90,
+          "points": -10,
+          "$comment": "The spotted eagle-owl: the mid plane only, about a guineafowl's size there (the view draws it at feesdae.looks.halloween.owlScale), on its own band between the HUD and the horizon, across the moon's height."
         },
         "lanterns": {
           "count": [

@@ -1266,8 +1266,10 @@ const feesdagDateSchema = z.discriminatedUnion('type', [
 
 /** A flyer of the Spookjag (bats, owls), in design px at plane scale 1 (scaled by its plane). */
 const spookFlyerSchema = obj({
-  /** Sky lanes it may cross (their skyY from the day's map). */
+  /** Sky lanes it may cross (their skyY from the day's map, unless `skyY` sets its own band:
+   *  design px, between the HUD and the horizon). */
   planes: z.array(z.enum(['mid', 'far'])).min(1),
+  skyY: range(nonNeg).optional(),
   /** How many cross per hunt, and when (fractions of the hunt). */
   perHunt: range(nonNegInt),
   window: windowFraction,
@@ -1940,6 +1942,9 @@ export const FeelSchema = obj({
       /** A soft vignette over the view: its colour, alpha at the corners and the clear centre
        *  (a fraction of the half-diagonal). Steady: never a flash. */
       vignette: obj({ color: hexColor, alpha: fraction, inner: fraction }),
+      /** The owl's drawing is shown this much larger than the sheet's frame (feesdae.json owls
+       *  rx/ry match it), and the flight frames per second of the bats and owls. */
+      owlScale: pos,
       /** Flight frames per second of the bats and owls. */
       batFps: pos,
       owlFps: pos,

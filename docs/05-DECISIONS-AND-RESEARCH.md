@@ -2722,7 +2722,7 @@ sim never reads a clock. Overrides: `?feesdag=<id|none>` on dev/e2e builds and t
 (a "Special days" group with Play for each); never on a Poki or CrazyGames build. The e2e `boot()`
 pins `feesdag=none` unless a spec names a special, so no spec changes on 31 Oct.
 (3) *The twist in the sim* (`src/sim/feesdag/spookjag.ts`, its own `feesdag` RNG stream): 7–10
-bats and 2–3 owls cross the mid or far sky lane edge to edge (bats 560 px/s with ±70 px swerves
+bats and 2–3 owls cross edge to edge (bats on the mid or far plane, 210–430 px down; owls on the mid plane only, 250–370 px, about a guineafowl's size, across the moon's height and clear of the top HUD) (bats 560 px/s with ±70 px swerves
 every 0.18–0.42 s; owls 260 px/s, gentle); 3–5 lanterns of 9 spots stand on the plane's ground
 line. They are `HitExtra` kind `spook`, not birds: they need no bird rig, atlas or flock logic,
 and the bird pipeline (spawn director, Bird Book, hitShots, Whole Flock) stays as it was. Scoring

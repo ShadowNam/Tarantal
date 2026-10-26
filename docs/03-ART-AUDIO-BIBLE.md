@@ -618,9 +618,11 @@ game draws a flat stand-in with the same frames.
   rising (and a puff as it goes out).
 - *Bats (targets):* furry bodies and ears, membrane wings stretched between finger bones that let
   the moonlight through; three wing poses (14 fps). Small on the mid and far planes, on purpose.
-- *Spotted eagle-owl (protected):* seen from below as it glides over, its round face turned to
-  the hunter — ear tufts, a grey facial disc, big yellow eyes — grey-brown barred wings with
-  splayed dark-tipped primaries, a pale finely barred belly; three wing poses (5 fps).
+- *Spotted eagle-owl (protected):* about a guineafowl's size on the mid plane (the drawing shown
+  2.2× its frame), gliding on its own band between the HUD and the horizon, across the moon's
+  height — never under the top HUD. Seen from below with its round face turned to the hunter: ear
+  tufts, a pale grey facial disc, big yellow-orange eyes, barred and pale-spotted grey-brown wings
+  with splayed dark-tipped primaries, a pale finely barred belly; three wing poses (5 fps).
 - *Witch hats:* a small purple-black cone with a bent tip, a brim, an orange band and a buckle,
   on about a third of the guineafowl (picked by bird id). It sits on the head of the frame shown
   — every clip's head position comes from the poses the bird art is drawn with

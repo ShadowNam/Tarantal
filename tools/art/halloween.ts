@@ -34,12 +34,12 @@ const C = {
   batWing: '#3E2E3A',
   batWingLit: '#6A5262',
   batBone: '#22161E',
-  owlBrown: '#7A6450',
-  owlDark: '#4A3B30',
-  owlLit: '#B8A288',
+  owlBrown: '#847768',
+  owlDark: '#4C443C',
+  owlLit: '#BEB2A2',
   owlPale: '#E8DCC8',
-  owlBar: '#5C4A3C',
-  owlEye: '#F2B21E',
+  owlBar: '#544A42',
+  owlEye: '#F5A01E',
   pumpkin: '#E8761C',
   pumpkinLit: '#FFA640',
   pumpkinShade: '#A9480E',
@@ -374,6 +374,16 @@ function owl(pose: number): string {
       g(
         { 'clip-path': `url(#${id})` },
         stroke(barsD.join(''), C.owlBar, 3, 0.75),
+        // The spotted eagle-owl's pale spots over the coverts and the arm of the wing.
+        path(
+          Array.from({ length: 16 }, (_, k) => {
+            const sx2 = 40 + ((k * 37) % 96);
+            const sy2 = -20 + ((k * 23) % 30) + lift * (sx2 / 170);
+            return ellipseD(sx(sx2), sy2, 2.6, 1.8);
+          }).join(''),
+          C.owlPale,
+          { opacity: 0.8 },
+        ),
         // The pale coverts along the leading edge, catching the moonlight.
         stroke(
           smoothD(

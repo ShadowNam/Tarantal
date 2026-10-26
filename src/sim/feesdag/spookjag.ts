@@ -217,9 +217,9 @@ export function stepSpookjag(
     const due = s.due[s.cursor++];
     if (due === undefined) break;
     const cfg = cfgOf(s, due.kind);
-    const lanes = cfg.planes.filter((p) => biome.lanes[p]?.skyY !== undefined);
+    const lanes = cfg.planes.filter((p) => (cfg.skyY ?? biome.lanes[p]?.skyY) !== undefined);
     const plane = lanes[rng.int(0, Math.max(0, lanes.length - 1))];
-    const sky = plane === undefined ? undefined : biome.lanes[plane]?.skyY;
+    const sky = plane === undefined ? undefined : (cfg.skyY ?? biome.lanes[plane]?.skyY);
     if (plane === undefined || sky === undefined) continue;
     const p = planes[plane];
     const ratio = p.scale / planes.mid.scale;
