@@ -15,6 +15,7 @@ import type { TallyExtras } from '../daily/DailyFlow';
 import type { GameContext } from '../GameContext';
 import { formatPercent, formatScore } from '../ui/format';
 import { tallyBarkSlot, type Rect } from '../ui/hudLayout';
+import { drawSlateFrame } from '../ui/specialBadge';
 import { BarkBubble, sayBark } from '../ui/BarkBubble';
 import { powerupIcon } from '../ui/powerupIcons';
 import type { BarkTrigger } from '../../content/schemas';
@@ -106,11 +107,14 @@ export class TallyScene extends Phaser.Scene {
     const trigger: BarkTrigger | null =
       data.outcome?.newBest != null && r.score > 0
         ? 'newBest'
-        : r.rank === ranks.at(-1)?.id
-          ? 'legend'
-          : r.rank === ranks[0]?.id && r.shots > 0
-            ? 'badHunt'
-            : null;
+        : // D-048: a special day's hunt ends with its own line.
+          r.feesdag !== undefined && this.ctx.barks.specialLines !== null
+          ? 'feesdagEnd'
+          : r.rank === ranks.at(-1)?.id
+            ? 'legend'
+            : r.rank === ranks[0]?.id && r.shots > 0
+              ? 'badHunt'
+              : null;
     if (trigger === null) return;
     const now = this.time.now;
     const bark = this.ctx.barks.say(trigger, now);
@@ -143,10 +147,20 @@ export class TallyScene extends Phaser.Scene {
       color,
       ...outline(size, 0, '#1B1410', color),
     });
-    this.add
-      .text(px + panelW / 2, py + 64, t('tally.title'), chalk(64, '#FFD25A', false))
-      .setOrigin(0.5);
     const extras = data.extras;
+    // D-048: a special day's slate has its own title ("Spookjag 2026") and frame.
+    const special = extras?.special ?? null;
+    if (special != null)
+      drawSlateFrame(this, special.frame, { x: px, y: py, w: panelW, h: panelH });
+    const title = this.add
+      .text(
+        px + panelW / 2,
+        py + 64,
+        special?.title ?? t('tally.title'),
+        chalk(64, special == null ? '#FFD25A' : '#FFB347', false),
+      )
+      .setOrigin(0.5);
+    fitText(title, panelW - 560);
     if (extras?.tag != null) {
       const tag = this.add.text(px + 30, py + 30, extras.tag, chalk(28, '#FFD25A'));
       fitText(tag, panelW / 2 - 240);
@@ -203,6 +217,8 @@ export class TallyScene extends Phaser.Scene {
       ['tally.crates', String(r.crates)],
       ['tally.penalties', String(r.penalties)],
     ];
+    // D-048: the Spookjag's bats, owls and lanterns.
+    if (special != null && isI18nKey(special.nameKey)) rows.push([special.nameKey, special.line]);
     // v1.7b (D-046): the power-ups used, as icons and names (a row of their own).
     const used = data.powerups ?? [];
     if (used.length > 0) rows.splice(rows.length - 1, 0, ['tally.powerups', '']);
@@ -388,6 +404,8 @@ export class TallyScene extends Phaser.Scene {
         compare: extras?.compare ?? null,
         news,
         share: shareMsg !== null,
+        frame: special?.frame ?? null,
+        ...(special == null ? {} : { title: special.title }),
       };
     }
   }

@@ -60,6 +60,8 @@ export interface TallyExtras {
   readonly share: ShareMessage | null;
   /** Analytics fields for share_click. */
   readonly shareInfo: { readonly mode: string; readonly official: boolean } | null;
+  /** D-048: a special day's slate: its title ("Spookjag 2026"), frame and tally line. */
+  readonly special?: (ShareSpecial & { readonly line: string; readonly nameKey: string }) | null;
 }
 
 export interface DailyFlowDeps {
@@ -330,12 +332,28 @@ export class DailyFlow {
         share = null;
       }
     }
+    const sp = result.feesdag === undefined ? null : this.shareSpecial(result, daily);
+    const fd = result.feesdag;
+    const nameKey = feesdagById(this.deps.content.feesdae, fd?.id)?.nameKey ?? '';
     return {
       tag,
       compare,
       news,
       share,
       shareInfo: share === null ? null : { mode: result.mode, official },
+      special:
+        sp === null || fd === undefined
+          ? null
+          : {
+              ...sp,
+              nameKey,
+              line: fill(t('feesdag.tally'), {
+                bats: fd.bats,
+                owls: fd.owls,
+                lanterns: fd.lanterns,
+                total: fd.lanternsTotal,
+              }),
+            },
     };
   }
 

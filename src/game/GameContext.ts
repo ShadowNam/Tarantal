@@ -370,7 +370,15 @@ export interface TestHook {
   /** M7: one-line notice on the title (a bad challenge link), the HUD tag, tally lines. */
   notice: string | null;
   hudTag: string | null;
-  tally: { tag: string | null; compare: string | null; news: string | null; share: boolean } | null;
+  tally: {
+    tag: string | null;
+    compare: string | null;
+    news: string | null;
+    share: boolean;
+    /** D-048: the special day's frame on the slate (null on an ordinary tally). */
+    frame?: string | null;
+    title?: string;
+  } | null;
   /** M7: the last [Share] (outcome and the message sent). */
   lastShare: { outcome: string; text: string; url: string } | null;
   /** M9: the build's platform adapter id. */
