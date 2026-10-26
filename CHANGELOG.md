@@ -6,8 +6,10 @@ Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (
 ## [1.7.1] — power-ups explained, and an Oupa switch (25 Oct 2026)
 
 Decision record D-046. What the power-ups do and their numbers are unchanged. A crate's contents
-are now rolled when it drops (so it can show them), which changes the event stream: replays from
-1.7.0 are refused and the golden replays were re-recorded (36 of 37 keep their score).
+are now rolled when it drops (so it can show them). The content hash is unchanged, so 1.7.0
+replays, challenge links and the Daily's seeds still load; but a 1.7.0 hunt that left a crate
+unshot gives its later crates different items when replayed now, so its events (and possibly its
+score) differ. The golden replays were re-recorded: 36 of 37 keep their score.
 
 ### Added
 - **Icons** for every power-up and crate gun: Chilli Biltong, Boeretroos, Bush Buckshot, Meerkat

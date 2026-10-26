@@ -2526,7 +2526,9 @@ next drops draws exactly the same numbers; only an unshot crate changes the next
 `CrateView.item` and `crateSpawned.item` carry it. Golden replays re-recorded: every event hash
 changes (the new field); 36 of 37 keep score and event count, `daily-65-bushveld-wed-aim-touch` goes
 16 966 → 15 886 (a crate it never shot). The frozen v3 Classic fixture's hash is re-derived (score
-and count unchanged). Replays carry the content hash and the build, as after any sim change.
+and count unchanged). The content hash doesn't change (and no sim version is folded into it:
+that would re-seed the Daily), so 1.7.0 replays and challenge links still load and verify their
+hash; one that left a crate unshot now replays to different events, as the golden case shows.
 (3) *Words built from content.* `src/game/ui/powerupGuide.ts` builds each sentence from
 `powerups.json` (durations, shells, multipliers, `idleTopUpMs`, Padstal price), `weapons.json`
 (crate guns' shots, pellets, ramrod, duration) and `run.json` (rental price); i18n strings hold
