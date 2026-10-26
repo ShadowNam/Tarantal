@@ -76,9 +76,12 @@ export interface JuggleRun {
  * tick (`__TM_HOLD_AT__`), the can is read from the hook once the frame shows that tick, the
  * pointer goes down on it, and the hold is let go — the queued shot then resolves on the next
  * tick, before the can moves (the sim runs commands before the cans fly). A can in the air comes
- * first; else the resting can nearest the screen centre. Shots keep the gun's cooldown
- * (`cooldownTicks`) and wait for the sim to count each one. A pellet a bird takes first is just
- * another try.
+ * first — once per arc, at the top (the tick it starts to fall), as a good player does: hit while
+ * it still rises, each kick would stack on the last and send it out of the view — else the
+ * resting can nearest the screen centre. Shots keep the gun's cooldown (`cooldownTicks`) and wait
+ * for the sim to count each one. A pellet a bird takes first is just another try. With `holdOnDone`
+ * the sim stays held two ticks after the chain is reached (the chain pop is on screen; pops age on
+ * sim time), else it runs on.
  */
 export async function juggle(
   page: Page,
@@ -86,9 +89,10 @@ export async function juggle(
   wantChain: number,
   cooldownTicks: number,
   budgetMs = 120_000,
+  holdOnDone = false,
 ): Promise<JuggleRun> {
   return page.evaluate(
-    ([want, isTouch, cd, budget]) =>
+    ([want, isTouch, cd, budget, keepHeld]) =>
       new Promise<JuggleRun>((resolve) => {
         const w = window as unknown as {
           __canPointer?: number;
@@ -103,12 +107,25 @@ export async function juggle(
         let phase: 'idle' | 'holding' | 'wait' = 'idle';
         let heldAt = -1;
         let heldFrames = 0;
+        /** Each can's y on the last two sim ticks seen, and the arc it was last shot at. */
+        let seenTick = -1;
+        let prevY = new Map<number, number>();
+        let curY = new Map<number, number>();
+        const shotArc = new Map<number, string>();
+        const track = (): void => {
+          const g = window.__TM__;
+          if (g === undefined || g.tick === seenTick) return;
+          seenTick = g.tick;
+          prevY = curY;
+          curY = new Map((g.cans?.spots ?? []).map((c) => [c.id, c.y]));
+        };
         const done = (empty: boolean): void => {
-          hold(1e12);
+          const t0 = window.__TM__?.tick ?? 0;
+          hold(keepHeld && !empty ? t0 + 2 : 1e12);
           const g = window.__TM__;
           resolve({ log: [...(g?.canLog ?? [])], bestChain: g?.cans?.bestChain ?? 0, empty });
         };
-        const pick = (): { x: number; y: number } | null => {
+        const pick = (): { x: number; y: number; id: number; arc: string } | null => {
           const g = window.__TM__;
           if (g === undefined) return null;
           const spots = g.cans?.spots ?? [];
@@ -117,14 +134,21 @@ export async function juggle(
           const air = spots.find(
             (c) => (c.state === 'air' || c.state === 'bounced') && inView(c.x, c.y),
           );
-          if (air !== undefined) return { x: air.x, y: air.y };
+          if (air !== undefined) {
+            const arc = `${String(air.chain)}/${air.state}`;
+            const before = prevY.get(air.id);
+            const falling = before !== undefined && air.y > before;
+            // Wait for the top of this arc; one shot an arc.
+            if (!falling || shotArc.get(air.id) === arc) return null;
+            return { x: air.x, y: air.y, id: air.id, arc };
+          }
           // Another can is still in the air (out of view): let it come down first.
           if (spots.some((c) => c.state === 'air' || c.state === 'bounced')) return null;
           const centre = g.designWidth / 2;
           const rest = spots
             .filter((c) => c.state === 'rest' && inView(c.x, c.y))
             .sort((a, b) => Math.abs(a.x - centre) - Math.abs(b.x - centre))[0];
-          return rest === undefined ? null : { x: rest.x, y: rest.y };
+          return rest === undefined ? null : { x: rest.x, y: rest.y, id: rest.id, arc: 'rest' };
         };
         const fire = (x: number, y: number): void => {
           const g = window.__TM__;
@@ -154,6 +178,7 @@ export async function juggle(
             done(false);
             return;
           }
+          track();
           const best = g.cans?.bestChain ?? 0;
           if (
             phase !== 'holding' &&
@@ -170,6 +195,7 @@ export async function juggle(
             if (g.tick === heldAt && ++heldFrames >= 2) {
               const t = pick();
               if (t !== null) {
+                shotArc.set(t.id, t.arc);
                 fire(t.x, t.y);
                 phase = 'wait';
               } else phase = 'idle';
@@ -192,6 +218,6 @@ export async function juggle(
         };
         requestAnimationFrame(frame);
       }),
-    [wantChain, touch, cooldownTicks, budgetMs] as const,
+    [wantChain, touch, cooldownTicks, budgetMs, holdOnDone] as const,
   );
 }

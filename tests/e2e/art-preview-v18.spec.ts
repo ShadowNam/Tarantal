@@ -135,9 +135,14 @@ async function onFence(page: Page, touch: boolean, query: string): Promise<void>
 }
 
 /** Juggles until the hunt's longest chain is `want` (0: one knock-off), reloading as needed. */
-async function juggleTo(page: Page, touch: boolean, want: number): Promise<boolean> {
+async function juggleTo(
+  page: Page,
+  touch: boolean,
+  want: number,
+  holdOnDone = false,
+): Promise<boolean> {
   for (let i = 0; i < 20; i++) {
-    const run = await juggle(page, touch, want, COOLDOWN, 90_000);
+    const run = await juggle(page, touch, want, COOLDOWN, 90_000, holdOnDone);
     const ok = want === 0 ? run.log.some((e) => e.startsWith('knock')) : run.bestChain >= want;
     if (ok) return true;
     if (run.empty) await reloadIfEmpty(page, touch);
@@ -170,10 +175,13 @@ test.describe('v1.8 Blikkies previews', () => {
 
   test('juggle: a can in the air at a chain of 3+', async ({ page }, info) => {
     const touch = isTouchProject(info);
-    await onFence(page, touch, MID_FENCE);
+    // The near fence: a mid can is tiny in the picture.
+    await onFence(page, touch, NEAR_FENCE);
     const box = await fenceBox(page);
-    if (!(await juggleTo(page, touch, 3))) throw new Error('no chain of 3');
-    await holdSoon(page, touch, 2);
+    // Hit at the top of each arc; the sim stays held as the 3rd air hit lands, so its
+    // "3× in the air!" pop (sim time) is on screen in the shot.
+    if (!(await juggleTo(page, touch, 3, true))) throw new Error('no chain of 3');
+    await holdSoon(page, touch, 0);
     await shoot(page, info, 'juggle', { ...box, y: Math.max(0, box.y - 400), h: box.h + 400 });
   });
 

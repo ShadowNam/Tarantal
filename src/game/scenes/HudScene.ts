@@ -77,8 +77,12 @@ interface Pop {
   /** v1.0.1 (D-028 §4): a pooled BitmapText pop, or a canvas Text for a string outside it. */
   readonly pop: PopText | null;
   readonly text: Phaser.GameObjects.Text | null;
+  /** v1.8: the sim tick it was born on (pops age on sim time: a paused or held hunt keeps them). */
   born: number;
 }
+
+/** Sim ticks per second (pop ages are in ms of sim time). */
+const POP_TICK_MS = 1000 / 60;
 
 /** Events whose HUD feedback is about score (pops, the Whole-flock stamp): none on the range. */
 const SCORE_FEEDBACK: ReadonlySet<SimEvent['type']> = new Set([
@@ -112,6 +116,8 @@ export class HudScene extends Phaser.Scene {
   private reload!: Phaser.GameObjects.Text;
   private banner!: Phaser.GameObjects.Text;
   private pops: Pop[] = [];
+  /** The sim tick the HUD last drew (pops are born and age on it). */
+  private popTick = 0;
   private buildStamp: StampLabel | null = null;
   private stampFrames = 0;
   private popPool: PopPool | null = null;
@@ -697,6 +703,7 @@ export class HudScene extends Phaser.Scene {
     // The art status can change while the late group loads: refresh the stamp now and then.
     if (++this.stampFrames % 120 === 0) this.placeStamp();
     this.lastState = s;
+    this.popTick = s.tick;
     const l = this.layoutNow;
     if (l === null) return;
     this.season?.render(s, events);
@@ -900,8 +907,9 @@ export class HudScene extends Phaser.Scene {
     // Pop stack under the score: newest on top, fading out.
     let y = l.popAnchor.y;
     this.pops = this.pops.filter((p) => {
-      const age = now - p.born;
-      if (age > 1600) {
+      const age = (this.popTick - p.born) * POP_TICK_MS;
+      // A new hunt starts its ticks again from 0: an older pop is done.
+      if (age > 1600 || age < 0) {
         this.dropPop(p);
         return false;
       }
@@ -1374,7 +1382,7 @@ export class HudScene extends Phaser.Scene {
       const keys = ensurePopFont(this, popLook(FONT, 52, 8));
       const size = Math.round((keys.sizePx * 38) / 52);
       const pop = pool.acquire(keys).show(keys, size, text, 1, 0, colorNumber(color));
-      this.pops.unshift({ pop, text: null, born: this.time.now });
+      this.pops.unshift({ pop, text: null, born: this.popTick });
     } else {
       const tx = this.add
         .text(0, 0, text, {
@@ -1385,7 +1393,7 @@ export class HudScene extends Phaser.Scene {
           ...outline(38, 6),
         })
         .setOrigin(1, 0);
-      this.pops.unshift({ pop: null, text: tx, born: this.time.now });
+      this.pops.unshift({ pop: null, text: tx, born: this.popTick });
     }
     while (this.pops.length > this.ctx.feel.hud.popStackSize) {
       const old = this.pops.pop();
