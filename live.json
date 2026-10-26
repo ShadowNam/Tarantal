@@ -1,6 +1,6 @@
 {
- "updated": "2026-10-26T12:52:00Z",
- "summary": "Live on the test build: the Halloween Spookjag (1.7.3, merged 12:32 Namibia time). On 31 Oct the Daily Hunt is a dusk hunt with bats, protected owls, pumpkin lanterns and witch-hat guineafowl; try it early on the admin page: Special days → Spookjag · 31/10 → Play (the ?feesdag=halloween address works only on developer and test builds). v1.7c (fruit that swings or drops) went in this morning. Tank is building the next job: birds smaller with distance on every map. Then: v1.8 Blikkies, Karoo polish, far animals in HD, makalani palms, tree life, optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
+ "updated": "2026-10-26T18:42:00Z",
+ "summary": "Live on the test build: perspective (1.7.4, merged 20:34 Namibia time): guineafowl get smaller with distance on every map, the far animals are shown bigger, and far birds keep a minimum hit size so they stay shootable; the first download is 106 KB smaller. The Halloween Spookjag (1.7.3) is in too: try it early on the admin page: Special days → Spookjag · 31/10 → Play. Tank is building v1.8 Blikkies (tin cans on the farm fence to shoot off and juggle). Then: Karoo polish, far animals in HD, makalani palms, tree life, optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
   "version": "1.7.1",
   "commit": "1bbedc7"
@@ -568,15 +568,16 @@
    ]
   },
   "perspective-guineafowl-get-smaller-the-f": {
-   "owner": "Tank builds it; Claude reviews",
+   "owner": "Tank built it; Claude reviewed, screenshotted, fixed two tests and merged it",
    "summary": "Guineafowl get smaller the further away they are, on every map, in proportion to the ostriches, zebras and other animals on the same distance band, and still easy enough to hit (the hit area shrinks less than the picture). The far bird pictures are redrawn smaller, which also frees room in the first download. Before/after screenshots of your Karoo ostrich view.",
    "requestedBy": "You, 26 Oct: \"The further away they are, the smaller they must also get. Still in such a way that one can still shoot them … this needs to apply to all the levels.\"",
-   "status": "running"
+   "status": "done"
   },
   "v1.8": {
    "owner": "Tank builds it; Claude reviews",
    "summary": "Tin cans on the old farm fence posts on the farm maps, at near, middle and far distance. Shoot one off and it somersaults away; hit it again in the air and it flies higher and wilder, until it disappears out of sight (\"Weg!\"). Also on the Skietbaan. Moved up the queue because you asked for it again.",
-   "requestedBy": "You, 24 Oct, and again 26 Oct: \"bean cans standing on top of them … if you hit them again they continue spinning up … till you don't see them anymore.\""
+   "requestedBy": "You, 24 Oct, and again 26 Oct: \"bean cans standing on top of them … if you hit them again they continue spinning up … till you don't see them anymore.\"",
+   "status": "running"
   },
   "karoo-polish-hd-aloes-the-potjie-steams-": {
    "owner": "Tank builds it; Claude reviews",
@@ -1350,6 +1351,16 @@
    "at": "2026-10-26T12:40:00Z",
    "kind": "note",
    "text": "Perspective: the guineafowl pictures are redrawn at their new, smaller far sizes, which makes the first download 106 KB smaller (3,071 → 2,965 KB of 3,072) and leaves room for the Karoo HD aloes and potjie. Feathers, witch hats and boss birds shrink with the birds; tests added. Still to come: the before/after screenshots and the final balance check."
+  },
+  {
+   "at": "2026-10-26T18:34:00Z",
+   "kind": "merge",
+   "text": "Perspective merged (PR #82, version 1.7.4) after all 23 test jobs passed. Birds get smaller with distance on every map; far herds shown 3× bigger; far birds keep a minimum hit size; first download 2,965 KB (−106 KB). On the way Claude fixed two tests that the new sizes made unreliable (a Halloween lantern shot and a meerkat shot); the game itself was fine."
+  },
+  {
+   "at": "2026-10-26T18:38:00Z",
+   "kind": "note",
+   "text": "Tank started v1.8 Blikkies: tin cans on the old farm fence (Karoo, Bushveld, Kalahari, Namibië) to shoot off and keep in the air, higher and wilder with every hit, until they fly out of sight."
   }
  ]
 }
