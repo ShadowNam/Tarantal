@@ -88,6 +88,24 @@ export const CELLS: readonly Cell[] = [
       ['mon', 'dieVerste', 'langloop', null, 'Karoo Die Verste (Mon) · Langloop'],
     ] as const
   ).map(([l, b, w, s, label]) => longRange('karoo-autumn', l, b, w, s, label, 'long')),
+  {
+    id: 'halloween.daily',
+    group: 'touch',
+    label: 'Spookjag Daily (31 Oct, Bushveld Sat) · Dubbelloop',
+    args: [
+      '--mode',
+      'daily',
+      '--biome',
+      'bushveld-winter',
+      '--layout',
+      'sat',
+      '--feesdag',
+      'halloween',
+      '--omen',
+      'off',
+    ],
+    gate: 'none',
+  },
   ...(
     [
       ['tue', 'twee_twee', 'scope_small', 'Namibië Tuesday · .22 scope'],
