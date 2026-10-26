@@ -1418,7 +1418,8 @@ export class HuntScene extends Phaser.Scene {
     const w0 = performance.now();
     this.weavers.update(state);
     this.meerkats.update(state);
-    this.fruit?.update(state, width);
+    // Interpolated like the birds and the camera (a held frame keeps alpha 0: it holds).
+    this.fruit?.update(state, width, state.tick - 1 + alpha);
     for (const cue of this.meerkats.cues) {
       const pan = (cue.screenX - width / 2) / (width / 2);
       // Only colonies on screen (or just off it) are heard.

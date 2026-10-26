@@ -12,6 +12,7 @@ import {
   swingEnvelope,
   type FruitTuning,
   type ShotOnFruit,
+  withFall,
 } from './fruitMotion';
 import type { FruitSpot } from './fruitTypes';
 
@@ -177,6 +178,28 @@ describe('fruit drop (v1.7c, D-047)', () => {
       expect(hi <= -20 - t.trunkClearPx || lo >= 20 + t.trunkClearPx).toBe(true);
       expect(Math.sign(rest.bx)).toBe(dir);
     }
+  });
+
+  it('a fall worked out once at the drop poses exactly as one worked out every frame', () => {
+    const hung: FruitSpot = { ...sausage, ay: 120, ground: 420, trunk: { x: 0, half: 20 } };
+    const first = hitFruit(RESTING, 'hang', shot(0, 1, -1), t, false);
+    const dropped = hitFruit(first, 'hang', shot(14, 1, -1), t, false);
+    const cached = withFall(hung, dropped, t, false);
+    expect(cached.fall).toBeDefined();
+    expect(withFall(hung, cached, t, false)).toBe(cached);
+    expect(withFall(hung, first, t, false)).toBe(first);
+    for (const at of [14, 20.5, 33, 60, 200, 2400])
+      expect(fruitPose(hung, cached, at, t, false)).toEqual(fruitPose(hung, dropped, at, t, false));
+    expect(landTick(hung, cached, t, false)).toBe(landTick(hung, dropped, t, false));
+  });
+
+  it('poses between ticks (interpolated time) fall between the two ticks', () => {
+    const s = hitFruit(RESTING, 'hang', shot(0, t.dropPellets), t, false);
+    const a = fruitPose(sausage, s, 10, t, false).by;
+    const b = fruitPose(sausage, s, 11, t, false).by;
+    const mid = fruitPose(sausage, s, 10.5, t, false).by;
+    expect(mid).toBeGreaterThan(a);
+    expect(mid).toBeLessThan(b);
   });
 
   it('reduce motion: no bounce', () => {

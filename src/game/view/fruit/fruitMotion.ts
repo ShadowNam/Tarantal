@@ -22,6 +22,17 @@ export interface FruitState {
   /** The tick it snapped off, and which way it flies (−1 left, +1 right). */
   readonly dropTick: number | null;
   readonly dropDir: number;
+  /** Its fall, worked out once when it snapped off (withFall); poses work it out if absent. */
+  readonly fall?: Fall;
+}
+
+/** A dropped fruit's fall: its angle and body pivot when it snapped off, and the plan. */
+export interface Fall {
+  readonly start: number;
+  readonly from: { readonly x: number; readonly y: number };
+  readonly plan: FallPlan;
+  /** The tick it first lands. */
+  readonly landTick: number;
 }
 
 export const RESTING: FruitState = { hits: [], dropTick: null, dropDir: 1 };
@@ -229,9 +240,7 @@ export function fruitPose(
       landedTicks: null,
     };
   }
-  const start = swingAngle(s.hits, s.dropTick, t);
-  const from = rot(spot.ax, spot.ay, start);
-  const plan = fallPlan(spot, s.dropDir, t, reduced, from);
+  const { start, from, plan } = s.fall ?? fallOf(spot, s, s.dropTick, t, reduced);
   const g = t.gravityPxPerS2;
   const at = secondsSince(tick, s.dropTick);
   let dy: number;
@@ -275,8 +284,29 @@ export function landTick(
   reduced: boolean,
 ): number | null {
   if (s.dropTick === null) return null;
-  const from = rot(spot.ax, spot.ay, swingAngle(s.hits, s.dropTick, t));
-  return (
-    s.dropTick + Math.round(fallPlan(spot, s.dropDir, t, reduced, from).land * TICKS_PER_SECOND)
-  );
+  return (s.fall ?? fallOf(spot, s, s.dropTick, t, reduced)).landTick;
+}
+
+function fallOf(
+  spot: FruitSpot,
+  s: FruitState,
+  dropTick: number,
+  t: FruitTuning,
+  reduced: boolean,
+): Fall {
+  const start = swingAngle(s.hits, dropTick, t);
+  const from = rot(spot.ax, spot.ay, start);
+  const plan = fallPlan(spot, s.dropDir, t, reduced, from);
+  return { start, from, plan, landTick: dropTick + Math.round(plan.land * TICKS_PER_SECOND) };
+}
+
+/** The state with its fall worked out once (call when it snaps off; poses then reuse it). */
+export function withFall(
+  spot: FruitSpot,
+  s: FruitState,
+  t: FruitTuning,
+  reduced: boolean,
+): FruitState {
+  if (s.dropTick === null || s.fall !== undefined) return s;
+  return { ...s, fall: fallOf(spot, s, s.dropTick, t, reduced) };
 }
