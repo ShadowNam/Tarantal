@@ -138,7 +138,8 @@ export const SHEET_H = ((): number => {
   return Math.max(...f.map((r) => r.y + r.h));
 })();
 
-/** The witch hat drawn for a plane of this scale (the nearest drawing at or above it). */
-export function hatFrame(scale: number): 'hat_l' | 'hat_m' | 'hat_s' {
-  return scale >= 0.75 ? 'hat_l' : scale >= 0.35 ? 'hat_m' : 'hat_s';
+/** The witch hat drawing for a hat shown this wide (design px). */
+export function hatFrame(widthPx: number): 'hat_l' | 'hat_m' | 'hat_s' {
+  // The drawings are 130, 70 and 36 px wide: the nearest one at or above the size shown.
+  return widthPx > 52 ? 'hat_l' : widthPx > 26 ? 'hat_m' : 'hat_s';
 }

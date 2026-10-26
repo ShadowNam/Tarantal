@@ -1915,8 +1915,10 @@ export const FeelSchema = obj({
       moon: obj({ u: fraction, y: z.number(), scale: pos }),
       /** Little bats flitting round the moon (sky decoration, not targets). */
       skyBats: obj({ count: nonNegInt, radius: range(pos), periodMs: range(pos) }),
-      /** Share of guineafowl in witch hats (cosmetic; picked by bird id). */
+      /** Share of guineafowl in witch hats (cosmetic; picked by bird id), the hat's width per
+       *  head radius and its tilt back (radians). */
       hatShare: fraction,
+      hat: obj({ widthPerHeadR: pos, tilt: z.number().min(-0.6).max(0.6) }),
       /** A lit lantern's warm glow: its alpha and a slow flicker (no flashes). */
       glow: obj({ alpha: fraction, flicker: z.number().min(0).max(0.5), flickerMs: pos, scale: pos }),
       /** Flight frames per second of the bats and owls. */

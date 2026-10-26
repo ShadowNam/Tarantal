@@ -1056,6 +1056,10 @@
           ]
         },
         "hatShare": 0.35,
+        "hat": {
+          "widthPerHeadR": 2.7,
+          "tilt": 0.18
+        },
         "glow": {
           "alpha": 0.5,
           "flicker": 0.12,

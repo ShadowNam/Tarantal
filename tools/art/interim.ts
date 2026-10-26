@@ -46,6 +46,7 @@ import {
   SHEET_MASTER as FEESDAE_MASTER,
 } from '../../src/game/feesdae/feesdaeAssets';
 import { renderHalloweenSheet } from './halloween';
+import { hatAnchors } from './hatAnchors';
 
 /** v1.7 (D-044): palette size of the meerkat sheet (look round: 48 keeps the shading and lets
  *  the Kalahari chunk plus the desert chunk fit 1.5 MB). */
@@ -445,6 +446,12 @@ if (wants('feesdae')) {
     );
     console.log(`sprites/${HALLOWEEN_SHEET}`);
   }
+  // The witch hats' head anchors, from the same poses the bird art is drawn with.
+  put(
+    join(root, 'src', 'game', 'feesdae', 'hatAnchors.json'),
+    await json(hatAnchors(cfg, content)),
+  );
+  console.log('src/game/feesdae/hatAnchors.json');
 }
 if (wants('flyers')) {
   for (const [creature, planes] of Object.entries(FLYERS)) {

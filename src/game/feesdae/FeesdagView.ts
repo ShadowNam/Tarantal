@@ -27,6 +27,14 @@ import {
   type SpookSound,
 } from './feesdaeAssets';
 import { drawStandin } from './standin';
+import anchorsJson from './hatAnchors.json';
+
+type Anchor = readonly [number, number, number, number];
+/** The guineafowl's head in every frame of every clip (tools/art/hatAnchors.ts). */
+const HAT_ANCHORS = anchorsJson as unknown as {
+  readonly placeholder: Anchor;
+  readonly clips: Readonly<Record<string, readonly Anchor[]>>;
+};
 
 export type SpecialLook = Feel['feesdae']['looks'][string];
 
@@ -268,13 +276,25 @@ export class FeesdagSceneView {
       }
     const hatsOn = decorations.includes('witchHats');
     this.hats = {
-      frameFor: (s) => {
-        const frame = hatFrame(s);
-        const fs = ORIGINS.get(frame)?.forScale ?? 1;
-        return { key: this.key, frame, scale: 1 / (fs * SHEET_MASTER) };
+      frameFor: (w) => {
+        const frame = hatFrame(w);
+        const f = ORIGINS.get(frame);
+        return {
+          key: this.key,
+          frame,
+          ox: f === undefined ? 0.5 : f.ox / f.w,
+          oy: f === undefined ? 0.9 : f.oy / f.h,
+        };
       },
       wears: (id, creature) =>
         hatsOn && creature.startsWith('tarentaal') && share(id) < look.hatShare,
+      head: (clip, n) => {
+        const frames = clip === null ? undefined : HAT_ANCHORS.clips[clip];
+        const a = frames === undefined ? HAT_ANCHORS.placeholder : (frames[n] ?? frames[0]);
+        return a ?? HAT_ANCHORS.placeholder;
+      },
+      widthPerHeadR: look.hat.widthPerHeadR,
+      tilt: look.hat.tilt,
     };
   }
 

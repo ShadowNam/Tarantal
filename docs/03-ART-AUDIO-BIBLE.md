@@ -613,9 +613,12 @@ game draws a flat stand-in with the same frames.
 - *Spotted eagle-owl (protected):* seen from below as it glides over, its round face turned to
   the hunter — ear tufts, a grey facial disc, big yellow eyes — grey-brown barred wings with
   splayed dark-tipped primaries, a pale finely barred belly; three wing poses (5 fps).
-- *Witch hats:* a purple-black cone with a bent tip, a brim, an orange band and a buckle, on the
-  head anchor of about a third of the guineafowl (picked by bird id). Three drawings (near, mid,
-  far sizes): the smaller, the bolder and simpler.
+- *Witch hats:* a small purple-black cone with a bent tip, a brim, an orange band and a buckle,
+  on about a third of the guineafowl (picked by bird id). It sits on the head of the frame shown
+  — every clip's head position comes from the poses the bird art is drawn with
+  (`src/game/feesdae/hatAnchors.json`, written by `art:interim -- --only feesdae`) — mirrored with
+  the bird, tilted with the head and a little back, about 2.7 head radii wide. Three drawings
+  (large, medium, small): the smaller, the bolder and simpler.
 - *Cobwebs:* white silk with dew drops (and a small spider) on a corner of the windpomp, the fence
   bell, the baobab, the camelthorns, the quiver tree and the sausage tree (`feel.json feesdae`).
 - *Tally and share card:* a purple edge round the slate with the moon, bats and a lit pumpkin;

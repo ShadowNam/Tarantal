@@ -874,14 +874,14 @@ function legs(i: DrawInput, bodyM: M): string {
 
 // --- neck and head ---------------------------------------------------------------------------
 
-interface HeadAt {
+export interface HeadAt {
   readonly x: number;
   readonly y: number;
   readonly rot: number;
   readonly r: number;
 }
 
-function headPose(i: DrawInput): HeadAt {
+export function headPose(i: Pick<DrawInput, "pose" | "shape" | "cfg">): HeadAt {
   const p = i.pose;
   const h = i.shape.head;
   // The head follows the body's translation, not its squash: it stays near its hitbox.
