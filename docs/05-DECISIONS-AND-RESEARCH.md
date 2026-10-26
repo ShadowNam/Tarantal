@@ -2367,7 +2367,439 @@ bark, dig, camera click) are in a new asset group **`desert`**, loaded with eith
 - On desert maps the Meerkat Spotter climbs out of a burrow mound.
 - **Voice:** the scold ("We're not guineafowl!") and Oupa's Familiefoto line in en/af/de, with the
   v1.5 interim TTS (46 lines per language).
-(6) *Balance* (`tools/perspective-sweep.ts`, 500 seeds, tables in `perspective.md`): Classic
+(6) *Balance* (`docs/balance/v1.7-meerkats.md`, `tools/meerkat-sweep.sh`): before/after on the
+same build, the colonies removed by `--set`. Dubbelloop, 500 seeds, 20 maps: −0.9 % to +4.4 %.
+Rifles against the 4 500 cap: Namibië under (max 4 442).
+- **A finding from before v1.7:** the scoped .22 is over the cap on the Kalahari's Nog Verder and
+  Die Verste: 4 612–5 578 before the colonies, slightly lower after. v1.3 checked the cap on the
+  Karoo only. It is left for its own points change (for example a Kalahari bonus-map
+  `planePointsMul`, as D-039 did for Namibië).
+(7) *Golden replays* were re-recorded on purpose: the content hash changed for all 37. Only the 7
+desert cases changed their events.
+(8) *Sizes* (`npm run size -- --strict`, gzip): the first download is 3 041.7 KB (was 3 032.1 KB;
+the colony code). The desert chunk is 100.7 KB. The Kalahari (1 438.8 KB) and Namibië (1 373.5 KB)
+chunks are unchanged. A Kalahari hunt downloads its chunk plus the desert chunk, 1 539.5 KB in all.
+Each is a chunk of its own under the 1 536 KB cap, as the brief suggested.
+(9) *Tests:*
+- sim tests for the rules (`src/sim/meerkats.test.ts`), the frame mapping, the meta and the
+  captions;
+- e2e for a hunt (`tests/e2e/meerkats.spec.ts`: dive after a shot, −10 and the scold, the
+  Familiefoto);
+- a Pixel 7 perf case (the colonies ≤ 1 ms a frame at 4× throttle);
+- the screenshot spec `tests/e2e/art-preview-v17.spec.ts`. The e2e and screenshots run on CI and
+  the supervisor's machine. For it an e2e-only page hold (`__TM_HOLD_AT__`) freezes the sim right
+  after an event.
+(10) *Names* (docs/i18n-names.md): Familiefoto (`secret.familiefoto`, `hud.familiefoto`,
+`notaboek.familiefoto`), the sentinel (brandwag) in the alarm caption, and the scold, in
+en/af/de/nl, with Afrikaans flavour names for the toggle.
+*Review round (playtest-reviewer, 25 Oct).*
+(11) *A shot pup was stuck* in its tumble for the rest of the hunt: it never scolded, bullets
+passed through it, and its colony could never give the Familiefoto. A shot pup now tumbles, waits
+in the hole and scolds like an adult, then follows its mother again. A sim test shoots a pup.
+(12) *The "never hides birds" check ignored the mounds.* A sentinel stands on the highest mound,
+so the meerkats' band now starts that much higher. Monday's near colonies failed it, so every
+near colony moved from y 950 to 966, below the mid birds' band even on a 28 px mound. The test is
+`colonyChecks.test.ts`.
+(13) *Numbers out of the code:* the pup's start and emerge delays, how far its mother may get
+before it follows, and the dive's run speed are now `meerkats.pup` and `meerkats.diveRunMul`, at
+the same values.
+(14) *e2e:* the scold test picks its meerkat and taps it in one page call, retrying a miss.
+- **Golden replays** re-recorded: only Die Verste (classic-74) and Namibië Thursday (classic-76)
+  changed their events (meerkat positions); their scores are the same.
+- **Balance** was not re-swept for a 16 px shift of the near colonies.
+*Look round (the supervisor's screenshots, 25 Oct; #70 merged into main, then main into this
+branch).*
+(15) *The meerkats looked flat* (grey-brown figures, a plain face), below the v1.4/v1.6 bar. The
+sheet was redrawn from one rig (`tools/art/meerkats.ts`):
+- a torso grown along a spine, with back and belly widths;
+- a cream belly and throat clearly lighter than the back, which is tan to grey-brown with faint
+  bands and fine fur strokes;
+- light from the upper left, a shaded side, haunches, and tapered legs and tail (black tip);
+- the dark eye mask with a small bright eye, a crescent ear and a dark nose;
+- the sentinel chin up, its paws together at the belly;
+- the pup smaller and fluffier, with a bigger head;
+- the run low and stretched, tail up.
+(16) *Burrows:* each mound has 2–3 dark oval holes with an inner shadow and a lit front lip, fresh
+lighter sand fanned out from each hole, scratch marks and tiny tracks.
+(17) *Clear of the HUD:* `colonyHud.test.ts` checks every colony's screen rect against the
+gadget, item slots, belt, reload prompt, timer, Frenzy and score. It runs at every desert map's
+opening view, on desktop 16:9, the Pixel 7 and the iPhone 14 (its insets), right- and
+left-handed.
+- **Near colonies always sit in the bottom HUD row's band,** so they now open in the middle of the
+  view. Three Kalahari mid colonies (Tuesday, Wednesday, Saturday) moved toward the centre,
+  because the iPhone's reload prompt sits higher.
+- **Why only the opening view:** the near plane pans 1:1, so a colony can pass under a corner
+  later, as pop-up birds do.
+- **Balance**, re-measured on the moved maps: −0.6 % to +2.5 % against no colonies.
+- **Golden replays:** only classic-74 and classic-76 changed their events.
+(18) *What one hunt downloads:* a Kalahari hunt loads its chunk and the desert chunk. The sheet is
+now a 48-colour PNG8 (79 KB; it keeps the shading), so the desert chunk is 96.1 KB, and Kalahari +
+desert is **1 534.9 KB** (cap 1 536). Namibië + desert is 1 469.6 KB. `npm run size -- --strict`
+now checks each colony biome's chunk plus the desert chunk.
+*Look round 2 (the product owner, 25 Oct ~19:47: "a little bit more hairy … a tick more furry,
+and a little bit nicer faces").*
+(20) *Fur:* every figure is drawn as fur.
+- The smooth ink outline is replaced by a broken edge of short tufts that lean the way the fur
+  grows.
+- Curved strokes in three tones follow each part's form; the cheeks are fluffy, and the pup is
+  rounder and fluffier.
+- A body's parts are drawn in passes (edges, then fills, then fur), so the haunch blends into
+  the body.
+- The arms have volume and small dark claws.
+(21) *Faces:* a teardrop mask sloping to the nose (not round goggles), a small almond eye with a
+white catch-light, a pale brow, a short tapering muzzle with a small nose and a mouth line, low
+crescent ears and fuller cheeks, in the front and side views.
+(22) *Poses:*
+- The Familiefoto pose is shorter than the side-view sentinel, with a shaded cream belly,
+  haunches, hind feet and the tail on the sand.
+- The runs bend at the knee (reached out, gathered, pushing, in flight).
+(23) *Budget:*
+- The left-looking peek and stand are now the right-looking frames mirrored by the view
+  (`MIRRORED_FRAMES`, two cells freed).
+- The sheet is 32 colours (92 KB; no visible loss against 48).
+- The Kalahari's interim near, foreground and mid layers went from 128 to 96, 96 and 112 colours,
+  with no visible banding.
+- Kalahari 1 426.2 KB + desert 108.7 KB = **1 534.9 KB**. The first download is 3 055.0 KB after
+  merging v1.6b; Poki 3 049.7, CrazyGames 3 049.9 KB.
+- Version 1.7.0.
+(19) *Screenshot spec:* seed 33 (Monday's near colony has a pup) with a new dev/e2e-only
+`?birds=0` (no flocks, pop-ups, fly-over spawns, events or crates), so the meerkats are the
+subject. The Familiefoto shows a clear row, the dash is held mid-run, and there is a
+sentinel-and-pup close-up. Every close-up shows each meerkat at least 150 px tall.
+
+**D-045 Project overview page in the admin (25 Oct 2026):** the product owner asked: "add to the
+admin page a process log page, where the whole build file with all the images is present, but on
+top it should have all the stuff that has been ticked off, all the stuff that we have done and all
+the stuff that is still outstanding, with date and time and which build one can expect it, so that
+I don't have to keep on asking … what questions are unresolved, stuff I need to give feedback on or
+make decisions on, what has been built, what will be built, possible suggestions, and also the
+history page which shows the total build process. And as you publish photos and tests, that all
+gets added there." Rules in Tech §8.4; the data format in `docs/project/README.md`.
+(1) *One data file on its own branch:* the supervisor (Claude) publishes `project.json` on the git
+branch `project-log`, read from `raw.githubusercontent.com` (CORS `*`). Why: the status changes
+many times a day; a branch without CI updates in seconds without a build, a deploy or a review, and
+the test build never has to change for news to show. The page adds `?t=<now>` (the CDN still
+caches ~5 min). `?projectData=` points the page at another copy for tests and previews; on
+`raw.githubusercontent.com` only the ShadowNam account's files, since that host serves anyone's
+and a crafted link must not show the product owner a fake list of decisions.
+(2) *Schema in code, forgiving where it costs nothing:* `src/meta/projectLog.ts` (Zod, types by
+`z.infer`) needs `schema: 1`, the time, the summary, the current build, the jobs and the needs-you
+items; the other lists may be left out (read as empty) and unknown fields are ignored, so a
+hand-edited file with a missing glossary still shows the status. A broken file shows "could not
+be read" and the first Zod issue, so whoever edits it sees what to fix.
+(3) *Allowlist:* the file comes from outside the build, so every string goes in as text, never
+HTML, and links and pictures are kept only when https on `github.com`, `raw.githubusercontent.com`,
+`shadownam.github.io` or `claude.ai` (the hosts the team publishes to); anything else is dropped
+silently. Links open in a new tab without opener or referrer.
+(4) *Gating:* exactly where the Skietbaan's Fresh load is (`freshLoadShown()`: the web build's
+admin page on the dev server and GitHub Pages), never in Poki or CrazyGames builds: the page is a
+lazy chunk behind the raw `VITE_PLATFORM` guard (D-037), checked by a unit test and `size-check`.
+Players never download it; the first download grew by 0.5 KB gzip (the button, its string, the
+guard), the chunk is 15.4 KB gzip.
+(5) *Offline copy:* the last log that loaded is kept on the device (through `storage.ts`, which may
+throw) and shown, marked "Offline copy from <time>", when a load fails, so a weak connection in the
+veld still shows the last status.
+(6) *Namibia time:* every time is shown in `Africa/Windhoek` (UTC+2), labelled once in the header;
+the file stays in UTC. Chrome strings are in en/af/de/nl in the page's own lazy tables
+(`src/i18n/project/`); the log's text is English data.
+(7) *Tests:* `projectLog.test.ts` (schema, allowlist, time formatting, selections and orders, the
+offline copy); `project-overview.spec.ts` on desktop, Pixel 7 and iPhone 14 (landscape; portrait
+also passes) with the log and pictures served by `page.route` (no network), screenshots in
+`docs/art-preview/compare/project-overview-*.png`. No sim, content or replay change.
+
+**D-046 v1.7b Power-ups explained, and an Oupa switch (25 Oct 2026):** the product owner (25 Oct,
+~20:20 Namibia time): "In the gun shed there needs to be a section that explains, with pictures,
+all the power-ups the game has, and what each does. When one collects these power-ups, one is very
+unsure what they actually do. The game indicates too little what is actually happening." And: "Add
+under Settings the option to have the grandfather mode enabled or not. Some people would be
+irritated by always having a grandfather give his input." What the power-ups do and their numbers
+are unchanged (GDD §10.4, §13.7, §18.3).
+(1) *Icons* for all six power-ups and both crate guns (art bible §5): interim art at 2× in the
+D-035 look, 128 px textures (Blitslaai and Oupa Laai moved up from 64 px so all eight match and
+stay crisp on the Gun Shed's 148 px cards). 26 KB together (PNG-8): small enough for the first
+download, so the HUD, the crates and the shed never wait for a lazy group.
+(2) *The crate shows its contents, rolled when it drops.* Options were a "?" (contents secret until
+shot) or the real item. The real item answers the brief directly, and choosing to shoot a crate or
+not is a small, fair decision. The roll moved from `openCrate` to `spawnCrate`, on the same
+`crates` stream right after the crate's position, so a hunt whose crates are each shot before the
+next drops draws exactly the same numbers; only an unshot crate changes the next one's roll.
+`CrateView.item` and `crateSpawned.item` carry it. Golden replays re-recorded: every event hash
+changes (the new field); 36 of 37 keep score and event count, `daily-65-bushveld-wed-aim-touch` goes
+16 966 → 15 886 (a crate it never shot). The frozen v3 Classic fixture's hash is re-derived (score
+and count unchanged). The content hash doesn't change (and no sim version is folded into it:
+that would re-seed the Daily), so 1.7.0 replays and challenge links still load and verify their
+hash; one that left a crate unshot now replays to different events, as the golden case shows.
+(3) *Words built from content.* `src/game/ui/powerupGuide.ts` builds each sentence from
+`powerups.json` (durations, shells, multipliers, `idleTopUpMs`, Padstal price), `weapons.json`
+(crate guns' shots, pellets, ramrod, duration) and `run.json` (rental price); i18n strings hold
+only placeholders. A unit test changes every number in content and checks each card follows it.
+50 % reads "half speed" (`guide.half`), other factors "37 % speed". Decimals use a comma in af, de
+and nl. The Padstal card now shows the same short line for every item; v1.6b's hard-coded
+`item.<id>.desc` strings ("35 %") are gone.
+(4) *Gun Shed → Power-ups tab*: eight cards (icon, name, sentence, how to get it, tip); not yet
+found = darker card with "Not found yet", still fully explained. The list scrolls by drag, wheel
+or ↑/↓; it is drawn by a second camera whose viewport is the list window (clipping that works on
+WebGL and Canvas without masks); each card is a menu item whose rect is its visible part.
+(5) *Pickup card* (top centre under the pause button, `HudLayout.pickup`; never over the
+crosshair or the flock): about 2 s, or 3.5 s with the full sentence and "New!" the first time on a
+save (`powerups.seen`, a new save section, no migration). It is timed on sim ticks, so a held
+frame holds it. A banner arriving while it is up drops below it. It replaces the old "CRATE:
+{item}" banner (and its "Hold to fire" hint: the Mielie-Masjien's line says it).
+(6) *Oupa's first word on each power-up* (`bark.pu.<id>`, en/af/de/nl) is spoken when its card
+first shows: `BarkDirector.claim` speaks now and claims the 6 s gap, like a secret's bark (the card
+is up only briefly). These eight lines have text only for now: the interim TTS models aren't on
+this build server. Voicing them means adding them to `voicedLines` (src/game/audio/voiceLines.ts,
+which the asset catalogue and `npm run audio:voice` read) in the same change as the recordings, so
+the audit never lists a voice key without files. Until then the bubble shows and he says nothing.
+The lines name the item through `{item}` (the HUD fills it, so the Afrikaans-names toggle reaches
+them); a recording would need one take per name the toggle can show.
+(7) *While it runs*: the chip adds the seconds (or shells) left at its right; the last 2 s blink
+on sim time (steady red with "reduce flashes"); `powerEnd` (a descending, softer pickup chime)
+plays when a power-up ends or a crate gun is used up. Looks, all local: Boeretroos — warm edge
+gradients on 16 % of each side (fade in/out over 0.5 s; the centre stays clear; not a flash) and
+effects played at 0.72 rate on buffer sources (music and voice untouched); Chilli Biltong — a ∞
+over the belt and 4 chilli sparks per shot (× the tier's particle scale, dimmed by reduce flashes);
+Bush Buckshot — a warm ring just outside the widened crosshair. Numbers in
+`feel.json → hud.powerups`. The GDD's old "screen edges glow red" for Chilli Biltong became the ∞
+and sparks: a glowing edge was Boeretroos' cue now, and two power-ups with screen-edge looks
+would read alike.
+(8) *Captions* name the item: `caption.pu.<id>` on pickup ("[Farm Coffee: everything slows]") and
+`caption.pu_end` at the end, with `{item}` filled by the HUD (the crate gun's end names the gun it
+was). *Tally:* a "Power-ups used" row (icons and names, icons only if the names don't fit) on
+Classic and Daily tallies; icons in the corner of the Season Run tally.
+(9) *Settings → Oupa's comments: On / Text only / Off* (`settings.oupa`, default On). Two gates:
+`sayBark` shows nothing when Off and voices only when On; the AudioDirector refuses his voice
+unless On (covering secret barks and a line still loading). Off also drops a secret's bark text
+from its banner. Instructions stay: the lesson's prompts and the pickup card are plain HUD text;
+Oupa Laai keeps his hand on the belt. Sound & game's left column has seven rows now, so its rows
+are 68 px (≥ 64 px). The pause menu opens the same Settings scene.
+(10) *Tests:* unit — `powerupGuide.test.ts` (sentences follow every content number, all languages
+filled, how-to lines, decimals), `powerupsSeen.test.ts` (first-pickup memory, old saves),
+`oupaMode.test.ts` (three states, prefs, repair), `crateContents.test.ts` (rolled at spawn, the
+shown item is the one given), captions and AudioDirector cases. e2e (CI, landscape profiles) —
+`tests/e2e/powerup-guide.spec.ts`: eight cards with icons and scrolling; a `?crate=boeretroos`
+pickup's crate icon, card text and countdown; Oupa Off and Text only; the Settings switch.
+Screenshots — `tests/e2e/art-preview-v17b.spec.ts` (ART_PREVIEW=1). The in-page hold hook
+(`__TM_HOLD_AT__`) is v1.7's, ported unchanged for that spec.
+(11) *Sizes* (`npm run size -- --strict`, gzip, after merging v1.7). The v1.x first-download
+line is **3 MB = 3 072 KB** (docs/04, docs/06). With the icons in the first download it was
+3 094.7 KB, over the line, so the eight `ui/pu_*` icons (~26 KB, PNG-8) moved to the **late group**
+(sidecar `group: "late"`; the packer accepts it for sprites): the first crate drops at 22 % of a
+hunt at the earliest. Until the late group lands, the procedural placeholders draw; then
+`upgradePowerupIcons()` swaps them in and bumps an epoch the HUD chips, Oupa's hand, the pickup
+card and the crate tags watch to re-set their textures, and the Gun Shed's Power-ups tab redraws.
+First download now: web **3 069.0 KB**, Poki **3 068.8 KB**, CrazyGames **3 068.8 KB** (59.9 % of
+the 5 MB budget, 3 KB under the 3 MB line). The `powerEnd` recording stays in the first download:
+sounds load beside boot whatever their group (only images and atlases wait for the late queue),
+so moving it would change the report, not what downloads; the synth plays it if it's late.
+Voice packs carry no new lines.
+(12) *Review* (playtest-reviewer): a first pickup's full sentence could overflow the card on 4:3
+or in German/Dutch/Afrikaans — the line now shrinks (to 72 %) and wraps wider until it fits a
+260 px slot sized clear of the left HUD column, and the hook reports where the text ends; Oupa's
+first-pickup line claims the gap before the frame's pick, so a held line (boss, Stampede, quota,
+Oupa Laai) waits instead of being lost; the Gun Shed list draws its own focus ring and ignores drag
+and wheel while Settings covers it; the Season Run tally's row moved clear of its title; the
+chip's "s" goes through i18n. Visual baselines that change: `settings-sound` (the new row, 68 px
+rows) and `padstal` (every offer shows its line).
+(13) *Second review* (independent, at 97b38fc): the first download over 3 MB (11); the pickup card
+can sit over the crosshair or a flushed flock — it now fades to 30 % while the crosshair is over it
+or within 80 px (`hudLayout.pickupAlpha`, unit-tested with crosshair positions); the Skietbaan arms
+a chosen crate gun at tick 0, which showed a card and marked the gun found — range sessions skip
+pickups; a caption could read "[{item} wears off]" after captions were turned on mid-hunt — the HUD
+follows the crate gun either way and an end line with no item is dropped; Oupa's switch silenced
+voices that aren't his (the weavers, the frog, the meerkats) — `isOupaLine()` exempts them, and
+the voice pack keeps loading for them; the e2e no-voice checks wait for the voice pack (and an On
+control hears the greeting); a unit test keeps digits out of the power-up strings; Oupa's
+first-pickup lines name the item through `{item}`; the CHANGELOG no longer claims 1.7.0 replays
+are refused. Owner's screenshots of 079a570: the crate icon is twice as big, opaque on a cream disc
+with a dark ring, above the scenery, on the canopy and the box front (the canopy patch and the
+stencil are gone); the floating item name on a crate is gone (the card says it); the Meerkat
+Spotter and Voorlaaier icons were redrawn stockier. The Settings screen's two build stamps (its
+own and the title's corner stamp under it) were already on main and are left as they are.
+(14) *A freeze after a crate pickup* (CI, Pixel 7 and desktop, after (11)): when the late group
+landed mid-hunt, `AssetManifest.upgrade()` removed the placeholder icons while a HUD chip, a crate
+tag or the pickup card still drew them, and the next render read a destroyed frame ("null
+sourceSize"), stopping the hunt. `upgrade()` now renames a placeholder out of the way
+(`<key>#placeholder-<n>`, a few KB that stay) and adds the delivered image under the key, so
+anything still drawing the old canvas stays valid until its view sets the key again (unit test in
+`AssetManifest.test.ts`). Supervisor screenshots of the final build (45, desktop, Pixel 7 and
+iPhone 14) are in `docs/art-preview/compare/v17b-*`.
+
+**D-047 v1.7c fruit swing and drop when shot (26 Oct 2026):** the product owner (25 Oct, testing
+the sausage tree in the Okavango): "When shooting these fruits, make them swing or drop down."
+Rules in Tech §5 (fruit) and art bible §4.2 (fruit as sprites); tunables `feel.json juice.fruit`.
+(1) *View-only:* fruit are not targets. `FruitView` reads the sim's `pelletImpact` events, maps
+each pellet onto the fruit's layer (`planeX = (cx − 960) × scrollFactor + 960 + dx`) and matches it
+against the fruit's frame; the sim has no fruit state, no hit test changed, nothing scores, and the
+golden replays are identical. A pellet the sim stopped in front of the fruit (a bird on its layer
+or a nearer one, a nearer prop, a crate, a meerkat) never reaches it. A pellet that flew past the
+far plane (or stopped at or behind it) carries the wind drift in its event (7–23 px with the
+Dubbelloop, up to ~75 px with the Windbuks on Verder): on layers in front of the far plane the view
+takes the shot's drift back off (driftPxAtFar × strength × dir × the gun's wind sensitivity × the
+charms' windDriftMul, the sim's own sum), as the sim's mid/near hit test never drifts. Each shot
+is mapped with the camera the sim resolved its tick with (`HuntRunner.cameraAt`: on a frame of
+several ticks while panning, the frame's last camera is up to ~23 px off on the near plane).
+(2) *Motion on sim ticks:* every pose is a pure function of the hits' ticks and the sim tick
+(`fruitMotion.ts`): a damped pendulum per hit (0.9 Hz, down to 5 % in 2.2 s; hits add up), so
+replays and held frames (`?holdAt`) draw the same. One pellet swings it 18°, each extra pellet
++6° (cap 34°); a near miss (within 30 px of the frame) swings it 0.4×. Hanging and standing fruit
+snap off on 3 pellets in one shot, or a hit while the swing is still above 30 % of a one-pellet
+swing (so "hit it, then hit it again"); near misses never drop it. A dropped fruit falls at
+2,400 px/s², bounces twice (0.32 of its speed), rolls 16 px, lies across its fall, takes no more
+hits, never comes back in that hunt and fades after 30 s. Fruit on the ground (marula, !nara
+melons, fallen camelthorn pods) rock 9° and roll 4 px per hit, never drop. Reduce motion: 0.4×
+swings, no bounce. A small leaf puff on a hit and a dust puff on landing (local sprites scaled on
+sim time; no flashes). Sounds: a soft thock on a hit and a thud on landing through
+`AudioDirector.playExtra` (`sfx/fruit_thock`, `sfx/fruit_thud`), synths until recordings are
+delivered: no download.
+(3) *Separate sprites:* the species code hands each reacting fruit, pod or flower to
+`tools/art/fruitSink.ts`; `art:interim` collects them from the mid, near and foreground layers and
+from every prop (the far planes keep theirs baked), renders each on its own and packs them into one
+512 × 512 png8 sheet per biome (`fruit/<biome>`, interim origin), with
+`src/game/view/fruit/spots/fruit-<biome>.json` saying where each sits (layer or prop px, its ground line,
+its frame and pivot). The random streams are used exactly as before, so the rest of every layer
+and prop is unchanged. 282 fruit: Karoo 20 sweet-thorn pods; Bushveld 24 marula fruit and 5 baobab
+pods (the secret pod stays prop art); Okavango 6 sausages and 3 ilala clusters; Kalahari 48
+camelthorn pods; Namibië 92 quiver flower spikes, 17 !nara melons and 67 camelthorn pods. The
+jackalberry draws fruit only at the near detail, which no map uses, so it has none to split.
+(4) *Sizes (gzip):* nothing new in the first download (3,069.4 KB with v1.7b, +0.4 KB: the lazy
+import and the tunables, offset by the Karoo mid layer losing its pods). `FruitView` (5.0 KB) and
+each map's spots table (`fruit-<biome>`) are small lazy chunks fetched when a hunt starts. Sheets
+(after the look round, (6)): Okavango 21.0 KB, Bushveld 9.3 KB and Namibië 31.8 KB in their biome
+chunks (Okavango 1,529.1, Bushveld 1,499.1, Namibië + desert 1,508.3 of 1,536 KB); the Karoo's
+(2.7 KB, no room in the first download) and the Kalahari's (5.8 KB: the Kalahari and desert chunks
+are at 1,534.5 KB together) load with the late group (1,471.3 KB), so their fruit show once it has
+arrived (the first Karoo hunt after a cold start may begin without them; `FruitView` swaps the
+sheet in when it lands, and until then nothing reacts or sounds).
+(5) *Tests:* `fruitMotion.test.ts` and `fruitHits.test.ts` (swing, sides, near misses, drop
+rules, fall/bounce/roll/fade, ground fruit, plane mapping, blocking); `fruit.spec.ts` (Okavango,
+`?birds=0`: a shot beside a sausage swings it, shots at it drop it, it lands, the score stays);
+`art-preview-v17c.spec.ts` (on demand) for `docs/art-preview/compare/v17c-fruit-*.png`.
+(6) *Look round (26 Oct, from the 15f7afe screenshots):* the close-ups showed flat shapes (tan
+"pills" on a straight line, smooth grey eggs); the product owner wants the camelthorn bar on every
+fruit. The sprites now have their own drawings (`tools/art/fruitLook.ts`): sausages long, heavy,
+slightly curved and fatter toward a darker blunt tip, grey-brown mottled rough skin with pale
+lenticels, lit upper left with a shade side, on a thin twisted rope stalk that thickens into the
+fruit; baobab pods velvety ovoids, grey-green to olive-tan, a soft sheen, a fuzzy rim and a woody
+stalk end; round fruit with a shade side, a highlight and a nub (marula speckled, !nara warts and
+pale bands, glossy ilala fruit on a branched rachis); sweet-thorn and camelthorn pods with seed
+bulges, two tones and a lit edge (camelthorn: fuzz); quiver racemes of tubular flowers, open
+yellow below and greener buds above. They are used only for the sprites (the far-plane fruit stay
+baked in their old look, so no layer changed) and seed their own random streams. Prop fruit (seen
+close up, like the 2× props) are drawn at 2×. A hanging fruit is now two frames: its stalk stays
+on the tree (and swings out) when the fruit snaps off, and the fruit falls from the stalk's end, so
+a sausage no longer lies with a 200 px stalk across the tree. A dropped fruit lands toward the side
+it swung and rolls on until it lies `trunkClearPx` (10 px) clear of its trunk (the species code
+gives each fruit its trunk's foot), so it never reads as stuck to the trunk; a soft contact shadow
+lies under it.
+(7) *Second review round (26 Oct, at 611a1d4):* fruit now take the map light's tint on their
+layer (`ParallaxView.layerTint`, the same compound tint as the layer art and props:
+`lightTint.ts`), so they match their tree on dawn mist, overcast, golden, dusty and dusk maps, and
+they sit below the light's haze. Draw order per layer: layer art → the layer's fruit → its props →
+its props' fruit → haze → fixtures (meerkats, secret marks) → birds, so a layer fruit behind a
+prop (the Kalahari pods under the weaver tree's foot, the marula behind the dassie koppie) stays
+behind it as it was in the baked art. Wind drift and the shot's camera: see (1). Cost: a fruit at
+rest, faded out or settled is posed once and skipped until a shot moves it; fruit off screen are
+hidden and skipped; a drop works its fall out once. Poses use the interpolated sim time (the
+snapshot's tick − 1 + the frame's alpha), as the birds and the camera do, so a falling fruit is
+smooth on 90/120 Hz screens and a held frame still holds.
+
+**D-048 Feesdae (special-day Dailies) and Halloween's Spookjag, 31 Oct (26 Oct 2026):** the
+product owner (26 Oct): "Halloween special yes, go ahead", from the Feesdae list of 24 Oct
+("Halloween, 31 Oct: 'Spookjag', a dusk hunt with owls, bats, pumpkin lanterns and guineafowl in
+witch hats"). Rules in GDD §15 (Feesdae), Tech §12 (Feesdae) and §3.10 (InputLog v6), art bible §11.
+(1) *A system, content-driven:* `content/feesdae.json` (Zod `FeesdaeSchema`, cross-refs: unique
+ids and dates, i18n keys, a known biome, bats positive and owls negative, enough lantern spots;
+`content:validate` checks the light preset and the `feel.json feesdae.looks` entry). A special has
+an id, a date rule (a fixed UTC month/day; the schema is a union so ranges can join it), a map
+(`daily` = the day's map, or a fixed biome/layout), a light, its twist's numbers, decoration ids,
+Oupa's lines, a sting and a share frame. Only Halloween is in it; the other holidays are content
+later. It is in the bundle and `contentHash`: the twist is a rule, and replays must carry it.
+(2) *The date is an input of the mode:* the game decides (`src/meta/feesdae.ts`, the UTC day from
+`Date.now()` or `?today=`); the Daily's seed rule is unchanged; the special's id goes into
+`ModeConfig.feesdag` (Daily only, else the sim throws), InputLog v6 and challenge links (`f`). The
+sim never reads a clock. Overrides: `?feesdag=<id|none>` on dev/e2e builds and the web admin page
+(a "Special days" group with Play for each); never on a Poki or CrazyGames build. The e2e `boot()`
+pins `feesdag=none` unless a spec names a special, so no spec changes on 31 Oct.
+(3) *The twist in the sim* (`src/sim/feesdag/spookjag.ts`, its own `feesdag` RNG stream): 7–10
+bats and 2–3 owls cross edge to edge (bats on the mid or far plane, 210–430 px down; owls on the mid plane only, 250–370 px, about a guineafowl's size, across the moon's height and clear of the top HUD) (bats 560 px/s with ±70 px swerves
+every 0.18–0.42 s; owls 260 px/s, gentle); 3–5 lanterns stand on prop tops or their own post or rock in front of the flock
+line. They are `HitExtra` kind `spook`, not birds: they need no bird rig, atlas or flock logic,
+and the bird pipeline (spawn director, Bird Book, hitShots, Whole Flock) stays as it was. Scoring
+follows GDD §5.3 (supervisor review, 26 Oct): a bat (+15) and Lanterns out (+25, once) are event
+bonuses like a secret's — Frenzy × Stampede, a `bonusAwarded` event (`bat`, `lanternsOut`) — and
+an owl (−10) is a penalty on the hadeda's path (`penaltyApplied` with creature `ooruil`, the charms'
+penalty trigger, a penalty in the tally). Spookjag ids start at 1,000,000, clear of bird ids. A shot that hits only Spookjag
+things leaves the Frenzy streak alone, like a secret part. Events: `feesdagStarted`, `spookFlew`,
+`spookHit`, `lanternsOut`. Everything else of the Daily (quota, omens, crates) is as it was. By
+design (review, 26 Oct): bats and owls keep their speed
+under slow-mo and Boeretroos (they are the day's sky, not birds); touch assist snaps only onto
+birds, so a snapped pattern's other pellets may still catch an owl, as they may a hadeda.
+*Golden replays:* every existing event hash is unchanged (re-recorded for the new content hash
+only); `daily-2026-10-31-halloween-competent-pointer` is new.
+(4) *The look in the game:* the special's light replaces the layout's (Halloween: `spookjag`, its own dark, cool grade, and a soft vignette); a lazy
+chunk (`FeesdagView`, 4.0 KB gz) draws the moon and sky bats, the lanterns with a slow additive
+glow (no flashes), bats and owls, cobwebs on props (`feel.json feesdae.looks`), a puff when a
+lantern goes out, and gives the `BirdView` witch hats for about a third of the guineafowl (by bird
+id; a hat drawing per plane size on the head anchor, like the Generaal's pot). The title's Daily
+button shows the special's name and a badge; the HUD tag reads "Spookjag · DAILY #n"; the tally
+has a purple frame with the moon, bats and a pumpkin, the title "Spookjag 2026" and a
+Bats/Owls/Lanterns row; the share text is framed 🎃🦇 … 🦇🌕. Oupa says five lines (start, a bat, an
+owl, lanterns out, the end; triggers `feesdag*` take their lines from feesdae.json), voiced en/af/de
+with the interim TTS, and respect his switch. Captions for the sting, the owl, a bat and a lantern.
+(5) *Assets in lazy groups:* `feesdae` holds the 2× sheet (png8, 1920 × 1882) and four sounds
+(sting, hoot, squeak, puff): 201.5 KB gzip; Oupa's five Spookjag lines are a group per voice
+language (`feesdae-voice-en/af/de`, 113–134 KB), so the year-round voice packs don't carry them.
+All are fetched only when a special day's hunt starts (the current voice language's lines; another
+language picked since: on the next one). The hunt starts once the view's code is in (a veil with
+the special's name; if the code fails, the art-failed message with Retry and Back); the files load
+in the background, all at once, and one that failed is tried again on the next special-day hunt.
+Until the sheet arrives a code-drawn stand-in with the same frames shows (built only while the
+sheet is missing); the view swaps images with `setTexture` and never removes a texture. Interim
+art `npm run art:interim -- --only feesdae` (tools/art/halloween.ts, and the witch hats' head
+anchors tools/art/hatAnchors.ts), sounds in tools/audio/sfx.ts.
+(6) *Sizes (gzip, `npm run size -- --strict`):* the first download had 3 KB left, so the build now
+ships content JSON without its `$comment` notes (`tools/stripComments.ts`, a Vite plugin; the
+content hash already ignored them; −9 KB), which pays for the special day's code and strings.
+First download: web 3,070.8 KB, Poki 3,064.1 KB, CrazyGames 3,064.2 KB (limit 3,072 KB; 1.7.2 web
+3,069.1 KB). No biome chunk grew (Bushveld 1,499.1, Okavango 1,529.1, Kalahari + desert 1,534.5,
+Namibië + desert 1,508.3, late 1,471.3), nor the voice packs (af 718.3, de 867.6, en 663.8).
+(7) *Supervisor review, 26 Oct (screenshots on desktop and Pixel 7):* the scoring went through the
+pipeline (above); witch hats moved from the hitbox's head to each frame's drawn head, sized to it;
+every lantern is carved and lit at every size (a bold half-size drawing far away) and stands on a
+prop's top or its own post or rock in front of the flock line; the Spookjag got its own dark, cool
+grade (`spookjag` light) and a vignette in place of the warm `dusk`; owls became guineafowl-sized
+on the mid plane and fly a band below the HUD; the title hides the Classic map line on a special
+day and hangs the badge under the Daily's label; the tally's moon moved clear of the tag. A second
+Halloween golden (a `spook` bot) covers the bat bonus, the owl penalty and Lanterns out; `?spook=early`
+(e2e/dev) brings owls and bats in early for the specs.
+
+**D-049 Perspective: birds get smaller with distance, on every map (26 Oct 2026):** the product
+owner (26 Oct, playing the Karoo): "the guineafowl, the further away they are, the smaller they
+get … the ostriches, because they're far away, are small, but the guineafowl is even bigger than
+they are … still in such a way that one can still shoot them … this needs to apply to all the
+levels." (1) *Measured* (`tools/perspective-audit.ts`, tables in `docs/balance/perspective.md`):
+a far guineafowl (58 px standing at 0.22) looked 8–12× too big next to the far springbok and
+ostriches and 10–19× next to the giraffes and elephants; the far animals had been drawn for a far
+plane near scale 0.03. (2) *Plane scales* (`scoring.json`): near 1.0 (pop-ups, unchanged), mid
+0.5 → **0.42**, far 0.22 → **0.15**, Ver 0.1 → **0.07**: 263 / 110 / 39 / 18 px standing. Smaller
+than 0.15 makes far birds hard to read and to hit, so the rest of the gap is closed from the
+animals' side. (3) *Far animals* (`feel.json perspective.faunaScale`, client only): every far herd
+shows at 3× (their art is drawn at 3×, D-042, so no upscaling); the Namibië waterhole's animals
+are re-drawn 5× taller in the same spots (scaling its sprite would spread them off the water). A
+far guineafowl now stands below every ostrich and springbok beside it; the remaining oversize
+(1.8–4×) is for the HD redraw, which draws to the per-species target heights in
+`perspective.md`. Mid-plane props (windpomp, bakkie, trees, reeds) keep their stage-set scale:
+true proportions would make a windpomp 2 000 px tall, and many are occluders or secrets. (4)
+*Everything on a plane scales with it:* px tunings written "at the mid plane" (flock spacing,
+speeds, alert radii, crate drops, dust devils, Skietbaan) are now × plane scale ÷
+`scoring.tuningRefScale` (0.5), so they shrink with the birds; crates, feathers
+(`juice.featherPerScale`), boss pots, Spookjag hats, lanterns, bats, owls and meerkats follow the
+plane scale; bird atlases are packed at the new sizes (the asset index records each atlas's packed
+scale, so a dev override draws correctly). (5) *Still shootable* (sim, content): a target's body hit
+radius is at least `planes.*.minHitRadiusPx` for every input — far 18 px, Ver 10 px (heads scale as
+drawn; a floored head made a 36 px-wide target); touch assist far 18 → 12, mid kept at 14 (the floor
+already widens far birds); far points 25 → 22 (`tune`). Pellet spread unchanged. (6) *Balance* (`tools/perspective-sweep.ts`, 500 seeds, tables in `perspective.md`): Classic
 Dubbelloop competent 4 258 → 4 313 (mouse), 4 262 → 4 312 (touch). Every gate that passed on main
 passes; the Langloop's Classic mean fell under 2 500, so it scores ×0.72 mid (was 0.65) and ×1.15
 far (new): 2 585. Long-range cap held everywhere (highest: Namibië Thursday .22 scope 4 376).
@@ -2375,7 +2807,7 @@ Season Run: all eight cells pass. *Accepted:* the plinker loses 8.5–11.4 % on 
 (fixed-px aim error against smaller mid birds; mid touch assist kept at 14; no gate limits it);
 shotguns on the far-heavy bonus maps lose 5–23 % (those maps are for rifles); the Spookjag Daily
 competent rises 4 518 → 5 004 (+11 %), as the plain Bushveld Saturday Daily does: tighter flocks
-under the same pellet pattern give more two-bird shots. (5b) *Review:* the floor applies to
+under the same pellet pattern give more two-bird shots. (6b) *Review:* the floor applies to
 targets and bosses only (don't-shoot birds and the owl stay as drawn); the Spookjag's bats and
 lanterns get it, and its flyers convert px tunings with `tuningRatio`. (7) *Size:* first download 3 071.5 → 2 965.2 KB gzip on the web
 build (−106.3 KB; Poki 2 958.6, CrazyGames 2 958.7), room for the Karoo HD aloes; the waterhole
