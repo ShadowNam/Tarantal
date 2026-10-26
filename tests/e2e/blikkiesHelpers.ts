@@ -71,11 +71,14 @@ export interface JuggleRun {
 
 /**
  * Shoots tin cans from inside the page until the hunt's longest chain reaches `wantChain` (0:
- * one knock-off is enough), the belt is empty, or `budgetMs` runs out. Each frame: a can in the
- * air is shot when it turns at the top of its arc (it hardly moves there); otherwise the resting
- * can nearest the screen centre is shot. Shots keep the gun's cooldown (`cooldownTicks`) and
- * wait for the sim to count each one. No flock stands at the fence's posts on these maps; a
- * pellet that a bird takes first is just another try.
+ * one knock-off is enough), the belt is empty, or `budgetMs` runs out. Every shot is
+ * frame-perfect whatever the frame rate: when the gun is ready the sim is held at the current
+ * tick (`__TM_HOLD_AT__`), the can is read from the hook once the frame shows that tick, the
+ * pointer goes down on it, and the hold is let go — the queued shot then resolves on the next
+ * tick, before the can moves (the sim runs commands before the cans fly). A can in the air comes
+ * first; else the resting can nearest the screen centre. Shots keep the gun's cooldown
+ * (`cooldownTicks`) and wait for the sim to count each one. A pellet a bird takes first is just
+ * another try.
  */
 export async function juggle(
   page: Page,
@@ -89,15 +92,39 @@ export async function juggle(
       new Promise<JuggleRun>((resolve) => {
         const w = window as unknown as {
           __canPointer?: number;
-          __canLastY?: Map<number, number>;
+          __TM_HOLD_AT__?: (tick: number) => void;
         };
-        w.__canLastY = new Map();
+        const hold = (t: number): void => {
+          w.__TM_HOLD_AT__?.(t);
+        };
         const deadline = performance.now() + budget;
         let lastFireTick = -1e9;
         let waitShots = -1;
+        let phase: 'idle' | 'holding' | 'wait' = 'idle';
+        let heldAt = -1;
+        let heldFrames = 0;
         const done = (empty: boolean): void => {
+          hold(1e12);
           const g = window.__TM__;
           resolve({ log: [...(g?.canLog ?? [])], bestChain: g?.cans?.bestChain ?? 0, empty });
+        };
+        const pick = (): { x: number; y: number } | null => {
+          const g = window.__TM__;
+          if (g === undefined) return null;
+          const spots = g.cans?.spots ?? [];
+          const inView = (x: number, y: number): boolean =>
+            x > 60 && x < g.designWidth - 60 && y > 30;
+          const air = spots.find(
+            (c) => (c.state === 'air' || c.state === 'bounced') && inView(c.x, c.y),
+          );
+          if (air !== undefined) return { x: air.x, y: air.y };
+          // Another can is still in the air (out of view): let it come down first.
+          if (spots.some((c) => c.state === 'air' || c.state === 'bounced')) return null;
+          const centre = g.designWidth / 2;
+          const rest = spots
+            .filter((c) => c.state === 'rest' && inView(c.x, c.y))
+            .sort((a, b) => Math.abs(a.x - centre) - Math.abs(b.x - centre))[0];
+          return rest === undefined ? null : { x: rest.x, y: rest.y };
         };
         const fire = (x: number, y: number): void => {
           const g = window.__TM__;
@@ -129,39 +156,38 @@ export async function juggle(
           }
           const best = g.cans?.bestChain ?? 0;
           if (
-            (want === 0 && g.canLog.some((e) => e.startsWith('knock'))) ||
-            (want > 0 && best >= want)
+            phase !== 'holding' &&
+            ((want === 0 && g.canLog.some((e) => e.startsWith('knock'))) ||
+              (want > 0 && best >= want))
           ) {
             done(false);
             return;
           }
-          if (g.shells === 0 && !g.reloading) {
-            done(true);
-            return;
+          if (phase === 'wait') {
+            if (g.shots > waitShots) phase = 'idle';
+          } else if (phase === 'holding') {
+            // Two frames on the held tick: the hook shows it.
+            if (g.tick === heldAt && ++heldFrames >= 2) {
+              const t = pick();
+              if (t !== null) {
+                fire(t.x, t.y);
+                phase = 'wait';
+              } else phase = 'idle';
+              hold(1e12);
+            } else if (g.tick !== heldAt) heldAt = g.tick;
+          } else {
+            if (g.shells === 0 && !g.reloading) {
+              done(true);
+              return;
+            }
+            const ready = !g.reloading && g.shells > 0 && g.tick - lastFireTick >= cd;
+            if (ready && pick() !== null) {
+              heldAt = g.tick;
+              heldFrames = 0;
+              hold(g.tick);
+              phase = 'holding';
+            }
           }
-          const spots = g.cans?.spots ?? [];
-          const lastY = w.__canLastY ?? new Map<number, number>();
-          // The shot before still counting, the gun cooling or reloading: wait.
-          const busy =
-            (waitShots >= 0 && g.shots <= waitShots) || g.reloading || g.tick - lastFireTick < cd;
-          const inView = (x: number): boolean => x > 80 && x < g.designWidth - 80;
-          const flying = spots.filter((c) => c.state === 'air' && inView(c.x) && c.y > 40);
-          let target: { x: number; y: number } | null = null;
-          for (const c of flying) {
-            const before = lastY.get(c.id);
-            // Turning at the top: it was rising and now hardly moves or falls.
-            if (before !== undefined && c.y >= before - 0.5) target = { x: c.x, y: c.y };
-          }
-          for (const c of spots) lastY.set(c.id, c.y);
-          if (target === null && flying.length === 0) {
-            const centre = g.designWidth / 2;
-            const resting = spots
-              .filter((c) => c.state === 'rest' && inView(c.x))
-              .sort((a, b) => Math.abs(a.x - centre) - Math.abs(b.x - centre));
-            const c = resting[0];
-            if (c !== undefined) target = { x: c.x, y: c.y };
-          }
-          if (!busy && target !== null) fire(target.x, target.y);
           requestAnimationFrame(frame);
         };
         requestAnimationFrame(frame);

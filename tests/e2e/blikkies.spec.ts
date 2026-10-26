@@ -31,7 +31,7 @@ test.describe('Blikkies: tin cans on the fence posts (v1.8, D-050)', () => {
     const start = await hook(page);
     expect(start.cans?.plane).toBe('near');
     expect(start.cans?.spots.every((c) => c.state === 'rest')).toBe(true);
-    const pops0 = start.pops.created;
+    const pops0 = start.pops.shown;
 
     // Knock one off: a can in the air pays the knock-off.
     let run = await juggle(page, touch, 0, COOLDOWN);
@@ -59,7 +59,7 @@ test.describe('Blikkies: tin cans on the fence posts (v1.8, D-050)', () => {
     const h = await hook(page);
     expect(h.score, 'cans pay event bonuses').toBeGreaterThan(0);
     // The chain pops ("2× in the air!") and the knock-off's "Tink!" came with the hits.
-    expect(h.pops.created).toBeGreaterThan(pops0 + 2);
+    expect(h.pops.shown).toBeGreaterThan(pops0 + 2);
     // Dents stay on the cans that were hit.
     expect(h.cans?.spots.some((c) => c.marks > 0)).toBe(true);
     // Perf (Pixel 7 profile and the others): drawing the fence and the cans in the air stays
