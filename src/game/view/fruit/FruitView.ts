@@ -67,7 +67,7 @@ export interface FruitHookSpot {
   readonly species: string;
   readonly x: number;
   readonly y: number;
-  /** Centre of the fruit's frame on screen (where to aim). */
+  /** Where to aim at its body on screen. */
   readonly aimX: number;
   readonly aimY: number;
   readonly angle: number;
@@ -281,7 +281,7 @@ export class FruitView {
     this.lastTick = s.tick;
   }
 
-  /** On-screen fruit for the e2e hook (at most 60). */
+  /** Every fruit for the e2e hook, on screen or not (at most 200), in screen design px. */
   spots(): FruitHookSpot[] {
     const out: FruitHookSpot[] = [];
     for (const f of this.fruit) {
@@ -290,8 +290,10 @@ export class FruitView {
       const sx = (x: number): number => node.root.x + x * node.root.scaleX;
       const sy = (y: number): number => node.root.y + y * node.root.scaleY;
       const x = sx(f.img.x);
-      if (x < -50 || x > this.scene.scale.width + 2000 || out.length >= 60) continue;
-      const cy = f.img.y - f.spot.oy + f.spot.fh / 2;
+      if (out.length >= 200) break;
+      // Aim at the body: low in a hanging frame (the stalk is above), high on a flower spike.
+      const down = f.spot.motion === 'hang' ? 0.72 : f.spot.motion === 'stand' ? 0.3 : 0.5;
+      const cy = f.img.y - f.spot.oy + f.spot.fh * down;
       const cx = f.img.x - f.spot.ox + f.spot.fw / 2;
       const land = landTick(f.spot, f.state, this.tuning, this.reduced);
       out.push({
