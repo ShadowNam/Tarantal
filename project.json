@@ -1,11 +1,11 @@
 {
  "schema": 1,
- "updated": "2026-10-26T22:07:00Z",
+ "updated": "2026-10-26T22:12:00Z",
  "by": "Claude",
  "summary": "Live on the test build: perspective (1.7.4, merged 20:34 Namibia time): guineafowl get smaller with distance on every map, the far animals are shown bigger, and far birds keep a minimum hit size so they stay shootable; the first download is 106 KB smaller. The Halloween Spookjag (1.7.3) is in too: try it early on the admin page: Special days → Spookjag · 31/10 → Play. Tank is building v1.8 Blikkies (tin cans on the farm fence to shoot off and juggle). Then: Karoo polish, far animals in HD, makalani palms, tree life, optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
   "version": "1.7.4",
-  "commit": "7a46adc"
+  "commit": "7e73853"
  },
  "links": [
   {
@@ -37,12 +37,12 @@
   {
    "label": "Version on the test build",
    "value": "1.7.4",
-   "note": "commit 7a46adc, merged 26 Oct, 22:33 Namibia time (the test build deploys a few minutes after)"
+   "note": "commit 7e73853, merged 27 Oct, 00:11 Namibia time (the test build deploys a few minutes after)"
   },
   {
    "label": "Pull requests merged",
-   "value": "81",
-   "note": "#1 to #85"
+   "value": "82",
+   "note": "#1 to #86"
   },
   {
    "label": "Unit tests",
@@ -2104,6 +2104,11 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-26T22:11:00Z",
+   "kind": "merge",
+   "text": "Test fix merged (PR #86): the Halloween lantern test copes with a lantern the camera can't centre. Tank merges main into the tin-can branch next."
+  },
   {
    "at": "2026-10-26T22:00:00Z",
    "kind": "request",
