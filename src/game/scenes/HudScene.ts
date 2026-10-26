@@ -705,7 +705,9 @@ export class HudScene extends Phaser.Scene {
       this.ctx.barks.secret(now);
       this.bubble?.hide();
     }
-    const firstPickup = this.pickups(s, events, l);
+    // v1.7b (D-046): the Skietbaan arms a chosen crate gun at tick 0: that's no pickup (no card,
+    // nothing marked found in the save).
+    const firstPickup = this.rangeOn ? null : this.pickups(s, events, l);
     this.updateBarks(s, events, now, l, firstPickup);
     const banner: string[] = [];
     for (const e of events) {
