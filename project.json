@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "updated": "2026-10-26T06:16:00Z",
+ "updated": "2026-10-26T06:28:00Z",
  "by": "Claude",
  "summary": "Merged and live on the test build: v1.7 meerkats (Kalahari and Namibië only), v1.7b power-ups explained + Oupa's comments switch, and now v1.7c (07:34): fruit that swings or drops when shot, with the redrawn sausages and baobab pods (version 1.7.2). Now: Tank is building the Halloween Spookjag (ready before 31 Oct). Then, in this order: perspective (birds smaller with distance), v1.8 Blikkies (moved up), Karoo polish (HD aloes, the boiling potjie), far animals in HD, makalani palms in the Okavango, tree life (baobab residents, a better sausage tree, weavers around their nest) and optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
@@ -2032,6 +2032,11 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-26T06:27:00Z",
+   "kind": "screenshots",
+   "text": "Halloween: Tank pushed the browser tests and the screenshot spec; Claude is taking the screenshots on desktop, Pixel 7 and iPhone 14 and running an independent review while Tank finishes the sizes and docs."
+  },
   {
    "at": "2026-10-26T06:16:00Z",
    "kind": "merge",
