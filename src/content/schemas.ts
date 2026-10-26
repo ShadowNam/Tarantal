@@ -1581,6 +1581,47 @@ export const FeelSchema = obj({
       /** Sim ticks per wingbeat frame. */
       flapTicks: posInt,
     }),
+    /** v1.7c (D-047): fruit, pods and flowers react to shots (rendering only, from the event
+     *  stream's pellet impacts; FruitView, fruitMotion.ts). */
+    fruit: obj({
+      /** A pellet within the fruit's frame grown by this many px hits it. */
+      hitPadPx: nonNeg,
+      /** A pellet this far outside the frame (px) is a near miss: a smaller swing. */
+      nearMissPx: nonNeg,
+      nearMissMul: fraction,
+      /** Swing amplitude for one pellet (degrees), more per extra pellet, and the cap. */
+      swingDeg: pos,
+      perPelletDeg: nonNeg,
+      maxSwingDeg: pos,
+      /** Pendulum frequency, and the time until a swing has died down to 5 %. */
+      swingHz: pos,
+      swingSeconds: pos,
+      /** Hanging and standing fruit snap off on this many pellets in one shot, or on a hit while
+       *  the swing is still above this share of a one-pellet swing. */
+      dropPellets: posInt,
+      dropWhileSwinging: fraction,
+      /** The fall: gravity, bounce (velocity kept per bounce) and bounces, sideways drift and the
+       *  roll after landing. */
+      gravityPxPerS2: pos,
+      bounce: fraction,
+      bounces: nonNegInt,
+      driftPxPerS: nonNeg,
+      rollPx: nonNeg,
+      rollSeconds: pos,
+      /** A dropped fruit rolls on until it lies at least this far (px) clear of its trunk. */
+      trunkClearPx: nonNeg,
+      /** Fruit on the ground: a rock (degrees) and a small roll (px) per hit. */
+      rockDeg: nonNeg,
+      nudgePx: nonNeg,
+      /** A dropped fruit fades after lying this long (seconds), over fadeSeconds. */
+      fadeAfterSeconds: pos,
+      fadeSeconds: pos,
+      /** The leaf puff on a hit and the dust puff on landing: lifetime and size (design px). */
+      puffSeconds: pos,
+      puffPx: pos,
+      /** Settings → reduce motion: swings times this, and no bounce. */
+      reducedMotionMul: fraction,
+    }),
     /** GDD §17 Stampede: a warm sky tint fades in (steady, never pulsing) and the ground rumbles
      *  (a small camera shake every rumbleEveryMs, off with Settings → screen shake). */
     stampede: obj({

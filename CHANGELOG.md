@@ -3,6 +3,30 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.7.2] — fruit swing and drop when shot (26 Oct 2026)
+
+Decision record D-047. Rendering only: the sim, the content it reads and the golden replays are
+unchanged, so replays from 1.7.1 stay valid.
+
+### Added
+- **Fruit react to shots.** Hit a hanging fruit and it swings on its stalk; a near miss swings it
+  a little. Hit it hard (three pellets) or again while it still swings and it snaps off, falls,
+  bounces once or twice with a puff of dust, rolls and lies there for the rest of the hunt.
+  Fruit on the ground rock and roll a little. Sausages and ilala clusters in the Okavango, baobab
+  pods and marula fruit in the Bushveld, sweet-thorn pods in the Karoo, camelthorn pods in the
+  Kalahari and Namibië, quiver-tree flowers and !nara melons in Namibië.
+- A soft thock on a hit and a thud on landing. Reduce motion: smaller swings, no bounce.
+- Fruit are not targets: no score, no penalty, and they never take a shot from a bird.
+
+- Each fruit is drawn in detail: mottled, curved sausages with pale dots on rope stalks, velvety
+  baobab pods, warty !nara melons, glossy ilala bunches, seeded pods and quiver-tree racemes. A
+  dropped fruit leaves its stalk on the tree, lands to the side it swung, clear of the trunk, with
+  a soft shadow under it.
+
+### Changed
+- The interim tree and prop art no longer has those fruit drawn in; they are sprites in a small
+  sheet per biome (in the biome's download, or the late group for the Karoo and Kalahari).
+
 ## [1.7.1] — power-ups explained, and an Oupa switch (25 Oct 2026)
 
 Decision record D-046. What the power-ups do and their numbers are unchanged. A crate's contents

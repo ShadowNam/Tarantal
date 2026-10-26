@@ -550,6 +550,19 @@ v1.4 B (D-039):
   (any penalty secret with `feel.json juice.weavers.barkKey`) starts a burst. The flight is a pure
   function of the prop id, the event tick and the sim tick (`weaverFlight.ts`). The pool holds 36
   sprites; the chatter is `AudioDirector.weavers()`.
+- **Fruit react to shots (v1.7c, D-047)** (`src/game/view/fruit/`), rendering only. The hanging
+  and fallen fruit, pods and flowers are sprites from the biome's `fruit/<biome>` sheet, placed by
+  `spots/fruit-<biome>.json` on their layer or prop (fixtures container: above props, below birds).
+  `FruitView` maps each `pelletImpact` onto the fruit's layer and swings, drops or rocks the fruit
+  (`fruitHits.ts`, `fruitMotion.ts`: pure functions of the hit ticks and the sim tick, so held
+  frames and replays draw the same). The sim never sees fruit: no state, no score, no change to
+  any hit test, and a pellet the sim stopped in front of a fruit never reaches it. Pellets are
+  mapped as the sim saw them: with the camera of their tick (`HuntRunner.cameraAt`) and without
+  the wind drift the sim adds to far-landing pellets' events (`fruitHits.ts pelletsOnLayer`).
+  Fruit take their layer's light tint and sit in two containers per layer (`LayerNode.fruit`
+  above the layer art, `propFruit` above the props), both below haze and fixtures. Poses use the
+  interpolated sim time; still and off-screen fruit are skipped. HuntScene imports the view
+  lazily per map (its own chunk); tunables in `feel.json juice.fruit`.
 - **The mirage** (`WorldView.drawMirage`): a few soft strips over the far and Ver horizons. They
   move on sim time and stay still with reduce flashes or reduced motion.
 - **2× props:** a prop plan's `master: 2` image is packed per plane (near and mid 2×, far and Ver

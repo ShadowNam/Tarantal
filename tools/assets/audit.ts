@@ -128,6 +128,9 @@ function usages(
   } else if (kind === 'texture' && key.startsWith('fauna/')) {
     // v1.6 (D-042): far animal sprites, placed by name from src/game/view/faunaSprites.ts.
     needles.push(quoted(key));
+  } else if (kind === 'texture' && key.startsWith('fruit/')) {
+    // v1.7c (D-047): a biome's fruit sheet, named from the biome id by FruitView.
+    needles.push(/fruitSheetKey\(biome\.id\)/);
   } else if (texName === undefined) {
     // Props and layers are named by their asset id in the biome files.
     needles.push(new RegExp(`"asset":\\s*"${key}"`));

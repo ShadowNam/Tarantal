@@ -100,7 +100,8 @@ const sidecarOrigin = z
      *  master). Packed per plane (PROP_PLANE_RES) and shown scaled by 1 / that resolution. */
     master: z.number().int().min(1).max(4),
     /** v1.3: the long-range chunk (sight pictures, D-036) instead of the key's own group;
-     *  v1.7b (D-046): or the late group (the power-up icons, after the first download). */
+     *  v1.7b (D-046): or the late group (the power-up icons, after the first download; v1.7c,
+     *  D-047: the Karoo's and Kalahari's fruit sheets). */
     group: z.enum([VER_GROUP, LATE_GROUP]),
   })
   .partial();

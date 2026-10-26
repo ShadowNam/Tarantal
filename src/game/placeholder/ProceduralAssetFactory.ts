@@ -25,6 +25,7 @@ import { verBand, type Band, type BiomeArt } from './biomeArt';
 import { sightSpecs } from './sightArt';
 import { ellipse, ground, inked, INK, prng, tuft } from './draw';
 import { FAUNA_FOOT, FAUNA_SPRITES } from '../view/faunaSprites';
+import { FRUIT_SHEET, fruitSheetKey } from '../view/fruit/fruitTypes';
 import { hasColonies } from '../../sim/meerkats/colony';
 import { MEERKAT_SOUNDS } from '../assets/desertAssets';
 
@@ -1532,6 +1533,17 @@ export function createPlaceholderManifest(
         // Nothing: without delivered art there are no far animals.
       },
     });
+  // v1.7c (D-047): the biome's fruit sheet (drawn art only: the placeholder is empty).
+  m.addTexture({
+    key: fruitSheetKey(biome.id),
+    width: FRUIT_SHEET.width,
+    height: FRUIT_SHEET.height,
+    originX: 0,
+    originY: 0,
+    draw() {
+      // Nothing: without delivered art the fruit stay baked out and FruitView shows none.
+    },
+  });
   for (const s of art.extraTextures?.() ?? []) m.addTexture(s);
   // v1.7 (D-044): a map with meerkat colonies plays their sounds (the desert group).
   if (hasColonies(biome)) for (const key of Object.values(MEERKAT_SOUNDS)) m.addSound(key);
