@@ -6,6 +6,13 @@ import type { ArtPlaneId as PlaneId } from '../../src/game/assets/artPlane';
 import { coreWidth, LAYER_BLEED_PX } from '../../src/sim/world';
 import { COMMON_GROUP } from '../../src/game/assets/assetIndex';
 import { DESERT_GROUP, isDesertKey } from '../../src/game/assets/desertAssets';
+import {
+  FEESDAE_GROUP,
+  HALLOWEEN_SHEET,
+  SHEET_H as FEESDAE_SHEET_H,
+  SHEET_W as FEESDAE_SHEET_W,
+  SPOOK_SOUNDS,
+} from '../../src/game/feesdae/feesdaeAssets';
 import type { AssetKind } from '../../src/game/assets/AssetManifest';
 import {
   createPlaceholderManifest,
@@ -124,6 +131,18 @@ export async function buildCatalog(content: ContentBundle): Promise<Catalog> {
   });
   for (const key of Object.values(RANGE_SOUNDS))
     entries.set(key, { key, kind: 'sound', group: RANGE_GROUP, biomes: everyBiome });
+  // D-048: the special days' sheet and sounds, in their own lazy group (the feesdae chunk loads
+  // them when a special day's hunt starts; no placeholder manifest has them).
+  entries.set(HALLOWEEN_SHEET, {
+    key: HALLOWEEN_SHEET,
+    kind: 'texture',
+    group: FEESDAE_GROUP,
+    biomes: everyBiome,
+    width: FEESDAE_SHEET_W,
+    height: FEESDAE_SHEET_H,
+  });
+  for (const key of Object.values(SPOOK_SOUNDS))
+    entries.set(key, { key, kind: 'sound', group: FEESDAE_GROUP, biomes: everyBiome });
   // v1.5 (D-041): Oupa's voice, one lazy pack per voice language (voice/<lang>/<bark key>): his
   // trigger lines (feel.json barks) and every secret's bark.
   for (const lang of VOICE_LANGUAGES)

@@ -2,7 +2,7 @@
 // art-source/ exactly like a human delivery (docs/06), marked `"origin": "interim"` in each rig.json.
 // Then run `npm run assets:pack`. A folder whose rig.json is not marked interim is a human delivery
 // and is never touched.
-//   --only birds|guns|scenery|sprites|flyers|range|meerkats
+//   --only birds|guns|scenery|sprites|flyers|range|meerkats|feesdae
 //                         one part (none: sheets only). scenery = parallax layers + props (D-031),
 //                         sprites = shared FX/UI/crate sprites, flyers = non-target birds,
 //                         range = the Skietbaan's steel plate (24 Oct update),
@@ -41,6 +41,11 @@ import { renderLayer, renderLoose, renderProp } from './landscape';
 import { FAUNA_DRAW } from './faunaSheets';
 import { renderMeerkatSheet } from './meerkats';
 import { MEERKAT_SHEET, SHEET_MASTER } from '../../src/game/assets/desertAssets';
+import {
+  HALLOWEEN_SHEET,
+  SHEET_MASTER as FEESDAE_MASTER,
+} from '../../src/game/feesdae/feesdaeAssets';
+import { renderHalloweenSheet } from './halloween';
 
 /** v1.7 (D-044): palette size of the meerkat sheet (look round: 48 keeps the shading and lets
  *  the Kalahari chunk plus the desert chunk fit 1.5 MB). */
@@ -419,6 +424,26 @@ if (wants('meerkats')) {
       }),
     );
     console.log(`sprites/${MEERKAT_SHEET}`);
+  }
+}
+if (wants('feesdae')) {
+  // D-048: Halloween's sheet (bats, owls, lanterns, moon, hats, cobwebs), drawn at 2× (layout:
+  // src/game/feesdae/feesdaeAssets.ts). Its group ("feesdae", lazy) comes from the catalog.
+  const png = join(src, 'sprites', `${HALLOWEEN_SHEET}.png`);
+  if (!oursFile(png)) console.warn(`skip sprites/${HALLOWEEN_SHEET}: a human delivery is there`);
+  else {
+    put(png, encodePng8(renderHalloweenSheet()));
+    put(
+      png.replace(/\.png$/, '.json'),
+      await json({
+        origin: 'interim',
+        encode: 'png8',
+        master: FEESDAE_MASTER,
+        originX: 0,
+        originY: 0,
+      }),
+    );
+    console.log(`sprites/${HALLOWEEN_SHEET}`);
   }
 }
 if (wants('flyers')) {

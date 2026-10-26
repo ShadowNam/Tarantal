@@ -616,6 +616,99 @@ const SFX: Readonly<Record<string, () => Buf>> = {
     mix(out, shape(bandpass(noise(0.16, SR, r), SR, 1200, 3), SR, ad(0.01, 0.08)), 0.09, SR, 0.25);
     return fadeEnds(normalise(out, 0.55), SR);
   },
+  // --- D-048: the Halloween Spookjag (group "feesdae", lazy) --------------------------------
+  spook_sting: () => {
+    // A short spooky sting: a reedy organ chord in A minor that sags a semitone, over a low
+    // drone, with a kalimba figure dropping through it and a long church-hall tail.
+    const out = buf(2.6, SR);
+    const organ = (f: number, gain: number): void => {
+      const len = 1.9;
+      const pitch = (t: number): number =>
+        f * (t < 0.9 ? 1 : 0.944 ** Math.min(1, (t - 0.9) / 0.5));
+      const pipe = buf(len, SR);
+      // Organ pipe: a sine with octave and twelfth drawbars, a touch of reedy saw.
+      mix(pipe, osc('sine', pitch, len, SR), 0, SR, 1);
+      mix(
+        pipe,
+        osc('sine', (t) => pitch(t) * 2, len, SR),
+        0,
+        SR,
+        0.45,
+      );
+      mix(
+        pipe,
+        osc('sine', (t) => pitch(t) * 3, len, SR),
+        0,
+        SR,
+        0.2,
+      );
+      mix(pipe, lowpass(osc('saw', pitch, len, SR), SR, 1400), 0, SR, 0.18);
+      shape(pipe, SR, (t) => Math.min(1, t / 0.08) * (t > 1.5 ? Math.exp(-(t - 1.5) / 0.2) : 1));
+      mix(out, pipe, 0, SR, gain);
+    };
+    organ(110, 0.5);
+    organ(220, 0.4);
+    organ(261.63, 0.32);
+    organ(329.63, 0.3);
+    // Kalimba: E6 C6 A5 E5, plucked tines with a metallic second partial.
+    [1318.5, 1046.5, 880, 659.25].forEach((f, k) => {
+      mix(
+        out,
+        bar(f, 0.9, SR, [
+          [1, 1, 0.35],
+          [5.4, 0.18, 0.05],
+        ]),
+        0.18 + k * 0.2,
+        SR,
+        0.45,
+      );
+    });
+    return fadeEnds(normalise(withReverb(out, SR, 0.45, 1.6, 0.86)), SR, 0.004, 0.3);
+  },
+  owl_hoot: () => {
+    // The spotted eagle-owl's soft "hoo-HOOO": a low, breathy pair, the second longer.
+    const r = rng(61);
+    const out = buf(1.3, SR);
+    for (const [at, f, len] of [
+      [0, 390, 0.26],
+      [0.4, 370, 0.56],
+    ] as const) {
+      const tone = shape(
+        osc('sine', (t) => f * (1 + 0.04 * Math.sin(t * 9)) * (1 - 0.08 * (t / len)), len, SR),
+        SR,
+        (t) => Math.min(1, t / 0.07) * Math.exp(-Math.max(0, t - len * 0.5) / (len * 0.4)),
+      );
+      const breath = shape(bandpass(noise(len, SR, r), SR, f * 2, 3), SR, ad(0.06, len * 0.5, len));
+      mix(out, tone, at, SR, 0.9);
+      mix(out, breath, at, SR, 0.18);
+    }
+    return fadeEnds(normalise(withReverb(out, SR, 0.3, 1.2, 0.8), 0.7), SR, 0.004, 0.2);
+  },
+  bat_squeak: () => {
+    // Two tiny, high, scratchy chirps.
+    const r = rng(62);
+    const out = buf(0.24, SR);
+    for (const [at, f0, f1] of [
+      [0, 5200, 7600],
+      [0.09, 6400, 4800],
+    ] as const) {
+      const len = 0.05;
+      const x = osc('tri', glide(f0, f1, len), len, SR);
+      const n = noise(len, SR, r);
+      for (let i = 0; i < x.length; i++) x[i] = (x[i] ?? 0) * 0.8 + (n[i] ?? 0) * 0.15;
+      mix(out, shape(x, SR, ad(0.002, 0.015, len)), at, SR, 1);
+    }
+    return fadeEnds(normalise(out, 0.5), SR);
+  },
+  lantern_puff: () => {
+    // A lantern shot out: a soft "whoomph" of air, a hiss of the candle and a hollow knock.
+    const r = rng(63);
+    const out = buf(0.5, SR);
+    mix(out, shape(lowpass(noise(0.35, SR, r), SR, 700), SR, ad(0.01, 0.08)), 0, SR, 1);
+    mix(out, shape(highpass(noise(0.3, SR, r), SR, 3500), SR, ad(0.02, 0.06)), 0.03, SR, 0.25);
+    mix(out, shape(osc('sine', glide(220, 140, 0.1), 0.15, SR), SR, ad(0.002, 0.04)), 0, SR, 0.5);
+    return fadeEnds(normalise(out, 0.6), SR);
+  },
 };
 
 /** A quick marimba arpeggio (stingers). */

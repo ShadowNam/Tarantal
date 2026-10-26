@@ -363,6 +363,20 @@
       "height": 120,
       "scale": 0.3333333333333333
     },
+    "feesdae/halloween": {
+      "group": "feesdae",
+      "origin": "interim",
+      "file": {
+        "path": "assets/feesdae/img/feesdae_halloween.66f11cfb7e74.png",
+        "bytes": 130071,
+        "hash": "66f11cfb7e74"
+      },
+      "width": 1920,
+      "height": 1604,
+      "scale": 0.5,
+      "originX": 0,
+      "originY": 0
+    },
     "fruit/bushveld-winter": {
       "group": "bushveld-winter",
       "origin": "interim",
@@ -6196,6 +6210,24 @@
       "lufs": -14,
       "peakDb": -8.6
     },
+    "sfx/bat_squeak": {
+      "group": "feesdae",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/feesdae/audio/sfx/bat_squeak.0108261b402f.ogg",
+        "bytes": 5084,
+        "hash": "0108261b402f"
+      },
+      "mp3": {
+        "path": "assets/feesdae/audio/sfx/bat_squeak.a8e6d04c9f25.mp3",
+        "bytes": 3441,
+        "hash": "a8e6d04c9f25"
+      },
+      "loop": false,
+      "lufs": -14.9,
+      "peakDb": -1
+    },
     "sfx/bolt": {
       "group": "common",
       "origin": "interim",
@@ -6358,6 +6390,24 @@
       "lufs": -14.5,
       "peakDb": -1
     },
+    "sfx/lantern_puff": {
+      "group": "feesdae",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/feesdae/audio/sfx/lantern_puff.cd2fcbbe6a76.ogg",
+        "bytes": 7220,
+        "hash": "cd2fcbbe6a76"
+      },
+      "mp3": {
+        "path": "assets/feesdae/audio/sfx/lantern_puff.63a6550d79d3.mp3",
+        "bytes": 4743,
+        "hash": "63a6550d79d3"
+      },
+      "loop": false,
+      "lufs": -19.5,
+      "peakDb": -1
+    },
     "sfx/meerkat_alarm": {
       "group": "desert",
       "origin": "interim",
@@ -6411,6 +6461,24 @@
       "loop": false,
       "lufs": -17.1,
       "peakDb": -1
+    },
+    "sfx/owl_hoot": {
+      "group": "feesdae",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/feesdae/audio/sfx/owl_hoot.346a5abd07d4.ogg",
+        "bytes": 13666,
+        "hash": "346a5abd07d4"
+      },
+      "mp3": {
+        "path": "assets/feesdae/audio/sfx/owl_hoot.3ecb9d19cd87.mp3",
+        "bytes": 12247,
+        "hash": "3ecb9d19cd87"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -3.8
     },
     "sfx/poof": {
       "group": "common",
@@ -6771,6 +6839,24 @@
       "loop": false,
       "lufs": -16.8,
       "peakDb": -1
+    },
+    "sfx/spook_sting": {
+      "group": "feesdae",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/feesdae/audio/sfx/spook_sting.70b2167926fa.ogg",
+        "bytes": 23867,
+        "hash": "70b2167926fa"
+      },
+      "mp3": {
+        "path": "assets/feesdae/audio/sfx/spook_sting.fa6d3358755c.mp3",
+        "bytes": 21880,
+        "hash": "fa6d3358755c"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -2.4
     },
     "sfx/stamp": {
       "group": "common",
