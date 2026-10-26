@@ -1671,6 +1671,20 @@ export class HuntScene extends Phaser.Scene {
             ),
           y: b.y + (body?.oy ?? 0) * ver.scale,
         }));
+      const far = this.ctx.content.scoring.planes.far;
+      hook.farBirds = state.birds
+        .filter((b) => b.plane === 'far' && b.hittable && b.kind === 'target')
+        .map((b) => ({
+          id: b.id,
+          x:
+            width / 2 +
+            planeToDx(
+              state.cameraX,
+              far.scrollFactor,
+              b.x + (body?.ox ?? 0) * far.scale * b.facing,
+            ),
+          y: b.y + (body?.oy ?? 0) * far.scale,
+        }));
       hook.flockSpots = state.flocks.map((f) => {
         const members = state.birds.filter((b) => b.flockId === f.id);
         const n = Math.max(1, members.length);

@@ -297,6 +297,7 @@ const hook: TestHook = {
   bonusOpen: [],
   bonusNeedsScope: [],
   verBirds: [],
+  farBirds: [],
   verderUnlocked: null,
   glare: null,
   omen: false,
