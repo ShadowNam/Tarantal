@@ -186,7 +186,8 @@ export class FruitView {
     stopOf: (e: Extract<SimEvent, { type: 'pelletImpact' }>) => PelletStop | null,
     width: number,
   ): void {
-    if (this.fruit.length === 0) return;
+    // Nothing to see yet (the late sheet is not in): nothing reacts or sounds either.
+    if (this.fruit.length === 0 || this.waiting) return;
     const shots = new Map<number, Extract<SimEvent, { type: 'pelletImpact' }>[]>();
     for (const e of events) {
       if (e.type !== 'pelletImpact' || e.paperId !== undefined) continue;
@@ -211,13 +212,13 @@ export class FruitView {
       for (const f of this.fruit) {
         if (f.state.dropTick !== null) continue;
         const pose = fruitPose(f.spot, f.state, tick, this.tuning, this.reduced);
-        const box = {
-          left: f.x + pose.dx - f.spot.ox,
-          top: f.y + pose.dy - f.spot.oy,
-          w: f.spot.fw,
-          h: f.spot.fh,
-        };
-        const shot = shotOnFruit(box, pelletsOn(f.factor), tick, this.tuning);
+        // Into the fruit's own frame (unrotated about its pivot): a swinging fruit is hit where
+        // it is drawn, not where it hangs at rest.
+        const px = f.x + pose.dx;
+        const py = f.y + pose.dy;
+        const box = { left: px - f.spot.ox, top: py - f.spot.oy, w: f.spot.fw, h: f.spot.fh };
+        const local = pelletsOn(f.factor).map((p) => unrotate(p, px, py, pose.angle));
+        const shot = shotOnFruit(box, local, tick, this.tuning);
         const next = hitFruit(f.state, f.spot.motion, shot, this.tuning, this.reduced);
         if (next === f.state) continue;
         if (shot.pellets > 0) {
@@ -269,12 +270,22 @@ export class FruitView {
         continue;
       }
       const p = since / puffTicks;
+      // The dust rises under the fruit's body (not the end of a long stalk).
+      const body = rotate(
+        {
+          x: f.x + pose.dx - f.spot.ox + f.spot.fw / 2,
+          y: f.y + pose.dy - f.spot.oy + f.spot.fh / 2,
+        },
+        f.x + pose.dx,
+        f.y + pose.dy,
+        pose.angle,
+      );
       const landed = pose.landedTicks !== null;
       const size = t.puffPx * (0.4 + p * 0.8) * (landed ? 1 : 0.7);
       f.puff
         .setTexture(landed ? TEX.dust : TEX.leaf)
         .setPosition(
-          f.x + pose.dx,
+          landed ? body.x : f.x + pose.dx,
           landed ? f.ground - 4 : f.y + pose.dy + f.spot.fh * 0.4 - f.spot.oy * 0.4,
         )
         .setDisplaySize(size, size * (landed ? 0.55 : 1))
@@ -295,10 +306,17 @@ export class FruitView {
       const sy = (y: number): number => node.root.y + y * node.root.scaleY;
       const x = sx(f.img.x);
       if (out.length >= 200) break;
-      // Aim at the body: low in a hanging frame (the stalk is above), high on a flower spike.
+      // Aim at the body: low in a hanging frame (the stalk is above), high on a flower spike;
+      // turned with the swing.
       const down = f.spot.motion === 'hang' ? 0.72 : f.spot.motion === 'stand' ? 0.3 : 0.5;
-      const cy = f.img.y - f.spot.oy + f.spot.fh * down;
-      const cx = f.img.x - f.spot.ox + f.spot.fw / 2;
+      const aim = rotate(
+        { x: f.img.x - f.spot.ox + f.spot.fw / 2, y: f.img.y - f.spot.oy + f.spot.fh * down },
+        f.img.x,
+        f.img.y,
+        f.img.rotation,
+      );
+      const cx = aim.x;
+      const cy = aim.y;
       const land = landTick(f.spot, f.state, this.tuning, this.reduced);
       out.push({
         i: f.index,
@@ -342,6 +360,20 @@ export class FruitView {
     }
     this.fruit.length = 0;
   }
+}
+
+/** `p` turned by `a` (radians, clockwise on screen) about (cx, cy). */
+function rotate(p: LayerPellet, cx: number, cy: number, a: number): LayerPellet {
+  const c = Math.cos(a);
+  const s = Math.sin(a);
+  const dx = p.x - cx;
+  const dy = p.y - cy;
+  return { x: cx + dx * c - dy * s, y: cy + dx * s + dy * c };
+}
+
+/** `p` turned back by `a` about (cx, cy): into a rotated sprite's own frame. */
+function unrotate(p: LayerPellet, cx: number, cy: number, a: number): LayerPellet {
+  return rotate(p, cx, cy, -a);
 }
 
 function frameName(i: number): string {

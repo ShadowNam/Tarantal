@@ -1609,7 +1609,8 @@ export class HuntScene extends Phaser.Scene {
   ): PelletStop | null {
     const planes = this.ctx.content.scoring.planes;
     if (e.birdId !== null) {
-      const plane = this.birds.positionOf(e.birdId)?.plane;
+      const id = e.birdId;
+      const plane = state.birds.find((b) => b.id === id)?.plane ?? this.birds.positionOf(id)?.plane;
       return plane === undefined ? null : { factor: planes[plane].scrollFactor, creature: true };
     }
     if (e.meerkatId !== undefined) {

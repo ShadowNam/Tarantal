@@ -129,9 +129,15 @@ export interface FallPlan {
 
 /** How far a dropped fruit's pivot falls before it lies on the ground (px, ≥ 0). */
 export function fallHeight(spot: FruitSpot): number {
-  // Lying on its side, the pivot ends about half the fruit's width above the ground.
-  const half = Math.min(spot.fw, spot.fh) / 2;
-  return Math.max(0, spot.ground - half - spot.y);
+  // Lying across its fall, the pivot ends about half the fruit's width above the ground; an
+  // upright one (lie 0) rests on the bottom of its frame.
+  const below = liesAcross(spot) ? Math.min(spot.fw, spot.fh) / 2 : spot.fh - spot.oy;
+  return Math.max(0, spot.ground - below - spot.y);
+}
+
+/** A long fruit (sausage, flower spike) ends up lying across its fall. */
+function liesAcross(spot: FruitSpot): boolean {
+  return spot.fh > spot.fw * 1.4;
 }
 
 export function fallPlan(spot: FruitSpot, dir: number, t: FruitTuning, reduced: boolean): FallPlan {
@@ -147,7 +153,7 @@ export function fallPlan(spot: FruitSpot, dir: number, t: FruitTuning, reduced: 
     v *= t.bounce;
   }
   // A long fruit ends up lying across its fall, tipped the way it flew.
-  const lie = spot.fh > spot.fw * 1.4 ? (dir >= 0 ? -1 : 1) * (Math.PI / 2) : 0;
+  const lie = liesAcross(spot) ? (dir >= 0 ? -1 : 1) * (Math.PI / 2) : 0;
   return { height, land, ends, speeds, lie };
 }
 

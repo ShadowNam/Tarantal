@@ -131,6 +131,14 @@ describe('fruit drop (v1.7c, D-047)', () => {
     expect(hitFruit(s, 'hang', shot(700, 5), t, false)).toBe(s);
   });
 
+  it('an upright pod rests on the bottom of its frame on the ground line', () => {
+    const pod: FruitSpot = { ...sausage, species: 'baobab_pod', fw: 32, fh: 40, ox: 16, oy: 2 };
+    const s = hitFruit(RESTING, 'hang', shot(0, t.dropPellets), t, false);
+    const rest = fruitPose(pod, s, 600, t, false);
+    expect(rest.angle).toBeCloseTo(0, 6);
+    expect(pod.y + rest.dy + pod.fh - pod.oy).toBeCloseTo(pod.ground, 5);
+  });
+
   it('reduce motion: no bounce', () => {
     expect(fallPlan(sausage, 1, t, true).speeds).toEqual([]);
   });
