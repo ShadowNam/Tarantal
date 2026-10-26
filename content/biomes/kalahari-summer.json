@@ -410,6 +410,12 @@
       ]
     }
   ],
+  "fenceY": {
+    "near": 990,
+    "mid": 772,
+    "far": 632,
+    "ver": 575
+  },
   "layouts": [
     {
       "id": "mon",
@@ -575,7 +581,49 @@
             6
           ]
         }
-      ]
+      ],
+      "fence": {
+        "$comment": "v1.8 (D-050): Blikkies — a farm fence with tin cans on its posts (GDD §11.3).",
+        "plane": "near",
+        "u": 0.66,
+        "kind": "dropper",
+        "posts": [
+          {
+            "dx": -156,
+            "h": 54
+          },
+          {
+            "dx": -56,
+            "h": 50
+          },
+          {
+            "dx": 54,
+            "h": 57
+          },
+          {
+            "dx": 154,
+            "h": 52
+          }
+        ],
+        "cans": [
+          {
+            "post": 0,
+            "type": "cooldrink"
+          },
+          {
+            "post": 1,
+            "type": "food"
+          },
+          {
+            "post": 2,
+            "type": "paint"
+          },
+          {
+            "post": 3,
+            "type": "bully"
+          }
+        ]
+      }
     },
     {
       "id": "wed",
@@ -809,7 +857,53 @@
             6
           ]
         }
-      ]
+      ],
+      "fence": {
+        "$comment": "v1.8 (D-050): Blikkies — a farm fence with tin cans on its posts (GDD §11.3).",
+        "plane": "far",
+        "u": 0.45,
+        "kind": "wood",
+        "posts": [
+          {
+            "dx": -200,
+            "h": 50
+          },
+          {
+            "dx": -96,
+            "h": 57
+          },
+          {
+            "dx": -1,
+            "h": 52
+          },
+          {
+            "dx": 103,
+            "h": 56
+          },
+          {
+            "dx": 198,
+            "h": 49
+          }
+        ],
+        "cans": [
+          {
+            "post": 0,
+            "type": "food"
+          },
+          {
+            "post": 2,
+            "type": "bully"
+          },
+          {
+            "post": 3,
+            "type": "cooldrink"
+          },
+          {
+            "post": 4,
+            "type": "food"
+          }
+        ]
+      }
     },
     {
       "id": "sat",
@@ -937,7 +1031,41 @@
             6
           ]
         }
-      ]
+      ],
+      "fence": {
+        "$comment": "v1.8 (D-050): Blikkies — a farm fence with tin cans on its posts (GDD §11.3).",
+        "plane": "mid",
+        "u": 0.7,
+        "kind": "dropper",
+        "posts": [
+          {
+            "dx": -112,
+            "h": 57
+          },
+          {
+            "dx": 2,
+            "h": 52
+          },
+          {
+            "dx": 107,
+            "h": 56
+          }
+        ],
+        "cans": [
+          {
+            "post": 0,
+            "type": "paint"
+          },
+          {
+            "post": 1,
+            "type": "bully"
+          },
+          {
+            "post": 2,
+            "type": "cooldrink"
+          }
+        ]
+      }
     }
   ],
   "bonusMaps": [
@@ -960,7 +1088,11 @@
           "far": 1
         }
       },
-      "pointsMul": 0.8
+      "pointsMul": 0.8,
+      "fencePlane": {
+        "near": "mid",
+        "mid": "far"
+      }
     },
     {
       "$comment": "v1.3 (D-036) Nog Verder (further still): today's layout from further back again. The Ver plane opens: a flock on the strip at the foot of the far ridge, a Ver lane for fly-overs, fewer mid and near birds. Shotguns struggle; the .22 with a peep sight or scope shines (GDD §11.5).",
@@ -984,7 +1116,11 @@
         }
       },
       "pointsMul": 0.6,
-      "ver": true
+      "ver": true,
+      "fencePlane": {
+        "near": "far",
+        "mid": "far"
+      }
     },
     {
       "$comment": "v1.3 (D-036) Die Verste (the furthest): long range only. Mostly Ver birds — small dots unless you zoom in — and a far flock; a scoped rifle is the tool (not enforced: a shotgun can still play the far birds).",
@@ -1009,7 +1145,12 @@
         }
       },
       "pointsMul": 0.46,
-      "ver": true
+      "ver": true,
+      "fencePlane": {
+        "near": "ver",
+        "mid": "ver",
+        "far": "ver"
+      }
     }
   ]
 }

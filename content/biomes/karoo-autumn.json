@@ -488,6 +488,12 @@
     "stampede": "karoo_stampede"
   },
   "ambience": "karoo_wind_bed",
+  "fenceY": {
+    "near": 990,
+    "mid": 772,
+    "far": 632,
+    "ver": 575
+  },
   "layouts": [
     {
       "id": "mon",
@@ -553,7 +559,53 @@
       "pacing": {
         "flyoversMul": 1.15
       },
-      "cameraStartU": 0.35
+      "cameraStartU": 0.35,
+      "fence": {
+        "$comment": "v1.8 (D-050): Blikkies — a farm fence with tin cans on its posts (GDD §11.3).",
+        "plane": "mid",
+        "u": 0.3,
+        "kind": "wood",
+        "posts": [
+          {
+            "dx": -201,
+            "h": 52
+          },
+          {
+            "dx": -97,
+            "h": 56
+          },
+          {
+            "dx": -2,
+            "h": 49
+          },
+          {
+            "dx": 102,
+            "h": 54
+          },
+          {
+            "dx": 197,
+            "h": 50
+          }
+        ],
+        "cans": [
+          {
+            "post": 0,
+            "type": "food"
+          },
+          {
+            "post": 1,
+            "type": "paint"
+          },
+          {
+            "post": 3,
+            "type": "cooldrink"
+          },
+          {
+            "post": 4,
+            "type": "food"
+          }
+        ]
+      }
     },
     {
       "id": "wed",
@@ -588,7 +640,49 @@
           ]
         }
       ],
-      "cameraStartU": 0.74
+      "cameraStartU": 0.74,
+      "fence": {
+        "$comment": "v1.8 (D-050): Blikkies — a farm fence with tin cans on its posts (GDD §11.3).",
+        "plane": "near",
+        "u": 0.7,
+        "kind": "wood",
+        "posts": [
+          {
+            "dx": -160,
+            "h": 56
+          },
+          {
+            "dx": -52,
+            "h": 49
+          },
+          {
+            "dx": 48,
+            "h": 54
+          },
+          {
+            "dx": 158,
+            "h": 50
+          }
+        ],
+        "cans": [
+          {
+            "post": 0,
+            "type": "paint"
+          },
+          {
+            "post": 1,
+            "type": "bully"
+          },
+          {
+            "post": 2,
+            "type": "cooldrink"
+          },
+          {
+            "post": 3,
+            "type": "food"
+          }
+        ]
+      }
     },
     {
       "id": "thu",
@@ -673,7 +767,61 @@
           ]
         }
       ],
-      "cameraStartU": 0.86
+      "cameraStartU": 0.86,
+      "fence": {
+        "$comment": "v1.8 (D-050): Blikkies — a farm fence with tin cans on its posts (GDD §11.3).",
+        "plane": "far",
+        "u": 0.5,
+        "kind": "wood",
+        "posts": [
+          {
+            "dx": -234,
+            "h": 49
+          },
+          {
+            "dx": -144,
+            "h": 54
+          },
+          {
+            "dx": -44,
+            "h": 50
+          },
+          {
+            "dx": 46,
+            "h": 57
+          },
+          {
+            "dx": 144,
+            "h": 52
+          },
+          {
+            "dx": 234,
+            "h": 56
+          }
+        ],
+        "cans": [
+          {
+            "post": 0,
+            "type": "bully"
+          },
+          {
+            "post": 1,
+            "type": "cooldrink"
+          },
+          {
+            "post": 3,
+            "type": "paint"
+          },
+          {
+            "post": 4,
+            "type": "bully"
+          },
+          {
+            "post": 5,
+            "type": "cooldrink"
+          }
+        ]
+      }
     },
     {
       "id": "sat",
@@ -723,7 +871,41 @@
           ]
         }
       ],
-      "cameraStartU": 0.88
+      "cameraStartU": 0.88,
+      "fence": {
+        "$comment": "v1.8 (D-050): Blikkies — a farm fence with tin cans on its posts (GDD §11.3).",
+        "plane": "mid",
+        "u": 0.6,
+        "kind": "wood",
+        "posts": [
+          {
+            "dx": -108,
+            "h": 54
+          },
+          {
+            "dx": -3,
+            "h": 50
+          },
+          {
+            "dx": 111,
+            "h": 57
+          }
+        ],
+        "cans": [
+          {
+            "post": 0,
+            "type": "cooldrink"
+          },
+          {
+            "post": 1,
+            "type": "food"
+          },
+          {
+            "post": 2,
+            "type": "paint"
+          }
+        ]
+      }
     }
   ],
   "bonusMaps": [
@@ -747,7 +929,11 @@
         }
       },
       "windMul": 1.5,
-      "pointsMul": 0.8
+      "pointsMul": 0.8,
+      "fencePlane": {
+        "near": "mid",
+        "mid": "far"
+      }
     },
     {
       "$comment": "v1.3 (D-036) Nog Verder (further still): today's layout from further back again. The Ver plane opens: a flock on the strip at the foot of the far ridge, a Ver lane for fly-overs, fewer mid and near birds. Shotguns struggle; the .22 with a peep sight or scope shines (GDD §11.5).",
@@ -772,7 +958,11 @@
       },
       "pointsMul": 0.6,
       "ver": true,
-      "windMul": 1.6
+      "windMul": 1.6,
+      "fencePlane": {
+        "near": "far",
+        "mid": "far"
+      }
     },
     {
       "$comment": "v1.3 (D-036) Die Verste (the furthest): long range only. Mostly Ver birds — small dots unless you zoom in — and a far flock; a scoped rifle is the tool (not enforced: a shotgun can still play the far birds).",
@@ -798,7 +988,12 @@
       },
       "pointsMul": 0.46,
       "ver": true,
-      "windMul": 1.7
+      "windMul": 1.7,
+      "fencePlane": {
+        "near": "ver",
+        "mid": "ver",
+        "far": "ver"
+      }
     }
   ]
 }
