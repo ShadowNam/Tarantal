@@ -6,8 +6,8 @@
 //   title (the Daily button with its "Spookjag tonight!" badge, + close-up);
 //   hunt (the dusk hunt, wide: moon, sky bats, lanterns, cobwebs);
 //   hat (a guineafowl in a witch hat, close-up);
-//   lantern (a lit pumpkin lantern, close-up; and lantern-out, the same one shot dark);
-//   owl and bat (each crossing the view, close-up);
+//   lantern (a lit pumpkin lantern, close-up; and lantern-out, the same one shot dark; no birds);
+//   owl and bat (each crossing the view, close-up; early flyers, no birds);
 //   tally (the Halloween slate: frame, "Spookjag 2026", the Spookjag line).
 // The special is forced with ?feesdag=halloween (?omen=0: no wind on the far shots). An in-page
 // rAF watcher holds the sim (__TM_HOLD_AT__) the tick it sees what a frame wants; everything that
@@ -182,7 +182,8 @@ test('a guineafowl in a witch hat, close up', async ({ page }, info) => {
 
 test('a pumpkin lantern lit, then shot out', async ({ page }, info) => {
   const touch = isTouchProject(info);
-  await boot(page, `${QUERY}&huntSeconds=90`);
+  // No birds (nor crates): the close-ups show the lantern itself, not a flock in front of it.
+  await boot(page, `${QUERY}&huntSeconds=90&birds=0`);
   await startSpookjag(page, touch);
   const id = await lanternInView(page, 300);
   const spot = async (): Promise<{ x: number; y: number }> =>
