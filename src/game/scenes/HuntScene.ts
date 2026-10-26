@@ -438,8 +438,8 @@ export class HuntScene extends Phaser.Scene {
         },
         special.decorations,
         this.screenFixed,
+        feesdaeSheet,
       );
-      if (feesdaeSheet !== null) this.spookView.useSheet(feesdaeSheet);
       this.birds.hats = this.spookView.hats;
     } else this.birds.hats = null;
     this.meerkats = new MeerkatView(

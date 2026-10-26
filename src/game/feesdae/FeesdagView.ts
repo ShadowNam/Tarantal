@@ -263,10 +263,17 @@ export class FeesdagSceneView {
     decorations: readonly string[],
     /** The screen-fixed layer over the world (the vignette sits there, under the gun). */
     screen: Phaser.GameObjects.Container,
+    /** The delivered sheet when it has already arrived (else the stand-in draws until it does). */
+    sheet: HTMLImageElement | null,
   ) {
     const textures = scene.textures;
     this.vignette = this.makeVignette(screen);
-    if (!textures.exists(STANDIN)) {
+    // The delivered sheet, if it is in; the stand-in (~12 MB on the GPU) only when it is not.
+    if (sheet !== null && !textures.exists(HALLOWEEN_SHEET)) {
+      const tex = textures.addImage(HALLOWEEN_SHEET, sheet);
+      if (tex !== null) addFrames(tex);
+    }
+    if (!textures.exists(HALLOWEEN_SHEET) && !textures.exists(STANDIN)) {
       const canvas = document.createElement('canvas');
       canvas.width = SHEET_W * SHEET_MASTER;
       canvas.height = SHEET_H * SHEET_MASTER;
