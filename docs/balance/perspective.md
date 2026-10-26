@@ -32,17 +32,22 @@ for a far plane about 0.03 scale, and the birds at 0.22.
 - Everything sized "in mid-plane px" (flock spacing, speeds, alert radii, crate drops, dust
   devils) is now written at `scoring.tuningRefScale` (0.5) and scaled by plane scale ÷ 0.5, so it
   shrinks with the birds on every plane.
+- **Still shootable**: a body hit radius is at least 18 px on the far plane and 10 px on the Ver
+  plane (`planes.*.minHitRadiusPx`, mouse and touch; heads scale as drawn); touch assist mid
+  14 → 10 and far 18 → 12; far points 25 → 22 (chosen with the 100-seed sweeps below).
+- **Size**: bird atlases packed at the new sizes; first download 3 071.5 → 2 965.2 KB gzip (web),
+  −106 KB.
 
 ## The guineafowl on each plane
 
-Measured from the delivered (interim) frames: standing (alert) 263.0 bird units, flying (wings up) 308.0; a guineafowl stands 0.5 m.
+Measured from the delivered (interim) frames: standing (alert) 263.0 bird units, flying (wings up) 309.4; a guineafowl stands 0.5 m.
 
 | Plane | Scale before → after | Standing px | Flying px | px per metre (after) | Min hit radius | Touch assist |
 |---|---|---|---|---|---|---|
-| near | 1 → 1 | 263.0 → 263.0 | 308.0 → 308.0 | 526.0 | 0 → 0 px | 8 → 8 px |
-| mid | 0.5 → 0.42 | 131.5 → 110.5 | 154.0 → 129.4 | 220.9 | 0 → 0 px | 14 → 14 px |
-| far | 0.22 → 0.15 | 57.9 → 39.4 | 67.8 → 46.2 | 78.9 | 0 → 0 px | 18 → 18 px |
-| ver | 0.1 → 0.07 | 26.3 → 18.4 | 30.8 → 21.6 | 36.8 | 0 → 0 px | 6 → 6 px |
+| near | 1 → 1 | 263.0 → 263.0 | 309.4 → 309.4 | 526.0 | 0 → 0 px | 8 → 8 px |
+| mid | 0.5 → 0.42 | 131.5 → 110.5 | 154.7 → 130.0 | 220.9 | 0 → 0 px | 14 → 10 px |
+| far | 0.22 → 0.15 | 57.9 → 39.4 | 68.1 → 46.4 | 78.9 | 0 → 18 px | 18 → 12 px |
+| ver | 0.1 → 0.07 | 26.3 → 18.4 | 30.9 → 21.7 | 36.8 | 0 → 10 px | 6 → 6 px |
 
 ## Target on-screen heights per species (after)
 
@@ -57,7 +62,7 @@ Real proportions at the new plane scales: the height a species should be drawn a
 | wildebeest | 1.4 | shoulder | 309.3 | 110.5 | 51.5 |
 | gemsbok | 1.2 | shoulder | 265.1 | 94.7 | 44.2 |
 | springbok | 0.8 | shoulder | 176.7 | 63.1 | 29.5 |
-| ostrich | 2.5 | head | 552.3 | 197.2 | 92.1 |
+| ostrich | 2.5 | head | 552.3 | 197.2 | 92.0 |
 | lechwe | 1 | shoulder | 220.9 | 78.9 | 36.8 |
 
 ## Every biome: what stands on each bird plane
@@ -78,7 +83,7 @@ Layouts: mon, tue, wed, thu, fri, sat, sun — near, mid and far on all; the Ver
 | far | zebra ×5 (bushveld_zebra) | 1.35 shoulder | 15.0 → 45.0 | 57.9 → 39.4 | 10.4× → 2.4× | 106.5 | shown at 3× |
 | far | wildebeest ×4 (bushveld_wildebeest) | 1.4 shoulder | 15.0 → 45.0 | 57.9 → 39.4 | 10.8× → 2.5× | 110.5 | shown at 3× |
 | far | elephant ×3 (bushveld_elephants) | 3.2 shoulder | 24.0 → 72.0 | 57.9 → 39.4 | 15.4× → 3.5× | 252.5 | shown at 3× |
-| mid | baobab (prop) | 15 | 637.0 → 637.0 | 131.5 → 110.5 | 6.2× → 5.2× | 3313.8 | kept (stage-set scale, see below) |
+| mid | baobab (prop) | 15 | 637.0 → 637.0 | 131.5 → 110.5 | 6.2× → 5.2× | 3313.7 | kept (stage-set scale, see below) |
 
 ### kalahari-summer
 
@@ -89,8 +94,8 @@ Layouts: mon, tue, wed, thu, fri, sat, sun — near, mid and far on all; the Ver
 | far | springbok ×7 (kalahari_springbok) | 0.8 shoulder | 12.0 → 36.0 | 57.9 → 39.4 | 7.7× → 1.8× | 63.1 | shown at 3× |
 | far | ostrich ×2 (kalahari_ostrich) | 2.5 head | 24.0 → 72.0 | 57.9 → 39.4 | 12.1× → 2.7× | 197.2 | shown at 3× |
 | far | wildebeest ×4 (kalahari_wildebeest) | 1.4 shoulder | 15.0 → 45.0 | 57.9 → 39.4 | 10.8× → 2.5× | 110.5 | shown at 3× |
-| mid | weaver_camelthorn (prop) | 9 | 558.5 → 558.5 | 131.5 → 110.5 | 4.2× → 3.6× | 1988.3 | kept (stage-set scale, see below) |
-| mid | windpomp_sign (prop) | 9 | 319.5 → 319.5 | 131.5 → 110.5 | 7.4× → 6.2× | 1988.3 | kept (stage-set scale, see below) |
+| mid | weaver_camelthorn (prop) | 9 | 558.5 → 558.5 | 131.5 → 110.5 | 4.2× → 3.6× | 1988.2 | kept (stage-set scale, see below) |
+| mid | windpomp_sign (prop) | 9 | 319.5 → 319.5 | 131.5 → 110.5 | 7.4× → 6.2× | 1988.2 | kept (stage-set scale, see below) |
 | mid | dead_camelthorn (prop) | 6 | 468.0 → 468.0 | 131.5 → 110.5 | 3.4× → 2.8× | 1325.5 | kept (stage-set scale, see below) |
 
 ### karoo-autumn
@@ -102,9 +107,9 @@ Layouts: mon, tue, wed, thu, fri, sat, sun — near, mid and far on all; the Ver
 | far | springbok ×8 (karoo_springbok_a) | 0.8 shoulder | 12.0 → 36.0 | 57.9 → 39.4 | 7.7× → 1.8× | 63.1 | shown at 3× |
 | far | springbok ×4 (karoo_springbok_b) | 0.8 shoulder | 12.0 → 36.0 | 57.9 → 39.4 | 7.7× → 1.8× | 63.1 | shown at 3× |
 | far | ostrich ×3 (karoo_ostrich) | 2.5 head | 24.0 → 72.0 | 57.9 → 39.4 | 12.1× → 2.7× | 197.2 | shown at 3× |
-| mid | windpomp (prop) | 9 | 395.5 → 395.5 | 131.5 → 110.5 | 6.0× → 5.0× | 1988.3 | kept (stage-set scale, see below) |
+| mid | windpomp (prop) | 9 | 395.5 → 395.5 | 131.5 → 110.5 | 6.0× → 5.0× | 1988.2 | kept (stage-set scale, see below) |
 | mid | reservoir (prop) | 1.5 | 133.0 → 133.0 | 131.5 → 110.5 | 3.0× → 2.5× | 331.4 | kept (stage-set scale, see below) |
-| mid | bakkie (prop) | 1.8 | 208.0 → 208.0 | 131.5 → 110.5 | 2.3× → 1.9× | 397.7 | kept (stage-set scale, see below) |
+| mid | bakkie (prop) | 1.8 | 208.0 → 208.0 | 131.5 → 110.5 | 2.3× → 1.9× | 397.6 | kept (stage-set scale, see below) |
 | near | potjie (prop) | 0.4 | 235.0 → 235.0 | 263.0 → 263.0 | 0.9× → 0.9× | 210.4 | kept (stage-set scale, see below) |
 | mid | fence_bell (prop) | 1.3 | 169.0 → 169.0 | 131.5 → 110.5 | 2.0× → 1.7× | 287.2 | kept (stage-set scale, see below) |
 
@@ -119,14 +124,14 @@ Layouts: mon, tue, wed, thu, fri, sat, sun — near, mid and far on all; the Ver
 | ver | springbok ×4 (namibie_waterhole) | 0.8 shoulder | 3.8 → 19.0 | 26.3 → 18.4 | 11.1× → 1.6× | 29.5 | re-drawn 5× taller in place |
 | ver | zebra ×2 (namibie_waterhole) | 1.35 shoulder | 4.2 → 21.0 | 26.3 → 18.4 | 16.9× → 2.4× | 49.7 | re-drawn 5× taller in place |
 | ver | gemsbok ×2 (namibie_waterhole) | 1.2 shoulder | 4.4 → 22.0 | 26.3 → 18.4 | 14.3× → 2.0× | 44.2 | re-drawn 5× taller in place |
-| ver | ostrich ×2 (namibie_waterhole) | 2.5 head | 7.0 → 35.0 | 26.3 → 18.4 | 18.8× → 2.6× | 92.1 | re-drawn 5× taller in place |
+| ver | ostrich ×2 (namibie_waterhole) | 2.5 head | 7.0 → 35.0 | 26.3 → 18.4 | 18.8× → 2.6× | 92.0 | re-drawn 5× taller in place |
 | far | gemsbok ×4 (namibie_gemsbok) | 1.2 shoulder | 15.0 → 45.0 | 57.9 → 39.4 | 9.3× → 2.1× | 94.7 | shown at 3× |
 | far | ostrich ×2 (namibie_ostrich) | 2.5 head | 24.0 → 72.0 | 57.9 → 39.4 | 12.1× → 2.7× | 197.2 | shown at 3× |
 | far | zebra ×4 (namibie_zebra) | 1.35 shoulder | 15.0 → 45.0 | 57.9 → 39.4 | 10.4× → 2.4× | 106.5 | shown at 3× |
-| near | nest_camelthorn (prop) | 9 | 1016.0 → 1016.0 | 263.0 → 263.0 | 4.7× → 4.7× | 4734.0 | kept (stage-set scale, see below) |
-| mid | camelthorn_mature (prop) | 8 | 236.5 → 236.5 | 131.5 → 110.5 | 8.9× → 7.5× | 1767.4 | kept (stage-set scale, see below) |
-| mid | camelthorn_old (prop) | 9 | 238.0 → 238.0 | 131.5 → 110.5 | 9.9× → 8.4× | 1988.3 | kept (stage-set scale, see below) |
-| mid | camelthorn_young (prop) | 3 | 181.0 → 181.0 | 131.5 → 110.5 | 4.4× → 3.7× | 662.8 | kept (stage-set scale, see below) |
+| near | nest_camelthorn (prop) | 9 | 1016.0 → 1016.0 | 263.0 → 263.0 | 4.7× → 4.7× | 4733.9 | kept (stage-set scale, see below) |
+| mid | camelthorn_mature (prop) | 8 | 236.5 → 236.5 | 131.5 → 110.5 | 8.9× → 7.5× | 1767.3 | kept (stage-set scale, see below) |
+| mid | camelthorn_old (prop) | 9 | 238.0 → 238.0 | 131.5 → 110.5 | 9.9× → 8.4× | 1988.2 | kept (stage-set scale, see below) |
+| mid | camelthorn_young (prop) | 3 | 181.0 → 181.0 | 131.5 → 110.5 | 4.4× → 3.7× | 662.7 | kept (stage-set scale, see below) |
 | mid | quiver_tree (prop) | 5 | 220.0 → 220.0 | 131.5 → 110.5 | 6.0× → 5.0× | 1104.6 | kept (stage-set scale, see below) |
 | mid | quiver_egg (prop) | 5 | 211.5 → 211.5 | 131.5 → 110.5 | 6.2× → 5.2× | 1104.6 | kept (stage-set scale, see below) |
 
@@ -141,7 +146,7 @@ Layouts: mon, tue, wed, thu, fri, sat, sun — near, mid and far on all; the Ver
 | far | zebra ×4 (okavango_zebra) | 1.35 shoulder | 15.0 → 45.0 | 57.9 → 39.4 | 10.4× → 2.4× | 106.5 | shown at 3× |
 | far | wildebeest ×3 (okavango_wildebeest) | 1.4 shoulder | 15.0 → 45.0 | 57.9 → 39.4 | 10.8× → 2.5× | 110.5 | shown at 3× |
 | mid | reeds_a (prop) | 2.5 | 295.0 → 295.0 | 131.5 → 110.5 | 2.2× → 1.9× | 552.3 | kept (stage-set scale, see below) |
-| mid | mokoro_pole (prop) | 3 | 284.0 → 284.0 | 131.5 → 110.5 | 2.8× → 2.3× | 662.8 | kept (stage-set scale, see below) |
+| mid | mokoro_pole (prop) | 3 | 284.0 → 284.0 | 131.5 → 110.5 | 2.8× → 2.3× | 662.7 | kept (stage-set scale, see below) |
 | mid | reeds_b (prop) | 2.5 | 285.0 → 285.0 | 131.5 → 110.5 | 2.3× → 1.9× | 552.3 | kept (stage-set scale, see below) |
 | mid | sausage_tree (prop) | 12 | 564.0 → 564.0 | 131.5 → 110.5 | 5.6× → 4.7× | 2651.0 | kept (stage-set scale, see below) |
 | mid | hippo (prop) | 1 | 96.0 → 96.0 | 131.5 → 110.5 | 2.7× → 2.3× | 220.9 | kept (stage-set scale, see below) |
@@ -151,4 +156,26 @@ Layouts: mon, tue, wed, thu, fri, sat, sun — near, mid and far on all; the Ver
 
 ## Balance
 
-Filled in below from `tools/perspective-sweep.ts` (before = main at 384bffa, after = this branch).
+Cells: `tools/perspective-sweep.ts` (Classic with every huntable gun and three bots, touch
+Dubbelloop and .22, the Karoo long-range maps with the shotguns and rifles, the Namibië rifle
+cells under the 4 500 cap) and the Season Run (`tools/balance-sim.ts --run`). Before = main at
+384bffa (the old scales), run from a worktree; after = this branch. Raw results:
+`docs/balance/perspective/`.
+
+### Choosing the hit sizes (100 seeds, same seeds before and after, competent / plinker)
+
+| Try | Classic Dubbelloop (mouse) | Classic Dubbelloop (touch) |
+|---|---|---|
+| main (before) | 4 169 / 2 444 | 4 327 / 2 433 |
+| new scales only | 4 270 / 2 110 | 4 360 / 2 376 |
+| + far floor 18 (head floored too), Ver 8 | 4 397 / 2 381 | 4 635 / — (over 4 500) |
+| + mid floor 40 | 4 889 / 2 616 (over 4 500) | — |
+| body-only floor far 18, far points 25 | 4 323 / 2 191 | 4 503 / 2 312 |
+| **chosen**: body floor far 18 / Ver 10, assist mid 10 / far 12, far points 22 | **4 234 / 2 104** | **4 410 / 2 220** |
+
+A bigger hit area helps the competent bot more than the plinker (it shoots more far birds), so
+the floor stops at 18 px. The plinker loses about 9–14 %: mid birds are 16 % smaller and no floor
+applies there (a mid floor pushed competent past 4 500). No gate limits the plinker's loss; the
+M3 gate "plinker ≥ 25 % below competent" still passes. The Ver floor 10 px won back half of the
+rifles' loss on the Ver plane (Die Verste .22 scope 3 795 → 3 939 at 100 seeds); 12 px added
+nothing more.

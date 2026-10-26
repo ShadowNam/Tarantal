@@ -136,8 +136,8 @@ export interface Sim {
 - **Tap → plane position:** `planeX = (cx − 960) × f + 960 + dx`, where `dx` is the tap's distance
   from the screen centre in design px; `planeY = sy`. Both the Phaser layer and the sim use this one
   function (`src/sim/camera.ts`).
-- Planes: `near` (scrollFactor 1.0, scale 1.0), `mid` (0.6, 0.5), `far` (0.35, 0.22), and since v1.3
-  `ver` (0.22, 0.10; D-036) on each biome's `ver_veld` layer, which `resolveMap` leaves out of every
+- Planes: `near` (scrollFactor 1.0, scale 1.0), `mid` (0.6, 0.42), `far` (0.35, 0.15), and since v1.3
+  `ver` (0.22, 0.07; D-036, scales from D-049) on each biome's `ver_veld` layer, which `resolveMap` leaves out of every
   map that doesn't set `ver: true`. Birds belong to
   exactly one plane; each plane has 2–3 y-lanes for ground birds and a sky band for flyers.
 - **Zoomed taps (v1.3):** rifle commands carry the aim in design px of the **unzoomed** screen
@@ -158,7 +158,13 @@ export interface Sim {
   Langloop hunt played through the InputMapper on desktop, Pixel 7 and iPhone 14 screens gives
   the same commands and the same events (`src/game/input/zoomReplay.test.ts`).
 - Hitboxes: per animation state, body ellipse + head circle, defined in `birds.json` in sprite-local
-  units; scaled by plane. When `inputKind = 'touch'`, radii grow by `aimAssistPx[plane]`.
+  units; scaled by plane. **Plane scale vs hit size (D-049):** the body ellipse's radii are at least
+  `minHitRadiusPx[plane]` (far 18, Ver 10; every input), so a hit area may shrink less than the
+  picture; the head circle scales as drawn (`src/sim/planes.ts` `hitRadius`). When
+  `inputKind = 'touch'`, radii grow by `aimAssistPx[plane]` on top. Px tunings written at the mid
+  plane (spacing, speeds, alert radii) are × plane scale ÷ `scoring.tuningRefScale` (`tuningRatio`).
+  Bird atlases are packed at the content plane scale and the index records it (`planeScale`);
+  BirdView draws at plane scale ÷ packed scale.
 - Occluders: per-prop polygons/ellipses from biome JSON; a pellet stops at the first occluder or
   target it meets in near → mid → far order.
   Layers are walked front to back by scroll factor (foreground 1.2 → near → mid → far); on a plane

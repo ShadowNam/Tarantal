@@ -2774,6 +2774,42 @@ day and hangs the badge under the Daily's label; the tally's moon moved clear of
 Halloween golden (a `spook` bot) covers the bat bonus, the owl penalty and Lanterns out; `?spook=early`
 (e2e/dev) brings owls and bats in early for the specs.
 
+**D-049 Perspective: birds get smaller with distance, on every map (26 Oct 2026):** the product
+owner (26 Oct, playing the Karoo): "the guineafowl, the further away they are, the smaller they
+get … the ostriches, because they're far away, are small, but the guineafowl is even bigger than
+they are … still in such a way that one can still shoot them … this needs to apply to all the
+levels." (1) *Measured* (`tools/perspective-audit.ts`, tables in `docs/balance/perspective.md`):
+a far guineafowl (58 px standing at 0.22) looked 8–12× too big next to the far springbok and
+ostriches and 10–19× next to the giraffes and elephants; the far animals had been drawn for a far
+plane near scale 0.03. (2) *Plane scales* (`scoring.json`): near 1.0 (pop-ups, unchanged), mid
+0.5 → **0.42**, far 0.22 → **0.15**, Ver 0.1 → **0.07**: 263 / 110 / 39 / 18 px standing. Smaller
+than 0.15 makes far birds hard to read and to hit, so the rest of the gap is closed from the
+animals' side. (3) *Far animals* (`feel.json perspective.faunaScale`, client only): every far herd
+shows at 3× (their art is drawn at 3×, D-042, so no upscaling); the Namibië waterhole's animals
+are re-drawn 5× taller in the same spots (scaling its sprite would spread them off the water). A
+far guineafowl now stands below every ostrich and springbok beside it; the remaining oversize
+(1.8–4×) is for the HD redraw, which draws to the per-species target heights in
+`perspective.md`. Mid-plane props (windpomp, bakkie, trees, reeds) keep their stage-set scale:
+true proportions would make a windpomp 2 000 px tall, and many are occluders or secrets. (4)
+*Everything on a plane scales with it:* px tunings written "at the mid plane" (flock spacing,
+speeds, alert radii, crate drops, dust devils, Skietbaan) are now × plane scale ÷
+`scoring.tuningRefScale` (0.5), so they shrink with the birds; crates, feathers
+(`juice.featherPerScale`), boss pots, Spookjag hats, lanterns, bats, owls and meerkats follow the
+plane scale; bird atlases are packed at the new sizes (the asset index records each atlas's packed
+scale, so a dev override draws correctly). (5) *Still shootable* (sim, content): a body hit radius
+is at least `planes.*.minHitRadiusPx` for every input — far 18 px, Ver 10 px (heads scale as
+drawn; a floored head made a 36 px-wide target); touch assist mid 14 → 10, far 18 → 12 (the floor
+already widens far birds); far points 25 → 22 (`tune`). Pellet spread unchanged. (6) *Balance*
+(`tools/perspective-sweep.ts`, tables in `perspective.md`): see the 500-seed tables there; every
+gate that passed before passes. (7) *Size:* first download 3 071.5 → 2 965.2 KB gzip on the web
+build (−106.3 KB; Poki 2 958.6, CrazyGames 2 958.7), room for the Karoo HD aloes; the waterhole
+grows the lazy Ver group 516.8 → 531.9 KB. (8) *Determinism:* golden replays re-recorded and the
+v3 fixtures re-derived (scales, hit rule, assist and points changed on purpose). A meerkat that
+arrives under half a px from its spaced spot now takes the spot exactly (smaller mid meerkats
+could sit a fraction inside the spacing rule). (9) *Screens:* `?planeScale=v17` (dev/e2e) shows
+the old scales and far animals for before | after shots
+(`tests/e2e/art-preview-perspective.spec.ts`).
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
