@@ -390,6 +390,11 @@ export class HuntScene extends Phaser.Scene {
       (id) => this.birds.potOf(id),
       this.ctx.content.powerups.crates.plane,
       this.ctx.prefs,
+      {
+        near: this.ctx.content.scoring.planes.near.scale,
+        mid: this.ctx.content.scoring.planes.mid.scale,
+        far: this.ctx.content.scoring.planes.far.scale,
+      },
     );
     // v1.7b (D-046): the pickup card says what a crate held; capture footage has no HUD.
     this.fx.itemLabels = this.ctx.capture !== null;

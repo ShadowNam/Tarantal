@@ -27,6 +27,7 @@
       20
     ],
     "featherLifeMs": 700,
+    "featherPerScale": { "near": 1.4, "mid": 1.8, "far": 2.27 },
     "scorePopRisePx": 60,
     "scorePopMs": 600,
     "poofMs": 450,

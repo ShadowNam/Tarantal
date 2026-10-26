@@ -67,6 +67,8 @@ export class Fx {
     locatePot: (birdId: number) => PotSpot | null,
     cratePlane: PlaneId,
     private readonly prefs: LivePrefs,
+    /** D-049: each plane's scale (content/scoring.json), for the feather burst. */
+    planeScale: Readonly<Record<'near' | 'mid' | 'far', number>> = { near: 1, mid: 0.5, far: 0.22 },
   ) {
     this.scene = scene;
     this.pops = new PopPool(scene);
@@ -76,7 +78,7 @@ export class Fx {
     this.feel = feel;
     this.parallax = parallax;
     for (const plane of ['near', 'mid', 'far'] as const) {
-      const scale = plane === 'near' ? 1.4 : plane === 'mid' ? 0.9 : 0.5;
+      const scale = feel.juice.featherPerScale[plane] * planeScale[plane];
       const emitter = scene.add.particles(0, 0, TEX.feather, {
         emitting: false,
         speed: { min: 120 * scale, max: 520 * scale },

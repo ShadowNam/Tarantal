@@ -1658,6 +1658,9 @@ export const FeelSchema = obj({
     gunKickMs: pos,
     featherCount: range(nonNegInt),
     featherLifeMs: pos,
+    /** D-049: the feather burst's size and speed per plane, × that plane's scale (so it shrinks
+     *  with the birds; 1.4 / 0.9 / 0.5 at the v1.7 scales 1 / 0.5 / 0.22). */
+    featherPerScale: obj({ near: pos, mid: pos, far: pos }),
     scorePopRisePx: nonNeg,
     scorePopMs: pos,
     poofMs: pos,
