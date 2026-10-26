@@ -1,9 +1,9 @@
 {
- "updated": "2026-10-25T23:42:00Z",
- "summary": "v1.7 meerkats is merged (26 Oct, 00:55; version 1.7.0): meerkat families on every Kalahari and Namibië map, with your fur and face notes in. v1.6 Veld art, v1.6b reload power-ups and this Project overview went in earlier on 25 Oct. Now: Tank has built every part of v1.7b (power-ups explained in the Gun Shed and in the hunt, and Oupa's comments On / Text only / Off in Settings); Claude is taking its screenshots, then reviews, runs the full tests and merges (expected about 03:30). Next, in this order: v1.7c fruit that swings or drops, v1.7d Namibië veld life, v1.7e realistic Bushveld + a new secret cue instead of the star (mock-ups for you first), v1.8 Blikkies, v1.8b baboons, v1.8c The Harvest (a new mode), then v1.9–v1.13.",
+ "updated": "2026-10-26T02:50:00Z",
+ "summary": "v1.7b is merged (26 Oct, 04:40; version 1.7.1): the Gun Shed explains every power-up with a picture, crates show what they hold, a card says what you picked up, chips count down, and Settings has Oupa's comments On / Text only / Off. v1.7 meerkats went in at 00:55. Now: Tank is building v1.7c, fruit that swings or drops when shot (expected about 07:30). Next, in this order: v1.7d Namibië veld life, v1.7e realistic Bushveld + a new secret cue instead of the star (mock-ups for you first), v1.8 Blikkies, v1.8b baboons, v1.8c The Harvest (a new mode), then v1.9–v1.13.",
  "current": {
-  "version": "1.7.0",
-  "commit": "d57a840"
+  "version": "1.7.1",
+  "commit": "1bbedc7"
  },
  "links": [
   {
@@ -366,7 +366,33 @@
   "v1.7c": {
    "owner": "Tank",
    "summary": "Fruit you shoot reacts: the sausage tree's sausages, baobab and camelthorn pods and marula swing on their stalks or drop to the ground.",
-   "requestedBy": "You, 25 Oct ~16:45: \"when shooting these fruits, make them swing or drop down.\""
+   "requestedBy": "You, 25 Oct ~16:45: \"when shooting these fruits, make them swing or drop down.\"",
+   "status": "running",
+   "checklist": [
+    {
+     "text": "Fruit as separate sprites; swing and drop on shots (view only, the game rules unchanged)",
+     "done": true,
+     "at": "2026-10-26T02:15:00Z"
+    },
+    {
+     "text": "Browser test: a shot sausage swings, a second shot drops it, the score unchanged",
+     "done": true,
+     "at": "2026-10-26T02:18:00Z"
+    },
+    {
+     "text": "Screenshot setup and docs (D-047)",
+     "done": true,
+     "at": "2026-10-26T02:24:00Z"
+    },
+    {
+     "text": "Claude's screenshots on desktop, Pixel 7 and iPhone 14",
+     "done": false
+    },
+    {
+     "text": "Review, full tests and merge",
+     "done": false
+    }
+   ]
   },
   "v1.7d": {
    "owner": "Tank",
@@ -374,10 +400,9 @@
    "requestedBy": "You, 25 Oct ~19:50: ostriches with a nest, oryx in the mirage, hot-air balloons; and \"the grass landscapes in the Namibia one also look very rough still\"."
   },
   "v1.7b": {
-   "owner": "Tank",
+   "owner": "Tank built it; Claude reviewed, fixed a freeze and merged it",
    "summary": "A Power-ups section in the Gun Shed with a picture and a plain explanation of every power-up and crate gun (what it does, how long, how you get it, a tip). In the hunt: crates show what is inside, a short card on pickup says what it does, the chip counts down and blinks before it ends, and each power-up has a small visible effect. Plus a Settings switch: Oupa's comments On / Text only / Off.",
    "requestedBy": "You, 25 Oct ~20:20: \"one is very unsure what they actually do\" and \"the option to have the grandfather mode enabled or not\".",
-   "status": "running",
    "checklist": [
     {
      "text": "Icons for every power-up and crate gun",
@@ -420,11 +445,16 @@
     },
     {
      "text": "Fixes from the screenshots: a bigger crate icon, no double item name, stockier Meerkat Spotter and Voorlaaier icons",
-     "done": false
+     "done": true
     },
     {
      "text": "Review, full tests and merge",
-     "done": false
+     "done": true
+    },
+    {
+     "text": "Merged after all 23 test jobs passed (26 Oct, 04:40)",
+     "done": true,
+     "at": "2026-10-26T02:40:00Z"
     }
    ]
   },
@@ -1017,6 +1047,48 @@
      "url": "https://github.com/ShadowNam/Tarantal/pull/77"
     }
    ]
+  },
+  {
+   "at": "2026-10-26T02:40:00Z",
+   "kind": "merge",
+   "text": "v1.7b is merged (#77) as version 1.7.1, after all 23 test jobs passed. Power-ups are now explained in the Gun Shed and in the hunt, and Oupa's comments can be set to On, Text only or Off. Before the merge Claude fixed a freeze right after a crate pickup (the icons now load later to keep the first download under 3 MB, and the swap left the screen drawing a deleted picture).",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17b-final-pickup-card.jpg",
+     "caption": "The card the first time you pick up Farm Coffee, with Oupa’s word and the chip counting down"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17b-final-shed-iphone.jpg",
+     "caption": "The Gun Shed’s new Power-ups tab on an iPhone 14"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17b-final-crate-closeup.jpg",
+     "caption": "A falling crate shows what it holds, on the parachute and the box"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17b-final-settings-pixel7.jpg",
+     "caption": "Settings on a Pixel 7: Oupa’s comments On / Text only / Off"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17b-final-blitslaai.jpg",
+     "caption": "Lightning Load: the card, the chip and the glints on the belt"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17b-final-buckshot.jpg",
+     "caption": "Bush Buckshot: the chip counts shells, and the spread ring is wider"
+    }
+   ],
+   "links": [
+    {
+     "label": "PR #77",
+     "url": "https://github.com/ShadowNam/Tarantal/pull/77"
+    }
+   ]
+  },
+  {
+   "at": "2026-10-26T02:24:00Z",
+   "kind": "note",
+   "text": "Tank is building v1.7c (fruit that swings or drops). Its first try dropped its connection before pushing anything; the retry has pushed the fruit, a browser test, the screenshot setup and the docs."
   }
  ]
 }
