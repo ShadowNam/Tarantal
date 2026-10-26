@@ -309,7 +309,6 @@ function bat(pose: number, k: number, silhouette = false): string {
 
 // --- the spotted eagle-owl ------------------------------------------------------------------------
 
-
 /**
  * Wing pose −1 (down) … 1 (up). Seen from below and in front as it glides over: broad wings
  * spread wide (barred flight feathers, splayed dark-tipped primaries), the pale barred belly, and
