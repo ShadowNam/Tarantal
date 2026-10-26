@@ -10,7 +10,13 @@ import { DailyFlow } from './game/daily/DailyFlow';
 import { loadGameContent } from './content/loadBrowser';
 import { AudioDirector, browserAudioEnv } from './game/audio/AudioDirector';
 import { BarkDirector } from './game/audio/barks';
-import { withDoppies, withNoBirds, withQuotaMul, withTestCrate } from './game/devContent';
+import {
+  withDoppies,
+  withEarlySpook,
+  withNoBirds,
+  withQuotaMul,
+  withTestCrate,
+} from './game/devContent';
 import type { GameContext, TestHook, TestTools } from './game/GameContext';
 import {
   designSize,
@@ -403,7 +409,9 @@ const withDop =
     ? withDoppies(withQuota, doppiesParam)
     : withQuota;
 // e2e/dev only (v1.7 meerkat previews): ?birds=0 — no birds or world events, colonies only.
-const devBundle = testHooks && params.get('birds') === '0' ? withNoBirds(withDop) : withDop;
+const noBirds = testHooks && params.get('birds') === '0' ? withNoBirds(withDop) : withDop;
+// e2e/dev only (D-048): ?spook=early brings the special day's owls and bats in early.
+const devBundle = testHooks && params.get('spook') === 'early' ? withEarlySpook(noBirds) : noBirds;
 // D-034: `?admin=1&play=1` plays the hunt the admin page stored (its content changes too).
 let adminSave: AdminSave | null = adminOn ? loadAdminSave() : null;
 const adminList = adminOn ? adminEntries(devBundle, placeholderBiomes()) : [];

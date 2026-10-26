@@ -173,7 +173,8 @@ export class BarkDirector {
         // D-048: the Spookjag. Lanterns out is held until said (it is the day's secret).
         case 'spookHit':
           if (e.thing === 'bat') cands.push('feesdagBat');
-          else if (e.thing === 'owl') cands.push('feesdagOwl');
+          // The owl's scold is held until said (a hit inside the gap still gets it).
+          else if (e.thing === 'owl') this.pending.add('feesdagOwl');
           break;
         case 'lanternsOut':
           this.pending.add('lanternsOut');

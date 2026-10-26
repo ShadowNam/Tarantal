@@ -15,7 +15,13 @@ import {
   isTouchProject,
   tapRect,
 } from './helpers';
-import { lanternInView, shootLanternOut, spookRunning } from './feesdaeHelpers';
+import {
+  fireAt,
+  lanternInView,
+  shootLanternOut,
+  spookRunning,
+  tapRectInPage,
+} from './feesdaeHelpers';
 
 const HALLOWEEN = loadContent().feesdae.specials.find((f) => f.id === 'halloween');
 if (HALLOWEEN === undefined) throw new Error('no halloween in feesdae.json');
@@ -107,12 +113,89 @@ test.describe('Feesdae: the Halloween Spookjag (D-048)', () => {
     expect(h.tally).toMatchObject({ frame: 'halloween', share: true });
     expect(h.tally?.title).toMatch(/^Spookjag \d{4}$/);
     await page.screenshot({ path: `${SCREENSHOTS}/feesdae-tally-${info.project.name}.png` });
-    await tapRect(page, touch, 'share');
+    // In-page: after a held arrow key, a page.touchscreen tap does not land on WebKit's iPhone.
+    await tapRectInPage(page, touch, 'share');
     await page.waitForFunction(() => window.__TM__?.lastShare != null, null, { timeout: 30_000 });
     h = await hook(page);
     expect(h.lastShare?.text).toMatch(/^🎃🦇 🐦 Tarantal Madness · Spookjag \d{4} · Daily #\d+/);
     expect(h.lastShare?.text).toContain('🦇🌕');
     expect(h.lastShare?.url).toContain('?c=');
+    expect(errors).toEqual([]);
+  });
+
+  test('an owl that crosses unhit costs nothing; a shot owl is −10 and Oupa scolds', async ({
+    page,
+  }, info) => {
+    test.skip(!isLandscape(info), 'portrait shows the rotate card');
+    test.setTimeout(600_000);
+    const touch = isTouchProject(info);
+    const errors = collectErrors(page);
+    await seedSave(page, { quality: 'medium' });
+    // No birds or crates (nothing else scores), two owls early in the hunt (?spook=early).
+    await boot(page, 'feesdag=halloween&seed=42&omen=0&huntSeconds=60&birds=0&spook=early');
+    await page.waitForFunction(() => window.__TM__?.rects['daily'] !== undefined, null, {
+      timeout: 60_000,
+    });
+    await tapRect(page, touch, 'daily');
+    await spookRunning(page);
+    // An owl crosses the view (in, then out again) with nothing fired: the score stays 0.
+    const crossed = await page.waitForFunction(
+      () => {
+        const g = window.__TM__;
+        const w = window as unknown as { __owlIn?: number };
+        if (g === undefined) return null;
+        const inView = (x: number): boolean => x > 0 && x < g.designWidth;
+        const owls = (g.spook?.things ?? []).filter((t) => t.kind === 'owl');
+        if (w.__owlIn === undefined) {
+          const o = owls.find((t) => inView(t.x));
+          if (o !== undefined) w.__owlIn = o.id;
+          return null;
+        }
+        const o = owls.find((t) => t.id === w.__owlIn);
+        return o === undefined || !inView(o.x) ? { score: g.score, shots: g.shots } : null;
+      },
+      null,
+      { timeout: 300_000 },
+    );
+    expect(await crossed.jsonValue()).toEqual({ score: 0, shots: 0 });
+    // Then an owl is shot: pan towards one until it is well inside the view, fire in-page.
+    let hit: { score: number; bark: boolean } | null = null;
+    for (let i = 0; i < 120 && hit === null; i++) {
+      const owl = await page.evaluate(() => {
+        const g = window.__TM__;
+        const o = g?.spook?.things.find((t) => t.kind === 'owl');
+        return g === undefined || o === undefined ? null : { id: o.id, x: o.x, w: g.designWidth };
+      });
+      if (owl === null) {
+        await page.waitForTimeout(250);
+        continue;
+      }
+      if (owl.x < 200 || owl.x > owl.w - 200) {
+        const key = owl.x < 200 ? 'ArrowLeft' : 'ArrowRight';
+        await page.keyboard.down(key);
+        await page.waitForTimeout(350);
+        await page.keyboard.up(key);
+        continue;
+      }
+      const before = await fireAt(page, touch, { id: owl.id });
+      if (before === null) continue;
+      // The score and Oupa's scold, read in the same frame that has both.
+      hit = await page
+        .waitForFunction(
+          ([n, line]) => {
+            const g = window.__TM__;
+            if (g === undefined || g.shots <= n) return null;
+            return g.score === -10 && g.barks.includes(line)
+              ? { score: g.score, bark: true }
+              : null;
+          },
+          [before.shots, HALLOWEEN.barks.owl] as const,
+          { timeout: 15_000 },
+        )
+        .then(async (r) => (await r.jsonValue()) as { score: number; bark: boolean })
+        .catch(() => null);
+    }
+    expect(hit).toEqual({ score: -10, bark: true });
     expect(errors).toEqual([]);
   });
 

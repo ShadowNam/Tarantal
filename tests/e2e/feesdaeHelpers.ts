@@ -162,3 +162,35 @@ export async function shootLanternOut(page: Page, touch: boolean, id: number): P
   }
   return false;
 }
+
+/** Taps a hook rect (a menu button) in-page, like the shots (never page.touchscreen). */
+export async function tapRectInPage(page: Page, touch: boolean, id: string): Promise<void> {
+  await page.waitForFunction((r) => window.__TM__?.rects[r] !== undefined, id, {
+    timeout: 60_000,
+  });
+  await page.evaluate(
+    ([rid, isTouch]) => {
+      const g = window.__TM__;
+      const canvas = document.querySelector<HTMLCanvasElement>('#game canvas');
+      const rect = g?.rects[rid];
+      if (g === undefined || canvas === null || rect === undefined) throw new Error(`no ${rid}`);
+      const w = window as unknown as { __spookPointer?: number };
+      w.__spookPointer = (w.__spookPointer ?? 4400) + 1;
+      const r = canvas.getBoundingClientRect();
+      const init: PointerEventInit = {
+        clientX: r.left + ((rect.x + rect.w / 2) / g.designWidth) * r.width,
+        clientY: r.top + ((rect.y + rect.h / 2) / g.designHeight) * r.height,
+        pointerId: w.__spookPointer,
+        pointerType: isTouch ? 'touch' : 'mouse',
+        isPrimary: true,
+        button: 0,
+        buttons: 1,
+        bubbles: true,
+        cancelable: true,
+      };
+      canvas.dispatchEvent(new PointerEvent('pointerdown', init));
+      canvas.dispatchEvent(new PointerEvent('pointerup', { ...init, buttons: 0 }));
+    },
+    [id, touch] as const,
+  );
+}

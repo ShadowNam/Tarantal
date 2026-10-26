@@ -111,3 +111,28 @@ export function withNoBirds(b: ContentBundle): ContentBundle {
     })),
   };
 }
+
+/**
+ * e2e/dev only (D-048, `?spook=early`): the special days' owls come early, three of them (in the
+ * first 40 % of the hunt) and the bats from the start, so a spec meets them within seconds.
+ */
+export function withEarlySpook(b: ContentBundle): ContentBundle {
+  return {
+    ...b,
+    feesdae: {
+      ...b.feesdae,
+      specials: b.feesdae.specials.map((f) => ({
+        ...f,
+        twist: {
+          ...f.twist,
+          owls: {
+            ...f.twist.owls,
+            perHunt: [2, 2] as [number, number],
+            window: [0.15, 0.3] as [number, number],
+          },
+          bats: { ...f.twist.bats, window: [0.02, 0.5] as [number, number] },
+        },
+      })),
+    },
+  };
+}
