@@ -50,7 +50,7 @@ import {
 } from '../ui/popFont';
 import { fontReadiness } from '../ui/fontReady';
 import { cornerStampShown, stampFor, StampLabel } from '../ui/StampLabel';
-import { updateCaptions, type CaptionLine } from '../audio/captions';
+import { captionItem, updateCaptions, type CaptionLine } from '../audio/captions';
 import { FAMILIEFOTO_SECRET } from '../../sim/meerkats/colony';
 
 export interface HudControls {
@@ -880,6 +880,9 @@ export class HudScene extends Phaser.Scene {
   /** M9: captions for this frame's sound cues (only with Settings → captions). */
   private drawCaptions(events: readonly SimEvent[], now: number, l: HudLayout): void {
     if (!this.ctx.prefs.captions) {
+      // v1.7b: keep following the crate gun in hand, so turning captions on mid-hunt still names
+      // it when it runs out.
+      for (const e of events) captionItem(e, this.captionCrate);
       if (this.captions.length > 0) {
         this.captions = [];
         for (const tx of this.captionTexts) tx.setVisible(false);

@@ -113,6 +113,8 @@ export function updateCaptions(
     const item = captionItem(e, crate);
     const key = captionFor(e);
     if (key === null) continue;
+    // v1.7b: an end line that can't name its item says nothing ("[{item} wears off]").
+    if (key === 'caption.pu_end' && item === null) continue;
     const same = (l: CaptionLine): boolean => l.key === key && (l.item ?? null) === item;
     const on = next.find(same);
     if (on !== undefined) {

@@ -111,4 +111,16 @@ describe('v1.7 meerkat captions (D-044)', () => {
       }),
     ).toBe('caption.camera_click');
   });
+
+  it('v1.7b: an end with no known crate gun (captions turned on mid-hunt) says nothing', () => {
+    const lines = updateCaptions(
+      [],
+      new Map<string, number>(),
+      [ev({ type: 'weaponChanged', weapon: 'dubbelloop', kind: 'primary' })],
+      0,
+      cfg,
+      { id: null },
+    );
+    expect(lines).toEqual([]);
+  });
 });
