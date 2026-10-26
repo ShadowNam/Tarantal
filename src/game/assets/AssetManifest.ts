@@ -128,6 +128,9 @@ export function neededLateMissing(
 
 export const MAX_TILE_WIDTH = 2048;
 
+/** Placeholders upgrade() has renamed out of the way (keeps their new keys unique). */
+let retiredPlaceholders = 0;
+
 export class AssetManifest {
   private readonly specs = new Map<string, CanvasSpec>();
   private readonly layerArt = new Map<string, LayerArt>();
@@ -595,8 +598,9 @@ export class AssetManifest {
 
   /**
    * v1.6 (D-042): swaps placeholders drawn earlier (by any manifest) for delivered images that
-   * arrived since (keys starting with `prefix`). Only for art whose views are rebuilt afterwards (the sight pictures:
-   * HuntScene rebuilds them at every hunt start). Returns the swapped keys.
+   * arrived since (keys starting with `prefix`). Views pick up the delivered image when they next
+   * set the key (the sight pictures at every hunt start; v1.7b's power-up icons when
+   * powerupIconEpoch() changes). Returns the swapped keys.
    */
   upgrade(textures: Phaser.Textures.TextureManager, prefix: string): string[] {
     const out: string[] = [];
@@ -606,7 +610,11 @@ export class AssetManifest {
       // canvas texture, delivered art an image.
       const src = textures.get(key).getSourceImage();
       if (!this.drawn.has(key) && !(src instanceof HTMLCanvasElement)) continue;
-      textures.remove(key);
+      // Rename the placeholder instead of removing it: objects still drawing it (a HUD chip, a
+      // crate tag, the pickup card) keep a live texture until their view sets the key again.
+      // Removing it under them froze the hunt with a null frame when the late group landed
+      // mid-hunt (v1.7b, D-046). The renamed canvas is a few KB and stays.
+      textures.renameTexture(key, `${key}#placeholder-${++retiredPlaceholders}`);
       textures.addImage(key, img);
       this.drawn.delete(key);
       out.push(key);
