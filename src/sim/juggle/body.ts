@@ -25,6 +25,9 @@ export interface JuggleTuning {
   readonly pelletCap: number;
   readonly bounce: { readonly restitution: number; readonly keep: number };
   readonly goneMarginPx: number;
+  /** The air hit that always ends the juggle: from this chain on the kick is sized to clear
+   *  the top of the view ("Weg!"), so a chain never runs on without end. */
+  readonly wegChain: number;
 }
 
 /** rest: where it was put; air: flying (the chain may grow); bounced: its one bounce, still in
@@ -76,6 +79,8 @@ export function kick(
   side: number,
   pellets: number,
   rng: RandomStream,
+  /** The top of the view in plane px (0): the wegChain kick clears it. */
+  topY = 0,
 ): KickResult | null {
   if (!kickable(b)) return null;
   const kind = b.state === 'rest' ? 'knock' : 'juggle';
@@ -83,12 +88,18 @@ export function kick(
   const g = Math.min(n, t.growthCapHits);
   const power = Math.min(1 + t.pelletBonus * Math.max(0, pellets - 1), t.pelletCap);
   const s = Math.max(-1, Math.min(1, side));
-  // Away from the hit side; a dead-centre hit still goes one way (the sign of a zero is +1 → left).
+  // Away from the hit side; a dead-centre hit (side 0) goes right (+x).
   const dir = s > 0 ? -1 : 1;
   const share = Math.max(t.minSideShare, Math.abs(s));
   const jitter = t.jitterPxPerSec + t.jitterGrowthPxPerSec * g;
   const vxSec = (dir * t.kickSidePxPerSec * share + rng.range(-jitter, jitter)) * power;
-  const vySec = -t.kickUpPxPerSec * (1 + t.upGrowth * g) * power;
+  let vySec = -t.kickUpPxPerSec * (1 + t.upGrowth * g) * power;
+  if (n >= t.wegChain) {
+    // The finishing kick: enough to rise from here past the top of the view, a little to spare
+    // (v² = 2 g h).
+    const rise = Math.max(0, b.y - topY) + b.extent + t.goneMarginPx + b.extent;
+    vySec = Math.min(vySec, -Math.sqrt(2 * t.gravityPxPerSec2 * rise) * 1.05);
+  }
   const spinSec = degToRad(t.spinDegPerSec + t.spinGrowthDegPerSec * g);
   b.vx = vxSec / TICKS_PER_SECOND;
   b.vy = vySec / TICKS_PER_SECOND;

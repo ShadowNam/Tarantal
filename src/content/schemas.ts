@@ -290,6 +290,9 @@ export const CansSchema = obj({
     bounce: obj({ restitution: fraction, keep: fraction }),
     /** Gone ("Weg!") once the can's top is this far above the top of the view. */
     goneMarginPx: nonNeg,
+    /** From this air hit on the kick is sized to clear the top of the view: every chain ends in
+     *  Weg! by this length at the latest. */
+    wegChain: posInt,
   }),
 });
 export type Cans = z.infer<typeof CansSchema>;

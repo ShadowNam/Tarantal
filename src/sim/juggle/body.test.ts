@@ -20,6 +20,7 @@ const T: JuggleTuning = {
   pelletCap: 1.2,
   bounce: { restitution: 0.3, keep: 0.5 },
   goneMarginPx: 20,
+  wegChain: 99,
 };
 
 const body = () => restingBody(500, 600, 700, 20);
@@ -97,5 +98,21 @@ describe('juggle body (D-050)', () => {
     }
     expect(gone).toBe(true);
     expect(b.state).toBe('gone');
+  });
+
+  it('the wegChain-th air hit always sends it out of the top of the view (Weg!)', () => {
+    const t = { ...T, wegChain: 3, kickUpPxPerSec: 120 };
+    const b = restingBody(500, 900, 950, 20);
+    const rng = createStream(6);
+    kick(b, t, 0.2, 1, rng);
+    let out: string | null = null;
+    for (let i = 0; i < 60 * 30 && out === null; i++) {
+      // Hit it at the top of every arc: small kicks would keep it in view for ever.
+      if (b.vy > 0 && b.state === 'air') expect(kick(b, t, 0.2, 1, rng)).not.toBeNull();
+      const r = stepBody(b, t, 0);
+      if (r === 'gone' || r === 'landed') out = r;
+    }
+    expect(out).toBe('gone');
+    expect(b.chain).toBe(3);
   });
 });

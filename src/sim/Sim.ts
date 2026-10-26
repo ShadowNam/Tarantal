@@ -762,14 +762,20 @@ export function createSim(config: SimConfig): Sim {
     rangeCfg !== null && rangeCfg.target === 'cans' && rangeCfg.plane !== 'all'
       ? { setup: content.modes.modes.range.cans, plane: rangeCfg.plane }
       : null;
+  // Placed once, in the screen centre at the start: fresh cans stand on the same posts however
+  // the range camera has panned since (review of v1.8: they floated on invisible posts).
+  const rangeFenceU =
+    rangeCans === null
+      ? 0
+      : planeCentreX(cameraX, scoring.planes[rangeCans.plane].scrollFactor) /
+        coreWidth(scoring.planes[rangeCans.plane].scrollFactor);
   const rangeFence = (gen: number): Blikkies | null => {
     if (rangeCans === null) return null;
-    const sf = scoring.planes[rangeCans.plane].scrollFactor;
     const { kind, posts, cans: onPosts, groundY } = rangeCans.setup;
     return startCans({
       fence: {
         plane: rangeCans.plane,
-        u: planeCentreX(cameraX, sf) / coreWidth(sf),
+        u: rangeFenceU,
         kind,
         posts,
         cans: onPosts,
@@ -2157,8 +2163,11 @@ export function createSim(config: SimConfig): Sim {
       bonus === 'wholeFlock' || bonus === 'twoFlies' || bonus === 'secretChain'
         ? pass.bonusMul[bonus]
         : 1;
+    // v1.8 (D-050): tin cans pay × Stampede only. A can-only shot leaves the streak alone, so a
+    // Frenzy multiplier would stay on for a whole juggle (review of v1.8).
+    const canBonus = bonus === 'canKnock' || bonus === 'canAir' || bonus === 'canWeg';
     const award = scoreEventBonus(base, {
-      frenzyMul: frenzyMul(streak, scoring.frenzyTiers),
+      frenzyMul: canBonus ? 1 : frenzyMul(streak, scoring.frenzyTiers),
       stampedeMul: stampedeMul(),
       multipliers: scoring.eventBonusMultipliers,
       ...(charmMul === 1 ? {} : { bonusMul: charmMul }),

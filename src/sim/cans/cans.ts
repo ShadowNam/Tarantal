@@ -105,7 +105,9 @@ export function startCans(d: CanDeps): Blikkies | null {
       r,
       half,
       hitR: hitRadius(t.r, p.scale, p.minHitRadiusPx),
-      airHitR: hitRadius(t.r * d.cans.airHitMul, p.scale, p.minHitRadiusPx),
+      // In the air: × airHitMul of its drawn size, never the plane's floor (a far can is small in
+      // the air, so far juggles stay the hard ones; review of v1.8).
+      airHitR: t.r * d.cans.airHitMul * p.scale,
     });
   });
   return {

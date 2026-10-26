@@ -593,7 +593,8 @@
         "restitution": 0.32,
         "keep": 0.45
       },
-      "goneMarginPx": 24
+      "goneMarginPx": 24,
+      "wegChain": 10
     }
   }
 }
