@@ -2826,11 +2826,20 @@ haven't seen that in any of the builds"). Rules in GDD §11.3. (1) *Design:* a s
 hunt, not a new loop: one fence of 3–6 posts on 3–4 weekday layouts of the Karoo, Bushveld,
 Kalahari and Namibië (none in the Okavango: no farm fences there); the plane varies by day and the
 bonus maps push it back (Verder one plane, Nog Verder far, Die Verste Ver). (2) *Scoring:* event
-bonuses through the pipeline (Frenzy × Stampede), never a bag; a can-only shot leaves Frenzy alone
-and is not a miss, as a secret part. (3) *Season Run: no cans* — it plays the plain biome with
+bonuses through the pipeline, × Stampede only (a can-only shot leaves the streak alone, so a Frenzy
+multiplier would last a whole juggle; review 1), never a bag; a can-only shot is not a miss, as a
+secret part. Knock-off 5, air hit n 8 + 2 × (min(n, 8) − 1), Weg! 15, × plane near 0.8 / mid 1.3 /
+far 2 / Ver 2.5: the apex juggler and the can-happy bot take ≤ ~9 % of their score from cans on
+every fence map (`docs/balance/v1.8-blikkies.md`). (3) *Season Run: no cans* — it plays the plain biome with
 fixed quotas, and a quota shortcut would undo its tuning; the FTUE neither. (4) *Not hiding
-anything:* the posts don't stop pellets; resting cans are checked against the bird bands and
-secrets behind them as the meerkat colonies are; a can in flight is fair game wherever it goes.
+anything:* the posts and landed cans don't stop pellets; resting cans are checked against the bird
+bands and secrets behind them as the meerkat colonies are; a can in flight is fair game wherever it
+goes. (5) *The juggle (reviews 1–3):* a can is hit in the air within 2.5× its drawn radius; the
+plane's hit floor applies only to a resting can, so far is the hardest plane to juggle (an
+earlier floored far can juggled to 16–19); the 10th air hit (`wegChain`) always ends in Weg!. The
+kick (430 px/s up, 110 sideways, pellet cap ×1.04, jitter growth 15) was set with an apex-juggler
+bot (100 ms late, 10 px error): near reaches 3 in ~96 % of juggles and Weg! at 4–6, mid 3 in ~50 %,
+far 3 in ≤ 1 % (review's suggested 400 px/s made near too long: ≥ 5 in 83 %).
 
 ## 3. Research notes (with sources)
 

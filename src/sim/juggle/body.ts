@@ -13,7 +13,7 @@ export interface JuggleTuning {
   readonly gravityPxPerSec2: number;
   readonly kickUpPxPerSec: number;
   readonly kickSidePxPerSec: number;
-  /** A hit on the centre line still pushes this share of kickSide (away from the shooter's side). */
+  /** Even a hit on the centre line pushes at least this share of kickSide sideways (to the right). */
   readonly minSideShare: number;
   readonly spinDegPerSec: number;
   readonly upGrowth: number;

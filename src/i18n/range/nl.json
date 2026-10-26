@@ -64,7 +64,7 @@
   "range.mark_short": "TE KORT",
   "range.fresh_load": "Vers laden",
   "range.fresh_load_hint": "Gecachte spelbestanden wissen en deze kaart opnieuw laden",
-  "range.target_cans": "Blikkies",
+  "range.target_cans": "Blikjes",
   "range.line_cans_knock": "Eraf geschoten: {knocks} in {shots} schoten ({per} per schot)",
   "range.line_cans_air": "In de lucht: {hits} van {shots} schoten raak ({rate} %) · langste reeks {chain}"
 }

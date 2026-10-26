@@ -554,23 +554,29 @@ a South African farm pastime: here it is a skill toy beside the bird hunt, never
   kick grows with the chain count n), **spinning faster**, with **more sideways jitter** as n grows,
   so it gets less predictable. The growth per hit is capped (never the height), so a long chain
   keeps climbing until the can leaves the top of the view: **"Weg!"** — gone for good, a finish
-  bonus and a fading whistle.
+  bonus and a fading whistle. The **10th air hit** (`juggle.wegChain`) always kicks it out of the
+  top, however low it was hit, so no juggle runs on without end.
 - **Landing:** back at the fence's ground line it bounces once, rattles and lies there for the rest
-  of the hunt. A landed can scores nothing more (a pellet stops on it, nothing happens).
+  of the hunt. A landed can scores nothing more and is scenery: pellets pass it, as they pass the
+  posts.
 - **One kick per shot:** a shotgun's pellets on one can give one kick (stronger with more pellets,
-  capped); the hit side is where they struck on average. **In the air a can is easier to hit**
-  (its hit radius × `airHitMul`, 2; a tumbling can sweeps more than its outline): without it a
-  perfect shot with the Dubbelloop kept a mid can up for 3 hits only 8–22 % of the time
-  (`tools/juggle-check.ts`; with it 65 %, and "Weg!" 45 %). The far plane's hit floor already
-  sets its size there, so far juggles stay the hard ones. Touch aim assist rescues a shot at a can
+  capped at ×1.04); the hit side is where they struck on average. **In the air a can is easier to
+  hit** (its drawn radius × `airHitMul`, 2.5; a tumbling can sweeps more than its outline). The
+  plane's `minHitRadiusPx` floors only a *resting* can, so a far can is easy to knock off and
+  hard to juggle. Measured with the apex juggler (`tools/juggle-check.ts`: it shoots once per arc
+  at the top, 100 ms late, 10 px aim error, Dubbelloop): near reaches a chain of 3 in ~96 % of
+  juggles and 5 in ~55 %, nearly all ending in "Weg!" at chain 4–6; mid 3 in ~50 %, 5 in ~30 %;
+  far 3 in ≤ 1 %. A 16 px / 150 ms shot: near 3 in ~63 %, mid ~27 %. The kick is 430 px/s up and
+  110 px/s sideways at the tuning scale (`content/birds.json → cans.juggle`). Touch aim assist rescues a shot at a can
   the same way as at a bird (the aim point inside the assist-grown can → the pattern is centred on it).
 - **It is still a shot:** it costs ammo, and its impact makes noise like any shot (flocks near it
   alert, a silenced gun stays quiet). A resting can and its fence never stand in front of a bird
   band or a secret on a plane behind (content checks, like the meerkat colonies); a can in flight is
   a fair target wherever it is (a pellet stops on the nearest thing).
-- **Scoring** (`content/scoring.json → cans`, event bonuses, GDD §5.3: × Frenzy × Stampede only):
-  a small knock-off value; each air hit escalates with n up to a chain cap; Weg! pays a finish
-  bonus; all × a per-plane factor (further cans pay more). A shot that hits only cans neither
+- **Scoring** (`content/scoring.json → cans`, event bonuses, GDD §5.3, × Stampede only: a can
+  shot leaves the streak alone, so a Frenzy multiplier would last a whole juggle): knock-off 5;
+  air hit n pays 8 + 2 × (min(n, 8) − 1); Weg! 15; all × a per-plane factor (near 0.8, mid 1.3,
+  far 2, Ver 2.5: further cans pay more, and far is the hardest to juggle). A shot that hits only cans neither
   extends nor resets Frenzy and is not a miss (like a secret part). Never a bag: no Bird Book, no
   Whole Flock, no combo.
 - **Extras:** Oupa barks at a chain of 3+ ("Hou hom in die lug!"); a Notaboek challenge (keep a can
@@ -580,8 +586,8 @@ a South African farm pastime: here it is a skill toy beside the bird hunt, never
   a Blikkies target at every distance). **Not the Season Run** (nor the FTUE): it plays the plain
   biome, whose quotas and lesson stay fixed, and the cans would be a quota shortcut there.
 - **Balance:** cans never out-score birds: a competent bot's share of score from cans stays
-  ≤ ~10 %, also for a "can-happy" bot that shoots every can it sees
-  (`docs/balance/v1.8-blikkies.md`).
+  ≤ ~10 %, also for a "can-happy" bot that shoots every can it sees and for the apex juggler
+  that juggles every can it knocks off (`docs/balance/v1.8-blikkies.md`).
 - **Names:** Blikkies (af), Tin Cans (en), Blechdosen (de), Blikjes (nl) (`docs/i18n-names.md`;
   the Afrikaans-names toggle shows "Blikkies" in every language).
 

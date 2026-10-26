@@ -31,7 +31,9 @@ export function gunNameById(content: ContentBundle, id: string): string {
 }
 
 export const distName = (plane: PlaneId | 'all'): string => rt(`range.dist_${plane}`);
-export const targetName = (target: RangeTarget | 'mixed'): string => rt(`range.target_${target}`);
+// v1.8: the cans use the game's own name (the Afrikaans-names toggle shows "Blikkies").
+export const targetName = (target: RangeTarget | 'mixed'): string =>
+  target === 'cans' ? t('cans.name') : rt(`range.target_${target}`);
 
 export function biomeName(content: ContentBundle, id: string): string {
   const b = content.biomes.find((x) => x.id === id);

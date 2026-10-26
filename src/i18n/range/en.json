@@ -64,7 +64,7 @@
   "range.mark_short": "SHORT",
   "range.fresh_load": "Fresh load",
   "range.fresh_load_hint": "Clear the cached game files and reload this map",
-  "range.target_cans": "Blikkies",
+  "range.target_cans": "Tin Cans",
   "range.line_cans_knock": "Knocked off: {knocks} in {shots} shots ({per} per shot)",
   "range.line_cans_air": "In the air: {hits} of {shots} shots hit ({rate} %) · longest chain {chain}"
 }
