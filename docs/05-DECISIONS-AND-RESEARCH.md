@@ -2692,6 +2692,17 @@ a sausage no longer lies with a 200 px stalk across the tree. A dropped fruit la
 it swung and rolls on until it lies `trunkClearPx` (10 px) clear of its trunk (the species code
 gives each fruit its trunk's foot), so it never reads as stuck to the trunk; a soft contact shadow
 lies under it.
+(7) *Second review round (26 Oct, at 611a1d4):* fruit now take the map light's tint on their
+layer (`ParallaxView.layerTint`, the same compound tint as the layer art and props:
+`lightTint.ts`), so they match their tree on dawn mist, overcast, golden, dusty and dusk maps, and
+they sit below the light's haze. Draw order per layer: layer art → the layer's fruit → its props →
+its props' fruit → haze → fixtures (meerkats, secret marks) → birds, so a layer fruit behind a
+prop (the Kalahari pods under the weaver tree's foot, the marula behind the dassie koppie) stays
+behind it as it was in the baked art. Wind drift and the shot's camera: see (1). Cost: a fruit at
+rest, faded out or settled is posed once and skipped until a shot moves it; fruit off screen are
+hidden and skipped; a drop works its fall out once. Poses use the interpolated sim time (the
+snapshot's tick − 1 + the frame's alpha), as the birds and the camera do, so a falling fruit is
+smooth on 90/120 Hz screens and a held frame still holds.
 
 ## 3. Research notes (with sources)
 
