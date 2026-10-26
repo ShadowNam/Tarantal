@@ -1,8 +1,8 @@
 {
  "schema": 1,
- "updated": "2026-10-26T04:55:00Z",
+ "updated": "2026-10-26T05:45:00Z",
  "by": "Claude",
- "summary": "Overnight: v1.7 meerkats (00:55), the history chapters (01:32) and v1.7b power-ups explained + Oupa's comments switch (04:40, version 1.7.1) are merged. Now: v1.7c, fruit that swings or drops when shot — redrawn at the camelthorn quality, independent review fixed; Claude's screenshots, the full tests and the merge come next (expected about 08:30). Next, in this order: v1.7d Namibië veld life, v1.7e realistic Bushveld + a new secret cue instead of the star (mock-ups for you first), v1.8 Blikkies, v1.8b baboons, v1.8c The Harvest (a new mode), then v1.9–v1.13.",
+ "summary": "Merged and live on the test build: v1.7 meerkats (Kalahari and Namibië only, 00:55) and v1.7b power-ups explained + Oupa's comments switch (04:40, version 1.7.1). Now: v1.7c, fruit that swings or drops when shot (the redrawn sausages included), is passing its last tests and merges next; Tank is building the Halloween Spookjag (ready before 31 Oct). Your map feedback of 26 Oct is planned in this order: perspective (birds smaller with distance), v1.8 Blikkies (moved up), Karoo polish (HD aloes, the boiling potjie), far animals in HD, makalani palms in the Okavango, tree life (the baobab's residents, weavers around their nest) and optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
   "version": "1.7.1",
   "commit": "1bbedc7"
@@ -36,13 +36,13 @@
  "numbers": [
   {
    "label": "Version on the test build",
-   "value": "1.6.1",
-   "note": "commit 133c85f, deploying after the merge at 20:42"
+   "value": "1.7.1",
+   "note": "commit 1bbedc7, merged 26 Oct, 04:40 Namibia time (the test build deploys a few minutes after)"
   },
   {
    "label": "Pull requests merged",
    "value": "75",
-   "note": "#1 to #76"
+   "note": "#1 to #78"
   },
   {
    "label": "Unit tests",
@@ -51,8 +51,8 @@
   },
   {
    "label": "First download",
-   "value": "2.96 MB",
-   "note": "budget 3 MB"
+   "value": "3.00 MB",
+   "note": "3,069 KB of the 3,072 KB budget"
   },
   {
    "label": "Hunting areas",
@@ -70,8 +70,8 @@
   },
   {
    "label": "Decisions logged",
-   "value": "42",
-   "note": "D-001 to D-042 on main; D-043 to D-045 in review"
+   "value": "46",
+   "note": "D-001 to D-046 on main"
   }
  ],
  "needsYou": [
@@ -1386,7 +1386,35 @@
    "start": "2026-10-26T04:50:00Z",
    "end": "2026-10-26T12:00:00Z",
    "estimate": true,
-   "summary": "Tank task 82404d28: building (merge by 28 Oct)"
+   "summary": "On 31 Oct the Daily Hunt becomes Spookjag: the day's map at dusk under a big moon, pumpkin lanterns on the fence posts (shoot them all for +25), bats as fast bonus targets (+15), protected owls (−10), some guineafowl in witch hats, Oupa's Halloween lines, a spooky sting and a Halloween share card. Built on a small 'special days' system so other holidays can be added later.",
+   "owner": "Tank; Claude reviews",
+   "checklist": [
+    {
+     "text": "Special-day system (dates in content, the Daily becomes the special that UTC day, admin/test override)",
+     "done": false
+    },
+    {
+     "text": "Halloween look: dusk, moon, lanterns, bats, owls, witch hats",
+     "done": false
+    },
+    {
+     "text": "Rules: bats +15, owls −10, all lanterns out +25",
+     "done": false
+    },
+    {
+     "text": "Oupa's lines (4 languages), sounds, share card",
+     "done": false
+    },
+    {
+     "text": "Tests and Claude's screenshots",
+     "done": false
+    },
+    {
+     "text": "Review, full tests and merge (before 28 Oct)",
+     "done": false
+    }
+   ],
+   "requestedBy": "You, 26 Oct: \"Halloween special yes, go ahead.\""
   },
   {
    "id": "perspective-guineafowl-get-smaller-the-f",
@@ -1395,42 +1423,91 @@
    "status": "next",
    "start": "2026-10-26T12:00:00Z",
    "end": "2026-10-26T17:30:00Z",
-   "estimate": true
+   "estimate": true,
+   "summary": "Guineafowl get smaller the further away they are, on every map, in proportion to the ostriches, zebras and other animals on the same distance band, and still easy enough to hit (the hit area shrinks less than the picture). The far bird pictures are redrawn smaller, which also frees room in the first download. Before/after screenshots of your Karoo ostrich view.",
+   "owner": "Tank builds it; Claude reviews",
+   "requestedBy": "You, 26 Oct: \"The further away they are, the smaller they must also get. Still in such a way that one can still shoot them … this needs to apply to all the levels.\""
+  },
+  {
+   "id": "v1.8",
+   "title": "v1.8: Blikkies — tin cans on the old farm fence to shoot off and juggle in the air until they fly out of sight (your request, 24 Oct; again 26 Oct)",
+   "phase": "Version 1.x",
+   "status": "next",
+   "start": "2026-10-26T17:30:00Z",
+   "end": "2026-10-26T23:30:00Z",
+   "estimate": true,
+   "version": "1.8.0",
+   "summary": "Tin cans on the old farm fence posts on the farm maps, at near, middle and far distance. Shoot one off and it somersaults away; hit it again in the air and it flies higher and wilder, until it disappears out of sight (\"Weg!\"). Also on the Skietbaan. Moved up the queue because you asked for it again.",
+   "owner": "Tank builds it; Claude reviews",
+   "requestedBy": "You, 24 Oct, and again 26 Oct: \"bean cans standing on top of them … if you hit them again they continue spinning up … till you don't see them anymore.\""
   },
   {
    "id": "karoo-polish-hd-aloes-the-potjie-steams-",
    "title": "Karoo polish: HD aloes; the potjie steams and simmers, and its lid flies off when shot (your request, 26 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-26T17:30:00Z",
-   "end": "2026-10-26T22:30:00Z",
-   "estimate": true
+   "start": "2026-10-26T23:30:00Z",
+   "end": "2026-10-27T04:30:00Z",
+   "estimate": true,
+   "summary": "HD bitter aloes with toothed blue-green leaves, a skirt of dry leaves and orange-red flower spikes. The potjie on its coals steams, simmers and rattles its lid; shoot the lid and it flies off and lands beside the pot with a clang (+5 s as before).",
+   "owner": "Tank builds it; Claude reviews",
+   "requestedBy": "You, 26 Oct: \"These aloes … need to become HD … the braai pot … boiling a little bit … when it's shot, the deksel should fall off.\""
   },
   {
    "id": "far-animals-in-hd-on-every-map-realistic",
    "title": "Far animals in HD on every map: realistic zebras, giraffes, elephants, wildebeest, gemsbok, springbok, ostriches and lechwe instead of stick figures (your request, 26 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-26T22:30:00Z",
-   "end": "2026-10-27T04:30:00Z",
-   "estimate": true
+   "start": "2026-10-27T04:30:00Z",
+   "end": "2026-10-27T10:30:00Z",
+   "estimate": true,
+   "summary": "Every far herd redrawn: zebras, giraffes, elephants, wildebeest, gemsbok, springbok, ostriches and lechwe with real proportions, jointed legs, markings and light, a few poses, young ones and small movements, at the sizes the perspective job sets.",
+   "owner": "Tank builds it; Claude reviews",
+   "requestedBy": "You, 26 Oct: \"The zebras, giraffes and elephant … look very cartoony … They still look too much like stick figures.\""
+  },
+  {
+   "id": "makalani-palms-in-the-okavango-hanging-n",
+   "title": "Makalani palms in the Okavango: hanging nut clusters you can shoot down, juggle and pop; reflections in the water at dusk (your request, 26 Oct)",
+   "phase": "Version 1.x",
+   "status": "next",
+   "start": "2026-10-27T10:30:00Z",
+   "end": "2026-10-27T16:00:00Z",
+   "estimate": true,
+   "summary": "Makalani palms by the water in the Okavango, with reflections at dusk and clusters of glossy brown nuts. A nut hit cracks off and falls; hit it in the air and it juggles like a can; a full shotgun hit pops it into fibre and ivory chips. Secret: 3 nuts in one hunt.",
+   "owner": "Tank builds it; Claude reviews",
+   "requestedBy": "You, 26 Oct: \"add some makalani trees … If somebody manages to hit such a small makalani, maybe it can do a small blow-up, or fall down … Be creative.\""
   },
   {
    "id": "tree-life-a-detailed-baobab-with-real-ha",
    "title": "Tree life: a detailed baobab with real hanging fruit and residents peeking from its hollows (bushbaby, squirrel, owl, hornbill); weavers flying around their colony nest with a pygmy falcon (your request, 26 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-27T04:30:00Z",
-   "end": "2026-10-27T10:30:00Z",
-   "estimate": true
+   "start": "2026-10-27T16:00:00Z",
+   "end": "2026-10-27T22:00:00Z",
+   "estimate": true,
+   "summary": "A detailed baobab with real hanging fruit and residents peeking from its hollows (bushbaby, tree squirrel, barn owl, a hornbill at its sealed nest); sociable weavers flying in and out of their colony nest with a pygmy falcon now and then (and lovebirds in Namibië). They are never hurt and duck away when you shoot near them.",
+   "owner": "Tank builds it; Claude reviews",
+   "requestedBy": "You, 26 Oct: \"see what other kind of animals normally live in that tree … a few holes where a little mouse can look out … some little birds fly around [the weaver nest].\""
+  },
+  {
+   "id": "hd-graphics-settings-graphics-auto-stand",
+   "title": "HD graphics: Settings → Graphics Auto / Standard / HD, an optional sharper art pack that loads in the background (your idea, 26 Oct; recommended form)",
+   "phase": "Version 1.x",
+   "status": "next",
+   "start": "2026-10-27T22:00:00Z",
+   "end": "2026-10-28T03:00:00Z",
+   "estimate": true,
+   "summary": "An optional sharper art pack: Settings → Graphics: Auto / Standard / HD. Auto picks HD on big screens and strong devices; it loads in the background after the hunt starts, so the game still starts fast and phones keep working as now.",
+   "owner": "Tank builds it; Claude reviews",
+   "requestedBy": "Your idea, 26 Oct: \"when the game loads, it should ask you standard quality or HD.\" Claude's advice: a setting with Auto instead of a question before play."
   },
   {
    "id": "v1.7d",
    "title": "v1.7d: Namibië veld life: detailed grass and sand, ostriches and their nest, oryx in the mirage, hot-air balloons (your request, 25 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-27T10:30:00Z",
-   "end": "2026-10-27T16:30:00Z",
+   "start": "2026-10-28T03:00:00Z",
+   "end": "2026-10-28T09:00:00Z",
    "estimate": true,
    "version": "1.7.3",
    "summary": "Namibië first: much more detailed bushman grass and sand (no black lines between the distances), then a pair of ostriches at their nest (they run from nearby shots), a herd of oryx far away shimmering in the mirage, and hot-air balloons drifting by (not targets).",
@@ -1442,8 +1519,8 @@
    "title": "v1.7e: realistic Bushveld rocks and middle distance; a new secret cue instead of the star (mock-ups for you first) (your request, 25 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-27T16:30:00Z",
-   "end": "2026-10-27T23:30:00Z",
+   "start": "2026-10-28T09:00:00Z",
+   "end": "2026-10-28T16:00:00Z",
    "estimate": true,
    "version": "1.7.4",
    "summary": "First, mock-ups of three ways to replace the star glint on secrets: (A) a small unique animal that always lives at each secret (e.g. a rock agama nodding on the dassie koppie, a lilac-breasted roller on the windmill) — Claude's pick and your idea; (B) natural cues only; (C) no cue, Oupa hints in words. You choose. Meanwhile: realistic Bushveld granite boulders and koppies, real ridges in the haze, textured winter veld, no black lines between the distances.",
@@ -1451,22 +1528,12 @@
    "requestedBy": "You, 25 Oct ~20:20: \"the rocks and the middle distances look childish\" and \"that star thing is not working for me\"."
   },
   {
-   "id": "v1.8",
-   "title": "v1.8: Blikkies — tin cans on fence posts to shoot off and juggle in the air",
-   "phase": "Version 1.x",
-   "status": "next",
-   "start": "2026-10-27T23:30:00Z",
-   "end": "2026-10-28T05:00:00Z",
-   "estimate": true,
-   "version": "1.8.0"
-  },
-  {
    "id": "v1.8b",
    "title": "v1.8b: Bobbejane: baboon troops on the ridges; raiders come down to cause trouble (your request, 25 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-28T05:00:00Z",
-   "end": "2026-10-28T11:00:00Z",
+   "start": "2026-10-28T16:00:00Z",
+   "end": "2026-10-28T22:00:00Z",
    "estimate": true,
    "version": "1.8.1",
    "summary": "Chacma baboon troops on the ridges of most maps. Now and then raiders come down to cause trouble (steal Oupa's hat, raid fruit, throw fruit at the flock). A raider takes 2 hits and goes down like a guineafowl (your choice). Mothers with babies stay out of range and are never targets.",
@@ -1478,8 +1545,8 @@
    "title": "v1.8c: Die Oes (The Harvest): a new 30-second mode; hold the animals off the crops while the fence is fixed (your idea, 25 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-28T11:00:00Z",
-   "end": "2026-10-28T20:00:00Z",
+   "start": "2026-10-28T22:00:00Z",
+   "end": "2026-10-29T07:00:00Z",
    "estimate": true,
    "version": "1.8.2",
    "summary": "A new mode on the title screen. The fence breaks, guineafowl, warthogs and baboons pour into the harvest field, and you have 30 seconds to hold them off while the farm workers fix the fence. A crop meter shows what you saved; the workers are never targets. Tank writes a short plan first.",
@@ -1491,8 +1558,8 @@
    "title": "v1.9: the veld soundscape and local music (doves, hadedas, cicadas, fish eagle; marimba, mbira, drums)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-28T20:00:00Z",
-   "end": "2026-10-29T01:00:00Z",
+   "start": "2026-10-29T07:00:00Z",
+   "end": "2026-10-29T12:00:00Z",
    "estimate": true,
    "version": "1.9.0"
   },
@@ -1501,8 +1568,8 @@
    "title": "v1.10: Reënbui — the first rain and the flying-ant feast",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-29T01:00:00Z",
-   "end": "2026-10-29T06:00:00Z",
+   "start": "2026-10-29T12:00:00Z",
+   "end": "2026-10-29T17:00:00Z",
    "estimate": true,
    "version": "1.10.0"
   },
@@ -1511,8 +1578,8 @@
    "title": "v1.11: Die Braai — the day ends at Oupa's fire under the Milky Way",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-29T06:00:00Z",
-   "end": "2026-10-29T11:00:00Z",
+   "start": "2026-10-29T17:00:00Z",
+   "end": "2026-10-29T22:00:00Z",
    "estimate": true,
    "version": "1.11.0"
   },
@@ -1521,8 +1588,8 @@
    "title": "v1.12: Brakkie, the farm dog",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-29T11:00:00Z",
-   "end": "2026-10-29T17:00:00Z",
+   "start": "2026-10-29T22:00:00Z",
+   "end": "2026-10-30T04:00:00Z",
    "estimate": true,
    "version": "1.12.0"
   },
@@ -1531,8 +1598,8 @@
    "title": "v1.13: veld cameos — warthogs, baboons, springbok, elephants, ostrich, dung beetle",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-29T17:00:00Z",
-   "end": "2026-10-29T23:00:00Z",
+   "start": "2026-10-30T04:00:00Z",
+   "end": "2026-10-30T10:00:00Z",
    "estimate": true,
    "version": "1.13.0"
   }
@@ -1852,12 +1919,75 @@
    "job": "v1.8c"
   },
   {
-   "at": "2026-10-26T04:50:00Z",
+   "date": "26 Oct, 06:50",
    "text": "Halloween special yes, go ahead",
-   "status": "Being built now: the Spookjag Daily on 31 Oct (dusk, owls, bats, pumpkin lanterns, guineafowl in witch hats)"
+   "outcome": "Being built now: the Spookjag Daily on 31 Oct (dusk, owls, bats, pumpkin lanterns, guineafowl in witch hats)",
+   "job": "halloween-spookjag-feesdae-the-31-oct-da"
+  },
+  {
+   "date": "26 Oct, 07:05",
+   "text": "Karoo: HD aloes; the potjie should steam and boil a little, and its lid should fall off when shot",
+   "outcome": "Planned as \"Karoo polish\" after Halloween",
+   "job": "karoo-polish-hd-aloes-the-potjie-steams-"
+  },
+  {
+   "date": "26 Oct, 07:05",
+   "text": "Guineafowl must get smaller the further away they are, on every map, but stay shootable",
+   "outcome": "Planned as \"Perspective\", right after Halloween",
+   "job": "perspective-guineafowl-get-smaller-the-f"
+  },
+  {
+   "date": "26 Oct, 07:20",
+   "text": "Bushveld and Kalahari: far zebras, giraffes, elephants and other animals look cartoony, like stick figures; make them HD",
+   "outcome": "Planned as \"Far animals in HD\" on every map",
+   "job": "far-animals-in-hd-on-every-map-realistic"
+  },
+  {
+   "date": "26 Oct, 07:20",
+   "text": "The baobab needs more detail and better fruit; research what lives in it and add holes where small animals look out; little birds around the weaver nest",
+   "outcome": "Researched; planned as \"Tree life\"",
+   "job": "tree-life-a-detailed-baobab-with-real-ha"
+  },
+  {
+   "date": "26 Oct, 07:40",
+   "text": "Okavango: add makalani palms with their hard nuts; a hit nut should fall or burst; be creative",
+   "outcome": "Planned: nuts crack off, juggle in the air like cans, or pop on a full hit",
+   "job": "makalani-palms-in-the-okavango-hanging-n"
+  },
+  {
+   "date": "26 Oct, 07:40",
+   "text": "Tin cans on an old farm fence to shoot off and keep in the air (asked before; not seen yet)",
+   "outcome": "Moved up: v1.8 Blikkies now comes right after the perspective job",
+   "job": "v1.8"
+  },
+  {
+   "date": "26 Oct, 07:40",
+   "text": "Idea: ask at start for Standard or HD graphics",
+   "outcome": "Advised: a Settings choice Auto / Standard / HD instead of a question before play; planned after tree life",
+   "job": "hd-graphics-settings-graphics-auto-stand"
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-26T05:45:00Z",
+   "kind": "note",
+   "text": "Fixed this overview: the 'Version on the test build' box was stuck at 1.6.1 (22:42 last night). It now fills itself in from the live code at every update."
+  },
+  {
+   "at": "2026-10-26T05:40:00Z",
+   "kind": "request",
+   "text": "Okavango feedback: makalani palms with nuts to shoot; Blikkies and meerkats not seen yet; the HD idea. Blikkies moved up; makalani and optional HD graphics added; the meerkats are live on the Kalahari and Namibië maps."
+  },
+  {
+   "at": "2026-10-26T05:20:00Z",
+   "kind": "request",
+   "text": "Bushveld and Kalahari feedback: far animals in HD, a more detailed baobab with residents in its hollows (researched), weavers flying around their nest. Planned as two jobs."
+  },
+  {
+   "at": "2026-10-26T05:05:00Z",
+   "kind": "request",
+   "text": "Karoo feedback: HD aloes, a boiling potjie whose lid falls off, and birds smaller with distance on every map. Planned as two jobs after Halloween."
+  },
   {
    "at": "2026-10-26T04:50:00Z",
    "kind": "request",

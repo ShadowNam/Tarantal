@@ -35,6 +35,44 @@ def hist_img(name, caption):
 MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 
+
+def main_facts():
+    """Facts read from origin/main at publish time, so the overview never shows a stale build."""
+    import datetime as dt
+    def git(*args):
+        return subprocess.run(['git', '-C', REPO, *args], capture_output=True, text=True, check=True).stdout
+    version = json.loads(git('show', 'origin/main:package.json'))['version']
+    sha = git('rev-parse', '--short=7', 'origin/main').strip()
+    when = dt.datetime.fromisoformat(git('log', '-1', '--format=%cI', 'origin/main').strip())
+    nam = when.astimezone(dt.timezone(dt.timedelta(hours=2)))
+    prs = set()
+    for line in git('log', 'origin/main', '--format=%s').splitlines():
+        for m in re.finditer(r'pull request #(\d+)|\(#(\d+)\)', line):
+            prs.add(int(m.group(1) or m.group(2)))
+    decisions = sorted(set(re.findall(r'^\*\*(D-\d{3}) ', git('show', 'origin/main:docs/05-DECISIONS-AND-RESEARCH.md'), re.M)))
+    return {
+        'version': version, 'sha': sha,
+        'deployed': f"{nam.day} {nam.strftime('%b')}, {nam.strftime('%H:%M')} Namibia time",
+        'prs': len(prs), 'prMax': max(prs) if prs else 0,
+        'decisions': len(decisions), 'lastDecision': decisions[-1] if decisions else '',
+    }
+
+
+def apply_main_facts(numbers, current, f):
+    """Overwrite the build facts in the hand-kept numbers with the ones read from main."""
+    auto = {
+        'Version on the test build': {'value': f['version'], 'note': f"commit {f['sha']}, merged {f['deployed']} (the test build deploys a few minutes after)"},
+        'Pull requests merged': {'value': str(f['prs']), 'note': f"#1 to #{f['prMax']}"},
+        'Decisions logged': {'value': str(f['decisions']), 'note': f"D-001 to {f['lastDecision']} on main"},
+    }
+    out = []
+    for n in numbers:
+        n = dict(n)
+        if n.get('label') in auto:
+            n.update(auto[n['label']])
+        out.append(n)
+    return out, {**current, 'version': f['version'], 'commit': f['sha']}
+
 def to_namibia(text):
     """'24 Oct, 12:05' / '25 Oct 2026, 04:39' (UTC, as the history doc writes them) → Namibia time."""
     import datetime as dt
@@ -151,14 +189,16 @@ def main():
     requests = [{'date': to_namibia(d), 'text': t, 'outcome': o} for d, t, o in h['requests']]
     requests += live.get('extraRequests', [])
     decisions = [{'id': i, 'text': t} for i, t in h['decisions']] + live.get('extraDecisions', [])
+    numbers, current = apply_main_facts(
+        live.get('numbers') or [{'label': l, 'value': v} for l, v in h['numbers']], live['current'], main_facts())
     out = {
         'schema': 1,
         'updated': live['updated'],
         'by': 'Claude',
         'summary': live['summary'],
-        'current': live['current'],
+        'current': current,
         'links': live['links'],
-        'numbers': live.get('numbers') or [{'label': l, 'value': v} for l, v in h['numbers']],
+        'numbers': numbers,
         'needsYou': live.get('needsYou', []),
         'jobs': jobs,
         'suggestions': live.get('suggestions', []),
