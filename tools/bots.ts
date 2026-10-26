@@ -11,9 +11,10 @@ import { createHumanBot } from './humanBots';
 import { inReach, RIFLE_STYLES, withRifle } from './rifleBot';
 
 /** random: sprays · aim: near-perfect M1 aimer (goldens) · plinker / competent: GDD §13.8 ·
- *  spook (D-048, goldens only): shoots a special day's lanterns, bats and one owl. */
-export type BotKind = 'random' | 'aim' | 'plinker' | 'competent' | 'spook';
-export const BOT_KINDS: readonly BotKind[] = ['random', 'aim', 'plinker', 'competent'];
+ *  spook (D-048, goldens only): shoots a special day's lanterns, bats and one owl ·
+ *  canHappy (v1.8, D-050): the competent bot that shoots every tin can in view first. */
+export type BotKind = 'random' | 'aim' | 'plinker' | 'competent' | 'spook' | 'canHappy';
+export const BOT_KINDS: readonly BotKind[] = ['random', 'aim', 'plinker', 'competent', 'canHappy'];
 
 export interface Bot {
   readonly kind: BotKind;
@@ -33,6 +34,11 @@ export function createBot(
   const style =
     kind === 'plinker' || kind === 'random' ? RIFLE_STYLES.impatient : RIFLE_STYLES.patient;
   if (kind === 'spook') return spookBot(content);
+  if (kind === 'canHappy') {
+    const competent = createHumanBot('competent', seed, content, inputKind);
+    const bot = canHappyBot(competent, seed, content, inputKind);
+    return { kind, next: withRifle(bot, content, seed, style).next };
+  }
   const inner =
     kind === 'plinker' || kind === 'competent'
       ? createHumanBot(kind, seed, content, inputKind)
@@ -40,6 +46,72 @@ export function createBot(
         ? randomBot(seed)
         : aimBot(seed, content);
   return { kind, next: withRifle(inner, content, seed, style).next };
+}
+
+/**
+ * v1.8 (D-050): the competent player who can't leave a tin can alone. Whenever a can is in view
+ * and the gun is ready it shoots the can — one in the air first (it saw it ~250 ms ago and leads
+ * it along its arc, gravity and all), else a resting one — with the competent bot's aim error;
+ * otherwise it hunts like the competent bot. The balance cap: cans stay ≤ ~10 % of its score.
+ */
+function canHappyBot(
+  inner: { next(state: SimState): Command[] },
+  seed: number,
+  content: ContentBundle,
+  inputKind: InputKind,
+): { next(state: SimState): Command[] } {
+  const rng = createStream((seed ^ fnv1a32('bot:canHappy')) >>> 0);
+  const planes = content.scoring.planes;
+  const LAG = 15;
+  const SIGMA = inputKind === 'touch' ? 26 : 10;
+  const history: SimState[] = [];
+  let ready = 0;
+  const gauss = (): number => {
+    // Box–Muller from two uniforms (tools may use Math).
+    const u = Math.max(1e-9, rng.next());
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rng.next());
+  };
+  return {
+    next(s) {
+      history.push(s);
+      if (history.length > LAG + 2) history.shift();
+      const c = s.cans;
+      const seen = history[0];
+      const before = history[1];
+      const w = s.weapon;
+      if (c === undefined || seen === undefined || before === undefined) return inner.next(s);
+      if (w.shells === 0 || w.reloading || w.cooldownTicks > 0 || s.tick < ready)
+        return inner.next(s);
+      const f = planes[c.plane].scrollFactor;
+      const ratio = planes[c.plane].scale / content.scoring.tuningRefScale;
+      const g = (content.birds.cans.juggle.gravityPxPerSec2 * ratio) / 3600;
+      const lag = s.tick - seen.tick;
+      const old = new Map((seen.cans?.cans ?? []).map((k) => [k.id, k]));
+      const older = new Map((before.cans?.cans ?? []).map((k) => [k.id, k]));
+      let aim: { x: number; y: number } | null = null;
+      for (const k of c.cans) {
+        const a = old.get(k.id);
+        const b = older.get(k.id);
+        if (a === undefined || b === undefined || a.state !== 'air') continue;
+        // Its velocity as seen then, and where that arc puts it now.
+        const vx = b.x - a.x;
+        const vy = b.y - a.y;
+        aim = { x: a.x + vx * lag, y: a.y + vy * lag + 0.5 * g * lag * lag };
+        break;
+      }
+      if (aim === null) {
+        const rest = (seen.cans?.cans ?? []).find(
+          (k) => k.state === 'rest' && Math.abs(planeToDx(s.cameraX, f, k.x)) < VIEW_HALF_WIDTH,
+        );
+        if (rest !== undefined) aim = { x: rest.x, y: rest.y };
+      }
+      if (aim === null) return inner.next(s);
+      const dx = planeToDx(s.cameraX, f, aim.x);
+      if (Math.abs(dx) > VIEW_HALF_WIDTH || aim.y < 20) return inner.next(s);
+      ready = s.tick + 10;
+      return [{ t: 'fire', dx: dx + gauss() * SIGMA, sy: aim.y + gauss() * SIGMA }];
+    },
+  };
 }
 
 /**

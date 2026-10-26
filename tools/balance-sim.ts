@@ -60,6 +60,13 @@ export interface HuntRow {
   readonly penalties: number;
   /** v1.3: birds bagged on the Ver plane. */
   readonly baggedVer: number;
+  /** v1.8 (D-050): what the tin cans paid, knock-offs, air hits, Weg!s and the longest chain
+   *  (0 on maps without a fence). */
+  readonly canPoints: number;
+  readonly canKnocks: number;
+  readonly canAirHits: number;
+  readonly canWeg: number;
+  readonly canBestChain: number;
 }
 
 export interface BotSummary {
@@ -124,6 +131,11 @@ export function playRows(job: Job): HuntRow[] {
       crates: r.crates,
       penalties: r.penalties,
       baggedVer: r.baggedByPlane.ver,
+      canPoints: r.cans?.points ?? 0,
+      canKnocks: r.cans?.knocks ?? 0,
+      canAirHits: r.cans?.airHits ?? 0,
+      canWeg: r.cans?.weg ?? 0,
+      canBestChain: r.cans?.bestChain ?? 0,
     };
   });
 }
