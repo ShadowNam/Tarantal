@@ -3,6 +3,35 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.8.0] — Blikkies: tin cans on the fence posts (26 Oct 2026)
+
+Decision record D-050. The product owner: "On maps with fence posts, have some cans standing on
+them that can be shot off. They somersault when hit … if you hit them again they continue
+spinning up … till you don't see them anymore."
+
+### Added
+- **Blikkies**: a farm fence of 3–6 posts with a tin can on each on 3–4 weekday layouts of the
+  Karoo, Bushveld, Kalahari and Namibië (near, mid or far by day; Verder, Nog Verder and Die
+  Verste push it back). A hit knocks a can off away from the hit side, somersaulting.
+- **The juggle**: hit it again in the air and it flies higher, spins faster and drifts more with
+  every hit; the 10th air hit always sends it out of the top — **"Weg!"**. A good shot keeps a
+  near can up for 3–5 hits; far cans are the hardest. A landed can lies there for the hunt.
+- Scoring as event bonuses (× Stampede; a can-only shot leaves Frenzy alone and is no miss):
+  knock-off 5, air hit 8 + 2 a step, Weg! 15, × plane (near 0.8 … Ver 2.5). Cans stay under
+  ~9 % of a good score even for a bot that juggles every can.
+- Chain pops ("3× in the air!"), dents where the pellets struck, can sounds, Oupa's "Hou hom in
+  die lug!", a Notaboek challenge (5 in the air), the **Blikkiesdans** secret (a chain of 8, once a
+  hunt), and a Blikkies target at every Skietbaan distance with knock-off and air-hit stats.
+- Names: Tin Cans (en), Blechdosen (de), Blikjes (nl), Blikkies (af and the Afrikaans-names toggle).
+
+### Changed
+- HUD score pops age on sim time (a paused or held hunt keeps them on screen).
+
+### Tools
+- `apexJuggler` balance bot (shoots a flying can at the top of its arc, 100 ms late, with aim
+  error, cooldown and reloads) beside `canHappy`; `tools/juggle-check.ts` per plane;
+  `tools/blikkies-sweep.ts`; tables in `docs/balance/v1.8-blikkies.md`.
+
 ## [1.7.4] — Perspective: birds get smaller with distance (26 Oct 2026)
 
 Decision record D-049. The product owner: far guineafowl stood taller than the ostriches and
