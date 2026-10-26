@@ -42,9 +42,9 @@
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/bushveld_baobab.67862bc33a3b.png",
-        "bytes": 117779,
-        "hash": "67862bc33a3b"
+        "path": "assets/bushveld-winter/img/bushveld_baobab.54412da851c6.png",
+        "bytes": 115619,
+        "hash": "54412da851c6"
       },
       "width": 1200,
       "height": 1280,
@@ -363,6 +363,71 @@
       "height": 120,
       "scale": 0.3333333333333333
     },
+    "fruit/bushveld-winter": {
+      "group": "bushveld-winter",
+      "origin": "interim",
+      "file": {
+        "path": "assets/bushveld-winter/img/fruit_bushveld-winter.640e31139f9e.png",
+        "bytes": 3518,
+        "hash": "640e31139f9e"
+      },
+      "width": 512,
+      "height": 256,
+      "originX": 0,
+      "originY": 0
+    },
+    "fruit/kalahari-summer": {
+      "group": "late",
+      "origin": "interim",
+      "file": {
+        "path": "assets/late/img/fruit_kalahari-summer.e009cf16df2a.png",
+        "bytes": 3875,
+        "hash": "e009cf16df2a"
+      },
+      "width": 512,
+      "height": 256,
+      "originX": 0,
+      "originY": 0
+    },
+    "fruit/karoo-autumn": {
+      "group": "late",
+      "origin": "interim",
+      "file": {
+        "path": "assets/late/img/fruit_karoo-autumn.81c20cbd7fab.png",
+        "bytes": 2338,
+        "hash": "81c20cbd7fab"
+      },
+      "width": 512,
+      "height": 256,
+      "originX": 0,
+      "originY": 0
+    },
+    "fruit/namibie": {
+      "group": "namibie",
+      "origin": "interim",
+      "file": {
+        "path": "assets/namibie/img/fruit_namibie.2af0e553da91.png",
+        "bytes": 16739,
+        "hash": "2af0e553da91"
+      },
+      "width": 512,
+      "height": 256,
+      "originX": 0,
+      "originY": 0
+    },
+    "fruit/okavango-spring": {
+      "group": "okavango-spring",
+      "origin": "interim",
+      "file": {
+        "path": "assets/okavango-spring/img/fruit_okavango-spring.8b07ba34144a.png",
+        "bytes": 6710,
+        "hash": "8b07ba34144a"
+      },
+      "width": 512,
+      "height": 256,
+      "originX": 0,
+      "originY": 0
+    },
     "fx/bolt": {
       "group": "common",
       "origin": "interim",
@@ -625,9 +690,9 @@
       "group": "kalahari-summer",
       "origin": "interim",
       "file": {
-        "path": "assets/kalahari-summer/img/kalahari_weaver_camelthorn.acd2a339a50f.png",
-        "bytes": 273100,
-        "hash": "acd2a339a50f"
+        "path": "assets/kalahari-summer/img/kalahari_weaver_camelthorn.e6aeccd2c388.png",
+        "bytes": 273743,
+        "hash": "e6aeccd2c388"
       },
       "width": 1160,
       "height": 1160,
@@ -733,9 +798,9 @@
       "group": "namibie",
       "origin": "interim",
       "file": {
-        "path": "assets/namibie/img/namibie_camelthorn_mature.4f45483e941a.png",
-        "bytes": 96807,
-        "hash": "4f45483e941a"
+        "path": "assets/namibie/img/namibie_camelthorn_mature.3511069a661d.png",
+        "bytes": 96712,
+        "hash": "3511069a661d"
       },
       "width": 800,
       "height": 592,
@@ -747,9 +812,9 @@
       "group": "namibie",
       "origin": "interim",
       "file": {
-        "path": "assets/namibie/img/namibie_camelthorn_old.42b6682eda56.png",
-        "bytes": 76963,
-        "hash": "42b6682eda56"
+        "path": "assets/namibie/img/namibie_camelthorn_old.406c2b13d3a3.png",
+        "bytes": 75584,
+        "hash": "406c2b13d3a3"
       },
       "width": 780,
       "height": 592,
@@ -761,9 +826,9 @@
       "group": "namibie",
       "origin": "interim",
       "file": {
-        "path": "assets/namibie/img/namibie_camelthorn_young.3c4889cf11d0.png",
-        "bytes": 35740,
-        "hash": "3c4889cf11d0"
+        "path": "assets/namibie/img/namibie_camelthorn_young.cc5a5b3a8547.png",
+        "bytes": 35805,
+        "hash": "cc5a5b3a8547"
       },
       "width": 460,
       "height": 480,
@@ -775,9 +840,9 @@
       "group": "namibie",
       "origin": "interim",
       "file": {
-        "path": "assets/namibie/img/namibie_nest_camelthorn.30b1c6d7c455.png",
-        "bytes": 234399,
-        "hash": "30b1c6d7c455"
+        "path": "assets/namibie/img/namibie_nest_camelthorn.657da51d6d14.png",
+        "bytes": 234425,
+        "hash": "657da51d6d14"
       },
       "width": 1044,
       "height": 1044,
@@ -810,9 +875,9 @@
       "group": "namibie",
       "origin": "interim",
       "file": {
-        "path": "assets/namibie/img/namibie_quiver_egg.d2c074bd04db.png",
-        "bytes": 33966,
-        "hash": "d2c074bd04db"
+        "path": "assets/namibie/img/namibie_quiver_egg.589b195bda3b.png",
+        "bytes": 32898,
+        "hash": "589b195bda3b"
       },
       "width": 480,
       "height": 508,
@@ -824,9 +889,9 @@
       "group": "namibie",
       "origin": "interim",
       "file": {
-        "path": "assets/namibie/img/namibie_quiver_tree.a8a5bd6c98d0.png",
-        "bytes": 35688,
-        "hash": "a8a5bd6c98d0"
+        "path": "assets/namibie/img/namibie_quiver_tree.5b03c082f8c1.png",
+        "bytes": 32755,
+        "hash": "5b03c082f8c1"
       },
       "width": 480,
       "height": 524,
@@ -937,9 +1002,9 @@
       "group": "okavango-spring",
       "origin": "interim",
       "file": {
-        "path": "assets/okavango-spring/img/okavango_sausage_tree.590d54782de6.png",
-        "bytes": 48036,
-        "hash": "590d54782de6"
+        "path": "assets/okavango-spring/img/okavango_sausage_tree.0076ee36a100.png",
+        "bytes": 46271,
+        "hash": "0076ee36a100"
       },
       "width": 480,
       "height": 640,
@@ -1524,19 +1589,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/bushveld-winter/layers/mid-0.12aaab93900e.png",
-          "bytes": 77119,
-          "hash": "12aaab93900e"
+          "path": "assets/bushveld-winter/layers/mid-0.93a1d1858505.png",
+          "bytes": 78188,
+          "hash": "93a1d1858505"
         },
         {
-          "path": "assets/bushveld-winter/layers/mid-1.6cd3ec883985.png",
-          "bytes": 116449,
-          "hash": "6cd3ec883985"
+          "path": "assets/bushveld-winter/layers/mid-1.6dfdd0910660.png",
+          "bytes": 116923,
+          "hash": "6dfdd0910660"
         },
         {
-          "path": "assets/bushveld-winter/layers/mid-2.e00d2c416452.png",
-          "bytes": 15528,
-          "hash": "e00d2c416452"
+          "path": "assets/bushveld-winter/layers/mid-2.c0bfd0ab1d5a.png",
+          "bytes": 15716,
+          "hash": "c0bfd0ab1d5a"
         }
       ],
       "tileWidth": 2048,
@@ -1568,22 +1633,22 @@
           ],
           [
             227,
-            268
+            267
           ],
           [
-            333,
+            331,
             391
           ],
           [
             233,
-            256
+            255
           ],
           [
-            296,
-            339
+            234,
+            287
           ],
           [
-            278,
+            227,
             321
           ],
           [
@@ -2112,19 +2177,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/kalahari-summer/layers/mid-0.e3d8bb6809b7.png",
-          "bytes": 77870,
-          "hash": "e3d8bb6809b7"
+          "path": "assets/kalahari-summer/layers/mid-0.91765f281f90.png",
+          "bytes": 77451,
+          "hash": "91765f281f90"
         },
         {
-          "path": "assets/kalahari-summer/layers/mid-1.043af55d16f2.png",
-          "bytes": 65234,
-          "hash": "043af55d16f2"
+          "path": "assets/kalahari-summer/layers/mid-1.bfdcf9f6c50d.png",
+          "bytes": 64518,
+          "hash": "bfdcf9f6c50d"
         },
         {
-          "path": "assets/kalahari-summer/layers/mid-2.aceefa409c20.png",
-          "bytes": 8029,
-          "hash": "aceefa409c20"
+          "path": "assets/kalahari-summer/layers/mid-2.5083054befa5.png",
+          "bytes": 8026,
+          "hash": "5083054befa5"
         }
       ],
       "tileWidth": 2048,
@@ -2147,7 +2212,7 @@
             351
           ],
           [
-            413,
+            417,
             480
           ],
           [
@@ -2176,15 +2241,15 @@
           ],
           [
             234,
-            370
+            368
           ],
           [
             232,
-            319
+            325
           ],
           [
             232,
-            317
+            321
           ],
           [
             230,
@@ -2192,7 +2257,7 @@
           ],
           [
             284,
-            444
+            443
           ],
           [
             378,
@@ -2700,19 +2765,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/karoo-autumn/layers/mid-0.443e90da89bb.png",
-          "bytes": 109554,
-          "hash": "443e90da89bb"
+          "path": "assets/karoo-autumn/layers/mid-0.6315cfb19efc.png",
+          "bytes": 109109,
+          "hash": "6315cfb19efc"
         },
         {
-          "path": "assets/karoo-autumn/layers/mid-1.cc8094d78cde.png",
-          "bytes": 103416,
-          "hash": "cc8094d78cde"
+          "path": "assets/karoo-autumn/layers/mid-1.1d26d8a4f09e.png",
+          "bytes": 102931,
+          "hash": "1d26d8a4f09e"
         },
         {
-          "path": "assets/karoo-autumn/layers/mid-2.ef82a7eaf218.png",
-          "bytes": 15201,
-          "hash": "ef82a7eaf218"
+          "path": "assets/karoo-autumn/layers/mid-2.b3af5a8292b1.png",
+          "bytes": 15177,
+          "hash": "b3af5a8292b1"
         }
       ],
       "tileWidth": 2048,
@@ -3288,19 +3353,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/namibie/layers/mid-0.9b7981e33173.png",
-          "bytes": 43418,
-          "hash": "9b7981e33173"
+          "path": "assets/namibie/layers/mid-0.2170de460799.png",
+          "bytes": 43143,
+          "hash": "2170de460799"
         },
         {
-          "path": "assets/namibie/layers/mid-1.27f3daa157f5.png",
-          "bytes": 53216,
-          "hash": "27f3daa157f5"
+          "path": "assets/namibie/layers/mid-1.88e6d8399c70.png",
+          "bytes": 52267,
+          "hash": "88e6d8399c70"
         },
         {
-          "path": "assets/namibie/layers/mid-2.ef4d60229980.png",
-          "bytes": 11503,
-          "hash": "ef4d60229980"
+          "path": "assets/namibie/layers/mid-2.9eedefbfbb65.png",
+          "bytes": 11889,
+          "hash": "9eedefbfbb65"
         }
       ],
       "tileWidth": 2048,
@@ -3311,76 +3376,76 @@
         "bucket": 256,
         "rows": [
           [
-            275,
+            268,
             410
           ],
           [
-            268,
-            337
+            267,
+            334
           ],
           [
-            198,
-            321
-          ],
-          [
-            256,
-            314
-          ],
-          [
-            228,
+            197,
             304
           ],
           [
-            189,
-            219
+            256,
+            292
+          ],
+          [
+            230,
+            297
+          ],
+          [
+            373,
+            410
           ],
           [
             330,
             410
           ],
           [
-            316,
+            322,
             410
           ],
           [
-            260,
-            315
+            197,
+            247
           ],
           [
             285,
-            354
+            347
           ],
           [
-            278,
-            360
+            277,
+            410
           ],
           [
             165,
-            356
+            353
           ],
           [
-            209,
-            295
-          ],
-          [
-            368,
+            319,
             410
+          ],
+          [
+            206,
+            271
           ],
           [
             360,
             410
           ],
           [
-            213,
-            264
+            212,
+            265
           ],
           [
-            379,
+            374,
             410
           ],
           [
-            191,
-            273
+            299,
+            410
           ]
         ]
       }
@@ -3390,19 +3455,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/namibie/layers/near-0.e543635d0cce.png",
-          "bytes": 61258,
-          "hash": "e543635d0cce"
+          "path": "assets/namibie/layers/near-0.10d395c36fb1.png",
+          "bytes": 61739,
+          "hash": "10d395c36fb1"
         },
         {
-          "path": "assets/namibie/layers/near-1.72d182b646cb.png",
-          "bytes": 59019,
-          "hash": "72d182b646cb"
+          "path": "assets/namibie/layers/near-1.ab5d5339c3a0.png",
+          "bytes": 59266,
+          "hash": "ab5d5339c3a0"
         },
         {
-          "path": "assets/namibie/layers/near-2.ba87d44aa470.png",
-          "bytes": 33650,
-          "hash": "ba87d44aa470"
+          "path": "assets/namibie/layers/near-2.6415307683d3.png",
+          "bytes": 33694,
+          "hash": "6415307683d3"
         }
       ],
       "tileWidth": 2048,
@@ -3840,19 +3905,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/okavango-spring/layers/mid-0.f176b9ca860a.png",
-          "bytes": 58477,
-          "hash": "f176b9ca860a"
+          "path": "assets/okavango-spring/layers/mid-0.c0ed6c702c64.png",
+          "bytes": 58569,
+          "hash": "c0ed6c702c64"
         },
         {
-          "path": "assets/okavango-spring/layers/mid-1.8638d30f41b7.png",
-          "bytes": 68237,
-          "hash": "8638d30f41b7"
+          "path": "assets/okavango-spring/layers/mid-1.635336f5674b.png",
+          "bytes": 68353,
+          "hash": "635336f5674b"
         },
         {
-          "path": "assets/okavango-spring/layers/mid-2.f2dd8d3f715e.png",
-          "bytes": 6770,
-          "hash": "f2dd8d3f715e"
+          "path": "assets/okavango-spring/layers/mid-2.fc2af4d830a1.png",
+          "bytes": 6784,
+          "hash": "fc2af4d830a1"
         }
       ],
       "tileWidth": 2048,
@@ -3863,7 +3928,7 @@
         "bucket": 256,
         "rows": [
           [
-            281,
+            283,
             379
           ],
           [
@@ -3884,19 +3949,19 @@
           ],
           [
             320,
-            355
+            354
           ],
           [
             396,
             436
           ],
           [
-            276,
+            280,
             430
           ],
           [
-            350,
-            431
+            351,
+            428
           ],
           [
             397,
@@ -3907,12 +3972,12 @@
             443
           ],
           [
-            277,
-            426
+            280,
+            425
           ],
           [
             279,
-            360
+            359
           ],
           [
             471,
@@ -3928,11 +3993,11 @@
           ],
           [
             369,
-            447
+            446
           ],
           [
             333,
-            455
+            453
           ]
         ]
       }

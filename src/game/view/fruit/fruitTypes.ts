@@ -29,6 +29,9 @@ export interface FruitSpot {
   readonly oy: number;
 }
 
+/** Every biome's fruit sheet has this size (texture px = design px; the placeholder's too). */
+export const FRUIT_SHEET = { width: 512, height: 256 } as const;
+
 /** The texture key of a biome's fruit sheet. */
 export function fruitSheetKey(biome: string): string {
   return `fruit/${biome}`;

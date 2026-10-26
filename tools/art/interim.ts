@@ -14,7 +14,13 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { format } from 'prettier';
-import { VER_GROUP, type BirdClip } from '../../src/game/assets/assetIndex';
+import { LATE_GROUP, VER_GROUP, type BirdClip } from '../../src/game/assets/assetIndex';
+import { fruitSheetKey } from '../../src/game/view/fruit/fruitTypes';
+import { collectFruit } from './fruitSink';
+import { fruitSheet, type FruitOwner } from './fruitArt';
+
+/** v1.7c (D-047): palette size of the fruit sheets. */
+const FRUIT_COLOURS = 64;
 import { isArtPlane, type ArtPlaneId as PlaneId } from '../../src/game/assets/artPlane';
 import { encodePng, encodePng8 } from '../assets/image';
 import { NEAR_CLIPS } from '../assets/pack';
@@ -106,6 +112,39 @@ const groupOf = (creature: string): { group?: string } => {
   const g = cfg.birds.loadGroups[creature];
   return typeof g === 'string' ? { group: g } : {};
 };
+
+/** v1.7c (D-047): layers whose fruit, pods and flowers are sprites (see fruitSink.ts). */
+const FRUIT_LAYERS = new Set(['mid', 'near', 'foreground']);
+
+/**
+ * v1.7c (D-047): fruit sheets that load with the late group: the Karoo's (the first download is
+ * full) and the Kalahari's (the Kalahari and desert chunks are within 2 KB of 1.5 MB together).
+ */
+const FRUIT_LATE = new Set(['karoo-autumn', 'kalahari-summer']);
+
+async function writeFruit(biome: string, owners: readonly FruitOwner[]): Promise<void> {
+  const key = fruitSheetKey(biome);
+  const png = join(src, 'sprites', `${key}.png`);
+  const spotsPath = join(root, 'src', 'game', 'view', 'fruit', 'spots', `${biome}.json`);
+  if (!oursFile(png)) {
+    console.warn(`skip sprites/${key}: a human delivery is there`);
+    return;
+  }
+  const sheet = fruitSheet(owners, cfg.masterScale);
+  put(png, encodePng8(sheet.img, FRUIT_COLOURS));
+  put(
+    png.replace(/\.png$/, '.json'),
+    await json({
+      origin: 'interim',
+      encode: 'png8',
+      originX: 0,
+      originY: 0,
+      ...(FRUIT_LATE.has(biome) ? { group: LATE_GROUP } : {}),
+    }),
+  );
+  put(spotsPath, await json(sheet.spots));
+  console.log(`sprites/${key}: ${sheet.spots.length} fruit`);
+}
 
 let frames = 0;
 const t0 = Date.now();
@@ -219,6 +258,7 @@ if (wants('scenery')) {
       console.warn(`skip scenery ${plan.biome}: no such playable biome`);
       continue;
     }
+    const fruitOwners: FruitOwner[] = [];
     for (const layer of biome.layers) {
       const png = join(src, 'layers', biome.id, `${layer.id}.png`);
       if (!oursFile(png)) {
@@ -227,7 +267,11 @@ if (wants('scenery')) {
       }
       const lp = plan.layers[layer.id];
       const enc = lp?.encode ?? 'png8';
-      const img = renderLayer(cfg, plan, layer);
+      // v1.7c (D-047): fruit on the mid and near planes become sprites (the far stays baked).
+      const { value: img, fruit } = FRUIT_LAYERS.has(layer.id)
+        ? collectFruit(() => renderLayer(cfg, plan, layer))
+        : { value: renderLayer(cfg, plan, layer), fruit: [] };
+      if (fruit.length > 0) fruitOwners.push({ on: layer.id, prop: false, fruit });
       put(png, enc === 'png8' ? encodePng8(img, lp?.colours) : encodePng(img));
       put(
         png.replace(/\.png$/, '.json'),
@@ -251,7 +295,11 @@ if (wants('scenery')) {
       }
       const size = m.size(prop.asset);
       if (size === null) throw new Error(`${prop.asset}: no placeholder size`);
-      const r = renderProp(cfg, plan, biome, prop, size, m.origin(prop.asset));
+      const { value: r, fruit } = collectFruit(() =>
+        renderProp(cfg, plan, biome, prop, size, m.origin(prop.asset)),
+      );
+      if (fruit.length > 0 && !fruitOwners.some((o) => o.on === prop.asset))
+        fruitOwners.push({ on: prop.asset, prop: true, fruit });
       put(png, encodePng8(r.img, plan.props[prop.asset]?.colours));
       const moved = plan.props[prop.asset]?.frame !== undefined;
       put(
@@ -265,6 +313,8 @@ if (wants('scenery')) {
       );
       console.log(`sprites/${prop.asset}`);
     }
+    // v1.7c (D-047): the biome's fruit sheet and where each fruit sits (FRUIT_LATE: late group).
+    await writeFruit(biome.id, fruitOwners);
     // v1.6 (D-042): the far animals' sprites, drawn at 3× (src/game/view/faunaSprites.ts).
     for (const f of FAUNA_SPRITES[biome.id] ?? []) {
       const png = join(src, 'sprites', `${f.key}.png`);
