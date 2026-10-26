@@ -249,7 +249,8 @@ test.describe('long range (v1.3)', () => {
     });
     h = await hook(page);
     const log = decodeInputLogText(h.replay ?? '');
-    expect(log.v).toBe(5);
+    // The sight rides in the log from v5 on (v6 added the special day, D-048).
+    expect(log.v).toBeGreaterThanOrEqual(5);
     expect(log.mode).toMatchObject({
       weapon: 'twee_twee',
       sight: 'scope_small',
