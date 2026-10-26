@@ -751,5 +751,26 @@
       "eventCount": 1888,
       "score": 4399
     }
+  },
+  {
+    "name": "daily-2026-10-31-halloween-spook-pointer",
+    "seed": 1031,
+    "bot": "spook",
+    "mode": "daily",
+    "inputKind": "pointer",
+    "modeConfig": {
+      "id": "daily",
+      "biome": "bushveld-winter",
+      "layout": "sat",
+      "feesdag": "halloween",
+      "omen": false
+    },
+    "contentHash": "c4e556dd2f685718c1522e4b743b4ba92d552146c1d6a41359676abe7fb94f2e",
+    "log": "BocIxOVW3S9oVxjBUi5LdDtLqS1VIUbB1qQTWWdqvn-5Ty4AAAEhD2J1c2h2ZWxkLXdpbnRlcgNzYXQAAAloYWxsb3dlZW5ZAAWAHgAAow-uEw4FgB4AAKMPrhMOBb5JAAAA1hMOBYCCAQAAggqaEw4FgIIBAACCCpoTsAcFgB4AAI0cogrQBAWAHgAAhRz-CA4FgB4AAJ8a3AgBBDYFgB4AAJcT1ggOBYAeAACxEbAItAEFgIIBAAD2G-AIoAUFgIIBAAD2G9AJDgWAggEAAOoXvgkOBYCCAQAA4BOGCdwFBYAeAAD1G-ALDgWAHgAA6Re-DAEE8gEFgIIBAAD2G-YLDgWAggEAAOoX4A0OBYCCAQAA4BOoCg4FgIIBAADWD8ANtwEFgB4AAIUc5A0OBYAeAACfGqINDgWAHgAAuRjYDA4FgB4AAIUc7ggBBDYFgB4AAP0UkAcOBYAeAACXE_gHDgWAHgAAsRGYCA4FgB4AAMsP8gcOBYAeAADlDdIHDgWAHgAA_wu6CA4FgB4AAJkK0AgOBYAeAACzCOIIAQQ2BYAeAACtAZQHDgWiHwAAAOoHDgW0JAAAAKwItQYFgB4AAIUcpAcOBYAeAACfGpoGDgWAHgAAuRikBg4FgB4AANMWsgYOBYAeAADtFMAGAQSxAQWAggEAAPYb9goOBYCCAQAA6heACg",
+    "expected": {
+      "eventHash": "32170ebb87814a7a",
+      "eventCount": 543,
+      "score": 572
+    }
   }
 ]

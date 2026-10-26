@@ -10,8 +10,9 @@ import { CAMERA_MAX_X, CAMERA_MIN_X } from '../src/sim/world';
 import { createHumanBot } from './humanBots';
 import { inReach, RIFLE_STYLES, withRifle } from './rifleBot';
 
-/** random: sprays · aim: near-perfect M1 aimer (goldens) · plinker / competent: GDD §13.8. */
-export type BotKind = 'random' | 'aim' | 'plinker' | 'competent';
+/** random: sprays · aim: near-perfect M1 aimer (goldens) · plinker / competent: GDD §13.8 ·
+ *  spook (D-048, goldens only): shoots a special day's lanterns, bats and one owl. */
+export type BotKind = 'random' | 'aim' | 'plinker' | 'competent' | 'spook';
 export const BOT_KINDS: readonly BotKind[] = ['random', 'aim', 'plinker', 'competent'];
 
 export interface Bot {
@@ -31,6 +32,7 @@ export function createBot(
   // v1.3: every bot shoots a rifle by hold and release (a no-op for guns without sights).
   const style =
     kind === 'plinker' || kind === 'random' ? RIFLE_STYLES.impatient : RIFLE_STYLES.patient;
+  if (kind === 'spook') return spookBot(content);
   const inner =
     kind === 'plinker' || kind === 'competent'
       ? createHumanBot(kind, seed, content, inputKind)
@@ -38,6 +40,43 @@ export function createBot(
         ? randomBot(seed)
         : aimBot(seed, content);
   return { kind, next: withRifle(inner, content, seed, style).next };
+}
+
+/**
+ * D-048: the Spookjag's things, so the Halloween golden covers every scoring path: every lit
+ * lantern (Lanterns out), each bat, and the first owl only (one penalty). It jumps the camera to
+ * the thing and fires at its centre the same tick (the camera moves before the shot resolves).
+ */
+function spookBot(content: ContentBundle): Bot {
+  const planes = content.scoring.planes;
+  let owlShot = false;
+  let next = 0;
+  return {
+    kind: 'spook',
+    next(s) {
+      if (s.weapon.shells === 0 && !s.weapon.reloading) return [{ t: 'reload' }];
+      if (s.tick < next || s.weapon.reloading || s.weapon.cooldownTicks > 0) return [];
+      const things = s.feesdag?.things ?? [];
+      const pick =
+        things.find((t) => t.kind === 'lantern' && !t.dark) ??
+        things.find((t) => t.kind === 'bat') ??
+        (owlShot ? undefined : things.find((t) => t.kind === 'owl'));
+      if (pick === undefined) return [];
+      const f = planes[pick.plane].scrollFactor;
+      const cx =
+        Math.round(Math.min(CAMERA_MAX_X, Math.max(CAMERA_MIN_X, (pick.x - 960) / f + 960)) * 2) /
+        2;
+      const dx = planeToDx(cx, f, pick.x);
+      // Off the screen at every aspect even at the camera's end: not now.
+      if (Math.abs(dx) > VIEW_HALF_WIDTH) return [];
+      if (pick.kind === 'owl') owlShot = true;
+      next = s.tick + 14;
+      return [
+        { t: 'cameraTarget', cx },
+        { t: 'fire', dx, sy: pick.y },
+      ];
+    },
+  };
 }
 
 /** Sprays shots across the screen, pans at random, reloads when empty. */
