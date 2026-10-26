@@ -2662,8 +2662,8 @@ and prop is unchanged. 282 fruit: Karoo 20 sweet-thorn pods; Bushveld 24 marula 
 pods (the secret pod stays prop art); Okavango 6 sausages and 3 ilala clusters; Kalahari 48
 camelthorn pods; Namibië 92 quiver flower spikes, 17 !nara melons and 67 camelthorn pods. The
 jackalberry draws fruit only at the near detail, which no map uses, so it has none to split.
-(4) *Sizes (gzip):* nothing new in the first download (3,069.1 KB with v1.7b, +0.1 KB: the lazy
-import and the tunables, offset by the Karoo mid layer losing its pods). `FruitView` (3.6 KB) and
+(4) *Sizes (gzip):* nothing new in the first download (3,069.4 KB with v1.7b, +0.4 KB: the lazy
+import and the tunables, offset by the Karoo mid layer losing its pods). `FruitView` (5.0 KB) and
 each map's spots table (`fruit-<biome>`) are small lazy chunks fetched when a hunt starts. Sheets
 (after the look round, (6)): Okavango 21.0 KB, Bushveld 9.3 KB and Namibië 31.8 KB in their biome
 chunks (Okavango 1,529.1, Bushveld 1,499.1, Namibië + desert 1,508.3 of 1,536 KB); the Karoo's
