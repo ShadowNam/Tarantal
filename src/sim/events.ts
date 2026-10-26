@@ -18,7 +18,9 @@ export type ThreatSource =
 export type FlockCause =
   'threat' | 'window' | 'timeout' | 'landed' | 'settled' | 'gadget' | 'event' | 'stampede';
 
-export type BonusId = 'twoFlies' | 'armor' | 'wholeFlock' | 'secret' | 'secretChain';
+/** D-048: `bat` (a Spookjag bat) and `lanternsOut` (the day's lanterns all shot dark). */
+export type BonusId =
+  'twoFlies' | 'armor' | 'wholeFlock' | 'secret' | 'secretChain' | 'bat' | 'lanternsOut';
 
 export type SimEvent =
   | {
@@ -523,7 +525,8 @@ export type SimEvent =
       readonly id: number;
       readonly plane: PlaneId;
     }
-  /** D-048: a bat, owl or pumpkin lantern was shot. Points are flat (bat +, owl −, lantern 0);
+  /** D-048: a bat, owl or pumpkin lantern was shot. Points as paid (the bat's bonus after Frenzy
+   *  and Stampede, the owl's penalty, a lantern 0; also in bonusAwarded / penaltyApplied);
    *  `lanternsLit` counts the lanterns still lit after this hit. */
   | {
       readonly type: 'spookHit';

@@ -961,7 +961,8 @@ activity), Roadmap, History (stages, pictures, evolution, decisions, glossary), 
   their own (not birds): they cross a plane edge to edge on its sky lane with smoothstep swerves;
   lanterns stand on a plane's ground line (`groundY[0]`, lifted by `lanterns.lift`); all are
   `HitExtra` kind `spook`, first in their plane's layer. Events `feesdagStarted`, `spookFlew`,
-  `spookHit` (flat points: no Frenzy or weapon multiplier) and `lanternsOut` (paid once); a shot
+  `spookHit` and `lanternsOut` (paid once); a bat and Lanterns out are event bonuses
+  (`bonusAwarded`, GDD §5.3), an owl a `penaltyApplied` like the hadeda's; a shot
   that hits only Spookjag things leaves the Frenzy streak alone, like a secret part. The look
   (light, moon, decorations, hats) is the game's: the special's light replaces the layout's, and
   `src/game/feesdae/FeesdagView.ts` is a lazy chunk with a lazy asset group (`feesdae`).

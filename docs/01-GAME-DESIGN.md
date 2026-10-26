@@ -113,7 +113,8 @@ award  = round(points × mult)
 - Classic and Daily have no charms, so there `mult = (1 + behaviourAdd) × weapon × frenzy × stampede`.
 - The pop-up shows both parts like Balatro: **`10 ×2.5`** then resolves to **`+25`**. Big multipliers
   are the fun; format large numbers (12.4K, 1.2M).
-- **Event bonuses** (Twee Vlieë, Whole Flock, secrets, armour knock-offs) are flat amounts multiplied
+- **Event bonuses** (Twee Vlieë, Whole Flock, secrets, armour knock-offs; on Halloween a bat and
+  Lanterns out, D-048) are flat amounts multiplied
   only by `frenzyMul × stampedeMul` (not behaviour, weapon or per-bird charm effects), unless a
   charm's `bonusMul` targets that bonus.
 
@@ -840,8 +841,8 @@ note "verskrikker", not the Dutch "verschrikker" used in the earlier draft.)
     pumpkin lanterns glowing on rocks and fence posts (small warm local light, a slow flicker,
     never a flash), cobwebs on the windpomp and the big trees, some guineafowl in witch hats.
     Twist: **bats** are fast, erratic fly-overs on the mid and far planes, a bonus target (+15
-    each, flat); the **spotted eagle-owl** glides through two or three times and is protected
-    (−10, flat, like the hadeda; a hoot and Oupa's scold); the day's **pumpkin lanterns** (3–5)
+    each, an event bonus, §5.3); the **spotted eagle-owl** glides through two or three times and is
+    protected (−10, a penalty like the hadeda's; a hoot and Oupa's scold); the day's **pumpkin lanterns** (3–5)
     are a secret: shoot them all for **"Lanterns out!"** (+25, once; each goes dark with a puff).
     Quota, omens and crates are as on any Daily. Oupa: "Spookjag, my kind! Shoot the bats, leave
     the owls." The share card is framed 🎃🦇 … 🦇🌕 and titled "Spookjag 2026"; the tally slate has

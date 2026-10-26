@@ -505,10 +505,6 @@ export class AudioDirector {
           // v1.7 (D-044): a shot meerkat; inside the colony's cooldown it costs nothing.
           if (e.points < 0) this.play('scratch', 0);
           break;
-        // D-048: a protected owl shot costs points (the hoot itself is the feesdae group's).
-        case 'spookHit':
-          if (e.points < 0) this.play('scratch', 0);
-          break;
         case 'stampedeStarted':
           this.play('stampede', 0);
           break;

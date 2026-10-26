@@ -82,6 +82,10 @@ describe('Spookjag (Halloween, D-048)', () => {
     const hit = ofType(ev, 'spookHit');
     expect(hit.map((h) => [h.thing, h.points])).toEqual([['bat', twist(c).bats.points]]);
     expect(twist(c).bats.points).toBe(15);
+    // An event bonus like a secret's (GDD §5.3): no Frenzy yet, so ×1.
+    expect(ofType(ev, 'bonusAwarded').map((b) => [b.bonus, b.base, b.award])).toEqual([
+      ['bat', 15, 15],
+    ]);
     expect(s.snapshot().score - before).toBe(15);
     expect(things(s).some((t) => t.id === bat.id)).toBe(false);
   });
@@ -96,6 +100,11 @@ describe('Spookjag (Halloween, D-048)', () => {
     expect(s.snapshot().score - before).toBe(-10);
     expect(s.result().penalties).toBe(1);
     expect(s.result().feesdag?.owls).toBe(1);
+    // The hadeda's path: a penaltyApplied for the owl, with an id clear of every bird's.
+    const pen = ofType(ev, 'penaltyApplied');
+    expect(pen.map((p) => [p.creature, p.points])).toEqual([['ooruil', -10]]);
+    expect(pen[0]?.birdId).toBe(owl.id);
+    expect(owl.id).toBeGreaterThanOrEqual(1_000_000);
   });
 
   it('every lantern out pays +25 once; a dark lantern takes no more shots', () => {
@@ -114,6 +123,9 @@ describe('Spookjag (Halloween, D-048)', () => {
       for (const o of ofType(ev, 'lanternsOut')) {
         paid++;
         bonus = o.points;
+        expect(ofType(ev, 'bonusAwarded').map((b) => [b.bonus, b.base])).toEqual([
+          ['lanternsOut', 25],
+        ]);
       }
       expect(things(s).find((t) => t.id === lit.id)?.dark).toBe(true);
     }
@@ -168,5 +180,18 @@ describe('Spookjag (Halloween, D-048)', () => {
     const c = quiet();
     expect(() => sim(c, { ...HALLOWEEN, id: 'classic' })).toThrow(/mode daily/);
     expect(() => sim(c, { ...HALLOWEEN, feesdag: 'kersfees' })).toThrow(/feesdae/);
+  });
+
+  it('a bat bonus takes the Frenzy multiplier like every event bonus (GDD §5.3)', () => {
+    const c = quiet();
+    // A flock-free hunt stays at streak 0: every Frenzy tier starts at 0 shots here.
+    for (const tier of c.scoring.frenzyTiers) tier.atStreak = 0;
+    const s = sim(c);
+    const bat = waitFor(s, c, 'bat');
+    const ev = shoot(s, c, bat);
+    const b = ofType(ev, 'bonusAwarded').find((x) => x.bonus === 'bat');
+    const top = Math.max(...c.scoring.frenzyTiers.map((t) => t.mul));
+    expect(b?.award).toBe(Math.round(15 * top));
+    expect(ofType(ev, 'spookHit')[0]?.points).toBe(b?.award);
   });
 });

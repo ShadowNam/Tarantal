@@ -729,9 +729,10 @@ export class HudScene extends Phaser.Scene {
             '#FFB347',
           );
         } else
+          // The points pop with their bonusAwarded / penaltyApplied event.
           this.pushPop(
-            `${t(e.thing === 'bat' ? 'feesdag.bat' : 'feesdag.owl')}  ${formatAward(e.points)}`,
-            e.points < 0 ? '#FF6B5A' : '#FFD25A',
+            t(e.thing === 'bat' ? 'feesdag.bat' : 'feesdag.owl'),
+            e.thing === 'owl' ? '#FF6B5A' : '#FFD25A',
           );
       } else if (e.type === 'feesdagStarted') {
         this.runnerLanterns = e.lanterns;

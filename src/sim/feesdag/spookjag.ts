@@ -9,6 +9,9 @@ import type { PlaneId } from '../types';
 import { coreWidth, LAYER_BLEED_PX } from '../world';
 
 export type SpookTwist = Feesdag['twist'];
+
+/** Spookjag ids start here, clear of bird ids (an owl's penaltyApplied carries its id). */
+export const SPOOK_ID_BASE = 1_000_000;
 export type SpookKind = 'bat' | 'owl' | 'lantern';
 type FlyerCfg = SpookTwist['bats'];
 
@@ -82,7 +85,7 @@ export function startSpookjag(d: SpookDeps): Spookjag {
     if (s !== undefined) picked.push(s);
   }
   picked.sort((a, b) => a.i - b.i);
-  let nextId = 1;
+  let nextId = SPOOK_ID_BASE;
   const things: SpookThing[] = picked.map((s) => {
     const p = d.planes[s.plane];
     // Safe: `free` kept only spots whose plane has a ground line.

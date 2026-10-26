@@ -160,6 +160,9 @@ import {
 
 export { FAMILIEFOTO_SECRET };
 
+/** D-048: the spotted eagle-owl's creature id in penalty events (it is not a birds.json bird). */
+export const OWL = 'ooruil';
+
 export interface Sim {
   /** Advances exactly one tick (1/60 s). A no-op once the hunt is over. */
   step(commands: readonly Command[]): void;
@@ -1900,7 +1903,11 @@ export function createSim(config: SimConfig): Sim {
     }
   }
 
-  /** D-048: the Spookjag things a shot hit (in hit order): flat points, lanterns go dark. */
+  /**
+   * D-048: the Spookjag things a shot hit (in hit order). A bat is an event bonus (GDD §5.3: Frenzy
+   * × Stampede, a bonusAwarded event), an owl a penalty like the hadeda's (penaltyApplied), and a
+   * lantern goes dark; the day's last one pays Lanterns out!, an event bonus too.
+   */
   function shotSpook(shotId: number, ids: readonly number[]): void {
     if (spook === null) return;
     const gone: number[] = [];
@@ -1912,15 +1919,18 @@ export function createSim(config: SimConfig): Sim {
       else {
         gone.push(t.id);
         if (t.kind === 'bat') {
-          points = spook.twist.bats.points;
           spookTally.bats++;
+          points = awardBonus('bat', spook.twist.bats.points);
         } else {
-          points = spook.twist.owls.points;
+          // The hadeda's path (penaltyApplied, charms' penalty trigger), with the owl's id.
           spookTally.owls++;
+          points = pass.penaltyOverride.get(OWL) ?? spook.twist.owls.points;
+          score += points;
           stats.penalties++;
+          emit({ type: 'penaltyApplied', tick, birdId: t.id, creature: OWL, points });
+          charmTrigger('penalty', { creature: OWL, plane: t.plane });
         }
       }
-      score += points;
       const lit = lanternsLit(spook);
       emit({
         type: 'spookHit',
@@ -1936,16 +1946,16 @@ export function createSim(config: SimConfig): Sim {
       });
       if (t.kind === 'lantern' && lit === 0 && !spook.allOutPaid) {
         spook.allOutPaid = true;
-        const bonus = spook.twist.lanterns.allOutBonus;
-        score += bonus;
-        emit({ type: 'lanternsOut', tick, points: bonus });
+        // Like a secret's points: an event bonus through the pipeline.
+        const paid = awardBonus('lanternsOut', spook.twist.lanterns.allOutBonus);
+        emit({ type: 'lanternsOut', tick, points: paid });
       }
     }
     if (gone.length > 0) removeThings(spook, gone);
   }
 
-  function awardBonus(bonus: BonusId, base: number, ruleMul = 1): void {
-    if (ranged) return;
+  function awardBonus(bonus: BonusId, base: number, ruleMul = 1): number {
+    if (ranged) return 0;
     const charmMul =
       bonus === 'wholeFlock' || bonus === 'twoFlies' || bonus === 'secretChain'
         ? pass.bonusMul[bonus]
@@ -1959,6 +1969,7 @@ export function createSim(config: SimConfig): Sim {
     const paid = ruleMul === 1 ? award : Math.round(award * ruleMul);
     score += paid;
     emit({ type: 'bonusAwarded', tick, bonus, base, award: paid });
+    return paid;
   }
 
   // --- crates ------------------------------------------------------------------------------

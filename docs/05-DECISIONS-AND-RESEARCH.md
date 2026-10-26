@@ -2725,13 +2725,14 @@ pins `feesdag=none` unless a spec names a special, so no spec changes on 31 Oct.
 bats and 2–3 owls cross the mid or far sky lane edge to edge (bats 560 px/s with ±70 px swerves
 every 0.18–0.42 s; owls 260 px/s, gentle); 3–5 lanterns of 9 spots stand on the plane's ground
 line. They are `HitExtra` kind `spook`, not birds: they need no bird rig, atlas or flock logic,
-and the bird pipeline (spawn director, Bird Book, hitShots, Whole Flock) stays as it was. Points
-are flat (bat +15, owl −10 and a penalty in the tally, lanterns out +25 once), not multiplied by
-Frenzy or the gun: the PO's numbers are what the player gets. A shot that hits only Spookjag
+and the bird pipeline (spawn director, Bird Book, hitShots, Whole Flock) stays as it was. Scoring
+follows GDD §5.3 (supervisor review, 26 Oct): a bat (+15) and Lanterns out (+25, once) are event
+bonuses like a secret's — Frenzy × Stampede, a `bonusAwarded` event (`bat`, `lanternsOut`) — and
+an owl (−10) is a penalty on the hadeda's path (`penaltyApplied` with creature `ooruil`, the charms'
+penalty trigger, a penalty in the tally). Spookjag ids start at 1,000,000, clear of bird ids. A shot that hits only Spookjag
 things leaves the Frenzy streak alone, like a secret part. Events: `feesdagStarted`, `spookFlew`,
 `spookHit`, `lanternsOut`. Everything else of the Daily (quota, omens, crates) is as it was. By
-design (review, 26 Oct): an owl hit counts as a penalty in the tally but is a `spookHit`, not a
-`penaltyApplied` (no charm reacts to it: the Daily has no charms); bats and owls keep their speed
+design (review, 26 Oct): bats and owls keep their speed
 under slow-mo and Boeretroos (they are the day's sky, not birds); touch assist snaps only onto
 birds, so a snapped pattern's other pellets may still catch an owl, as they may a hadeda.
 *Golden replays:* every existing event hash is unchanged (re-recorded for the new content hash
