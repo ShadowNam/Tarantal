@@ -40,16 +40,28 @@ export async function cameraStill(page: Page): Promise<void> {
   );
 }
 
-/** Pans (arrow keys) until a lit lantern stands within `band` px of the screen's centre; its id. */
-export async function lanternInView(page: Page, band = 260): Promise<number> {
-  const first = await page.evaluate(() => {
+/**
+ * Pans (arrow keys) until a lit lantern stands within `band` px of the screen's centre; its id.
+ * D-049: a mid or near flock standing in front of a lantern takes the shots meant for it, so a
+ * lantern with no such flock within `clearPx` (screen x) is preferred, then the nearest to the
+ * centre.
+ */
+export async function lanternInView(page: Page, band = 260, clearPx = 360): Promise<number> {
+  const first = await page.evaluate((clearOf) => {
     const g = window.__TM__;
     const lit = (g?.spook?.things ?? []).filter((t) => t.kind === 'lantern' && !t.dark);
     if (g === undefined || lit.length === 0) return null;
     const c = g.designWidth / 2;
-    // The nearest lantern to the centre (by screen x).
-    return [...lit].sort((a, b) => Math.abs(a.x - c) - Math.abs(b.x - c))[0] ?? null;
-  });
+    const flocks = g.flockSpots.filter(
+      (f) => f.alive > 0 && (f.plane === 'mid' || f.plane === 'near'),
+    );
+    const clear = (x: number): number => (flocks.every((f) => Math.abs(f.x - x) > clearOf) ? 1 : 0);
+    return (
+      [...lit].sort(
+        (a, b) => clear(b.x) - clear(a.x) || Math.abs(a.x - c) - Math.abs(b.x - c),
+      )[0] ?? null
+    );
+  }, clearPx);
   if (first === null) throw new Error('no lit lantern');
   const w = await page.evaluate(() => window.__TM__?.designWidth ?? 1920);
   if (Math.abs(first.x - w / 2) >= band) {
@@ -140,9 +152,19 @@ export async function reloadIfEmpty(page: Page, touch: boolean): Promise<void> {
   await page.waitForFunction(() => (window.__TM__?.shells ?? 0) > 0, null, { timeout: 60_000 });
 }
 
-/** Shoots at a lantern until it is dark (each try waits for the hook); true when it went out. */
-export async function shootLanternOut(page: Page, touch: boolean, id: number): Promise<boolean> {
-  for (let i = 0; i < 8; i++) {
+/**
+ * Shoots at a lantern until it is dark; true when it went out. A Dubbelloop shot puts a mid
+ * lantern out about 4 times in 10, and a seeded hunt's pellet patterns are the same every run, so
+ * it gets up to `tries` shots; a shot is a miss once 20 ticks pass without the lantern going dark
+ * (no long wait, so the short test hunt doesn't run out).
+ */
+export async function shootLanternOut(
+  page: Page,
+  touch: boolean,
+  id: number,
+  tries = 16,
+): Promise<boolean> {
+  for (let i = 0; i < tries; i++) {
     await reloadIfEmpty(page, touch);
     const before = await fireAt(page, touch, { id });
     if (before === null) return false;
@@ -151,14 +173,21 @@ export async function shootLanternOut(page: Page, touch: boolean, id: number): P
         ([lid, n]) => {
           const g = window.__TM__;
           if (g === undefined || g.shots <= n) return null;
+          const w = window as unknown as { __lanternShotTick?: number };
+          w.__lanternShotTick ??= g.tick;
           const t = g.spook?.things.find((x) => x.id === lid);
-          return t?.dark === true ? { dark: true, lit: g.spook?.lanternsLit ?? -1 } : null;
+          if (t?.dark === true) return 'dark';
+          return g.tick - w.__lanternShotTick >= 20 ? 'miss' : null;
         },
         [id, before.shots] as const,
         { timeout: 20_000 },
       )
+      .then((h) => h.jsonValue())
       .catch(() => null);
-    if (out !== null) return true;
+    await page.evaluate(() => {
+      delete (window as unknown as { __lanternShotTick?: number }).__lanternShotTick;
+    });
+    if (out === 'dark') return true;
   }
   return false;
 }

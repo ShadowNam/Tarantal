@@ -14,6 +14,7 @@ import {
   isTouchProject,
   startHunt,
 } from './helpers';
+import { reloadIfEmpty } from './feesdaeHelpers';
 
 const COLONY = 'dune_colony';
 const QUERY = 'biome=kalahari-summer&layout=sat&seed=42&huntSeconds=90';
@@ -194,10 +195,13 @@ test.describe('meerkat colonies (v1.7, D-044)', () => {
           );
           if (m === undefined) return null;
           const r = canvas.getBoundingClientRect();
+          // A fresh pointerId per shot (WebKit's iPhone profile drops repeats after a held key).
+          const w = window as unknown as { __meerkatPointer?: number };
+          w.__meerkatPointer = (w.__meerkatPointer ?? 930) + 1;
           const init: PointerEventInit = {
             clientX: r.left + (m.aimX / g.designWidth) * r.width,
             clientY: r.top + (m.aimY / g.designHeight) * r.height,
-            pointerId: 931,
+            pointerId: w.__meerkatPointer,
             pointerType: isTouch ? 'touch' : 'mouse',
             isPrimary: true,
             button: 0,
@@ -222,21 +226,24 @@ test.describe('meerkat colonies (v1.7, D-044)', () => {
             return g === undefined || entry === undefined ? null : { entry, score: g.score };
           },
           shot.log,
-          { timeout: 60_000 },
+          { timeout: 10_000 },
         )
         .catch(() => null);
       const seen =
         hit === null ? null : ((await hit.jsonValue()) as { entry: string; score: number });
       if (seen !== null && seen.entry === 'hit:-10' && seen.score === shot.score - 10)
         result = { before: shot.score, after: seen.score };
-      else {
+      else if (seen === null) {
+        // A plain miss (meerkats are smaller since D-049 and get no hit floor): try again at
+        // once, so the hunt clock isn't spent waiting.
+        await reloadIfEmpty(page, touch);
+      } else {
         // Let the penalty cooldown pass, the colony settle and the gun reload before the next try.
         const t0 = await page.evaluate(() => window.__TM__?.tick ?? 0);
         await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) >= t + 150, t0, {
           timeout: 120_000,
         });
-        await page.keyboard.press('Space');
-        if (touch) await page.waitForTimeout(500);
+        await reloadIfEmpty(page, touch);
       }
     }
     expect(result, 'a meerkat was hit on its own').not.toBeNull();
