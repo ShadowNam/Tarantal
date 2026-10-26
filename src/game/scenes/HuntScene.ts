@@ -914,9 +914,24 @@ export class HuntScene extends Phaser.Scene {
       .catch(() => false)
       .then((ok) => {
         if (label.active) label.destroy();
-        if (veil.active) veil.destroy();
         if (this.ctx.hook) this.ctx.hook.feesdaeArt = feesdaeSheet === null ? 'standin' : 'final';
-        then(ok);
+        if (ok || !veil.active) {
+          if (veil.active) veil.destroy();
+          then(ok);
+          return;
+        }
+        // The special's code didn't come (offline, a dropped connection): the same message,
+        // Retry and Back as a biome whose art failed (D-042).
+        this.showArtFailed(
+          veil,
+          area,
+          () => {
+            this.waitForFeesdae(special, then);
+          },
+          () => {
+            then(false);
+          },
+        );
       });
   }
 
