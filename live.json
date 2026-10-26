@@ -1,6 +1,6 @@
 {
- "updated": "2026-10-26T05:30:00Z",
- "summary": "Merged and live on the test build: v1.7 meerkats (Kalahari and Namibië only, 00:55) and v1.7b power-ups explained + Oupa's comments switch (04:40, version 1.7.1). Now: v1.7c, fruit that swings or drops when shot (the redrawn sausages included), is passing its last tests and merges next; Tank is building the Halloween Spookjag (ready before 31 Oct). Your map feedback of 26 Oct is planned in this order: perspective (birds smaller with distance), v1.8 Blikkies (moved up), Karoo polish (HD aloes, the boiling potjie), far animals in HD, makalani palms in the Okavango, tree life (the baobab's residents, weavers around their nest) and optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
+ "updated": "2026-10-26T05:36:00Z",
+ "summary": "Merged and live on the test build: v1.7 meerkats (Kalahari and Namibië only), v1.7b power-ups explained + Oupa's comments switch, and now v1.7c (07:34): fruit that swings or drops when shot, with the redrawn sausages and baobab pods (version 1.7.2). Now: Tank is building the Halloween Spookjag (ready before 31 Oct). Then, in this order: perspective (birds smaller with distance), v1.8 Blikkies (moved up), Karoo polish (HD aloes, the boiling potjie), far animals in HD, makalani palms in the Okavango, tree life (baobab residents, a better sausage tree, weavers around their nest) and optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
   "version": "1.7.1",
   "commit": "1bbedc7"
@@ -44,8 +44,8 @@
   },
   {
    "label": "Unit tests",
-   "value": "1,129",
-   "note": "plus 48 browser test suites on 3 devices"
+   "value": "1,250",
+   "note": "plus the browser test suites on 3 devices"
   },
   {
    "label": "First download",
@@ -362,10 +362,10 @@
    ]
   },
   "v1.7c": {
-   "owner": "Tank",
+   "owner": "Tank built it; Claude reviewed, screenshotted and merged it",
    "summary": "Fruit you shoot reacts: the sausage tree's sausages, baobab and camelthorn pods and marula swing on their stalks or drop to the ground.",
    "requestedBy": "You, 25 Oct ~16:45: \"when shooting these fruits, make them swing or drop down.\"",
-   "status": "running",
+   "status": "done",
    "checklist": [
     {
      "text": "Fruit as separate sprites; swing and drop on shots (view only, the game rules unchanged)",
@@ -1262,6 +1262,11 @@
    "at": "2026-10-26T05:30:00Z",
    "kind": "note",
    "text": "Halloween: Tank pushed the special-days system and the Spookjag rules (bats, owls, lanterns). v1.7c: all tests green but one browser group, still running."
+  },
+  {
+   "at": "2026-10-26T05:34:00Z",
+   "kind": "merge",
+   "text": "v1.7c merged (PR #79, version 1.7.2) after all 23 test jobs passed: the fruit you shoot now swings or drops, with redrawn sausages and baobab pods. On the test build in a few minutes."
   }
  ]
 }

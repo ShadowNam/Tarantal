@@ -1,11 +1,11 @@
 {
  "schema": 1,
- "updated": "2026-10-26T05:30:00Z",
+ "updated": "2026-10-26T05:36:00Z",
  "by": "Claude",
- "summary": "Merged and live on the test build: v1.7 meerkats (Kalahari and Namibië only, 00:55) and v1.7b power-ups explained + Oupa's comments switch (04:40, version 1.7.1). Now: v1.7c, fruit that swings or drops when shot (the redrawn sausages included), is passing its last tests and merges next; Tank is building the Halloween Spookjag (ready before 31 Oct). Your map feedback of 26 Oct is planned in this order: perspective (birds smaller with distance), v1.8 Blikkies (moved up), Karoo polish (HD aloes, the boiling potjie), far animals in HD, makalani palms in the Okavango, tree life (the baobab's residents, weavers around their nest) and optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
+ "summary": "Merged and live on the test build: v1.7 meerkats (Kalahari and Namibië only), v1.7b power-ups explained + Oupa's comments switch, and now v1.7c (07:34): fruit that swings or drops when shot, with the redrawn sausages and baobab pods (version 1.7.2). Now: Tank is building the Halloween Spookjag (ready before 31 Oct). Then, in this order: perspective (birds smaller with distance), v1.8 Blikkies (moved up), Karoo polish (HD aloes, the boiling potjie), far animals in HD, makalani palms in the Okavango, tree life (baobab residents, a better sausage tree, weavers around their nest) and optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
-  "version": "1.7.1",
-  "commit": "1bbedc7"
+  "version": "1.7.2",
+  "commit": "894bbcd"
  },
  "links": [
   {
@@ -36,18 +36,18 @@
  "numbers": [
   {
    "label": "Version on the test build",
-   "value": "1.7.1",
-   "note": "commit 1bbedc7, merged 26 Oct, 04:40 Namibia time (the test build deploys a few minutes after)"
+   "value": "1.7.2",
+   "note": "commit 894bbcd, merged 26 Oct, 07:34 Namibia time (the test build deploys a few minutes after)"
   },
   {
    "label": "Pull requests merged",
-   "value": "75",
-   "note": "#1 to #78"
+   "value": "76",
+   "note": "#1 to #79"
   },
   {
    "label": "Unit tests",
-   "value": "1,129",
-   "note": "plus 48 browser test suites on 3 devices"
+   "value": "1,250",
+   "note": "plus the browser test suites on 3 devices"
   },
   {
    "label": "First download",
@@ -70,8 +70,8 @@
   },
   {
    "label": "Decisions logged",
-   "value": "46",
-   "note": "D-001 to D-046 on main"
+   "value": "47",
+   "note": "D-001 to D-047 on main"
   }
  ],
  "needsYou": [
@@ -1334,18 +1334,18 @@
   },
   {
    "id": "v1.7c",
-   "title": "v1.7c: fruit that swings or drops when shot (sausage tree and others) (your request, 25 Oct)",
+   "title": "v1.7c Fruit that swings or drops when shot: redrawn sausages, baobab pods and other fruit react to every hit (your request, 25 Oct)",
    "phase": "Version 1.x",
-   "status": "running",
-   "start": "2026-10-26T01:11:00Z",
-   "end": "2026-10-26T06:30:00Z",
-   "estimate": true,
+   "status": "done",
+   "start": "2026-10-26T01:54:24Z",
+   "end": "2026-10-26T05:34:21Z",
+   "estimate": false,
    "prs": [
     79
    ],
    "version": "1.7.2",
    "summary": "Fruit you shoot reacts: the sausage tree's sausages, baobab and camelthorn pods and marula swing on their stalks or drop to the ground.",
-   "owner": "Tank",
+   "owner": "Tank built it; Claude reviewed, screenshotted and merged it",
    "checklist": [
     {
      "text": "Fruit as separate sprites; swing and drop on shots (view only, the game rules unchanged)",
@@ -1968,6 +1968,11 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-26T05:34:00Z",
+   "kind": "merge",
+   "text": "v1.7c merged (PR #79, version 1.7.2) after all 23 test jobs passed: the fruit you shoot now swings or drops, with redrawn sausages and baobab pods. On the test build in a few minutes."
+  },
   {
    "at": "2026-10-26T05:30:00Z",
    "kind": "note",
