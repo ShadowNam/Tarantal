@@ -359,6 +359,14 @@ never in the first download. The sheet is a grid of 112 × 144 cells (eight to a
 The frame order and art notes are in `src/game/assets/desertAssets.ts` and the art bible §3.5.
 Deliver the whole sheet with the same layout, at any multiple (the sidecar's `master`).
 
+**Fruit sheets (v1.7c, D-047).** Each biome's reacting fruit, pods and flowers are one sheet,
+`sprites/fruit/<biome>.png`, 512 × 256 at 1× (sidecar `originX`/`originY` 0). Where each sits is
+`src/game/view/fruit/spots/<biome>.json`: its layer or prop, its pivot (stalk top, spike foot or
+base), its ground line, and its frame (`fx fy fw fh`) and pivot in the frame (`ox oy`). A delivery
+replaces the sheet and that file together, and the layer or prop art it sits on comes without
+those fruit. The Karoo's and Kalahari's sheets load with the late group (sidecar
+`"group": "late"`), the others with their biome.
+
 ## 6. Sprites (UI, FX, props, guns)
 
 A delivered sprite should match its placeholder's size: views place it at its own size (1 texture

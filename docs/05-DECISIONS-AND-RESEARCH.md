@@ -2507,6 +2507,50 @@ offline copy); `project-overview.spec.ts` on desktop, Pixel 7 and iPhone 14 (lan
 also passes) with the log and pictures served by `page.route` (no network), screenshots in
 `docs/art-preview/compare/project-overview-*.png`. No sim, content or replay change.
 
+**D-047 v1.7c fruit swing and drop when shot (26 Oct 2026):** the product owner (25 Oct, testing
+the sausage tree in the Okavango): "When shooting these fruits, make them swing or drop down."
+Rules in Tech §5 (fruit) and art bible §4.2 (fruit as sprites); tunables `feel.json juice.fruit`.
+(1) *View-only:* fruit are not targets. `FruitView` reads the sim's `pelletImpact` events, maps
+each pellet onto the fruit's layer (`planeX = (cx − 960) × scrollFactor + 960 + dx`) and matches it
+against the fruit's frame; the sim has no fruit state, no hit test changed, nothing scores, and the
+golden replays are identical. A pellet the sim stopped in front of the fruit (a bird on its layer
+or a nearer one, a nearer prop, a crate, a meerkat) never reaches it. A pellet that flew past the
+far plane carries the wind drift in its event; mid and near fruit see that drifted x (a few px).
+(2) *Motion on sim ticks:* every pose is a pure function of the hits' ticks and the sim tick
+(`fruitMotion.ts`): a damped pendulum per hit (0.9 Hz, down to 5 % in 2.2 s; hits add up), so
+replays and held frames (`?holdAt`) draw the same. One pellet swings it 18°, each extra pellet
++6° (cap 34°); a near miss (within 30 px of the frame) swings it 0.4×. Hanging and standing fruit
+snap off on 3 pellets in one shot, or a hit while the swing is still above 30 % of a one-pellet
+swing (so "hit it, then hit it again"); near misses never drop it. A dropped fruit falls at
+2,400 px/s², bounces twice (0.32 of its speed), rolls 16 px, lies across its fall, takes no more
+hits, never comes back in that hunt and fades after 30 s. Fruit on the ground (marula, !nara
+melons, fallen camelthorn pods) rock 9° and roll 4 px per hit, never drop. Reduce motion: 0.4×
+swings, no bounce. A small leaf puff on a hit and a dust puff on landing (local sprites scaled on
+sim time; no flashes). Sounds: a soft thock on a hit and a thud on landing through
+`AudioDirector.playExtra` (`sfx/fruit_thock`, `sfx/fruit_thud`), synths until recordings are
+delivered: no download.
+(3) *Separate sprites:* the species code hands each reacting fruit, pod or flower to
+`tools/art/fruitSink.ts`; `art:interim` collects them from the mid, near and foreground layers and
+from every prop (the far planes keep theirs baked), renders each on its own and packs them into one
+512 × 256 png8 sheet per biome (`fruit/<biome>`, interim origin), with
+`src/game/view/fruit/spots/<biome>.json` saying where each sits (layer or prop px, its ground line,
+its frame and pivot). The random streams are used exactly as before, so the rest of every layer
+and prop is unchanged. 282 fruit: Karoo 20 sweet-thorn pods; Bushveld 24 marula fruit and 5 baobab
+pods (the secret pod stays prop art); Okavango 6 sausages and 3 ilala clusters; Kalahari 48
+camelthorn pods; Namibië 92 quiver flower spikes, 17 !nara melons and 67 camelthorn pods. The
+jackalberry draws fruit only at the near detail, which no map uses, so it has none to split.
+(4) *Sizes (gzip):* nothing new in the first download (3,056.0 KB, +0.1 KB: the lazy import and
+the tunables, offset by the Karoo mid layer losing its pods). `FruitView` is its own 3.6 KB chunk;
+each spots table loads with its biome. Sheets: Okavango 6.5 KB and Bushveld 3.3 KB and Namibië
+16.1 KB in their biome chunks (Okavango 1,514.9 of 1,536 KB); the Karoo's (2.2 KB, no room in the
+first download) and the Kalahari's (3.6 KB: the Kalahari and desert chunks are at 1,535.5 KB
+together) load with the late group, so their fruit show once it has arrived (the first Karoo hunt
+after a cold start may begin without them; `FruitView` swaps the sheet in when it lands).
+(5) *Tests:* `fruitMotion.test.ts` and `fruitHits.test.ts` (swing, sides, near misses, drop
+rules, fall/bounce/roll/fade, ground fruit, plane mapping, blocking); `fruit.spec.ts` (Okavango,
+`?birds=0`: a shot beside a sausage swings it, shots at it drop it, it lands, the score stays);
+`art-preview-v17c.spec.ts` (on demand) for `docs/art-preview/compare/v17c-fruit-*.png`.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
