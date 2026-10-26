@@ -91,6 +91,7 @@
       "driftPxPerS": 40,
       "rollPx": 16,
       "rollSeconds": 0.5,
+      "trunkClearPx": 10,
       "rockDeg": 9,
       "nudgePx": 4,
       "fadeAfterSeconds": 30,

@@ -37,10 +37,17 @@ const sausage: FruitSpot = {
   ground: 300,
   fx: 0,
   fy: 0,
+  tw: 40,
+  th: 220,
   fw: 20,
   fh: 110,
   ox: 10,
   oy: 2,
+  res: 2,
+  ax: 0,
+  ay: 0,
+  stalk: null,
+  trunk: null,
 };
 const melon: FruitSpot = {
   ...sausage,
@@ -117,14 +124,14 @@ describe('fruit drop (v1.7c, D-047)', () => {
     expect(plan.height).toBe(300 - 10);
     const land = landTick(sausage, s, t, false) ?? -1;
     expect(land).toBe(Math.round(plan.land * 60));
-    expect(fruitPose(sausage, s, land - 5, t, false).dy).toBeLessThan(plan.height);
+    expect(fruitPose(sausage, s, land - 5, t, false).by).toBeLessThan(plan.height);
     expect(plan.speeds.length).toBe(t.bounces);
     // In the first bounce it is off the ground again.
     const bounce = Math.round(((plan.ends[0] ?? 0) + (plan.ends[1] ?? 0)) * 30);
-    expect(fruitPose(sausage, s, bounce, t, false).dy).toBeLessThan(plan.height);
+    expect(fruitPose(sausage, s, bounce, t, false).by).toBeLessThan(plan.height);
     const rest = fruitPose(sausage, s, 600, t, false);
-    expect(rest.dy).toBeCloseTo(plan.height, 5);
-    expect(rest.dx).toBeGreaterThan(0);
+    expect(rest.by).toBeCloseTo(plan.height, 5);
+    expect(rest.bx).toBeGreaterThan(0);
     expect(Math.abs(rest.angle)).toBeCloseTo(Math.PI / 2, 3);
     expect(rest.landedTicks).not.toBeNull();
     // A dropped fruit takes no more hits.
@@ -136,7 +143,40 @@ describe('fruit drop (v1.7c, D-047)', () => {
     const s = hitFruit(RESTING, 'hang', shot(0, t.dropPellets), t, false);
     const rest = fruitPose(pod, s, 600, t, false);
     expect(rest.angle).toBeCloseTo(0, 6);
-    expect(pod.y + rest.dy + pod.fh - pod.oy).toBeCloseTo(pod.ground, 5);
+    expect(pod.y + rest.by + pod.fh - pod.oy).toBeCloseTo(pod.ground, 5);
+  });
+
+  it('the stalk stays on the tree and keeps swinging; the fruit falls from its end', () => {
+    // A 150 px stalk, the fruit hanging from its end.
+    const hung: FruitSpot = { ...sausage, ax: 0, ay: 150, ground: 400 };
+    const first = hitFruit(RESTING, 'hang', shot(0, 1, 1), t, false);
+    const pose = fruitPose(hung, first, 12, t, false);
+    // Attached: the fruit hangs at the stalk's end, turned with it.
+    expect(pose.stalkAngle).toBe(pose.angle);
+    expect(Math.hypot(pose.bx, pose.by)).toBeCloseTo(150, 5);
+    const s = hitFruit(first, 'hang', shot(20, 1, 1), t, false);
+    expect(s.dropTick).toBe(20);
+    const rest = fruitPose(hung, s, 600, t, false);
+    // It fell from the stalk's end (not the stalk's top) to the ground line.
+    expect(hung.y + rest.by).toBeCloseTo(hung.ground - Math.min(hung.fw, hung.fh) / 2, 5);
+    // The stalk is still up there, swinging down to rest.
+    expect(Math.abs(fruitPose(hung, s, 30, t, false).stalkAngle)).toBeGreaterThan(0);
+  });
+
+  it('lands toward the side it swung and comes to rest clear of the trunk', () => {
+    const over: FruitSpot = { ...sausage, x: 5, trunk: { x: 0, half: 20 } };
+    for (const dir of [1, -1]) {
+      const s = hitFruit(RESTING, 'hang', shot(0, t.dropPellets, dir), t, false);
+      const rest = fruitPose(over, s, 900, t, false);
+      const x = over.x + rest.bx;
+      // Lying across: from x − oy to x + fh − oy (dir +1), mirrored for −1.
+      const span =
+        dir > 0 ? [x - over.oy, x + over.fh - over.oy] : [x - (over.fh - over.oy), x + over.oy];
+      const lo = (span[0] ?? 0) + 1e-6;
+      const hi = (span[1] ?? 0) - 1e-6;
+      expect(hi <= -20 - t.trunkClearPx || lo >= 20 + t.trunkClearPx).toBe(true);
+      expect(Math.sign(rest.bx)).toBe(dir);
+    }
   });
 
   it('reduce motion: no bounce', () => {
@@ -156,8 +196,8 @@ describe('fruit on the ground (v1.7c, D-047)', () => {
     const s = hitFruit(RESTING, 'ground', shot(0, 5, -1), t, false);
     expect(s.dropTick).toBeNull();
     const p = fruitPose(melon, s, 120, t, false);
-    expect(p.dx).toBeLessThan(0);
-    expect(Math.abs(p.dx)).toBeLessThanOrEqual(t.nudgePx);
+    expect(p.bx).toBeLessThan(0);
+    expect(Math.abs(p.bx)).toBeLessThanOrEqual(t.nudgePx);
     expect(Math.abs(s.hits[0]?.amp ?? 0)).toBeLessThanOrEqual((t.rockDeg * Math.PI) / 180 + 1e-9);
   });
 });

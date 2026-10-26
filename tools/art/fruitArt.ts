@@ -1,12 +1,13 @@
 // v1.7c (D-047): the fruit sheets. Each fruit the species code handed to the collector
-// (fruitSink.ts) is rendered on its own, cropped, and packed into one sheet per biome of a fixed
-// size (FRUIT_SHEET: the placeholder matches it, so a delivery keeps that size); the spots table
-// says where each sits on its layer or prop and where its frame is.
+// (fruitSink.ts) is rendered on its own (its body, and its stalk as a second frame), cropped,
+// and packed into one sheet per biome of a fixed size (FRUIT_SHEET: the placeholder matches it,
+// so a delivery keeps that size); the spots table says where each sits on its layer or prop and
+// where its frames are. Prop fruit are seen close up (props are 2× art): drawn at 2×.
 import { LAYER_BLEED_PX } from '../../src/sim/world';
-import { FRUIT_SHEET, type FruitSpot } from '../../src/game/view/fruit/fruitTypes';
+import { FRUIT_SHEET, type FruitFrame, type FruitSpot } from '../../src/game/view/fruit/fruitTypes';
 import { blank, blit, crop, opaqueBounds, resize, type Rgba } from '../assets/image';
 import { shelfPack } from '../assets/shelfPack';
-import type { RawFruit } from './fruitSink';
+import type { CollectedFruit } from './fruitSink';
 import { renderSvg } from './raster';
 import { svgDoc } from './svg';
 
@@ -14,37 +15,47 @@ import { svgDoc } from './svg';
 export interface FruitOwner {
   readonly on: string;
   readonly prop: boolean;
-  readonly fruit: readonly RawFruit[];
+  readonly fruit: readonly CollectedFruit[];
 }
 
-interface Frame {
+/** Texture px per design px: prop fruit 2×, layer fruit 1×. */
+export const PROP_FRUIT_RES = 2;
+
+interface Piece {
   readonly id: string;
   readonly img: Rgba;
-  readonly spot: Omit<FruitSpot, 'fx' | 'fy'>;
+  /** Pivot in the image (texture px). */
+  readonly px: number;
+  readonly py: number;
 }
 
 const r1 = (n: number): number => Math.round(n * 10) / 10;
 
-/** One fruit at 1 texture px per design px, supersampled `masterScale` ×, cropped. */
-function renderFruit(
-  f: RawFruit,
+/** A drawing around (cx, cy) at `res` texture px per design px, supersampled, cropped. */
+function renderPiece(
+  id: string,
+  svg: string,
+  cx: number,
+  cy: number,
+  reach: number,
+  res: number,
   masterScale: number,
-): { img: Rgba; ox: number; oy: number } | null {
-  const reach = Math.ceil(f.reach);
-  const side = reach * 2;
+): Piece | null {
+  const r = Math.ceil(reach);
+  const side = r * 2;
   const big = renderSvg(
     svgDoc(
-      side * masterScale,
-      side * masterScale,
-      [f.x - reach, f.y - reach, side, side],
+      side * res * masterScale,
+      side * res * masterScale,
+      [cx - r, cy - r, side, side],
       '',
-      f.svg,
+      svg,
     ),
   );
-  const img = resize(big, side, side);
+  const img = resize(big, side * res, side * res);
   const b = opaqueBounds(img);
   if (b === null) return null;
-  return { img: crop(img, b.x, b.y, b.w, b.h), ox: reach - b.x, oy: reach - b.y };
+  return { id, img: crop(img, b.x, b.y, b.w, b.h), px: r * res - b.x, py: r * res - b.y };
 }
 
 /** Renders and packs a biome's fruit: the sheet image and its spots (layer px without bleed). */
@@ -52,15 +63,28 @@ export function fruitSheet(
   owners: readonly FruitOwner[],
   masterScale: number,
 ): { img: Rgba; spots: FruitSpot[] } {
-  const frames: Frame[] = [];
+  const pieces: Piece[] = [];
+  const pending: {
+    spot: Omit<FruitSpot, keyof FruitFrame | 'stalk'>;
+    body: Piece;
+    stalk: Piece | null;
+  }[] = [];
   for (const o of owners)
     o.fruit.forEach((f, i) => {
-      const r = renderFruit(f, masterScale);
-      if (r === null) return;
+      const res = o.prop ? PROP_FRUIT_RES : 1;
+      const id = `${o.on}#${String(i).padStart(3, '0')}`;
+      const at = f.attach ?? { x: f.x, y: f.y };
+      const body = renderPiece(`${id}b`, f.body, at.x, at.y, f.reach, res, masterScale);
+      if (body === null) return;
+      const stalk =
+        f.stalk === null
+          ? null
+          : renderPiece(`${id}s`, f.stalk, f.x, f.y, f.reach, res, masterScale);
+      pieces.push(body, ...(stalk === null ? [] : [stalk]));
       const dx = o.prop ? 0 : -LAYER_BLEED_PX;
-      frames.push({
-        id: `${o.on}#${String(i).padStart(3, '0')}`,
-        img: r.img,
+      pending.push({
+        body,
+        stalk,
         spot: {
           species: f.species,
           motion: f.motion,
@@ -69,15 +93,15 @@ export function fruitSheet(
           x: r1(f.x + dx),
           y: r1(f.y),
           ground: r1(f.ground),
-          fw: r.img.width,
-          fh: r.img.height,
-          ox: r.ox,
-          oy: r.oy,
+          res,
+          ax: r1(at.x - f.x),
+          ay: r1(at.y - f.y),
+          trunk: f.trunk === undefined ? null : { x: r1(f.trunk.x + dx), half: r1(f.trunk.half) },
         },
       });
     });
   const packed = shelfPack(
-    frames.map((f) => ({ id: f.id, width: f.img.width, height: f.img.height })),
+    pieces.map((p) => ({ id: p.id, width: p.img.width, height: p.img.height })),
     FRUIT_SHEET.width,
     1,
   );
@@ -87,12 +111,25 @@ export function fruitSheet(
     );
   const img = blank(FRUIT_SHEET.width, FRUIT_SHEET.height);
   const at = new Map(packed.placed.map((p) => [p.id, p]));
-  const spots: FruitSpot[] = [];
-  for (const f of frames) {
-    const p = at.get(f.id);
-    if (p === undefined) throw new Error(`fruit ${f.id} not packed`);
-    blit(img, f.img, p.x, p.y);
-    spots.push({ ...f.spot, fx: p.x, fy: p.y });
-  }
+  const frameOf = (p: Piece, res: number): FruitFrame => {
+    const pl = at.get(p.id);
+    if (pl === undefined) throw new Error(`fruit ${p.id} not packed`);
+    blit(img, p.img, pl.x, pl.y);
+    return {
+      fx: pl.x,
+      fy: pl.y,
+      tw: p.img.width,
+      th: p.img.height,
+      fw: r1(p.img.width / res),
+      fh: r1(p.img.height / res),
+      ox: r1(p.px / res),
+      oy: r1(p.py / res),
+    };
+  };
+  const spots = pending.map((p): FruitSpot => ({
+    ...p.spot,
+    ...frameOf(p.body, p.spot.res),
+    stalk: p.stalk === null ? null : frameOf(p.stalk, p.spot.res),
+  }));
   return { img, spots };
 }

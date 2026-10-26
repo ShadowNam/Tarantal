@@ -367,12 +367,12 @@
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/fruit_bushveld-winter.640e31139f9e.png",
-        "bytes": 3518,
-        "hash": "640e31139f9e"
+        "path": "assets/bushveld-winter/img/fruit_bushveld-winter.a42d38ddf779.png",
+        "bytes": 9984,
+        "hash": "a42d38ddf779"
       },
       "width": 512,
-      "height": 256,
+      "height": 512,
       "originX": 0,
       "originY": 0
     },
@@ -380,12 +380,12 @@
       "group": "late",
       "origin": "interim",
       "file": {
-        "path": "assets/late/img/fruit_kalahari-summer.e009cf16df2a.png",
-        "bytes": 3875,
-        "hash": "e009cf16df2a"
+        "path": "assets/late/img/fruit_kalahari-summer.76f56d6bb5fb.png",
+        "bytes": 6372,
+        "hash": "76f56d6bb5fb"
       },
       "width": 512,
-      "height": 256,
+      "height": 512,
       "originX": 0,
       "originY": 0
     },
@@ -393,12 +393,12 @@
       "group": "late",
       "origin": "interim",
       "file": {
-        "path": "assets/late/img/fruit_karoo-autumn.81c20cbd7fab.png",
-        "bytes": 2338,
-        "hash": "81c20cbd7fab"
+        "path": "assets/late/img/fruit_karoo-autumn.022ab2b328d4.png",
+        "bytes": 2915,
+        "hash": "022ab2b328d4"
       },
       "width": 512,
-      "height": 256,
+      "height": 512,
       "originX": 0,
       "originY": 0
     },
@@ -406,12 +406,12 @@
       "group": "namibie",
       "origin": "interim",
       "file": {
-        "path": "assets/namibie/img/fruit_namibie.2af0e553da91.png",
-        "bytes": 16739,
-        "hash": "2af0e553da91"
+        "path": "assets/namibie/img/fruit_namibie.2d14c867d98d.png",
+        "bytes": 32847,
+        "hash": "2d14c867d98d"
       },
       "width": 512,
-      "height": 256,
+      "height": 512,
       "originX": 0,
       "originY": 0
     },
@@ -419,12 +419,12 @@
       "group": "okavango-spring",
       "origin": "interim",
       "file": {
-        "path": "assets/okavango-spring/img/fruit_okavango-spring.8b07ba34144a.png",
-        "bytes": 6710,
-        "hash": "8b07ba34144a"
+        "path": "assets/okavango-spring/img/fruit_okavango-spring.409df684d04e.png",
+        "bytes": 22260,
+        "hash": "409df684d04e"
       },
       "width": 512,
-      "height": 256,
+      "height": 512,
       "originX": 0,
       "originY": 0
     },

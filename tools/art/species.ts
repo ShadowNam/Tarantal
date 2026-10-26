@@ -42,6 +42,7 @@ import {
 import { mix, nextId, shade, type Pen, type Pt, type Rnd } from './scenery';
 import { el, ellipseD, g, polyD, r2 } from './svg';
 import { fruit } from './fruitSink';
+import { baobabPod, ilalaBunch } from './fruitLook';
 
 /** What a species needs from the layer it stands on. */
 export interface Paint {
@@ -106,7 +107,10 @@ export function sweetThorn(
     t,
     h > 110 ? thorns(rnd, t, p.tint('#F2EEE2'), h * 0.022) : '',
     pompoms(rnd, t, Math.round(h / 7), Math.max(0.8, h * 0.0085), flowers) +
-      hangingPods(rnd, t, Math.round(h / 22), h * 0.08, p.tint('#A0703E'), foot),
+      hangingPods(rnd, t, Math.round(h / 22), h * 0.08, p.tint('#A0703E'), foot, undefined, {
+        x,
+        half: Math.max(1.5, h * 0.07) / 2 + 2,
+      }),
   );
 }
 
@@ -298,6 +302,8 @@ export function sausageTree(
     { fill: p.tint('#8C7A60'), lit: p.tint('#B8A888'), dark: p.tint('#5E5040') },
     p.pen.ink,
     foot,
+    'sausage',
+    { x, half: Math.max(1.8, h * 0.1) / 2 + 4 },
   );
   const flowers =
     detail === 'far'
@@ -613,6 +619,8 @@ export function baobab(
           ground: foot,
           reach: Math.hypot(px - top[0], py - top[1]) + r * 2 + 6,
           svg,
+          hi: () => baobabPod(px, py, r, r * 1.5, top, ink),
+          trunk: { x, half: wBase + h * 0.06 },
         }),
       );
     }
@@ -762,6 +770,7 @@ export function ilalaPalm(
       for (let c = 0; c < 1 + Math.floor(rnd() * 2); c++) {
         const cx = tx + (rnd() - 0.5) * R * 0.6;
         const cy = ty + R * (0.35 + rnd() * 0.15);
+        const berries: { x: number; y: number; r: number }[] = [];
         const bunch: string[] = [
           el('path', {
             d: `M${r2(tx)} ${r2(ty + 2)}Q${r2(cx)} ${r2(ty)} ${r2(cx)} ${r2(cy)}`,
@@ -770,15 +779,15 @@ export function ilalaPalm(
             'stroke-width': Math.max(0.5, tw * 0.25),
           }),
         ];
-        for (let k = 0; k < 7; k++)
-          bunch.push(
-            roundFruit(
-              cx + (rnd() - 0.5) * R * 0.22,
-              cy + rnd() * R * 0.3,
-              Math.max(0.8, R * 0.06),
-              p.tint('#7A4A2A'),
-            ),
-          );
+        for (let k = 0; k < 7; k++) {
+          const b = {
+            x: cx + (rnd() - 0.5) * R * 0.22,
+            y: cy + rnd() * R * 0.3,
+            r: Math.max(0.8, R * 0.06),
+          };
+          berries.push(b);
+          bunch.push(roundFruit(b.x, b.y, b.r, p.tint('#7A4A2A')));
+        }
         // v1.7c (D-047): the cluster swings from where its stalk leaves the head.
         parts.push(
           fruit({
@@ -789,6 +798,16 @@ export function ilalaPalm(
             ground: foot,
             reach: R * 1.2 + 6,
             svg: g({}, ...bunch),
+            hi: () =>
+              ilalaBunch(
+                [tx, ty + 2],
+                [cx, cy],
+                berries,
+                p.tint('#7A4A2A'),
+                p.tint('#6A4A2A'),
+                Math.max(0.5, tw * 0.25),
+              ),
+            trunk: { x, half: tw + 1 },
           }),
         );
       }

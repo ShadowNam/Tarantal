@@ -11,6 +11,7 @@
 import { mix, nextId, shade, tone, tuft, type Pen, type Pt, type Rnd } from './scenery';
 import { el, ellipseD, g, polyD, r2 } from './svg';
 import { fruit } from './fruitSink';
+import { camelPodHi } from './fruitLook';
 
 export type CamelthornVariant = 'young' | 'mature' | 'old' | 'nest';
 
@@ -509,6 +510,7 @@ export function groundPod(
     ground: y + len * 0.2,
     reach: len + 4,
     svg: pod(x, y, len, ang, look),
+    hi: () => ({ body: camelPodHi(x, y, len, ang, look.pod) }),
   });
 }
 
@@ -807,21 +809,14 @@ export function camelthornTree(
     const c = low[Math.floor(rnd() * low.length)] as Clump;
     const x = c.x + (rnd() - 0.5) * c.rx;
     const y = c.y + c.ry * (0.45 + rnd() * 0.4);
-    const one = g(
-      {},
-      el('path', {
-        d: `M${r2(x)} ${r2(y - podLen * 0.3)}l0 ${r2(podLen * 0.3)}`,
-        stroke: look.pod.dark,
-        'stroke-width': 0.6,
-      }),
-      pod(
-        x,
-        y + podLen * 0.1,
-        podLen * (0.8 + rnd() * 0.4),
-        Math.PI / 2 + (rnd() - 0.5) * 0.9,
-        look,
-      ),
-    );
+    const plen = podLen * (0.8 + rnd() * 0.4);
+    const pang = Math.PI / 2 + (rnd() - 0.5) * 0.9;
+    const stalk = el('path', {
+      d: `M${r2(x)} ${r2(y - podLen * 0.3)}l0 ${r2(podLen * 0.3)}`,
+      stroke: look.pod.dark,
+      'stroke-width': 0.6,
+    });
+    const one = g({}, stalk, pod(x, y + podLen * 0.1, plen, pang, look));
     // v1.7c (D-047): each hanging pod swings and drops when shot.
     pods.push(
       fruit({
@@ -832,6 +827,25 @@ export function camelthornTree(
         ground: s.foot,
         reach: podLen * 1.6 + 4,
         svg: one,
+        hi: () => {
+          // The pod hangs from its upper tip, at the end of a short stalk.
+          const tip = { x, y: y + podLen * 0.05 };
+          const cx = tip.x + Math.cos(pang) * plen * 0.5;
+          const cy = tip.y + Math.sin(pang) * plen * 0.5;
+          return {
+            body: g(
+              {},
+              el('path', {
+                d: `M${r2(x)} ${r2(y - podLen * 0.3)}L${r2(tip.x)} ${r2(tip.y + 0.4)}`,
+                stroke: shade(look.pod.dark, -0.3),
+                'stroke-width': 0.8,
+                'stroke-linecap': 'round',
+              }),
+              camelPodHi(cx, cy, plen, pang, look.pod),
+            ),
+          };
+        },
+        trunk: { x: s.x, half: s.trunkW / 2 + 3 },
       }),
     );
   }

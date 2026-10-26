@@ -45,15 +45,20 @@ export async function loadFruitSpots(biome: string): Promise<readonly FruitSpot[
 interface Fruit {
   readonly index: number;
   readonly spot: FruitSpot;
-  /** Its frame on the sheet. */
+  /** Its frames on the sheet. */
   readonly frame: string;
+  readonly stalkFrame: string;
   readonly layerId: string;
   readonly factor: number;
   /** Where the spot's pivot is on the layer (prop position added). */
   readonly x: number;
   readonly y: number;
   readonly ground: number;
+  /** The fruit, and the stalk it hangs from (stays on the tree when it snaps off). */
   readonly img: Phaser.GameObjects.Image;
+  readonly stalk: Phaser.GameObjects.Image | null;
+  /** A soft contact shadow under it once it lies on the ground. */
+  readonly shadow: Phaser.GameObjects.Ellipse;
   readonly puff: Phaser.GameObjects.Image;
   state: FruitState;
   /** Last hit (for the leaf puff) and the land tick already played. */
@@ -111,15 +116,29 @@ export class FruitView {
       const def = biome.layers.find((l) => l.id === layerId);
       if (layer === undefined || def === undefined) return;
       const index = this.fruit.length;
+      const k = 1 / spot.res;
+      const st = spot.stalk;
+      const stalk =
+        st === null
+          ? null
+          : scene.add
+              .image(x + spot.x, y + spot.y, this.key, stalkName(i))
+              .setOrigin(st.ox / st.fw, st.oy / st.fh)
+              .setScale(k);
+      const shadow = scene.add.ellipse(0, 0, 10, 4, 0x2a1a14, 0.3).setVisible(false);
       const img = scene.add
-        .image(x + spot.x, y + spot.y, this.key, frameName(i))
-        .setOrigin(spot.ox / spot.fw, spot.oy / spot.fh);
+        .image(x + spot.x + spot.ax, y + spot.y + spot.ay, this.key, frameName(i))
+        .setOrigin(spot.ox / spot.fw, spot.oy / spot.fh)
+        .setScale(k);
       const puff = scene.add.image(0, 0, TEX.dust).setVisible(false);
-      layer.fixtures.add([img, puff]);
+      layer.fixtures.add([...(stalk === null ? [] : [stalk]), shadow, img, puff]);
       this.fruit.push({
         index,
         spot,
         frame: frameName(i),
+        stalkFrame: stalkName(i),
+        stalk,
+        shadow,
         layerId,
         factor: def.scrollFactor,
         x: x + spot.x,
@@ -161,7 +180,10 @@ export class FruitView {
     if (!this.scene.textures.exists(this.key)) return;
     const tex = this.scene.textures.get(this.key);
     spots.forEach((s, i) => {
-      if (!tex.has(frameName(i))) tex.add(frameName(i), 0, s.fx, s.fy, s.fw, s.fh);
+      if (!tex.has(frameName(i))) tex.add(frameName(i), 0, s.fx, s.fy, s.tw, s.th);
+      const st = s.stalk;
+      if (st !== null && !tex.has(stalkName(i)))
+        tex.add(stalkName(i), 0, st.fx, st.fy, st.tw, st.th);
     });
   }
 
@@ -175,7 +197,10 @@ export class FruitView {
       return;
     }
     this.addFrames(this.spotList);
-    for (const f of this.fruit) f.img.setTexture(this.key, f.frame);
+    for (const f of this.fruit) {
+      f.img.setTexture(this.key, f.frame);
+      f.stalk?.setTexture(this.key, f.stalkFrame);
+    }
     this.waiting = false;
   }
 
@@ -213,9 +238,9 @@ export class FruitView {
         if (f.state.dropTick !== null) continue;
         const pose = fruitPose(f.spot, f.state, tick, this.tuning, this.reduced);
         // Into the fruit's own frame (unrotated about its pivot): a swinging fruit is hit where
-        // it is drawn, not where it hangs at rest.
-        const px = f.x + pose.dx;
-        const py = f.y + pose.dy;
+        // it is drawn, not where it hangs at rest. The thin stalk takes no hits.
+        const px = f.x + pose.bx;
+        const py = f.y + pose.by;
         const box = { left: px - f.spot.ox, top: py - f.spot.oy, w: f.spot.fw, h: f.spot.fh };
         const local = pelletsOn(f.factor).map((p) => unrotate(p, px, py, pose.angle));
         const shot = shotOnFruit(box, local, tick, this.tuning);
@@ -247,11 +272,32 @@ export class FruitView {
     const puffTicks = Math.max(1, Math.round(t.puffSeconds * 60));
     for (const f of this.fruit) {
       const pose = fruitPose(f.spot, f.state, s.tick, t, this.reduced);
+      const bx = f.x + pose.bx;
+      const by = f.y + pose.by;
       f.img
-        .setPosition(f.x + pose.dx, f.y + pose.dy)
+        .setPosition(bx, by)
         .setRotation(pose.angle)
         .setAlpha(pose.alpha)
         .setVisible(!this.waiting && pose.alpha > 0);
+      f.stalk?.setRotation(pose.stalkAngle).setVisible(!this.waiting);
+      // The body's centre (the dust and the shadow sit under it, not under a long stalk).
+      const body = rotate(
+        { x: bx - f.spot.ox + f.spot.fw / 2, y: by - f.spot.oy + f.spot.fh / 2 },
+        bx,
+        by,
+        pose.angle,
+      );
+      if (pose.landedTicks !== null && !this.waiting) {
+        // Lying: as wide as it lies, flattened; it fades with the fruit.
+        const across = Math.abs(Math.sin(pose.angle));
+        const w = (f.spot.fw * (1 - across) + f.spot.fh * across) * 0.95;
+        const lift = Math.max(0, f.ground - (by + (f.spot.fh - f.spot.oy) * (1 - across)));
+        f.shadow
+          .setPosition(body.x, f.ground - 1)
+          .setSize(w, Math.max(3, w * 0.14))
+          .setAlpha(pose.alpha * Math.max(0.1, 0.32 - lift * 0.01))
+          .setVisible(pose.alpha > 0);
+      } else f.shadow.setVisible(false);
       // A thud once, when it first lands (not again on a replayed or held tick).
       const land = landTick(f.spot, f.state, t, this.reduced);
       if (land !== null && f.thudAt !== land && this.lastTick < land && s.tick >= land) {
@@ -270,24 +316,11 @@ export class FruitView {
         continue;
       }
       const p = since / puffTicks;
-      // The dust rises under the fruit's body (not the end of a long stalk).
-      const body = rotate(
-        {
-          x: f.x + pose.dx - f.spot.ox + f.spot.fw / 2,
-          y: f.y + pose.dy - f.spot.oy + f.spot.fh / 2,
-        },
-        f.x + pose.dx,
-        f.y + pose.dy,
-        pose.angle,
-      );
       const landed = pose.landedTicks !== null;
       const size = t.puffPx * (0.4 + p * 0.8) * (landed ? 1 : 0.7);
       f.puff
         .setTexture(landed ? TEX.dust : TEX.leaf)
-        .setPosition(
-          landed ? body.x : f.x + pose.dx,
-          landed ? f.ground - 4 : f.y + pose.dy + f.spot.fh * 0.4 - f.spot.oy * 0.4,
-        )
+        .setPosition(body.x, landed ? f.ground - 4 : body.y)
         .setDisplaySize(size, size * (landed ? 0.55 : 1))
         .setRotation(landed ? 0 : p * 2)
         .setAlpha((1 - p) * 0.8)
@@ -306,9 +339,14 @@ export class FruitView {
       const sy = (y: number): number => node.root.y + y * node.root.scaleY;
       const x = sx(f.img.x);
       if (out.length >= 200) break;
-      // Aim at the body: low in a hanging frame (the stalk is above), high on a flower spike;
-      // turned with the swing.
-      const down = f.spot.motion === 'hang' ? 0.72 : f.spot.motion === 'stand' ? 0.3 : 0.5;
+      // Aim at the body: its middle (low in a hanging frame that holds its own stalk, high on a
+      // flower spike); turned with the swing.
+      const down =
+        f.spot.motion === 'hang' && f.spot.stalk === null
+          ? 0.72
+          : f.spot.motion === 'stand'
+            ? 0.3
+            : 0.5;
       const aim = rotate(
         { x: f.img.x - f.spot.ox + f.spot.fw / 2, y: f.img.y - f.spot.oy + f.spot.fh * down },
         f.img.x,
@@ -356,6 +394,8 @@ export class FruitView {
   destroy(): void {
     for (const f of this.fruit) {
       f.img.destroy();
+      f.stalk?.destroy();
+      f.shadow.destroy();
       f.puff.destroy();
     }
     this.fruit.length = 0;
@@ -378,4 +418,8 @@ function unrotate(p: LayerPellet, cx: number, cy: number, a: number): LayerPelle
 
 function frameName(i: number): string {
   return `f${i}`;
+}
+
+function stalkName(i: number): string {
+  return `s${i}`;
 }

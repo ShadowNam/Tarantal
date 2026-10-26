@@ -1608,6 +1608,8 @@ export const FeelSchema = obj({
       driftPxPerS: nonNeg,
       rollPx: nonNeg,
       rollSeconds: pos,
+      /** A dropped fruit rolls on until it lies at least this far (px) clear of its trunk. */
+      trunkClearPx: nonNeg,
       /** Fruit on the ground: a rock (degrees) and a small roll (px) per hit. */
       rockDeg: nonNeg,
       nudgePx: nonNeg,

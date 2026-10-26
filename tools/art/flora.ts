@@ -26,6 +26,7 @@ import {
 import { mix, nextId, shade, type Pen, type Pt, type Rnd } from './scenery';
 import { el, ellipseD, g, polyD, r2 } from './svg';
 import { fruit } from './fruitSink';
+import { kigelia, roundHi, sickleHi } from './fruitLook';
 
 export type Detail = 'near' | 'mid' | 'far';
 export type CrownShape = 'umbrella' | 'round' | 'oval' | 'spread' | 'vase' | 'irregular';
@@ -547,6 +548,7 @@ export function hangingPods(
   c: string,
   ground: number,
   species = 'sweet_thorn_pod',
+  trunk?: { readonly x: number; readonly half: number },
 ): string {
   const low = lowFront(t);
   const out: string[] = [];
@@ -555,6 +557,7 @@ export function hangingPods(
     const x = cl.x + (rnd() - 0.5) * cl.rx * 1.2;
     const y = cl.y + cl.ry * (0.4 + rnd() * 0.4);
     const l = len * (0.8 + rnd() * 0.4);
+    const ang = Math.PI * (0.35 + rnd() * 0.35);
     out.push(
       fruit({
         species,
@@ -563,7 +566,9 @@ export function hangingPods(
         y,
         ground,
         reach: l * 1.3 + 4,
-        svg: sicklePod(x, y, l, Math.PI * (0.35 + rnd() * 0.35), c),
+        svg: sicklePod(x, y, l, ang, c),
+        hi: () => ({ body: sickleHi(x, y, l, ang, c) }),
+        ...(trunk === undefined ? {} : { trunk }),
       }),
     );
   }
@@ -652,6 +657,7 @@ export function fallenFruit(
     const fx = x + (rnd() - 0.5) * spread * 2;
     const fy = foot - r * 0.4 + rnd() * r * 2.5;
     const rr = r * (0.8 + rnd() * 0.4);
+    const col = mix(c, '#8A6A3A', rnd() * 0.35);
     out.push(
       fruit({
         species,
@@ -660,7 +666,8 @@ export function fallenFruit(
         y: fy + rr * 0.92,
         ground: fy + rr * 0.92,
         reach: rr * 2 + 3,
-        svg: roundFruit(fx, fy, rr, mix(c, '#8A6A3A', rnd() * 0.35)),
+        svg: roundFruit(fx, fy, rr, col),
+        hi: () => ({ body: roundHi(fx, fy, rr, col, { speckle: true }) }),
       }),
     );
   }
@@ -682,6 +689,7 @@ export function hangingFruit(
   ink: string,
   ground: number,
   species = 'sausage',
+  trunk?: { readonly x: number; readonly half: number },
 ): string {
   const low = lowFront(t);
   const out: string[] = [];
@@ -752,6 +760,18 @@ export function hangingFruit(
         ground,
         reach: sl + l + w * 2 + 4,
         svg: one,
+        hi: () =>
+          kigelia({
+            top: [x0, y0],
+            attach: [x1, y1],
+            sway,
+            len: l,
+            w,
+            tilt,
+            c,
+            ink,
+          }),
+        ...(trunk === undefined ? {} : { trunk }),
       }),
     );
   }
