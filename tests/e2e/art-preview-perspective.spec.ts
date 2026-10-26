@@ -6,8 +6,9 @@
 // far animals as drawn) and "after" (this build), and writes to docs/art-preview/compare/:
 //   perspective-<shot>-<device>.png         before | after, side by side (the shot's crop)
 //   perspective-<shot>-{before,after}-<device>.png   the whole view of each
-// Shots: karoo-ostriches (the product owner's view: the far ground with the ostriches and the
-// far flock of Monday's feeding spot), karoo-mid-windpomp (a mid flock by the windpomp),
+// Shots: karoo-ostriches (the product owner's view: the far ground with the ostriches and a far
+// flock standing beside them; Monday's Verder, the map with far flocks; the test pans between the
+// two and asserts both are in the crop at the held frame), karoo-mid-windpomp (a mid flock by the windpomp),
 // bushveld-far (zebras and giraffes with far birds), namibie-far (the far animals and the Ver
 // waterhole), scope-far and scope-ver (a far and a Ver bird through the .22's small scope).
 // Frames are held at a sim tick (?holdAt) on seed 42; the camera pans with a held arrow key on
@@ -161,6 +162,26 @@ async function plainSave(page: Page): Promise<void> {
   });
 }
 
+/** The Dubbelloop with today's (RIFLE_DAY) Verder open on `biome`. */
+async function verderSave(page: Page, biome: string): Promise<void> {
+  await page.addInitScript(
+    ([day, b]) => {
+      localStorage.setItem(
+        'tm.e2e.save.v1',
+        JSON.stringify({
+          v: 1,
+          settings: { quality: 'high' },
+          ftue: { done: true, skipped: false, step: '' },
+          bestRank: 'bosveldjagter',
+          barks: { lastHuntDay: Math.floor(Date.now() / 86_400_000) },
+          bonusMaps: { day, unlocked: [`${b}/verder`], bests: {} },
+        }),
+      );
+    },
+    [RIFLE_DAY.n, biome] as const,
+  );
+}
+
 /** The .22 with the small scope, Nog Verder open on RIFLE_DAY (longrange.spec.ts rifleSave). */
 async function rifleSave(page: Page): Promise<void> {
   await page.addInitScript((day) => {
@@ -189,31 +210,88 @@ async function rifleSave(page: Page): Promise<void> {
  * layouts put a feeding spot (far or mid) where the animals or the windpomp stand.
  */
 const VIEWS = [
-  ['karoo-ostriches', 'karoo-autumn', 'mon', 'far_veld', 0.3, 540, 380, 680, 520],
-  ['karoo-mid-windpomp', 'karoo-autumn', 'mon', 'mid', 0.24, 540, 300, 900, 620],
-  ['bushveld-far', 'bushveld-winter', 'mon', 'far_veld', 0.3, 540, 360, 680, 620],
-  ['namibie-far', 'namibie', 'mon', 'far_veld', 0.5, 540, 420, 680, 620],
+  ['karoo-ostriches', 'karoo-autumn', 'mon', 'far_veld', 0.3, 540, 380, 680, 520, true],
+  ['karoo-mid-windpomp', 'karoo-autumn', 'mon', 'mid', 0.24, 540, 300, 900, 620, false],
+  ['bushveld-far', 'bushveld-winter', 'mon', 'far_veld', 0.3, 540, 360, 680, 620, true],
+  ['namibie-far', 'namibie', 'mon', 'far_veld', 0.5, 540, 420, 680, 620, false],
 ] as const;
 
-for (const [shot, biome, layout, layer, u, hold, y0, y1, half] of VIEWS) {
+/** Plane x of a screen x (design px) for camera centre cx (Tech §3.3, the inverse of dx). */
+function planeXOf(biome: string, layer: string, cx: number, screenX: number, w: number): number {
+  const { sf } = layerOf(biome, layer);
+  return (cx - 960) * sf + 960 + (screenX - w / 2);
+}
+
+/**
+ * The far flock Monday's Verder starts with (by the ostriches in the Karoo, between the giraffes
+ * and the zebras in the Bushveld): its id and plane x. Waits until the hunt reports it.
+ */
+async function farFlock(
+  page: Page,
+  biome: string,
+  layer: string,
+): Promise<{ id: number; px: number }> {
+  const h = await page.waitForFunction(
+    () => {
+      const t = window.__TM__;
+      const f = t?.flockSpots.find((s) => s.plane === 'far' && s.alive > 0);
+      return t === undefined || f === undefined
+        ? null
+        : { id: f.id, x: f.x, cx: t.cameraX, w: t.designWidth };
+    },
+    null,
+    { timeout: 120_000, polling: 100 },
+  );
+  const f = (await h.jsonValue()) as { id: number; x: number; cx: number; w: number };
+  return { id: f.id, px: planeXOf(biome, layer, f.cx, f.x, f.w) };
+}
+
+for (const [shot, biome, layout, layer, u, hold, y0, y1, half, withFlock] of VIEWS) {
   test(`perspective: ${shot}`, async ({ page }, info) => {
     const touch = isTouchProject(info);
-    await plainSave(page);
+    if (withFlock) await verderSave(page, biome);
+    else await plainSave(page);
     const crops: Rgba[] = [];
     for (const v of VARIANTS) {
-      await boot(
-        page,
-        `seed=42&huntSeconds=60&biome=${biome}&layout=${layout}&holdAt=${hold}${OVERRIDE[v]}`,
-      );
+      // Far flocks only live on the Verder maps (plain Karoo and Bushveld hunts have far
+      // fly-overs only): those shots play Monday's Verder (seen from further back, its haze).
+      const map = withFlock ? `today=${RIFLE_DAY.key}&bonus=verder` : `layout=${layout}`;
+      await boot(page, `seed=42&huntSeconds=60&biome=${biome}&${map}&holdAt=${hold}${OVERRIDE[v]}`);
       await startHunt(page, touch);
       await park(page, touch);
-      await panTo(page, cameraFor(biome, layer, u));
+      // The far animals' spot; with a flock, the midpoint between it and the animals, so the
+      // product owner's comparison (far guineafowl standing beside them) is in the crop.
+      const animalX = u * layerOf(biome, layer).core;
+      const flock = withFlock ? await farFlock(page, biome, layer) : null;
+      const centreX = flock === null ? animalX : (animalX + flock.px) / 2;
+      const { sf } = layerOf(biome, layer);
+      await panTo(page, cameraFor(biome, layer, centreX / layerOf(biome, layer).core));
       expect(
         await page.evaluate(() => window.__TM__?.tick ?? 0),
         'panned before the hold',
       ).toBeLessThan(hold);
       await held(page, touch, hold);
       const d = await design(page);
+      if (flock !== null) {
+        // At the held frame: the far flock stands inside the crop, and so do the animals.
+        const at = await page.evaluate((id) => {
+          const t = window.__TM__;
+          const f = t?.flockSpots.find((x) => x.id === id);
+          return t === undefined || f === undefined ? null : { x: f.x, y: f.y, cx: t.cameraX };
+        }, flock.id);
+        expect(at, `far flock ${flock.id} still out at the hold (${v})`).not.toBeNull();
+        if (at !== null) {
+          expect(Math.abs(at.x - d.w / 2), `far flock inside the crop (${v})`).toBeLessThan(
+            half - 20,
+          );
+          expect(at.y, `far flock on the far ground (${v})`).toBeGreaterThan(y0);
+          expect(at.y).toBeLessThan(y1);
+          const animalsDx = animalX - ((at.cx - 960) * sf + 960);
+          expect(Math.abs(animalsDx), `the far animals inside the crop (${v})`).toBeLessThan(
+            half - 20,
+          );
+        }
+      }
       const img = await canvasShot(page);
       save(`${shot}-${v}`, info, img);
       crops.push(cropDesign(img, d, d.w / 2 - half, y0, d.w / 2 + half, y1));
