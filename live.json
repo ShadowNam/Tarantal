@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-26T18:42:00Z",
+ "updated": "2026-10-26T19:34:00Z",
  "summary": "Live on the test build: perspective (1.7.4, merged 20:34 Namibia time): guineafowl get smaller with distance on every map, the far animals are shown bigger, and far birds keep a minimum hit size so they stay shootable; the first download is 106 KB smaller. The Halloween Spookjag (1.7.3) is in too: try it early on the admin page: Special days → Spookjag · 31/10 → Play. Tank is building v1.8 Blikkies (tin cans on the farm fence to shoot off and juggle). Then: Karoo polish, far animals in HD, makalani palms, tree life, optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
   "version": "1.7.1",
@@ -1361,6 +1361,21 @@
    "at": "2026-10-26T18:38:00Z",
    "kind": "note",
    "text": "Tank started v1.8 Blikkies: tin cans on the old farm fence (Karoo, Bushveld, Kalahari, Namibië) to shoot off and keep in the air, higher and wilder with every hit, until they fly out of sight."
+  },
+  {
+   "at": "2026-10-26T19:20:00Z",
+   "kind": "request",
+   "text": "You asked for the tin can screenshots as soon as they are ready: they come first once Tank's screenshot test is in."
+  },
+  {
+   "at": "2026-10-26T19:32:00Z",
+   "kind": "merge",
+   "text": "History doc updated (PR #84): new chapters for the Halloween Spookjag and for perspective (birds smaller with distance), with 10 screenshots, today's requests and updated numbers."
+  },
+  {
+   "at": "2026-10-26T19:34:00Z",
+   "kind": "note",
+   "text": "Blikkies progress: the can physics (knock-off, juggle higher and wilder, Weg!), its tests, the fences on 3–4 weekday maps per area and the can art and sounds are pushed. Claude is fixing a Halloween owl test that the new content made unreliable (the same kind of fix as the lantern test this morning)."
   }
  ]
 }

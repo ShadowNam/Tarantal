@@ -1,11 +1,11 @@
 {
  "schema": 1,
- "updated": "2026-10-26T18:42:00Z",
+ "updated": "2026-10-26T19:34:00Z",
  "by": "Claude",
  "summary": "Live on the test build: perspective (1.7.4, merged 20:34 Namibia time): guineafowl get smaller with distance on every map, the far animals are shown bigger, and far birds keep a minimum hit size so they stay shootable; the first download is 106 KB smaller. The Halloween Spookjag (1.7.3) is in too: try it early on the admin page: Special days → Spookjag · 31/10 → Play. Tank is building v1.8 Blikkies (tin cans on the farm fence to shoot off and juggle). Then: Karoo polish, far animals in HD, makalani palms, tree life, optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
   "version": "1.7.4",
-  "commit": "457a51b"
+  "commit": "a8d04b1"
  },
  "links": [
   {
@@ -37,12 +37,12 @@
   {
    "label": "Version on the test build",
    "value": "1.7.4",
-   "note": "commit 457a51b, merged 26 Oct, 20:34 Namibia time (the test build deploys a few minutes after)"
+   "note": "commit a8d04b1, merged 26 Oct, 21:32 Namibia time (the test build deploys a few minutes after)"
   },
   {
    "label": "Pull requests merged",
-   "value": "79",
-   "note": "#1 to #82"
+   "value": "80",
+   "note": "#1 to #84"
   },
   {
    "label": "Unit tests",
@@ -1433,6 +1433,32 @@
    "prs": [
     80
    ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/feesdae-hunt.jpg",
+     "caption": "The Spookjag on a desktop: dusk under a big low moon with bats, lanterns on the reservoir rim, guineafowl in witch hats, and Oupa’s opening line."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/feesdae-title.jpg",
+     "caption": "The title on a Pixel 7 on the day: the Daily button reads Spookjag, with the \"Spookjag tonight!\" badge."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/feesdae-hat.jpg",
+     "caption": "Close-up: the witch hats sit on the guineafowl’s heads; a carved lantern stands on its own post in front of the flock."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/feesdae-lantern.jpg",
+     "caption": "Close-up: a lantern on the reservoir rim, lit, and dark with a wisp of smoke after it is shot."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/feesdae-owl.jpg",
+     "caption": "Close-up: the protected spotted eagle-owl crosses the moon among the bats (−10 if shot)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/feesdae-tally.jpg",
+     "caption": "The Halloween tally: \"Spookjag 2026\", the moon and bats, a row for bats, owls and lanterns, and Oupa’s last line."
+    }
+   ],
    "summary": "On 31 Oct the Daily Hunt becomes Spookjag: the day's map at dusk under a big moon, pumpkin lanterns on the fence posts (shoot them all for +25), bats as fast bonus targets (+15), protected owls (−10), some guineafowl in witch hats, Oupa's Halloween lines, a spooky sting and a Halloween share card. Built on a small 'special days' system so other holidays can be added later.",
    "owner": "Tank built it; Claude reviewed, fixed, screenshotted and merged it",
    "checklist": [
@@ -1479,6 +1505,24 @@
    "estimate": false,
    "prs": [
     82
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/perspective-karoo-ostriches.jpg",
+     "caption": "The Karoo, before | after: the far guineafowl used to be bigger than the ostriches; now they are smaller."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/perspective-bushveld-far.jpg",
+     "caption": "The Bushveld, before | after: the giraffes, elephants and zebras now dwarf the far birds."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/perspective-namibie-far.jpg",
+     "caption": "Namibië, before | after: the far flock now stands smaller than the gemsbok beside it."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/perspective-scope-far.jpg",
+     "caption": "Through the .22’s scope on the Karoo’s Nog Verder, before | after: the far birds are smaller, and the ostriches behind them now stand taller."
+    }
    ],
    "summary": "Guineafowl get smaller the further away they are, on every map, in proportion to the ostriches, zebras and other animals on the same distance band, and still easy enough to hit (the hit area shrinks less than the picture). The far bird pictures are redrawn smaller, which also frees room in the first download. Before/after screenshots of your Karoo ostrich view.",
    "owner": "Tank built it; Claude reviewed, screenshotted, fixed two tests and merged it",
@@ -1790,12 +1834,12 @@
   {
    "date": "24 Oct, 19:45",
    "text": "Clean steel gongs in the training ground, with every shot mark staying visible for the session; tin cans (\"blikkies\") on fence posts that somersault and can be juggled in the air",
-   "outcome": "Gongs done (#66); Blikkies queued as v1.8"
+   "outcome": "Gongs done (#66); Blikkies being built as v1.8"
   },
   {
    "date": "24 Oct, 20:55",
    "text": "Five more ideas to keep the African feel (meerkats, a soundscape, a rain storm, a braai, a farm dog, veld cameos) and Daily specials on local days (Heritage Day braai, Christmas in summer, Halloween, New Year)",
-   "outcome": "All queued as v1.6–v1.13; a list of Daily specials sent for the product owner to choose from (Halloween chosen on 26 Oct)"
+   "outcome": "All queued as v1.6–v1.13; a list of Daily specials sent for the product owner to choose from (Halloween chosen on 26 Oct and done in #80)"
   },
   {
    "date": "24 Oct, 22:35",
@@ -1905,22 +1949,32 @@
   {
    "date": "26 Oct, 06:50",
    "text": "Halloween special yes, go ahead",
-   "outcome": "Being built: the Spookjag Daily on 31 Oct (dusk, owls, bats, pumpkin lanterns, guineafowl in witch hats)"
+   "outcome": "Done (#80); live for everyone on 31 Oct"
   },
   {
    "date": "26 Oct, 07:05",
    "text": "Karoo: HD aloes; the potjie should steam and boil a little and its lid fall off when shot; guineafowl must get smaller the further away they are, on every map, but stay shootable",
-   "outcome": "Planned as two jobs after Halloween: perspective, then Karoo polish"
+   "outcome": "Perspective done (#82, 1.7.4); Karoo polish (HD aloes, the boiling potjie) queued after Blikkies"
   },
   {
    "date": "26 Oct, 07:15",
    "text": "Bushveld and Kalahari: the far zebras, giraffes, elephants and other animals look like stick figures; the baobab needs more detail and better fruit, with holes where small animals look out (research what lives in it); little birds around the weaver nest",
-   "outcome": "Researched; planned as far animals in HD on every map, and tree life (baobab residents, weavers flying around their nest)"
+   "outcome": "Planned: far animals in HD (true sizes) and tree life"
   },
   {
    "date": "26 Oct, 07:24",
    "text": "Okavango: add makalani palms with their hard nuts, which fall or burst when hit; the tin cans and the meerkats were not seen yet; the Project overview looked stale; idea: offer Standard or HD graphics",
-   "outcome": "Makalani palms planned (nuts crack off, juggle and pop); Blikkies moved up; meerkats were live on the desert maps; the overview was fixed (an invalid entry); HD advised as a Settings choice, Auto / Standard / HD"
+   "outcome": "Blikkies being built (v1.8); makalani palms and HD graphics planned"
+  },
+  {
+   "date": "26 Oct, 10:10",
+   "text": "Send the Halloween screenshots when the fixes are done; keep backups and the latest version of the project in Dropbox /ai-dev/",
+   "outcome": "Screenshots sent; Dropbox backup set up (/AI-DEV/Tarantal-Madness: a dated status file at every merge, the job briefs, the board state)"
+  },
+  {
+   "date": "26 Oct, 13:05",
+   "text": "I tried the Halloween URL, but I don’t think it is live?",
+   "outcome": "It was live; the ?feesdag address only works on test builds. Use the admin page: Special days → Spookjag · 31/10 → Play"
   },
   {
    "date": "25 Oct, 16:45",
@@ -2050,6 +2104,21 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-26T19:34:00Z",
+   "kind": "note",
+   "text": "Blikkies progress: the can physics (knock-off, juggle higher and wilder, Weg!), its tests, the fences on 3–4 weekday maps per area and the can art and sounds are pushed. Claude is fixing a Halloween owl test that the new content made unreliable (the same kind of fix as the lantern test this morning)."
+  },
+  {
+   "at": "2026-10-26T19:32:00Z",
+   "kind": "merge",
+   "text": "History doc updated (PR #84): new chapters for the Halloween Spookjag and for perspective (birds smaller with distance), with 10 screenshots, today's requests and updated numbers."
+  },
+  {
+   "at": "2026-10-26T19:20:00Z",
+   "kind": "request",
+   "text": "You asked for the tin can screenshots as soon as they are ready: they come first once Tank's screenshot test is in."
+  },
   {
    "at": "2026-10-26T18:38:00Z",
    "kind": "note",
@@ -3643,6 +3712,100 @@
      "caption": "A baobab pod shot off in the Bushveld."
     }
    ]
+  },
+  {
+   "title": "Halloween Spookjag (Feesdae)",
+   "when": "26 Oct 2026, 12:32 (started 26 Oct, 06:50)",
+   "prs": "#80",
+   "decision": "D-048",
+   "intro": "The product owner chose Halloween from the list of local Daily specials: \"Halloween special yes, go ahead\".",
+   "bullets": [
+    "Special days (Feesdae): on a special day (by the UTC date) the Daily Hunt becomes that day’s special, the same for everyone. The special days live in the content files, so more holidays can be added later.",
+    "Halloween’s Spookjag (31 Oct, version 1.7.3): a dusk hunt with its own dark, cool light, under a big low moon with bats circling it.",
+    "Bats are fast bonus targets (+15). The spotted eagle-owl is protected: shooting one costs 10 points, and Oupa scolds you.",
+    "3–5 carved pumpkin lanterns stand on the tops of props (the reservoir rim, boulders, the bakkie’s roof) or on their own post. Each goes dark when shot. Putting them all out pays \"Lanterns out! +25\", once.",
+    "About a third of the guineafowl wear small witch hats.",
+    "The title’s Daily button reads Spookjag, with a \"Spookjag tonight!\" badge. The tally gets a Halloween frame, the title \"Spookjag 2026\" and a row for bats, owls and lanterns. The share text gets a Halloween frame too.",
+    "Sounds: an organ and kalimba sting, an owl hoot, a bat squeak and a lantern puff. Oupa has five Halloween lines in English, Afrikaans, German and Dutch, voiced in English, Afrikaans and German.",
+    "The Halloween pictures and sounds load in the background, only on the day. The first download stays under 3 MB (3,071 of 3,072 KB).",
+    "How to try it before 31 Oct on the public test build: the admin page → Special days → Spookjag · 31/10 → Play, then Play again on the next card. (The ?feesdag=halloween address only works on developer and test builds.)"
+   ],
+   "feedbackLabel": "Reviews and fixes before merging",
+   "feedback": [
+    "The first independent review found that the hunt waited for all the Halloween files to download. It now starts as soon as the code is in; the pictures and sounds follow.",
+    "Claude’s review round, with screenshots on desktop and Pixel 7, listed 15 points, all fixed: scoring through the same path as every other bonus and penalty, an iPhone-safe Share tap and owl test, witch hats on the head in every frame, carved glowing lanterns placed where they read, a darker dusk, bigger owls on their own band below the HUD, overlaps on the title and the tally, Oupa’s lines loaded only when needed, a message if the Halloween files fail to load, and recorded test hunts (golden replays) that cover the bats, owls and lanterns.",
+    "Claude fixed the last overlap of the title badge and the tally test.",
+    "An iPhone test still expected the older replay format (replays now record the special day). Claude fixed it before merging."
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/feesdae-hunt.jpg",
+     "caption": "The Spookjag on a desktop: dusk under a big low moon with bats, lanterns on the reservoir rim, guineafowl in witch hats, and Oupa’s opening line."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/feesdae-title.jpg",
+     "caption": "The title on a Pixel 7 on the day: the Daily button reads Spookjag, with the \"Spookjag tonight!\" badge."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/feesdae-hat.jpg",
+     "caption": "Close-up: the witch hats sit on the guineafowl’s heads; a carved lantern stands on its own post in front of the flock."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/feesdae-lantern.jpg",
+     "caption": "Close-up: a lantern on the reservoir rim, lit, and dark with a wisp of smoke after it is shot."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/feesdae-owl.jpg",
+     "caption": "Close-up: the protected spotted eagle-owl crosses the moon among the bats (−10 if shot)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/feesdae-tally.jpg",
+     "caption": "The Halloween tally: \"Spookjag 2026\", the moon and bats, a row for bats, owls and lanterns, and Oupa’s last line."
+    }
+   ]
+  },
+  {
+   "title": "Perspective: birds get smaller with distance",
+   "when": "26 Oct 2026, 20:34 (started 26 Oct, 10:51)",
+   "prs": "#82",
+   "decision": "D-049",
+   "intro": "The product owner, playing the Karoo: \"the guineafowl, the further away they are, the smaller they get … the ostriches, because they’re far away, are small, but the guineafowl is even bigger than they are … still in such a way that one can still shoot them … this needs to apply to all the levels.\"",
+   "bullets": [
+    "An audit first measured every far animal against the guineafowl. In the Karoo a far bird was about 12× too big beside the ostriches.",
+    "The distance planes got smaller: the middle from 0.5 to 0.42, the far from 0.22 to 0.15, the farthest from 0.1 to 0.07. A standing guineafowl is now 263, 110, 39 and 18 px tall from near to farthest.",
+    "The far herds are shown 3× bigger. The HD animal redraw will later draw them at their true sizes, with the ostriches about 2.7× taller again.",
+    "The Namibië waterhole animals were redrawn 5× taller in the same spots, standing head up.",
+    "Far birds keep a minimum hit size (18 px far, 10 px farthest), so they stay shootable. Only targets get it, never the birds you must not shoot. The Halloween bats and lanterns get it too.",
+    "Feathers, alarm bubbles, score pops and witch hats shrink with the birds.",
+    "The guineafowl pictures were redrawn at their new sizes. That made the first download 106 KB smaller (3,071 → 2,965 KB of 3,072).",
+    "Balance (500 hunts per test): every difficulty check that passed before still passes. Good players score about 1 % more; weaker players about 10 % less (accepted: smaller birds are what was asked). Shotguns score less on the far bonus maps, which are made for rifles. The Langloop was retuned to stay above its minimum.",
+    "Released as version 1.7.4, on every map."
+   ],
+   "feedbackLabel": "Reviews and fixes before merging",
+   "feedback": [
+    "The independent review found three things: the Halloween bats and lanterns had shrunk without the minimum hit size; the minimum hit size also widened the birds you must not shoot (now it is for targets only); and two difficulty checks failed in the first rough run. The first two were fixed before merging; the full 500-hunt run settled the checks.",
+    "Claude’s screenshots showed that the Karoo comparison had no far guineafowl beside the ostriches (the screenshot now uses Monday’s Verder, where a far flock forages by the ostriches), and that the Namibië waterhole animals were shapeless at their new size (redrawn standing head up).",
+    "One of Tank’s edits had deleted eleven older entries of the decision log. Tank restored them.",
+    "On the final test run two browser tests failed: the seeded test hunts’ shot patterns changed with the content, and the targets were smaller. Claude made both tests robust (more shots, no long waits, a lantern no flock stands in front of), and the full suite passed on all devices."
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/perspective-karoo-ostriches.jpg",
+     "caption": "The Karoo, before | after: the far guineafowl used to be bigger than the ostriches; now they are smaller."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/perspective-bushveld-far.jpg",
+     "caption": "The Bushveld, before | after: the giraffes, elephants and zebras now dwarf the far birds."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/perspective-namibie-far.jpg",
+     "caption": "Namibië, before | after: the far flock now stands smaller than the gemsbok beside it."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/perspective-scope-far.jpg",
+     "caption": "Through the .22’s scope on the Karoo’s Nog Verder, before | after: the far birds are smaller, and the ostriches behind them now stand taller."
+    }
+   ]
   }
  ],
  "evolution": [
@@ -3801,6 +3964,14 @@
    "text": "v1.7c Fruit reactions: fruit as separate sprites that swing and drop on shots, view only"
   },
   {
+   "id": "D-048",
+   "text": "Feesdae (special-day Dailies) and Halloween’s Spookjag on 31 Oct: bats, protected owls, pumpkin lanterns, witch hats"
+  },
+  {
+   "id": "D-049",
+   "text": "Perspective: birds get smaller with distance on every map, far animals in proportion, a minimum hit size for far targets"
+  },
+  {
    "id": "D-043",
    "text": "v1.6b reload power-ups: Blitslaai and Oupa Laai (in review, #71)"
   },
@@ -3873,6 +4044,14 @@
   {
    "term": "Verder",
    "meaning": "\"Further\": the bonus map"
+  },
+  {
+   "term": "Feesdae",
+   "meaning": "Special days (holidays): on such a day the Daily Hunt becomes that day’s special"
+  },
+  {
+   "term": "Spookjag",
+   "meaning": "\"Ghost hunt\": the Halloween special, 31 Oct"
   },
   {
    "term": "Kwêvoël",
