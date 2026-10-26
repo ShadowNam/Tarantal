@@ -890,14 +890,9 @@ export class HuntScene extends Phaser.Scene {
   }
 
   /**
-   * Loads a biome's art chunk behind a veil with the area's name and the portal's loading
-   * signals. v1.6 (D-042): when the delivered art still fails after main.ts's bounded retries,
-   * a friendly message offers Retry (or Back); a hunt or the Skietbaan never starts on
-   * placeholders.
-   */
-  /**
-   * D-048: loads the special days' view module and their art and sounds (the lazy feesdae
-   * group). The hunt starts once the module is in; art that fails or is late keeps the stand-in.
+   * D-048: loads the special days' view module (a lazy chunk) behind a veil, then starts the hunt;
+   * the feesdae group's art and sounds load in the background (the stand-in and the synths play
+   * until they arrive; the view swaps the sheet in when it lands).
    */
   private waitForFeesdae(special: Feesdag, then: (ok: boolean) => void): void {
     const { width, height } = designSize();
@@ -909,12 +904,10 @@ export class HuntScene extends Phaser.Scene {
       .text(width / 2, height / 2, fill(t('ui.loading_area'), { area }), textStyle(48, '#F3EAD3'))
       .setOrigin(0.5)
       .setDepth(10_000);
-    const audio = this.ctx.audio;
     void import('../feesdae/FeesdagView')
-      .then(async (m) => {
+      .then((m) => {
         feesdaeModule = m;
-        const img = await m.loadFeesdaeAssets(audio);
-        if (img !== null) feesdaeSheet = img;
+        this.loadFeesdaeArt();
         return true;
       })
       .catch(() => false)
@@ -926,6 +919,23 @@ export class HuntScene extends Phaser.Scene {
       });
   }
 
+  /** D-048: the feesdae group's files in the background; the sheet goes into the view on arrival. */
+  private loadFeesdaeArt(): void {
+    if (feesdaeModule === null || feesdaeSheet !== null) return;
+    void feesdaeModule.loadFeesdaeAssets(this.ctx.audio).then((img) => {
+      if (img === null) return;
+      feesdaeSheet = img;
+      if (this.ctx.hook) this.ctx.hook.feesdaeArt = 'final';
+      if (this.sys.isActive()) this.spookView?.useSheet(img);
+    });
+  }
+
+  /**
+   * Loads a biome's art chunk behind a veil with the area's name and the portal's loading
+   * signals. v1.6 (D-042): when the delivered art still fails after main.ts's bounded retries,
+   * a friendly message offers Retry (or Back); a hunt or the Skietbaan never starts on
+   * placeholders.
+   */
   private waitForBiome(id: string, then: (ok: boolean) => void): void {
     const { width, height } = designSize();
     const b = this.ctx.content.biomes.find((x) => x.id === id);
@@ -1151,6 +1161,8 @@ export class HuntScene extends Phaser.Scene {
     const mode = range === null ? this.withSight(baseMode) : baseMode;
     // D-048: a special day's hunt waits for its lazy view module and art (the feesdae group).
     this.special = feesdagById(this.ctx.content.feesdae, mode.feesdag);
+    // A later special-day hunt tries the files again if the first load came back without them.
+    if (this.special !== null) this.loadFeesdaeArt();
     if (this.special !== null && feesdaeModule === null) {
       this.waitForFeesdae(this.special, (ok) => {
         if (ok) this.begin(kind, startPointer, modeId, challenge, bonus);

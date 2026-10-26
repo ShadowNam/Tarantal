@@ -133,26 +133,39 @@ export function playSpookSound(audio: AudioDirector, id: SpookSound, pan: number
 let sounds: Promise<void> | null = null;
 let sheet: Promise<HTMLImageElement | null> | null = null;
 
-/** The feesdae group's files: its recordings (once per page) and the sheet (once per page). */
+/**
+ * The feesdae group's files, in the background: its recordings (all at once) and the sheet.
+ * Resolves with the sheet (null if it is not delivered or failed). A load that came back empty
+ * is tried again on the next special-day hunt; one that worked is kept for the page.
+ */
 export function loadFeesdaeAssets(audio: AudioDirector): Promise<HTMLImageElement | null> {
   const index = fetchAssetIndex(FILE_TIMEOUT_MS).then((r) => r.index);
   const format = audio.fileFormat();
   sounds ??= index.then(async (ix) => {
-    if (ix === null || format === null) return;
-    const files: FinalSound[] = [];
-    for (const key of Object.values(SPOOK_SOUNDS)) {
-      const entry = ix.audio[key];
-      if (entry === undefined) continue;
-      const bytes = await loadBytes(entry[format].path, FILE_TIMEOUT_MS);
-      if (bytes !== null) files.push({ key, entry, bytes, format });
+    if (ix === null || format === null) {
+      sounds = null;
+      return;
     }
+    const got = await Promise.all(
+      Object.values(SPOOK_SOUNDS).map(async (key): Promise<FinalSound | null> => {
+        const entry = ix.audio[key];
+        if (entry === undefined) return null;
+        const bytes = await loadBytes(entry[format].path, FILE_TIMEOUT_MS);
+        return bytes === null ? null : { key, entry, bytes, format };
+      }),
+    );
+    const files = got.filter((f): f is FinalSound => f !== null);
     audio.addRecorded(files);
+    if (files.length < Object.keys(SPOOK_SOUNDS).length) sounds = null;
   });
   sheet ??= index.then(async (ix) => {
     const entry = ix?.images[HALLOWEEN_SHEET];
-    return entry === undefined ? null : loadImage(entry.file.path, FILE_TIMEOUT_MS);
+    const img = entry === undefined ? null : await loadImage(entry.file.path, FILE_TIMEOUT_MS);
+    if (img === null) sheet = null;
+    return img;
   });
-  return Promise.all([sounds, sheet]).then(([, img]) => img);
+  const own = sheet;
+  return Promise.all([sounds, own]).then(([, img]) => img);
 }
 
 // --- the view ----------------------------------------------------------------------------------
@@ -325,6 +338,7 @@ export class FeesdagSceneView {
           const g = this.look.glow;
           const period = Math.max(1, g.flickerMs / (1000 / 60));
           const wave = Math.sin(((tick + t.id * 13) / period) * Math.PI * 2);
+          // flicker ≤ 0.5 (schema), so the alpha never goes below 0.
           d.glow
             .setPosition(x, y)
             .setScale(s * g.scale)

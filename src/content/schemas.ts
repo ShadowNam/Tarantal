@@ -1422,6 +1422,14 @@ export const BARK_TRIGGERS = [
   'feesdagEnd',
 ] as const;
 export type BarkTrigger = (typeof BARK_TRIGGERS)[number];
+/** D-048: triggers whose lines come from feesdae.json (their feel.json lines are empty). */
+const SPECIAL_DAY_TRIGGERS: readonly string[] = [
+  'feesdagStart',
+  'feesdagBat',
+  'feesdagOwl',
+  'lanternsOut',
+  'feesdagEnd',
+];
 
 // ASCII only: the key is also the voice file name (audio/voice/<key>.wav), and a non-ASCII name
 // changes under macOS NFD or zip normalisation, so the recording would never match.
@@ -1856,7 +1864,11 @@ export const FeelSchema = obj({
     idleSeconds: pos,
     lastSeconds: pos,
     /** One entry per trigger (an enum-keyed record: every trigger is required). */
-    triggers: z.record(z.enum(BARK_TRIGGERS), BarkTriggerSchema),
+    triggers: z.record(z.enum(BARK_TRIGGERS), BarkTriggerSchema).refine(
+      (t) =>
+        Object.entries(t).every(([k, v]) => SPECIAL_DAY_TRIGGERS.includes(k) || v.lines.length > 0),
+      'every bark trigger but the special-day ones (D-048) needs a line',
+    ),
   }),
   capture: obj({
     /** M10 marketing capture mode (?capture=1): seed when no ?seed= is given, the slow-motion
@@ -1906,7 +1918,7 @@ export const FeelSchema = obj({
       /** Share of guineafowl in witch hats (cosmetic; picked by bird id). */
       hatShare: fraction,
       /** A lit lantern's warm glow: its alpha and a slow flicker (no flashes). */
-      glow: obj({ alpha: fraction, flicker: fraction, flickerMs: pos, scale: pos }),
+      glow: obj({ alpha: fraction, flicker: z.number().min(0).max(0.5), flickerMs: pos, scale: pos }),
       /** Flight frames per second of the bats and owls. */
       batFps: pos,
       owlFps: pos,

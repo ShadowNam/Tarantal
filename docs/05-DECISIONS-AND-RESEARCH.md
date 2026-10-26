@@ -2729,11 +2729,15 @@ and the bird pipeline (spawn director, Bird Book, hitShots, Whole Flock) stays a
 are flat (bat +15, owl −10 and a penalty in the tally, lanterns out +25 once), not multiplied by
 Frenzy or the gun: the PO's numbers are what the player gets. A shot that hits only Spookjag
 things leaves the Frenzy streak alone, like a secret part. Events: `feesdagStarted`, `spookFlew`,
-`spookHit`, `lanternsOut`. Everything else of the Daily (quota, omens, crates) is as it was.
+`spookHit`, `lanternsOut`. Everything else of the Daily (quota, omens, crates) is as it was. By
+design (review, 26 Oct): an owl hit counts as a penalty in the tally but is a `spookHit`, not a
+`penaltyApplied` (no charm reacts to it: the Daily has no charms); bats and owls keep their speed
+under slow-mo and Boeretroos (they are the day's sky, not birds); touch assist snaps only onto
+birds, so a snapped pattern's other pellets may still catch an owl, as they may a hadeda.
 *Golden replays:* every existing event hash is unchanged (re-recorded for the new content hash
 only); `daily-2026-10-31-halloween-competent-pointer` is new.
 (4) *The look in the game:* the special's light replaces the layout's (Halloween: `dusk`); a lazy
-chunk (`FeesdagView`, 4.3 KB gz) draws the moon and sky bats, the lanterns with a slow additive
+chunk (`FeesdagView`, 4.0 KB gz) draws the moon and sky bats, the lanterns with a slow additive
 glow (no flashes), bats and owls, cobwebs on props (`feel.json feesdae.looks`), a puff when a
 lantern goes out, and gives the `BirdView` witch hats for about a third of the guineafowl (by bird
 id; a hat drawing per plane size on the head anchor, like the Generaal's pot). The title's Daily
@@ -2744,13 +2748,15 @@ owl, lanterns out, the end; triggers `feesdag*` take their lines from feesdae.js
 with the interim TTS, and respect his switch. Captions for the sting, the owl, a bat and a lantern.
 (5) *Assets in a lazy group:* `feesdae` holds the 2× sheet (png8, 1920 × 1604, 125 KB) and four
 sounds (sting, hoot, squeak, puff; 46 KB): 171 KB gzip, fetched only when a special day's hunt
-starts. Until the sheet arrives a code-drawn stand-in with the same frames shows; the view swaps
+starts. The hunt starts once the view's code is in (a veil with the special's name); the files load in
+the background, all at once, and one that failed is tried again on the next special-day hunt.
+Until the sheet arrives a code-drawn stand-in with the same frames shows; the view swaps
 images with `setTexture` and never removes a texture. Interim art `npm run art:interim -- --only
 feesdae` (tools/art/halloween.ts), sounds in tools/audio/sfx.ts.
 (6) *Sizes (gzip, `npm run size -- --strict`):* the first download had 3 KB left, so the build now
 ships content JSON without its `$comment` notes (`tools/stripComments.ts`, a Vite plugin; the
 content hash already ignored them; −9 KB), which pays for the special day's code and strings.
-First download: web 3,069.4 KB, Poki 3,062.8 KB, CrazyGames 3,062.9 KB (limit 3,072 KB; 1.7.2 web
+First download: web 3,069.5 KB, Poki 3,062.9 KB, CrazyGames 3,063.0 KB (limit 3,072 KB; 1.7.2 web
 3,069.1 KB). No biome chunk grew (Bushveld 1,499.1, Okavango 1,529.1, Kalahari + desert 1,534.5,
 Namibië + desert 1,508.3, late 1,471.3); `feesdae` 171.0; the voice packs grew by the five lines
 (af 845.5, de 1,001.6, en 777.2).
