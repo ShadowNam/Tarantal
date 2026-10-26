@@ -1,8 +1,8 @@
 {
  "schema": 1,
- "updated": "2026-10-26T10:40:00Z",
+ "updated": "2026-10-26T11:15:00Z",
  "by": "Claude",
- "summary": "Live on the test build: the Halloween Spookjag (1.7.3, merged 12:32 Namibia time). On 31 Oct the Daily Hunt is a dusk hunt with bats, protected owls, pumpkin lanterns and witch-hat guineafowl; try it early with ?feesdag=halloween or the admin page's Special days Play button. v1.7c (fruit that swings or drops) went in this morning. Tank is building the next job: birds smaller with distance on every map. Then: v1.8 Blikkies, Karoo polish, far animals in HD, makalani palms, tree life, optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
+ "summary": "Live on the test build: the Halloween Spookjag (1.7.3, merged 12:32 Namibia time). On 31 Oct the Daily Hunt is a dusk hunt with bats, protected owls, pumpkin lanterns and witch-hat guineafowl; try it early on the admin page: Special days → Spookjag · 31/10 → Play (the ?feesdag=halloween address works only on developer and test builds). v1.7c (fruit that swings or drops) went in this morning. Tank is building the next job: birds smaller with distance on every map. Then: v1.8 Blikkies, Karoo polish, far animals in HD, makalani palms, tree life, optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
   "version": "1.7.3",
   "commit": "fa47efb"
@@ -2047,6 +2047,11 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-26T11:12:00Z",
+   "kind": "note",
+   "text": "You tried ?feesdag=halloween on the test build and got an ordinary hunt: that address only works on developer and test builds (Claude's tip was wrong). The admin page's Special days → Spookjag · 31/10 → Play works; Claude checked it on the same version and sent you a screenshot."
+  },
   {
    "at": "2026-10-26T10:33:00Z",
    "kind": "note",
