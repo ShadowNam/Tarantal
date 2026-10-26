@@ -442,6 +442,20 @@
       "originX": 0,
       "originY": 0
     },
+    "fx/blikkies": {
+      "group": "common",
+      "origin": "interim",
+      "file": {
+        "path": "assets/common/img/fx_blikkies.48948c2a7fd9.png",
+        "bytes": 15230,
+        "hash": "48948c2a7fd9"
+      },
+      "width": 644,
+      "height": 372,
+      "scale": 0.5,
+      "originX": 0,
+      "originY": 0
+    },
     "fx/bolt": {
       "group": "common",
       "origin": "interim",
