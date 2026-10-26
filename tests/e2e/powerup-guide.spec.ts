@@ -6,6 +6,7 @@
 // no voice plays. Transient values (the card, the bubble, the chip's countdown) are read inside
 // the waitForFunction that sees them; taps on the falling crate are fired from inside the page.
 import { expect, test, type Page } from '@playwright/test';
+import feel from '../../content/client/feel.json' with { type: 'json' };
 import powerups from '../../content/powerups.json' with { type: 'json' };
 import en from '../../src/i18n/en.json' with { type: 'json' };
 import {
@@ -25,6 +26,8 @@ const pct = Math.round((coffee?.effect.creatureTimeScale ?? 1) * 100);
 const COFFEE_TEXT = en['guide.effect.boeretroos']
   .replace('{s}', String((coffee?.durationMs ?? 0) / 1000))
   .replace('{speed}', pct === 50 ? en['guide.half'] : `${pct} %`);
+/** The day's first-hunt greeting (voiced in every pack). */
+const GREETING = feel.barks.triggers.firstToday.lines[0] ?? '';
 const ALL = [
   'chilli_biltong',
   'boeretroos',
@@ -46,6 +49,17 @@ async function seed(page: Page, settings: Record<string, unknown>): Promise<void
         JSON.stringify({ v: 1, settings: s, ftue: { done: true, skipped: false, step: '' } }),
       );
   }, settings);
+}
+
+/**
+ * The first gesture on the title (a key) unlocks audio and starts the voice pack; waits until it
+ * is in, so a line Oupa would voice really would play (the "no voice" checks can then fail).
+ */
+async function voiceReady(page: Page): Promise<void> {
+  await page.keyboard.press('Shift');
+  await page.waitForFunction(() => window.__TM__?.voice.pack === 'ready', null, {
+    timeout: 90_000,
+  });
 }
 
 /** Taps the first crate from inside the page (every few frames) until `id` is running. */
@@ -267,6 +281,7 @@ test("Oupa's comments Off: no bark is shown or voiced in a hunt", async ({ page 
   await seed(page, { oupa: 'off' });
   // A fresh day (his greeting) and a first pickup (his word on it): both would bark when On.
   await boot(page, 'seed=7&huntSeconds=40&crate=boeretroos');
+  await voiceReady(page);
   await startHunt(page, touch);
   await pickUp(page, touch, 'boeretroos');
   // Watch every frame up to tick 900: no bubble, no line recorded, no voice played.
@@ -306,8 +321,10 @@ test("Oupa's comments Text only: his bubble shows, no voice line plays", async (
   const errors = collectErrors(page);
   await seed(page, { oupa: 'text', voiceVolume: 1, masterVolume: 1 });
   await boot(page, 'seed=7&huntSeconds=40&crate=boeretroos');
+  // The pack is in before the hunt: with Oupa On the greeting below is voiced (the next test).
+  await voiceReady(page);
   await startHunt(page, touch);
-  // The day's greeting: the bubble is up (read in the frame that sees it) and nothing is voiced.
+  // The day's greeting: the bubble is up (read in the frame that sees it) …
   const r = await page.waitForFunction(
     () => {
       const h = window.__TM__;
@@ -317,8 +334,10 @@ test("Oupa's comments Text only: his bubble shows, no voice line plays", async (
     { timeout: 90_000, polling: 'raf' },
   );
   const b = (await r.jsonValue()) as { line: string; voice: string[] };
-  expect(b.line.startsWith('bark.')).toBe(true);
-  expect(b.voice).toEqual([]);
+  expect(b.line).toBe(GREETING);
+  // … and its recording, in memory, still doesn't play (On plays it at once).
+  await page.waitForTimeout(2500);
+  expect((await hook(page)).voice.played).toEqual([]);
   await page.screenshot({ path: `${SCREENSHOTS}/oupa-text-only-${info.project.name}.png` });
   // His word on the first pickup: shown, still never voiced.
   await pickUp(page, touch, 'boeretroos');
@@ -336,6 +355,19 @@ test("Oupa's comments Text only: his bubble shows, no voice line plays", async (
   expect(s.voice).toEqual([]);
   expect(s.oupa).toBe(false);
   expect(errors).toEqual([]);
+});
+
+test("Oupa's comments On (the control): the same greeting is voiced", async ({ page }, info) => {
+  const touch = isTouchProject(info);
+  await seed(page, { oupa: 'on', voiceVolume: 1, masterVolume: 1 });
+  await boot(page, 'seed=7&huntSeconds=40&crate=boeretroos');
+  await voiceReady(page);
+  await startHunt(page, touch);
+  await page.waitForFunction(
+    (key) => window.__TM__?.voice.played.includes(key) === true,
+    `voice/en/${GREETING}`,
+    { timeout: 60_000 },
+  );
 });
 
 test("Settings: Oupa's comments cycle On → Text only → Off and are saved", async ({
