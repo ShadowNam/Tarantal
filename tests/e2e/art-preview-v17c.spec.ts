@@ -265,6 +265,8 @@ test('a sausage mid-swing (Okavango)', async ({ page }, info) => {
   await held(page, touch, w.hold);
   const box = await around(page, w.i, 360, 420);
   expect(box.fruit.dropped).toBe(false);
+  // A missed shot must not pass for a swing: the held frame shows it turned on its stalk.
+  expect(Math.abs(box.fruit.angle)).toBeGreaterThan(0.02);
   await shoot(page, info, 'fruit-sausage-swing', box);
 });
 
