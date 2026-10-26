@@ -575,20 +575,20 @@
         "half": 13
       }
     },
-    "airHitMul": 2,
+    "airHitMul": 2.5,
     "juggle": {
       "gravityPxPerSec2": 1100,
-      "kickUpPxPerSec": 492,
-      "kickSidePxPerSec": 170,
+      "kickUpPxPerSec": 430,
+      "kickSidePxPerSec": 110,
       "minSideShare": 0.35,
       "spinDegPerSec": 540,
       "upGrowth": 0.06,
       "spinGrowthDegPerSec": 140,
       "jitterPxPerSec": 30,
-      "jitterGrowthPxPerSec": 28,
+      "jitterGrowthPxPerSec": 15,
       "growthCapHits": 8,
       "pelletBonus": 0.02,
-      "pelletCap": 1.12,
+      "pelletCap": 1.04,
       "bounce": {
         "restitution": 0.32,
         "keep": 0.45
