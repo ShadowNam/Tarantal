@@ -309,7 +309,7 @@ export class FruitView {
           f.hitTick = tick;
           knocked = f;
         }
-        if (next.dropTick !== null && f.state.dropTick === null) this.dropCount++;
+        if (next.dropTick !== null) this.dropCount++;
         // A drop works its fall out once (poses reuse it every frame).
         f.state = withFall(f.spot, next, this.tuning, this.reduced);
         f.still = false;
