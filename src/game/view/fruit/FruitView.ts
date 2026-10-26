@@ -7,7 +7,8 @@
 // fruit exist: no score, no penalty, no effect on any hit test. HuntScene loads this module
 // lazily (it is not in the first download).
 import * as Phaser from 'phaser';
-import type { Biome, Feel } from '../../../content/schemas';
+import type { Biome, Charm, Feel, Weapon } from '../../../content/schemas';
+import { passivesOf } from '../../../sim/charms/interpreter';
 import type { SimEvent } from '../../../sim/events';
 import type { SimState } from '../../../sim/types';
 import { coreWidth } from '../../../sim/world';
@@ -16,11 +17,13 @@ import { TEX } from '../../assets/AssetManifest';
 import type { AudioDirector } from '../../audio/AudioDirector';
 import type { ParallaxView } from '../ParallaxView';
 import {
-  blocked,
-  pelletOnLayer,
-  shotOnFruit,
+  fruitShot,
+  pelletsOnLayer,
+  shotDriftPx,
+  type Impact,
   type LayerPellet,
   type PelletStop,
+  type ShotFrame,
 } from './fruitHits';
 import {
   RESTING,
@@ -61,6 +64,8 @@ interface Fruit {
   readonly shadow: Phaser.GameObjects.Ellipse;
   readonly puff: Phaser.GameObjects.Image;
   state: FruitState;
+  /** Posed at rest and nothing moving (update skips it until it is hit). */
+  still: boolean;
   /** Last hit (for the leaf puff) and the land tick already played. */
   hitTick: number | null;
   thudAt: number | null;
@@ -81,7 +86,21 @@ export interface FruitHookSpot {
   readonly hits: number;
 }
 
+/** What FruitView needs of the hunt to see shots as the sim did. */
+export interface FruitWorld {
+  readonly weapons: readonly Weapon[];
+  readonly charms: readonly Charm[];
+  /** The map's wind drift at the far plane (0 without wind), and the far plane's scroll factor. */
+  readonly driftPxAtFar: number;
+  readonly farFactor: number;
+  /** The camera centre the sim resolved a tick's shots with (null once out of memory). */
+  cameraAt(tick: number): number | null;
+}
+
 export class FruitView {
+  private readonly shotWeapon = new Map<number, string>();
+  private charmKey: string | null = null;
+  private charmMul = 1;
   private readonly fruit: Fruit[] = [];
   private spotList: readonly FruitSpot[] = [];
   private readonly key: string;
@@ -106,6 +125,7 @@ export class FruitView {
     private readonly audio: AudioDirector,
     /** Settings → reduce motion. */
     private readonly reduced: boolean,
+    private readonly world: FruitWorld,
   ) {
     this.tuning = feel.juice.fruit;
     this.key = fruitSheetKey(biome.id);
@@ -161,6 +181,7 @@ export class FruitView {
         img,
         puff,
         state: RESTING,
+        still: false,
         hitTick: null,
         thudAt: null,
       });
@@ -225,8 +246,15 @@ export class FruitView {
     stopOf: (e: Extract<SimEvent, { type: 'pelletImpact' }>) => PelletStop | null,
     width: number,
   ): void {
+    if (this.fruit.length === 0) return;
+    // Which gun fired each shot (a stone lands ticks after its shotFired).
+    for (const e of events) if (e.type === 'shotFired') this.shotWeapon.set(e.shotId, e.weapon);
+    if (this.shotWeapon.size > 64) {
+      const old = [...this.shotWeapon.keys()].slice(0, this.shotWeapon.size - 64);
+      for (const k of old) this.shotWeapon.delete(k);
+    }
     // Nothing to see yet (the late sheet is not in): nothing reacts or sounds either.
-    if (this.fruit.length === 0 || this.waiting) return;
+    if (this.waiting) return;
     const shots = new Map<number, Extract<SimEvent, { type: 'pelletImpact' }>[]>();
     for (const e of events) {
       if (e.type !== 'pelletImpact' || e.paperId !== undefined) continue;
@@ -234,30 +262,41 @@ export class FruitView {
       list.push(e);
       shots.set(e.shotId, list);
     }
-    for (const impacts of shots.values()) {
-      const tick = impacts[0]?.tick ?? state.tick;
+    for (const [shotId, list] of shots) {
+      const tick = list[0]?.tick ?? state.tick;
+      const impacts: Impact[] = list.map((e) => ({
+        dx: e.dx,
+        sy: e.sy,
+        ...(e.cx === undefined ? {} : { cx: e.cx }),
+        stop: stopOf(e),
+      }));
+      const weapon = this.world.weapons.find((w) => w.id === this.shotWeapon.get(shotId));
+      const frame: ShotFrame = {
+        camX: this.world.cameraAt(tick) ?? state.cameraX,
+        drift: shotDriftPx(
+          state.wind,
+          this.world.driftPxAtFar,
+          weapon?.windSensitivity ?? 1,
+          this.windDriftMul(state.season?.charms ?? []),
+        ),
+        farFactor: this.world.farFactor,
+      };
       const byFactor = new Map<number, LayerPellet[]>();
       const pelletsOn = (factor: number): LayerPellet[] => {
-        let list = byFactor.get(factor);
-        if (list === undefined) {
-          list = impacts
-            .filter((e) => !blocked(stopOf(e), factor))
-            .map((e) => pelletOnLayer(e.cx ?? state.cameraX, factor, e.dx, e.sy));
-          byFactor.set(factor, list);
+        let pellets = byFactor.get(factor);
+        if (pellets === undefined) {
+          pellets = pelletsOnLayer(impacts, factor, frame);
+          byFactor.set(factor, pellets);
         }
-        return list;
+        return pellets;
       };
       let knocked: Fruit | null = null;
       for (const f of this.fruit) {
         if (f.state.dropTick !== null) continue;
         const pose = fruitPose(f.spot, f.state, tick, this.tuning, this.reduced);
-        // Into the fruit's own frame (unrotated about its pivot): a swinging fruit is hit where
-        // it is drawn, not where it hangs at rest. The thin stalk takes no hits.
-        const px = f.x + pose.bx;
-        const py = f.y + pose.by;
-        const box = { left: px - f.spot.ox, top: py - f.spot.oy, w: f.spot.fw, h: f.spot.fh };
-        const local = pelletsOn(f.factor).map((p) => unrotate(p, px, py, pose.angle));
-        const shot = shotOnFruit(box, local, tick, this.tuning);
+        // The thin stalk takes no hits: only the fruit's own frame, where it is drawn.
+        const pivot = { x: f.x + pose.bx, y: f.y + pose.by };
+        const shot = fruitShot(f.spot, pivot, pose.angle, pelletsOn(f.factor), tick, this.tuning);
         const next = hitFruit(f.state, f.spot.motion, shot, this.tuning, this.reduced);
         if (next === f.state) continue;
         if (shot.pellets > 0) {
@@ -267,9 +306,21 @@ export class FruitView {
         }
         if (next.dropTick !== null) this.dropCount++;
         f.state = next;
+        f.still = false;
       }
       if (knocked !== null) playFruitSound(this.audio, 'thock', this.pan(knocked, width));
     }
+  }
+
+  /** The charms' wind drift multiplier (Season Run), as the sim works it out. */
+  private windDriftMul(ids: readonly string[]): number {
+    const key = ids.join(',');
+    if (key !== this.charmKey) {
+      this.charmKey = key;
+      const defs = ids.flatMap((id) => this.world.charms.filter((c) => c.id === id));
+      this.charmMul = passivesOf(defs).windDriftMul;
+    }
+    return this.charmMul;
   }
 
   private pan(f: Fruit, width: number): number {
@@ -423,11 +474,6 @@ function rotate(p: LayerPellet, cx: number, cy: number, a: number): LayerPellet 
   const dx = p.x - cx;
   const dy = p.y - cy;
   return { x: cx + dx * c - dy * s, y: cy + dx * s + dy * c };
-}
-
-/** `p` turned back by `a` about (cx, cy): into a rotated sprite's own frame. */
-function unrotate(p: LayerPellet, cx: number, cy: number, a: number): LayerPellet {
-  return rotate(p, cx, cy, -a);
 }
 
 function frameName(i: number): string {

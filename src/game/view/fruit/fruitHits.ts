@@ -5,6 +5,7 @@
 // nearer one, or a nearer prop) never reaches it. The sim's own hit test is untouched: fruit only
 // react, they never take a pellet from a bird.
 import { tapToPlane } from '../../../sim/camera';
+import type { WindView } from '../../../sim/types';
 import type { FruitTuning, ShotOnFruit } from './fruitMotion';
 
 /** A fruit's box on its layer (layer px). */
@@ -62,4 +63,83 @@ export function shotOnFruit(
   const centre = box.left + box.w / 2;
   const push = n === 0 || sumX / n <= centre ? 1 : -1;
   return { tick, pellets: hits, nearMisses: near, push };
+}
+
+/** One pellet's impact as the fruit see it (from a pelletImpact event). */
+export interface Impact {
+  /** Screen position as in the event (a pellet that flew to the far plane carries its drift). */
+  readonly dx: number;
+  readonly sy: number;
+  /** Kettie stones: the camera centre they were fired at. */
+  readonly cx?: number;
+  readonly stop: PelletStop | null;
+}
+
+/** What maps a shot's impacts onto a layer. */
+export interface ShotFrame {
+  /** The camera centre when the shot resolved (stones carry their own). */
+  readonly camX: number;
+  /** The shot's wind drift (screen px), added by the sim to pellets that landed far. */
+  readonly drift: number;
+  /** The far plane's scroll factor: pellets at or behind it drift (Tech §3.4). */
+  readonly farFactor: number;
+}
+
+/**
+ * The sim's wind drift for a shot: driftPxAtFar × strength × dir × the gun's wind sensitivity ×
+ * the charms' windDriftMul (src/sim/omen/wind.ts windDriftPx, Sim.ts shotDrift). 0 without wind.
+ */
+export function shotDriftPx(
+  wind: WindView | null,
+  driftPxAtFar: number,
+  windSensitivity: number,
+  windDriftMul: number,
+): number {
+  if (wind === null) return 0;
+  return driftPxAtFar * wind.strength * wind.dir * windSensitivity * windDriftMul;
+}
+
+/**
+ * A shot's pellets on a layer with scroll factor `factor`: those the sim stopped in front of it
+ * are left out; a pellet whose event carries the wind drift (it flew on, or stopped at or behind
+ * the far plane) passed a nearer layer before it drifted, so the drift comes off there, as in the
+ * sim's own hit test (it drifts only at the far plane and behind).
+ */
+export function pelletsOnLayer(
+  impacts: readonly Impact[],
+  factor: number,
+  f: ShotFrame,
+): LayerPellet[] {
+  const out: LayerPellet[] = [];
+  for (const e of impacts) {
+    if (blocked(e.stop, factor)) continue;
+    const drifted = e.stop === null || e.stop.factor <= f.farFactor;
+    const dx = drifted && factor > f.farFactor ? e.dx - f.drift : e.dx;
+    out.push(pelletOnLayer(e.cx ?? f.camX, factor, dx, e.sy));
+  }
+  return out;
+}
+
+/**
+ * How a shot's pellets on its layer reach a fruit posed with its body's pivot at `pivot`, turned
+ * by `angle`: the pellets are turned back into the fruit's own frame (a swinging fruit is hit
+ * where it is drawn), then matched against the frame grown by hitPadPx.
+ */
+export function fruitShot(
+  frame: { readonly fw: number; readonly fh: number; readonly ox: number; readonly oy: number },
+  pivot: LayerPellet,
+  angle: number,
+  pellets: readonly LayerPellet[],
+  tick: number,
+  t: FruitTuning,
+): ShotOnFruit {
+  const c = Math.cos(-angle);
+  const s = Math.sin(-angle);
+  const local = pellets.map((p) => {
+    const dx = p.x - pivot.x;
+    const dy = p.y - pivot.y;
+    return { x: pivot.x + dx * c - dy * s, y: pivot.y + dx * s + dy * c };
+  });
+  const box = { left: pivot.x - frame.ox, top: pivot.y - frame.oy, w: frame.fw, h: frame.fh };
+  return shotOnFruit(box, local, tick, t);
 }

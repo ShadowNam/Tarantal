@@ -3,7 +3,7 @@ import { loadContent, loadContentHash } from '../../tools/testContent';
 import { hashEvents, type SimEvent } from '../sim/events';
 import { createRecorder } from '../sim/replay/inputLog';
 import { runReplay } from '../sim/replay/verify';
-import { createSim } from '../sim/Sim';
+import { createSim, type Sim } from '../sim/Sim';
 import type { Command } from '../sim/types';
 import { HuntRunner, STEP_MS } from './HuntRunner';
 import { interpolateBirds, interpolateCamera } from './view/interpolate';
@@ -19,6 +19,32 @@ describe('HuntRunner', () => {
     expect(r.state.tick).toBe(2);
     expect(r.prev.tick).toBe(1);
     expect(r.alpha).toBeCloseTo(0.5, 5);
+  });
+
+  it('remembers the camera each tick resolved with (v1.7c: fruit see shots where the sim did)', () => {
+    // A sim whose camera moves 40 px on every tick, as while a finger pans.
+    const real = newSim();
+    let tick = 0;
+    const fake = {
+      ...real,
+      get tick() {
+        return tick;
+      },
+      step: () => {
+        tick++;
+      },
+      drainEvents: () => [],
+      isOver: () => false,
+      snapshot: () => ({ ...real.snapshot(), tick, cameraX: 2000 + 40 * tick }),
+    } as unknown as Sim;
+    const r = new HuntRunner(fake, { maxStepsPerFrame: 5 });
+    r.advance(STEP_MS * 4 + 1);
+    expect(r.state.tick).toBe(4);
+    // A shot on the frame's first tick (0) resolved with the camera after that tick, not the
+    // frame's end.
+    expect(r.cameraAt(0)).toBe(2040);
+    expect(r.cameraAt(3)).toBe(r.state.cameraX);
+    expect(r.cameraAt(9)).toBeNull();
   });
 
   it('hands out huntStarted on the first frame', () => {

@@ -1625,6 +1625,13 @@ export class HuntScene extends Phaser.Scene {
           spots,
           this.ctx.audio,
           this.ctx.reducedMotion,
+          {
+            weapons: this.ctx.content.weapons.weapons,
+            charms: this.ctx.content.charms.charms,
+            driftPxAtFar: mapBiome.omen.wind?.driftPxAtFar ?? 0,
+            farFactor: this.ctx.content.scoring.planes.far.scrollFactor,
+            cameraAt: (tick) => this.runner?.cameraAt(tick) ?? null,
+          },
         );
       })
       .catch(() => {

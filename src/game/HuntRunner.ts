@@ -26,7 +26,12 @@ export interface FrameResult {
   readonly events: readonly SimEvent[];
 }
 
+/** Ticks of camera history kept for cameraAt (a frame runs at most a few). */
+const CAMERA_MEMORY = 32;
+
 export class HuntRunner {
+  /** The camera centre of recent snapshots by tick (cameraAt). */
+  private readonly cameras: ({ tick: number; x: number } | undefined)[] = [];
   private readonly sim: Sim;
   private readonly opts: RunnerOptions;
   private pending: Command[] = [];
@@ -105,6 +110,17 @@ export class HuntRunner {
     return hold !== undefined && this.sim.tick >= hold;
   }
 
+  /**
+   * v1.7c (D-047): the camera centre the sim resolved tick `tick`'s shots with (commands, fire
+   * included, run before the tick ends: the camera of the snapshot after it), while it is among
+   * the last CAMERA_MEMORY ticks; else null. On a frame of several ticks the snapshot's camera has
+   * moved on since the shot.
+   */
+  cameraAt(tick: number): number | null {
+    const c = this.cameras[(tick + 1) % CAMERA_MEMORY];
+    return c !== undefined && c.tick === tick + 1 ? c.x : null;
+  }
+
   advance(dtMs: number): FrameResult {
     const events: SimEvent[] = this.initialEvents;
     this.initialEvents = [];
@@ -138,6 +154,10 @@ export class HuntRunner {
       events.push(...this.sim.drainEvents());
       this.previous = this.current;
       this.current = this.sim.snapshot();
+      this.cameras[this.current.tick % CAMERA_MEMORY] = {
+        tick: this.current.tick,
+        x: this.current.cameraX,
+      };
       steps++;
       if (this.sim.isOver()) {
         this.accumulator = 0;

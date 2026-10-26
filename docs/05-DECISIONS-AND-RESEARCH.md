@@ -2633,7 +2633,12 @@ each pellet onto the fruit's layer (`planeX = (cx − 960) × scrollFactor + 960
 against the fruit's frame; the sim has no fruit state, no hit test changed, nothing scores, and the
 golden replays are identical. A pellet the sim stopped in front of the fruit (a bird on its layer
 or a nearer one, a nearer prop, a crate, a meerkat) never reaches it. A pellet that flew past the
-far plane carries the wind drift in its event; mid and near fruit see that drifted x (a few px).
+far plane (or stopped at or behind it) carries the wind drift in its event (7–23 px with the
+Dubbelloop, up to ~75 px with the Windbuks on Verder): on layers in front of the far plane the view
+takes the shot's drift back off (driftPxAtFar × strength × dir × the gun's wind sensitivity × the
+charms' windDriftMul, the sim's own sum), as the sim's mid/near hit test never drifts. Each shot
+is mapped with the camera the sim resolved its tick with (`HuntRunner.cameraAt`: on a frame of
+several ticks while panning, the frame's last camera is up to ~23 px off on the near plane).
 (2) *Motion on sim ticks:* every pose is a pure function of the hits' ticks and the sim tick
 (`fruitMotion.ts`): a damped pendulum per hit (0.9 Hz, down to 5 % in 2.2 s; hits add up), so
 replays and held frames (`?holdAt`) draw the same. One pellet swings it 18°, each extra pellet
