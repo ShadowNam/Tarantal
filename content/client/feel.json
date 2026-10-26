@@ -28,6 +28,12 @@
     ],
     "featherLifeMs": 700,
     "featherPerScale": { "near": 1.4, "mid": 1.8, "far": 2.27 },
+    "textPerScale": {
+      "bubble": { "near": 1, "mid": 1.5, "far": 2.27 },
+      "poof": { "near": 0.9, "mid": 1.2, "far": 1.82 },
+      "pop": { "near": 1, "mid": 1.6, "far": 2.95 }
+    },
+    "textMinScale": 0.45,
     "scorePopRisePx": 60,
     "scorePopMs": 600,
     "poofMs": 450,

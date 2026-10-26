@@ -1661,6 +1661,14 @@ export const FeelSchema = obj({
     /** D-049: the feather burst's size and speed per plane, × that plane's scale (so it shrinks
      *  with the birds; 1.4 / 0.9 / 0.5 at the v1.7 scales 1 / 0.5 / 0.22). */
     featherPerScale: obj({ near: pos, mid: pos, far: pos }),
+    /** D-049: alarm bubbles, POOF and score pops per plane × the plane's scale (the v1.7 sizes at
+     *  the v1.7 scales), never below textMinScale so far text stays readable. */
+    textPerScale: obj({
+      bubble: obj({ near: pos, mid: pos, far: pos }),
+      poof: obj({ near: pos, mid: pos, far: pos }),
+      pop: obj({ near: pos, mid: pos, far: pos }),
+    }),
+    textMinScale: pos,
     scorePopRisePx: nonNeg,
     scorePopMs: pos,
     poofMs: pos,
