@@ -123,6 +123,29 @@ export interface PelletResult {
   readonly meerkatId?: number;
   /** D-048: a Spookjag bat, owl or lantern (absent everywhere else). */
   readonly spookId?: number;
+  /** v1.8 (D-050): a tin can, and where the pellet struck it from its centre (plane px). */
+  readonly canId?: number;
+  readonly canDx?: number;
+  readonly canDy?: number;
+}
+
+/** v1.8 (D-050): a capsule: points within r of the segment centre ± (hx, hy). */
+export interface Capsule {
+  readonly x: number;
+  readonly y: number;
+  readonly r: number;
+  readonly hx: number;
+  readonly hy: number;
+}
+
+export function pointInCapsule(px: number, py: number, c: Capsule): boolean {
+  const len2 = c.hx * c.hx + c.hy * c.hy;
+  // Nearest point of the axis segment, as a share −1 … 1 of the half axis.
+  const t =
+    len2 === 0 ? 0 : Math.max(-1, Math.min(1, ((px - c.x) * c.hx + (py - c.y) * c.hy) / len2));
+  const dx = px - (c.x + c.hx * t);
+  const dy = py - (c.y + c.hy * t);
+  return dx * dx + dy * dy <= c.r * c.r;
 }
 
 /** Things on a layer that move or come and go: crates and live secret parts (layer coords). */
@@ -165,7 +188,9 @@ export type HitExtra =
       readonly x: number;
       readonly y: number;
       readonly shape: OccluderShape;
-    };
+    }
+  /** v1.8 (D-050): a tin can, its rotating capsule. */
+  | ({ readonly kind: 'can'; readonly canId: number } & Capsule);
 
 const NOTHING: PelletResult = { birdId: null, propId: null, partId: null, crateId: null };
 
@@ -207,6 +232,11 @@ export function resolvePellet(
       }
     }
     for (const e of extras.get(slice.layerId) ?? []) {
+      if (e.kind === 'can') {
+        if (pointInCapsule(p.x, p.y, e))
+          return { ...NOTHING, canId: e.canId, canDx: p.x - e.x, canDy: p.y - e.y };
+        continue;
+      }
       if (!pointInOccluder(p.x, p.y, { propId: '', x: e.x, y: e.y, shape: e.shape })) continue;
       if (e.kind === 'paper') return { ...NOTHING, paperId: e.paperId };
       if (e.kind === 'meerkat') return { ...NOTHING, meerkatId: e.meerkatId };
@@ -237,8 +267,25 @@ export function assistSnap(
   birdsByPlane: Readonly<Record<PlaneId, readonly HitBird[]>>,
   extras: ReadonlyMap<string, readonly HitExtra[]> = new Map(),
   driftDx: (scrollFactor: number) => number = () => 0,
-): { readonly sx: number; readonly sy: number; readonly birdId: number } | null {
+): {
+  readonly sx: number;
+  readonly sy: number;
+  readonly birdId: number;
+  readonly canId?: number;
+} | null {
   const r = resolvePellet(dx, sy, cx, assisted, birdsByPlane, extras, driftDx);
+  // v1.8 (D-050): a tin can is a target too — the same rescue, onto the (assist-grown) can's centre.
+  if (r.canId !== undefined) {
+    for (const slice of assisted.slices) {
+      const can = (extras.get(slice.layerId) ?? []).find(
+        (e) => e.kind === 'can' && e.canId === r.canId,
+      );
+      if (can === undefined) continue;
+      const p = tapToPlane(cx, slice.scrollFactor, dx + driftDx(slice.scrollFactor), sy);
+      return { sx: can.x - p.x, sy: can.y - p.y, birdId: -1, canId: r.canId };
+    }
+    return null;
+  }
   if (r.birdId === null) return null;
   for (const slice of assisted.slices) {
     if (slice.plane === null) continue;
@@ -281,6 +328,9 @@ export function resolvePattern(
   birdsByPlane: Readonly<Record<PlaneId, readonly HitBird[]>>,
   extras: ReadonlyMap<string, readonly HitExtra[]> = new Map(),
   driftDx: (scrollFactor: number) => number = () => 0,
+  /** v1.8 (D-050): the extras as the assist sees them (tin cans grown by the assist radius);
+   *  absent = `extras`. */
+  assistExtras: ReadonlyMap<string, readonly HitExtra[]> = extras,
 ): PatternPellet[] {
   const at = (sx: number, sy2: number): PatternPellet[] =>
     offsets.map((o) => {
@@ -297,13 +347,18 @@ export function resolvePattern(
       p.r.crateId !== null ||
       p.r.partId !== null ||
       p.r.meerkatId !== undefined ||
-      p.r.spookId !== undefined,
+      p.r.spookId !== undefined ||
+      p.r.canId !== undefined,
   );
   if (hit) return pellets;
-  const snap = assistSnap(dx, sy, cx, assisted, birdsByPlane, extras, driftDx);
+  const snap = assistSnap(dx, sy, cx, assisted, birdsByPlane, assistExtras, driftDx);
   if (snap === null) return pellets;
   const snapped = at(snap.sx, snap.sy);
-  return snapped.some((p) => p.r.birdId === snap.birdId) ? snapped : pellets;
+  const kept =
+    snap.canId !== undefined
+      ? snapped.some((p) => p.r.canId === snap.canId)
+      : snapped.some((p) => p.r.birdId === snap.birdId);
+  return kept ? snapped : pellets;
 }
 
 /** A shot hits a target when its pellets on it ≥ min(pelletsToBag, weapon pellets) (GDD §5.1). */

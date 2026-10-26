@@ -133,6 +133,23 @@ export const ScoringSchema = obj({
   eventBonusMultipliers: z
     .array(z.enum(['frenzy', 'stampede']))
     .refine((m) => new Set(m).size === m.length, 'eventBonusMultipliers must be unique'),
+  /** v1.8 (D-050, GDD §11.3): Blikkies — tin cans on the fence posts. Event bonuses (× Frenzy ×
+   *  Stampede), never a bag. An air hit n (1, 2, …) pays airHit + airHitStep × (min(n,
+   *  chainCap) − 1); everything × the can's plane factor, rounded. */
+  cans: obj({
+    knockOff: posInt,
+    airHit: posInt,
+    airHitStep: nonNegInt,
+    chainCap: posInt,
+    /** "Weg!": the can left the top of the view. */
+    weg: posInt,
+    planeMul: allPlanes(pos),
+    /** Oupa's bark from this chain on (once per can). */
+    barkChain: posInt,
+    /** The Blikkiesdans secret: a chain this long (once a hunt), a secret found. */
+    secretChain: posInt,
+    secretBonus: posInt,
+  }),
 });
 export type Scoring = z.infer<typeof ScoringSchema>;
 
@@ -236,6 +253,46 @@ const meerkatActivity = obj({
   dash: nonNeg,
   dive: nonNeg,
 });
+/** v1.8 (D-050): the kinds of tin can (art and size). */
+export const CanTypeSchema = z.enum(['food', 'paint', 'bully', 'cooldrink']);
+export type CanType = z.infer<typeof CanTypeSchema>;
+
+/**
+ * v1.8 (D-050, GDD §11.3): Blikkies. Sizes are design px at plane scale 1 (× the plane's scale,
+ * the radius floored by the plane's minHitRadiusPx: cans are targets). Speeds, gravity and post
+ * spacing are px at the tuning reference (× tuningRatio, D-049), so a far can flies a smaller arc
+ * in the same time. The flight is the generic juggle body (src/sim/juggle/body.ts).
+ */
+export const CansSchema = obj({
+  /** The hit capsule of each kind upright: radius and half the length of its axis. */
+  types: z.record(CanTypeSchema, obj({ r: pos, half: nonNeg })),
+  juggle: obj({
+    gravityPxPerSec2: pos,
+    /** The knock-off: upward speed; sideways speed at a hit on the can's edge (at least
+     *  minSideShare of it at a hit on the centre line); spin. */
+    kickUpPxPerSec: pos,
+    kickSidePxPerSec: nonNeg,
+    minSideShare: fraction,
+    spinDegPerSec: nonNeg,
+    /** Per chain step n (capped at growthCapHits): up × (1 + upGrowth × n), spin + spinGrowth × n,
+     *  sideways jitter ±(jitterPxPerSec + jitterGrowth × n). */
+    upGrowth: nonNeg,
+    spinGrowthDegPerSec: nonNeg,
+    jitterPxPerSec: nonNeg,
+    jitterGrowthPxPerSec: nonNeg,
+    growthCapHits: posInt,
+    /** Several pellets on one can: one kick × min(1 + pelletBonus × (pellets − 1), pelletCap). */
+    pelletBonus: nonNeg,
+    pelletCap: z.number().min(1),
+    /** Back on the ground: one bounce (vertical speed × restitution, sideways and spin ×
+     *  keep), then it lies there. */
+    bounce: obj({ restitution: fraction, keep: fraction }),
+    /** Gone ("Weg!") once the can's top is this far above the top of the view. */
+    goneMarginPx: nonNeg,
+  }),
+});
+export type Cans = z.infer<typeof CansSchema>;
+
 export const MeerkatsSchema = obj({
   /** Hit shapes from the feet (sim position): standing tall, low (sit, dig, run) and a peeking
    *  head; mirrored by facing like a bird's. */
@@ -401,6 +458,8 @@ export const BirdsSchema = obj({
   creatures: z.array(CreatureSchema).min(1),
   /** v1.7 (D-044): the desert maps' meerkat colonies (behaviour and rules). */
   meerkats: MeerkatsSchema,
+  /** v1.8 (D-050): the tin cans on the fence posts (shape and flight). */
+  cans: CansSchema,
 });
 export type Birds = z.infer<typeof BirdsSchema>;
 
@@ -888,6 +947,20 @@ export const ColonySchema = obj({
 });
 export type Colony = z.infer<typeof ColonySchema>;
 
+/**
+ * v1.8 (D-050): a fence stretch with tin cans on its posts, on one plane of a weekday layout.
+ * Posts: dx from the fence's u and height, px at the tuning reference (× tuningRatio). Each can
+ * stands on a post (`post` indexes `posts`), at most one per post.
+ */
+export const FenceSchema = obj({
+  plane: PlaneIdSchema,
+  u: fraction,
+  kind: z.enum(['wood', 'dropper', 'kraal']),
+  posts: z.array(obj({ dx: z.number(), h: pos })).min(3).max(6),
+  cans: z.array(obj({ post: nonNegInt, type: CanTypeSchema })).min(1).max(6),
+});
+export type Fence = z.infer<typeof FenceSchema>;
+
 const laneSchema = obj({
   groundY: range(nonNeg).optional(),
   skyY: range(nonNeg).optional(),
@@ -970,6 +1043,8 @@ const mapOverrideShape = {
 export const LayoutSchema = obj({
   id: WeekdayIdSchema,
   ...mapOverrideShape,
+  /** v1.8 (D-050): the day's fence with its tin cans (absent = none). */
+  fence: FenceSchema.optional(),
   light: id,
   weather: z.enum(['calm', 'default', 'omen']),
 });
@@ -982,6 +1057,9 @@ export const BonusMapSchema = obj({
   /** v1.3 (D-036): the map starts only with a rifle that has a scope fitted (a sight whose
    *  picture is `scope`); the title's button says why otherwise. */
   needsScope: z.boolean().optional(),
+  /** v1.8 (D-050): where the day's fence stands on this map, by the layout's plane (absent
+   *  plane = it stays where it is). */
+  fencePlane: somePlanes(PlaneIdSchema).optional(),
 });
 export type BonusMap = z.infer<typeof BonusMapSchema>;
 
@@ -1150,6 +1228,8 @@ export const BiomeSchema = obj({
   cameraStartU: fraction.optional(),
   /** v1.7 (D-044): meerkat colonies (layouts may replace them; absent = none). */
   colonies: z.array(ColonySchema).max(2).optional(),
+  /** v1.8 (D-050): a fence's ground line per plane (design px), for the layouts' fences. */
+  fenceY: somePlanes(z.number()).optional(),
   /** v1.2: one layout per UTC weekday, Monday first. */
   layouts: z
     .array(LayoutSchema)

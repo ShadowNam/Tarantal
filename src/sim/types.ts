@@ -370,6 +370,35 @@ export interface SimState {
   readonly range?: RangeView;
   /** D-048: the special day's twist (absent on ordinary hunts). */
   readonly feesdag?: FeesdagView;
+  /** v1.8 (D-050): the day's fence and its tin cans (absent on maps without one). */
+  readonly cans?: CansView;
+}
+
+/** v1.8 (D-050): a tin can (plane coordinates, like a bird; r and half as drawn). */
+export interface CanView {
+  readonly id: number;
+  readonly type: 'food' | 'paint' | 'bully' | 'cooldrink';
+  readonly x: number;
+  readonly y: number;
+  /** Radians, clockwise; 0 = upright. */
+  readonly angle: number;
+  /** Radians per tick (the view blurs a fast spin). */
+  readonly spin: number;
+  readonly state: 'rest' | 'air' | 'bounced' | 'landed' | 'gone';
+  readonly chain: number;
+  readonly r: number;
+  readonly half: number;
+  /** The hit radius (r floored by the plane's minimum; the e2e aims within it). */
+  readonly hitR: number;
+}
+
+export interface CansView {
+  readonly plane: PlaneId;
+  readonly kind: 'wood' | 'dropper' | 'kraal';
+  readonly groundY: number;
+  readonly posts: readonly { readonly x: number; readonly top: number }[];
+  readonly cans: readonly CanView[];
+  readonly bestChain: number;
 }
 
 /** D-048: a Spookjag bat, owl or pumpkin lantern (plane coordinates, like a bird). */
@@ -446,6 +475,16 @@ export interface SeasonView {
 export interface HuntResult {
   readonly seed: number;
   readonly mode: ModeId;
+  /** v1.8 (D-050): the tin cans' tally (absent on maps without a fence). */
+  readonly cans?: {
+    readonly total: number;
+    readonly knocks: number;
+    readonly airHits: number;
+    readonly bestChain: number;
+    readonly weg: number;
+    /** Points the cans paid (after Frenzy and Stampede). */
+    readonly points: number;
+  };
   /** D-048: the special day played, and its tally (absent on ordinary hunts). */
   readonly feesdag?: {
     readonly id: string;

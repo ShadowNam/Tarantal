@@ -20,7 +20,17 @@ export type FlockCause =
 
 /** D-048: `bat` (a Spookjag bat) and `lanternsOut` (the day's lanterns all shot dark). */
 export type BonusId =
-  'twoFlies' | 'armor' | 'wholeFlock' | 'secret' | 'secretChain' | 'bat' | 'lanternsOut';
+  | 'twoFlies'
+  | 'armor'
+  | 'wholeFlock'
+  | 'secret'
+  | 'secretChain'
+  | 'bat'
+  | 'lanternsOut'
+  // v1.8 (D-050): tin cans — knocked off, an air hit, gone out of the top ("Weg!").
+  | 'canKnock'
+  | 'canAir'
+  | 'canWeg';
 
 export type SimEvent =
   | {
@@ -88,6 +98,8 @@ export type SimEvent =
       readonly meerkatId?: number;
       /** D-048: the Spookjag bat, owl or lantern it hit (absent everywhere else). */
       readonly spookId?: number;
+      /** v1.8 (D-050): a tin can (absent everywhere else). */
+      readonly canId?: number;
     }
   /** v1.3x (D-037) Skietbaan only: a shot's aim point on the range's plane (plane px; a rifle's
    *  before the sway), the point its group is measured from. */
@@ -541,7 +553,48 @@ export type SimEvent =
       readonly lanternsLit: number;
     }
   /** D-048: the day's last lantern went dark — "Lanterns out!", paid once. */
-  | { readonly type: 'lanternsOut'; readonly tick: number; readonly points: number };
+  | { readonly type: 'lanternsOut'; readonly tick: number; readonly points: number }
+  /** v1.8 (D-050): a tin can was shot off its post (chain 0) or hit again in the air (chain n ≥ 1,
+   *  a canJuggled). `side` −1 … 1 is where the pellets struck across it (it flies the other way);
+   *  `marks` the dents, in the can's own upright frame (px from its centre, on its plane);
+   *  `points` as paid (after Frenzy and Stampede; also in bonusAwarded). */
+  | ({ readonly type: 'canKnocked' } & CanHitFields)
+  | ({ readonly type: 'canJuggled' } & CanHitFields)
+  /** v1.8: a can came down: its one bounce (`final` false, a rattle), then lying for good. */
+  | {
+      readonly type: 'canLanded';
+      readonly tick: number;
+      readonly canId: number;
+      readonly plane: PlaneId;
+      readonly x: number;
+      readonly y: number;
+      readonly final: boolean;
+    }
+  /** v1.8: a can climbed out of the top of the view: "Weg!" (points as paid). */
+  | {
+      readonly type: 'canGone';
+      readonly tick: number;
+      readonly canId: number;
+      readonly plane: PlaneId;
+      readonly x: number;
+      readonly chain: number;
+      readonly points: number;
+    };
+
+/** v1.8 (D-050): what canKnocked and canJuggled carry. */
+export interface CanHitFields {
+  readonly tick: number;
+  readonly shotId: number;
+  readonly canId: number;
+  readonly plane: PlaneId;
+  readonly x: number;
+  readonly y: number;
+  readonly chain: number;
+  readonly pellets: number;
+  readonly side: number;
+  readonly marks: readonly { readonly lx: number; readonly ly: number }[];
+  readonly points: number;
+}
 
 export type SimEventType = SimEvent['type'];
 

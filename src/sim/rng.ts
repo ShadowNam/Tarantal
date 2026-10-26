@@ -54,7 +54,9 @@ export type StreamName =
   // v1.7 (D-044): the desert maps' meerkat colonies (families, behaviour, timings).
   | 'meerkats'
   // D-048: the special day's twist (Halloween: bat and owl times, lanes and swerves; lanterns).
-  | 'feesdag';
+  | 'feesdag'
+  // v1.8 (D-050): tin cans (a kick's sideways jitter).
+  | 'cans';
 
 /** A stream's members are closures, so they are safe to pass around detached. */
 export interface RandomStream {
