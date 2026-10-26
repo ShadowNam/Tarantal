@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { loadContent } from '../../../tools/testContent';
 import type { ContentBundle } from '../../content/schemas';
+import enStrings from '../../i18n/en.json';
 import { LANGUAGES, translator } from '../../i18n/i18n';
 import {
   effectText,
@@ -126,5 +127,20 @@ describe('the power-up guide (D-046)', () => {
     expect(formatNumber(0.6, 'de')).toBe('0,6');
     expect(formatNumber(10, 'af')).toBe('10');
     expect(effectText(content, 'oupa_laai', translator('de'), 'de')).toContain('0,6 s');
+  });
+});
+
+describe('power-up strings carry no numbers of their own (D-046)', () => {
+  it('guide.*, pickup.*, caption.pu* and bark.pu.* have no digits outside {…} in any language', () => {
+    const prefixes = ['guide.', 'pickup.', 'caption.pu', 'bark.pu.'];
+    for (const lang of LANGUAGES) {
+      const tr = translator(lang);
+      const keys = Object.keys(enStrings).filter((k) => prefixes.some((p) => k.startsWith(p)));
+      expect(keys.length).toBeGreaterThan(40);
+      for (const key of keys) {
+        const text = tr.or(key, '');
+        expect(text.replace(/\{\w+\}/g, ''), `${lang} ${key}`).not.toMatch(/\d/);
+      }
+    }
   });
 });
