@@ -951,7 +951,9 @@ keep the ⛔ badge over every don't-shoot creature, not only at its first sighti
 v1.7b (D-046): **Oupa's comments** (On / Text only / Off, default On) joins the left column of
 **Sound & game** under voice language (seven rows there, 68 px each). On: his speech bubble and
 voice, as before. Text only: the bubble without the voice. Off: no barks or bubbles anywhere
-(hunts, tallies, the Padstal; a secret's banner says only that a secret went off). Instructions the
+(hunts, tallies, the Padstal; a secret's banner says only that a secret went off). It covers
+Oupa's lines only: the weavers' scold, the frog's "Kwaak!" and the meerkats' "We're not
+guineafowl!" are theirs and still show and speak, so the voice pack still downloads. Instructions the
 player needs — the lesson's prompts, a first pickup's card — are plain HUD text and show either way;
 Oupa Laai keeps its hand on the belt. Saved with the other settings, honoured at once (a bubble
 already up goes; a line he is saying stops), and in the pause menu's Settings too.

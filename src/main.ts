@@ -616,6 +616,8 @@ async function boot(): Promise<void> {
     const lang = voiceLanguageFor(s.voiceLanguage, textLanguageOf(s));
     if (hook.voice.language !== lang) hook.voice.pack = 'none';
     hook.voice.language = lang;
+    // v1.7b (D-046): Oupa's comments "Text only"/"Off" don't stop the pack: the weavers, the frog
+    // and the meerkats speak from it too (oupaMode.isOupaLine).
     voicePacks.use(lang, s.voiceVolume > 0 && s.masterVolume > 0);
   };
   applyVoice(save.data.settings);

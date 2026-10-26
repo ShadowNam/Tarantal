@@ -15,3 +15,19 @@ export function oupaShows(mode: OupaMode): boolean {
 export function oupaSpeaks(mode: OupaMode): boolean {
   return mode === 'on';
 }
+
+/**
+ * Voiced lines that aren't Oupa's (art bible §10): the weavers' scold, the frog's "Kwaak!" and the
+ * meerkats' "We're not guineafowl!". His comments setting never silences them, so the voice pack
+ * keeps loading whatever it says.
+ */
+const OTHER_VOICES: ReadonlySet<string> = new Set([
+  'bark.weavers',
+  'bark.kwaak',
+  'bark.meerkat_scold',
+]);
+
+/** True when `line` is said by Oupa (the setting applies to it). */
+export function isOupaLine(line: string): boolean {
+  return !OTHER_VOICES.has(line);
+}

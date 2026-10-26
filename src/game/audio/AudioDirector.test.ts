@@ -196,6 +196,10 @@ describe('AudioDirector voice language (v1.5, D-041)', () => {
     r.audio.addRecorded([file(voiceKey('en', 'bark.morning'), 1)]);
     await flush();
     expect(r.audio.voicePlayed).toEqual([]);
+    // Not Oupa: the meerkats' scold still speaks.
+    r.audio.addRecorded([file(voiceKey('en', 'bark.meerkat_scold'), 1)]);
+    await flush();
+    expect(r.audio.bark('bark.meerkat_scold')).toBe(true);
     r.audio.setOupaVoice(true);
     expect(r.audio.bark('bark.lekker')).toBe(true);
   });

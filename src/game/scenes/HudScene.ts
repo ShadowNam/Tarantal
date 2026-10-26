@@ -16,7 +16,7 @@ import { TICKS_PER_SECOND } from '../../sim/clock';
 import { fill, getLanguage, isI18nKey, t, tOr, translator } from '../../i18n/i18n';
 import { msToTicks } from '../../sim/clock';
 import { markSeen } from '../../meta/powerupsSeen';
-import { oupaShows } from '../audio/oupaMode';
+import { isOupaLine, oupaShows } from '../audio/oupaMode';
 import { PickupCard } from '../ui/PickupCard';
 import { effectText, shortText } from '../ui/powerupGuide';
 import { TEX } from '../assets/AssetManifest';
@@ -731,7 +731,11 @@ export class HudScene extends Phaser.Scene {
         const reward = this.ctx.huntBiome.props.find((p) => p.id === e.propId)?.secret?.reward;
         const bark = reward?.barkKey;
         // v1.7b (D-046): with Oupa's comments off, the banner says only that a secret went off.
-        const said = bark !== undefined && oupaShows(this.ctx.prefs.oupa) ? bark : undefined;
+        // (A line that isn't his, the frog's "Kwaak!", always shows.)
+        const said =
+          bark !== undefined && (oupaShows(this.ctx.prefs.oupa) || !isOupaLine(bark))
+            ? bark
+            : undefined;
         banner.push(said !== undefined ? tOr(said, t('hud.secret')) : t('hud.secret'));
         // M10: Oupa says it too, once his recording is delivered (the banner is the subtitle);
         // v1.7b: never with his comments on "Text only" or "Off" (the AudioDirector checks).
@@ -740,7 +744,8 @@ export class HudScene extends Phaser.Scene {
         // A "don't shoot it" prop (the weaver nest): its scolding, and the points off.
         const bark = this.ctx.huntBiome.props.find((p) => p.id === e.propId)?.secret?.reward
           .barkKey;
-        if (bark !== undefined && oupaShows(this.ctx.prefs.oupa)) {
+        // The weavers' own scold, not Oupa's: it shows whatever his setting.
+        if (bark !== undefined && (oupaShows(this.ctx.prefs.oupa) || !isOupaLine(bark))) {
           banner.push(tOr(bark, bark));
           this.ctx.audio.bark(bark);
         }

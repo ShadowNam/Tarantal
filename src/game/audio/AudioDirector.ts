@@ -11,6 +11,7 @@ import { ambienceKey, musicKey, sfxKey, voiceKey, type FinalSound } from '../ass
 import { loadBytes } from '../assets/finalLoader';
 import { MusicMixer, STEMS, StemHold, type MusicSet, type Stem } from './music';
 import { createNoise, playSfx, SFX_IDS, type SfxId } from './synth';
+import { isOupaLine } from './oupaMode';
 
 const MAX_VOICES = 16;
 const MAX_PAN = 0.7;
@@ -352,8 +353,9 @@ export class AudioDirector {
     const buf = this.buffers.get(key);
     // A newer bark replaces one still waiting for its line.
     this.waiting = null;
-    // v1.7b (D-046): Settings → Oupa's comments "Text only" or "Off": never his voice.
-    if (!this.oupaVoice) return false;
+    // v1.7b (D-046): Settings → Oupa's comments "Text only" or "Off": never his voice (the
+    // weavers, the frog and the meerkats still speak).
+    if (!this.oupaVoice && isOupaLine(barkKey)) return false;
     if (this.muted || this.tallyCounting) return false;
     // v1.5 (D-041): no voice at all with the voice (or master) volume at 0, and no music duck.
     if (this.volumes.voice <= 0 || this.volumes.master <= 0) return false;
