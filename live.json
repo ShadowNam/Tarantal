@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-26T05:45:00Z",
+ "updated": "2026-10-26T05:30:00Z",
  "summary": "Merged and live on the test build: v1.7 meerkats (Kalahari and Namibië only, 00:55) and v1.7b power-ups explained + Oupa's comments switch (04:40, version 1.7.1). Now: v1.7c, fruit that swings or drops when shot (the redrawn sausages included), is passing its last tests and merges next; Tank is building the Halloween Spookjag (ready before 31 Oct). Your map feedback of 26 Oct is planned in this order: perspective (birds smaller with distance), v1.8 Blikkies (moved up), Karoo polish (HD aloes, the boiling potjie), far animals in HD, makalani palms in the Okavango, tree life (the baobab's residents, weavers around their nest) and optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
   "version": "1.7.1",
@@ -740,31 +740,31 @@
    "job": "perspective-guineafowl-get-smaller-the-f"
   },
   {
-   "date": "26 Oct, 07:20",
+   "date": "26 Oct, 07:15",
    "text": "Bushveld and Kalahari: far zebras, giraffes, elephants and other animals look cartoony, like stick figures; make them HD",
    "outcome": "Planned as \"Far animals in HD\" on every map",
    "job": "far-animals-in-hd-on-every-map-realistic"
   },
   {
-   "date": "26 Oct, 07:20",
+   "date": "26 Oct, 07:15",
    "text": "The baobab needs more detail and better fruit; research what lives in it and add holes where small animals look out; little birds around the weaver nest",
    "outcome": "Researched; planned as \"Tree life\"",
    "job": "tree-life-a-detailed-baobab-with-real-ha"
   },
   {
-   "date": "26 Oct, 07:40",
+   "date": "26 Oct, 07:20",
    "text": "Okavango: add makalani palms with their hard nuts; a hit nut should fall or burst; be creative",
    "outcome": "Planned: nuts crack off, juggle in the air like cans, or pop on a full hit",
    "job": "makalani-palms-in-the-okavango-hanging-n"
   },
   {
-   "date": "26 Oct, 07:40",
+   "date": "26 Oct, 07:20",
    "text": "Tin cans on an old farm fence to shoot off and keep in the air (asked before; not seen yet)",
    "outcome": "Moved up: v1.8 Blikkies now comes right after the perspective job",
    "job": "v1.8"
   },
   {
-   "date": "26 Oct, 07:40",
+   "date": "26 Oct, 07:20",
    "text": "Idea: ask at start for Standard or HD graphics",
    "outcome": "Advised: a Settings choice Auto / Standard / HD instead of a question before play; planned after tree life",
    "job": "hd-graphics-settings-graphics-auto-stand"
@@ -1244,19 +1244,24 @@
    "text": "Karoo feedback: HD aloes, a boiling potjie whose lid falls off, and birds smaller with distance on every map. Planned as two jobs after Halloween."
   },
   {
-   "at": "2026-10-26T05:20:00Z",
+   "at": "2026-10-26T05:15:00Z",
    "kind": "request",
    "text": "Bushveld and Kalahari feedback: far animals in HD, a more detailed baobab with residents in its hollows (researched), weavers flying around their nest. Planned as two jobs."
   },
   {
-   "at": "2026-10-26T05:40:00Z",
+   "at": "2026-10-26T05:24:00Z",
    "kind": "request",
    "text": "Okavango feedback: makalani palms with nuts to shoot; Blikkies and meerkats not seen yet; the HD idea. Blikkies moved up; makalani and optional HD graphics added; the meerkats are live on the Kalahari and Namibië maps."
   },
   {
-   "at": "2026-10-26T05:45:00Z",
+   "at": "2026-10-26T05:28:00Z",
    "kind": "note",
    "text": "Fixed this overview: the 'Version on the test build' box was stuck at 1.6.1 (22:42 last night). It now fills itself in from the live code at every update."
+  },
+  {
+   "at": "2026-10-26T05:30:00Z",
+   "kind": "note",
+   "text": "Halloween: Tank pushed the special-days system and the Spookjag rules (bats, owls, lanterns). v1.7c: all tests green but one browser group, still running."
   }
  ]
 }
