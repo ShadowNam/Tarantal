@@ -168,8 +168,8 @@ does (`guide.effect.<id>`), the pickup card's short line (`pickup.<id>`), the ti
 first-pickup lines (`bark.pu.<id>`) — carry no names of their own: numbers come from content
 (`{s}`, `{n}`, `{x}`, `{pct}`, `{speed}`, `{idle}`, `{p}`, `{r}`, `{price}`) and names from
 other keys (`{item}`, `{stall}` = `run.padstal`, `{run}` = `title.season_run`), so the "Afrikaans
-names" toggle reaches them too. Oupa's lines keep the Afrikaans words in af only ("boeretroos", "voorlaaier"); en/de/nl say
-farm coffee / muzzle-loader. Decimals use
+names" toggle reaches them too. Oupa's first-pickup lines name the item through `{item}` too ("Ahh, {item}. Everything slows down
+now."), so with the toggle on he says Boeretroos when the card does. Decimals use
 a comma in af, de and nl ("0,6 s").
 
 | Key | af | en | de | nl | Note |

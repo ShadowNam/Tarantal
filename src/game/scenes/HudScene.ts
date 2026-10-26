@@ -1408,7 +1408,15 @@ export class HudScene extends Phaser.Scene {
       quotaReached,
     });
     bark ??= picked;
-    if (bark !== null) sayBark(this.ctx, this.bubble, bark.line, l.bark, now);
+    if (bark !== null)
+      sayBark(
+        this.ctx,
+        this.bubble,
+        bark.line,
+        l.bark,
+        now,
+        firstPickup === null ? {} : { item: tOr(`item.${firstPickup}`, firstPickup) },
+      );
   }
 
   /** Pooled HUD pops: shown and made (test hook, D-028 §4). */

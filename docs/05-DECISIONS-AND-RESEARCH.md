@@ -2551,6 +2551,8 @@ is up only briefly). These eight lines have text only for now: the interim TTS m
 this build server. Voicing them means adding them to `voicedLines` (src/game/audio/voiceLines.ts,
 which the asset catalogue and `npm run audio:voice` read) in the same change as the recordings, so
 the audit never lists a voice key without files. Until then the bubble shows and he says nothing.
+The lines name the item through `{item}` (the HUD fills it, so the Afrikaans-names toggle reaches
+them); a recording would need one take per name the toggle can show.
 (7) *While it runs*: the chip adds the seconds (or shells) left at its right; the last 2 s blink
 on sim time (steady red with "reduce flashes"); `powerEnd` (a descending, softer pickup chime)
 plays when a power-up ends or a crate gun is used up. Looks, all local: Boeretroos — warm edge
