@@ -94,7 +94,11 @@ import { adminHuntSetup, type AdminHuntSetup } from './game/admin/adminPlay';
 import { AdminScene } from './game/scenes/AdminScene';
 import { AdBreaks } from './game/ads/AdBreaks';
 import { PrivacyScene } from './game/scenes/PrivacyScene';
-import { officialResultsAllowed, testHookPolicy } from './game/testHooks';
+import {
+  feesdagOverride as feesdagOverrideFor,
+  officialResultsAllowed,
+  testHookPolicy,
+} from './game/testHooks';
 import { CAPTURE_NAMESPACE, CaptureState, captureAllowed, captureSave } from './game/capture';
 import { FrameBenchmark } from './game/quality/FrameBenchmark';
 import { benchmarkTier, type DeviceHints } from './game/quality/QualityManager';
@@ -257,11 +261,12 @@ function bonusParam(): string | undefined {
  * builds and the web admin page only, never a portal build. The real date logic is untouched.
  */
 function feesdagOverride(): string | null {
-  const portal =
-    import.meta.env.VITE_PLATFORM === 'poki' || import.meta.env.VITE_PLATFORM === 'crazygames';
-  if (portal) return null;
-  if (adminSetup !== null) return adminSetup.feesdag ?? null;
-  return testHooks ? params.get('feesdag') : null;
+  return feesdagOverrideFor({
+    buildPlatform: import.meta.env.VITE_PLATFORM,
+    testHooks,
+    admin: adminSetup,
+    param: params.get('feesdag'),
+  });
 }
 
 /** e2e/dev only: ?today=YYYY-MM-DD fixes the UTC day of the Daily Hunt. */
