@@ -182,7 +182,16 @@ test.describe('v1.8 Blikkies previews', () => {
     // "3× in the air!" pop (sim time) is on screen in the shot.
     if (!(await juggleTo(page, touch, 3, true))) throw new Error('no chain of 3');
     await holdSoon(page, touch, 0);
-    await shoot(page, info, 'juggle', { ...box, y: Math.max(0, box.y - 400), h: box.h + 400 });
+    // The close-up: the fence and the can in the air (the union of both, with a margin).
+    const air = await page.evaluate(() =>
+      (window.__TM__?.cans?.spots ?? []).find((c) => c.state === 'air' || c.state === 'bounced'),
+    );
+    const m = 120;
+    const x0 = Math.min(box.x, (air?.x ?? box.x) - m);
+    const y0 = Math.max(0, Math.min(box.y, (air?.y ?? box.y) - m));
+    const x1 = Math.max(box.x + box.w, (air?.x ?? box.x) + m);
+    const y1 = Math.max(box.y + box.h, (air?.y ?? box.y) + m);
+    await shoot(page, info, 'juggle', { x: x0, y: y0, w: x1 - x0, h: y1 - y0 });
   });
 
   test('landed cans with their dents', async ({ page }, info) => {

@@ -128,5 +128,31 @@
     "weg": 0,
     "bestChain": 0.016,
     "maxChain": 1
+  },
+  "bushveld-winter.thu.competent": {
+    "id": "bushveld-winter.thu.competent",
+    "label": "Bushveld thu (near fence) · competent",
+    "seeds": 500,
+    "mean": 4582.334,
+    "canMean": 0.964,
+    "canShare": 0.00021037314172210058,
+    "knocks": 0.158,
+    "airHits": 0.024,
+    "weg": 0,
+    "bestChain": 0.024,
+    "maxChain": 1
+  },
+  "bushveld-winter.thu.canHappy": {
+    "id": "bushveld-winter.thu.canHappy",
+    "label": "Bushveld thu (near fence) · canHappy",
+    "seeds": 500,
+    "mean": 4368.368,
+    "canMean": 201.678,
+    "canShare": 0.046167813700677234,
+    "knocks": 4,
+    "airHits": 15.03,
+    "weg": 2.162,
+    "bestChain": 7.054,
+    "maxChain": 10
   }
 }
