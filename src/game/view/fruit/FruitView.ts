@@ -85,6 +85,8 @@ export class FruitView {
   private tick = 0;
   /** True while the sheet is the empty placeholder (the late group may still bring it). */
   private waiting: boolean;
+  /** Frames drawn while waiting (the sheet is looked for every 30). */
+  private frames = 0;
   /** Hits counted this hunt (all fruit), for the hook. */
   hitCount = 0;
   dropCount = 0;
@@ -167,7 +169,9 @@ export class FruitView {
   private upgrade(): void {
     if (!this.manifest.lateDone) return;
     if (this.manifest.upgrade(this.scene.textures, this.key).length === 0) {
+      // Nothing arrived for it (no delivery, or the file failed): stop looking, show none.
       this.waiting = this.isPlaceholder();
+      if (this.waiting) this.frames = Number.NEGATIVE_INFINITY;
       return;
     }
     this.addFrames(this.spotList);
@@ -237,7 +241,7 @@ export class FruitView {
   /** Poses every fruit for the sim tick (held frames hold still). */
   update(s: SimState, width: number): void {
     this.tick = s.tick;
-    if (this.waiting && s.tick % 30 === 0) this.upgrade();
+    if (this.waiting && ++this.frames % 30 === 0) this.upgrade();
     const t = this.tuning;
     const puffTicks = Math.max(1, Math.round(t.puffSeconds * 60));
     for (const f of this.fruit) {
@@ -246,7 +250,7 @@ export class FruitView {
         .setPosition(f.x + pose.dx, f.y + pose.dy)
         .setRotation(pose.angle)
         .setAlpha(pose.alpha)
-        .setVisible(pose.alpha > 0);
+        .setVisible(!this.waiting && pose.alpha > 0);
       // A thud once, when it first lands (not again on a replayed or held tick).
       const land = landTick(f.spot, f.state, t, this.reduced);
       if (land !== null && f.thudAt !== land && this.lastTick < land && s.tick >= land) {
