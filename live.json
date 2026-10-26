@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-26T21:33:00Z",
+ "updated": "2026-10-26T22:07:00Z",
  "summary": "Live on the test build: perspective (1.7.4, merged 20:34 Namibia time): guineafowl get smaller with distance on every map, the far animals are shown bigger, and far birds keep a minimum hit size so they stay shootable; the first download is 106 KB smaller. The Halloween Spookjag (1.7.3) is in too: try it early on the admin page: Special days → Spookjag · 31/10 → Play. Tank is building v1.8 Blikkies (tin cans on the farm fence to shoot off and juggle). Then: Karoo polish, far animals in HD, makalani palms, tree life, optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
   "version": "1.7.1",
@@ -1406,6 +1406,11 @@
    "at": "2026-10-26T21:32:00Z",
    "kind": "tests",
    "text": "Test fix PR #86: the Halloween lantern test now copes with a lantern the camera can't centre (the new content moved it to the map edge). Passes on all three devices; merging when CI is green."
+  },
+  {
+   "at": "2026-10-26T22:00:00Z",
+   "kind": "request",
+   "text": "Going to bed: keep Tank building overnight, merge on green, and give a detailed morning report with screenshots of everything done and what comes next; make sure GitHub is merged and the public build shows it."
   }
  ]
 }
