@@ -737,6 +737,7 @@ export function createSim(config: SimConfig): Sim {
           twist: setup.feesdag.twist,
           biome,
           planes: scoring.planes,
+          tuningRefScale: scoring.tuningRefScale,
           durationTicks,
           rng: rng.stream('feesdag'),
         });
@@ -2756,7 +2757,12 @@ export function createSim(config: SimConfig): Sim {
     if (spook !== null) {
       const r = stepSpookjag(
         spook,
-        { biome, planes: scoring.planes, rng: rng.stream('feesdag') },
+        {
+          biome,
+          planes: scoring.planes,
+          tuningRefScale: scoring.tuningRefScale,
+          rng: rng.stream('feesdag'),
+        },
         tick,
       );
       for (const f of r.spawned)
