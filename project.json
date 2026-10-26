@@ -1423,8 +1423,8 @@
    "requestedBy": "You, 25 Oct ~16:45: \"when shooting these fruits, make them swing or drop down.\""
   },
   {
-   "id": "halloween-spookjag-feesdae-version-1-7-3",
-   "title": "Halloween Spookjag (Feesdae, version 1.7.3): the 31 Oct Daily at dusk with owls, bats, pumpkin lanterns and witch-hat guineafowl (your pick, 26 Oct)",
+   "id": "halloween-spookjag-feesdae-the-31-oct-da",
+   "title": "Halloween Spookjag (Feesdae): the 31 Oct Daily at dusk with owls, bats, pumpkin lanterns and witch-hat guineafowl; version 1.7.3 (your pick, 26 Oct)",
    "phase": "Version 1.x",
    "status": "done",
    "start": "2026-10-26T05:20:31Z",
@@ -1432,7 +1432,42 @@
    "estimate": false,
    "prs": [
     80
-   ]
+   ],
+   "summary": "On 31 Oct the Daily Hunt becomes Spookjag: the day's map at dusk under a big moon, pumpkin lanterns on the fence posts (shoot them all for +25), bats as fast bonus targets (+15), protected owls (−10), some guineafowl in witch hats, Oupa's Halloween lines, a spooky sting and a Halloween share card. Built on a small 'special days' system so other holidays can be added later.",
+   "owner": "Tank built it; Claude reviewed, fixed, screenshotted and merged it",
+   "checklist": [
+    {
+     "text": "Special-day system (dates in content, the Daily becomes the special that UTC day, admin/test override)",
+     "done": true,
+     "at": "2026-10-26T06:30:00Z"
+    },
+    {
+     "text": "Halloween look: dusk, moon, lanterns, bats, owls, witch hats",
+     "done": true,
+     "at": "2026-10-26T07:30:00Z"
+    },
+    {
+     "text": "Rules: bats +15, owls −10, all lanterns out +25",
+     "done": true,
+     "at": "2026-10-26T07:30:00Z"
+    },
+    {
+     "text": "Oupa's lines (4 languages), sounds, share card",
+     "done": true,
+     "at": "2026-10-26T08:00:00Z"
+    },
+    {
+     "text": "Tests and Claude's screenshots",
+     "done": true,
+     "at": "2026-10-26T09:54:00Z"
+    },
+    {
+     "text": "Review (15 fixes), full tests on 3 devices and merge (PR #80, 26 Oct, before 28 Oct)",
+     "done": true,
+     "at": "2026-10-26T10:32:00Z"
+    }
+   ],
+   "requestedBy": "You, 26 Oct: \"Halloween special yes, go ahead.\""
   },
   {
    "id": "perspective-guineafowl-get-smaller-the-f",
