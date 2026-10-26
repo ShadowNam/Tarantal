@@ -774,6 +774,45 @@
           "alpha": 0.084
         }
       ]
+    },
+    "spookjag": {
+      "$comment": "D-048 Halloween's Spookjag: a dark, cool dusk — a deep blue-purple sky, a dim cool ground, a faint violet afterglow on the horizon (no orange), so the moon, the lanterns' glow and the bats' silhouettes read. Birds stay untinted. The soft vignette is the special's look (feesdae.looks.halloween.vignette). No flashes.",
+      "tint": {
+        "sky": "#6A6CB0",
+        "far_ridge": "#5C5890",
+        "ver_veld": "#6A6898",
+        "far_veld": "#726EA0",
+        "mid": "#8280AC",
+        "near": "#8A88B2",
+        "foreground": "#5C5886"
+      },
+      "haze": [
+        {
+          "layer": "sky",
+          "color": "#1A1C4A",
+          "alpha": 0.45,
+          "top": 0,
+          "bottom": 260
+        },
+        {
+          "layer": "sky",
+          "color": "#6E5294",
+          "alpha": 0.22,
+          "top": 380,
+          "bottom": 560
+        },
+        {
+          "layer": "far_veld",
+          "color": "#24224C",
+          "alpha": 0.14
+        },
+        {
+          "layer": "mid",
+          "color": "#1C1C44",
+          "alpha": 0.08
+        }
+      ],
+      "secretGlow": true
     }
   },
   "audio": {
@@ -1006,6 +1045,139 @@
         "lines": [
           "bark.run_won"
         ]
+      },
+      "feesdagStart": {
+        "$comment": "D-048: a special day's lines come from feesdae.json barks (none here). Start: held until said, after the first-today greeting.",
+        "priority": 88,
+        "cooldownMs": 0,
+        "lines": []
+      },
+      "feesdagBat": {
+        "priority": 62,
+        "cooldownMs": 25000,
+        "lines": []
+      },
+      "feesdagOwl": {
+        "priority": 72,
+        "cooldownMs": 15000,
+        "lines": []
+      },
+      "lanternsOut": {
+        "priority": 92,
+        "cooldownMs": 0,
+        "lines": []
+      },
+      "feesdagEnd": {
+        "priority": 60,
+        "cooldownMs": 0,
+        "lines": []
+      }
+    }
+  },
+  "feesdae": {
+    "$comment": "D-048: the look of each special day (feesdae.json id). Moon on the sky layer at u across it; skyBats circle it; hatShare of the guineafowl wear witch hats (picked by bird id); glow = the lanterns' warm local light (a slow flicker, never a flash); cobwebs sit at a corner of a prop's picture (fractions of its texture).",
+    "looks": {
+      "halloween": {
+        "moon": {
+          "u": 0.62,
+          "y": 250,
+          "scale": 1.5
+        },
+        "skyBats": {
+          "count": 6,
+          "radius": [
+            150,
+            290
+          ],
+          "periodMs": [
+            3800,
+            6200
+          ]
+        },
+        "hatShare": 0.35,
+        "hat": {
+          "widthPerHeadR": 2.7,
+          "tilt": 0.18
+        },
+        "glow": {
+          "alpha": 0.5,
+          "flicker": 0.12,
+          "flickerMs": 520,
+          "scale": 1.15
+        },
+        "batFps": 14,
+        "owlFps": 5,
+        "cobwebs": [
+          {
+            "prop": "windpomp",
+            "at": [
+              0.56,
+              0.16
+            ],
+            "flip": false,
+            "scale": 0.8
+          },
+          {
+            "prop": "fence_bell",
+            "at": [
+              0.2,
+              0.12
+            ],
+            "flip": true,
+            "scale": 0.45
+          },
+          {
+            "prop": "baobab",
+            "at": [
+              0.3,
+              0.2
+            ],
+            "flip": true,
+            "scale": 0.9
+          },
+          {
+            "prop": "dead_camelthorn",
+            "at": [
+              0.6,
+              0.22
+            ],
+            "flip": false,
+            "scale": 0.8
+          },
+          {
+            "prop": "camelthorn_old",
+            "at": [
+              0.62,
+              0.2
+            ],
+            "flip": false,
+            "scale": 0.8
+          },
+          {
+            "prop": "quiver_tree",
+            "at": [
+              0.4,
+              0.25
+            ],
+            "flip": true,
+            "scale": 0.6
+          },
+          {
+            "prop": "sausage_tree",
+            "at": [
+              0.62,
+              0.2
+            ],
+            "flip": false,
+            "scale": 0.8
+          }
+        ],
+        "vignette": {
+          "color": "#0C0A1E",
+          "alpha": 0.55,
+          "inner": 0.55
+        },
+        "owlScale": 2.2
       }
     }
   }

@@ -39,6 +39,8 @@ export const ChallengeSchema = z.strictObject({
   b: BonusMapIdSchema.optional(),
   /** v1.3 (D-036): the sight on the sender's rifle (absent = the gun's default). */
   s: contentId.optional(),
+  /** D-048: the special day (feesdae.json id) a daily challenge was played on. */
+  f: contentId.optional(),
   /** contentHash prefix the hunt was played with. */
   h: z
     .string()
@@ -75,7 +77,7 @@ export function encodeChallenge(c: Challenge): string {
 }
 
 export interface ChallengeContext {
-  readonly content: Pick<ContentBundle, 'weapons'>;
+  readonly content: Pick<ContentBundle, 'weapons'> & Partial<Pick<ContentBundle, 'feesdae'>>;
   /** Biomes this build can play and draw. */
   readonly playableBiomes: readonly string[];
   readonly contentHash: string;
@@ -101,6 +103,12 @@ export function decodeChallenge(param: string, ctx: ChallengeContext): Challenge
   const c = parsed.data;
   // v1.2: a bonus map rides only on a Classic layout.
   if (c.b !== undefined && (c.l === undefined || c.mode !== 'classic'))
+    return { ok: false, reason: 'badShape' };
+  // D-048: a special day rides only on a Daily, and must be one this version knows.
+  if (
+    c.f !== undefined &&
+    (c.mode !== 'daily' || ctx.content.feesdae?.specials.some((x) => x.id === c.f) !== true)
+  )
     return { ok: false, reason: 'badShape' };
   if (!ctx.playableBiomes.includes(c.biome)) return { ok: false, reason: 'unknownBiome' };
   const w = ctx.content.weapons.weapons.find((x) => x.id === c.weapon);
@@ -130,6 +138,7 @@ export function challengeHunt(c: Challenge): { readonly seed: number; readonly m
       ...(c.l === undefined ? {} : { layout: c.l }),
       ...(c.l === undefined || c.b === undefined ? {} : { bonus: c.b }),
       ...(c.s === undefined ? {} : { sight: c.s }),
+      ...(c.f === undefined ? {} : { feesdag: c.f }),
     },
   };
 }
@@ -148,6 +157,8 @@ export function challengeFor(
     readonly bonus?: string | null;
     /** v1.3: the rifle's sight (null = none). */
     readonly sight?: string | null;
+    /** D-048: the special day of a Daily (null/absent = an ordinary day). */
+    readonly feesdag?: string | null;
   },
   contentHash: string,
   by?: string,
@@ -162,6 +173,9 @@ export function challengeFor(
     ...(by === undefined ? {} : { by }),
     ...mapFields(hunt.layout ?? null, hunt.bonus ?? null),
     ...(hunt.sight === undefined || hunt.sight === null ? {} : { s: hunt.sight }),
+    ...(hunt.mode !== 'daily' || hunt.feesdag === undefined || hunt.feesdag === null
+      ? {}
+      : { f: hunt.feesdag }),
     // A day before the content epoch has no #n (dailyNumber ≤ 0): leave it out, never throw.
     ...(hunt.dailyNumber === null || hunt.dailyNumber < 1 ? {} : { n: hunt.dailyNumber }),
     h: contentHash.slice(0, CHALLENGE_HASH_CHARS),

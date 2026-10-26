@@ -431,4 +431,30 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
     inputKind: 'touch',
     modeConfig: { id: 'classic', biome: 'namibie', layout: 'thu' },
   },
+  // D-048: the Halloween Spookjag Daily of 31 Oct 2026 (Bushveld, Saturday's dusk map). InputLog
+  // v6 carries the special's id; bats, owls and lanterns come from the 'feesdag' stream.
+  {
+    name: 'daily-2026-10-31-halloween-competent-pointer',
+    seed: 1031,
+    bot: 'competent',
+    mode: 'daily',
+    inputKind: 'pointer',
+    modeConfig: { id: 'daily', biome: 'bushveld-winter', layout: 'sat', feesdag: 'halloween' },
+  },
+  // D-048: the same Daily with a bot that shoots the Spookjag itself — every lantern (Lanterns
+  // out), the bats and one owl — so each of those scoring paths is in a golden hash. No wind.
+  {
+    name: 'daily-2026-10-31-halloween-spook-pointer',
+    seed: 1031,
+    bot: 'spook',
+    mode: 'daily',
+    inputKind: 'pointer',
+    modeConfig: {
+      id: 'daily',
+      biome: 'bushveld-winter',
+      layout: 'sat',
+      feesdag: 'halloween',
+      omen: false,
+    },
+  },
 ];

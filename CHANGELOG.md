@@ -3,6 +3,28 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.7.3] — Feesdae: the Halloween Spookjag Daily (31 Oct 2026)
+
+Decision record D-048. On a special day (UTC) the Daily Hunt becomes that day's special for
+everyone. Halloween, 31 Oct, is the first: the Spookjag.
+
+### Added
+- **Feesdae**, special days as content (`content/feesdae.json`): a date, the day's map under the
+  special's light, one twist rule, decorations, Oupa's lines, a sting and a share-card frame.
+- **Spookjag (31 Oct)**: a dark, cool dusk Daily (its own grade) under a big low moon. Bats are a fast, erratic bonus target
+  (+15, with the Frenzy multiplier like every bonus); the spotted eagle-owl is protected (−10, a
+  hoot and Oupa's scold); shoot every carved pumpkin lantern of the day — on the reservoir rim,
+  rocks and fence posts — for **Lanterns out!** (+25, once). Some guineafowl wear witch hats.
+- The title's Daily button shows the special's name and a badge ("Spookjag tonight!"); the tally
+  and the share card get a Halloween frame and the title "Spookjag 2026".
+
+### Changed
+- Replays are InputLog v6 (they carry the special day); older logs still play.
+- Content JSON ships without its `$comment` notes (about 9 KB less to download first).
+- Sizes: first download 3,070.8 KB (web), 3,064.1 KB (Poki), 3,064.2 KB (CrazyGames); the
+  Halloween art, sounds and Oupa's Halloween lines (about 320 KB) download only for the special
+  day's hunt.
+
 ## [1.7.2] — fruit swing and drop when shot (26 Oct 2026)
 
 Decision record D-047. Rendering only: the sim, the content it reads and the golden replays are

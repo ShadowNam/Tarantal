@@ -5,7 +5,9 @@ import { describe, expect, it } from 'vitest';
 import { loadContent, loadContentHash } from '../../../tools/testContent';
 import type { GoldenReplay } from '../../../tools/goldenCases';
 import replays from './golden/replays.json';
-import { decodeInputLogText } from './inputLog';
+import { absoluteTicks, decodeInputLogText } from './inputLog';
+import { createSim } from '../Sim';
+import type { Command } from '../types';
 import { runReplay, verifyReplay } from './verify';
 
 const golden: readonly GoldenReplay[] = replays as GoldenReplay[];
@@ -34,6 +36,32 @@ describe('golden replays', () => {
       );
     });
   }
+
+  it("D-048: the Spookjag golden covers a bat's bonus, an owl's penalty and Lanterns out", () => {
+    const g = golden.find((x) => x.name === 'daily-2026-10-31-halloween-spook-pointer');
+    if (g === undefined) throw new Error('no Spookjag golden');
+    const log = decodeInputLogText(g.log);
+    const sim = createSim({ seed: log.seed, content, mode: log.mode, inputKind: log.inputKind });
+    const seen = new Set<string>(sim.drainEvents().map((e) => e.type));
+    const ticks = absoluteTicks(log);
+    let i = 0;
+    while (!sim.isOver()) {
+      const now: Command[] = [];
+      while (i < ticks.length && (ticks[i] ?? Infinity) <= sim.tick) {
+        const c = log.commands[i++];
+        if (c !== undefined) now.push(c[1]);
+      }
+      sim.step(now);
+      for (const e of sim.drainEvents()) {
+        if (e.type === 'bonusAwarded') seen.add(`bonus:${e.bonus}`);
+        else if (e.type === 'penaltyApplied') seen.add(`penalty:${e.creature}`);
+        else seen.add(e.type);
+      }
+    }
+    expect([...seen]).toEqual(
+      expect.arrayContaining(['bonus:bat', 'penalty:ooruil', 'lanternsOut', 'bonus:lanternsOut']),
+    );
+  });
 
   it('fail when a scoring constant changes', () => {
     const g = golden.find((x) => x.expected.score > 0);

@@ -1254,6 +1254,108 @@ export type RangeSetup = z.infer<typeof rangeSchema>;
 export type Modes = z.infer<typeof ModesSchema>;
 
 // ---------------------------------------------------------------------------------------------
+// feesdae.json — the special days (Feesdae, GDD §15 Feesdae, Tech §12 Feesdae, D-048). On a special's UTC
+// day the Daily Hunt becomes that special: the same seed rule, its look and one twist rule. The
+// date rule is an input of the mode (the game reads the clock, never the sim); the twist's
+// numbers are here, so they are in the contentHash like every other rule.
+
+/** Fixed UTC month/day for now; other kinds (ranges, moving feasts) join the union later. */
+const feesdagDateSchema = z.discriminatedUnion('type', [
+  obj({ type: z.literal('fixed'), month: z.number().int().min(1).max(12), day: z.number().int().min(1).max(31) }),
+]);
+
+/** A flyer of the Spookjag (bats, owls), in design px at plane scale 1 (scaled by its plane). */
+const spookFlyerSchema = obj({
+  /** Sky lanes it may cross (their skyY from the day's map, unless `skyY` sets its own band:
+   *  design px, between the HUD and the horizon). */
+  planes: z.array(z.enum(['mid', 'far'])).min(1),
+  skyY: range(nonNeg).optional(),
+  /** How many cross per hunt, and when (fractions of the hunt). */
+  perHunt: range(nonNegInt),
+  window: windowFraction,
+  /** Flight speed (px/s at the mid plane, like birds.json speeds). */
+  speed: pos,
+  /** Erratic flight: up-and-down swerves of up to `swerve` px, a new one every `swerveMs`. */
+  swerve: nonNeg,
+  swerveMs: range(pos),
+  /** Hit ellipse half-sizes. */
+  rx: pos,
+  ry: pos,
+  /** Points when shot: positive for a bonus target, negative for a protected one. */
+  points: z.number().int(),
+});
+
+const spookjagSchema = obj({
+  rule: z.literal('spookjag'),
+  bats: spookFlyerSchema,
+  owls: spookFlyerSchema,
+  /** Pumpkin lanterns stand on the ground line (groundY[0]) of their plane at a spot's u. */
+  lanterns: obj({
+    count: range(posInt),
+    /**
+     * Where lanterns may stand: on top of a prop of the day's map (its occluder's top at dx from
+     * its centre; a bare pumpkin), or on their own fence post or rock at u across a plane, just
+     * in front of the flock band (`front` px below groundY[1]). Prop spots are used first; spots
+     * whose prop or ground line the map lacks are skipped.
+     */
+    spots: z
+      .array(
+        z.union([
+          obj({ prop: id, dx: z.number(), base: z.literal('bare') }),
+          obj({ plane: z.enum(['mid', 'far']), u: fraction, base: z.enum(['rock', 'post']) }),
+        ]),
+      )
+      .min(1),
+    front: nonNeg,
+    /** The pumpkin's centre above its ground line (on a post or rock, and bare on a prop) and
+     *  its hit ellipse (px at plane scale 1; the sheet's frames, feesdaeAssets.ts). */
+    lift: nonNeg,
+    liftBare: nonNeg,
+    rx: pos,
+    ry: pos,
+    /** Paid once, when the day's last lantern goes dark. */
+    allOutBonus: posInt,
+  }),
+});
+
+/** Bark lines are ASCII `bark.*` keys: the key is also the voice file name (see barkKey). */
+const feesdagBark = z.string().regex(/^bark\.[a-z][a-z0-9_]*$/, 'bark lines are ASCII bark.* keys');
+
+export const FeesdagSchema = obj({
+  id,
+  nameKey: i18nKey,
+  /** The title's badge on the day ("Spookjag tonight!"). */
+  badgeKey: i18nKey,
+  date: feesdagDateSchema,
+  /** "daily" = the day's map (biome rotation + weekday layout), or a fixed biome/layout. */
+  map: z.union([z.literal('daily'), obj({ biome: id, layout: WeekdayIdSchema })]),
+  /** A light preset of client/feel.json lights (the look only). */
+  light: id,
+  twist: spookjagSchema,
+  /** Look pieces the game draws (src/game/feesdae). */
+  decorations: z.array(z.enum(['moon', 'lanterns', 'bats', 'cobwebs', 'witchHats'])),
+  /** Oupa's lines by moment (i18n keys of bark lines). */
+  barks: obj({
+    start: feesdagBark,
+    bat: feesdagBark,
+    owl: feesdagBark,
+    lanternsOut: feesdagBark,
+    end: feesdagBark,
+  }),
+  /** The sting at the start (a sound of the feesdae group, src/game/feesdae/feesdaeAssets.ts). */
+  sting: z.string().regex(/^sfx\/[a-z0-9_]+$/),
+  /** The share card's frame (src/game/feesdae: its emoji and the tally's frame art). */
+  shareFrame: id,
+});
+export type Feesdag = z.infer<typeof FeesdagSchema>;
+
+export const FeesdaeSchema = obj({
+  version,
+  specials: z.array(FeesdagSchema),
+});
+export type Feesdae = z.infer<typeof FeesdaeSchema>;
+
+// ---------------------------------------------------------------------------------------------
 // The whole bundle
 
 /** Fixed top-level files in content/ and the schema each one must match. */
@@ -1265,6 +1367,7 @@ export const CONTENT_FILES = {
   'charms.json': CharmsSchema,
   'run.json': RunSchema,
   'modes.json': ModesSchema,
+  'feesdae.json': FeesdaeSchema,
 } as const;
 
 export interface ContentBundle {
@@ -1275,6 +1378,8 @@ export interface ContentBundle {
   readonly charms: Charms;
   readonly run: Run;
   readonly modes: Modes;
+  /** D-048: the special days (Feesdae). */
+  readonly feesdae: Feesdae;
   readonly biomes: readonly Biome[];
 }
 
@@ -1327,8 +1432,22 @@ export const BARK_TRIGGERS = [
   'badHunt',
   'quotaMissed',
   'runWon',
+  // D-048: a special day's own lines (feesdae.json barks; the tuning here gives no lines).
+  'feesdagStart',
+  'feesdagBat',
+  'feesdagOwl',
+  'lanternsOut',
+  'feesdagEnd',
 ] as const;
 export type BarkTrigger = (typeof BARK_TRIGGERS)[number];
+/** D-048: triggers whose lines come from feesdae.json (their feel.json lines are empty). */
+const SPECIAL_DAY_TRIGGERS: readonly string[] = [
+  'feesdagStart',
+  'feesdagBat',
+  'feesdagOwl',
+  'lanternsOut',
+  'feesdagEnd',
+];
 
 // ASCII only: the key is also the voice file name (audio/voice/<key>.wav), and a non-ASCII name
 // changes under macOS NFD or zip normalisation, so the recording would never match.
@@ -1338,8 +1457,9 @@ const BarkTriggerSchema = obj({
   priority: nonNegInt,
   /** This trigger speaks at most once per cooldownMs (on top of the global gap). */
   cooldownMs: nonNeg,
-  /** Lines said in turn: i18n keys, also the voice keys (voice/<line>). */
-  lines: z.array(barkKey).min(1),
+  /** Lines said in turn: i18n keys, also the voice keys (voice/<line>). Empty only for the
+   *  special-day triggers (D-048), whose lines come from feesdae.json. */
+  lines: z.array(barkKey),
 });
 
 // v1.1 (D-032): what each gun shows on screen — its ammo on the HUD and its crosshair. Screen
@@ -1762,7 +1882,11 @@ export const FeelSchema = obj({
     idleSeconds: pos,
     lastSeconds: pos,
     /** One entry per trigger (an enum-keyed record: every trigger is required). */
-    triggers: z.record(z.enum(BARK_TRIGGERS), BarkTriggerSchema),
+    triggers: z.record(z.enum(BARK_TRIGGERS), BarkTriggerSchema).refine(
+      (t) =>
+        Object.entries(t).every(([k, v]) => SPECIAL_DAY_TRIGGERS.includes(k) || v.lines.length > 0),
+      'every bark trigger but the special-day ones (D-048) needs a line',
+    ),
   }),
   capture: obj({
     /** M10 marketing capture mode (?capture=1): seed when no ?seed= is given, the slow-motion
@@ -1799,6 +1923,35 @@ export const FeelSchema = obj({
     errorStackFrames: posInt,
     /** Longest error message kept, in characters. */
     errorMessageChars: posInt,
+  }),
+  /** D-048: how a special day looks (src/game/feesdae; the look only, never a rule). */
+  feesdae: obj({
+    looks: z.record(
+      z.string(),
+      obj({
+      /** The low moon on the sky layer: across it (u), its centre (design px) and size. */
+      moon: obj({ u: fraction, y: z.number(), scale: pos }),
+      /** Little bats flitting round the moon (sky decoration, not targets). */
+      skyBats: obj({ count: nonNegInt, radius: range(pos), periodMs: range(pos) }),
+      /** Share of guineafowl in witch hats (cosmetic; picked by bird id), the hat's width per
+       *  head radius and its tilt back (radians). */
+      hatShare: fraction,
+      hat: obj({ widthPerHeadR: pos, tilt: z.number().min(-0.6).max(0.6) }),
+      /** A lit lantern's warm glow: its alpha and a slow flicker (no flashes). */
+      glow: obj({ alpha: fraction, flicker: z.number().min(0).max(0.5), flickerMs: pos, scale: pos }),
+      /** A soft vignette over the view: its colour, alpha at the corners and the clear centre
+       *  (a fraction of the half-diagonal). Steady: never a flash. */
+      vignette: obj({ color: hexColor, alpha: fraction, inner: fraction }),
+      /** The owl's drawing is shown this much larger than the sheet's frame (feesdae.json owls
+       *  rx/ry match it), and the flight frames per second of the bats and owls. */
+      owlScale: pos,
+      /** Flight frames per second of the bats and owls. */
+      batFps: pos,
+      owlFps: pos,
+      /** Cobwebs on props: the prop, the corner (fractions of its texture), mirrored, size. */
+      cobwebs: z.array(obj({ prop: id, at: z.tuple([fraction, fraction]), flip: z.boolean(), scale: pos })),
+      }),
+    ),
   }),
 });
 export type Feel = z.infer<typeof FeelSchema>;

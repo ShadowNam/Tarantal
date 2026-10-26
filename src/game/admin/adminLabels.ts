@@ -1,6 +1,6 @@
 // v1.2x (D-034): how the admin page names its entries, modes and guns (i18n; en is enough).
 import type { ContentBundle } from '../../content/schemas';
-import { t, tOr } from '../../i18n/i18n';
+import { fill, t, tOr } from '../../i18n/i18n';
 import type { AdminEntry, AdminOptions, EntryFacts } from '../../meta/admin';
 import { bonusSlug } from '../../meta/bonusMaps';
 
@@ -11,6 +11,12 @@ function biomeName(content: ContentBundle, id: string | null): string {
 
 /** "Karoo · Friday", "Okavango · Plain", "Season Run · Winter · Hunt 3 (boss)", "Daily Hunt". */
 export function entryLabel(e: AdminEntry, content: ContentBundle): string {
+  if (e.kind === 'daily' && e.feesdag !== null) {
+    const f = content.feesdae.specials.find((x) => x.id === e.feesdag);
+    const pad = (n: number): string => String(n).padStart(2, '0');
+    const date = f === undefined ? '' : `${pad(f.date.day)}/${pad(f.date.month)}`;
+    return fill(t('admin.feesdag_date'), { name: tOr(f?.nameKey ?? '', e.feesdag), date });
+  }
   if (e.kind === 'daily') return t('admin.daily');
   if (e.kind === 'season')
     return `${tOr(`season.${e.season ?? ''}`, e.season ?? '')} · ${tOr(
@@ -28,6 +34,7 @@ export function entryLabel(e: AdminEntry, content: ContentBundle): string {
 
 /** The entry's group heading in the list. */
 export function groupLabel(e: AdminEntry, content: ContentBundle): string {
+  if (e.kind === 'daily' && e.feesdag !== null) return t('admin.group_feesdae');
   if (e.kind === 'daily') return t('admin.group_daily');
   if (e.kind === 'season') return t('admin.group_season');
   return biomeName(content, e.biome);

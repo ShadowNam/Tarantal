@@ -377,7 +377,8 @@ a flag bit adds the Season Run block and `charmOrder` is a command; v4 since v1.
 and bonus map ids, empty = none — follows the mode block, and a v1–v3 log decodes with none, so it
 replays on the plain biome it was played on; v5 since v1.3: the fitted sight follows the map, '' =
 the gun's default, and the rifle commands `aimStart`/`aimMove` (positions), `aimRelease`,
-`aimCancel` and `zoom` (step) are appended to the op table — a v1–v4 log holding one is corrupt),
+`aimCancel` and `zoom` (step) are appended to the op table — a v1–v4 log holding one is corrupt;
+v6 since v1.7.3 (D-048): the special day's id follows the sight, '' = an ordinary hunt),
 delta + varint encoded,
 then base64url'd (`src/sim/replay/inputLog.ts`). Deflate is applied outside the sim, at the
 share/challenge-link boundary (M7), because it needs async platform APIs (D-018). Used for: golden tests, bug reports (attach log), ghost replays, and
@@ -947,6 +948,24 @@ activity), Roadmap, History (stages, pictures, evolution, decisions, glossary), 
   plays, with a "game updated" note). `src/meta/challenge.ts` decodes with a length cap, strict Zod
   and content checks (playable biome; a primary the sim plays — lent for that hunt even if
   locked) and never throws. The link carries no replay, so it is not deflated (D-024).
+  `f` (D-048) is a Daily's special day; an id this version doesn't know is rejected (`badShape`).
+- **Feesdae (D-048): a special day is an input of the mode.** `src/meta/feesdae.ts` decides from the
+  UTC day number (the game reads the clock: `Date.now()`, or the e2e `?today=`) whether a special's
+  date rule matches (fixed month/day, UTC like the Daily); `?feesdag=<id|none>` forces it on dev and
+  e2e builds and the web admin page only (never a portal build; the admin page lists each special
+  with Play). The Daily's setup keeps its seed (`dailySeed` is unchanged) and puts the special's id
+  in `ModeConfig.feesdag`; the sim never reads a date — it looks the id up in
+  `content/feesdae.json` (in the bundle and `contentHash`) and runs its twist from the `feesdag`
+  RNG stream, so no other stream moves and every ordinary hunt's events are unchanged. InputLog v6
+  records the id. Halloween's twist (`src/sim/feesdag/spookjag.ts`): bats and owls are flyers of
+  their own (not birds): they cross a plane edge to edge on its sky lane with smoothstep swerves;
+  lanterns stand on a plane's ground line (`groundY[0]`, lifted by `lanterns.lift`); all are
+  `HitExtra` kind `spook`, first in their plane's layer. Events `feesdagStarted`, `spookFlew`,
+  `spookHit` and `lanternsOut` (paid once); a bat and Lanterns out are event bonuses
+  (`bonusAwarded`, GDD §5.3), an owl a `penaltyApplied` like the hadeda's; a shot
+  that hits only Spookjag things leaves the Frenzy streak alone, like a secret part. The look
+  (light, moon, decorations, hats) is the game's: the special's light replaces the layout's, and
+  `src/game/feesdae/FeesdagView.ts` is a lazy chunk with a lazy asset group (`feesdae`).
 
 ## 13. Leaderboards (v1.x)
 Small serverless API (e.g. Cloudflare Workers + D1, or Supabase). Client submits

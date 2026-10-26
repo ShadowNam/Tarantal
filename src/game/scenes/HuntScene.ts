@@ -7,6 +7,9 @@
 import { designSize } from '../layout';
 import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
+import type { Feesdag } from '../../content/schemas';
+import { feesdagById } from '../../meta/feesdae';
+import type { FeesdagSceneView } from '../feesdae/FeesdagView';
 import type { Biome, Weapon } from '../../content/schemas';
 import { DebugOverlay } from '../../debug/DebugOverlay';
 import { artSummary } from '../assets/artSummary';
@@ -89,7 +92,14 @@ interface MapChoice {
   readonly layout?: string;
   readonly bonus?: string;
   readonly ver?: boolean;
+  /** D-048: a special day's look on the map (its light and decorations). */
+  readonly feesdag?: string;
 }
+
+/** D-048: the special days' view module (a lazy chunk), once it has loaded. */
+let feesdaeModule: typeof import('../feesdae/FeesdagView') | null = null;
+/** D-048: the delivered Halloween sheet, once it has arrived (null = the stand-in draws). */
+let feesdaeSheet: HTMLImageElement | null = null;
 
 const END_DELAY_MS = 900;
 /** Time per frame spent drawing deferred textures behind the start card. */
@@ -159,6 +169,9 @@ export class HuntScene extends Phaser.Scene {
   private manifest!: AssetManifest;
   /** v1.2 (D-033): the map on screen — weekday layout and bonus map (undefined = plain biome). */
   private map: MapChoice = {};
+  /** D-048: the special day this hunt plays (null on an ordinary hunt) and its look. */
+  private special: Feesdag | null = null;
+  private spookView: FeesdagSceneView | null = null;
   /** v1.2: UTC day the hunt started (its layout is that day's; Verder unlocks for that day). */
   private huntDay = 0;
   /** Real time of the next Stampede rumble shake. */
@@ -321,7 +334,13 @@ export class HuntScene extends Phaser.Scene {
     const mapBiome = map.biome;
     this.parallax = new ParallaxView(this, mapBiome, this.manifest, this.ctx.prefs.mergeLayers);
     this.parallax.measureFill = this.ctx.hook !== null;
-    const lights = mapLights(map).flatMap((id) => {
+    // D-048: a special day plays the day's map under its own light (Halloween: dusk).
+    const special =
+      this.map.feesdag === undefined
+        ? null
+        : feesdagById(this.ctx.content.feesdae, this.map.feesdag);
+    const lightIds = special === null ? mapLights(map) : [special.light];
+    const lights = lightIds.flatMap((id) => {
       const light = this.ctx.feel.lights[id];
       return light === undefined ? [] : [light];
     });
@@ -330,7 +349,7 @@ export class HuntScene extends Phaser.Scene {
       this.ctx.hook.map = {
         layout: map.layout?.id ?? null,
         bonus: map.bonus?.id ?? null,
-        lights: mapLights(map),
+        lights: lightIds,
         props: Object.fromEntries(mapBiome.props.map((p) => [p.id, p.u])),
       };
     // M9 tier filters on this camera (the HUD scene has its own camera, unfiltered).
@@ -388,6 +407,41 @@ export class HuntScene extends Phaser.Scene {
       far: planes.far.scale,
       ver: planes.ver.scale,
     });
+    this.spookView?.clear();
+    this.spookView = null;
+    const look = special === null ? undefined : this.ctx.feel.feesdae.looks[special.id];
+    if (special !== null && look !== undefined && feesdaeModule !== null) {
+      const textures = this.textures;
+      const manifest = this.manifest;
+      this.spookView = new feesdaeModule.FeesdagSceneView(
+        this,
+        this.parallax,
+        look,
+        {
+          near: planes.near.scale,
+          mid: planes.mid.scale,
+          far: planes.far.scale,
+          ver: planes.ver.scale,
+        },
+        mapBiome,
+        (asset) => {
+          if (!textures.exists(asset)) return null;
+          const src = textures.get(asset).getSourceImage();
+          const o = manifest.origin(asset);
+          return {
+            w: src.width,
+            h: src.height,
+            ox: o.x * src.width,
+            oy: o.y * src.height,
+            scale: manifest.displayScale(asset),
+          };
+        },
+        special.decorations,
+        this.screenFixed,
+        feesdaeSheet,
+      );
+      this.birds.hats = this.spookView.hats;
+    } else this.birds.hats = null;
     this.meerkats = new MeerkatView(
       this,
       this.manifest,
@@ -581,6 +635,7 @@ export class HuntScene extends Phaser.Scene {
     const sameMap =
       map.layout === this.map.layout &&
       map.bonus === this.map.bonus &&
+      map.feesdag === this.map.feesdag &&
       (map.ver === true) === (this.map.ver === true);
     if (id === this.biome.id) {
       if (sameMap && !this.viewsStale) return;
@@ -836,6 +891,64 @@ export class HuntScene extends Phaser.Scene {
   }
 
   /**
+   * D-048: loads the special days' view module (a lazy chunk) behind a veil, then starts the hunt;
+   * the feesdae group's art and sounds load in the background (the stand-in and the synths play
+   * until they arrive; the view swaps the sheet in when it lands).
+   */
+  private waitForFeesdae(special: Feesdag, then: (ok: boolean) => void): void {
+    const { width, height } = designSize();
+    const veil = this.add
+      .rectangle(width / 2, height / 2, width, height, 0x1b1410, 0.82)
+      .setDepth(9_999);
+    const area = tOr(special.nameKey, special.id);
+    const label = this.add
+      .text(width / 2, height / 2, fill(t('ui.loading_area'), { area }), textStyle(48, '#F3EAD3'))
+      .setOrigin(0.5)
+      .setDepth(10_000);
+    void import('../feesdae/FeesdagView')
+      .then((m) => {
+        feesdaeModule = m;
+        this.loadFeesdaeArt();
+        return true;
+      })
+      .catch(() => false)
+      .then((ok) => {
+        if (label.active) label.destroy();
+        if (this.ctx.hook) this.ctx.hook.feesdaeArt = feesdaeSheet === null ? 'standin' : 'final';
+        if (ok || !veil.active) {
+          if (veil.active) veil.destroy();
+          then(ok);
+          return;
+        }
+        // The special's code didn't come (offline, a dropped connection): the same message,
+        // Retry and Back as a biome whose art failed (D-042).
+        this.showArtFailed(
+          veil,
+          area,
+          () => {
+            this.waitForFeesdae(special, then);
+          },
+          () => {
+            then(false);
+          },
+        );
+      });
+  }
+
+  /** D-048: the feesdae group's files in the background; the sheet goes into the view on arrival. */
+  private loadFeesdaeArt(): void {
+    // Cached per page: each call only fetches what is still missing (a failed file, the lines
+    // of a voice language picked since).
+    if (feesdaeModule === null) return;
+    void feesdaeModule.loadFeesdaeAssets(this.ctx.audio).then((img) => {
+      if (img === null || feesdaeSheet !== null) return;
+      feesdaeSheet = img;
+      if (this.ctx.hook) this.ctx.hook.feesdaeArt = 'final';
+      if (this.sys.isActive()) this.spookView?.useSheet(img);
+    });
+  }
+
+  /**
    * Loads a biome's art chunk behind a veil with the area's name and the portal's loading
    * signals. v1.6 (D-042): when the delivered art still fails after main.ts's bounded retries,
    * a friendly message offers Retry (or Back); a hunt or the Skietbaan never starts on
@@ -1064,6 +1177,17 @@ export class HuntScene extends Phaser.Scene {
     // fitted in the Skiet-Skuur (recorded in the replay with the mode). The Skietbaan names its
     // own (D-037).
     const mode = range === null ? this.withSight(baseMode) : baseMode;
+    // D-048: a special day's hunt waits for its lazy view module and art (the feesdae group).
+    this.special = feesdagById(this.ctx.content.feesdae, mode.feesdag);
+    // A later special-day hunt tries the files again if the first load came back without them.
+    if (this.special !== null) this.loadFeesdaeArt();
+    if (this.special !== null && feesdaeModule === null) {
+      this.waitForFeesdae(this.special, (ok) => {
+        if (ok) this.begin(kind, startPointer, modeId, challenge, bonus);
+        else this.scene.restart({} satisfies HuntData);
+      });
+      return;
+    }
     // The hunt's biome may not be the one behind the title (M8): swap the scenery first.
     const huntBiome =
       mode.biome ??
@@ -1102,6 +1226,7 @@ export class HuntScene extends Phaser.Scene {
       ...(mode.layout === undefined ? {} : { layout: mode.layout }),
       ...(mode.bonus === undefined ? {} : { bonus: mode.bonus }),
       ...(range === null ? {} : { ver: true }),
+      ...(mode.feesdag === undefined ? {} : { feesdag: mode.feesdag }),
     });
     if (!this.texturesDone) this.texturesDone = this.manifest.install(this.textures);
     if (this.manifest.upgrade(this.textures, 'sight/').length > 0) this.sight.reset();
@@ -1245,7 +1370,10 @@ export class HuntScene extends Phaser.Scene {
     hud.setRange(range !== null);
     // D-028 §3: Oupa barks in every hunt but his own lesson, and never in capture footage (nor
     // on the Skietbaan).
-    hud.startBarks(modeId !== 'ftue' && this.ctx.capture === null && range === null);
+    hud.startBarks(
+      modeId !== 'ftue' && this.ctx.capture === null && range === null,
+      this.special?.barks ?? null,
+    );
     hud.setTag(plan?.hudTag ?? null);
     hud.setControls({
       pause: () => {
@@ -1418,6 +1546,11 @@ export class HuntScene extends Phaser.Scene {
     const w0 = performance.now();
     this.weavers.update(state);
     this.meerkats.update(state);
+    if (this.spookView !== null) {
+      this.spookView.viewZoom = zoom.z;
+      this.spookView.layout(width, height);
+    }
+    this.spookView?.update(state.feesdag, runner.prev.feesdag, alpha, state.tick);
     // Interpolated like the birds and the camera (a held frame keeps alpha 0: it holds).
     this.fruit?.update(state, width, state.tick - 1 + alpha);
     for (const cue of this.meerkats.cues) {
@@ -1568,6 +1701,20 @@ export class HuntScene extends Phaser.Scene {
       hook.wind = state.wind;
       hook.weavers = this.weavers.visibleCount;
       hook.meerkats = this.meerkats.spots();
+      hook.spook =
+        state.feesdag === undefined || this.spookView === null
+          ? null
+          : {
+              id: state.feesdag.id,
+              lanternsLit: state.feesdag.lanternsLit,
+              lanternsTotal: state.feesdag.lanternsTotal,
+              things: this.spookView.spots(),
+              final: this.spookView.final,
+              hats: this.birds.hatSpots().map((p) => ({
+                x: Math.round(this.parallax.screenX(p.plane, p.x)),
+                y: Math.round(p.y),
+              })),
+            };
       hook.fruit =
         this.fruit === null
           ? null
@@ -1672,6 +1819,7 @@ export class HuntScene extends Phaser.Scene {
     const half = width / 2;
     // v1.4 B: a shot family nest lets its weavers out; they chatter and scold (AudioDirector).
     this.meerkats.handle(events);
+    this.spookView?.handle(events, this.ctx.audio, width);
     // v1.7 (D-044): the sentinel's alarm bark and the Familiefoto's camera click.
     for (const e of events) {
       if (e.type === 'meerkatAlarm')
@@ -2050,6 +2198,7 @@ export class HuntScene extends Phaser.Scene {
     this.world.clear();
     this.weavers.clear();
     this.meerkats.clear();
+    this.spookView?.clear();
     this.fruit?.clear();
     this.game.canvas.style.cursor = '';
   }

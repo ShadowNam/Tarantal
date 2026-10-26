@@ -40,3 +40,22 @@ export function testHookPolicy(i: HookPolicyInput): HookPolicy {
 export function officialResultsAllowed(i: HookPolicyInput): boolean {
   return !i.e2eParam || i.dev || i.mode === 'test' || i.testHooksFlag;
 }
+
+/**
+ * D-048: the special day a page's Daily is forced to play — `?feesdag=<id|none>` on hook-enabled
+ * pages, or the web admin page's choice — or null (the real date decides). Never on a Poki or
+ * CrazyGames build, whatever the page or the build flags.
+ */
+export function feesdagOverride(i: {
+  /** The build's platform (VITE_PLATFORM; undefined = web). */
+  readonly buildPlatform: string | undefined;
+  readonly testHooks: boolean;
+  /** The admin page's stored hunt, if it plays one (its special or none). */
+  readonly admin: { readonly feesdag?: string | undefined } | null;
+  /** The page's ?feesdag value. */
+  readonly param: string | null;
+}): string | null {
+  if (i.buildPlatform === 'poki' || i.buildPlatform === 'crazygames') return null;
+  if (i.admin !== null) return i.admin.feesdag ?? null;
+  return i.testHooks ? i.param : null;
+}

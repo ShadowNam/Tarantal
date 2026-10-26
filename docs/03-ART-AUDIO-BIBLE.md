@@ -591,3 +591,51 @@ scratch (penalty), Frenzy tier stings ×3, Stampede rumble, tally ticks, rank st
 
 **Mix:** music −16 LUFS integrated; SFX peaks ≤ −1 dBTP; music ducks −6 dB under barks; spatial pan
 by screen x (±0.7 max); separate volume sliders (music / effects / voice).
+
+## 11. Special days (Feesdae, D-048)
+
+A special day dresses the day's map; it never swaps the biome art. Everything is in one lazy
+asset group, `feesdae` (loaded when a special day's hunt starts, never with the first download):
+one sheet per special (`feesdae/halloween`, layout and origins in
+`src/game/feesdae/feesdaeAssets.ts`, drawn at 2×) and its sounds. Until the sheet arrives the
+game draws a flat stand-in with the same frames.
+
+**Halloween — Spookjag (interim art: `npm run art:interim -- --only feesdae`, tools/art/halloween.ts):**
+- *Light:* its own preset, `spookjag` (feel.json lights): a spooky dusk, not a warm sunset — a deep
+  blue-purple sky, a dimmer and cooler ground, a faint violet afterglow on the horizon (no orange),
+  and a soft steady vignette, so the moon, the lanterns' glow and the bats' silhouettes stand out.
+  Birds stay untinted. No full-screen flashes.
+- *Moon:* a big, low, pale-yellow full moon on the sky layer with soft maria, a few craters and a
+  faint halo; five or six small black bats circle it (sky decoration, not targets).
+- *Pumpkin lanterns:* every one a carved jack-o'-lantern — ribbed, glossy orange, the eyes, nose and
+  mouth lit from inside (a warm core in the cuts) — on top of a prop where the day's map has one
+  (the reservoir's rim, the bakkie's roof, a boulder, the dassie koppie, the mokoro pole, the egg
+  rock: a bare pumpkin) or on its own lichen rock or weathered fence post (with a strand of wire)
+  just in front of the flock line. Distant ones use a bold half-size drawing (bigger cuts, a heavier
+  edge) so the face reads at a few dozen px. Each has a
+  small additive glow that flickers slowly (12 %, ~0.5 s) — a local light, never a flash. Shot
+  out: the same carved pumpkin gone dark, the cuts sooty, the glow gone, a thin wisp of smoke
+  rising (and a puff as it goes out).
+- *Bats (targets):* furry bodies and ears, membrane wings stretched between finger bones that let
+  the moonlight through; three wing poses (14 fps). Small on the mid and far planes, on purpose.
+- *Spotted eagle-owl (protected):* about a guineafowl's size on the mid plane (the drawing shown
+  2.2× its frame), gliding on its own band between the HUD and the horizon, across the moon's
+  height — never under the top HUD. Seen from below with its round face turned to the hunter: ear
+  tufts, a pale grey facial disc, big yellow-orange eyes, barred and pale-spotted grey-brown wings
+  with splayed dark-tipped primaries, a pale finely barred belly; three wing poses (5 fps).
+- *Witch hats:* a small purple-black cone with a bent tip, a brim, an orange band and a buckle,
+  on about a third of the guineafowl (picked by bird id). It sits on the head of the frame shown
+  — every clip's head position comes from the poses the bird art is drawn with
+  (`src/game/feesdae/hatAnchors.json`, written by `art:interim -- --only feesdae`) — mirrored with
+  the bird, tilted with the head and a little back, about 2.7 head radii wide. Three drawings
+  (large, medium, small): the smaller, the bolder and simpler.
+- *Cobwebs:* white silk with dew drops (and a small spider) on a corner of the windpomp, the fence
+  bell, the baobab, the camelthorns, the quiver tree and the sausage tree (`feel.json feesdae`).
+- *Tally and share card:* a purple edge round the slate with the moon, bats and a lit pumpkin;
+  the title "Spookjag 2026". The share text is framed 🎃🦇 … 🦇🌕.
+
+**Sounds (interim, `npm run audio:interim -- --only sfx`):** a 2.6 s sting — a reedy organ chord in
+A minor that sags a semitone over a low drone, a kalimba figure dropping through it, a church-hall
+tail; the owl's soft "hoo-HOOO"; a bat's two high squeaks; a lantern's soft whoomph. Captions:
+"[a spooky organ sting]", "[an owl hoots]", "[a bat squeaks]", "[a lantern puffs out]". Oupa's
+five Spookjag lines are voiced like his others (§10.1).

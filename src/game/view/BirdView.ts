@@ -28,11 +28,32 @@ export interface PotSpot {
   readonly originY: number;
 }
 
+/** D-048: a special day's hats (witch hats on Halloween), from its lazy view module. */
+export interface HatSource {
+  /** Texture key, frame and origin (fractions) of the hat drawing for a hat this wide (px). */
+  frameFor(widthPx: number): {
+    readonly key: string;
+    readonly frame: string;
+    readonly ox: number;
+    readonly oy: number;
+  };
+  /** Whether this bird wears one (cosmetic: picked from the id, the same every frame). */
+  wears(id: number, creature: string): boolean;
+  /** The head in a frame of a clip (null = the placeholder art): [x, y, rot°, r], bird units,
+   *  facing right, at scale 1 (src/game/feesdae/hatAnchors.json). */
+  head(clip: string | null, frame: number): readonly [number, number, number, number];
+  /** Hat width per head radius, and its tilt back (radians). */
+  readonly widthPerHeadR: number;
+  readonly tilt: number;
+}
+
 interface Drawn {
   readonly sprite: Phaser.GameObjects.Sprite;
   readonly tuft: Phaser.GameObjects.Image | null;
   readonly badge: Phaser.GameObjects.Image | null;
   readonly pot: Phaser.GameObjects.Image | null;
+  /** D-048: a witch hat (special days only). */
+  readonly hat: Phaser.GameObjects.Image | null;
   readonly plane: PlaneId;
   /** Placeholder texture key, or the final clip's animation key. */
   frame: string;
@@ -73,6 +94,8 @@ export class BirdView {
   /** v1.3: the rifle zoom view's zoom (Ver birds pick sharper art when zoomed in). */
   private viewZoom = 1;
   private readonly artScales: Readonly<Record<ArtPlaneId, number>>;
+  /** D-048: hats on a special day (null = none). Set before the hunt's first frame. */
+  hats: HatSource | null = null;
 
   constructor(
     scene: Phaser.Scene,
@@ -159,7 +182,12 @@ export class BirdView {
             ? this.scene.add.image(b.x, b.y, TEX.pot).setOrigin(po.x, po.y)
             : null;
         if (pot) layer.birds?.add(pot);
-        d = { sprite, tuft, badge, pot, plane: v.plane, frame: '' };
+        const hat =
+          this.hats !== null && v.kind === 'target' && this.hats.wears(v.id, v.creature)
+            ? this.scene.add.image(b.x, b.y, TEX.feather)
+            : null;
+        if (hat) layer.birds?.add(hat);
+        d = { sprite, tuft, badge, pot, hat, plane: v.plane, frame: '' };
         this.drawn.set(v.id, d);
       }
       if (d.frame !== key) {
@@ -215,6 +243,7 @@ export class BirdView {
           .setScale(s * v.facing, s)
           .setRotation(lean);
       }
+      if (d.hat && this.hats !== null) this.placeHat(d, d.hat, this.hats, v, b.x, b.y - bob, lean);
     }
     for (const [id, d] of this.drawn) {
       if (seen.has(id)) continue;
@@ -222,8 +251,51 @@ export class BirdView {
       d.tuft?.destroy();
       d.badge?.destroy();
       d.pot?.destroy();
+      d.hat?.destroy();
       this.drawn.delete(id);
     }
+  }
+
+  /**
+   * D-048: a witch hat on the head of the frame on screen (the clip's own head anchor), mirrored
+   * the way the sprite is, tilted with the head and a little back, sized to the head.
+   */
+  private placeHat(
+    d: Drawn,
+    hat: Phaser.GameObjects.Image,
+    hats: HatSource,
+    v: DrawBird['view'],
+    x: number,
+    y: number,
+    lean: number,
+  ): void {
+    const ps = this.content.scoring.planes[v.plane].scale;
+    // A delivered clip (its key starts "final:") shows its frames; else the placeholder art.
+    const anim = d.frame.startsWith('final:') ? d.sprite.anims.currentFrame : null;
+    // Delivered clips: "final:<creature>/<plane>/<clip>", frames "<clip>/<nn>".
+    const clip = anim === null ? null : (d.frame.split('/').at(-1) ?? null);
+    const n = anim === null ? 0 : Number(/(\d+)$/.exec(String(anim.textureFrame))?.[1] ?? 0);
+    // A tumble (hit_poof) has no head to wear it.
+    if (clip === 'hit_poof') {
+      hat.setVisible(false);
+      return;
+    }
+    const [hx, hy, rot, r] = hats.head(clip, n);
+    const sx = d.sprite.scaleX < 0 ? -1 : 1;
+    const a = ((rot * Math.PI) / 180) * sx + lean - hats.tilt * sx;
+    // The brim sits on the crown: up from the head's centre along its own up.
+    const up = r * 0.62 * ps;
+    const cx = x + hx * ps * sx + Math.sin(a) * up;
+    const cy = y + hy * ps - Math.cos(a) * up;
+    const f = hats.frameFor(hats.widthPerHeadR * r * ps * this.viewZoom);
+    if (hat.texture.key !== f.key || hat.frame.name !== f.frame) hat.setTexture(f.key, f.frame);
+    hat.setOrigin(f.ox, f.oy);
+    const k = (hats.widthPerHeadR * r * ps) / Math.max(1, hat.frame.width);
+    hat
+      .setVisible(d.sprite.visible)
+      .setPosition(cx, cy)
+      .setScale(k * sx, k)
+      .setRotation(a);
   }
 
   /** The animation key of a delivered clip, created on first use. */
@@ -264,6 +336,14 @@ export class BirdView {
     }
   }
 
+  /** D-048: where the drawn witch hats are (plane coordinates), for the test hook. */
+  hatSpots(): { plane: PlaneId; x: number; y: number }[] {
+    const out: { plane: PlaneId; x: number; y: number }[] = [];
+    for (const d of this.drawn.values())
+      if (d.hat !== null && d.hat.visible) out.push({ plane: d.plane, x: d.hat.x, y: d.hat.y });
+    return out;
+  }
+
   /** Current on-screen design position of a bird, if it is drawn. */
   positionOf(id: number): { plane: PlaneId; x: number; y: number } | null {
     const d = this.drawn.get(id);
@@ -291,6 +371,7 @@ export class BirdView {
       d.tuft?.destroy();
       d.badge?.destroy();
       d.pot?.destroy();
+      d.hat?.destroy();
     }
     this.drawn.clear();
   }

@@ -113,7 +113,8 @@ award  = round(points × mult)
 - Classic and Daily have no charms, so there `mult = (1 + behaviourAdd) × weapon × frenzy × stampede`.
 - The pop-up shows both parts like Balatro: **`10 ×2.5`** then resolves to **`+25`**. Big multipliers
   are the fun; format large numbers (12.4K, 1.2M).
-- **Event bonuses** (Twee Vlieë, Whole Flock, secrets, armour knock-offs) are flat amounts multiplied
+- **Event bonuses** (Twee Vlieë, Whole Flock, secrets, armour knock-offs; on Halloween a bat and
+  Lanterns out, D-048) are flat amounts multiplied
   only by `frenzyMul × stampedeMul` (not behaviour, weapon or per-bird charm effects), unless a
   charm's `bonusMul` targets that bonus.
 
@@ -828,6 +829,25 @@ note "verskrikker", not the Dutch "verschrikker" used in the earlier draft.)
   The original Moorhuhn spread virally because the whole game was ~2 MB and could be emailed;
   a link that opens the same hunt in a browser is the 2026 equivalent.
 - **Challenge links** (§12.4).
+- **Feesdae — special-day Dailies (D-048):** on a special UTC day the Daily Hunt becomes that day's
+  special for everyone: the same seed rule and first-attempt rule as any Daily, the day's map
+  (biome rotation + weekday layout) under the special's light, its decorations, **one twist rule**
+  (in the sim, from content), Oupa's own lines, a music sting and a share-card frame. Classic,
+  Season Run and challenge links to other modes are unchanged; a challenge to a special Daily
+  carries the special. The title's Daily button shows the special's name and a badge. Specials are
+  content (`content/feesdae.json`: a date rule — a fixed UTC month/day for now — map, light, twist
+  numbers, decoration ids, bark keys, sting, share frame); only Halloween is chosen so far.
+  - **Halloween, 31 Oct — "Spookjag":** a dark, cool dusk hunt (its own grade, not the warm
+    sunset of the dusk maps) under a big low moon, bats flitting round it,
+    pumpkin lanterns glowing on rocks and fence posts (small warm local light, a slow flicker,
+    never a flash), cobwebs on the windpomp and the big trees, some guineafowl in witch hats.
+    Twist: **bats** are fast, erratic fly-overs on the mid and far planes, a bonus target (+15
+    each, an event bonus, §5.3); the **spotted eagle-owl** glides through two or three times and is
+    protected (−10, a penalty like the hadeda's; a hoot and Oupa's scold); the day's **pumpkin lanterns** (3–5)
+    are a secret: shoot them all for **"Lanterns out!"** (+25, once; each goes dark with a puff).
+    Quota, omens and crates are as on any Daily. Oupa: "Spookjag, my kind! Shoot the bats, leave
+    the owls." The share card is framed 🎃🦇 … 🦇🌕 and titled "Spookjag 2026"; the tally slate has
+    the moon, bats and a pumpkin round it.
 - **Weekly seeded Season Run** (v1.x) with a leaderboard once replay validation exists.
 - **Bird Book completion**, **Notaboek challenges**, **rank titles**, **per-biome bests**.
 

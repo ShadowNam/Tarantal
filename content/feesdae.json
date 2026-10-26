@@ -1,0 +1,197 @@
+{
+  "$comment": "Feesdae: the special days (GDD §15 Feesdae, Tech §12 Feesdae, D-048). On a special's UTC day the Daily Hunt becomes that special for everyone: the same seed rule as any Daily, the day's map under the special's light, its decorations and one twist rule. Dates are UTC (like the Daily); the game passes the day in, the sim never reads a clock. Twist numbers are design px at plane scale 1, speeds px/s at the mid plane, times in ms; a bat and allOutBonus are event bonuses (Frenzy × Stampede, GDD §5.3), an owl's points a penalty like the hadeda's.",
+  "version": 1,
+  "specials": [
+    {
+      "id": "halloween",
+      "$comment": "Spookjag (31 Oct): a dusk hunt. Bats are a fast, erratic bonus target; the spotted eagle-owl is protected (like the hadeda); shoot every pumpkin lantern for Lanterns out!",
+      "nameKey": "feesdag.halloween.name",
+      "badgeKey": "feesdag.halloween.badge",
+      "date": {
+        "type": "fixed",
+        "month": 10,
+        "day": 31
+      },
+      "map": "daily",
+      "light": "spookjag",
+      "twist": {
+        "rule": "spookjag",
+        "bats": {
+          "planes": [
+            "mid",
+            "far"
+          ],
+          "skyY": [
+            210,
+            430
+          ],
+          "perHunt": [
+            7,
+            10
+          ],
+          "window": [
+            0.04,
+            0.94
+          ],
+          "speed": 560,
+          "swerve": 70,
+          "swerveMs": [
+            180,
+            420
+          ],
+          "rx": 44,
+          "ry": 26,
+          "points": 15
+        },
+        "owls": {
+          "planes": [
+            "mid"
+          ],
+          "skyY": [
+            250,
+            370
+          ],
+          "perHunt": [
+            2,
+            3
+          ],
+          "window": [
+            0.15,
+            0.85
+          ],
+          "speed": 260,
+          "swerve": 12,
+          "swerveMs": [
+            900,
+            1600
+          ],
+          "rx": 220,
+          "ry": 90,
+          "points": -10,
+          "$comment": "The spotted eagle-owl: the mid plane only, about a guineafowl's size there (the view draws it at feesdae.looks.halloween.owlScale), on its own band between the HUD and the horizon, across the moon's height."
+        },
+        "lanterns": {
+          "count": [
+            3,
+            5
+          ],
+          "$comment": "Prop tops first (the reservoir's rim, the bakkie's roof, boulders, the dassie koppie, the mokoro pole, the egg rock: whichever the day's map has), then lanterns on their own fence post or rock just in front of the flock band (front px below groundY[1]).",
+          "spots": [
+            {
+              "prop": "reservoir",
+              "dx": -95,
+              "base": "bare"
+            },
+            {
+              "prop": "reservoir",
+              "dx": 100,
+              "base": "bare"
+            },
+            {
+              "prop": "bakkie",
+              "dx": -120,
+              "base": "bare"
+            },
+            {
+              "prop": "boulder_a",
+              "dx": 10,
+              "base": "bare"
+            },
+            {
+              "prop": "boulder_b",
+              "dx": -10,
+              "base": "bare"
+            },
+            {
+              "prop": "boulder_crack",
+              "dx": -25,
+              "base": "bare"
+            },
+            {
+              "prop": "dassie_koppie",
+              "dx": -70,
+              "base": "bare"
+            },
+            {
+              "prop": "mokoro_pole",
+              "dx": 0,
+              "base": "bare"
+            },
+            {
+              "prop": "quiver_egg",
+              "dx": 0,
+              "base": "bare"
+            },
+            {
+              "plane": "mid",
+              "u": 0.07,
+              "base": "rock"
+            },
+            {
+              "plane": "mid",
+              "u": 0.22,
+              "base": "post"
+            },
+            {
+              "plane": "mid",
+              "u": 0.39,
+              "base": "post"
+            },
+            {
+              "plane": "mid",
+              "u": 0.56,
+              "base": "rock"
+            },
+            {
+              "plane": "mid",
+              "u": 0.73,
+              "base": "post"
+            },
+            {
+              "plane": "mid",
+              "u": 0.9,
+              "base": "rock"
+            },
+            {
+              "plane": "far",
+              "u": 0.14,
+              "base": "post"
+            },
+            {
+              "plane": "far",
+              "u": 0.47,
+              "base": "rock"
+            },
+            {
+              "plane": "far",
+              "u": 0.82,
+              "base": "post"
+            }
+          ],
+          "front": 16,
+          "lift": 58,
+          "liftBare": 34,
+          "rx": 46,
+          "ry": 40,
+          "allOutBonus": 25
+        }
+      },
+      "decorations": [
+        "moon",
+        "lanterns",
+        "bats",
+        "cobwebs",
+        "witchHats"
+      ],
+      "barks": {
+        "start": "bark.spook_start",
+        "bat": "bark.spook_bat",
+        "owl": "bark.spook_owl",
+        "lanternsOut": "bark.spook_lanterns",
+        "end": "bark.spook_end"
+      },
+      "sting": "sfx/spook_sting",
+      "shareFrame": "halloween"
+    }
+  ]
+}

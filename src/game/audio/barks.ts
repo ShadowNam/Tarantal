@@ -13,10 +13,21 @@
 //     line follows it within 6 s and the two never share the screen (D-028 review).
 // The HUD shows the line as a speech bubble (the subtitle) and asks the AudioDirector to play
 // voice/<line> (it plays once a recording is delivered; music ducks under it).
-import type { BarkTrigger, Feel } from '../../content/schemas';
+import type { BarkTrigger, Feel, Feesdag } from '../../content/schemas';
 import type { SimEvent } from '../../sim/events';
 
 export type BarkTuning = Feel['barks'];
+/** D-048: a special day's own lines (feesdae.json barks). */
+export type SpecialBarks = Feesdag['barks'];
+
+/** The special-day triggers and the feesdae.json line each one says. */
+const SPECIAL_LINE: Partial<Record<BarkTrigger, keyof SpecialBarks>> = {
+  feesdagStart: 'start',
+  feesdagBat: 'bat',
+  feesdagOwl: 'owl',
+  lanternsOut: 'lanternsOut',
+  feesdagEnd: 'end',
+};
 
 /** What the HUD knows about this hunt frame besides the events. */
 export interface BarkFrame {
@@ -54,6 +65,8 @@ export class BarkDirector {
   private bagged = new Set<number>();
   /** v1.6b: Oupa Laai's first auto reload since the last pickup has been announced. */
   private autoSaid = false;
+  /** D-048: this hunt's special day lines (null on an ordinary hunt). */
+  private special: SpecialBarks | null = null;
 
   constructor(
     private readonly tuning: BarkTuning,
@@ -63,8 +76,12 @@ export class BarkDirector {
     private readonly autoReloadIds: ReadonlySet<string> = new Set(),
   ) {}
 
-  /** A new hunt starts at `tick` (per-hunt streaks and once-only lines reset). */
-  startHunt(tick: number): void {
+  /**
+   * A new hunt starts at `tick` (per-hunt streaks and once-only lines reset). D-048: a special
+   * day's hunt brings its lines; its start line is held until said.
+   */
+  startHunt(tick: number, special: SpecialBarks | null = null): void {
+    this.special = special;
     this.bagRun = 0;
     this.missRun = 0;
     this.lastShotTick = tick;
@@ -75,6 +92,11 @@ export class BarkDirector {
     this.pending = new Set();
     this.bagged = new Set();
     this.autoSaid = false;
+  }
+
+  /** D-048: the special day's lines of this hunt (the tally's end line), or null. */
+  get specialLines(): SpecialBarks | null {
+    return this.special;
   }
 
   /** One hunt frame: this frame's events → at most one bark. */
@@ -148,6 +170,18 @@ export class BarkDirector {
         case 'weatherChanged':
           if (e.rain) cands.push('rain');
           break;
+        // D-048: the Spookjag. Lanterns out is held until said (it is the day's secret).
+        case 'spookHit':
+          if (e.thing === 'bat') cands.push('feesdagBat');
+          // The owl's scold is held until said (a hit inside the gap still gets it).
+          else if (e.thing === 'owl') this.pending.add('feesdagOwl');
+          break;
+        case 'lanternsOut':
+          this.pending.add('lanternsOut');
+          break;
+        case 'feesdagStarted':
+          if (this.special !== null) this.pending.add('feesdagStart');
+          break;
         default:
           break;
       }
@@ -204,14 +238,23 @@ export class BarkDirector {
   private pick(cands: readonly BarkTrigger[], nowMs: number): Bark | null {
     if (cands.length === 0 || nowMs - this.lastAt < this.gapMs) return null;
     const ready = cands.filter(
-      (c) => nowMs - (this.lastByTrigger.get(c) ?? -Infinity) >= this.tuning.triggers[c].cooldownMs,
+      (c) =>
+        nowMs - (this.lastByTrigger.get(c) ?? -Infinity) >= this.tuning.triggers[c].cooldownMs &&
+        // A special-day trigger speaks only in that day's hunt.
+        (SPECIAL_LINE[c] === undefined || this.special !== null),
     );
     let best: BarkTrigger | null = null;
     for (const c of ready)
       if (best === null || this.tuning.triggers[c].priority > this.tuning.triggers[best].priority)
         best = c;
     if (best === null) return null;
-    const lines = this.tuning.triggers[best].lines;
+    const own = SPECIAL_LINE[best];
+    const lines =
+      own === undefined
+        ? this.tuning.triggers[best].lines
+        : this.special === null
+          ? []
+          : [this.special[own]];
     const i = this.nextLine.get(best) ?? 0;
     const line = lines[i % lines.length];
     if (line === undefined) return null;
@@ -222,10 +265,12 @@ export class BarkDirector {
   }
 }
 
-/** Every bark line in the tuning (the voice keys the asset manifest lists). */
-export function allBarkLines(t: BarkTuning): string[] {
+/** Every bark line in the tuning and the special days (the voice keys the manifest lists). */
+export function allBarkLines(t: BarkTuning, specials: readonly SpecialBarks[] = []): string[] {
   const out = new Set<string>();
   for (const cfg of Object.values(t.triggers)) for (const l of cfg.lines) out.add(l);
+  for (const s of specials)
+    for (const l of [s.start, s.bat, s.owl, s.lanternsOut, s.end]) out.add(l);
   return [...out].sort();
 }
 
