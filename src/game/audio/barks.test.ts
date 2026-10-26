@@ -107,6 +107,29 @@ describe('BarkDirector (v1.0.1, D-028 §3)', () => {
     expect(d.hunt(misses, frame(GAP))?.trigger).toBe('missStreak');
   });
 
+  it('v1.8 (D-050): a tin can juggled barks.canChain times in a row gets Oupa’s line', () => {
+    const d = new BarkDirector(T, GAP);
+    d.startHunt(0);
+    const juggle = (chain: number): SimEvent => ({
+      type: 'canJuggled',
+      tick: 100,
+      shotId: chain,
+      canId: 2_000_000,
+      plane: 'mid',
+      x: 0,
+      y: 0,
+      chain,
+      pellets: 8,
+      side: 0,
+      marks: [],
+      points: 10,
+    });
+    expect(d.hunt([juggle(T.canChain - 1)], frame(0))).toBeNull();
+    const b = d.hunt([juggle(T.canChain)], frame(1));
+    expect(b?.trigger).toBe('canChain');
+    expect(b?.line).toMatch(/^bark\.blik_/);
+  });
+
   it('two birds from one shot count once in the bag streak', () => {
     const d = new BarkDirector(T, GAP);
     d.startHunt(0);
