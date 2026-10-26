@@ -1,6 +1,6 @@
 {
- "updated": "2026-10-26T02:50:00Z",
- "summary": "v1.7b is merged (26 Oct, 04:40; version 1.7.1): the Gun Shed explains every power-up with a picture, crates show what they hold, a card says what you picked up, chips count down, and Settings has Oupa's comments On / Text only / Off. v1.7 meerkats went in at 00:55. Now: Tank is building v1.7c, fruit that swings or drops when shot (expected about 07:30). Next, in this order: v1.7d Namibië veld life, v1.7e realistic Bushveld + a new secret cue instead of the star (mock-ups for you first), v1.8 Blikkies, v1.8b baboons, v1.8c The Harvest (a new mode), then v1.9–v1.13.",
+ "updated": "2026-10-26T04:35:00Z",
+ "summary": "Overnight: v1.7 meerkats (00:55), the history chapters (01:32) and v1.7b power-ups explained + Oupa's comments switch (04:40, version 1.7.1) are merged. Now: v1.7c, fruit that swings or drops when shot — redrawn at the camelthorn quality, independent review fixed; Claude's screenshots, the full tests and the merge come next (expected about 08:30). Next, in this order: v1.7d Namibië veld life, v1.7e realistic Bushveld + a new secret cue instead of the star (mock-ups for you first), v1.8 Blikkies, v1.8b baboons, v1.8c The Harvest (a new mode), then v1.9–v1.13.",
  "current": {
   "version": "1.7.1",
   "commit": "1bbedc7"
@@ -380,16 +380,21 @@
      "at": "2026-10-26T02:18:00Z"
     },
     {
-     "text": "Screenshot setup and docs (D-047)",
+     "text": "Fruit redrawn at the camelthorn bar (mottled Kigelia sausages on rope stalks, velvety baobab pods); dropped fruit lands clear of the trunk",
      "done": true,
-     "at": "2026-10-26T02:24:00Z"
+     "at": "2026-10-26T03:31:00Z"
+    },
+    {
+     "text": "Independent review fixes: fruit take the map's light and haze, wind no longer throws off fruit hits, fruit stay behind rocks and props, lighter on phones, smoother falls",
+     "done": true,
+     "at": "2026-10-26T04:25:00Z"
     },
     {
      "text": "Claude's screenshots on desktop, Pixel 7 and iPhone 14",
      "done": false
     },
     {
-     "text": "Review, full tests and merge",
+     "text": "Full tests and merge",
      "done": false
     }
    ]
@@ -1089,6 +1094,31 @@
    "at": "2026-10-26T02:24:00Z",
    "kind": "note",
    "text": "Tank is building v1.7c (fruit that swings or drops). Its first try dropped its connection before pushing anything; the retry has pushed the fruit, a browser test, the screenshot setup and the docs."
+  },
+  {
+   "at": "2026-10-26T04:15:00Z",
+   "kind": "screenshots",
+   "text": "v1.7c: the fruit are redrawn at the camelthorn quality — the sausage-tree fruit are heavy and mottled on rope stalks, the baobab pods velvety. A shot one swings; a second shot drops it, and it lands clear of the trunk. An independent review found that the fruit ignored the map's light of the day and that wind threw off fruit hits; both are fixed.",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17c-sausages-closeup.jpg",
+     "caption": "Sausage-tree fruit, redrawn; one is mid-swing after a shot"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17c-sausage-dropped.jpg",
+     "caption": "A shot-off sausage lies on the ground, clear of the trunk"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17c-okavango.jpg",
+     "caption": "The sausage tree in the Okavango"
+    }
+   ],
+   "links": [
+    {
+     "label": "PR #79",
+     "url": "https://github.com/ShadowNam/Tarantal/pull/79"
+    }
+   ]
   }
  ]
 }
