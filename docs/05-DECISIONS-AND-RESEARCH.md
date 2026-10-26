@@ -2581,10 +2581,18 @@ shown item is the one given), captions and AudioDirector cases. e2e (CI, landsca
 pickup's crate icon, card text and countdown; Oupa Off and Text only; the Settings switch.
 Screenshots — `tests/e2e/art-preview-v17b.spec.ts` (ART_PREVIEW=1). The in-page hold hook
 (`__TM_HOLD_AT__`) is v1.7's, ported unchanged for that spec.
-(11) *Sizes* (`npm run size -- --strict`, gzip, after merging v1.7): first download **3 094.7 KB**
-(+39.7 KB over v1.7's 3 055.0 KB: the six new icons and the two redrawn at 128 px, the `powerEnd`
-chime, the strings in four languages and the code); 60.4 % of the 5 MB budget. Voice packs carry
-no new lines (en 663.8 KB, af 718.3 KB, de 867.6 KB, v1.7's sizes).
+(11) *Sizes* (`npm run size -- --strict`, gzip, after merging v1.7). The v1.x first-download
+line is **3 MB = 3 072 KB** (docs/04, docs/06). With the icons in the first download it was
+3 094.7 KB, over the line, so the eight `ui/pu_*` icons (~26 KB, PNG-8) moved to the **late group**
+(sidecar `group: "late"`; the packer accepts it for sprites): the first crate drops at 22 % of a
+hunt at the earliest. Until the late group lands, the procedural placeholders draw; then
+`upgradePowerupIcons()` swaps them in and bumps an epoch the HUD chips, Oupa's hand, the pickup
+card and the crate tags watch to re-set their textures, and the Gun Shed's Power-ups tab redraws.
+First download now: web **3 069.0 KB**, Poki **3 068.8 KB**, CrazyGames **3 068.8 KB** (59.9 % of
+the 5 MB budget, 3 KB under the 3 MB line). The `powerEnd` recording stays in the first download:
+sounds load beside boot whatever their group (only images and atlases wait for the late queue),
+so moving it would change the report, not what downloads; the synth plays it if it's late.
+Voice packs carry no new lines.
 (12) *Review* (playtest-reviewer): a first pickup's full sentence could overflow the card on 4:3
 or in German/Dutch/Afrikaans — the line now shrinks (to 72 %) and wraps wider until it fits a
 260 px slot sized clear of the left HUD column, and the hook reports where the text ends; Oupa's
@@ -2593,6 +2601,21 @@ Oupa Laai) waits instead of being lost; the Gun Shed list draws its own focus ri
 and wheel while Settings covers it; the Season Run tally's row moved clear of its title; the
 chip's "s" goes through i18n. Visual baselines that change: `settings-sound` (the new row, 68 px
 rows) and `padstal` (every offer shows its line).
+(13) *Second review* (independent, at 97b38fc): the first download over 3 MB (11); the pickup card
+can sit over the crosshair or a flushed flock — it now fades to 30 % while the crosshair is over it
+or within 80 px (`hudLayout.pickupAlpha`, unit-tested with crosshair positions); the Skietbaan arms
+a chosen crate gun at tick 0, which showed a card and marked the gun found — range sessions skip
+pickups; a caption could read "[{item} wears off]" after captions were turned on mid-hunt — the HUD
+follows the crate gun either way and an end line with no item is dropped; Oupa's switch silenced
+voices that aren't his (the weavers, the frog, the meerkats) — `isOupaLine()` exempts them, and
+the voice pack keeps loading for them; the e2e no-voice checks wait for the voice pack (and an On
+control hears the greeting); a unit test keeps digits out of the power-up strings; Oupa's
+first-pickup lines name the item through `{item}`; the CHANGELOG no longer claims 1.7.0 replays
+are refused. Owner's screenshots of 079a570: the crate icon is twice as big, opaque on a cream disc
+with a dark ring, above the scenery, on the canopy and the box front (the canopy patch and the
+stencil are gone); the floating item name on a crate is gone (the card says it); the Meerkat
+Spotter and Voorlaaier icons were redrawn stockier. The Settings screen's two build stamps (its
+own and the title's corner stamp under it) were already on main and are left as they are.
 
 ## 3. Research notes (with sources)
 
