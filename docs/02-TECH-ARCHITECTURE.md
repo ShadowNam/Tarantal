@@ -552,7 +552,7 @@ v1.4 B (D-039):
   sprites; the chatter is `AudioDirector.weavers()`.
 - **Fruit react to shots (v1.7c, D-047)** (`src/game/view/fruit/`), rendering only. The hanging
   and fallen fruit, pods and flowers are sprites from the biome's `fruit/<biome>` sheet, placed by
-  `spots/<biome>.json` on their layer or prop (fixtures container: above props, below birds).
+  `spots/fruit-<biome>.json` on their layer or prop (fixtures container: above props, below birds).
   `FruitView` maps each `pelletImpact` onto the fruit's layer and swings, drops or rocks the fruit
   (`fruitHits.ts`, `fruitMotion.ts`: pure functions of the hit ticks and the sim tick, so held
   frames and replays draw the same). The sim never sees fruit: no state, no score, no change to

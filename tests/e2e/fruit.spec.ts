@@ -5,9 +5,19 @@
 // are pointer events dispatched on the canvas in-page (as in weavers.spec.ts and
 // meerkats.spec.ts), and every transient value is read in the waitForFunction that sees it.
 import { expect, test, type Page } from '@playwright/test';
-import { boot, collectErrors, hook, isLandscape, isTouchProject, startHunt } from './helpers';
+import {
+  boot,
+  collectErrors,
+  hook,
+  isLandscape,
+  isTouchProject,
+  reload,
+  startHunt,
+  waitTicks,
+} from './helpers';
 
 const QUERY = 'biome=okavango-spring&seed=42&huntSeconds=90&birds=0';
+let pointer = 940;
 
 /** Pans until a sausage hangs within 200 px of the screen's centre, then waits for the camera
  *  to stop. */
@@ -65,8 +75,15 @@ async function shootSausage(
   i: number | null,
   offset: number,
 ): Promise<number> {
+  // A full belt, and past the fire cooldown (a tap in it is not a shot).
+  if ((await hook(page)).shells === 0) {
+    await reload(page, touch);
+    await page.waitForFunction(() => (window.__TM__?.shells ?? 0) > 0, null, { timeout: 120_000 });
+  }
+  await waitTicks(page, 12);
+  pointer++;
   const before = await page.evaluate(
-    ([want, off, isTouch]) => {
+    ([want, off, isTouch, id]) => {
       const g = window.__TM__;
       const canvas = document.querySelector<HTMLCanvasElement>('#game canvas');
       if (g === undefined || g.fruit === null || canvas === null) throw new Error('no fruit');
@@ -81,7 +98,8 @@ async function shootSausage(
       const init: PointerEventInit = {
         clientX: r.left + ((f.aimX + off) / g.designWidth) * r.width,
         clientY: r.top + (f.aimY / g.designHeight) * r.height,
-        pointerId: 947,
+        // A fresh pointer per tap, as a real second touch would be.
+        pointerId: id,
         pointerType: isTouch ? 'touch' : 'mouse',
         isPrimary: true,
         button: 0,
@@ -94,7 +112,7 @@ async function shootSausage(
       canvas.dispatchEvent(new PointerEvent('pointerup', { ...init, buttons: 0 }));
       return { shots, i: f.i };
     },
-    [i, offset, touch] as const,
+    [i, offset, touch, pointer] as const,
   );
   await page.waitForFunction((n) => (window.__TM__?.shots ?? 0) > n, before.shots, {
     timeout: 60_000,

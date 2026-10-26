@@ -125,7 +125,7 @@ const FRUIT_LATE = new Set(['karoo-autumn', 'kalahari-summer']);
 async function writeFruit(biome: string, owners: readonly FruitOwner[]): Promise<void> {
   const key = fruitSheetKey(biome);
   const png = join(src, 'sprites', `${key}.png`);
-  const spotsPath = join(root, 'src', 'game', 'view', 'fruit', 'spots', `${biome}.json`);
+  const spotsPath = join(root, 'src', 'game', 'view', 'fruit', 'spots', `fruit-${biome}.json`);
   if (!oursFile(png)) {
     console.warn(`skip sprites/${key}: a human delivery is there`);
     return;

@@ -38,7 +38,7 @@ const SPOT_FILES = import.meta.glob<readonly FruitSpot[]>('./spots/*.json', { im
 
 /** The biome's fruit spots (empty when it has none). */
 export async function loadFruitSpots(biome: string): Promise<readonly FruitSpot[]> {
-  const load = SPOT_FILES[`./spots/${biome}.json`];
+  const load = SPOT_FILES[`./spots/fruit-${biome}.json`];
   return load === undefined ? [] : load();
 }
 

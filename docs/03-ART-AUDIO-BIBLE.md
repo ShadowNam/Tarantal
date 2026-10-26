@@ -282,7 +282,7 @@ streaks, puddles. Lightning flashes must obey the ≤ 3 flashes/second rule and 
 **Fruit as separate sprites (v1.7c, D-047).** Fruit, pods and flowers that react to shots are
 not part of the tree, layer or prop art on the mid, near and foreground planes: each is its own
 sprite in the biome's fruit sheet (`fruit/<biome>`, 512 × 256, its frames and pivots listed in
-`src/game/view/fruit/spots/<biome>.json`). Hanging fruit pivot at the top of the stalk (the
+`src/game/view/fruit/spots/fruit-<biome>.json`). Hanging fruit pivot at the top of the stalk (the
 stalk is part of the sprite), flower spikes at their foot, fruit on the ground at their base;
 each spot also gives the ground line a dropped fruit lands on. They are: Karoo sweet-thorn pods;
 Bushveld baobab pods (not the secret pod) and marula fruit on the ground; Okavango sausages and

@@ -2533,17 +2533,17 @@ delivered: no download.
 `tools/art/fruitSink.ts`; `art:interim` collects them from the mid, near and foreground layers and
 from every prop (the far planes keep theirs baked), renders each on its own and packs them into one
 512 × 256 png8 sheet per biome (`fruit/<biome>`, interim origin), with
-`src/game/view/fruit/spots/<biome>.json` saying where each sits (layer or prop px, its ground line,
+`src/game/view/fruit/spots/fruit-<biome>.json` saying where each sits (layer or prop px, its ground line,
 its frame and pivot). The random streams are used exactly as before, so the rest of every layer
 and prop is unchanged. 282 fruit: Karoo 20 sweet-thorn pods; Bushveld 24 marula fruit and 5 baobab
 pods (the secret pod stays prop art); Okavango 6 sausages and 3 ilala clusters; Kalahari 48
 camelthorn pods; Namibië 92 quiver flower spikes, 17 !nara melons and 67 camelthorn pods. The
 jackalberry draws fruit only at the near detail, which no map uses, so it has none to split.
 (4) *Sizes (gzip):* nothing new in the first download (3,056.0 KB, +0.1 KB: the lazy import and
-the tunables, offset by the Karoo mid layer losing its pods). `FruitView` is its own 3.6 KB chunk;
-each spots table loads with its biome. Sheets: Okavango 6.5 KB and Bushveld 3.3 KB and Namibië
-16.1 KB in their biome chunks (Okavango 1,514.9 of 1,536 KB); the Karoo's (2.2 KB, no room in the
-first download) and the Kalahari's (3.6 KB: the Kalahari and desert chunks are at 1,535.5 KB
+the tunables, offset by the Karoo mid layer losing its pods). `FruitView` (3.6 KB) and each map's spots
+table (`fruit-<biome>`) are small lazy chunks fetched when a hunt starts. Sheets: Okavango 6.5 KB and Bushveld 3.3 KB and Namibië
+16.1 KB in their biome chunks (Okavango 1,514.5 of 1,536 KB); the Karoo's (2.2 KB, no room in the
+first download) and the Kalahari's (3.6 KB: the Kalahari and desert chunks are at 1,534.5 KB
 together) load with the late group, so their fruit show once it has arrived (the first Karoo hunt
 after a cold start may begin without them; `FruitView` swaps the sheet in when it lands).
 (5) *Tests:* `fruitMotion.test.ts` and `fruitHits.test.ts` (swing, sides, near misses, drop
