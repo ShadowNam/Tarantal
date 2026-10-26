@@ -1025,5 +1025,67 @@
     "detail": "3986"
    }
   ]
+ },
+ "karoo-autumn.mon+dieVerste.twee_twee/scope_small": {
+  "summaries": [
+   {
+    "bot": "competent",
+    "hunts": 500,
+    "mean": 3968.826,
+    "p15": 2867,
+    "p25": 3259,
+    "p50": 3901,
+    "p75": 4609,
+    "p85": 5033,
+    "wingShotShare": 0.5748829953198128,
+    "wholeFlocksPerHunt": 0.004,
+    "wholeFlockHuntRate": 0.004,
+    "flushesPerHunt": 9.23,
+    "twoFliesPerHunt": 0.018,
+    "accuracy": 0.7124828417519237,
+    "secretsPerHunt": 4.142,
+    "cratesPerHunt": 1.988,
+    "penaltiesPerHunt": 0.016,
+    "verPerHunt": 20.45
+   }
+  ],
+  "gates": [
+   {
+    "name": "competent mean in 2 500–4 500 (Bosveldjagter)",
+    "pass": true,
+    "detail": "3969"
+   }
+  ]
+ },
+ "karoo-autumn.mon+dieVerste.langloop": {
+  "summaries": [
+   {
+    "bot": "competent",
+    "hunts": 500,
+    "mean": 3776.188,
+    "p15": 2618,
+    "p25": 2976,
+    "p50": 3656,
+    "p75": 4465,
+    "p85": 4927,
+    "wingShotShare": 0.5017865465278857,
+    "wholeFlocksPerHunt": 0,
+    "wholeFlockHuntRate": 0,
+    "flushesPerHunt": 17.554,
+    "twoFliesPerHunt": 0.02,
+    "accuracy": 0.6686320834349905,
+    "secretsPerHunt": 3.252,
+    "cratesPerHunt": 1.952,
+    "penaltiesPerHunt": 0.012,
+    "verPerHunt": 17.35
+   }
+  ],
+  "gates": [
+   {
+    "name": "competent mean in 2 500–4 500 (Bosveldjagter)",
+    "pass": true,
+    "detail": "3776"
+   }
+  ]
  }
 }
