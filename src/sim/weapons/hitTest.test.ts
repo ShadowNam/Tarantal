@@ -174,3 +174,57 @@ describe('touch aim assist rescues a miss (M9, D-026)', () => {
     expect(assistSnap(66, 302.2, CX, assisted, planes([hadeda, behind]))).toBeNull();
   });
 });
+
+describe('minimum hit radius (D-049)', () => {
+  const far = (minHitPx: number): ShotGeometry => ({
+    ...geometry,
+    planeScale: { near: 1, mid: 0.42, far: 0.15, ver: 0.07 },
+    minHitPx: { near: 0, mid: 0, far: minHitPx, ver: 0 },
+  });
+  // A far bird at the left camera end: its body centre is (1000, 300 + 10 × 0.15).
+  const b = bird(1, 'far', 1000, 300);
+  const cy = 300 + 10 * 0.15;
+
+  it('a far body is drawn 16.5 × 12.75 px; the floor widens it to 18 px on both axes', () => {
+    expect(pointInBird(1017, cy, b, 0.15, 0)).toBe(false);
+    expect(pointInBird(1017, cy, b, 0.15, 0, 18)).toBe(true);
+    expect(pointInBird(1000, cy + 15, b, 0.15, 0)).toBe(false);
+    expect(pointInBird(1000, cy + 15, b, 0.15, 0, 18)).toBe(true);
+    expect(pointInBird(1019, cy, b, 0.15, 0, 18)).toBe(false);
+  });
+
+  it('touch assist grows the floored radius', () => {
+    expect(pointInBird(1027, cy, b, 0.15, 10, 18)).toBe(true);
+    expect(pointInBird(1029, cy, b, 0.15, 10, 18)).toBe(false);
+  });
+
+  it('the head is not floored (it stays the size it is drawn)', () => {
+    // Head centre (1000 + 120 × 0.15, 300 − 70 × 0.15) = (1018, 289.5), r 5.7.
+    expect(pointInBird(1018, 289.5 - 7, b, 0.15, 0, 18)).toBe(false);
+    expect(pointInBird(1018, 289.5 - 5, b, 0.15, 0, 18)).toBe(true);
+  });
+
+  it('resolvePellet uses the plane floor from the geometry', () => {
+    const list = planes([b]);
+    const hit = (g: ShotGeometry): number | null =>
+      resolvePellet(1017 - 960, cy, CX, g, list).birdId;
+    expect(hit(far(0))).toBeNull();
+    expect(hit(far(18))).toBe(1);
+  });
+});
+
+describe('the hit floor is for targets only (D-049 review)', () => {
+  it("a don't-shoot bird stays the size it is drawn; a target gets the floor", () => {
+    const g: ShotGeometry = {
+      ...geometry,
+      planeScale: { near: 1, mid: 0.42, far: 0.15, ver: 0.07 },
+      minHitPx: { near: 0, mid: 0, far: 18, ver: 10 },
+    };
+    const cy = 300 + 10 * 0.15;
+    const target = bird(1, 'far', 1000, 300);
+    const protectedBird: HitBird = { ...bird(2, 'far', 1000, 300), snappable: false };
+    // 17 px right of the body centre: outside the drawn 16.5 px, inside the 18 px floor.
+    expect(resolvePellet(1017 - 960, cy, CX, g, planes([target])).birdId).toBe(1);
+    expect(resolvePellet(1017 - 960, cy, CX, g, planes([protectedBird])).birdId).toBeNull();
+  });
+});

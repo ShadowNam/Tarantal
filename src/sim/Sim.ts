@@ -28,6 +28,7 @@ import {
 import { createCharmEngine, type FiredEffect, type TriggerContext } from './charms/interpreter';
 import { CHARM_SCRIPTS } from './charms/registry';
 import { clampCameraX, planeCentreX, planeToDx, quantiseHalf, tapToPlane } from './camera';
+import { tuningRatio } from './planes';
 import { sanitiseCommand } from './commands';
 import { msToTicks, secondsToTicks } from './clock';
 import { createDirector, type DirectorContext } from './director/SpawnDirector';
@@ -460,11 +461,16 @@ export function createSim(config: SimConfig): Sim {
   const firstHitAssistPx = setup.tutorial?.firstHitAssistPx ?? 0;
   /** A flock has run or flushed this hunt (the FTUE dog only comes if none has). */
   let flockRan = false;
+  const geoOf = (p: PlaneId): PlaneGeometry[PlaneId] => ({
+    scrollFactor: scoring.planes[p].scrollFactor,
+    scale: scoring.planes[p].scale,
+    ratio: tuningRatio(scoring.planes[p].scale, scoring.tuningRefScale),
+  });
   const planeGeo: PlaneGeometry = {
-    near: { scrollFactor: scoring.planes.near.scrollFactor, scale: scoring.planes.near.scale },
-    mid: { scrollFactor: scoring.planes.mid.scrollFactor, scale: scoring.planes.mid.scale },
-    far: { scrollFactor: scoring.planes.far.scrollFactor, scale: scoring.planes.far.scale },
-    ver: { scrollFactor: scoring.planes.ver.scrollFactor, scale: scoring.planes.ver.scale },
+    near: geoOf('near'),
+    mid: geoOf('mid'),
+    far: geoOf('far'),
+    ver: geoOf('ver'),
   };
   const stampedeFlockState = biome.pacing.stampede.flockState ?? null;
   const vuvuzela = content.weapons.gadgets[0] ?? null;
@@ -573,6 +579,7 @@ export function createSim(config: SimConfig): Sim {
   const worldDeps: WorldDeps = {
     biome,
     planes: scoring.planes,
+    tuningRefScale: scoring.tuningRefScale,
     creatures: birdCreatures,
     leaveAngle: (fParams.flushAngleRad[0] + fParams.flushAngleRad[1]) / 2,
   };
@@ -593,6 +600,12 @@ export function createSim(config: SimConfig): Sim {
       mid: scoring.planes.mid.scale,
       far: scoring.planes.far.scale,
       ver: scoring.planes.ver.scale,
+    },
+    minHitPx: {
+      near: scoring.planes.near.minHitRadiusPx,
+      mid: scoring.planes.mid.minHitRadiusPx,
+      far: scoring.planes.far.minHitRadiusPx,
+      ver: scoring.planes.ver.minHitRadiusPx,
     },
     assistPx:
       inputKind === 'touch'
@@ -724,6 +737,7 @@ export function createSim(config: SimConfig): Sim {
           twist: setup.feesdag.twist,
           biome,
           planes: scoring.planes,
+          tuningRefScale: scoring.tuningRefScale,
           durationTicks,
           rng: rng.stream('feesdag'),
         });
@@ -1982,7 +1996,7 @@ export function createSim(config: SimConfig): Sim {
         id: nextCrateId,
         centreX: planeCentreX(cameraX, p.scrollFactor),
         planeScale: p.scale,
-        midScale: scoring.planes.mid.scale,
+        refScale: scoring.tuningRefScale,
       },
       rng.stream('crates'),
     );
@@ -2743,7 +2757,12 @@ export function createSim(config: SimConfig): Sim {
     if (spook !== null) {
       const r = stepSpookjag(
         spook,
-        { biome, planes: scoring.planes, rng: rng.stream('feesdag') },
+        {
+          biome,
+          planes: scoring.planes,
+          tuningRefScale: scoring.tuningRefScale,
+          rng: rng.stream('feesdag'),
+        },
         tick,
       );
       for (const f of r.spawned)

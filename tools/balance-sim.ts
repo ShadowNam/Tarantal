@@ -6,6 +6,7 @@
 //          [--input pointer|touch] [--mode classic|daily] [--omen on|off] [--workers N]
 //          [--biome <id>]  (M8: any biome; default the mode's)
 //          [--layout mon..sun] [--bonus verder|nogVerder|dieVerste]  (v1.2/v1.3 maps)
+//          [--feesdag halloween]  (D-048 special day; with --mode daily)
 //          [--weapon <id>] [--sight iron|peep|scope_small]  (v1.3: e.g. the Twee-Twee)
 //          [--out tmp/x.json] [--json]
 //        npm run balance -- --run …   Season Runs per charm policy (see tools/season-sim.ts)
@@ -33,6 +34,8 @@ export interface Job {
   /** v1.2: weekday layout and bonus map (tools/map-report.ts: one report per map). */
   readonly layout?: string | undefined;
   readonly bonus?: string | undefined;
+  /** D-049: a special day (feesdae.json id), e.g. the Halloween Spookjag. */
+  readonly feesdag?: string | undefined;
   /** v1.3: the gun (default: the mode's) and a rifle's sight (default: the gun's). */
   readonly weapon?: string | undefined;
   readonly sight?: string | undefined;
@@ -94,6 +97,7 @@ export function playRows(job: Job): HuntRow[] {
         ...(job.biome === undefined ? {} : { biome: job.biome }),
         ...(job.layout === undefined ? {} : { layout: job.layout }),
         ...(job.bonus === undefined ? {} : { bonus: job.bonus }),
+        ...(job.feesdag === undefined ? {} : { feesdag: job.feesdag }),
         ...(job.weapon === undefined ? {} : { weapon: job.weapon }),
         ...(job.sight === undefined ? {} : { sight: job.sight }),
       },
@@ -251,6 +255,7 @@ async function main(): Promise<void> {
   const biome = biomeArg === '' ? undefined : biomeArg;
   const layout = arg('layout', '') || undefined;
   const bonus = arg('bonus', '') || undefined;
+  const feesdag = arg('feesdag', '') || undefined;
   const weapon = arg('weapon', '') || undefined;
   const sight = arg('sight', '') || undefined;
   const workers = Math.max(1, Number(arg('workers', String(availableParallelism()))));
@@ -275,6 +280,7 @@ async function main(): Promise<void> {
         sight,
         layout,
         bonus,
+        feesdag,
         overrides,
       });
   }

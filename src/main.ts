@@ -11,9 +11,12 @@ import { loadGameContent } from './content/loadBrowser';
 import { AudioDirector, browserAudioEnv } from './game/audio/AudioDirector';
 import { BarkDirector } from './game/audio/barks';
 import {
+  faunaAsDrawn,
+  isPlaneScalePreset,
   withDoppies,
   withEarlySpook,
   withNoBirds,
+  withPlaneScales,
   withQuotaMul,
   withTestCrate,
 } from './game/devContent';
@@ -294,6 +297,7 @@ const hook: TestHook = {
   bonusOpen: [],
   bonusNeedsScope: [],
   verBirds: [],
+  farBirds: [],
   verderUnlocked: null,
   glare: null,
   omen: false,
@@ -398,11 +402,21 @@ hook.boot['script'] = performance.now();
 // v1.6 (D-042): which build this is, first thing in the console.
 console.info(`[build] ${buildLine(buildInfo())}`);
 const loaded = loadGameContent();
-const { feel } = loaded;
+// e2e/dev only (D-049 "before" screenshots): ?planeScale=v17 — the old plane scales and far animals.
+const planeScaleParam = testHooks ? params.get('planeScale') : null;
+const planePreset = isPlaneScalePreset(planeScaleParam) ? planeScaleParam : null;
+const feel =
+  planePreset === null
+    ? loaded.feel
+    : {
+        ...loaded.feel,
+        perspective: { faunaScale: faunaAsDrawn(loaded.feel.perspective.faunaScale) },
+      };
 // M10: the final-asset index, fetched while the platform SDK starts (absent = all placeholders).
 const indexLoad = fetchAssetIndex(feel.assets.indexTimeoutMs);
 const crateParam = testHooks ? params.get('crate') : null;
-const withCrate = crateParam === null ? loaded.bundle : withTestCrate(loaded.bundle, crateParam);
+const shipped = planePreset === null ? loaded.bundle : withPlaneScales(loaded.bundle, planePreset);
+const withCrate = crateParam === null ? shipped : withTestCrate(shipped, crateParam);
 // e2e/dev only: ?quotaMul=0 makes every Season Run quota reachable (short e2e runs).
 const quotaMul = testHooks && params.has('quotaMul') ? Number(params.get('quotaMul')) : NaN;
 const withQuota =

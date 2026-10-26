@@ -113,6 +113,45 @@ export function withNoBirds(b: ContentBundle): ContentBundle {
 }
 
 /**
+ * D-049 (screenshot "before" shots): ?planeScale=v17 puts back the plane scales, aim assist and
+ * hit sizes of v1.7 (near 1, mid 0.5, far 0.22, Ver 0.1, no minimum hit radius). Atlases are
+ * drawn at their packed scale × the ratio, so birds show at the old sizes.
+ */
+export const PLANE_SCALE_PRESETS = {
+  v17: {
+    near: { scale: 1, aimAssistPx: 8, minHitRadiusPx: 0 },
+    mid: { scale: 0.5, aimAssistPx: 14, minHitRadiusPx: 0 },
+    far: { scale: 0.22, aimAssistPx: 18, minHitRadiusPx: 0 },
+    ver: { scale: 0.1, aimAssistPx: 6, minHitRadiusPx: 0 },
+  },
+} as const;
+export type PlaneScalePreset = keyof typeof PLANE_SCALE_PRESETS;
+
+export const isPlaneScalePreset = (s: string | null): s is PlaneScalePreset =>
+  s !== null && Object.hasOwn(PLANE_SCALE_PRESETS, s);
+
+export function withPlaneScales(b: ContentBundle, preset: PlaneScalePreset): ContentBundle {
+  const p = PLANE_SCALE_PRESETS[preset];
+  const planes = b.scoring.planes;
+  return {
+    ...b,
+    scoring: {
+      ...b.scoring,
+      planes: {
+        near: { ...planes.near, ...p.near },
+        mid: { ...planes.mid, ...p.mid },
+        far: { ...planes.far, ...p.far },
+        ver: { ...planes.ver, ...p.ver },
+      },
+    },
+  };
+}
+
+/** The far animals as drawn before D-049 (every faunaScale 1), for the same "before" shots. */
+export const faunaAsDrawn = (scale: Readonly<Record<string, number>>): Record<string, number> =>
+  Object.fromEntries(Object.keys(scale).map((k) => [k, 1]));
+
+/**
  * e2e/dev only (D-048, `?spook=early`): the special days' owls come early, three of them (in the
  * first 40 % of the hunt) and the bats from the start, so a spec meets them within seconds.
  */

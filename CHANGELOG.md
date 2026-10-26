@@ -3,6 +3,30 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.7.4] — Perspective: birds get smaller with distance (26 Oct 2026)
+
+Decision record D-049. The product owner: far guineafowl stood taller than the ostriches and
+zebras beside them. Birds now shrink with every plane back, and the far animals stand in proportion.
+
+### Changed
+- **Plane scales**: mid 0.5 → 0.42, far 0.22 → 0.15, Ver 0.1 → 0.07 (near pop-ups unchanged).
+  Flock spacing, speeds, alert radii and crate drops shrink with the birds on every plane
+  (`scoring.tuningRefScale`).
+- **Far animals** show at 3× (their art is drawn at 3×); the Namibië waterhole's animals are drawn
+  5× taller in place. A far guineafowl no longer stands taller than an ostrich or a springbok.
+- **Still shootable**: a far target's body is hit within at least 18 px, a Ver target's within
+  10 px (mouse and touch; don't-shoot birds and the Spookjag owl stay as drawn, its bats and
+  lanterns get the floor too); touch assist far 12 px (mid 14); far birds score 22 (was 25); the
+  Langloop scores ×0.72 on mid and ×1.15 on far, so its Classic mean stays in range.
+- Bird atlases are packed at the new plane sizes (first download −106 KB).
+- Feathers, alarm bubbles, POOF and score pops follow the plane scales (far text never below
+  0.45×). The Namibië waterhole animals stand head up so they read at their new size.
+
+### Tools
+- `tools/perspective-audit.ts` (proportions per biome and plane) and `tools/perspective-sweep.ts`
+  (the balance cells); tables in `docs/balance/perspective.md`.
+- Dev/e2e `?planeScale=v17` shows the old sizes for before/after screenshots.
+
 ## [1.7.3] — Feesdae: the Halloween Spookjag Daily (31 Oct 2026)
 
 Decision record D-048. On a special day (UTC) the Daily Hunt becomes that day's special for

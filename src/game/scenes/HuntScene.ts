@@ -332,7 +332,13 @@ export class HuntScene extends Phaser.Scene {
     // An id this biome lacks (a bad ?layout=) draws the plain biome rather than failing.
     const map = safeResolveMap(this.biome, this.map.layout, this.map.bonus, this.map.ver);
     const mapBiome = map.biome;
-    this.parallax = new ParallaxView(this, mapBiome, this.manifest, this.ctx.prefs.mergeLayers);
+    this.parallax = new ParallaxView(
+      this,
+      mapBiome,
+      this.manifest,
+      this.ctx.prefs.mergeLayers,
+      this.ctx.feel.perspective.faunaScale,
+    );
     this.parallax.measureFill = this.ctx.hook !== null;
     // D-048: a special day plays the day's map under its own light (Halloween: dusk).
     const special =
@@ -384,6 +390,11 @@ export class HuntScene extends Phaser.Scene {
       (id) => this.birds.potOf(id),
       this.ctx.content.powerups.crates.plane,
       this.ctx.prefs,
+      {
+        near: this.ctx.content.scoring.planes.near.scale,
+        mid: this.ctx.content.scoring.planes.mid.scale,
+        far: this.ctx.content.scoring.planes.far.scale,
+      },
     );
     // v1.7b (D-046): the pickup card says what a crate held; capture footage has no HUD.
     this.fx.itemLabels = this.ctx.capture !== null;
@@ -1659,6 +1670,20 @@ export class HuntScene extends Phaser.Scene {
               b.x + (body?.ox ?? 0) * ver.scale * b.facing,
             ),
           y: b.y + (body?.oy ?? 0) * ver.scale,
+        }));
+      const far = this.ctx.content.scoring.planes.far;
+      hook.farBirds = state.birds
+        .filter((b) => b.plane === 'far' && b.hittable && b.kind === 'target')
+        .map((b) => ({
+          id: b.id,
+          x:
+            width / 2 +
+            planeToDx(
+              state.cameraX,
+              far.scrollFactor,
+              b.x + (body?.ox ?? 0) * far.scale * b.facing,
+            ),
+          y: b.y + (body?.oy ?? 0) * far.scale,
         }));
       hook.flockSpots = state.flocks.map((f) => {
         const members = state.birds.filter((b) => b.flockId === f.id);

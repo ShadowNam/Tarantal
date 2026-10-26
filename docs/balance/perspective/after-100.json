@@ -1,0 +1,1022 @@
+{
+ "classic.pomp": {
+  "summaries": [
+   {
+    "bot": "random",
+    "hunts": 100,
+    "mean": 130.35,
+    "p15": 44,
+    "p25": 69,
+    "p50": 120,
+    "p75": 183,
+    "p85": 214,
+    "wingShotShare": 0.22018348623853212,
+    "wholeFlocksPerHunt": 0,
+    "wholeFlockHuntRate": 0,
+    "flushesPerHunt": 1.91,
+    "twoFliesPerHunt": 0.91,
+    "accuracy": 0.04434334589692211,
+    "secretsPerHunt": 0.93,
+    "cratesPerHunt": 0.09,
+    "penaltiesPerHunt": 0.2,
+    "verPerHunt": 0
+   },
+   {
+    "bot": "plinker",
+    "hunts": 100,
+    "mean": 2915.64,
+    "p15": 2271,
+    "p25": 2509,
+    "p50": 2839,
+    "p75": 3288,
+    "p85": 3617,
+    "wingShotShare": 0.28085246984966133,
+    "wholeFlocksPerHunt": 0.01,
+    "wholeFlockHuntRate": 0.01,
+    "flushesPerHunt": 0.66,
+    "twoFliesPerHunt": 9.8,
+    "accuracy": 0.805546595884217,
+    "secretsPerHunt": 0.24,
+    "cratesPerHunt": 2,
+    "penaltiesPerHunt": 0.04,
+    "verPerHunt": 0
+   },
+   {
+    "bot": "competent",
+    "hunts": 100,
+    "mean": 4338.95,
+    "p15": 3385,
+    "p25": 3585,
+    "p50": 4126,
+    "p75": 4862,
+    "p85": 5306,
+    "wingShotShare": 0.6364924210228078,
+    "wholeFlocksPerHunt": 0.59,
+    "wholeFlockHuntRate": 0.53,
+    "flushesPerHunt": 7.3,
+    "twoFliesPerHunt": 11.4,
+    "accuracy": 0.6797971041018223,
+    "secretsPerHunt": 5.93,
+    "cratesPerHunt": 2,
+    "penaltiesPerHunt": 0.02,
+    "verPerHunt": 0
+   }
+  ],
+  "gates": [
+   {
+    "name": "competent mean in 2 500–4 500 (Bosveldjagter)",
+    "pass": true,
+    "detail": "4339"
+   },
+   {
+    "name": "plinker ≥ 25 % below competent",
+    "pass": true,
+    "detail": "32.8 % below"
+   },
+   {
+    "name": "plinker above random",
+    "pass": true,
+    "detail": "2916 vs 130"
+   }
+  ]
+ },
+ "classic.windbuks": {
+  "summaries": [
+   {
+    "bot": "random",
+    "hunts": 100,
+    "mean": 51.37,
+    "p15": 10,
+    "p25": 20,
+    "p50": 35,
+    "p75": 60,
+    "p85": 90,
+    "wingShotShare": 0.07473309608540925,
+    "wholeFlocksPerHunt": 0,
+    "wholeFlockHuntRate": 0,
+    "flushesPerHunt": 0.11,
+    "twoFliesPerHunt": 0,
+    "accuracy": 0.03282832340825968,
+    "secretsPerHunt": 0.24,
+    "cratesPerHunt": 0.03,
+    "penaltiesPerHunt": 0.07,
+    "verPerHunt": 0
+   },
+   {
+    "bot": "plinker",
+    "hunts": 100,
+    "mean": 1855.76,
+    "p15": 1463,
+    "p25": 1654,
+    "p50": 1892,
+    "p75": 2047,
+    "p85": 2127,
+    "wingShotShare": 0.3026984747751271,
+    "wholeFlocksPerHunt": 0,
+    "wholeFlockHuntRate": 0,
+    "flushesPerHunt": 0.2,
+    "twoFliesPerHunt": 0.09,
+    "accuracy": 0.6276713159421566,
+    "secretsPerHunt": 0.02,
+    "cratesPerHunt": 2,
+    "penaltiesPerHunt": 0.01,
+    "verPerHunt": 0
+   },
+   {
+    "bot": "competent",
+    "hunts": 100,
+    "mean": 2833.09,
+    "p15": 2392,
+    "p25": 2577,
+    "p50": 2795,
+    "p75": 3044,
+    "p85": 3237,
+    "wingShotShare": 0.5796944915908039,
+    "wholeFlocksPerHunt": 0.04,
+    "wholeFlockHuntRate": 0.04,
+    "flushesPerHunt": 7.92,
+    "twoFliesPerHunt": 0.01,
+    "accuracy": 0.6035236848276058,
+    "secretsPerHunt": 5.85,
+    "cratesPerHunt": 1.99,
+    "penaltiesPerHunt": 0.03,
+    "verPerHunt": 0
+   }
+  ],
+  "gates": [
+   {
+    "name": "competent mean in 2 500–4 500 (Bosveldjagter)",
+    "pass": true,
+    "detail": "2833"
+   },
+   {
+    "name": "plinker ≥ 25 % below competent",
+    "pass": true,
+    "detail": "34.5 % below"
+   },
+   {
+    "name": "plinker above random",
+    "pass": true,
+    "detail": "1856 vs 51"
+   }
+  ]
+ },
+ "classic.kettie": {
+  "summaries": [
+   {
+    "bot": "random",
+    "hunts": 100,
+    "mean": 129.73,
+    "p15": 55,
+    "p25": 80,
+    "p50": 120,
+    "p75": 165,
+    "p85": 218,
+    "wingShotShare": 0.10776942355889724,
+    "wholeFlocksPerHunt": 0,
+    "wholeFlockHuntRate": 0,
+    "flushesPerHunt": 0.8,
+    "twoFliesPerHunt": 0.01,
+    "accuracy": 0.027765369086912423,
+    "secretsPerHunt": 0.43,
+    "cratesPerHunt": 0.01,
+    "penaltiesPerHunt": 0.07,
+    "verPerHunt": 0
+   },
+   {
+    "bot": "plinker",
+    "hunts": 100,
+    "mean": 2477.75,
+    "p15": 2032,
+    "p25": 2144,
+    "p50": 2383,
+    "p75": 2820,
+    "p85": 2923,
+    "wingShotShare": 0.3891203703703704,
+    "wholeFlocksPerHunt": 0.01,
+    "wholeFlockHuntRate": 0.01,
+    "flushesPerHunt": 0.45,
+    "twoFliesPerHunt": 0.07,
+    "accuracy": 0.4333080545206085,
+    "secretsPerHunt": 0.03,
+    "cratesPerHunt": 2,
+    "penaltiesPerHunt": 0.01,
+    "verPerHunt": 0
+   },
+   {
+    "bot": "competent",
+    "hunts": 100,
+    "mean": 4750.7,
+    "p15": 4098,
+    "p25": 4254,
+    "p50": 4782,
+    "p75": 5126,
+    "p85": 5426,
+    "wingShotShare": 0.6411217368829155,
+    "wholeFlocksPerHunt": 0.33,
+    "wholeFlockHuntRate": 0.28,
+    "flushesPerHunt": 8.32,
+    "twoFliesPerHunt": 0.01,
+    "accuracy": 0.42748491505544917,
+    "secretsPerHunt": 5.98,
+    "cratesPerHunt": 2,
+    "penaltiesPerHunt": 0.01,
+    "verPerHunt": 0
+   }
+  ],
+  "gates": [
+   {
+    "name": "competent mean in 2 500–4 500 (Bosveldjagter)",
+    "pass": false,
+    "detail": "4751"
+   },
+   {
+    "name": "plinker ≥ 25 % below competent",
+    "pass": true,
+    "detail": "47.8 % below"
+   },
+   {
+    "name": "plinker above random",
+    "pass": true,
+    "detail": "2478 vs 130"
+   }
+  ]
+ },
+ "classic.22iron": {
+  "summaries": [
+   {
+    "bot": "random",
+    "hunts": 100,
+    "mean": 167.59,
+    "p15": 83,
+    "p25": 99,
+    "p50": 162,
+    "p75": 206,
+    "p85": 230,
+    "wingShotShare": 0.25344036697247707,
+    "wholeFlocksPerHunt": 0,
+    "wholeFlockHuntRate": 0,
+    "flushesPerHunt": 0.94,
+    "twoFliesPerHunt": 0,
+    "accuracy": 0.07205853441912109,
+    "secretsPerHunt": 0.22,
+    "cratesPerHunt": 0.03,
+    "penaltiesPerHunt": 0.06,
+    "verPerHunt": 0
+   },
+   {
+    "bot": "plinker",
+    "hunts": 100,
+    "mean": 2398.85,
+    "p15": 1848,
+    "p25": 1964,
+    "p50": 2365,
+    "p75": 2715,
+    "p85": 2958,
+    "wingShotShare": 0.29255698005698005,
+    "wholeFlocksPerHunt": 0.01,
+    "wholeFlockHuntRate": 0.01,
+    "flushesPerHunt": 0.33,
+    "twoFliesPerHunt": 0.04,
+    "accuracy": 0.8655400068075142,
+    "secretsPerHunt": 0,
+    "cratesPerHunt": 2,
+    "penaltiesPerHunt": 0,
+    "verPerHunt": 0
+   },
+   {
+    "bot": "competent",
+    "hunts": 100,
+    "mean": 3740.11,
+    "p15": 2971,
+    "p25": 3189,
+    "p50": 3711,
+    "p75": 4237,
+    "p85": 4525,
+    "wingShotShare": 0.5975778016250192,
+    "wholeFlocksPerHunt": 0.14,
+    "wholeFlockHuntRate": 0.14,
+    "flushesPerHunt": 7.38,
+    "twoFliesPerHunt": 0,
+    "accuracy": 0.7660460423652357,
+    "secretsPerHunt": 5.89,
+    "cratesPerHunt": 2,
+    "penaltiesPerHunt": 0.01,
+    "verPerHunt": 0
+   }
+  ],
+  "gates": [
+   {
+    "name": "competent mean in 2 500–4 500 (Bosveldjagter)",
+    "pass": true,
+    "detail": "3740"
+   },
+   {
+    "name": "plinker ≥ 25 % below competent",
+    "pass": true,
+    "detail": "35.9 % below"
+   },
+   {
+    "name": "plinker above random",
+    "pass": true,
+    "detail": "2399 vs 168"
+   }
+  ]
+ },
+ "classic.22scope": {
+  "summaries": [
+   {
+    "bot": "random",
+    "hunts": 100,
+    "mean": 154.84,
+    "p15": 74,
+    "p25": 95,
+    "p50": 129,
+    "p75": 194,
+    "p85": 244,
+    "wingShotShare": 0.25598991172761665,
+    "wholeFlocksPerHunt": 0,
+    "wholeFlockHuntRate": 0,
+    "flushesPerHunt": 0.85,
+    "twoFliesPerHunt": 0,
+    "accuracy": 0.0743500554020153,
+    "secretsPerHunt": 0.17,
+    "cratesPerHunt": 0.02,
+    "penaltiesPerHunt": 0.06,
+    "verPerHunt": 0
+   },
+   {
+    "bot": "plinker",
+    "hunts": 100,
+    "mean": 2401.84,
+    "p15": 1805,
+    "p25": 2003,
+    "p50": 2363,
+    "p75": 2731,
+    "p85": 2895,
+    "wingShotShare": 0.30527114144861583,
+    "wholeFlocksPerHunt": 0.01,
+    "wholeFlockHuntRate": 0.01,
+    "flushesPerHunt": 0.28,
+    "twoFliesPerHunt": 0.04,
+    "accuracy": 0.8646212300426329,
+    "secretsPerHunt": 0.01,
+    "cratesPerHunt": 2,
+    "penaltiesPerHunt": 0.01,
+    "verPerHunt": 0
+   },
+   {
+    "bot": "competent",
+    "hunts": 100,
+    "mean": 3260.73,
+    "p15": 2625,
+    "p25": 2886,
+    "p50": 3233,
+    "p75": 3676,
+    "p85": 3839,
+    "wingShotShare": 0.5625,
+    "wholeFlocksPerHunt": 0,
+    "wholeFlockHuntRate": 0,
+    "flushesPerHunt": 6.24,
+    "twoFliesPerHunt": 0.01,
+    "accuracy": 0.7397612276653056,
+    "secretsPerHunt": 5.73,
+    "cratesPerHunt": 1.99,
+    "penaltiesPerHunt": 0,
+    "verPerHunt": 0
+   }
+  ],
+  "gates": [
+   {
+    "name": "competent mean in 2 500–4 500 (Bosveldjagter)",
+    "pass": true,
+    "detail": "3261"
+   },
+   {
+    "name": "plinker ≥ 25 % below competent",
+    "pass": true,
+    "detail": "26.3 % below"
+   },
+   {
+    "name": "plinker above random",
+    "pass": true,
+    "detail": "2402 vs 155"
+   }
+  ]
+ },
+ "classic.langloop": {
+  "summaries": [
+   {
+    "bot": "random",
+    "hunts": 100,
+    "mean": 78.72,
+    "p15": 20,
+    "p25": 31,
+    "p50": 66,
+    "p75": 108,
+    "p85": 126,
+    "wingShotShare": 0.5221238938053098,
+    "wholeFlocksPerHunt": 0,
+    "wholeFlockHuntRate": 0,
+    "flushesPerHunt": 10.77,
+    "twoFliesPerHunt": 0,
+    "accuracy": 0.0483614622152767,
+    "secretsPerHunt": 0.2,
+    "cratesPerHunt": 0.03,
+    "penaltiesPerHunt": 0.04,
+    "verPerHunt": 0
+   },
+   {
+    "bot": "plinker",
+    "hunts": 100,
+    "mean": 2036.83,
+    "p15": 1485,
+    "p25": 1594,
+    "p50": 1917,
+    "p75": 2352,
+    "p85": 2647,
+    "wingShotShare": 0.5240562546262029,
+    "wholeFlocksPerHunt": 0,
+    "wholeFlockHuntRate": 0,
+    "flushesPerHunt": 4.58,
+    "twoFliesPerHunt": 0.02,
+    "accuracy": 0.8440122797815468,
+    "secretsPerHunt": 0.03,
+    "cratesPerHunt": 2,
+    "penaltiesPerHunt": 0.01,
+    "verPerHunt": 0
+   },
+   {
+    "bot": "competent",
+    "hunts": 100,
+    "mean": 2344.13,
+    "p15": 1668,
+    "p25": 1844,
+    "p50": 2297,
+    "p75": 2717,
+    "p85": 3049,
+    "wingShotShare": 0.6009696969696969,
+    "wholeFlocksPerHunt": 0,
+    "wholeFlockHuntRate": 0,
+    "flushesPerHunt": 9.09,
+    "twoFliesPerHunt": 0.02,
+    "accuracy": 0.6541624439639547,
+    "secretsPerHunt": 4.86,
+    "cratesPerHunt": 1.96,
+    "penaltiesPerHunt": 0,
+    "verPerHunt": 0
+   }
+  ],
+  "gates": [
+   {
+    "name": "competent mean in 2 500–4 500 (Bosveldjagter)",
+    "pass": false,
+    "detail": "2344"
+   },
+   {
+    "name": "plinker ≥ 25 % below competent",
+    "pass": false,
+    "detail": "13.1 % below"
+   },
+   {
+    "name": "plinker above random",
+    "pass": true,
+    "detail": "2037 vs 79"
+   }
+  ]
+ },
+ "karoo-autumn.mon+verder.dubbelloop": {
+  "summaries": [
+   {
+    "bot": "competent",
+    "hunts": 100,
+    "mean": 3414.81,
+    "p15": 2589,
+    "p25": 3004,
+    "p50": 3419,
+    "p75": 3814,
+    "p85": 4086,
+    "wingShotShare": 0.7734204793028322,
+    "wholeFlocksPerHunt": 0.84,
+    "wholeFlockHuntRate": 0.69,
+    "flushesPerHunt": 6.8,
+    "twoFliesPerHunt": 11.75,
+    "accuracy": 0.42726089275231416,
+    "secretsPerHunt": 5.83,
+    "cratesPerHunt": 2,
+    "penaltiesPerHunt": 0.08,
+    "verPerHunt": 0
+   }
+  ],
+  "gates": [
+   {
+    "name": "competent mean in 2 500–4 500 (Bosveldjagter)",
+    "pass": true,
+    "detail": "3415"
+   }
+  ]
+ },
+ "karoo-autumn.mon+nogVerder.dubbelloop": {
+  "summaries": [
+   {
+    "bot": "competent",
+    "hunts": 100,
+    "mean": 3372.49,
+    "p15": 2396,
+    "p25": 2619,
+    "p50": 3079,
+    "p75": 3978,
+    "p85": 4556,
+    "wingShotShare": 0.7514810426540285,
+    "wholeFlocksPerHunt": 1.5,
+    "wholeFlockHuntRate": 0.89,
+    "flushesPerHunt": 10.03,
+    "twoFliesPerHunt": 13.95,
+    "accuracy": 0.47926016589791337,
+    "secretsPerHunt": 5.87,
+    "cratesPerHunt": 2,
+    "penaltiesPerHunt": 0.04,
+    "verPerHunt": 0
+   }
+  ],
+  "gates": [
+   {
+    "name": "competent mean in 2 500–4 500 (Bosveldjagter)",
+    "pass": true,
+    "detail": "3372"
+   }
+  ]
+ },
+ "karoo-autumn.mon+nogVerder.twee_twee/iron": {
+  "summaries": [
+   {
+    "bot": "competent",
+    "hunts": 100,
+    "mean": 3133.84,
+    "p15": 2323,
+    "p25": 2577,
+    "p50": 3102,
+    "p75": 3580,
+    "p85": 3931,
+    "wingShotShare": 0.6252681252681253,
+    "wholeFlocksPerHunt": 0,
+    "wholeFlockHuntRate": 0,
+    "flushesPerHunt": 9.43,
+    "twoFliesPerHunt": 0.02,
+    "accuracy": 0.6100343539343985,
+    "secretsPerHunt": 3.98,
+    "cratesPerHunt": 2,
+    "penaltiesPerHunt": 0,
+    "verPerHunt": 14.7
+   }
+  ],
+  "gates": [
+   {
+    "name": "competent mean in 2 500–4 500 (Bosveldjagter)",
+    "pass": true,
+    "detail": "3134"
+   }
+  ]
+ },
+ "karoo-autumn.mon+nogVerder.twee_twee/scope_small": {
+  "summaries": [
+   {
+    "bot": "competent",
+    "hunts": 100,
+    "mean": 4277.53,
+    "p15": 3181,
+    "p25": 3458,
+    "p50": 4174,
+    "p75": 4863,
+    "p85": 5580,
+    "wingShotShare": 0.5837881544370326,
+    "wholeFlocksPerHunt": 0,
+    "wholeFlockHuntRate": 0,
+    "flushesPerHunt": 9.01,
+    "twoFliesPerHunt": 0.02,
+    "accuracy": 0.6942456530311226,
+    "secretsPerHunt": 4.37,
+    "cratesPerHunt": 2,
+    "penaltiesPerHunt": 0,
+    "verPerHunt": 15.42
+   }
+  ],
+  "gates": [
+   {
+    "name": "competent mean in 2 500–4 500 (Bosveldjagter)",
+    "pass": true,
+    "detail": "4278"
+   }
+  ]
+ },
+ "karoo-autumn.mon+nogVerder.langloop": {
+  "summaries": [
+   {
+    "bot": "competent",
+    "hunts": 100,
+    "mean": 3659.81,
+    "p15": 2634,
+    "p25": 2918,
+    "p50": 3535,
+    "p75": 4261,
+    "p85": 4784,
+    "wingShotShare": 0.526029526029526,
+    "wholeFlocksPerHunt": 0,
+    "wholeFlockHuntRate": 0,
+    "flushesPerHunt": 14.39,
+    "twoFliesPerHunt": 0.01,
+    "accuracy": 0.6422507041801291,
+    "secretsPerHunt": 3,
+    "cratesPerHunt": 1.96,
+    "penaltiesPerHunt": 0.01,
+    "verPerHunt": 13.88
+   }
+  ],
+  "gates": [
+   {
+    "name": "competent mean in 2 500–4 500 (Bosveldjagter)",
+    "pass": true,
+    "detail": "3660"
+   }
+  ]
+ },
+ "karoo-autumn.mon+dieVerste.twee_twee/scope_small": {
+  "summaries": [
+   {
+    "bot": "competent",
+    "hunts": 100,
+    "mean": 3829.35,
+    "p15": 2740,
+    "p25": 3039,
+    "p50": 3767,
+    "p75": 4427,
+    "p85": 4912,
+    "wingShotShare": 0.5731454620803978,
+    "wholeFlocksPerHunt": 0,
+    "wholeFlockHuntRate": 0,
+    "flushesPerHunt": 8.93,
+    "twoFliesPerHunt": 0.01,
+    "accuracy": 0.6925651910237975,
+    "secretsPerHunt": 4.15,
+    "cratesPerHunt": 1.98,
+    "penaltiesPerHunt": 0.02,
+    "verPerHunt": 19.86
+   }
+  ],
+  "gates": [
+   {
+    "name": "competent mean in 2 500–4 500 (Bosveldjagter)",
+    "pass": true,
+    "detail": "3829"
+   }
+  ]
+ },
+ "karoo-autumn.mon+dieVerste.langloop": {
+  "summaries": [
+   {
+    "bot": "competent",
+    "hunts": 100,
+    "mean": 3496.82,
+    "p15": 2444,
+    "p25": 2727,
+    "p50": 3576,
+    "p75": 4177,
+    "p85": 4440,
+    "wingShotShare": 0.5047644256220223,
+    "wholeFlocksPerHunt": 0,
+    "wholeFlockHuntRate": 0,
+    "flushesPerHunt": 17.3,
+    "twoFliesPerHunt": 0.01,
+    "accuracy": 0.6345350055659833,
+    "secretsPerHunt": 3.13,
+    "cratesPerHunt": 1.93,
+    "penaltiesPerHunt": 0.01,
+    "verPerHunt": 16.93
+   }
+  ],
+  "gates": [
+   {
+    "name": "competent mean in 2 500–4 500 (Bosveldjagter)",
+    "pass": true,
+    "detail": "3497"
+   }
+  ]
+ },
+ "namibie.tue.twee_twee/scope_small": {
+  "summaries": [
+   {
+    "bot": "competent",
+    "hunts": 100,
+    "mean": 4200.17,
+    "p15": 3364,
+    "p25": 3672,
+    "p50": 4254,
+    "p75": 4800,
+    "p85": 4935,
+    "wingShotShare": 0.49843198745589967,
+    "wholeFlocksPerHunt": 0,
+    "wholeFlockHuntRate": 0,
+    "flushesPerHunt": 7.38,
+    "twoFliesPerHunt": 0.03,
+    "accuracy": 0.8051710719752256,
+    "secretsPerHunt": 1.39,
+    "cratesPerHunt": 2,
+    "penaltiesPerHunt": 1.41,
+    "verPerHunt": 15.4
+   }
+  ],
+  "gates": [
+   {
+    "name": "competent mean in 2 500–4 500 (Bosveldjagter)",
+    "pass": true,
+    "detail": "4200"
+   }
+  ]
+ },
+ "namibie.thu.twee_twee/scope_small": {
+  "summaries": [
+   {
+    "bot": "competent",
+    "hunts": 100,
+    "mean": 4260.27,
+    "p15": 3423,
+    "p25": 3696,
+    "p50": 4277,
+    "p75": 4775,
+    "p85": 5129,
+    "wingShotShare": 0.5237564959168522,
+    "wholeFlocksPerHunt": 0,
+    "wholeFlockHuntRate": 0,
+    "flushesPerHunt": 7.96,
+    "twoFliesPerHunt": 0.03,
+    "accuracy": 0.8389637635978106,
+    "secretsPerHunt": 1.03,
+    "cratesPerHunt": 2,
+    "penaltiesPerHunt": 0.46,
+    "verPerHunt": 14.63
+   }
+  ],
+  "gates": [
+   {
+    "name": "competent mean in 2 500–4 500 (Bosveldjagter)",
+    "pass": true,
+    "detail": "4260"
+   }
+  ]
+ },
+ "namibie.sat.twee_twee/scope_small": {
+  "summaries": [
+   {
+    "bot": "competent",
+    "hunts": 100,
+    "mean": 4106.82,
+    "p15": 3356,
+    "p25": 3549,
+    "p50": 4060,
+    "p75": 4601,
+    "p85": 5004,
+    "wingShotShare": 0.4775561097256858,
+    "wholeFlocksPerHunt": 0,
+    "wholeFlockHuntRate": 0,
+    "flushesPerHunt": 7.74,
+    "twoFliesPerHunt": 0.04,
+    "accuracy": 0.8004502786866523,
+    "secretsPerHunt": 0.99,
+    "cratesPerHunt": 1.99,
+    "penaltiesPerHunt": 1.25,
+    "verPerHunt": 14.65
+   }
+  ],
+  "gates": [
+   {
+    "name": "competent mean in 2 500–4 500 (Bosveldjagter)",
+    "pass": true,
+    "detail": "4107"
+   }
+  ]
+ },
+ "namibie.sun.twee_twee/scope_small": {
+  "summaries": [
+   {
+    "bot": "competent",
+    "hunts": 100,
+    "mean": 4299.53,
+    "p15": 3544,
+    "p25": 3706,
+    "p50": 4175,
+    "p75": 4963,
+    "p85": 5343,
+    "wingShotShare": 0.49922660479505027,
+    "wholeFlocksPerHunt": 0,
+    "wholeFlockHuntRate": 0,
+    "flushesPerHunt": 7.95,
+    "twoFliesPerHunt": 0,
+    "accuracy": 0.8077881307303754,
+    "secretsPerHunt": 1.17,
+    "cratesPerHunt": 2,
+    "penaltiesPerHunt": 1.37,
+    "verPerHunt": 14.89
+   }
+  ],
+  "gates": [
+   {
+    "name": "competent mean in 2 500–4 500 (Bosveldjagter)",
+    "pass": true,
+    "detail": "4300"
+   }
+  ]
+ },
+ "namibie.sat.langloop": {
+  "summaries": [
+   {
+    "bot": "competent",
+    "hunts": 100,
+    "mean": 3281.72,
+    "p15": 2430,
+    "p25": 2840,
+    "p50": 3329,
+    "p75": 3720,
+    "p85": 4051,
+    "wingShotShare": 0.4279141104294479,
+    "wholeFlocksPerHunt": 0,
+    "wholeFlockHuntRate": 0,
+    "flushesPerHunt": 12.67,
+    "twoFliesPerHunt": 0.03,
+    "accuracy": 0.7934773717039328,
+    "secretsPerHunt": 0.8,
+    "cratesPerHunt": 1.97,
+    "penaltiesPerHunt": 1.12,
+    "verPerHunt": 11.97
+   }
+  ],
+  "gates": [
+   {
+    "name": "competent mean in 2 500–4 500 (Bosveldjagter)",
+    "pass": true,
+    "detail": "3282"
+   }
+  ]
+ },
+ "classic.dubbelloop": {
+  "summaries": [
+   {
+    "bot": "random",
+    "hunts": 100,
+    "mean": 249.49,
+    "p15": 124,
+    "p25": 169,
+    "p50": 217,
+    "p75": 323,
+    "p85": 385,
+    "wingShotShare": 0.34126163391933817,
+    "wholeFlocksPerHunt": 0,
+    "wholeFlockHuntRate": 0,
+    "flushesPerHunt": 3.26,
+    "twoFliesPerHunt": 1.52,
+    "accuracy": 0.04310306756173912,
+    "secretsPerHunt": 1.67,
+    "cratesPerHunt": 0.16,
+    "penaltiesPerHunt": 0.36,
+    "verPerHunt": 0
+   },
+   {
+    "bot": "plinker",
+    "hunts": 100,
+    "mean": 2103.63,
+    "p15": 1733,
+    "p25": 1840,
+    "p50": 2063,
+    "p75": 2285,
+    "p85": 2377,
+    "wingShotShare": 0.34211868729807854,
+    "wholeFlocksPerHunt": 0.04,
+    "wholeFlockHuntRate": 0.04,
+    "flushesPerHunt": 1.1,
+    "twoFliesPerHunt": 10.08,
+    "accuracy": 0.6150743531409618,
+    "secretsPerHunt": 0.5,
+    "cratesPerHunt": 2,
+    "penaltiesPerHunt": 0.07,
+    "verPerHunt": 0
+   },
+   {
+    "bot": "competent",
+    "hunts": 100,
+    "mean": 4233.67,
+    "p15": 3564,
+    "p25": 3712,
+    "p50": 4109,
+    "p75": 4609,
+    "p85": 4949,
+    "wingShotShare": 0.6724673021502993,
+    "wholeFlocksPerHunt": 1.34,
+    "wholeFlockHuntRate": 0.92,
+    "flushesPerHunt": 8,
+    "twoFliesPerHunt": 16.8,
+    "accuracy": 0.5709921726302472,
+    "secretsPerHunt": 6.01,
+    "cratesPerHunt": 2,
+    "penaltiesPerHunt": 0.09,
+    "verPerHunt": 0
+   }
+  ],
+  "gates": [
+   {
+    "name": "competent mean in 2 500–4 500 (Bosveldjagter)",
+    "pass": true,
+    "detail": "4234"
+   },
+   {
+    "name": "plinker ≥ 25 % below competent",
+    "pass": true,
+    "detail": "50.3 % below"
+   },
+   {
+    "name": "plinker above random",
+    "pass": true,
+    "detail": "2104 vs 249"
+   }
+  ]
+ },
+ "touch.dubbelloop": {
+  "summaries": [
+   {
+    "bot": "random",
+    "hunts": 100,
+    "mean": 252.97,
+    "p15": 124,
+    "p25": 173,
+    "p50": 222,
+    "p75": 327,
+    "p85": 397,
+    "wingShotShare": 0.3432073544433095,
+    "wholeFlocksPerHunt": 0,
+    "wholeFlockHuntRate": 0,
+    "flushesPerHunt": 3.25,
+    "twoFliesPerHunt": 1.57,
+    "accuracy": 0.04349466547927935,
+    "secretsPerHunt": 1.67,
+    "cratesPerHunt": 0.16,
+    "penaltiesPerHunt": 0.36,
+    "verPerHunt": 0
+   },
+   {
+    "bot": "plinker",
+    "hunts": 100,
+    "mean": 2220.36,
+    "p15": 1684,
+    "p25": 1813,
+    "p50": 2201,
+    "p75": 2516,
+    "p85": 2773,
+    "wingShotShare": 0.3617940199335548,
+    "wholeFlocksPerHunt": 0.08,
+    "wholeFlockHuntRate": 0.08,
+    "flushesPerHunt": 1.26,
+    "twoFliesPerHunt": 9.84,
+    "accuracy": 0.6304010775027206,
+    "secretsPerHunt": 0.69,
+    "cratesPerHunt": 2,
+    "penaltiesPerHunt": 0.08,
+    "verPerHunt": 0
+   },
+   {
+    "bot": "competent",
+    "hunts": 100,
+    "mean": 4409.59,
+    "p15": 3422,
+    "p25": 3743,
+    "p50": 4280,
+    "p75": 4847,
+    "p85": 5351,
+    "wingShotShare": 0.6771653543307087,
+    "wholeFlocksPerHunt": 1.33,
+    "wholeFlockHuntRate": 0.86,
+    "flushesPerHunt": 8.15,
+    "twoFliesPerHunt": 16.69,
+    "accuracy": 0.5779189041980218,
+    "secretsPerHunt": 5.98,
+    "cratesPerHunt": 2,
+    "penaltiesPerHunt": 0.16,
+    "verPerHunt": 0
+   }
+  ],
+  "gates": [
+   {
+    "name": "competent mean in 2 500–4 500 (Bosveldjagter)",
+    "pass": true,
+    "detail": "4410"
+   },
+   {
+    "name": "plinker ≥ 25 % below competent",
+    "pass": true,
+    "detail": "49.6 % below"
+   },
+   {
+    "name": "plinker above random",
+    "pass": true,
+    "detail": "2220 vs 253"
+   }
+  ]
+ }
+}

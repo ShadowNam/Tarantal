@@ -84,11 +84,19 @@ animations. Aim for PEGI 7 / ESRB E10+ (the current Moorhuhn 2 console release i
 | Plane | Visual scale | Base points | Notes |
 |---|---|---|---|
 | Near (pop-ups) | 1.0 (largest) | 5 | Curious birds pop up from the grass, stare, duck. Easy, cheap. |
-| Mid | 0.5 | 10 | Where flocks forage and run. The main stage. |
-| Far | 0.22 | 25 | Fly-overs and distant flocks. Small, fast, wind-affected. |
-| **Ver** (v1.3) | 0.10 | 50 | Distant flocks on the strip at the foot of the far ridge, a few px unzoomed. **Rifles only:** shotgun pellets, air-rifle pellets, crate guns and Kettie stones fall short. Only on maps that open it (the bonus maps Nog Verder and Die Verste, §11.5). |
+| Mid | 0.42 | 10 | Where flocks forage and run. The main stage. |
+| Far | 0.15 | 22 | Fly-overs and distant flocks. Small, fast, wind-affected. |
+| **Ver** (v1.3) | 0.07 | 50 | Distant flocks on the strip at the foot of the far ridge, a few px unzoomed. **Rifles only:** shotgun pellets, air-rifle pellets, crate guns and Kettie stones fall short. Only on maps that open it (the bonus maps Nog Verder and Die Verste, §11.5). |
 
-Moorhuhn's original paid 25 for the farthest birds; we keep 5 / 10 / 25 so the instinct transfers.
+Moorhuhn's original paid 25 for the farthest birds; we kept 5 / 10 / 25 so the instinct transfers
+(far 22 since D-049, which made far birds smaller).
+
+**Perspective (D-049):** birds get smaller with every plane back (standing 263 / 110 / 39 / 18 px
+on near / mid / far / Ver), and what stands on a plane is in proportion to them: a far
+guineafowl is never taller than an ostrich or a springbok beside it (far herds show at 3×, the
+Waterhole's animals are drawn 5× taller). Flock spacing and speeds shrink with the plane. Small
+birds stay shootable: a far body is hit within at least 18 px, a Ver body within 10 px, with mouse
+or touch. Per-species target heights: `docs/balance/perspective.md`.
 The Ver plane (D-036) sits behind the far plane (scroll factor 0.22, between the far ridge and the
 far veld); a rifle's zoom is how you see and hit it (§10.6).
 
@@ -260,7 +268,7 @@ Design rule: few weapons, each with a distinct *verb*. Every weapon changes how 
 | `kettie` | Die Kettie (slingshot) | Whole-flock 3 times | ∞ / 0.35 s draw | 1 projectile, travel time + drop + wind | Misses alert small radius (120 px) | ×2 all hits |
 | `pomp` | Plaas-Pomp (pump shotgun) | Reach Plaaswerker rank | 6 / 0.7 s **per shell**, interruptible | 6 pellets, tighter spread | Alerts | ×1 |
 | `twee_twee` | Die Twee-Twee (.22 bolt-action, v1.3) | Unlock Nog Verder once | 5 / 1.2 s magazine; 0.4 s bolt between shots | 1 bullet; **hold to zoom, release to fire** (§10.6); reaches the Ver plane; hip shot 36 px | Fairly quiet: alerts 180 px | ×1.5 on the Ver plane |
-| `langloop` | Die Langloop (long-range rifle, v1.4, D-038) | Unlock Die Verste once, in any area | 3 / 1.5 s magazine; 0.8 s bolt between shots | 1 bullet; variable scope 3× / 6× / 9× (§10.6); reaches the Ver plane; wind sensitivity 0.5; hip shot 60 px | **Very loud: every shot alerts every flock** | ×2 on the Ver plane; ×0.65 near and mid |
+| `langloop` | Die Langloop (long-range rifle, v1.4, D-038) | Unlock Die Verste once, in any area | 3 / 1.5 s magazine; 0.8 s bolt between shots | 1 bullet; variable scope 3× / 6× / 9× (§10.6); reaches the Ver plane; wind sensitivity 0.5; hip shot 60 px | **Very loud: every shot alerts every flock** | ×2 on the Ver plane; ×0.65 near, ×0.72 mid, ×1.15 far (D-049) |
 
 Kettie: a stone reaches the near / mid / far plane after 80 / 180 / 350 ms and drops on the way,
 so you lead moving birds and aim a touch high; it lands where you aimed in the world even if you

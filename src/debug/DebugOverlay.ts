@@ -7,6 +7,7 @@ import type { Biome } from '../content/schemas';
 import type { InputKind, PlaneId, SimState } from '../sim/types';
 import type { DrawBird } from '../game/view/interpolate';
 import type { ParallaxView } from '../game/view/ParallaxView';
+import { hitRadius } from '../sim/planes';
 
 export class DebugOverlay {
   private readonly content: ContentBundle;
@@ -88,14 +89,16 @@ export class DebugOverlay {
       if (!c || c.kind === 'helper' || !g) continue;
       const s = planes[b.view.plane].scale;
       const a = inputKind === 'touch' ? planes[b.view.plane].aimAssistPx : 0;
+      // D-049: the floor is for targets and bosses only (as in hitTest).
+      const m = c.kind === 'target' || c.kind === 'boss' ? planes[b.view.plane].minHitRadiusPx : 0;
       const f = b.view.facing;
       g.lineStyle(2, b.view.hittable ? 0x00ff88 : 0xff4444, 1);
       const body = c.hitbox.body;
       g.strokeEllipse(
         b.x + body.ox * s * f,
         b.y + body.oy * s,
-        (body.rx * s + a) * 2,
-        (body.ry * s + a) * 2,
+        (hitRadius(body.rx, s, m) + a) * 2,
+        (hitRadius(body.ry, s, m) + a) * 2,
       );
       const head = c.hitbox.head;
       if (head) g.strokeCircle(b.x + head.ox * s * f, b.y + head.oy * s, head.r * s + a);

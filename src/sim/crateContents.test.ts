@@ -17,7 +17,7 @@ describe('crate contents (D-046)', () => {
     const a = spawnCrate(
       cfg,
       biome,
-      { id: 1, centreX: 0, planeScale: 1, midScale: 1 },
+      { id: 1, centreX: 0, planeScale: 1, refScale: 1 },
       createRng(5).stream('crates'),
     );
     // Same stream: position first (x, then the landing y), then the roll.

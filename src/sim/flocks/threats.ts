@@ -8,6 +8,8 @@ import type { Flock } from './Flock';
 export interface PlaneGeo {
   readonly scrollFactor: number;
   readonly scale: number;
+  /** D-049: scale / scoring.tuningRefScale (converts px tunings written at the mid plane). */
+  readonly ratio: number;
 }
 export type PlaneGeometry = Readonly<Record<PlaneId, PlaneGeo>>;
 
@@ -23,9 +25,10 @@ export interface FlockThreat {
   readonly x: number;
 }
 
-/** The weapon radius on a plane: alertRadiusPx is design px at the mid plane. */
+/** The weapon radius on a plane: alertRadiusPx is design px at the mid plane (D-049: at
+ *  scoring.tuningRefScale; `ratio` converts it). */
 export function radiusOnPlane(radiusMidPx: number, plane: PlaneId, geo: PlaneGeometry): number {
-  return (radiusMidPx * geo[plane].scale) / geo.mid.scale;
+  return radiusMidPx * geo[plane].ratio;
 }
 
 /**

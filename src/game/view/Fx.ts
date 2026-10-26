@@ -67,6 +67,8 @@ export class Fx {
     locatePot: (birdId: number) => PotSpot | null,
     cratePlane: PlaneId,
     private readonly prefs: LivePrefs,
+    /** D-049: each plane's scale (content/scoring.json), for the feather burst. */
+    private readonly planeScale: Readonly<Record<'near' | 'mid' | 'far', number>>,
   ) {
     this.scene = scene;
     this.pops = new PopPool(scene);
@@ -76,7 +78,7 @@ export class Fx {
     this.feel = feel;
     this.parallax = parallax;
     for (const plane of ['near', 'mid', 'far'] as const) {
-      const scale = plane === 'near' ? 1.4 : plane === 'mid' ? 0.9 : 0.5;
+      const scale = feel.juice.featherPerScale[plane] * planeScale[plane];
       const emitter = scene.add.particles(0, 0, TEX.feather, {
         emitting: false,
         speed: { min: 120 * scale, max: 520 * scale },
@@ -321,6 +323,13 @@ export class Fx {
     this.label(layer, pot.x, pot.y - 40, t('fx.clang'), '#FFD25A', s * 2);
   }
 
+  /** D-049: a text effect's size on a plane (feel.json juice.textPerScale × the plane's scale). */
+  private textScale(kind: 'bubble' | 'poof' | 'pop', plane: PlaneId): number {
+    const p = plane === 'ver' ? 'far' : plane;
+    const j = this.feel.juice;
+    return Math.max(j.textMinScale, j.textPerScale[kind][p] * this.planeScale[p]);
+  }
+
   private featherBurst(plane: PlaneId, x: number, y: number): void {
     const [lo, hi] = this.feel.juice.featherCount;
     const n = Math.round((lo + Math.random() * (hi - lo)) * this.prefs.particleScale);
@@ -331,7 +340,7 @@ export class Fx {
   private bubble(plane: PlaneId, x: number, y: number, text: string, big: boolean): void {
     const layer = this.parallax.plane(plane).overlay;
     if (!layer) return;
-    const s = (plane === 'near' ? 1 : plane === 'mid' ? 0.75 : 0.5) * (big ? 1.25 : 0.8);
+    const s = this.textScale('bubble', plane) * (big ? 1.25 : 0.8);
     const lift = (big ? 170 : 120) * s;
     const ms = big ? this.feel.juice.flushBubbleMs : this.feel.juice.kekBubbleMs;
     const rot = Phaser.Math.DegToRad(big ? -6 : 4);
@@ -372,7 +381,7 @@ export class Fx {
   private poof(plane: PlaneId, x: number, y: number): void {
     const layer = this.parallax.plane(plane).overlay;
     if (!layer) return;
-    const s = plane === 'near' ? 0.9 : plane === 'mid' ? 0.6 : 0.4;
+    const s = this.textScale('poof', plane);
     const rot = Phaser.Math.DegToRad((Math.random() - 0.5) * 16);
     const text = t('fx.poof');
     const style = { ...outline(64, 8) };
@@ -458,7 +467,7 @@ export class Fx {
   private scorePop(at: BagSpot, parts: string, award: string, color: string): void {
     const layer = this.parallax.plane(at.plane).overlay;
     if (!layer) return;
-    const s = at.plane === 'near' ? 1 : at.plane === 'mid' ? 0.8 : 0.65;
+    const s = this.textScale('pop', at.plane);
     const resolvedColor = color === '#F3EAD3' ? '#FFD25A' : color;
     // v1.0.1 (D-028 §4): a pooled BitmapText pop. A string the pop atlas can't draw (it never
     // happens with format.ts) falls back to a canvas Text.
@@ -501,7 +510,7 @@ export class Fx {
   private scorePopText(at: BagSpot, parts: string, award: string, color: string): void {
     const layer = this.parallax.plane(at.plane).overlay;
     if (!layer) return;
-    const s = at.plane === 'near' ? 1 : at.plane === 'mid' ? 0.8 : 0.65;
+    const s = this.textScale('pop', at.plane);
     const text = this.scene.add
       .text(at.x, at.y - 110 * s, parts, {
         fontFamily: FONT,

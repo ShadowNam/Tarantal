@@ -7,6 +7,7 @@ import { msToTicks, TICKS_PER_SECOND } from '../clock';
 import type { RandomStream } from '../rng';
 import type { PlaneId } from '../types';
 import { coreWidth, LAYER_BLEED_PX } from '../world';
+import { hitRadius, tuningRatio } from '../planes';
 
 export type SpookTwist = Feesdag['twist'];
 
@@ -70,6 +71,8 @@ export interface SpookDeps {
   readonly twist: SpookTwist;
   readonly biome: Biome;
   readonly planes: Scoring['planes'];
+  /** scoring.tuningRefScale (D-049): px tunings × plane scale ÷ this. */
+  readonly tuningRefScale: number;
   readonly durationTicks: number;
   readonly rng: RandomStream;
 }
@@ -211,7 +214,7 @@ export function stepSpookjag(
   d: Omit<SpookDeps, 'twist' | 'durationTicks'>,
   tick: number,
 ): SpookStep {
-  const { rng, planes, biome } = d;
+  const { rng, planes, biome, tuningRefScale } = d;
   const spawned: SpookThing[] = [];
   while (s.cursor < s.due.length && (s.due[s.cursor]?.tick ?? Infinity) <= tick) {
     const due = s.due[s.cursor++];
@@ -222,7 +225,7 @@ export function stepSpookjag(
     const sky = plane === undefined ? undefined : (cfg.skyY ?? biome.lanes[plane]?.skyY);
     if (plane === undefined || sky === undefined) continue;
     const p = planes[plane];
-    const ratio = p.scale / planes.mid.scale;
+    const ratio = tuningRatio(p.scale, tuningRefScale);
     const dir: 1 | -1 = rng.chance(0.5) ? 1 : -1;
     const margin = cfg.rx * 2 * p.scale;
     const f: SpookThing = {
@@ -251,7 +254,7 @@ export function stepSpookjag(
     if (f.kind === 'lantern') continue;
     const cfg = cfgOf(s, f.kind);
     const p = planes[f.plane];
-    const ratio = p.scale / planes.mid.scale;
+    const ratio = tuningRatio(p.scale, tuningRefScale);
     if (tick >= f.swerveEnd) newSwerve(s, f, ratio, tick, rng);
     const k = ease((tick - f.swerveStart) / Math.max(1, f.swerveEnd - f.swerveStart));
     f.x += f.vx;
@@ -278,16 +281,21 @@ export function removeThings(s: Spookjag, ids: readonly number[]): void {
   }
 }
 
-/** Hit ellipse of a thing (plane coords, already scaled by the plane); dark lanterns have none. */
+/**
+ * Hit ellipse of a thing (plane coords, already scaled by the plane); dark lanterns have none.
+ * D-049: bats and lanterns (targets) get the plane's minimum hit radius like birds; the owl
+ * (protected) stays the size it is drawn.
+ */
 export function spookShape(
   s: Spookjag,
   t: SpookThing,
   planes: Scoring['planes'],
 ): { rx: number; ry: number } | null {
   if (t.kind === 'lantern' && t.dark) return null;
-  const k = planes[t.plane].scale;
+  const p = planes[t.plane];
+  const min = t.kind === 'owl' ? 0 : p.minHitRadiusPx;
   const c = t.kind === 'lantern' ? s.twist.lanterns : cfgOf(s, t.kind);
-  return { rx: c.rx * k, ry: c.ry * k };
+  return { rx: hitRadius(c.rx, p.scale, min), ry: hitRadius(c.ry, p.scale, min) };
 }
 
 /** Lanterns still lit. */

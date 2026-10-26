@@ -133,12 +133,12 @@ describe('the Ver plane (v1.3)', () => {
         );
   });
 
-  it('spawns Ver flocks at scale 0.10 behind the far plane', () => {
+  it('spawns Ver flocks at scale 0.07 behind the far plane (D-049)', () => {
     const c = verContent();
     const sim = newSim(c, verMode());
     const b = verBird(sim);
     expect(b.plane).toBe('ver');
-    expect(c.scoring.planes.ver).toMatchObject({ base: 50, scale: 0.1 });
+    expect(c.scoring.planes.ver).toMatchObject({ base: 50, scale: 0.07 });
     expect(c.scoring.planes.ver.scrollFactor).toBeLessThan(c.scoring.planes.far.scrollFactor);
     expect(sim.snapshot().flocks.some((f) => f.plane === 'ver')).toBe(true);
   });

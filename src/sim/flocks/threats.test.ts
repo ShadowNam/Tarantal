@@ -9,13 +9,16 @@ import { radiusOnPlane, reactionTargets, shotThreats, type PlaneGeometry } from 
 
 const content = loadContent();
 const P = content.scoring.planes;
+const R = content.scoring.tuningRefScale;
 const geo: PlaneGeometry = {
-  near: { scrollFactor: P.near.scrollFactor, scale: P.near.scale },
-  mid: { scrollFactor: P.mid.scrollFactor, scale: P.mid.scale },
-  far: { scrollFactor: P.far.scrollFactor, scale: P.far.scale },
-  ver: { scrollFactor: P.ver.scrollFactor, scale: P.ver.scale },
+  near: { scrollFactor: P.near.scrollFactor, scale: P.near.scale, ratio: P.near.scale / R },
+  mid: { scrollFactor: P.mid.scrollFactor, scale: P.mid.scale, ratio: P.mid.scale / R },
+  far: { scrollFactor: P.far.scrollFactor, scale: P.far.scale, ratio: P.far.scale / R },
+  ver: { scrollFactor: P.ver.scrollFactor, scale: P.ver.scale, ratio: P.ver.scale / R },
 };
 const CAM = 2000;
+/** D-049: px tunings are written at tuningRefScale; on the mid plane they are × this. */
+const MID = P.mid.scale / R;
 const radiusOf = (id: string): number => {
   const w = content.weapons.weapons.find((x) => x.id === id);
   if (w === undefined) throw new Error(id);
@@ -32,20 +35,21 @@ function loneFlock(plane: 'mid' | 'far', offsetX: number, id = 1) {
 }
 
 describe('shot threats', () => {
-  it('Dubbelloop / Pomp: 260 px around an impact on the mid plane, hit or miss', () => {
+  it('Dubbelloop / Pomp: 260 px (at the tuning scale) around an impact on the mid plane', () => {
     expect(radiusOf('dubbelloop')).toBe(260);
     expect(radiusOf('pomp')).toBe(260);
-    const near = loneFlock('mid', 255);
+    const near = loneFlock('mid', 260 * MID - 5);
     expect(shotThreats([near.flock], [near.impact], CAM, 260, geo, new Set())).toHaveLength(1);
-    const far = loneFlock('mid', 265);
+    const far = loneFlock('mid', 260 * MID + 5);
     expect(shotThreats([far.flock], [far.impact], CAM, 260, geo, new Set())).toHaveLength(0);
   });
 
-  it('the radius scales with the plane (far plane: 260 × 0.22 / 0.5 = 114.4 px)', () => {
-    expect(radiusOnPlane(260, 'far', geo)).toBeCloseTo(114.4, 6);
-    const inR = loneFlock('far', 110);
+  it('the radius scales with the plane (D-049: far plane 260 × 0.15 / 0.5 = 78 px)', () => {
+    expect(radiusOnPlane(260, 'far', geo)).toBeCloseTo((260 * P.far.scale) / R, 6);
+    const r = radiusOnPlane(260, 'far', geo);
+    const inR = loneFlock('far', r - 4);
     expect(shotThreats([inR.flock], [inR.impact], CAM, 260, geo, new Set())).toHaveLength(1);
-    const outR = loneFlock('far', 120);
+    const outR = loneFlock('far', r + 4);
     expect(shotThreats([outR.flock], [outR.impact], CAM, 260, geo, new Set())).toHaveLength(0);
   });
 
@@ -78,9 +82,9 @@ describe('shot threats', () => {
 
   it('Kettie: 120 px', () => {
     expect(radiusOf('kettie')).toBe(120);
-    const inR = loneFlock('mid', 115);
+    const inR = loneFlock('mid', 120 * MID - 5);
     expect(shotThreats([inR.flock], [inR.impact], CAM, 120, geo, new Set())).toHaveLength(1);
-    const outR = loneFlock('mid', 125);
+    const outR = loneFlock('mid', 120 * MID + 5);
     expect(shotThreats([outR.flock], [outR.impact], CAM, 120, geo, new Set())).toHaveLength(0);
   });
 
@@ -106,7 +110,12 @@ describe('shot threats', () => {
       const f = at(dx);
       return shotThreats([f.flock], [f.impact], CAM, r, geo, new Set()).length;
     };
-    expect([hits(590, 600), hits(610, 600), hits(195, 200), hits(205, 200)]).toEqual([1, 0, 1, 0]);
+    expect([
+      hits(600 * MID - 10, 600),
+      hits(600 * MID + 10, 600),
+      hits(200 * MID - 5, 200),
+      hits(200 * MID + 5, 200),
+    ]).toEqual([1, 0, 1, 0]);
   });
 
   it('the threat comes from the impact side: the flock runs away from it', () => {

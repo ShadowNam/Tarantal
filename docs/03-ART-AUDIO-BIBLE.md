@@ -310,6 +310,14 @@ one rig with species proportions and markings, three poses (grazing, walking, he
 a shaded belly and far legs, a soft ground shadow and no ink (edged in a darker shade of their own
 colour, D-035 rule 3). Species follow the decision log's "Biome-accurate flora/fauna".
 
+**Proportions per plane (D-049).** A guineafowl stands 263 px near, 110 mid, 39 far and 18 on the
+Ver plane (0.5 m: 221 px per metre mid, 79 far, 37 Ver). Everything drawn on a plane is sized
+against that bird: never a bird taller than an ostrich or a springbok beside it. The far herds
+show at 3× their v1.6 drawing until the HD redraw, which draws each species to its target height
+in `docs/balance/perspective.md` (e.g. far: springbok 63 px at the shoulder, ostrich 197 px to the
+head, giraffe 395 px). Mid props keep their stage-set scale (a true 9 m windpomp would be 2 000 px).
+Bird atlases are drawn per plane at the plane's scale (`npm run art:interim -- --only birds`).
+
 **v1.6 review round (D-042, 25 Oct).**
 - **Windpomp:** a classic multi-blade farm wheel, after the product owner's reference photos (25 Oct):
   20 galvanised sails, one every 18°, narrow at the hub and wide at the slanted tips, which stand

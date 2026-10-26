@@ -4,6 +4,7 @@
 // v1.7b (D-046): the contents are rolled as the crate drops (right after its position), so the
 // crate can show what it holds; a hunt whose crates are all shot before the next one drops draws
 // the same numbers in the same order as before.
+import { tuningRatio } from '../planes';
 import type { Biome, Powerups } from '../../content/schemas';
 import { msToTicks, TICKS_PER_SECOND } from '../clock';
 import type { RandomStream } from '../rng';
@@ -48,7 +49,8 @@ export interface CrateSpawn {
   /** Plane x under the screen centre right now (crates drop into view). */
   readonly centreX: number;
   readonly planeScale: number;
-  readonly midScale: number;
+  /** scoring.tuningRefScale (D-049). */
+  readonly refScale: number;
 }
 
 /** A new crate falling from the top of its plane's sky lane, or null if the plane has no lanes. */
@@ -62,7 +64,7 @@ export function spawnCrate(
   const sky = lane?.skyY;
   const ground = lane?.groundY;
   if (sky === undefined || ground === undefined) return null;
-  const ratio = s.planeScale / s.midScale;
+  const ratio = tuningRatio(s.planeScale, s.refScale);
   return {
     id: s.id,
     plane: cfg.plane,
