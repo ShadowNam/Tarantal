@@ -1,0 +1,28 @@
+{
+  "bushveld-winter.mon.before": {
+    "id": "bushveld-winter.mon.before",
+    "label": "Bushveld mon (mid fence) · before",
+    "seeds": 500,
+    "mean": 4651.028,
+    "canMean": 0,
+    "canShare": 0,
+    "knocks": 0,
+    "airHits": 0,
+    "weg": 0,
+    "bestChain": 0,
+    "maxChain": 0
+  },
+  "bushveld-winter.mon.apexJuggler": {
+    "id": "bushveld-winter.mon.apexJuggler",
+    "label": "Bushveld mon (mid fence) · apexJuggler",
+    "seeds": 500,
+    "mean": 3612.35,
+    "canMean": 240.356,
+    "canShare": 0.06653729566625603,
+    "knocks": 4,
+    "airHits": 11.934,
+    "weg": 0.38,
+    "bestChain": 6.746,
+    "maxChain": 10
+  }
+}
