@@ -922,9 +922,11 @@ export class HuntScene extends Phaser.Scene {
 
   /** D-048: the feesdae group's files in the background; the sheet goes into the view on arrival. */
   private loadFeesdaeArt(): void {
-    if (feesdaeModule === null || feesdaeSheet !== null) return;
+    // Cached per page: each call only fetches what is still missing (a failed file, the lines
+    // of a voice language picked since).
+    if (feesdaeModule === null) return;
     void feesdaeModule.loadFeesdaeAssets(this.ctx.audio).then((img) => {
-      if (img === null) return;
+      if (img === null || feesdaeSheet !== null) return;
       feesdaeSheet = img;
       if (this.ctx.hook) this.ctx.hook.feesdaeArt = 'final';
       if (this.sys.isActive()) this.spookView?.useSheet(img);

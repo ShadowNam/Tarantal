@@ -19,7 +19,7 @@ import {
   loadBiomeArt,
   placeholderBiomes,
 } from '../../src/game/placeholder/ProceduralAssetFactory';
-import { voiceGroup, voicedLines } from '../../src/game/audio/voiceLines';
+import { specialVoiceGroup, voiceGroup, voicedLines } from '../../src/game/audio/voiceLines';
 import { voiceKey } from '../../src/game/assets/AssetManifest';
 import { VOICE_LANGUAGES } from '../../src/i18n/i18n';
 import {
@@ -145,15 +145,21 @@ export async function buildCatalog(content: ContentBundle): Promise<Catalog> {
     entries.set(key, { key, kind: 'sound', group: FEESDAE_GROUP, biomes: everyBiome });
   // v1.5 (D-041): Oupa's voice, one lazy pack per voice language (voice/<lang>/<bark key>): his
   // trigger lines (feel.json barks) and every secret's bark.
+  // D-048: a special day's own lines go in a lazy group per language, loaded with that day.
+  const specialBarks = content.feesdae.specials.map((f) => f.barks);
+  const special = new Set(
+    specialBarks.flatMap((b) => [b.start, b.bat, b.owl, b.lanternsOut, b.end]),
+  );
   for (const lang of VOICE_LANGUAGES)
     for (const line of voicedLines(
       loadFeel().barks,
       content.biomes,
       content.birds.meerkats,
-      content.feesdae.specials.map((f) => f.barks),
+      specialBarks,
     )) {
       const key = voiceKey(lang, line);
-      entries.set(key, { key, kind: 'sound', group: voiceGroup(lang), biomes: everyBiome });
+      const group = special.has(line) ? specialVoiceGroup(lang) : voiceGroup(lang);
+      entries.set(key, { key, kind: 'sound', group, biomes: everyBiome });
     }
   return {
     homeBiome: content.modes.modes.classic.biome,

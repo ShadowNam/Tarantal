@@ -12,6 +12,16 @@ export function voiceGroup(lang: VoiceLanguage): string {
   return `${VOICE_GROUP_PREFIX}${lang}`;
 }
 
+/**
+ * D-048: a special day's own lines in one voice language, a lazy group of their own (loaded with
+ * that day's hunt, src/game/feesdae), so the year-round voice packs don't carry them.
+ */
+export const SPECIAL_VOICE_GROUP_PREFIX = 'feesdae-voice-';
+
+export function specialVoiceGroup(lang: string): string {
+  return `${SPECIAL_VOICE_GROUP_PREFIX}${lang}`;
+}
+
 /** The voice language a pack group belongs to, or null for any other group. */
 export function voiceLanguageOfGroup(group: string): VoiceLanguage | null {
   if (!group.startsWith(VOICE_GROUP_PREFIX)) return null;

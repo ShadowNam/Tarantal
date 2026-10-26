@@ -7,7 +7,7 @@ import { parseAssetIndex, type AssetIndex } from '../assets/assetIndex';
 import type { FinalSound } from '../assets/AssetManifest';
 import type { AudioDirector } from './AudioDirector';
 import { MAX_ATTEMPTS, VoicePacks, voicePackEntries, type VoicePackState } from './voicePack';
-import { voiceGroup, voicedLines, voiceLanguageOfGroup } from './voiceLines';
+import { specialVoiceGroup, voiceGroup, voicedLines, voiceLanguageOfGroup } from './voiceLines';
 import { VOICE_LANGUAGES } from '../../i18n/i18n';
 import { loadContent, loadFeel } from '../../../tools/testContent';
 
@@ -17,6 +17,16 @@ const LINES = voicedLines(
   loadContent().biomes,
   loadContent().birds.meerkats,
   loadContent().feesdae.specials.map((f) => f.barks),
+);
+/** D-048: the special days' own lines (their own lazy voice groups). */
+const SPECIAL = new Set(
+  loadContent().feesdae.specials.flatMap((f) => [
+    f.barks.start,
+    f.barks.bat,
+    f.barks.owl,
+    f.barks.lanternsOut,
+    f.barks.end,
+  ]),
 );
 /** Voiced keys with no file in a voice language yet (none today). */
 const GAPS: Readonly<Record<string, readonly string[]>> = {};
@@ -203,7 +213,9 @@ describe('voice packs (v1.5, D-041)', () => {
         if (GAPS[lang]?.includes(key)) continue;
         const wav = join(root, 'art-source', 'audio', 'voice', lang, `${key}.wav`);
         const e = index.audio[`voice/${lang}/${key}`];
-        if (!existsSync(wav) || e === undefined || e.group !== voiceGroup(lang))
+        // D-048: a special day's lines are in its own lazy group per language.
+        const group = SPECIAL.has(key) ? specialVoiceGroup(lang) : voiceGroup(lang);
+        if (!existsSync(wav) || e === undefined || e.group !== group)
           missing.push(`${lang} ${key}`);
       }
     expect(missing).toEqual([]);

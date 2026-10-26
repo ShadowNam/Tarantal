@@ -11,6 +11,8 @@ import type { SimEvent } from '../../sim/events';
 import type { FeesdagView as FeesdagState, PlaneId, SpookThingView } from '../../sim/types';
 import { coreWidth } from '../../sim/world';
 import type { FinalSound } from '../assets/AssetManifest';
+import type { AssetIndex } from '../assets/assetIndex';
+import { specialVoiceGroup } from '../audio/voiceLines';
 import { fetchAssetIndex, loadBytes, loadImage } from '../assets/finalLoader';
 import type { AudioDirector, Synth } from '../audio/AudioDirector';
 import type { HatSource } from '../view/BirdView';
@@ -143,6 +145,25 @@ export function playSpookSound(audio: AudioDirector, id: SpookSound, pan: number
 
 let sounds: Promise<void> | null = null;
 let sheet: Promise<HTMLImageElement | null> | null = null;
+/** Oupa's special-day lines, per voice language (a lazy group each: specialVoiceGroup). */
+const voices = new Map<string, Promise<void>>();
+
+/** Loads these index sounds at once; true when every one of them arrived. */
+async function loadSounds(
+  audio: AudioDirector,
+  entries: readonly [string, AssetIndex['audio'][string]][],
+  format: 'ogg' | 'mp3',
+): Promise<boolean> {
+  const got = await Promise.all(
+    entries.map(async ([key, entry]): Promise<FinalSound | null> => {
+      const bytes = await loadBytes(entry[format].path, FILE_TIMEOUT_MS);
+      return bytes === null ? null : { key, entry, bytes, format };
+    }),
+  );
+  const files = got.filter((f): f is FinalSound => f !== null);
+  audio.addRecorded(files);
+  return files.length === entries.length;
+}
 
 /**
  * The feesdae group's files, in the background: its recordings (all at once) and the sheet.
@@ -157,18 +178,28 @@ export function loadFeesdaeAssets(audio: AudioDirector): Promise<HTMLImageElemen
       sounds = null;
       return;
     }
-    const got = await Promise.all(
-      Object.values(SPOOK_SOUNDS).map(async (key): Promise<FinalSound | null> => {
-        const entry = ix.audio[key];
-        if (entry === undefined) return null;
-        const bytes = await loadBytes(entry[format].path, FILE_TIMEOUT_MS);
-        return bytes === null ? null : { key, entry, bytes, format };
+    const want = Object.values(SPOOK_SOUNDS).flatMap((k) => {
+      const e = ix.audio[k];
+      return e === undefined ? [] : [[k, e] as [string, AssetIndex['audio'][string]]];
+    });
+    if (!(await loadSounds(audio, want, format)) || want.length < Object.keys(SPOOK_SOUNDS).length)
+      sounds = null;
+  });
+  // Oupa's lines for the special day in the voice language now (another language: next time).
+  const lang = audio.voiceLanguage;
+  if (!voices.has(lang))
+    voices.set(
+      lang,
+      index.then(async (ix) => {
+        if (ix === null || format === null) {
+          voices.delete(lang);
+          return;
+        }
+        const group = specialVoiceGroup(lang);
+        const want = Object.entries(ix.audio).filter(([, e]) => e.group === group);
+        if (!(await loadSounds(audio, want, format))) voices.delete(lang);
       }),
     );
-    const files = got.filter((f): f is FinalSound => f !== null);
-    audio.addRecorded(files);
-    if (files.length < Object.keys(SPOOK_SOUNDS).length) sounds = null;
-  });
   sheet ??= index.then(async (ix) => {
     const entry = ix?.images[HALLOWEEN_SHEET];
     const img = entry === undefined ? null : await loadImage(entry.file.path, FILE_TIMEOUT_MS);
@@ -176,7 +207,7 @@ export function loadFeesdaeAssets(audio: AudioDirector): Promise<HTMLImageElemen
     return img;
   });
   const own = sheet;
-  return Promise.all([sounds, own]).then(([, img]) => img);
+  return Promise.all([sounds, own, voices.get(lang)]).then(([, img]) => img);
 }
 
 // --- the view ----------------------------------------------------------------------------------
