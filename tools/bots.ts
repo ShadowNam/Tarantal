@@ -15,13 +15,7 @@ import { inReach, RIFLE_STYLES, withRifle } from './rifleBot';
  *  canHappy (v1.8, D-050): the competent bot that shoots every tin can in view first ·
  *  apexJuggler (v1.8, D-050): the competent bot that juggles every can at the top of its arc. */
 export type BotKind =
-  | 'random'
-  | 'aim'
-  | 'plinker'
-  | 'competent'
-  | 'spook'
-  | 'canHappy'
-  | 'apexJuggler';
+  'random' | 'aim' | 'plinker' | 'competent' | 'spook' | 'canHappy' | 'apexJuggler';
 export const BOT_KINDS: readonly BotKind[] = [
   'random',
   'aim',

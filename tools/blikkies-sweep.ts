@@ -5,7 +5,7 @@
 //   npx tsx tools/blikkies-sweep.ts --tag t500 --table
 // Cells (Classic, pointer, the day's layout, its omen as the mode says):
 //   maps: every weekday map with a fence × { competent "before" (the fence's cans removed — the
-//         map as main plays it), competent, canHappy } with the Dubbelloop;
+//         map as main plays it), competent, canHappy, apexJuggler } with the Dubbelloop;
 //   guns: the caps — every gun with the canHappy bot on a near, a mid and a far fence day, and the
 //         .22 scope on Die Verste (the fence on the Ver strip).
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -53,6 +53,7 @@ function cells(): Cell[] {
         mk('competent', 'before', [`biomes.${String(bi)}.layouts.${String(li)}.fence.cans=[]`]),
         mk('competent', 'competent'),
         mk('canHappy', 'canHappy'),
+        mk('apexJuggler', 'apexJuggler'),
       );
     });
   });
@@ -158,8 +159,10 @@ if (process.argv.includes('--table')) {
       "'" +
       ' share | can-happy | its cans' +
       "'" +
-      ' share | knock-offs / air hits / Weg! per hunt (can-happy) | longest chain (mean / max) |',
-    '|---|---|---|---|---|---|---|---|---|',
+      ' share | knock-offs / air hits / Weg! per hunt (can-happy) | longest chain (mean / max) | apex juggler | its cans' +
+      "'" +
+      ' share | its air hits / Weg! per hunt | its longest chain (mean / max) |',
+    '|---|---|---|---|---|---|---|---|---|---|---|---|---|',
   );
   const seen = new Set<string>();
   for (const c of maps) {
@@ -169,9 +172,14 @@ if (process.argv.includes('--table')) {
     const b = all[`${key}.before`];
     const a = all[`${key}.competent`];
     const h = all[`${key}.canHappy`];
+    const j = all[`${key}.apexJuggler`];
     if (b === undefined || a === undefined || h === undefined) continue;
+    const jc =
+      j === undefined
+        ? '– | – | – | –'
+        : `${f0(j.mean)} | ${pct(j.canShare)} | ${j.airHits.toFixed(2)} / ${j.weg.toFixed(2)} | ${j.bestChain.toFixed(2)} / ${String(j.maxChain)}`;
     lines.push(
-      `| ${c.label.replace(/ · before$/, '')} | ${f0(b.mean)} | ${f0(a.mean)} | ${(((a.mean - b.mean) / b.mean) * 100).toFixed(1)} % | ${pct(a.canShare)} | ${f0(h.mean)} | ${pct(h.canShare)} | ${h.knocks.toFixed(2)} / ${h.airHits.toFixed(2)} / ${h.weg.toFixed(2)} | ${h.bestChain.toFixed(2)} / ${String(h.maxChain)} |`,
+      `| ${c.label.replace(/ · before$/, '')} | ${f0(b.mean)} | ${f0(a.mean)} | ${(((a.mean - b.mean) / b.mean) * 100).toFixed(1)} % | ${pct(a.canShare)} | ${f0(h.mean)} | ${pct(h.canShare)} | ${h.knocks.toFixed(2)} / ${h.airHits.toFixed(2)} / ${h.weg.toFixed(2)} | ${h.bestChain.toFixed(2)} / ${String(h.maxChain)} | ${jc} |`,
     );
   }
   lines.push(
