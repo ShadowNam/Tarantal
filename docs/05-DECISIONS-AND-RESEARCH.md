@@ -2723,7 +2723,7 @@ sim never reads a clock. Overrides: `?feesdag=<id|none>` on dev/e2e builds and t
 pins `feesdag=none` unless a spec names a special, so no spec changes on 31 Oct.
 (3) *The twist in the sim* (`src/sim/feesdag/spookjag.ts`, its own `feesdag` RNG stream): 7–10
 bats and 2–3 owls cross edge to edge (bats on the mid or far plane, 210–430 px down; owls on the mid plane only, 250–370 px, about a guineafowl's size, across the moon's height and clear of the top HUD) (bats 560 px/s with ±70 px swerves
-every 0.18–0.42 s; owls 260 px/s, gentle); 3–5 lanterns of 9 spots stand on the plane's ground
+every 0.18–0.42 s; owls 260 px/s, gentle); 3–5 lanterns stand on prop tops or their own post or rock in front of the flock
 line. They are `HitExtra` kind `spook`, not birds: they need no bird rig, atlas or flock logic,
 and the bird pipeline (spawn director, Bird Book, hitShots, Whole Flock) stays as it was. Scoring
 follows GDD §5.3 (supervisor review, 26 Oct): a bat (+15) and Lanterns out (+25, once) are event
@@ -2747,20 +2747,32 @@ has a purple frame with the moon, bats and a pumpkin, the title "Spookjag 2026" 
 Bats/Owls/Lanterns row; the share text is framed 🎃🦇 … 🦇🌕. Oupa says five lines (start, a bat, an
 owl, lanterns out, the end; triggers `feesdag*` take their lines from feesdae.json), voiced en/af/de
 with the interim TTS, and respect his switch. Captions for the sting, the owl, a bat and a lantern.
-(5) *Assets in a lazy group:* `feesdae` holds the 2× sheet (png8, 1920 × 1604, 125 KB) and four
-sounds (sting, hoot, squeak, puff; 46 KB): 171 KB gzip, fetched only when a special day's hunt
-starts. The hunt starts once the view's code is in (a veil with the special's name); the files load in
-the background, all at once, and one that failed is tried again on the next special-day hunt.
-Until the sheet arrives a code-drawn stand-in with the same frames shows; the view swaps
-images with `setTexture` and never removes a texture. Interim art `npm run art:interim -- --only
-feesdae` (tools/art/halloween.ts), sounds in tools/audio/sfx.ts.
+(5) *Assets in lazy groups:* `feesdae` holds the 2× sheet (png8, 1920 × 1882) and four sounds
+(sting, hoot, squeak, puff): 201.5 KB gzip; Oupa's five Spookjag lines are a group per voice
+language (`feesdae-voice-en/af/de`, 113–134 KB), so the year-round voice packs don't carry them.
+All are fetched only when a special day's hunt starts (the current voice language's lines; another
+language picked since: on the next one). The hunt starts once the view's code is in (a veil with
+the special's name; if the code fails, the art-failed message with Retry and Back); the files load
+in the background, all at once, and one that failed is tried again on the next special-day hunt.
+Until the sheet arrives a code-drawn stand-in with the same frames shows (built only while the
+sheet is missing); the view swaps images with `setTexture` and never removes a texture. Interim
+art `npm run art:interim -- --only feesdae` (tools/art/halloween.ts, and the witch hats' head
+anchors tools/art/hatAnchors.ts), sounds in tools/audio/sfx.ts.
 (6) *Sizes (gzip, `npm run size -- --strict`):* the first download had 3 KB left, so the build now
 ships content JSON without its `$comment` notes (`tools/stripComments.ts`, a Vite plugin; the
 content hash already ignored them; −9 KB), which pays for the special day's code and strings.
-First download: web 3,069.5 KB, Poki 3,062.9 KB, CrazyGames 3,063.0 KB (limit 3,072 KB; 1.7.2 web
+First download: web 3,070.8 KB, Poki 3,064.1 KB, CrazyGames 3,064.2 KB (limit 3,072 KB; 1.7.2 web
 3,069.1 KB). No biome chunk grew (Bushveld 1,499.1, Okavango 1,529.1, Kalahari + desert 1,534.5,
-Namibië + desert 1,508.3, late 1,471.3); `feesdae` 171.0; the voice packs grew by the five lines
-(af 845.5, de 1,001.6, en 777.2).
+Namibië + desert 1,508.3, late 1,471.3), nor the voice packs (af 718.3, de 867.6, en 663.8).
+(7) *Supervisor review, 26 Oct (screenshots on desktop and Pixel 7):* the scoring went through the
+pipeline (above); witch hats moved from the hitbox's head to each frame's drawn head, sized to it;
+every lantern is carved and lit at every size (a bold half-size drawing far away) and stands on a
+prop's top or its own post or rock in front of the flock line; the Spookjag got its own dark, cool
+grade (`spookjag` light) and a vignette in place of the warm `dusk`; owls became guineafowl-sized
+on the mid plane and fly a band below the HUD; the title hides the Classic map line on a special
+day and hangs the badge under the Daily's label; the tally's moon moved clear of the tag. A second
+Halloween golden (a `spook` bot) covers the bat bonus, the owl penalty and Lanterns out; `?spook=early`
+(e2e/dev) brings owls and bats in early for the specs.
 
 ## 3. Research notes (with sources)
 
