@@ -20,6 +20,8 @@ everyone. Halloween, 31 Oct, is the first: the Spookjag.
 ### Changed
 - Replays are InputLog v6 (they carry the special day); older logs still play.
 - Content JSON ships without its `$comment` notes (about 9 KB less to download first).
+- Sizes: first download 3,069.4 KB (web), 3,062.8 KB (Poki), 3,062.9 KB (CrazyGames); the
+  Halloween art and sounds (171 KB) download only for the special day's hunt.
 
 ## [1.7.2] — fruit swing and drop when shot (26 Oct 2026)
 

@@ -2704,6 +2704,57 @@ hidden and skipped; a drop works its fall out once. Poses use the interpolated s
 snapshot's tick − 1 + the frame's alpha), as the birds and the camera do, so a falling fruit is
 smooth on 90/120 Hz screens and a held frame still holds.
 
+**D-048 Feesdae (special-day Dailies) and Halloween's Spookjag, 31 Oct (26 Oct 2026):** the
+product owner (26 Oct): "Halloween special yes, go ahead", from the Feesdae list of 24 Oct
+("Halloween, 31 Oct: 'Spookjag', a dusk hunt with owls, bats, pumpkin lanterns and guineafowl in
+witch hats"). Rules in GDD §15 (Feesdae), Tech §12 (Feesdae) and §3.10 (InputLog v6), art bible §11.
+(1) *A system, content-driven:* `content/feesdae.json` (Zod `FeesdaeSchema`, cross-refs: unique
+ids and dates, i18n keys, a known biome, bats positive and owls negative, enough lantern spots;
+`content:validate` checks the light preset and the `feel.json feesdae.looks` entry). A special has
+an id, a date rule (a fixed UTC month/day; the schema is a union so ranges can join it), a map
+(`daily` = the day's map, or a fixed biome/layout), a light, its twist's numbers, decoration ids,
+Oupa's lines, a sting and a share frame. Only Halloween is in it; the other holidays are content
+later. It is in the bundle and `contentHash`: the twist is a rule, and replays must carry it.
+(2) *The date is an input of the mode:* the game decides (`src/meta/feesdae.ts`, the UTC day from
+`Date.now()` or `?today=`); the Daily's seed rule is unchanged; the special's id goes into
+`ModeConfig.feesdag` (Daily only, else the sim throws), InputLog v6 and challenge links (`f`). The
+sim never reads a clock. Overrides: `?feesdag=<id|none>` on dev/e2e builds and the web admin page
+(a "Special days" group with Play for each); never on a Poki or CrazyGames build. The e2e `boot()`
+pins `feesdag=none` unless a spec names a special, so no spec changes on 31 Oct.
+(3) *The twist in the sim* (`src/sim/feesdag/spookjag.ts`, its own `feesdag` RNG stream): 7–10
+bats and 2–3 owls cross the mid or far sky lane edge to edge (bats 560 px/s with ±70 px swerves
+every 0.18–0.42 s; owls 260 px/s, gentle); 3–5 lanterns of 9 spots stand on the plane's ground
+line. They are `HitExtra` kind `spook`, not birds: they need no bird rig, atlas or flock logic,
+and the bird pipeline (spawn director, Bird Book, hitShots, Whole Flock) stays as it was. Points
+are flat (bat +15, owl −10 and a penalty in the tally, lanterns out +25 once), not multiplied by
+Frenzy or the gun: the PO's numbers are what the player gets. A shot that hits only Spookjag
+things leaves the Frenzy streak alone, like a secret part. Events: `feesdagStarted`, `spookFlew`,
+`spookHit`, `lanternsOut`. Everything else of the Daily (quota, omens, crates) is as it was.
+*Golden replays:* every existing event hash is unchanged (re-recorded for the new content hash
+only); `daily-2026-10-31-halloween-competent-pointer` is new.
+(4) *The look in the game:* the special's light replaces the layout's (Halloween: `dusk`); a lazy
+chunk (`FeesdagView`, 4.3 KB gz) draws the moon and sky bats, the lanterns with a slow additive
+glow (no flashes), bats and owls, cobwebs on props (`feel.json feesdae.looks`), a puff when a
+lantern goes out, and gives the `BirdView` witch hats for about a third of the guineafowl (by bird
+id; a hat drawing per plane size on the head anchor, like the Generaal's pot). The title's Daily
+button shows the special's name and a badge; the HUD tag reads "Spookjag · DAILY #n"; the tally
+has a purple frame with the moon, bats and a pumpkin, the title "Spookjag 2026" and a
+Bats/Owls/Lanterns row; the share text is framed 🎃🦇 … 🦇🌕. Oupa says five lines (start, a bat, an
+owl, lanterns out, the end; triggers `feesdag*` take their lines from feesdae.json), voiced en/af/de
+with the interim TTS, and respect his switch. Captions for the sting, the owl, a bat and a lantern.
+(5) *Assets in a lazy group:* `feesdae` holds the 2× sheet (png8, 1920 × 1604, 125 KB) and four
+sounds (sting, hoot, squeak, puff; 46 KB): 171 KB gzip, fetched only when a special day's hunt
+starts. Until the sheet arrives a code-drawn stand-in with the same frames shows; the view swaps
+images with `setTexture` and never removes a texture. Interim art `npm run art:interim -- --only
+feesdae` (tools/art/halloween.ts), sounds in tools/audio/sfx.ts.
+(6) *Sizes (gzip, `npm run size -- --strict`):* the first download had 3 KB left, so the build now
+ships content JSON without its `$comment` notes (`tools/stripComments.ts`, a Vite plugin; the
+content hash already ignored them; −9 KB), which pays for the special day's code and strings.
+First download: web 3,069.4 KB, Poki 3,062.8 KB, CrazyGames 3,062.9 KB (limit 3,072 KB; 1.7.2 web
+3,069.1 KB). No biome chunk grew (Bushveld 1,499.1, Okavango 1,529.1, Kalahari + desert 1,534.5,
+Namibië + desert 1,508.3, late 1,471.3); `feesdae` 171.0; the voice packs grew by the five lines
+(af 845.5, de 1,001.6, en 777.2).
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
