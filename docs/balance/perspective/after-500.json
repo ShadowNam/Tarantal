@@ -808,5 +808,98 @@
     "detail": "2302 vs 177"
    }
   ]
+ },
+ "karoo-autumn.mon+verder.dubbelloop": {
+  "summaries": [
+   {
+    "bot": "competent",
+    "hunts": 500,
+    "mean": 3508.942,
+    "p15": 2601,
+    "p25": 2899,
+    "p50": 3411,
+    "p75": 3992,
+    "p85": 4335,
+    "wingShotShare": 0.7726523887973641,
+    "wholeFlocksPerHunt": 0.882,
+    "wholeFlockHuntRate": 0.688,
+    "flushesPerHunt": 6.94,
+    "twoFliesPerHunt": 11.756,
+    "accuracy": 0.4382322432627964,
+    "secretsPerHunt": 5.866,
+    "cratesPerHunt": 2,
+    "penaltiesPerHunt": 0.066,
+    "verPerHunt": 0
+   }
+  ],
+  "gates": [
+   {
+    "name": "competent mean in 2 500–4 500 (Bosveldjagter)",
+    "pass": true,
+    "detail": "3509"
+   }
+  ]
+ },
+ "karoo-autumn.sat+verder.dubbelloop": {
+  "summaries": [
+   {
+    "bot": "competent",
+    "hunts": 500,
+    "mean": 3318.39,
+    "p15": 2496,
+    "p25": 2698,
+    "p50": 3215,
+    "p75": 3831,
+    "p85": 4098,
+    "wingShotShare": 0.7830342577487766,
+    "wholeFlocksPerHunt": 0.958,
+    "wholeFlockHuntRate": 0.872,
+    "flushesPerHunt": 6.356,
+    "twoFliesPerHunt": 10.368,
+    "accuracy": 0.441307999905274,
+    "secretsPerHunt": 5.398,
+    "cratesPerHunt": 2,
+    "penaltiesPerHunt": 0.06,
+    "verPerHunt": 0
+   }
+  ],
+  "gates": [
+   {
+    "name": "competent mean in 2 500–4 500 (Bosveldjagter)",
+    "pass": true,
+    "detail": "3318"
+   }
+  ]
+ },
+ "karoo-autumn.sat+verder.pomp": {
+  "summaries": [
+   {
+    "bot": "competent",
+    "hunts": 500,
+    "mean": 2575.276,
+    "p15": 1979,
+    "p25": 2155,
+    "p50": 2487,
+    "p75": 2917,
+    "p85": 3189,
+    "wingShotShare": 0.7018354860639021,
+    "wholeFlocksPerHunt": 0.152,
+    "wholeFlockHuntRate": 0.15,
+    "flushesPerHunt": 5.914,
+    "twoFliesPerHunt": 7.564,
+    "accuracy": 0.5215308757652496,
+    "secretsPerHunt": 4.686,
+    "cratesPerHunt": 1.998,
+    "penaltiesPerHunt": 0.04,
+    "verPerHunt": 0
+   }
+  ],
+  "gates": [
+   {
+    "name": "competent mean in 2 500–4 500 (Bosveldjagter)",
+    "pass": true,
+    "detail": "2575"
+   }
+  ]
  }
 }
