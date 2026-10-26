@@ -150,8 +150,11 @@ export class TallyScene extends Phaser.Scene {
     const extras = data.extras;
     // D-048: a special day's slate has its own title ("Spookjag 2026") and frame.
     const special = extras?.special ?? null;
-    if (special != null)
-      drawSlateFrame(this, special.frame, { x: px, y: py, w: panelW, h: panelH });
+    const moon =
+      special == null
+        ? null
+        : drawSlateFrame(this, special.frame, { x: px, y: py, w: panelW, h: panelH });
+    if (moon !== null && this.ctx.hook) this.ctx.hook.rects['tallyMoon'] = moon;
     const title = this.add
       .text(
         px + panelW / 2,
@@ -164,6 +167,10 @@ export class TallyScene extends Phaser.Scene {
     if (extras?.tag != null) {
       const tag = this.add.text(px + 30, py + 30, extras.tag, chalk(28, '#FFD25A'));
       fitText(tag, panelW / 2 - 240);
+      if (this.ctx.hook) {
+        const b = tag.getBounds();
+        this.ctx.hook.rects['tallyTag'] = { x: b.x, y: b.y, w: b.width, h: b.height };
+      }
     }
 
     const score = this.add

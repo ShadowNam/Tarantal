@@ -182,7 +182,10 @@ export class TitleScene extends Phaser.Scene {
           .setOrigin(0.5);
         fitText(info, width - 200);
       }
-      // v1.2: today's Classic map (UTC weekday), e.g. "Today's map: Monday · Dawn mist".
+      // v1.2: today's Classic map (UTC weekday), e.g. "Today's map: Monday · Dawn mist". D-048:
+      // not on a special day (the Daily is the day's news), nor on the plain biome (dev/e2e).
+      const showMap =
+        this.ctx.daily.todaysSpecial() === null && (this.ctx.classicLayout ?? '') !== 'none';
       const mapLine = this.add
         .text(
           width / 2,
@@ -194,7 +197,8 @@ export class TitleScene extends Phaser.Scene {
             strokeThickness: 5,
           },
         )
-        .setOrigin(0.5);
+        .setOrigin(0.5)
+        .setVisible(showMap);
       fitText(mapLine, width - 200);
       // v1.2: Verder — a button once today's map quota is beaten, else what unlocks it. v1.3:
       // Nog Verder and Die Verste join it, side by side, as each is unlocked today (D-036).
@@ -298,7 +302,8 @@ export class TitleScene extends Phaser.Scene {
         );
         if (special !== null) {
           const badge = tOr(special.badgeKey, special.id);
-          drawSpecialBadge(this, daily, badge);
+          const r = drawSpecialBadge(this, daily, badge);
+          if (this.ctx.hook) this.ctx.hook.rects['dailyBadge'] = r;
           if (this.ctx.hook) this.ctx.hook.feesdag = { id: special.id, badge };
         } else if (this.ctx.hook) this.ctx.hook.feesdag = null;
         const status = this.add
@@ -309,6 +314,10 @@ export class TitleScene extends Phaser.Scene {
           })
           .setOrigin(0.5, 1);
         fitText(status, Math.max(bw * 1.6, 300));
+        if (this.ctx.hook) {
+          const b = status.getBounds();
+          this.ctx.hook.rects['dailyStatus'] = { x: b.x, y: b.y, w: b.width, h: b.height };
+        }
       }
       drawButton(
         this,

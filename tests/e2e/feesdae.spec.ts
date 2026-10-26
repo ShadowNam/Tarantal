@@ -30,6 +30,10 @@ const SPOOK_LINES = [B.start, B.bat, B.owl, B.lanternsOut, B.end];
 // No weather (the Daily's wind would drift the far shots), a short hunt.
 const QUERY = 'feesdag=halloween&seed=42&omen=0&huntSeconds=40';
 
+type R = { x: number; y: number; w: number; h: number };
+const overlaps = (a: R, b: R): boolean =>
+  a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+
 async function seedSave(page: Page, settings: Record<string, unknown>): Promise<void> {
   await page.addInitScript((s) => {
     const key = 'tm.e2e.save.v1';
@@ -76,6 +80,12 @@ test.describe('Feesdae: the Halloween Spookjag (D-048)', () => {
     });
     let h = await hook(page);
     expect(h.feesdag).toEqual({ id: 'halloween', badge: 'Spookjag tonight!' });
+    // The badge covers neither the Daily's status line nor (gone on a special day) the map line.
+    const badge = h.rects['dailyBadge'];
+    const status = h.rects['dailyStatus'];
+    expect(badge).toBeDefined();
+    expect(status).toBeDefined();
+    if (badge !== undefined && status !== undefined) expect(overlaps(badge, status)).toBe(false);
     await page.screenshot({ path: `${SCREENSHOTS}/feesdae-title-${info.project.name}.png` });
 
     await tapRect(page, touch, 'daily');
@@ -112,6 +122,10 @@ test.describe('Feesdae: the Halloween Spookjag (D-048)', () => {
     h = await hook(page);
     expect(h.tally).toMatchObject({ frame: 'halloween', share: true });
     expect(h.tally?.title).toMatch(/^Spookjag \d{4}$/);
+    const moon = h.rects['tallyMoon'];
+    const tag = h.rects['tallyTag'];
+    expect(moon).toBeDefined();
+    if (moon !== undefined && tag !== undefined) expect(overlaps(moon, tag)).toBe(false);
     await page.screenshot({ path: `${SCREENSHOTS}/feesdae-tally-${info.project.name}.png` });
     // In-page: after a held arrow key, a page.touchscreen tap does not land on WebKit's iPhone.
     await tapRectInPage(page, touch, 'share');
