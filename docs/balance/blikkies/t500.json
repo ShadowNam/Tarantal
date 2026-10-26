@@ -154,5 +154,18 @@
     "weg": 2.162,
     "bestChain": 7.054,
     "maxChain": 10
+  },
+  "guns.bushveld-winter.mon+dieVerste.twee_twee/scope_small": {
+    "id": "guns.bushveld-winter.mon+dieVerste.twee_twee/scope_small",
+    "label": "Bushveld mon Die Verste (Ver fence) · .22 scope · canHappy",
+    "seeds": 500,
+    "mean": 3099.752,
+    "canMean": 53.078,
+    "canShare": 0.017123305348298833,
+    "knocks": 3.914,
+    "airHits": 0.024,
+    "weg": 0,
+    "bestChain": 0.022,
+    "maxChain": 1
   }
 }
