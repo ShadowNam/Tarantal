@@ -9,6 +9,7 @@ import type { PlaneId, SimState } from '../../sim/types';
 import { TICKS_PER_SECOND } from '../../sim/clock';
 import { coreWidth } from '../../sim/world';
 import { TEX } from '../assets/AssetManifest';
+import { powerupIcon, powerupIconEpoch } from '../ui/powerupIcons';
 import type { ParallaxView } from './ParallaxView';
 import { FlashGate, type FlashLimiter } from './flashLimit';
 import { stampedeTintAlpha } from './juice';
@@ -45,7 +46,16 @@ export class WorldView {
   private readonly parallax: ParallaxView;
   private readonly biome: Biome;
   private readonly secretArt = new Map<string, SecretArt>();
-  private readonly crates = new Map<number, Phaser.GameObjects.Image>();
+  private iconEpoch = powerupIconEpoch();
+  private readonly crates = new Map<
+    number,
+    {
+      img: Phaser.GameObjects.Image;
+      /** v1.7b: the item's icon on the canopy and on the box front (screen layer). */
+      tags: { disc: Phaser.GameObjects.Arc; pic: Phaser.GameObjects.Image }[];
+      icon: string | null;
+    }
+  >();
   private readonly devils = new Map<number, Phaser.GameObjects.Image>();
   private readonly stones = new Map<number, Phaser.GameObjects.Image>();
   private glare: Phaser.GameObjects.Image | null = null;
@@ -204,25 +214,78 @@ export class WorldView {
 
   private drawCrates(s: SimState): void {
     const seen = new Set<number>();
+    // v1.7b (D-046): icons swapped from placeholders to the delivered art since last frame.
+    const fresh = this.iconEpoch !== powerupIconEpoch();
+    this.iconEpoch = powerupIconEpoch();
     for (const c of s.crates) {
       seen.add(c.id);
       const key = c.landed ? TEX.crateBox : TEX.crateChute;
-      let img = this.crates.get(c.id);
-      if (img === undefined) {
-        img = this.scene.add.image(c.x, c.y, key);
-        this.parallax.plane(c.plane).overlay?.add(img);
-        this.crates.set(c.id, img);
+      let art = this.crates.get(c.id);
+      if (art === undefined) {
+        const layer = this.parallax.plane(c.plane).overlay;
+        const img = this.scene.add.image(c.x, c.y, key);
+        layer?.add(img);
+        // v1.7b (D-046): what it holds, fully opaque on a cream disc with a dark ring: big on
+        // the canopy while it falls, and on the box's front (where the stencil was). Drawn in the
+        // screen layer, above every scenery layer, so no haze band or light tint washes it out.
+        const icon = c.item === null ? null : powerupIcon(c.item);
+        const shown = icon !== null && this.scene.textures.exists(icon) ? icon : null;
+        const tags =
+          shown === null
+            ? []
+            : [0, 1].map(() => {
+                const disc = this.scene.add.circle(0, 0, 1, 0xf3ead3, 1);
+                const pic = this.scene.add.image(0, 0, shown);
+                this.screen.add([disc, pic]);
+                return { disc, pic };
+              });
+        art = { img, tags, icon: shown };
+        this.crates.set(c.id, art);
       }
+      const img = art.img;
       if (img.texture.key !== key) img.setTexture(key);
-      const o = img.texture.key === TEX.crateChute ? { x: 0.5, y: 290 / 360 } : { x: 0.5, y: 0.5 };
+      const chute = img.texture.key === TEX.crateChute;
+      const o = chute ? { x: 0.5, y: 290 / 360 } : { x: 0.5, y: 0.5 };
       const scale = c.plane === 'near' ? 1 : c.plane === 'mid' ? 0.55 : 0.3;
       img.setOrigin(o.x, o.y).setPosition(c.x, c.y).setScale(scale);
+      const sx = this.parallax.screenX(c.plane, c.x);
+      // [canopy, box front] in texture px from the crate centre: the canopy's middle, and the
+      // planked front's middle (the box art is the same on the chute and on the ground).
+      const spots = [
+        { show: chute, dx: 0, dy: -240, r: 74 },
+        { show: true, dx: -9, dy: 13, r: 40 },
+      ];
+      art.tags.forEach((t, i) => {
+        const spot = spots[i];
+        const on = spot !== undefined && spot.show;
+        t.disc.setVisible(on);
+        t.pic.setVisible(on);
+        if (!on) return;
+        const r = spot.r * scale;
+        const x = sx + spot.dx * scale;
+        const y = c.y + spot.dy * scale;
+        t.disc
+          .setPosition(x, y)
+          .setRadius(r)
+          .setStrokeStyle(Math.max(3, 9 * scale), 0x1b1410, 1);
+        if (fresh && art.icon !== null) t.pic.setTexture(art.icon);
+        t.pic.setPosition(x, y).setDisplaySize(r * 1.7, r * 1.7);
+      });
     }
-    for (const [id, img] of this.crates) {
+    for (const [id, art] of this.crates) {
       if (seen.has(id)) continue;
-      img.destroy();
+      art.img.destroy();
+      for (const t of art.tags) {
+        t.disc.destroy();
+        t.pic.destroy();
+      }
       this.crates.delete(id);
     }
+  }
+
+  /** v1.7b (D-046): the icon a crate shows (null = none drawn yet, or no icon). */
+  crateIcon(id: number): string | null {
+    return this.crates.get(id)?.icon ?? null;
   }
 
   /**
@@ -601,7 +664,13 @@ export class WorldView {
       for (const m of a.marks.values()) m.destroy();
     }
     this.secretArt.clear();
-    for (const c of this.crates.values()) c.destroy();
+    for (const c of this.crates.values()) {
+      c.img.destroy();
+      for (const t of c.tags) {
+        t.disc.destroy();
+        t.pic.destroy();
+      }
+    }
     this.crates.clear();
     for (const d of this.devils.values()) d.destroy();
     this.devils.clear();

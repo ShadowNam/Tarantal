@@ -160,6 +160,31 @@ rather than translating word for word. The tables show the text each language fi
 | `item.blitslaai` | Blitslaai | Lightning Load | Blitzladung | Bliksemlading | v1.6b (D-043): blits = lightning, laai = load |
 | `item.oupa_laai` | Oupa Laai | Oupa Loads | Oupa lädt | Oupa laadt | v1.6b (D-043): Oupa loads for you (auto reload) |
 
+### Power-ups explained and Oupa's switch (v1.7b, D-046)
+
+The power-up and crate-gun names are the "Crate items" rows above. Their sentences — what each one
+does (`guide.effect.<id>`), the pickup card's short line (`pickup.<id>`), the tip
+(`guide.tip.<id>`), how to get it (`guide.how.*`), the captions (`caption.pu.<id>`) and Oupa's
+first-pickup lines (`bark.pu.<id>`) — carry no names of their own: numbers come from content
+(`{s}`, `{n}`, `{x}`, `{pct}`, `{speed}`, `{idle}`, `{p}`, `{r}`, `{price}`) and names from
+other keys (`{item}`, `{stall}` = `run.padstal`, `{run}` = `title.season_run`), so the "Afrikaans
+names" toggle reaches them too. Oupa's first-pickup lines name the item through `{item}` too ("Ahh, {item}. Everything slows down
+now."), so with the toggle on he says Boeretroos when the card does. Decimals use
+a comma in af, de and nl ("0,6 s").
+
+| Key | af | en | de | nl | Note |
+|---|---|---|---|---|---|
+| `shed.tab.powerups` | Krag-ops | Power-ups | Power-ups | Power-ups | the Gun Shed tab (v1.7b, D-046) |
+| `guide.not_found` | Nog nie gekry nie | Not found yet | Noch nicht gefunden | Nog niet gevonden | a card the player has not picked up yet |
+| `pickup.new` | Nuut! | New! | Neu! | Nieuw! | the first pickup card's tag |
+| `tally.powerups` | Krag-ops gebruik | Power-ups used | Genutzte Power-ups | Gebruikte power-ups | the tally row |
+| `settings.oupa` | Oupa se kommentaar | Oupa's comments | Oupas Sprüche | Oupa's opmerkingen | Settings → Sound & game |
+| `settings.oupa.on` | Aan | On | An | Aan |  |
+| `settings.oupa.text` | Net teks | Text only | Nur Text | Alleen tekst | bubble, no voice |
+| `settings.oupa.off` | Af | Off | Aus | Uit | no barks or bubbles |
+| `guide.half` | halwe | half | halber | halve | Boeretroos' {speed} at 50 % |
+| `caption.pu_end` | [{item} is uitgewerk] | [{item} wears off] | [{item} lässt nach] | [{item} is uitgewerkt] | {item} is the item's name (follows the toggle) |
+
 ### Ranks
 
 | Key | af | en | de | nl | Note |

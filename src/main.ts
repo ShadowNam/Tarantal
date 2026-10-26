@@ -44,6 +44,7 @@ import {
   placeholderBiomes,
 } from './game/placeholder/ProceduralAssetFactory';
 import { applyPrefs, computePrefs, type PrefInputs } from './game/prefs';
+import { oupaSpeaks } from './game/audio/oupaMode';
 import { ChallengeScene } from './game/scenes/ChallengeScene';
 import { HudScene } from './game/scenes/HudScene';
 import { HuntScene } from './game/scenes/HuntScene';
@@ -359,7 +360,7 @@ const hook: TestHook = {
   huntRequests: 0,
   ads: null,
   audioMuted: false,
-  voice: { language: '', pack: 'none', played: [] },
+  voice: { language: '', pack: 'none', played: [], oupa: true },
   captions: [],
   quality: { tier: '', bench: null, benchRan: false, layers: 0, filters: [] },
   errors: [],
@@ -531,6 +532,8 @@ async function boot(): Promise<void> {
       music: s.musicVolume,
       voice: s.voiceVolume,
     });
+    audio.setOupaVoice(oupaSpeaks(s.oupa));
+    hook.voice.oupa = audio.oupaVoiceOn;
     applyVoice?.(s);
   };
   /** v1.5 (D-041): Oupa's voice pack (set once the asset index is known, below). */
@@ -613,6 +616,8 @@ async function boot(): Promise<void> {
     const lang = voiceLanguageFor(s.voiceLanguage, textLanguageOf(s));
     if (hook.voice.language !== lang) hook.voice.pack = 'none';
     hook.voice.language = lang;
+    // v1.7b (D-046): Oupa's comments "Text only"/"Off" don't stop the pack: the weavers, the frog
+    // and the meerkats speak from it too (oupaMode.isOupaLine).
     voicePacks.use(lang, s.voiceVolume > 0 && s.masterVolume > 0);
   };
   applyVoice(save.data.settings);

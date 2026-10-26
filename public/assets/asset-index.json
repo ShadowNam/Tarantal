@@ -103,9 +103,9 @@
       "group": "common",
       "origin": "interim",
       "file": {
-        "path": "assets/common/img/crate_box.0fed528eb1ea.png",
-        "bytes": 2519,
-        "hash": "0fed528eb1ea"
+        "path": "assets/common/img/crate_box.0a376be74b06.png",
+        "bytes": 2236,
+        "hash": "0a376be74b06"
       },
       "width": 160,
       "height": 160
@@ -114,9 +114,9 @@
       "group": "common",
       "origin": "interim",
       "file": {
-        "path": "assets/common/img/crate_chute.1fa3a2fe87ac.png",
-        "bytes": 8854,
-        "hash": "1fa3a2fe87ac"
+        "path": "assets/common/img/crate_chute.bd04dba03e9f.png",
+        "bytes": 7955,
+        "hash": "bd04dba03e9f"
       },
       "width": 260,
       "height": 360
@@ -1270,26 +1270,92 @@
       "height": 64
     },
     "ui/pu_blitslaai": {
-      "group": "common",
+      "group": "late",
       "origin": "interim",
       "file": {
-        "path": "assets/common/img/ui_pu_blitslaai.f05d1ceb1485.png",
-        "bytes": 1815,
-        "hash": "f05d1ceb1485"
+        "path": "assets/late/img/ui_pu_blitslaai.9d4438776076.png",
+        "bytes": 3423,
+        "hash": "9d4438776076"
       },
-      "width": 64,
-      "height": 64
+      "width": 128,
+      "height": 128
+    },
+    "ui/pu_boeretroos": {
+      "group": "late",
+      "origin": "interim",
+      "file": {
+        "path": "assets/late/img/ui_pu_boeretroos.e5070622ce12.png",
+        "bytes": 3058,
+        "hash": "e5070622ce12"
+      },
+      "width": 128,
+      "height": 128
+    },
+    "ui/pu_bush_buckshot": {
+      "group": "late",
+      "origin": "interim",
+      "file": {
+        "path": "assets/late/img/ui_pu_bush_buckshot.b2c1a3164711.png",
+        "bytes": 4002,
+        "hash": "b2c1a3164711"
+      },
+      "width": 128,
+      "height": 128
+    },
+    "ui/pu_chilli_biltong": {
+      "group": "late",
+      "origin": "interim",
+      "file": {
+        "path": "assets/late/img/ui_pu_chilli_biltong.dfec414a61fa.png",
+        "bytes": 3803,
+        "hash": "dfec414a61fa"
+      },
+      "width": 128,
+      "height": 128
+    },
+    "ui/pu_meerkat_spotter": {
+      "group": "late",
+      "origin": "interim",
+      "file": {
+        "path": "assets/late/img/ui_pu_meerkat_spotter.fdfbc5befe7b.png",
+        "bytes": 3232,
+        "hash": "fdfbc5befe7b"
+      },
+      "width": 128,
+      "height": 128
+    },
+    "ui/pu_mielie_masjien": {
+      "group": "late",
+      "origin": "interim",
+      "file": {
+        "path": "assets/late/img/ui_pu_mielie_masjien.4b6637fcfa2e.png",
+        "bytes": 2954,
+        "hash": "4b6637fcfa2e"
+      },
+      "width": 128,
+      "height": 128
     },
     "ui/pu_oupa_laai": {
-      "group": "common",
+      "group": "late",
       "origin": "interim",
       "file": {
-        "path": "assets/common/img/ui_pu_oupa_laai.dc13a58565e5.png",
-        "bytes": 1772,
-        "hash": "dc13a58565e5"
+        "path": "assets/late/img/ui_pu_oupa_laai.c51a34925f97.png",
+        "bytes": 3317,
+        "hash": "c51a34925f97"
       },
-      "width": 64,
-      "height": 64
+      "width": 128,
+      "height": 128
+    },
+    "ui/pu_voorlaaier": {
+      "group": "late",
+      "origin": "interim",
+      "file": {
+        "path": "assets/late/img/ui_pu_voorlaaier.e1b59970ef93.png",
+        "bytes": 3376,
+        "hash": "e1b59970ef93"
+      },
+      "width": 128,
+      "height": 128
     },
     "ui/windsock": {
       "group": "common",
@@ -6298,6 +6364,24 @@
       "loop": false,
       "lufs": -16,
       "peakDb": -1
+    },
+    "sfx/powerEnd": {
+      "group": "common",
+      "origin": "interim",
+      "kind": "sfx",
+      "ogg": {
+        "path": "assets/common/audio/sfx/powerEnd.74c0c8953d32.ogg",
+        "bytes": 7336,
+        "hash": "74c0c8953d32"
+      },
+      "mp3": {
+        "path": "assets/common/audio/sfx/powerEnd.0d70e517b18f.mp3",
+        "bytes": 5417,
+        "hash": "0d70e517b18f"
+      },
+      "loop": false,
+      "lufs": -14,
+      "peakDb": -3.3
     },
     "sfx/powerup": {
       "group": "common",

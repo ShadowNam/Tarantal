@@ -16,6 +16,7 @@ import type { GameContext } from '../GameContext';
 import { formatPercent, formatScore } from '../ui/format';
 import { tallyBarkSlot, type Rect } from '../ui/hudLayout';
 import { BarkBubble, sayBark } from '../ui/BarkBubble';
+import { powerupIcon } from '../ui/powerupIcons';
 import type { BarkTrigger } from '../../content/schemas';
 import { drawButton, fitText, Menu } from '../ui/menu';
 import { FONT } from '../view/Fx';
@@ -37,6 +38,8 @@ export interface TallyData {
   readonly ftue: boolean;
   /** M7: Daily/challenge lines and the share message (null for the FTUE). */
   readonly extras: TallyExtras | null;
+  /** v1.7b (D-046): power-ups and crate guns used in the hunt (ids, first use first). */
+  readonly powerups?: readonly string[];
   /** M7: [Share] — sends extras.share (from inside the tap's event handler). */
   readonly share: (extras: TallyExtras) => Promise<ShareOutcome>;
 }
@@ -47,6 +50,49 @@ export class TallyScene extends Phaser.Scene {
   constructor(ctx: GameContext) {
     super({ key: 'Tally' });
     this.ctx = ctx;
+  }
+
+  /**
+   * v1.7b (D-046): the power-ups used, right-aligned at `right`: each one's icon and name (names
+   * dropped, icons only, when they don't fit in `room`). Returns the objects (they fade in).
+   */
+  private powerupRow(
+    ids: readonly string[],
+    right: number,
+    y: number,
+    rowH: number,
+    room: number,
+    style: (size: number) => Phaser.Types.GameObjects.Text.TextStyle,
+  ): Phaser.GameObjects.GameObject[] {
+    const size = Math.max(28, Math.round(rowH * 0.95));
+    const font = Math.min(30, Math.floor(rowH * 0.7));
+    const names = ids.map((id) => tOr(`item.${id}`, id));
+    const made: Phaser.GameObjects.GameObject[] = [];
+    let x = right;
+    const withNames =
+      names.reduce((w, n) => w + size + 12 + n.length * font * 0.55 + 18, 0) <= room;
+    for (let i = ids.length - 1; i >= 0; i--) {
+      const id = ids[i] ?? '';
+      if (withNames) {
+        const name = this.add
+          .text(x, y, names[i] ?? id, style(font))
+          .setOrigin(1, 0)
+          .setAlpha(0);
+        made.push(name);
+        x -= name.displayWidth + 8;
+      }
+      const icon = powerupIcon(id);
+      if (this.textures.exists(icon)) {
+        made.push(
+          this.add
+            .image(x - size / 2, y + rowH * 0.42, icon)
+            .setDisplaySize(size, size)
+            .setAlpha(0),
+        );
+        x -= size + 18;
+      }
+    }
+    return made;
   }
 
   /**
@@ -157,6 +203,10 @@ export class TallyScene extends Phaser.Scene {
       ['tally.crates', String(r.crates)],
       ['tally.penalties', String(r.penalties)],
     ];
+    // v1.7b (D-046): the power-ups used, as icons and names (a row of their own).
+    const used = data.powerups ?? [];
+    if (used.length > 0) rows.splice(rows.length - 1, 0, ['tally.powerups', '']);
+    if (this.ctx.hook) this.ctx.hook.tallyPowerups = [...used];
     const rowH = Math.min(52, (panelH - 480) / rows.length);
     const rowFont = Math.min(36, Math.floor(rowH * 0.78));
     rows.forEach(([key, value], i) => {
@@ -166,8 +216,14 @@ export class TallyScene extends Phaser.Scene {
         .text(px + panelW - 80, y, value, chalk(rowFont, '#F3EAD3', false))
         .setOrigin(1, 0)
         .setAlpha(0);
+      const extra =
+        key === 'tally.powerups'
+          ? this.powerupRow(used, px + panelW - 80, y, rowH, panelW / 2 - 40 - label.width, (n) =>
+              chalk(n, '#F3EAD3', false),
+            )
+          : [];
       this.tweens.add({
-        targets: [label, val],
+        targets: [label, val, ...extra],
         alpha: 1,
         delay: pace.rowDelayMs + i * pace.rowStaggerMs,
         duration: pace.rowFadeMs,

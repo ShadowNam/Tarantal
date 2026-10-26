@@ -298,7 +298,7 @@ belt is a deliberate arcade abstraction.
 ### 10.4 Power-ups (crates in Classic/Daily; consumables in Season Run)
 | Id | Name | Effect | Duration |
 |---|---|---|---|
-| `chilli_biltong` | Chilli Biltong | Auto-fire (hold to fire), no shells used, no reload, screen edges glow red | 8 s |
+| `chilli_biltong` | Chilli Biltong | Auto-fire (hold to fire), no shells used, no reload; a ∞ over the belt and chilli sparks at the muzzle (v1.7b) | 8 s |
 | `boeretroos` | Boeretroos (enamel mug of coffee) | Birds (and their flock timers) move at 50 %; your aim/reload at 100 % | 10 s |
 | `bush_buckshot` | Bush Buckshot | Spread ×2.5 for the next 6 shells | 6 shells |
 | `meerkat_spotter` | Meerkat Spotter | Hidden birds/secrets get glowing rings (v1.7: on the desert maps the meerkat climbs out of a burrow mound) | 8 s |
@@ -313,6 +313,39 @@ moment). Neither does anything while Chilli Biltong is active (no reload
 then) or for the Mielie-Masjien (no reload); Oupa Laai has nothing to do for the Voorlaaier (its
 ramrod is already automatic) or the Kettie (never empty). Crates: power-ups keep 85 of the 100
 weight (Blitslaai 18, Oupa Laai 18, the other four 14 / 14 / 14 / 7); Padstal price 2 each.
+
+**v1.7b — what a power-up does, said plainly (D-046).** The product owner: "When one collects these
+power-ups, one is very unsure what they actually do." What the power-ups and crate guns *do* is
+unchanged; how the game shows it:
+- **Icons.** Every power-up and crate gun has one (`ui/pu_<id>`, art bible §5): on its HUD chip, on
+  the crate, on the pickup card, in the Gun Shed and on the tally.
+- **The crate says what's inside.** Its contents are rolled when it drops (not when it is shot), so
+  the falling crate carries the item's icon on a cream disc on its canopy, and the landed box on
+  its face. No secret: the Gun Shed says so.
+- **Pickup card.** Picking one up slides a card in at the top centre, between the HUD's corners
+  and never over the crosshair or the flock in the middle: icon, name and one line of what it
+  does with its length ("Everything at half speed · 10 s"), for about 2 s. That spot is the top
+  of the mid plane's sky, where crates fall and flushed flocks fly, so while the crosshair is over
+  the card or within 80 px of it the card fades to 30 % (`hudLayout.pickupAlpha`). The **first** pickup
+  of each one on a save shows the full sentence (the Gun Shed's) with a "New!" tag for about 3.5 s,
+  and Oupa says his own line on it (`bark.pu.<id>`) if his comments are on (§18.3). The card is
+  plain HUD text, not Oupa: it shows whatever his setting. The save remembers what was picked up
+  (`powerups.seen`).
+- **While it runs.** The chip (icon + name) shows the seconds left, or the shells left for Bush
+  Buckshot, as well as its bar; over its last 2 s it blinks (steady red with "reduce flashes"), and
+  a soft descending chime (`powerEnd`) plays when it, or a crate gun, runs out. Each has a small,
+  local look, never a full-screen flash: Boeretroos warms the screen's edges (the middle stays
+  clear) and plays the effects slower and lower; Chilli Biltong draws a ∞ over the belt and throws
+  chilli sparks off the muzzle on each shot; Bush Buckshot puts a warm ring round the widened
+  crosshair; the Meerkat Spotter keeps its helper and reveal rings; Blitslaai and Oupa Laai keep
+  their v1.6b looks.
+- **Captions** (Settings → captions) name the item: "[Farm Coffee: everything slows]" on pickup,
+  "[Farm Coffee wears off]" at the end.
+- **Tally.** Classic and Daily tallies list the power-ups used (icon and name) in a row of their
+  own; the Season Run tally shows their icons in the panel's corner.
+- Every number the player reads (the card, the Gun Shed, the Padstal offer) is built from
+  `powerups.json`, `weapons.json` and `run.json` (`src/game/ui/powerupGuide.ts`); timings and looks
+  are in `content/client/feel.json → hud.powerups`.
 
 ### 10.6 Rifles: sights and zoom (v1.3, D-036)
 Rifles fire with **hold and release**: hold the fire button (or finger) to raise the sight and zoom
@@ -730,6 +763,13 @@ Hub screen: equip weapon for Classic/Daily, view unlocked charms, Bird Book, Not
 "???" until then), Notaboek (progress bars and rewards), Settings. Cosmetics come later. v1.3: under
 the gun cards, each unlocked rifle's sights — the fitted one, the ones you can fit, and the locked
 ones with what earns them.
+v1.7b (D-046): a **Power-ups** tab next to the guns: one card per power-up and crate gun (eight),
+each with its big icon, its name, one plain sentence of what it does with its numbers from content
+("For 10 seconds everything moves at half speed."), how you get it ("Shoot a supply crate in a
+Classic or Daily hunt" / "Buy it at the Padstal in a Season Run: 3 caps" / "Rent it … for one
+hunt" / "Some farm secrets give it too") and one tip. Ones not picked up yet on this save are
+darker and say "Not found yet", but explain themselves all the same. The list scrolls (drag,
+wheel, or ↑/↓ through the cards) and is sized for an iPhone 14 in landscape (32 px sentences).
 
 ### 13.8 Balance tooling
 A headless balance simulator plays the deterministic sim over thousands of seeds with bots:
@@ -908,6 +948,15 @@ repeatedly and can be moved to aim (this hold doesn't edge-pan). Text size Large
 High contrast puts a black outline on all light text. Sound captions show a line such as
 "[kek-kek — alarm call]" for every sound cue that has no words on screen already. Don't-shoot marks
 keep the ⛔ badge over every don't-shoot creature, not only at its first sighting.
+v1.7b (D-046): **Oupa's comments** (On / Text only / Off, default On) joins the left column of
+**Sound & game** under voice language (seven rows there, 68 px each). On: his speech bubble and
+voice, as before. Text only: the bubble without the voice. Off: no barks or bubbles anywhere
+(hunts, tallies, the Padstal; a secret's banner says only that a secret went off). It covers
+Oupa's lines only: the weavers' scold, the frog's "Kwaak!" and the meerkats' "We're not
+guineafowl!" are theirs and still show and speak, so the voice pack still downloads. Instructions the
+player needs — the lesson's prompts, a first pickup's card — are plain HUD text and show either way;
+Oupa Laai keeps its hand on the belt. Saved with the other settings, honoured at once (a bubble
+already up goes; a line he is saying stops), and in the pause menu's Settings too.
 v1.5 (D-041): **Sound & game** has six rows a column: master / SFX / music / voice volume,
 **voice language** and privacy on the left; **text language**, **Afrikaans names**, aim assist,
 left-handed, hold to fire and offset crosshair on the right.

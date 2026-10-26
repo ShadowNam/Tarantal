@@ -117,3 +117,57 @@ describe('AssetManifest.releaseGuns (v1.3: only the equipped gun stays on the GP
     expect(m.releaseGuns(tex, new Set(['dubbelloop']), anims)).toEqual([]);
   });
 });
+
+describe('AssetManifest.upgrade (v1.7b: late icons replace their placeholders mid-hunt)', () => {
+  const content = loadContent();
+  const karoo = content.biomes.find((b) => b.id === 'karoo-autumn');
+  if (!karoo) throw new Error('no biome');
+
+  it('renames the placeholder instead of removing it, so objects drawing it stay valid', () => {
+    class FakeCanvas {
+      readonly fake = true;
+    }
+    vi.stubGlobal('HTMLCanvasElement', FakeCanvas);
+    const m = createPlaceholderManifest(content, karoo);
+    const img = { width: 128, height: 128 } as HTMLImageElement;
+    const finals = (m as unknown as { finalImages: Map<string, { img: HTMLImageElement }> })
+      .finalImages;
+    finals.set('ui/pu_boeretroos', { img });
+    finals.set('ui/windsock', { img });
+    // The textures as Phaser holds them: a placeholder canvas under each key.
+    const list = new Map<string, { source: unknown }>([
+      ['ui/pu_boeretroos', { source: new FakeCanvas() }],
+      ['ui/windsock', { source: new FakeCanvas() }],
+    ]);
+    const removed: string[] = [];
+    const tex = {
+      exists: (k: string) => list.has(k),
+      get: (k: string) => ({ getSourceImage: () => list.get(k)?.source }),
+      remove: (k: string) => {
+        removed.push(k);
+        list.delete(k);
+      },
+      renameTexture: (from: string, to: string) => {
+        const t = list.get(from);
+        if (t === undefined) return false;
+        list.set(to, t);
+        list.delete(from);
+        return true;
+      },
+      addImage: (k: string, source: unknown) => {
+        list.set(k, { source });
+        return null;
+      },
+    } as unknown as Phaser.Textures.TextureManager;
+    const placeholder = list.get('ui/pu_boeretroos');
+    expect(m.upgrade(tex, 'ui/pu_')).toEqual(['ui/pu_boeretroos']);
+    // Nothing was removed: the old canvas lives on under a new key, the key holds the image.
+    expect(removed).toEqual([]);
+    expect(list.get('ui/pu_boeretroos')?.source).toBe(img);
+    const kept = [...list.entries()].find(([k]) => k.startsWith('ui/pu_boeretroos#placeholder'));
+    expect(kept?.[1]).toBe(placeholder);
+    // Other prefixes are left alone, and a second call has nothing left to swap.
+    expect(list.get('ui/windsock')?.source).toBeInstanceOf(FakeCanvas);
+    expect(m.upgrade(tex, 'ui/pu_')).toEqual([]);
+  });
+});

@@ -1,6 +1,9 @@
 // Supply crates (GDD §8, §10.3–10.4): parachute in twice per Classic/Daily hunt at times drawn
 // inside powerups.json → crates.windows (fractions of hunt length). Shoot one to get a power-up or
 // a crate weapon from the weighted table. Times and contents come from rng.stream('crates').
+// v1.7b (D-046): the contents are rolled as the crate drops (right after its position), so the
+// crate can show what it holds; a hunt whose crates are all shot before the next one drops draws
+// the same numbers in the same order as before.
 import type { Biome, Powerups } from '../../content/schemas';
 import { msToTicks, TICKS_PER_SECOND } from '../clock';
 import type { RandomStream } from '../rng';
@@ -22,6 +25,8 @@ export interface Crate {
   /** Hit ellipse on its plane (plane px). */
   readonly rx: number;
   readonly ry: number;
+  /** v1.7b (D-046): what it holds, rolled when it drops (its parachute shows it); null = empty. */
+  readonly item: CrateItem | null;
 }
 
 /** Spawn ticks for this hunt's crates (empty when the mode has none), in time order. */
@@ -69,6 +74,7 @@ export function spawnCrate(
     lingerLeft: Math.max(1, msToTicks(cfg.lingerMs)),
     rx: cfg.hitbox.rx * s.planeScale,
     ry: cfg.hitbox.ry * s.planeScale,
+    item: rollCrate(cfg, rng),
   };
 }
 
@@ -96,5 +102,5 @@ export function rollCrate(cfg: CrateConfig, rng: RandomStream): CrateItem | null
 }
 
 export function crateView(c: Crate): CrateView {
-  return { id: c.id, plane: c.plane, x: c.x, y: c.y, landed: c.landed };
+  return { id: c.id, plane: c.plane, x: c.x, y: c.y, landed: c.landed, item: c.item?.id ?? null };
 }

@@ -59,6 +59,12 @@ const VOICE: Choice<'voiceLanguage'> = {
   values: ['same', 'en', 'af', 'de'],
   label: (v) => `settings.voice.${v}`,
 };
+/** v1.7b (D-046): Oupa's comments — voice and bubble, the bubble only, or none at all. */
+const OUPA: Choice<'oupa'> = {
+  key: 'oupa',
+  values: ['on', 'text', 'off'],
+  label: (v) => `settings.oupa.${v}`,
+};
 const QUALITY: Choice<'quality'> = {
   key: 'quality',
   values: ['auto', 'low', 'medium', 'high'],
@@ -67,9 +73,10 @@ const QUALITY: Choice<'quality'> = {
 
 const ROW_H = 96;
 const ROW_GAP = 18;
-/** v1.5: Sound & game has six rows per column (voice language, Afrikaans names). */
-const ROW_H_TIGHT = 80;
-const ROW_GAP_TIGHT = 8;
+/** v1.5: Sound & game has six rows per column (voice language, Afrikaans names); v1.7b: seven
+ *  in the left column (Oupa's comments), so its rows are a little shorter (still ≥ 64 px). */
+const ROW_H_TIGHT = 68;
+const ROW_GAP_TIGHT = 6;
 /**
  * v1.5 review: a hint is its own line under its row, across the whole column, at HINT_PX and
  * never scaled below HINT_MIN_PX (24, the smallest text elsewhere); too long even then, it
@@ -234,7 +241,9 @@ export class SettingsScene extends Phaser.Scene {
       );
     };
 
-    const choice = <K extends 'aimAssist' | 'language' | 'voiceLanguage' | 'quality' | 'textSize'>(
+    const choice = <
+      K extends 'aimAssist' | 'language' | 'voiceLanguage' | 'quality' | 'textSize' | 'oupa',
+    >(
       col: 0 | 1,
       i: number,
       labelKey: I18nKey,
@@ -330,8 +339,10 @@ export class SettingsScene extends Phaser.Scene {
       slider(0, 3, 'settings.voice', 'voiceVolume');
       // v1.5 (D-041): Oupa's voice language; "same as text" with Dutch text is Afrikaans.
       choice(0, 4, 'settings.voice_language', VOICE, undefined, 'settings.voice_hint');
+      // v1.7b (D-046): Oupa's comments: On / Text only / Off (honoured at once).
+      choice(0, 5, 'settings.oupa', OUPA);
       // M9: the privacy screen (what is stored, what is sent, clear my data).
-      const privacy = row(0, 5, 'settings.privacy');
+      const privacy = row(0, 6, 'settings.privacy');
       drawButton(this, privacy, t('settings.privacy_open'), 'secondary', 34);
       items.push({
         id: 'settings.privacy',

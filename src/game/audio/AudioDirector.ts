@@ -11,6 +11,7 @@ import { ambienceKey, musicKey, sfxKey, voiceKey, type FinalSound } from '../ass
 import { loadBytes } from '../assets/finalLoader';
 import { MusicMixer, STEMS, StemHold, type MusicSet, type Stem } from './music';
 import { createNoise, playSfx, SFX_IDS, type SfxId } from './synth';
+import { isOupaLine } from './oupaMode';
 
 const MAX_VOICES = 16;
 const MAX_PAN = 0.7;
@@ -102,6 +103,8 @@ export class AudioDirector {
   private voiceSrc: AudioBufferSourceNode | null = null;
   /** v1.5 (D-041): the voice language whose pack Oupa speaks from (voice/<lang>/<line>). */
   private voiceLang = 'en';
+  /** v1.7b (D-046): Oupa's comments allow his voice ("on"). */
+  private oupaVoice = true;
   /** Voice keys said from a recording on this page (test hook; newest last, capped). */
   readonly voicePlayed: string[] = [];
   /** v1.5: a bark whose line hadn't arrived: it plays if the line is decoded by `until`. */
@@ -115,6 +118,8 @@ export class AudioDirector {
   private weapon = '';
   /** v1.6b (D-043): Blitslaai is running (HuntScene, each frame): reloads zip. */
   private fastReload = false;
+  /** v1.7b (D-046): playback rate of effects while Boeretroos runs (1 = normal). */
+  private soundRate = 1;
 
   constructor(
     private readonly tuning: AudioTuning,
@@ -291,6 +296,26 @@ export class AudioDirector {
     this.mixer?.setStem(this.wantStem);
   }
 
+  /**
+   * v1.7b (D-046): Oupa's voice on or off (Settings → Oupa's comments). Off stops a line he is
+   * saying now and drops one waiting for its recording.
+   */
+  setOupaVoice(on: boolean): void {
+    this.oupaVoice = on;
+    if (on) return;
+    this.waiting = null;
+    try {
+      this.voiceSrc?.stop();
+    } catch {
+      // Already ended.
+    }
+    this.voiceSrc = null;
+  }
+
+  get oupaVoiceOn(): boolean {
+    return this.oupaVoice;
+  }
+
   /** M10: the tally is counting up (no barks over it, art bible §10). */
   setTallyCounting(on: boolean): void {
     this.tallyCounting = on;
@@ -328,6 +353,9 @@ export class AudioDirector {
     const buf = this.buffers.get(key);
     // A newer bark replaces one still waiting for its line.
     this.waiting = null;
+    // v1.7b (D-046): Settings → Oupa's comments "Text only" or "Off": never his voice (the
+    // weavers, the frog and the meerkats still speak).
+    if (!this.oupaVoice && isOupaLine(barkKey)) return false;
     if (this.muted || this.tallyCounting) return false;
     // v1.5 (D-041): no voice at all with the voice (or master) volume at 0, and no music duck.
     if (this.volumes.voice <= 0 || this.volumes.master <= 0) return false;
@@ -401,6 +429,15 @@ export class AudioDirector {
   /** v1.1: the gun in hand (HuntScene, each frame): its reload sounds follow it. */
   setWeapon(id: string): void {
     this.weapon = id;
+  }
+
+  /** v1.7b (D-046): Boeretroos runs (HuntScene, each frame): effects play at `rate` (1 = off). */
+  setSlowMotion(rate: number): void {
+    this.soundRate = rate;
+  }
+
+  get slowMotionRate(): number {
+    return this.soundRate;
   }
 
   /** v1.6b (D-043): while Blitslaai runs, a reload starts with a quick metallic zip. */
@@ -508,10 +545,15 @@ export class AudioDirector {
           break;
         case 'weaponChanged':
           this.weapon = e.weapon;
-          this.play('powerup', 0);
+          // v1.7b (D-046): back to the primary = the crate gun is used up.
+          this.play(e.kind === 'crate' ? 'powerup' : 'powerEnd', 0);
           break;
         case 'powerupStarted':
           this.play('powerup', 0);
+          break;
+        case 'powerupEnded':
+          // v1.7b (D-046): a soft "ending" chime.
+          this.play('powerEnd', 0);
           break;
         default:
           break;
@@ -543,9 +585,12 @@ export class AudioDirector {
     if (buf !== undefined) {
       const src = ctx.createBufferSource();
       src.buffer = buf;
+      // v1.7b (D-046): Boeretroos slows the effects (lower and longer); music stays.
+      const rate = bus === this.sfxBus ? this.soundRate : 1;
+      if (rate !== 1) src.playbackRate.value = rate;
       src.connect(panner);
       src.start();
-      seconds = buf.duration;
+      seconds = buf.duration / rate;
     } else {
       seconds = synth(ctx, panner, noise);
     }
