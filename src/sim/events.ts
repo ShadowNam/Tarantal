@@ -508,6 +508,13 @@ export type SimEvent =
       readonly y: number;
     }
   | { readonly type: 'huntEnded'; readonly tick: number; readonly score: number }
+  /** D-048: a special day's hunt starts (its sting, captions and Oupa's opening line). */
+  | {
+      readonly type: 'feesdagStarted';
+      readonly tick: number;
+      readonly feesdag: string;
+      readonly lanterns: number;
+    }
   /** D-048 (Spookjag): a bat or an owl came into the sky at a plane edge (sound cue). */
   | {
       readonly type: 'spookFlew';

@@ -78,6 +78,13 @@ for (const [trigger, cfg] of Object.entries(feel.feel.barks.triggers)) {
         message: `barks.triggers.${trigger}: "${line}" is not in src/i18n/en.json`,
       });
 }
+// D-048: every special has its look (client/feel.json feesdae.looks).
+for (const f of parsed.bundle.feesdae.specials)
+  if (feel.feel.feesdae.looks[f.id] === undefined)
+    errors.push({
+      file: 'client/feel.json',
+      message: `special "${f.id}" has no feesdae.looks entry`,
+    });
 // D-048: a special's light is a preset too.
 for (const f of parsed.bundle.feesdae.specials)
   if (feel.feel.lights[f.light] === undefined)

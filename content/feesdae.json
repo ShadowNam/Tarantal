@@ -61,7 +61,7 @@
         "lanternsOut": "bark.spook_lanterns",
         "end": "bark.spook_end"
       },
-      "sting": "music/feesdag_halloween",
+      "sting": "sfx/spook_sting",
       "shareFrame": "halloween"
     }
   ]

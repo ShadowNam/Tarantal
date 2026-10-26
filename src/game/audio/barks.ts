@@ -92,7 +92,6 @@ export class BarkDirector {
     this.pending = new Set();
     this.bagged = new Set();
     this.autoSaid = false;
-    if (special !== null) this.pending.add('feesdagStart');
   }
 
   /** D-048: the special day's lines of this hunt (the tally's end line), or null. */
@@ -178,6 +177,9 @@ export class BarkDirector {
           break;
         case 'lanternsOut':
           this.pending.add('lanternsOut');
+          break;
+        case 'feesdagStarted':
+          if (this.special !== null) this.pending.add('feesdagStart');
           break;
         default:
           break;

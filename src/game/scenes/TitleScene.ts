@@ -20,6 +20,7 @@ import { findLayout } from '../../sim/maps';
 import type { Rect } from '../ui/hudLayout';
 import { drawButton, fitText, Menu, textStyle, type MenuItem } from '../ui/menu';
 import { cornerStampShown, stampFor, StampLabel } from '../ui/StampLabel';
+import { drawSpecialBadge } from '../ui/specialBadge';
 
 export interface TitleData {
   /** Starts the hunt; pointerId is the pressing pointer (null from the keyboard). */
@@ -284,13 +285,22 @@ export class TitleScene extends Phaser.Scene {
       if (dailyOn) {
         const setup = this.ctx.daily.todaySetup();
         const played = this.ctx.daily.playedToday() || this.ctx.daily.unranked;
+        // D-048: on a special day the Daily is that special ("Spookjag") with a badge.
+        const special = this.ctx.daily.todaysSpecial();
         drawButton(
           this,
           daily,
-          fill(t('title.daily'), { n: setup.number }),
+          special === null
+            ? fill(t('title.daily'), { n: setup.number })
+            : tOr(special.nameKey, special.id),
           played ? 'secondary' : 'selected',
           44,
         );
+        if (special !== null) {
+          const badge = tOr(special.badgeKey, special.id);
+          drawSpecialBadge(this, daily, badge);
+          if (this.ctx.hook) this.ctx.hook.feesdag = { id: special.id, badge };
+        } else if (this.ctx.hook) this.ctx.hook.feesdag = null;
         const status = this.add
           .text(daily.x + daily.w / 2, daily.y - 14, this.dailyStatus(played), {
             ...textStyle(26),

@@ -28,6 +28,8 @@ export interface AdminHuntSetup {
   readonly omen: boolean | undefined;
   /** UTC day number the Daily plays (undefined = today). */
   readonly today: number | undefined;
+  /** D-048: the special day the Daily plays (undefined = the date decides). */
+  readonly feesdag: string | undefined;
   /** Season Run: the run's hunt index to jump to. */
   readonly huntIndex: number | undefined;
 }
@@ -63,5 +65,6 @@ export function adminHuntSetup(
         ? (parseDayKey(options.date) ?? undefined)
         : undefined,
     huntIndex: entry.huntIndex ?? undefined,
+    feesdag: entry.feesdag ?? undefined,
   };
 }

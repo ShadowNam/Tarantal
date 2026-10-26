@@ -4,6 +4,7 @@ import { extname, join } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 import { buildIdOf } from './src/platform/swUpdate';
 import { serviceWorkerPlugin } from './tools/serviceWorker';
+import { isContentJson, withoutComments } from './tools/stripComments';
 
 // One build per platform (M9, Tech §8): VITE_PLATFORM=web (default, the PWA in dist/) or a
 // portal (dist-poki/, dist-crazygames/). Portal builds carry no service worker and no PWA
@@ -65,6 +66,18 @@ function standinAssets(): Plugin {
   };
 }
 const standin = process.env['STANDIN'] === '1';
+
+/** D-048: content JSON is bundled without its `$comment` keys (tools/stripComments.ts). */
+function stripContentComments(): Plugin {
+  return {
+    name: 'tm-strip-content-comments',
+    enforce: 'pre',
+    transform(code, id) {
+      if (!isContentJson(id)) return null;
+      return { code: JSON.stringify(withoutComments(JSON.parse(code))), map: null };
+    },
+  };
+}
 /** M10: the release version (package.json), shown in Settings → Privacy. */
 const version = (
   JSON.parse(readFileSync(join(import.meta.dirname, 'package.json'), 'utf8')) as { version: string }
@@ -96,6 +109,7 @@ export default defineConfig({
     __BUILD_TIME__: JSON.stringify(builtAt),
   },
   plugins: [
+    stripContentComments(),
     // The worker names this build, so a page offers a reload only when it runs another (D-042).
     ...(portal ? [stripPwa()] : [serviceWorkerPlugin(buildIdOf(sha, builtAt))]),
     ...(standin ? [standinAssets()] : []),

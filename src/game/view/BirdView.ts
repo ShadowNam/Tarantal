@@ -28,11 +28,25 @@ export interface PotSpot {
   readonly originY: number;
 }
 
+/** D-048: a special day's hats (witch hats on Halloween), from its lazy view module. */
+export interface HatSource {
+  /** Texture key and frame of the hat drawn for a plane of this scale. */
+  frameFor(planeScale: number): {
+    readonly key: string;
+    readonly frame: string;
+    readonly scale: number;
+  };
+  /** Whether this bird wears one (cosmetic: picked from the id, the same every frame). */
+  wears(id: number, creature: string): boolean;
+}
+
 interface Drawn {
   readonly sprite: Phaser.GameObjects.Sprite;
   readonly tuft: Phaser.GameObjects.Image | null;
   readonly badge: Phaser.GameObjects.Image | null;
   readonly pot: Phaser.GameObjects.Image | null;
+  /** D-048: a witch hat (special days only). */
+  readonly hat: Phaser.GameObjects.Image | null;
   readonly plane: PlaneId;
   /** Placeholder texture key, or the final clip's animation key. */
   frame: string;
@@ -73,6 +87,8 @@ export class BirdView {
   /** v1.3: the rifle zoom view's zoom (Ver birds pick sharper art when zoomed in). */
   private viewZoom = 1;
   private readonly artScales: Readonly<Record<ArtPlaneId, number>>;
+  /** D-048: hats on a special day (null = none). Set before the hunt's first frame. */
+  hats: HatSource | null = null;
 
   constructor(
     scene: Phaser.Scene,
@@ -159,7 +175,12 @@ export class BirdView {
             ? this.scene.add.image(b.x, b.y, TEX.pot).setOrigin(po.x, po.y)
             : null;
         if (pot) layer.birds?.add(pot);
-        d = { sprite, tuft, badge, pot, plane: v.plane, frame: '' };
+        const hat =
+          this.hats !== null && v.kind === 'target' && this.hats.wears(v.id, v.creature)
+            ? this.scene.add.image(b.x, b.y, TEX.feather)
+            : null;
+        if (hat) layer.birds?.add(hat);
+        d = { sprite, tuft, badge, pot, hat, plane: v.plane, frame: '' };
         this.drawn.set(v.id, d);
       }
       if (d.frame !== key) {
@@ -215,6 +236,19 @@ export class BirdView {
           .setScale(s * v.facing, s)
           .setRotation(lean);
       }
+      if (d.hat && this.hats !== null) {
+        const top = this.headTop(v, b.x, b.y - bob);
+        const ps = this.content.scoring.planes[v.plane].scale;
+        const f = this.hats.frameFor(ps * this.viewZoom);
+        if (d.hat.texture.key !== f.key || d.hat.frame.name !== f.frame)
+          d.hat.setTexture(f.key, f.frame);
+        // f.scale is per unit of plane scale (the hat drawing's own size and master).
+        d.hat
+          .setVisible(d.sprite.visible)
+          .setPosition(top.x, top.y)
+          .setScale(f.scale * ps * v.facing, f.scale * ps)
+          .setRotation(lean);
+      }
     }
     for (const [id, d] of this.drawn) {
       if (seen.has(id)) continue;
@@ -222,6 +256,7 @@ export class BirdView {
       d.tuft?.destroy();
       d.badge?.destroy();
       d.pot?.destroy();
+      d.hat?.destroy();
       this.drawn.delete(id);
     }
   }
@@ -291,6 +326,7 @@ export class BirdView {
       d.tuft?.destroy();
       d.badge?.destroy();
       d.pot?.destroy();
+      d.hat?.destroy();
     }
     this.drawn.clear();
   }

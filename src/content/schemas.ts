@@ -1324,8 +1324,8 @@ export const FeesdagSchema = obj({
     lanternsOut: feesdagBark,
     end: feesdagBark,
   }),
-  /** The music sting at the start (an audio key of the feesdae group). */
-  sting: z.string().regex(/^music\/[a-z0-9_]+$/),
+  /** The sting at the start (a sound of the feesdae group, src/game/feesdae/feesdaeAssets.ts). */
+  sting: z.string().regex(/^sfx\/[a-z0-9_]+$/),
   /** The share card's frame (src/game/feesdae: its emoji and the tally's frame art). */
   shareFrame: id,
 });
@@ -1852,6 +1852,27 @@ export const FeelSchema = obj({
     errorStackFrames: posInt,
     /** Longest error message kept, in characters. */
     errorMessageChars: posInt,
+  }),
+  /** D-048: how a special day looks (src/game/feesdae; the look only, never a rule). */
+  feesdae: obj({
+    looks: z.record(
+      z.string(),
+      obj({
+      /** The low moon on the sky layer: across it (u), its centre (design px) and size. */
+      moon: obj({ u: fraction, y: z.number(), scale: pos }),
+      /** Little bats flitting round the moon (sky decoration, not targets). */
+      skyBats: obj({ count: nonNegInt, radius: range(pos), periodMs: range(pos) }),
+      /** Share of guineafowl in witch hats (cosmetic; picked by bird id). */
+      hatShare: fraction,
+      /** A lit lantern's warm glow: its alpha and a slow flicker (no flashes). */
+      glow: obj({ alpha: fraction, flicker: fraction, flickerMs: pos, scale: pos }),
+      /** Flight frames per second of the bats and owls. */
+      batFps: pos,
+      owlFps: pos,
+      /** Cobwebs on props: the prop, the corner (fractions of its texture), mirrored, size. */
+      cobwebs: z.array(obj({ prop: id, at: z.tuple([fraction, fraction]), flip: z.boolean(), scale: pos })),
+      }),
+    ),
   }),
 });
 export type Feel = z.infer<typeof FeelSchema>;

@@ -3,7 +3,7 @@
 // starts (claims the day's official attempt) and ends (records it, builds the tally extras and
 // the share message), and the tally's [Share] calls share(). The clock is read through `today()`
 // (Date.now() in main.ts, or the e2e ?today= day) — never in the sim.
-import type { ContentBundle, DailyMeta } from '../../content/schemas';
+import type { ContentBundle, DailyMeta, Feesdag } from '../../content/schemas';
 import { fill, getLanguage, t, tOr, translator } from '../../i18n/i18n';
 import {
   challengeFor,
@@ -26,7 +26,13 @@ import {
 import { layoutForDay } from '../../meta/maps';
 import { bonusSlug } from '../../meta/bonusMaps';
 import type { SaveStore } from '../../meta/save';
-import { buildShareText, groupThousands, type ShareMessage } from '../../meta/share';
+import {
+  buildShareText,
+  groupThousands,
+  type ShareMessage,
+  type ShareSpecial,
+} from '../../meta/share';
+import { feesdagById, todaysFeesdag, yearOfDay } from '../../meta/feesdae';
 import type { PlatformAdapter } from '../../platform/PlatformAdapter';
 import type { ShareOutcome } from '../../platform/share';
 import type { HuntResult, ModeConfig } from '../../sim/types';
@@ -74,6 +80,11 @@ export interface DailyFlowDeps {
    * attempt, streak or best is recorded) and no tally offers a share or a link.
    */
   readonly unranked?: boolean;
+  /**
+   * D-048: `?feesdag=<id>` (or `none`) on dev/e2e builds and the web admin page only (never a
+   * portal): today's Daily plays that special whatever the date. Null = the date decides.
+   */
+  readonly feesdagOverride?: string | null;
 }
 
 interface Started {
@@ -87,7 +98,7 @@ export class DailyFlow {
 
   constructor(private readonly deps: DailyFlowDeps) {}
 
-  /** Today's daily setup (seed, biome, number). */
+  /** Today's daily setup (seed, biome, number; D-048: the special, if today is one). */
   todaySetup(): DailySetup {
     const d = this.deps;
     return dailySetup(d.today(), {
@@ -95,7 +106,14 @@ export class DailyFlow {
       contentHash: d.contentHash,
       playable: d.playableBiomes,
       fallbackBiome: d.content.modes.modes.daily.biome,
+      feesdag: this.todaysSpecial(),
     });
+  }
+
+  /** D-048: the special day today's Daily plays (Halloween on 31 Oct UTC), or null. */
+  todaysSpecial(): Feesdag | null {
+    const d = this.deps;
+    return todaysFeesdag(d.content.feesdae, d.today(), d.feesdagOverride ?? null);
   }
 
   /** The streak as it stands today (0 once it can't be saved) and this week's freeze. */
@@ -135,6 +153,7 @@ export class DailyFlow {
         setup.seed === challenge.seed &&
         setup.biome === challenge.biome &&
         setup.layout === challenge.l &&
+        setup.feesdag === challenge.f &&
         challenge.b === undefined
           ? setup
           : null;
@@ -152,12 +171,20 @@ export class DailyFlow {
     if (kind === 'daily') {
       const setup = this.todaySetup();
       const official = !this.playedToday() && this.deps.unranked !== true;
+      const tag = fill(t(official ? 'hud.tag_daily' : 'hud.tag_practice'), { n: setup.number });
+      const special = feesdagById(this.deps.content.feesdae, setup.feesdag);
       return {
         seed: setup.seed,
         mode: { ...dailyMode(setup, weapon), ...withoutBonus(extra) },
         daily: { setup, official },
         challenge: null,
-        hudTag: fill(t(official ? 'hud.tag_daily' : 'hud.tag_practice'), { n: setup.number }),
+        hudTag:
+          special === null || !official
+            ? tag
+            : fill(t('feesdag.hud_tag'), {
+                name: tOr(special.nameKey, special.id),
+                n: setup.number,
+              }),
       };
     }
     // v1.2 (D-033): Classic plays today's UTC weekday layout.
@@ -271,6 +298,7 @@ export class DailyFlow {
             biome: result.biome,
             layout: result.layout,
             bonus: result.bonus,
+            ...(result.feesdag === undefined ? {} : { feesdag: this.shareSpecial(result, daily) }),
             score: result.score,
             rank: result.rank,
             grid,
@@ -289,6 +317,7 @@ export class DailyFlow {
                     layout: result.layout,
                     bonus: result.bonus,
                     sight: result.sight,
+                    feesdag: result.feesdag?.id ?? null,
                   },
                   this.deps.contentHash,
                 ),
@@ -307,6 +336,19 @@ export class DailyFlow {
       news,
       share,
       shareInfo: share === null ? null : { mode: result.mode, official },
+    };
+  }
+
+  /** D-048: the share card's special-day frame and title ("Spookjag 2026"). */
+  private shareSpecial(result: HuntResult, daily: HuntPlan['daily']): ShareSpecial | null {
+    const special = feesdagById(this.deps.content.feesdae, result.feesdag?.id);
+    if (special === null) return null;
+    return {
+      title: fill(t('feesdag.share_title'), {
+        name: tOr(special.nameKey, special.id),
+        year: yearOfDay(daily?.setup.day ?? this.deps.today()),
+      }),
+      frame: special.shareFrame,
     };
   }
 

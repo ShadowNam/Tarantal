@@ -61,6 +61,17 @@ export function createShareLogger(cfg: GridConfig): ShareLogger {
   };
 }
 
+/** D-048: a special day's share card: its title ("Spookjag 2026") and frame id. */
+export interface ShareSpecial {
+  readonly title: string;
+  readonly frame: string;
+}
+
+/** The emoji frame of each special's card (left, right): moon, bats and a pumpkin. */
+export const SHARE_FRAMES: Readonly<Record<string, readonly [string, string]>> = {
+  halloween: ['🎃🦇', '🦇🌕'],
+};
+
 export interface ShareInput {
   /** Daily number (#n) for a daily hunt; null for Classic. */
   readonly dailyNumber: number | null;
@@ -68,6 +79,8 @@ export interface ShareInput {
   /** v1.2: the map (weekday layout, bonus map); null/absent = the plain biome. */
   readonly layout?: string | null;
   readonly bonus?: string | null;
+  /** D-048: the special day's card (null/absent = an ordinary card). */
+  readonly feesdag?: ShareSpecial | null;
   readonly score: number;
   /** scoring.json rank id. */
   readonly rank: string;
@@ -109,7 +122,11 @@ export function buildShareText(input: ShareInput, tr: Translator): ShareMessage 
   ];
   if (input.wholeFlocks > 0)
     parts.push(fill(tr.text('share.whole_flocks'), { n: input.wholeFlocks }));
-  const line = parts.filter((p) => p !== '').join(' · ');
+  const special = input.feesdag ?? null;
+  if (special !== null) parts.splice(1, 0, special.title);
+  const frame = special === null ? undefined : SHARE_FRAMES[special.frame];
+  const plain = parts.filter((p) => p !== '').join(' · ');
+  const line = frame === undefined ? plain : `${frame[0]} ${plain} ${frame[1]}`;
   return {
     text: input.url === '' ? line : `${line}\n${tr.text('share.beat_me')}`,
     url: input.url,

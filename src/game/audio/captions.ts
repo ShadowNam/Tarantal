@@ -26,6 +26,17 @@ export function captionFor(e: SimEvent): I18nKey | null {
       return 'caption.camera_click';
     case 'stampedeStarted':
       return 'caption.stampede';
+    // D-048: the Spookjag's sting, the owl's hoot (gliding in, or shot), a bat, a lantern.
+    case 'feesdagStarted':
+      return 'caption.spook_sting';
+    case 'spookFlew':
+      return e.thing === 'owl' ? 'caption.owl_hoot' : null;
+    case 'spookHit':
+      return e.thing === 'owl'
+        ? 'caption.owl_hoot'
+        : e.thing === 'bat'
+          ? 'caption.bat_squeak'
+          : 'caption.lantern_out';
     case 'flockStateChanged':
       return e.to === 'alert' ? 'caption.alarm_call' : e.to === 'flush' ? 'caption.flush' : null;
     case 'gadgetUsed':

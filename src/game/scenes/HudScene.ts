@@ -39,7 +39,7 @@ import { drawButton, fitText, Menu, type MenuItem } from '../ui/menu';
 import { BakedDrawing, RoundRect } from '../ui/shapes';
 import { fontPx, outline } from '../ui/textLook';
 import { BarkBubble, sayBark } from '../ui/BarkBubble';
-import { firstHuntToday, type Bark } from '../audio/barks';
+import { firstHuntToday, type Bark, type SpecialBarks } from '../audio/barks';
 import {
   PopPool,
   colorNumber,
@@ -177,6 +177,8 @@ export class HudScene extends Phaser.Scene {
   /** v1.0.1 (D-028 §3): Oupa's bubble, and whether he barks this hunt (not in FTUE or capture). */
   private bubble: BarkBubble | null = null;
   private barksOn = false;
+  /** D-048: the Spookjag's lantern count this hunt (the "Lanterns 2/4" pop). */
+  private runnerLanterns: number | null = null;
   private firstTodayPending = false;
   private lastScore = 0;
   /** M7: "DAILY #n" / "PRACTICE · DAILY #n" / "BEAT 2 840" under the score, in the Season Run
@@ -547,11 +549,12 @@ export class HudScene extends Phaser.Scene {
    * Oupa prompts; capture mode's footage has no HUD). The first hunt of a UTC day gets a greeting;
    * the save remembers the day.
    */
-  startBarks(on: boolean): void {
+  startBarks(on: boolean, special: SpecialBarks | null = null): void {
     this.barksOn = on;
     this.lastScore = 0;
     if (!on) return;
-    this.ctx.barks.startHunt(0);
+    // D-048: a special day's hunt brings Oupa's lines for it (said once the hunt starts).
+    this.ctx.barks.startHunt(0, special);
     const today = this.ctx.today();
     const save = this.ctx.save;
     this.firstTodayPending = firstHuntToday(save.data.barks.lastHuntDay, today);
@@ -717,6 +720,23 @@ export class HudScene extends Phaser.Scene {
         const mk = this.ctx.content.birds.meerkats;
         banner.push(t('hud.familiefoto'));
         this.ctx.audio.bark(mk.familiefoto.barkKey);
+      } else if (e.type === 'spookHit') {
+        // D-048: the Spookjag — a bat's bonus, an owl's penalty, a lantern going dark.
+        if (e.thing === 'lantern') {
+          const total = this.runnerLanterns ?? 0;
+          this.pushPop(
+            fill(t('feesdag.lanterns_left'), { n: total - e.lanternsLit, total }),
+            '#FFB347',
+          );
+        } else
+          this.pushPop(
+            `${t(e.thing === 'bat' ? 'feesdag.bat' : 'feesdag.owl')}  ${formatAward(e.points)}`,
+            e.points < 0 ? '#FF6B5A' : '#FFD25A',
+          );
+      } else if (e.type === 'feesdagStarted') {
+        this.runnerLanterns = e.lanterns;
+      } else if (e.type === 'lanternsOut') {
+        banner.push(`${t('feesdag.lanterns_out')} ${formatAward(e.points)}`);
       } else if (e.type === 'meerkatHit') {
         // v1.7: a shot meerkat — points off (none inside the colony's cooldown).
         if (e.points < 0) this.pushPop(formatAward(e.points), '#FF6B5A');

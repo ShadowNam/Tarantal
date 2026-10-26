@@ -864,6 +864,13 @@ export function createSim(config: SimConfig): Sim {
       family: c.meerkats.length,
     });
   if (wind !== null) emit({ type: 'windChanged', tick: 0, dir: wind.dir, strength: wind.strength });
+  if (spook !== null && setup.feesdag !== null)
+    emit({
+      type: 'feesdagStarted',
+      tick: 0,
+      feesdag: setup.feesdag.id,
+      lanterns: spook.lanternsTotal,
+    });
 
   function directorContext(): DirectorContext {
     return {

@@ -21,7 +21,7 @@ export type AdminKind = 'classic' | 'daily' | 'season';
 
 /** One playable map in the admin list. */
 export interface AdminEntry {
-  /** Stable id, the review's key: `classic:<biome>:plain|<day>|<bonus>`, `daily`,
+  /** Stable id, the review's key: `classic:<biome>:plain|<day>|<bonus>`, `daily`, `daily:<special>`,
    *  `season:<season>:<n>` (n = hunt in the season, 1-based). */
   readonly id: string;
   readonly kind: AdminKind;
@@ -35,6 +35,8 @@ export interface AdminEntry {
   readonly huntIndex: number | null;
   /** Season: the hunt kind of the pattern ('plain' | 'omen' | 'boss'). */
   readonly stage: string | null;
+  /** D-048: a special day's Daily (`daily:<id>`), played whatever today's date. */
+  readonly feesdag: string | null;
 }
 
 const entry = (
@@ -50,6 +52,7 @@ const entry = (
   season: rest.season ?? null,
   huntIndex: rest.huntIndex ?? null,
   stage: rest.stage ?? null,
+  feesdag: rest.feesdag ?? null,
 });
 
 /**
@@ -70,6 +73,9 @@ export function adminEntries(
       out.push(entry(`classic:${b.id}:${m.id}`, 'classic', { biome: b.id, bonus: m.id }));
   }
   out.push(entry('daily', 'daily', {}));
+  // D-048: each special day, as its Daily (the admin page's "Play" forces it).
+  for (const f of content.feesdae.specials)
+    out.push(entry(`daily:${f.id}`, 'daily', { feesdag: f.id }));
   const pattern = content.run.huntPattern;
   content.run.seasons.forEach((s, si) => {
     if (!playableBiomes.includes(s.biome)) return;

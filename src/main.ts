@@ -246,6 +246,18 @@ function bonusParam(): string | undefined {
   return v !== null && (BONUS_MAP_IDS as readonly string[]).includes(v) ? v : undefined;
 }
 
+/**
+ * D-048: `?feesdag=halloween` (or `none`) makes today's Daily that special day — dev and e2e
+ * builds and the web admin page only, never a portal build. The real date logic is untouched.
+ */
+function feesdagOverride(): string | null {
+  const portal =
+    import.meta.env.VITE_PLATFORM === 'poki' || import.meta.env.VITE_PLATFORM === 'crazygames';
+  if (portal) return null;
+  if (adminSetup !== null) return adminSetup.feesdag ?? null;
+  return testHooks ? params.get('feesdag') : null;
+}
+
 /** e2e/dev only: ?today=YYYY-MM-DD fixes the UTC day of the Daily Hunt. */
 function todaySource(): () => number {
   const adminDay = adminSetup?.today;
@@ -350,6 +362,9 @@ const hook: TestHook = {
   seasonHud: null,
   huntSeed: null,
   daily: null,
+  feesdag: null,
+  spook: null,
+  feesdaeArt: null,
   challenge: null,
   notice: null,
   hudTag: null,
@@ -834,6 +849,7 @@ async function boot(): Promise<void> {
       playableBiomes,
       shareBase,
       unranked,
+      feesdagOverride: feesdagOverride(),
     }),
     pendingChallenge,
     platform,
