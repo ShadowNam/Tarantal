@@ -12,7 +12,12 @@ import { VOICE_LANGUAGES } from '../../i18n/i18n';
 import { loadContent, loadFeel } from '../../../tools/testContent';
 
 const root = join(import.meta.dirname, '..', '..', '..');
-const LINES = voicedLines(loadFeel().barks, loadContent().biomes, loadContent().birds.meerkats);
+const LINES = voicedLines(
+  loadFeel().barks,
+  loadContent().biomes,
+  loadContent().birds.meerkats,
+  loadContent().feesdae.specials.map((f) => f.barks),
+);
 /** Voiced keys with no file in a voice language yet (none today). */
 const GAPS: Readonly<Record<string, readonly string[]>> = {};
 

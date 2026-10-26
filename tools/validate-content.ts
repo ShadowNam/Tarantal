@@ -78,6 +78,13 @@ for (const [trigger, cfg] of Object.entries(feel.feel.barks.triggers)) {
         message: `barks.triggers.${trigger}: "${line}" is not in src/i18n/en.json`,
       });
 }
+// D-048: a special's light is a preset too.
+for (const f of parsed.bundle.feesdae.specials)
+  if (feel.feel.lights[f.light] === undefined)
+    errors.push({
+      file: 'feesdae.json',
+      message: `special "${f.id}" uses unknown light "${f.light}"`,
+    });
 // v1.2 (D-033): every layout and bonus map light is a preset, and its layers are the biome's.
 for (const biome of parsed.bundle.biomes) {
   const layerIds = new Set(biome.layers.map((l) => l.id));

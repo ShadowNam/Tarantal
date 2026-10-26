@@ -51,6 +51,9 @@ export interface ModeConfig {
   readonly sight?: string;
   /** v1.3x (D-037), mode 'range' only: the Skietbaan's targets. */
   readonly range?: RangeConfig;
+  /** D-048, Daily only: the special day (feesdae.json id) this hunt plays; absent = ordinary.
+   *  The date is decided outside the sim and arrives here as this id. */
+  readonly feesdag?: string;
 }
 
 /** GDD §13.1: hunt 1 plain, hunt 2 Omen (weather on), hunt 3 Boss Hunt (boss + Boss Rule). */
@@ -365,6 +368,28 @@ export interface SimState {
   readonly over: boolean;
   /** v1.3x (D-037): the Skietbaan's paper targets (mode 'range' only). */
   readonly range?: RangeView;
+  /** D-048: the special day's twist (absent on ordinary hunts). */
+  readonly feesdag?: FeesdagView;
+}
+
+/** D-048: a Spookjag bat, owl or pumpkin lantern (plane coordinates, like a bird). */
+export interface SpookThingView {
+  readonly id: number;
+  readonly kind: 'bat' | 'owl' | 'lantern';
+  readonly plane: PlaneId;
+  readonly x: number;
+  readonly y: number;
+  readonly facing: 1 | -1;
+  /** Lanterns: shot out. */
+  readonly dark: boolean;
+}
+
+export interface FeesdagView {
+  /** feesdae.json id. */
+  readonly id: string;
+  readonly things: readonly SpookThingView[];
+  readonly lanternsLit: number;
+  readonly lanternsTotal: number;
 }
 
 /** A paper target or (24 Oct update) a steel plate: a circle on its plane (plane px; r already
@@ -419,6 +444,14 @@ export interface SeasonView {
 export interface HuntResult {
   readonly seed: number;
   readonly mode: ModeId;
+  /** D-048: the special day played, and its tally (absent on ordinary hunts). */
+  readonly feesdag?: {
+    readonly id: string;
+    readonly bats: number;
+    readonly owls: number;
+    readonly lanterns: number;
+    readonly lanternsTotal: number;
+  };
   readonly biome: string;
   /** v1.2: the map played (null = the plain biome: Season Run, FTUE, old replays). */
   readonly layout: string | null;

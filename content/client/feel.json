@@ -980,6 +980,32 @@
         "lines": [
           "bark.run_won"
         ]
+      },
+      "feesdagStart": {
+        "$comment": "D-048: a special day's lines come from feesdae.json barks (none here). Start: held until said, after the first-today greeting.",
+        "priority": 88,
+        "cooldownMs": 0,
+        "lines": []
+      },
+      "feesdagBat": {
+        "priority": 62,
+        "cooldownMs": 25000,
+        "lines": []
+      },
+      "feesdagOwl": {
+        "priority": 72,
+        "cooldownMs": 15000,
+        "lines": []
+      },
+      "lanternsOut": {
+        "priority": 92,
+        "cooldownMs": 0,
+        "lines": []
+      },
+      "feesdagEnd": {
+        "priority": 60,
+        "cooldownMs": 0,
+        "lines": []
       }
     }
   }

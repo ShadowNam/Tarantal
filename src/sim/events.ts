@@ -84,6 +84,8 @@ export type SimEvent =
       readonly paperId?: number;
       /** v1.7 (D-044): the meerkat it hit (absent everywhere else). */
       readonly meerkatId?: number;
+      /** D-048: the Spookjag bat, owl or lantern it hit (absent everywhere else). */
+      readonly spookId?: number;
     }
   /** v1.3x (D-037) Skietbaan only: a shot's aim point on the range's plane (plane px; a rifle's
    *  before the sway), the point its group is measured from. */
@@ -505,9 +507,36 @@ export type SimEvent =
       readonly x: number;
       readonly y: number;
     }
-  | { readonly type: 'huntEnded'; readonly tick: number; readonly score: number };
+  | { readonly type: 'huntEnded'; readonly tick: number; readonly score: number }
+  /** D-048 (Spookjag): a bat or an owl came into the sky at a plane edge (sound cue). */
+  | {
+      readonly type: 'spookFlew';
+      readonly tick: number;
+      readonly thing: 'bat' | 'owl';
+      readonly id: number;
+      readonly plane: PlaneId;
+    }
+  /** D-048: a bat, owl or pumpkin lantern was shot. Points are flat (bat +, owl −, lantern 0);
+   *  `lanternsLit` counts the lanterns still lit after this hit. */
+  | {
+      readonly type: 'spookHit';
+      readonly tick: number;
+      readonly shotId: number;
+      readonly thing: SpookThingKind;
+      readonly id: number;
+      readonly plane: PlaneId;
+      readonly x: number;
+      readonly y: number;
+      readonly points: number;
+      readonly lanternsLit: number;
+    }
+  /** D-048: the day's last lantern went dark — "Lanterns out!", paid once. */
+  | { readonly type: 'lanternsOut'; readonly tick: number; readonly points: number };
 
 export type SimEventType = SimEvent['type'];
+
+/** D-048: what the Spookjag (Halloween) puts up to shoot. */
+export type SpookThingKind = 'bat' | 'owl' | 'lantern';
 
 /**
  * Running hash of an event stream (two FNV-1a lanes → 16 hex chars). Events are plain objects

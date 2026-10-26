@@ -50,7 +50,7 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
     (options.strict === true ? errors : warnings).push({ file, message });
   };
 
-  const { scoring, birds, weapons, powerups, charms, run, modes, biomes } = bundle;
+  const { scoring, birds, weapons, powerups, charms, run, modes, biomes, feesdae } = bundle;
 
   // --- unique ids --------------------------------------------------------------------------
   checkUnique('birds.json', 'creature', birds.creatures.map((c) => c.id), err);
@@ -488,6 +488,32 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
         warn('charms.json', m);
       },
     });
+  }
+
+  // --- feesdae.json (D-048) ----------------------------------------------------------------
+  checkUnique('feesdae.json', 'special', feesdae.specials.map((f) => f.id), err);
+  const dates = new Set<string>();
+  for (const f of feesdae.specials) {
+    const d = f.date;
+    const key = `${d.month}-${d.day}`;
+    if (dates.has(key)) err('feesdae.json', `two specials on ${key}`);
+    dates.add(key);
+    // A fixed date must exist in a leap year at least (29 Feb is allowed).
+    if (d.day > ([31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][d.month - 1] ?? 31))
+      err('feesdae.json', `special "${f.id}": ${key} is not a date`);
+    if (f.map !== 'daily' && !loadedBiomes.has(f.map.biome))
+      err('feesdae.json', `special "${f.id}" plays unknown biome "${f.map.biome}"`);
+    const b = f.barks;
+    for (const k of [f.nameKey, f.badgeKey, b.start, b.bat, b.owl, b.lanternsOut, b.end])
+      i18n('feesdae.json', k);
+    const tw = f.twist;
+    for (const [name, c] of [['bats', tw.bats], ['owls', tw.owls]] as const)
+      if (!(c.window[1] <= 1 && c.perHunt[0] <= c.perHunt[1]))
+        err('feesdae.json', `special "${f.id}": ${name} window/perHunt out of range`);
+    if (tw.bats.points <= 0) err('feesdae.json', `special "${f.id}": bats are a bonus (points > 0)`);
+    if (tw.owls.points >= 0) err('feesdae.json', `special "${f.id}": owls are protected (points < 0)`);
+    if (tw.lanterns.count[1] > tw.lanterns.spots.length)
+      err('feesdae.json', `special "${f.id}": more lanterns than lantern spots`);
   }
 
   return { errors, warnings };

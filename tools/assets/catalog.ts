@@ -127,7 +127,12 @@ export async function buildCatalog(content: ContentBundle): Promise<Catalog> {
   // v1.5 (D-041): Oupa's voice, one lazy pack per voice language (voice/<lang>/<bark key>): his
   // trigger lines (feel.json barks) and every secret's bark.
   for (const lang of VOICE_LANGUAGES)
-    for (const line of voicedLines(loadFeel().barks, content.biomes, content.birds.meerkats)) {
+    for (const line of voicedLines(
+      loadFeel().barks,
+      content.biomes,
+      content.birds.meerkats,
+      content.feesdae.specials.map((f) => f.barks),
+    )) {
       const key = voiceKey(lang, line);
       entries.set(key, { key, kind: 'sound', group: voiceGroup(lang), biomes: everyBiome });
     }

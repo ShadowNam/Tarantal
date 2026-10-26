@@ -85,13 +85,28 @@ describe('InputLog', () => {
       inputKind: 'touch',
       commands: aim.map((c, i) => [i, c] as const),
     };
-    expect(INPUT_LOG_VERSION).toBe(5);
     expect(decodeInputLogText(encodeInputLogText(log))).toEqual(log);
     // A v4 log can't name a sight; a v4 byte stream holding a v5 command is corrupt.
     expect(() => encodeInputLog({ ...log, v: 4 })).toThrow(/version 5/);
     const noSight: InputLog = { ...log, mode: { id: 'classic' } };
     const v4bytes = encodeInputLog({ ...noSight, v: 4 });
     expect(() => decodeInputLog(v4bytes)).toThrow(/bad replay command/);
+  });
+
+  it('v6 (D-048) carries the special day; a v5 log cannot name one and still decodes', () => {
+    const log: InputLog = {
+      v: INPUT_LOG_VERSION,
+      seed: 31,
+      contentHash: HASH,
+      mode: { id: 'daily', biome: 'karoo-autumn', layout: 'sat', feesdag: 'halloween' },
+      inputKind: 'pointer',
+      commands: [[2, { t: 'fire', dx: 10, sy: 300 }]],
+    };
+    expect(INPUT_LOG_VERSION).toBe(6);
+    expect(decodeInputLogText(encodeInputLogText(log))).toEqual(log);
+    expect(() => encodeInputLog({ ...log, v: 5 })).toThrow(/version 6/);
+    const plain: InputLog = { ...log, v: 5, mode: { id: 'daily', layout: 'sat' } };
+    expect(decodeInputLog(encodeInputLog(plain))).toEqual(plain);
   });
 
   it('still decodes v1 logs (pre-M5) as standard aim assist', () => {

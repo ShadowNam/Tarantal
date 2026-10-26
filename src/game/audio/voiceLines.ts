@@ -3,7 +3,7 @@
 // language's voice pack. Pure: from the bark tuning (feel.json barks) and the biomes' secrets.
 import type { Biome, MeerkatTuning } from '../../content/schemas';
 import { VOICE_LANGUAGES, type VoiceLanguage } from '../../i18n/i18n';
-import { allBarkLines, type BarkTuning } from './barks';
+import { allBarkLines, type BarkTuning, type SpecialBarks } from './barks';
 
 /** Asset group of one voice language's pack (lazy: only the chosen language downloads). */
 export const VOICE_GROUP_PREFIX = 'voice-';
@@ -28,8 +28,10 @@ export function voicedLines(
   barks: BarkTuning,
   biomes: readonly Pick<Biome, 'props'>[],
   meerkats?: Pick<MeerkatTuning, 'hit' | 'familiefoto'>,
+  /** D-048: the special days' own lines (feesdae.json barks). */
+  specials: readonly SpecialBarks[] = [],
 ): string[] {
-  const out = new Set(allBarkLines(barks));
+  const out = new Set(allBarkLines(barks, specials));
   if (meerkats !== undefined) {
     out.add(meerkats.hit.barkKey);
     out.add(meerkats.familiefoto.barkKey);

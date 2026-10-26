@@ -413,7 +413,7 @@ describe('replays of a zoomed hunt (InputLog v5)', () => {
     }
     expect(ofType(all, 'shotFired').length).toBeGreaterThanOrEqual(5);
     const log = decodeInputLogText(encodeInputLogText(rec.toLog()));
-    expect(log.v).toBe(5);
+    expect(log.v).toBeGreaterThanOrEqual(5);
     expect(log.mode.sight).toBe('scope_small');
     expect(log.commands.some(([, cmd]) => cmd.t === 'aimMove')).toBe(true);
     const replay = runReplay(log, c);

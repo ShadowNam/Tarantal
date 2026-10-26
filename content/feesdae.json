@@ -1,0 +1,68 @@
+{
+  "$comment": "Feesdae: the special days (GDD §15.4, Tech §12.3, D-048). On a special's UTC day the Daily Hunt becomes that special for everyone: the same seed rule as any Daily, the day's map under the special's light, its decorations and one twist rule. Dates are UTC (like the Daily); the game passes the day in, the sim never reads a clock. Twist numbers are design px at plane scale 1, speeds px/s at the mid plane, times in ms; points are flat (no Frenzy or weapon multiplier).",
+  "version": 1,
+  "specials": [
+    {
+      "id": "halloween",
+      "$comment": "Spookjag (31 Oct): a dusk hunt. Bats are a fast, erratic bonus target; the spotted eagle-owl is protected (like the hadeda); shoot every pumpkin lantern for Lanterns out!",
+      "nameKey": "feesdag.halloween.name",
+      "badgeKey": "feesdag.halloween.badge",
+      "date": { "type": "fixed", "month": 10, "day": 31 },
+      "map": "daily",
+      "light": "dusk",
+      "twist": {
+        "rule": "spookjag",
+        "bats": {
+          "planes": ["mid", "far"],
+          "perHunt": [7, 10],
+          "window": [0.04, 0.94],
+          "speed": 560,
+          "swerve": 70,
+          "swerveMs": [180, 420],
+          "rx": 44,
+          "ry": 26,
+          "points": 15
+        },
+        "owls": {
+          "planes": ["mid", "far"],
+          "perHunt": [2, 3],
+          "window": [0.15, 0.85],
+          "speed": 260,
+          "swerve": 12,
+          "swerveMs": [900, 1600],
+          "rx": 120,
+          "ry": 62,
+          "points": -10
+        },
+        "lanterns": {
+          "count": [3, 5],
+          "spots": [
+            { "plane": "mid", "u": 0.07 },
+            { "plane": "mid", "u": 0.22 },
+            { "plane": "mid", "u": 0.39 },
+            { "plane": "mid", "u": 0.56 },
+            { "plane": "mid", "u": 0.73 },
+            { "plane": "mid", "u": 0.9 },
+            { "plane": "far", "u": 0.14 },
+            { "plane": "far", "u": 0.47 },
+            { "plane": "far", "u": 0.82 }
+          ],
+          "lift": 58,
+          "rx": 46,
+          "ry": 40,
+          "allOutBonus": 25
+        }
+      },
+      "decorations": ["moon", "lanterns", "bats", "cobwebs", "witchHats"],
+      "barks": {
+        "start": "bark.spook_start",
+        "bat": "bark.spook_bat",
+        "owl": "bark.spook_owl",
+        "lanternsOut": "bark.spook_lanterns",
+        "end": "bark.spook_end"
+      },
+      "sting": "music/feesdag_halloween",
+      "shareFrame": "halloween"
+    }
+  ]
+}

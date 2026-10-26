@@ -1,7 +1,7 @@
 // Daily Hunt (GDD §12, §15; Tech §12): the day's seed, biome and number, the first-attempt rule,
 // and the streak with one free freeze per ISO week. Pure: the game passes in the UTC day number
 // (from Date.now() in the game layer) and the content; nothing here reads a clock.
-import type { DailyMeta } from '../content/schemas';
+import type { DailyMeta, Feesdag } from '../content/schemas';
 import { sha256HexOfString } from '../content/hash';
 import type { ModeConfig } from '../sim/types';
 import { dayKey, isoWeekKey, parseDayKey } from './dailyCalendar';
@@ -47,6 +47,8 @@ export interface DailySetup {
   readonly biome: string;
   /** v1.2: the day's layout (its UTC weekday). */
   readonly layout: WeekdayId;
+  /** D-048: the special (Feesdag) this Daily plays, if the day is one (absent = ordinary). */
+  readonly feesdag?: string;
 }
 
 export function dailySetup(
@@ -56,16 +58,26 @@ export function dailySetup(
     readonly contentHash: string;
     readonly playable: readonly string[];
     readonly fallbackBiome: string;
+    /** D-048: the day's special (feesdae.ts todaysFeesdag), or null. */
+    readonly feesdag?: Feesdag | null;
   },
 ): DailySetup {
   const key = dayKey(day);
+  const special = opts.feesdag ?? null;
+  // The special's own map, if it names one (and this build can draw it); else the day's map.
+  const fixed =
+    special !== null && special.map !== 'daily' && opts.playable.includes(special.map.biome)
+      ? special.map
+      : null;
   return {
     day,
     key,
     number: dailyNumber(day, opts.meta.epoch),
     seed: dailySeed(key, opts.contentHash),
-    biome: dailyBiome(day, opts.meta.biomeRotation, opts.playable, opts.fallbackBiome),
-    layout: layoutForDay(day),
+    biome:
+      fixed?.biome ?? dailyBiome(day, opts.meta.biomeRotation, opts.playable, opts.fallbackBiome),
+    layout: fixed?.layout ?? layoutForDay(day),
+    ...(special === null ? {} : { feesdag: special.id }),
   };
 }
 
@@ -76,6 +88,7 @@ export function dailyMode(setup: DailySetup, weapon: string | undefined): ModeCo
     biome: setup.biome,
     layout: setup.layout,
     ...(weapon === undefined ? {} : { weapon }),
+    ...(setup.feesdag === undefined ? {} : { feesdag: setup.feesdag }),
   };
 }
 

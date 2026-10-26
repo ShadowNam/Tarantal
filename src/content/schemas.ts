@@ -1254,6 +1254,90 @@ export type RangeSetup = z.infer<typeof rangeSchema>;
 export type Modes = z.infer<typeof ModesSchema>;
 
 // ---------------------------------------------------------------------------------------------
+// feesdae.json — the special days (Feesdae, GDD §15.4, Tech §12.3, D-048). On a special's UTC
+// day the Daily Hunt becomes that special: the same seed rule, its look and one twist rule. The
+// date rule is an input of the mode (the game reads the clock, never the sim); the twist's
+// numbers are here, so they are in the contentHash like every other rule.
+
+/** Fixed UTC month/day for now; other kinds (ranges, moving feasts) join the union later. */
+const feesdagDateSchema = z.discriminatedUnion('type', [
+  obj({ type: z.literal('fixed'), month: z.number().int().min(1).max(12), day: z.number().int().min(1).max(31) }),
+]);
+
+/** A flyer of the Spookjag (bats, owls), in design px at plane scale 1 (scaled by its plane). */
+const spookFlyerSchema = obj({
+  /** Sky lanes it may cross (their skyY from the day's map). */
+  planes: z.array(z.enum(['mid', 'far'])).min(1),
+  /** How many cross per hunt, and when (fractions of the hunt). */
+  perHunt: range(nonNegInt),
+  window: windowFraction,
+  /** Flight speed (px/s at the mid plane, like birds.json speeds). */
+  speed: pos,
+  /** Erratic flight: up-and-down swerves of up to `swerve` px, a new one every `swerveMs`. */
+  swerve: nonNeg,
+  swerveMs: range(pos),
+  /** Hit ellipse half-sizes. */
+  rx: pos,
+  ry: pos,
+  /** Points when shot: positive for a bonus target, negative for a protected one. */
+  points: z.number().int(),
+});
+
+const spookjagSchema = obj({
+  rule: z.literal('spookjag'),
+  bats: spookFlyerSchema,
+  owls: spookFlyerSchema,
+  /** Pumpkin lanterns stand on the ground line (groundY[0]) of their plane at a spot's u. */
+  lanterns: obj({
+    count: range(posInt),
+    spots: z.array(obj({ plane: z.enum(['mid', 'far']), u: fraction })).min(1),
+    /** The lantern's centre above its ground line, and its hit ellipse (px at plane scale 1). */
+    lift: nonNeg,
+    rx: pos,
+    ry: pos,
+    /** Paid once, when the day's last lantern goes dark. */
+    allOutBonus: posInt,
+  }),
+});
+
+/** Bark lines are ASCII `bark.*` keys: the key is also the voice file name (see barkKey). */
+const feesdagBark = z.string().regex(/^bark\.[a-z][a-z0-9_]*$/, 'bark lines are ASCII bark.* keys');
+
+export const FeesdagSchema = obj({
+  id,
+  nameKey: i18nKey,
+  /** The title's badge on the day ("Spookjag tonight!"). */
+  badgeKey: i18nKey,
+  date: feesdagDateSchema,
+  /** "daily" = the day's map (biome rotation + weekday layout), or a fixed biome/layout. */
+  map: z.union([z.literal('daily'), obj({ biome: id, layout: WeekdayIdSchema })]),
+  /** A light preset of client/feel.json lights (the look only). */
+  light: id,
+  twist: spookjagSchema,
+  /** Look pieces the game draws (src/game/feesdae). */
+  decorations: z.array(z.enum(['moon', 'lanterns', 'bats', 'cobwebs', 'witchHats'])),
+  /** Oupa's lines by moment (i18n keys of bark lines). */
+  barks: obj({
+    start: feesdagBark,
+    bat: feesdagBark,
+    owl: feesdagBark,
+    lanternsOut: feesdagBark,
+    end: feesdagBark,
+  }),
+  /** The music sting at the start (an audio key of the feesdae group). */
+  sting: z.string().regex(/^music\/[a-z0-9_]+$/),
+  /** The share card's frame (src/game/feesdae: its emoji and the tally's frame art). */
+  shareFrame: id,
+});
+export type Feesdag = z.infer<typeof FeesdagSchema>;
+
+export const FeesdaeSchema = obj({
+  version,
+  specials: z.array(FeesdagSchema),
+});
+export type Feesdae = z.infer<typeof FeesdaeSchema>;
+
+// ---------------------------------------------------------------------------------------------
 // The whole bundle
 
 /** Fixed top-level files in content/ and the schema each one must match. */
@@ -1265,6 +1349,7 @@ export const CONTENT_FILES = {
   'charms.json': CharmsSchema,
   'run.json': RunSchema,
   'modes.json': ModesSchema,
+  'feesdae.json': FeesdaeSchema,
 } as const;
 
 export interface ContentBundle {
@@ -1275,6 +1360,8 @@ export interface ContentBundle {
   readonly charms: Charms;
   readonly run: Run;
   readonly modes: Modes;
+  /** D-048: the special days (Feesdae). */
+  readonly feesdae: Feesdae;
   readonly biomes: readonly Biome[];
 }
 
@@ -1327,6 +1414,12 @@ export const BARK_TRIGGERS = [
   'badHunt',
   'quotaMissed',
   'runWon',
+  // D-048: a special day's own lines (feesdae.json barks; the tuning here gives no lines).
+  'feesdagStart',
+  'feesdagBat',
+  'feesdagOwl',
+  'lanternsOut',
+  'feesdagEnd',
 ] as const;
 export type BarkTrigger = (typeof BARK_TRIGGERS)[number];
 
@@ -1338,8 +1431,9 @@ const BarkTriggerSchema = obj({
   priority: nonNegInt,
   /** This trigger speaks at most once per cooldownMs (on top of the global gap). */
   cooldownMs: nonNeg,
-  /** Lines said in turn: i18n keys, also the voice keys (voice/<line>). */
-  lines: z.array(barkKey).min(1),
+  /** Lines said in turn: i18n keys, also the voice keys (voice/<line>). Empty only for the
+   *  special-day triggers (D-048), whose lines come from feesdae.json. */
+  lines: z.array(barkKey),
 });
 
 // v1.1 (D-032): what each gun shows on screen — its ammo on the HUD and its crosshair. Screen
