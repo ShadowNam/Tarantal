@@ -24,5 +24,70 @@
     "weg": 0.38,
     "bestChain": 6.746,
     "maxChain": 10
+  },
+  "bushveld-winter.mon.competent": {
+    "id": "bushveld-winter.mon.competent",
+    "label": "Bushveld mon (mid fence) · competent",
+    "seeds": 500,
+    "mean": 4655.13,
+    "canMean": 3.092,
+    "canShare": 0.0006642134591300351,
+    "knocks": 0.284,
+    "airHits": 0.094,
+    "weg": 0,
+    "bestChain": 0.094,
+    "maxChain": 2
+  },
+  "bushveld-winter.mon.canHappy": {
+    "id": "bushveld-winter.mon.canHappy",
+    "label": "Bushveld mon (mid fence) · canHappy",
+    "seeds": 500,
+    "mean": 4034.228,
+    "canMean": 147.484,
+    "canShare": 0.036558171724553,
+    "knocks": 4,
+    "airHits": 6.966,
+    "weg": 0.208,
+    "bestChain": 4.78,
+    "maxChain": 12
+  },
+  "bushveld-winter.sat.before": {
+    "id": "bushveld-winter.sat.before",
+    "label": "Bushveld sat (far fence) · before",
+    "seeds": 500,
+    "mean": 4987.938,
+    "canMean": 0,
+    "canShare": 0,
+    "knocks": 0,
+    "airHits": 0,
+    "weg": 0,
+    "bestChain": 0,
+    "maxChain": 0
+  },
+  "bushveld-winter.sat.canHappy": {
+    "id": "bushveld-winter.sat.canHappy",
+    "label": "Bushveld sat (far fence) · canHappy",
+    "seeds": 500,
+    "mean": 4619.118,
+    "canMean": 68.424,
+    "canShare": 0.01481321758829283,
+    "knocks": 5,
+    "airHits": 1.098,
+    "weg": 0,
+    "bestChain": 0.828,
+    "maxChain": 5
+  },
+  "bushveld-winter.sat.apexJuggler": {
+    "id": "bushveld-winter.sat.apexJuggler",
+    "label": "Bushveld sat (far fence) · apexJuggler",
+    "seeds": 500,
+    "mean": 4178.472,
+    "canMean": 66.048,
+    "canShare": 0.01580673509359402,
+    "knocks": 5,
+    "airHits": 0.952,
+    "weg": 0,
+    "bestChain": 0.756,
+    "maxChain": 4
   }
 }
