@@ -1,6 +1,6 @@
 # Tarantal Madness — Art & Audio Bible
 
-Status: v1.0 baseline · 19 Oct 2026 · amended 23 Oct 2026 (§1.1 semi-realistic pass, D-035) · 25 Oct 2026 (§4.2 veld art pass, D-042)
+Status: v1.0 baseline · 19 Oct 2026 · amended 23 Oct 2026 (§1.1 semi-realistic pass, D-035) · 25 Oct 2026 (§4.2 veld art pass, D-042) · 26 Oct 2026 (§4.2 fruit as sprites, D-047)
 
 ## 1. Locked art direction: "Inked Bosveld Comic"
 
@@ -279,6 +279,26 @@ streaks, puddles. Lightning flashes must obey the ≤ 3 flashes/second rule and 
 - **Far animals:** at the waterhole springbok and gemsbok drink, with zebra, a giraffe and a pair
   of ostriches; gemsbok, ostriches and zebra out on the pan.
 
+**Fruit as separate sprites (v1.7c, D-047).** Fruit, pods and flowers that react to shots are
+not part of the tree, layer or prop art on the mid, near and foreground planes: each is its own
+sprite in the biome's fruit sheet (`fruit/<biome>`, 512 × 512, its frames and pivots listed in
+`src/game/view/fruit/spots/fruit-<biome>.json`). A hanging fruit with a long stalk is two frames:
+the stalk (pivot at its top, it stays on the tree) and the fruit (pivot where it hangs from the
+stalk's end); flower spikes pivot at their foot, fruit on the ground at their base. Each spot also
+gives the ground line a dropped fruit lands on and the foot of its trunk (it comes to rest clear
+of it). Prop fruit are drawn at 2×, layer fruit at 1×. The look is the camelthorn bar
+(`tools/art/fruitLook.ts`): sausages long, heavy, slightly curved, fatter toward a darker blunt
+tip, grey-brown mottled rough skin with pale lenticel dots, on a thin rope stalk thickening into
+the fruit; baobab pods velvety grey-green to olive-tan ovoids with a soft sheen, a fuzzy rim and a
+woody stalk end; round fruit with a shade side, a highlight and a nub (marula speckled, !nara
+warty with pale bands, ilala glossy brown on a branched rachis); pods two-toned with seed bulges
+and a lit edge; quiver racemes of tubular flowers. They are: Karoo sweet-thorn pods;
+Bushveld baobab pods (not the secret pod) and marula fruit on the ground; Okavango sausages and
+ilala fruit clusters; Kalahari and Namibië camelthorn pods (hanging and on the sand); Namibië
+quiver-tree flower spikes and !nara melons. Far-plane trees keep theirs drawn in. A delivery
+replaces the sheet and the spots file together (same sheet size); the interim art is drawn by
+`tools/art/fruitSink.ts` from the same species code, so it matches the trees exactly.
+
 **How the veld is drawn (v1.6, D-042).** Every tree, shrub and grass tuft is built the
 camelthorn's way (`tools/art/flora.ts`, species in `tools/art/species.ts`): an irregular
 silhouette, never a geometric shape; foliage as separate clumps of leaf dabs with gaps where sky or
@@ -507,6 +527,10 @@ double alarm bark, paws scratching sand, and the Familiefoto's soft camera click
 (`sfx/meerkat_chirp`, `sfx/meerkat_alarm`, `sfx/meerkat_dig`, `sfx/camera_click`). They are
 interim, from `tools/audio/sfx.ts`, in the lazy desert group. Chirps and digging come only from a
 colony on screen, at most one cue per colony every 40 ticks.
+
+**Fruit (v1.7c, D-047):** a soft wooden "thock" when a shot knocks a fruit and a low thud in the
+dust when a dropped one lands (`sfx/fruit_thock`, `sfx/fruit_thud`), panned to the fruit. Small
+synths (`src/game/view/fruit/fruitSounds.ts`) until recordings are delivered under those keys.
 
 ### 10.1 Oupa's voice in English, Afrikaans and German (v1.5, D-041)
 

@@ -353,6 +353,7 @@ const hook: TestHook = {
   weaverBursts: 0,
   meerkats: [],
   meerkatLog: [],
+  fruit: null,
   meerkatMs: 0,
   reloadFx: { chipIcons: [], bolts: 0, oupaHand: false, autoReloads: 0 },
   mirage: false,

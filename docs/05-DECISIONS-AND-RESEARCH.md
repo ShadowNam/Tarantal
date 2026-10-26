@@ -2625,6 +2625,85 @@ anything still drawing the old canvas stays valid until its view sets the key ag
 `AssetManifest.test.ts`). Supervisor screenshots of the final build (45, desktop, Pixel 7 and
 iPhone 14) are in `docs/art-preview/compare/v17b-*`.
 
+**D-047 v1.7c fruit swing and drop when shot (26 Oct 2026):** the product owner (25 Oct, testing
+the sausage tree in the Okavango): "When shooting these fruits, make them swing or drop down."
+Rules in Tech §5 (fruit) and art bible §4.2 (fruit as sprites); tunables `feel.json juice.fruit`.
+(1) *View-only:* fruit are not targets. `FruitView` reads the sim's `pelletImpact` events, maps
+each pellet onto the fruit's layer (`planeX = (cx − 960) × scrollFactor + 960 + dx`) and matches it
+against the fruit's frame; the sim has no fruit state, no hit test changed, nothing scores, and the
+golden replays are identical. A pellet the sim stopped in front of the fruit (a bird on its layer
+or a nearer one, a nearer prop, a crate, a meerkat) never reaches it. A pellet that flew past the
+far plane (or stopped at or behind it) carries the wind drift in its event (7–23 px with the
+Dubbelloop, up to ~75 px with the Windbuks on Verder): on layers in front of the far plane the view
+takes the shot's drift back off (driftPxAtFar × strength × dir × the gun's wind sensitivity × the
+charms' windDriftMul, the sim's own sum), as the sim's mid/near hit test never drifts. Each shot
+is mapped with the camera the sim resolved its tick with (`HuntRunner.cameraAt`: on a frame of
+several ticks while panning, the frame's last camera is up to ~23 px off on the near plane).
+(2) *Motion on sim ticks:* every pose is a pure function of the hits' ticks and the sim tick
+(`fruitMotion.ts`): a damped pendulum per hit (0.9 Hz, down to 5 % in 2.2 s; hits add up), so
+replays and held frames (`?holdAt`) draw the same. One pellet swings it 18°, each extra pellet
++6° (cap 34°); a near miss (within 30 px of the frame) swings it 0.4×. Hanging and standing fruit
+snap off on 3 pellets in one shot, or a hit while the swing is still above 30 % of a one-pellet
+swing (so "hit it, then hit it again"); near misses never drop it. A dropped fruit falls at
+2,400 px/s², bounces twice (0.32 of its speed), rolls 16 px, lies across its fall, takes no more
+hits, never comes back in that hunt and fades after 30 s. Fruit on the ground (marula, !nara
+melons, fallen camelthorn pods) rock 9° and roll 4 px per hit, never drop. Reduce motion: 0.4×
+swings, no bounce. A small leaf puff on a hit and a dust puff on landing (local sprites scaled on
+sim time; no flashes). Sounds: a soft thock on a hit and a thud on landing through
+`AudioDirector.playExtra` (`sfx/fruit_thock`, `sfx/fruit_thud`), synths until recordings are
+delivered: no download.
+(3) *Separate sprites:* the species code hands each reacting fruit, pod or flower to
+`tools/art/fruitSink.ts`; `art:interim` collects them from the mid, near and foreground layers and
+from every prop (the far planes keep theirs baked), renders each on its own and packs them into one
+512 × 512 png8 sheet per biome (`fruit/<biome>`, interim origin), with
+`src/game/view/fruit/spots/fruit-<biome>.json` saying where each sits (layer or prop px, its ground line,
+its frame and pivot). The random streams are used exactly as before, so the rest of every layer
+and prop is unchanged. 282 fruit: Karoo 20 sweet-thorn pods; Bushveld 24 marula fruit and 5 baobab
+pods (the secret pod stays prop art); Okavango 6 sausages and 3 ilala clusters; Kalahari 48
+camelthorn pods; Namibië 92 quiver flower spikes, 17 !nara melons and 67 camelthorn pods. The
+jackalberry draws fruit only at the near detail, which no map uses, so it has none to split.
+(4) *Sizes (gzip):* nothing new in the first download (3,069.4 KB with v1.7b, +0.4 KB: the lazy
+import and the tunables, offset by the Karoo mid layer losing its pods). `FruitView` (5.0 KB) and
+each map's spots table (`fruit-<biome>`) are small lazy chunks fetched when a hunt starts. Sheets
+(after the look round, (6)): Okavango 21.0 KB, Bushveld 9.3 KB and Namibië 31.8 KB in their biome
+chunks (Okavango 1,529.1, Bushveld 1,499.1, Namibië + desert 1,508.3 of 1,536 KB); the Karoo's
+(2.7 KB, no room in the first download) and the Kalahari's (5.8 KB: the Kalahari and desert chunks
+are at 1,534.5 KB together) load with the late group (1,471.3 KB), so their fruit show once it has
+arrived (the first Karoo hunt after a cold start may begin without them; `FruitView` swaps the
+sheet in when it lands, and until then nothing reacts or sounds).
+(5) *Tests:* `fruitMotion.test.ts` and `fruitHits.test.ts` (swing, sides, near misses, drop
+rules, fall/bounce/roll/fade, ground fruit, plane mapping, blocking); `fruit.spec.ts` (Okavango,
+`?birds=0`: a shot beside a sausage swings it, shots at it drop it, it lands, the score stays);
+`art-preview-v17c.spec.ts` (on demand) for `docs/art-preview/compare/v17c-fruit-*.png`.
+(6) *Look round (26 Oct, from the 15f7afe screenshots):* the close-ups showed flat shapes (tan
+"pills" on a straight line, smooth grey eggs); the product owner wants the camelthorn bar on every
+fruit. The sprites now have their own drawings (`tools/art/fruitLook.ts`): sausages long, heavy,
+slightly curved and fatter toward a darker blunt tip, grey-brown mottled rough skin with pale
+lenticels, lit upper left with a shade side, on a thin twisted rope stalk that thickens into the
+fruit; baobab pods velvety ovoids, grey-green to olive-tan, a soft sheen, a fuzzy rim and a woody
+stalk end; round fruit with a shade side, a highlight and a nub (marula speckled, !nara warts and
+pale bands, glossy ilala fruit on a branched rachis); sweet-thorn and camelthorn pods with seed
+bulges, two tones and a lit edge (camelthorn: fuzz); quiver racemes of tubular flowers, open
+yellow below and greener buds above. They are used only for the sprites (the far-plane fruit stay
+baked in their old look, so no layer changed) and seed their own random streams. Prop fruit (seen
+close up, like the 2× props) are drawn at 2×. A hanging fruit is now two frames: its stalk stays
+on the tree (and swings out) when the fruit snaps off, and the fruit falls from the stalk's end, so
+a sausage no longer lies with a 200 px stalk across the tree. A dropped fruit lands toward the side
+it swung and rolls on until it lies `trunkClearPx` (10 px) clear of its trunk (the species code
+gives each fruit its trunk's foot), so it never reads as stuck to the trunk; a soft contact shadow
+lies under it.
+(7) *Second review round (26 Oct, at 611a1d4):* fruit now take the map light's tint on their
+layer (`ParallaxView.layerTint`, the same compound tint as the layer art and props:
+`lightTint.ts`), so they match their tree on dawn mist, overcast, golden, dusty and dusk maps, and
+they sit below the light's haze. Draw order per layer: layer art → the layer's fruit → its props →
+its props' fruit → haze → fixtures (meerkats, secret marks) → birds, so a layer fruit behind a
+prop (the Kalahari pods under the weaver tree's foot, the marula behind the dassie koppie) stays
+behind it as it was in the baked art. Wind drift and the shot's camera: see (1). Cost: a fruit at
+rest, faded out or settled is posed once and skipped until a shot moves it; fruit off screen are
+hidden and skipped; a drop works its fall out once. Poses use the interpolated sim time (the
+snapshot's tick − 1 + the frame's alpha), as the birds and the camera do, so a falling fruit is
+smooth on 90/120 Hz screens and a held frame still holds.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

@@ -24,6 +24,8 @@ import {
   type Rnd,
 } from '../scenery';
 import { el, ellipseD, g, inked, r2, smoothD } from '../svg';
+import { fruit, placedFruit } from '../fruitSink';
+import { quiverSpikeHi, roundHi } from '../fruitLook';
 import { groundBand, groundShadow, softSky } from './karoo';
 import { foregroundClumps, midScrub, nearGrass, verVeld } from './common';
 import { tuftOf } from '../vegetation';
@@ -745,13 +747,22 @@ function rosette(rnd: Rnd, x: number, y: number, r: number, ctx: PaintCtx, pen: 
 }
 
 /** A quiver tree's flower spike: a stalk forking into 2–3 short yellow racemes. */
-function quiverFlowers(rnd: Rnd, x: number, y: number, h: number, pen: Pen): string {
+function quiverFlowers(
+  rnd: Rnd,
+  x: number,
+  y: number,
+  h: number,
+  pen: Pen,
+): { svg: string; hi: string } {
+  const stems: string[] = [];
+  const racemes: { x: number; y: number; h: number }[] = [];
   const stalk = '#9A8A50';
   const yellow = '#F2C632';
   const dark = '#C08A1C';
   const parts: string[] = [];
   const n = 2 + Math.floor(rnd() * 2);
   const fork: Pt = [x + (rnd() - 0.5) * 2, y - h * 0.4];
+  stems.push(`M${r2(x)} ${r2(y)}L${r2(fork[0])} ${r2(fork[1])}`);
   parts.push(
     el('path', {
       d: `M${r2(x)} ${r2(y)}L${r2(fork[0])} ${r2(fork[1])}`,
@@ -764,6 +775,7 @@ function quiverFlowers(rnd: Rnd, x: number, y: number, h: number, pen: Pen): str
     const f = n === 1 ? 0 : k / (n - 1) - 0.5;
     const bx = fork[0] + f * h * 0.6;
     const by = fork[1] - h * (0.2 + rnd() * 0.1);
+    stems.push(`M${r2(fork[0])} ${r2(fork[1])}Q${r2(bx)} ${r2(fork[1])} ${r2(bx)} ${r2(by)}`);
     parts.push(
       el('path', {
         d: `M${r2(fork[0])} ${r2(fork[1])}Q${r2(bx)} ${r2(fork[1])} ${r2(bx)} ${r2(by)}`,
@@ -775,6 +787,7 @@ function quiverFlowers(rnd: Rnd, x: number, y: number, h: number, pen: Pen): str
     // The raceme: a short cylinder of tubular flowers, darker underneath.
     const rh = h * (0.32 + rnd() * 0.1);
     const rw = 2.4;
+    racemes.push({ x: bx, y: by, h: rh });
     parts.push(
       el('path', {
         d: `M${r2(bx)} ${r2(by)}L${r2(bx)} ${r2(by - rh)}`,
@@ -806,7 +819,7 @@ function quiverFlowers(rnd: Rnd, x: number, y: number, h: number, pen: Pen): str
       }),
     );
   }
-  return g({}, ...parts);
+  return { svg: g({}, ...parts), hi: quiverSpikeHi(stems, racemes, pen.ink) };
 }
 
 /**
@@ -876,14 +889,33 @@ function naraHummock(ctx: PaintCtx, x: number, y: number, s: number): string {
     const my = y - s * 0.06 - rnd() * s * 0.2;
     const r = s * (0.14 + rnd() * 0.04);
     const ripe = k === 0 && rnd() < 0.6;
-    parts.push(roundFruit(mx, my, r, ripe ? '#D9B23A' : '#8DA84A'));
     let warts = '';
     for (let i = 0; i < 7; i++) {
       const a = rnd() * Math.PI * 2;
       const rr = Math.sqrt(rnd()) * r * 0.8;
       warts += ellipseD(mx + Math.cos(a) * rr, my + Math.sin(a) * rr * 0.9, r * 0.09, r * 0.09);
     }
-    parts.push(el('path', { d: warts, fill: ripe ? '#8A6A1E' : '#4E6A2A', opacity: 0.8 }));
+    // v1.7c (D-047): each melon rocks when shot.
+    parts.push(
+      fruit({
+        species: 'nara',
+        motion: 'ground',
+        x: mx,
+        y: my + r * 0.92,
+        ground: my + r * 0.92,
+        reach: r * 2 + 3,
+        svg: g(
+          {},
+          roundFruit(mx, my, r, ripe ? '#D9B23A' : '#8DA84A'),
+          el('path', { d: warts, fill: ripe ? '#8A6A1E' : '#4E6A2A', opacity: 0.8 }),
+        ),
+        hi: () => ({
+          body: roundHi(mx, my, r, ripe ? '#D9B23A' : '#8DA84A', {
+            warts: ripe ? '#8A6A1E' : '#4E6A2A',
+          }),
+        }),
+      }),
+    );
   }
   return g({}, ...parts);
 }
@@ -902,12 +934,15 @@ function panShrub(ctx: PaintCtx, x: number, y: number, s: number, pen: Pen): str
 /** A quiver tree standing on a layer: drawn at its foot (x, foot), `k` × its prop size. */
 function layerQuiver(ctx: PaintCtx, x: number, foot: number, h: number, flowers: number): string {
   const k = h / 200;
-  const t = quiverTree(ctx, 200, {
-    lean: (ctx.rnd() - 0.5) * 8,
-    levels: ctx.rnd() < 0.5 ? 3 : 4,
-    crown: 0.9 + ctx.rnd() * 0.25,
-    flowers,
-  });
+  // v1.7c (D-047): its flower spikes are fruit sprites, placed the way the tree is.
+  const t = placedFruit(Number(r2(x)), Number(r2(foot)), Number(r2(k)), () =>
+    quiverTree(ctx, 200, {
+      lean: (ctx.rnd() - 0.5) * 8,
+      levels: ctx.rnd() < 0.5 ? 3 : 4,
+      crown: 0.9 + ctx.rnd() * 0.25,
+      flowers,
+    }),
+  );
   return g({ transform: `translate(${r2(x)} ${r2(foot)}) scale(${r2(k)})` }, t.svg);
 }
 
@@ -1089,8 +1124,21 @@ function quiverTree(
   // v1.6 (D-042): winter flowers: short branched spikes of canary-yellow racemes above some
   // rosettes (June–July).
   for (const t of rs)
-    if (rnd() < (o.flowers ?? 0))
-      parts.push(quiverFlowers(rnd, t[0], t[1] - 6, 16 + rnd() * 6, pen));
+    if (rnd() < (o.flowers ?? 0)) {
+      const spike = quiverFlowers(rnd, t[0], t[1] - 6, 16 + rnd() * 6, pen);
+      parts.push(
+        fruit({
+          species: 'quiver_flower',
+          motion: 'stand',
+          x: t[0],
+          y: t[1] - 6,
+          ground: 4,
+          reach: 30,
+          svg: spike.svg,
+          hi: () => ({ body: spike.hi }),
+        }),
+      );
+    }
   // Blonde tufts at the foot.
   const a = tone(ctx.c('grass'), 0.22, 0.25);
   const b = tone(ctx.c('grassPale'), 0.22, 0.2);

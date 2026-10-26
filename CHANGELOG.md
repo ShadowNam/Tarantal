@@ -3,6 +3,48 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.7.3] — Feesdae: the Halloween Spookjag Daily (31 Oct 2026)
+
+Decision record D-048. On a special day (UTC) the Daily Hunt becomes that day's special for
+everyone. Halloween, 31 Oct, is the first: the Spookjag.
+
+### Added
+- **Feesdae**, special days as content (`content/feesdae.json`): a date, the day's map under the
+  special's light, one twist rule, decorations, Oupa's lines, a sting and a share-card frame.
+- **Spookjag (31 Oct)**: a dusk Daily under a big low moon. Bats are a fast, erratic bonus target
+  (+15); the spotted eagle-owl is protected (−10, a hoot and Oupa's scold); shoot every pumpkin
+  lantern of the day for **Lanterns out!** (+25, once). Some guineafowl wear witch hats.
+- The title's Daily button shows the special's name and a badge ("Spookjag tonight!"); the tally
+  and the share card get a Halloween frame and the title "Spookjag 2026".
+
+### Changed
+- Replays are InputLog v6 (they carry the special day); older logs still play.
+- Content JSON ships without its `$comment` notes (about 9 KB less to download first).
+
+## [1.7.2] — fruit swing and drop when shot (26 Oct 2026)
+
+Decision record D-047. Rendering only: the sim, the content it reads and the golden replays are
+unchanged, so replays from 1.7.1 stay valid.
+
+### Added
+- **Fruit react to shots.** Hit a hanging fruit and it swings on its stalk; a near miss swings it
+  a little. Hit it hard (three pellets) or again while it still swings and it snaps off, falls,
+  bounces once or twice with a puff of dust, rolls and lies there for the rest of the hunt.
+  Fruit on the ground rock and roll a little. Sausages and ilala clusters in the Okavango, baobab
+  pods and marula fruit in the Bushveld, sweet-thorn pods in the Karoo, camelthorn pods in the
+  Kalahari and Namibië, quiver-tree flowers and !nara melons in Namibië.
+- A soft thock on a hit and a thud on landing. Reduce motion: smaller swings, no bounce.
+- Fruit are not targets: no score, no penalty, and they never take a shot from a bird.
+
+- Each fruit is drawn in detail: mottled, curved sausages with pale dots on rope stalks, velvety
+  baobab pods, warty !nara melons, glossy ilala bunches, seeded pods and quiver-tree racemes. A
+  dropped fruit leaves its stalk on the tree, lands to the side it swung, clear of the trunk, with
+  a soft shadow under it.
+
+### Changed
+- The interim tree and prop art no longer has those fruit drawn in; they are sprites in a small
+  sheet per biome (in the biome's download, or the late group for the Karoo and Kalahari).
+
 ## [1.7.1] — power-ups explained, and an Oupa switch (25 Oct 2026)
 
 Decision record D-046. What the power-ups do and their numbers are unchanged. A crate's contents

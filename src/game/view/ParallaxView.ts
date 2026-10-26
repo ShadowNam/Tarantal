@@ -12,6 +12,7 @@ import type { PlaneId } from '../../sim/types';
 import { coreWidth, DESIGN_HEIGHT, LAYER_BLEED_PX } from '../../sim/world';
 import { TEX, type AssetManifest } from '../assets/AssetManifest';
 import { FAUNA_SPRITES } from './faunaSprites';
+import { lightTint } from './lightTint';
 import {
   CLOUD_DECKS,
   CLOUD_SPRITE_SCALE,
@@ -39,6 +40,10 @@ export interface LayerNode {
   readonly root: Phaser.GameObjects.Container;
   /** Every layer: things on its props (secret rotors, marks, glints), above props, below birds. */
   readonly fixtures: Phaser.GameObjects.Container;
+  /** v1.7c (D-047): fruit of the layer's own art (above its art, below its props) and fruit of
+   *  its props (above the props, below haze and fixtures). */
+  readonly fruit: Phaser.GameObjects.Container;
+  readonly propFruit: Phaser.GameObjects.Container;
   /** Plane layers only: birds (drawn in id order), then overlays above them. */
   readonly birds: Phaser.GameObjects.Container | null;
   readonly overlay: Phaser.GameObjects.Container | null;
@@ -75,6 +80,8 @@ export class ParallaxView {
   private readonly byPlane = new Map<PlaneId, LayerNode>();
   /** Per layer (same order as `layers`): static art, hidden while off screen (M9 perf). */
   private readonly statics: StaticArt[][] = [];
+  /** v1.7c (D-047): the light's tint per layer id (applyLight), for sprites added later. */
+  private readonly tints = new Map<string, number>();
   /** v1.4 (#56): per layer, its haze bands and cloud puffs (applyLight). */
   private readonly shapes: ShapeArt[][] = [];
   /** v1.4 (#56): per layer, hidden whole by the zoomed view's culling. */
@@ -216,6 +223,8 @@ export class ParallaxView {
             .setScale(manifest.displayScale(f.key)),
         );
       }
+      const fruit = scene.add.container(0, 0);
+      root.add(fruit);
       for (const prop of biome.props) {
         if (prop.layer !== layer.id || !manifest.has(prop.asset)) continue;
         const o = manifest.origin(prop.asset);
@@ -226,6 +235,8 @@ export class ParallaxView {
             .setScale(manifest.displayScale(prop.asset)),
         );
       }
+      const propFruit = scene.add.container(0, 0);
+      root.add(propFruit);
       const fixtures = scene.add.container(0, 0);
       root.add(fixtures);
       const plane = layer.plane ?? null;
@@ -242,6 +253,8 @@ export class ParallaxView {
         plane,
         root,
         fixtures,
+        fruit,
+        propFruit,
         birds,
         overlay,
       };
@@ -458,11 +471,8 @@ export class ParallaxView {
   applyLight(lights: readonly Light[]): void {
     if (lights.length === 0) return;
     this.layers.forEach((l, i) => {
-      let tint = 0xffffff;
-      for (const light of lights) {
-        const hex = light.tint?.[l.id];
-        if (hex !== undefined) tint = multiplyRgb(tint, parseInt(hex.slice(1), 16));
-      }
+      const tint = lightTint(lights, l.id);
+      this.tints.set(l.id, tint);
       if (tint !== 0xffffff) for (const a of this.statics[i] ?? []) a.img.setTint(tint);
       const width = coreWidth(l.scrollFactor) + LAYER_BLEED_PX * 2;
       for (const light of lights) {
@@ -510,6 +520,11 @@ export class ParallaxView {
     });
   }
 
+  /** v1.7c (D-047): the map light's tint on a layer (0xFFFFFF without one). */
+  layerTint(id: string): number {
+    return this.tints.get(id) ?? 0xffffff;
+  }
+
   /** A layer by id (secrets live on any layer). */
   layer(id: string): LayerNode | undefined {
     return this.layers.find((l) => l.id === id);
@@ -522,12 +537,7 @@ export class ParallaxView {
   }
 }
 
-/** Channel-wise multiply of two 0xRRGGBB colours (tints compound like light filters). */
-export function multiplyRgb(a: number, b: number): number {
-  const ch = (shift: number): number =>
-    Math.round((((a >> shift) & 0xff) * ((b >> shift) & 0xff)) / 255);
-  return (ch(16) << 16) | (ch(8) << 8) | ch(0);
-}
+export { multiplyRgb } from './lightTint';
 
 /** A fixed pseudo-random 0..1 from an integer (cloud placement; drawn only, never the sim). */
 function hash01(n: number): number {
