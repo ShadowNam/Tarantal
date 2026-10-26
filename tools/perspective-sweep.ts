@@ -57,8 +57,6 @@ export const CELLS: readonly Cell[] = [
   classic('pomp', 'Pomp', 'pomp'),
   classic('windbuks', 'Windbuks', 'windbuks'),
   classic('kettie', 'Kettie', 'kettie'),
-  classic('voorlaaier', 'Voorlaaier', 'voorlaaier'),
-  classic('mielie', 'Mielie-Masjien', 'mielie_masjien'),
   classic('22iron', '.22 iron', 'twee_twee', 'iron'),
   classic('22peep', '.22 peep', 'twee_twee', 'peep'),
   classic('22scope', '.22 scope', 'twee_twee', 'scope_small'),

@@ -7,7 +7,11 @@ import type { PaintCtx } from './landscape';
 import { mix } from './scenery';
 import { g } from './svg';
 
-type Draw = (ctx: PaintCtx) => string;
+/** D-049: a sheet's drawing, and the animals in it (kind and drawn height `h`, design px) for
+ *  tools/perspective-audit.ts. */
+type Draw = ((ctx: PaintCtx) => string) & {
+  readonly animals: readonly { readonly kind: AnimalKind; readonly h: number }[];
+};
 
 /** Half the plane's haze: a solid animal, a little softened by distance. */
 const halfTint =
@@ -15,24 +19,32 @@ const halfTint =
   (hex: string): string =>
     mix(hex, ctx.tint(hex), 0.5);
 
-const group =
-  (kind: AnimalKind, h: number, n: number, spread: number): Draw =>
-  (ctx) =>
-    herd(ctx.rnd, kind, 0, 0, h, n, spread, halfTint(ctx));
+const group = (kind: AnimalKind, h: number, n: number, spread: number): Draw =>
+  Object.assign((ctx: PaintCtx) => herd(ctx.rnd, kind, 0, 0, h, n, spread, halfTint(ctx)), {
+    animals: Array.from({ length: n }, () => ({ kind, h })),
+  });
 
 /** Named animals at fixed spots: [kind, pose, x, dy, h, facing]. */
-const placed =
-  (list: readonly (readonly [AnimalKind, Pose, number, number, number, 1 | -1])[]): Draw =>
-  (ctx) => {
-    const tint = halfTint(ctx);
-    const items = [...list].sort((a, b) => a[3] - b[3]);
-    return g(
-      {},
-      ...items.map(([kind, pose, x, dy, h, facing], i) =>
-        farAnimal({ kind, pose, x, foot: dy, h, facing, tint, phase: (i * 0.37) % 1 }),
-      ),
-    );
-  };
+const placed = (
+  list: readonly (readonly [AnimalKind, Pose, number, number, number, 1 | -1])[],
+): Draw =>
+  Object.assign(
+    (ctx: PaintCtx) => {
+      const tint = halfTint(ctx);
+      const items = [...list].sort((a, b) => a[3] - b[3]);
+      return g(
+        {},
+        ...items.map(([kind, pose, x, dy, h, facing], i) =>
+          farAnimal({ kind, pose, x, foot: dy, h, facing, tint, phase: (i * 0.37) % 1 }),
+        ),
+      );
+    },
+    { animals: list.map(([kind, , , , h]) => ({ kind, h })) },
+  );
+
+/** D-049: the Ver waterhole's animals are drawn this many times their v1.6 heights. */
+export const WATERHOLE_HEIGHT_MUL = 5;
+const W = WATERHOLE_HEIGHT_MUL;
 
 export const FAUNA_DRAW: Readonly<Record<string, Draw>> = {
   'fauna/karoo_springbok_a': group('springbok', 12, 8, 170),
@@ -61,18 +73,18 @@ export const FAUNA_DRAW: Readonly<Record<string, Draw>> = {
   // animals stand 5× their v1.6 heights (and depth offsets) at the same spots, in proportion to
   // the Ver birds (0.07); scaling the sprite instead would spread them off the water.
   'fauna/namibie_waterhole': placed([
-    ['giraffe', 'alert', -165, -2.5, 40, 1],
-    ['giraffe', 'drink', -152, 0, 65, 1],
-    ['springbok', 'graze', -126, 1, 19, 1],
-    ['zebra', 'walk', -105, -3.5, 21, 1],
-    ['springbok', 'alert', -95, -3, 19, 1],
-    ['zebra', 'graze', -79, 3, 21, 1],
-    ['springbok', 'graze', -58, 2.5, 19, 1],
-    ['gemsbok', 'graze', 47, 2, 22, -1],
-    ['gemsbok', 'alert', 87, -2, 22, -1],
-    ['springbok', 'graze', 121, 1.5, 19, -1],
-    ['ostrich', 'walk', 163, -2.5, 35, -1],
-    ['ostrich', 'alert', 178, -1, 35, -1],
+    ['giraffe', 'alert', -165, -0.5 * W, 8 * W, 1],
+    ['giraffe', 'drink', -152, 0 * W, 13 * W, 1],
+    ['springbok', 'graze', -126, 0.2 * W, 3.8 * W, 1],
+    ['zebra', 'walk', -105, -0.7 * W, 4.2 * W, 1],
+    ['springbok', 'alert', -95, -0.6 * W, 3.8 * W, 1],
+    ['zebra', 'graze', -79, 0.6 * W, 4.2 * W, 1],
+    ['springbok', 'graze', -58, 0.5 * W, 3.8 * W, 1],
+    ['gemsbok', 'graze', 47, 0.4 * W, 4.4 * W, -1],
+    ['gemsbok', 'alert', 87, -0.4 * W, 4.4 * W, -1],
+    ['springbok', 'graze', 121, 0.3 * W, 3.8 * W, -1],
+    ['ostrich', 'walk', 163, -0.5 * W, 7 * W, -1],
+    ['ostrich', 'alert', 178, -0.2 * W, 7 * W, -1],
   ]),
   'fauna/namibie_gemsbok': group('gemsbok', 15, 4, 120),
   'fauna/namibie_ostrich': group('ostrich', 24, 2, 60),
