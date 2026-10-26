@@ -5,6 +5,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   aimAt,
+  base,
   biomeOf,
   ofType,
   quiet,
@@ -12,6 +13,7 @@ import {
   withMidFlock,
   type Content,
 } from '../../tools/simHarness';
+import { planeToDx } from './camera';
 import type { PlaneId } from './types';
 import { hashEvents, type SimEvent } from './events';
 import { createSim, type Sim } from './Sim';
@@ -90,6 +92,61 @@ function toApex(s: Sim, id: number): SimEvent[] {
     if (can(s, id).y > before) return out;
   }
   return out;
+}
+
+/** Juggles a can low: hit each time it falls back to where it was knocked off (it stays in
+ *  view), until it lands, leaves the view or `stop` says so. The events on the way. */
+function juggleLow(
+  s: Sim,
+  c: Content,
+  id: number,
+  stop: (all: readonly SimEvent[]) => boolean = () => false,
+): SimEvent[] {
+  const y0 = can(s, id).y;
+  const all: SimEvent[] = [...shootCan(s, c, id)];
+  for (
+    let i = 0;
+    i < 4000 && (can(s, id).state === 'air' || can(s, id).state === 'bounced') && !stop(all);
+    i++
+  ) {
+    const k = can(s, id);
+    if (k.y >= y0 - 1 && s.snapshot().weapon.cooldownTicks === 0) {
+      all.push(...shootCan(s, c, id));
+      continue;
+    }
+    all.push(...run(s, 1));
+  }
+  return all;
+}
+
+/** Busy, bob-free mid fly-overs (no flocks), so a test can build a Frenzy streak. */
+function busy(): Content {
+  const c = structuredClone(base) as Content;
+  c.birds.flyoverDefaults.bobPx = 0;
+  c.birds.flyoverDefaults.groupSize = [1, 1];
+  for (const b of c.biomes) {
+    for (const k of b.pacing.keyframes) {
+      k.flyoversPerMin = 120;
+      k.popupsPerMin = 0;
+      k.flocks = {};
+    }
+    b.pacing.stampede = { flyoversPerMin: 120, popupsPerMin: 0 };
+  }
+  return c;
+}
+
+/** No hittable bird within `px` of a can on screen (a can-only shot). */
+function clearOfBirds(s: Sim, c: Content, id: number, px = 260): boolean {
+  const snap = s.snapshot();
+  const plane = snap.cans?.plane ?? 'near';
+  const k = can(s, id);
+  const kx = planeToDx(snap.cameraX, c.scoring.planes[plane].scrollFactor, k.x);
+  return snap.birds.every((b) => {
+    if (!b.hittable) return true;
+    const dx = planeToDx(snap.cameraX, c.scoring.planes[b.plane].scrollFactor, b.x) - kx;
+    const dy = b.y - k.y;
+    return Math.sqrt(dx * dx + dy * dy) > px;
+  });
 }
 
 describe('Blikkies: tin cans on the fence posts (D-050)', () => {
@@ -322,5 +379,84 @@ describe('Blikkies: tin cans on the fence posts (D-050)', () => {
     const p = sim(c);
     const ev2 = run(p, 1, aimAt(c.scoring.planes.mid.scrollFactor, k.x + miss, k.y));
     expect(ofType(ev2, 'canKnocked').length).toBe(0);
+  });
+  it('a can-only shot at streak 3+ leaves the streak and the Frenzy multiplier as they were', () => {
+    const c = withFence(busy(), 'near');
+    const s = sim(c, MODE, 4);
+    for (let shot = 0; shot < 3 && !s.isOver();) {
+      const bird = s
+        .snapshot()
+        .birds.find((b) => b.hittable && b.kind === 'target' && b.plane === 'mid');
+      if (bird === undefined) {
+        run(s, 1);
+        continue;
+      }
+      reloaded(s);
+      const ev = run(s, 1, aimAt(c.scoring.planes.mid.scrollFactor, bird.x, bird.y));
+      if (ofType(ev, 'targetBagged').length > 0) shot++;
+      else if (s.snapshot().streak === 0) shot = 0;
+      run(s, 10);
+    }
+    const streak = s.snapshot().streak;
+    expect(streak).toBeGreaterThanOrEqual(3);
+    const mul = s.snapshot().frenzyMul;
+    expect(mul).toBeGreaterThan(1);
+    const id = cans(s)[1]?.id ?? 0;
+    for (let i = 0; i < 3000 && !clearOfBirds(s, c, id); i++) run(s, 1);
+    reloaded(s);
+    for (let i = 0; i < 3000 && !clearOfBirds(s, c, id); i++) run(s, 1);
+    const ev = shootCan(s, c, id);
+    expect(ofType(ev, 'canKnocked').length).toBe(1);
+    expect(ofType(ev, 'targetBagged').length).toBe(0);
+    expect(ofType(ev, 'miss').length).toBe(0);
+    expect(ofType(ev, 'comboChanged').length).toBe(0);
+    expect(s.snapshot().streak).toBe(streak);
+    expect(s.snapshot().frenzyMul).toBe(mul);
+    // And the can pays its plain value: no Frenzy on cans.
+    const knock = ofType(ev, 'bonusAwarded').find((b) => b.bonus === 'canKnock');
+    expect(knock?.award).toBe(knock?.base);
+  });
+
+  it('cans pay × Stampede in the last seconds', () => {
+    const c = withFence(quiet(), 'near');
+    const s = sim(c);
+    for (let i = 0; i < 6000 && !s.snapshot().stampedeActive; i++) run(s, 1);
+    expect(s.snapshot().stampedeActive).toBe(true);
+    const id = cans(s)[0]?.id ?? 0;
+    const ev = shootCan(s, c, id);
+    const knock = ofType(ev, 'bonusAwarded').find((b) => b.bonus === 'canKnock');
+    const plain = Math.round(c.scoring.cans.knockOff * c.scoring.cans.planeMul.near);
+    expect(knock?.base).toBe(plain);
+    expect(knock?.award).toBe(plain * c.scoring.stampede.mul);
+  });
+
+  it('the Blikkiesdans is found once a hunt, however many cans reach a chain of 8', () => {
+    const c = withFence(quiet());
+    for (const w of c.weapons.weapons) if (w.kind === 'primary') w.magazine = 99;
+    const s = sim(c);
+    const eight = (all: readonly SimEvent[]): boolean =>
+      ofType(all, 'canJuggled').some((e) => e.chain >= c.scoring.cans.secretChain);
+    const all: SimEvent[] = [];
+    for (const k of cans(s).slice(0, 2)) {
+      const ev = juggleLow(s, c, k.id, eight);
+      expect(eight(ev)).toBe(true);
+      all.push(...ev, ...run(s, 400));
+    }
+    const secret = ofType(all, 'secretTriggered').filter((e) => e.propId === 'blikkiesdans');
+    expect(secret.length).toBe(1);
+  });
+
+  it('the wegChain-th air hit always clears the top of the view, even from low down', () => {
+    const c = withFence(quiet(), 'near');
+    for (const w of c.weapons.weapons) if (w.kind === 'primary') w.magazine = 99;
+    const s = sim(c);
+    const id = cans(s)[1]?.id ?? 0;
+    const all = juggleLow(s, c, id);
+    for (let i = 0; i < 600 && can(s, id).state === 'air'; i++) all.push(...run(s, 1));
+    const chains = ofType(all, 'canJuggled').map((e) => e.chain);
+    const weg = c.birds.cans.juggle.wegChain;
+    expect(Math.max(...chains)).toBe(weg);
+    expect(ofType(all, 'canGone')[0]?.chain).toBe(weg);
+    expect(can(s, id).state).toBe('gone');
   });
 });
