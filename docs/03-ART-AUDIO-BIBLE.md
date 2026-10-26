@@ -601,7 +601,10 @@ one sheet per special (`feesdae/halloween`, layout and origins in
 game draws a flat stand-in with the same frames.
 
 **Halloween — Spookjag (interim art: `npm run art:interim -- --only feesdae`, tools/art/halloween.ts):**
-- *Light:* the existing `dusk` preset over the day's map.
+- *Light:* its own preset, `spookjag` (feel.json lights): a spooky dusk, not a warm sunset — a deep
+  blue-purple sky, a dimmer and cooler ground, a faint violet afterglow on the horizon (no orange),
+  and a soft steady vignette, so the moon, the lanterns' glow and the bats' silhouettes stand out.
+  Birds stay untinted. No full-screen flashes.
 - *Moon:* a big, low, pale-yellow full moon on the sky layer with soft maria, a few craters and a
   faint halo; five or six small black bats circle it (sky decoration, not targets).
 - *Pumpkin lanterns:* every one a carved jack-o'-lantern — ribbed, glossy orange, the eyes, nose and

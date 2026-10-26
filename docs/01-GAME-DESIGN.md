@@ -837,7 +837,8 @@ note "verskrikker", not the Dutch "verschrikker" used in the earlier draft.)
   carries the special. The title's Daily button shows the special's name and a badge. Specials are
   content (`content/feesdae.json`: a date rule — a fixed UTC month/day for now — map, light, twist
   numbers, decoration ids, bark keys, sting, share frame); only Halloween is chosen so far.
-  - **Halloween, 31 Oct — "Spookjag":** a dusk hunt under a big low moon, bats flitting round it,
+  - **Halloween, 31 Oct — "Spookjag":** a dark, cool dusk hunt (its own grade, not the warm
+    sunset of the dusk maps) under a big low moon, bats flitting round it,
     pumpkin lanterns glowing on rocks and fence posts (small warm local light, a slow flicker,
     never a flash), cobwebs on the windpomp and the big trees, some guineafowl in witch hats.
     Twist: **bats** are fast, erratic fly-overs on the mid and far planes, a bonus target (+15

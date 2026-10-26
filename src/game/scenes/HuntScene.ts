@@ -437,6 +437,7 @@ export class HuntScene extends Phaser.Scene {
           };
         },
         special.decorations,
+        this.screenFixed,
       );
       if (feesdaeSheet !== null) this.spookView.useSheet(feesdaeSheet);
       this.birds.hats = this.spookView.hats;
@@ -1528,7 +1529,10 @@ export class HuntScene extends Phaser.Scene {
     const w0 = performance.now();
     this.weavers.update(state);
     this.meerkats.update(state);
-    if (this.spookView !== null) this.spookView.viewZoom = zoom.z;
+    if (this.spookView !== null) {
+      this.spookView.viewZoom = zoom.z;
+      this.spookView.layout(width, height);
+    }
     this.spookView?.update(state.feesdag, runner.prev.feesdag, alpha, state.tick);
     // Interpolated like the birds and the camera (a held frame keeps alpha 0: it holds).
     this.fruit?.update(state, width, state.tick - 1 + alpha);

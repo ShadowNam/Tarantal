@@ -774,6 +774,45 @@
           "alpha": 0.084
         }
       ]
+    },
+    "spookjag": {
+      "$comment": "D-048 Halloween's Spookjag: a dark, cool dusk — a deep blue-purple sky, a dim cool ground, a faint violet afterglow on the horizon (no orange), so the moon, the lanterns' glow and the bats' silhouettes read. Birds stay untinted. The soft vignette is the special's look (feesdae.looks.halloween.vignette). No flashes.",
+      "tint": {
+        "sky": "#6A6CB0",
+        "far_ridge": "#5C5890",
+        "ver_veld": "#6A6898",
+        "far_veld": "#726EA0",
+        "mid": "#8280AC",
+        "near": "#8A88B2",
+        "foreground": "#5C5886"
+      },
+      "haze": [
+        {
+          "layer": "sky",
+          "color": "#1A1C4A",
+          "alpha": 0.45,
+          "top": 0,
+          "bottom": 260
+        },
+        {
+          "layer": "sky",
+          "color": "#6E5294",
+          "alpha": 0.22,
+          "top": 380,
+          "bottom": 560
+        },
+        {
+          "layer": "far_veld",
+          "color": "#24224C",
+          "alpha": 0.14
+        },
+        {
+          "layer": "mid",
+          "color": "#1C1C44",
+          "alpha": 0.08
+        }
+      ],
+      "secretGlow": true
     }
   },
   "audio": {
@@ -1132,7 +1171,12 @@
             "flip": false,
             "scale": 0.8
           }
-        ]
+        ],
+        "vignette": {
+          "color": "#0C0A1E",
+          "alpha": 0.55,
+          "inner": 0.55
+        }
       }
     }
   }

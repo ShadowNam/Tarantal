@@ -2737,7 +2737,7 @@ under slow-mo and Boeretroos (they are the day's sky, not birds); touch assist s
 birds, so a snapped pattern's other pellets may still catch an owl, as they may a hadeda.
 *Golden replays:* every existing event hash is unchanged (re-recorded for the new content hash
 only); `daily-2026-10-31-halloween-competent-pointer` is new.
-(4) *The look in the game:* the special's light replaces the layout's (Halloween: `dusk`); a lazy
+(4) *The look in the game:* the special's light replaces the layout's (Halloween: `spookjag`, its own dark, cool grade, and a soft vignette); a lazy
 chunk (`FeesdagView`, 4.0 KB gz) draws the moon and sky bats, the lanterns with a slow additive
 glow (no flashes), bats and owls, cobwebs on props (`feel.json feesdae.looks`), a puff when a
 lantern goes out, and gives the `BirdView` witch hats for about a third of the guineafowl (by bird

@@ -1937,6 +1937,9 @@ export const FeelSchema = obj({
       hat: obj({ widthPerHeadR: pos, tilt: z.number().min(-0.6).max(0.6) }),
       /** A lit lantern's warm glow: its alpha and a slow flicker (no flashes). */
       glow: obj({ alpha: fraction, flicker: z.number().min(0).max(0.5), flickerMs: pos, scale: pos }),
+      /** A soft vignette over the view: its colour, alpha at the corners and the clear centre
+       *  (a fraction of the half-diagonal). Steady: never a flash. */
+      vignette: obj({ color: hexColor, alpha: fraction, inner: fraction }),
       /** Flight frames per second of the bats and owls. */
       batFps: pos,
       owlFps: pos,

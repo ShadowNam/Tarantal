@@ -168,7 +168,7 @@ test('the dusk hunt, wide', async ({ page }, info) => {
   // A few seconds in: the first bats are up, the lanterns glow, Oupa has had his say.
   await page.waitForFunction(() => (window.__TM__?.tick ?? 0) >= 300, null, { timeout: 300_000 });
   await holdOn(page, 'now');
-  expect(await page.evaluate(() => window.__TM__?.map?.lights ?? [])).toEqual(['dusk']);
+  expect(await page.evaluate(() => window.__TM__?.map?.lights ?? [])).toEqual(['spookjag']);
   await shoot(page, info, 'hunt');
 });
 

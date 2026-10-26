@@ -210,6 +210,7 @@ export class FeesdagSceneView {
   private readonly skyBats: SkyBat[] = [];
   private readonly webs: Phaser.GameObjects.Image[] = [];
   private last: FeesdagState | null = null;
+  private readonly vignette: Phaser.GameObjects.Image | null;
   /** The rifle zoom the world is drawn at (1 = no sight up): a scope shows the full drawing. */
   viewZoom = 1;
   /** Witch hats for the BirdView (cosmetic: picked by bird id). */
@@ -229,8 +230,11 @@ export class FeesdagSceneView {
       scale: number;
     } | null,
     decorations: readonly string[],
+    /** The screen-fixed layer over the world (the vignette sits there, under the gun). */
+    screen: Phaser.GameObjects.Container,
   ) {
     const textures = scene.textures;
+    this.vignette = this.makeVignette(screen);
     if (!textures.exists(STANDIN)) {
       const canvas = document.createElement('canvas');
       canvas.width = SHEET_W * SHEET_MASTER;
@@ -301,6 +305,37 @@ export class FeesdagSceneView {
       widthPerHeadR: look.hat.widthPerHeadR,
       tilt: look.hat.tilt,
     };
+  }
+
+  /** A steady radial vignette (no flash): clear in the middle, the special's colour at the edges. */
+  private makeVignette(screen: Phaser.GameObjects.Container): Phaser.GameObjects.Image | null {
+    const v = this.look.vignette;
+    if (v.alpha <= 0) return null;
+    const key = `feesdae/vignette/${v.color}/${v.alpha}/${v.inner}`;
+    const textures = this.scene.textures;
+    if (!textures.exists(key)) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 256;
+      const g = canvas.getContext('2d');
+      if (g === null) return null;
+      const r = g.createRadialGradient(128, 128, 128 * v.inner, 128, 128, 128 * Math.SQRT2);
+      const n = parseInt(v.color.slice(1), 16);
+      const rgb = `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`;
+      r.addColorStop(0, `rgba(${rgb},0)`);
+      r.addColorStop(1, `rgba(${rgb},${v.alpha})`);
+      g.fillStyle = r;
+      g.fillRect(0, 0, 256, 256);
+      textures.addCanvas(key, canvas);
+    }
+    const img = this.scene.add.image(0, 0, key).setOrigin(0, 0);
+    screen.add(img);
+    return img;
+  }
+
+  /** Fits the vignette to the view (design px). */
+  layout(width: number, height: number): void {
+    this.vignette?.setDisplaySize(width, height);
   }
 
   /** The delivered sheet arrived: every image moves over to it on the next update. */
