@@ -33,8 +33,8 @@ for a far plane about 0.03 scale, and the birds at 0.22.
   devils) is now written at `scoring.tuningRefScale` (0.5) and scaled by plane scale ÷ 0.5, so it
   shrinks with the birds on every plane.
 - **Still shootable**: a body hit radius is at least 18 px on the far plane and 10 px on the Ver
-  plane (`planes.*.minHitRadiusPx`, mouse and touch; heads scale as drawn); touch assist mid
-  14 → 10 and far 18 → 12; far points 25 → 22 (chosen with the 100-seed sweeps below).
+  plane (`planes.*.minHitRadiusPx`, mouse and touch; heads scale as drawn); touch assist far 18 → 12 (mid
+  stays 14); far points 25 → 22 (chosen with the 100-seed sweeps below).
 - **Size**: bird atlases packed at the new sizes; first download 3 071.5 → 2 965.2 KB gzip (web),
   −106 KB.
 
@@ -45,7 +45,7 @@ Measured from the delivered (interim) frames: standing (alert) 263.0 bird units,
 | Plane | Scale before → after | Standing px | Flying px | px per metre (after) | Min hit radius | Touch assist |
 |---|---|---|---|---|---|---|
 | near | 1 → 1 | 263.0 → 263.0 | 309.4 → 309.4 | 526.0 | 0 → 0 px | 8 → 8 px |
-| mid | 0.5 → 0.42 | 131.5 → 110.5 | 154.7 → 130.0 | 220.9 | 0 → 0 px | 14 → 10 px |
+| mid | 0.5 → 0.42 | 131.5 → 110.5 | 154.7 → 130.0 | 220.9 | 0 → 0 px | 14 → 14 px |
 | far | 0.22 → 0.15 | 57.9 → 39.4 | 68.1 → 46.4 | 78.9 | 0 → 18 px | 18 → 12 px |
 | ver | 0.1 → 0.07 | 26.3 → 18.4 | 30.9 → 21.7 | 36.8 | 0 → 10 px | 6 → 6 px |
 
@@ -171,7 +171,7 @@ cells under the 4 500 cap) and the Season Run (`tools/balance-sim.ts --run`). Be
 | + far floor 18 (head floored too), Ver 8 | 4 397 / 2 381 | 4 635 / — (over 4 500) |
 | + mid floor 40 | 4 889 / 2 616 (over 4 500) | — |
 | body-only floor far 18, far points 25 | 4 323 / 2 191 | 4 503 / 2 312 |
-| **chosen**: body floor far 18 / Ver 10, assist mid 10 / far 12, far points 22 | **4 234 / 2 104** | **4 410 / 2 220** |
+| body floor far 18 / Ver 10, assist mid 10 / far 12, far points 22 | **4 234 / 2 104** | **4 410 / 2 220** |
 
 A bigger hit area helps the competent bot more than the plinker (it shoots more far birds), so
 the floor stops at 18 px. The plinker loses about 9–14 %: mid birds are 16 % smaller and no floor
@@ -179,3 +179,88 @@ applies there (a mid floor pushed competent past 4 500). No gate limits the plin
 M3 gate "plinker ≥ 25 % below competent" still passes. The Ver floor 10 px won back half of the
 rifles' loss on the Ver plane (Die Verste .22 scope 3 795 → 3 939 at 100 seeds); 12 px added
 nothing more.
+
+## Final balance: 500 seeds, before (main 384bffa) → after
+
+`npx tsx tools/perspective-sweep.ts` (pointer unless "touch"; Classic on the Karoo, the long-range
+cells competent only). Raw: `docs/balance/perspective/before-500.json`, `after-500.json`. Gates:
+Classic M3 (competent 2 500–4 500 / plinker ≥ 25 % below competent / plinker above random); the
+long-range cap (competent ≤ 4 500, D-038/D-039).
+
+| Cell | Bot | Before | After | Change | Accuracy | Gates (after) |
+|---|---|---|---|---|---|---|
+| Classic · Dubbelloop | random | 271 | 245 | -9.5 % | 4 % → 4 % |  |
+| Classic · Dubbelloop | plinker | 2 455 | 2 175 | -11.4 % | 67 % → 62 % |  |
+| Classic · Dubbelloop | competent | 4 258 | 4 313 | +1.3 % | 60 % → 57 % | PASS / PASS / PASS |
+| Classic · Pomp | random | 137 | 133 | -2.9 % | 5 % → 5 % |  |
+| Classic · Pomp | plinker | 2 961 | 2 622 | -11.5 % | 82 % → 76 % |  |
+| Classic · Pomp | competent | 4 421 | 4 006 | -9.4 % | 70 % → 65 % | PASS / PASS / PASS |
+| Classic · Windbuks | random | 56 | 46 | -18.4 % | 4 % → 3 % |  |
+| Classic · Windbuks | plinker | 2 067 | 1 833 | -11.3 % | 63 % → 62 % |  |
+| Classic · Windbuks | competent | 3 030 | 2 832 | -6.6 % | 60 % → 59 % | PASS / PASS / PASS |
+| Classic · Kettie | random | 137 | 120 | -12.1 % | 3 % → 3 % |  |
+| Classic · Kettie | plinker | 2 654 | 2 450 | -7.7 % | 38 % → 41 % |  |
+| Classic · Kettie | competent | 4 783 | 4 722 | -1.3 % | 40 % → 42 % | FAIL / PASS / PASS |
+| Classic · .22 iron | random | 171 | 180 | +5.7 % | 7 % → 7 % |  |
+| Classic · .22 iron | plinker | 2 659 | 2 424 | -8.8 % | 87 % → 86 % |  |
+| Classic · .22 iron | competent | 3 962 | 3 827 | -3.4 % | 77 % → 77 % | PASS / PASS / PASS |
+| Classic · .22 peep | random | 169 | 166 | -1.6 % | 7 % → 7 % |  |
+| Classic · .22 peep | plinker | 2 609 | 2 425 | -7.0 % | 87 % → 87 % |  |
+| Classic · .22 peep | competent | 3 815 | 3 677 | -3.6 % | 77 % → 76 % | PASS / PASS / PASS |
+| Classic · .22 scope | random | 161 | 164 | +1.8 % | 7 % → 7 % |  |
+| Classic · .22 scope | plinker | 2 656 | 2 406 | -9.4 % | 88 % → 87 % |  |
+| Classic · .22 scope | competent | 3 610 | 3 411 | -5.5 % | 75 % → 75 % | PASS / PASS / PASS |
+| Classic · Langloop | random | 84 | 91 | +8.4 % | 4 % → 5 % |  |
+| Classic · Langloop | plinker | 2 306 | 2 399 | +4.0 % | 85 % → 85 % |  |
+| Classic · Langloop | competent | 2 533 | 2 585 | +2.1 % | 65 % → 65 % | PASS / FAIL / PASS |
+| Classic · Dubbelloop · touch | random | 275 | 253 | -7.9 % | 4 % → 4 % |  |
+| Classic · Dubbelloop · touch | plinker | 2 439 | 2 232 | -8.5 % | 68 % → 63 % |  |
+| Classic · Dubbelloop · touch | competent | 4 262 | 4 312 | +1.2 % | 61 % → 58 % | PASS / PASS / PASS |
+| Classic · .22 scope · touch | random | 180 | 177 | -1.8 % | 8 % → 8 % |  |
+| Classic · .22 scope · touch | plinker | 2 521 | 2 302 | -8.7 % | 85 % → 84 % |  |
+| Classic · .22 scope · touch | competent | 2 454 | 2 317 | -5.6 % | 54 % → 55 % | FAIL / FAIL / PASS |
+| Karoo Verder (Mon) · Dubbelloop | competent | 3 731 | 3 509 | -5.9 % | 49 % → 44 % | PASS (≤ 4 500) |
+| Karoo Verder (Sat) · Dubbelloop | competent | 3 749 | 3 318 | -11.5 % | 48 % → 44 % | PASS (≤ 4 500) |
+| Karoo Verder (Sat) · Pomp | competent | 3 342 | 2 575 | -22.9 % | 58 % → 52 % | PASS (≤ 4 500) |
+| Karoo Nog Verder (Mon) · Dubbelloop | competent | 2 821 | 2 676 | -5.1 % | 48 % → 43 % | PASS (≤ 4 500) |
+| Karoo Nog Verder (Mon) · .22 iron | competent | 3 356 | 3 329 | -0.8 % | 64 % → 65 % | PASS (≤ 4 500) |
+| Karoo Nog Verder (Mon) · .22 scope | competent | 4 420 | 4 239 | -4.1 % | 71 % → 71 % | PASS (≤ 4 500) |
+| Karoo Nog Verder (Mon) · Langloop | competent | 4 128 | 4 112 | -0.4 % | 66 % → 67 % | PASS (≤ 4 500) |
+| Karoo Die Verste (Mon) · .22 scope | competent | 4 289 | 3 969 | -7.5 % | 72 % → 71 % | PASS (≤ 4 500) |
+| Karoo Die Verste (Mon) · Langloop | competent | 4 019 | 3 844 | -4.4 % | 67 % → 67 % | PASS (≤ 4 500) |
+| Namibië Tuesday · .22 scope | competent | 4 464 | 4 245 | -4.9 % | 82 % → 82 % | PASS (≤ 4 500) |
+| Namibië Thursday · .22 scope | competent | 4 380 | 4 376 | -0.1 % | 84 % → 85 % | PASS (≤ 4 500) |
+| Namibië Saturday · .22 scope | competent | 4 456 | 4 217 | -5.4 % | 82 % → 82 % | PASS (≤ 4 500) |
+| Namibië Sunday · .22 scope | competent | 4 449 | 4 271 | -4.0 % | 82 % → 83 % | PASS (≤ 4 500) |
+| Namibië Saturday · Langloop | competent | 3 494 | 3 526 | +0.9 % | 80 % → 80 % | PASS (≤ 4 500) |
+
+**Gates.** Every gate that passed on main still passes. Two Classic cells failed on main already
+and still do: the Kettie's competent mean is over 4 500 (4 783 → 4 722) and the Langloop's
+plinker is not 25 % below its competent (by design, D-038); the touch .22 scope's competent was
+already under 2 500 (2 454 → 2 317). The Langloop's competent mean fell below 2 500 with the
+smaller birds (2 333), so its points went up (`tune`): ×0.72 on mid (was 0.65) and ×1.15 on far
+(new) — 2 585, and its long-range cells stay under the cap (Nog Verder 4 112, Die Verste 3 844,
+Namibië Saturday 3 526).
+
+**The weaker player.** The plinker loses 7–12 % on Classic (Dubbelloop mouse −11.4 %, touch
+−8.5 % with the mid touch assist kept at 14). Its aim error is a fixed number of pixels, so birds
+16 % smaller on the mid plane cost it shots; a mid hit floor helped the competent bot more than
+the plinker (it shoots more far birds), so the mid plane has none. The competent Dubbelloop is
++1.3 % (mouse) / +1.2 % (touch). Shotguns on the far-heavy bonus maps lose 5–23 % (Saturday
+Verder Pomp −22.9 %): far birds are a third smaller than the pattern they sat in. The bonus maps
+have no score floor; their bests and unlocks are relative to this.
+
+### Season Run (500 seeds, `tools/balance-sim.ts --run`)
+
+| Season | Policy | Pass rate before | After | Target | ±10 |
+|---|---|---|---|---|---|
+| herfs | none | 83.0 % | 82.8 % | ~85.0 % | PASS |
+| winter | none | 47.0 % | 49.5 % | ~50.0 % | PASS |
+| lente | none | 12.8 % | 12.7 % | ~10.0 % | PASS |
+| somer | none | 4.0 % | 0.0 % | ~0.0 % | PASS |
+| herfs | synergy | 93.0 % | 91.6 % | ~95.0 % | PASS |
+| winter | synergy | 77.0 % | 72.9 % | ~80.0 % | PASS |
+| lente | synergy | 69.6 % | 58.1 % | ~60.0 % | PASS |
+| somer | synergy | 37.3 % | 33.0 % | ~35.0 % | PASS |
+
+Every season passes for both charm policies.

@@ -41,9 +41,9 @@ describe('plane scales (D-049: birds get smaller with distance)', () => {
     expect(P.far.minHitRadiusPx).toBeGreaterThan(85 * P.far.scale);
   });
 
-  it('touch aim assist per plane (mid 10, far 12 after D-049)', () => {
+  it('touch aim assist per plane (far 12 after D-049; mid stays 14)', () => {
     expect([P.near.aimAssistPx, P.mid.aimAssistPx, P.far.aimAssistPx, P.ver.aimAssistPx]).toEqual([
-      8, 10, 12, 6,
+      8, 14, 12, 6,
     ]);
   });
 });

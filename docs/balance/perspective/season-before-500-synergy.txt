@@ -1,0 +1,22 @@
+Season Run balance — competent bot, 500 runs per policy (seeds 1…), first 12 hunts, 2 workers, 265 s
+| season | policy | runs reaching it | pass rate | target | ±10 |
+|---|---|---|---|---|---|
+| herfs | synergy | 500 | 93.0 % | ~95.0 % | PASS |
+| winter | synergy | 465 | 77.0 % | ~80.0 % | PASS |
+| lente | synergy | 358 | 69.6 % | ~60.0 % | PASS |
+| somer | synergy | 249 | 37.3 % | ~35.0 % | PASS |
+
+| policy | hunt | quota | played | passed | p15 | p50 | p85 |
+|---|---|---|---|---|---|---|---|
+| synergy | 1 | 1950 | 500 | 97.8 % | 2270 | 2661 | 3259 |
+| synergy | 2 | 2100 | 489 | 98.2 % | 2545 | 3215 | 4328 |
+| synergy | 3 | 2250 | 480 | 96.9 % | 2712 | 3439 | 4462 |
+| synergy | 4 | 2150 | 465 | 91.2 % | 2286 | 3117 | 3935 |
+| synergy | 5 | 2200 | 424 | 92.2 % | 2549 | 3232 | 4042 |
+| synergy | 6 | 1750 | 391 | 91.6 % | 1881 | 2485 | 3336 |
+| synergy | 7 | 2600 | 358 | 86.9 % | 2651 | 3251 | 4077 |
+| synergy | 8 | 2650 | 311 | 87.5 % | 2718 | 3445 | 4284 |
+| synergy | 9 | 2150 | 272 | 91.5 % | 2276 | 2810 | 3524 |
+| synergy | 10 | 2950 | 249 | 68.7 % | 2524 | 3340 | 4086 |
+| synergy | 11 | 3000 | 171 | 70.2 % | 2739 | 3322 | 4173 |
+| synergy | 12 | 2800 | 120 | 77.5 % | 2734 | 3224 | 4089 |

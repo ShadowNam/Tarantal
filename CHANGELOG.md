@@ -15,7 +15,8 @@ zebras beside them. Birds now shrink with every plane back, and the far animals 
 - **Far animals** show at 3× (their art is drawn at 3×); the Namibië waterhole's animals are drawn
   5× taller in place. A far guineafowl no longer stands taller than an ostrich or a springbok.
 - **Still shootable**: a far bird's body is hit within at least 18 px, a Ver bird's within 10 px
-  (mouse and touch); touch assist mid 10 / far 12 px; far birds score 22 (was 25).
+  (mouse and touch); touch assist far 12 px (mid 14); far birds score 22 (was 25); the
+  Langloop scores ×0.72 on mid and ×1.15 on far, so its Classic mean stays in range.
 - Bird atlases are packed at the new plane sizes (smaller first download).
 
 ### Tools
