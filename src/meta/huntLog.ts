@@ -25,6 +25,8 @@ export interface HuntLog {
   readonly creaturesSeen: readonly string[];
   /** Prop ids of secrets set off (Bird Book). */
   readonly secretsFound: readonly string[];
+  /** v1.8 (D-050): the longest tin-can juggle of the hunt (air hits; 0 without a fence). */
+  readonly canChain?: number;
 }
 
 export interface HuntLogger {
@@ -73,6 +75,7 @@ export function createHuntLogger(
         crates: r.crates,
         creaturesSeen: [...creatures].sort(),
         secretsFound: [...secrets].sort(),
+        canChain: r.cans?.bestChain ?? 0,
       };
     },
   };

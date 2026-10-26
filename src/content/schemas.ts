@@ -144,8 +144,6 @@ export const ScoringSchema = obj({
     /** "Weg!": the can left the top of the view. */
     weg: posInt,
     planeMul: allPlanes(pos),
-    /** Oupa's bark from this chain on (once per can). */
-    barkChain: posInt,
     /** The Blikkiesdans secret: a chain this long (once a hunt), a secret found. */
     secretChain: posInt,
     secretBonus: posInt,
@@ -1523,6 +1521,8 @@ export const BARK_TRIGGERS = [
   'badHunt',
   'quotaMissed',
   'runWon',
+  // v1.8 (D-050): a tin can juggled barks.canChain times in a row.
+  'canChain',
   // D-048: a special day's own lines (feesdae.json barks; the tuning here gives no lines).
   'feesdagStart',
   'feesdagBat',
@@ -1980,6 +1980,8 @@ export const FeelSchema = obj({
     /** Shots in a row that bagged (bagStreak) or missed (missStreak). */
     bagStreak: posInt,
     missStreak: posInt,
+    /** v1.8 (D-050): a tin can juggled this many times in a row: Oupa's canChain line. */
+    canChain: posInt,
     /** Seconds without a shot (idle), and seconds left on the clock (lastSeconds). */
     idleSeconds: pos,
     lastSeconds: pos,
@@ -2061,6 +2063,20 @@ export const FeelSchema = obj({
       }),
     ),
   }),
+  /** v1.8 (D-050): how the tin cans look and sound (src/game/view/cans; the look only). */
+  cans: obj({
+    /** Above this spin the motion-blurred frame shows. */
+    blurDegPerSec: pos,
+    /** Dents kept on one can (the oldest go first). */
+    maxMarks: posInt,
+    /** The ground shadow fades out this far above the ground (design px at plane scale 1). */
+    shadowFadePx: pos,
+    /** The clink's pitch: × (1 + pitchPerChain × n), at most pitchMax. */
+    pitchPerChain: nonNeg,
+    pitchMax: pos,
+    /** Fence wire strands, as shares of the post height from the ground. */
+    wire: z.array(fraction).max(3),
+  }),
 });
 export type Feel = z.infer<typeof FeelSchema>;
 
@@ -2087,6 +2103,8 @@ export const NotaboekMetricSchema = z.enum([
   'bonusUnlocks',
   /** v1.7 (D-044): the meerkats' Familiefoto taken (the secret, on any desert map). */
   'familiefotos',
+  /** v1.8 (D-050): the hunt's longest tin-can juggle (air hits in a row; scope hunt). */
+  'canChain',
 ]);
 export type NotaboekMetric = z.infer<typeof NotaboekMetricSchema>;
 

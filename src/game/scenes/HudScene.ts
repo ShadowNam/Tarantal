@@ -52,6 +52,7 @@ import { fontReadiness } from '../ui/fontReady';
 import { cornerStampShown, stampFor, StampLabel } from '../ui/StampLabel';
 import { captionItem, updateCaptions, type CaptionLine } from '../audio/captions';
 import { FAMILIEFOTO_SECRET } from '../../sim/meerkats/colony';
+import { BLIKKIESDANS_SECRET } from '../../sim/cans/cans';
 
 export interface HudControls {
   readonly pause: () => void;
@@ -716,6 +717,16 @@ export class HudScene extends Phaser.Scene {
     for (const e of events) {
       if (e.type === 'secretTriggered' && e.propId === FAMILIEFOTO_SECRET) {
         // v1.7 (D-044): the Familiefoto has its own banner and line (the familiefoto event).
+      } else if (e.type === 'secretTriggered' && e.propId === BLIKKIESDANS_SECRET) {
+        // v1.8 (D-050): the long tin-can juggle (its points pop with their bonusAwarded).
+        banner.push(t('hud.blikkiesdans'));
+      } else if (e.type === 'canJuggled') {
+        // The chain shows with each air hit; the points pop with their bonusAwarded.
+        this.pushPop(fill(t('cans.chain'), { n: e.chain }), '#E8EEF5');
+      } else if (e.type === 'canKnocked') {
+        this.pushPop(t('cans.knock'), '#E8EEF5');
+      } else if (e.type === 'canGone') {
+        banner.push(`${t('cans.weg')} ${formatAward(e.points)}`);
       } else if (e.type === 'familiefoto') {
         const mk = this.ctx.content.birds.meerkats;
         banner.push(t('hud.familiefoto'));

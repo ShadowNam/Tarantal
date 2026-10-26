@@ -26,6 +26,14 @@ export function captionFor(e: SimEvent): I18nKey | null {
       return 'caption.camera_click';
     case 'stampedeStarted':
       return 'caption.stampede';
+    // v1.8 (D-050): tin cans — the clink of a hit, the rattle of a landing, the whistle away.
+    case 'canKnocked':
+    case 'canJuggled':
+      return 'caption.can_tink';
+    case 'canLanded':
+      return e.final ? null : 'caption.can_rattle';
+    case 'canGone':
+      return 'caption.can_whistle';
     // D-048: the Spookjag's sting, the owl's hoot (gliding in, or shot), a bat, a lantern.
     case 'feesdagStarted':
       return 'caption.spook_sting';

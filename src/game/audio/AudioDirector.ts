@@ -567,13 +567,14 @@ export class AudioDirector {
     );
   }
 
-  /** 24 Oct (D-037): a sound a lazy chunk brings (its recording once added, else its synth). */
-  playExtra(key: string, pan: number, synth: Synth): void {
+  /** 24 Oct (D-037): a sound a lazy chunk brings (its recording once added, else its synth).
+   *  v1.8 (D-050): `rate` pitches a recording (the tin cans' clink rises with the chain). */
+  playExtra(key: string, pan: number, synth: Synth, rate = 1): void {
     if (this.ctx === null || this.muted) return;
-    this.voice(key, pan, this.sfxBus, synth);
+    this.voice(key, pan, this.sfxBus, synth, rate);
   }
 
-  private voice(key: string, pan: number, bus: GainNode | null, synth: Synth): void {
+  private voice(key: string, pan: number, bus: GainNode | null, synth: Synth, pitch = 1): void {
     const { ctx, noise } = this;
     if (ctx === null || bus === null || noise === null || this.voices >= MAX_VOICES) return;
     const panner = ctx.createStereoPanner();
@@ -586,7 +587,7 @@ export class AudioDirector {
       const src = ctx.createBufferSource();
       src.buffer = buf;
       // v1.7b (D-046): Boeretroos slows the effects (lower and longer); music stays.
-      const rate = bus === this.sfxBus ? this.soundRate : 1;
+      const rate = (bus === this.sfxBus ? this.soundRate : 1) * pitch;
       if (rate !== 1) src.playbackRate.value = rate;
       src.connect(panner);
       src.start();

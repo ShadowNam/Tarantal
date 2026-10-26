@@ -328,6 +328,24 @@ export interface TestHook {
     hittable: boolean;
   }[];
   meerkatLog: string[];
+  /** v1.8 (D-050): the day's tin cans (null: no fence) — the fence's plane, each can on screen
+   *  (design px; r = hit radius), the hunt's can events in order ("knock:1", "juggle:2",
+   *  "landed", "weg:39"), at most 200, and ms spent drawing them (summed, with the frames). */
+  cans: {
+    plane: string;
+    spots: {
+      id: number;
+      x: number;
+      y: number;
+      r: number;
+      state: string;
+      chain: number;
+      marks: number;
+    }[];
+    bestChain: number;
+  } | null;
+  canLog: string[];
+  canMs: number;
   /** v1.7c (D-047): the fruit view (null until its chunk is in, or a map without fruit): fruit
    *  placed, pellet hits and drops this hunt, fruit swinging now, and the fruit on screen. */
   fruit: {

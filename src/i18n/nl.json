@@ -632,5 +632,17 @@
   "caption.bat_squeak": "[een vleermuis piept]",
   "caption.lantern_out": "[een lantaarn dooft]",
   "admin.group_feesdae": "Feestdagen",
-  "admin.feesdag_date": "{name} · {date}"
+  "admin.feesdag_date": "{name} · {date}",
+  "cans.name": "Blikjes",
+  "cans.knock": "Tink!",
+  "cans.chain": "{n}× in de lucht!",
+  "cans.weg": "WEG!",
+  "secret.blikkiesdans": "De blikjesdans",
+  "hud.blikkiesdans": "BLIKJESDANS!",
+  "notaboek.blik_5": "Houd een blikje 5 treffers lang in de lucht",
+  "bark.blik_lug": "Hou hom in die lug! Hou hem in de lucht!",
+  "bark.blik_dans": "Kyk hoe dans hy! Kijk dat blik eens dansen!",
+  "caption.can_tink": "[een blikje tinkelt]",
+  "caption.can_rattle": "[een blik ratelt op de grond]",
+  "caption.can_whistle": "[een blik fluit weg]"
 }

@@ -50,8 +50,6 @@ export interface Can {
   readonly half: number;
   /** Hit radius (r floored by the plane's minHitRadiusPx). */
   readonly hitR: number;
-  /** Oupa barked for this can's chain already. */
-  barked: boolean;
 }
 
 export interface Blikkies {
@@ -104,7 +102,6 @@ export function startCans(d: CanDeps): Blikkies | null {
       r,
       half,
       hitR: hitRadius(t.r, p.scale, p.minHitRadiusPx),
-      barked: false,
     });
   });
   return {
