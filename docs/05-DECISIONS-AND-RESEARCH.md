@@ -2616,6 +2616,14 @@ with a dark ring, above the scenery, on the canopy and the box front (the canopy
 stencil are gone); the floating item name on a crate is gone (the card says it); the Meerkat
 Spotter and Voorlaaier icons were redrawn stockier. The Settings screen's two build stamps (its
 own and the title's corner stamp under it) were already on main and are left as they are.
+(14) *A freeze after a crate pickup* (CI, Pixel 7 and desktop, after (11)): when the late group
+landed mid-hunt, `AssetManifest.upgrade()` removed the placeholder icons while a HUD chip, a crate
+tag or the pickup card still drew them, and the next render read a destroyed frame ("null
+sourceSize"), stopping the hunt. `upgrade()` now renames a placeholder out of the way
+(`<key>#placeholder-<n>`, a few KB that stay) and adds the delivered image under the key, so
+anything still drawing the old canvas stays valid until its view sets the key again (unit test in
+`AssetManifest.test.ts`). Supervisor screenshots of the final build (45, desktop, Pixel 7 and
+iPhone 14) are in `docs/art-preview/compare/v17b-*`.
 
 ## 3. Research notes (with sources)
 
