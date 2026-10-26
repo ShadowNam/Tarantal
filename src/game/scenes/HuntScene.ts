@@ -1676,6 +1676,10 @@ export class HuntScene extends Phaser.Scene {
               lanternsTotal: state.feesdag.lanternsTotal,
               things: this.spookView.spots(),
               final: this.spookView.final,
+              hats: this.birds.hatSpots().map((p) => ({
+                x: Math.round(this.parallax.screenX(p.plane, p.x)),
+                y: Math.round(p.y),
+              })),
             };
       hook.fruit =
         this.fruit === null

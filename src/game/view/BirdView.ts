@@ -299,6 +299,14 @@ export class BirdView {
     }
   }
 
+  /** D-048: where the drawn witch hats are (plane coordinates), for the test hook. */
+  hatSpots(): { plane: PlaneId; x: number; y: number }[] {
+    const out: { plane: PlaneId; x: number; y: number }[] = [];
+    for (const d of this.drawn.values())
+      if (d.hat !== null && d.hat.visible) out.push({ plane: d.plane, x: d.hat.x, y: d.hat.y });
+    return out;
+  }
+
   /** Current on-screen design position of a bird, if it is drawn. */
   positionOf(id: number): { plane: PlaneId; x: number; y: number } | null {
     const d = this.drawn.get(id);

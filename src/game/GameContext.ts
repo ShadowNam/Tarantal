@@ -372,6 +372,8 @@ export interface TestHook {
     lanternsTotal: number;
     things: { id: number; kind: string; x: number; y: number; dark: boolean }[];
     final: boolean;
+    /** Witch hats drawn now (screen design px). */
+    hats: { x: number; y: number }[];
   } | null;
   /** D-048: the feesdae group's sheet: delivered ('final') or the code-drawn stand-in. */
   feesdaeArt: 'final' | 'standin' | null;
