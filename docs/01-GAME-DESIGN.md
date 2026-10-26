@@ -268,7 +268,7 @@ Design rule: few weapons, each with a distinct *verb*. Every weapon changes how 
 | `kettie` | Die Kettie (slingshot) | Whole-flock 3 times | ∞ / 0.35 s draw | 1 projectile, travel time + drop + wind | Misses alert small radius (120 px) | ×2 all hits |
 | `pomp` | Plaas-Pomp (pump shotgun) | Reach Plaaswerker rank | 6 / 0.7 s **per shell**, interruptible | 6 pellets, tighter spread | Alerts | ×1 |
 | `twee_twee` | Die Twee-Twee (.22 bolt-action, v1.3) | Unlock Nog Verder once | 5 / 1.2 s magazine; 0.4 s bolt between shots | 1 bullet; **hold to zoom, release to fire** (§10.6); reaches the Ver plane; hip shot 36 px | Fairly quiet: alerts 180 px | ×1.5 on the Ver plane |
-| `langloop` | Die Langloop (long-range rifle, v1.4, D-038) | Unlock Die Verste once, in any area | 3 / 1.5 s magazine; 0.8 s bolt between shots | 1 bullet; variable scope 3× / 6× / 9× (§10.6); reaches the Ver plane; wind sensitivity 0.5; hip shot 60 px | **Very loud: every shot alerts every flock** | ×2 on the Ver plane; ×0.65 near and mid |
+| `langloop` | Die Langloop (long-range rifle, v1.4, D-038) | Unlock Die Verste once, in any area | 3 / 1.5 s magazine; 0.8 s bolt between shots | 1 bullet; variable scope 3× / 6× / 9× (§10.6); reaches the Ver plane; wind sensitivity 0.5; hip shot 60 px | **Very loud: every shot alerts every flock** | ×2 on the Ver plane; ×0.65 near, ×0.72 mid, ×1.15 far (D-049) |
 
 Kettie: a stone reaches the near / mid / far plane after 80 / 180 / 350 ms and drops on the way,
 so you lead moving birds and aim a touch high; it lands where you aimed in the world even if you
