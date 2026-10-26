@@ -1211,5 +1211,36 @@
     "detail": "4271"
    }
   ]
+ },
+ "namibie.sat.langloop": {
+  "summaries": [
+   {
+    "bot": "competent",
+    "hunts": 500,
+    "mean": 3295.35,
+    "p15": 2441,
+    "p25": 2772,
+    "p50": 3303,
+    "p75": 3830,
+    "p85": 4128,
+    "wingShotShare": 0.42860860965072095,
+    "wholeFlocksPerHunt": 0,
+    "wholeFlockHuntRate": 0,
+    "flushesPerHunt": 12.33,
+    "twoFliesPerHunt": 0.032,
+    "accuracy": 0.8038741626517061,
+    "secretsPerHunt": 0.764,
+    "cratesPerHunt": 1.972,
+    "penaltiesPerHunt": 1.082,
+    "verPerHunt": 12.094
+   }
+  ],
+  "gates": [
+   {
+    "name": "competent mean in 2 500–4 500 (Bosveldjagter)",
+    "pass": true,
+    "detail": "3295"
+   }
+  ]
  }
 }
