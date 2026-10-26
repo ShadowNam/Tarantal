@@ -1,11 +1,11 @@
 {
  "schema": 1,
- "updated": "2026-10-26T19:34:00Z",
+ "updated": "2026-10-26T20:35:00Z",
  "by": "Claude",
  "summary": "Live on the test build: perspective (1.7.4, merged 20:34 Namibia time): guineafowl get smaller with distance on every map, the far animals are shown bigger, and far birds keep a minimum hit size so they stay shootable; the first download is 106 KB smaller. The Halloween Spookjag (1.7.3) is in too: try it early on the admin page: Special days → Spookjag · 31/10 → Play. Tank is building v1.8 Blikkies (tin cans on the farm fence to shoot off and juggle). Then: Karoo polish, far animals in HD, makalani palms, tree life, optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
   "version": "1.7.4",
-  "commit": "a8d04b1"
+  "commit": "7a46adc"
  },
  "links": [
   {
@@ -37,12 +37,12 @@
   {
    "label": "Version on the test build",
    "value": "1.7.4",
-   "note": "commit a8d04b1, merged 26 Oct, 21:32 Namibia time (the test build deploys a few minutes after)"
+   "note": "commit 7a46adc, merged 26 Oct, 22:33 Namibia time (the test build deploys a few minutes after)"
   },
   {
    "label": "Pull requests merged",
-   "value": "80",
-   "note": "#1 to #84"
+   "value": "81",
+   "note": "#1 to #85"
   },
   {
    "label": "Unit tests",
@@ -2104,6 +2104,16 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-26T20:34:00Z",
+   "kind": "merge",
+   "text": "Test fix merged (PR #85): the Halloween owl test now plays two separate hunts, so new content can't break it. The game itself was fine."
+  },
+  {
+   "at": "2026-10-26T20:27:00Z",
+   "kind": "screenshots",
+   "text": "First tin can screenshots sent (desktop): the near, mid and far fence, a can somersaulting off its post, and landed cans with dents. Keeping a can in the air is still far too hard (1 in 24 air shots hit on the range), so Tank is retuning the juggle before the juggle screenshot."
+  },
   {
    "at": "2026-10-26T19:34:00Z",
    "kind": "note",
