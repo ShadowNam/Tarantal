@@ -151,15 +151,19 @@ function cellRows(c: Cell, b: Result | undefined, a: Result | undefined): string
     const acc = (s?: Summary): string =>
       s === undefined ? '—' : `${Math.round(s.accuracy * 100)} %`;
     const gate =
-      c.gate === 'cap'
-        ? sa === undefined
-          ? '—'
-          : sa.mean <= 4500
-            ? 'PASS (≤ 4 500)'
-            : 'over 4 500'
-        : bot === 'competent'
-          ? (a?.gates.map((g) => (g.pass ? 'PASS' : 'FAIL')).join(' / ') ?? '—')
-          : '';
+      c.gate === 'none'
+        ? bot === 'competent'
+          ? 'no gate (a Daily)'
+          : ''
+        : c.gate === 'cap'
+          ? sa === undefined
+            ? '—'
+            : sa.mean <= 4500
+              ? 'PASS (≤ 4 500)'
+              : 'over 4 500'
+          : bot === 'competent'
+            ? (a?.gates.map((g) => (g.pass ? 'PASS' : 'FAIL')).join(' / ') ?? '—')
+            : '';
     return `| ${c.label} | ${bot} | ${sb === undefined ? '—' : fmt(sb.mean)} | ${sa === undefined ? '—' : fmt(sa.mean)} | ${Number.isNaN(ch) ? '—' : `${ch >= 0 ? '+' : ''}${ch.toFixed(1)} %`} | ${acc(sb)} → ${acc(sa)} | ${gate} |`;
   });
 }

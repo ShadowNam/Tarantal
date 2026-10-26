@@ -2368,11 +2368,16 @@ bark, dig, camera click) are in a new asset group **`desert`**, loaded with eith
 - **Voice:** the scold ("We're not guineafowl!") and Oupa's Familiefoto line in en/af/de, with the
   v1.5 interim TTS (46 lines per language).
 (6) *Balance* (`tools/perspective-sweep.ts`, 500 seeds, tables in `perspective.md`): Classic
-Dubbelloop competent 4 258 → 4 313 (mouse), 4 262 → 4 312 (touch); plinker −11.4 % / −8.5 % (its
-aim error is fixed px; mid touch assist kept at 14). Every gate that passed on main passes; the
-Langloop's Classic mean fell under 2 500, so it scores ×0.72 mid (was 0.65) and ×1.15 far (new):
-2 585. Long-range cap held everywhere (highest: Namibië Thursday .22 scope 4 376). Season Run: all
-eight cells pass (Lente synergy 69.6 → 58.1 %, nearer its 60 % target). (7) *Size:* first download 3 071.5 → 2 965.2 KB gzip on the web
+Dubbelloop competent 4 258 → 4 313 (mouse), 4 262 → 4 312 (touch). Every gate that passed on main
+passes; the Langloop's Classic mean fell under 2 500, so it scores ×0.72 mid (was 0.65) and ×1.15
+far (new): 2 585. Long-range cap held everywhere (highest: Namibië Thursday .22 scope 4 376).
+Season Run: all eight cells pass. *Accepted:* the plinker loses 8.5–11.4 % on the Dubbelloop
+(fixed-px aim error against smaller mid birds; mid touch assist kept at 14; no gate limits it);
+shotguns on the far-heavy bonus maps lose 5–23 % (those maps are for rifles); the Spookjag Daily
+competent rises 4 518 → 5 004 (+11 %), as the plain Bushveld Saturday Daily does: tighter flocks
+under the same pellet pattern give more two-bird shots. (5b) *Review:* the floor applies to
+targets and bosses only (don't-shoot birds and the owl stay as drawn); the Spookjag's bats and
+lanterns get it, and its flyers convert px tunings with `tuningRatio`. (7) *Size:* first download 3 071.5 → 2 965.2 KB gzip on the web
 build (−106.3 KB; Poki 2 958.6, CrazyGames 2 958.7), room for the Karoo HD aloes; the waterhole
 grows the lazy Ver group 516.8 → 531.9 KB. (8) *Determinism:* golden replays re-recorded and the
 v3 fixtures re-derived (scales, hit rule, assist and points changed on purpose). A meerkat that

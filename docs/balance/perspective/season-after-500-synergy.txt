@@ -1,22 +1,22 @@
-Season Run balance — competent bot, 500 runs per policy (seeds 1…), first 12 hunts, 2 workers, 261 s
+Season Run balance — competent bot, 500 runs per policy (seeds 1…), first 12 hunts, 2 workers, 256 s
 | season | policy | runs reaching it | pass rate | target | ±10 |
 |---|---|---|---|---|---|
 | herfs | synergy | 500 | 91.6 % | ~95.0 % | PASS |
-| winter | synergy | 458 | 72.9 % | ~80.0 % | PASS |
-| lente | synergy | 334 | 58.1 % | ~60.0 % | PASS |
-| somer | synergy | 194 | 33.0 % | ~35.0 % | PASS |
+| winter | synergy | 458 | 73.1 % | ~80.0 % | PASS |
+| lente | synergy | 335 | 58.2 % | ~60.0 % | PASS |
+| somer | synergy | 195 | 33.3 % | ~35.0 % | PASS |
 
 | policy | hunt | quota | played | passed | p15 | p50 | p85 |
 |---|---|---|---|---|---|---|---|
-| synergy | 1 | 1950 | 500 | 97.4 % | 2257 | 2694 | 3332 |
+| synergy | 1 | 1950 | 500 | 97.4 % | 2260 | 2694 | 3332 |
 | synergy | 2 | 2100 | 487 | 97.5 % | 2531 | 3269 | 4328 |
-| synergy | 3 | 2250 | 475 | 96.4 % | 2676 | 3490 | 4488 |
+| synergy | 3 | 2250 | 475 | 96.4 % | 2676 | 3493 | 4488 |
 | synergy | 4 | 2150 | 458 | 91.3 % | 2318 | 3036 | 3982 |
 | synergy | 5 | 2200 | 418 | 93.3 % | 2497 | 3329 | 4401 |
-| synergy | 6 | 1750 | 390 | 85.6 % | 1767 | 2444 | 3336 |
-| synergy | 7 | 2600 | 334 | 84.4 % | 2591 | 3357 | 4204 |
-| synergy | 8 | 2650 | 282 | 83.3 % | 2595 | 3363 | 4257 |
-| synergy | 9 | 2150 | 235 | 82.6 % | 2103 | 2652 | 3185 |
-| synergy | 10 | 2950 | 194 | 66.0 % | 2560 | 3232 | 4173 |
-| synergy | 11 | 3000 | 128 | 67.2 % | 2619 | 3292 | 4189 |
-| synergy | 12 | 2800 | 86 | 74.4 % | 2475 | 3179 | 4015 |
+| synergy | 6 | 1750 | 390 | 85.9 % | 1777 | 2444 | 3341 |
+| synergy | 7 | 2600 | 335 | 84.2 % | 2591 | 3354 | 4204 |
+| synergy | 8 | 2650 | 282 | 83.7 % | 2596 | 3363 | 4257 |
+| synergy | 9 | 2150 | 236 | 82.6 % | 2103 | 2664 | 3187 |
+| synergy | 10 | 2950 | 195 | 66.2 % | 2560 | 3206 | 4173 |
+| synergy | 11 | 3000 | 129 | 67.4 % | 2619 | 3266 | 4189 |
+| synergy | 12 | 2800 | 87 | 74.7 % | 2475 | 3164 | 4015 |

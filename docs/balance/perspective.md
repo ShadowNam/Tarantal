@@ -174,22 +174,25 @@ cells under the 4 500 cap) and the Season Run (`tools/balance-sim.ts --run`). Be
 | body floor far 18 / Ver 10, assist mid 10 / far 12, far points 22 | **4 234 / 2 104** | **4 410 / 2 220** |
 
 A bigger hit area helps the competent bot more than the plinker (it shoots more far birds), so
-the floor stops at 18 px. The plinker loses about 9–14 %: mid birds are 16 % smaller and no floor
+the floor stops at 18 px, and (review) it applies to targets only: don't-shoot birds stay as
+drawn, and the Spookjag's bats and lanterns get it too. The plinker loses about 9–14 %: mid birds are 16 % smaller and no floor
 applies there (a mid floor pushed competent past 4 500). No gate limits the plinker's loss; the
 M3 gate "plinker ≥ 25 % below competent" still passes. The Ver floor 10 px won back half of the
 rifles' loss on the Ver plane (Die Verste .22 scope 3 795 → 3 939 at 100 seeds); 12 px added
 nothing more.
 
-## Final balance: 500 seeds, before (main 384bffa) → after
+## Final balance: 500 seeds, before → after
 
-`npx tsx tools/perspective-sweep.ts` (pointer unless "touch"; Classic on the Karoo, the long-range
-cells competent only). Raw: `docs/balance/perspective/before-500.json`, `after-500.json`. Gates:
-Classic M3 (competent 2 500–4 500 / plinker ≥ 25 % below competent / plinker above random); the
-long-range cap (competent ≤ 4 500, D-038/D-039).
+`npx tsx tools/perspective-sweep.ts` (pointer unless "touch"; Classic on the Karoo; long-range
+cells competent only). Before = main at 384bffa (fa47efb for the Spookjag Daily, which needs
+the Halloween merge); after = this branch after the review fixes (the hit floor for targets
+only, bats and lanterns floored). Raw: `docs/balance/perspective/before-500*.json`,
+`after-500-final.json`. Gates: Classic M3 (competent 2 500–4 500 / plinker ≥ 25 % below
+competent / plinker above random); the long-range cap (competent ≤ 4 500, D-038/D-039).
 
 | Cell | Bot | Before | After | Change | Accuracy | Gates (after) |
 |---|---|---|---|---|---|---|
-| Classic · Dubbelloop | random | 271 | 245 | -9.5 % | 4 % → 4 % |  |
+| Classic · Dubbelloop | random | 271 | 248 | -8.5 % | 4 % → 4 % |  |
 | Classic · Dubbelloop | plinker | 2 455 | 2 175 | -11.4 % | 67 % → 62 % |  |
 | Classic · Dubbelloop | competent | 4 258 | 4 313 | +1.3 % | 60 % → 57 % | PASS / PASS / PASS |
 | Classic · Pomp | random | 137 | 133 | -2.9 % | 5 % → 5 % |  |
@@ -213,8 +216,8 @@ long-range cap (competent ≤ 4 500, D-038/D-039).
 | Classic · Langloop | random | 84 | 91 | +8.4 % | 4 % → 5 % |  |
 | Classic · Langloop | plinker | 2 306 | 2 399 | +4.0 % | 85 % → 85 % |  |
 | Classic · Langloop | competent | 2 533 | 2 585 | +2.1 % | 65 % → 65 % | PASS / FAIL / PASS |
-| Classic · Dubbelloop · touch | random | 275 | 253 | -7.9 % | 4 % → 4 % |  |
-| Classic · Dubbelloop · touch | plinker | 2 439 | 2 232 | -8.5 % | 68 % → 63 % |  |
+| Classic · Dubbelloop · touch | random | 275 | 256 | -7.0 % | 4 % → 4 % |  |
+| Classic · Dubbelloop · touch | plinker | 2 439 | 2 233 | -8.5 % | 68 % → 63 % |  |
 | Classic · Dubbelloop · touch | competent | 4 262 | 4 312 | +1.2 % | 61 % → 58 % | PASS / PASS / PASS |
 | Classic · .22 scope · touch | random | 180 | 177 | -1.8 % | 8 % → 8 % |  |
 | Classic · .22 scope · touch | plinker | 2 521 | 2 302 | -8.7 % | 85 % → 84 % |  |
@@ -228,39 +231,53 @@ long-range cap (competent ≤ 4 500, D-038/D-039).
 | Karoo Nog Verder (Mon) · Langloop | competent | 4 128 | 4 112 | -0.4 % | 66 % → 67 % | PASS (≤ 4 500) |
 | Karoo Die Verste (Mon) · .22 scope | competent | 4 289 | 3 969 | -7.5 % | 72 % → 71 % | PASS (≤ 4 500) |
 | Karoo Die Verste (Mon) · Langloop | competent | 4 019 | 3 844 | -4.4 % | 67 % → 67 % | PASS (≤ 4 500) |
+| Spookjag Daily (31 Oct, Bushveld Sat) · Dubbelloop | random | 227 | 228 | +0.4 % | 3 % → 3 % |  |
+| Spookjag Daily (31 Oct, Bushveld Sat) · Dubbelloop | plinker | 2 353 | 2 166 | -8.0 % | 66 % → 60 % |  |
+| Spookjag Daily (31 Oct, Bushveld Sat) · Dubbelloop | competent | 4 518 | 5 004 | +10.8 % | 65 % → 61 % | no gate (a Daily) |
 | Namibië Tuesday · .22 scope | competent | 4 464 | 4 245 | -4.9 % | 82 % → 82 % | PASS (≤ 4 500) |
 | Namibië Thursday · .22 scope | competent | 4 380 | 4 376 | -0.1 % | 84 % → 85 % | PASS (≤ 4 500) |
 | Namibië Saturday · .22 scope | competent | 4 456 | 4 217 | -5.4 % | 82 % → 82 % | PASS (≤ 4 500) |
 | Namibië Sunday · .22 scope | competent | 4 449 | 4 271 | -4.0 % | 82 % → 83 % | PASS (≤ 4 500) |
 | Namibië Saturday · Langloop | competent | 3 494 | 3 526 | +0.9 % | 80 % → 80 % | PASS (≤ 4 500) |
 
-**Gates.** Every gate that passed on main still passes. Two Classic cells failed on main already
-and still do: the Kettie's competent mean is over 4 500 (4 783 → 4 722) and the Langloop's
-plinker is not 25 % below its competent (by design, D-038); the touch .22 scope's competent was
-already under 2 500 (2 454 → 2 317). The Langloop's competent mean fell below 2 500 with the
-smaller birds (2 333), so its points went up (`tune`): ×0.72 on mid (was 0.65) and ×1.15 on far
-(new) — 2 585, and its long-range cells stay under the cap (Nog Verder 4 112, Die Verste 3 844,
-Namibië Saturday 3 526).
+**Gates.** Every gate that passed on main still passes. Three Classic cells failed on main and
+still do: the Kettie's competent mean is over 4 500 (4 783 → 4 722), the Langloop's plinker is
+not 25 % below its competent (by design, D-038), and the touch .22 scope's competent is under
+2 500 (2 454 → 2 317). The Langloop's competent mean fell under 2 500 with the smaller birds
+(2 333), so it scores ×0.72 on mid (was 0.65) and ×1.15 on far (new): 2 585; its long-range
+cells stay under the cap.
 
-**The weaker player.** The plinker loses 7–12 % on Classic (Dubbelloop mouse −11.4 %, touch
-−8.5 % with the mid touch assist kept at 14). Its aim error is a fixed number of pixels, so birds
-16 % smaller on the mid plane cost it shots; a mid hit floor helped the competent bot more than
-the plinker (it shoots more far birds), so the mid plane has none. The competent Dubbelloop is
-+1.3 % (mouse) / +1.2 % (touch). Shotguns on the far-heavy bonus maps lose 5–23 % (Saturday
-Verder Pomp −22.9 %): far birds are a third smaller than the pattern they sat in. The bonus maps
-have no score floor; their bests and unlocks are relative to this.
+**The weaker player (accepted).** The plinker loses 7–12 % on Classic (Dubbelloop mouse
+−11.4 %, touch −8.5 % with the mid touch assist kept at 14). Its aim error is a fixed number of
+pixels, so birds 16 % smaller on the mid plane cost it shots, and a mid hit floor helped the
+competent bot more than the plinker. Smaller far birds are what the product owner asked for and
+no gate limits the plinker's loss, so this is accepted.
+
+**Shotguns on the far-heavy bonus maps (by design).** −5 to −23 % (Saturday Verder Pomp
+−22.9 %): far birds are a third smaller than the pattern they used to sit in. Those maps are
+for rifles; no gate sets a floor there.
+
+**The Spookjag Daily +11 % (competent 4 518 → 5 004).** It is the map, not Halloween: the plain
+Bushveld Saturday Daily rises as much (4 449 → 5 036, 100 seeds). Flock spacing shrinks with the
+birds while the Dubbelloop's pattern stays the same size, so more shots bag two birds (the
+competent golden on this map: 31 Twee Vlieë bonuses against 17 on main, 123 birds bagged against
+90). The bats and lanterns score as on main (both Halloween goldens hit all 9 bats and all 3
+lanterns). The spook golden's bot scores 341 (main 572) because its two bird bags paid 96
+points instead of 392 (one seed; on main they landed in a Frenzy during the Stampede), not
+because bats or lanterns are harder to hit. A Daily has no score gate; for a one-day special
+this is accepted.
 
 ### Season Run (500 seeds, `tools/balance-sim.ts --run`)
 
 | Season | Policy | Pass rate before | After | Target | ±10 |
 |---|---|---|---|---|---|
 | herfs | none | 83.0 % | 82.8 % | ~85.0 % | PASS |
-| winter | none | 47.0 % | 49.5 % | ~50.0 % | PASS |
-| lente | none | 12.8 % | 12.7 % | ~10.0 % | PASS |
+| winter | none | 47.0 % | 49.8 % | ~50.0 % | PASS |
+| lente | none | 12.8 % | 13.1 % | ~10.0 % | PASS |
 | somer | none | 4.0 % | 0.0 % | ~0.0 % | PASS |
 | herfs | synergy | 93.0 % | 91.6 % | ~95.0 % | PASS |
-| winter | synergy | 77.0 % | 72.9 % | ~80.0 % | PASS |
-| lente | synergy | 69.6 % | 58.1 % | ~60.0 % | PASS |
-| somer | synergy | 37.3 % | 33.0 % | ~35.0 % | PASS |
+| winter | synergy | 77.0 % | 73.1 % | ~80.0 % | PASS |
+| lente | synergy | 69.6 % | 58.2 % | ~60.0 % | PASS |
+| somer | synergy | 37.3 % | 33.3 % | ~35.0 % | PASS |
 
 Every season passes for both charm policies.
