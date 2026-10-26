@@ -12,6 +12,20 @@ describe('client/feel.json', () => {
     expect(parseFeel(raw)).toMatchObject({ ok: true });
   });
 
+  it('D-048: only the special-day bark triggers may have no lines of their own', () => {
+    type Barks = { triggers: Record<string, { lines: string[] }> };
+    const clone = (name: string): Record<string, unknown> => {
+      const c = structuredClone(raw) as typeof raw & { barks: Barks };
+      const t = c.barks.triggers[name];
+      if (t !== undefined) t.lines = [];
+      return c;
+    };
+    expect(parseFeel(clone('feesdagOwl'))).toMatchObject({ ok: true });
+    expect(parseFeel(clone('lanternsOut'))).toMatchObject({ ok: true });
+    expect(parseFeel(clone('bagStreak'))).toMatchObject({ ok: false });
+    expect(parseFeel(clone('newBest'))).toMatchObject({ ok: false });
+  });
+
   it('matches the GDD §18.2 gesture numbers', () => {
     const r = parseFeel(raw);
     if (!r.ok) throw new Error(r.errors.join());
