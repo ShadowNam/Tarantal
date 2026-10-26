@@ -512,6 +512,10 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
         err('feesdae.json', `special "${f.id}": ${name} window/perHunt out of range`);
     if (tw.bats.points <= 0) err('feesdae.json', `special "${f.id}": bats are a bonus (points > 0)`);
     if (tw.owls.points >= 0) err('feesdae.json', `special "${f.id}": owls are protected (points < 0)`);
+    const propIds = new Set(biomes.flatMap((b) => b.props.map((p) => p.id)));
+    for (const s of tw.lanterns.spots)
+      if ('prop' in s && !propIds.has(s.prop))
+        err('feesdae.json', `special "${f.id}": lantern spot on unknown prop "${s.prop}"`);
     if (tw.lanterns.count[1] > tw.lanterns.spots.length)
       err('feesdae.json', `special "${f.id}": more lanterns than lantern spots`);
   }

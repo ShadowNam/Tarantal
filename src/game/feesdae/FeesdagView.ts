@@ -40,6 +40,9 @@ export type SpecialLook = Feel['feesdae']['looks'][string];
 
 /** The stand-in's texture key (the delivered sheet takes HALLOWEEN_SHEET itself). */
 const STANDIN = `${HALLOWEEN_SHEET}#standin`;
+/** A lantern frame's width (design px at scale 1), and below what shown width the bold one is. */
+const LANTERN_W = 150;
+const SMALL_LANTERN_PX = 60;
 const FILE_TIMEOUT_MS = 15_000;
 
 /** Adds the frame table to a texture (texture px = design px × SHEET_MASTER). */
@@ -207,6 +210,8 @@ export class FeesdagSceneView {
   private readonly skyBats: SkyBat[] = [];
   private readonly webs: Phaser.GameObjects.Image[] = [];
   private last: FeesdagState | null = null;
+  /** The rifle zoom the world is drawn at (1 = no sight up): a scope shows the full drawing. */
+  viewZoom = 1;
   /** Witch hats for the BirdView (cosmetic: picked by bird id). */
   readonly hats: HatSource;
 
@@ -340,18 +345,20 @@ export class FeesdagSceneView {
           t.kind === 'lantern'
             ? this.scene.add.image(x, y, this.key, 'glow').setBlendMode(Phaser.BlendModes.ADD)
             : null;
-        if (t.kind === 'lantern') {
-          if (glow !== null) node.fixtures.add(glow);
-          node.fixtures.add(img);
-        } else node.overlay?.add(img);
+        // Lanterns stand on prop tops or in front of the flock band: over the plane's birds.
+        if (glow !== null) node.overlay?.add(glow);
+        node.overlay?.add(img);
         d = { kind: t.kind, img, glow, plane: t.plane };
         this.drawn.set(t.id, d);
       }
       const s = this.planeScale[t.plane] / SHEET_MASTER;
       if (t.kind === 'lantern') {
-        const base = t.id % 2 === 0 ? 'lantern_post' : 'lantern_rock';
-        setFrame(d.img, this.key, `${base}_${t.dark ? 'dark' : 'lit'}` as HalloweenFrame);
-        d.img.setPosition(x, y).setScale(s);
+        // Distant lanterns (a few dozen px) use the bold half-size drawing, so the face reads.
+        const small = LANTERN_W * this.planeScale[t.plane] * this.viewZoom < SMALL_LANTERN_PX;
+        const frame = `lantern_${t.base}_${t.dark ? 'dark' : 'lit'}${small ? '_s' : ''}` as const;
+        setFrame(d.img, this.key, frame);
+        const fs = ORIGINS.get(frame)?.forScale ?? 1;
+        d.img.setPosition(x, y).setScale(s / fs);
         if (d.glow !== null) {
           setFrame(d.glow, this.key, 'glow');
           // A slow, small flicker from the sim tick (still on a held frame, never a flash).

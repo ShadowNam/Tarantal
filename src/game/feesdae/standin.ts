@@ -1,7 +1,12 @@
 // D-048: the code-drawn stand-in for the Halloween sheet (feesdaeAssets.ts layout), shown only
 // until the delivered sheet arrives (or on a build without an asset index). Simple flat shapes
 // with the sheet's frame boxes and origins, so the view and the hit circles line up the same.
-import { LANTERN_GROUND_PX, sheetFrames, type SheetRect } from './feesdaeAssets';
+import {
+  LANTERN_BARE_GROUND_PX,
+  LANTERN_GROUND_PX,
+  sheetFrames,
+  type SheetRect,
+} from './feesdaeAssets';
 
 type G = CanvasRenderingContext2D;
 
@@ -129,13 +134,18 @@ function draw(g: G, f: SheetRect): void {
     return;
   }
   if (f.name.startsWith('lantern_')) {
-    const lit = f.name.endsWith('_lit');
-    const ground = y + LANTERN_GROUND_PX;
+    const lit = f.name.includes('_lit');
+    g.save();
+    g.translate(x, y);
+    // Distant lanterns (_s) are drawn at half size, like the sheet's.
+    if (f.name.endsWith('_s')) g.scale(0.5, 0.5);
     if (f.name.includes('post')) {
       g.fillStyle = '#6E5638';
-      g.fillRect(x - 14, y + 26, 28, ground - y - 26 + 8);
-    } else ell(g, x, ground - 6, 50, 22, '#7C7468');
-    pumpkin(g, x, y, lit);
+      g.fillRect(-14, 26, 28, LANTERN_GROUND_PX - 26 + 8);
+    } else if (f.name.includes('rock')) ell(g, 0, LANTERN_GROUND_PX - 6, 50, 22, '#7C7468');
+    else ell(g, 0, LANTERN_BARE_GROUND_PX - 2, 34, 5, 'rgba(0,0,0,0.3)');
+    pumpkin(g, 0, 0, lit);
+    g.restore();
   }
 }
 

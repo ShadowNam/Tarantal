@@ -382,6 +382,8 @@ export interface SpookThingView {
   readonly facing: 1 | -1;
   /** Lanterns: shot out. */
   readonly dark: boolean;
+  /** Lanterns: on a prop's top ('bare'), a fence post or a rock (render only). */
+  readonly base: 'bare' | 'rock' | 'post';
 }
 
 export interface FeesdagView {

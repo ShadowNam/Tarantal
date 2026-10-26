@@ -604,10 +604,15 @@ game draws a flat stand-in with the same frames.
 - *Light:* the existing `dusk` preset over the day's map.
 - *Moon:* a big, low, pale-yellow full moon on the sky layer with soft maria, a few craters and a
   faint halo; five or six small black bats circle it (sky decoration, not targets).
-- *Pumpkin lanterns:* ribbed, glossy orange pumpkins with a carved face lit from inside (a warm
-  core in the cuts), on a lichen rock or a weathered fence post with a strand of wire. Each has a
+- *Pumpkin lanterns:* every one a carved jack-o'-lantern — ribbed, glossy orange, the eyes, nose and
+  mouth lit from inside (a warm core in the cuts) — on top of a prop where the day's map has one
+  (the reservoir's rim, the bakkie's roof, a boulder, the dassie koppie, the mokoro pole, the egg
+  rock: a bare pumpkin) or on its own lichen rock or weathered fence post (with a strand of wire)
+  just in front of the flock line. Distant ones use a bold half-size drawing (bigger cuts, a heavier
+  edge) so the face reads at a few dozen px. Each has a
   small additive glow that flickers slowly (12 %, ~0.5 s) — a local light, never a flash. Shot
-  out: the same pumpkin, darker, the cuts sooty, the glow gone, a puff of grey smoke.
+  out: the same carved pumpkin gone dark, the cuts sooty, the glow gone, a thin wisp of smoke
+  rising (and a puff as it goes out).
 - *Bats (targets):* furry bodies and ears, membrane wings stretched between finger bones that let
   the moonlight through; three wing poses (14 fps). Small on the mid and far planes, on purpose.
 - *Spotted eagle-owl (protected):* seen from below as it glides over, its round face turned to

@@ -12,6 +12,7 @@
 //   simpler the smaller they are), a corner cobweb with dew, a puff of smoke, a lantern glow.
 // Coordinates: design px; each frame is drawn round its origin (feesdaeAssets.ts), facing right.
 import {
+  LANTERN_BARE_GROUND_PX,
   LANTERN_GROUND_PX,
   SHEET_H,
   SHEET_MASTER,
@@ -496,7 +497,8 @@ function owl(pose: number): string {
 
 // --- pumpkin lanterns -----------------------------------------------------------------------------
 
-function pumpkin(lit: boolean): string {
+/** A carved pumpkin; `bold` (distant lanterns) has bigger cuts and a heavier edge. */
+function pumpkin(lit: boolean, bold = false): string {
   const fill = lit ? 'url(#pumpkin)' : 'url(#pumpkinDead)';
   const ribs: string[] = [];
   for (const [cx, rx] of [
@@ -506,7 +508,7 @@ function pumpkin(lit: boolean): string {
     [11, 20],
     [0, 17],
   ] as const)
-    ribs.push(edge(ellipseD(cx, 2, rx, 36), fill, 1.6, lit ? '#5A2408' : '#2E180C'));
+    ribs.push(edge(ellipseD(cx, 2, rx, 36), fill, bold ? 3 : 1.6, lit ? '#5A2408' : '#2E180C'));
   const shine = lit ? stroke('M-30 -18Q-26 -28 -16 -32', '#FFD9A0', 3.4, 0.7) : '';
   const face = [
     polyD([
@@ -539,9 +541,11 @@ function pumpkin(lit: boolean): string {
       [-18, 26],
     ]),
   ].join('');
-  const cut = lit
-    ? path(face, 'url(#carve)') + stroke(face, '#B4560E', 1.2)
-    : path(face, C.soot) + stroke(face, '#3A2214', 1.2);
+  const cutRaw = lit
+    ? path(face, 'url(#carve)') + stroke(face, '#B4560E', bold ? 2 : 1.2)
+    : path(face, C.soot) + stroke(face, '#3A2214', bold ? 2 : 1.2);
+  // Bold: the face cut larger (it must read at a few px across), centred on the pumpkin.
+  const cut = bold ? g({ transform: 'translate(0 3) scale(1.3)' }, cutRaw) : cutRaw;
   const stem = edge(
     smoothD(
       [
@@ -633,8 +637,47 @@ function post(): string {
   );
 }
 
-function lantern(base: 'rock' | 'post', lit: boolean, seed: number): string {
-  return g({}, base === 'rock' ? rock(seed) : post(), pumpkin(lit));
+/** A thin wisp of smoke rising from a lantern that has been shot out. */
+function wisp(): string {
+  return (
+    stroke(
+      smoothD(
+        [
+          [2, -36],
+          [9, -48],
+          [1, -58],
+          [8, -68],
+        ],
+        false,
+      ),
+      '#A8A0AC',
+      3,
+      0.5,
+    ) +
+    stroke(
+      smoothD(
+        [
+          [-4, -34],
+          [-9, -44],
+          [-3, -52],
+        ],
+        false,
+      ),
+      '#A8A0AC',
+      2,
+      0.35,
+    )
+  );
+}
+
+function bareBase(): string {
+  // A soft contact shadow where the pumpkin sits on the prop.
+  return path(ellipseD(0, LANTERN_BARE_GROUND_PX - 2, 34, 5), '#000', { opacity: 0.3 });
+}
+
+function lantern(base: 'rock' | 'post' | 'bare', lit: boolean, seed: number, bold = false): string {
+  const stand = base === 'rock' ? rock(seed) : base === 'post' ? post() : bareBase();
+  return g({}, stand, pumpkin(lit, bold), lit ? '' : wisp());
 }
 
 // --- moon, sky bats, hats, web, puff, glow --------------------------------------------------------
@@ -840,6 +883,20 @@ function frameArt(name: HalloweenFrame, seed: number): string {
       return lantern('post', true, seed);
     case 'lantern_post_dark':
       return lantern('post', false, seed);
+    case 'lantern_bare_lit':
+      return lantern('bare', true, seed);
+    case 'lantern_bare_dark':
+      return lantern('bare', false, seed);
+    case 'lantern_rock_lit_s':
+    case 'lantern_rock_dark_s':
+    case 'lantern_post_lit_s':
+    case 'lantern_post_dark_s':
+    case 'lantern_bare_lit_s':
+    case 'lantern_bare_dark_s': {
+      const [, base, state] = name.split('_') as [string, 'rock' | 'post' | 'bare', string];
+      // Drawn at half size (the frame's forScale), bold so the carved face still reads.
+      return g({ transform: 'scale(0.5)' }, lantern(base, state === 'lit', seed, true));
+    }
     case 'hat_l':
       return hat('l');
     case 'hat_m':

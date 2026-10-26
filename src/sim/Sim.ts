@@ -2940,6 +2940,7 @@ export function createSim(config: SimConfig): Sim {
                   y: t.y,
                   facing: t.facing,
                   dark: t.dark,
+                  base: t.base,
                 })),
                 lanternsLit: lanternsLit(spook),
                 lanternsTotal: spook.lanternsTotal,

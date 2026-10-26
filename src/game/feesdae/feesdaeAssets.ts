@@ -40,10 +40,14 @@ interface FrameSpec {
 /** Lantern frames: the pumpkin's centre is the origin; its ground line LANTERN_GROUND_PX below
  *  (feesdae.json lanterns.lift is this distance, so the sim's hit circle sits on the pumpkin). */
 export const LANTERN_GROUND_PX = 58;
+/** A bare pumpkin (on top of a prop): its ground line this far below its centre (liftBare). */
+export const LANTERN_BARE_GROUND_PX = 34;
 
 const OWL = { w: 330, h: 200, ox: 165, oy: 100 };
 const BAT = { w: 170, h: 110, ox: 85, oy: 55 };
 const LANTERN = { w: 150, h: 170, ox: 75, oy: 70 };
+/** Distant lanterns: the same pumpkins drawn bold at half size (big cuts, a thick edge). */
+const LANTERN_S = { w: 75, h: 85, ox: 37.5, oy: 35, forScale: 0.5 };
 /** Packed in shelves in this order (rows of about SHEET_W). The moon is drawn small and shown
  *  larger (it is a soft shape), which keeps the sheet's GPU size down. */
 const SPECS: readonly FrameSpec[] = [
@@ -60,12 +64,20 @@ const SPECS: readonly FrameSpec[] = [
   { name: 'lantern_rock_dark', ...LANTERN },
   { name: 'lantern_post_lit', ...LANTERN },
   { name: 'lantern_post_dark', ...LANTERN },
+  { name: 'lantern_bare_lit', ...LANTERN },
+  { name: 'lantern_bare_dark', ...LANTERN },
   { name: 'hat_l', w: 130, h: 120, ox: 65, oy: 104, forScale: 1 },
   { name: 'puff', w: 120, h: 120, ox: 60, oy: 60 },
   { name: 'hat_m', w: 70, h: 64, ox: 35, oy: 55, forScale: 0.5 },
   { name: 'skybat_0', w: 70, h: 40, ox: 35, oy: 20 },
   { name: 'skybat_1', w: 70, h: 40, ox: 35, oy: 20 },
   { name: 'hat_s', w: 36, h: 34, ox: 18, oy: 29, forScale: 0.22 },
+  { name: 'lantern_rock_lit_s', ...LANTERN_S },
+  { name: 'lantern_rock_dark_s', ...LANTERN_S },
+  { name: 'lantern_post_lit_s', ...LANTERN_S },
+  { name: 'lantern_post_dark_s', ...LANTERN_S },
+  { name: 'lantern_bare_lit_s', ...LANTERN_S },
+  { name: 'lantern_bare_dark_s', ...LANTERN_S },
 ];
 
 export type HalloweenFrame =
@@ -82,6 +94,9 @@ export type HalloweenFrame =
   | 'lantern_rock_dark'
   | 'lantern_post_lit'
   | 'lantern_post_dark'
+  | 'lantern_bare_lit'
+  | 'lantern_bare_dark'
+  | `lantern_${'rock' | 'post' | 'bare'}_${'lit' | 'dark'}_s`
   | 'hat_l'
   | 'puff'
   | 'hat_m'

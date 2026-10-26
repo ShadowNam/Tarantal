@@ -32,6 +32,21 @@ export interface SpookThing {
   swerveEnd: number;
   /** Lanterns: shot out. */
   dark: boolean;
+  /** Lanterns: what it stands on (render only). Flyers: 'bare'. */
+  readonly base: LanternBase;
+}
+
+export type LanternBase = 'bare' | 'rock' | 'post';
+
+interface LanternPlace {
+  readonly i: number;
+  /** A prop top (placed first). */
+  readonly first: boolean;
+  readonly plane: 'mid' | 'far';
+  readonly x: number;
+  readonly ground: number;
+  readonly lift: number;
+  readonly base: LanternBase;
 }
 
 interface Due {
@@ -73,39 +88,77 @@ export function startSpookjag(d: SpookDeps): Spookjag {
   // Stable order: by tick, bats before owls on the same tick (they were drawn first).
   due.sort((a, b) => a.tick - b.tick || (a.kind === b.kind ? 0 : a.kind === 'bat' ? -1 : 1));
 
-  // Lanterns: `count` spots without repeats, on planes the map has a ground line for.
+  // Lanterns: `count` spots without repeats — prop tops of this map first, then ground spots
+  // on planes the map has a ground line for.
   const lt = twist.lanterns;
-  const free = lt.spots
-    .map((s, i) => ({ ...s, i }))
-    .filter((s) => d.biome.lanes[s.plane]?.groundY !== undefined);
-  const want = Math.min(free.length, rng.int(lt.count[0], lt.count[1]));
-  const picked: (typeof free)[number][] = [];
-  while (picked.length < want) {
-    const [s] = free.splice(rng.int(0, free.length - 1), 1);
-    if (s !== undefined) picked.push(s);
+  const layerPlane = new Map(
+    d.biome.layers.flatMap((l) =>
+      l.plane === 'mid' || l.plane === 'far' ? [[l.id, l] as const] : [],
+    ),
+  );
+  const places: LanternPlace[] = [];
+  lt.spots.forEach((s, i) => {
+    if ('prop' in s) {
+      const prop = d.biome.props.find((p) => p.id === s.prop);
+      const layer = prop === undefined ? undefined : layerPlane.get(prop.layer);
+      const o = prop?.occluder;
+      if (prop === undefined || layer?.plane === undefined || o === undefined) return;
+      const plane = layer.plane as 'mid' | 'far';
+      // The occluder's top at dx from its centre (an ellipse curves down to its sides).
+      const half =
+        o.type === 'rect'
+          ? o.h / 2
+          : o.ry * Math.sqrt(Math.max(0, 1 - (s.dx / o.rx) * (s.dx / o.rx)));
+      places.push({
+        i,
+        first: true,
+        plane,
+        x: prop.u * coreWidth(layer.scrollFactor) + o.ox + s.dx,
+        ground: prop.y + o.oy - half,
+        lift: lt.liftBare,
+        base: 'bare',
+      });
+      return;
+    }
+    const band = d.biome.lanes[s.plane]?.groundY;
+    if (band === undefined) return;
+    places.push({
+      i,
+      first: false,
+      plane: s.plane,
+      x: s.u * coreWidth(d.planes[s.plane].scrollFactor),
+      ground: band[1] + lt.front * d.planes[s.plane].scale,
+      lift: lt.lift,
+      base: s.base,
+    });
+  });
+  const want = Math.min(places.length, rng.int(lt.count[0], lt.count[1]));
+  const picked: LanternPlace[] = [];
+  for (const first of [true, false]) {
+    const pool = places.filter((p) => p.first === first);
+    while (picked.length < want && pool.length > 0) {
+      const [p] = pool.splice(rng.int(0, pool.length - 1), 1);
+      if (p !== undefined) picked.push(p);
+    }
   }
   picked.sort((a, b) => a.i - b.i);
   let nextId = SPOOK_ID_BASE;
-  const things: SpookThing[] = picked.map((s) => {
-    const p = d.planes[s.plane];
-    // Safe: `free` kept only spots whose plane has a ground line.
-    const ground = d.biome.lanes[s.plane]?.groundY?.[0] ?? 0;
-    return {
-      id: nextId++,
-      kind: 'lantern',
-      plane: s.plane,
-      x: s.u * coreWidth(p.scrollFactor),
-      y: ground - lt.lift * p.scale,
-      vx: 0,
-      facing: 1,
-      laneY: ground,
-      swerveFrom: 0,
-      swerveTo: 0,
-      swerveStart: 0,
-      swerveEnd: 0,
-      dark: false,
-    };
-  });
+  const things: SpookThing[] = picked.map((p) => ({
+    id: nextId++,
+    kind: 'lantern',
+    plane: p.plane,
+    x: p.x,
+    y: p.ground - p.lift * d.planes[p.plane].scale,
+    vx: 0,
+    facing: 1,
+    laneY: p.ground,
+    swerveFrom: 0,
+    swerveTo: 0,
+    swerveStart: 0,
+    swerveEnd: 0,
+    dark: false,
+    base: p.base,
+  }));
   return {
     twist,
     due,
@@ -186,6 +239,7 @@ export function stepSpookjag(
       swerveStart: tick,
       swerveEnd: tick,
       dark: false,
+      base: 'bare',
     };
     newSwerve(s, f, ratio, tick, rng);
     f.y = f.laneY;

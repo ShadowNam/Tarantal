@@ -881,7 +881,7 @@ export interface HeadAt {
   readonly r: number;
 }
 
-export function headPose(i: Pick<DrawInput, "pose" | "shape" | "cfg">): HeadAt {
+export function headPose(i: Pick<DrawInput, 'pose' | 'shape' | 'cfg'>): HeadAt {
   const p = i.pose;
   const h = i.shape.head;
   // The head follows the body's translation, not its squash: it stays near its hitbox.

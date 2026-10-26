@@ -1290,9 +1290,25 @@ const spookjagSchema = obj({
   /** Pumpkin lanterns stand on the ground line (groundY[0]) of their plane at a spot's u. */
   lanterns: obj({
     count: range(posInt),
-    spots: z.array(obj({ plane: z.enum(['mid', 'far']), u: fraction })).min(1),
-    /** The lantern's centre above its ground line, and its hit ellipse (px at plane scale 1). */
+    /**
+     * Where lanterns may stand: on top of a prop of the day's map (its occluder's top at dx from
+     * its centre; a bare pumpkin), or on their own fence post or rock at u across a plane, just
+     * in front of the flock band (`front` px below groundY[1]). Prop spots are used first; spots
+     * whose prop or ground line the map lacks are skipped.
+     */
+    spots: z
+      .array(
+        z.union([
+          obj({ prop: id, dx: z.number(), base: z.literal('bare') }),
+          obj({ plane: z.enum(['mid', 'far']), u: fraction, base: z.enum(['rock', 'post']) }),
+        ]),
+      )
+      .min(1),
+    front: nonNeg,
+    /** The pumpkin's centre above its ground line (on a post or rock, and bare on a prop) and
+     *  its hit ellipse (px at plane scale 1; the sheet's frames, feesdaeAssets.ts). */
     lift: nonNeg,
+    liftBare: nonNeg,
     rx: pos,
     ry: pos,
     /** Paid once, when the day's last lantern goes dark. */
