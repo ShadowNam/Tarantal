@@ -11,18 +11,18 @@ const meta = {
   period: '19–25 October 2026',
 };
 
-// "By the numbers" on 25 Oct 2026 (main at d57a840).
+// "By the numbers" on 26 Oct 2026 (main at 894bbcd).
 const numbers = [
-  ['Days since the first commit', '6'],
-  ['Commits on main', '831'],
-  ['Pull requests', '74 merged, plus this history update; v1.7b power-ups explained is being built'],
+  ['Days since the first commit', '7'],
+  ['Commits on main', '888'],
+  ['Pull requests', '76 merged, plus this history update; the Halloween Spookjag is being built'],
   ['Game code (TypeScript, without tests)', 'about 47,000 lines'],
-  ['Automated tests', '1,194 unit tests, 52 browser test suites on 3 device profiles'],
+  ['Automated tests', '1,250 unit tests, 53 browser test suites on 3 device profiles'],
   ['Hunting areas', '5: the four seasons (Karoo, Bushveld, Okavango, Kalahari) and Namibië, each with 7 weekday maps and 3 bonus maps (Verder, Nog Verder, Die Verste)'],
   ['Guns', '8 (Dubbelloop, Windbuks, Kettie, Plaas-Pomp, Die Twee-Twee with 3 sights, Die Langloop with a 3–9× scope, Voorlaaier, Mielie-Masjien)'],
   ['Creatures', '13 (guineafowl and variants, bosses, flyers), plus meerkat colonies on the desert maps'],
   ['Languages', 'English, Afrikaans, German and Dutch text; Oupa voiced in English, Afrikaans and German'],
-  ['Design decisions logged', '45 (D-001 to D-045)'],
+  ['Design decisions logged', '47 (D-001 to D-047)'],
 ];
 
 const roles = [
@@ -691,6 +691,60 @@ const stages = [
       { img: 'v17-rounds', caption: 'The three look rounds of the meerkat sheet: the first draft, the redraw, and round 3 with more fur and nicer faces (times in Namibia time).' },
     ],
   },
+  {
+    title: 'v1.7b Power-ups explained, and an Oupa switch',
+    when: '26 Oct 2026, 02:40 (started 25 Oct, 21:31)',
+    prs: '#77',
+    decision: 'D-046',
+    intro: 'The product owner: "When one collects these power-ups, one is very unsure what they actually do … there needs to be a clear indication in this menu", and an option to switch Oupa’s comments off because "some people would be irritated by always having a grandfather give his input".',
+    bullets: [
+      'Icons for all eight power-ups and crate guns, readable on a HUD chip and big in the Gun Shed.',
+      'A Power-ups tab in the Gun Shed: for each one a picture, one plain sentence of what it does with its numbers, how to get it, and a tip. Ones not found yet are marked, but still explained.',
+      'In the hunt: a falling crate shows the icon of what it holds, on the parachute and on the box; a card says what you picked up (the first time with Oupa’s word); the chip counts the seconds or shells down and blinks before it ends; each power-up has a small look of its own (an ∞ on the belt, a wider spread ring, a warm slow-motion tint); the tally lists the power-ups you used.',
+      'Settings → Oupa’s comments: On, Text only (his bubble without his voice) or Off. The tutorial and the first pickup still explain themselves as plain text when he is off; other voices (the meerkats, the weavers, the frog) still speak.',
+      'Every number the player reads comes from the content files; a test keeps hand-typed numbers out of the texts in all four languages.',
+      'The first download stayed under the 3 MB line (3,069 KB): the new icons load a little later in the hunt, before the first crate can drop.',
+    ],
+    feedbackLabel: 'Reviews and fixes before merging',
+    feedback: [
+      'Claude’s screenshots (desktop, Pixel 7, iPhone 14): the crate’s icon was too small and faint, the old floating item name still landed on the HUD, and two icons were too thin at chip size. All fixed and re-checked.',
+      'The independent review found the first download over 3 MB and the pickup card able to cover the crosshair, plus seven smaller points (a card in the training ground, a raw caption, Oupa’s switch silencing the meerkats, tests that could not fail, a changelog line, Oupa’s lines ignoring the Afrikaans names). All fixed.',
+      'Moving the icons to a later download caused a freeze right after a crate pickup on GitHub’s phone test: the placeholder icons were deleted while still on screen. Claude found it, fixed it (the placeholder is now renamed instead of deleted) and re-took all 45 screenshots before merging.',
+    ],
+    images: [
+      { img: 'v17b-pickup-card', caption: 'The card the first time you pick up Farm Coffee, with Oupa’s word; the chip counts down at the top left.' },
+      { img: 'v17b-shed-iphone', caption: 'The Gun Shed’s new Power-ups tab on an iPhone 14.' },
+      { img: 'v17b-crate', caption: 'A falling crate shows what it holds, on the canopy and on the box.' },
+      { img: 'v17b-buckshot', caption: 'Bush Buckshot: the chip counts shells, and the spread ring is wider.' },
+      { img: 'v17b-settings', caption: 'Settings on a Pixel 7: Oupa’s comments On / Text only / Off.' },
+      { img: 'v17b-icons-redrawn', caption: 'Two icons redrawn after the screenshot round: the Meerkat Spotter with its binoculars up, and the Voorlaaier.' },
+    ],
+  },
+  {
+    title: 'v1.7c Fruit that swings and drops',
+    when: '26 Oct 2026, 05:34 (started 26 Oct, 01:11)',
+    prs: '#79',
+    decision: 'D-047',
+    intro: 'The product owner, testing the sausage tree in the Okavango: "When shooting these fruits, make them swing or drop down."',
+    bullets: [
+      'Every hanging and tree fruit reacts to shots: the sausage tree’s sausages, baobab pods, marula, jackalberries, ilala clusters, sweet-thorn and camelthorn pods, quiver-tree flowers, and !nara melons on the ground.',
+      'A hit swings the fruit on its stalk; a near miss gives a smaller swing; a hard hit, or a second hit while it swings, snaps it off. It falls, bounces, rolls clear of the trunk and lies on the ground with a soft shadow. Small, local dust and leaf puffs; a soft thock and a thud.',
+      'Fruit are not targets: no score, no penalty, and the game’s rules and replays are unchanged. They take the map’s light of the day and its haze, like the trees they hang on.',
+      'All fruit redrawn as separate pictures at the camelthorn quality: heavy, mottled Kigelia sausages on rope stalks, velvety baobab pods, speckled marula. They load with their map, never in the first download.',
+    ],
+    feedbackLabel: 'Reviews and fixes before merging',
+    feedback: [
+      'Claude’s screenshots: the first fruit pictures were plain shapes (tan "pills", grey eggs), and a dropped sausage lay across the trunk. Redrawn at the camelthorn quality; dropped fruit now lands clear.',
+      'The independent review found that the fruit ignored the map’s light of the day and its haze, and that in wind a dead-centre shot could miss a fruit (the wind drift was applied twice); also fruit drawn over rocks and tree feet, work every frame, and steps on fast phones. All fixed.',
+      'Tank’s first session lost its connection before pushing; Claude retried it and no work was lost.',
+    ],
+    images: [
+      { img: 'v17c-fruit-sheet', caption: 'The redrawn sausage-tree fruit, with their stalks drawn separately so the stalk stays on the tree.' },
+      { img: 'v17c-sausage-swing', caption: 'Close-up: a shot sausage swings on its stalk.' },
+      { img: 'v17c-sausage-drop', caption: 'A shot-off sausage lies on the ground, clear of the trunk.' },
+      { img: 'v17c-baobab-drop', caption: 'A baobab pod shot off in the Bushveld.' },
+    ],
+  },
 ];
 
 // The product owner's requests, in order.
@@ -711,7 +765,7 @@ const requests = [
   ['24 Oct, 12:18', 'Meerkat burrows on the desert maps: meerkats peek out and run from one burrow to another ("be creative")', 'Done in v1.7 (#72)'],
   ['24 Oct, 16:00', 'Languages: game, voice and text in German, English and Afrikaans, with names adjusted for each audience', 'Done in v1.5 (#68)'],
   ['24 Oct, 17:45', 'Clean steel gongs in the training ground, with every shot mark staying visible for the session; tin cans ("blikkies") on fence posts that somersault and can be juggled in the air', 'Gongs done (#66); Blikkies queued as v1.8'],
-  ['24 Oct, 18:55', 'Five more ideas to keep the African feel (meerkats, a soundscape, a rain storm, a braai, a farm dog, veld cameos) and Daily specials on local days (Heritage Day braai, Christmas in summer, Halloween, New Year)', 'All queued as v1.6–v1.13; a list of Daily specials sent for the product owner to choose from'],
+  ['24 Oct, 18:55', 'Five more ideas to keep the African feel (meerkats, a soundscape, a rain storm, a braai, a farm dog, veld cameos) and Daily specials on local days (Heritage Day braai, Christmas in summer, Halloween, New Year)', 'All queued as v1.6–v1.13; a list of Daily specials sent for the product owner to choose from (Halloween chosen on 26 Oct)'],
   ['24 Oct, 20:35', 'Distant animals (like the giraffe) look rough; consider a bow and arrow later', 'Done in v1.6 (#70); bow and arrow noted as an idea for later'],
   ['25 Oct, 06:50', 'The windmill: more detail, a wheel with missing blades, turning with the wind and spinning', 'Done in v1.6 (#70)'],
   ['25 Oct, 07:00', 'The dassie "needs to be increased a lot"', 'Done in v1.6 (#70)'],
@@ -723,28 +777,37 @@ const requests = [
   ['25 Oct, morning', 'The windmill redrawn from the reference photos: no outer ring, more missing blades in random order, old and rusted', 'Approved ("looks great, implement it") and done in v1.6 (#70)'],
   ['25 Oct', 'A button to force a fresh map load after a deploy', 'Done in v1.6 (#70): the Fresh load button in the Skietbaan (test builds)'],
   ['25 Oct, early morning', 'An automatic reload and a fast reload as power-ups', 'Done in v1.6b (#71): Blitslaai and Oupa Laai'],
-  ['25 Oct, 14:45', 'When shooting the fruit (sausage tree), make it swing or drop', 'Queued as v1.7c'],
+  ['25 Oct, 14:45', 'When shooting the fruit (sausage tree), make it swing or drop', 'Done in v1.7c (#79)'],
   ['25 Oct, 17:45', 'The meerkats "a little bit more hairy … a tick more furry, and a little bit nicer faces"', 'Done in v1.7 (#72), look round 3'],
   ['25 Oct, 17:48', 'Namibië: at least two ostriches with a nest, oryx far away in a mirage, hot-air balloons drifting by; the grass and landscape much more detailed', 'Queued as v1.7d (Namibië veld life)'],
   ['25 Oct, 17:51', 'A Project overview page in the admin: what is done and outstanding with dates and expected builds, open questions and decisions, what is built and what will be, suggestions, and the history with its pictures, kept up to date', 'Done (#76), live at 20:06'],
-  ['25 Oct, 18:03', 'A Gun Shed section that explains every power-up with pictures, and clearer power-ups in the hunt', 'Being built as v1.7b'],
-  ['25 Oct, 18:03', 'A Settings option to switch Oupa’s comments off', 'Being built in v1.7b: Oupa’s comments On / Text only / Off'],
+  ['25 Oct, 18:03', 'A Gun Shed section that explains every power-up with pictures, and clearer power-ups in the hunt', 'Done in v1.7b (#77)'],
+  ['25 Oct, 18:03', 'A Settings option to switch Oupa’s comments off', 'Done in v1.7b (#77): Oupa’s comments On / Text only / Off'],
   ['25 Oct, 18:03', 'The Bushveld rocks and middle distance look childish; replace the star glint on secrets with something else, such as a unique animal', 'Queued as v1.7e, with mock-ups first'],
   ['25 Oct, 18:03', 'Baboons on the maps that pop up and do something naughty', 'Queued as v1.8b; they are shot down like guineafowl (the product owner’s choice)'],
   ['25 Oct, 18:03', '"The Harvest": 30 seconds to shoot the animals raiding the crops while farm workers fix the fence', 'Queued as v1.8c, a new mode on the title screen (the product owner’s choice)'],
-  ['25 Oct, 20:58', 'Keep building overnight on the recommended options; retry Tank, and start a new session if it hangs again', 'Building overnight'],
+  ['25 Oct, 20:58', 'Keep building overnight on the recommended options; retry Tank, and start a new session if it hangs again', 'Built overnight: v1.7, v1.7b and the history chapters merged; v1.7c finished in the morning'],
+  ['26 Oct, 04:50', 'Halloween special yes, go ahead', 'Being built: the Spookjag Daily on 31 Oct (dusk, owls, bats, pumpkin lanterns, guineafowl in witch hats)'],
+  ['26 Oct, 05:05', 'Karoo: HD aloes; the potjie should steam and boil a little and its lid fall off when shot; guineafowl must get smaller the further away they are, on every map, but stay shootable', 'Planned as two jobs after Halloween: perspective, then Karoo polish'],
+  ['26 Oct, 05:15', 'Bushveld and Kalahari: the far zebras, giraffes, elephants and other animals look like stick figures; the baobab needs more detail and better fruit, with holes where small animals look out (research what lives in it); little birds around the weaver nest', 'Researched; planned as far animals in HD on every map, and tree life (baobab residents, weavers flying around their nest)'],
+  ['26 Oct, 05:24', 'Okavango: add makalani palms with their hard nuts, which fall or burst when hit; the tin cans and the meerkats were not seen yet; the Project overview looked stale; idea: offer Standard or HD graphics', 'Makalani palms planned (nuts crack off, juggle and pop); Blikkies moved up; meerkats were live on the desert maps; the overview was fixed (an invalid entry); HD advised as a Settings choice, Auto / Standard / HD'],
 ];
 
 const next = [
-  ['v1.7b: power-ups explained, and an Oupa switch', 'A Gun Shed section with a picture and a plain explanation of every power-up and crate gun; crates that show what is inside, a pickup card, countdown chips and small visible effects in the hunt; Oupa’s comments On / Text only / Off in Settings', 'Tank', 'building now'],
-  ['v1.7c: fruit that swings and drops', 'Shot fruit (such as the sausage tree\u2019s) swings or falls', 'Tank', 'about 3\u20134 h'],
-  ['v1.7d: Namibië veld life', 'Detailed grass and sand, ostriches at their nest, an oryx herd in the mirage, hot-air balloons', 'Tank', 'about 5 h'],
-  ['v1.7e: Bushveld rocks, middle distance and the secret cue', 'Realistic rocks and middle distance; a unique animal at each secret instead of the star glint (mock-ups first)', 'Tank, then the product owner', 'about 5 h'],
-  ['v1.8: blikkies', 'Tin cans on fence posts that somersault when hit and can be juggled in the air', 'Tank', 'about 5 h'],
+  ['Halloween Spookjag (Feesdae)', 'On 31 Oct the Daily Hunt becomes Spookjag: dusk, a big moon, pumpkin lanterns (shoot them all for +25), bats (+15), protected owls (\u221210), guineafowl in witch hats, Oupa\u2019s Halloween lines and a Halloween share card', 'Tank', 'building now; merged by 28 Oct'],
+  ['Perspective', 'Guineafowl smaller the further away they are, on every map, in proportion to the animals, and still shootable', 'Tank', 'about 5½ h'],
+  ['v1.8: Blikkies (moved up)', 'Tin cans on the old farm fence that somersault when hit and fly higher with every hit in the air, until they disappear', 'Tank', 'about 6 h'],
+  ['Karoo polish', 'HD aloes; the potjie steams, simmers and loses its lid when shot', 'Tank', 'about 5 h'],
+  ['Far animals in HD', 'Realistic far herds on every map instead of stick figures', 'Tank', 'about 6 h'],
+  ['Makalani palms', 'Okavango palms by the water with nuts that crack off, juggle and pop', 'Tank', 'about 5½ h'],
+  ['Tree life', 'A detailed baobab with residents in its hollows, a better sausage tree, weavers flying around their colony nest', 'Tank', 'about 6 h'],
+  ['HD graphics', 'An optional sharper art pack: Settings → Graphics Auto / Standard / HD', 'Tank', 'about 5 h'],
+  ['v1.7d: Namibië veld life', 'Detailed grass and sand, ostriches at their nest, an oryx herd in the mirage, hot-air balloons', 'Tank', 'about 6 h'],
+  ['v1.7e: Bushveld rocks, middle distance and the secret cue', 'Realistic rocks and middle distance; a unique animal at each secret instead of the star glint (mock-ups first)', 'Tank, then the product owner', 'about 6 h'],
   ['v1.8b: baboons', 'Baboons that pop up and get up to mischief, shot down like guineafowl', 'Tank', 'about 5 h'],
   ['v1.8c: The Harvest', 'A new mode on the title screen: 30 seconds to keep the animals off the crops while farm workers fix the fence', 'Tank', 'about 6 h'],
   ['v1.9\u2013v1.13', 'Soundscape, the rain storm (re\u00ebnbui), the braai, the farm dog (brakkie) and veld cameos', 'Tank', 'about 4\u20135 h each'],
-  ['Daily specials (Feesdae)', 'Holiday Dailies on local days; waiting for the product owner to choose which (Halloween is on 31 Oct)', 'Product owner, then Tank', 'after the choice'],
+  ['Other holiday specials (Feesdae)', 'Christmas, New Year, Heritage Day and others can be added on the Halloween system; waiting for the product owner to pick', 'Product owner, then Tank', 'after the choice'],
   ['Final voices', 'Replace the interim text-to-speech voices with real or premium voices per language', 'Product owner', 'when chosen'],
   ['Suggestion', 'Bring the scoped .22 back under the long-range cap on the Kalahari’s Nog Verder and Die Verste', 'Claude', 'not planned yet'],
   ['Idea for later', 'A bow and arrow', 'Product owner', 'not planned yet'],
@@ -781,6 +844,8 @@ const decisions = [
   ['D-043', 'v1.6b Reload power-ups: Blitslaai and Oupa Laai'],
   ['D-044', 'v1.7 Meerkat colonies: living colonies in the game rules, the Familiefoto secret, a shared desert download'],
   ['D-045', 'The Project overview page in the admin, fed from its own branch'],
+  ['D-046', 'v1.7b Power-ups explained: icons, the Gun Shed tab, crates that show their item, the pickup card, countdown chips, Oupa\u2019s comments On / Text only / Off'],
+  ['D-047', 'v1.7c Fruit reactions: fruit as separate sprites that swing and drop on shots, view only'],
 ];
 
 const glossary = [

@@ -1,10 +1,7 @@
-# Builds the build board's data files (milestones.json, v13.json, numbers.json) from the merge history
-# on origin/main plus state.json (steps done, running and next; the current job's checklist; figures).
-# Usage: python3 docs/history/board/gen.py   (REPO=<path> to point at another checkout)
+# Builds the Tarantal Build Board data files from git (merged PRs) + state.json (running / next / v1.3 checklist / numbers).
 import json, subprocess, re, sys, os
 from datetime import datetime, timezone, timedelta
-OUT=os.path.dirname(os.path.abspath(__file__))
-REPO=os.environ.get('REPO') or os.path.abspath(os.path.join(OUT,'..','..','..'))
+REPO='/home/user/Tarantal'; OUT=os.path.dirname(os.path.abspath(__file__))
 state=json.load(open(os.path.join(OUT,'state.json')))
 def git(*a): return subprocess.run(['git','-C',REPO,*a],capture_output=True,text=True,check=True).stdout
 def utc(s): return datetime.fromisoformat(s).astimezone(timezone.utc)
@@ -15,7 +12,8 @@ for line in git('log','--first-parent','--merges','origin/main','--format=%H|%cI
     n=int(m[-1]); first=git('log','--format=%aI','--reverse',f'{h}^1..{h}^2').splitlines()
     prs[n]={'first':utc(first[0]) if first else utc(t),'merged':utc(t)}
 init=utc(git('log','--reverse','--format=%aI','origin/main').splitlines()[0])
-fmt=lambda d: d.strftime('%-d %b %H:%M')
+NAM=timezone(timedelta(hours=2))  # the product owner is in Namibia (CAT, UTC+2): show their clock
+fmt=lambda d: d.astimezone(NAM).strftime('%-d %b %H:%M')
 rows=[]
 for i,st in enumerate(state['done']):
     ps=[p for p in st['prs'] if p in prs]

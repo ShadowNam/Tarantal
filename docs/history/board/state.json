@@ -1,5 +1,5 @@
 {
- "asOf": "2026-10-25T23:00:00Z",
+ "asOf": "2026-10-26T05:36:00Z",
  "done": [
   {
    "phase": "Foundations",
@@ -304,96 +304,177 @@
     72
    ],
    "prlabel": "#72"
+  },
+  {
+   "phase": "Version 1.x",
+   "step": "v1.7b Power-ups explained: a Power-ups tab in the Gun Shed, crates that show what they hold, a pickup card, countdown chips and a look for each power-up; Oupa's comments On / Text only / Off",
+   "prs": [
+    77
+   ],
+   "prlabel": "#77"
+  },
+  {
+   "phase": "Version 1.x",
+   "step": "v1.7c Fruit that swings or drops when shot: redrawn sausages, baobab pods and other fruit react to every hit (your request, 25 Oct)",
+   "prs": [
+    79
+   ],
+   "prlabel": "#79"
   }
  ],
  "open": [
   {
    "phase": "Version 1.x",
-   "step": "v1.7b: power-ups explained in the Gun Shed and in the hunt; an Oupa on/off switch in Settings (your request, 25 Oct)",
+   "step": "Halloween Spookjag (Feesdae): the 31 Oct Daily at dusk with owls, bats, pumpkin lanterns and witch-hat guineafowl (your pick, 26 Oct)",
    "status": "running",
-   "start": "2026-10-25T21:31:00Z",
-   "end": "2026-10-26T01:30:00Z",
-   "prlabel": "Tank task 0c58c8d7: every part pushed (icons, Gun Shed tab, crates, pickup card, chips, tally, Oupa switch, tests); Claude taking screenshots"
+   "start": "2026-10-26T04:50:00Z",
+   "end": "2026-10-26T12:00:00Z",
+   "prlabel": "Tank task 82404d28: building (merge by 28 Oct)"
   },
   {
    "phase": "Version 1.x",
-   "step": "v1.7c: fruit that swings or drops when shot (sausage tree and others) (your request, 25 Oct)",
+   "step": "Perspective: guineafowl get smaller the further away they are, on every map, in proportion to the ostriches and other animals, and still shootable (your request, 26 Oct)",
    "status": "next",
-   "start": "2026-10-26T01:30:00Z",
-   "end": "2026-10-26T05:00:00Z"
+   "start": "2026-10-26T12:00:00Z",
+   "end": "2026-10-26T17:30:00Z"
+  },
+  {
+   "phase": "Version 1.x",
+   "step": "v1.8: Blikkies — tin cans on the old farm fence to shoot off and juggle in the air until they fly out of sight (your request, 24 Oct; again 26 Oct)",
+   "status": "next",
+   "start": "2026-10-26T17:30:00Z",
+   "end": "2026-10-26T23:30:00Z"
+  },
+  {
+   "phase": "Version 1.x",
+   "step": "Karoo polish: HD aloes; the potjie steams and simmers, and its lid flies off when shot (your request, 26 Oct)",
+   "status": "next",
+   "start": "2026-10-26T23:30:00Z",
+   "end": "2026-10-27T04:30:00Z"
+  },
+  {
+   "phase": "Version 1.x",
+   "step": "Far animals in HD on every map: realistic zebras, giraffes, elephants, wildebeest, gemsbok, springbok, ostriches and lechwe instead of stick figures (your request, 26 Oct)",
+   "status": "next",
+   "start": "2026-10-27T04:30:00Z",
+   "end": "2026-10-27T10:30:00Z"
+  },
+  {
+   "phase": "Version 1.x",
+   "step": "Makalani palms in the Okavango: hanging nut clusters you can shoot down, juggle and pop; reflections in the water at dusk (your request, 26 Oct)",
+   "status": "next",
+   "start": "2026-10-27T10:30:00Z",
+   "end": "2026-10-27T16:00:00Z"
+  },
+  {
+   "phase": "Version 1.x",
+   "step": "Tree life: a detailed baobab with real hanging fruit and residents peeking from its hollows (bushbaby, squirrel, owl, hornbill); weavers flying around their colony nest with a pygmy falcon (your request, 26 Oct)",
+   "status": "next",
+   "start": "2026-10-27T16:00:00Z",
+   "end": "2026-10-27T22:00:00Z"
+  },
+  {
+   "phase": "Version 1.x",
+   "step": "HD graphics: Settings → Graphics Auto / Standard / HD, an optional sharper art pack that loads in the background (your idea, 26 Oct; recommended form)",
+   "status": "next",
+   "start": "2026-10-27T22:00:00Z",
+   "end": "2026-10-28T03:00:00Z"
   },
   {
    "phase": "Version 1.x",
    "step": "v1.7d: Namibië veld life: detailed grass and sand, ostriches and their nest, oryx in the mirage, hot-air balloons (your request, 25 Oct)",
    "status": "next",
-   "start": "2026-10-26T05:00:00Z",
-   "end": "2026-10-26T11:00:00Z"
+   "start": "2026-10-28T03:00:00Z",
+   "end": "2026-10-28T09:00:00Z"
   },
   {
    "phase": "Version 1.x",
    "step": "v1.7e: realistic Bushveld rocks and middle distance; a new secret cue instead of the star (mock-ups for you first) (your request, 25 Oct)",
    "status": "next",
-   "start": "2026-10-26T11:00:00Z",
-   "end": "2026-10-26T18:00:00Z"
-  },
-  {
-   "phase": "Version 1.x",
-   "step": "v1.8: Blikkies — tin cans on fence posts to shoot off and juggle in the air",
-   "status": "next",
-   "start": "2026-10-26T18:00:00Z",
-   "end": "2026-10-26T23:30:00Z"
+   "start": "2026-10-28T09:00:00Z",
+   "end": "2026-10-28T16:00:00Z"
   },
   {
    "phase": "Version 1.x",
    "step": "v1.8b: Bobbejane: baboon troops on the ridges; raiders come down to cause trouble (your request, 25 Oct)",
    "status": "next",
-   "start": "2026-10-26T23:30:00Z",
-   "end": "2026-10-27T05:30:00Z"
+   "start": "2026-10-28T16:00:00Z",
+   "end": "2026-10-28T22:00:00Z"
   },
   {
    "phase": "Version 1.x",
    "step": "v1.8c: Die Oes (The Harvest): a new 30-second mode; hold the animals off the crops while the fence is fixed (your idea, 25 Oct)",
    "status": "next",
-   "start": "2026-10-27T05:30:00Z",
-   "end": "2026-10-27T14:30:00Z"
+   "start": "2026-10-28T22:00:00Z",
+   "end": "2026-10-29T07:00:00Z"
   },
   {
    "phase": "Version 1.x",
    "step": "v1.9: the veld soundscape and local music (doves, hadedas, cicadas, fish eagle; marimba, mbira, drums)",
    "status": "next",
-   "start": "2026-10-27T14:30:00Z",
-   "end": "2026-10-27T19:30:00Z"
+   "start": "2026-10-29T07:00:00Z",
+   "end": "2026-10-29T12:00:00Z"
   },
   {
    "phase": "Version 1.x",
    "step": "v1.10: Reënbui — the first rain and the flying-ant feast",
    "status": "next",
-   "start": "2026-10-27T19:30:00Z",
-   "end": "2026-10-28T00:30:00Z"
+   "start": "2026-10-29T12:00:00Z",
+   "end": "2026-10-29T17:00:00Z"
   },
   {
    "phase": "Version 1.x",
    "step": "v1.11: Die Braai — the day ends at Oupa's fire under the Milky Way",
    "status": "next",
-   "start": "2026-10-28T00:30:00Z",
-   "end": "2026-10-28T05:30:00Z"
+   "start": "2026-10-29T17:00:00Z",
+   "end": "2026-10-29T22:00:00Z"
   },
   {
    "phase": "Version 1.x",
    "step": "v1.12: Brakkie, the farm dog",
    "status": "next",
-   "start": "2026-10-28T05:30:00Z",
-   "end": "2026-10-28T11:30:00Z"
+   "start": "2026-10-29T22:00:00Z",
+   "end": "2026-10-30T04:00:00Z"
   },
   {
    "phase": "Version 1.x",
    "step": "v1.13: veld cameos — warthogs, baboons, springbok, elephants, ostrich, dung beetle",
    "status": "next",
-   "start": "2026-10-28T11:30:00Z",
-   "end": "2026-10-28T17:30:00Z"
+   "start": "2026-10-30T04:00:00Z",
+   "end": "2026-10-30T10:00:00Z"
   }
  ],
  "checklist": [
+  {
+   "item": "Guineafowl smaller with distance on every map (still shootable)",
+   "status": "next",
+   "where": "after Halloween"
+  },
+  {
+   "item": "HD Karoo aloes; potjie steam, simmer and a lid that flies off",
+   "status": "next",
+   "where": "after the perspective job"
+  },
+  {
+   "item": "Far animals in HD on every map (no more stick figures)",
+   "status": "next",
+   "where": "after Karoo polish"
+  },
+  {
+   "item": "Baobab with detail, real fruit and residents in its hollows; weavers flying around their nest",
+   "status": "done",
+   "where": "merged 26 Oct 07:34"
+  },
+  {
+   "item": "Makalani palms with nuts to shoot down, juggle and pop (Okavango)",
+   "status": "next",
+   "where": "after the far animals"
+  },
+  {
+   "item": "Optional HD graphics (Settings: Auto / Standard / HD)",
+   "status": "next",
+   "where": "after tree life"
+  },
   {
    "item": "Measure the scope view's drawing cost against the open view, same map (issue #56)",
    "status": "done",
@@ -466,8 +547,8 @@
   },
   {
    "item": "Better trees, shrubs, grass and fruit on every map; better distant animals",
-   "status": "running",
-   "where": "PR #70: ready for review; screenshots, then merge"
+   "status": "done",
+   "where": "merged 26 Oct 07:34"
   },
   {
    "item": "Reload power-ups: Blitslaai (fast reload) and Oupa Laai (auto reload)",
@@ -513,13 +594,13 @@
  "numbers": [
   {
    "metric": "Unit tests",
-   "value": 1194,
-   "note": "on main, plus 52 browser test suites on 3 devices"
+   "value": 1250,
+   "note": "on main, plus the browser test suites on 3 devices"
   },
   {
    "metric": "First download (KB)",
-   "value": 3055.9,
-   "note": "on main (2.98 MB gzip); budget 3,072 KB (3 MB)"
+   "value": 3069.4,
+   "note": "on main (3.00 MB gzip); budget 3,072 KB (3 MB)"
   }
  ],
  "checklist_v13": [
