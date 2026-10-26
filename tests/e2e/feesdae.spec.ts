@@ -80,12 +80,22 @@ test.describe('Feesdae: the Halloween Spookjag (D-048)', () => {
     });
     let h = await hook(page);
     expect(h.feesdag).toEqual({ id: 'halloween', badge: 'Spookjag tonight!' });
-    // The badge covers neither the Daily's status line nor (gone on a special day) the map line.
+    // The badge is the pill behind the Daily's status line: it holds the line and covers neither
+    // the Daily button nor the hint line under the buttons (the map line is gone on a special day).
     const badge = h.rects['dailyBadge'];
     const status = h.rects['dailyStatus'];
+    const button = h.rects['daily'];
+    const hint = h.rects['titleHint'];
     expect(badge).toBeDefined();
     expect(status).toBeDefined();
-    if (badge !== undefined && status !== undefined) expect(overlaps(badge, status)).toBe(false);
+    if (badge !== undefined && status !== undefined) {
+      expect(status.x).toBeGreaterThanOrEqual(badge.x);
+      expect(status.x + status.w).toBeLessThanOrEqual(badge.x + badge.w);
+      expect(status.y).toBeGreaterThanOrEqual(badge.y);
+      expect(status.y + status.h).toBeLessThanOrEqual(badge.y + badge.h);
+    }
+    if (badge !== undefined && button !== undefined) expect(overlaps(badge, button)).toBe(false);
+    if (badge !== undefined && hint !== undefined) expect(overlaps(badge, hint)).toBe(false);
     await page.screenshot({ path: `${SCREENSHOTS}/feesdae-title-${info.project.name}.png` });
 
     await tapRect(page, touch, 'daily');

@@ -154,7 +154,9 @@ export class TallyScene extends Phaser.Scene {
       special == null
         ? null
         : drawSlateFrame(this, special.frame, { x: px, y: py, w: panelW, h: panelH });
-    if (moon !== null && this.ctx.hook) this.ctx.hook.rects['tallyMoon'] = moon;
+    // D-048: the frame's moon and the tag's rects ride along into the hook's final rects below.
+    const frameRects: Record<string, Rect> = {};
+    if (moon !== null) frameRects['tallyMoon'] = moon;
     const title = this.add
       .text(
         px + panelW / 2,
@@ -167,10 +169,8 @@ export class TallyScene extends Phaser.Scene {
     if (extras?.tag != null) {
       const tag = this.add.text(px + 30, py + 30, extras.tag, chalk(28, '#FFD25A'));
       fitText(tag, panelW / 2 - 240);
-      if (this.ctx.hook) {
-        const b = tag.getBounds();
-        this.ctx.hook.rects['tallyTag'] = { x: b.x, y: b.y, w: b.width, h: b.height };
-      }
+      const b = tag.getBounds();
+      frameRects['tallyTag'] = { x: b.x, y: b.y, w: b.width, h: b.height };
     }
 
     const score = this.add
@@ -401,6 +401,7 @@ export class TallyScene extends Phaser.Scene {
     if (this.ctx.hook) {
       this.ctx.hook.scene = 'tally';
       this.ctx.hook.rects = {
+        ...frameRects,
         again,
         ...(toAdmin === undefined ? { seasonRun: season } : { admin: season }),
         menu: menuR,

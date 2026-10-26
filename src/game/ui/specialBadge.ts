@@ -1,36 +1,37 @@
-// D-048: the small badge on the title's Daily button on a special day ("Spookjag tonight!"):
-// a tilted pumpkin-orange tag at the button's top-right corner. Drawn in code (no art in the
-// first download). The tally's special frame (drawSlateFrame) uses the special's own sheet.
+// D-048: the badge on the title's Daily on a special day ("Spookjag tonight!"): a pumpkin-
+// orange pill behind the Daily's status line. Drawn in code (no art in the first download). The tally's special frame (drawSlateFrame) uses the special's own sheet.
 import * as Phaser from 'phaser';
 import { HALLOWEEN_SHEET, SHEET_MASTER } from '../feesdae/feesdaeAssets';
 import type { Rect } from './hudLayout';
-import { fitText, textStyle } from './menu';
 
 const FILL = 0xf28c28;
 const EDGE = 0x3b1d4a;
 const TEXT = '#2A1033';
 
 /**
- * The badge hangs from the button's lower edge, under its label and clear of the status line
- * above the button; returns its rect (design px, before the small tilt).
+ * The badge is a pumpkin-orange pill behind the Daily's status line on a special day
+ * ("Spookjag tonight! · New hunt today"): it takes the status line's own reserved row above the
+ * button, so it can't cover the button, the hint line under the buttons or the lines above.
+ * Returns the pill's rect (design px). The caller draws the status text over it (depth 6).
  */
-export function drawSpecialBadge(scene: Phaser.Scene, button: Rect, label: string): Rect {
-  const w = Math.max(200, button.w * 0.74);
-  const h = 40;
-  const x = button.x + button.w / 2;
-  const y = button.y + button.h + h / 2 - 6;
+export function drawSpecialBadge(
+  scene: Phaser.Scene,
+  text: { x: number; y: number; width: number; height: number },
+): Rect {
+  const padX = 14;
+  const padY = 3;
+  const w = text.width + padX * 2;
+  const h = text.height + padY * 2;
+  const x = text.x - padX;
+  const y = text.y - padY;
   const g = scene.add.graphics().setDepth(5);
-  g.fillStyle(EDGE, 1).fillRoundedRect(-w / 2 - 4, -h / 2 - 4, w + 8, h + 8, 14);
-  g.fillStyle(FILL, 1).fillRoundedRect(-w / 2, -h / 2, w, h, 11);
-  g.setPosition(x, y).setAngle(-3);
-  const text = scene.add
-    .text(x, y, label, { ...textStyle(24, TEXT), stroke: '#FFD9A0', strokeThickness: 2 })
-    .setOrigin(0.5)
-    .setAngle(-3)
-    .setDepth(6);
-  fitText(text, w - 20);
-  return { x: x - w / 2 - 4, y: y - h / 2 - 4, w: w + 8, h: h + 8 };
+  g.fillStyle(EDGE, 1).fillRoundedRect(x - 3, y - 3, w + 6, h + 6, 12);
+  g.fillStyle(FILL, 1).fillRoundedRect(x, y, w, h, 10);
+  return { x: x - 3, y: y - 3, w: w + 6, h: h + 6 };
 }
+
+/** The status line's style on a special day: dark text on the orange badge. */
+export const SPECIAL_STATUS_STYLE = { color: TEXT, stroke: '#FFD9A0', strokeThickness: 2 } as const;
 
 /** The Halloween sheet's key: delivered, else the hunt's stand-in (both from FeesdagView). */
 function sheetKey(scene: Phaser.Scene): string | null {

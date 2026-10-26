@@ -20,7 +20,7 @@ import { findLayout } from '../../sim/maps';
 import type { Rect } from '../ui/hudLayout';
 import { drawButton, fitText, Menu, textStyle, type MenuItem } from '../ui/menu';
 import { cornerStampShown, stampFor, StampLabel } from '../ui/StampLabel';
-import { drawSpecialBadge } from '../ui/specialBadge';
+import { drawSpecialBadge, SPECIAL_STATUS_STYLE } from '../ui/specialBadge';
 
 export interface TitleData {
   /** Starts the hunt; pointerId is the pressing pointer (null from the keyboard). */
@@ -300,20 +300,28 @@ export class TitleScene extends Phaser.Scene {
           played ? 'secondary' : 'selected',
           44,
         );
-        if (special !== null) {
-          const badge = tOr(special.badgeKey, special.id);
-          const r = drawSpecialBadge(this, daily, badge);
-          if (this.ctx.hook) this.ctx.hook.rects['dailyBadge'] = r;
-          if (this.ctx.hook) this.ctx.hook.feesdag = { id: special.id, badge };
-        } else if (this.ctx.hook) this.ctx.hook.feesdag = null;
+        // D-048: on a special day the badge joins the status line ("Spookjag tonight! · New hunt
+        // today") on an orange pill in the status line's own row, clear of everything else.
+        const badge = special === null ? null : tOr(special.badgeKey, special.id);
+        if (this.ctx.hook) {
+          this.ctx.hook.feesdag = special === null ? null : { id: special.id, badge: badge ?? '' };
+        }
+        const statusLine =
+          badge === null ? this.dailyStatus(played) : `${badge} · ${this.dailyStatus(played)}`;
         const status = this.add
-          .text(daily.x + daily.w / 2, daily.y - 14, this.dailyStatus(played), {
+          .text(daily.x + daily.w / 2, daily.y - 14, statusLine, {
             ...textStyle(26),
             stroke: '#1B1410',
             strokeThickness: 5,
+            ...(badge === null ? {} : SPECIAL_STATUS_STYLE),
           })
-          .setOrigin(0.5, 1);
+          .setOrigin(0.5, 1)
+          .setDepth(badge === null ? 0 : 6);
         fitText(status, Math.max(bw * 1.6, 300));
+        if (badge !== null) {
+          const r = drawSpecialBadge(this, status.getBounds());
+          if (this.ctx.hook) this.ctx.hook.rects['dailyBadge'] = r;
+        }
         if (this.ctx.hook) {
           const b = status.getBounds();
           this.ctx.hook.rects['dailyStatus'] = { x: b.x, y: b.y, w: b.width, h: b.height };
@@ -391,6 +399,10 @@ export class TitleScene extends Phaser.Scene {
         )
         .setOrigin(0.5);
       fitText(hint, width - safe.left - safe.right - 120);
+      if (this.ctx.hook) {
+        const hb = hint.getBounds();
+        this.ctx.hook.rects['titleHint'] = { x: hb.x, y: hb.y, w: hb.width, h: hb.height };
+      }
     }
 
     this.menu = new Menu(this, items, { focus: 'start', hook: this.ctx.hook });
