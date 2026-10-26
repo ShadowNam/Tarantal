@@ -62,7 +62,10 @@ test.describe('Blikkies: tin cans on the fence posts (v1.8, D-050)', () => {
     expect(h.pops.created).toBeGreaterThan(pops0 + 2);
     // Dents stay on the cans that were hit.
     expect(h.cans?.spots.some((c) => c.marks > 0)).toBe(true);
-    expect(h.canMs).toBeGreaterThanOrEqual(0);
+    // Perf (Pixel 7 profile and the others): drawing the fence and the cans in the air stays
+    // well under a millisecond a frame on average.
+    expect(h.sceneryFrames).toBeGreaterThan(0);
+    expect(h.canMs / h.sceneryFrames, 'ms a frame drawing the cans').toBeLessThan(1);
     expect(errors).toEqual([]);
   });
 
