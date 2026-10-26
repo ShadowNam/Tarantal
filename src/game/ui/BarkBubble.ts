@@ -3,10 +3,11 @@
 // speaker's name, and the line in dark text, sized to the line and kept inside its layout slot.
 // Never interactive: taps on it reach the game (it holds no input and no hit area).
 import type * as Phaser from 'phaser';
-import { t, tOr } from '../../i18n/i18n';
+import { fill, t, tOr } from '../../i18n/i18n';
 import type { GameContext } from '../GameContext';
 import { textStyle } from './menu';
 import type { Rect } from './hudLayout';
+import { oupaShows, oupaSpeaks } from '../audio/oupaMode';
 
 const PAD = 14;
 const INK = 0x1b1410;
@@ -92,7 +93,7 @@ export class BarkBubble {
 const HOOK_BARKS_MAX = 50;
 
 /**
- * Oupa says `line`: the bubble shows its text in `slot`, the AudioDirector plays voice/<line> if
+ * Oupa says `line` (v1.7b: as Settings → Oupa's comments allows): the bubble shows its text in `slot`, the AudioDirector plays voice/<line> if
  * a recording was delivered (music ducks under it), and the e2e hook records it.
  */
 export function sayBark(
@@ -101,11 +102,16 @@ export function sayBark(
   line: string,
   slot: Rect,
   nowMs: number,
+  /** v1.7b: `{name}` values for the line (a first pickup's `{item}`, following the names toggle). */
+  vars: Readonly<Record<string, string>> = {},
 ): void {
-  const text = tOr(line, line);
+  // v1.7b (D-046): Settings → Oupa's comments "Off": no bubble, no voice, nothing recorded.
+  if (!oupaShows(ctx.prefs.oupa)) return;
+  const text = fill(tOr(line, line), vars);
   bubble.hide();
   bubble.show(text, slot, ctx.feel.barks, nowMs);
-  ctx.audio.bark(line);
+  // "Text only": the AudioDirector keeps quiet (setOupaVoice).
+  if (oupaSpeaks(ctx.prefs.oupa)) ctx.audio.bark(line);
   const hook = ctx.hook;
   if (hook) {
     const r = bubble.rect ?? slot;

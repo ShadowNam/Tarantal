@@ -13,14 +13,27 @@ import * as Phaser from 'phaser';
 import type { SimEvent } from '../../sim/events';
 import type { SimState } from '../../sim/types';
 import { TICKS_PER_SECOND } from '../../sim/clock';
-import { fill, t, tOr, type I18nKey } from '../../i18n/i18n';
+import { fill, getLanguage, isI18nKey, t, tOr, translator } from '../../i18n/i18n';
+import { msToTicks } from '../../sim/clock';
+import { markSeen } from '../../meta/powerupsSeen';
+import { isOupaLine, oupaShows } from '../audio/oupaMode';
+import { PickupCard } from '../ui/PickupCard';
+import { effectText, shortText } from '../ui/powerupGuide';
 import { TEX } from '../assets/AssetManifest';
+import { powerupIcon, powerupIconEpoch, upgradePowerupIcons } from '../ui/powerupIcons';
 import { ammoSlots, gunLookFor, reloadBoostsOf, roundsOf } from '../ui/gunLook';
 import type { GameContext } from '../GameContext';
 import { FONT } from '../view/Fx';
 import { formatAward, formatClock, formatMult, formatScore, popParts } from '../ui/format';
 import type { InputKind } from '../../sim/types';
-import { CHIP_GAP, hudLayout, MAX_CHIPS, rectContains, type HudLayout } from '../ui/hudLayout';
+import {
+  CHIP_GAP,
+  hudLayout,
+  MAX_CHIPS,
+  pickupAlpha,
+  rectContains,
+  type HudLayout,
+} from '../ui/hudLayout';
 import { SeasonHud } from '../ui/SeasonHud';
 import { drawButton, fitText, Menu, type MenuItem } from '../ui/menu';
 import { BakedDrawing, RoundRect } from '../ui/shapes';
@@ -37,7 +50,7 @@ import {
 } from '../ui/popFont';
 import { fontReadiness } from '../ui/fontReady';
 import { cornerStampShown, stampFor, StampLabel } from '../ui/StampLabel';
-import { updateCaptions, type CaptionLine } from '../audio/captions';
+import { captionItem, updateCaptions, type CaptionLine } from '../audio/captions';
 import { FAMILIEFOTO_SECRET } from '../../sim/meerkats/colony';
 
 export interface HudControls {
@@ -127,13 +140,26 @@ export class HudScene extends Phaser.Scene {
   /** v1.6b: Blitslaai's lightning glints hopping along the belt, and Oupa Laai's hand on it. */
   private bolts: Phaser.GameObjects.Image[] = [];
   private oupaHand: Phaser.GameObjects.Image | null = null;
+  /** v1.7b (D-046): the pickup card, each chip's countdown (seconds or shells), Boeretroos'
+   *  warm screen edges and Chilli Biltong's ∞ on the belt. */
+  private pickupCard: PickupCard | null = null;
+  /** v1.7b: where the crosshair is (design px), or null when none shows (HuntScene, each frame). */
+  private aim: { x: number; y: number } | null = null;
+  /** powerupIconEpoch() when the icons were last set (a change means they were swapped). */
+  private iconEpoch = 0;
+  private chipTimes: Phaser.GameObjects.Text[] = [];
+  private slowTint: Phaser.GameObjects.Graphics | null = null;
+  private slowTintFor = '';
+  private infinity: Phaser.GameObjects.Graphics | null = null;
+  /** The crate gun in hand (its end caption names it). */
+  private readonly captionCrate: { id: string | null } = { id: null };
   private sockPole!: Phaser.GameObjects.Rectangle;
   private sock!: Phaser.GameObjects.Image;
   private callout!: Phaser.GameObjects.Text;
   /** Don't-shoot creatures already called out (first sighting ever: Bird Book + this hunt). */
   private readonly sighted = new Set<string>();
   private captions: CaptionLine[] = [];
-  private readonly captionShown = new Map<I18nKey, number>();
+  private readonly captionShown = new Map<string, number>();
   private captionTexts: Phaser.GameObjects.Text[] = [];
   private controls: HudControls | null = null;
   private controlsMenu: Menu | null = null;
@@ -261,6 +287,22 @@ export class HudScene extends Phaser.Scene {
       this.add.image(0, 0, TEX.bolt).setDepth(2).setScale(0.5).setVisible(false),
     );
     this.oupaHand = this.add.image(0, 0, TEX.puOupaLaai).setDepth(2).setVisible(false);
+    // v1.7b (D-046): each chip's countdown at its right end; the pickup card; the looks.
+    this.chipTimes = [];
+    for (let i = 0; i < MAX_CHIPS; i++)
+      this.chipTimes.push(text(26, '#F3EAD3', false).setOrigin(1, 0.5).setVisible(false));
+    this.pickupCard = new PickupCard(this);
+    // v1.7b (D-046): the icons arrive with the late group; swap the placeholders when it lands
+    // (the texture manager is the game's: any manifest that delivered them can do it).
+    this.iconEpoch = powerupIconEpoch();
+    for (const m of new Set([this.ctx.manifest, this.ctx.manifestFor(this.ctx.huntBiome)]))
+      void m.lateLoaded.then(() => {
+        upgradePowerupIcons(m, this.textures);
+      });
+    this.slowTint = this.add.graphics().setDepth(-1).setVisible(false);
+    this.slowTintFor = '';
+    this.infinity = this.add.graphics().setDepth(3).setVisible(false);
+    this.captionCrate.id = null;
     this.sockPole = this.add.rectangle(0, 0, 8, 1, C.ink, 1).setOrigin(0, 0).setVisible(false);
     this.sock = this.add.image(0, 0, TEX.windsock).setVisible(false);
     const so = { x: 6 / 150, y: 0.5 };
@@ -288,9 +330,18 @@ export class HudScene extends Phaser.Scene {
       this.scale.off(Phaser.Scale.Events.RESIZE, this.relayout);
       this.controls = null;
       this.layoutNow = null;
+      // v1.7b: Boeretroos' slowed sound never outlives the hunt.
+      this.ctx.audio.setSlowMotion(1);
+      this.pickupCard = null;
     });
     this.relayout();
     this.wireControls();
+  }
+
+  /** v1.7b (D-046): the crosshair's design position this frame (null = not shown): the pickup
+   *  card fades while it is over the card. */
+  setAim(at: { x: number; y: number } | null): void {
+    this.aim = at;
   }
 
   get layoutRects(): HudLayout | null {
@@ -654,7 +705,10 @@ export class HudScene extends Phaser.Scene {
       this.ctx.barks.secret(now);
       this.bubble?.hide();
     }
-    this.updateBarks(s, events, now, l);
+    // v1.7b (D-046): the Skietbaan arms a chosen crate gun at tick 0: that's no pickup (no card,
+    // nothing marked found in the save).
+    const firstPickup = this.rangeOn ? null : this.pickups(s, events, l);
+    this.updateBarks(s, events, now, l, firstPickup);
     const banner: string[] = [];
     for (const e of events) {
       if (e.type === 'secretTriggered' && e.propId === FAMILIEFOTO_SECRET) {
@@ -676,23 +730,28 @@ export class HudScene extends Phaser.Scene {
       } else if (e.type === 'secretTriggered') {
         const reward = this.ctx.huntBiome.props.find((p) => p.id === e.propId)?.secret?.reward;
         const bark = reward?.barkKey;
-        banner.push(bark !== undefined ? tOr(bark, t('hud.secret')) : t('hud.secret'));
-        // M10: Oupa says it too, once his recording is delivered (the banner is the subtitle).
-        if (bark !== undefined) this.ctx.audio.bark(bark);
+        // v1.7b (D-046): with Oupa's comments off, the banner says only that a secret went off.
+        // (A line that isn't his, the frog's "Kwaak!", always shows.)
+        const said =
+          bark !== undefined && (oupaShows(this.ctx.prefs.oupa) || !isOupaLine(bark))
+            ? bark
+            : undefined;
+        banner.push(said !== undefined ? tOr(said, t('hud.secret')) : t('hud.secret'));
+        // M10: Oupa says it too, once his recording is delivered (the banner is the subtitle);
+        // v1.7b: never with his comments on "Text only" or "Off" (the AudioDirector checks).
+        if (said !== undefined) this.ctx.audio.bark(said);
       } else if (e.type === 'secretPenalty') {
         // A "don't shoot it" prop (the weaver nest): its scolding, and the points off.
         const bark = this.ctx.huntBiome.props.find((p) => p.id === e.propId)?.secret?.reward
           .barkKey;
-        if (bark !== undefined) {
+        // The weavers' own scold, not Oupa's: it shows whatever his setting.
+        if (bark !== undefined && (oupaShows(this.ctx.prefs.oupa) || !isOupaLine(bark))) {
           banner.push(tOr(bark, bark));
           this.ctx.audio.bark(bark);
         }
         this.pushPop(formatAward(e.points), '#FF6B5A');
       } else if (e.type === 'timeAdded') {
         banner.unshift(fill(t('hud.time_added'), { n: Math.round(e.ticks / TICKS_PER_SECOND) }));
-      } else if (e.type === 'crateOpened') {
-        banner.push(fill(t('hud.crate'), { item: tOr(`item.${e.item}`, e.item) }));
-        if (s.weapon.holdToFire) banner.push(t('item.hold_hint'));
       } else if (e.type === 'bonusAwarded' && e.bonus === 'secretChain') {
         banner.push(`${t('hud.secret_chain')} ${formatAward(e.award)}`);
       } else if (e.type === 'birdSpawned' && e.motion === 'boss') {
@@ -744,6 +803,14 @@ export class HudScene extends Phaser.Scene {
     this.drawGadget(s);
     this.drawZoom(s);
     this.drawChips(s);
+    this.drawPowerupLooks(s, l);
+    const shownCard = this.pickupCard?.shown ?? null;
+    this.pickupCard?.update(
+      s.tick,
+      Math.max(1, msToTicks(this.ctx.feel.hud.powerups.cardSlideMs)),
+      shownCard === null ? 1 : pickupAlpha(shownCard.rect, this.aim),
+    );
+    if (this.ctx.hook) this.ctx.hook.pickupCard = this.pickupCard?.shown ?? null;
     this.drawWindsock(s);
 
     this.timer.setText(formatClock(s.ticksLeft, TICKS_PER_SECOND));
@@ -818,6 +885,9 @@ export class HudScene extends Phaser.Scene {
   /** M9: captions for this frame's sound cues (only with Settings → captions). */
   private drawCaptions(events: readonly SimEvent[], now: number, l: HudLayout): void {
     if (!this.ctx.prefs.captions) {
+      // v1.7b: keep following the crate gun in hand, so turning captions on mid-hunt still names
+      // it when it runs out.
+      for (const e of events) captionItem(e, this.captionCrate);
       if (this.captions.length > 0) {
         this.captions = [];
         for (const tx of this.captionTexts) tx.setVisible(false);
@@ -830,6 +900,7 @@ export class HudScene extends Phaser.Scene {
       events,
       now,
       this.ctx.feel.accessibility,
+      this.captionCrate,
     );
     const x = l.safe.x + l.safe.w / 2;
     let y = l.safe.y + l.safe.h - 150;
@@ -837,7 +908,11 @@ export class HudScene extends Phaser.Scene {
       const line = this.captions[i];
       tx.setVisible(line !== undefined);
       if (line === undefined) return;
-      tx.setText(t(line.key)).setPosition(x, y);
+      const said =
+        line.item === undefined
+          ? t(line.key)
+          : fill(t(line.key), { item: tOr(`item.${line.item}`, line.item) });
+      tx.setText(said).setPosition(x, y);
       y -= tx.height + 8;
     });
     if (this.ctx.hook) this.ctx.hook.captions = this.captions.map((c) => c.key);
@@ -923,7 +998,7 @@ export class HudScene extends Phaser.Scene {
         const mirrored = this.ctx.prefs.leftHanded;
         // Just outside the belt's inner end, so it never covers a round.
         const x = mirrored ? l.belt.x + l.belt.w + 32 : l.belt.x - 32;
-        hand.setPosition(x, l.belt.y + l.belt.h / 2).setScale(mirrored ? -0.9 : 0.9, 0.9);
+        hand.setPosition(x, l.belt.y + l.belt.h / 2).setScale(mirrored ? -0.45 : 0.45, 0.45);
       }
     }
     if (this.ctx.hook) {
@@ -956,12 +1031,33 @@ export class HudScene extends Phaser.Scene {
     this.drawFill.place(bx, y - 12, Math.round(Math.max(24, bw * ready)), 24);
   }
 
-  /** Crate weapon first, then power-ups: name plus a bar of the time (or shells) left. */
+  /**
+   * Crate weapon first, then power-ups: icon, name, a bar of the time (or shells) left and, v1.7b
+   * (D-046), the seconds (or shells) left at the right end. Over its last seconds a chip blinks
+   * (feel.json hud.powerups; with "reduce flashes" its countdown turns red instead).
+   */
   private drawChips(s: SimState): void {
     const l = this.layoutNow;
     if (l === null) return;
     const { chipW, chipH } = this.ctx.feel.hud;
-    const chips: { label: string; frac: number; icon: string | null }[] = [];
+    const look = this.ctx.feel.hud.powerups;
+    const tps = TICKS_PER_SECOND;
+    const secs = (ticks: number): string =>
+      fill(t('hud.seconds_left'), { n: Math.ceil(ticks / tps) });
+    const chips: {
+      id: string;
+      label: string;
+      frac: number;
+      icon: string | null;
+      time: string;
+      ending: boolean;
+    }[] = [];
+    const ending = (ticksLeft: number | null): boolean =>
+      ticksLeft !== null && (ticksLeft * 1000) / tps <= look.blinkMs;
+    const iconOf = (id: string): string | null => {
+      const icon = powerupIcon(id);
+      return this.textures.exists(icon) ? icon : null;
+    };
     if (s.weapon.kind === 'crate') {
       const w = s.weapon;
       const frac =
@@ -970,29 +1066,68 @@ export class HudScene extends Phaser.Scene {
           : w.magazine > 0
             ? Math.max(0, w.shells) / w.magazine
             : 1;
-      chips.push({ label: tOr(`item.${w.id}`, w.id), frac, icon: null });
+      chips.push({
+        id: w.id,
+        label: tOr(`item.${w.id}`, w.id),
+        frac,
+        icon: iconOf(w.id),
+        time:
+          w.ticksLeft !== null
+            ? secs(w.ticksLeft)
+            : w.magazine > 0
+              ? `×${Math.max(0, w.shells)}`
+              : '',
+        ending: ending(w.ticksLeft),
+      });
     }
     for (const p of s.powerups) {
       const frac =
         p.ticksLeft !== null && p.totalTicks !== null
           ? p.ticksLeft / p.totalTicks
           : p.shellsLeft !== null
-            ? Math.min(1, p.shellsLeft / 6)
+            ? Math.min(1, p.shellsLeft / this.shellsOf(p.id))
             : 1;
-      const suffix = p.shellsLeft !== null ? ` ×${p.shellsLeft}` : '';
-      const icon = `ui/pu_${p.id}`;
       chips.push({
-        label: tOr(`item.${p.id}`, p.id) + suffix,
+        id: p.id,
+        label: tOr(`item.${p.id}`, p.id),
         frac,
-        icon: this.textures.exists(icon) ? icon : null,
+        icon: iconOf(p.id),
+        time:
+          p.ticksLeft !== null
+            ? secs(p.ticksLeft)
+            : p.shellsLeft !== null
+              ? `×${p.shellsLeft}`
+              : '',
+        ending: ending(p.ticksLeft) || p.shellsLeft === 1,
       });
     }
-    if (this.ctx.hook) this.ctx.hook.reloadFx.chipIcons = chips.map((c) => c.icon);
+    // Blink on sim time (a held frame holds it); steady red with "reduce flashes".
+    const steady = this.ctx.prefs.reduceFlashes;
+    const blinkOff = !steady && Math.floor((s.tick * 1000) / tps / look.blinkPeriodMs) % 2 === 1;
+    // v1.7b: the delivered icons replaced the placeholders since the last frame: re-set them.
+    const fresh = this.iconEpoch !== powerupIconEpoch();
+    if (fresh) {
+      this.iconEpoch = powerupIconEpoch();
+      this.oupaHand?.setTexture(TEX.puOupaLaai);
+      this.pickupCard?.refreshIcon();
+    }
+    if (this.ctx.hook) {
+      this.ctx.hook.reloadFx.chipIcons = chips.map((c) => c.icon);
+      this.ctx.hook.chips = chips.map((c) => ({
+        id: c.id,
+        label: c.label,
+        time: c.time,
+        ending: c.ending,
+        icon: c.icon,
+      }));
+    }
     this.chipTexts.forEach((txt, i) => {
       const chip = chips[i];
       const iconImg = this.chipIcons[i];
+      const timeTxt = this.chipTimes[i];
       txt.setVisible(chip !== undefined);
       iconImg?.setVisible(chip?.icon != null);
+      timeTxt?.setVisible(chip !== undefined && chip.time !== '');
       if (chip === undefined) {
         this.chipBacks[i]?.hide();
         this.chipBars[i]?.hide();
@@ -1010,16 +1145,165 @@ export class HudScene extends Phaser.Scene {
       // v1.6b: an icon sits at the chip's left; a long name shrinks to fit beside it.
       const iconW = chip.icon === null ? 0 : chipH - 6;
       if (iconImg !== undefined && chip.icon !== null) {
-        if (iconImg.texture.key !== chip.icon) iconImg.setTexture(chip.icon);
+        if (iconImg.texture.key !== chip.icon || fresh) iconImg.setTexture(chip.icon);
         iconImg
           .setDisplaySize(iconW, iconW)
           .setPosition(l.chips.x + 6 + iconW / 2, y + chipH / 2 - 3);
       }
+      let timeW = 0;
+      if (timeTxt !== undefined && chip.time !== '') {
+        if (timeTxt.text !== chip.time) timeTxt.setText(chip.time);
+        const color = chip.ending && steady ? '#FF6B5A' : '#FFD25A';
+        if (timeTxt.style.color !== color) timeTxt.setColor(color);
+        timeTxt.setPosition(l.chips.x + chipW - 10, y + chipH / 2 - 3);
+        timeW = timeTxt.displayWidth + 10;
+      }
       const textX = l.chips.x + 14 + iconW;
-      const room = chipW - (textX - l.chips.x) - 10;
+      const room = chipW - (textX - l.chips.x) - 10 - timeW;
       txt.setScale(txt.width > room ? room / txt.width : 1, 1);
       txt.setPosition(textX, y + chipH / 2 - 3);
+      // The last seconds: the whole chip's content blinks.
+      const a = chip.ending && blinkOff ? 0.25 : 1;
+      txt.setAlpha(a);
+      iconImg?.setAlpha(a);
+      timeTxt?.setAlpha(a);
     });
+  }
+
+  /**
+   * v1.7b (D-046): power-ups the player can see, small and local, never a full-screen flash:
+   * Boeretroos warms the screen's edges (fading in and out, the middle stays clear) and slows the
+   * effects' sound; Chilli Biltong draws ∞ over the belt. Bush Buckshot's ring is the crosshair's
+   * (CrosshairView); Meerkat Spotter's helper and rings are the world's; Blitslaai's glints and
+   * Oupa's hand are drawn with the belt.
+   */
+  private drawPowerupLooks(s: SimState, l: HudLayout): void {
+    const defs = this.ctx.content.powerups.powerups;
+    const look = this.ctx.feel.hud.powerups;
+    let slow: (typeof s.powerups)[number] | null = null;
+    let rate = 1;
+    let endless = false;
+    for (const p of s.powerups) {
+      const e = defs.find((d) => d.id === p.id)?.effect;
+      if (e?.creatureTimeScale !== undefined && e.creatureTimeScale < 1) {
+        slow = p;
+        rate = look.slowSoundRate;
+      }
+      if (e?.infiniteAmmo === true) endless = true;
+    }
+    this.ctx.audio.setSlowMotion(rate);
+    const tint = this.slowTint;
+    if (tint !== null) {
+      tint.setVisible(slow !== null);
+      if (slow !== null) {
+        const { width, height } = designSize();
+        const sig = `${width}x${height}`;
+        if (sig !== this.slowTintFor) {
+          this.slowTintFor = sig;
+          tint.clear();
+          const a = look.slowTintAlpha;
+          const c = 0xe89a3c;
+          const bw = Math.round(width * 0.16);
+          const bh = Math.round(height * 0.16);
+          tint.fillGradientStyle(c, c, c, c, a, 0, a, 0).fillRect(0, 0, bw, height);
+          tint.fillGradientStyle(c, c, c, c, 0, a, 0, a).fillRect(width - bw, 0, bw, height);
+          tint.fillGradientStyle(c, c, c, c, a, a, 0, 0).fillRect(0, 0, width, bh);
+          tint.fillGradientStyle(c, c, c, c, 0, 0, a, a).fillRect(0, height - bh, width, bh);
+        }
+        // Fades in over its first half second and out over its last (sim time).
+        const half = TICKS_PER_SECOND / 2;
+        const left = slow.ticksLeft ?? half;
+        const done = (slow.totalTicks ?? half) - left;
+        tint.setAlpha(Math.max(0, Math.min(1, left / half, done / half)));
+      }
+    }
+    const inf = this.infinity;
+    const onBelt = endless && s.weapon.kind === 'primary';
+    if (inf !== null) {
+      inf.setVisible(onBelt);
+      if (onBelt) this.drawInfinity(inf, l);
+    }
+    if (this.ctx.hook)
+      this.ctx.hook.powerupLooks = {
+        slowTint: slow !== null,
+        soundRate: rate,
+        infinity: onBelt,
+      };
+  }
+
+  /** A ∞ (a figure-eight lemniscate) in chilli orange over the belt's middle. */
+  private drawInfinity(g: Phaser.GameObjects.Graphics, l: HudLayout): void {
+    const cx = l.belt.x + l.belt.w / 2;
+    const cy = l.belt.y + l.belt.h / 2;
+    const r = Math.min(46, l.belt.h * 0.42) * 1.6;
+    const pts: Phaser.Math.Vector2[] = [];
+    for (let k = 0; k <= 48; k++) {
+      const t = (k / 48) * Math.PI * 2;
+      const d = 1 + Math.sin(t) ** 2;
+      pts.push(
+        new Phaser.Math.Vector2(
+          cx + (r * Math.cos(t)) / d,
+          cy + (r * Math.sin(t) * Math.cos(t)) / d,
+        ),
+      );
+    }
+    g.clear();
+    g.lineStyle(16, 0x1b1410, 1).strokePoints(pts, true);
+    g.lineStyle(9, 0xff6b3a, 1).strokePoints(pts, true);
+  }
+
+  /**
+   * v1.7b (D-046): a power-up or crate gun picked up this frame shows its card; the first pickup
+   * on this save shows the full sentence for longer and is remembered. Returns the id of a first
+   * pickup (Oupa may say a word on it), or null.
+   */
+  private pickups(s: SimState, events: readonly SimEvent[], l: HudLayout): string | null {
+    let first: string | null = null;
+    for (const e of events) {
+      const id =
+        e.type === 'powerupStarted'
+          ? e.powerup
+          : e.type === 'weaponChanged' && e.kind === 'crate'
+            ? e.weapon
+            : null;
+      if (id === null) continue;
+      const fresh = markSeen(this.ctx.save.data.powerups.seen, id).first;
+      if (fresh) {
+        first = id;
+        this.ctx.save.update((d) => ({
+          ...d,
+          powerups: { seen: [...markSeen(d.powerups.seen, id).seen] },
+        }));
+      }
+      const card = this.pickupCard;
+      if (card === null) continue;
+      const lang = getLanguage();
+      const tr = translator(lang);
+      const icon = powerupIcon(id);
+      const look = this.ctx.feel.hud.powerups;
+      card.show(
+        {
+          id,
+          icon: this.textures.exists(icon) ? icon : null,
+          name: tOr(`item.${id}`, id),
+          line: fresh
+            ? effectText(this.ctx.content, id, tr, lang)
+            : shortText(this.ctx.content, id, tr, lang),
+          first: fresh,
+          newTag: t('pickup.new'),
+        },
+        l.pickup,
+        s.tick,
+        msToTicks(fresh ? look.cardFirstMs : look.cardMs),
+      );
+    }
+    return first;
+  }
+
+  /** A shell-counted power-up's full count (powerups.json durationShells; 1 if none). */
+  private shellsOf(id: string): number {
+    const def = this.ctx.content.powerups.powerups.find((x) => x.id === id);
+    return Math.max(1, def?.durationShells ?? 1);
   }
 
   /** Omen hunts: the sock points downwind and stands out straighter in a strong wind. */
@@ -1091,17 +1375,31 @@ export class HudScene extends Phaser.Scene {
   }
 
   /** v1.0.1 (D-028 §3): this frame's events → maybe one bark, shown in the bubble slot. */
-  private updateBarks(s: SimState, events: readonly SimEvent[], now: number, l: HudLayout): void {
+  private updateBarks(
+    s: SimState,
+    events: readonly SimEvent[],
+    now: number,
+    l: HudLayout,
+    firstPickup: string | null,
+  ): void {
     if (!this.barksOn || this.bubble === null) return;
+    // v1.7b (D-046): Oupa's comments switched off (the pause menu's Settings): his bubble goes.
+    if (!oupaShows(this.ctx.prefs.oupa)) this.bubble.hide();
     const quota = this.seasonInfo?.quota;
     const quotaReached = quota !== undefined && this.lastScore < quota && s.score >= quota;
     this.lastScore = s.score;
     let bark: Bark | null = null;
-    if (this.firstTodayPending) {
+    // v1.7b (D-046): a power-up's first pickup on this save gets Oupa's word on it. It claims the
+    // gap before the frame's pick, so a held line (boss, Stampede, quota, Oupa Laai) stays held
+    // for later instead of being picked now and lost.
+    const pickupLine = firstPickup === null ? null : `bark.pu.${firstPickup}`;
+    if (pickupLine !== null && isI18nKey(pickupLine)) bark = this.ctx.barks.claim(pickupLine, now);
+    if (bark === null && this.firstTodayPending) {
       this.firstTodayPending = false;
       bark = this.ctx.barks.say('firstToday', now);
     }
-    bark ??= this.ctx.barks.hunt(events, {
+    // Always read the frame's events (streaks, held triggers); within the gap it picks nothing.
+    const picked = this.ctx.barks.hunt(events, {
       nowMs: now,
       tick: s.tick,
       ticksLeft: s.ticksLeft,
@@ -1109,7 +1407,16 @@ export class HudScene extends Phaser.Scene {
       frenzyTopMul: Math.max(...this.ctx.content.scoring.frenzyTiers.map((f) => f.mul)),
       quotaReached,
     });
-    if (bark !== null) sayBark(this.ctx, this.bubble, bark.line, l.bark, now);
+    bark ??= picked;
+    if (bark !== null)
+      sayBark(
+        this.ctx,
+        this.bubble,
+        bark.line,
+        l.bark,
+        now,
+        firstPickup === null ? {} : { item: tOr(`item.${firstPickup}`, firstPickup) },
+      );
   }
 
   /** Pooled HUD pops: shown and made (test hook, D-028 §4). */
@@ -1128,6 +1435,15 @@ export class HudScene extends Phaser.Scene {
     const ms = this.ctx.feel.juice.bannerMs;
     this.tweens.killTweensOf(this.banner);
     this.banner.setText(text).setVisible(true).setScale(1).setAlpha(1);
+    // v1.7b (D-046): under the pickup card while it is up.
+    const card = this.pickupCard?.shown ?? null;
+    const lay = this.layoutNow;
+    if (lay !== null)
+      this.banner.setY(
+        card === null
+          ? lay.safe.y + 180
+          : Math.max(lay.safe.y + 180, card.rect.y + card.rect.h + 56),
+      );
     // Long banners (crate + hint, bonus time + bark) shrink to fit between the HUD corners.
     const l = this.layoutNow;
     const room =

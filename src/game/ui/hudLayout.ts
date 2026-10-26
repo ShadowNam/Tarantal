@@ -47,6 +47,10 @@ export interface HudLayout {
   readonly zoomOut: Rect;
   readonly zoomLabel: Rect;
   readonly zoomIn: Rect;
+  /** v1.7b (D-046): the pickup card, top centre under the pause button (over the Season Run's
+   *  charm row for its 2 s), between the left and right HUD columns: never over the crosshair or the flock
+   *  in the middle. `h` is the most it may use. */
+  readonly pickup: Rect;
 }
 
 /** Consumable slots + the rental slot (run.json consumableSlots 2, + 1). */
@@ -173,7 +177,17 @@ export function hudLayout(
     zoomOut,
     zoomLabel,
     zoomIn,
+    pickup: pickupRect(mid, score.x, frenzy.x + frenzy.w, top + PAUSE_PX + 14),
   };
+}
+
+/** v1.7b (D-046): the pickup card's slot (see HudLayout.pickup). */
+function pickupRect(mid: number, scoreX: number, leftColumn: number, top: number): Rect {
+  // Clear of the left column (timer, Frenzy, chips) and centred; it may pass under the score
+  // plate's column only below the plate (it starts under the pause button).
+  const room = Math.min(2 * (mid - leftColumn - 24), Math.max(2 * (scoreX - 24 - mid), 0) + 160);
+  const w = Math.max(440, Math.min(820, room));
+  return { x: mid - w / 2, y: top, w, h: 260 };
 }
 
 /** A bubble needs this much width (design px) to sit beside a tally panel. */
@@ -195,4 +209,27 @@ export function tallyBarkSlot(safe: Rect, panel: Rect, gap = 20): Rect {
 
 export function rectContains(r: Rect, x: number, y: number): boolean {
   return x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
+}
+
+/** v1.7b (D-046): the pickup card's alpha while the crosshair is over it (or within the margin). */
+export const PICKUP_UNDER_AIM_ALPHA = 0.3;
+const PICKUP_AIM_MARGIN = 80;
+
+/**
+ * v1.7b (D-046): the pickup card sits high in the mid plane's sky, where crates fall and flushed
+ * flocks fly: when the crosshair (design px, or null when none shows) is over the card or within
+ * a margin of it, the card fades so the player always sees what they aim at. Pure.
+ */
+export function pickupAlpha(
+  card: Rect,
+  aim: { readonly x: number; readonly y: number } | null,
+): number {
+  if (aim === null) return 1;
+  const m = PICKUP_AIM_MARGIN;
+  const near =
+    aim.x >= card.x - m &&
+    aim.x <= card.x + card.w + m &&
+    aim.y >= card.y - m &&
+    aim.y <= card.y + card.h + m;
+  return near ? PICKUP_UNDER_AIM_ALPHA : 1;
 }

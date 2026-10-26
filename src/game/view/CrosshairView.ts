@@ -18,6 +18,8 @@ export class CrosshairView {
   prims: readonly CrosshairPrim[] = [];
   /** The gun the built crosshair belongs to. */
   weaponId = '';
+  /** v1.7b: the Bush Buckshot ring is drawn (spread multiplier above 1). */
+  boosted = false;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -70,6 +72,23 @@ export class CrosshairView {
         poly.setStrokeStyle(style.lineWidth * p.w + extra, color, 1);
         objs.push(poly);
       }
+    }
+    // v1.7b (D-046): Bush Buckshot — a warm ring round the widened spread, so the wider shot
+    // is plain to see (local, steady: no flash).
+    this.boosted = spreadMul > 1;
+    if (this.boosted) {
+      let r = 0;
+      for (const p of this.prims) {
+        if (p.kind === 'dot') r = Math.max(r, p.r);
+        else for (const [x, y] of p.pts) r = Math.max(r, Math.hypot(x, y));
+      }
+      const ring = this.scene.add.circle(0, 0, r + 10);
+      ring.setFillStyle();
+      ring.setStrokeStyle(5, hex('#FF8A3A'), 0.9);
+      const key = this.scene.add.circle(0, 0, r + 10);
+      key.setFillStyle();
+      key.setStrokeStyle(9, hex(style.keyline), 0.7);
+      objs.unshift(key, ring);
     }
     this.root.add(objs);
     this.alpha = style.alpha;

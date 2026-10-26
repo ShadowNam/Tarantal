@@ -252,8 +252,9 @@ music sting), `vuvuzela`, `stamp` (whole-flock stamp), `scratch` (penalty record
 gun's own sounds: `shotPomp`, `shotWindbuks` (air rifle), `shotKettie` (slingshot band),
 `shotVoorlaaier` (black powder), `shotMielie` (air "pok"), `rackPomp` (pump action),
 `cockWindbuks` (break-barrel cock and pellet) and `ramrod` (`shot` is the Dubbelloop's), and
-(v1.6b, D-043) `zip` (Blitslaai: a quick metallic zip as the belt refills fast). Which gun
-plays which is in `content/client/feel.json → guns.weapons.<id>.sfx`. All 30 are required
+(v1.6b, D-043) `zip` (Blitslaai: a quick metallic zip as the belt refills fast), and (v1.7b,
+D-046) `powerEnd` (a power-up or crate gun runs out: the pickup chime turned around, softer). Which gun
+plays which is in `content/client/feel.json → guns.weapons.<id>.sfx`. All 31 are required
 for `npm run assets:audit -- --strict` to pass. More of the bible's SFX list (variants ×3,
 hadeda call, UI clicks) needs a key in the game first: ask the developer for it.
 
@@ -417,8 +418,14 @@ px = 1 design px), and the pack tool warns if it differs. Its origin defaults to
 | `ui/ammo/shell12` | 30 × 84 | common |
 | `ui/ammo/shell12_spent` | 30 × 84 | common |
 | `ui/ammo/stone` | 38 × 30 | common |
-| `ui/pu_blitslaai` | 64 × 64 | common |
-| `ui/pu_oupa_laai` | 64 × 64 | common |
+| `ui/pu_blitslaai` | 128 × 128 | common |
+| `ui/pu_boeretroos` | 128 × 128 | common |
+| `ui/pu_bush_buckshot` | 128 × 128 | common |
+| `ui/pu_chilli_biltong` | 128 × 128 | common |
+| `ui/pu_meerkat_spotter` | 128 × 128 | common |
+| `ui/pu_mielie_masjien` | 128 × 128 | common |
+| `ui/pu_oupa_laai` | 128 × 128 | common |
+| `ui/pu_voorlaaier` | 128 × 128 | common |
 | `ui/windsock` | 150 × 60 | common |
 | `bushveld/aloe_a` | 360 × 400 | bushveld-winter |
 | `bushveld/aloe_b` | 380 × 400 | bushveld-winter |

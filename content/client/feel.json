@@ -125,7 +125,18 @@
     "gadgetPx": 120,
     "chipW": 260,
     "chipH": 48,
-    "zoomButtonPx": 88
+    "zoomButtonPx": 88,
+    "powerups": {
+      "$comment": "v1.7b (D-046): the pickup card (about 2 s; 3.5 s the first time), the chip blink over its last 2 s, Boeretroos edge tint and slowed sound, Chilli Biltong muzzle sparks.",
+      "cardMs": 2000,
+      "cardFirstMs": 3500,
+      "cardSlideMs": 220,
+      "blinkMs": 2000,
+      "blinkPeriodMs": 250,
+      "slowTintAlpha": 0.32,
+      "slowSoundRate": 0.72,
+      "chilliSparks": 4
+    }
   },
   "guns": {
     "$comment": "v1.1 (D-032, GDD §17.1): what each gun shows — its ammo on the HUD (realistic interim art ui/ammo/<type> and ui/ammo/<type>_spent, 1 texture px per design px) and its crosshair, built from shape parts. A ring with r \"spread\" is the weapon's spreadPx: where its pellets land, the same on every plane. The crosshair style (Skiet-Skuur cosmetic, later) only recolours. Adding a gun's look is data here plus one drawing in tools/art.",

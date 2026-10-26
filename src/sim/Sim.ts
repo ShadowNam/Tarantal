@@ -62,14 +62,7 @@ import {
   tickPowerups,
   type ActivePowerup,
 } from './powerups';
-import {
-  crateView,
-  rollCrate,
-  scheduleCrates,
-  spawnCrate,
-  tickCrate,
-  type Crate,
-} from './props/crates';
+import { crateView, scheduleCrates, spawnCrate, tickCrate, type Crate } from './props/crates';
 import {
   activeParts,
   buildSecrets,
@@ -1881,14 +1874,22 @@ export function createSim(config: SimConfig): Sim {
     if (c === null) return;
     nextCrateId++;
     crates.push(c);
-    emit({ type: 'crateSpawned', tick, crateId: c.id, plane: c.plane, x: c.x });
+    emit({
+      type: 'crateSpawned',
+      tick,
+      crateId: c.id,
+      plane: c.plane,
+      x: c.x,
+      item: c.item?.id ?? null,
+    });
   }
 
   function openCrate(id: number): void {
     const c = crates.find((x) => x.id === id);
     if (c === undefined) return;
     crates = crates.filter((x) => x.id !== id);
-    const item = rollCrate(crateCfg, rng.stream('crates'));
+    // v1.7b (D-046): rolled when it dropped (props/crates.ts).
+    const item = c.item;
     if (item === null) return;
     stats.crates++;
     emit({

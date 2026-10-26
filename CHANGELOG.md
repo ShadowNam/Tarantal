@@ -3,10 +3,10 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
-## [Unreleased] — fruit swing and drop when shot (26 Oct 2026)
+## [1.7.2] — fruit swing and drop when shot (26 Oct 2026)
 
 Decision record D-047. Rendering only: the sim, the content it reads and the golden replays are
-unchanged, so replays from 1.7.x stay valid.
+unchanged, so replays from 1.7.1 stay valid.
 
 ### Added
 - **Fruit react to shots.** Hit a hanging fruit and it swings on its stalk; a near miss swings it
@@ -21,6 +21,31 @@ unchanged, so replays from 1.7.x stay valid.
 ### Changed
 - The interim tree and prop art no longer has those fruit drawn in; they are sprites in a small
   sheet per biome (in the biome's download, or the late group for the Karoo and Kalahari).
+
+## [1.7.1] — power-ups explained, and an Oupa switch (25 Oct 2026)
+
+Decision record D-046. What the power-ups do and their numbers are unchanged. A crate's contents
+are now rolled when it drops (so it can show them). The content hash is unchanged, so 1.7.0
+replays, challenge links and the Daily's seeds still load; but a 1.7.0 hunt that left a crate
+unshot gives its later crates different items when replayed now, so its events (and possibly its
+score) differ. The golden replays were re-recorded: 36 of 37 keep their score.
+
+### Added
+- **Icons** for every power-up and crate gun: Chilli Biltong, Boeretroos, Bush Buckshot, Meerkat
+  Spotter, Blitslaai, Oupa Laai, the Voorlaaier and the Mielie-Masjien.
+- **Gun Shed → Power-ups**: a card for each one with its icon, what it does (numbers from the
+  game's content), how to get it and a tip; ones not found yet are darker but still explained.
+- **In the hunt:** a falling crate shows what it holds; picking something up shows a short card
+  (the full explanation and a word from Oupa the first time); chips count down the seconds or
+  shells left, blink at the end and chime when they run out; Boeretroos warms the screen's edges
+  and slows the sound, Chilli Biltong shows ∞ on the belt and sparks at the muzzle, Bush Buckshot
+  rings the crosshair; captions name the item; the tally lists the power-ups used.
+- **Settings → Oupa's comments: On / Text only / Off.** Off silences his bubbles and voice
+  everywhere; instructions still show. Also in the pause menu's Settings.
+
+### Changed
+- The Padstal shows what every item does, with its numbers.
+- The "CRATE: …" banner gave way to the pickup card.
 
 ## [1.7.0] — meerkat colonies on the desert maps (25 Oct 2026)
 

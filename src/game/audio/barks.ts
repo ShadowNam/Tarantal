@@ -177,6 +177,17 @@ export class BarkDirector {
     return this.pick([trigger], nowMs);
   }
 
+  /**
+   * v1.7b (D-046): Oupa's word on a power-up picked up for the first time on this save (a line
+   * of its own, `bark.pu.<id>`). It speaks now whatever the gap and claims the gap, like a
+   * secret's bark: the pickup card is up for only a few seconds.
+   */
+  claim(line: string, nowMs: number): Bark {
+    this.lastAt = nowMs;
+    this.lastByTrigger.set('crate', nowMs);
+    return { trigger: 'crate', line };
+  }
+
   /** Ms until the gap lets Oupa speak again (0 = now): a tally line can retry then. */
   waitMs(nowMs: number): number {
     return Math.max(0, this.gapMs - (nowMs - this.lastAt));

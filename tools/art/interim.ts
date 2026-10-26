@@ -375,7 +375,11 @@ if (wants('sprites')) {
           ? { origin: 'interim', group: VER_GROUP }
           : ammo
             ? { origin: 'interim' }
-            : { origin: 'interim', encode: 'png8' },
+            : spec.key.startsWith('ui/pu_')
+              ? // v1.7b (D-046): power-up icons load with the late group (the first crate drops at
+                // 22 % of a hunt at the earliest; placeholders stand in until then).
+                { origin: 'interim', encode: 'png8', group: LATE_GROUP }
+              : { origin: 'interim', encode: 'png8' },
       ),
     );
     console.log(`sprites/${spec.key}`);

@@ -46,6 +46,11 @@ export class WeaponView {
   private touchMode = false;
   private reticleHideAt = 0;
   private gunHidden = false;
+  /** v1.7b (D-046): Chilli Biltong runs (HuntScene, each frame): small chilli sparks at the
+   *  muzzle on every shot (local sprites, dimmed by "reduce flashes"). */
+  chilli = false;
+  /** Sparks made this page (e2e hook). */
+  chilliSparks = 0;
 
   constructor(
     scene: Phaser.Scene,
@@ -286,6 +291,36 @@ export class WeaponView {
         .setRotation(Math.random() * Math.PI);
     }
     this.scene.time.delayedCall(this.feel.juice.muzzleFlashMs, () => this.flash.setVisible(false));
+    if (this.chilli) this.sparks(x, y);
+  }
+
+  /** v1.7b (D-046): a few red and orange sparks fly off the muzzle and fade (Chilli Biltong). */
+  private sparks(x: number, y: number): void {
+    const n = Math.max(
+      1,
+      Math.round(this.feel.hud.powerups.chilliSparks * this.prefs.particleScale),
+    );
+    for (let k = 0; k < n; k++) {
+      const a = -Math.PI / 2 + (Math.random() - 0.5) * 1.6;
+      const d = 40 + Math.random() * 50;
+      const spark = this.scene.add
+        .image(x, y, TEX.spark)
+        .setTint(k % 2 === 0 ? 0xe2552c : 0xf2a33a)
+        .setScale(0.35 + Math.random() * 0.2)
+        .setAlpha(this.prefs.flashAlpha);
+      this.layer.add(spark);
+      this.chilliSparks++;
+      this.scene.tweens.add({
+        targets: spark,
+        x: x + Math.cos(a) * d,
+        y: y + Math.sin(a) * d,
+        alpha: 0,
+        duration: 240 + Math.random() * 120,
+        onComplete: () => {
+          spark.destroy();
+        },
+      });
+    }
   }
 
   /**

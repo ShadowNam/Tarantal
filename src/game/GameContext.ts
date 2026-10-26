@@ -250,6 +250,8 @@ export interface TestHook {
     language: string;
     pack: 'none' | 'loading' | 'ready' | 'partial' | 'missing';
     played: string[];
+    /** v1.7b (D-046): Oupa's voice is allowed (Settings → Oupa's comments "On"). */
+    oupa: boolean;
   };
   /** M10: what the music plays (biome, audible stem) and the master gain (0 while muted). */
   readonly music: { id: string; stem: string | null } | null;
@@ -271,7 +273,8 @@ export interface TestHook {
   secretSpots: { propId: string; partId: string; x: number; y: number; ready: boolean }[];
   /** v1.3: hittable Ver birds' body centres on the UNZOOMED screen (design px), for aiming. */
   verBirds: { id: number; x: number; y: number }[];
-  crateSpots: { id: number; x: number; y: number }[];
+  /** v1.7b: each crate's item and the icon drawn on it (null = none). */
+  crateSpots: { id: number; x: number; y: number; item: string | null; icon: string | null }[];
   specialBirds: { id: number; creature: string; phase: string; x: number; y: number }[];
   /** Active weapon id, power-up ids, wind (omen) and hunt length (bonus time grows it). */
   weapon: string;
@@ -389,6 +392,38 @@ export interface TestHook {
   shedIcons?: string[];
   /** v1.5 (D-041): the gun names on the Guns tab's cards, as drawn (text language, toggle). */
   shedNames?: string[];
+  /** v1.7b (D-046): the pickup card on screen (null = none): what it says and where. */
+  pickupCard?: {
+    id: string;
+    first: boolean;
+    name: string;
+    line: string;
+    rect: { x: number; y: number; w: number; h: number };
+    /** Where the card's text ends (design px): never below the card. */
+    textBottom: number;
+    lineScale: number;
+    /** Faded to 0.3 while the crosshair is over it (or near). */
+    alpha: number;
+  } | null;
+  /** v1.7b: the HUD chips as drawn: name, countdown ("8 s" / "×6"), ending (blinking), icon. */
+  chips?: { id: string; label: string; time: string; ending: boolean; icon: string | null }[];
+  /** v1.7b: power-up looks on now (Boeretroos edges and sound rate, Chilli's ∞ on the belt,
+   *  Bush Buckshot's ring, Chilli's sparks made so far). */
+  powerupLooks?: {
+    slowTint: boolean;
+    soundRate: number;
+    infinity: boolean;
+    spreadRing?: boolean;
+    sparks?: number;
+  };
+  /** v1.7b: the tally's "Power-ups used" row (ids, in order of first use). */
+  tallyPowerups?: string[];
+  /** v1.7b (D-046): the Gun Shed's Power-ups tab: each card as drawn, and the list's scroll. */
+  shedPowerups?: {
+    cards: { id: string; name: string; effect: string; found: boolean; icon: boolean }[];
+    scroll: number;
+    maxScroll: number;
+  };
   /** M9: the Padstal help card's text bottom and OK button top (no overlap: textBottom < okTop). */
   helpCard?: { textBottom: number; okTop: number };
   /** M9: sound captions on screen (i18n keys, newest first). */
