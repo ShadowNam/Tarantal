@@ -45,7 +45,7 @@ export const FAUNA_SPRITES: Readonly<Record<string, readonly FaunaSprite[]>> = {
     { key: 'fauna/kalahari_wildebeest', layer: 'far_veld', u: 0.8, y: 590, w: 160, h: 40 },
   ],
   namibie: [
-    { key: 'fauna/namibie_waterhole', layer: 'ver_veld', u: 0.5, y: 561, w: 400, h: 30 },
+    { key: 'fauna/namibie_waterhole', layer: 'ver_veld', u: 0.5, y: 561, w: 440, h: 84 },
     { key: 'fauna/namibie_gemsbok', layer: 'far_veld', u: 0.62, y: 604, w: 160, h: 40 },
     { key: 'fauna/namibie_ostrich', layer: 'far_veld', u: 0.24, y: 600, w: 90, h: 50 },
     { key: 'fauna/namibie_zebra', layer: 'far_veld', u: 0.86, y: 606, w: 150, h: 40 },

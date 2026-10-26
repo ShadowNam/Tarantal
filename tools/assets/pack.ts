@@ -612,6 +612,7 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
         x1: { pages: x1.pages },
         ...(x2 === null ? {} : { x2: { pages: x2.pages } }),
         scale: 1 / res,
+        planeScale: s,
         pivots: true,
         originX: rig.originX ?? BIRD_BOX.originX / BIRD_BOX.width,
         originY: rig.originY ?? BIRD_BOX.originY / BIRD_BOX.height,

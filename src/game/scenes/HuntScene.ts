@@ -319,7 +319,13 @@ export class HuntScene extends Phaser.Scene {
     // An id this biome lacks (a bad ?layout=) draws the plain biome rather than failing.
     const map = safeResolveMap(this.biome, this.map.layout, this.map.bonus, this.map.ver);
     const mapBiome = map.biome;
-    this.parallax = new ParallaxView(this, mapBiome, this.manifest, this.ctx.prefs.mergeLayers);
+    this.parallax = new ParallaxView(
+      this,
+      mapBiome,
+      this.manifest,
+      this.ctx.prefs.mergeLayers,
+      this.ctx.feel.perspective.faunaScale,
+    );
     this.parallax.measureFill = this.ctx.hook !== null;
     const lights = mapLights(map).flatMap((id) => {
       const light = this.ctx.feel.lights[id];

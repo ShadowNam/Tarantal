@@ -104,6 +104,16 @@ export class BirdView {
     return { art, ratio: s / this.artScales[art] };
   }
 
+  /**
+   * D-049: the scale on top of a delivered atlas's own: the plane's scale over the scale the
+   * atlas was packed at (they differ only under the dev `?planeScale=` override, or for a Ver
+   * bird drawn from another plane's art). Placeholder frames are drawn at the content's scales.
+   */
+  private finalRatio(plane: PlaneId, final: FinalBird | null, ratio: number): number {
+    const packed = final?.entry.planeScale;
+    return packed === undefined ? ratio : this.content.scoring.planes[plane].scale / packed;
+  }
+
   /** Where a boss's helmet sits: on top of the head hitbox (plane px, scaled). */
   private headTop(v: DrawBird['view'], x: number, y: number): { x: number; y: number } {
     const c = this.content.birds.creatures.find((k) => k.id === v.creature);
@@ -180,7 +190,7 @@ export class BirdView {
         d.frame = key;
       }
       // Ver birds draw another plane's art scaled down to the Ver size (ratio ≤ 1).
-      const s = (playable ? final.scale : 1) * ratio;
+      const s = playable ? final.scale * this.finalRatio(v.plane, final, ratio) : ratio;
       // Placeholder frames get a drawn walk bob and running lean; delivered clips animate it.
       const bob =
         !playable &&
@@ -251,11 +261,12 @@ export class BirdView {
       if (final.entry.clips.hit_poof === undefined) continue;
       const key = this.ensureAnim(e.creature, art, final, 'hit_poof');
       if ((this.scene.anims.get(key)?.frames.length ?? 0) === 0) continue;
-      const face = this.drawn.get(e.birdId)?.sprite.scaleX ?? final.scale * ratio;
+      const k = final.scale * this.finalRatio(e.plane, final, ratio);
+      const face = this.drawn.get(e.birdId)?.sprite.scaleX ?? k;
       const poof = this.scene.add
         .sprite(e.x, e.y, final.atlasKey)
         .setOrigin(final.entry.originX, final.entry.originY)
-        .setScale(face, final.scale * ratio);
+        .setScale(face, k);
       this.parallax.plane(e.plane).overlay?.add(poof);
       // Once, even if rig.json marked hit_poof as a loop (a loop would never complete).
       poof.play({ key, repeat: 0 }).once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {

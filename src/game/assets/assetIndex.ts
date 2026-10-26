@@ -114,6 +114,8 @@ const birdPlaneEntry = z.object({
   x2: atlasRef.optional(),
   /** Design px per @1x texture px at this plane (the plane's scale is already applied). */
   scale: z.number().positive(),
+  /** D-049: the plane scale (content/scoring.json) the frames were packed at. */
+  planeScale: z.number().positive().optional(),
   /** The bird's sim position inside a frame, as fractions (matches content/birds.json hitboxes). */
   originX: fraction,
   originY: fraction,

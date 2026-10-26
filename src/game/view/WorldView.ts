@@ -17,6 +17,9 @@ import { mirageLook } from './mirage';
 import { WindpompView } from './WindpompView';
 import { MEERKAT_SHEET, SHEET_W, sheetFrames } from '../assets/desertAssets';
 
+/** Crate art per plane scale (D-049; 0.55 at the old mid scale 0.5). */
+const CRATE_ART_MUL = 1.1;
+
 /** Rendering only: dust devils sway this much (radians) and this fast (ms per sway). */
 const DEVIL_SWAY = 0.08;
 const DEVIL_SWAY_MS = 260;
@@ -246,7 +249,8 @@ export class WorldView {
       if (img.texture.key !== key) img.setTexture(key);
       const chute = img.texture.key === TEX.crateChute;
       const o = chute ? { x: 0.5, y: 290 / 360 } : { x: 0.5, y: 0.5 };
-      const scale = c.plane === 'near' ? 1 : c.plane === 'mid' ? 0.55 : 0.3;
+      // D-049: crates follow their plane's scale (the art is a little larger than the hitbox).
+      const scale = this.planeScale[c.plane] * CRATE_ART_MUL;
       img.setOrigin(o.x, o.y).setPosition(c.x, c.y).setScale(scale);
       const sx = this.parallax.screenX(c.plane, c.x);
       // [canopy, box front] in texture px from the crate centre: the canopy's middle, and the

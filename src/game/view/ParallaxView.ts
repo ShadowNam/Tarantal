@@ -112,6 +112,8 @@ export class ParallaxView {
     biome: Biome,
     manifest: AssetManifest,
     mergeLayers: readonly (readonly [string, string])[] = [],
+    /** D-049: display scale per far-animal sprite (feel.json perspective.faunaScale). */
+    faunaScale: Readonly<Record<string, number>> = {},
   ) {
     // Back to front: ascending scroll factor (sky 0.05 … foreground 1.2).
     const ordered = biome.layers
@@ -213,6 +215,8 @@ export class ParallaxView {
         );
       }
       // v1.6 (D-042): far animals, drawn at 3× and shown at 1/3 (crisp through a scope).
+      // D-049: shown at faunaScale × that, feet kept on y, so they stand in proportion to the
+      // birds on their plane.
       for (const f of FAUNA_SPRITES[biome.id] ?? []) {
         if (f.layer !== layer.id || !manifest.has(f.key)) continue;
         const o = manifest.origin(f.key);
@@ -220,7 +224,7 @@ export class ParallaxView {
           scene.add
             .image(f.u * coreWidth(layer.scrollFactor), f.y, f.key)
             .setOrigin(o.x, o.y)
-            .setScale(manifest.displayScale(f.key)),
+            .setScale(manifest.displayScale(f.key) * (faunaScale[f.key] ?? 1)),
         );
       }
       const fruit = scene.add.container(0, 0);
