@@ -284,7 +284,7 @@ describe('Blikkies stats (v1.8, D-050)', () => {
       CANS,
     );
     s.ingest([...fired(4), outcome(4)], CANS);
-    const c = s.cell(CANS);
+    const c = s.cell({ gun: 'dubbelloop', plane: 'mid', target: 'cans', pellets: 8 });
     expect(c.shots).toBe(4);
     expect(c.hits).toBe(2);
     expect(c.cans).toEqual({ knocks: 1, airShots: 2, airHits: 1, bestChain: 1 });

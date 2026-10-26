@@ -27,7 +27,7 @@ import {
   shuffleSeed,
   type RangeChoice,
 } from './rangeGuns';
-import { cellTitle, gunNameById, rangeReport } from './rangeReport';
+import { cellLines, cellTitle, gunNameById, rangeReport } from './rangeReport';
 import { rt } from './rangeI18n';
 import { RangeStats, type RangeCell, type RangeSelection } from './rangeStats';
 import {
@@ -337,6 +337,9 @@ class Session implements RangeSession {
                 short: cell.short,
                 pelletsOn: cell.pelletsOn,
                 impacts: cell.impacts.length,
+                // v1.8 (D-050): the Blikkies lines (also in the report).
+                cans: { ...cell.cans },
+                lines: cellLines(content, cell, false),
               },
         cells: stats
           .list()

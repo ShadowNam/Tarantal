@@ -41,6 +41,10 @@ export interface RangeHookState {
     readonly short: number;
     readonly pelletsOn: number;
     readonly impacts: number;
+    /** v1.8 (D-050): Blikkies knock-offs, air shots and hits, the longest chain. */
+    readonly cans: { knocks: number; airShots: number; airHits: number; bestChain: number };
+    /** The cell's report lines as the setup page shows them. */
+    readonly lines: readonly string[];
   } | null;
   /** Every cell of this gun in the session (24 Oct: the mixed course fills several). */
   readonly cells: readonly {
