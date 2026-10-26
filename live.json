@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-26T09:02:00Z",
+ "updated": "2026-10-26T09:55:00Z",
  "summary": "Live on the test build: v1.7c (1.7.2), fruit that swings or drops. Halloween Spookjag (PR #80): all 15 review fixes are in (hats on the heads, carved glowing lanterns, a spooky dusk, owls across the moon); Claude is taking the final screenshots and fixing the last small title overlap, then the full tests and the merge, well before 31 Oct. Tank has started the next job: birds smaller with distance on every map. Then: v1.8 Blikkies, Karoo polish, far animals in HD, makalani palms, tree life, optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
   "version": "1.7.1",
@@ -1313,6 +1313,11 @@
    "at": "2026-10-26T09:00:00Z",
    "kind": "note",
    "text": "Halloween: Tank finished all 15 review fixes; Claude's after-fix screenshots look right (dark dusk, hats on heads, carved lanterns, owls across the moon). Tank started the perspective job (birds smaller with distance)."
+  },
+  {
+   "at": "2026-10-26T09:54:00Z",
+   "kind": "screenshots",
+   "text": "Halloween after the fixes: Claude's screenshots on desktop, Pixel 7 and iPhone 14 (dark dusk under the moon, hats on the heads, carved lanterns, the owl across the moon, the Spookjag 2026 card) are on PR #80 and with you. Claude fixed the last title overlap (the badge now sits on the Daily line) and a test-hook bug on the tally; all 9 Halloween browser tests pass. Full tests next, then the merge."
   }
  ]
 }
