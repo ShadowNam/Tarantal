@@ -1,11 +1,11 @@
 {
  "schema": 1,
- "updated": "2026-10-26T06:14:00Z",
+ "updated": "2026-10-26T06:16:00Z",
  "by": "Claude",
  "summary": "Merged and live on the test build: v1.7 meerkats (Kalahari and Namibië only), v1.7b power-ups explained + Oupa's comments switch, and now v1.7c (07:34): fruit that swings or drops when shot, with the redrawn sausages and baobab pods (version 1.7.2). Now: Tank is building the Halloween Spookjag (ready before 31 Oct). Then, in this order: perspective (birds smaller with distance), v1.8 Blikkies (moved up), Karoo polish (HD aloes, the boiling potjie), far animals in HD, makalani palms in the Okavango, tree life (baobab residents, a better sausage tree, weavers around their nest) and optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
   "version": "1.7.2",
-  "commit": "894bbcd"
+  "commit": "384bffa"
  },
  "links": [
   {
@@ -37,12 +37,12 @@
   {
    "label": "Version on the test build",
    "value": "1.7.2",
-   "note": "commit 894bbcd, merged 26 Oct, 07:34 Namibia time (the test build deploys a few minutes after)"
+   "note": "commit 384bffa, merged 26 Oct, 08:15 Namibia time (the test build deploys a few minutes after)"
   },
   {
    "label": "Pull requests merged",
-   "value": "76",
-   "note": "#1 to #79"
+   "value": "77",
+   "note": "#1 to #81"
   },
   {
    "label": "Unit tests",
@@ -1274,6 +1274,32 @@
     77
    ],
    "version": "1.7.1",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v17b-pickup-card.jpg",
+     "caption": "The card the first time you pick up Farm Coffee, with Oupa’s word; the chip counts down at the top left."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v17b-shed-iphone.jpg",
+     "caption": "The Gun Shed’s new Power-ups tab on an iPhone 14."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v17b-crate.jpg",
+     "caption": "A falling crate shows what it holds, on the canopy and on the box."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v17b-buckshot.jpg",
+     "caption": "Bush Buckshot: the chip counts shells, and the spread ring is wider."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v17b-settings.jpg",
+     "caption": "Settings on a Pixel 7: Oupa’s comments On / Text only / Off."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v17b-icons-redrawn.jpg",
+     "caption": "Two icons redrawn after the screenshot round: the Meerkat Spotter with its binoculars up, and the Voorlaaier."
+    }
+   ],
    "summary": "A Power-ups section in the Gun Shed with a picture and a plain explanation of every power-up and crate gun (what it does, how long, how you get it, a tip). In the hunt: crates show what is inside, a short card on pickup says what it does, the chip counts down and blinks before it ends, and each power-up has a small visible effect. Plus a Settings switch: Oupa's comments On / Text only / Off.",
    "owner": "Tank built it; Claude reviewed, fixed a freeze and merged it",
    "checklist": [
@@ -1344,6 +1370,24 @@
     79
    ],
    "version": "1.7.2",
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v17c-fruit-sheet.jpg",
+     "caption": "The redrawn sausage-tree fruit, with their stalks drawn separately so the stalk stays on the tree."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v17c-sausage-swing.jpg",
+     "caption": "Close-up: a shot sausage swings on its stalk."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v17c-sausage-drop.jpg",
+     "caption": "A shot-off sausage lies on the ground, clear of the trunk."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v17c-baobab-drop.jpg",
+     "caption": "A baobab pod shot off in the Bushveld."
+    }
+   ],
    "summary": "Fruit you shoot reacts: the sausage tree's sausages, baobab and camelthorn pods and marula swing on their stalks or drop to the ground.",
    "owner": "Tank built it; Claude reviewed, screenshotted and merged it",
    "checklist": [
@@ -1739,7 +1783,7 @@
   {
    "date": "24 Oct, 20:55",
    "text": "Five more ideas to keep the African feel (meerkats, a soundscape, a rain storm, a braai, a farm dog, veld cameos) and Daily specials on local days (Heritage Day braai, Christmas in summer, Halloween, New Year)",
-   "outcome": "All queued as v1.6–v1.13; a list of Daily specials sent for the product owner to choose from"
+   "outcome": "All queued as v1.6–v1.13; a list of Daily specials sent for the product owner to choose from (Halloween chosen on 26 Oct)"
   },
   {
    "date": "24 Oct, 22:35",
@@ -1799,7 +1843,7 @@
   {
    "date": "25 Oct, 16:45",
    "text": "When shooting the fruit (sausage tree), make it swing or drop",
-   "outcome": "Queued as v1.7c"
+   "outcome": "Done in v1.7c (#79)"
   },
   {
    "date": "25 Oct, 19:45",
@@ -1819,12 +1863,12 @@
   {
    "date": "25 Oct, 20:03",
    "text": "A Gun Shed section that explains every power-up with pictures, and clearer power-ups in the hunt",
-   "outcome": "Being built as v1.7b"
+   "outcome": "Done in v1.7b (#77)"
   },
   {
    "date": "25 Oct, 20:03",
    "text": "A Settings option to switch Oupa’s comments off",
-   "outcome": "Being built in v1.7b: Oupa’s comments On / Text only / Off"
+   "outcome": "Done in v1.7b (#77): Oupa’s comments On / Text only / Off"
   },
   {
    "date": "25 Oct, 20:03",
@@ -1844,7 +1888,27 @@
   {
    "date": "25 Oct, 22:58",
    "text": "Keep building overnight on the recommended options; retry Tank, and start a new session if it hangs again",
-   "outcome": "Building overnight"
+   "outcome": "Built overnight: v1.7, v1.7b and the history chapters merged; v1.7c finished in the morning"
+  },
+  {
+   "date": "26 Oct, 06:50",
+   "text": "Halloween special yes, go ahead",
+   "outcome": "Being built: the Spookjag Daily on 31 Oct (dusk, owls, bats, pumpkin lanterns, guineafowl in witch hats)"
+  },
+  {
+   "date": "26 Oct, 07:05",
+   "text": "Karoo: HD aloes; the potjie should steam and boil a little and its lid fall off when shot; guineafowl must get smaller the further away they are, on every map, but stay shootable",
+   "outcome": "Planned as two jobs after Halloween: perspective, then Karoo polish"
+  },
+  {
+   "date": "26 Oct, 07:15",
+   "text": "Bushveld and Kalahari: the far zebras, giraffes, elephants and other animals look like stick figures; the baobab needs more detail and better fruit, with holes where small animals look out (research what lives in it); little birds around the weaver nest",
+   "outcome": "Researched; planned as far animals in HD on every map, and tree life (baobab residents, weavers flying around their nest)"
+  },
+  {
+   "date": "26 Oct, 07:24",
+   "text": "Okavango: add makalani palms with their hard nuts, which fall or burst when hit; the tin cans and the meerkats were not seen yet; the Project overview looked stale; idea: offer Standard or HD graphics",
+   "outcome": "Makalani palms planned (nuts crack off, juggle and pop); Blikkies moved up; meerkats were live on the desert maps; the overview was fixed (an invalid entry); HD advised as a Settings choice, Auto / Standard / HD"
   },
   {
    "date": "25 Oct, 16:45",
@@ -1968,6 +2032,11 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-26T06:16:00Z",
+   "kind": "merge",
+   "text": "History document updated (PR #81): new chapters for v1.7b power-ups explained and v1.7c fruit that swings and drops, today's requests and the new build order."
+  },
   {
    "at": "2026-10-26T06:12:00Z",
    "kind": "note",
@@ -3407,6 +3476,90 @@
      "caption": "The three look rounds of the meerkat sheet: the first draft, the redraw, and round 3 with more fur and nicer faces (times in Namibia time)."
     }
    ]
+  },
+  {
+   "title": "v1.7b Power-ups explained, and an Oupa switch",
+   "when": "26 Oct 2026, 04:40 (started 25 Oct, 23:31)",
+   "prs": "#77",
+   "decision": "D-046",
+   "intro": "The product owner: \"When one collects these power-ups, one is very unsure what they actually do … there needs to be a clear indication in this menu\", and an option to switch Oupa’s comments off because \"some people would be irritated by always having a grandfather give his input\".",
+   "bullets": [
+    "Icons for all eight power-ups and crate guns, readable on a HUD chip and big in the Gun Shed.",
+    "A Power-ups tab in the Gun Shed: for each one a picture, one plain sentence of what it does with its numbers, how to get it, and a tip. Ones not found yet are marked, but still explained.",
+    "In the hunt: a falling crate shows the icon of what it holds, on the parachute and on the box; a card says what you picked up (the first time with Oupa’s word); the chip counts the seconds or shells down and blinks before it ends; each power-up has a small look of its own (an ∞ on the belt, a wider spread ring, a warm slow-motion tint); the tally lists the power-ups you used.",
+    "Settings → Oupa’s comments: On, Text only (his bubble without his voice) or Off. The tutorial and the first pickup still explain themselves as plain text when he is off; other voices (the meerkats, the weavers, the frog) still speak.",
+    "Every number the player reads comes from the content files; a test keeps hand-typed numbers out of the texts in all four languages.",
+    "The first download stayed under the 3 MB line (3,069 KB): the new icons load a little later in the hunt, before the first crate can drop."
+   ],
+   "feedbackLabel": "Reviews and fixes before merging",
+   "feedback": [
+    "Claude’s screenshots (desktop, Pixel 7, iPhone 14): the crate’s icon was too small and faint, the old floating item name still landed on the HUD, and two icons were too thin at chip size. All fixed and re-checked.",
+    "The independent review found the first download over 3 MB and the pickup card able to cover the crosshair, plus seven smaller points (a card in the training ground, a raw caption, Oupa’s switch silencing the meerkats, tests that could not fail, a changelog line, Oupa’s lines ignoring the Afrikaans names). All fixed.",
+    "Moving the icons to a later download caused a freeze right after a crate pickup on GitHub’s phone test: the placeholder icons were deleted while still on screen. Claude found it, fixed it (the placeholder is now renamed instead of deleted) and re-took all 45 screenshots before merging."
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v17b-pickup-card.jpg",
+     "caption": "The card the first time you pick up Farm Coffee, with Oupa’s word; the chip counts down at the top left."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v17b-shed-iphone.jpg",
+     "caption": "The Gun Shed’s new Power-ups tab on an iPhone 14."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v17b-crate.jpg",
+     "caption": "A falling crate shows what it holds, on the canopy and on the box."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v17b-buckshot.jpg",
+     "caption": "Bush Buckshot: the chip counts shells, and the spread ring is wider."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v17b-settings.jpg",
+     "caption": "Settings on a Pixel 7: Oupa’s comments On / Text only / Off."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v17b-icons-redrawn.jpg",
+     "caption": "Two icons redrawn after the screenshot round: the Meerkat Spotter with its binoculars up, and the Voorlaaier."
+    }
+   ]
+  },
+  {
+   "title": "v1.7c Fruit that swings and drops",
+   "when": "26 Oct 2026, 07:34 (started 26 Oct, 03:11)",
+   "prs": "#79",
+   "decision": "D-047",
+   "intro": "The product owner, testing the sausage tree in the Okavango: \"When shooting these fruits, make them swing or drop down.\"",
+   "bullets": [
+    "Every hanging and tree fruit reacts to shots: the sausage tree’s sausages, baobab pods, marula, jackalberries, ilala clusters, sweet-thorn and camelthorn pods, quiver-tree flowers, and !nara melons on the ground.",
+    "A hit swings the fruit on its stalk; a near miss gives a smaller swing; a hard hit, or a second hit while it swings, snaps it off. It falls, bounces, rolls clear of the trunk and lies on the ground with a soft shadow. Small, local dust and leaf puffs; a soft thock and a thud.",
+    "Fruit are not targets: no score, no penalty, and the game’s rules and replays are unchanged. They take the map’s light of the day and its haze, like the trees they hang on.",
+    "All fruit redrawn as separate pictures at the camelthorn quality: heavy, mottled Kigelia sausages on rope stalks, velvety baobab pods, speckled marula. They load with their map, never in the first download."
+   ],
+   "feedbackLabel": "Reviews and fixes before merging",
+   "feedback": [
+    "Claude’s screenshots: the first fruit pictures were plain shapes (tan \"pills\", grey eggs), and a dropped sausage lay across the trunk. Redrawn at the camelthorn quality; dropped fruit now lands clear.",
+    "The independent review found that the fruit ignored the map’s light of the day and its haze, and that in wind a dead-centre shot could miss a fruit (the wind drift was applied twice); also fruit drawn over rocks and tree feet, work every frame, and steps on fast phones. All fixed.",
+    "Tank’s first session lost its connection before pushing; Claude retried it and no work was lost."
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v17c-fruit-sheet.jpg",
+     "caption": "The redrawn sausage-tree fruit, with their stalks drawn separately so the stalk stays on the tree."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v17c-sausage-swing.jpg",
+     "caption": "Close-up: a shot sausage swings on its stalk."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v17c-sausage-drop.jpg",
+     "caption": "A shot-off sausage lies on the ground, clear of the trunk."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v17c-baobab-drop.jpg",
+     "caption": "A baobab pod shot off in the Bushveld."
+    }
+   ]
   }
  ],
  "evolution": [
@@ -3555,6 +3708,14 @@
   {
    "id": "D-045",
    "text": "The Project overview page in the admin, fed from its own branch"
+  },
+  {
+   "id": "D-046",
+   "text": "v1.7b Power-ups explained: icons, the Gun Shed tab, crates that show their item, the pickup card, countdown chips, Oupa’s comments On / Text only / Off"
+  },
+  {
+   "id": "D-047",
+   "text": "v1.7c Fruit reactions: fruit as separate sprites that swing and drop on shots, view only"
   },
   {
    "id": "D-043",
