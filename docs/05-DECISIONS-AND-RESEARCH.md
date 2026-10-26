@@ -2818,6 +2818,20 @@ could sit a fraction inside the spacing rule). (9) *Screens:* `?planeScale=v17` 
 the old scales and far animals for before | after shots
 (`tests/e2e/art-preview-perspective.spec.ts`).
 
+**D-050 v1.8 Blikkies: tin cans on the fence posts (26 Oct 2026):** the product owner (24 Oct):
+"On maps with fence posts, have some cans standing on them that can be shot off. They somersault
+when hit. The distance should vary. If one gets it right to hit the rotating, somersaulting can in
+the air, it flips higher and keeps flipping and flying as long as it's hit"; again on 26 Oct ("I
+haven't seen that in any of the builds"). Rules in GDD §11.3. (1) *Design:* a skill toy beside the
+hunt, not a new loop: one fence of 3–6 posts on 3–4 weekday layouts of the Karoo, Bushveld,
+Kalahari and Namibië (none in the Okavango: no farm fences there); the plane varies by day and the
+bonus maps push it back (Verder one plane, Nog Verder far, Die Verste Ver). (2) *Scoring:* event
+bonuses through the pipeline (Frenzy × Stampede), never a bag; a can-only shot leaves Frenzy alone
+and is not a miss, as a secret part. (3) *Season Run: no cans* — it plays the plain biome with
+fixed quotas, and a quota shortcut would undo its tuning; the FTUE neither. (4) *Not hiding
+anything:* the posts don't stop pellets; resting cans are checked against the bird bands and
+secrets behind them as the meerkat colonies are; a can in flight is fair game wherever it goes.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
