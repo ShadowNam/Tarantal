@@ -392,6 +392,8 @@ export interface TestHook {
     /** Where the card's text ends (design px): never below the card. */
     textBottom: number;
     lineScale: number;
+    /** Faded to 0.3 while the crosshair is over it (or near). */
+    alpha: number;
   } | null;
   /** v1.7b: the HUD chips as drawn: name, countdown ("8 s" / "×6"), ending (blinking), icon. */
   chips?: { id: string; label: string; time: string; ending: boolean; icon: string | null }[];

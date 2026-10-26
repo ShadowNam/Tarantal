@@ -324,7 +324,9 @@ unchanged; how the game shows it:
   its face. No secret: the Gun Shed says so.
 - **Pickup card.** Picking one up slides a card in at the top centre, between the HUD's corners
   and never over the crosshair or the flock in the middle: icon, name and one line of what it
-  does with its length ("Everything at half speed · 10 s"), for about 2 s. The **first** pickup
+  does with its length ("Everything at half speed · 10 s"), for about 2 s. That spot is the top
+  of the mid plane's sky, where crates fall and flushed flocks fly, so while the crosshair is over
+  the card or within 80 px of it the card fades to 30 % (`hudLayout.pickupAlpha`). The **first** pickup
   of each one on a save shows the full sentence (the Gun Shed's) with a "New!" tag for about 3.5 s,
   and Oupa says his own line on it (`bark.pu.<id>`) if his comments are on (§18.3). The card is
   plain HUD text, not Oupa: it shows whatever his setting. The save remembers what was picked up

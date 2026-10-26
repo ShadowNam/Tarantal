@@ -36,6 +36,8 @@ export class PickupCard {
   private untilTick = 0;
   private box: Rect = { x: 0, y: 0, w: 0, h: 0 };
   private textBottom = 0;
+  /** The card's alpha this frame (slide × fade under the crosshair). */
+  private alpha = 1;
 
   constructor(scene: Phaser.Scene) {
     this.bg = scene.add.graphics().setDepth(DEPTH);
@@ -106,7 +108,8 @@ export class PickupCard {
   }
 
   /** One frame: slide in, hold, slide out (sim ticks), then hide. */
-  update(tick: number, slideTicks: number): void {
+  /** `fade` (≤ 1) multiplies the card's alpha: the crosshair is over it (hudLayout.pickupAlpha). */
+  update(tick: number, slideTicks: number, fade = 1): void {
     if (this.info === null) return;
     if (tick >= this.untilTick || tick < this.fromTick) {
       this.hide();
@@ -118,7 +121,8 @@ export class PickupCard {
       (this.untilTick - tick) / slideTicks,
     );
     const dy = -24 * (1 - k);
-    for (const o of this.parts()) o.setAlpha(k);
+    this.alpha = k * fade;
+    for (const o of this.parts()) o.setAlpha(k * fade);
     this.bg.setY(dy);
     this.disc.setY(this.box.y + this.box.h / 2 + dy);
     this.icon.setY(this.box.y + this.box.h / 2 + dy);
@@ -152,6 +156,7 @@ export class PickupCard {
     rect: Rect;
     textBottom: number;
     lineScale: number;
+    alpha: number;
   } | null {
     const i = this.info;
     return i === null
@@ -164,6 +169,7 @@ export class PickupCard {
           rect: this.box,
           textBottom: this.textBottom,
           lineScale: this.line.scaleY,
+          alpha: Math.round(this.alpha * 100) / 100,
         };
   }
 

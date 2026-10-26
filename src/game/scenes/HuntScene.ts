@@ -1465,6 +1465,9 @@ export class HuntScene extends Phaser.Scene {
     );
     const hud = this.scene.get('Hud') as HudScene;
     if (hud.sys.isActive()) {
+      // v1.7b (D-046): the pickup card fades while the crosshair is over it.
+      const ch = this.weapon.crosshair.root;
+      hud.setAim(ch.visible && ch.alpha > 0 ? { x: ch.x, y: ch.y } : null);
       hud.render(state, events);
       const looks = this.ctx.hook?.powerupLooks;
       if (looks !== undefined) {

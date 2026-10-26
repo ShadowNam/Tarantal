@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { designSizeFor, safeAreaInDesignPx } from '../layout';
 import { formatAward, formatClock, formatScore, popParts } from './format';
-import { hudLayout, rectContains, type Rect } from './hudLayout';
+import {
+  hudLayout,
+  pickupAlpha,
+  PICKUP_UNDER_AIM_ALPHA,
+  rectContains,
+  type Rect,
+} from './hudLayout';
 
 const sizing = {
   marginPx: 28,
@@ -42,6 +48,31 @@ describe('v1.7b pickup card slot (D-046)', () => {
       expect(p.y + p.h).toBeLessThan(size.height * 0.42);
       expect(p.w).toBeGreaterThanOrEqual(440);
     });
+});
+
+describe('v1.7b pickup card under the crosshair (D-046)', () => {
+  const size = designSizeFor(1920, 1080);
+  const card = hudLayout(
+    size.width,
+    size.height,
+    { top: 0, right: 0, bottom: 0, left: 0 },
+    sizing,
+  ).pickup;
+  const mid = { x: card.x + card.w / 2, y: card.y + card.h / 2 };
+  it('fades while the crosshair is on the card or near it', () => {
+    expect(pickupAlpha(card, mid)).toBe(PICKUP_UNDER_AIM_ALPHA);
+    expect(pickupAlpha(card, { x: card.x + 4, y: card.y + 4 })).toBe(PICKUP_UNDER_AIM_ALPHA);
+    // Just below its bottom edge (a flock flying under the card).
+    expect(pickupAlpha(card, { x: mid.x, y: card.y + card.h + 40 })).toBe(PICKUP_UNDER_AIM_ALPHA);
+    // Beside it, in the margin.
+    expect(pickupAlpha(card, { x: card.x - 50, y: mid.y })).toBe(PICKUP_UNDER_AIM_ALPHA);
+  });
+  it('stays solid when the crosshair is elsewhere or not shown', () => {
+    expect(pickupAlpha(card, { x: size.width / 2, y: size.height / 2 })).toBe(1);
+    expect(pickupAlpha(card, { x: 100, y: 900 })).toBe(1);
+    expect(pickupAlpha(card, { x: card.x + card.w + 200, y: mid.y })).toBe(1);
+    expect(pickupAlpha(card, null)).toBe(1);
+  });
 });
 
 describe('HUD layout at 16:9, 19.5:9 and 4:3', () => {

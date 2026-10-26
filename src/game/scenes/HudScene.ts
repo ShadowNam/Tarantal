@@ -26,7 +26,14 @@ import type { GameContext } from '../GameContext';
 import { FONT } from '../view/Fx';
 import { formatAward, formatClock, formatMult, formatScore, popParts } from '../ui/format';
 import type { InputKind } from '../../sim/types';
-import { CHIP_GAP, hudLayout, MAX_CHIPS, rectContains, type HudLayout } from '../ui/hudLayout';
+import {
+  CHIP_GAP,
+  hudLayout,
+  MAX_CHIPS,
+  pickupAlpha,
+  rectContains,
+  type HudLayout,
+} from '../ui/hudLayout';
 import { SeasonHud } from '../ui/SeasonHud';
 import { drawButton, fitText, Menu, type MenuItem } from '../ui/menu';
 import { BakedDrawing, RoundRect } from '../ui/shapes';
@@ -136,6 +143,8 @@ export class HudScene extends Phaser.Scene {
   /** v1.7b (D-046): the pickup card, each chip's countdown (seconds or shells), Boeretroos'
    *  warm screen edges and Chilli Biltong's ∞ on the belt. */
   private pickupCard: PickupCard | null = null;
+  /** v1.7b: where the crosshair is (design px), or null when none shows (HuntScene, each frame). */
+  private aim: { x: number; y: number } | null = null;
   /** powerupIconEpoch() when the icons were last set (a change means they were swapped). */
   private iconEpoch = 0;
   private chipTimes: Phaser.GameObjects.Text[] = [];
@@ -327,6 +336,12 @@ export class HudScene extends Phaser.Scene {
     });
     this.relayout();
     this.wireControls();
+  }
+
+  /** v1.7b (D-046): the crosshair's design position this frame (null = not shown): the pickup
+   *  card fades while it is over the card. */
+  setAim(at: { x: number; y: number } | null): void {
+    this.aim = at;
   }
 
   get layoutRects(): HudLayout | null {
@@ -782,7 +797,12 @@ export class HudScene extends Phaser.Scene {
     this.drawZoom(s);
     this.drawChips(s);
     this.drawPowerupLooks(s, l);
-    this.pickupCard?.update(s.tick, Math.max(1, msToTicks(this.ctx.feel.hud.powerups.cardSlideMs)));
+    const shownCard = this.pickupCard?.shown ?? null;
+    this.pickupCard?.update(
+      s.tick,
+      Math.max(1, msToTicks(this.ctx.feel.hud.powerups.cardSlideMs)),
+      shownCard === null ? 1 : pickupAlpha(shownCard.rect, this.aim),
+    );
     if (this.ctx.hook) this.ctx.hook.pickupCard = this.pickupCard?.shown ?? null;
     this.drawWindsock(s);
 
