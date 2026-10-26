@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "updated": "2026-10-26T04:35:00Z",
+ "updated": "2026-10-26T04:55:00Z",
  "by": "Claude",
  "summary": "Overnight: v1.7 meerkats (00:55), the history chapters (01:32) and v1.7b power-ups explained + Oupa's comments switch (04:40, version 1.7.1) are merged. Now: v1.7c, fruit that swings or drops when shot — redrawn at the camelthorn quality, independent review fixed; Claude's screenshots, the full tests and the merge come next (expected about 08:30). Next, in this order: v1.7d Namibië veld life, v1.7e realistic Bushveld + a new secret cue instead of the star (mock-ups for you first), v1.8 Blikkies, v1.8b baboons, v1.8c The Harvest (a new mode), then v1.9–v1.13.",
  "current": {
@@ -78,12 +78,11 @@
   {
    "id": "daily-specials",
    "kind": "decision",
-   "title": "Pick the holiday Daily specials (Feesdae)",
+   "title": "Pick the other holiday Daily specials (Feesdae) — Halloween is chosen",
    "asked": "2026-10-24T18:58:55Z",
    "status": "open",
-   "detail": "On a special day everyone gets the same themed Daily Hunt: decorations, one twist rule, Oupa's lines, a music sting and a special share card. Halloween is on 31 Oct: if you pick it, the job moves up so it is ready in time. Reply with the numbers (\"1–9\" takes all my picks).",
+   "detail": "You picked Halloween on 26 Oct (\"Halloween special yes, go ahead\"): the Spookjag Daily is being built now and will be ready before 31 Oct. The others can be added later as content on the same system; reply with the numbers whenever you like (\"2–9\" takes all my picks).",
    "options": [
-    "1. Halloween, 31 Oct: \"Spookjag\", a dusk hunt with owls, bats, pumpkin lanterns and guineafowl in witch hats",
     "2. Christmas, 25 Dec: Christmas in the sun, tinsel on the camelthorn, Oupa in a Santa hat and shorts",
     "3. New Year: a countdown hunt with party hats, small fireworks and double points in the last 10 s",
     "4. Heritage Day (Braai Day), 24 Sep: the big braai hunt",
@@ -96,8 +95,7 @@
     "11 (maybe). Women's Day, 9 Aug: Ouma's hunt (needs an Ouma voice)",
     "12 (maybe). Workers' Day, 1 May: Oupa's day off, Brakkie runs the show",
     "13 (maybe). Namibian Independence Day, 21 Mar: Namibië open to everyone, kept light"
-   ],
-   "blocks": "The Feesdae job (Halloween needs it by 31 Oct)"
+   ]
   },
   {
    "id": "v16-look",
@@ -1340,8 +1338,11 @@
    "phase": "Version 1.x",
    "status": "running",
    "start": "2026-10-26T01:11:00Z",
-   "end": "2026-10-26T05:30:00Z",
+   "end": "2026-10-26T06:30:00Z",
    "estimate": true,
+   "prs": [
+    79
+   ],
    "version": "1.7.2",
    "summary": "Fruit you shoot reacts: the sausage tree's sausages, baobab and camelthorn pods and marula swing on their stalks or drop to the ground.",
    "owner": "Tank",
@@ -1378,12 +1379,22 @@
    "requestedBy": "You, 25 Oct ~16:45: \"when shooting these fruits, make them swing or drop down.\""
   },
   {
+   "id": "halloween-spookjag-feesdae-the-31-oct-da",
+   "title": "Halloween Spookjag (Feesdae): the 31 Oct Daily at dusk with owls, bats, pumpkin lanterns and witch-hat guineafowl (your pick, 26 Oct)",
+   "phase": "Version 1.x",
+   "status": "running",
+   "start": "2026-10-26T04:50:00Z",
+   "end": "2026-10-26T12:00:00Z",
+   "estimate": true,
+   "summary": "Tank task 82404d28: building (merge by 28 Oct)"
+  },
+  {
    "id": "v1.7d",
    "title": "v1.7d: Namibië veld life: detailed grass and sand, ostriches and their nest, oryx in the mirage, hot-air balloons (your request, 25 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-26T05:30:00Z",
-   "end": "2026-10-26T11:30:00Z",
+   "start": "2026-10-26T11:30:00Z",
+   "end": "2026-10-26T17:30:00Z",
    "estimate": true,
    "version": "1.7.3",
    "summary": "Namibië first: much more detailed bushman grass and sand (no black lines between the distances), then a pair of ostriches at their nest (they run from nearby shots), a herd of oryx far away shimmering in the mirage, and hot-air balloons drifting by (not targets).",
@@ -1395,8 +1406,8 @@
    "title": "v1.7e: realistic Bushveld rocks and middle distance; a new secret cue instead of the star (mock-ups for you first) (your request, 25 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-26T11:30:00Z",
-   "end": "2026-10-26T18:30:00Z",
+   "start": "2026-10-26T17:30:00Z",
+   "end": "2026-10-27T00:30:00Z",
    "estimate": true,
    "version": "1.7.4",
    "summary": "First, mock-ups of three ways to replace the star glint on secrets: (A) a small unique animal that always lives at each secret (e.g. a rock agama nodding on the dassie koppie, a lilac-breasted roller on the windmill) — Claude's pick and your idea; (B) natural cues only; (C) no cue, Oupa hints in words. You choose. Meanwhile: realistic Bushveld granite boulders and koppies, real ridges in the haze, textured winter veld, no black lines between the distances.",
@@ -1408,8 +1419,8 @@
    "title": "v1.8: Blikkies — tin cans on fence posts to shoot off and juggle in the air",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-26T18:30:00Z",
-   "end": "2026-10-27T00:00:00Z",
+   "start": "2026-10-27T00:30:00Z",
+   "end": "2026-10-27T06:00:00Z",
    "estimate": true,
    "version": "1.8.0"
   },
@@ -1418,8 +1429,8 @@
    "title": "v1.8b: Bobbejane: baboon troops on the ridges; raiders come down to cause trouble (your request, 25 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-27T00:00:00Z",
-   "end": "2026-10-27T06:00:00Z",
+   "start": "2026-10-27T06:00:00Z",
+   "end": "2026-10-27T12:00:00Z",
    "estimate": true,
    "version": "1.8.1",
    "summary": "Chacma baboon troops on the ridges of most maps. Now and then raiders come down to cause trouble (steal Oupa's hat, raid fruit, throw fruit at the flock). A raider takes 2 hits and goes down like a guineafowl (your choice). Mothers with babies stay out of range and are never targets.",
@@ -1431,8 +1442,8 @@
    "title": "v1.8c: Die Oes (The Harvest): a new 30-second mode; hold the animals off the crops while the fence is fixed (your idea, 25 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-27T06:00:00Z",
-   "end": "2026-10-27T15:00:00Z",
+   "start": "2026-10-27T12:00:00Z",
+   "end": "2026-10-27T21:00:00Z",
    "estimate": true,
    "version": "1.8.2",
    "summary": "A new mode on the title screen. The fence breaks, guineafowl, warthogs and baboons pour into the harvest field, and you have 30 seconds to hold them off while the farm workers fix the fence. A crop meter shows what you saved; the workers are never targets. Tank writes a short plan first.",
@@ -1444,8 +1455,8 @@
    "title": "v1.9: the veld soundscape and local music (doves, hadedas, cicadas, fish eagle; marimba, mbira, drums)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-27T15:00:00Z",
-   "end": "2026-10-27T20:00:00Z",
+   "start": "2026-10-27T21:00:00Z",
+   "end": "2026-10-28T02:00:00Z",
    "estimate": true,
    "version": "1.9.0"
   },
@@ -1454,8 +1465,8 @@
    "title": "v1.10: Reënbui — the first rain and the flying-ant feast",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-27T20:00:00Z",
-   "end": "2026-10-28T01:00:00Z",
+   "start": "2026-10-28T02:00:00Z",
+   "end": "2026-10-28T07:00:00Z",
    "estimate": true,
    "version": "1.10.0"
   },
@@ -1464,8 +1475,8 @@
    "title": "v1.11: Die Braai — the day ends at Oupa's fire under the Milky Way",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-28T01:00:00Z",
-   "end": "2026-10-28T06:00:00Z",
+   "start": "2026-10-28T07:00:00Z",
+   "end": "2026-10-28T12:00:00Z",
    "estimate": true,
    "version": "1.11.0"
   },
@@ -1474,8 +1485,8 @@
    "title": "v1.12: Brakkie, the farm dog",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-28T06:00:00Z",
-   "end": "2026-10-28T12:00:00Z",
+   "start": "2026-10-28T12:00:00Z",
+   "end": "2026-10-28T18:00:00Z",
    "estimate": true,
    "version": "1.12.0"
   },
@@ -1484,8 +1495,8 @@
    "title": "v1.13: veld cameos — warthogs, baboons, springbok, elephants, ostrich, dung beetle",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-28T12:00:00Z",
-   "end": "2026-10-28T18:00:00Z",
+   "start": "2026-10-28T18:00:00Z",
+   "end": "2026-10-29T00:00:00Z",
    "estimate": true,
    "version": "1.13.0"
   }
@@ -1803,9 +1814,19 @@
    "text": "A Harvest level: the fence breaks, animals flock to the crops, 30 s to hold them off while the fence is fixed",
    "outcome": "Queued as v1.8c, a new mode on the title screen",
    "job": "v1.8c"
+  },
+  {
+   "at": "2026-10-26T04:50:00Z",
+   "text": "Halloween special yes, go ahead",
+   "status": "Being built now: the Spookjag Daily on 31 Oct (dusk, owls, bats, pumpkin lanterns, guineafowl in witch hats)"
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-26T04:50:00Z",
+   "kind": "request",
+   "text": "You said yes to the Halloween special. Tank started it right away (the Spookjag Daily on 31 Oct); the other holidays stay open for you to pick later."
+  },
   {
    "at": "2026-10-26T04:15:00Z",
    "kind": "screenshots",

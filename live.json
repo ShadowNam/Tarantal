@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-26T04:35:00Z",
+ "updated": "2026-10-26T04:55:00Z",
  "summary": "Overnight: v1.7 meerkats (00:55), the history chapters (01:32) and v1.7b power-ups explained + Oupa's comments switch (04:40, version 1.7.1) are merged. Now: v1.7c, fruit that swings or drops when shot — redrawn at the camelthorn quality, independent review fixed; Claude's screenshots, the full tests and the merge come next (expected about 08:30). Next, in this order: v1.7d Namibië veld life, v1.7e realistic Bushveld + a new secret cue instead of the star (mock-ups for you first), v1.8 Blikkies, v1.8b baboons, v1.8c The Harvest (a new mode), then v1.9–v1.13.",
  "current": {
   "version": "1.7.1",
@@ -76,12 +76,11 @@
   {
    "id": "daily-specials",
    "kind": "decision",
-   "title": "Pick the holiday Daily specials (Feesdae)",
+   "title": "Pick the other holiday Daily specials (Feesdae) — Halloween is chosen",
    "asked": "2026-10-24T18:58:55Z",
    "status": "open",
-   "detail": "On a special day everyone gets the same themed Daily Hunt: decorations, one twist rule, Oupa's lines, a music sting and a special share card. Halloween is on 31 Oct: if you pick it, the job moves up so it is ready in time. Reply with the numbers (\"1–9\" takes all my picks).",
+   "detail": "You picked Halloween on 26 Oct (\"Halloween special yes, go ahead\"): the Spookjag Daily is being built now and will be ready before 31 Oct. The others can be added later as content on the same system; reply with the numbers whenever you like (\"2–9\" takes all my picks).",
    "options": [
-    "1. Halloween, 31 Oct: \"Spookjag\", a dusk hunt with owls, bats, pumpkin lanterns and guineafowl in witch hats",
     "2. Christmas, 25 Dec: Christmas in the sun, tinsel on the camelthorn, Oupa in a Santa hat and shorts",
     "3. New Year: a countdown hunt with party hats, small fireworks and double points in the last 10 s",
     "4. Heritage Day (Braai Day), 24 Sep: the big braai hunt",
@@ -94,8 +93,7 @@
     "11 (maybe). Women's Day, 9 Aug: Ouma's hunt (needs an Ouma voice)",
     "12 (maybe). Workers' Day, 1 May: Oupa's day off, Brakkie runs the show",
     "13 (maybe). Namibian Independence Day, 21 Mar: Namibië open to everyone, kept light"
-   ],
-   "blocks": "The Feesdae job (Halloween needs it by 31 Oct)"
+   ]
   },
   {
    "id": "v16-look",
@@ -530,6 +528,38 @@
      "caption": "Oupa Laai on the Pixel 7: the \"Oupa Loads\" chip and his hand by the belt"
     }
    ]
+  },
+  "halloween": {
+   "owner": "Tank; Claude reviews",
+   "status": "running",
+   "summary": "On 31 Oct the Daily Hunt becomes Spookjag: the day's map at dusk under a big moon, pumpkin lanterns on the fence posts (shoot them all for +25), bats as fast bonus targets (+15), protected owls (−10), some guineafowl in witch hats, Oupa's Halloween lines, a spooky sting and a Halloween share card. Built on a small 'special days' system so other holidays can be added later.",
+   "requestedBy": "You, 26 Oct: \"Halloween special yes, go ahead.\"",
+   "checklist": [
+    {
+     "text": "Special-day system (dates in content, the Daily becomes the special that UTC day, admin/test override)",
+     "done": false
+    },
+    {
+     "text": "Halloween look: dusk, moon, lanterns, bats, owls, witch hats",
+     "done": false
+    },
+    {
+     "text": "Rules: bats +15, owls −10, all lanterns out +25",
+     "done": false
+    },
+    {
+     "text": "Oupa's lines (4 languages), sounds, share card",
+     "done": false
+    },
+    {
+     "text": "Tests and Claude's screenshots",
+     "done": false
+    },
+    {
+     "text": "Review, full tests and merge (before 28 Oct)",
+     "done": false
+    }
+   ]
   }
  },
  "suggestions": [
@@ -655,6 +685,11 @@
    "text": "A Harvest level: the fence breaks, animals flock to the crops, 30 s to hold them off while the fence is fixed",
    "outcome": "Queued as v1.8c, a new mode on the title screen",
    "job": "v1.8c"
+  },
+  {
+   "at": "2026-10-26T04:50:00Z",
+   "text": "Halloween special yes, go ahead",
+   "status": "Being built now: the Spookjag Daily on 31 Oct (dusk, owls, bats, pumpkin lanterns, guineafowl in witch hats)"
   }
  ],
  "extraDecisions": [
@@ -1119,6 +1154,11 @@
      "url": "https://github.com/ShadowNam/Tarantal/pull/79"
     }
    ]
+  },
+  {
+   "at": "2026-10-26T04:50:00Z",
+   "kind": "request",
+   "text": "You said yes to the Halloween special. Tank started it right away (the Spookjag Daily on 31 Oct); the other holidays stay open for you to pick later."
   }
  ]
 }
