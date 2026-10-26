@@ -7,22 +7,22 @@ const meta = {
   title: 'Tarantal Madness',
   subtitle: 'Development history',
   tagline: 'How the game came together, from the first commit to today',
-  updated: '25 October 2026, 23:00 UTC',
-  period: '19–25 October 2026',
+  updated: '26 October 2026, 19:00 UTC',
+  period: '19–26 October 2026',
 };
 
-// "By the numbers" on 26 Oct 2026 (main at 894bbcd).
+// "By the numbers" on 26 Oct 2026 (main at 457a51b, version 1.7.4).
 const numbers = [
   ['Days since the first commit', '7'],
-  ['Commits on main', '888'],
-  ['Pull requests', '76 merged, plus this history update; the Halloween Spookjag is being built'],
-  ['Game code (TypeScript, without tests)', 'about 47,000 lines'],
-  ['Automated tests', '1,250 unit tests, 53 browser test suites on 3 device profiles'],
+  ['Commits on main', '970'],
+  ['Pull requests', '80 merged, plus this history update; v1.8 Blikkies is being built'],
+  ['Game code (TypeScript, without tests)', 'about 49,000 lines'],
+  ['Automated tests', '1,293 unit tests, 60 browser test suites on 3 device profiles'],
   ['Hunting areas', '5: the four seasons (Karoo, Bushveld, Okavango, Kalahari) and Namibië, each with 7 weekday maps and 3 bonus maps (Verder, Nog Verder, Die Verste)'],
   ['Guns', '8 (Dubbelloop, Windbuks, Kettie, Plaas-Pomp, Die Twee-Twee with 3 sights, Die Langloop with a 3–9× scope, Voorlaaier, Mielie-Masjien)'],
-  ['Creatures', '13 (guineafowl and variants, bosses, flyers), plus meerkat colonies on the desert maps'],
+  ['Creatures', '13 (guineafowl and variants, bosses, flyers), plus meerkat colonies on the desert maps, and bats and owls on the Halloween Spookjag'],
   ['Languages', 'English, Afrikaans, German and Dutch text; Oupa voiced in English, Afrikaans and German'],
-  ['Design decisions logged', '47 (D-001 to D-047)'],
+  ['Design decisions logged', '49 (D-001 to D-049)'],
 ];
 
 const roles = [
@@ -745,6 +745,70 @@ const stages = [
       { img: 'v17c-baobab-drop', caption: 'A baobab pod shot off in the Bushveld.' },
     ],
   },
+  {
+    title: 'Halloween Spookjag (Feesdae)',
+    when: '26 Oct 2026, 10:32 (started 26 Oct, 04:50)',
+    prs: '#80',
+    decision: 'D-048',
+    intro: 'The product owner chose Halloween from the list of local Daily specials: "Halloween special yes, go ahead".',
+    bullets: [
+      'Special days (Feesdae): on a special day (by the UTC date) the Daily Hunt becomes that day’s special, the same for everyone. The special days live in the content files, so more holidays can be added later.',
+      'Halloween’s Spookjag (31 Oct, version 1.7.3): a dusk hunt with its own dark, cool light, under a big low moon with bats circling it.',
+      'Bats are fast bonus targets (+15). The spotted eagle-owl is protected: shooting one costs 10 points, and Oupa scolds you.',
+      '3–5 carved pumpkin lanterns stand on the tops of props (the reservoir rim, boulders, the bakkie’s roof) or on their own post. Each goes dark when shot. Putting them all out pays "Lanterns out! +25", once.',
+      'About a third of the guineafowl wear small witch hats.',
+      'The title’s Daily button reads Spookjag, with a "Spookjag tonight!" badge. The tally gets a Halloween frame, the title "Spookjag 2026" and a row for bats, owls and lanterns. The share text gets a Halloween frame too.',
+      'Sounds: an organ and kalimba sting, an owl hoot, a bat squeak and a lantern puff. Oupa has five Halloween lines in English, Afrikaans, German and Dutch, voiced in English, Afrikaans and German.',
+      'The Halloween pictures and sounds load in the background, only on the day. The first download stays under 3 MB (3,071 of 3,072 KB).',
+      'How to try it before 31 Oct on the public test build: the admin page → Special days → Spookjag · 31/10 → Play, then Play again on the next card. (The ?feesdag=halloween address only works on developer and test builds.)',
+    ],
+    feedbackLabel: 'Reviews and fixes before merging',
+    feedback: [
+      'The first independent review found that the hunt waited for all the Halloween files to download. It now starts as soon as the code is in; the pictures and sounds follow.',
+      'Claude’s review round, with screenshots on desktop and Pixel 7, listed 15 points, all fixed: scoring through the same path as every other bonus and penalty, an iPhone-safe Share tap and owl test, witch hats on the head in every frame, carved glowing lanterns placed where they read, a darker dusk, bigger owls on their own band below the HUD, overlaps on the title and the tally, Oupa’s lines loaded only when needed, a message if the Halloween files fail to load, and recorded test hunts (golden replays) that cover the bats, owls and lanterns.',
+      'Claude fixed the last overlap of the title badge and the tally test.',
+      'An iPhone test still expected the older replay format (replays now record the special day). Claude fixed it before merging.',
+    ],
+    images: [
+      { img: 'feesdae-hunt', caption: 'The Spookjag on a desktop: dusk under a big low moon with bats, lanterns on the reservoir rim, guineafowl in witch hats, and Oupa’s opening line.' },
+      { img: 'feesdae-title', caption: 'The title on a Pixel 7 on the day: the Daily button reads Spookjag, with the "Spookjag tonight!" badge.' },
+      { img: 'feesdae-hat', caption: 'Close-up: the witch hats sit on the guineafowl’s heads; a carved lantern stands on its own post in front of the flock.' },
+      { img: 'feesdae-lantern', caption: 'Close-up: a lantern on the reservoir rim, lit, and dark with a wisp of smoke after it is shot.' },
+      { img: 'feesdae-owl', caption: 'Close-up: the protected spotted eagle-owl crosses the moon among the bats (−10 if shot).' },
+      { img: 'feesdae-tally', caption: 'The Halloween tally: "Spookjag 2026", the moon and bats, a row for bats, owls and lanterns, and Oupa’s last line.' },
+    ],
+  },
+  {
+    title: 'Perspective: birds get smaller with distance',
+    when: '26 Oct 2026, 18:34 (started 26 Oct, 08:51)',
+    prs: '#82',
+    decision: 'D-049',
+    intro: 'The product owner, playing the Karoo: "the guineafowl, the further away they are, the smaller they get … the ostriches, because they’re far away, are small, but the guineafowl is even bigger than they are … still in such a way that one can still shoot them … this needs to apply to all the levels."',
+    bullets: [
+      'An audit first measured every far animal against the guineafowl. In the Karoo a far bird was about 12× too big beside the ostriches.',
+      'The distance planes got smaller: the middle from 0.5 to 0.42, the far from 0.22 to 0.15, the farthest from 0.1 to 0.07. A standing guineafowl is now 263, 110, 39 and 18 px tall from near to farthest.',
+      'The far herds are shown 3× bigger. The HD animal redraw will later draw them at their true sizes, with the ostriches about 2.7× taller again.',
+      'The Namibië waterhole animals were redrawn 5× taller in the same spots, standing head up.',
+      'Far birds keep a minimum hit size (18 px far, 10 px farthest), so they stay shootable. Only targets get it, never the birds you must not shoot. The Halloween bats and lanterns get it too.',
+      'Feathers, alarm bubbles, score pops and witch hats shrink with the birds.',
+      'The guineafowl pictures were redrawn at their new sizes. That made the first download 106 KB smaller (3,071 → 2,965 KB of 3,072).',
+      'Balance (500 hunts per test): every difficulty check that passed before still passes. Good players score about 1 % more; weaker players about 10 % less (accepted: smaller birds are what was asked). Shotguns score less on the far bonus maps, which are made for rifles. The Langloop was retuned to stay above its minimum.',
+      'Released as version 1.7.4, on every map.',
+    ],
+    feedbackLabel: 'Reviews and fixes before merging',
+    feedback: [
+      'The independent review found three things: the Halloween bats and lanterns had shrunk without the minimum hit size; the minimum hit size also widened the birds you must not shoot (now it is for targets only); and two difficulty checks failed in the first rough run. The first two were fixed before merging; the full 500-hunt run settled the checks.',
+      'Claude’s screenshots showed that the Karoo comparison had no far guineafowl beside the ostriches (the screenshot now uses Monday’s Verder, where a far flock forages by the ostriches), and that the Namibië waterhole animals were shapeless at their new size (redrawn standing head up).',
+      'One of Tank’s edits had deleted eleven older entries of the decision log. Tank restored them.',
+      'On the final test run two browser tests failed: the seeded test hunts’ shot patterns changed with the content, and the targets were smaller. Claude made both tests robust (more shots, no long waits, a lantern no flock stands in front of), and the full suite passed on all devices.',
+    ],
+    images: [
+      { img: 'perspective-karoo-ostriches', caption: 'The Karoo, before | after: the far guineafowl used to be bigger than the ostriches; now they are smaller.' },
+      { img: 'perspective-bushveld-far', caption: 'The Bushveld, before | after: the giraffes, elephants and zebras now dwarf the far birds.' },
+      { img: 'perspective-namibie-far', caption: 'Namibië, before | after: the far flock now stands smaller than the gemsbok beside it.' },
+      { img: 'perspective-scope-far', caption: 'Through the .22’s scope on the Karoo’s Nog Verder, before | after: the far birds are smaller, and the ostriches behind them now stand taller.' },
+    ],
+  },
 ];
 
 // The product owner's requests, in order.
@@ -764,8 +828,8 @@ const requests = [
   ['24 Oct, 12:05', 'Better graphics for the trees, bushes and fruit on every map; camelthorn trees in Namibia; a far more detailed weaver nest ("increase quality by 500%") with angry birds flying out when it is shot', 'Camelthorn and nest first in v1.4 part B, with close-ups for approval; the plants on every map done in v1.6 (#70)'],
   ['24 Oct, 12:18', 'Meerkat burrows on the desert maps: meerkats peek out and run from one burrow to another ("be creative")', 'Done in v1.7 (#72)'],
   ['24 Oct, 16:00', 'Languages: game, voice and text in German, English and Afrikaans, with names adjusted for each audience', 'Done in v1.5 (#68)'],
-  ['24 Oct, 17:45', 'Clean steel gongs in the training ground, with every shot mark staying visible for the session; tin cans ("blikkies") on fence posts that somersault and can be juggled in the air', 'Gongs done (#66); Blikkies queued as v1.8'],
-  ['24 Oct, 18:55', 'Five more ideas to keep the African feel (meerkats, a soundscape, a rain storm, a braai, a farm dog, veld cameos) and Daily specials on local days (Heritage Day braai, Christmas in summer, Halloween, New Year)', 'All queued as v1.6–v1.13; a list of Daily specials sent for the product owner to choose from (Halloween chosen on 26 Oct)'],
+  ['24 Oct, 17:45', 'Clean steel gongs in the training ground, with every shot mark staying visible for the session; tin cans ("blikkies") on fence posts that somersault and can be juggled in the air', 'Gongs done (#66); Blikkies being built as v1.8'],
+  ['24 Oct, 18:55', 'Five more ideas to keep the African feel (meerkats, a soundscape, a rain storm, a braai, a farm dog, veld cameos) and Daily specials on local days (Heritage Day braai, Christmas in summer, Halloween, New Year)', 'All queued as v1.6–v1.13; a list of Daily specials sent for the product owner to choose from (Halloween chosen on 26 Oct and done in #80)'],
   ['24 Oct, 20:35', 'Distant animals (like the giraffe) look rough; consider a bow and arrow later', 'Done in v1.6 (#70); bow and arrow noted as an idea for later'],
   ['25 Oct, 06:50', 'The windmill: more detail, a wheel with missing blades, turning with the wind and spinning', 'Done in v1.6 (#70)'],
   ['25 Oct, 07:00', 'The dassie "needs to be increased a lot"', 'Done in v1.6 (#70)'],
@@ -787,18 +851,18 @@ const requests = [
   ['25 Oct, 18:03', 'Baboons on the maps that pop up and do something naughty', 'Queued as v1.8b; they are shot down like guineafowl (the product owner’s choice)'],
   ['25 Oct, 18:03', '"The Harvest": 30 seconds to shoot the animals raiding the crops while farm workers fix the fence', 'Queued as v1.8c, a new mode on the title screen (the product owner’s choice)'],
   ['25 Oct, 20:58', 'Keep building overnight on the recommended options; retry Tank, and start a new session if it hangs again', 'Built overnight: v1.7, v1.7b and the history chapters merged; v1.7c finished in the morning'],
-  ['26 Oct, 04:50', 'Halloween special yes, go ahead', 'Being built: the Spookjag Daily on 31 Oct (dusk, owls, bats, pumpkin lanterns, guineafowl in witch hats)'],
-  ['26 Oct, 05:05', 'Karoo: HD aloes; the potjie should steam and boil a little and its lid fall off when shot; guineafowl must get smaller the further away they are, on every map, but stay shootable', 'Planned as two jobs after Halloween: perspective, then Karoo polish'],
-  ['26 Oct, 05:15', 'Bushveld and Kalahari: the far zebras, giraffes, elephants and other animals look like stick figures; the baobab needs more detail and better fruit, with holes where small animals look out (research what lives in it); little birds around the weaver nest', 'Researched; planned as far animals in HD on every map, and tree life (baobab residents, weavers flying around their nest)'],
-  ['26 Oct, 05:24', 'Okavango: add makalani palms with their hard nuts, which fall or burst when hit; the tin cans and the meerkats were not seen yet; the Project overview looked stale; idea: offer Standard or HD graphics', 'Makalani palms planned (nuts crack off, juggle and pop); Blikkies moved up; meerkats were live on the desert maps; the overview was fixed (an invalid entry); HD advised as a Settings choice, Auto / Standard / HD'],
+  ['26 Oct, 04:50', 'Halloween special yes, go ahead', 'Done (#80); live for everyone on 31 Oct'],
+  ['26 Oct, 05:05', 'Karoo: HD aloes; the potjie should steam and boil a little and its lid fall off when shot; guineafowl must get smaller the further away they are, on every map, but stay shootable', 'Perspective done (#82, 1.7.4); Karoo polish (HD aloes, the boiling potjie) queued after Blikkies'],
+  ['26 Oct, 05:15', 'Bushveld and Kalahari: the far zebras, giraffes, elephants and other animals look like stick figures; the baobab needs more detail and better fruit, with holes where small animals look out (research what lives in it); little birds around the weaver nest', 'Planned: far animals in HD (true sizes) and tree life'],
+  ['26 Oct, 05:24', 'Okavango: add makalani palms with their hard nuts, which fall or burst when hit; the tin cans and the meerkats were not seen yet; the Project overview looked stale; idea: offer Standard or HD graphics', 'Blikkies being built (v1.8); makalani palms and HD graphics planned'],
+  ['26 Oct, 08:10', 'Send the Halloween screenshots when the fixes are done; keep backups and the latest version of the project in Dropbox /ai-dev/', 'Screenshots sent; Dropbox backup set up (/AI-DEV/Tarantal-Madness: a dated status file at every merge, the job briefs, the board state)'],
+  ['26 Oct, 11:05', 'I tried the Halloween URL, but I don’t think it is live?', 'It was live; the ?feesdag address only works on test builds. Use the admin page: Special days → Spookjag · 31/10 → Play'],
 ];
 
 const next = [
-  ['Halloween Spookjag (Feesdae)', 'On 31 Oct the Daily Hunt becomes Spookjag: dusk, a big moon, pumpkin lanterns (shoot them all for +25), bats (+15), protected owls (\u221210), guineafowl in witch hats, Oupa\u2019s Halloween lines and a Halloween share card', 'Tank', 'building now; merged by 28 Oct'],
-  ['Perspective', 'Guineafowl smaller the further away they are, on every map, in proportion to the animals, and still shootable', 'Tank', 'about 5½ h'],
-  ['v1.8: Blikkies (moved up)', 'Tin cans on the old farm fence that somersault when hit and fly higher with every hit in the air, until they disappear', 'Tank', 'about 6 h'],
+  ['v1.8: Blikkies (moved up)', 'Tin cans on the old farm fence that somersault when hit and fly higher with every hit in the air, until they disappear', 'Tank', 'building now (started 18:38); about 6 h'],
   ['Karoo polish', 'HD aloes; the potjie steams, simmers and loses its lid when shot', 'Tank', 'about 5 h'],
-  ['Far animals in HD', 'Realistic far herds on every map instead of stick figures', 'Tank', 'about 6 h'],
+  ['Far animals in HD', 'Realistic far herds on every map instead of stick figures, drawn at their true sizes beside the birds', 'Tank', 'about 6 h'],
   ['Makalani palms', 'Okavango palms by the water with nuts that crack off, juggle and pop', 'Tank', 'about 5½ h'],
   ['Tree life', 'A detailed baobab with residents in its hollows, a better sausage tree, weavers flying around their colony nest', 'Tank', 'about 6 h'],
   ['HD graphics', 'An optional sharper art pack: Settings → Graphics Auto / Standard / HD', 'Tank', 'about 5 h'],
@@ -846,6 +910,8 @@ const decisions = [
   ['D-045', 'The Project overview page in the admin, fed from its own branch'],
   ['D-046', 'v1.7b Power-ups explained: icons, the Gun Shed tab, crates that show their item, the pickup card, countdown chips, Oupa\u2019s comments On / Text only / Off'],
   ['D-047', 'v1.7c Fruit reactions: fruit as separate sprites that swing and drop on shots, view only'],
+  ['D-048', 'Feesdae (special-day Dailies) and Halloween’s Spookjag on 31 Oct: bats, protected owls, pumpkin lanterns, witch hats'],
+  ['D-049', 'Perspective: birds get smaller with distance on every map, far animals in proportion, a minimum hit size for far targets'],
 ];
 
 const glossary = [
@@ -864,6 +930,8 @@ const glossary = [
   ['Bakkie', 'Pickup truck'],
   ['Koppie', 'Small rocky hill'],
   ['Verder', '"Further": the bonus map'],
+  ['Feesdae', 'Special days (holidays): on such a day the Daily Hunt becomes that day’s special'],
+  ['Spookjag', '"Ghost hunt": the Halloween special, 31 Oct'],
   ['Kwêvoël', 'Grey go-away-bird'],
   ['Generaal, Ou Grys, Kuifkop Koning, Die Stormvoël', 'Boss birds'],
 ];
