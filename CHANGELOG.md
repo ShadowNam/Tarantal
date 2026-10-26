@@ -3,6 +3,48 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.7.4] — Perspective: birds get smaller with distance (26 Oct 2026)
+
+Decision record D-049. The product owner: far guineafowl stood taller than the ostriches and
+zebras beside them. Birds now shrink with every plane back, and the far animals stand in proportion.
+
+### Changed
+- **Plane scales**: mid 0.5 → 0.42, far 0.22 → 0.15, Ver 0.1 → 0.07 (near pop-ups unchanged).
+  Flock spacing, speeds, alert radii and crate drops shrink with the birds on every plane
+  (`scoring.tuningRefScale`).
+- **Far animals** show at 3× (their art is drawn at 3×); the Namibië waterhole's animals are drawn
+  5× taller in place. A far guineafowl no longer stands taller than an ostrich or a springbok.
+- **Still shootable**: a far bird's body is hit within at least 18 px, a Ver bird's within 10 px
+  (mouse and touch); touch assist mid 10 / far 12 px; far birds score 22 (was 25).
+- Bird atlases are packed at the new plane sizes (smaller first download).
+
+### Tools
+- `tools/perspective-audit.ts` (proportions per biome and plane) and `tools/perspective-sweep.ts`
+  (the balance cells); tables in `docs/balance/perspective.md`.
+- Dev/e2e `?planeScale=v17` shows the old sizes for before/after screenshots.
+
+## [1.7.3] — Feesdae: the Halloween Spookjag Daily (31 Oct 2026)
+
+Decision record D-048. On a special day (UTC) the Daily Hunt becomes that day's special for
+everyone. Halloween, 31 Oct, is the first: the Spookjag.
+
+### Added
+- **Feesdae**, special days as content (`content/feesdae.json`): a date, the day's map under the
+  special's light, one twist rule, decorations, Oupa's lines, a sting and a share-card frame.
+- **Spookjag (31 Oct)**: a dark, cool dusk Daily (its own grade) under a big low moon. Bats are a fast, erratic bonus target
+  (+15, with the Frenzy multiplier like every bonus); the spotted eagle-owl is protected (−10, a
+  hoot and Oupa's scold); shoot every carved pumpkin lantern of the day — on the reservoir rim,
+  rocks and fence posts — for **Lanterns out!** (+25, once). Some guineafowl wear witch hats.
+- The title's Daily button shows the special's name and a badge ("Spookjag tonight!"); the tally
+  and the share card get a Halloween frame and the title "Spookjag 2026".
+
+### Changed
+- Replays are InputLog v6 (they carry the special day); older logs still play.
+- Content JSON ships without its `$comment` notes (about 9 KB less to download first).
+- Sizes: first download 3,070.8 KB (web), 3,064.1 KB (Poki), 3,064.2 KB (CrazyGames); the
+  Halloween art, sounds and Oupa's Halloween lines (about 320 KB) download only for the special
+  day's hunt.
+
 ## [1.7.2] — fruit swing and drop when shot (26 Oct 2026)
 
 Decision record D-047. Rendering only: the sim, the content it reads and the golden replays are

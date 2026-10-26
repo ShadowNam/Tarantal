@@ -19,8 +19,9 @@ import type {
  *  v4 (v1.2, D-033) adds the map after the mode block: layout and bonus map ids ('' = none). A
  *  v1–v3 log decodes with neither, so it replays on the plain biome it was played on.
  *  v5 (v1.3, D-036) adds the fitted sight after the map ('' = the gun's default) and the rifle
- *  commands aimStart / aimMove / aimRelease / aimCancel / zoom. */
-export const INPUT_LOG_VERSION = 5;
+ *  commands aimStart / aimMove / aimRelease / aimCancel / zoom.
+ *  v6 (D-048) adds the special day (Feesdag) id after the sight ('' = an ordinary hunt). */
+export const INPUT_LOG_VERSION = 6;
 
 export interface InputLog {
   readonly v: number;
@@ -253,6 +254,8 @@ export function encodeInputLog(log: InputLog): Uint8Array {
   }
   if (log.v >= 5) w.ascii(m.sight ?? '');
   else if (m.sight !== undefined) throw new Error('a sight needs log version 5');
+  if (log.v >= 6) w.ascii(m.feesdag ?? '');
+  else if (m.feesdag !== undefined) throw new Error('a special day needs log version 6');
 
   w.varint(log.commands.length);
   for (const [delta, cmd] of log.commands) {
@@ -319,6 +322,10 @@ export function decodeInputLog(bytes: Uint8Array): InputLog {
   if (v >= 5) {
     const sight = r.ascii();
     if (sight !== '') mode.sight = sight;
+  }
+  if (v >= 6) {
+    const feesdag = r.ascii();
+    if (feesdag !== '') mode.feesdag = feesdag;
   }
 
   const count = r.varint();

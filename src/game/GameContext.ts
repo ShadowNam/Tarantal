@@ -363,12 +363,34 @@ export interface TestHook {
   huntSeed: number | null;
   /** M7: the daily hunt running or just ended (null = not a daily). */
   daily: { key: string; number: number; seed: number; official: boolean } | null;
+  /** D-048: the title's special-day badge (null on an ordinary day). */
+  feesdag: { id: string; badge: string } | null;
+  /** D-048: the Spookjag's things on screen (design px) during a special day's hunt. */
+  spook: {
+    id: string;
+    lanternsLit: number;
+    lanternsTotal: number;
+    things: { id: number; kind: string; x: number; y: number; dark: boolean }[];
+    final: boolean;
+    /** Witch hats drawn now (screen design px). */
+    hats: { x: number; y: number }[];
+  } | null;
+  /** D-048: the feesdae group's sheet: delivered ('final') or the code-drawn stand-in. */
+  feesdaeArt: 'final' | 'standin' | null;
   /** M7: challenge of the hunt running or just ended, and the card / tally lines shown. */
   challenge: { seed: number; mode: string; score: number; contentChanged: boolean } | null;
   /** M7: one-line notice on the title (a bad challenge link), the HUD tag, tally lines. */
   notice: string | null;
   hudTag: string | null;
-  tally: { tag: string | null; compare: string | null; news: string | null; share: boolean } | null;
+  tally: {
+    tag: string | null;
+    compare: string | null;
+    news: string | null;
+    share: boolean;
+    /** D-048: the special day's frame on the slate (null on an ordinary tally). */
+    frame?: string | null;
+    title?: string;
+  } | null;
   /** M7: the last [Share] (outcome and the message sent). */
   lastShare: { outcome: string; text: string; url: string } | null;
   /** M9: the build's platform adapter id. */

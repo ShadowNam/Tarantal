@@ -7,7 +7,7 @@
 // crates fall → dust devils → tick++ → end check. Shots therefore resolve against the positions the player saw in the
 // previous snapshot. A shot resolves damage first (a bag scores at the behaviour the bird had),
 // then Whole Flock, then the threats it makes (GDD §6.1–6.4).
-import type { Biome, ContentBundle, Sight } from '../content/schemas';
+import type { Biome, ContentBundle, Feesdag, Sight } from '../content/schemas';
 import {
   behaviourOf,
   isHittable,
@@ -17,6 +17,14 @@ import {
   type BirdCreature,
 } from './birds/Bird';
 import { duckBoss, spookBoss, updateScripted } from './birds/scripted';
+import {
+  lanternsLit,
+  removeThings,
+  spookShape,
+  startSpookjag,
+  stepSpookjag,
+  type Spookjag,
+} from './feesdag/spookjag';
 import { createCharmEngine, type FiredEffect, type TriggerContext } from './charms/interpreter';
 import { CHARM_SCRIPTS } from './charms/registry';
 import { clampCameraX, planeCentreX, planeToDx, quantiseHalf, tapToPlane } from './camera';
@@ -153,6 +161,9 @@ import {
 
 export { FAMILIEFOTO_SECRET };
 
+/** D-048: the spotted eagle-owl's creature id in penalty events (it is not a birds.json bird). */
+export const OWL = 'ooruil';
+
 export interface Sim {
   /** Advances exactly one tick (1/60 s). A no-op once the hunt is over. */
   step(commands: readonly Command[]): void;
@@ -177,6 +188,8 @@ interface HuntSetup {
   readonly season: SeasonHuntConfig | null;
   /** v1.3: the rifle's fitted sight (hold to zoom, release to fire), else null. */
   readonly sight: Sight | null;
+  /** D-048: the special day this Daily plays (feesdae.json), else null. */
+  readonly feesdag: Feesdag | null;
 }
 
 type Tutorial = ContentBundle['modes']['modes']['ftue']['tutorial'];
@@ -225,6 +238,13 @@ function resolveSetup(content: ContentBundle, config: SimConfig): HuntSetup {
   }
   const season = mode.season ?? null;
   if (season !== null) checkSeason(content, mode.id, season);
+  // D-048: a special day is a Daily's (the date was decided outside the sim; its id is here).
+  const feesdag =
+    mode.feesdag === undefined
+      ? null
+      : (content.feesdae.specials.find((f) => f.id === mode.feesdag) ?? null);
+  if (mode.feesdag !== undefined && (feesdag === null || mode.id !== 'daily'))
+    throw new Error(`special day ${mode.feesdag} needs mode daily and a feesdae.json entry`);
   const omen = ranged
     ? false
     : mapOmen(
@@ -241,6 +261,7 @@ function resolveSetup(content: ContentBundle, config: SimConfig): HuntSetup {
     tutorial,
     season,
     sight: fittedSight(content, weapon, mode.sight),
+    feesdag,
   };
 }
 
@@ -708,6 +729,18 @@ export function createSim(config: SimConfig): Sim {
     (setup.map.layout?.light ?? null) !== null &&
     mk.sunbatheLights.includes(setup.map.layout?.light ?? '');
   const colonies: ColonyState[] = [];
+  // D-048: the special day's twist (Halloween's Spookjag), from its own stream.
+  const spook: Spookjag | null =
+    setup.feesdag === null
+      ? null
+      : startSpookjag({
+          twist: setup.feesdag.twist,
+          biome,
+          planes: scoring.planes,
+          durationTicks,
+          rng: rng.stream('feesdag'),
+        });
+  const spookTally = { bats: 0, owls: 0 };
   if (!ranged) {
     for (const def of biome.colonies ?? []) {
       const layer = layerById.get(def.layer);
@@ -847,6 +880,13 @@ export function createSim(config: SimConfig): Sim {
       family: c.meerkats.length,
     });
   if (wind !== null) emit({ type: 'windChanged', tick: 0, dir: wind.dir, strength: wind.strength });
+  if (spook !== null && setup.feesdag !== null)
+    emit({
+      type: 'feesdagStarted',
+      tick: 0,
+      feesdag: setup.feesdag.id,
+      lanterns: spook.lanternsTotal,
+    });
 
   function directorContext(): DirectorContext {
     return {
@@ -1222,6 +1262,19 @@ export function createSim(config: SimConfig): Sim {
       if (list === undefined) out.set(layerId, [e]);
       else list.push(e);
     };
+    // D-048: the Spookjag's bats, owls and lit lanterns come first in their plane's layer.
+    for (const t of spook?.things ?? []) {
+      const layerId = planeLayer.get(t.plane);
+      const shape = spook === null ? null : spookShape(spook, t, scoring.planes);
+      if (layerId === undefined || shape === null) continue;
+      add(layerId, {
+        kind: 'spook',
+        spookId: t.id,
+        x: t.x,
+        y: t.y,
+        shape: { type: 'ellipse', ...shape },
+      });
+    }
     for (const c of crates) {
       const layerId = planeLayer.get(c.plane);
       if (layerId === undefined) continue;
@@ -1391,11 +1444,13 @@ export function createSim(config: SimConfig): Sim {
         ? plane === 'far' || plane === 'ver'
         : r.meerkatId !== undefined
           ? false
-          : r.crateId !== null
-            ? crateCfg.plane === 'far'
-            : r.propId !== null
-              ? (propLayerFactor.get(r.propId) ?? 1) <= farFactor
-              : true;
+          : r.spookId !== undefined
+            ? spook?.things.find((t) => t.id === r.spookId)?.plane === 'far'
+            : r.crateId !== null
+              ? crateCfg.plane === 'far'
+              : r.propId !== null
+                ? (propLayerFactor.get(r.propId) ?? 1) <= farFactor
+                : true;
     const ldx = landedFar ? pdx + drift : pdx;
     emit({
       type: 'pelletImpact',
@@ -1409,6 +1464,7 @@ export function createSim(config: SimConfig): Sim {
       crateId: r.crateId,
       ...(r.paperId === undefined ? {} : { paperId: r.paperId }),
       ...(r.meerkatId === undefined ? {} : { meerkatId: r.meerkatId }),
+      ...(r.spookId === undefined ? {} : { spookId: r.spookId }),
       ...(cx === null ? {} : { cx }),
     });
     return { dx: ldx, sy: psy, r };
@@ -1581,6 +1637,7 @@ export function createSim(config: SimConfig): Sim {
     const partHits: { propId: string; partId: string }[] = [];
     const crateHits: number[] = [];
     const meerkatHits: number[] = [];
+    const spookHits: number[] = [];
     let paperHits = 0;
     /** Range: pellets per paper target or steel plate, in landing order. */
     const paperPellets = new Map<number, number>();
@@ -1616,6 +1673,7 @@ export function createSim(config: SimConfig): Sim {
       if (crateId !== null && !crateHits.includes(crateId)) crateHits.push(crateId);
       if (r.meerkatId !== undefined && !meerkatHits.includes(r.meerkatId))
         meerkatHits.push(r.meerkatId);
+      if (r.spookId !== undefined && !spookHits.includes(r.spookId)) spookHits.push(r.spookId);
     }
 
     if (rangeProgram !== null) {
@@ -1650,7 +1708,11 @@ export function createSim(config: SimConfig): Sim {
     }
     const touchedAny = damage.touched;
     const hitThing =
-      partHits.length > 0 || crateHits.length > 0 || paperHits > 0 || meerkatHits.length > 0;
+      partHits.length > 0 ||
+      crateHits.length > 0 ||
+      paperHits > 0 ||
+      meerkatHits.length > 0 ||
+      spookHits.length > 0;
 
     const targets = bagged.filter((x) => x.bird.creature.kind !== 'nonTarget');
     const nonTargets = bagged.filter((x) => x.bird.creature.kind === 'nonTarget');
@@ -1796,6 +1858,7 @@ export function createSim(config: SimConfig): Sim {
         if (bonusRuleMul > 0) charmTrigger('flockWiped', { plane: f.plane });
       }
     }
+    if (spookHits.length > 0) shotSpook(shotId, spookHits);
     // This shot counts against shell power-ups it had; one it picks up starts with the next.
     endPowerups(onShellFired(powerups));
     for (const id of crateHits) openCrate(id);
@@ -1853,8 +1916,59 @@ export function createSim(config: SimConfig): Sim {
     }
   }
 
-  function awardBonus(bonus: BonusId, base: number, ruleMul = 1): void {
-    if (ranged) return;
+  /**
+   * D-048: the Spookjag things a shot hit (in hit order). A bat is an event bonus (GDD §5.3: Frenzy
+   * × Stampede, a bonusAwarded event), an owl a penalty like the hadeda's (penaltyApplied), and a
+   * lantern goes dark; the day's last one pays Lanterns out!, an event bonus too.
+   */
+  function shotSpook(shotId: number, ids: readonly number[]): void {
+    if (spook === null) return;
+    const gone: number[] = [];
+    for (const id of ids) {
+      const t = spook.things.find((x) => x.id === id);
+      if (t === undefined || (t.kind === 'lantern' && t.dark)) continue;
+      let points = 0;
+      if (t.kind === 'lantern') t.dark = true;
+      else {
+        gone.push(t.id);
+        if (t.kind === 'bat') {
+          spookTally.bats++;
+          points = awardBonus('bat', spook.twist.bats.points);
+        } else {
+          // The hadeda's path (penaltyApplied, charms' penalty trigger), with the owl's id.
+          spookTally.owls++;
+          points = pass.penaltyOverride.get(OWL) ?? spook.twist.owls.points;
+          score += points;
+          stats.penalties++;
+          emit({ type: 'penaltyApplied', tick, birdId: t.id, creature: OWL, points });
+          charmTrigger('penalty', { creature: OWL, plane: t.plane });
+        }
+      }
+      const lit = lanternsLit(spook);
+      emit({
+        type: 'spookHit',
+        tick,
+        shotId,
+        thing: t.kind,
+        id: t.id,
+        plane: t.plane,
+        x: t.x,
+        y: t.y,
+        points,
+        lanternsLit: lit,
+      });
+      if (t.kind === 'lantern' && lit === 0 && !spook.allOutPaid) {
+        spook.allOutPaid = true;
+        // Like a secret's points: an event bonus through the pipeline.
+        const paid = awardBonus('lanternsOut', spook.twist.lanterns.allOutBonus);
+        emit({ type: 'lanternsOut', tick, points: paid });
+      }
+    }
+    if (gone.length > 0) removeThings(spook, gone);
+  }
+
+  function awardBonus(bonus: BonusId, base: number, ruleMul = 1): number {
+    if (ranged) return 0;
     const charmMul =
       bonus === 'wholeFlock' || bonus === 'twoFlies' || bonus === 'secretChain'
         ? pass.bonusMul[bonus]
@@ -1868,6 +1982,7 @@ export function createSim(config: SimConfig): Sim {
     const paid = ruleMul === 1 ? award : Math.round(award * ruleMul);
     score += paid;
     emit({ type: 'bonusAwarded', tick, bonus, base, award: paid });
+    return paid;
   }
 
   // --- crates ------------------------------------------------------------------------------
@@ -2638,6 +2753,16 @@ export function createSim(config: SimConfig): Sim {
       colonyAlarms();
       tickColonies();
     }
+    if (spook !== null) {
+      const r = stepSpookjag(
+        spook,
+        { biome, planes: scoring.planes, rng: rng.stream('feesdag') },
+        tick,
+      );
+      for (const f of r.spawned)
+        if (f.kind !== 'lantern')
+          emit({ type: 'spookFlew', tick, thing: f.kind, id: f.id, plane: f.plane });
+    }
 
     if (crates.length > 0) {
       const expired = crates.filter((c) => tickCrate(c));
@@ -2815,6 +2940,25 @@ export function createSim(config: SimConfig): Sim {
               },
         over,
         ...(ranged ? { range: { papers } } : {}),
+        ...(spook === null || setup.feesdag === null
+          ? {}
+          : {
+              feesdag: {
+                id: setup.feesdag.id,
+                things: spook.things.map((t) => ({
+                  id: t.id,
+                  kind: t.kind,
+                  plane: t.plane,
+                  x: t.x,
+                  y: t.y,
+                  facing: t.facing,
+                  dark: t.dark,
+                  base: t.base,
+                })),
+                lanternsLit: lanternsLit(spook),
+                lanternsTotal: spook.lanternsTotal,
+              },
+            }),
       };
     },
     drainEvents() {
@@ -2855,6 +2999,17 @@ export function createSim(config: SimConfig): Sim {
         consumablesUsed: [...consumablesUsed],
         rentalUsed,
         bossesBagged,
+        ...(spook === null || setup.feesdag === null
+          ? {}
+          : {
+              feesdag: {
+                id: setup.feesdag.id,
+                bats: spookTally.bats,
+                owls: spookTally.owls,
+                lanterns: spook.lanternsTotal - lanternsLit(spook),
+                lanternsTotal: spook.lanternsTotal,
+              },
+            }),
       };
     },
   };

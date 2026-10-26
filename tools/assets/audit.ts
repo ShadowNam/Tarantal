@@ -10,6 +10,7 @@ import type { BirdMotion, BirdPhase, PlaneId } from '../../src/sim/types';
 import type { AssetKind, AssetStatus } from '../../src/game/assets/AssetManifest';
 import type { Catalog } from './catalog';
 import { MEERKAT_SHEET, MEERKAT_SOUNDS } from '../../src/game/assets/desertAssets';
+import { HALLOWEEN_SHEET, SPOOK_SOUNDS } from '../../src/game/feesdae/feesdaeAssets';
 
 export interface AuditRow {
   readonly key: string;
@@ -72,6 +73,10 @@ function usages(
   // v1.7 (D-044): the desert keys (src/game/assets/desertAssets.ts): the sheet by its constant,
   // a sound when it is played by name or queued as a view cue.
   if (key === MEERKAT_SHEET) needles.push(/\bMEERKAT_SHEET\b/);
+  // D-048: the special days' sheet by its constant, a sound when played by name.
+  if (key === HALLOWEEN_SHEET) needles.push(/\bHALLOWEEN_SHEET\b/);
+  const spookSound = Object.entries(SPOOK_SOUNDS).find(([, k]) => k === key)?.[0];
+  if (spookSound !== undefined) needles.push(new RegExp(`playSpookSound\\([^)]*'${spookSound}'`));
   const meerkatSound = Object.entries(MEERKAT_SOUNDS).find(([, k]) => k === key)?.[0];
   if (meerkatSound !== undefined) {
     needles.push(new RegExp(`playMeerkatSound\\([^)]*'${meerkatSound}'`));
@@ -103,6 +108,8 @@ function usages(
       // v1.0.1 D-028 §3) — a "lines" array, not just any quote of the key (i18n files have those).
       needles.push(new RegExp(`"barkKey":\\s*"${line}"`));
       needles.push(new RegExp(`"lines":\\s*\\[[^\\]]*"${line}"`));
+      // D-048: a special day's own lines (feesdae.json barks).
+      needles.push(new RegExp(`"(start|bat|owl|lanternsOut|end)":\\s*"${line}"`));
     } else needles.push(quoted(key));
     // Music, ambience and voice keys are built at runtime: the player must call the key helper.
     const helper =

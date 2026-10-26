@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { loadFeel } from '../../../tools/testContent';
+import { loadContent, loadFeel } from '../../../tools/testContent';
 import type { SimEvent } from '../../sim/events';
 import { BarkDirector, allBarkLines, firstHuntToday, type BarkFrame } from './barks';
 
@@ -221,5 +221,43 @@ describe('BarkDirector (v1.0.1, D-028 §3)', () => {
     expect(d.hunt([], frame(GAP))?.trigger).toBe('boss'); // higher priority first
     expect(d.hunt([], frame(GAP * 2))?.trigger).toBe('stampede');
     expect(d.hunt([], frame(GAP * 3))).toBeNull();
+  });
+});
+
+describe('special-day lines (D-048)', () => {
+  const special = loadContent().feesdae.specials.find((f) => f.id === 'halloween');
+  if (special === undefined) throw new Error('no halloween');
+  const started: SimEvent = { type: 'feesdagStarted', tick: 0, feesdag: 'halloween', lanterns: 4 };
+  const hit = (thing: 'bat' | 'owl' | 'lantern'): SimEvent => ({
+    type: 'spookHit',
+    tick: 100,
+    shotId: 1,
+    thing,
+    id: 9,
+    plane: 'mid',
+    x: 0,
+    y: 0,
+    points: thing === 'bat' ? 15 : thing === 'owl' ? -10 : 0,
+    lanternsLit: 2,
+  });
+
+  it("speaks the special's start, bat, owl, lanterns-out and end lines in its own hunt", () => {
+    const d = new BarkDirector(T, GAP);
+    d.startHunt(0, special.barks);
+    expect(d.hunt([started], frame(0))?.line).toBe(special.barks.start);
+    expect(d.hunt([hit('bat')], frame(GAP + 1))?.line).toBe(special.barks.bat);
+    expect(d.hunt([hit('owl')], frame(GAP * 2 + 2))?.line).toBe(special.barks.owl);
+    expect(d.hunt([{ type: 'lanternsOut', tick: 200, points: 25 }], frame(GAP * 3 + 3))?.line).toBe(
+      special.barks.lanternsOut,
+    );
+    expect(d.say('feesdagEnd', GAP * 4 + 4)?.line).toBe(special.barks.end);
+    expect(allBarkLines(T, [special.barks])).toContain(special.barks.owl);
+  });
+
+  it('says none of them on an ordinary hunt', () => {
+    const d = new BarkDirector(T, GAP);
+    d.startHunt(0);
+    expect(d.hunt([started, hit('bat')], frame(0))).toBeNull();
+    expect(d.say('feesdagEnd', GAP + 1)).toBeNull();
   });
 });

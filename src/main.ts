@@ -14,6 +14,7 @@ import {
   faunaAsDrawn,
   isPlaneScalePreset,
   withDoppies,
+  withEarlySpook,
   withNoBirds,
   withPlaneScales,
   withQuotaMul,
@@ -96,7 +97,11 @@ import { adminHuntSetup, type AdminHuntSetup } from './game/admin/adminPlay';
 import { AdminScene } from './game/scenes/AdminScene';
 import { AdBreaks } from './game/ads/AdBreaks';
 import { PrivacyScene } from './game/scenes/PrivacyScene';
-import { officialResultsAllowed, testHookPolicy } from './game/testHooks';
+import {
+  feesdagOverride as feesdagOverrideFor,
+  officialResultsAllowed,
+  testHookPolicy,
+} from './game/testHooks';
 import { CAPTURE_NAMESPACE, CaptureState, captureAllowed, captureSave } from './game/capture';
 import { FrameBenchmark } from './game/quality/FrameBenchmark';
 import { benchmarkTier, type DeviceHints } from './game/quality/QualityManager';
@@ -254,6 +259,19 @@ function bonusParam(): string | undefined {
   return v !== null && (BONUS_MAP_IDS as readonly string[]).includes(v) ? v : undefined;
 }
 
+/**
+ * D-048: `?feesdag=halloween` (or `none`) makes today's Daily that special day — dev and e2e
+ * builds and the web admin page only, never a portal build. The real date logic is untouched.
+ */
+function feesdagOverride(): string | null {
+  return feesdagOverrideFor({
+    buildPlatform: import.meta.env.VITE_PLATFORM,
+    testHooks,
+    admin: adminSetup,
+    param: params.get('feesdag'),
+  });
+}
+
 /** e2e/dev only: ?today=YYYY-MM-DD fixes the UTC day of the Daily Hunt. */
 function todaySource(): () => number {
   const adminDay = adminSetup?.today;
@@ -359,6 +377,9 @@ const hook: TestHook = {
   seasonHud: null,
   huntSeed: null,
   daily: null,
+  feesdag: null,
+  spook: null,
+  feesdaeArt: null,
   challenge: null,
   notice: null,
   hudTag: null,
@@ -406,7 +427,9 @@ const withDop =
     ? withDoppies(withQuota, doppiesParam)
     : withQuota;
 // e2e/dev only (v1.7 meerkat previews): ?birds=0 — no birds or world events, colonies only.
-const devBundle = testHooks && params.get('birds') === '0' ? withNoBirds(withDop) : withDop;
+const noBirds = testHooks && params.get('birds') === '0' ? withNoBirds(withDop) : withDop;
+// e2e/dev only (D-048): ?spook=early brings the special day's owls and bats in early.
+const devBundle = testHooks && params.get('spook') === 'early' ? withEarlySpook(noBirds) : noBirds;
 // D-034: `?admin=1&play=1` plays the hunt the admin page stored (its content changes too).
 let adminSave: AdminSave | null = adminOn ? loadAdminSave() : null;
 const adminList = adminOn ? adminEntries(devBundle, placeholderBiomes()) : [];
@@ -853,6 +876,7 @@ async function boot(): Promise<void> {
       playableBiomes,
       shareBase,
       unranked,
+      feesdagOverride: feesdagOverride(),
     }),
     pendingChallenge,
     platform,

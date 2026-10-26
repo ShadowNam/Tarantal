@@ -101,11 +101,14 @@ export async function quick(
  * player (`ftue=0`): the M2–M4 specs test Classic hunts, the FTUE has its own spec.
  * Unless the query picks a day (`today=`), a map (`layout=`, `bonus=`) or a challenge (`c=`),
  * Classic plays the plain biome (`layout=none`, v1.2): otherwise the weekday layout moves the
- * props these specs tap, and a spec would pass on one UTC day and fail on the next.
+ * props these specs tap, and a spec would pass on one UTC day and fail on the next. Likewise the
+ * Daily is never a special day (`feesdag=none`, D-048) unless the query names one.
  */
 export async function boot(page: Page, query: string): Promise<void> {
   const pinned = /(^|&)(today|layout|bonus|c)=/.test(query);
-  const withMap = pinned ? query : `${query}&layout=none`;
+  const mapped = pinned ? query : `${query}&layout=none`;
+  // D-048: an ordinary Daily unless the spec asks for a special (a run on 31 Oct stays the same).
+  const withMap = /(^|&)feesdag=/.test(mapped) ? mapped : `${mapped}&feesdag=none`;
   const q = /(^|&)ftue=/.test(withMap) ? withMap : `${withMap}&ftue=0`;
   await page.goto(`/?e2e=1&${q}`);
   await expect(page.locator('#game canvas')).toHaveCount(1);

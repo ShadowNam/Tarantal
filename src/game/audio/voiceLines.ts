@@ -3,13 +3,23 @@
 // language's voice pack. Pure: from the bark tuning (feel.json barks) and the biomes' secrets.
 import type { Biome, MeerkatTuning } from '../../content/schemas';
 import { VOICE_LANGUAGES, type VoiceLanguage } from '../../i18n/i18n';
-import { allBarkLines, type BarkTuning } from './barks';
+import { allBarkLines, type BarkTuning, type SpecialBarks } from './barks';
 
 /** Asset group of one voice language's pack (lazy: only the chosen language downloads). */
 export const VOICE_GROUP_PREFIX = 'voice-';
 
 export function voiceGroup(lang: VoiceLanguage): string {
   return `${VOICE_GROUP_PREFIX}${lang}`;
+}
+
+/**
+ * D-048: a special day's own lines in one voice language, a lazy group of their own (loaded with
+ * that day's hunt, src/game/feesdae), so the year-round voice packs don't carry them.
+ */
+export const SPECIAL_VOICE_GROUP_PREFIX = 'feesdae-voice-';
+
+export function specialVoiceGroup(lang: string): string {
+  return `${SPECIAL_VOICE_GROUP_PREFIX}${lang}`;
 }
 
 /** The voice language a pack group belongs to, or null for any other group. */
@@ -28,8 +38,10 @@ export function voicedLines(
   barks: BarkTuning,
   biomes: readonly Pick<Biome, 'props'>[],
   meerkats?: Pick<MeerkatTuning, 'hit' | 'familiefoto'>,
+  /** D-048: the special days' own lines (feesdae.json barks). */
+  specials: readonly SpecialBarks[] = [],
 ): string[] {
-  const out = new Set(allBarkLines(barks));
+  const out = new Set(allBarkLines(barks, specials));
   if (meerkats !== undefined) {
     out.add(meerkats.hit.barkKey);
     out.add(meerkats.familiefoto.barkKey);

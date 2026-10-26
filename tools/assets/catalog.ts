@@ -6,13 +6,20 @@ import type { ArtPlaneId as PlaneId } from '../../src/game/assets/artPlane';
 import { coreWidth, LAYER_BLEED_PX } from '../../src/sim/world';
 import { COMMON_GROUP } from '../../src/game/assets/assetIndex';
 import { DESERT_GROUP, isDesertKey } from '../../src/game/assets/desertAssets';
+import {
+  FEESDAE_GROUP,
+  HALLOWEEN_SHEET,
+  SHEET_H as FEESDAE_SHEET_H,
+  SHEET_W as FEESDAE_SHEET_W,
+  SPOOK_SOUNDS,
+} from '../../src/game/feesdae/feesdaeAssets';
 import type { AssetKind } from '../../src/game/assets/AssetManifest';
 import {
   createPlaceholderManifest,
   loadBiomeArt,
   placeholderBiomes,
 } from '../../src/game/placeholder/ProceduralAssetFactory';
-import { voiceGroup, voicedLines } from '../../src/game/audio/voiceLines';
+import { specialVoiceGroup, voiceGroup, voicedLines } from '../../src/game/audio/voiceLines';
 import { voiceKey } from '../../src/game/assets/AssetManifest';
 import { VOICE_LANGUAGES } from '../../src/i18n/i18n';
 import {
@@ -124,12 +131,35 @@ export async function buildCatalog(content: ContentBundle): Promise<Catalog> {
   });
   for (const key of Object.values(RANGE_SOUNDS))
     entries.set(key, { key, kind: 'sound', group: RANGE_GROUP, biomes: everyBiome });
+  // D-048: the special days' sheet and sounds, in their own lazy group (the feesdae chunk loads
+  // them when a special day's hunt starts; no placeholder manifest has them).
+  entries.set(HALLOWEEN_SHEET, {
+    key: HALLOWEEN_SHEET,
+    kind: 'texture',
+    group: FEESDAE_GROUP,
+    biomes: everyBiome,
+    width: FEESDAE_SHEET_W,
+    height: FEESDAE_SHEET_H,
+  });
+  for (const key of Object.values(SPOOK_SOUNDS))
+    entries.set(key, { key, kind: 'sound', group: FEESDAE_GROUP, biomes: everyBiome });
   // v1.5 (D-041): Oupa's voice, one lazy pack per voice language (voice/<lang>/<bark key>): his
   // trigger lines (feel.json barks) and every secret's bark.
+  // D-048: a special day's own lines go in a lazy group per language, loaded with that day.
+  const specialBarks = content.feesdae.specials.map((f) => f.barks);
+  const special = new Set(
+    specialBarks.flatMap((b) => [b.start, b.bat, b.owl, b.lanternsOut, b.end]),
+  );
   for (const lang of VOICE_LANGUAGES)
-    for (const line of voicedLines(loadFeel().barks, content.biomes, content.birds.meerkats)) {
+    for (const line of voicedLines(
+      loadFeel().barks,
+      content.biomes,
+      content.birds.meerkats,
+      specialBarks,
+    )) {
       const key = voiceKey(lang, line);
-      entries.set(key, { key, kind: 'sound', group: voiceGroup(lang), biomes: everyBiome });
+      const group = special.has(line) ? specialVoiceGroup(lang) : voiceGroup(lang);
+      entries.set(key, { key, kind: 'sound', group, biomes: everyBiome });
     }
   return {
     homeBiome: content.modes.modes.classic.biome,

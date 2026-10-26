@@ -40,6 +40,7 @@ const lines = voicedLines(
   loadFeel().barks,
   loadContent().biomes,
   loadContent().birds.meerkats,
+  loadContent().feesdae.specials.map((f) => f.barks),
 ).filter((l) => only === undefined || only.includes(l));
 const jobs: { lang: string; key: string; text: string; out: string }[] = [];
 for (const lang of langs) {

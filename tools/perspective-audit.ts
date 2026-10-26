@@ -108,7 +108,7 @@ export function audit(): string {
       'listed once per drawn size; the plane is the layer they stand on (far_veld = far, ver_veld = Ver).',
     '',
   );
-  const verMaps = (id: string, layouts: readonly { id: string; ver?: boolean }[]): string => {
+  const verMaps = (layouts: readonly { id: string; ver?: boolean | undefined }[]): string => {
     const days = layouts.filter((l) => l.ver === true).map((l) => l.id);
     return days.length > 0
       ? `every layout (${days.join(', ')}) and Nog Verder / Die Verste`
@@ -117,7 +117,7 @@ export function audit(): string {
   for (const biome of content.biomes) {
     out.push(`### ${biome.id}`, '');
     out.push(
-      `Layouts: ${biome.layouts.map((l) => l.id).join(', ')} — near, mid and far on all; the Ver plane on ${verMaps(biome.id, biome.layouts)}. Layouts only move props (u), so one table per biome.`,
+      `Layouts: ${biome.layouts.map((l) => l.id).join(', ')} — near, mid and far on all; the Ver plane on ${verMaps(biome.layouts)}. Layouts only move props (u), so one table per biome.`,
       '',
     );
     out.push(

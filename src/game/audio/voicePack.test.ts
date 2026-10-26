@@ -7,12 +7,27 @@ import { parseAssetIndex, type AssetIndex } from '../assets/assetIndex';
 import type { FinalSound } from '../assets/AssetManifest';
 import type { AudioDirector } from './AudioDirector';
 import { MAX_ATTEMPTS, VoicePacks, voicePackEntries, type VoicePackState } from './voicePack';
-import { voiceGroup, voicedLines, voiceLanguageOfGroup } from './voiceLines';
+import { specialVoiceGroup, voiceGroup, voicedLines, voiceLanguageOfGroup } from './voiceLines';
 import { VOICE_LANGUAGES } from '../../i18n/i18n';
 import { loadContent, loadFeel } from '../../../tools/testContent';
 
 const root = join(import.meta.dirname, '..', '..', '..');
-const LINES = voicedLines(loadFeel().barks, loadContent().biomes, loadContent().birds.meerkats);
+const LINES = voicedLines(
+  loadFeel().barks,
+  loadContent().biomes,
+  loadContent().birds.meerkats,
+  loadContent().feesdae.specials.map((f) => f.barks),
+);
+/** D-048: the special days' own lines (their own lazy voice groups). */
+const SPECIAL = new Set(
+  loadContent().feesdae.specials.flatMap((f) => [
+    f.barks.start,
+    f.barks.bat,
+    f.barks.owl,
+    f.barks.lanternsOut,
+    f.barks.end,
+  ]),
+);
 /** Voiced keys with no file in a voice language yet (none today). */
 const GAPS: Readonly<Record<string, readonly string[]>> = {};
 
@@ -182,8 +197,9 @@ describe('voice packs (v1.5, D-041)', () => {
   });
 
   it('every voiced key has a file in every voice language (art-source and the asset index)', () => {
-    // 44 lines in v1.5; v1.6b adds Oupa Laai's bark, v1.7 the meerkats' scold and Familiefoto.
-    expect(LINES.length).toBe(47);
+    // 44 lines in v1.5; v1.6b adds Oupa Laai's bark, v1.7 the meerkats' scold and Familiefoto,
+    // D-048 the Spookjag's five.
+    expect(LINES.length).toBe(52);
     expect(LINES).toContain('bark.oupa_laai');
     expect(LINES).toContain('bark.weavers');
     expect(LINES).toEqual(expect.arrayContaining(['bark.meerkat_scold', 'bark.familiefoto']));
@@ -197,7 +213,9 @@ describe('voice packs (v1.5, D-041)', () => {
         if (GAPS[lang]?.includes(key)) continue;
         const wav = join(root, 'art-source', 'audio', 'voice', lang, `${key}.wav`);
         const e = index.audio[`voice/${lang}/${key}`];
-        if (!existsSync(wav) || e === undefined || e.group !== voiceGroup(lang))
+        // D-048: a special day's lines are in its own lazy group per language.
+        const group = SPECIAL.has(key) ? specialVoiceGroup(lang) : voiceGroup(lang);
+        if (!existsSync(wav) || e === undefined || e.group !== group)
           missing.push(`${lang} ${key}`);
       }
     expect(missing).toEqual([]);

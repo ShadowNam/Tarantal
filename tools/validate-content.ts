@@ -6,6 +6,7 @@ import { parseContent } from '../src/content/bundle';
 import { checkCrossRefs } from '../src/content/crossRefs';
 import { readContentDir, readI18nKeys } from '../src/content/loadNode';
 import { parseFeel } from '../src/content/feel';
+import { LANTERN_BARE_GROUND_PX, LANTERN_GROUND_PX } from '../src/game/feesdae/feesdaeAssets';
 import { checkGunLook } from '../src/game/ui/gunLook';
 import { SFX_IDS } from '../src/game/audio/synth';
 import { parseDailyMeta } from '../src/content/daily';
@@ -78,6 +79,30 @@ for (const [trigger, cfg] of Object.entries(feel.feel.barks.triggers)) {
         message: `barks.triggers.${trigger}: "${line}" is not in src/i18n/en.json`,
       });
 }
+// D-048: every special has its look (client/feel.json feesdae.looks).
+for (const f of parsed.bundle.feesdae.specials)
+  if (feel.feel.feesdae.looks[f.id] === undefined)
+    errors.push({
+      file: 'client/feel.json',
+      message: `special "${f.id}" has no feesdae.looks entry`,
+    });
+// D-048: a lantern's hit circle sits on the pumpkin of the sheet (feesdaeAssets.ts).
+for (const f of parsed.bundle.feesdae.specials)
+  if (
+    f.twist.lanterns.lift !== LANTERN_GROUND_PX ||
+    f.twist.lanterns.liftBare !== LANTERN_BARE_GROUND_PX
+  )
+    errors.push({
+      file: 'feesdae.json',
+      message: `special "${f.id}": lanterns.lift/liftBare must be ${LANTERN_GROUND_PX}/${LANTERN_BARE_GROUND_PX} (the sheet's pumpkin above its ground line)`,
+    });
+// D-048: a special's light is a preset too.
+for (const f of parsed.bundle.feesdae.specials)
+  if (feel.feel.lights[f.light] === undefined)
+    errors.push({
+      file: 'feesdae.json',
+      message: `special "${f.id}" uses unknown light "${f.light}"`,
+    });
 // v1.2 (D-033): every layout and bonus map light is a preset, and its layers are the biome's.
 for (const biome of parsed.bundle.biomes) {
   const layerIds = new Set(biome.layers.map((l) => l.id));

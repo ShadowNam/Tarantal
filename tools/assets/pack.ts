@@ -37,6 +37,11 @@ import {
   type GunEntry,
 } from '../../src/game/assets/assetIndex';
 import { RANGE_GROUP } from '../../src/game/range/rangeAssets';
+import {
+  FEESDAE_GROUP,
+  HALLOWEEN_SHEET,
+  SHEET_MASTER as FEESDAE_MASTER,
+} from '../../src/game/feesdae/feesdaeAssets';
 import { DESERT_GROUP, MEERKAT_SHEET, SHEET_MASTER } from '../../src/game/assets/desertAssets';
 import type { ContentBundle } from '../../src/content/schemas';
 import type { ArtPlaneId as PlaneId } from '../../src/game/assets/artPlane';
@@ -729,6 +734,8 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
       if (o.catalog.entries.get(key)?.group === RANGE_GROUP) group = RANGE_GROUP;
       // v1.7 (D-044): the meerkats' sounds load with the desert maps.
       if (o.catalog.entries.get(key)?.group === DESERT_GROUP) group = DESERT_GROUP;
+      // D-048: the special days' sounds load with their lazy "feesdae" group.
+      if (o.catalog.entries.get(key)?.group === FEESDAE_GROUP) group = FEESDAE_GROUP;
     } else if (parts[0] === 'voice' && parts.length === 3) {
       // v1.5 (D-041): audio/voice/<lang>/<bark key>.wav, one lazy pack per voice language.
       key = `voice/${parts[1]}/${parts[2]}`;
@@ -868,6 +875,8 @@ export function propPlaneRes(content: ContentBundle, key: string): number {
   if (key.startsWith('fauna/')) return FAUNA_RES;
   // v1.7 (D-044): the meerkat sheet keeps its 2× master (near meerkats are seen close up).
   if (key === MEERKAT_SHEET) return SHEET_MASTER;
+  // D-048: the Halloween sheet keeps its 2× master (its frame table is in texture px at 2×).
+  if (key === HALLOWEEN_SHEET) return FEESDAE_MASTER;
   let res = 0;
   for (const b of content.biomes)
     for (const p of b.props) {
