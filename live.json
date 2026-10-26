@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-26T20:35:00Z",
+ "updated": "2026-10-26T21:33:00Z",
  "summary": "Live on the test build: perspective (1.7.4, merged 20:34 Namibia time): guineafowl get smaller with distance on every map, the far animals are shown bigger, and far birds keep a minimum hit size so they stay shootable; the first download is 106 KB smaller. The Halloween Spookjag (1.7.3) is in too: try it early on the admin page: Special days → Spookjag · 31/10 → Play. Tank is building v1.8 Blikkies (tin cans on the farm fence to shoot off and juggle). Then: Karoo polish, far animals in HD, makalani palms, tree life, optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
   "version": "1.7.1",
@@ -1386,6 +1386,26 @@
    "at": "2026-10-26T20:34:00Z",
    "kind": "merge",
    "text": "Test fix merged (PR #85): the Halloween owl test now plays two separate hunts, so new content can't break it. The game itself was fine."
+  },
+  {
+   "at": "2026-10-26T21:20:00Z",
+   "kind": "request",
+   "text": "You asked for the juggle screenshots as soon as they are ready."
+  },
+  {
+   "at": "2026-10-26T21:29:00Z",
+   "kind": "screenshots",
+   "text": "Juggle screenshots sent (desktop, Pixel 7, iPhone): a bean can kicked twice, flying high above the mesa. With the current tuning 2 hits in a row is the most a good shot gets; Tank's retune makes 3–5 reachable, and the final shot will be on the near fence with the '3× in the air!' pop."
+  },
+  {
+   "at": "2026-10-26T21:25:00Z",
+   "kind": "note",
+   "text": "Tank's tin-can session lost its connection twice in a row, so a fresh Tank task continues on the same branch with a full brief (review fixes: far cans no longer an easy score, a reachable juggle on the near fence, tests, balance). WhatsApp alert is on for it."
+  },
+  {
+   "at": "2026-10-26T21:32:00Z",
+   "kind": "tests",
+   "text": "Test fix PR #86: the Halloween lantern test now copes with a lantern the camera can't centre (the new content moved it to the map edge). Passes on all three devices; merging when CI is green."
   }
  ]
 }
