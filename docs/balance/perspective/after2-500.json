@@ -241,5 +241,36 @@
     "detail": "2233 vs 256"
    }
   ]
+ },
+ "karoo-autumn.mon+nogVerder.twee_twee/scope_small": {
+  "summaries": [
+   {
+    "bot": "competent",
+    "hunts": 500,
+    "mean": 4238.754,
+    "p15": 3061,
+    "p25": 3418,
+    "p50": 4122,
+    "p75": 4911,
+    "p85": 5489,
+    "wingShotShare": 0.5843245885611863,
+    "wholeFlocksPerHunt": 0,
+    "wholeFlockHuntRate": 0,
+    "flushesPerHunt": 9.048,
+    "twoFliesPerHunt": 0.016,
+    "accuracy": 0.7079219637547868,
+    "secretsPerHunt": 4.268,
+    "cratesPerHunt": 1.994,
+    "penaltiesPerHunt": 0.012,
+    "verPerHunt": 15.748
+   }
+  ],
+  "gates": [
+   {
+    "name": "competent mean in 2 500–4 500 (Bosveldjagter)",
+    "pass": true,
+    "detail": "4239"
+   }
+  ]
  }
 }
