@@ -131,7 +131,21 @@ export class FruitView {
         .setOrigin(spot.ox / spot.fw, spot.oy / spot.fh)
         .setScale(k);
       const puff = scene.add.image(0, 0, TEX.dust).setVisible(false);
-      layer.fixtures.add([...(stalk === null ? [] : [stalk]), shadow, img, puff]);
+      // Below the layer's haze and fixtures (meerkats, secret marks): layer fruit right over the
+      // layer art (props stand in front of them), prop fruit right over the props.
+      (spot.prop ? layer.propFruit : layer.fruit).add([
+        ...(stalk === null ? [] : [stalk]),
+        shadow,
+        img,
+        puff,
+      ]);
+      // The map light's colour, as on the tree they hang from (they used to be part of its art).
+      const tint = parallax.layerTint(layerId);
+      if (tint !== 0xffffff) {
+        img.setTint(tint);
+        stalk?.setTint(tint);
+        puff.setTint(tint);
+      }
       this.fruit.push({
         index,
         spot,
