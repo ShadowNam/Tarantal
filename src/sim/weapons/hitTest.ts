@@ -17,7 +17,8 @@ export interface HitBird {
   readonly facing: 1 | -1;
   readonly hitbox: Hitbox;
   readonly hittable: boolean;
-  /** Touch aim assist may snap onto it: targets and bosses, never don't-shoot creatures or helpers. */
+  /** Touch aim assist may snap onto it, and (D-049) it gets the plane's minimum hit radius:
+   *  targets and bosses, never don't-shoot creatures or helpers (they stay as drawn). */
   readonly snappable: boolean;
 }
 
@@ -199,7 +200,8 @@ export function resolvePellet(
       const assist = geometry.assistPx[slice.plane];
       const minPx = geometry.minHitPx?.[slice.plane] ?? 0;
       for (const bird of birdsByPlane[slice.plane]) {
-        if (bird.hittable && pointInBird(p.x, p.y, bird, scale, assist, minPx)) {
+        const floor = bird.snappable ? minPx : 0;
+        if (bird.hittable && pointInBird(p.x, p.y, bird, scale, assist, floor)) {
           return { ...NOTHING, birdId: bird.id };
         }
       }

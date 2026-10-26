@@ -212,3 +212,19 @@ describe('minimum hit radius (D-049)', () => {
     expect(hit(far(18))).toBe(1);
   });
 });
+
+describe('the hit floor is for targets only (D-049 review)', () => {
+  it("a don't-shoot bird stays the size it is drawn; a target gets the floor", () => {
+    const g: ShotGeometry = {
+      ...geometry,
+      planeScale: { near: 1, mid: 0.42, far: 0.15, ver: 0.07 },
+      minHitPx: { near: 0, mid: 0, far: 18, ver: 10 },
+    };
+    const cy = 300 + 10 * 0.15;
+    const target = bird(1, 'far', 1000, 300);
+    const protectedBird: HitBird = { ...bird(2, 'far', 1000, 300), snappable: false };
+    // 17 px right of the body centre: outside the drawn 16.5 px, inside the 18 px floor.
+    expect(resolvePellet(1017 - 960, cy, CX, g, planes([target])).birdId).toBe(1);
+    expect(resolvePellet(1017 - 960, cy, CX, g, planes([protectedBird])).birdId).toBeNull();
+  });
+});

@@ -89,7 +89,8 @@ export class DebugOverlay {
       if (!c || c.kind === 'helper' || !g) continue;
       const s = planes[b.view.plane].scale;
       const a = inputKind === 'touch' ? planes[b.view.plane].aimAssistPx : 0;
-      const m = planes[b.view.plane].minHitRadiusPx;
+      // D-049: the floor is for targets and bosses only (as in hitTest).
+      const m = c.kind === 'target' || c.kind === 'boss' ? planes[b.view.plane].minHitRadiusPx : 0;
       const f = b.view.facing;
       g.lineStyle(2, b.view.hittable ? 0x00ff88 : 0xff4444, 1);
       const body = c.hitbox.body;
