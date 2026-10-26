@@ -324,6 +324,9 @@ function arrive(c: ColonyState, m: Meerkat, ctx: ColonyCtx, then: Then): void {
       runTo(m, spot, then);
       return;
     }
+    // D-049: a spot under half a px away is taken exactly (smaller meerkats on the mid plane
+    // could otherwise sit a fraction inside the spacing rule).
+    m.x = spot;
   }
   switch (then) {
     case 'dive':

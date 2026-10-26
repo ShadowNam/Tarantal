@@ -1,34 +1,39 @@
 {
   "$comment": "Scoring rules. Per bag: points = base + sum(addPoints); mult = 1 + behaviourAdd, then charms in slot order (addMult adds, mulMult multiplies), then x weapon x Frenzy x Stampede; award = round(points * mult). Event bonuses are multiplied only by eventBonusMultipliers. Full rule: docs/01-GAME-DESIGN.md section 5.3.",
   "version": 1,
+  "tuningRefScale": 0.5,
   "planes": {
     "near": {
       "base": 5,
       "scale": 1.0,
       "scrollFactor": 1.0,
       "aimAssistPx": 8,
+      "minHitRadiusPx": 0,
       "lineWeightPx": 6
     },
     "mid": {
       "base": 10,
-      "scale": 0.5,
+      "scale": 0.42,
       "scrollFactor": 0.6,
       "aimAssistPx": 14,
+      "minHitRadiusPx": 0,
       "lineWeightPx": 4
     },
     "far": {
       "base": 25,
-      "scale": 0.22,
+      "scale": 0.15,
       "scrollFactor": 0.35,
       "aimAssistPx": 18,
+      "minHitRadiusPx": 0,
       "lineWeightPx": 2
     },
     "ver": {
       "$comment": "v1.3 (D-036): the distant band behind the far plane, on the strip at the foot of the far ridge. Only rifles reach it (weapons.json reachesVer); birds are a few px unzoomed. Shows only on maps that open it (Nog Verder, Die Verste).",
       "base": 50,
-      "scale": 0.1,
+      "scale": 0.07,
       "scrollFactor": 0.22,
       "aimAssistPx": 6,
+      "minHitRadiusPx": 0,
       "lineWeightPx": 1
     }
   },

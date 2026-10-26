@@ -86,12 +86,23 @@ export const ScoringSchema = obj({
       scale: pos,
       scrollFactor: pos,
       aimAssistPx: nonNeg,
+      /** D-049: the smallest hit radius (design px) a bird's body and head get on this plane,
+       *  for every input, so a bird drawn small with distance stays shootable. */
+      minHitRadiusPx: nonNeg,
       lineWeightPx: pos,
     }),
-  ).refine(
-    (p) => p.ver.scrollFactor < p.far.scrollFactor && p.ver.scale < p.far.scale,
-    'the ver plane sits behind the far plane (smaller scroll factor and scale)',
-  ),
+  )
+    .refine(
+      (p) => p.ver.scrollFactor < p.far.scrollFactor && p.ver.scale < p.far.scale,
+      'the ver plane sits behind the far plane (smaller scroll factor and scale)',
+    )
+    .refine(
+      (p) => p.near.scale > p.mid.scale && p.mid.scale > p.far.scale,
+      'D-049: birds get smaller with every plane back (near > mid > far > ver scale)',
+    ),
+  /** D-049: the plane scale that px tunings "at the mid plane" (flock spacing, speeds, radii)
+   *  are written for; a plane's tunings are multiplied by its scale / this. */
+  tuningRefScale: pos,
   behaviourAdd: obj({ forage: nonNeg, alert: nonNeg, run: nonNeg, flying: nonNeg }),
   frenzyTiers: z
     .array(obj({ atStreak: posInt, mul: pos }))
@@ -1777,6 +1788,12 @@ export const FeelSchema = obj({
     hintMaxStepMs: pos,
     /** Its font size (design px). */
     hintPx: pos,
+  }),
+  /** D-049: perspective on the far planes, drawn only. */
+  perspective: obj({
+    /** Display scale per far-animal sprite key (src/game/view/faunaSprites.ts; 1 = as drawn),
+     *  so the animals stand in proportion to the birds on their plane. */
+    faunaScale: z.record(z.string().regex(/^fauna\//), pos),
   }),
   assets: obj({
     /** M10: longest wait for assets/asset-index.json at boot; after it every key is a placeholder. */

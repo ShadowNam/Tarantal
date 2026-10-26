@@ -137,7 +137,7 @@ describe('meerkat colonies (v1.7, D-044)', () => {
 
   it('they peek, come out, keep a sentinel on the highest mound and dash between burrows', () => {
     const c = quiet(KAL);
-    const s = sim(c, mon('tue'), 5);
+    const s = sim(c, mon('tue'), 1);
     const seen = new Set<string>();
     let sentinelOnPost = false;
     let dashers = 0;
@@ -176,7 +176,7 @@ describe('meerkat colonies (v1.7, D-044)', () => {
     mk.pupChance = 0;
     // A small yard, so they would crowd without the rule.
     mk.forageRadiusPx = 40;
-    const s = sim(c, mon('tue'), 5);
+    const s = sim(c, mon('tue'), 1);
     const k = c.scoring.planes[colony(s).plane].scale;
     const min = mk.bodyWidthPx * mk.spacingBodyMul * k;
     let checked = 0;
@@ -242,7 +242,7 @@ describe('meerkat colonies (v1.7, D-044)', () => {
 
   it('a nearby shot sends them down; after 3–6 s one head comes up first, then the rest', () => {
     const c = quiet(KAL);
-    const s = sim(c, mon('tue'), 5);
+    const s = sim(c, mon('tue'), 1);
     waitFor(s, c, (col) => col.meerkats.filter((m) => outPose(m)).length >= 3);
     const before = colony(s);
     const shot = shootNear(s, c, before);
@@ -288,8 +288,9 @@ describe('meerkat colonies (v1.7, D-044)', () => {
 
   it('a shot meerkat costs points once per cooldown, tumbles, scolds, and is never removed', () => {
     const c = quiet(KAL);
-    const s = sim(c, mon('tue'), 5);
-    waitFor(s, c, (col) => col.meerkats.some((m) => outPose(m) && !m.pup));
+    const s = sim(c, mon('tue'), 1);
+    // Two adults out, so the rest of the family has someone to dive (the shot one tumbles).
+    waitFor(s, c, (col) => col.meerkats.filter((m) => outPose(m) && !m.pup).length >= 2);
     const col = colony(s);
     const family = col.meerkats.length;
     const target = col.meerkats.find((m) => outPose(m) && !m.pup);
@@ -534,7 +535,7 @@ describe('meerkat colonies (v1.7, D-044)', () => {
     c.birds.flockDefaults.spawnSpacingPx = 0;
     // The crop sprayer crosses on the far plane once both flocks are out.
     k.events = [{ id: 'cropSprayer', creature: 'sproeier', perHunt: [1, 1], window: [0.3, 0.31] }];
-    const s = sim(c, mon('tue'), 5);
+    const s = sim(c, mon('tue'), 1);
     const events: SimEvent[] = [];
     /** Each flock's distance from the alarmed colony in pan fractions, as the sim measures it. */
     let distances: { id: number; d: number }[] = [];

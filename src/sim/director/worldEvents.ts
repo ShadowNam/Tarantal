@@ -13,6 +13,7 @@ import {
   type PeekStop,
 } from '../birds/scripted';
 import { planeCentreX } from '../camera';
+import { tuningRatio } from '../planes';
 import { msToTicks, TICKS_PER_SECOND } from '../clock';
 import { spawnDustDevil, type DustDevil } from '../omen/dustDevil';
 import type { RandomStream } from '../rng';
@@ -28,6 +29,8 @@ const PERCH_APPROACH_PX = MAX_HALF_VIEW_WIDTH + 200;
 export interface WorldDeps {
   readonly biome: Biome;
   readonly planes: Scoring['planes'];
+  /** scoring.tuningRefScale (D-049). */
+  readonly tuningRefScale: number;
   readonly creatures: ReadonlyMap<string, BirdCreature>;
   /** Take-off angle for birds leaving (radians), from flockDefaults.flushAngleDeg. */
   readonly leaveAngle: number;
@@ -185,7 +188,7 @@ export function buildHopperBird(
   const at = perchPoint(deps, event, rng);
   if (at === null) return null;
   const scale = deps.planes[at.plane].scale;
-  const ratio = scale / deps.planes.mid.scale;
+  const ratio = tuningRatio(scale, deps.tuningRefScale);
   const stayTicks = Math.max(1, msToTicks(rng.range(stay[0], stay[1])));
   const route = coverRoute(deps, event, at, stayTicks, ratio, rng);
   return createHopperBird({
@@ -229,7 +232,7 @@ export function buildPerchBird(
   const at = perchPoint(deps, event, rng);
   if (at === null) return null;
   const scale = deps.planes[at.plane].scale;
-  const ratio = scale / deps.planes.mid.scale;
+  const ratio = tuningRatio(scale, deps.tuningRefScale);
   const sky = deps.biome.lanes[at.plane]?.skyY;
   const dir: 1 | -1 = rng.chance(0.5) ? 1 : -1;
   return createPerchBird({
@@ -270,7 +273,7 @@ export function buildSkyPass(
   const sky = deps.biome.lanes[plane]?.skyY;
   if (layer === undefined || sky === undefined) return null;
   const scale = deps.planes[plane].scale;
-  const ratio = scale / deps.planes.mid.scale;
+  const ratio = tuningRatio(scale, deps.tuningRefScale);
   const width = coreWidth(layer.scrollFactor);
   const margin = (c.hitbox.body.rx + Math.abs(c.hitbox.body.ox)) * scale + LAYER_BLEED_PX;
   return createSkyPassBird({
@@ -314,7 +317,7 @@ export function buildBossBird(
   const at = perchPoint(deps, event, rng);
   if (at === null) return null;
   const scale = deps.planes[at.plane].scale;
-  const ratio = scale / deps.planes.mid.scale;
+  const ratio = tuningRatio(scale, deps.tuningRefScale);
   const stayTicks = Math.max(1, msToTicks(rng.range(stay[0], stay[1])));
   // Ou Grys peeks from cover; Kuifkop Koning hops between reeds (validated timings).
   const route =
@@ -370,7 +373,7 @@ export function buildDustDevil(
       plane,
       centreX: planeCentreX(cameraX, p.scrollFactor),
       y: (ground[0] + ground[1]) / 2,
-      ratio: p.scale / deps.planes.mid.scale,
+      ratio: tuningRatio(p.scale, deps.tuningRefScale),
       dir,
       speedPxPerSec,
       radiusPx,

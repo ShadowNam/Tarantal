@@ -7,6 +7,7 @@
 import type { ContentBundle } from '../../content/schemas';
 import { createFlyover, type Bird, type BirdCreature } from '../birds/Bird';
 import { planeCentreX, planeToDx } from '../camera';
+import { tuningRatio } from '../planes';
 import type { Flock } from '../flocks/Flock';
 import { msToTicks, TICKS_PER_SECOND } from '../clock';
 import type { RandomStream } from '../rng';
@@ -122,7 +123,8 @@ export const createRangeProgram: RangeProgramFactory = ({
   const centre = (plane: PlaneId): number => planeCentreX(cameraX, planes[plane].scrollFactor);
   const margin = (plane: PlaneId): number =>
     (body.rx + Math.abs(body.ox)) * 2 * planes[plane].scale;
-  const ratio = (plane: PlaneId): number => planes[plane].scale / planes.mid.scale;
+  const ratio = (plane: PlaneId): number =>
+    tuningRatio(planes[plane].scale, content.scoring.tuningRefScale);
 
   const slots = rangeLayout(content, range, rng);
   const papers: PaperView[] = [];

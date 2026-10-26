@@ -12,6 +12,7 @@ import {
   type BirdCreature,
 } from '../birds/Bird';
 import { planeCentreX } from '../camera';
+import { tuningRatio } from '../planes';
 import { msToTicks, TICKS_PER_SECOND } from '../clock';
 import type { Flock, FlockParams } from '../flocks/Flock';
 import type { RandomStream } from '../rng';
@@ -138,7 +139,7 @@ export function createDirector(deps: DirectorDeps): Director {
     rng: RandomStream,
   ): Bird {
     const scale = planes[plane].scale;
-    const ratio = scale / planes.mid.scale;
+    const ratio = tuningRatio(scale, content.scoring.tuningRefScale);
     const f = scrollFactorOf(plane);
     const fly = creature.speeds?.fly ?? 0;
     const margin = (creature.hitbox.body.rx + Math.abs(creature.hitbox.body.ox)) * 2 * scale;
@@ -180,7 +181,7 @@ export function createDirector(deps: DirectorDeps): Director {
     const plane = lanes[spawns.weightedIndex(weights)];
     const sky = plane === undefined ? undefined : biome.lanes[plane]?.skyY;
     if (plane === undefined || sky === undefined) return [];
-    const ratio = planes[plane].scale / planes.mid.scale;
+    const ratio = tuningRatio(planes[plane].scale, content.scoring.tuningRefScale);
     const size = Math.min(
       spawns.int(flyover.groupSize[0], flyover.groupSize[1]),
       maxBirds - ctx.aliveBirds,
@@ -288,7 +289,7 @@ export function createDirector(deps: DirectorDeps): Director {
     const skyY = lane?.skyY;
     if (groundY === undefined || skyY === undefined) return null;
     const scale = planes[plane].scale;
-    const ratio = scale / planes.mid.scale;
+    const ratio = tuningRatio(scale, content.scoring.tuningRefScale);
     const size = Math.min(at === null ? rng.int(fp.sizeMin, fp.sizeMax) : at.size, room);
     if (size < MIN_FLOCK_SPAWN) return null;
     const homeX = at === null ? placeFlock(ctx, plane, ratio) : at.x;

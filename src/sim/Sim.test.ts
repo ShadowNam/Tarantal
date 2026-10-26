@@ -346,7 +346,11 @@ describe('Sim scoring in play', () => {
     while (sim.tick < 4500) stepEvents(sim);
     const bird = waitFor(sim, midInView);
     const ev = stepEvents(sim, shootAt(c, bird));
-    expect(ev.find((e) => e.type === 'scoreAwarded')).toMatchObject({ mult: 4, award: 40 });
+    // The aimed mid bird (other pellets may bag a bird behind it as well).
+    expect(ev.find((e) => e.type === 'scoreAwarded' && e.birdId === bird.id)).toMatchObject({
+      mult: 4,
+      award: 40,
+    });
     expect(sim.snapshot().stampedeActive).toBe(true);
   });
 
@@ -458,6 +462,9 @@ describe('FTUE hunt (Oupa se Les, GDD §16)', () => {
     const c = busyContent();
     c.birds.flyoverDefaults.planeWeights = { mid: 0, far: 1 };
     const extra = c.modes.modes.ftue.tutorial.firstHitAssistPx;
+    // The far body's hit radius (D-049: the plane's scale, at least its minHitRadiusPx).
+    const far = c.scoring.planes.far;
+    const farRx = Math.max(110 * far.scale, far.minHitRadiusPx);
     const shoot = (mode: ModeConfig, offset: number) => {
       const sim = newSim(12, { content: c, mode: { ...mode, weapon: 'windbuks' } });
       const bird = waitFor(
@@ -468,7 +475,7 @@ describe('FTUE hunt (Oupa se Les, GDD §16)', () => {
       if (cam === undefined || fire?.t !== 'fire') throw new Error('bad helper');
       return {
         sim,
-        hit: stepEvents(sim, [cam, { ...fire, dx: fire.dx + 24.2 + offset }]).some(
+        hit: stepEvents(sim, [cam, { ...fire, dx: fire.dx + farRx + offset }]).some(
           (e) => e.type === 'targetBagged',
         ),
       };

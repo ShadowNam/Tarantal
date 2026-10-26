@@ -131,18 +131,21 @@ describe('Kettie (delayed hitscan)', () => {
   });
 
   it('the target moves while the stone flies: no lead misses, leading hits', () => {
+    let target = -1;
     const run = (lead: boolean): SimEvent | undefined => {
       const sim = newSim('kettie', { seed: 7 });
       const b0 = waitFor(
         sim,
         (b) => b.plane === 'mid' && b.behaviour === 'flying' && b.flockId === null,
       );
+      target = b0.id;
       stepEvents(sim);
       const b1 = sim.snapshot().birds.find((b) => b.id === b0.id);
       if (b1 === undefined) throw new Error('bird gone');
       const t = msToTicks(travel.travelMs.mid);
       // No lead: aim at the trailing edge of the body — a hitscan shot there would still hit.
-      const tail = -Math.sign(b1.x - b0.x) * 45;
+      // (45 px at the old mid scale 0.5; D-049 sizes it with the plane: 0.82 × the body's rx.)
+      const tail = -Math.sign(b1.x - b0.x) * 110 * content.scoring.planes.mid.scale * 0.82;
       const off = lead
         ? { x: (b1.x - b0.x) * (t + 1), y: (b1.y - b0.y) * (t + 1) - travel.dropPx.mid }
         : { x: tail, y: 0 };
@@ -156,8 +159,9 @@ describe('Kettie (delayed hitscan)', () => {
     };
     const still = run(false);
     const led = run(true);
-    expect(still?.type === 'pelletImpact' && still.birdId).toBeFalsy();
-    expect(led?.type === 'pelletImpact' && led.birdId).toBeTruthy();
+    // The aimed bird (an unled stone may still meet another bird of the fly-over group).
+    expect(still?.type === 'pelletImpact' && still.birdId).not.toBe(target);
+    expect(led?.type === 'pelletImpact' && led.birdId).toBe(target);
   });
 
   it('wind drifts the stone on the far band by its windSensitivity, read on arrival', () => {

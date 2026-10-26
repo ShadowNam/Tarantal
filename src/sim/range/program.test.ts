@@ -101,7 +101,8 @@ describe('fly-over', () => {
     const b = sim.snapshot().birds[0]?.x ?? 0;
     const tarentaal = content.birds.creatures.find((c) => c.id === setup.creature);
     const fly = tarentaal !== undefined && 'speeds' in tarentaal ? (tarentaal.speeds?.fly ?? 0) : 0;
-    expect(b - a).toBeCloseTo(fly, 6);
+    // Speeds are written at the tuning scale (D-049); the mid plane is × its ratio.
+    expect(b - a).toBeCloseTo((fly * scale('mid')) / content.scoring.tuningRefScale, 6);
   });
 });
 
@@ -119,7 +120,9 @@ describe('small flock', () => {
         expect(b.y).toBeGreaterThanOrEqual(lane?.groundY?.[0] ?? NaN);
         expect(b.y).toBeLessThanOrEqual(lane?.groundY?.[1] ?? NaN);
         // Spread around the spot as a hunt flock is (birds.json spawnSpreadPx, scaled).
-        const spread = content.birds.flockDefaults.spawnSpreadPx * (scale(plane) / scale('mid'));
+        const spread =
+          content.birds.flockDefaults.spawnSpreadPx *
+          (scale(plane) / content.scoring.tuningRefScale);
         expect(Math.abs(dxOf(sim, plane, b.x) - setup.spots[plane].flockDx)).toBeLessThanOrEqual(
           spread,
         );

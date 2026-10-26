@@ -1,4 +1,5 @@
 // Test fixtures: a flock built by hand (no director), for FSM, steering and threat unit tests.
+import { tuningRatio } from '../planes';
 import type { ContentBundle } from '../../content/schemas';
 import { createFlockBird, type Bird, type BirdCreature } from '../birds/Bird';
 import { TICKS_PER_SECOND } from '../clock';
@@ -22,7 +23,7 @@ export function makeFlock(
   const x = opts.x ?? 1500;
   const spacing = opts.spacing ?? 40;
   const { planes } = content.scoring;
-  const ratio = planes[plane].scale / planes.mid.scale;
+  const ratio = tuningRatio(planes[plane].scale, content.scoring.tuningRefScale);
   const biome = content.biomes.find((b) => b.id === content.modes.modes.classic.biome);
   const lane = biome?.lanes[plane];
   const groundY = lane?.groundY ?? [690, 760];

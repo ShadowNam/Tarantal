@@ -3,6 +3,7 @@
 // birds stand in front of that layer's props (D-018); a layer's props block every layer behind.
 import type { Biome, Creature } from '../../content/schemas';
 import { tapToPlane } from '../camera';
+import { hitRadius } from '../planes';
 import type { PlaneId } from '../types';
 import { coreWidth } from '../world';
 
@@ -83,8 +84,9 @@ export function pointInOccluder(px: number, py: number, o: Occluder): boolean {
 }
 
 /**
- * Body ellipse + head circle, from sprite-local units at scale 1.0, scaled by the plane and
- * grown by the touch aim-assist radius. Facing −1 mirrors the x offsets.
+ * Body ellipse + head circle, from sprite-local units at scale 1.0, scaled by the plane (each
+ * radius at least `minPx`, D-049) and grown by the touch aim-assist radius. Facing −1 mirrors the
+ * x offsets.
  */
 export function pointInBird(
   px: number,
@@ -92,16 +94,18 @@ export function pointInBird(
   bird: HitBird,
   scale: number,
   assistPx: number,
+  minPx = 0,
 ): boolean {
   const { body, head } = bird.hitbox;
   const bx = bird.x + body.ox * scale * bird.facing;
   const by = bird.y + body.oy * scale;
-  if (inEllipse(px, py, bx, by, body.rx * scale + assistPx, body.ry * scale + assistPx))
-    return true;
+  const rx = hitRadius(body.rx, scale, minPx) + assistPx;
+  const ry = hitRadius(body.ry, scale, minPx) + assistPx;
+  if (inEllipse(px, py, bx, by, rx, ry)) return true;
   if (head === undefined) return false;
   const hx = bird.x + head.ox * scale * bird.facing;
   const hy = bird.y + head.oy * scale;
-  const r = head.r * scale + assistPx;
+  const r = hitRadius(head.r, scale, minPx) + assistPx;
   return inEllipse(px, py, hx, hy, r, r);
 }
 
@@ -159,6 +163,8 @@ export interface ShotGeometry {
   readonly planeScale: Readonly<Record<PlaneId, number>>;
   /** Aim-assist growth per plane (0 for pointer input). */
   readonly assistPx: Readonly<Record<PlaneId, number>>;
+  /** D-049: the smallest bird hit radius per plane, every input (absent = 0). */
+  readonly minHitPx?: Readonly<Record<PlaneId, number>>;
 }
 
 /**
@@ -181,8 +187,9 @@ export function resolvePellet(
     if (slice.plane !== null) {
       const scale = geometry.planeScale[slice.plane];
       const assist = geometry.assistPx[slice.plane];
+      const minPx = geometry.minHitPx?.[slice.plane] ?? 0;
       for (const bird of birdsByPlane[slice.plane]) {
-        if (bird.hittable && pointInBird(p.x, p.y, bird, scale, assist)) {
+        if (bird.hittable && pointInBird(p.x, p.y, bird, scale, assist, minPx)) {
           return { ...NOTHING, birdId: bird.id };
         }
       }

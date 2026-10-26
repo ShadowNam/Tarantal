@@ -90,7 +90,7 @@ describe('range guns', () => {
   it('compares groups with the guineafowl body width at each distance', () => {
     const rx = 110;
     expect(bodyWidthPx(content, 'near')).toBeCloseTo(2 * rx, 9);
-    expect(bodyWidthPx(content, 'ver')).toBeCloseTo(2 * rx * 0.1, 9);
+    expect(bodyWidthPx(content, 'ver')).toBeCloseTo(2 * rx * 0.07, 9);
   });
 });
 
@@ -211,11 +211,12 @@ describe('session table texts', () => {
         sel,
       );
     const cell = s.cell(sel);
-    // Centre (5, 5): 5 px right, 5 px low. Mean radius √50, spread √200; body at mid 110 px.
+    // Centre (5, 5): 5 px right, 5 px low. Mean radius √50, spread √200; body at mid 92.4 px
+    // (D-049: 220 × 0.42).
     expect(centreText(cell)).toBe('5.0 px right, 5.0 px low');
     const mr = Math.sqrt(50);
     const es = Math.sqrt(200);
-    const pct = (v: number): string => ((v / 110) * 100).toFixed(1);
+    const pct = (v: number): string => ((v / 92.4) * 100).toFixed(1);
     expect(groupText(content, cell)).toBe(
       `${mr.toFixed(1)} px (${pct(mr)} %) · ${es.toFixed(1)} px (${pct(es)} %)`,
     );
