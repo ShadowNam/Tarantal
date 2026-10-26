@@ -556,7 +556,7 @@
     }
   },
   "cans": {
-    "$comment": "v1.8 (D-050, GDD §11.3) Blikkies: tin cans on the fence posts. Sizes: design px at plane scale 1 (× plane scale; the radius floored by the plane's minHitRadiusPx). Speeds and gravity: px at the tuning reference (× tuningRatio). A knock-off rises ~140 px at the reference in ~0.5 s; each air hit kicks it higher (up × (1 + upGrowth × n), capped at growthCapHits), spins it faster and jitters it more, so a long chain climbs out of the top of the view.",
+    "$comment": "v1.8 (D-050, GDD §11.3) Blikkies: tin cans on the fence posts. Sizes: design px at plane scale 1 (× plane scale; the radius floored by the plane's minHitRadiusPx). Speeds and gravity: px at the tuning reference (× tuningRatio). A knock-off rises ~110 px at the reference in ~0.45 s; each air hit kicks it higher (up × (1 + upGrowth × n), capped at growthCapHits), spins it faster and jitters it more, so a long chain climbs out of the top of the view.",
     "types": {
       "food": {
         "r": 19,
@@ -577,17 +577,17 @@
     },
     "juggle": {
       "gravityPxPerSec2": 1100,
-      "kickUpPxPerSec": 555,
+      "kickUpPxPerSec": 492,
       "kickSidePxPerSec": 170,
       "minSideShare": 0.35,
       "spinDegPerSec": 540,
-      "upGrowth": 0.09,
+      "upGrowth": 0.06,
       "spinGrowthDegPerSec": 140,
       "jitterPxPerSec": 30,
       "jitterGrowthPxPerSec": 28,
       "growthCapHits": 8,
-      "pelletBonus": 0.04,
-      "pelletCap": 1.25,
+      "pelletBonus": 0.02,
+      "pelletCap": 1.12,
       "bounce": {
         "restitution": 0.32,
         "keep": 0.45

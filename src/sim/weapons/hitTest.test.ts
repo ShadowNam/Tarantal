@@ -7,6 +7,7 @@ import {
   buildSlices,
   pelletsNeeded,
   pointInBird,
+  pointInCapsule,
   resolvePellet,
   type HitBird,
   type ShotGeometry,
@@ -226,5 +227,19 @@ describe('the hit floor is for targets only (D-049 review)', () => {
     // 17 px right of the body centre: outside the drawn 16.5 px, inside the 18 px floor.
     expect(resolvePellet(1017 - 960, cy, CX, g, planes([target])).birdId).toBe(1);
     expect(resolvePellet(1017 - 960, cy, CX, g, planes([protectedBird])).birdId).toBeNull();
+  });
+});
+
+describe('tin can capsules (v1.8, D-050)', () => {
+  it('a point is in when within r of the turned axis', () => {
+    const upright = { x: 100, y: 100, r: 10, hx: 0, hy: -20 };
+    expect(pointInCapsule(100, 75, upright)).toBe(true);
+    expect(pointInCapsule(100, 69, upright)).toBe(false);
+    expect(pointInCapsule(109, 100, upright)).toBe(true);
+    expect(pointInCapsule(111, 100, upright)).toBe(false);
+    // Turned a quarter: the axis lies along x.
+    const lying = { x: 100, y: 100, r: 10, hx: 20, hy: 0 };
+    expect(pointInCapsule(129, 100, lying)).toBe(true);
+    expect(pointInCapsule(100, 75, lying)).toBe(false);
   });
 });

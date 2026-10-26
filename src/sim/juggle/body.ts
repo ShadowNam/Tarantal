@@ -136,7 +136,7 @@ export function stepBody(b: JuggleBody, t: JuggleTuning, topY: number): StepResu
 }
 
 /** The body's flight numbers on a plane: px tunings × ratio (tuningRatio of the plane). */
-export function scaledTuning<T extends JuggleTuning>(t: T, ratio: number): JuggleTuning {
+export function scaledTuning(t: JuggleTuning, ratio: number): JuggleTuning {
   return {
     ...t,
     gravityPxPerSec2: t.gravityPxPerSec2 * ratio,
