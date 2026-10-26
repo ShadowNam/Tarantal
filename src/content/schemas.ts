@@ -1254,7 +1254,7 @@ export type RangeSetup = z.infer<typeof rangeSchema>;
 export type Modes = z.infer<typeof ModesSchema>;
 
 // ---------------------------------------------------------------------------------------------
-// feesdae.json — the special days (Feesdae, GDD §15.4, Tech §12.3, D-048). On a special's UTC
+// feesdae.json — the special days (Feesdae, GDD §15 Feesdae, Tech §12 Feesdae, D-048). On a special's UTC
 // day the Daily Hunt becomes that special: the same seed rule, its look and one twist rule. The
 // date rule is an input of the mode (the game reads the clock, never the sim); the twist's
 // numbers are here, so they are in the contentHash like every other rule.

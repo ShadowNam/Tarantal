@@ -1,4 +1,4 @@
-// Feesdae, the special days (GDD §15.4, Tech §12.3, D-048): which special (if any) a UTC day is,
+// Feesdae, the special days (GDD §15 Feesdae, Tech §12 Feesdae, D-048): which special (if any) a UTC day is,
 // and the test/admin override. Pure: the game passes in the UTC day number (Date.now() in the
 // game layer, or the e2e ?today= day); nothing here reads a clock. The special's id then goes
 // into the Daily's mode config, so its replays and challenge links carry it.

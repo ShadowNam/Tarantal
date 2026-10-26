@@ -185,6 +185,20 @@ a comma in af, de and nl ("0,6 s").
 | `guide.half` | halwe | half | halber | halve | Boeretroos' {speed} at 50 % |
 | `caption.pu_end` | [{item} is uitgewerk] | [{item} wears off] | [{item} lässt nach] | [{item} is uitgewerkt] | {item} is the item's name (follows the toggle) |
 
+### Special days (Feesdae, D-048)
+
+The special's name stays Afrikaans in every language, like the Gun Shed's names: "Spookjag" (spook
+= ghost, jag = hunt) is the Halloween Daily's name on the title, the HUD, the tally and the share
+card. Oupa's Spookjag lines keep his Afrikaans exclamations ("Spookjag, my kind!").
+
+| Key | af | en | de | nl | Note |
+|---|---|---|---|---|---|
+| `feesdag.halloween.name` | Spookjag | Spookjag | Spookjag | Spookjag | spook + jag = ghost hunt |
+| `feesdag.halloween.badge` | Spookjag vanaand! | Spookjag tonight! | Heute Nacht: Spookjag! | Vanavond Spookjag! | the title's badge |
+| `feesdag.lanterns_out` | Lanterns uit! | Lanterns out! | Laternen aus! | Lantaarns uit! | every lantern shot dark |
+| `feesdag.bat` | Vlermuis! | Bat! | Fledermaus! | Vleermuis! | a bat's +15 pop |
+| `feesdag.owl` | Uil! Beskermd | Owl! Protected | Eule! Geschützt | Uil! Beschermd | the owl's −10 pop |
+
 ### Ranks
 
 | Key | af | en | de | nl | Note |

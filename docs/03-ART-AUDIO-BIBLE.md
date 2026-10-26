@@ -591,3 +591,38 @@ scratch (penalty), Frenzy tier stings ×3, Stampede rumble, tally ticks, rank st
 
 **Mix:** music −16 LUFS integrated; SFX peaks ≤ −1 dBTP; music ducks −6 dB under barks; spatial pan
 by screen x (±0.7 max); separate volume sliders (music / effects / voice).
+
+## 11. Special days (Feesdae, D-048)
+
+A special day dresses the day's map; it never swaps the biome art. Everything is in one lazy
+asset group, `feesdae` (loaded when a special day's hunt starts, never with the first download):
+one sheet per special (`feesdae/halloween`, layout and origins in
+`src/game/feesdae/feesdaeAssets.ts`, drawn at 2×) and its sounds. Until the sheet arrives the
+game draws a flat stand-in with the same frames.
+
+**Halloween — Spookjag (interim art: `npm run art:interim -- --only feesdae`, tools/art/halloween.ts):**
+- *Light:* the existing `dusk` preset over the day's map.
+- *Moon:* a big, low, pale-yellow full moon on the sky layer with soft maria, a few craters and a
+  faint halo; five or six small black bats circle it (sky decoration, not targets).
+- *Pumpkin lanterns:* ribbed, glossy orange pumpkins with a carved face lit from inside (a warm
+  core in the cuts), on a lichen rock or a weathered fence post with a strand of wire. Each has a
+  small additive glow that flickers slowly (12 %, ~0.5 s) — a local light, never a flash. Shot
+  out: the same pumpkin, darker, the cuts sooty, the glow gone, a puff of grey smoke.
+- *Bats (targets):* furry bodies and ears, membrane wings stretched between finger bones that let
+  the moonlight through; three wing poses (14 fps). Small on the mid and far planes, on purpose.
+- *Spotted eagle-owl (protected):* seen from below as it glides over, its round face turned to
+  the hunter — ear tufts, a grey facial disc, big yellow eyes — grey-brown barred wings with
+  splayed dark-tipped primaries, a pale finely barred belly; three wing poses (5 fps).
+- *Witch hats:* a purple-black cone with a bent tip, a brim, an orange band and a buckle, on the
+  head anchor of about a third of the guineafowl (picked by bird id). Three drawings (near, mid,
+  far sizes): the smaller, the bolder and simpler.
+- *Cobwebs:* white silk with dew drops (and a small spider) on a corner of the windpomp, the fence
+  bell, the baobab, the camelthorns, the quiver tree and the sausage tree (`feel.json feesdae`).
+- *Tally and share card:* a purple edge round the slate with the moon, bats and a lit pumpkin;
+  the title "Spookjag 2026". The share text is framed 🎃🦇 … 🦇🌕.
+
+**Sounds (interim, `npm run audio:interim -- --only sfx`):** a 2.6 s sting — a reedy organ chord in
+A minor that sags a semitone over a low drone, a kalimba figure dropping through it, a church-hall
+tail; the owl's soft "hoo-HOOO"; a bat's two high squeaks; a lantern's soft whoomph. Captions:
+"[a spooky organ sting]", "[an owl hoots]", "[a bat squeaks]", "[a lantern puffs out]". Oupa's
+five Spookjag lines are voiced like his others (§10.1).

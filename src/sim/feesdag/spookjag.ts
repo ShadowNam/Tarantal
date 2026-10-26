@@ -1,4 +1,4 @@
-// Halloween's twist rule, the Spookjag (D-048, GDD §15.4): bats are a fast, erratic bonus target,
+// Halloween's twist rule, the Spookjag (D-048, GDD §15 Feesdae): bats are a fast, erratic bonus target,
 // the spotted eagle-owl is protected, and shooting every pumpkin lantern of the day pays once.
 // Pure and deterministic: everything is drawn at hunt start or on spawn from the 'feesdag'
 // stream (no other system's sequence moves), and every number comes from feesdae.json.

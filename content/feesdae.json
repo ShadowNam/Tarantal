@@ -1,5 +1,5 @@
 {
-  "$comment": "Feesdae: the special days (GDD §15.4, Tech §12.3, D-048). On a special's UTC day the Daily Hunt becomes that special for everyone: the same seed rule as any Daily, the day's map under the special's light, its decorations and one twist rule. Dates are UTC (like the Daily); the game passes the day in, the sim never reads a clock. Twist numbers are design px at plane scale 1, speeds px/s at the mid plane, times in ms; points are flat (no Frenzy or weapon multiplier).",
+  "$comment": "Feesdae: the special days (GDD §15 Feesdae, Tech §12 Feesdae, D-048). On a special's UTC day the Daily Hunt becomes that special for everyone: the same seed rule as any Daily, the day's map under the special's light, its decorations and one twist rule. Dates are UTC (like the Daily); the game passes the day in, the sim never reads a clock. Twist numbers are design px at plane scale 1, speeds px/s at the mid plane, times in ms; points are flat (no Frenzy or weapon multiplier).",
   "version": 1,
   "specials": [
     {
