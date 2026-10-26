@@ -1149,5 +1149,67 @@
     "detail": "4376"
    }
   ]
+ },
+ "namibie.sat.twee_twee/scope_small": {
+  "summaries": [
+   {
+    "bot": "competent",
+    "hunts": 500,
+    "mean": 4217.112,
+    "p15": 3280,
+    "p25": 3574,
+    "p50": 4187,
+    "p75": 4775,
+    "p85": 5124,
+    "wingShotShare": 0.4774613506916192,
+    "wholeFlocksPerHunt": 0,
+    "wholeFlockHuntRate": 0,
+    "flushesPerHunt": 7.854,
+    "twoFliesPerHunt": 0.05,
+    "accuracy": 0.8202251740347843,
+    "secretsPerHunt": 1.038,
+    "cratesPerHunt": 1.996,
+    "penaltiesPerHunt": 1.222,
+    "verPerHunt": 14.852
+   }
+  ],
+  "gates": [
+   {
+    "name": "competent mean in 2 500–4 500 (Bosveldjagter)",
+    "pass": true,
+    "detail": "4217"
+   }
+  ]
+ },
+ "namibie.sun.twee_twee/scope_small": {
+  "summaries": [
+   {
+    "bot": "competent",
+    "hunts": 500,
+    "mean": 4271.436,
+    "p15": 3396,
+    "p25": 3652,
+    "p50": 4284,
+    "p75": 4851,
+    "p85": 5216,
+    "wingShotShare": 0.4993517972893341,
+    "wholeFlocksPerHunt": 0,
+    "wholeFlockHuntRate": 0,
+    "flushesPerHunt": 7.754,
+    "twoFliesPerHunt": 0.01,
+    "accuracy": 0.8254028506132203,
+    "secretsPerHunt": 1.08,
+    "cratesPerHunt": 2,
+    "penaltiesPerHunt": 1.204,
+    "verPerHunt": 14.764
+   }
+  ],
+  "gates": [
+   {
+    "name": "competent mean in 2 500–4 500 (Bosveldjagter)",
+    "pass": true,
+    "detail": "4271"
+   }
+  ]
  }
 }
