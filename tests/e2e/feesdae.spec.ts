@@ -18,6 +18,7 @@ import {
 import {
   fireAt,
   lanternInView,
+  reloadIfEmpty,
   shootLanternOut,
   spookRunning,
   tapRectInPage,
@@ -147,21 +148,25 @@ test.describe('Feesdae: the Halloween Spookjag (D-048)', () => {
     expect(errors).toEqual([]);
   });
 
-  test('an owl that crosses unhit costs nothing; a shot owl is −10 and Oupa scolds', async ({
-    page,
-  }, info) => {
-    test.skip(!isLandscape(info), 'portrait shows the rotate card');
-    test.setTimeout(600_000);
-    const touch = isTouchProject(info);
-    const errors = collectErrors(page);
+  // No birds or crates (nothing else scores), two owls early in the hunt (?spook=early). Their
+  // times and lanes follow the Daily's seed, which follows the content hash, so the two owls can
+  // cross together: each half below plays its own hunt and needs only the first owl.
+  async function owlHunt(page: Page, touch: boolean): Promise<void> {
     await seedSave(page, { quality: 'medium' });
-    // No birds or crates (nothing else scores), two owls early in the hunt (?spook=early).
     await boot(page, 'feesdag=halloween&seed=42&omen=0&huntSeconds=60&birds=0&spook=early');
     await page.waitForFunction(() => window.__TM__?.rects['daily'] !== undefined, null, {
       timeout: 60_000,
     });
     await tapRect(page, touch, 'daily');
     await spookRunning(page);
+  }
+
+  test('an owl that crosses unhit costs nothing', async ({ page }, info) => {
+    test.skip(!isLandscape(info), 'portrait shows the rotate card');
+    test.setTimeout(600_000);
+    const touch = isTouchProject(info);
+    const errors = collectErrors(page);
+    await owlHunt(page, touch);
     // An owl crosses the view (in, then out again) with nothing fired: the score stays 0.
     const crossed = await page.waitForFunction(
       () => {
@@ -182,13 +187,38 @@ test.describe('Feesdae: the Halloween Spookjag (D-048)', () => {
       { timeout: 300_000 },
     );
     expect(await crossed.jsonValue()).toEqual({ score: 0, shots: 0 });
-    // Then an owl is shot: pan towards one until it is well inside the view, fire in-page.
+    expect(errors).toEqual([]);
+  });
+
+  test('a shot owl is −10 and Oupa scolds', async ({ page }, info) => {
+    test.skip(!isLandscape(info), 'portrait shows the rotate card');
+    test.setTimeout(600_000);
+    const touch = isTouchProject(info);
+    const errors = collectErrors(page);
+    await owlHunt(page, touch);
+    await page.waitForFunction(
+      () => (window.__TM__?.spook?.things ?? []).some((t) => t.kind === 'owl'),
+      null,
+      { timeout: 120_000 },
+    );
+    // Pan towards the owl until it is well inside the view, fire in-page.
+    // A seeded hunt's pellet patterns are the same every run for the same content (the Daily's
+    // seed follows the content hash), so a shot can miss: it gets many shots, a miss is decided
+    // 20 ticks after the shot (no long wait while the owl flies off), the gun is reloaded when
+    // empty, and it waits while a bat crosses near the owl (a bat in front takes the pellets).
+    // `score` is the change the shot made, so a bat hit earlier doesn't spoil the count.
     let hit: { score: number; bark: boolean } | null = null;
-    for (let i = 0; i < 120 && hit === null; i++) {
+    for (let i = 0; i < 200 && hit === null; i++) {
+      await reloadIfEmpty(page, touch);
       const owl = await page.evaluate(() => {
         const g = window.__TM__;
-        const o = g?.spook?.things.find((t) => t.kind === 'owl');
-        return g === undefined || o === undefined ? null : { id: o.id, x: o.x, w: g.designWidth };
+        const things = g?.spook?.things ?? [];
+        const o = things.find((t) => t.kind === 'owl');
+        if (g === undefined || o === undefined) return null;
+        const batNear = things.some(
+          (t) => t.kind === 'bat' && Math.abs(t.x - o.x) < 280 && Math.abs(t.y - o.y) < 220,
+        );
+        return { id: o.id, x: o.x, w: g.designWidth, batNear };
       });
       if (owl === null) {
         await page.waitForTimeout(250);
@@ -201,23 +231,43 @@ test.describe('Feesdae: the Halloween Spookjag (D-048)', () => {
         await page.keyboard.up(key);
         continue;
       }
+      if (owl.batNear) {
+        await page.waitForTimeout(120);
+        continue;
+      }
       const before = await fireAt(page, touch, { id: owl.id });
       if (before === null) continue;
-      // The score and Oupa's scold, read in the same frame that has both.
-      hit = await page
+      const out = await page
         .waitForFunction(
-          ([n, line]) => {
+          ([n, s0]) => {
             const g = window.__TM__;
             if (g === undefined || g.shots <= n) return null;
-            return g.score === -10 && g.barks.includes(line)
-              ? { score: g.score, bark: true }
-              : null;
+            const w = window as unknown as { __owlShotTick?: number };
+            w.__owlShotTick ??= g.tick;
+            if (g.score !== s0) return g.score - s0;
+            return g.tick - w.__owlShotTick >= 20 ? 'miss' : null;
           },
-          [before.shots, HALLOWEEN.barks.owl] as const,
-          { timeout: 15_000 },
+          [before.shots, before.score] as const,
+          { timeout: 20_000 },
         )
-        .then(async (r) => (await r.jsonValue()) as { score: number; bark: boolean })
+        .then((h) => h.jsonValue())
         .catch(() => null);
+      await page.evaluate(() => {
+        delete (window as unknown as { __owlShotTick?: number }).__owlShotTick;
+      });
+      if (out !== -10) continue;
+      // Oupa's scold (his lines are kept in the hook's log, so a later read still sees it).
+      const bark = await page
+        .waitForFunction(
+          (line) => window.__TM__?.barks.includes(line) === true,
+          HALLOWEEN.barks.owl,
+          {
+            timeout: 15_000,
+          },
+        )
+        .then(() => true)
+        .catch(() => false);
+      hit = { score: out, bark };
     }
     expect(hit).toEqual({ score: -10, bark: true });
     expect(errors).toEqual([]);
