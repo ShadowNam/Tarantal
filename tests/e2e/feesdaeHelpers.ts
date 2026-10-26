@@ -44,7 +44,9 @@ export async function cameraStill(page: Page): Promise<void> {
  * Pans (arrow keys) until a lit lantern stands within `band` px of the screen's centre; its id.
  * D-049: a mid or near flock standing in front of a lantern takes the shots meant for it, so a
  * lantern with no such flock within `clearPx` (screen x) is preferred, then the nearest to the
- * centre.
+ * centre. A lantern near the panorama's end can't be centred (the camera stops at its limit):
+ * the pan then ends when the camera has not moved for 20 ticks, with the lantern on screen.
+ * Which lanterns a hunt has follows the Daily's seed, i.e. the content hash.
  */
 export async function lanternInView(page: Page, band = 260, clearPx = 360): Promise<number> {
   const first = await page.evaluate((clearOf) => {
@@ -71,12 +73,23 @@ export async function lanternInView(page: Page, band = 260, clearPx = 360): Prom
       ([id, b]) => {
         const g = window.__TM__;
         const t = g?.spook?.things.find((x) => x.id === id);
-        return g !== undefined && t !== undefined && Math.abs(t.x - g.designWidth / 2) < b;
+        if (g === undefined || t === undefined) return false;
+        if (Math.abs(t.x - g.designWidth / 2) < b) return true;
+        // The camera at its limit: stop once it has not moved for 20 ticks.
+        const w = window as unknown as { __lanternPan?: { x: number; t: number } };
+        if (w.__lanternPan?.x !== g.cameraX) {
+          w.__lanternPan = { x: g.cameraX, t: g.tick };
+          return false;
+        }
+        return g.tick - w.__lanternPan.t >= 20 && t.x > 60 && t.x < g.designWidth - 60;
       },
       [first.id, band] as const,
       { timeout: 300_000 },
     );
     await page.keyboard.up(key);
+    await page.evaluate(() => {
+      delete (window as unknown as { __lanternPan?: unknown }).__lanternPan;
+    });
   }
   await cameraStill(page);
   return first.id;
