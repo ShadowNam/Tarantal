@@ -1,11 +1,11 @@
 {
  "schema": 1,
- "updated": "2026-10-26T09:55:00Z",
+ "updated": "2026-10-26T10:40:00Z",
  "by": "Claude",
- "summary": "Live on the test build: v1.7c (1.7.2), fruit that swings or drops. Halloween Spookjag (PR #80): all 15 review fixes are in (hats on the heads, carved glowing lanterns, a spooky dusk, owls across the moon); Claude is taking the final screenshots and fixing the last small title overlap, then the full tests and the merge, well before 31 Oct. Tank has started the next job: birds smaller with distance on every map. Then: v1.8 Blikkies, Karoo polish, far animals in HD, makalani palms, tree life, optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
+ "summary": "Live on the test build: the Halloween Spookjag (1.7.3, merged 12:32 Namibia time). On 31 Oct the Daily Hunt is a dusk hunt with bats, protected owls, pumpkin lanterns and witch-hat guineafowl; try it early with ?feesdag=halloween or the admin page's Special days Play button. v1.7c (fruit that swings or drops) went in this morning. Tank is building the next job: birds smaller with distance on every map. Then: v1.8 Blikkies, Karoo polish, far animals in HD, makalani palms, tree life, optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
-  "version": "1.7.2",
-  "commit": "384bffa"
+  "version": "1.7.3",
+  "commit": "fa47efb"
  },
  "links": [
   {
@@ -36,12 +36,12 @@
  "numbers": [
   {
    "label": "Version on the test build",
-   "value": "1.7.2",
-   "note": "commit 384bffa, merged 26 Oct, 08:15 Namibia time (the test build deploys a few minutes after)"
+   "value": "1.7.3",
+   "note": "commit fa47efb, merged 26 Oct, 12:32 Namibia time (the test build deploys a few minutes after)"
   },
   {
    "label": "Pull requests merged",
-   "value": "77",
+   "value": "78",
    "note": "#1 to #81"
   },
   {
@@ -70,8 +70,8 @@
   },
   {
    "label": "Decisions logged",
-   "value": "47",
-   "note": "D-001 to D-047 on main"
+   "value": "48",
+   "note": "D-001 to D-048 on main"
   }
  ],
  "needsYou": [
@@ -1423,45 +1423,16 @@
    "requestedBy": "You, 25 Oct ~16:45: \"when shooting these fruits, make them swing or drop down.\""
   },
   {
-   "id": "halloween-spookjag-feesdae-the-31-oct-da",
-   "title": "Halloween Spookjag (Feesdae): the 31 Oct Daily at dusk with owls, bats, pumpkin lanterns and witch-hat guineafowl (your pick, 26 Oct)",
+   "id": "halloween-spookjag-feesdae-version-1-7-3",
+   "title": "Halloween Spookjag (Feesdae, version 1.7.3): the 31 Oct Daily at dusk with owls, bats, pumpkin lanterns and witch-hat guineafowl (your pick, 26 Oct)",
    "phase": "Version 1.x",
-   "status": "running",
-   "start": "2026-10-26T04:50:00Z",
-   "end": "2026-10-26T12:00:00Z",
-   "estimate": true,
+   "status": "done",
+   "start": "2026-10-26T05:20:31Z",
+   "end": "2026-10-26T10:32:10Z",
+   "estimate": false,
    "prs": [
     80
-   ],
-   "summary": "On 31 Oct the Daily Hunt becomes Spookjag: the day's map at dusk under a big moon, pumpkin lanterns on the fence posts (shoot them all for +25), bats as fast bonus targets (+15), protected owls (−10), some guineafowl in witch hats, Oupa's Halloween lines, a spooky sting and a Halloween share card. Built on a small 'special days' system so other holidays can be added later.",
-   "owner": "Tank; Claude reviews",
-   "checklist": [
-    {
-     "text": "Special-day system (dates in content, the Daily becomes the special that UTC day, admin/test override)",
-     "done": false
-    },
-    {
-     "text": "Halloween look: dusk, moon, lanterns, bats, owls, witch hats",
-     "done": false
-    },
-    {
-     "text": "Rules: bats +15, owls −10, all lanterns out +25",
-     "done": false
-    },
-    {
-     "text": "Oupa's lines (4 languages), sounds, share card",
-     "done": false
-    },
-    {
-     "text": "Tests and Claude's screenshots",
-     "done": false
-    },
-    {
-     "text": "Review, full tests and merge (before 28 Oct)",
-     "done": false
-    }
-   ],
-   "requestedBy": "You, 26 Oct: \"Halloween special yes, go ahead.\""
+   ]
   },
   {
    "id": "perspective-guineafowl-get-smaller-the-f",
@@ -2041,6 +2012,16 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-26T10:33:00Z",
+   "kind": "note",
+   "text": "Perspective (birds smaller with distance): the new scales are in (middle 0.42, far 0.15, farthest 0.07) and the far animals follow them; Tank's balance run ran out of memory on its server, so Claude told it to run it one worker at a time and keep going."
+  },
+  {
+   "at": "2026-10-26T10:32:00Z",
+   "kind": "merge",
+   "text": "Halloween Spookjag merged (PR #80, version 1.7.3) after all 23 test jobs passed on desktop, Pixel 7 and iPhone 14 (Claude fixed an iPhone test that expected the older replay format). Live on the test build within minutes; on 31 Oct it is the Daily Hunt for everyone."
+  },
   {
    "at": "2026-10-26T09:54:00Z",
    "kind": "screenshots",

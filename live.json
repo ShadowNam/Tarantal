@@ -1,6 +1,6 @@
 {
- "updated": "2026-10-26T09:55:00Z",
- "summary": "Live on the test build: v1.7c (1.7.2), fruit that swings or drops. Halloween Spookjag (PR #80): all 15 review fixes are in (hats on the heads, carved glowing lanterns, a spooky dusk, owls across the moon); Claude is taking the final screenshots and fixing the last small title overlap, then the full tests and the merge, well before 31 Oct. Tank has started the next job: birds smaller with distance on every map. Then: v1.8 Blikkies, Karoo polish, far animals in HD, makalani palms, tree life, optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
+ "updated": "2026-10-26T10:40:00Z",
+ "summary": "Live on the test build: the Halloween Spookjag (1.7.3, merged 12:32 Namibia time). On 31 Oct the Daily Hunt is a dusk hunt with bats, protected owls, pumpkin lanterns and witch-hat guineafowl; try it early with ?feesdag=halloween or the admin page's Special days Play button. v1.7c (fruit that swings or drops) went in this morning. Tank is building the next job: birds smaller with distance on every map. Then: v1.8 Blikkies, Karoo polish, far animals in HD, makalani palms, tree life, optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
   "version": "1.7.1",
   "commit": "1bbedc7"
@@ -530,41 +530,48 @@
    ]
   },
   "halloween-spookjag-feesdae-the-31-oct-da": {
-   "owner": "Tank; Claude reviews",
-   "status": "running",
+   "owner": "Tank built it; Claude reviewed, fixed, screenshotted and merged it",
+   "status": "done",
    "summary": "On 31 Oct the Daily Hunt becomes Spookjag: the day's map at dusk under a big moon, pumpkin lanterns on the fence posts (shoot them all for +25), bats as fast bonus targets (+15), protected owls (−10), some guineafowl in witch hats, Oupa's Halloween lines, a spooky sting and a Halloween share card. Built on a small 'special days' system so other holidays can be added later.",
    "requestedBy": "You, 26 Oct: \"Halloween special yes, go ahead.\"",
    "checklist": [
     {
      "text": "Special-day system (dates in content, the Daily becomes the special that UTC day, admin/test override)",
-     "done": false
+     "done": true,
+     "at": "2026-10-26T06:30:00Z"
     },
     {
      "text": "Halloween look: dusk, moon, lanterns, bats, owls, witch hats",
-     "done": false
+     "done": true,
+     "at": "2026-10-26T07:30:00Z"
     },
     {
      "text": "Rules: bats +15, owls −10, all lanterns out +25",
-     "done": false
+     "done": true,
+     "at": "2026-10-26T07:30:00Z"
     },
     {
      "text": "Oupa's lines (4 languages), sounds, share card",
-     "done": false
+     "done": true,
+     "at": "2026-10-26T08:00:00Z"
     },
     {
      "text": "Tests and Claude's screenshots",
-     "done": false
+     "done": true,
+     "at": "2026-10-26T09:54:00Z"
     },
     {
-     "text": "Review, full tests and merge (before 28 Oct)",
-     "done": false
+     "text": "Review (15 fixes), full tests on 3 devices and merge (PR #80, 26 Oct, before 28 Oct)",
+     "done": true,
+     "at": "2026-10-26T10:32:00Z"
     }
    ]
   },
   "perspective-guineafowl-get-smaller-the-f": {
    "owner": "Tank builds it; Claude reviews",
    "summary": "Guineafowl get smaller the further away they are, on every map, in proportion to the ostriches, zebras and other animals on the same distance band, and still easy enough to hit (the hit area shrinks less than the picture). The far bird pictures are redrawn smaller, which also frees room in the first download. Before/after screenshots of your Karoo ostrich view.",
-   "requestedBy": "You, 26 Oct: \"The further away they are, the smaller they must also get. Still in such a way that one can still shoot them … this needs to apply to all the levels.\""
+   "requestedBy": "You, 26 Oct: \"The further away they are, the smaller they must also get. Still in such a way that one can still shoot them … this needs to apply to all the levels.\"",
+   "status": "running"
   },
   "v1.8": {
    "owner": "Tank builds it; Claude reviews",
@@ -1318,6 +1325,16 @@
    "at": "2026-10-26T09:54:00Z",
    "kind": "screenshots",
    "text": "Halloween after the fixes: Claude's screenshots on desktop, Pixel 7 and iPhone 14 (dark dusk under the moon, hats on the heads, carved lanterns, the owl across the moon, the Spookjag 2026 card) are on PR #80 and with you. Claude fixed the last title overlap (the badge now sits on the Daily line) and a test-hook bug on the tally; all 9 Halloween browser tests pass. Full tests next, then the merge."
+  },
+  {
+   "at": "2026-10-26T10:32:00Z",
+   "kind": "merge",
+   "text": "Halloween Spookjag merged (PR #80, version 1.7.3) after all 23 test jobs passed on desktop, Pixel 7 and iPhone 14 (Claude fixed an iPhone test that expected the older replay format). Live on the test build within minutes; on 31 Oct it is the Daily Hunt for everyone."
+  },
+  {
+   "at": "2026-10-26T10:33:00Z",
+   "kind": "note",
+   "text": "Perspective (birds smaller with distance): the new scales are in (middle 0.42, far 0.15, farthest 0.07) and the far animals follow them; Tank's balance run ran out of memory on its server, so Claude told it to run it one worker at a time and keep going."
   }
  ]
 }
