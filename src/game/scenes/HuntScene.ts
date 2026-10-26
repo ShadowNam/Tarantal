@@ -66,6 +66,8 @@ import type { ChallengeData } from './ChallengeScene';
 import type { AdminData } from './AdminScene';
 import type { RangeHost, RangeSession } from '../range/RangeSession';
 import { freshLoadShown } from '../../platform/freshLoad';
+import type { FruitView } from '../view/fruit/FruitView';
+import type { PelletStop } from '../view/fruit/fruitHits';
 
 export interface HuntData {
   /** Skip the title (the [Again] button) with this input kind. */
@@ -105,6 +107,11 @@ export class HuntScene extends Phaser.Scene {
   private weavers!: WeaverView;
   /** v1.7 (D-044): the desert maps' meerkat colonies. */
   private meerkats!: MeerkatView;
+  /** v1.7c (D-047): fruit that swing and drop when shot (lazy chunk; null until it is in). */
+  private fruit: FruitView | null = null;
+  private fruitGen = 0;
+  /** Scroll factor of each prop of the map on screen (where a pellet stopped, for the fruit). */
+  private propFactor = new Map<string, number>();
   private debug!: DebugOverlay;
   private screen!: Phaser.GameObjects.Container;
   /** v1.3: screen overlays a sight's zoom never scales (glare, tints, rain), the sight picture,
@@ -388,6 +395,7 @@ export class HuntScene extends Phaser.Scene {
         ver: planes.ver.scale,
       },
     );
+    this.loadFruit(mapBiome);
     this.weapon = new WeaponView(
       this,
       this.ctx.feel,
@@ -1291,6 +1299,7 @@ export class HuntScene extends Phaser.Scene {
       hook.flockLog = [];
       hook.meerkatLog = [];
       hook.meerkats = [];
+      hook.fruit = null;
       hook.hunts++;
     }
     range?.attach(this.rangeHost());
@@ -1394,6 +1403,7 @@ export class HuntScene extends Phaser.Scene {
     const w0 = performance.now();
     this.weavers.update(state);
     this.meerkats.update(state);
+    this.fruit?.update(state, width);
     for (const cue of this.meerkats.cues) {
       const pan = (cue.screenX - width / 2) / (width / 2);
       // Only colonies on screen (or just off it) are heard.
@@ -1527,6 +1537,16 @@ export class HuntScene extends Phaser.Scene {
       hook.wind = state.wind;
       hook.weavers = this.weavers.visibleCount;
       hook.meerkats = this.meerkats.spots();
+      hook.fruit =
+        this.fruit === null
+          ? null
+          : {
+              count: this.fruit.count,
+              hits: this.fruit.hitCount,
+              drops: this.fruit.dropCount,
+              swinging: this.fruit.swinging,
+              spots: this.fruit.spots(),
+            };
       hook.mirage = state.mirage;
       hook.durationTicks = state.durationTicks;
     }
@@ -1546,6 +1566,64 @@ export class HuntScene extends Phaser.Scene {
       }) ?? state.birds[0];
     if (bird === undefined) return null;
     return this.fx.benchPops(n, mode, { plane: bird.plane, x: bird.x, y: bird.y });
+  }
+
+  /**
+   * v1.7c (D-047): loads the fruit view (its own chunk) for the map now on screen. Sprites of a
+   * previous map go; a load that finishes after another rebuild is dropped.
+   */
+  private loadFruit(mapBiome: Biome): void {
+    this.fruit?.destroy();
+    this.fruit = null;
+    const gen = ++this.fruitGen;
+    this.propFactor = new Map(
+      mapBiome.props.map((p) => [
+        p.id,
+        mapBiome.layers.find((l) => l.id === p.layer)?.scrollFactor ?? 1,
+      ]),
+    );
+    void import('../view/fruit/FruitView')
+      .then(async (m) => {
+        const spots = await m.loadFruitSpots(mapBiome.id);
+        if (gen !== this.fruitGen || spots.length === 0) return;
+        this.fruit = new m.FruitView(
+          this,
+          this.ctx.feel,
+          mapBiome,
+          this.parallax,
+          this.manifest,
+          spots,
+          this.ctx.audio,
+          this.ctx.reducedMotion,
+        );
+      })
+      .catch(() => {
+        // Offline without the chunk cached: the hunt simply has no fruit sprites.
+      });
+  }
+
+  /** v1.7c (D-047): what a pellet stopped on, as far as the fruit care (null: it flew on). */
+  private pelletStop(
+    e: Extract<SimEvent, { type: 'pelletImpact' }>,
+    state: SimState,
+  ): PelletStop | null {
+    const planes = this.ctx.content.scoring.planes;
+    if (e.birdId !== null) {
+      const plane = this.birds.positionOf(e.birdId)?.plane;
+      return plane === undefined ? null : { factor: planes[plane].scrollFactor, creature: true };
+    }
+    if (e.meerkatId !== undefined) {
+      const id = e.meerkatId;
+      const c = state.meerkats.find((col) => col.meerkats.some((m) => m.id === id));
+      return c === undefined ? null : { factor: planes[c.plane].scrollFactor, creature: true };
+    }
+    if (e.crateId !== null)
+      return {
+        factor: planes[this.ctx.content.powerups.crates.plane].scrollFactor,
+        creature: true,
+      };
+    if (e.propId !== null) return { factor: this.propFactor.get(e.propId) ?? 1, creature: false };
+    return null;
   }
 
   private handleEvents(events: readonly SimEvent[], width: number, state: SimState): void {
@@ -1576,6 +1654,7 @@ export class HuntScene extends Phaser.Scene {
         else if (e.type === 'familiefoto') log.push('familiefoto');
       }
     }
+    this.fruit?.handle(events, state, (e) => this.pelletStop(e, state), width);
     for (const b of this.weavers.handle(events)) {
       this.ctx.audio.weavers(Math.max(-1, Math.min(1, (b.screenX - half) / half)));
       if (this.ctx.hook) this.ctx.hook.weaverBursts++;
@@ -1931,6 +2010,7 @@ export class HuntScene extends Phaser.Scene {
     this.world.clear();
     this.weavers.clear();
     this.meerkats.clear();
+    this.fruit?.clear();
     this.game.canvas.style.cursor = '';
   }
 }

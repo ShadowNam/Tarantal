@@ -4,6 +4,7 @@
 import type * as Phaser from 'phaser';
 import type { Biome, ContentBundle, DailyMeta, Feel, Notaboek } from '../content/schemas';
 import type { ChallengeDecode } from '../meta/challenge';
+import type { FruitHookSpot } from './view/fruit/FruitView';
 import type { LoadStatus, SaveStore } from '../meta/save';
 import type { StorageStatus } from '../meta/storage';
 import type { ErrorReport, PlatformAdapter } from '../platform/PlatformAdapter';
@@ -322,6 +323,15 @@ export interface TestHook {
     hittable: boolean;
   }[];
   meerkatLog: string[];
+  /** v1.7c (D-047): the fruit view (null until its chunk is in, or a map without fruit): fruit
+   *  placed, pellet hits and drops this hunt, fruit swinging now, and the fruit on screen. */
+  fruit: {
+    count: number;
+    hits: number;
+    drops: number;
+    swinging: number;
+    spots: FruitHookSpot[];
+  } | null;
   /** v1.7 (perf): ms spent drawing the meerkat colonies, summed with the frames counted. */
   meerkatMs: number;
   /** v1.6b (D-043): reload power-ups on the HUD — the chips' icon textures (null = none), the
