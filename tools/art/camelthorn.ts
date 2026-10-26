@@ -10,6 +10,7 @@
 // ground; a dappled shade circle with blonde grass tufts. Light from the upper left.
 import { mix, nextId, shade, tone, tuft, type Pen, type Pt, type Rnd } from './scenery';
 import { el, ellipseD, g, polyD, r2 } from './svg';
+import { fruit } from './fruitSink';
 
 export type CamelthornVariant = 'young' | 'mature' | 'old' | 'nest';
 
@@ -486,6 +487,31 @@ export function pod(x: number, y: number, len: number, ang: number, look: Camelt
   );
 }
 
+/**
+ * v1.7c (D-047): a pod lying on the sand (it rocks when shot). `turn` false: no random half
+ * turn (the dead tree's pods, as drawn since v1.4). Uses the random stream as the old inline
+ * calls did.
+ */
+export function groundPod(
+  rnd: Rnd,
+  x: number,
+  y: number,
+  len: number,
+  look: CamelthornLook,
+  turn = true,
+): string {
+  const ang = (rnd() - 0.5) * 0.8 + (turn ? (rnd() < 0.5 ? 0 : Math.PI) : 0);
+  return fruit({
+    species: 'camelthorn_pod',
+    motion: 'ground',
+    x,
+    y: y + len * 0.2,
+    ground: y + len * 0.2,
+    reach: len + 4,
+    svg: pod(x, y, len, ang, look),
+  });
+}
+
 // --- the tree --------------------------------------------------------------------------------
 
 export interface CamelthornSpec {
@@ -781,7 +807,8 @@ export function camelthornTree(
     const c = low[Math.floor(rnd() * low.length)] as Clump;
     const x = c.x + (rnd() - 0.5) * c.rx;
     const y = c.y + c.ry * (0.45 + rnd() * 0.4);
-    pods.push(
+    const one = g(
+      {},
       el('path', {
         d: `M${r2(x)} ${r2(y - podLen * 0.3)}l0 ${r2(podLen * 0.3)}`,
         stroke: look.pod.dark,
@@ -794,6 +821,18 @@ export function camelthornTree(
         Math.PI / 2 + (rnd() - 0.5) * 0.9,
         look,
       ),
+    );
+    // v1.7c (D-047): each hanging pod swings and drops when shot.
+    pods.push(
+      fruit({
+        species: 'camelthorn_pod',
+        motion: 'hang',
+        x,
+        y: y - podLen * 0.3,
+        ground: s.foot,
+        reach: podLen * 1.6 + 4,
+        svg: one,
+      }),
     );
   }
 
@@ -849,15 +888,7 @@ export function camelthornTree(
     // Pods on the sand and blonde grass tufts round the shade.
     for (let k = 0; k < (s.variant === 'young' ? 3 : 9); k++) {
       const x = s.x + (rnd() - 0.5) * s.crownW * 1.4;
-      parts.push(
-        pod(
-          x,
-          s.foot + (rnd() - 0.3) * 6,
-          podLen * (1.1 + rnd() * 0.4),
-          (rnd() - 0.5) * 0.8 + (rnd() < 0.5 ? 0 : Math.PI),
-          look,
-        ),
-      );
+      parts.push(groundPod(rnd, x, s.foot + (rnd() - 0.3) * 6, podLen * (1.1 + rnd() * 0.4), look));
     }
     const tufts: { x: number; y: number }[] = [];
     for (let k = 0; k < (s.variant === 'young' ? 3 : 6); k++) {
@@ -1511,7 +1542,7 @@ export function deadCamelthorn(rnd: Rnd, look: CamelthornLook, pen: Pen): string
   ];
   for (let k = 0; k < 5; k++)
     parts.push(
-      pod((rnd() - 0.5) * 220, s.foot + rnd() * 6, 11 + rnd() * 4, (rnd() - 0.5) * 0.8, look),
+      groundPod(rnd, (rnd() - 0.5) * 220, s.foot + rnd() * 6, 11 + rnd() * 4, look, false),
     );
   for (const x of [-110, -60, 70, 120])
     parts.push(

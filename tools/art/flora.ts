@@ -25,6 +25,7 @@ import {
 } from './camelthorn';
 import { mix, nextId, shade, type Pen, type Pt, type Rnd } from './scenery';
 import { el, ellipseD, g, polyD, r2 } from './svg';
+import { fruit } from './fruitSink';
 
 export type Detail = 'near' | 'mid' | 'far';
 export type CrownShape = 'umbrella' | 'round' | 'oval' | 'spread' | 'vase' | 'irregular';
@@ -537,15 +538,34 @@ export function sicklePod(x: number, y: number, len: number, ang: number, c: str
   );
 }
 
-/** Pods hanging under the crown on short stalks. */
-export function hangingPods(rnd: Rnd, t: TreeParts, n: number, len: number, c: string): string {
+/** Pods hanging under the crown on short stalks (v1.7c: each one a fruit sprite, D-047). */
+export function hangingPods(
+  rnd: Rnd,
+  t: TreeParts,
+  n: number,
+  len: number,
+  c: string,
+  ground: number,
+  species = 'sweet_thorn_pod',
+): string {
   const low = lowFront(t);
   const out: string[] = [];
   for (let k = 0; k < n && low.length > 0; k++) {
     const cl = low[Math.floor(rnd() * low.length)] as Clump;
     const x = cl.x + (rnd() - 0.5) * cl.rx * 1.2;
     const y = cl.y + cl.ry * (0.4 + rnd() * 0.4);
-    out.push(sicklePod(x, y, len * (0.8 + rnd() * 0.4), Math.PI * (0.35 + rnd() * 0.35), c));
+    const l = len * (0.8 + rnd() * 0.4);
+    out.push(
+      fruit({
+        species,
+        motion: 'hang',
+        x,
+        y,
+        ground,
+        reach: l * 1.3 + 4,
+        svg: sicklePod(x, y, l, Math.PI * (0.35 + rnd() * 0.35), c),
+      }),
+    );
   }
   return g({}, ...out);
 }
@@ -625,12 +645,24 @@ export function fallenFruit(
   n: number,
   r: number,
   c: string,
+  species = 'marula',
 ): string {
   const out: string[] = [];
   for (let k = 0; k < n; k++) {
     const fx = x + (rnd() - 0.5) * spread * 2;
     const fy = foot - r * 0.4 + rnd() * r * 2.5;
-    out.push(roundFruit(fx, fy, r * (0.8 + rnd() * 0.4), mix(c, '#8A6A3A', rnd() * 0.35)));
+    const rr = r * (0.8 + rnd() * 0.4);
+    out.push(
+      fruit({
+        species,
+        motion: 'ground',
+        x: fx,
+        y: fy + rr * 0.92,
+        ground: fy + rr * 0.92,
+        reach: rr * 2 + 3,
+        svg: roundFruit(fx, fy, rr, mix(c, '#8A6A3A', rnd() * 0.35)),
+      }),
+    );
   }
   return g({}, ...out);
 }
@@ -648,6 +680,8 @@ export function hangingFruit(
   w: number,
   c: { fill: string; lit: string; dark: string },
   ink: string,
+  ground: number,
+  species = 'sausage',
 ): string {
   const low = lowFront(t);
   const out: string[] = [];
@@ -669,7 +703,8 @@ export function hangingFruit(
     const ex = x1 + Math.sin(tilt) * l;
     const ey = y1 + Math.cos(tilt) * l;
     const body = `M${r2(x1)} ${r2(y1)}L${r2(ex)} ${r2(ey)}`;
-    out.push(
+    const one = g(
+      {},
       el('path', {
         d: `M${r2(x0)} ${r2(y0)}Q${r2(x0 + sway * 1.6)} ${r2((y0 + y1) / 2)} ${r2(x1)} ${r2(y1)}`,
         fill: 'none',
@@ -706,6 +741,17 @@ export function hangingFruit(
         'stroke-width': w * 0.24,
         'stroke-linecap': 'round',
         opacity: 0.85,
+      }),
+    );
+    out.push(
+      fruit({
+        species,
+        motion: 'hang',
+        x: x0,
+        y: y0,
+        ground,
+        reach: sl + l + w * 2 + 4,
+        svg: one,
       }),
     );
   }

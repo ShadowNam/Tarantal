@@ -23,7 +23,13 @@ import { mountainRow, paintRow, rockColours } from '../mountains';
 import { groundBand, groundShadow, softSky, windpompTower } from './karoo';
 import { foregroundClumps, midScrub, nearGrass, verVeld } from './common';
 import { thunderhead } from '../skies';
-import { camelthornLook, camelthornSpec, camelthornTree, nestTreeSpec, pod } from '../camelthorn';
+import {
+  camelthornLook,
+  camelthornSpec,
+  camelthornTree,
+  groundPod,
+  nestTreeSpec,
+} from '../camelthorn';
 import { plantLook, seedTuft, veldShrub } from '../flora';
 import { shepherdsTree } from '../species';
 import { deadCamelthornTree } from '../deadTree';
@@ -81,11 +87,11 @@ function fallenPods(
   const out: string[] = [];
   for (let k = 0; k < n; k++)
     out.push(
-      pod(
+      groundPod(
+        ctx.rnd,
         x + (ctx.rnd() - 0.5) * spread * 2,
         foot + (ctx.rnd() - 0.3) * len * 0.8,
         len * (0.8 + ctx.rnd() * 0.4),
-        (ctx.rnd() - 0.5) * 0.8 + (ctx.rnd() < 0.5 ? 0 : Math.PI),
         look,
       ),
     );

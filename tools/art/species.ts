@@ -41,6 +41,7 @@ import {
 } from './flora';
 import { mix, nextId, shade, type Pen, type Pt, type Rnd } from './scenery';
 import { el, ellipseD, g, polyD, r2 } from './svg';
+import { fruit } from './fruitSink';
 
 /** What a species needs from the layer it stands on. */
 export interface Paint {
@@ -105,7 +106,7 @@ export function sweetThorn(
     t,
     h > 110 ? thorns(rnd, t, p.tint('#F2EEE2'), h * 0.022) : '',
     pompoms(rnd, t, Math.round(h / 7), Math.max(0.8, h * 0.0085), flowers) +
-      hangingPods(rnd, t, Math.round(h / 22), h * 0.08, p.tint('#A0703E')),
+      hangingPods(rnd, t, Math.round(h / 22), h * 0.08, p.tint('#A0703E'), foot),
   );
 }
 
@@ -296,6 +297,7 @@ export function sausageTree(
     Math.max(1.4, h * 0.028),
     { fill: p.tint('#8C7A60'), lit: p.tint('#B8A888'), dark: p.tint('#5E5040') },
     p.pen.ink,
+    foot,
   );
   const flowers =
     detail === 'far'
@@ -547,8 +549,8 @@ export function baobab(
   parts.push(g({ 'clip-path': `url(#${id})` }, ...inner));
   // Pods: velvety grey-green ovals on long thin stalks.
   const podC = p.tint('#9C9A7C');
-  const pod = (px: number, py: number, rx: number, ry: number): string => {
-    // Stalk up to the nearest branch point above.
+  // Stalk up to the nearest branch point above.
+  const stalkTop = (px: number, py: number, ry: number): Pt => {
     let best: Pt = [px, py - ry * 3];
     let dist = Infinity;
     for (const l of limbs)
@@ -560,6 +562,10 @@ export function baobab(
             best = q;
           }
         }
+    return best;
+  };
+  const pod = (px: number, py: number, rx: number, ry: number): string => {
+    const best = stalkTop(px, py, ry);
     return g(
       {},
       el('path', {
@@ -592,7 +598,23 @@ export function baobab(
       const t = tips[Math.floor(rnd() * tips.length)];
       if (t === undefined) continue;
       const r = Math.max(1.2, h * 0.022);
-      parts.push(pod(t[0] + (rnd() - 0.5) * 6, t[1] + h * (0.08 + rnd() * 0.08), r, r * 1.5));
+      // v1.7c (D-047): these pods swing and drop when shot (the secret pod above stays put).
+      const px = t[0] + (rnd() - 0.5) * 6;
+      const py = t[1] + h * (0.08 + rnd() * 0.08);
+      const svg = pod(px, py, r, r * 1.5);
+      // The pivot is where its stalk meets the limb (pod() draws the stalk from there).
+      const top = stalkTop(px, py, r * 1.5);
+      parts.push(
+        fruit({
+          species: 'baobab_pod',
+          motion: 'hang',
+          x: top[0],
+          y: top[1],
+          ground: foot,
+          reach: Math.hypot(px - top[0], py - top[1]) + r * 2 + 6,
+          svg,
+        }),
+      );
     }
   return g({}, ...parts);
 }
@@ -740,16 +762,16 @@ export function ilalaPalm(
       for (let c = 0; c < 1 + Math.floor(rnd() * 2); c++) {
         const cx = tx + (rnd() - 0.5) * R * 0.6;
         const cy = ty + R * (0.35 + rnd() * 0.15);
-        parts.push(
+        const bunch: string[] = [
           el('path', {
             d: `M${r2(tx)} ${r2(ty + 2)}Q${r2(cx)} ${r2(ty)} ${r2(cx)} ${r2(cy)}`,
             fill: 'none',
             stroke: p.tint('#6A4A2A'),
             'stroke-width': Math.max(0.5, tw * 0.25),
           }),
-        );
+        ];
         for (let k = 0; k < 7; k++)
-          parts.push(
+          bunch.push(
             roundFruit(
               cx + (rnd() - 0.5) * R * 0.22,
               cy + rnd() * R * 0.3,
@@ -757,6 +779,18 @@ export function ilalaPalm(
               p.tint('#7A4A2A'),
             ),
           );
+        // v1.7c (D-047): the cluster swings from where its stalk leaves the head.
+        parts.push(
+          fruit({
+            species: 'ilala',
+            motion: 'hang',
+            x: tx,
+            y: ty + 2,
+            ground: foot,
+            reach: R * 1.2 + 6,
+            svg: g({}, ...bunch),
+          }),
+        );
       }
     }
   }
