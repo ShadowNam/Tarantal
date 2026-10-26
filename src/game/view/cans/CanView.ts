@@ -77,6 +77,8 @@ export class CanView {
   private sheet: Phaser.Textures.Texture | null = null;
   private fence: {
     plane: PlaneId;
+    /** Where its posts stand (a fence that moves is built again). */
+    key: string;
     posts: Phaser.GameObjects.Image[];
     wire: Phaser.GameObjects.Graphics;
   } | null = null;
@@ -132,7 +134,13 @@ export class CanView {
     const node = this.parallax.plane(c.plane);
     const k = this.manifest.displayScale(CAN_SHEET);
     const scale = this.planeScale[c.plane];
-    if (this.fence === null) this.buildFence(c, node.fixtures, scale, k);
+    const key = `${c.plane}:${c.posts.map((p) => `${p.x.toFixed(1)},${p.top.toFixed(1)}`).join(';')}`;
+    if (this.fence !== null && this.fence.key !== key) {
+      for (const p of this.fence.posts) p.destroy();
+      this.fence.wire.destroy();
+      this.fence = null;
+    }
+    if (this.fence === null) this.buildFence(c, node.fixtures, scale, k, key);
     const before = new Map((prev?.cans?.cans ?? []).map((x) => [x.id, x]));
     const blur = (this.look.blurDegPerSec * Math.PI) / 180 / 60;
     // The Skietbaan puts up fresh cans (new ids): the old ones go.
@@ -189,6 +197,7 @@ export class CanView {
     layer: Phaser.GameObjects.Container,
     scale: number,
     k: number,
+    key: string,
   ): void {
     const frame: CanFrame =
       c.kind === 'wood' ? 'post_wood' : c.kind === 'dropper' ? 'post_dropper' : 'post_kraal';
@@ -221,7 +230,7 @@ export class CanView {
       layer.add(img);
       return img;
     });
-    this.fence = { plane: c.plane, posts, wire };
+    this.fence = { plane: c.plane, key, posts, wire };
   }
 
   /** This frame's events: dents where the pellets struck, and the sounds. */
