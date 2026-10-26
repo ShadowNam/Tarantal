@@ -78,6 +78,8 @@ export const CELLS: readonly Cell[] = [
   ...(
     [
       ['mon', 'verder', 'dubbelloop', null, 'Karoo Verder (Mon) · Dubbelloop'],
+      ['sat', 'verder', 'dubbelloop', null, 'Karoo Verder (Sat) · Dubbelloop'],
+      ['sat', 'verder', 'pomp', null, 'Karoo Verder (Sat) · Pomp'],
       ['mon', 'nogVerder', 'dubbelloop', null, 'Karoo Nog Verder (Mon) · Dubbelloop'],
       ['mon', 'nogVerder', 'twee_twee', 'iron', 'Karoo Nog Verder (Mon) · .22 iron'],
       ['mon', 'nogVerder', 'twee_twee', 'scope_small', 'Karoo Nog Verder (Mon) · .22 scope'],

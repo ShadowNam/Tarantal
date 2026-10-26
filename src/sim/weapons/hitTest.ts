@@ -84,8 +84,8 @@ export function pointInOccluder(px: number, py: number, o: Occluder): boolean {
 }
 
 /**
- * Body ellipse + head circle, from sprite-local units at scale 1.0, scaled by the plane (each
- * radius at least `minPx`, D-049) and grown by the touch aim-assist radius. Facing −1 mirrors the
+ * Body ellipse + head circle, from sprite-local units at scale 1.0, scaled by the plane (the
+ * body's radii at least `minPx`, D-049) and grown by the touch aim-assist radius. Facing −1 mirrors the
  * x offsets.
  */
 export function pointInBird(
@@ -105,7 +105,7 @@ export function pointInBird(
   if (head === undefined) return false;
   const hx = bird.x + head.ox * scale * bird.facing;
   const hy = bird.y + head.oy * scale;
-  const r = hitRadius(head.r, scale, minPx) + assistPx;
+  const r = head.r * scale + assistPx;
   return inEllipse(px, py, hx, hy, r, r);
 }
 

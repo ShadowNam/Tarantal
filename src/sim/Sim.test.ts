@@ -8,6 +8,7 @@ import type { AimAssistLevel, BirdView, Command, InputKind, ModeConfig } from '.
 import { CAMERA_MAX_X, CAMERA_MIN_X } from './world';
 import { onlyEvent, quiet, waitForBird } from '../../tools/simHarness';
 import { buildSlices, resolvePattern, type HitBird, type ShotGeometry } from './weapons/hitTest';
+import { hitRadius } from './planes';
 
 const content = loadContent();
 
@@ -81,6 +82,10 @@ function busyContent(
 }
 
 /** A fly-over well inside the panorama on the mid plane (so the camera can centre it). */
+/** The far tarentaal body's hit rx (D-049: the plane's scale, at least its minHitRadiusPx). */
+const farRx = (c: ContentBundle): number =>
+  hitRadius(110, c.scoring.planes.far.scale, c.scoring.planes.far.minHitRadiusPx);
+
 const midInView = (b: BirdView): boolean =>
   b.plane === 'mid' && b.kind === 'target' && b.x > 900 && b.x < 2900;
 
@@ -129,21 +134,21 @@ describe('Sim determinism', () => {
         sim,
         (b) => b.plane === 'far' && b.kind === 'target' && b.x > 900 && b.x < 2000,
       );
-      // Aim 8 px beyond the body ellipse's right edge (far scale 0.22: rx 24.2 + ox 0).
+      // Aim 8 px beyond the body ellipse's right edge (D-049: far rx = max(110 × 0.15, 18)).
       const [cam, fire] = shootAt(c, bird);
       if (cam === undefined || fire?.t !== 'fire') throw new Error('bad helper');
-      const ev = stepEvents(sim, [cam, { ...fire, dx: fire.dx + 24.2 + 8 }]);
+      const ev = stepEvents(sim, [cam, { ...fire, dx: fire.dx + farRx(c) + 8 }]);
       return ev.find((e) => e.type === 'scoreAwarded');
     });
     expect(results[0]).toBeUndefined();
-    // Far wing shot with the Windbuks: 25 × (1 + 1) × 1.5 = 75.
-    expect(results[1]).toMatchObject({ points: 25, mult: 3, award: 75 });
+    // Far wing shot with the Windbuks: 22 × (1 + 1) × 1.5 = 66.
+    expect(results[1]).toMatchObject({ points: 22, mult: 3, award: 66 });
   });
 
   it('Settings aim assist scales the touch radii (off / low / standard), mouse stays 0', () => {
     const c = busyContent();
     c.birds.flyoverDefaults.planeWeights = { mid: 0, far: 1 };
-    // 12 px beyond the far body edge: inside standard (18 px), outside low (9 px) and off.
+    // 9 px beyond the far body edge: inside standard (12 px), outside low (6 px) and off.
     const hit = (inputKind: 'pointer' | 'touch', aimAssist?: 'off' | 'low' | 'standard') => {
       const sim = newSim(12, {
         content: c,
@@ -157,7 +162,7 @@ describe('Sim determinism', () => {
       );
       const [cam, fire] = shootAt(c, bird);
       if (cam === undefined || fire?.t !== 'fire') throw new Error('bad helper');
-      const ev = stepEvents(sim, [cam, { ...fire, dx: fire.dx + 24.2 + 12 }]);
+      const ev = stepEvents(sim, [cam, { ...fire, dx: fire.dx + farRx(c) + 9 }]);
       return ev.some((e) => e.type === 'scoreAwarded');
     };
     expect(hit('touch')).toBe(true);
@@ -463,8 +468,6 @@ describe('FTUE hunt (Oupa se Les, GDD §16)', () => {
     c.birds.flyoverDefaults.planeWeights = { mid: 0, far: 1 };
     const extra = c.modes.modes.ftue.tutorial.firstHitAssistPx;
     // The far body's hit radius (D-049: the plane's scale, at least its minHitRadiusPx).
-    const far = c.scoring.planes.far;
-    const farRx = Math.max(110 * far.scale, far.minHitRadiusPx);
     const shoot = (mode: ModeConfig, offset: number) => {
       const sim = newSim(12, { content: c, mode: { ...mode, weapon: 'windbuks' } });
       const bird = waitFor(
@@ -475,7 +478,7 @@ describe('FTUE hunt (Oupa se Les, GDD §16)', () => {
       if (cam === undefined || fire?.t !== 'fire') throw new Error('bad helper');
       return {
         sim,
-        hit: stepEvents(sim, [cam, { ...fire, dx: fire.dx + farRx + offset }]).some(
+        hit: stepEvents(sim, [cam, { ...fire, dx: fire.dx + farRx(c) + offset }]).some(
           (e) => e.type === 'targetBagged',
         ),
       };
@@ -518,8 +521,11 @@ describe('touch aim assist rescues a clean miss only (M9, D-026)', () => {
     if (cam === undefined || fire?.t !== 'fire') throw new Error('bad helper');
     const creature = c.birds.creatures.find((x) => x.id === bird.creature);
     const ry = creature && 'hitbox' in creature ? creature.hitbox.body.ry : 0;
-    const scale = c.scoring.planes[bird.plane].scale;
-    return [cam, { ...fire, sy: fire.sy + ry * scale + gap }] as const;
+    const p = c.scoring.planes[bird.plane];
+    return [
+      cam,
+      { ...fire, sy: fire.sy + hitRadius(ry, p.scale, p.minHitRadiusPx) + gap },
+    ] as const;
   }
 
   it('a touch miss within the assist radius is rescued; the same pointer miss is not', () => {

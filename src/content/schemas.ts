@@ -86,7 +86,7 @@ export const ScoringSchema = obj({
       scale: pos,
       scrollFactor: pos,
       aimAssistPx: nonNeg,
-      /** D-049: the smallest hit radius (design px) a bird's body and head get on this plane,
+      /** D-049: the smallest hit radius (design px) of a bird body ellipse on this plane,
        *  for every input, so a bird drawn small with distance stays shootable. */
       minHitRadiusPx: nonNeg,
       lineWeightPx: pos,

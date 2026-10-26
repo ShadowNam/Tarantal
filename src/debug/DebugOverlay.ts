@@ -100,8 +100,7 @@ export class DebugOverlay {
         (hitRadius(body.ry, s, m) + a) * 2,
       );
       const head = c.hitbox.head;
-      if (head)
-        g.strokeCircle(b.x + head.ox * s * f, b.y + head.oy * s, hitRadius(head.r, s, m) + a);
+      if (head) g.strokeCircle(b.x + head.ox * s * f, b.y + head.oy * s, head.r * s + a);
       let label = this.labels[li];
       if (!label) {
         label = this.scene.add.text(0, 0, '', {
