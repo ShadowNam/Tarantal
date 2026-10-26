@@ -20,7 +20,7 @@ import { oupaShows } from '../audio/oupaMode';
 import { PickupCard } from '../ui/PickupCard';
 import { effectText, shortText } from '../ui/powerupGuide';
 import { TEX } from '../assets/AssetManifest';
-import { powerupIcon } from '../ui/powerupIcons';
+import { powerupIcon, powerupIconEpoch, upgradePowerupIcons } from '../ui/powerupIcons';
 import { ammoSlots, gunLookFor, reloadBoostsOf, roundsOf } from '../ui/gunLook';
 import type { GameContext } from '../GameContext';
 import { FONT } from '../view/Fx';
@@ -136,6 +136,8 @@ export class HudScene extends Phaser.Scene {
   /** v1.7b (D-046): the pickup card, each chip's countdown (seconds or shells), Boeretroos'
    *  warm screen edges and Chilli Biltong's ∞ on the belt. */
   private pickupCard: PickupCard | null = null;
+  /** powerupIconEpoch() when the icons were last set (a change means they were swapped). */
+  private iconEpoch = 0;
   private chipTimes: Phaser.GameObjects.Text[] = [];
   private slowTint: Phaser.GameObjects.Graphics | null = null;
   private slowTintFor = '';
@@ -281,6 +283,13 @@ export class HudScene extends Phaser.Scene {
     for (let i = 0; i < MAX_CHIPS; i++)
       this.chipTimes.push(text(26, '#F3EAD3', false).setOrigin(1, 0.5).setVisible(false));
     this.pickupCard = new PickupCard(this);
+    // v1.7b (D-046): the icons arrive with the late group; swap the placeholders when it lands
+    // (the texture manager is the game's: any manifest that delivered them can do it).
+    this.iconEpoch = powerupIconEpoch();
+    for (const m of new Set([this.ctx.manifest, this.ctx.manifestFor(this.ctx.huntBiome)]))
+      void m.lateLoaded.then(() => {
+        upgradePowerupIcons(m, this.textures);
+      });
     this.slowTint = this.add.graphics().setDepth(-1).setVisible(false);
     this.slowTintFor = '';
     this.infinity = this.add.graphics().setDepth(3).setVisible(false);
@@ -1065,6 +1074,13 @@ export class HudScene extends Phaser.Scene {
     // Blink on sim time (a held frame holds it); steady red with "reduce flashes".
     const steady = this.ctx.prefs.reduceFlashes;
     const blinkOff = !steady && Math.floor((s.tick * 1000) / tps / look.blinkPeriodMs) % 2 === 1;
+    // v1.7b: the delivered icons replaced the placeholders since the last frame: re-set them.
+    const fresh = this.iconEpoch !== powerupIconEpoch();
+    if (fresh) {
+      this.iconEpoch = powerupIconEpoch();
+      this.oupaHand?.setTexture(TEX.puOupaLaai);
+      this.pickupCard?.refreshIcon();
+    }
     if (this.ctx.hook) {
       this.ctx.hook.reloadFx.chipIcons = chips.map((c) => c.icon);
       this.ctx.hook.chips = chips.map((c) => ({
@@ -1099,7 +1115,7 @@ export class HudScene extends Phaser.Scene {
       // v1.6b: an icon sits at the chip's left; a long name shrinks to fit beside it.
       const iconW = chip.icon === null ? 0 : chipH - 6;
       if (iconImg !== undefined && chip.icon !== null) {
-        if (iconImg.texture.key !== chip.icon) iconImg.setTexture(chip.icon);
+        if (iconImg.texture.key !== chip.icon || fresh) iconImg.setTexture(chip.icon);
         iconImg
           .setDisplaySize(iconW, iconW)
           .setPosition(l.chips.x + 6 + iconW / 2, y + chipH / 2 - 3);

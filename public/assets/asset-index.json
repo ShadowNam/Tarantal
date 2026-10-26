@@ -1270,10 +1270,10 @@
       "height": 64
     },
     "ui/pu_blitslaai": {
-      "group": "common",
+      "group": "late",
       "origin": "interim",
       "file": {
-        "path": "assets/common/img/ui_pu_blitslaai.9d4438776076.png",
+        "path": "assets/late/img/ui_pu_blitslaai.9d4438776076.png",
         "bytes": 3423,
         "hash": "9d4438776076"
       },
@@ -1281,10 +1281,10 @@
       "height": 128
     },
     "ui/pu_boeretroos": {
-      "group": "common",
+      "group": "late",
       "origin": "interim",
       "file": {
-        "path": "assets/common/img/ui_pu_boeretroos.e5070622ce12.png",
+        "path": "assets/late/img/ui_pu_boeretroos.e5070622ce12.png",
         "bytes": 3058,
         "hash": "e5070622ce12"
       },
@@ -1292,10 +1292,10 @@
       "height": 128
     },
     "ui/pu_bush_buckshot": {
-      "group": "common",
+      "group": "late",
       "origin": "interim",
       "file": {
-        "path": "assets/common/img/ui_pu_bush_buckshot.b2c1a3164711.png",
+        "path": "assets/late/img/ui_pu_bush_buckshot.b2c1a3164711.png",
         "bytes": 4002,
         "hash": "b2c1a3164711"
       },
@@ -1303,10 +1303,10 @@
       "height": 128
     },
     "ui/pu_chilli_biltong": {
-      "group": "common",
+      "group": "late",
       "origin": "interim",
       "file": {
-        "path": "assets/common/img/ui_pu_chilli_biltong.dfec414a61fa.png",
+        "path": "assets/late/img/ui_pu_chilli_biltong.dfec414a61fa.png",
         "bytes": 3803,
         "hash": "dfec414a61fa"
       },
@@ -1314,10 +1314,10 @@
       "height": 128
     },
     "ui/pu_meerkat_spotter": {
-      "group": "common",
+      "group": "late",
       "origin": "interim",
       "file": {
-        "path": "assets/common/img/ui_pu_meerkat_spotter.fdfbc5befe7b.png",
+        "path": "assets/late/img/ui_pu_meerkat_spotter.fdfbc5befe7b.png",
         "bytes": 3232,
         "hash": "fdfbc5befe7b"
       },
@@ -1325,10 +1325,10 @@
       "height": 128
     },
     "ui/pu_mielie_masjien": {
-      "group": "common",
+      "group": "late",
       "origin": "interim",
       "file": {
-        "path": "assets/common/img/ui_pu_mielie_masjien.4b6637fcfa2e.png",
+        "path": "assets/late/img/ui_pu_mielie_masjien.4b6637fcfa2e.png",
         "bytes": 2954,
         "hash": "4b6637fcfa2e"
       },
@@ -1336,10 +1336,10 @@
       "height": 128
     },
     "ui/pu_oupa_laai": {
-      "group": "common",
+      "group": "late",
       "origin": "interim",
       "file": {
-        "path": "assets/common/img/ui_pu_oupa_laai.c51a34925f97.png",
+        "path": "assets/late/img/ui_pu_oupa_laai.c51a34925f97.png",
         "bytes": 3317,
         "hash": "c51a34925f97"
       },
@@ -1347,10 +1347,10 @@
       "height": 128
     },
     "ui/pu_voorlaaier": {
-      "group": "common",
+      "group": "late",
       "origin": "interim",
       "file": {
-        "path": "assets/common/img/ui_pu_voorlaaier.e1b59970ef93.png",
+        "path": "assets/late/img/ui_pu_voorlaaier.e1b59970ef93.png",
         "bytes": 3376,
         "hash": "e1b59970ef93"
       },

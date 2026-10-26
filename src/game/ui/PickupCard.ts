@@ -127,6 +127,16 @@ export class PickupCard {
     this.line.setY(this.box.y + PAD + this.name.displayHeight + 4 + dy);
   }
 
+  /** v1.7b: the icon's texture was swapped (placeholder → delivered): set it again. */
+  refreshIcon(): void {
+    const icon = this.info?.icon ?? null;
+    if (icon !== null) {
+      const w = this.icon.displayWidth;
+      const h = this.icon.displayHeight;
+      this.icon.setTexture(icon).setDisplaySize(w, h);
+    }
+  }
+
   hide(): void {
     this.info = null;
     this.setVisible(false);

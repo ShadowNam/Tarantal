@@ -9,7 +9,7 @@ import type { PlaneId, SimState } from '../../sim/types';
 import { TICKS_PER_SECOND } from '../../sim/clock';
 import { coreWidth } from '../../sim/world';
 import { TEX } from '../assets/AssetManifest';
-import { powerupIcon } from '../ui/powerupIcons';
+import { powerupIcon, powerupIconEpoch } from '../ui/powerupIcons';
 import type { ParallaxView } from './ParallaxView';
 import { FlashGate, type FlashLimiter } from './flashLimit';
 import { stampedeTintAlpha } from './juice';
@@ -46,6 +46,7 @@ export class WorldView {
   private readonly parallax: ParallaxView;
   private readonly biome: Biome;
   private readonly secretArt = new Map<string, SecretArt>();
+  private iconEpoch = powerupIconEpoch();
   private readonly crates = new Map<
     number,
     {
@@ -213,6 +214,9 @@ export class WorldView {
 
   private drawCrates(s: SimState): void {
     const seen = new Set<number>();
+    // v1.7b (D-046): icons swapped from placeholders to the delivered art since last frame.
+    const fresh = this.iconEpoch !== powerupIconEpoch();
+    this.iconEpoch = powerupIconEpoch();
     for (const c of s.crates) {
       seen.add(c.id);
       const key = c.landed ? TEX.crateBox : TEX.crateChute;
@@ -264,6 +268,7 @@ export class WorldView {
           .setPosition(x, y)
           .setRadius(r)
           .setStrokeStyle(Math.max(3, 9 * scale), 0x1b1410, 1);
+        if (fresh && art.icon !== null) t.pic.setTexture(art.icon);
         t.pic.setPosition(x, y).setDisplaySize(r * 1.7, r * 1.7);
       });
     }

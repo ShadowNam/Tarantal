@@ -22,6 +22,7 @@ import { drawButton, fitText, Menu, textStyle, UI, type MenuItem } from '../ui/m
 import { getLanguage, translator } from '../../i18n/i18n';
 import { clientToDesign } from '../input/screenButtons';
 import { guideCards } from '../ui/powerupGuide';
+import { upgradePowerupIcons } from '../ui/powerupIcons';
 import type { OverlayData } from './SettingsScene';
 
 type PrimaryWeapon = Extract<Weapon, { kind: 'primary' }>;
@@ -136,6 +137,8 @@ export class ShedScene extends Phaser.Scene {
   /** D-035 review: the late group has settled (its gun pictures are in, or never will be). */
   private lateSettled = false;
   private lateWaiting = false;
+  /** v1.7b: the Power-ups tab has asked for the delivered icons (once per scene object). */
+  private iconsSettled = false;
   /** The data this scene was last started with (the late refresh restarts with it). */
   private shown: ShedData | null = null;
 
@@ -347,6 +350,21 @@ export class ShedScene extends Phaser.Scene {
     const tr = translator(lang);
     const seen = this.ctx.save.data.powerups.seen;
     const cards = guideCards(this.ctx.content, seen, tr, lang);
+    // v1.7b (D-046): the icons come with the late group: until it lands the cards show the
+    // placeholders; then the delivered icons are swapped in and this tab is drawn again.
+    if (!this.iconsSettled) {
+      this.iconsSettled = true;
+      void this.ctx.manifest.lateLoaded.then(() => {
+        const swapped = upgradePowerupIcons(this.ctx.manifest, this.textures);
+        if (
+          swapped > 0 &&
+          this.sys.isActive() &&
+          this.shown !== null &&
+          this.shown.tab === 'powerups'
+        )
+          this.scene.restart(this.shown);
+      });
+    }
     const head = this.add.text(
       body.x,
       body.y - 8,
