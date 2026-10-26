@@ -264,6 +264,9 @@ export type CanType = z.infer<typeof CanTypeSchema>;
 export const CansSchema = obj({
   /** The hit capsule of each kind upright: radius and half the length of its axis. */
   types: z.record(CanTypeSchema, obj({ r: pos, half: nonNeg })),
+  /** In the air a can's hit radius is × this (a tumbling can sweeps more than its outline, and a
+   *  shot pattern must be able to find it: GDD §11.3); on its post and lying it is as drawn. */
+  airHitMul: z.number().min(1),
   juggle: obj({
     gravityPxPerSec2: pos,
     /** The knock-off: upward speed; sideways speed at a hit on the can's edge (at least

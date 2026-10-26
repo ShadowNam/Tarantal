@@ -575,6 +575,7 @@
         "half": 13
       }
     },
+    "airHitMul": 2,
     "juggle": {
       "gravityPxPerSec2": 1100,
       "kickUpPxPerSec": 492,

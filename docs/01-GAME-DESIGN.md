@@ -558,7 +558,11 @@ a South African farm pastime: here it is a skill toy beside the bird hunt, never
 - **Landing:** back at the fence's ground line it bounces once, rattles and lies there for the rest
   of the hunt. A landed can scores nothing more (a pellet stops on it, nothing happens).
 - **One kick per shot:** a shotgun's pellets on one can give one kick (stronger with more pellets,
-  capped); the hit side is where they struck on average. Touch aim assist rescues a shot at a can
+  capped); the hit side is where they struck on average. **In the air a can is easier to hit**
+  (its hit radius × `airHitMul`, 2; a tumbling can sweeps more than its outline): without it a
+  perfect shot with the Dubbelloop kept a mid can up for 3 hits only 8–22 % of the time
+  (`tools/juggle-check.ts`; with it 65 %, and "Weg!" 45 %). The far plane's hit floor already
+  sets its size there, so far juggles stay the hard ones. Touch aim assist rescues a shot at a can
   the same way as at a bird (the aim point inside the assist-grown can → the pattern is centred on it).
 - **It is still a shot:** it costs ammo, and its impact makes noise like any shot (flocks near it
   alert, a silenced gun stays quiet). A resting can and its fence never stand in front of a bird

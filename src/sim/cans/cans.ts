@@ -48,8 +48,9 @@ export interface Can {
   /** Drawn size on its plane (radius and half axis). */
   readonly r: number;
   readonly half: number;
-  /** Hit radius (r floored by the plane's minHitRadiusPx). */
+  /** Hit radius (r floored by the plane's minHitRadiusPx), and in the air (× airHitMul). */
   readonly hitR: number;
+  readonly airHitR: number;
 }
 
 export interface Blikkies {
@@ -104,6 +105,7 @@ export function startCans(d: CanDeps): Blikkies | null {
       r,
       half,
       hitR: hitRadius(t.r, p.scale, p.minHitRadiusPx),
+      airHitR: hitRadius(t.r * d.cans.airHitMul, p.scale, p.minHitRadiusPx),
     });
   });
   return {
@@ -118,6 +120,11 @@ export function startCans(d: CanDeps): Blikkies | null {
   };
 }
 
+/** A can's hit radius now: larger while it tumbles in the air. */
+export function canHitR(c: Can): number {
+  return c.body.state === 'air' || c.body.state === 'bounced' ? c.airHitR : c.hitR;
+}
+
 /** A can's hit capsule now (plane px): its axis turns with it. `growPx` = touch assist. */
 export function canCapsule(
   c: Can,
@@ -128,7 +135,7 @@ export function canCapsule(
   return {
     x: c.body.x,
     y: c.body.y,
-    r: c.hitR + growPx,
+    r: canHitR(c) + growPx,
     hx: c.half * sin(a),
     hy: -c.half * cos(a),
   };
@@ -150,7 +157,8 @@ export function hitCan(
   pellets: number,
   rng: RandomStream,
 ): KickResult | null {
-  const side = c.hitR > 0 ? meanDx / c.hitR : 0;
+  const r = canHitR(c);
+  const side = r > 0 ? meanDx / r : 0;
   const k = kick(c.body, b.tuning, side, pellets, rng);
   if (k === null) return null;
   if (k.kind === 'knock') b.knocks++;

@@ -21,6 +21,7 @@ import {
   BLIKKIESDANS_SECRET,
   CAN_ID_BASE,
   canCapsule,
+  canHitR,
   canLocal,
   canPoints,
   hitCan,
@@ -2077,13 +2078,15 @@ export function createSim(config: SimConfig): Sim {
         return { lx: Math.round(l.lx * 100) / 100, ly: Math.round(l.ly * 100) / 100 };
       });
       const meanDx = h.dx / h.n;
+      // The side it was struck on, against its size when struck (before the kick).
+      const hitR = canHitR(c);
       const k = hitCan(blik, c, meanDx, h.n, rng.stream('cans'));
       if (k === null) continue;
       const knock = k.kind === 'knock';
       const base = canPoints(cs, c.plane, knock ? 'knock' : { chain: k.chain });
       const points = awardBonus(knock ? 'canKnock' : 'canAir', base);
       canPointsPaid += points;
-      const side = c.hitR > 0 ? Math.max(-1, Math.min(1, meanDx / c.hitR)) : 0;
+      const side = hitR > 0 ? Math.max(-1, Math.min(1, meanDx / hitR)) : 0;
       emit({
         type: knock ? 'canKnocked' : 'canJuggled',
         tick,
@@ -3146,7 +3149,7 @@ export function createSim(config: SimConfig): Sim {
                   chain: c.body.chain,
                   r: c.r,
                   half: c.half,
-                  hitR: c.hitR,
+                  hitR: canHitR(c),
                 })),
                 bestChain: blik.bestChain,
               },

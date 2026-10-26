@@ -119,6 +119,16 @@ describe('Blikkies: tin cans on the fence posts (D-050)', () => {
     expect(k?.r).toBeLessThan(k?.hitR ?? 0);
   });
 
+  it('in the air a can is easier to hit (× airHitMul), on its post as drawn', () => {
+    const c = withFence(quiet());
+    const s = sim(c);
+    const id = cans(s)[0]?.id ?? 0;
+    const rest = can(s, id).hitR;
+    expect(rest).toBeCloseTo(c.birds.cans.types.food.r * c.scoring.planes.mid.scale, 9);
+    shootCan(s, c, id);
+    expect(can(s, id).hitR).toBeCloseTo(rest * c.birds.cans.airHitMul, 9);
+  });
+
   it('knocked off away from the hit side: hit left of centre, it flies right', () => {
     const c = withFence(quiet());
     const a = sim(c);
