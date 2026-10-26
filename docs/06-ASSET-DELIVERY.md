@@ -361,9 +361,11 @@ The frame order and art notes are in `src/game/assets/desertAssets.ts` and the a
 Deliver the whole sheet with the same layout, at any multiple (the sidecar's `master`).
 
 **Fruit sheets (v1.7c, D-047).** Each biome's reacting fruit, pods and flowers are one sheet,
-`sprites/fruit/<biome>.png`, 512 × 256 at 1× (sidecar `originX`/`originY` 0). Where each sits is
-`src/game/view/fruit/spots/fruit-<biome>.json`: its layer or prop, its pivot (stalk top, spike foot or
-base), its ground line, and its frame (`fx fy fw fh`) and pivot in the frame (`ox oy`). A delivery
+`sprites/fruit/<biome>.png`, 512 × 512 texture px (sidecar `originX`/`originY` 0). Where each
+sits is `src/game/view/fruit/spots/fruit-<biome>.json`: its layer or prop, its pivot (stalk top,
+spike foot or base), its ground line and trunk, `res` (texture px per design px: 2 for prop fruit,
+1 on layers), the fruit's frame (`fx fy tw th` in texture px, `fw fh` and its pivot `ox oy` in
+design px) hanging at `ax ay` from the pivot, and the stalk's frame when it has one. A delivery
 replaces the sheet and that file together, and the layer or prop art it sits on comes without
 those fruit. The Karoo's and Kalahari's sheets load with the late group (sidecar
 `"group": "late"`), the others with their biome.

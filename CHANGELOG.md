@@ -18,6 +18,11 @@ unchanged, so replays from 1.7.1 stay valid.
 - A soft thock on a hit and a thud on landing. Reduce motion: smaller swings, no bounce.
 - Fruit are not targets: no score, no penalty, and they never take a shot from a bird.
 
+- Each fruit is drawn in detail: mottled, curved sausages with pale dots on rope stalks, velvety
+  baobab pods, warty !nara melons, glossy ilala bunches, seeded pods and quiver-tree racemes. A
+  dropped fruit leaves its stalk on the tree, lands to the side it swung, clear of the trunk, with
+  a soft shadow under it.
+
 ### Changed
 - The interim tree and prop art no longer has those fruit drawn in; they are sprites in a small
   sheet per biome (in the biome's download, or the late group for the Karoo and Kalahari).

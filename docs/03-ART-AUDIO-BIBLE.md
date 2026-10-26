@@ -281,10 +281,18 @@ streaks, puddles. Lightning flashes must obey the ≤ 3 flashes/second rule and 
 
 **Fruit as separate sprites (v1.7c, D-047).** Fruit, pods and flowers that react to shots are
 not part of the tree, layer or prop art on the mid, near and foreground planes: each is its own
-sprite in the biome's fruit sheet (`fruit/<biome>`, 512 × 256, its frames and pivots listed in
-`src/game/view/fruit/spots/fruit-<biome>.json`). Hanging fruit pivot at the top of the stalk (the
-stalk is part of the sprite), flower spikes at their foot, fruit on the ground at their base;
-each spot also gives the ground line a dropped fruit lands on. They are: Karoo sweet-thorn pods;
+sprite in the biome's fruit sheet (`fruit/<biome>`, 512 × 512, its frames and pivots listed in
+`src/game/view/fruit/spots/fruit-<biome>.json`). A hanging fruit with a long stalk is two frames:
+the stalk (pivot at its top, it stays on the tree) and the fruit (pivot where it hangs from the
+stalk's end); flower spikes pivot at their foot, fruit on the ground at their base. Each spot also
+gives the ground line a dropped fruit lands on and the foot of its trunk (it comes to rest clear
+of it). Prop fruit are drawn at 2×, layer fruit at 1×. The look is the camelthorn bar
+(`tools/art/fruitLook.ts`): sausages long, heavy, slightly curved, fatter toward a darker blunt
+tip, grey-brown mottled rough skin with pale lenticel dots, on a thin rope stalk thickening into
+the fruit; baobab pods velvety grey-green to olive-tan ovoids with a soft sheen, a fuzzy rim and a
+woody stalk end; round fruit with a shade side, a highlight and a nub (marula speckled, !nara
+warty with pale bands, ilala glossy brown on a branched rachis); pods two-toned with seed bulges
+and a lit edge; quiver racemes of tubular flowers. They are: Karoo sweet-thorn pods;
 Bushveld baobab pods (not the secret pod) and marula fruit on the ground; Okavango sausages and
 ilala fruit clusters; Kalahari and Namibië camelthorn pods (hanging and on the sand); Namibië
 quiver-tree flower spikes and !nara melons. Far-plane trees keep theirs drawn in. A delivery

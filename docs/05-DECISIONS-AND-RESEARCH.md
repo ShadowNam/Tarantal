@@ -2650,24 +2650,43 @@ delivered: no download.
 (3) *Separate sprites:* the species code hands each reacting fruit, pod or flower to
 `tools/art/fruitSink.ts`; `art:interim` collects them from the mid, near and foreground layers and
 from every prop (the far planes keep theirs baked), renders each on its own and packs them into one
-512 × 256 png8 sheet per biome (`fruit/<biome>`, interim origin), with
+512 × 512 png8 sheet per biome (`fruit/<biome>`, interim origin), with
 `src/game/view/fruit/spots/fruit-<biome>.json` saying where each sits (layer or prop px, its ground line,
 its frame and pivot). The random streams are used exactly as before, so the rest of every layer
 and prop is unchanged. 282 fruit: Karoo 20 sweet-thorn pods; Bushveld 24 marula fruit and 5 baobab
 pods (the secret pod stays prop art); Okavango 6 sausages and 3 ilala clusters; Kalahari 48
 camelthorn pods; Namibië 92 quiver flower spikes, 17 !nara melons and 67 camelthorn pods. The
 jackalberry draws fruit only at the near detail, which no map uses, so it has none to split.
-(4) *Sizes (gzip):* nothing new in the first download (3,056.0 KB, +0.1 KB: the lazy import and
-the tunables, offset by the Karoo mid layer losing its pods). `FruitView` (3.6 KB) and each map's spots
-table (`fruit-<biome>`) are small lazy chunks fetched when a hunt starts. Sheets: Okavango 6.5 KB and Bushveld 3.3 KB and Namibië
-16.1 KB in their biome chunks (Okavango 1,514.5 of 1,536 KB); the Karoo's (2.2 KB, no room in the
-first download) and the Kalahari's (3.6 KB: the Kalahari and desert chunks are at 1,534.5 KB
-together) load with the late group, so their fruit show once it has arrived (the first Karoo hunt
-after a cold start may begin without them; `FruitView` swaps the sheet in when it lands).
+(4) *Sizes (gzip):* nothing new in the first download (3,069.1 KB with v1.7b, +0.1 KB: the lazy
+import and the tunables, offset by the Karoo mid layer losing its pods). `FruitView` (3.6 KB) and
+each map's spots table (`fruit-<biome>`) are small lazy chunks fetched when a hunt starts. Sheets
+(after the look round, (6)): Okavango 21.0 KB, Bushveld 9.3 KB and Namibië 31.8 KB in their biome
+chunks (Okavango 1,529.1, Bushveld 1,499.1, Namibië + desert 1,508.3 of 1,536 KB); the Karoo's
+(2.7 KB, no room in the first download) and the Kalahari's (5.8 KB: the Kalahari and desert chunks
+are at 1,534.5 KB together) load with the late group (1,471.3 KB), so their fruit show once it has
+arrived (the first Karoo hunt after a cold start may begin without them; `FruitView` swaps the
+sheet in when it lands, and until then nothing reacts or sounds).
 (5) *Tests:* `fruitMotion.test.ts` and `fruitHits.test.ts` (swing, sides, near misses, drop
 rules, fall/bounce/roll/fade, ground fruit, plane mapping, blocking); `fruit.spec.ts` (Okavango,
 `?birds=0`: a shot beside a sausage swings it, shots at it drop it, it lands, the score stays);
 `art-preview-v17c.spec.ts` (on demand) for `docs/art-preview/compare/v17c-fruit-*.png`.
+(6) *Look round (26 Oct, from the 15f7afe screenshots):* the close-ups showed flat shapes (tan
+"pills" on a straight line, smooth grey eggs); the product owner wants the camelthorn bar on every
+fruit. The sprites now have their own drawings (`tools/art/fruitLook.ts`): sausages long, heavy,
+slightly curved and fatter toward a darker blunt tip, grey-brown mottled rough skin with pale
+lenticels, lit upper left with a shade side, on a thin twisted rope stalk that thickens into the
+fruit; baobab pods velvety ovoids, grey-green to olive-tan, a soft sheen, a fuzzy rim and a woody
+stalk end; round fruit with a shade side, a highlight and a nub (marula speckled, !nara warts and
+pale bands, glossy ilala fruit on a branched rachis); sweet-thorn and camelthorn pods with seed
+bulges, two tones and a lit edge (camelthorn: fuzz); quiver racemes of tubular flowers, open
+yellow below and greener buds above. They are used only for the sprites (the far-plane fruit stay
+baked in their old look, so no layer changed) and seed their own random streams. Prop fruit (seen
+close up, like the 2× props) are drawn at 2×. A hanging fruit is now two frames: its stalk stays
+on the tree (and swings out) when the fruit snaps off, and the fruit falls from the stalk's end, so
+a sausage no longer lies with a 200 px stalk across the tree. A dropped fruit lands toward the side
+it swung and rolls on until it lies `trunkClearPx` (10 px) clear of its trunk (the species code
+gives each fruit its trunk's foot), so it never reads as stuck to the trunk; a soft contact shadow
+lies under it.
 
 ## 3. Research notes (with sources)
 
