@@ -17,15 +17,17 @@ that are in a far distance … still look too much like stick figures."
   gemsbok's mask and two long horns), their own coats and markings, light from above and a soft
   shadow, thin outlines instead of a heavy cartoon line.
 - **At their real size** beside the guineafowl on their plane (a far zebra 106 px at the
-  shoulder, an elephant 252, a giraffe 394 tall), in loose herds facing both ways, with young
-  ones, cows and hens; lechwe wade in shallow water.
+  shoulder), with elephants and giraffes a little smaller so the distance reads (an elephant 151
+  px at the shoulder, a giraffe 237 tall), in loose herds facing both ways where no head crosses
+  another animal, with young ones, cows and hens; lechwe wade in shallow water. Every animal
+  stands out from the bright horizon and clouds.
 - **They live a little**: grazing bites, ear flicks, tail swishes, an elephant's ears and trunk, a
   browsing giraffe — on game time (a paused or held frame holds still; reduce motion is calmer).
 - **HD**: every herd has a 2× twin in its area's HD pack.
 
 ### Unchanged
 - Positions, hits, scores and replays (decor only). The first download shrinks (2,996.0 →
-  2,990.7 KB gzip, web: the Karoo's herds load just after it); every area chunk stays under
+  2,992.1 KB gzip, web: the Karoo's herds load just after it); every area chunk stays under
   1.5 MB (two big camelthorn images at 128 colours, no visible change, make the room).
 
 ## [1.9.0] — HD graphics: Standard or HD (27 Oct 2026)

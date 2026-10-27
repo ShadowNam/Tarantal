@@ -363,9 +363,11 @@ Bird atlases are drawn per plane at the plane's scale (`npm run art:interim -- -
   net between angular chestnut patches); browsing, walking, head up, drinking; calves.
 - **Far animals** (D-054, 1.9.1; `tools/art/farFauna.ts`, herds in
   `src/game/view/faunaHerds.ts`) are drawn from their anatomy at their **real size beside the
-  guineafowl on their plane** (D-049 targets, docs/balance/perspective.md: far elephant 252 px at
-  the shoulder, giraffe 394 to the head, zebra 106, wildebeest 110, gemsbok 95, springbok 63,
-  ostrich 197, lechwe 79; the Ver waterhole's at the Ver plane's). Young ones 55–70 % of an
+  guineafowl on their plane** (D-049 targets, docs/balance/perspective.md: far zebra 106 px at
+  the shoulder, wildebeest 110, gemsbok 95, springbok 63, ostrich 197, lechwe 79; the Ver
+  waterhole's at the Ver plane's), except **elephants and giraffes at 0.6 ×** (the product owner:
+  smaller with distance; far elephant 151 px at the shoulder, giraffe 237 to the head):
+  `feel.json fauna.sizeMul`. Young ones 55–70 % of an
   adult (elephant calves 50 %) with bigger heads and longer legs; cows and hens a little smaller.
   - *Anatomy:* jointed legs (elbow, knee, fetlock, pastern and a tapering hoof in front; stifle,
     hock, fetlock behind), never sticks; a barrel with withers, back, croup and a tucked flank;
@@ -391,9 +393,10 @@ Bird atlases are drawn per plane at the plane's scale (`npm run art:interim -- -
     wading (legs cut at the surface, ripple rings, a dim broken reflection); ostrich cocks black
     with white wing tips and tail plumes, hens and young grey-brown.
   - *Light:* from above: a lit back (a vertical wash), rounded light on haunch and shoulder, a
-    shaded belly and far legs (a shade darker, behind the body), a soft contact shadow; thin
-    outlines in a darker shade of the coat, never black ink; half the layer's haze on every
-    colour (never alpha). Overlapping shapes are drawn as separate fills (no see-through legs).
+    shaded belly and far legs (a shade darker, behind the body), a soft contact shadow; a thin,
+    clearly darker contour in a shade of the coat (never black ink) on every part; 0.45 of the
+    layer's haze, cut back per colour so a coat keeps 1.8:1 contrast against the area's horizon
+    glow, low sky and clouds (never alpha): a far animal never melts into the sky. Overlapping shapes are drawn as separate fills (no see-through legs).
   - *Poses and life:* grazing (muzzle to the ground; the giraffe browses head up), alert, walking
     (a diagonal stride), the giraffe's splay-legged drink; loose groups, both facings, young ones.
     Each animal is in parts (tail, body, head with neck, an elephant's ear) that move a little on
