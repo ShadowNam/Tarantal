@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   drawOrder,
@@ -6,6 +8,13 @@ import {
   herdLooks,
   lookHeight,
   placePart,
+  frameName,
+  lookOf,
+  partBox,
+  sheetOf,
+  spaceHerd,
+  type FaunaFrame,
+  type FaunaFrames,
   type FaunaIdleTuning,
   type HerdAnimal,
 } from './faunaHerds';
@@ -157,6 +166,53 @@ describe('shared sheets (D-054)', () => {
         if (owner === undefined) continue;
         expect(owner.sheet).toBeUndefined();
         for (const look of herdLooks(h)) expect(herdLooks(owner)).toContain(look);
+      }
+  });
+});
+
+describe('spaceHerd with the packed sheets (D-054)', () => {
+  const index = JSON.parse(
+    readFileSync(
+      join(import.meta.dirname, '..', '..', '..', 'public', 'assets', 'asset-index.json'),
+      'utf8',
+    ),
+  ) as { images: Record<string, { frames?: FaunaFrames }> };
+  it('no head crosses another animal, bodies overlap a quarter at most, feet stay on the ground line', () => {
+    for (const herds of Object.values(FAUNA_HERDS))
+      for (const h of herds) {
+        const frames = index.images[sheetOf(h)]?.frames;
+        expect(frames, h.key).toBeDefined();
+        if (frames === undefined) continue;
+        const of = (a: HerdAnimal, part: 'head' | 'body'): FaunaFrame | undefined =>
+          frames[frameName(lookOf(a), part)];
+        const spaced = spaceHerd(h.animals, of);
+        expect(spaced.map((a) => a.dy)).toEqual(h.animals.map((a) => a.dy));
+        expect(spaced.map((a) => a.facing)).toEqual(h.animals.map((a) => a.facing));
+        const box = (a: HerdAnimal, p: 'head' | 'body') => {
+          const f = of(a, p);
+          return f === undefined ? null : partBox(a, f);
+        };
+        const ov = (x: ReturnType<typeof box>, y: ReturnType<typeof box>): number =>
+          x === null || y === null
+            ? 0
+            : Math.min(
+                Math.min(x.x1, y.x1) - Math.max(x.x0, y.x0),
+                Math.min(x.y1, y.y1) - Math.max(x.y0, y.y0),
+              );
+        for (let i = 0; i < spaced.length; i++)
+          for (let j = 0; j < spaced.length; j++) {
+            const a = spaced[i];
+            const b = spaced[j];
+            if (i === j || a === undefined || b === undefined) continue;
+            expect(
+              ov(box(a, 'head'), box(b, 'head')),
+              `${h.key} heads ${i}/${j}`,
+            ).toBeLessThanOrEqual(0);
+            expect(
+              ov(box(a, 'head'), box(b, 'body')),
+              `${h.key} head ${i} / body ${j}`,
+            ).toBeLessThanOrEqual(0);
+          }
       }
   });
 });

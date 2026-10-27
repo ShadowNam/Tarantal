@@ -145,7 +145,7 @@ export class FaunaView {
       const ds = this.manifest.displayScale(key);
       const view: Herd = { root, x0: Infinity, x1: -Infinity, animals: [] };
       // Spread from the frames' real sizes: no head crosses another (D-054).
-      const spaced = spaceHerd(h.animals, (a) => frames[frameName(lookOf(a), 'head')]);
+      const spaced = spaceHerd(h.animals, (a, part) => frames[frameName(lookOf(a), part)]);
       for (const a of drawOrder(spaced)) {
         const animal: Animal = {
           a: { ...a, seed: animalSeed(h.animals[spaced.indexOf(a)] ?? a) },

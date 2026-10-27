@@ -355,37 +355,61 @@ const overlapX = (a: Box, b: Box): number => Math.min(a.x1, b.x1) - Math.max(a.x
 const overlapY = (a: Box, b: Box): number => Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0);
 
 /**
- * D-054: spreads a herd so that no animal's head (with its neck) overlaps another's, from the
- * frames' real sizes (so a size change in feel.json fauna.sizeMul re-spaces the herd by itself).
- * Left to right, each animal moves right just past any earlier head it would cross (bodies may
- * overlap a little); then the herd is re-centred on its authored middle. Order, facings, dy and
- * feet stay as authored. Pure.
+ * D-054: spreads a herd from the frames' real sizes (so a size change in feel.json
+ * fauna.sizeMul re-spaces it by itself): no animal's head (with its neck) overlaps another
+ * animal's head or body, and bodies overlap by at most `bodyShare` of the narrower one. Left to
+ * right, each animal moves right just enough; then the herd is re-centred on its authored middle.
+ * Order, facings, dy and feet stay as authored. Pure.
  */
 export function spaceHerd(
   animals: readonly HerdAnimal[],
-  headOf: (a: HerdAnimal) => FaunaFrame | undefined,
+  partOf: (a: HerdAnimal, part: 'head' | 'body') => FaunaFrame | undefined,
   gap = 2,
+  bodyShare = 0.25,
 ): HerdAnimal[] {
   const order = [...animals].sort((a, b) => a.x - b.x);
-  const placed: { a: HerdAnimal; head: Box | null }[] = [];
+  const boxes = (a: HerdAnimal): { head: Box | null; body: Box | null } => {
+    const h = partOf(a, 'head');
+    const b = partOf(a, 'body');
+    return {
+      head: h === undefined ? null : partBox(a, h),
+      body: b === undefined ? null : partBox(a, b),
+    };
+  };
+  /** How far `x` must move right to clear `y` (0 = clear). */
+  const push = (x: Box | null, y: Box | null, allowed: number): number => {
+    if (x === null || y === null || overlapY(x, y) <= 0) return 0;
+    const ox = overlapX(x, y);
+    return ox > allowed ? y.x1 - x.x0 + gap - allowed : 0;
+  };
+  const placed: { a: HerdAnimal; head: Box | null; body: Box | null }[] = [];
   for (const a0 of order) {
     let a = a0;
-    const f = headOf(a);
-    for (let guard = 0; guard < 50 && f !== undefined; guard++) {
-      const hb = partBox(a, f);
-      const hit = placed.find(
-        (q) => q.head !== null && overlapX(q.head, hb) > -gap && overlapY(q.head, hb) > 0,
-      );
-      if (hit === undefined || hit.head === null) break;
-      a = { ...a, x: a.x + hit.head.x1 - hb.x0 + gap };
+    for (let guard = 0; guard < 80; guard++) {
+      const me = boxes(a);
+      let need = 0;
+      for (const q of placed) {
+        const share =
+          me.body === null || q.body === null
+            ? 0
+            : bodyShare * Math.min(me.body.x1 - me.body.x0, q.body.x1 - q.body.x0);
+        need = Math.max(
+          need,
+          push(me.head, q.head, -gap),
+          push(me.head, q.body, -gap),
+          push(me.body, q.head, -gap),
+          push(me.body, q.body, share),
+        );
+      }
+      if (need <= 0) break;
+      a = { ...a, x: a.x + need };
     }
-    placed.push({ a, head: f === undefined ? null : partBox(a, f) });
+    placed.push({ a, ...boxes(a) });
   }
   const mid = (xs: readonly number[]): number => (Math.min(...xs) + Math.max(...xs)) / 2;
   const shift = mid(animals.map((a) => a.x)) - mid(placed.map((q) => q.a.x));
   return animals.map((a) => {
-    const i = order.indexOf(a);
-    const q = placed[i];
+    const q = placed[order.indexOf(a)];
     return q === undefined ? a : { ...q.a, x: q.a.x + shift };
   });
 }
