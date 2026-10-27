@@ -8,7 +8,7 @@ import {
   type FaunaFrames,
   type FaunaIdleTuning,
 } from './faunaHerds';
-import { FaunaView } from './FaunaView';
+import { drawnBox, FaunaView } from './FaunaView';
 
 const IDLE: FaunaIdleTuning = {
   grazeDeg: 5,
@@ -216,5 +216,23 @@ describe('FaunaView HD swaps (D-054 review)', () => {
       v.update(t, false);
     }
     expect(retextured.length).toBe(w.images.length);
+  });
+});
+
+describe('drawnBox (D-054 review: getBounds() ignores a negative scale)', () => {
+  it('puts a mirrored part on the far side of its pivot', () => {
+    // A 100 × 50 frame, origin at x 10 (the pivot near its left edge), drawn at (200, 100).
+    const img = (sx: number) =>
+      ({
+        displayOriginX: 10,
+        displayOriginY: 25,
+        frame: { cutWidth: 100, cutHeight: 50, source: { resolution: 1 } },
+        getWorldTransformMatrix: () => ({
+          transformPoint: (x: number, y: number) => ({ x: 200 + x * sx, y: 100 + y }),
+        }),
+      }) as unknown as Phaser.GameObjects.Image;
+    expect(drawnBox(img(1))).toEqual({ x: 190, y: 75, w: 100, h: 50 });
+    // Facing left: the part reaches left of the pivot, not right.
+    expect(drawnBox(img(-1))).toEqual({ x: 110, y: 75, w: 100, h: 50 });
   });
 });

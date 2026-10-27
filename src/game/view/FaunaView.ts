@@ -73,6 +73,34 @@ const CULL_MARGIN = 200;
 const RETRY_FRAMES = 30;
 const REST: FaunaIdle = { head: 0, tail: 0, ear: 1 };
 
+/**
+ * An image's on-screen box from its real world transform (Phaser's getBounds() uses |scaleX| and
+ * the unflipped origin, so a mirrored part's box landed on the wrong side of its pivot).
+ */
+export function drawnBox(img: Phaser.GameObjects.Image): {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+} {
+  const m = img.getWorldTransformMatrix();
+  const x0 = -img.displayOriginX;
+  const y0 = -img.displayOriginY;
+  const x1 = x0 + img.frame.cutWidth / img.frame.source.resolution;
+  const y1 = y0 + img.frame.cutHeight / img.frame.source.resolution;
+  const pts = [
+    [x0, y0],
+    [x1, y0],
+    [x0, y1],
+    [x1, y1],
+  ].map(([x, y]) => m.transformPoint(x ?? 0, y ?? 0));
+  const xs = pts.map((q) => q.x);
+  const ys = pts.map((q) => q.y);
+  const left = Math.min(...xs);
+  const top = Math.min(...ys);
+  return { x: left, y: top, w: Math.max(...xs) - left, h: Math.max(...ys) - top };
+}
+
 export class FaunaView {
   private readonly parts: Part[] = [];
   private readonly herdViews = new Map<string, Herd>();
@@ -281,10 +309,10 @@ export class FaunaView {
     };
     const pm = this.parent.getWorldTransformMatrix();
     for (const p of this.parts) {
-      const b = p.img.getBounds();
+      const b = drawnBox(p.img);
       g.lineStyle(1, colour[p.part], 1);
-      // Bounds are in world px; the graphics sits in the layer's frame.
-      g.strokeRect((b.x - pm.tx) / pm.a, (b.y - pm.ty) / pm.d, b.width / pm.a, b.height / pm.d);
+      // Boxes are in world px; the graphics sits in the layer's frame.
+      g.strokeRect((b.x - pm.tx) / pm.a, (b.y - pm.ty) / pm.d, b.w / pm.a, b.h / pm.d);
     }
   }
 
@@ -309,14 +337,21 @@ export class FaunaView {
     const out: { key: string; x: number; y: number; w: number; h: number; hd: boolean }[] = [];
     for (const [key, root] of this.roots) {
       if (root.length === 0) continue;
-      const b = root.getBounds();
       const first = root.list[0] as Phaser.GameObjects.Image | undefined;
+      // The union of the parts' real boxes (a before-image has no parts: its own box).
+      const boxes = this.parts.filter((p) => p.animal.herd === key).map((p) => drawnBox(p.img));
+      if (boxes.length === 0 && first !== undefined) boxes.push(drawnBox(first));
+      if (boxes.length === 0) continue;
+      const x0 = Math.min(...boxes.map((b) => b.x));
+      const y0 = Math.min(...boxes.map((b) => b.y));
+      const x1 = Math.max(...boxes.map((b) => b.x + b.w));
+      const y1 = Math.max(...boxes.map((b) => b.y + b.h));
       out.push({
         key,
-        x: Math.round(b.x),
-        y: Math.round(b.y),
-        w: Math.round(b.width),
-        h: Math.round(b.height),
+        x: Math.round(x0),
+        y: Math.round(y0),
+        w: Math.round(x1 - x0),
+        h: Math.round(y1 - y0),
         hd: first !== undefined && this.manifest.displayScale(first.texture.key) < 1,
       });
     }
@@ -326,7 +361,7 @@ export class FaunaView {
   /** Test hook: every part as drawn (on-screen box, frame cut, source size). */
   probe(): FaunaProbe[] {
     return this.parts.map((p) => {
-      const b = p.img.getBounds();
+      const b = drawnBox(p.img);
       const f = p.img.frame;
       const src = p.img.texture.source[0];
       return {
@@ -334,7 +369,7 @@ export class FaunaView {
         animal: p.animal.index,
         part: p.part,
         frame: f.name,
-        box: { x: b.x, y: b.y, w: b.width, h: b.height },
+        box: b,
         cut: { x: f.cutX, y: f.cutY, w: f.cutWidth, h: f.cutHeight },
         origin: { x: p.img.originX, y: p.img.originY },
         scale: { x: p.img.scaleX, y: p.img.scaleY },
