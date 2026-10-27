@@ -684,7 +684,9 @@ export class HuntScene extends Phaser.Scene {
     // Standard and HD).
     hook.graphics.hdTextures = hdTextureCount(this.textures);
     hook.graphics.bounds = sampleBounds(this.boundsSource);
-    hook.fauna = this.parallax.faunaProbe();
+    // The create-time sample runs before this run's views exist (boundsSource is null until the
+    // ParallaxView is built; `parallax` is unset on the first run): no herds to probe yet.
+    hook.fauna = this.boundsSource === null ? [] : this.parallax.faunaProbe();
     hook.gunAtlases = this.textures.getTextureKeys().filter((k) => k.startsWith('final:gun/'));
   }
 
