@@ -1,12 +1,13 @@
 // D-053: the HD pack in the manifest: which files an area needs (before its hunt, in the
 // background), and that HD art goes under the same keys at the same on-screen size, then back.
-import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { loadContent } from '../../../tools/testContent';
 import { createPlaceholderManifest, loadBiomeArt } from '../placeholder/ProceduralAssetFactory';
-import { hdTextureCount, purgeRetired, type AssetManifest } from './AssetManifest';
-import { parseAssetIndex, type AssetIndex } from './assetIndex';
+import { hdTextureCount, type AssetManifest } from './AssetManifest';
+import { applyHd, dropHd, hdFiles, loadHd, purgeRetired } from './hdRuntime';
+import { readFullIndex } from '../../../tools/assets/fullIndex';
+import { type AssetIndex } from './assetIndex';
 import { isHdGroup } from './hdPack';
 
 /** Path → pixel size of every delivered image (the fake decoder's answer). */
@@ -113,15 +114,11 @@ const content = loadContent();
 const bushveld = content.biomes.find((b) => b.id === 'bushveld-winter');
 
 beforeAll(async () => {
-  const raw: unknown = JSON.parse(
-    readFileSync(
-      join(import.meta.dirname, '..', '..', '..', 'public', 'assets', 'asset-index.json'),
-      'utf8',
-    ),
-  );
-  const parsed = parseAssetIndex(raw);
-  expect(parsed.error).toBeNull();
-  index = parsed.index;
+  // The index with its HD half (asset-index-hd.json) merged back in, as the game does.
+  const full = readFullIndex(join(import.meta.dirname, '..', '..', '..', 'public'));
+  expect(full.error).toBeNull();
+  if (full.index === null) throw new Error('no asset index');
+  index = full.index;
   for (const e of Object.values(index.images)) {
     dims.set(e.file.path, { width: e.width, height: e.height });
     if (e.hd !== undefined) dims.set(e.hd.file.path, { width: e.hd.width, height: e.hd.height });
@@ -145,7 +142,7 @@ async function loaded(): Promise<AssetManifest> {
 describe('AssetManifest HD files', () => {
   it('splits an area into its hunt (common, the area) and the background (late, Ver)', async () => {
     const m = await loaded();
-    const f = m.hdFiles(index, 'bushveld-winter');
+    const f = hdFiles(m, index, 'bushveld-winter');
     const now = new Set(f.now.map((x) => x.group));
     const later = new Set(f.background.map((x) => x.group));
     expect([...now].sort()).toEqual(['bushveld-winter-hd', 'common-hd']);
@@ -161,16 +158,16 @@ describe('AssetManifest HD files', () => {
 
   it('loads with progress, and nothing is missing afterwards', async () => {
     const m = await loaded();
-    const files = m.hdFiles(index, 'bushveld-winter', true);
+    const files = hdFiles(m, index, 'bushveld-winter', true);
     expect(files.now.length).toBeGreaterThan(0);
-    const load = m.loadHd(index, { timeoutMs: 1000, biome: 'bushveld-winter' });
+    const load = loadHd(m, index, { timeoutMs: 1000, biome: 'bushveld-winter' });
     expect(m.hdReady).toBe(false);
     await load.now;
     expect(m.hdReady).toBe(true);
     expect(m.hdProgress().done).toBe(m.hdProgress().total);
     await load.all;
     // Every image and layer tile is in (atlases need real frame data: this fake has none).
-    const left = m.hdFiles(index, 'bushveld-winter', true);
+    const left = hdFiles(m, index, 'bushveld-winter', true);
     for (const x of [...left.now, ...left.background]) expect(x.path).toMatch(/\/(birds|guns)\//);
   });
 });
@@ -187,10 +184,10 @@ describe('AssetManifest.applyHd', () => {
     expect(keys.length).toBeGreaterThan(1);
     const before = Object.fromEntries(keys.map((k) => [k, shown(m, map, k)]));
     const layerBefore = m.layer('bushveld/mid');
-    await m.loadHd(index, { timeoutMs: 1000, biome: 'bushveld-winter' }).all;
+    await loadHd(m, index, { timeoutMs: 1000, biome: 'bushveld-winter' }).all;
     m.setHd(true);
     const epoch = m.hdEpoch;
-    expect(m.applyHd(api)).toBe(true);
+    expect(applyHd(m, api)).toBe(true);
     expect(m.hdEpoch).toBe(epoch + 1);
     expect(hdTextureCount(api)).toBeGreaterThan(0);
     for (const k of keys) {
@@ -223,14 +220,14 @@ describe('AssetManifest.applyHd', () => {
 
     // Back to Standard: the standard files under the keys, the same size again.
     m.setHd(false);
-    expect(m.applyHd(api)).toBe(true);
+    expect(applyHd(m, api)).toBe(true);
     for (const k of keys) {
       expect(map.get(k)?.source[0]?.image.width).toBe(index.images[k]?.width);
       expect(shown(m, map, k)).toEqual(before[k]);
     }
     expect(m.displayScale('bushveld/aloe_a')).toBe(1);
     expect(m.layer('bushveld/mid')).toEqual(layerBefore);
-    m.dropHd();
+    dropHd(m);
     purgeRetired(api, new Set());
     expect(hdTextureCount(api)).toBe(0);
     expect([...map.keys()].some((k) => k.includes('#retired-'))).toBe(false);
@@ -240,7 +237,7 @@ describe('AssetManifest.applyHd', () => {
     const m = await loaded();
     const { api } = fakeTextures();
     m.install(api, () => false);
-    expect(m.applyHd(api)).toBe(false);
+    expect(applyHd(m, api)).toBe(false);
     expect(hdTextureCount(api)).toBe(0);
   });
 });

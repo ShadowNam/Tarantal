@@ -4,7 +4,7 @@
 // fetched once per page, even when several biome manifests share it.
 import { ASSET_INDEX_PATH, parseAssetIndex, type AssetIndex } from './assetIndex';
 
-function withTimeout<T>(p: Promise<T>, ms: number, fallback: T): Promise<T> {
+export function withTimeout<T>(p: Promise<T>, ms: number, fallback: T): Promise<T> {
   return new Promise((resolve) => {
     const timer = window.setTimeout(() => {
       resolve(fallback);

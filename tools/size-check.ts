@@ -12,9 +12,9 @@ import {
   COMMON_GROUP,
   indexFiles,
   LATE_GROUP,
-  parseAssetIndex,
   VER_GROUP,
 } from '../src/game/assets/assetIndex';
+import { readFullIndex } from './assets/fullIndex';
 import {
   BUDGET_BYTES,
   alternateAssetFiles,
@@ -93,8 +93,9 @@ let lazyAssets = new Set<string>();
 let groups: string[] = [];
 let alternates = new Set<string>();
 if (existsSync(indexPath)) {
-  const { index, error } = parseAssetIndex(JSON.parse(readFileSync(indexPath, 'utf8')));
-  if (error !== null) {
+  // D-053: with the HD half merged in (its files are lazy, in their -hd groups).
+  const { index, error } = readFullIndex(dist);
+  if (error !== null || index === null) {
     console.error(`size: ${ASSET_INDEX_PATH} is invalid:\n${error}`);
     process.exit(1);
   }

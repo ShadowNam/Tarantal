@@ -656,7 +656,7 @@ export class HuntScene extends Phaser.Scene {
   private refreshHd(idle: boolean): void {
     const g = this.ctx.graphics;
     if (!g.hd) return;
-    this.manifest.applyHd(this.textures);
+    g.apply(this.manifest, this.textures);
     if (this.parallax.refreshHd()) this.weapon.refreshRig();
     if (this.ctx.hook) this.ctx.hook.graphics.epoch = this.manifest.hdEpoch;
     if (idle) {

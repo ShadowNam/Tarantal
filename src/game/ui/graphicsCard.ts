@@ -176,3 +176,6 @@ export function showHdLoading(title: string, line: string): HdLoadingPanel {
     },
   };
 }
+
+/** The card's strings (their own lazy tables, src/i18n/graphics/). */
+export { gt } from './graphicsI18n';

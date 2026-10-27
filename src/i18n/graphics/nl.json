@@ -1,0 +1,12 @@
+{
+  "graphics.title": "Graphics",
+  "graphics.question": "Hoe moet het spel eruitzien?",
+  "graphics.standard": "Standaard",
+  "graphics.standard_desc": "Snel, werkt op elk apparaat",
+  "graphics.hd": "HD",
+  "graphics.hd_desc": "Scherpere graphics, een grotere download ({mb} MB)",
+  "graphics.hd_weak": "Kan traag zijn op dit apparaat",
+  "graphics.recommended": "Aanbevolen",
+  "graphics.remember": "Onthoud mijn keuze",
+  "graphics.later": "Je kunt dit wijzigen in Instellingen → Graphics."
+}

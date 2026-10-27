@@ -2,6 +2,7 @@
 // whenever no preset is saved: Settings → Graphics "Ask on start"), with a recommendation
 // pre-selected, or in Settings → Graphics. Pure functions here; the card is ui/graphicsCard.ts,
 // the loading lives in main.ts and AssetManifest (loadHd, applyHd).
+import type { AssetManifest } from './AssetManifest';
 import type * as Phaser from 'phaser';
 import { designSizeFor } from '../layout';
 
@@ -142,6 +143,11 @@ export interface GraphicsControl {
   skipped(biomeId: string): boolean;
   /** Loads the area's HD pack in the background (title, tally) when HD is chosen. */
   preload(biomeId: string): void;
+  /**
+   * Puts the HD files that landed since under the manifest's keys (renamed, never removed:
+   * D-046). Returns true when anything changed. A no-op until the HD runtime chunk has loaded.
+   */
+  apply(manifest: AssetManifest, textures: Phaser.Textures.TextureManager): boolean;
   /**
    * At a scene change (nothing of the old views is drawn): every manifest takes the mode in
    * effect (HD in, or Standard back and the HD pack forgotten), and swapped-out textures nothing

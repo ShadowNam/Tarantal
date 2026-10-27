@@ -23,6 +23,7 @@ import {
 import { dirname, join, relative, sep } from 'node:path';
 import { z } from 'zod';
 import { hdBaseOf } from '../../src/game/assets/hdProps';
+import { splitHdIndex } from '../../src/game/assets/hdIndex';
 import {
   hdAllowed,
   hdBird,
@@ -35,6 +36,7 @@ import {
 import {
   ASSET_INDEX_PATH,
   ASSET_ORIGINS,
+  HD_INDEX_PATH,
   assetIndexSchema,
   BIRD_CLIPS,
   COMMON_GROUP,
@@ -924,8 +926,12 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
   }
   const indexFile = join(o.publicDir, ASSET_INDEX_PATH);
   mkdirSync(dirname(indexFile), { recursive: true });
-  writeFileSync(indexFile, `${JSON.stringify(checked, null, 2)}\n`);
+  // D-053: the HD parts in their own file (the first download's index stays as it was).
+  const split = splitHdIndex(checked);
+  writeFileSync(indexFile, `${JSON.stringify(split.index, null, 2)}\n`);
   written.push(ASSET_INDEX_PATH);
+  writeFileSync(join(o.publicDir, HD_INDEX_PATH), `${JSON.stringify(split.hd, null, 2)}\n`);
+  written.push(HD_INDEX_PATH);
   return { index: checked, written: written.sort(), warnings, errors };
 }
 

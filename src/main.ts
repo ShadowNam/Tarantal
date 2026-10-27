@@ -115,8 +115,8 @@ import {
   type GraphicsControl,
   type GraphicsMode,
 } from './game/assets/graphicsChoice';
-import { purgeRetired } from './game/assets/AssetManifest';
-import { showGraphicsCard, showHdLoading } from './game/ui/graphicsCard';
+import type { AssetIndex } from './game/assets/assetIndex';
+import type { HdIndex } from './game/assets/hdIndex';
 import { decodeInputLogText } from './sim/replay/inputLog';
 import { runReplay } from './sim/replay/verify';
 
@@ -669,6 +669,9 @@ async function boot(): Promise<void> {
   const placeholderArt = (testHooks || import.meta.env.DEV) && params.get('art') === 'placeholder';
   const firstIndex = await indexLoad;
   let assetIndex = placeholderArt ? null : firstIndex.index;
+  let hdIndex: HdIndex | null = null;
+  /** D-053: the HD runtime chunk once loaded (ensureHdRuntime). */
+  let hdRuntime: typeof import('./game/assets/hdRuntime') | null = null;
   let indexProblem = placeholderArt ? `${ABSENT} (?art=placeholder)` : firstIndex.problem;
   hook.assets.problem = indexProblem;
   // v1.5 (D-041): the voice language (its own setting; "same" follows the text, Dutch → af). Its
@@ -758,7 +761,11 @@ async function boot(): Promise<void> {
         await new Promise((r) => window.setTimeout(r, 500 * k));
         const again = await fetchAssetIndex(feel.assets.indexTimeoutMs, 1);
         if (again.index !== null) {
-          assetIndex = again.index;
+          // D-053: a fresh index keeps the HD half fetched earlier.
+          assetIndex =
+            hdIndex === null || hdRuntime === null
+              ? again.index
+              : hdRuntime.mergeHdIndex(again.index, hdIndex);
           indexProblem = again.problem;
           hook.assets.problem = indexProblem;
         }
@@ -870,6 +877,8 @@ async function boot(): Promise<void> {
       const p = graphics.progress(id);
       return p.total > 0 ? p.done / p.total : 0;
     };
+    // Its own small chunk: only players who chose HD (or are asked) download it.
+    const { showHdLoading } = await import('./game/ui/graphicsCard');
     const ui = showHdLoading(t('app.title'), line());
     hook.graphics.loading = 'loading';
     const tick = window.setInterval(() => {
@@ -900,6 +909,30 @@ async function boot(): Promise<void> {
   let graphicsMode: GraphicsMode =
     startMode(save.data.settings.graphics, forcedGraphics) ?? 'standard';
   const hdSkipped = new Set<string>();
+  /** The index now (a function: it may be replaced while a load awaits). */
+  const currentIndex = (): AssetIndex | null => assetIndex;
+  /**
+   * D-053: the HD runtime chunk and the HD half of the index, loaded once when first needed (the
+   * card shows, HD is chosen): a Standard player downloads neither. Tried again after a failure.
+   */
+  let hdLoad: Promise<void> | null = null;
+  const ensureHdRuntime = (): Promise<void> => {
+    hdLoad ??= import('./game/assets/hdRuntime')
+      .then(async (rt) => {
+        const hd = await rt.fetchHdIndex(feel.assets.indexTimeoutMs);
+        if (hd === null) {
+          hdLoad = null;
+          return;
+        }
+        hdRuntime = rt;
+        hdIndex = hd;
+        if (assetIndex !== null) assetIndex = rt.mergeHdIndex(assetIndex, hd);
+      })
+      .catch(() => {
+        hdLoad = null;
+      });
+    return hdLoad;
+  };
   const biomeById = (id: string): Biome | undefined => bundle.biomes.find((b) => b.id === id);
   const applyGraphicsMode = (): void => {
     for (const m of manifests.values()) m.setHd(graphics.hd);
@@ -915,17 +948,22 @@ async function boot(): Promise<void> {
     },
     hdBytes(id) {
       const b = biomeById(id);
-      if (b === undefined || assetIndex === null || !biomeArtReady(id)) return 0;
-      const f = manifestFor(b).hdFiles(assetIndex, b.id, true);
+      if (b === undefined || assetIndex === null || hdRuntime === null || !biomeArtReady(id))
+        return 0;
+      const f = hdRuntime.hdFiles(manifestFor(b), assetIndex, b.id, true);
       return [...f.now, ...f.background].reduce((a, x) => a + x.bytes, 0);
     },
-    loadHd(id) {
+    async loadHd(id) {
       const b = biomeById(id);
-      if (b === undefined || assetIndex === null || !graphics.hd || !biomeArtReady(id))
-        return Promise.resolve();
+      if (b === undefined || assetIndex === null || !graphics.hd || !biomeArtReady(id)) return;
+      await ensureHdRuntime();
+      // The index may have been fetched again meanwhile (ensureArt): read it now.
+      const index = currentIndex();
+      const rt = hdRuntime;
+      if (index === null || rt === null) return;
       const m = manifestFor(b);
       m.setHd(true);
-      return m.loadHd(assetIndex, { timeoutMs: feel.assets.fileTimeoutMs, biome: b.id }).now;
+      await rt.loadHd(m, index, { timeoutMs: feel.assets.fileTimeoutMs, biome: b.id }).now;
     },
     progress(id) {
       const b = biomeById(id);
@@ -947,14 +985,20 @@ async function boot(): Promise<void> {
     preload(id) {
       if (graphics.hd && biomeArtReady(id) && finalDone.has(id)) void graphics.loadHd(id);
     },
+    apply(m, textures) {
+      return hdRuntime?.applyHd(m, textures) ?? false;
+    },
     sync(textures, inUse, anims) {
       const hd = graphics.hd;
+      for (const m of manifests.values()) m.setHd(hd);
+      // Without the HD runtime no HD file was ever loaded: nothing to swap, retire or free.
+      const rt = hdRuntime;
+      if (rt === null) return;
       for (const m of manifests.values()) {
-        m.setHd(hd);
-        m.applyHd(textures);
-        if (!hd) m.dropHd();
+        rt.applyHd(m, textures);
+        if (!hd) rt.dropHd(m);
       }
-      purgeRetired(textures, inUse(), anims);
+      rt.purgeRetired(textures, inUse(), anims);
     },
   };
   hook.graphics.mode = graphicsMode;
@@ -1095,23 +1139,25 @@ async function boot(): Promise<void> {
     let mode = startMode(save.data.settings.graphics, forcedGraphics);
     if (mode === null && cardAllowed) {
       const advice = recommendGraphics(readGraphicsEnv(prefs.tier));
+      await ensureHdRuntime();
       const mb = megabytes(graphics.hdBytes(biome.id));
       hook.graphics.card = true;
       hook.graphics.pick = advice.pick;
       hook.graphics.weak = advice.weak;
       hook.graphics.cardMb = mb;
+      const { showGraphicsCard, gt } = await import('./game/ui/graphicsCard');
       const answer = await showGraphicsCard(
         {
           title: t('app.title'),
-          question: t('gfx.question'),
-          standard: t('gfx.standard'),
-          standardDesc: t('gfx.standard_desc'),
-          hd: t('gfx.hd'),
-          hdDesc: fill(t('gfx.hd_desc'), { mb }),
-          weak: advice.weak ? t('gfx.hd_weak') : null,
-          recommended: t('gfx.recommended'),
-          remember: t('gfx.remember'),
-          later: t('gfx.later'),
+          question: gt('graphics.question'),
+          standard: gt('graphics.standard'),
+          standardDesc: gt('graphics.standard_desc'),
+          hd: gt('graphics.hd'),
+          hdDesc: fill(gt('graphics.hd_desc'), { mb }),
+          weak: advice.weak ? gt('graphics.hd_weak') : null,
+          recommended: gt('graphics.recommended'),
+          remember: gt('graphics.remember'),
+          later: gt('graphics.later'),
         },
         advice.pick,
       );

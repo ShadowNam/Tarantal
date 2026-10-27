@@ -9,6 +9,12 @@ import { hdGroupOf } from './hdPack';
 
 /** Where the index lives, relative to the page (Vite `base: './'`). */
 export const ASSET_INDEX_PATH = 'assets/asset-index.json';
+/**
+ * D-053: the HD pack's half of the index (each entry's `hd` part), apart so the first download's
+ * index stays as small as before: fetched only when the Graphics card shows or HD is chosen, and
+ * merged in (mergeHdIndex).
+ */
+export const HD_INDEX_PATH = 'assets/asset-index-hd.json';
 /** Group of assets every hunt needs (UI, FX, shared birds and sounds). */
 export const COMMON_GROUP = 'common';
 /**
@@ -63,7 +69,7 @@ export type AssetOrigin = (typeof ASSET_ORIGINS)[number];
 const origin = z.enum(ASSET_ORIGINS).optional();
 
 /** D-053: an image's HD file (in the group `<group>-hd`, src/game/assets/hdPack.ts). */
-const hdImage = z.object({
+export const hdImage = z.object({
   file: fileRef,
   width: z.number().int().positive(),
   height: z.number().int().positive(),
@@ -87,7 +93,7 @@ const imageEntry = z.object({
 });
 
 /** D-053: a layer's HD tiles (group `<group>-hd`): the same art at 2×, each tile ≤ 2048 px. */
-const hdLayer = z.object({
+export const hdLayer = z.object({
   tiles: z.array(fileRef).min(1),
   /** Width of one tile in design px (texture px × scale). */
   tileWidth: z.number().positive(),
@@ -120,7 +126,7 @@ const layerEntry = z.object({
 
 const atlasPage = z.object({ image: fileRef, data: fileRef });
 /** One or more pages (Phaser multi-atlas); frame names are unique across pages. */
-const atlasRef = z.object({ pages: z.array(atlasPage).min(1) });
+export const atlasRef = z.object({ pages: z.array(atlasPage).min(1) });
 
 const clipEntry = z.object({
   /** Frame names in the atlas, in play order. */
@@ -207,6 +213,7 @@ export const assetIndexSchema = z.object({
 });
 
 export type AssetIndex = z.infer<typeof assetIndexSchema>;
+
 export type ImageEntry = z.infer<typeof imageEntry>;
 export type LayerEntry = z.infer<typeof layerEntry>;
 export type BirdPlaneEntry = z.infer<typeof birdPlaneEntry>;

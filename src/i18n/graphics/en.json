@@ -1,0 +1,12 @@
+{
+  "graphics.title": "Graphics",
+  "graphics.question": "How should the game look?",
+  "graphics.standard": "Standard",
+  "graphics.standard_desc": "Fast, works on every device",
+  "graphics.hd": "HD",
+  "graphics.hd_desc": "Sharper art, a larger download ({mb} MB)",
+  "graphics.hd_weak": "May be slow on this device",
+  "graphics.recommended": "Recommended",
+  "graphics.remember": "Remember my choice",
+  "graphics.later": "You can change this in Settings → Graphics."
+}
