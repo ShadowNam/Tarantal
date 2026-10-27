@@ -2841,6 +2841,29 @@ kick (430 px/s up, 110 sideways, pellet cap ×1.04, jitter growth 15) was set wi
 bot (100 ms late, 10 px error): near reaches 3 in ~96 % of juggles and Weg! at 4–6, mid 3 in ~50 %,
 far 3 in ≤ 1 % (review's suggested 400 px/s made near too long: ≥ 5 in 83 %).
 
+**D-051 1.8.1 Karoo polish: HD aloes; the potjie simmers and its lid flies off (27 Oct 2026):**
+the product owner (26 Oct): "These aloes … need to become HD" and "The braai pot … add a small bit
+of animation … as if … the pot is boiling a little bit. And when it's shot, at least the deksel
+should fall off." Decisions: (1) **Size route (b):** the Karoo is in the first download (2,987 of
+3,072 KB; HD clumps need ~+120 KB), so the old aloe_a/aloe_b/potjie stay there as placeholders and
+`karoo/hd/aloe_a|aloe_b|potjie|potjie_lid` load in the `late` group (`src/game/assets/hdProps.ts`).
+`ParallaxView.upgradeHd()` polls (every 30 frames) and swaps a prop to its HD key only when the HD
+file and all its pieces are the textures under their keys (`AssetManifest.delivered`); placeholders
+are renamed by `AssetManifest.upgrade()`, never removed (D-046). (2) **The aloe** is the bitter aloe
+(Aloe ferox), at 2× with thin tinted outlines (art bible §Karoo); the **Bushveld** clumps use the
+same drawing at 1× in place (chunk 1,445.4 → 1,474.7 KB gzip, ≤ 1,536). The koppie's small crack
+aloe (`rocks.ts`) is a different, tiny drawing and stays. (3) **The potjie** is drawn lidless with
+the lid as its own texture; `PotjieView` draws the lid, steam (`fx/smoke` tinted, ≤ 16 images),
+and the coals' additive glow on the prop's layer. Every pose is a pure function of the sim tick
+(`potjieMotion.ts`: held frames hold, replays match); reduce motion is calmer. (4) **Shot:** the
+existing `lid` secret (+5 s, `bark.kos_is_reg`, once per hunt) is unchanged in the sim and content;
+the view starts the lid's 40-tick tumble on `secretTriggered` (or shows it lying there if the
+secret is already spent). No sim, content or golden change. (5) **Sounds:** small AudioDirector
+synths (`potjieSounds.ts`) — bubbles on sim ticks while the pot is near the screen, the rattle's
+clacks, the clang — so they cost no download; a recording under the same keys replaces each later.
+(6) Sizes (web): first download 2,987.3 → 2,990.0 KB gzip (+2.1 KB: the view code; +0.6 KB asset
+index), late 1,417.8 KB, Kalahari + desert unchanged (1,534.5).
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

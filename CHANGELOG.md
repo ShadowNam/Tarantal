@@ -10,7 +10,18 @@ braai pot … add a small bit of animation … as if … the pot is boiling a li
 shot, at least the deksel should fall off."
 
 ### Changed
-- Work in progress.
+- **HD aloes**: the Karoo's aloe clumps are redrawn as bitter aloes (Aloe ferox) at 2×: fleshy
+  blue-green leaves with reddish teeth, a skirt of dry leaves, and candelabras of orange-red
+  flower spikes, with thin painterly outlines. They load after the hunt starts and swap in when
+  they arrive (the first download stays under 3 MB). The Bushveld's red aloes get the same drawing.
+- **The potjie** is a round cast-iron pot with a sheen on a fire of glowing coals and logs.
+
+### Added
+- **The potjie simmers**: steam drifts with the wind, the coals flicker, and every few seconds the
+  lid rattles with a puff and a soft clatter; bubbles while it is on screen.
+- **Shoot the lid**: it pops off, tumbles and lands beside the pot with a clang and a big puff of
+  steam; the pot steams freely for the rest of the hunt. The +5 s and Oupa's line are unchanged.
+- Reduce motion makes the potjie calmer (rarer, smaller rattles, less steam).
 
 ## [1.8.0] — Blikkies: tin cans on the fence posts (26 Oct 2026)
 

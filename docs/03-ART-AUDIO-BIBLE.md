@@ -220,7 +220,28 @@ koppies `#8E7FA6`, aloe flowers `#E2552C`. Weather: wind sock, dust devils, flyi
   on the outer limbs, yellow pompom flowers and curved brown sickle pods. **Karoo bushes** as
   layered mounds: renosterbos (fine, grey-green, rounded) and ganna (olive, upright and twiggy),
   with ragged leafy edges, a woody base and a contact shadow. **Golden grass tufts** with cream
-  seed heads. Aloes with orange-red candelabra spikes (props, unchanged).
+  seed heads. Aloes with orange-red candelabra spikes (props).
+- *HD aloes (1.8.1, D-051; `tools/art/aloe.ts`):* the bitter aloe (Aloe ferox) at the camelthorn's
+  detail, drawn at 2×: a rosette of thick, fleshy grey-green to blue-green leaves curving up and
+  out (lighter lit tops, darker undersides, darker toward the heart, lit from the upper left), small
+  reddish-brown teeth on the edges and a few on the faces; a skirt of dry papery old leaves down the
+  short stem; a candelabra of 3–6 racemes packed with tubular flowers (dark red buds on top, orange,
+  then open yellow-orange lower down) on grey-green stalks. Thin tinted outlines, never the heavy
+  black line; three plants of different sizes per clump, two clumps. The first download keeps the
+  old clumps as placeholders; the HD ones (late group) swap in when they land
+  (`ParallaxView.upgradeHd`, `AssetManifest.upgrade`). The Bushveld clumps use the same drawing at
+  1× in place.
+- *The potjie (1.8.1, D-051; `tools/art/potjie.ts`):* a round cast-iron three-legged pot with a soft
+  sheen up left, reflected light on the right and a lit rim, on a small fire of glowing coals,
+  flame tongues and three split logs in a ring of stones; the lid (domed, cast knob) is its own
+  texture. Animation (view only, on sim ticks, `src/game/view/potjieMotion.ts`): steam wisps rise
+  from the lid's edge, drift with the wind and fade; the coals' glow flickers gently; every ~4 s
+  the lid rattles (lifts a few px, tilts, drops: three clacks) with a small puff. Shot (the `lid`
+  secret): the lid pops up, tumbles off and lands on the ground to the right of the pot with a clang
+  and a big puff; the open pot then steams freely all hunt. Reduce motion: rattles every ~7 s and
+  smaller, fewer wisps, a slower flicker. Sounds (AudioDirector synths until recordings exist):
+  soft bubbles while the pot is on screen (they stop with the hunt), the rattle's clack, the clang.
+  Before the HD art lands the old pot shows unchanged.
 - *Far animals:* springbok herds (cinnamon back, dark flank band, white belly, lyre horns) and a
   few ostriches near the farm.
 
@@ -233,7 +254,8 @@ breath-fog puffs from birds.
   bare winter branches, velvety grey-green pods on long stalks (the secret pod is one of them).
   **Mopane:** a narrow upright crown of butterfly-shaped paired leaves, olive with clumps turned
   copper, dark rough bark; mopane scrub as low mounds. **Marula:** grey flaky bark in plates, a
-  spreading half-bare winter crown, yellow fruit lying in its shade. Red aloes (props), pale dry
+  spreading half-bare winter crown, yellow fruit lying in its shade. Red aloes (props; the HD
+  Aloe ferox drawing at 1× since 1.8.1, D-051), pale dry
   grass with seed heads.
 - *Far animals:* giraffes (patches, ossicones, a sloping back, browsing or head up), zebra,
   blue wildebeest and elephants.
