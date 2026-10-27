@@ -7,22 +7,22 @@ const meta = {
   title: 'Tarantal Madness',
   subtitle: 'Development history',
   tagline: 'How the game came together, from the first commit to today',
-  updated: '26 October 2026, 19:00 UTC',
-  period: '19–26 October 2026',
+  updated: '27 October 2026, 02:00 UTC',
+  period: '19–27 October 2026',
 };
 
-// "By the numbers" on 26 Oct 2026 (main at 457a51b, version 1.7.4).
+// "By the numbers" on 27 Oct 2026 (main at fc39e3a, version 1.8.0).
 const numbers = [
-  ['Days since the first commit', '7'],
-  ['Commits on main', '970'],
-  ['Pull requests', '80 merged, plus this history update; v1.8 Blikkies is being built'],
-  ['Game code (TypeScript, without tests)', 'about 49,000 lines'],
-  ['Automated tests', '1,293 unit tests, 60 browser test suites on 3 device profiles'],
+  ['Days since the first commit', '8'],
+  ['Commits on main', '1,018'],
+  ['Pull requests', '84 merged, plus this history update; Karoo polish is being built'],
+  ['Game code (TypeScript, without tests)', 'about 54,000 lines'],
+  ['Automated tests', '1,325 unit tests, 62 browser test suites on 3 device profiles'],
   ['Hunting areas', '5: the four seasons (Karoo, Bushveld, Okavango, Kalahari) and Namibië, each with 7 weekday maps and 3 bonus maps (Verder, Nog Verder, Die Verste)'],
   ['Guns', '8 (Dubbelloop, Windbuks, Kettie, Plaas-Pomp, Die Twee-Twee with 3 sights, Die Langloop with a 3–9× scope, Voorlaaier, Mielie-Masjien)'],
   ['Creatures', '13 (guineafowl and variants, bosses, flyers), plus meerkat colonies on the desert maps, and bats and owls on the Halloween Spookjag'],
   ['Languages', 'English, Afrikaans, German and Dutch text; Oupa voiced in English, Afrikaans and German'],
-  ['Design decisions logged', '49 (D-001 to D-049)'],
+  ['Design decisions logged', '50 (D-001 to D-050)'],
 ];
 
 const roles = [
@@ -809,6 +809,38 @@ const stages = [
       { img: 'perspective-scope-far', caption: 'Through the .22’s scope on the Karoo’s Nog Verder, before | after: the far birds are smaller, and the ostriches behind them now stand taller.' },
     ],
   },
+  {
+    title: 'v1.8 Blikkies: tin cans on the fence posts',
+    when: '27 Oct 2026, 01:36 (started 26 Oct, 18:39)',
+    prs: '#83',
+    decision: 'D-050',
+    intro: 'The product owner asked for this on 24 Oct and again on 26 Oct: "On maps with fence posts, have some cans standing on them that can be shot off. They somersault when hit … The distance should vary … if you hit them again they continue spinning up and so on till you don’t see them anymore." And: "Faster, higher, more unpredictable."',
+    bullets: [
+      'A farm fence of 3–6 posts, with a tin can on each (a paint tin, a rusty can, a bean can and others), stands on 3–4 weekday maps of each farm area: the Karoo, the Bushveld, the Kalahari and Namibië. Depending on the day it stands near, in the middle or far away; the bonus maps push it further back.',
+      'Shoot a can and it somersaults off its post, away from the side you hit. Hit it again in the air and it kicks higher, spins faster and wobbles more. The 10th hit in the air always sends it out of the top of the screen: "Weg!" ("gone"). A can that lands lies in the grass for the rest of the hunt.',
+      'Cans are sized for their distance, like the birds. In the air the hit area is 2.5× the drawn can, so near cans are the easiest to juggle and far cans the hardest.',
+      'Points: knocking a can off 5, each hit in the air 8 plus 2 more each time, Weg! 15. Further cans pay more (near ×0.8, middle ×1.3, far ×2, Ver ×2.5). Only the Stampede multiplies them: a can shot neither breaks nor builds your Frenzy, and it does not count as a miss.',
+      'Chain pops on screen ("3× in the air!"), can sounds, Oupa’s lines, a Notaboek challenge and a new secret, the Blikkiesdans (8 hits in the air, once a hunt). The Skietbaan has a Tin Cans target at every distance. Cans are not in the Season Run or the tutorial.',
+      'A new balance bot that shoots a flying can at the top of its arc measured the juggle over 500 hunts per test: a good shot gets 3 or more hits in the air on 98 % of near cans, 47 % of middle cans and none far away. Cans never make up more than 8.7 % of a score, and every difficulty check passes.',
+      'The can art is one small 14.9 KB sheet. The first download grew by 22 KB, to 2,987 of 3,072 KB.',
+      'Released as version 1.8.0.',
+    ],
+    feedbackLabel: 'Reviews and fixes before merging',
+    feedback: [
+      'The independent review found that far cans could be juggled almost forever (a computer shooter kept them up for 16–19 hits, worth more than a whole hunt of birds), and that on the near fence a chain of three was rare because the second hit already threw the can off the top. Tank capped the chain at 10 hits (always ending in Weg!), dropped the minimum hit size for cans in the air, softened the kicks and the sideways drift, and added the apex-juggler bot to prove it.',
+      'The review also found that new Skietbaan cans could stand on invisible posts after the view panned. The fence is now rebuilt whenever its posts move.',
+      'Claude’s first juggle screenshots reached only two hits, on the middle fence, where the can was tiny. The screenshot now juggles on the near fence and holds the frame while "3× in the air!" is on screen.',
+      'The new content changed the seeded test hunts, which broke two Halloween browser tests (the owls, and a lantern at the edge of the map). Claude fixed both on main (#85, #86) before the merge, and the full suite passed on all devices.',
+      'Tank’s connection to its model dropped several times during this job, so Claude restarted it as a fresh task with a self-contained brief, as the product owner had asked.',
+    ],
+    images: [
+      { img: 'blikkies-fence', caption: 'The near fence in the Karoo: four cans on the posts in front of the hunter.' },
+      { img: 'blikkies-somersault', caption: 'A shot can somersaults off its post ("Tink! +4").' },
+      { img: 'blikkies-juggle', caption: 'The juggle: a can high in the air after its third hit, with "3× in the air! +10" and "2× in the air! +8".' },
+      { img: 'blikkies-landed', caption: 'Close-up: two cans lie in the grass below the fence after they were shot off.' },
+      { img: 'blikkies-skietbaan', caption: 'The Skietbaan on a Pixel 7: the Tin Cans target at middle distance, with hit marks and the shot count.' },
+    ],
+  },
 ];
 
 // The product owner's requests, in order.
@@ -828,7 +860,7 @@ const requests = [
   ['24 Oct, 12:05', 'Better graphics for the trees, bushes and fruit on every map; camelthorn trees in Namibia; a far more detailed weaver nest ("increase quality by 500%") with angry birds flying out when it is shot', 'Camelthorn and nest first in v1.4 part B, with close-ups for approval; the plants on every map done in v1.6 (#70)'],
   ['24 Oct, 12:18', 'Meerkat burrows on the desert maps: meerkats peek out and run from one burrow to another ("be creative")', 'Done in v1.7 (#72)'],
   ['24 Oct, 16:00', 'Languages: game, voice and text in German, English and Afrikaans, with names adjusted for each audience', 'Done in v1.5 (#68)'],
-  ['24 Oct, 17:45', 'Clean steel gongs in the training ground, with every shot mark staying visible for the session; tin cans ("blikkies") on fence posts that somersault and can be juggled in the air', 'Gongs done (#66); Blikkies being built as v1.8'],
+  ['24 Oct, 17:45', 'Clean steel gongs in the training ground, with every shot mark staying visible for the session; tin cans ("blikkies") on fence posts that somersault and can be juggled in the air', 'Gongs done (#66); Blikkies done in v1.8 (#83)'],
   ['24 Oct, 18:55', 'Five more ideas to keep the African feel (meerkats, a soundscape, a rain storm, a braai, a farm dog, veld cameos) and Daily specials on local days (Heritage Day braai, Christmas in summer, Halloween, New Year)', 'All queued as v1.6–v1.13; a list of Daily specials sent for the product owner to choose from (Halloween chosen on 26 Oct and done in #80)'],
   ['24 Oct, 20:35', 'Distant animals (like the giraffe) look rough; consider a bow and arrow later', 'Done in v1.6 (#70); bow and arrow noted as an idea for later'],
   ['25 Oct, 06:50', 'The windmill: more detail, a wheel with missing blades, turning with the wind and spinning', 'Done in v1.6 (#70)'],
@@ -852,16 +884,20 @@ const requests = [
   ['25 Oct, 18:03', '"The Harvest": 30 seconds to shoot the animals raiding the crops while farm workers fix the fence', 'Queued as v1.8c, a new mode on the title screen (the product owner’s choice)'],
   ['25 Oct, 20:58', 'Keep building overnight on the recommended options; retry Tank, and start a new session if it hangs again', 'Built overnight: v1.7, v1.7b and the history chapters merged; v1.7c finished in the morning'],
   ['26 Oct, 04:50', 'Halloween special yes, go ahead', 'Done (#80); live for everyone on 31 Oct'],
-  ['26 Oct, 05:05', 'Karoo: HD aloes; the potjie should steam and boil a little and its lid fall off when shot; guineafowl must get smaller the further away they are, on every map, but stay shootable', 'Perspective done (#82, 1.7.4); Karoo polish (HD aloes, the boiling potjie) queued after Blikkies'],
+  ['26 Oct, 05:05', 'Karoo: HD aloes; the potjie should steam and boil a little and its lid fall off when shot; guineafowl must get smaller the further away they are, on every map, but stay shootable', 'Perspective done (#82, 1.7.4); Karoo polish (HD aloes, the boiling potjie) being built'],
   ['26 Oct, 05:15', 'Bushveld and Kalahari: the far zebras, giraffes, elephants and other animals look like stick figures; the baobab needs more detail and better fruit, with holes where small animals look out (research what lives in it); little birds around the weaver nest', 'Planned: far animals in HD (true sizes) and tree life'],
-  ['26 Oct, 05:24', 'Okavango: add makalani palms with their hard nuts, which fall or burst when hit; the tin cans and the meerkats were not seen yet; the Project overview looked stale; idea: offer Standard or HD graphics', 'Blikkies being built (v1.8); makalani palms and HD graphics planned'],
+  ['26 Oct, 05:24', 'Okavango: add makalani palms with their hard nuts, which fall or burst when hit; the tin cans and the meerkats were not seen yet; the Project overview looked stale; idea: offer Standard or HD graphics', 'Blikkies done (#83, 1.8.0); makalani palms and HD graphics planned'],
   ['26 Oct, 08:10', 'Send the Halloween screenshots when the fixes are done; keep backups and the latest version of the project in Dropbox /ai-dev/', 'Screenshots sent; Dropbox backup set up (/AI-DEV/Tarantal-Madness: a dated status file at every merge, the job briefs, the board state)'],
   ['26 Oct, 11:05', 'I tried the Halloween URL, but I don’t think it is live?', 'It was live; the ?feesdag address only works on test builds. Use the admin page: Special days → Spookjag · 31/10 → Play'],
+  ['26 Oct, 19:16', 'Send the tin-can screenshots when ready', 'Sent: the fence near, middle and far, a somersault, landed cans and the Skietbaan target, on desktop'],
+  ['26 Oct, 20:07', 'A time outline: when does each build finish, and is there enough to do for the whole night?', 'Sent: Blikkies by about 03:00 Namibia time, then Karoo polish, far animals in HD and the rest of the queue (more than a day of work)'],
+  ['26 Oct, 21:00', 'Send a short WhatsApp when a job finishes, hits a blocker or needs a decision; can you use my new WhatsApp gateway?', 'Tested: the gateway works, but this cloud session can’t reach it (network policy) or load the .mcpb. Recommended: run it on the server in HTTP mode as a custom connector. Meanwhile Tank’s WhatsApp alert is on for every job'],
+  ['26 Oct, 21:00', 'Send the juggle screenshots when ready', 'A chain of two sent that night; the final near-fence chain of three is in this chapter'],
+  ['26 Oct, 22:05', 'Going to bed: keep Tank building, committing and merging overnight; a detailed report with screenshots in the morning; GitHub properly merged and the web build showing it', 'Blikkies merged at 01:36 (#83) and deployed to the test build; Karoo polish started at 01:37; the morning report follows'],
 ];
 
 const next = [
-  ['v1.8: Blikkies (moved up)', 'Tin cans on the old farm fence that somersault when hit and fly higher with every hit in the air, until they disappear', 'Tank', 'building now (started 18:38); about 6 h'],
-  ['Karoo polish', 'HD aloes; the potjie steams, simmers and loses its lid when shot', 'Tank', 'about 5 h'],
+  ['Karoo polish', 'HD aloes; the potjie steams, simmers and loses its lid when shot', 'Tank', 'building now (started 01:37 on 27 Oct); about 6 h'],
   ['Far animals in HD', 'Realistic far herds on every map instead of stick figures, drawn at their true sizes beside the birds', 'Tank', 'about 6 h'],
   ['Makalani palms', 'Okavango palms by the water with nuts that crack off, juggle and pop', 'Tank', 'about 5½ h'],
   ['Tree life', 'A detailed baobab with residents in its hollows, a better sausage tree, weavers flying around their colony nest', 'Tank', 'about 6 h'],
@@ -912,6 +948,7 @@ const decisions = [
   ['D-047', 'v1.7c Fruit reactions: fruit as separate sprites that swing and drop on shots, view only'],
   ['D-048', 'Feesdae (special-day Dailies) and Halloween’s Spookjag on 31 Oct: bats, protected owls, pumpkin lanterns, witch hats'],
   ['D-049', 'Perspective: birds get smaller with distance on every map, far animals in proportion, a minimum hit size for far targets'],
+  ['D-050', 'v1.8 Blikkies: tin cans on the farm fences that somersault and can be juggled until Weg!; × Stampede only, the chain ends at 10 hits'],
 ];
 
 const glossary = [
@@ -932,6 +969,9 @@ const glossary = [
   ['Verder', '"Further": the bonus map'],
   ['Feesdae', 'Special days (holidays): on such a day the Daily Hunt becomes that day’s special'],
   ['Spookjag', '"Ghost hunt": the Halloween special, 31 Oct'],
+  ['Blikkies', 'Tin cans'],
+  ['Weg!', '"Gone!": a can juggled out of sight'],
+  ['Blikkiesdans', '"Tin-can dance": the secret for keeping a can up for 8 hits'],
   ['Kwêvoël', 'Grey go-away-bird'],
   ['Generaal, Ou Grys, Kuifkop Koning, Die Stormvoël', 'Boss birds'],
 ];
