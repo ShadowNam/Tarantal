@@ -365,6 +365,24 @@ export interface TestHook {
   } | null;
   /** D-051: props with an HD texture: their origin on screen (design px), HD showing yet. */
   hdProps: { id: string; hd: boolean; x: number; y: number }[];
+  /**
+   * D-053: Standard or HD. `card`: the loading screen asked this launch (`pick`: its
+   * recommendation); `loading`: the area's HD pack behind the loading screen; `bounds`: on-screen
+   * boxes of sampled scenery and HUD images (design px, rounded), the same with Standard and HD;
+   * `hdTextures`: HD textures in the texture manager; `epoch`: the hunt manifest's hdEpoch.
+   */
+  graphics: {
+    mode: 'standard' | 'hd';
+    setting: 'ask' | 'standard' | 'hd';
+    card: boolean;
+    pick: 'standard' | 'hd' | null;
+    weak: boolean;
+    cardMb: number;
+    loading: 'none' | 'loading' | 'done' | 'skipped';
+    bounds: { key: string; x: number; y: number; w: number; h: number }[];
+    hdTextures: number;
+    epoch: number;
+  };
   /** D-051: the bark keys secret banners showed this page, in order. */
   secretBarks: string[];
   /** v1.7c (D-047): the fruit view (null until its chunk is in, or a map without fruit): fruit

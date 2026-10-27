@@ -129,8 +129,6 @@ export interface GraphicsControl {
   readonly hd: boolean;
   /** The saved setting (Settings → Graphics). */
   readonly setting: GraphicsSetting;
-  /** Changes the mode (Settings): saved; art swaps at the next scene change. */
-  set(setting: GraphicsSetting, mode: GraphicsMode): void;
   /** Bytes of the area's HD files not yet loaded (before its hunt + background). */
   hdBytes(biomeId: string): number;
   /** Starts (or joins) loading the area's HD pack; resolves when the files before its hunt settle. */

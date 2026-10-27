@@ -2036,6 +2036,8 @@ export const FeelSchema = obj({
     fontTimeoutMs: pos,
     /** v1.6 (D-042): retries (index fetched again) before a biome's missing art is reported. */
     artRetries: z.number().int().min(0).max(10),
+    /** D-053: after this long loading an area's HD pack, "Play now in Standard" appears. */
+    hdOfferStandardMs: pos,
   }),
   platform: obj({
     /** Longest wait for a portal SDK script + init; after it the game runs without the SDK. */

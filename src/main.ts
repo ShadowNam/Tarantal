@@ -106,6 +106,17 @@ import { CAPTURE_NAMESPACE, CaptureState, captureAllowed, captureSave } from './
 import { FrameBenchmark } from './game/quality/FrameBenchmark';
 import { benchmarkTier, type DeviceHints } from './game/quality/QualityManager';
 import { setMenuInputGate } from './game/ui/menu';
+import {
+  megabytes,
+  readGraphicsEnv,
+  recommendGraphics,
+  settingAfterCard,
+  startMode,
+  type GraphicsControl,
+  type GraphicsMode,
+} from './game/assets/graphicsChoice';
+import { purgeRetired } from './game/assets/AssetManifest';
+import { showGraphicsCard, showHdLoading } from './game/ui/graphicsCard';
 import { decodeInputLogText } from './sim/replay/inputLog';
 import { runReplay } from './sim/replay/verify';
 
@@ -373,6 +384,18 @@ const hook: TestHook = {
   canMs: 0,
   potjie: null,
   hdProps: [],
+  graphics: {
+    mode: 'standard',
+    setting: 'ask',
+    card: false,
+    pick: null,
+    weak: false,
+    cardMb: 0,
+    loading: 'none',
+    bounds: [],
+    hdTextures: 0,
+    epoch: 0,
+  },
   secretBarks: [],
   fruit: null,
   meerkatMs: 0,
@@ -832,7 +855,123 @@ async function boot(): Promise<void> {
       }
     : null;
 
+  /**
+   * D-053: loads an area's HD pack behind the DOM loading screen (bar, MB). After
+   * feel.assets.hdOfferStandardMs, "Play now in Standard" lets the player go on: the HD files keep
+   * loading and swap in during play (AssetManifest.applyHd).
+   */
+  const hdBehindLoadingScreen = async (id: string): Promise<void> => {
+    const loaded = graphics.loadHd(id);
+    const line = (): string => {
+      const p = graphics.progress(id);
+      return fill(t('gfx.loading'), { done: megabytes(p.done), total: megabytes(p.total) });
+    };
+    const frac = (): number => {
+      const p = graphics.progress(id);
+      return p.total > 0 ? p.done / p.total : 0;
+    };
+    const ui = showHdLoading(t('app.title'), line());
+    hook.graphics.loading = 'loading';
+    const tick = window.setInterval(() => {
+      ui.update(line(), frac());
+    }, 100);
+    let offer = 0;
+    const skipped = new Promise<'skip'>((resolve) => {
+      offer = window.setTimeout(() => {
+        ui.offerStandard(t('gfx.play_standard'), () => {
+          resolve('skip');
+        });
+      }, feel.assets.hdOfferStandardMs);
+    });
+    const how = await Promise.race([loaded.then(() => 'done' as const), skipped]);
+    window.clearInterval(tick);
+    window.clearTimeout(offer);
+    ui.close();
+    if (how === 'skip') graphics.skip(id);
+    hook.graphics.loading = how === 'skip' ? 'skipped' : 'done';
+  };
+  // D-053: Standard or HD art. A saved preset wins; otherwise the loading screen asks (below,
+  // before the title). Test builds start in Standard without the card unless a spec asks:
+  // ?graphics=card (as a real build), ?graphics=standard|hd (that mode, nothing saved).
+  const graphicsParam = testHooks ? params.get('graphics') : null;
+  const forcedGraphics: GraphicsMode | null =
+    graphicsParam === 'standard' || graphicsParam === 'hd' ? graphicsParam : null;
+  const cardAllowed = !capture && (!testHooks || graphicsParam === 'card');
+  let graphicsMode: GraphicsMode =
+    startMode(save.data.settings.graphics, forcedGraphics) ?? 'standard';
+  const hdSkipped = new Set<string>();
+  const biomeById = (id: string): Biome | undefined => bundle.biomes.find((b) => b.id === id);
+  const applyGraphicsMode = (): void => {
+    for (const m of manifests.values()) m.setHd(graphics.hd);
+    hook.graphics.mode = graphicsMode;
+    hook.graphics.setting = save.data.settings.graphics;
+  };
+  const graphics: GraphicsControl = {
+    get hd() {
+      return graphicsMode === 'hd' && assetIndex !== null;
+    },
+    get setting() {
+      return save.data.settings.graphics;
+    },
+    hdBytes(id) {
+      const b = biomeById(id);
+      if (b === undefined || assetIndex === null || !biomeArtReady(id)) return 0;
+      const f = manifestFor(b).hdFiles(assetIndex, b.id, true);
+      return [...f.now, ...f.background].reduce((a, x) => a + x.bytes, 0);
+    },
+    loadHd(id) {
+      const b = biomeById(id);
+      if (b === undefined || assetIndex === null || !graphics.hd || !biomeArtReady(id))
+        return Promise.resolve();
+      const m = manifestFor(b);
+      m.setHd(true);
+      return m.loadHd(assetIndex, { timeoutMs: feel.assets.fileTimeoutMs, biome: b.id }).now;
+    },
+    progress(id) {
+      const b = biomeById(id);
+      return b === undefined || !biomeArtReady(id)
+        ? { done: 0, total: 0 }
+        : manifestFor(b).hdProgress();
+    },
+    ready(id) {
+      const b = biomeById(id);
+      if (!graphics.hd || b === undefined || hdSkipped.has(id)) return true;
+      return biomeArtReady(id) && manifestFor(b).hdReady;
+    },
+    skip(id) {
+      hdSkipped.add(id);
+    },
+    skipped(id) {
+      return hdSkipped.has(id);
+    },
+    preload(id) {
+      if (graphics.hd && biomeArtReady(id) && finalDone.has(id)) void graphics.loadHd(id);
+    },
+    sync(textures, inUse, anims) {
+      const hd = graphics.hd;
+      for (const m of manifests.values()) {
+        m.setHd(hd);
+        m.applyHd(textures);
+        if (!hd) m.dropHd();
+      }
+      purgeRetired(textures, inUse(), anims);
+    },
+  };
+  hook.graphics.mode = graphicsMode;
+  hook.graphics.setting = save.data.settings.graphics;
+  // Settings → Graphics: a preset takes effect at the next scene change ("Ask on start" keeps
+  // this session's mode and asks on the next start).
+  save.onChange((d) => {
+    const g = d.settings.graphics;
+    hook.graphics.setting = g;
+    if (g === 'ask' || g === graphicsMode) return;
+    graphicsMode = g;
+    applyGraphicsMode();
+    if (g === 'hd') graphics.preload(ctx.huntBiome.id);
+  });
+
   const ctx: GameContext = {
+    graphics,
     content: bundle,
     contentHash: hash,
     feel,
@@ -950,6 +1089,42 @@ async function boot(): Promise<void> {
   // (bounded by fontTimeoutMs; a slow or blocked font leaves the system font, as before).
   hook.fontsReady = await loadFonts(feel.assets.fontTimeoutMs);
   hook.boot['fonts'] = performance.now();
+  // D-053: the light loading screen: Standard or HD (first launch, or no preset saved), then the
+  // home area's HD pack behind it when HD is chosen.
+  if (assetIndex !== null) {
+    let mode = startMode(save.data.settings.graphics, forcedGraphics);
+    if (mode === null && cardAllowed) {
+      const advice = recommendGraphics(readGraphicsEnv(prefs.tier));
+      const mb = megabytes(graphics.hdBytes(biome.id));
+      hook.graphics.card = true;
+      hook.graphics.pick = advice.pick;
+      hook.graphics.weak = advice.weak;
+      hook.graphics.cardMb = mb;
+      const answer = await showGraphicsCard(
+        {
+          title: t('app.title'),
+          question: t('gfx.question'),
+          standard: t('gfx.standard'),
+          standardDesc: t('gfx.standard_desc'),
+          hd: t('gfx.hd'),
+          hdDesc: fill(t('gfx.hd_desc'), { mb }),
+          weak: advice.weak ? t('gfx.hd_weak') : null,
+          recommended: t('gfx.recommended'),
+          remember: t('gfx.remember'),
+          later: t('gfx.later'),
+        },
+        advice.pick,
+      );
+      hook.graphics.card = false;
+      mode = answer.mode;
+      const setting = settingAfterCard(answer.mode, answer.remember);
+      graphicsMode = answer.mode;
+      save.update((d) => ({ ...d, settings: { ...d.settings, graphics: setting } }));
+    }
+    graphicsMode = mode ?? 'standard';
+    applyGraphicsMode();
+    if (graphics.hd) await hdBehindLoadingScreen(biome.id);
+  }
   setView(initialDesign, prefs.renderScale);
   const game: Phaser.Game = new Phaser.Game({
     type: Phaser.WEBGL,
