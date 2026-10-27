@@ -242,6 +242,8 @@ export interface TestHook {
   assets: {
     problem: string | null;
     byBiome: Record<string, ManifestEntry[]>;
+    /** D-054: biomes whose manifest's late group has settled (loaded or failed). */
+    lateDone: Record<string, boolean>;
     /** Sound keys playing from a recorded file (decoded), not the synth. */
     recorded: string[];
     /** v1.6 (D-042): delivered files that failed to load this page, with why. */

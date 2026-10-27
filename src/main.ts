@@ -359,7 +359,7 @@ const hook: TestHook = {
   simFrameSteps: [],
   replay: null,
   hunts: 0,
-  assets: { problem: null, byBiome: {}, recorded: [], failed: [] },
+  assets: { problem: null, byBiome: {}, lateDone: {}, recorded: [], failed: [] },
   music: null,
   masterGain: null,
   missingTextures: [],
@@ -724,6 +724,8 @@ async function boot(): Promise<void> {
         // D-029: the late group arrives after boot; refresh the statuses when it has.
         void m.lateLoaded.then(() => {
           hook.assets.byBiome[b.id] = m.entries();
+          // D-054 (e2e): the late group has settled (the Karoo's herds come with it).
+          hook.assets.lateDone[b.id] = true;
         });
         // Recordings arrive on their own (boot doesn't wait for them).
         void m.takeSounds().then((files) => {

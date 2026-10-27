@@ -26,7 +26,12 @@ export const HD_SOURCE_DIR = 'hd';
  * CI, against 256): the far ridge, the far veld and the Ver strip too, the most distant and hazed of the
  * scenery (−19 MB of texture memory in every area; the far animals on them keep their HD art).
  */
-export const HD_SKIP_LAYERS: readonly string[] = ['sky', 'far_ridge', 'far_veld', 'ver_veld'];
+export const STANDARD_IN_HD_LAYERS: readonly string[] = [
+  'sky',
+  'far_ridge',
+  'far_veld',
+  'ver_veld',
+];
 
 /**
  * Texture keys (prefixes) without an HD version: images that are cropped and drawn without a view

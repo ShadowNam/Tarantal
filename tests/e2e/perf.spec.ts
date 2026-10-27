@@ -7,6 +7,7 @@
 //     WebGL page can't hold 60 fps, so there it is reported only (D-019).
 import { expect, test, type Page } from '@playwright/test';
 import { writeFileSync } from 'node:fs';
+import { STANDARD_IN_HD_LAYERS } from '../../src/game/assets/hdPack';
 import {
   boot,
   collectErrors,
@@ -184,6 +185,11 @@ for (const biome of AREAS)
         t.key.includes('/hd/') && t.key.includes('layer/') && !t.key.includes(`layer/${area}/`),
     );
     expect(others, "another area's HD layers on the GPU").toEqual([]);
+    // Nor HD tiles of the layers D-054 keeps in Standard in HD.
+    const standardOnly = h.textureTop.filter((t) =>
+      STANDARD_IN_HD_LAYERS.some((id) => t.key.includes(`layer/${area}/${id}/hd/`)),
+    );
+    expect(standardOnly, 'HD tiles of a Standard-in-HD layer').toEqual([]);
     expect(mb, `${biome}: texture memory (MB) with HD`).toBeLessThanOrEqual(256);
   });
 

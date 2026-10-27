@@ -30,7 +30,7 @@ import {
   hdGroupOf,
   HD_GUNS,
   HD_RES,
-  HD_SKIP_LAYERS,
+  STANDARD_IN_HD_LAYERS,
   HD_SOURCE_DIR,
 } from '../../src/game/assets/hdPack';
 import {
@@ -563,7 +563,7 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
     // D-053: the HD tiles from art-source/hd/layers/<biome>/<layer>.png (2× wide and tall).
     let hd: AssetIndex['layers'][string]['hd'];
     const hdPath = join(o.src, HD_SOURCE_DIR, 'layers', biome, `${layerId}.png`);
-    if (side.hd !== false && !HD_SKIP_LAYERS.includes(layerId) && existsSync(hdPath)) {
+    if (side.hd !== false && !STANDARD_IN_HD_LAYERS.includes(layerId) && existsSync(hdPath)) {
       const big = readPng(hdPath);
       if (big.width !== img.width * HD_RES || big.height !== img.height * HD_RES)
         errors.push(

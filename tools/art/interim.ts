@@ -55,7 +55,12 @@ import { CAN_MASTER, renderCanSheet } from './blikkies';
 import { CAN_SHEET } from '../../src/game/view/cans/canSheet';
 import { hatAnchors } from './hatAnchors';
 import { HD_PARTS, hdKeyOf } from '../../src/game/assets/hdProps';
-import { hdAllowed, HD_RES, HD_SKIP_LAYERS, HD_SOURCE_DIR } from '../../src/game/assets/hdPack';
+import {
+  hdAllowed,
+  HD_RES,
+  STANDARD_IN_HD_LAYERS,
+  HD_SOURCE_DIR,
+} from '../../src/game/assets/hdPack';
 
 /** v1.7 (D-044): palette size of the meerkat sheet (look round: 48 keeps the shading and lets
  *  the Kalahari chunk plus the desert chunk fit 1.5 MB). */
@@ -301,7 +306,7 @@ if (wants('scenery')) {
     if (hdOnly) {
       // D-053: the same drawings at 2×; fruit stay sprites (collected and dropped here).
       for (const layer of biome.layers) {
-        if (HD_SKIP_LAYERS.includes(layer.id)) continue;
+        if (STANDARD_IN_HD_LAYERS.includes(layer.id)) continue;
         if (!oursFile(join(src, 'layers', biome.id, `${layer.id}.png`))) continue;
         const lp = plan.layers[layer.id];
         const draw = (): Rgba => renderLayer(cfg, plan, layer, HD_RES);
