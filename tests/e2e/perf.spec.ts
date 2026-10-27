@@ -30,71 +30,84 @@ async function emulateCores(page: Page): Promise<void> {
     }, cores);
 }
 
-test('perf smoke: 30 s hunt at 4× CPU throttle', async ({ page, browserName }, info) => {
-  test.skip(
-    !['desktop-chromium', 'pixel7-landscape'].includes(info.project.name) ||
-      browserName !== 'chromium',
-    'CDP throttling needs Chromium',
-  );
-  test.setTimeout(400_000);
-  const touch = isTouchProject(info);
-  const errors = collectErrors(page);
-  await emulateCores(page);
-  await boot(page, 'seed=3&huntSeconds=30');
-  const cdp = await page.context().newCDPSession(page);
-  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
-  await startHunt(page, touch);
-  const h0 = await hook(page);
-  let i = 0;
-  while (!(await hook(page)).over) {
-    await tapAt(
-      page,
-      touch,
-      h0.designWidth * (0.2 + (i % 6) * 0.12),
-      h0.designHeight * (0.3 + (i % 3) * 0.12),
+// D-053: the same smoke with the HD pack (graphics=hd): 60 fps on the medium tier with HD; the
+// report adds texture memory (hook textureBytes) and the HD textures in use.
+for (const gfx of ['standard', 'hd'] as const)
+  test(`perf smoke${gfx === 'hd' ? ' (HD)' : ''}: 30 s hunt at 4× CPU throttle`, async ({
+    page,
+    browserName,
+  }, info) => {
+    test.skip(
+      !['desktop-chromium', 'pixel7-landscape'].includes(info.project.name) ||
+        browserName !== 'chromium',
+      'CDP throttling needs Chromium',
     );
-    i++;
-    if ((await hook(page)).shells === 0) {
-      await page.keyboard.press('Space');
-      if (touch) await tapAt(page, touch, h0.designWidth * 0.5, h0.designHeight * 0.5);
+    test.setTimeout(400_000);
+    const touch = isTouchProject(info);
+    const errors = collectErrors(page);
+    await emulateCores(page);
+    await boot(page, `seed=3&huntSeconds=30&graphics=${gfx}`);
+    if (gfx === 'hd')
+      await page.waitForFunction(() => (window.__TM__?.graphics.hdTextures ?? 0) > 0, null, {
+        timeout: 120_000,
+      });
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+    await startHunt(page, touch);
+    const h0 = await hook(page);
+    let i = 0;
+    while (!(await hook(page)).over) {
+      await tapAt(
+        page,
+        touch,
+        h0.designWidth * (0.2 + (i % 6) * 0.12),
+        h0.designHeight * (0.3 + (i % 3) * 0.12),
+      );
+      i++;
+      if ((await hook(page)).shells === 0) {
+        await page.keyboard.press('Space');
+        if (touch) await tapAt(page, touch, h0.designWidth * 0.5, h0.designHeight * 0.5);
+      }
+      await waitTicks(page, 30);
     }
-    await waitTicks(page, 30);
-  }
-  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
-  const h = await hook(page);
-  // Skip the first frames (texture uploads, shader warm-up).
-  const real = stats(h.frameTimes.slice(30));
-  const cpu = stats(h.cpuFrameMs.slice(30));
-  const report = {
-    project: info.project.name,
-    tier: h.quality.tier,
-    throttle: 4,
-    // v1.0.1 (D-028 §4): how much the frame cost includes score pops (undefined before v1.0.1).
-    score: h.score,
-    pops: h.pops,
-    realFrameMs: real,
-    realFps: real.avg > 0 ? 1000 / real.avg : 0,
-    cpuFrameMs: cpu,
-    renderer: await page.evaluate(() => {
-      const gl = document.createElement('canvas').getContext('webgl2');
-      const ext = gl?.getExtension('WEBGL_debug_renderer_info');
-      return gl && ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : 'unknown';
-    }),
-  };
-  console.log(`[perf] ${JSON.stringify(report)}`);
-  writeFileSync(info.outputPath('perf.json'), JSON.stringify(report, null, 2));
-  await info.attach('perf.json', {
-    body: JSON.stringify(report, null, 2),
-    contentType: 'application/json',
-  });
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+    const h = await hook(page);
+    // Skip the first frames (texture uploads, shader warm-up).
+    const real = stats(h.frameTimes.slice(30));
+    const cpu = stats(h.cpuFrameMs.slice(30));
+    const report = {
+      project: info.project.name,
+      graphics: gfx,
+      tier: h.quality.tier,
+      textureMB: Math.round((h.textureBytes / (1024 * 1024)) * 10) / 10,
+      hdTextures: h.graphics.hdTextures,
+      throttle: 4,
+      // v1.0.1 (D-028 §4): how much the frame cost includes score pops (undefined before v1.0.1).
+      score: h.score,
+      pops: h.pops,
+      realFrameMs: real,
+      realFps: real.avg > 0 ? 1000 / real.avg : 0,
+      cpuFrameMs: cpu,
+      renderer: await page.evaluate(() => {
+        const gl = document.createElement('canvas').getContext('webgl2');
+        const ext = gl?.getExtension('WEBGL_debug_renderer_info');
+        return gl && ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : 'unknown';
+      }),
+    };
+    console.log(`[perf] ${JSON.stringify(report)}`);
+    writeFileSync(info.outputPath(`perf-${gfx}.json`), JSON.stringify(report, null, 2));
+    await info.attach(`perf-${gfx}.json`, {
+      body: JSON.stringify(report, null, 2),
+      contentType: 'application/json',
+    });
 
-  expect(cpu.n).toBeGreaterThan(30);
-  expect(cpu.avg, 'CPU cost per frame (ms) at 4× throttle').toBeLessThanOrEqual(BUDGET_MS);
-  if (process.env['PERF_STRICT'] === '1') {
-    expect(real.avg, 'real frame time (ms) at 4× throttle').toBeLessThanOrEqual(BUDGET_MS);
-  }
-  expect(errors).toEqual([]);
-});
+    expect(cpu.n).toBeGreaterThan(30);
+    expect(cpu.avg, 'CPU cost per frame (ms) at 4× throttle').toBeLessThanOrEqual(BUDGET_MS);
+    if (process.env['PERF_STRICT'] === '1') {
+      expect(real.avg, 'real frame time (ms) at 4× throttle').toBeLessThanOrEqual(BUDGET_MS);
+    }
+    expect(errors).toEqual([]);
+  });
 
 // v1.4 B (D-039): Namibië on the Pixel 7 profile — the mirage on (Tuesday) and the weavers kept
 // out the whole hunt (the family nest shot every 2 s), same method and budget as the smoke.
