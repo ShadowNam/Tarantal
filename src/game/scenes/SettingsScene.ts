@@ -3,7 +3,6 @@
 // change is written to the save at once (SaveStore → storage.ts) and reaches the game through
 // ctx.prefs / the AudioDirector (main.ts listens to the save); aim assist goes into the next
 // hunt's SimConfig (recorded in its replay). A language change rebuilds this screen.
-import { HD_RULES } from '../assets/graphicsChoice';
 import { designSize } from '../layout';
 import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
@@ -109,10 +108,10 @@ function hintRect(text: Phaser.GameObjects.Text): Rect {
   return { x: text.x, y: text.y, w: text.displayWidth, h: text.displayHeight };
 }
 
-/** D-053: deviceMemory ≤ 2 GB where the browser says (graphicsChoice HD_RULES). */
-function weakMemory(): boolean {
+/** D-053: device memory at or below feel.graphics.weakDeviceMemoryGb where the browser says. */
+function weakMemory(weakGb: number): boolean {
   const m = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
-  return typeof m === 'number' && m <= HD_RULES.weakDeviceMemoryGb;
+  return typeof m === 'number' && m <= weakGb;
 }
 
 export class SettingsScene extends Phaser.Scene {
@@ -418,7 +417,7 @@ export class SettingsScene extends Phaser.Scene {
         'settings.graphics',
         GRAPHICS,
         undefined,
-        this.ctx.prefs.tier === 'low' || weakMemory()
+        this.ctx.prefs.tier === 'low' || weakMemory(this.ctx.feel.graphics.weakDeviceMemoryGb)
           ? 'settings.graphics_hint_weak'
           : 'settings.graphics_hint',
       );

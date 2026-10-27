@@ -908,7 +908,8 @@ activity), Roadmap, History (stages, pictures, evolution, decisions, glossary), 
     (`ui/graphicsCard.ts`) before Phaser starts, with `recommendGraphics()` pre-selected: HD when
     `navigator.connection` says 4g and ≥ 10 Mbit/s (each where known), no Save-Data,
     `deviceMemory` ≥ 4 where known, not the low tier, and > 1.25 device px per design px (DPR ×
-    the canvas's fit); "may be slow" at `deviceMemory` ≤ 2 or the low tier. Remember my choice
+    the canvas's fit); "may be slow" at `deviceMemory` ≤ 2 or the low tier (the four numbers:
+    `content/client/feel.json` `graphics`). No card when the HD index can't load. Remember my choice
     saves it, else `ask` stays. Test builds skip the card unless `?graphics=card`
     (`?graphics=standard|hd` forces a mode).
   - **Loading:** Standard never requests an HD file. HD: an area's files in common, the area and

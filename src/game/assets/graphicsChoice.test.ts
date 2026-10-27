@@ -9,6 +9,13 @@ import {
   startMode,
   type GraphicsEnv,
 } from './graphicsChoice';
+import { parseFeel } from '../../content/feel';
+import feelJson from '../../../content/client/feel.json';
+
+const parsedFeel = parseFeel(feelJson);
+if (!parsedFeel.ok) throw new Error('feel.json invalid');
+/** The card's thresholds as shipped (content/client/feel.json `graphics`). */
+const rules = parsedFeel.feel.graphics;
 
 /** A 2560×1440 desktop at DPR 1 on a fast link (1.33 device px per design px). */
 const desktop: GraphicsEnv = {
@@ -40,51 +47,56 @@ describe('devicePxPerDesignPx', () => {
 
 describe('recommendGraphics', () => {
   it('HD on a large, fast, capable screen', () => {
-    expect(recommendGraphics(desktop)).toMatchObject({ pick: 'hd', weak: false });
+    expect(recommendGraphics(desktop, rules)).toMatchObject({ pick: 'hd', weak: false });
   });
 
   it('Standard when the screen would not show the difference', () => {
-    expect(recommendGraphics({ ...desktop, cssWidth: 1920, cssHeight: 1080 }).pick).toBe(
+    expect(recommendGraphics({ ...desktop, cssWidth: 1920, cssHeight: 1080 }, rules).pick).toBe(
       'standard',
     );
     // A phone at 1.08 device px per design px.
     expect(
-      recommendGraphics({ ...desktop, devicePixelRatio: 3, cssWidth: 844, cssHeight: 390 }).pick,
+      recommendGraphics({ ...desktop, devicePixelRatio: 3, cssWidth: 844, cssHeight: 390 }, rules)
+        .pick,
     ).toBe('standard');
     // A Retina laptop (1440 × 900 CSS at DPR 2: 1.67).
     expect(
-      recommendGraphics({ ...desktop, devicePixelRatio: 2, cssWidth: 1440, cssHeight: 900 }).pick,
+      recommendGraphics({ ...desktop, devicePixelRatio: 2, cssWidth: 1440, cssHeight: 900 }, rules)
+        .pick,
     ).toBe('hd');
   });
 
   it('Standard on a slow or metered connection', () => {
-    expect(recommendGraphics({ ...desktop, effectiveType: '3g' }).pick).toBe('standard');
-    expect(recommendGraphics({ ...desktop, downlinkMbps: 4 }).pick).toBe('standard');
-    expect(recommendGraphics({ ...desktop, saveData: true }).pick).toBe('standard');
+    expect(recommendGraphics({ ...desktop, effectiveType: '3g' }, rules).pick).toBe('standard');
+    expect(recommendGraphics({ ...desktop, downlinkMbps: 4 }, rules).pick).toBe('standard');
+    expect(recommendGraphics({ ...desktop, saveData: true }, rules).pick).toBe('standard');
   });
 
   it('unknown hints do not count against HD (Safari, Firefox)', () => {
     expect(
-      recommendGraphics({
-        ...desktop,
-        effectiveType: undefined,
-        downlinkMbps: undefined,
-        saveData: undefined,
-        deviceMemory: undefined,
-      }).pick,
+      recommendGraphics(
+        {
+          ...desktop,
+          effectiveType: undefined,
+          downlinkMbps: undefined,
+          saveData: undefined,
+          deviceMemory: undefined,
+        },
+        rules,
+      ).pick,
     ).toBe('hd');
   });
 
   it('little memory or the low tier: Standard, and HD says it may be slow', () => {
-    expect(recommendGraphics({ ...desktop, deviceMemory: 3 })).toMatchObject({
+    expect(recommendGraphics({ ...desktop, deviceMemory: 3 }, rules)).toMatchObject({
       pick: 'standard',
       weak: false,
     });
-    expect(recommendGraphics({ ...desktop, deviceMemory: 2 })).toMatchObject({
+    expect(recommendGraphics({ ...desktop, deviceMemory: 2 }, rules)).toMatchObject({
       pick: 'standard',
       weak: true,
     });
-    expect(recommendGraphics({ ...desktop, tier: 'low' })).toMatchObject({
+    expect(recommendGraphics({ ...desktop, tier: 'low' }, rules)).toMatchObject({
       pick: 'standard',
       weak: true,
     });

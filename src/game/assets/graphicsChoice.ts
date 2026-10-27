@@ -2,6 +2,7 @@
 // whenever no preset is saved: Settings → Graphics "Ask on start"), with a recommendation
 // pre-selected, or in Settings → Graphics. Pure functions here; the card is ui/graphicsCard.ts,
 // the loading lives in main.ts and AssetManifest (loadHd, applyHd).
+import type { Feel } from '../../content/schemas';
 import type { AssetManifest } from './AssetManifest';
 import type * as Phaser from 'phaser';
 import { designSizeFor } from '../layout';
@@ -28,17 +29,8 @@ export interface GraphicsEnv {
   readonly tier: 'low' | 'medium' | 'high';
 }
 
-/** Thresholds (Tech §10 HD pack). */
-export const HD_RULES = {
-  /** Below this many Mbit/s (where the browser says), Standard is recommended. */
-  minDownlinkMbps: 10,
-  /** Below this many GB of device memory (where known), Standard is recommended. */
-  minDeviceMemoryGb: 4,
-  /** At or below this many GB the HD option says it may be slow. */
-  weakDeviceMemoryGb: 2,
-  /** HD only shows when one design px covers more than this many device px. */
-  minDevicePxPerDesignPx: 1.25,
-} as const;
+/** The card's thresholds (content/client/feel.json `graphics`, Tech §10 HD pack). */
+export type HdRules = Feel['graphics'];
 
 export interface GraphicsAdvice {
   /** The option pre-selected on the card. */
@@ -59,22 +51,23 @@ export function devicePxPerDesignPx(
 }
 
 /**
- * The card's recommendation: HD when the connection and the device look capable (4g, ≥ 10 Mbit/s,
- * no Save-Data, ≥ 4 GB where known, not the low tier) and the screen shows the difference (more
- * than 1.25 device px per design px: large and high-density screens); otherwise Standard.
+ * The card's recommendation: HD when the connection and the device look capable (4g, at least
+ * rules.minDownlinkMbps, no Save-Data, at least rules.minDeviceMemoryGb where known, not the low
+ * tier) and the screen shows the difference (more than rules.minDevicePxPerDesignPx device px per
+ * design px: large and high-density screens); otherwise Standard.
  */
-export function recommendGraphics(env: GraphicsEnv): GraphicsAdvice {
+export function recommendGraphics(env: GraphicsEnv, rules: HdRules): GraphicsAdvice {
   const ratio = devicePxPerDesignPx(env);
   const weak =
     env.tier === 'low' ||
-    (env.deviceMemory !== undefined && env.deviceMemory <= HD_RULES.weakDeviceMemoryGb);
+    (env.deviceMemory !== undefined && env.deviceMemory <= rules.weakDeviceMemoryGb);
   const fastLink =
     env.saveData !== true &&
     (env.effectiveType === undefined || env.effectiveType === '4g') &&
-    (env.downlinkMbps === undefined || env.downlinkMbps >= HD_RULES.minDownlinkMbps);
+    (env.downlinkMbps === undefined || env.downlinkMbps >= rules.minDownlinkMbps);
   const enoughMemory =
-    env.deviceMemory === undefined || env.deviceMemory >= HD_RULES.minDeviceMemoryGb;
-  const shows = ratio > HD_RULES.minDevicePxPerDesignPx;
+    env.deviceMemory === undefined || env.deviceMemory >= rules.minDeviceMemoryGb;
+  const shows = ratio > rules.minDevicePxPerDesignPx;
   return {
     pick: fastLink && enoughMemory && !weak && shows ? 'hd' : 'standard',
     weak,

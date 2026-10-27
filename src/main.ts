@@ -1095,7 +1095,7 @@ async function boot(): Promise<void> {
     // Without the HD runtime and index (offline, a 404) there is no HD to offer: no card, Standard
     // this session, and nothing saved (the next start asks again).
     if (mode === null && cardShown && (await ensureHdRuntime()) !== null) {
-      const advice = recommendGraphics(readGraphicsEnv(prefs.tier));
+      const advice = recommendGraphics(readGraphicsEnv(prefs.tier), feel.graphics);
       const mb = megabytes(graphics.hdBytes(biome.id));
       hook.graphics.card = true;
       hook.graphics.pick = advice.pick;

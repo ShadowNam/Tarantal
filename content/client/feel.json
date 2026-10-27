@@ -881,6 +881,13 @@
     "artRetries": 3,
     "hdOfferStandardMs": 4000
   },
+  "graphics": {
+    "$comment": "D-053 Graphics card (Standard or HD): HD is pre-selected when the link is fast (4g and at least minDownlinkMbps where the browser says, no Save-Data), the device has at least minDeviceMemoryGb (where known), the tier isn't low, and the screen shows the difference (more than minDevicePxPerDesignPx device px per design px). At or below weakDeviceMemoryGb (or the low tier) HD says it may be slow.",
+    "minDownlinkMbps": 10,
+    "minDeviceMemoryGb": 4,
+    "weakDeviceMemoryGb": 2,
+    "minDevicePxPerDesignPx": 1.25
+  },
   "platform": {
     "$comment": "Platform layer (Tech §8, M9): one deadline for a portal SDK's script + init at boot; the ad request timeout (until the SDK starts the ad; paused while the tab is hidden; no limit once the ad plays); error-report caps (no personal data: messages are trimmed, URLs reduced to file names).",
     "sdkTimeoutMs": 6000,
