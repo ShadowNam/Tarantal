@@ -1,4 +1,4 @@
-// D-053: a texture a live particle (or an emitter's frames) still draws is "in use", so the HD
+// D-053: a texture a live particle still draws is "in use", so the HD
 // switch never frees it under them (the freeze: Phaser read frame.source of a destroyed frame).
 import type * as Phaser from 'phaser';
 import { describe, expect, it, vi } from 'vitest';
@@ -14,10 +14,11 @@ function gameWith(list: unknown[]): Phaser.Game {
 }
 
 describe('texturesInUse with particles (D-053)', () => {
-  // An emitter moved to the Standard key, its frames and one live puff still on the HD texture.
+  // An emitter moved to the Standard key (its frames are names, resolved against its texture),
+  // one live puff still on the HD texture.
   const emitter = {
     texture: { key: 'fx/puff' },
-    frames: [frame('fx/puff#retired-7')],
+    frames: ['__BASE'],
     alive: [{ frame: frame('fx/puff#retired-7') }],
   };
   const rain = {
@@ -26,7 +27,7 @@ describe('texturesInUse with particles (D-053)', () => {
     alive: [{ frame: frame('omen/rain#retired-8') }],
   };
 
-  it('counts each emitter’s frames and live particles', () => {
+  it('counts each emitter’s live particles', () => {
     const used = texturesInUse(gameWith([{ list: [emitter] }, rain]));
     expect(used.has('fx/puff#retired-7')).toBe(true);
     expect(used.has('omen/rain#retired-8')).toBe(true);

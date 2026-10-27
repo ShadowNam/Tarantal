@@ -1359,8 +1359,13 @@ export class HuntScene extends Phaser.Scene {
     const huntBiome =
       mode.biome ??
       (mode.id === 'seasonHunt' ? this.biome.id : this.ctx.content.modes.modes[mode.id].biome);
-    // M9 lazy biomes: its art loads on first use; the hunt starts once it is in.
-    if (this.ctx.playableBiomes.includes(huntBiome) && !this.ctx.biomeReady(huntBiome)) {
+    // M9 lazy biomes: its art loads on first use; the hunt starts once it is in. D-053: with HD
+    // chosen, also its HD pack (behind the same veil, "Play now in Standard" after 4 s), even when
+    // its standard art came in earlier on the title (it skipped the HD wait before).
+    if (
+      this.ctx.playableBiomes.includes(huntBiome) &&
+      (!this.ctx.biomeReady(huntBiome) || !this.ctx.graphics.ready(huntBiome))
+    ) {
       this.waitForBiome(huntBiome, (ok) => {
         if (ok) this.begin(kind, startPointer, modeId, challenge, bonus);
         else this.scene.restart({} satisfies HuntData);

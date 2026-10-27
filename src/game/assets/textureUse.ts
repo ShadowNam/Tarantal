@@ -6,8 +6,7 @@ import type * as Phaser from 'phaser';
 interface Drawn {
   readonly texture?: { readonly key: string };
   readonly list?: readonly unknown[];
-  /** A particle emitter's frames (new particles take these) and its live particles. */
-  readonly frames?: readonly unknown[];
+  /** A particle emitter's live particles (each keeps the frame it was born with). */
   readonly alive?: readonly unknown[];
 }
 
@@ -28,10 +27,9 @@ export function texturesInUse(game: Phaser.Game): Set<string> {
     if (d.texture !== undefined) out.add(d.texture.key);
     // Containers (and layers) hold their children in `list`.
     if (Array.isArray(d.list)) for (const c of d.list) visit(c);
-    // Particle emitters: each live particle keeps the frame it was born with, and new ones take
-    // the emitter's frames, whatever its own texture says. Freeing a texture under them stopped
-    // the game (Phaser reads frame.source.glTexture of a destroyed frame, D-046 class).
-    if (Array.isArray(d.frames)) for (const f of d.frames) addFrame(f);
+    // Particle emitters: each live particle keeps the frame it was born with (new ones take the
+    // emitter's texture). Freeing a texture under them stopped the game (Phaser reads
+    // frame.source.glTexture of a destroyed frame, D-046 class).
     if (Array.isArray(d.alive))
       for (const p of d.alive) addFrame((p as { frame?: unknown } | null)?.frame);
   };
