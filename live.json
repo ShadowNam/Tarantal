@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-27T18:17:00Z",
+ "updated": "2026-10-27T18:35:00Z",
  "summary": "Live on the test build: HD graphics (1.9.0, merged 16:05 Namibia time on 27 Oct): on first start a light card asks Standard or HD, with \"Remember my choice\" (also in Settings → Graphics). HD loads each area's sharper art pack (2.2–3.3 MB) behind the loading screen; on a slow connection \"Play now in Standard\" appears and HD swaps in during play. Standard and the fast first download are unchanged. Karoo polish (1.8.1, 08:18) is in too. Tank is building far animals in HD now (a redraw of every distant herd, about 23:30). Then: makalani palms, tree life, an Android test app for friends; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
   "version": "1.7.1",
@@ -78,7 +78,7 @@
    "kind": "decision",
    "title": "Pick the other holiday Daily specials (Feesdae) — Halloween is chosen",
    "asked": "2026-10-24T18:58:55Z",
-   "status": "open",
+   "status": "answered",
    "detail": "You picked Halloween on 26 Oct (\"Halloween special yes, go ahead\"): the Spookjag Daily is being built now and will be ready before 31 Oct. The others can be added later as content on the same system; reply with the numbers whenever you like (\"2–9\" takes all my picks).",
    "options": [
     "2. Christmas, 25 Dec: Christmas in the sun, tinsel on the camelthorn, Oupa in a Santa hat and shorts",
@@ -93,7 +93,8 @@
     "11 (maybe). Women's Day, 9 Aug: Ouma's hunt (needs an Ouma voice)",
     "12 (maybe). Workers' Day, 1 May: Oupa's day off, Brakkie runs the show",
     "13 (maybe). Namibian Independence Day, 21 Mar: Namibië open to everyone, kept light"
-   ]
+   ],
+   "answer": "27 Oct: \"prep Christmas and then New Year, line them up\" — both are on the board after The Harvest."
   },
   {
    "id": "v16-look",
@@ -132,22 +133,24 @@
    "kind": "feedback",
    "title": "Listen to Oupa's voice samples (the Afrikaans one most of all)",
    "asked": "2026-10-25T04:45:00Z",
-   "status": "open",
+   "status": "answered",
    "detail": "No good free Afrikaans voice exists, so the interim Afrikaans lines are read by an English voice using Afrikaans pronunciation rules. Is it good enough for now?",
-   "blocks": "The final voices decision"
+   "blocks": "The final voices decision",
+   "answer": "27 Oct: \"the voice needs to get better: good English, German and Afrikaans; the Afrikaans mixed into English does not sound good.\" Next: you pick how (see the new question)."
   },
   {
    "id": "final-voices",
    "kind": "decision",
    "title": "Final voices: keep the interim ones or get real voices?",
    "asked": "2026-10-25T04:39:00Z",
-   "status": "open",
+   "status": "answered",
    "detail": "Oupa is voiced with free interim text-to-speech in English, Afrikaans and German. Real or premium voices can replace them line by line later.",
    "options": [
     "Keep the interim voices for now",
     "Real voice actors per language (needs money and an account: you arrange it)",
     "A premium text-to-speech service (needs an account: you arrange it)"
-   ]
+   ],
+   "answer": "27 Oct: \"the voice needs to get better: good English, German and Afrikaans; the Afrikaans mixed into English does not sound good.\" Next: you pick how (see the new question)."
   },
   {
    "id": "windmill-look",
@@ -203,6 +206,19 @@
    "detail": "Power-ups explained + the Oupa switch, or the earlier order.",
    "answer": "Power-ups + Oupa first. The queue is renumbered in build order (v1.7b to v1.8c).",
    "answered": "2026-10-25T18:11:00Z"
+  },
+  {
+   "id": "voice-route",
+   "kind": "decision",
+   "title": "How should Oupa get his new voices?",
+   "asked": "2026-10-27T18:35:00Z",
+   "status": "open",
+   "detail": "Free voices can't do good Afrikaans, so this needs an account that you create (Claude never signs up or pays). I prepare the full script (all lines in English, Afrikaans and German, with how each Afrikaans word is said) either way.",
+   "options": [
+    "1 (recommended). ElevenLabs: one Oupa voice speaking all three languages, Afrikaans included; a paid monthly plan; you either generate the clips from my script or add an API key as a secret",
+    "2. Microsoft Azure voices: a proper Afrikaans man (Willem), a South African English man (Luke) and German voices; a free monthly allowance; three different voices, not one Oupa",
+    "3. Real people: you or a friend with a good Afrikaans/South African accent record the English and Afrikaans lines on a phone from my script; German from option 1 or 2"
+   ]
   }
  ],
  "jobs": {
@@ -924,6 +940,22 @@
    "text": "Make the far zebras and wildebeest smaller too",
    "outcome": "All far herds 40% smaller (so springbok, gemsbok, ostriches and lechwe stay in proportion to them); one setting per species",
    "job": "far-animals-in-hd-on-every-map-realistic"
+  },
+  {
+   "date": "27 Oct, 20:30",
+   "text": "Blikkies: one or two cans on the further-away fence too, the near fence is so close",
+   "outcome": "Added to the makalani job (it already reuses the juggle code)",
+   "job": "makalani-palms-in-the-okavango-hanging-n"
+  },
+  {
+   "date": "27 Oct, 20:30",
+   "text": "The HD Bushveld aloes, please",
+   "outcome": "Already in: since 1.9.0 the Bushveld HD pack has the double-resolution aloes (pick HD on the loading card or in Settings → Graphics)"
+  },
+  {
+   "date": "27 Oct, 20:30",
+   "text": "Prep Christmas and then New Year; line them up",
+   "outcome": "Both Daily specials are on the board after The Harvest"
   }
  ],
  "extraDecisions": [
@@ -1663,6 +1695,11 @@
    "at": "2026-10-27T18:16:00Z",
    "kind": "request",
    "text": "You asked for smaller zebras and wildebeest too: every far herd is now drawn 40% smaller, keeping the animals in proportion to each other."
+  },
+  {
+   "at": "2026-10-27T18:33:00Z",
+   "kind": "request",
+   "text": "Your answers: far-fence cans (added to makalani), HD Bushveld aloes (already in 1.9.0 HD), Christmas then New Year (lined up), Oupa needs better voices in all three languages (your pick of how is open)."
   }
  ]
 }
