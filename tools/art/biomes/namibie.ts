@@ -1319,6 +1319,8 @@ export const NAMIBIE_PLAN: BiomeArtPlan = {
     'namibie/nest_camelthorn': {
       draw: nestCamelthorn,
       master: 1,
+      // D-054: 128 colours (no visible change; −40 KB) to make room for the far animals.
+      colours: 128,
       wobble: false,
       frame: { w: 1044, h: 1044, ox: 522, oy: 540 },
     },

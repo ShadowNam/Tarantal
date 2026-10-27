@@ -1,7 +1,7 @@
 // D-049 (perspective): real sizes and the helpers that compare what is drawn on a plane with what
 // real proportions would give. Pure (no I/O); tools/perspective-audit.ts reads the art and prints
 // the tables in docs/balance/perspective.md.
-import type { AnimalKind } from './art/fauna';
+import type { FaunaSpecies as AnimalKind } from '../src/game/view/faunaHerds';
 
 /** A helmeted guineafowl standing (feet to the top of the casque), metres. */
 export const GUINEAFOWL_M = 0.5;

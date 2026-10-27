@@ -668,6 +668,8 @@ export const KALAHARI_PLAN: BiomeArtPlan = {
     'kalahari/weaver_camelthorn': {
       draw: weaverCamelthorn,
       master: 2,
+      // D-054: 128 colours (no visible change; −40 KB) to make room for the far animals.
+      colours: 128,
       wobble: false,
       frame: { w: 580, h: 580, ox: 290, oy: 300 },
     },

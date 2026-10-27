@@ -40,6 +40,7 @@ import {
   assetIndexSchema,
   BIRD_CLIPS,
   COMMON_GROUP,
+  faunaFrames,
   GUN_CLIPS,
   LATE_GROUP,
   VER_GROUP,
@@ -87,7 +88,7 @@ import {
   TRUE_PEAK_CEILING_DB,
 } from './targets';
 import { readWav } from './wav';
-import { FAUNA_RES } from '../../src/game/view/faunaSprites';
+import { FAUNA_RES } from '../../src/game/view/faunaHerds';
 
 export interface PackOptions {
   /** art-source/ (or a stand-in source folder). */
@@ -124,6 +125,8 @@ const sidecarOrigin = z
     group: z.enum([VER_GROUP, LATE_GROUP]),
     /** D-053: false = no HD version in the HD pack (default: one when a 2× source exists). */
     hd: z.boolean(),
+    /** D-054: a far-animal sheet's frames (src/game/view/faunaHerds.ts FaunaFrame, design px). */
+    frames: faunaFrames,
   })
   .partial();
 /** v1.1 (D-032): `audio/<…>.json` next to a WAV: "interim" = code-made stand-in sound. */
@@ -144,6 +147,8 @@ const sidecarLayer = z
     encode: encoding,
     /** D-053: false = no HD version in the HD pack (default: one when a 2× source exists). */
     hd: z.boolean(),
+    /** D-054: a far-animal sheet's frames (src/game/view/faunaHerds.ts FaunaFrame, design px). */
+    frames: faunaFrames,
   })
   .partial();
 const rigSchema = z
@@ -168,6 +173,8 @@ const rigSchema = z
     group: z.string(),
     /** D-053: false = no HD version in the HD pack (default: one when a 2× source exists). */
     hd: z.boolean(),
+    /** D-054: a far-animal sheet's frames (src/game/view/faunaHerds.ts FaunaFrame, design px). */
+    frames: faunaFrames,
   })
   .partial();
 const gunRigSchema = z
@@ -187,6 +194,8 @@ const gunRigSchema = z
     group: z.string(),
     /** D-053: false = no HD version in the HD pack (default: one when a 2× source exists). */
     hd: z.boolean(),
+    /** D-054: a far-animal sheet's frames (src/game/view/faunaHerds.ts FaunaFrame, design px). */
+    frames: faunaFrames,
   })
   .partial();
 
@@ -432,7 +441,9 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
           );
     const designW = Math.round(img.width / res);
     const designH = Math.round(img.height / res);
-    if (master === 1 && (img.width !== cat.width || img.height !== cat.height))
+    if (place.frames !== undefined) {
+      // D-054: a far-animal sheet: its frames place the animals, whatever its size.
+    } else if (master === 1 && (img.width !== cat.width || img.height !== cat.height))
       warnings.push(
         `sprites/${key}.png is ${img.width}×${img.height}, the placeholder is ${cat.width}×${cat.height}: views place it at its own size`,
       );

@@ -77,6 +77,22 @@ export const hdImage = z.object({
   scale: z.number().positive(),
 });
 
+/** D-054: a far-animal sheet's frames by name: [x, y, w, h, pivot x, pivot y (in the frame),
+ *  pivot x, pivot y (from the animal's feet)], design px (src/game/view/faunaHerds.ts). */
+export const faunaFrames = z.record(
+  z.string(),
+  z.tuple([
+    z.number(),
+    z.number(),
+    z.number(),
+    z.number(),
+    z.number(),
+    z.number(),
+    z.number(),
+    z.number(),
+  ]),
+);
+
 const imageEntry = z.object({
   group,
   origin,
@@ -90,6 +106,8 @@ const imageEntry = z.object({
   /** Origin as fractions of the image; absent = the placeholder's origin. */
   originX: fraction.optional(),
   originY: fraction.optional(),
+  /** D-054: a far-animal sheet's frames (absent on every other image). */
+  frames: faunaFrames.optional(),
 });
 
 /** D-053: a layer's HD tiles (group `<group>-hd`): the same art at 2×, each tile ≤ 2048 px. */

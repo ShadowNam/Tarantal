@@ -42,6 +42,9 @@ export interface FaunaHerd {
   readonly animals: readonly HerdAnimal[];
   /** Lechwe wading: legs end in shallow water, with a soft reflection. */
   readonly wading?: boolean;
+  /** Another herd's sheet this herd draws from (its looks are all in that sheet): no texture of
+   *  its own, no bytes (the Bushveld's second giraffe group). */
+  readonly sheet?: string;
 }
 
 /** Texture px per design px of the fauna masters (Standard packs them at 1×, HD at 2×). */
@@ -127,7 +130,7 @@ const herd = (
   u: number,
   y: number,
   rows: readonly Row[],
-  extra: Partial<Pick<FaunaHerd, 'wading'>> = {},
+  extra: Partial<Pick<FaunaHerd, 'wading' | 'sheet'>> = {},
 ): FaunaHerd => ({
   key,
   layer,
@@ -181,10 +184,18 @@ export const FAUNA_HERDS: Readonly<Record<string, readonly FaunaHerd[]>> = {
       ['giraffe', 'graze', 'f', 30, 2, 1],
       ['giraffe', 'walk', 'y', 175, 5, -1],
     ]),
-    herd('fauna/bushveld_giraffes_b', FAR, 0.712, 581, [
-      ['giraffe', 'walk', 'f', -60, 0, 1],
-      ['giraffe', 'alert', 'y', 105, 4, -1],
-    ]),
+    // The second group shows the first group's cow and calf (one sheet, half the bytes).
+    herd(
+      'fauna/bushveld_giraffes_b',
+      FAR,
+      0.712,
+      581,
+      [
+        ['giraffe', 'graze', 'f', -60, 0, -1],
+        ['giraffe', 'walk', 'y', 105, 4, 1],
+      ],
+      { sheet: 'fauna/bushveld_giraffes_a' },
+    ),
     herd('fauna/bushveld_zebra', FAR, 0.5, 588, [
       ['zebra', 'graze', 'm', -300, 2, 1],
       ['zebra', 'alert', 'm', -175, -6, 1, 0.96],
@@ -294,6 +305,14 @@ export const FAUNA_HERDS: Readonly<Record<string, readonly FaunaHerd[]>> = {
     ]),
   ],
 };
+
+/** The texture key a herd draws from. */
+export const sheetOf = (h: FaunaHerd): string => h.sheet ?? h.key;
+
+/** Herds that own a sheet (one texture each). */
+export function sheetHerds(biome: string): FaunaHerd[] {
+  return (FAUNA_HERDS[biome] ?? []).filter((h) => h.sheet === undefined);
+}
 
 /** The distinct looks of a herd (one set of frames each in its sheet), in first-seen order. */
 export function herdLooks(h: FaunaHerd): string[] {

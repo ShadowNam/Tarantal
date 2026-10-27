@@ -26,7 +26,7 @@ import { fruitSheet, type FruitOwner } from './fruitArt';
 /** v1.7c (D-047): palette size of the fruit sheets. */
 const FRUIT_COLOURS = 64;
 import { isArtPlane, type ArtPlaneId as PlaneId } from '../../src/game/assets/artPlane';
-import { encodePng, encodePng8, type Rgba } from '../assets/image';
+import { encodePng, encodePng8, resize, type Rgba } from '../assets/image';
 import { NEAR_CLIPS } from '../assets/pack';
 import { CLIP_SPEC } from '../assets/targets';
 import { loadContent, loadFeel } from '../testContent';
@@ -41,8 +41,9 @@ import {
   loadBiomeArt,
 } from '../../src/game/placeholder/ProceduralAssetFactory';
 import { BIOME_PLANS } from './biomes';
-import { renderLayer, renderLoose, renderProp } from './landscape';
-import { FAUNA_DRAW } from './faunaSheets';
+import { layerTint, renderLayer, renderProp } from './landscape';
+import { buildFaunaSheet } from './faunaSheets';
+import { planePxPerMetre } from '../birdUnits';
 import { renderMeerkatSheet } from './meerkats';
 import { MEERKAT_SHEET, SHEET_MASTER } from '../../src/game/assets/desertAssets';
 import {
@@ -59,7 +60,19 @@ import { hdAllowed, HD_RES, HD_SKIP_LAYERS, HD_SOURCE_DIR } from '../../src/game
 /** v1.7 (D-044): palette size of the meerkat sheet (look round: 48 keeps the shading and lets
  *  the Kalahari chunk plus the desert chunk fit 1.5 MB). */
 const MEERKAT_COLOURS = 32;
-import { FAUNA_FOOT, FAUNA_RES, FAUNA_SPRITES } from '../../src/game/view/faunaSprites';
+import { FAUNA_MASTER, sheetHerds } from '../../src/game/view/faunaHerds';
+
+/** D-054: palette sizes of the far animals' sheets (Standard, HD): no visible change, far fewer
+ *  bytes (the biome chunks are nearly full). */
+const FAUNA_COLOURS = 48;
+const FAUNA_HD_COLOURS = 96;
+/** D-054: biomes whose herds load with the late group (the Karoo is the first download). */
+const FAUNA_LATE: ReadonlySet<string> = new Set(['karoo-autumn']);
+/** D-054: dust on the elephants (the Bushveld's red earth, the delta's grey mud). */
+const FAUNA_DUST: Readonly<Record<string, string>> = {
+  'bushveld-winter': '#A07E62',
+  'okavango-spring': '#6E665C',
+};
 import { renderSprite, SPRITES } from './sprites';
 import { AMMO_SPRITES } from './ammo';
 import { SIGHT_SPRITES } from './sights';
@@ -81,8 +94,8 @@ const oneCreature = arg('--creature');
 const oneGun = arg('--gun');
 const oneBiome = arg('--biome');
 const hdOnly = process.argv.includes('--hd');
-if (hdOnly && only !== 'scenery' && only !== 'sprites')
-  throw new Error('--hd needs --only scenery or --only sprites');
+if (hdOnly && only !== 'scenery' && only !== 'sprites' && only !== 'fauna')
+  throw new Error('--hd needs --only scenery, sprites or fauna');
 const wants = (part: string): boolean => only === undefined || only === part;
 /** D-053: the HD pack's 2× sources live in a mirror of art-source/ (hdPack.ts). */
 const hdSrc = join(src, HD_SOURCE_DIR);
@@ -387,35 +400,52 @@ if (wants('scenery')) {
     }
     // v1.7c (D-047): the biome's fruit sheet and where each fruit sits (FRUIT_LATE: late group).
     await writeFruit(biome.id, fruitOwners);
-    // v1.6 (D-042): the far animals' sprites, drawn at 3× (src/game/view/faunaSprites.ts).
-    for (const f of FAUNA_SPRITES[biome.id] ?? []) {
-      const png = join(src, 'sprites', `${f.key}.png`);
+  }
+}
+if (wants('fauna')) {
+  for (const biome of content.biomes) {
+    if (oneBiome !== undefined && biome.id !== oneBiome) continue;
+    // D-054: the far animals, one sheet per herd (src/game/view/faunaHerds.ts), drawn at their
+    // perspective heights: the Standard file at 1× (FAUNA_COLOURS) and its HD twin at 2×.
+    for (const herd of sheetHerds(biome.id)) {
+      const png = join(src, 'sprites', `${herd.key}.png`);
       if (!oursFile(png)) {
-        console.warn(`skip sprites/${f.key}: a human delivery is there`);
+        console.warn(`skip sprites/${herd.key}: a human delivery is there`);
         continue;
       }
-      const draw = FAUNA_DRAW[f.key];
-      if (draw === undefined) throw new Error(`${f.key}: no drawing in tools/art/faunaSheets.ts`);
-      const img = renderLoose(
-        cfg,
-        biome.id,
-        f.layer,
-        f.key,
-        { w: f.w, h: f.h, ox: f.w / 2, oy: f.h - FAUNA_FOOT },
-        FAUNA_RES,
-        draw,
+      const plane = herd.layer === 'ver_veld' ? 'ver' : 'far';
+      const sheet = buildFaunaSheet(
+        herd,
+        planePxPerMetre(content.scoring.planes[plane].scale),
+        layerTint(cfg, biome.id, herd.layer),
+        FAUNA_DUST[biome.id],
       );
-      put(png, encodePng8(img, 128));
+      putHd(`sprites/${herd.key}.png`, sheet.img, FAUNA_HD_COLOURS);
+      if (hdOnly) continue;
+      const std = resize(
+        sheet.img,
+        sheet.img.width / FAUNA_MASTER,
+        sheet.img.height / FAUNA_MASTER,
+      );
+      put(png, encodePng8(std, FAUNA_COLOURS));
       put(
         png.replace(/\.png$/, '.json'),
         await json({
           origin: 'interim',
           encode: 'png8',
-          master: FAUNA_RES,
-          ...(f.layer === 'ver_veld' ? { group: VER_GROUP } : {}),
+          originX: 0,
+          originY: 0,
+          // The Karoo's herds load after the first download (D-054: it may not grow); the
+          // waterhole with the Ver strips.
+          ...(herd.layer === 'ver_veld'
+            ? { group: VER_GROUP }
+            : FAUNA_LATE.has(biome.id)
+              ? { group: LATE_GROUP }
+              : {}),
+          frames: sheet.frames,
         }),
       );
-      console.log(`sprites/${f.key}`);
+      console.log(`sprites/${herd.key}`);
     }
   }
 }

@@ -144,3 +144,17 @@ describe('faunaIdle (D-054)', () => {
     expect(differ).toBe(true);
   });
 });
+
+describe('shared sheets (D-054)', () => {
+  it('a herd that draws from another herd sheet uses only looks that sheet has', () => {
+    for (const herds of Object.values(FAUNA_HERDS))
+      for (const h of herds) {
+        if (h.sheet === undefined) continue;
+        const owner = herds.find((o) => o.key === h.sheet);
+        expect(owner, h.key).toBeDefined();
+        if (owner === undefined) continue;
+        expect(owner.sheet).toBeUndefined();
+        for (const look of herdLooks(h)) expect(herdLooks(owner)).toContain(look);
+      }
+  });
+});
