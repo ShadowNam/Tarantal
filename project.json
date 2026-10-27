@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "updated": "2026-10-27T02:29:00Z",
+ "updated": "2026-10-27T04:36:00Z",
  "by": "Claude",
  "summary": "Live on the test build: v1.8 Blikkies (1.8.0, merged 03:36 Namibia time on 27 Oct): tin cans stand on the farm fence posts on 3–4 weekday maps per farm area. Shoot one off and it somersaults away; hit it again in the air and it flies higher and wilder, and the 10th air hit sends it out of sight (Weg!). Near cans are the easiest to juggle, far ones the hardest; also on the Skietbaan. Perspective (1.7.4) and the Halloween Spookjag (1.7.3, admin page: Special days → Spookjag · 31/10 → Play) are in too. Tank is building Karoo polish now (HD aloes; the potjie simmers and its lid flies off). Then: far animals in HD, makalani palms, tree life, optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
@@ -1613,7 +1613,7 @@
    "end": "2026-10-27T07:30:00Z",
    "estimate": true,
    "summary": "HD bitter aloes with toothed blue-green leaves, a skirt of dry leaves and orange-red flower spikes. The potjie on its coals steams, simmers and rattles its lid; shoot the lid and it flies off and lands beside the pot with a clang (+5 s as before).",
-   "owner": "Tank builds it (task e4b64b1c, started 03:37); Claude reviews and runs the screenshots",
+   "owner": "Tank builds it (fresh session 1773b411 since 04:37 after connection drops); Claude reviewed it and ran the screenshots",
    "requestedBy": "You, 26 Oct: \"These aloes … need to become HD … the braai pot … boiling a little bit … when it's shot, the deksel should fall off.\""
   },
   {
@@ -2192,6 +2192,16 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-27T04:35:00Z",
+   "kind": "note",
+   "text": "Morning report sent: Blikkies 1.8.0 live since 03:36, the history chapter merged, Karoo polish nearly done; screenshots and what waits on you."
+  },
+  {
+   "at": "2026-10-27T03:57:00Z",
+   "kind": "screenshots",
+   "text": "Karoo polish screenshots on desktop, Pixel 7 and iPhone 14 (24 shots, all tests passed). They showed lime-green flames, faint steam with the lid on and dull aloes; an independent review found the causes and Tank fixed all three."
+  },
   {
    "at": "2026-10-27T02:28:00Z",
    "kind": "merge",
