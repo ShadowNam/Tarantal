@@ -360,6 +360,10 @@ export interface TestHook {
     wisps: number;
     lid: { x: number; y: number; rot: number } | null;
   } | null;
+  /** D-051: props with an HD texture: their origin on screen (design px), HD showing yet. */
+  hdProps: { id: string; hd: boolean; x: number; y: number }[];
+  /** D-051: the bark keys secret banners showed this page, in order. */
+  secretBarks: string[];
   /** v1.7c (D-047): the fruit view (null until its chunk is in, or a map without fruit): fruit
    *  placed, pellet hits and drops this hunt, fruit swinging now, and the fruit on screen. */
   fruit: {

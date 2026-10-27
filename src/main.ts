@@ -372,6 +372,8 @@ const hook: TestHook = {
   canLog: [],
   canMs: 0,
   potjie: null,
+  hdProps: [],
+  secretBarks: [],
   fruit: null,
   meerkatMs: 0,
   reloadFx: { chipIcons: [], bolts: 0, oupaHand: false, autoReloads: 0 },

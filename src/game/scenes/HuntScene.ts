@@ -1757,6 +1757,7 @@ export class HuntScene extends Phaser.Scene {
       hook.wind = state.wind;
       hook.weavers = this.weavers.visibleCount;
       hook.potjie = this.world.potjie.hook;
+      hook.hdProps = this.parallax.hdSpots();
       hook.meerkats = this.meerkats.spots();
       hook.cans =
         state.cans === undefined

@@ -117,6 +117,8 @@ export class ParallaxView {
   }[] = [];
   /** D-051: props showing their HD texture (and holding their HD pieces). */
   private readonly hdLive = new Set<string>();
+  /** D-051: every prop with an HD texture (test hook: where it is, whether it shows HD). */
+  private readonly hdArt: { readonly propId: string; readonly art: StaticArt }[] = [];
 
   constructor(
     scene: Phaser.Scene,
@@ -253,6 +255,8 @@ export class ParallaxView {
         const hd = hdKeyOf(prop.asset);
         const art = statics[statics.length - 1];
         if (hd !== undefined && manifest.has(hd) && art !== undefined)
+          this.hdArt.push({ propId: prop.id, art });
+        if (hd !== undefined && manifest.has(hd) && art !== undefined)
           this.hdPending.push({
             propId: prop.id,
             art,
@@ -353,6 +357,23 @@ export class ParallaxView {
       out.push(p.propId);
     }
     return out;
+  }
+
+  /** D-051 (test hook): each HD-capable prop's origin on screen (design px) and whether it shows
+   *  its HD texture yet. */
+  hdSpots(): { id: string; hd: boolean; x: number; y: number }[] {
+    return this.hdArt.map(({ propId, art }) => {
+      const img = art.img;
+      const c = img.parentContainer as Phaser.GameObjects.Container | null;
+      const sx = c?.scaleX ?? 1;
+      const sy = c?.scaleY ?? 1;
+      return {
+        id: propId,
+        hd: this.hdLive.has(propId),
+        x: (c?.x ?? 0) + img.x * sx,
+        y: (c?.y ?? 0) + img.y * sy,
+      };
+    });
   }
 
   /** D-051: true once a prop shows its HD texture. */
