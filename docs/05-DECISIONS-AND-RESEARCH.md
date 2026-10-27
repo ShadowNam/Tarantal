@@ -2854,7 +2854,8 @@ are renamed by `AssetManifest.upgrade()`, never removed (D-046). (2) **The aloe*
 same drawing at 1× in place (chunk 1,445.4 → 1,466.1 KB gzip, ≤ 1,536). They stay at 1× because a
 2× pair (~+90 KB over the 1× pair) would push the Bushveld chunk past its 1,536 KB cap, and the
 Bushveld cannot use the late-group route without also exceeding the late group's own 1.5 MB cap
-(raised with the product owner, 27 Oct). The HD clumps stand at the old ground level (crest ~52 px
+(the product owner agreed on 27 Oct to keep the Bushveld aloes at 1× for now; the 2× versions
+are revisited in the HD graphics job (next), which adds HD packs that load per area). The HD clumps stand at the old ground level (crest ~52 px
 below the origin; first drawn ~100, which put the plants' feet below the screen). The koppie's small crack
 aloe (`rocks.ts`) is a different, tiny drawing and stays. (3) **The potjie** is drawn lidless with
 the lid as its own texture; `PotjieView` draws the lid, steam (`fx/smoke` tinted, ≤ 16 images),
@@ -2868,8 +2869,9 @@ the view starts the lid's 40-tick tumble on `secretTriggered` (or shows it lying
 secret is already spent). No sim, content or golden change. (5) **Sounds:** small AudioDirector
 synths (`potjieSounds.ts`) — bubbles on sim ticks while the pot is near the screen, the rattle's
 clacks, the clang — so they cost no download; a recording under the same keys replaces each later.
-(6) Sizes (web): first download 2,987.3 → ~2,990 KB gzip (+~2 KB: the view code; +0.6 KB asset
-index), late +~160 KB, Kalahari + desert unchanged (1,534.5); the full table is in PR #87.
+(6) Sizes (gzip): first download web 2,987.3 → 2,990.7 KB, Poki 2,980.9 → 2,984.3, CrazyGames
+2,981.1 → 2,984.4 (+3.4 KB: the view code and asset index; cap 3,072); late 1,235.6 → 1,399.2;
+Bushveld 1,445.4 → 1,466.1; Kalahari + desert unchanged (1,534.5). Full table in PR #87.
 
 ## 3. Research notes (with sources)
 
