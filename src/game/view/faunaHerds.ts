@@ -199,7 +199,7 @@ export const FAUNA_HERDS: Readonly<Record<string, readonly FaunaHerd[]>> = {
       ['wildebeest', 'walk', 'f', -10, -2, 1, 0.97],
     ]),
     herd('fauna/bushveld_elephants', FAR, 0.86, 588, [
-      ['elephant', 'graze', 'f', -140, 0, -1],
+      ['elephant', 'graze', 'f', -140, 0, 1],
       ['elephant', 'walk', 'y', 60, 6, -1],
       ['elephant', 'alert', 'm', 250, -8, -1, 0.95],
     ]),
