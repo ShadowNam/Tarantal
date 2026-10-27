@@ -6,7 +6,7 @@
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
 import { FAUNA_HERDS } from '../../src/game/view/faunaHerds';
 import type { FaunaProbe } from '../../src/game/GameContext';
-import { hook, isTouchProject, startHunt } from './helpers';
+import { hook, isLandscape, isTouchProject, startHunt } from './helpers';
 
 async function huntWithHerds(
   page: Page,
@@ -51,6 +51,7 @@ for (const biome of ['karoo-autumn', 'bushveld-winter'])
     test(`far animals are assembled (${biome}, ${graphics}): heads on bodies, parts at frame size`, async ({
       page,
     }, info) => {
+      test.skip(!isLandscape(info), 'portrait shows the rotate card');
       test.setTimeout(300_000);
       const parts = await huntWithHerds(page, info, biome, graphics);
       if (biome === 'bushveld-winter')
