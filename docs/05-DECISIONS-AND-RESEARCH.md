@@ -2901,7 +2901,9 @@ later"; Standard keeps them at 1×). (2) **The choice:** a DOM card before the t
 launch and whenever no preset is saved, on every build (D-052): Standard or HD with the real MB
 (before the hunt: `common-hd` + the area's `-hd`, as the HD loading bar counts),
 the recommendation pre-selected (connection, Save-Data, deviceMemory, device px per design px),
-"may be slow on this device" on weak devices, Remember my choice ticked; Settings → Graphics
+"may be slow on this device" on weak devices, Remember my choice ticked; the card and the HD
+loading screen scale with the window like the canvas (laid out for 1280×720, never below 1×, so
+phones keep their layout); Settings → Graphics
 Standard / HD / Ask on start. (3) **Drawing:** HD textures draw at half scale, so positions, hit
 areas, replays and the sim never change; keys without a view scale get frames that report the
 standard size (`hdTexture.ts`), a texture is never removed under an object (renamed, freed at the

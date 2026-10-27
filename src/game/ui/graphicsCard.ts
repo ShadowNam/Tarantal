@@ -1,5 +1,5 @@
 // D-053: the light loading screen's Graphics card and the HD loading panel. Plain DOM (like
-// artGate.ts): they show before Phaser draws anything, and stay in the small first download.
+// artGate.ts): they show before Phaser draws anything, from a lazy chunk (not the first download).
 // Text comes in through i18n from the caller.
 import type { GraphicsMode } from '../assets/graphicsChoice';
 
@@ -28,6 +28,46 @@ const CREAM = '#F3EAD3';
 const GOLD = '#D8A73A';
 const FONT = "'Baloo 2', system-ui, sans-serif";
 
+/**
+ * The reference screen the card is laid out for (CSS px). Larger windows scale it up like the
+ * canvas (a 2560×1440 desktop: 2×); smaller ones (phones) keep scale 1, as laid out.
+ */
+export const CARD_REF = { width: 1280, height: 720 } as const;
+
+/** How much the card grows on this window: ≥ 1, the canvas's fit (contain) against CARD_REF. */
+export function cardScale(cssWidth: number, cssHeight: number): number {
+  return Math.max(1, Math.min(cssWidth / CARD_REF.width, cssHeight / CARD_REF.height));
+}
+
+/** Viewport-height units capped at the reference screen's (so scaling doesn't count twice). */
+const VH = 'var(--tm-vh)';
+
+/**
+ * The panel's content box: laid out at `1 / scale` of the panel's width and scaled up, centred.
+ * Follows window resizes; `stop()` removes the listener.
+ */
+function scaledBox(p: HTMLDivElement): { box: HTMLDivElement; stop: () => void } {
+  const box = document.createElement('div');
+  const fit = (): void => {
+    const k = cardScale(window.innerWidth, window.innerHeight);
+    box.style.cssText =
+      'display:flex;flex-direction:column;align-items:center;justify-content:center;' +
+      // A share of the panel's content box (inside the safe-area padding); the transform
+      // doesn't change layout, so scaled up it fills the same width.
+      `gap:16px;flex:none;width:calc(100% / ${k});` +
+      `transform:scale(${k});transform-origin:50% 50%`;
+  };
+  fit();
+  window.addEventListener('resize', fit);
+  p.append(box);
+  return {
+    box,
+    stop: () => {
+      window.removeEventListener('resize', fit);
+    },
+  };
+}
+
 function panel(id: string): HTMLDivElement {
   const p = document.createElement('div');
   p.id = id;
@@ -37,7 +77,8 @@ function panel(id: string): HTMLDivElement {
     'padding:max(12px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) ' +
     'max(12px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));' +
     `background:${INK};color:${CREAM};font:600 18px/1.35 ${FONT};text-align:center;` +
-    'z-index:1000;touch-action:manipulation;overflow:hidden';
+    'z-index:1000;touch-action:manipulation;overflow:hidden;' +
+    `--tm-vh:min(1vh,${CARD_REF.height / 100}px)`;
   return p;
 }
 
@@ -55,11 +96,11 @@ export function showGraphicsCard(
     p.setAttribute('aria-labelledby', 'tm-graphics-q');
     const name = document.createElement('div');
     name.textContent = text.title;
-    name.style.cssText = `font:800 clamp(26px,5vh,44px)/1.1 ${FONT};color:#FFD25A`;
+    name.style.cssText = `font:800 clamp(26px,calc(5 * ${VH}),44px)/1.1 ${FONT};color:#FFD25A`;
     const q = document.createElement('div');
     q.id = 'tm-graphics-q';
     q.textContent = text.question;
-    q.style.cssText = `font:800 clamp(20px,3.6vh,30px)/1.2 ${FONT}`;
+    q.style.cssText = `font:800 clamp(20px,calc(3.6 * ${VH}),30px)/1.2 ${FONT}`;
     const row = document.createElement('div');
     row.style.cssText =
       'display:flex;gap:16px;flex-wrap:wrap;justify-content:center;max-width:min(860px,100%)';
@@ -77,14 +118,15 @@ export function showGraphicsCard(
       b.setAttribute('aria-pressed', String(chosen));
       b.style.cssText =
         'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;' +
-        'flex:1 1 240px;max-width:400px;min-height:clamp(96px,22vh,170px);padding:12px 18px;' +
+        `flex:1 1 240px;max-width:400px;min-height:clamp(96px,calc(22 * ${VH}),170px);` +
+        'padding:12px 18px;' +
         `border-radius:18px;cursor:pointer;font:600 17px/1.3 ${FONT};` +
         (chosen
           ? `background:${GOLD};color:${INK};border:4px solid #FFF4D0;box-shadow:0 0 0 4px ${GOLD}`
           : `background:#3A2E25;color:${CREAM};border:4px solid #5A4A3C`);
       const head = document.createElement('span');
       head.textContent = label;
-      head.style.cssText = `font:800 clamp(24px,4.4vh,36px)/1.1 ${FONT}`;
+      head.style.cssText = `font:800 clamp(24px,calc(4.4 * ${VH}),36px)/1.1 ${FONT}`;
       const sub = document.createElement('span');
       sub.textContent = desc;
       b.append(head, sub);
@@ -96,6 +138,7 @@ export function showGraphicsCard(
         b.append(tag);
       }
       b.addEventListener('click', () => {
+        stop();
         p.remove();
         resolve({ mode, remember: remember.checked });
       });
@@ -108,14 +151,15 @@ export function showGraphicsCard(
     label.htmlFor = remember.id;
     label.style.cssText =
       'display:flex;align-items:center;gap:12px;min-height:48px;cursor:pointer;' +
-      `font:700 clamp(17px,3vh,22px) ${FONT}`;
+      `font:700 clamp(17px,calc(3 * ${VH}),22px) ${FONT}`;
     const span = document.createElement('span');
     span.textContent = text.remember;
     label.append(remember, span);
     const later = document.createElement('div');
     later.textContent = text.later;
-    later.style.cssText = 'font-size:15px;opacity:0.7';
-    p.append(name, q, row, label, later);
+    later.style.cssText = 'font-size:16px;opacity:0.75';
+    const { box, stop } = scaledBox(p);
+    box.append(name, q, row, label, later);
     document.body.append(p);
     (pick === 'hd' ? hd : std).focus();
   });
@@ -135,10 +179,10 @@ export function showHdLoading(title: string, line: string): HdLoadingPanel {
   p.setAttribute('role', 'status');
   const name = document.createElement('div');
   name.textContent = title;
-  name.style.cssText = `font:800 clamp(26px,5vh,44px)/1.1 ${FONT};color:#FFD25A`;
+  name.style.cssText = `font:800 clamp(26px,calc(5 * ${VH}),44px)/1.1 ${FONT};color:#FFD25A`;
   const bar = document.createElement('div');
   bar.style.cssText =
-    'width:min(560px,80vw);height:22px;border-radius:11px;background:#3A2E25;' +
+    'width:min(560px,80%);height:22px;border-radius:11px;background:#3A2E25;' +
     'border:3px solid #5A4A3C;overflow:hidden';
   const fill = document.createElement('div');
   fill.id = 'tm-hd-bar';
@@ -147,7 +191,8 @@ export function showHdLoading(title: string, line: string): HdLoadingPanel {
   const text = document.createElement('div');
   text.id = 'tm-hd-line';
   text.textContent = line;
-  p.append(name, bar, text);
+  const { box, stop } = scaledBox(p);
+  box.append(name, bar, text);
   document.body.append(p);
   let offered = false;
   return {
@@ -166,12 +211,14 @@ export function showHdLoading(title: string, line: string): HdLoadingPanel {
         `font:800 20px ${FONT};padding:12px 32px;border-radius:14px;border:4px solid ${INK};` +
         `background:${GOLD};color:${INK};cursor:pointer;min-height:56px`;
       b.addEventListener('click', () => {
+        stop();
         p.remove();
         onPress();
       });
-      p.append(b);
+      box.append(b);
     },
     close() {
+      stop();
       p.remove();
     },
   };
