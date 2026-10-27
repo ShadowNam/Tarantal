@@ -2999,10 +2999,11 @@ A → B → A brings the title's HD layers back (unit-tested). (b) Least visible
 headroom (target ≤ 240 MB): the far ridge, far veld and Ver strip layers stay Standard in HD (the
 most distant, hazed scenery; −19 MB per area, the far animals on them keep HD), and the special
 birds kuifkop, Kuifkop Koning and ou grys stay Standard (rare and brief, each a 16 MB HD mid atlas
-that prewarm keeps on the GPU, 4 MB in Standard). Estimated per area (Pixel 7, HD, title → hunt):
-Karoo ~217 MB, Bushveld ~225, Okavango ~237–239 (the tightest), Kalahari and Namibië ~220–230
-(not measured before); `perf.spec.ts` now asserts ≤ 256 MB and no other area's HD layers in all
-five areas, reached through the Karoo title as players do (the CI numbers go here). HD downloads
+that prewarm keeps on the GPU, 4 MB in Standard). Measured 27 Oct, Pixel 7 profile, SwiftShader (HD, hunt running +12 s; before = main 2ff38b1,
+now = 5de5ff1): Karoo 238.7 → 217.4 MB, Bushveld 358.1 → 224.7, Okavango 383.4 → 237.6,
+Kalahari — → 224.5, Namibië — → 228.6: all five under the 240 MB target. `perf.spec.ts` asserts
+≤ 256 MB and no other area's HD layers in all five areas, reached through the Karoo title as
+players do. HD downloads
 shrink with it: Bushveld-hd 1,984.0 → 1,493.3 KB gzip, Kalahari-hd 1,284.7 → 1,117.6, Karoo-hd
 1,587.1 → 1,356.9, Namibië-hd 1,598.4 → 1,458.6, Okavango-hd 2,377.1 → 1,429.5, Ver-hd 333.2 →
 155.8. **Build workaround for a Phaser 4.2.1 shader bug** (found by the supervisor in the browser,
@@ -3019,6 +3020,16 @@ upload were all correct. Fix: `tools/phaserShaderFix.ts` rewrites the compares t
 so the fix is never lost silently, and `tools/phaserShaderFix.test.ts` runs it over the shipped
 `phaser.esm.js` (no exact compare left; unknown text throws). Remove it once Phaser fixes the
 shaders. Docs: art bible (far animals); docs/06 §6b; docs/balance/perspective.md; CHANGELOG 1.9.1.
+
+*D-054 HD texture memory, measured 27 Oct, Pixel 7 profile, SwiftShader (HD, hunt running +12 s):*
+
+| Area | before (main 2ff38b1) | now (5de5ff1) |
+|---|---|---|
+| Karoo | 238.7 MB | 217.4 MB |
+| Bushveld | 358.1 MB | 224.7 MB |
+| Okavango | 383.4 MB | 237.6 MB |
+| Kalahari | — | 224.5 MB |
+| Namibië | — | 228.6 MB |
 
 ## 3. Research notes (with sources)
 
