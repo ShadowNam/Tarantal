@@ -146,9 +146,9 @@ const BASE: Readonly<Record<FaunaSpecies, Coat>> = {
   },
   // Red lechwe: chestnut, white belly and throat, black fronts to the forelegs.
   lechwe: {
-    coat: '#C0753B',
-    lit: '#D8925A',
-    dark: '#8E5226',
+    coat: '#A9663A',
+    lit: '#C48654',
+    dark: '#744322',
     belly: '#F2E9DA',
     mark: '#2A201C',
     hoof: '#2A201C',
@@ -468,14 +468,44 @@ interface Pen {
 
 /** Outer outline + fill of a union of shapes: the strokes first (half shows), fills on top. */
 function solid(shapes: readonly string[], fill: string, edge: string, w: number): string {
+  // One path per shape: overlapping shapes in one path can wind against each other and leave
+  // holes (see-through legs).
   return (
-    el('path', {
-      d: shapes.join(''),
-      fill: edge,
-      stroke: edge,
-      'stroke-width': r2(w * 2),
-      'stroke-linejoin': 'round',
-    }) + el('path', { d: shapes.join(''), fill })
+    shapes
+      .map((d) =>
+        el('path', {
+          d,
+          fill: edge,
+          stroke: edge,
+          'stroke-width': r2(w * 2),
+          'stroke-linejoin': 'round',
+        }),
+      )
+      .join('') + shapes.map((d) => el('path', { d, fill })).join('')
+  );
+}
+
+/** A clip path that is the union of shapes (one child each), and its id. */
+function clipOf(shapes: readonly string[]): { id: string; def: string } {
+  const id = nextId();
+  return { id, def: el('clipPath', { id }, ...shapes.map((d) => el('path', { d }))) };
+}
+
+/** A fill (a gradient) over everything inside a clip: no double alpha where shapes overlap. */
+function wash(
+  clipId: string,
+  fill: string,
+  box: { x0: number; y0: number; x1: number; y1: number },
+): string {
+  return g(
+    { 'clip-path': `url(#${clipId})` },
+    el('rect', {
+      x: r2(box.x0),
+      y: r2(box.y0),
+      width: r2(box.x1 - box.x0),
+      height: r2(box.y1 - box.y0),
+      fill,
+    }),
   );
 }
 
@@ -763,17 +793,23 @@ function hoofed(look: LookSpec, o: LookOpts): DrawnLook {
   // --- body part ---
   const defs: string[] = [];
   const bodyShapes = [bodyD, ...legs.near.map(legD)];
-  const clipId = nextId();
+  const bodyClip = clipOf(bodyShapes);
+  const clipId = bodyClip.id;
+  const nearClip = clipOf(legs.near.map(legD));
+  const barrelClip = clipOf([bodyD]);
+  const farClip = clipOf(legs.far.map(legD));
+  const wbox = { x0: -2 * S, y0: -2.5 * S, x1: 2 * S, y1: 0.5 * S };
   const light = vGrad(-1.02 * S, -b.belly * S, [
     [0, C.lit, 0.55],
     [0.35, C.lit, 0],
     [0.72, C.dark, 0.12],
     [1, C.dark, 0.55],
   ]);
+  // Legs darken toward the hooves; nothing above the belly line (where they meet the body).
   const legShade = vGrad(-b.belly * S, 0, [
-    [0, C.dark, 0.4],
-    [0.4, C.dark, 0.1],
-    [1, C.dark, 0.25],
+    [0, C.dark, 0],
+    [0.5, C.dark, 0.12],
+    [1, C.dark, 0.3],
   ]);
   defs.push(light.def, legShade.def);
   const farC = mix(C.coat, C.dark, 0.55);
@@ -805,53 +841,80 @@ function hoofed(look: LookSpec, o: LookOpts): DrawnLook {
   const marks = markings(sp, look, geo, C, pen);
   const xs = [...bodyPts.map((p) => p[0])];
   const shadow = contactShadow(Math.min(...xs) * 0.95, Math.max(...xs) * 0.95, S * 0.05);
-  const water = o.wading === true ? wade(S, X, C, tint) : null;
+  const water =
+    o.wading === true
+      ? wade(
+          S,
+          [...legs.far, ...legs.near].map(legD),
+          [...legs.far, ...legs.near].map((l) => scaleLeg(l)),
+          C,
+          tint,
+        )
+      : null;
   const body = g(
     {},
-    el('defs', {}, ...defs, el('clipPath', { id: clipId }, el('path', { d: bodyShapes.join('') }))),
-    water?.under ?? shadow,
-    // Far legs: darker, with their own edge.
-    solid(farLegs, farC, edge, pen.w),
-    el('path', { d: farLegs.join(''), fill: `url(#${legShade.id})` }),
-    hooves(legs.far, shade(C.hoof, -0.1)),
-    solid(bodyShapes, C.coat, edge, pen.w),
-    g(
-      { 'clip-path': `url(#${clipId})` },
-      marks.body,
-      el('path', { d: bodyShapes.join(''), fill: `url(#${light.id})` }),
-      el('path', { d: legs.near.map(legD).join(''), fill: `url(#${legShade.id})` }),
-      // Rounded masses: a lit haunch and shoulder, the elbow's shadow.
-      radial(X(-0.3) * S, -(b.croup - 0.2) * S, 0.24 * S, 0.2 * S, C.lit, 0.3),
-      radial(X(0.3) * S, -0.82 * S, 0.18 * S, 0.16 * S, C.lit, 0.22),
-      radial(X(0.36) * S, -(b.belly + 0.03) * S, 0.1 * S, 0.06 * S, C.dark, 0.35),
-      marks.bodyTop,
+    el(
+      'defs',
+      {},
+      ...defs,
+      bodyClip.def,
+      nearClip.def,
+      farClip.def,
+      barrelClip.def,
+      water?.def ?? '',
     ),
-    // Muscle lines: the elbow and the stifle crease.
-    el('path', {
-      d: smoothD(
-        [P(X(0.3), -(b.belly + 0.16)), P(X(0.27), -(b.belly + 0.04)), P(X(0.3), -(b.belly - 0.04))],
-        false,
+    water?.under ?? shadow,
+    g(
+      water === null ? {} : { 'clip-path': `url(#${water.above})` },
+      // Far legs: darker, with their own edge.
+      solid(farLegs, farC, edge, pen.w),
+      wash(farClip.id, `url(#${legShade.id})`, wbox),
+      hooves(legs.far, shade(C.hoof, -0.1)),
+      solid(bodyShapes, C.coat, edge, pen.w),
+      // Coat marks on the barrel stay on the barrel; leg marks stay on the legs.
+      g({ 'clip-path': `url(#${nearClip.id})` }, marks.legs),
+      g({ 'clip-path': `url(#${barrelClip.id})` }, marks.body),
+      g(
+        { 'clip-path': `url(#${clipId})` },
+        wash(clipId, `url(#${light.id})`, wbox),
+        wash(nearClip.id, `url(#${legShade.id})`, wbox),
+        // Rounded masses: a lit haunch and shoulder, the elbow's shadow.
+        radial(X(-0.3) * S, -(b.croup - 0.2) * S, 0.24 * S, 0.2 * S, C.lit, 0.3),
+        radial(X(0.3) * S, -0.82 * S, 0.18 * S, 0.16 * S, C.lit, 0.22),
+        radial(X(0.36) * S, -(b.belly + 0.03) * S, 0.1 * S, 0.06 * S, C.dark, 0.35),
+        marks.bodyTop,
       ),
-      fill: 'none',
-      stroke: edge,
-      'stroke-width': r2(pen.w * 0.7),
-      'stroke-opacity': 0.45,
-    }),
-    el('path', {
-      d: smoothD(
-        [
-          P(X(-0.18), -(b.flank + 0.1)),
-          P(X(-0.24), -(b.flank - 0.02)),
-          P(X(-0.3), -(b.flank - 0.12)),
-        ],
-        false,
-      ),
-      fill: 'none',
-      stroke: edge,
-      'stroke-width': r2(pen.w * 0.7),
-      'stroke-opacity': 0.4,
-    }),
-    hooves(legs.near, C.hoof),
+      // Muscle lines: the elbow and the stifle crease.
+      el('path', {
+        d: smoothD(
+          [
+            P(X(0.3), -(b.belly + 0.16)),
+            P(X(0.27), -(b.belly + 0.04)),
+            P(X(0.3), -(b.belly - 0.04)),
+          ],
+          false,
+        ),
+        fill: 'none',
+        stroke: edge,
+        'stroke-width': r2(pen.w * 0.7),
+        'stroke-opacity': 0.45,
+      }),
+      el('path', {
+        d: smoothD(
+          [
+            P(X(-0.18), -(b.flank + 0.1)),
+            P(X(-0.24), -(b.flank - 0.02)),
+            P(X(-0.3), -(b.flank - 0.12)),
+          ],
+          false,
+        ),
+        fill: 'none',
+        stroke: edge,
+        'stroke-width': r2(pen.w * 0.7),
+        'stroke-opacity': 0.4,
+      }),
+      hooves(legs.near, C.hoof),
+    ),
     water?.over ?? '',
   );
 
@@ -869,7 +932,8 @@ function hoofed(look: LookSpec, o: LookOpts): DrawnLook {
     el('defs', {}, nLight.def, el('clipPath', { id: hClip }, el('path', { d: neckD + headD }))),
     marks.behindHead,
     earBack,
-    el('path', { d: neckD + headD, fill: C.coat }),
+    el('path', { d: neckD, fill: C.coat }),
+    el('path', { d: headD, fill: C.coat }),
     g(
       { 'clip-path': `url(#${hClip})` },
       marks.neck,
@@ -933,58 +997,75 @@ function hoofed(look: LookSpec, o: LookOpts): DrawnLook {
   };
 }
 
-/** Shallow water round a wading animal: a sheen and ripples (under), the surface line (over). */
+/**
+ * Shallow water round a wading animal (red lechwe on the delta's floodplain): the legs are cut at
+ * the surface (`above` clips the animal), ripple rings where they enter it, and a dim reflection
+ * of the legs below, broken by the ripples.
+ */
 function wade(
   S: number,
-  X: (s: number) => number,
+  legShapes: readonly string[],
+  legJoints: readonly (readonly { p: V; w: number }[])[],
   C: { coat: string; dark: string },
   tint: (hex: string) => string,
-): { under: string; over: string } {
-  const w = 0.75 * S;
-  const cx = X(0) * S;
-  const surface = -0.13 * S;
-  const water = tint('#7E97A0');
+): { def: string; above: string; under: string; over: string } {
+  const surface = -0.14 * S;
+  const above = clipOf([`M${r2(-3 * S)} ${r2(-3 * S)}H${r2(3 * S)}V${r2(surface)}H${r2(-3 * S)}Z`]);
+  // The reflection: broken into strips (the ripples), fading with depth.
+  const strips: string[] = [];
+  for (let k = 0; k < 6; k++) {
+    const y0 = surface + k * 0.035 * S;
+    strips.push(`M${r2(-3 * S)} ${r2(y0)}H${r2(3 * S)}V${r2(y0 + 0.022 * S)}H${r2(-3 * S)}Z`);
+  }
+  const broken = clipOf(strips);
+  const water = tint('#8FA4A8');
+  const xs = legJoints.map((j) => {
+    // Where the leg crosses the surface.
+    for (let i = 1; i < j.length; i++) {
+      const a = j[i - 1];
+      const c = j[i];
+      if (a === undefined || c === undefined) continue;
+      if ((a.p[1] - surface) * (c.p[1] - surface) <= 0) {
+        const t = (surface - a.p[1]) / (c.p[1] - a.p[1] || 1);
+        return { x: a.p[0] + (c.p[0] - a.p[0]) * t, w: a.w };
+      }
+    }
+    return { x: j[j.length - 1]?.p[0] ?? 0, w: 0.04 * S };
+  });
+  const ripples = xs
+    .map(
+      ({ x, w }) =>
+        el('path', {
+          d: ellipseD(x, surface + 0.004 * S, w * 1.3, 0.012 * S),
+          fill: 'none',
+          stroke: tint('#E2ECEE'),
+          'stroke-width': r2(Math.max(0.35, 0.006 * S)),
+          opacity: 0.75,
+        }) +
+        el('path', {
+          d: ellipseD(x, surface + 0.008 * S, w * 2.4, 0.022 * S),
+          fill: 'none',
+          stroke: tint('#D2E0E4'),
+          'stroke-width': r2(Math.max(0.3, 0.004 * S)),
+          opacity: 0.45,
+        }),
+    )
+    .join('');
+  const x0 = Math.min(...xs.map((v) => v.x)) - 0.25 * S;
+  const x1 = Math.max(...xs.map((v) => v.x)) + 0.25 * S;
   return {
-    under: radial(cx, surface * 0.4, w * 1.2, 0.09 * S, tint('#2E3C40'), 0.3),
+    def: above.def + broken.def,
+    above: above.id,
+    // A sheen of open water under the animal (no ground shadow in water).
+    under: radial((x0 + x1) / 2, surface + 0.05 * S, (x1 - x0) * 0.7, 0.07 * S, water, 0.55),
     over:
-      // The water hides the lower legs: a band of water colour, its top edge lit.
-      el('path', {
-        d: smoothD(
-          [
-            [cx - w * 1.1, surface + 0.01 * S],
-            [cx - w * 0.4, surface - 0.012 * S],
-            [cx + w * 0.4, surface - 0.012 * S],
-            [cx + w * 1.1, surface + 0.01 * S],
-            [cx + w * 0.9, 0.05 * S],
-            [cx - w * 0.9, 0.05 * S],
-          ],
-          true,
-          0.8,
+      g(
+        { 'clip-path': `url(#${broken.id})`, opacity: 0.32 },
+        g(
+          { transform: `translate(0 ${r2(2 * surface)}) scale(1 -1)` },
+          ...legShapes.map((d) => el('path', { d, fill: mix(C.dark, water, 0.35) })),
         ),
-        fill: water,
-        opacity: 0.92,
-      }) +
-      // A soft, broken reflection of the legs and belly.
-      el('path', {
-        d: `M${r2(cx - w * 0.5)} ${r2(surface + 0.025 * S)}h${r2(w * 0.95)}M${r2(cx - w * 0.3)} ${r2(surface + 0.05 * S)}h${r2(w * 0.55)}`,
-        stroke: mix(C.coat, water, 0.55),
-        'stroke-width': r2(0.018 * S),
-        opacity: 0.7,
-      }) +
-      el('path', {
-        d: smoothD(
-          [
-            [cx - w * 1.05, surface + 0.006 * S],
-            [cx, surface - 0.012 * S],
-            [cx + w * 1.05, surface + 0.006 * S],
-          ],
-          false,
-        ),
-        fill: 'none',
-        stroke: tint('#D8E6EA'),
-        'stroke-width': r2(Math.max(0.4, 0.008 * S)),
-        opacity: 0.85,
-      }),
+      ) + ripples,
   };
 }
 
@@ -1159,6 +1240,8 @@ function legBands(
 
 interface Marks {
   readonly body: string;
+  /** Marks on the near legs (clipped to them). */
+  readonly legs: string;
   readonly bodyTop: string;
   readonly neck: string;
   readonly head: string;
@@ -1166,7 +1249,15 @@ interface Marks {
   readonly behindHead: string;
 }
 
-const NO_MARKS: Marks = { body: '', bodyTop: '', neck: '', head: '', headTop: '', behindHead: '' };
+const NO_MARKS: Marks = {
+  body: '',
+  legs: '',
+  bodyTop: '',
+  neck: '',
+  head: '',
+  headTop: '',
+  behindHead: '',
+};
 
 /** Each species' coat pattern, mane, horns and face. */
 function markings(
@@ -1267,7 +1358,7 @@ function markings(
         );
       }
       const legsD = q.legs.near
-        .map((l) => legBands(legJoints(l), (b.belly + 0.05) * S, S * 0.055, S * 0.03))
+        .map((l) => legBands(legJoints(l), (b.belly - 0.01) * S, S * 0.055, S * 0.03))
         .join('');
       // Neck: bands across the neck, carried up into the mane; the face finely striped.
       const neckBands: string[] = [];
@@ -1313,8 +1404,8 @@ function markings(
         ...NO_MARKS,
         body:
           el('path', { d: shadowS.join(''), fill: mix(C.coat, '#7A6650', 0.55), opacity: 0.6 }) +
-          el('path', { d: stripe.join(''), fill: C.mark }) +
-          el('path', { d: legsD, stroke: C.mark, 'stroke-width': r2(S * 0.028), fill: 'none' }),
+          el('path', { d: stripe.join(''), fill: C.mark }),
+        legs: el('path', { d: legsD, stroke: C.mark, 'stroke-width': r2(S * 0.028), fill: 'none' }),
         neck: el('path', { d: neckBands.join(''), fill: C.mark }),
         head:
           el('path', { d: face.join(''), stroke: C.mark, 'stroke-width': r2(S * 0.022) }) +
@@ -1416,86 +1507,107 @@ function markings(
       };
     }
     case 'gemsbok': {
-      // A black stripe from the throat down the flank to the haunch, black upper legs with white
-      // socks, a black patch on the rump; the white face with a black mask; long straight horns.
+      // A thin black stripe along the lower flank from the elbow to the thigh, the white belly
+      // under it, a black blaze down the front of the neck, black upper legs tapering into the
+      // leg, white lower legs with a dark band at the knee; the white face with its black mask;
+      // two long straight horns swept back in line with the face, ringed at the base.
       const stripe = smoothD(
         [
-          P(q.x(0.42), -(b.belly + 0.08)),
-          P(q.x(0.1), -(b.belly + 0.04)),
-          P(q.x(-0.25), -(b.flank + 0.03)),
-          P(q.x(-0.42), -(b.flank + 0.12)),
-          P(q.x(-0.4), -(b.flank + 0.03)),
-          P(q.x(-0.25), -(b.flank - 0.05)),
-          P(q.x(0.1), -(b.belly - 0.05)),
-          P(q.x(0.42), -(b.belly - 0.02)),
+          P(q.x(0.4), -(b.belly + 0.1)),
+          P(q.x(0.05), -(b.belly + 0.085)),
+          P(q.x(-0.22), -(b.flank + 0.06)),
+          P(q.x(-0.32), -(b.flank + 0.1)),
+          P(q.x(-0.22), -(b.flank + 0.02)),
+          P(q.x(0.05), -(b.belly + 0.04)),
+          P(q.x(0.4), -(b.belly + 0.055)),
         ],
         true,
         0.9,
       );
       const belly = smoothD(
         [
-          P(q.x(0.38), -(b.belly - 0.02)),
-          P(q.x(0.05), -(b.belly - 0.05)),
-          P(q.x(-0.25), -(b.flank - 0.05)),
-          P(q.x(-0.3), -(b.flank - 0.2)),
-          P(q.x(0.3), -(b.belly - 0.2)),
+          P(q.x(0.38), -(b.belly + 0.055)),
+          P(q.x(0.05), -(b.belly + 0.04)),
+          P(q.x(-0.22), -(b.flank + 0.02)),
+          P(q.x(-0.3), -(b.flank - 0.25)),
+          P(q.x(0.3), -(b.belly - 0.25)),
         ],
         true,
       );
-      const legsBlack = q.legs.near
-        .map((l) => {
-          const j = legJoints(l).slice(0, 4);
-          return limb(j.map((x) => ({ p: x.p, w: x.w * 1.05 })));
-        })
-        .join('');
-      const socks = q.legs.near
+      const legPaint = q.legs.near
         .map((l) => {
           const j = legJoints(l);
+          const c = clipOf([limb(j)]);
           const k = j[3];
           const k2 = j[4];
-          return k === undefined || k2 === undefined
-            ? ''
-            : limb([
-                { p: k.p, w: k.w * 1.1 },
-                { p: lerp(k.p, k2.p, 1.3), w: k2.w * 1.2 },
-              ]);
+          const hoof = j[j.length - 1];
+          if (k === undefined || k2 === undefined || hoof === undefined) return '';
+          // Black from the belly line down to the knee or hock, narrowing.
+          const upper = limb(
+            j.slice(1, 4).map((x, i) => ({ p: x.p, w: x.w * (1.4 - i * 0.35) })),
+            0.9,
+          );
+          const lower = limb([
+            { p: lerp(k.p, k2.p, 0.25), w: k.w * 1.6 },
+            { p: hoof.p, w: hoof.w * 1.6 },
+          ]);
+          const band = limb([
+            { p: lerp(k.p, k2.p, 0.25), w: k.w * 1.6 },
+            { p: lerp(k.p, k2.p, 0.6), w: k2.w * 1.6 },
+          ]);
+          return (
+            el('defs', {}, c.def) +
+            g(
+              { 'clip-path': `url(#${c.id})` },
+              el('path', { d: upper, fill: C.mark }),
+              el('path', { d: lower, fill: C.belly }),
+              el('path', { d: band, fill: C.mark }),
+            )
+          );
         })
         .join('');
-      const rump = smoothD(
-        [
-          P(q.x(-0.3), -b.croup),
-          P(q.x(-0.45), -(b.croup - 0.06)),
-          P(q.x(-0.48), -(b.buttock + 0.04)),
-          P(q.x(-0.38), -(b.croup - 0.1)),
-        ],
-        true,
-      );
       const young = look.variant === 'y';
-      const hornBase = at(0.04, -0.62);
       const hd = q.head.dir;
-      // Straight horns: in line with the face, swept back over the neck.
       const back = unit(add(mul(hd, -1), [0, -0.35]));
-      const hl = (young ? 0.2 : 0.9) * S;
-      const hornPts: V[] = [
-        hornBase,
-        add(hornBase, mul(back, hl * 0.5)),
-        add(hornBase, mul(unit(add(back, [0.05, 0.05])), hl)),
-      ];
+      const hl = (young ? 0.2 : 0.8) * S;
+      const hornOf = (base: V, c: string, spread: number): string => {
+        const dirH = unit(rot(back, [0, 0], spread));
+        const pts: V[] = [base, add(base, mul(dirH, hl * 0.5)), add(base, mul(dirH, hl))];
+        const joints = pts.map((p, i) => ({ p, w: (0.042 - i * 0.015) * S }));
+        // Rings on the lower third only.
+        const ringD = legBands(
+          [
+            { p: pts[0] ?? base, w: 0.04 * S },
+            { p: lerp(pts[0] ?? base, pts[1] ?? base, 0.7), w: 0.032 * S },
+          ],
+          1e9,
+          0.028 * S,
+          0.01 * S,
+        );
+        return (
+          el('path', { d: limb(joints, 0.9), fill: c }) +
+          (young
+            ? ''
+            : el('path', {
+                d: ringD,
+                stroke: shade(c, 0.3),
+                'stroke-width': r2(Math.max(0.3, 0.008 * S)),
+                opacity: 0.6,
+              }))
+        );
+      };
       const throat = q.neck.throatPts;
       const tTop = throat[0] ?? at(0.2, 0.9);
       const tBot = throat[2] ?? tTop;
       return {
         ...NO_MARKS,
-        body:
-          el('path', { d: belly, fill: C.belly }) +
-          el('path', { d: stripe + rump, fill: C.mark }) +
-          el('path', { d: legsBlack, fill: C.mark, opacity: 0.9 }) +
-          el('path', { d: socks, fill: C.belly }),
+        body: el('path', { d: belly, fill: C.belly }) + el('path', { d: stripe, fill: C.mark }),
+        legs: legPaint,
         neck: el('path', {
           d: limb([
-            { p: tTop, w: 0.06 * S },
-            { p: lerp(tTop, tBot, 0.5), w: 0.05 * S },
-            { p: tBot, w: 0.03 * S },
+            { p: tTop, w: 0.07 * S },
+            { p: lerp(tTop, tBot, 0.5), w: 0.06 * S },
+            { p: tBot, w: 0.035 * S },
           ]),
           fill: C.mark,
         }),
@@ -1538,7 +1650,10 @@ function markings(
             d: smoothD([at(0.85, -0.05), at(1.02, 0.05), at(0.96, 0.32), at(0.82, 0.32)], true),
             fill: C.mark,
           }),
-        behindHead: horn(hornPts, 0.04 * S, 0.012 * S, shade(C.mark, 0.08), young ? 0 : 6),
+        // The far horn a little behind and above the near one, a shade darker.
+        behindHead:
+          hornOf(add(at(-0.02, -0.68), mul(hd, -0.03 * S)), shade(C.mark, -0.05), -7) +
+          hornOf(at(0.07, -0.6), shade(C.mark, 0.12), 0),
       };
     }
     case 'springbok': {
@@ -1643,13 +1758,14 @@ function markings(
       };
     }
     case 'lechwe': {
-      // White belly and throat, black fronts on the forelegs; rams' long lyre horns, ridged.
+      // A clear white belly and throat, dark fronts on the forelegs; rams' two lyre-shaped
+      // horns (an S-curve: back, out, then up and a little forward), ridged.
       const belly = smoothD(
         [
-          P(q.x(0.42), -(b.belly + 0.04)),
-          P(q.x(0.05), -(b.belly + 0.03)),
-          P(q.x(-0.3), -(b.flank + 0.02)),
-          P(q.x(-0.3), -(b.flank - 0.2)),
+          P(q.x(0.44), -(b.belly + 0.07)),
+          P(q.x(0.05), -(b.belly + 0.06)),
+          P(q.x(-0.3), -(b.flank + 0.05)),
+          P(q.x(-0.32), -(b.flank - 0.2)),
           P(q.x(0.35), -(b.belly - 0.2)),
         ],
         true,
@@ -1657,38 +1773,71 @@ function markings(
       const fronts = q.legs.near
         .slice(0, 1)
         .map((l) => {
-          const j = legJoints(l).slice(1, 7);
-          return limb(j.map((x) => ({ p: add(x.p, [x.w * 0.22, 0]), w: x.w * 0.55 })));
+          const j = legJoints(l);
+          const c = clipOf([limb(j)]);
+          const fr = limb(
+            j.slice(1, 7).map((x) => ({ p: add(x.p, [x.w * 0.3, 0]), w: x.w * 0.6 })),
+          );
+          return (
+            el('defs', {}, c.def) +
+            g({ 'clip-path': `url(#${c.id})` }, el('path', { d: fr, fill: C.mark }))
+          );
         })
         .join('');
       const ram = look.variant === 'm';
-      const base = at(0.04, -0.62);
       const hl = 0.62 * S;
-      const back = unit(add(mul(q.head.dir, -1), [0, -0.6]));
+      const back = unit(add(mul(q.head.dir, -1), [0, -0.2]));
       const up: V = [0, -1];
-      const hornPts: V[] = [
-        base,
-        add(base, mul(back, hl * 0.35)),
-        add(add(base, mul(back, hl * 0.7)), mul(up, hl * 0.1)),
-        add(add(base, mul(back, hl * 0.8)), mul(up, hl * 0.45)),
-      ];
+      const hornOf = (base: V, c: string, k: number): string => {
+        const pts: V[] = [
+          base,
+          add(base, mul(back, hl * 0.3 * k)),
+          add(add(base, mul(back, hl * 0.58 * k)), mul(up, hl * 0.22 * k)),
+          add(add(base, mul(back, hl * 0.6 * k)), mul(up, hl * 0.58 * k)),
+          add(add(base, mul(back, hl * 0.46 * k)), mul(up, hl * 0.8 * k)),
+        ];
+        const joints = pts.map((p, i) => ({ p, w: (0.04 - i * 0.007) * S }));
+        const ridges = legBands(joints.slice(0, 4), 1e9, 0.03 * S, 0.008 * S);
+        return (
+          el('path', { d: limb(joints, 0.9), fill: c }) +
+          el('path', {
+            d: ridges,
+            stroke: shade(c, 0.3),
+            'stroke-width': r2(Math.max(0.3, 0.007 * S)),
+            opacity: 0.55,
+          })
+        );
+      };
       return {
         ...NO_MARKS,
-        body: el('path', { d: belly, fill: C.belly }) + el('path', { d: fronts, fill: C.mark }),
+        body: el('path', { d: belly, fill: C.belly }),
+        legs: fronts,
         neck: el('path', {
           d: limb([
-            { p: q.neck.throatPts[0] ?? at(0.2, 0.9), w: 0.08 * S },
-            { p: q.neck.throatPts[1] ?? at(0.2, 0.9), w: 0.07 * S },
+            { p: q.neck.throatPts[0] ?? at(0.2, 0.9), w: 0.1 * S },
+            { p: q.neck.throatPts[1] ?? at(0.2, 0.9), w: 0.09 * S },
+            { p: q.neck.throatPts[2] ?? at(0.2, 0.9), w: 0.05 * S },
           ]),
           fill: C.belly,
-          opacity: 0.8,
         }),
-        head: el('path', {
-          d: smoothD([at(0.6, -0.5), at(1.0, -0.2), at(1.0, 0.25), at(0.8, 0.35)], true),
-          fill: shade(C.coat, -0.2),
-          opacity: 0.6,
-        }),
-        behindHead: ram ? horn(hornPts, 0.04 * S, 0.012 * S, shade(C.mark, 0.1), 7) : '',
+        head:
+          el('path', {
+            d: smoothD([at(0.6, -0.5), at(1.0, -0.2), at(1.0, 0.25), at(0.8, 0.35)], true),
+            fill: shade(C.coat, -0.25),
+            opacity: 0.6,
+          }) +
+          el('path', {
+            d: smoothD(
+              [at(0.15, 0.5), at(0.6, 0.5), at(0.95, 0.3), at(0.6, 0.65), at(0.2, 0.85)],
+              true,
+            ),
+            fill: C.belly,
+            opacity: 0.85,
+          }),
+        behindHead: ram
+          ? hornOf(add(at(-0.04, -0.68), mul(q.head.dir, -0.05 * S)), shade(C.mark, -0.05), 0.9) +
+            hornOf(at(0.07, -0.6), shade(C.mark, 0.12), 1)
+          : '',
       };
     }
     case 'giraffe': {
@@ -1713,7 +1862,7 @@ function markings(
       // Legs: smaller patches down to the knees.
       const legPatches = net(
         q.x(-0.6) * S,
-        -(b.belly + 0.05) * S,
+        -1.0 * S,
         q.x(0.6) * S,
         -b.kneeH * S,
         0.07 * S,
@@ -1755,9 +1904,8 @@ function markings(
       );
       return {
         ...NO_MARKS,
-        body:
-          el('path', { d: bodyPatches, fill: C.mark }) +
-          el('path', { d: legPatches, fill: C.mark, opacity: 0.85 }),
+        body: el('path', { d: bodyPatches, fill: C.mark }),
+        legs: el('path', { d: legPatches, fill: C.mark }),
         neck: g(
           {
             transform: `translate(${r2(q.neck.root[0])} ${r2(q.neck.root[1])}) rotate(${r2(ang)})`,
@@ -1852,11 +2000,14 @@ function clipHalf(poly: readonly V[], m: Pt, n: Pt): V[] {
 // --- the elephant ------------------------------------------------------------------------------
 
 /**
- * The African elephant: a high domed head with a trunk hanging to near the ground, tusks curving
- * forward and up, the big ear (the African's shape, its lower lobe pointed) over the neck; a
- * sloping back with the highest point at the shoulder, a sagging belly, pillar legs with baggy
- * skin and round feet; wrinkled grey skin with folds on legs, trunk and ear, dust on the lower
- * body. S = shoulder height.
+ * The African elephant (D-054 review): the back highest at the shoulders, a saddle behind them,
+ * a slight rise at the hip and a steep drop to the tail; a belly that sags between the legs;
+ * pillar legs with baggy knees and round feet with subtle nails; a domed forehead with a dent
+ * above the eye, sloping into a trunk that tapers from the face (rings on its lower half); tusks
+ * out of the lip on each side, the trunk hanging between them; the big African ear set right
+ * behind the eye, its top above the back line and its pointed lower lobe down past the jaw, its
+ * edge ragged. A few faint wrinkles at the shoulder, elbow, knees and flank; dust on the back
+ * and lower body. The calf: a big head, small ears, no tusks. S = shoulder height.
  */
 function elephant(look: LookSpec, o: LookOpts): DrawnLook {
   const young = look.variant === 'y';
@@ -1869,50 +2020,50 @@ function elephant(look: LookSpec, o: LookOpts): DrawnLook {
     coat: tint(base.coat),
     lit: tint(base.lit),
     dark: tint(base.dark),
-    mark: tint(base.mark),
     dust: tint(dust),
     ivory: tint('#EDE4CF'),
-    nail: tint('#C8BEAC'),
+    nail: tint(mix(base.coat, '#D8CFC0', 0.45)),
   };
   const edge = tint(shade(base.coat, -0.5));
-  const w = Math.max(0.5, S * 0.006);
+  const w = Math.max(0.5, S * 0.0055);
   const P = (x: number, y: number): V => [x * S, y * S];
-  const L = young ? 1.05 : 1.2;
-  const bellyH = young ? 0.5 : 0.44;
+  const L = young ? 1.02 : 1.15;
+  const yb = young ? 0.06 : 0; // a calf stands taller on its legs
   const xo = -0.04;
   const X = (s: number): number => s * L + xo;
-  const rnd = prng(Math.round(S * 977) + look.pose.length);
+  const rnd = prng(Math.round(S * 977) + look.pose.length + look.variant.charCodeAt(0));
   const bodyPts: V[] = [
     P(X(0.3), -1.0),
-    P(X(0.08), -0.96),
-    P(X(-0.18), -0.9),
-    P(X(-0.38), -0.8),
-    P(X(-0.49), -0.66),
-    P(X(-0.5), -0.55),
-    P(X(-0.44), -(bellyH + 0.04)),
-    P(X(-0.2), -(bellyH - 0.03)),
-    P(X(0.1), -(bellyH - 0.05)),
-    P(X(0.34), -(bellyH + 0.0)),
-    P(X(0.47), -0.62),
-    P(X(0.5), -0.82),
-    P(X(0.44), -0.96),
+    P(X(0.12), -0.965),
+    P(X(0.0), -0.935),
+    P(X(-0.18), -0.95),
+    P(X(-0.3), -0.92),
+    P(X(-0.4), -0.84),
+    P(X(-0.47), -0.73),
+    P(X(-0.5), -0.6),
+    P(X(-0.47), -(0.48 + yb)),
+    P(X(-0.32), -(0.45 + yb)),
+    P(X(-0.12), -(0.405 + yb)),
+    P(X(0.08), -(0.395 + yb)),
+    P(X(0.25), -(0.44 + yb)),
+    P(X(0.39), -(0.49 + yb)),
+    P(X(0.5), -0.62),
+    P(X(0.53), -0.8),
+    P(X(0.45), -0.95),
   ];
   const bodyD = smoothD(bodyPts, true, 0.9);
-  // Pillar legs, columnar, a little wider at the foot; the walking pair lifted.
+  const bellyH = 0.44 + yb;
+  // Pillar legs; the walking pair swings and one lifts.
   const sw = SWING[look.pose === 'drink' ? 'graze' : look.pose];
-  const leg = (
-    xTop: number,
-    front: boolean,
-    k: number,
-  ): { d: string; foot: V; j: { p: V; w: number }[] } => {
-    const lw = (front ? 0.2 : 0.22) * (young ? 1.05 : 1);
-    const top = P(xTop, -(bellyH + 0.22));
+  const leg = (xTop: number, front: boolean, k: number) => {
+    const lw = (front ? 0.2 : 0.22) * (young ? 0.95 : 1);
+    const top = P(xTop, -(bellyH + 0.2));
     let joints: { p: V; w: number }[] = [
       { p: top, w: lw * 1.25 * S },
-      { p: P(xTop + (front ? 0.0 : 0.02), -(bellyH - 0.02)), w: lw * 1.05 * S },
-      { p: P(xTop + (front ? 0.01 : -0.01), -0.26), w: lw * 0.9 * S },
-      { p: P(xTop + (front ? 0.0 : -0.01), -0.1), w: lw * 0.92 * S },
-      { p: P(xTop + 0.005, -0.015), w: lw * 1.05 * S },
+      { p: P(xTop + (front ? 0.0 : 0.02), -(bellyH - 0.02)), w: lw * 1.08 * S },
+      { p: P(xTop + (front ? 0.01 : -0.01), -0.27), w: lw * 0.9 * S },
+      { p: P(xTop + (front ? 0.0 : -0.01), -0.1), w: lw * 0.9 * S },
+      { p: P(xTop + 0.005, -0.012), w: lw * 1.04 * S },
     ];
     const s = sw[k] ?? [0, 0];
     joints = joints.map((j) => ({ p: rot(j.p, top, -s[0] * 0.55), w: j.w }));
@@ -1924,10 +2075,7 @@ function elephant(look: LookSpec, o: LookOpts): DrawnLook {
     } else {
       const f = joints[joints.length - 1]?.p ?? top;
       const kk = (0 - top[1]) / (f[1] - top[1] || 1);
-      joints = joints.map((j) => ({
-        p: [j.p[0], top[1] + (j.p[1] - top[1]) * kk * (1 - 0.015 / 1)] as V,
-        w: j.w,
-      }));
+      joints = joints.map((j) => ({ p: [j.p[0], top[1] + (j.p[1] - top[1]) * kk] as V, w: j.w }));
     }
     return { d: limb(joints, 0.75), foot: joints[joints.length - 1]?.p ?? top, j: joints };
   };
@@ -1935,234 +2083,277 @@ function elephant(look: LookSpec, o: LookOpts): DrawnLook {
   const farF = leg(X(0.24), true, 1);
   const nearH = leg(X(-0.32), false, 2);
   const farH = leg(X(-0.24), false, 3);
+  // Subtle nails: three small pale arcs at the front of each foot.
   const feet = (ls: { foot: V; j: { p: V; w: number }[] }[], c: string): string =>
     ls
       .map((l) => {
-        const fw = (l.j[l.j.length - 1]?.w ?? 10) * 0.55;
-        return (
-          el('path', {
-            d: ellipseD(l.foot[0], l.foot[1] - fw * 0.12, fw * 1.0, fw * 0.22),
-            fill: c,
-            opacity: 0.6,
-          }) +
-          [-0.5, 0, 0.5]
-            .map((k) =>
-              el('path', {
-                d: ellipseD(
-                  l.foot[0] + k * fw * 0.8 + fw * 0.2,
-                  l.foot[1] - fw * 0.12,
-                  fw * 0.16,
-                  fw * 0.11,
-                ),
-                fill: C.nail,
-                opacity: 0.85,
-              }),
-            )
-            .join('')
-        );
+        const fw = (l.j[l.j.length - 1]?.w ?? 10) * 0.5;
+        return [-0.25, 0.25, 0.7]
+          .map((k) =>
+            el('path', {
+              d: ellipseD(l.foot[0] + k * fw, l.foot[1] - fw * 0.08, fw * 0.13, fw * 0.08),
+              fill: c,
+              opacity: 0.55,
+            }),
+          )
+          .join('');
       })
       .join('');
-  // Wrinkles: horizontal folds across the legs, curved; some vertical folds on the flank.
-  const folds = (j: { p: V; w: number }[], n: number): string => {
-    let d = '';
-    for (let i = 0; i < n; i++) {
-      const t = 0.25 + (i / n) * 0.72;
-      const seg = t * (j.length - 1);
-      const i0 = Math.floor(seg);
-      const a = j[i0];
-      const c = j[Math.min(j.length - 1, i0 + 1)];
-      if (a === undefined || c === undefined) continue;
-      const p = lerp(a.p, c.p, seg - i0);
-      const ww = (a.w + (c.w - a.w) * (seg - i0)) * 0.42 * (0.7 + rnd() * 0.3);
-      const sag = ww * 0.25 * (rnd() < 0.5 ? 1 : -1);
-      d += `M${r2(p[0] - ww)} ${r2(p[1])}Q${r2(p[0])} ${r2(p[1] + sag)} ${r2(p[0] + ww)} ${r2(p[1] - sag * 0.3)}`;
-    }
-    return d;
-  };
-  const flank = Array.from({ length: 9 }, (_, i) => {
-    const x = X(0.25 - i * 0.075 + (rnd() - 0.5) * 0.02);
-    const y0 = -0.85 + rnd() * 0.08;
-    return `M${r2(x * S)} ${r2(y0 * S)}q${r2((rnd() - 0.5) * 0.03 * S)} ${r2(0.15 * S)} ${r2(-0.01 * S)} ${r2((0.28 + rnd() * 0.08) * S)}`;
-  }).join('');
-  const clip = nextId();
+  // A few wrinkles where skin folds: knees (across the leg), elbow, shoulder, flank.
+  const across = (j: { p: V; w: number }[], ys: readonly number[]): string =>
+    ys
+      .map((yy) => {
+        const t = yy * (j.length - 1);
+        const i0 = Math.floor(t);
+        const a = j[i0];
+        const c = j[Math.min(j.length - 1, i0 + 1)];
+        if (a === undefined || c === undefined) return '';
+        const p = lerp(a.p, c.p, t - i0);
+        const ww = (a.w + (c.w - a.w) * (t - i0)) * (0.25 + rnd() * 0.15);
+        const sag = ww * (0.2 + rnd() * 0.2);
+        const dx = (rnd() - 0.5) * ww * 0.4;
+        return `M${r2(p[0] - ww + dx)} ${r2(p[1])}Q${r2(p[0] + dx)} ${r2(p[1] + sag)} ${r2(p[0] + ww + dx)} ${r2(p[1] - sag * 0.4)}`;
+      })
+      .join('');
+  const curve = (pts: readonly V[]): string =>
+    smoothD(
+      pts.map((p) => P(p[0], p[1])),
+      false,
+    );
+  const wrinkles =
+    across(nearF.j, [0.52, 0.58, 0.64, 0.9]) +
+    across(nearH.j, [0.5, 0.57, 0.88]) +
+    curve([
+      [X(0.36), -0.82],
+      [X(0.33), -0.7],
+      [X(0.35), -0.58],
+    ]) +
+    curve([
+      [X(0.4), -0.56],
+      [X(0.35), -0.52],
+    ]) +
+    curve([
+      [X(-0.2), -0.75],
+      [X(-0.24), -0.62],
+      [X(-0.22), -0.52],
+    ]) +
+    curve([
+      [X(0.05), -0.5],
+      [X(0.12), -0.47],
+      [X(0.2), -0.49],
+    ]);
+  const nearShapes = [bodyD, nearF.d, nearH.d];
+  const clip = clipOf(nearShapes);
+  const farClip = clipOf([farF.d, farH.d]);
+  const box = { x0: -2 * S, y0: -1.5 * S, x1: 2 * S, y1: 0.3 * S };
+  // Dust on the back (a reddish wash along the top) and on the lower body and legs.
   const light = vGrad(-1.0 * S, 0, [
-    [0, C.lit, 0.5],
-    [0.25, C.lit, 0.0],
-    [0.55, C.dark, 0.18],
-    [0.75, C.dust, 0.35],
-    [1, C.dust, 0.6],
+    [0, C.dust, 0.38],
+    [0.08, C.lit, 0.3],
+    [0.3, C.lit, 0.0],
+    [0.55, C.dark, 0.16],
+    [0.75, C.dust, 0.3],
+    [1, C.dust, 0.55],
   ]);
   const farGrad = vGrad(-(bellyH + 0.2) * S, 0, [
-    [0, C.dark, 0.5],
+    [0, C.dark, 0.45],
     [1, C.dust, 0.4],
   ]);
-  const nearShapes = [bodyD, nearF.d, nearH.d];
   const xs = bodyPts.map((p) => p[0]);
   const body = g(
     {},
-    el(
-      'defs',
-      {},
-      light.def,
-      farGrad.def,
-      el('clipPath', { id: clip }, el('path', { d: nearShapes.join('') })),
-    ),
+    el('defs', {}, light.def, farGrad.def, clip.def, farClip.def),
     contactShadow(Math.min(...xs) * 1.05, Math.max(...xs) * 1.1, S * 0.045),
     solid([farF.d, farH.d], mix(C.coat, C.dark, 0.55), edge, w),
-    el('path', { d: farF.d + farH.d, fill: `url(#${farGrad.id})` }),
-    feet([farF, farH], shade(C.dark, -0.1)),
+    wash(farClip.id, `url(#${farGrad.id})`, box),
     solid(nearShapes, C.coat, edge, w),
     g(
-      { 'clip-path': `url(#${clip})` },
-      el('path', { d: nearShapes.join(''), fill: `url(#${light.id})` }),
-      radial(X(-0.25) * S, -0.72 * S, 0.3 * S, 0.22 * S, C.lit, 0.25),
-      radial(X(0.25) * S, -0.75 * S, 0.22 * S, 0.2 * S, C.lit, 0.2),
+      { 'clip-path': `url(#${clip.id})` },
+      wash(clip.id, `url(#${light.id})`, box),
+      radial(X(-0.2) * S, -0.78 * S, 0.3 * S, 0.2 * S, C.lit, 0.22),
+      radial(X(0.28) * S, -0.8 * S, 0.22 * S, 0.18 * S, C.lit, 0.18),
+      radial(X(0.05) * S, -0.45 * S, 0.3 * S, 0.06 * S, C.dark, 0.3),
       el('path', {
-        d: folds(nearF.j, 9) + folds(nearH.j, 9) + flank,
+        d: wrinkles,
         fill: 'none',
-        stroke: shade(C.dark, -0.2),
-        'stroke-width': r2(w * 0.8),
-        'stroke-opacity': 0.55,
+        stroke: shade(C.dark, -0.15),
+        'stroke-width': r2(w * 0.75),
+        'stroke-opacity': 0.4,
         'stroke-linecap': 'round',
       }),
     ),
-    feet([nearF, nearH], C.dark),
+    feet([nearF, nearH], C.nail),
   );
-  // Head: domed, the trunk hanging; tusks; the eye.
+  // Head: domed forehead, a dent above the eye, the face sloping into the trunk.
   const pose = look.pose === 'drink' ? 'graze' : look.pose;
-  const hx = X(0.52);
-  const top = -0.97 - (young ? 0.05 : 0);
+  const hk = young ? 1.15 : 1;
+  const hx = X(0.5);
+  const H = (x: number, y: number): V => P(hx + x * hk, -0.8 + (y + 0.8) * hk);
   const headPts: V[] = [
-    P(X(0.36), -0.98),
-    P(hx - 0.02, top),
-    P(hx + 0.12, top + 0.01),
-    P(hx + 0.22, -0.9),
-    P(hx + 0.24, -0.72),
-    P(hx + 0.2, -0.6),
-    P(hx + 0.08, -0.56),
-    P(X(0.42), -0.6),
+    H(-0.12, -0.93),
+    H(0.02, -0.99),
+    H(0.1, -0.985),
+    H(0.14, -0.93),
+    H(0.2, -0.9),
+    H(0.24, -0.82),
+    H(0.24, -0.72),
+    H(0.18, -0.62),
+    H(0.12, -0.57),
+    H(0.0, -0.58),
+    H(-0.1, -0.66),
   ];
-  // Trunk: from under the eyes, hanging; grazing: curled to the ground; alert: lifted a little.
-  const tr0: V = P(hx + 0.2, -0.66);
+  const headD = smoothD(headPts, true, 0.9);
+  const tr0 = H(0.2, -0.72);
   const trunkPath: V[] =
     pose === 'graze'
-      ? [tr0, P(hx + 0.27, -0.45), P(hx + 0.27, -0.2), P(hx + 0.3, -0.04), P(hx + 0.36, -0.03)]
+      ? [tr0, H(0.25, -0.55), P(hx + 0.27, -0.32), P(hx + 0.29, -0.1), P(hx + 0.35, -0.025)]
       : pose === 'alert'
-        ? [tr0, P(hx + 0.28, -0.5), P(hx + 0.27, -0.3), P(hx + 0.32, -0.2), P(hx + 0.38, -0.24)]
-        : [tr0, P(hx + 0.26, -0.48), P(hx + 0.24, -0.26), P(hx + 0.24, -0.12), P(hx + 0.27, -0.08)];
-  const tw0 = (young ? 0.13 : 0.12) * S;
-  const trunk = limb(
-    trunkPath.map((p, i) => ({ p, w: tw0 * (1 - i * 0.16) })),
-    0.85,
-  );
-  const ringsD = legBands(
-    trunkPath.map((p, i) => ({ p, w: tw0 * (1 - i * 0.16) * 0.8 })),
+        ? [tr0, H(0.27, -0.55), P(hx + 0.3, -0.38), P(hx + 0.34, -0.26), P(hx + 0.39, -0.29)]
+        : [tr0, H(0.25, -0.56), P(hx + 0.26, -0.36), P(hx + 0.27, -0.18), P(hx + 0.3, -0.12)];
+  const tw0 = 0.14 * S * hk;
+  const trunkJ = trunkPath.map((p, i) => ({ p, w: tw0 * (1 - i * 0.17) }));
+  const trunk = limb(trunkJ, 0.85);
+  const rings = legBands(
+    trunkJ.slice(2).map((j) => ({ p: j.p, w: j.w * 0.75 })),
     1e9,
-    0.035 * S,
+    0.028 * S,
     w,
   );
-  const tuskL = young ? 0.0 : cow ? 0.16 : 0.3;
-  const tuskBase: V = P(hx + 0.18, -0.6);
-  const tusk =
-    tuskL > 0
-      ? el('path', {
-          d: limb(
-            [
-              { p: tuskBase, w: 0.045 * S },
-              { p: add(tuskBase, P(tuskL * 0.35, tuskL * 0.45)), w: 0.038 * S },
-              { p: add(tuskBase, P(tuskL * 0.85, tuskL * 0.42)), w: 0.022 * S },
-              { p: add(tuskBase, P(tuskL * 1.05, tuskL * 0.15)), w: 0.008 * S },
-            ],
-            0.9,
-          ),
-          fill: C.ivory,
-          stroke: tint('#A89A80'),
-          'stroke-width': r2(w * 0.6),
-        })
-      : '';
-  const headD = smoothD(headPts, true, 0.9);
-  const hClip = nextId();
-  const hLight = vGrad(top * S, -0.0 * S, [
-    [0, C.lit, 0.5],
+  // Tusks from the lip, curving forward and up; both behind the trunk, their tips past it.
+  const tuskL = young ? 0 : cow ? 0.2 : 0.32;
+  const tusk = (dx: number, dy: number, c: string): string => {
+    const b0 = add(H(0.15, -0.6), P(dx, dy));
+    return el('path', {
+      d: limb(
+        [
+          { p: b0, w: 0.05 * S },
+          { p: add(b0, P(tuskL * 0.3, tuskL * 0.42)), w: 0.042 * S },
+          { p: add(b0, P(tuskL * 0.75, tuskL * 0.48)), w: 0.028 * S },
+          { p: add(b0, P(tuskL * 1.08, tuskL * 0.2)), w: 0.008 * S },
+        ],
+        0.9,
+      ),
+      fill: c,
+      stroke: tint('#A39478'),
+      'stroke-width': r2(w * 0.6),
+    });
+  };
+  const hClip = clipOf([headD, trunk]);
+  const hLight = vGrad(-1.0 * S, 0, [
+    [0, C.dust, 0.3],
+    [0.08, C.lit, 0.35],
     [0.3, C.lit, 0],
-    [1, C.dust, 0.5],
+    [1, C.dust, 0.45],
   ]);
-  const eye = P(hx + 0.12, -0.84);
+  const eye = H(0.1, -0.83);
   const head = g(
     {},
-    el('defs', {}, hLight.def, el('clipPath', { id: hClip }, el('path', { d: headD + trunk }))),
+    el('defs', {}, hLight.def, hClip.def),
+    tuskL > 0 ? tusk(-0.03, -0.015, shade(C.ivory, -0.12)) : '',
+    tuskL > 0 ? tusk(0, 0, C.ivory) : '',
     solid([headD, trunk], C.coat, edge, w),
+    wash(hClip.id, `url(#${hLight.id})`, box),
     g(
-      { 'clip-path': `url(#${hClip})` },
-      el('path', { d: headD + trunk, fill: `url(#${hLight.id})` }),
+      { 'clip-path': `url(#${hClip.id})` },
       el('path', {
-        d: ringsD,
+        d: rings,
         stroke: shade(C.dark, -0.2),
-        'stroke-width': r2(w * 0.8),
-        'stroke-opacity': 0.55,
+        'stroke-width': r2(w * 0.7),
+        'stroke-opacity': 0.45,
         fill: 'none',
       }),
-      radial(hx * S + 0.05 * S, (top + 0.08) * S, 0.12 * S, 0.08 * S, C.lit, 0.35),
+      // The dome lit, the dent above the eye shaded.
+      radial(H(0.05, -0.95)[0], H(0.05, -0.95)[1], 0.1 * S, 0.05 * S, C.lit, 0.4),
+      radial(H(0.12, -0.88)[0], H(0.12, -0.88)[1], 0.05 * S, 0.03 * S, C.dark, 0.35),
     ),
-    tusk,
-    el('path', { d: ellipseD(eye[0], eye[1], 0.018 * S, 0.012 * S), fill: tint('#1C1714') }),
+    // The lip under the trunk's root.
     el('path', {
-      d: `M${r2(eye[0] - 0.03 * S)} ${r2(eye[1] - 0.025 * S)}q${r2(0.03 * S)} ${r2(-0.012 * S)} ${r2(0.06 * S)} 0`,
+      d: smoothD([H(0.12, -0.6), H(0.17, -0.58), H(0.2, -0.62)], false),
+      stroke: edge,
+      'stroke-width': r2(w * 0.8),
+      fill: 'none',
+      opacity: 0.7,
+    }),
+    el('path', { d: ellipseD(eye[0], eye[1], 0.017 * S, 0.011 * S), fill: tint('#1C1714') }),
+    el('path', {
+      d: smoothD([H(0.06, -0.865), H(0.1, -0.875), H(0.14, -0.86)], false),
       stroke: edge,
       'stroke-width': r2(w * 0.7),
       fill: 'none',
       opacity: 0.6,
     }),
   );
-  // The ear: hinged along its front edge behind the eye; the lower lobe pointed.
-  const ex = hx - 0.04;
-  const eS = young ? 0.85 : 1;
-  const earPts: V[] = [
-    P(ex, -0.98),
-    P(ex - 0.12 * eS, -1.03),
-    P(ex - 0.26 * eS, -0.98),
-    P(ex - 0.31 * eS, -0.84),
-    P(ex - 0.27 * eS, -0.66),
-    P(ex - 0.18 * eS, -0.58),
-    P(ex - 0.08 * eS, -0.5),
-    P(ex - 0.02, -0.6),
-    P(ex + 0.01, -0.78),
+  // The ear: hinged along its front edge just behind the eye; Africa-shaped, ragged.
+  const ek = young ? 0.72 : 1;
+  const E = (x: number, y: number): V => P(hx - 0.0 + x * ek * hk, -0.8 + (y + 0.8) * ek * hk);
+  const earKey: V[] = [
+    E(0.0, -0.99),
+    E(-0.12, -1.08),
+    E(-0.28, -1.06),
+    E(-0.39, -0.93),
+    E(-0.37, -0.74),
+    E(-0.27, -0.62),
+    E(-0.16, -0.52),
+    E(-0.1, -0.42),
+    E(-0.04, -0.55),
+    E(0.02, -0.68),
+    E(0.03, -0.84),
   ];
-  const earD = smoothD(earPts, true, 0.9);
-  const veins = Array.from({ length: 5 }, (_, i) => {
-    const a = P(ex - 0.03, -0.9 + i * 0.06);
-    const b2 = P(ex - (0.16 + rnd() * 0.08) * eS, -0.95 + i * 0.08);
-    return `M${r2(a[0])} ${r2(a[1])}Q${r2((a[0] + b2[0]) / 2)} ${r2(a[1] - 0.03 * S)} ${r2(b2[0])} ${r2(b2[1])}`;
-  }).join('');
-  const eGrad = vGrad(-1.03 * S, -0.5 * S, [
-    [0, C.lit, 0.35],
+  // A ragged edge on the back and the bottom (the front edge lies along the head).
+  const earPts: V[] = [];
+  for (let i = 0; i < earKey.length; i++) {
+    const a = earKey[i];
+    const c = earKey[(i + 1) % earKey.length];
+    if (a === undefined || c === undefined) continue;
+    earPts.push(a);
+    if (i >= 1 && i <= 7) {
+      const m = lerp(a, c, 0.5);
+      const nn = nrm(unit(sub(c, a)));
+      earPts.push(add(m, mul(nn, (rnd() - 0.5) * 0.025 * S)));
+    }
+  }
+  const earD = smoothD(earPts, true, 0.8);
+  const veins = [0, 1, 2, 3]
+    .map((i) => {
+      const a = E(-0.03, -0.9 + i * 0.08);
+      const b2 = E(-0.2 - rnd() * 0.1, -0.96 + i * 0.1);
+      return `M${r2(a[0])} ${r2(a[1])}Q${r2((a[0] + b2[0]) / 2)} ${r2(a[1] - 0.02 * S)} ${r2(b2[0])} ${r2(b2[1])}`;
+    })
+    .join('');
+  const eGrad = vGrad(-1.08 * S, -0.42 * S, [
+    [0, C.dust, 0.3],
+    [0.15, C.lit, 0.3],
     [1, C.dark, 0.35],
   ]);
-  // The ear's top sits a little under the shoulder line (as the head does).
+  const eClip = clipOf([earD]);
   const earPart = g(
-    { transform: `translate(0 ${r2(0.05 * S)})` },
-    el('defs', {}, eGrad.def),
-    solid([earD], mix(C.coat, C.dark, 0.15), edge, w),
-    el('path', { d: earD, fill: `url(#${eGrad.id})` }),
+    {},
+    el('defs', {}, eGrad.def, eClip.def),
+    solid([earD], mix(C.coat, C.dark, 0.12), edge, w),
+    wash(eClip.id, `url(#${eGrad.id})`, box),
+    // The front edge in shadow where it folds against the head; the top rim lit.
+    g(
+      { 'clip-path': `url(#${eClip.id})` },
+      radial(E(0.0, -0.75)[0], E(0.0, -0.75)[1], 0.06 * S, 0.25 * S, C.dark, 0.45),
+    ),
     el('path', {
       d: veins,
       stroke: shade(C.dark, -0.15),
-      'stroke-width': r2(w * 0.7),
-      'stroke-opacity': 0.5,
+      'stroke-width': r2(w * 0.6),
+      'stroke-opacity': 0.35,
       fill: 'none',
     }),
-    // A fold along the top edge.
     el('path', {
-      d: smoothD([P(ex - 0.03, -0.97), P(ex - 0.14 * eS, -1.0), P(ex - 0.26 * eS, -0.95)], false),
+      d: smoothD([E(-0.03, -1.0), E(-0.13, -1.06), E(-0.27, -1.04)], false),
       stroke: C.lit,
       'stroke-width': r2(w * 1.2),
-      opacity: 0.5,
+      opacity: 0.45,
       fill: 'none',
     }),
   );
   // Tail: thin, a black hair tuft.
-  const tRoot: V = P(X(-0.49), -0.68);
-  const tEnd: V = P(X(-0.53), -0.3);
+  const tRoot: V = P(X(-0.47), -0.73);
+  const tEnd: V = P(X(-0.52), -0.3);
   const tail = g(
     {},
     el('path', {
@@ -2193,7 +2384,7 @@ function elephant(look: LookSpec, o: LookOpts): DrawnLook {
   );
   return {
     parts: { tail, body, head, ear: earPart },
-    pivots: { body: [0, 0], head: P(X(0.38), -0.8), tail: tRoot, ear: P(ex, -0.73) },
+    pivots: { body: [0, 0], head: P(X(0.42), -0.82), tail: tRoot, ear: E(0.01, -0.8) },
     box: { x0: X(-0.7) * S, x1: (hx + 0.6) * S, y0: -1.35 * S, y1: 0.2 * S },
   };
 }
@@ -2238,7 +2429,7 @@ function ostrich(look: LookSpec, o: LookOpts): DrawnLook {
   // Legs: thigh (bare) from the body to the knee, the shank to the ankle, the foot.
   const sw = SWING[look.pose === 'drink' ? 'graze' : look.pose];
   const leg = (dx: number, k: number): { d: string; foot: V } => {
-    const top = P(dx, cy + 0.04);
+    const top = P(dx * 0.4, cy + 0.07);
     let j: { p: V; w: number }[] = [
       { p: top, w: 0.1 * H },
       { p: P(dx + 0.03, -0.36), w: 0.055 * H },
@@ -2317,23 +2508,30 @@ function ostrich(look: LookSpec, o: LookOpts): DrawnLook {
     }),
     solid([bodyD], C.coat, edge, w),
     g({ 'clip-path': `url(#${clip})` }, el('path', { d: bodyD, fill: `url(#${light.id})` })),
-    el('path', { d: wing, fill: cock ? C.plume : mix(C.plume, C.coat, 0.45), opacity: 0.95 }),
+    // The folded wing in the body's plumage; only its tips are white (grey-white on a hen).
+    el('path', { d: wing, fill: mix(C.coat, C.lit, 0.45) }),
+    el('path', {
+      d: smoothD(
+        [
+          P(-0.13, cy + 0.07),
+          P(-0.22, cy + 0.03),
+          P(-0.3, cy + 0.06),
+          P(-0.27, cy + 0.12),
+          P(-0.17, cy + 0.12),
+        ],
+        true,
+        0.9,
+      ),
+      fill: cock ? C.plume : mix(C.plume, C.coat, 0.35),
+    }),
     el('path', {
       d: plumeLines,
-      stroke: cock ? tint('#C8C2B8') : C.dark,
+      stroke: cock ? C.lit : C.dark,
       'stroke-width': r2(w * 0.8),
       fill: 'none',
       opacity: 0.7,
     }),
     el('path', { d: near.d, fill: C.skin, stroke: edge, 'stroke-width': r2(w) }),
-    // Red-pink shins on a cock (the front of the shank).
-    cock
-      ? el('path', {
-          d: `M${r2(near.foot[0])} ${r2(near.foot[1] - 0.03 * H)}L${r2(near.foot[0] + 0.005 * H)} ${r2(-0.17 * H)}`,
-          stroke: C.shin,
-          'stroke-width': r2(0.012 * H),
-        })
-      : '',
   );
   // Neck and head: from the front of the body; graze pecks the ground, alert stands tall.
   const pose = look.pose === 'drink' ? 'graze' : look.pose;

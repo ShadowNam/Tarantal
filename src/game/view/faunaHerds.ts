@@ -86,8 +86,8 @@ export const FAUNA_M: Readonly<Record<FaunaSpecies, number>> = {
 
 /** A young one's height as a share of the adult's (a few months old: the herd's calves). */
 export const YOUNG_SHARE: Readonly<Record<FaunaSpecies, number>> = {
-  elephant: 0.42,
-  giraffe: 0.45,
+  elephant: 0.5,
+  giraffe: 0.58,
   zebra: 0.62,
   wildebeest: 0.58,
   gemsbok: 0.6,

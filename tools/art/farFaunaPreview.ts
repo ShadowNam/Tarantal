@@ -2,8 +2,15 @@
 // ground, for checking the drawing by eye: `npx tsx tools/art/farFaunaPreview.ts <out.png> [species…]`.
 import { writeFileSync } from 'node:fs';
 import { encodePng } from '../assets/image';
-import type { FaunaPose, FaunaSpecies, FaunaVariant } from '../../src/game/view/faunaHerds';
+import {
+  lookHeight,
+  type FaunaPose,
+  type FaunaSpecies,
+  type FaunaVariant,
+} from '../../src/game/view/faunaHerds';
 import { drawLook } from './farFauna';
+import { FAUNA_M } from '../../src/game/view/faunaHerds';
+const FAUNA_M_OF = (sp: FaunaSpecies): number => FAUNA_M[sp];
 import { renderSvg } from './raster';
 import { resetIds } from './scenery';
 import { svgDoc } from './svg';
@@ -40,8 +47,13 @@ for (const sp of species) {
   y += rowH(sp);
   looks.forEach(([pose, variant], i) => {
     const d = drawLook(
-      { species: sp, pose: sp === 'giraffe' && i === 1 ? 'graze' : pose, variant, h: H[sp] },
-      { wading: sp === 'lechwe' && i === 3 },
+      {
+        species: sp,
+        pose: sp === 'giraffe' && i === 1 ? 'graze' : pose,
+        variant,
+        h: lookHeight(sp, variant, H[sp] / FAUNA_M_OF(sp)),
+      },
+      { wading: sp === 'lechwe' && i === 3, ...(sp === 'elephant' ? { dust: '#A07E62' } : {}) },
     );
     const x = 20 + cellW(sp) * (i + 0.5);
     const p = d.parts;
@@ -50,7 +62,7 @@ for (const sp of species) {
     );
   });
 }
-const k = 1;
+const k = Number(process.env['ZOOM'] ?? '1');
 writeFileSync(
   out,
   encodePng(
