@@ -427,5 +427,18 @@
     "weg": 0,
     "bestChain": 0,
     "maxChain": 0
+  },
+  "guns.karoo.wed.twee_twee/iron": {
+    "id": "guns.karoo.wed.twee_twee/iron",
+    "label": "Karoo wed · twee_twee iron · canHappy",
+    "seeds": 500,
+    "mean": 2884.752,
+    "canMean": 40.558,
+    "canShare": 0.014059440811549832,
+    "knocks": 3.18,
+    "airHits": 3.002,
+    "weg": 0.216,
+    "bestChain": 1.802,
+    "maxChain": 7
   }
 }
