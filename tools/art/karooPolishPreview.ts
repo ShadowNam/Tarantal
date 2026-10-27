@@ -16,6 +16,8 @@ import { loadArtConfig } from './config';
 import { renderProp } from './landscape';
 import { over } from './scenePreview';
 import { mix } from './scenery';
+import { HD_PARTS, hdKeyOf, POTJIE_LID } from '../../src/game/assets/hdProps';
+import { POT_RIM } from './potjie';
 
 const OUT = join(import.meta.dirname, '..', '..', 'docs', 'art-preview', 'compare');
 const BEFORE_REF = process.env.BEFORE_REF ?? 'fc39e3a3';
@@ -46,7 +48,7 @@ function save(name: string, img: Rgba): void {
 }
 
 /** The shipped (png8) pixels of an image at `colours`. */
-const shipped = (img: Rgba, colours: number): { img: Rgba; bytes: number } => {
+const shipped = (img: Rgba, colours: number): { img: Rgba; readonly bytes: number } => {
   const png = encodePng8(img, colours);
   return { img: decodePng(png), bytes: png.length };
 };
@@ -63,9 +65,31 @@ for (const biomeId of ['karoo-autumn', 'bushveld-winter']) {
     if (only !== undefined && !prop.asset.includes(only)) continue;
     const size = m.size(prop.asset);
     if (size === null) continue;
-    const pp = plan.props[prop.asset];
-    const r = renderProp(cfg, plan, biome, prop, size, m.origin(prop.asset));
+    // "After" is the HD key when the prop has one (the potjie with its lid laid on), else the
+    // prop's own (redrawn in place) art.
+    const key = hdKeyOf(prop.asset) ?? prop.asset;
+    const pp = plan.props[key];
+    const keySize = m.size(key) ?? size;
+    const r = renderProp(cfg, plan, biome, { ...prop, asset: key }, keySize, m.origin(key));
     const after = shipped(r.img, Number(process.env.COLOURS ?? pp?.colours ?? 256));
+    let bytes = after.bytes;
+    if ((HD_PARTS[prop.asset] ?? []).includes(POTJIE_LID)) {
+      const ls = m.size(POTJIE_LID);
+      const lp = plan.props[POTJIE_LID];
+      if (ls !== null && lp !== undefined) {
+        const lo = m.origin(POTJIE_LID);
+        const l = renderProp(cfg, plan, biome, { ...prop, asset: POTJIE_LID }, ls, lo);
+        const lid = shipped(l.img, lp.colours ?? 256);
+        bytes += lid.bytes;
+        const k = r.master;
+        over(
+          after.img,
+          lid.img,
+          Math.round(r.originX * after.img.width + POT_RIM.x * k - lo.x * lid.img.width),
+          Math.round(r.originY * after.img.height + POT_RIM.y * k - lo.y * lid.img.height),
+        );
+      }
+    }
     const file = `art-source/sprites/${prop.asset}.png`;
     let before: Rgba;
     try {
@@ -74,14 +98,14 @@ for (const biomeId of ['karoo-autumn', 'bushveld-winter']) {
       before = blank(size.width, size.height);
     }
     const b2 = resize(before, before.width * 2, before.height * 2);
+    // A 1× "after" (redrawn in place) is shown at 2× as well.
+    if (r.master === 1) after.img = resize(after.img, after.img.width * 2, after.img.height * 2);
     const W = b2.width + after.img.width + 60;
     const H = Math.max(b2.height, after.img.height) + 40;
     const bg = backdrop(W, H, Math.round(H * 0.72));
     over(bg, b2, 20, 20 + H - 40 - b2.height);
     over(bg, after.img, 40 + b2.width, 20 + H - 40 - after.img.height);
-    console.log(
-      `${prop.asset}: ${(after.bytes / 1024).toFixed(1)} KB png8 (${r.img.width}×${r.img.height})`,
-    );
+    console.log(`${key}: ${(bytes / 1024).toFixed(1)} KB png8 (${r.img.width}×${r.img.height})`);
     save(prop.asset.replace('/', '-'), bg);
   }
 }

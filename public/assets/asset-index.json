@@ -20,9 +20,9 @@
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/bushveld_aloe_a.cf28a57111b0.png",
-        "bytes": 23677,
-        "hash": "cf28a57111b0"
+        "path": "assets/bushveld-winter/img/bushveld_aloe_a.136f1daa79d3.png",
+        "bytes": 38501,
+        "hash": "136f1daa79d3"
       },
       "width": 360,
       "height": 400
@@ -31,9 +31,9 @@
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/bushveld_aloe_b.9ae7b02db2b8.png",
-        "bytes": 24085,
-        "hash": "9ae7b02db2b8"
+        "path": "assets/bushveld-winter/img/bushveld_aloe_b.2ee462750af9.png",
+        "bytes": 41758,
+        "hash": "2ee462750af9"
       },
       "width": 380,
       "height": 400
@@ -785,6 +785,54 @@
       },
       "width": 220,
       "height": 240
+    },
+    "karoo/hd/aloe_a": {
+      "group": "late",
+      "origin": "interim",
+      "file": {
+        "path": "assets/late/img/karoo_hd_aloe_a.020de4e99790.png",
+        "bytes": 84763,
+        "hash": "020de4e99790"
+      },
+      "width": 720,
+      "height": 680,
+      "scale": 0.5
+    },
+    "karoo/hd/aloe_b": {
+      "group": "late",
+      "origin": "interim",
+      "file": {
+        "path": "assets/late/img/karoo_hd_aloe_b.f1e9c404c914.png",
+        "bytes": 90121,
+        "hash": "f1e9c404c914"
+      },
+      "width": 760,
+      "height": 680,
+      "scale": 0.5
+    },
+    "karoo/hd/potjie": {
+      "group": "late",
+      "origin": "interim",
+      "file": {
+        "path": "assets/late/img/karoo_hd_potjie.e91413263ac8.png",
+        "bytes": 15654,
+        "hash": "e91413263ac8"
+      },
+      "width": 440,
+      "height": 480,
+      "scale": 0.5
+    },
+    "karoo/hd/potjie_lid": {
+      "group": "late",
+      "origin": "interim",
+      "file": {
+        "path": "assets/late/img/karoo_hd_potjie_lid.e86e0ba28f89.png",
+        "bytes": 3399,
+        "hash": "e86e0ba28f89"
+      },
+      "width": 264,
+      "height": 112,
+      "scale": 0.5
     },
     "karoo/potjie": {
       "group": "karoo-autumn",

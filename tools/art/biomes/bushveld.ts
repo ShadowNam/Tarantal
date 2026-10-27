@@ -13,14 +13,13 @@ import {
   nextId,
   shade,
   tone,
-  tuft,
   yAt,
   type Pen,
   type Rnd,
 } from '../scenery';
 import { el, ellipseD, g, inked, r2, smoothD } from '../svg';
 import { mountainRow, paintRow, rockColours } from '../mountains';
-import { aloeFlowers, aloeRosette, groundBand, softSky } from './karoo';
+import { aloeClump, groundBand, plant, softSky } from './karoo';
 import { foregroundClumps, midScrub, nearGrass, verVeld } from './common';
 import { plantLook, seedTuft, veldShrub } from '../flora';
 import { baobab as baobabTree, marula, mopane } from '../species';
@@ -540,52 +539,6 @@ function boulderProp(crack: boolean) {
   };
 }
 
-function redAloes(rosettes: readonly (readonly [number, number, number])[]) {
-  return (ctx: PropCtx): string => {
-    const pen = ctx.pen;
-    const parts: string[] = [
-      inked(
-        smoothD(
-          [
-            [-150, 130],
-            [-130, 96],
-            [-60, 82],
-            [40, 84],
-            [130, 96],
-            [150, 130],
-          ],
-          true,
-          0.7,
-        ),
-        ctx.c('grassDark'),
-        pen.ink,
-        pen.w,
-      ),
-    ];
-    for (const [x, y, s] of rosettes) {
-      const n = s > 90 ? 3 : 2;
-      parts.push(
-        aloeFlowers(
-          ctx.rnd,
-          x,
-          y - s * 0.3,
-          s * 1.9,
-          n,
-          ctx.c('aloeFlower'),
-          ctx.c('aloeBud'),
-          shade(ctx.c('aloe'), -0.2),
-          pen,
-        ),
-      );
-    }
-    for (const [x, y, s] of [...rosettes].sort((a, b) => a[1] - b[1]))
-      parts.push(aloeRosette(ctx, x, y, s, pen));
-    parts.push(tuft(ctx.rnd, -120, 126, 60, tone(ctx.c('grass'), 0.22, 0.25), pen));
-    parts.push(tuft(ctx.rnd, 118, 128, 54, tone(ctx.c('grassLight'), 0.22, 0.2), pen));
-    return g({}, ...parts);
-  };
-}
-
 export const BUSHVELD_PLAN: BiomeArtPlan = {
   biome: 'bushveld-winter',
   layers: {
@@ -623,19 +576,35 @@ export const BUSHVELD_PLAN: BiomeArtPlan = {
     'bushveld/boulder_crack': { draw: boulderProp(true), wobble: false, colours: 112 },
     'bushveld/boulder_a': { draw: boulderProp(false), wobble: false, colours: 112 },
     'bushveld/boulder_b': { draw: boulderProp(false), wobble: false, colours: 112 },
+    // D-051: the HD aloe drawing replaces the old cartoon rosettes in place, at 1× (the Bushveld
+    // chunk has no room for 2× textures; ≤ 1.5 MB gzip).
     'bushveld/aloe_a': {
-      draw: redAloes([
-        [-30, 44, 104],
-        [76, 70, 78],
-        [-110, 90, 58],
-      ]),
+      draw: aloeClump(
+        [
+          plant(-36, 118, 116, 60, 5, -0.4, -226),
+          plant(80, 122, 86, 24, 4, 0.6, -226),
+          plant(-122, 130, 58, 0, 1, 0.2, -226),
+        ],
+        'grassDark',
+        'grass',
+        'granite',
+      ),
+      wobble: false,
+      colours: 128,
     },
     'bushveld/aloe_b': {
-      draw: redAloes([
-        [24, 46, 110],
-        [-90, 74, 76],
-        [118, 96, 56],
-      ]),
+      draw: aloeClump(
+        [
+          plant(24, 116, 122, 66, 6, 0.3, -226),
+          plant(-98, 124, 84, 20, 3, -0.7, -226),
+          plant(128, 132, 58, 0, 2, -0.2, -226),
+        ],
+        'grassDark',
+        'grass',
+        'granite',
+      ),
+      wobble: false,
+      colours: 128,
     },
   },
 };

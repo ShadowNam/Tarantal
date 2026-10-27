@@ -29,6 +29,7 @@ import {
 import { el, ellipseD, g, inked, place, polyD, r2, smoothD } from '../svg';
 import { contactShadow, fillD, softPen } from '../realism';
 import { aloeFerox, aloeLook, type AloePlant } from '../aloe';
+import { potjieHd, potjieLid, potLook } from '../potjie';
 import { mountainRow, paintRow, rockColours } from '../mountains';
 import { skyGradient, softDefs, type CloudColours } from '../skies';
 import {
@@ -2262,7 +2263,12 @@ function aloes(rosettes: readonly (readonly [number, number, number])[]) {
  * D-051: an aloe clump (HD, 2× texture): an earth mound with a few stones, bitter aloes back to
  * front (tools/art/aloe.ts) and grass tufts. Shared with the Bushveld (its own palette and ground).
  */
-export function aloeClump(plants: readonly AloePlant[], ground = 'veldDark', grass = 'veld') {
+export function aloeClump(
+  plants: readonly AloePlant[],
+  ground = 'veldDark',
+  grass = 'veld',
+  stones = 'stone',
+) {
   return (ctx: PropCtx): string => {
     const look = aloeLook(ctx.tint, ctx.c('aloe'), ctx.c('aloeFlower'), ctx.c('aloeBud'));
     const earth = ctx.c(ground);
@@ -2270,13 +2276,13 @@ export function aloeClump(plants: readonly AloePlant[], ground = 'veldDark', gra
     const parts: string[] = [];
     const mound = smoothD(
       [
-        [-176, 172],
-        [-160, 120],
+        [-164, 158],
+        [-150, 120],
         [-96, 102],
         [0, 100],
         [100, 104],
-        [164, 120],
-        [180, 172],
+        [152, 120],
+        [166, 158],
       ],
       true,
       0.7,
@@ -2303,7 +2309,7 @@ export function aloeClump(plants: readonly AloePlant[], ground = 'veldDark', gra
       [10, 122, 7],
       [140, 130, 10],
     ] as const)
-      parts.push(stone(ctx.rnd, x, y, r, tone(ctx.c('stone'), 0.25, 0.3), soft));
+      parts.push(stone(ctx.rnd, x, y, r, tone(ctx.c(stones), 0.25, 0.3), soft));
     for (const p of [...plants].sort((a, b) => a.y - b.y)) {
       parts.push(contactShadow(p.x + p.s * 0.1, p.y + 2, p.s * 0.6, p.s * 0.1, 0.3));
       parts.push(aloeFerox(ctx.rnd, p, look));
@@ -2373,6 +2379,19 @@ export const KAROO_PLAN: BiomeArtPlan = {
         [-84, 72, 80],
         [120, 96, 54],
       ]),
+    },
+    // D-051: the HD potjie (pot on its fire, lidless) and its loose lid (late group).
+    'karoo/hd/potjie': {
+      draw: (ctx) => potjieHd(ctx.rnd, potLook(ctx.c, ctx.tint), ctx.pen),
+      master: 2,
+      wobble: false,
+      colours: 128,
+    },
+    'karoo/hd/potjie_lid': {
+      draw: (ctx) => potjieLid(potLook(ctx.c, ctx.tint), ctx.pen),
+      master: 2,
+      wobble: false,
+      colours: 64,
     },
     // D-051: the HD bitter aloes (late group, swapped in for aloe_a/b; three plants a clump).
     'karoo/hd/aloe_a': {
