@@ -171,8 +171,7 @@ describe('AssetManifest HD files', () => {
     await load.all;
     // Every image and layer tile is in (atlases need real frame data: this fake has none).
     const left = m.hdFiles(index, 'bushveld-winter', true);
-    for (const x of [...left.now, ...left.background])
-      expect(x.path).toMatch(/\/(birds|guns)\//);
+    for (const x of [...left.now, ...left.background]) expect(x.path).toMatch(/\/(birds|guns)\//);
   });
 });
 

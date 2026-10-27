@@ -41,7 +41,8 @@ export const HD_SKIP_KEYS: readonly string[] = ['ui/ammo/', 'helper/meerkat', 'b
  */
 export const HD_BIRD_PLANES: readonly string[] = ['mid', 'far'];
 export const HD_SKIP_BIRD_GROUPS: readonly string[] = ['late'];
-export const HD_GUNS = false;
+/** A switch (typed boolean so the packer's check stays meaningful): no HD gun atlases for now. */
+export const HD_GUNS = false as boolean;
 
 /** True when a bird atlas of `group` on `plane` gets an HD version. */
 export function hdBird(plane: string, group: string): boolean {
