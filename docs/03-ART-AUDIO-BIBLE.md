@@ -330,7 +330,7 @@ silhouette, never a geometric shape; foliage as separate clumps of leaf dabs wit
 ground shows; lit tops and shaded undersides (light from the upper left); textured bark (furrowed,
 smooth with folds, or flaky plates); a soft ground contact shadow; each tree grown from the layer's
 seeded random stream, so no two repeat. Distant planes get simpler versions: far trees are a few
-ragged clumps with a lit cap and plain limbs, no dabs. Distant animals (`tools/art/fauna.ts`) share
+ragged clumps with a lit cap and plain limbs, no dabs. Distant animals (v1.6; redrawn in D-054: `tools/art/farFauna.ts`, see far animals below) share
 one rig with species proportions and markings, three poses (grazing, walking, head up), a lit back,
 a shaded belly and far legs, a soft ground shadow and no ink (edged in a darker shade of their own
 colour, D-035 rule 3). Species follow the decision log's "Biome-accurate flora/fauna".
@@ -361,8 +361,51 @@ Bird atlases are drawn per plane at the plane's scale (`npm run art:interim -- -
 - **Giraffes:** their own drawing (high withers, sloping back, deep chest, neck as long as the
   front legs, knobbly knees, dark hooves, tufted tail, two tufted ossicones, side ears, a cream
   net between angular chestnut patches); browsing, walking, head up, drinking; calves.
-- **Far animals** are sprites drawn at 3× (`src/game/view/faunaSprites.ts`), crisp through a
-  scope, with half the plane's haze as tint (never alpha), solid to the hooves.
+- **Far animals** (D-054, 1.9.1; `tools/art/farFauna.ts`, herds in
+  `src/game/view/faunaHerds.ts`) are drawn from their anatomy at their **real size beside the
+  guineafowl on their plane** (D-049 targets, docs/balance/perspective.md) **× 0.57 for every
+  species, the ostrich × 0.45** (the product owner: smaller with distance; one multiplier keeps
+  shared herds in proportion): far elephant 144 px at the shoulder, giraffe 225 to the head,
+  zebra 61, wildebeest 63, gemsbok 54, springbok 36, lechwe 45, ostrich 89 to the head; the Ver
+  waterhole the same way. `feel.json fauna.sizeMul`. Young ones 55–70 % of an
+  adult (elephant calves 50 %) with bigger heads and longer legs; cows and hens a little smaller.
+  - *Anatomy:* jointed legs (elbow, knee, fetlock, pastern and a tapering hoof in front; stifle,
+    hock, fetlock behind), never sticks; a barrel with withers, back, croup and a tucked flank;
+    a neck with crest and throat; a head with forehead, nasal bridge, muzzle and jaw. Species
+    silhouettes: the giraffe's sloping back, long neck and tufted ossicones; the African
+    elephant's back highest at the shoulders with a saddle behind, a sagging belly, a domed
+    forehead dented above the eye, a tapering trunk (rings on its lower half), tusks from the
+    lip with the trunk between them, the big ragged Africa-shaped ear behind the eye (its top
+    above the back, its lobe below the jaw), pillar legs with subtle nails; the wildebeest's high
+    shoulders, beard and horns curving out and up; the gemsbok's two straight horns in line with
+    the face, ringed at the base; the lechwe's two ridged lyre horns (rams); the ostrich's heavy
+    plumed body on bare thighs that meet under its middle.
+  - *Coats:* plains zebra stripes that follow the body (bands down the barrel tapering to the
+    belly, arcs over the haunch, rings on the legs, faint brown shadow stripes, a striped
+    crested mane and tail tuft, brown on foals); giraffe patches as an irregular liver-brown
+    Voronoi net with pale lines, darker on bulls, smaller on neck and legs; elephant grey with a
+    few faint wrinkles (shoulder, elbow, knees, flank) and dust on the back and lower body (red
+    in the Bushveld, grey mud in the delta); wildebeest slate grey with darker brindle bands, black
+    mane, beard and face (calves tawny); gemsbok grey-fawn, a thin black stripe on the lower flank,
+    a black blaze down the neck, black upper legs over white lower legs with a dark knee band, the
+    black-and-white mask; springbok cinnamon back, dark flank band, white belly, rump and face;
+    red lechwe chestnut with a clear white belly and throat and dark fronts on the forelegs,
+    wading (legs cut at the surface, ripple rings, a dim broken reflection); ostrich cocks black
+    with white wing tips and tail plumes, hens and young grey-brown.
+  - *Light:* from above: a lit back (a vertical wash), rounded light on haunch and shoulder, a
+    shaded belly and far legs (a shade darker, behind the body), a soft contact shadow; a thin,
+    clearly darker contour in a shade of the coat (never black ink) on every part; 0.45 of the
+    layer's haze, cut back per colour so a coat keeps 1.8:1 contrast against the area's horizon
+    glow, low sky and clouds (never alpha): a far animal never melts into the sky. Overlapping shapes are drawn as separate fills (no see-through legs).
+  - *Poses and life:* grazing (muzzle to the ground; the giraffe browses head up), alert, walking
+    (a diagonal stride), the giraffe's splay-legged drink; loose groups, both facings, young ones.
+    Each animal is in parts (tail, body, head with neck, an elephant's ear) that move a little on
+    sim time (`feel.json fauna.idle`): a grazing bite, an ear flick, a nod, a tail swish, an
+    elephant's ear fan and trunk sway, a giraffe's browsing sway; held frames hold still, reduce
+    motion is calmer.
+  - *Files:* one sheet per herd (`art-source/sprites/fauna/<herd>.png`, Standard at 1× with 48
+    colours; its frame table in the sidecar) and its HD twin at 2× (`art-source/hd/sprites/...`,
+    96 colours). `npm run art:interim -- --only fauna` writes both.
 - **Dead camelthorn:** a weathered acacia skeleton (continuous taper, acacia forks, a wide
   umbrella, twig clusters, silver-grey wood with long cracks, peeling strips, knots; the dry
   branch ends in a splintered break).

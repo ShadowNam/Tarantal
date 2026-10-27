@@ -141,7 +141,7 @@ function usages(
     const type = key.slice('ui/ammo/'.length).replace(/_spent$/, '');
     needles.push(new RegExp(`"type":\\s*"${type}"`));
   } else if (kind === 'texture' && key.startsWith('fauna/')) {
-    // v1.6 (D-042): far animal sprites, placed by name from src/game/view/faunaSprites.ts.
+    // D-054: far-animal herd sheets, placed by name from src/game/view/faunaHerds.ts.
     needles.push(quoted(key));
   } else if (kind === 'texture' && key.startsWith('fruit/')) {
     // v1.7c (D-047): a biome's fruit sheet, named from the biome id by FruitView.

@@ -3,15 +3,39 @@
 // guineafowl standing on that plane, and how far the pair is from real proportions. Before =
 // v1.7 (plane scales near 1 / mid 0.5 / far 0.22 / Ver 0.1, animals as drawn); after = content now.
 // Prints Markdown for docs/balance/perspective.md.
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { PNG } from 'pngjs';
-import { FAUNA_SPRITES } from '../src/game/view/faunaSprites';
+import { FAUNA_HERDS, lookHeight, type FaunaSpecies } from '../src/game/view/faunaHerds';
 import type { PlaneId } from '../src/sim/types';
 import { PLANE_SCALE_PRESETS } from '../src/game/devContent';
-import { FAUNA_DRAW, WATERHOLE_HEIGHT_MUL } from './art/faunaSheets';
-import type { AnimalKind } from './art/fauna';
 import { opaqueBounds, type Rgba } from './assets/image';
+import { birdUnits } from './birdUnits';
+
+export { birdUnits };
+
+/** v1.9.0's far animals as they showed on screen (design px, adults; before D-054). */
+const V19_PX: Readonly<Record<string, Partial<Record<FaunaSpecies, number>>>> = {
+  'fauna/karoo_springbok_a': { springbok: 36 },
+  'fauna/karoo_springbok_b': { springbok: 36 },
+  'fauna/karoo_ostrich': { ostrich: 72 },
+  'fauna/bushveld_giraffes_a': { giraffe: 174 },
+  'fauna/bushveld_giraffes_b': { giraffe: 168 },
+  'fauna/bushveld_zebra': { zebra: 45 },
+  'fauna/bushveld_wildebeest': { wildebeest: 45 },
+  'fauna/bushveld_elephants': { elephant: 72 },
+  'fauna/okavango_elephants': { elephant: 72 },
+  'fauna/okavango_lechwe': { lechwe: 36 },
+  'fauna/okavango_zebra': { zebra: 45 },
+  'fauna/okavango_wildebeest': { wildebeest: 45 },
+  'fauna/kalahari_springbok': { springbok: 36 },
+  'fauna/kalahari_ostrich': { ostrich: 72 },
+  'fauna/kalahari_wildebeest': { wildebeest: 45 },
+  'fauna/namibie_waterhole': { giraffe: 65, springbok: 19, zebra: 21, gemsbok: 22, ostrich: 35 },
+  'fauna/namibie_gemsbok': { gemsbok: 45 },
+  'fauna/namibie_ostrich': { ostrich: 72 },
+  'fauna/namibie_zebra': { zebra: 45 },
+};
 import {
   ANIMAL_M,
   ANIMAL_MEASURE,
@@ -25,20 +49,10 @@ import { loadContent, loadFeel } from './testContent';
 
 const ROOT = join(import.meta.dirname, '..');
 const SRC = join(ROOT, 'art-source');
-const BOX_W = 620;
 
 function read(path: string): Rgba {
   const p = PNG.sync.read(readFileSync(path));
   return { width: p.width, height: p.height, data: new Uint8Array(p.data) };
-}
-
-/** A clip's first master frame: its opaque height in bird units (scale 1). */
-export function birdUnits(clip: string): number {
-  const dir = join(SRC, 'birds', 'tarentaal', 'planes', 'mid', clip);
-  const file = readdirSync(dir).sort()[0];
-  if (file === undefined) throw new Error(`no ${clip} frames`);
-  const img = read(join(dir, file));
-  return ((opaqueBounds(img)?.h ?? 0) * BOX_W) / img.width;
 }
 
 /** A prop sprite's opaque height in design px. */
@@ -94,7 +108,7 @@ export function audit(): string {
   out.push(
     `| guineafowl | ${GUINEAFOWL_M} | head | ${f0(birdPx('mid', true))} | ${f0(birdPx('far', true))} | ${f0(birdPx('ver', true))} |`,
   );
-  for (const k of Object.keys(ANIMAL_M) as AnimalKind[]) {
+  for (const k of Object.keys(ANIMAL_M) as FaunaSpecies[]) {
     out.push(
       `| ${k} | ${ANIMAL_M[k]} | ${ANIMAL_MEASURE[k]} | ${f0(targetPx(ANIMAL_M[k], birdPx('mid', true)))} | ${f0(targetPx(ANIMAL_M[k], birdPx('far', true)))} | ${f0(targetPx(ANIMAL_M[k], birdPx('ver', true)))} |`,
     );
@@ -124,27 +138,20 @@ export function audit(): string {
       '| Plane | Object | Real (m) | Drawn px before → after | Bird px before → after | Bird oversize before → after | Target px | Change |',
     );
     out.push('|---|---|---|---|---|---|---|---|');
-    for (const f of FAUNA_SPRITES[biome.id] ?? []) {
+    for (const f of FAUNA_HERDS[biome.id] ?? []) {
       const plane: PlaneId = f.layer === 'ver_veld' ? 'ver' : 'far';
-      const draw = FAUNA_DRAW[f.key];
-      if (draw === undefined) continue;
-      const k = feel.perspective.faunaScale[f.key] ?? 1;
-      const redrawn = f.key === 'fauna/namibie_waterhole' ? WATERHOLE_HEIGHT_MUL : 1;
-      const seen = new Set<string>();
-      for (const a of draw.animals) {
-        const id = `${a.kind}/${a.h}`;
-        if (seen.has(id)) continue;
-        seen.add(id);
-        const n = draw.animals.filter((x) => x.kind === a.kind && x.h === a.h).length;
-        const before = a.h / redrawn;
-        const after = a.h * k;
-        const m = ANIMAL_M[a.kind];
-        const bb = birdPx(plane, false);
-        const ba = birdPx(plane, true);
-        const change =
-          redrawn !== 1 ? `re-drawn ${redrawn}× taller in place` : k !== 1 ? `shown at ${k}×` : '—';
+      const ba = birdPx(plane, true);
+      const bb = birdPx(plane, false);
+      for (const kind of [...new Set(f.animals.map((a) => a.species))]) {
+        const adults = f.animals.filter((a) => a.species === kind && a.variant !== 'y');
+        const young =
+          f.animals.length - adults.length - f.animals.filter((a) => a.species !== kind).length;
+        const m = ANIMAL_M[kind];
+        const before = V19_PX[f.key]?.[kind] ?? null;
+        const mul = feel.fauna.sizeMul[kind];
+        const after = lookHeight(kind, 'm', pxPerMetre(ba), mul);
         out.push(
-          `| ${plane} | ${a.kind}${n > 1 ? ` ×${n}` : ''} (${f.key.replace('fauna/', '')}) | ${m} ${ANIMAL_MEASURE[a.kind]} | ${f0(before)} → ${f0(after)} | ${f0(bb)} → ${f0(ba)} | ${fx(birdOversize(bb, before, m))} → ${fx(birdOversize(ba, after, m))} | ${f0(targetPx(m, ba))} | ${change} |`,
+          `| ${plane} | ${kind} ×${adults.length}${young > 0 ? ` + ${young} young` : ''} (${f.key.replace('fauna/', '')}) | ${m} ${ANIMAL_MEASURE[kind]} | ${before === null ? '—' : f0(before)} → ${f0(after)} | ${f0(bb)} → ${f0(ba)} | ${before === null ? '—' : fx(birdOversize(ba, before, m))} → ${fx(birdOversize(ba, after, m))} | ${f0(targetPx(m, ba))} | ${mul === 1 ? 'redrawn at the target (D-054)' : `redrawn at ${mul} × the target (D-054)`} |`,
         );
       }
     }

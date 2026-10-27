@@ -7,6 +7,7 @@
 //     WebGL page can't hold 60 fps, so there it is reported only (D-019).
 import { expect, test, type Page } from '@playwright/test';
 import { writeFileSync } from 'node:fs';
+import { STANDARD_IN_HD_LAYERS } from '../../src/game/assets/hdPack';
 import {
   boot,
   collectErrors,
@@ -115,6 +116,81 @@ for (const gfx of ['standard', 'hd'] as const)
       expect(real.avg, 'real frame time (ms) at 4× throttle').toBeLessThanOrEqual(BUDGET_MS);
     }
     expect(errors).toEqual([]);
+  });
+
+// D-054: every area's HD hunt within the medium tier's texture budget (Tech §9: 256 MB) on the
+// Pixel 7 profile, reached the way players reach it: boot on the Karoo title, then a Classic hunt
+// in the chosen area (the save's area choice). This path left the title's Karoo HD layers on the
+// GPU (+103 MB in every other area: 358–384 MB measured in CI, 27 Oct). Measured once the hunt
+// draws its HD art, the far animals included; aims at ≤ 240 MB (headroom), asserts ≤ 256.
+const AREAS = [
+  'karoo-autumn',
+  'bushveld-winter',
+  'okavango-spring',
+  'kalahari-summer',
+  'namibie',
+] as const;
+for (const biome of AREAS)
+  test(`HD texture memory, title → hunt: ${biome}`, async ({ page, browserName }, info) => {
+    test.skip(
+      info.project.name !== 'pixel7-landscape' || browserName !== 'chromium',
+      'the Pixel 7 profile (medium tier)',
+    );
+    test.setTimeout(400_000);
+    await emulateCores(page);
+    await page.addInitScript(
+      ([key, area, all]) => {
+        if (localStorage.getItem(key) !== null) return;
+        localStorage.setItem(
+          key,
+          JSON.stringify({
+            v: 1,
+            ftue: { done: true, skipped: false, step: '' },
+            areas: { unlocked: all, classic: area },
+          }),
+        );
+      },
+      ['tm.e2e.save.v1', biome, [...AREAS]] as const,
+    );
+    // No ?biome=: the title is the Karoo, as for players.
+    await boot(page, `seed=3&huntSeconds=60&graphics=hd`);
+    await startHunt(page, isTouchProject(info));
+    await page.waitForFunction(
+      (want) => {
+        const tm = window.__TM__;
+        const fauna = (tm?.graphics.bounds ?? []).filter((b) => b.key.startsWith('fauna/'));
+        return (
+          tm?.biome === want &&
+          tm.graphics.hdTextures > 0 &&
+          fauna.length > 0 &&
+          fauna.every((b) => b.hd)
+        );
+      },
+      biome,
+      { timeout: 180_000 },
+    );
+    // A few texture samples (the hook updates about twice a second), and a frame or two of play.
+    await page.waitForTimeout(4000);
+    const h = await hook(page);
+    const mb = Math.round((h.textureBytes / (1024 * 1024)) * 10) / 10;
+    console.log(`[perf] ${biome} HD texture memory (title → hunt) ${mb} MB`);
+    await info.attach(`hd-memory-${biome}.json`, {
+      body: JSON.stringify({ biome, textureMB: mb, top: h.textureTop }, null, 1),
+      contentType: 'application/json',
+    });
+    // No other area's HD layers stay on the GPU.
+    const area = biome.split('-')[0] ?? biome;
+    const others = h.textureTop.filter(
+      (t) =>
+        t.key.includes('/hd/') && t.key.includes('layer/') && !t.key.includes(`layer/${area}/`),
+    );
+    expect(others, "another area's HD layers on the GPU").toEqual([]);
+    // Nor HD tiles of the layers D-054 keeps in Standard in HD.
+    const standardOnly = h.textureTop.filter((t) =>
+      STANDARD_IN_HD_LAYERS.some((id) => t.key.includes(`layer/${area}/${id}/hd/`)),
+    );
+    expect(standardOnly, 'HD tiles of a Standard-in-HD layer').toEqual([]);
+    expect(mb, `${biome}: texture memory (MB) with HD`).toBeLessThanOrEqual(256);
   });
 
 // v1.4 B (D-039): Namibië on the Pixel 7 profile — the mirage on (Tuesday) and the weavers kept

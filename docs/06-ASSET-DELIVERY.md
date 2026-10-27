@@ -198,9 +198,10 @@ start higher (set `top` in the sidecar JSON), and transparent areas show the lay
 - **v1.6 review round keys (D-042):** `fx/windpomp_vane` (the windpomp's turning head, 320 ×
   140, origin at the pivot (290, 70), drawn trailing left), `secret/rotor` (now always shown on
   the windpomps), `sky/cloud_cumulus | cloud_wide | cloud_cirrus | cloud_tower` (drawn at half
-  size, shown at 2×, white and grey: the game tints them), and `fauna/<biome>_<group>` (the far
-  animals, 3× masters with `master: 3`, one sprite per herd; placement, box and feet line in
-  `src/game/view/faunaSprites.ts`; the Namibië waterhole sprite is in the Ver group). Props at 2×:
+  size, shown at 2×, white and grey: the game tints them), and `fauna/<biome>_<group>` (D-054: the far
+  animals, one sheet per herd of its animals' parts at 1× with a `frames` table in the sidecar and
+  a 2× HD twin; herds, spots and spacing in `src/game/view/faunaHerds.ts`; the Karoo's herds are in
+  the late group, the Namibië waterhole's in the Ver group). Props at 2×:
   `karoo/windpomp`, `kalahari/windpomp_sign` (with its windpomp, frame 320 × 440, origin (120,
   310)), `bushveld/dassie_koppie` (frame 560 × 300, origin (280, 190)). Every interim sky is a
   256-colour palette PNG now (`"encode": "png8"`), gradients only.
@@ -484,7 +485,10 @@ next to each group (Tech §10). Putting art into an HD pack is one step:
   (`art-source/hd/sprites/<key>.png`, `art-source/hd/layers/<biome>/<layerId>.png`), exactly twice
   the standard file's size (layers: twice as wide and tall). No sidecar: the standard file's
   sidecar (origin, group, encoding) applies. `npm run art:interim -- --only scenery|sprites --hd`
-  writes these for code-drawn art.
+  writes these for code-drawn art (`--only fauna` writes the far animals' sheets, D-054).
+- **A far-animal sheet** (`sprites/fauna/<herd>.png`, D-054): the same one step; its HD twin must
+  hold the same frames at twice the size (the sidecar's `frames` table is in design px and serves
+  both). A delivered sheet replaces the interim one only with its frame table in the sidecar.
 - **A sprite whose standard file is already a ≥ 2× master** (`"master": 2` and above) and a **bird**
   (masters at 2×): nothing; `npm run assets:pack` packs the master into the HD group where the
   standard file is packed below 2×.
@@ -492,7 +496,8 @@ next to each group (Tech §10). Putting art into an HD pack is one step:
 
 Then `npm run assets:pack` and `npm run size -- --strict` (each HD group ≤ 4 MB gzip). Not in HD on
 purpose: the sky layers, the HUD ammo, the meerkat helper and water (cropped), the guns, near
-pop-up birds and the late group's birds (texture memory: `src/game/assets/hdPack.ts`).
+pop-up birds and the late group's birds (texture memory: `src/game/assets/hdPack.ts`); D-054: the
+far ridge, far veld and Ver strip layers and the special birds (kuifkop, Kuifkop Koning, ou grys).
 
 ## 7. Checking a delivery
 

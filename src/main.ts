@@ -11,7 +11,6 @@ import { loadGameContent } from './content/loadBrowser';
 import { AudioDirector, browserAudioEnv } from './game/audio/AudioDirector';
 import { BarkDirector } from './game/audio/barks';
 import {
-  faunaAsDrawn,
   isPlaneScalePreset,
   withDoppies,
   withEarlySpook,
@@ -146,6 +145,8 @@ const hooksInBuild =
   import.meta.env.VITE_PLATFORM === 'web' ||
   import.meta.env.VITE_TEST_HOOKS === '1';
 const testHooks = hooksInBuild && hookPolicy.enabled;
+/** D-054: a dev server or a CI test build (VITE_TEST_HOOKS=1), never a public build. */
+const devOrTestBuild = import.meta.env.DEV || import.meta.env.VITE_TEST_HOOKS === '1';
 // v1.0.1 (D-028): `?e2e` on a public build (no VITE_TEST_HOOKS) is unranked, like capture mode.
 const officialResults = officialResultsAllowed({
   dev: import.meta.env.DEV,
@@ -358,7 +359,7 @@ const hook: TestHook = {
   simFrameSteps: [],
   replay: null,
   hunts: 0,
-  assets: { problem: null, byBiome: {}, recorded: [], failed: [] },
+  assets: { problem: null, byBiome: {}, lateDone: {}, recorded: [], failed: [] },
   music: null,
   masterGain: null,
   missingTextures: [],
@@ -386,6 +387,7 @@ const hook: TestHook = {
   canMs: 0,
   potjie: null,
   hdProps: [],
+  fauna: [],
   graphics: {
     mode: 'standard',
     setting: 'ask',
@@ -433,16 +435,10 @@ hook.boot['script'] = performance.now();
 // v1.6 (D-042): which build this is, first thing in the console.
 console.info(`[build] ${buildLine(buildInfo())}`);
 const loaded = loadGameContent();
-// e2e/dev only (D-049 "before" screenshots): ?planeScale=v17 — the old plane scales and far animals.
+// e2e/dev only (D-049 "before" screenshots): ?planeScale=v17 — the old plane scales.
 const planeScaleParam = testHooks ? params.get('planeScale') : null;
 const planePreset = isPlaneScalePreset(planeScaleParam) ? planeScaleParam : null;
-const feel =
-  planePreset === null
-    ? loaded.feel
-    : {
-        ...loaded.feel,
-        perspective: { faunaScale: faunaAsDrawn(loaded.feel.perspective.faunaScale) },
-      };
+const feel = loaded.feel;
 // M10: the final-asset index, fetched while the platform SDK starts (absent = all placeholders).
 const indexLoad = fetchAssetIndex(feel.assets.indexTimeoutMs);
 const crateParam = testHooks ? params.get('crate') : null;
@@ -728,6 +724,8 @@ async function boot(): Promise<void> {
         // D-029: the late group arrives after boot; refresh the statuses when it has.
         void m.lateLoaded.then(() => {
           hook.assets.byBiome[b.id] = m.entries();
+          // D-054 (e2e): the late group has settled (the Karoo's herds come with it).
+          hook.assets.lateDone[b.id] = true;
         });
         // Recordings arrive on their own (boot doesn't wait for them).
         void m.takeSounds().then((files) => {
@@ -1057,6 +1055,9 @@ async function boot(): Promise<void> {
     nextSeed: seedSource(),
     huntSeconds: adminSetup === null ? huntSecondsParam() : adminSetup.huntSeconds,
     holdAtTick: holdAtParam(),
+    // D-054: dev and test builds only (a public build with ?e2e must never lose its herds).
+    faunaBefore: devOrTestBuild && testHooks && params.get('fauna') === 'before',
+    faunaDebug: devOrTestBuild && testHooks && params.get('faunaDebug') === '1',
     omen: adminSetup === null ? omenParam() : adminSetup.omen,
     classicBiome: adminSetup === null ? biomeParam() : adminSetup.classicBiome,
     classicArea: () => classicAreaId(bundle, save.data, playableBiomes, loaded.notaboek),

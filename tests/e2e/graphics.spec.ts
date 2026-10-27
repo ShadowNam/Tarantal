@@ -3,6 +3,8 @@
 // HD drawn at exactly Standard's on-screen size, and Standard never asking for an HD file.
 // Test builds skip the card unless ?graphics=card (main.ts), so every other spec starts as before.
 import { expect, test, type Page, type Request } from '@playwright/test';
+import { STANDARD_IN_HD_LAYERS } from '../../src/game/assets/hdPack';
+import { FAUNA_HERDS } from '../../src/game/view/faunaHerds';
 import { boot, isLandscape, isTouchProject, startHunt, tapRect } from './helpers';
 
 // Routes below must see every request (the service worker would fetch them itself).
@@ -192,6 +194,9 @@ test('Settings → Graphics shows the choice and switches back to Standard', asy
   });
 });
 
+/** The Karoo title's far-animal herds (late group, D-054). */
+const KAROO_HERDS = (FAUNA_HERDS['karoo-autumn'] ?? []).map((h) => h.key);
+
 test('HD draws every sampled image at Standard’s on-screen size', async ({ page }, info) => {
   test.skip(!isLandscape(info), 'landscape screens');
   test.setTimeout(300_000);
@@ -204,6 +209,34 @@ test('HD draws every sampled image at Standard’s on-screen size', async ({ pag
     await page.waitForFunction(() => (window.__TM__?.graphics.bounds.length ?? 0) > 0, null, {
       timeout: 60_000,
     });
+    // D-054: the Karoo's herds come with the late group: sample only once it has settled and
+    // every herd is drawn, in both modes (the HD run waited longer and caught more herds).
+    await page.waitForFunction(
+      () => window.__TM__?.assets.lateDone['karoo-autumn'] === true,
+      null,
+      {
+        timeout: 120_000,
+      },
+    );
+    await page.waitForFunction(
+      (herds) => {
+        const b = window.__TM__?.graphics.bounds ?? [];
+        return herds.every((k) => b.some((x) => x.key === k));
+      },
+      KAROO_HERDS,
+      { timeout: 60_000 },
+    );
+    // A couple of frames, so the sample is taken after the herds are drawn.
+    await page.evaluate(
+      () =>
+        new Promise<void>((r) =>
+          requestAnimationFrame(() =>
+            requestAnimationFrame(() => {
+              r();
+            }),
+          ),
+        ),
+    );
     return page.evaluate(() =>
       [...(window.__TM__?.graphics.bounds ?? [])].sort((a, b) => (a.key < b.key ? -1 : 1)),
     );
@@ -264,12 +297,21 @@ test('a lazy area (Bushveld): HD layers and props at the same pan sit where Stan
   expect(hd.cameraX).toBeCloseTo(standard.cameraX, 3);
   expect(hd.bounds.map((b) => b.key)).toEqual(standard.bounds.map((b) => b.key));
   expect(standard.bounds.some((b) => b.key === 'layer:bushveld/mid')).toBe(true);
-  // The Bushveld layers before the hunt (not the sky: it has no HD; not the Ver strip: it
-  // loads in the background) draw HD files in HD and none in Standard.
+  // The Bushveld layers with an HD version draw HD files in HD and none in Standard. The layers
+  // D-054 keeps in Standard in HD (src/game/assets/hdPack.ts STANDARD_IN_HD_LAYERS: the sky, the
+  // far ridge, the far veld and the Ver strip) draw Standard files in both.
+  const layerId = (b: { key: string }): string => b.key.slice('layer:bushveld/'.length);
   const area = (b: { key: string }): boolean =>
-    b.key.startsWith('layer:bushveld/') && !/\/(sky|ver_veld)$/.test(b.key);
+    b.key.startsWith('layer:bushveld/') && !STANDARD_IN_HD_LAYERS.includes(layerId(b));
   expect(hd.bounds.filter(area).every((b) => b.hd)).toBe(true);
   expect(standard.bounds.filter(area).some((b) => b.hd)).toBe(false);
+  // D-054 pinned: the far ridge and far veld draw Standard files in HD too.
+  for (const id of ['far_ridge', 'far_veld']) {
+    expect(STANDARD_IN_HD_LAYERS).toContain(id);
+    const layer = hd.bounds.find((b) => b.key === `layer:bushveld/${id}`);
+    expect(layer, `layer:bushveld/${id} sampled`).toBeDefined();
+    expect(layer?.hd, `layer:bushveld/${id} in HD`).toBe(false);
+  }
   standard.bounds.forEach((s, i) => {
     const h = hd.bounds[i];
     const tol = s.key.startsWith('layer:') ? 2 : 1;

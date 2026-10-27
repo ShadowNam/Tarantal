@@ -2930,6 +2930,106 @@ are already 3× masters drawn at ⅓, so HD can't sharpen them (the far-animals 
 (6) Later art jobs (far animals in HD, makalani palms, tree life) add to the HD packs by putting
 their 2× render at `art-source/hd/<path>` (docs/06). Docs: Tech §9, §10; GDD Settings; docs/06;
 CHANGELOG 1.9.0.
+*Correction (D-054, 27 Oct):* the 226–243 MB above held for the Karoo only. A hunt in another
+area kept the title's Karoo HD layers (+103 MB: Bushveld 358 MB, Okavango 383 MB on the Pixel 7
+profile); D-054 fixes the release and moves the far ridge, far veld, Ver strips and the special
+birds to Standard in HD.
+
+**D-054 1.9.1 Far animals redrawn at their real size, in parts, with HD twins (27 Oct 2026):**
+the product owner (26 Oct, with close-ups): Bushveld "the zebras, giraffes and elephants look very
+cartoony … the details need to be put into HD mode so it looks more realistic"; Kalahari "the
+animals in a far distance … still look too much like stick figures". The HD job had found the
+cause: the herds were drawn tiny (a zebra 15 px) and shown 3× (D-049's `faunaScale`), so they
+showed at 1 texture px per screen px and HD could not sharpen them. Auto proposal, product owner
+review of the contact sheet folded in. (1) **Redraw** (`tools/art/farFauna.ts`): every species
+from its anatomy (jointed legs, real silhouettes, coats, light from above, thin coat-coloured
+outlines), sized from the D-049 targets (the guineafowl's true size beside it); young ones, cows
+and hens; details in the art bible (far animals). **Every far species at 0.57 × true proportion, the ostrich at 0.45**: the product
+owner, 27 Oct 20:10: "make the elephants and giraffes at least 25% smaller … the realism looks off
+… the further animals are away, the smaller they get … 25% should be at least, but it could even
+be up to 50%"; 20:15: "make the zebras and wildebeest smaller too."; and 22:45, after playing: "I
+think it's coming along very good. It maybe needs to just shrink another 5%, and I saw the
+ostriches didn't change. They are still so big." One multiplier for all (0.6, then 0.57),
+because herds share maps: shrinking only some species would break their proportions to each other
+(Kalahari wildebeest as tall as the springbok, Namibië's gemsbok taller than the zebras); the
+ostrich, which still read too big, a quarter smaller again (0.45, hens and young in proportion);
+the far guineafowl keep their size (they are the targets). Far heights: elephant 144 px at the
+shoulder, giraffe 225 to the head, zebra 61, wildebeest 63, gemsbok 54, springbok 36, lechwe 45
+at the shoulder, ostrich 89 to the head; the Ver waterhole the same way. Drawn at that size (no runtime scaling), a tunable:
+`feel.json fauna.sizeMul.<species>` (default 1), read by the art generator; the herds close up
+to match (`HERD_SPREAD` 0.65) and space themselves from their frames' real sizes. **Contrast** (review 27 Oct: a springbok's pale hazed
+neck vanished against the cream horizon glow, so its face looked detached): a thin darker contour
+on every part, cinnamon springbok necks with a narrow white throat stripe, the neck's root
+filled in the body too (no shoulder seam), and the haze capped per colour: the animals take 0.45
+of the layer's haze, cut back until a coat colour keeps a 1.8:1 contrast (WCAG ratio) against the
+area's horizon, low sky and clouds. `perspective.faunaScale` is removed (client feel only: content hash, goldens and the
+Daily unchanged). (2) **Herds** (`src/game/view/faunaHerds.ts`): hand-placed loose groups at the
+v1.6 spots, both facings, 2–3 poses, a young one in most, spread so that no head crosses another
+animal's head or body and bodies overlap by a quarter at most (`spaceHerd`, from the frames); each herd one texture key as before,
+now a sheet of its animals' parts (tail, body, head with neck, an elephant's ear) with a frame
+table (design px, pivots) in the sidecar → asset index; the Bushveld's second giraffe group draws
+from the first group's sheet. (3) **Life** (`FaunaView`, `faunaIdle`): heads, tails and ears move a
+little about their pivots as a pure function of the sim tick (`feel.json fauna.idle`): a held
+frame holds, replays repeat, reduce motion × 0.35. Decor only: no hit tests, no sim change.
+(4) **Files**: Standard at 1× (48 colours: no visible change against 256, −40 %), HD twin at 2×
+in `art-source/hd/` (96 colours), `npm run art:interim -- --only fauna`. (5) **Budgets**
+(`size --strict` passes on web, Poki, CrazyGames): the Karoo's herds move to the late group
+(the first download may not grow; they swap in via `AssetManifest.upgrade()`, never a texture
+removal): first download 2,996.0 → 2,992.1 KB gzip (web), Poki 2,989.9 → 2,986.0, CrazyGames
+2,990.0 → 2,986.1; room freed with the Kalahari weaver camelthorn and Namibië's nest camelthorn
+at 128 colours (mean change 2/255, none visible, −40 and −35 KB); chunks after (web, gzip):
+Bushveld 1,466.1 → 1,478.6 KB, Kalahari + desert 1,534.5 → 1,497.4, Namibië + desert 1,508.3 →
+1,479.7, Okavango 1,426.9 → 1,442.1, late 1,399.2 → 1,409.4, Ver 532.2 → 521.8; HD groups
+Bushveld 1,984.0 → 2,122.8, Kalahari 1,284.7 → 1,325.4, Namibië 1,598.4 → 1,651.4, Okavango
+2,377.1 → 2,486.0, late 41.5 → 71.2, Ver 333.2 → 359.5 (Karoo 1,587.1 unchanged; all ≤ 4 MB).
+Texture memory of the far animals per area (Standard / HD; v1.9.0: 0.6–1.9 MB in both): Bushveld
+1.0 / 4.2 MB (+2.7 in HD), Okavango 0.8 / 3.1 (+2.1), Kalahari 0.2 / 1.0 (+0.3), Karoo 0.2 / 0.7
+(−0.1), Namibië incl. the waterhole 0.4 / 1.7 (−0.2): within the 256 MB ceiling even on the
+highest area measured for D-053 (243 + 2.7). **HD texture memory per area (fixed here):** CI's
+new Pixel 7 check (27 Oct) found the HD hunts far over the 256 MB ceiling, already on main: Karoo
+238.7 MB, Bushveld 358.1, Okavango 383.4 (D-053 had only measured the Karoo; the far animals add
+~2 MB). Breakdown (Okavango): its HD layers 106 MB, **the title's Karoo HD layers 103 MB never
+released**, HD birds 74 (tarentaal mid 32, kuifkop 16, Kuifkop Koning 16 …), props and others 61,
+a gun 16, Standard birds and layers 23. Causes and fixes: (a) a hunt in another area released the
+title's textures, but `buildViews()` then ran `graphics.sync()`, whose `applyHd()` on every
+manifest put the released Karoo's HD layer tiles straight back: a manifest is now *parked* until
+its own `install()` (and after `release()`), and a parked manifest uploads no HD (swapping back to
+Standard still runs); areas whose HD pack is only preloaded on the title upload nothing either;
+A → B → A brings the title's HD layers back (unit-tested). (b) Least visible cuts to leave
+headroom (target ≤ 240 MB): the far ridge, far veld and Ver strip layers stay Standard in HD (the
+most distant, hazed scenery; −19 MB per area, the far animals on them keep HD), and the special
+birds kuifkop, Kuifkop Koning and ou grys stay Standard (rare and brief, each a 16 MB HD mid atlas
+that prewarm keeps on the GPU, 4 MB in Standard). Measured 27 Oct, Pixel 7 profile, SwiftShader (HD, hunt running +12 s; before = main 2ff38b1,
+now = 5de5ff1): Karoo 238.7 → 217.4 MB, Bushveld 358.1 → 224.7, Okavango 383.4 → 237.6,
+Kalahari — → 224.5, Namibië — → 228.6: all five under the 240 MB target. `perf.spec.ts` asserts
+≤ 256 MB and no other area's HD layers in all five areas, reached through the Karoo title as
+players do. HD downloads
+shrink with it: Bushveld-hd 1,984.0 → 1,493.3 KB gzip, Kalahari-hd 1,284.7 → 1,117.6, Karoo-hd
+1,587.1 → 1,356.9, Namibië-hd 1,598.4 → 1,458.6, Okavango-hd 2,377.1 → 1,429.5, Ver-hd 333.2 →
+155.8. **Build workaround for a Phaser 4.2.1 shader bug** (found by the supervisor in the browser,
+27 Oct): the batch fragment shaders pick a quad's texture unit with an exact compare on an
+interpolated varying (`outTexDatum == float(INDEX)` in GetTexture.glsl, `texId == float(i)` in
+GetTexRes.glsl); a miss returns transparent. Interpolation need not hit the whole number exactly:
+on SwiftShader (and possibly mobile GPUs at mediump) a rotated quad on a high unit lost
+straight-edged regions that changed every frame — the swaying far elephant heads on unit 11 of 12
+fragmented in Standard and HD. Evidence: a magenta fall-through in the no-match branch showed
+exactly the missing pieces; the sheet, frames, UVs, the GPU texture read back and the vertex
+upload were all correct. Fix: `tools/phaserShaderFix.ts` rewrites the compares to the nearest unit
+(`abs(x − i) < 0.5`), applied by vite.config.ts in the build (a transform hook) and in
+`npm run dev` (an optimizeDeps Rolldown plugin); it throws if a Phaser upgrade changes that text,
+so the fix is never lost silently, and `tools/phaserShaderFix.test.ts` runs it over the shipped
+`phaser.esm.js` (no exact compare left; unknown text throws). Remove it once Phaser fixes the
+shaders. Docs: art bible (far animals); docs/06 §6b; docs/balance/perspective.md; CHANGELOG 1.9.1.
+
+*D-054 HD texture memory, measured 27 Oct, Pixel 7 profile, SwiftShader (HD, hunt running +12 s):*
+
+| Area | before (main 2ff38b1) | now (5de5ff1) |
+|---|---|---|
+| Karoo | 238.7 MB | 217.4 MB |
+| Bushveld | 358.1 MB | 224.7 MB |
+| Okavango | 383.4 MB | 237.6 MB |
+| Kalahari | — | 224.5 MB |
+| Namibië | — | 228.6 MB |
 
 ## 3. Research notes (with sources)
 

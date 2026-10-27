@@ -25,7 +25,7 @@ import { omenSpecs } from './omenArt';
 import { verBand, type Band, type BiomeArt } from './biomeArt';
 import { sightSpecs } from './sightArt';
 import { ellipse, ground, inked, INK, prng, tuft } from './draw';
-import { FAUNA_FOOT, FAUNA_SPRITES } from '../view/faunaSprites';
+import { sheetHerds } from '../view/faunaHerds';
 import { FRUIT_SHEET, fruitSheetKey } from '../view/fruit/fruitTypes';
 import { hasColonies } from '../../sim/meerkats/colony';
 import { MEERKAT_SOUNDS } from '../assets/desertAssets';
@@ -1545,14 +1545,15 @@ export function createPlaceholderManifest(
         if (part === POTJIE_LID) m.addTexture(POTJIE_LID_SPEC);
     }
   }
-  // v1.6 (D-042): the far animals' sprites (drawn art only: the placeholder is empty).
-  for (const f of FAUNA_SPRITES[biome.id] ?? [])
+  // D-054: the far animals' herd sheets (drawn art only: the placeholder is empty, and FaunaView
+  // shows no herd until its sheet and frame table are in).
+  for (const f of sheetHerds(biome.id))
     m.addTexture({
       key: f.key,
-      width: f.w,
-      height: f.h,
-      originX: f.w / 2,
-      originY: f.h - FAUNA_FOOT,
+      width: 2,
+      height: 2,
+      originX: 0,
+      originY: 0,
       viewScaled: true,
       draw() {
         // Nothing: without delivered art there are no far animals.

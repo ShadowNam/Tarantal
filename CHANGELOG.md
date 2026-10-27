@@ -3,6 +3,41 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.9.1] — Far animals in HD: realistic herds on every map (27 Oct 2026)
+
+Decision record D-054. The product owner (26 Oct): "The zebras, giraffes and elephants look very
+cartoony … The details need to be put into HD mode so it looks more realistic." And: "the animals
+that are in a far distance … still look too much like stick figures."
+
+### Changed
+- **Every far animal redrawn** on all five maps (incl. Namibië's waterhole): elephants, giraffes,
+  zebra, wildebeest, gemsbok, springbok, red lechwe and ostriches drawn from their anatomy —
+  jointed legs and hooves, real silhouettes (the elephant's domed head, big ragged ear, trunk and
+  tusks; the giraffe's sloping back and ossicones; the wildebeest's beard and horns; the
+  gemsbok's mask and two long horns), their own coats and markings, light from above and a soft
+  shadow, thin outlines instead of a heavy cartoon line.
+- **Sized for the distance**: every far animal in proportion to the guineafowl beside it and
+  to each other, then a little smaller so the distance reads (a far zebra 61 px at the shoulder,
+  an elephant 144, a giraffe 225 tall, an ostrich 89), in loose herds facing both ways where no head crosses
+  another animal, with young ones, cows and hens; lechwe wade in shallow water. Every animal
+  stands out from the bright horizon and clouds.
+- **They live a little**: grazing bites, ear flicks, tail swishes, an elephant's ears and trunk, a
+  browsing giraffe — on game time (a paused or held frame holds still; reduce motion is calmer).
+- **HD**: every herd has a 2× twin in its area's HD pack.
+
+### Fixed
+- **HD on phones**: a hunt in another area no longer keeps the title's Karoo landscape in HD on the
+  graphics chip (about 100 MB); the far ridge, far veld and Ver strips and the rare special birds
+  stay Standard in HD. Every area's HD hunt now fits the medium phone budget, and the HD downloads
+  are smaller.
+- **Far elephants' heads** no longer break into flickering pieces on some graphics chips (a
+  workaround for a shader bug in the game engine).
+
+### Unchanged
+- Positions, hits, scores and replays (decor only). The first download shrinks (2,996.0 →
+  2,992.1 KB gzip, web: the Karoo's herds load just after it); every area chunk stays under
+  1.5 MB (two big camelthorn images at 128 colours, no visible change, make the room).
+
 ## [1.9.0] — HD graphics: Standard or HD (27 Oct 2026)
 
 Decision record D-053. The product owner: "When the game loads, it should ask you standard quality

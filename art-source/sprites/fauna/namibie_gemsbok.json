@@ -1,1 +1,20 @@
-{ "origin": "interim", "encode": "png8", "master": 3 }
+{
+  "origin": "interim",
+  "encode": "png8",
+  "originX": 0,
+  "originY": 0,
+  "frames": {
+    "gemsbok.graze.m.body": [0, 74, 68, 60, 34, 56, 0, 0],
+    "gemsbok.graze.m.tail": [125, 74, 12, 43, 9.383, 3.351, -29.617, -49.649],
+    "gemsbok.graze.m.head": [0, 0, 41, 74, 11.342, 29.827, 19.342, -43.173],
+    "gemsbok.alert.m.body": [171, 0, 67, 61, 34, 57, 0, 0],
+    "gemsbok.alert.m.tail": [137, 74, 12, 43, 9.383, 3.351, -29.617, -49.649],
+    "gemsbok.alert.m.head": [41, 0, 59, 64, 17.342, 56.827, 19.342, -43.173],
+    "gemsbok.graze.y.body": [161, 74, 39, 38, 19, 35, 0, 0],
+    "gemsbok.graze.y.tail": [228, 74, 7, 21, 5.007, 2.211, -15.993, -29.789],
+    "gemsbok.graze.y.head": [200, 74, 28, 36, 6.444, 8.096, 10.444, -25.904],
+    "gemsbok.walk.m.body": [100, 0, 71, 61, 36, 57, 0, 0],
+    "gemsbok.walk.m.tail": [149, 74, 12, 43, 9.383, 3.351, -29.617, -49.649],
+    "gemsbok.walk.m.head": [68, 74, 57, 59, 11.342, 51.827, 19.342, -43.173]
+  }
+}

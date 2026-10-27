@@ -1,1 +1,17 @@
-{ "origin": "interim", "encode": "png8", "master": 3 }
+{
+  "origin": "interim",
+  "encode": "png8",
+  "originX": 0,
+  "originY": 0,
+  "frames": {
+    "giraffe.alert.m.body": [119, 0, 115, 147, 58, 139, 0, 0],
+    "giraffe.alert.m.tail": [166, 283, 23, 77, 18.435, 4.86, -51.565, -97.14],
+    "giraffe.alert.m.head": [0, 0, 119, 153, 18.675, 138.067, 33.675, -107.933],
+    "giraffe.graze.f.body": [0, 153, 104, 130, 51, 123, 0, 0],
+    "giraffe.graze.f.tail": [189, 283, 21, 69, 16.623, 4.517, -45.377, -85.483],
+    "giraffe.graze.f.head": [104, 153, 121, 124, 16.634, 111.019, 29.634, -94.981],
+    "giraffe.walk.y.body": [0, 283, 78, 86, 36, 81, 0, 0],
+    "giraffe.walk.y.tail": [210, 283, 13, 36, 10.083, 2.659, -26.917, -56.341],
+    "giraffe.walk.y.head": [78, 283, 88, 79, 10.578, 69.399, 17.578, -62.601]
+  }
+}

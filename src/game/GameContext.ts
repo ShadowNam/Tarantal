@@ -242,6 +242,8 @@ export interface TestHook {
   assets: {
     problem: string | null;
     byBiome: Record<string, ManifestEntry[]>;
+    /** D-054: biomes whose manifest's late group has settled (loaded or failed). */
+    lateDone: Record<string, boolean>;
     /** Sound keys playing from a recorded file (decoded), not the synth. */
     recorded: string[];
     /** v1.6 (D-042): delivered files that failed to load this page, with why. */
@@ -367,6 +369,9 @@ export interface TestHook {
   } | null;
   /** D-051: props with an HD texture: their origin on screen (design px), HD showing yet. */
   hdProps: { id: string; hd: boolean; x: number; y: number }[];
+  /** D-054: every far-animal part drawn: its herd, animal index, part, on-screen box (design px),
+   *  its frame's cut (texture px) and pivot, and its texture's source size. */
+  fauna: FaunaProbe[];
   /**
    * D-053: Standard or HD. `card`: the loading screen asked this launch (`pick`: its
    * recommendation); `loading`: the area's HD pack behind the loading screen; `bounds`: on-screen
@@ -602,6 +607,10 @@ export interface GameContext {
   readonly huntSeconds: number | undefined;
   /** e2e/dev only (?holdAt=600): hunts stop at this sim tick (M10 visual baselines). */
   readonly holdAtTick: number | undefined;
+  /** e2e/dev only (?fauna=before, D-054 screenshots): the v1.9.0 far animals, one image a herd. */
+  readonly faunaBefore: boolean;
+  /** e2e/dev only (?faunaDebug=1): every far-animal part's frame outlined (assembly checks). */
+  readonly faunaDebug: boolean;
   /** e2e/dev only: ?omen=1 / ?omen=0 overrides the mode's omen. */
   readonly omen: boolean | undefined;
   /** e2e/dev only: ?biome= plays Classic hunts in another playable biome (M8). */
@@ -628,4 +637,18 @@ export interface GameContext {
   paused(): boolean;
   debug: boolean;
   readonly hook: TestHook | null;
+}
+
+/** D-054 (test hook): one far-animal part as drawn. */
+export interface FaunaProbe {
+  readonly herd: string;
+  readonly animal: number;
+  readonly part: string;
+  readonly frame: string;
+  readonly box: { x: number; y: number; w: number; h: number };
+  readonly cut: { x: number; y: number; w: number; h: number };
+  readonly origin: { x: number; y: number };
+  readonly scale: { x: number; y: number };
+  readonly angle: number;
+  readonly source: { w: number; h: number };
 }

@@ -2021,11 +2021,44 @@ export const FeelSchema = obj({
     /** Its font size (design px). */
     hintPx: pos,
   }),
-  /** D-049: perspective on the far planes, drawn only. */
-  perspective: obj({
-    /** Display scale per far-animal sprite key (src/game/view/faunaSprites.ts; 1 = as drawn),
-     *  so the animals stand in proportion to the birds on their plane. */
-    faunaScale: z.record(z.string().regex(/^fauna\//), pos),
+  /** D-054: the far animals (src/game/view/faunaHerds.ts), drawn only. */
+  fauna: obj({
+    /** Drawn height per species × its true size beside the guineafowl (D-049 target; 1 = true).
+     *  The product owner (27 Oct): elephants and giraffes smaller so the distance reads. The art
+     *  is drawn at this size (`npm run art:interim -- --only fauna`, then assets:pack). */
+    sizeMul: obj({
+        elephant: pos.default(1),
+        giraffe: pos.default(1),
+        zebra: pos.default(1),
+        wildebeest: pos.default(1),
+        gemsbok: pos.default(1),
+        springbok: pos.default(1),
+        ostrich: pos.default(1),
+        lechwe: pos.default(1),
+      }),
+    /** Idle motion on sim time (FaunaIdleTuning): degrees, seconds, shares. */
+    idle: obj({
+      grazeDeg: nonNeg,
+      grazeEverySec: pos,
+      grazeSec: pos,
+      alertDeg: nonNeg,
+      alertEverySec: pos,
+      alertSec: pos,
+      walkDeg: nonNeg,
+      walkSec: pos,
+      tailDeg: nonNeg,
+      tailEverySec: pos,
+      tailSec: pos,
+      earFold: fraction,
+      earSec: pos,
+      swayDeg: nonNeg,
+      swaySec: pos,
+      calm: fraction,
+      /** Each animal's rhythm: its period × (1 − spread/2 … 1 + spread/2), by its seed. */
+      rhythmSpread: fraction,
+      /** A bite's second, smaller dip (share of grazeDeg). */
+      secondBite: fraction,
+    }),
   }),
   assets: obj({
     /** M10: longest wait for assets/asset-index.json at boot; after it every key is a placeholder. */

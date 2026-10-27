@@ -38,6 +38,16 @@ async function settled(page: Page): Promise<void> {
   await page.waitForTimeout(800);
 }
 
+/** D-054: the Karoo's far-animal herds come with the late group: wait until all are drawn, so
+ *  a baseline never catches the scene with or without them by chance. */
+async function herdsDrawn(page: Page): Promise<void> {
+  await page.waitForFunction(
+    () => new Set((window.__TM__?.fauna ?? []).map((p) => p.herd)).size >= 3,
+    null,
+    { timeout: 60_000 },
+  );
+}
+
 // v1.6 (D-042): ?stamp=0 masks the build stamp (it changes with every build).
 const shot = (page: Page, name: string) =>
   expect(page).toHaveScreenshot(`${name}.png`, { timeout: 30_000 });
@@ -50,6 +60,7 @@ test('title and both Settings pages and privacy', async ({ page }, info) => {
   const touch = isTouchProject(info);
   await boot(page, `today=${EPOCH}&seed=42&stamp=0`);
   await page.waitForFunction(() => window.__TM__?.rects['settings'] !== undefined);
+  await herdsDrawn(page);
   await settled(page);
   await shot(page, 'title');
 
@@ -79,6 +90,7 @@ test('hunt held at a fixed tick', async ({ page }, info) => {
   });
   await tapRect(page, isTouchProject(info), 'start');
   await page.waitForFunction(() => (window.__TM__?.tick ?? 0) >= 300, null, { timeout: 120_000 });
+  await herdsDrawn(page);
   // Move the pointer off the scene so no reticle or hover shows.
   await page.mouse.move(0, 0);
   await settled(page);

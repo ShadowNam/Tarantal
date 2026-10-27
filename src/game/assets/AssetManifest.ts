@@ -15,6 +15,7 @@ import type {
   ImageEntry,
 } from './assetIndex';
 import { COMMON_GROUP, LATE_GROUP, VER_GROUP } from './assetIndex';
+import type { FaunaFrames } from '../view/faunaHerds';
 import { DESERT_GROUP } from './desertAssets';
 import { atlasRegion, checkAtlas, checkBirdAtlas, type AtlasRegion } from './atlasCheck';
 import { loadBytes, loadImage, loadJson } from './finalLoader';
@@ -267,6 +268,14 @@ export class AssetManifest {
   /** D-053: the player's choice for this manifest (applied by install() / applyHd()). */
   /** @internal */
   hdWanted = false;
+  /**
+   * D-054: true until this manifest's install() runs, and again after release() (another area's
+   * hunt took the GPU) until its next install(): an area whose HD pack is only preloaded on the
+   * title uploads nothing. graphics.sync()/applyHd() calls every manifest, and put a released
+   * area's HD layers straight back (the title's Karoo HD layers, +103 MB in every other area's
+   * HD hunt on the Pixel 7 profile).
+   */
+  parked = true;
   /** D-053: layers whose HD tiles are in the texture manager. */
   /** @internal */
   readonly hdTilesIn = new Set<string>();
@@ -412,6 +421,11 @@ export class AssetManifest {
     const base = s ? { x: s.originX / s.width, y: s.originY / s.height } : { x: 0.5, y: 0.5 };
     const f = this.finalImages.get(key)?.entry;
     return f ? { x: f.originX ?? base.x, y: f.originY ?? base.y } : base;
+  }
+
+  /** D-054: a far-animal sheet's frame table (design px), once its delivered file is in. */
+  faunaFrames(key: string): FaunaFrames | undefined {
+    return this.finalImages.get(key)?.entry.frames;
   }
 
   /** v1.4 B (D-039): display scale of a texture (design px per texture px; 2× art is 0.5). */
@@ -701,6 +715,7 @@ export class AssetManifest {
     filter: (key: string) => boolean = () => true,
     budgetMs = Infinity,
   ): boolean {
+    this.parked = false;
     for (const [key, { img }] of this.finalImages)
       if (!textures.exists(key)) {
         // D-053: straight to the HD file when HD is chosen and it is in.
@@ -755,12 +770,22 @@ export class AssetManifest {
       // canvas texture, delivered art an image.
       const src = textures.get(key).getSourceImage();
       if (!this.drawn.has(key) && !(src instanceof HTMLCanvasElement)) continue;
+      // Already the delivered file, or its HD twin while HD is wanted: nothing to swap.
+      if (src === img || (this.hdWanted && src === this.hdImages.get(key)?.img)) continue;
       // Rename the placeholder instead of removing it: objects still drawing it (a HUD chip, a
       // crate tag, the pickup card) keep a live texture until their view sets the key again.
       // Removing it under them froze the hunt with a null frame when the late group landed
-      // mid-hunt (v1.7b, D-046). The renamed canvas is a few KB and stays.
-      textures.renameTexture(key, `${key}#placeholder-${++retiredPlaceholders}`);
+      // mid-hunt (v1.7b, D-046). The renamed canvas is a few KB and stays. D-054: an HD file
+      // under the key (Standard chosen since) is retired instead, freed once nothing draws it.
+      const isImage = !(src instanceof HTMLCanvasElement);
+      const renamed = isImage
+        ? `${key}#retired-${++retiredPlaceholders}`
+        : `${key}#placeholder-${++retiredPlaceholders}`;
+      textures.renameTexture(key, renamed);
+      if (isImage) retiredTextures.add(renamed);
       textures.addImage(key, img);
+      // The standard file draws at its own scale (an HD scale left under the key would halve it).
+      hdUnderKey.delete(key);
       this.drawn.delete(key);
       out.push(key);
     }
@@ -800,6 +825,7 @@ export class AssetManifest {
     anims?: Phaser.Animations.AnimationManager,
   ): string[] {
     if (next === this) return [];
+    this.parked = true;
     const keep = next.textureKeys();
     for (const b of next.finalBirds.values())
       if (b.entry.group !== LATE_GROUP) keep.add(b.atlasKey);
@@ -890,6 +916,8 @@ export class AssetManifest {
 
   /** @internal D-053 (hdRuntime.ts, install). */
   installHdTiles(textures: Phaser.Textures.TextureManager): boolean {
+    // A released area's tiles come back with its own install(), not another area's sync.
+    if (this.parked) return false;
     let changed = false;
     for (const [id, { tiles }] of this.hdLayers) {
       // Tiles another manifest's release() removed are added again.

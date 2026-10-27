@@ -1,1 +1,20 @@
-{ "origin": "interim", "encode": "png8", "master": 3 }
+{
+  "origin": "interim",
+  "encode": "png8",
+  "originX": 0,
+  "originY": 0,
+  "frames": {
+    "elephant.graze.f.body": [0, 154, 160, 133, 81, 126, 0, 0],
+    "elephant.graze.f.tail": [142, 402, 14, 68, 10.156, 4.653, -71.844, -90.347],
+    "elephant.graze.f.head": [160, 154, 66, 127, 6.827, 24.514, 54.827, -101.486],
+    "elephant.graze.f.ear": [162, 287, 58, 87, 52.451, 37.99, 67.451, -99.01],
+    "elephant.walk.y.body": [0, 402, 85, 79, 44, 74, 0, 0],
+    "elephant.walk.y.tail": [186, 402, 10, 41, 6.626, 3.473, -37.374, -52.527],
+    "elephant.walk.y.head": [101, 402, 41, 71, 6.947, 16.997, 27.947, -59.003],
+    "elephant.walk.y.ear": [156, 402, 30, 45, 26.415, 19.436, 34.415, -57.564],
+    "elephant.alert.m.body": [0, 0, 185, 154, 94, 146, 0, 0],
+    "elephant.alert.m.tail": [85, 402, 16, 78, 11.46, 4.945, -83.54, -105.055],
+    "elephant.alert.m.head": [0, 287, 96, 115, 7.752, 27.993, 63.752, -118.007],
+    "elephant.alert.m.ear": [96, 287, 66, 100, 60.431, 42.872, 78.431, -115.128]
+  }
+}

@@ -191,7 +191,7 @@ function farVeld(ctx: LayerCtx): string {
         : marula(ctx.rnd, x, foot, h * 1.1, ctx, 'far'),
     );
   }
-  // v1.6 (D-042): the giraffes and herds are sprites now (src/game/view/faunaSprites.ts).
+  // v1.6 (D-042): the giraffes and herds are sprites now (src/game/view/faunaHerds.ts, D-054).
   // Frost mist lying over the far veld at dawn.
   parts.push(mist(ctx.rnd, -40, ctx.width + 40, 588, 26, ctx.raw('mist'), 0.5));
   return g({}, ...parts);

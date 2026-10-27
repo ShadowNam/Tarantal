@@ -849,28 +849,38 @@
     "hintMaxStepMs": 100,
     "hintPx": 30
   },
-  "perspective": {
-    "$comment": "D-049 (product owner 26 Oct: far guineafowl stood taller than the ostriches and zebras beside them). Display scale per far-animal sprite: the herds were drawn for far birds about 8x too small, so they show at 3x (their art is drawn at 3x, so no upscaling) while the far birds shrink 0.22 -> 0.15. The Ver waterhole is re-drawn at 5x its old animal heights in place instead (scaling its sprite would move the animals off the water). Target heights per species: docs/balance/perspective.md.",
-    "faunaScale": {
-      "fauna/karoo_springbok_a": 3,
-      "fauna/karoo_springbok_b": 3,
-      "fauna/karoo_ostrich": 3,
-      "fauna/bushveld_giraffes_a": 3,
-      "fauna/bushveld_giraffes_b": 3,
-      "fauna/bushveld_zebra": 3,
-      "fauna/bushveld_wildebeest": 3,
-      "fauna/bushveld_elephants": 3,
-      "fauna/okavango_elephants": 3,
-      "fauna/okavango_lechwe": 3,
-      "fauna/okavango_zebra": 3,
-      "fauna/okavango_wildebeest": 3,
-      "fauna/kalahari_springbok": 3,
-      "fauna/kalahari_ostrich": 3,
-      "fauna/kalahari_wildebeest": 3,
-      "fauna/namibie_waterhole": 1,
-      "fauna/namibie_gemsbok": 3,
-      "fauna/namibie_ostrich": 3,
-      "fauna/namibie_zebra": 3
+  "fauna": {
+    "$comment": "D-054: the far animals' idle motion on sim time (src/game/view/faunaHerds.ts faunaIdle; a held frame holds still). Grazing: a bite (head dips grazeDeg and back, a smaller second dip) every grazeEverySec (each animal its own rhythm: period x 1 -/+ rhythmSpread/2; the second dip secondBite of the first); head up: a small ear flick / head turn; walking: a slight nod; a tail swish every tailEverySec; an elephant's ears fan in by earFold and its trunk sways swayDeg, as does a browsing giraffe's head. Reduce motion: every amplitude x calm (calmer, never off). D-049's faunaScale is gone: the herds are drawn at their real heights now.",
+    "sizeMul": {
+      "$comment": "D-054: drawn height x the D-049 true-proportion target. The product owner, 27 Oct 20:10: 'make the elephants and giraffes at least 25% smaller ... the further animals are away, the smaller they get ... it could even be up to 50%'; 20:15: 'make the zebras and wildebeest smaller too.'; 22:45, after playing: 'It maybe needs to just shrink another 5%, and I saw the ostriches didn't change. They are still so big.' Every far species at 0.57, the ostrich at 0.45: herds share maps, so one multiplier keeps them in true proportion to each other (a smaller zebra beside a full-size gemsbok would look wrong); the far guineafowl keep their size (they are the targets). Change a line, then npm run art:interim -- --only fauna and npm run assets:pack.",
+      "elephant": 0.57,
+      "giraffe": 0.57,
+      "zebra": 0.57,
+      "wildebeest": 0.57,
+      "gemsbok": 0.57,
+      "springbok": 0.57,
+      "ostrich": 0.45,
+      "lechwe": 0.57
+    },
+    "idle": {
+      "grazeDeg": 5,
+      "grazeEverySec": 4.5,
+      "grazeSec": 1.4,
+      "alertDeg": 2.5,
+      "alertEverySec": 6,
+      "alertSec": 0.5,
+      "walkDeg": 1.2,
+      "walkSec": 1.4,
+      "tailDeg": 16,
+      "tailEverySec": 5,
+      "tailSec": 0.9,
+      "earFold": 0.12,
+      "earSec": 3.6,
+      "swayDeg": 2.2,
+      "swaySec": 5.5,
+      "calm": 0.35,
+      "rhythmSpread": 0.5,
+      "secondBite": 0.45
     }
   },
   "assets": {

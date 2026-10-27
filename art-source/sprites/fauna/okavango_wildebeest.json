@@ -1,1 +1,17 @@
-{ "origin": "interim", "encode": "png8", "master": 3 }
+{
+  "origin": "interim",
+  "encode": "png8",
+  "originX": 0,
+  "originY": 0,
+  "frames": {
+    "wildebeest.alert.m.body": [0, 0, 75, 71, 37, 66, 0, 0],
+    "wildebeest.alert.m.tail": [0, 71, 15, 54, 11.607, 3.891, -32.393, -49.109],
+    "wildebeest.alert.m.head": [29, 71, 63, 49, 12.155, 31.631, 21.155, -50.369],
+    "wildebeest.graze.y.body": [92, 71, 41, 42, 20, 39, 0, 0],
+    "wildebeest.graze.y.tail": [169, 71, 9, 25, 6.091, 2.517, -16.909, -28.483],
+    "wildebeest.graze.y.head": [133, 71, 36, 40, 7.043, 8.786, 11.043, -29.214],
+    "wildebeest.graze.f.body": [75, 0, 72, 68, 36, 63, 0, 0],
+    "wildebeest.graze.f.tail": [15, 71, 14, 52, 10.902, 3.855, -31.098, -47.145],
+    "wildebeest.graze.f.head": [147, 0, 52, 63, 11.309, 13.646, 20.309, -48.354]
+  }
+}

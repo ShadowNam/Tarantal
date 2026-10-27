@@ -12,7 +12,9 @@ import type { PlaneId } from '../../sim/types';
 import { coreWidth, DESIGN_HEIGHT, LAYER_BLEED_PX } from '../../sim/world';
 import { isHdTexture, TEX, type AssetManifest } from '../assets/AssetManifest';
 import { HD_PARTS, hdKeyOf } from '../assets/hdProps';
-import { FAUNA_SPRITES } from './faunaSprites';
+import { FAUNA_HERDS } from './faunaHerds';
+import { FaunaView, type FaunaOptions } from './FaunaView';
+import type { FaunaProbe } from '../GameContext';
 import { lightTint } from './lightTint';
 import {
   CLOUD_DECKS,
@@ -138,6 +140,8 @@ export class ParallaxView {
     null;
   /** D-053: the manifest's hdEpoch these images were made with. */
   private hdEpoch: number;
+  /** D-054: the far animals, one view per layer that has herds. */
+  private readonly fauna: FaunaView[] = [];
   /** D-051: every prop with an HD texture (test hook: where it is, whether it shows HD). */
   private readonly hdArt: { readonly propId: string; readonly art: StaticArt }[] = [];
 
@@ -146,8 +150,8 @@ export class ParallaxView {
     biome: Biome,
     private readonly manifest: AssetManifest,
     mergeLayers: readonly (readonly [string, string])[] = [],
-    /** D-049: display scale per far-animal sprite (feel.json perspective.faunaScale). */
-    faunaScale: Readonly<Record<string, number>> = {},
+    /** D-054: the far animals (null: none, e.g. a test without feel). */
+    fauna: FaunaOptions | null = null,
   ) {
     this.hdEpoch = manifest.hdEpoch;
     // Back to front: ascending scroll factor (sky 0.05 … foreground 1.2).
@@ -257,21 +261,14 @@ export class ParallaxView {
             .setDisplaySize(w, h),
         );
       }
-      // v1.6 (D-042): far animals, drawn at 3× and shown at 1/3 (crisp through a scope).
-      // D-049: shown at faunaScale × that, feet kept on y, so they stand in proportion to the
-      // birds on their plane.
-      for (const f of FAUNA_SPRITES[biome.id] ?? []) {
-        if (f.layer !== layer.id || !manifest.has(f.key)) continue;
-        const o = manifest.origin(f.key);
-        add(
-          scene.add
-            .image(f.u * coreWidth(layer.scrollFactor), f.y, f.key)
-            .setOrigin(o.x, o.y)
-            .setScale(manifest.displayScale(f.key) * (faunaScale[f.key] ?? 1)),
+      // D-054: the far animals (FaunaView: one sheet per herd, parts that move on sim time).
+      const herds = (FAUNA_HERDS[biome.id] ?? []).filter((h) => h.layer === layer.id);
+      if (fauna !== null && herds.length > 0) {
+        const holder = scene.add.container(0, 0);
+        root.add(holder);
+        this.fauna.push(
+          new FaunaView(scene, manifest, herds, coreWidth(layer.scrollFactor), holder, fauna),
         );
-        const fa = statics[statics.length - 1];
-        if (fa !== undefined)
-          this.keyed.push({ art: fa, key: f.key, extra: faunaScale[f.key] ?? 1 });
       }
       const fruit = scene.add.container(0, 0);
       root.add(fruit);
@@ -368,6 +365,26 @@ export class ParallaxView {
     }
   }
 
+  /** D-054: builds herds whose sheets landed and follows HD swaps, without posing them. */
+  refreshFauna(): void {
+    for (const f of this.fauna) f.refresh(true);
+  }
+
+  /** D-054: poses the far animals for sim tick `tick` (a held frame holds still). */
+  animateFauna(tick: number, calm: boolean, viewWidth = Infinity): void {
+    for (const f of this.fauna) f.update(tick, calm, viewWidth);
+  }
+
+  /** D-054 (test hook): every far-animal part as drawn. */
+  faunaProbe(): FaunaProbe[] {
+    return this.fauna.flatMap((f) => f.probe());
+  }
+
+  /** D-054 (test hook): far animals drawn now. */
+  faunaCount(): number {
+    return this.fauna.reduce((n, f) => n + f.animalCount(), 0);
+  }
+
   /**
    * D-053 (test hook): the on-screen boxes (design px, rounded) of each layer's first tile and of
    * every prop and far animal: the same with Standard and HD art. `hd`: it draws an HD file.
@@ -402,6 +419,7 @@ export class ParallaxView {
       });
     }
     for (const { art, key } of this.keyed) box(key, art);
+    for (const f of this.fauna) out.push(...f.bounds());
     return out;
   }
 
@@ -412,6 +430,9 @@ export class ParallaxView {
    * anything changed.
    */
   refreshHd(): boolean {
+    // D-054: the herds too (also between hunts, when no world update poses them: the title's
+    // herds are built once their sheets land, and follow an HD/Standard switch).
+    this.refreshFauna();
     if (this.manifest.hdEpoch === this.hdEpoch) return false;
     this.hdEpoch = this.manifest.hdEpoch;
     this.restoreCulled();

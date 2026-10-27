@@ -1,47 +1,57 @@
 import { describe, expect, it } from 'vitest';
-import { FAUNA_DRAW } from './art/faunaSheets';
-import { ANIMAL_M, birdOversize, GUINEAFOWL_M, pxPerMetre, targetPx } from './perspective';
-import { birdUnits } from './perspective-audit';
+import { FAUNA_HERDS, lookHeight } from '../src/game/view/faunaHerds';
+import { birdOversize, GUINEAFOWL_M, pxPerMetre, targetPx } from './perspective';
+import { birdUnits } from './birdUnits';
 import { loadContent, loadFeel } from './testContent';
 
-describe('perspective audit (D-049)', () => {
+describe('perspective audit (D-049, D-054)', () => {
+  it('the product owner (27 Oct): every far animal at 0.57 × true size, the ostrich at 0.45', () => {
+    const mul = loadFeel().fauna.sizeMul;
+    const far = pxPerMetre(birdUnits('alert') * loadContent().scoring.planes.far.scale);
+    // 20:10 elephants and giraffes, 20:15 zebras and wildebeest, so every species (one
+    // proportion on shared maps); 22:45 another 5 % and the ostriches smaller still.
+    for (const sp of [
+      'elephant',
+      'giraffe',
+      'zebra',
+      'wildebeest',
+      'gemsbok',
+      'springbok',
+      'lechwe',
+    ] as const)
+      expect(mul[sp], sp).toBe(0.57);
+    expect(mul.ostrich).toBe(0.45);
+    expect(lookHeight('elephant', 'm', far, mul.elephant)).toBeCloseTo(143.9, 0);
+    expect(lookHeight('giraffe', 'm', far, mul.giraffe)).toBeCloseTo(224.9, 0);
+    expect(lookHeight('zebra', 'm', far, mul.zebra)).toBeCloseTo(60.7, 0);
+    expect(lookHeight('springbok', 'm', far, mul.springbok)).toBeCloseTo(36.0, 0);
+    expect(lookHeight('ostrich', 'm', far, mul.ostrich)).toBeCloseTo(88.7, 0);
+  });
+
   it('true proportions give an oversize of 1', () => {
     expect(birdOversize(10, 50, 2.5)).toBeCloseTo(1, 9);
     expect(targetPx(2.5, 40)).toBeCloseTo(200, 9);
     expect(pxPerMetre(40)).toBeCloseTo(40 / GUINEAFOWL_M, 9);
   });
 
-  it('the Karoo ostriches: a far guineafowl was 12× too big beside them, now under 3×', () => {
+  it('D-054: every far animal is drawn at its true size × its feel sizeMul beside the guineafowl on its plane', () => {
     const c = loadContent();
-    const feel = loadFeel();
+    const mul = loadFeel().fauna.sizeMul;
     const stand = birdUnits('alert');
-    const ostrich = FAUNA_DRAW['fauna/karoo_ostrich']?.animals[0];
-    if (ostrich === undefined) throw new Error('no Karoo ostriches');
-    expect(ostrich.kind).toBe('ostrich');
-    const before = birdOversize(stand * 0.22, ostrich.h, ANIMAL_M.ostrich);
-    const k = feel.perspective.faunaScale['fauna/karoo_ostrich'] ?? 1;
-    const birdNow = stand * c.scoring.planes.far.scale;
-    const after = birdOversize(birdNow, ostrich.h * k, ANIMAL_M.ostrich);
-    expect(before).toBeGreaterThan(10);
-    expect(after).toBeLessThan(3);
-    // The product owner's rule: a far guineafowl never stands taller than the ostrich beside it.
-    expect(birdNow).toBeLessThan(ostrich.h * k);
-  });
-
-  it('no far guineafowl stands taller than a springbok (shoulder) or an ostrich on its plane', () => {
-    const c = loadContent();
-    const feel = loadFeel();
-    const stand = birdUnits('alert');
-    for (const [key, draw] of Object.entries(FAUNA_DRAW)) {
-      const k = feel.perspective.faunaScale[key] ?? 1;
-      const plane = key === 'fauna/namibie_waterhole' ? 'ver' : 'far';
-      const bird = stand * c.scoring.planes[plane].scale;
-      for (const a of draw.animals) {
-        if (a.kind !== 'springbok' && a.kind !== 'ostrich') continue;
-        // A springbok's head stands about 1.3 × its shoulder height.
-        const top = a.kind === 'springbok' ? a.h * k * 1.3 : a.h * k;
-        expect(bird, `${key} ${a.kind}`).toBeLessThanOrEqual(top);
+    for (const herds of Object.values(FAUNA_HERDS))
+      for (const h of herds) {
+        const plane = h.layer === 'ver_veld' ? 'ver' : 'far';
+        const bird = stand * c.scoring.planes[plane].scale;
+        for (const a of h.animals) {
+          if (a.variant === 'y') continue;
+          const px = lookHeight(a.species, 'm', pxPerMetre(bird), mul[a.species]);
+          // The product owner's rule: no far guineafowl stands taller than the animals beside it.
+          expect(bird, `${h.key} ${a.species}`).toBeLessThan(px * 1.3);
+          expect(birdOversize(bird, px, lookHeight(a.species, 'm', 1)), h.key).toBeCloseTo(
+            1 / mul[a.species],
+            6,
+          );
+        }
       }
-    }
   });
 });

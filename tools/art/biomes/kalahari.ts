@@ -33,7 +33,7 @@ import {
 import { plantLook, seedTuft, veldShrub } from '../flora';
 import { shepherdsTree } from '../species';
 import { deadCamelthornTree } from '../deadTree';
-import { farAnimal as animal } from '../fauna';
+import { farAnimal as animal } from '../farFauna';
 import type { PaintCtx } from '../landscape';
 import { boulder, graniteLook } from '../rocks';
 
@@ -412,7 +412,7 @@ function farVeld(ctx: LayerCtx): string {
       ).svg,
     );
   }
-  // v1.6 (D-042): the far animals are sprites now (src/game/view/faunaSprites.ts).
+  // v1.6 (D-042): the far animals are sprites now (src/game/view/faunaHerds.ts, D-054).
   return g({}, ...parts);
 }
 
@@ -668,6 +668,8 @@ export const KALAHARI_PLAN: BiomeArtPlan = {
     'kalahari/weaver_camelthorn': {
       draw: weaverCamelthorn,
       master: 2,
+      // D-054: 128 colours (no visible change; −40 KB) to make room for the far animals.
+      colours: 128,
       wobble: false,
       frame: { w: 580, h: 580, ox: 290, oy: 300 },
     },

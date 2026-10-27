@@ -1,93 +1,229 @@
-// v1.6 (D-042 review): the far animals' sprites (src/game/view/faunaSprites.ts), drawn at 3× so
-// they stay crisp through a scope. Each draws one herd or group round (0, 0) = its feet's centre.
-// Haze: half the layer's (they still sit in the distance, but read as solid animals, never
-// pale ghosts); no alpha anywhere on the animals.
-import { farAnimal, herd, type AnimalKind, type Pose } from './fauna';
-import type { PaintCtx } from './landscape';
-import { mix } from './scenery';
-import { g } from './svg';
+// D-054: one sheet per herd (src/game/view/faunaHerds.ts): every look of the herd (species,
+// pose, variant) drawn by farFauna.ts at its target height, each part (tail, body, head, ear)
+// rendered at 4× and averaged down to the 2× master, trimmed to its pixels with a 1 design px
+// clear margin, and shelf-packed. The frame table (design px; the pivot inside each frame and
+// where it sits from the animal's feet) goes into the sidecar, and so into the asset index.
+// Standard packs the master at 1×, HD uses it as it is (FAUNA_MASTER = 2).
+import { blank, blit, crop, opaqueBounds, resize, type Rgba } from '../assets/image';
+import {
+  FAUNA_MASTER,
+  FAUNA_PARTS,
+  frameName,
+  herdLooks,
+  lookHeight,
+  type FaunaFrame,
+  type FaunaFrames,
+  type FaunaHerd,
+  type FaunaPose,
+  type FaunaSpecies,
+  type FaunaVariant,
+} from '../../src/game/view/faunaHerds';
+import { drawLook, type LookOpts } from './farFauna';
+import { renderSvg } from './raster';
+import { mix, resetIds } from './scenery';
+import { svgDoc } from './svg';
 
-/** D-049: a sheet's drawing, and the animals in it (kind and drawn height `h`, design px) for
- *  tools/perspective-audit.ts. */
-type Draw = ((ctx: PaintCtx) => string) & {
-  readonly animals: readonly { readonly kind: AnimalKind; readonly h: number }[];
-};
+/** Supersampling over the master (the art is drawn at 4× and averaged to 2×). */
+const SUPER = 2;
+/** Clear margin round every frame, design px (no bleeding from a neighbour at 1×). */
+const MARGIN = 1;
+/** Widest sheet, master px (Standard stays ≤ 2048, HD ≤ 4096). */
+const MAX_W = 4096;
 
-/** Half the plane's haze: a solid animal, a little softened by distance. */
-const halfTint =
-  (ctx: PaintCtx) =>
-  (hex: string): string =>
-    mix(hex, ctx.tint(hex), 0.5);
+/** Share of the layer's haze the animals take (they read as solid animals, softened by distance). */
+export const FAUNA_HAZE = 0.45;
+/** D-054 review: a coat colour keeps at least this luminance contrast (WCAG ratio) against the
+ *  sky behind the herds (the horizon glow, the low sky, the clouds); haze is cut back until it
+ *  does. Whites and pale marks that can't reach it keep the plain haze. */
+export const FAUNA_MIN_CONTRAST = 1.8;
 
-const group = (kind: AnimalKind, h: number, n: number, spread: number): Draw =>
-  Object.assign((ctx: PaintCtx) => herd(ctx.rnd, kind, 0, 0, h, n, spread, halfTint(ctx)), {
-    animals: Array.from({ length: n }, () => ({ kind, h })),
-  });
+function luminance(hex: string): number {
+  const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+  const lin = c.map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * (lin[0] ?? 0) + 0.7152 * (lin[1] ?? 0) + 0.0722 * (lin[2] ?? 0);
+}
 
-/** Named animals at fixed spots: [kind, pose, x, dy, h, facing]. */
-const placed = (
-  list: readonly (readonly [AnimalKind, Pose, number, number, number, 1 | -1])[],
-): Draw =>
-  Object.assign(
-    (ctx: PaintCtx) => {
-      const tint = halfTint(ctx);
-      const items = [...list].sort((a, b) => a[3] - b[3]);
-      return g(
-        {},
-        ...items.map(([kind, pose, x, dy, h, facing], i) =>
-          farAnimal({ kind, pose, x, foot: dy, h, facing, tint, phase: (i * 0.37) % 1 }),
-        ),
-      );
-    },
-    { animals: list.map(([kind, , , , h]) => ({ kind, h })) },
+/** WCAG contrast ratio of two colours (1 … 21). */
+export function contrast(a: string, b: string): number {
+  const la = luminance(a);
+  const lb = luminance(b);
+  return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+}
+
+/**
+ * The animals' haze: FAUNA_HAZE of the layer's, cut back per colour so it stays at least
+ * FAUNA_MIN_CONTRAST from every sky colour in `backs`.
+ */
+export function faunaHaze(
+  tint: (hex: string) => string,
+  backs: readonly string[],
+): (hex: string) => string {
+  const ok = (c: string): boolean => backs.every((b) => contrast(c, b) >= FAUNA_MIN_CONTRAST);
+  return (hex) => {
+    for (let a = FAUNA_HAZE; a > 0; a -= 0.05) {
+      const c = mix(hex, tint(hex), a);
+      if (ok(c)) return c;
+    }
+    return ok(hex) ? hex : mix(hex, tint(hex), FAUNA_HAZE);
+  };
+}
+
+export interface FaunaSheet {
+  /** The master (FAUNA_MASTER texture px per design px). */
+  readonly img: Rgba;
+  readonly frames: FaunaFrames;
+  /** The animals (kind and drawn height) for tools/perspective-audit.ts. */
+  readonly animals: readonly { readonly species: FaunaSpecies; readonly h: number }[];
+}
+
+/** A look's id back into its parts. */
+export function parseLook(look: string): {
+  species: FaunaSpecies;
+  pose: FaunaPose;
+  variant: FaunaVariant;
+} {
+  const [species, pose, variant] = look.split('.') as [FaunaSpecies, FaunaPose, FaunaVariant];
+  return { species, pose, variant };
+}
+
+interface Cell {
+  readonly name: string;
+  readonly img: Rgba;
+  /** Design px of the cell's top-left, feet-relative. */
+  readonly x0: number;
+  readonly y0: number;
+  readonly pivot: readonly [number, number];
+}
+
+/** Renders one part over the look's box (integer design px), trimmed to its pixels + margin. */
+function renderPart(
+  svg: string,
+  box: { x0: number; y0: number; x1: number; y1: number },
+): { img: Rgba; x0: number; y0: number } | null {
+  const x0 = Math.floor(box.x0);
+  const y0 = Math.floor(box.y0);
+  const w = Math.ceil(box.x1) - x0;
+  const h = Math.ceil(box.y1) - y0;
+  const k = FAUNA_MASTER * SUPER;
+  const big = renderSvg(svgDoc(w * k, h * k, [x0, y0, w, h], '', svg));
+  const img = resize(big, w * FAUNA_MASTER, h * FAUNA_MASTER);
+  const b = opaqueBounds(img);
+  if (b === null) return null;
+  // Trim at whole design px, keeping MARGIN clear px round the art.
+  const m = FAUNA_MASTER;
+  const cx0 = Math.max(0, Math.floor(b.x / m) - MARGIN);
+  const cy0 = Math.max(0, Math.floor(b.y / m) - MARGIN);
+  const cx1 = Math.min(w, Math.ceil((b.x + b.w) / m) + MARGIN);
+  const cy1 = Math.min(h, Math.ceil((b.y + b.h) / m) + MARGIN);
+  if (b.x < m || b.y < m || b.x + b.w > (w - 1) * m || b.y + b.h > (h - 1) * m)
+    throw new Error('a far animal part runs off its box: widen the look box in farFauna.ts');
+  return {
+    img: crop(img, cx0 * m, cy0 * m, (cx1 - cx0) * m, (cy1 - cy0) * m),
+    x0: x0 + cx0,
+    y0: y0 + cy0,
+  };
+}
+
+/** Shelf packing (tallest first) at the width that gives the smallest sheet. */
+function pack(cells: readonly Cell[]): { w: number; h: number; at: Map<string, [number, number]> } {
+  const sorted = [...cells].sort(
+    (a, b) => b.img.height - a.img.height || b.img.width - a.img.width,
   );
+  const area = sorted.reduce((s, c) => s + c.img.width * c.img.height, 0);
+  const widest = Math.max(...sorted.map((c) => c.img.width));
+  let best: { w: number; h: number; at: Map<string, [number, number]> } | null = null;
+  for (let w = widest; w <= MAX_W; w += FAUNA_MASTER * 8) {
+    const at = new Map<string, [number, number]>();
+    let x = 0;
+    let y = 0;
+    let row = 0;
+    for (const c of sorted) {
+      if (x + c.img.width > w) {
+        x = 0;
+        y += row;
+        row = 0;
+      }
+      at.set(c.name, [x, y]);
+      x += c.img.width;
+      row = Math.max(row, c.img.height);
+    }
+    const h = y + row;
+    // Even sizes: the master halves exactly to Standard.
+    const sw =
+      Math.ceil(
+        Math.max(
+          ...[...at].map(([n, p]) => p[0] + (sorted.find((c) => c.name === n)?.img.width ?? 0)),
+        ) / 2,
+      ) * 2;
+    const sh = Math.ceil(h / 2) * 2;
+    if (best === null || sw * sh < best.w * best.h) best = { w: sw, h: sh, at };
+    if (w > Math.sqrt(area) * 3) break;
+  }
+  if (best === null) throw new Error('no fauna sheet layout');
+  return best;
+}
 
-/** D-049: the Ver waterhole's animals are drawn this many times their v1.6 heights. */
-export const WATERHOLE_HEIGHT_MUL = 5;
-const W = WATERHOLE_HEIGHT_MUL;
-
-export const FAUNA_DRAW: Readonly<Record<string, Draw>> = {
-  'fauna/karoo_springbok_a': group('springbok', 12, 8, 170),
-  'fauna/karoo_springbok_b': group('springbok', 12, 4, 90),
-  'fauna/karoo_ostrich': group('ostrich', 24, 3, 70),
-  'fauna/bushveld_giraffes_a': placed([
-    ['giraffe', 'alert', -26, 0, 58, 1],
-    ['giraffe', 'graze', 12, 1, 52, 1],
-    ['giraffe', 'walk', 34, 3, 33, 1],
-  ]),
-  'fauna/bushveld_giraffes_b': placed([
-    ['giraffe', 'walk', -8, 0, 56, 1],
-    ['giraffe', 'alert', 22, 2, 31, -1],
-  ]),
-  'fauna/bushveld_zebra': group('zebra', 15, 5, 130),
-  'fauna/bushveld_wildebeest': group('wildebeest', 15, 4, 100),
-  'fauna/bushveld_elephants': group('elephant', 24, 3, 120),
-  'fauna/okavango_elephants': group('elephant', 24, 3, 140),
-  'fauna/okavango_lechwe': group('lechwe', 12, 8, 170),
-  'fauna/okavango_zebra': group('zebra', 15, 4, 110),
-  'fauna/okavango_wildebeest': group('wildebeest', 15, 3, 90),
-  'fauna/kalahari_springbok': group('springbok', 12, 7, 150),
-  'fauna/kalahari_ostrich': group('ostrich', 24, 2, 50),
-  'fauna/kalahari_wildebeest': group('wildebeest', 15, 4, 110),
-  // The waterhole on the Ver strip (its water is in the layer, centred on u 0.5). D-049: the
-  // animals stand 5× their v1.6 heights (and depth offsets) at the same spots, in proportion to
-  // the Ver birds (0.07); scaling the sprite instead would spread them off the water. Most stand
-  // head up (alert or walking): a grazing head hides behind the front legs at this size.
-  'fauna/namibie_waterhole': placed([
-    ['giraffe', 'alert', -165, -0.5 * W, 8 * W, 1],
-    ['giraffe', 'drink', -152, 0 * W, 13 * W, 1],
-    ['springbok', 'alert', -126, 0.2 * W, 3.8 * W, 1],
-    ['zebra', 'walk', -105, -0.7 * W, 4.2 * W, 1],
-    ['springbok', 'alert', -95, -0.6 * W, 3.8 * W, 1],
-    ['zebra', 'alert', -79, 0.6 * W, 4.2 * W, 1],
-    ['springbok', 'graze', -58, 0.5 * W, 3.8 * W, 1],
-    ['gemsbok', 'walk', 47, 0.4 * W, 4.4 * W, -1],
-    ['gemsbok', 'alert', 87, -0.4 * W, 4.4 * W, -1],
-    ['springbok', 'walk', 121, 0.3 * W, 3.8 * W, -1],
-    ['ostrich', 'walk', 163, -0.5 * W, 7 * W, -1],
-    ['ostrich', 'alert', 178, -0.2 * W, 7 * W, -1],
-  ]),
-  'fauna/namibie_gemsbok': group('gemsbok', 15, 4, 120),
-  'fauna/namibie_ostrich': group('ostrich', 24, 2, 60),
-  'fauna/namibie_zebra': group('zebra', 15, 4, 110),
-};
+/**
+ * Draws a herd's sheet. `pxPerMetre`: the plane's design px per metre (D-049); `tint`: the
+ * layer's haze (the animals take half of it: solid, a little softened by distance).
+ */
+export function buildFaunaSheet(
+  herd: FaunaHerd,
+  pxPerMetre: number,
+  tint: (hex: string) => string,
+  dust?: string,
+  /** feel.json fauna.sizeMul (1 = true proportion). */
+  sizeMul: Readonly<Partial<Record<FaunaSpecies, number>>> = {},
+  /** The sky colours behind the herds (contrast floor). */
+  backs: readonly string[] = [],
+): FaunaSheet {
+  const half = faunaHaze(tint, backs);
+  const cells: Cell[] = [];
+  for (const look of herdLooks(herd)) {
+    const l = parseLook(look);
+    const h = lookHeight(l.species, l.variant, pxPerMetre, sizeMul[l.species] ?? 1);
+    resetIds();
+    const opts: LookOpts = {
+      tint: half,
+      ...(dust === undefined ? {} : { dust: half(dust) }),
+      ...(herd.wading === true ? { wading: true } : {}),
+    };
+    const d = drawLook({ ...l, h }, opts);
+    for (const part of FAUNA_PARTS) {
+      const svg = d.parts[part];
+      const pivot = d.pivots[part];
+      if (svg === undefined || pivot === undefined) continue;
+      const r = renderPart(svg, d.box);
+      if (r === null) continue;
+      cells.push({ name: frameName(look, part), img: r.img, x0: r.x0, y0: r.y0, pivot });
+    }
+  }
+  const p = pack(cells);
+  const img = blank(p.w, p.h);
+  const frames: Record<string, FaunaFrame> = {};
+  const m = FAUNA_MASTER;
+  const r3 = (n: number): number => Math.round(n * 1000) / 1000;
+  for (const c of cells) {
+    const at = p.at.get(c.name);
+    if (at === undefined) continue;
+    blit(img, c.img, at[0], at[1]);
+    frames[c.name] = [
+      at[0] / m,
+      at[1] / m,
+      c.img.width / m,
+      c.img.height / m,
+      r3(c.pivot[0] - c.x0),
+      r3(c.pivot[1] - c.y0),
+      r3(c.pivot[0]),
+      r3(c.pivot[1]),
+    ];
+  }
+  return {
+    img,
+    frames,
+    animals: herd.animals.map((a) => ({
+      species: a.species,
+      h: lookHeight(a.species, a.variant, pxPerMetre, sizeMul[a.species] ?? 1) * a.s,
+    })),
+  };
+}

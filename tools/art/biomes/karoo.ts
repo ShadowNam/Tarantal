@@ -893,7 +893,7 @@ function farVeld(ctx: LayerCtx): string {
       parts.push(sweetThorn(ctx.rnd, tx, yAt(band.edge, tx) + 3, 40 + ctx.rnd() * 18, ctx, 'far'));
     }
   }
-  // v1.6 (D-042): the far animals are sprites now (src/game/view/faunaSprites.ts).
+  // v1.6 (D-042): the far animals are sprites now (src/game/view/faunaHerds.ts, D-054).
   return g({}, ...parts);
 }
 
