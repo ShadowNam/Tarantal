@@ -202,3 +202,52 @@ test('HD draws every sampled image at Standard’s on-screen size', async ({ pag
     expect(Math.abs((h?.h ?? 0) - s.h), s.key).toBeLessThanOrEqual(tol);
   });
 });
+
+test('a lazy area (Bushveld): HD layers and props at the same pan sit where Standard’s do', async ({
+  page,
+}, info) => {
+  // The supervisor's phone crops showed different far/mid scenery behind the same key; this pins
+  // the layer tiles (far ridge, far veld, mid, near …) and props at one camera x in both modes.
+  test.skip(!isLandscape(info), 'landscape screens');
+  test.setTimeout(420_000);
+  const sample = async (mode: string) => {
+    await boot(page, `graphics=${mode}&biome=bushveld-winter&seed=3&huntSeconds=600&birds=0`);
+    await startHunt(page, isTouchProject(info));
+    if (mode === 'hd')
+      await page.waitForFunction(() => (window.__TM__?.graphics.hdTextures ?? 0) > 0, null, {
+        timeout: 240_000,
+      });
+    // Read the camera and the boxes in the same callback that sees the Bushveld layers.
+    const handle = await page.waitForFunction(
+      () => {
+        const tm = window.__TM__;
+        const b = tm?.graphics.bounds ?? [];
+        if (!b.some((x) => x.key === 'layer:bushveld/far_veld')) return null;
+        return {
+          cameraX: tm?.cameraX ?? NaN,
+          bounds: [...b].sort((p, q) => (p.key < q.key ? -1 : 1)),
+        };
+      },
+      null,
+      { timeout: 120_000 },
+    );
+    return (await handle.jsonValue()) as {
+      cameraX: number;
+      bounds: { key: string; x: number; y: number; w: number; h: number }[];
+    };
+  };
+  const standard = await sample('standard');
+  const hd = await sample('hd');
+  // No input yet: the hunt opens at the same seeded pan in both modes.
+  expect(hd.cameraX).toBeCloseTo(standard.cameraX, 3);
+  expect(hd.bounds.map((b) => b.key)).toEqual(standard.bounds.map((b) => b.key));
+  expect(standard.bounds.some((b) => b.key === 'layer:bushveld/mid')).toBe(true);
+  standard.bounds.forEach((s, i) => {
+    const h = hd.bounds[i];
+    const tol = s.key.startsWith('layer:') ? 2 : 1;
+    expect(Math.abs((h?.x ?? 0) - s.x), s.key).toBeLessThanOrEqual(tol);
+    expect(Math.abs((h?.y ?? 0) - s.y), s.key).toBeLessThanOrEqual(tol);
+    expect(Math.abs((h?.w ?? 0) - s.w), s.key).toBeLessThanOrEqual(tol);
+    expect(Math.abs((h?.h ?? 0) - s.h), s.key).toBeLessThanOrEqual(tol);
+  });
+});

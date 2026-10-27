@@ -9,13 +9,17 @@
 //   crop-<key>: Standard | HD side by side at device pixels (2× nearest-neighbour for small art):
 //     a far herd (Bushveld zebra), the baobab, the Karoo aloes, the Bushveld aloes (1× | 2×),
 //     and a guineafowl in the Langloop's scope (crop-scope).
-// Crops come from the same pan position in both modes (the panorama's ends and its start), held
-// with capture mode's freeze (?capture=1: no HUD; F freezes sim time, so nothing moves). On desktop
-// the real mouse rests at the bottom centre, outside both edge-pan bands.
+// Crops come from the same pan position in both modes (the panorama's ends and its start, the
+// ends at the sim's camera limits; the grab is picked from Standard and used for both, camera x
+// and every layer's tiles checked equal), held with capture mode's freeze (?capture=1: no HUD;
+// F freezes sim time, so nothing moves). On desktop the real mouse rests at the bottom centre,
+// outside both edge-pan bands. Also writes hd-pan-<biome>-<device>.json: camera x and each
+// layer's on-screen first tile per grab, both modes.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
 import { blank, decodePng, encodePng8, resize, type Rgba } from '../../tools/assets/image';
+import { CAMERA_MAX_X, CAMERA_MIN_X } from '../../src/sim/world';
 import { hook, isTouchProject, startHunt } from './helpers';
 
 const OUT = join(import.meta.dirname, '..', '..', 'docs', 'art-preview', 'compare');
@@ -116,27 +120,26 @@ test('"Play now in Standard" while the HD pack is slow', async ({ page }, info) 
   save('play-now', info, await shot(page));
 });
 
-/** Pans to one end of the panorama and waits until the camera stops there. */
+/**
+ * Pans to one end of the panorama: until the camera is at the sim's limit there (the same x on
+ * every device and in both modes), not merely until it stops: on phones a drag swallowed by a
+ * long frame (HD uploads) used to end the pan short, so Standard and HD cropped at different pans.
+ */
 async function pan(page: Page, touch: boolean, dir: -1 | 1): Promise<void> {
-  const settle = async (): Promise<void> => {
-    let last = NaN;
-    for (let k = 0; k < 120; k++) {
-      const x = (await hook(page)).cameraX;
-      if (x === last) return;
-      last = x;
-      await page.waitForTimeout(500);
-    }
-  };
+  const limit = dir < 0 ? CAMERA_MIN_X : CAMERA_MAX_X;
+  const atEnd = async (): Promise<boolean> => Math.abs((await hook(page)).cameraX - limit) < 0.5;
   if (!touch) {
     const key = dir < 0 ? 'KeyA' : 'KeyD';
     await page.keyboard.down(key);
-    await settle();
+    for (let k = 0; k < 240 && !(await atEnd()); k++) await page.waitForTimeout(500);
     await page.keyboard.up(key);
+    if (!(await atEnd()))
+      throw new Error(`pan: camera ${(await hook(page)).cameraX}, not ${limit}`);
     return;
   }
-  // Touch: repeated in-page drags (a fresh pointerId each) until the camera stops.
-  for (let k = 0; k < 40; k++) {
-    const before = (await hook(page)).cameraX;
+  // Touch: repeated in-page drags (a fresh pointerId each) until the camera is at the limit.
+  for (let k = 0; k < 80; k++) {
+    if (await atEnd()) return;
     await page.evaluate(
       ([d, id]) => {
         const canvas = document.querySelector<HTMLCanvasElement>('#game canvas');
@@ -165,8 +168,8 @@ async function pan(page: Page, touch: boolean, dir: -1 | 1): Promise<void> {
       [dir, 700 + k] as const,
     );
     await page.waitForTimeout(600);
-    if ((await hook(page)).cameraX === before) return;
   }
+  if (!(await atEnd())) throw new Error(`pan: camera ${(await hook(page)).cameraX}, not ${limit}`);
 }
 
 /** Capture mode's freeze (F) on or off, waiting for it to show in the hook. */
@@ -179,6 +182,8 @@ async function freeze(page: Page, on: boolean): Promise<void> {
 
 interface Grab {
   img: Rgba;
+  /** The sim camera x when grabbed (design px). */
+  cameraX: number;
   /** Device px per design px, and the canvas's top-left in device px. */
   k: number;
   ox: number;
@@ -196,6 +201,7 @@ async function grab(page: Page): Promise<Grab> {
   const dpr = img.width / css;
   return {
     img,
+    cameraX: h.cameraX,
     k: (box.height / h.designHeight) * dpr,
     ox: box.x * dpr,
     oy: box.y * dpr,
@@ -265,18 +271,38 @@ async function panorama(page: Page, info: TestInfo): Promise<Grab[]> {
   return out;
 }
 
-/** For each key, the first grab where it is fully on screen, cropped. */
-function crops(grabs: readonly Grab[], keys: readonly string[]): Map<string, Rgba> {
-  const out = new Map<string, Rgba>();
-  for (const key of keys)
-    for (const g of grabs) {
-      const b = g.bounds.find((x) => x.key === key);
-      const sw = (g.img.width - 2 * g.ox) / g.k;
-      if (b === undefined || b.x < 0 || b.x + b.w > sw || b.w <= 0) continue;
-      out.set(key, cut(g, b));
-      break;
-    }
-  return out;
+/** The index of the first grab where `key` is fully on screen, or -1. */
+function grabFor(grabs: readonly Grab[], key: string): number {
+  return grabs.findIndex((g) => {
+    const b = g.bounds.find((x) => x.key === key);
+    const sw = (g.img.width - 2 * g.ox) / g.k;
+    return b !== undefined && b.x >= 0 && b.x + b.w <= sw && b.w > 0;
+  });
+}
+
+/** `key` cut from grab `i` (null when it isn't there). */
+function cropAt(grabs: readonly Grab[], i: number, key: string): Rgba | null {
+  const g = grabs[i];
+  const b = g?.bounds.find((x) => x.key === key);
+  return g === undefined || b === undefined ? null : cut(g, b);
+}
+
+/**
+ * Camera x and every layer's on-screen first-tile box per grab, both modes (the log asked for
+ * when the phone crops differed): docs/art-preview/compare/hd-pan-<biome>-<device>.json.
+ */
+function panLog(biome: string, info: TestInfo, byMode: Map<string, Grab[]>): void {
+  const log: Record<string, unknown> = {};
+  for (const [mode, grabs] of byMode)
+    log[mode] = grabs.map((g) => ({
+      cameraX: g.cameraX,
+      layers: g.bounds.filter((b) => b.key.startsWith('layer:')),
+    }));
+  mkdirSync(OUT, { recursive: true });
+  writeFileSync(
+    join(OUT, `hd-pan-${biome}-${device(info.project.name)}.json`),
+    `${JSON.stringify(log, null, 1)}\n`,
+  );
 }
 
 const SCENERY: Readonly<Record<string, readonly string[]>> = {
@@ -292,20 +318,37 @@ const SCENERY: Readonly<Record<string, readonly string[]>> = {
 for (const [biome, keys] of Object.entries(SCENERY))
   test(`Standard | HD crops: ${biome}`, async ({ page }, info) => {
     await seed(page);
-    const byMode = new Map<string, Map<string, Rgba>>();
+    const byMode = new Map<string, Grab[]>();
     for (const mode of ['standard', 'hd']) {
       await huntIn(page, info, mode, biome);
-      byMode.set(mode, crops(await panorama(page, info), keys));
+      byMode.set(mode, await panorama(page, info));
     }
+    panLog(biome, info, byMode);
+    const std = byMode.get('standard') ?? [];
+    const hd = byMode.get('hd') ?? [];
+    // The same pan in both modes: each grab's camera, and at that camera every layer's tiles.
+    std.forEach((g, i) => {
+      const h = hd[i];
+      expect(h?.cameraX ?? NaN, `grab ${i}: camera x`).toBeCloseTo(g.cameraX, 3);
+      for (const b of g.bounds.filter((x) => x.key.startsWith('layer:'))) {
+        const o = h?.bounds.find((x) => x.key === b.key);
+        expect(Math.abs((o?.x ?? NaN) - b.x), `grab ${i}: ${b.key} x`).toBeLessThanOrEqual(2);
+        expect(Math.abs((o?.w ?? NaN) - b.w), `grab ${i}: ${b.key} w`).toBeLessThanOrEqual(2);
+      }
+    });
+    let saved = 0;
     for (const key of keys) {
-      const a = byMode.get('standard')?.get(key);
-      const b = byMode.get('hd')?.get(key);
-      if (a === undefined || b === undefined) continue;
+      // The grab is chosen from Standard and used for both: one pan, one background.
+      const i = grabFor(std, key);
+      const a = i < 0 ? null : cropAt(std, i, key);
+      const b = i < 0 ? null : cropAt(hd, i, key);
+      if (a === null || b === null) continue;
       // Small art (far animals) at 2× so the pixels show.
       const n = a.width < 300 ? 2 : 1;
       save(`crop-${key.replace(/\//g, '_')}`, info, sideBySide(a, b, n));
+      saved++;
     }
-    expect(byMode.get('hd')?.size ?? 0).toBeGreaterThan(0);
+    expect(saved).toBeGreaterThan(0);
   });
 
 test('Standard | HD crops: a guineafowl in the scope', async ({ page }, info) => {
