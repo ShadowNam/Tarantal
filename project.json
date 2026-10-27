@@ -1,11 +1,11 @@
 {
  "schema": 1,
- "updated": "2026-10-27T20:50:00Z",
+ "updated": "2026-10-27T23:45:00Z",
  "by": "Claude",
- "summary": "Live on the test build: HD graphics (1.9.0, merged 16:05 Namibia time on 27 Oct): on first start a light card asks Standard or HD, with \"Remember my choice\" (also in Settings → Graphics). HD loads each area's sharper art pack (2.2–3.3 MB) behind the loading screen; on a slow connection \"Play now in Standard\" appears and HD swaps in during play. Standard and the fast first download are unchanged. Karoo polish (1.8.1, 08:18) is in too. Tank is building far animals in HD now (a redraw of every distant herd, about 23:30). Then: makalani palms, tree life, an Android test app for friends; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
+ "summary": "Live on the test build: far animals in HD (1.9.1, merged 01:30 Namibia time on 28 Oct): every distant herd on all five maps redrawn with real body shapes, coats, light, young ones and small movements, at your sizes (0.57 of true size, ostriches 0.45). HD now fits phone memory in every area (217–238 MB of 256; 1.9.0 went up to 383 MB outside the Karoo), and a graphics-engine bug that broke up the elephants' heads is worked around. Tank is building your playtest fixes and the red dot sight now (about 07:45). Then: makalani palms + far-fence cans, tree life, an Android test app for friends; then Namibië, Bushveld, baboons, The Harvest, the Christmas and New Year Dailies and v1.9–v1.13; Oupa's new voices last.",
  "current": {
-  "version": "1.9.0",
-  "commit": "2ff38b1"
+  "version": "1.9.1",
+  "commit": "a60ce83"
  },
  "links": [
   {
@@ -36,13 +36,13 @@
  "numbers": [
   {
    "label": "Version on the test build",
-   "value": "1.9.0",
-   "note": "commit 2ff38b1, merged 27 Oct, 16:05 Namibia time (the test build deploys a few minutes after)"
+   "value": "1.9.1",
+   "note": "commit a60ce83, merged 28 Oct, 01:30 Namibia time (the test build deploys a few minutes after)"
   },
   {
    "label": "Pull requests merged",
-   "value": "88",
-   "note": "#1 to #91"
+   "value": "89",
+   "note": "#1 to #92"
   },
   {
    "label": "Unit tests",
@@ -70,8 +70,8 @@
   },
   {
    "label": "Decisions logged",
-   "value": "53",
-   "note": "D-001 to D-053 on main"
+   "value": "54",
+   "note": "D-001 to D-054 on main"
   }
  ],
  "needsYou": [
@@ -1734,46 +1734,57 @@
   },
   {
    "id": "far-animals-in-hd-on-every-map-realistic",
-   "title": "Far animals in HD on every map: realistic zebras, giraffes, elephants, wildebeest, gemsbok, springbok, ostriches and lechwe instead of stick figures, every herd 40% smaller so the distance reads (your requests, 26 and 27 Oct)",
+   "title": "Far animals in HD on every map: realistic zebras, giraffes, elephants, wildebeest, gemsbok, springbok, ostriches and lechwe instead of stick figures, every herd smaller so the distance reads (0.57 of true size, ostriches 0.45, your playtest); HD now fits phone memory in every area; the elephant heads no longer break up; version 1.9.1 (your requests, 26 and 27 Oct)",
    "phase": "Version 1.x",
-   "status": "running",
-   "start": "2026-10-27T14:07:00Z",
-   "end": "2026-10-27T23:30:00Z",
-   "estimate": true,
+   "status": "done",
+   "start": "2026-10-27T14:54:23Z",
+   "end": "2026-10-27T23:30:33Z",
+   "estimate": false,
+   "prs": [
+    92
+   ],
    "summary": "Every far herd redrawn: zebras, giraffes, elephants, wildebeest, gemsbok, springbok, ostriches and lechwe with real proportions, jointed legs, markings and light, a few poses, young ones and small movements, at the sizes the perspective job sets.",
-   "owner": "Tank builds it (task c282b7ef, started 16:07); Claude reviews and runs the screenshots",
+   "owner": "Tank built it (task c282b7ef, 12 turns); Claude reviewed it, fixed a boot crash and the elephant-head shader bug, measured HD memory, ran the screenshots and merged it",
    "checklist": [
     {
      "text": "Redraw every far herd with real anatomy (jointed legs, hooves, real silhouettes) at the perspective sizes",
-     "done": false
+     "done": true
     },
     {
      "text": "Coats and markings: zebra stripes that follow the body, giraffe patches, elephant skin, gemsbok mask, springbok band, ostrich plumes, lechwe in water",
-     "done": false
+     "done": true
     },
     {
      "text": "Light from the scene, soft ground shadows, thin outlines and distance haze",
-     "done": false
+     "done": true
     },
     {
      "text": "2–3 poses per species, young ones, loose groups facing both ways, small idle movements",
-     "done": false
+     "done": true
     },
     {
-     "text": "Every far herd 40% smaller (your requests, 27 Oct: elephants, giraffes, zebras, wildebeest; the rest kept in proportion); one size setting per species",
-     "done": false
+     "text": "Every far herd smaller so the distance reads: 0.57 of true size, ostriches 0.45 (your requests and playtest, 27 Oct); one size setting per species",
+     "done": true
     },
     {
      "text": "Stronger outlines and less haze so heads and necks read against bright skies",
-     "done": false
+     "done": true
     },
     {
      "text": "HD versions where they help; every area stays within its download budget",
-     "done": false
+     "done": true
     },
     {
-     "text": "Screenshots before | after and Standard | HD on desktop and both phones; browser tests; merge as 1.9.1",
-     "done": false
+     "text": "Screenshots before | after and Standard | HD on desktop and both phones; browser tests on all devices; merged as 1.9.1 (#92)",
+     "done": true
+    },
+    {
+     "text": "HD texture memory fixed in every area (217–238 MB of 256 on the Pixel 7 profile; was up to 383 MB)",
+     "done": true
+    },
+    {
+     "text": "Elephant heads no longer break up (a Phaser 4.2.1 shader bug, worked around in the build)",
+     "done": true
     }
    ],
    "requestedBy": "You, 26 Oct: \"The zebras, giraffes and elephant … look very cartoony … They still look too much like stick figures.\""
@@ -1782,10 +1793,35 @@
    "id": "playtest-fixes-and-the-red-dot-sight-the",
    "title": "Playtest fixes and the red dot sight: the falling crate's power-up picture drawn in one place, the \"Ten seconds!\" call on time, and a new red dot sight power-up for the scoped guns (faster aiming, no zoom wait) (your playtest, 27 Oct)",
    "phase": "Version 1.x",
-   "status": "next",
-   "start": "2026-10-27T23:30:00Z",
-   "end": "2026-10-28T05:30:00Z",
-   "estimate": true
+   "status": "running",
+   "start": "2026-10-27T23:35:00Z",
+   "end": "2026-10-28T05:45:00Z",
+   "estimate": true,
+   "summary": "Your playtest of 27 Oct: the falling crate's power-up picture drawn once and in the right place, the \"Ten seconds!\" call on time, and a new red dot sight power-up for the .22 and the Langloop (fast aiming, no zoom wait).",
+   "owner": "Tank builds it (task 8f28c202, started 01:35); Claude reviews and runs the screenshots",
+   "checklist": [
+    {
+     "text": "Crate power-up picture: one picture, attached to the crate, also while panning, scoped in and shaking",
+     "done": false
+    },
+    {
+     "text": "\"Ten seconds!\" said at 10 s left (never late), and the hunt clock proven correct",
+     "done": false
+    },
+    {
+     "text": "Red dot sight power-up (\"Rooikol\"): no zoom wait and faster shots for the scoped guns; numbers from the balance sim",
+     "done": false
+    },
+    {
+     "text": "Pickup card, countdown chip, icon, Gun Shed Power-ups entry, Oupa line, 4 languages",
+     "done": false
+    },
+    {
+     "text": "Screenshots on desktop and both phones; browser tests; merge as the next patch",
+     "done": false
+    }
+   ],
+   "requestedBy": "You, 27 Oct 22:45: \"there should be an option, a power up that one can get for a red dot sight\"; the crate picture \"in two positions\"; \"those 10 seconds don't seem to be 10 seconds\"."
   },
   {
    "id": "makalani-palms-in-the-okavango-hanging-n",
@@ -2458,6 +2494,11 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-27T23:35:00Z",
+   "kind": "merge",
+   "text": "Far animals in HD merged (1.9.1, #92): realistic herds on every map, HD within phone memory everywhere."
+  },
   {
    "at": "2026-10-27T20:48:00Z",
    "kind": "request",
