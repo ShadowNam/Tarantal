@@ -3,6 +3,7 @@
 // files referenced but missing, placeholder keys nothing uses. `--strict` (the launch gate) also
 // fails while any key is still a placeholder. Pure: the CLI (tools/asset-audit.ts) gathers the
 // inputs from disk.
+import { CAN_SHEET } from '../../src/game/view/cans/canSheet';
 import { PLATE_FRAME_TEX, PLATE_TEX, RANGE_SOUNDS } from '../../src/game/range/rangeAssets';
 import type { AssetIndex, BirdClip } from '../../src/game/assets/assetIndex';
 import { clipFor, resolveClip } from '../../src/game/assets/birdClips';
@@ -75,6 +76,8 @@ function usages(
   if (key === MEERKAT_SHEET) needles.push(/\bMEERKAT_SHEET\b/);
   // D-048: the special days' sheet by its constant, a sound when played by name.
   if (key === HALLOWEEN_SHEET) needles.push(/\bHALLOWEEN_SHEET\b/);
+  // v1.8 (D-050): the tin cans' sheet by its constant (CanView, the placeholder).
+  if (key === CAN_SHEET) needles.push(/\bCAN_SHEET\b/);
   const spookSound = Object.entries(SPOOK_SOUNDS).find(([, k]) => k === key)?.[0];
   if (spookSound !== undefined) needles.push(new RegExp(`playSpookSound\\([^)]*'${spookSound}'`));
   const meerkatSound = Object.entries(MEERKAT_SOUNDS).find(([, k]) => k === key)?.[0];

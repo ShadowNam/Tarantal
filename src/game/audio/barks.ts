@@ -148,6 +148,10 @@ export class BarkDirector {
         case 'crateOpened':
           cands.push('crate');
           break;
+        // v1.8 (D-050): a tin can kept in the air canChain hits in a row.
+        case 'canJuggled':
+          if (e.chain === t.canChain) cands.push('canChain');
+          break;
         case 'powerupStarted':
           // An Oupa Laai pickup (or refresh) lets the next auto reload speak again.
           if (this.autoReloadIds.has(e.powerup)) this.autoSaid = false;

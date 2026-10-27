@@ -107,7 +107,12 @@
     "secret.familiefoto": "The meerkats' Familiefoto",
     "hud.familiefoto": "FAMILIEFOTO!",
     "caption.meerkat_alarm": "[brandwag's alarm bark — meerkats dive]",
-    "notaboek.familiefoto": "Take the meerkats' Familiefoto (hold your fire)"
+    "notaboek.familiefoto": "Take the meerkats' Familiefoto (hold your fire)",
+    "cans.name": "Blikkies",
+    "secret.blikkiesdans": "The Blikkiesdans",
+    "hud.blikkiesdans": "BLIKKIESDANS!",
+    "cans.weg": "WEG!",
+    "notaboek.blik_5": "Keep a blikkie in the air for 5 hits"
   },
   "de": {
     "weapon.dubbelloop": "Dubbelloop",
@@ -217,7 +222,11 @@
     "secret.familiefoto": "Das Familiefoto der Erdmännchen",
     "hud.familiefoto": "FAMILIEFOTO!",
     "caption.meerkat_alarm": "[Alarmruf des Brandwag — Erdmännchen tauchen ab]",
-    "notaboek.familiefoto": "Mach das Familiefoto der Erdmännchen (nicht schießen)"
+    "notaboek.familiefoto": "Mach das Familiefoto der Erdmännchen (nicht schießen)",
+    "cans.name": "Blikkies",
+    "secret.blikkiesdans": "Der Blikkiesdans",
+    "hud.blikkiesdans": "BLIKKIESDANS!",
+    "notaboek.blik_5": "Halte ein Blikkie 5 Treffer lang in der Luft"
   },
   "nl": {
     "weapon.dubbelloop": "Dubbelloop",
@@ -311,6 +320,10 @@
     "bark.run_won": "Het hele jaar! Bosveld-legende, m'n kind!",
     "secret.familiefoto": "De Familiefoto van de stokstaartjes",
     "caption.meerkat_alarm": "[alarmroep van de brandwag — stokstaartjes duiken weg]",
-    "notaboek.familiefoto": "Maak de Familiefoto van de stokstaartjes (niet schieten)"
+    "notaboek.familiefoto": "Maak de Familiefoto van de stokstaartjes (niet schieten)",
+    "cans.name": "Blikkies",
+    "secret.blikkiesdans": "De blikkiesdans",
+    "hud.blikkiesdans": "BLIKKIESDANS!",
+    "notaboek.blik_5": "Houd een blikkie 5 treffers lang in de lucht"
   }
 }

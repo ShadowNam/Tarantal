@@ -11,9 +11,19 @@ import { createHumanBot } from './humanBots';
 import { inReach, RIFLE_STYLES, withRifle } from './rifleBot';
 
 /** random: sprays · aim: near-perfect M1 aimer (goldens) · plinker / competent: GDD §13.8 ·
- *  spook (D-048, goldens only): shoots a special day's lanterns, bats and one owl. */
-export type BotKind = 'random' | 'aim' | 'plinker' | 'competent' | 'spook';
-export const BOT_KINDS: readonly BotKind[] = ['random', 'aim', 'plinker', 'competent'];
+ *  spook (D-048, goldens only): shoots a special day's lanterns, bats and one owl ·
+ *  canHappy (v1.8, D-050): the competent bot that shoots every tin can in view first ·
+ *  apexJuggler (v1.8, D-050): the competent bot that juggles every can at the top of its arc. */
+export type BotKind =
+  'random' | 'aim' | 'plinker' | 'competent' | 'spook' | 'canHappy' | 'apexJuggler';
+export const BOT_KINDS: readonly BotKind[] = [
+  'random',
+  'aim',
+  'plinker',
+  'competent',
+  'canHappy',
+  'apexJuggler',
+];
 
 export interface Bot {
   readonly kind: BotKind;
@@ -33,6 +43,16 @@ export function createBot(
   const style =
     kind === 'plinker' || kind === 'random' ? RIFLE_STYLES.impatient : RIFLE_STYLES.patient;
   if (kind === 'spook') return spookBot(content);
+  if (kind === 'canHappy') {
+    const competent = createHumanBot('competent', seed, content, inputKind);
+    const bot = canHappyBot(competent, seed, content, inputKind);
+    return { kind, next: withRifle(bot, content, seed, style).next };
+  }
+  if (kind === 'apexJuggler') {
+    const competent = createHumanBot('competent', seed, content, inputKind);
+    const bot = apexJuggler(competent, seed, content, inputKind);
+    return { kind, next: withRifle(bot, content, seed, style).next };
+  }
   const inner =
     kind === 'plinker' || kind === 'competent'
       ? createHumanBot(kind, seed, content, inputKind)
@@ -40,6 +60,165 @@ export function createBot(
         ? randomBot(seed)
         : aimBot(seed, content);
   return { kind, next: withRifle(inner, content, seed, style).next };
+}
+
+/**
+ * v1.8 (D-050): the competent player who can't leave a tin can alone. Whenever a can is in view
+ * and the gun is ready it shoots the can — one in the air first (it saw it ~250 ms ago and leads
+ * it along its arc, gravity and all), else a resting one — with the competent bot's aim error;
+ * otherwise it hunts like the competent bot. The balance cap: cans stay ≤ ~10 % of its score.
+ */
+function canHappyBot(
+  inner: { next(state: SimState): Command[] },
+  seed: number,
+  content: ContentBundle,
+  inputKind: InputKind,
+): { next(state: SimState): Command[] } {
+  const rng = createStream((seed ^ fnv1a32('bot:canHappy')) >>> 0);
+  const planes = content.scoring.planes;
+  const LAG = 15;
+  const SIGMA = inputKind === 'touch' ? 26 : 10;
+  const history: SimState[] = [];
+  let ready = 0;
+  const gauss = (): number => {
+    // Box–Muller from two uniforms (tools may use Math).
+    const u = Math.max(1e-9, rng.next());
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rng.next());
+  };
+  return {
+    next(s) {
+      history.push(s);
+      if (history.length > LAG + 2) history.shift();
+      const c = s.cans;
+      const seen = history[0];
+      const before = history[1];
+      const w = s.weapon;
+      if (c === undefined || seen === undefined || before === undefined) return inner.next(s);
+      if (w.shells === 0 || w.reloading || w.cooldownTicks > 0 || s.tick < ready)
+        return inner.next(s);
+      const f = planes[c.plane].scrollFactor;
+      const ratio = planes[c.plane].scale / content.scoring.tuningRefScale;
+      const g = (content.birds.cans.juggle.gravityPxPerSec2 * ratio) / 3600;
+      const lag = s.tick - seen.tick;
+      const old = new Map((seen.cans?.cans ?? []).map((k) => [k.id, k]));
+      const older = new Map((before.cans?.cans ?? []).map((k) => [k.id, k]));
+      let aim: { x: number; y: number } | null = null;
+      for (const k of c.cans) {
+        const a = old.get(k.id);
+        const b = older.get(k.id);
+        if (a === undefined || b === undefined || a.state !== 'air') continue;
+        // Its velocity as seen then, and where that arc puts it now.
+        const vx = b.x - a.x;
+        const vy = b.y - a.y;
+        aim = { x: a.x + vx * lag, y: a.y + vy * lag + 0.5 * g * lag * lag };
+        break;
+      }
+      if (aim === null) {
+        const rest = (seen.cans?.cans ?? []).find(
+          (k) => k.state === 'rest' && Math.abs(planeToDx(s.cameraX, f, k.x)) < VIEW_HALF_WIDTH,
+        );
+        if (rest !== undefined) aim = { x: rest.x, y: rest.y };
+      }
+      if (aim === null) return inner.next(s);
+      const dx = planeToDx(s.cameraX, f, aim.x);
+      if (Math.abs(dx) > VIEW_HALF_WIDTH || aim.y < 20) return inner.next(s);
+      ready = s.tick + 10;
+      return [{ t: 'fire', dx: dx + gauss() * SIGMA, sy: aim.y + gauss() * SIGMA }];
+    },
+  };
+}
+
+export interface ApexOptions {
+  /** Reaction time: it sees the can this many ticks late (default 6 = 100 ms). */
+  readonly lagTicks?: number;
+  /** Aim error, design px (default: mouse 10, touch 26). */
+  readonly sigmaPx?: number;
+  /** Pan to a resting can when none is in view (tools/juggle-check: no hunting in between). */
+  readonly seekCans?: boolean;
+}
+
+/**
+ * v1.8 (D-050): the good juggler. It knocks a resting can in view off, then follows the can with
+ * the camera and shoots it once per arc at the top (the still point a player waits for): it sees
+ * the can `lagTicks` late and aims where it saw the apex, with a Gaussian aim error — so the can
+ * has fallen and drifted a little by the time the shot lands. Cooldown and reloads as in play (it
+ * reloads at once when empty with a can in the air); without a can it hunts like `inner`.
+ */
+export function apexJuggler(
+  inner: { next(state: SimState): Command[] },
+  seed: number,
+  content: ContentBundle,
+  inputKind: InputKind,
+  opts: ApexOptions = {},
+): { next(state: SimState): Command[] } {
+  const rng = createStream((seed ^ fnv1a32('bot:apexJuggler')) >>> 0);
+  const planes = content.scoring.planes;
+  const LAG = opts.lagTicks ?? 6;
+  const SIGMA = opts.sigmaPx ?? (inputKind === 'touch' ? 26 : 10);
+  const history: SimState[] = [];
+  /** The arc it already shot at, per can: `${chain}/${state}` (one shot per arc). */
+  const shotArc = new Map<number, string>();
+  const gauss = (): number => {
+    const u = Math.max(1e-9, rng.next());
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rng.next());
+  };
+  const camFor = (x: number, f: number): number =>
+    Math.round(Math.min(CAMERA_MAX_X, Math.max(CAMERA_MIN_X, (x - 960) / f + 960)) * 2) / 2;
+  return {
+    next(s) {
+      history.push(s);
+      if (history.length > LAG + 2) history.shift();
+      const c = s.cans;
+      const seen = history[history.length - 1 - LAG];
+      const before = history[history.length - 2 - LAG];
+      if (c === undefined || seen === undefined || before === undefined) return inner.next(s);
+      const f = planes[c.plane].scrollFactor;
+      const w = s.weapon;
+      const ready = w.shells > 0 && !w.reloading && w.cooldownTicks === 0;
+      const prev = new Map((before.cans?.cans ?? []).map((k) => [k.id, k]));
+      const flying = (seen.cans?.cans ?? []).find(
+        (k) => (k.state === 'air' || k.state === 'bounced') && k.y > 0,
+      );
+      if (flying !== undefined) {
+        // Follow it (a player pans after the can).
+        const out: Command[] = [{ t: 'cameraTarget', cx: camFor(flying.x, f) }];
+        if (w.shells === 0 && !w.reloading) return [...out, { t: 'reload' }];
+        const p = prev.get(flying.id);
+        const arc = `${String(flying.chain)}/${flying.state}`;
+        const pastTop = p !== undefined && p.state === flying.state && flying.y >= p.y;
+        if (!ready || !pastTop || shotArc.get(flying.id) === arc) return out;
+        shotArc.set(flying.id, arc);
+        const cx = camFor(flying.x, f);
+        out[0] = { t: 'cameraTarget', cx };
+        return [
+          ...out,
+          {
+            t: 'fire',
+            dx: planeToDx(cx, f, flying.x) + gauss() * SIGMA,
+            sy: flying.y + gauss() * SIGMA,
+          },
+        ];
+      }
+      const rest = c.cans.find(
+        (k) => k.state === 'rest' && Math.abs(planeToDx(s.cameraX, f, k.x)) < VIEW_HALF_WIDTH,
+      );
+      if (opts.seekCans === true && w.shells === 0 && !w.reloading) return [{ t: 'reload' }];
+      if (rest === undefined) {
+        const any = c.cans.find((k) => k.state === 'rest');
+        if (opts.seekCans === true && any !== undefined)
+          return [{ t: 'cameraTarget', cx: camFor(any.x, f) }];
+        return inner.next(s);
+      }
+      if (!ready) return inner.next(s);
+      return [
+        {
+          t: 'fire',
+          dx: planeToDx(s.cameraX, f, rest.x) + gauss() * SIGMA,
+          sy: rest.y + gauss() * SIGMA,
+        },
+      ];
+    },
+  };
 }
 
 /**

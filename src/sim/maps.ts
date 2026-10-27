@@ -4,7 +4,7 @@
 // (biome, layout, bonus) always gives the same map, so the map id in a replay or a challenge
 // link is all a client needs. No layout (replays before v1.2, Season Run, FTUE) = the biome as
 // it is.
-import type { Biome, BonusMap, Layout } from '../content/schemas';
+import type { Biome, BonusMap, Fence, Layout } from '../content/schemas';
 import { PLANES, type PlaneId } from './types';
 
 /** How the map sets the biome weather against the mode's default. */
@@ -23,6 +23,17 @@ export interface ResolvedMap {
   readonly planePointsMul: Readonly<Partial<Record<PlaneId, number>>>;
   /** v1.3 (D-036): the map opens the Ver plane (its layer is in `biome.layers`). */
   readonly ver: boolean;
+  /** v1.8 (D-050): the day's fence with its tin cans, on the plane the bonus map moves it to
+   *  (null: none; the plain biome, the Season Run and the FTUE have none). */
+  readonly fence: Fence | null;
+}
+
+/** v1.8 (D-050): the layout's fence, moved to the bonus map's plane for it. */
+export function mapFence(layout: Layout | null, bonus: BonusMap | null): Fence | null {
+  const f = layout?.fence;
+  if (f === undefined) return null;
+  const plane = bonus?.fencePlane?.[f.plane] ?? f.plane;
+  return plane === f.plane ? f : { ...f, plane };
 }
 
 /**
@@ -151,6 +162,7 @@ export function resolveMap(
       pointsMul: 1,
       planePointsMul: {},
       ver: openVer && hasVer,
+      fence: null,
     };
   }
   const layout = findLayout(biome, layoutId);
@@ -172,6 +184,7 @@ export function resolveMap(
       bonusWeather !== undefined && bonusWeather !== 'default' ? bonusWeather : layout.weather,
     pointsMul: (layout.pointsMul ?? 1) * (bonus?.pointsMul ?? 1),
     planePointsMul: combinePlaneMul(layout.planePointsMul, bonus?.planePointsMul),
+    fence: mapFence(layout, bonus),
   };
 }
 

@@ -632,5 +632,17 @@
   "caption.bat_squeak": "[a bat squeaks]",
   "caption.lantern_out": "[a lantern puffs out]",
   "admin.group_feesdae": "Special days",
-  "admin.feesdag_date": "{name} · {date}"
+  "admin.feesdag_date": "{name} · {date}",
+  "cans.name": "Tin Cans",
+  "cans.knock": "Tink!",
+  "cans.chain": "{n}× in the air!",
+  "cans.weg": "GONE!",
+  "secret.blikkiesdans": "The tin-can dance",
+  "hud.blikkiesdans": "TIN-CAN DANCE!",
+  "notaboek.blik_5": "Keep a tin can in the air for 5 hits",
+  "bark.blik_lug": "Hou hom in die lug! Keep it up there!",
+  "bark.blik_dans": "Kyk hoe dans hy! Look at that can dance!",
+  "caption.can_tink": "[a tin can clinks]",
+  "caption.can_rattle": "[a can rattles on the ground]",
+  "caption.can_whistle": "[a can whistles away out of sight]"
 }

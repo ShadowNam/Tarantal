@@ -428,12 +428,12 @@ test.describe('Skietbaan (training ground)', () => {
     expect((await hook(page)).scene).toBe('skietbaan');
     await expect(page.locator('#tm-admin')).toHaveCount(0);
     // Every gun, locked ones too (each rifle once per sight), every playable biome (Namibië
-    // too on a fresh admin save), 4 distances + All, 5 targets + Mixed.
+    // too on a fresh admin save), 4 distances + All, 6 targets (v1.8: Blikkies) + Mixed.
     await expect(page.locator('#tm-range [data-role=gun] button')).toHaveCount(RANGE_GUN_COUNT);
     await expect(page.locator('#tm-range [data-role=biome] button')).toHaveCount(ALL_BIOMES.length);
     await expect(page.locator('#tm-range [data-role=biome] [data-value=namibie]')).toHaveCount(1);
     await expect(page.locator('#tm-range [data-role=plane] button')).toHaveCount(5);
-    await expect(page.locator('#tm-range [data-role=target] button')).toHaveCount(6);
+    await expect(page.locator('#tm-range [data-role=target] button')).toHaveCount(7);
     // D-042 (14): the web build offers Fresh load (not pressed: it reloads the page).
     await expect(page.locator('#tm-range [data-action=fresh-load]')).toHaveCount(1);
     // Shotguns can't reach Ver: it stays selectable, with a note that the shots fall short.

@@ -61,6 +61,8 @@ function metricValue(m: NotaboekMetric, log: HuntLog): number {
       return 0; // counted from the Bird Book below
     case 'familiefotos':
       return log.secretsFound.includes(FAMILIEFOTO_SECRET) ? 1 : 0;
+    case 'canChain':
+      return log.canChain ?? 0;
   }
 }
 

@@ -45,6 +45,21 @@
       "paperRadiusPx": 120,
       "plateRadiusPx": 100,
       "flockSize": 5,
+      "cans": {
+        "$comment": "v1.8 (D-050): the Blikkies target, a 3-post fence in the screen centre at the chosen distance (GDD §11.3, §12.1).",
+        "kind": "wood",
+        "posts": [
+          { "dx": -110, "h": 52 },
+          { "dx": 0, "h": 56 },
+          { "dx": 110, "h": 50 }
+        ],
+        "cans": [
+          { "post": 0, "type": "food" },
+          { "post": 1, "type": "cooldrink" },
+          { "post": 2, "type": "paint" }
+        ],
+        "groundY": { "near": 990, "mid": 772, "far": 632, "ver": 575 }
+      },
       "spots": {
         "near": {
           "paper": [

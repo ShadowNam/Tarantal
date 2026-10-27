@@ -895,6 +895,7 @@
     "fontPx": 30,
     "bagStreak": 3,
     "missStreak": 4,
+    "canChain": 3,
     "idleSeconds": 8,
     "lastSeconds": 10,
     "triggers": {
@@ -1015,6 +1016,12 @@
         "lines": [
           "bark.oupa_laai"
         ]
+      },
+      "canChain": {
+        "$comment": "v1.8 (D-050): a tin can juggled barks.canChain times in a row (GDD §11.3).",
+        "priority": 58,
+        "cooldownMs": 20000,
+        "lines": ["bark.blik_lug", "bark.blik_dans"]
       },
       "crate": {
         "priority": 25,
@@ -1211,5 +1218,14 @@
         "owlScale": 2.2
       }
     }
+  },
+  "cans": {
+    "$comment": "v1.8 (D-050): the tin cans' look and sound (GDD §11.3, art bible). The motion-blurred frame shows above blurDegPerSec of spin; the clink rises with the chain.",
+    "blurDegPerSec": 900,
+    "maxMarks": 24,
+    "shadowFadePx": 160,
+    "pitchPerChain": 0.07,
+    "pitchMax": 1.9,
+    "wire": [0.42, 0.78]
   }
 }

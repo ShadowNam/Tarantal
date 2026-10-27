@@ -4,6 +4,7 @@
 import { coreWidth, DESIGN_HEIGHT } from '../sim/world';
 import { mixedOverlaps } from './rangeFootprint';
 import { colonyIssues } from './colonyChecks';
+import { fenceIssues } from './fenceChecks';
 import { WORLD_EVENT_HANDLERS } from '../sim/director/events';
 
 /** Half the narrowest visible design width (4:3, 1440 px; Tech §3.3). */
@@ -365,6 +366,8 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
     for (const b of biome.bonusMaps) i18n(file, b.nameKey);
     // v1.7 (D-044): meerkat colonies on every map of the biome.
     for (const m of colonyIssues(bundle, biome)) err(file, m);
+    // v1.8 (D-050): the Blikkies fences (a can stands on a post; nothing hidden behind them).
+    for (const m of fenceIssues(bundle, biome)) err(file, m);
     for (const entry of biome.spawnTable) {
       const c = creatures.get(entry.creature);
       if (c === undefined) err(file, `spawnTable uses unknown creature "${entry.creature}"`);

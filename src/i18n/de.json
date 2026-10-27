@@ -632,5 +632,17 @@
   "caption.bat_squeak": "[eine Fledermaus piepst]",
   "caption.lantern_out": "[eine Laterne erlischt]",
   "admin.group_feesdae": "Feiertage",
-  "admin.feesdag_date": "{name} · {date}"
+  "admin.feesdag_date": "{name} · {date}",
+  "cans.name": "Blechdosen",
+  "cans.knock": "Pling!",
+  "cans.chain": "{n}× in der Luft!",
+  "cans.weg": "WEG!",
+  "secret.blikkiesdans": "Der Blechdosentanz",
+  "hud.blikkiesdans": "BLECHDOSENTANZ!",
+  "notaboek.blik_5": "Halte eine Blechdose 5 Treffer lang in der Luft",
+  "bark.blik_lug": "Hou hom in die lug! Halt sie da oben!",
+  "bark.blik_dans": "Kyk hoe dans hy! Schau, wie die Dose tanzt!",
+  "caption.can_tink": "[eine Blechdose scheppert]",
+  "caption.can_rattle": "[eine Dose klappert am Boden]",
+  "caption.can_whistle": "[eine Dose pfeift davon]"
 }

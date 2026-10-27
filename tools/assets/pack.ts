@@ -8,6 +8,8 @@
 //   audio/sfx/<id>.wav · audio/music/<biome>/<stem>.wav · audio/ambience/<biome>.wav ·
 //   audio/voice/<id>.wav                                  WAV masters, normalised here
 // Output file names carry a content hash; the same sources always give the same bytes.
+import { CAN_SHEET } from '../../src/game/view/cans/canSheet';
+import { CAN_MASTER } from '../art/blikkies';
 import { createHash } from 'node:crypto';
 import {
   existsSync,
@@ -877,6 +879,8 @@ export function propPlaneRes(content: ContentBundle, key: string): number {
   if (key === MEERKAT_SHEET) return SHEET_MASTER;
   // D-048: the Halloween sheet keeps its 2× master (its frame table is in texture px at 2×).
   if (key === HALLOWEEN_SHEET) return FEESDAE_MASTER;
+  // v1.8 (D-050): the tin cans keep their 2× master (near cans are seen close up).
+  if (key === CAN_SHEET) return CAN_MASTER;
   let res = 0;
   for (const b of content.biomes)
     for (const p of b.props) {

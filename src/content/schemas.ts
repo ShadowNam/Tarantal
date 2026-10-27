@@ -133,6 +133,21 @@ export const ScoringSchema = obj({
   eventBonusMultipliers: z
     .array(z.enum(['frenzy', 'stampede']))
     .refine((m) => new Set(m).size === m.length, 'eventBonusMultipliers must be unique'),
+  /** v1.8 (D-050, GDD §11.3): Blikkies — tin cans on the fence posts. Event bonuses (× Frenzy ×
+   *  Stampede), never a bag. An air hit n (1, 2, …) pays airHit + airHitStep × (min(n,
+   *  chainCap) − 1); everything × the can's plane factor, rounded. */
+  cans: obj({
+    knockOff: posInt,
+    airHit: posInt,
+    airHitStep: nonNegInt,
+    chainCap: posInt,
+    /** "Weg!": the can left the top of the view. */
+    weg: posInt,
+    planeMul: allPlanes(pos),
+    /** The Blikkiesdans secret: a chain this long (once a hunt), a secret found. */
+    secretChain: posInt,
+    secretBonus: posInt,
+  }),
 });
 export type Scoring = z.infer<typeof ScoringSchema>;
 
@@ -236,6 +251,52 @@ const meerkatActivity = obj({
   dash: nonNeg,
   dive: nonNeg,
 });
+/** v1.8 (D-050): the kinds of tin can (art and size). */
+export const CanTypeSchema = z.enum(['food', 'paint', 'bully', 'cooldrink']);
+export type CanType = z.infer<typeof CanTypeSchema>;
+
+/**
+ * v1.8 (D-050, GDD §11.3): Blikkies. Sizes are design px at plane scale 1 (× the plane's scale,
+ * the radius floored by the plane's minHitRadiusPx: cans are targets). Speeds, gravity and post
+ * spacing are px at the tuning reference (× tuningRatio, D-049), so a far can flies a smaller arc
+ * in the same time. The flight is the generic juggle body (src/sim/juggle/body.ts).
+ */
+export const CansSchema = obj({
+  /** The hit capsule of each kind upright: radius and half the length of its axis. */
+  types: z.record(CanTypeSchema, obj({ r: pos, half: nonNeg })),
+  /** In the air a can's hit radius is × this (a tumbling can sweeps more than its outline, and a
+   *  shot pattern must be able to find it: GDD §11.3); on its post and lying it is as drawn. */
+  airHitMul: z.number().min(1),
+  juggle: obj({
+    gravityPxPerSec2: pos,
+    /** The knock-off: upward speed; sideways speed at a hit on the can's edge (at least
+     *  minSideShare of it at a hit on the centre line); spin. */
+    kickUpPxPerSec: pos,
+    kickSidePxPerSec: nonNeg,
+    minSideShare: fraction,
+    spinDegPerSec: nonNeg,
+    /** Per chain step n (capped at growthCapHits): up × (1 + upGrowth × n), spin + spinGrowth × n,
+     *  sideways jitter ±(jitterPxPerSec + jitterGrowth × n). */
+    upGrowth: nonNeg,
+    spinGrowthDegPerSec: nonNeg,
+    jitterPxPerSec: nonNeg,
+    jitterGrowthPxPerSec: nonNeg,
+    growthCapHits: posInt,
+    /** Several pellets on one can: one kick × min(1 + pelletBonus × (pellets − 1), pelletCap). */
+    pelletBonus: nonNeg,
+    pelletCap: z.number().min(1),
+    /** Back on the ground: one bounce (vertical speed × restitution, sideways and spin ×
+     *  keep), then it lies there. */
+    bounce: obj({ restitution: fraction, keep: fraction }),
+    /** Gone ("Weg!") once the can's top is this far above the top of the view. */
+    goneMarginPx: nonNeg,
+    /** From this air hit on the kick is sized to clear the top of the view: every chain ends in
+     *  Weg! by this length at the latest. */
+    wegChain: posInt,
+  }),
+});
+export type Cans = z.infer<typeof CansSchema>;
+
 export const MeerkatsSchema = obj({
   /** Hit shapes from the feet (sim position): standing tall, low (sit, dig, run) and a peeking
    *  head; mirrored by facing like a bird's. */
@@ -401,6 +462,8 @@ export const BirdsSchema = obj({
   creatures: z.array(CreatureSchema).min(1),
   /** v1.7 (D-044): the desert maps' meerkat colonies (behaviour and rules). */
   meerkats: MeerkatsSchema,
+  /** v1.8 (D-050): the tin cans on the fence posts (shape and flight). */
+  cans: CansSchema,
 });
 export type Birds = z.infer<typeof BirdsSchema>;
 
@@ -888,6 +951,20 @@ export const ColonySchema = obj({
 });
 export type Colony = z.infer<typeof ColonySchema>;
 
+/**
+ * v1.8 (D-050): a fence stretch with tin cans on its posts, on one plane of a weekday layout.
+ * Posts: dx from the fence's u and height, px at the tuning reference (× tuningRatio). Each can
+ * stands on a post (`post` indexes `posts`), at most one per post.
+ */
+export const FenceSchema = obj({
+  plane: PlaneIdSchema,
+  u: fraction,
+  kind: z.enum(['wood', 'dropper', 'kraal']),
+  posts: z.array(obj({ dx: z.number(), h: pos })).min(3).max(6),
+  cans: z.array(obj({ post: nonNegInt, type: CanTypeSchema })).min(1).max(6),
+});
+export type Fence = z.infer<typeof FenceSchema>;
+
 const laneSchema = obj({
   groundY: range(nonNeg).optional(),
   skyY: range(nonNeg).optional(),
@@ -970,6 +1047,8 @@ const mapOverrideShape = {
 export const LayoutSchema = obj({
   id: WeekdayIdSchema,
   ...mapOverrideShape,
+  /** v1.8 (D-050): the day's fence with its tin cans (absent = none). */
+  fence: FenceSchema.optional(),
   light: id,
   weather: z.enum(['calm', 'default', 'omen']),
 });
@@ -982,6 +1061,9 @@ export const BonusMapSchema = obj({
   /** v1.3 (D-036): the map starts only with a rifle that has a scope fitted (a sight whose
    *  picture is `scope`); the title's button says why otherwise. */
   needsScope: z.boolean().optional(),
+  /** v1.8 (D-050): where the day's fence stands on this map, by the layout's plane (absent
+   *  plane = it stays where it is). */
+  fencePlane: somePlanes(PlaneIdSchema).optional(),
 });
 export type BonusMap = z.infer<typeof BonusMapSchema>;
 
@@ -1150,6 +1232,8 @@ export const BiomeSchema = obj({
   cameraStartU: fraction.optional(),
   /** v1.7 (D-044): meerkat colonies (layouts may replace them; absent = none). */
   colonies: z.array(ColonySchema).max(2).optional(),
+  /** v1.8 (D-050): a fence's ground line per plane (design px), for the layouts' fences. */
+  fenceY: somePlanes(z.number()).optional(),
   /** v1.2: one layout per UTC weekday, Monday first. */
   layouts: z
     .array(LayoutSchema)
@@ -1230,6 +1314,15 @@ const rangeSchema = modeSetupSchema.omit({ huntSeconds: true }).extend({
   plateRadiusPx: pos,
   /** Birds in the small flock (at least the 3 a flock needs). */
   flockSize: z.number().int().min(3),
+  /** v1.8 (D-050): the Blikkies target — a short fence in the screen centre at the chosen
+   *  distance (posts as in a layout's fence), its ground line per plane; fresh cans stand on it
+   *  respawnMs after the last one landed or left. */
+  cans: obj({
+    kind: z.enum(['wood', 'dropper', 'kraal']),
+    posts: z.array(obj({ dx: z.number(), h: pos })).min(3).max(6),
+    cans: z.array(obj({ post: nonNegInt, type: CanTypeSchema })).min(1).max(6),
+    groundY: allPlanes(z.number()),
+  }),
   spots: allPlanes(rangePlaneSchema),
   /** 24 Oct update (D-037): the mixed course — targets on every distance at once. */
   mixed: obj({
@@ -1443,6 +1536,8 @@ export const BARK_TRIGGERS = [
   'badHunt',
   'quotaMissed',
   'runWon',
+  // v1.8 (D-050): a tin can juggled barks.canChain times in a row.
+  'canChain',
   // D-048: a special day's own lines (feesdae.json barks; the tuning here gives no lines).
   'feesdagStart',
   'feesdagBat',
@@ -1900,6 +1995,8 @@ export const FeelSchema = obj({
     /** Shots in a row that bagged (bagStreak) or missed (missStreak). */
     bagStreak: posInt,
     missStreak: posInt,
+    /** v1.8 (D-050): a tin can juggled this many times in a row: Oupa's canChain line. */
+    canChain: posInt,
     /** Seconds without a shot (idle), and seconds left on the clock (lastSeconds). */
     idleSeconds: pos,
     lastSeconds: pos,
@@ -1981,6 +2078,20 @@ export const FeelSchema = obj({
       }),
     ),
   }),
+  /** v1.8 (D-050): how the tin cans look and sound (src/game/view/cans; the look only). */
+  cans: obj({
+    /** Above this spin the motion-blurred frame shows. */
+    blurDegPerSec: pos,
+    /** Dents kept on one can (the oldest go first). */
+    maxMarks: posInt,
+    /** The ground shadow fades out this far above the ground (design px at plane scale 1). */
+    shadowFadePx: pos,
+    /** The clink's pitch: × (1 + pitchPerChain × n), at most pitchMax. */
+    pitchPerChain: nonNeg,
+    pitchMax: pos,
+    /** Fence wire strands, as shares of the post height from the ground. */
+    wire: z.array(fraction).max(3),
+  }),
 });
 export type Feel = z.infer<typeof FeelSchema>;
 
@@ -2007,6 +2118,8 @@ export const NotaboekMetricSchema = z.enum([
   'bonusUnlocks',
   /** v1.7 (D-044): the meerkats' Familiefoto taken (the secret, on any desert map). */
   'familiefotos',
+  /** v1.8 (D-050): the hunt's longest tin-can juggle (air hits in a row; scope hunt). */
+  'canChain',
 ]);
 export type NotaboekMetric = z.infer<typeof NotaboekMetricSchema>;
 

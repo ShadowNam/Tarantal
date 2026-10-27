@@ -2,7 +2,7 @@
 // art-source/ exactly like a human delivery (docs/06), marked `"origin": "interim"` in each rig.json.
 // Then run `npm run assets:pack`. A folder whose rig.json is not marked interim is a human delivery
 // and is never touched.
-//   --only birds|guns|scenery|sprites|flyers|range|meerkats|feesdae
+//   --only birds|guns|scenery|sprites|flyers|range|meerkats|feesdae|blikkies
 //                         one part (none: sheets only). scenery = parallax layers + props (D-031),
 //                         sprites = shared FX/UI/crate sprites, flyers = non-target birds,
 //                         range = the Skietbaan's steel plate (24 Oct update),
@@ -46,6 +46,8 @@ import {
   SHEET_MASTER as FEESDAE_MASTER,
 } from '../../src/game/feesdae/feesdaeAssets';
 import { renderHalloweenSheet } from './halloween';
+import { CAN_MASTER, renderCanSheet } from './blikkies';
+import { CAN_SHEET } from '../../src/game/view/cans/canSheet';
 import { hatAnchors } from './hatAnchors';
 
 /** v1.7 (D-044): palette size of the meerkat sheet (look round: 48 keeps the shading and lets
@@ -452,6 +454,20 @@ if (wants('feesdae')) {
     await json(hatAnchors(cfg, content)),
   );
   console.log('src/game/feesdae/hatAnchors.json');
+}
+if (wants('blikkies')) {
+  // v1.8 (D-050): the tin cans and fence posts, one small shared sheet at 2× (layout:
+  // src/game/view/cans/canSheet.ts), in the common group (the placeholder manifest's).
+  const png = join(src, 'sprites', `${CAN_SHEET}.png`);
+  if (!oursFile(png)) console.warn(`skip sprites/${CAN_SHEET}: a human delivery is there`);
+  else {
+    put(png, encodePng8(renderCanSheet()));
+    put(
+      png.replace(/\.png$/, '.json'),
+      await json({ origin: 'interim', encode: 'png8', master: CAN_MASTER, originX: 0, originY: 0 }),
+    );
+    console.log(`sprites/${CAN_SHEET}`);
+  }
 }
 if (wants('flyers')) {
   for (const [creature, planes] of Object.entries(FLYERS)) {

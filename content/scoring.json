@@ -120,5 +120,21 @@
   "eventBonusMultipliers": [
     "frenzy",
     "stampede"
-  ]
+  ],
+  "cans": {
+    "$comment": "v1.8 (D-050, GDD §11.3): tin cans are event bonuses (× Stampede only: a can shot leaves the streak alone), never a bag. Air hit n pays airHit + airHitStep × (min(n, chainCap) − 1); every payment × planeMul of the can's plane. Weg! when it leaves the top of the view. Cans stay ≤ ~10 % of a competent score (docs/balance/v1.8-blikkies.md).",
+    "knockOff": 5,
+    "airHit": 8,
+    "airHitStep": 2,
+    "chainCap": 8,
+    "weg": 15,
+    "planeMul": {
+      "near": 0.8,
+      "mid": 1.3,
+      "far": 2,
+      "ver": 2.5
+    },
+    "secretChain": 8,
+    "secretBonus": 75
+  }
 }

@@ -531,6 +531,66 @@ sometimes with a pup that trails its mother. They are non-targets: never hurt, n
 - **Balance:** competent scores change by −0.9 % to +4.4 % on every desert map
   (`docs/balance/v1.7-meerkats.md`).
 
+### 11.3 Blikkies: tin cans on the fence posts (v1.8, D-050)
+
+The product owner (24 and 26 Oct): "On maps with fence posts, have some cans standing on them that
+can be shot off. They somersault when hit … The distance should vary … if you hit them again they
+continue spinning up and so on till you don't see them anymore." Shooting *blikkies* off a fence is
+a South African farm pastime: here it is a skill toy beside the bird hunt, never a replacement.
+
+- **Where:** the farm areas — Karoo (wooden posts and wire), Bushveld (iron droppers), Kalahari
+  (posts and droppers on the farm line) and Namibië (a kraal of poles by the waterhole). On **3–4
+  of each area's 7 weekday layouts** one fence stretch of **3–6 posts** stands, a can on each post
+  (a post may stand bare). The Okavango has no farm fence, so no cans there.
+- **Varied distance:** each layout puts its fence on the near, mid or far plane (the days differ).
+  The bonus maps push it back: **Verder** one plane back (near → mid, mid → far, far stays far),
+  **Nog Verder** on the far plane, **Die Verste** on the Ver strip (rifles only reach it, §5.2).
+  Cans are targets: they scale with their plane and their hit radius is floored by the plane's
+  `minHitRadiusPx`, like a bird's (D-049). The posts are scenery: pellets pass them.
+- **Knock-off:** a hit kicks the can sideways *away from the hit* (hit left of its centre → it
+  flies right), upward, and spinning (the somersault). Gravity takes it, in plane space and scaled
+  with the plane (`tuningRatio`), so a far can flies a smaller arc in the same time.
+- **The juggle:** every further hit while it is in the air kicks it again, **higher** (the upward
+  kick grows with the chain count n), **spinning faster**, with **more sideways jitter** as n grows,
+  so it gets less predictable. The growth per hit is capped (never the height), so a long chain
+  keeps climbing until the can leaves the top of the view: **"Weg!"** — gone for good, a finish
+  bonus and a fading whistle. The **10th air hit** (`juggle.wegChain`) always kicks it out of the
+  top, however low it was hit, so no juggle runs on without end.
+- **Landing:** back at the fence's ground line it bounces once, rattles and lies there for the rest
+  of the hunt. A landed can scores nothing more and is scenery: pellets pass it, as they pass the
+  posts.
+- **One kick per shot:** a shotgun's pellets on one can give one kick (stronger with more pellets,
+  capped at ×1.04); the hit side is where they struck on average. **In the air a can is easier to
+  hit** (its drawn radius × `airHitMul`, 2.5; a tumbling can sweeps more than its outline). The
+  plane's `minHitRadiusPx` floors only a *resting* can, so a far can is easy to knock off and
+  hard to juggle. Measured with the apex juggler (`tools/juggle-check.ts`: it shoots once per arc
+  at the top, 100 ms late, 10 px aim error, Dubbelloop): near reaches a chain of 3 in ~96 % of
+  juggles and 5 in ~55 %, nearly all ending in "Weg!" at chain 4–6; mid 3 in ~50 %, 5 in ~30 %;
+  far 3 in ≤ 1 %. A 16 px / 150 ms shot: near 3 in ~63 %, mid ~27 %. The kick is 430 px/s up and
+  110 px/s sideways at the tuning scale (`content/birds.json → cans.juggle`). Touch aim assist rescues a shot at a can
+  the same way as at a bird (the aim point inside the assist-grown can → the pattern is centred on it).
+- **It is still a shot:** it costs ammo, and its impact makes noise like any shot (flocks near it
+  alert, a silenced gun stays quiet). A resting can and its fence never stand in front of a bird
+  band or a secret on a plane behind (content checks, like the meerkat colonies); a can in flight is
+  a fair target wherever it is (a pellet stops on the nearest thing).
+- **Scoring** (`content/scoring.json → cans`, event bonuses, GDD §5.3, × Stampede only: a can
+  shot leaves the streak alone, so a Frenzy multiplier would last a whole juggle): knock-off 5;
+  air hit n pays 8 + 2 × (min(n, 8) − 1); Weg! 15; all × a per-plane factor (near 0.8, mid 1.3,
+  far 2, Ver 2.5: further cans pay more, and far is the hardest to juggle). A shot that hits only cans neither
+  extends nor resets Frenzy and is not a miss (like a secret part). Never a bag: no Bird Book, no
+  Whole Flock, no combo.
+- **Extras:** Oupa barks at a chain of 3+ ("Hou hom in die lug!"); a Notaboek challenge (keep a can
+  in the air for 5 hits); a secret, **Blikkiesdans**, for a chain of 8 (counts as a secret found,
+  once a hunt).
+- **Modes:** Classic and the Daily (the day's layout), the bonus maps, and the Skietbaan (§12.1:
+  a Blikkies target at every distance). **Not the Season Run** (nor the FTUE): it plays the plain
+  biome, whose quotas and lesson stay fixed, and the cans would be a quota shortcut there.
+- **Balance:** cans never out-score birds: a competent bot's share of score from cans stays
+  ≤ ~10 %, also for a "can-happy" bot that shoots every can it sees and for the apex juggler
+  that juggles every can it knocks off (`docs/balance/v1.8-blikkies.md`).
+- **Names:** Blikkies (af), Tin Cans (en), Blechdosen (de), Blikjes (nl) (`docs/i18n-names.md`;
+  the Afrikaans-names toggle shows "Blikkies" in every language).
+
 ### 11.5 Day-of-week maps and bonus map Verder (v1.2, D-033)
 
 Every biome has **seven layouts, one per UTC weekday** (`content/biomes/<biome>.json → layouts`,
@@ -653,6 +713,11 @@ does this gun really shoot at that distance?" without the pressure of a hunt.
   aim point. Reset and "Copy report". Kept for the page's session only. On the mixed course a
   hit counts for the target it put the most pellets on, a miss for the target nearest the aim
   point on screen.
+- **Blikkies (v1.8, D-050):** a short fence of three posts with a tin can on each, in the screen
+  centre at any one distance (near, mid, far or Ver; not on the mixed course), with the hunt's
+  juggling rules (§11.3). Fresh cans stand up `respawnMs` after the last one landed or flew out of
+  sight. Its report adds knock-offs per shot, air-hit accuracy (air hits of the shots fired while
+  a can was in the air) and the longest chain.
 - **Unranked:** no unlocks, Notaboek, bests, Daily, rank or Bird Book; the save is never written.
 
 ## 13. Season Run (roguelite) in detail

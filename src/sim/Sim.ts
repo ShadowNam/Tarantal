@@ -18,6 +18,18 @@ import {
 } from './birds/Bird';
 import { duckBoss, spookBoss, updateScripted } from './birds/scripted';
 import {
+  BLIKKIESDANS_SECRET,
+  CAN_ID_BASE,
+  canCapsule,
+  canHitR,
+  canLocal,
+  canPoints,
+  hitCan,
+  startCans,
+  stepCans,
+  type Blikkies,
+} from './cans/cans';
+import {
   lanternsLit,
   removeThings,
   spookShape,
@@ -742,6 +754,53 @@ export function createSim(config: SimConfig): Sim {
           rng: rng.stream('feesdag'),
         });
   const spookTally = { bats: 0, owls: 0 };
+  // v1.8 (D-050): the day's fence and its tin cans (Classic and Daily maps; never the Skietbaan's
+  // hunt map, which sets its own up, the Season Run or the FTUE: they play no layout).
+  // v1.8 (D-050): the Skietbaan's Blikkies target — a short fence in the screen centre at the
+  // chosen distance; fresh cans (new ids) respawnMs after the last one landed or left.
+  const rangeCans =
+    rangeCfg !== null && rangeCfg.target === 'cans' && rangeCfg.plane !== 'all'
+      ? { setup: content.modes.modes.range.cans, plane: rangeCfg.plane }
+      : null;
+  // Placed once, in the screen centre at the start: fresh cans stand on the same posts however
+  // the range camera has panned since (review of v1.8: they floated on invisible posts).
+  const rangeFenceU =
+    rangeCans === null
+      ? 0
+      : planeCentreX(cameraX, scoring.planes[rangeCans.plane].scrollFactor) /
+        coreWidth(scoring.planes[rangeCans.plane].scrollFactor);
+  const rangeFence = (gen: number): Blikkies | null => {
+    if (rangeCans === null) return null;
+    const { kind, posts, cans: onPosts, groundY } = rangeCans.setup;
+    return startCans({
+      fence: {
+        plane: rangeCans.plane,
+        u: rangeFenceU,
+        kind,
+        posts,
+        cans: onPosts,
+      },
+      biome: { ...biome, fenceY: groundY },
+      cans: content.birds.cans,
+      planes: scoring.planes,
+      tuningRefScale: scoring.tuningRefScale,
+      idBase: CAN_ID_BASE + gen * 100,
+    });
+  };
+  let blik: Blikkies | null = ranged
+    ? rangeFence(0)
+    : setup.map.fence === null
+      ? null
+      : startCans({
+          fence: setup.map.fence,
+          biome,
+          cans: content.birds.cans,
+          planes: scoring.planes,
+          tuningRefScale: scoring.tuningRefScale,
+        });
+  let canGen = 0;
+  let canRespawnAt = -1;
+  let canPointsPaid = 0;
   if (!ranged) {
     for (const def of biome.colonies ?? []) {
       const layer = layerById.get(def.layer);
@@ -1256,13 +1315,23 @@ export function createSim(config: SimConfig): Sim {
   }
 
   // --- shooting ----------------------------------------------------------------------------
-  function hitExtras(): Map<string, HitExtra[]> {
+  /** `canAssist`: v1.8 touch assist's growth per plane for the tin cans (the assist's view). */
+  function hitExtras(canAssist?: Readonly<Record<PlaneId, number>>): Map<string, HitExtra[]> {
     const out = new Map<string, HitExtra[]>();
     const add = (layerId: string, e: HitExtra): void => {
       const list = out.get(layerId);
       if (list === undefined) out.set(layerId, [e]);
       else list.push(e);
     };
+    // v1.8 (D-050): tin cans on the posts and in the air (landed and gone ones are done).
+    if (blik !== null) {
+      const layerId = planeLayer.get(blik.fence.plane);
+      if (layerId !== undefined)
+        for (const c of blik.cans) {
+          if (c.body.state === 'landed' || c.body.state === 'gone') continue;
+          add(layerId, { kind: 'can', canId: c.id, ...canCapsule(c, canAssist?.[c.plane] ?? 0) });
+        }
+    }
     // D-048: the Spookjag's bats, owls and lit lanterns come first in their plane's layer.
     for (const t of spook?.things ?? []) {
       const layerId = planeLayer.get(t.plane);
@@ -1445,13 +1514,15 @@ export function createSim(config: SimConfig): Sim {
         ? plane === 'far' || plane === 'ver'
         : r.meerkatId !== undefined
           ? false
-          : r.spookId !== undefined
-            ? spook?.things.find((t) => t.id === r.spookId)?.plane === 'far'
-            : r.crateId !== null
-              ? crateCfg.plane === 'far'
-              : r.propId !== null
-                ? (propLayerFactor.get(r.propId) ?? 1) <= farFactor
-                : true;
+          : r.canId !== undefined
+            ? blik?.fence.plane === 'far' || blik?.fence.plane === 'ver'
+            : r.spookId !== undefined
+              ? spook?.things.find((t) => t.id === r.spookId)?.plane === 'far'
+              : r.crateId !== null
+                ? crateCfg.plane === 'far'
+                : r.propId !== null
+                  ? (propLayerFactor.get(r.propId) ?? 1) <= farFactor
+                  : true;
     const ldx = landedFar ? pdx + drift : pdx;
     emit({
       type: 'pelletImpact',
@@ -1466,6 +1537,7 @@ export function createSim(config: SimConfig): Sim {
       ...(r.paperId === undefined ? {} : { paperId: r.paperId }),
       ...(r.meerkatId === undefined ? {} : { meerkatId: r.meerkatId }),
       ...(r.spookId === undefined ? {} : { spookId: r.spookId }),
+      ...(r.canId === undefined ? {} : { canId: r.canId }),
       ...(cx === null ? {} : { cx }),
     });
     return { dx: ldx, sy: psy, r };
@@ -1558,6 +1630,7 @@ export function createSim(config: SimConfig): Sim {
       byPlane,
       extras,
       driftOn(drift),
+      touchAssist && blik !== null ? hitExtras(assisted.assistPx) : extras,
     );
     const landed = pellets.map((p) => landPellet(shotId, p.pdx, p.psy, p.r, drift, null));
     resolveShot(ctx, landed);
@@ -1588,6 +1661,7 @@ export function createSim(config: SimConfig): Sim {
           r.crateId !== null ||
           r.paperId !== undefined ||
           r.meerkatId !== undefined ||
+          r.canId !== undefined ||
           f.next >= bands.length;
         if (!stopped) continue;
         resolveShot(ctx, [landPellet(f.shotId, f.dx, psy, r, drift, f.cx)]);
@@ -1639,6 +1713,11 @@ export function createSim(config: SimConfig): Sim {
     const crateHits: number[] = [];
     const meerkatHits: number[] = [];
     const spookHits: number[] = [];
+    /** v1.8: pellets per tin can, their summed offsets and the dents (in landing order). */
+    const canHits = new Map<
+      number,
+      { n: number; dx: number; dy: number; at: { dx: number; dy: number }[] }
+    >();
     let paperHits = 0;
     /** Range: pellets per paper target or steel plate, in landing order. */
     const paperPellets = new Map<number, number>();
@@ -1675,6 +1754,14 @@ export function createSim(config: SimConfig): Sim {
       if (r.meerkatId !== undefined && !meerkatHits.includes(r.meerkatId))
         meerkatHits.push(r.meerkatId);
       if (r.spookId !== undefined && !spookHits.includes(r.spookId)) spookHits.push(r.spookId);
+      if (r.canId !== undefined) {
+        const h = canHits.get(r.canId) ?? { n: 0, dx: 0, dy: 0, at: [] };
+        h.n++;
+        h.dx += r.canDx ?? 0;
+        h.dy += r.canDy ?? 0;
+        h.at.push({ dx: r.canDx ?? 0, dy: r.canDy ?? 0 });
+        canHits.set(r.canId, h);
+      }
     }
 
     if (rangeProgram !== null) {
@@ -1682,6 +1769,9 @@ export function createSim(config: SimConfig): Sim {
       const aimed = rangeShots.get(shotId);
       rangeShots.delete(shotId);
       const hits = rangeProgram.hits(paperPellets, pelletsOn, birds);
+      // v1.8 (D-050): the Blikkies target's cans.
+      for (const [id, h] of canHits)
+        hits.push({ plane: blik?.fence.plane ?? 'near', target: 'cans', id, pellets: h.n });
       const short = hits.length === 0 && aimed?.plane === 'ver' && !shot.reachesVer;
       emit({ type: 'rangeOutcome', tick, shotId, hits, short });
     }
@@ -1713,7 +1803,8 @@ export function createSim(config: SimConfig): Sim {
       crateHits.length > 0 ||
       paperHits > 0 ||
       meerkatHits.length > 0 ||
-      spookHits.length > 0;
+      spookHits.length > 0 ||
+      canHits.size > 0;
 
     const targets = bagged.filter((x) => x.bird.creature.kind !== 'nonTarget');
     const nonTargets = bagged.filter((x) => x.bird.creature.kind === 'nonTarget');
@@ -1860,6 +1951,7 @@ export function createSim(config: SimConfig): Sim {
       }
     }
     if (spookHits.length > 0) shotSpook(shotId, spookHits);
+    if (canHits.size > 0) shotCans(shotId, canHits);
     // This shot counts against shell power-ups it had; one it picks up starts with the next.
     endPowerups(onShellFired(powerups));
     for (const id of crateHits) openCrate(id);
@@ -1968,14 +2060,114 @@ export function createSim(config: SimConfig): Sim {
     if (gone.length > 0) removeThings(spook, gone);
   }
 
+  /**
+   * v1.8 (D-050): the tin cans a shot hit, in id order: one kick per can however many pellets
+   * struck it (stronger with more, capped), away from the side they struck. Event bonuses (GDD
+   * §5.3): a knock-off, an air hit escalating with the chain; Oupa's bark and the Blikkiesdans
+   * secret at their chain lengths.
+   */
+  function shotCans(
+    shotId: number,
+    hits: ReadonlyMap<
+      number,
+      { n: number; dx: number; dy: number; at: { dx: number; dy: number }[] }
+    >,
+  ): void {
+    if (blik === null) return;
+    const cs = scoring.cans;
+    for (const c of blik.cans) {
+      const h = hits.get(c.id);
+      if (h === undefined) continue;
+      // Dents in the can's frame before the kick turns it.
+      const marks = h.at.map((a) => {
+        const l = canLocal(c, a.dx, a.dy);
+        return { lx: Math.round(l.lx * 100) / 100, ly: Math.round(l.ly * 100) / 100 };
+      });
+      const meanDx = h.dx / h.n;
+      // The side it was struck on, against its size when struck (before the kick).
+      const hitR = canHitR(c);
+      const k = hitCan(blik, c, meanDx, h.n, rng.stream('cans'));
+      if (k === null) continue;
+      const knock = k.kind === 'knock';
+      const base = canPoints(cs, c.plane, knock ? 'knock' : { chain: k.chain });
+      const points = awardBonus(knock ? 'canKnock' : 'canAir', base);
+      canPointsPaid += points;
+      const side = hitR > 0 ? Math.max(-1, Math.min(1, meanDx / hitR)) : 0;
+      emit({
+        type: knock ? 'canKnocked' : 'canJuggled',
+        tick,
+        shotId,
+        canId: c.id,
+        plane: c.plane,
+        x: c.body.x,
+        y: c.body.y,
+        chain: k.chain,
+        pellets: h.n,
+        side: Math.round(side * 1000) / 1000,
+        marks,
+        points,
+      });
+      if (!knock && k.chain >= cs.secretChain && !blik.danced) {
+        blik.danced = true;
+        secretFound(BLIKKIESDANS_SECRET, String(c.id), cs.secretBonus);
+      }
+    }
+  }
+
+  /** v1.8: the cans in flight move; a landing rattles, a can out of the top pays Weg!. */
+  function tickCans(): void {
+    if (blik === null) return;
+    // The Skietbaan: fresh cans once every can is down or gone.
+    if (
+      rangeCans !== null &&
+      blik.cans.every((c) => c.body.state === 'landed' || c.body.state === 'gone')
+    ) {
+      if (canRespawnAt < 0)
+        canRespawnAt = tick + Math.max(1, msToTicks(content.modes.modes.range.respawnMs));
+      else if (tick >= canRespawnAt) {
+        canGen++;
+        canRespawnAt = -1;
+        blik = rangeFence(canGen);
+        if (blik === null) return;
+      }
+    }
+    for (const { can, r } of stepCans(blik)) {
+      if (r === 'gone') {
+        const points = awardBonus('canWeg', canPoints(scoring.cans, can.plane, 'weg'));
+        canPointsPaid += points;
+        emit({
+          type: 'canGone',
+          tick,
+          canId: can.id,
+          plane: can.plane,
+          x: can.body.x,
+          chain: can.body.chain,
+          points,
+        });
+      } else
+        emit({
+          type: 'canLanded',
+          tick,
+          canId: can.id,
+          plane: can.plane,
+          x: can.body.x,
+          y: can.body.y,
+          final: r === 'landed',
+        });
+    }
+  }
+
   function awardBonus(bonus: BonusId, base: number, ruleMul = 1): number {
     if (ranged) return 0;
     const charmMul =
       bonus === 'wholeFlock' || bonus === 'twoFlies' || bonus === 'secretChain'
         ? pass.bonusMul[bonus]
         : 1;
+    // v1.8 (D-050): tin cans pay × Stampede only. A can-only shot leaves the streak alone, so a
+    // Frenzy multiplier would stay on for a whole juggle (review of v1.8).
+    const canBonus = bonus === 'canKnock' || bonus === 'canAir' || bonus === 'canWeg';
     const award = scoreEventBonus(base, {
-      frenzyMul: frenzyMul(streak, scoring.frenzyTiers),
+      frenzyMul: canBonus ? 1 : frenzyMul(streak, scoring.frenzyTiers),
       stampedeMul: stampedeMul(),
       multipliers: scoring.eventBonusMultipliers,
       ...(charmMul === 1 ? {} : { bonusMul: charmMul }),
@@ -2754,6 +2946,7 @@ export function createSim(config: SimConfig): Sim {
       colonyAlarms();
       tickColonies();
     }
+    tickCans();
     if (spook !== null) {
       const r = stepSpookjag(
         spook,
@@ -2946,6 +3139,30 @@ export function createSim(config: SimConfig): Sim {
               },
         over,
         ...(ranged ? { range: { papers } } : {}),
+        ...(blik === null
+          ? {}
+          : {
+              cans: {
+                plane: blik.fence.plane,
+                kind: blik.fence.kind,
+                groundY: blik.fence.groundY,
+                posts: blik.fence.posts,
+                cans: blik.cans.map((c) => ({
+                  id: c.id,
+                  type: c.type,
+                  x: c.body.x,
+                  y: c.body.y,
+                  angle: c.body.angle,
+                  spin: c.body.spin,
+                  state: c.body.state,
+                  chain: c.body.chain,
+                  r: c.r,
+                  half: c.half,
+                  hitR: canHitR(c),
+                })),
+                bestChain: blik.bestChain,
+              },
+            }),
         ...(spook === null || setup.feesdag === null
           ? {}
           : {
@@ -3005,6 +3222,18 @@ export function createSim(config: SimConfig): Sim {
         consumablesUsed: [...consumablesUsed],
         rentalUsed,
         bossesBagged,
+        ...(blik === null
+          ? {}
+          : {
+              cans: {
+                total: blik.cans.length,
+                knocks: blik.knocks,
+                airHits: blik.airHits,
+                bestChain: blik.bestChain,
+                weg: blik.weg,
+                points: canPointsPaid,
+              },
+            }),
         ...(spook === null || setup.feesdag === null
           ? {}
           : {

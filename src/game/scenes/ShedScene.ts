@@ -3,6 +3,7 @@
 // way to Settings. It is not a shop: everything here is unlocked by playing (GDD §13.6).
 import { unlockedBiomes } from '../../meta/areas';
 import { FAMILIEFOTO_SECRET, hasColonies } from '../../sim/meerkats/colony';
+import { BLIKKIESDANS_SECRET } from '../../sim/cans/cans';
 import { designSize, renderScale } from '../layout';
 import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
@@ -577,6 +578,17 @@ export class ShedScene extends Phaser.Scene {
                     {
                       label: `★ ${t('secret.familiefoto')}`,
                       seen: book.secrets.includes(secretKey(b.id, FAMILIEFOTO_SECRET)),
+                    },
+                  ]
+                : [],
+            )
+            // v1.8 (D-050): a biome with a Blikkies fence on some day has the Blikkiesdans.
+            .concat(
+              b.layouts.some((l) => l.fence !== undefined)
+                ? [
+                    {
+                      label: `★ ${t('secret.blikkiesdans')}`,
+                      seen: book.secrets.includes(secretKey(b.id, BLIKKIESDANS_SECRET)),
                     },
                   ]
                 : [],

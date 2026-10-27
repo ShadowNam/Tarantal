@@ -408,6 +408,12 @@
       ]
     }
   ],
+  "fenceY": {
+    "near": 990,
+    "mid": 772,
+    "far": 632,
+    "ver": 572
+  },
   "layouts": [
     {
       "id": "mon",
@@ -646,7 +652,53 @@
             6
           ]
         }
-      ]
+      ],
+      "fence": {
+        "$comment": "v1.8 (D-050): Blikkies — a farm fence with tin cans on its posts (GDD §11.3).",
+        "plane": "mid",
+        "u": 0.6,
+        "kind": "kraal",
+        "posts": [
+          {
+            "dx": -200,
+            "h": 56
+          },
+          {
+            "dx": -96,
+            "h": 49
+          },
+          {
+            "dx": -1,
+            "h": 54
+          },
+          {
+            "dx": 103,
+            "h": 50
+          },
+          {
+            "dx": 198,
+            "h": 57
+          }
+        ],
+        "cans": [
+          {
+            "post": 0,
+            "type": "cooldrink"
+          },
+          {
+            "post": 1,
+            "type": "food"
+          },
+          {
+            "post": 3,
+            "type": "bully"
+          },
+          {
+            "post": 4,
+            "type": "cooldrink"
+          }
+        ]
+      }
     },
     {
       "id": "thu",
@@ -806,7 +858,49 @@
             8
           ]
         }
-      ]
+      ],
+      "fence": {
+        "$comment": "v1.8 (D-050): Blikkies — a farm fence with tin cans on its posts (GDD §11.3).",
+        "plane": "near",
+        "u": 0.56,
+        "kind": "kraal",
+        "posts": [
+          {
+            "dx": -160,
+            "h": 49
+          },
+          {
+            "dx": -50,
+            "h": 54
+          },
+          {
+            "dx": 50,
+            "h": 50
+          },
+          {
+            "dx": 158,
+            "h": 57
+          }
+        ],
+        "cans": [
+          {
+            "post": 0,
+            "type": "food"
+          },
+          {
+            "post": 1,
+            "type": "paint"
+          },
+          {
+            "post": 2,
+            "type": "bully"
+          },
+          {
+            "post": 3,
+            "type": "cooldrink"
+          }
+        ]
+      }
     },
     {
       "id": "sat",
@@ -957,7 +1051,61 @@
             6
           ]
         }
-      ]
+      ],
+      "fence": {
+        "$comment": "v1.8 (D-050): Blikkies — a farm fence with tin cans on its posts (GDD §11.3).",
+        "plane": "far",
+        "u": 0.45,
+        "kind": "kraal",
+        "posts": [
+          {
+            "dx": -242,
+            "h": 54
+          },
+          {
+            "dx": -142,
+            "h": 50
+          },
+          {
+            "dx": -44,
+            "h": 57
+          },
+          {
+            "dx": 46,
+            "h": 52
+          },
+          {
+            "dx": 146,
+            "h": 56
+          },
+          {
+            "dx": 236,
+            "h": 49
+          }
+        ],
+        "cans": [
+          {
+            "post": 0,
+            "type": "paint"
+          },
+          {
+            "post": 1,
+            "type": "bully"
+          },
+          {
+            "post": 2,
+            "type": "cooldrink"
+          },
+          {
+            "post": 4,
+            "type": "paint"
+          },
+          {
+            "post": 5,
+            "type": "bully"
+          }
+        ]
+      }
     }
   ],
   "bonusMaps": [
@@ -987,6 +1135,10 @@
       "ver": true,
       "planePointsMul": {
         "ver": 0.8
+      },
+      "fencePlane": {
+        "near": "mid",
+        "mid": "far"
       }
     },
     {
@@ -1011,7 +1163,11 @@
         }
       },
       "pointsMul": 0.6,
-      "ver": true
+      "ver": true,
+      "fencePlane": {
+        "near": "far",
+        "mid": "far"
+      }
     },
     {
       "$comment": "Die Verste: long range only — the waterhole flocks and Ver fly-overs; a scoped rifle is the tool.",
@@ -1036,7 +1192,12 @@
         }
       },
       "pointsMul": 0.46,
-      "ver": true
+      "ver": true,
+      "fencePlane": {
+        "near": "ver",
+        "mid": "ver",
+        "far": "ver"
+      }
     }
   ]
 }

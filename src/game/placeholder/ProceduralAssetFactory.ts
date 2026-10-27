@@ -3,6 +3,7 @@
 // birds dark and cool against a warm veld. Everything is drawn onto canvases and registered in the
 // AssetManifest, so real art can replace any key later. Rendering-only code: Math.random would be
 // allowed here, but a tiny seeded PRNG keeps the panorama identical between runs and screenshots.
+import { canSpecs } from './canArt';
 import type { AmmoType, Biome, ContentBundle } from '../../content/schemas';
 import type { ArtPlaneId as PlaneId } from '../assets/artPlane';
 import { coreWidth, LAYER_BLEED_PX } from '../../sim/world';
@@ -1545,6 +1546,8 @@ export function createPlaceholderManifest(
     },
   });
   for (const s of art.extraTextures?.() ?? []) m.addTexture(s);
+  // v1.8 (D-050): the tin cans' sheet (common: the home Karoo has a fence).
+  for (const s of canSpecs()) m.addTexture(s);
   // v1.7 (D-044): a map with meerkat colonies plays their sounds (the desert group).
   if (hasColonies(biome)) for (const key of Object.values(MEERKAT_SOUNDS)) m.addSound(key);
   for (const s of uiSpecs()) m.addTexture(s);

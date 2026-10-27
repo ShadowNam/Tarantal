@@ -54,6 +54,7 @@ import { crosshairExtent, reloadBoostsOf, spreadMulOf } from '../ui/gunLook';
 import { WorldView } from '../view/WorldView';
 import { WeaverView } from '../view/WeaverView';
 import { MeerkatView } from '../view/MeerkatView';
+import { CanView } from '../view/cans/CanView';
 import { playMeerkatSound } from '../audio/meerkatSounds';
 import { textureBytes } from '../assets/textureBytes';
 import { mapLights, mapOmen, resolveMap, type ResolvedMap } from '../../sim/maps';
@@ -117,6 +118,8 @@ export class HuntScene extends Phaser.Scene {
   private weavers!: WeaverView;
   /** v1.7 (D-044): the desert maps' meerkat colonies. */
   private meerkats!: MeerkatView;
+  /** v1.8 (D-050): the day's fence and tin cans. */
+  private cans!: CanView;
   /** v1.7c (D-047): fruit that swing and drop when shot (lazy chunk; null until it is in). */
   private fruit: FruitView | null = null;
   private fruitGen = 0;
@@ -463,6 +466,24 @@ export class HuntScene extends Phaser.Scene {
         mid: planes.mid.scale,
         far: planes.far.scale,
         ver: planes.ver.scale,
+      },
+    );
+    this.cans = new CanView(
+      this,
+      this.manifest,
+      this.parallax,
+      this.ctx.feel.cans,
+      {
+        near: planes.near.scale,
+        mid: planes.mid.scale,
+        far: planes.far.scale,
+        ver: planes.ver.scale,
+      },
+      {
+        near: planes.near.lineWeightPx,
+        mid: planes.mid.lineWeightPx,
+        far: planes.far.lineWeightPx,
+        ver: planes.ver.lineWeightPx,
       },
     );
     this.loadFruit(mapBiome);
@@ -1444,6 +1465,9 @@ export class HuntScene extends Phaser.Scene {
       hook.flockLog = [];
       hook.meerkatLog = [];
       hook.meerkats = [];
+      hook.cans = null;
+      hook.canLog = [];
+      hook.canMs = 0;
       hook.fruit = null;
       hook.hunts++;
     }
@@ -1557,6 +1581,7 @@ export class HuntScene extends Phaser.Scene {
     const w0 = performance.now();
     this.weavers.update(state);
     this.meerkats.update(state);
+    this.cans.update(state, runner.prev, alpha);
     if (this.spookView !== null) {
       this.spookView.viewZoom = zoom.z;
       this.spookView.layout(width, height);
@@ -1572,6 +1597,7 @@ export class HuntScene extends Phaser.Scene {
     }
     if (this.ctx.hook) {
       this.ctx.hook.meerkatMs += this.meerkats.ms;
+      this.ctx.hook.canMs += this.cans.ms;
       // v1.4 B (e2e perf): what the weavers and the mirage cost per frame.
       this.ctx.hook.sceneryMs += performance.now() - w0 + this.world.mirageMs;
       this.ctx.hook.sceneryFrames++;
@@ -1726,6 +1752,10 @@ export class HuntScene extends Phaser.Scene {
       hook.wind = state.wind;
       hook.weavers = this.weavers.visibleCount;
       hook.meerkats = this.meerkats.spots();
+      hook.cans =
+        state.cans === undefined
+          ? null
+          : { plane: state.cans.plane, spots: this.cans.spots(), bestChain: state.cans.bestChain };
       hook.spook =
         state.feesdag === undefined || this.spookView === null
           ? null
@@ -1845,6 +1875,17 @@ export class HuntScene extends Phaser.Scene {
     // v1.4 B: a shot family nest lets its weavers out; they chatter and scold (AudioDirector).
     this.meerkats.handle(events);
     this.spookView?.handle(events, this.ctx.audio, width);
+    this.cans.handle(events, this.ctx.audio, width);
+    if (this.ctx.hook) {
+      const log = this.ctx.hook.canLog;
+      for (const e of events) {
+        if (e.type === 'canKnocked') log.push(`knock:${String(e.points)}`);
+        else if (e.type === 'canJuggled') log.push(`juggle:${String(e.chain)}:${String(e.points)}`);
+        else if (e.type === 'canLanded' && e.final) log.push('landed');
+        else if (e.type === 'canGone') log.push(`weg:${String(e.points)}`);
+      }
+      if (log.length > 200) log.splice(0, log.length - 200);
+    }
     // v1.7 (D-044): the sentinel's alarm bark and the Familiefoto's camera click.
     for (const e of events) {
       if (e.type === 'meerkatAlarm')

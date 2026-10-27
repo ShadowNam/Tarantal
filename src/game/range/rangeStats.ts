@@ -34,6 +34,9 @@ export interface RangeCell {
   pelletsOn: number;
   /** The newest paper impacts, oldest first (at most GROUP_IMPACTS; for the group stats). */
   impacts: Impact[];
+  /** v1.8 (D-050) Blikkies: knock-offs, shots fired while a can was in the air, air hits, and
+   *  the longest chain. */
+  cans: { knocks: number; airShots: number; airHits: number; bestChain: number };
 }
 
 export interface GroupStats {
@@ -135,6 +138,11 @@ export class RangeStats {
   /** Bumped by reset(): a sim started before it reports into nothing. */
   private epoch = 0;
   private lastResult: ShotResult | null = null;
+  /** v1.8: tin cans in the air now, and shots fired while one was (by shot id). */
+  private readonly airborne = new Set<number>();
+  private readonly airShots = new Set<number>();
+  /** Shots counted for a Blikkies cell, for their can events (which follow rangeOutcome). */
+  private readonly canCells = new Map<number, RangeCell>();
 
   get generation(): number {
     return this.epoch;
@@ -169,6 +177,7 @@ export class RangeStats {
         short: 0,
         pelletsOn: 0,
         impacts: [],
+        cans: { knocks: 0, airShots: 0, airHits: 0, bestChain: 0 },
       };
       this.cells.set(key, c);
     }
@@ -179,12 +188,18 @@ export class RangeStats {
   newSession(): void {
     this.open.clear();
     this.lastResult = null;
+    this.airborne.clear();
+    this.airShots.clear();
+    this.canCells.clear();
   }
 
   reset(): void {
     this.cells.clear();
     this.open.clear();
     this.lastResult = null;
+    this.airborne.clear();
+    this.airShots.clear();
+    this.canCells.clear();
     this.epoch++;
   }
 
@@ -193,7 +208,33 @@ export class RangeStats {
     const landed: ShotResult[] = [];
     for (const e of events) {
       switch (e.type) {
+        case 'canKnocked':
+        case 'canJuggled': {
+          this.airborne.add(e.canId);
+          const cell = this.canCells.get(e.shotId);
+          if (cell === undefined) break;
+          const c = cell.cans;
+          if (e.type === 'canKnocked') c.knocks++;
+          else {
+            c.airHits++;
+            c.bestChain = Math.max(c.bestChain, e.chain);
+          }
+          break;
+        }
+        case 'canLanded':
+          if (e.final) this.airborne.delete(e.canId);
+          break;
+        case 'canGone':
+          this.airborne.delete(e.canId);
+          break;
         case 'shotFired': {
+          if (sel.target === 'cans' && this.airborne.size > 0) {
+            this.airShots.add(e.shotId);
+            if (this.airShots.size > OPEN_SHOTS) {
+              const oldest = this.airShots.values().next();
+              if (oldest.done !== true) this.airShots.delete(oldest.value);
+            }
+          }
           this.open.set(e.shotId, {
             gun: sel.gun,
             pellets: sel.pellets,
@@ -234,6 +275,14 @@ export class RangeStats {
           if (plane === null || target === null) break;
           const cell = this.cell({ gun: s.gun, plane, target, pellets: s.pellets });
           cell.shots++;
+          if (this.airShots.delete(e.shotId)) cell.cans.airShots++;
+          if (target === 'cans') {
+            this.canCells.set(e.shotId, cell);
+            if (this.canCells.size > OPEN_SHOTS) {
+              const oldest = this.canCells.keys().next();
+              if (oldest.done !== true) this.canCells.delete(oldest.value);
+            }
+          }
           if (top !== null) {
             cell.hits++;
             cell.pelletsOn += top.pellets;
