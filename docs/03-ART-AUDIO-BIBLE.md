@@ -330,7 +330,7 @@ silhouette, never a geometric shape; foliage as separate clumps of leaf dabs wit
 ground shows; lit tops and shaded undersides (light from the upper left); textured bark (furrowed,
 smooth with folds, or flaky plates); a soft ground contact shadow; each tree grown from the layer's
 seeded random stream, so no two repeat. Distant planes get simpler versions: far trees are a few
-ragged clumps with a lit cap and plain limbs, no dabs. Distant animals (`tools/art/fauna.ts`) share
+ragged clumps with a lit cap and plain limbs, no dabs. Distant animals (v1.6; redrawn in D-054: `tools/art/farFauna.ts`, see far animals below) share
 one rig with species proportions and markings, three poses (grazing, walking, head up), a lit back,
 a shaded belly and far legs, a soft ground shadow and no ink (edged in a darker shade of their own
 colour, D-035 rule 3). Species follow the decision log's "Biome-accurate flora/fauna".

@@ -8,7 +8,7 @@ export const GUINEAFOWL_M = 0.5;
 
 /**
  * Real heights (m) in the sense the fauna art's `h` is drawn: the shoulder for the quadrupeds,
- * the top of the head for the giraffe and the ostrich (tools/art/fauna.ts).
+ * the top of the head for the giraffe and the ostrich (tools/art/farFauna.ts).
  */
 export const ANIMAL_M: Readonly<Record<AnimalKind, number>> = {
   elephant: 3.2,

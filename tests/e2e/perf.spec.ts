@@ -117,6 +117,40 @@ for (const gfx of ['standard', 'hd'] as const)
     expect(errors).toEqual([]);
   });
 
+// D-054: the far animals' HD twins are largest in the Bushveld (elephants, giraffes) and the
+// Okavango (elephants, lechwe): each area's HD hunt within the medium tier's texture budget
+// (Tech §9: 256 MB) on the Pixel 7 profile, once every herd draws its HD art.
+for (const biome of ['bushveld-winter', 'okavango-spring'] as const)
+  test(`HD texture memory with the far animals: ${biome}`, async ({ page, browserName }, info) => {
+    test.skip(
+      info.project.name !== 'pixel7-landscape' || browserName !== 'chromium',
+      'the Pixel 7 profile (medium tier)',
+    );
+    test.setTimeout(400_000);
+    await emulateCores(page);
+    await boot(page, `biome=${biome}&layout=none&seed=3&huntSeconds=60&graphics=hd`);
+    await startHunt(page, isTouchProject(info));
+    await page.waitForFunction(
+      () => {
+        const tm = window.__TM__;
+        const fauna = (tm?.graphics.bounds ?? []).filter((b) => b.key.startsWith('fauna/'));
+        return (tm?.graphics.hdTextures ?? 0) > 0 && fauna.length > 0 && fauna.every((b) => b.hd);
+      },
+      null,
+      { timeout: 180_000 },
+    );
+    // A few texture samples (the hook updates about twice a second).
+    await page.waitForTimeout(2000);
+    const h = await hook(page);
+    const mb = Math.round((h.textureBytes / (1024 * 1024)) * 10) / 10;
+    console.log(`[perf] ${biome} HD texture memory ${mb} MB`);
+    await info.attach(`hd-memory-${biome}.json`, {
+      body: JSON.stringify({ biome, textureMB: mb, top: h.textureTop }, null, 1),
+      contentType: 'application/json',
+    });
+    expect(mb, `${biome}: texture memory (MB) with HD`).toBeLessThanOrEqual(256);
+  });
+
 // v1.4 B (D-039): Namibië on the Pixel 7 profile — the mirage on (Tuesday) and the weavers kept
 // out the whole hunt (the family nest shot every 2 s), same method and budget as the smoke.
 test('perf: Namibië mirage and angry weavers at 4× CPU throttle (Pixel 7)', async ({
