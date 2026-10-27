@@ -581,9 +581,9 @@ export const BUSHVELD_PLAN: BiomeArtPlan = {
     'bushveld/aloe_a': {
       draw: aloeClump(
         [
-          plant(-36, 118, 116, 60, 5, -0.4, -226),
-          plant(80, 122, 86, 24, 4, 0.6, -226),
-          plant(-122, 130, 58, 0, 1, 0.2, -226),
+          plant(-30, 118, 112, 60, 5, -0.4, -226),
+          plant(66, 122, 80, 24, 4, 0.6, -226),
+          plant(-108, 130, 54, 0, 1, 0.2, -226),
         ],
         'grassDark',
         'grass',
@@ -597,7 +597,7 @@ export const BUSHVELD_PLAN: BiomeArtPlan = {
         [
           plant(24, 116, 122, 66, 6, 0.3, -226),
           plant(-98, 124, 84, 20, 3, -0.7, -226),
-          plant(128, 132, 58, 0, 2, -0.2, -226),
+          plant(116, 132, 56, 0, 2, -0.2, -226),
         ],
         'grassDark',
         'grass',

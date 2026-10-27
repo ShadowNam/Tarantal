@@ -2276,13 +2276,13 @@ export function aloeClump(
     const parts: string[] = [];
     const mound = smoothD(
       [
-        [-164, 158],
-        [-150, 120],
+        [-150, 158],
+        [-138, 120],
         [-96, 102],
         [0, 100],
         [100, 104],
-        [152, 120],
-        [166, 158],
+        [140, 120],
+        [152, 158],
       ],
       true,
       0.7,
@@ -2397,7 +2397,7 @@ export const KAROO_PLAN: BiomeArtPlan = {
     'karoo/hd/aloe_a': {
       draw: aloeClump([
         plant(-40, 116, 100, 50, 5, -0.4),
-        plant(72, 120, 76, 20, 3, 0.6),
+        plant(60, 120, 70, 20, 3, 0.6),
         plant(-120, 128, 50, 0, 0, 0.2),
       ]),
       master: 2,
