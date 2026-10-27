@@ -49,6 +49,7 @@ import { renderHalloweenSheet } from './halloween';
 import { CAN_MASTER, renderCanSheet } from './blikkies';
 import { CAN_SHEET } from '../../src/game/view/cans/canSheet';
 import { hatAnchors } from './hatAnchors';
+import { HD_PARTS, hdKeyOf } from '../../src/game/assets/hdProps';
 
 /** v1.7 (D-044): palette size of the meerkat sheet (look round: 48 keeps the shading and lets
  *  the Kalahari chunk plus the desert chunk fit 1.5 MB). */
@@ -320,6 +321,28 @@ if (wants('scenery')) {
         }),
       );
       console.log(`sprites/${prop.asset}`);
+      // D-051: the prop's HD stand-in and its pieces (late group; src/game/assets/hdProps.ts).
+      const hd = hdKeyOf(prop.asset);
+      for (const key of hd === undefined ? [] : [hd, ...(HD_PARTS[prop.asset] ?? [])]) {
+        const pp = plan.props[key];
+        const hdSize = m.size(key);
+        if (pp === undefined || hdSize === null) continue;
+        const hdPng = join(src, 'sprites', `${key}.png`);
+        if (!oursFile(hdPng)) continue;
+        const h = renderProp(cfg, plan, biome, { ...prop, asset: key }, hdSize, m.origin(key));
+        put(hdPng, encodePng8(h.img, pp.colours));
+        put(
+          hdPng.replace(/\.png$/, '.json'),
+          await json({
+            origin: 'interim',
+            encode: 'png8',
+            ...(pp.frame !== undefined ? { originX: h.originX, originY: h.originY } : {}),
+            ...(h.master === 1 ? {} : { master: h.master }),
+            group: LATE_GROUP,
+          }),
+        );
+        console.log(`sprites/${key}`);
+      }
     }
     // v1.7c (D-047): the biome's fruit sheet and where each fruit sits (FRUIT_LATE: late group).
     await writeFruit(biome.id, fruitOwners);

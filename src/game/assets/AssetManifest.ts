@@ -25,6 +25,9 @@ export interface CanvasSpec {
   readonly height: number;
   readonly originX: number;
   readonly originY: number;
+  /** D-051: a placeholder that is never shown (an HD stand-in): installed as a 1×1 canvas, while
+   *  `width`/`height`/origin still give the texture's design size. */
+  readonly empty?: boolean;
   draw(ctx: CanvasRenderingContext2D): void;
 }
 
@@ -585,8 +588,8 @@ export class AssetManifest {
         continue;
       }
       const canvas = document.createElement('canvas');
-      canvas.width = Math.max(1, Math.ceil(spec.width));
-      canvas.height = Math.max(1, Math.ceil(spec.height));
+      canvas.width = spec.empty === true ? 1 : Math.max(1, Math.ceil(spec.width));
+      canvas.height = spec.empty === true ? 1 : Math.max(1, Math.ceil(spec.height));
       const ctx = canvas.getContext('2d');
       if (ctx === null) throw new Error('2D canvas unavailable');
       spec.draw(ctx);
@@ -620,6 +623,12 @@ export class AssetManifest {
       out.push(key);
     }
     return out;
+  }
+
+  /** D-051: true once `key`'s delivered image is the texture under that key (not a placeholder). */
+  delivered(textures: Phaser.Textures.TextureManager, key: string): boolean {
+    const f = this.finalImages.get(key);
+    return f !== undefined && textures.exists(key) && textures.get(key).getSourceImage() === f.img;
   }
 
   /** Every texture key this manifest puts in the texture manager (placeholders, final files). */

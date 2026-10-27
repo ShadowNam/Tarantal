@@ -2841,6 +2841,38 @@ kick (430 px/s up, 110 sideways, pellet cap ×1.04, jitter growth 15) was set wi
 bot (100 ms late, 10 px error): near reaches 3 in ~96 % of juggles and Weg! at 4–6, mid 3 in ~50 %,
 far 3 in ≤ 1 % (review's suggested 400 px/s made near too long: ≥ 5 in 83 %).
 
+**D-051 1.8.1 Karoo polish: HD aloes; the potjie simmers and its lid flies off (27 Oct 2026):**
+the product owner (26 Oct): "These aloes … need to become HD" and "The braai pot … add a small bit
+of animation … as if … the pot is boiling a little bit. And when it's shot, at least the deksel
+should fall off." Decisions: (1) **Size route (b):** the Karoo is in the first download (2,987 of
+3,072 KB; HD clumps need ~+120 KB), so the old aloe_a/aloe_b/potjie stay there as placeholders and
+`karoo/hd/aloe_a|aloe_b|potjie|potjie_lid` load in the `late` group (`src/game/assets/hdProps.ts`).
+`ParallaxView.upgradeHd()` polls (every 30 frames) and swaps a prop to its HD key only when the HD
+file and all its pieces are the textures under their keys (`AssetManifest.delivered`); placeholders
+are renamed by `AssetManifest.upgrade()`, never removed (D-046). (2) **The aloe** is the bitter aloe
+(Aloe ferox), at 2× with thin tinted outlines (art bible §Karoo); the **Bushveld** clumps use the
+same drawing at 1× in place (chunk 1,445.4 → 1,466.1 KB gzip, ≤ 1,536). They stay at 1× because a
+2× pair (~+90 KB over the 1× pair) would push the Bushveld chunk past its 1,536 KB cap, and the
+Bushveld cannot use the late-group route without also exceeding the late group's own 1.5 MB cap
+(the product owner agreed on 27 Oct to keep the Bushveld aloes at 1× for now; the 2× versions
+are revisited in the HD graphics job (next), which adds HD packs that load per area). The HD clumps stand at the old ground level (crest ~52 px
+below the origin; first drawn ~100, which put the plants' feet below the screen). The koppie's small crack
+aloe (`rocks.ts`) is a different, tiny drawing and stays. (3) **The potjie** is drawn lidless with
+the lid as its own texture; `PotjieView` draws the lid, steam (`fx/smoke` tinted, ≤ 16 images),
+and the coals' warmth (normal blend: an additive glow saturated the flames to lime in play) on the
+prop's layer, all under the layer's map light like the pot. The rattle clacks on its three drops,
+and its puff leaves both lid edges. Placeholders for the HD keys are never shown: they install as
+1×1 canvases (`CanvasSpec.empty`) with the texture's design size. Every pose is a pure function of the sim tick
+(`potjieMotion.ts`: held frames hold, replays match); reduce motion is calmer. (4) **Shot:** the
+existing `lid` secret (+5 s, `bark.kos_is_reg`, once per hunt) is unchanged in the sim and content;
+the view starts the lid's 40-tick tumble on `secretTriggered` (or shows it lying there if the
+secret is already spent). No sim, content or golden change. (5) **Sounds:** small AudioDirector
+synths (`potjieSounds.ts`) — bubbles on sim ticks while the pot is near the screen, the rattle's
+clacks, the clang — so they cost no download; a recording under the same keys replaces each later.
+(6) Sizes (gzip): first download web 2,987.3 → 2,990.7 KB, Poki 2,980.9 → 2,984.3, CrazyGames
+2,981.1 → 2,984.4 (+3.4 KB: the view code and asset index; cap 3,072); late 1,235.6 → 1,399.2;
+Bushveld 1,445.4 → 1,466.1; Kalahari + desert unchanged (1,534.5). Full table in PR #87.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

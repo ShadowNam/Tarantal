@@ -779,6 +779,8 @@ export class HudScene extends Phaser.Scene {
         // M10: Oupa says it too, once his recording is delivered (the banner is the subtitle);
         // v1.7b: never with his comments on "Text only" or "Off" (the AudioDirector checks).
         if (said !== undefined) this.ctx.audio.bark(said);
+        // D-051 (e2e): the secret banners' barks in order.
+        if (said !== undefined) this.ctx.hook?.secretBarks.push(said);
       } else if (e.type === 'secretPenalty') {
         // A "don't shoot it" prop (the weaver nest): its scolding, and the points off.
         const bark = this.ctx.huntBiome.props.find((p) => p.id === e.propId)?.secret?.reward

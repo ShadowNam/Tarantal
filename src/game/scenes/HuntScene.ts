@@ -55,6 +55,7 @@ import { WorldView } from '../view/WorldView';
 import { WeaverView } from '../view/WeaverView';
 import { MeerkatView } from '../view/MeerkatView';
 import { CanView } from '../view/cans/CanView';
+import { playPotjieSound } from '../view/potjieSounds';
 import { playMeerkatSound } from '../audio/meerkatSounds';
 import { textureBytes } from '../assets/textureBytes';
 import { mapLights, mapOmen, resolveMap, type ResolvedMap } from '../../sim/maps';
@@ -1466,6 +1467,7 @@ export class HuntScene extends Phaser.Scene {
       hook.meerkatLog = [];
       hook.meerkats = [];
       hook.cans = null;
+      hook.potjie = null;
       hook.canLog = [];
       hook.canMs = 0;
       hook.fruit = null;
@@ -1578,6 +1580,9 @@ export class HuntScene extends Phaser.Scene {
     this.birds.setViewZoom(zoom.z);
     this.birds.update(drawBirds, state.tick);
     this.world.update(state, width, designSize().height);
+    // D-051: the potjie's simmer, rattles and clang (on sim ticks; none on a held frame).
+    for (const c of this.world.potjie.cues)
+      playPotjieSound(this.ctx.audio, c.sound, (c.screenX - width / 2) / (width / 2));
     const w0 = performance.now();
     this.weavers.update(state);
     this.meerkats.update(state);
@@ -1751,6 +1756,8 @@ export class HuntScene extends Phaser.Scene {
       hook.powerups = state.powerups.map((p) => p.id);
       hook.wind = state.wind;
       hook.weavers = this.weavers.visibleCount;
+      hook.potjie = this.world.potjie.hook;
+      hook.hdProps = this.parallax.hdSpots();
       hook.meerkats = this.meerkats.spots();
       hook.cans =
         state.cans === undefined
@@ -1876,6 +1883,7 @@ export class HuntScene extends Phaser.Scene {
     this.meerkats.handle(events);
     this.spookView?.handle(events, this.ctx.audio, width);
     this.cans.handle(events, this.ctx.audio, width);
+    this.world.potjie.handle(events);
     if (this.ctx.hook) {
       const log = this.ctx.hook.canLog;
       for (const e of events) {

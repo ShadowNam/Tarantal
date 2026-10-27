@@ -350,6 +350,22 @@ export interface TestHook {
   } | null;
   canLog: string[];
   canMs: number;
+  /** D-051: the potjie (null: no potjie on this map): HD art showing, lid off, rattles and clangs
+   *  so far, wisps drawn now, and the loose lid's pose (prop px; null before the HD art). */
+  potjie: {
+    hd: boolean;
+    lidOff: boolean;
+    /** The lid's flight and bounce are over: it lies still beside the pot. */
+    lidSettled: boolean;
+    rattles: number;
+    clangs: number;
+    wisps: number;
+    lid: { x: number; y: number; rot: number } | null;
+  } | null;
+  /** D-051: props with an HD texture: their origin on screen (design px), HD showing yet. */
+  hdProps: { id: string; hd: boolean; x: number; y: number }[];
+  /** D-051: the bark keys secret banners showed this page, in order. */
+  secretBarks: string[];
   /** v1.7c (D-047): the fruit view (null until its chunk is in, or a map without fruit): fruit
    *  placed, pellet hits and drops this hunt, fruit swinging now, and the fruit on screen. */
   fruit: {

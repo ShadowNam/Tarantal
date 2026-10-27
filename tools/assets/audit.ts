@@ -3,6 +3,7 @@
 // files referenced but missing, placeholder keys nothing uses. `--strict` (the launch gate) also
 // fails while any key is still a placeholder. Pure: the CLI (tools/asset-audit.ts) gathers the
 // inputs from disk.
+import { hdBaseOf, POTJIE_LID } from '../../src/game/assets/hdProps';
 import { CAN_SHEET } from '../../src/game/view/cans/canSheet';
 import { PLATE_FRAME_TEX, PLATE_TEX, RANGE_SOUNDS } from '../../src/game/range/rangeAssets';
 import type { AssetIndex, BirdClip } from '../../src/game/assets/assetIndex';
@@ -85,6 +86,10 @@ function usages(
     needles.push(new RegExp(`playMeerkatSound\\([^)]*'${meerkatSound}'`));
     needles.push(new RegExp(`cue = '${meerkatSound}'`));
   }
+  // D-051: an HD stand-in is used when a view swaps its prop over to hdKeyOf(prop.asset); the
+  // potjie's loose lid when PotjieView draws POTJIE_LID.
+  if (hdBaseOf(key) !== undefined)
+    needles.push(key === POTJIE_LID ? /\.image\([^)]*\bPOTJIE_LID\b/ : /\bhdKeyOf\(prop\.asset\)/);
   if (key === PLATE_TEX) needles.push(/\bPLATE_TEX\b/);
   if (key === PLATE_FRAME_TEX) needles.push(/\bPLATE_FRAME_TEX\b/);
   if (kind === 'texture' && key.startsWith('gun/')) {

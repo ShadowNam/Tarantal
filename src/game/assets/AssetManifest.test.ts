@@ -171,3 +171,30 @@ describe('AssetManifest.upgrade (v1.7b: late icons replace their placeholders mi
     expect(m.upgrade(tex, 'ui/pu_')).toEqual([]);
   });
 });
+
+describe('AssetManifest.delivered (D-051: HD props swap only once their file is the texture)', () => {
+  const content = loadContent();
+  const karoo = content.biomes.find((b) => b.id === 'karoo-autumn');
+  if (!karoo) throw new Error('no biome');
+
+  it('is false on the placeholder, true once the delivered image sits under the key', () => {
+    const m = createPlaceholderManifest(content, karoo);
+    const key = 'karoo/hd/potjie';
+    expect(m.has(key)).toBe(true);
+    const img = { width: 440, height: 480 } as HTMLImageElement;
+    let source: unknown = { canvas: true };
+    const tex = {
+      exists: () => true,
+      get: () => ({ getSourceImage: () => source }),
+    } as unknown as Phaser.Textures.TextureManager;
+    // Not loaded yet.
+    expect(m.delivered(tex, key)).toBe(false);
+    (m as unknown as { finalImages: Map<string, { img: HTMLImageElement }> }).finalImages.set(key, {
+      img,
+    });
+    // Loaded, but the placeholder still holds the key.
+    expect(m.delivered(tex, key)).toBe(false);
+    source = img;
+    expect(m.delivered(tex, key)).toBe(true);
+  });
+});
