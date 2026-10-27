@@ -3,6 +3,15 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.8.1] — Karoo polish: HD aloes and a boiling potjie (27 Oct 2026)
+
+Decision record D-051. The product owner (26 Oct): "These aloes … need to become HD." And: "The
+braai pot … add a small bit of animation … as if … the pot is boiling a little bit. And when it's
+shot, at least the deksel should fall off."
+
+### Changed
+- Work in progress.
+
 ## [1.8.0] — Blikkies: tin cans on the fence posts (26 Oct 2026)
 
 Decision record D-050. The product owner: "On maps with fence posts, have some cans standing on
