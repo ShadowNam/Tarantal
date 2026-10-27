@@ -955,7 +955,7 @@ async function boot(): Promise<void> {
     finalDone: (id) => finalDone.has(id),
     ensureRuntime: ensureHdRuntime,
     runtime: () => hdRuntime,
-    fileTimeoutMs: feel.assets.fileTimeoutMs,
+    fileTimeoutMs: feel.assets.hdFileTimeoutMs,
   });
   hook.graphics.mode = graphicsMode;
   hook.graphics.setting = save.data.settings.graphics;

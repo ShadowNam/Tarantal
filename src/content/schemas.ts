@@ -2038,6 +2038,9 @@ export const FeelSchema = obj({
     artRetries: z.number().int().min(0).max(10),
     /** D-053: after this long loading an area's HD pack, "Play now in Standard" appears. */
     hdOfferStandardMs: pos,
+    /** D-053: longest wait for one HD file. Long: a slow file keeps loading after "Play now in
+     *  Standard" and swaps in when it lands (a file that fails stays Standard at once). */
+    hdFileTimeoutMs: pos,
   }),
   /** D-053: the Graphics card's recommendation (graphicsChoice.recommendGraphics). */
   graphics: obj({

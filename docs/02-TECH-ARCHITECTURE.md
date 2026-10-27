@@ -918,7 +918,11 @@ activity), Roadmap, History (stages, pictures, evolution, decisions, glossary), 
   - **Loading:** Standard never requests an HD file. HD: an area's files in common, the area and
     desert load before its hunt (the DOM loading screen at boot, the area veil in `HuntScene`),
     with a bar and MB; after `feel.assets.hdOfferStandardMs` (4 s) "Play now in Standard" starts on
-    the standard art and HD swaps in when it lands. The late and Ver HD groups follow in the
+    the standard art and HD swaps in when it lands (both screens time the offer on the wall clock,
+    not Phaser's frame-capped scene clock; an HD file may take `hdFileTimeoutMs`, 120 s, so a slow
+    one keeps loading after the offer; one that fails stays Standard). A hunt in a lazy area waits
+    for its HD pack behind the same veil whether or not its standard art had already come in. The
+    late and Ver HD groups follow in the
     background; between hunts the Classic area's and today's Daily's packs preload. A store app
     can ship the HD groups inside (one folder per group, listed in the index).
   - **Budgets** (`npm run size -- --strict`): the first download and the standard chunks

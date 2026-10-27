@@ -874,12 +874,13 @@
     }
   },
   "assets": {
-    "$comment": "M10 asset manifest (docs/06-ASSET-DELIVERY.md): how long boot waits for the final-asset index, and for each final file, before that key stays on its procedural placeholder. v1.6 (D-042): a biome whose delivered art failed is retried artRetries times (the index fetched again each time) before a hunt shows the Retry message; hunts never start on placeholders (dev: ?art=placeholder). D-053: while an area's HD pack loads behind the loading screen, \"Play now in Standard\" appears after hdOfferStandardMs.",
+    "$comment": "M10 asset manifest (docs/06-ASSET-DELIVERY.md): how long boot waits for the final-asset index, and for each final file, before that key stays on its procedural placeholder. v1.6 (D-042): a biome whose delivered art failed is retried artRetries times (the index fetched again each time) before a hunt shows the Retry message; hunts never start on placeholders (dev: ?art=placeholder). D-053: while an area's HD pack loads behind the loading screen, \"Play now in Standard\" appears after hdOfferStandardMs (wall-clock time); an HD file may take up to hdFileTimeoutMs (it keeps loading after Play now and swaps in when it lands; one that fails stays Standard).",
     "indexTimeoutMs": 3000,
     "fileTimeoutMs": 15000,
     "fontTimeoutMs": 2500,
     "artRetries": 3,
-    "hdOfferStandardMs": 4000
+    "hdOfferStandardMs": 4000,
+    "hdFileTimeoutMs": 120000
   },
   "graphics": {
     "$comment": "D-053 Graphics card (Standard or HD): HD is pre-selected when the link is fast (4g and at least minDownlinkMbps where the browser says, no Save-Data), the device has at least minDeviceMemoryGb (where known), the tier isn't low, and the screen shows the difference (more than minDevicePxPerDesignPx device px per design px). At or below weakDeviceMemoryGb (or the low tier) HD says it may be slow.",

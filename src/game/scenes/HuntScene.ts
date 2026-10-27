@@ -1106,11 +1106,21 @@ export class HuntScene extends Phaser.Scene {
     let offer: { g: Phaser.GameObjects.GameObject; text: Phaser.GameObjects.GameObject } | null =
       null;
     let done = false;
+    // Wall-clock timers, not the scene clock: on a slow device (and while an area's art decodes)
+    // Phaser caps each frame's delta, so a 4 s delayedCall took longer than the 15 s file
+    // timeouts and "Play now in Standard" never came (Pixel 7 e2e).
+    let ticker = 0;
+    let offerTimer = 0;
+    const stopTimers = (): void => {
+      window.clearInterval(ticker);
+      window.clearTimeout(offerTimer);
+    };
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, stopTimers);
     const finish = (how: 'done' | 'skipped'): void => {
       if (done) return;
       done = true;
-      ticker.remove();
-      offerTimer.remove();
+      stopTimers();
+      this.events.off(Phaser.Scenes.Events.SHUTDOWN, stopTimers);
       menu?.destroy();
       for (const o of [label, back, bar, veil, offer?.g, offer?.text]) o?.destroy();
       if (hook) {
@@ -1119,17 +1129,14 @@ export class HuntScene extends Phaser.Scene {
       }
       then();
     };
-    const ticker = this.time.addEvent({
-      delay: 100,
-      loop: true,
-      callback: () => {
-        const p = this.ctx.graphics.progress(id);
-        label.setText(line());
-        bar.width = p.total > 0 ? (barW * p.done) / p.total : 0;
-      },
-    });
-    const offerTimer = this.time.delayedCall(this.ctx.feel.assets.hdOfferStandardMs, () => {
-      if (done) return;
+    ticker = window.setInterval(() => {
+      if (done || !label.active) return;
+      const p = this.ctx.graphics.progress(id);
+      label.setText(line());
+      bar.width = p.total > 0 ? (barW * p.done) / p.total : 0;
+    }, 100);
+    offerTimer = window.setTimeout(() => {
+      if (done || !veil.active) return;
       const rect = { x: width / 2 - 300, y: height / 2 + 90, w: 600, h: 110 };
       const b = drawButton(this, rect, t('gfx.play_standard'), 'primary', 40);
       b.g.setDepth(10_001);
@@ -1150,7 +1157,7 @@ export class HuntScene extends Phaser.Scene {
         ],
         { focus: 'hd.standard', hook: this.ctx.hook },
       );
-    });
+    }, this.ctx.feel.assets.hdOfferStandardMs);
     void this.ctx.graphics.loadHd(id).then(() => {
       // The load ended without HD (no runtime or index, D-053): this area plays in Standard, so
       // the restart that follows doesn't put up a new veil (it looped forever before).
