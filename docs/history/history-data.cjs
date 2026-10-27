@@ -7,22 +7,22 @@ const meta = {
   title: 'Tarantal Madness',
   subtitle: 'Development history',
   tagline: 'How the game came together, from the first commit to today',
-  updated: '27 October 2026, 02:00 UTC',
+  updated: '27 October 2026, 06:45 UTC',
   period: '19–27 October 2026',
 };
 
-// "By the numbers" on 27 Oct 2026 (main at fc39e3a, version 1.8.0).
+// "By the numbers" on 27 Oct 2026 (main at b25f231, version 1.8.1).
 const numbers = [
   ['Days since the first commit', '8'],
-  ['Commits on main', '1,018'],
-  ['Pull requests', '84 merged, plus this history update; Karoo polish is being built'],
-  ['Game code (TypeScript, without tests)', 'about 54,000 lines'],
-  ['Automated tests', '1,325 unit tests, 62 browser test suites on 3 device profiles'],
+  ['Commits on main', '1,043'],
+  ['Pull requests', '85 merged, plus this history update; HD graphics is being built'],
+  ['Game code (TypeScript, without tests)', 'about 55,000 lines'],
+  ['Automated tests', '1,340 unit tests, 64 browser test suites on 3 device profiles'],
   ['Hunting areas', '5: the four seasons (Karoo, Bushveld, Okavango, Kalahari) and Namibië, each with 7 weekday maps and 3 bonus maps (Verder, Nog Verder, Die Verste)'],
   ['Guns', '8 (Dubbelloop, Windbuks, Kettie, Plaas-Pomp, Die Twee-Twee with 3 sights, Die Langloop with a 3–9× scope, Voorlaaier, Mielie-Masjien)'],
   ['Creatures', '13 (guineafowl and variants, bosses, flyers), plus meerkat colonies on the desert maps, and bats and owls on the Halloween Spookjag'],
   ['Languages', 'English, Afrikaans, German and Dutch text; Oupa voiced in English, Afrikaans and German'],
-  ['Design decisions logged', '50 (D-001 to D-050)'],
+  ['Design decisions logged', '51 (D-001 to D-051)'],
 ];
 
 const roles = [
@@ -841,6 +841,37 @@ const stages = [
       { img: 'blikkies-skietbaan', caption: 'The Skietbaan on a Pixel 7: the Tin Cans target at middle distance, with hit marks and the shot count.' },
     ],
   },
+  {
+    title: 'Karoo polish: HD aloes and a boiling potjie',
+    when: '27 Oct 2026, 06:18 (started 01:37)',
+    prs: '#87',
+    decision: 'D-051',
+    intro: 'The product owner asked for this on 26 Oct: "These aloes … need to become HD." And: "The braai pot … add a small bit of animation … as if … the pot is boiling a little bit. And when it’s shot, at least the deksel should fall off."',
+    bullets: [
+      'The Karoo’s aloe clumps are redrawn as bitter aloes (Aloe ferox): fleshy blue-green leaves with small reddish teeth, a skirt of dry leaves at the base, and candelabras of orange-red flower spikes, with thin painterly lines instead of the old heavy outlines.',
+      'The new Karoo aloes are drawn at twice the resolution. They are not part of the first download: they load once the hunt has started and swap in when they arrive, without a flicker (the old picture is renamed, never removed while it is on screen). The first download grew by less than 4 KB, to 2,991 of 3,072 KB.',
+      'The Bushveld’s red aloes use the same new drawing at normal resolution. The twice-as-sharp version (about 190 KB more) would have pushed the Bushveld download over its limit; the product owner chose to keep them at normal resolution for now and revisit them in the HD graphics job.',
+      'The potjie is now a round cast-iron pot with a sheen, on a fire of glowing coals and logs. It simmers: steam drifts with the wind, the coals flicker, and every few seconds the lid rattles with a puff of steam and a soft clatter.',
+      'Shoot the lid and it pops off, tumbles through the air and lands beside the pot with a clang and a big puff of steam; the pot steams freely for the rest of the hunt. The +5 s and Oupa’s "Kos is reg!" are unchanged.',
+      'The pot, the lid and the steam follow the map’s light (dawn, dusk, overcast, the Spookjag), and Reduce motion makes the potjie calmer.',
+      'Released as version 1.8.1.',
+    ],
+    feedbackLabel: 'Reviews and fixes before merging',
+    feedback: [
+      'Claude’s first screenshots showed lime-green flames, steam that could hardly be seen and dull aloes. The independent review traced all three: an additive orange glow over the flames turned lemon-green under the high-quality bloom and vignette; the steam started inside the lid, where it was hidden; and the camera’s vignette darkened the pale new aloes by half. Tank moved the glow onto the embers as a deep red, started the steam at the rim in soft white wisps, and brightened the aloes. The second round of screenshots showed all three fixed.',
+      'The review also found that the lid and the steam ignored the map’s light (white steam glowing at dusk), that the rattle clacked once too often, and that unused HD stand-ins took about 1.2 MB of memory. All fixed.',
+      'On the way, four checks failed and were fixed: two formatting slips, an asset audit that flagged the HD aloes as unused, aloes touching the edges of their picture, and an iPhone browser test that read the lid before it had settled. The full suite then passed on all devices.',
+      'Tank’s connection dropped twice at the start, so Claude restarted the job as a fresh task with a self-contained brief, as the product owner had asked.',
+    ],
+    images: [
+      { img: 'karoo-polish-aloe-compare', caption: 'The Karoo aloe, before | after (twice the resolution) | as it is shown in play.' },
+      { img: 'karoo-polish-bushveld-aloe', caption: 'The Bushveld aloe, before | after | as in play: the same new drawing at normal resolution.' },
+      { img: 'karoo-polish-potjie-compare', caption: 'The potjie, before | after | as in play: a cast-iron pot on glowing coals and logs.' },
+      { img: 'karoo-polish-aloe-play', caption: 'The new aloes in a hunt on the Karoo (desktop, close-up).' },
+      { img: 'karoo-polish-rattle', caption: 'The lid rattles with a puff of steam on each side.' },
+      { img: 'karoo-polish-lid-off', caption: 'Shot: the lid is off, the steam rises freely, and "+5 s · Kos is reg!" shows at the top.' },
+    ],
+  },
 ];
 
 // The product owner's requests, in order.
@@ -884,24 +915,31 @@ const requests = [
   ['25 Oct, 18:03', '"The Harvest": 30 seconds to shoot the animals raiding the crops while farm workers fix the fence', 'Queued as v1.8c, a new mode on the title screen (the product owner’s choice)'],
   ['25 Oct, 20:58', 'Keep building overnight on the recommended options; retry Tank, and start a new session if it hangs again', 'Built overnight: v1.7, v1.7b and the history chapters merged; v1.7c finished in the morning'],
   ['26 Oct, 04:50', 'Halloween special yes, go ahead', 'Done (#80); live for everyone on 31 Oct'],
-  ['26 Oct, 05:05', 'Karoo: HD aloes; the potjie should steam and boil a little and its lid fall off when shot; guineafowl must get smaller the further away they are, on every map, but stay shootable', 'Perspective done (#82, 1.7.4); Karoo polish (HD aloes, the boiling potjie) being built'],
+  ['26 Oct, 05:05', 'Karoo: HD aloes; the potjie should steam and boil a little and its lid fall off when shot; guineafowl must get smaller the further away they are, on every map, but stay shootable', 'Perspective done (#82, 1.7.4); Karoo polish (HD aloes, the boiling potjie) done (#87, 1.8.1)'],
   ['26 Oct, 05:15', 'Bushveld and Kalahari: the far zebras, giraffes, elephants and other animals look like stick figures; the baobab needs more detail and better fruit, with holes where small animals look out (research what lives in it); little birds around the weaver nest', 'Planned: far animals in HD (true sizes) and tree life'],
-  ['26 Oct, 05:24', 'Okavango: add makalani palms with their hard nuts, which fall or burst when hit; the tin cans and the meerkats were not seen yet; the Project overview looked stale; idea: offer Standard or HD graphics', 'Blikkies done (#83, 1.8.0); makalani palms and HD graphics planned'],
+  ['26 Oct, 05:24', 'Okavango: add makalani palms with their hard nuts, which fall or burst when hit; the tin cans and the meerkats were not seen yet; the Project overview looked stale; idea: offer Standard or HD graphics', 'Blikkies done (#83, 1.8.0); HD graphics being built (moved up on 27 Oct); makalani palms planned'],
   ['26 Oct, 08:10', 'Send the Halloween screenshots when the fixes are done; keep backups and the latest version of the project in Dropbox /ai-dev/', 'Screenshots sent; Dropbox backup set up (/AI-DEV/Tarantal-Madness: a dated status file at every merge, the job briefs, the board state)'],
   ['26 Oct, 11:05', 'I tried the Halloween URL, but I don’t think it is live?', 'It was live; the ?feesdag address only works on test builds. Use the admin page: Special days → Spookjag · 31/10 → Play'],
   ['26 Oct, 19:16', 'Send the tin-can screenshots when ready', 'Sent: the fence near, middle and far, a somersault, landed cans and the Skietbaan target, on desktop'],
   ['26 Oct, 20:07', 'A time outline: when does each build finish, and is there enough to do for the whole night?', 'Sent: Blikkies by about 03:00 Namibia time, then Karoo polish, far animals in HD and the rest of the queue (more than a day of work)'],
   ['26 Oct, 21:00', 'Send a short WhatsApp when a job finishes, hits a blocker or needs a decision; can you use my new WhatsApp gateway?', 'Tested: the gateway works, but this cloud session can’t reach it (network policy) or load the .mcpb. Recommended: run it on the server in HTTP mode as a custom connector. Meanwhile Tank’s WhatsApp alert is on for every job'],
   ['26 Oct, 21:00', 'Send the juggle screenshots when ready', 'A chain of two sent that night; the final near-fence chain of three is in this chapter'],
-  ['26 Oct, 22:05', 'Going to bed: keep Tank building, committing and merging overnight; a detailed report with screenshots in the morning; GitHub properly merged and the web build showing it', 'Blikkies merged at 01:36 (#83) and deployed to the test build; Karoo polish started at 01:37; the morning report follows'],
+  ['26 Oct, 22:05', 'Going to bed: keep Tank building, committing and merging overnight; a detailed report with screenshots in the morning; GitHub properly merged and the web build showing it', 'Blikkies merged at 01:36 (#83) and Karoo polish at 06:18 (#87), both deployed to the test build; the morning report was sent at 05:00'],
+  ['27 Oct, 05:00', 'Send me the morning report when ready', 'Sent: a page with the night’s merges, screenshots and the plan for the day'],
+  ['27 Oct, 05:05', 'Is the WhatsApp connection reachable now?', 'Yes: the gateway is connected, and short updates now go by WhatsApp'],
+  ['27 Oct, 05:07', 'Keep the Bushveld aloes at normal resolution and revisit them later; explain the limits behind the quality warnings', 'Kept at normal resolution; explained: a small first download (3 MB) so the game starts quickly on phones, a size cap for each area’s download, and phone memory'],
+  ['27 Oct, 05:10', 'A light loading screen that asks Standard or HD, with a tick box to save the choice', 'Being built as HD graphics (1.9.0), with "Remember my choice" and the same choice in Settings'],
+  ['27 Oct, 05:12', 'Move HD graphics up next; the aim is friends and the Apple and Android app stores, not Poki or CrazyGames', 'HD graphics started right after Karoo polish; the release aim is written into the docs (D-052, #89)'],
+  ['27 Oct, 05:20', 'Add an Android test app after tree life', 'Planned after tree life: an installable file built by GitHub, downloadable from the test site'],
+  ['27 Oct, 05:52', 'WhatsApp me when Karoo polish is merged, with today’s expected times and the open questions', 'Sent at the merge (06:19)'],
 ];
 
 const next = [
-  ['Karoo polish', 'HD aloes; the potjie steams, simmers and loses its lid when shot', 'Tank', 'building now (started 01:37 on 27 Oct); about 6 h'],
+  ['HD graphics (moved up)', 'A light loading screen asks Standard or HD, with "Remember my choice"; the same choice in Settings; HD packs load per area', 'Tank', 'building now (started 06:20 on 27 Oct); about 6 h'],
   ['Far animals in HD', 'Realistic far herds on every map instead of stick figures, drawn at their true sizes beside the birds', 'Tank', 'about 6 h'],
   ['Makalani palms', 'Okavango palms by the water with nuts that crack off, juggle and pop', 'Tank', 'about 5½ h'],
   ['Tree life', 'A detailed baobab with residents in its hollows, a better sausage tree, weavers flying around their colony nest', 'Tank', 'about 6 h'],
-  ['HD graphics', 'An optional sharper art pack: Settings → Graphics Auto / Standard / HD', 'Tank', 'about 5 h'],
+  ['Android test app', 'An installable Android file for friends, built by GitHub with all the art inside, downloadable from the test site; the iPhone app follows once the product owner has an Apple developer account', 'Tank', 'about 5 h'],
   ['v1.7d: Namibië veld life', 'Detailed grass and sand, ostriches at their nest, an oryx herd in the mirage, hot-air balloons', 'Tank', 'about 6 h'],
   ['v1.7e: Bushveld rocks, middle distance and the secret cue', 'Realistic rocks and middle distance; a unique animal at each secret instead of the star glint (mock-ups first)', 'Tank, then the product owner', 'about 6 h'],
   ['v1.8b: baboons', 'Baboons that pop up and get up to mischief, shot down like guineafowl', 'Tank', 'about 5 h'],
@@ -949,6 +987,7 @@ const decisions = [
   ['D-048', 'Feesdae (special-day Dailies) and Halloween’s Spookjag on 31 Oct: bats, protected owls, pumpkin lanterns, witch hats'],
   ['D-049', 'Perspective: birds get smaller with distance on every map, far animals in proportion, a minimum hit size for far targets'],
   ['D-050', 'v1.8 Blikkies: tin cans on the farm fences that somersault and can be juggled until Weg!; × Stampede only, the chain ends at 10 hits'],
+  ['D-051', 'Karoo polish: HD aloes that load after the hunt starts (Bushveld at normal resolution for now); the potjie simmers and its lid flies off when shot'],
 ];
 
 const glossary = [
@@ -972,6 +1011,9 @@ const glossary = [
   ['Blikkies', 'Tin cans'],
   ['Weg!', '"Gone!": a can juggled out of sight'],
   ['Blikkiesdans', '"Tin-can dance": the secret for keeping a can up for 8 hits'],
+  ['Potjie', 'A three-legged cast-iron pot that cooks on the coals'],
+  ['Deksel', 'Lid'],
+  ['Kos is reg!', '"Food’s ready!": Oupa’s line when the potjie lid is shot'],
   ['Kwêvoël', 'Grey go-away-bird'],
   ['Generaal, Ou Grys, Kuifkop Koning, Die Stormvoël', 'Boss birds'],
 ];
