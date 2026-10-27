@@ -236,7 +236,10 @@ koppies `#8E7FA6`, aloe flowers `#E2552C`. Weather: wind sock, dust devils, flyi
   flame tongues and three split logs in a ring of stones; the lid (domed, cast knob) is its own
   texture. Animation (view only, on sim ticks, `src/game/view/potjieMotion.ts`): steam wisps rise
   from the lid's edge, drift with the wind and fade; the coals' glow flickers gently; every ~4 s
-  the lid rattles (lifts a few px, tilts, drops: three clacks) with a small puff. Shot (the `lid`
+  the lid rattles (four little lifts with a tilt; a clack on each of the three drops inside it) and
+  white puffs squeeze out at both lid edges. Wisps are white-grey, opaque near the pot, stretched
+  upright and fading as they rise; the coals' warmth is a normal-blend red-orange (an additive glow
+  turned the flames lime). Lid, steam and warmth take the map's light like the pot. Shot (the `lid`
   secret): the lid pops up, tumbles off and lands on the ground to the right of the pot with a clang
   and a big puff; the open pot then steams freely all hunt. Reduce motion: rattles every ~7 s and
   smaller, fewer wisps, a slower flicker. Sounds (AudioDirector synths until recordings exist):
