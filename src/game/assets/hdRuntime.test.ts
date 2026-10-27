@@ -47,6 +47,12 @@ describe('repointRetired (D-053)', () => {
     expect(inner.texture.key).toBe('fx/smoke');
   });
 
+  it('never moves a particle emitter (its frames would stay on the retired texture)', () => {
+    const emitter = { ...obj('fx/smoke#retired-5'), alive: [] };
+    expect(repointRetired([scene([emitter])], textures, [manifest])).toBe(0);
+    expect(emitter.texture.key).toBe('fx/smoke#retired-5');
+  });
+
   it('leaves view-scaled props, live keys and keys that are gone alone', () => {
     const aloe = obj('karoo/aloe_a#retired-1');
     const live = obj('fx/smoke');

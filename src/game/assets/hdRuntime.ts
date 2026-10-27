@@ -354,6 +354,9 @@ export function repointRetired(
     if (o === null || typeof o !== 'object') return;
     const d = o as Pointed;
     if (Array.isArray(d.list)) for (const c of d.list) visit(c);
+    // Particle emitters keep their frames (setTexture doesn't change them): never moved; they
+    // keep the retired texture in use (texturesInUse) until the next scene change.
+    if (Array.isArray((o as { alive?: unknown }).alive)) return;
     const key = d.texture?.key;
     const base = key === undefined ? null : /^(.*)#retired-\d+$/.exec(key)?.[1];
     if (base === undefined || base === null || d.setTexture === undefined) return;

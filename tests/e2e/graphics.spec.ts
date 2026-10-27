@@ -277,3 +277,39 @@ test('HD chosen but the HD index is gone (404): the lazy area’s hunt starts in
   expect(h.menu).not.toBe('hdLoading');
   expect(errors).toEqual([]);
 });
+
+test('Standard chosen mid-hunt in the rain (Pause → Settings): the hunt keeps running', async ({
+  page,
+}, info) => {
+  // The freeze: freeing an HD texture live rain drops still drew stopped the game loop.
+  test.skip(!isLandscape(info), 'landscape screens');
+  test.setTimeout(420_000);
+  const touch = isTouchProject(info);
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await boot(page, 'graphics=hd&biome=okavango-spring&omen=1&seed=3&huntSeconds=600');
+  await startHunt(page, touch);
+  await page.waitForFunction(() => (window.__TM__?.graphics.hdTextures ?? 0) > 0, null, {
+    timeout: 240_000,
+  });
+  if (touch) await tapRect(page, touch, 'pause');
+  else await page.keyboard.press('Escape');
+  await page.waitForFunction(() => window.__TM__?.menu === 'pause');
+  await tapRect(page, touch, 'pause.settings');
+  await page.waitForFunction(() => window.__TM__?.menu === 'settings');
+  await tapRect(page, touch, 'settings.page.1');
+  await page.waitForFunction(() => window.__TM__?.rects['settings.graphics'] !== undefined);
+  // "Ask on start" → Standard (one tap, as the Settings test shows).
+  await tapRect(page, touch, 'settings.graphics');
+  await page.waitForFunction(() => window.__TM__?.graphics.setting === 'standard');
+  await tapRect(page, touch, 'settings.back');
+  await page.waitForFunction(() => window.__TM__?.menu === 'pause');
+  await tapRect(page, touch, 'pause.resume');
+  await page.waitForFunction(() => window.__TM__?.menu === null);
+  // Well past several 30-frame settle passes: the game loop keeps going.
+  const tick = await page.evaluate(() => window.__TM__?.tick ?? 0);
+  await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) > t + 300, tick, {
+    timeout: 180_000,
+  });
+  expect(errors).toEqual([]);
+});
