@@ -18,8 +18,9 @@ export type FaunaPose = 'graze' | 'alert' | 'walk' | 'drink';
  *  a grey-brown hen ostrich); y: a young one. */
 export type FaunaVariant = 'm' | 'f' | 'y';
 
-/** Parts in drawing order (back to front). */
-export const FAUNA_PARTS = ['tail', 'body', 'head', 'ear'] as const;
+/** Parts in drawing order (back to front): the tail hangs over the rump (D-054 review: drawn
+ *  behind it, the rump ended like a sawn-off log). */
+export const FAUNA_PARTS = ['body', 'tail', 'head', 'ear'] as const;
 export type FaunaPart = (typeof FAUNA_PARTS)[number];
 
 /** One animal of a herd: design px from the herd's anchor (feet on y + dy; dy < 0 = further). */

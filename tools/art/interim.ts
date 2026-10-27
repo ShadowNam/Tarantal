@@ -422,7 +422,9 @@ if (wants('fauna')) {
         layerTint(cfg, biome.id, herd.layer),
         FAUNA_DUST[biome.id],
         loadFeel().fauna.sizeMul,
-        ['horizon', 'skyBottom', 'cloud'].map((n) => biomePalette(cfg, biome.id)(n)),
+        ['horizon', 'skyBottom', 'skyMid', 'cloud', 'cloudShadow'].map((n) =>
+          biomePalette(cfg, biome.id)(n),
+        ),
       );
       putHd(`sprites/${herd.key}.png`, sheet.img, FAUNA_HD_COLOURS);
       if (hdOnly) continue;

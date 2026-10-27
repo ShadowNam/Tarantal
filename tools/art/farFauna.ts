@@ -1687,15 +1687,18 @@ function markings(
         ],
         true,
       );
+      // The white rump: a rounded patch on the buttocks under the tail (D-054 review: the old
+      // patch filled the whole rump end and made it read as a sawn-off log).
       const rump = smoothD(
         [
-          P(q.x(-0.38), -(b.croup - 0.04)),
-          P(q.x(-0.5), -(b.croup - 0.08)),
-          P(q.x(-0.5), -(b.buttock - 0.1)),
-          P(q.x(-0.4), -(b.flank - 0.0)),
-          P(q.x(-0.36), -(b.croup - 0.15)),
+          P(q.x(-0.43), -(b.croup - 0.09)),
+          P(q.x(-0.49), -(b.buttock + 0.02)),
+          P(q.x(-0.47), -(b.buttock - 0.1)),
+          P(q.x(-0.41), -(b.buttock - 0.07)),
+          P(q.x(-0.4), -(b.buttock + 0.04)),
         ],
         true,
+        0.9,
       );
       const young = look.variant === 'y';
       const ewe = look.variant === 'f';
@@ -2031,8 +2034,9 @@ function elephant(look: LookSpec, o: LookOpts): DrawnLook {
     ivory: tint('#EDE4CF'),
     nail: tint(mix(base.coat, '#D8CFC0', 0.45)),
   };
-  const edge = tint(shade(base.coat, -0.5));
-  const w = Math.max(0.7, S * 0.0055);
+  // A clearly darker contour: grey on a grey dusk sky must still read (D-054 review).
+  const edge = tint(shade(base.coat, -0.62));
+  const w = Math.max(1, S * 0.007);
   const P = (x: number, y: number): V => [x * S, y * S];
   const L = young ? 1.02 : 1.15;
   const yb = young ? 0.06 : 0; // a calf stands taller on its legs
