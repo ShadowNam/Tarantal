@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "updated": "2026-10-27T18:15:00Z",
+ "updated": "2026-10-27T18:17:00Z",
  "by": "Claude",
  "summary": "Live on the test build: HD graphics (1.9.0, merged 16:05 Namibia time on 27 Oct): on first start a light card asks Standard or HD, with \"Remember my choice\" (also in Settings → Graphics). HD loads each area's sharper art pack (2.2–3.3 MB) behind the loading screen; on a slow connection \"Play now in Standard\" appears and HD swaps in during play. Standard and the fast first download are unchanged. Karoo polish (1.8.1, 08:18) is in too. Tank is building far animals in HD now (a redraw of every distant herd, about 23:30). Then: makalani palms, tree life, an Android test app for friends; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
@@ -1743,7 +1743,7 @@
      "done": false
     },
     {
-     "text": "Elephants and giraffes 40% smaller (your request, 27 Oct); one size setting per species",
+     "text": "Every far herd 40% smaller (your requests, 27 Oct: elephants, giraffes, zebras, wildebeest; the rest kept in proportion); one size setting per species",
      "done": false
     },
     {
@@ -2360,9 +2360,20 @@
    "text": "Make the far elephants and giraffes at least 25% smaller (up to 50%): \"the further animals are away, the smaller they get\"",
    "outcome": "Sent to Tank: elephants and giraffes 40% smaller, as one setting per species so it can be tuned",
    "job": "far-animals-in-hd-on-every-map-realistic"
+  },
+  {
+   "date": "27 Oct, 20:15",
+   "text": "Make the far zebras and wildebeest smaller too",
+   "outcome": "All far herds 40% smaller (so springbok, gemsbok, ostriches and lechwe stay in proportion to them); one setting per species",
+   "job": "far-animals-in-hd-on-every-map-realistic"
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-27T18:16:00Z",
+   "kind": "request",
+   "text": "You asked for smaller zebras and wildebeest too: every far herd is now drawn 40% smaller, keeping the animals in proportion to each other."
+  },
   {
    "at": "2026-10-27T18:12:00Z",
    "kind": "request",
