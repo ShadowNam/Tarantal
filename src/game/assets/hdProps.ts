@@ -14,6 +14,9 @@ export const HD_PROPS: Readonly<Record<string, string>> = {
 /** The potjie's lid (its own texture: it rattles, and flies off when shot). */
 export const POTJIE_LID = 'karoo/hd/potjie_lid';
 
+/** The lid's size in design px; its origin is the middle of its rim (tools/art/potjie.ts). */
+export const POTJIE_LID_SIZE = { width: 132, height: 56, originX: 66, originY: 40 } as const;
+
 /** HD pieces that belong to a prop but have no first-download art of their own. */
 export const HD_PARTS: Readonly<Record<string, readonly string[]>> = {
   'karoo/potjie': [POTJIE_LID],

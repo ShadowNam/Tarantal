@@ -376,6 +376,11 @@ export class ParallaxView {
     });
   }
 
+  /** D-051: the display scale of a texture (its delivered master; 1 for a placeholder). */
+  displayScale(key: string): number {
+    return this.manifest.displayScale(key);
+  }
+
   /** D-051: true once a prop shows its HD texture. */
   hdShown(propId: string): boolean {
     return this.hdLive.has(propId);
