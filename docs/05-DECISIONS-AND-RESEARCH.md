@@ -2885,6 +2885,36 @@ builds stay until they are removed on purpose. (3) Budgets: the web first downlo
 each lazy chunk ≤ 1.5 MB for a fast start on phones; store apps bundle everything, so HD packs can
 ship inside the app. Docs: CLAUDE.md, Tech §8 (release aim), this file's open question 4.
 
+**D-053 1.9.0 HD graphics: Standard or HD, chosen on the loading screen (27 Oct 2026):** the
+product owner (26 Oct): "when the game loads, it should ask you standard quality or HD, so that the
+person can choose if his device and browser have enough resources … HD where everything has much
+higher graphics … and the standard version so that it works on all other devices"; (27 Oct) "a
+normal, not too high resolution loading screen … then it would ask you, do you want standard
+resolution or high resolution … a tick box that says save preset … why not use high-quality
+graphics if it's possible?" The product owner's design replaced the supervisor's Settings-only
+Auto proposal. (1) **Two resolutions of the same art:** Standard is the 1× art of the first
+download, unchanged byte for byte; every group `g` gets a lazy `g-hd` twin with the art tools' 2×
+renders (layers, props, sprites; `art-source/hd/`) and the 2× masters already delivered (birds,
+props). No new art: the 2× Bushveld aloes are the D-051 drawing rendered at 2× and sit in
+`bushveld-winter-hd` (the product owner, 27 Oct: "keep them at normal resolution, but revisit
+later"; Standard keeps them at 1×). (2) **The choice:** a DOM card before the title on the first
+launch and whenever no preset is saved, on every build (D-052): Standard or HD with the real MB,
+the recommendation pre-selected (connection, Save-Data, deviceMemory, device px per design px),
+"may be slow on this device" on weak devices, Remember my choice ticked; Settings → Graphics
+Standard / HD / Ask on start. (3) **Drawing:** HD textures draw at half scale, so positions, hit
+areas, replays and the sim never change; keys without a view scale get frames that report the
+standard size (`hdTexture.ts`), a texture is never removed under an object (renamed, freed at the
+next scene change). (4) **Loading:** an area's HD pack loads with it behind the loading screen; a
+"Play now in Standard" button after 4 s; late and Ver HD in the background, the next areas'
+packs on the title. Standard never requests an HD file. (5) **Budgets:** first download and
+standard chunks unchanged; each HD group ≤ 4 MB gzip; texture memory of one area's HD hunt
+226–243 MB (Standard 95–110), within the 256 MB ceiling: so the guns (a 2× page is 64 MB), the
+near pop-up birds and the late group's rare birds stay Standard (~310 MB otherwise), and the sky
+(a gradient) and three cropped sprites (Phaser 4.2 crops clamp to the frame) have no HD version.
+(6) Later art jobs (far animals in HD, makalani palms, tree life) add to the HD packs by putting
+their 2× render at `art-source/hd/<path>` (docs/06). Docs: Tech §9, §10; GDD Settings; docs/06;
+CHANGELOG 1.9.0.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
