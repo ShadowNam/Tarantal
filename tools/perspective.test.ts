@@ -5,13 +5,18 @@ import { birdUnits } from './birdUnits';
 import { loadContent, loadFeel } from './testContent';
 
 describe('perspective audit (D-049, D-054)', () => {
-  it('the product owner (27 Oct): far elephants and giraffes at 0.6 × true size', () => {
+  it('the product owner (27 Oct): every far animal at 0.6 × true size', () => {
     const mul = loadFeel().fauna.sizeMul;
     expect(mul.elephant).toBe(0.6);
     expect(mul.giraffe).toBe(0.6);
     const far = pxPerMetre(birdUnits('alert') * loadContent().scoring.planes.far.scale);
     expect(lookHeight('elephant', 'm', far, mul.elephant)).toBeCloseTo(151.5, 0);
     expect(lookHeight('giraffe', 'm', far, mul.giraffe)).toBeCloseTo(236.7, 0);
+    // 20:15: zebras and wildebeest too, and so every species (one proportion on shared maps).
+    for (const sp of Object.keys(mul).filter((k) => k !== '$comment'))
+      expect(mul[sp as keyof typeof mul], sp).toBe(0.6);
+    expect(lookHeight('zebra', 'm', far, mul.zebra)).toBeCloseTo(63.9, 0);
+    expect(lookHeight('springbok', 'm', far, mul.springbok)).toBeCloseTo(37.9, 0);
   });
 
   it('true proportions give an oversize of 1', () => {

@@ -852,15 +852,15 @@
   "fauna": {
     "$comment": "D-054: the far animals' idle motion on sim time (src/game/view/faunaHerds.ts faunaIdle; a held frame holds still). Grazing: a bite (head dips grazeDeg and back, a smaller second dip) every grazeEverySec (each animal its own rhythm: period x 1 -/+ rhythmSpread/2; the second dip secondBite of the first); head up: a small ear flick / head turn; walking: a slight nod; a tail swish every tailEverySec; an elephant's ears fan in by earFold and its trunk sways swayDeg, as does a browsing giraffe's head. Reduce motion: every amplitude x calm (calmer, never off). D-049's faunaScale is gone: the herds are drawn at their real heights now.",
     "sizeMul": {
-      "$comment": "D-054 (product owner 27 Oct 20:10: 'make the elephants and giraffes at least 25% smaller ... the further animals are away, the smaller they get ... it could even be up to 50%'): drawn height x the D-049 true-proportion target. Elephants and giraffes at 0.6 so the distance reads against the stage-set props; the rest true. Change one line, then npm run art:interim -- --only fauna and npm run assets:pack.",
+      "$comment": "D-054: drawn height x the D-049 true-proportion target. The product owner, 27 Oct 20:10: 'make the elephants and giraffes at least 25% smaller ... the further animals are away, the smaller they get ... it could even be up to 50%'; 20:15: 'make the zebras and wildebeest smaller too.' Every far species at 0.6: herds share maps, so one multiplier keeps them in true proportion to each other (a smaller zebra beside a full-size gemsbok would look wrong); the far guineafowl keep their size (they are the targets). Change a line, then npm run art:interim -- --only fauna and npm run assets:pack.",
       "elephant": 0.6,
       "giraffe": 0.6,
-      "zebra": 1,
-      "wildebeest": 1,
-      "gemsbok": 1,
-      "springbok": 1,
-      "ostrich": 1,
-      "lechwe": 1
+      "zebra": 0.6,
+      "wildebeest": 0.6,
+      "gemsbok": 0.6,
+      "springbok": 0.6,
+      "ostrich": 0.6,
+      "lechwe": 0.6
     },
     "idle": {
       "grazeDeg": 5,

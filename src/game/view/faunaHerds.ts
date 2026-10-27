@@ -138,7 +138,7 @@ const herd = (
     species,
     pose,
     variant,
-    x,
+    x: x * HERD_SPREAD,
     dy,
     facing,
     s: s ?? 1,
@@ -146,6 +146,11 @@ const herd = (
 });
 
 const FAR = 'far_veld';
+
+/** The authored spacing below was laid out for animals at true size; with every species drawn at
+ *  0.6 (feel.json fauna.sizeMul) the herds close up by this much, and spaceHerd() still keeps
+ *  every head clear of the others. */
+export const HERD_SPREAD = 0.65;
 
 /**
  * The herds per biome (positions as in v1.6; loose groups, both facings, young ones). Feet on
