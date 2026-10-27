@@ -363,10 +363,16 @@ describe('D-054 review: a late sheet whose HD file went under its key first', ()
     const { api, map } = fakeTextures();
     const key = 'fauna/karoo_ostrich';
     // Node has no DOM: a canvas class for the placeholder check.
-    vi.stubGlobal('HTMLCanvasElement', class {});
+    vi.stubGlobal(
+      'HTMLCanvasElement',
+      class FakeCanvas {
+        readonly canvas = true;
+      },
+    );
     // The late-hd sheet landed first and went under the key (HD then); the standard file is in.
     const hdImg = { width: 999, height: 999 };
-    api.addImage(key, hdImg);
+    // Safe: the fake texture manager takes any { width, height } as an image.
+    api.addImage(key, hdImg as unknown as HTMLImageElement);
     hdUnderKey.set(key, 0.5);
     (m as unknown as { drawn: Set<string> }).drawn.add(key);
     m.hdWanted = false;
