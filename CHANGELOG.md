@@ -16,9 +16,9 @@ that are in a far distance … still look too much like stick figures."
   tusks; the giraffe's sloping back and ossicones; the wildebeest's beard and horns; the
   gemsbok's mask and two long horns), their own coats and markings, light from above and a soft
   shadow, thin outlines instead of a heavy cartoon line.
-- **At their real size** beside the guineafowl on their plane (a far zebra 106 px at the
-  shoulder), with elephants and giraffes a little smaller so the distance reads (an elephant 151
-  px at the shoulder, a giraffe 237 tall), in loose herds facing both ways where no head crosses
+- **Sized for the distance**: every far animal in proportion to the guineafowl beside it and
+  to each other, then a little smaller so the distance reads (a far zebra 64 px at the shoulder,
+  an elephant 151, a giraffe 237 tall), in loose herds facing both ways where no head crosses
   another animal, with young ones, cows and hens; lechwe wade in shallow water. Every animal
   stands out from the bright horizon and clouds.
 - **They live a little**: grazing bites, ear flicks, tail swishes, an elephant's ears and trunk, a
@@ -27,7 +27,7 @@ that are in a far distance … still look too much like stick figures."
 
 ### Unchanged
 - Positions, hits, scores and replays (decor only). The first download shrinks (2,996.0 →
-  2,992.1 KB gzip, web: the Karoo's herds load just after it); every area chunk stays under
+  2,991.9 KB gzip, web: the Karoo's herds load just after it); every area chunk stays under
   1.5 MB (two big camelthorn images at 128 colours, no visible change, make the room).
 
 ## [1.9.0] — HD graphics: Standard or HD (27 Oct 2026)

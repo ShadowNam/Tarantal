@@ -363,10 +363,10 @@ Bird atlases are drawn per plane at the plane's scale (`npm run art:interim -- -
   net between angular chestnut patches); browsing, walking, head up, drinking; calves.
 - **Far animals** (D-054, 1.9.1; `tools/art/farFauna.ts`, herds in
   `src/game/view/faunaHerds.ts`) are drawn from their anatomy at their **real size beside the
-  guineafowl on their plane** (D-049 targets, docs/balance/perspective.md: far zebra 106 px at
-  the shoulder, wildebeest 110, gemsbok 95, springbok 63, ostrich 197, lechwe 79; the Ver
-  waterhole's at the Ver plane's), except **elephants and giraffes at 0.6 ×** (the product owner:
-  smaller with distance; far elephant 151 px at the shoulder, giraffe 237 to the head):
+  guineafowl on their plane** (D-049 targets, docs/balance/perspective.md) **× 0.6 for every
+  species** (the product owner: smaller with distance; one multiplier keeps shared herds in
+  proportion): far elephant 151 px at the shoulder, giraffe 237 to the head, zebra 64, wildebeest
+  66, gemsbok 57, springbok 38, lechwe 47, ostrich 118 to the head; the Ver waterhole the same way.
   `feel.json fauna.sizeMul`. Young ones 55–70 % of an
   adult (elephant calves 50 %) with bigger heads and longer legs; cows and hens a little smaller.
   - *Anatomy:* jointed legs (elbow, knee, fetlock, pastern and a tapering hoof in front; stifle,

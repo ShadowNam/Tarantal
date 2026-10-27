@@ -2939,16 +2939,19 @@ cause: the herds were drawn tiny (a zebra 15 px) and shown 3× (D-049's `faunaSc
 showed at 1 texture px per screen px and HD could not sharpen them. Auto proposal, product owner
 review of the contact sheet folded in. (1) **Redraw** (`tools/art/farFauna.ts`): every species
 from its anatomy (jointed legs, real silhouettes, coats, light from above, thin coat-coloured
-outlines), at the D-049 target heights (the guineafowl's true size beside it: far zebra 106 px at
-the shoulder, wildebeest 110, gemsbok 95, springbok 63, ostrich 197, lechwe 79; the Ver
-waterhole's at the Ver plane's); young ones, cows and hens; details in the art bible (far
-animals). **Elephants and giraffes at 0.6 × true proportion** (the product owner, 27 Oct 20:10:
-"make the elephants and giraffes at least 25% smaller … the realism looks off … the further
-animals are away, the smaller they get … 25% should be at least, but it could even be up to
-50%"), so the distance reads against the stage-set props: far elephant 151 px at the shoulder,
-giraffe 237 px to the head (Ver: 71 / 110), drawn at that size (no runtime scaling): a tunable,
-`feel.json fauna.sizeMul.<species>` (default 1), read by the art generator; the herds space
-themselves from their frames' real sizes. **Contrast** (review 27 Oct: a springbok's pale hazed
+outlines), sized from the D-049 targets (the guineafowl's true size beside it); young ones, cows
+and hens; details in the art bible (far animals). **Every far species at 0.6 × true
+proportion**: the product owner, 27 Oct 20:10: "make the elephants and giraffes at least 25%
+smaller … the realism looks off … the further animals are away, the smaller they get … 25%
+should be at least, but it could even be up to 50%"; and 20:15: "make the zebras and wildebeest
+smaller too." One multiplier for all, because herds share maps: shrinking only some species
+would break their proportions to each other (Kalahari wildebeest as tall as the springbok,
+Namibië's gemsbok taller than the zebras); the far guineafowl keep their size (they are the
+targets). Far heights: elephant 151 px at the shoulder, giraffe 237 to the head, zebra 64,
+wildebeest 66, gemsbok 57, springbok 38, lechwe 47 at the shoulder, ostrich 118 to the head; the
+Ver waterhole the same way. Drawn at that size (no runtime scaling), a tunable:
+`feel.json fauna.sizeMul.<species>` (default 1), read by the art generator; the herds close up
+to match (`HERD_SPREAD` 0.65) and space themselves from their frames' real sizes. **Contrast** (review 27 Oct: a springbok's pale hazed
 neck vanished against the cream horizon glow, so its face looked detached): a thin darker contour
 on every part, cinnamon springbok necks with a narrow white throat stripe, the neck's root
 filled in the body too (no shoulder seam), and the haze capped per colour: the animals take 0.45
@@ -2966,19 +2969,18 @@ frame holds, replays repeat, reduce motion × 0.35. Decor only: no hit tests, no
 in `art-source/hd/` (96 colours), `npm run art:interim -- --only fauna`. (5) **Budgets**
 (`size --strict` passes on web, Poki, CrazyGames): the Karoo's herds move to the late group
 (the first download may not grow; they swap in via `AssetManifest.upgrade()`, never a texture
-removal): first download 2,996.0 → 2,992.1 KB gzip (web), Poki 2,989.9 → 2,985.9, CrazyGames
-2,990.0 → 2,986.1; room freed with the Kalahari weaver
-camelthorn and Namibië's nest camelthorn at 128 colours (mean change 2/255, none visible, −40 and
-−35 KB); chunks after (web, gzip): Bushveld 1,466.1 → 1,501.5 KB, Kalahari + desert 1,534.5 →
-1,512.2, Namibië + desert 1,508.3 → 1,500.1, Okavango 1,426.9 → 1,466.2, late 1,399.2 →
-1,421.1, Ver 532.2 → 528.0; HD groups Bushveld 1,984.0 → 2,185.6, Kalahari 1,284.7 → 1,369.8,
-Namibië 1,598.4 → 1,706.5, Okavango 2,377.1 → 2,555.5, late 41.5 → 104.5, Ver 333.2 → 376.6
-(Karoo 1,587.1 unchanged; all ≤ 4 MB). Texture memory of the far animals per area (Standard /
-HD; v1.9.0 had 0.6–1.9 MB in both): Bushveld 1.7 / 6.7 MB (+5.2 in HD), Okavango 1.5 / 5.9
-(+5.0), Namibië incl. the waterhole 1.2 / 4.6 (+2.8), Kalahari 0.8 / 3.0 (+2.4), Karoo 0.6 /
-2.2 (+1.5): within the 256 MB ceiling even on the highest area measured for D-053 (243 + 5.2);
-`perf.spec.ts` asserts it on the Pixel 7 profile for the Karoo, the Bushveld and the Okavango (the
-CI numbers go here once measured). Docs: art bible (far animals); docs/06 §6b;
+removal): first download 2,996.0 → 2,991.9 KB gzip (web), Poki 2,989.9 → 2,985.8, CrazyGames
+2,990.0 → 2,985.9; room freed with the Kalahari weaver camelthorn and Namibië's nest camelthorn
+at 128 colours (mean change 2/255, none visible, −40 and −35 KB); chunks after (web, gzip):
+Bushveld 1,466.1 → 1,482.0 KB, Kalahari + desert 1,534.5 → 1,498.9, Namibië + desert 1,508.3 →
+1,481.5, Okavango 1,426.9 → 1,444.7, late 1,399.2 → 1,410.9, Ver 532.2 → 522.7; HD groups
+Bushveld 1,984.0 → 2,131.3, Kalahari 1,284.7 → 1,329.0, Namibië 1,598.4 → 1,656.8, Okavango
+2,377.1 → 2,494.9, late 41.5 → 75.7, Ver 333.2 → 362.2 (Karoo 1,587.1 unchanged; all ≤ 4 MB).
+Texture memory of the far animals per area (Standard / HD; v1.9.0: 0.6–1.9 MB in both): Bushveld
+1.1 / 4.6 MB (+3.1 in HD), Okavango 0.9 / 3.4 (+2.4), Namibië incl. the waterhole 0.5 / 2.0
+(+0.1), Kalahari 0.3 / 1.2 (+0.5), Karoo 0.2 / 0.9 (+0.2): within the 256 MB ceiling even on the
+highest area measured for D-053 (243 + 3.1); `perf.spec.ts` asserts it on the Pixel 7 profile for
+the Karoo, the Bushveld and the Okavango (the CI numbers go here once measured). Docs: art bible (far animals); docs/06 §6b;
 docs/balance/perspective.md; CHANGELOG 1.9.1.
 
 ## 3. Research notes (with sources)
