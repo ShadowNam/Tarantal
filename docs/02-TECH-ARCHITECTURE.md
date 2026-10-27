@@ -684,7 +684,10 @@ export interface PlatformAdapter {
   Dailies are practice (no attempt, streak or best saved), no tally offers [Share], and `?c=`
   links are ignored. `tests/e2e/daily-public.spec.ts` (CI job `public`, `E2E_BUILD=public`)
   proves it on the build Pages ships.
-- **Portal constraints** (verify against current docs before each submission):
+- **Release aim (D-052, 27 Oct 2026):** friends on the web test build first, then the Apple App Store and
+  Google Play through Capacitor. Poki and CrazyGames are no longer targets; their adapters and builds
+  stay until they are removed on purpose. The portal notes below are kept for reference.
+- **Portal constraints** (reference only since D-052; verify against current docs before any submission):
   - **Poki:** initial download target < 8 MB; must work on desktop, mobile and tablet (tablets get
     mobile controls) and in incognito; on mobile the game must fill the screen in portrait or
     landscape; only Poki's ad system; remove external CDN dependencies; mute audio during ads;
