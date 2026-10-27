@@ -22,9 +22,11 @@ export const HD_SOURCE_DIR = 'hd';
 
 /**
  * Layers without an HD version: the sky is a soft gradient (no detail gains from 2×, and at 2× it
- * would cost 35 MB of texture memory per area).
+ * would cost 35 MB of texture memory per area). D-054 (Pixel 7 HD hunts at 358–384 MB measured in
+ * CI, against 256): the far ridge and the far veld too, the most distant and hazed of the
+ * scenery (−19 MB of texture memory in every area; the far animals on them keep their HD art).
  */
-export const HD_SKIP_LAYERS: readonly string[] = ['sky'];
+export const HD_SKIP_LAYERS: readonly string[] = ['sky', 'far_ridge', 'far_veld'];
 
 /**
  * Texture keys (prefixes) without an HD version: images that are cropped and drawn without a view
@@ -41,12 +43,22 @@ export const HD_SKIP_KEYS: readonly string[] = ['ui/ammo/', 'helper/meerkat', 'b
  */
 export const HD_BIRD_PLANES: readonly string[] = ['mid', 'far'];
 export const HD_SKIP_BIRD_GROUPS: readonly string[] = ['late'];
+/**
+ * D-054 (same measurements): the specials stay Standard in HD: the Okavango's kuifkop and the
+ * Kuifkop Koning boss, and the ou grys. They show briefly and rarely, and each HD mid atlas is a
+ * 16 MB texture (4 MB in Standard) that prewarm puts on the GPU for the whole hunt.
+ */
+export const HD_SKIP_BIRDS: readonly string[] = ['kuifkop', 'kuifkop_koning', 'ou_grys'];
 /** A switch (typed boolean so the packer's check stays meaningful): no HD gun atlases for now. */
 export const HD_GUNS = false as boolean;
 
 /** True when a bird atlas of `group` on `plane` gets an HD version. */
-export function hdBird(plane: string, group: string): boolean {
-  return HD_BIRD_PLANES.includes(plane) && !HD_SKIP_BIRD_GROUPS.includes(group);
+export function hdBird(plane: string, group: string, creature = ''): boolean {
+  return (
+    HD_BIRD_PLANES.includes(plane) &&
+    !HD_SKIP_BIRD_GROUPS.includes(group) &&
+    !HD_SKIP_BIRDS.includes(creature)
+  );
 }
 
 /**

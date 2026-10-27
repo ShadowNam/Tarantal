@@ -387,3 +387,42 @@ describe('D-054 review: a late sheet whose HD file went under its key first', ()
     vi.unstubAllGlobals();
   });
 });
+
+describe('D-054: a released area keeps no HD layers on the GPU (Pixel 7 HD hunts at 358–384 MB)', () => {
+  const hdTiles = (m: AssetManifest, id: string): string[] => m.layer(id)?.tiles ?? [];
+  it('title (Karoo, HD) → a Bushveld hunt: sync no longer puts the Karoo HD layers back; back to the title restores them', async () => {
+    const karoo = await loadedArea('karoo-autumn');
+    const bush = await loadedArea('bushveld-winter');
+    const { api } = fakeTextures();
+    for (const m of [karoo, bush]) {
+      m.setHd(true);
+      await loadHd(m, index, {
+        timeoutMs: 1000,
+        biome: m === karoo ? 'karoo-autumn' : 'bushveld-winter',
+      }).all;
+    }
+    // A preloaded area that was never shown uploads nothing.
+    applyHd(bush, api);
+    expect(hdTiles(bush, 'bushveld/mid').some((k) => api.exists(k))).toBe(false);
+    // The title.
+    karoo.install(api, () => false);
+    applyHd(karoo, api);
+    const karooMid = hdTiles(karoo, 'karoo/mid');
+    expect(karooMid.length).toBeGreaterThan(0);
+    expect(karooMid.every((k) => k.includes('/hd/') && api.exists(k))).toBe(true);
+    // The hunt in the Bushveld: release, install, then buildViews' sync (applyHd on every manifest).
+    karoo.release(api, bush);
+    bush.install(api, () => false);
+    applyHd(karoo, api);
+    applyHd(bush, api);
+    expect(karooMid.some((k) => api.exists(k))).toBe(false);
+    expect(hdTiles(bush, 'bushveld/mid').every((k) => api.exists(k))).toBe(true);
+    // Back to the title (A → B → A): the Karoo HD layers come back, the Bushveld's go.
+    bush.release(api, karoo);
+    karoo.install(api, () => false);
+    applyHd(bush, api);
+    applyHd(karoo, api);
+    expect(karooMid.every((k) => api.exists(k))).toBe(true);
+    expect(hdTiles(bush, 'bushveld/mid').some((k) => api.exists(k))).toBe(false);
+  });
+});

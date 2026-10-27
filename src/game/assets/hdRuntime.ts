@@ -273,6 +273,9 @@ export function loadHd(
  * they watch hdEpoch. Returns true when anything changed.
  */
 export function applyHd(m: AssetManifest, textures: Phaser.Textures.TextureManager): boolean {
+  // D-054: a released (or never installed) area uploads no HD art; its own install() brings its
+  // art back when it is shown. Swapping back to Standard still runs (shared keys it kept).
+  if (m.parked && m.hdWanted) return false;
   let changed = false;
   for (const [key, hd] of m.hdImages) {
     if (!textures.exists(key)) continue;

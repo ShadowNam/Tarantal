@@ -711,7 +711,7 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
           : packAtlas(cells, 2, `${slug(creature)}-${plane}`, group, 'birds', rig, res, x1.alias);
       // D-053: the HD pack's @2x set from the same masters (null when they are smaller).
       const hdSet =
-        rig.hd === false || !hdBird(plane, group)
+        rig.hd === false || !hdBird(plane, group, creature)
           ? null
           : packAtlas(
               cells,

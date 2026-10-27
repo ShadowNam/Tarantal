@@ -268,6 +268,14 @@ export class AssetManifest {
   /** D-053: the player's choice for this manifest (applied by install() / applyHd()). */
   /** @internal */
   hdWanted = false;
+  /**
+   * D-054: true until this manifest's install() runs, and again after release() (another area's
+   * hunt took the GPU) until its next install(): an area whose HD pack is only preloaded on the
+   * title uploads nothing. graphics.sync()/applyHd() calls every manifest, and put a released
+   * area's HD layers straight back (the title's Karoo HD layers, +103 MB in every other area's
+   * HD hunt on the Pixel 7 profile).
+   */
+  parked = true;
   /** D-053: layers whose HD tiles are in the texture manager. */
   /** @internal */
   readonly hdTilesIn = new Set<string>();
@@ -707,6 +715,7 @@ export class AssetManifest {
     filter: (key: string) => boolean = () => true,
     budgetMs = Infinity,
   ): boolean {
+    this.parked = false;
     for (const [key, { img }] of this.finalImages)
       if (!textures.exists(key)) {
         // D-053: straight to the HD file when HD is chosen and it is in.
@@ -816,6 +825,7 @@ export class AssetManifest {
     anims?: Phaser.Animations.AnimationManager,
   ): string[] {
     if (next === this) return [];
+    this.parked = true;
     const keep = next.textureKeys();
     for (const b of next.finalBirds.values())
       if (b.entry.group !== LATE_GROUP) keep.add(b.atlasKey);
@@ -906,6 +916,8 @@ export class AssetManifest {
 
   /** @internal D-053 (hdRuntime.ts, install). */
   installHdTiles(textures: Phaser.Textures.TextureManager): boolean {
+    // A released area's tiles come back with its own install(), not another area's sync.
+    if (this.parked) return false;
     let changed = false;
     for (const [id, { tiles }] of this.hdLayers) {
       // Tiles another manifest's release() removed are added again.
