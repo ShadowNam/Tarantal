@@ -183,19 +183,14 @@ export class FaunaView {
   }
   /** e2e/dev only: the v1.9.0 herds, one image each (served next to the build, never shipped). */
   private loadBefore(): void {
-    const load = this.scene.load;
+    // Plain image loads (not the scene's loader, which may be busy with the area's files and
+    // then never report this batch complete: the Okavango spec waited for ever).
     for (const h of this.herds) {
       const b = FAUNA_BEFORE[h.key];
       if (b === undefined) continue;
       const key = `${h.key}#before`;
-      if (!this.scene.textures.exists(key))
-        load.image(key, `${BEFORE_URL}${h.key.replace('fauna/', '')}.png`);
-    }
-    const place = (): void => {
-      for (const h of this.herds) {
-        const b = FAUNA_BEFORE[h.key];
-        const key = `${h.key}#before`;
-        if (b === undefined || !this.scene.textures.exists(key)) continue;
+      const place = (): void => {
+        if (!this.scene.sys.isActive() && !this.scene.sys.isVisible()) return;
         // v1.9.0 showed the herds at 3× their drawn size (the waterhole at 1×).
         const shown = h.layer === 'ver_veld' ? 1 / BEFORE_MASTER : 1;
         this.rootOf(h).add(
@@ -204,11 +199,22 @@ export class FaunaView {
             .setOrigin(0.5, (b.h - BEFORE_FOOT) / b.h)
             .setScale(shown),
         );
+      };
+      if (this.scene.textures.exists(key)) {
+        place();
+        continue;
       }
-      this.built = true;
-    };
-    load.once('complete', place);
-    load.start();
+      const img = new Image();
+      img.onload = () => {
+        if (!this.scene.textures.exists(key)) this.scene.textures.addImage(key, img);
+        place();
+      };
+      img.onerror = () => {
+        console.warn(`[fauna] no before image for ${h.key}`);
+      };
+      img.src = `${BEFORE_URL}${h.key.replace('fauna/', '')}.png`;
+    }
+    this.built = true;
   }
 
   /**
@@ -216,10 +222,10 @@ export class FaunaView {
    * now (after an HD swap): every frame, during hunts and between them (the title's herds).
    * The epoch is checked before building, so a swap that lands with a build never goes unseen.
    */
-  refresh(): void {
+  refresh(now = false): void {
     if (this.o.before === true) return;
     if (this.epoch >= 0 && this.manifest.hdEpoch !== this.epoch) this.retexture();
-    if (!this.built && ++this.waits % RETRY_FRAMES === 0) this.build();
+    if (!this.built && (now || ++this.waits % RETRY_FRAMES === 0)) this.build();
   }
 
   /**

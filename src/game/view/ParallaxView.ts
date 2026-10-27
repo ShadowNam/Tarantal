@@ -365,9 +365,14 @@ export class ParallaxView {
     }
   }
 
+  /** D-054: builds herds whose sheets landed and follows HD swaps, without posing them. */
+  refreshFauna(): void {
+    for (const f of this.fauna) f.refresh(true);
+  }
+
   /** D-054: poses the far animals for sim tick `tick` (a held frame holds still). */
-  animateFauna(tick: number, calm: boolean): void {
-    for (const f of this.fauna) f.update(tick, calm);
+  animateFauna(tick: number, calm: boolean, viewWidth = Infinity): void {
+    for (const f of this.fauna) f.update(tick, calm, viewWidth);
   }
 
   /** D-054 (test hook): every far-animal part as drawn. */
@@ -425,6 +430,9 @@ export class ParallaxView {
    * anything changed.
    */
   refreshHd(): boolean {
+    // D-054: the herds too (also between hunts, when no world update poses them: the title's
+    // herds are built once their sheets land, and follow an HD/Standard switch).
+    this.refreshFauna();
     if (this.manifest.hdEpoch === this.hdEpoch) return false;
     this.hdEpoch = this.manifest.hdEpoch;
     this.restoreCulled();

@@ -197,33 +197,47 @@ async function huntIn(page: Page, info: TestInfo, biome: string, extra: string):
   await page.goto(
     `/?e2e=1&capture=1&biome=${biome}&layout=${layout}&feesdag=none&seed=3&huntSeconds=600&ftue=0${extra}`,
   );
-  await page.waitForFunction(() => window.__TM__?.ready === true, null, { timeout: 300_000 });
+  await page.waitForFunction(() => window.__TM__?.ready === true, null, { timeout: 180_000 });
   await startHunt(page, isTouchProject(info));
   if (extra.includes('graphics=hd'))
     await page.waitForFunction(() => (window.__TM__?.graphics.hdTextures ?? 0) > 0, null, {
-      timeout: 300_000,
+      timeout: 120_000,
     });
   const herds = (FAUNA_HERDS[biome] ?? []).map((h) => h.key);
   const prefix = `layer:${biome.split('-')[0] ?? biome}/`;
-  await page.waitForFunction(
-    ([want, pre, keys]) => {
-      const tm = window.__TM__;
-      const b = tm?.graphics.bounds ?? [];
-      const layers = b.filter((x) => x.key.startsWith('layer:'));
-      return (
-        tm?.scene === 'hunt' &&
-        tm.biome === want &&
-        tm.menu !== 'hdLoading' &&
-        tm.graphics.loading !== 'loading' &&
-        layers.length > 0 &&
-        layers.every((x) => x.key.startsWith(pre)) &&
-        // Every herd drawn (late and Ver sheets land after the hunt starts).
-        keys.every((k) => b.some((x) => x.key === k && x.w > 0))
-      );
-    },
-    [biome, prefix, herds] as const,
-    { timeout: 300_000 },
-  );
+  const hd = extra.includes('graphics=hd');
+  const state = async (): Promise<string> =>
+    page.evaluate(
+      ([want, pre, keys, needHd]) => {
+        const tm = window.__TM__;
+        const b = tm?.graphics.bounds ?? [];
+        const layers = b.filter((x) => x.key.startsWith('layer:'));
+        const missing: string[] = [];
+        if (tm?.scene !== 'hunt') missing.push(`scene ${tm?.scene ?? 'none'}`);
+        if (tm?.biome !== want) missing.push(`biome ${tm?.biome ?? 'none'}`);
+        if (tm?.menu === 'hdLoading') missing.push('HD loading screen up');
+        if (tm?.graphics.loading === 'loading') missing.push('HD pack loading');
+        if (layers.length === 0 || !layers.every((x) => x.key.startsWith(pre)))
+          missing.push("the area's layers (the title's still showing)");
+        for (const k of keys) {
+          const h = b.find((x) => x.key === k && x.w > 0);
+          // Late and Ver sheets land after the hunt starts; HD runs wait for their HD art too
+          // (late-hd and ver-hd load in the background).
+          if (h === undefined) missing.push(`herd ${k}`);
+          else if (needHd && !h.hd) missing.push(`HD art of ${k}`);
+        }
+        return missing.join(', ');
+      },
+      [biome, prefix, herds, hd] as const,
+    );
+  // 120 s, then fail with what is missing (a hang here once cost 17 minutes).
+  const until = Date.now() + 120_000;
+  let missing = await state();
+  while (missing !== '' && Date.now() < until) {
+    await page.waitForTimeout(1000);
+    missing = await state();
+  }
+  if (missing !== '') throw new Error(`${biome}${extra}: after 120 s still missing: ${missing}`);
   await park(page, isTouchProject(info));
 }
 
