@@ -496,7 +496,8 @@ next to each group (Tech §10). Putting art into an HD pack is one step:
 
 Then `npm run assets:pack` and `npm run size -- --strict` (each HD group ≤ 4 MB gzip). Not in HD on
 purpose: the sky layers, the HUD ammo, the meerkat helper and water (cropped), the guns, near
-pop-up birds and the late group's birds (texture memory: `src/game/assets/hdPack.ts`).
+pop-up birds and the late group's birds (texture memory: `src/game/assets/hdPack.ts`); D-054: the
+far ridge, far veld and Ver strip layers and the special birds (kuifkop, Kuifkop Koning, ou grys).
 
 ## 7. Checking a delivery
 
