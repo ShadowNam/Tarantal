@@ -951,7 +951,9 @@ async function boot(): Promise<void> {
       if (b === undefined || assetIndex === null || hdRuntime === null || !biomeArtReady(id))
         return 0;
       const f = hdRuntime.hdFiles(manifestFor(b), assetIndex, b.id, true);
-      return [...f.now, ...f.background].reduce((a, x) => a + x.bytes, 0);
+      // The files this choice downloads before the hunt (common-hd and the area's -hd): the
+      // same total the HD loading screen counts. late-hd and ver-hd load later, during play.
+      return f.now.reduce((a, x) => a + x.bytes, 0);
     },
     async loadHd(id) {
       const b = biomeById(id);

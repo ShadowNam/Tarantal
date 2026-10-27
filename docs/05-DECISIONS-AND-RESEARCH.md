@@ -2898,7 +2898,8 @@ renders (layers, props, sprites; `art-source/hd/`) and the 2× masters already d
 props). No new art: the 2× Bushveld aloes are the D-051 drawing rendered at 2× and sit in
 `bushveld-winter-hd` (the product owner, 27 Oct: "keep them at normal resolution, but revisit
 later"; Standard keeps them at 1×). (2) **The choice:** a DOM card before the title on the first
-launch and whenever no preset is saved, on every build (D-052): Standard or HD with the real MB,
+launch and whenever no preset is saved, on every build (D-052): Standard or HD with the real MB
+(before the hunt: `common-hd` + the area's `-hd`, as the HD loading bar counts),
 the recommendation pre-selected (connection, Save-Data, deviceMemory, device px per design px),
 "may be slow on this device" on weak devices, Remember my choice ticked; Settings → Graphics
 Standard / HD / Ask on start. (3) **Drawing:** HD textures draw at half scale, so positions, hit

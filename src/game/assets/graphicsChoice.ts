@@ -130,7 +130,10 @@ export interface GraphicsControl {
   readonly hd: boolean;
   /** The saved setting (Settings → Graphics). */
   readonly setting: GraphicsSetting;
-  /** Bytes of the area's HD files not yet loaded (before its hunt + background). */
+  /**
+   * Bytes of the area's HD files not yet loaded that its hunt waits for (common-hd and the
+   * area's -hd): the card's MB and the HD loading screen's total.
+   */
   hdBytes(biomeId: string): number;
   /** Starts (or joins) loading the area's HD pack; resolves when the files before its hunt settle. */
   loadHd(biomeId: string): Promise<void>;

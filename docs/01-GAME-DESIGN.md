@@ -1056,7 +1056,9 @@ device; HD is the same art at twice the resolution (sharper on large and high-de
 through the scopes), a larger download per area. The first launch (and every launch while "Ask on
 start" is set) asks on a light loading screen before the title: two big buttons, Standard ("fast,
 works on every device") and HD ("sharper art, a larger download (N MB)", the real size for the
-area), one tap answers. The game pre-selects HD when the connection and device look capable (4G,
+area: the HD files its hunt waits for, `common-hd` + the area's `-hd`, the same
+total the HD loading bar counts; `late-hd` and `ver-hd` follow during play), one
+tap answers. The game pre-selects HD when the connection and device look capable (4G,
 ≥ 10 Mbit/s where the browser says, no Save-Data, ≥ 4 GB memory where known, not the low tier) and
 the screen shows the difference (more than 1.25 device px per design px); otherwise Standard. On a
 device that looks too weak (≤ 2 GB, or the low tier) the HD button says "may be slow on this
