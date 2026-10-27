@@ -1,11 +1,11 @@
 {
  "schema": 1,
- "updated": "2026-10-27T07:06:00Z",
+ "updated": "2026-10-27T07:46:00Z",
  "by": "Claude",
  "summary": "Live on the test build: Karoo polish (1.8.1, merged 08:18 Namibia time on 27 Oct): the Karoo aloes are a new, sharper drawing that streams in once the hunt has started, the Bushveld aloes use the same drawing at normal resolution, and the potjie on the coals simmers with steam; shoot it and the lid flies off and lands with a clang. v1.8 Blikkies (1.8.0, 03:36) is in too: tin cans on the fence posts that you can juggle in the air until they fly out of sight (Weg!). Tank is building HD graphics now (Standard or HD on the loading screen, about 14:30). Then: far animals in HD, makalani palms, tree life, an Android test app for friends; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
   "version": "1.8.1",
-  "commit": "d70f45a"
+  "commit": "a84e450"
  },
  "links": [
   {
@@ -37,12 +37,12 @@
   {
    "label": "Version on the test build",
    "value": "1.8.1",
-   "note": "commit d70f45a, merged 27 Oct, 09:03 Namibia time (the test build deploys a few minutes after)"
+   "note": "commit a84e450, merged 27 Oct, 09:44 Namibia time (the test build deploys a few minutes after)"
   },
   {
    "label": "Pull requests merged",
-   "value": "86",
-   "note": "#1 to #89"
+   "value": "87",
+   "note": "#1 to #91"
   },
   {
    "label": "Unit tests",
@@ -1615,6 +1615,32 @@
    "prs": [
     87
    ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/karoo-polish-aloe-compare.jpg",
+     "caption": "The Karoo aloe, before | after (twice the resolution) | as it is shown in play."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/karoo-polish-bushveld-aloe.jpg",
+     "caption": "The Bushveld aloe, before | after | as in play: the same new drawing at normal resolution."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/karoo-polish-potjie-compare.jpg",
+     "caption": "The potjie, before | after | as in play: a cast-iron pot on glowing coals and logs."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/karoo-polish-aloe-play.jpg",
+     "caption": "The new aloes in a hunt on the Karoo (desktop, close-up)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/karoo-polish-rattle.jpg",
+     "caption": "The lid rattles with a puff of steam on each side."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/karoo-polish-lid-off.jpg",
+     "caption": "Shot: the lid is off, the steam rises freely, and \"+5 s · Kos is reg!\" shows at the top."
+    }
+   ],
    "summary": "HD bitter aloes with toothed blue-green leaves, a skirt of dry leaves and orange-red flower spikes. The potjie on its coals steams, simmers and rattles its lid; shoot the lid and it flies off and lands beside the pot with a clang (+5 s as before).",
    "owner": "Tank built it (fresh session 1773b411 after connection drops); Claude reviewed it, ran the screenshots twice and merged it",
    "checklist": [
@@ -2084,7 +2110,7 @@
   {
    "date": "26 Oct, 07:05",
    "text": "Karoo: HD aloes; the potjie should steam and boil a little and its lid fall off when shot; guineafowl must get smaller the further away they are, on every map, but stay shootable",
-   "outcome": "Perspective done (#82, 1.7.4); Karoo polish (HD aloes, the boiling potjie) being built"
+   "outcome": "Perspective done (#82, 1.7.4); Karoo polish (HD aloes, the boiling potjie) done (#87, 1.8.1)"
   },
   {
    "date": "26 Oct, 07:15",
@@ -2094,7 +2120,7 @@
   {
    "date": "26 Oct, 07:24",
    "text": "Okavango: add makalani palms with their hard nuts, which fall or burst when hit; the tin cans and the meerkats were not seen yet; the Project overview looked stale; idea: offer Standard or HD graphics",
-   "outcome": "Blikkies done (#83, 1.8.0); makalani palms and HD graphics planned"
+   "outcome": "Blikkies done (#83, 1.8.0); HD graphics being built (moved up on 27 Oct); makalani palms planned"
   },
   {
    "date": "26 Oct, 10:10",
@@ -2129,7 +2155,42 @@
   {
    "date": "27 Oct, 00:05",
    "text": "Going to bed: keep Tank building, committing and merging overnight; a detailed report with screenshots in the morning; GitHub properly merged and the web build showing it",
-   "outcome": "Blikkies merged at 01:36 (#83) and deployed to the test build; Karoo polish started at 01:37; the morning report follows"
+   "outcome": "Blikkies merged at 01:36 (#83) and Karoo polish at 06:18 (#87), both deployed to the test build; the morning report was sent at 05:00"
+  },
+  {
+   "date": "27 Oct, 07:00",
+   "text": "Send me the morning report when ready",
+   "outcome": "Sent: a page with the night’s merges, screenshots and the plan for the day"
+  },
+  {
+   "date": "27 Oct, 07:05",
+   "text": "Is the WhatsApp connection reachable now?",
+   "outcome": "Yes: the gateway is connected, and short updates now go by WhatsApp"
+  },
+  {
+   "date": "27 Oct, 07:07",
+   "text": "Keep the Bushveld aloes at normal resolution and revisit them later; explain the limits behind the quality warnings",
+   "outcome": "Kept at normal resolution; explained: a small first download (3 MB) so the game starts quickly on phones, a size cap for each area’s download, and phone memory"
+  },
+  {
+   "date": "27 Oct, 07:10",
+   "text": "A light loading screen that asks Standard or HD, with a tick box to save the choice",
+   "outcome": "Being built as HD graphics (1.9.0), with \"Remember my choice\" and the same choice in Settings"
+  },
+  {
+   "date": "27 Oct, 07:12",
+   "text": "Move HD graphics up next; the aim is friends and the Apple and Android app stores, not Poki or CrazyGames",
+   "outcome": "HD graphics started right after Karoo polish; the release aim is written into the docs (D-052, #89, merged 07:03)"
+  },
+  {
+   "date": "27 Oct, 07:20",
+   "text": "Add an Android test app after tree life",
+   "outcome": "Planned after tree life: an installable file built by GitHub, downloadable from the test site"
+  },
+  {
+   "date": "27 Oct, 07:52",
+   "text": "WhatsApp me when Karoo polish is merged, with today’s expected times and the open questions",
+   "outcome": "Sent at the merge (06:19)"
   },
   {
    "date": "25 Oct, 16:45",
@@ -2259,6 +2320,11 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-27T07:45:00Z",
+   "kind": "merge",
+   "text": "The development history has a new chapter for Karoo polish, with six screenshots, the morning's requests and decisions D-051 and D-052 (#91)."
+  },
   {
    "at": "2026-10-27T07:05:00Z",
    "kind": "note",
@@ -4128,6 +4194,55 @@
      "caption": "The Skietbaan on a Pixel 7: the Tin Cans target at middle distance, with hit marks and the shot count."
     }
    ]
+  },
+  {
+   "title": "Karoo polish: HD aloes and a boiling potjie",
+   "when": "27 Oct 2026, 08:18 (started 01:37)",
+   "prs": "#87",
+   "decision": "D-051",
+   "intro": "The product owner asked for this on 26 Oct: \"These aloes … need to become HD.\" And: \"The braai pot … add a small bit of animation … as if … the pot is boiling a little bit. And when it’s shot, at least the deksel should fall off.\"",
+   "bullets": [
+    "The Karoo’s aloe clumps are redrawn as bitter aloes (Aloe ferox): fleshy blue-green leaves with small reddish teeth, a skirt of dry leaves at the base, and candelabras of orange-red flower spikes, with thin painterly lines instead of the old heavy outlines.",
+    "The new Karoo aloes are drawn at twice the resolution. They are not part of the first download: they load once the hunt has started and swap in when they arrive, without a flicker (the old picture is renamed, never removed while it is on screen). The first download grew by less than 4 KB, to 2,991 of 3,072 KB.",
+    "The Bushveld’s red aloes use the same new drawing at normal resolution. The twice-as-sharp version (about 190 KB more) would have pushed the Bushveld download over its limit; the product owner chose to keep them at normal resolution for now and revisit them in the HD graphics job.",
+    "The potjie is now a round cast-iron pot with a sheen, on a fire of glowing coals and logs. It simmers: steam drifts with the wind, the coals flicker, and every few seconds the lid rattles with a puff of steam and a soft clatter.",
+    "Shoot the lid and it pops off, tumbles through the air and lands beside the pot with a clang and a big puff of steam; the pot steams freely for the rest of the hunt. The +5 s and Oupa’s \"Kos is reg!\" are unchanged.",
+    "The pot, the lid and the steam follow the map’s light (dawn, dusk, overcast, the Spookjag), and Reduce motion makes the potjie calmer.",
+    "Released as version 1.8.1."
+   ],
+   "feedbackLabel": "Reviews and fixes before merging",
+   "feedback": [
+    "Claude’s first screenshots showed lime-green flames, steam that could hardly be seen and dull aloes. The independent review traced all three: an additive orange glow over the flames turned lemon-green under the high-quality bloom and vignette; the steam started inside the lid, where it was hidden; and the camera’s vignette darkened the pale new aloes by half. Tank moved the glow onto the embers as a deep red, started the steam at the rim in soft white wisps, and brightened the aloes. The second round of screenshots showed all three fixed.",
+    "The review also found that the lid and the steam ignored the map’s light (white steam glowing at dusk), that the rattle clacked once too often, and that unused HD stand-ins took about 1.2 MB of memory. All fixed.",
+    "On the way, four checks failed and were fixed: two formatting slips, an asset audit that flagged the HD aloes as unused, aloes touching the edges of their picture, and an iPhone browser test that read the lid before it had settled. The full suite then passed on all devices.",
+    "Tank’s connection dropped twice at the start, so Claude restarted the job as a fresh task with a self-contained brief, as the product owner had asked."
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/karoo-polish-aloe-compare.jpg",
+     "caption": "The Karoo aloe, before | after (twice the resolution) | as it is shown in play."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/karoo-polish-bushveld-aloe.jpg",
+     "caption": "The Bushveld aloe, before | after | as in play: the same new drawing at normal resolution."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/karoo-polish-potjie-compare.jpg",
+     "caption": "The potjie, before | after | as in play: a cast-iron pot on glowing coals and logs."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/karoo-polish-aloe-play.jpg",
+     "caption": "The new aloes in a hunt on the Karoo (desktop, close-up)."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/karoo-polish-rattle.jpg",
+     "caption": "The lid rattles with a puff of steam on each side."
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/karoo-polish-lid-off.jpg",
+     "caption": "Shot: the lid is off, the steam rises freely, and \"+5 s · Kos is reg!\" shows at the top."
+    }
+   ]
   }
  ],
  "evolution": [
@@ -4298,6 +4413,14 @@
    "text": "v1.8 Blikkies: tin cans on the farm fences that somersault and can be juggled until Weg!; × Stampede only, the chain ends at 10 hits"
   },
   {
+   "id": "D-051",
+   "text": "Karoo polish: HD aloes that load after the hunt starts (Bushveld at normal resolution for now); the potjie simmers and its lid flies off when shot"
+  },
+  {
+   "id": "D-052",
+   "text": "Release aim: friends first (the web test build), then the Apple App Store and Google Play through Capacitor; Poki and CrazyGames are no longer targets"
+  },
+  {
    "id": "D-043",
    "text": "v1.6b reload power-ups: Blitslaai and Oupa Laai (in review, #71)"
   },
@@ -4390,6 +4513,18 @@
   {
    "term": "Blikkiesdans",
    "meaning": "\"Tin-can dance\": the secret for keeping a can up for 8 hits"
+  },
+  {
+   "term": "Potjie",
+   "meaning": "A three-legged cast-iron pot that cooks on the coals"
+  },
+  {
+   "term": "Deksel",
+   "meaning": "Lid"
+  },
+  {
+   "term": "Kos is reg!",
+   "meaning": "\"Food’s ready!\": Oupa’s line when the potjie lid is shot"
   },
   {
    "term": "Kwêvoël",
