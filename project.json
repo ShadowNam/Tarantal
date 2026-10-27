@@ -1,11 +1,11 @@
 {
  "schema": 1,
- "updated": "2026-10-27T05:42:00Z",
+ "updated": "2026-10-27T06:35:00Z",
  "by": "Claude",
- "summary": "Live on the test build: v1.8 Blikkies (1.8.0, merged 03:36 Namibia time on 27 Oct): tin cans stand on the farm fence posts on 3–4 weekday maps per farm area. Shoot one off and it somersaults away; hit it again in the air and it flies higher and wilder, and the 10th air hit sends it out of sight (Weg!). Near cans are the easiest to juggle, far ones the hardest; also on the Skietbaan. Perspective (1.7.4) and the Halloween Spookjag (1.7.3, admin page: Special days → Spookjag · 31/10 → Play) are in too. Tank is building Karoo polish now (HD aloes; the potjie simmers and its lid flies off). Then: far animals in HD, makalani palms, tree life, optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
+ "summary": "Live on the test build: Karoo polish (1.8.1, merged 08:18 Namibia time on 27 Oct): the Karoo aloes are a new, sharper drawing that streams in once the hunt has started, the Bushveld aloes use the same drawing at normal resolution, and the potjie on the coals simmers with steam; shoot it and the lid flies off and lands with a clang. v1.8 Blikkies (1.8.0, 03:36) is in too: tin cans on the fence posts that you can juggle in the air until they fly out of sight (Weg!). Tank is building HD graphics now (Standard or HD on the loading screen, about 14:30). Then: far animals in HD, makalani palms, tree life, an Android test app for friends; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
-  "version": "1.8.0",
-  "commit": "7d4002f"
+  "version": "1.8.1",
+  "commit": "b25f231"
  },
  "links": [
   {
@@ -36,12 +36,12 @@
  "numbers": [
   {
    "label": "Version on the test build",
-   "value": "1.8.0",
-   "note": "commit 7d4002f, merged 27 Oct, 04:27 Namibia time (the test build deploys a few minutes after)"
+   "value": "1.8.1",
+   "note": "commit b25f231, merged 27 Oct, 08:18 Namibia time (the test build deploys a few minutes after)"
   },
   {
    "label": "Pull requests merged",
-   "value": "84",
+   "value": "85",
    "note": "#1 to #88"
   },
   {
@@ -70,8 +70,8 @@
   },
   {
    "label": "Decisions logged",
-   "value": "50",
-   "note": "D-001 to D-050 on main"
+   "value": "51",
+   "note": "D-001 to D-051 on main"
   }
  ],
  "needsYou": [
@@ -1605,25 +1605,26 @@
    "requestedBy": "You, 24 Oct, and again 26 Oct: \"bean cans standing on top of them … if you hit them again they continue spinning up … till you don't see them anymore.\""
   },
   {
-   "id": "karoo-polish-hd-aloes-the-potjie-steams-",
-   "title": "Karoo polish: HD aloes; the potjie steams and simmers, and its lid flies off when shot (your request, 26 Oct)",
+   "id": "karoo-polish-hd-bitter-aloes-that-load-i",
+   "title": "Karoo polish: HD bitter aloes that load in the background; a cast-iron potjie that steams, rattles its lid and loses it when shot; version 1.8.1 (your request, 26 Oct)",
    "phase": "Version 1.x",
-   "status": "running",
-   "start": "2026-10-27T01:37:00Z",
-   "end": "2026-10-27T07:30:00Z",
-   "estimate": true,
-   "summary": "HD bitter aloes with toothed blue-green leaves, a skirt of dry leaves and orange-red flower spikes. The potjie on its coals steams, simmers and rattles its lid; shoot the lid and it flies off and lands beside the pot with a clang (+5 s as before).",
-   "owner": "Tank builds it (fresh session 1773b411 since 04:37 after connection drops); Claude reviewed it and ran the screenshots",
-   "requestedBy": "You, 26 Oct: \"These aloes … need to become HD … the braai pot … boiling a little bit … when it's shot, the deksel should fall off.\""
+   "status": "done",
+   "start": "2026-10-27T01:43:07Z",
+   "end": "2026-10-27T06:18:43Z",
+   "estimate": false,
+   "prs": [
+    87
+   ]
   },
   {
    "id": "hd-graphics-moved-up-your-choice-27-oct-",
    "title": "HD graphics (moved up, your choice 27 Oct): a light loading screen asks Standard or HD, with \"Remember my choice\"; also in Settings; HD packs load per area",
    "phase": "Version 1.x",
-   "status": "next",
-   "start": "2026-10-27T07:30:00Z",
+   "status": "running",
+   "start": "2026-10-27T06:20:00Z",
    "end": "2026-10-27T12:30:00Z",
-   "estimate": true
+   "estimate": true,
+   "summary": "Tank task 53d9fba6: started 08:20"
   },
   {
    "id": "far-animals-in-hd-on-every-map-realistic",
@@ -2198,6 +2199,21 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-27T06:22:00Z",
+   "kind": "note",
+   "text": "The release aim (friends, then the Apple App Store and Google Play; D-052) is written into the project docs; that change is in its tests (#89)."
+  },
+  {
+   "at": "2026-10-27T06:20:00Z",
+   "kind": "note",
+   "text": "Tank started HD graphics (Standard or HD on the loading screen, with \"Remember my choice\"); expected around 14:30."
+  },
+  {
+   "at": "2026-10-27T06:18:00Z",
+   "kind": "merge",
+   "text": "Karoo polish merged as 1.8.1 (#87) after every browser test passed on all devices: sharper Karoo aloes and the simmering potjie whose lid flies off."
+  },
   {
    "at": "2026-10-27T05:38:00Z",
    "kind": "decision",

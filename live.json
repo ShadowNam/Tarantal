@@ -1,1515 +1,1586 @@
 {
- "updated": "2026-10-27T05:42:00Z",
- "summary": "Live on the test build: v1.8 Blikkies (1.8.0, merged 03:36 Namibia time on 27 Oct): tin cans stand on the farm fence posts on 3–4 weekday maps per farm area. Shoot one off and it somersaults away; hit it again in the air and it flies higher and wilder, and the 10th air hit sends it out of sight (Weg!). Near cans are the easiest to juggle, far ones the hardest; also on the Skietbaan. Perspective (1.7.4) and the Halloween Spookjag (1.7.3, admin page: Special days → Spookjag · 31/10 → Play) are in too. Tank is building Karoo polish now (HD aloes; the potjie simmers and its lid flies off). Then: far animals in HD, makalani palms, tree life, optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
- "current": {
-  "version": "1.7.1",
-  "commit": "1bbedc7"
- },
- "links": [
-  {
-   "label": "Test build",
-   "url": "https://shadownam.github.io/Tarantal/"
+  "updated": "2026-10-27T06:35:00Z",
+  "summary": "Live on the test build: Karoo polish (1.8.1, merged 08:18 Namibia time on 27 Oct): the Karoo aloes are a new, sharper drawing that streams in once the hunt has started, the Bushveld aloes use the same drawing at normal resolution, and the potjie on the coals simmers with steam; shoot it and the lid flies off and lands with a clang. v1.8 Blikkies (1.8.0, 03:36) is in too: tin cans on the fence posts that you can juggle in the air until they fly out of sight (Weg!). Tank is building HD graphics now (Standard or HD on the loading screen, about 14:30). Then: far animals in HD, makalani palms, tree life, an Android test app for friends; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
+  "current": {
+    "version": "1.7.1",
+    "commit": "1bbedc7"
   },
-  {
-   "label": "Admin page",
-   "url": "https://shadownam.github.io/Tarantal/?admin=1"
-  },
-  {
-   "label": "Build board",
-   "url": "https://claude.ai/artifact/AUkRY4o5xyd2yuiPzTm2fM"
-  },
-  {
-   "label": "Status doc",
-   "url": "https://claude.ai/artifact/6rM3Vm6wcnSELT4ehR5V7o"
-  },
-  {
-   "label": "History (Word)",
-   "url": "https://github.com/ShadowNam/Tarantal/raw/main/docs/history/Tarantal-Development-History.docx"
-  },
-  {
-   "label": "Pull requests",
-   "url": "https://github.com/ShadowNam/Tarantal/pulls"
-  }
- ],
- "numbers": [
-  {
-   "label": "Version on the test build",
-   "value": "1.6.1",
-   "note": "commit 133c85f, deploying after the merge at 20:42"
-  },
-  {
-   "label": "Pull requests merged",
-   "value": "75",
-   "note": "#1 to #76"
-  },
-  {
-   "label": "Unit tests",
-   "value": "1,250",
-   "note": "plus the browser test suites on 3 devices"
-  },
-  {
-   "label": "First download",
-   "value": "3.00 MB",
-   "note": "3,069 KB of the 3,072 KB budget"
-  },
-  {
-   "label": "Hunting areas",
-   "value": "5",
-   "note": "Karoo, Bushveld, Okavango, Kalahari, Namibië; 7 weekday maps + 3 bonus maps each"
-  },
-  {
-   "label": "Guns",
-   "value": "8"
-  },
-  {
-   "label": "Languages",
-   "value": "4",
-   "note": "English, Afrikaans, German, Dutch; Oupa voiced in 3"
-  },
-  {
-   "label": "Decisions logged",
-   "value": "42",
-   "note": "D-001 to D-042 on main; D-043 to D-045 in review"
-  }
- ],
- "needsYou": [
-  {
-   "id": "daily-specials",
-   "kind": "decision",
-   "title": "Pick the other holiday Daily specials (Feesdae) — Halloween is chosen",
-   "asked": "2026-10-24T18:58:55Z",
-   "status": "open",
-   "detail": "You picked Halloween on 26 Oct (\"Halloween special yes, go ahead\"): the Spookjag Daily is being built now and will be ready before 31 Oct. The others can be added later as content on the same system; reply with the numbers whenever you like (\"2–9\" takes all my picks).",
-   "options": [
-    "2. Christmas, 25 Dec: Christmas in the sun, tinsel on the camelthorn, Oupa in a Santa hat and shorts",
-    "3. New Year: a countdown hunt with party hats, small fireworks and double points in the last 10 s",
-    "4. Heritage Day (Braai Day), 24 Sep: the big braai hunt",
-    "5. Easter weekend: painted guineafowl eggs hidden for bonus points",
-    "6. Valentine's Day, 14 Feb: rosy-faced lovebirds fly through in pairs",
-    "7. Spring flowers (late Aug–Sep, one week): the Karoo carpeted in daisies",
-    "8. April Fools, 1 Apr: plastic decoy guineafowl, −5 and \"Gotcha!\"",
-    "9. Africa Day, 25 May: drums, every cameo animal out, \"Did you know?\" facts",
-    "10 (maybe). World Wildlife Day, 3 Mar: a camera-only Daily",
-    "11 (maybe). Women's Day, 9 Aug: Ouma's hunt (needs an Ouma voice)",
-    "12 (maybe). Workers' Day, 1 May: Oupa's day off, Brakkie runs the show",
-    "13 (maybe). Namibian Independence Day, 21 Mar: Namibië open to everyone, kept light"
-   ]
-  },
-  {
-   "id": "v16-look",
-   "kind": "check",
-   "title": "Look at v1.6 on the test build",
-   "asked": "2026-10-25T16:57:00Z",
-   "status": "open",
-   "detail": "Hard-refresh first. New: trees, fruit and far animals on every map, the windmill, the dassie, the Kalahari dead tree, clouds, a version stamp on every map, and the Fresh load button in the Skietbaan. Tell me anything that still looks rough (the Namibië grass you flagged is already in v1.7c).",
-   "links": [
+  "links": [
     {
-     "label": "Test build",
-     "url": "https://shadownam.github.io/Tarantal/"
+      "label": "Test build",
+      "url": "https://shadownam.github.io/Tarantal/"
     },
     {
-     "label": "Admin page",
-     "url": "https://shadownam.github.io/Tarantal/?admin=1"
+      "label": "Admin page",
+      "url": "https://shadownam.github.io/Tarantal/?admin=1"
+    },
+    {
+      "label": "Build board",
+      "url": "https://claude.ai/artifact/AUkRY4o5xyd2yuiPzTm2fM"
+    },
+    {
+      "label": "Status doc",
+      "url": "https://claude.ai/artifact/6rM3Vm6wcnSELT4ehR5V7o"
+    },
+    {
+      "label": "History (Word)",
+      "url": "https://github.com/ShadowNam/Tarantal/raw/main/docs/history/Tarantal-Development-History.docx"
+    },
+    {
+      "label": "Pull requests",
+      "url": "https://github.com/ShadowNam/Tarantal/pulls"
     }
-   ],
-   "images": [
+  ],
+  "numbers": [
     {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-windmill.jpg",
-     "caption": "Windmill, before | after"
+      "label": "Version on the test build",
+      "value": "1.6.1",
+      "note": "commit 133c85f, deploying after the merge at 20:42"
     },
     {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-giraffes-scope.jpg",
-     "caption": "Giraffes through the scope, before | after"
+      "label": "Pull requests merged",
+      "value": "75",
+      "note": "#1 to #76"
     },
     {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-dassie.jpg",
-     "caption": "The dassie, before | after"
+      "label": "Unit tests",
+      "value": "1,250",
+      "note": "plus the browser test suites on 3 devices"
+    },
+    {
+      "label": "First download",
+      "value": "3.00 MB",
+      "note": "3,069 KB of the 3,072 KB budget"
+    },
+    {
+      "label": "Hunting areas",
+      "value": "5",
+      "note": "Karoo, Bushveld, Okavango, Kalahari, Namibië; 7 weekday maps + 3 bonus maps each"
+    },
+    {
+      "label": "Guns",
+      "value": "8"
+    },
+    {
+      "label": "Languages",
+      "value": "4",
+      "note": "English, Afrikaans, German, Dutch; Oupa voiced in 3"
+    },
+    {
+      "label": "Decisions logged",
+      "value": "42",
+      "note": "D-001 to D-042 on main; D-043 to D-045 in review"
     }
-   ]
-  },
-  {
-   "id": "voice-sample",
-   "kind": "feedback",
-   "title": "Listen to Oupa's voice samples (the Afrikaans one most of all)",
-   "asked": "2026-10-25T04:45:00Z",
-   "status": "open",
-   "detail": "No good free Afrikaans voice exists, so the interim Afrikaans lines are read by an English voice using Afrikaans pronunciation rules. Is it good enough for now?",
-   "blocks": "The final voices decision"
-  },
-  {
-   "id": "final-voices",
-   "kind": "decision",
-   "title": "Final voices: keep the interim ones or get real voices?",
-   "asked": "2026-10-25T04:39:00Z",
-   "status": "open",
-   "detail": "Oupa is voiced with free interim text-to-speech in English, Afrikaans and German. Real or premium voices can replace them line by line later.",
-   "options": [
-    "Keep the interim voices for now",
-    "Real voice actors per language (needs money and an account: you arrange it)",
-    "A premium text-to-speech service (needs an account: you arrange it)"
-   ]
-  },
-  {
-   "id": "windmill-look",
-   "kind": "decision",
-   "title": "The windmill wheel: which look?",
-   "asked": "2026-10-25T13:56:00Z",
-   "status": "answered",
-   "detail": "You sent photos of a real farm windmill; Claude redrew the wheel with curved sails, missing and bent blades and rust.",
-   "answer": "\"The windmill you made looks great, implement it.\" Done in v1.6.",
-   "answered": "2026-10-25T14:03:00Z",
-   "images": [
+  ],
+  "needsYou": [
     {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-windmill.jpg",
-     "caption": "The windmill, before | after"
+      "id": "daily-specials",
+      "kind": "decision",
+      "title": "Pick the other holiday Daily specials (Feesdae) — Halloween is chosen",
+      "asked": "2026-10-24T18:58:55Z",
+      "status": "open",
+      "detail": "You picked Halloween on 26 Oct (\"Halloween special yes, go ahead\"): the Spookjag Daily is being built now and will be ready before 31 Oct. The others can be added later as content on the same system; reply with the numbers whenever you like (\"2–9\" takes all my picks).",
+      "options": [
+        "2. Christmas, 25 Dec: Christmas in the sun, tinsel on the camelthorn, Oupa in a Santa hat and shorts",
+        "3. New Year: a countdown hunt with party hats, small fireworks and double points in the last 10 s",
+        "4. Heritage Day (Braai Day), 24 Sep: the big braai hunt",
+        "5. Easter weekend: painted guineafowl eggs hidden for bonus points",
+        "6. Valentine's Day, 14 Feb: rosy-faced lovebirds fly through in pairs",
+        "7. Spring flowers (late Aug–Sep, one week): the Karoo carpeted in daisies",
+        "8. April Fools, 1 Apr: plastic decoy guineafowl, −5 and \"Gotcha!\"",
+        "9. Africa Day, 25 May: drums, every cameo animal out, \"Did you know?\" facts",
+        "10 (maybe). World Wildlife Day, 3 Mar: a camera-only Daily",
+        "11 (maybe). Women's Day, 9 Aug: Ouma's hunt (needs an Ouma voice)",
+        "12 (maybe). Workers' Day, 1 May: Oupa's day off, Brakkie runs the show",
+        "13 (maybe). Namibian Independence Day, 21 Mar: Namibië open to everyone, kept light"
+      ]
+    },
+    {
+      "id": "v16-look",
+      "kind": "check",
+      "title": "Look at v1.6 on the test build",
+      "asked": "2026-10-25T16:57:00Z",
+      "status": "open",
+      "detail": "Hard-refresh first. New: trees, fruit and far animals on every map, the windmill, the dassie, the Kalahari dead tree, clouds, a version stamp on every map, and the Fresh load button in the Skietbaan. Tell me anything that still looks rough (the Namibië grass you flagged is already in v1.7c).",
+      "links": [
+        {
+          "label": "Test build",
+          "url": "https://shadownam.github.io/Tarantal/"
+        },
+        {
+          "label": "Admin page",
+          "url": "https://shadownam.github.io/Tarantal/?admin=1"
+        }
+      ],
+      "images": [
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-windmill.jpg",
+          "caption": "Windmill, before | after"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-giraffes-scope.jpg",
+          "caption": "Giraffes through the scope, before | after"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-dassie.jpg",
+          "caption": "The dassie, before | after"
+        }
+      ]
+    },
+    {
+      "id": "voice-sample",
+      "kind": "feedback",
+      "title": "Listen to Oupa's voice samples (the Afrikaans one most of all)",
+      "asked": "2026-10-25T04:45:00Z",
+      "status": "open",
+      "detail": "No good free Afrikaans voice exists, so the interim Afrikaans lines are read by an English voice using Afrikaans pronunciation rules. Is it good enough for now?",
+      "blocks": "The final voices decision"
+    },
+    {
+      "id": "final-voices",
+      "kind": "decision",
+      "title": "Final voices: keep the interim ones or get real voices?",
+      "asked": "2026-10-25T04:39:00Z",
+      "status": "open",
+      "detail": "Oupa is voiced with free interim text-to-speech in English, Afrikaans and German. Real or premium voices can replace them line by line later.",
+      "options": [
+        "Keep the interim voices for now",
+        "Real voice actors per language (needs money and an account: you arrange it)",
+        "A premium text-to-speech service (needs an account: you arrange it)"
+      ]
+    },
+    {
+      "id": "windmill-look",
+      "kind": "decision",
+      "title": "The windmill wheel: which look?",
+      "asked": "2026-10-25T13:56:00Z",
+      "status": "answered",
+      "detail": "You sent photos of a real farm windmill; Claude redrew the wheel with curved sails, missing and bent blades and rust.",
+      "answer": "\"The windmill you made looks great, implement it.\" Done in v1.6.",
+      "answered": "2026-10-25T14:03:00Z",
+      "images": [
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-windmill.jpg",
+          "caption": "The windmill, before | after"
+        }
+      ]
+    },
+    {
+      "id": "baboons-hit",
+      "kind": "decision",
+      "title": "Baboons and warthogs: what happens when they are hit?",
+      "asked": "2026-10-25T18:10:00Z",
+      "status": "answered",
+      "detail": "Scared off (family-friendly, portal-safe) or shot down like the guineafowl.",
+      "options": [
+        "Scared off",
+        "Shot down like guineafowl"
+      ],
+      "answer": "Shot down like guineafowl. Claude noted that game portals may rate it for older players.",
+      "answered": "2026-10-25T18:11:00Z"
+    },
+    {
+      "id": "harvest-where",
+      "kind": "decision",
+      "title": "Where does The Harvest live?",
+      "asked": "2026-10-25T18:10:00Z",
+      "status": "answered",
+      "options": [
+        "A new mode on the title screen",
+        "A Season Run stage",
+        "A Daily special"
+      ],
+      "detail": "Its own mode, a Season Run stage, or a Daily special.",
+      "answer": "A new mode on the title screen.",
+      "answered": "2026-10-25T18:11:00Z"
+    },
+    {
+      "id": "order",
+      "kind": "decision",
+      "title": "What comes first after the meerkats?",
+      "asked": "2026-10-25T18:10:00Z",
+      "status": "answered",
+      "detail": "Power-ups explained + the Oupa switch, or the earlier order.",
+      "answer": "Power-ups + Oupa first. The queue is renumbered in build order (v1.7b to v1.8c).",
+      "answered": "2026-10-25T18:11:00Z"
     }
-   ]
-  },
-  {
-   "id": "baboons-hit",
-   "kind": "decision",
-   "title": "Baboons and warthogs: what happens when they are hit?",
-   "asked": "2026-10-25T18:10:00Z",
-   "status": "answered",
-   "detail": "Scared off (family-friendly, portal-safe) or shot down like the guineafowl.",
-   "options": [
-    "Scared off",
-    "Shot down like guineafowl"
-   ],
-   "answer": "Shot down like guineafowl. Claude noted that game portals may rate it for older players.",
-   "answered": "2026-10-25T18:11:00Z"
-  },
-  {
-   "id": "harvest-where",
-   "kind": "decision",
-   "title": "Where does The Harvest live?",
-   "asked": "2026-10-25T18:10:00Z",
-   "status": "answered",
-   "options": [
-    "A new mode on the title screen",
-    "A Season Run stage",
-    "A Daily special"
-   ],
-   "detail": "Its own mode, a Season Run stage, or a Daily special.",
-   "answer": "A new mode on the title screen.",
-   "answered": "2026-10-25T18:11:00Z"
-  },
-  {
-   "id": "order",
-   "kind": "decision",
-   "title": "What comes first after the meerkats?",
-   "asked": "2026-10-25T18:10:00Z",
-   "status": "answered",
-   "detail": "Power-ups explained + the Oupa switch, or the earlier order.",
-   "answer": "Power-ups + Oupa first. The queue is renumbered in build order (v1.7b to v1.8c).",
-   "answered": "2026-10-25T18:11:00Z"
-  }
- ],
- "jobs": {
-  "v1.7": {
-   "owner": "Tank built it; Claude reviewed and merged it",
-   "summary": "Meerkat families live on every Kalahari and Namibië map: they peek, keep a sentinel, dig, dash between burrows and dive when you shoot nearby. Shooting one costs −10 (it is never hurt). Secret: hold fire while the whole family is out and they line up for a Familiefoto (+25).",
-   "requestedBy": "You, 24 Oct: \"small meerkat holes … peek out and run from one nest to the other. Be creative.\"",
-   "checklist": [
-    {
-     "text": "Colonies on every desert map, in the game rules (peek, sentinel, dig, dash, dive)",
-     "done": true
+  ],
+  "jobs": {
+    "v1.7": {
+      "owner": "Tank built it; Claude reviewed and merged it",
+      "summary": "Meerkat families live on every Kalahari and Namibië map: they peek, keep a sentinel, dig, dash between burrows and dive when you shoot nearby. Shooting one costs −10 (it is never hurt). Secret: hold fire while the whole family is out and they line up for a Familiefoto (+25).",
+      "requestedBy": "You, 24 Oct: \"small meerkat holes … peek out and run from one nest to the other. Be creative.\"",
+      "checklist": [
+        {
+          "text": "Colonies on every desert map, in the game rules (peek, sentinel, dig, dash, dive)",
+          "done": true
+        },
+        {
+          "text": "They dive at nearby shots and the Langloop; the sentinel's alarm alerts the guineafowl",
+          "done": true
+        },
+        {
+          "text": "Shooting a meerkat: −10 and a scold, never harmed",
+          "done": true
+        },
+        {
+          "text": "Familiefoto secret (+25) and the Meerkat Spotter climbing out of a burrow",
+          "done": true
+        },
+        {
+          "text": "Sounds and voiced lines (English, Afrikaans, German)",
+          "done": true
+        },
+        {
+          "text": "Balance: −0.9 % to +4.4 % on all 20 desert maps (limit 5 %)",
+          "done": true
+        },
+        {
+          "text": "Tank's own review and fixes",
+          "done": true
+        },
+        {
+          "text": "First screenshots: 42 shots on desktop and both phones",
+          "done": true,
+          "at": "2026-10-25T17:31:00Z"
+        },
+        {
+          "text": "Look round: eye masks, back bands, cream bellies, three-holed burrows",
+          "done": true,
+          "at": "2026-10-25T17:26:00Z"
+        },
+        {
+          "text": "Colonies kept clear of the on-screen buttons",
+          "done": true,
+          "at": "2026-10-25T17:49:00Z"
+        },
+        {
+          "text": "Screenshot spec reframed: the Familiefoto row clear of the flock, a mid-dash shot, a sentinel-and-pup close-up, meerkats ≥ 150 px tall in close-ups",
+          "done": true,
+          "at": "2026-10-25T17:55:00Z"
+        },
+        {
+          "text": "Your notes: more fur and nicer faces, plus Claude's notes (blended hips, the front-facing pose, bent running legs)",
+          "done": true,
+          "at": "2026-10-25T18:52:00Z"
+        },
+        {
+          "text": "v1.6 and v1.6b merged in, version 1.7.0",
+          "done": true,
+          "at": "2026-10-25T19:23:00Z"
+        },
+        {
+          "text": "New screenshots on desktop and both phones (round 3)",
+          "done": true,
+          "at": "2026-10-25T20:55:00Z"
+        },
+        {
+          "text": "Claude's independent review: no gameplay bugs; one missing test and three small fixes sent to Tank",
+          "done": true,
+          "at": "2026-10-25T19:48:00Z"
+        },
+        {
+          "text": "Tank: the review fixes, colonies clear of the gun, meerkats spaced apart",
+          "done": true,
+          "at": "2026-10-25T20:58:00Z"
+        },
+        {
+          "text": "Balance re-check passed; full tests re-running after a test fix, then merge",
+          "done": true
+        },
+        {
+          "text": "Merged after all 23 test jobs passed (26 Oct, 00:55)",
+          "done": true,
+          "at": "2026-10-25T22:55:00Z"
+        }
+      ],
+      "images": [
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17-familiefoto-closeup-desktop.png",
+          "caption": "Round 3 in the game: the Familiefoto row (desktop)"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-sentinel-pup-closeup-pixel7-landscape.png",
+          "caption": "Round 3: the sentinel on a Pixel 7 (still bunched; spacing fixed after this shot)"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-peek-closeup-iphone14-landscape.png",
+          "caption": "Round 3: peeking out on an iPhone 14"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17-meerkats-rounds.jpg",
+          "caption": "The meerkat sheet over three rounds; round 3 (bottom, 20:52) has your fur and face notes in"
+        }
+      ],
+      "links": [
+        {
+          "label": "PR #72",
+          "url": "https://github.com/ShadowNam/Tarantal/pull/72"
+        }
+      ]
     },
-    {
-     "text": "They dive at nearby shots and the Langloop; the sentinel's alarm alerts the guineafowl",
-     "done": true
+    "project-overview": {
+      "owner": "Claude",
+      "summary": "This page: the project at a glance in the admin page, with what needs you, what is being built, the roadmap with times and versions, your requests, ideas, and the whole history with images. It reads live data that Claude updates at every check-in, merge and screenshot round. Open it from the admin page (Project overview) or with ?admin=1&project=1.",
+      "requestedBy": "You, 25 Oct 19:51",
+      "checklist": [
+        {
+          "text": "Live data branch and the generator (Claude)",
+          "done": true,
+          "at": "2026-10-25T17:58:00Z"
+        },
+        {
+          "text": "The page: Overview, Roadmap, History, Requests, Ideas, the lightbox, offline copy",
+          "done": true,
+          "at": "2026-10-25T19:10:00Z"
+        },
+        {
+          "text": "Claude's review with the real data: Now building beside Needs you, open work first on the Roadmap, cleaner option labels",
+          "done": true,
+          "at": "2026-10-25T19:30:00Z"
+        },
+        {
+          "text": "Tests on desktop, Pixel 7 and iPhone 14 (9 of 9 locally; 1,162 unit tests)",
+          "done": true,
+          "at": "2026-10-25T19:32:00Z"
+        },
+        {
+          "text": "Full tests on GitHub (23 jobs) and merged (#76); live on the test build",
+          "done": true,
+          "at": "2026-10-25T20:06:00Z"
+        }
+      ],
+      "links": [
+        {
+          "label": "Open it",
+          "url": "https://shadownam.github.io/Tarantal/?admin=1&project=1"
+        },
+        {
+          "label": "PR #76",
+          "url": "https://github.com/ShadowNam/Tarantal/pull/76"
+        }
+      ]
     },
-    {
-     "text": "Shooting a meerkat: −10 and a scold, never harmed",
-     "done": true
+    "v1.7c": {
+      "owner": "Tank built it; Claude reviewed, screenshotted and merged it",
+      "summary": "Fruit you shoot reacts: the sausage tree's sausages, baobab and camelthorn pods and marula swing on their stalks or drop to the ground.",
+      "requestedBy": "You, 25 Oct ~16:45: \"when shooting these fruits, make them swing or drop down.\"",
+      "status": "done",
+      "checklist": [
+        {
+          "text": "Fruit as separate sprites; swing and drop on shots (view only, the game rules unchanged)",
+          "done": true,
+          "at": "2026-10-26T02:15:00Z"
+        },
+        {
+          "text": "Browser test: a shot sausage swings, a second shot drops it, the score unchanged",
+          "done": true,
+          "at": "2026-10-26T02:18:00Z"
+        },
+        {
+          "text": "Fruit redrawn at the camelthorn bar (mottled Kigelia sausages on rope stalks, velvety baobab pods); dropped fruit lands clear of the trunk",
+          "done": true,
+          "at": "2026-10-26T03:31:00Z"
+        },
+        {
+          "text": "Independent review fixes: fruit take the map's light and haze, wind no longer throws off fruit hits, fruit stay behind rocks and props, lighter on phones, smoother falls",
+          "done": true,
+          "at": "2026-10-26T04:25:00Z"
+        },
+        {
+          "text": "Claude's screenshots on desktop, Pixel 7 and iPhone 14",
+          "done": false
+        },
+        {
+          "text": "Full tests and merge",
+          "done": false
+        }
+      ]
     },
-    {
-     "text": "Familiefoto secret (+25) and the Meerkat Spotter climbing out of a burrow",
-     "done": true
+    "v1.7d": {
+      "owner": "Tank",
+      "summary": "Namibië first: much more detailed bushman grass and sand (no black lines between the distances), then a pair of ostriches at their nest (they run from nearby shots), a herd of oryx far away shimmering in the mirage, and hot-air balloons drifting by (not targets).",
+      "requestedBy": "You, 25 Oct ~19:50: ostriches with a nest, oryx in the mirage, hot-air balloons; and \"the grass landscapes in the Namibia one also look very rough still\"."
     },
-    {
-     "text": "Sounds and voiced lines (English, Afrikaans, German)",
-     "done": true
+    "v1.7b": {
+      "owner": "Tank built it; Claude reviewed, fixed a freeze and merged it",
+      "summary": "A Power-ups section in the Gun Shed with a picture and a plain explanation of every power-up and crate gun (what it does, how long, how you get it, a tip). In the hunt: crates show what is inside, a short card on pickup says what it does, the chip counts down and blinks before it ends, and each power-up has a small visible effect. Plus a Settings switch: Oupa's comments On / Text only / Off.",
+      "requestedBy": "You, 25 Oct ~20:20: \"one is very unsure what they actually do\" and \"the option to have the grandfather mode enabled or not\".",
+      "checklist": [
+        {
+          "text": "Icons for every power-up and crate gun",
+          "done": true,
+          "at": "2026-10-25T21:46:00Z"
+        },
+        {
+          "text": "A Power-ups section in the Gun Shed",
+          "done": true,
+          "at": "2026-10-25T21:57:00Z"
+        },
+        {
+          "text": "Crates show what they hold (decided when the crate drops)",
+          "done": true,
+          "at": "2026-10-25T22:02:00Z"
+        },
+        {
+          "text": "Pickup card, countdown chips that blink before the end, a small look for each power-up",
+          "done": true,
+          "at": "2026-10-25T22:17:00Z"
+        },
+        {
+          "text": "The tally lists the power-ups you used",
+          "done": true,
+          "at": "2026-10-25T22:22:00Z"
+        },
+        {
+          "text": "Settings: Oupa's comments On / Text only / Off",
+          "done": true
+        },
+        {
+          "text": "Browser tests and the screenshot setup",
+          "done": true,
+          "at": "2026-10-25T22:38:00Z"
+        },
+        {
+          "text": "Claude's screenshots on desktop, Pixel 7 and iPhone 14 (round 1: 36 shots)",
+          "done": true,
+          "at": "2026-10-25T23:40:00Z"
+        },
+        {
+          "text": "Fixes from the screenshots: a bigger crate icon, no double item name, stockier Meerkat Spotter and Voorlaaier icons",
+          "done": true
+        },
+        {
+          "text": "Review, full tests and merge",
+          "done": true
+        },
+        {
+          "text": "Merged after all 23 test jobs passed (26 Oct, 04:40)",
+          "done": true,
+          "at": "2026-10-26T02:40:00Z"
+        }
+      ]
     },
-    {
-     "text": "Balance: −0.9 % to +4.4 % on all 20 desert maps (limit 5 %)",
-     "done": true
+    "v1.7e": {
+      "owner": "Tank",
+      "summary": "First, mock-ups of three ways to replace the star glint on secrets: (A) a small unique animal that always lives at each secret (e.g. a rock agama nodding on the dassie koppie, a lilac-breasted roller on the windmill) — Claude's pick and your idea; (B) natural cues only; (C) no cue, Oupa hints in words. You choose. Meanwhile: realistic Bushveld granite boulders and koppies, real ridges in the haze, textured winter veld, no black lines between the distances.",
+      "requestedBy": "You, 25 Oct ~20:20: \"the rocks and the middle distances look childish\" and \"that star thing is not working for me\"."
     },
-    {
-     "text": "Tank's own review and fixes",
-     "done": true
+    "v1.8b": {
+      "owner": "Tank",
+      "summary": "Chacma baboon troops on the ridges of most maps. Now and then raiders come down to cause trouble (steal Oupa's hat, raid fruit, throw fruit at the flock). A raider takes 2 hits and goes down like a guineafowl (your choice). Mothers with babies stay out of range and are never targets.",
+      "requestedBy": "You, 25 Oct ~20:20: \"the African baboon should also be present … pop up and do something naughty that might get them to eat a bullet or two\"."
     },
-    {
-     "text": "First screenshots: 42 shots on desktop and both phones",
-     "done": true,
-     "at": "2026-10-25T17:31:00Z"
+    "v1.8c": {
+      "owner": "Tank",
+      "summary": "A new mode on the title screen. The fence breaks, guineafowl, warthogs and baboons pour into the harvest field, and you have 30 seconds to hold them off while the farm workers fix the fence. A crop meter shows what you saved; the workers are never targets. Tank writes a short plan first.",
+      "requestedBy": "You, 25 Oct ~20:20: \"we could call it the harvest … you've got 30 seconds to shoot as many animals as possible while the fence gets repaired\"."
     },
-    {
-     "text": "Look round: eye masks, back bands, cream bellies, three-holed burrows",
-     "done": true,
-     "at": "2026-10-25T17:26:00Z"
+    "v1.6b": {
+      "owner": "Tank built it; Claude merged it",
+      "summary": "Two new crate power-ups. Blitslaai: for 12 s every reload is much faster, with lightning glints on the belt. Oupa Laai: for 12 s an empty gun reloads by itself and Oupa says so. Merged 25 Oct 20:42 after all 23 test jobs passed.",
+      "requestedBy": "You, 25 Oct 08:40: \"Another power-up … an AUTO reload, and a fast reload.\"",
+      "checklist": [
+        {
+          "text": "Blitslaai (fast reload) and Oupa Laai (auto reload) in the game",
+          "done": true
+        },
+        {
+          "text": "Icons on the HUD chips, belt glints, Oupa's hand and his voiced line",
+          "done": true
+        },
+        {
+          "text": "Balance check: every gate passes",
+          "done": true
+        },
+        {
+          "text": "Independent review and its fixes",
+          "done": true
+        },
+        {
+          "text": "v1.6 merged in, version 1.6.1",
+          "done": true,
+          "at": "2026-10-25T17:00:00Z"
+        },
+        {
+          "text": "Full tests on every device: all 23 jobs green (after the Skietbaan test fix, PR #75)",
+          "done": true
+        },
+        {
+          "text": "Merge into main and deploy to the test build",
+          "done": true
+        }
+      ],
+      "links": [
+        {
+          "label": "PR #71",
+          "url": "https://github.com/ShadowNam/Tarantal/pull/71"
+        }
+      ],
+      "tests": "Full CI green on every device (23 jobs); 1,129 unit tests.",
+      "images": [
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/reload-blitslaai-pixel7-landscape.jpg",
+          "caption": "Blitslaai on the Pixel 7: the \"Lightning Load\" chip (top left) and glints on the belt"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/reload-oupa-laai-pixel7-landscape.jpg",
+          "caption": "Oupa Laai on the Pixel 7: the \"Oupa Loads\" chip and his hand by the belt"
+        }
+      ]
     },
-    {
-     "text": "Colonies kept clear of the on-screen buttons",
-     "done": true,
-     "at": "2026-10-25T17:49:00Z"
+    "halloween-spookjag-feesdae-the-31-oct-da": {
+      "owner": "Tank built it; Claude reviewed, fixed, screenshotted and merged it",
+      "status": "done",
+      "summary": "On 31 Oct the Daily Hunt becomes Spookjag: the day's map at dusk under a big moon, pumpkin lanterns on the fence posts (shoot them all for +25), bats as fast bonus targets (+15), protected owls (−10), some guineafowl in witch hats, Oupa's Halloween lines, a spooky sting and a Halloween share card. Built on a small 'special days' system so other holidays can be added later.",
+      "requestedBy": "You, 26 Oct: \"Halloween special yes, go ahead.\"",
+      "checklist": [
+        {
+          "text": "Special-day system (dates in content, the Daily becomes the special that UTC day, admin/test override)",
+          "done": true,
+          "at": "2026-10-26T06:30:00Z"
+        },
+        {
+          "text": "Halloween look: dusk, moon, lanterns, bats, owls, witch hats",
+          "done": true,
+          "at": "2026-10-26T07:30:00Z"
+        },
+        {
+          "text": "Rules: bats +15, owls −10, all lanterns out +25",
+          "done": true,
+          "at": "2026-10-26T07:30:00Z"
+        },
+        {
+          "text": "Oupa's lines (4 languages), sounds, share card",
+          "done": true,
+          "at": "2026-10-26T08:00:00Z"
+        },
+        {
+          "text": "Tests and Claude's screenshots",
+          "done": true,
+          "at": "2026-10-26T09:54:00Z"
+        },
+        {
+          "text": "Review (15 fixes), full tests on 3 devices and merge (PR #80, 26 Oct, before 28 Oct)",
+          "done": true,
+          "at": "2026-10-26T10:32:00Z"
+        }
+      ]
     },
-    {
-     "text": "Screenshot spec reframed: the Familiefoto row clear of the flock, a mid-dash shot, a sentinel-and-pup close-up, meerkats ≥ 150 px tall in close-ups",
-     "done": true,
-     "at": "2026-10-25T17:55:00Z"
+    "perspective-guineafowl-get-smaller-the-f": {
+      "owner": "Tank built it; Claude reviewed, screenshotted, fixed two tests and merged it",
+      "summary": "Guineafowl get smaller the further away they are, on every map, in proportion to the ostriches, zebras and other animals on the same distance band, and still easy enough to hit (the hit area shrinks less than the picture). The far bird pictures are redrawn smaller, which also frees room in the first download. Before/after screenshots of your Karoo ostrich view.",
+      "requestedBy": "You, 26 Oct: \"The further away they are, the smaller they must also get. Still in such a way that one can still shoot them … this needs to apply to all the levels.\"",
+      "status": "done"
     },
-    {
-     "text": "Your notes: more fur and nicer faces, plus Claude's notes (blended hips, the front-facing pose, bent running legs)",
-     "done": true,
-     "at": "2026-10-25T18:52:00Z"
+    "v1.8": {
+      "owner": "Tank built it; Claude reviewed it, ran the screenshots, fixed two tests on main and merged it",
+      "summary": "Tin cans on the old farm fence posts on 3–4 weekday maps of the Karoo, Bushveld, Kalahari and Namibië, at near, middle or far distance. Shoot one off and it somersaults away; each hit in the air kicks it higher, spins it faster and adds a wobble, and the 10th air hit always sends it out of the top (Weg!). Points: knock-off 5, air hit 8 + 2 a step, Weg! 15, more for further cans; cans never break your Frenzy. Also a Blikkies target on the Skietbaan, a Notaboek challenge and the Blikkiesdans secret (8 in the air).",
+      "requestedBy": "You, 24 Oct, and again 26 Oct: \"bean cans standing on top of them … if you hit them again they continue spinning up … till you don't see them anymore.\"",
+      "status": "done",
+      "checklist": [
+        {
+          "text": "Cans on the fence posts, sized for their distance, somersault when shot",
+          "done": true
+        },
+        {
+          "text": "The juggle: every air hit higher and wilder; the 10th always flies out of sight (Weg!)",
+          "done": true
+        },
+        {
+          "text": "Scoring, Oupa's lines, sounds, chain pops (\"3× in the air!\"), Notaboek and the Blikkiesdans secret",
+          "done": true
+        },
+        {
+          "text": "Skietbaan Blikkies target at every distance",
+          "done": true
+        },
+        {
+          "text": "Independent review: far cans juggled forever; near too hard; retuned",
+          "done": true,
+          "at": "2026-10-26T21:40:00Z"
+        },
+        {
+          "text": "Balance: 77 cells × 500 seeds, every gate passes (cans ≤ 8.7 % of a score; near 98 % reach 3 in the air, far 0 %)",
+          "done": true,
+          "at": "2026-10-27T00:55:00Z"
+        },
+        {
+          "text": "Screenshots: 45 on desktop and both phones, juggle on the near fence with a chain of 3",
+          "done": true,
+          "at": "2026-10-26T23:20:00Z"
+        },
+        {
+          "text": "Full browser tests on all devices green; merged as 1.8.0",
+          "done": true,
+          "at": "2026-10-27T01:36:00Z"
+        }
+      ]
     },
-    {
-     "text": "v1.6 and v1.6b merged in, version 1.7.0",
-     "done": true,
-     "at": "2026-10-25T19:23:00Z"
+    "karoo-polish-hd-aloes-the-potjie-steams-": {
+      "owner": "Tank built it (fresh session 1773b411 after connection drops); Claude reviewed it, ran the screenshots twice and merged it",
+      "summary": "HD bitter aloes with toothed blue-green leaves, a skirt of dry leaves and orange-red flower spikes. The potjie on its coals steams, simmers and rattles its lid; shoot the lid and it flies off and lands beside the pot with a clang (+5 s as before).",
+      "requestedBy": "You, 26 Oct: \"These aloes … need to become HD … the braai pot … boiling a little bit … when it's shot, the deksel should fall off.\"",
+      "status": "done",
+      "checklist": [
+        {
+          "text": "HD bitter aloes on the Karoo (2× drawing, streamed in after the hunt starts; the first download stays 2,991 KB)",
+          "done": true
+        },
+        {
+          "text": "Bushveld aloes use the new drawing at normal resolution (2× version revisited in HD graphics, your call)",
+          "done": true
+        },
+        {
+          "text": "The potjie simmers, steams and rattles its lid; shot, the lid flies off and lands with a clang",
+          "done": true
+        },
+        {
+          "text": "Independent review: lime flames, invisible steam and dull aloes found and fixed",
+          "done": true,
+          "at": "2026-10-27T03:50:00Z"
+        },
+        {
+          "text": "Screenshots on desktop and both phones, second round checked",
+          "done": true,
+          "at": "2026-10-27T05:30:00Z"
+        },
+        {
+          "text": "Full browser tests on all devices green; merged as 1.8.1 (#87)",
+          "done": true,
+          "at": "2026-10-27T06:18:00Z"
+        }
+      ]
     },
-    {
-     "text": "New screenshots on desktop and both phones (round 3)",
-     "done": true,
-     "at": "2026-10-25T20:55:00Z"
+    "far-animals-in-hd-on-every-map-realistic": {
+      "owner": "Tank builds it; Claude reviews",
+      "summary": "Every far herd redrawn: zebras, giraffes, elephants, wildebeest, gemsbok, springbok, ostriches and lechwe with real proportions, jointed legs, markings and light, a few poses, young ones and small movements, at the sizes the perspective job sets.",
+      "requestedBy": "You, 26 Oct: \"The zebras, giraffes and elephant … look very cartoony … They still look too much like stick figures.\""
     },
-    {
-     "text": "Claude's independent review: no gameplay bugs; one missing test and three small fixes sent to Tank",
-     "done": true,
-     "at": "2026-10-25T19:48:00Z"
+    "makalani-palms-in-the-okavango-hanging-n": {
+      "owner": "Tank builds it; Claude reviews",
+      "summary": "Makalani palms by the water in the Okavango, with reflections at dusk and clusters of glossy brown nuts. A nut hit cracks off and falls; hit it in the air and it juggles like a can; a full shotgun hit pops it into fibre and ivory chips. Secret: 3 nuts in one hunt.",
+      "requestedBy": "You, 26 Oct: \"add some makalani trees … If somebody manages to hit such a small makalani, maybe it can do a small blow-up, or fall down … Be creative.\""
     },
-    {
-     "text": "Tank: the review fixes, colonies clear of the gun, meerkats spaced apart",
-     "done": true,
-     "at": "2026-10-25T20:58:00Z"
+    "tree-life-a-detailed-baobab-with-real-ha": {
+      "owner": "Tank builds it; Claude reviews",
+      "summary": "A detailed baobab with real hanging fruit and residents peeking from its hollows (bushbaby, tree squirrel, barn owl, a hornbill at its sealed nest); sociable weavers flying in and out of their colony nest with a pygmy falcon now and then (and lovebirds in Namibië). They are never hurt and duck away when you shoot near them.",
+      "requestedBy": "You, 26 Oct: \"see what other kind of animals normally live in that tree … a few holes where a little mouse can look out … some little birds fly around [the weaver nest].\""
     },
-    {
-     "text": "Balance re-check passed; full tests re-running after a test fix, then merge",
-     "done": true
-    },
-    {
-     "text": "Merged after all 23 test jobs passed (26 Oct, 00:55)",
-     "done": true,
-     "at": "2026-10-25T22:55:00Z"
+    "hd-graphics-settings-graphics-auto-stand": {
+      "owner": "Tank builds it (task 53d9fba6, started 08:20); Claude reviews and runs the screenshots",
+      "summary": "A light loading screen asks Standard or HD, with a \"Remember my choice\" tick box; the same choice in Settings. HD packs (sharper art at twice the resolution) load per area, so the fast start stays; on a slow connection \"Play now in Standard\" appears. Moved up to right after Karoo polish.",
+      "requestedBy": "Your idea, 26 Oct: \"when the game loads, it should ask you standard quality or HD\"; your design, 27 Oct: a light loading screen with Standard or HD and a \"save preset\" tick box.",
+      "status": "running",
+      "checklist": [
+        {
+          "text": "HD packs per area (twice the resolution), listed in the asset index; the first download stays the same",
+          "done": false
+        },
+        {
+          "text": "Loading-screen card: Standard or HD with the real MB, \"Remember my choice\", a recommended option",
+          "done": false
+        },
+        {
+          "text": "Settings → Graphics: Standard / HD / Ask on start, in 4 languages",
+          "done": false
+        },
+        {
+          "text": "\"Play now in Standard\" when HD takes longer than ~4 s; HD swaps in during play",
+          "done": false
+        },
+        {
+          "text": "The 2× Bushveld aloes in the Bushveld HD pack",
+          "done": false
+        },
+        {
+          "text": "Screenshots (Standard | HD) on a large desktop and both phones; browser tests; merge as 1.9.0",
+          "done": false
+        }
+      ]
     }
-   ],
-   "images": [
+  },
+  "suggestions": [
     {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17-familiefoto-closeup-desktop.png",
-     "caption": "Round 3 in the game: the Familiefoto row (desktop)"
+      "id": "kalahari-22",
+      "title": "Retune the scoped .22 on the Kalahari's two farthest bonus maps",
+      "from": "Claude (found by Tank in v1.7)",
+      "date": "2026-10-25T16:40:00Z",
+      "status": "idea",
+      "detail": "It scores 4,612–5,578 on Nog Verder and Die Verste, over the 4,500 cap every other long-range map keeps. It predates the meerkats. A small tuning job: fewer far-distance points on those two maps, as Namibië got in v1.4."
     },
     {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-sentinel-pup-closeup-pixel7-landscape.png",
-     "caption": "Round 3: the sentinel on a Pixel 7 (still bunched; spacing fixed after this shot)"
+      "id": "kalahari-grass",
+      "title": "Give the Kalahari the same grass and sand pass as Namibië",
+      "from": "Claude",
+      "date": "2026-10-25T18:00:00Z",
+      "status": "queued",
+      "job": "v1.7d",
+      "detail": "The Kalahari ground has the same black line between distances and the same scribbly grass. v1.7c fixes it there too if it shares the drawing code."
     },
     {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-peek-closeup-iphone14-landscape.png",
-     "caption": "Round 3: peeking out on an iPhone 14"
+      "id": "feesdae",
+      "title": "Daily specials on special days (Feesdae)",
+      "from": "Claude",
+      "date": "2026-10-24T18:58:55Z",
+      "status": "idea",
+      "detail": "Themed Daily Hunts on holidays; waiting for your pick (see Needs you)."
     },
     {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17-meerkats-rounds.jpg",
-     "caption": "The meerkat sheet over three rounds; round 3 (bottom, 20:52) has your fur and face notes in"
+      "id": "bow",
+      "title": "A bow and arrow",
+      "from": "You",
+      "date": "2026-10-24T18:35:00Z",
+      "status": "idea",
+      "detail": "Noted for later; not planned yet."
+    },
+    {
+      "id": "af-voice",
+      "title": "A real Afrikaans voice for Oupa",
+      "from": "Claude",
+      "date": "2026-10-25T04:45:00Z",
+      "status": "idea",
+      "detail": "The interim Afrikaans lines use an English voice. A real Afrikaans speaker would sound far better; it needs a person or a paid service, so it is your call."
+    },
+    {
+      "id": "portal-gentle",
+      "title": "A gentler option for game portals",
+      "from": "Claude",
+      "date": "2026-10-25T18:13:00Z",
+      "status": "idea",
+      "detail": "Baboons and warthogs go down like guineafowl (your choice). If Poki or CrazyGames ever ask for a younger rating, a content switch could make them flee instead, only in those builds."
     }
-   ],
-   "links": [
+  ],
+  "extraRequests": [
     {
-     "label": "PR #72",
-     "url": "https://github.com/ShadowNam/Tarantal/pull/72"
+      "date": "25 Oct, 16:45",
+      "text": "When shooting the fruit (sausage tree), make it swing or drop down",
+      "outcome": "Queued as v1.7c",
+      "job": "v1.7c"
+    },
+    {
+      "date": "25 Oct, ~19:47",
+      "text": "The meerkats: a bit more hairy and furry, and nicer faces",
+      "outcome": "Sent to Tank for the v1.7 look round",
+      "job": "v1.7"
+    },
+    {
+      "date": "25 Oct, ~19:50",
+      "text": "Namibië: at least two ostriches with a nest, oryx roaming far away with a mirage, hot-air balloons drifting by",
+      "outcome": "Queued as v1.7d",
+      "job": "v1.7d"
+    },
+    {
+      "date": "25 Oct, ~19:50",
+      "text": "The Namibië grass landscapes still look rough: much more detail",
+      "outcome": "Queued as v1.7d, first part",
+      "job": "v1.7d"
+    },
+    {
+      "date": "25 Oct, 19:51",
+      "text": "A Project overview page in the admin: done, outstanding with dates and builds, open questions, history with images, kept up to date",
+      "outcome": "Being built now (this page)",
+      "job": "project-overview"
+    },
+    {
+      "date": "25 Oct, ~20:20",
+      "text": "The Gun Shed needs a section with pictures that explains every power-up; in the hunt it is unclear what they do",
+      "outcome": "Queued as v1.7b (next after the meerkats)",
+      "job": "v1.7b"
+    },
+    {
+      "date": "25 Oct, ~20:20",
+      "text": "A Settings option to switch Oupa (\"grandfather mode\") on or off",
+      "outcome": "Queued as v1.7b: Oupa's comments On / Text only / Off",
+      "job": "v1.7b"
+    },
+    {
+      "date": "25 Oct, ~20:20",
+      "text": "Namibië: ostriches with a nest, oryx in the mirage, hot-air balloons (again)",
+      "outcome": "Already queued as v1.7d",
+      "job": "v1.7d"
+    },
+    {
+      "date": "25 Oct, ~20:20",
+      "text": "Bushveld rocks and middle distance look childish: make them realistic",
+      "outcome": "Queued as v1.7e",
+      "job": "v1.7e"
+    },
+    {
+      "date": "25 Oct, ~20:20",
+      "text": "Replace the star effect on special spots with something better, e.g. a unique animal that always appears there",
+      "outcome": "v1.7e: three mock-ups for you to pick from first",
+      "job": "v1.7e"
+    },
+    {
+      "date": "25 Oct, ~20:20",
+      "text": "Baboons on the maps, sitting at the back of the mountains, popping up to do something naughty",
+      "outcome": "Queued as v1.8b",
+      "job": "v1.8b"
+    },
+    {
+      "date": "25 Oct, ~20:20",
+      "text": "A Harvest level: the fence breaks, animals flock to the crops, 30 s to hold them off while the fence is fixed",
+      "outcome": "Queued as v1.8c, a new mode on the title screen",
+      "job": "v1.8c"
+    },
+    {
+      "date": "26 Oct, 06:50",
+      "text": "Halloween special yes, go ahead",
+      "outcome": "Being built now: the Spookjag Daily on 31 Oct (dusk, owls, bats, pumpkin lanterns, guineafowl in witch hats)",
+      "job": "halloween-spookjag-feesdae-the-31-oct-da"
+    },
+    {
+      "date": "26 Oct, 07:05",
+      "text": "Karoo: HD aloes; the potjie should steam and boil a little, and its lid should fall off when shot",
+      "outcome": "Planned as \"Karoo polish\" after Halloween",
+      "job": "karoo-polish-hd-aloes-the-potjie-steams-"
+    },
+    {
+      "date": "26 Oct, 07:05",
+      "text": "Guineafowl must get smaller the further away they are, on every map, but stay shootable",
+      "outcome": "Planned as \"Perspective\", right after Halloween",
+      "job": "perspective-guineafowl-get-smaller-the-f"
+    },
+    {
+      "date": "26 Oct, 07:15",
+      "text": "Bushveld and Kalahari: far zebras, giraffes, elephants and other animals look cartoony, like stick figures; make them HD",
+      "outcome": "Planned as \"Far animals in HD\" on every map",
+      "job": "far-animals-in-hd-on-every-map-realistic"
+    },
+    {
+      "date": "26 Oct, 07:15",
+      "text": "The baobab needs more detail and better fruit; research what lives in it and add holes where small animals look out; little birds around the weaver nest",
+      "outcome": "Researched; planned as \"Tree life\"",
+      "job": "tree-life-a-detailed-baobab-with-real-ha"
+    },
+    {
+      "date": "26 Oct, 07:20",
+      "text": "Okavango: add makalani palms with their hard nuts; a hit nut should fall or burst; be creative",
+      "outcome": "Planned: nuts crack off, juggle in the air like cans, or pop on a full hit",
+      "job": "makalani-palms-in-the-okavango-hanging-n"
+    },
+    {
+      "date": "26 Oct, 07:20",
+      "text": "Tin cans on an old farm fence to shoot off and keep in the air (asked before; not seen yet)",
+      "outcome": "Moved up: v1.8 Blikkies now comes right after the perspective job",
+      "job": "v1.8"
+    },
+    {
+      "date": "26 Oct, 07:20",
+      "text": "Idea: ask at start for Standard or HD graphics",
+      "outcome": "Advised: a Settings choice Auto / Standard / HD instead of a question before play; planned after tree life",
+      "job": "hd-graphics-settings-graphics-auto-stand"
+    },
+    {
+      "date": "26 Oct, 10:10",
+      "text": "Send the Halloween screenshots when the fixes are done; keep backups and the latest version of the project in Dropbox /ai-dev/",
+      "outcome": "Dropbox backup set up in /AI-DEV/Tarantal-Madness/: a dated status file at every merge (with a download link for that exact code version) and the job briefs; the code itself stays on GitHub (the Dropbox link takes text files only). Halloween screenshots follow the fix round.",
+      "job": "halloween-spookjag-feesdae-the-31-oct-da"
     }
-   ]
-  },
-  "project-overview": {
-   "owner": "Claude",
-   "summary": "This page: the project at a glance in the admin page, with what needs you, what is being built, the roadmap with times and versions, your requests, ideas, and the whole history with images. It reads live data that Claude updates at every check-in, merge and screenshot round. Open it from the admin page (Project overview) or with ?admin=1&project=1.",
-   "requestedBy": "You, 25 Oct 19:51",
-   "checklist": [
+  ],
+  "extraDecisions": [
     {
-     "text": "Live data branch and the generator (Claude)",
-     "done": true,
-     "at": "2026-10-25T17:58:00Z"
+      "id": "D-043",
+      "text": "v1.6b reload power-ups: Blitslaai and Oupa Laai (in review, #71)"
     },
     {
-     "text": "The page: Overview, Roadmap, History, Requests, Ideas, the lightbox, offline copy",
-     "done": true,
-     "at": "2026-10-25T19:10:00Z"
+      "id": "D-044",
+      "text": "v1.7 meerkat colonies on the desert maps (in review, #72)"
     },
     {
-     "text": "Claude's review with the real data: Now building beside Needs you, open work first on the Roadmap, cleaner option labels",
-     "done": true,
-     "at": "2026-10-25T19:30:00Z"
-    },
-    {
-     "text": "Tests on desktop, Pixel 7 and iPhone 14 (9 of 9 locally; 1,162 unit tests)",
-     "done": true,
-     "at": "2026-10-25T19:32:00Z"
-    },
-    {
-     "text": "Full tests on GitHub (23 jobs) and merged (#76); live on the test build",
-     "done": true,
-     "at": "2026-10-25T20:06:00Z"
+      "id": "D-045",
+      "text": "Project overview page in the admin, with live data on the project-log branch (in progress)"
     }
-   ],
-   "links": [
+  ],
+  "activity": [
     {
-     "label": "Open it",
-     "url": "https://shadownam.github.io/Tarantal/?admin=1&project=1"
+      "at": "2026-10-25T17:58:00Z",
+      "kind": "note",
+      "text": "Project overview: the live data is published; the page itself is being built."
     },
     {
-     "label": "PR #76",
-     "url": "https://github.com/ShadowNam/Tarantal/pull/76"
+      "at": "2026-10-25T17:51:00Z",
+      "kind": "request",
+      "text": "You asked for a Project overview page in the admin."
+    },
+    {
+      "at": "2026-10-25T17:50:00Z",
+      "kind": "request",
+      "text": "You asked for detailed Namibië grass, ostriches with a nest, oryx in the mirage and hot-air balloons: queued as v1.7c."
+    },
+    {
+      "at": "2026-10-25T17:47:00Z",
+      "kind": "request",
+      "text": "You asked for furrier meerkats with nicer faces: going to Tank with the look round."
+    },
+    {
+      "at": "2026-10-25T17:45:00Z",
+      "kind": "tests",
+      "text": "v1.6b full tests: 23 of 24 jobs passed; one slow Skietbaan test timed out twice. Claude is fixing the test.",
+      "links": [
+        {
+          "label": "PR #71",
+          "url": "https://github.com/ShadowNam/Tarantal/pull/71"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-25T17:35:43Z",
+      "kind": "note",
+      "text": "The test build now runs v1.6 (commit 4bd39f1). Hard-refresh once to get the new art.",
+      "links": [
+        {
+          "label": "Test build",
+          "url": "https://shadownam.github.io/Tarantal/"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-25T17:33:00Z",
+      "kind": "merge",
+      "text": "The development history got its v1.6 chapter (#74).",
+      "links": [
+        {
+          "label": "PR #74",
+          "url": "https://github.com/ShadowNam/Tarantal/pull/74"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-25T17:31:00Z",
+      "kind": "screenshots",
+      "text": "v1.7 meerkats, first-round screenshots: 42 shots on desktop, Pixel 7 and iPhone 14.",
+      "links": [
+        {
+          "label": "PR #72",
+          "url": "https://github.com/ShadowNam/Tarantal/pull/72"
+        }
+      ],
+      "images": [
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-sentinel-closeup-pixel7-landscape.png",
+          "caption": "The sentinel close-up (Pixel 7)"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-familiefoto-pixel7-landscape.png",
+          "caption": "The Familiefoto (Pixel 7)"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-namibie-desktop-chromium.png",
+          "caption": "A Namibië colony (desktop)"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-25T17:26:00Z",
+      "kind": "note",
+      "text": "Tank pushed the meerkat redraw (round 2): eye masks, back bands, cream bellies, three-holed burrows.",
+      "images": [
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17-meerkat-sheet-r2.jpg",
+          "caption": "The redrawn meerkat sheet, round 2 (17:26 UTC): masks, bands, cream bellies, three-holed burrows. Your fur and face notes come next."
+        }
+      ]
+    },
+    {
+      "at": "2026-10-25T16:56:00Z",
+      "kind": "merge",
+      "text": "v1.6 Veld art merged (#70): trees, fruit, far animals, the windmill, the dassie, clouds, art that waits to load, a version stamp on every map.",
+      "links": [
+        {
+          "label": "PR #70",
+          "url": "https://github.com/ShadowNam/Tarantal/pull/70"
+        }
+      ],
+      "images": [
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-windmill.jpg",
+          "caption": "Windmill"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-giraffes-scope.jpg",
+          "caption": "Giraffes through the scope"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-dead-tree.jpg",
+          "caption": "The Kalahari dead tree"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-namibie.jpg",
+          "caption": "Namibië"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-25T16:50:00Z",
+      "kind": "tests",
+      "text": "v1.6 full tests passed on every device (desktop Chromium and WebKit, Pixel 7, iPhone 14, portals, perf).",
+      "links": [
+        {
+          "label": "PR #70",
+          "url": "https://github.com/ShadowNam/Tarantal/pull/70"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-25T18:11:00Z",
+      "kind": "decision",
+      "text": "You decided: baboons and warthogs go down like guineafowl; The Harvest is its own mode; power-ups + the Oupa switch come first after the meerkats."
+    },
+    {
+      "at": "2026-10-25T18:10:00Z",
+      "kind": "tests",
+      "text": "The slow Skietbaan test is split in two and shoots inside the page: 1.3 + 2.2 min instead of 5.2 min (desktop), passing on the Pixel 7 too. Fix PR #75, ported into #71.",
+      "links": [
+        {
+          "label": "PR #75",
+          "url": "https://github.com/ShadowNam/Tarantal/pull/75"
+        },
+        {
+          "label": "PR #71",
+          "url": "https://github.com/ShadowNam/Tarantal/pull/71"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-25T18:08:00Z",
+      "kind": "request",
+      "text": "You asked for: power-ups explained in the Gun Shed, an Oupa switch, realistic Bushveld rocks, no more star on secrets, baboons, and The Harvest mode. All queued with briefs."
+    },
+    {
+      "at": "2026-10-25T18:17:00Z",
+      "kind": "note",
+      "text": "Tank finished the meerkat look round (eye masks, bands, burrows, colonies clear of the buttons, 48-colour sheet, Kalahari + desert 1,534.9 of 1,536 KB). Your fur and face notes are now with Tank."
+    },
+    {
+      "at": "2026-10-25T18:42:00Z",
+      "kind": "merge",
+      "text": "v1.6b reload power-ups merged (#71, version 1.6.1): Blitslaai (fast reloads) and Oupa Laai (auto reload).",
+      "links": [
+        {
+          "label": "PR #71",
+          "url": "https://github.com/ShadowNam/Tarantal/pull/71"
+        }
+      ],
+      "images": [
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/reload-blitslaai-pixel7-landscape.jpg",
+          "caption": "Blitslaai on the Pixel 7: the \"Lightning Load\" chip (top left) and glints on the belt"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/reload-oupa-laai-pixel7-landscape.jpg",
+          "caption": "Oupa Laai on the Pixel 7: the \"Oupa Loads\" chip and his hand by the belt"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-25T18:40:00Z",
+      "kind": "merge",
+      "text": "The Skietbaan test fix merged (#75): main's slowest test now runs in two short parts.",
+      "links": [
+        {
+          "label": "PR #75",
+          "url": "https://github.com/ShadowNam/Tarantal/pull/75"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-25T18:47:00Z",
+      "kind": "screenshots",
+      "text": "v1.6b screenshots on the Pixel 7. The chips are small: v1.7b makes power-ups much clearer.",
+      "images": [
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/reload-blitslaai-pixel7-landscape.jpg",
+          "caption": "Blitslaai on the Pixel 7: the \"Lightning Load\" chip (top left) and glints on the belt"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/reload-oupa-laai-pixel7-landscape.jpg",
+          "caption": "Oupa Laai on the Pixel 7: the \"Oupa Loads\" chip and his hand by the belt"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-25T18:52:00Z",
+      "kind": "screenshots",
+      "text": "Meerkats round 3: furrier, nicer faces (teardrop masks, small bright eyes), bent running legs. In-game close-ups next.",
+      "images": [
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17-meerkats-rounds.jpg",
+          "caption": "The meerkat sheet over three rounds; round 3 (bottom, 20:52) has your fur and face notes in"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-25T19:33:00Z",
+      "kind": "tests",
+      "text": "The Project overview page passed its tests on desktop, Pixel 7 and iPhone 14 and is up for merge (PR #76).",
+      "links": [
+        {
+          "label": "PR #76",
+          "url": "https://github.com/ShadowNam/Tarantal/pull/76"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-25T19:28:00Z",
+      "kind": "note",
+      "text": "Tank finished the meerkats (version 1.7.0, round 3 art). Claude is taking the in-game screenshots and running the independent review.",
+      "links": [
+        {
+          "label": "PR #72",
+          "url": "https://github.com/ShadowNam/Tarantal/pull/72"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-25T19:48:00Z",
+      "kind": "tests",
+      "text": "Independent review of v1.7: the meerkat rules work as asked (dive, alarm, −10 with cooldown, Familiefoto, Spotter, no stuck meerkats in 140 test hunts). One missing test and three small fixes went to Tank."
+    },
+    {
+      "at": "2026-10-25T20:06:00Z",
+      "kind": "merge",
+      "text": "The Project overview page is merged (#76) and goes live on the test build: admin page → Project overview.",
+      "links": [
+        {
+          "label": "Open it",
+          "url": "https://shadownam.github.io/Tarantal/?admin=1&project=1"
+        },
+        {
+          "label": "PR #76",
+          "url": "https://github.com/ShadowNam/Tarantal/pull/76"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-25T20:58:00Z",
+      "kind": "screenshots",
+      "text": "v1.7 round-3 screenshots on desktop, Pixel 7 and iPhone 14. Tank fixed the review points, moved colonies out from behind the gun and spaced the meerkats apart (in a fresh session after connection drops).",
+      "images": [
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17-familiefoto-closeup-desktop.png",
+          "caption": "Round 3 in the game: the Familiefoto row (desktop)"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-sentinel-pup-closeup-pixel7-landscape.png",
+          "caption": "Round 3: the sentinel on a Pixel 7 (still bunched; spacing fixed after this shot)"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-peek-closeup-iphone14-landscape.png",
+          "caption": "Round 3: peeking out on an iPhone 14"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-25T21:31:00Z",
+      "kind": "note",
+      "text": "Tank finished every v1.7 fix (spacing, pup, gun clearance); Claude merged main into it and started the full tests and a balance re-check. Tank started v1.7b (power-ups explained + the Oupa switch) in a fresh session."
+    },
+    {
+      "at": "2026-10-25T21:58:00Z",
+      "kind": "tests",
+      "text": "v1.7 balance re-checked after the colony moves: all 20 desert maps within −1.2 % … +2.5 % (limit 5 %). One browser test had assumed no bird near the colony; Claude fixed the test (the game was right) and the full tests are re-running."
+    },
+    {
+      "at": "2026-10-25T22:55:00Z",
+      "kind": "merge",
+      "text": "v1.7 meerkats is merged (#72) as version 1.7.0, after all 23 test jobs passed. Two browser tests needed fixing on the way (the game was right both times): one assumed no bird near the colony, the other fired its shot in a way the iPhone browser on GitHub ignored.",
+      "images": [
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17-familiefoto-final.jpg",
+          "caption": "The Familiefoto in the Kalahari (final build)"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17-sentinel-pup-final.jpg",
+          "caption": "The sentinel and the pup, close up"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17-namibie-final.jpg",
+          "caption": "Two Namibië colonies, clear of the gun and the buttons"
+        }
+      ],
+      "links": [
+        {
+          "label": "PR #72",
+          "url": "https://github.com/ShadowNam/Tarantal/pull/72"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-25T22:44:00Z",
+      "kind": "note",
+      "text": "Tank pushed every part of v1.7b: icons for all eight power-ups and crate guns, the Gun Shed's Power-ups tab, crates that show what they hold, the pickup card, countdown chips, a look for each power-up, the tally list and Oupa's switch. Claude started the screenshots. Two icons (Meerkat Spotter, Voorlaaier) are too thin at chip size; that note goes to Tank when its turn ends.",
+      "images": [
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17b-icons.png",
+          "caption": "The eight icons, big and at chip size"
+        }
+      ],
+      "links": [
+        {
+          "label": "PR #77",
+          "url": "https://github.com/ShadowNam/Tarantal/pull/77"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-25T23:00:00Z",
+      "kind": "note",
+      "text": "The history document gets three new chapters: v1.6b, this Project overview, and v1.7 meerkats, with 11 pictures (PR #78).",
+      "links": [
+        {
+          "label": "PR #78",
+          "url": "https://github.com/ShadowNam/Tarantal/pull/78"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-25T23:32:00Z",
+      "kind": "merge",
+      "text": "The history document has three new chapters (v1.6b reload power-ups, this Project overview, v1.7 meerkats) with 11 pictures; they show on the History tab now.",
+      "links": [
+        {
+          "label": "PR #78",
+          "url": "https://github.com/ShadowNam/Tarantal/pull/78"
+        },
+        {
+          "label": "History (Word)",
+          "url": "https://github.com/ShadowNam/Tarantal/raw/main/docs/history/Tarantal-Development-History.docx"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-25T23:40:00Z",
+      "kind": "screenshots",
+      "text": "v1.7b round 1: 36 screenshots on desktop, Pixel 7 and iPhone 14. The Gun Shed's Power-ups tab, the pickup card, the countdown chips and the Oupa switch read well on every device. Tank is fixing four things: the crate's icon is too small, the old floating item name still shows, and two icons are too thin at chip size. Then Claude's review, the full tests and the merge.",
+      "images": [
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17b-shed-iphone.jpg",
+          "caption": "The Gun Shed: the new Power-ups tab on an iPhone 14"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17b-pickup-card.jpg",
+          "caption": "The pickup card the first time you get Farm Coffee, with its chip counting down (top left)"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17b-settings-pixel7.jpg",
+          "caption": "Settings on a Pixel 7: Oupa's comments On / Text only / Off"
+        }
+      ],
+      "links": [
+        {
+          "label": "PR #77",
+          "url": "https://github.com/ShadowNam/Tarantal/pull/77"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-26T02:40:00Z",
+      "kind": "merge",
+      "text": "v1.7b is merged (#77) as version 1.7.1, after all 23 test jobs passed. Power-ups are now explained in the Gun Shed and in the hunt, and Oupa's comments can be set to On, Text only or Off. Before the merge Claude fixed a freeze right after a crate pickup (the icons now load later to keep the first download under 3 MB, and the swap left the screen drawing a deleted picture).",
+      "images": [
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17b-final-pickup-card.jpg",
+          "caption": "The card the first time you pick up Farm Coffee, with Oupa’s word and the chip counting down"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17b-final-shed-iphone.jpg",
+          "caption": "The Gun Shed’s new Power-ups tab on an iPhone 14"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17b-final-crate-closeup.jpg",
+          "caption": "A falling crate shows what it holds, on the parachute and the box"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17b-final-settings-pixel7.jpg",
+          "caption": "Settings on a Pixel 7: Oupa’s comments On / Text only / Off"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17b-final-blitslaai.jpg",
+          "caption": "Lightning Load: the card, the chip and the glints on the belt"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17b-final-buckshot.jpg",
+          "caption": "Bush Buckshot: the chip counts shells, and the spread ring is wider"
+        }
+      ],
+      "links": [
+        {
+          "label": "PR #77",
+          "url": "https://github.com/ShadowNam/Tarantal/pull/77"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-26T02:24:00Z",
+      "kind": "note",
+      "text": "Tank is building v1.7c (fruit that swings or drops). Its first try dropped its connection before pushing anything; the retry has pushed the fruit, a browser test, the screenshot setup and the docs."
+    },
+    {
+      "at": "2026-10-26T04:15:00Z",
+      "kind": "screenshots",
+      "text": "v1.7c: the fruit are redrawn at the camelthorn quality — the sausage-tree fruit are heavy and mottled on rope stalks, the baobab pods velvety. A shot one swings; a second shot drops it, and it lands clear of the trunk. An independent review found that the fruit ignored the map's light of the day and that wind threw off fruit hits; both are fixed.",
+      "images": [
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17c-sausages-closeup.jpg",
+          "caption": "Sausage-tree fruit, redrawn; one is mid-swing after a shot"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17c-sausage-dropped.jpg",
+          "caption": "A shot-off sausage lies on the ground, clear of the trunk"
+        },
+        {
+          "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17c-okavango.jpg",
+          "caption": "The sausage tree in the Okavango"
+        }
+      ],
+      "links": [
+        {
+          "label": "PR #79",
+          "url": "https://github.com/ShadowNam/Tarantal/pull/79"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-26T04:50:00Z",
+      "kind": "request",
+      "text": "You said yes to the Halloween special. Tank started it right away (the Spookjag Daily on 31 Oct); the other holidays stay open for you to pick later."
+    },
+    {
+      "at": "2026-10-26T05:05:00Z",
+      "kind": "request",
+      "text": "Karoo feedback: HD aloes, a boiling potjie whose lid falls off, and birds smaller with distance on every map. Planned as two jobs after Halloween."
+    },
+    {
+      "at": "2026-10-26T05:15:00Z",
+      "kind": "request",
+      "text": "Bushveld and Kalahari feedback: far animals in HD, a more detailed baobab with residents in its hollows (researched), weavers flying around their nest. Planned as two jobs."
+    },
+    {
+      "at": "2026-10-26T05:24:00Z",
+      "kind": "request",
+      "text": "Okavango feedback: makalani palms with nuts to shoot; Blikkies and meerkats not seen yet; the HD idea. Blikkies moved up; makalani and optional HD graphics added; the meerkats are live on the Kalahari and Namibië maps."
+    },
+    {
+      "at": "2026-10-26T05:28:00Z",
+      "kind": "note",
+      "text": "Fixed this overview: the 'Version on the test build' box was stuck at 1.6.1 (22:42 last night). It now fills itself in from the live code at every update."
+    },
+    {
+      "at": "2026-10-26T05:30:00Z",
+      "kind": "note",
+      "text": "Halloween: Tank pushed the special-days system and the Spookjag rules (bats, owls, lanterns). v1.7c: all tests green but one browser group, still running."
+    },
+    {
+      "at": "2026-10-26T05:34:00Z",
+      "kind": "merge",
+      "text": "v1.7c merged (PR #79, version 1.7.2) after all 23 test jobs passed: the fruit you shoot now swings or drops, with redrawn sausages and baobab pods. On the test build in a few minutes."
+    },
+    {
+      "at": "2026-10-26T05:48:00Z",
+      "kind": "note",
+      "text": "Halloween: Tank added the special day to the game (the ?feesdag override, the title badge, the admin list, the dusk hunt view) and the Spookjag tally slate, and merged v1.7c in (version 1.7.3). Art, sounds and Oupa's lines are next."
+    },
+    {
+      "at": "2026-10-26T06:12:00Z",
+      "kind": "note",
+      "text": "Halloween: the interim art (moon, bats, owls, pumpkin lanterns, witch hats) and sounds are in their own download that only loads on the special day, and Oupa's Spookjag lines are voiced in English, Afrikaans and German."
+    },
+    {
+      "at": "2026-10-26T06:16:00Z",
+      "kind": "merge",
+      "text": "History document updated (PR #81): new chapters for v1.7b power-ups explained and v1.7c fruit that swings and drops, today's requests and the new build order."
+    },
+    {
+      "at": "2026-10-26T06:27:00Z",
+      "kind": "screenshots",
+      "text": "Halloween: Tank pushed the browser tests and the screenshot spec; Claude is taking the screenshots on desktop, Pixel 7 and iPhone 14 and running an independent review while Tank finishes the sizes and docs."
+    },
+    {
+      "at": "2026-10-26T07:14:00Z",
+      "kind": "screenshots",
+      "text": "Halloween review round: Tank marked PR #80 ready; Claude's screenshots and an independent review found fixes, now with Tank: witch hats onto the heads, carved glowing lanterns, a darker spookier dusk, bigger owls, the title and tally overlaps, scoring the lantern secret like other secrets, an iPhone test fix and an owl test, and the voice lines into the Halloween-only download."
+    },
+    {
+      "at": "2026-10-26T08:00:00Z",
+      "kind": "note",
+      "text": "Halloween fixes so far: the lantern secret scores like other secrets, the iPhone test and a new owl test, witch hats on the heads, carved glowing lanterns at every size, and the Spookjag's own darker dusk with a soft vignette. Owls, the title and tally overlaps and the smaller items are next."
+    },
+    {
+      "at": "2026-10-26T08:20:00Z",
+      "kind": "note",
+      "text": "Dropbox backup set up (/AI-DEV/Tarantal-Madness): the first status file, 12 job briefs and the working rules. A new dated status file follows every merge."
+    },
+    {
+      "at": "2026-10-26T09:00:00Z",
+      "kind": "note",
+      "text": "Halloween: Tank finished all 15 review fixes; Claude's after-fix screenshots look right (dark dusk, hats on heads, carved lanterns, owls across the moon). Tank started the perspective job (birds smaller with distance)."
+    },
+    {
+      "at": "2026-10-26T09:54:00Z",
+      "kind": "screenshots",
+      "text": "Halloween after the fixes: Claude's screenshots on desktop, Pixel 7 and iPhone 14 (dark dusk under the moon, hats on the heads, carved lanterns, the owl across the moon, the Spookjag 2026 card) are on PR #80 and with you. Claude fixed the last title overlap (the badge now sits on the Daily line) and a test-hook bug on the tally; all 9 Halloween browser tests pass. Full tests next, then the merge."
+    },
+    {
+      "at": "2026-10-26T10:32:00Z",
+      "kind": "merge",
+      "text": "Halloween Spookjag merged (PR #80, version 1.7.3) after all 23 test jobs passed on desktop, Pixel 7 and iPhone 14 (Claude fixed an iPhone test that expected the older replay format). Live on the test build within minutes; on 31 Oct it is the Daily Hunt for everyone."
+    },
+    {
+      "at": "2026-10-26T10:33:00Z",
+      "kind": "note",
+      "text": "Perspective (birds smaller with distance): the new scales are in (middle 0.42, far 0.15, farthest 0.07) and the far animals follow them; Tank's balance run ran out of memory on its server, so Claude told it to run it one worker at a time and keep going."
+    },
+    {
+      "at": "2026-10-26T11:12:00Z",
+      "kind": "note",
+      "text": "You tried ?feesdag=halloween on the test build and got an ordinary hunt: that address only works on developer and test builds (Claude's tip was wrong). The admin page's Special days → Spookjag · 31/10 → Play works; Claude checked it on the same version and sent you a screenshot."
+    },
+    {
+      "at": "2026-10-26T11:25:00Z",
+      "kind": "tests",
+      "text": "Perspective: Tank measured every far animal against the guineafowl (in the Karoo a far bird was ~12× too big beside the ostriches; now 2.7×, and the HD animal redraw closes the rest) and tuned the hit sizes: far birds keep a minimum hit area so they stay easy to hit while looking smaller. First balance run: good players within +2 %; weaker players a little lower, checked again in the final 500-hunt run."
+    },
+    {
+      "at": "2026-10-26T12:40:00Z",
+      "kind": "note",
+      "text": "Perspective: the guineafowl pictures are redrawn at their new, smaller far sizes, which makes the first download 106 KB smaller (3,071 → 2,965 KB of 3,072) and leaves room for the Karoo HD aloes and potjie. Feathers, witch hats and boss birds shrink with the birds; tests added. Still to come: the before/after screenshots and the final balance check."
+    },
+    {
+      "at": "2026-10-26T18:34:00Z",
+      "kind": "merge",
+      "text": "Perspective merged (PR #82, version 1.7.4) after all 23 test jobs passed. Birds get smaller with distance on every map; far herds shown 3× bigger; far birds keep a minimum hit size; first download 2,965 KB (−106 KB). On the way Claude fixed two tests that the new sizes made unreliable (a Halloween lantern shot and a meerkat shot); the game itself was fine."
+    },
+    {
+      "at": "2026-10-26T18:38:00Z",
+      "kind": "note",
+      "text": "Tank started v1.8 Blikkies: tin cans on the old farm fence (Karoo, Bushveld, Kalahari, Namibië) to shoot off and keep in the air, higher and wilder with every hit, until they fly out of sight."
+    },
+    {
+      "at": "2026-10-26T19:20:00Z",
+      "kind": "request",
+      "text": "You asked for the tin can screenshots as soon as they are ready: they come first once Tank's screenshot test is in."
+    },
+    {
+      "at": "2026-10-26T19:32:00Z",
+      "kind": "merge",
+      "text": "History doc updated (PR #84): new chapters for the Halloween Spookjag and for perspective (birds smaller with distance), with 10 screenshots, today's requests and updated numbers."
+    },
+    {
+      "at": "2026-10-26T19:34:00Z",
+      "kind": "note",
+      "text": "Blikkies progress: the can physics (knock-off, juggle higher and wilder, Weg!), its tests, the fences on 3–4 weekday maps per area and the can art and sounds are pushed. Claude is fixing a Halloween owl test that the new content made unreliable (the same kind of fix as the lantern test this morning)."
+    },
+    {
+      "at": "2026-10-26T20:27:00Z",
+      "kind": "screenshots",
+      "text": "First tin can screenshots sent (desktop): the near, mid and far fence, a can somersaulting off its post, and landed cans with dents. Keeping a can in the air is still far too hard (1 in 24 air shots hit on the range), so Tank is retuning the juggle before the juggle screenshot."
+    },
+    {
+      "at": "2026-10-26T20:34:00Z",
+      "kind": "merge",
+      "text": "Test fix merged (PR #85): the Halloween owl test now plays two separate hunts, so new content can't break it. The game itself was fine."
+    },
+    {
+      "at": "2026-10-26T21:20:00Z",
+      "kind": "request",
+      "text": "You asked for the juggle screenshots as soon as they are ready."
+    },
+    {
+      "at": "2026-10-26T21:29:00Z",
+      "kind": "screenshots",
+      "text": "Juggle screenshots sent (desktop, Pixel 7, iPhone): a bean can kicked twice, flying high above the mesa. With the current tuning 2 hits in a row is the most a good shot gets; Tank's retune makes 3–5 reachable, and the final shot will be on the near fence with the '3× in the air!' pop."
+    },
+    {
+      "at": "2026-10-26T21:25:00Z",
+      "kind": "note",
+      "text": "Tank's tin-can session lost its connection twice in a row, so a fresh Tank task continues on the same branch with a full brief (review fixes: far cans no longer an easy score, a reachable juggle on the near fence, tests, balance). WhatsApp alert is on for it."
+    },
+    {
+      "at": "2026-10-26T21:32:00Z",
+      "kind": "tests",
+      "text": "Test fix PR #86: the Halloween lantern test now copes with a lantern the camera can't centre (the new content moved it to the map edge). Passes on all three devices; merging when CI is green."
+    },
+    {
+      "at": "2026-10-26T22:00:00Z",
+      "kind": "request",
+      "text": "Going to bed: keep Tank building overnight, merge on green, and give a detailed morning report with screenshots of everything done and what comes next; make sure GitHub is merged and the public build shows it."
+    },
+    {
+      "at": "2026-10-26T22:11:00Z",
+      "kind": "merge",
+      "text": "Test fix merged (PR #86): the Halloween lantern test copes with a lantern the camera can't centre. Tank merges main into the tin-can branch next."
+    },
+    {
+      "at": "2026-10-27T00:55:00Z",
+      "kind": "tests",
+      "text": "Blikkies ready for review: every balance gate passes, first download +22 KB (2,987 of 3,072 KB). Full browser tests started."
+    },
+    {
+      "at": "2026-10-27T01:36:00Z",
+      "kind": "merge",
+      "text": "v1.8 Blikkies merged (PR #83, version 1.8.0): tin cans on the fence posts that somersault when shot and juggle higher with every air hit until Weg!."
+    },
+    {
+      "at": "2026-10-27T01:37:00Z",
+      "kind": "note",
+      "text": "Tank started Karoo polish: HD bitter aloes, and a potjie that simmers, rattles its lid and loses it when shot."
+    },
+    {
+      "at": "2026-10-27T02:28:00Z",
+      "kind": "merge",
+      "text": "History document updated (PR #88): a Blikkies chapter with five screenshots, the night's requests and the numbers on main."
+    },
+    {
+      "at": "2026-10-27T03:57:00Z",
+      "kind": "screenshots",
+      "text": "Karoo polish screenshots on desktop, Pixel 7 and iPhone 14 (24 shots, all tests passed). They showed lime-green flames, faint steam with the lid on and dull aloes; an independent review found the causes and Tank fixed all three."
+    },
+    {
+      "at": "2026-10-27T04:35:00Z",
+      "kind": "note",
+      "text": "Morning report sent: Blikkies 1.8.0 live since 03:36, the history chapter merged, Karoo polish nearly done; screenshots and what waits on you."
+    },
+    {
+      "at": "2026-10-27T05:08:00Z",
+      "kind": "decision",
+      "text": "Bushveld aloes stay at normal resolution for now (the sharper version would push the Bushveld download over its 1.5 MB limit); revisit with the optional HD graphics pack, which loads in the background."
+    },
+    {
+      "at": "2026-10-27T05:01:00Z",
+      "kind": "note",
+      "text": "WhatsApp updates work: the gateway is connected and the morning report link was delivered at 07:01."
+    },
+    {
+      "at": "2026-10-27T05:20:00Z",
+      "kind": "decision",
+      "text": "HD graphics moves up to the next job after Karoo polish. A light loading screen asks Standard or HD, with a \"Remember my choice\" tick box (also in Settings); HD packs load per area, and a slow HD download offers \"Play now in Standard\". The next art jobs can then ship HD packs."
+    },
+    {
+      "at": "2026-10-27T05:20:00Z",
+      "kind": "decision",
+      "text": "Release aim: friends first (the web test build), later the Apple App Store and Google Play. Poki and CrazyGames are no longer targets."
+    },
+    {
+      "at": "2026-10-27T05:38:00Z",
+      "kind": "decision",
+      "text": "An Android test app joins the plan after tree life: an installable file for friends, built by GitHub with all the art inside so it works offline, downloadable from the test site. The iPhone app follows once you have an Apple developer account."
+    },
+    {
+      "at": "2026-10-27T06:18:00Z",
+      "kind": "merge",
+      "text": "Karoo polish merged as 1.8.1 (#87) after every browser test passed on all devices: sharper Karoo aloes and the simmering potjie whose lid flies off."
+    },
+    {
+      "at": "2026-10-27T06:20:00Z",
+      "kind": "note",
+      "text": "Tank started HD graphics (Standard or HD on the loading screen, with \"Remember my choice\"); expected around 14:30."
+    },
+    {
+      "at": "2026-10-27T06:22:00Z",
+      "kind": "note",
+      "text": "The release aim (friends, then the Apple App Store and Google Play; D-052) is written into the project docs; that change is in its tests (#89)."
     }
-   ]
-  },
-  "v1.7c": {
-   "owner": "Tank built it; Claude reviewed, screenshotted and merged it",
-   "summary": "Fruit you shoot reacts: the sausage tree's sausages, baobab and camelthorn pods and marula swing on their stalks or drop to the ground.",
-   "requestedBy": "You, 25 Oct ~16:45: \"when shooting these fruits, make them swing or drop down.\"",
-   "status": "done",
-   "checklist": [
-    {
-     "text": "Fruit as separate sprites; swing and drop on shots (view only, the game rules unchanged)",
-     "done": true,
-     "at": "2026-10-26T02:15:00Z"
-    },
-    {
-     "text": "Browser test: a shot sausage swings, a second shot drops it, the score unchanged",
-     "done": true,
-     "at": "2026-10-26T02:18:00Z"
-    },
-    {
-     "text": "Fruit redrawn at the camelthorn bar (mottled Kigelia sausages on rope stalks, velvety baobab pods); dropped fruit lands clear of the trunk",
-     "done": true,
-     "at": "2026-10-26T03:31:00Z"
-    },
-    {
-     "text": "Independent review fixes: fruit take the map's light and haze, wind no longer throws off fruit hits, fruit stay behind rocks and props, lighter on phones, smoother falls",
-     "done": true,
-     "at": "2026-10-26T04:25:00Z"
-    },
-    {
-     "text": "Claude's screenshots on desktop, Pixel 7 and iPhone 14",
-     "done": false
-    },
-    {
-     "text": "Full tests and merge",
-     "done": false
-    }
-   ]
-  },
-  "v1.7d": {
-   "owner": "Tank",
-   "summary": "Namibië first: much more detailed bushman grass and sand (no black lines between the distances), then a pair of ostriches at their nest (they run from nearby shots), a herd of oryx far away shimmering in the mirage, and hot-air balloons drifting by (not targets).",
-   "requestedBy": "You, 25 Oct ~19:50: ostriches with a nest, oryx in the mirage, hot-air balloons; and \"the grass landscapes in the Namibia one also look very rough still\"."
-  },
-  "v1.7b": {
-   "owner": "Tank built it; Claude reviewed, fixed a freeze and merged it",
-   "summary": "A Power-ups section in the Gun Shed with a picture and a plain explanation of every power-up and crate gun (what it does, how long, how you get it, a tip). In the hunt: crates show what is inside, a short card on pickup says what it does, the chip counts down and blinks before it ends, and each power-up has a small visible effect. Plus a Settings switch: Oupa's comments On / Text only / Off.",
-   "requestedBy": "You, 25 Oct ~20:20: \"one is very unsure what they actually do\" and \"the option to have the grandfather mode enabled or not\".",
-   "checklist": [
-    {
-     "text": "Icons for every power-up and crate gun",
-     "done": true,
-     "at": "2026-10-25T21:46:00Z"
-    },
-    {
-     "text": "A Power-ups section in the Gun Shed",
-     "done": true,
-     "at": "2026-10-25T21:57:00Z"
-    },
-    {
-     "text": "Crates show what they hold (decided when the crate drops)",
-     "done": true,
-     "at": "2026-10-25T22:02:00Z"
-    },
-    {
-     "text": "Pickup card, countdown chips that blink before the end, a small look for each power-up",
-     "done": true,
-     "at": "2026-10-25T22:17:00Z"
-    },
-    {
-     "text": "The tally lists the power-ups you used",
-     "done": true,
-     "at": "2026-10-25T22:22:00Z"
-    },
-    {
-     "text": "Settings: Oupa's comments On / Text only / Off",
-     "done": true
-    },
-    {
-     "text": "Browser tests and the screenshot setup",
-     "done": true,
-     "at": "2026-10-25T22:38:00Z"
-    },
-    {
-     "text": "Claude's screenshots on desktop, Pixel 7 and iPhone 14 (round 1: 36 shots)",
-     "done": true,
-     "at": "2026-10-25T23:40:00Z"
-    },
-    {
-     "text": "Fixes from the screenshots: a bigger crate icon, no double item name, stockier Meerkat Spotter and Voorlaaier icons",
-     "done": true
-    },
-    {
-     "text": "Review, full tests and merge",
-     "done": true
-    },
-    {
-     "text": "Merged after all 23 test jobs passed (26 Oct, 04:40)",
-     "done": true,
-     "at": "2026-10-26T02:40:00Z"
-    }
-   ]
-  },
-  "v1.7e": {
-   "owner": "Tank",
-   "summary": "First, mock-ups of three ways to replace the star glint on secrets: (A) a small unique animal that always lives at each secret (e.g. a rock agama nodding on the dassie koppie, a lilac-breasted roller on the windmill) — Claude's pick and your idea; (B) natural cues only; (C) no cue, Oupa hints in words. You choose. Meanwhile: realistic Bushveld granite boulders and koppies, real ridges in the haze, textured winter veld, no black lines between the distances.",
-   "requestedBy": "You, 25 Oct ~20:20: \"the rocks and the middle distances look childish\" and \"that star thing is not working for me\"."
-  },
-  "v1.8b": {
-   "owner": "Tank",
-   "summary": "Chacma baboon troops on the ridges of most maps. Now and then raiders come down to cause trouble (steal Oupa's hat, raid fruit, throw fruit at the flock). A raider takes 2 hits and goes down like a guineafowl (your choice). Mothers with babies stay out of range and are never targets.",
-   "requestedBy": "You, 25 Oct ~20:20: \"the African baboon should also be present … pop up and do something naughty that might get them to eat a bullet or two\"."
-  },
-  "v1.8c": {
-   "owner": "Tank",
-   "summary": "A new mode on the title screen. The fence breaks, guineafowl, warthogs and baboons pour into the harvest field, and you have 30 seconds to hold them off while the farm workers fix the fence. A crop meter shows what you saved; the workers are never targets. Tank writes a short plan first.",
-   "requestedBy": "You, 25 Oct ~20:20: \"we could call it the harvest … you've got 30 seconds to shoot as many animals as possible while the fence gets repaired\"."
-  },
-  "v1.6b": {
-   "owner": "Tank built it; Claude merged it",
-   "summary": "Two new crate power-ups. Blitslaai: for 12 s every reload is much faster, with lightning glints on the belt. Oupa Laai: for 12 s an empty gun reloads by itself and Oupa says so. Merged 25 Oct 20:42 after all 23 test jobs passed.",
-   "requestedBy": "You, 25 Oct 08:40: \"Another power-up … an AUTO reload, and a fast reload.\"",
-   "checklist": [
-    {
-     "text": "Blitslaai (fast reload) and Oupa Laai (auto reload) in the game",
-     "done": true
-    },
-    {
-     "text": "Icons on the HUD chips, belt glints, Oupa's hand and his voiced line",
-     "done": true
-    },
-    {
-     "text": "Balance check: every gate passes",
-     "done": true
-    },
-    {
-     "text": "Independent review and its fixes",
-     "done": true
-    },
-    {
-     "text": "v1.6 merged in, version 1.6.1",
-     "done": true,
-     "at": "2026-10-25T17:00:00Z"
-    },
-    {
-     "text": "Full tests on every device: all 23 jobs green (after the Skietbaan test fix, PR #75)",
-     "done": true
-    },
-    {
-     "text": "Merge into main and deploy to the test build",
-     "done": true
-    }
-   ],
-   "links": [
-    {
-     "label": "PR #71",
-     "url": "https://github.com/ShadowNam/Tarantal/pull/71"
-    }
-   ],
-   "tests": "Full CI green on every device (23 jobs); 1,129 unit tests.",
-   "images": [
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/reload-blitslaai-pixel7-landscape.jpg",
-     "caption": "Blitslaai on the Pixel 7: the \"Lightning Load\" chip (top left) and glints on the belt"
-    },
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/reload-oupa-laai-pixel7-landscape.jpg",
-     "caption": "Oupa Laai on the Pixel 7: the \"Oupa Loads\" chip and his hand by the belt"
-    }
-   ]
-  },
-  "halloween-spookjag-feesdae-the-31-oct-da": {
-   "owner": "Tank built it; Claude reviewed, fixed, screenshotted and merged it",
-   "status": "done",
-   "summary": "On 31 Oct the Daily Hunt becomes Spookjag: the day's map at dusk under a big moon, pumpkin lanterns on the fence posts (shoot them all for +25), bats as fast bonus targets (+15), protected owls (−10), some guineafowl in witch hats, Oupa's Halloween lines, a spooky sting and a Halloween share card. Built on a small 'special days' system so other holidays can be added later.",
-   "requestedBy": "You, 26 Oct: \"Halloween special yes, go ahead.\"",
-   "checklist": [
-    {
-     "text": "Special-day system (dates in content, the Daily becomes the special that UTC day, admin/test override)",
-     "done": true,
-     "at": "2026-10-26T06:30:00Z"
-    },
-    {
-     "text": "Halloween look: dusk, moon, lanterns, bats, owls, witch hats",
-     "done": true,
-     "at": "2026-10-26T07:30:00Z"
-    },
-    {
-     "text": "Rules: bats +15, owls −10, all lanterns out +25",
-     "done": true,
-     "at": "2026-10-26T07:30:00Z"
-    },
-    {
-     "text": "Oupa's lines (4 languages), sounds, share card",
-     "done": true,
-     "at": "2026-10-26T08:00:00Z"
-    },
-    {
-     "text": "Tests and Claude's screenshots",
-     "done": true,
-     "at": "2026-10-26T09:54:00Z"
-    },
-    {
-     "text": "Review (15 fixes), full tests on 3 devices and merge (PR #80, 26 Oct, before 28 Oct)",
-     "done": true,
-     "at": "2026-10-26T10:32:00Z"
-    }
-   ]
-  },
-  "perspective-guineafowl-get-smaller-the-f": {
-   "owner": "Tank built it; Claude reviewed, screenshotted, fixed two tests and merged it",
-   "summary": "Guineafowl get smaller the further away they are, on every map, in proportion to the ostriches, zebras and other animals on the same distance band, and still easy enough to hit (the hit area shrinks less than the picture). The far bird pictures are redrawn smaller, which also frees room in the first download. Before/after screenshots of your Karoo ostrich view.",
-   "requestedBy": "You, 26 Oct: \"The further away they are, the smaller they must also get. Still in such a way that one can still shoot them … this needs to apply to all the levels.\"",
-   "status": "done"
-  },
-  "v1.8": {
-   "owner": "Tank built it; Claude reviewed it, ran the screenshots, fixed two tests on main and merged it",
-   "summary": "Tin cans on the old farm fence posts on 3–4 weekday maps of the Karoo, Bushveld, Kalahari and Namibië, at near, middle or far distance. Shoot one off and it somersaults away; each hit in the air kicks it higher, spins it faster and adds a wobble, and the 10th air hit always sends it out of the top (Weg!). Points: knock-off 5, air hit 8 + 2 a step, Weg! 15, more for further cans; cans never break your Frenzy. Also a Blikkies target on the Skietbaan, a Notaboek challenge and the Blikkiesdans secret (8 in the air).",
-   "requestedBy": "You, 24 Oct, and again 26 Oct: \"bean cans standing on top of them … if you hit them again they continue spinning up … till you don't see them anymore.\"",
-   "status": "done",
-   "checklist": [
-    {
-     "text": "Cans on the fence posts, sized for their distance, somersault when shot",
-     "done": true
-    },
-    {
-     "text": "The juggle: every air hit higher and wilder; the 10th always flies out of sight (Weg!)",
-     "done": true
-    },
-    {
-     "text": "Scoring, Oupa's lines, sounds, chain pops (\"3× in the air!\"), Notaboek and the Blikkiesdans secret",
-     "done": true
-    },
-    {
-     "text": "Skietbaan Blikkies target at every distance",
-     "done": true
-    },
-    {
-     "text": "Independent review: far cans juggled forever; near too hard; retuned",
-     "done": true,
-     "at": "2026-10-26T21:40:00Z"
-    },
-    {
-     "text": "Balance: 77 cells × 500 seeds, every gate passes (cans ≤ 8.7 % of a score; near 98 % reach 3 in the air, far 0 %)",
-     "done": true,
-     "at": "2026-10-27T00:55:00Z"
-    },
-    {
-     "text": "Screenshots: 45 on desktop and both phones, juggle on the near fence with a chain of 3",
-     "done": true,
-     "at": "2026-10-26T23:20:00Z"
-    },
-    {
-     "text": "Full browser tests on all devices green; merged as 1.8.0",
-     "done": true,
-     "at": "2026-10-27T01:36:00Z"
-    }
-   ]
-  },
-  "karoo-polish-hd-aloes-the-potjie-steams-": {
-   "owner": "Tank builds it (fresh session 1773b411 since 04:37 after connection drops); Claude reviewed it and ran the screenshots",
-   "summary": "HD bitter aloes with toothed blue-green leaves, a skirt of dry leaves and orange-red flower spikes. The potjie on its coals steams, simmers and rattles its lid; shoot the lid and it flies off and lands beside the pot with a clang (+5 s as before).",
-   "requestedBy": "You, 26 Oct: \"These aloes … need to become HD … the braai pot … boiling a little bit … when it's shot, the deksel should fall off.\"",
-   "status": "running"
-  },
-  "far-animals-in-hd-on-every-map-realistic": {
-   "owner": "Tank builds it; Claude reviews",
-   "summary": "Every far herd redrawn: zebras, giraffes, elephants, wildebeest, gemsbok, springbok, ostriches and lechwe with real proportions, jointed legs, markings and light, a few poses, young ones and small movements, at the sizes the perspective job sets.",
-   "requestedBy": "You, 26 Oct: \"The zebras, giraffes and elephant … look very cartoony … They still look too much like stick figures.\""
-  },
-  "makalani-palms-in-the-okavango-hanging-n": {
-   "owner": "Tank builds it; Claude reviews",
-   "summary": "Makalani palms by the water in the Okavango, with reflections at dusk and clusters of glossy brown nuts. A nut hit cracks off and falls; hit it in the air and it juggles like a can; a full shotgun hit pops it into fibre and ivory chips. Secret: 3 nuts in one hunt.",
-   "requestedBy": "You, 26 Oct: \"add some makalani trees … If somebody manages to hit such a small makalani, maybe it can do a small blow-up, or fall down … Be creative.\""
-  },
-  "tree-life-a-detailed-baobab-with-real-ha": {
-   "owner": "Tank builds it; Claude reviews",
-   "summary": "A detailed baobab with real hanging fruit and residents peeking from its hollows (bushbaby, tree squirrel, barn owl, a hornbill at its sealed nest); sociable weavers flying in and out of their colony nest with a pygmy falcon now and then (and lovebirds in Namibië). They are never hurt and duck away when you shoot near them.",
-   "requestedBy": "You, 26 Oct: \"see what other kind of animals normally live in that tree … a few holes where a little mouse can look out … some little birds fly around [the weaver nest].\""
-  },
-  "hd-graphics-settings-graphics-auto-stand": {
-   "owner": "Tank builds it; Claude reviews",
-   "summary": "A light loading screen asks Standard or HD, with a \"Remember my choice\" tick box; the same choice in Settings. HD packs (sharper art at twice the resolution) load per area, so the fast start stays; on a slow connection \"Play now in Standard\" appears. Moved up to right after Karoo polish.",
-   "requestedBy": "Your idea, 26 Oct: \"when the game loads, it should ask you standard quality or HD.\" Claude's advice: a setting with Auto instead of a question before play."
-  }
- },
- "suggestions": [
-  {
-   "id": "kalahari-22",
-   "title": "Retune the scoped .22 on the Kalahari's two farthest bonus maps",
-   "from": "Claude (found by Tank in v1.7)",
-   "date": "2026-10-25T16:40:00Z",
-   "status": "idea",
-   "detail": "It scores 4,612–5,578 on Nog Verder and Die Verste, over the 4,500 cap every other long-range map keeps. It predates the meerkats. A small tuning job: fewer far-distance points on those two maps, as Namibië got in v1.4."
-  },
-  {
-   "id": "kalahari-grass",
-   "title": "Give the Kalahari the same grass and sand pass as Namibië",
-   "from": "Claude",
-   "date": "2026-10-25T18:00:00Z",
-   "status": "queued",
-   "job": "v1.7d",
-   "detail": "The Kalahari ground has the same black line between distances and the same scribbly grass. v1.7c fixes it there too if it shares the drawing code."
-  },
-  {
-   "id": "feesdae",
-   "title": "Daily specials on special days (Feesdae)",
-   "from": "Claude",
-   "date": "2026-10-24T18:58:55Z",
-   "status": "idea",
-   "detail": "Themed Daily Hunts on holidays; waiting for your pick (see Needs you)."
-  },
-  {
-   "id": "bow",
-   "title": "A bow and arrow",
-   "from": "You",
-   "date": "2026-10-24T18:35:00Z",
-   "status": "idea",
-   "detail": "Noted for later; not planned yet."
-  },
-  {
-   "id": "af-voice",
-   "title": "A real Afrikaans voice for Oupa",
-   "from": "Claude",
-   "date": "2026-10-25T04:45:00Z",
-   "status": "idea",
-   "detail": "The interim Afrikaans lines use an English voice. A real Afrikaans speaker would sound far better; it needs a person or a paid service, so it is your call."
-  },
-  {
-   "id": "portal-gentle",
-   "title": "A gentler option for game portals",
-   "from": "Claude",
-   "date": "2026-10-25T18:13:00Z",
-   "status": "idea",
-   "detail": "Baboons and warthogs go down like guineafowl (your choice). If Poki or CrazyGames ever ask for a younger rating, a content switch could make them flee instead, only in those builds."
-  }
- ],
- "extraRequests": [
-  {
-   "date": "25 Oct, 16:45",
-   "text": "When shooting the fruit (sausage tree), make it swing or drop down",
-   "outcome": "Queued as v1.7c",
-   "job": "v1.7c"
-  },
-  {
-   "date": "25 Oct, ~19:47",
-   "text": "The meerkats: a bit more hairy and furry, and nicer faces",
-   "outcome": "Sent to Tank for the v1.7 look round",
-   "job": "v1.7"
-  },
-  {
-   "date": "25 Oct, ~19:50",
-   "text": "Namibië: at least two ostriches with a nest, oryx roaming far away with a mirage, hot-air balloons drifting by",
-   "outcome": "Queued as v1.7d",
-   "job": "v1.7d"
-  },
-  {
-   "date": "25 Oct, ~19:50",
-   "text": "The Namibië grass landscapes still look rough: much more detail",
-   "outcome": "Queued as v1.7d, first part",
-   "job": "v1.7d"
-  },
-  {
-   "date": "25 Oct, 19:51",
-   "text": "A Project overview page in the admin: done, outstanding with dates and builds, open questions, history with images, kept up to date",
-   "outcome": "Being built now (this page)",
-   "job": "project-overview"
-  },
-  {
-   "date": "25 Oct, ~20:20",
-   "text": "The Gun Shed needs a section with pictures that explains every power-up; in the hunt it is unclear what they do",
-   "outcome": "Queued as v1.7b (next after the meerkats)",
-   "job": "v1.7b"
-  },
-  {
-   "date": "25 Oct, ~20:20",
-   "text": "A Settings option to switch Oupa (\"grandfather mode\") on or off",
-   "outcome": "Queued as v1.7b: Oupa's comments On / Text only / Off",
-   "job": "v1.7b"
-  },
-  {
-   "date": "25 Oct, ~20:20",
-   "text": "Namibië: ostriches with a nest, oryx in the mirage, hot-air balloons (again)",
-   "outcome": "Already queued as v1.7d",
-   "job": "v1.7d"
-  },
-  {
-   "date": "25 Oct, ~20:20",
-   "text": "Bushveld rocks and middle distance look childish: make them realistic",
-   "outcome": "Queued as v1.7e",
-   "job": "v1.7e"
-  },
-  {
-   "date": "25 Oct, ~20:20",
-   "text": "Replace the star effect on special spots with something better, e.g. a unique animal that always appears there",
-   "outcome": "v1.7e: three mock-ups for you to pick from first",
-   "job": "v1.7e"
-  },
-  {
-   "date": "25 Oct, ~20:20",
-   "text": "Baboons on the maps, sitting at the back of the mountains, popping up to do something naughty",
-   "outcome": "Queued as v1.8b",
-   "job": "v1.8b"
-  },
-  {
-   "date": "25 Oct, ~20:20",
-   "text": "A Harvest level: the fence breaks, animals flock to the crops, 30 s to hold them off while the fence is fixed",
-   "outcome": "Queued as v1.8c, a new mode on the title screen",
-   "job": "v1.8c"
-  },
-  {
-   "date": "26 Oct, 06:50",
-   "text": "Halloween special yes, go ahead",
-   "outcome": "Being built now: the Spookjag Daily on 31 Oct (dusk, owls, bats, pumpkin lanterns, guineafowl in witch hats)",
-   "job": "halloween-spookjag-feesdae-the-31-oct-da"
-  },
-  {
-   "date": "26 Oct, 07:05",
-   "text": "Karoo: HD aloes; the potjie should steam and boil a little, and its lid should fall off when shot",
-   "outcome": "Planned as \"Karoo polish\" after Halloween",
-   "job": "karoo-polish-hd-aloes-the-potjie-steams-"
-  },
-  {
-   "date": "26 Oct, 07:05",
-   "text": "Guineafowl must get smaller the further away they are, on every map, but stay shootable",
-   "outcome": "Planned as \"Perspective\", right after Halloween",
-   "job": "perspective-guineafowl-get-smaller-the-f"
-  },
-  {
-   "date": "26 Oct, 07:15",
-   "text": "Bushveld and Kalahari: far zebras, giraffes, elephants and other animals look cartoony, like stick figures; make them HD",
-   "outcome": "Planned as \"Far animals in HD\" on every map",
-   "job": "far-animals-in-hd-on-every-map-realistic"
-  },
-  {
-   "date": "26 Oct, 07:15",
-   "text": "The baobab needs more detail and better fruit; research what lives in it and add holes where small animals look out; little birds around the weaver nest",
-   "outcome": "Researched; planned as \"Tree life\"",
-   "job": "tree-life-a-detailed-baobab-with-real-ha"
-  },
-  {
-   "date": "26 Oct, 07:20",
-   "text": "Okavango: add makalani palms with their hard nuts; a hit nut should fall or burst; be creative",
-   "outcome": "Planned: nuts crack off, juggle in the air like cans, or pop on a full hit",
-   "job": "makalani-palms-in-the-okavango-hanging-n"
-  },
-  {
-   "date": "26 Oct, 07:20",
-   "text": "Tin cans on an old farm fence to shoot off and keep in the air (asked before; not seen yet)",
-   "outcome": "Moved up: v1.8 Blikkies now comes right after the perspective job",
-   "job": "v1.8"
-  },
-  {
-   "date": "26 Oct, 07:20",
-   "text": "Idea: ask at start for Standard or HD graphics",
-   "outcome": "Advised: a Settings choice Auto / Standard / HD instead of a question before play; planned after tree life",
-   "job": "hd-graphics-settings-graphics-auto-stand"
-  },
-  {
-   "date": "26 Oct, 10:10",
-   "text": "Send the Halloween screenshots when the fixes are done; keep backups and the latest version of the project in Dropbox /ai-dev/",
-   "outcome": "Dropbox backup set up in /AI-DEV/Tarantal-Madness/: a dated status file at every merge (with a download link for that exact code version) and the job briefs; the code itself stays on GitHub (the Dropbox link takes text files only). Halloween screenshots follow the fix round.",
-   "job": "halloween-spookjag-feesdae-the-31-oct-da"
-  }
- ],
- "extraDecisions": [
-  {
-   "id": "D-043",
-   "text": "v1.6b reload power-ups: Blitslaai and Oupa Laai (in review, #71)"
-  },
-  {
-   "id": "D-044",
-   "text": "v1.7 meerkat colonies on the desert maps (in review, #72)"
-  },
-  {
-   "id": "D-045",
-   "text": "Project overview page in the admin, with live data on the project-log branch (in progress)"
-  }
- ],
- "activity": [
-  {
-   "at": "2026-10-25T17:58:00Z",
-   "kind": "note",
-   "text": "Project overview: the live data is published; the page itself is being built."
-  },
-  {
-   "at": "2026-10-25T17:51:00Z",
-   "kind": "request",
-   "text": "You asked for a Project overview page in the admin."
-  },
-  {
-   "at": "2026-10-25T17:50:00Z",
-   "kind": "request",
-   "text": "You asked for detailed Namibië grass, ostriches with a nest, oryx in the mirage and hot-air balloons: queued as v1.7c."
-  },
-  {
-   "at": "2026-10-25T17:47:00Z",
-   "kind": "request",
-   "text": "You asked for furrier meerkats with nicer faces: going to Tank with the look round."
-  },
-  {
-   "at": "2026-10-25T17:45:00Z",
-   "kind": "tests",
-   "text": "v1.6b full tests: 23 of 24 jobs passed; one slow Skietbaan test timed out twice. Claude is fixing the test.",
-   "links": [
-    {
-     "label": "PR #71",
-     "url": "https://github.com/ShadowNam/Tarantal/pull/71"
-    }
-   ]
-  },
-  {
-   "at": "2026-10-25T17:35:43Z",
-   "kind": "note",
-   "text": "The test build now runs v1.6 (commit 4bd39f1). Hard-refresh once to get the new art.",
-   "links": [
-    {
-     "label": "Test build",
-     "url": "https://shadownam.github.io/Tarantal/"
-    }
-   ]
-  },
-  {
-   "at": "2026-10-25T17:33:00Z",
-   "kind": "merge",
-   "text": "The development history got its v1.6 chapter (#74).",
-   "links": [
-    {
-     "label": "PR #74",
-     "url": "https://github.com/ShadowNam/Tarantal/pull/74"
-    }
-   ]
-  },
-  {
-   "at": "2026-10-25T17:31:00Z",
-   "kind": "screenshots",
-   "text": "v1.7 meerkats, first-round screenshots: 42 shots on desktop, Pixel 7 and iPhone 14.",
-   "links": [
-    {
-     "label": "PR #72",
-     "url": "https://github.com/ShadowNam/Tarantal/pull/72"
-    }
-   ],
-   "images": [
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-sentinel-closeup-pixel7-landscape.png",
-     "caption": "The sentinel close-up (Pixel 7)"
-    },
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-familiefoto-pixel7-landscape.png",
-     "caption": "The Familiefoto (Pixel 7)"
-    },
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-namibie-desktop-chromium.png",
-     "caption": "A Namibië colony (desktop)"
-    }
-   ]
-  },
-  {
-   "at": "2026-10-25T17:26:00Z",
-   "kind": "note",
-   "text": "Tank pushed the meerkat redraw (round 2): eye masks, back bands, cream bellies, three-holed burrows.",
-   "images": [
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17-meerkat-sheet-r2.jpg",
-     "caption": "The redrawn meerkat sheet, round 2 (17:26 UTC): masks, bands, cream bellies, three-holed burrows. Your fur and face notes come next."
-    }
-   ]
-  },
-  {
-   "at": "2026-10-25T16:56:00Z",
-   "kind": "merge",
-   "text": "v1.6 Veld art merged (#70): trees, fruit, far animals, the windmill, the dassie, clouds, art that waits to load, a version stamp on every map.",
-   "links": [
-    {
-     "label": "PR #70",
-     "url": "https://github.com/ShadowNam/Tarantal/pull/70"
-    }
-   ],
-   "images": [
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-windmill.jpg",
-     "caption": "Windmill"
-    },
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-giraffes-scope.jpg",
-     "caption": "Giraffes through the scope"
-    },
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-dead-tree.jpg",
-     "caption": "The Kalahari dead tree"
-    },
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/main/docs/history/img/v16-namibie.jpg",
-     "caption": "Namibië"
-    }
-   ]
-  },
-  {
-   "at": "2026-10-25T16:50:00Z",
-   "kind": "tests",
-   "text": "v1.6 full tests passed on every device (desktop Chromium and WebKit, Pixel 7, iPhone 14, portals, perf).",
-   "links": [
-    {
-     "label": "PR #70",
-     "url": "https://github.com/ShadowNam/Tarantal/pull/70"
-    }
-   ]
-  },
-  {
-   "at": "2026-10-25T18:11:00Z",
-   "kind": "decision",
-   "text": "You decided: baboons and warthogs go down like guineafowl; The Harvest is its own mode; power-ups + the Oupa switch come first after the meerkats."
-  },
-  {
-   "at": "2026-10-25T18:10:00Z",
-   "kind": "tests",
-   "text": "The slow Skietbaan test is split in two and shoots inside the page: 1.3 + 2.2 min instead of 5.2 min (desktop), passing on the Pixel 7 too. Fix PR #75, ported into #71.",
-   "links": [
-    {
-     "label": "PR #75",
-     "url": "https://github.com/ShadowNam/Tarantal/pull/75"
-    },
-    {
-     "label": "PR #71",
-     "url": "https://github.com/ShadowNam/Tarantal/pull/71"
-    }
-   ]
-  },
-  {
-   "at": "2026-10-25T18:08:00Z",
-   "kind": "request",
-   "text": "You asked for: power-ups explained in the Gun Shed, an Oupa switch, realistic Bushveld rocks, no more star on secrets, baboons, and The Harvest mode. All queued with briefs."
-  },
-  {
-   "at": "2026-10-25T18:17:00Z",
-   "kind": "note",
-   "text": "Tank finished the meerkat look round (eye masks, bands, burrows, colonies clear of the buttons, 48-colour sheet, Kalahari + desert 1,534.9 of 1,536 KB). Your fur and face notes are now with Tank."
-  },
-  {
-   "at": "2026-10-25T18:42:00Z",
-   "kind": "merge",
-   "text": "v1.6b reload power-ups merged (#71, version 1.6.1): Blitslaai (fast reloads) and Oupa Laai (auto reload).",
-   "links": [
-    {
-     "label": "PR #71",
-     "url": "https://github.com/ShadowNam/Tarantal/pull/71"
-    }
-   ],
-   "images": [
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/reload-blitslaai-pixel7-landscape.jpg",
-     "caption": "Blitslaai on the Pixel 7: the \"Lightning Load\" chip (top left) and glints on the belt"
-    },
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/reload-oupa-laai-pixel7-landscape.jpg",
-     "caption": "Oupa Laai on the Pixel 7: the \"Oupa Loads\" chip and his hand by the belt"
-    }
-   ]
-  },
-  {
-   "at": "2026-10-25T18:40:00Z",
-   "kind": "merge",
-   "text": "The Skietbaan test fix merged (#75): main's slowest test now runs in two short parts.",
-   "links": [
-    {
-     "label": "PR #75",
-     "url": "https://github.com/ShadowNam/Tarantal/pull/75"
-    }
-   ]
-  },
-  {
-   "at": "2026-10-25T18:47:00Z",
-   "kind": "screenshots",
-   "text": "v1.6b screenshots on the Pixel 7. The chips are small: v1.7b makes power-ups much clearer.",
-   "images": [
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/reload-blitslaai-pixel7-landscape.jpg",
-     "caption": "Blitslaai on the Pixel 7: the \"Lightning Load\" chip (top left) and glints on the belt"
-    },
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/reload-oupa-laai-pixel7-landscape.jpg",
-     "caption": "Oupa Laai on the Pixel 7: the \"Oupa Loads\" chip and his hand by the belt"
-    }
-   ]
-  },
-  {
-   "at": "2026-10-25T18:52:00Z",
-   "kind": "screenshots",
-   "text": "Meerkats round 3: furrier, nicer faces (teardrop masks, small bright eyes), bent running legs. In-game close-ups next.",
-   "images": [
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17-meerkats-rounds.jpg",
-     "caption": "The meerkat sheet over three rounds; round 3 (bottom, 20:52) has your fur and face notes in"
-    }
-   ]
-  },
-  {
-   "at": "2026-10-25T19:33:00Z",
-   "kind": "tests",
-   "text": "The Project overview page passed its tests on desktop, Pixel 7 and iPhone 14 and is up for merge (PR #76).",
-   "links": [
-    {
-     "label": "PR #76",
-     "url": "https://github.com/ShadowNam/Tarantal/pull/76"
-    }
-   ]
-  },
-  {
-   "at": "2026-10-25T19:28:00Z",
-   "kind": "note",
-   "text": "Tank finished the meerkats (version 1.7.0, round 3 art). Claude is taking the in-game screenshots and running the independent review.",
-   "links": [
-    {
-     "label": "PR #72",
-     "url": "https://github.com/ShadowNam/Tarantal/pull/72"
-    }
-   ]
-  },
-  {
-   "at": "2026-10-25T19:48:00Z",
-   "kind": "tests",
-   "text": "Independent review of v1.7: the meerkat rules work as asked (dive, alarm, −10 with cooldown, Familiefoto, Spotter, no stuck meerkats in 140 test hunts). One missing test and three small fixes went to Tank."
-  },
-  {
-   "at": "2026-10-25T20:06:00Z",
-   "kind": "merge",
-   "text": "The Project overview page is merged (#76) and goes live on the test build: admin page → Project overview.",
-   "links": [
-    {
-     "label": "Open it",
-     "url": "https://shadownam.github.io/Tarantal/?admin=1&project=1"
-    },
-    {
-     "label": "PR #76",
-     "url": "https://github.com/ShadowNam/Tarantal/pull/76"
-    }
-   ]
-  },
-  {
-   "at": "2026-10-25T20:58:00Z",
-   "kind": "screenshots",
-   "text": "v1.7 round-3 screenshots on desktop, Pixel 7 and iPhone 14. Tank fixed the review points, moved colonies out from behind the gun and spaced the meerkats apart (in a fresh session after connection drops).",
-   "images": [
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17-familiefoto-closeup-desktop.png",
-     "caption": "Round 3 in the game: the Familiefoto row (desktop)"
-    },
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-sentinel-pup-closeup-pixel7-landscape.png",
-     "caption": "Round 3: the sentinel on a Pixel 7 (still bunched; spacing fixed after this shot)"
-    },
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/v17-meerkats/docs/art-preview/compare/v17-meerkats-peek-closeup-iphone14-landscape.png",
-     "caption": "Round 3: peeking out on an iPhone 14"
-    }
-   ]
-  },
-  {
-   "at": "2026-10-25T21:31:00Z",
-   "kind": "note",
-   "text": "Tank finished every v1.7 fix (spacing, pup, gun clearance); Claude merged main into it and started the full tests and a balance re-check. Tank started v1.7b (power-ups explained + the Oupa switch) in a fresh session."
-  },
-  {
-   "at": "2026-10-25T21:58:00Z",
-   "kind": "tests",
-   "text": "v1.7 balance re-checked after the colony moves: all 20 desert maps within −1.2 % … +2.5 % (limit 5 %). One browser test had assumed no bird near the colony; Claude fixed the test (the game was right) and the full tests are re-running."
-  },
-  {
-   "at": "2026-10-25T22:55:00Z",
-   "kind": "merge",
-   "text": "v1.7 meerkats is merged (#72) as version 1.7.0, after all 23 test jobs passed. Two browser tests needed fixing on the way (the game was right both times): one assumed no bird near the colony, the other fired its shot in a way the iPhone browser on GitHub ignored.",
-   "images": [
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17-familiefoto-final.jpg",
-     "caption": "The Familiefoto in the Kalahari (final build)"
-    },
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17-sentinel-pup-final.jpg",
-     "caption": "The sentinel and the pup, close up"
-    },
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17-namibie-final.jpg",
-     "caption": "Two Namibië colonies, clear of the gun and the buttons"
-    }
-   ],
-   "links": [
-    {
-     "label": "PR #72",
-     "url": "https://github.com/ShadowNam/Tarantal/pull/72"
-    }
-   ]
-  },
-  {
-   "at": "2026-10-25T22:44:00Z",
-   "kind": "note",
-   "text": "Tank pushed every part of v1.7b: icons for all eight power-ups and crate guns, the Gun Shed's Power-ups tab, crates that show what they hold, the pickup card, countdown chips, a look for each power-up, the tally list and Oupa's switch. Claude started the screenshots. Two icons (Meerkat Spotter, Voorlaaier) are too thin at chip size; that note goes to Tank when its turn ends.",
-   "images": [
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17b-icons.png",
-     "caption": "The eight icons, big and at chip size"
-    }
-   ],
-   "links": [
-    {
-     "label": "PR #77",
-     "url": "https://github.com/ShadowNam/Tarantal/pull/77"
-    }
-   ]
-  },
-  {
-   "at": "2026-10-25T23:00:00Z",
-   "kind": "note",
-   "text": "The history document gets three new chapters: v1.6b, this Project overview, and v1.7 meerkats, with 11 pictures (PR #78).",
-   "links": [
-    {
-     "label": "PR #78",
-     "url": "https://github.com/ShadowNam/Tarantal/pull/78"
-    }
-   ]
-  },
-  {
-   "at": "2026-10-25T23:32:00Z",
-   "kind": "merge",
-   "text": "The history document has three new chapters (v1.6b reload power-ups, this Project overview, v1.7 meerkats) with 11 pictures; they show on the History tab now.",
-   "links": [
-    {
-     "label": "PR #78",
-     "url": "https://github.com/ShadowNam/Tarantal/pull/78"
-    },
-    {
-     "label": "History (Word)",
-     "url": "https://github.com/ShadowNam/Tarantal/raw/main/docs/history/Tarantal-Development-History.docx"
-    }
-   ]
-  },
-  {
-   "at": "2026-10-25T23:40:00Z",
-   "kind": "screenshots",
-   "text": "v1.7b round 1: 36 screenshots on desktop, Pixel 7 and iPhone 14. The Gun Shed's Power-ups tab, the pickup card, the countdown chips and the Oupa switch read well on every device. Tank is fixing four things: the crate's icon is too small, the old floating item name still shows, and two icons are too thin at chip size. Then Claude's review, the full tests and the merge.",
-   "images": [
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17b-shed-iphone.jpg",
-     "caption": "The Gun Shed: the new Power-ups tab on an iPhone 14"
-    },
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17b-pickup-card.jpg",
-     "caption": "The pickup card the first time you get Farm Coffee, with its chip counting down (top left)"
-    },
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17b-settings-pixel7.jpg",
-     "caption": "Settings on a Pixel 7: Oupa's comments On / Text only / Off"
-    }
-   ],
-   "links": [
-    {
-     "label": "PR #77",
-     "url": "https://github.com/ShadowNam/Tarantal/pull/77"
-    }
-   ]
-  },
-  {
-   "at": "2026-10-26T02:40:00Z",
-   "kind": "merge",
-   "text": "v1.7b is merged (#77) as version 1.7.1, after all 23 test jobs passed. Power-ups are now explained in the Gun Shed and in the hunt, and Oupa's comments can be set to On, Text only or Off. Before the merge Claude fixed a freeze right after a crate pickup (the icons now load later to keep the first download under 3 MB, and the swap left the screen drawing a deleted picture).",
-   "images": [
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17b-final-pickup-card.jpg",
-     "caption": "The card the first time you pick up Farm Coffee, with Oupa’s word and the chip counting down"
-    },
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17b-final-shed-iphone.jpg",
-     "caption": "The Gun Shed’s new Power-ups tab on an iPhone 14"
-    },
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17b-final-crate-closeup.jpg",
-     "caption": "A falling crate shows what it holds, on the parachute and the box"
-    },
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17b-final-settings-pixel7.jpg",
-     "caption": "Settings on a Pixel 7: Oupa’s comments On / Text only / Off"
-    },
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17b-final-blitslaai.jpg",
-     "caption": "Lightning Load: the card, the chip and the glints on the belt"
-    },
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17b-final-buckshot.jpg",
-     "caption": "Bush Buckshot: the chip counts shells, and the spread ring is wider"
-    }
-   ],
-   "links": [
-    {
-     "label": "PR #77",
-     "url": "https://github.com/ShadowNam/Tarantal/pull/77"
-    }
-   ]
-  },
-  {
-   "at": "2026-10-26T02:24:00Z",
-   "kind": "note",
-   "text": "Tank is building v1.7c (fruit that swings or drops). Its first try dropped its connection before pushing anything; the retry has pushed the fruit, a browser test, the screenshot setup and the docs."
-  },
-  {
-   "at": "2026-10-26T04:15:00Z",
-   "kind": "screenshots",
-   "text": "v1.7c: the fruit are redrawn at the camelthorn quality — the sausage-tree fruit are heavy and mottled on rope stalks, the baobab pods velvety. A shot one swings; a second shot drops it, and it lands clear of the trunk. An independent review found that the fruit ignored the map's light of the day and that wind threw off fruit hits; both are fixed.",
-   "images": [
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17c-sausages-closeup.jpg",
-     "caption": "Sausage-tree fruit, redrawn; one is mid-swing after a shot"
-    },
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17c-sausage-dropped.jpg",
-     "caption": "A shot-off sausage lies on the ground, clear of the trunk"
-    },
-    {
-     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17c-okavango.jpg",
-     "caption": "The sausage tree in the Okavango"
-    }
-   ],
-   "links": [
-    {
-     "label": "PR #79",
-     "url": "https://github.com/ShadowNam/Tarantal/pull/79"
-    }
-   ]
-  },
-  {
-   "at": "2026-10-26T04:50:00Z",
-   "kind": "request",
-   "text": "You said yes to the Halloween special. Tank started it right away (the Spookjag Daily on 31 Oct); the other holidays stay open for you to pick later."
-  },
-  {
-   "at": "2026-10-26T05:05:00Z",
-   "kind": "request",
-   "text": "Karoo feedback: HD aloes, a boiling potjie whose lid falls off, and birds smaller with distance on every map. Planned as two jobs after Halloween."
-  },
-  {
-   "at": "2026-10-26T05:15:00Z",
-   "kind": "request",
-   "text": "Bushveld and Kalahari feedback: far animals in HD, a more detailed baobab with residents in its hollows (researched), weavers flying around their nest. Planned as two jobs."
-  },
-  {
-   "at": "2026-10-26T05:24:00Z",
-   "kind": "request",
-   "text": "Okavango feedback: makalani palms with nuts to shoot; Blikkies and meerkats not seen yet; the HD idea. Blikkies moved up; makalani and optional HD graphics added; the meerkats are live on the Kalahari and Namibië maps."
-  },
-  {
-   "at": "2026-10-26T05:28:00Z",
-   "kind": "note",
-   "text": "Fixed this overview: the 'Version on the test build' box was stuck at 1.6.1 (22:42 last night). It now fills itself in from the live code at every update."
-  },
-  {
-   "at": "2026-10-26T05:30:00Z",
-   "kind": "note",
-   "text": "Halloween: Tank pushed the special-days system and the Spookjag rules (bats, owls, lanterns). v1.7c: all tests green but one browser group, still running."
-  },
-  {
-   "at": "2026-10-26T05:34:00Z",
-   "kind": "merge",
-   "text": "v1.7c merged (PR #79, version 1.7.2) after all 23 test jobs passed: the fruit you shoot now swings or drops, with redrawn sausages and baobab pods. On the test build in a few minutes."
-  },
-  {
-   "at": "2026-10-26T05:48:00Z",
-   "kind": "note",
-   "text": "Halloween: Tank added the special day to the game (the ?feesdag override, the title badge, the admin list, the dusk hunt view) and the Spookjag tally slate, and merged v1.7c in (version 1.7.3). Art, sounds and Oupa's lines are next."
-  },
-  {
-   "at": "2026-10-26T06:12:00Z",
-   "kind": "note",
-   "text": "Halloween: the interim art (moon, bats, owls, pumpkin lanterns, witch hats) and sounds are in their own download that only loads on the special day, and Oupa's Spookjag lines are voiced in English, Afrikaans and German."
-  },
-  {
-   "at": "2026-10-26T06:16:00Z",
-   "kind": "merge",
-   "text": "History document updated (PR #81): new chapters for v1.7b power-ups explained and v1.7c fruit that swings and drops, today's requests and the new build order."
-  },
-  {
-   "at": "2026-10-26T06:27:00Z",
-   "kind": "screenshots",
-   "text": "Halloween: Tank pushed the browser tests and the screenshot spec; Claude is taking the screenshots on desktop, Pixel 7 and iPhone 14 and running an independent review while Tank finishes the sizes and docs."
-  },
-  {
-   "at": "2026-10-26T07:14:00Z",
-   "kind": "screenshots",
-   "text": "Halloween review round: Tank marked PR #80 ready; Claude's screenshots and an independent review found fixes, now with Tank: witch hats onto the heads, carved glowing lanterns, a darker spookier dusk, bigger owls, the title and tally overlaps, scoring the lantern secret like other secrets, an iPhone test fix and an owl test, and the voice lines into the Halloween-only download."
-  },
-  {
-   "at": "2026-10-26T08:00:00Z",
-   "kind": "note",
-   "text": "Halloween fixes so far: the lantern secret scores like other secrets, the iPhone test and a new owl test, witch hats on the heads, carved glowing lanterns at every size, and the Spookjag's own darker dusk with a soft vignette. Owls, the title and tally overlaps and the smaller items are next."
-  },
-  {
-   "at": "2026-10-26T08:20:00Z",
-   "kind": "note",
-   "text": "Dropbox backup set up (/AI-DEV/Tarantal-Madness): the first status file, 12 job briefs and the working rules. A new dated status file follows every merge."
-  },
-  {
-   "at": "2026-10-26T09:00:00Z",
-   "kind": "note",
-   "text": "Halloween: Tank finished all 15 review fixes; Claude's after-fix screenshots look right (dark dusk, hats on heads, carved lanterns, owls across the moon). Tank started the perspective job (birds smaller with distance)."
-  },
-  {
-   "at": "2026-10-26T09:54:00Z",
-   "kind": "screenshots",
-   "text": "Halloween after the fixes: Claude's screenshots on desktop, Pixel 7 and iPhone 14 (dark dusk under the moon, hats on the heads, carved lanterns, the owl across the moon, the Spookjag 2026 card) are on PR #80 and with you. Claude fixed the last title overlap (the badge now sits on the Daily line) and a test-hook bug on the tally; all 9 Halloween browser tests pass. Full tests next, then the merge."
-  },
-  {
-   "at": "2026-10-26T10:32:00Z",
-   "kind": "merge",
-   "text": "Halloween Spookjag merged (PR #80, version 1.7.3) after all 23 test jobs passed on desktop, Pixel 7 and iPhone 14 (Claude fixed an iPhone test that expected the older replay format). Live on the test build within minutes; on 31 Oct it is the Daily Hunt for everyone."
-  },
-  {
-   "at": "2026-10-26T10:33:00Z",
-   "kind": "note",
-   "text": "Perspective (birds smaller with distance): the new scales are in (middle 0.42, far 0.15, farthest 0.07) and the far animals follow them; Tank's balance run ran out of memory on its server, so Claude told it to run it one worker at a time and keep going."
-  },
-  {
-   "at": "2026-10-26T11:12:00Z",
-   "kind": "note",
-   "text": "You tried ?feesdag=halloween on the test build and got an ordinary hunt: that address only works on developer and test builds (Claude's tip was wrong). The admin page's Special days → Spookjag · 31/10 → Play works; Claude checked it on the same version and sent you a screenshot."
-  },
-  {
-   "at": "2026-10-26T11:25:00Z",
-   "kind": "tests",
-   "text": "Perspective: Tank measured every far animal against the guineafowl (in the Karoo a far bird was ~12× too big beside the ostriches; now 2.7×, and the HD animal redraw closes the rest) and tuned the hit sizes: far birds keep a minimum hit area so they stay easy to hit while looking smaller. First balance run: good players within +2 %; weaker players a little lower, checked again in the final 500-hunt run."
-  },
-  {
-   "at": "2026-10-26T12:40:00Z",
-   "kind": "note",
-   "text": "Perspective: the guineafowl pictures are redrawn at their new, smaller far sizes, which makes the first download 106 KB smaller (3,071 → 2,965 KB of 3,072) and leaves room for the Karoo HD aloes and potjie. Feathers, witch hats and boss birds shrink with the birds; tests added. Still to come: the before/after screenshots and the final balance check."
-  },
-  {
-   "at": "2026-10-26T18:34:00Z",
-   "kind": "merge",
-   "text": "Perspective merged (PR #82, version 1.7.4) after all 23 test jobs passed. Birds get smaller with distance on every map; far herds shown 3× bigger; far birds keep a minimum hit size; first download 2,965 KB (−106 KB). On the way Claude fixed two tests that the new sizes made unreliable (a Halloween lantern shot and a meerkat shot); the game itself was fine."
-  },
-  {
-   "at": "2026-10-26T18:38:00Z",
-   "kind": "note",
-   "text": "Tank started v1.8 Blikkies: tin cans on the old farm fence (Karoo, Bushveld, Kalahari, Namibië) to shoot off and keep in the air, higher and wilder with every hit, until they fly out of sight."
-  },
-  {
-   "at": "2026-10-26T19:20:00Z",
-   "kind": "request",
-   "text": "You asked for the tin can screenshots as soon as they are ready: they come first once Tank's screenshot test is in."
-  },
-  {
-   "at": "2026-10-26T19:32:00Z",
-   "kind": "merge",
-   "text": "History doc updated (PR #84): new chapters for the Halloween Spookjag and for perspective (birds smaller with distance), with 10 screenshots, today's requests and updated numbers."
-  },
-  {
-   "at": "2026-10-26T19:34:00Z",
-   "kind": "note",
-   "text": "Blikkies progress: the can physics (knock-off, juggle higher and wilder, Weg!), its tests, the fences on 3–4 weekday maps per area and the can art and sounds are pushed. Claude is fixing a Halloween owl test that the new content made unreliable (the same kind of fix as the lantern test this morning)."
-  },
-  {
-   "at": "2026-10-26T20:27:00Z",
-   "kind": "screenshots",
-   "text": "First tin can screenshots sent (desktop): the near, mid and far fence, a can somersaulting off its post, and landed cans with dents. Keeping a can in the air is still far too hard (1 in 24 air shots hit on the range), so Tank is retuning the juggle before the juggle screenshot."
-  },
-  {
-   "at": "2026-10-26T20:34:00Z",
-   "kind": "merge",
-   "text": "Test fix merged (PR #85): the Halloween owl test now plays two separate hunts, so new content can't break it. The game itself was fine."
-  },
-  {
-   "at": "2026-10-26T21:20:00Z",
-   "kind": "request",
-   "text": "You asked for the juggle screenshots as soon as they are ready."
-  },
-  {
-   "at": "2026-10-26T21:29:00Z",
-   "kind": "screenshots",
-   "text": "Juggle screenshots sent (desktop, Pixel 7, iPhone): a bean can kicked twice, flying high above the mesa. With the current tuning 2 hits in a row is the most a good shot gets; Tank's retune makes 3–5 reachable, and the final shot will be on the near fence with the '3× in the air!' pop."
-  },
-  {
-   "at": "2026-10-26T21:25:00Z",
-   "kind": "note",
-   "text": "Tank's tin-can session lost its connection twice in a row, so a fresh Tank task continues on the same branch with a full brief (review fixes: far cans no longer an easy score, a reachable juggle on the near fence, tests, balance). WhatsApp alert is on for it."
-  },
-  {
-   "at": "2026-10-26T21:32:00Z",
-   "kind": "tests",
-   "text": "Test fix PR #86: the Halloween lantern test now copes with a lantern the camera can't centre (the new content moved it to the map edge). Passes on all three devices; merging when CI is green."
-  },
-  {
-   "at": "2026-10-26T22:00:00Z",
-   "kind": "request",
-   "text": "Going to bed: keep Tank building overnight, merge on green, and give a detailed morning report with screenshots of everything done and what comes next; make sure GitHub is merged and the public build shows it."
-  },
-  {
-   "at": "2026-10-26T22:11:00Z",
-   "kind": "merge",
-   "text": "Test fix merged (PR #86): the Halloween lantern test copes with a lantern the camera can't centre. Tank merges main into the tin-can branch next."
-  },
-  {
-   "at": "2026-10-27T00:55:00Z",
-   "kind": "tests",
-   "text": "Blikkies ready for review: every balance gate passes, first download +22 KB (2,987 of 3,072 KB). Full browser tests started."
-  },
-  {
-   "at": "2026-10-27T01:36:00Z",
-   "kind": "merge",
-   "text": "v1.8 Blikkies merged (PR #83, version 1.8.0): tin cans on the fence posts that somersault when shot and juggle higher with every air hit until Weg!."
-  },
-  {
-   "at": "2026-10-27T01:37:00Z",
-   "kind": "note",
-   "text": "Tank started Karoo polish: HD bitter aloes, and a potjie that simmers, rattles its lid and loses it when shot."
-  },
-  {
-   "at": "2026-10-27T02:28:00Z",
-   "kind": "merge",
-   "text": "History document updated (PR #88): a Blikkies chapter with five screenshots, the night's requests and the numbers on main."
-  },
-  {
-   "at": "2026-10-27T03:57:00Z",
-   "kind": "screenshots",
-   "text": "Karoo polish screenshots on desktop, Pixel 7 and iPhone 14 (24 shots, all tests passed). They showed lime-green flames, faint steam with the lid on and dull aloes; an independent review found the causes and Tank fixed all three."
-  },
-  {
-   "at": "2026-10-27T04:35:00Z",
-   "kind": "note",
-   "text": "Morning report sent: Blikkies 1.8.0 live since 03:36, the history chapter merged, Karoo polish nearly done; screenshots and what waits on you."
-  },
-  {
-   "at": "2026-10-27T05:08:00Z",
-   "kind": "decision",
-   "text": "Bushveld aloes stay at normal resolution for now (the sharper version would push the Bushveld download over its 1.5 MB limit); revisit with the optional HD graphics pack, which loads in the background."
-  },
-  {
-   "at": "2026-10-27T05:01:00Z",
-   "kind": "note",
-   "text": "WhatsApp updates work: the gateway is connected and the morning report link was delivered at 07:01."
-  },
-  {
-   "at": "2026-10-27T05:20:00Z",
-   "kind": "decision",
-   "text": "HD graphics moves up to the next job after Karoo polish. A light loading screen asks Standard or HD, with a \"Remember my choice\" tick box (also in Settings); HD packs load per area, and a slow HD download offers \"Play now in Standard\". The next art jobs can then ship HD packs."
-  },
-  {
-   "at": "2026-10-27T05:20:00Z",
-   "kind": "decision",
-   "text": "Release aim: friends first (the web test build), later the Apple App Store and Google Play. Poki and CrazyGames are no longer targets."
-  },
-  {
-   "at": "2026-10-27T05:38:00Z",
-   "kind": "decision",
-   "text": "An Android test app joins the plan after tree life: an installable file for friends, built by GitHub with all the art inside so it works offline, downloadable from the test site. The iPhone app follows once you have an Apple developer account."
-  }
- ]
+  ]
 }
