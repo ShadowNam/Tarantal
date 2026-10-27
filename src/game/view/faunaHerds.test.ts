@@ -216,3 +216,45 @@ describe('spaceHerd with the packed sheets (D-054)', () => {
       }
   });
 });
+
+describe('mirroring (D-054 review: a calf trunk floated beside its head)', () => {
+  const index = JSON.parse(
+    readFileSync(
+      join(import.meta.dirname, '..', '..', '..', 'public', 'assets', 'asset-index.json'),
+      'utf8',
+    ),
+  ) as { images: Record<string, { frames?: FaunaFrames }> };
+  const touches = (a: { x0: number; x1: number; y0: number; y1: number }, b: typeof a): boolean =>
+    a.x0 <= b.x1 && b.x0 <= a.x1 && a.y0 <= b.y1 && b.y0 <= a.y1;
+  it('every part of every look touches its body, facing either way', () => {
+    let checked = 0;
+    for (const [key, img] of Object.entries(index.images)) {
+      if (!key.startsWith('fauna/') || img.frames === undefined) continue;
+      const frames = img.frames;
+      const looks = new Set(Object.keys(frames).map((n) => n.split('.').slice(0, 3).join('.')));
+      for (const look of looks) {
+        const [species, pose, variant] = look.split('.') as [
+          HerdAnimal['species'],
+          HerdAnimal['pose'],
+          HerdAnimal['variant'],
+        ];
+        for (const facing of [1, -1] as const) {
+          const a: HerdAnimal = { species, pose, variant, x: 100, dy: 0, facing, s: 0.95 };
+          const body = frames[frameName(look, 'body')];
+          expect(body, `${key} ${look}`).toBeDefined();
+          if (body === undefined) continue;
+          const bb = partBox(a, body);
+          for (const part of ['tail', 'head', 'ear'] as const) {
+            const f = frames[frameName(look, part)];
+            if (f === undefined) continue;
+            expect(touches(partBox(a, f), bb), `${key} ${look} ${part} facing ${facing}`).toBe(
+              true,
+            );
+            checked++;
+          }
+        }
+      }
+    }
+    expect(checked).toBeGreaterThan(100);
+  });
+});
