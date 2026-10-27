@@ -2873,6 +2873,18 @@ clacks, the clang — so they cost no download; a recording under the same keys 
 2,981.1 → 2,984.4 (+3.4 KB: the view code and asset index; cap 3,072); late 1,235.6 → 1,399.2;
 Bushveld 1,445.4 → 1,466.1; Kalahari + desert unchanged (1,534.5). Full table in PR #87.
 
+**D-052 Release aim: friends, then the Apple and Google app stores (27 Oct 2026):** the product owner:
+"I don't think I'm really interested in publishing to Poki or Crazy Games; for me the aim would be to
+have it only for friends and Apple and Android store." (1) Friends play the web test build on GitHub
+Pages (installable as a PWA); an Android test app (Capacitor, built by GitHub Actions, signed with a
+test-only key, every asset inside) follows after the tree-life job; the iPhone app after the product
+owner has an Apple developer account. Store accounts, release keys and listings are the product
+owner's. (2) Poki and CrazyGames are no longer targets: no new work is shaped by portal rules (e.g.
+the HD graphics job shows its Standard/HD choice before play on every build). Their adapters and CI
+builds stay until they are removed on purpose. (3) Budgets: the web first download stays ≤ 3 MB and
+each lazy chunk ≤ 1.5 MB for a fast start on phones; store apps bundle everything, so HD packs can
+ship inside the app. Docs: CLAUDE.md, Tech §8 (release aim), this file's open question 4.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
@@ -2936,5 +2948,5 @@ subagent, verification Claude can run itself, plan mode for multi-file work.
 1. Portrait support in v1? (Default: no.)
 2. Primary launch market and languages beyond EN/AF/DE/NL?
 3. Budget for a human illustrator, animator, voice actor and composer (art bible §9–10)?
-4. Which portal first: Poki (curated, strict size) or CrazyGames (open basic launch)?
+4. ~~Which portal first: Poki or CrazyGames?~~ Answered 27 Oct (D-052): neither; friends first, then the Apple App Store and Google Play.
 5. Keep the hunting framing for all markets, or offer a "camera safari" reskin for sensitive markets?
