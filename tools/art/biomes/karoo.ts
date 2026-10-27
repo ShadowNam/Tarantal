@@ -2263,11 +2263,18 @@ function aloes(rosettes: readonly (readonly [number, number, number])[]) {
  * D-051: an aloe clump (HD, 2× texture): an earth mound with a few stones, bitter aloes back to
  * front (tools/art/aloe.ts) and grass tufts. Shared with the Bushveld (its own palette and ground).
  */
+/** D-051: the HD clumps' ground level below the prop's origin (design px). */
+export const CLUMP_CREST = 52;
+
 export function aloeClump(
   plants: readonly AloePlant[],
   ground = 'veldDark',
   grass = 'veld',
   stones = 'stone',
+  /** Ground level of the clump (its mound's crest), design px below the prop's origin. Review
+   *  27 Oct: at 100 the plants' feet sat below the bottom of the screen; the old clumps'
+   *  rosettes stood at ~50. */
+  crest = CLUMP_CREST,
 ) {
   return (ctx: PropCtx): string => {
     const look = aloeLook(ctx.tint, ctx.c('aloe'), ctx.c('aloeFlower'), ctx.c('aloeBud'));
@@ -2276,13 +2283,13 @@ export function aloeClump(
     const parts: string[] = [];
     const mound = smoothD(
       [
-        [-150, 158],
-        [-138, 120],
-        [-96, 102],
-        [0, 100],
-        [100, 104],
-        [140, 120],
-        [152, 158],
+        [-150, crest + 50],
+        [-138, crest + 20],
+        [-96, crest + 2],
+        [0, crest],
+        [100, crest + 4],
+        [140, crest + 20],
+        [152, crest + 50],
       ],
       true,
       0.7,
@@ -2293,8 +2300,8 @@ export function aloeClump(
       flat(mound, earth),
       g(
         { 'clip-path': `url(#${id})` },
-        flat(ellipseD(40, 150, 170, 40), shade(earth, -0.18)),
-        flat(ellipseD(-90, 108, 70, 10), shade(earth, 0.14)),
+        flat(ellipseD(40, crest + 44, 170, 22), shade(earth, -0.18)),
+        flat(ellipseD(-90, crest + 8, 70, 10), shade(earth, 0.14)),
       ),
       el('path', {
         d: mound,
@@ -2304,19 +2311,20 @@ export function aloeClump(
         'stroke-linejoin': 'round',
       }),
     );
-    for (const [x, y, r] of [
-      [-150, 128, 9],
-      [10, 122, 7],
-      [140, 130, 10],
-    ] as const)
+    const rocks: readonly (readonly [number, number, number])[] = [
+      [-150, crest + 28, 9],
+      [10, crest + 22, 7],
+      [140, crest + 30, 10],
+    ];
+    for (const [x, y, r] of rocks)
       parts.push(stone(ctx.rnd, x, y, r, tone(ctx.c(stones), 0.25, 0.3), soft));
     for (const p of [...plants].sort((a, b) => a.y - b.y)) {
       parts.push(contactShadow(p.x + p.s * 0.1, p.y + 2, p.s * 0.6, p.s * 0.1, 0.3));
       parts.push(aloeFerox(ctx.rnd, p, look));
     }
     const tuftPen = softPen(ctx.pen, ctx.c(grass), 0.3);
-    parts.push(tuft(ctx.rnd, -128, 140, 46, tone(ctx.c(grass), 0.22, 0.25), tuftPen, 9));
-    parts.push(tuft(ctx.rnd, 124, 142, 42, tone(ctx.c(grass), 0.18, 0.3), tuftPen, 9));
+    parts.push(tuft(ctx.rnd, -128, crest + 40, 46, tone(ctx.c(grass), 0.22, 0.25), tuftPen, 9));
+    parts.push(tuft(ctx.rnd, 124, crest + 42, 42, tone(ctx.c(grass), 0.18, 0.3), tuftPen, 9));
     return g({}, ...parts);
   };
 }
@@ -2396,9 +2404,9 @@ export const KAROO_PLAN: BiomeArtPlan = {
     // D-051: the HD bitter aloes (late group, swapped in for aloe_a/b; three plants a clump).
     'karoo/hd/aloe_a': {
       draw: aloeClump([
-        plant(-40, 116, 100, 50, 5, -0.4),
-        plant(60, 120, 70, 20, 3, 0.6),
-        plant(-120, 128, 50, 0, 0, 0.2),
+        plant(-40, 66, 100, 26, 5, -0.4),
+        plant(60, 70, 70, 10, 3, 0.6),
+        plant(-120, 78, 50, 0, 0, 0.2),
       ]),
       master: 2,
       wobble: false,
@@ -2406,9 +2414,9 @@ export const KAROO_PLAN: BiomeArtPlan = {
     },
     'karoo/hd/aloe_b': {
       draw: aloeClump([
-        plant(30, 114, 106, 56, 6, 0.3),
-        plant(-90, 122, 74, 16, 3, -0.7),
-        plant(124, 130, 52, 0, 1, -0.2),
+        plant(30, 64, 106, 30, 6, 0.3),
+        plant(-90, 72, 74, 8, 3, -0.7),
+        plant(124, 80, 52, 0, 1, -0.2),
       ]),
       master: 2,
       wobble: false,

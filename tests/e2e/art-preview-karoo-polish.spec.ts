@@ -3,7 +3,8 @@
 // One profile at a time (desktop, Pixel 7, iPhone 14 landscape). Writes
 // docs/art-preview/compare/karoo-polish-<shot>-<device>.png (the whole view and a 2× close-up),
 // palette PNG ≤ 1600 px wide, in a real Karoo hunt after the late group's HD art has landed:
-//   aloe (HD aloe clump a), potjie (the HD pot, lid on, steaming);
+//   aloe (HD aloe clump a), potjie (the HD pot, lid on, steaming) — in capture mode (?capture=1:
+//   no HUD, so the radar button does not cover the clump at the screen's left edge);
 //   rattle (held mid-rattle: lid lifted, a small puff, steam);
 //   lid-off (after the lid shot: the lid lying beside the pot, the open pot steaming freely).
 // The camera pans to the left end (both props are there). Held frames use __TM_HOLD_AT__; the
@@ -118,8 +119,8 @@ function rattleTick(from: number, into: number): number {
   }
 }
 
-async function ready(page: Page, touch: boolean): Promise<void> {
-  await boot(page, 'seed=42&huntSeconds=600');
+async function ready(page: Page, touch: boolean, extra = ''): Promise<void> {
+  await boot(page, `seed=42&huntSeconds=600${extra}`);
   await startHunt(page, touch);
   await waitHd(page);
   await panLeft(page, touch);
@@ -127,12 +128,14 @@ async function ready(page: Page, touch: boolean): Promise<void> {
 
 test('HD aloe clump and the potjie, lid on (HD art landed)', async ({ page }, info) => {
   const touch = isTouchProject(info);
-  await ready(page, touch);
+  // Capture mode (no HUD): the clump sits at the screen's left edge, under the radar button.
+  await ready(page, touch, '&capture=1');
   const h = await hook(page);
   // Between rattles: the lid sits on the rim, the steam rises.
   await holdAt(page, touch, rattleTick(h.tick + 120, -60));
   const aloe = await spot(page, 'aloe_cluster_a');
-  await shoot(page, info, 'aloe', { x: aloe.x - 210, y: aloe.y - 250, w: 420, h: 340 });
+  // The whole clump: its flowers reach ~180 px above the origin, its mound ~100 below.
+  await shoot(page, info, 'aloe', { x: aloe.x - 200, y: aloe.y - 200, w: 400, h: 310 });
   const pot = await spot(page, 'potjie');
   await shoot(page, info, 'potjie', { x: pot.x - 190, y: pot.y - 220, w: 380, h: 340 });
   expect((await hook(page)).potjie?.lidOff).toBe(false);

@@ -38,20 +38,24 @@ export function aloeLook(
   bud: string,
 ): AloeLook {
   // Bitter aloe leaves are a dusty grey-green to blue-green: the palette green toward blue-grey.
-  const face = mix(leaf, tint('#86A6A2'), 0.45);
+  // D-051 look fix: lighter than first drawn (shown at half size on the warm veld, the darker
+  // greens read slate in play).
+  const face = shade(mix(leaf, tint('#9CC2B8'), 0.5), 0.06);
   return {
     face,
-    bloom: mix(face, tint('#D8E6E0'), 0.45),
-    under: shade(mix(leaf, tint('#4E6F66'), 0.5), -0.12),
+    bloom: mix(face, tint('#E2EEE8'), 0.5),
+    under: shade(mix(leaf, tint('#5E8278'), 0.5), -0.04),
     tooth: tint('#8E3B23'),
-    ink: shade(mix(leaf, tint('#24342E'), 0.6), -0.2),
+    ink: shade(mix(leaf, tint('#2E423A'), 0.45), -0.1),
     dry: [tint('#6E5B47'), tint('#9A8468'), tint('#C2AE8E')],
+    // Brighter than first drawn: dark red buds only at the very tip, then a clear orange-red
+    // into yellow-orange (the spikes must read orange-red in play, not rust).
     flower: [
-      shade(mix(flower, '#9A1C18', 0.6), -0.08),
-      mix(flower, '#C9301E', 0.4),
-      mix(flower, '#EC6E2A', 0.6),
-      mix(bud, '#F4B242', 0.6),
-      tint('#F7DE7A'),
+      mix(flower, '#B8241C', 0.5),
+      mix(flower, '#F0421E', 0.45),
+      mix(flower, '#FF8A2E', 0.7),
+      mix(bud, '#FFC24A', 0.7),
+      tint('#FFE88A'),
     ],
     stalk: tint('#7E8C74'),
   };
@@ -290,7 +294,7 @@ function raceme(rnd: Rnd, x: number, y: number, h: number, lean: number, look: A
       const wTube = Math.max(0.9, r * (t > 0.72 ? 0.34 : 0.3));
       const p0: Pt = [ax + sx * rad0 * 0.25, ay];
       const p1: Pt = [ax + sx * (rad0 * 0.25 + len), ay + droop * len * 0.7];
-      const lit = depth < 0 ? -0.25 : sx < 0 ? 0.1 : -0.05;
+      const lit = depth < 0 ? -0.12 : sx < 0 ? 0.12 : 0;
       const col = shade(colourAt(t + (rnd() - 0.5) * 0.06), lit);
       const nx = -(p1[1] - p0[1]);
       const ny = p1[0] - p0[0];
@@ -301,8 +305,8 @@ function raceme(rnd: Rnd, x: number, y: number, h: number, lean: number, look: A
       const tube = el('path', {
         d,
         fill: col,
-        stroke: shade(col, -0.35),
-        'stroke-width': r2(Math.max(0.3, wTube * 0.14)),
+        stroke: shade(col, -0.18),
+        'stroke-width': r2(Math.max(0.3, wTube * 0.12)),
       });
       (depth < 0 ? back : front).push(tube);
       if (t < 0.32 && depth >= 0)

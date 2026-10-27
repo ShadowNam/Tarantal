@@ -20,9 +20,9 @@
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/bushveld_aloe_a.905917763469.png",
-        "bytes": 36372,
-        "hash": "905917763469"
+        "path": "assets/bushveld-winter/img/bushveld_aloe_a.353106fb4396.png",
+        "bytes": 32784,
+        "hash": "353106fb4396"
       },
       "width": 360,
       "height": 400
@@ -31,9 +31,9 @@
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/bushveld_aloe_b.2900b7200d45.png",
-        "bytes": 41235,
-        "hash": "2900b7200d45"
+        "path": "assets/bushveld-winter/img/bushveld_aloe_b.34e6fa8e8c0d.png",
+        "bytes": 36007,
+        "hash": "34e6fa8e8c0d"
       },
       "width": 380,
       "height": 400
@@ -790,9 +790,9 @@
       "group": "late",
       "origin": "interim",
       "file": {
-        "path": "assets/late/img/karoo_hd_aloe_a.77f64a317759.png",
-        "bytes": 79957,
-        "hash": "77f64a317759"
+        "path": "assets/late/img/karoo_hd_aloe_a.533c87602b59.png",
+        "bytes": 71821,
+        "hash": "533c87602b59"
       },
       "width": 720,
       "height": 680,
@@ -802,9 +802,9 @@
       "group": "late",
       "origin": "interim",
       "file": {
-        "path": "assets/late/img/karoo_hd_aloe_b.a9bed5b71172.png",
-        "bytes": 87908,
-        "hash": "a9bed5b71172"
+        "path": "assets/late/img/karoo_hd_aloe_b.5e732d44d8df.png",
+        "bytes": 77350,
+        "hash": "5e732d44d8df"
       },
       "width": 760,
       "height": 680,

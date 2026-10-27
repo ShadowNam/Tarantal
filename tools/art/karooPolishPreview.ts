@@ -6,7 +6,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { blank, decodePng, encodePng, encodePng8, resize, type Rgba } from '../assets/image';
-import { loadContent } from '../testContent';
+import { loadContent, loadFeel } from '../testContent';
 import {
   createPlaceholderManifest,
   loadBiomeArt,
@@ -52,6 +52,19 @@ const shipped = (img: Rgba, colours: number): { img: Rgba; readonly bytes: numbe
   const png = encodePng8(img, colours);
   return { img: decodePng(png), bytes: png.length };
 };
+
+const midday: Readonly<Record<string, string>> = loadFeel().lights['midday']?.tint ?? {};
+
+/** A 2× image as the game shows it: at 1× (then back to 2× to compare), under the layer's light. */
+function asInPlay(img: Rgba, layer: string): Rgba {
+  const out = resize(resize(img, img.width / 2, img.height / 2), img.width, img.height);
+  const hex = midday[layer];
+  if (hex === undefined) return out;
+  const t = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+  for (let i = 0; i < out.data.length; i += 4)
+    for (let c = 0; c < 3; c++) out.data[i + c] = Math.round((out.data[i + c] ?? 0) * (t[c] ?? 1));
+  return out;
+}
 
 const only = process.argv[2];
 for (const biomeId of ['karoo-autumn', 'bushveld-winter']) {
@@ -100,11 +113,15 @@ for (const biomeId of ['karoo-autumn', 'bushveld-winter']) {
     const b2 = resize(before, before.width * 2, before.height * 2);
     // A 1× "after" (redrawn in place) is shown at 2× as well.
     if (r.master === 1) after.img = resize(after.img, after.img.width * 2, after.img.height * 2);
-    const W = b2.width + after.img.width + 60;
+    // Third panel, "as in play": the 2× view brought down to the size it is shown at (1×) and back
+    // up, under the midday light's multiply tint on the prop's layer (feel.json lights.midday).
+    const play = asInPlay(after.img, prop.layer);
+    const W = b2.width + after.img.width + play.width + 80;
     const H = Math.max(b2.height, after.img.height) + 40;
     const bg = backdrop(W, H, Math.round(H * 0.72));
     over(bg, b2, 20, 20 + H - 40 - b2.height);
     over(bg, after.img, 40 + b2.width, 20 + H - 40 - after.img.height);
+    over(bg, play, 60 + b2.width + after.img.width, 20 + H - 40 - play.height);
     console.log(`${key}: ${(bytes / 1024).toFixed(1)} KB png8 (${r.img.width}×${r.img.height})`);
     save(prop.asset.replace('/', '-'), bg);
   }
