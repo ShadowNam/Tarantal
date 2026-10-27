@@ -45,7 +45,7 @@ import {
   pxPerMetre,
   targetPx,
 } from './perspective';
-import { loadContent } from './testContent';
+import { loadContent, loadFeel } from './testContent';
 
 const ROOT = join(import.meta.dirname, '..');
 const SRC = join(ROOT, 'art-source');
@@ -70,6 +70,7 @@ const fx = (n: number): string => `${(Math.round(n * 10) / 10).toFixed(1)}×`;
 
 export function audit(): string {
   const content = loadContent();
+  const feel = loadFeel();
   const now = content.scoring.planes;
   const old = PLANE_SCALE_PRESETS.v17;
   const stand = birdUnits('alert');
@@ -147,9 +148,10 @@ export function audit(): string {
           f.animals.length - adults.length - f.animals.filter((a) => a.species !== kind).length;
         const m = ANIMAL_M[kind];
         const before = V19_PX[f.key]?.[kind] ?? null;
-        const after = lookHeight(kind, 'm', pxPerMetre(ba));
+        const mul = feel.fauna.sizeMul[kind];
+        const after = lookHeight(kind, 'm', pxPerMetre(ba), mul);
         out.push(
-          `| ${plane} | ${kind} ×${adults.length}${young > 0 ? ` + ${young} young` : ''} (${f.key.replace('fauna/', '')}) | ${m} ${ANIMAL_MEASURE[kind]} | ${before === null ? '—' : f0(before)} → ${f0(after)} | ${f0(bb)} → ${f0(ba)} | ${before === null ? '—' : fx(birdOversize(ba, before, m))} → ${fx(birdOversize(ba, after, m))} | ${f0(targetPx(m, ba))} | redrawn at the target (D-054) |`,
+          `| ${plane} | ${kind} ×${adults.length}${young > 0 ? ` + ${young} young` : ''} (${f.key.replace('fauna/', '')}) | ${m} ${ANIMAL_MEASURE[kind]} | ${before === null ? '—' : f0(before)} → ${f0(after)} | ${f0(bb)} → ${f0(ba)} | ${before === null ? '—' : fx(birdOversize(ba, before, m))} → ${fx(birdOversize(ba, after, m))} | ${f0(targetPx(m, ba))} | ${mul === 1 ? 'redrawn at the target (D-054)' : `redrawn at ${mul} × the target (D-054)`} |`,
         );
       }
     }

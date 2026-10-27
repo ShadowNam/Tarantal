@@ -17,6 +17,7 @@ import {
   lookOf,
   placePart,
   sheetOf,
+  spaceHerd,
   type FaunaFrames,
   type FaunaHerd,
   type FaunaIdle,
@@ -143,11 +144,13 @@ export class FaunaView {
       const root = this.rootOf(h);
       const ds = this.manifest.displayScale(key);
       const view: Herd = { root, x0: Infinity, x1: -Infinity, animals: [] };
-      for (const a of drawOrder(h.animals)) {
+      // Spread from the frames' real sizes: no head crosses another (D-054).
+      const spaced = spaceHerd(h.animals, (a) => frames[frameName(lookOf(a), 'head')]);
+      for (const a of drawOrder(spaced)) {
         const animal: Animal = {
-          a: { ...a, seed: animalSeed(a) },
+          a: { ...a, seed: animalSeed(h.animals[spaced.indexOf(a)] ?? a) },
           herd: h.key,
-          index: h.animals.indexOf(a),
+          index: spaced.indexOf(a),
           pose: REST,
         };
         view.animals.push(animal);

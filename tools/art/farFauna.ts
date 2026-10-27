@@ -674,8 +674,9 @@ function hoofed(look: LookSpec, o: LookOpts): DrawnLook {
     mark: tint(coat.mark),
     hoof: tint(coat.hoof),
   };
-  const edge = tint(shade(mix(coat.coat, coat.mark, 0.35), -0.45));
-  const pen: Pen = { w: Math.max(0.45, S * 0.0075), c: tint };
+  // A thin, clearly darker contour (D-054 review: pale far animals vanished against the glow).
+  const edge = tint(shade(mix(coat.coat, coat.mark, 0.35), -0.58));
+  const pen: Pen = { w: Math.max(0.7, S * 0.0085), c: tint };
   const pose = look.pose === 'drink' && sp !== 'giraffe' ? 'graze' : look.pose;
   const L = b.L;
   // Feet centre on x = 0.
@@ -797,6 +798,7 @@ function hoofed(look: LookSpec, o: LookOpts): DrawnLook {
   const clipId = bodyClip.id;
   const nearClip = clipOf(legs.near.map(legD));
   const barrelClip = clipOf([bodyD]);
+  const plug = clipOf([ellipseD(root[0], root[1], 0.24 * S, 0.22 * S)]);
   const farClip = clipOf(legs.far.map(legD));
   const wbox = { x0: -2 * S, y0: -2.5 * S, x1: 2 * S, y1: 0.5 * S };
   const light = vGrad(-1.02 * S, -b.belly * S, [
@@ -861,6 +863,7 @@ function hoofed(look: LookSpec, o: LookOpts): DrawnLook {
       nearClip.def,
       farClip.def,
       barrelClip.def,
+      plug.def,
       water?.def ?? '',
     ),
     water?.under ?? shadow,
@@ -871,6 +874,9 @@ function hoofed(look: LookSpec, o: LookOpts): DrawnLook {
       wash(farClip.id, `url(#${legShade.id})`, wbox),
       hooves(legs.far, shade(C.hoof, -0.1)),
       solid(bodyShapes, C.coat, edge, pen.w),
+      // The neck's root, filled in the body too: the body's outline where the neck leaves it
+      // never shows through (the head part draws the same neck over it).
+      g({ 'clip-path': `url(#${plug.id})` }, el('path', { d: neckD, fill: C.coat })),
       // Coat marks on the barrel stay on the barrel; leg marks stay on the legs.
       g({ 'clip-path': `url(#${nearClip.id})` }, marks.legs),
       g({ 'clip-path': `url(#${barrelClip.id})` }, marks.body),
@@ -921,7 +927,7 @@ function hoofed(look: LookSpec, o: LookOpts): DrawnLook {
   // --- head part (neck + head) ---
   const hClip = nextId();
   const nLight = vGrad(Math.min(poll[1], withersPt[1]) - 0.1 * S, root[1] + 0.2 * S, [
-    [0, C.lit, 0.35],
+    [0, C.lit, 0.15],
     [0.6, C.lit, 0],
     [1, C.dark, 0.3],
   ]);
@@ -1742,8 +1748,9 @@ function markings(
           }),
         neck: el('path', {
           d: limb([
-            { p: q.neck.throatPts[0] ?? at(0.2, 0.9), w: 0.08 * S },
-            { p: q.neck.throatPts[2] ?? at(0.2, 0.9), w: 0.1 * S },
+            // A narrow white throat stripe: the neck reads cinnamon like the back.
+            { p: q.neck.throatPts[0] ?? at(0.2, 0.9), w: 0.045 * S },
+            { p: q.neck.throatPts[2] ?? at(0.2, 0.9), w: 0.06 * S },
           ]),
           fill: C.belly,
           opacity: 0.85,
@@ -2025,7 +2032,7 @@ function elephant(look: LookSpec, o: LookOpts): DrawnLook {
     nail: tint(mix(base.coat, '#D8CFC0', 0.45)),
   };
   const edge = tint(shade(base.coat, -0.5));
-  const w = Math.max(0.5, S * 0.0055);
+  const w = Math.max(0.7, S * 0.0055);
   const P = (x: number, y: number): V => [x * S, y * S];
   const L = young ? 1.02 : 1.15;
   const yb = young ? 0.06 : 0; // a calf stands taller on its legs
@@ -2410,7 +2417,7 @@ function ostrich(look: LookSpec, o: LookOpts): DrawnLook {
     shin: tint(cock ? '#C47A70' : '#A8988C'),
   };
   const edge = tint(shade(c0.coat, -0.4));
-  const w = Math.max(0.45, H * 0.004);
+  const w = Math.max(0.7, H * 0.004);
   const P = (x: number, y: number): V => [x * H, y * H];
   const cy = -0.56;
   const rx = 0.25;

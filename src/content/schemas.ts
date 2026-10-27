@@ -2023,6 +2023,19 @@ export const FeelSchema = obj({
   }),
   /** D-054: the far animals (src/game/view/faunaHerds.ts), drawn only. */
   fauna: obj({
+    /** Drawn height per species × its true size beside the guineafowl (D-049 target; 1 = true).
+     *  The product owner (27 Oct): elephants and giraffes smaller so the distance reads. The art
+     *  is drawn at this size (`npm run art:interim -- --only fauna`, then assets:pack). */
+    sizeMul: obj({
+        elephant: pos.default(1),
+        giraffe: pos.default(1),
+        zebra: pos.default(1),
+        wildebeest: pos.default(1),
+        gemsbok: pos.default(1),
+        springbok: pos.default(1),
+        ostrich: pos.default(1),
+        lechwe: pos.default(1),
+      }),
     /** Idle motion on sim time (FaunaIdleTuning): degrees, seconds, shares. */
     idle: obj({
       grazeDeg: nonNeg,

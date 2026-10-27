@@ -105,15 +105,17 @@ export const FEMALE_SHARE: Readonly<Record<FaunaSpecies, number>> = {
   lechwe: 0.94,
 };
 
-/** Drawn height (design px) of a look on a plane where a metre is `pxPerMetre` px. */
+/** Drawn height (design px) of a look on a plane where a metre is `pxPerMetre` px, × the
+ *  species' size multiplier (feel.json fauna.sizeMul; 1 = true proportion). */
 export function lookHeight(
   species: FaunaSpecies,
   variant: FaunaVariant,
   pxPerMetre: number,
+  sizeMul = 1,
 ): number {
   const share =
     variant === 'y' ? YOUNG_SHARE[species] : variant === 'f' ? FEMALE_SHARE[species] : 1;
-  return FAUNA_M[species] * pxPerMetre * share;
+  return FAUNA_M[species] * pxPerMetre * share * sizeMul;
 }
 
 type Row = readonly [FaunaSpecies, FaunaPose, FaunaVariant, number, number, 1 | -1, number?];
@@ -326,6 +328,66 @@ export interface PartPlace {
 export function placePart(a: HerdAnimal, f: FaunaFrame): PartPlace {
   const [, , , , , , px, py] = f;
   return { x: a.x + a.facing * a.s * px, y: a.dy + a.s * py, sx: a.facing * a.s, sy: a.s };
+}
+
+/** A box (design px, herd-relative). */
+export interface Box {
+  readonly x0: number;
+  readonly y0: number;
+  readonly x1: number;
+  readonly y1: number;
+}
+
+/** A part's box as drawn for an animal (mirrored with its facing, scaled by s). */
+export function partBox(a: HerdAnimal, f: FaunaFrame): Box {
+  const p = placePart(a, f);
+  const xa = p.x + p.sx * (0 - f[4]);
+  const xb = p.x + p.sx * (f[2] - f[4]);
+  return {
+    x0: Math.min(xa, xb),
+    x1: Math.max(xa, xb),
+    y0: p.y + p.sy * (0 - f[5]),
+    y1: p.y + p.sy * (f[3] - f[5]),
+  };
+}
+
+const overlapX = (a: Box, b: Box): number => Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0);
+const overlapY = (a: Box, b: Box): number => Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0);
+
+/**
+ * D-054: spreads a herd so that no animal's head (with its neck) overlaps another's, from the
+ * frames' real sizes (so a size change in feel.json fauna.sizeMul re-spaces the herd by itself).
+ * Left to right, each animal moves right just past any earlier head it would cross (bodies may
+ * overlap a little); then the herd is re-centred on its authored middle. Order, facings, dy and
+ * feet stay as authored. Pure.
+ */
+export function spaceHerd(
+  animals: readonly HerdAnimal[],
+  headOf: (a: HerdAnimal) => FaunaFrame | undefined,
+  gap = 2,
+): HerdAnimal[] {
+  const order = [...animals].sort((a, b) => a.x - b.x);
+  const placed: { a: HerdAnimal; head: Box | null }[] = [];
+  for (const a0 of order) {
+    let a = a0;
+    const f = headOf(a);
+    for (let guard = 0; guard < 50 && f !== undefined; guard++) {
+      const hb = partBox(a, f);
+      const hit = placed.find(
+        (q) => q.head !== null && overlapX(q.head, hb) > -gap && overlapY(q.head, hb) > 0,
+      );
+      if (hit === undefined || hit.head === null) break;
+      a = { ...a, x: a.x + hit.head.x1 - hb.x0 + gap };
+    }
+    placed.push({ a, head: f === undefined ? null : partBox(a, f) });
+  }
+  const mid = (xs: readonly number[]): number => (Math.min(...xs) + Math.max(...xs)) / 2;
+  const shift = mid(animals.map((a) => a.x)) - mid(placed.map((q) => q.a.x));
+  return animals.map((a) => {
+    const i = order.indexOf(a);
+    const q = placed[i];
+    return q === undefined ? a : { ...q.a, x: q.a.x + shift };
+  });
 }
 
 /** Animals back to front (further first; ties left to right): the order FaunaView draws them. */

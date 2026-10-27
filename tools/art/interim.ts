@@ -35,7 +35,7 @@ import { birdSheets, contrastSheet, gunSheets } from './previews';
 import { renderGunFrame } from './gunFrames';
 import { gunClipNames, gunFrameCount, tipFor } from './guns';
 import { POT_SEAT_Y, POT_SIZE, renderPot } from './pot';
-import { clipsFor, GUN_IDS, loadArtConfig } from './config';
+import { biomePalette, clipsFor, GUN_IDS, loadArtConfig } from './config';
 import {
   createPlaceholderManifest,
   loadBiomeArt,
@@ -421,6 +421,8 @@ if (wants('fauna')) {
         planePxPerMetre(content.scoring.planes[plane].scale),
         layerTint(cfg, biome.id, herd.layer),
         FAUNA_DUST[biome.id],
+        loadFeel().fauna.sizeMul,
+        ['horizon', 'skyBottom', 'cloud'].map((n) => biomePalette(cfg, biome.id)(n)),
       );
       putHd(`sprites/${herd.key}.png`, sheet.img, FAUNA_HD_COLOURS);
       if (hdOnly) continue;

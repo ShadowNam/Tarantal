@@ -30,6 +30,44 @@ const MARGIN = 1;
 /** Widest sheet, master px (Standard stays ≤ 2048, HD ≤ 4096). */
 const MAX_W = 4096;
 
+/** Share of the layer's haze the animals take (they read as solid animals, softened by distance). */
+export const FAUNA_HAZE = 0.45;
+/** D-054 review: a coat colour keeps at least this luminance contrast (WCAG ratio) against the
+ *  sky behind the herds (the horizon glow, the low sky, the clouds); haze is cut back until it
+ *  does. Whites and pale marks that can't reach it keep the plain haze. */
+export const FAUNA_MIN_CONTRAST = 1.8;
+
+function luminance(hex: string): number {
+  const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+  const lin = c.map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * (lin[0] ?? 0) + 0.7152 * (lin[1] ?? 0) + 0.0722 * (lin[2] ?? 0);
+}
+
+/** WCAG contrast ratio of two colours (1 … 21). */
+export function contrast(a: string, b: string): number {
+  const la = luminance(a);
+  const lb = luminance(b);
+  return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+}
+
+/**
+ * The animals' haze: FAUNA_HAZE of the layer's, cut back per colour so it stays at least
+ * FAUNA_MIN_CONTRAST from every sky colour in `backs`.
+ */
+export function faunaHaze(
+  tint: (hex: string) => string,
+  backs: readonly string[],
+): (hex: string) => string {
+  const ok = (c: string): boolean => backs.every((b) => contrast(c, b) >= FAUNA_MIN_CONTRAST);
+  return (hex) => {
+    for (let a = FAUNA_HAZE; a > 0; a -= 0.05) {
+      const c = mix(hex, tint(hex), a);
+      if (ok(c)) return c;
+    }
+    return ok(hex) ? hex : mix(hex, tint(hex), FAUNA_HAZE);
+  };
+}
+
 export interface FaunaSheet {
   /** The master (FAUNA_MASTER texture px per design px). */
   readonly img: Rgba;
@@ -134,12 +172,16 @@ export function buildFaunaSheet(
   pxPerMetre: number,
   tint: (hex: string) => string,
   dust?: string,
+  /** feel.json fauna.sizeMul (1 = true proportion). */
+  sizeMul: Readonly<Partial<Record<FaunaSpecies, number>>> = {},
+  /** The sky colours behind the herds (contrast floor). */
+  backs: readonly string[] = [],
 ): FaunaSheet {
-  const half = (hex: string): string => mix(hex, tint(hex), 0.5);
+  const half = faunaHaze(tint, backs);
   const cells: Cell[] = [];
   for (const look of herdLooks(herd)) {
     const l = parseLook(look);
-    const h = lookHeight(l.species, l.variant, pxPerMetre);
+    const h = lookHeight(l.species, l.variant, pxPerMetre, sizeMul[l.species] ?? 1);
     resetIds();
     const opts: LookOpts = {
       tint: half,
@@ -181,7 +223,7 @@ export function buildFaunaSheet(
     frames,
     animals: herd.animals.map((a) => ({
       species: a.species,
-      h: lookHeight(a.species, a.variant, pxPerMetre) * a.s,
+      h: lookHeight(a.species, a.variant, pxPerMetre, sizeMul[a.species] ?? 1) * a.s,
     })),
   };
 }
