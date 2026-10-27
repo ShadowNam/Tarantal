@@ -27,10 +27,12 @@ export const HD_SOURCE_DIR = 'hd';
 export const HD_SKIP_LAYERS: readonly string[] = ['sky'];
 
 /**
- * Texture keys (prefixes) without an HD version: the HUD ammo is cropped from below (the hopper
- * level), and a crop with an offset is drawn off by the texture's resolution in Phaser 4.2.
+ * Texture keys (prefixes) without an HD version: images that are cropped and drawn without a view
+ * scale (hdTexture.ts: Phaser 4.2 clamps a crop to the frame's halved size). The HUD ammo (the
+ * hopper level), the meerkat helper (it climbs out of its burrow) and the water channels (scope
+ * culling crops them).
  */
-export const HD_SKIP_KEYS: readonly string[] = ['ui/ammo/'];
+export const HD_SKIP_KEYS: readonly string[] = ['ui/ammo/', 'helper/meerkat', 'biome/water'];
 
 /** True when `key` may have an HD version. */
 export function hdAllowed(key: string): boolean {

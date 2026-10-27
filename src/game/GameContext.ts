@@ -1,6 +1,7 @@
 // What every scene shares: validated content, feel tuning, the asset manifest, audio, the save
 // (settings and progress), live prefs, the platform adapter, the safe area and the test hook.
 // Built once in main.ts.
+import type { GraphicsControl } from './assets/graphicsChoice';
 import type * as Phaser from 'phaser';
 import type { Biome, ContentBundle, DailyMeta, Feel, Notaboek } from '../content/schemas';
 import type { ChallengeDecode } from '../meta/challenge';
@@ -533,6 +534,8 @@ export interface GameContext {
    * files a scoped hunt or the Skietbaan needs (`need`); false if they still failed.
    */
   loadLateArt(id: string, need: LateNeed): Promise<boolean>;
+  /** D-053: Standard or HD art, and each area's HD pack. */
+  readonly graphics: GraphicsControl;
   /** M8: the biome of the hunt on screen (the home biome between hunts). */
   huntBiome: Biome;
   readonly audio: AudioDirector;

@@ -1534,12 +1534,13 @@ export function createPlaceholderManifest(
     m.addLayer(layer.asset, layerArt, tiles);
   });
   for (const prop of biome.props) {
-    m.addTexture(propSpec(prop, art));
+    // D-053: ParallaxView scales props by displayScale() (an HD texture keeps its own size).
+    m.addTexture({ ...propSpec(prop, art), viewScaled: true });
     // D-051: the prop's HD texture (late group) has the same size and origin. Its placeholder is
     // never shown (the prop swaps over only once the HD file is there): empty, 1×1.
     const hd = hdKeyOf(prop.asset);
     if (hd !== undefined && !m.has(hd)) {
-      m.addTexture({ ...propSpec(prop, art), key: hd, empty: true, draw() {} });
+      m.addTexture({ ...propSpec(prop, art), key: hd, empty: true, viewScaled: true, draw() {} });
       for (const part of HD_PARTS[prop.asset] ?? [])
         if (part === POTJIE_LID) m.addTexture(POTJIE_LID_SPEC);
     }
@@ -1552,6 +1553,7 @@ export function createPlaceholderManifest(
       height: f.h,
       originX: f.w / 2,
       originY: f.h - FAUNA_FOOT,
+      viewScaled: true,
       draw() {
         // Nothing: without delivered art there are no far animals.
       },

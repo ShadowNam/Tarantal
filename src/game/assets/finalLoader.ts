@@ -147,6 +147,14 @@ export function loadImage(path: string, timeoutMs: number): Promise<HTMLImageEle
   return p;
 }
 
+/**
+ * D-053: drops a decoded image from the page-long cache (HD files when the player goes back to
+ * Standard: the textures are freed, and nothing keeps the decoded pixels either).
+ */
+export function forgetImage(path: string): void {
+  images.delete(path);
+}
+
 /** Parsed JSON, or null. */
 export function loadJson(path: string, timeoutMs: number): Promise<unknown> {
   let p = jsons.get(path);
