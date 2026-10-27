@@ -1,0 +1,8 @@
+karoo-autumn wed (near fence) · dubbelloop · lag 6 · err 10 px · 2000 juggles: chain 0 2 %, ≥1 98 %, ≥2 98 %, ≥3 98 %, ≥5 58 %, ≥8 2 %; mean 4.88; Weg! 1956 (98 %)
+karoo-autumn tue (mid fence) · dubbelloop · lag 6 · err 10 px · 2000 juggles: chain 0 25 %, ≥1 75 %, ≥2 59 %, ≥3 47 %, ≥5 31 %, ≥8 16 %; mean 3.34; Weg! 234 (12 %)
+karoo-autumn fri (far fence) · dubbelloop · lag 6 · err 10 px · 2500 juggles: chain 0 86 %, ≥1 14 %, ≥2 3 %, ≥3 0 %, ≥5 0 %, ≥8 0 %; mean 0.17; Weg! 0 (0 %)
+karoo-autumn tue+dieVerste (mid fence) · twee_twee/scope_small · lag 6 · err 10 px · 1500 juggles: chain 0 98 %, ≥1 2 %, ≥2 0 %, ≥3 0 %, ≥5 0 %, ≥8 0 %; mean 0.02; Weg! 0 (0 %)
+karoo-autumn wed (near fence) · dubbelloop · lag 9 · err 16 px · 2000 juggles: chain 0 43 %, ≥1 57 %, ≥2 56 %, ≥3 56 %, ≥5 16 %, ≥8 2 %; mean 2.61; Weg! 1098 (55 %)
+karoo-autumn tue (mid fence) · dubbelloop · lag 9 · err 16 px · 2000 juggles: chain 0 51 %, ≥1 50 %, ≥2 37 %, ≥3 26 %, ≥5 14 %, ≥8 7 %; mean 1.81; Weg! 100 (5 %)
+karoo-autumn fri (far fence) · dubbelloop · lag 9 · err 16 px · 2500 juggles: chain 0 89 %, ≥1 11 %, ≥2 1 %, ≥3 0 %, ≥5 0 %, ≥8 0 %; mean 0.12; Weg! 0 (0 %)
+karoo-autumn tue+dieVerste (mid fence) · twee_twee/scope_small · lag 9 · err 16 px · 1500 juggles: chain 0 99 %, ≥1 1 %, ≥2 0 %, ≥3 0 %, ≥5 0 %, ≥8 0 %; mean 0.01; Weg! 0 (0 %)
