@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-27T05:10:00Z",
+ "updated": "2026-10-27T05:26:00Z",
  "summary": "Live on the test build: v1.8 Blikkies (1.8.0, merged 03:36 Namibia time on 27 Oct): tin cans stand on the farm fence posts on 3–4 weekday maps per farm area. Shoot one off and it somersaults away; hit it again in the air and it flies higher and wilder, and the 10th air hit sends it out of sight (Weg!). Near cans are the easiest to juggle, far ones the hardest; also on the Skietbaan. Perspective (1.7.4) and the Halloween Spookjag (1.7.3, admin page: Special days → Spookjag · 31/10 → Play) are in too. Tank is building Karoo polish now (HD aloes; the potjie simmers and its lid flies off). Then: far animals in HD, makalani palms, tree life, optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
   "version": "1.7.1",
@@ -640,7 +640,7 @@
   },
   "hd-graphics-settings-graphics-auto-stand": {
    "owner": "Tank builds it; Claude reviews",
-   "summary": "An optional sharper art pack: Settings → Graphics: Auto / Standard / HD. Auto picks HD on big screens and strong devices; it loads in the background after the hunt starts, so the game still starts fast and phones keep working as now.",
+   "summary": "A light loading screen asks Standard or HD, with a \"Remember my choice\" tick box; the same choice in Settings. HD packs (sharper art at twice the resolution) load per area, so the fast start stays; on a slow connection \"Play now in Standard\" appears. Moved up to right after Karoo polish.",
    "requestedBy": "Your idea, 26 Oct: \"when the game loads, it should ask you standard quality or HD.\" Claude's advice: a setting with Auto instead of a question before play."
   }
  },
@@ -1495,6 +1495,16 @@
    "at": "2026-10-27T05:01:00Z",
    "kind": "note",
    "text": "WhatsApp updates work: the gateway is connected and the morning report link was delivered at 07:01."
+  },
+  {
+   "at": "2026-10-27T05:20:00Z",
+   "kind": "decision",
+   "text": "HD graphics moves up to the next job after Karoo polish. A light loading screen asks Standard or HD, with a \"Remember my choice\" tick box (also in Settings); HD packs load per area, and a slow HD download offers \"Play now in Standard\". The next art jobs can then ship HD packs."
+  },
+  {
+   "at": "2026-10-27T05:20:00Z",
+   "kind": "decision",
+   "text": "Release aim: friends first (the web test build), later the Apple App Store and Google Play. Poki and CrazyGames are no longer targets."
   }
  ]
 }

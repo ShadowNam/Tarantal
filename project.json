@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "updated": "2026-10-27T05:10:00Z",
+ "updated": "2026-10-27T05:26:00Z",
  "by": "Claude",
  "summary": "Live on the test build: v1.8 Blikkies (1.8.0, merged 03:36 Namibia time on 27 Oct): tin cans stand on the farm fence posts on 3–4 weekday maps per farm area. Shoot one off and it somersaults away; hit it again in the air and it flies higher and wilder, and the 10th air hit sends it out of sight (Weg!). Near cans are the easiest to juggle, far ones the hardest; also on the Skietbaan. Perspective (1.7.4) and the Halloween Spookjag (1.7.3, admin page: Special days → Spookjag · 31/10 → Play) are in too. Tank is building Karoo polish now (HD aloes; the potjie simmers and its lid flies off). Then: far animals in HD, makalani palms, tree life, optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
@@ -1617,12 +1617,21 @@
    "requestedBy": "You, 26 Oct: \"These aloes … need to become HD … the braai pot … boiling a little bit … when it's shot, the deksel should fall off.\""
   },
   {
+   "id": "hd-graphics-moved-up-your-choice-27-oct-",
+   "title": "HD graphics (moved up, your choice 27 Oct): a light loading screen asks Standard or HD, with \"Remember my choice\"; also in Settings; HD packs load per area",
+   "phase": "Version 1.x",
+   "status": "next",
+   "start": "2026-10-27T07:30:00Z",
+   "end": "2026-10-27T12:30:00Z",
+   "estimate": true
+  },
+  {
    "id": "far-animals-in-hd-on-every-map-realistic",
    "title": "Far animals in HD on every map: realistic zebras, giraffes, elephants, wildebeest, gemsbok, springbok, ostriches and lechwe instead of stick figures (your request, 26 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-27T07:30:00Z",
-   "end": "2026-10-27T13:30:00Z",
+   "start": "2026-10-27T12:30:00Z",
+   "end": "2026-10-27T18:30:00Z",
    "estimate": true,
    "summary": "Every far herd redrawn: zebras, giraffes, elephants, wildebeest, gemsbok, springbok, ostriches and lechwe with real proportions, jointed legs, markings and light, a few poses, young ones and small movements, at the sizes the perspective job sets.",
    "owner": "Tank builds it; Claude reviews",
@@ -1633,8 +1642,8 @@
    "title": "Makalani palms in the Okavango: hanging nut clusters you can shoot down, juggle and pop; reflections in the water at dusk (your request, 26 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-27T13:30:00Z",
-   "end": "2026-10-27T19:00:00Z",
+   "start": "2026-10-27T18:30:00Z",
+   "end": "2026-10-28T00:00:00Z",
    "estimate": true,
    "summary": "Makalani palms by the water in the Okavango, with reflections at dusk and clusters of glossy brown nuts. A nut hit cracks off and falls; hit it in the air and it juggles like a can; a full shotgun hit pops it into fibre and ivory chips. Secret: 3 nuts in one hunt.",
    "owner": "Tank builds it; Claude reviews",
@@ -1645,24 +1654,12 @@
    "title": "Tree life: a detailed baobab with real hanging fruit and residents peeking from its hollows (bushbaby, squirrel, owl, hornbill); weavers flying around their colony nest with a pygmy falcon (your request, 26 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-27T19:00:00Z",
-   "end": "2026-10-28T01:00:00Z",
+   "start": "2026-10-28T00:00:00Z",
+   "end": "2026-10-28T06:00:00Z",
    "estimate": true,
    "summary": "A detailed baobab with real hanging fruit and residents peeking from its hollows (bushbaby, tree squirrel, barn owl, a hornbill at its sealed nest); sociable weavers flying in and out of their colony nest with a pygmy falcon now and then (and lovebirds in Namibië). They are never hurt and duck away when you shoot near them.",
    "owner": "Tank builds it; Claude reviews",
    "requestedBy": "You, 26 Oct: \"see what other kind of animals normally live in that tree … a few holes where a little mouse can look out … some little birds fly around [the weaver nest].\""
-  },
-  {
-   "id": "hd-graphics-settings-graphics-auto-stand",
-   "title": "HD graphics: Settings → Graphics Auto / Standard / HD, an optional sharper art pack that loads in the background (your idea, 26 Oct; recommended form)",
-   "phase": "Version 1.x",
-   "status": "next",
-   "start": "2026-10-28T01:00:00Z",
-   "end": "2026-10-28T06:00:00Z",
-   "estimate": true,
-   "summary": "An optional sharper art pack: Settings → Graphics: Auto / Standard / HD. Auto picks HD on big screens and strong devices; it loads in the background after the hunt starts, so the game still starts fast and phones keep working as now.",
-   "owner": "Tank builds it; Claude reviews",
-   "requestedBy": "Your idea, 26 Oct: \"when the game loads, it should ask you standard quality or HD.\" Claude's advice: a setting with Auto instead of a question before play."
   },
   {
    "id": "v1.7d",
@@ -2192,6 +2189,16 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-27T05:20:00Z",
+   "kind": "decision",
+   "text": "HD graphics moves up to the next job after Karoo polish. A light loading screen asks Standard or HD, with a \"Remember my choice\" tick box (also in Settings); HD packs load per area, and a slow HD download offers \"Play now in Standard\". The next art jobs can then ship HD packs."
+  },
+  {
+   "at": "2026-10-27T05:20:00Z",
+   "kind": "decision",
+   "text": "Release aim: friends first (the web test build), later the Apple App Store and Google Play. Poki and CrazyGames are no longer targets."
+  },
   {
    "at": "2026-10-27T05:08:00Z",
    "kind": "decision",
