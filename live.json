@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-27T14:15:00Z",
+ "updated": "2026-10-27T18:15:00Z",
  "summary": "Live on the test build: HD graphics (1.9.0, merged 16:05 Namibia time on 27 Oct): on first start a light card asks Standard or HD, with \"Remember my choice\" (also in Settings → Graphics). HD loads each area's sharper art pack (2.2–3.3 MB) behind the loading screen; on a slow connection \"Play now in Standard\" appears and HD swaps in during play. Standard and the fast first download are unchanged. Karoo polish (1.8.1, 08:18) is in too. Tank is building far animals in HD now (a redraw of every distant herd, about 23:30). Then: makalani palms, tree life, an Android test app for friends; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
   "version": "1.7.1",
@@ -675,6 +675,14 @@
      "done": false
     },
     {
+     "text": "Elephants and giraffes 40% smaller (your request, 27 Oct); one size setting per species",
+     "done": false
+    },
+    {
+     "text": "Stronger outlines and less haze so heads and necks read against bright skies",
+     "done": false
+    },
+    {
      "text": "HD versions where they help; every area stays within its download budget",
      "done": false
     },
@@ -904,6 +912,12 @@
    "text": "Send the Halloween screenshots when the fixes are done; keep backups and the latest version of the project in Dropbox /ai-dev/",
    "outcome": "Dropbox backup set up in /AI-DEV/Tarantal-Madness/: a dated status file at every merge (with a download link for that exact code version) and the job briefs; the code itself stays on GitHub (the Dropbox link takes text files only). Halloween screenshots follow the fix round.",
    "job": "halloween-spookjag-feesdae-the-31-oct-da"
+  },
+  {
+   "date": "27 Oct, 20:10",
+   "text": "Make the far elephants and giraffes at least 25% smaller (up to 50%): \"the further animals are away, the smaller they get\"",
+   "outcome": "Sent to Tank: elephants and giraffes 40% smaller, as one setting per species so it can be tuned",
+   "job": "far-animals-in-hd-on-every-map-realistic"
   }
  ],
  "extraDecisions": [
@@ -1633,6 +1647,11 @@
    "at": "2026-10-27T14:07:00Z",
    "kind": "note",
    "text": "Tank started far animals in HD (a redraw of every distant herd); expected around 23:30."
+  },
+  {
+   "at": "2026-10-27T18:12:00Z",
+   "kind": "request",
+   "text": "You asked for smaller far elephants and giraffes (at least 25%, up to 50%). Tank is drawing them 40% smaller, with one size setting per species."
   }
  ]
 }
