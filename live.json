@@ -617,7 +617,7 @@
         }
       ]
     },
-    "karoo-polish-hd-aloes-the-potjie-steams-": {
+    "karoo-polish-hd-bitter-aloes-that-load-i": {
       "owner": "Tank built it (fresh session 1773b411 after connection drops); Claude reviewed it, ran the screenshots twice and merged it",
       "summary": "HD bitter aloes with toothed blue-green leaves, a skirt of dry leaves and orange-red flower spikes. The potjie on its coals steams, simmers and rattles its lid; shoot the lid and it flies off and lands beside the pot with a clang (+5 s as before).",
       "requestedBy": "You, 26 Oct: \"These aloes … need to become HD … the braai pot … boiling a little bit … when it's shot, the deksel should fall off.\"",
@@ -667,7 +667,7 @@
       "summary": "A detailed baobab with real hanging fruit and residents peeking from its hollows (bushbaby, tree squirrel, barn owl, a hornbill at its sealed nest); sociable weavers flying in and out of their colony nest with a pygmy falcon now and then (and lovebirds in Namibië). They are never hurt and duck away when you shoot near them.",
       "requestedBy": "You, 26 Oct: \"see what other kind of animals normally live in that tree … a few holes where a little mouse can look out … some little birds fly around [the weaver nest].\""
     },
-    "hd-graphics-settings-graphics-auto-stand": {
+    "hd-graphics-moved-up-your-choice-27-oct-": {
       "owner": "Tank builds it (task 53d9fba6, started 08:20); Claude reviews and runs the screenshots",
       "summary": "A light loading screen asks Standard or HD, with a \"Remember my choice\" tick box; the same choice in Settings. HD packs (sharper art at twice the resolution) load per area, so the fast start stays; on a slow connection \"Play now in Standard\" appears. Moved up to right after Karoo polish.",
       "requestedBy": "Your idea, 26 Oct: \"when the game loads, it should ask you standard quality or HD\"; your design, 27 Oct: a light loading screen with Standard or HD and a \"save preset\" tick box.",
@@ -834,7 +834,7 @@
       "date": "26 Oct, 07:05",
       "text": "Karoo: HD aloes; the potjie should steam and boil a little, and its lid should fall off when shot",
       "outcome": "Planned as \"Karoo polish\" after Halloween",
-      "job": "karoo-polish-hd-aloes-the-potjie-steams-"
+      "job": "karoo-polish-hd-bitter-aloes-that-load-i"
     },
     {
       "date": "26 Oct, 07:05",
@@ -870,7 +870,7 @@
       "date": "26 Oct, 07:20",
       "text": "Idea: ask at start for Standard or HD graphics",
       "outcome": "Advised: a Settings choice Auto / Standard / HD instead of a question before play; planned after tree life",
-      "job": "hd-graphics-settings-graphics-auto-stand"
+      "job": "hd-graphics-moved-up-your-choice-27-oct-"
     },
     {
       "date": "26 Oct, 10:10",

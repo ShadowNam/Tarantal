@@ -1614,7 +1614,39 @@
    "estimate": false,
    "prs": [
     87
-   ]
+   ],
+   "summary": "HD bitter aloes with toothed blue-green leaves, a skirt of dry leaves and orange-red flower spikes. The potjie on its coals steams, simmers and rattles its lid; shoot the lid and it flies off and lands beside the pot with a clang (+5 s as before).",
+   "owner": "Tank built it (fresh session 1773b411 after connection drops); Claude reviewed it, ran the screenshots twice and merged it",
+   "checklist": [
+    {
+     "text": "HD bitter aloes on the Karoo (2× drawing, streamed in after the hunt starts; the first download stays 2,991 KB)",
+     "done": true
+    },
+    {
+     "text": "Bushveld aloes use the new drawing at normal resolution (2× version revisited in HD graphics, your call)",
+     "done": true
+    },
+    {
+     "text": "The potjie simmers, steams and rattles its lid; shot, the lid flies off and lands with a clang",
+     "done": true
+    },
+    {
+     "text": "Independent review: lime flames, invisible steam and dull aloes found and fixed",
+     "done": true,
+     "at": "2026-10-27T03:50:00Z"
+    },
+    {
+     "text": "Screenshots on desktop and both phones, second round checked",
+     "done": true,
+     "at": "2026-10-27T05:30:00Z"
+    },
+    {
+     "text": "Full browser tests on all devices green; merged as 1.8.1 (#87)",
+     "done": true,
+     "at": "2026-10-27T06:18:00Z"
+    }
+   ],
+   "requestedBy": "You, 26 Oct: \"These aloes … need to become HD … the braai pot … boiling a little bit … when it's shot, the deksel should fall off.\""
   },
   {
    "id": "hd-graphics-moved-up-your-choice-27-oct-",
@@ -1624,7 +1656,35 @@
    "start": "2026-10-27T06:20:00Z",
    "end": "2026-10-27T12:30:00Z",
    "estimate": true,
-   "summary": "Tank task 53d9fba6: started 08:20"
+   "summary": "A light loading screen asks Standard or HD, with a \"Remember my choice\" tick box; the same choice in Settings. HD packs (sharper art at twice the resolution) load per area, so the fast start stays; on a slow connection \"Play now in Standard\" appears. Moved up to right after Karoo polish.",
+   "owner": "Tank builds it (task 53d9fba6, started 08:20); Claude reviews and runs the screenshots",
+   "checklist": [
+    {
+     "text": "HD packs per area (twice the resolution), listed in the asset index; the first download stays the same",
+     "done": false
+    },
+    {
+     "text": "Loading-screen card: Standard or HD with the real MB, \"Remember my choice\", a recommended option",
+     "done": false
+    },
+    {
+     "text": "Settings → Graphics: Standard / HD / Ask on start, in 4 languages",
+     "done": false
+    },
+    {
+     "text": "\"Play now in Standard\" when HD takes longer than ~4 s; HD swaps in during play",
+     "done": false
+    },
+    {
+     "text": "The 2× Bushveld aloes in the Bushveld HD pack",
+     "done": false
+    },
+    {
+     "text": "Screenshots (Standard | HD) on a large desktop and both phones; browser tests; merge as 1.9.0",
+     "done": false
+    }
+   ],
+   "requestedBy": "Your idea, 26 Oct: \"when the game loads, it should ask you standard quality or HD\"; your design, 27 Oct: a light loading screen with Standard or HD and a \"save preset\" tick box."
   },
   {
    "id": "far-animals-in-hd-on-every-map-realistic",
@@ -2153,7 +2213,7 @@
    "date": "26 Oct, 07:05",
    "text": "Karoo: HD aloes; the potjie should steam and boil a little, and its lid should fall off when shot",
    "outcome": "Planned as \"Karoo polish\" after Halloween",
-   "job": "karoo-polish-hd-aloes-the-potjie-steams-"
+   "job": "karoo-polish-hd-bitter-aloes-that-load-i"
   },
   {
    "date": "26 Oct, 07:05",
@@ -2189,7 +2249,7 @@
    "date": "26 Oct, 07:20",
    "text": "Idea: ask at start for Standard or HD graphics",
    "outcome": "Advised: a Settings choice Auto / Standard / HD instead of a question before play; planned after tree life",
-   "job": "hd-graphics-settings-graphics-auto-stand"
+   "job": "hd-graphics-moved-up-your-choice-27-oct-"
   },
   {
    "date": "26 Oct, 10:10",
