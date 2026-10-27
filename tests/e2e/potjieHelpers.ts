@@ -9,9 +9,7 @@ export async function waitHd(page: Page): Promise<void> {
   await page.waitForFunction(
     () => {
       const h = window.__TM__;
-      return (
-        h?.potjie?.hd === true && h.hdProps.length > 0 && h.hdProps.every((p) => p.hd)
-      );
+      return h?.potjie?.hd === true && h.hdProps.length > 0 && h.hdProps.every((p) => p.hd);
     },
     null,
     { timeout: 300_000 },
