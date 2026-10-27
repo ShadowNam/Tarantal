@@ -931,32 +931,6 @@
       "tileWidth": 1024,
       "scale": 0.5
     },
-    "bushveld/ver_veld": {
-      "tiles": [
-        {
-          "path": "assets/ver-hd/layers/bushveld-winter-ver_veld-0.14259fb06529.png",
-          "bytes": 13548,
-          "hash": "14259fb06529"
-        },
-        {
-          "path": "assets/ver-hd/layers/bushveld-winter-ver_veld-1.57f1a3556b79.png",
-          "bytes": 13608,
-          "hash": "57f1a3556b79"
-        },
-        {
-          "path": "assets/ver-hd/layers/bushveld-winter-ver_veld-2.557a1714ccfb.png",
-          "bytes": 12862,
-          "hash": "557a1714ccfb"
-        },
-        {
-          "path": "assets/ver-hd/layers/bushveld-winter-ver_veld-3.a9aa80a80b7c.png",
-          "bytes": 2796,
-          "hash": "a9aa80a80b7c"
-        }
-      ],
-      "tileWidth": 1024,
-      "scale": 0.5
-    },
     "kalahari/foreground": {
       "tiles": [
         {
@@ -1060,32 +1034,6 @@
           "path": "assets/kalahari-summer-hd/layers/near-5.0f32c8ffd5d4.png",
           "bytes": 63585,
           "hash": "0f32c8ffd5d4"
-        }
-      ],
-      "tileWidth": 1024,
-      "scale": 0.5
-    },
-    "kalahari/ver_veld": {
-      "tiles": [
-        {
-          "path": "assets/ver-hd/layers/kalahari-summer-ver_veld-0.50d084cb5601.png",
-          "bytes": 13231,
-          "hash": "50d084cb5601"
-        },
-        {
-          "path": "assets/ver-hd/layers/kalahari-summer-ver_veld-1.2a491f1b2716.png",
-          "bytes": 13141,
-          "hash": "2a491f1b2716"
-        },
-        {
-          "path": "assets/ver-hd/layers/kalahari-summer-ver_veld-2.b4b8e0c64edf.png",
-          "bytes": 12459,
-          "hash": "b4b8e0c64edf"
-        },
-        {
-          "path": "assets/ver-hd/layers/kalahari-summer-ver_veld-3.1eb446575240.png",
-          "bytes": 2808,
-          "hash": "1eb446575240"
         }
       ],
       "tileWidth": 1024,
@@ -1199,32 +1147,6 @@
       "tileWidth": 1024,
       "scale": 0.5
     },
-    "karoo/ver_veld": {
-      "tiles": [
-        {
-          "path": "assets/ver-hd/layers/karoo-autumn-ver_veld-0.e0d2fce3c462.png",
-          "bytes": 12465,
-          "hash": "e0d2fce3c462"
-        },
-        {
-          "path": "assets/ver-hd/layers/karoo-autumn-ver_veld-1.3c0bb01999d9.png",
-          "bytes": 13771,
-          "hash": "3c0bb01999d9"
-        },
-        {
-          "path": "assets/ver-hd/layers/karoo-autumn-ver_veld-2.edf9d7c8bfed.png",
-          "bytes": 13235,
-          "hash": "edf9d7c8bfed"
-        },
-        {
-          "path": "assets/ver-hd/layers/karoo-autumn-ver_veld-3.9e837c8f6e1e.png",
-          "bytes": 2957,
-          "hash": "9e837c8f6e1e"
-        }
-      ],
-      "tileWidth": 1024,
-      "scale": 0.5
-    },
     "namibie/foreground": {
       "tiles": [
         {
@@ -1333,32 +1255,6 @@
       "tileWidth": 1024,
       "scale": 0.5
     },
-    "namibie/ver_veld": {
-      "tiles": [
-        {
-          "path": "assets/ver-hd/layers/namibie-ver_veld-0.80c9dd79f6d8.png",
-          "bytes": 12336,
-          "hash": "80c9dd79f6d8"
-        },
-        {
-          "path": "assets/ver-hd/layers/namibie-ver_veld-1.5334199a937b.png",
-          "bytes": 17598,
-          "hash": "5334199a937b"
-        },
-        {
-          "path": "assets/ver-hd/layers/namibie-ver_veld-2.fd3529ebeb30.png",
-          "bytes": 11932,
-          "hash": "fd3529ebeb30"
-        },
-        {
-          "path": "assets/ver-hd/layers/namibie-ver_veld-3.e76141e2f45f.png",
-          "bytes": 2242,
-          "hash": "e76141e2f45f"
-        }
-      ],
-      "tileWidth": 1024,
-      "scale": 0.5
-    },
     "okavango/foreground": {
       "tiles": [
         {
@@ -1462,32 +1358,6 @@
           "path": "assets/okavango-spring-hd/layers/near-5.1eb845b6e778.png",
           "bytes": 53012,
           "hash": "1eb845b6e778"
-        }
-      ],
-      "tileWidth": 1024,
-      "scale": 0.5
-    },
-    "okavango/ver_veld": {
-      "tiles": [
-        {
-          "path": "assets/ver-hd/layers/okavango-spring-ver_veld-0.8dcbeff80c9f.png",
-          "bytes": 12438,
-          "hash": "8dcbeff80c9f"
-        },
-        {
-          "path": "assets/ver-hd/layers/okavango-spring-ver_veld-1.177fe85be956.png",
-          "bytes": 13957,
-          "hash": "177fe85be956"
-        },
-        {
-          "path": "assets/ver-hd/layers/okavango-spring-ver_veld-2.aeb0afdbcd9d.png",
-          "bytes": 12289,
-          "hash": "aeb0afdbcd9d"
-        },
-        {
-          "path": "assets/ver-hd/layers/okavango-spring-ver_veld-3.ed20cb9362d2.png",
-          "bytes": 2615,
-          "hash": "ed20cb9362d2"
         }
       ],
       "tileWidth": 1024,

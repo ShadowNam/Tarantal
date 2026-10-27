@@ -389,7 +389,7 @@ describe('D-054 review: a late sheet whose HD file went under its key first', ()
 });
 
 describe('D-054: a released area keeps no HD layers on the GPU (Pixel 7 HD hunts at 358–384 MB)', () => {
-  const hdTiles = (m: AssetManifest, id: string): string[] => m.layer(id)?.tiles ?? [];
+  const hdTiles = (m: AssetManifest, id: string): readonly string[] => m.layer(id)?.tiles ?? [];
   it('title (Karoo, HD) → a Bushveld hunt: sync no longer puts the Karoo HD layers back; back to the title restores them', async () => {
     const karoo = await loadedArea('karoo-autumn');
     const bush = await loadedArea('bushveld-winter');
