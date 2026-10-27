@@ -255,6 +255,25 @@ async function huntIn(page: Page, info: TestInfo, mode: string, biome: string): 
     await page.waitForFunction(() => (window.__TM__?.graphics.hdTextures ?? 0) > 0, null, {
       timeout: 300_000,
     });
+  // The hunt runs in `biome` with its own views: on phones the title's Karoo views stayed up
+  // behind a lazy area's veil, and grab 0 caught them (layer:karoo/* in a Bushveld run).
+  const prefix = `layer:${biome.split('-')[0] ?? biome}/`;
+  await page.waitForFunction(
+    ([want, pre]) => {
+      const tm = window.__TM__;
+      const layers = (tm?.graphics.bounds ?? []).filter((b) => b.key.startsWith('layer:'));
+      return (
+        tm?.scene === 'hunt' &&
+        tm.biome === want &&
+        tm.menu !== 'hdLoading' &&
+        tm.graphics.loading !== 'loading' &&
+        layers.length > 0 &&
+        layers.every((b) => b.key.startsWith(pre))
+      );
+    },
+    [biome, prefix] as const,
+    { timeout: 300_000 },
+  );
   await park(page, isTouchProject(info));
 }
 
