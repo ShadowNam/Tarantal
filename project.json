@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "updated": "2026-10-27T05:26:00Z",
+ "updated": "2026-10-27T05:42:00Z",
  "by": "Claude",
  "summary": "Live on the test build: v1.8 Blikkies (1.8.0, merged 03:36 Namibia time on 27 Oct): tin cans stand on the farm fence posts on 3–4 weekday maps per farm area. Shoot one off and it somersaults away; hit it again in the air and it flies higher and wilder, and the 10th air hit sends it out of sight (Weg!). Near cans are the easiest to juggle, far ones the hardest; also on the Skietbaan. Perspective (1.7.4) and the Halloween Spookjag (1.7.3, admin page: Special days → Spookjag · 31/10 → Play) are in too. Tank is building Karoo polish now (HD aloes; the potjie simmers and its lid flies off). Then: far animals in HD, makalani palms, tree life, optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
@@ -1662,12 +1662,21 @@
    "requestedBy": "You, 26 Oct: \"see what other kind of animals normally live in that tree … a few holes where a little mouse can look out … some little birds fly around [the weaver nest].\""
   },
   {
+   "id": "android-test-app-an-installable-apk-for-",
+   "title": "Android test app: an installable APK for friends, built by GitHub with all the art inside so it works offline; a download page on the test site (your choice, 27 Oct)",
+   "phase": "Version 1.x",
+   "status": "next",
+   "start": "2026-10-28T06:00:00Z",
+   "end": "2026-10-28T11:00:00Z",
+   "estimate": true
+  },
+  {
    "id": "v1.7d",
    "title": "v1.7d: Namibië veld life: detailed grass and sand, ostriches and their nest, oryx in the mirage, hot-air balloons (your request, 25 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-28T06:00:00Z",
-   "end": "2026-10-28T12:00:00Z",
+   "start": "2026-10-28T11:00:00Z",
+   "end": "2026-10-28T17:00:00Z",
    "estimate": true,
    "version": "1.7.3",
    "summary": "Namibië first: much more detailed bushman grass and sand (no black lines between the distances), then a pair of ostriches at their nest (they run from nearby shots), a herd of oryx far away shimmering in the mirage, and hot-air balloons drifting by (not targets).",
@@ -1679,8 +1688,8 @@
    "title": "v1.7e: realistic Bushveld rocks and middle distance; a new secret cue instead of the star (mock-ups for you first) (your request, 25 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-28T12:00:00Z",
-   "end": "2026-10-28T19:00:00Z",
+   "start": "2026-10-28T17:00:00Z",
+   "end": "2026-10-29T00:00:00Z",
    "estimate": true,
    "version": "1.7.4",
    "summary": "First, mock-ups of three ways to replace the star glint on secrets: (A) a small unique animal that always lives at each secret (e.g. a rock agama nodding on the dassie koppie, a lilac-breasted roller on the windmill) — Claude's pick and your idea; (B) natural cues only; (C) no cue, Oupa hints in words. You choose. Meanwhile: realistic Bushveld granite boulders and koppies, real ridges in the haze, textured winter veld, no black lines between the distances.",
@@ -1692,8 +1701,8 @@
    "title": "v1.8b: Bobbejane: baboon troops on the ridges; raiders come down to cause trouble (your request, 25 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-28T19:00:00Z",
-   "end": "2026-10-29T01:00:00Z",
+   "start": "2026-10-29T00:00:00Z",
+   "end": "2026-10-29T06:00:00Z",
    "estimate": true,
    "version": "1.8.1",
    "summary": "Chacma baboon troops on the ridges of most maps. Now and then raiders come down to cause trouble (steal Oupa's hat, raid fruit, throw fruit at the flock). A raider takes 2 hits and goes down like a guineafowl (your choice). Mothers with babies stay out of range and are never targets.",
@@ -1705,8 +1714,8 @@
    "title": "v1.8c: Die Oes (The Harvest): a new 30-second mode; hold the animals off the crops while the fence is fixed (your idea, 25 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-29T01:00:00Z",
-   "end": "2026-10-29T10:00:00Z",
+   "start": "2026-10-29T06:00:00Z",
+   "end": "2026-10-29T15:00:00Z",
    "estimate": true,
    "version": "1.8.2",
    "summary": "A new mode on the title screen. The fence breaks, guineafowl, warthogs and baboons pour into the harvest field, and you have 30 seconds to hold them off while the farm workers fix the fence. A crop meter shows what you saved; the workers are never targets. Tank writes a short plan first.",
@@ -1718,8 +1727,8 @@
    "title": "v1.9: the veld soundscape and local music (doves, hadedas, cicadas, fish eagle; marimba, mbira, drums)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-29T10:00:00Z",
-   "end": "2026-10-29T15:00:00Z",
+   "start": "2026-10-29T15:00:00Z",
+   "end": "2026-10-29T20:00:00Z",
    "estimate": true,
    "version": "1.9.0"
   },
@@ -1728,8 +1737,8 @@
    "title": "v1.10: Reënbui — the first rain and the flying-ant feast",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-29T15:00:00Z",
-   "end": "2026-10-29T20:00:00Z",
+   "start": "2026-10-29T20:00:00Z",
+   "end": "2026-10-30T01:00:00Z",
    "estimate": true,
    "version": "1.10.0"
   },
@@ -1738,8 +1747,8 @@
    "title": "v1.11: Die Braai — the day ends at Oupa's fire under the Milky Way",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-29T20:00:00Z",
-   "end": "2026-10-30T01:00:00Z",
+   "start": "2026-10-30T01:00:00Z",
+   "end": "2026-10-30T06:00:00Z",
    "estimate": true,
    "version": "1.11.0"
   },
@@ -1748,8 +1757,8 @@
    "title": "v1.12: Brakkie, the farm dog",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-30T01:00:00Z",
-   "end": "2026-10-30T07:00:00Z",
+   "start": "2026-10-30T06:00:00Z",
+   "end": "2026-10-30T12:00:00Z",
    "estimate": true,
    "version": "1.12.0"
   },
@@ -1758,8 +1767,8 @@
    "title": "v1.13: veld cameos — warthogs, baboons, springbok, elephants, ostrich, dung beetle",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-30T07:00:00Z",
-   "end": "2026-10-30T13:00:00Z",
+   "start": "2026-10-30T12:00:00Z",
+   "end": "2026-10-30T18:00:00Z",
    "estimate": true,
    "version": "1.13.0"
   }
@@ -2189,6 +2198,11 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-27T05:38:00Z",
+   "kind": "decision",
+   "text": "An Android test app joins the plan after tree life: an installable file for friends, built by GitHub with all the art inside so it works offline, downloadable from the test site. The iPhone app follows once you have an Apple developer account."
+  },
   {
    "at": "2026-10-27T05:20:00Z",
    "kind": "decision",
