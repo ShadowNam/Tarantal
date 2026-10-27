@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-27T01:41:00Z",
+ "updated": "2026-10-27T02:29:00Z",
  "summary": "Live on the test build: v1.8 Blikkies (1.8.0, merged 03:36 Namibia time on 27 Oct): tin cans stand on the farm fence posts on 3–4 weekday maps per farm area. Shoot one off and it somersaults away; hit it again in the air and it flies higher and wilder, and the 10th air hit sends it out of sight (Weg!). Near cans are the easiest to juggle, far ones the hardest; also on the Skietbaan. Perspective (1.7.4) and the Halloween Spookjag (1.7.3, admin page: Special days → Spookjag · 31/10 → Play) are in too. Tank is building Karoo polish now (HD aloes; the potjie simmers and its lid flies off). Then: far animals in HD, makalani palms, tree life, optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
   "version": "1.7.1",
@@ -1470,6 +1470,11 @@
    "at": "2026-10-27T01:37:00Z",
    "kind": "note",
    "text": "Tank started Karoo polish: HD bitter aloes, and a potjie that simmers, rattles its lid and loses it when shot."
+  },
+  {
+   "at": "2026-10-27T02:28:00Z",
+   "kind": "merge",
+   "text": "History document updated (PR #88): a Blikkies chapter with five screenshots, the night's requests and the numbers on main."
   }
  ]
 }
