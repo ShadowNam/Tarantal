@@ -350,6 +350,16 @@ export interface TestHook {
   } | null;
   canLog: string[];
   canMs: number;
+  /** D-051: the potjie (null: no potjie on this map): HD art showing, lid off, rattles and clangs
+   *  so far, wisps drawn now, and the loose lid's pose (prop px; null before the HD art). */
+  potjie: {
+    hd: boolean;
+    lidOff: boolean;
+    rattles: number;
+    clangs: number;
+    wisps: number;
+    lid: { x: number; y: number; rot: number } | null;
+  } | null;
   /** v1.7c (D-047): the fruit view (null until its chunk is in, or a map without fruit): fruit
    *  placed, pellet hits and drops this hunt, fruit swinging now, and the fruit on screen. */
   fruit: {

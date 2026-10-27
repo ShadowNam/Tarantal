@@ -15,6 +15,7 @@ import { FlashGate, type FlashLimiter } from './flashLimit';
 import { stampedeTintAlpha } from './juice';
 import { mirageLook } from './mirage';
 import { WindpompView } from './WindpompView';
+import { PotjieView } from './PotjieView';
 import { MEERKAT_SHEET, SHEET_W, sheetFrames } from '../assets/desertAssets';
 
 /** Crate art per plane scale (D-049; 0.55 at the old mid scale 0.5). */
@@ -90,6 +91,10 @@ export class WorldView {
   private windCredit = 0;
   /** v1.6 (D-042): the windpomps' turning heads and wheels. */
   private readonly windpomps: WindpompView;
+  /** D-051: the potjie's steam, coals and lid (once its HD art has landed). */
+  readonly potjie: PotjieView;
+  /** D-051: frames since the last look for landed HD prop art (polled, as FruitView does). */
+  private hdFrames = 0;
 
   /** v1.2: the map's light makes ready secrets glow (dusk). */
   secretGlow = false;
@@ -131,12 +136,16 @@ export class WorldView {
     this.helper = scene.add.image(0, 0, TEX.meerkat).setVisible(false);
     screen.add(this.helper);
     this.windpomps = new WindpompView(scene, biome, parallax);
+    this.potjie = new PotjieView(scene, biome, parallax);
+    parallax.upgradeHd(scene.textures);
   }
 
   /** Draws this frame. `width`/`height` are the visible design size. */
   update(s: SimState, width: number, height: number): void {
     const now = this.scene.time.now;
     this.windpomps.update(s);
+    if (++this.hdFrames % 30 === 0) this.parallax.upgradeHd(this.scene.textures);
+    this.potjie.update(s, this.reducedMotion, width);
     this.parallax.driftClouds(s.tick, s.rain || s.lightning);
     this.drawSecrets(s, now);
     this.drawCrates(s);
@@ -663,6 +672,7 @@ export class WorldView {
 
   clear(): void {
     this.windpomps.clear();
+    this.potjie.clear();
     for (const a of this.secretArt.values()) {
       a.rotor?.destroy();
       for (const m of a.marks.values()) m.destroy();

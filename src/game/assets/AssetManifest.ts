@@ -622,6 +622,12 @@ export class AssetManifest {
     return out;
   }
 
+  /** D-051: true once `key`'s delivered image is the texture under that key (not a placeholder). */
+  delivered(textures: Phaser.Textures.TextureManager, key: string): boolean {
+    const f = this.finalImages.get(key);
+    return f !== undefined && textures.exists(key) && textures.get(key).getSourceImage() === f.img;
+  }
+
   /** Every texture key this manifest puts in the texture manager (placeholders, final files). */
   textureKeys(): Set<string> {
     const out = new Set<string>(this.specs.keys());

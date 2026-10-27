@@ -11,6 +11,7 @@ import { planeCentreX } from '../../sim/camera';
 import type { PlaneId } from '../../sim/types';
 import { coreWidth, DESIGN_HEIGHT, LAYER_BLEED_PX } from '../../sim/world';
 import { TEX, type AssetManifest } from '../assets/AssetManifest';
+import { HD_PARTS, hdKeyOf } from '../assets/hdProps';
 import { FAUNA_SPRITES } from './faunaSprites';
 import { lightTint } from './lightTint';
 import {
@@ -107,10 +108,20 @@ export class ParallaxView {
   private gloom = 0;
   private lastCloudTick: number | null = null;
 
+  /** D-051: props still on their first-download art that have an HD texture to come. */
+  private readonly hdPending: {
+    readonly propId: string;
+    readonly art: StaticArt;
+    readonly hd: string;
+    readonly parts: readonly string[];
+  }[] = [];
+  /** D-051: props showing their HD texture (and holding their HD pieces). */
+  private readonly hdLive = new Set<string>();
+
   constructor(
     scene: Phaser.Scene,
     biome: Biome,
-    manifest: AssetManifest,
+    private readonly manifest: AssetManifest,
     mergeLayers: readonly (readonly [string, string])[] = [],
     /** D-049: display scale per far-animal sprite (feel.json perspective.faunaScale). */
     faunaScale: Readonly<Record<string, number>> = {},
@@ -238,6 +249,16 @@ export class ParallaxView {
             .setOrigin(o.x, o.y)
             .setScale(manifest.displayScale(prop.asset)),
         );
+        // D-051: switched to its HD texture once that lands (upgradeHd).
+        const hd = hdKeyOf(prop.asset);
+        const art = statics[statics.length - 1];
+        if (hd !== undefined && manifest.has(hd) && art !== undefined)
+          this.hdPending.push({
+            propId: prop.id,
+            art,
+            hd,
+            parts: HD_PARTS[prop.asset] ?? [],
+          });
       }
       const propFruit = scene.add.container(0, 0);
       root.add(propFruit);
@@ -306,6 +327,37 @@ export class ParallaxView {
       c.img.x = driftX(c.place.x, c.place.speed, seconds, this.cloudSpan.left, this.cloudSpan.span);
       if (Math.abs(this.gloom - before) > 1e-4) c.img.setTint(gloomTint(c.place.tint, this.gloom));
     }
+  }
+
+  /**
+   * D-051: swaps the props whose HD texture (and pieces) have landed since onto it:
+   * AssetManifest.upgrade() renames the placeholder away (never removes it), then the prop image
+   * takes the HD key. Cheap once nothing is pending. Returns the prop ids switched now.
+   */
+  upgradeHd(textures: Phaser.Textures.TextureManager): string[] {
+    if (this.hdPending.length === 0) return [];
+    const out: string[] = [];
+    for (let i = this.hdPending.length - 1; i >= 0; i--) {
+      const p = this.hdPending[i];
+      if (p === undefined) continue;
+      const keys = [p.hd, ...p.parts];
+      for (const k of keys) this.manifest.upgrade(textures, k);
+      if (!keys.every((k) => this.manifest.delivered(textures, k))) continue;
+      const img = p.art.img;
+      const o = this.manifest.origin(p.hd);
+      img.setCrop();
+      p.art.crop = null;
+      img.setTexture(p.hd).setOrigin(o.x, o.y).setScale(this.manifest.displayScale(p.hd));
+      this.hdPending.splice(i, 1);
+      this.hdLive.add(p.propId);
+      out.push(p.propId);
+    }
+    return out;
+  }
+
+  /** D-051: true once a prop shows its HD texture. */
+  hdShown(propId: string): boolean {
+    return this.hdLive.has(propId);
   }
 
   plane(p: PlaneId): LayerNode {
