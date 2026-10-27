@@ -313,3 +313,93 @@ test('Standard chosen mid-hunt in the rain (Pause → Settings): the hunt keeps 
   });
   expect(errors).toEqual([]);
 });
+
+/** A save with Namibië open (as namibie.spec: Die Verste reached), on a fixed day. */
+const NAMIBIE_DAY = '2026-10-20';
+async function seedNamibie(page: Page): Promise<void> {
+  await page.addInitScript((key) => {
+    if (localStorage.getItem(key) !== null) return;
+    localStorage.setItem(
+      key,
+      JSON.stringify({
+        v: 1,
+        settings: { quality: 'medium' },
+        ftue: { done: true, skipped: false, step: '' },
+        bestRank: 'bosveldjagter',
+        bonusMaps: {
+          day: 20700,
+          unlocked: [],
+          bests: { 'karoo-autumn/dieVerste': { score: 900, rank: 'bosveldjagter' } },
+        },
+      }),
+    );
+  }, SAVE);
+}
+
+/** Karoo's on-screen sizes at the title (layers and props), once its views are up. */
+async function karooSizes(page: Page): Promise<{ key: string; w: number; h: number }[]> {
+  const handle = await page.waitForFunction(
+    () => {
+      const b = window.__TM__?.graphics.bounds ?? [];
+      if (window.__TM__?.scene !== 'start' || !b.some((x) => x.key === 'layer:karoo/mid'))
+        return null;
+      return b
+        .filter((x) => x.key.startsWith('layer:karoo/') || x.key.startsWith('karoo/'))
+        .map((x) => ({ key: x.key, w: x.w, h: x.h }))
+        .sort((p, q) => (p.key < q.key ? -1 : 1));
+    },
+    null,
+    { timeout: 180_000 },
+  );
+  return (await handle.jsonValue()) as { key: string; w: number; h: number }[];
+}
+
+async function pickArea(page: Page, touch: boolean, id: string): Promise<void> {
+  await page.waitForFunction(() => window.__TM__?.rects['area'] !== undefined, null, {
+    timeout: 60_000,
+  });
+  await tapRect(page, touch, 'area');
+  await page.waitForFunction(() => window.__TM__?.menu === 'area', null, { timeout: 30_000 });
+  await tapRect(page, touch, `area_${id}`);
+  await page.waitForFunction((a) => window.__TM__?.classicArea === a, id, { timeout: 60_000 });
+}
+
+test('HD round trip: Karoo → a Namibië hunt → back to Karoo: all of Karoo’s scenery, at Standard’s size', async ({
+  page,
+}, info) => {
+  // The stale-bookkeeping bug: back in an area its HD layer tiles were taken for installed (they
+  // had been released) and drew the missing texture; props kept the HD half scale.
+  test.skip(!isLandscape(info), 'landscape screens');
+  test.setTimeout(900_000);
+  const touch = isTouchProject(info);
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await seedNamibie(page);
+  await boot(page, `graphics=standard&today=${NAMIBIE_DAY}&seed=46`);
+  const standard = await karooSizes(page);
+  expect(standard.length).toBeGreaterThan(3);
+
+  await boot(page, `graphics=hd&today=${NAMIBIE_DAY}&seed=46&huntSeconds=4`);
+  await page.waitForFunction(() => (window.__TM__?.graphics.hdTextures ?? 0) > 0, null, {
+    timeout: 240_000,
+  });
+  await pickArea(page, touch, 'namibie');
+  await startHunt(page, touch);
+  await page.waitForFunction(() => window.__TM__?.biome === 'namibie', null, { timeout: 300_000 });
+  await page.waitForFunction(() => window.__TM__?.scene === 'tally', null, { timeout: 300_000 });
+  await page.waitForFunction(() => window.__TM__?.rects['menu'] !== undefined, null, {
+    timeout: 60_000,
+  });
+  await tapRect(page, touch, 'menu');
+  await page.waitForFunction(() => window.__TM__?.scene === 'start', null, { timeout: 120_000 });
+  await pickArea(page, touch, 'karoo-autumn');
+  const hd = await karooSizes(page);
+  expect(hd.map((b) => b.key)).toEqual(standard.map((b) => b.key));
+  standard.forEach((s, i) => {
+    const h = hd[i];
+    const tol = s.key.startsWith('layer:') ? 2 : 1;
+    expect(Math.abs((h?.w ?? 0) - s.w), `${s.key} w`).toBeLessThanOrEqual(tol);
+    expect(Math.abs((h?.h ?? 0) - s.h), `${s.key} h`).toBeLessThanOrEqual(tol);
+  });
+  expect(errors).toEqual([]);
+});

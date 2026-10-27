@@ -124,7 +124,18 @@ beforeAll(async () => {
     if (e.hd !== undefined) dims.set(e.hd.file.path, { width: e.hd.width, height: e.hd.height });
   }
   expect(await loadBiomeArt('bushveld-winter')).toBe(true);
+  expect(await loadBiomeArt('karoo-autumn')).toBe(true);
 });
+
+/** A loaded manifest for any area (A→B→A tests). */
+async function loadedArea(id: string): Promise<AssetManifest> {
+  const b = content.biomes.find((x) => x.id === id);
+  if (b === undefined) throw new Error(`no biome ${id}`);
+  const m = createPlaceholderManifest(content, b);
+  await m.loadFinal(index, { atlasScale: 1, timeoutMs: 1000, audioFormat: null, biome: id });
+  await m.lateLoaded;
+  return m;
+}
 
 async function loaded(): Promise<AssetManifest> {
   if (bushveld === undefined) throw new Error('no biome');
@@ -238,6 +249,68 @@ describe('AssetManifest.applyHd', () => {
     const { api } = fakeTextures();
     m.install(api, () => false);
     expect(applyHd(m, api)).toBe(false);
+    expect(hdTextureCount(api)).toBe(0);
+  });
+});
+
+describe('HD after leaving an area and coming back (release)', () => {
+  const A = 'bushveld-winter';
+  const B = 'karoo-autumn';
+
+  it('A → B → A in HD: every layer tile A draws exists', async () => {
+    const a = await loadedArea(A);
+    const b = await loadedArea(B);
+    const { api } = fakeTextures();
+    for (const [m, id] of [
+      [a, A],
+      [b, B],
+    ] as const) {
+      m.setHd(true);
+      await loadHd(m, index, { timeoutMs: 1000, biome: id }).all;
+    }
+    a.install(api, () => false);
+    applyHd(a, api);
+    a.release(api, b);
+    b.install(api, () => false);
+    applyHd(b, api);
+    b.release(api, a);
+    a.install(api, () => false);
+    applyHd(a, api);
+    const layers = Object.keys(index.layers).filter(
+      (id) => id.startsWith('bushveld/') && index.layers[id]?.hd !== undefined,
+    );
+    expect(layers.length).toBeGreaterThan(2);
+    for (const id of layers) {
+      const art = a.layer(id);
+      expect(art, id).toBeDefined();
+      for (const key of art?.tiles ?? []) expect(api.exists(key), `${id}: ${key}`).toBe(true);
+    }
+  });
+
+  it('HD in A → B → Standard → back to A: A’s props draw at full size (scale 1)', async () => {
+    const a = await loadedArea(A);
+    const b = await loadedArea(B);
+    const { api } = fakeTextures();
+    a.setHd(true);
+    b.setHd(true);
+    await loadHd(a, index, { timeoutMs: 1000, biome: A }).all;
+    a.install(api, () => false);
+    applyHd(a, api);
+    expect(a.displayScale('bushveld/aloe_a')).toBe(0.5);
+    a.release(api, b);
+    b.install(api, () => false);
+    // Standard chosen in B (Settings), then the scene changes (as GraphicsControl.sync does:
+    // every manifest swaps back, then forgets its HD files).
+    a.setHd(false);
+    b.setHd(false);
+    applyHd(a, api);
+    applyHd(b, api);
+    dropHd(a);
+    dropHd(b);
+    purgeRetired(api, new Set());
+    b.release(api, a);
+    a.install(api, () => false);
+    expect(a.displayScale('bushveld/aloe_a')).toBe(1);
     expect(hdTextureCount(api)).toBe(0);
   });
 });

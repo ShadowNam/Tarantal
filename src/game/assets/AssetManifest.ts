@@ -699,8 +699,12 @@ export class AssetManifest {
       if (!textures.exists(key)) {
         // D-053: straight to the HD file when HD is chosen and it is in.
         const hd = this.hdWanted ? this.hdImages.get(key) : undefined;
-        if (hd === undefined) textures.addImage(key, img);
-        else this.addHdImage(textures, key, hd);
+        if (hd === undefined) {
+          textures.addImage(key, img);
+          // D-053: the standard file draws at its own scale again (an HD scale left from an
+          // earlier visit would show it at half size).
+          hdUnderKey.delete(key);
+        } else this.addHdImage(textures, key, hd);
       }
     for (const { tiles } of this.finalLayers.values())
       for (const t of tiles) if (!textures.exists(t.key)) textures.addImage(t.key, t.img);
@@ -795,6 +799,11 @@ export class AssetManifest {
       textures.remove(key);
       removed.push(key);
     }
+    // D-053: what was removed carries no HD state any more: no HD scale under its key, and a
+    // layer whose HD tiles went is installed again on the next visit (install/applyHd).
+    for (const key of removed) hdUnderKey.delete(key);
+    for (const [id, l] of this.hdLayers)
+      if (l.tiles.some((t) => !textures.exists(t.key))) this.hdTilesIn.delete(id);
     for (const b of next.hdBirds.values()) if (b.entry.group !== LATE_GROUP) keep.add(b.atlasKey);
     for (const [id, b] of [...this.finalBirds, ...this.hdBirds]) {
       if (keep.has(b.atlasKey) || !textures.exists(b.atlasKey)) continue;
@@ -873,7 +882,8 @@ export class AssetManifest {
   installHdTiles(textures: Phaser.Textures.TextureManager): boolean {
     let changed = false;
     for (const [id, { tiles }] of this.hdLayers) {
-      if (this.hdTilesIn.has(id)) continue;
+      // Tiles another manifest's release() removed are added again.
+      if (this.hdTilesIn.has(id) && tiles.every((t) => textures.exists(t.key))) continue;
       for (const t of tiles) {
         if (!textures.exists(t.key)) textures.addImage(t.key, t.img);
         retiredTextures.delete(t.key);
