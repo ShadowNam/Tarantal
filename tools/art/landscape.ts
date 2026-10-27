@@ -96,6 +96,11 @@ function seedOf(s: string): number {
   return h;
 }
 
+/** D-054: a layer's haze as a colour function (the far animals take half of it). */
+export function layerTint(cfg: ArtConfig, biome: string, layerId: string): (hex: string) => string {
+  return paint(cfg, biome, layerId, `${biome}/${layerId}`).tint;
+}
+
 function paint(cfg: ArtConfig, biome: string, layerId: string, seedKey: string): PaintCtx {
   const pal = biomePalette(cfg, biome);
   const haze = cfg.scenery.haze[layerId] ?? 0;
