@@ -3,6 +3,22 @@
 // icons must not grow the low-tier budget).
 import type * as Phaser from 'phaser';
 
+/** D-053 (test hook): the `n` largest textures by RGBA bytes, in MB (one decimal). */
+export function largestTextures(
+  textures: Phaser.Textures.TextureManager,
+  n: number,
+): { key: string; mb: number }[] {
+  return textures
+    .getTextureKeys()
+    .map((key) => ({
+      key,
+      bytes: textures.get(key).source.reduce((a, s) => a + s.width * s.height * 4, 0),
+    }))
+    .sort((a, b) => b.bytes - a.bytes)
+    .slice(0, n)
+    .map(({ key, bytes }) => ({ key, mb: Math.round(bytes / 104_857.6) / 10 }));
+}
+
 export function textureBytes(textures: Phaser.Textures.TextureManager): number {
   let n = 0;
   for (const key of textures.getTextureKeys())

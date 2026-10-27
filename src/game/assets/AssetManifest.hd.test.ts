@@ -314,3 +314,45 @@ describe('HD after leaving an area and coming back (release)', () => {
     expect(hdTextureCount(api)).toBe(0);
   });
 });
+
+describe('HD layers and their standard tiles (GPU memory)', () => {
+  it('installed with HD, a layer uploads its HD tiles only', async () => {
+    const m = await loaded();
+    m.setHd(true);
+    await loadHd(m, index, { timeoutMs: 1000, biome: 'bushveld-winter' }).all;
+    const { api } = fakeTextures();
+    m.install(api, () => false);
+    const hd = m.layer('bushveld/mid');
+    expect(hd?.tiles.every((k) => k.includes('/hd/') && api.exists(k))).toBe(true);
+    m.setHd(false);
+    const std = m.layer('bushveld/mid')?.tiles ?? [];
+    m.setHd(true);
+    expect(std.length).toBeGreaterThan(0);
+    expect(std.some((k) => api.exists(k))).toBe(false);
+    // Not reported missing either.
+    expect(m.missing(api).filter((k) => std.includes(k))).toEqual([]);
+  });
+
+  it('switched to HD, the standard tiles go once unused; back to Standard they return first', async () => {
+    const m = await loaded();
+    const { api } = fakeTextures();
+    m.install(api, () => false);
+    const std = m.layer('bushveld/mid')?.tiles ?? [];
+    expect(std.length).toBeGreaterThan(0);
+    await loadHd(m, index, { timeoutMs: 1000, biome: 'bushveld-winter' }).all;
+    m.setHd(true);
+    applyHd(m, api);
+    // Still drawn: kept.
+    purgeRetired(api, new Set(std));
+    expect(std.every((k) => api.exists(k))).toBe(true);
+    // The views moved to the HD tiles: freed.
+    purgeRetired(api, new Set());
+    expect(std.some((k) => api.exists(k))).toBe(false);
+    // Standard again: the tiles are back before any view asks for them, and never purged.
+    m.setHd(false);
+    applyHd(m, api);
+    expect(m.layer('bushveld/mid')?.tiles).toEqual(std);
+    purgeRetired(api, new Set());
+    expect(std.every((k) => api.exists(k))).toBe(true);
+  });
+});

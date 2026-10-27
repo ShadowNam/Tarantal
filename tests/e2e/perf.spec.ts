@@ -81,6 +81,8 @@ for (const gfx of ['standard', 'hd'] as const)
       tier: h.quality.tier,
       textureMB: Math.round((h.textureBytes / (1024 * 1024)) * 10) / 10,
       hdTextures: h.graphics.hdTextures,
+      // D-053: what the texture memory is made of (the largest 15).
+      textureTop: h.textureTop,
       throttle: 4,
       // v1.0.1 (D-028 §4): how much the frame cost includes score pops (undefined before v1.0.1).
       score: h.score,

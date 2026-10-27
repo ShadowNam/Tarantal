@@ -289,9 +289,19 @@ export function applyHd(m: AssetManifest, textures: Phaser.Textures.TextureManag
       changed = true;
     }
   }
-  if (m.hdWanted) changed = m.installHdTiles(textures) || changed;
-  else {
+  if (m.hdWanted) {
+    changed = m.installHdTiles(textures) || changed;
+    // The standard tiles of a layer now on its HD tiles: freed once nothing draws them.
+    for (const id of m.hdTilesIn)
+      for (const t of m.finalLayers.get(id)?.tiles ?? [])
+        if (textures.exists(t.key)) retiredTextures.add(t.key);
+  } else {
     for (const id of m.hdTilesIn) {
+      // Standard tiles back first (they may have been freed while HD drew): never retired now.
+      for (const t of m.finalLayers.get(id)?.tiles ?? []) {
+        retiredTextures.delete(t.key);
+        if (!textures.exists(t.key)) textures.addImage(t.key, t.img);
+      }
       for (const t of m.hdLayers.get(id)?.tiles ?? []) retiredTextures.add(t.key);
       changed = true;
     }

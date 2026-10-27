@@ -104,6 +104,10 @@ export function createGraphicsControl(d: GraphicsDeps): GraphicsControl & { avai
     apply(m, textures) {
       return d.runtime()?.applyHd(m, textures) ?? false;
     },
+    purge(textures, inUse, anims) {
+      const rt = d.runtime();
+      if (rt !== null && rt.retiredPending()) rt.purgeRetired(textures, inUse(), anims);
+    },
     settle(scenes, textures, inUse, anims) {
       const rt = d.runtime();
       if (rt === null || g.hd) return false;

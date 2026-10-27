@@ -61,7 +61,7 @@ import { MeerkatView } from '../view/MeerkatView';
 import { CanView } from '../view/cans/CanView';
 import { playPotjieSound } from '../view/potjieSounds';
 import { playMeerkatSound } from '../audio/meerkatSounds';
-import { textureBytes } from '../assets/textureBytes';
+import { largestTextures, textureBytes } from '../assets/textureBytes';
 import { mapLights, mapOmen, resolveMap, type ResolvedMap } from '../../sim/maps';
 import { layoutForDay } from '../../meta/maps';
 import { applyBonusResult, bonusKeys, bonusOpenFor, bonusSlug } from '../../meta/bonusMaps';
@@ -665,6 +665,10 @@ export class HuntScene extends Phaser.Scene {
     }
     g.apply(this.manifest, this.textures);
     if (this.parallax.refreshHd()) this.weapon.refreshRig();
+    // The standard textures HD replaced (layer tiles, renamed images) go once nothing draws them
+    // (the views just moved over), not at the next scene change: on a phone both sets did not
+    // fit 256 MB.
+    g.purge(this.textures, () => texturesInUse(this.game), this.anims);
     if (this.ctx.hook) this.ctx.hook.graphics.epoch = this.manifest.hdEpoch;
     if (idle) {
       // The areas the next hunt is likeliest to use: the Classic area and today's Daily.
@@ -676,6 +680,7 @@ export class HuntScene extends Phaser.Scene {
   /** D-029 texture memory for the test hook, and (v1.3) which gun atlases are on the GPU. */
   private sampleTextures(hook: TestHook): void {
     hook.textureBytes = textureBytes(this.textures);
+    hook.textureTop = largestTextures(this.textures, 15);
     // D-053: HD textures in the texture manager, and sampled on-screen boxes (the same with
     // Standard and HD).
     hook.graphics.hdTextures = hdTextureCount(this.textures);

@@ -159,6 +159,15 @@ export interface GraphicsControl {
    */
   apply(manifest: AssetManifest, textures: Phaser.Textures.TextureManager): boolean;
   /**
+   * Frees swapped-out textures nothing draws any more (`inUse`: textureUse.ts, live particles
+   * included), between scene changes: with HD, the standard textures HD replaced.
+   */
+  purge(
+    textures: Phaser.Textures.TextureManager,
+    inUse: () => ReadonlySet<string>,
+    anims?: Phaser.Animations.AnimationManager,
+  ): void;
+  /**
    * While views live and Standard is chosen (Settings on the title, then a hunt that keeps the
    * views): Standard art back under every key, objects off the swapped-out HD images, the HD pack
    * forgotten, and the swapped-out textures freed once nothing draws them. Run every few frames;

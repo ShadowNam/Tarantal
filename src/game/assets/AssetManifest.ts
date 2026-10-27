@@ -220,7 +220,8 @@ export class AssetManifest {
   // Final files that loaded (M10).
   /** @internal */
   readonly finalImages = new Map<string, { img: HTMLImageElement; entry: ImageEntry }>();
-  private readonly finalLayers = new Map<
+  /** @internal */
+  readonly finalLayers = new Map<
     string,
     { art: LayerArt; tiles: readonly { key: string; img: HTMLImageElement }[] }
   >();
@@ -711,8 +712,12 @@ export class AssetManifest {
           hdUnderKey.delete(key);
         } else this.addHdImage(textures, key, hd);
       }
-    for (const { tiles } of this.finalLayers.values())
+    for (const [id, { tiles }] of this.finalLayers) {
+      // D-053: a layer drawn from its HD tiles doesn't upload its standard ones as well (on the
+      // GPU they were most of an HD hunt's overshoot on phones: 270 MB > 256).
+      if (this.hdWanted && this.hdLayers.has(id)) continue;
       for (const t of tiles) if (!textures.exists(t.key)) textures.addImage(t.key, t.img);
+    }
     if (this.hdWanted) this.installHdTiles(textures);
     // Bird and gun atlases go to the GPU on first use (ensureBird / ensureGun, D-029), so a hunt
     // only holds the creatures and guns it actually shows.
@@ -902,7 +907,10 @@ export class AssetManifest {
   /** Keys not yet in the texture manager (0 once install() has completed). */
   missing(textures: Phaser.Textures.TextureManager): string[] {
     // Bird and gun atlases are installed on demand; until then their placeholders draw.
-    const finals = [...this.finalLayers.values()].flatMap((l) => l.tiles.map((t) => t.key));
+    // D-053: a layer on its HD tiles needs no standard tiles.
+    const finals = [...this.finalLayers]
+      .filter(([id]) => !(this.hdWanted && this.hdTilesIn.has(id)))
+      .flatMap(([, l]) => l.tiles.map((t) => t.key));
     return [...[...this.specs.keys()].filter((k) => !this.skipped(k)), ...finals].filter(
       (k) => !textures.exists(k),
     );

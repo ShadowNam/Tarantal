@@ -900,7 +900,10 @@ activity), Roadmap, History (stages, pictures, evolution, decisions, glossary), 
     scene change), so with Standard chosen `GraphicsControl.settle()` runs every 30 frames: Standard
     back under each key, live objects moved off retired images (same frame and size; props and far
     animals via `refreshHd()`), retired textures freed once nothing draws them; HD files still in
-    flight are let go. HD files that land during play go in every 30
+    flight are let go. With HD a layer never holds both tile sets on the GPU: `install()` skips
+    the standard tiles of a layer that has HD tiles, `applyHd()` retires them when HD lands later
+    (freed once nothing draws them, every 30 frames during play, `GraphicsControl.purge`), and
+    puts them back first when Standard returns. HD files that land during play go in every 30
     frames; `ParallaxView.refreshHd()` swaps tiles, props and far animals in place and
     `WeaponView.refreshRig()` picks the gun's atlas again.
   - **The choice** (`graphicsChoice.ts`, Settings `graphics`: `ask` | `standard` | `hd`, saved with
