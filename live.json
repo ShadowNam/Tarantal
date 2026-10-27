@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-27T06:35:00Z",
+  "updated": "2026-10-27T07:06:00Z",
   "summary": "Live on the test build: Karoo polish (1.8.1, merged 08:18 Namibia time on 27 Oct): the Karoo aloes are a new, sharper drawing that streams in once the hunt has started, the Bushveld aloes use the same drawing at normal resolution, and the potjie on the coals simmers with steam; shoot it and the lid flies off and lands with a clang. v1.8 Blikkies (1.8.0, 03:36) is in too: tin cans on the fence posts that you can juggle in the air until they fly out of sight (Weg!). Tank is building HD graphics now (Standard or HD on the loading screen, about 14:30). Then: far animals in HD, makalani palms, tree life, an Android test app for friends; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
   "current": {
     "version": "1.7.1",
@@ -1581,6 +1581,16 @@
       "at": "2026-10-27T06:22:00Z",
       "kind": "note",
       "text": "The release aim (friends, then the Apple App Store and Google Play; D-052) is written into the project docs; that change is in its tests (#89)."
+    },
+    {
+      "at": "2026-10-27T07:03:00Z",
+      "kind": "merge",
+      "text": "The release aim is now in the project docs (#89, D-052): friends first, then the Apple App Store and Google Play; Poki and CrazyGames are no longer targets."
+    },
+    {
+      "at": "2026-10-27T07:05:00Z",
+      "kind": "note",
+      "text": "The development history has a Karoo polish chapter with six screenshots (#91, merging after its checks)."
     }
   ]
 }
