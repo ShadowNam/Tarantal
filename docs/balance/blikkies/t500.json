@@ -440,5 +440,70 @@
     "weg": 0.216,
     "bestChain": 1.802,
     "maxChain": 7
+  },
+  "guns.karoo.wed.twee_twee/scope_small": {
+    "id": "guns.karoo.wed.twee_twee/scope_small",
+    "label": "Karoo wed · twee_twee scope_small · canHappy",
+    "seeds": 500,
+    "mean": 2966.132,
+    "canMean": 16.702,
+    "canShare": 0.0056309024682650675,
+    "knocks": 3.994,
+    "airHits": 0.078,
+    "weg": 0.006,
+    "bestChain": 0.074,
+    "maxChain": 5
+  },
+  "guns.karoo.wed.windbuks": {
+    "id": "guns.karoo.wed.windbuks",
+    "label": "Karoo wed · windbuks · canHappy",
+    "seeds": 500,
+    "mean": 2524.35,
+    "canMean": 116.83,
+    "canShare": 0.04628122090835265,
+    "knocks": 4,
+    "airHits": 11.18,
+    "weg": 0.81,
+    "bestChain": 3.764,
+    "maxChain": 5
+  },
+  "guns.namibie.wed+dieVerste.twee_twee/scope_small": {
+    "id": "guns.namibie.wed+dieVerste.twee_twee/scope_small",
+    "label": "Namibië wed Die Verste (Ver fence) · .22 scope · canHappy",
+    "seeds": 500,
+    "mean": 1170.614,
+    "canMean": 48.196,
+    "canShare": 0.04117155612353859,
+    "knocks": 3.228,
+    "airHits": 0.008,
+    "weg": 0,
+    "bestChain": 0.006,
+    "maxChain": 1
+  },
+  "kalahari-summer.fri.before": {
+    "id": "kalahari-summer.fri.before",
+    "label": "Kalahari fri (far fence) · before",
+    "seeds": 500,
+    "mean": 4662.126,
+    "canMean": 0,
+    "canShare": 0,
+    "knocks": 0,
+    "airHits": 0,
+    "weg": 0,
+    "bestChain": 0,
+    "maxChain": 0
+  },
+  "kalahari-summer.fri.apexJuggler": {
+    "id": "kalahari-summer.fri.apexJuggler",
+    "label": "Kalahari fri (far fence) · apexJuggler",
+    "seeds": 500,
+    "mean": 3759.918,
+    "canMean": 51.32,
+    "canShare": 0.013649233839674164,
+    "knocks": 4,
+    "airHits": 0.67,
+    "weg": 0,
+    "bestChain": 0.58,
+    "maxChain": 4
   }
 }
