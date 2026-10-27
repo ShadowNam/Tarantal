@@ -25,7 +25,9 @@ import { z } from 'zod';
 import { hdBaseOf } from '../../src/game/assets/hdProps';
 import {
   hdAllowed,
+  hdBird,
   hdGroupOf,
+  HD_GUNS,
   HD_RES,
   HD_SKIP_LAYERS,
   HD_SOURCE_DIR,
@@ -696,7 +698,7 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
           : packAtlas(cells, 2, `${slug(creature)}-${plane}`, group, 'birds', rig, res, x1.alias);
       // D-053: the HD pack's @2x set from the same masters (null when they are smaller).
       const hdSet =
-        rig.hd === false
+        rig.hd === false || !hdBird(plane, group)
           ? null
           : packAtlas(
               cells,
@@ -808,7 +810,7 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
         ? null
         : packAtlas(cells, 2, `gun-${slug(id)}`, group, 'guns', rig, 1, x1.alias);
     const hdSet =
-      rig.hd === false
+      rig.hd === false || !HD_GUNS
         ? null
         : packAtlas(cells, 2, `gun-${slug(id)}`, hdGroupOf(group), 'guns', rig, 1, x1.alias);
     for (const c of Object.values(clipEntries))

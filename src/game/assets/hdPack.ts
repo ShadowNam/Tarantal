@@ -34,6 +34,20 @@ export const HD_SKIP_LAYERS: readonly string[] = ['sky'];
  */
 export const HD_SKIP_KEYS: readonly string[] = ['ui/ammo/', 'helper/meerkat', 'biome/water'];
 
+/**
+ * Memory (Tech §9: ≤ 256 MB of textures): bird atlases get an HD version only on these planes and
+ * outside these groups, and guns none. A 2× gun page is 64 MB and a near pop-up atlas 32 MB; with
+ * them one area's HD hunt would need ~310 MB, without them 226–243 MB (Standard: 95–110 MB).
+ */
+export const HD_BIRD_PLANES: readonly string[] = ['mid', 'far'];
+export const HD_SKIP_BIRD_GROUPS: readonly string[] = ['late'];
+export const HD_GUNS = false;
+
+/** True when a bird atlas of `group` on `plane` gets an HD version. */
+export function hdBird(plane: string, group: string): boolean {
+  return HD_BIRD_PLANES.includes(plane) && !HD_SKIP_BIRD_GROUPS.includes(group);
+}
+
 /** True when `key` may have an HD version. */
 export function hdAllowed(key: string): boolean {
   return !HD_SKIP_KEYS.some((p) => key.startsWith(p));
