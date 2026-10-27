@@ -2969,10 +2969,10 @@ in `art-source/hd/` (96 colours), `npm run art:interim -- --only fauna`. (5) **B
 removal): first download 2,996.0 → 2,992.1 KB gzip (web), Poki 2,989.9 → 2,985.9, CrazyGames
 2,990.0 → 2,986.1; room freed with the Kalahari weaver
 camelthorn and Namibië's nest camelthorn at 128 colours (mean change 2/255, none visible, −40 and
-−35 KB); chunks after (web, gzip): Bushveld 1,466.1 → 1,500.6 KB, Kalahari + desert 1,534.5 →
-1,512.2, Namibië + desert 1,508.3 → 1,500.2, Okavango 1,426.9 → 1,465.2, late 1,399.2 →
-1,421.1, Ver 532.2 → 528.0; HD groups Bushveld 1,984.0 → 2,185.6, Kalahari 1,284.7 → 1,369.4,
-Namibië 1,598.4 → 1,706.5, Okavango 2,377.1 → 2,553.6, late 41.5 → 103.9, Ver 333.2 → 376.8
+−35 KB); chunks after (web, gzip): Bushveld 1,466.1 → 1,501.5 KB, Kalahari + desert 1,534.5 →
+1,512.2, Namibië + desert 1,508.3 → 1,500.1, Okavango 1,426.9 → 1,466.2, late 1,399.2 →
+1,421.1, Ver 532.2 → 528.0; HD groups Bushveld 1,984.0 → 2,185.6, Kalahari 1,284.7 → 1,369.8,
+Namibië 1,598.4 → 1,706.5, Okavango 2,377.1 → 2,555.5, late 41.5 → 104.5, Ver 333.2 → 376.6
 (Karoo 1,587.1 unchanged; all ≤ 4 MB). Texture memory of the far animals per area (Standard /
 HD; v1.9.0 had 0.6–1.9 MB in both): Bushveld 1.7 / 6.7 MB (+5.2 in HD), Okavango 1.5 / 5.9
 (+5.0), Namibië incl. the waterhole 1.2 / 4.6 (+2.8), Kalahari 0.8 / 3.0 (+2.4), Karoo 0.6 /
