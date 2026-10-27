@@ -385,6 +385,7 @@ const hook: TestHook = {
   canMs: 0,
   potjie: null,
   hdProps: [],
+  fauna: [],
   graphics: {
     mode: 'standard',
     setting: 'ask',

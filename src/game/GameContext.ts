@@ -367,6 +367,9 @@ export interface TestHook {
   } | null;
   /** D-051: props with an HD texture: their origin on screen (design px), HD showing yet. */
   hdProps: { id: string; hd: boolean; x: number; y: number }[];
+  /** D-054: every far-animal part drawn: its herd, animal index, part, on-screen box (design px),
+   *  its frame's cut (texture px) and pivot, and its texture's source size. */
+  fauna: FaunaProbe[];
   /**
    * D-053: Standard or HD. `card`: the loading screen asked this launch (`pick`: its
    * recommendation); `loading`: the area's HD pack behind the loading screen; `bounds`: on-screen
@@ -630,4 +633,18 @@ export interface GameContext {
   paused(): boolean;
   debug: boolean;
   readonly hook: TestHook | null;
+}
+
+/** D-054 (test hook): one far-animal part as drawn. */
+export interface FaunaProbe {
+  readonly herd: string;
+  readonly animal: number;
+  readonly part: string;
+  readonly frame: string;
+  readonly box: { x: number; y: number; w: number; h: number };
+  readonly cut: { x: number; y: number; w: number; h: number };
+  readonly origin: { x: number; y: number };
+  readonly scale: { x: number; y: number };
+  readonly angle: number;
+  readonly source: { w: number; h: number };
 }

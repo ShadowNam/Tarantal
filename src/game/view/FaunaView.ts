@@ -6,6 +6,7 @@
 // cropped (the layer's zoom culling leaves these alone) and nothing is hit-tested.
 import type Phaser from 'phaser';
 import type { AssetManifest } from '../assets/AssetManifest';
+import type { FaunaProbe } from '../GameContext';
 import {
   drawOrder,
   FAUNA_BEFORE,
@@ -218,6 +219,28 @@ export class FaunaView {
       });
     }
     return out;
+  }
+
+  /** Test hook: every part as drawn (on-screen box, frame cut, source size). */
+  probe(): FaunaProbe[] {
+    return this.parts.map((p) => {
+      const b = p.img.getBounds();
+      const f = p.img.frame;
+      const src = p.img.texture.source[0];
+      const herd = [...this.roots].find(([, r]) => r.exists(p.img))?.[0] ?? '';
+      return {
+        herd,
+        animal: this.herds.find((h) => h.key === herd)?.animals.indexOf(p.animal) ?? -1,
+        part: p.part,
+        frame: f.name,
+        box: { x: b.x, y: b.y, w: b.width, h: b.height },
+        cut: { x: f.cutX, y: f.cutY, w: f.cutWidth, h: f.cutHeight },
+        origin: { x: p.img.originX, y: p.img.originY },
+        scale: { x: p.img.scaleX, y: p.img.scaleY },
+        angle: p.img.angle,
+        source: { w: src?.width ?? 0, h: src?.height ?? 0 },
+      };
+    });
   }
 
   /** Test hook: animals drawn now. */

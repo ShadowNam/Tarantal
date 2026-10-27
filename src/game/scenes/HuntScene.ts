@@ -683,6 +683,7 @@ export class HuntScene extends Phaser.Scene {
     // Standard and HD).
     hook.graphics.hdTextures = hdTextureCount(this.textures);
     hook.graphics.bounds = sampleBounds(this.boundsSource);
+    hook.fauna = this.parallax?.faunaProbe() ?? [];
     hook.gunAtlases = this.textures.getTextureKeys().filter((k) => k.startsWith('final:gun/'));
   }
 

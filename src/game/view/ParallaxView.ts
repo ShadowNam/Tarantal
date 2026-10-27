@@ -14,6 +14,7 @@ import { isHdTexture, TEX, type AssetManifest } from '../assets/AssetManifest';
 import { HD_PARTS, hdKeyOf } from '../assets/hdProps';
 import { FAUNA_HERDS } from './faunaHerds';
 import { FaunaView, type FaunaOptions } from './FaunaView';
+import type { FaunaProbe } from '../GameContext';
 import { lightTint } from './lightTint';
 import {
   CLOUD_DECKS,
@@ -367,6 +368,11 @@ export class ParallaxView {
   /** D-054: poses the far animals for sim tick `tick` (a held frame holds still). */
   animateFauna(tick: number, calm: boolean): void {
     for (const f of this.fauna) f.update(tick, calm);
+  }
+
+  /** D-054 (test hook): every far-animal part as drawn. */
+  faunaProbe(): FaunaProbe[] {
+    return this.fauna.flatMap((f) => f.probe());
   }
 
   /** D-054 (test hook): far animals drawn now. */
