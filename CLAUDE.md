@@ -1,8 +1,9 @@
 # Tarantal Madness
 
 Browser arcade shooter: a Moorhuhn-style panning shooting gallery set in Southern Africa, starring
-the helmeted guineafowl ("tarentaal"). Desktop + mobile browsers first (web portals, PWA); app-store
-and Steam wrappers later. Signature mechanics: realistic **flock behaviour** (forage → alert → run →
+the helmeted guineafowl ("tarentaal"). Desktop + mobile browsers first: friends play the web test
+build (PWA); then the Apple App Store and Google Play through Capacitor. Poki and CrazyGames are no
+longer targets (D-052). Signature mechanics: realistic **flock behaviour** (forage → alert → run →
 flush) and a 4-season roguelite **Season Run**.
 
 ## Where the truth lives (read the relevant one before a task; don't load all of them)
@@ -86,8 +87,8 @@ add a decision entry.
   Hunt identical on every device (Tech §3.3).
 - `Math.sin/cos/atan2/exp/pow` differ across JS engines — use `src/sim/detmath.ts` inside the sim.
 - Use named RNG streams (`rng.stream('spawns')` etc.); never share one stream across systems.
-- Poki: initial download target < 8 MB, works in incognito, mobile controls on tablets, only the
-  portal's ads, mute during ads. CrazyGames mobile homepage: initial ≤ 20 MB.
+- Poki and CrazyGames are no longer targets (D-052); their adapters and builds stay until removed
+  on purpose. Store apps (Capacitor) bundle every asset; the web first download stays ≤ 3 MB.
 - Full-screen/large flashes (lightning, Voorlaaier, Stampede pulses): no more than 3 per second;
   muzzle flashes stay small local sprites; honour "reduce flashes".
 - No real brand names or logos in art or strings; never use "Moorhuhn"/"Crazy Chicken" in copy.
