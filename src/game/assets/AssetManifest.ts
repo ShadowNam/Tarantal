@@ -136,6 +136,16 @@ function backgroundGroup(group: string): boolean {
 const hdUnderKey = new Map<string, number>();
 /** D-053: textures swapped out (Standard ↔ HD) or no longer wanted, freed once nothing draws them. */
 const retiredTextures = new Set<string>();
+/** D-053: every decoded HD image (to count HD textures for the test hook and the memory check). */
+const hdSources = new WeakSet<object>();
+
+/** D-053: textures in the texture manager whose image is an HD file. */
+export function hdTextureCount(textures: Phaser.Textures.TextureManager): number {
+  let n = 0;
+  for (const key of textures.getTextureKeys())
+    if (textures.get(key).source.some((src) => hdSources.has(src.image as object))) n++;
+  return n;
+}
 let retiredCount = 0;
 
 /**
@@ -925,6 +935,7 @@ export class AssetManifest {
     const image = (f: FileRef): Promise<HTMLImageElement | null> =>
       loadImage(f.path, o.timeoutMs).then((img) => {
         counted(f.path, f.bytes);
+        if (img !== null) hdSources.add(img);
         return img;
       });
     const json = (f: FileRef): Promise<unknown> =>

@@ -369,6 +369,41 @@ export class ParallaxView {
   }
 
   /**
+   * D-053 (test hook): the on-screen boxes (design px, rounded) of each layer's first tile and of
+   * every prop and far animal: the same with Standard and HD art.
+   */
+  boundsSample(): { key: string; x: number; y: number; w: number; h: number }[] {
+    const out: { key: string; x: number; y: number; w: number; h: number }[] = [];
+    const box = (key: string, a: StaticArt): void => {
+      const b = a.img.getBounds();
+      out.push({
+        key,
+        x: Math.round(b.x),
+        y: Math.round(b.y),
+        w: Math.round(b.width),
+        h: Math.round(b.height),
+      });
+    };
+    for (const set of this.tileSets) {
+      const a = set.arts[0];
+      // Tiles differ in count (2048 texture px each); their union is what must match.
+      if (a === undefined) continue;
+      const last = set.arts[set.arts.length - 1] ?? a;
+      const b0 = a.img.getBounds();
+      const b1 = last.img.getBounds();
+      out.push({
+        key: `layer:${set.asset}`,
+        x: Math.round(b0.x),
+        y: Math.round(b0.y),
+        w: Math.round(b1.right - b0.x),
+        h: Math.round(b0.height),
+      });
+    }
+    for (const { art, key } of this.keyed) box(key, art);
+    return out;
+  }
+
+  /**
    * D-053: when the manifest swapped art in or out since (AssetManifest.applyHd: HD landed
    * after "Play now in Standard"), puts each layer's tiles, each prop and far animal on the art
    * it serves now, in place: same positions, same on-screen size, same order. Returns true when
