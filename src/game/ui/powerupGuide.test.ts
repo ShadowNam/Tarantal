@@ -23,7 +23,7 @@ function oddNumbers(b: ContentBundle): ContentBundle {
       ...b.powerups,
       powerups: b.powerups.powerups.map((p) => ({
         ...p,
-        padstalPrice: 17,
+        ...(p.padstalPrice !== undefined ? { padstalPrice: 17 } : {}),
         ...(p.durationMs !== undefined ? { durationMs: 13_000 } : {}),
         ...(p.durationShells !== undefined ? { durationShells: 11 } : {}),
         effect: {
@@ -32,6 +32,7 @@ function oddNumbers(b: ContentBundle): ContentBundle {
           ...(p.effect.creatureTimeScale !== undefined ? { creatureTimeScale: 0.37 } : {}),
           ...(p.effect.reloadTimeMul !== undefined ? { reloadTimeMul: 0.37 } : {}),
           ...(p.effect.idleTopUpMs !== undefined ? { idleTopUpMs: 900 } : {}),
+          ...(p.effect.fireCooldownMul !== undefined ? { fireCooldownMul: 0.37 } : {}),
         },
       })),
     },
@@ -54,7 +55,7 @@ function oddNumbers(b: ContentBundle): ContentBundle {
 }
 
 describe('the power-up guide (D-046)', () => {
-  it('has a card for each of the four power-ups, the two reload ones and the two crate guns', () => {
+  it('has a card for each of the four power-ups, the two reload ones, the Rooikol and the two crate guns', () => {
     expect(guideIds(content).map((c) => c.id)).toEqual([
       'chilli_biltong',
       'boeretroos',
@@ -62,6 +63,7 @@ describe('the power-up guide (D-046)', () => {
       'meerkat_spotter',
       'blitslaai',
       'oupa_laai',
+      'rooikol',
       'voorlaaier',
       'mielie_masjien',
     ]);
@@ -117,6 +119,12 @@ describe('the power-up guide (D-046)', () => {
       'Rent it at the Farm Stall in a Season Run for one hunt: 5 caps',
     );
     expect(by('meerkat_spotter')?.how).toContain('Some farm secrets give it too');
+    // 1.9.2 (D-055): rifle-only, from crates, never sold.
+    expect(by('rooikol')?.how).toEqual([
+      'Shoot a supply crate in a Classic or Daily hunt while you carry a rifle (The Twenty-Two or The Long Rifle)',
+    ]);
+    expect(by('rooikol')?.effect).toContain('50 % of normal');
+    expect(by('rooikol')?.icon).toBe('ui/pu_rooikol');
     expect(by('oupa_laai')?.found).toBe(true);
     expect(by('blitslaai')?.found).toBe(false);
     expect(by('chilli_biltong')?.icon).toBe('ui/pu_chilli_biltong');

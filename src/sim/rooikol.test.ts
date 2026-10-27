@@ -58,6 +58,13 @@ function pickUp(sim: Sim, c: Content): void {
   expect(ofType(ev, 'crateOpened')).toMatchObject([{ item: 'rooikol' }]);
 }
 
+/** A primary gun's normal time between shots, in ticks. */
+function cooldownTicks(id: string): number {
+  const w = base.weapons.weapons.find((x) => x.id === id);
+  if (w?.kind !== 'primary') throw new Error(`no primary ${id}`);
+  return msToTicks(w.fireCooldownMs);
+}
+
 function waitCooldown(sim: Sim): number {
   let n = 0;
   while (sim.snapshot().weapon.cooldownTicks > 0 && n < 400) {
@@ -150,8 +157,7 @@ describe.each(['twee_twee', 'langloop'] as const)('Rooikol with %s', (gun) => {
   it('the time between shots is × fireCooldownMul while it runs, normal after it ends', () => {
     const c = crates('rooikol');
     const sim = newSim(c, rifle(gun));
-    const w = c.weapons.weapons.find((x) => x.id === gun);
-    const normal = msToTicks(w?.fireCooldownMs ?? 0);
+    const normal = cooldownTicks(gun);
     pickUp(sim, c);
     // The pickup shot itself went off under the old cooldown; the next ones are faster.
     waitCooldown(sim);
@@ -187,7 +193,6 @@ describe.each(['twee_twee', 'langloop'] as const)('Rooikol with %s', (gun) => {
     expect(tap()).toBe(1);
     const gap = waitCooldown(sim);
     expect(tap()).toBe(1);
-    const w = c.weapons.weapons.find((x) => x.id === gun);
-    expect(gap).toBeLessThan(msToTicks(w?.fireCooldownMs ?? 0));
+    expect(gap).toBeLessThan(cooldownTicks(gun));
   });
 });
