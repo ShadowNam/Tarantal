@@ -1,0 +1,324 @@
+{
+ "standard": [
+  {
+   "cameraX": 2560,
+   "layers": [
+    {
+     "key": "layer:karoo/sky",
+     "x": -380,
+     "y": 0,
+     "w": 2680,
+     "h": 1080,
+     "hd": false
+    },
+    {
+     "key": "layer:karoo/far_ridge",
+     "x": -540,
+     "y": 380,
+     "w": 3000,
+     "h": 280,
+     "hd": false
+    },
+    {
+     "key": "layer:karoo/far_veld",
+     "x": -860,
+     "y": 464,
+     "w": 3640,
+     "h": 232,
+     "hd": false
+    },
+    {
+     "key": "layer:karoo/mid",
+     "x": -1260,
+     "y": 430,
+     "w": 4440,
+     "h": 480,
+     "hd": false
+    },
+    {
+     "key": "layer:karoo/near",
+     "x": -1900,
+     "y": 820,
+     "w": 5720,
+     "h": 260,
+     "hd": false
+    },
+    {
+     "key": "layer:karoo/foreground",
+     "x": -2220,
+     "y": 880,
+     "w": 6360,
+     "h": 200,
+     "hd": false
+    }
+   ]
+  },
+  {
+   "cameraX": 960,
+   "layers": [
+    {
+     "key": "layer:karoo/sky",
+     "x": -300,
+     "y": 0,
+     "w": 2680,
+     "h": 1080,
+     "hd": false
+    },
+    {
+     "key": "layer:karoo/far_ridge",
+     "x": -300,
+     "y": 380,
+     "w": 3000,
+     "h": 280,
+     "hd": false
+    },
+    {
+     "key": "layer:karoo/far_veld",
+     "x": -300,
+     "y": 464,
+     "w": 3640,
+     "h": 232,
+     "hd": false
+    },
+    {
+     "key": "layer:karoo/mid",
+     "x": -300,
+     "y": 430,
+     "w": 4440,
+     "h": 480,
+     "hd": false
+    },
+    {
+     "key": "layer:karoo/near",
+     "x": -300,
+     "y": 820,
+     "w": 5720,
+     "h": 260,
+     "hd": false
+    },
+    {
+     "key": "layer:karoo/foreground",
+     "x": -300,
+     "y": 880,
+     "w": 6360,
+     "h": 200,
+     "hd": false
+    }
+   ]
+  },
+  {
+   "cameraX": 4160,
+   "layers": [
+    {
+     "key": "layer:karoo/sky",
+     "x": -460,
+     "y": 0,
+     "w": 2680,
+     "h": 1080,
+     "hd": false
+    },
+    {
+     "key": "layer:karoo/far_ridge",
+     "x": -780,
+     "y": 380,
+     "w": 3000,
+     "h": 280,
+     "hd": false
+    },
+    {
+     "key": "layer:karoo/far_veld",
+     "x": -1420,
+     "y": 464,
+     "w": 3640,
+     "h": 232,
+     "hd": false
+    },
+    {
+     "key": "layer:karoo/mid",
+     "x": -2220,
+     "y": 430,
+     "w": 4440,
+     "h": 480,
+     "hd": false
+    },
+    {
+     "key": "layer:karoo/near",
+     "x": -3500,
+     "y": 820,
+     "w": 5720,
+     "h": 260,
+     "hd": false
+    },
+    {
+     "key": "layer:karoo/foreground",
+     "x": -4140,
+     "y": 880,
+     "w": 6360,
+     "h": 200,
+     "hd": false
+    }
+   ]
+  }
+ ],
+ "hd": [
+  {
+   "cameraX": 2560,
+   "layers": [
+    {
+     "key": "layer:karoo/sky",
+     "x": -380,
+     "y": 0,
+     "w": 2680,
+     "h": 1080,
+     "hd": false
+    },
+    {
+     "key": "layer:karoo/far_ridge",
+     "x": -540,
+     "y": 380,
+     "w": 3000,
+     "h": 280,
+     "hd": true
+    },
+    {
+     "key": "layer:karoo/far_veld",
+     "x": -860,
+     "y": 464,
+     "w": 3640,
+     "h": 232,
+     "hd": true
+    },
+    {
+     "key": "layer:karoo/mid",
+     "x": -1260,
+     "y": 430,
+     "w": 4440,
+     "h": 480,
+     "hd": true
+    },
+    {
+     "key": "layer:karoo/near",
+     "x": -1900,
+     "y": 820,
+     "w": 5720,
+     "h": 260,
+     "hd": true
+    },
+    {
+     "key": "layer:karoo/foreground",
+     "x": -2220,
+     "y": 880,
+     "w": 6360,
+     "h": 200,
+     "hd": true
+    }
+   ]
+  },
+  {
+   "cameraX": 960,
+   "layers": [
+    {
+     "key": "layer:karoo/sky",
+     "x": -300,
+     "y": 0,
+     "w": 2680,
+     "h": 1080,
+     "hd": false
+    },
+    {
+     "key": "layer:karoo/far_ridge",
+     "x": -300,
+     "y": 380,
+     "w": 3000,
+     "h": 280,
+     "hd": true
+    },
+    {
+     "key": "layer:karoo/far_veld",
+     "x": -300,
+     "y": 464,
+     "w": 3640,
+     "h": 232,
+     "hd": true
+    },
+    {
+     "key": "layer:karoo/mid",
+     "x": -300,
+     "y": 430,
+     "w": 4440,
+     "h": 480,
+     "hd": true
+    },
+    {
+     "key": "layer:karoo/near",
+     "x": -300,
+     "y": 820,
+     "w": 5720,
+     "h": 260,
+     "hd": true
+    },
+    {
+     "key": "layer:karoo/foreground",
+     "x": -300,
+     "y": 880,
+     "w": 6360,
+     "h": 200,
+     "hd": true
+    }
+   ]
+  },
+  {
+   "cameraX": 4160,
+   "layers": [
+    {
+     "key": "layer:karoo/sky",
+     "x": -460,
+     "y": 0,
+     "w": 2680,
+     "h": 1080,
+     "hd": false
+    },
+    {
+     "key": "layer:karoo/far_ridge",
+     "x": -780,
+     "y": 380,
+     "w": 3000,
+     "h": 280,
+     "hd": true
+    },
+    {
+     "key": "layer:karoo/far_veld",
+     "x": -1420,
+     "y": 464,
+     "w": 3640,
+     "h": 232,
+     "hd": true
+    },
+    {
+     "key": "layer:karoo/mid",
+     "x": -2220,
+     "y": 430,
+     "w": 4440,
+     "h": 480,
+     "hd": true
+    },
+    {
+     "key": "layer:karoo/near",
+     "x": -3500,
+     "y": 820,
+     "w": 5720,
+     "h": 260,
+     "hd": true
+    },
+    {
+     "key": "layer:karoo/foreground",
+     "x": -4140,
+     "y": 880,
+     "w": 6360,
+     "h": 200,
+     "hd": true
+    }
+   ]
+  }
+ ]
+}
