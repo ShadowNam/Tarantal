@@ -17,7 +17,11 @@ import {
 } from '../placeholder/sightArt';
 import type { ZoomState } from './zoomView';
 
-export type SightPicture = 'iron' | 'peep' | 'scope' | 'scope_range';
+/** 1.9.2 (D-055): 'red_dot' is the Rooikol power-up's reticle (no content sight has it). */
+export type SightPicture = 'iron' | 'peep' | 'scope' | 'scope_range' | 'red_dot';
+
+/** 1.9.2 (D-055): the red dot's look (design px): the dot, its soft glow and a faint ring. */
+const RED_DOT = { dot: 7, glow: 16, ring: 46, colour: 0xff2a1a, core: 0xffd0c8 } as const;
 
 const hex = (c: string): number => Number.parseInt(c.slice(1), 16);
 
@@ -39,6 +43,11 @@ export class SightView {
   ) {
     this.root = scene.add.container(0, 0).setVisible(false);
     layer.add(this.root);
+  }
+
+  /** The picture drawn now (null = none). */
+  get current(): SightPicture | null {
+    return this.picture;
   }
 
   /** v1.6 (D-042): drops the picture so the next setPicture() rebuilds it (new textures). */
@@ -72,6 +81,19 @@ export class SightView {
       this.front = image(TEX.sightIronFront, SIGHT_SCALE.ironFront);
       this.rear = image(TEX.sightIronRear, SIGHT_SCALE.ironRear);
       this.fills.push(add(this.scene.add.rectangle(0, 0, 1, 1, hex(IRON_PLATE)).setOrigin(0, 0)));
+      return;
+    }
+    if (picture === 'red_dot') {
+      // 1.9.2 (D-055) Rooikol: no tube, no glass edge, no zoom: a bright red dot with a soft
+      // glow, a faint ring to find it against a busy veld, and a pale core so it reads on red.
+      const ret = this.scene.add.container(0, 0);
+      ret.add([
+        this.scene.add.circle(0, 0, RED_DOT.ring, 0, 0).setStrokeStyle(2, RED_DOT.colour, 0.45),
+        this.scene.add.circle(0, 0, RED_DOT.glow, RED_DOT.colour, 0.28),
+        this.scene.add.circle(0, 0, RED_DOT.dot, RED_DOT.colour, 1).setStrokeStyle(1.5, 0x3a0805),
+        this.scene.add.circle(0, 0, RED_DOT.dot * 0.35, RED_DOT.core, 1),
+      ]);
+      this.reticle = add(ret);
       return;
     }
     if (picture === 'peep') {

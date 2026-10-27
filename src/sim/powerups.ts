@@ -73,6 +73,12 @@ export interface PowerupEffects {
   readonly autoReload: boolean;
   /** Ticks without a shot before a per-shell gun tops up by itself; null = never. */
   readonly idleTopUpTicks: number | null;
+  /** 1.9.2 (D-055) Rooikol: rifles aim through a red dot (up at once, no zoom). */
+  readonly redDot: boolean;
+  /** Red-dot sway × this (the lowest wins). 1 = the sight's own. */
+  readonly redDotSwayMul: number;
+  /** A rifle's time between shots × this; factors multiply. 1 = normal. */
+  readonly fireCooldownMul: number;
 }
 
 export function effectsOf(list: readonly ActivePowerup[]): PowerupEffects {
@@ -84,6 +90,9 @@ export function effectsOf(list: readonly ActivePowerup[]): PowerupEffects {
   let reloadTimeMul = 1;
   let autoReload = false;
   let idleTopUpTicks: number | null = null;
+  let redDot = false;
+  let redDotSwayMul = 1;
+  let fireCooldownMul = 1;
   for (const p of list) {
     const e = p.def.effect;
     if (e.autoFire === true) autoFire = true;
@@ -98,6 +107,9 @@ export function effectsOf(list: readonly ActivePowerup[]): PowerupEffects {
       const t = Math.max(1, msToTicks(e.idleTopUpMs));
       idleTopUpTicks = idleTopUpTicks === null ? t : Math.min(idleTopUpTicks, t);
     }
+    if (e.redDot === true) redDot = true;
+    if (e.redDotSwayMul !== undefined) redDotSwayMul = Math.min(redDotSwayMul, e.redDotSwayMul);
+    if (e.fireCooldownMul !== undefined) fireCooldownMul *= e.fireCooldownMul;
   }
   return {
     autoFire,
@@ -108,6 +120,9 @@ export function effectsOf(list: readonly ActivePowerup[]): PowerupEffects {
     reloadTimeMul,
     autoReload,
     idleTopUpTicks,
+    redDot,
+    redDotSwayMul,
+    fireCooldownMul,
   };
 }
 

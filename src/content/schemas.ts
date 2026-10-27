@@ -625,14 +625,28 @@ export const PowerupsSchema = obj({
               autoReload: z.boolean().optional(),
               /** v1.6b Oupa Laai: per-shell guns top up after this long without a shot. */
               idleTopUpMs: posInt.optional(),
+              /** 1.9.2 (D-055) Rooikol: a rifle aims through a red dot instead of its sight: up
+               *  at once (no raise), no magnification (the view only), the sway of the sight's
+               *  first step × redDotSwayMul. */
+              redDot: z.boolean().optional(),
+              redDotSwayMul: z.number().min(0).max(1).optional(),
+              /** 1.9.2 (D-055) Rooikol: a rifle's time between shots × this (multiplies). */
+              fireCooldownMul: z.number().gt(0).max(1).optional(),
             })
             .refine((e) => Object.keys(e).length > 0, 'effect needs at least one entry'),
           durationMs: posInt.optional(),
           durationShells: posInt.optional(),
-          padstalPrice: posInt,
+          /** Season Run Padstal price; absent = never offered there. */
+          padstalPrice: posInt.optional(),
+          /** 1.9.2 (D-055): only for a rifle (a gun with a sight): crates hold it only when the
+           *  hunt's gun has one, and the Padstal never offers it (a run's gun can change). */
+          needsSight: z.boolean().optional(),
         })
         .refine((p) => p.durationMs !== undefined || p.durationShells !== undefined, {
           message: 'power-ups need durationMs or durationShells',
+        })
+        .refine((p) => p.padstalPrice !== undefined || p.needsSight === true, {
+          message: 'power-ups need a padstalPrice unless they need a sight (D-055)',
         }),
     )
     .min(1),

@@ -53,7 +53,9 @@ export function guideValues(
       out['speed'] = pct === 50 ? tr.text('guide.half') : `${pct} %`;
     }
     if (e.idleTopUpMs !== undefined) out['idle'] = num(e.idleTopUpMs / 1000);
-    return { ...out, ...shopValues(tr, pu.padstalPrice) };
+    // 1.9.2 (D-055) Rooikol: the time between shots as a share of normal.
+    if (e.fireCooldownMul !== undefined) out['pct'] = String(Math.round(e.fireCooldownMul * 100));
+    return pu.padstalPrice === undefined ? out : { ...out, ...shopValues(tr, pu.padstalPrice) };
   }
   const w = content.weapons.weapons.find((x) => x.id === id && x.kind === 'crate');
   if (w !== undefined && w.kind === 'crate') {
@@ -128,8 +130,11 @@ export function guideCards(
   return guideIds(content).map(({ id, kind }) => {
     const values = guideValues(content, id, tr, lang);
     const how: string[] = [];
-    if (inCrates.has(id)) how.push(tr.text('guide.how.crate'));
-    how.push(filled(tr, kind === 'weapon' ? 'guide.how.rent' : 'guide.how.padstal', values));
+    // 1.9.2 (D-055): a rifle-only power-up drops only while a rifle is in hand, never sold.
+    const rifle = content.powerups.powerups.some((p) => p.id === id && p.needsSight === true);
+    if (inCrates.has(id)) how.push(tr.text(rifle ? 'guide.how.crate_rifle' : 'guide.how.crate'));
+    if (kind === 'weapon' || values['price'] !== undefined)
+      how.push(filled(tr, kind === 'weapon' ? 'guide.how.rent' : 'guide.how.padstal', values));
     if (fromSecret.has(id)) how.push(tr.text('guide.how.secret'));
     return {
       id,

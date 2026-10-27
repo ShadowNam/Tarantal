@@ -321,7 +321,7 @@ const hook: TestHook = {
   stones: 0,
   ammo: [],
   crosshair: { weapon: '', extent: 0, visible: false, x: 0, y: 0 },
-  zoom: { z: 1, raise: 0, reticleX: 0, reticleY: 0, sight: null, fill: 0 },
+  zoom: { z: 1, raise: 0, reticleX: 0, reticleY: 0, sight: null, picture: null, fill: 0 },
   shots: 0,
   over: false,
   inputKind: null,

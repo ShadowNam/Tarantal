@@ -59,6 +59,8 @@ export function spawnCrate(
   biome: Biome,
   s: CrateSpawn,
   rng: RandomStream,
+  /** 1.9.2 (D-055): table ids this hunt can't drop (see rollCrate). */
+  skip: ReadonlySet<string> = new Set(),
 ): Crate | null {
   const lane = biome.lanes[cfg.plane];
   const sky = lane?.skyY;
@@ -76,7 +78,7 @@ export function spawnCrate(
     lingerLeft: Math.max(1, msToTicks(cfg.lingerMs)),
     rx: cfg.hitbox.rx * s.planeScale,
     ry: cfg.hitbox.ry * s.planeScale,
-    item: rollCrate(cfg, rng),
+    item: rollCrate(cfg, rng, skip),
   };
 }
 
@@ -96,9 +98,14 @@ export interface CrateItem {
   readonly type: 'powerup' | 'weapon';
 }
 
-/** Rolls the crate table (weights). */
-export function rollCrate(cfg: CrateConfig, rng: RandomStream): CrateItem | null {
-  const i = rng.weightedIndex(cfg.table.map((e) => e.weight));
+/** Rolls the crate table (weights). 1.9.2 (D-055): ids in `skip` weigh nothing (a rifle-only
+ *  power-up in a hunt without a rifle); with nothing skipped the draw is as before. */
+export function rollCrate(
+  cfg: CrateConfig,
+  rng: RandomStream,
+  skip: ReadonlySet<string> = new Set(),
+): CrateItem | null {
+  const i = rng.weightedIndex(cfg.table.map((e) => (skip.has(e.id) ? 0 : e.weight)));
   const e = cfg.table[i];
   return e === undefined ? null : { id: e.id, type: e.type ?? 'powerup' };
 }

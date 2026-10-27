@@ -1035,6 +1035,8 @@ export const TEX = {
   puMeerkatSpotter: 'ui/pu_meerkat_spotter',
   puVoorlaaier: 'ui/pu_voorlaaier',
   puMielieMasjien: 'ui/pu_mielie_masjien',
+  // 1.9.2 (D-055): the Rooikol (red dot sight) power-up.
+  puRooikol: 'ui/pu_rooikol',
   bolt: 'fx/bolt',
   // v1.4 B (D-039): angry sociable weavers (WeaverView), shared by every biome with a nest.
   weaverUp: 'fx/weaver_up',

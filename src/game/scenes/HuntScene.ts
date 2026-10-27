@@ -1715,13 +1715,16 @@ export class HuntScene extends Phaser.Scene {
     // v1.3 (D-036): a raised rifle sight zooms the world around the aim point (zoomView.ts).
     const { height } = designSize();
     // The hunt is over: the sight comes down (the tally never opens over a frozen scope view).
+    // 1.9.2 (D-055) Rooikol: a red dot is up at once and magnifies nothing (the view's call).
+    const aimed = runner.over ? null : interpolateAim(runner.prev, state, alpha);
+    const redDot = state.aim?.redDot === true;
     const zoom = zoomFor(
-      runner.over ? null : interpolateAim(runner.prev, state, alpha),
+      aimed !== null && redDot ? { ...aimed, zoom: 1, progress: 1 } : aimed,
       width,
       height,
     );
     this.zoomView = zoom;
-    this.sight.setPicture(this.sightPicture(state.weapon.sight));
+    this.sight.setPicture(redDot ? 'red_dot' : this.sightPicture(state.weapon.sight));
     // v1.4 (#56): a fully raised ring sight hides the screen outside its square.
     this.parallax.cullZoomed = HuntScene.cullZoomed;
     this.parallax.setZoom(zoom.z, zoom.cx, zoom.cy, this.sight.opaqueOutside(zoom));
@@ -1791,6 +1794,7 @@ export class HuntScene extends Phaser.Scene {
         reticleX: Math.round(z.reticleX * 10) / 10,
         reticleY: Math.round(z.reticleY * 10) / 10,
         sight: state.weapon.sight,
+        picture: this.sight.current,
       };
     }
     const safe = this.ctx.safeArea();

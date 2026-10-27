@@ -60,6 +60,8 @@ export interface Aim {
   /** Zoom step: the step at the press; v1.4 (D-038) a zoom command while held changes it at once
    *  (variable scope: the view and the sway follow it). */
   step: number;
+  /** 1.9.2 (D-055) Rooikol: raised as a red dot (up at once, no zoom); kept for the whole hold. */
+  redDot?: boolean;
 }
 
 /** Starts a raise: two draws from the sway stream (always two, whatever the sight). */
