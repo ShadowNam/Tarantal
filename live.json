@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-27T18:50:00Z",
+ "updated": "2026-10-27T20:50:00Z",
  "summary": "Live on the test build: HD graphics (1.9.0, merged 16:05 Namibia time on 27 Oct): on first start a light card asks Standard or HD, with \"Remember my choice\" (also in Settings → Graphics). HD loads each area's sharper art pack (2.2–3.3 MB) behind the loading screen; on a slow connection \"Play now in Standard\" appears and HD swaps in during play. Standard and the fast first download are unchanged. Karoo polish (1.8.1, 08:18) is in too. Tank is building far animals in HD now (a redraw of every distant herd, about 23:30). Then: makalani palms, tree life, an Android test app for friends; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
   "version": "1.7.1",
@@ -957,6 +957,26 @@
    "date": "27 Oct, 20:30",
    "text": "Prep Christmas and then New Year; line them up",
    "outcome": "Both Daily specials are on the board after The Harvest"
+  },
+  {
+   "date": "27 Oct, 22:45",
+   "text": "Add a red dot sight as a power-up for the .22 and the long-range gun: faster aiming and shooting than the zooming scope",
+   "outcome": "Next job after far animals: playtest fixes and the red dot sight"
+  },
+  {
+   "date": "27 Oct, 22:45",
+   "text": "Bug: a falling crate's power-up picture shows in two places at the wrong time (a layer mismatch)",
+   "outcome": "Next job after far animals: playtest fixes and the red dot sight"
+  },
+  {
+   "date": "27 Oct, 22:45",
+   "text": "Bug: after \"Ten seconds!\" the time left feels much shorter than 10 seconds",
+   "outcome": "Next job after far animals: playtest fixes and the red dot sight"
+  },
+  {
+   "date": "27 Oct, 22:45",
+   "text": "Far animals: shrink another 5%, and the ostriches are still too big",
+   "outcome": "All herds 0.57 of true size, ostriches 0.45; in the far animals job"
   }
  ],
  "extraDecisions": [
@@ -1706,6 +1726,11 @@
    "at": "2026-10-27T18:48:00Z",
    "kind": "decision",
    "text": "Oupa's voices come last, once all the text is final: one automated job using a voice API key (OpenRouter likely), with every clip checked by speech-to-text."
+  },
+  {
+   "at": "2026-10-27T20:48:00Z",
+   "kind": "request",
+   "text": "From your playtest: a red dot sight power-up, the crate picture bug and the late \"Ten seconds!\" call are the next job; herds another 5% smaller and ostriches smaller still."
   }
  ]
 }

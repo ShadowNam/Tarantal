@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "updated": "2026-10-27T18:50:00Z",
+ "updated": "2026-10-27T20:50:00Z",
  "by": "Claude",
  "summary": "Live on the test build: HD graphics (1.9.0, merged 16:05 Namibia time on 27 Oct): on first start a light card asks Standard or HD, with \"Remember my choice\" (also in Settings → Graphics). HD loads each area's sharper art pack (2.2–3.3 MB) behind the loading screen; on a slow connection \"Play now in Standard\" appears and HD swaps in during play. Standard and the fast first download are unchanged. Karoo polish (1.8.1, 08:18) is in too. Tank is building far animals in HD now (a redraw of every distant herd, about 23:30). Then: makalani palms, tree life, an Android test app for friends; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
@@ -1779,12 +1779,21 @@
    "requestedBy": "You, 26 Oct: \"The zebras, giraffes and elephant … look very cartoony … They still look too much like stick figures.\""
   },
   {
+   "id": "playtest-fixes-and-the-red-dot-sight-the",
+   "title": "Playtest fixes and the red dot sight: the falling crate's power-up picture drawn in one place, the \"Ten seconds!\" call on time, and a new red dot sight power-up for the scoped guns (faster aiming, no zoom wait) (your playtest, 27 Oct)",
+   "phase": "Version 1.x",
+   "status": "next",
+   "start": "2026-10-27T23:30:00Z",
+   "end": "2026-10-28T05:30:00Z",
+   "estimate": true
+  },
+  {
    "id": "makalani-palms-in-the-okavango-hanging-n",
    "title": "Makalani palms in the Okavango: hanging nut clusters you can shoot down, juggle and pop; reflections in the water at dusk; plus Blikkies cans on the Karoo's far fence (your requests, 26 and 27 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-27T23:30:00Z",
-   "end": "2026-10-28T06:30:00Z",
+   "start": "2026-10-28T05:30:00Z",
+   "end": "2026-10-28T12:30:00Z",
    "estimate": true,
    "summary": "Makalani palms by the water in the Okavango, with reflections at dusk and clusters of glossy brown nuts. A nut hit cracks off and falls; hit it in the air and it juggles like a can; a full shotgun hit pops it into fibre and ivory chips. Secret: 3 nuts in one hunt.",
    "owner": "Tank builds it; Claude reviews",
@@ -1795,8 +1804,8 @@
    "title": "Tree life: a detailed baobab with real hanging fruit and residents peeking from its hollows (bushbaby, squirrel, owl, hornbill); weavers flying around their colony nest with a pygmy falcon (your request, 26 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-28T06:30:00Z",
-   "end": "2026-10-28T12:30:00Z",
+   "start": "2026-10-28T12:30:00Z",
+   "end": "2026-10-28T18:30:00Z",
    "estimate": true,
    "summary": "A detailed baobab with real hanging fruit and residents peeking from its hollows (bushbaby, tree squirrel, barn owl, a hornbill at its sealed nest); sociable weavers flying in and out of their colony nest with a pygmy falcon now and then (and lovebirds in Namibië). They are never hurt and duck away when you shoot near them.",
    "owner": "Tank builds it; Claude reviews",
@@ -1807,8 +1816,8 @@
    "title": "Android test app: an installable APK for friends, built by GitHub with all the art inside so it works offline; a download page on the test site (your choice, 27 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-28T12:30:00Z",
-   "end": "2026-10-28T17:30:00Z",
+   "start": "2026-10-28T18:30:00Z",
+   "end": "2026-10-28T23:30:00Z",
    "estimate": true
   },
   {
@@ -1816,8 +1825,8 @@
    "title": "v1.7d: Namibië veld life: detailed grass and sand, ostriches and their nest, oryx in the mirage, hot-air balloons (your request, 25 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-28T17:30:00Z",
-   "end": "2026-10-28T23:30:00Z",
+   "start": "2026-10-28T23:30:00Z",
+   "end": "2026-10-29T05:30:00Z",
    "estimate": true,
    "version": "1.7.3",
    "summary": "Namibië first: much more detailed bushman grass and sand (no black lines between the distances), then a pair of ostriches at their nest (they run from nearby shots), a herd of oryx far away shimmering in the mirage, and hot-air balloons drifting by (not targets).",
@@ -1829,8 +1838,8 @@
    "title": "v1.7e: realistic Bushveld rocks and middle distance; a new secret cue instead of the star (mock-ups for you first) (your request, 25 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-28T23:30:00Z",
-   "end": "2026-10-29T06:30:00Z",
+   "start": "2026-10-29T05:30:00Z",
+   "end": "2026-10-29T12:30:00Z",
    "estimate": true,
    "version": "1.7.4",
    "summary": "First, mock-ups of three ways to replace the star glint on secrets: (A) a small unique animal that always lives at each secret (e.g. a rock agama nodding on the dassie koppie, a lilac-breasted roller on the windmill) — Claude's pick and your idea; (B) natural cues only; (C) no cue, Oupa hints in words. You choose. Meanwhile: realistic Bushveld granite boulders and koppies, real ridges in the haze, textured winter veld, no black lines between the distances.",
@@ -1842,8 +1851,8 @@
    "title": "v1.8b: Bobbejane: baboon troops on the ridges; raiders come down to cause trouble (your request, 25 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-29T06:30:00Z",
-   "end": "2026-10-29T12:30:00Z",
+   "start": "2026-10-29T12:30:00Z",
+   "end": "2026-10-29T18:30:00Z",
    "estimate": true,
    "version": "1.8.1",
    "summary": "Chacma baboon troops on the ridges of most maps. Now and then raiders come down to cause trouble (steal Oupa's hat, raid fruit, throw fruit at the flock). A raider takes 2 hits and goes down like a guineafowl (your choice). Mothers with babies stay out of range and are never targets.",
@@ -1855,8 +1864,8 @@
    "title": "v1.8c: Die Oes (The Harvest): a new 30-second mode; hold the animals off the crops while the fence is fixed (your idea, 25 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-29T12:30:00Z",
-   "end": "2026-10-29T21:30:00Z",
+   "start": "2026-10-29T18:30:00Z",
+   "end": "2026-10-30T03:30:00Z",
    "estimate": true,
    "version": "1.8.2",
    "summary": "A new mode on the title screen. The fence breaks, guineafowl, warthogs and baboons pour into the harvest field, and you have 30 seconds to hold them off while the farm workers fix the fence. A crop meter shows what you saved; the workers are never targets. Tank writes a short plan first.",
@@ -1868,8 +1877,8 @@
    "title": "Christmas Daily (25 Dec): Christmas in the sun, tinsel on the camelthorn, Oupa in a Santa hat and shorts (your pick, 27 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-29T21:30:00Z",
-   "end": "2026-10-30T03:30:00Z",
+   "start": "2026-10-30T03:30:00Z",
+   "end": "2026-10-30T09:30:00Z",
    "estimate": true
   },
   {
@@ -1877,8 +1886,8 @@
    "title": "New Year Daily: a countdown hunt with party hats, small fireworks and double points in the last 10 s (your pick, 27 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-30T03:30:00Z",
-   "end": "2026-10-30T08:30:00Z",
+   "start": "2026-10-30T09:30:00Z",
+   "end": "2026-10-30T14:30:00Z",
    "estimate": true
   },
   {
@@ -1886,8 +1895,8 @@
    "title": "v1.9: the veld soundscape and local music (doves, hadedas, cicadas, fish eagle; marimba, mbira, drums)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-30T08:30:00Z",
-   "end": "2026-10-30T13:30:00Z",
+   "start": "2026-10-30T14:30:00Z",
+   "end": "2026-10-30T19:30:00Z",
    "estimate": true,
    "version": "1.9.0"
   },
@@ -1896,8 +1905,8 @@
    "title": "v1.10: Reënbui — the first rain and the flying-ant feast",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-30T13:30:00Z",
-   "end": "2026-10-30T18:30:00Z",
+   "start": "2026-10-30T19:30:00Z",
+   "end": "2026-10-31T00:30:00Z",
    "estimate": true,
    "version": "1.10.0"
   },
@@ -1906,8 +1915,8 @@
    "title": "v1.11: Die Braai — the day ends at Oupa's fire under the Milky Way",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-30T18:30:00Z",
-   "end": "2026-10-30T23:30:00Z",
+   "start": "2026-10-31T00:30:00Z",
+   "end": "2026-10-31T05:30:00Z",
    "estimate": true,
    "version": "1.11.0"
   },
@@ -1916,8 +1925,8 @@
    "title": "v1.12: Brakkie, the farm dog",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-30T23:30:00Z",
-   "end": "2026-10-31T05:30:00Z",
+   "start": "2026-10-31T05:30:00Z",
+   "end": "2026-10-31T11:30:00Z",
    "estimate": true,
    "version": "1.12.0"
   },
@@ -1926,8 +1935,8 @@
    "title": "v1.13: veld cameos — warthogs, baboons, springbok, elephants, ostrich, dung beetle",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-31T05:30:00Z",
-   "end": "2026-10-31T11:30:00Z",
+   "start": "2026-10-31T11:30:00Z",
+   "end": "2026-10-31T17:30:00Z",
    "estimate": true,
    "version": "1.13.0"
   },
@@ -1936,8 +1945,8 @@
    "title": "Oupa's new voices, once all the text is final: English, Afrikaans and German generated through one voice API key (OpenRouter), each clip checked automatically by speech-to-text and redone if wrong; a short sample test first (your plan, 27 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-31T11:30:00Z",
-   "end": "2026-10-31T16:30:00Z",
+   "start": "2026-10-31T17:30:00Z",
+   "end": "2026-10-31T22:30:00Z",
    "estimate": true
   }
  ],
@@ -2426,9 +2435,34 @@
    "date": "27 Oct, 20:30",
    "text": "Prep Christmas and then New Year; line them up",
    "outcome": "Both Daily specials are on the board after The Harvest"
+  },
+  {
+   "date": "27 Oct, 22:45",
+   "text": "Add a red dot sight as a power-up for the .22 and the long-range gun: faster aiming and shooting than the zooming scope",
+   "outcome": "Next job after far animals: playtest fixes and the red dot sight"
+  },
+  {
+   "date": "27 Oct, 22:45",
+   "text": "Bug: a falling crate's power-up picture shows in two places at the wrong time (a layer mismatch)",
+   "outcome": "Next job after far animals: playtest fixes and the red dot sight"
+  },
+  {
+   "date": "27 Oct, 22:45",
+   "text": "Bug: after \"Ten seconds!\" the time left feels much shorter than 10 seconds",
+   "outcome": "Next job after far animals: playtest fixes and the red dot sight"
+  },
+  {
+   "date": "27 Oct, 22:45",
+   "text": "Far animals: shrink another 5%, and the ostriches are still too big",
+   "outcome": "All herds 0.57 of true size, ostriches 0.45; in the far animals job"
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-27T20:48:00Z",
+   "kind": "request",
+   "text": "From your playtest: a red dot sight power-up, the crate picture bug and the late \"Ten seconds!\" call are the next job; herds another 5% smaller and ostriches smaller still."
+  },
   {
    "at": "2026-10-27T18:48:00Z",
    "kind": "decision",
