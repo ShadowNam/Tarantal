@@ -7,6 +7,7 @@ import { loadContent } from '../../../tools/testContent';
 import type { SimEvent } from '../../sim/events';
 import type { SimState } from '../../sim/types';
 import { POTJIE_LID } from '../assets/hdProps';
+import { multiplyRgb } from './lightTint';
 
 vi.mock('phaser', () => ({ BlendModes: { ADD: 1 } }));
 const { PotjieView } = await import('./PotjieView');
@@ -29,6 +30,65 @@ function view(hd = false): InstanceType<typeof PotjieView> {
     hdShown: () => hd,
   } as unknown as ConstructorParameters<typeof PotjieView>[2];
   return new PotjieView(scene, karoo as NonNullable<typeof karoo>, parallax);
+}
+
+/** A recording stand-in for a Phaser Image (the fields PotjieView reads back). */
+class FakeImage {
+  x = 0;
+  y = 0;
+  rotation = 0;
+  visible = true;
+  tint: number | null = null;
+  constructor(readonly key: string) {}
+  setTint(t: number): this {
+    this.tint = t;
+    return this;
+  }
+  setPosition(x: number, y: number): this {
+    this.x = x;
+    this.y = y;
+    return this;
+  }
+  setRotation(r: number): this {
+    this.rotation = r;
+    return this;
+  }
+  setVisible(v: boolean): this {
+    this.visible = v;
+    return this;
+  }
+  setOrigin(): this {
+    return this;
+  }
+  setScale(): this {
+    return this;
+  }
+  setAlpha(): this {
+    return this;
+  }
+}
+
+/** A view whose HD art has landed, on a layer under `light`; records every image it makes. */
+function liveView(light = 0xffffff): { v: InstanceType<typeof PotjieView>; images: FakeImage[] } {
+  const images: FakeImage[] = [];
+  const scene = {
+    add: {
+      container: () => chain(),
+      image: (_x: number, _y: number, key: string) => {
+        const img = new FakeImage(key);
+        images.push(img);
+        return img;
+      },
+    },
+  } as unknown as Phaser.Scene;
+  const parallax = {
+    layer: () => ({ fixtures: chain() }),
+    hdShown: () => true,
+    layerTint: () => light,
+    displayScale: () => 0.5,
+    screenX: () => 960,
+  } as unknown as ConstructorParameters<typeof PotjieView>[2];
+  return { v: new PotjieView(scene, karoo as NonNullable<typeof karoo>, parallax), images };
 }
 
 const state = (tick: number, done = false): SimState =>
@@ -61,6 +121,36 @@ describe('PotjieView (D-051)', () => {
     const v = view();
     v.update(state(900, true), false, 1920);
     expect(v.lidOff).toBe(true);
+  });
+  it('the map light tints the lid, the steam and the coals as it tints the pot', () => {
+    const dusk = 0x8a88b2;
+    const { v, images } = liveView(dusk);
+    v.update(state(10), false, 1920);
+    const lid = images.find((i) => i.key === POTJIE_LID);
+    expect(lid?.tint).toBe(dusk);
+    const smoke = images.filter((i) => i.key !== POTJIE_LID);
+    expect(smoke.length).toBeGreaterThan(1);
+    // White steam under the light is the light's colour; the warmth is multiplied too.
+    for (const img of smoke) expect(img.tint).not.toBeNull();
+    expect(smoke.slice(1).every((i) => i.tint === multiplyRgb(0xffffff, dusk))).toBe(true);
+    expect(smoke[0]?.tint).toBe(multiplyRgb(0xff5a1e, dusk));
+    // Without a map light the lid keeps its own colours.
+    const plain = liveView();
+    plain.v.update(state(10), false, 1920);
+    expect(plain.images.find((i) => i.key === POTJIE_LID)?.tint).toBeNull();
+  });
+
+  it('a held frame (the same tick twice) makes no sound', () => {
+    const { v } = liveView();
+    let heard = 0;
+    for (let t = 0; t < 600; t++) {
+      v.update(state(t), false, 1920);
+      heard += v.cues.length;
+      // The same tick again: nothing new.
+      v.update(state(t), false, 1920);
+      expect(v.cues).toEqual([]);
+    }
+    expect(heard).toBeGreaterThan(0);
   });
 });
 

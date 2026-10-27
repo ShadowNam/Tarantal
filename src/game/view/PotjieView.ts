@@ -12,7 +12,8 @@ import type { SimEvent } from '../../sim/events';
 import type { PlaneId, SimState } from '../../sim/types';
 import { coreWidth } from '../../sim/world';
 import { TEX } from '../assets/AssetManifest';
-import { POTJIE_LID } from '../assets/hdProps';
+import { POTJIE_LID, POTJIE_LID_SIZE } from '../assets/hdProps';
+import { multiplyRgb } from './lightTint';
 import type { ParallaxView } from './ParallaxView';
 import {
   bubbleAt,
@@ -53,6 +54,7 @@ export class PotjieView {
   private readonly propId: string | null = null;
   private readonly x: number = 0;
   private readonly plane: PlaneId = 'near';
+  private readonly layerId: string = '';
   private readonly y: number = 0;
   private lid: Phaser.GameObjects.Image | null = null;
   private glow: Phaser.GameObjects.Image | null = null;
@@ -76,6 +78,7 @@ export class PotjieView {
     this.propId = prop.id;
     this.x = prop.u * coreWidth(def.scrollFactor);
     this.plane = def.plane ?? 'near';
+    this.layerId = def.id;
     this.y = prop.y;
     this.root = scene.add.container(this.x, this.y).setVisible(false);
     // Behind the secret marks (fixtures added later), above the pot.
@@ -123,19 +126,28 @@ export class PotjieView {
   private build(): void {
     const root = this.root;
     if (root === null) return;
+    // The map's light on the prop's layer (dawn, dusk, the Spookjag …), as the pot itself gets it
+    // (FruitView does the same): lid, steam and the coals' warmth take it too.
+    const light = this.parallax.layerTint(this.layerId);
     this.glow = this.scene.add
       .image(COALS.x, COALS.y, TEX.smoke)
-      .setTint(GLOW_TINT)
+      .setTint(multiplyRgb(GLOW_TINT, light))
       .setScale(COALS.sx, COALS.sy);
     root.add(this.glow);
+    const steamTint = multiplyRgb(STEAM_TINT, light);
     for (let i = 0; i < MAX_WISPS; i++) {
-      const w = this.scene.add.image(0, 0, TEX.smoke).setTint(STEAM_TINT).setVisible(false);
+      const w = this.scene.add.image(0, 0, TEX.smoke).setTint(steamTint).setVisible(false);
       this.wisps.push(w);
     }
-    this.lid = this.scene.add.image(0, 0, POTJIE_LID);
-    const o = this.scene.textures.get(POTJIE_LID).getSourceImage();
-    // The lid's origin is its rim's middle (POTJIE_LID_SIZE); its texture is 2× (scale 0.5).
-    this.lid.setOrigin(66 / 132, 40 / 56).setScale(132 / o.width);
+    // The lid's origin is its rim's middle; its delivered texture is drawn at 2×.
+    this.lid = this.scene.add
+      .image(0, 0, POTJIE_LID)
+      .setOrigin(
+        POTJIE_LID_SIZE.originX / POTJIE_LID_SIZE.width,
+        POTJIE_LID_SIZE.originY / POTJIE_LID_SIZE.height,
+      )
+      .setScale(this.parallax.displayScale(POTJIE_LID));
+    if (light !== 0xffffff) this.lid.setTint(light);
     // Steam behind the lid while it sits on the pot rises in front of the pot body.
     root.add([...this.wisps, this.lid]);
     root.setVisible(true);
