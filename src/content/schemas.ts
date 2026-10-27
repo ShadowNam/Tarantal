@@ -2000,6 +2000,9 @@ export const FeelSchema = obj({
     /** Seconds without a shot (idle), and seconds left on the clock (lastSeconds). */
     idleSeconds: pos,
     lastSeconds: pos,
+    /** 1.9.2 (D-055): the ten-second call is said within this many seconds of lastSeconds, or
+     *  never (it skips the bark gap, so only a frame that comes late can miss it). */
+    lastSecondsLateSeconds: z.number().nonnegative().max(2),
     /** One entry per trigger (an enum-keyed record: every trigger is required). */
     triggers: z.record(z.enum(BARK_TRIGGERS), BarkTriggerSchema).refine(
       (t) =>

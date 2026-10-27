@@ -47,6 +47,31 @@ describe('HuntRunner', () => {
     expect(r.cameraAt(9)).toBeNull();
   });
 
+  it('1.9.2 (D-055): the clock runs at 60 ticks a second through the Stampede (its last 15 s)', () => {
+    const sim = createSim({
+      seed: 7,
+      content,
+      mode: { id: 'classic', huntSeconds: 30 },
+      inputKind: 'touch',
+    });
+    const r = new HuntRunner(sim, { maxStepsPerFrame: 5 });
+    let stampedeAt: number | null = null;
+    let tenAt: number | null = null;
+    let ms = 0;
+    while (!sim.isOver()) {
+      const { events } = r.advance(1000 / 60);
+      ms += 1000 / 60;
+      if (stampedeAt === null && events.some((e) => e.type === 'stampedeStarted')) stampedeAt = ms;
+      if (tenAt === null && r.state.ticksLeft <= 600) tenAt = ms;
+    }
+    // Classic has a Stampede: it starts 15 s before the end and the clock keeps its pace.
+    expect(content.scoring.stampede.modes).toContain('classic');
+    expect(stampedeAt).not.toBeNull();
+    expect((ms - (stampedeAt ?? 0)) / 1000).toBeCloseTo(content.scoring.stampede.lastSeconds, 1);
+    // From "10 s left" to the end is 10 s of frames.
+    expect((ms - (tenAt ?? 0)) / 1000).toBeCloseTo(10, 1);
+  });
+
   it('hands out huntStarted on the first frame', () => {
     const r = new HuntRunner(newSim(), { maxStepsPerFrame: 5 });
     expect(r.advance(1).events.map((e) => e.type)).toContain('huntStarted');

@@ -1449,7 +1449,8 @@ export class HudScene extends Phaser.Scene {
       frenzyTopMul: Math.max(...this.ctx.content.scoring.frenzyTiers.map((f) => f.mul)),
       quotaReached,
     });
-    bark ??= picked;
+    // 1.9.2 (D-055): the ten-second call wins over a first pickup's line on the same frame.
+    if (picked !== null && (bark === null || picked.urgent === true)) bark = picked;
     if (bark !== null)
       sayBark(
         this.ctx,
@@ -1457,7 +1458,9 @@ export class HudScene extends Phaser.Scene {
         bark.line,
         l.bark,
         now,
-        firstPickup === null ? {} : { item: tOr(`item.${firstPickup}`, firstPickup) },
+        firstPickup === null || bark.urgent === true
+          ? {}
+          : { item: tOr(`item.${firstPickup}`, firstPickup) },
       );
   }
 
