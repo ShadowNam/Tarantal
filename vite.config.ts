@@ -67,6 +67,40 @@ function standinAssets(): Plugin {
 }
 const standin = process.env['STANDIN'] === '1';
 
+/**
+ * D-054 (e2e/dev only): `?fauna=before` draws v1.9.0's far animals for the screenshot spec's
+ * "before" shots: their images are served from tests/fixtures/fauna-before by the dev and
+ * preview servers. Never part of a build, never precached.
+ */
+function faunaBefore(): Plugin {
+  const root = join(import.meta.dirname, 'tests', 'fixtures', 'fauna-before');
+  const serve = (
+    req: { url?: string | undefined },
+    res: { setHeader(k: string, v: string): void } & NodeJS.WritableStream,
+    next: () => void,
+  ): void => {
+    const path = (req.url ?? '').split('?')[0] ?? '';
+    const at = path.indexOf('/__fauna-before/');
+    const name = at < 0 ? '' : path.slice(at + '/__fauna-before/'.length);
+    const file = join(root, name);
+    if (!/^[a-z_]+\.png$/.test(name) || !existsSync(file)) {
+      next();
+      return;
+    }
+    res.setHeader('Content-Type', 'image/png');
+    createReadStream(file).pipe(res);
+  };
+  return {
+    name: 'tm-fauna-before',
+    configureServer(server) {
+      server.middlewares.use(serve);
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use(serve);
+    },
+  };
+}
+
 /** D-048: content JSON is bundled without its `$comment` keys (tools/stripComments.ts). */
 function stripContentComments(): Plugin {
   return {
@@ -113,6 +147,7 @@ export default defineConfig({
     // The worker names this build, so a page offers a reload only when it runs another (D-042).
     ...(portal ? [stripPwa()] : [serviceWorkerPlugin(buildIdOf(sha, builtAt))]),
     ...(standin ? [standinAssets()] : []),
+    faunaBefore(),
   ],
   build: {
     target: 'es2022',
