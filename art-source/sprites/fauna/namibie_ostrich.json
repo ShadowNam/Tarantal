@@ -4,9 +4,9 @@
   "originX": 0,
   "originY": 0,
   "frames": {
-    "ostrich.alert.m.body": [0, 0, 129, 146, 77, 141, 0, 0],
-    "ostrich.alert.m.head": [291, 0, 42, 95, 15.532, 79.708, 33.532, -122.292],
-    "ostrich.graze.f.body": [129, 0, 109, 124, 65, 119, 0, 0],
-    "ostrich.graze.f.head": [238, 0, 53, 117, 13.167, 7.274, 28.167, -102.726]
+    "ostrich.alert.m.body": [0, 0, 79, 89, 47, 85, 0, 0],
+    "ostrich.alert.m.head": [179, 0, 27, 59, 10.119, 48.625, 20.119, -73.375],
+    "ostrich.graze.f.body": [79, 0, 67, 75, 40, 72, 0, 0],
+    "ostrich.graze.f.head": [146, 0, 33, 72, 8.9, 5.365, 16.9, -61.635]
   }
 }
