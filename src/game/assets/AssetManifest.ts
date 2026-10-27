@@ -761,12 +761,22 @@ export class AssetManifest {
       // canvas texture, delivered art an image.
       const src = textures.get(key).getSourceImage();
       if (!this.drawn.has(key) && !(src instanceof HTMLCanvasElement)) continue;
+      // Already the delivered file, or its HD twin while HD is wanted: nothing to swap.
+      if (src === img || (this.hdWanted && src === this.hdImages.get(key)?.img)) continue;
       // Rename the placeholder instead of removing it: objects still drawing it (a HUD chip, a
       // crate tag, the pickup card) keep a live texture until their view sets the key again.
       // Removing it under them froze the hunt with a null frame when the late group landed
-      // mid-hunt (v1.7b, D-046). The renamed canvas is a few KB and stays.
-      textures.renameTexture(key, `${key}#placeholder-${++retiredPlaceholders}`);
+      // mid-hunt (v1.7b, D-046). The renamed canvas is a few KB and stays. D-054: an HD file
+      // under the key (Standard chosen since) is retired instead, freed once nothing draws it.
+      const isImage = !(src instanceof HTMLCanvasElement);
+      const renamed = isImage
+        ? `${key}#retired-${++retiredPlaceholders}`
+        : `${key}#placeholder-${++retiredPlaceholders}`;
+      textures.renameTexture(key, renamed);
+      if (isImage) retiredTextures.add(renamed);
       textures.addImage(key, img);
+      // The standard file draws at its own scale (an HD scale left under the key would halve it).
+      hdUnderKey.delete(key);
       this.drawn.delete(key);
       out.push(key);
     }

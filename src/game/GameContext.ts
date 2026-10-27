@@ -607,6 +607,8 @@ export interface GameContext {
   readonly holdAtTick: number | undefined;
   /** e2e/dev only (?fauna=before, D-054 screenshots): the v1.9.0 far animals, one image a herd. */
   readonly faunaBefore: boolean;
+  /** e2e/dev only (?faunaDebug=1): every far-animal part's frame outlined (assembly checks). */
+  readonly faunaDebug: boolean;
   /** e2e/dev only: ?omen=1 / ?omen=0 overrides the mode's omen. */
   readonly omen: boolean | undefined;
   /** e2e/dev only: ?biome= plays Classic hunts in another playable biome (M8). */

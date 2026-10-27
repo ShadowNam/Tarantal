@@ -355,6 +355,7 @@ export class HuntScene extends Phaser.Scene {
       idle: this.ctx.feel.fauna.idle,
       ticksPerSecond: TICKS_PER_SECOND,
       before: this.ctx.faunaBefore,
+      debug: this.ctx.faunaDebug,
     });
     this.parallax.measureFill = this.ctx.hook !== null;
     this.boundsSource = this.parallax;

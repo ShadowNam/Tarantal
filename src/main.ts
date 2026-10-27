@@ -145,6 +145,8 @@ const hooksInBuild =
   import.meta.env.VITE_PLATFORM === 'web' ||
   import.meta.env.VITE_TEST_HOOKS === '1';
 const testHooks = hooksInBuild && hookPolicy.enabled;
+/** D-054: a dev server or a CI test build (VITE_TEST_HOOKS=1), never a public build. */
+const devOrTestBuild = import.meta.env.DEV || import.meta.env.VITE_TEST_HOOKS === '1';
 // v1.0.1 (D-028): `?e2e` on a public build (no VITE_TEST_HOOKS) is unranked, like capture mode.
 const officialResults = officialResultsAllowed({
   dev: import.meta.env.DEV,
@@ -1051,7 +1053,9 @@ async function boot(): Promise<void> {
     nextSeed: seedSource(),
     huntSeconds: adminSetup === null ? huntSecondsParam() : adminSetup.huntSeconds,
     holdAtTick: holdAtParam(),
-    faunaBefore: testHooks && params.get('fauna') === 'before',
+    // D-054: dev and test builds only (a public build with ?e2e must never lose its herds).
+    faunaBefore: devOrTestBuild && testHooks && params.get('fauna') === 'before',
+    faunaDebug: devOrTestBuild && testHooks && params.get('faunaDebug') === '1',
     omen: adminSetup === null ? omenParam() : adminSetup.omen,
     classicBiome: adminSetup === null ? biomeParam() : adminSetup.classicBiome,
     classicArea: () => classicAreaId(bundle, save.data, playableBiomes, loaded.notaboek),

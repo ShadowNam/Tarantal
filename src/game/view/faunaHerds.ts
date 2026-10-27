@@ -4,6 +4,9 @@
 // with it in the asset index. FaunaView places every animal from the tables below and moves its
 // head, tail and ears a little on sim time (faunaIdle), so a held frame holds still. Decor only:
 // the sim never sees them.
+import type { z } from 'zod';
+import type { Feel } from '../../content/schemas';
+import type { faunaFrames } from '../assets/assetIndex';
 
 export type FaunaSpecies =
   'giraffe' | 'springbok' | 'gemsbok' | 'elephant' | 'zebra' | 'wildebeest' | 'lechwe' | 'ostrich';
@@ -53,17 +56,8 @@ export const FAUNA_MASTER = 2;
 export const FAUNA_RES = 1;
 
 /** One frame of a sheet, design px: its box in the sheet, the pivot inside that box, and where
- *  the pivot sits relative to the animal's feet (facing right). */
-export type FaunaFrame = readonly [
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  ox: number,
-  oy: number,
-  px: number,
-  py: number,
-];
+ *  the pivot sits relative to the animal's feet (facing right): the asset index's schema. */
+export type FaunaFrame = Readonly<z.infer<typeof faunaFrames>[string]>;
 
 /** A sheet's frames by name (`frameName`). */
 export type FaunaFrames = Readonly<Record<string, FaunaFrame>>;
@@ -340,31 +334,7 @@ export function drawOrder(animals: readonly HerdAnimal[]): HerdAnimal[] {
 }
 
 /** Idle motion tunables (content/client/feel.json → fauna.idle). */
-export interface FaunaIdleTuning {
-  /** Grazing: a bite (head dips and comes back) every few seconds, degrees. */
-  readonly grazeDeg: number;
-  readonly grazeEverySec: number;
-  readonly grazeSec: number;
-  /** Head up: a small ear flick / head turn every few seconds, degrees. */
-  readonly alertDeg: number;
-  readonly alertEverySec: number;
-  readonly alertSec: number;
-  /** Walking in place is still; a slight nod, degrees and period. */
-  readonly walkDeg: number;
-  readonly walkSec: number;
-  /** A tail swish every few seconds, degrees and length. */
-  readonly tailDeg: number;
-  readonly tailEverySec: number;
-  readonly tailSec: number;
-  /** An elephant's ear fan: how far it folds in (share of its width) and its period. */
-  readonly earFold: number;
-  readonly earSec: number;
-  /** An elephant's trunk and a giraffe's browsing head: a slow sway, degrees and period. */
-  readonly swayDeg: number;
-  readonly swaySec: number;
-  /** Reduce motion: every amplitude × this (calmer, never off: the herd still lives). */
-  readonly calm: number;
-}
+export type FaunaIdleTuning = Feel['fauna']['idle'];
 
 export interface FaunaIdle {
   /** Head rotation about the neck pivot, degrees (+ = head down for an animal facing right). */
@@ -391,8 +361,8 @@ export function animalSeed(a: Pick<HerdAnimal, 'x' | 'dy' | 'species'>): number 
 }
 
 /** Position in an every-`every`-seconds cycle with this animal's offset (0 … 1 while active). */
-function event(sec: number, every: number, length: number, seed: number): number {
-  const period = every * (0.75 + 0.5 * seed);
+function event(sec: number, every: number, length: number, seed: number, spread: number): number {
+  const period = every * (1 - spread / 2 + spread * seed);
   const t = (((sec + seed * 97) % period) + period) % period;
   return t < length ? t / length : -1;
 }
@@ -403,13 +373,14 @@ function event(sec: number, every: number, length: number, seed: number): number
  */
 export function faunaIdle(
   tick: number,
-  a: Pick<HerdAnimal, 'species' | 'pose' | 'x' | 'dy'>,
+  a: Pick<HerdAnimal, 'species' | 'pose' | 'x' | 'dy'> & { readonly seed?: number },
   t: FaunaIdleTuning,
   calm: boolean,
   ticksPerSecond: number,
 ): FaunaIdle {
   const k = calm ? t.calm : 1;
-  const seed = animalSeed(a);
+  // FaunaView works the seed out once per animal; tests may leave it out.
+  const seed = a.seed ?? animalSeed(a);
   const sec = tick / ticksPerSecond;
   let head: number;
   if (a.species === 'elephant') {
@@ -417,16 +388,16 @@ export function faunaIdle(
   } else if (a.species === 'giraffe' && a.pose === 'graze') {
     head = Math.sin(((sec + seed * 11) / t.swaySec) * Math.PI * 2) * t.swayDeg;
   } else if (a.pose === 'graze' || a.pose === 'drink') {
-    const e = event(sec, t.grazeEverySec, t.grazeSec, seed);
+    const e = event(sec, t.grazeEverySec, t.grazeSec, seed, t.rhythmSpread);
     // A bite: down and back, with a second, smaller dip (chewing a mouthful).
-    head = e < 0 ? 0 : t.grazeDeg * (bump(e * 1.6) + 0.45 * bump((e - 0.55) * 2.2));
+    head = e < 0 ? 0 : t.grazeDeg * (bump(e * 1.6) + t.secondBite * bump((e - 0.55) * 2.2));
   } else if (a.pose === 'alert') {
-    const e = event(sec, t.alertEverySec, t.alertSec, seed);
+    const e = event(sec, t.alertEverySec, t.alertSec, seed, t.rhythmSpread);
     head = e < 0 ? 0 : -t.alertDeg * Math.sin(e * Math.PI * 2) * bump(e);
   } else {
     head = Math.sin(((sec + seed * 7) / t.walkSec) * Math.PI * 2) * t.walkDeg;
   }
-  const te = event(sec, t.tailEverySec, t.tailSec, (seed * 7.3) % 1);
+  const te = event(sec, t.tailEverySec, t.tailSec, (seed * 7.3) % 1, t.rhythmSpread);
   const tail = te < 0 ? 0 : t.tailDeg * Math.sin(te * Math.PI * 4) * bump(te);
   const ear =
     a.species === 'elephant'

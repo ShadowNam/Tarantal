@@ -27,6 +27,8 @@ const IDLE: FaunaIdleTuning = {
   swayDeg: 2.2,
   swaySec: 5.5,
   calm: 0.35,
+  rhythmSpread: 0.5,
+  secondBite: 0.45,
 };
 
 /** Images as plain objects: what FaunaView sets on them. */
@@ -66,6 +68,9 @@ class FakeContainer {
   }
   getBounds(): { x: number; y: number; width: number; height: number } {
     return { x: 0, y: 0, width: 1, height: 1 };
+  }
+  getWorldTransformMatrix(): { a: number; d: number; tx: number; ty: number } {
+    return { a: 1, d: 1, tx: 0, ty: 0 };
   }
 }
 
@@ -175,5 +180,41 @@ describe('FaunaView (D-054)', () => {
     expect(moved).toBe(true);
     expect(calmMax).toBeGreaterThan(0);
     expect(calmMax).toBeLessThan(fullMax);
+  });
+});
+
+describe('FaunaView HD swaps (D-054 review)', () => {
+  it('an HD/Standard swap that lands on a build retry frame is not lost', () => {
+    const w = world();
+    // Two herds: one built now, one whose sheet never lands (the retry keeps running).
+    const late = { ...herd, key: 'fauna/never_lands' };
+    const m = w.manifest as unknown as {
+      hdEpoch: number;
+      faunaFrames: (k: string) => FaunaFrames | undefined;
+    };
+    w.land();
+    const base = m.faunaFrames;
+    m.faunaFrames = (k: string) => (k === late.key ? undefined : base(k));
+    const v = new FaunaView(
+      w.scene,
+      w.manifest,
+      [herd, late],
+      3040,
+      new FakeContainer() as unknown as Phaser.GameObjects.Container,
+      { idle: IDLE, ticksPerSecond: 60 },
+    );
+    expect(v.animalCount()).toBe(herd.animals.length);
+    const retextured: string[] = [];
+    for (const img of w.images)
+      img.setTexture = function (this: FakeImage) {
+        retextured.push(this.frame);
+        return this;
+      };
+    // The swap lands on the 30th update, the same frame as a build retry.
+    for (let t = 1; t <= 30; t++) {
+      if (t === 30) m.hdEpoch = 1;
+      v.update(t, false);
+    }
+    expect(retextured.length).toBe(w.images.length);
   });
 });

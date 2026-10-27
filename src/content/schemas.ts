@@ -2041,6 +2041,10 @@ export const FeelSchema = obj({
       swayDeg: nonNeg,
       swaySec: pos,
       calm: fraction,
+      /** Each animal's rhythm: its period × (1 − spread/2 … 1 + spread/2), by its seed. */
+      rhythmSpread: fraction,
+      /** A bite's second, smaller dip (share of grazeDeg). */
+      secondBite: fraction,
     }),
   }),
   assets: obj({

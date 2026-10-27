@@ -8,6 +8,7 @@ import type Phaser from 'phaser';
 import type { AssetManifest } from '../assets/AssetManifest';
 import type { FaunaProbe } from '../GameContext';
 import {
+  animalSeed,
   drawOrder,
   FAUNA_BEFORE,
   FAUNA_PARTS,
@@ -18,6 +19,7 @@ import {
   sheetOf,
   type FaunaFrames,
   type FaunaHerd,
+  type FaunaIdle,
   type FaunaIdleTuning,
   type FaunaPart,
   type HerdAnimal,
@@ -32,11 +34,27 @@ const BEFORE_FOOT = 6;
 interface Part {
   readonly img: Phaser.GameObjects.Image;
   readonly part: FaunaPart;
-  readonly animal: HerdAnimal;
+  readonly animal: Animal;
   readonly sheet: string;
   readonly frame: string;
   readonly sx: number;
   readonly sy: number;
+}
+
+/** An animal and what its pose needs every frame (its seed is worked out once). */
+interface Animal {
+  readonly a: HerdAnimal & { readonly seed: number };
+  readonly herd: string;
+  readonly index: number;
+  pose: FaunaIdle;
+}
+
+interface Herd {
+  readonly root: Phaser.GameObjects.Container;
+  /** The herd's x extent in its own frame (design px), for culling. */
+  x0: number;
+  x1: number;
+  readonly animals: Animal[];
 }
 
 export interface FaunaOptions {
@@ -44,17 +62,27 @@ export interface FaunaOptions {
   readonly ticksPerSecond: number;
   /** e2e/dev only: the v1.9.0 images instead (no motion). */
   readonly before?: boolean;
+  /** e2e/dev only: every part's frame outlined. */
+  readonly debug?: boolean;
 }
+
+/** Off-screen margin (design px) before a herd stops being posed. */
+const CULL_MARGIN = 200;
+/** Retry interval (frames) while a herd's sheet is still loading. */
+const RETRY_FRAMES = 30;
+const REST: FaunaIdle = { head: 0, tail: 0, ear: 1 };
 
 export class FaunaView {
   private readonly parts: Part[] = [];
+  private readonly herdViews = new Map<string, Herd>();
   private readonly roots = new Map<string, Phaser.GameObjects.Container>();
-  /** The manifest's hdEpoch the frames were cut for. */
+  /** The manifest's hdEpoch the parts' frames were cut for (-1: none built yet). */
   private epoch = -1;
   private built = false;
   private lastTick = -1;
   private lastCalm = false;
   private waits = 0;
+  private debugGfx: Phaser.GameObjects.Graphics | null = null;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -96,8 +124,9 @@ export class FaunaView {
   /** Builds every herd whose sheet has arrived (a late sheet may come during the hunt). */
   private build(): void {
     let all = true;
+    let added = false;
     for (const h of this.herds) {
-      if (this.roots.get(h.key)?.length) continue;
+      if (this.herdViews.has(h.key)) continue;
       const key = sheetOf(h);
       const frames = this.manifest.faunaFrames(key);
       // A late or Ver sheet lands after the hunt starts: swap its empty placeholder out first.
@@ -113,7 +142,15 @@ export class FaunaView {
       }
       const root = this.rootOf(h);
       const ds = this.manifest.displayScale(key);
+      const view: Herd = { root, x0: Infinity, x1: -Infinity, animals: [] };
       for (const a of drawOrder(h.animals)) {
+        const animal: Animal = {
+          a: { ...a, seed: animalSeed(a) },
+          herd: h.key,
+          index: h.animals.indexOf(a),
+          pose: REST,
+        };
+        view.animals.push(animal);
         for (const part of FAUNA_PARTS) {
           const name = frameName(lookOf(a), part);
           const f = frames[name];
@@ -124,14 +161,23 @@ export class FaunaView {
             .setOrigin(f[4] / f[2], f[5] / f[3])
             .setScale(p.sx * ds, p.sy * ds);
           root.add(img);
-          this.parts.push({ img, part, animal: a, sheet: key, frame: name, sx: p.sx, sy: p.sy });
+          this.parts.push({ img, part, animal, sheet: key, frame: name, sx: p.sx, sy: p.sy });
+          // The frame's reach from the pivot, either way (mirrored herds).
+          const reach = Math.max(f[4], f[2] - f[4]) * a.s;
+          view.x0 = Math.min(view.x0, p.x - reach);
+          view.x1 = Math.max(view.x1, p.x + reach);
+          added = true;
         }
       }
+      this.herdViews.set(h.key, view);
     }
-    this.epoch = this.manifest.hdEpoch;
+    if (added) {
+      // New parts start in their rest pose: pose them on the next update even on a held tick.
+      this.lastTick = -1;
+      if (this.epoch < 0) this.epoch = this.manifest.hdEpoch;
+    }
     this.built = all;
   }
-
   /** e2e/dev only: the v1.9.0 herds, one image each (served next to the build, never shipped). */
   private loadBefore(): void {
     const load = this.scene.load;
@@ -163,20 +209,45 @@ export class FaunaView {
   }
 
   /**
-   * Per frame: builds herds whose sheets came in late, re-cuts frames after an HD swap, and
-   * poses heads, tails and ears for sim tick `tick` (`calm`: reduce motion).
+   * Builds herds whose sheets came in late and moves every part onto the texture under its key
+   * now (after an HD swap): every frame, during hunts and between them (the title's herds).
+   * The epoch is checked before building, so a swap that lands with a build never goes unseen.
    */
-  update(tick: number, calm: boolean): void {
+  refresh(): void {
     if (this.o.before === true) return;
-    if (!this.built && ++this.waits % 30 === 0) this.build();
-    if (this.manifest.hdEpoch !== this.epoch) this.refresh();
-    if (tick === this.lastTick && calm === this.lastCalm) return;
+    if (this.epoch >= 0 && this.manifest.hdEpoch !== this.epoch) this.retexture();
+    if (!this.built && ++this.waits % RETRY_FRAMES === 0) this.build();
+  }
+
+  /**
+   * Per frame in a hunt: refresh(), then poses heads, tails and ears for sim tick `tick`
+   * (`calm`: reduce motion) on the herds within `view` (design px across the screen).
+   */
+  update(tick: number, calm: boolean, viewWidth = Infinity): void {
+    if (this.o.before === true) return;
+    this.refresh();
+    if (tick === this.lastTick && calm === this.lastCalm) {
+      this.drawDebug();
+      return;
+    }
     this.lastTick = tick;
     this.lastCalm = calm;
+    const live = new Set<Animal>();
+    for (const h of this.herdViews.values()) {
+      const m = h.root.getWorldTransformMatrix();
+      const left = m.tx + m.a * h.x0;
+      const right = m.tx + m.a * h.x1;
+      const on = right >= -CULL_MARGIN && left <= viewWidth + CULL_MARGIN;
+      if (!on) continue;
+      for (const an of h.animals) {
+        an.pose = faunaIdle(tick, an.a, this.o.idle, calm, this.o.ticksPerSecond);
+        live.add(an);
+      }
+    }
     for (const p of this.parts) {
-      if (p.part === 'body') continue;
-      const m = faunaIdle(tick, p.animal, this.o.idle, calm, this.o.ticksPerSecond);
-      const f = p.animal.facing;
+      if (p.part === 'body' || !live.has(p.animal)) continue;
+      const m = p.animal.pose;
+      const f = p.animal.a.facing;
       if (p.part === 'head') p.img.setAngle(f * m.head);
       else if (p.part === 'tail') p.img.setAngle(f * m.tail);
       else {
@@ -184,10 +255,32 @@ export class FaunaView {
         p.img.setScale(p.sx * ds * m.ear, p.sy * ds);
       }
     }
+    this.drawDebug();
+  }
+
+  /** e2e/dev only: each part's frame outlined (tail yellow, body magenta, head cyan, ear green). */
+  private drawDebug(): void {
+    if (this.o.debug !== true) return;
+    const g = (this.debugGfx ??= this.scene.add.graphics());
+    this.parent.add(g);
+    g.clear();
+    const colour: Readonly<Record<FaunaPart, number>> = {
+      tail: 0xffee00,
+      body: 0xff00ff,
+      head: 0x00ffff,
+      ear: 0x00ff00,
+    };
+    const pm = this.parent.getWorldTransformMatrix();
+    for (const p of this.parts) {
+      const b = p.img.getBounds();
+      g.lineStyle(1, colour[p.part], 1);
+      // Bounds are in world px; the graphics sits in the layer's frame.
+      g.strokeRect((b.x - pm.tx) / pm.a, (b.y - pm.ty) / pm.d, b.width / pm.a, b.height / pm.d);
+    }
   }
 
   /** D-053: the sheet under a key changed (HD in, or back to Standard): same frames, new pixels. */
-  private refresh(): void {
+  private retexture(): void {
     this.epoch = this.manifest.hdEpoch;
     const done = new Set<string>();
     for (const p of this.parts) {
@@ -227,10 +320,9 @@ export class FaunaView {
       const b = p.img.getBounds();
       const f = p.img.frame;
       const src = p.img.texture.source[0];
-      const herd = [...this.roots].find(([, r]) => r.exists(p.img))?.[0] ?? '';
       return {
-        herd,
-        animal: this.herds.find((h) => h.key === herd)?.animals.indexOf(p.animal) ?? -1,
+        herd: p.animal.herd,
+        animal: p.animal.index,
         part: p.part,
         frame: f.name,
         box: { x: b.x, y: b.y, w: b.width, h: b.height },
@@ -245,6 +337,6 @@ export class FaunaView {
 
   /** Test hook: animals drawn now. */
   animalCount(): number {
-    return new Set(this.parts.map((p) => p.animal)).size;
+    return [...this.herdViews.values()].reduce((n, h) => n + h.animals.length, 0);
   }
 }

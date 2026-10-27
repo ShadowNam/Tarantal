@@ -27,6 +27,8 @@ const T: FaunaIdleTuning = {
   swayDeg: 2,
   swaySec: 5,
   calm: 0.35,
+  rhythmSpread: 0.5,
+  secondBite: 0.45,
 };
 const all = Object.values(FAUNA_HERDS).flat();
 

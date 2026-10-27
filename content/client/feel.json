@@ -850,7 +850,7 @@
     "hintPx": 30
   },
   "fauna": {
-    "$comment": "D-054: the far animals' idle motion on sim time (src/game/view/faunaHerds.ts faunaIdle; a held frame holds still). Grazing: a bite (head dips grazeDeg and back, a smaller second dip) every grazeEverySec (each animal its own rhythm, 0.75-1.25x); head up: a small ear flick / head turn; walking: a slight nod; a tail swish every tailEverySec; an elephant's ears fan in by earFold and its trunk sways swayDeg, as does a browsing giraffe's head. Reduce motion: every amplitude x calm (calmer, never off). D-049's faunaScale is gone: the herds are drawn at their real heights now.",
+    "$comment": "D-054: the far animals' idle motion on sim time (src/game/view/faunaHerds.ts faunaIdle; a held frame holds still). Grazing: a bite (head dips grazeDeg and back, a smaller second dip) every grazeEverySec (each animal its own rhythm: period x 1 -/+ rhythmSpread/2; the second dip secondBite of the first); head up: a small ear flick / head turn; walking: a slight nod; a tail swish every tailEverySec; an elephant's ears fan in by earFold and its trunk sways swayDeg, as does a browsing giraffe's head. Reduce motion: every amplitude x calm (calmer, never off). D-049's faunaScale is gone: the herds are drawn at their real heights now.",
     "idle": {
       "grazeDeg": 5,
       "grazeEverySec": 4.5,
@@ -867,7 +867,9 @@
       "earSec": 3.6,
       "swayDeg": 2.2,
       "swaySec": 5.5,
-      "calm": 0.35
+      "calm": 0.35,
+      "rhythmSpread": 0.5,
+      "secondBite": 0.45
     }
   },
   "assets": {

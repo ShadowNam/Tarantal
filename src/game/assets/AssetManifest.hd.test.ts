@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { loadContent } from '../../../tools/testContent';
 import { createPlaceholderManifest, loadBiomeArt } from '../placeholder/ProceduralAssetFactory';
-import { hdTextureCount, type AssetManifest } from './AssetManifest';
+import { hdTextureCount, hdUnderKey, retiredTextures, type AssetManifest } from './AssetManifest';
 import { applyHd, dropHd, hdFiles, loadHd, purgeRetired } from './hdRuntime';
 import { readFullIndex } from '../../../tools/assets/fullIndex';
 import { type AssetIndex } from './assetIndex';
@@ -354,5 +354,30 @@ describe('HD layers and their standard tiles (GPU memory)', () => {
     expect(m.layer('bushveld/mid')?.tiles).toEqual(std);
     purgeRetired(api, new Set());
     expect(std.every((k) => api.exists(k))).toBe(true);
+  });
+});
+
+describe('D-054 review: a late sheet whose HD file went under its key first', () => {
+  it('Standard chosen since: upgrade() puts the standard file under the key at its own scale and retires the HD texture', async () => {
+    const m = await loadedArea('karoo-autumn');
+    const { api, map } = fakeTextures();
+    const key = 'fauna/karoo_ostrich';
+    // Node has no DOM: a canvas class for the placeholder check.
+    vi.stubGlobal('HTMLCanvasElement', class {});
+    // The late-hd sheet landed first and went under the key (HD then); the standard file is in.
+    const hdImg = { width: 999, height: 999 };
+    api.addImage(key, hdImg);
+    hdUnderKey.set(key, 0.5);
+    (m as unknown as { drawn: Set<string> }).drawn.add(key);
+    m.hdWanted = false;
+    expect(m.upgrade(api, key)).toEqual([key]);
+    expect(m.delivered(api, key)).toBe(true);
+    expect(map.get(key)?.getSourceImage()).not.toBe(hdImg);
+    expect(hdUnderKey.has(key)).toBe(false);
+    expect(m.displayScale(key)).toBe(1);
+    const retired = [...retiredTextures].filter((k) => k.startsWith(`${key}#retired-`));
+    expect(retired.length).toBe(1);
+    expect(map.get(retired[0] ?? '')?.getSourceImage()).toBe(hdImg);
+    vi.unstubAllGlobals();
   });
 });
