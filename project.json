@@ -1,11 +1,11 @@
 {
  "schema": 1,
- "updated": "2026-10-26T22:12:00Z",
+ "updated": "2026-10-27T01:41:00Z",
  "by": "Claude",
- "summary": "Live on the test build: perspective (1.7.4, merged 20:34 Namibia time): guineafowl get smaller with distance on every map, the far animals are shown bigger, and far birds keep a minimum hit size so they stay shootable; the first download is 106 KB smaller. The Halloween Spookjag (1.7.3) is in too: try it early on the admin page: Special days → Spookjag · 31/10 → Play. Tank is building v1.8 Blikkies (tin cans on the farm fence to shoot off and juggle). Then: Karoo polish, far animals in HD, makalani palms, tree life, optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
+ "summary": "Live on the test build: v1.8 Blikkies (1.8.0, merged 03:36 Namibia time on 27 Oct): tin cans stand on the farm fence posts on 3–4 weekday maps per farm area. Shoot one off and it somersaults away; hit it again in the air and it flies higher and wilder, and the 10th air hit sends it out of sight (Weg!). Near cans are the easiest to juggle, far ones the hardest; also on the Skietbaan. Perspective (1.7.4) and the Halloween Spookjag (1.7.3, admin page: Special days → Spookjag · 31/10 → Play) are in too. Tank is building Karoo polish now (HD aloes; the potjie simmers and its lid flies off). Then: far animals in HD, makalani palms, tree life, optional HD graphics; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
-  "version": "1.7.4",
-  "commit": "7e73853"
+  "version": "1.8.0",
+  "commit": "fc39e3a"
  },
  "links": [
   {
@@ -36,12 +36,12 @@
  "numbers": [
   {
    "label": "Version on the test build",
-   "value": "1.7.4",
-   "note": "commit 7e73853, merged 27 Oct, 00:11 Namibia time (the test build deploys a few minutes after)"
+   "value": "1.8.0",
+   "note": "commit fc39e3a, merged 27 Oct, 03:35 Namibia time (the test build deploys a few minutes after)"
   },
   {
    "label": "Pull requests merged",
-   "value": "82",
+   "value": "83",
    "note": "#1 to #86"
   },
   {
@@ -70,8 +70,8 @@
   },
   {
    "label": "Decisions logged",
-   "value": "49",
-   "note": "D-001 to D-049 on main"
+   "value": "50",
+   "note": "D-001 to D-050 on main"
   }
  ],
  "needsYou": [
@@ -1532,25 +1532,63 @@
    "id": "v1.8",
    "title": "v1.8: Blikkies — tin cans on the old farm fence to shoot off and juggle in the air until they fly out of sight (your request, 24 Oct; again 26 Oct)",
    "phase": "Version 1.x",
-   "status": "running",
+   "status": "done",
    "start": "2026-10-26T18:38:00Z",
    "end": "2026-10-27T01:00:00Z",
    "estimate": true,
    "version": "1.8.0",
-   "summary": "Tin cans on the old farm fence posts on the farm maps, at near, middle and far distance. Shoot one off and it somersaults away; hit it again in the air and it flies higher and wilder, until it disappears out of sight (\"Weg!\"). Also on the Skietbaan. Moved up the queue because you asked for it again.",
-   "owner": "Tank builds it; Claude reviews",
+   "summary": "Tin cans on the old farm fence posts on 3–4 weekday maps of the Karoo, Bushveld, Kalahari and Namibië, at near, middle or far distance. Shoot one off and it somersaults away; each hit in the air kicks it higher, spins it faster and adds a wobble, and the 10th air hit always sends it out of the top (Weg!). Points: knock-off 5, air hit 8 + 2 a step, Weg! 15, more for further cans; cans never break your Frenzy. Also a Blikkies target on the Skietbaan, a Notaboek challenge and the Blikkiesdans secret (8 in the air).",
+   "owner": "Tank built it; Claude reviewed it, ran the screenshots, fixed two tests on main and merged it",
+   "checklist": [
+    {
+     "text": "Cans on the fence posts, sized for their distance, somersault when shot",
+     "done": true
+    },
+    {
+     "text": "The juggle: every air hit higher and wilder; the 10th always flies out of sight (Weg!)",
+     "done": true
+    },
+    {
+     "text": "Scoring, Oupa's lines, sounds, chain pops (\"3× in the air!\"), Notaboek and the Blikkiesdans secret",
+     "done": true
+    },
+    {
+     "text": "Skietbaan Blikkies target at every distance",
+     "done": true
+    },
+    {
+     "text": "Independent review: far cans juggled forever; near too hard; retuned",
+     "done": true,
+     "at": "2026-10-26T21:40:00Z"
+    },
+    {
+     "text": "Balance: 77 cells × 500 seeds, every gate passes (cans ≤ 8.7 % of a score; near 98 % reach 3 in the air, far 0 %)",
+     "done": true,
+     "at": "2026-10-27T00:55:00Z"
+    },
+    {
+     "text": "Screenshots: 45 on desktop and both phones, juggle on the near fence with a chain of 3",
+     "done": true,
+     "at": "2026-10-26T23:20:00Z"
+    },
+    {
+     "text": "Full browser tests on all devices green; merged as 1.8.0",
+     "done": true,
+     "at": "2026-10-27T01:36:00Z"
+    }
+   ],
    "requestedBy": "You, 24 Oct, and again 26 Oct: \"bean cans standing on top of them … if you hit them again they continue spinning up … till you don't see them anymore.\""
   },
   {
    "id": "karoo-polish-hd-aloes-the-potjie-steams-",
    "title": "Karoo polish: HD aloes; the potjie steams and simmers, and its lid flies off when shot (your request, 26 Oct)",
    "phase": "Version 1.x",
-   "status": "next",
+   "status": "running",
    "start": "2026-10-27T01:00:00Z",
    "end": "2026-10-27T06:00:00Z",
    "estimate": true,
    "summary": "HD bitter aloes with toothed blue-green leaves, a skirt of dry leaves and orange-red flower spikes. The potjie on its coals steams, simmers and rattles its lid; shoot the lid and it flies off and lands beside the pot with a clang (+5 s as before).",
-   "owner": "Tank builds it; Claude reviews",
+   "owner": "Tank builds it (task e4b64b1c, started 03:37); Claude reviews and runs the screenshots",
    "requestedBy": "You, 26 Oct: \"These aloes … need to become HD … the braai pot … boiling a little bit … when it's shot, the deksel should fall off.\""
   },
   {
@@ -2104,6 +2142,21 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-27T01:37:00Z",
+   "kind": "note",
+   "text": "Tank started Karoo polish: HD bitter aloes, and a potjie that simmers, rattles its lid and loses it when shot."
+  },
+  {
+   "at": "2026-10-27T01:36:00Z",
+   "kind": "merge",
+   "text": "v1.8 Blikkies merged (PR #83, version 1.8.0): tin cans on the fence posts that somersault when shot and juggle higher with every air hit until Weg!."
+  },
+  {
+   "at": "2026-10-27T00:55:00Z",
+   "kind": "tests",
+   "text": "Blikkies ready for review: every balance gate passes, first download +22 KB (2,987 of 3,072 KB). Full browser tests started."
+  },
   {
    "at": "2026-10-26T22:11:00Z",
    "kind": "merge",
