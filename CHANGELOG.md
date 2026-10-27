@@ -20,8 +20,9 @@ or HD … a tick box that says save preset … why not use high-quality graphics
 - The Bushveld's aloes in HD (2×); in Standard they stay at 1×.
 
 ### Unchanged
-- The first download, every standard area chunk, positions, hits, scores and replays. Standard
-  never downloads an HD file. The guns, close-up pop-ups and rare birds stay Standard (memory).
+- Every standard area chunk, positions, hits, scores and replays. Standard never downloads an HD
+  file. The first download grows by 4.7 KB (2,990.7 → 2,995.4 KB gzip on the web build) for the
+  choice itself; the card, the HD code and the HD file list load only when needed. The guns, close-up pop-ups and rare birds stay Standard (memory).
 
 ## [1.8.1] — Karoo polish: HD aloes and a boiling potjie (27 Oct 2026)
 

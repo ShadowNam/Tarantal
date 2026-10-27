@@ -2910,8 +2910,10 @@ standard size (`hdTexture.ts`), a texture is never removed under an object (rena
 nothing draws it: at the next scene change, or within 30 frames while views live after a switch
 to Standard). (4) **Loading:** an area's HD pack loads with it behind the loading screen; a
 "Play now in Standard" button after 4 s; late and Ver HD in the background, the next areas'
-packs on the title. Standard never requests an HD file. (5) **Budgets:** first download and
-standard chunks unchanged; each HD group ≤ 4 MB gzip; texture memory of one area's HD hunt
+packs on the title. Standard never requests an HD file. (5) **Budgets:** standard chunks
+unchanged; the first download +4.7 KB gzip on web (2,990.7 → 2,995.4 KB; Poki and CrazyGames
++5.0 KB), the boot code the choice needs (Settings row, recommendation, card trigger; the card,
+its strings, the HD runtime and the HD index are lazy), accepted by the supervisor 27 Oct; each HD group ≤ 4 MB gzip; texture memory of one area's HD hunt
 226–243 MB (Standard 95–110), within the 256 MB ceiling: so the guns (a 2× page is 64 MB), the
 near pop-up birds and the late group's rare birds stay Standard (~310 MB otherwise), and the sky
 (a gradient) and three cropped sprites (Phaser 4.2 crops clamp to the frame) have no HD version.
