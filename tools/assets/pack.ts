@@ -22,6 +22,7 @@ import {
 } from 'node:fs';
 import { dirname, join, relative, sep } from 'node:path';
 import { z } from 'zod';
+import { hdBaseOf } from '../../src/game/assets/hdProps';
 import {
   ASSET_INDEX_PATH,
   ASSET_ORIGINS,
@@ -882,9 +883,11 @@ export function propPlaneRes(content: ContentBundle, key: string): number {
   // v1.8 (D-050): the tin cans keep their 2× master (near cans are seen close up).
   if (key === CAN_SHEET) return CAN_MASTER;
   let res = 0;
+  // D-051: an HD stand-in (and its pieces) packs at its prop's plane.
+  const asset = hdBaseOf(key) ?? key;
   for (const b of content.biomes)
     for (const p of b.props) {
-      if (p.asset !== key) continue;
+      if (p.asset !== asset) continue;
       const layer = b.layers.find((l) => l.id === p.layer);
       res = Math.max(res, PROP_PLANE_RES[layer?.plane ?? 'near'] ?? 1);
     }

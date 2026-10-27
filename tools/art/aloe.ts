@@ -113,7 +113,7 @@ function leaf(
     const tan: Pt = [tx / tl, ty / tl];
     // The upper face's side: the normal that points up (for an upright leaf, the lit left).
     const nUp: Pt = side < 0 ? [-tan[1], tan[0]] : [tan[1], -tan[0]];
-    const half = (w / 2) * Math.pow(1 - t, 1.05) * (0.72 + 0.28 * Math.min(1, t * 5));
+    const half = (w / 2) * (1 - Math.pow(t, 1.35)) * (0.8 + 0.2 * Math.min(1, t * 5));
     up.push(add(c, nUp, half));
     lo.push(add(c, nUp, -half));
     mid.push(add(c, nUp, half * (1 - 2 * face)));
@@ -261,8 +261,8 @@ function dryLeaf(top: Pt, deg: number, len: number, w: number, tone: string, loo
 
 /** One raceme: a dense candle of small tubular flowers from its foot (x, y), `h` tall. */
 function raceme(rnd: Rnd, x: number, y: number, h: number, lean: number, look: AloeLook): string {
-  const r = h * 0.11;
-  const rows = Math.max(8, Math.round(h / 5.2));
+  const r = h * 0.075;
+  const rows = Math.max(8, Math.round(h / 4.2));
   const back: string[] = [];
   const front: string[] = [];
   const [bud, red, orange, open, anther] = look.flower;
@@ -279,14 +279,14 @@ function raceme(rnd: Rnd, x: number, y: number, h: number, lean: number, look: A
     const ay = y - h * t;
     // A cylinder that tapers to a cone of buds at the top.
     const rad0 = r * (t < 0.66 ? 1 : 1 - ((t - 0.66) / 0.34) * 0.78);
-    const count = 6;
+    const count = 5;
     for (let j = 0; j < count; j++) {
       const phi = ((j + (k % 2) * 0.5) / count) * Math.PI * 2 + rnd() * 0.3;
       const depth = Math.cos(phi);
       const sx = Math.sin(phi);
       // Open flowers hang down and out; buds point up along the stalk.
-      const droop = t < 0.4 ? 0.9 : t < 0.72 ? 0.35 : -0.6;
-      const len = rad0 * (t > 0.72 ? 0.9 : 1.25);
+      const droop = t < 0.4 ? 1.7 : t < 0.72 ? 0.9 : -0.9;
+      const len = rad0 * (t > 0.72 ? 0.85 : 1.15);
       const wTube = Math.max(0.9, r * (t > 0.72 ? 0.34 : 0.3));
       const p0: Pt = [ax + sx * rad0 * 0.25, ay];
       const p1: Pt = [ax + sx * (rad0 * 0.25 + len), ay + droop * len * 0.7];
@@ -306,9 +306,7 @@ function raceme(rnd: Rnd, x: number, y: number, h: number, lean: number, look: A
       });
       (depth < 0 ? back : front).push(tube);
       if (t < 0.32 && depth >= 0)
-        stamens.push(
-          `M${r2(p1[0])} ${r2(p1[1])}l${r2((p1[0] - p0[0]) * 0.35)} ${r2(len * 0.35)}`,
-        );
+        stamens.push(`M${r2(p1[0])} ${r2(p1[1])}l${r2((p1[0] - p0[0]) * 0.35)} ${r2(len * 0.35)}`);
     }
   }
   const axis = el('path', {
@@ -337,7 +335,7 @@ function candelabra(rnd: Rnd, x: number, y: number, n: number, h: number, look: 
   const parts: string[] = [];
   const stalkW = Math.max(1.4, h * 0.035);
   const forkY = y - h * 0.34;
-  const spread = h * (0.16 + n * 0.055);
+  const spread = h * (0.2 + n * 0.08);
   const pen = (w: number, col: string) => ({
     fill: 'none',
     stroke: col,
@@ -405,7 +403,7 @@ export function aloeFerox(rnd: Rnd, p: AloePlant, look: AloeLook): string {
       }
     }
   }
-  const w = s * 0.22;
+  const w = s * 0.26;
   const tw = turn * 9;
   const L = (deg: number, len: number, bend: number, face: number, dy = 0, wk = 1): string => {
     const a = deg + tw + (rnd() - 0.5) * 7;
@@ -424,14 +422,14 @@ export function aloeFerox(rnd: Rnd, p: AloePlant, look: AloeLook): string {
     );
   };
   // Lowest leaves first: old, decurved, half dry (the skirt's newest members).
-  for (const a of [-128, 124]) parts.push(L(a, 0.78, 22, 0.15, s * 0.1, 0.9));
-  for (const a of [-104, 100]) parts.push(L(a, 0.92, 26, 0.3, s * 0.06));
+  for (const a of [-132, 128]) parts.push(L(a, 0.74, 20, 0.15, s * 0.12, 0.95));
+  for (const a of [-112, -96, 94, 110]) parts.push(L(a, 0.9, 26, 0.3, s * 0.07));
   // The heart: ascending inner leaves (their upper faces toward us, in the rosette's shade).
-  for (const a of [-40, -20, 0, 18, 38]) parts.push(L(a, 0.78, 10, 0.85, -s * 0.02, 0.86));
+  for (const a of [-46, -30, -12, 6, 22, 40]) parts.push(L(a, 0.8, 10, 0.85, -s * 0.02, 0.9));
   if (racemes > 0) parts.push(candelabra(rnd, heart[0], heart[1] - s * 0.2, racemes, bloomH, look));
   // Spreading leaves, tips arching out and down.
-  for (const a of [-80, -62, 60, 78]) parts.push(L(a, 1, 24, 0.55));
+  for (const a of [-84, -68, -54, 52, 66, 82]) parts.push(L(a, 1, 24, 0.55));
   // Front leaves toward the viewer: shorter (foreshortened), wider, upper faces lit.
-  for (const a of [-46, -18, 14, 44]) parts.push(L(a, 0.6, 16, 0.9, s * 0.1, 1.15));
+  for (const a of [-50, -26, -4, 20, 46]) parts.push(L(a, 0.58, 16, 0.9, s * 0.12, 1.2));
   return g({}, ...parts);
 }

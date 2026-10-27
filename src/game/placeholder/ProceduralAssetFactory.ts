@@ -29,6 +29,7 @@ import { FAUNA_FOOT, FAUNA_SPRITES } from '../view/faunaSprites';
 import { FRUIT_SHEET, fruitSheetKey } from '../view/fruit/fruitTypes';
 import { hasColonies } from '../../sim/meerkats/colony';
 import { MEERKAT_SOUNDS } from '../assets/desertAssets';
+import { HD_PARTS, hdKeyOf, POTJIE_LID } from '../assets/hdProps';
 
 const KAROO = {
   skyTop: '#8DB8D8',
@@ -671,6 +672,13 @@ function propSpec(prop: Prop, art: BiomeArt): CanvasSpec {
     },
   };
 }
+
+/**
+ * D-051: the potjie's loose lid (design px; origin = the middle of its rim). Its placeholder is
+ * empty: views only show the lid once its HD file has landed (the first-download pot has one).
+ */
+export const POTJIE_LID_SIZE = { width: 132, height: 56, originX: 66, originY: 40 } as const;
+const POTJIE_LID_SPEC: CanvasSpec = { key: POTJIE_LID, ...POTJIE_LID_SIZE, draw() {} };
 
 function drawKarooProp(ctx: CanvasRenderingContext2D, id: string, w: number, h: number): void {
   const line = 4;
@@ -1521,7 +1529,16 @@ export function createPlaceholderManifest(
     const { art: layerArt, tiles } = layerTiles(layer.asset, band, layer.scrollFactor, 1000 + i);
     m.addLayer(layer.asset, layerArt, tiles);
   });
-  for (const prop of biome.props) m.addTexture(propSpec(prop, art));
+  for (const prop of biome.props) {
+    m.addTexture(propSpec(prop, art));
+    // D-051: the prop's HD texture (late group) has the same size, origin and placeholder.
+    const hd = hdKeyOf(prop.asset);
+    if (hd !== undefined && !m.has(hd)) {
+      m.addTexture({ ...propSpec(prop, art), key: hd });
+      for (const part of HD_PARTS[prop.asset] ?? [])
+        if (part === POTJIE_LID) m.addTexture(POTJIE_LID_SPEC);
+    }
+  }
   // v1.6 (D-042): the far animals' sprites (drawn art only: the placeholder is empty).
   for (const f of FAUNA_SPRITES[biome.id] ?? [])
     m.addTexture({
