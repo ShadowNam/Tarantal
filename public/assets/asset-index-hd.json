@@ -801,6 +801,16 @@
       "height": 256,
       "scale": 0.5
     },
+    "ui/pu_rooikol": {
+      "file": {
+        "path": "assets/late-hd/img/ui_pu_rooikol.424695200858.png",
+        "bytes": 5093,
+        "hash": "424695200858"
+      },
+      "width": 256,
+      "height": 256,
+      "scale": 0.5
+    },
     "ui/pu_voorlaaier": {
       "file": {
         "path": "assets/late-hd/img/ui_pu_voorlaaier.5ac719c54f8b.png",
