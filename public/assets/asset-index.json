@@ -139,12 +139,12 @@
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/fauna_bushveld_elephants.178f2dfd5eda.png",
-        "bytes": 14045,
-        "hash": "178f2dfd5eda"
+        "path": "assets/bushveld-winter/img/fauna_bushveld_elephants.6cba423cb3e4.png",
+        "bytes": 14804,
+        "hash": "6cba423cb3e4"
       },
       "width": 236,
-      "height": 504,
+      "height": 505,
       "originX": 0,
       "originY": 0,
       "frames": {
@@ -160,7 +160,7 @@
         ],
         "elephant.alert.m.ear": [
           101,
-          301,
+          302,
           69,
           106,
           63.559,
@@ -170,7 +170,7 @@
         ],
         "elephant.alert.m.head": [
           0,
-          301,
+          302,
           101,
           120,
           8.108,
@@ -180,8 +180,8 @@
         ],
         "elephant.alert.m.tail": [
           89,
-          421,
-          16,
+          422,
+          17,
           83,
           12.063,
           5.416,
@@ -192,19 +192,19 @@
           0,
           162,
           167,
-          139,
+          140,
           85,
-          132,
+          133,
           0,
           0
         ],
         "elephant.graze.f.ear": [
           170,
-          301,
-          59,
-          90,
-          54.001,
-          38.779,
+          302,
+          60,
+          92,
+          55.001,
+          39.779,
           71.001,
           -104.221
         ],
@@ -219,8 +219,8 @@
           -106.827
         ],
         "elephant.graze.f.tail": [
-          148,
-          421,
+          149,
+          422,
           14,
           71,
           10.374,
@@ -230,7 +230,7 @@
         ],
         "elephant.walk.y.body": [
           0,
-          421,
+          422,
           89,
           83,
           46,
@@ -239,18 +239,18 @@
           0
         ],
         "elephant.walk.y.ear": [
-          162,
-          421,
+          163,
+          422,
           31,
-          46,
+          47,
           27.226,
           20.406,
           36.226,
           -60.594
         ],
         "elephant.walk.y.head": [
-          105,
-          421,
+          106,
+          422,
           43,
           74,
           7.418,
@@ -259,8 +259,8 @@
           -62.109
         ],
         "elephant.walk.y.tail": [
-          193,
-          421,
+          194,
+          422,
           10,
           43,
           6.659,
@@ -274,9 +274,9 @@
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/fauna_bushveld_giraffes_a.34dca5f46752.png",
-        "bytes": 16391,
-        "hash": "34dca5f46752"
+        "path": "assets/bushveld-winter/img/fauna_bushveld_giraffes_a.3e0993c8595b.png",
+        "bytes": 16466,
+        "hash": "3e0993c8595b"
       },
       "width": 245,
       "height": 389,
@@ -379,9 +379,9 @@
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/fauna_bushveld_wildebeest.71fb6fdd529c.png",
-        "bytes": 15031,
-        "hash": "71fb6fdd529c"
+        "path": "assets/bushveld-winter/img/fauna_bushveld_wildebeest.17bd3219d352.png",
+        "bytes": 15079,
+        "hash": "17bd3219d352"
       },
       "width": 142,
       "height": 708,
@@ -514,9 +514,9 @@
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/fauna_bushveld_zebra.29ca9cd78986.png",
-        "bytes": 23947,
-        "hash": "29ca9cd78986"
+        "path": "assets/bushveld-winter/img/fauna_bushveld_zebra.d25c6093bdba.png",
+        "bytes": 23959,
+        "hash": "d25c6093bdba"
       },
       "width": 399,
       "height": 311,
@@ -734,9 +734,9 @@
       "group": "kalahari-summer",
       "origin": "interim",
       "file": {
-        "path": "assets/kalahari-summer/img/fauna_kalahari_springbok.a129a20a7fe0.png",
-        "bytes": 8561,
-        "hash": "a129a20a7fe0"
+        "path": "assets/kalahari-summer/img/fauna_kalahari_springbok.0de0ca94183b.png",
+        "bytes": 8598,
+        "hash": "0de0ca94183b"
       },
       "width": 365,
       "height": 137,
@@ -1139,9 +1139,9 @@
       "group": "late",
       "origin": "interim",
       "file": {
-        "path": "assets/late/img/fauna_karoo_springbok_a.6bf59b82999e.png",
-        "bytes": 8334,
-        "hash": "6bf59b82999e"
+        "path": "assets/late/img/fauna_karoo_springbok_a.b844adb99116.png",
+        "bytes": 8189,
+        "hash": "b844adb99116"
       },
       "width": 153,
       "height": 303,
@@ -1334,9 +1334,9 @@
       "group": "late",
       "origin": "interim",
       "file": {
-        "path": "assets/late/img/fauna_karoo_springbok_b.a3ba3b715cc7.png",
-        "bytes": 6106,
-        "hash": "a3ba3b715cc7"
+        "path": "assets/late/img/fauna_karoo_springbok_b.d75bd7dbba1e.png",
+        "bytes": 6217,
+        "hash": "d75bd7dbba1e"
       },
       "width": 80,
       "height": 397,
@@ -1659,9 +1659,9 @@
       "group": "ver",
       "origin": "interim",
       "file": {
-        "path": "assets/ver/img/fauna_namibie_waterhole.8e72ffcc4815.png",
-        "bytes": 15187,
-        "hash": "8e72ffcc4815"
+        "path": "assets/ver/img/fauna_namibie_waterhole.a7d9a007f7ed.png",
+        "bytes": 15269,
+        "hash": "a7d9a007f7ed"
       },
       "width": 283,
       "height": 228,
@@ -1984,9 +1984,9 @@
       "group": "namibie",
       "origin": "interim",
       "file": {
-        "path": "assets/namibie/img/fauna_namibie_zebra.f72bacca9c56.png",
-        "bytes": 20901,
-        "hash": "f72bacca9c56"
+        "path": "assets/namibie/img/fauna_namibie_zebra.daeb1b482bd1.png",
+        "bytes": 20858,
+        "hash": "daeb1b482bd1"
       },
       "width": 481,
       "height": 201,
@@ -2119,12 +2119,12 @@
       "group": "okavango-spring",
       "origin": "interim",
       "file": {
-        "path": "assets/okavango-spring/img/fauna_okavango_elephants.24c0393198ab.png",
-        "bytes": 14514,
-        "hash": "24c0393198ab"
+        "path": "assets/okavango-spring/img/fauna_okavango_elephants.dbd46c6d319a.png",
+        "bytes": 15598,
+        "hash": "dbd46c6d319a"
       },
       "width": 236,
-      "height": 504,
+      "height": 505,
       "originX": 0,
       "originY": 0,
       "frames": {
@@ -2140,7 +2140,7 @@
         ],
         "elephant.alert.m.ear": [
           101,
-          301,
+          302,
           69,
           106,
           63.559,
@@ -2150,7 +2150,7 @@
         ],
         "elephant.alert.m.head": [
           0,
-          301,
+          302,
           101,
           120,
           8.108,
@@ -2160,8 +2160,8 @@
         ],
         "elephant.alert.m.tail": [
           89,
-          421,
-          16,
+          422,
+          17,
           83,
           12.063,
           5.416,
@@ -2172,19 +2172,19 @@
           0,
           162,
           167,
-          139,
+          140,
           85,
-          132,
+          133,
           0,
           0
         ],
         "elephant.graze.f.ear": [
           170,
-          301,
-          59,
-          90,
-          54.001,
-          38.779,
+          302,
+          60,
+          92,
+          55.001,
+          39.779,
           71.001,
           -104.221
         ],
@@ -2199,8 +2199,8 @@
           -106.827
         ],
         "elephant.graze.f.tail": [
-          148,
-          421,
+          149,
+          422,
           14,
           71,
           10.374,
@@ -2210,7 +2210,7 @@
         ],
         "elephant.walk.y.body": [
           0,
-          421,
+          422,
           89,
           83,
           46,
@@ -2219,18 +2219,18 @@
           0
         ],
         "elephant.walk.y.ear": [
-          162,
-          421,
+          163,
+          422,
           31,
-          46,
+          47,
           27.226,
           20.406,
           36.226,
           -60.594
         ],
         "elephant.walk.y.head": [
-          105,
-          421,
+          106,
+          422,
           43,
           74,
           7.418,
@@ -2239,8 +2239,8 @@
           -62.109
         ],
         "elephant.walk.y.tail": [
-          193,
-          421,
+          194,
+          422,
           10,
           43,
           6.659,
@@ -2479,9 +2479,9 @@
       "group": "okavango-spring",
       "origin": "interim",
       "file": {
-        "path": "assets/okavango-spring/img/fauna_okavango_wildebeest.f3590a4646cb.png",
-        "bytes": 11741,
-        "hash": "f3590a4646cb"
+        "path": "assets/okavango-spring/img/fauna_okavango_wildebeest.4dc54840c687.png",
+        "bytes": 11688,
+        "hash": "4dc54840c687"
       },
       "width": 142,
       "height": 500,

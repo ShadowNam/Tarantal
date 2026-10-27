@@ -73,19 +73,19 @@
     },
     "fauna/bushveld_elephants": {
       "file": {
-        "path": "assets/bushveld-winter-hd/img/fauna_bushveld_elephants.99febf17ef81.png",
-        "bytes": 45268,
-        "hash": "99febf17ef81"
+        "path": "assets/bushveld-winter-hd/img/fauna_bushveld_elephants.2eaa76731f81.png",
+        "bytes": 45063,
+        "hash": "2eaa76731f81"
       },
       "width": 472,
-      "height": 1008,
+      "height": 1010,
       "scale": 0.5
     },
     "fauna/bushveld_giraffes_a": {
       "file": {
-        "path": "assets/bushveld-winter-hd/img/fauna_bushveld_giraffes_a.50466f576a72.png",
-        "bytes": 45574,
-        "hash": "50466f576a72"
+        "path": "assets/bushveld-winter-hd/img/fauna_bushveld_giraffes_a.d919b4094dc7.png",
+        "bytes": 45483,
+        "hash": "d919b4094dc7"
       },
       "width": 490,
       "height": 778,
@@ -93,9 +93,9 @@
     },
     "fauna/bushveld_wildebeest": {
       "file": {
-        "path": "assets/bushveld-winter-hd/img/fauna_bushveld_wildebeest.40dec0db9884.png",
-        "bytes": 48198,
-        "hash": "40dec0db9884"
+        "path": "assets/bushveld-winter-hd/img/fauna_bushveld_wildebeest.adfbde6c0f6e.png",
+        "bytes": 48155,
+        "hash": "adfbde6c0f6e"
       },
       "width": 284,
       "height": 1416,
@@ -103,9 +103,9 @@
     },
     "fauna/bushveld_zebra": {
       "file": {
-        "path": "assets/bushveld-winter-hd/img/fauna_bushveld_zebra.a0a823bf04bb.png",
-        "bytes": 67640,
-        "hash": "a0a823bf04bb"
+        "path": "assets/bushveld-winter-hd/img/fauna_bushveld_zebra.85a4c5458ca0.png",
+        "bytes": 68056,
+        "hash": "85a4c5458ca0"
       },
       "width": 798,
       "height": 622,
@@ -123,9 +123,9 @@
     },
     "fauna/kalahari_springbok": {
       "file": {
-        "path": "assets/kalahari-summer-hd/img/fauna_kalahari_springbok.9823b76bc27c.png",
-        "bytes": 24318,
-        "hash": "9823b76bc27c"
+        "path": "assets/kalahari-summer-hd/img/fauna_kalahari_springbok.20d829699753.png",
+        "bytes": 24751,
+        "hash": "20d829699753"
       },
       "width": 730,
       "height": 274,
@@ -153,9 +153,9 @@
     },
     "fauna/karoo_springbok_a": {
       "file": {
-        "path": "assets/late-hd/img/fauna_karoo_springbok_a.b3e7a0dd5f80.png",
-        "bytes": 24832,
-        "hash": "b3e7a0dd5f80"
+        "path": "assets/late-hd/img/fauna_karoo_springbok_a.4dd69f4f0468.png",
+        "bytes": 25162,
+        "hash": "4dd69f4f0468"
       },
       "width": 306,
       "height": 606,
@@ -163,9 +163,9 @@
     },
     "fauna/karoo_springbok_b": {
       "file": {
-        "path": "assets/late-hd/img/fauna_karoo_springbok_b.8bb4a5782de0.png",
-        "bytes": 17468,
-        "hash": "8bb4a5782de0"
+        "path": "assets/late-hd/img/fauna_karoo_springbok_b.3c3b18adf868.png",
+        "bytes": 17769,
+        "hash": "3c3b18adf868"
       },
       "width": 160,
       "height": 794,
@@ -193,9 +193,9 @@
     },
     "fauna/namibie_waterhole": {
       "file": {
-        "path": "assets/ver-hd/img/fauna_namibie_waterhole.3ddf5f28f6f3.png",
-        "bytes": 44532,
-        "hash": "3ddf5f28f6f3"
+        "path": "assets/ver-hd/img/fauna_namibie_waterhole.51f986cacd2d.png",
+        "bytes": 44346,
+        "hash": "51f986cacd2d"
       },
       "width": 566,
       "height": 456,
@@ -203,9 +203,9 @@
     },
     "fauna/namibie_zebra": {
       "file": {
-        "path": "assets/namibie-hd/img/fauna_namibie_zebra.d284ce147e2b.png",
-        "bytes": 59354,
-        "hash": "d284ce147e2b"
+        "path": "assets/namibie-hd/img/fauna_namibie_zebra.63002eb1f827.png",
+        "bytes": 59324,
+        "hash": "63002eb1f827"
       },
       "width": 962,
       "height": 402,
@@ -213,12 +213,12 @@
     },
     "fauna/okavango_elephants": {
       "file": {
-        "path": "assets/okavango-spring-hd/img/fauna_okavango_elephants.3851c6be50ba.png",
-        "bytes": 47530,
-        "hash": "3851c6be50ba"
+        "path": "assets/okavango-spring-hd/img/fauna_okavango_elephants.5348be3b90d0.png",
+        "bytes": 49275,
+        "hash": "5348be3b90d0"
       },
       "width": 472,
-      "height": 1008,
+      "height": 1010,
       "scale": 0.5
     },
     "fauna/okavango_lechwe": {
@@ -233,9 +233,9 @@
     },
     "fauna/okavango_wildebeest": {
       "file": {
-        "path": "assets/okavango-spring-hd/img/fauna_okavango_wildebeest.dfcc7c787683.png",
-        "bytes": 34866,
-        "hash": "dfcc7c787683"
+        "path": "assets/okavango-spring-hd/img/fauna_okavango_wildebeest.b2e51358b7a1.png",
+        "bytes": 35001,
+        "hash": "b2e51358b7a1"
       },
       "width": 284,
       "height": 1000,
