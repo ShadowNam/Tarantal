@@ -18,6 +18,7 @@ import { drawButton, Menu, textStyle } from '../ui/menu';
 import { texturesInUse } from '../assets/textureUse';
 import { hdTextureCount } from '../assets/AssetManifest';
 import { megabytes } from '../assets/graphicsChoice';
+import { sampleBounds, type BoundsSource } from './boundsSample';
 import { captureHintAlpha, type CaptureState } from '../capture';
 import { showDontShootBadge } from '../prefs';
 import { TierFilters } from '../quality/TierFilters';
@@ -114,6 +115,11 @@ const MAX_FRAME_SAMPLES = 20_000;
 export class HuntScene extends Phaser.Scene {
   private readonly ctx: GameContext;
   private parallax!: ParallaxView;
+  /**
+   * D-053: this run's ParallaxView once built, else null (the test hook's create-time texture
+   * sample runs before the views exist; `parallax` may still hold the last run's destroyed one).
+   */
+  private boundsSource: BoundsSource | null = null;
   private birds!: BirdView;
   private fx!: Fx;
   private weapon!: WeaponView;
@@ -190,6 +196,7 @@ export class HuntScene extends Phaser.Scene {
   }
 
   create(data: HuntData): void {
+    this.boundsSource = null;
     // M9 lazy biomes: an auto-started hunt in a biome whose art isn't loaded yet waits for it.
     const wanted = this.initialBiome(data);
     // D-053: with HD chosen, the area's HD pack loads behind the same veil before its hunt.
@@ -352,6 +359,7 @@ export class HuntScene extends Phaser.Scene {
       this.ctx.feel.perspective.faunaScale,
     );
     this.parallax.measureFill = this.ctx.hook !== null;
+    this.boundsSource = this.parallax;
     // D-048: a special day plays the day's map under its own light (Halloween: dusk).
     const special =
       this.map.feesdag === undefined
@@ -664,7 +672,7 @@ export class HuntScene extends Phaser.Scene {
     // D-053: HD textures in the texture manager, and sampled on-screen boxes (the same with
     // Standard and HD).
     hook.graphics.hdTextures = hdTextureCount(this.textures);
-    hook.graphics.bounds = this.parallax.boundsSample();
+    hook.graphics.bounds = sampleBounds(this.boundsSource);
     hook.gunAtlases = this.textures.getTextureKeys().filter((k) => k.startsWith('final:gun/'));
   }
 
