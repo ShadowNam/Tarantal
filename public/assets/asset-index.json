@@ -139,229 +139,2581 @@
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/fauna_bushveld_elephants.6b977c8487f1.png",
-        "bytes": 6609,
-        "hash": "6b977c8487f1"
+        "path": "assets/bushveld-winter/img/fauna_bushveld_elephants.ffdfd30e550a.png",
+        "bytes": 28075,
+        "hash": "ffdfd30e550a"
       },
-      "width": 510,
-      "height": 144,
-      "scale": 0.3333333333333333
+      "width": 391,
+      "height": 832,
+      "originX": 0,
+      "originY": 0,
+      "frames": {
+        "elephant.alert.m.body": [
+          0,
+          0,
+          323,
+          268,
+          164,
+          255,
+          0,
+          0
+        ],
+        "elephant.alert.m.ear": [
+          165,
+          499,
+          113,
+          173,
+          104.599,
+          74.02,
+          137.599,
+          -201.98
+        ],
+        "elephant.alert.m.head": [
+          0,
+          499,
+          165,
+          198,
+          11.846,
+          46.971,
+          111.846,
+          -207.029
+        ],
+        "elephant.alert.m.tail": [
+          145,
+          697,
+          26,
+          135,
+          19.439,
+          7.694,
+          -146.561,
+          -184.306
+        ],
+        "elephant.graze.f.body": [
+          0,
+          268,
+          278,
+          231,
+          141,
+          220,
+          0,
+          0
+        ],
+        "elephant.graze.f.ear": [
+          278,
+          499,
+          98,
+          149,
+          90.335,
+          64.298,
+          118.335,
+          -173.702
+        ],
+        "elephant.graze.f.head": [
+          278,
+          268,
+          113,
+          220,
+          10.188,
+          40.955,
+          96.188,
+          -178.045
+        ],
+        "elephant.graze.f.tail": [
+          238,
+          697,
+          23,
+          117,
+          16.957,
+          6.497,
+          -126.043,
+          -158.503
+        ],
+        "elephant.walk.y.body": [
+          0,
+          697,
+          145,
+          135,
+          75,
+          128,
+          0,
+          0
+        ],
+        "elephant.walk.y.ear": [
+          261,
+          697,
+          49,
+          74,
+          44.377,
+          32.01,
+          60.377,
+          -100.99
+        ],
+        "elephant.walk.y.head": [
+          171,
+          697,
+          67,
+          120,
+          10.031,
+          27.485,
+          49.031,
+          -103.515
+        ],
+        "elephant.walk.y.tail": [
+          310,
+          697,
+          13,
+          69,
+          9.432,
+          4.847,
+          -65.568,
+          -92.153
+        ]
+      }
     },
     "fauna/bushveld_giraffes_a": {
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/fauna_bushveld_giraffes_a.f27aff65a668.png",
-        "bytes": 10921,
-        "hash": "f27aff65a668"
+        "path": "assets/bushveld-winter/img/fauna_bushveld_giraffes_a.2d91127b69db.png",
+        "bytes": 31924,
+        "hash": "2d91127b69db"
       },
-      "width": 450,
-      "height": 252,
-      "scale": 0.3333333333333333
-    },
-    "fauna/bushveld_giraffes_b": {
-      "group": "bushveld-winter",
-      "origin": "interim",
-      "file": {
-        "path": "assets/bushveld-winter/img/fauna_bushveld_giraffes_b.4ee058b10e31.png",
-        "bytes": 6796,
-        "hash": "4ee058b10e31"
-      },
-      "width": 330,
-      "height": 252,
-      "scale": 0.3333333333333333
+      "width": 396,
+      "height": 639,
+      "originX": 0,
+      "originY": 0,
+      "frames": {
+        "giraffe.alert.m.body": [
+          205,
+          0,
+          191,
+          253,
+          99,
+          240,
+          0,
+          0
+        ],
+        "giraffe.alert.m.head": [
+          0,
+          0,
+          205,
+          267,
+          31.079,
+          241.644,
+          59.079,
+          -189.356
+        ],
+        "giraffe.alert.m.tail": [
+          287,
+          491,
+          38,
+          134,
+          31.535,
+          7.58,
+          -90.465,
+          -170.42
+        ],
+        "giraffe.graze.f.body": [
+          0,
+          267,
+          180,
+          224,
+          88,
+          212,
+          0,
+          0
+        ],
+        "giraffe.graze.f.head": [
+          180,
+          267,
+          210,
+          216,
+          27.99,
+          193.367,
+          51.99,
+          -166.633
+        ],
+        "giraffe.graze.f.tail": [
+          325,
+          491,
+          33,
+          118,
+          27.391,
+          7.03,
+          -79.609,
+          -149.97
+        ],
+        "giraffe.walk.y.body": [
+          0,
+          491,
+          135,
+          148,
+          63,
+          140,
+          0,
+          0
+        ],
+        "giraffe.walk.y.head": [
+          135,
+          491,
+          152,
+          136,
+          16.839,
+          121.174,
+          30.839,
+          -109.826
+        ],
+        "giraffe.walk.y.tail": [
+          358,
+          491,
+          20,
+          61,
+          15.777,
+          4.156,
+          -47.223,
+          -98.844
+        ]
+      }
     },
     "fauna/bushveld_wildebeest": {
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/fauna_bushveld_wildebeest.0c32e7d8fb2d.png",
-        "bytes": 4582,
-        "hash": "0c32e7d8fb2d"
+        "path": "assets/bushveld-winter/img/fauna_bushveld_wildebeest.972f1889b996.png",
+        "bytes": 14889,
+        "hash": "972f1889b996"
       },
-      "width": 420,
-      "height": 120,
-      "scale": 0.3333333333333333
+      "width": 461,
+      "height": 212,
+      "originX": 0,
+      "originY": 0,
+      "frames": {
+        "wildebeest.alert.m.body": [
+          121,
+          0,
+          121,
+          120,
+          63,
+          113,
+          0,
+          0
+        ],
+        "wildebeest.alert.m.head": [
+          68,
+          120,
+          107,
+          84,
+          20.114,
+          54.634,
+          37.114,
+          -88.366
+        ],
+        "wildebeest.alert.m.tail": [
+          23,
+          120,
+          23,
+          92,
+          19.17,
+          5.843,
+          -56.83,
+          -86.157
+        ],
+        "wildebeest.graze.m.body": [
+          0,
+          0,
+          121,
+          120,
+          63,
+          113,
+          0,
+          0
+        ],
+        "wildebeest.graze.m.head": [
+          368,
+          0,
+          93,
+          112,
+          20.114,
+          22.634,
+          37.114,
+          -88.366
+        ],
+        "wildebeest.graze.m.tail": [
+          0,
+          120,
+          23,
+          92,
+          19.17,
+          5.843,
+          -56.83,
+          -86.157
+        ],
+        "wildebeest.graze.y.body": [
+          279,
+          120,
+          66,
+          71,
+          33,
+          66,
+          0,
+          0
+        ],
+        "wildebeest.graze.y.head": [
+          345,
+          120,
+          60,
+          66,
+          11.373,
+          13.748,
+          19.373,
+          -51.252
+        ],
+        "wildebeest.graze.y.tail": [
+          405,
+          120,
+          12,
+          42,
+          9.335,
+          3.029,
+          -29.665,
+          -49.971
+        ],
+        "wildebeest.walk.f.body": [
+          242,
+          0,
+          126,
+          115,
+          62,
+          108,
+          0,
+          0
+        ],
+        "wildebeest.walk.f.head": [
+          175,
+          120,
+          104,
+          80,
+          19.629,
+          39.169,
+          35.629,
+          -84.831
+        ],
+        "wildebeest.walk.f.tail": [
+          46,
+          120,
+          22,
+          88,
+          18.443,
+          5.289,
+          -54.557,
+          -82.711
+        ]
+      }
     },
     "fauna/bushveld_zebra": {
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/fauna_bushveld_zebra.a509d561258c.png",
-        "bytes": 5434,
-        "hash": "a509d561258c"
+        "path": "assets/bushveld-winter/img/fauna_bushveld_zebra.8972219b9ce0.png",
+        "bytes": 23921,
+        "hash": "8972219b9ce0"
       },
-      "width": 540,
-      "height": 120,
-      "scale": 0.3333333333333333
+      "width": 394,
+      "height": 310,
+      "originX": 0,
+      "originY": 0,
+      "frames": {
+        "zebra.alert.m.body": [
+          260,
+          0,
+          124,
+          116,
+          64,
+          109,
+          0,
+          0
+        ],
+        "zebra.alert.m.head": [
+          300,
+          116,
+          94,
+          84,
+          20.174,
+          70.79,
+          38.174,
+          -85.21
+        ],
+        "zebra.alert.m.tail": [
+          21,
+          232,
+          21,
+          78,
+          17.546,
+          4.943,
+          -58.454,
+          -99.057
+        ],
+        "zebra.alert.y.body": [
+          84,
+          232,
+          71,
+          73,
+          37,
+          68,
+          0,
+          0
+        ],
+        "zebra.alert.y.head": [
+          261,
+          232,
+          61,
+          55,
+          12.301,
+          46.17,
+          21.301,
+          -52.83
+        ],
+        "zebra.alert.y.tail": [
+          322,
+          232,
+          12,
+          39,
+          9.383,
+          3.585,
+          -32.617,
+          -61.415
+        ],
+        "zebra.graze.f.body": [
+          0,
+          116,
+          124,
+          116,
+          64,
+          109,
+          0,
+          0
+        ],
+        "zebra.graze.f.head": [
+          212,
+          116,
+          88,
+          116,
+          20.174,
+          29.79,
+          38.174,
+          -85.21
+        ],
+        "zebra.graze.f.tail": [
+          42,
+          232,
+          21,
+          78,
+          17.546,
+          4.943,
+          -58.454,
+          -99.057
+        ],
+        "zebra.graze.m.body": [
+          136,
+          0,
+          124,
+          116,
+          64,
+          109,
+          0,
+          0
+        ],
+        "zebra.graze.m.head": [
+          124,
+          116,
+          88,
+          116,
+          20.174,
+          29.79,
+          38.174,
+          -85.21
+        ],
+        "zebra.graze.m.tail": [
+          0,
+          232,
+          21,
+          78,
+          17.546,
+          4.943,
+          -58.454,
+          -99.057
+        ],
+        "zebra.walk.f.body": [
+          0,
+          0,
+          136,
+          116,
+          69,
+          109,
+          0,
+          0
+        ],
+        "zebra.walk.f.head": [
+          155,
+          232,
+          106,
+          67,
+          20.174,
+          53.79,
+          38.174,
+          -85.21
+        ],
+        "zebra.walk.f.tail": [
+          63,
+          232,
+          21,
+          78,
+          17.546,
+          4.943,
+          -58.454,
+          -99.057
+        ]
+      }
     },
     "fauna/kalahari_ostrich": {
       "group": "kalahari-summer",
       "origin": "interim",
       "file": {
-        "path": "assets/kalahari-summer/img/fauna_kalahari_ostrich.c536873582cc.png",
-        "bytes": 2200,
-        "hash": "c536873582cc"
+        "path": "assets/kalahari-summer/img/fauna_kalahari_ostrich.a54832faea18.png",
+        "bytes": 5680,
+        "hash": "a54832faea18"
       },
-      "width": 270,
-      "height": 150,
-      "scale": 0.3333333333333333
+      "width": 333,
+      "height": 146,
+      "originX": 0,
+      "originY": 0,
+      "frames": {
+        "ostrich.alert.m.body": [
+          0,
+          0,
+          129,
+          146,
+          77,
+          141,
+          0,
+          0
+        ],
+        "ostrich.alert.m.head": [
+          291,
+          0,
+          42,
+          95,
+          15.532,
+          79.708,
+          33.532,
+          -122.292
+        ],
+        "ostrich.graze.f.body": [
+          129,
+          0,
+          109,
+          123,
+          65,
+          118,
+          0,
+          0
+        ],
+        "ostrich.graze.f.head": [
+          238,
+          0,
+          53,
+          117,
+          13.167,
+          7.274,
+          28.167,
+          -102.726
+        ]
+      }
     },
     "fauna/kalahari_springbok": {
       "group": "kalahari-summer",
       "origin": "interim",
       "file": {
-        "path": "assets/kalahari-summer/img/fauna_kalahari_springbok.d5a95066b347.png",
-        "bytes": 4226,
-        "hash": "d5a95066b347"
+        "path": "assets/kalahari-summer/img/fauna_kalahari_springbok.e49b53bdeea8.png",
+        "bytes": 7975,
+        "hash": "e49b53bdeea8"
       },
-      "width": 600,
-      "height": 108,
-      "scale": 0.3333333333333333
+      "width": 359,
+      "height": 136,
+      "originX": 0,
+      "originY": 0,
+      "frames": {
+        "springbok.alert.f.body": [
+          219,
+          0,
+          68,
+          68,
+          35,
+          64,
+          0,
+          0
+        ],
+        "springbok.alert.f.head": [
+          128,
+          71,
+          49,
+          54,
+          11.36,
+          45.525,
+          20.36,
+          -48.475
+        ],
+        "springbok.alert.f.tail": [
+          316,
+          71,
+          9,
+          22,
+          6.824,
+          2.83,
+          -31.176,
+          -58.17
+        ],
+        "springbok.alert.m.body": [
+          149,
+          0,
+          70,
+          71,
+          36,
+          66,
+          0,
+          0
+        ],
+        "springbok.alert.m.head": [
+          39,
+          71,
+          51,
+          63,
+          12.208,
+          54.505,
+          21.208,
+          -50.495
+        ],
+        "springbok.alert.m.tail": [
+          343,
+          71,
+          9,
+          22,
+          6.525,
+          2.406,
+          -32.475,
+          -60.594
+        ],
+        "springbok.graze.f.body": [
+          287,
+          0,
+          68,
+          68,
+          35,
+          64,
+          0,
+          0
+        ],
+        "springbok.graze.f.head": [
+          90,
+          71,
+          38,
+          63,
+          11.36,
+          13.525,
+          20.36,
+          -48.475
+        ],
+        "springbok.graze.f.tail": [
+          334,
+          71,
+          9,
+          22,
+          6.824,
+          2.83,
+          -31.176,
+          -58.17
+        ],
+        "springbok.graze.m.body": [
+          79,
+          0,
+          70,
+          71,
+          36,
+          66,
+          0,
+          0
+        ],
+        "springbok.graze.m.head": [
+          0,
+          71,
+          39,
+          65,
+          12.208,
+          13.505,
+          21.208,
+          -50.495
+        ],
+        "springbok.graze.m.tail": [
+          307,
+          71,
+          9,
+          22,
+          6.525,
+          2.406,
+          -32.475,
+          -60.594
+        ],
+        "springbok.graze.y.body": [
+          237,
+          71,
+          42,
+          45,
+          21,
+          42,
+          0,
+          0
+        ],
+        "springbok.graze.y.head": [
+          279,
+          71,
+          28,
+          41,
+          7.834,
+          8.693,
+          11.834,
+          -31.307
+        ],
+        "springbok.graze.y.tail": [
+          352,
+          71,
+          7,
+          13,
+          4.879,
+          2.432,
+          -18.121,
+          -37.568
+        ],
+        "springbok.walk.m.body": [
+          0,
+          0,
+          79,
+          71,
+          40,
+          66,
+          0,
+          0
+        ],
+        "springbok.walk.m.head": [
+          177,
+          71,
+          60,
+          53,
+          12.208,
+          44.505,
+          21.208,
+          -50.495
+        ],
+        "springbok.walk.m.tail": [
+          325,
+          71,
+          9,
+          22,
+          6.525,
+          2.406,
+          -32.475,
+          -60.594
+        ]
+      }
     },
     "fauna/kalahari_wildebeest": {
       "group": "kalahari-summer",
       "origin": "interim",
       "file": {
-        "path": "assets/kalahari-summer/img/fauna_kalahari_wildebeest.06cd4a6550dc.png",
-        "bytes": 4596,
-        "hash": "06cd4a6550dc"
+        "path": "assets/kalahari-summer/img/fauna_kalahari_wildebeest.4173a7123b19.png",
+        "bytes": 14808,
+        "hash": "4173a7123b19"
       },
-      "width": 480,
-      "height": 120,
-      "scale": 0.3333333333333333
+      "width": 461,
+      "height": 212,
+      "originX": 0,
+      "originY": 0,
+      "frames": {
+        "wildebeest.alert.m.body": [
+          121,
+          0,
+          121,
+          120,
+          63,
+          113,
+          0,
+          0
+        ],
+        "wildebeest.alert.m.head": [
+          68,
+          120,
+          107,
+          84,
+          20.114,
+          54.634,
+          37.114,
+          -88.366
+        ],
+        "wildebeest.alert.m.tail": [
+          23,
+          120,
+          23,
+          92,
+          19.17,
+          5.843,
+          -56.83,
+          -86.157
+        ],
+        "wildebeest.graze.m.body": [
+          0,
+          0,
+          121,
+          120,
+          63,
+          113,
+          0,
+          0
+        ],
+        "wildebeest.graze.m.head": [
+          368,
+          0,
+          93,
+          112,
+          20.114,
+          22.634,
+          37.114,
+          -88.366
+        ],
+        "wildebeest.graze.m.tail": [
+          0,
+          120,
+          23,
+          92,
+          19.17,
+          5.843,
+          -56.83,
+          -86.157
+        ],
+        "wildebeest.graze.y.body": [
+          279,
+          120,
+          66,
+          71,
+          33,
+          66,
+          0,
+          0
+        ],
+        "wildebeest.graze.y.head": [
+          345,
+          120,
+          60,
+          66,
+          11.373,
+          13.748,
+          19.373,
+          -51.252
+        ],
+        "wildebeest.graze.y.tail": [
+          405,
+          120,
+          12,
+          42,
+          9.335,
+          3.029,
+          -29.665,
+          -49.971
+        ],
+        "wildebeest.walk.f.body": [
+          242,
+          0,
+          126,
+          115,
+          62,
+          108,
+          0,
+          0
+        ],
+        "wildebeest.walk.f.head": [
+          175,
+          120,
+          104,
+          80,
+          19.629,
+          39.169,
+          35.629,
+          -84.831
+        ],
+        "wildebeest.walk.f.tail": [
+          46,
+          120,
+          22,
+          88,
+          18.443,
+          5.289,
+          -54.557,
+          -82.711
+        ]
+      }
     },
     "fauna/karoo_ostrich": {
-      "group": "karoo-autumn",
+      "group": "late",
       "origin": "interim",
       "file": {
-        "path": "assets/karoo-autumn/img/fauna_karoo_ostrich.764db018c455.png",
-        "bytes": 3040,
-        "hash": "764db018c455"
+        "path": "assets/late/img/fauna_karoo_ostrich.8f0d7cfa0fc9.png",
+        "bytes": 7970,
+        "hash": "8f0d7cfa0fc9"
       },
-      "width": 360,
-      "height": 150,
-      "scale": 0.3333333333333333
+      "width": 256,
+      "height": 269,
+      "originX": 0,
+      "originY": 0,
+      "frames": {
+        "ostrich.alert.m.body": [
+          0,
+          0,
+          129,
+          146,
+          77,
+          141,
+          0,
+          0
+        ],
+        "ostrich.alert.m.head": [
+          162,
+          146,
+          42,
+          95,
+          15.532,
+          79.708,
+          33.532,
+          -122.292
+        ],
+        "ostrich.graze.f.body": [
+          129,
+          0,
+          109,
+          123,
+          65,
+          118,
+          0,
+          0
+        ],
+        "ostrich.graze.f.head": [
+          109,
+          146,
+          53,
+          117,
+          13.167,
+          7.274,
+          28.167,
+          -102.726
+        ],
+        "ostrich.walk.f.body": [
+          0,
+          146,
+          109,
+          123,
+          65,
+          118,
+          0,
+          0
+        ],
+        "ostrich.walk.f.head": [
+          204,
+          146,
+          52,
+          66,
+          13.167,
+          53.274,
+          28.167,
+          -102.726
+        ]
+      }
     },
     "fauna/karoo_springbok_a": {
-      "group": "karoo-autumn",
+      "group": "late",
       "origin": "interim",
       "file": {
-        "path": "assets/karoo-autumn/img/fauna_karoo_springbok_a.0ba9ec615a04.png",
-        "bytes": 5636,
-        "hash": "0ba9ec615a04"
+        "path": "assets/late/img/fauna_karoo_springbok_a.ba51dbee0085.png",
+        "bytes": 7791,
+        "hash": "ba51dbee0085"
       },
-      "width": 690,
-      "height": 120,
-      "scale": 0.3333333333333333
+      "width": 149,
+      "height": 301,
+      "originX": 0,
+      "originY": 0,
+      "frames": {
+        "springbok.alert.m.body": [
+          0,
+          71,
+          70,
+          71,
+          36,
+          66,
+          0,
+          0
+        ],
+        "springbok.alert.m.head": [
+          39,
+          142,
+          51,
+          63,
+          12.208,
+          54.505,
+          21.208,
+          -50.495
+        ],
+        "springbok.alert.m.tail": [
+          71,
+          260,
+          9,
+          22,
+          6.525,
+          2.406,
+          -32.475,
+          -60.594
+        ],
+        "springbok.alert.y.body": [
+          102,
+          207,
+          41,
+          45,
+          21,
+          42,
+          0,
+          0
+        ],
+        "springbok.alert.y.head": [
+          28,
+          260,
+          34,
+          34,
+          7.834,
+          28.693,
+          11.834,
+          -31.307
+        ],
+        "springbok.alert.y.tail": [
+          105,
+          260,
+          7,
+          13,
+          4.879,
+          2.432,
+          -18.121,
+          -37.568
+        ],
+        "springbok.graze.f.body": [
+          70,
+          71,
+          68,
+          68,
+          35,
+          64,
+          0,
+          0
+        ],
+        "springbok.graze.f.head": [
+          90,
+          142,
+          38,
+          63,
+          11.36,
+          13.525,
+          20.36,
+          -48.475
+        ],
+        "springbok.graze.f.tail": [
+          80,
+          260,
+          9,
+          22,
+          6.824,
+          2.83,
+          -31.176,
+          -58.17
+        ],
+        "springbok.graze.m.body": [
+          79,
+          0,
+          70,
+          71,
+          36,
+          66,
+          0,
+          0
+        ],
+        "springbok.graze.m.head": [
+          0,
+          142,
+          39,
+          65,
+          12.208,
+          13.505,
+          21.208,
+          -50.495
+        ],
+        "springbok.graze.m.tail": [
+          62,
+          260,
+          9,
+          22,
+          6.525,
+          2.406,
+          -32.475,
+          -60.594
+        ],
+        "springbok.graze.y.body": [
+          60,
+          207,
+          42,
+          45,
+          21,
+          42,
+          0,
+          0
+        ],
+        "springbok.graze.y.head": [
+          0,
+          260,
+          28,
+          41,
+          7.834,
+          8.693,
+          11.834,
+          -31.307
+        ],
+        "springbok.graze.y.tail": [
+          98,
+          260,
+          7,
+          13,
+          4.879,
+          2.432,
+          -18.121,
+          -37.568
+        ],
+        "springbok.walk.m.body": [
+          0,
+          0,
+          79,
+          71,
+          40,
+          66,
+          0,
+          0
+        ],
+        "springbok.walk.m.head": [
+          0,
+          207,
+          60,
+          53,
+          12.208,
+          44.505,
+          21.208,
+          -50.495
+        ],
+        "springbok.walk.m.tail": [
+          89,
+          260,
+          9,
+          22,
+          6.525,
+          2.406,
+          -32.475,
+          -60.594
+        ]
+      }
     },
     "fauna/karoo_springbok_b": {
-      "group": "karoo-autumn",
+      "group": "late",
       "origin": "interim",
       "file": {
-        "path": "assets/karoo-autumn/img/fauna_karoo_springbok_b.404c22d60170.png",
-        "bytes": 3228,
-        "hash": "404c22d60170"
+        "path": "assets/late/img/fauna_karoo_springbok_b.472f85bf0f48.png",
+        "bytes": 5794,
+        "hash": "472f85bf0f48"
       },
-      "width": 390,
-      "height": 120,
-      "scale": 0.3333333333333333
+      "width": 79,
+      "height": 395,
+      "originX": 0,
+      "originY": 0,
+      "frames": {
+        "springbok.alert.y.body": [
+          0,
+          328,
+          41,
+          45,
+          21,
+          42,
+          0,
+          0
+        ],
+        "springbok.alert.y.head": [
+          41,
+          328,
+          34,
+          34,
+          7.834,
+          28.693,
+          11.834,
+          -31.307
+        ],
+        "springbok.alert.y.tail": [
+          27,
+          373,
+          7,
+          13,
+          4.879,
+          2.432,
+          -18.121,
+          -37.568
+        ],
+        "springbok.graze.f.body": [
+          0,
+          142,
+          68,
+          68,
+          35,
+          64,
+          0,
+          0
+        ],
+        "springbok.graze.f.head": [
+          39,
+          210,
+          38,
+          63,
+          11.36,
+          13.525,
+          20.36,
+          -48.475
+        ],
+        "springbok.graze.f.tail": [
+          9,
+          373,
+          9,
+          22,
+          6.824,
+          2.83,
+          -31.176,
+          -58.17
+        ],
+        "springbok.graze.m.body": [
+          0,
+          71,
+          70,
+          71,
+          36,
+          66,
+          0,
+          0
+        ],
+        "springbok.graze.m.head": [
+          0,
+          210,
+          39,
+          65,
+          12.208,
+          13.505,
+          21.208,
+          -50.495
+        ],
+        "springbok.graze.m.tail": [
+          18,
+          373,
+          9,
+          22,
+          6.525,
+          2.406,
+          -32.475,
+          -60.594
+        ],
+        "springbok.walk.m.body": [
+          0,
+          0,
+          79,
+          71,
+          40,
+          66,
+          0,
+          0
+        ],
+        "springbok.walk.m.head": [
+          0,
+          275,
+          60,
+          53,
+          12.208,
+          44.505,
+          21.208,
+          -50.495
+        ],
+        "springbok.walk.m.tail": [
+          0,
+          373,
+          9,
+          22,
+          6.525,
+          2.406,
+          -32.475,
+          -60.594
+        ]
+      }
     },
     "fauna/namibie_gemsbok": {
       "group": "namibie",
       "origin": "interim",
       "file": {
-        "path": "assets/namibie/img/fauna_namibie_gemsbok.814c1403e305.png",
-        "bytes": 4773,
-        "hash": "814c1403e305"
+        "path": "assets/namibie/img/fauna_namibie_gemsbok.e2b5e1100304.png",
+        "bytes": 12244,
+        "hash": "e2b5e1100304"
       },
-      "width": 480,
-      "height": 120,
-      "scale": 0.3333333333333333
+      "width": 402,
+      "height": 230,
+      "originX": 0,
+      "originY": 0,
+      "frames": {
+        "gemsbok.alert.m.body": [
+          0,
+          127,
+          110,
+          103,
+          57,
+          97,
+          0,
+          0
+        ],
+        "gemsbok.alert.m.head": [
+          69,
+          0,
+          102,
+          111,
+          29.933,
+          99.258,
+          33.933,
+          -75.742
+        ],
+        "gemsbok.alert.m.tail": [
+          228,
+          127,
+          20,
+          74,
+          16.041,
+          4.896,
+          -51.959,
+          -87.104
+        ],
+        "gemsbok.graze.m.body": [
+          292,
+          0,
+          110,
+          103,
+          57,
+          97,
+          0,
+          0
+        ],
+        "gemsbok.graze.m.head": [
+          0,
+          0,
+          69,
+          127,
+          18.933,
+          50.258,
+          33.933,
+          -75.742
+        ],
+        "gemsbok.graze.m.tail": [
+          208,
+          127,
+          20,
+          74,
+          16.041,
+          4.896,
+          -51.959,
+          -87.104
+        ],
+        "gemsbok.graze.y.body": [
+          268,
+          127,
+          63,
+          63,
+          32,
+          59,
+          0,
+          0
+        ],
+        "gemsbok.graze.y.head": [
+          331,
+          127,
+          46,
+          59,
+          10.324,
+          12.555,
+          18.324,
+          -45.445
+        ],
+        "gemsbok.graze.y.tail": [
+          377,
+          127,
+          11,
+          35,
+          7.942,
+          2.738,
+          -28.058,
+          -52.262
+        ],
+        "gemsbok.walk.m.body": [
+          171,
+          0,
+          121,
+          103,
+          62,
+          97,
+          0,
+          0
+        ],
+        "gemsbok.walk.m.head": [
+          110,
+          127,
+          98,
+          102,
+          18.933,
+          90.258,
+          33.933,
+          -75.742
+        ],
+        "gemsbok.walk.m.tail": [
+          248,
+          127,
+          20,
+          74,
+          16.041,
+          4.896,
+          -51.959,
+          -87.104
+        ]
+      }
     },
     "fauna/namibie_ostrich": {
       "group": "namibie",
       "origin": "interim",
       "file": {
-        "path": "assets/namibie/img/fauna_namibie_ostrich.c7b6ea80bddb.png",
-        "bytes": 2256,
-        "hash": "c7b6ea80bddb"
+        "path": "assets/namibie/img/fauna_namibie_ostrich.e6eb72bcaa7f.png",
+        "bytes": 5615,
+        "hash": "e6eb72bcaa7f"
       },
-      "width": 270,
-      "height": 150,
-      "scale": 0.3333333333333333
+      "width": 333,
+      "height": 146,
+      "originX": 0,
+      "originY": 0,
+      "frames": {
+        "ostrich.alert.m.body": [
+          0,
+          0,
+          129,
+          146,
+          77,
+          141,
+          0,
+          0
+        ],
+        "ostrich.alert.m.head": [
+          291,
+          0,
+          42,
+          95,
+          15.532,
+          79.708,
+          33.532,
+          -122.292
+        ],
+        "ostrich.graze.f.body": [
+          129,
+          0,
+          109,
+          123,
+          65,
+          118,
+          0,
+          0
+        ],
+        "ostrich.graze.f.head": [
+          238,
+          0,
+          53,
+          117,
+          13.167,
+          7.274,
+          28.167,
+          -102.726
+        ]
+      }
     },
     "fauna/namibie_waterhole": {
       "group": "ver",
       "origin": "interim",
       "file": {
-        "path": "assets/ver/img/fauna_namibie_waterhole.ac1d1b3b5dfd.png",
-        "bytes": 19863,
-        "hash": "ac1d1b3b5dfd"
+        "path": "assets/ver/img/fauna_namibie_waterhole.2c6c117508dc.png",
+        "bytes": 19344,
+        "hash": "2c6c117508dc"
       },
-      "width": 1320,
-      "height": 252,
-      "scale": 0.3333333333333333
+      "width": 213,
+      "height": 445,
+      "originX": 0,
+      "originY": 0,
+      "frames": {
+        "gemsbok.alert.m.body": [
+          54,
+          357,
+          54,
+          50,
+          28,
+          46,
+          0,
+          0
+        ],
+        "gemsbok.alert.m.head": [
+          163,
+          301,
+          49,
+          53,
+          14.835,
+          46.654,
+          15.835,
+          -35.346
+        ],
+        "gemsbok.alert.m.tail": [
+          21,
+          407,
+          10,
+          36,
+          7.752,
+          3.352,
+          -24.248,
+          -40.648
+        ],
+        "gemsbok.graze.m.body": [
+          0,
+          357,
+          54,
+          50,
+          28,
+          46,
+          0,
+          0
+        ],
+        "gemsbok.graze.m.head": [
+          82,
+          232,
+          34,
+          61,
+          9.835,
+          24.654,
+          15.835,
+          -35.346
+        ],
+        "gemsbok.graze.m.tail": [
+          11,
+          407,
+          10,
+          36,
+          7.752,
+          3.352,
+          -24.248,
+          -40.648
+        ],
+        "giraffe.alert.m.body": [
+          98,
+          0,
+          91,
+          120,
+          47,
+          113,
+          0,
+          0
+        ],
+        "giraffe.alert.m.head": [
+          0,
+          0,
+          98,
+          126,
+          15.57,
+          113.634,
+          27.57,
+          -88.366
+        ],
+        "giraffe.alert.m.tail": [
+          62,
+          232,
+          20,
+          64,
+          15.783,
+          4.471,
+          -42.217,
+          -79.529
+        ],
+        "giraffe.drink.f.body": [
+          0,
+          126,
+          102,
+          106,
+          42,
+          93,
+          0,
+          0
+        ],
+        "giraffe.drink.f.head": [
+          102,
+          126,
+          107,
+          97,
+          13.262,
+          25.366,
+          24.262,
+          -70.634
+        ],
+        "giraffe.drink.f.tail": [
+          168,
+          232,
+          17,
+          57,
+          13.849,
+          4.014,
+          -37.151,
+          -69.986
+        ],
+        "ostrich.alert.f.body": [
+          116,
+          232,
+          52,
+          59,
+          31,
+          56,
+          0,
+          0
+        ],
+        "ostrich.alert.f.head": [
+          184,
+          357,
+          18,
+          39,
+          7.144,
+          32.061,
+          13.144,
+          -47.939
+        ],
+        "ostrich.walk.m.body": [
+          0,
+          232,
+          62,
+          69,
+          37,
+          66,
+          0,
+          0
+        ],
+        "ostrich.walk.m.head": [
+          154,
+          357,
+          30,
+          39,
+          7.648,
+          30.93,
+          15.648,
+          -57.07
+        ],
+        "springbok.alert.m.body": [
+          31,
+          407,
+          35,
+          35,
+          18,
+          32,
+          0,
+          0
+        ],
+        "springbok.alert.m.head": [
+          103,
+          407,
+          26,
+          31,
+          6.897,
+          26.436,
+          9.897,
+          -23.564
+        ],
+        "springbok.alert.m.tail": [
+          195,
+          407,
+          6,
+          12,
+          3.845,
+          1.723,
+          -15.155,
+          -28.277
+        ],
+        "springbok.graze.y.body": [
+          129,
+          407,
+          22,
+          24,
+          11,
+          21,
+          0,
+          0
+        ],
+        "springbok.graze.y.head": [
+          180,
+          407,
+          15,
+          21,
+          4.523,
+          5.39,
+          5.523,
+          -14.61
+        ],
+        "springbok.graze.y.tail": [
+          207,
+          407,
+          6,
+          7,
+          3.544,
+          1.468,
+          -8.456,
+          -17.532
+        ],
+        "springbok.walk.f.body": [
+          66,
+          407,
+          37,
+          34,
+          19,
+          31,
+          0,
+          0
+        ],
+        "springbok.walk.f.head": [
+          151,
+          407,
+          29,
+          22,
+          6.501,
+          17.378,
+          9.501,
+          -22.622
+        ],
+        "springbok.walk.f.tail": [
+          201,
+          407,
+          6,
+          11,
+          3.451,
+          1.854,
+          -14.549,
+          -27.146
+        ],
+        "zebra.alert.f.body": [
+          60,
+          301,
+          60,
+          56,
+          31,
+          52,
+          0,
+          0
+        ],
+        "zebra.alert.f.head": [
+          108,
+          357,
+          46,
+          40,
+          10.815,
+          33.235,
+          17.815,
+          -39.765
+        ],
+        "zebra.alert.f.tail": [
+          0,
+          407,
+          11,
+          38,
+          8.721,
+          2.774,
+          -27.279,
+          -46.226
+        ],
+        "zebra.graze.m.body": [
+          0,
+          301,
+          60,
+          56,
+          31,
+          52,
+          0,
+          0
+        ],
+        "zebra.graze.m.head": [
+          120,
+          301,
+          43,
+          56,
+          10.815,
+          15.235,
+          17.815,
+          -39.765
+        ],
+        "zebra.graze.m.tail": [
+          202,
+          357,
+          11,
+          38,
+          8.721,
+          2.774,
+          -27.279,
+          -46.226
+        ]
+      }
     },
     "fauna/namibie_zebra": {
       "group": "namibie",
       "origin": "interim",
       "file": {
-        "path": "assets/namibie/img/fauna_namibie_zebra.0950be741f12.png",
-        "bytes": 4735,
-        "hash": "0950be741f12"
+        "path": "assets/namibie/img/fauna_namibie_zebra.3a4295710103.png",
+        "bytes": 20892,
+        "hash": "3a4295710103"
       },
-      "width": 450,
-      "height": 120,
-      "scale": 0.3333333333333333
+      "width": 472,
+      "height": 200,
+      "originX": 0,
+      "originY": 0,
+      "frames": {
+        "zebra.alert.f.body": [
+          260,
+          0,
+          124,
+          116,
+          64,
+          109,
+          0,
+          0
+        ],
+        "zebra.alert.f.head": [
+          0,
+          116,
+          94,
+          84,
+          20.174,
+          70.79,
+          38.174,
+          -85.21
+        ],
+        "zebra.alert.f.tail": [
+          115,
+          116,
+          21,
+          78,
+          17.546,
+          4.943,
+          -58.454,
+          -99.057
+        ],
+        "zebra.graze.m.body": [
+          136,
+          0,
+          124,
+          116,
+          64,
+          109,
+          0,
+          0
+        ],
+        "zebra.graze.m.head": [
+          384,
+          0,
+          88,
+          116,
+          20.174,
+          29.79,
+          38.174,
+          -85.21
+        ],
+        "zebra.graze.m.tail": [
+          94,
+          116,
+          21,
+          78,
+          17.546,
+          4.943,
+          -58.454,
+          -99.057
+        ],
+        "zebra.graze.y.body": [
+          157,
+          116,
+          73,
+          73,
+          37,
+          68,
+          0,
+          0
+        ],
+        "zebra.graze.y.head": [
+          230,
+          116,
+          60,
+          73,
+          12.301,
+          19.17,
+          21.301,
+          -52.83
+        ],
+        "zebra.graze.y.tail": [
+          396,
+          116,
+          12,
+          39,
+          9.383,
+          3.585,
+          -32.617,
+          -61.415
+        ],
+        "zebra.walk.m.body": [
+          0,
+          0,
+          136,
+          116,
+          69,
+          109,
+          0,
+          0
+        ],
+        "zebra.walk.m.head": [
+          290,
+          116,
+          106,
+          67,
+          20.174,
+          53.79,
+          38.174,
+          -85.21
+        ],
+        "zebra.walk.m.tail": [
+          136,
+          116,
+          21,
+          78,
+          17.546,
+          4.943,
+          -58.454,
+          -99.057
+        ]
+      }
     },
     "fauna/okavango_elephants": {
       "group": "okavango-spring",
       "origin": "interim",
       "file": {
-        "path": "assets/okavango-spring/img/fauna_okavango_elephants.641a2a895243.png",
-        "bytes": 6041,
-        "hash": "641a2a895243"
+        "path": "assets/okavango-spring/img/fauna_okavango_elephants.8a55a304efcc.png",
+        "bytes": 28737,
+        "hash": "8a55a304efcc"
       },
-      "width": 570,
-      "height": 150,
-      "scale": 0.3333333333333333
+      "width": 391,
+      "height": 832,
+      "originX": 0,
+      "originY": 0,
+      "frames": {
+        "elephant.alert.m.body": [
+          0,
+          0,
+          323,
+          268,
+          164,
+          255,
+          0,
+          0
+        ],
+        "elephant.alert.m.ear": [
+          165,
+          499,
+          113,
+          173,
+          104.599,
+          74.02,
+          137.599,
+          -201.98
+        ],
+        "elephant.alert.m.head": [
+          0,
+          499,
+          165,
+          198,
+          11.846,
+          46.971,
+          111.846,
+          -207.029
+        ],
+        "elephant.alert.m.tail": [
+          145,
+          697,
+          26,
+          135,
+          19.439,
+          7.694,
+          -146.561,
+          -184.306
+        ],
+        "elephant.graze.f.body": [
+          0,
+          268,
+          278,
+          231,
+          141,
+          220,
+          0,
+          0
+        ],
+        "elephant.graze.f.ear": [
+          278,
+          499,
+          98,
+          149,
+          90.335,
+          64.298,
+          118.335,
+          -173.702
+        ],
+        "elephant.graze.f.head": [
+          278,
+          268,
+          113,
+          220,
+          10.188,
+          40.955,
+          96.188,
+          -178.045
+        ],
+        "elephant.graze.f.tail": [
+          238,
+          697,
+          23,
+          117,
+          16.957,
+          6.497,
+          -126.043,
+          -158.503
+        ],
+        "elephant.walk.y.body": [
+          0,
+          697,
+          145,
+          135,
+          75,
+          128,
+          0,
+          0
+        ],
+        "elephant.walk.y.ear": [
+          261,
+          697,
+          49,
+          74,
+          44.377,
+          32.01,
+          60.377,
+          -100.99
+        ],
+        "elephant.walk.y.head": [
+          171,
+          697,
+          67,
+          120,
+          10.031,
+          27.485,
+          49.031,
+          -103.515
+        ],
+        "elephant.walk.y.tail": [
+          310,
+          697,
+          13,
+          69,
+          9.432,
+          4.847,
+          -65.568,
+          -92.153
+        ]
+      }
     },
     "fauna/okavango_lechwe": {
       "group": "okavango-spring",
       "origin": "interim",
       "file": {
-        "path": "assets/okavango-spring/img/fauna_okavango_lechwe.6616547722ee.png",
-        "bytes": 6027,
-        "hash": "6616547722ee"
+        "path": "assets/okavango-spring/img/fauna_okavango_lechwe.a52a4e3aac00.png",
+        "bytes": 12674,
+        "hash": "a52a4e3aac00"
       },
-      "width": 660,
-      "height": 102,
-      "scale": 0.3333333333333333
+      "width": 251,
+      "height": 409,
+      "originX": 0,
+      "originY": 0,
+      "frames": {
+        "lechwe.alert.f.body": [
+          119,
+          196,
+          108,
+          88,
+          56,
+          82,
+          0,
+          0
+        ],
+        "lechwe.alert.f.head": [
+          48,
+          284,
+          64,
+          58,
+          14.106,
+          47.668,
+          26.106,
+          -59.332
+        ],
+        "lechwe.alert.f.tail": [
+          193,
+          360,
+          11,
+          27,
+          8.025,
+          3.094,
+          -39.975,
+          -74.906
+        ],
+        "lechwe.alert.m.body": [
+          0,
+          103,
+          116,
+          93,
+          60,
+          87,
+          0,
+          0
+        ],
+        "lechwe.alert.m.head": [
+          0,
+          0,
+          69,
+          103,
+          15.772,
+          91.881,
+          27.772,
+          -63.119
+        ],
+        "lechwe.alert.m.tail": [
+          149,
+          360,
+          11,
+          28,
+          8.474,
+          2.313,
+          -42.526,
+          -79.687
+        ],
+        "lechwe.alert.y.body": [
+          185,
+          284,
+          66,
+          57,
+          34,
+          53,
+          0,
+          0
+        ],
+        "lechwe.alert.y.head": [
+          106,
+          360,
+          43,
+          39,
+          8.997,
+          32.129,
+          14.997,
+          -37.871
+        ],
+        "lechwe.alert.y.tail": [
+          211,
+          360,
+          7,
+          15,
+          5.036,
+          2.188,
+          -22.964,
+          -47.812
+        ],
+        "lechwe.graze.f.body": [
+          0,
+          196,
+          119,
+          88,
+          61,
+          82,
+          0,
+          0
+        ],
+        "lechwe.graze.f.head": [
+          0,
+          284,
+          48,
+          76,
+          14.106,
+          15.668,
+          26.106,
+          -59.332
+        ],
+        "lechwe.graze.f.tail": [
+          171,
+          360,
+          11,
+          27,
+          8.025,
+          3.094,
+          -39.975,
+          -74.906
+        ],
+        "lechwe.graze.m.body": [
+          121,
+          0,
+          125,
+          93,
+          64,
+          87,
+          0,
+          0
+        ],
+        "lechwe.graze.m.head": [
+          69,
+          0,
+          52,
+          95,
+          15.772,
+          30.881,
+          27.772,
+          -63.119
+        ],
+        "lechwe.graze.m.tail": [
+          160,
+          360,
+          11,
+          28,
+          8.474,
+          2.313,
+          -42.526,
+          -79.687
+        ],
+        "lechwe.graze.y.body": [
+          112,
+          284,
+          73,
+          57,
+          37,
+          53,
+          0,
+          0
+        ],
+        "lechwe.graze.y.head": [
+          0,
+          360,
+          34,
+          49,
+          8.997,
+          10.129,
+          14.997,
+          -37.871
+        ],
+        "lechwe.graze.y.tail": [
+          204,
+          360,
+          7,
+          15,
+          5.036,
+          2.188,
+          -22.964,
+          -47.812
+        ],
+        "lechwe.walk.f.body": [
+          116,
+          103,
+          133,
+          88,
+          70,
+          82,
+          0,
+          0
+        ],
+        "lechwe.walk.f.head": [
+          34,
+          360,
+          72,
+          45,
+          14.106,
+          34.668,
+          26.106,
+          -59.332
+        ],
+        "lechwe.walk.f.tail": [
+          182,
+          360,
+          11,
+          27,
+          8.025,
+          3.094,
+          -39.975,
+          -74.906
+        ]
+      }
     },
     "fauna/okavango_wildebeest": {
       "group": "okavango-spring",
       "origin": "interim",
       "file": {
-        "path": "assets/okavango-spring/img/fauna_okavango_wildebeest.e43f089afd24.png",
-        "bytes": 3671,
-        "hash": "e43f089afd24"
+        "path": "assets/okavango-spring/img/fauna_okavango_wildebeest.86bf286717a0.png",
+        "bytes": 11579,
+        "hash": "86bf286717a0"
       },
-      "width": 390,
-      "height": 120,
-      "scale": 0.3333333333333333
+      "width": 138,
+      "height": 498,
+      "originX": 0,
+      "originY": 0,
+      "frames": {
+        "wildebeest.alert.m.body": [
+          0,
+          0,
+          121,
+          120,
+          63,
+          113,
+          0,
+          0
+        ],
+        "wildebeest.alert.m.head": [
+          0,
+          343,
+          107,
+          84,
+          20.114,
+          54.634,
+          37.114,
+          -88.366
+        ],
+        "wildebeest.alert.m.tail": [
+          89,
+          235,
+          23,
+          92,
+          19.17,
+          5.843,
+          -56.83,
+          -86.157
+        ],
+        "wildebeest.graze.f.body": [
+          0,
+          120,
+          116,
+          115,
+          60,
+          108,
+          0,
+          0
+        ],
+        "wildebeest.graze.f.head": [
+          0,
+          235,
+          89,
+          108,
+          19.629,
+          22.169,
+          35.629,
+          -84.831
+        ],
+        "wildebeest.graze.f.tail": [
+          112,
+          235,
+          22,
+          88,
+          18.443,
+          5.289,
+          -54.557,
+          -82.711
+        ],
+        "wildebeest.graze.y.body": [
+          0,
+          427,
+          66,
+          71,
+          33,
+          66,
+          0,
+          0
+        ],
+        "wildebeest.graze.y.head": [
+          66,
+          427,
+          60,
+          66,
+          11.373,
+          13.748,
+          19.373,
+          -51.252
+        ],
+        "wildebeest.graze.y.tail": [
+          126,
+          427,
+          12,
+          42,
+          9.335,
+          3.029,
+          -29.665,
+          -49.971
+        ]
+      }
     },
     "fauna/okavango_zebra": {
       "group": "okavango-spring",
       "origin": "interim",
       "file": {
-        "path": "assets/okavango-spring/img/fauna_okavango_zebra.e5e3136e09dc.png",
-        "bytes": 5562,
-        "hash": "e5e3136e09dc"
+        "path": "assets/okavango-spring/img/fauna_okavango_zebra.9d078ea052f6.png",
+        "bytes": 20666,
+        "hash": "9d078ea052f6"
       },
-      "width": 450,
-      "height": 120,
-      "scale": 0.3333333333333333
+      "width": 472,
+      "height": 200,
+      "originX": 0,
+      "originY": 0,
+      "frames": {
+        "zebra.alert.f.body": [
+          260,
+          0,
+          124,
+          116,
+          64,
+          109,
+          0,
+          0
+        ],
+        "zebra.alert.f.head": [
+          0,
+          116,
+          94,
+          84,
+          20.174,
+          70.79,
+          38.174,
+          -85.21
+        ],
+        "zebra.alert.f.tail": [
+          115,
+          116,
+          21,
+          78,
+          17.546,
+          4.943,
+          -58.454,
+          -99.057
+        ],
+        "zebra.graze.m.body": [
+          136,
+          0,
+          124,
+          116,
+          64,
+          109,
+          0,
+          0
+        ],
+        "zebra.graze.m.head": [
+          384,
+          0,
+          88,
+          116,
+          20.174,
+          29.79,
+          38.174,
+          -85.21
+        ],
+        "zebra.graze.m.tail": [
+          94,
+          116,
+          21,
+          78,
+          17.546,
+          4.943,
+          -58.454,
+          -99.057
+        ],
+        "zebra.graze.y.body": [
+          157,
+          116,
+          73,
+          73,
+          37,
+          68,
+          0,
+          0
+        ],
+        "zebra.graze.y.head": [
+          230,
+          116,
+          60,
+          73,
+          12.301,
+          19.17,
+          21.301,
+          -52.83
+        ],
+        "zebra.graze.y.tail": [
+          396,
+          116,
+          12,
+          39,
+          9.383,
+          3.585,
+          -32.617,
+          -61.415
+        ],
+        "zebra.walk.m.body": [
+          0,
+          0,
+          136,
+          116,
+          69,
+          109,
+          0,
+          0
+        ],
+        "zebra.walk.m.head": [
+          290,
+          116,
+          106,
+          67,
+          20.174,
+          53.79,
+          38.174,
+          -85.21
+        ],
+        "zebra.walk.m.tail": [
+          136,
+          116,
+          21,
+          78,
+          17.546,
+          4.943,
+          -58.454,
+          -99.057
+        ]
+      }
     },
     "feesdae/halloween": {
       "group": "feesdae",
@@ -718,9 +3070,9 @@
       "group": "kalahari-summer",
       "origin": "interim",
       "file": {
-        "path": "assets/kalahari-summer/img/kalahari_weaver_camelthorn.e6aeccd2c388.png",
-        "bytes": 273743,
-        "hash": "e6aeccd2c388"
+        "path": "assets/kalahari-summer/img/kalahari_weaver_camelthorn.702405d9bb0b.png",
+        "bytes": 232730,
+        "hash": "702405d9bb0b"
       },
       "width": 1160,
       "height": 1160,
@@ -916,9 +3268,9 @@
       "group": "namibie",
       "origin": "interim",
       "file": {
-        "path": "assets/namibie/img/namibie_nest_camelthorn.657da51d6d14.png",
-        "bytes": 234425,
-        "hash": "657da51d6d14"
+        "path": "assets/namibie/img/namibie_nest_camelthorn.27a29472d6b8.png",
+        "bytes": 198804,
+        "hash": "27a29472d6b8"
       },
       "width": 1044,
       "height": 1044,
