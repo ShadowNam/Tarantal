@@ -166,7 +166,8 @@ test('Settings → Graphics shows the choice and switches back to Standard', asy
   expect(await page.evaluate(() => window.__TM__?.graphics.mode)).toBe('standard');
   await tapRect(page, touch, 'settings.back');
   await page.waitForFunction(() => window.__TM__?.menu === null);
-  // The HD textures go at the next scene change (the hunt).
+  // The HD textures go once nothing draws them: the hunt keeps the title's views, so they are
+  // swapped back in place (GraphicsControl.settle, every 30 frames) and freed.
   await startHunt(page, touch);
   await page.waitForFunction(() => window.__TM__?.graphics.hdTextures === 0, null, {
     timeout: 60_000,

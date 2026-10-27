@@ -106,6 +106,12 @@ export function loadHd(
   o: { readonly timeoutMs: number; readonly biome?: string },
 ): { readonly now: Promise<void>; readonly all: Promise<void> } {
   if (m.hdLoading !== null) return m.hdLoading;
+  /**
+   * This load, once made. A file that lands after dropHd() (Standard chosen meanwhile) is let go:
+   * it must not put the HD pack back into the manifest.
+   */
+  let loading: { readonly now: Promise<void>; readonly all: Promise<void> } | null = null;
+  const live = (): boolean => loading !== null && m.hdLoading === loading;
   const now: (() => Promise<void>)[] = [];
   const later: (() => Promise<void>)[] = [];
   const files = hdFiles(m, index, o.biome, true);
@@ -138,7 +144,7 @@ export function loadHd(
     queue(entry.group, () =>
       image(hd.file).then((img) => {
         // HD only on top of a standard file that loaded (it is what Standard falls back to).
-        if (img === null || (std ?? m.finalImages.get(key)) === undefined) return;
+        if (!live() || img === null || (std ?? m.finalImages.get(key)) === undefined) return;
         m.hdImages.set(key, { img, entry: hd, std: entry.scale ?? 1, path: hd.file.path });
       }),
     );
@@ -148,7 +154,7 @@ export function loadHd(
     if (hd === undefined || m.hdLayers.has(id) || !m.layerArt.has(id)) continue;
     queue(entry.group, () =>
       Promise.all(hd.tiles.map((t) => image(t))).then((imgs) => {
-        if (imgs.some((i) => i === null)) return;
+        if (!live() || imgs.some((i) => i === null)) return;
         const tiles = imgs.map((img, i) => ({
           key: `final:layer/${id}/hd/${i}`,
           // Safe: the line above returned if any image is null.
@@ -205,7 +211,7 @@ export function loadHd(
           (data) => checkBirdAtlas(entry.clips, data).dropped.length === 0,
           (img, data, paths) => {
             const std = m.finalBirds.get(id);
-            if (std === undefined) return;
+            if (!live() || std === undefined) return;
             m.hdBirds.set(id, {
               atlasKey: `final:bird/${id}@hd`,
               entry: std.entry,
@@ -228,7 +234,7 @@ export function loadHd(
         (data) => checkAtlas(entry.clips, data).dropped.length === 0,
         (img, data, paths) => {
           const std = m.finalGuns.get(id);
-          if (std === undefined) return;
+          if (!live() || std === undefined) return;
           m.hdGuns.set(id, {
             atlasKey: `final:gun/${id}@hd`,
             entry: std.entry,
@@ -250,10 +256,11 @@ export function loadHd(
     .then(() => Promise.all(later.map((job) => job())))
     .then(() => {
       // Something failed: the next call tries the missing files again.
-      if (hdFiles(m, index, o.biome, true).now.length > 0) m.hdLoading = null;
+      if (live() && hdFiles(m, index, o.biome, true).now.length > 0) m.hdLoading = null;
     });
-  m.hdLoading = { now: first, all };
-  return m.hdLoading;
+  loading = { now: first, all };
+  m.hdLoading = loading;
+  return loading;
 }
 
 /**
@@ -313,6 +320,53 @@ export function dropHd(m: AssetManifest): void {
   m.hdGuns.clear();
   m.hdLoading = null;
   m.hdBytes = { done: 0, total: 0, settled: false };
+}
+
+/** True while swapped-out textures wait for purgeRetired(). */
+export function retiredPending(): boolean {
+  return retiredTextures.size > 0;
+}
+
+interface Pointed {
+  readonly texture?: { readonly key: string };
+  readonly frame?: { readonly name: string };
+  readonly list?: readonly unknown[];
+  setTexture?: (key: string, frame?: string) => unknown;
+}
+
+/**
+ * Standard back while views live (Settings on the title; the hunt starts without rebuilding
+ * them): every object still drawing a retired image moves to the image now under its key, same
+ * frame. Its on-screen size doesn't change: an HD image's frames report the standard size
+ * (hdTexture.ts). Props and far animals (`viewScaled`: their view sets the scale) are left to
+ * ParallaxView.refreshHd(). Bird and gun atlases aren't renamed: their views switch by key.
+ * Returns how many objects moved.
+ */
+export function repointRetired(
+  scenes: readonly Phaser.Scene[],
+  textures: Phaser.Textures.TextureManager,
+  manifests: readonly AssetManifest[],
+): number {
+  let moved = 0;
+  const visit = (o: unknown): void => {
+    if (o === null || typeof o !== 'object') return;
+    const d = o as Pointed;
+    if (Array.isArray(d.list)) for (const c of d.list) visit(c);
+    const key = d.texture?.key;
+    const base = key === undefined ? null : /^(.*)#retired-\d+$/.exec(key)?.[1];
+    if (base === undefined || base === null || d.setTexture === undefined) return;
+    if (!textures.exists(base) || manifests.some((m) => m.specs.get(base)?.viewScaled === true))
+      return;
+    const frame = d.frame?.name;
+    d.setTexture.call(
+      o,
+      base,
+      frame !== undefined && textures.get(base).has(frame) ? frame : undefined,
+    );
+    moved++;
+  };
+  for (const scene of scenes) for (const o of scene.children.list) visit(o);
+  return moved;
 }
 
 /** Renames the texture under `key` out of the way and marks it for purgeRetired(). */

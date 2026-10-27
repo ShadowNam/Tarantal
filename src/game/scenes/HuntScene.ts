@@ -655,7 +655,14 @@ export class HuntScene extends Phaser.Scene {
    */
   private refreshHd(idle: boolean): void {
     const g = this.ctx.graphics;
-    if (!g.hd) return;
+    if (!g.hd) {
+      // Standard chosen while these views draw HD (Settings on the title: the hunt that follows
+      // keeps the views, so no scene change frees it): swap back in place, free once unused.
+      g.settle(this.game.scene.scenes, this.textures, () => texturesInUse(this.game), this.anims);
+      if (this.parallax.refreshHd()) this.weapon.refreshRig();
+      if (this.ctx.hook) this.ctx.hook.graphics.epoch = this.manifest.hdEpoch;
+      return;
+    }
     g.apply(this.manifest, this.textures);
     if (this.parallax.refreshHd()) this.weapon.refreshRig();
     if (this.ctx.hook) this.ctx.hook.graphics.epoch = this.manifest.hdEpoch;

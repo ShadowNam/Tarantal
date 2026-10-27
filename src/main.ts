@@ -990,6 +990,17 @@ async function boot(): Promise<void> {
     apply(m, textures) {
       return hdRuntime?.applyHd(m, textures) ?? false;
     },
+    settle(scenes, textures, inUse, anims) {
+      const rt = hdRuntime;
+      if (rt === null || graphics.hd) return false;
+      const all = [...manifests.values()];
+      let changed = false;
+      for (const m of all) changed = rt.applyHd(m, textures) || changed;
+      rt.repointRetired(scenes, textures, all);
+      for (const m of all) rt.dropHd(m);
+      if (rt.retiredPending()) rt.purgeRetired(textures, inUse(), anims);
+      return changed;
+    },
     sync(textures, inUse, anims) {
       const hd = graphics.hd;
       for (const m of manifests.values()) m.setHd(hd);

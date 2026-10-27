@@ -896,7 +896,11 @@ activity), Roadmap, History (stages, pictures, evolution, decisions, glossary), 
     renamed and retired (never removed under an object, D-046), and `purgeRetired()` frees retired
     textures no object draws (`textureUse.ts` scans every scene) at the next scene change
     (`GraphicsControl.sync()` in `buildViews`). Switching to Standard also forgets the decoded HD
-    images (`dropHd`, `finalLoader.forgetImage`). HD files that land during play go in every 30
+    images (`dropHd`, `finalLoader.forgetImage`). A hunt started from the title keeps its views (no
+    scene change), so with Standard chosen `GraphicsControl.settle()` runs every 30 frames: Standard
+    back under each key, live objects moved off retired images (same frame and size; props and far
+    animals via `refreshHd()`), retired textures freed once nothing draws them; HD files still in
+    flight are let go. HD files that land during play go in every 30
     frames; `ParallaxView.refreshHd()` swaps tiles, props and far animals in place and
     `WeaponView.refreshRig()` picks the gun's atlas again.
   - **The choice** (`graphicsChoice.ts`, Settings `graphics`: `ask` | `standard` | `hd`, saved with

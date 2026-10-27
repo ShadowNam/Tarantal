@@ -2906,8 +2906,9 @@ loading screen scale with the window like the canvas (laid out for 1280×720, ne
 phones keep their layout); Settings → Graphics
 Standard / HD / Ask on start. (3) **Drawing:** HD textures draw at half scale, so positions, hit
 areas, replays and the sim never change; keys without a view scale get frames that report the
-standard size (`hdTexture.ts`), a texture is never removed under an object (renamed, freed at the
-next scene change). (4) **Loading:** an area's HD pack loads with it behind the loading screen; a
+standard size (`hdTexture.ts`), a texture is never removed under an object (renamed, freed once
+nothing draws it: at the next scene change, or within 30 frames while views live after a switch
+to Standard). (4) **Loading:** an area's HD pack loads with it behind the loading screen; a
 "Play now in Standard" button after 4 s; late and Ver HD in the background, the next areas'
 packs on the title. Standard never requests an HD file. (5) **Budgets:** first download and
 standard chunks unchanged; each HD group ≤ 4 MB gzip; texture memory of one area's HD hunt
