@@ -5,11 +5,11 @@
   "originY": 0,
   "group": "late",
   "frames": {
-    "ostrich.alert.m.body": [0, 0, 79, 89, 47, 85, 0, 0],
-    "ostrich.alert.m.head": [100, 89, 27, 59, 10.119, 48.625, 20.119, -73.375],
-    "ostrich.graze.f.body": [79, 0, 67, 75, 40, 72, 0, 0],
-    "ostrich.graze.f.head": [67, 89, 33, 72, 8.9, 5.365, 16.9, -61.635],
-    "ostrich.walk.f.body": [0, 89, 67, 75, 40, 72, 0, 0],
-    "ostrich.walk.f.head": [127, 89, 33, 42, 8.9, 33.365, 16.9, -61.635]
+    "ostrich.alert.m.body": [0, 0, 59, 68, 35, 65, 0, 0],
+    "ostrich.alert.m.head": [76, 68, 21, 45, 8.089, 36.968, 15.089, -55.032],
+    "ostrich.graze.f.body": [59, 0, 51, 57, 30, 54, 0, 0],
+    "ostrich.graze.f.head": [51, 68, 25, 55, 6.675, 4.774, 12.675, -46.226],
+    "ostrich.walk.f.body": [0, 68, 51, 57, 30, 54, 0, 0],
+    "ostrich.walk.f.head": [97, 68, 25, 32, 6.675, 24.774, 12.675, -46.226]
   }
 }
