@@ -841,6 +841,8 @@ activity), Roadmap, History (stages, pictures, evolution, decisions, glossary), 
 - WebGL context loss (backgrounding, memory pressure): Phaser 4 has built-in context restoration —
   test it; re-upload textures; never lose the run.
 - Memory: keep decoded texture memory < 256 MB on high tier, < 128 MB on low.
+  D-053: the HD pack keeps one area's hunt within 256 MB (226–243 MB, §10 HD pack); on the low
+  tier the HD option says it may be slow.
 - Safe areas (notches), dynamic viewport units (`100dvh`), no scroll/pinch.
 - `localStorage` can throw (blocked/private) → always via `meta/storage.ts` with in-memory fallback.
 
@@ -871,6 +873,63 @@ activity), Roadmap, History (stages, pictures, evolution, decisions, glossary), 
   (`absentIndexAccepted()`). Placeholders on purpose: `?art=placeholder` (dev and
   test builds). Every failed file is named in a console warning and in the test hook
   (`assets.failed`); the debug overlay shows `art: interim · N placeholder`.
+- **HD pack (1.9.0, D-053):** every asset group `g` may have a lazy twin `g-hd` with the same art
+  at 2 texture px per design px (`src/game/assets/hdPack.ts`). Sources: the art tools' 2× renders
+  (`npm run art:interim -- --only scenery|sprites --hd` writes layers, 1× props and shared sprites
+  to `art-source/hd/`, same paths as `art-source/`), and the ≥ 2× bird and prop masters already in
+  `art-source/` (packed straight into the HD group). The asset index lists each HD file beside its
+  standard one (`hd` on images, layers, bird planes; `hdFiles()` lists an area's). Not in HD: the
+  sky (a soft gradient), sprites cropped without a view scale (HUD ammo, the meerkat helper, water:
+  Phaser 4.2 clamps a crop to the frame's size), the guns, near pop-up birds and the late group's
+  rare birds (memory, below). Adding art to an HD pack is one step: its 2× render at
+  `art-source/hd/<same path>` (or a ≥ 2× master), then `npm run assets:pack`; `"hd": false` in a
+  sidecar or rig.json leaves one out (docs/06).
+  - **Drawing at half scale:** props and far animals (`CanvasSpec.viewScaled`) keep the HD frame
+    and `displayScale()` halves; layers take the HD tiles (2048 texture px = 1024 design px each,
+    `LayerArt.scale` 0.5, the standard opaque-row profile in design px); birds use their HD atlas
+    at `FinalBird.scale / 2` with animations keyed `final:<id>@hd/<clip>`. Every other key gets the
+    HD image under the same key with its frames reporting the standard size and the source's
+    resolution 2 (`hdTexture.ts halveTexture`): Phaser draws the quad at cutWidth / resolution,
+    so every view, origin, particle and hit area sees design px unchanged. The sim never sees any
+    of it; `HuntScene` samples on-screen boxes into the test hook (`graphics.bounds`).
+  - **Swapping:** `AssetManifest.applyHd()` puts the chosen art under each key: the old texture is
+    renamed and retired (never removed under an object, D-046), and `purgeRetired()` frees retired
+    textures no object draws (`textureUse.ts` scans every scene) at the next scene change
+    (`GraphicsControl.sync()` in `buildViews`). Switching to Standard also forgets the decoded HD
+    images (`dropHd`, `finalLoader.forgetImage`). A hunt started from the title keeps its views (no
+    scene change), so with Standard chosen `GraphicsControl.settle()` runs every 30 frames: Standard
+    back under each key, live objects moved off retired images (same frame and size; props and far
+    animals via `refreshHd()`), retired textures freed once nothing draws them; HD files still in
+    flight are let go. With HD a layer never holds both tile sets on the GPU: `install()` skips
+    the standard tiles of a layer that has HD tiles, `applyHd()` retires them when HD lands later
+    (freed once nothing draws them, every 30 frames during play, `GraphicsControl.purge`), and
+    puts them back first when Standard returns. HD files that land during play go in every 30
+    frames; `ParallaxView.refreshHd()` swaps tiles, props and far animals in place and
+    `WeaponView.refreshRig()` picks the gun's atlas again.
+  - **The choice** (`graphicsChoice.ts`, Settings `graphics`: `ask` | `standard` | `hd`, saved with
+    the settings): a saved preset wins; otherwise `main.ts` shows the DOM card
+    (`ui/graphicsCard.ts`) before Phaser starts, with `recommendGraphics()` pre-selected: HD when
+    `navigator.connection` says 4g and ≥ 10 Mbit/s (each where known), no Save-Data,
+    `deviceMemory` ≥ 4 where known, not the low tier, and > 1.25 device px per design px (DPR ×
+    the canvas's fit); "may be slow" at `deviceMemory` ≤ 2 or the low tier (the four numbers:
+    `content/client/feel.json` `graphics`). No card when the HD index can't load. Remember my choice
+    saves it, else `ask` stays. Test builds skip the card unless `?graphics=card`
+    (`?graphics=standard|hd` forces a mode).
+  - **Loading:** Standard never requests an HD file. HD: an area's files in common, the area and
+    desert load before its hunt (the DOM loading screen at boot, the area veil in `HuntScene`),
+    with a bar and MB; after `feel.assets.hdOfferStandardMs` (4 s) "Play now in Standard" starts on
+    the standard art and HD swaps in when it lands (both screens time the offer on the wall clock,
+    not Phaser's frame-capped scene clock; an HD file may take `hdFileTimeoutMs`, 120 s, so a slow
+    one keeps loading after the offer; one that fails stays Standard). A hunt in a lazy area waits
+    for its HD pack behind the same veil whether or not its standard art had already come in. The
+    late and Ver HD groups follow in the
+    background; between hunts the Classic area's and today's Daily's packs preload. A store app
+    can ship the HD groups inside (one folder per group, listed in the index).
+  - **Budgets** (`npm run size -- --strict`): the first download and the standard chunks
+    unchanged; each `-hd` group ≤ 4 MB gzip (`HD_CHUNK_BYTES`); the report lists each area's HD
+    download. Texture memory of one area's HD hunt (layers, every sprite, the guineafowl, a rare
+    variant, the equipped gun): 226–243 MB against Standard's 95–110 MB, within the 256 MB
+    ceiling (§9); with HD guns and near birds it would be ~310 MB, which is why they stay Standard.
 - **Service worker (v1.6):** the asset index and HTML are network first (the cached copy only
   offline); other files cache first; a failed answer is never cached or replaced. The worker
   names its build (`<sha>@<build time>`, `src/platform/swUpdate.ts`) when the page asks; a new

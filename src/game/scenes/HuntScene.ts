@@ -15,6 +15,10 @@ import { DebugOverlay } from '../../debug/DebugOverlay';
 import { artSummary } from '../assets/artSummary';
 import { fill, t, tOr } from '../../i18n/i18n';
 import { drawButton, Menu, textStyle } from '../ui/menu';
+import { texturesInUse } from '../assets/textureUse';
+import { hdTextureCount } from '../assets/AssetManifest';
+import { megabytes } from '../assets/graphicsChoice';
+import { sampleBounds, type BoundsSource } from './boundsSample';
 import { captureHintAlpha, type CaptureState } from '../capture';
 import { showDontShootBadge } from '../prefs';
 import { TierFilters } from '../quality/TierFilters';
@@ -57,7 +61,7 @@ import { MeerkatView } from '../view/MeerkatView';
 import { CanView } from '../view/cans/CanView';
 import { playPotjieSound } from '../view/potjieSounds';
 import { playMeerkatSound } from '../audio/meerkatSounds';
-import { textureBytes } from '../assets/textureBytes';
+import { largestTextures, textureBytes } from '../assets/textureBytes';
 import { mapLights, mapOmen, resolveMap, type ResolvedMap } from '../../sim/maps';
 import { layoutForDay } from '../../meta/maps';
 import { applyBonusResult, bonusKeys, bonusOpenFor, bonusSlug } from '../../meta/bonusMaps';
@@ -111,6 +115,11 @@ const MAX_FRAME_SAMPLES = 20_000;
 export class HuntScene extends Phaser.Scene {
   private readonly ctx: GameContext;
   private parallax!: ParallaxView;
+  /**
+   * D-053: this run's ParallaxView once built, else null (the test hook's create-time texture
+   * sample runs before the views exist; `parallax` may still hold the last run's destroyed one).
+   */
+  private boundsSource: BoundsSource | null = null;
   private birds!: BirdView;
   private fx!: Fx;
   private weapon!: WeaponView;
@@ -187,9 +196,11 @@ export class HuntScene extends Phaser.Scene {
   }
 
   create(data: HuntData): void {
+    this.boundsSource = null;
     // M9 lazy biomes: an auto-started hunt in a biome whose art isn't loaded yet waits for it.
     const wanted = this.initialBiome(data);
-    this.viewsPending = !this.ctx.biomeReady(wanted.id);
+    // D-053: with HD chosen, the area's HD pack loads behind the same veil before its hunt.
+    this.viewsPending = !this.ctx.biomeReady(wanted.id) || !this.ctx.graphics.ready(wanted.id);
     if (this.viewsPending) {
       this.waitForBiome(wanted.id, (ok) => {
         this.scene.restart(ok ? data : ({} satisfies HuntData));
@@ -331,6 +342,10 @@ export class HuntScene extends Phaser.Scene {
   /** Every view of the hunt for the scene's biome and map (another biome or map rebuilds them). */
   private buildViews(): void {
     this.viewsStale = false;
+    // D-053: the views are about to be made: every manifest takes the chosen art (HD in, or
+    // Standard back), and swapped-out textures nothing draws any more are freed.
+    this.ctx.graphics.sync(this.textures, () => texturesInUse(this.game), this.anims);
+    this.manifest.install(this.textures, () => false);
     const { width } = designSize();
     fitCamera(this.cameras.main);
     // An id this biome lacks (a bad ?layout=) draws the plain biome rather than failing.
@@ -344,6 +359,7 @@ export class HuntScene extends Phaser.Scene {
       this.ctx.feel.perspective.faunaScale,
     );
     this.parallax.measureFill = this.ctx.hook !== null;
+    this.boundsSource = this.parallax;
     // D-048: a special day plays the day's map under its own light (Halloween: dusk).
     const special =
       this.map.feesdag === undefined
@@ -632,9 +648,43 @@ export class HuntScene extends Phaser.Scene {
     return this.ctx.content.weapons.sights.find((s) => s.id === id)?.picture ?? null;
   }
 
+  /**
+   * D-053: HD files that landed since (after "Play now in Standard", or the background late
+   * and Ver groups) go under their keys now (renamed, never removed: D-046), and the scenery and
+   * gun views switch over in place. Between hunts it also preloads the next areas' HD packs.
+   */
+  private refreshHd(idle: boolean): void {
+    const g = this.ctx.graphics;
+    if (!g.hd) {
+      // Standard chosen while these views draw HD (Settings on the title: the hunt that follows
+      // keeps the views, so no scene change frees it): swap back in place, free once unused.
+      g.settle(this.game.scene.scenes, this.textures, () => texturesInUse(this.game), this.anims);
+      if (this.parallax.refreshHd()) this.weapon.refreshRig();
+      if (this.ctx.hook) this.ctx.hook.graphics.epoch = this.manifest.hdEpoch;
+      return;
+    }
+    g.apply(this.manifest, this.textures);
+    if (this.parallax.refreshHd()) this.weapon.refreshRig();
+    // The standard textures HD replaced (layer tiles, renamed images) go once nothing draws them
+    // (the views just moved over), not at the next scene change: on a phone both sets did not
+    // fit 256 MB.
+    g.purge(this.textures, () => texturesInUse(this.game), this.anims);
+    if (this.ctx.hook) this.ctx.hook.graphics.epoch = this.manifest.hdEpoch;
+    if (idle) {
+      // The areas the next hunt is likeliest to use: the Classic area and today's Daily.
+      g.preload(this.ctx.classicBiome ?? this.ctx.classicArea());
+      g.preload(this.ctx.daily.todaySetup().biome);
+    }
+  }
+
   /** D-029 texture memory for the test hook, and (v1.3) which gun atlases are on the GPU. */
   private sampleTextures(hook: TestHook): void {
     hook.textureBytes = textureBytes(this.textures);
+    hook.textureTop = largestTextures(this.textures, 15);
+    // D-053: HD textures in the texture manager, and sampled on-screen boxes (the same with
+    // Standard and HD).
+    hook.graphics.hdTextures = hdTextureCount(this.textures);
+    hook.graphics.bounds = sampleBounds(this.boundsSource);
     hook.gunAtlases = this.textures.getTextureKeys().filter((k) => k.startsWith('final:gun/'));
   }
 
@@ -1002,6 +1052,12 @@ export class HuntScene extends Phaser.Scene {
     void this.ctx.loadBiome(id).then((ok) => {
       this.ctx.platform.loadingProgress(1);
       if (label.active) label.destroy();
+      if (ok && veil.active && !this.ctx.graphics.ready(id)) {
+        this.waitForHd(id, veil, () => {
+          then(true);
+        });
+        return;
+      }
       if (ok || !veil.active) {
         if (veil.active) veil.destroy();
         then(ok);
@@ -1017,6 +1073,96 @@ export class HuntScene extends Phaser.Scene {
           then(false);
         },
       );
+    });
+  }
+
+  /**
+   * D-053: the area's HD pack behind `veil`: a bar with the MB, and after
+   * feel.assets.hdOfferStandardMs "Play now in Standard" (the hunt starts on the standard art;
+   * the HD files keep loading and swap in during play). Clears the veil, then calls `then`.
+   */
+  private waitForHd(id: string, veil: Phaser.GameObjects.Rectangle, then: () => void): void {
+    const { width, height } = designSize();
+    const hook = this.ctx.hook;
+    if (hook) hook.graphics.loading = 'loading';
+    const line = (): string => {
+      const p = this.ctx.graphics.progress(id);
+      return fill(t('gfx.loading'), { done: megabytes(p.done), total: megabytes(p.total) });
+    };
+    const label = this.add
+      .text(width / 2, height / 2 - 80, line(), textStyle(40, '#F3EAD3'))
+      .setOrigin(0.5)
+      .setDepth(10_000);
+    const barW = Math.min(900, width - 200);
+    const back = this.add
+      .rectangle(width / 2, height / 2, barW, 28, 0x3a2e25)
+      .setStrokeStyle(4, 0x5a4a3c)
+      .setDepth(10_000);
+    const bar = this.add
+      .rectangle(width / 2 - barW / 2, height / 2, 0, 28, 0xd8a73a)
+      .setOrigin(0, 0.5)
+      .setDepth(10_001);
+    let menu: Menu | null = null;
+    let offer: { g: Phaser.GameObjects.GameObject; text: Phaser.GameObjects.GameObject } | null =
+      null;
+    let done = false;
+    // Wall-clock timers, not the scene clock: on a slow device (and while an area's art decodes)
+    // Phaser caps each frame's delta, so a 4 s delayedCall took longer than the 15 s file
+    // timeouts and "Play now in Standard" never came (Pixel 7 e2e).
+    let ticker = 0;
+    let offerTimer = 0;
+    const stopTimers = (): void => {
+      window.clearInterval(ticker);
+      window.clearTimeout(offerTimer);
+    };
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, stopTimers);
+    const finish = (how: 'done' | 'skipped'): void => {
+      if (done) return;
+      done = true;
+      stopTimers();
+      this.events.off(Phaser.Scenes.Events.SHUTDOWN, stopTimers);
+      menu?.destroy();
+      for (const o of [label, back, bar, veil, offer?.g, offer?.text]) o?.destroy();
+      if (hook) {
+        hook.graphics.loading = how;
+        if (hook.menu === 'hdLoading') hook.menu = null;
+      }
+      then();
+    };
+    ticker = window.setInterval(() => {
+      if (done || !label.active) return;
+      const p = this.ctx.graphics.progress(id);
+      label.setText(line());
+      bar.width = p.total > 0 ? (barW * p.done) / p.total : 0;
+    }, 100);
+    offerTimer = window.setTimeout(() => {
+      if (done || !veil.active) return;
+      const rect = { x: width / 2 - 300, y: height / 2 + 90, w: 600, h: 110 };
+      const b = drawButton(this, rect, t('gfx.play_standard'), 'primary', 40);
+      b.g.setDepth(10_001);
+      b.text.setDepth(10_002);
+      offer = b;
+      if (hook) hook.menu = 'hdLoading';
+      menu = new Menu(
+        this,
+        [
+          {
+            id: 'hd.standard',
+            rect: () => rect,
+            press: () => {
+              this.ctx.graphics.skip(id);
+              finish('skipped');
+            },
+          },
+        ],
+        { focus: 'hd.standard', hook: this.ctx.hook },
+      );
+    }, this.ctx.feel.assets.hdOfferStandardMs);
+    void this.ctx.graphics.loadHd(id).then(() => {
+      // The load ended without HD (no runtime or index, D-053): this area plays in Standard, so
+      // the restart that follows doesn't put up a new veil (it looped forever before).
+      if (!this.ctx.graphics.ready(id)) this.ctx.graphics.skip(id);
+      if (veil.active) finish('done');
     });
   }
 
@@ -1225,8 +1371,13 @@ export class HuntScene extends Phaser.Scene {
     const huntBiome =
       mode.biome ??
       (mode.id === 'seasonHunt' ? this.biome.id : this.ctx.content.modes.modes[mode.id].biome);
-    // M9 lazy biomes: its art loads on first use; the hunt starts once it is in.
-    if (this.ctx.playableBiomes.includes(huntBiome) && !this.ctx.biomeReady(huntBiome)) {
+    // M9 lazy biomes: its art loads on first use; the hunt starts once it is in. D-053: with HD
+    // chosen, also its HD pack (behind the same veil, "Play now in Standard" after 4 s), even when
+    // its standard art came in earlier on the title (it skipped the HD wait before).
+    if (
+      this.ctx.playableBiomes.includes(huntBiome) &&
+      (!this.ctx.biomeReady(huntBiome) || !this.ctx.graphics.ready(huntBiome))
+    ) {
       this.waitForBiome(huntBiome, (ok) => {
         if (ok) this.begin(kind, startPointer, modeId, challenge, bonus);
         else this.scene.restart({} satisfies HuntData);
@@ -1491,6 +1642,7 @@ export class HuntScene extends Phaser.Scene {
     this.lastFrameAt = now;
     const runner = this.runner;
     const { width } = designSize();
+    if (this.game.loop.frame % 30 === 0) this.refreshHd(runner === null);
     this.weapon.update(delta);
     if (runner === null) {
       // Between hunts (start card, title) nothing stays frozen or slowed from capture mode.

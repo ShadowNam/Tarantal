@@ -2885,6 +2885,52 @@ builds stay until they are removed on purpose. (3) Budgets: the web first downlo
 each lazy chunk ≤ 1.5 MB for a fast start on phones; store apps bundle everything, so HD packs can
 ship inside the app. Docs: CLAUDE.md, Tech §8 (release aim), this file's open question 4.
 
+**D-053 1.9.0 HD graphics: Standard or HD, chosen on the loading screen (27 Oct 2026):** the
+product owner (26 Oct): "when the game loads, it should ask you standard quality or HD, so that the
+person can choose if his device and browser have enough resources … HD where everything has much
+higher graphics … and the standard version so that it works on all other devices"; (27 Oct) "a
+normal, not too high resolution loading screen … then it would ask you, do you want standard
+resolution or high resolution … a tick box that says save preset … why not use high-quality
+graphics if it's possible?" The product owner's design replaced the supervisor's Settings-only
+Auto proposal. (1) **Two resolutions of the same art:** Standard is the 1× art of the first
+download, unchanged byte for byte; every group `g` gets a lazy `g-hd` twin with the art tools' 2×
+renders (layers, props, sprites; `art-source/hd/`) and the 2× masters already delivered (birds,
+props). No new art: the 2× Bushveld aloes are the D-051 drawing rendered at 2× and sit in
+`bushveld-winter-hd` (the product owner, 27 Oct: "keep them at normal resolution, but revisit
+later"; Standard keeps them at 1×). (2) **The choice:** a DOM card before the title on the first
+launch and whenever no preset is saved, on every build (D-052): Standard or HD with the real MB
+(before the hunt: `common-hd` + the area's `-hd`, as the HD loading bar counts),
+the recommendation pre-selected (connection, Save-Data, deviceMemory, device px per design px),
+"may be slow on this device" on weak devices, Remember my choice ticked; the card and the HD
+loading screen scale with the window like the canvas (laid out for 1280×720, never below 1×, so
+phones keep their layout); Settings → Graphics
+Standard / HD / Ask on start. (3) **Drawing:** HD textures draw at half scale, so positions, hit
+areas, replays and the sim never change; keys without a view scale get frames that report the
+standard size (`hdTexture.ts`), a texture is never removed under an object (renamed, freed once
+nothing draws it: at the next scene change, or within 30 frames while views live after a switch
+to Standard). (4) **Loading:** an area's HD pack loads with it behind the loading screen; a
+"Play now in Standard" button after 4 s; late and Ver HD in the background, the next areas'
+packs on the title. Standard never requests an HD file. (5) **Budgets:** standard chunks
+unchanged; the first download +4.7 KB gzip on web (2,990.7 → 2,995.4 KB; Poki and CrazyGames
++5.0 KB), the boot code the choice needs (Settings row, recommendation, card trigger; the card,
+its strings, the HD runtime and the HD index are lazy), accepted by the supervisor 27 Oct; each HD group ≤ 4 MB gzip; texture memory of one area's HD hunt
+226–243 MB (Standard 95–110), within the 256 MB ceiling: so the guns (a 2× page is 64 MB), the
+near pop-up birds and the late group's rare birds stay Standard (~310 MB otherwise), and the sky
+(a gradient) and three cropped sprites (Phaser 4.2 crops clamp to the frame) have no HD version.
+**Real 2× only** (measured 27 Oct, supervisor's crops: clear gain on the scope, small on the
+aloes, none on far fauna): each HD file against its 1× file upscaled 2× (mean |diff| /255, and
+detail above 1× relative to the upscale's, where a pure resize scores 1.0). Six score as resize-only
+(diff < 1.5 and ratio < 2 or detail < 1/255) and are left out (`HD_NO_GAIN_KEYS`, −450 KB):
+`sky/cloud_cumulus` (1.07, 1.71), `sky/cloud_tower` (1.01, 1.71), `sky/cloud_wide` (1.31, 1.84),
+`sight/iron_rear` (0.49, 1.95), `sight/peep` (0.12, detail 0.21), `omen/glare` (0.41, detail 0.39);
+each key swaps on its own, so none is kept for consistent swapping. Real 2× renders: every other
+image (ratio 2.07–3.7, e.g. `sight/scope` 2.73, the Bushveld aloes 2.56), all 30 layers (2.1–3.2)
+and the bird atlases (2× masters). The far animals have no HD entry at all: their Standard files
+are already 3× masters drawn at ⅓, so HD can't sharpen them (the far-animals job adds real ones).
+(6) Later art jobs (far animals in HD, makalani palms, tree life) add to the HD packs by putting
+their 2× render at `art-source/hd/<path>` (docs/06). Docs: Tech §9, §10; GDD Settings; docs/06;
+CHANGELOG 1.9.0.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

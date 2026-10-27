@@ -5,7 +5,8 @@ import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import type { Plugin } from 'vite';
-import { ASSET_INDEX_PATH, parseAssetIndex } from '../src/game/assets/assetIndex';
+import { ASSET_INDEX_PATH, HD_INDEX_PATH } from '../src/game/assets/assetIndex';
+import { readFullIndex } from './assets/fullIndex';
 import { BUILD_MESSAGE, CACHE_PREFIX } from '../src/platform/swUpdate';
 import { audioFiles, lazyAssetFiles } from './sizeBudget';
 
@@ -94,7 +95,11 @@ self.addEventListener('fetch', (event) => {
     );
     return;
   }
-  if (url.pathname.endsWith('/${ASSET_INDEX_PATH}') || url.pathname.endsWith('.html')) {
+  if (
+    url.pathname.endsWith('/${ASSET_INDEX_PATH}') ||
+    url.pathname.endsWith('/${HD_INDEX_PATH}') ||
+    url.pathname.endsWith('.html')
+  ) {
     event.respondWith(
       fetch(req)
         .then((res) => {
@@ -151,9 +156,8 @@ export function serviceWorkerPlugin(build = ''): Plugin {
       const indexPath = join(outDir, ASSET_INDEX_PATH);
       // Other biomes' files and every recording are cached on first use, not up front (a browser
       // plays one of each Ogg/MP3 pair).
-      const index = existsSync(indexPath)
-        ? parseAssetIndex(JSON.parse(readFileSync(indexPath, 'utf8'))).index
-        : null;
+      // D-053: with the HD half (HD files are cached when first used, never up front).
+      const index = existsSync(indexPath) ? readFullIndex(outDir).index : null;
       const lazy = new Set([
         ...(index === null ? [] : lazyAssetFiles(index)),
         ...(index === null ? [] : audioFiles(index)),

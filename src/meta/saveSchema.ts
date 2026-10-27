@@ -49,6 +49,8 @@ export const SettingsSchema = z.object({
   offsetCrosshair: z.boolean(),
   /** v1.7b (D-046): Oupa's comments — voice and bubble, the bubble only, or none at all. */
   oupa: z.enum(['on', 'text', 'off']),
+  /** D-053: Standard or HD art remembered, or ask on the loading screen ("ask", the default). */
+  graphics: z.enum(['ask', 'standard', 'hd']),
 });
 export type Settings = z.infer<typeof SettingsSchema>;
 
@@ -72,6 +74,7 @@ export const DEFAULT_SETTINGS: Settings = {
   holdToFire: false,
   offsetCrosshair: false,
   oupa: 'on',
+  graphics: 'ask',
 };
 
 const shortId = z.string().max(80);

@@ -71,6 +71,13 @@ const QUALITY: Choice<'quality'> = {
   label: (v) => `settings.quality.${v}`,
 };
 
+/** D-053: Standard or HD art, or ask on the loading screen (takes effect at the next hunt). */
+const GRAPHICS: Choice<'graphics'> = {
+  key: 'graphics',
+  values: ['standard', 'hd', 'ask'],
+  label: (v) => `settings.graphics.${v}`,
+};
+
 const ROW_H = 96;
 const ROW_GAP = 18;
 /** v1.5: Sound & game has six rows per column (voice language, Afrikaans names); v1.7b: seven
@@ -99,6 +106,12 @@ function fitHint(text: Phaser.GameObjects.Text, maxW: number): void {
 
 function hintRect(text: Phaser.GameObjects.Text): Rect {
   return { x: text.x, y: text.y, w: text.displayWidth, h: text.displayHeight };
+}
+
+/** D-053: device memory at or below feel.graphics.weakDeviceMemoryGb where the browser says. */
+function weakMemory(weakGb: number): boolean {
+  const m = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
+  return typeof m === 'number' && m <= weakGb;
 }
 
 export class SettingsScene extends Phaser.Scene {
@@ -242,7 +255,8 @@ export class SettingsScene extends Phaser.Scene {
     };
 
     const choice = <
-      K extends 'aimAssist' | 'language' | 'voiceLanguage' | 'quality' | 'textSize' | 'oupa',
+      K extends
+        'aimAssist' | 'language' | 'voiceLanguage' | 'quality' | 'textSize' | 'oupa' | 'graphics',
     >(
       col: 0 | 1,
       i: number,
@@ -396,6 +410,17 @@ export class SettingsScene extends Phaser.Scene {
       flag(0, 1, 'settings.flashes', 'reduceFlashes');
       choice(0, 2, 'settings.quality', QUALITY);
       choice(0, 3, 'settings.text_size', TEXT, restyle('settings.textSize'));
+      // D-053: the HD pack; on a weak device the hint says HD may be slow (still selectable).
+      choice(
+        1,
+        3,
+        'settings.graphics',
+        GRAPHICS,
+        undefined,
+        this.ctx.prefs.tier === 'low' || weakMemory(this.ctx.feel.graphics.weakDeviceMemoryGb)
+          ? 'settings.graphics_hint_weak'
+          : 'settings.graphics_hint',
+      );
       flag(1, 0, 'settings.contrast', 'highContrast', restyle('settings.contrast'));
       flag(1, 1, 'settings.captions', 'captions');
       flag(1, 2, 'settings.colour_blind', 'colourBlind');

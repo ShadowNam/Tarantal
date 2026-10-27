@@ -10,7 +10,7 @@ import type { Biome, Light } from '../../content/schemas';
 import { planeCentreX } from '../../sim/camera';
 import type { PlaneId } from '../../sim/types';
 import { coreWidth, DESIGN_HEIGHT, LAYER_BLEED_PX } from '../../sim/world';
-import { TEX, type AssetManifest } from '../assets/AssetManifest';
+import { isHdTexture, TEX, type AssetManifest } from '../assets/AssetManifest';
 import { HD_PARTS, hdKeyOf } from '../assets/hdProps';
 import { FAUNA_SPRITES } from './faunaSprites';
 import { lightTint } from './lightTint';
@@ -117,6 +117,27 @@ export class ParallaxView {
   }[] = [];
   /** D-051: props showing their HD texture (and holding their HD pieces). */
   private readonly hdLive = new Set<string>();
+  /** D-053: each layer's tile images (refreshHd swaps them for the art the manifest serves now). */
+  private readonly tileSets: {
+    readonly index: number;
+    readonly asset: string;
+    /** Stretch of a low-tier merged layer (1 otherwise). */
+    readonly k: number;
+    arts: StaticArt[];
+    keys: readonly string[];
+  }[] = [];
+  /** D-053: prop and far-animal images, re-set when HD art swaps in or out. */
+  private readonly keyed: {
+    readonly art: StaticArt;
+    readonly key: string;
+    readonly extra: number;
+  }[] = [];
+  /** D-053: builds a layer's tile images (set while constructing; refreshHd reuses it). */
+  private makeTiles:
+    ((art: NonNullable<ReturnType<AssetManifest['layer']>>, k: number) => StaticArt[]) | null =
+    null;
+  /** D-053: the manifest's hdEpoch these images were made with. */
+  private hdEpoch: number;
   /** D-051: every prop with an HD texture (test hook: where it is, whether it shows HD). */
   private readonly hdArt: { readonly propId: string; readonly art: StaticArt }[] = [];
 
@@ -128,6 +149,7 @@ export class ParallaxView {
     /** D-049: display scale per far-animal sprite (feel.json perspective.faunaScale). */
     faunaScale: Readonly<Record<string, number>> = {},
   ) {
+    this.hdEpoch = manifest.hdEpoch;
     // Back to front: ascending scroll factor (sky 0.05 … foreground 1.2).
     const ordered = biome.layers
       .map((layer, index) => ({ layer, index }))
@@ -163,17 +185,7 @@ export class ParallaxView {
       const statics: StaticArt[] = [];
       const add = (img: Phaser.GameObjects.Image, solid: SolidProfile | null = null): void => {
         root.add(img);
-        const left = img.x - img.originX * img.displayWidth;
-        const top = img.y - img.originY * img.displayHeight;
-        statics.push({
-          img,
-          left,
-          right: left + img.displayWidth,
-          top,
-          bottom: top + img.displayHeight,
-          solid,
-          crop: null,
-        });
+        statics.push(staticOf(img, solid));
       };
       // A tile's slice of the layer's opaque-row profile (delivered art at scale 1 only).
       const profileOf = (
@@ -182,36 +194,54 @@ export class ParallaxView {
         x: number,
         sx: number,
       ): SolidProfile | null => {
-        if (a.solid === undefined || a.scale !== 1) return null;
+        if (a.solid === undefined || (a.scale !== 1 && a.solidDesignPx !== true)) return null;
         const per = Math.max(1, Math.round(a.tileWidth / a.solid.bucket));
         return tileProfile(a.solid, x, a.top, sx, i * per, per);
       };
       this.statics.push(statics);
       this.shapes.push([]);
       this.culledRoot.push(false);
+      const layerIndex = this.statics.length - 1;
+      /** D-053: a layer's tiles as images (also refreshHd's, with the art served then). */
+      const tilesOf = (
+        art: NonNullable<ReturnType<AssetManifest['layer']>>,
+        k: number,
+      ): StaticArt[] =>
+        art.tiles.map((key, i) => {
+          const x = (art.left + i * art.tileWidth) * k;
+          const img = scene.add
+            .image(x, art.top, key)
+            .setOrigin(0, 0)
+            .setScale(art.scale * k, art.scale);
+          return staticOf(img, profileOf(art, i, x, k));
+        });
+      this.makeTiles = tilesOf;
       const extra = merges.get(layer.id);
       if (extra !== undefined) {
         const art = manifest.layer(extra.asset);
         const k = coreWidth(layer.scrollFactor) / coreWidth(extra.scrollFactor);
-        art?.tiles.forEach((key, i) => {
-          const x = (art.left + i * art.tileWidth) * k;
-          add(
-            scene.add
-              .image(x, art.top, key)
-              .setOrigin(0, 0)
-              .setScale(art.scale * k, art.scale),
-            profileOf(art, i, x, k),
-          );
-        });
+        if (art !== undefined) {
+          const arts = tilesOf(art, k);
+          for (const a of arts) add(a.img, a.solid);
+          this.tileSets.push({
+            index: layerIndex,
+            asset: extra.asset,
+            k,
+            arts: statics.slice(-arts.length),
+            keys: art.tiles,
+          });
+        }
       }
       const art = manifest.layer(layer.asset);
       if (art !== undefined) {
-        art.tiles.forEach((key, i) => {
-          const x = art.left + i * art.tileWidth;
-          add(
-            scene.add.image(x, art.top, key).setOrigin(0, 0).setScale(art.scale),
-            profileOf(art, i, x, 1),
-          );
+        const arts = tilesOf(art, 1);
+        for (const a of arts) add(a.img, a.solid);
+        this.tileSets.push({
+          index: layerIndex,
+          asset: layer.asset,
+          k: 1,
+          arts: statics.slice(-arts.length),
+          keys: art.tiles,
         });
       }
       // Water channels (Okavango) are drawn from the splash zones: where you see water is exactly
@@ -239,6 +269,9 @@ export class ParallaxView {
             .setOrigin(o.x, o.y)
             .setScale(manifest.displayScale(f.key) * (faunaScale[f.key] ?? 1)),
         );
+        const fa = statics[statics.length - 1];
+        if (fa !== undefined)
+          this.keyed.push({ art: fa, key: f.key, extra: faunaScale[f.key] ?? 1 });
       }
       const fruit = scene.add.container(0, 0);
       root.add(fruit);
@@ -251,6 +284,8 @@ export class ParallaxView {
             .setOrigin(o.x, o.y)
             .setScale(manifest.displayScale(prop.asset)),
         );
+        const pa = statics[statics.length - 1];
+        if (pa !== undefined) this.keyed.push({ art: pa, key: prop.asset, extra: 1 });
         // D-051: switched to its HD texture once that lands (upgradeHd).
         const hd = hdKeyOf(prop.asset);
         const art = statics[statics.length - 1];
@@ -331,6 +366,90 @@ export class ParallaxView {
       c.img.x = driftX(c.place.x, c.place.speed, seconds, this.cloudSpan.left, this.cloudSpan.span);
       if (Math.abs(this.gloom - before) > 1e-4) c.img.setTint(gloomTint(c.place.tint, this.gloom));
     }
+  }
+
+  /**
+   * D-053 (test hook): the on-screen boxes (design px, rounded) of each layer's first tile and of
+   * every prop and far animal: the same with Standard and HD art. `hd`: it draws an HD file.
+   */
+  boundsSample(): { key: string; x: number; y: number; w: number; h: number; hd: boolean }[] {
+    const out: { key: string; x: number; y: number; w: number; h: number; hd: boolean }[] = [];
+    const box = (key: string, a: StaticArt): void => {
+      const b = a.img.getBounds();
+      out.push({
+        key,
+        x: Math.round(b.x),
+        y: Math.round(b.y),
+        w: Math.round(b.width),
+        h: Math.round(b.height),
+        hd: isHdTexture(a.img.texture),
+      });
+    };
+    for (const set of this.tileSets) {
+      const a = set.arts[0];
+      // Tiles differ in count (2048 texture px each); their union is what must match.
+      if (a === undefined) continue;
+      const last = set.arts[set.arts.length - 1] ?? a;
+      const b0 = a.img.getBounds();
+      const b1 = last.img.getBounds();
+      out.push({
+        key: `layer:${set.asset}`,
+        x: Math.round(b0.x),
+        y: Math.round(b0.y),
+        w: Math.round(b1.right - b0.x),
+        h: Math.round(b0.height),
+        hd: isHdTexture(a.img.texture),
+      });
+    }
+    for (const { art, key } of this.keyed) box(key, art);
+    return out;
+  }
+
+  /**
+   * D-053: when the manifest swapped art in or out since (AssetManifest.applyHd: HD landed
+   * after "Play now in Standard"), puts each layer's tiles, each prop and far animal on the art
+   * it serves now, in place: same positions, same on-screen size, same order. Returns true when
+   * anything changed.
+   */
+  refreshHd(): boolean {
+    if (this.manifest.hdEpoch === this.hdEpoch) return false;
+    this.hdEpoch = this.manifest.hdEpoch;
+    this.restoreCulled();
+    for (const set of this.tileSets) {
+      const art = this.manifest.layer(set.asset);
+      const make = this.makeTiles;
+      const statics = this.statics[set.index];
+      const first = set.arts[0];
+      if (art === undefined || make === null || statics === undefined || first === undefined)
+        continue;
+      if (art.tiles.length === set.keys.length && art.tiles.every((k, i) => k === set.keys[i]))
+        continue;
+      const root = first.img.parentContainer as Phaser.GameObjects.Container | null;
+      if (root === null) continue;
+      const at = root.getIndex(first.img);
+      const tint = first.img.tintTopLeft;
+      const next = make(art, set.k);
+      next.forEach((a, i) => {
+        root.addAt(a.img, at + i);
+        if (tint !== 0xffffff) a.img.setTint(tint);
+      });
+      const from = statics.indexOf(first);
+      statics.splice(from, set.arts.length, ...next);
+      for (const a of set.arts) a.img.destroy();
+      set.arts = next;
+      set.keys = art.tiles;
+    }
+    for (const { art, key, extra } of this.keyed) {
+      const img = art.img;
+      // A D-051 prop already on its HD stand-in keeps it.
+      if (img.texture.key === hdKeyOf(key)) continue;
+      const o = this.manifest.origin(key);
+      img
+        .setTexture(key)
+        .setOrigin(o.x, o.y)
+        .setScale(this.manifest.displayScale(key) * extra);
+    }
+    return true;
   }
 
   /**
@@ -626,6 +745,21 @@ function hash01(n: number): number {
   let x = Math.imul(n ^ 0x9e3779b9, 0x85ebca6b);
   x = Math.imul(x ^ (x >>> 13), 0xc2b2ae35);
   return ((x ^ (x >>> 16)) >>> 0) / 0x1_0000_0000;
+}
+
+/** A static image's layer-space box (its crop state starts empty). */
+function staticOf(img: Phaser.GameObjects.Image, solid: SolidProfile | null): StaticArt {
+  const left = img.x - img.originX * img.displayWidth;
+  const top = img.y - img.originY * img.displayHeight;
+  return {
+    img,
+    left,
+    right: left + img.displayWidth,
+    top,
+    bottom: top + img.displayHeight,
+    solid,
+    crop: null,
+  };
 }
 
 /** Crops an image to layer rect r (texture px, rounded outwards: never less than shows). */

@@ -169,21 +169,22 @@ function deliveredFiles(key: string, kind: AssetKind, index: AssetIndex | null):
     // An animated gun rig (D-029) delivers gun/<id> too, and wins over a single image.
     const gun = key.startsWith('gun/') ? index.guns[key.slice(4)] : undefined;
     if (gun !== undefined)
-      return [gun.x1, gun.x2].flatMap((a) =>
+      return [gun.x1, gun.x2, gun.hd].flatMap((a) =>
         (a?.pages ?? []).flatMap((p) => [p.image.path, p.data.path]),
       );
     const e = index.images[key];
-    return e === undefined ? null : [e.file.path];
+    // D-053: the HD twin (group `<group>-hd`) is delivered with the key too.
+    return e === undefined ? null : [e.file.path, ...(e.hd === undefined ? [] : [e.hd.file.path])];
   }
   if (kind === 'layer') {
     const e = index.layers[key];
-    return e === undefined ? null : e.tiles.map((t) => t.path);
+    return e === undefined ? null : [...e.tiles, ...(e.hd?.tiles ?? [])].map((t) => t.path);
   }
   if (kind === 'bird') {
     const [, creature = '', plane = ''] = key.split('/');
     const e = index.birds[creature]?.[plane as 'near' | 'mid' | 'far'];
     if (e === undefined) return null;
-    return [e.x1, e.x2].flatMap((a) =>
+    return [e.x1, e.x2, e.hd].flatMap((a) =>
       (a?.pages ?? []).flatMap((p) => [p.image.path, p.data.path]),
     );
   }

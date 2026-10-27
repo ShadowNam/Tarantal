@@ -1,6 +1,7 @@
 // What every scene shares: validated content, feel tuning, the asset manifest, audio, the save
 // (settings and progress), live prefs, the platform adapter, the safe area and the test hook.
 // Built once in main.ts.
+import type { GraphicsControl } from './assets/graphicsChoice';
 import type * as Phaser from 'phaser';
 import type { Biome, ContentBundle, DailyMeta, Feel, Notaboek } from '../content/schemas';
 import type { ChallengeDecode } from '../meta/challenge';
@@ -265,6 +266,8 @@ export interface TestHook {
   /** D-029: RGBA bytes of all textures (GPU memory estimate) during a hunt, and when the
    *  Skiet-Skuur opens (D-035 review); 0 before. */
   textureBytes: number;
+  /** D-053: the largest textures (key, MB), sampled with textureBytes. */
+  textureTop: { key: string; mb: number }[];
   /** v1.3: delivered gun atlases in the texture manager (sampled with textureBytes). */
   gunAtlases: string[];
   /** Boot milestones in ms since navigation start (content parsed, textures built, ready). */
@@ -364,6 +367,24 @@ export interface TestHook {
   } | null;
   /** D-051: props with an HD texture: their origin on screen (design px), HD showing yet. */
   hdProps: { id: string; hd: boolean; x: number; y: number }[];
+  /**
+   * D-053: Standard or HD. `card`: the loading screen asked this launch (`pick`: its
+   * recommendation); `loading`: the area's HD pack behind the loading screen; `bounds`: on-screen
+   * boxes of sampled scenery and HUD images (design px, rounded), the same with Standard and HD;
+   * `hdTextures`: HD textures in the texture manager; `epoch`: the hunt manifest's hdEpoch.
+   */
+  graphics: {
+    mode: 'standard' | 'hd';
+    setting: 'ask' | 'standard' | 'hd';
+    card: boolean;
+    pick: 'standard' | 'hd' | null;
+    weak: boolean;
+    cardMb: number;
+    loading: 'none' | 'loading' | 'done' | 'skipped';
+    bounds: { key: string; x: number; y: number; w: number; h: number; hd: boolean }[];
+    hdTextures: number;
+    epoch: number;
+  };
   /** D-051: the bark keys secret banners showed this page, in order. */
   secretBarks: string[];
   /** v1.7c (D-047): the fruit view (null until its chunk is in, or a map without fruit): fruit
@@ -533,6 +554,8 @@ export interface GameContext {
    * files a scoped hunt or the Skietbaan needs (`need`); false if they still failed.
    */
   loadLateArt(id: string, need: LateNeed): Promise<boolean>;
+  /** D-053: Standard or HD art, and each area's HD pack. */
+  readonly graphics: GraphicsControl;
   /** M8: the biome of the hunt on screen (the home biome between hunts). */
   huntBiome: Biome;
   readonly audio: AudioDirector;

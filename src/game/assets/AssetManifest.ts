@@ -11,12 +11,14 @@ import type {
   AudioEntry,
   BirdPlaneEntry,
   GunEntry,
+  HdImage,
   ImageEntry,
 } from './assetIndex';
 import { COMMON_GROUP, LATE_GROUP, VER_GROUP } from './assetIndex';
 import { DESERT_GROUP } from './desertAssets';
 import { atlasRegion, checkAtlas, checkBirdAtlas, type AtlasRegion } from './atlasCheck';
 import { loadBytes, loadImage, loadJson } from './finalLoader';
+import { halveTexture, type TextureLike } from './hdTexture';
 
 /** A texture drawn at runtime onto a canvas. Origin is in texture pixels. */
 export interface CanvasSpec {
@@ -28,6 +30,10 @@ export interface CanvasSpec {
   /** D-051: a placeholder that is never shown (an HD stand-in): installed as a 1×1 canvas, while
    *  `width`/`height`/origin still give the texture's design size. */
   readonly empty?: boolean;
+  /** D-053: its views scale it by displayScale() (props, far animals): an HD texture keeps its
+   *  own size and displayScale() halves. Other keys draw HD textures at half size by themselves
+   *  (hdTexture.ts). */
+  readonly viewScaled?: boolean;
   draw(ctx: CanvasRenderingContext2D): void;
 }
 
@@ -46,6 +52,9 @@ export interface LayerArt {
     readonly bucket: number;
     readonly rows: readonly (readonly [number, number] | null)[];
   };
+  /** D-053: `solid` is in design px though the tiles are scaled (the HD tiles reuse the
+   *  standard layer's profile). */
+  readonly solidDesignPx?: boolean;
 }
 
 /** D-029: `interim` = delivered, but code-drawn stand-in art (tools/art/), not the launch art. */
@@ -65,6 +74,8 @@ export interface FinalBird {
   readonly entry: BirdPlaneEntry;
   /** Design px per texture px of the atlas set in use (@2x halves it). */
   readonly scale: number;
+  /** D-053: the HD pack's atlas (its animations are keyed apart from the standard ones). */
+  readonly hd?: boolean;
 }
 
 /** A delivered animated gun (D-029) after loading. */
@@ -73,6 +84,68 @@ export interface FinalGun {
   readonly entry: GunEntry;
   /** Design px per texture px of the atlas set in use (@2x halves it). */
   readonly scale: number;
+  /** D-053: the HD pack's atlas. */
+  readonly hd?: boolean;
+}
+
+/** D-053: one HD file an area needs, for its size and the loading bar. */
+export interface HdFile {
+  readonly path: string;
+  readonly bytes: number;
+  readonly group: string;
+}
+
+/** D-053: an area's HD files: before its hunt (common, the area, desert) and after (late, Ver). */
+export interface HdFiles {
+  readonly now: readonly HdFile[];
+  readonly background: readonly HdFile[];
+}
+
+/** D-053: how far the HD files before the hunt have come (bytes of the files that are in). */
+export interface HdProgress {
+  readonly done: number;
+  readonly total: number;
+  /** True once every file before the hunt has settled (loaded or failed). */
+  readonly settled: boolean;
+}
+
+/** D-053: the groups a biome's manifest loads (D-029: other biomes' groups are skipped). */
+export function groupForBiome(group: string, biome: string | undefined): boolean {
+  return (
+    biome === undefined ||
+    group === COMMON_GROUP ||
+    group === LATE_GROUP ||
+    group === VER_GROUP ||
+    group === DESERT_GROUP ||
+    group === biome
+  );
+}
+
+/** D-053: late and Ver groups load after the hunt can start (in the background). */
+export function backgroundGroup(group: string): boolean {
+  return group === LATE_GROUP || group === VER_GROUP;
+}
+
+/**
+ * D-053: image keys whose HD texture is the one under the key now, with the display scale their
+ * views apply (texture state is per game, shared by every biome's manifest).
+ */
+export const hdUnderKey = new Map<string, number>();
+/** D-053: textures swapped out (Standard ↔ HD) or no longer wanted, freed once nothing draws them. */
+export const retiredTextures = new Set<string>();
+/** D-053: every decoded HD image (to count HD textures for the test hook and the memory check). */
+export const hdSources = new WeakSet<object>();
+
+/** D-053: textures in the texture manager whose image is an HD file. */
+export function hdTextureCount(textures: Phaser.Textures.TextureManager): number {
+  let n = 0;
+  for (const key of textures.getTextureKeys())
+    if (textures.get(key).source.some((src) => hdSources.has(src.image as object))) n++;
+  return n;
+}
+/** D-053 (test hook): true when `texture` draws an HD file. */
+export function isHdTexture(texture: Phaser.Textures.Texture): boolean {
+  return texture.source.some((src) => hdSources.has(src.image as object));
 }
 
 /** A sound's delivered file bytes, handed to the AudioDirector to decode. */
@@ -135,26 +208,27 @@ export const MAX_TILE_WIDTH = 2048;
 let retiredPlaceholders = 0;
 
 export class AssetManifest {
-  private readonly specs = new Map<string, CanvasSpec>();
-  private readonly layerArt = new Map<string, LayerArt>();
+  /** @internal */
+  readonly specs = new Map<string, CanvasSpec>();
+  /** @internal */
+  readonly layerArt = new Map<string, LayerArt>();
   /** Placeholder tile key → its layer's asset id (skipped when the layer has final art). */
-  private readonly layerOfTile = new Map<string, string>();
+  /** @internal */
+  readonly layerOfTile = new Map<string, string>();
   /** Sound keys this manifest's hunts can play (placeholders are the synth or silence). */
   private readonly sounds = new Set<string>();
   // Final files that loaded (M10).
-  private readonly finalImages = new Map<string, { img: HTMLImageElement; entry: ImageEntry }>();
-  private readonly finalLayers = new Map<
+  /** @internal */
+  readonly finalImages = new Map<string, { img: HTMLImageElement; entry: ImageEntry }>();
+  /** @internal */
+  readonly finalLayers = new Map<
     string,
     { art: LayerArt; tiles: readonly { key: string; img: HTMLImageElement }[] }
   >();
-  private readonly finalBirds = new Map<
-    string,
-    FinalBird & { img: HTMLImageElement[]; data: object[] }
-  >();
-  private readonly finalGuns = new Map<
-    string,
-    FinalGun & { img: HTMLImageElement[]; data: object[] }
-  >();
+  /** @internal */
+  readonly finalBirds = new Map<string, FinalBird & { img: HTMLImageElement[]; data: object[] }>();
+  /** @internal */
+  readonly finalGuns = new Map<string, FinalGun & { img: HTMLImageElement[]; data: object[] }>();
   /** Sound keys whose file loaded (status); the bytes themselves are handed off once. */
   private readonly finalSoundKeys = new Set<string>();
   /** Delivered keys (texture, layer, `bird/<c>/<plane>`, gun texture, sound) marked interim. */
@@ -169,6 +243,39 @@ export class AssetManifest {
   lateDone = true;
   /** v1.6 (D-042): texture keys install() drew as placeholders (upgrade() can swap them). */
   private readonly drawn = new Set<string>();
+  // D-053: the HD pack's files that loaded (each key keeps its standard file too).
+  /** @internal */
+  readonly hdImages = new Map<
+    string,
+    { img: HTMLImageElement; entry: HdImage; std: number; path: string }
+  >();
+  /** @internal */
+  readonly hdLayers = new Map<
+    string,
+    { art: LayerArt; tiles: readonly { key: string; img: HTMLImageElement; path: string }[] }
+  >();
+  /** @internal */
+  readonly hdBirds = new Map<
+    string,
+    FinalBird & { img: HTMLImageElement[]; data: object[]; paths: string[] }
+  >();
+  /** @internal */
+  readonly hdGuns = new Map<
+    string,
+    FinalGun & { img: HTMLImageElement[]; data: object[]; paths: string[] }
+  >();
+  /** D-053: the player's choice for this manifest (applied by install() / applyHd()). */
+  /** @internal */
+  hdWanted = false;
+  /** D-053: layers whose HD tiles are in the texture manager. */
+  /** @internal */
+  readonly hdTilesIn = new Set<string>();
+  /** @internal */
+  hdLoading: { now: Promise<void>; all: Promise<void> } | null = null;
+  /** @internal */
+  hdBytes = { done: 0, total: 0, settled: false };
+  /** D-053: bumps whenever applyHd() swaps art in or out (views refresh when it changes). */
+  hdEpoch = 0;
 
   addTexture(spec: CanvasSpec): void {
     this.specs.set(spec.key, spec);
@@ -192,6 +299,11 @@ export class AssetManifest {
 
   /** The layer's final art when it loaded, else its placeholder. */
   layer(assetId: string): LayerArt | undefined {
+    // D-053: the HD tiles once they are in the texture manager (applyHd / install).
+    if (this.hdWanted && this.hdTilesIn.has(assetId)) {
+      const hd = this.hdLayers.get(assetId);
+      if (hd !== undefined) return hd.art;
+    }
     return this.finalLayers.get(assetId)?.art ?? this.layerArt.get(assetId);
   }
 
@@ -207,7 +319,18 @@ export class AssetManifest {
 
   /** The delivered atlas and clips for a bird on a plane, or null (placeholder frames). */
   finalBird(creature: string, plane: PlaneId): FinalBird | null {
-    return this.finalBirds.get(`${creature}/${plane}`) ?? null;
+    return this.birdOf(`${creature}/${plane}`) ?? null;
+  }
+
+  /** D-053: the HD atlas while HD is chosen and it loaded, else the standard one. */
+  private birdOf(
+    id: string,
+  ): (FinalBird & { img: HTMLImageElement[]; data: object[] }) | undefined {
+    return (this.hdWanted ? this.hdBirds.get(id) : undefined) ?? this.finalBirds.get(id);
+  }
+
+  private gunOf(id: string): (FinalGun & { img: HTMLImageElement[]; data: object[] }) | undefined {
+    return (this.hdWanted ? this.hdGuns.get(id) : undefined) ?? this.finalGuns.get(id);
   }
 
   /**
@@ -219,9 +342,10 @@ export class AssetManifest {
     creature: string,
     plane: PlaneId,
   ): FinalBird | null {
-    const b = this.finalBirds.get(`${creature}/${plane}`);
+    const b = this.birdOf(`${creature}/${plane}`);
     if (b === undefined) return null;
     if (!textures.exists(b.atlasKey)) textures.addAtlasJSONHash(b.atlasKey, b.img, b.data);
+    retiredTextures.delete(b.atlasKey);
     return b;
   }
 
@@ -230,22 +354,25 @@ export class AssetManifest {
    * a hunt starts, so their GPU upload never lands mid-hunt. Late arrivals upload on first use.
    */
   prewarmBirds(textures: Phaser.Textures.TextureManager): void {
-    for (const b of this.finalBirds.values())
-      if (b.entry.group !== LATE_GROUP && !textures.exists(b.atlasKey))
+    for (const id of this.finalBirds.keys()) {
+      const b = this.birdOf(id);
+      if (b !== undefined && b.entry.group !== LATE_GROUP && !textures.exists(b.atlasKey))
         textures.addAtlasJSONHash(b.atlasKey, b.img, b.data);
+    }
   }
 
   /** D-029: like ensureBird, for a weapon's animated gun. */
   ensureGun(textures: Phaser.Textures.TextureManager, weaponId: string): FinalGun | null {
-    const g = this.finalGuns.get(weaponId);
+    const g = this.gunOf(weaponId);
     if (g === undefined) return null;
     if (!textures.exists(g.atlasKey)) textures.addAtlasJSONHash(g.atlasKey, g.img, g.data);
+    retiredTextures.delete(g.atlasKey);
     return g;
   }
 
   /** D-029: the delivered animated gun for a weapon id, or null (single image or placeholder). */
   finalGun(weaponId: string): FinalGun | null {
-    return this.finalGuns.get(weaponId) ?? null;
+    return this.gunOf(weaponId) ?? null;
   }
 
   /**
@@ -289,7 +416,8 @@ export class AssetManifest {
 
   /** v1.4 B (D-039): display scale of a texture (design px per texture px; 2× art is 0.5). */
   displayScale(key: string): number {
-    return this.finalImages.get(key)?.entry.scale ?? 1;
+    // D-053: a view-scaled key's HD texture is its own size; it shows at the HD scale.
+    return hdUnderKey.get(key) ?? this.finalImages.get(key)?.entry.scale ?? 1;
   }
 
   /** Placeholder size of a texture key in texture px (the size a delivered image must match). */
@@ -574,9 +702,23 @@ export class AssetManifest {
     budgetMs = Infinity,
   ): boolean {
     for (const [key, { img }] of this.finalImages)
-      if (!textures.exists(key)) textures.addImage(key, img);
-    for (const { tiles } of this.finalLayers.values())
+      if (!textures.exists(key)) {
+        // D-053: straight to the HD file when HD is chosen and it is in.
+        const hd = this.hdWanted ? this.hdImages.get(key) : undefined;
+        if (hd === undefined) {
+          textures.addImage(key, img);
+          // D-053: the standard file draws at its own scale again (an HD scale left from an
+          // earlier visit would show it at half size).
+          hdUnderKey.delete(key);
+        } else this.addHdImage(textures, key, hd);
+      }
+    for (const [id, { tiles }] of this.finalLayers) {
+      // D-053: a layer drawn from its HD tiles doesn't upload its standard ones as well (on the
+      // GPU they were most of an HD hunt's overshoot on phones: 270 MB > 256).
+      if (this.hdWanted && this.hdLayers.has(id)) continue;
       for (const t of tiles) if (!textures.exists(t.key)) textures.addImage(t.key, t.img);
+    }
+    if (this.hdWanted) this.installHdTiles(textures);
     // Bird and gun atlases go to the GPU on first use (ensureBird / ensureGun, D-029), so a hunt
     // only holds the creatures and guns it actually shows.
     const start = performance.now();
@@ -628,7 +770,9 @@ export class AssetManifest {
   /** D-051: true once `key`'s delivered image is the texture under that key (not a placeholder). */
   delivered(textures: Phaser.Textures.TextureManager, key: string): boolean {
     const f = this.finalImages.get(key);
-    return f !== undefined && textures.exists(key) && textures.get(key).getSourceImage() === f.img;
+    if (f === undefined || !textures.exists(key)) return false;
+    const src = textures.get(key).getSourceImage();
+    return src === f.img || src === this.hdImages.get(key)?.img;
   }
 
   /** Every texture key this manifest puts in the texture manager (placeholders, final files). */
@@ -636,6 +780,7 @@ export class AssetManifest {
     const out = new Set<string>(this.specs.keys());
     for (const key of this.finalImages.keys()) out.add(key);
     for (const { tiles } of this.finalLayers.values()) for (const t of tiles) out.add(t.key);
+    for (const { tiles } of this.hdLayers.values()) for (const t of tiles) out.add(t.key);
     return out;
   }
 
@@ -664,13 +809,20 @@ export class AssetManifest {
       textures.remove(key);
       removed.push(key);
     }
-    for (const [id, b] of this.finalBirds) {
+    // D-053: what was removed carries no HD state any more: no HD scale under its key, and a
+    // layer whose HD tiles went is installed again on the next visit (install/applyHd).
+    for (const key of removed) hdUnderKey.delete(key);
+    for (const [id, l] of this.hdLayers)
+      if (l.tiles.some((t) => !textures.exists(t.key))) this.hdTilesIn.delete(id);
+    for (const b of next.hdBirds.values()) if (b.entry.group !== LATE_GROUP) keep.add(b.atlasKey);
+    for (const [id, b] of [...this.finalBirds, ...this.hdBirds]) {
       if (keep.has(b.atlasKey) || !textures.exists(b.atlasKey)) continue;
       textures.remove(b.atlasKey);
       removed.push(b.atlasKey);
-      // `id` is `${creature}/${plane}`: BirdView's animation keys are `final:${id}/${clip}`.
+      // `id` is `${creature}/${plane}`: BirdView's animation keys are `final:${id}/${clip}`
+      // (D-053: `final:${id}@hd/${clip}` for the HD atlas).
       for (const clip of Object.keys(b.entry.clips)) {
-        const key = `final:${id}/${clip}`;
+        const key = birdAnimKey(id, b, clip);
         if (anims?.exists(key) === true) anims.remove(key);
       }
     }
@@ -689,7 +841,7 @@ export class AssetManifest {
     anims?: Phaser.Animations.AnimationManager,
   ): string[] {
     const removed: string[] = [];
-    for (const [id, g] of this.finalGuns) {
+    for (const [id, g] of [...this.finalGuns, ...this.hdGuns]) {
       if (keep.has(id) || !textures.exists(g.atlasKey)) continue;
       for (const clip of Object.keys(g.entry.clips)) {
         const key = `${g.atlasKey}/${clip}`;
@@ -701,10 +853,64 @@ export class AssetManifest {
     return removed;
   }
 
+  // --- D-053: the HD pack ------------------------------------------------------------------
+
+  /** True while this manifest draws its HD art where it has it (the player chose HD). */
+  get hd(): boolean {
+    return this.hdWanted;
+  }
+
+  /** The player's choice; install() and applyHd() put the matching textures in. */
+  setHd(on: boolean): void {
+    this.hdWanted = on;
+  }
+
+  /** How far the HD files before the hunt have come (0 / 0 before loadHd). */
+  hdProgress(): HdProgress {
+    return { ...this.hdBytes };
+  }
+
+  /** True once loadHd's files before the hunt have settled. */
+  get hdReady(): boolean {
+    return this.hdBytes.settled;
+  }
+
+  /** @internal D-053 (hdRuntime.ts, install). */
+  addHdImage(
+    textures: Phaser.Textures.TextureManager,
+    key: string,
+    hd: { img: HTMLImageElement; entry: HdImage; std: number },
+  ): void {
+    const tex = textures.addImage(key, hd.img);
+    if (this.specs.get(key)?.viewScaled === true) hdUnderKey.set(key, hd.entry.scale);
+    // Every other view draws it at the standard texture's size (hdTexture.ts).
+    // Safe cast: a Phaser Texture has the source and frames TextureLike names.
+    else if (tex !== null) halveTexture(tex as unknown as TextureLike, hd.std / hd.entry.scale);
+  }
+
+  /** @internal D-053 (hdRuntime.ts, install). */
+  installHdTiles(textures: Phaser.Textures.TextureManager): boolean {
+    let changed = false;
+    for (const [id, { tiles }] of this.hdLayers) {
+      // Tiles another manifest's release() removed are added again.
+      if (this.hdTilesIn.has(id) && tiles.every((t) => textures.exists(t.key))) continue;
+      for (const t of tiles) {
+        if (!textures.exists(t.key)) textures.addImage(t.key, t.img);
+        retiredTextures.delete(t.key);
+      }
+      this.hdTilesIn.add(id);
+      changed = true;
+    }
+    return changed;
+  }
+
   /** Keys not yet in the texture manager (0 once install() has completed). */
   missing(textures: Phaser.Textures.TextureManager): string[] {
     // Bird and gun atlases are installed on demand; until then their placeholders draw.
-    const finals = [...this.finalLayers.values()].flatMap((l) => l.tiles.map((t) => t.key));
+    // D-053: a layer on its HD tiles needs no standard tiles.
+    const finals = [...this.finalLayers]
+      .filter(([id]) => !(this.hdWanted && this.hdTilesIn.has(id)))
+      .flatMap(([, l]) => l.tiles.map((t) => t.key));
     return [...[...this.specs.keys()].filter((k) => !this.skipped(k)), ...finals].filter(
       (k) => !textures.exists(k),
     );
@@ -737,6 +943,14 @@ export function ambienceKey(biome: string): string {
 /** v1.5 (D-041): one line of a voice language's pack (voice/<lang>/<bark key>). */
 export function voiceKey(lang: string, barkKey: string): string {
   return `voice/${lang}/${barkKey}`;
+}
+
+/**
+ * BirdView's animation key for a delivered clip of `${creature}/${plane}` (`id`): the HD atlas's
+ * clips are keyed apart (D-053), so both sets can be alive while HD swaps in.
+ */
+export function birdAnimKey(id: string, bird: { readonly hd?: boolean }, clip: string): string {
+  return `final:${id}${bird.hd === true ? '@hd' : ''}/${clip}`;
 }
 
 export function birdKey(creature: string, plane: PlaneId, frame: BirdFrame): string {

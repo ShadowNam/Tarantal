@@ -4,7 +4,7 @@
 // fetched once per page, even when several biome manifests share it.
 import { ASSET_INDEX_PATH, parseAssetIndex, type AssetIndex } from './assetIndex';
 
-function withTimeout<T>(p: Promise<T>, ms: number, fallback: T): Promise<T> {
+export function withTimeout<T>(p: Promise<T>, ms: number, fallback: T): Promise<T> {
   return new Promise((resolve) => {
     const timer = window.setTimeout(() => {
       resolve(fallback);
@@ -145,6 +145,14 @@ export function loadImage(path: string, timeoutMs: number): Promise<HTMLImageEle
     );
   }
   return p;
+}
+
+/**
+ * D-053: drops a decoded image from the page-long cache (HD files when the player goes back to
+ * Standard: the textures are freed, and nothing keeps the decoded pixels either).
+ */
+export function forgetImage(path: string): void {
+  images.delete(path);
 }
 
 /** Parsed JSON, or null. */

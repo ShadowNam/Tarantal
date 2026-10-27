@@ -85,6 +85,14 @@ export class WeaponView {
   }
 
   /** Shows the active weapon's art (crate weapons have their own; others the shotgun). */
+  /**
+   * D-053: the rig's atlas may have changed (HD swapped in or out): the next update picks the
+   * manifest's current one, keeping the reload where it is.
+   */
+  refreshRig(): void {
+    this.rig = null;
+  }
+
   /** v1.1: the active power-ups' spread multiplier (Bush Buckshot): the ring follows it. */
   spreadMul = 1;
 
@@ -98,6 +106,7 @@ export class WeaponView {
     // Same gun: only worth another look while its rig hasn't arrived (late group, D-029).
     const sameWeapon = weaponId === this.weaponId;
     if (sameWeapon && (this.rig !== null || this.gunRig(weaponId) === null)) return;
+    // (D-053: refreshRig() clears the rig, so HD swapping in or out takes this path too.)
     this.weaponId = weaponId;
     // A real weapon change resets the reload; the same weapon's rig arriving late (final review,
     // D-029) keeps it and picks the reload clip up where the reload has got to.

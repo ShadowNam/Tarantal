@@ -74,7 +74,8 @@ describe('size budget (M9)', () => {
       },
     };
     const lazy = lazyAssetFiles(index);
-    expect([...lazy]).toEqual(['assets/bv/bush.png']);
+    // D-053: the HD half of the index is never in the first download (nor precached).
+    expect([...lazy]).toEqual(['assets/bv/bush.png', 'assets/asset-index-hd.json']);
     const files = [
       'assets/index-a.js',
       'assets/common/shell.png',

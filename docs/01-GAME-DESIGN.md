@@ -1050,6 +1050,24 @@ guineafowl!" are theirs and still show and speak, so the voice pack still downlo
 player needs — the lesson's prompts, a first pickup's card — are plain HUD text and show either way;
 Oupa Laai keeps its hand on the belt. Saved with the other settings, honoured at once (a bubble
 already up goes; a line he is saying stops), and in the pause menu's Settings too.
+1.9.0 (D-053): **Graphics** (Standard / HD / Ask on start) joins the right column of **Display &
+access** under don't-shoot marks. Standard is the art of the first download and works on every
+device; HD is the same art at twice the resolution (sharper on large and high-density screens and
+through the scopes), a larger download per area. The first launch (and every launch while "Ask on
+start" is set) asks on a light loading screen before the title: two big buttons, Standard ("fast,
+works on every device") and HD ("sharper art, a larger download (N MB)", the real size for the
+area: the HD files its hunt waits for, `common-hd` + the area's `-hd`, the same
+total the HD loading bar counts; `late-hd` and `ver-hd` follow during play), one
+tap answers. The game pre-selects HD when the connection and device look capable (4G,
+≥ 10 Mbit/s where the browser says, no Save-Data, ≥ 4 GB memory where known, not the low tier) and
+the screen shows the difference (more than 1.25 device px per design px); otherwise Standard. On a
+device that looks too weak (≤ 2 GB, or the low tier) the HD button says "may be slow on this
+device" but stays selectable. A **Remember my choice** tick box (ticked by default) saves the
+choice; unticked, the next start asks again. With HD, an area's HD pack loads behind the loading
+screen (a bar and the MB) before its hunt; after 4 s a **Play now in Standard** button lets the
+player go on, and the HD art swaps in during play when it lands. A change in Settings takes effect
+at the next hunt or area. Hits, positions and scores never change: HD art is drawn at exactly the
+size of the standard art.
 v1.5 (D-041): **Sound & game** has six rows a column: master / SFX / music / voice volume,
 **voice language** and privacy on the left; **text language**, **Afrikaans names**, aim assist,
 left-handed, hold to fire and offset crosshair on the right.

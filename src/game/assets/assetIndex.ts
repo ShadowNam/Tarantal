@@ -5,9 +5,16 @@
 // key on its placeholder, so delivered art drops in without code changes and removing it falls
 // back cleanly.
 import { z } from 'zod';
+import { hdGroupOf } from './hdPack';
 
 /** Where the index lives, relative to the page (Vite `base: './'`). */
 export const ASSET_INDEX_PATH = 'assets/asset-index.json';
+/**
+ * D-053: the HD pack's half of the index (each entry's `hd` part), apart so the first download's
+ * index stays as small as before: fetched only when the Graphics card shows or HD is chosen, and
+ * merged in (mergeHdIndex).
+ */
+export const HD_INDEX_PATH = 'assets/asset-index-hd.json';
 /** Group of assets every hunt needs (UI, FX, shared birds and sounds). */
 export const COMMON_GROUP = 'common';
 /**
@@ -61,6 +68,15 @@ export const ASSET_ORIGINS = ['final', 'interim'] as const;
 export type AssetOrigin = (typeof ASSET_ORIGINS)[number];
 const origin = z.enum(ASSET_ORIGINS).optional();
 
+/** D-053: an image's HD file (in the group `<group>-hd`, src/game/assets/hdPack.ts). */
+export const hdImage = z.object({
+  file: fileRef,
+  width: z.number().int().positive(),
+  height: z.number().int().positive(),
+  /** Design px per texture px (0.5 for 2× art). */
+  scale: z.number().positive(),
+});
+
 const imageEntry = z.object({
   group,
   origin,
@@ -69,9 +85,20 @@ const imageEntry = z.object({
   height: z.number().int().positive(),
   /** v1.4 B (D-039): design px per texture px (0.5 = a 2× image); absent = 1. */
   scale: z.number().positive().optional(),
+  /** D-053: the same art at HD resolution (absent = Standard only). */
+  hd: hdImage.optional(),
   /** Origin as fractions of the image; absent = the placeholder's origin. */
   originX: fraction.optional(),
   originY: fraction.optional(),
+});
+
+/** D-053: a layer's HD tiles (group `<group>-hd`): the same art at 2×, each tile ≤ 2048 px. */
+export const hdLayer = z.object({
+  tiles: z.array(fileRef).min(1),
+  /** Width of one tile in design px (texture px × scale). */
+  tileWidth: z.number().positive(),
+  /** Design px per texture px (0.5 for 2× art). */
+  scale: z.number().positive(),
 });
 
 const layerEntry = z.object({
@@ -93,11 +120,13 @@ const layerEntry = z.object({
       rows: z.array(z.tuple([z.number().int(), z.number().int()]).nullable()),
     })
     .optional(),
+  /** D-053: the same layer at HD resolution (absent = Standard only). */
+  hd: hdLayer.optional(),
 });
 
 const atlasPage = z.object({ image: fileRef, data: fileRef });
 /** One or more pages (Phaser multi-atlas); frame names are unique across pages. */
-const atlasRef = z.object({ pages: z.array(atlasPage).min(1) });
+export const atlasRef = z.object({ pages: z.array(atlasPage).min(1) });
 
 const clipEntry = z.object({
   /** Frame names in the atlas, in play order. */
@@ -112,6 +141,8 @@ const birdPlaneEntry = z.object({
   /** @1x atlas (low and medium tiers) and optional @2x (high tier, art bible §3.4). */
   x1: atlasRef,
   x2: atlasRef.optional(),
+  /** D-053: the HD pack's @2x atlas (group `<group>-hd`; same frame names as x1). */
+  hd: atlasRef.optional(),
   /** Design px per @1x texture px at this plane (the plane's scale is already applied). */
   scale: z.number().positive(),
   /** D-049: the plane scale (content/scoring.json) the frames were packed at. */
@@ -139,6 +170,8 @@ const gunEntry = z.object({
   origin,
   x1: atlasRef,
   x2: atlasRef.optional(),
+  /** D-053: the HD pack's @2x atlas (group `<group>-hd`; same frame names as x1). */
+  hd: atlasRef.optional(),
   /** D-029: frames carry their own pivot (grip, or the flash centre); see birdPlaneEntry. */
   pivots: z.boolean().optional(),
   /** Grip point (the gun's screen anchor) in the 420 × 520 gun frame, as fractions. */
@@ -180,12 +213,16 @@ export const assetIndexSchema = z.object({
 });
 
 export type AssetIndex = z.infer<typeof assetIndexSchema>;
+
 export type ImageEntry = z.infer<typeof imageEntry>;
 export type LayerEntry = z.infer<typeof layerEntry>;
 export type BirdPlaneEntry = z.infer<typeof birdPlaneEntry>;
 export type ClipEntry = z.infer<typeof clipEntry>;
 export type AudioEntry = z.infer<typeof audioEntry>;
 export type GunEntry = z.infer<typeof gunEntry>;
+export type AtlasRef = z.infer<typeof atlasRef>;
+export type HdImage = z.infer<typeof hdImage>;
+export type HdLayer = z.infer<typeof hdLayer>;
 
 export const EMPTY_INDEX: AssetIndex = {
   version: 1,
@@ -210,23 +247,32 @@ export function indexFiles(index: AssetIndex): { path: string; group: string; by
   const add = (g: string, f: FileRef): void => {
     out.push({ path: f.path, group: g, bytes: f.bytes });
   };
-  for (const e of Object.values(index.images)) add(e.group, e.file);
-  for (const e of Object.values(index.layers)) for (const t of e.tiles) add(e.group, t);
+  const pages = (g: string, a: AtlasRef | undefined): void => {
+    for (const page of a?.pages ?? []) {
+      add(g, page.image);
+      add(g, page.data);
+    }
+  };
+  // D-053: HD files belong to the entry's HD group.
+  for (const e of Object.values(index.images)) {
+    add(e.group, e.file);
+    if (e.hd !== undefined) add(hdGroupOf(e.group), e.hd.file);
+  }
+  for (const e of Object.values(index.layers)) {
+    for (const t of e.tiles) add(e.group, t);
+    for (const t of e.hd?.tiles ?? []) add(hdGroupOf(e.group), t);
+  }
   for (const planes of Object.values(index.birds))
     for (const e of Object.values(planes)) {
-      for (const a of [e.x1, e.x2]) {
-        for (const page of a?.pages ?? []) {
-          add(e.group, page.image);
-          add(e.group, page.data);
-        }
-      }
+      pages(e.group, e.x1);
+      pages(e.group, e.x2);
+      pages(hdGroupOf(e.group), e.hd);
     }
-  for (const e of Object.values(index.guns))
-    for (const a of [e.x1, e.x2])
-      for (const page of a?.pages ?? []) {
-        add(e.group, page.image);
-        add(e.group, page.data);
-      }
+  for (const e of Object.values(index.guns)) {
+    pages(e.group, e.x1);
+    pages(e.group, e.x2);
+    pages(hdGroupOf(e.group), e.hd);
+  }
   for (const e of Object.values(index.audio)) {
     add(e.group, e.ogg);
     add(e.group, e.mp3);

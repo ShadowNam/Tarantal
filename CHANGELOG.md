@@ -3,6 +3,27 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.9.0] — HD graphics: Standard or HD (27 Oct 2026)
+
+Decision record D-053. The product owner: "When the game loads, it should ask you standard quality
+or HD … a tick box that says save preset … why not use high-quality graphics if it's possible?"
+
+### Added
+- **Standard or HD** on a light loading screen at the first start: Standard (fast, works on every
+  device) or HD (sharper art, a larger download — the real size for your area). The game
+  pre-selects what suits your connection, device and screen; on a device that looks too weak the
+  HD button says it may be slow. **Remember my choice** (ticked) skips the question next time.
+- **Settings → Graphics**: Standard / HD / Ask on start (English, Afrikaans, German, Dutch).
+- **HD art**: every area's landscapes, props, far animals, sprites and the guineafowl's flight at
+  twice the resolution, loading with the area behind the loading screen (a bar and the MB). After
+  4 s **Play now in Standard** starts straight away and the HD art swaps in during play.
+- The Bushveld's aloes in HD (2×); in Standard they stay at 1×.
+
+### Unchanged
+- Every standard area chunk, positions, hits, scores and replays. Standard never downloads an HD
+  file. The first download grows by 4.7 KB (2,990.7 → 2,995.4 KB gzip on the web build) for the
+  choice itself; the card, the HD code and the HD file list load only when needed. The guns, close-up pop-ups and rare birds stay Standard (memory).
+
 ## [1.8.1] — Karoo polish: HD aloes and a boiling potjie (27 Oct 2026)
 
 Decision record D-051. The product owner (26 Oct): "These aloes … need to become HD." And: "The

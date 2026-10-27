@@ -13,7 +13,13 @@ import type { PlaneId } from '../../sim/types';
 import type { BirdClip } from '../assets/assetIndex';
 import { artPlaneFor, type ArtPlaneId } from '../assets/artPlane';
 import { clipFor, resolveClip } from '../assets/birdClips';
-import { TEX, type AssetManifest, type BirdFrame, type FinalBird } from '../assets/AssetManifest';
+import {
+  birdAnimKey,
+  TEX,
+  type AssetManifest,
+  type BirdFrame,
+  type FinalBird,
+} from '../assets/AssetManifest';
 import type { SimEvent } from '../../sim/events';
 import type { DrawBird } from './interpolate';
 import type { ParallaxView } from './ParallaxView';
@@ -310,7 +316,8 @@ export class BirdView {
 
   /** The animation key of a delivered clip, created on first use. */
   private ensureAnim(creature: string, plane: PlaneId, final: FinalBird, clip: BirdClip): string {
-    const key = `final:${creature}/${plane}/${clip}`;
+    // D-053: the HD atlas's clips have keys of their own (birdAnimKey).
+    const key = birdAnimKey(`${creature}/${plane}`, final, clip);
     const c = final.entry.clips[clip];
     if (!this.scene.anims.exists(key) && c !== undefined) {
       this.scene.anims.create({

@@ -1,0 +1,12 @@
+{
+  "graphics.title": "Grafika",
+  "graphics.question": "Hoe moet die speletjie lyk?",
+  "graphics.standard": "Standaard",
+  "graphics.standard_desc": "Vinnig, werk op elke toestel",
+  "graphics.hd": "HD",
+  "graphics.hd_desc": "Skerper kuns, 'n groter aflaai ({mb} MB)",
+  "graphics.hd_weak": "Kan stadig wees op hierdie toestel",
+  "graphics.recommended": "Aanbeveel",
+  "graphics.remember": "Onthou my keuse",
+  "graphics.later": "Jy kan dit in Instellings → Grafika verander."
+}

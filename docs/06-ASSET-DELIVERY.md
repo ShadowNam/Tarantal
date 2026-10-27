@@ -475,6 +475,25 @@ in `guns/<weaponId>/rig.json`, so the flash and smoke appear at the barrel. Barr
 screen, like the placeholder. On touch screens the game shrinks the gun to 60 % and fades it to
 40 % while a finger is down (bible §6).
 
+## 6b. HD packs (1.9.0, D-053)
+
+Players can choose HD: the same art at 2 texture px per design px, in a lazy group `<group>-hd`
+next to each group (Tech §10). Putting art into an HD pack is one step:
+
+- **A sprite or a layer:** save its 2× render at `art-source/hd/<the same path>`
+  (`art-source/hd/sprites/<key>.png`, `art-source/hd/layers/<biome>/<layerId>.png`), exactly twice
+  the standard file's size (layers: twice as wide and tall). No sidecar: the standard file's
+  sidecar (origin, group, encoding) applies. `npm run art:interim -- --only scenery|sprites --hd`
+  writes these for code-drawn art.
+- **A sprite whose standard file is already a ≥ 2× master** (`"master": 2` and above) and a **bird**
+  (masters at 2×): nothing; `npm run assets:pack` packs the master into the HD group where the
+  standard file is packed below 2×.
+- `"hd": false` in a sidecar or `rig.json` leaves that asset out of the HD pack.
+
+Then `npm run assets:pack` and `npm run size -- --strict` (each HD group ≤ 4 MB gzip). Not in HD on
+purpose: the sky layers, the HUD ammo, the meerkat helper and water (cropped), the guns, near
+pop-up birds and the late group's birds (texture memory: `src/game/assets/hdPack.ts`).
+
 ## 7. Checking a delivery
 
 ```

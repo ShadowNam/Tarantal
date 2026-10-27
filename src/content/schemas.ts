@@ -2036,6 +2036,22 @@ export const FeelSchema = obj({
     fontTimeoutMs: pos,
     /** v1.6 (D-042): retries (index fetched again) before a biome's missing art is reported. */
     artRetries: z.number().int().min(0).max(10),
+    /** D-053: after this long loading an area's HD pack, "Play now in Standard" appears. */
+    hdOfferStandardMs: pos,
+    /** D-053: longest wait for one HD file. Long: a slow file keeps loading after "Play now in
+     *  Standard" and swaps in when it lands (a file that fails stays Standard at once). */
+    hdFileTimeoutMs: pos,
+  }),
+  /** D-053: the Graphics card's recommendation (graphicsChoice.recommendGraphics). */
+  graphics: obj({
+    /** Below this many Mbit/s (where the browser says), Standard is recommended. */
+    minDownlinkMbps: pos,
+    /** Below this many GB of device memory (where known), Standard is recommended. */
+    minDeviceMemoryGb: pos,
+    /** At or below this many GB the HD option says it may be slow (still selectable). */
+    weakDeviceMemoryGb: pos,
+    /** HD is recommended only when one design px covers more than this many device px. */
+    minDevicePxPerDesignPx: pos,
   }),
   platform: obj({
     /** Longest wait for a portal SDK script + init; after it the game runs without the SDK. */

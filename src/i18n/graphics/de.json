@@ -1,0 +1,12 @@
+{
+  "graphics.title": "Grafik",
+  "graphics.question": "Wie soll das Spiel aussehen?",
+  "graphics.standard": "Standard",
+  "graphics.standard_desc": "Schnell, läuft auf jedem Gerät",
+  "graphics.hd": "HD",
+  "graphics.hd_desc": "Schärfere Grafik, größerer Download ({mb} MB)",
+  "graphics.hd_weak": "Kann auf diesem Gerät langsam sein",
+  "graphics.recommended": "Empfohlen",
+  "graphics.remember": "Meine Wahl merken",
+  "graphics.later": "Du kannst das unter Optionen → Grafik ändern."
+}
