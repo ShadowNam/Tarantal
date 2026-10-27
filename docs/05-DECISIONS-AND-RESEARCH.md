@@ -2931,6 +2931,41 @@ are already 3× masters drawn at ⅓, so HD can't sharpen them (the far-animals 
 their 2× render at `art-source/hd/<path>` (docs/06). Docs: Tech §9, §10; GDD Settings; docs/06;
 CHANGELOG 1.9.0.
 
+**D-054 1.9.1 Far animals redrawn at their real size, in parts, with HD twins (27 Oct 2026):**
+the product owner (26 Oct, with close-ups): Bushveld "the zebras, giraffes and elephants look very
+cartoony … the details need to be put into HD mode so it looks more realistic"; Kalahari "the
+animals in a far distance … still look too much like stick figures". The HD job had found the
+cause: the herds were drawn tiny (a zebra 15 px) and shown 3× (D-049's `faunaScale`), so they
+showed at 1 texture px per screen px and HD could not sharpen them. Auto proposal, product owner
+review of the contact sheet folded in. (1) **Redraw** (`tools/art/farFauna.ts`): every species
+from its anatomy (jointed legs, real silhouettes, coats, light from above, thin coat-coloured
+outlines, half the layer's haze), at the D-049 target heights (the guineafowl's true size
+beside it: far zebra 106 px at the shoulder, elephant 252, giraffe 394 to the head; the Ver
+waterhole's at the Ver plane's); young ones, cows and hens; details in the art bible (far
+animals). `perspective.faunaScale` is removed (client feel only: content hash, goldens and the
+Daily unchanged). (2) **Herds** (`src/game/view/faunaHerds.ts`): hand-placed loose groups at the
+v1.6 spots, both facings, 2–3 poses, a young one in most; each herd one texture key as before,
+now a sheet of its animals' parts (tail, body, head with neck, an elephant's ear) with a frame
+table (design px, pivots) in the sidecar → asset index; the Bushveld's second giraffe group draws
+from the first group's sheet. (3) **Life** (`FaunaView`, `faunaIdle`): heads, tails and ears move a
+little about their pivots as a pure function of the sim tick (`feel.json fauna.idle`): a held
+frame holds, replays repeat, reduce motion × 0.35. Decor only: no hit tests, no sim change.
+(4) **Files**: Standard at 1× (48 colours: no visible change against 256, −40 %), HD twin at 2×
+in `art-source/hd/` (96 colours), `npm run art:interim -- --only fauna`. (5) **Budgets**
+(`size --strict` passes on web, Poki, CrazyGames): the Karoo's herds move to the late group
+(the first download may not grow; they swap in via `AssetManifest.upgrade()`, never a texture
+removal): first download 2,996.0 → 2,990.7 KB gzip (web); room freed with the Kalahari weaver
+camelthorn and Namibië's nest camelthorn at 128 colours (mean change 2/255, none visible, −40 and
+−35 KB); chunks after: Bushveld 1,466.1 → 1,529.3 KB, Kalahari + desert 1,534.5 → 1,511.4,
+Namibië + desert 1,508.3 → 1,499.8, Okavango 1,426.9 → 1,478.1, late 1,399.2 → 1,420.3, Ver
+532.2 → 532.0; HD groups Bushveld 1,984 → 2,258, Kalahari 1,285 → 1,364, Namibië 1,598 → 1,704,
+Okavango 2,377 → 2,596, late 41.5 → 101.5, Ver 333 → 385 (Karoo 1,587 unchanged; all ≤ 4 MB).
+Texture memory of the far animals per area (Standard / HD, v1.9.0 had 0.6–1.9 MB in both):
+Bushveld 3.0 / 12.2 MB (+10.7 in HD), Okavango 2.3 / 9.0 (+8.1), Namibië 1.3 / 5.0 (+3.2),
+Kalahari 0.7 / 3.0 (+2.4), Karoo 0.6 / 2.2 (+1.5): within the 256 MB ceiling even on the
+highest area measured for D-053 (243 + 10.7). Docs: art bible (far animals); docs/06 §6b;
+docs/balance/perspective.md; CHANGELOG 1.9.1.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

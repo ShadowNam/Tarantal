@@ -484,7 +484,10 @@ next to each group (Tech §10). Putting art into an HD pack is one step:
   (`art-source/hd/sprites/<key>.png`, `art-source/hd/layers/<biome>/<layerId>.png`), exactly twice
   the standard file's size (layers: twice as wide and tall). No sidecar: the standard file's
   sidecar (origin, group, encoding) applies. `npm run art:interim -- --only scenery|sprites --hd`
-  writes these for code-drawn art.
+  writes these for code-drawn art (`--only fauna` writes the far animals' sheets, D-054).
+- **A far-animal sheet** (`sprites/fauna/<herd>.png`, D-054): the same one step; its HD twin must
+  hold the same frames at twice the size (the sidecar's `frames` table is in design px and serves
+  both). A delivered sheet replaces the interim one only with its frame table in the sidecar.
 - **A sprite whose standard file is already a ≥ 2× master** (`"master": 2` and above) and a **bird**
   (masters at 2×): nothing; `npm run assets:pack` packs the master into the HD group where the
   standard file is packed below 2×.

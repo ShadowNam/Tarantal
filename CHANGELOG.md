@@ -3,6 +3,31 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.9.1] — Far animals in HD: realistic herds on every map (27 Oct 2026)
+
+Decision record D-054. The product owner (26 Oct): "The zebras, giraffes and elephants look very
+cartoony … The details need to be put into HD mode so it looks more realistic." And: "the animals
+that are in a far distance … still look too much like stick figures."
+
+### Changed
+- **Every far animal redrawn** on all five maps (incl. Namibië's waterhole): elephants, giraffes,
+  zebra, wildebeest, gemsbok, springbok, red lechwe and ostriches drawn from their anatomy —
+  jointed legs and hooves, real silhouettes (the elephant's domed head, big ragged ear, trunk and
+  tusks; the giraffe's sloping back and ossicones; the wildebeest's beard and horns; the
+  gemsbok's mask and two long horns), their own coats and markings, light from above and a soft
+  shadow, thin outlines instead of a heavy cartoon line.
+- **At their real size** beside the guineafowl on their plane (a far zebra 106 px at the
+  shoulder, an elephant 252, a giraffe 394 tall), in loose herds facing both ways, with young
+  ones, cows and hens; lechwe wade in shallow water.
+- **They live a little**: grazing bites, ear flicks, tail swishes, an elephant's ears and trunk, a
+  browsing giraffe — on game time (a paused or held frame holds still; reduce motion is calmer).
+- **HD**: every herd has a 2× twin in its area's HD pack.
+
+### Unchanged
+- Positions, hits, scores and replays (decor only). The first download shrinks (2,996.0 →
+  2,990.7 KB gzip, web: the Karoo's herds load just after it); every area chunk stays under
+  1.5 MB (two big camelthorn images at 128 colours, no visible change, make the room).
+
 ## [1.9.0] — HD graphics: Standard or HD (27 Oct 2026)
 
 Decision record D-053. The product owner: "When the game loads, it should ask you standard quality
