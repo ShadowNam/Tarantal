@@ -24,6 +24,8 @@ export interface Wisp {
   readonly y: number;
   readonly scale: number;
   readonly alpha: number;
+  /** Which way it leans (−1 … 1): with the wind and its sway. */
+  readonly lean: number;
 }
 
 export interface LidPose {
@@ -103,23 +105,29 @@ export function lidPose(s: PotState): LidPose {
 /** Steam: soft wisps rising from under the lid (or the open pot), drifting with the wind. */
 export function steam(s: PotState): Wisp[] {
   const off = s.sinceOff !== null;
-  const count = (off ? 9 : 5) - (s.calm ? 2 : 0);
-  const period = Math.round((off ? 2.2 : 3) * (s.calm ? 1.5 : 1) * TICKS_PER_SECOND);
-  const rise = off ? 170 : 110;
+  // Lid on: clearly visible white wisps from the lid's edge (the review found the first, fainter
+  // ones read as "no steam"); lid off: a fuller column from the whole mouth.
+  const count = (off ? 9 : 7) - (s.calm ? 2 : 0);
+  const period = Math.round((off ? 2.2 : 2.6) * (s.calm ? 1.5 : 1) * TICKS_PER_SECOND);
+  const rise = off ? 170 : 150;
   const sway = s.calm ? 4 : 9;
   const drift = 14 + s.wind * 70;
   const out: Wisp[] = [];
   for (let i = 0; i < count; i++) {
     const a = ((((s.tick + Math.floor((i * period) / count)) % period) + period) % period) / period;
     // Lid on: from the gaps either side of the knob; off: across the whole mouth.
-    const x0 = off ? (i / Math.max(1, count - 1) - 0.5) * 70 : (i % 2 === 0 ? -1 : 1) * 30;
-    const y0 = RIM_Y - (off ? 2 : 10);
+    const x0 = off
+      ? (i / Math.max(1, count - 1) - 0.5) * 70
+      : (i % 2 === 0 ? -1 : 1) * (18 + (i % 3) * 9);
+    const y0 = RIM_Y - (off ? 2 : 18);
     const fadeIn = Math.min(1, a / 0.15);
+    const swing = Math.sin(a * TAU * 0.8 + i * 1.7);
     out.push({
-      x: x0 + Math.sin(a * TAU * 0.8 + i * 1.7) * sway * a + drift * a * a,
+      x: x0 + swing * sway * a + drift * a * a,
       y: y0 - rise * a,
-      scale: (off ? 0.55 : 0.35) + (off ? 1.3 : 0.9) * a,
-      alpha: (off ? 0.55 : 0.42) * fadeIn * Math.pow(1 - a, 1.4),
+      scale: (off ? 0.55 : 0.45) + (off ? 1.3 : 1.0) * a,
+      alpha: (off ? 0.7 : 0.8) * fadeIn * Math.pow(1 - a, 1.2),
+      lean: Math.max(-1, Math.min(1, s.wind + swing * 0.3 * a)),
     });
   }
   // A puff when the lid rattles, a big one when it pops.
@@ -129,8 +137,9 @@ export function steam(s: PotState): Wisp[] {
       out.push({
         x: f * (big ? 90 : 60) * (0.4 + age) + drift * age * 0.5,
         y: RIM_Y - 8 - (big ? 120 : 50) * age,
-        scale: (big ? 0.8 : 0.45) + (big ? 1.6 : 0.7) * age,
-        alpha: (big ? 0.75 : 0.45) * Math.pow(1 - age, 1.6),
+        scale: (big ? 0.8 : 0.5) + (big ? 1.6 : 0.8) * age,
+        alpha: (big ? 0.8 : 0.6) * Math.pow(1 - age, 1.6),
+        lean: Math.max(-1, Math.min(1, s.wind + f * 0.5)),
       });
     }
   };

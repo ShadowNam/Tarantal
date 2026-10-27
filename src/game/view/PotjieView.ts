@@ -6,7 +6,7 @@
 // soft steam wisps. Every pose comes from potjieMotion.ts on sim ticks (held frames hold; reduce
 // motion is calmer). Before the HD art lands the first-download pot (lid and steam painted on)
 // shows unchanged. Sound cues go to HuntScene, which plays them through the AudioDirector.
-import * as Phaser from 'phaser';
+import type * as Phaser from 'phaser';
 import type { Biome } from '../../content/schemas';
 import type { SimEvent } from '../../sim/events';
 import type { PlaneId, SimState } from '../../sim/types';
@@ -30,11 +30,15 @@ export const POTJIE_ASSET = 'karoo/potjie';
 /** Most wisps steam() returns (pooled images). */
 const MAX_WISPS = 16;
 /** The coals' glow under the pot (prop px from its origin) and the steam's tint. */
-const COALS = { x: -2, y: 88, sx: 0.95, sy: 0.3 } as const;
+// Normal blend, low on the coal bed: an additive glow over the flames' yellow cores saturated
+// them to lime in play (review, 27 Oct).
+const COALS = { x: -2, y: 94, sx: 0.8, sy: 0.14, alpha: 0.5 } as const;
 /** TEX.smoke is a 140 px cloud: wisps show at this fraction of steam()'s scale. */
 const WISP_SCALE = 0.32;
-const STEAM_TINT = 0xf6f2ea;
-const GLOW_TINT = 0xff8a2a;
+/** Wisps are stretched upright (soft columns, not round dots) and lean with the wind. */
+const WISP_STRETCH = { x: 0.7, y: 1.6, lean: 0.35 } as const;
+const STEAM_TINT = 0xffffff;
+const GLOW_TINT = 0xff5a1e;
 
 export interface PotjieCue {
   readonly sound: PotjieSound;
@@ -116,7 +120,6 @@ export class PotjieView {
     this.glow = this.scene.add
       .image(COALS.x, COALS.y, TEX.smoke)
       .setTint(GLOW_TINT)
-      .setBlendMode(Phaser.BlendModes.ADD)
       .setScale(COALS.sx, COALS.sy);
     root.add(this.glow);
     for (let i = 0; i < MAX_WISPS; i++) {
@@ -165,10 +168,11 @@ export class PotjieView {
       img
         .setVisible(true)
         .setPosition(w.x, w.y)
-        .setScale(w.scale * WISP_SCALE)
+        .setScale(w.scale * WISP_SCALE * WISP_STRETCH.x, w.scale * WISP_SCALE * WISP_STRETCH.y)
+        .setRotation(w.lean * WISP_STRETCH.lean)
         .setAlpha(w.alpha);
     });
-    this.glow?.setAlpha(coalGlow(s.tick, calm));
+    this.glow?.setAlpha(coalGlow(s.tick, calm) * COALS.alpha);
     if (!advanced) return;
     // Sounds of the ticks since the last frame (never on a held frame).
     const at = this.parallax.screenX(this.plane, this.x);
