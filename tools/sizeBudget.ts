@@ -5,7 +5,7 @@
 // M10: final art and audio in the asset index load with their group, so files of groups outside
 // the index's `initialGroups` (the non-home biomes) are lazy too.
 
-import { indexFiles, type AssetIndex } from '../src/game/assets/assetIndex';
+import { HD_INDEX_PATH, indexFiles, type AssetIndex } from '../src/game/assets/assetIndex';
 
 /** The part of Vite's .vite/manifest.json this needs. */
 export interface ViteManifestEntry {
@@ -58,11 +58,14 @@ export function splitInitialLazy(
 /** Files of an asset index whose group is not in its initialGroups (dist-relative paths). */
 export function lazyAssetFiles(index: AssetIndex): Set<string> {
   const initial = new Set(index.initialGroups);
-  return new Set(
-    indexFiles(index)
+  return new Set([
+    ...indexFiles(index)
       .filter((f) => !initial.has(f.group))
       .map((f) => f.path),
-  );
+    // D-053: the HD half of the index is fetched only when the card shows or HD is chosen (never
+    // precached: a Standard player doesn't download it).
+    HD_INDEX_PATH,
+  ]);
 }
 
 /**
