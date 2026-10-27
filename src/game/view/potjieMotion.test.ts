@@ -51,7 +51,9 @@ describe('potjie motion (D-051)', () => {
       let clacks = 0;
       for (let t = c * RATTLE_CYCLE; t < (c + 1) * RATTLE_CYCLE; t++)
         if (rattleClack(t, false)) clacks++;
-      expect(clacks).toBe(RATTLE_TICKS / 6);
+      // Three clacks, on the drops (none as the lid starts to lift).
+      expect(clacks).toBe(3);
+      expect(rattleClack(start, false)).toBe(false);
     }
   });
 
@@ -89,6 +91,33 @@ describe('potjie motion (D-051)', () => {
     const open = steam(on(300, { sinceOff: 200 }));
     expect(open.length).toBeGreaterThan(lidded.length);
     expect(steam(on(300, { sinceOff: 5 })).length).toBeGreaterThan(open.length);
+  });
+
+  it('lid on: the wisps and the rattle puff read clearly once above the lid', () => {
+    // Every wisp and puff slot reaches alpha ≥ 0.5 somewhere above y < RIM_Y − 40.
+    const start = rattleStart(10 * RATTLE_CYCLE, false);
+    const best = new Map<number, number>();
+    // A whole steam cycle before the rattle (every wisp's life) and the rattle's puff.
+    for (let t = start - 160; t < start + 40; t++)
+      steam(on(t)).forEach((w, i) => {
+        if (w.y < RIM_Y - 40) best.set(i, Math.max(best.get(i) ?? 0, w.alpha));
+      });
+    const plain = steam(on(start - 100)).length;
+    expect(best.size).toBeGreaterThan(plain);
+    for (const [i, a] of best) expect(a, `slot ${i}`).toBeGreaterThanOrEqual(0.5);
+  });
+
+  it('reduce motion keeps at least 4 lid-on wisps, rising more slowly', () => {
+    const calm = steam(on(1000, { calm: true }));
+    expect(calm.length).toBeGreaterThanOrEqual(4);
+    // The same wisp one tick later has risen less in calm mode.
+    const rise = (calmMode: boolean): number => {
+      const a = steam(on(1000, { calm: calmMode }))[0];
+      const b = steam(on(1001, { calm: calmMode }))[0];
+      return (a?.y ?? 0) - (b?.y ?? 0);
+    };
+    expect(rise(true)).toBeGreaterThan(0);
+    expect(rise(true)).toBeLessThan(rise(false));
   });
 
   it('steam drifts with the wind and fades as it rises', () => {
