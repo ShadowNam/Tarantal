@@ -24,6 +24,13 @@ import { dirname, join, relative, sep } from 'node:path';
 import { z } from 'zod';
 import { hdBaseOf } from '../../src/game/assets/hdProps';
 import {
+  hdAllowed,
+  hdGroupOf,
+  HD_RES,
+  HD_SKIP_LAYERS,
+  HD_SOURCE_DIR,
+} from '../../src/game/assets/hdPack';
+import {
   ASSET_INDEX_PATH,
   ASSET_ORIGINS,
   assetIndexSchema,
@@ -111,6 +118,8 @@ const sidecarOrigin = z
      *  v1.7b (D-046): or the late group (the power-up icons, after the first download; v1.7c,
      *  D-047: the Karoo's and Kalahari's fruit sheets). */
     group: z.enum([VER_GROUP, LATE_GROUP]),
+    /** D-053: false = no HD version in the HD pack (default: one when a 2× source exists). */
+    hd: z.boolean(),
   })
   .partial();
 /** v1.1 (D-032): `audio/<…>.json` next to a WAV: "interim" = code-made stand-in sound. */
@@ -129,6 +138,8 @@ const sidecarLayer = z
     /** D-031: provenance and palette tiles, as for sprites (D-029). */
     origin: provenance,
     encode: encoding,
+    /** D-053: false = no HD version in the HD pack (default: one when a 2× source exists). */
+    hd: z.boolean(),
   })
   .partial();
 const rigSchema = z
@@ -151,6 +162,8 @@ const rigSchema = z
     planeRes: z.partialRecord(z.enum(['near', 'mid', 'far']), z.number().min(0.25).max(1)),
     /** Load group override: "late" (after the first download settles), "common" or a biome id. */
     group: z.string(),
+    /** D-053: false = no HD version in the HD pack (default: one when a 2× source exists). */
+    hd: z.boolean(),
   })
   .partial();
 const gunRigSchema = z
@@ -168,6 +181,8 @@ const gunRigSchema = z
     encode: encoding,
     x2: z.boolean(),
     group: z.string(),
+    /** D-053: false = no HD version in the HD pack (default: one when a 2× source exists). */
+    hd: z.boolean(),
   })
   .partial();
 
@@ -399,7 +414,7 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
       continue;
     }
     const side = readJson(path.replace(/\.png$/, '.json'), sidecarOrigin, errors) ?? {};
-    const { origin: made, encode, group: own, master = 1, ...place } = side;
+    const { origin: made, encode, group: own, master = 1, hd: hdWanted, ...place } = side;
     const master0 = readPng(path);
     // A 2× master is packed at the resolution its planes need (never above the master).
     const res = Math.min(master, propPlaneRes(o.content, key));
@@ -426,6 +441,45 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
         `sprites/${key}.png is ${master0.width}×${master0.height} at ${master}×, the placeholder is ${cat.width}×${cat.height}: views place it at its own size`,
       );
     const imageGroup = own ?? cat.group;
+    // D-053: the HD version: art-source/hd/sprites/<key>.png (a 2× render), else the master
+    // when it is ≥ 2× and the standard file is packed below that.
+    let hd: AssetIndex['images'][string]['hd'];
+    const hdPath = join(o.src, HD_SOURCE_DIR, 'sprites', `${key}.png`);
+    if (hdWanted !== false && hdAllowed(key) && res < HD_RES) {
+      const fromHd = existsSync(hdPath) ? readPng(hdPath) : null;
+      const big =
+        fromHd ??
+        (master >= HD_RES
+          ? master === HD_RES
+            ? master0
+            : resize(
+                master0,
+                Math.round((master0.width * HD_RES) / master),
+                Math.round((master0.height * HD_RES) / master),
+              )
+          : null);
+      if (
+        big !== null &&
+        (Math.abs(big.width - designW * HD_RES) > HD_RES ||
+          Math.abs(big.height - designH * HD_RES) > HD_RES)
+      )
+        errors.push(
+          `${HD_SOURCE_DIR}/sprites/${key}.png is ${big.width}×${big.height}; at ${HD_RES}× it must be ${designW * HD_RES}×${designH * HD_RES}`,
+        );
+      else if (big !== null)
+        hd = {
+          file: emit(
+            hdGroupOf(imageGroup),
+            'img',
+            slug(key),
+            'png',
+            encode === 'png8' ? encodePng8(big) : encodePng(big),
+          ),
+          width: big.width,
+          height: big.height,
+          scale: 1 / HD_RES,
+        };
+    }
     index.images[key] = {
       group: imageGroup,
       ...(made === undefined ? {} : { origin: made }),
@@ -440,7 +494,17 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
       height: img.height,
       ...(res === 1 ? {} : { scale: 1 / res }),
       ...place,
+      ...(hd === undefined ? {} : { hd }),
     };
+  }
+  // D-053: an HD source with no standard file is a mistake (nothing would ever show it).
+  const hdSpriteDir = join(o.src, HD_SOURCE_DIR, 'sprites');
+  for (const path of listPngs(hdSpriteDir)) {
+    const key = posix(relative(hdSpriteDir, path)).replace(/\.png$/, '');
+    if (index.images[key]?.hd === undefined)
+      warnings.push(
+        `${HD_SOURCE_DIR}/sprites/${key}.png: not packed (no 1× sprite, or "hd": false)`,
+      );
   }
 
   // --- parallax layers ---------------------------------------------------------------------
@@ -481,6 +545,32 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
         ),
       );
     }
+    // D-053: the HD tiles from art-source/hd/layers/<biome>/<layer>.png (2× wide and tall).
+    let hd: AssetIndex['layers'][string]['hd'];
+    const hdPath = join(o.src, HD_SOURCE_DIR, 'layers', biome, `${layerId}.png`);
+    if (side.hd !== false && !HD_SKIP_LAYERS.includes(layerId) && existsSync(hdPath)) {
+      const big = readPng(hdPath);
+      if (big.width !== img.width * HD_RES || big.height !== img.height * HD_RES)
+        errors.push(
+          `${HD_SOURCE_DIR}/layers/${biome}/${layerId}.png is ${big.width}×${big.height}; it must be ${img.width * HD_RES}×${img.height * HD_RES}`,
+        );
+      else {
+        const hdTiles: FileRef[] = [];
+        for (let x = 0, i = 0; x < big.width; x += TILE_WIDTH, i++) {
+          const w = Math.min(TILE_WIDTH, big.width - x);
+          hdTiles.push(
+            emit(
+              hdGroupOf(layerGroup),
+              'layers',
+              layerGroup === biome ? `${layerId}-${i}` : `${biome}-${layerId}-${i}`,
+              'png',
+              (side.encode === 'png8' ? encodePng8 : encodePng)(crop(big, x, 0, w, big.height)),
+            ),
+          );
+        }
+        hd = { tiles: hdTiles, tileWidth: TILE_WIDTH / HD_RES, scale: 1 / HD_RES };
+      }
+    }
     index.layers[spec.assetId] = {
       group: layerGroup,
       ...(side.origin === undefined ? {} : { origin: side.origin }),
@@ -491,6 +581,7 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
       height: img.height,
       // v1.4 (#56): rows that hide what is behind them, for the zoomed view's culling.
       solid: { bucket: SOLID_BUCKET_PX, rows: solidOf },
+      ...(hd === undefined ? {} : { hd }),
     };
   }
 
@@ -603,6 +694,20 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
         rig.x2 === false
           ? null
           : packAtlas(cells, 2, `${slug(creature)}-${plane}`, group, 'birds', rig, res, x1.alias);
+      // D-053: the HD pack's @2x set from the same masters (null when they are smaller).
+      const hdSet =
+        rig.hd === false
+          ? null
+          : packAtlas(
+              cells,
+              2,
+              `${slug(creature)}-${plane}`,
+              hdGroupOf(group),
+              'birds',
+              rig,
+              res,
+              x1.alias,
+            );
       const clipEntries: BirdPlaneEntry['clips'] = {};
       for (const [clip, frames] of planeClips) {
         clipEntries[clip] = {
@@ -619,6 +724,7 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
         ...(rig.origin === undefined ? {} : { origin: rig.origin }),
         x1: { pages: x1.pages },
         ...(x2 === null ? {} : { x2: { pages: x2.pages } }),
+        ...(hdSet === null ? {} : { hd: { pages: hdSet.pages } }),
         scale: 1 / res,
         planeScale: s,
         pivots: true,
@@ -701,6 +807,10 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
       rig.x2 === false
         ? null
         : packAtlas(cells, 2, `gun-${slug(id)}`, group, 'guns', rig, 1, x1.alias);
+    const hdSet =
+      rig.hd === false
+        ? null
+        : packAtlas(cells, 2, `gun-${slug(id)}`, hdGroupOf(group), 'guns', rig, 1, x1.alias);
     for (const c of Object.values(clipEntries))
       c.frames = c.frames.map((f) => x1.alias.get(f) ?? f);
     index.guns[id] = {
@@ -708,6 +818,7 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
       ...(rig.origin === undefined ? {} : { origin: rig.origin }),
       x1: { pages: x1.pages },
       ...(x2 === null ? {} : { x2: { pages: x2.pages } }),
+      ...(hdSet === null ? {} : { hd: { pages: hdSet.pages } }),
       pivots: true,
       originX: rig.originX ?? GUN_BOX.originX / GUN_BOX.width,
       originY: rig.originY ?? GUN_BOX.originY / GUN_BOX.height,

@@ -11,6 +11,10 @@
 //   --creature <id>       one bird
 //   --gun <id>            one gun
 //   --sheets              also write the contact sheets to docs/art-preview/
+//   --hd                  D-053: only the HD pack's 2× sources (art-source/hd/: layers, props
+//                         without a 2× master, shared sprites) for --only scenery|sprites; the
+//                         standard files are left alone. Birds and guns need nothing: their
+//                         masters are 2× already (assets:pack packs them into the HD groups).
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { format } from 'prettier';
@@ -22,7 +26,7 @@ import { fruitSheet, type FruitOwner } from './fruitArt';
 /** v1.7c (D-047): palette size of the fruit sheets. */
 const FRUIT_COLOURS = 64;
 import { isArtPlane, type ArtPlaneId as PlaneId } from '../../src/game/assets/artPlane';
-import { encodePng, encodePng8 } from '../assets/image';
+import { encodePng, encodePng8, type Rgba } from '../assets/image';
 import { NEAR_CLIPS } from '../assets/pack';
 import { CLIP_SPEC } from '../assets/targets';
 import { loadContent, loadFeel } from '../testContent';
@@ -50,6 +54,7 @@ import { CAN_MASTER, renderCanSheet } from './blikkies';
 import { CAN_SHEET } from '../../src/game/view/cans/canSheet';
 import { hatAnchors } from './hatAnchors';
 import { HD_PARTS, hdKeyOf } from '../../src/game/assets/hdProps';
+import { hdAllowed, HD_RES, HD_SKIP_LAYERS, HD_SOURCE_DIR } from '../../src/game/assets/hdPack';
 
 /** v1.7 (D-044): palette size of the meerkat sheet (look round: 48 keeps the shading and lets
  *  the Kalahari chunk plus the desert chunk fit 1.5 MB). */
@@ -75,7 +80,18 @@ const only = arg('--only');
 const oneCreature = arg('--creature');
 const oneGun = arg('--gun');
 const oneBiome = arg('--biome');
+const hdOnly = process.argv.includes('--hd');
+if (hdOnly && only !== 'scenery' && only !== 'sprites')
+  throw new Error('--hd needs --only scenery or --only sprites');
 const wants = (part: string): boolean => only === undefined || only === part;
+/** D-053: the HD pack's 2× sources live in a mirror of art-source/ (hdPack.ts). */
+const hdSrc = join(src, HD_SOURCE_DIR);
+
+/** D-053: writes one 2× source into art-source/hd/ (palette PNG unless `full`). */
+function putHd(rel: string, img: Rgba, colours?: number, full = false): void {
+  put(join(hdSrc, rel), full ? encodePng(img) : encodePng8(img, colours));
+  console.log(`hd/${rel}`);
+}
 
 /** True when `dir` may be (re)written: absent, or an earlier interim delivery. */
 function ours(dir: string): boolean {
@@ -267,6 +283,31 @@ if (wants('scenery')) {
       console.warn(`skip scenery ${plan.biome}: no such playable biome`);
       continue;
     }
+    if (hdOnly) {
+      // D-053: the same drawings at 2×; fruit stay sprites (collected and dropped here).
+      for (const layer of biome.layers) {
+        if (HD_SKIP_LAYERS.includes(layer.id)) continue;
+        if (!oursFile(join(src, 'layers', biome.id, `${layer.id}.png`))) continue;
+        const lp = plan.layers[layer.id];
+        const draw = (): Rgba => renderLayer(cfg, plan, layer, HD_RES);
+        const img = FRUIT_LAYERS.has(layer.id) ? collectFruit(draw).value : draw();
+        putHd(`layers/${biome.id}/${layer.id}.png`, img, lp?.colours, lp?.encode === 'png');
+      }
+      const m = createPlaceholderManifest(content, biome);
+      for (const prop of biome.props) {
+        const pp = plan.props[prop.asset];
+        // A prop with a 2× master needs no HD source (assets:pack packs the master).
+        if (pp === undefined || (pp.master ?? 1) >= HD_RES) continue;
+        if (!oursFile(join(src, 'sprites', `${prop.asset}.png`))) continue;
+        const size = m.size(prop.asset);
+        if (size === null) throw new Error(`${prop.asset}: no placeholder size`);
+        const r = collectFruit(() =>
+          renderProp(cfg, plan, biome, prop, size, m.origin(prop.asset), HD_RES),
+        ).value;
+        putHd(`sprites/${prop.asset}.png`, r.img, pp.colours);
+      }
+      continue;
+    }
     const fruitOwners: FruitOwner[] = [];
     for (const layer of biome.layers) {
       const png = join(src, 'layers', biome.id, `${layer.id}.png`);
@@ -391,6 +432,13 @@ if (wants('sprites')) {
     }
     const size = m.size(spec.key);
     if (size === null) throw new Error(`${spec.key}: no placeholder texture`);
+    if (hdOnly) {
+      // D-053: the 2× render the 1× file is averaged down from.
+      if (!hdAllowed(spec.key)) continue;
+      const img = renderSprite(cfg, spec, size, m.origin(spec.key), HD_RES);
+      putHd(`sprites/${spec.key}.png`, img, undefined, spec.key.startsWith('sight/'));
+      continue;
+    }
     // v1.1 (D-032): HUD ammo is small, realistic and smoothly shaded: drawn at 4× and kept in
     // full colour (a palette PNG would band its gradients).
     const ammo = spec.key.startsWith('ui/ammo/');

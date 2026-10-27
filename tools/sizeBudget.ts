@@ -110,6 +110,9 @@ export function verdict(initialGzip: number): Verdict {
  *  (Tech §15; long-range plan: "each lazy biome chunk ≤ 1.5 MB"). */
 export const LAZY_CHUNK_BYTES = 1.5 * MB;
 
+/** D-053: each HD group (`<group>-hd`, the optional HD pack) stays ≤ 4 MB gzip. */
+export const HD_CHUNK_BYTES = 4 * MB;
+
 /**
  * Lazy files by the chunk they load with: asset files by their group folder
  * (`assets/<group>/…`), a code chunk by the group its name starts (`bushveld-…js` →

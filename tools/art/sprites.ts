@@ -1528,6 +1528,8 @@ export function renderSprite(
   spec: SpriteSpec,
   size: { width: number; height: number },
   origin: { x: number; y: number },
+  /** D-053: texture px per design px of the result (2 for an HD pack; never above masterScale). */
+  res = 1,
 ): Rgba {
   resetIds();
   const pal = biomePalette(cfg, 'common');
@@ -1547,5 +1549,6 @@ export function renderSprite(
       g(filter === '' ? {} : { filter: 'url(#wob)' }, spec.draw(ctx)),
     ),
   );
-  return resize(big, size.width, size.height);
+  const out = Math.min(res, k);
+  return out === k ? big : resize(big, size.width * out, size.height * out);
 }

@@ -109,11 +109,13 @@ function paint(cfg: ArtConfig, biome: string, layerId: string, seedKey: string):
   };
 }
 
-/** Renders one layer at its delivered size (core + 2 × bleed wide). */
+/** Renders one layer at its delivered size (core + 2 × bleed wide), × `res` for an HD pack
+ *  (D-053: the same drawing at 2 texture px per design px). */
 export function renderLayer(
   cfg: ArtConfig,
   plan: BiomeArtPlan,
   layer: Biome['layers'][number],
+  res = 1,
 ): Rgba {
   const lp = plan.layers[layer.id];
   if (lp === undefined) throw new Error(`${plan.biome}: no layer plan for ${layer.id}`);
@@ -158,8 +160,8 @@ export function renderLayer(
   const art = g(filter === '' ? {} : { filter: 'url(#wob)' }, body);
   return renderSvg(
     svgDoc(
-      width,
-      lp.height,
+      width * res,
+      lp.height * res,
       [0, lp.top, width, lp.height],
       filter + mask,
       mask === '' ? art : g({ mask: 'url(#fadeTop)' }, art),
@@ -196,6 +198,9 @@ export function renderProp(
   prop: Biome['props'][number],
   size: { width: number; height: number },
   origin: { x: number; y: number },
+  /** D-053: texture px per design px of the result (default the plan's master); an HD pack
+   *  asks for 2. Never above the render (masterScale × master). */
+  res?: number,
 ): RenderedProp {
   const pp = plan.props[prop.asset];
   if (pp === undefined) throw new Error(`${plan.biome}: no prop plan for ${prop.asset}`);
@@ -230,11 +235,12 @@ export function renderProp(
       g(filter === '' ? {} : { filter: 'url(#wob)' }, pp.draw(ctx)),
     ),
   );
+  const out = Math.min(res ?? master, k);
   return {
-    img: resize(big, f.w * master, f.h * master),
+    img: out === k ? big : resize(big, f.w * out, f.h * out),
     originX: f.ox / f.w,
     originY: f.oy / f.h,
-    master,
+    master: out,
   };
 }
 

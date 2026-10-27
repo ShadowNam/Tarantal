@@ -7,10 +7,18 @@
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { brotliCompressSync, constants, gzipSync } from 'node:zlib';
-import { ASSET_INDEX_PATH, indexFiles, parseAssetIndex } from '../src/game/assets/assetIndex';
+import {
+  ASSET_INDEX_PATH,
+  COMMON_GROUP,
+  indexFiles,
+  LATE_GROUP,
+  parseAssetIndex,
+  VER_GROUP,
+} from '../src/game/assets/assetIndex';
 import {
   BUDGET_BYTES,
   alternateAssetFiles,
+  HD_CHUNK_BYTES,
   LAZY_CHUNK_BYTES,
   lazyAssetFiles,
   lazyGroups,
@@ -20,6 +28,7 @@ import {
   type ViteManifest,
 } from './sizeBudget';
 import { DESERT_GROUP } from '../src/game/assets/desertAssets';
+import { hdGroupOf, isHdGroup } from '../src/game/assets/hdPack';
 import { hasColonies } from '../src/sim/meerkats/colony';
 import { loadContent } from './testContent';
 
@@ -107,11 +116,12 @@ console.log(lazy.length === 0 ? '  (none)' : lazy.map(line).join('\n'));
 console.log(line({ ...tl, file: 'LAZY TOTAL' }));
 // v1.1: each lazy chunk (a biome, the late group) on its own, against its 1.5 MB cap.
 const overChunks: string[] = [];
-console.log('lazy chunks (each ≤ 1.5 MB gzip):');
+console.log('lazy chunks (each ≤ 1.5 MB gzip; D-053: HD groups `*-hd` each ≤ 4 MB):');
 for (const [g, fs] of [...lazyGroups(split.lazy, groups)].sort(([a], [b]) => (a < b ? -1 : 1))) {
   const t = sum(lazy.filter((r) => fs.includes(r.file)));
+  const cap = isHdGroup(g) ? HD_CHUNK_BYTES : LAZY_CHUNK_BYTES;
   console.log(line({ ...t, file: `  ${g}` }));
-  if (t.gz > LAZY_CHUNK_BYTES) overChunks.push(`${g} ${(t.gz / MB).toFixed(2)} MB`);
+  if (t.gz > cap) overChunks.push(`${g} ${(t.gz / MB).toFixed(2)} MB`);
 }
 // v1.7 (D-044): a desert hunt downloads its biome's chunk and the shared desert chunk; the cap is
 // for what one hunt downloads, so each pair is checked too.
@@ -126,6 +136,20 @@ if (chunks.has(DESERT_GROUP)) {
     console.log(`    ${`${b.id} + ${DESERT_GROUP}`.padEnd(42)} ${kb(both)} gz`);
     if (both > LAZY_CHUNK_BYTES)
       overChunks.push(`${b.id} + ${DESERT_GROUP} ${(both / MB).toFixed(2)} MB`);
+  }
+}
+// D-053: what choosing HD downloads before an area's hunt (its HD group and common-hd), and in
+// the background after it (late-hd, ver-hd); reported, each group checked above.
+if (groups.some(isHdGroup)) {
+  console.log(
+    'HD pack per area (before the hunt: common-hd + the area; background: late-hd, ver-hd):',
+  );
+  const hdOf = (g: string): number => (chunks.has(hdGroupOf(g)) ? gzOf(hdGroupOf(g)) : 0);
+  const background = hdOf(LATE_GROUP) + hdOf(VER_GROUP);
+  for (const b of loadContent().biomes) {
+    if (!groups.includes(b.id)) continue;
+    const before = hdOf(COMMON_GROUP) + hdOf(b.id) + (hasColonies(b) ? hdOf(DESERT_GROUP) : 0);
+    console.log(`    ${b.id.padEnd(42)} ${kb(before)} gz  (+ ${kb(background).trim()} background)`);
   }
 }
 if (split.alternate.length > 0) {
