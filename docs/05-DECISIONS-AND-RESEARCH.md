@@ -2914,6 +2914,16 @@ standard chunks unchanged; each HD group ≤ 4 MB gzip; texture memory of one ar
 226–243 MB (Standard 95–110), within the 256 MB ceiling: so the guns (a 2× page is 64 MB), the
 near pop-up birds and the late group's rare birds stay Standard (~310 MB otherwise), and the sky
 (a gradient) and three cropped sprites (Phaser 4.2 crops clamp to the frame) have no HD version.
+**Real 2× only** (measured 27 Oct, supervisor's crops: clear gain on the scope, small on the
+aloes, none on far fauna): each HD file against its 1× file upscaled 2× (mean |diff| /255, and
+detail above 1× relative to the upscale's, where a pure resize scores 1.0). Six score as resize-only
+(diff < 1.5 and ratio < 2 or detail < 1/255) and are left out (`HD_NO_GAIN_KEYS`, −450 KB):
+`sky/cloud_cumulus` (1.07, 1.71), `sky/cloud_tower` (1.01, 1.71), `sky/cloud_wide` (1.31, 1.84),
+`sight/iron_rear` (0.49, 1.95), `sight/peep` (0.12, detail 0.21), `omen/glare` (0.41, detail 0.39);
+each key swaps on its own, so none is kept for consistent swapping. Real 2× renders: every other
+image (ratio 2.07–3.7, e.g. `sight/scope` 2.73, the Bushveld aloes 2.56), all 30 layers (2.1–3.2)
+and the bird atlases (2× masters). The far animals have no HD entry at all: their Standard files
+are already 3× masters drawn at ⅓, so HD can't sharpen them (the far-animals job adds real ones).
 (6) Later art jobs (far animals in HD, makalani palms, tree life) add to the HD packs by putting
 their 2× render at `art-source/hd/<path>` (docs/06). Docs: Tech §9, §10; GDD Settings; docs/06;
 CHANGELOG 1.9.0.

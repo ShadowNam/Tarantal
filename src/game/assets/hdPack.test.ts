@@ -19,6 +19,9 @@ describe('HD groups', () => {
     expect(hdAllowed('helper/meerkat')).toBe(false);
     expect(hdAllowed('biome/water')).toBe(false);
     expect(hdAllowed('fx/feather')).toBe(true);
+    // No gain at 2× (measured, D-053).
+    expect(hdAllowed('sight/peep')).toBe(false);
+    expect(hdAllowed('sky/cloud_cirrus')).toBe(true);
   });
 });
 

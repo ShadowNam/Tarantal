@@ -49,9 +49,24 @@ export function hdBird(plane: string, group: string): boolean {
   return HD_BIRD_PLANES.includes(plane) && !HD_SKIP_BIRD_GROUPS.includes(group);
 }
 
+/**
+ * Texture keys whose 2× render shows no gain over the 1× file upscaled (soft shapes and
+ * gradients): measured 27 Oct, each differs from its 1× file upscaled 2× by < 1.5/255 on average
+ * and adds no visible detail above 1× (D-053). Left out of the HD packs: download and GPU memory
+ * for nothing. Each key swaps on its own, so none is needed for consistent swapping.
+ */
+export const HD_NO_GAIN_KEYS: readonly string[] = [
+  'sky/cloud_cumulus',
+  'sky/cloud_tower',
+  'sky/cloud_wide',
+  'sight/iron_rear',
+  'sight/peep',
+  'omen/glare',
+];
+
 /** True when `key` may have an HD version. */
 export function hdAllowed(key: string): boolean {
-  return !HD_SKIP_KEYS.some((p) => key.startsWith(p));
+  return !HD_SKIP_KEYS.some((p) => key.startsWith(p)) && !HD_NO_GAIN_KEYS.includes(key);
 }
 
 /** The HD twin of a group. */

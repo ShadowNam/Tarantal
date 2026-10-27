@@ -461,16 +461,6 @@
       "height": 1280,
       "scale": 0.5
     },
-    "omen/glare": {
-      "file": {
-        "path": "assets/common-hd/img/omen_glare.387f7401cffc.png",
-        "bytes": 2037,
-        "hash": "387f7401cffc"
-      },
-      "width": 512,
-      "height": 128,
-      "scale": 0.5
-    },
     "omen/rain": {
       "file": {
         "path": "assets/common-hd/img/omen_rain.18c15922e338.png",
@@ -531,26 +521,6 @@
       "height": 640,
       "scale": 0.5
     },
-    "sight/iron_rear": {
-      "file": {
-        "path": "assets/ver-hd/img/sight_iron_rear.67af5c89603f.png",
-        "bytes": 59467,
-        "hash": "67af5c89603f"
-      },
-      "width": 960,
-      "height": 640,
-      "scale": 0.5
-    },
-    "sight/peep": {
-      "file": {
-        "path": "assets/ver-hd/img/sight_peep.15ba53da40a0.png",
-        "bytes": 354737,
-        "hash": "15ba53da40a0"
-      },
-      "width": 1024,
-      "height": 1024,
-      "scale": 0.5
-    },
     "sight/scope": {
       "file": {
         "path": "assets/ver-hd/img/sight_scope.44b773a57446.png",
@@ -569,36 +539,6 @@
       },
       "width": 600,
       "height": 112,
-      "scale": 0.5
-    },
-    "sky/cloud_cumulus": {
-      "file": {
-        "path": "assets/common-hd/img/sky_cloud_cumulus.329456520e81.png",
-        "bytes": 13911,
-        "hash": "329456520e81"
-      },
-      "width": 400,
-      "height": 192,
-      "scale": 0.5
-    },
-    "sky/cloud_tower": {
-      "file": {
-        "path": "assets/common-hd/img/sky_cloud_tower.c3fac5e36bb1.png",
-        "bytes": 15697,
-        "hash": "c3fac5e36bb1"
-      },
-      "width": 400,
-      "height": 300,
-      "scale": 0.5
-    },
-    "sky/cloud_wide": {
-      "file": {
-        "path": "assets/common-hd/img/sky_cloud_wide.1cba0bae9c38.png",
-        "bytes": 14145,
-        "hash": "1cba0bae9c38"
-      },
-      "width": 520,
-      "height": 192,
       "scale": 0.5
     },
     "ui/badge_no": {
