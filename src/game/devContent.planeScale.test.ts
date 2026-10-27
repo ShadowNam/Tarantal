@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { loadContent } from '../../tools/testContent';
-import { faunaAsDrawn, isPlaneScalePreset, withPlaneScales } from './devContent';
+import { isPlaneScalePreset, withPlaneScales } from './devContent';
 
 describe('?planeScale=v17 (D-049 before/after screenshots)', () => {
   it('puts back the v1.7 scales, assist and no hit floor, and nothing else', () => {
@@ -19,6 +19,5 @@ describe('?planeScale=v17 (D-049 before/after screenshots)', () => {
     expect(isPlaneScalePreset('v17')).toBe(true);
     expect(isPlaneScalePreset('toString')).toBe(false);
     expect(isPlaneScalePreset(null)).toBe(false);
-    expect(faunaAsDrawn({ 'fauna/a': 3, 'fauna/b': 1 })).toEqual({ 'fauna/a': 1, 'fauna/b': 1 });
   });
 });

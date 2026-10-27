@@ -147,6 +147,7 @@ export class WorldView {
     if (++this.hdFrames % 30 === 0) this.parallax.upgradeHd(this.scene.textures);
     this.potjie.update(s, this.reducedMotion, width);
     this.parallax.driftClouds(s.tick, s.rain || s.lightning);
+    this.parallax.animateFauna(s.tick, this.reducedMotion);
     this.drawSecrets(s, now);
     this.drawCrates(s);
     this.drawDevils(s);

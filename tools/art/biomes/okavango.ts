@@ -366,7 +366,7 @@ function farVeld(ctx: LayerCtx): string {
   ];
   for (let x = 120; x < ctx.width; x += 300 + ctx.rnd() * 500)
     parts.push(ilalaPalm(ctx.rnd, x, yAt(band.edge, x) + 6, 60 + ctx.rnd() * 20, ctx, 'far'));
-  // v1.6 (D-042): the far animals are sprites now (src/game/view/faunaSprites.ts).
+  // v1.6 (D-042): the far animals are sprites now (src/game/view/faunaHerds.ts, D-054).
   return g({}, ...parts);
 }
 

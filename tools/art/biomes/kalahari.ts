@@ -33,7 +33,7 @@ import {
 import { plantLook, seedTuft, veldShrub } from '../flora';
 import { shepherdsTree } from '../species';
 import { deadCamelthornTree } from '../deadTree';
-import { farAnimal as animal } from '../fauna';
+import { farAnimal as animal } from '../farFauna';
 import type { PaintCtx } from '../landscape';
 import { boulder, graniteLook } from '../rocks';
 
@@ -412,7 +412,7 @@ function farVeld(ctx: LayerCtx): string {
       ).svg,
     );
   }
-  // v1.6 (D-042): the far animals are sprites now (src/game/view/faunaSprites.ts).
+  // v1.6 (D-042): the far animals are sprites now (src/game/view/faunaHerds.ts, D-054).
   return g({}, ...parts);
 }
 

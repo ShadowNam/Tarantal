@@ -1,1 +1,20 @@
-{ "origin": "interim", "encode": "png8", "master": 3 }
+{
+  "origin": "interim",
+  "encode": "png8",
+  "originX": 0,
+  "originY": 0,
+  "frames": {
+    "wildebeest.graze.m.tail": [0, 120, 23, 92, 19.17, 5.843, -56.83, -86.157],
+    "wildebeest.graze.m.body": [0, 0, 121, 120, 63, 113, 0, 0],
+    "wildebeest.graze.m.head": [368, 0, 93, 112, 20.114, 22.634, 37.114, -88.366],
+    "wildebeest.alert.m.tail": [23, 120, 23, 92, 19.17, 5.843, -56.83, -86.157],
+    "wildebeest.alert.m.body": [121, 0, 121, 120, 63, 113, 0, 0],
+    "wildebeest.alert.m.head": [68, 120, 107, 84, 20.114, 54.634, 37.114, -88.366],
+    "wildebeest.graze.y.tail": [405, 120, 12, 42, 9.335, 3.029, -29.665, -49.971],
+    "wildebeest.graze.y.body": [279, 120, 66, 71, 33, 66, 0, 0],
+    "wildebeest.graze.y.head": [345, 120, 60, 66, 11.373, 13.748, 19.373, -51.252],
+    "wildebeest.walk.f.tail": [46, 120, 22, 88, 18.443, 5.289, -54.557, -82.711],
+    "wildebeest.walk.f.body": [242, 0, 126, 115, 62, 108, 0, 0],
+    "wildebeest.walk.f.head": [175, 120, 104, 80, 19.629, 39.169, 35.629, -84.831]
+  }
+}

@@ -17,7 +17,7 @@
 //                         masters are 2× already (assets:pack packs them into the HD groups).
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { format } from 'prettier';
+import { format, resolveConfig } from 'prettier';
 import { LATE_GROUP, VER_GROUP, type BirdClip } from '../../src/game/assets/assetIndex';
 import { fruitSheetKey } from '../../src/game/view/fruit/fruitTypes';
 import { collectFruit } from './fruitSink';
@@ -137,7 +137,9 @@ function oursFile(png: string): boolean {
 
 /** JSON as the repo's Prettier prints it (`npm run lint` checks art-source/ too). */
 async function json(value: unknown): Promise<string> {
-  return format(JSON.stringify(value), { parser: 'json' });
+  // The repo's Prettier settings (D-054: long frame tables wrap like `prettier --write` does).
+  const config = (await resolveConfig(join(root, 'package.json'))) ?? {};
+  return format(JSON.stringify(value), { ...config, parser: 'json' });
 }
 
 const planesOf = (creature: string): PlaneId[] => {

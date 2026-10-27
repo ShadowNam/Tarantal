@@ -1,1 +1,26 @@
-{ "origin": "interim", "encode": "png8", "master": 3 }
+{
+  "origin": "interim",
+  "encode": "png8",
+  "originX": 0,
+  "originY": 0,
+  "frames": {
+    "springbok.graze.m.tail": [307, 71, 9, 22, 6.525, 2.406, -32.475, -60.594],
+    "springbok.graze.m.body": [79, 0, 70, 71, 36, 66, 0, 0],
+    "springbok.graze.m.head": [0, 71, 39, 65, 12.208, 13.505, 21.208, -50.495],
+    "springbok.alert.f.tail": [316, 71, 9, 22, 6.824, 2.83, -31.176, -58.17],
+    "springbok.alert.f.body": [219, 0, 68, 68, 35, 64, 0, 0],
+    "springbok.alert.f.head": [128, 71, 49, 54, 11.36, 45.525, 20.36, -48.475],
+    "springbok.graze.y.tail": [352, 71, 7, 13, 4.879, 2.432, -18.121, -37.568],
+    "springbok.graze.y.body": [237, 71, 42, 45, 21, 42, 0, 0],
+    "springbok.graze.y.head": [279, 71, 28, 41, 7.834, 8.693, 11.834, -31.307],
+    "springbok.walk.m.tail": [325, 71, 9, 22, 6.525, 2.406, -32.475, -60.594],
+    "springbok.walk.m.body": [0, 0, 79, 71, 40, 66, 0, 0],
+    "springbok.walk.m.head": [177, 71, 60, 53, 12.208, 44.505, 21.208, -50.495],
+    "springbok.graze.f.tail": [334, 71, 9, 22, 6.824, 2.83, -31.176, -58.17],
+    "springbok.graze.f.body": [287, 0, 68, 68, 35, 64, 0, 0],
+    "springbok.graze.f.head": [90, 71, 38, 63, 11.36, 13.525, 20.36, -48.475],
+    "springbok.alert.m.tail": [343, 71, 9, 22, 6.525, 2.406, -32.475, -60.594],
+    "springbok.alert.m.body": [149, 0, 70, 71, 36, 66, 0, 0],
+    "springbok.alert.m.head": [39, 71, 51, 63, 12.208, 54.505, 21.208, -50.495]
+  }
+}

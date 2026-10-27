@@ -147,10 +147,6 @@ export function withPlaneScales(b: ContentBundle, preset: PlaneScalePreset): Con
   };
 }
 
-/** The far animals as drawn before D-049 (every faunaScale 1), for the same "before" shots. */
-export const faunaAsDrawn = (scale: Readonly<Record<string, number>>): Record<string, number> =>
-  Object.fromEntries(Object.keys(scale).map((k) => [k, 1]));
-
 /**
  * e2e/dev only (D-048, `?spook=early`): the special days' owls come early, three of them (in the
  * first 40 % of the hunt) and the bats from the start, so a spec meets them within seconds.

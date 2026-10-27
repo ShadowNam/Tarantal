@@ -1,1 +1,12 @@
-{ "origin": "interim", "encode": "png8", "master": 3 }
+{
+  "origin": "interim",
+  "encode": "png8",
+  "originX": 0,
+  "originY": 0,
+  "frames": {
+    "ostrich.alert.m.body": [0, 0, 129, 146, 77, 141, 0, 0],
+    "ostrich.alert.m.head": [291, 0, 42, 95, 15.532, 79.708, 33.532, -122.292],
+    "ostrich.graze.f.body": [129, 0, 109, 123, 65, 118, 0, 0],
+    "ostrich.graze.f.head": [238, 0, 53, 117, 13.167, 7.274, 28.167, -102.726]
+  }
+}

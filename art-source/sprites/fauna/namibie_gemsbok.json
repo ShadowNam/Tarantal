@@ -1,1 +1,20 @@
-{ "origin": "interim", "encode": "png8", "master": 3 }
+{
+  "origin": "interim",
+  "encode": "png8",
+  "originX": 0,
+  "originY": 0,
+  "frames": {
+    "gemsbok.graze.m.tail": [208, 127, 20, 74, 16.041, 4.896, -51.959, -87.104],
+    "gemsbok.graze.m.body": [292, 0, 110, 103, 57, 97, 0, 0],
+    "gemsbok.graze.m.head": [0, 0, 69, 127, 18.933, 50.258, 33.933, -75.742],
+    "gemsbok.alert.m.tail": [228, 127, 20, 74, 16.041, 4.896, -51.959, -87.104],
+    "gemsbok.alert.m.body": [0, 127, 110, 103, 57, 97, 0, 0],
+    "gemsbok.alert.m.head": [69, 0, 102, 111, 29.933, 99.258, 33.933, -75.742],
+    "gemsbok.graze.y.tail": [377, 127, 11, 35, 7.942, 2.738, -28.058, -52.262],
+    "gemsbok.graze.y.body": [268, 127, 63, 63, 32, 59, 0, 0],
+    "gemsbok.graze.y.head": [331, 127, 46, 59, 10.324, 12.555, 18.324, -45.445],
+    "gemsbok.walk.m.tail": [248, 127, 20, 74, 16.041, 4.896, -51.959, -87.104],
+    "gemsbok.walk.m.body": [171, 0, 121, 103, 62, 97, 0, 0],
+    "gemsbok.walk.m.head": [110, 127, 98, 102, 18.933, 90.258, 33.933, -75.742]
+  }
+}

@@ -15,6 +15,7 @@ import type {
   ImageEntry,
 } from './assetIndex';
 import { COMMON_GROUP, LATE_GROUP, VER_GROUP } from './assetIndex';
+import type { FaunaFrames } from '../view/faunaHerds';
 import { DESERT_GROUP } from './desertAssets';
 import { atlasRegion, checkAtlas, checkBirdAtlas, type AtlasRegion } from './atlasCheck';
 import { loadBytes, loadImage, loadJson } from './finalLoader';
@@ -412,6 +413,11 @@ export class AssetManifest {
     const base = s ? { x: s.originX / s.width, y: s.originY / s.height } : { x: 0.5, y: 0.5 };
     const f = this.finalImages.get(key)?.entry;
     return f ? { x: f.originX ?? base.x, y: f.originY ?? base.y } : base;
+  }
+
+  /** D-054: a far-animal sheet's frame table (design px), once its delivered file is in. */
+  faunaFrames(key: string): FaunaFrames | undefined {
+    return this.finalImages.get(key)?.entry.frames;
   }
 
   /** v1.4 B (D-039): display scale of a texture (design px per texture px; 2× art is 0.5). */

@@ -1,4 +1,4 @@
-// The far animals (D-054, replacing faunaSprites.ts; v1.6 D-042, D-049). Each herd is one texture: a sheet of its animals'
+// The far animals (D-054; v1.6 D-042, D-049). Each herd is one texture: a sheet of its animals'
 // parts (tail, body, head with neck, an elephant's ear), drawn by tools/art/faunaSheets.ts at 2×
 // to the target heights of docs/balance/perspective.md. The sheet's frame table (design px) comes
 // with it in the asset index. FaunaView places every animal from the tables below and moves its

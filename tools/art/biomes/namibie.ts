@@ -379,7 +379,7 @@ function verStrip(ctx: LayerCtx): string {
     flat(ellipseD(wx - half * 0.14, wy - 0.9, half * 0.3, 0.7), '#F4FAFF', { opacity: 0.95 }),
     flat(ellipseD(wx + half * 0.24, wy - 0.4, half * 0.12, 0.45), '#E6F2FA', { opacity: 0.8 }),
   );
-  // v1.6 (D-042): the drinkers are a sprite now (src/game/view/faunaSprites.ts).
+  // v1.6 (D-042): the drinkers are a sprite now (src/game/view/faunaHerds.ts, D-054).
   // A few small camelthorns round the water (hazed, no ink).
   const pen: Pen = { ink: mix(ctx.pen.ink, horizon, 0.5), w: 0.3 };
   const trees: [number, number, number, Exclude<CamelthornVariant, 'nest'>][] = [

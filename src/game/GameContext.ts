@@ -602,6 +602,8 @@ export interface GameContext {
   readonly huntSeconds: number | undefined;
   /** e2e/dev only (?holdAt=600): hunts stop at this sim tick (M10 visual baselines). */
   readonly holdAtTick: number | undefined;
+  /** e2e/dev only (?fauna=before, D-054 screenshots): the v1.9.0 far animals, one image a herd. */
+  readonly faunaBefore: boolean;
   /** e2e/dev only: ?omen=1 / ?omen=0 overrides the mode's omen. */
   readonly omen: boolean | undefined;
   /** e2e/dev only: ?biome= plays Classic hunts in another playable biome (M8). */

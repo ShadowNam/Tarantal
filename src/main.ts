@@ -11,7 +11,6 @@ import { loadGameContent } from './content/loadBrowser';
 import { AudioDirector, browserAudioEnv } from './game/audio/AudioDirector';
 import { BarkDirector } from './game/audio/barks';
 import {
-  faunaAsDrawn,
   isPlaneScalePreset,
   withDoppies,
   withEarlySpook,
@@ -433,16 +432,10 @@ hook.boot['script'] = performance.now();
 // v1.6 (D-042): which build this is, first thing in the console.
 console.info(`[build] ${buildLine(buildInfo())}`);
 const loaded = loadGameContent();
-// e2e/dev only (D-049 "before" screenshots): ?planeScale=v17 — the old plane scales and far animals.
+// e2e/dev only (D-049 "before" screenshots): ?planeScale=v17 — the old plane scales.
 const planeScaleParam = testHooks ? params.get('planeScale') : null;
 const planePreset = isPlaneScalePreset(planeScaleParam) ? planeScaleParam : null;
-const feel =
-  planePreset === null
-    ? loaded.feel
-    : {
-        ...loaded.feel,
-        perspective: { faunaScale: faunaAsDrawn(loaded.feel.perspective.faunaScale) },
-      };
+const feel = loaded.feel;
 // M10: the final-asset index, fetched while the platform SDK starts (absent = all placeholders).
 const indexLoad = fetchAssetIndex(feel.assets.indexTimeoutMs);
 const crateParam = testHooks ? params.get('crate') : null;
@@ -1057,6 +1050,7 @@ async function boot(): Promise<void> {
     nextSeed: seedSource(),
     huntSeconds: adminSetup === null ? huntSecondsParam() : adminSetup.huntSeconds,
     holdAtTick: holdAtParam(),
+    faunaBefore: testHooks && params.get('fauna') === 'before',
     omen: adminSetup === null ? omenParam() : adminSetup.omen,
     classicBiome: adminSetup === null ? biomeParam() : adminSetup.classicBiome,
     classicArea: () => classicAreaId(bundle, save.data, playableBiomes, loaded.notaboek),

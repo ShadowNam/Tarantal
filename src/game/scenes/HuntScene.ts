@@ -26,7 +26,7 @@ import type { Challenge } from '../../meta/challenge';
 import { createHuntLogger, type HuntLogger } from '../../meta/huntLog';
 import { createShareLogger, type ShareLogger } from '../../meta/share';
 import { applyHunt, huntSight, isWeaponEquippable, type HuntOutcome } from '../../meta/progress';
-import { msToTicks } from '../../sim/clock';
+import { msToTicks, TICKS_PER_SECOND } from '../../sim/clock';
 import type { SimEvent } from '../../sim/events';
 import { createRecorder, encodeInputLogText, type InputRecorder } from '../../sim/replay/inputLog';
 import { createSim } from '../../sim/Sim';
@@ -351,13 +351,11 @@ export class HuntScene extends Phaser.Scene {
     // An id this biome lacks (a bad ?layout=) draws the plain biome rather than failing.
     const map = safeResolveMap(this.biome, this.map.layout, this.map.bonus, this.map.ver);
     const mapBiome = map.biome;
-    this.parallax = new ParallaxView(
-      this,
-      mapBiome,
-      this.manifest,
-      this.ctx.prefs.mergeLayers,
-      this.ctx.feel.perspective.faunaScale,
-    );
+    this.parallax = new ParallaxView(this, mapBiome, this.manifest, this.ctx.prefs.mergeLayers, {
+      idle: this.ctx.feel.fauna.idle,
+      ticksPerSecond: TICKS_PER_SECOND,
+      before: this.ctx.faunaBefore,
+    });
     this.parallax.measureFill = this.ctx.hook !== null;
     this.boundsSource = this.parallax;
     // D-048: a special day plays the day's map under its own light (Halloween: dusk).

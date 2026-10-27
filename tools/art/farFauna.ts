@@ -985,8 +985,8 @@ function hoofed(look: LookSpec, o: LookOpts): DrawnLook {
   // --- tail ---
   const tail = tailOf(sp, geo, C, pen, edge);
   const box = {
-    x0: Math.min(-0.75 * L * S, poll[0] - 0.5 * S, at(1, 0)[0] - 0.4 * S) - 0.3 * S,
-    x1: Math.max(0.7 * L * S, at(1.1, 0)[0], poll[0]) + 0.5 * S,
+    x0: Math.min(-0.75 * L * S, poll[0] - 0.5 * S, at(1, 0)[0] - 0.4 * S) - 0.6 * S,
+    x1: Math.max(0.7 * L * S, at(1.1, 0)[0], poll[0]) + 0.7 * S,
     y0: Math.min(-1.2 * S, poll[1] - 1.0 * S, at(0, -1)[1] - 0.6 * S),
     y1: 0.25 * S,
   };
@@ -1057,7 +1057,7 @@ function wade(
     def: above.def + broken.def,
     above: above.id,
     // A sheen of open water under the animal (no ground shadow in water).
-    under: radial((x0 + x1) / 2, surface + 0.05 * S, (x1 - x0) * 0.7, 0.07 * S, water, 0.55),
+    under: radial((x0 + x1) / 2, surface + 0.05 * S, (x1 - x0) * 0.55, 0.07 * S, water, 0.55),
     over:
       g(
         { 'clip-path': `url(#${broken.id})`, opacity: 0.32 },
@@ -2609,4 +2609,32 @@ export function drawLook(look: LookSpec, o: LookOpts = {}): DrawnLook {
   if (look.species === 'elephant') return elephant(look, o);
   if (look.species === 'ostrich') return ostrich(look, o);
   return hoofed(look, o);
+}
+
+/**
+ * One whole animal as a single drawing at (x, foot) (for art baked into a layer, e.g. the
+ * Kalahari dune's gemsbok): all its parts in their resting pose, mirrored when facing −1.
+ */
+export function farAnimal(o: {
+  readonly kind: FaunaSpecies;
+  readonly pose: FaunaPose;
+  readonly x: number;
+  readonly foot: number;
+  readonly h: number;
+  readonly facing?: 1 | -1;
+  readonly tint?: (hex: string) => string;
+  readonly phase?: number;
+}): string {
+  const d = drawLook(
+    { species: o.kind, pose: o.pose, variant: 'm', h: o.h },
+    o.tint === undefined ? {} : { tint: o.tint },
+  );
+  const p = d.parts;
+  return g(
+    { transform: `translate(${r2(o.x)} ${r2(o.foot)})${o.facing === -1 ? ' scale(-1 1)' : ''}` },
+    p.tail ?? '',
+    p.body ?? '',
+    p.head ?? '',
+    p.ear ?? '',
+  );
 }

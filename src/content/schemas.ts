@@ -2021,11 +2021,27 @@ export const FeelSchema = obj({
     /** Its font size (design px). */
     hintPx: pos,
   }),
-  /** D-049: perspective on the far planes, drawn only. */
-  perspective: obj({
-    /** Display scale per far-animal sprite key (src/game/view/faunaSprites.ts; 1 = as drawn),
-     *  so the animals stand in proportion to the birds on their plane. */
-    faunaScale: z.record(z.string().regex(/^fauna\//), pos),
+  /** D-054: the far animals (src/game/view/faunaHerds.ts), drawn only. */
+  fauna: obj({
+    /** Idle motion on sim time (FaunaIdleTuning): degrees, seconds, shares. */
+    idle: obj({
+      grazeDeg: nonNeg,
+      grazeEverySec: pos,
+      grazeSec: pos,
+      alertDeg: nonNeg,
+      alertEverySec: pos,
+      alertSec: pos,
+      walkDeg: nonNeg,
+      walkSec: pos,
+      tailDeg: nonNeg,
+      tailEverySec: pos,
+      tailSec: pos,
+      earFold: fraction,
+      earSec: pos,
+      swayDeg: nonNeg,
+      swaySec: pos,
+      calm: fraction,
+    }),
   }),
   assets: obj({
     /** M10: longest wait for assets/asset-index.json at boot; after it every key is a placeholder. */
