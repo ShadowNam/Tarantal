@@ -46,11 +46,12 @@ test('potjie: HD art lands, the lid rattles, shot it flies off (+5 s, bark, lid 
   expect(v.duration).toBe(before + 300);
   expect(v.barks.filter((b) => b === 'bark.kos_is_reg')).toHaveLength(1);
 
-  // The lid lands beside the pot with its clang, and stays there; no more rattles.
+  // The lid lands beside the pot with its clang and settles (read once its bounce is over: on
+  // WebKit the first read caught it mid-bounce); then it stays there, with no more rattles.
   await page.waitForFunction(
     () => {
       const p = window.__TM__?.potjie;
-      return p !== null && p !== undefined && p.clangs === 1 && (p.lid?.x ?? 0) > 100;
+      return p?.clangs === 1 && p.lidSettled && (p.lid?.x ?? 0) > 100;
     },
     null,
     { timeout: 120_000 },

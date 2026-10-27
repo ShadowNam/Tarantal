@@ -73,12 +73,16 @@ export function rattleClack(tick: number, calm: boolean): boolean {
 
 /** The lid's flight: pops up, tumbles off and lands beside the pot (FLIGHT_TICKS), then rests. */
 export const FLIGHT_TICKS = 40;
+/** The small bounce where it lands (ticks); after it the lid lies still. */
+export const BOUNCE_TICKS = 12;
+/** Ticks after the shot from which the lid lies still beside the pot. */
+export const LID_SETTLED = FLIGHT_TICKS + BOUNCE_TICKS;
 export function lidFlight(sinceOff: number): LidPose & { landed: boolean } {
   const s = Math.max(0, sinceOff);
-  if (s >= FLIGHT_TICKS + 12) return { ...LID_REST, landed: true };
+  if (s >= LID_SETTLED) return { ...LID_REST, landed: true };
   if (s >= FLIGHT_TICKS) {
     // A small bounce where it lands.
-    const b = (s - FLIGHT_TICKS) / 12;
+    const b = (s - FLIGHT_TICKS) / BOUNCE_TICKS;
     return {
       x: LID_REST.x + 4 * b,
       y: LID_REST.y - 7 * Math.sin(b * Math.PI) * (1 - b),

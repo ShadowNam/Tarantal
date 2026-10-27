@@ -355,6 +355,8 @@ export interface TestHook {
   potjie: {
     hd: boolean;
     lidOff: boolean;
+    /** The lid's flight and bounce are over: it lies still beside the pot. */
+    lidSettled: boolean;
     rattles: number;
     clangs: number;
     wisps: number;

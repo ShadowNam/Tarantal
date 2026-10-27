@@ -18,6 +18,7 @@ import {
   bubbleAt,
   coalGlow,
   LID_LANDS,
+  LID_SETTLED,
   lidPose,
   rattleClack,
   steam,
@@ -90,6 +91,7 @@ export class PotjieView {
   get hook(): {
     hd: boolean;
     lidOff: boolean;
+    lidSettled: boolean;
     rattles: number;
     clangs: number;
     wisps: number;
@@ -100,6 +102,10 @@ export class PotjieView {
     return {
       hd: this.live,
       lidOff: this.lidOff,
+      lidSettled:
+        this.offTick !== null &&
+        this.lastTick !== null &&
+        this.lastTick - this.offTick >= LID_SETTLED,
       rattles: this.rattles,
       clangs: this.clangs,
       wisps: this.wisps.filter((w) => w.visible).length,
