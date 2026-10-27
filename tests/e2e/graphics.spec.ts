@@ -109,9 +109,14 @@ test.describe('the loading screen card', () => {
   });
 });
 
-test('HD slow: "Play now in Standard", then HD swaps in during play', async ({ page }, info) => {
+test('HD slow: "Play now in Standard" (loading screen and hunt veil), then HD swaps in mid-hunt', async ({
+  page,
+}, info) => {
   test.skip(!isLandscape(info), 'landscape screens');
-  test.setTimeout(300_000);
+  test.setTimeout(420_000);
+  const touch = isTouchProject(info);
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
   // Throttle the HD files: each waits until the test lets them through.
   let release: () => void = () => undefined;
   const gate = new Promise<void>((r) => {
@@ -121,7 +126,10 @@ test('HD slow: "Play now in Standard", then HD swaps in during play', async ({ p
     await gate;
     await route.continue();
   });
-  await page.goto('/?e2e=1&graphics=hd&ftue=0&layout=none&feesdag=none');
+  // Classic hunts in the Bushveld (a lazy area): its hunt puts up the in-game HD veil.
+  await page.goto(
+    '/?e2e=1&graphics=hd&ftue=0&layout=none&feesdag=none&biome=bushveld-winter&seed=3&huntSeconds=600',
+  );
   const now = page.locator('#tm-hd-standard');
   await expect(page.locator('#tm-hd-loading')).toBeVisible({ timeout: 60_000 });
   await expect(page.locator('#tm-hd-line')).toContainText(/MB/);
@@ -129,20 +137,30 @@ test('HD slow: "Play now in Standard", then HD swaps in during play', async ({ p
   await now.click();
   await titleUp(page);
   expect(await page.evaluate(() => window.__TM__?.graphics.loading)).toBe('skipped');
-  // The game runs on the standard art; the HD files land now and go in during play (renamed,
-  // never removed; D-046), and the hunt runs on.
+  // The Bushveld hunt waits for its HD pack behind the Phaser veil; its button lets the hunt go.
+  await page.waitForFunction(() => window.__TM__?.rects['start'] !== undefined, null, {
+    timeout: 60_000,
+  });
+  await tapRect(page, touch, 'start');
+  await page.waitForFunction(() => window.__TM__?.menu === 'hdLoading', null, {
+    timeout: 120_000,
+  });
+  await tapRect(page, touch, 'hd.standard');
+  await page.waitForFunction(() => window.__TM__?.scene === 'hunt', null, { timeout: 60_000 });
+  expect(await page.evaluate(() => window.__TM__?.biome)).toBe('bushveld-winter');
+  // Mid-hunt: the HD files land now and go in during play (renamed, never removed; D-046).
   release();
   await page.waitForFunction(
     () => (window.__TM__?.graphics.hdTextures ?? 0) > 0 && (window.__TM__?.graphics.epoch ?? 0) > 0,
     null,
-    { timeout: 120_000 },
+    { timeout: 180_000 },
   );
-  await startHunt(page, isTouchProject(info));
   const tick = await page.evaluate(() => window.__TM__?.tick ?? 0);
-  await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) > t + 30, tick, {
-    timeout: 60_000,
+  await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) > t + 120, tick, {
+    timeout: 120_000,
   });
   expect(await page.evaluate(() => window.__TM__?.graphics.mode)).toBe('hd');
+  expect(errors).toEqual([]);
 });
 
 test('Settings → Graphics shows the choice and switches back to Standard', async ({
@@ -218,23 +236,26 @@ test('a lazy area (Bushveld): HD layers and props at the same pan sit where Stan
       await page.waitForFunction(() => (window.__TM__?.graphics.hdTextures ?? 0) > 0, null, {
         timeout: 240_000,
       });
-    // Read the camera and the boxes in the same callback that sees the Bushveld layers.
+    // Read the camera and the boxes in the same callback that sees the Bushveld layers (in HD:
+    // drawing HD files: the home Karoo's HD alone must not satisfy this test).
     const handle = await page.waitForFunction(
-      () => {
+      (wantHd) => {
         const tm = window.__TM__;
         const b = tm?.graphics.bounds ?? [];
-        if (!b.some((x) => x.key === 'layer:bushveld/far_veld')) return null;
+        const mid = b.find((x) => x.key === 'layer:bushveld/mid');
+        if (mid === undefined || !b.some((x) => x.key === 'layer:bushveld/far_veld')) return null;
+        if (mid.hd !== wantHd) return null;
         return {
           cameraX: tm?.cameraX ?? NaN,
           bounds: [...b].sort((p, q) => (p.key < q.key ? -1 : 1)),
         };
       },
-      null,
+      mode === 'hd',
       { timeout: 120_000 },
     );
     return (await handle.jsonValue()) as {
       cameraX: number;
-      bounds: { key: string; x: number; y: number; w: number; h: number }[];
+      bounds: { key: string; x: number; y: number; w: number; h: number; hd: boolean }[];
     };
   };
   const standard = await sample('standard');
@@ -243,6 +264,12 @@ test('a lazy area (Bushveld): HD layers and props at the same pan sit where Stan
   expect(hd.cameraX).toBeCloseTo(standard.cameraX, 3);
   expect(hd.bounds.map((b) => b.key)).toEqual(standard.bounds.map((b) => b.key));
   expect(standard.bounds.some((b) => b.key === 'layer:bushveld/mid')).toBe(true);
+  // The Bushveld layers before the hunt (not the sky: it has no HD; not the Ver strip: it
+  // loads in the background) draw HD files in HD and none in Standard.
+  const area = (b: { key: string }): boolean =>
+    b.key.startsWith('layer:bushveld/') && !/\/(sky|ver_veld)$/.test(b.key);
+  expect(hd.bounds.filter(area).every((b) => b.hd)).toBe(true);
+  expect(standard.bounds.filter(area).some((b) => b.hd)).toBe(false);
   standard.bounds.forEach((s, i) => {
     const h = hd.bounds[i];
     const tol = s.key.startsWith('layer:') ? 2 : 1;

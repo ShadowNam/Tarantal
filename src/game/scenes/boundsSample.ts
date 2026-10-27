@@ -9,6 +9,8 @@ export interface BoundsBox {
   y: number;
   w: number;
   h: number;
+  /** It draws an HD file (D-053). */
+  hd: boolean;
 }
 
 /** What draws the boxes (ParallaxView), or null before this run built its views. */

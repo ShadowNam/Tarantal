@@ -7,7 +7,7 @@ describe('sampleBounds (D-053 test hook)', () => {
   });
 
   it('returns the view boxes once they exist', () => {
-    const box: BoundsBox = { key: 'layer:sky', x: 0, y: 0, w: 1920, h: 1080 };
+    const box: BoundsBox = { key: 'layer:sky', x: 0, y: 0, w: 1920, h: 1080, hd: false };
     expect(sampleBounds({ boundsSample: () => [box] })).toEqual([box]);
   });
 });

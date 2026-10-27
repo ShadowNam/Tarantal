@@ -143,6 +143,11 @@ export function hdTextureCount(textures: Phaser.Textures.TextureManager): number
     if (textures.get(key).source.some((src) => hdSources.has(src.image as object))) n++;
   return n;
 }
+/** D-053 (test hook): true when `texture` draws an HD file. */
+export function isHdTexture(texture: Phaser.Textures.Texture): boolean {
+  return texture.source.some((src) => hdSources.has(src.image as object));
+}
+
 /** A sound's delivered file bytes, handed to the AudioDirector to decode. */
 export interface FinalSound {
   readonly key: string;

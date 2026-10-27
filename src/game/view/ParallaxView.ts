@@ -10,7 +10,7 @@ import type { Biome, Light } from '../../content/schemas';
 import { planeCentreX } from '../../sim/camera';
 import type { PlaneId } from '../../sim/types';
 import { coreWidth, DESIGN_HEIGHT, LAYER_BLEED_PX } from '../../sim/world';
-import { TEX, type AssetManifest } from '../assets/AssetManifest';
+import { isHdTexture, TEX, type AssetManifest } from '../assets/AssetManifest';
 import { HD_PARTS, hdKeyOf } from '../assets/hdProps';
 import { FAUNA_SPRITES } from './faunaSprites';
 import { lightTint } from './lightTint';
@@ -370,10 +370,10 @@ export class ParallaxView {
 
   /**
    * D-053 (test hook): the on-screen boxes (design px, rounded) of each layer's first tile and of
-   * every prop and far animal: the same with Standard and HD art.
+   * every prop and far animal: the same with Standard and HD art. `hd`: it draws an HD file.
    */
-  boundsSample(): { key: string; x: number; y: number; w: number; h: number }[] {
-    const out: { key: string; x: number; y: number; w: number; h: number }[] = [];
+  boundsSample(): { key: string; x: number; y: number; w: number; h: number; hd: boolean }[] {
+    const out: { key: string; x: number; y: number; w: number; h: number; hd: boolean }[] = [];
     const box = (key: string, a: StaticArt): void => {
       const b = a.img.getBounds();
       out.push({
@@ -382,6 +382,7 @@ export class ParallaxView {
         y: Math.round(b.y),
         w: Math.round(b.width),
         h: Math.round(b.height),
+        hd: isHdTexture(a.img.texture),
       });
     };
     for (const set of this.tileSets) {
@@ -397,6 +398,7 @@ export class ParallaxView {
         y: Math.round(b0.y),
         w: Math.round(b1.right - b0.x),
         h: Math.round(b0.height),
+        hd: isHdTexture(a.img.texture),
       });
     }
     for (const { art, key } of this.keyed) box(key, art);

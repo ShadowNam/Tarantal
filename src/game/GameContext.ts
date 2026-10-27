@@ -379,7 +379,7 @@ export interface TestHook {
     weak: boolean;
     cardMb: number;
     loading: 'none' | 'loading' | 'done' | 'skipped';
-    bounds: { key: string; x: number; y: number; w: number; h: number }[];
+    bounds: { key: string; x: number; y: number; w: number; h: number; hd: boolean }[];
     hdTextures: number;
     epoch: number;
   };

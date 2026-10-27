@@ -103,6 +103,12 @@ for (const gfx of ['standard', 'hd'] as const)
 
     expect(cpu.n).toBeGreaterThan(30);
     expect(cpu.avg, 'CPU cost per frame (ms) at 4× throttle').toBeLessThanOrEqual(BUDGET_MS);
+    // D-053: one area's HD hunt within the medium tier's texture budget (Tech §9: 256 MB), and
+    // the HD pack really in (not a Standard run reported as HD).
+    if (gfx === 'hd') {
+      expect(report.hdTextures, 'HD textures on the GPU').toBeGreaterThan(0);
+      expect(report.textureMB, 'texture memory (MB) with HD').toBeLessThanOrEqual(256);
+    }
     if (process.env['PERF_STRICT'] === '1') {
       expect(real.avg, 'real frame time (ms) at 4× throttle').toBeLessThanOrEqual(BUDGET_MS);
     }
