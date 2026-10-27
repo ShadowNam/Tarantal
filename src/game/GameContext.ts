@@ -285,7 +285,21 @@ export interface TestHook {
   /** D-049: hittable far-plane targets' body centres on the screen (design px), for aiming. */
   farBirds: { id: number; x: number; y: number }[];
   /** v1.7b: each crate's item and the icon drawn on it (null = none). */
-  crateSpots: { id: number; x: number; y: number; item: string | null; icon: string | null }[];
+  crateSpots: {
+    id: number;
+    x: number;
+    y: number;
+    item: string | null;
+    icon: string | null;
+    /** 1.9.2 (D-055): on screen (world transforms, zoom included): where the icon belongs (the
+     *  canopy or box front through the crate image), where its tag is drawn, and how many icon
+     *  tags the crate shows (1). */
+    drawn: {
+      spot: { x: number; y: number };
+      tag: { x: number; y: number } | null;
+      tags: number;
+    } | null;
+  }[];
   specialBirds: { id: number; creature: string; phase: string; x: number; y: number }[];
   /** Active weapon id, power-up ids, wind (omen) and hunt length (bonus time grows it). */
   weapon: string;

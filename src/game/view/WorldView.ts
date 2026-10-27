@@ -55,8 +55,16 @@ export class WorldView {
     number,
     {
       img: Phaser.GameObjects.Image;
-      /** v1.7b: the item's icon on the canopy and on the box front (screen layer). */
-      tags: { disc: Phaser.GameObjects.Arc; pic: Phaser.GameObjects.Image }[];
+      /**
+       * v1.7b: the item's icon (a cream disc + picture). 1.9.2 (D-055): one tag in the crate's
+       * own overlay layer, above the crate, so it moves with the crate exactly (pan, scope zoom,
+       * shake) and shows once: on the canopy while it falls, on the box front once landed.
+       */
+      tag: {
+        box: Phaser.GameObjects.Container;
+        disc: Phaser.GameObjects.Arc;
+        pic: Phaser.GameObjects.Image;
+      } | null;
       icon: string | null;
     }
   >();
@@ -238,21 +246,21 @@ export class WorldView {
         const layer = this.parallax.plane(c.plane).overlay;
         const img = this.scene.add.image(c.x, c.y, key);
         layer?.add(img);
-        // v1.7b (D-046): what it holds, fully opaque on a cream disc with a dark ring: big on
-        // the canopy while it falls, and on the box's front (where the stencil was). Drawn in the
-        // screen layer, above every scenery layer, so no haze band or light tint washes it out.
+        // v1.7b (D-046): what it holds, fully opaque on a cream disc with a dark ring. 1.9.2
+        // (D-055): in the crate's own overlay layer, just above the crate. The overlay sits
+        // above the layer's haze bands and the light tint only touches the layer's static art,
+        // so nothing washes it out, and it shares the crate's transform (no hand-made screen x).
         const icon = c.item === null ? null : powerupIcon(c.item);
         const shown = icon !== null && this.scene.textures.exists(icon) ? icon : null;
-        const tags =
-          shown === null
-            ? []
-            : [0, 1].map(() => {
-                const disc = this.scene.add.circle(0, 0, 1, 0xf3ead3, 1);
-                const pic = this.scene.add.image(0, 0, shown);
-                this.screen.add([disc, pic]);
-                return { disc, pic };
-              });
-        art = { img, tags, icon: shown };
+        let tag = null;
+        if (shown !== null && layer !== null) {
+          const disc = this.scene.add.circle(0, 0, 1, 0xf3ead3, 1);
+          const pic = this.scene.add.image(0, 0, shown);
+          const box = this.scene.add.container(0, 0, [disc, pic]);
+          layer.add(box);
+          tag = { box, disc, pic };
+        }
+        art = { img, tag, icon: shown };
         this.crates.set(c.id, art);
       }
       const img = art.img;
@@ -262,39 +270,46 @@ export class WorldView {
       // D-049: crates follow their plane's scale (the art is a little larger than the hitbox).
       const scale = this.planeScale[c.plane] * CRATE_ART_MUL;
       img.setOrigin(o.x, o.y).setPosition(c.x, c.y).setScale(scale);
-      const sx = this.parallax.screenX(c.plane, c.x);
-      // [canopy, box front] in texture px from the crate centre: the canopy's middle, and the
-      // planked front's middle (the box art is the same on the chute and on the ground).
-      const spots = [
-        { show: chute, dx: 0, dy: -240, r: 74 },
-        { show: true, dx: -9, dy: 13, r: 40 },
-      ];
-      art.tags.forEach((t, i) => {
-        const spot = spots[i];
-        const on = spot !== undefined && spot.show;
-        t.disc.setVisible(on);
-        t.pic.setVisible(on);
-        if (!on) return;
-        const r = spot.r * scale;
-        const x = sx + spot.dx * scale;
-        const y = c.y + spot.dy * scale;
-        t.disc
-          .setPosition(x, y)
-          .setRadius(r)
-          .setStrokeStyle(Math.max(3, 9 * scale), 0x1b1410, 1);
-        if (fresh && art.icon !== null) t.pic.setTexture(art.icon);
-        t.pic.setPosition(x, y).setDisplaySize(r * 1.7, r * 1.7);
-      });
+      const tag = art.tag;
+      if (tag === null) continue;
+      const spot = crateTagSpot(chute);
+      const r = spot.r * scale;
+      tag.box.setPosition(c.x + spot.dx * scale, c.y + spot.dy * scale);
+      tag.disc.setRadius(r).setStrokeStyle(Math.max(3, 9 * scale), 0x1b1410, 1);
+      if (fresh && art.icon !== null) tag.pic.setTexture(art.icon);
+      tag.pic.setDisplaySize(r * 1.7, r * 1.7);
     }
     for (const [id, art] of this.crates) {
       if (seen.has(id)) continue;
       art.img.destroy();
-      for (const t of art.tags) {
-        t.disc.destroy();
-        t.pic.destroy();
-      }
+      art.tag?.box.destroy();
       this.crates.delete(id);
     }
+  }
+
+  /**
+   * 1.9.2 (D-055, e2e): where a crate and its icon tag are drawn on screen right now, read from
+   * the game objects' own world transforms (scope zoom included): the spot the tag belongs at
+   * (the canopy's or box front's middle, through the crate image) and the tag's centre.
+   */
+  crateDrawn(
+    id: number,
+  ): { spot: { x: number; y: number }; tag: { x: number; y: number } | null; tags: number } | null {
+    const art = this.crates.get(id);
+    if (art === undefined) return null;
+    const chute = art.img.texture.key === TEX.crateChute;
+    const spot = crateTagSpot(chute);
+    // The image's local space is texture px around its origin (the crate centre).
+    const m = art.img.getWorldTransformMatrix();
+    const p = m.transformPoint(spot.dx, spot.dy, { x: 0, y: 0 });
+    // Every icon picture this crate has on screen (one tag by design; two was the v1.7b bug).
+    const tags = art.tag !== null && art.tag.box.visible ? 1 : 0;
+    let tag: { x: number; y: number } | null = null;
+    if (art.tag !== null) {
+      const t = art.tag.box.getWorldTransformMatrix();
+      tag = { x: t.tx, y: t.ty };
+    }
+    return { spot: { x: p.x, y: p.y }, tag, tags };
   }
 
   /** v1.7b (D-046): the icon a crate shows (null = none drawn yet, or no icon). */
@@ -681,10 +696,7 @@ export class WorldView {
     this.secretArt.clear();
     for (const c of this.crates.values()) {
       c.img.destroy();
-      for (const t of c.tags) {
-        t.disc.destroy();
-        t.pic.destroy();
-      }
+      c.tag?.box.destroy();
     }
     this.crates.clear();
     for (const d of this.devils.values()) d.destroy();
@@ -696,4 +708,13 @@ export class WorldView {
     for (const b of this.windBits) b.destroy();
     this.windBits.length = 0;
   }
+}
+
+/**
+ * 1.9.2 (D-055): where a crate's icon tag sits, in texture px from the crate centre: the
+ * canopy's middle while it falls, the planked front's middle once landed (the box art is the
+ * same on the chute and on the ground). r = the disc's radius.
+ */
+function crateTagSpot(chute: boolean): { dx: number; dy: number; r: number } {
+  return chute ? { dx: 0, dy: -240, r: 74 } : { dx: -9, dy: 13, r: 40 };
 }
