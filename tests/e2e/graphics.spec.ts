@@ -252,3 +252,28 @@ test('a lazy area (Bushveld): HD layers and props at the same pan sit where Stan
     expect(Math.abs((h?.h ?? 0) - s.h), s.key).toBeLessThanOrEqual(tol);
   });
 });
+
+test('HD chosen but the HD index is gone (404): the lazy area’s hunt starts in Standard, no veil loop', async ({
+  page,
+}, info) => {
+  test.skip(!isLandscape(info), 'landscape screens');
+  test.setTimeout(300_000);
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.route('**/asset-index-hd.json', (route) => route.fulfill({ status: 404, body: '' }));
+  await boot(page, 'graphics=hd&biome=bushveld-winter&seed=3&huntSeconds=600&birds=0');
+  await startHunt(page, isTouchProject(info));
+  // The hunt runs (ticks advance) well within the budget: before the fix every restart put up a
+  // new HD veil and "Play now in Standard" never came.
+  const tick = await page.evaluate(() => window.__TM__?.tick ?? 0);
+  await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) > t + 60, tick, {
+    timeout: 120_000,
+  });
+  const h = await page.evaluate(() => ({
+    hdTextures: window.__TM__?.graphics.hdTextures ?? -1,
+    menu: window.__TM__?.menu ?? null,
+  }));
+  expect(h.hdTextures).toBe(0);
+  expect(h.menu).not.toBe('hdLoading');
+  expect(errors).toEqual([]);
+});

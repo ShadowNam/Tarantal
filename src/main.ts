@@ -113,11 +113,11 @@ import {
   cardAllowed,
   settingAfterCard,
   startMode,
-  type GraphicsControl,
   type GraphicsMode,
 } from './game/assets/graphicsChoice';
 import type { AssetIndex } from './game/assets/assetIndex';
 import type { HdIndex } from './game/assets/hdIndex';
+import { createGraphicsControl, type HdRuntimeApi } from './game/assets/graphicsControl';
 import { decodeInputLogText } from './sim/replay/inputLog';
 import { runReplay } from './sim/replay/verify';
 
@@ -897,7 +897,8 @@ async function boot(): Promise<void> {
     window.clearInterval(tick);
     window.clearTimeout(offer);
     ui.close();
-    if (how === 'skip') graphics.skip(id);
+    // Skipped, or the load ended without HD (no runtime or index): the hunt runs in Standard.
+    if (how === 'skip' || !graphics.ready(id)) graphics.skip(id);
     hook.graphics.loading = how === 'skip' ? 'skipped' : 'done';
   };
   // D-053: Standard or HD art. A saved preset wins; otherwise the loading screen asks (below,
@@ -909,28 +910,30 @@ async function boot(): Promise<void> {
   const cardShown = cardAllowed({ testHooks, capture, param: graphicsParam });
   let graphicsMode: GraphicsMode =
     startMode(save.data.settings.graphics, forcedGraphics) ?? 'standard';
-  const hdSkipped = new Set<string>();
   /** The index now (a function: it may be replaced while a load awaits). */
   const currentIndex = (): AssetIndex | null => assetIndex;
   /**
    * D-053: the HD runtime chunk and the HD half of the index, loaded once when first needed (the
-   * card shows, HD is chosen): a Standard player downloads neither. Tried again after a failure.
+   * card shows, HD is chosen): a Standard player downloads neither. Null when either can't load;
+   * tried again on the next call.
    */
-  let hdLoad: Promise<void> | null = null;
-  const ensureHdRuntime = (): Promise<void> => {
+  let hdLoad: Promise<HdRuntimeApi | null> | null = null;
+  const ensureHdRuntime = (): Promise<HdRuntimeApi | null> => {
     hdLoad ??= import('./game/assets/hdRuntime')
       .then(async (rt) => {
         const hd = await rt.fetchHdIndex(feel.assets.indexTimeoutMs);
         if (hd === null) {
           hdLoad = null;
-          return;
+          return null;
         }
         hdRuntime = rt;
         hdIndex = hd;
         if (assetIndex !== null) assetIndex = rt.mergeHdIndex(assetIndex, hd);
+        return rt;
       })
       .catch(() => {
         hdLoad = null;
+        return null;
       });
     return hdLoad;
   };
@@ -940,81 +943,19 @@ async function boot(): Promise<void> {
     hook.graphics.mode = graphicsMode;
     hook.graphics.setting = save.data.settings.graphics;
   };
-  const graphics: GraphicsControl = {
-    get hd() {
-      return graphicsMode === 'hd' && assetIndex !== null;
-    },
-    get setting() {
-      return save.data.settings.graphics;
-    },
-    hdBytes(id) {
-      const b = biomeById(id);
-      if (b === undefined || assetIndex === null || hdRuntime === null || !biomeArtReady(id))
-        return 0;
-      const f = hdRuntime.hdFiles(manifestFor(b), assetIndex, b.id, true);
-      // The files this choice downloads before the hunt (common-hd and the area's -hd): the
-      // same total the HD loading screen counts. late-hd and ver-hd load later, during play.
-      return f.now.reduce((a, x) => a + x.bytes, 0);
-    },
-    async loadHd(id) {
-      const b = biomeById(id);
-      if (b === undefined || assetIndex === null || !graphics.hd || !biomeArtReady(id)) return;
-      await ensureHdRuntime();
-      // The index may have been fetched again meanwhile (ensureArt): read it now.
-      const index = currentIndex();
-      const rt = hdRuntime;
-      if (index === null || rt === null) return;
-      const m = manifestFor(b);
-      m.setHd(true);
-      await rt.loadHd(m, index, { timeoutMs: feel.assets.fileTimeoutMs, biome: b.id }).now;
-    },
-    progress(id) {
-      const b = biomeById(id);
-      return b === undefined || !biomeArtReady(id)
-        ? { done: 0, total: 0 }
-        : manifestFor(b).hdProgress();
-    },
-    ready(id) {
-      const b = biomeById(id);
-      if (!graphics.hd || b === undefined || hdSkipped.has(id)) return true;
-      return biomeArtReady(id) && manifestFor(b).hdReady;
-    },
-    skip(id) {
-      hdSkipped.add(id);
-    },
-    skipped(id) {
-      return hdSkipped.has(id);
-    },
-    preload(id) {
-      if (graphics.hd && biomeArtReady(id) && finalDone.has(id)) void graphics.loadHd(id);
-    },
-    apply(m, textures) {
-      return hdRuntime?.applyHd(m, textures) ?? false;
-    },
-    settle(scenes, textures, inUse, anims) {
-      const rt = hdRuntime;
-      if (rt === null || graphics.hd) return false;
-      const all = [...manifests.values()];
-      let changed = false;
-      for (const m of all) changed = rt.applyHd(m, textures) || changed;
-      rt.repointRetired(scenes, textures, all);
-      for (const m of all) rt.dropHd(m);
-      if (rt.retiredPending()) rt.purgeRetired(textures, inUse(), anims);
-      return changed;
-    },
-    sync(textures, inUse, anims) {
-      const hd = graphics.hd;
-      for (const m of manifests.values()) m.setHd(hd);
-      // Without the HD runtime no HD file was ever loaded: nothing to swap, retire or free.
-      const rt = hdRuntime;
-      if (rt === null) return;
-      for (const m of manifests.values()) {
-        rt.applyHd(m, textures);
-        if (!hd) rt.dropHd(m);
-      }
-      rt.purgeRetired(textures, inUse(), anims);
-    },
-  };
+  const graphics = createGraphicsControl({
+    mode: () => graphicsMode,
+    setting: () => save.data.settings.graphics,
+    index: currentIndex,
+    biome: biomeById,
+    manifestFor,
+    manifests: () => manifests.values(),
+    artReady: biomeArtReady,
+    finalDone: (id) => finalDone.has(id),
+    ensureRuntime: ensureHdRuntime,
+    runtime: () => hdRuntime,
+    fileTimeoutMs: feel.assets.fileTimeoutMs,
+  });
   hook.graphics.mode = graphicsMode;
   hook.graphics.setting = save.data.settings.graphics;
   // Settings → Graphics: a preset takes effect at the next scene change ("Ask on start" keeps
@@ -1151,9 +1092,10 @@ async function boot(): Promise<void> {
   // home area's HD pack behind it when HD is chosen.
   if (assetIndex !== null) {
     let mode = startMode(save.data.settings.graphics, forcedGraphics);
-    if (mode === null && cardShown) {
+    // Without the HD runtime and index (offline, a 404) there is no HD to offer: no card, Standard
+    // this session, and nothing saved (the next start asks again).
+    if (mode === null && cardShown && (await ensureHdRuntime()) !== null) {
       const advice = recommendGraphics(readGraphicsEnv(prefs.tier));
-      await ensureHdRuntime();
       const mb = megabytes(graphics.hdBytes(biome.id));
       hook.graphics.card = true;
       hook.graphics.pick = advice.pick;

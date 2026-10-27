@@ -116,7 +116,9 @@ export function loadHd(
   const later: (() => Promise<void>)[] = [];
   const files = hdFiles(m, index, o.biome, true);
   const total = files.now.reduce((a, f) => a + f.bytes, 0);
-  m.hdBytes = { done: 0, total, settled: false };
+  // A retry (a file failed before) keeps an area that settled settled: its hunts don't wait for
+  // HD again; the failed file just stays Standard until it lands.
+  m.hdBytes = { done: 0, total, settled: m.hdBytes.settled };
   const nowPaths = new Set(files.now.map((f) => f.path));
   const counted = (path: string, bytes: number): void => {
     if (nowPaths.delete(path)) m.hdBytes.done += bytes;

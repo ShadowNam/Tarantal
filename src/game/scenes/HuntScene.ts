@@ -1147,6 +1147,9 @@ export class HuntScene extends Phaser.Scene {
       );
     });
     void this.ctx.graphics.loadHd(id).then(() => {
+      // The load ended without HD (no runtime or index, D-053): this area plays in Standard, so
+      // the restart that follows doesn't put up a new veil (it looped forever before).
+      if (!this.ctx.graphics.ready(id)) this.ctx.graphics.skip(id);
       if (veil.active) finish('done');
     });
   }
