@@ -25,6 +25,14 @@ that are in a far distance … still look too much like stick figures."
   browsing giraffe — on game time (a paused or held frame holds still; reduce motion is calmer).
 - **HD**: every herd has a 2× twin in its area's HD pack.
 
+### Fixed
+- **HD on phones**: a hunt in another area no longer keeps the title's Karoo landscape in HD on the
+  graphics chip (about 100 MB); the far ridge, far veld and Ver strips and the rare special birds
+  stay Standard in HD. Every area's HD hunt now fits the medium phone budget, and the HD downloads
+  are smaller.
+- **Far elephants' heads** no longer break into flickering pieces on some graphics chips (a
+  workaround for a shader bug in the game engine).
+
 ### Unchanged
 - Positions, hits, scores and replays (decor only). The first download shrinks (2,996.0 →
   2,992.1 KB gzip, web: the Karoo's herds load just after it); every area chunk stays under

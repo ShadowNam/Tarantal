@@ -2930,6 +2930,10 @@ are already 3× masters drawn at ⅓, so HD can't sharpen them (the far-animals 
 (6) Later art jobs (far animals in HD, makalani palms, tree life) add to the HD packs by putting
 their 2× render at `art-source/hd/<path>` (docs/06). Docs: Tech §9, §10; GDD Settings; docs/06;
 CHANGELOG 1.9.0.
+*Correction (D-054, 27 Oct):* the 226–243 MB above held for the Karoo only. A hunt in another
+area kept the title's Karoo HD layers (+103 MB: Bushveld 358 MB, Okavango 383 MB on the Pixel 7
+profile); D-054 fixes the release and moves the far ridge, far veld, Ver strips and the special
+birds to Standard in HD.
 
 **D-054 1.9.1 Far animals redrawn at their real size, in parts, with HD twins (27 Oct 2026):**
 the product owner (26 Oct, with close-ups): Bushveld "the zebras, giraffes and elephants look very
@@ -2981,9 +2985,40 @@ Bushveld 1,984.0 → 2,122.8, Kalahari 1,284.7 → 1,325.4, Namibië 1,598.4 →
 Texture memory of the far animals per area (Standard / HD; v1.9.0: 0.6–1.9 MB in both): Bushveld
 1.0 / 4.2 MB (+2.7 in HD), Okavango 0.8 / 3.1 (+2.1), Kalahari 0.2 / 1.0 (+0.3), Karoo 0.2 / 0.7
 (−0.1), Namibië incl. the waterhole 0.4 / 1.7 (−0.2): within the 256 MB ceiling even on the
-highest area measured for D-053 (243 + 2.7); `perf.spec.ts` asserts it on the Pixel 7 profile for
-the Karoo, the Bushveld and the Okavango (the CI numbers go here once measured). Docs: art bible (far animals); docs/06 §6b;
-docs/balance/perspective.md; CHANGELOG 1.9.1.
+highest area measured for D-053 (243 + 2.7). **HD texture memory per area (fixed here):** CI's
+new Pixel 7 check (27 Oct) found the HD hunts far over the 256 MB ceiling, already on main: Karoo
+238.7 MB, Bushveld 358.1, Okavango 383.4 (D-053 had only measured the Karoo; the far animals add
+~2 MB). Breakdown (Okavango): its HD layers 106 MB, **the title's Karoo HD layers 103 MB never
+released**, HD birds 74 (tarentaal mid 32, kuifkop 16, Kuifkop Koning 16 …), props and others 61,
+a gun 16, Standard birds and layers 23. Causes and fixes: (a) a hunt in another area released the
+title's textures, but `buildViews()` then ran `graphics.sync()`, whose `applyHd()` on every
+manifest put the released Karoo's HD layer tiles straight back: a manifest is now *parked* until
+its own `install()` (and after `release()`), and a parked manifest uploads no HD (swapping back to
+Standard still runs); areas whose HD pack is only preloaded on the title upload nothing either;
+A → B → A brings the title's HD layers back (unit-tested). (b) Least visible cuts to leave
+headroom (target ≤ 240 MB): the far ridge, far veld and Ver strip layers stay Standard in HD (the
+most distant, hazed scenery; −19 MB per area, the far animals on them keep HD), and the special
+birds kuifkop, Kuifkop Koning and ou grys stay Standard (rare and brief, each a 16 MB HD mid atlas
+that prewarm keeps on the GPU, 4 MB in Standard). Estimated per area (Pixel 7, HD, title → hunt):
+Karoo ~217 MB, Bushveld ~225, Okavango ~237–239 (the tightest), Kalahari and Namibië ~220–230
+(not measured before); `perf.spec.ts` now asserts ≤ 256 MB and no other area's HD layers in all
+five areas, reached through the Karoo title as players do (the CI numbers go here). HD downloads
+shrink with it: Bushveld-hd 1,984.0 → 1,493.3 KB gzip, Kalahari-hd 1,284.7 → 1,117.6, Karoo-hd
+1,587.1 → 1,356.9, Namibië-hd 1,598.4 → 1,458.6, Okavango-hd 2,377.1 → 1,429.5, Ver-hd 333.2 →
+155.8. **Build workaround for a Phaser 4.2.1 shader bug** (found by the supervisor in the browser,
+27 Oct): the batch fragment shaders pick a quad's texture unit with an exact compare on an
+interpolated varying (`outTexDatum == float(INDEX)` in GetTexture.glsl, `texId == float(i)` in
+GetTexRes.glsl); a miss returns transparent. Interpolation need not hit the whole number exactly:
+on SwiftShader (and possibly mobile GPUs at mediump) a rotated quad on a high unit lost
+straight-edged regions that changed every frame — the swaying far elephant heads on unit 11 of 12
+fragmented in Standard and HD. Evidence: a magenta fall-through in the no-match branch showed
+exactly the missing pieces; the sheet, frames, UVs, the GPU texture read back and the vertex
+upload were all correct. Fix: `tools/phaserShaderFix.ts` rewrites the compares to the nearest unit
+(`abs(x − i) < 0.5`), applied by vite.config.ts in the build (a transform hook) and in
+`npm run dev` (an optimizeDeps Rolldown plugin); it throws if a Phaser upgrade changes that text,
+so the fix is never lost silently, and `tools/phaserShaderFix.test.ts` runs it over the shipped
+`phaser.esm.js` (no exact compare left; unknown text throws). Remove it once Phaser fixes the
+shaders. Docs: art bible (far animals); docs/06 §6b; docs/balance/perspective.md; CHANGELOG 1.9.1.
 
 ## 3. Research notes (with sources)
 
