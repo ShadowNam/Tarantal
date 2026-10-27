@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "updated": "2026-10-27T18:35:00Z",
+ "updated": "2026-10-27T18:50:00Z",
  "by": "Claude",
  "summary": "Live on the test build: HD graphics (1.9.0, merged 16:05 Namibia time on 27 Oct): on first start a light card asks Standard or HD, with \"Remember my choice\" (also in Settings → Graphics). HD loads each area's sharper art pack (2.2–3.3 MB) behind the loading screen; on a slow connection \"Play now in Standard\" appears and HD swaps in during play. Standard and the fast first download are unchanged. Karoo polish (1.8.1, 08:18) is in too. Tank is building far animals in HD now (a redraw of every distant herd, about 23:30). Then: makalani palms, tree life, an Android test app for friends; then Namibië, Bushveld, baboons, The Harvest and v1.9–v1.13.",
  "current": {
@@ -214,13 +214,14 @@
    "kind": "decision",
    "title": "How should Oupa get his new voices?",
    "asked": "2026-10-27T18:35:00Z",
-   "status": "open",
+   "status": "answered",
    "detail": "Free voices can't do good Afrikaans, so this needs an account that you create (Claude never signs up or pays). I prepare the full script (all lines in English, Afrikaans and German, with how each Afrikaans word is said) either way.",
    "options": [
     "1 (recommended). ElevenLabs: one Oupa voice speaking all three languages, Afrikaans included; a paid monthly plan; you either generate the clips from my script or add an API key as a secret",
     "2. Microsoft Azure voices: a proper Afrikaans man (Willem), a South African English man (Luke) and German voices; a free monthly allowance; three different voices, not one Oupa",
     "3. Real people: you or a friend with a good Afrikaans/South African accent record the English and Afrikaans lines on a phone from my script; German from option 1 or 2"
-   ]
+   ],
+   "answer": "27 Oct: first finish building the game so all the text is known; then one voice job. Likely an OpenRouter API key (stored as an environment secret, never in chat): speech generation plus an automatic speech-to-text check of every clip, after a short Afrikaans sample test."
   }
  ],
  "jobs": [
@@ -1929,6 +1930,15 @@
    "end": "2026-10-31T11:30:00Z",
    "estimate": true,
    "version": "1.13.0"
+  },
+  {
+   "id": "oupa-s-new-voices-once-all-the-text-is-f",
+   "title": "Oupa's new voices, once all the text is final: English, Afrikaans and German generated through one voice API key (OpenRouter), each clip checked automatically by speech-to-text and redone if wrong; a short sample test first (your plan, 27 Oct)",
+   "phase": "Version 1.x",
+   "status": "next",
+   "start": "2026-10-31T11:30:00Z",
+   "end": "2026-10-31T16:30:00Z",
+   "estimate": true
   }
  ],
  "suggestions": [
@@ -2419,6 +2429,11 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-27T18:48:00Z",
+   "kind": "decision",
+   "text": "Oupa's voices come last, once all the text is final: one automated job using a voice API key (OpenRouter likely), with every clip checked by speech-to-text."
+  },
   {
    "at": "2026-10-27T18:33:00Z",
    "kind": "request",
