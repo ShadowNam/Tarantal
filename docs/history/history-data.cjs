@@ -22,7 +22,7 @@ const numbers = [
   ['Guns', '8 (Dubbelloop, Windbuks, Kettie, Plaas-Pomp, Die Twee-Twee with 3 sights, Die Langloop with a 3–9× scope, Voorlaaier, Mielie-Masjien)'],
   ['Creatures', '13 (guineafowl and variants, bosses, flyers), plus meerkat colonies on the desert maps, and bats and owls on the Halloween Spookjag'],
   ['Languages', 'English, Afrikaans, German and Dutch text; Oupa voiced in English, Afrikaans and German'],
-  ['Design decisions logged', '51 (D-001 to D-051)'],
+  ['Design decisions logged', '52 (D-001 to D-052)'],
 ];
 
 const roles = [
@@ -929,7 +929,7 @@ const requests = [
   ['27 Oct, 05:05', 'Is the WhatsApp connection reachable now?', 'Yes: the gateway is connected, and short updates now go by WhatsApp'],
   ['27 Oct, 05:07', 'Keep the Bushveld aloes at normal resolution and revisit them later; explain the limits behind the quality warnings', 'Kept at normal resolution; explained: a small first download (3 MB) so the game starts quickly on phones, a size cap for each area’s download, and phone memory'],
   ['27 Oct, 05:10', 'A light loading screen that asks Standard or HD, with a tick box to save the choice', 'Being built as HD graphics (1.9.0), with "Remember my choice" and the same choice in Settings'],
-  ['27 Oct, 05:12', 'Move HD graphics up next; the aim is friends and the Apple and Android app stores, not Poki or CrazyGames', 'HD graphics started right after Karoo polish; the release aim is written into the docs (D-052, #89)'],
+  ['27 Oct, 05:12', 'Move HD graphics up next; the aim is friends and the Apple and Android app stores, not Poki or CrazyGames', 'HD graphics started right after Karoo polish; the release aim is written into the docs (D-052, #89, merged 07:03)'],
   ['27 Oct, 05:20', 'Add an Android test app after tree life', 'Planned after tree life: an installable file built by GitHub, downloadable from the test site'],
   ['27 Oct, 05:52', 'WhatsApp me when Karoo polish is merged, with today’s expected times and the open questions', 'Sent at the merge (06:19)'],
 ];
@@ -988,6 +988,7 @@ const decisions = [
   ['D-049', 'Perspective: birds get smaller with distance on every map, far animals in proportion, a minimum hit size for far targets'],
   ['D-050', 'v1.8 Blikkies: tin cans on the farm fences that somersault and can be juggled until Weg!; × Stampede only, the chain ends at 10 hits'],
   ['D-051', 'Karoo polish: HD aloes that load after the hunt starts (Bushveld at normal resolution for now); the potjie simmers and its lid flies off when shot'],
+  ['D-052', 'Release aim: friends first (the web test build), then the Apple App Store and Google Play through Capacitor; Poki and CrazyGames are no longer targets'],
 ];
 
 const glossary = [
