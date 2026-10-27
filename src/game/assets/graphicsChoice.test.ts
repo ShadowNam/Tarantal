@@ -1,6 +1,7 @@
 // D-053: the loading screen's recommendation and the remembered preset.
 import { describe, expect, it } from 'vitest';
 import {
+  cardAllowed,
   devicePxPerDesignPx,
   megabytes,
   recommendGraphics,
@@ -110,5 +111,20 @@ describe('the remembered preset', () => {
     expect(megabytes(5 * 1024 * 1024)).toBe(5);
     expect(megabytes(1.26 * 1024 * 1024)).toBe(1.3);
     expect(megabytes(150.4 * 1024 * 1024)).toBe(150);
+  });
+});
+
+describe('the Graphics card on boot (D-053)', () => {
+  it('a test build without ?graphics= (fresh profile: "ask") boots to the title in Standard', () => {
+    expect(cardAllowed({ testHooks: true, capture: false, param: null })).toBe(false);
+    // What boot does then: no preset, no card → Standard.
+    expect(startMode('ask', null) ?? 'standard').toBe('standard');
+  });
+
+  it('shows on every real build, and in a test build only with ?graphics=card', () => {
+    expect(cardAllowed({ testHooks: false, capture: false, param: null })).toBe(true);
+    expect(cardAllowed({ testHooks: true, capture: false, param: 'card' })).toBe(true);
+    expect(cardAllowed({ testHooks: true, capture: false, param: 'hd' })).toBe(false);
+    expect(cardAllowed({ testHooks: true, capture: true, param: 'card' })).toBe(false);
   });
 });

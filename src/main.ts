@@ -110,6 +110,7 @@ import {
   megabytes,
   readGraphicsEnv,
   recommendGraphics,
+  cardAllowed,
   settingAfterCard,
   startMode,
   type GraphicsControl,
@@ -905,7 +906,7 @@ async function boot(): Promise<void> {
   const graphicsParam = testHooks ? params.get('graphics') : null;
   const forcedGraphics: GraphicsMode | null =
     graphicsParam === 'standard' || graphicsParam === 'hd' ? graphicsParam : null;
-  const cardAllowed = !capture && (!testHooks || graphicsParam === 'card');
+  const cardShown = cardAllowed({ testHooks, capture, param: graphicsParam });
   let graphicsMode: GraphicsMode =
     startMode(save.data.settings.graphics, forcedGraphics) ?? 'standard';
   const hdSkipped = new Set<string>();
@@ -1150,7 +1151,7 @@ async function boot(): Promise<void> {
   // home area's HD pack behind it when HD is chosen.
   if (assetIndex !== null) {
     let mode = startMode(save.data.settings.graphics, forcedGraphics);
-    if (mode === null && cardAllowed) {
+    if (mode === null && cardShown) {
       const advice = recommendGraphics(readGraphicsEnv(prefs.tier));
       await ensureHdRuntime();
       const mb = megabytes(graphics.hdBytes(biome.id));

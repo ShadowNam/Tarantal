@@ -94,6 +94,20 @@ export function startMode(
   return setting === 'ask' ? null : setting;
 }
 
+/**
+ * Whether the loading screen may show the Graphics card: every real build (not capture mode);
+ * a test build (?e2e=1, the hooks) only with ?graphics=card, so specs that don't ask boot
+ * straight to the title in Standard, even with a fresh profile.
+ */
+export function cardAllowed(o: {
+  readonly testHooks: boolean;
+  readonly capture: boolean;
+  /** A test build's ?graphics= value (null when absent). */
+  readonly param: string | null;
+}): boolean {
+  return !o.capture && (!o.testHooks || o.param === 'card');
+}
+
 /** The setting saved after the card: the choice when "Remember my choice" is ticked, else ask. */
 export function settingAfterCard(choice: GraphicsMode, remember: boolean): GraphicsSetting {
   return remember ? choice : 'ask';
