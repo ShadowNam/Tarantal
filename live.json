@@ -1,6 +1,6 @@
 {
- "updated": "2026-10-27T23:45:00Z",
- "summary": "Live on the test build: far animals in HD (1.9.1, merged 01:30 Namibia time on 28 Oct): every distant herd on all five maps redrawn with real body shapes, coats, light, young ones and small movements, at your sizes (0.57 of true size, ostriches 0.45). HD now fits phone memory in every area (217–238 MB of 256; 1.9.0 went up to 383 MB outside the Karoo), and a graphics-engine bug that broke up the elephants' heads is worked around. Tank is building your playtest fixes and the red dot sight now (about 07:45). Then: makalani palms + far-fence cans, tree life, an Android test app for friends; then Namibië, Bushveld, baboons, The Harvest, the Christmas and New Year Dailies and v1.9–v1.13; Oupa's new voices last.",
+ "updated": "2026-10-28T05:50:00Z",
+ "summary": "Live on the test build: your playtest fixes and the red dot sight (1.9.2, merged 07:40 Namibia time on 28 Oct): the falling crate's power-up picture shows once, in the right place; \"Ten seconds!\" is called right at 10 s left; and a new Rooikol red dot sight power-up for the .22 and the Langloop (instant aim, no zoom wait, steadier dot, a quarter faster shots for 15 s). Tank is building makalani palms in the Okavango with nuts you can shoot, juggle and pop, plus cans on the Karoo's far fence (until about 14:45). Then: tree life, an Android test app for friends; then Namibië, Bushveld, baboons, The Harvest, the Christmas and New Year Dailies and v1.9–v1.13; Oupa's new voices last.",
  "current": {
   "version": "1.7.1",
   "commit": "1bbedc7"
@@ -718,9 +718,40 @@
    ]
   },
   "makalani-palms-in-the-okavango-hanging-n": {
-   "owner": "Tank builds it; Claude reviews",
-   "summary": "Makalani palms by the water in the Okavango, with reflections at dusk and clusters of glossy brown nuts. A nut hit cracks off and falls; hit it in the air and it juggles like a can; a full shotgun hit pops it into fibre and ivory chips. Secret: 3 nuts in one hunt.",
-   "requestedBy": "You, 26 Oct: \"add some makalani trees … If somebody manages to hit such a small makalani, maybe it can do a small blow-up, or fall down … Be creative.\""
+   "owner": "Tank builds it (task 099e6928, started 07:41); Claude reviews and runs the screenshots",
+   "summary": "Makalani palms by the water in the Okavango, with reflections at dusk and clusters of glossy brown nuts. A nut hit cracks off and falls; hit it in the air and it juggles like a can; a full shotgun hit pops it into fibre and ivory chips. Secret: 3 nuts in one hunt. Also 1–2 Blikkies cans on the Karoo's far fence (your request, 27 Oct).",
+   "requestedBy": "You, 26 Oct: \"add some makalani trees … If somebody manages to hit such a small makalani, maybe it can do a small blow-up, or fall down … Be creative.\" And 27 Oct: \"one or two cans on the further-away fence, as it's so close by.\"",
+   "status": "running",
+   "checklist": [
+    {
+     "text": "Makalani palms (pairs and small groups, fronds that sway) on the near and mid planes of the Okavango, makalani silhouettes far away",
+     "done": false
+    },
+    {
+     "text": "Reflections in the water with a gentle ripple at dusk",
+     "done": false
+    },
+    {
+     "text": "Nut clusters: a hit cracks a nut off; hit it in the air and it juggles like a can; a full shotgun or rifle hit pops it into fibre and ivory chips",
+     "done": false
+    },
+    {
+     "text": "Scoring and the secret \"Hard soos 'n makalani\" (3 nuts in one hunt), Oupa line in 4 languages; balance sim keeps cans + nuts small",
+     "done": false
+    },
+    {
+     "text": "1–2 Blikkies cans on the Karoo's far fence, sized by distance",
+     "done": false
+    },
+    {
+     "text": "HD versions; the Okavango stays within its download and phone-memory budgets",
+     "done": false
+    },
+    {
+     "text": "Screenshots on desktop and both phones; browser tests; merge as the next patch",
+     "done": false
+    }
+   ]
   },
   "tree-life-a-detailed-baobab-with-real-ha": {
    "owner": "Tank builds it; Claude reviews",
@@ -760,30 +791,38 @@
    ]
   },
   "playtest-fixes-and-the-red-dot-sight-the": {
-   "owner": "Tank builds it (task 8f28c202, started 01:35); Claude reviews and runs the screenshots",
+   "owner": "Tank built it (task 8f28c202, 6 turns); Claude reviewed it (fix list R1–R10), ran the screenshots twice, fixed the CI shard split and merged it",
    "summary": "Your playtest of 27 Oct: the falling crate's power-up picture drawn once and in the right place, the \"Ten seconds!\" call on time, and a new red dot sight power-up for the .22 and the Langloop (fast aiming, no zoom wait).",
    "requestedBy": "You, 27 Oct 22:45: \"there should be an option, a power up that one can get for a red dot sight\"; the crate picture \"in two positions\"; \"those 10 seconds don't seem to be 10 seconds\".",
-   "status": "running",
+   "status": "done",
    "checklist": [
     {
      "text": "Crate power-up picture: one picture, attached to the crate, also while panning, scoped in and shaking",
-     "done": false
+     "done": true
     },
     {
      "text": "\"Ten seconds!\" said at 10 s left (never late), and the hunt clock proven correct",
-     "done": false
+     "done": true
     },
     {
      "text": "Red dot sight power-up (\"Rooikol\"): no zoom wait and faster shots for the scoped guns; numbers from the balance sim",
-     "done": false
+     "done": true
     },
     {
      "text": "Pickup card, countdown chip, icon, Gun Shed Power-ups entry, Oupa line, 4 languages",
-     "done": false
+     "done": true
     },
     {
-     "text": "Screenshots on desktop and both phones; browser tests; merge as the next patch",
-     "done": false
+     "text": "Screenshots on desktop and both phones; browser tests; merged as 1.9.2 (#93)",
+     "done": true
+    },
+    {
+     "text": "Review fixes: the zoom panel hidden under the red dot, a bolder reticle on phones, a hold that keeps its sight when the power-up ends",
+     "done": true
+    },
+    {
+     "text": "Main's flaky iPhone test fixed (herds held still while comparing Standard and HD), and the tests spread evenly over the CI machines",
+     "done": true
     }
    ]
   }
@@ -1030,6 +1069,16 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-28T05:40:00Z",
+   "kind": "merge",
+   "text": "Playtest fixes and the Rooikol red dot sight merged (1.9.2, #93): crate picture once, \"Ten seconds!\" on time, a new red dot sight for the rifles."
+  },
+  {
+   "at": "2026-10-28T05:41:00Z",
+   "kind": "note",
+   "text": "Tank started makalani palms in the Okavango + cans on the Karoo's far fence (task 099e6928)."
+  },
   {
    "at": "2026-10-27T23:35:00Z",
    "kind": "merge",
