@@ -3123,7 +3123,7 @@ as it's so close by." GDD §11.3b, §11.3; art bible §4.2b; Tech §3.13.
   admin.crate_tag, admin.range, admin.sight_default — stay in the main tables). The privacy
   screen's three long paragraphs moved to `src/i18n/privacy/<lang>.json` (Settings loads them;
   the screen redraws once they are in; after the review fixes its first paragraph and the three
-  headings too, and the Afrikaans-names toggle no longer re-words that paragraph) and the makalani placeholders are empty (drawn art only,
+  headings too; their Afrikaans-names wording moved with them, `src/i18n/privacy/flavour.json`) and the makalani placeholders are empty (drawn art only,
   like the fruit sheet). First download 2,991.4 KB, 0.4 KB under main (2,991.8).
 - *Bonus maps (review M8).* The Okavango's bonus maps move the palms back like the Karoo's fence:
   Verder near → mid (mid groups, moved to far, are left out: the far layers paint their own

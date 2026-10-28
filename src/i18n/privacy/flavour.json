@@ -1,0 +1,11 @@
+{
+  "en": {
+    "privacy.stored": "Your settings and progress (hunts, bests, ranks, Bird Book, Notaboek, Season Run and Daily Hunt streak) are saved in this browser only. Clearing your browser data, or the button below, removes them."
+  },
+  "de": {
+    "privacy.stored": "Deine Einstellungen und dein Fortschritt (Jagden, Rekorde, Ränge, Vogelbuch, Notaboek, Saison-Lauf und Tagesjagd-Serie) werden nur in diesem Browser gespeichert. Wenn du die Browserdaten löschst oder die Taste unten drückst, sind sie weg."
+  },
+  "nl": {
+    "privacy.stored": "Je instellingen en voortgang (jachten, records, rangen, Vogelboek, Notaboek, Seizoensrun en Dagjacht-reeks) worden alleen in deze browser bewaard. Je browsergegevens wissen, of de knop hieronder, verwijdert ze."
+  }
+}

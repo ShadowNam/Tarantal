@@ -8,7 +8,10 @@ describe('privacy paragraphs (lazy)', () => {
     let fail = true;
     vi.doMock('./privacyTables', () => {
       if (fail) throw new Error('offline');
-      return { PRIVACY_TABLES: { en: { 'privacy.personal': 'P' }, af: {}, de: {}, nl: {} } };
+      return {
+        PRIVACY_TABLES: { en: { 'privacy.personal': 'P' }, af: {}, de: {}, nl: {} },
+        PRIVACY_FLAVOUR: {},
+      };
     });
     const m = await import('./privacyI18n');
     await expect(m.loadPrivacy()).rejects.toThrow();
@@ -19,5 +22,26 @@ describe('privacy paragraphs (lazy)', () => {
     expect(m.privacyLoaded()).toBe(true);
     expect(m.privacyString('af', 'privacy.personal')).toBe('P');
     vi.doUnmock('./privacyTables');
+  });
+
+  it('the Afrikaans-names setting re-words the lazy paragraph (review M18)', async () => {
+    vi.resetModules();
+    const i18n = await import('../../i18n/i18n');
+    const m = await import('./privacyI18n');
+    await m.loadPrivacy();
+    const plain = m.privacyString('en', 'privacy.stored');
+    expect(plain).toContain('Notebook');
+    i18n.setAfrikaansNames(true);
+    try {
+      expect(m.privacyString('en', 'privacy.stored')).toContain('Notaboek');
+      expect(m.privacyString('de', 'privacy.stored')).toContain('Notaboek');
+      // Afrikaans keeps its own text.
+      expect(m.privacyString('af', 'privacy.stored')).toBe(
+        (await import('../../i18n/privacy/af.json')).default['privacy.stored'],
+      );
+    } finally {
+      i18n.setAfrikaansNames(false);
+    }
+    expect(m.privacyString('en', 'privacy.stored')).toBe(plain);
   });
 });
