@@ -21,10 +21,13 @@ import {
   NUT_SHEET,
   NUT_SOUNDS,
   PALM_ART_SCALE,
-  TRUNK,
   nutFrames,
   palmCrownKey,
+  palmFrames,
   palmTrunkKey,
+  crownBaseOf,
+  trunkTopOf,
+  trunkTransform,
   type NutFrame,
 } from './makalaniSheet';
 
@@ -56,6 +59,16 @@ interface Bit {
   readonly spin: number;
   readonly t0: number;
   readonly plane: PlaneId;
+}
+
+/** e2e hook: one palm group (see MakalaniView.palmSpot). */
+export interface PalmSpot {
+  plane: string;
+  x: number;
+  footY: number;
+  built: boolean;
+  trunks: { trunkTop: { x: number; y: number }; crownBase: { x: number; y: number } }[];
+  reflection: { visible: boolean; waterY: number; y: number } | null;
 }
 
 /** A small deterministic sequence for the bits (the same event, the same burst). */
@@ -265,19 +278,21 @@ export class MakalaniView {
     const crowns: { img: Phaser.GameObjects.Image; base: number; phase: number }[] = [];
     p.trunks.forEach((t, i) => {
       const { footX, topX: tx, topY: ty } = t;
-      const dx = tx - footX;
-      const dy = p.footY - ty;
-      const len = Math.sqrt(dx * dx + dy * dy);
+      // Review M11: the origin at the foot (Phaser's default, the centre, sank half the trunk).
+      const tf = trunkTransform({ x: footX, y: p.footY }, { x: tx, y: ty }, p.plane, p.scale, kt);
       const trunk = this.scene.add.image(footX, p.footY, tk);
       trunk
-        .setScale(fit * kt, (len / (TRUNK.len * p.scale)) * fit * kt)
-        .setRotation(Math.atan2(dx, dy));
+        .setOrigin(tf.originX, tf.originY)
+        .setScale(tf.scaleX, tf.scaleY)
+        .setRotation(tf.rotation);
       if (i % 2 === 1) trunk.setFlipX(true);
       trunks.push(trunk);
       const crown = this.scene.add.image(tx, ty, ck);
+      const cf = palmFrames(p.plane).crown;
+      crown.setOrigin(cf.ox / cf.w, cf.oy / cf.h);
       const size = fit * kc * (1 - 0.06 * (i % 3));
       crown.setScale(size).setFlipX((i + (p.flip ? 1 : 0)) % 2 === 1);
-      const base = Math.atan2(dx, dy) * 0.5;
+      const base = tf.rotation * 0.5;
       crowns.push({ img: crown, base, phase: p.index * 1.7 + i * 2.3 });
     });
     return { trunks, crowns };
@@ -481,7 +496,7 @@ export class MakalaniView {
       state: string;
       chain: number;
     }[];
-    palms: { plane: string; x: number; footY: number; built: boolean }[];
+    palms: PalmSpot[];
   } {
     const v = this.last;
     if (v === null) return { nuts: [], palms: [] };
@@ -495,12 +510,7 @@ export class MakalaniView {
         state: n.state,
         chain: n.chain,
       })),
-      palms: v.palms.map((p) => ({
-        plane: p.plane,
-        x: Math.round(this.parallax.screenX(p.plane, p.x) * 10) / 10,
-        footY: p.footY,
-        built: this.palms.has(p.index),
-      })),
+      palms: v.palms.map((p) => this.palmSpot(p)),
     };
   }
 
@@ -512,6 +522,48 @@ export class MakalaniView {
       b.stalks.destroy();
     }
     this.palms.clear();
+  }
+
+  /** e2e hook (review M11, M12): a palm on screen — each trunk's drawn top and its crown's base
+   *  (screen px, from the images as placed), and its reflection (shown, its water-line y). */
+  private palmSpot(p: PalmView): PalmSpot {
+    const b = this.palms.get(p.index);
+    const r1 = (n: number): number => Math.round(n * 10) / 10;
+    const sx = (x: number): number => r1(this.parallax.screenX(p.plane, x));
+    const tops =
+      b === undefined
+        ? []
+        : b.trunks.map((t, i) => {
+            const kt = this.manifest.displayScale(t.texture.key);
+            const top = trunkTopOf(t, p.plane, t.frame.realHeight, kt);
+            const c = b.crowns[i]?.img;
+            const kc = c === undefined ? 1 : this.manifest.displayScale(c.texture.key);
+            const base =
+              c === undefined
+                ? top
+                : crownBaseOf(c, p.plane, c.frame.realWidth, c.frame.realHeight, kc);
+            return {
+              trunkTop: { x: sx(top.x), y: r1(top.y) },
+              crownBase: { x: sx(base.x), y: r1(base.y) },
+            };
+          });
+    const refl = b?.reflection ?? null;
+    return {
+      plane: p.plane,
+      x: sx(p.x),
+      footY: p.footY,
+      built: b !== undefined,
+      trunks: tops,
+      reflection:
+        refl === null
+          ? null
+          : {
+              visible: refl.visible && refl.alpha > 0 && refl.list.length > 0,
+              waterY: p.waterY ?? p.footY,
+              // The palm's foot as mirrored (the container flips about the water line).
+              y: r1(refl.y + refl.scaleY * p.footY),
+            },
+    };
   }
 
   clear(): void {

@@ -403,7 +403,16 @@ export interface TestHook {
       state: string;
       chain: number;
     }[];
-    palms: { plane: string; x: number; footY: number; built: boolean }[];
+    palms: {
+      plane: string;
+      x: number;
+      footY: number;
+      built: boolean;
+      /** Review M11: each trunk's drawn top and its crown's base (screen px). */
+      trunks: { trunkTop: { x: number; y: number }; crownBase: { x: number; y: number } }[];
+      /** Review M12: its reflection (null: not by water), shown, and its y (the water line). */
+      reflection: { visible: boolean; waterY: number; y: number } | null;
+    }[];
     bestChain: number;
   } | null;
   canLog: string[];

@@ -104,3 +104,58 @@ export const NUT_SOUNDS = {
   bounce: 'sfx/tick',
   whistle: 'sfx/whoosh',
 } as const;
+
+/**
+ * Review M11: how a trunk image is placed (origin at its foot, turned to its lean, stretched to its
+ * length) and where its drawn top and a crown's base end up — the crown sits on the trunk top.
+ * `k` is the texture's display scale (1 Standard; 0.5 for a 2× HD texture).
+ */
+export function trunkTransform(
+  foot: { x: number; y: number },
+  top: { x: number; y: number },
+  plane: PalmArtPlane,
+  planeScale: number,
+  k: number,
+): { originX: number; originY: number; rotation: number; scaleX: number; scaleY: number } {
+  const f = palmFrames(plane).trunk;
+  const dx = top.x - foot.x;
+  const dy = foot.y - top.y;
+  const fit = planeScale / PALM_ART_SCALE[plane];
+  return {
+    originX: f.ox / f.w,
+    originY: f.oy / f.h,
+    rotation: Math.atan2(dx, dy),
+    scaleX: fit * k,
+    scaleY: (Math.sqrt(dx * dx + dy * dy) / (TRUNK.len * planeScale)) * fit * k,
+  };
+}
+
+/** Where a placed trunk image's drawn top is (plane px): from its position, origin, rotation and
+ *  scale, as Phaser draws it (frameH: the texture's height in texture px). */
+export function trunkTopOf(
+  img: { x: number; y: number; originY: number; rotation: number; scaleY: number },
+  plane: PalmArtPlane,
+  frameH: number,
+  k: number,
+): { x: number; y: number } {
+  const f = palmFrames(plane).trunk;
+  // Texture px from the frame's top to the drawn trunk top, and to the origin.
+  const texTop = (f.oy - TRUNK.len * PALM_ART_SCALE[plane]) / k;
+  const up = (img.originY * frameH - texTop) * img.scaleY;
+  return { x: img.x + Math.sin(img.rotation) * up, y: img.y - Math.cos(img.rotation) * up };
+}
+
+/** Where a placed crown image's base is (plane px; the base is its origin when that is set). */
+export function crownBaseOf(
+  img: { x: number; y: number; originX: number; originY: number; scaleX: number; scaleY: number },
+  plane: PalmArtPlane,
+  frameW: number,
+  frameH: number,
+  k: number,
+): { x: number; y: number } {
+  const f = palmFrames(plane).crown;
+  return {
+    x: img.x + (f.ox / k - img.originX * frameW) * img.scaleX,
+    y: img.y + (f.oy / k - img.originY * frameH) * img.scaleY,
+  };
+}
