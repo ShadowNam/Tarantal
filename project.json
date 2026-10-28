@@ -1,11 +1,11 @@
 {
  "schema": 1,
- "updated": "2026-10-28T13:25:00Z",
+ "updated": "2026-10-28T21:05:00Z",
  "by": "Claude",
- "summary": "Live on the test build: makalani palms in the Okavango (1.9.3, merged 15:17 Namibia time on 28 Oct): real makalani palms by the water with their reflections; their nuts crack off with 1–2 pellets, juggle in the air and pop with 3+ pellets or a rifle (secret: \"Hard soos 'n makalani\", three nuts in one hunt). Nuts never block a shot at a bird. Also 1–2 Blikkies cans on the Karoo's far fence. Tank is building tree life now (until about 21:45): a detailed baobab with animals in its hollows, a better sausage tree and weavers around their colony. Then: an Android test app for friends; then Namibië, Bushveld, baboons, The Harvest, the Christmas and New Year Dailies and v1.9–v1.13; Oupa's new voices last.",
+ "summary": "Live on the test build: tree life (1.9.4, merged 22:57 Namibia time on 28 Oct): the Bushveld baobab redrawn with a bushbaby, tree squirrel, barn owl and a hornbill feeding its mate in its hollows (they duck away when shot near and never score); a better Okavango sausage tree with heavy sausages on rope stalks; sociable weavers and a pygmy falcon around the Kalahari and Namibië nests, lovebirds in Namibië. Tank is building the Android test app for friends now (until about 04:00). Then: Namibië veld life, the realistic Bushveld with a new secret marker (your A/B/C pick is needed), baboons, The Harvest, the Christmas and New Year Dailies and v1.9–v1.13; Oupa's new voices last.",
  "current": {
-  "version": "1.9.3",
-  "commit": "d61c793"
+  "version": "1.9.4",
+  "commit": "eed9211"
  },
  "links": [
   {
@@ -36,13 +36,13 @@
  "numbers": [
   {
    "label": "Version on the test build",
-   "value": "1.9.3",
-   "note": "commit d61c793, merged 28 Oct, 15:17 Namibia time (the test build deploys a few minutes after)"
+   "value": "1.9.4",
+   "note": "commit eed9211, merged 28 Oct, 22:57 Namibia time (the test build deploys a few minutes after)"
   },
   {
    "label": "Pull requests merged",
-   "value": "91",
-   "note": "#1 to #94"
+   "value": "92",
+   "note": "#1 to #95"
   },
   {
    "label": "Unit tests",
@@ -70,8 +70,8 @@
   },
   {
    "label": "Decisions logged",
-   "value": "56",
-   "note": "D-001 to D-056 on main"
+   "value": "57",
+   "note": "D-001 to D-057 on main"
   }
  ],
  "needsYou": [
@@ -81,7 +81,7 @@
    "title": "v1.7e: what replaces the star on secrets?",
    "asked": "2026-10-28T06:49:00Z",
    "status": "open",
-   "detail": "You asked for something better than the little star that marks the shootable secrets (25 Oct). Three mock-ups, drawn over real 1.9.2 screenshots (not in the game yet). v1.7e is due on 29 Oct around 09:00; your pick is needed before then.",
+   "detail": "You asked for something better than the little star that marks the shootable secrets (25 Oct). Three mock-ups, drawn over real 1.9.2 screenshots (not in the game yet). v1.7e starts on 29 Oct around 10:00; your pick is needed before then (asked again on 28 Oct at 20:59; without an answer, A gets built).",
    "options": [
     "A (recommended). A tell animal lives at each secret and moves now and then: a rock agama doing push-ups on the dassie koppie, a lilac-breasted roller on the windpomp; shooting it costs nothing",
     "B. Natural cues only: grass rustles and dust puffs at the koppie, a sun flash only on real metal, a few birds circling above",
@@ -1916,46 +1916,53 @@
   },
   {
    "id": "tree-life-a-detailed-baobab-with-real-ha",
-   "title": "Tree life: a detailed baobab with real hanging fruit and residents peeking from its hollows (bushbaby, squirrel, owl, hornbill); weavers flying around their colony nest with a pygmy falcon (your request, 26 Oct)",
+   "title": "Tree life: a detailed baobab with real hanging fruit and residents in its hollows (bushbaby, tree squirrel, barn owl, a hornbill at its sealed nest), a better Okavango sausage tree, and sociable weavers flying around their colony with a pygmy falcon; version 1.9.4 (your requests, 26 Oct)",
    "phase": "Version 1.x",
-   "status": "running",
-   "start": "2026-10-28T13:17:30Z",
-   "end": "2026-10-28T19:45:00Z",
-   "estimate": true,
+   "status": "done",
+   "start": "2026-10-28T13:23:13Z",
+   "end": "2026-10-28T20:57:00Z",
+   "estimate": false,
+   "prs": [
+    95
+   ],
    "summary": "A detailed baobab with real hanging fruit and residents peeking from its hollows (bushbaby, tree squirrel, barn owl, a hornbill at its sealed nest); sociable weavers flying in and out of their colony nest with a pygmy falcon now and then (and lovebirds in Namibië). They are never hurt and duck away when you shoot near them.",
-   "owner": "Tank builds it (task 91e5e772, started 15:20); Claude reviews and runs the screenshots",
+   "owner": "Tank built it (task 91e5e772, 5 turns, one reconnect); Claude reviewed it (art fixes T1–T6, test fixes F1/S1, in-game fixes R1–R5), ran the screenshots on three devices and merged it",
    "checklist": [
     {
      "text": "Baobab redrawn: a fluted trunk that flows into its branches, wrinkled bark, elephant scars; no hard light band across the trunk",
-     "done": false
+     "done": true
     },
     {
      "text": "Baobab fruit small and hairy, on long stalks, in small groups; they still swing and drop",
-     "done": false
+     "done": true
     },
     {
      "text": "Hollows with residents now and then: a bushbaby, a tree squirrel, a barn owl, a hornbill feeding at its sealed nest, buffalo weavers in the crown",
-     "done": false
+     "done": true
     },
     {
      "text": "Residents duck away when you shoot near them; they never score and never block a shot at a bird",
-     "done": false
+     "done": true
     },
     {
      "text": "Okavango sausage tree: a lit, layered crown and heavy, speckled sausages on rope stalks",
-     "done": false
+     "done": true
     },
     {
      "text": "Sociable weavers flying in and out of the Kalahari and Namibië nests, a pygmy falcon now and then (lovebirds in Namibië); they scatter when shot at",
-     "done": false
+     "done": true
     },
     {
      "text": "HD versions; every area stays within its download and phone-memory budgets",
-     "done": false
+     "done": true
     },
     {
-     "text": "Screenshots on desktop and both phones; browser tests; merge as the next patch",
-     "done": false
+     "text": "Screenshots on desktop and both phones (60 shots); browser tests; merged as 1.9.4 (#95)",
+     "done": true
+    },
+    {
+     "text": "Review fixes: no 'face' in the baobab's holes, a mud-sealed hornbill nest, tapered branch tips, long heavy sausages, the bushbaby in a real hole, a solid squirrel, a bee cloud, more weavers in the sky and a visible falcon",
+     "done": true
     }
    ],
    "requestedBy": "You, 26 Oct: \"see what other kind of animals normally live in that tree … a few holes where a little mouse can look out … some little birds fly around [the weaver nest].\""
@@ -1964,18 +1971,47 @@
    "id": "android-test-app-an-installable-apk-for-",
    "title": "Android test app: an installable APK for friends, built by GitHub with all the art inside so it works offline; a download page on the test site (your choice, 27 Oct)",
    "phase": "Version 1.x",
-   "status": "next",
-   "start": "2026-10-28T18:30:00Z",
-   "end": "2026-10-28T23:30:00Z",
-   "estimate": true
+   "status": "running",
+   "start": "2026-10-28T20:57:00Z",
+   "end": "2026-10-29T01:57:00Z",
+   "estimate": true,
+   "summary": "An Android test app friends can install from a link: all the art inside (Standard and HD, works offline), landscape full screen, the back button pauses a hunt, a test-only signing key so updates install over each other. GitHub builds the app; the test build gets a download page at /android/.",
+   "owner": "Tank builds it (task 287b529c, started 23:00); Claude reviews it",
+   "checklist": [
+    {
+     "text": "Capacitor Android project and an android build of the game",
+     "done": false
+    },
+    {
+     "text": "App behaviour: landscape, full screen, screen stays on in a hunt, back button pauses, sound stops in the background",
+     "done": false
+    },
+    {
+     "text": "All art in the app (Standard and HD), no downloads after install",
+     "done": false
+    },
+    {
+     "text": "Icon and splash from the guineafowl art",
+     "done": false
+    },
+    {
+     "text": "GitHub builds a signed test APK on every merge; download page on the test build",
+     "done": false
+    },
+    {
+     "text": "Tests, docs (how friends install it; how a Play Store release works later); merge as the next patch",
+     "done": false
+    }
+   ],
+   "requestedBy": "You, 27 Oct: \"Yes, add the Android test app\" (friends first, then the Apple App Store and Google Play)."
   },
   {
    "id": "v1.7d",
    "title": "v1.7d: Namibië veld life: detailed grass and sand, ostriches and their nest, oryx in the mirage, hot-air balloons (your request, 25 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-28T23:30:00Z",
-   "end": "2026-10-29T05:30:00Z",
+   "start": "2026-10-29T01:57:00Z",
+   "end": "2026-10-29T07:57:00Z",
    "estimate": true,
    "version": "1.7.3",
    "summary": "Namibië first: much more detailed bushman grass and sand (no black lines between the distances), then a pair of ostriches at their nest (they run from nearby shots), a herd of oryx far away shimmering in the mirage, and hot-air balloons drifting by (not targets).",
@@ -1987,8 +2023,8 @@
    "title": "v1.7e: realistic Bushveld rocks and middle distance; a new secret cue instead of the star (mock-ups for you first) (your request, 25 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-29T05:30:00Z",
-   "end": "2026-10-29T12:30:00Z",
+   "start": "2026-10-29T07:57:00Z",
+   "end": "2026-10-29T14:57:00Z",
    "estimate": true,
    "version": "1.7.4",
    "summary": "First, mock-ups of three ways to replace the star glint on secrets: (A) a small unique animal that always lives at each secret (e.g. a rock agama nodding on the dassie koppie, a lilac-breasted roller on the windmill) — Claude's pick and your idea; (B) natural cues only; (C) no cue, Oupa hints in words. You choose. Meanwhile: realistic Bushveld granite boulders and koppies, real ridges in the haze, textured winter veld, no black lines between the distances.",
@@ -2000,8 +2036,8 @@
    "title": "v1.8b: Bobbejane: baboon troops on the ridges; raiders come down to cause trouble (your request, 25 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-29T12:30:00Z",
-   "end": "2026-10-29T18:30:00Z",
+   "start": "2026-10-29T14:57:00Z",
+   "end": "2026-10-29T20:57:00Z",
    "estimate": true,
    "version": "1.8.1",
    "summary": "Chacma baboon troops on the ridges of most maps. Now and then raiders come down to cause trouble (steal Oupa's hat, raid fruit, throw fruit at the flock). A raider takes 2 hits and goes down like a guineafowl (your choice). Mothers with babies stay out of range and are never targets.",
@@ -2013,8 +2049,8 @@
    "title": "v1.8c: Die Oes (The Harvest): a new 30-second mode; hold the animals off the crops while the fence is fixed (your idea, 25 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-29T18:30:00Z",
-   "end": "2026-10-30T03:30:00Z",
+   "start": "2026-10-29T20:57:00Z",
+   "end": "2026-10-30T05:57:00Z",
    "estimate": true,
    "version": "1.8.2",
    "summary": "A new mode on the title screen. The fence breaks, guineafowl, warthogs and baboons pour into the harvest field, and you have 30 seconds to hold them off while the farm workers fix the fence. A crop meter shows what you saved; the workers are never targets. Tank writes a short plan first.",
@@ -2026,8 +2062,8 @@
    "title": "Christmas Daily (25 Dec): Christmas in the sun, tinsel on the camelthorn, Oupa in a Santa hat and shorts (your pick, 27 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-30T03:30:00Z",
-   "end": "2026-10-30T09:30:00Z",
+   "start": "2026-10-30T05:57:00Z",
+   "end": "2026-10-30T11:57:00Z",
    "estimate": true
   },
   {
@@ -2035,8 +2071,8 @@
    "title": "New Year Daily: a countdown hunt with party hats, small fireworks and double points in the last 10 s (your pick, 27 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-30T09:30:00Z",
-   "end": "2026-10-30T14:30:00Z",
+   "start": "2026-10-30T11:57:00Z",
+   "end": "2026-10-30T16:57:00Z",
    "estimate": true
   },
   {
@@ -2044,8 +2080,8 @@
    "title": "v1.9: the veld soundscape and local music (doves, hadedas, cicadas, fish eagle; marimba, mbira, drums)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-30T14:30:00Z",
-   "end": "2026-10-30T19:30:00Z",
+   "start": "2026-10-30T16:57:00Z",
+   "end": "2026-10-30T21:57:00Z",
    "estimate": true,
    "version": "1.9.0"
   },
@@ -2054,8 +2090,8 @@
    "title": "v1.10: Reënbui — the first rain and the flying-ant feast",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-30T19:30:00Z",
-   "end": "2026-10-31T00:30:00Z",
+   "start": "2026-10-30T21:57:00Z",
+   "end": "2026-10-31T02:57:00Z",
    "estimate": true,
    "version": "1.10.0"
   },
@@ -2064,8 +2100,8 @@
    "title": "v1.11: Die Braai — the day ends at Oupa's fire under the Milky Way",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-31T00:30:00Z",
-   "end": "2026-10-31T05:30:00Z",
+   "start": "2026-10-31T02:57:00Z",
+   "end": "2026-10-31T07:57:00Z",
    "estimate": true,
    "version": "1.11.0"
   },
@@ -2074,8 +2110,8 @@
    "title": "v1.12: Brakkie, the farm dog",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-31T05:30:00Z",
-   "end": "2026-10-31T11:30:00Z",
+   "start": "2026-10-31T07:57:00Z",
+   "end": "2026-10-31T13:57:00Z",
    "estimate": true,
    "version": "1.12.0"
   },
@@ -2084,8 +2120,8 @@
    "title": "v1.13: veld cameos — warthogs, baboons, springbok, elephants, ostrich, dung beetle",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-31T11:30:00Z",
-   "end": "2026-10-31T17:30:00Z",
+   "start": "2026-10-31T13:57:00Z",
+   "end": "2026-10-31T19:57:00Z",
    "estimate": true,
    "version": "1.13.0"
   },
@@ -2094,8 +2130,8 @@
    "title": "Oupa's new voices, once all the text is final: English, Afrikaans and German generated through one voice API key (OpenRouter), each clip checked automatically by speech-to-text and redone if wrong; a short sample test first (your plan, 27 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-31T17:30:00Z",
-   "end": "2026-10-31T22:30:00Z",
+   "start": "2026-10-31T19:57:00Z",
+   "end": "2026-11-01T00:57:00Z",
    "estimate": true
   }
  ],
@@ -2607,6 +2643,16 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-28T21:00:00Z",
+   "kind": "note",
+   "text": "Tank started the Android test app for friends (task 287b529c)."
+  },
+  {
+   "at": "2026-10-28T20:57:00Z",
+   "kind": "merge",
+   "text": "Tree life merged (1.9.4, #95): the baobab with animals in its hollows, a better sausage tree, weavers and a pygmy falcon at the nests."
+  },
   {
    "at": "2026-10-28T13:20:00Z",
    "kind": "note",

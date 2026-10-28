@@ -1,6 +1,6 @@
 {
- "updated": "2026-10-28T13:25:00Z",
- "summary": "Live on the test build: makalani palms in the Okavango (1.9.3, merged 15:17 Namibia time on 28 Oct): real makalani palms by the water with their reflections; their nuts crack off with 1–2 pellets, juggle in the air and pop with 3+ pellets or a rifle (secret: \"Hard soos 'n makalani\", three nuts in one hunt). Nuts never block a shot at a bird. Also 1–2 Blikkies cans on the Karoo's far fence. Tank is building tree life now (until about 21:45): a detailed baobab with animals in its hollows, a better sausage tree and weavers around their colony. Then: an Android test app for friends; then Namibië, Bushveld, baboons, The Harvest, the Christmas and New Year Dailies and v1.9–v1.13; Oupa's new voices last.",
+ "updated": "2026-10-28T21:05:00Z",
+ "summary": "Live on the test build: tree life (1.9.4, merged 22:57 Namibia time on 28 Oct): the Bushveld baobab redrawn with a bushbaby, tree squirrel, barn owl and a hornbill feeding its mate in its hollows (they duck away when shot near and never score); a better Okavango sausage tree with heavy sausages on rope stalks; sociable weavers and a pygmy falcon around the Kalahari and Namibië nests, lovebirds in Namibië. Tank is building the Android test app for friends now (until about 04:00). Then: Namibië veld life, the realistic Bushveld with a new secret marker (your A/B/C pick is needed), baboons, The Harvest, the Christmas and New Year Dailies and v1.9–v1.13; Oupa's new voices last.",
  "current": {
   "version": "1.7.1",
   "commit": "1bbedc7"
@@ -79,7 +79,7 @@
    "title": "v1.7e: what replaces the star on secrets?",
    "asked": "2026-10-28T06:49:00Z",
    "status": "open",
-   "detail": "You asked for something better than the little star that marks the shootable secrets (25 Oct). Three mock-ups, drawn over real 1.9.2 screenshots (not in the game yet). v1.7e is due on 29 Oct around 09:00; your pick is needed before then.",
+   "detail": "You asked for something better than the little star that marks the shootable secrets (25 Oct). Three mock-ups, drawn over real 1.9.2 screenshots (not in the game yet). v1.7e starts on 29 Oct around 10:00; your pick is needed before then (asked again on 28 Oct at 20:59; without an answer, A gets built).",
    "options": [
     "A (recommended). A tell animal lives at each secret and moves now and then: a rock agama doing push-ups on the dassie koppie, a lilac-breasted roller on the windpomp; shooting it costs nothing",
     "B. Natural cues only: grass rustles and dust puffs at the koppie, a sun flash only on real metal, a few birds circling above",
@@ -789,42 +789,46 @@
    ]
   },
   "tree-life-a-detailed-baobab-with-real-ha": {
-   "owner": "Tank builds it (task 91e5e772, started 15:20); Claude reviews and runs the screenshots",
+   "owner": "Tank built it (task 91e5e772, 5 turns, one reconnect); Claude reviewed it (art fixes T1–T6, test fixes F1/S1, in-game fixes R1–R5), ran the screenshots on three devices and merged it",
    "summary": "A detailed baobab with real hanging fruit and residents peeking from its hollows (bushbaby, tree squirrel, barn owl, a hornbill at its sealed nest); sociable weavers flying in and out of their colony nest with a pygmy falcon now and then (and lovebirds in Namibië). They are never hurt and duck away when you shoot near them.",
    "requestedBy": "You, 26 Oct: \"see what other kind of animals normally live in that tree … a few holes where a little mouse can look out … some little birds fly around [the weaver nest].\"",
-   "status": "running",
+   "status": "done",
    "checklist": [
     {
      "text": "Baobab redrawn: a fluted trunk that flows into its branches, wrinkled bark, elephant scars; no hard light band across the trunk",
-     "done": false
+     "done": true
     },
     {
      "text": "Baobab fruit small and hairy, on long stalks, in small groups; they still swing and drop",
-     "done": false
+     "done": true
     },
     {
      "text": "Hollows with residents now and then: a bushbaby, a tree squirrel, a barn owl, a hornbill feeding at its sealed nest, buffalo weavers in the crown",
-     "done": false
+     "done": true
     },
     {
      "text": "Residents duck away when you shoot near them; they never score and never block a shot at a bird",
-     "done": false
+     "done": true
     },
     {
      "text": "Okavango sausage tree: a lit, layered crown and heavy, speckled sausages on rope stalks",
-     "done": false
+     "done": true
     },
     {
      "text": "Sociable weavers flying in and out of the Kalahari and Namibië nests, a pygmy falcon now and then (lovebirds in Namibië); they scatter when shot at",
-     "done": false
+     "done": true
     },
     {
      "text": "HD versions; every area stays within its download and phone-memory budgets",
-     "done": false
+     "done": true
     },
     {
-     "text": "Screenshots on desktop and both phones; browser tests; merge as the next patch",
-     "done": false
+     "text": "Screenshots on desktop and both phones (60 shots); browser tests; merged as 1.9.4 (#95)",
+     "done": true
+    },
+    {
+     "text": "Review fixes: no 'face' in the baobab's holes, a mud-sealed hornbill nest, tapered branch tips, long heavy sausages, the bushbaby in a real hole, a solid squirrel, a bee cloud, more weavers in the sky and a visible falcon",
+     "done": true
     }
    ]
   },
@@ -893,6 +897,38 @@
     {
      "text": "Main's flaky iPhone test fixed (herds held still while comparing Standard and HD), and the tests spread evenly over the CI machines",
      "done": true
+    }
+   ]
+  },
+  "android-test-app-an-installable-apk-for-": {
+   "owner": "Tank builds it (task 287b529c, started 23:00); Claude reviews it",
+   "summary": "An Android test app friends can install from a link: all the art inside (Standard and HD, works offline), landscape full screen, the back button pauses a hunt, a test-only signing key so updates install over each other. GitHub builds the app; the test build gets a download page at /android/.",
+   "requestedBy": "You, 27 Oct: \"Yes, add the Android test app\" (friends first, then the Apple App Store and Google Play).",
+   "status": "running",
+   "checklist": [
+    {
+     "text": "Capacitor Android project and an android build of the game",
+     "done": false
+    },
+    {
+     "text": "App behaviour: landscape, full screen, screen stays on in a hunt, back button pauses, sound stops in the background",
+     "done": false
+    },
+    {
+     "text": "All art in the app (Standard and HD), no downloads after install",
+     "done": false
+    },
+    {
+     "text": "Icon and splash from the guineafowl art",
+     "done": false
+    },
+    {
+     "text": "GitHub builds a signed test APK on every merge; download page on the test build",
+     "done": false
+    },
+    {
+     "text": "Tests, docs (how friends install it; how a Play Store release works later); merge as the next patch",
+     "done": false
     }
    ]
   }
@@ -1139,6 +1175,16 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-28T21:00:00Z",
+   "kind": "note",
+   "text": "Tank started the Android test app for friends (task 287b529c)."
+  },
+  {
+   "at": "2026-10-28T20:57:00Z",
+   "kind": "merge",
+   "text": "Tree life merged (1.9.4, #95): the baobab with animals in its hollows, a better sausage tree, weavers and a pygmy falcon at the nests."
+  },
   {
    "at": "2026-10-28T13:20:00Z",
    "kind": "note",
