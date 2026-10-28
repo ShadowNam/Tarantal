@@ -559,7 +559,7 @@
       "palms": [
         { "kind": "pair", "plane": "mid", "u": 0.294, "water": true },
         { "kind": "single", "plane": "mid", "u": 0.964, "flip": true, "water": true },
-        { "kind": "single", "plane": "near", "u": 0.05 }
+        { "kind": "single", "plane": "near", "u": 0.178 }
       ],
       "id": "mon",
       "light": "dawn_mist",
@@ -587,7 +587,7 @@
       "palms": [
         { "kind": "pair", "plane": "mid", "u": 0.294, "flip": true, "water": true },
         { "kind": "trio", "plane": "mid", "u": 0.677, "water": true },
-        { "kind": "pair", "plane": "near", "u": 0.94, "flip": true }
+        { "kind": "single", "plane": "near", "u": 0.96, "flip": true }
       ],
       "id": "tue",
       "light": "midday",
@@ -705,7 +705,7 @@
     {
       "palms": [
         { "kind": "pair", "plane": "mid", "u": 0.294, "flip": true, "water": true },
-        { "kind": "pair", "plane": "near", "u": 0.06 }
+        { "kind": "pair", "plane": "near", "u": 0.178 }
       ],
       "id": "fri",
       "light": "dusty_wind",
@@ -763,7 +763,7 @@
     {
       "palms": [
         { "kind": "trio", "plane": "mid", "u": 0.294, "water": true },
-        { "kind": "single", "plane": "near", "u": 0.5 }
+        { "kind": "single", "plane": "near", "u": 0.178 }
       ],
       "id": "sun",
       "light": "bright_calm",
@@ -788,6 +788,7 @@
     {
       "$comment": "Verder (further): today's layout seen from further back — more far birds, fewer near ones, weather on and the wind stronger. Unlocked by beating the season's plain-hunt quota on today's map (GDD §11.5).",
       "id": "verder",
+      "fencePlane": { "near": "mid", "mid": "far" },
       "nameKey": "map.verder",
       "light": "verder_haze",
       "weather": "omen",
@@ -809,6 +810,7 @@
     {
       "$comment": "v1.3 (D-036) Nog Verder (further still): today's layout from further back again. The Ver plane opens: a flock on the strip at the foot of the far ridge, a Ver lane for fly-overs, fewer mid and near birds. Shotguns struggle; the .22 with a peep sight or scope shines (GDD §11.5).",
       "id": "nogVerder",
+      "fencePlane": { "near": "far", "mid": "far" },
       "nameKey": "map.nog_verder",
       "light": "nog_verder_haze",
       "weather": "omen",
@@ -833,6 +835,7 @@
     {
       "$comment": "v1.3 (D-036) Die Verste (the furthest): long range only. Mostly Ver birds — small dots unless you zoom in — and a far flock; a scoped rifle is the tool (not enforced: a shotgun can still play the far birds).",
       "id": "dieVerste",
+      "fencePlane": { "near": "ver", "mid": "ver", "far": "ver" },
       "needsScope": true,
       "nameKey": "map.die_verste",
       "light": "verste_haze",

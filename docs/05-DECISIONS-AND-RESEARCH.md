@@ -3124,6 +3124,10 @@ as it's so close by." GDD §11.3b, §11.3; art bible §4.2b; Tech §3.9.
   screen's three long paragraphs moved to `src/i18n/privacy/<lang>.json` (Settings loads them;
   the screen redraws once they are in) and the makalani placeholders are empty (drawn art only,
   like the fruit sheet). First download 2,991.4 KB, 0.4 KB under main (2,991.8).
+- *Bonus maps (review M8).* The Okavango's bonus maps move the palms back like the Karoo's fence:
+  Verder near → mid (mid groups, moved to far, are left out: the far layers paint their own
+  makalani), Nog Verder and Die Verste none. Four near groups moved along the pan (Mon, Fri, Sun
+  u 0.178; Tue a single at 0.96) so that they stand clear on the mid plane too.
 - *Placement.* `src/content/palmChecks.ts` checks every map (each layout, with each bonus map):
   art for the plane, inside the layer, no overlap with props, secret parts, colonies or another
   group, and no hanging nut in front of a bird band or secret part of a plane behind. The first

@@ -145,7 +145,8 @@ function canHappyBot(
  * 1.9.3 (D-056): the competent player who can't leave a makalani nut alone (nor a can: it wraps
  * the can-happy bot). Whenever a nut is in view and the gun is ready it shoots it — one in the air
  * first (seen ~250 ms ago, led along its arc), else a hanging one — with the competent bot's aim
- * error. The balance cap: cans plus nuts stay ≤ ~10 % of its score.
+ * error. Like a player it gives up on a hanging nut after `GIVE_UP` misses (a tiny mid-plane nut
+ * can take many shots). The balance cap: cans plus nuts stay ≤ ~10 % of its score.
  */
 function nutHappyBot(
   inner: { next(state: SimState): Command[] },
@@ -155,6 +156,9 @@ function nutHappyBot(
 ): { next(state: SimState): Command[] } {
   const rng = createStream((seed ^ fnv1a32('bot:nutHappy')) >>> 0);
   const planes = content.scoring.planes;
+  const GIVE_UP = 3;
+  /** Shots at each hanging nut so far. */
+  const tries = new Map<number, number>();
   const LAG = 15;
   const SIGMA = inputKind === 'touch' ? 26 : 10;
   const history: SimState[] = [];
@@ -194,10 +198,13 @@ function nutHappyBot(
         const hanging = (seen.nuts?.nuts ?? []).find(
           (k) =>
             k.state === 'rest' &&
+            (tries.get(k.id) ?? 0) < GIVE_UP &&
             Math.abs(planeToDx(s.cameraX, planes[k.plane].scrollFactor, k.x)) < VIEW_HALF_WIDTH,
         );
-        if (hanging !== undefined)
+        if (hanging !== undefined) {
+          tries.set(hanging.id, (tries.get(hanging.id) ?? 0) + 1);
           aim = { x: hanging.x, y: hanging.y, f: planes[hanging.plane].scrollFactor };
+        }
       }
       if (aim === null) return inner.next(s);
       const dx = planeToDx(s.cameraX, aim.f, aim.x);
