@@ -179,8 +179,9 @@ for (const f of readdirSync(i18nDir).filter((x) => /^[a-z]{2}\.json$/.test(x) &&
 }
 // v1.3x (D-037): the Skietbaan's own string tables (src/i18n/range/<lang>.json, lazy chunk), and
 // D-045: the Project overview's (src/i18n/project/) — the same rules: every language has every
-// key of <dir>/en.json, no language is missing, and the keys are named <dir>.*.
-for (const lazyDir of ['range', 'project', 'graphics', 'guide', 'admin', 'privacy']) {
+// key of <dir>/en.json, no language is missing, and the keys are named <dir>.*. D-058: android/ is
+// the Pages download page for the Android test app (tools/android-page.ts), never in the game.
+for (const lazyDir of ['range', 'project', 'graphics', 'guide', 'admin', 'privacy', 'android']) {
   const dir = join(i18nDir, lazyDir);
   const read = (f: string): Record<string, unknown> =>
     JSON.parse(readFileSync(join(dir, f), 'utf8')) as Record<string, unknown>;

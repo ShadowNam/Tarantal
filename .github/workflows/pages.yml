@@ -3,6 +3,9 @@ name: Deploy test build to GitHub Pages
 # Every merge to main publishes a playable build at https://shadownam.github.io/Tarantal/
 # for hand playtests on desktop and phones. Test URL options need `?e2e`, e.g.
 # `?e2e&quotaMul=0` (every Season Run quota passes) or `?e2e&quotaMul=0.5`.
+# D-058: it also builds the Android test app (android.yml) and serves it at /android/ (a page)
+# and /android/tarantal-madness.apk. The game deploys even when the APK build fails (the page then
+# says no APK is built yet); /android/ never counts towards the first download (size-check).
 on:
   push:
     branches: [main]
@@ -18,7 +21,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  android:
+    uses: ./.github/workflows/android.yml
+
   build:
+    needs: android
+    # The game's own deploy never waits on a working APK.
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -29,12 +38,24 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      - name: Fetch the Android test APK
+        if: needs.android.result == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.android.outputs.artifact }}
+          path: apk
+      - name: The /android/ download page
+        run: |
+          apk=$(ls apk/*.apk 2>/dev/null | head -1 || true)
+          npx tsx tools/android-page.ts --out dist/android ${apk:+--apk "$apk"}
       - uses: actions/upload-pages-artifact@v4
         with:
           path: dist
 
   deploy:
     needs: build
+    # A failed APK build (an upstream job) must not hold back the game's deploy.
+    if: ${{ !cancelled() && needs.build.result == 'success' }}
     runs-on: ubuntu-24.04
     environment:
       name: github-pages

@@ -1,0 +1,15 @@
+{
+  "android.title": "Tarantal Madness voor Android",
+  "android.test_build": "Testversie voor vrienden: niet uit een winkel, en er kunnen nog fouten in zitten.",
+  "android.version": "Versie {version} · {size} MB",
+  "android.download": "Download de app (APK)",
+  "android.how": "Zo installeer je hem",
+  "android.step1": "Open deze pagina op je Android-telefoon en tik op de downloadknop.",
+  "android.step2": "Open het gedownloade bestand (via de melding of je Downloads).",
+  "android.step3": "Als Android het vraagt, sta installeren van apps uit deze bron toe (je browser of bestandsbeheer), ga terug en tik op Installeren.",
+  "android.step4": "Open Tarantal Madness vanaf je startscherm. Hij werkt offline: elk plaatje en geluid zit in de app.",
+  "android.update": "Een nieuwere versie installeert over de oude heen en houdt je voortgang.",
+  "android.play_web": "Liever in de browser spelen?",
+  "android.missing": "Voor deze versie is nog geen app gebouwd. Probeer het later opnieuw.",
+  "android.iphone": "Nog geen iPhone-app: speel in Safari en zet het spel op je beginscherm."
+}

@@ -84,6 +84,8 @@ self.addEventListener('fetch', (event) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
+  // D-058: the Android test app's page and APK (tens of MB) are never cached by the game.
+  if (url.pathname.includes('/android/')) return;
   if (req.mode === 'navigate') {
     event.respondWith(
       fetch(req).catch(() =>
