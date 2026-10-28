@@ -307,45 +307,73 @@ test('the Gun Shed Power-ups tab: the Rooikol card, Standard | HD icon', async (
     };
     await tap('shed');
     await tap('shed.powerups');
-    await page.waitForFunction(() => (window.__TM__?.shedPowerups?.cards.length ?? 0) > 0, null, {
-      timeout: 60_000,
-    });
+    // The cards carry their sentences once the lazy guide table is in (the tab redraws then).
+    await page.waitForFunction(
+      () => {
+        const cards = window.__TM__?.shedPowerups?.cards ?? [];
+        return cards.length > 0 && cards.every((c) => c.effect !== '');
+      },
+      null,
+      { timeout: 60_000 },
+    );
+    // A card's rect is clipped to the list's window (height 0 when scrolled out), so "on screen"
+    // means its full height: the first card's, fully shown at the top before any scroll.
+    const fullH = (await hook(page)).rects['shed.powerup.chilli_biltong']?.h ?? 0;
+    expect(fullH).toBeGreaterThan(100);
+    const rooikolShown = async (): Promise<boolean> =>
+      ((await hook(page)).rects['shed.powerup.rooikol']?.h ?? 0) >= fullH - 1;
     // Scroll until the Rooikol card is fully on screen (wheel; touch drags).
-    for (let i = 0; i < 20; i++) {
-      const h = await hook(page);
-      const r = h.rects['shed.powerup.rooikol'];
-      if (r !== undefined && r.y >= 0 && r.y + r.h <= h.designHeight * 0.95) break;
-      await page.evaluate((isTouch) => {
-        const canvas = document.querySelector<HTMLCanvasElement>('#game canvas');
-        const tm = window.__TM__;
-        if (!canvas || !tm) throw new Error('game not booted');
-        const b = canvas.getBoundingClientRect();
-        const cx = b.left + b.width * 0.5;
-        const cy = b.top + b.height * 0.6;
-        if (!isTouch) {
-          canvas.dispatchEvent(
-            new WheelEvent('wheel', { clientX: cx, clientY: cy, deltaY: 200, bubbles: true }),
-          );
-          return;
-        }
-        const at = (y: number): PointerEventInit => ({
-          clientX: cx,
-          clientY: y,
-          pointerId: 77,
-          pointerType: 'touch',
-          isPrimary: true,
-          buttons: 1,
-          bubbles: true,
-          cancelable: true,
-        });
-        canvas.dispatchEvent(new PointerEvent('pointerdown', at(cy)));
-        for (let k = 1; k <= 8; k++)
-          canvas.dispatchEvent(new PointerEvent('pointermove', at(cy - k * 20)));
-        window.dispatchEvent(new PointerEvent('pointerup', { ...at(cy - 160), buttons: 0 }));
-      }, touch);
+    // The list window's top: where the first card starts before any scroll.
+    const listTop = (await hook(page)).rects['shed.powerup.chilli_biltong']?.y ?? 0;
+    for (let i = 0; i < 40; i++) {
+      if (await rooikolShown()) break;
+      // How far to scroll (design px): down a card while it is out of the window, or just the
+      // clipped part once it is partly in (clipped at the top: scrolled past, so back up).
+      const r = (await hook(page)).rects['shed.powerup.rooikol'];
+      const h = r?.h ?? 0;
+      const delta =
+        h <= 0
+          ? fullH * 0.8
+          : r !== undefined && r.y <= listTop + 1
+            ? -(fullH - h) - 4
+            : fullH - h + 4;
+      await page.evaluate(
+        ([isTouch, dy]) => {
+          const canvas = document.querySelector<HTMLCanvasElement>('#game canvas');
+          const tm = window.__TM__;
+          if (!canvas || !tm) throw new Error('game not booted');
+          const b = canvas.getBoundingClientRect();
+          const cx = b.left + b.width * 0.5;
+          const cy = b.top + b.height * 0.6;
+          if (!isTouch) {
+            canvas.dispatchEvent(
+              new WheelEvent('wheel', { clientX: cx, clientY: cy, deltaY: dy, bubbles: true }),
+            );
+            return;
+          }
+          // A drag up by dy design px scrolls the list down by dy.
+          const px = (dy * b.height) / tm.designHeight;
+          const at = (y: number): PointerEventInit => ({
+            clientX: cx,
+            clientY: y,
+            pointerId: 77,
+            pointerType: 'touch',
+            isPrimary: true,
+            buttons: 1,
+            bubbles: true,
+            cancelable: true,
+          });
+          canvas.dispatchEvent(new PointerEvent('pointerdown', at(cy)));
+          for (let k = 1; k <= 8; k++)
+            canvas.dispatchEvent(new PointerEvent('pointermove', at(cy - (px * k) / 8)));
+          window.dispatchEvent(new PointerEvent('pointerup', { ...at(cy - px), buttons: 0 }));
+        },
+        [touch, delta] as const,
+      );
       await page.waitForTimeout(500);
     }
     await page.waitForTimeout(800);
+    expect(await rooikolShown(), 'the Rooikol card is fully on screen').toBe(true);
     const g = await grab(page);
     const r = (await hook(page)).rects['shed.powerup.rooikol'];
     if (r === undefined) throw new Error('no Rooikol card');
