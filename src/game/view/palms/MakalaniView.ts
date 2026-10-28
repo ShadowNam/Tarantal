@@ -143,6 +143,10 @@ export class MakalaniView {
   private tick = 0;
   private sheet: Phaser.Textures.Texture | null = null;
   private canSheet: Phaser.Textures.Texture | null = null;
+  private readonly planeLayers = new Map<
+    PlaneId,
+    { palms: Phaser.GameObjects.Container; nuts: Phaser.GameObjects.Container }
+  >();
   /** Texture px per design px of the nut sheet under the key (1 Standard, 2 HD). */
   private nutK = 1;
   /** The manifest's hdEpoch the palms were built for. */
@@ -239,7 +243,7 @@ export class MakalaniView {
     const tk = palmTrunkKey(p.plane);
     const ck = palmCrownKey(p.plane);
     if (!this.scene.textures.exists(tk) || !this.scene.textures.exists(ck)) return null;
-    const node = this.parallax.plane(p.plane);
+    const layers = this.layersOf(p.plane);
     const parts = this.groupParts(p, tk, ck);
     let reflection: Phaser.GameObjects.Container | null = null;
     const reflectCrowns: BuiltPalm['reflectCrowns'] = [];
@@ -252,12 +256,12 @@ export class MakalaniView {
       for (const c of mirror.crowns) reflection.add(c.img.setTint(0x55666a).setX(c.img.x - p.x));
       reflectCrowns.push(...mirror.crowns);
       reflection.setAlpha(this.look.reflectAlpha);
-      node.fixtures.add(reflection);
+      layers.palms.add(reflection);
     }
-    for (const t of parts.trunks) node.fixtures.add(t);
-    for (const c of parts.crowns) node.fixtures.add(c.img);
+    for (const t of parts.trunks) layers.palms.add(t);
+    for (const c of parts.crowns) layers.palms.add(c.img);
     const stalks = this.scene.add.graphics();
-    node.fixtures.add(stalks);
+    layers.palms.add(stalks);
     return {
       view: p,
       trunks: parts.trunks,
@@ -370,11 +374,11 @@ export class MakalaniView {
     for (const n of v.nuts) {
       let d = this.nuts.get(n.id);
       if (d === undefined) {
-        const node = this.parallax.plane(n.plane);
+        const layer = this.layersOf(n.plane).nuts;
         const img = this.nutImage(`nut_${n.colour}`);
         const shadow = this.scene.add.image(0, 0, CAN_SHEET, 'shadow');
-        node.fixtures.add(shadow);
-        node.fixtures.add(img);
+        layer.add(shadow);
+        layer.add(img);
         d = { img, shadow };
         this.nuts.set(n.id, d);
       }
@@ -443,13 +447,13 @@ export class MakalaniView {
     frames: readonly NutFrame[],
   ): void {
     const rnd = lcg(seed);
-    const node = this.parallax.plane(plane);
+    const layer = this.layersOf(plane).nuts;
     const k = 1 / this.nutK;
     const sp = this.look.bitSpeedPxPerSec;
     for (let i = 0; i < n; i++) {
       const img = this.nutImage(frames[i % frames.length] ?? 'fibre');
       img.setScale(this.planeScale[plane] * k * (0.7 + 0.6 * rnd()));
-      node.fixtures.add(img);
+      layer.add(img);
       const ang = rnd() * Math.PI * 2;
       const v = sp * (0.4 + 0.6 * rnd());
       this.bits.push({
@@ -505,9 +509,10 @@ export class MakalaniView {
       drawnW: number;
     }[];
     palms: PalmSpot[];
+    layers: { plane: string; palms: number; nuts: number }[];
   } {
     const v = this.last;
-    if (v === null) return { nuts: [], palms: [] };
+    if (v === null) return { nuts: [], palms: [], layers: this.layerOrder() };
     return {
       nuts: v.nuts.map((n) => ({
         id: n.id,
@@ -521,6 +526,7 @@ export class MakalaniView {
         drawnW: Math.round((this.nuts.get(n.id)?.img.displayWidth ?? 0) * 10) / 10,
       })),
       palms: v.palms.map((p) => this.palmSpot(p)),
+      layers: this.layerOrder(),
     };
   }
 
@@ -576,6 +582,35 @@ export class MakalaniView {
     };
   }
 
+  /**
+   * Review M19: per plane, one container for the palms and one above it for the nuts, their
+   * shadows and the bits, made once, in that order in the plane's fixtures: palms rebuilt after
+   * an HD swap go into their own container, so they never draw over the nuts.
+   */
+  private layersOf(plane: PlaneId): {
+    palms: Phaser.GameObjects.Container;
+    nuts: Phaser.GameObjects.Container;
+  } {
+    let l = this.planeLayers.get(plane);
+    if (l === undefined) {
+      const node = this.parallax.plane(plane);
+      l = { palms: this.scene.add.container(0, 0), nuts: this.scene.add.container(0, 0) };
+      node.fixtures.add(l.palms);
+      node.fixtures.add(l.nuts);
+      this.planeLayers.set(plane, l);
+    }
+    return l;
+  }
+
+  /** e2e hook (review M19): per plane, the display index of the palm and the nut layers in the
+   *  plane's fixtures (nuts must be above). */
+  layerOrder(): { plane: string; palms: number; nuts: number }[] {
+    return [...this.planeLayers].map(([plane, l]) => {
+      const list = this.parallax.plane(plane).fixtures.list;
+      return { plane, palms: list.indexOf(l.palms), nuts: list.indexOf(l.nuts) };
+    });
+  }
+
   clear(): void {
     this.clearPalms();
     for (const d of this.nuts.values()) {
@@ -587,6 +622,11 @@ export class MakalaniView {
     this.bits = [];
     this.sheet = null;
     this.canSheet = null;
+    for (const l of this.planeLayers.values()) {
+      l.palms.destroy();
+      l.nuts.destroy();
+    }
+    this.planeLayers.clear();
   }
 }
 

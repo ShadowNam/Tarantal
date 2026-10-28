@@ -1983,7 +1983,7 @@ export class HuntScene extends Phaser.Scene {
         state.nuts === undefined
           ? null
           : {
-              ...(this.makalani?.spots() ?? { nuts: [], palms: [] }),
+              ...(this.makalani?.spots() ?? { nuts: [], palms: [], layers: [] }),
               bestChain: state.nuts.bestChain,
             };
       hook.spook =

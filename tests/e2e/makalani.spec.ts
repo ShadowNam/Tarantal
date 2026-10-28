@@ -47,6 +47,11 @@ test.describe('Makalani nuts (1.9.3, D-056)', () => {
         Math.abs(n.drawnW - 24 * (n.plane === 'near' ? 1 : 0.42)),
         `nut ${String(n.id)}`,
       ).toBeLessThan(1);
+    // Review M19: the nuts draw above their palms on every plane.
+    for (const l of (await hook(page)).nuts?.layers ?? []) {
+      expect(l.palms, `${l.plane} palm layer`).toBeGreaterThanOrEqual(0);
+      expect(l.nuts, `${l.plane} nut layer above the palms`).toBeGreaterThan(l.palms);
+    }
     // Review M11: every crown sits on its trunk's top (screen px, from the images as placed).
     const palms = (await hook(page)).nuts?.palms ?? [];
     for (const p of palms.filter((x) => x.built))

@@ -324,6 +324,9 @@ test('a nut cluster close-up (Monday near palm), Standard | HD', async ({ page }
     );
     await panToEnd(page, touch, -1);
     await holdSoon(page, touch, 2);
+    // Review M19: after the HD swap (palms rebuilt) the nuts still draw above their palms.
+    for (const l of (await hook(page)).nuts?.layers ?? [])
+      expect(l.nuts, `${mode} ${l.plane}: nut layer above the palm layer`).toBeGreaterThan(l.palms);
     const s = await canvasShot(page);
     const near = await page.evaluate(() =>
       (window.__TM__?.nuts?.palms ?? []).findIndex((p) => p.plane === 'near'),
