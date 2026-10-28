@@ -97,35 +97,40 @@ function canHappyBot(
     next(s) {
       history.push(s);
       if (history.length > LAG + 2) history.shift();
-      const c = s.cans;
       const seen = history[0];
       const before = history[1];
       const w = s.weapon;
-      if (c === undefined || seen === undefined || before === undefined) return inner.next(s);
+      if (seen === undefined || before === undefined) return inner.next(s);
       if (w.shells === 0 || w.reloading || w.cooldownTicks > 0 || s.tick < ready)
         return inner.next(s);
-      const f = planes[c.plane].scrollFactor;
-      const ratio = planes[c.plane].scale / content.scoring.tuningRefScale;
-      const g = (content.birds.cans.juggle.gravityPxPerSec2 * ratio) / 3600;
       const lag = s.tick - seen.tick;
-      const old = new Map((seen.cans?.cans ?? []).map((k) => [k.id, k]));
-      const older = new Map((before.cans?.cans ?? []).map((k) => [k.id, k]));
       let aim: { x: number; y: number } | null = null;
-      for (const k of c.cans) {
-        const a = old.get(k.id);
-        const b = older.get(k.id);
-        if (a === undefined || b === undefined || a.state !== 'air') continue;
-        // Its velocity as seen then, and where that arc puts it now.
-        const vx = b.x - a.x;
-        const vy = b.y - a.y;
-        aim = { x: a.x + vx * lag, y: a.y + vy * lag + 0.5 * g * lag * lag };
-        break;
-      }
-      if (aim === null) {
-        const rest = (seen.cans?.cans ?? []).find(
-          (k) => k.state === 'rest' && Math.abs(planeToDx(s.cameraX, f, k.x)) < VIEW_HALF_WIDTH,
-        );
-        if (rest !== undefined) aim = { x: rest.x, y: rest.y };
+      let f = 1;
+      // The day's fence first, then (1.9.3, D-056) the far fence behind it.
+      for (const which of ['cans', 'farCans'] as const) {
+        const c = s[which];
+        if (c === undefined || aim !== null) continue;
+        f = planes[c.plane].scrollFactor;
+        const ratio = planes[c.plane].scale / content.scoring.tuningRefScale;
+        const g = (content.birds.cans.juggle.gravityPxPerSec2 * ratio) / 3600;
+        const old = new Map((seen[which]?.cans ?? []).map((k) => [k.id, k]));
+        const older = new Map((before[which]?.cans ?? []).map((k) => [k.id, k]));
+        for (const k of c.cans) {
+          const a = old.get(k.id);
+          const b = older.get(k.id);
+          if (a === undefined || b === undefined || a.state !== 'air') continue;
+          // Its velocity as seen then, and where that arc puts it now.
+          const vx = b.x - a.x;
+          const vy = b.y - a.y;
+          aim = { x: a.x + vx * lag, y: a.y + vy * lag + 0.5 * g * lag * lag };
+          break;
+        }
+        if (aim === null) {
+          const rest = (seen[which]?.cans ?? []).find(
+            (k) => k.state === 'rest' && Math.abs(planeToDx(s.cameraX, f, k.x)) < VIEW_HALF_WIDTH,
+          );
+          if (rest !== undefined) aim = { x: rest.x, y: rest.y };
+        }
       }
       if (aim === null) return inner.next(s);
       const dx = planeToDx(s.cameraX, f, aim.x);

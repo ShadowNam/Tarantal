@@ -42,6 +42,9 @@ export function makalaniSpecs(): CanvasSpec[] {
     height: NUT_SHEET_H,
     originX: 0,
     originY: 0,
+    // Review M2: MakalaniView cuts its frames and scales its images by displayScale() (an HD
+    // texture keeps its 2× size), so the sheet must be view-scaled like the palms.
+    viewScaled: true,
     draw: empty,
   });
   return out;
