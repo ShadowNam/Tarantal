@@ -6,6 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   aimAt,
+  base,
   biomeOf,
   ofType,
   quiet,
@@ -278,5 +279,45 @@ describe('makalani nuts (D-056)', () => {
     expect(play()).toBe(play());
     const plain = sim(quiet(OKA), { id: 'classic', biome: OKA, weapon: 'windbuks' });
     expect(run(plain, 600).some((e) => e.type.startsWith('nut'))).toBe(false);
+  });
+
+  it('a Kettie stone through a near nut hits the mid bird behind it (review M1)', () => {
+    // A foraging mid bird; a near palm moved so that a nut hangs exactly in front of it.
+    const flock = (): Content => withMidFlock(quiet(OKA), OKA);
+    const probe = sim(flock(), { ...MODE, weapon: 'kettie' });
+    run(probe, 90);
+    const bird = probe.snapshot().birds.find((b) => b.plane === 'mid' && b.hittable);
+    if (bird === undefined) throw new Error('no mid bird');
+    const camera = probe.snapshot().cameraX;
+    const midSf = base.scoring.planes.mid.scrollFactor;
+    const dx = bird.x - 960 - (camera - 960) * midSf;
+    const nearX = (camera - 960) * 1 + 960 + dx;
+    const m = base.birds.makalani.palms.single;
+    const trunk = m.trunks[0];
+    const cluster = m.clusters[0];
+    if (trunk === undefined || cluster === undefined) throw new Error('no single palm');
+    const play = (weapon: string): SimEvent[] => {
+      const c = flock();
+      const b = biomeOf(c, OKA);
+      const mon = b.layouts.find((l) => l.id === 'mon');
+      if (mon === undefined) throw new Error('no mon');
+      const footX = nearX - trunk.topDx - cluster.dx;
+      mon.palms = [{ kind: 'single', plane: 'near', u: footX / 5120 }];
+      b.palmY = { ...b.palmY, near: bird.y + trunk.h - cluster.dy };
+      const s = sim(c, { ...MODE, weapon });
+      run(s, 89);
+      const n = s.snapshot().nuts?.nuts[0];
+      expect(n?.x).toBeCloseTo(nearX, 6);
+      expect(n?.y).toBeCloseTo(bird.y, 6);
+      // Fire at the bird's screen point (the camera is where the probe's was).
+      return [...run(s, 1, [{ t: 'fire', dx, sy: bird.y }]), ...run(s, 60)];
+    };
+    for (const weapon of ['windbuks', 'kettie']) {
+      const ev = play(weapon);
+      const impact = ofType(ev, 'pelletImpact')[0];
+      expect(impact?.birdId, weapon).not.toBeNull();
+      expect(ofType(ev, 'nutKnocked').length, weapon).toBe(0);
+      expect(ofType(ev, 'nutPopped').length, weapon).toBe(0);
+    }
   });
 });

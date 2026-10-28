@@ -1767,6 +1767,13 @@ export function createSim(config: SimConfig): Sim {
         // Bands are built without the Ver layer: a stone falls short of it.
         const geo = bandGeometry(stats.bagged === 0 ? firstHitGeometry : geometry, band);
         const r = resolvePellet(f.dx, psy, f.cx, geo, hitBirds(), hitExtras(), driftOn(drift));
+        // 1.9.3 (D-056): a nut alone doesn't stop the stone (bands see one plane at a time, so
+        // resolvePellet can't look past it): the first one is kept and the stone flies on; a bird
+        // in a later band takes the stone, anything else (or nothing) gives it to the nut.
+        const nutOnly = r.birdId === null && r.canId !== undefined && r.canId >= NUT_ID_BASE;
+        if (nutOnly) f.nut ??= { r, psy, drift };
+        const last = f.nut !== undefined && r.birdId === null ? f.nut : null;
+        if (nutOnly && f.next < bands.length) continue;
         // A paper target or steel plate (the range only) stops a stone too.
         const stopped =
           r.birdId !== null ||
@@ -1777,7 +1784,11 @@ export function createSim(config: SimConfig): Sim {
           r.canId !== undefined ||
           f.next >= bands.length;
         if (!stopped) continue;
-        resolveShot(ctx, [landPellet(f.shotId, f.dx, psy, r, drift, f.cx)]);
+        resolveShot(ctx, [
+          last === null
+            ? landPellet(f.shotId, f.dx, psy, r, drift, f.cx)
+            : landPellet(f.shotId, f.dx, last.psy, last.r, last.drift, f.cx),
+        ]);
         done = true;
       }
       if (done) stoneShots.delete(f.shotId);

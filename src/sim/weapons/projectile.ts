@@ -5,7 +5,7 @@
 import type { Weapon } from '../../content/schemas';
 import { msToTicks } from '../clock';
 import type { PlaneId } from '../types';
-import type { ShotGeometry, Slice } from './hitTest';
+import type { PelletResult, ShotGeometry, Slice } from './hitTest';
 
 export type Projectile = NonNullable<Extract<Weapon, { kind: 'primary' }>['projectile']>;
 
@@ -54,4 +54,7 @@ export interface Flight {
   readonly cx: number;
   readonly firedTick: number;
   next: number;
+  /** 1.9.3 (D-056): the first makalani nut the stone passed (an earlier band): it takes the
+   *  stone unless a bird in a later band does (nuts never block a bird). */
+  nut?: { readonly r: PelletResult; readonly psy: number; readonly drift: number };
 }
