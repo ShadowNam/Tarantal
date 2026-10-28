@@ -415,6 +415,8 @@ export interface TestHook {
       /** Review M12: its reflection (null: not by water), shown, and its y (the water line). */
       reflection: { visible: boolean; waterY: number; y: number } | null;
     }[];
+    /** Review M19: per plane, the palm and nut layers' display index (nuts above). */
+    layers: { plane: string; palms: number; nuts: number }[];
     bestChain: number;
   } | null;
   canLog: string[];
