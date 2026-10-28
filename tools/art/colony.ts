@@ -62,6 +62,26 @@ function scales(cx: number, cy: number, rx: number, ry: number): string {
   );
 }
 
+/** Rows of scales on the folded wing: each a dark teardrop with a pale crescent below it. */
+function scaledBack(cx: number, cy: number): string {
+  let dark = '';
+  let pale = '';
+  const rows = [
+    [-3.6, -1.4, 0.8],
+    [-4.4, -2.2, 0, 1.6],
+    [-4, -1.8, 0.4],
+  ];
+  rows.forEach((xs, j) => {
+    for (const dx of xs) {
+      const x = cx + dx;
+      const y = cy + (j - 1) * 2.6;
+      dark += ellipseD(x, y, 0.95, 1.15);
+      pale += `M${r2(x - 1.1)} ${r2(y + 0.9)}q${r2(1.1)} ${r2(0.9)} ${r2(2.2)} 0`;
+    }
+  });
+  return g({}, fill(dark, '#2E241A', { opacity: 0.9 }), line(pale, W_PALE, 0.7));
+}
+
 function weaverHead(x: number, y: number, down = false): string {
   const bx = down ? x + 3 : x + 4.6;
   const by = down ? y + 3.6 : y + 0.6;
@@ -69,11 +89,13 @@ function weaverHead(x: number, y: number, down = false): string {
     {},
     inked(ellipseD(x, y, 5.4, 4.8), W_BROWN),
     fill(ellipseD(x - 1, y - 2.2, 3.6, 1.8), '#7E6A4E', { opacity: 0.7 }),
-    // The black chin and the face.
+    // The black chin and face (review T6: a clear bib from the bill's base down the throat, and
+    // a black line from the eye to the bill).
     fill(
-      `M${r2(x + 1)} ${r2(y + 1)}Q${r2(x + 4.4)} ${r2(y + 2)} ${r2(x + 3.4)} ${r2(y + 4.6)}Q${r2(x + 1)} ${r2(y + 4.4)} ${r2(x + 1)} ${r2(y + 1)}Z`,
-      '#1C1612',
+      `M${r2(x + 0.6)} ${r2(y + 0.4)}Q${r2(x + 4.6)} ${r2(y + 0.8)} ${r2(x + 4.8)} ${r2(y + 2.8)}Q${r2(x + 4)} ${r2(y + 6.2)} ${r2(x + 1.2)} ${r2(y + 6)}Q${r2(x - 0.4)} ${r2(y + 3.4)} ${r2(x + 0.6)} ${r2(y + 0.4)}Z`,
+      '#16110E',
     ),
+    line(`M${r2(x + 1.8)} ${r2(y - 0.6)}L${r2(x + 4.6)} ${r2(y + 0.2)}`, '#16110E', 1),
     inked(
       `M${r2(bx - 1)} ${r2(by - 2)}L${r2(bx + 4.2)} ${r2(by + (down ? 2.6 : 0.4))}L${r2(bx - 1)} ${r2(by + 1.8)}Z`,
       W_BILL,
@@ -130,8 +152,12 @@ function weaverPerched(kind: 'perch' | 'hop' | 'peck'): string {
     legs,
     inked('M-5 -7L-11 -1L-8 0L-3 -5Z', W_BACK),
     inked(ellipseD(0, -11, 7.2, 8), W_BROWN),
-    fill(ellipseD(1.6, -8, 4.4, 4.8), W_PALE, { opacity: 0.85 }),
-    scales(-2, -13, 5.6, 4.4),
+    fill(ellipseD(2.6, -8, 3.8, 4.6), W_PALE, { opacity: 0.85 }),
+    // The folded wing and back (review T6): darker, with rows of scales — dark feather centres
+    // with pale edges — and black flank bars.
+    inked('M-6.6 -16Q-2 -19 1.6 -15Q2.2 -9 -1 -4.6Q-5.6 -5 -7 -9.6Z', W_BACK, 0.6),
+    scaledBack(-2.6, -11.4),
+    line('M2.4 -7.4L4.6 -6.8M2.2 -5.6L4.2 -5', '#2A221A', 0.8),
     weaverHead(2.4, -19),
   );
 }

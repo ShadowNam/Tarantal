@@ -83,9 +83,9 @@
     },
     "desert/colony": {
       "file": {
-        "path": "assets/desert-hd/img/desert_colony.fbe48f321274.png",
-        "bytes": 8383,
-        "hash": "fbe48f321274"
+        "path": "assets/desert-hd/img/desert_colony.c3cdc417e37f.png",
+        "bytes": 8510,
+        "hash": "c3cdc417e37f"
       },
       "width": 512,
       "height": 252,
