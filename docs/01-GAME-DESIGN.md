@@ -640,7 +640,7 @@ Namibian carvers turn into key rings and ornaments (sources: D-056).
   into husk fibre and pale ivory chips with a "krak!" (a small local puff, no flash), hanging or in
   the air.
 - **Scoring** (`content/scoring.json → nuts`, event bonuses × Stampede only, like the cans; nuts are
-  harder to hit than cans, so a bit more per hit): crack-off 6; air hit n pays 10 + 3 × (min(n, 8)
+  harder to hit than cans, so a bit more per air hit): crack-off 5; air hit n pays 10 + 3 × (min(n, 8)
   − 1); pop 12; Weg! 18; all × the plane factor (near 0.8, mid 1.3). A nut-only shot neither extends
   nor resets Frenzy and is not a miss. Never a bag.
 - **Secret "Hard soos 'n makalani":** pop or juggle out (Weg!) **3 nuts in one hunt**: +25, once a

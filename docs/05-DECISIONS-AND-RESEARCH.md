@@ -3105,9 +3105,10 @@ as it's so close by." GDD §11.3b, §11.3; art bible §4.2b; Tech §3.9.
   behind stops at the nut. The touch assist grows them like a can.
 - *Pop.* `popPellets` (3) pellets on one nut in one shot, or any hit by a `popWeapons` gun (.22,
   Langloop): the nut bursts (hanging or in the air). One or two pellets crack it off or juggle it.
-- *Scoring* (event bonuses × Stampede only, as the cans): crack-off 6, air hit 10 + 3 × (n − 1)
-  capped at chain 8, pop 12, Weg! 18, × the plane factor (near 0.8, mid 1.3). A little more than
-  a can (5, 8 + 2 × (n − 1), Weg! 15): a nut is smaller. The secret "Hard soos 'n makalani": 3 nuts
+- *Scoring* (event bonuses × Stampede only, as the cans): crack-off 5, air hit 10 + 3 × (n − 1)
+  capped at chain 8, pop 12, Weg! 18, × the plane factor (near 0.8, mid 1.3). Air hits and Weg!
+  a little more than a can (8 + 2 × (n − 1), Weg! 15): a nut is smaller. The crack-off was 6 at
+  first; the nut-happy bot's nuts reached 10.9 % of its score (100 seeds), so it is a can's 5. The secret "Hard soos 'n makalani": 3 nuts
   popped or juggled out in one hunt, +25, once a hunt, Oupa's line `bark.makalani`.
 - *Far fence.* `layouts[].farFence` (the fence's shape) on Wednesday's Karoo map, whose fence is on
   the near plane: 2 cans on 3 posts on the mid plane's fence line, moved back by a bonus map like
