@@ -32,21 +32,35 @@ async function langloopSave(page: Page): Promise<void> {
 }
 
 interface Sampled {
+  /** Frames the crate was drawn on, and every animation frame sampled. */
   frames: number;
+  total: number;
   tagged: number;
   maxOff: number;
   maxTags: number;
   zoomed: number;
 }
 
-/** Samples the first crate every animation frame for `n` frames, inside the page. */
+/**
+ * Samples the first crate every animation frame, inside the page: until it was drawn on `n`
+ * frames, or after n × 4 frames in all (it may have left the screen, landed and gone, or been
+ * shot), or the hunt ended.
+ */
 async function sample(page: Page, n: number): Promise<Sampled> {
   return page.evaluate(
     (count) =>
       new Promise<Sampled>((resolve) => {
-        const out: Sampled = { frames: 0, tagged: 0, maxOff: 0, maxTags: 0, zoomed: 0 };
+        const out: Sampled = {
+          frames: 0,
+          total: 0,
+          tagged: 0,
+          maxOff: 0,
+          maxTags: 0,
+          zoomed: 0,
+        };
         const step = (): void => {
           const h = window.__TM__;
+          out.total++;
           const spot = h?.crateSpots[0];
           const d = spot?.drawn ?? null;
           if (h && d) {
@@ -58,7 +72,7 @@ async function sample(page: Page, n: number): Promise<Sampled> {
             }
             out.maxTags = Math.max(out.maxTags, d.tags);
           }
-          if (out.frames >= count || h?.over === true) resolve(out);
+          if (out.frames >= count || out.total >= count * 4 || h?.over === true) resolve(out);
           else requestAnimationFrame(step);
         };
         requestAnimationFrame(step);
@@ -108,19 +122,23 @@ test('a tagged crate shows one picture that stays on its canopy (pan, scope, sha
   });
   await waitTicks(page, 10);
 
-  // 1. Panning (the arrow keys pan on every profile; the camera eases, so the layer moves).
+  // 1. Panning (the arrow keys pan on every profile; the camera eases, so the layer moves). A
+  // short pan each way, so the crate stays on screen.
   await page.keyboard.down('ArrowRight');
-  const pan = await sample(page, 40);
+  const pan = await sample(page, 15);
   await page.keyboard.up('ArrowRight');
   await page.keyboard.down('ArrowLeft');
-  const back = await sample(page, 40);
+  const back = await sample(page, 15);
   await page.keyboard.up('ArrowLeft');
 
-  // 2. Scoped in: the Langloop's scope raised near the crate, then fired (gun kick + shake).
+  // 2. Scoped in: the Langloop's scope raised beside the crate (still in the air, or its box on
+  // the ground), then fired well clear of it (gun kick + shake; the shot never opens it).
   const h = await page.evaluate(() => window.__TM__);
   const spot = h?.crateSpots[0];
-  const aimX = spot === undefined ? (h?.designWidth ?? 1920) / 2 : spot.x + 120;
-  const aimY = spot === undefined ? 300 : Math.max(120, spot.y - 80);
+  expect(spot, 'the crate is still there for the scope phase').toBeDefined();
+  const w = h?.designWidth ?? 1920;
+  const aimX = spot === undefined ? w / 2 : spot.x + (spot.x < w / 2 ? 260 : -260);
+  const aimY = spot === undefined ? 300 : Math.max(120, spot.y - 60);
   await pointer(page, touch, 'down', aimX, aimY);
   const scoped = await sample(page, 50);
   await pointer(page, touch, 'up', aimX, aimY);
@@ -131,6 +149,7 @@ test('a tagged crate shows one picture that stays on its canopy (pan, scope, sha
     expect(s.maxOff).toBeLessThan(1.5);
   }
   expect(pan.tagged + back.tagged).toBeGreaterThan(10);
+  expect(scoped.frames).toBeGreaterThan(5);
   expect(scoped.zoomed).toBeGreaterThan(5);
   expect(errors).toEqual([]);
 });
