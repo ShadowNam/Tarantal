@@ -3222,6 +3222,40 @@ figure like". GDD §11.1b; art bible §4.2c, §4.2d, §4.3b; Tech §3.14.
   diff), and feel.json is outside the content hash.
 - *Later (build plan, v1.13):* the residents become "Did you know?" entries in the field guide.
 
+**D-058 1.9.5 Android test app: an installable APK for friends (28 Oct 2026):** the product owner
+(27 Oct): "Yes, add the Android test app" — an APK friends install on Android phones from a link,
+before any store account exists (D-052). Tech §8.5; docs/ANDROID-TEST-APP.md.
+- *Capacitor 8.5.3* (exact pins; 8.6.0 came out the same day, too new), `appId`
+  `na.tarantal.madness`, the `android/` project committed without build outputs.
+  `npm run build:android` (`VITE_PLATFORM=capacitor`, the same Vite config and Phaser shader fix)
+  → `dist-android/` → `npx cap sync android`. Every asset group, Standard and HD, is inside the
+  APK; the app never downloads art. APK ≈ 30 MB (CI, 1.9.5).
+- *The `capacitor` adapter:* no ads, no service worker or manifest, no admin page; native share
+  sheet else the clipboard; share links point at the public Pages build; external links open in
+  the system browser; `capabilities()` standalone, no fullscreen button. A new
+  `openExternal(url)` on every adapter and an optional `onBackButton(fn)`.
+- *Phone behaviour:* landscape locked, immersive full screen, the screen kept on during play (the
+  app's own small `TmScreen` plugin rather than a community keep-awake plugin). The back button
+  is Escape (pause in a hunt, Resume in the pause menu, Back in menus); only on the title does
+  the app go to the background, so it never leaves a hunt without the pause menu. Going to the
+  background reports the page hidden when the WebView does not, so audio mutes and the hunt
+  pauses on the existing `visibilitychange` paths. Storage: the WebView's `localStorage` persists
+  in the app's data across restarts and updates.
+- *Version:* versionName = package.json version, versionCode = MAJOR·10000 + MINOR·100 + PATCH
+  (1.9.5 → 10905), so each build installs over the previous one.
+- *Signing:* a dedicated test key (`android/test-signing/`, PKCS12 made with OpenSSL, public
+  passwords in the Gradle file) labelled TEST ONLY; a store release needs the product owner's
+  private upload key, never committed, and an App Bundle.
+- *Delivery:* `.github/workflows/android.yml` (label `android` on PRs; called by `pages.yml` on
+  main) uploads `tarantal-madness-<version>.apk` (14 days) and checks its certificate; Pages
+  serves `/android/tarantal-madness.apk` and an install page `/android/` (en/af/de/nl). The game's
+  deploy does not depend on the APK build; `/android/` is outside the first download (size-check)
+  and the game's service worker. First download unchanged (web 2,991.4 KB).
+- *Icon and splash* from the game's guineafowl art (`tools/make-android-icons.ts`): the head on
+  the Karoo dusk as an adaptive icon, the whole bird on the same gradient as the launch screen.
+- *Out of scope:* iOS (needs an Apple developer account), store listings or uploads, ads,
+  in-app purchases.
+
 
 ## 3. Research notes (with sources)
 

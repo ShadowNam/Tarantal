@@ -40,7 +40,7 @@ jobs:
       - run: npm run build
       - name: Fetch the Android test APK
         if: needs.android.result == 'success'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: ${{ needs.android.outputs.artifact }}
           path: apk

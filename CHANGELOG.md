@@ -3,6 +3,33 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.9.5] — Android test app: an installable APK for friends (28 Oct 2026)
+
+Decision record D-058. The product owner (27 Oct): "Yes, add the Android test app" — friends
+install the game on their Android phones from a link, before any store account exists.
+
+### Added
+- **Tarantal Madness for Android (test build).** The game as an Android app (Capacitor 8.5.3,
+  `na.tarantal.madness`): landscape, full screen with the system bars hidden, the screen stays on
+  while you hunt. Every picture and sound, Standard and HD, is inside the app: it works offline
+  and never downloads art. The Standard/HD choice still shows on the loading screen.
+- **Back button:** in a hunt it opens the pause menu, in the pause menu it resumes, in menus it
+  goes back; on the title screen the app goes to the background. It never quits a hunt.
+- **Going to the background** mutes the sound and pauses the hunt, as hiding a browser tab does.
+- **Sharing** uses the phone's share sheet; challenge links point at the web test build.
+- **App icon and launch screen** from the guineafowl art on the Karoo colours.
+- **Download page** on the test build: `/android/` (English, Afrikaans, German, Dutch) with the
+  APK, its version and size, and how to install it.
+- **CI:** `.github/workflows/android.yml` builds and signs the APK (PRs with the label `android`,
+  and every push to main through the Pages deploy) and uploads `tarantal-madness-<version>.apk`
+  (14 days). `npm run build:android` builds `dist-android/` and syncs the Android project.
+
+### Notes
+- The APK (about 30 MB) is signed with a committed **test-only** key so updates install over each
+  other. It is not a store release; the Play Store needs the product owner's own private key
+  (docs/ANDROID-TEST-APP.md).
+- The web first download is unchanged; `/android/` is never part of it.
+
 ## [1.9.4] — Tree life: a living baobab, a better sausage tree and a busy weaver colony (28 Oct 2026)
 
 Decision record D-057. The product owner (26 Oct): the Bushveld baobab "needs a bit more detail

@@ -345,6 +345,16 @@ Leaderboards with server replay validation (`server/`), weekly seeded Season Run
 ghost replays of top hunts, charm pack 2, gamepad, Capacitor iOS/Android builds, Steam desktop
 wrapper, data-only mod loader UI. (The Namibië biome pack moved to v1.4.)
 
+**Android test app (1.9.5, D-058, built):** a Capacitor APK for friends, built and signed (TEST-ONLY
+key) by `.github/workflows/android.yml`, offered at `/android/` on the Pages test build
+(docs/ANDROID-TEST-APP.md). Done when: the `android` workflow passes on the PR and uploads
+`tarantal-madness-<version>.apk`; every asset is inside the APK (no download after install);
+landscape, immersive, keep-awake in a hunt, back button pauses and steps back; the web first
+download is unchanged (≤ 3 MB) and `npm run size -- --strict` passes for web, Poki and
+CrazyGames; unit tests for the adapter, versionCode and back button; e2e of `dist-android/` on
+Pixel 7. *Next:* the Play Store release (the product owner's developer account and private upload
+key, an App Bundle, the store listing) and the iPhone app (after an Apple developer account).
+
 **Idea (1.9.3, D-056, not built):** a carved makalani nut as a Notaboek reward or a charm.
 Carving the ivory-hard kernel into key rings and ornaments (oryx, elephants, cheetahs) is a
 well-known Namibian craft; it would tie the Okavango's nuts to the meta game.

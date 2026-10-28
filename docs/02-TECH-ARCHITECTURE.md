@@ -710,6 +710,8 @@ export interface PlatformAdapter {
                                                         // M7: share sheet → clipboard → textarea copy
   analytics(event: string, data?: Record<string, unknown>): void; // may be a no-op on some portals
   canShowExternalLinks: boolean;
+  openExternal(url: string): void;                      // D-058: new tab; the app: system browser
+  onBackButton?(fn: () => boolean): void;               // D-058: Android back (false: background)
   pwa: boolean;                                         // M9: service worker + install banner (web)
   onAdChange(fn: (playing: boolean) => void): () => void; // AudioDirector mutes during ads
   onPortalMute(fn: (muted: boolean) => void): () => void; // M9: CrazyGames settings.muteAudio
@@ -886,6 +888,58 @@ activity), Roadmap, History (stages, pictures, evolution, decisions, glossary), 
   button, arrow key or swipe, "open full size", Escape or ✕ closes; the page under it doesn't
   scroll). A picture that fails to load shows its caption in a box. While open, `project=1` stays
   in the address (`history.replaceState`), so a reload returns to it; Back drops it.
+
+### 8.5 Android test app (`capacitor`, D-058)
+
+The friends' Android app before any store account (docs/ANDROID-TEST-APP.md). Capacitor 8.5.3
+(exact pins: `@capacitor/core`, `cli`, `android`, `app`, `share`) wraps the web build;
+`capacitor.config.ts`: `appId` `na.tarantal.madness`, name "Tarantal Madness", `webDir`
+`dist-android`. The `android/` project is committed without build outputs or the copied web build
+(Capacitor's `.gitignore`).
+- **Build:** `npm run build:android` = `VITE_PLATFORM=capacitor` through the same `vite.config.ts`
+  (so the Phaser shader fix, D-054, applies) → `dist-android/`, then `tools/android-sync.ts`
+  writes `android/app/version.properties` (versionName = package.json version, versionCode =
+  MAJOR·10000 + MINOR·100 + PATCH, `src/platform/androidVersion.ts`) and runs
+  `npx cap sync android` (no SDK needed). Gradle runs only in CI (`.github/workflows/android.yml`).
+- **Every asset inside the APK:** `public/` (both the Standard and the HD packs, every group) is
+  copied into `dist-android/`, so the WebView loads the lazy groups and the HD twins from the
+  app's own files (`https://localhost/…`): no network after install. The Standard/HD choice on the
+  loading screen is unchanged. No service worker: `pwa: false`, no manifest (stripped like the
+  portal builds), no install banner.
+- **Adapter** (`src/platform/capacitor.ts`, shell in `capacitorNative.ts`, loaded by `import()`
+  in `init()` so no other build carries Capacitor code): no ads (breaks resolve at once,
+  `rewardedAvailable()` false); `capabilities()` = `{ fullscreen: false, standalone: true,
+  iphone: false }` (the app is full screen); share through the native share sheet
+  (`@capacitor/share`; a closed sheet is `cancelled`), else the clipboard; `shareUrl` rewrites the
+  device's `https://localhost/…?c=` onto the public Pages build; `openExternal` opens the system
+  browser (Capacitor sends any off-origin page there); no admin page (`?admin=1` ignored, the
+  Skietbaan and Project overview chunks compiled out, `?feesdag=` ignored).
+- **Phone behaviour:** landscape locked (`sensorLandscape` in the manifest); immersive full screen
+  (`MainActivity` hides the status and navigation bars, swipe shows them for a moment); the app's
+  own `TmScreen` plugin keeps the screen on between `gameplayStart` and `gameplayStop`; pinch zoom,
+  long-press menus and text selection are off as on the web (viewport and CSS in `index.html`).
+- **Back button** (`src/platform/backButton.ts`): it sends the page an Escape keydown, so it means
+  what Escape means — in a hunt the pause menu, in the pause menu Resume, in a menu its Back. Only
+  on the title (Escape unused, no scene over it) does the app go to the background
+  (`App.minimizeApp`); anywhere else an unused press is swallowed, so it never leaves a hunt.
+- **Background:** `appStateChange` → if the WebView still reports `visible`, the adapter reports
+  `hidden` and fires `visibilitychange` (and undoes it on return), so the existing paths run as in
+  a browser tab: audio mutes, the hunt opens its pause menu, the save flushes.
+- **Storage:** `src/meta/storage.ts` as everywhere. The WebView's `localStorage` lives in the
+  app's private data: it survives app restarts and updates installed over the old APK, and is
+  deleted only by "Clear storage" or uninstalling.
+- **Signing:** a release APK signed with the committed **TEST-ONLY** key
+  (`android/test-signing/tarantal-test.p12`, public passwords in `android/app/build.gradle`), so
+  every friends' build installs over the previous one. A store release uses the product owner's
+  private upload key, never committed, and an App Bundle (docs/ANDROID-TEST-APP.md §3).
+- **CI:** `android.yml` (PRs labelled `android`, manual runs, and called by `pages.yml` on every
+  push to main) builds, signs, checks the signature against the test certificate and uploads
+  `tarantal-madness-<version>.apk` (14 days). `pages.yml` puts it at
+  `/android/tarantal-madness.apk` with an install page `/android/` (en/af/de/nl,
+  `tools/androidPage.ts`, strings in `src/i18n/android/`); the game deploys even if the APK build
+  fails. The game's service worker never caches `/android/`, and `size-check` ignores it.
+  `ci.yml` builds `dist-android/` (`size --strict`) and runs `tests/e2e/android-app.spec.ts` on
+  Pixel 7 landscape (`E2E_PLATFORM=capacitor`).
 
 ## 9. Mobile web specifics (the gotchas)
 - **iPhone Safari has no element Fullscreen API** (iPad does; iOS 17.4 beta even removed an

@@ -75,7 +75,7 @@ jobs:
             echo "- versionCode: $(grep versionCode android/app/version.properties | cut -d= -f2)"
             echo "- Signed with the TEST-ONLY key (never for the Play Store)"
           } >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: ${{ steps.name.outputs.artifact }}
           path: ${{ steps.name.outputs.artifact }}
