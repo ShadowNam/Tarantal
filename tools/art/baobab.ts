@@ -63,8 +63,20 @@ export function limbOutline(l: BaobabLimb, n = 28): { d: string; left: Pt[]; rig
   }
   const tip = limbAt(l, 1);
   const dir = limbDir(l, 1);
-  const cap: Pt = [tip[0] + dir[0] * l.w1 * 0.4, tip[1] + dir[1] * l.w1 * 0.4];
-  return { d: polyD([...left, cap, ...[...right].reverse()]), left, right };
+  // A rounded tip (review T3: never a flat, sawn-off end); the limb runs on into finer branches.
+  const cap: Pt[] = [];
+  for (let k = 1; k < 6; k++) {
+    const a = (k / 6) * Math.PI;
+    const h = l.w1 / 2;
+    // From the left edge round the end to the right edge.
+    const nx = -dir[1];
+    const ny = dir[0];
+    cap.push([
+      tip[0] + nx * h * Math.cos(a) + dir[0] * h * 1.4 * Math.sin(a),
+      tip[1] + ny * h * Math.cos(a) + dir[1] * h * 1.4 * Math.sin(a),
+    ]);
+  }
+  return { d: polyD([...left, ...cap, ...[...right].reverse()]), left, right };
 }
 
 /** A crooked branch from `a` to `b` as a tapered outline, with its centre line. */
@@ -212,7 +224,20 @@ export function baobabNear(rnd: Rnd, p: Paint, o: BaobabNearOpts): string {
   const tips: Pt[] = [];
   const reach = [...o.reach];
   BAOBAB_LIMBS.forEach((l, i) => {
-    tips.push(limbAt(l, 1));
+    // The limb forks at its end into two finer branches (review T3), twigs on their tips.
+    const end = limbAt(l, 1);
+    const ed = limbDir(l, 1);
+    for (const side of [-1, 1]) {
+      const ang = Math.atan2(ed[1], ed[0]) + side * (0.35 + rnd() * 0.3);
+      const len = 30 + rnd() * 26;
+      const fork: Pt = [
+        clamp(end[0] + Math.cos(ang) * len, -246, 246),
+        Math.max(end[1] + Math.sin(ang) * len, -312),
+      ];
+      const from = limbAt(l, 0.94);
+      branches.push(branch(rnd, from, fork, limbWidth(l, 0.94) * 0.75, 2.5));
+      tips.push(fork);
+    }
     const count = 2 + (i % 2);
     for (let b = 0; b < count; b++) {
       const t = 0.55 + b * 0.16 + rnd() * 0.06;
@@ -267,7 +292,7 @@ export function baobabNear(rnd: Rnd, p: Paint, o: BaobabNearOpts): string {
   const twigs: string[] = [];
   const twigsFine: string[] = [];
   for (const t of tips)
-    for (let k = 0; k < 6; k++) {
+    for (let k = 0; k < 4; k++) {
       const ang = -Math.PI / 2 + (rnd() - 0.5) * 2.6;
       const len = 16 + rnd() * 26;
       const end: Pt = [
@@ -731,19 +756,65 @@ function cavity(h: Hollow, bark: string, barkPink: string, lip: number): string 
 /** The hornbill's nest: a hole the female has sealed with mud and droppings, leaving a narrow
  *  vertical slit. */
 function sealedSlit(h: Hollow, p: Paint): string {
-  const mud = p.tint('#7C6048');
+  // Review T2: dried mud close to the bark's grey-brown, a lumpy, irregular edge, crumbs and
+  // cracks; a narrow, uneven vertical slit (never a smooth oval with a line: a cat's eye).
+  const rnd = (() => {
+    let a = 0x51a7;
+    return (): number => {
+      a = (Math.imul(a, 1103515245) + 12345) >>> 0;
+      return (a >>> 8) / 16777216;
+    };
+  })();
+  const mud = p.tint('#857565');
+  const blob = (sx: number, sy: number, lump: number): Pt[] => {
+    const pts: Pt[] = [];
+    for (let i = 0; i < 22; i++) {
+      const a = (i / 22) * Math.PI * 2;
+      const r = 1 + (rnd() - 0.5) * lump;
+      pts.push([
+        h.x + Math.cos(a) * sx * r,
+        h.y + Math.sin(a) * sy * r * (Math.sin(a) > 0 ? 1.1 : 1),
+      ]);
+    }
+    return pts;
+  };
+  const crumbs: string[] = [];
+  for (let k = 0; k < 16; k++) {
+    const a = rnd() * Math.PI * 2;
+    const r = Math.sqrt(rnd());
+    crumbs.push(
+      ellipseD(
+        h.x + Math.cos(a) * h.rx * 4.4 * r,
+        h.y + Math.sin(a) * h.ry * 1.25 * r,
+        0.9 + rnd() * 1.4,
+        0.8 + rnd() * 1.1,
+      ),
+    );
+  }
+  // The slit: a ragged dark sliver, wider in places.
+  const left: Pt[] = [];
+  const right: Pt[] = [];
+  for (let i = 0; i <= 8; i++) {
+    const t = i / 8;
+    const y = h.y - h.ry + t * h.ry * 2;
+    const w = h.rx * (0.35 + 0.55 * Math.sin(Math.PI * t)) * (0.7 + rnd() * 0.6);
+    const x = h.x + Math.sin(t * 5.3) * 0.8;
+    left.push([x - w * 0.5, y]);
+    right.push([x + w * 0.5, y]);
+  }
   return g(
     {},
-    el('path', { d: ellipseD(h.x, h.y, h.rx * 5.2, h.ry * 1.35), fill: shade(mud, -0.25) }),
-    el('path', { d: ellipseD(h.x - 0.8, h.y - 1, h.rx * 4.6, h.ry * 1.22), fill: mud }),
+    el('path', { d: polyD(blob(h.rx * 5.6, h.ry * 1.42, 0.45)), fill: shade(mud, -0.3) }),
+    el('path', { d: polyD(blob(h.rx * 5, h.ry * 1.3, 0.4)), fill: mud }),
+    el('path', { d: crumbs.join(''), fill: shade(mud, 0.18), opacity: 0.7 }),
     el('path', {
-      d: `M${r2(h.x - h.rx * 3)} ${r2(h.y - h.ry * 0.6)}q${r2(h.rx * 2)} ${r2(-2)} ${r2(h.rx * 4)} ${r2(1)}M${r2(h.x - h.rx * 3.2)} ${r2(h.y + h.ry * 0.5)}q${r2(h.rx * 2)} ${r2(2)} ${r2(h.rx * 4.4)} ${r2(-1)}`,
+      d: `M${r2(h.x - h.rx * 3.4)} ${r2(h.y - h.ry * 0.3)}l${r2(h.rx * 1.6)} ${r2(1.6)}l${r2(h.rx)} ${r2(-0.8)}M${r2(h.x + h.rx * 1.2)} ${r2(h.y + h.ry * 0.55)}l${r2(h.rx * 1.5)} ${r2(-1.2)}`,
       fill: 'none',
-      stroke: shade(mud, 0.25),
-      'stroke-width': 1,
-      opacity: 0.7,
+      stroke: shade(mud, -0.4),
+      'stroke-width': 0.8,
+      opacity: 0.8,
     }),
-    el('path', { d: ellipseD(h.x, h.y, h.rx, h.ry), fill: '#120B08' }),
+    el('path', { d: polyD([...left, ...[...right].reverse()]), fill: '#140D0A' }),
   );
 }
 

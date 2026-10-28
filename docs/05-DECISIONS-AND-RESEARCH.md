@@ -3168,7 +3168,7 @@ figure like". GDD §11.1b; art bible §4.2c, §4.2d, §4.3b; Tech §3.14.
   haze from y 520), drawn over the layer's props. A haze band with an edge (top or bottom) now goes
   under a plane layer's props (`hazeOrder.ts`); a whole-layer distance haze has no edge and stays
   over them; sky and backdrop layers keep their order.
-- *Residents* (view only): a lesser bushbaby peeks from a hole high on limb 5 (more often under
+- *Residents* (view only): a lesser bushbaby peeks from a small hole on the trunk's right side (more often under
   dawn, dusk and golden light), a tree squirrel pops out of limb 2 and runs up it and back, a barn
   owl looks out of the big cavity (turns its head, blinks), a yellow-billed hornbill flies in to
   the sealed slit and feeds the female (her beak tip shows), red-billed buffalo weavers come and go

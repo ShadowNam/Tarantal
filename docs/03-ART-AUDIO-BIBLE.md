@@ -517,8 +517,8 @@ The Bushveld kremetart in winter (*Adansonia digitata*), redrawn at the cameltho
 - **Pods:** small (a third to half the branch's thickness), egg-shaped, hairy, grey-green to
   olive-tan, each on a long thin stalk, in twos and threes; they swing and drop when shot (v1.7c),
   the pivot at the stalk's top. The secret pod is a cluster of three.
-- **Hollows:** a big cavity low on the trunk (the barn owl's), a small hole high on limb 5 (the
-  bushbaby's), a hole in limb 2 (the squirrel's), the hornbill's mud-sealed slit on the shade side,
+- **Hollows:** a big cavity low on the trunk (the barn owl's), a small hole low on the trunk's right (the
+  bushbaby's), a hole high on limb 2 (the squirrel's): placed so no two holes read as eyes (review T1); the hornbill's slit in a rough, lumpy seal of grey-brown dried mud,
   a crack with a glint of comb (the bees'); healed, swollen lips, dark insides, a worn sill. Two
   untidy stick nests of the red-billed buffalo weavers on the outer limbs.
 - **Residents** (`bushveld/baobab_life`, `tools/art/baobabLife.ts`; 1× with an HD twin): a lesser

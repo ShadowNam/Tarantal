@@ -36,12 +36,12 @@ export const TRUNK = {
  * under limb 4 at (110, −120).
  */
 export const BAOBAB_LIMBS: readonly BaobabLimb[] = [
-  { p0: [-62, -6], c1: [-130, -30], c2: [-190, -80], p1: [-246, -184], w0: 54, w1: 14 },
-  { p0: [-40, -22], c1: [-80, -80], c2: [-100, -170], p1: [-160, -262], w0: 48, w1: 13 },
-  { p0: [-14, -30], c1: [-26, -110], c2: [-6, -190], p1: [-46, -290], w0: 40, w1: 11 },
-  { p0: [18, -30], c1: [40, -100], c2: [18, -180], p1: [54, -268], w0: 42, w1: 11 },
-  { p0: [42, -18], c1: [96, -70], c2: [110, -190], p1: [178, -262], w0: 52, w1: 14 },
-  { p0: [62, -4], c1: [140, -24], c2: [200, -90], p1: [250, -182], w0: 50, w1: 14 },
+  { p0: [-62, -6], c1: [-130, -30], c2: [-190, -80], p1: [-246, -184], w0: 54, w1: 6 },
+  { p0: [-40, -22], c1: [-80, -80], c2: [-100, -170], p1: [-160, -262], w0: 48, w1: 6 },
+  { p0: [-14, -30], c1: [-26, -110], c2: [-6, -190], p1: [-46, -290], w0: 40, w1: 6 },
+  { p0: [18, -30], c1: [40, -100], c2: [18, -180], p1: [54, -268], w0: 42, w1: 6 },
+  { p0: [42, -18], c1: [96, -70], c2: [110, -190], p1: [178, -262], w0: 52, w1: 6 },
+  { p0: [62, -4], c1: [140, -24], c2: [200, -90], p1: [250, -182], w0: 50, w1: 6 },
 ];
 
 /** A point on a limb at t ∈ [0, 1]. */
@@ -99,7 +99,9 @@ export interface Hollow {
 }
 
 const SQUIRREL_LIMB = 1;
-const SQUIRREL_T = 0.3;
+// Review T1: the squirrel's hole sits high up limb 2, the bushbaby's small and low on the
+// trunk's right side, so the holes never line up into a "face" with the owl's cavity.
+const SQUIRREL_T = 0.52;
 
 function onLimb(i: number, t: number, rx: number, ry: number): Hollow {
   const l = BAOBAB_LIMBS[i];
@@ -115,9 +117,9 @@ function onLimb(i: number, t: number, rx: number, ry: number): Hollow {
  */
 export const HOLLOWS: Readonly<Record<HollowId, Hollow>> = {
   owl: { x: -44, y: 118, rx: 19, ry: 25 },
-  galago: onLimb(4, 0.2, 8, 9.5),
+  galago: { x: 76, y: 22, rx: 6.5, ry: 7.5 },
   squirrel: onLimb(SQUIRREL_LIMB, SQUIRREL_T, 7, 8.5),
-  slit: { x: 62, y: 62, rx: 2.4, ry: 13 },
+  slit: { x: 34, y: 168, rx: 2.4, ry: 13 },
   bees: { x: -74, y: 200, rx: 3.5, ry: 6 },
 };
 
@@ -126,7 +128,7 @@ export function squirrelPath(n = 12): BPt[] {
   const l = BAOBAB_LIMBS[SQUIRREL_LIMB];
   if (l === undefined) return [];
   const out: BPt[] = [];
-  for (let i = 0; i <= n; i++) out.push(limbTop(l, SQUIRREL_T + (i / n) * 0.42));
+  for (let i = 0; i <= n; i++) out.push(limbTop(l, SQUIRREL_T + (i / n) * 0.36));
   return out;
 }
 
