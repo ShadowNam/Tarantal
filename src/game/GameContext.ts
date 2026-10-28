@@ -190,7 +190,8 @@ export interface TestHook {
     reticleX: number;
     reticleY: number;
     sight: string | null;
-    /** 1.9.2 (D-055): the sight picture drawn ('red_dot' under the Rooikol), null = none. */
+    /** 1.9.2 (D-055): the sight picture on screen this frame ('red_dot' under the Rooikol),
+     *  null while the sight is down. */
     picture: string | null;
     /** v1.4 (#56): screens' worth of world-layer pixels drawn in the last frame. */
     fill: number;

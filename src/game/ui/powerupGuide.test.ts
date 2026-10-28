@@ -3,6 +3,8 @@ import { loadContent } from '../../../tools/testContent';
 import type { ContentBundle } from '../../content/schemas';
 import enStrings from '../../i18n/en.json';
 import { LANGUAGES, translator } from '../../i18n/i18n';
+import { setGuideTables } from './guideI18n';
+import { GUIDE_TABLES } from './guideTables';
 import {
   effectText,
   formatNumber,
@@ -14,6 +16,8 @@ import {
 
 const content = loadContent();
 const en = translator('en');
+// 1.9.2 (D-055): the guide's sentences are a lazy table in the game; here they are in at once.
+setGuideTables(GUIDE_TABLES);
 
 /** The content with every number a sentence uses changed to an odd value. */
 function oddNumbers(b: ContentBundle): ContentBundle {
@@ -144,7 +148,15 @@ describe('power-up strings carry no numbers of their own (D-046)', () => {
     for (const lang of LANGUAGES) {
       const tr = translator(lang);
       const keys = Object.keys(enStrings).filter((k) => prefixes.some((p) => k.startsWith(p)));
-      expect(keys.length).toBeGreaterThan(40);
+      expect(keys.length).toBeGreaterThan(20);
+      // 1.9.2 (D-055): the long guide sentences in their lazy tables too.
+      const guideKeys = Object.keys(GUIDE_TABLES.en);
+      expect(guideKeys.length).toBeGreaterThan(20);
+      for (const key of guideKeys) {
+        const text = GUIDE_TABLES[lang][key] ?? '';
+        expect(text.length, `${lang} ${key}`).toBeGreaterThan(0);
+        expect(text.replace(/\{\w+\}/g, ''), `${lang} ${key}`).not.toMatch(/\d/);
+      }
       for (const key of keys) {
         const text = tr.or(key, '');
         expect(text.replace(/\{\w+\}/g, ''), `${lang} ${key}`).not.toMatch(/\d/);

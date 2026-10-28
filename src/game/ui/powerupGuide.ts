@@ -4,6 +4,7 @@
 // Pure: a Translator and the content in, strings out.
 import type { ContentBundle } from '../../content/schemas';
 import { isI18nKey, type Language, type Translator } from '../../i18n/i18n';
+import { guideString } from './guideI18n';
 import { powerupIcon } from './powerupIcons';
 
 export type GuideKind = 'powerup' | 'weapon';
@@ -77,8 +78,15 @@ function shopValues(tr: Translator, price: number): Record<string, string> {
   };
 }
 
-function filled(tr: Translator, key: string, values: Readonly<Record<string, string>>): string {
-  const text = isI18nKey(key) ? tr.text(key) : '';
+/** A string with its `{…}` values: from the main tables, or (1.9.2, D-055) the lazy guide
+ *  tables (guideI18n.ts; empty until they are in). */
+function filled(
+  tr: Translator,
+  lang: Language,
+  key: string,
+  values: Readonly<Record<string, string>>,
+): string {
+  const text = isI18nKey(key) ? tr.text(key) : (guideString(lang, key) ?? '');
   return text.replace(/\{(\w+)\}/g, (m, k: string) => values[k] ?? m);
 }
 
@@ -89,7 +97,7 @@ export function effectText(
   tr: Translator,
   lang: Language,
 ): string {
-  return filled(tr, `guide.effect.${id}`, guideValues(content, id, tr, lang));
+  return filled(tr, lang, `guide.effect.${id}`, guideValues(content, id, tr, lang));
 }
 
 /** The pickup card's short line, with its length. */
@@ -99,7 +107,7 @@ export function shortText(
   tr: Translator,
   lang: Language,
 ): string {
-  return filled(tr, `pickup.${id}`, guideValues(content, id, tr, lang));
+  return filled(tr, lang, `pickup.${id}`, guideValues(content, id, tr, lang));
 }
 
 /** Every power-up (powerups.json order) and then every crate gun (weapons.json order). */
@@ -132,19 +140,22 @@ export function guideCards(
     const how: string[] = [];
     // 1.9.2 (D-055): a rifle-only power-up drops only while a rifle is in hand, never sold.
     const rifle = content.powerups.powerups.some((p) => p.id === id && p.needsSight === true);
-    if (inCrates.has(id)) how.push(tr.text(rifle ? 'guide.how.crate_rifle' : 'guide.how.crate'));
+    if (inCrates.has(id))
+      how.push(filled(tr, lang, rifle ? 'guide.how.crate_rifle' : 'guide.how.crate', values));
     if (kind === 'weapon' || values['price'] !== undefined)
-      how.push(filled(tr, kind === 'weapon' ? 'guide.how.rent' : 'guide.how.padstal', values));
-    if (fromSecret.has(id)) how.push(tr.text('guide.how.secret'));
+      how.push(
+        filled(tr, lang, kind === 'weapon' ? 'guide.how.rent' : 'guide.how.padstal', values),
+      );
+    if (fromSecret.has(id)) how.push(filled(tr, lang, 'guide.how.secret', values));
     return {
       id,
       kind,
       icon: powerupIcon(id),
       name: tr.or(`item.${id}`, id),
-      effect: filled(tr, `guide.effect.${id}`, values),
-      short: filled(tr, `pickup.${id}`, values),
+      effect: filled(tr, lang, `guide.effect.${id}`, values),
+      short: filled(tr, lang, `pickup.${id}`, values),
       how,
-      tip: tr.or(`guide.tip.${id}`, ''),
+      tip: guideString(lang, `guide.tip.${id}`) ?? '',
       found: seen.includes(id),
     };
   });

@@ -1804,7 +1804,7 @@ export class HuntScene extends Phaser.Scene {
         reticleX: Math.round(z.reticleX * 10) / 10,
         reticleY: Math.round(z.reticleY * 10) / 10,
         sight: state.weapon.sight,
-        picture: this.sight.current,
+        picture: this.sight.shown,
       };
     }
     const safe = this.ctx.safeArea();

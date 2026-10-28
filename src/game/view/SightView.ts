@@ -45,9 +45,14 @@ export class SightView {
     layer.add(this.root);
   }
 
-  /** The picture drawn now (null = none). */
+  /** The picture fitted now (drawn or not; null = none). */
   get current(): SightPicture | null {
     return this.picture;
+  }
+
+  /** 1.9.2 (D-055): the picture on screen this frame (null while the sight is down). */
+  get shown(): SightPicture | null {
+    return this.root.visible ? this.picture : null;
   }
 
   /** v1.6 (D-042): drops the picture so the next setPicture() rebuilds it (new textures). */

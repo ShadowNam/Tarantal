@@ -18,6 +18,7 @@ import { msToTicks } from '../../sim/clock';
 import { markSeen } from '../../meta/powerupsSeen';
 import { isOupaLine, oupaShows } from '../audio/oupaMode';
 import { PickupCard } from '../ui/PickupCard';
+import { guideLoaded, loadGuide } from '../ui/guideI18n';
 import { effectText, shortText } from '../ui/powerupGuide';
 import { TEX } from '../assets/AssetManifest';
 import { powerupIcon, powerupIconEpoch, upgradePowerupIcons } from '../ui/powerupIcons';
@@ -199,6 +200,8 @@ export class HudScene extends Phaser.Scene {
   }
 
   create(): void {
+    // 1.9.2 (D-055): the power-up guide's sentences (the first-pickup card) load in the background.
+    void loadGuide();
     this.pops = [];
     // v1.6 (D-042): the build stamp, bottom left beside the gadget (or the belt, left-handed).
     this.buildStamp = new StampLabel(this, this.ctx, cornerStampShown(this.ctx));
@@ -1328,9 +1331,12 @@ export class HudScene extends Phaser.Scene {
           id,
           icon: this.textures.exists(icon) ? icon : null,
           name: tOr(`item.${id}`, id),
-          line: fresh
-            ? effectText(this.ctx.content, id, tr, lang)
-            : shortText(this.ctx.content, id, tr, lang),
+          // 1.9.2 (D-055): the full sentence comes from the lazy guide tables (loading since the
+          // hunt began); if they aren't in yet, the short line.
+          line:
+            fresh && guideLoaded()
+              ? effectText(this.ctx.content, id, tr, lang)
+              : shortText(this.ctx.content, id, tr, lang),
           first: fresh,
           newTag: t('pickup.new'),
         },

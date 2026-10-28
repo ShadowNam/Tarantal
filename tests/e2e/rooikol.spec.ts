@@ -65,21 +65,27 @@ async function twoQuickShots(page: Page, touch: boolean): Promise<Burst> {
           );
         };
         let seen = start;
+        let pressed = false;
         const loop = (): void => {
           if (h.shots > seen) {
             for (let k = seen; k < h.shots; k++) out.shotTicks.push(h.tick);
             seen = h.shots;
           }
-          out.maxZoom = Math.max(out.maxZoom, h.zoom.z);
-          const pic = h.zoom.picture;
-          if (pic !== null && !out.pictures.includes(pic)) out.pictures.push(pic);
+          // From the first press on (this frame's press has gone in by the next frame).
+          if (pressed) {
+            out.maxZoom = Math.max(out.maxZoom, h.zoom.z);
+            const pic = h.zoom.picture;
+            if (pic !== null && !out.pictures.includes(pic)) out.pictures.push(pic);
+          }
           if (out.shotTicks.length >= 2 || h.over) {
             resolve(out);
             return;
           }
           // Press on one frame, release on the next (the red dot is up at once).
-          if (!down) ev('pointerdown');
-          else {
+          if (!down) {
+            ev('pointerdown');
+            pressed = true;
+          } else {
             ev('pointerup');
             n++;
           }
@@ -103,9 +109,20 @@ for (const g of GUNS)
     await startHunt(page, touch);
     await pickUpScoped(page, touch, 'rooikol');
     // Wait out the pickup shot's (normal) time between shots.
-    await page.waitForFunction(() => (window.__TM__?.cooldownTicks ?? 1) === 0, null, {
-      timeout: 30_000,
-    });
+    // Wait out the pickup shot's (normal) time between shots and its scope coming down.
+    await page.waitForFunction(
+      () => {
+        const h = window.__TM__;
+        return (
+          h !== undefined &&
+          h.cooldownTicks === 0 &&
+          h.zoom.raise === 0 &&
+          (h.zoom.picture === null || h.zoom.picture === 'red_dot')
+        );
+      },
+      null,
+      { timeout: 30_000 },
+    );
     const b = await twoQuickShots(page, touch);
     expect(b.shotTicks).toHaveLength(2);
     const [a, c] = b.shotTicks;

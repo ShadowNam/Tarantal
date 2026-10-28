@@ -9,6 +9,7 @@ import { expect, test, type Page } from '@playwright/test';
 import feel from '../../content/client/feel.json' with { type: 'json' };
 import powerups from '../../content/powerups.json' with { type: 'json' };
 import en from '../../src/i18n/en.json' with { type: 'json' };
+import guideEn from '../../src/i18n/guide/en.json' with { type: 'json' };
 import {
   SCREENSHOTS,
   boot,
@@ -23,7 +24,7 @@ import {
 /** Boeretroos' sentence as the game builds it, from the content and the English strings. */
 const coffee = powerups.powerups.find((p) => p.id === 'boeretroos');
 const pct = Math.round((coffee?.effect.creatureTimeScale ?? 1) * 100);
-const COFFEE_TEXT = en['guide.effect.boeretroos']
+const COFFEE_TEXT = guideEn['guide.effect.boeretroos']
   .replace('{s}', String((coffee?.durationMs ?? 0) / 1000))
   .replace('{speed}', pct === 50 ? en['guide.half'] : `${pct} %`);
 /** The day's first-hunt greeting (voiced in every pack). */
@@ -136,9 +137,15 @@ test('the Gun Shed explains all nine power-ups and crate guns, with icons', asyn
     timeout: 60_000,
   });
   await tapRect(page, touch, 'shed.powerups');
-  await page.waitForFunction(() => (window.__TM__?.shedPowerups?.cards.length ?? 0) > 0, null, {
-    timeout: 60_000,
-  });
+  // 1.9.2 (D-055): the sentences come from a lazy table: wait until the cards carry them.
+  await page.waitForFunction(
+    () => {
+      const cards = window.__TM__?.shedPowerups?.cards ?? [];
+      return cards.length > 0 && cards.every((c) => c.effect !== '');
+    },
+    null,
+    { timeout: 60_000 },
+  );
   const p = (await hook(page)).shedPowerups;
   if (p === undefined) throw new Error('no power-ups tab');
   expect(p.cards.map((c) => c.id)).toEqual(ALL);
