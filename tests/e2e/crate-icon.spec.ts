@@ -3,8 +3,9 @@
 // screen layer at a hand-made x (no scope zoom, a frame out of step) and the canopy and box-front
 // tags both showed in the air. Now one tag sits in the crate's own overlay layer.
 // Checked every frame while the crate falls during a pan, with the Langloop's scope raised, and
-// during the shot's screen shake: the tag's centre (its world transform) stays on the canopy
-// (through the crate image's transform) and the crate shows one tag.
+// during the shot's screen shake: the picture's centre on screen (its own transforms, then the
+// camera) stays on the canopy's middle on screen (through the crate image, then the camera), and
+// the whole hunt scene shows exactly one picture of the crate's icon (R4).
 import { expect, test, type Page } from '@playwright/test';
 import { boot, collectErrors, isLandscape, isTouchProject, startHunt, waitTicks } from './helpers';
 
@@ -38,6 +39,8 @@ interface Sampled {
   tagged: number;
   maxOff: number;
   maxTags: number;
+  /** Fewest icon pictures on a drawn frame (R4: counted over the whole hunt scene). */
+  minTags: number;
   zoomed: number;
 }
 
@@ -56,6 +59,7 @@ async function sample(page: Page, n: number): Promise<Sampled> {
           tagged: 0,
           maxOff: 0,
           maxTags: 0,
+          minTags: 99,
           zoomed: 0,
         };
         const step = (): void => {
@@ -71,6 +75,7 @@ async function sample(page: Page, n: number): Promise<Sampled> {
               out.maxOff = Math.max(out.maxOff, Math.hypot(d.tag.x - d.spot.x, d.tag.y - d.spot.y));
             }
             out.maxTags = Math.max(out.maxTags, d.tags);
+            out.minTags = Math.min(out.minTags, d.tags);
           }
           if (out.frames >= count || out.total >= count * 4 || h?.over === true) resolve(out);
           else requestAnimationFrame(step);
@@ -145,7 +150,12 @@ test('a tagged crate shows one picture that stays on its canopy (pan, scope, sha
   const shake = await sample(page, 30);
 
   for (const s of [pan, back, scoped, shake]) {
-    expect(s.maxTags).toBeLessThanOrEqual(1);
+    // R4: exactly one picture of the crate's icon anywhere in the hunt scene on every frame
+    // the crate was drawn (the v1.7b bug drew two, in the screen layer).
+    if (s.frames > 0) {
+      expect(s.maxTags).toBe(1);
+      expect(s.minTags).toBe(1);
+    }
     expect(s.maxOff).toBeLessThan(1.5);
   }
   expect(pan.tagged + back.tagged).toBeGreaterThan(10);

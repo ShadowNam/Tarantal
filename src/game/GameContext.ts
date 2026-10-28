@@ -300,9 +300,9 @@ export interface TestHook {
     y: number;
     item: string | null;
     icon: string | null;
-    /** 1.9.2 (D-055): on screen (world transforms, zoom included): where the icon belongs (the
-     *  canopy or box front through the crate image), where its tag is drawn, and how many icon
-     *  tags the crate shows (1). */
+    /** 1.9.2 (D-055): on screen (own transforms, then the camera): where the icon belongs (the
+     *  canopy or box front through the crate image), the picture's centre, and how many
+     *  pictures of its icon the whole hunt scene shows (1; R4). */
     drawn: {
       spot: { x: number; y: number };
       tag: { x: number; y: number } | null;

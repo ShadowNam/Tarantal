@@ -299,17 +299,21 @@ export class WorldView {
     if (art === undefined) return null;
     const chute = art.img.texture.key === TEX.crateChute;
     const spot = crateTagSpot(chute);
+    // R4: on SCREEN, each through its own transforms and then the camera (not a shared parent):
+    // the canopy's (or box front's) middle through the crate image, the picture's centre.
+    const cam = this.scene.cameras.main;
+    const toScreen = screenOf(cam);
     // The image's local space is texture px around its origin (the crate centre).
-    const m = art.img.getWorldTransformMatrix();
-    const p = m.transformPoint(spot.dx, spot.dy, { x: 0, y: 0 });
-    // Every icon picture this crate has on screen (one tag by design; two was the v1.7b bug).
-    const tags = art.tag !== null && art.tag.box.visible ? 1 : 0;
+    const p = art.img.getWorldTransformMatrix().transformPoint(spot.dx, spot.dy, { x: 0, y: 0 });
     let tag: { x: number; y: number } | null = null;
     if (art.tag !== null) {
-      const t = art.tag.box.getWorldTransformMatrix();
-      tag = { x: t.tx, y: t.ty };
+      const t = art.tag.pic.getWorldTransformMatrix();
+      tag = toScreen(t.tx, t.ty);
     }
-    return { spot: { x: p.x, y: p.y }, tag, tags };
+    // R4: every visible game object anywhere in the hunt scene (every layer, the screen layer
+    // too) showing this crate's icon texture: one by design; the v1.7b bug drew two.
+    const tags = art.icon === null ? 0 : countShowing(this.scene.children.list, art.icon);
+    return { spot: toScreen(p.x, p.y), tag, tags };
   }
 
   /** v1.7b (D-046): the icon a crate shows (null = none drawn yet, or no icon). */
@@ -717,4 +721,42 @@ export class WorldView {
  */
 function crateTagSpot(chute: boolean): { dx: number; dy: number; r: number } {
   return chute ? { dx: 0, dy: -240, r: 74 } : { dx: -9, dy: 13, r: 40 };
+}
+
+/** R4 (e2e): a world point → screen px through the camera (scroll, zoom, shake: the camera's
+ *  own getWorldPoint, inverted as the affine map it is). */
+function screenOf(
+  cam: Phaser.Cameras.Scene2D.Camera,
+): (x: number, y: number) => { x: number; y: number } {
+  const o = cam.getWorldPoint(0, 0);
+  const ex = cam.getWorldPoint(1, 0);
+  const ey = cam.getWorldPoint(0, 1);
+  const a = ex.x - o.x;
+  const b = ex.y - o.y;
+  const c = ey.x - o.x;
+  const d = ey.y - o.y;
+  const det = a * d - b * c || 1;
+  return (x, y) => {
+    const wx = x - o.x;
+    const wy = y - o.y;
+    return { x: (d * wx - c * wy) / det, y: (-b * wx + a * wy) / det };
+  };
+}
+
+/** R4 (e2e): visible game objects (their parents visible too, alpha above 0) whose texture is
+ *  `key`, anywhere under `list`. */
+function countShowing(list: readonly Phaser.GameObjects.GameObject[], key: string): number {
+  let n = 0;
+  for (const o of list) {
+    const v = o as Phaser.GameObjects.GameObject & {
+      visible?: boolean;
+      alpha?: number;
+      texture?: { key: string };
+      list?: Phaser.GameObjects.GameObject[];
+    };
+    if (v.visible === false || v.alpha === 0) continue;
+    if (o instanceof Phaser.GameObjects.Container) n += countShowing(o.list, key);
+    else if (v.texture?.key === key) n++;
+  }
+  return n;
 }
