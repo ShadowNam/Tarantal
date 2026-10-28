@@ -306,6 +306,19 @@ describe('v1.3 rifles: hold to zoom, release to fire (D-036)', () => {
     return { canvas, queued, mapper, at };
   }
 
+  it('1.9.2 (D-055): under the red dot (sight zoom 1, redDot.ts) a move aims 1:1', () => {
+    const { canvas, queued, mapper, at } = rifleRig(1920, 1, 1);
+    const e = { pointerId: 1, pointerType: 'mouse', button: 0, timeStamp: 0 };
+    canvas.emit('pointerdown', { ...e, ...at(-200, 500) });
+    canvas.emit('pointermove', { ...e, ...at(-160, 540) });
+    mapper.perTick();
+    const tick = mapper.perTick();
+    canvas.emit('pointerup', { ...e, ...at(-160, 540) });
+    mapper.destroy();
+    expect(queued[0]).toEqual({ t: 'aimStart', dx: -200, sy: 500 });
+    expect(tick.filter((c) => c.t === 'aimMove')).toEqual([{ t: 'aimMove', dx: -160, sy: 540 }]);
+  });
+
   it('press raises the sight at the pointer, moves aim finer (÷ zoom, one per tick), release fires', () => {
     for (const [width, scale] of [
       [1920, 1],

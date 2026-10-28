@@ -143,6 +143,7 @@ import {
   sightTiming,
   swayAt,
   type Aim,
+  type SightTiming,
 } from './weapons/sight';
 import { bandGeometry, projectileBands, type Flight } from './weapons/projectile';
 import {
@@ -582,6 +583,11 @@ export function createSim(config: SimConfig): Sim {
   let nextOwnFlash = -1;
   let scheduleCursor = 0;
   const crateCfg = content.powerups.crates;
+  /** 1.9.2 (D-055): power-ups only a rifle can use (Rooikol): no crate holds them otherwise. */
+  const sightOnly: ReadonlySet<string> = new Set(
+    content.powerups.powerups.filter((p) => p.needsSight === true).map((p) => p.id),
+  );
+  const noSkip: ReadonlySet<string> = new Set();
   const crateTicks = ranged
     ? []
     : scheduleCrates(crateCfg, mode.id, durationTicks, rng.stream('crates'));
@@ -1279,6 +1285,14 @@ export function createSim(config: SimConfig): Sim {
     emit({ type: 'weaponChanged', tick, weapon: def.id, kind: 'crate' });
   }
 
+  /** 1.9.2 (D-055) Rooikol: a rifle's time between shots × fireCooldownMul (at least a tick). */
+  function rifleCooldown(): void {
+    if (sight === null) return;
+    const mul = effectsOf(powerups).fireCooldownMul;
+    if (mul === 1) return;
+    weaponState.cooldownTicks = Math.max(1, Math.round(timing.cooldownTicks * mul));
+  }
+
   /** Uses a shell (or crate-weapon shot). Returns the shells left to report, or null when the
    *  shot doesn't go off. */
   function pullTrigger(): number | null {
@@ -1296,6 +1310,7 @@ export function createSim(config: SimConfig): Sim {
         emit({ type: 'reloadInterrupted', tick, shells: weaponState.shells });
       }
       weaponState.cooldownTicks = timing.cooldownTicks;
+      rifleCooldown();
       return timing.magazine < 0 ? -1 : weaponState.shells;
     }
     const outcome = tryFire(weaponState, timing);
@@ -1311,6 +1326,7 @@ export function createSim(config: SimConfig): Sim {
     ticksSinceShot = 0;
     // The Kettie's draw is its reload (D-025): Blitslaai shortens it too (D-043).
     if (timing.magazine < 0) weaponState.cooldownTicks = reloadLen(weaponState.cooldownTicks);
+    rifleCooldown();
     return weaponState.shells;
   }
 
@@ -2191,6 +2207,7 @@ export function createSim(config: SimConfig): Sim {
         refScale: scoring.tuningRefScale,
       },
       rng.stream('crates'),
+      sight === null ? sightOnly : noSkip,
     );
     if (c === null) return;
     nextCrateId++;
@@ -2652,14 +2669,32 @@ export function createSim(config: SimConfig): Sim {
   function startAim(dx: number, sy: number): void {
     if (sight === null || !rifleInHand() || aim !== null) return;
     aim = raiseSight(dx, sy, zoomStep, swayRng, sight);
+    // 1.9.2 (D-055) Rooikol: a red dot is up the moment it is pressed (no raise, no zoom).
+    const fx = effectsOf(powerups);
+    const red = fx.redDot;
+    if (red) {
+      // Fixed for the whole hold: the power-up may end before the release.
+      aim.redDot = true;
+      aim.redDotSwayMul = fx.redDotSwayMul;
+      aim.heldTicks = sight.raiseTicks;
+    }
     emit({
       type: 'aimStarted',
       tick,
       sight: sight.id,
-      zoom: sight.zoom[zoomStep] ?? 1,
+      zoom: red ? 1 : (sight.zoom[zoomStep] ?? 1),
       dx,
       sy,
     });
+    if (red) emit({ type: 'aimRaised', tick, sight: sight.id });
+  }
+
+  /** The sway now: the sight's own, or (red dot) its first step's × redDotSwayMul. */
+  function swayOf(a: Aim, t: SightTiming): { dx: number; dy: number } {
+    if (a.redDot !== true) return swayAt(a, t);
+    const k = a.redDotSwayMul ?? 1;
+    const w = swayAt({ ...a, step: 0 }, t);
+    return { dx: w.dx * k, dy: w.dy * k };
   }
 
   function endAim(reason: 'cancel' | 'blocked' | 'reload' | 'weapon' | 'fired' | 'hip'): void {
@@ -2673,7 +2708,7 @@ export function createSim(config: SimConfig): Sim {
     const a = aim;
     if (a === null || sight === null) return;
     const up = isUp(a, sight);
-    const sway = up ? swayAt(a, sight) : { dx: 0, dy: 0 };
+    const sway = up ? swayOf(a, sight) : { dx: 0, dy: 0 };
     aim = null;
     const fired = fire(a.dx + sway.dx, a.sy + sway.dy, up ? 'sight' : 'hip', a);
     emit({ type: 'aimEnded', tick, reason: fired ? (up ? 'fired' : 'hip') : 'blocked' });
@@ -2703,9 +2738,10 @@ export function createSim(config: SimConfig): Sim {
 
   function aimView(): AimView | null {
     if (aim === null || sight === null) return null;
-    const sway = swayAt(aim, sight);
+    const sway = swayOf(aim, sight);
     return {
       sight: sight.id,
+      redDot: aim.redDot === true,
       zoom: sight.zoom[aim.step] ?? 1,
       progress: raiseProgress(aim, sight),
       dx: aim.dx,

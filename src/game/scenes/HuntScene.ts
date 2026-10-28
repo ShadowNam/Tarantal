@@ -4,6 +4,7 @@
 // HUD / the hunt log (meta) / the FTUE director, then draw the interpolated snapshot. The scene
 // never writes into the sim: input reaches it only as Commands. Esc, P, the HUD pause button or
 // a hidden tab open the pause menu; the hunt clock holds while it is open.
+import { inputSightZoom, redDotIds, redDotUp } from '../view/redDot';
 import { designSize } from '../layout';
 import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
@@ -356,6 +357,7 @@ export class HuntScene extends Phaser.Scene {
       ticksPerSecond: TICKS_PER_SECOND,
       before: this.ctx.faunaBefore,
       debug: this.ctx.faunaDebug,
+      still: this.ctx.faunaStill,
     });
     this.parallax.measureFill = this.ctx.hook !== null;
     this.boundsSource = this.parallax;
@@ -642,6 +644,14 @@ export class HuntScene extends Phaser.Scene {
   }
 
   /** v1.3: the picture a fitted sight draws (weapons.json sights), or null for no sight. */
+  /** 1.9.2 (D-055): the power-ups that swap a rifle's sight for a red dot. */
+  private get redDots(): ReadonlySet<string> {
+    this.redDotSet ??= redDotIds(this.ctx.content);
+    return this.redDotSet;
+  }
+
+  private redDotSet: ReadonlySet<string> | null = null;
+
   private sightPicture(id: string | null): SightPicture | null {
     if (id === null) return null;
     return this.ctx.content.weapons.sights.find((s) => s.id === id)?.picture ?? null;
@@ -1497,14 +1507,12 @@ export class HuntScene extends Phaser.Scene {
           (this.runner?.state.weapon.holdToFire ?? false) || this.ctx.prefs.holdToFire,
         weaponHolds: () => this.runner?.state.weapon.holdToFire ?? false,
         // v1.3: a rifle in hand (its fitted sight's zoom) holds to zoom and releases to fire.
-        sightZoom: () => {
-          const w = this.runner?.state.weapon;
-          if (w?.kind !== 'primary' || w.sight === null) return null;
-          const s = this.ctx.content.weapons.sights.find((x) => x.id === w.sight);
-          return s?.zoom[w.zoomStep] ?? s?.zoom[0] ?? null;
-        },
-        // v1.4 (D-038): a variable scope's steps, and the touch zoom buttons beside the ammo.
-        zoomSteps: () => hud.zoomOf(this.runner?.state.weapon),
+        // 1.9.2 (D-055) Rooikol: a red dot magnifies nothing, so fine aim moves 1:1 (for the
+        // whole hold it was pressed with: redDot.ts).
+        sightZoom: () => inputSightZoom(this.runner?.state, this.ctx.content, this.redDots),
+        // v1.4 (D-038): a variable scope's steps, and the touch zoom buttons beside the ammo
+        // (none under the red dot).
+        zoomSteps: () => hud.zoomOf(this.runner?.state),
         zoomButtonAt: (x, y) => hud.zoomButtonAt(x, y),
         readyToFire: () => {
           const w = this.runner?.state.weapon;
@@ -1715,13 +1723,18 @@ export class HuntScene extends Phaser.Scene {
     // v1.3 (D-036): a raised rifle sight zooms the world around the aim point (zoomView.ts).
     const { height } = designSize();
     // The hunt is over: the sight comes down (the tally never opens over a frozen scope view).
+    // 1.9.2 (D-055) Rooikol: a red dot is up at once and magnifies nothing (the view's call).
+    const aimed = runner.over ? null : interpolateAim(runner.prev, state, alpha);
+    // The hold's own red dot while aiming; the next press's while idle (R6: the picture isn't
+    // rebuilt on every press and release while the Rooikol runs).
+    const redDot = redDotUp(state, this.redDots);
     const zoom = zoomFor(
-      runner.over ? null : interpolateAim(runner.prev, state, alpha),
+      aimed !== null && redDot ? { ...aimed, zoom: 1, progress: 1 } : aimed,
       width,
       height,
     );
     this.zoomView = zoom;
-    this.sight.setPicture(this.sightPicture(state.weapon.sight));
+    this.sight.setPicture(redDot ? 'red_dot' : this.sightPicture(state.weapon.sight));
     // v1.4 (#56): a fully raised ring sight hides the screen outside its square.
     this.parallax.cullZoomed = HuntScene.cullZoomed;
     this.parallax.setZoom(zoom.z, zoom.cx, zoom.cy, this.sight.opaqueOutside(zoom));
@@ -1791,6 +1804,7 @@ export class HuntScene extends Phaser.Scene {
         reticleX: Math.round(z.reticleX * 10) / 10,
         reticleY: Math.round(z.reticleY * 10) / 10,
         sight: state.weapon.sight,
+        picture: this.sight.shown,
       };
     }
     const safe = this.ctx.safeArea();
@@ -1828,6 +1842,8 @@ export class HuntScene extends Phaser.Scene {
       hook.ticksLeft = state.ticksLeft;
       hook.score = state.score;
       hook.shells = state.weapon.shells;
+      hook.cooldownTicks = state.weapon.cooldownTicks;
+      hook.aimOffsetPx = this.ctx.prefs.crosshairOffsetPx;
       // D-029: GPU texture memory (RGBA bytes of every texture source), sampled twice a second.
       if (state.tick % 30 === 0) this.sampleTextures(hook);
       hook.magazine = state.weapon.magazine;
@@ -1896,6 +1912,7 @@ export class HuntScene extends Phaser.Scene {
         y: c.y,
         item: c.item,
         icon: this.world.crateIcon(c.id),
+        drawn: this.world.crateDrawn(c.id),
       }));
       hook.specialBirds = state.birds
         .filter((b) => b.motion === 'perch' || b.motion === 'boss' || b.motion === 'hop')

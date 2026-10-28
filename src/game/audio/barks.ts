@@ -6,8 +6,12 @@
 //   - One bark per frame at most (the highest priority), at most one per `gapMs` overall (the
 //     bible's 6 s, audio.barkGapMs), and each trigger at most once per its own cooldownMs.
 //   - A trigger that can't speak because of the gap is dropped, except the "while it lasts" ones
-//     (idle, lastSeconds, quotaMet, boss, stampede, oupaLaai), which try again on later frames; tally lines
+//     (idle, quotaMet, boss, stampede, oupaLaai), which try again on later frames; tally lines
 //     can ask `waitMs` and retry.
+//   - 1.9.2 (D-055): the ten-second call (lastSeconds) is said on the frame the clock reaches
+//     lastSeconds, whatever the gap: it cuts the line playing (a fresh bark stops the voice and
+//     replaces the bubble) and claims the gap. If it can't go out within lastSecondsLateSeconds
+//     (Oupa's comments off, a hunt resumed late) it is never said: a late "Ten seconds!" is wrong.
 //   - The director is the only gap clock (the HUD's Phaser time). A secret's own bark (biome
 //     content, shown in the HUD banner) always speaks and claims the gap (`secret`), so no generic
 //     line follows it within 6 s and the two never share the screen (D-028 review).
@@ -46,6 +50,8 @@ export interface Bark {
   readonly trigger: BarkTrigger;
   /** The line: an i18n key, and the voice key voice/<line>. */
   readonly line: string;
+  /** 1.9.2 (D-055): said now over anything else this frame (the ten-second call). */
+  readonly urgent?: true;
 }
 
 export class BarkDirector {
@@ -195,12 +201,22 @@ export class BarkDirector {
     cands.push(...this.pending);
     if (!this.idleSaid && f.tick - this.lastShotTick >= t.idleSeconds * f.ticksPerSecond)
       cands.push('idle');
-    if (!this.lastSecondsSaid && f.ticksLeft > 0 && f.ticksLeft <= t.lastSeconds * f.ticksPerSecond)
-      cands.push('lastSeconds');
+    // 1.9.2 (D-055): the ten-second call goes out on time or not at all (no gap, no queue).
+    if (
+      !this.lastSecondsSaid &&
+      f.ticksLeft > 0 &&
+      f.ticksLeft <= t.lastSeconds * f.ticksPerSecond
+    ) {
+      this.lastSecondsSaid = true;
+      const latest = (t.lastSeconds - t.lastSecondsLateSeconds) * f.ticksPerSecond;
+      if (f.ticksLeft >= latest) {
+        const call = this.force('lastSeconds', f.nowMs);
+        if (call !== null) return call;
+      }
+    }
 
     const bark = this.pick(cands, f.nowMs);
     if (bark?.trigger === 'idle') this.idleSaid = true;
-    if (bark?.trigger === 'lastSeconds') this.lastSecondsSaid = true;
     if (bark?.trigger === 'quotaMet') {
       this.quotaSaid = true;
       this.quotaPending = false;
@@ -237,6 +253,18 @@ export class BarkDirector {
    */
   secret(nowMs: number): void {
     this.lastAt = nowMs;
+  }
+
+  /** 1.9.2 (D-055): says a trigger's next line now, whatever the gap, and claims the gap. */
+  private force(trigger: BarkTrigger, nowMs: number): Bark | null {
+    const lines = this.tuning.triggers[trigger].lines;
+    const i = this.nextLine.get(trigger) ?? 0;
+    const line = lines[i % lines.length];
+    if (line === undefined) return null;
+    this.nextLine.set(trigger, i + 1);
+    this.lastAt = nowMs;
+    this.lastByTrigger.set(trigger, nowMs);
+    return { trigger, line, urgent: true };
   }
 
   private pick(cands: readonly BarkTrigger[], nowMs: number): Bark | null {

@@ -3031,6 +3031,54 @@ shaders. Docs: art bible (far animals); docs/06 §6b; docs/balance/perspective.m
 | Kalahari | — | 224.5 MB |
 | Namibië | — | 228.6 MB |
 
+**D-055 1.9.2 Playtest fixes: crate icons, the ten-second call, and the Rooikol (28 Oct 2026):**
+the product owner's playtest (27 Oct): "there should be an option, a power up that one can get for
+a red dot sight that just makes aiming and shooting so much faster"; a crate's power-up picture
+"in two positions at the wrong time … like there's a layer mismatch"; and "when it tells you
+you've got 10 seconds left … those 10 seconds don't seem to be 10 seconds. They're much shorter."
+- *Crate icon.* The disc + icon lived in the hunt's screen layer at a hand-worked position (the
+  plane's screen x, the raw sim y), so it ignored the plane layer's scope zoom and y, sat above
+  nearer planes' props, and showed twice while falling (canopy and box front). Now one tag per
+  crate, in the crate's own overlay layer above the crate (the overlay is above the layer's haze
+  bands and the light tint only touches static art, so nothing washes it out): on the canopy while
+  falling, on the box front once landed. e2e `crate-icon.spec.ts` checks every frame through a
+  pan, a raised scope and the shot's shake that the tag's world transform sits on the canopy
+  (through the crate image's transform) and that one tag shows.
+- *Ten-second call.* The hunt clock was right: 60 ticks a second, also through the Stampede (unit
+  test), and the HUD rounds up (9.9 s shows 0:10). The call waited for the 6 s bark gap, which
+  the Stampede's own call (15 s left) holds until 9 s left, and later lines pushed it further. Now
+  `lastSeconds` skips the gap and the frame's other picks, cuts the line playing (a new bark
+  replaces the bubble and stops the voice) and claims the gap; if the first frame that sees ≤ 10 s
+  is past 9.5 s (`barks.lastSecondsLateSeconds`), it is never said: a late "Ten seconds!" is wrong.
+  An exception to D-028's "never share the screen": a secret's own bark claims the gap, and if the
+  clock reaches 10 s inside that gap the ten-second call is still said, so its bubble can show
+  while the secret's banner is up. The clock wins: the call is worthless late.
+- *Rooikol (red dot sight).* A timed power-up (`powerups.json`): `redDot` — a rifle's sight is up
+  on the press tick, sways as its first zoom step × `redDotSwayMul` (0.6), and the view draws it
+  at 1× with a red-dot reticle (SightView 'red_dot'; the input's fine aim moves 1:1); and
+  `fireCooldownMul` 0.75 on a rifle's time between shots; 15 s. Rifles only (`needsSight`): crates
+  hold it only when the hunt's gun has a sight — elsewhere it weighs 0, so a shotgun hunt's crates
+  draw exactly as before — and no `padstalPrice`, so the Padstal never offers it (the run's gun can
+  change between hunts; `padstalPrice` is now optional for such power-ups). A hold started under
+  the red dot stays a red dot until released. Hunts with a rifle drop it at weight 14 (114 in all).
+  Name in i18n: Rooikol (af and the Afrikaans names toggle), Red Dot, Rotpunkt, Rode Stip; Oupa's
+  first-pickup line is text only (no recording yet). Balance (docs/balance/rooikol.md, 500 seeds,
+  every crate a Rooikol vs a no-op crate): competent .22 +111, Langloop +385; × 0.5 and × 0.6
+  cooldowns cost the .22's bots points (they shoot at once and each shot alarms the flocks);
+  bonus-map cap ≤ 4 500 holds (highest 3 982). Golden replays re-recorded: shotgun replays keep
+  their events; the four rifle replays change (their crates roll from the new table).
+- *First download.* The Rooikol's strings and code grew the first download by 1.8 KB gzip. The
+  power-up guide's long sentences (`guide.effect/tip/how.*`, every item, four languages) moved to
+  their own lazy tables (`src/i18n/guide/<lang>.json`, loaded as a hunt or the Gun Shed starts,
+  like the Skietbaan's and the Graphics card's): 2 991.4 KB, 0.8 KB under main. The first-pickup
+  card shows the short line if they are not in yet; the Shed redraws when they land.
+- *CI shards.* Playwright splits a run into shards by test count, and the art-preview specs' tests
+  (run only with `ART_PREVIEW=1`) counted though they skip. The first two desktop shards ran about
+  4 min; the last held every long spec (30 min on main, 44 min on a slow runner with this PR's
+  specs and one retry) and hit the job's 45-min limit. `playwright.config.ts` now ignores the
+  art-preview specs unless `ART_PREVIEW=1`, so the four desktop and three Pixel 7 shards hold 40–54
+  tests each. The Skietbaan's long tests get 10 min (about 5 on a typical runner, 7 on a slow one).
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

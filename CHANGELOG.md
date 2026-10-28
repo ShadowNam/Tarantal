@@ -3,6 +3,28 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.9.2] — Playtest fixes: crate icons, the ten-second call, and the red dot sight (28 Oct 2026)
+
+Decision record D-055. From the product owner's playtest on 27 Oct.
+
+### Added
+- **Rooikol, the red dot sight** (Red Dot / Rotpunkt / Rode Stip): a power-up for the rifles (the
+  .22 and the Langloop). For 15 s the rifle aims through a red dot instead of its sight: ready the
+  moment you press (no zooming in or out), a calm dot, and 75 % of the time between shots. No
+  magnification, so far birds stay small. It drops from crates only while you carry a rifle; not
+  sold at the Padstal. Its own icon (with an HD twin), pickup card, HUD chip, a Gun Shed card and a
+  line from Oupa (text only for now).
+
+### Fixed
+- **The crate's power-up picture** sat in a screen layer at a hand-worked position: during a pan,
+  through a scope or in a screen shake it showed beside the crate, and while falling it showed
+  twice (on the canopy and on the box). It now sits in the crate's own layer, once: on the canopy
+  while it falls, on the box once it lands.
+- **"Ten seconds!"** waited out Oupa's 6 s gap behind the Stampede's call (said at 15 s left), so it
+  often came at 6 s or less. It is now said the moment the clock shows 0:10, cutting any line
+  playing, or not at all if it can't be said by 9.5 s. The hunt clock itself was right (60 ticks a
+  second, also through the Stampede; the HUD rounds up, 9.9 s shows 0:10).
+
 ## [1.9.1] — Far animals in HD: realistic herds on every map (27 Oct 2026)
 
 Decision record D-054. The product owner (26 Oct): "The zebras, giraffes and elephants look very

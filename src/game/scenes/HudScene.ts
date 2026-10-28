@@ -7,6 +7,7 @@
 // left-handed mirroring, and the ⛔ call-out only for creatures not yet in the Bird Book (first
 // sighting ever). A separate scene so camera shake never moves it. Fed each frame by HuntScene
 // with the latest snapshot and that frame's events.
+import { redDotIds, redDotUp } from '../view/redDot';
 import { designSize } from '../layout';
 import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
@@ -18,6 +19,7 @@ import { msToTicks } from '../../sim/clock';
 import { markSeen } from '../../meta/powerupsSeen';
 import { isOupaLine, oupaShows } from '../audio/oupaMode';
 import { PickupCard } from '../ui/PickupCard';
+import { guideLoaded, loadGuide } from '../ui/guideI18n';
 import { effectText, shortText } from '../ui/powerupGuide';
 import { TEX } from '../assets/AssetManifest';
 import { powerupIcon, powerupIconEpoch, upgradePowerupIcons } from '../ui/powerupIcons';
@@ -199,6 +201,8 @@ export class HudScene extends Phaser.Scene {
   }
 
   create(): void {
+    // 1.9.2 (D-055): the power-up guide's sentences (the first-pickup card) load in the background.
+    void loadGuide();
     this.pops = [];
     // v1.6 (D-042): the build stamp, bottom left beside the gadget (or the belt, left-handed).
     this.buildStamp = new StampLabel(this, this.ctx, cornerStampShown(this.ctx));
@@ -468,11 +472,18 @@ export class HudScene extends Phaser.Scene {
     );
   }
 
-  /** v1.4 (D-038): the variable scope's zoom steps for the gun in hand, or null. */
+  /** 1.9.2 (D-055): the red-dot power-ups (redDot.ts). */
+  private redDotSet: ReadonlySet<string> | null = null;
+
+  /** v1.4 (D-038): the variable scope's zoom steps for the gun in hand, or null. 1.9.2 (D-055):
+   *  null under the Rooikol's red dot (no zoom, so no panel and no −/+ buttons to take taps). */
   zoomOf(
-    w: SimState['weapon'] | undefined,
+    s: Pick<SimState, 'weapon' | 'aim' | 'powerups'> | null | undefined,
   ): { readonly zooms: readonly number[]; readonly step: number } | null {
+    const w = s?.weapon;
     if (w?.kind !== 'primary' || w.sight === null) return null;
+    this.redDotSet ??= redDotIds(this.ctx.content);
+    if (redDotUp(s, this.redDotSet)) return null;
     const zooms = this.ctx.content.weapons.sights.find((x) => x.id === w.sight)?.zoom;
     return zooms !== undefined && zooms.length > 1 ? { zooms, step: w.zoomStep } : null;
   }
@@ -480,7 +491,7 @@ export class HudScene extends Phaser.Scene {
   /** v1.4: the touch zoom button under (x, y) (−1 out, +1 in), or null (none, or a mouse). */
   zoomButtonAt(x: number, y: number): -1 | 1 | null {
     const l = this.layoutNow;
-    if (l === null || this.inputKind === 'pointer' || this.zoomOf(this.lastState?.weapon) === null)
+    if (l === null || this.inputKind === 'pointer' || this.zoomOf(this.lastState) === null)
       return null;
     if (rectContains(l.zoomOut, x, y)) return -1;
     if (rectContains(l.zoomIn, x, y)) return 1;
@@ -489,7 +500,8 @@ export class HudScene extends Phaser.Scene {
 
   private drawZoom(s: SimState): void {
     const l = this.layoutNow;
-    const z = this.zoomOf(s.weapon);
+    const z = this.zoomOf(s);
+    if (this.ctx.hook) this.ctx.hook.zoomPanel = l !== null && z !== null;
     if (l === null || z === null) {
       this.zoomPanel.image.setVisible(false);
       this.zoomText.setVisible(false);
@@ -1328,9 +1340,12 @@ export class HudScene extends Phaser.Scene {
           id,
           icon: this.textures.exists(icon) ? icon : null,
           name: tOr(`item.${id}`, id),
-          line: fresh
-            ? effectText(this.ctx.content, id, tr, lang)
-            : shortText(this.ctx.content, id, tr, lang),
+          // 1.9.2 (D-055): the full sentence comes from the lazy guide tables (loading since the
+          // hunt began); if they aren't in yet, the short line.
+          line:
+            fresh && guideLoaded()
+              ? effectText(this.ctx.content, id, tr, lang)
+              : shortText(this.ctx.content, id, tr, lang),
           first: fresh,
           newTag: t('pickup.new'),
         },
@@ -1449,7 +1464,8 @@ export class HudScene extends Phaser.Scene {
       frenzyTopMul: Math.max(...this.ctx.content.scoring.frenzyTiers.map((f) => f.mul)),
       quotaReached,
     });
-    bark ??= picked;
+    // 1.9.2 (D-055): the ten-second call wins over a first pickup's line on the same frame.
+    if (picked !== null && (bark === null || picked.urgent === true)) bark = picked;
     if (bark !== null)
       sayBark(
         this.ctx,
@@ -1457,7 +1473,9 @@ export class HudScene extends Phaser.Scene {
         bark.line,
         l.bark,
         now,
-        firstPickup === null ? {} : { item: tOr(`item.${firstPickup}`, firstPickup) },
+        firstPickup === null || bark.urgent === true
+          ? {}
+          : { item: tOr(`item.${firstPickup}`, firstPickup) },
       );
   }
 

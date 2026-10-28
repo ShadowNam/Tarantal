@@ -53,6 +53,17 @@
       },
       "durationMs": 12000,
       "padstalPrice": 2
+    },
+    {
+      "$comment": "1.9.2 (D-055) Rooikol, the red dot sight: for its time a rifle (the .22 and the Langloop) aims through a red dot instead of its sight: up the moment it is pressed (no raise, no zoom in or out), the sway of the sight's first step x redDotSwayMul, and fireCooldownMul x the time between shots. No magnification (the view stays at 1x), so far birds stay small. Rifle only: crates hold it only when the hunt's gun has a sight, and the Padstal never sells it (no padstalPrice). Numbers from the balance sim (docs/balance/rooikol.md).",
+      "id": "rooikol",
+      "effect": {
+        "redDot": true,
+        "redDotSwayMul": 0.6,
+        "fireCooldownMul": 0.75
+      },
+      "durationMs": 15000,
+      "needsSight": true
     }
   ],
   "reloadFloorMs": 150,
@@ -104,6 +115,10 @@
       {
         "id": "oupa_laai",
         "weight": 18
+      },
+      {
+        "id": "rooikol",
+        "weight": 14
       },
       {
         "id": "voorlaaier",

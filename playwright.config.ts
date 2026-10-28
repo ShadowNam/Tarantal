@@ -50,6 +50,10 @@ export const buildEnv = publicBuild
     ? 'VITE_TEST_HOOKS=1 '
     : `VITE_PLATFORM=${e2ePlatform} VITE_TEST_HOOKS=1 `;
 const skip = process.env['E2E_SKIP'] || undefined;
+// The art-preview specs run only on demand (ART_PREVIEW=1). Left in, their skipped tests still
+// count when Playwright splits a run into shards by test count: CI's first desktop shards were
+// nearly empty while the last one, with every long spec, ran past the job's 45-min limit (D-055).
+const artPreview = process.env['ART_PREVIEW'] === '1';
 
 export default defineConfig({
   testDir: 'tests/e2e',
@@ -66,6 +70,7 @@ export default defineConfig({
   ...(publicBuild ? { testMatch: '**/daily-public.spec.ts' } : only ? { testMatch: only } : {}),
   testIgnore: [
     ...(publicBuild ? [] : ['**/daily-public.spec.ts']),
+    ...(artPreview ? [] : ['**/art-preview*.spec.ts']),
     ...(skip ? skip.split(',').filter(Boolean) : []),
   ],
   outputDir: 'test-results',

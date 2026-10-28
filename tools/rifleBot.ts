@@ -53,6 +53,10 @@ export function withRifle(
   const planes = content.scoring.planes;
   const creatures = new Map(content.birds.creatures.map((c) => [c.id, c]));
   const sights = new Map(content.weapons.sights.map((s) => [s.id, s]));
+  /** 1.9.2 (D-055): power-ups that swap the sight for a red dot (no magnification). */
+  const redDots = new Set(
+    content.powerups.powerups.filter((p) => p.effect.redDot === true).map((p) => p.id),
+  );
   let target: number | null = null;
   /** The raise is for something that isn't a bird (a crate, a secret part): hold the point the
    *  bot wanted and release (review of v1.3: the bot never shot crates or secrets). */
@@ -100,7 +104,9 @@ export function withRifle(
       const w = s.weapon;
       if (w.kind !== 'primary' || w.sight === null) return inner_;
       const sight = sights.get(w.sight);
-      const zoom = sight?.zoom[w.zoomStep] ?? 1;
+      // Under a red dot the bot sees the birds at 1× (its aim error isn't divided down).
+      const red = s.powerups.some((p) => redDots.has(p.id));
+      const zoom = red ? 1 : (sight?.zoom[w.zoomStep] ?? 1);
       const out = inner_.filter((c) => c.t !== 'fire');
       const want = inner_.find((c): c is Extract<Command, { t: 'fire' }> => c.t === 'fire');
       const aim = s.aim;

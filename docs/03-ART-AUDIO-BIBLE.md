@@ -593,7 +593,9 @@ libraries (e.g. xeno-canto) use Creative Commons licences, many **NonCommercial*
 "Mooi skoot, my kind!" · "Ag nee man!" · "Jinne, kyk hoe hardloop hulle!" · "Die hele swerm!" ·
 "Twee vlieë met een klap!" · "Laai, laai, laai!" (reload) · "Los die kwêvoël uit!" (leave the go-away-
 bird alone) · "Kos is reg!" · "Stadsjapie…" (gentle teasing after a bad hunt) · "Bosveld Legend!".
-Max one bark per 6 s; never over a tally count-up.
+Max one bark per 6 s; never over a tally count-up. The one exception (1.9.2, D-055): the ten-second
+call is said the moment the clock reaches 10 s, cutting any line playing, or not at all after
+9.5 s (`feel.json → barks.lastSecondsLateSeconds`).
 *v1.0.1 (D-028):* 39 launch lines are in the game, each with its trigger (`content/client/feel.json
 → barks`), text in en/af/de/nl, a speech bubble as its subtitle, and a `voice/bark.<id>` key waiting
 for the recording (`docs/06-ASSET-DELIVERY.md` lists them).

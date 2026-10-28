@@ -3839,6 +3839,17 @@
       "width": 128,
       "height": 128
     },
+    "ui/pu_rooikol": {
+      "group": "late",
+      "origin": "interim",
+      "file": {
+        "path": "assets/late/img/ui_pu_rooikol.14871caf8667.png",
+        "bytes": 3040,
+        "hash": "14871caf8667"
+      },
+      "width": 128,
+      "height": 128
+    },
     "ui/pu_voorlaaier": {
       "group": "late",
       "origin": "interim",

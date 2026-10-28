@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { loadContent } from '../../../tools/testContent';
 import type { ContentBundle } from '../../content/schemas';
 import enStrings from '../../i18n/en.json';
-import { LANGUAGES, translator } from '../../i18n/i18n';
+import { LANGUAGES, setAfrikaansNames, translator } from '../../i18n/i18n';
+import { setGuideTables } from './guideI18n';
+import { GUIDE_TABLES } from './guideTables';
 import {
   effectText,
   formatNumber,
@@ -14,6 +16,8 @@ import {
 
 const content = loadContent();
 const en = translator('en');
+// 1.9.2 (D-055): the guide's sentences are a lazy table in the game; here they are in at once.
+setGuideTables(GUIDE_TABLES);
 
 /** The content with every number a sentence uses changed to an odd value. */
 function oddNumbers(b: ContentBundle): ContentBundle {
@@ -23,7 +27,7 @@ function oddNumbers(b: ContentBundle): ContentBundle {
       ...b.powerups,
       powerups: b.powerups.powerups.map((p) => ({
         ...p,
-        padstalPrice: 17,
+        ...(p.padstalPrice !== undefined ? { padstalPrice: 17 } : {}),
         ...(p.durationMs !== undefined ? { durationMs: 13_000 } : {}),
         ...(p.durationShells !== undefined ? { durationShells: 11 } : {}),
         effect: {
@@ -32,6 +36,7 @@ function oddNumbers(b: ContentBundle): ContentBundle {
           ...(p.effect.creatureTimeScale !== undefined ? { creatureTimeScale: 0.37 } : {}),
           ...(p.effect.reloadTimeMul !== undefined ? { reloadTimeMul: 0.37 } : {}),
           ...(p.effect.idleTopUpMs !== undefined ? { idleTopUpMs: 900 } : {}),
+          ...(p.effect.fireCooldownMul !== undefined ? { fireCooldownMul: 0.37 } : {}),
         },
       })),
     },
@@ -54,7 +59,7 @@ function oddNumbers(b: ContentBundle): ContentBundle {
 }
 
 describe('the power-up guide (D-046)', () => {
-  it('has a card for each of the four power-ups, the two reload ones and the two crate guns', () => {
+  it('has a card for each of the four power-ups, the two reload ones, the Rooikol and the two crate guns', () => {
     expect(guideIds(content).map((c) => c.id)).toEqual([
       'chilli_biltong',
       'boeretroos',
@@ -62,6 +67,7 @@ describe('the power-up guide (D-046)', () => {
       'meerkat_spotter',
       'blitslaai',
       'oupa_laai',
+      'rooikol',
       'voorlaaier',
       'mielie_masjien',
     ]);
@@ -117,6 +123,20 @@ describe('the power-up guide (D-046)', () => {
       'Rent it at the Farm Stall in a Season Run for one hunt: 5 caps',
     );
     expect(by('meerkat_spotter')?.how).toContain('Some farm secrets give it too');
+    // 1.9.2 (D-055): rifle-only, from crates, never sold.
+    expect(by('rooikol')?.how).toEqual([
+      'Shoot a supply crate in a Classic or Daily hunt while you carry a rifle (The Twenty-Two · The Long Rifle)',
+    ]);
+    expect(by('rooikol')?.effect).toContain('75 % of normal');
+    expect(by('rooikol')?.icon).toBe('ui/pu_rooikol');
+    // R5: the names follow the Afrikaans-names toggle (from the weapon.* keys, not the sentence).
+    setAfrikaansNames(true);
+    try {
+      const af = guideCards(content, [], en, 'en').find((c) => c.id === 'rooikol');
+      expect(af?.how[0]).toContain('(Twee-Twee · Die Langloop)');
+    } finally {
+      setAfrikaansNames(false);
+    }
     expect(by('oupa_laai')?.found).toBe(true);
     expect(by('blitslaai')?.found).toBe(false);
     expect(by('chilli_biltong')?.icon).toBe('ui/pu_chilli_biltong');
@@ -136,7 +156,15 @@ describe('power-up strings carry no numbers of their own (D-046)', () => {
     for (const lang of LANGUAGES) {
       const tr = translator(lang);
       const keys = Object.keys(enStrings).filter((k) => prefixes.some((p) => k.startsWith(p)));
-      expect(keys.length).toBeGreaterThan(40);
+      expect(keys.length).toBeGreaterThan(20);
+      // 1.9.2 (D-055): the long guide sentences in their lazy tables too.
+      const guideKeys = Object.keys(GUIDE_TABLES.en);
+      expect(guideKeys.length).toBeGreaterThan(20);
+      for (const key of guideKeys) {
+        const text = GUIDE_TABLES[lang][key] ?? '';
+        expect(text.length, `${lang} ${key}`).toBeGreaterThan(0);
+        expect(text.replace(/\{\w+\}/g, ''), `${lang} ${key}`).not.toMatch(/\d/);
+      }
       for (const key of keys) {
         const text = tr.or(key, '');
         expect(text.replace(/\{\w+\}/g, ''), `${lang} ${key}`).not.toMatch(/\d/);

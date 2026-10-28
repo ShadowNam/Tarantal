@@ -1,0 +1,65 @@
+{
+ "seeds": 500,
+ "mode": "classic",
+ "input": "pointer",
+ "bots": [
+  "competent",
+  "plinker"
+ ],
+ "overrides": [],
+ "summaries": [
+  {
+   "bot": "competent",
+   "hunts": 500,
+   "mean": 2611.714,
+   "p15": 1825,
+   "p25": 2065,
+   "p50": 2588,
+   "p75": 3176,
+   "p85": 3454,
+   "wingShotShare": 0.6117392586766296,
+   "wholeFlocksPerHunt": 0,
+   "wholeFlockHuntRate": 0,
+   "flushesPerHunt": 9.048,
+   "twoFliesPerHunt": 0.018,
+   "accuracy": 0.6577942622346906,
+   "secretsPerHunt": 4.808,
+   "cratesPerHunt": 1.968,
+   "penaltiesPerHunt": 0.016,
+   "verPerHunt": 0
+  },
+  {
+   "bot": "plinker",
+   "hunts": 500,
+   "mean": 2378.136,
+   "p15": 1679,
+   "p25": 1893,
+   "p50": 2300,
+   "p75": 2779,
+   "p85": 3114,
+   "wingShotShare": 0.5311245962611334,
+   "wholeFlocksPerHunt": 0,
+   "wholeFlockHuntRate": 0,
+   "flushesPerHunt": 4.61,
+   "twoFliesPerHunt": 0.048,
+   "accuracy": 0.853871058720798,
+   "secretsPerHunt": 0.028,
+   "cratesPerHunt": 2,
+   "penaltiesPerHunt": 0.002,
+   "verPerHunt": 0
+  }
+ ],
+ "gates": [
+  {
+   "name": "competent mean in 2 500\u20134 500 (Bosveldjagter)",
+   "pass": true,
+   "detail": "2612"
+  },
+  {
+   "name": "plinker \u2265 25 % below competent",
+   "pass": false,
+   "detail": "8.9 % below"
+  }
+ ],
+ "seconds": 195.860046848
+}

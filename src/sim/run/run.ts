@@ -282,11 +282,14 @@ export function rollOffers(content: ContentBundle, run: RunState, rerolls: numbe
     candidates.splice(k, 1);
     offers.push({ kind: 'charm', id: c.id, price: content.charms.prices[c.rarity], bought: false });
   }
-  const powerups = content.powerups.powerups;
+  // 1.9.2 (D-055): a power-up without a Padstal price (the rifle-only Rooikol) is never offered.
+  const powerups = content.powerups.powerups.flatMap((pu) =>
+    pu.padstalPrice === undefined ? [] : [{ id: pu.id, price: pu.padstalPrice }],
+  );
   for (let i = 0; i < p.consumableOffers && powerups.length > 0; i++) {
     const pu = powerups[rng.int(0, powerups.length - 1)];
     if (pu !== undefined)
-      offers.push({ kind: 'consumable', id: pu.id, price: pu.padstalPrice, bought: false });
+      offers.push({ kind: 'consumable', id: pu.id, price: pu.price, bought: false });
   }
   const crates = content.weapons.weapons.filter((w) => w.kind === 'crate');
   for (let i = 0; i < p.weaponOffers && crates.length > 0; i++) {

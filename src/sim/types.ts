@@ -307,6 +307,8 @@ export interface WeaponView {
 /** v1.3 (D-036): a raised (or rising) sight. Positions are design px of the unzoomed screen. */
 export interface AimView {
   readonly sight: string;
+  /** 1.9.2 (D-055) Rooikol: a red dot instead of the sight (the view draws no zoom). */
+  readonly redDot: boolean;
   /** Zoom of the fitted sight at its current step (×), reached when progress is 1. */
   readonly zoom: number;
   /** 0..1 while the sight comes up; 1 = up (a release fires through the sight). */

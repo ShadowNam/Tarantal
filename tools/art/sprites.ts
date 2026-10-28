@@ -1285,6 +1285,30 @@ function puMielieMasjien(p: SpriteCtx): string {
   );
 }
 
+/** 1.9.2 (D-055) Rooikol icon: a small reflex sight on its rail, the bright red dot glowing in
+ *  its round glass window, a windage knob on the side. */
+function puRooikol(p: SpriteCtx): string {
+  const steel = tone(p.c('metal'), 0.3, 0.35);
+  const glass = tone('#8FB7BF', 0.25, 0.3);
+  return g(
+    { transform: 'translate(0 2)' },
+    // The rail clamp under it, then the hood around the glass.
+    inked('M-26 14L26 14L24 22L-24 22Z', steel.dark, p.ink, 2.4),
+    flat('M-22 16L22 16L21 18L-21 18Z', steel.light),
+    inked('M-25 15L-25 -4Q-25 -27 0 -27Q25 -27 25 -4L25 15Z', steel.fill, p.ink, 2.8),
+    flat('M-21 -6Q-20 -22 0 -23Q-14 -18 -17 -4Z', steel.light),
+    // The knob on the right side.
+    inked('M24 -6L30 -6L30 6L24 6Z', steel.dark, p.ink, 2),
+    // Glass: a tinted window with a pale sheen at the top left.
+    inked(ellipseD(0, -4, 17, 15.5), glass.fill, p.ink, 2.4),
+    flat('M-12 -12Q-6 -18 4 -17Q-6 -13 -10 -6Z', glass.light, { opacity: 0.85 }),
+    // The red dot: a soft glow, the dot, a hot pale core.
+    flat(ellipseD(0, -4, 9, 9), '#FF4A2E', { opacity: 0.4 }),
+    inked(ellipseD(0, -4, 4.6, 4.6), '#E8241A', '#5A0D06', 1.4),
+    flat(ellipseD(-0.8, -4.8, 1.6, 1.6), '#FFE2D8'),
+  );
+}
+
 /** v1.6b (D-043) Blitslaai's glint on the belt: a small spark of lightning (a local sprite). */
 function boltGlint(p: SpriteCtx): string {
   return g(
@@ -1378,6 +1402,7 @@ export const SPRITES: readonly SpriteSpec[] = [
       ['meerkat_spotter', puMeerkatSpotter],
       ['voorlaaier', puVoorlaaier],
       ['mielie_masjien', puMielieMasjien],
+      ['rooikol', puRooikol],
     ] as const
   ).map(([id, draw]) => ({
     key: `ui/pu_${id}`,

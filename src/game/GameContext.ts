@@ -171,6 +171,12 @@ export interface TestHook {
   ticksLeft: number;
   score: number;
   shells: number;
+  /** 1.9.2 (D-055): ticks until the gun may fire again (0 = ready). */
+  cooldownTicks: number;
+  /** 1.9.2 (D-055): the Langloop's zoom panel (−/+ and "3×") is on screen. */
+  zoomPanel: boolean;
+  /** 1.9.2 (D-055): how far above a finger it aims (Settings → offset crosshair; 0 = none). */
+  aimOffsetPx: number;
   /** M8: belt size (-1 = no belt, Kettie), reloading, and Kettie stones in the air. */
   magazine: number;
   reloading: boolean;
@@ -186,6 +192,9 @@ export interface TestHook {
     reticleX: number;
     reticleY: number;
     sight: string | null;
+    /** 1.9.2 (D-055): the sight picture on screen this frame ('red_dot' under the Rooikol),
+     *  null while the sight is down. */
+    picture: string | null;
     /** v1.4 (#56): screens' worth of world-layer pixels drawn in the last frame. */
     fill: number;
   };
@@ -285,7 +294,21 @@ export interface TestHook {
   /** D-049: hittable far-plane targets' body centres on the screen (design px), for aiming. */
   farBirds: { id: number; x: number; y: number }[];
   /** v1.7b: each crate's item and the icon drawn on it (null = none). */
-  crateSpots: { id: number; x: number; y: number; item: string | null; icon: string | null }[];
+  crateSpots: {
+    id: number;
+    x: number;
+    y: number;
+    item: string | null;
+    icon: string | null;
+    /** 1.9.2 (D-055): on screen (own transforms, then the camera): where the icon belongs (the
+     *  canopy or box front through the crate image), the picture's centre, and how many
+     *  pictures of its icon the whole hunt scene shows (1; R4). */
+    drawn: {
+      spot: { x: number; y: number };
+      tag: { x: number; y: number } | null;
+      tags: number;
+    } | null;
+  }[];
   specialBirds: { id: number; creature: string; phase: string; x: number; y: number }[];
   /** Active weapon id, power-up ids, wind (omen) and hunt length (bonus time grows it). */
   weapon: string;
@@ -611,6 +634,8 @@ export interface GameContext {
   readonly faunaBefore: boolean;
   /** e2e/dev only (?faunaDebug=1): every far-animal part's frame outlined (assembly checks). */
   readonly faunaDebug: boolean;
+  /** e2e/dev only (?faunaIdle=0, R10): far animals held at rest (bounds compare across runs). */
+  readonly faunaStill: boolean;
   /** e2e/dev only: ?omen=1 / ?omen=0 overrides the mode's omen. */
   readonly omen: boolean | undefined;
   /** e2e/dev only: ?biome= plays Classic hunts in another playable biome (M8). */

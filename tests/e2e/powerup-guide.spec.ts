@@ -1,5 +1,5 @@
 // v1.7b (D-046): power-ups explained, and Oupa's switch, on every landscape profile (desktop,
-// Pixel 7, iPhone 14). The Gun Shed's Power-ups tab shows all eight cards with their icons and
+// Pixel 7, iPhone 14). The Gun Shed's Power-ups tab shows all nine cards (1.9.2: the Rooikol) with their icons and
 // scrolls; a hunt with `?crate=boeretroos` picks up the first crate: its card says what it does
 // (the full sentence the first time, its numbers from content) and its chip counts down; with
 // Oupa's comments Off no bark is shown or voiced in a hunt; with Text only his bubble shows but
@@ -9,6 +9,7 @@ import { expect, test, type Page } from '@playwright/test';
 import feel from '../../content/client/feel.json' with { type: 'json' };
 import powerups from '../../content/powerups.json' with { type: 'json' };
 import en from '../../src/i18n/en.json' with { type: 'json' };
+import guideEn from '../../src/i18n/guide/en.json' with { type: 'json' };
 import {
   SCREENSHOTS,
   boot,
@@ -23,7 +24,7 @@ import {
 /** Boeretroos' sentence as the game builds it, from the content and the English strings. */
 const coffee = powerups.powerups.find((p) => p.id === 'boeretroos');
 const pct = Math.round((coffee?.effect.creatureTimeScale ?? 1) * 100);
-const COFFEE_TEXT = en['guide.effect.boeretroos']
+const COFFEE_TEXT = guideEn['guide.effect.boeretroos']
   .replace('{s}', String((coffee?.durationMs ?? 0) / 1000))
   .replace('{speed}', pct === 50 ? en['guide.half'] : `${pct} %`);
 /** The day's first-hunt greeting (voiced in every pack). */
@@ -35,6 +36,7 @@ const ALL = [
   'meerkat_spotter',
   'blitslaai',
   'oupa_laai',
+  'rooikol',
   'voorlaaier',
   'mielie_masjien',
 ];
@@ -121,7 +123,7 @@ test.beforeEach(({ browserName }, info) => {
   test.setTimeout(420_000);
 });
 
-test('the Gun Shed explains all eight power-ups and crate guns, with icons', async ({
+test('the Gun Shed explains all nine power-ups and crate guns, with icons', async ({
   page,
 }, info) => {
   const touch = isTouchProject(info);
@@ -135,9 +137,15 @@ test('the Gun Shed explains all eight power-ups and crate guns, with icons', asy
     timeout: 60_000,
   });
   await tapRect(page, touch, 'shed.powerups');
-  await page.waitForFunction(() => (window.__TM__?.shedPowerups?.cards.length ?? 0) > 0, null, {
-    timeout: 60_000,
-  });
+  // 1.9.2 (D-055): the sentences come from a lazy table: wait until the cards carry them.
+  await page.waitForFunction(
+    () => {
+      const cards = window.__TM__?.shedPowerups?.cards ?? [];
+      return cards.length > 0 && cards.every((c) => c.effect !== '');
+    },
+    null,
+    { timeout: 60_000 },
+  );
   const p = (await hook(page)).shedPowerups;
   if (p === undefined) throw new Error('no power-ups tab');
   expect(p.cards.map((c) => c.id)).toEqual(ALL);

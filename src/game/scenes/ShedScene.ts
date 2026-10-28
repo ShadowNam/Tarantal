@@ -22,6 +22,7 @@ import type { Rect } from '../ui/hudLayout';
 import { drawButton, fitText, Menu, textStyle, UI, type MenuItem } from '../ui/menu';
 import { getLanguage, translator } from '../../i18n/i18n';
 import { clientToDesign } from '../input/screenButtons';
+import { guideLoaded, loadGuide } from '../ui/guideI18n';
 import { guideCards } from '../ui/powerupGuide';
 import { upgradePowerupIcons } from '../ui/powerupIcons';
 import type { OverlayData } from './SettingsScene';
@@ -46,6 +47,8 @@ export class ShedScene extends Phaser.Scene {
   }
 
   create(data: ShedData): void {
+    // 1.9.2 (D-055): the Power-ups tab's sentences (lazy) start loading as the Shed opens.
+    void loadGuide();
     this.shown = data;
     const tab = data.tab ?? 'loadout';
     const { width, height } = designSize();
@@ -351,6 +354,12 @@ export class ShedScene extends Phaser.Scene {
     const tr = translator(lang);
     const seen = this.ctx.save.data.powerups.seen;
     const cards = guideCards(this.ctx.content, seen, tr, lang);
+    // 1.9.2 (D-055): the cards' sentences come from the lazy guide tables: drawn again once in.
+    if (!guideLoaded())
+      void loadGuide().then(() => {
+        if (this.sys.isActive() && this.shown !== null && this.shown.tab === 'powerups')
+          this.scene.restart(this.shown);
+      });
     // v1.7b (D-046): the icons come with the late group: until it lands the cards show the
     // placeholders; then the delivered icons are swapped in and this tab is drawn again.
     if (!this.iconsSettled) {

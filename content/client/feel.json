@@ -908,7 +908,7 @@
     "errorMessageChars": 300
   },
   "barks": {
-    "$comment": "v1.0.1 Oupa's barks (art bible §10, D-028 §3): sim events (and the run, tally and save around them) pick a trigger; the highest priority this frame wins, at most one bark per audio.barkGapMs (6 s) and each trigger at most once per its cooldownMs (0 = no extra cooldown). A trigger's lines are said in turn. Each line is an i18n key shown as a speech bubble for bubbleMs (fadeMs in and out) in the HUD's bark slot (left column, clear of the belt, score and pops), and the voice key voice/<line> once a recording is delivered. No barks in the FTUE or capture mode, none over the tally count-up. bagStreak / missStreak: shots in a row that bagged / missed; idleSeconds without a shot; lastSeconds left on the clock.",
+    "$comment": "v1.0.1 Oupa's barks (art bible §10, D-028 §3): sim events (and the run, tally and save around them) pick a trigger; the highest priority this frame wins, at most one bark per audio.barkGapMs (6 s) and each trigger at most once per its cooldownMs (0 = no extra cooldown). A trigger's lines are said in turn. Each line is an i18n key shown as a speech bubble for bubbleMs (fadeMs in and out) in the HUD's bark slot (left column, clear of the belt, score and pops), and the voice key voice/<line> once a recording is delivered. No barks in the FTUE or capture mode, none over the tally count-up. bagStreak / missStreak: shots in a row that bagged / missed; idleSeconds without a shot; lastSeconds left on the clock. 1.9.2 (D-055): the lastSeconds call skips the gap and cuts the line playing, said on time (within lastSecondsLateSeconds) or not at all.",
     "bubbleMs": 2800,
     "fadeMs": 220,
     "fontPx": 30,
@@ -917,6 +917,7 @@
     "canChain": 3,
     "idleSeconds": 8,
     "lastSeconds": 10,
+    "lastSecondsLateSeconds": 0.5,
     "triggers": {
       "firstToday": {
         "priority": 60,

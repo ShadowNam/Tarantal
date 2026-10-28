@@ -17,7 +17,24 @@ import {
 } from '../placeholder/sightArt';
 import type { ZoomState } from './zoomView';
 
-export type SightPicture = 'iron' | 'peep' | 'scope' | 'scope_range';
+/** 1.9.2 (D-055): 'red_dot' is the Rooikol power-up's reticle (no content sight has it). */
+export type SightPicture = 'iron' | 'peep' | 'scope' | 'scope_range' | 'red_dot';
+
+/**
+ * 1.9.2 (D-055): the red dot's look, in design px (the same size on every device: the sight
+ * layer isn't zoomed). R8: the ring 1.5× bigger with a dark under-stroke, a brighter dot with a
+ * thin dark outline, so both read on bright sky on a phone. Still hollow and small enough that
+ * the dot (8 px across 16) doesn't hide a far bird.
+ */
+const RED_DOT = {
+  dot: 8,
+  glow: 20,
+  ring: 69,
+  ringPx: 3,
+  colour: 0xff3b1f,
+  dark: 0x1a0503,
+  core: 0xffe6de,
+} as const;
 
 const hex = (c: string): number => Number.parseInt(c.slice(1), 16);
 
@@ -39,6 +56,16 @@ export class SightView {
   ) {
     this.root = scene.add.container(0, 0).setVisible(false);
     layer.add(this.root);
+  }
+
+  /** The picture fitted now (drawn or not; null = none). */
+  get current(): SightPicture | null {
+    return this.picture;
+  }
+
+  /** 1.9.2 (D-055): the picture on screen this frame (null while the sight is down). */
+  get shown(): SightPicture | null {
+    return this.root.visible ? this.picture : null;
   }
 
   /** v1.6 (D-042): drops the picture so the next setPicture() rebuilds it (new textures). */
@@ -72,6 +99,25 @@ export class SightView {
       this.front = image(TEX.sightIronFront, SIGHT_SCALE.ironFront);
       this.rear = image(TEX.sightIronRear, SIGHT_SCALE.ironRear);
       this.fills.push(add(this.scene.add.rectangle(0, 0, 1, 1, hex(IRON_PLATE)).setOrigin(0, 0)));
+      return;
+    }
+    if (picture === 'red_dot') {
+      // 1.9.2 (D-055) Rooikol: no tube, no glass edge, no zoom: a bright red dot with a soft
+      // glow, a faint ring to find it against a busy veld, and a pale core so it reads on red.
+      const ret = this.scene.add.container(0, 0);
+      const ring = (w: number, colour: number, alpha: number): Phaser.GameObjects.Arc =>
+        this.scene.add.circle(0, 0, RED_DOT.ring, 0, 0).setStrokeStyle(w, colour, alpha);
+      ret.add([
+        // The ring: a dark band under a bright red line (it reads on sky and on veld).
+        ring(RED_DOT.ringPx + 3, RED_DOT.dark, 0.45),
+        ring(RED_DOT.ringPx, RED_DOT.colour, 0.9),
+        this.scene.add.circle(0, 0, RED_DOT.glow, RED_DOT.colour, 0.3),
+        this.scene.add
+          .circle(0, 0, RED_DOT.dot, RED_DOT.colour, 1)
+          .setStrokeStyle(2, RED_DOT.dark, 0.9),
+        this.scene.add.circle(0, 0, RED_DOT.dot * 0.4, RED_DOT.core, 1),
+      ]);
+      this.reticle = add(ret);
       return;
     }
     if (picture === 'peep') {

@@ -164,7 +164,7 @@ describe('BarkDirector (v1.0.1, D-028 §3)', () => {
     expect(d.hunt(click, frame(T.triggers.emptyClick.cooldownMs))?.trigger).toBe('emptyClick');
   });
 
-  it('idle and the last seconds wait out the gap instead of being lost, and say it once', () => {
+  it('idle waits out the gap instead of being lost, says it once; the last seconds go out on time', () => {
     const d = new BarkDirector(T, GAP);
     d.startHunt(0);
     expect(d.hunt([{ type: 'emptyClick', tick: 1 }], frame(0, 1))?.trigger).toBe('emptyClick');
@@ -176,6 +176,40 @@ describe('BarkDirector (v1.0.1, D-028 §3)', () => {
     d.hunt([shot(1, idleTick + 3)], frame(GAP * 3, idleTick + 3));
     const left = { ticksLeft: T.lastSeconds * 60 };
     expect(d.hunt([], frame(GAP * 4, idleTick + 10, left))?.trigger).toBe('lastSeconds');
+  });
+
+  it('1.9.2 (D-055): the ten-second call is said on the tick the clock reaches 10 s, even right after the Stampede bark', () => {
+    const d = new BarkDirector(T, GAP);
+    d.startHunt(0);
+    const tps = 60;
+    const at = T.lastSeconds * tps;
+    // The Stampede starts at 15 s left and Oupa calls it (it claims the 6 s gap).
+    const stampede: SimEvent = { type: 'stampedeStarted', tick: 1000 };
+    const s = d.hunt([stampede], frame(50_000, 1000, { ticksLeft: 15 * tps }));
+    expect(s?.trigger).toBe('stampede');
+    // 15 s → 10 s left: 5 s later, inside the gap. One tick before the crossing: nothing.
+    expect(d.hunt([], frame(54_983, 1299, { ticksLeft: at + 1 }))).toBeNull();
+    // The crossing tick: said now, though the gap has a second to run.
+    const call = d.hunt([], frame(55_000, 1300, { ticksLeft: at }));
+    expect(call?.trigger).toBe('lastSeconds');
+    expect(call?.urgent).toBe(true);
+    expect(call?.line).toBe('bark.ten_seconds');
+    // Once only, and it claims the gap.
+    expect(d.hunt([{ type: 'emptyClick', tick: 1301 }], frame(55_020, 1301))).toBeNull();
+  });
+
+  it('1.9.2 (D-055): a ten-second call that would come late is never said', () => {
+    const d = new BarkDirector(T, GAP);
+    d.startHunt(0);
+    const tps = 60;
+    // First frame seen inside the window: 9.6 s left → said (late window 0.5 s).
+    const late = Math.ceil((T.lastSeconds - T.lastSecondsLateSeconds) * tps);
+    expect(d.hunt([], frame(0, 10, { ticksLeft: late }))?.trigger).toBe('lastSeconds');
+    const e = new BarkDirector(T, GAP);
+    e.startHunt(0);
+    // First frame seen past the window (a long stall): 9 s left → nothing, then or later.
+    expect(e.hunt([], frame(0, 10, { ticksLeft: 9 * tps }))).toBeNull();
+    expect(e.hunt([], frame(GAP * 2, 11, { ticksLeft: 9 * tps - 1 }))).toBeNull();
   });
 
   it('quota met is said once, even if the gap delays it', () => {

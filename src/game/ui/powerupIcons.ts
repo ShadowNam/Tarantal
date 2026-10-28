@@ -13,6 +13,7 @@ const POWERUP_ICONS: Readonly<Record<string, string>> = {
   meerkat_spotter: TEX.puMeerkatSpotter,
   voorlaaier: TEX.puVoorlaaier,
   mielie_masjien: TEX.puMielieMasjien,
+  rooikol: TEX.puRooikol,
 };
 
 /** The icon texture key of a power-up or crate gun (`ui/pu_<id>`). */

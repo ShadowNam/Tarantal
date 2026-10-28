@@ -1,0 +1,67 @@
+{
+ "seeds": 500,
+ "mode": "classic",
+ "input": "pointer",
+ "bots": [
+  "competent",
+  "plinker"
+ ],
+ "overrides": [
+  "powerups.crates.table=[{\"id\":\"chilli_biltong\",\"weight\":14},{\"id\":\"boeretroos\",\"weight\":14},{\"id\":\"bush_buckshot\",\"weight\":14},{\"id\":\"meerkat_spotter\",\"weight\":7},{\"id\":\"blitslaai\",\"weight\":18},{\"id\":\"oupa_laai\",\"weight\":18},{\"id\":\"voorlaaier\",\"weight\":8,\"type\":\"weapon\"},{\"id\":\"mielie_masjien\",\"weight\":7,\"type\":\"weapon\"}]"
+ ],
+ "summaries": [
+  {
+   "bot": "competent",
+   "hunts": 500,
+   "mean": 3412.812,
+   "p15": 2714,
+   "p25": 2907,
+   "p50": 3370,
+   "p75": 3821,
+   "p85": 4208,
+   "wingShotShare": 0.5648567119155354,
+   "wholeFlocksPerHunt": 0.006,
+   "wholeFlockHuntRate": 0.006,
+   "flushesPerHunt": 6.194,
+   "twoFliesPerHunt": 0.014,
+   "accuracy": 0.7486428175097595,
+   "secretsPerHunt": 5.686,
+   "cratesPerHunt": 1.996,
+   "penaltiesPerHunt": 0.008,
+   "verPerHunt": 0
+  },
+  {
+   "bot": "plinker",
+   "hunts": 500,
+   "mean": 2405.836,
+   "p15": 1801,
+   "p25": 1989,
+   "p50": 2348,
+   "p75": 2747,
+   "p85": 3011,
+   "wingShotShare": 0.30480899894307717,
+   "wholeFlocksPerHunt": 0.002,
+   "wholeFlockHuntRate": 0.002,
+   "flushesPerHunt": 0.248,
+   "twoFliesPerHunt": 0.066,
+   "accuracy": 0.8686335782402806,
+   "secretsPerHunt": 0.012,
+   "cratesPerHunt": 2,
+   "penaltiesPerHunt": 0.02,
+   "verPerHunt": 0
+  }
+ ],
+ "gates": [
+  {
+   "name": "competent mean in 2 500\u20134 500 (Bosveldjagter)",
+   "pass": true,
+   "detail": "3413"
+  },
+  {
+   "name": "plinker \u2265 25 % below competent",
+   "pass": true,
+   "detail": "29.5 % below"
+  }
+ ],
+ "seconds": 194.58895512
+}
