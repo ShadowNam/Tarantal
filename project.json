@@ -1,11 +1,11 @@
 {
  "schema": 1,
- "updated": "2026-10-28T06:50:00Z",
+ "updated": "2026-10-28T13:25:00Z",
  "by": "Claude",
- "summary": "Live on the test build: your playtest fixes and the red dot sight (1.9.2, merged 07:40 Namibia time on 28 Oct): the falling crate's power-up picture shows once, in the right place; \"Ten seconds!\" is called right at 10 s left; and a new Rooikol red dot sight power-up for the .22 and the Langloop (instant aim, no zoom wait, steadier dot, a quarter faster shots for 15 s). Tank is building makalani palms in the Okavango with nuts you can shoot, juggle and pop, plus cans on the Karoo's far fence (until about 14:45). Then: tree life, an Android test app for friends; then Namibië, Bushveld, baboons, The Harvest, the Christmas and New Year Dailies and v1.9–v1.13; Oupa's new voices last.",
+ "summary": "Live on the test build: makalani palms in the Okavango (1.9.3, merged 15:17 Namibia time on 28 Oct): real makalani palms by the water with their reflections; their nuts crack off with 1–2 pellets, juggle in the air and pop with 3+ pellets or a rifle (secret: \"Hard soos 'n makalani\", three nuts in one hunt). Nuts never block a shot at a bird. Also 1–2 Blikkies cans on the Karoo's far fence. Tank is building tree life now (until about 21:45): a detailed baobab with animals in its hollows, a better sausage tree and weavers around their colony. Then: an Android test app for friends; then Namibië, Bushveld, baboons, The Harvest, the Christmas and New Year Dailies and v1.9–v1.13; Oupa's new voices last.",
  "current": {
-  "version": "1.9.2",
-  "commit": "c705562"
+  "version": "1.9.3",
+  "commit": "d61c793"
  },
  "links": [
   {
@@ -36,13 +36,13 @@
  "numbers": [
   {
    "label": "Version on the test build",
-   "value": "1.9.2",
-   "note": "commit c705562, merged 28 Oct, 07:40 Namibia time (the test build deploys a few minutes after)"
+   "value": "1.9.3",
+   "note": "commit d61c793, merged 28 Oct, 15:17 Namibia time (the test build deploys a few minutes after)"
   },
   {
    "label": "Pull requests merged",
-   "value": "90",
-   "note": "#1 to #93"
+   "value": "91",
+   "note": "#1 to #94"
   },
   {
    "label": "Unit tests",
@@ -70,8 +70,8 @@
   },
   {
    "label": "Decisions logged",
-   "value": "55",
-   "note": "D-001 to D-055 on main"
+   "value": "56",
+   "note": "D-001 to D-056 on main"
   }
  ],
  "needsYou": [
@@ -81,7 +81,7 @@
    "title": "v1.7e: what replaces the star on secrets?",
    "asked": "2026-10-28T06:49:00Z",
    "status": "open",
-   "detail": "You asked for something better than the little star that marks the shootable secrets (25 Oct). Three mock-ups, drawn over real 1.9.2 screenshots (not in the game yet). v1.7e is due on 29 Oct around 07:45; your pick is needed before then.",
+   "detail": "You asked for something better than the little star that marks the shootable secrets (25 Oct). Three mock-ups, drawn over real 1.9.2 screenshots (not in the game yet). v1.7e is due on 29 Oct around 09:00; your pick is needed before then.",
    "options": [
     "A (recommended). A tell animal lives at each secret and moves now and then: a rock agama doing push-ups on the dassie koppie, a lilac-breasted roller on the windpomp; shooting it costs nothing",
     "B. Natural cues only: grass rustles and dust puffs at the koppie, a sun flash only on real metal, a few birds circling above",
@@ -1866,38 +1866,54 @@
    "requestedBy": "You, 27 Oct 22:45: \"there should be an option, a power up that one can get for a red dot sight\"; the crate picture \"in two positions\"; \"those 10 seconds don't seem to be 10 seconds\"."
   },
   {
-   "id": "makalani-palms-in-the-okavango-hanging-n",
-   "title": "Makalani palms in the Okavango: hanging nut clusters you can shoot down, juggle and pop; reflections in the water at dusk; plus Blikkies cans on the Karoo's far fence (your requests, 26 and 27 Oct)",
+   "id": "makalani-palms-in-the-okavango-real-maka",
+   "title": "Makalani palms in the Okavango: real makalani palms by the water with their reflections, nut clusters you can crack off, juggle in the air and pop, a secret for three nuts in one hunt; plus 1–2 Blikkies cans on the Karoo's far fence; version 1.9.3 (your requests, 26 and 27 Oct)",
+   "phase": "Version 1.x",
+   "status": "done",
+   "start": "2026-10-28T06:09:19Z",
+   "end": "2026-10-28T13:17:26Z",
+   "estimate": false,
+   "prs": [
+    94
+   ]
+  },
+  {
+   "id": "tree-life-a-detailed-baobab-with-real-ha",
+   "title": "Tree life: a detailed baobab with real hanging fruit and residents peeking from its hollows (bushbaby, squirrel, owl, hornbill); weavers flying around their colony nest with a pygmy falcon (your request, 26 Oct)",
    "phase": "Version 1.x",
    "status": "running",
-   "start": "2026-10-28T05:40:00Z",
-   "end": "2026-10-28T12:45:00Z",
+   "start": "2026-10-28T13:17:30Z",
+   "end": "2026-10-28T19:45:00Z",
    "estimate": true,
-   "summary": "Makalani palms by the water in the Okavango, with reflections at dusk and clusters of glossy brown nuts. A nut hit cracks off and falls; hit it in the air and it juggles like a can; a full shotgun hit pops it into fibre and ivory chips. Secret: 3 nuts in one hunt. Also 1–2 Blikkies cans on the Karoo's far fence (your request, 27 Oct).",
-   "owner": "Tank builds it (task 099e6928, started 07:41); Claude reviews and runs the screenshots",
+   "summary": "A detailed baobab with real hanging fruit and residents peeking from its hollows (bushbaby, tree squirrel, barn owl, a hornbill at its sealed nest); sociable weavers flying in and out of their colony nest with a pygmy falcon now and then (and lovebirds in Namibië). They are never hurt and duck away when you shoot near them.",
+   "owner": "Tank builds it (task 91e5e772, started 15:20); Claude reviews and runs the screenshots",
    "checklist": [
     {
-     "text": "Makalani palms (pairs and small groups, fronds that sway) on the near and mid planes of the Okavango, makalani silhouettes far away",
+     "text": "Baobab redrawn: a fluted trunk that flows into its branches, wrinkled bark, elephant scars; no hard light band across the trunk",
      "done": false
     },
     {
-     "text": "Reflections in the water with a gentle ripple at dusk",
+     "text": "Baobab fruit small and hairy, on long stalks, in small groups; they still swing and drop",
      "done": false
     },
     {
-     "text": "Nut clusters: a hit cracks a nut off; hit it in the air and it juggles like a can; a full shotgun or rifle hit pops it into fibre and ivory chips",
+     "text": "Hollows with residents now and then: a bushbaby, a tree squirrel, a barn owl, a hornbill feeding at its sealed nest, buffalo weavers in the crown",
      "done": false
     },
     {
-     "text": "Scoring and the secret \"Hard soos 'n makalani\" (3 nuts in one hunt), Oupa line in 4 languages; balance sim keeps cans + nuts small",
+     "text": "Residents duck away when you shoot near them; they never score and never block a shot at a bird",
      "done": false
     },
     {
-     "text": "1–2 Blikkies cans on the Karoo's far fence, sized by distance",
+     "text": "Okavango sausage tree: a lit, layered crown and heavy, speckled sausages on rope stalks",
      "done": false
     },
     {
-     "text": "HD versions; the Okavango stays within its download and phone-memory budgets",
+     "text": "Sociable weavers flying in and out of the Kalahari and Namibië nests, a pygmy falcon now and then (lovebirds in Namibië); they scatter when shot at",
+     "done": false
+    },
+    {
+     "text": "HD versions; every area stays within its download and phone-memory budgets",
      "done": false
     },
     {
@@ -1905,18 +1921,6 @@
      "done": false
     }
    ],
-   "requestedBy": "You, 26 Oct: \"add some makalani trees … If somebody manages to hit such a small makalani, maybe it can do a small blow-up, or fall down … Be creative.\" And 27 Oct: \"one or two cans on the further-away fence, as it's so close by.\""
-  },
-  {
-   "id": "tree-life-a-detailed-baobab-with-real-ha",
-   "title": "Tree life: a detailed baobab with real hanging fruit and residents peeking from its hollows (bushbaby, squirrel, owl, hornbill); weavers flying around their colony nest with a pygmy falcon (your request, 26 Oct)",
-   "phase": "Version 1.x",
-   "status": "next",
-   "start": "2026-10-28T12:30:00Z",
-   "end": "2026-10-28T18:30:00Z",
-   "estimate": true,
-   "summary": "A detailed baobab with real hanging fruit and residents peeking from its hollows (bushbaby, tree squirrel, barn owl, a hornbill at its sealed nest); sociable weavers flying in and out of their colony nest with a pygmy falcon now and then (and lovebirds in Namibië). They are never hurt and duck away when you shoot near them.",
-   "owner": "Tank builds it; Claude reviews",
    "requestedBy": "You, 26 Oct: \"see what other kind of animals normally live in that tree … a few holes where a little mouse can look out … some little birds fly around [the weaver nest].\""
   },
   {
@@ -2566,6 +2570,16 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-28T13:20:00Z",
+   "kind": "note",
+   "text": "Tank started tree life: the baobab and its residents, the sausage tree, the weaver colony (task 91e5e772)."
+  },
+  {
+   "at": "2026-10-28T13:17:00Z",
+   "kind": "merge",
+   "text": "Makalani palms in the Okavango merged (1.9.3, #94): nuts that crack off, juggle and pop; 1–2 cans on the Karoo's far fence."
+  },
   {
    "at": "2026-10-28T06:49:00Z",
    "kind": "note",
