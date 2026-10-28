@@ -69,6 +69,14 @@ export function guideValues(
   return out;
 }
 
+/** 1.9.2 (D-055): the guns with a sight (the Rooikol's rifles), by their shown names. */
+function sightedGuns(content: ContentBundle, tr: Translator): string {
+  return content.weapons.weapons
+    .filter((w) => w.kind === 'primary' && w.aim !== undefined)
+    .map((w) => tr.or(`weapon.${w.id}`, w.id))
+    .join(' · ');
+}
+
 /** `{stall}`, `{run}` and `{price}` for the "how you get it" lines (names follow the toggle). */
 function shopValues(tr: Translator, price: number): Record<string, string> {
   return {
@@ -138,10 +146,17 @@ export function guideCards(
   return guideIds(content).map(({ id, kind }) => {
     const values = guideValues(content, id, tr, lang);
     const how: string[] = [];
-    // 1.9.2 (D-055): a rifle-only power-up drops only while a rifle is in hand, never sold.
+    // 1.9.2 (D-055): a rifle-only power-up drops only while a rifle is in hand, never sold. The
+    // rifles are every gun with a sight (content), named as the player sees them (the
+    // Afrikaans-names toggle included).
     const rifle = content.powerups.powerups.some((p) => p.id === id && p.needsSight === true);
     if (inCrates.has(id))
-      how.push(filled(tr, lang, rifle ? 'guide.how.crate_rifle' : 'guide.how.crate', values));
+      how.push(
+        filled(tr, lang, rifle ? 'guide.how.crate_rifle' : 'guide.how.crate', {
+          ...values,
+          guns: sightedGuns(content, tr),
+        }),
+      );
     if (kind === 'weapon' || values['price'] !== undefined)
       how.push(
         filled(tr, lang, kind === 'weapon' ? 'guide.how.rent' : 'guide.how.padstal', values),

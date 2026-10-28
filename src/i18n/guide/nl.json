@@ -1,6 +1,6 @@
 {
   "guide.how.crate": "Schiet een voorraadkist in een klassieke of dagelijkse jacht",
-  "guide.how.crate_rifle": "Schiet een voorraadkist in een klassieke of dagelijkse jacht terwijl je een geweer draagt (De Tweeëntwintig of De Lange Loop)",
+  "guide.how.crate_rifle": "Schiet een voorraadkist in een klassieke of dagelijkse jacht terwijl je een geweer draagt ({guns})",
   "guide.how.padstal": "Koop het bij het {stall} in een {run}: {price}",
   "guide.how.rent": "Huur het bij het {stall} in een {run} voor één jacht: {price}",
   "guide.how.secret": "Sommige boerderijgeheimen geven het ook",

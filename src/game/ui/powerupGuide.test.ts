@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { loadContent } from '../../../tools/testContent';
 import type { ContentBundle } from '../../content/schemas';
 import enStrings from '../../i18n/en.json';
-import { LANGUAGES, translator } from '../../i18n/i18n';
+import { LANGUAGES, setAfrikaansNames, translator } from '../../i18n/i18n';
 import { setGuideTables } from './guideI18n';
 import { GUIDE_TABLES } from './guideTables';
 import {
@@ -125,10 +125,18 @@ describe('the power-up guide (D-046)', () => {
     expect(by('meerkat_spotter')?.how).toContain('Some farm secrets give it too');
     // 1.9.2 (D-055): rifle-only, from crates, never sold.
     expect(by('rooikol')?.how).toEqual([
-      'Shoot a supply crate in a Classic or Daily hunt while you carry a rifle (The Twenty-Two or The Long Rifle)',
+      'Shoot a supply crate in a Classic or Daily hunt while you carry a rifle (The Twenty-Two · The Long Rifle)',
     ]);
     expect(by('rooikol')?.effect).toContain('75 % of normal');
     expect(by('rooikol')?.icon).toBe('ui/pu_rooikol');
+    // R5: the names follow the Afrikaans-names toggle (from the weapon.* keys, not the sentence).
+    setAfrikaansNames(true);
+    try {
+      const af = guideCards(content, [], en, 'en').find((c) => c.id === 'rooikol');
+      expect(af?.how[0]).toContain('(Twee-Twee · Die Langloop)');
+    } finally {
+      setAfrikaansNames(false);
+    }
     expect(by('oupa_laai')?.found).toBe(true);
     expect(by('blitslaai')?.found).toBe(false);
     expect(by('chilli_biltong')?.icon).toBe('ui/pu_chilli_biltong');

@@ -1,6 +1,6 @@
 {
   "guide.how.crate": "Skiet 'n voorraadkrat in 'n Klassieke of Daaglikse jag",
-  "guide.how.crate_rifle": "Skiet 'n voorraadkrat in 'n Klassieke of Daaglikse jag terwyl jy 'n geweer met 'n visier dra (Twee-Twee of Die Langloop)",
+  "guide.how.crate_rifle": "Skiet 'n voorraadkrat in 'n Klassieke of Daaglikse jag terwyl jy 'n geweer met 'n visier dra ({guns})",
   "guide.how.padstal": "Koop dit by die {stall} in 'n {run}: {price}",
   "guide.how.rent": "Huur dit by die {stall} in 'n {run} vir een jag: {price}",
   "guide.how.secret": "Sommige plaasgeheime gee dit ook",

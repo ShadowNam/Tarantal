@@ -1,6 +1,6 @@
 {
   "guide.how.crate": "Shoot a supply crate in a Classic or Daily hunt",
-  "guide.how.crate_rifle": "Shoot a supply crate in a Classic or Daily hunt while you carry a rifle (The Twenty-Two or The Long Rifle)",
+  "guide.how.crate_rifle": "Shoot a supply crate in a Classic or Daily hunt while you carry a rifle ({guns})",
   "guide.how.padstal": "Buy it at the {stall} in a {run}: {price}",
   "guide.how.rent": "Rent it at the {stall} in a {run} for one hunt: {price}",
   "guide.how.secret": "Some farm secrets give it too",

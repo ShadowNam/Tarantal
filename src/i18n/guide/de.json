@@ -1,6 +1,6 @@
 {
   "guide.how.crate": "Schieß in einer klassischen oder täglichen Jagd eine Versorgungskiste ab",
-  "guide.how.crate_rifle": "Schieß in einer klassischen oder täglichen Jagd eine Versorgungskiste ab, während du ein Gewehr trägst (Kleinkaliber oder Die Lange)",
+  "guide.how.crate_rifle": "Schieß in einer klassischen oder täglichen Jagd eine Versorgungskiste ab, während du ein Gewehr trägst ({guns})",
   "guide.how.padstal": "Kauf es im {stall} in einer {run}: {price}",
   "guide.how.rent": "Leih es im {stall} in einer {run} für eine Jagd: {price}",
   "guide.how.secret": "Manche Farmgeheimnisse geben es auch",
