@@ -20,8 +20,21 @@ import type { ZoomState } from './zoomView';
 /** 1.9.2 (D-055): 'red_dot' is the Rooikol power-up's reticle (no content sight has it). */
 export type SightPicture = 'iron' | 'peep' | 'scope' | 'scope_range' | 'red_dot';
 
-/** 1.9.2 (D-055): the red dot's look (design px): the dot, its soft glow and a faint ring. */
-const RED_DOT = { dot: 7, glow: 16, ring: 46, colour: 0xff2a1a, core: 0xffd0c8 } as const;
+/**
+ * 1.9.2 (D-055): the red dot's look, in design px (the same size on every device: the sight
+ * layer isn't zoomed). R8: the ring 1.5× bigger with a dark under-stroke, a brighter dot with a
+ * thin dark outline, so both read on bright sky on a phone. Still hollow and small enough that
+ * the dot (8 px across 16) doesn't hide a far bird.
+ */
+const RED_DOT = {
+  dot: 8,
+  glow: 20,
+  ring: 69,
+  ringPx: 3,
+  colour: 0xff3b1f,
+  dark: 0x1a0503,
+  core: 0xffe6de,
+} as const;
 
 const hex = (c: string): number => Number.parseInt(c.slice(1), 16);
 
@@ -92,11 +105,17 @@ export class SightView {
       // 1.9.2 (D-055) Rooikol: no tube, no glass edge, no zoom: a bright red dot with a soft
       // glow, a faint ring to find it against a busy veld, and a pale core so it reads on red.
       const ret = this.scene.add.container(0, 0);
+      const ring = (w: number, colour: number, alpha: number): Phaser.GameObjects.Arc =>
+        this.scene.add.circle(0, 0, RED_DOT.ring, 0, 0).setStrokeStyle(w, colour, alpha);
       ret.add([
-        this.scene.add.circle(0, 0, RED_DOT.ring, 0, 0).setStrokeStyle(2, RED_DOT.colour, 0.45),
-        this.scene.add.circle(0, 0, RED_DOT.glow, RED_DOT.colour, 0.28),
-        this.scene.add.circle(0, 0, RED_DOT.dot, RED_DOT.colour, 1).setStrokeStyle(1.5, 0x3a0805),
-        this.scene.add.circle(0, 0, RED_DOT.dot * 0.35, RED_DOT.core, 1),
+        // The ring: a dark band under a bright red line (it reads on sky and on veld).
+        ring(RED_DOT.ringPx + 3, RED_DOT.dark, 0.45),
+        ring(RED_DOT.ringPx, RED_DOT.colour, 0.9),
+        this.scene.add.circle(0, 0, RED_DOT.glow, RED_DOT.colour, 0.3),
+        this.scene.add
+          .circle(0, 0, RED_DOT.dot, RED_DOT.colour, 1)
+          .setStrokeStyle(2, RED_DOT.dark, 0.9),
+        this.scene.add.circle(0, 0, RED_DOT.dot * 0.4, RED_DOT.core, 1),
       ]);
       this.reticle = add(ret);
       return;
