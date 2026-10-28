@@ -460,3 +460,45 @@ describe('Blikkies: tin cans on the fence posts (D-050)', () => {
     expect(can(s, id).state).toBe('gone');
   });
 });
+
+describe('Blikkies on the far fence (1.9.3, D-056)', () => {
+  const WED: ModeConfig = { id: 'classic', biome: 'karoo-autumn', layout: 'wed' };
+  it('stands 1–2 cans on the mid fence line beside the near fence, sized and flown by the plane', () => {
+    const c = quiet();
+    const s = sim(c, WED);
+    const snap = s.snapshot();
+    expect(snap.cans?.plane).toBe('near');
+    const far = snap.farCans;
+    expect(far?.plane).toBe('mid');
+    expect(far?.cans.length).toBeGreaterThanOrEqual(1);
+    expect(far?.cans.length).toBeLessThanOrEqual(2);
+    const k = far?.cans[0];
+    if (k === undefined) throw new Error('no far can');
+    const t = c.birds.cans.types[k.type];
+    expect(k.r).toBeCloseTo(t.r * c.scoring.planes.mid.scale, 9);
+    expect(k.hitR).toBe(
+      Math.max(t.r * c.scoring.planes.mid.scale, c.scoring.planes.mid.minHitRadiusPx),
+    );
+    // Shot: it flies like a near can, a smaller arc (× tuningRatio), the same scoring rule.
+    const ev = run(s, 1, aimAt(c.scoring.planes.mid.scrollFactor, k.x, k.y));
+    const knocked = ofType(ev, 'canKnocked')[0];
+    expect(knocked?.canId).toBe(k.id);
+    expect(knocked?.points).toBe(Math.round(c.scoring.cans.knockOff * c.scoring.cans.planeMul.mid));
+    let top = k.y;
+    for (let i = 0; i < 120; i++) {
+      run(s, 1);
+      const v = s.snapshot().farCans?.cans.find((x) => x.id === k.id);
+      top = Math.min(top, v?.y ?? top);
+    }
+    const rise = k.y - top;
+    expect(rise).toBeGreaterThan(10);
+    // The near cans rise further (the same kick at plane scale 1).
+    const j = c.birds.cans.juggle;
+    const nearRise = (j.kickUpPxPerSec * j.kickUpPxPerSec) / (2 * j.gravityPxPerSec2);
+    expect(rise).toBeLessThan((nearRise * 1) / c.scoring.tuningRefScale);
+  });
+
+  it('days without a near fence have no far cans', () => {
+    expect(sim(quiet(), { ...WED, layout: 'mon' }).snapshot().farCans).toBeUndefined();
+  });
+});

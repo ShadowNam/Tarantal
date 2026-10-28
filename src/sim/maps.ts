@@ -26,14 +26,36 @@ export interface ResolvedMap {
   /** v1.8 (D-050): the day's fence with its tin cans, on the plane the bonus map moves it to
    *  (null: none; the plain biome, the Season Run and the FTUE have none). */
   readonly fence: Fence | null;
+  /** 1.9.3 (D-056): a second fence further back (the Karoo's mid fence line), moved like `fence`. */
+  readonly farFence: Fence | null;
+  /** 1.9.3 (D-056): the day's makalani palm groups, moved back like the fence by a bonus map
+   *  (a group moved past the mid plane is left out: the far layers paint their own palms). */
+  readonly palms: NonNullable<Layout['palms']>;
 }
 
 /** v1.8 (D-050): the layout's fence, moved to the bonus map's plane for it. */
-export function mapFence(layout: Layout | null, bonus: BonusMap | null): Fence | null {
-  const f = layout?.fence;
+export function mapFence(
+  layout: Layout | null,
+  bonus: BonusMap | null,
+  which: 'fence' | 'farFence' = 'fence',
+): Fence | null {
+  const f = layout?.[which];
   if (f === undefined) return null;
   const plane = bonus?.fencePlane?.[f.plane] ?? f.plane;
   return plane === f.plane ? f : { ...f, plane };
+}
+
+/** 1.9.3 (D-056): the layout's palm groups on a bonus map (moved back by its fencePlane). */
+export function mapPalms(
+  layout: Layout | null,
+  bonus: BonusMap | null,
+): NonNullable<Layout['palms']> {
+  const out: NonNullable<Layout['palms']>[number][] = [];
+  for (const p of layout?.palms ?? []) {
+    const plane = bonus?.fencePlane?.[p.plane] ?? p.plane;
+    if (plane === 'near' || plane === 'mid') out.push(plane === p.plane ? p : { ...p, plane });
+  }
+  return out;
 }
 
 /**
@@ -163,6 +185,8 @@ export function resolveMap(
       planePointsMul: {},
       ver: openVer && hasVer,
       fence: null,
+      farFence: null,
+      palms: [],
     };
   }
   const layout = findLayout(biome, layoutId);
@@ -185,6 +209,8 @@ export function resolveMap(
     pointsMul: (layout.pointsMul ?? 1) * (bonus?.pointsMul ?? 1),
     planePointsMul: combinePlaneMul(layout.planePointsMul, bonus?.planePointsMul),
     fence: mapFence(layout, bonus),
+    farFence: mapFence(layout, bonus, 'farFence'),
+    palms: mapPalms(layout, bonus),
   };
 }
 

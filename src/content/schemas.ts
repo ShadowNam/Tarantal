@@ -148,6 +148,21 @@ export const ScoringSchema = obj({
     secretChain: posInt,
     secretBonus: posInt,
   }),
+  /** 1.9.3 (D-056): makalani nuts, event bonuses like the cans (× Stampede only). An air hit n
+   *  pays airHit + airHitStep × (min(n, chainCap) − 1); `pop` a burst nut; `weg` one juggled
+   *  out of the top; all × the nut's plane factor, rounded. The secret: secretCount nuts popped
+   *  or juggled out in one hunt. */
+  nuts: obj({
+    knockOff: posInt,
+    airHit: posInt,
+    airHitStep: nonNegInt,
+    chainCap: posInt,
+    weg: posInt,
+    pop: posInt,
+    planeMul: allPlanes(pos),
+    secretCount: posInt,
+    secretBonus: posInt,
+  }),
 });
 export type Scoring = z.infer<typeof ScoringSchema>;
 
@@ -255,6 +270,36 @@ const meerkatActivity = obj({
 export const CanTypeSchema = z.enum(['food', 'paint', 'bully', 'cooldrink']);
 export type CanType = z.infer<typeof CanTypeSchema>;
 
+/** v1.8 (D-050): the juggle body's flight (src/sim/juggle/body.ts), px at the tuning reference. */
+const juggleShape = {
+  gravityPxPerSec2: pos,
+  /** The knock-off: upward speed; sideways speed at a hit on the can's edge (at least
+   *  minSideShare of it at a hit on the centre line); spin. */
+  kickUpPxPerSec: pos,
+  kickSidePxPerSec: nonNeg,
+  minSideShare: fraction,
+  spinDegPerSec: nonNeg,
+  /** Per chain step n (capped at growthCapHits): up × (1 + upGrowth × n), spin + spinGrowth × n,
+   *  sideways jitter ±(jitterPxPerSec + jitterGrowth × n). */
+  upGrowth: nonNeg,
+  spinGrowthDegPerSec: nonNeg,
+  jitterPxPerSec: nonNeg,
+  jitterGrowthPxPerSec: nonNeg,
+  growthCapHits: posInt,
+  /** Several pellets on one can: one kick × min(1 + pelletBonus × (pellets − 1), pelletCap). */
+  pelletBonus: nonNeg,
+  pelletCap: z.number().min(1),
+  /** Back on the ground: one bounce (vertical speed × restitution, sideways and spin ×
+   *  keep), then it lies there. */
+  bounce: obj({ restitution: fraction, keep: fraction }),
+  /** Gone ("Weg!") once the can's top is this far above the top of the view. */
+  goneMarginPx: nonNeg,
+  /** From this air hit on the kick is sized to clear the top of the view: every chain ends in
+   *  Weg! by this length at the latest. */
+  wegChain: posInt,
+};
+const juggleSchema = obj(juggleShape);
+
 /**
  * v1.8 (D-050, GDD §11.3): Blikkies. Sizes are design px at plane scale 1 (× the plane's scale,
  * the radius floored by the plane's minHitRadiusPx: cans are targets). Speeds, gravity and post
@@ -267,35 +312,61 @@ export const CansSchema = obj({
   /** In the air a can's hit radius is × this (a tumbling can sweeps more than its outline, and a
    *  shot pattern must be able to find it: GDD §11.3); on its post and lying it is as drawn. */
   airHitMul: z.number().min(1),
-  juggle: obj({
-    gravityPxPerSec2: pos,
-    /** The knock-off: upward speed; sideways speed at a hit on the can's edge (at least
-     *  minSideShare of it at a hit on the centre line); spin. */
-    kickUpPxPerSec: pos,
-    kickSidePxPerSec: nonNeg,
-    minSideShare: fraction,
-    spinDegPerSec: nonNeg,
-    /** Per chain step n (capped at growthCapHits): up × (1 + upGrowth × n), spin + spinGrowth × n,
-     *  sideways jitter ±(jitterPxPerSec + jitterGrowth × n). */
-    upGrowth: nonNeg,
-    spinGrowthDegPerSec: nonNeg,
-    jitterPxPerSec: nonNeg,
-    jitterGrowthPxPerSec: nonNeg,
-    growthCapHits: posInt,
-    /** Several pellets on one can: one kick × min(1 + pelletBonus × (pellets − 1), pelletCap). */
-    pelletBonus: nonNeg,
-    pelletCap: z.number().min(1),
-    /** Back on the ground: one bounce (vertical speed × restitution, sideways and spin ×
-     *  keep), then it lies there. */
-    bounce: obj({ restitution: fraction, keep: fraction }),
-    /** Gone ("Weg!") once the can's top is this far above the top of the view. */
-    goneMarginPx: nonNeg,
-    /** From this air hit on the kick is sized to clear the top of the view: every chain ends in
-     *  Weg! by this length at the latest. */
-    wegChain: posInt,
-  }),
+  juggle: juggleSchema,
 });
 export type Cans = z.infer<typeof CansSchema>;
+
+/** 1.9.3 (D-056): makalani nut colours (most ripe and glossy brown). */
+export const NutColourSchema = z.enum(['brown', 'orange', 'green']);
+export type NutColour = z.infer<typeof NutColourSchema>;
+/** 1.9.3 (D-056): the palm groups drawn as sprites (art per plane in `planes`). */
+export const PalmKindSchema = z.enum(['single', 'pair', 'trio']);
+export type PalmKind = z.infer<typeof PalmKindSchema>;
+
+/**
+ * 1.9.3 (D-056, GDD §11.3b): makalani palms (Hyphaene petersiana) and their nuts. Palm shapes and
+ * the nut size are design px at plane scale 1 (× the plane's scale; the nut's hit radius floored
+ * by the plane's minHitRadiusPx, like every target); flight numbers are px at the tuning reference
+ * (× tuningRatio). A nut is the v1.8 juggle body: it cracks off and falls (knockUpMul), is kicked
+ * higher by every air hit, bounces hard once and rolls to a stop.
+ */
+export const MakalaniSchema = obj({
+  /** A nut's radius at plane scale 1. */
+  nutR: pos,
+  /** In the air a nut's hit radius is × this (as the cans' airHitMul). */
+  airHitMul: z.number().min(1),
+  /** Nuts in a cluster (inclusive), rolled from the 'nuts' stream. */
+  perCluster: range(z.number().int().min(1).max(8)),
+  /** Weights of a nut's colour. */
+  colours: z.record(NutColourSchema, nonNeg),
+  /** This many pellets on a nut in one shot pop it (burst), as does any hit by popWeapons. */
+  popPellets: z.number().int().min(2),
+  popWeapons: z.array(id),
+  juggle: obj({
+    ...juggleShape,
+    /** The crack-off: the upward kick × this (it drops off its stalk; air hits are full). */
+    knockUpMul: fraction,
+    /** On the ground after its bounce it rolls on: sideways speed × keep, slowing by decel. */
+    roll: obj({ keep: fraction, decelPxPerSec2: pos }),
+  }),
+  /** Each palm group: trunks (foot dx, top dx and height from the foot) and nut clusters (from
+   *  a trunk's top), in design px at plane scale 1; `planes` that have its art. */
+  palms: z.record(
+    PalmKindSchema,
+    obj({
+      planes: z.array(z.enum(['near', 'mid'])).min(1),
+      trunks: z.array(obj({ dx: z.number(), topDx: z.number(), h: pos })).min(1).max(3),
+      clusters: z
+        .array(obj({ trunk: nonNegInt, dx: z.number(), dy: z.number() }))
+        .min(1)
+        .max(4),
+      /** Half the group's drawn width and its height above the foot (the checks' bounds). */
+      halfW: pos,
+      top: pos,
+    }),
+  ),
+});
+export type Makalani = z.infer<typeof MakalaniSchema>;
 
 export const MeerkatsSchema = obj({
   /** Hit shapes from the feet (sim position): standing tall, low (sit, dig, run) and a peeking
@@ -464,6 +535,8 @@ export const BirdsSchema = obj({
   meerkats: MeerkatsSchema,
   /** v1.8 (D-050): the tin cans on the fence posts (shape and flight). */
   cans: CansSchema,
+  /** 1.9.3 (D-056): makalani palms and their nuts (the Okavango). */
+  makalani: MakalaniSchema,
 });
 export type Birds = z.infer<typeof BirdsSchema>;
 
@@ -1063,6 +1136,22 @@ export const LayoutSchema = obj({
   ...mapOverrideShape,
   /** v1.8 (D-050): the day's fence with its tin cans (absent = none). */
   fence: FenceSchema.optional(),
+  /** 1.9.3 (D-056): a second fence further back with 1–2 cans (the Karoo's mid fence line). */
+  farFence: FenceSchema.optional(),
+  /** 1.9.3 (D-056): makalani palm groups (u across the plane's core; flip mirrors the group;
+   *  water: it stands by water and is reflected). */
+  palms: z
+    .array(
+      obj({
+        kind: PalmKindSchema,
+        plane: z.enum(['near', 'mid']),
+        u: fraction,
+        flip: z.boolean().optional(),
+        water: z.boolean().optional(),
+      }),
+    )
+    .max(3)
+    .optional(),
   light: id,
   weather: z.enum(['calm', 'default', 'omen']),
 });
@@ -1248,6 +1337,10 @@ export const BiomeSchema = obj({
   colonies: z.array(ColonySchema).max(2).optional(),
   /** v1.8 (D-050): a fence's ground line per plane (design px), for the layouts' fences. */
   fenceY: somePlanes(z.number()).optional(),
+  /** 1.9.3 (D-056): the ground line makalani palms stand on, per plane (design px). */
+  palmY: somePlanes(z.number()).optional(),
+  /** 1.9.3 (D-056): the water line a palm by water is mirrored at, per plane (design px). */
+  waterY: somePlanes(z.number()).optional(),
   /** v1.2: one layout per UTC weekday, Monday first. */
   layouts: z
     .array(LayoutSchema)

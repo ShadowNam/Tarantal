@@ -190,7 +190,13 @@ export type HitExtra =
       readonly shape: OccluderShape;
     }
   /** v1.8 (D-050): a tin can, its rotating capsule. */
-  | ({ readonly kind: 'can'; readonly canId: number } & Capsule);
+  | ({
+      readonly kind: 'can';
+      readonly canId: number;
+      /** 1.9.3 (D-056): a makalani nut: a pellet that meets it goes on, and a bird it then meets
+       *  behind takes it instead (nuts never block a bird); anything else stops at the nut. */
+      readonly passThrough?: boolean;
+    } & Capsule);
 
 const NOTHING: PelletResult = { birdId: null, propId: null, partId: null, crateId: null };
 
@@ -218,6 +224,9 @@ export function resolvePellet(
   extras: ReadonlyMap<string, readonly HitExtra[]> = new Map(),
   driftDx: (scrollFactor: number) => number = () => 0,
 ): PelletResult {
+  /** 1.9.3 (D-056): the first nut the pellet passed (it takes the pellet unless a bird does). */
+  let nut: PelletResult | null = null;
+  const after = (r: PelletResult): PelletResult => (r.birdId !== null || nut === null ? r : nut);
   for (const slice of geometry.slices) {
     const p = tapToPlane(cx, slice.scrollFactor, dx + driftDx(slice.scrollFactor), sy);
     if (slice.plane !== null) {
@@ -233,23 +242,27 @@ export function resolvePellet(
     }
     for (const e of extras.get(slice.layerId) ?? []) {
       if (e.kind === 'can') {
-        if (pointInCapsule(p.x, p.y, e))
-          return { ...NOTHING, canId: e.canId, canDx: p.x - e.x, canDy: p.y - e.y };
+        if (!pointInCapsule(p.x, p.y, e)) continue;
+        const hit = { ...NOTHING, canId: e.canId, canDx: p.x - e.x, canDy: p.y - e.y };
+        if (e.passThrough !== true) return after(hit);
+        nut ??= hit;
         continue;
       }
       if (!pointInOccluder(p.x, p.y, { propId: '', x: e.x, y: e.y, shape: e.shape })) continue;
-      if (e.kind === 'paper') return { ...NOTHING, paperId: e.paperId };
-      if (e.kind === 'meerkat') return { ...NOTHING, meerkatId: e.meerkatId };
-      if (e.kind === 'spook') return { ...NOTHING, spookId: e.spookId };
-      return e.kind === 'crate'
-        ? { ...NOTHING, crateId: e.crateId }
-        : { ...NOTHING, propId: e.propId, partId: e.partId };
+      if (e.kind === 'paper') return after({ ...NOTHING, paperId: e.paperId });
+      if (e.kind === 'meerkat') return after({ ...NOTHING, meerkatId: e.meerkatId });
+      if (e.kind === 'spook') return after({ ...NOTHING, spookId: e.spookId });
+      return after(
+        e.kind === 'crate'
+          ? { ...NOTHING, crateId: e.crateId }
+          : { ...NOTHING, propId: e.propId, partId: e.partId },
+      );
     }
     for (const o of slice.occluders) {
-      if (pointInOccluder(p.x, p.y, o)) return { ...NOTHING, propId: o.propId };
+      if (pointInOccluder(p.x, p.y, o)) return after({ ...NOTHING, propId: o.propId });
     }
   }
-  return NOTHING;
+  return nut ?? NOTHING;
 }
 
 /**

@@ -596,5 +596,156 @@
       "goneMarginPx": 24,
       "wegChain": 10
     }
+  },
+  "makalani": {
+    "$comment": "1.9.3 (D-056, GDD §11.3b) Makalani palms (Hyphaene petersiana) and their nuts. nutR and the palm shapes: design px at plane scale 1 (× the plane's scale; the nut's hit radius floored by minHitRadiusPx). Flight: px at the tuning reference (× tuningRatio). A nut cracks off and mostly drops (knockUpMul); air hits kick it like a can; it bounces hard once and rolls. popPellets in one shot, or a rifle (popWeapons), burst it. The art (tools/art) reads the same palm shapes.",
+    "nutR": 11,
+    "airHitMul": 2.2,
+    "perCluster": [
+      3,
+      8
+    ],
+    "colours": {
+      "brown": 0.74,
+      "orange": 0.16,
+      "green": 0.1
+    },
+    "popPellets": 3,
+    "popWeapons": [
+      "twee_twee",
+      "langloop"
+    ],
+    "juggle": {
+      "gravityPxPerSec2": 1250,
+      "kickUpPxPerSec": 400,
+      "kickSidePxPerSec": 130,
+      "minSideShare": 0.35,
+      "spinDegPerSec": 620,
+      "upGrowth": 0.07,
+      "spinGrowthDegPerSec": 160,
+      "jitterPxPerSec": 40,
+      "jitterGrowthPxPerSec": 18,
+      "growthCapHits": 8,
+      "pelletBonus": 0.03,
+      "pelletCap": 1.06,
+      "bounce": {
+        "restitution": 0.55,
+        "keep": 0.7
+      },
+      "goneMarginPx": 24,
+      "wegChain": 10,
+      "knockUpMul": 0.25,
+      "roll": {
+        "keep": 0.85,
+        "decelPxPerSec2": 240
+      }
+    },
+    "palms": {
+      "single": {
+        "planes": [
+          "near",
+          "mid"
+        ],
+        "trunks": [
+          {
+            "dx": 0,
+            "topDx": 18,
+            "h": 720
+          }
+        ],
+        "clusters": [
+          {
+            "trunk": 0,
+            "dx": -34,
+            "dy": 44
+          },
+          {
+            "trunk": 0,
+            "dx": 40,
+            "dy": 40
+          }
+        ],
+        "halfW": 200,
+        "top": 920
+      },
+      "pair": {
+        "planes": [
+          "near",
+          "mid"
+        ],
+        "trunks": [
+          {
+            "dx": -46,
+            "topDx": -78,
+            "h": 760
+          },
+          {
+            "dx": 44,
+            "topDx": 92,
+            "h": 700
+          }
+        ],
+        "clusters": [
+          {
+            "trunk": 0,
+            "dx": -30,
+            "dy": 44
+          },
+          {
+            "trunk": 0,
+            "dx": 36,
+            "dy": 40
+          },
+          {
+            "trunk": 1,
+            "dx": 30,
+            "dy": 42
+          }
+        ],
+        "halfW": 290,
+        "top": 960
+      },
+      "trio": {
+        "planes": [
+          "mid"
+        ],
+        "trunks": [
+          {
+            "dx": -60,
+            "topDx": -120,
+            "h": 740
+          },
+          {
+            "dx": 0,
+            "topDx": 8,
+            "h": 820
+          },
+          {
+            "dx": 58,
+            "topDx": 130,
+            "h": 700
+          }
+        ],
+        "clusters": [
+          {
+            "trunk": 0,
+            "dx": -28,
+            "dy": 42
+          },
+          {
+            "trunk": 1,
+            "dx": 32,
+            "dy": 44
+          },
+          {
+            "trunk": 2,
+            "dx": 26,
+            "dy": 40
+          }
+        ],
+        "halfW": 340,
+        "top": 1020
+      }
+    }
   }
 }

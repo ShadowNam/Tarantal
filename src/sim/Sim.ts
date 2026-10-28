@@ -30,6 +30,17 @@ import {
   type Blikkies,
 } from './cans/cans';
 import {
+  MAKALANI_SECRET,
+  NUT_ID_BASE,
+  hitNut,
+  nutHitR,
+  nutLive,
+  nutPoints,
+  startPalms,
+  stepNuts,
+  type Palms,
+} from './nuts/makalani';
+import {
   lanternsLit,
   removeThings,
   spookShape,
@@ -103,6 +114,7 @@ import type {
   AimView,
   BagBehaviour,
   BirdView,
+  CansView,
   ColonyView,
   Command,
   FlockState,
@@ -804,6 +816,41 @@ export function createSim(config: SimConfig): Sim {
           planes: scoring.planes,
           tuningRefScale: scoring.tuningRefScale,
         });
+  // 1.9.3 (D-056): 1–2 cans on a fence further back (the Karoo's mid fence line), same rules.
+  const blikFar: Blikkies | null =
+    ranged || setup.map.farFence === null
+      ? null
+      : startCans({
+          fence: setup.map.farFence,
+          biome,
+          cans: content.birds.cans,
+          planes: scoring.planes,
+          tuningRefScale: scoring.tuningRefScale,
+          idBase: CAN_ID_BASE + 1000,
+        });
+  /** The fences in play (the day's, then the far one). */
+  const fences = (): Blikkies[] =>
+    blik === null
+      ? blikFar === null
+        ? []
+        : [blikFar]
+      : blikFar === null
+        ? [blik]
+        : [blik, blikFar];
+  // 1.9.3 (D-056): the day's makalani palms and their nuts (Classic and Daily maps only).
+  const palms: Palms | null =
+    ranged || setup.map.palms.length === 0
+      ? null
+      : startPalms({
+          palms: setup.map.palms,
+          biome,
+          makalani: content.birds.makalani,
+          planes: scoring.planes,
+          tuningRefScale: scoring.tuningRefScale,
+          rng: rng.stream('nuts'),
+        });
+  const popWeapons = new Set(content.birds.makalani.popWeapons);
+  let nutPointsPaid = 0;
   let canGen = 0;
   let canRespawnAt = -1;
   let canPointsPaid = 0;
@@ -1340,13 +1387,30 @@ export function createSim(config: SimConfig): Sim {
       else list.push(e);
     };
     // v1.8 (D-050): tin cans on the posts and in the air (landed and gone ones are done).
-    if (blik !== null) {
-      const layerId = planeLayer.get(blik.fence.plane);
+    for (const f of fences()) {
+      const layerId = planeLayer.get(f.fence.plane);
       if (layerId !== undefined)
-        for (const c of blik.cans) {
+        for (const c of f.cans) {
           if (c.body.state === 'landed' || c.body.state === 'gone') continue;
           add(layerId, { kind: 'can', canId: c.id, ...canCapsule(c, canAssist?.[c.plane] ?? 0) });
         }
+    }
+    // 1.9.3 (D-056): makalani nuts hanging and in the air — a circle (a capsule without an axis)
+    // that a pellet passes on through when a bird lies behind it (nuts never block a bird).
+    for (const n of palms?.nuts ?? []) {
+      if (!nutLive(n)) continue;
+      const layerId = planeLayer.get(n.plane);
+      if (layerId === undefined) continue;
+      add(layerId, {
+        kind: 'can',
+        canId: n.id,
+        x: n.body.x,
+        y: n.body.y,
+        r: nutHitR(n) + (canAssist?.[n.plane] ?? 0),
+        hx: 0,
+        hy: 0,
+        passThrough: true,
+      });
     }
     // D-048: the Spookjag's bats, owls and lit lanterns come first in their plane's layer.
     for (const t of spook?.things ?? []) {
@@ -1531,7 +1595,7 @@ export function createSim(config: SimConfig): Sim {
         : r.meerkatId !== undefined
           ? false
           : r.canId !== undefined
-            ? blik?.fence.plane === 'far' || blik?.fence.plane === 'ver'
+            ? thingPlane(r.canId) === 'far' || thingPlane(r.canId) === 'ver'
             : r.spookId !== undefined
               ? spook?.things.find((t) => t.id === r.spookId)?.plane === 'far'
               : r.crateId !== null
@@ -1557,6 +1621,37 @@ export function createSim(config: SimConfig): Sim {
       ...(cx === null ? {} : { cx }),
     });
     return { dx: ldx, sy: psy, r };
+  }
+
+  /** v1.8 (D-050): a fence and its cans as the view sees them. */
+  function cansView(b: Blikkies): CansView {
+    return {
+      plane: b.fence.plane,
+      kind: b.fence.kind,
+      groundY: b.fence.groundY,
+      posts: b.fence.posts,
+      cans: b.cans.map((c) => ({
+        id: c.id,
+        type: c.type,
+        x: c.body.x,
+        y: c.body.y,
+        angle: c.body.angle,
+        spin: c.body.spin,
+        state: c.body.state,
+        chain: c.body.chain,
+        r: c.r,
+        half: c.half,
+        hitR: canHitR(c),
+      })),
+      bestChain: b.bestChain,
+    };
+  }
+
+  /** The plane of a can or a nut (by id; null when it is gone from play). */
+  function thingPlane(id: number): PlaneId | null {
+    if (id >= NUT_ID_BASE) return palms?.nuts.find((n) => n.id === id)?.plane ?? null;
+    for (const f of fences()) if (f.cans.some((c) => c.id === id)) return f.fence.plane;
+    return null;
   }
 
   function driftOn(drift: number): (f: number) => number {
@@ -1646,7 +1741,9 @@ export function createSim(config: SimConfig): Sim {
       byPlane,
       extras,
       driftOn(drift),
-      touchAssist && blik !== null ? hitExtras(assisted.assistPx) : extras,
+      touchAssist && (blik !== null || blikFar !== null || palms !== null)
+        ? hitExtras(assisted.assistPx)
+        : extras,
     );
     const landed = pellets.map((p) => landPellet(shotId, p.pdx, p.psy, p.r, drift, null));
     resolveShot(ctx, landed);
@@ -1967,7 +2064,10 @@ export function createSim(config: SimConfig): Sim {
       }
     }
     if (spookHits.length > 0) shotSpook(shotId, spookHits);
-    if (canHits.size > 0) shotCans(shotId, canHits);
+    if (canHits.size > 0) {
+      shotCans(shotId, canHits);
+      shotNuts(shotId, canHits, shot.id);
+    }
     // This shot counts against shell power-ups it had; one it picks up starts with the next.
     endPowerups(onShellFired(powerups));
     for (const id of crateHits) openCrate(id);
@@ -2089,49 +2189,51 @@ export function createSim(config: SimConfig): Sim {
       { n: number; dx: number; dy: number; at: { dx: number; dy: number }[] }
     >,
   ): void {
-    if (blik === null) return;
     const cs = scoring.cans;
-    for (const c of blik.cans) {
-      const h = hits.get(c.id);
-      if (h === undefined) continue;
-      // Dents in the can's frame before the kick turns it.
-      const marks = h.at.map((a) => {
-        const l = canLocal(c, a.dx, a.dy);
-        return { lx: Math.round(l.lx * 100) / 100, ly: Math.round(l.ly * 100) / 100 };
-      });
-      const meanDx = h.dx / h.n;
-      // The side it was struck on, against its size when struck (before the kick).
-      const hitR = canHitR(c);
-      const k = hitCan(blik, c, meanDx, h.n, rng.stream('cans'));
-      if (k === null) continue;
-      const knock = k.kind === 'knock';
-      const base = canPoints(cs, c.plane, knock ? 'knock' : { chain: k.chain });
-      const points = awardBonus(knock ? 'canKnock' : 'canAir', base);
-      canPointsPaid += points;
-      const side = hitR > 0 ? Math.max(-1, Math.min(1, meanDx / hitR)) : 0;
-      emit({
-        type: knock ? 'canKnocked' : 'canJuggled',
-        tick,
-        shotId,
-        canId: c.id,
-        plane: c.plane,
-        x: c.body.x,
-        y: c.body.y,
-        chain: k.chain,
-        pellets: h.n,
-        side: Math.round(side * 1000) / 1000,
-        marks,
-        points,
-      });
-      if (!knock && k.chain >= cs.secretChain && !blik.danced) {
-        blik.danced = true;
-        secretFound(BLIKKIESDANS_SECRET, String(c.id), cs.secretBonus);
+    for (const f of fences())
+      for (const c of f.cans) {
+        const h = hits.get(c.id);
+        if (h === undefined) continue;
+        // Dents in the can's frame before the kick turns it.
+        const marks = h.at.map((a) => {
+          const l = canLocal(c, a.dx, a.dy);
+          return { lx: Math.round(l.lx * 100) / 100, ly: Math.round(l.ly * 100) / 100 };
+        });
+        const meanDx = h.dx / h.n;
+        // The side it was struck on, against its size when struck (before the kick).
+        const hitR = canHitR(c);
+        const k = hitCan(f, c, meanDx, h.n, rng.stream('cans'));
+        if (k === null) continue;
+        const knock = k.kind === 'knock';
+        const base = canPoints(cs, c.plane, knock ? 'knock' : { chain: k.chain });
+        const points = awardBonus(knock ? 'canKnock' : 'canAir', base);
+        canPointsPaid += points;
+        const side = hitR > 0 ? Math.max(-1, Math.min(1, meanDx / hitR)) : 0;
+        emit({
+          type: knock ? 'canKnocked' : 'canJuggled',
+          tick,
+          shotId,
+          canId: c.id,
+          plane: c.plane,
+          x: c.body.x,
+          y: c.body.y,
+          chain: k.chain,
+          pellets: h.n,
+          side: Math.round(side * 1000) / 1000,
+          marks,
+          points,
+        });
+        if (!knock && k.chain >= cs.secretChain && !fences().some((x) => x.danced)) {
+          f.danced = true;
+          secretFound(BLIKKIESDANS_SECRET, String(c.id), cs.secretBonus);
+        }
       }
-    }
   }
 
   /** v1.8: the cans in flight move; a landing rattles, a can out of the top pays Weg!. */
   function tickCans(): void {
+    tickNuts();
+    if (blikFar !== null) moveCans(blikFar);
     if (blik === null) return;
     // The Skietbaan: fresh cans once every can is down or gone.
     if (
@@ -2147,7 +2249,11 @@ export function createSim(config: SimConfig): Sim {
         if (blik === null) return;
       }
     }
-    for (const { can, r } of stepCans(blik)) {
+    moveCans(blik);
+  }
+
+  function moveCans(b: Blikkies): void {
+    for (const { can, r } of stepCans(b)) {
       if (r === 'gone') {
         const points = awardBonus('canWeg', canPoints(scoring.cans, can.plane, 'weg'));
         canPointsPaid += points;
@@ -2173,6 +2279,94 @@ export function createSim(config: SimConfig): Sim {
     }
   }
 
+  /**
+   * 1.9.3 (D-056): the makalani nuts a shot hit, in id order: popPellets or a pop weapon burst a
+   * nut; fewer crack it off (it drops) or kick it on in the air (the chain). Event bonuses like
+   * the cans; the "Hard soos 'n makalani" secret at secretCount nuts popped or juggled out.
+   */
+  function shotNuts(
+    shotId: number,
+    hits: ReadonlyMap<number, { n: number; dx: number }>,
+    weaponId: string,
+  ): void {
+    if (palms === null) return;
+    const ns = scoring.nuts;
+    const m = content.birds.makalani;
+    for (const n of palms.nuts) {
+      const h = hits.get(n.id);
+      if (h === undefined) continue;
+      const k = hitNut(
+        palms,
+        n,
+        h.dx / h.n,
+        h.n,
+        popWeapons.has(weaponId),
+        m.popPellets,
+        rng.stream('nuts'),
+      );
+      if (k === null) continue;
+      const base = { tick, shotId, nutId: n.id, plane: n.plane, x: n.body.x, y: n.body.y };
+      if (k.kind === 'pop') {
+        const points = awardBonus('nutPop', nutPoints(ns, n.plane, 'pop'));
+        nutPointsPaid += points;
+        emit({ type: 'nutPopped', ...base, pellets: h.n, hanging: k.wasHanging, points });
+        nutSecret(n.id);
+        continue;
+      }
+      const knock = k.kind === 'knock';
+      const points = awardBonus(
+        knock ? 'nutKnock' : 'nutAir',
+        nutPoints(ns, n.plane, knock ? 'knock' : { chain: k.chain }),
+      );
+      nutPointsPaid += points;
+      emit({
+        type: knock ? 'nutKnocked' : 'nutJuggled',
+        ...base,
+        chain: k.chain,
+        pellets: h.n,
+        points,
+      });
+    }
+  }
+
+  /** 1.9.3 (D-056): once a hunt, secretCount nuts popped or juggled out of the top. */
+  function nutSecret(nutId: number): void {
+    if (palms === null || palms.hard) return;
+    if (palms.pops + palms.weg < scoring.nuts.secretCount) return;
+    palms.hard = true;
+    secretFound(MAKALANI_SECRET, String(nutId), scoring.nuts.secretBonus);
+  }
+
+  /** 1.9.3 (D-056): nuts fall, bounce hard, roll; one out of the top pays Weg!. */
+  function tickNuts(): void {
+    if (palms === null) return;
+    for (const { nut, r } of stepNuts(palms)) {
+      if (r === 'gone') {
+        const points = awardBonus('nutWeg', nutPoints(scoring.nuts, nut.plane, 'weg'));
+        nutPointsPaid += points;
+        emit({
+          type: 'nutGone',
+          tick,
+          nutId: nut.id,
+          plane: nut.plane,
+          x: nut.body.x,
+          chain: nut.body.chain,
+          points,
+        });
+        nutSecret(nut.id);
+      } else
+        emit({
+          type: 'nutLanded',
+          tick,
+          nutId: nut.id,
+          plane: nut.plane,
+          x: nut.body.x,
+          y: nut.body.y,
+          final: r === 'landed',
+        });
+    }
+  }
+
   function awardBonus(bonus: BonusId, base: number, ruleMul = 1): number {
     if (ranged) return 0;
     const charmMul =
@@ -2181,7 +2375,15 @@ export function createSim(config: SimConfig): Sim {
         : 1;
     // v1.8 (D-050): tin cans pay × Stampede only. A can-only shot leaves the streak alone, so a
     // Frenzy multiplier would stay on for a whole juggle (review of v1.8).
-    const canBonus = bonus === 'canKnock' || bonus === 'canAir' || bonus === 'canWeg';
+    // 1.9.3 (D-056): makalani nuts likewise.
+    const canBonus =
+      bonus === 'canKnock' ||
+      bonus === 'canAir' ||
+      bonus === 'canWeg' ||
+      bonus === 'nutKnock' ||
+      bonus === 'nutAir' ||
+      bonus === 'nutPop' ||
+      bonus === 'nutWeg';
     const award = scoreEventBonus(base, {
       frenzyMul: canBonus ? 1 : frenzyMul(streak, scoring.frenzyTiers),
       stampedeMul: stampedeMul(),
@@ -3175,28 +3377,31 @@ export function createSim(config: SimConfig): Sim {
               },
         over,
         ...(ranged ? { range: { papers } } : {}),
-        ...(blik === null
+        ...(blik === null ? {} : { cans: cansView(blik) }),
+        ...(blikFar === null ? {} : { farCans: cansView(blikFar) }),
+        ...(palms === null
           ? {}
           : {
-              cans: {
-                plane: blik.fence.plane,
-                kind: blik.fence.kind,
-                groundY: blik.fence.groundY,
-                posts: blik.fence.posts,
-                cans: blik.cans.map((c) => ({
-                  id: c.id,
-                  type: c.type,
-                  x: c.body.x,
-                  y: c.body.y,
-                  angle: c.body.angle,
-                  spin: c.body.spin,
-                  state: c.body.state,
-                  chain: c.body.chain,
-                  r: c.r,
-                  half: c.half,
-                  hitR: canHitR(c),
+              nuts: {
+                palms: palms.groups,
+                nuts: palms.nuts.map((n) => ({
+                  id: n.id,
+                  palm: n.palm,
+                  cluster: n.cluster,
+                  plane: n.plane,
+                  colour: n.colour,
+                  x: n.body.x,
+                  y: n.body.y,
+                  angle: n.body.angle,
+                  spin: n.body.spin,
+                  state: n.popped ? 'popped' : n.body.state,
+                  chain: n.body.chain,
+                  r: n.r,
+                  hitR: nutHitR(n),
+                  hangX: n.hangX,
+                  hangY: n.hangY,
                 })),
-                bestChain: blik.bestChain,
+                bestChain: palms.bestChain,
               },
             }),
         ...(spook === null || setup.feesdag === null
@@ -3258,16 +3463,29 @@ export function createSim(config: SimConfig): Sim {
         consumablesUsed: [...consumablesUsed],
         rentalUsed,
         bossesBagged,
-        ...(blik === null
+        ...(fences().length === 0
           ? {}
           : {
               cans: {
-                total: blik.cans.length,
-                knocks: blik.knocks,
-                airHits: blik.airHits,
-                bestChain: blik.bestChain,
-                weg: blik.weg,
+                total: fences().reduce((a, f) => a + f.cans.length, 0),
+                knocks: fences().reduce((a, f) => a + f.knocks, 0),
+                airHits: fences().reduce((a, f) => a + f.airHits, 0),
+                bestChain: Math.max(...fences().map((f) => f.bestChain)),
+                weg: fences().reduce((a, f) => a + f.weg, 0),
                 points: canPointsPaid,
+              },
+            }),
+        ...(palms === null
+          ? {}
+          : {
+              nuts: {
+                total: palms.nuts.length,
+                knocks: palms.knocks,
+                airHits: palms.airHits,
+                pops: palms.pops,
+                bestChain: palms.bestChain,
+                weg: palms.weg,
+                points: nutPointsPaid,
               },
             }),
         ...(spook === null || setup.feesdag === null

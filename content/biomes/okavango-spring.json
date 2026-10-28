@@ -552,8 +552,15 @@
     "stampede": "okavango_stampede"
   },
   "ambience": "okavango_reeds_bed",
+  "palmY": { "near": 1000, "mid": 776 },
+  "waterY": { "near": 1030, "mid": 790 },
   "layouts": [
     {
+      "palms": [
+        { "kind": "pair", "plane": "mid", "u": 0.294, "water": true },
+        { "kind": "single", "plane": "mid", "u": 0.964, "flip": true, "water": true },
+        { "kind": "single", "plane": "near", "u": 0.05 }
+      ],
       "id": "mon",
       "light": "dawn_mist",
       "weather": "calm",
@@ -577,6 +584,11 @@
       "cameraStartU": 0.1
     },
     {
+      "palms": [
+        { "kind": "pair", "plane": "mid", "u": 0.294, "flip": true, "water": true },
+        { "kind": "trio", "plane": "mid", "u": 0.677, "water": true },
+        { "kind": "pair", "plane": "near", "u": 0.94, "flip": true }
+      ],
       "id": "tue",
       "light": "midday",
       "weather": "default",
@@ -620,6 +632,10 @@
       "cameraStartU": 0.72
     },
     {
+      "palms": [
+        { "kind": "pair", "plane": "mid", "u": 0.645, "water": true },
+        { "kind": "single", "plane": "mid", "u": 0.964, "flip": true, "water": true }
+      ],
       "id": "wed",
       "light": "overcast",
       "weather": "default",
@@ -650,6 +666,10 @@
       "cameraStartU": 0.74
     },
     {
+      "palms": [
+        { "kind": "trio", "plane": "mid", "u": 0.294, "water": true },
+        { "kind": "single", "plane": "near", "u": 0.96, "flip": true }
+      ],
       "id": "thu",
       "light": "golden",
       "weather": "omen",
@@ -683,6 +703,10 @@
       "cameraStartU": 0.78
     },
     {
+      "palms": [
+        { "kind": "pair", "plane": "mid", "u": 0.294, "flip": true, "water": true },
+        { "kind": "pair", "plane": "near", "u": 0.06 }
+      ],
       "id": "fri",
       "light": "dusty_wind",
       "weather": "default",
@@ -712,6 +736,10 @@
       "cameraStartU": 0.22
     },
     {
+      "palms": [
+        { "kind": "pair", "plane": "mid", "u": 0.645, "flip": true, "water": true },
+        { "kind": "single", "plane": "mid", "u": 0.964, "water": true }
+      ],
       "id": "sat",
       "light": "dusk",
       "weather": "default",
@@ -733,6 +761,10 @@
       "cameraStartU": 0.28
     },
     {
+      "palms": [
+        { "kind": "trio", "plane": "mid", "u": 0.294, "water": true },
+        { "kind": "single", "plane": "near", "u": 0.5 }
+      ],
       "id": "sun",
       "light": "bright_calm",
       "weather": "calm",

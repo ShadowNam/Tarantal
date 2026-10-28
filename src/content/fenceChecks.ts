@@ -54,18 +54,21 @@ export function fenceIssues(bundle: ContentBundle, base: Biome): string[] {
     if (b.includes('popup')) l.push('popupY');
     return l;
   };
-  for (const layout of base.layouts) {
-    if (layout.fence === undefined) continue;
+  // 1.9.3 (D-056): the far fence (the Karoo's mid fence line) is checked the same way.
+  for (const layout of base.layouts)
+    for (const which of ['fence', 'farFence'] as const) {
+    if (layout[which] === undefined) continue;
     const maps: { name: string; bonus?: string }[] = [{ name: `layout "${layout.id}"` }];
     for (const b of base.bonusMaps)
       maps.push({ name: `layout "${layout.id}" + bonus map "${b.id}"`, bonus: b.id });
     for (const map of maps) {
       const r = resolveMap(base, layout.id, map.bonus);
-      const f = r.fence;
+      const f = r[which];
       if (f === null) continue;
       const key = (msg: string): void => {
-        const once = `${map.bonus === undefined ? '' : map.bonus + ' '}${msg}`;
-        if (!seen.has(once)) out.push(`${map.name}: the fence ${msg}`);
+        const once = `${which} ${map.bonus === undefined ? '' : map.bonus + ' '}${msg}`;
+        if (!seen.has(once))
+          out.push(`${map.name}: the ${which === 'fence' ? 'fence' : 'far fence'} ${msg}`);
         seen.add(once);
       };
       const posts = new Set<number>();
@@ -166,6 +169,6 @@ export function fenceIssues(bundle: ContentBundle, base: Biome): string[] {
         }
       }
     }
-  }
+    }
   return out;
 }

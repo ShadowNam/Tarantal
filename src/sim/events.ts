@@ -30,7 +30,12 @@ export type BonusId =
   // v1.8 (D-050): tin cans — knocked off, an air hit, gone out of the top ("Weg!").
   | 'canKnock'
   | 'canAir'
-  | 'canWeg';
+  | 'canWeg'
+  // 1.9.3 (D-056): makalani nuts — cracked off, an air hit, popped, gone out of the top.
+  | 'nutKnock'
+  | 'nutAir'
+  | 'nutPop'
+  | 'nutWeg';
 
 export type SimEvent =
   | {
@@ -579,7 +584,58 @@ export type SimEvent =
       readonly x: number;
       readonly chain: number;
       readonly points: number;
+    }
+  /** 1.9.3 (D-056): a makalani nut cracked off its stalk (chain 0: it drops spinning) or kicked
+   *  again in the air (chain n ≥ 1). `points` as paid (after Stampede; also in bonusAwarded). */
+  | ({ readonly type: 'nutKnocked' } & NutHitFields)
+  | ({ readonly type: 'nutJuggled' } & NutHitFields)
+  /** 1.9.3: popPellets in one shot (or a rifle) burst a nut: husk fibre and ivory chips. */
+  | {
+      readonly type: 'nutPopped';
+      readonly tick: number;
+      readonly shotId: number;
+      readonly nutId: number;
+      readonly plane: PlaneId;
+      readonly x: number;
+      readonly y: number;
+      readonly pellets: number;
+      /** It burst on its stalk (else in the air). */
+      readonly hanging: boolean;
+      readonly points: number;
+    }
+  /** 1.9.3: a nut came down: its one hard bounce (`final` false), then it rolls to a stop. */
+  | {
+      readonly type: 'nutLanded';
+      readonly tick: number;
+      readonly nutId: number;
+      readonly plane: PlaneId;
+      readonly x: number;
+      readonly y: number;
+      readonly final: boolean;
+    }
+  /** 1.9.3: a nut juggled out of the top of the view: Weg! (points as paid). */
+  | {
+      readonly type: 'nutGone';
+      readonly tick: number;
+      readonly nutId: number;
+      readonly plane: PlaneId;
+      readonly x: number;
+      readonly chain: number;
+      readonly points: number;
     };
+
+/** 1.9.3 (D-056): what nutKnocked and nutJuggled carry. */
+export interface NutHitFields {
+  readonly tick: number;
+  readonly shotId: number;
+  readonly nutId: number;
+  readonly plane: PlaneId;
+  readonly x: number;
+  readonly y: number;
+  readonly chain: number;
+  readonly pellets: number;
+  readonly points: number;
+}
 
 /** v1.8 (D-050): what canKnocked and canJuggled carry. */
 export interface CanHitFields {

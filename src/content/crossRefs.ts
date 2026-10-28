@@ -5,6 +5,7 @@ import { coreWidth, DESIGN_HEIGHT } from '../sim/world';
 import { mixedOverlaps } from './rangeFootprint';
 import { colonyIssues } from './colonyChecks';
 import { fenceIssues } from './fenceChecks';
+import { palmIssues } from './palmChecks';
 import { WORLD_EVENT_HANDLERS } from '../sim/director/events';
 
 /** Half the narrowest visible design width (4:3, 1440 px; Tech §3.3). */
@@ -69,6 +70,9 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
   const weaponIds = new Set(weapons.weapons.map((w) => w.id));
   const crateWeaponIds = new Set(weapons.weapons.filter((w) => w.kind === 'crate').map((w) => w.id));
   const gadgetIds = new Set(weapons.gadgets.map((g) => g.id));
+  // 1.9.3 (D-056): the guns that pop a makalani nut.
+  for (const w of birds.makalani.popWeapons)
+    if (!weaponIds.has(w)) err('birds.json', `makalani.popWeapons names unknown weapon "${w}"`);
   const powerupIds = new Set(powerups.powerups.map((p) => p.id));
   const rankIds = new Set(scoring.ranks.map((r) => r.id));
   const bossRuleIds = new Set(Object.keys(run.bossRules));
@@ -368,6 +372,8 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
     for (const m of colonyIssues(bundle, biome)) err(file, m);
     // v1.8 (D-050): the Blikkies fences (a can stands on a post; nothing hidden behind them).
     for (const m of fenceIssues(bundle, biome)) err(file, m);
+    // 1.9.3 (D-056): the makalani palms (art on their plane; nothing hidden behind the nuts).
+    for (const m of palmIssues(bundle, biome)) err(file, m);
     for (const entry of biome.spawnTable) {
       const c = creatures.get(entry.creature);
       if (c === undefined) err(file, `spawnTable uses unknown creature "${entry.creature}"`);

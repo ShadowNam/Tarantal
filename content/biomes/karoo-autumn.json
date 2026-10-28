@@ -682,6 +682,14 @@
             "type": "food"
           }
         ]
+      },
+      "farFence": {
+        "$comment": "1.9.3 (D-056): 1–2 cans on the farther fence (the mid plane's fence line), same rules as the near ones; sized and flown by the plane scale (D-049).",
+        "plane": "mid",
+        "u": 0.4,
+        "kind": "wood",
+        "posts": [{ "dx": -104, "h": 52 }, { "dx": -2, "h": 55 }, { "dx": 101, "h": 50 }],
+        "cans": [{ "post": 0, "type": "cooldrink" }, { "post": 2, "type": "food" }]
       }
     },
     {
