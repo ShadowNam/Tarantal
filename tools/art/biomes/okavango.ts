@@ -3,7 +3,8 @@
 // beds and papyrus, a sausage tree, a hippo in the shallows, a lily pad with a reed frog, a
 // mokoro marker pole. No jacarandas (bible §2). Soft light from the upper left. D-031.
 import { bareBranch, plantLook, seedTuft } from '../flora';
-import { ilalaPalm, jackalberry, sausageTree as sausageSpecies } from '../species';
+import { jackalberry, sausageTree as sausageSpecies } from '../species';
+import { makalaniPalm } from '../makalani';
 import type { BiomeArtPlan, LayerCtx, PropCtx } from '../landscape';
 import {
   edgePts,
@@ -328,13 +329,26 @@ function farRidge(ctx: LayerCtx): string {
     const w = 240 + ctx.rnd() * 320;
     for (let k = 0; k < w / 50; k++) {
       const tx = x + k * 50 + ctx.rnd() * 20;
-      // v1.6 (D-042): ilala palms and jackalberries on the tree islands (far versions).
-      if (ctx.rnd() < 0.3) parts.push(ilalaPalm(ctx.rnd, tx, 650, 90 + ctx.rnd() * 40, ctx, 'far'));
+      // v1.6 (D-042): palms and jackalberries on the tree islands (far versions); 1.9.3
+      // (D-056): the palms are makalani silhouettes, often two or three together.
+      if (ctx.rnd() < 0.3) parts.push(farMakalani(ctx, tx, 650, 90 + ctx.rnd() * 40));
       else parts.push(jackalberry(ctx.rnd, tx, 652, 80 + ctx.rnd() * 40, ctx, 'far'));
     }
     x += w + 120 + ctx.rnd() * 300;
   }
   return g({}, ...parts);
+}
+
+/** 1.9.3 (D-056): a far makalani group: one, two or three palms leaning apart. */
+function farMakalani(ctx: LayerCtx, x: number, foot: number, h: number): string {
+  const n = 1 + Math.floor(ctx.rnd() * 3);
+  const out: string[] = [];
+  for (let k = 0; k < n; k++) {
+    const dx = (k - (n - 1) / 2) * h * 0.18;
+    const lean = (k - (n - 1) / 2) * 0.12 + (ctx.rnd() - 0.5) * 0.08;
+    out.push(makalaniPalm(ctx.rnd, x + dx, foot, h * (1 - 0.14 * k), ctx, lean));
+  }
+  return g({}, ...out);
 }
 
 function farVeld(ctx: LayerCtx): string {
@@ -365,7 +379,7 @@ function farVeld(ctx: LayerCtx): string {
     line(smoothD(band.edge, false, 0.8), ctx.pen),
   ];
   for (let x = 120; x < ctx.width; x += 300 + ctx.rnd() * 500)
-    parts.push(ilalaPalm(ctx.rnd, x, yAt(band.edge, x) + 6, 60 + ctx.rnd() * 20, ctx, 'far'));
+    parts.push(farMakalani(ctx, x, yAt(band.edge, x) + 6, 60 + ctx.rnd() * 20));
   // v1.6 (D-042): the far animals are sprites now (src/game/view/faunaHerds.ts, D-054).
   return g({}, ...parts);
 }
@@ -434,21 +448,16 @@ function mid(ctx: LayerCtx): string {
   }
   items.sort((a, b) => a.y - b.y);
   inside.push(...items.map((i) => i.svg));
-  // v1.6 (D-042): jackalberries and ilala palms on the mid plane's island edge.
+  // v1.6 (D-042): jackalberries on the mid plane's island edge. 1.9.3 (D-056): the painted
+  // palms gave way to the makalani sprites (the layouts' palm groups, MakalaniView).
   const trees: string[] = [];
-  for (const [u, h, kind] of [
-    [0.16, 270, 'jackalberry'],
-    [0.64, 235, 'palm'],
-    [0.81, 250, 'jackalberry'],
-    [0.98, 205, 'palm'],
+  for (const [u, h] of [
+    [0.16, 270],
+    [0.81, 250],
   ] as const) {
     const x = ctx.u(u);
     const foot = yAt(band.edge, x) + 34;
-    trees.push(
-      kind === 'palm'
-        ? ilalaPalm(ctx.rnd, x, foot, h, ctx, 'mid')
-        : jackalberry(ctx.rnd, x, foot, h, ctx, 'mid'),
-    );
+    trees.push(jackalberry(ctx.rnd, x, foot, h, ctx, 'mid'));
   }
   return g(
     {},

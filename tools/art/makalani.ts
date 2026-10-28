@@ -81,7 +81,7 @@ export function makalaniTrunk(p: MakalaniPaint): string {
   // Faint leaf-scar rings: shallow arcs, darker below a lit lip.
   const rings: string[] = [];
   const lips: string[] = [];
-  for (let y = -14; y > -len + 30; y -= 16 + rnd() * 10) {
+  for (let y = -14; y > -len + 30; y -= 12 + rnd() * 16) {
     const w = half(y);
     const sag = 2 + rnd() * 2;
     rings.push(`M${r2(-w)} ${r2(y)}Q0 ${r2(y + sag)} ${r2(w)} ${r2(y - 1)}`);
@@ -94,8 +94,8 @@ export function makalaniTrunk(p: MakalaniPaint): string {
       d: rings.join(''),
       fill: 'none',
       stroke: p.tint(BARK.dark),
-      'stroke-width': 1.3,
-      opacity: 0.55,
+      'stroke-width': 1.1,
+      opacity: 0.3,
     }),
     el('path', {
       d: lips.join(''),
@@ -218,12 +218,13 @@ function fanLeaf(
   );
   // The fan: segments opening from the stalk's end; folded, so lit and shaded alternate.
   const dir = dry ? ang + (Math.PI / 2 - ang) * 0.8 : ang;
-  const spread = dry ? 0.9 : 1.5 + rnd() * 0.3;
-  const segs = 11;
+  const spread = dry ? 0.8 : 1.0 + rnd() * 0.25;
+  const segs = dry ? 7 : 13;
   const tips: Pt[] = [];
   for (let i = 0; i <= segs; i++) {
     const a = dir - spread / 2 + (spread * i) / segs + (rnd() - 0.5) * 0.04;
-    const rr = r * (0.82 + 0.18 * Math.sin((i / segs) * Math.PI)) * (dry ? 1.15 : 1);
+    // Stiff, pleated segments: the middle ones longest, the tips split and a little ragged.
+    const rr = r * (0.7 + 0.3 * Math.sin((i / segs) * Math.PI)) * (dry ? 1.15 : 1) * (0.94 + rnd() * 0.12);
     tips.push([ex + Math.cos(a) * rr, ey + Math.sin(a) * rr]);
   }
   // Light from the upper left: fans facing up-left are lit.
@@ -277,8 +278,8 @@ export function makalaniCrown(p: MakalaniPaint): string {
   }
   // Living fans: back ones (upward) first, then the sides, the front ones last.
   const fans: { a: number; z: number }[] = [];
-  for (let k = 0; k < 16; k++) {
-    const a = -Math.PI * (0.06 + (k / 15) * 0.88) + (rnd() - 0.5) * 0.1;
+  for (let k = 0; k < 20; k++) {
+    const a = -Math.PI * (0.04 + (k / 19) * 0.92) + (rnd() - 0.5) * 0.12;
     fans.push({ a, z: rnd() });
   }
   for (let k = 0; k < 4; k++)
@@ -286,8 +287,8 @@ export function makalaniCrown(p: MakalaniPaint): string {
   fans.sort((a, b) => a.z - b.z);
   for (const f of fans) {
     const down = Math.sin(f.a) > -0.2;
-    const stalk = down ? 48 + rnd() * 16 : 70 + rnd() * 30;
-    const r = down ? 50 + rnd() * 12 : 58 + rnd() * 16;
+    const stalk = down ? 40 + rnd() * 14 : 56 + rnd() * 24;
+    const r = down ? 40 + rnd() * 10 : 46 + rnd() * 14;
     (f.z > 1 ? front : back).push(fanLeaf(p, f.a, stalk, r, false, down ? 18 : 6));
   }
   // The dark heart where the leaf bases meet.
