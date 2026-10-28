@@ -24,7 +24,7 @@ const OUT = join(import.meta.dirname, '..', '..', 'docs', 'art-preview', 'compar
 const PROFILES = ['desktop-chromium', 'pixel7-landscape', 'iphone14-landscape'];
 /** The device name of a project (a local Chromium stand-in for WebKit keeps the device's). */
 const device = (name: string): string => name.replace(/-chromium-fallback$/, '');
-const QUERY = 'feesdag=halloween&seed=42&omen=0';
+const QUERY = 'feesdag=halloween&seed=42&omen=0&palms=0';
 
 test.use({ serviceWorkers: 'block' });
 test.beforeEach(async ({ page }, info) => {

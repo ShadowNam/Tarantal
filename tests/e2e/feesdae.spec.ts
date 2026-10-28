@@ -29,7 +29,11 @@ if (HALLOWEEN === undefined) throw new Error('no halloween in feesdae.json');
 const B = HALLOWEEN.barks;
 const SPOOK_LINES = [B.start, B.bat, B.owl, B.lanternsOut, B.end];
 // No weather (the Daily's wind would drift the far shots), a short hunt.
-const QUERY = 'feesdag=halloween&seed=42&omen=0&huntSeconds=40';
+// 1.9.3 (D-056, review M20): palms=0 — the Daily's map (its seed follows the content hash) may
+// have makalani palms, whose nuts hang where the owls and bats fly: a pattern that hits the owl
+// also cracks a nut or two (−10 + 5 a nut), and the lantern and bat counts move the same way.
+// These tests are about the Spookjag, not the palms (makalani.spec covers those).
+const QUERY = 'feesdag=halloween&seed=42&omen=0&huntSeconds=40&palms=0';
 
 type R = { x: number; y: number; w: number; h: number };
 const overlaps = (a: R, b: R): boolean =>
@@ -153,7 +157,7 @@ test.describe('Feesdae: the Halloween Spookjag (D-048)', () => {
   // cross together: each half below plays its own hunt and needs only the first owl.
   async function owlHunt(page: Page, touch: boolean): Promise<void> {
     await seedSave(page, { quality: 'medium' });
-    await boot(page, 'feesdag=halloween&seed=42&omen=0&huntSeconds=60&birds=0&spook=early');
+    await boot(page, 'feesdag=halloween&seed=42&omen=0&huntSeconds=60&birds=0&spook=early&palms=0');
     await page.waitForFunction(() => window.__TM__?.rects['daily'] !== undefined, null, {
       timeout: 60_000,
     });
