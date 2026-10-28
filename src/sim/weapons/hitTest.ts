@@ -127,6 +127,8 @@ export interface PelletResult {
   readonly canId?: number;
   readonly canDx?: number;
   readonly canDy?: number;
+  /** 1.9.3 (D-056): the can is a pass-through makalani nut (a bird behind would have taken it). */
+  readonly passThrough?: true;
 }
 
 /** v1.8 (D-050): a capsule: points within r of the segment centre ± (hx, hy). */
@@ -245,7 +247,7 @@ export function resolvePellet(
         if (!pointInCapsule(p.x, p.y, e)) continue;
         const hit = { ...NOTHING, canId: e.canId, canDx: p.x - e.x, canDy: p.y - e.y };
         if (e.passThrough !== true) return after(hit);
-        nut ??= hit;
+        nut ??= { ...hit, passThrough: true };
         continue;
       }
       if (!pointInOccluder(p.x, p.y, { propId: '', x: e.x, y: e.y, shape: e.shape })) continue;
@@ -354,6 +356,8 @@ export function resolvePattern(
   const pellets = at(0, 0);
   if (assisted === null) return pellets;
   // A crate, secret part, meerkat or Spookjag hit is a hit too: never thrown away for a snap.
+  // 1.9.3 (D-056, review M6): a makalani nut is not — nuts hang where birds fly, so a touch shot
+  // that clips a nut may still snap onto a bird; the nut keeps the pellets only without a snap.
   const hit = pellets.some(
     (p) =>
       p.r.birdId !== null ||
@@ -361,11 +365,14 @@ export function resolvePattern(
       p.r.partId !== null ||
       p.r.meerkatId !== undefined ||
       p.r.spookId !== undefined ||
-      p.r.canId !== undefined,
+      (p.r.canId !== undefined && p.r.passThrough !== true),
   );
   if (hit) return pellets;
+  const nutHit = pellets.some((p) => p.r.passThrough === true);
   const snap = assistSnap(dx, sy, cx, assisted, birdsByPlane, assistExtras, driftDx);
   if (snap === null) return pellets;
+  // Only a bird is worth more than the nut the shot already clipped.
+  if (nutHit && snap.canId !== undefined) return pellets;
   const snapped = at(snap.sx, snap.sy);
   const kept =
     snap.canId !== undefined

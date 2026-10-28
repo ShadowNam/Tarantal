@@ -8,8 +8,10 @@ import {
   pelletsNeeded,
   pointInBird,
   pointInCapsule,
+  resolvePattern,
   resolvePellet,
   type HitBird,
+  type HitExtra,
   type ShotGeometry,
 } from './hitTest';
 import { pelletOffsets } from './pellets';
@@ -147,6 +149,32 @@ describe('hit rule: pellets on target ≥ min(pelletsToBag, weapon.pellets)', ()
 
 describe('touch aim assist rescues a miss (M9, D-026)', () => {
   const assisted: ShotGeometry = { ...geometry, assistPx: { near: 8, mid: 14, far: 18, ver: 6 } };
+
+  it('1.9.3 (review M6): a shot that only clips a makalani nut still snaps onto a bird', () => {
+    const b = bird(1, 'far', 1000, 300);
+    // A near nut right under the aim point (plane x 1026), the far bird 26 px off it.
+    const nearLayer = geometry.slices.find((x) => x.plane === 'near')?.layerId ?? 'near';
+    const nut: HitExtra = {
+      kind: 'can',
+      canId: 3_000_000,
+      x: 1026,
+      y: 302.2,
+      r: 6,
+      hx: 0,
+      hy: 0,
+      passThrough: true,
+    };
+    const extras = new Map([[nearLayer, [nut]]]);
+    const one = [{ ox: 0, oy: 0 }];
+    const plain = resolvePattern(66, 302.2, CX, one, geometry, null, planes([b]), extras);
+    expect(plain[0]?.r.canId).toBe(3_000_000);
+    const out = resolvePattern(66, 302.2, CX, one, geometry, assisted, planes([b]), extras);
+    expect(out[0]?.r.birdId).toBe(1);
+    expect(out[0]?.r.canId).toBeUndefined();
+    // No bird to snap to: the nut keeps the pellet.
+    const alone = resolvePattern(66, 302.2, CX, one, geometry, assisted, planes([]), extras);
+    expect(alone[0]?.r.canId).toBe(3_000_000);
+  });
 
   it('an aim point inside the grown hitbox snaps onto the bird body centre', () => {
     const b = bird(1, 'far', 1000, 300);

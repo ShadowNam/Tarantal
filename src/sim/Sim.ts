@@ -1770,7 +1770,7 @@ export function createSim(config: SimConfig): Sim {
         // 1.9.3 (D-056): a nut alone doesn't stop the stone (bands see one plane at a time, so
         // resolvePellet can't look past it): the first one is kept and the stone flies on; a bird
         // in a later band takes the stone, anything else (or nothing) gives it to the nut.
-        const nutOnly = r.birdId === null && r.canId !== undefined && r.canId >= NUT_ID_BASE;
+        const nutOnly = r.birdId === null && r.passThrough === true;
         if (nutOnly) f.nut ??= { r, psy, drift };
         const last = f.nut !== undefined && r.birdId === null ? f.nut : null;
         if (nutOnly && f.next < bands.length) continue;
