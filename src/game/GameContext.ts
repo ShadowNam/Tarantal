@@ -683,8 +683,8 @@ export interface GameContext {
   readonly faunaDebug: boolean;
   /** e2e/dev only (?faunaIdle=0, R10): far animals held at rest (bounds compare across runs). */
   readonly faunaStill: boolean;
-  /** e2e/dev only (?treeLife=<resident>, 1.9.4 D-057): that baobab resident is out almost all
-   *  the time (art previews). */
+  /** e2e/dev only (?treeLife=<resident>|falcon|off, 1.9.4 D-057): that baobab resident (or the
+   *  colony's falcon) is out almost all the time, or no tree life at all (art previews). */
   readonly treeLifePreview: string | null;
   /** e2e/dev only: ?omen=1 / ?omen=0 overrides the mode's omen. */
   readonly omen: boolean | undefined;

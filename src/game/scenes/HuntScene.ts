@@ -2072,7 +2072,8 @@ export class HuntScene extends Phaser.Scene {
         p.asset === 'bushveld/baobab' ||
         (p.secret?.type === 'singleHit' && p.secret.reward.barkKey === weavers),
     );
-    if (!wanted) return;
+    // e2e/dev only: ?treeLife=off (the art previews' "before").
+    if (!wanted || this.ctx.treeLifePreview === 'off') return;
     void import('../view/tree/TreeLifeView')
       .then((m) => {
         if (gen !== this.treeLifeGen) return;
