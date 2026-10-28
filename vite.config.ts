@@ -7,15 +7,18 @@ import { buildIdOf } from './src/platform/swUpdate';
 import { serviceWorkerPlugin } from './tools/serviceWorker';
 import { isContentJson, withoutComments } from './tools/stripComments';
 
-// One build per platform (M9, Tech §8): VITE_PLATFORM=web (default, the PWA in dist/) or a
-// portal (dist-poki/, dist-crazygames/). Portal builds carry no service worker and no PWA
-// manifest: the portal's page owns install, fullscreen and caching.
-const PLATFORMS = ['web', 'poki', 'crazygames'];
+// One build per platform (M9, Tech §8): VITE_PLATFORM=web (default, the PWA in dist/), a portal
+// (dist-poki/, dist-crazygames/) or the Android test app (capacitor → dist-android/, D-058).
+// Only the web build carries a service worker and the PWA manifest: a portal's page owns install,
+// fullscreen and caching, and the app has every file inside the APK.
+const PLATFORMS = ['web', 'poki', 'crazygames', 'capacitor'];
 const platform = process.env['VITE_PLATFORM'] || 'web';
 if (!PLATFORMS.includes(platform)) {
   throw new Error(`VITE_PLATFORM=${platform}: expected one of ${PLATFORMS.join(', ')}`);
 }
 const portal = platform !== 'web';
+/** dist/, dist-poki/, dist-crazygames/, dist-android/ (capacitor.config.ts webDir). */
+const outDir = platform === 'web' ? 'dist' : platform === 'capacitor' ? 'dist-android' : `dist-${platform}`;
 
 /** Portal builds: drop the PWA manifest and the iOS home-screen tags from index.html. */
 function stripPwa(): Plugin {
@@ -180,7 +183,7 @@ export default defineConfig({
     target: 'es2022',
     sourcemap: false,
     chunkSizeWarningLimit: 2000,
-    outDir: portal ? `dist-${platform}` : 'dist',
+    outDir,
     // .vite/manifest.json: which chunks the entry loads at once (tools/size-check.ts).
     manifest: true,
   },

@@ -139,7 +139,7 @@ export class AdminScene extends Phaser.Scene {
     // the raw flag (a literal after Vite's replacement) so a portal build drops this import()
     // and its chunk altogether, like the Skietbaan's (D-037).
     const flag = import.meta.env.VITE_PLATFORM;
-    if (flag === 'poki' || flag === 'crazygames') return;
+    if (flag === 'poki' || flag === 'crazygames' || flag === 'capacitor') return;
     if (this.project !== null || this.projectLoading) return;
     this.projectLoading = true;
     const visit = this.visit;
