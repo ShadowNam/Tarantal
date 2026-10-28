@@ -141,5 +141,104 @@
     "nutKnocks": 0,
     "nutAirHits": 0,
     "nutPops": 0
+  },
+  "okavango.fri.competent": {
+    "id": "okavango.fri.competent",
+    "label": "Okavango fri (2 palm groups) · competent",
+    "seeds": 500,
+    "mean": 4319.986,
+    "canShare": 0,
+    "nutShare": 0.002059265932806264,
+    "nutKnocks": 1.342,
+    "nutAirHits": 0.16,
+    "nutPops": 0.008
+  },
+  "okavango.fri.nutHappy": {
+    "id": "okavango.fri.nutHappy",
+    "label": "Okavango fri (2 palm groups) · nut-happy",
+    "seeds": 500,
+    "mean": 2828.354,
+    "canShare": 0,
+    "nutShare": 0.06828918869420164,
+    "nutKnocks": 17.762,
+    "nutAirHits": 4.366,
+    "nutPops": 0.174
+  },
+  "okavango.sat.before": {
+    "id": "okavango.sat.before",
+    "label": "Okavango sat (2 palm groups) · before",
+    "seeds": 500,
+    "mean": 5125.178,
+    "canShare": 0,
+    "nutShare": 0,
+    "nutKnocks": 0,
+    "nutAirHits": 0,
+    "nutPops": 0
+  },
+  "okavango.sat.competent": {
+    "id": "okavango.sat.competent",
+    "label": "Okavango sat (2 palm groups) · competent",
+    "seeds": 500,
+    "mean": 5130.418,
+    "canShare": 0,
+    "nutShare": 0.00041049286822243333,
+    "nutKnocks": 0.262,
+    "nutAirHits": 0.006,
+    "nutPops": 0
+  },
+  "okavango.sat.nutHappy": {
+    "id": "okavango.sat.nutHappy",
+    "label": "Okavango sat (2 palm groups) · nut-happy",
+    "seeds": 500,
+    "mean": 3237.642,
+    "canShare": 0,
+    "nutShare": 0.05194212331073046,
+    "nutKnocks": 16.422,
+    "nutAirHits": 2.59,
+    "nutPops": 0.012
+  },
+  "okavango.sun.before": {
+    "id": "okavango.sun.before",
+    "label": "Okavango sun (2 palm groups) · before",
+    "seeds": 500,
+    "mean": 3937.946,
+    "canShare": 0,
+    "nutShare": 0,
+    "nutKnocks": 0,
+    "nutAirHits": 0,
+    "nutPops": 0
+  },
+  "okavango.sun.competent": {
+    "id": "okavango.sun.competent",
+    "label": "Okavango sun (2 palm groups) · competent",
+    "seeds": 500,
+    "mean": 3940.864,
+    "canShare": 0,
+    "nutShare": 0.00036692461348577366,
+    "nutKnocks": 0.214,
+    "nutAirHits": 0.012,
+    "nutPops": 0
+  },
+  "okavango.sun.nutHappy": {
+    "id": "okavango.sun.nutHappy",
+    "label": "Okavango sun (2 palm groups) · nut-happy",
+    "seeds": 500,
+    "mean": 2721.886,
+    "canShare": 0,
+    "nutShare": 0.07684745062798369,
+    "nutKnocks": 19.876,
+    "nutAirHits": 5.388,
+    "nutPops": 0.328
+  },
+  "karoo.wed.before": {
+    "id": "karoo.wed.before",
+    "label": "Karoo wed (near + far fence) · before",
+    "seeds": 500,
+    "mean": 4328.372,
+    "canShare": 0.00014786159784787445,
+    "nutShare": 0,
+    "nutKnocks": 0,
+    "nutAirHits": 0,
+    "nutPops": 0
   }
 }
