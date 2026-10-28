@@ -271,3 +271,83 @@ describe('tin can capsules (v1.8, D-050)', () => {
     expect(pointInCapsule(100, 75, lying)).toBe(false);
   });
 });
+
+describe('1.9.3 (review M17): a target behind a makalani nut takes the pellet', () => {
+  // Two plain slices at scroll factor 1: a near layer with the nut, a mid layer behind it.
+  const geo: ShotGeometry = {
+    slices: [
+      { layerId: 'near', scrollFactor: 1, plane: 'near', occluders: [] },
+      { layerId: 'mid', scrollFactor: 1, plane: 'mid', occluders: [] },
+    ],
+    planeScale: { near: 1, mid: 1, far: 1, ver: 1 },
+    assistPx: { near: 0, mid: 0, far: 0, ver: 0 },
+  };
+  const nut: HitExtra = {
+    kind: 'can',
+    canId: 3_000_000,
+    x: 960,
+    y: 500,
+    r: 20,
+    hx: 0,
+    hy: 0,
+    passThrough: true,
+  };
+  const box = { type: 'rect' as const, w: 60, h: 60, ox: 0, oy: 0 };
+  const behind = (e: HitExtra): ReadonlyMap<string, readonly HitExtra[]> =>
+    new Map([
+      ['near', [nut]],
+      ['mid', [e]],
+    ]);
+  const none = planes([]);
+  it('a Spookjag owl or bat behind it', () => {
+    const r = resolvePellet(
+      0,
+      500,
+      960,
+      geo,
+      none,
+      behind({ kind: 'spook', spookId: 7, x: 960, y: 500, shape: box }),
+    );
+    expect(r.spookId).toBe(7);
+    expect(r.canId).toBeUndefined();
+  });
+  it('a crate behind it', () => {
+    const r = resolvePellet(
+      0,
+      500,
+      960,
+      geo,
+      none,
+      behind({ kind: 'crate', crateId: 4, x: 960, y: 500, shape: box }),
+    );
+    expect(r.crateId).toBe(4);
+  });
+  it('a secret part behind it', () => {
+    const r = resolvePellet(
+      0,
+      500,
+      960,
+      geo,
+      none,
+      behind({ kind: 'secret', propId: 'hippo', partId: 'water', x: 960, y: 500, shape: box }),
+    );
+    expect(r.partId).toBe('water');
+  });
+  it('a plain prop occluder behind it: the nut keeps the pellet', () => {
+    const g2: ShotGeometry = {
+      ...geo,
+      slices: [
+        { layerId: 'near', scrollFactor: 1, plane: 'near', occluders: [] },
+        {
+          layerId: 'mid',
+          scrollFactor: 1,
+          plane: 'mid',
+          occluders: [{ propId: 'reeds_a', x: 960, y: 500, shape: box }],
+        },
+      ],
+    };
+    const r = resolvePellet(0, 500, 960, g2, none, new Map([['near', [nut]]]));
+    expect(r.canId).toBe(3_000_000);
+    expect(r.propId).toBeNull();
+  });
+});

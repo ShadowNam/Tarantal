@@ -137,6 +137,7 @@ import {
 import {
   buildSlices,
   pointInOccluder,
+  isTarget,
   resolvePattern,
   resolvePellet,
   type HitBird,
@@ -1772,7 +1773,7 @@ export function createSim(config: SimConfig): Sim {
         // in a later band takes the stone, anything else (or nothing) gives it to the nut.
         const nutOnly = r.birdId === null && r.passThrough === true;
         if (nutOnly) f.nut ??= { r, psy, drift };
-        const last = f.nut !== undefined && r.birdId === null ? f.nut : null;
+        const last = f.nut !== undefined && !isTarget(r) ? f.nut : null;
         if (nutOnly && f.next < bands.length) continue;
         // A paper target or steel plate (the range only) stops a stone too.
         const stopped =

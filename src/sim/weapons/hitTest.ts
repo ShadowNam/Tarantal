@@ -131,6 +131,19 @@ export interface PelletResult {
   readonly passThrough?: true;
 }
 
+/** 1.9.3 (D-056): a result that is something to shoot (not a plain prop occluder, not nothing). */
+export function isTarget(r: PelletResult): boolean {
+  return (
+    r.birdId !== null ||
+    r.crateId !== null ||
+    r.partId !== null ||
+    r.paperId !== undefined ||
+    r.meerkatId !== undefined ||
+    r.spookId !== undefined ||
+    (r.canId !== undefined && r.passThrough !== true)
+  );
+}
+
 /** v1.8 (D-050): a capsule: points within r of the segment centre ± (hx, hy). */
 export interface Capsule {
   readonly x: number;
@@ -226,9 +239,11 @@ export function resolvePellet(
   extras: ReadonlyMap<string, readonly HitExtra[]> = new Map(),
   driftDx: (scrollFactor: number) => number = () => 0,
 ): PelletResult {
-  /** 1.9.3 (D-056): the first nut the pellet passed (it takes the pellet unless a bird does). */
+  /** 1.9.3 (D-056): the first nut the pellet passed. Any target behind it takes the pellet (a
+   *  bird, a Spookjag thing, a crate, a secret part, a meerkat, a paper, a can — review M17);
+   *  only a plain prop occluder, or nothing, leaves it to the nut. */
   let nut: PelletResult | null = null;
-  const after = (r: PelletResult): PelletResult => (r.birdId !== null || nut === null ? r : nut);
+  const after = (r: PelletResult): PelletResult => (nut === null || isTarget(r) ? r : nut);
   for (const slice of geometry.slices) {
     const p = tapToPlane(cx, slice.scrollFactor, dx + driftDx(slice.scrollFactor), sy);
     if (slice.plane !== null) {
