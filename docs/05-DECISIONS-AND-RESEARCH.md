@@ -3202,8 +3202,9 @@ figure like". GDD §11.1b; art bible §4.2c, §4.2d, §4.3b; Tech §3.14.
   replaces a 2× master).
 - *First download (must not grow).* The residents' and the colony's views, and WeaverView (the
   angry burst, v1.4), are one lazy chunk (`TreeLifeView`, 8.6 KB gzip) loaded on maps with the
-  baobab or a family nest; the scene keeps the burst's scolding sound. First download 2,991.2 KB,
-  0.6 KB under main.
+  baobab or a family nest; the scene plays the burst's scolding and counts it from the
+  `secretPenalty` event itself, and holds nest shots that come before the chunk for its burst
+  (review). First download 2,991.4 KB, 0.4 KB under main.
 - *HD texture memory* (computed from the textures; perf.spec measures it in CI): the residents'
   2× sheet adds 0.8 MB to the Bushveld hunt (≈ 225.5 MB), the colony's 0.4 MB to the Kalahari and
   Namibië hunts (≈ 225 and 229 MB); the sausage tree keeps its size (Okavango ≈ 240 MB); budget 256.

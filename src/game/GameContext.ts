@@ -459,11 +459,11 @@ export interface TestHook {
   };
   /** D-051: the bark keys secret banners showed this page, in order. */
   secretBarks: string[];
-  /** v1.7c (D-047): the fruit view (null until its chunk is in, or a map without fruit): fruit
-   *  placed, pellet hits and drops this hunt, fruit swinging now, and the fruit on screen. */
   /** 1.9.4 (D-057): the trees' residents on screen (design px) and near shots that startled
    *  them (null: no tree life on this map, or its chunk is not in yet). */
   treeLife: TreeLifeHook | null;
+  /** v1.7c (D-047): the fruit view (null until its chunk is in, or a map without fruit): fruit
+   *  placed, pellet hits and drops this hunt, fruit swinging now, and the fruit on screen. */
   fruit: {
     count: number;
     hits: number;
