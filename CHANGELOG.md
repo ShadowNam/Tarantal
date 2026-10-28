@@ -9,6 +9,27 @@ Decision record D-057. The product owner (26 Oct): the Bushveld baobab "needs a 
 … maybe the tree needs a few holes where a little mouse can look out"; the Kalahari weaver tree
 needs "some little birds fly around there also to make it look a bit more alive".
 
+### Added
+- **A living baobab** in the Bushveld: redrawn as one smooth, fluted, buttressed trunk that flows
+  into thick root-like limbs, with wrinkled grey-pink bark, old elephant scars and lichen. Its
+  fruit are small, hairy pods hanging on long stalks in little groups (they still swing and drop
+  when shot).
+- **Residents in its hollows** (not targets): a bushbaby peeks out (more often at dawn and dusk),
+  a tree squirrel runs up a limb and back, a barn owl looks out of the big cavity, a yellow-billed
+  hornbill feeds the female sealed in her nest, buffalo weavers come and go at their stick nests,
+  and bees swirl at a crack. Shoot close to one and it ducks back in, or flies off and comes back
+  later. They never score and never get in the way of a shot.
+- **The weaver colonies come alive** (Kalahari and Namibië): sociable weavers dart in and out of
+  the nest, perch on the branches and the roof, and hop about on the sand below; a pygmy falcon
+  visits now and then, and in Namibië a pair of rosy-faced lovebirds sits nearby. A near shot
+  scatters them; they trickle back a few seconds later. Shooting the nest still costs 10.
+
+### Changed
+- **The Okavango sausage tree**: a spreading, layered crown with light on it, smooth bark, and
+  heavy curved sausages in several sizes on long rope stalks (they still swing and drop).
+- The Kalahari nest tree loads in Standard at 1× (its 2× art is in the HD pack), which makes room
+  for the colony; the first download is a little smaller than before.
+
 ### Fixed
 - The dawn mist no longer paints a hard light band across tall props (the baobab's trunk): mist
   bands now lie under a layer's props.

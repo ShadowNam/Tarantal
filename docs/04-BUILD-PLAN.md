@@ -348,3 +348,8 @@ wrapper, data-only mod loader UI. (The Namibië biome pack moved to v1.4.)
 **Idea (1.9.3, D-056, not built):** a carved makalani nut as a Notaboek reward or a charm.
 Carving the ivory-hard kernel into key rings and ornaments (oryx, elephants, cheetahs) is a
 well-known Namibian craft; it would tie the Okavango's nuts to the meta game.
+
+**v1.13 field guide (1.9.4, D-057):** the trees' residents (bushbaby, tree squirrel, barn owl,
+yellow-billed hornbill, red-billed buffalo weaver, wild bees, the sociable weavers' pygmy falcon
+and the rosy-faced lovebirds) become "Did you know?" entries in the field guide, seen once they
+have shown themselves in a hunt (sources: docs/05 §3 "Baobab life and sociable-weaver colonies").
