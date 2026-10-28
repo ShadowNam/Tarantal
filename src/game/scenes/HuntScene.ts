@@ -61,6 +61,7 @@ import { WeaverView } from '../view/WeaverView';
 import { MeerkatView } from '../view/MeerkatView';
 import { CanView } from '../view/cans/CanView';
 import type { MakalaniView } from '../view/palms/MakalaniView';
+import type { TreeLifeView } from '../view/tree/TreeLifeView';
 import { playPotjieSound } from '../view/potjieSounds';
 import { playMeerkatSound } from '../audio/meerkatSounds';
 import { largestTextures, textureBytes } from '../assets/textureBytes';
@@ -141,6 +142,11 @@ export class HuntScene extends Phaser.Scene {
   /** v1.7c (D-047): fruit that swing and drop when shot (lazy chunk; null until it is in). */
   private fruit: FruitView | null = null;
   private fruitGen = 0;
+  /** 1.9.4 (D-057): the trees' residents (lazy chunk; null until it is in, or no baobab). */
+  private treeLife: TreeLifeView | null = null;
+  private treeLifeGen = 0;
+  private lightIds: readonly string[] = [];
+  private huntSeed = 0;
   /** Scroll factor of each prop of the map on screen (where a pellet stopped, for the fruit). */
   private propFactor = new Map<string, number>();
   private debug!: DebugOverlay;
@@ -374,6 +380,7 @@ export class HuntScene extends Phaser.Scene {
         ? null
         : feesdagById(this.ctx.content.feesdae, this.map.feesdag);
     const lightIds = special === null ? mapLights(map) : [special.light];
+    this.lightIds = lightIds;
     const lights = lightIds.flatMap((id) => {
       const light = this.ctx.feel.lights[id];
       return light === undefined ? [] : [light];
@@ -537,6 +544,7 @@ export class HuntScene extends Phaser.Scene {
     this.makalaniGen++;
     this.makalaniArgs = { scales, weights };
     this.loadFruit(mapBiome);
+    this.loadTreeLife(mapBiome);
     this.weapon = new WeaponView(
       this,
       this.ctx.feel,
@@ -1480,6 +1488,7 @@ export class HuntScene extends Phaser.Scene {
     }
     const aimAssist = save.settings.aimAssist;
     const seed = range?.seed ?? runHunt?.seed ?? plan?.seed ?? this.ctx.nextSeed();
+    this.huntSeed = seed;
     const sim = createSim({
       seed,
       content: this.ctx.content,
@@ -1798,6 +1807,7 @@ export class HuntScene extends Phaser.Scene {
     this.spookView?.update(state.feesdag, runner.prev.feesdag, alpha, state.tick);
     // Interpolated like the birds and the camera (a held frame keeps alpha 0: it holds).
     this.fruit?.update(state, width, state.tick - 1 + alpha);
+    this.treeLife?.update(state, alpha);
     for (const cue of this.meerkats.cues) {
       const pan = (cue.screenX - width / 2) / (width / 2);
       // Only colonies on screen (or just off it) are heard.
@@ -2010,6 +2020,7 @@ export class HuntScene extends Phaser.Scene {
               swinging: this.fruit.swinging,
               spots: this.fruit.spots(),
             };
+      hook.treeLife = this.treeLife?.hook() ?? null;
       hook.mirage = state.mirage;
       hook.durationTicks = state.durationTicks;
     }
@@ -2058,6 +2069,29 @@ export class HuntScene extends Phaser.Scene {
         this.ctx.reducedMotion,
       );
     });
+  }
+
+  /** 1.9.4 (D-057): the tree-life chunk, for a map with the baobab. */
+  private loadTreeLife(mapBiome: Biome): void {
+    this.treeLife?.destroy();
+    this.treeLife = null;
+    const gen = ++this.treeLifeGen;
+    if (!mapBiome.props.some((p) => p.asset === 'bushveld/baobab')) return;
+    void import('../view/tree/TreeLifeView')
+      .then((m) => {
+        if (gen !== this.treeLifeGen) return;
+        this.treeLife = new m.TreeLifeView(this, this.ctx.feel, mapBiome, this.parallax, {
+          seed: () => this.huntSeed,
+          lightIds: this.lightIds,
+          reducedMotion: this.ctx.reducedMotion,
+          preview: this.ctx.treeLifePreview,
+          farFactor: this.ctx.content.scoring.planes.far.scrollFactor,
+          cameraAt: (tick) => this.runner?.cameraAt(tick) ?? null,
+        });
+      })
+      .catch(() => {
+        // Offline without the chunk cached: the tree simply has no residents.
+      });
   }
 
   private loadFruit(mapBiome: Biome): void {
@@ -2173,6 +2207,7 @@ export class HuntScene extends Phaser.Scene {
       }
     }
     this.fruit?.handle(events, state, (e) => this.pelletStop(e, state), width);
+    this.treeLife?.handle(events, state, (e) => this.pelletStop(e, state));
     for (const b of this.weavers.handle(events)) {
       this.ctx.audio.weavers(Math.max(-1, Math.min(1, (b.screenX - half) / half)));
       if (this.ctx.hook) this.ctx.hook.weaverBursts++;
@@ -2531,6 +2566,9 @@ export class HuntScene extends Phaser.Scene {
     this.meerkats.clear();
     this.spookView?.clear();
     this.fruit?.clear();
+    this.treeLife?.destroy();
+    this.treeLife = null;
+    this.treeLifeGen++;
     this.game.canvas.style.cursor = '';
   }
 }

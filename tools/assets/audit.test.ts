@@ -210,6 +210,36 @@ describe('makalani keys (1.9.3, D-056)', () => {
   });
 });
 
+describe('the baobab residents sheet (1.9.4, D-057)', () => {
+  it('is seen where its constant is used, and unused without it', () => {
+    const cat: Catalog = {
+      ...catalog,
+      entries: new Map([
+        [
+          'bushveld/baobab_life',
+          entry('bushveld/baobab_life', 'texture', {
+            width: 8,
+            height: 8,
+            group: 'bushveld-winter',
+          }),
+        ],
+      ]),
+    };
+    const used = audit(
+      base({
+        catalog: cat,
+        sources: new Map([['src/game/view/tree/BaobabLifeView.ts', 'exists(RESIDENT_SHEET)']]),
+        tex: {},
+      }),
+    );
+    expect(used.rows.find((x) => x.key === 'bushveld/baobab_life')?.usedIn).toContain(
+      'src/game/view/tree/BaobabLifeView.ts',
+    );
+    const bare = audit(base({ catalog: cat, sources: new Map([['src/x.ts', 'x']]), tex: {} }));
+    expect(bare.problems.some((p) => p.includes('bushveld/baobab_life'))).toBe(true);
+  });
+});
+
 describe('delivered bird clips (M10 review)', () => {
   it('the near plane needs only the pop-up clip; other planes need the whole flock set', () => {
     expect(clipsNeeded('near')).toEqual(['peek']);

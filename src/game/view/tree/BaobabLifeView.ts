@@ -28,7 +28,7 @@ export const BAOBAB_ASSET = 'bushveld/baobab';
 
 export interface BaobabLifeOptions {
   /** The hunt's seed (the residents' schedule hashes it). */
-  readonly seed: number;
+  readonly seed: () => number;
   /** Dawn, dusk or golden light: the bushbaby comes out more. */
   readonly dusk: boolean;
   readonly reducedMotion: boolean;
@@ -144,7 +144,7 @@ export class BaobabLifeView {
           return dx * dx + dy * dy <= r2;
         });
       for (const id of RESIDENT_IDS) {
-        const v = visitAt(this.t, id, this.o.seed, tick, this.o.dusk, this.o.preview === id);
+        const v = visitAt(this.t, id, this.o.seed(), tick, this.o.dusk, this.o.preview === id);
         if (v === null) continue;
         const prev = this.ducks.get(id);
         if (prev !== undefined && prev.start === v.start) continue;
@@ -165,13 +165,13 @@ export class BaobabLifeView {
     const whole = Math.floor(tick);
     const sprites: { id: ResidentId | null; s: ResidentSprite }[] = [];
     for (const id of RESIDENT_IDS) {
-      const v = visitAt(this.t, id, this.o.seed, whole, this.o.dusk, this.o.preview === id);
+      const v = visitAt(this.t, id, this.o.seed(), whole, this.o.dusk, this.o.preview === id);
       if (v === null) continue;
       const d = this.ducks.get(id);
       const duck = d !== undefined && d.start === v.start ? d.tick : null;
       for (const sp of residentPose(this.t, v, tick, duck).sprites) sprites.push({ id, s: sp });
     }
-    for (const sp of beeSprites(this.t, this.o.seed, tick, this.beeScatter, this.o.reducedMotion))
+    for (const sp of beeSprites(this.t, this.o.seed(), tick, this.beeScatter, this.o.reducedMotion))
       sprites.push({ id: null, s: sp });
     const tint = this.parallax.layerTint(this.layerId);
     const shown: ResidentHook[] = [];

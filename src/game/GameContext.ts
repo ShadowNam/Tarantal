@@ -6,6 +6,7 @@ import type * as Phaser from 'phaser';
 import type { Biome, ContentBundle, DailyMeta, Feel, Notaboek } from '../content/schemas';
 import type { ChallengeDecode } from '../meta/challenge';
 import type { FruitHookSpot } from './view/fruit/FruitView';
+import type { TreeLifeHook } from './view/tree/TreeLifeView';
 import type { LoadStatus, SaveStore } from '../meta/save';
 import type { StorageStatus } from '../meta/storage';
 import type { ErrorReport, PlatformAdapter } from '../platform/PlatformAdapter';
@@ -460,6 +461,9 @@ export interface TestHook {
   secretBarks: string[];
   /** v1.7c (D-047): the fruit view (null until its chunk is in, or a map without fruit): fruit
    *  placed, pellet hits and drops this hunt, fruit swinging now, and the fruit on screen. */
+  /** 1.9.4 (D-057): the trees' residents on screen (design px) and near shots that startled
+   *  them (null: no tree life on this map, or its chunk is not in yet). */
+  treeLife: TreeLifeHook | null;
   fruit: {
     count: number;
     hits: number;
@@ -679,6 +683,9 @@ export interface GameContext {
   readonly faunaDebug: boolean;
   /** e2e/dev only (?faunaIdle=0, R10): far animals held at rest (bounds compare across runs). */
   readonly faunaStill: boolean;
+  /** e2e/dev only (?treeLife=<resident>, 1.9.4 D-057): that baobab resident is out almost all
+   *  the time (art previews). */
+  readonly treeLifePreview: string | null;
   /** e2e/dev only: ?omen=1 / ?omen=0 overrides the mode's omen. */
   readonly omen: boolean | undefined;
   /** e2e/dev only: ?biome= plays Classic hunts in another playable biome (M8). */
