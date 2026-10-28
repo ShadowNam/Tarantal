@@ -1182,13 +1182,15 @@ async function boot(): Promise<void> {
   });
 
   // D-058, the Android app: the back button means Escape (pause in a hunt, Back in menus); on the
-  // title screen the app goes to the background.
-  platform.onBackButton?.(() =>
-    handleBack({
-      sendEscape: () => sendEscapeKey(document.body),
-      atTitle: () => titleOnTop(game.scene.getScenes(true).map((s) => s.sys.settings.key)),
-    }),
-  );
+  // title screen the app goes to the background. The raw flag (a literal after Vite's replacement)
+  // keeps this out of every other build's first download.
+  if (import.meta.env.VITE_PLATFORM === 'capacitor')
+    platform.onBackButton?.(() =>
+      handleBack({
+        sendEscape: () => sendEscapeKey(document.body),
+        atTitle: () => titleOnTop(game.scene.getScenes(true).map((s) => s.sys.settings.key)),
+      }),
+    );
 
   // WebGL context loss (backgrounding, memory pressure; Tech §9): Phaser 4 restores the context
   // and re-uploads textures; the hunt holds still meanwhile so the run is never lost.
