@@ -159,6 +159,7 @@ rather than translating word for word. The tables show the text each language fi
 | `item.meerkat_spotter` | Meerkat-uitkyk | Meerkat Spotter | Erdmännchen-Späher | Stokstaartjes-spotter | helper; already translated |
 | `item.blitslaai` | Blitslaai | Lightning Load | Blitzladung | Bliksemlading | v1.6b (D-043): blits = lightning, laai = load |
 | `item.oupa_laai` | Oupa Laai | Oupa Loads | Oupa lädt | Oupa laadt | v1.6b (D-043): Oupa loads for you (auto reload) |
+| `item.rooikol` | Rooikol | Red Dot | Rotpunkt | Rode Stip | 1.9.2 (D-055): rooi kol = red dot (the red dot sight) |
 
 ### Power-ups explained and Oupa's switch (v1.7b, D-046)
 

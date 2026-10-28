@@ -313,6 +313,7 @@ belt is a deliberate arcade abstraction.
 | `meerkat_spotter` | Meerkat Spotter | Hidden birds/secrets get glowing rings (v1.7: on the desert maps the meerkat climbs out of a burrow mound) | 8 s |
 | `blitslaai` | Blitslaai (Lightning Load, v1.6b) | Every reload takes 35 % of its time: full-belt reloads, each per-shell step, the Voorlaaier's ramrod and the Kettie's draw (its reload, D-025) | 12 s |
 | `oupa_laai` | Oupa Laai (Oupa Loads, v1.6b) | Auto reload: the moment the gun is empty its reload starts by itself; per-shell guns (Windbuks, Plaas-Pomp) also top up whenever you haven't fired for 0.6 s. A shot can always cut an auto reload. Reload time unchanged | 12 s |
+| `rooikol` | Rooikol (Red Dot, 1.9.2) | Rifles only (the .22 and the Langloop, any sight): the rifle aims through a red dot instead of its sight — up the moment you press (no raise, no zoom in or out), a calm dot (the sight's first-step sway × 0.6), and 75 % of the time between shots. No magnification: far birds stay small on screen (still hittable, D-049 hit-radius floors) | 15 s |
 
 Picking a power-up up again refreshes it. A shell power-up counts the shots after the one that
 picked it up. Reload power-ups (D-043): Blitslaai multiplies with Snelhand and the Boss Rule, and
@@ -322,6 +323,13 @@ moment). Neither does anything while Chilli Biltong is active (no reload
 then) or for the Mielie-Masjien (no reload); Oupa Laai has nothing to do for the Voorlaaier (its
 ramrod is already automatic) or the Kettie (never empty). Crates: power-ups keep 85 of the 100
 weight (Blitslaai 18, Oupa Laai 18, the other four 14 / 14 / 14 / 7); Padstal price 2 each.
+**Rooikol (1.9.2, D-055):** the product owner (27 Oct): "a power up that one can get for a red dot
+sight that just makes aiming and shooting so much faster." It is in the crate table (weight 14)
+only when the hunt's gun has a sight — in a shotgun hunt it weighs nothing and the other items
+draw exactly as before — and the Padstal never sells it (a run's gun can change between hunts).
+The sim keeps the power-up and the instant raise, sway and cooldown; the 1× view and the red-dot
+reticle are the view's (§10.6). A red-dot hold started before it ends stays a red dot until it is
+released. Numbers: docs/balance/rooikol.md.
 
 **v1.7b — what a power-up does, said plainly (D-046).** The product owner: "When one collects these
 power-ups, one is very unsure what they actually do." What the power-ups and crate guns *do* is
