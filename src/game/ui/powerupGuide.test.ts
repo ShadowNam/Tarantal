@@ -123,7 +123,7 @@ describe('the power-up guide (D-046)', () => {
     expect(by('rooikol')?.how).toEqual([
       'Shoot a supply crate in a Classic or Daily hunt while you carry a rifle (The Twenty-Two or The Long Rifle)',
     ]);
-    expect(by('rooikol')?.effect).toContain('50 % of normal');
+    expect(by('rooikol')?.effect).toContain('75 % of normal');
     expect(by('rooikol')?.icon).toBe('ui/pu_rooikol');
     expect(by('oupa_laai')?.found).toBe(true);
     expect(by('blitslaai')?.found).toBe(false);

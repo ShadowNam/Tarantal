@@ -60,9 +60,9 @@
       "effect": {
         "redDot": true,
         "redDotSwayMul": 0.6,
-        "fireCooldownMul": 0.5
+        "fireCooldownMul": 0.75
       },
-      "durationMs": 12000,
+      "durationMs": 15000,
       "needsSight": true
     }
   ],
