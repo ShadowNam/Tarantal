@@ -17,9 +17,9 @@ export const RESIDENT_FRAMES = [
   { name: 'galago_look', w: 30, h: 30, ox: 15, oy: 20 },
   // Tree squirrel: at its hole (origin: the hole's centre), then on the limb (origin: its feet).
   { name: 'squirrel_peek', w: 28, h: 26, ox: 14, oy: 16 },
-  { name: 'squirrel_run_a', w: 46, h: 26, ox: 20, oy: 22 },
-  { name: 'squirrel_run_b', w: 46, h: 26, ox: 20, oy: 22 },
-  { name: 'squirrel_sit', w: 36, h: 32, ox: 16, oy: 29 },
+  { name: 'squirrel_run_a', w: 50, h: 26, ox: 25, oy: 22 },
+  { name: 'squirrel_run_b', w: 50, h: 26, ox: 25, oy: 22 },
+  { name: 'squirrel_sit', w: 40, h: 34, ox: 20, oy: 31 },
   // Barn owl in its cavity (origin: the cavity's centre), and flying off (origin: its body).
   { name: 'owl_front', w: 44, h: 54, ox: 22, oy: 27 },
   { name: 'owl_left', w: 44, h: 54, ox: 22, oy: 27 },
@@ -31,8 +31,8 @@ export const RESIDENT_FRAMES = [
   // the slit's centre).
   { name: 'hornbill_fly_a', w: 64, h: 34, ox: 30, oy: 17 },
   { name: 'hornbill_fly_b', w: 64, h: 34, ox: 30, oy: 17 },
-  { name: 'hornbill_cling', w: 40, h: 52, ox: 26, oy: 40 },
-  { name: 'hornbill_feed', w: 40, h: 52, ox: 26, oy: 40 },
+  { name: 'hornbill_cling', w: 50, h: 54, ox: 16, oy: 40 },
+  { name: 'hornbill_feed', w: 50, h: 54, ox: 16, oy: 40 },
   { name: 'beak_tip', w: 10, h: 14, ox: 5, oy: 7 },
   // Red-billed buffalo weaver: flying and perched (origin: its body / its feet).
   { name: 'buffalo_fly_a', w: 24, h: 16, ox: 12, oy: 8 },

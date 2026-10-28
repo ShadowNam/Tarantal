@@ -2,7 +2,7 @@
 // art-source/ exactly like a human delivery (docs/06), marked `"origin": "interim"` in each rig.json.
 // Then run `npm run assets:pack`. A folder whose rig.json is not marked interim is a human delivery
 // and is never touched.
-//   --only birds|guns|scenery|sprites|flyers|range|meerkats|feesdae|blikkies|makalani
+//   --only birds|guns|scenery|sprites|flyers|range|meerkats|feesdae|blikkies|makalani|treelife
 //                         one part (none: sheets only). scenery = parallax layers + props (D-031),
 //                         sprites = shared FX/UI/crate sprites, flyers = non-target birds,
 //                         range = the Skietbaan's steel plate (24 Oct update),
@@ -55,6 +55,11 @@ import { buildFaunaSheet } from './faunaSheets';
 import { planePxPerMetre } from '../birdUnits';
 import { renderMeerkatSheet } from './meerkats';
 import { MEERKAT_SHEET, SHEET_MASTER } from '../../src/game/assets/desertAssets';
+import { RESIDENT_SHEET } from '../../src/game/view/tree/residentSheet';
+import { renderResidentSheet } from './baobabLife';
+
+/** 1.9.4 (D-057): palette size of the baobab residents' sheet. */
+const RESIDENT_COLOURS = 96;
 import {
   HALLOWEEN_SHEET,
   SHEET_MASTER as FEESDAE_MASTER,
@@ -588,6 +593,21 @@ if (wants('blikkies')) {
       await json({ origin: 'interim', encode: 'png8', master: CAN_MASTER, originX: 0, originY: 0 }),
     );
     console.log(`sprites/${CAN_SHEET}`);
+  }
+}
+if (wants('treelife') && !hdOnly) {
+  // 1.9.4 (D-057): the baobab residents' sheet at 1× (the Bushveld chunk has no room for 2×)
+  // and its 2× twin in art-source/hd/ (the Bushveld HD group).
+  const png = join(src, 'sprites', `${RESIDENT_SHEET}.png`);
+  if (!oursFile(png)) console.warn(`skip sprites/${RESIDENT_SHEET}: a human delivery is there`);
+  else {
+    put(png, encodePng8(renderResidentSheet(1), RESIDENT_COLOURS));
+    put(
+      png.replace(/\.png$/, '.json'),
+      await json({ origin: 'interim', encode: 'png8', originX: 0, originY: 0 }),
+    );
+    putHd(`sprites/${RESIDENT_SHEET}.png`, renderResidentSheet(2), RESIDENT_COLOURS);
+    console.log(`sprites/${RESIDENT_SHEET}`);
   }
 }
 if (wants('makalani') && !hdOnly) {

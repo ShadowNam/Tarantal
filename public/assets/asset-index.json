@@ -52,6 +52,19 @@
       "originX": 0.5,
       "originY": 0.5625
     },
+    "bushveld/baobab_life": {
+      "group": "bushveld-winter",
+      "origin": "interim",
+      "file": {
+        "path": "assets/bushveld-winter/img/bushveld_baobab_life.5fb9e267df57.png",
+        "bytes": 6357,
+        "hash": "5fb9e267df57"
+      },
+      "width": 256,
+      "height": 194,
+      "originX": 0,
+      "originY": 0
+    },
     "bushveld/boulder_a": {
       "group": "bushveld-winter",
       "origin": "interim",

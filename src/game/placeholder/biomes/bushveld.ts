@@ -3,6 +3,7 @@
 // hanging kremetart pods, granite boulders (Ou Grys's cover, one cracked), a dassie on its rock
 // and red winter aloes. Rendering only.
 import { verBand, type Band, type BiomeArt } from '../biomeArt';
+import { treeLifeSpecs } from '../treeLifeArt';
 import { ellipse, ground, inked, INK, tuft } from '../draw';
 
 const C = {
@@ -267,6 +268,8 @@ function drawProp(ctx: CanvasRenderingContext2D, id: string, w: number, h: numbe
 export const BUSHVELD_ART: BiomeArt = {
   bands: BANDS,
   drawProp,
+  // 1.9.4 (D-057): the baobab residents' sheet (BaobabLifeView).
+  extraTextures: treeLifeSpecs,
   propPad: {
     baobab: { top: 380, side: 200 },
     dassie_koppie: { top: 140, side: 40 },

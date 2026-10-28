@@ -21,6 +21,16 @@
       "height": 800,
       "scale": 0.5
     },
+    "bushveld/baobab_life": {
+      "file": {
+        "path": "assets/bushveld-winter-hd/img/bushveld_baobab_life.174e740a470d.png",
+        "bytes": 14435,
+        "hash": "174e740a470d"
+      },
+      "width": 512,
+      "height": 388,
+      "scale": 0.5
+    },
     "bushveld/boulder_a": {
       "file": {
         "path": "assets/bushveld-winter-hd/img/bushveld_boulder_a.ecd7afa65588.png",

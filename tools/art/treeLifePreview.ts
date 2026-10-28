@@ -74,3 +74,20 @@ async function prop(biomeId: string, key: string, name: string, footPx: number):
 const want = process.argv[2] ?? 'all';
 if (want === 'all' || want === 'baobab')
   await prop('bushveld-winter', 'bushveld/baobab', 'baobab', 260);
+
+if (want === 'all' || want === 'residents') {
+  const { renderResidentSheet } = await import('./baobabLife');
+  const img = renderResidentSheet(4);
+  const bg = backdrop(
+    img.width,
+    img.height,
+    img.height,
+    ['#9A8A80', '#9A8A80'],
+    ['#9A8A80', '#9A8A80'],
+  );
+  over(bg, img, 0, 0);
+  mkdirSync(OUT, { recursive: true });
+  const path = join(OUT, 'tree-life-residents-sheet.png');
+  writeFileSync(path, encodePng(bg));
+  console.log(`${path} (${bg.width}×${bg.height})`);
+}
