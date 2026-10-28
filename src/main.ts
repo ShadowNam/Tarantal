@@ -1061,6 +1061,7 @@ async function boot(): Promise<void> {
     // D-054: dev and test builds only (a public build with ?e2e must never lose its herds).
     faunaBefore: devOrTestBuild && testHooks && params.get('fauna') === 'before',
     faunaDebug: devOrTestBuild && testHooks && params.get('faunaDebug') === '1',
+    faunaStill: devOrTestBuild && testHooks && params.get('faunaIdle') === '0',
     omen: adminSetup === null ? omenParam() : adminSetup.omen,
     classicBiome: adminSetup === null ? biomeParam() : adminSetup.classicBiome,
     classicArea: () => classicAreaId(bundle, save.data, playableBiomes, loaded.notaboek),

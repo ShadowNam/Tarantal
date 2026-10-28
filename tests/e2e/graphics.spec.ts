@@ -201,7 +201,9 @@ test('HD draws every sampled image at Standard’s on-screen size', async ({ pag
   test.skip(!isLandscape(info), 'landscape screens');
   test.setTimeout(300_000);
   const bounds = async (mode: string) => {
-    await boot(page, `graphics=${mode}`);
+    // R10: the herds' idle motion (sim time) moves their drawn bounds between the two samples'
+    // ticks: hold them at rest so Standard and HD compare exactly.
+    await boot(page, `graphics=${mode}&faunaIdle=0`);
     if (mode === 'hd')
       await page.waitForFunction(() => (window.__TM__?.graphics.hdTextures ?? 0) > 0, null, {
         timeout: 120_000,
@@ -263,7 +265,12 @@ test('a lazy area (Bushveld): HD layers and props at the same pan sit where Stan
   test.skip(!isLandscape(info), 'landscape screens');
   test.setTimeout(420_000);
   const sample = async (mode: string) => {
-    await boot(page, `graphics=${mode}&biome=bushveld-winter&seed=3&huntSeconds=600&birds=0`);
+    // R10: herds at rest (their idle motion moved giraffe x 3 px and elephant w 15 px between the
+    // Standard and HD samples' ticks on CI).
+    await boot(
+      page,
+      `graphics=${mode}&biome=bushveld-winter&seed=3&huntSeconds=600&birds=0&faunaIdle=0`,
+    );
     await startHunt(page, isTouchProject(info));
     if (mode === 'hd')
       await page.waitForFunction(() => (window.__TM__?.graphics.hdTextures ?? 0) > 0, null, {

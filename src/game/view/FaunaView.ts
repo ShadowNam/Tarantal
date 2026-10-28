@@ -65,6 +65,9 @@ export interface FaunaOptions {
   readonly before?: boolean;
   /** e2e/dev only: every part's frame outlined. */
   readonly debug?: boolean;
+  /** e2e/dev only (?faunaIdle=0): every animal held at its rest pose (no idle motion), so herd
+   *  bounds compare across runs sampled at different ticks. */
+  readonly still?: boolean;
 }
 
 /** Off-screen margin (design px) before a herd stops being posed. */
@@ -277,7 +280,10 @@ export class FaunaView {
       const on = right >= -CULL_MARGIN && left <= viewWidth + CULL_MARGIN;
       if (!on) continue;
       for (const an of h.animals) {
-        an.pose = faunaIdle(tick, an.a, this.o.idle, calm, this.o.ticksPerSecond);
+        an.pose =
+          this.o.still === true
+            ? REST
+            : faunaIdle(tick, an.a, this.o.idle, calm, this.o.ticksPerSecond);
         live.add(an);
       }
     }

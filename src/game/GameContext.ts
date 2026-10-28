@@ -634,6 +634,8 @@ export interface GameContext {
   readonly faunaBefore: boolean;
   /** e2e/dev only (?faunaDebug=1): every far-animal part's frame outlined (assembly checks). */
   readonly faunaDebug: boolean;
+  /** e2e/dev only (?faunaIdle=0, R10): far animals held at rest (bounds compare across runs). */
+  readonly faunaStill: boolean;
   /** e2e/dev only: ?omen=1 / ?omen=0 overrides the mode's omen. */
   readonly omen: boolean | undefined;
   /** e2e/dev only: ?biome= plays Classic hunts in another playable biome (M8). */
