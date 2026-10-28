@@ -125,7 +125,9 @@ export class SettingsScene extends Phaser.Scene {
 
   create(data: OverlayData): void {
     // 1.9.3 (D-056): the privacy screen's paragraphs (a lazy chunk), ready before it opens.
-    void loadPrivacy();
+    loadPrivacy().catch(() => {
+      // Offline: the privacy screen says it couldn't load them, and tries again next time.
+    });
     const { width, height } = designSize();
     fitCamera(this.cameras.main);
     const safe = this.ctx.safeArea();

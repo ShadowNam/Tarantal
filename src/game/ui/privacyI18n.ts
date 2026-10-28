@@ -16,9 +16,16 @@ export function privacyLoaded(): boolean {
 
 /** Starts (or joins) loading the paragraphs. */
 export function loadPrivacy(): Promise<void> {
-  loading ??= import('./privacyTables').then((m) => {
-    tables = m.PRIVACY_TABLES;
-  });
+  loading ??= import('./privacyTables').then(
+    (m) => {
+      tables = m.PRIVACY_TABLES;
+    },
+    (e: unknown) => {
+      // Review M7: a failed load (offline) is tried again next time.
+      loading = null;
+      throw e;
+    },
+  );
   return loading;
 }
 

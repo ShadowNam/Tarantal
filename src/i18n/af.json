@@ -393,6 +393,7 @@
   "privacy.stored": "Jou instellings en vordering (jagte, beste tellings, range, Voëlboek, Notaboek, Seisoenrit en Daaglikse Jag-reeks) word net in hierdie blaaier gestoor. As jy jou blaaierdata uitvee, of die knoppie hieronder druk, is dit weg.",
   "privacy.sent_title": "Wat die speletjie stuur",
   "privacy.personal_title": "Persoonlike data",
+  "privacy.load_failed": "Kon nie hierdie deel laai nie. Kyk na die verbinding en maak die blad weer oop.",
   "privacy.clear": "Vee my data uit",
   "privacy.clear_confirm": "Tik weer: vee alles uit",
   "run.ad_retry_title": "Oupa se tweede kans!",

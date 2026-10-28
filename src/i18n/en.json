@@ -393,6 +393,7 @@
   "privacy.stored": "Your settings and progress (hunts, bests, ranks, Bird Book, Notebook, Season Run and Daily Hunt streak) are saved in this browser only. Clearing your browser data, or the button below, removes them.",
   "privacy.sent_title": "What the game sends",
   "privacy.personal_title": "Personal data",
+  "privacy.load_failed": "Couldn't load this part. Check the connection and open this page again.",
   "privacy.clear": "Clear my data",
   "privacy.clear_confirm": "Tap again: delete everything",
   "run.ad_retry_title": "Oupa's second chance!",

@@ -26,13 +26,6 @@ export class PrivacyScene extends Phaser.Scene {
   }
 
   create(data: PrivacyData): void {
-    // 1.9.3 (D-056): the paragraphs are a lazy chunk (Settings has usually loaded it already).
-    if (!privacyLoaded()) {
-      void loadPrivacy().then(() => {
-        if (this.sys.isActive()) this.scene.restart(data);
-      });
-      return;
-    }
     const { width, height } = designSize();
     fitCamera(this.cameras.main);
     const safe = this.ctx.safeArea();
@@ -61,20 +54,45 @@ export class PrivacyScene extends Phaser.Scene {
       ['privacy.sent_title', portal ? 'privacy.sent_portal' : 'privacy.sent_web'],
       ['privacy.personal_title', 'privacy.personal'],
     ];
-    let y = py + 130;
     const wrapW = panelW - 120;
-    for (const [head, body] of paragraphs) {
-      this.add.text(px + 60, y, t(head), textStyle(34, '#FFD25A'));
-      y += 48;
-      const text = body === 'privacy.stored' ? t(body) : privacyString(getLanguage(), body);
-      const p = this.add.text(px + 60, y, text, {
+    // 1.9.3 (D-056, review M7): two paragraphs are a lazy chunk (Settings has usually loaded it).
+    // The panel and its buttons draw at once; the paragraphs fill in when they arrive, or say
+    // that they couldn't be loaded (Back still works; the next visit tries again).
+    const texts = paragraphs.map(([head, body]) => ({
+      head: this.add.text(px + 60, 0, t(head), textStyle(34, '#FFD25A')),
+      body: this.add.text(px + 60, 0, '', {
         ...textStyle(28),
         fontStyle: '600',
         wordWrap: { width: wrapW },
         lineSpacing: 6,
-      });
-      y += p.height + 28;
-    }
+      }),
+      key: body,
+    }));
+    const layout = (failed: boolean): void => {
+      let y = py + 130;
+      for (const x of texts) {
+        x.head.setY(y);
+        y += 48;
+        const text =
+          x.key === 'privacy.stored'
+            ? t(x.key)
+            : failed
+              ? t('privacy.load_failed')
+              : privacyString(getLanguage(), x.key);
+        x.body.setText(text).setY(y);
+        y += x.body.height + 28;
+      }
+    };
+    layout(false);
+    if (!privacyLoaded())
+      loadPrivacy().then(
+        () => {
+          if (this.sys.isActive()) layout(false);
+        },
+        () => {
+          if (this.sys.isActive()) layout(true);
+        },
+      );
 
     const by = py + panelH - 120;
     const clear: Rect = { x: px + 40, y: by, w: Math.min(560, panelW / 2 - 60), h: 96 };
