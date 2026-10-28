@@ -273,8 +273,6 @@ These follow the names above (and the toggle brings back their pre-v1.5 text too
 (`src/i18n/guide/<lang>.json`, D-055), not the main files, so they are listed here rather than in
 the tables above (the names test reads the main files):
 
-| Key | af | en | de | nl |
-| --- | --- | --- | --- | --- |
-| `makalani.name` | makalani-neut | makalani nut | Makalaninuss | makalaninoot |
-| `secret.makalani` | Hard soos 'n makalani | Hard as a makalani | Hart wie eine Makalani | Hard als een makalani |
-| `makalani.knock` / `makalani.pop` | Tok! / Krak! | Tok! / Krak! | Tok! / Krak! | Tok! / Krak! |
+- `guide.makalani.name`: makalani-neut (af) · makalani nut (en) · Makalaninuss (de) · makalaninoot (nl)
+- `guide.makalani.secret`: Hard soos 'n makalani (af) · Hard as a makalani (en) · Hart wie eine Makalani (de) · Hard als een makalani (nl)
+- `guide.makalani.knock` / `guide.makalani.pop`: Tok! / Krak! in every language

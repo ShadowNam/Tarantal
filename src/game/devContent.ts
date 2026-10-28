@@ -86,6 +86,21 @@ export function withForcedEvent(b: ContentBundle, event: string): ContentBundle 
   };
 }
 
+/** 1.9.3 (D-056) ?palms=0 (art previews' "before"): every layout without its makalani palms. */
+export function withNoPalms(b: ContentBundle): ContentBundle {
+  return {
+    ...b,
+    biomes: b.biomes.map((x) => ({
+      ...x,
+      layouts: x.layouts.map((l) => {
+        const out = { ...l };
+        delete out.palms;
+        return out;
+      }),
+    })),
+  };
+}
+
 /**
  * v1.7 ?birds=0 (art previews of the meerkats): a hunt with no flocks, pop-ups, fly-over spawns,
  * world events, Stampede surge or crates — only the director's opening fly-over crosses the far

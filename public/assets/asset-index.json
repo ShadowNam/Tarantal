@@ -3392,27 +3392,27 @@
       "group": "okavango-spring",
       "origin": "interim",
       "file": {
-        "path": "assets/okavango-spring/img/okavango_makalani_trunk_mid.4a0b424ecabb.png",
-        "bytes": 3061,
-        "hash": "4a0b424ecabb"
+        "path": "assets/okavango-spring/img/okavango_makalani_trunk_mid.38937757021f.png",
+        "bytes": 3244,
+        "hash": "38937757021f"
       },
-      "width": 29,
-      "height": 343,
+      "width": 37,
+      "height": 353,
       "originX": 0.5,
-      "originY": 0.9795918367346939
+      "originY": 0.9801699716713881
     },
     "okavango/makalani_trunk_near": {
       "group": "okavango-spring",
       "origin": "interim",
       "file": {
-        "path": "assets/okavango-spring/img/okavango_makalani_trunk_near.f27115a69034.png",
-        "bytes": 8380,
-        "hash": "f27115a69034"
+        "path": "assets/okavango-spring/img/okavango_makalani_trunk_near.f17a103cfe4d.png",
+        "bytes": 8636,
+        "hash": "f17a103cfe4d"
       },
-      "width": 68,
-      "height": 816,
+      "width": 88,
+      "height": 840,
       "originX": 0.5,
-      "originY": 0.9803921568627451
+      "originY": 0.9809523809523809
     },
     "okavango/mokoro_pole": {
       "group": "okavango-spring",

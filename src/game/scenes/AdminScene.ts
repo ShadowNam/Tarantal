@@ -3,7 +3,7 @@
 // panorama; this scene only owns its lifetime, and (D-045) that of the Project overview over it.
 import * as Phaser from 'phaser';
 import { freshLoadShown } from '../../platform/freshLoad';
-import { AdminPanel } from '../admin/AdminPanel';
+import type { AdminPanel } from '../admin/AdminPanel';
 import { projectHref, projectRequested } from '../admin/adminProject';
 import type { GameContext } from '../GameContext';
 import type { ProjectOverviewHandle } from '../project/ProjectOverview';
@@ -45,50 +45,59 @@ export class AdminScene extends Phaser.Scene {
     // D-045: the Project overview is where the Skietbaan's Fresh load is: the web build's admin
     // page (dev server, GitHub Pages), on the list page; never in a portal build.
     const projectOn = data.view === 'list' && freshLoadShown(this.ctx.platform);
-    const panel = new AdminPanel(
-      admin,
-      this.ctx.content,
-      () => ({
-        build: admin.build,
-        device: navigator.userAgent,
-        viewport: `${String(window.innerWidth)}×${String(window.innerHeight)} @${String(
-          Math.round(window.devicePixelRatio * 100) / 100,
-        )}x · ${this.ctx.prefs.tier} tier`,
-      }),
-      {
-        ...(data.view === 'list' && data.range !== undefined ? { onRange: data.range } : {}),
-        ...(projectOn
-          ? {
-              onProject: () => {
-                this.openProject(panel);
-              },
-            }
-          : {}),
-        onView: (view, selected) => {
-          if (hook) {
-            hook.scene = 'admin';
-            hook.admin = { view, selected, entries: admin.entries.length };
-          }
-        },
-      },
-    );
+    // 1.9.3 (D-056): the panel is its own lazy chunk (playtest builds only open it), so the
+    // first download doesn't carry it.
+    const visit = this.visit;
+    let shown: AdminPanel | null = null;
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.project?.destroy();
       this.project = null;
-      panel.destroy();
+      shown?.destroy();
+      shown = null;
     });
-    const entry = admin.setup?.entry;
-    if (data.view === 'play' && entry !== undefined) {
-      const start = data.start;
-      panel.showPlay(entry, (pointerType) => {
-        this.scene.stop();
-        start(pointerType);
-      });
-    } else {
-      panel.showList();
-      // `?admin=1&project=1`: straight to the overview (a bookmark).
-      if (projectOn && projectRequested(window.location.search)) this.openProject(panel);
-    }
+    void import('../admin/AdminPanel').then((m) => {
+      if (visit !== this.visit || !this.sys.isActive()) return;
+      const panel = new m.AdminPanel(
+        admin,
+        this.ctx.content,
+        () => ({
+          build: admin.build,
+          device: navigator.userAgent,
+          viewport: `${String(window.innerWidth)}×${String(window.innerHeight)} @${String(
+            Math.round(window.devicePixelRatio * 100) / 100,
+          )}x · ${this.ctx.prefs.tier} tier`,
+        }),
+        {
+          ...(data.view === 'list' && data.range !== undefined ? { onRange: data.range } : {}),
+          ...(projectOn
+            ? {
+                onProject: () => {
+                  this.openProject(panel);
+                },
+              }
+            : {}),
+          onView: (view, selected) => {
+            if (hook) {
+              hook.scene = 'admin';
+              hook.admin = { view, selected, entries: admin.entries.length };
+            }
+          },
+        },
+      );
+      const entry = admin.setup?.entry;
+      if (data.view === 'play' && entry !== undefined) {
+        const start = data.start;
+        panel.showPlay(entry, (pointerType) => {
+          this.scene.stop();
+          start(pointerType);
+        });
+      } else {
+        panel.showList();
+        // `?admin=1&project=1`: straight to the overview (a bookmark).
+        if (projectOn && projectRequested(window.location.search)) this.openProject(panel);
+      }
+      shown = panel;
+    });
   }
 
   /** D-045: the Project overview, from its lazy chunk (admin page builds only). */

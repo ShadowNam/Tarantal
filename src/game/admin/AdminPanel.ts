@@ -3,7 +3,8 @@
 // its review; the play page (after [Play] reloaded the game) is one card with [Play] and [Back].
 // Text goes through i18n keys. Mouse and touch, phone landscape included.
 import type { ContentBundle } from '../../content/schemas';
-import { fill, t, tOr, type I18nKey } from '../../i18n/i18n';
+import { fill, tOr } from '../../i18n/i18n';
+import { at } from './adminI18n';
 import {
   adminReport,
   issueUrl,
@@ -125,7 +126,7 @@ export class AdminPanel {
       document.head.appendChild(el('style', { id: STYLE_ID, textContent: ADMIN_CSS }));
     this.root = el('div', { id: 'tm-admin' });
     this.root.setAttribute('role', 'dialog');
-    this.root.setAttribute('aria-label', t('admin.title'));
+    this.root.setAttribute('aria-label', at('admin.title'));
     // Keys typed in the notes box are not game keys.
     this.root.addEventListener('keydown', (e) => {
       e.stopPropagation();
@@ -168,11 +169,11 @@ export class AdminPanel {
     const header = el(
       'header',
       {},
-      el('h1', { textContent: t('admin.title') }),
+      el('h1', { textContent: at('admin.title') }),
       el('span', {
         className: 'muted',
         dataset: { role: 'progress' },
-        textContent: fill(t('admin.reviewed'), {
+        textContent: fill(at('admin.reviewed'), {
           n: reviewed,
           total: this.admin.entries.length,
         }),
@@ -180,14 +181,14 @@ export class AdminPanel {
       el('span', {
         className: 'muted grow',
         dataset: { role: 'stamp' },
-        textContent: `${t('admin.unranked')} · ${this.admin.build}`,
+        textContent: `${at('admin.unranked')} · ${this.admin.build}`,
       }),
       toast,
       ...(this.hooks.onProject === undefined
         ? []
         : [
             button(
-              t('admin.project'),
+              at('admin.project'),
               'project',
               () => {
                 this.hooks.onProject?.();
@@ -198,12 +199,12 @@ export class AdminPanel {
       ...(this.hooks.onRange === undefined
         ? []
         : [
-            button(t('admin.range'), 'skietbaan', () => {
+            button(at('admin.range'), 'skietbaan', () => {
               this.destroy();
               this.hooks.onRange?.();
             }),
           ]),
-      button(t('admin.copy'), 'copy-report', () => {
+      button(at('admin.copy'), 'copy-report', () => {
         void this.copyReport(toast);
       }),
     );
@@ -256,7 +257,7 @@ export class AdminPanel {
     if (stars) stars.textContent = r.rating > 0 ? '★'.repeat(r.rating) : '';
     const n = this.admin.entries.filter((x) => reviewOf(this.save, x.id).status !== 'none').length;
     const p = this.root.querySelector('[data-role=progress]');
-    if (p) p.textContent = fill(t('admin.reviewed'), { n, total: this.admin.entries.length });
+    if (p) p.textContent = fill(at('admin.reviewed'), { n, total: this.admin.entries.length });
   }
 
   private fillDetail(detail: HTMLElement, e: AdminEntry): void {
@@ -274,7 +275,7 @@ export class AdminPanel {
     };
     const select = (
       key: string,
-      label: I18nKey,
+      label: string,
       values: readonly [string, string][],
       value: string,
       onChange: (v: string) => void,
@@ -285,7 +286,7 @@ export class AdminPanel {
       s.addEventListener('change', () => {
         onChange(s.value);
       });
-      return el('label', {}, t(label), s);
+      return el('label', {}, at(label), s);
     };
     const weapons = this.content.weapons.weapons;
     const events = [...new Set(this.content.biomes.flatMap((b) => b.events.map((x) => x.id)))];
@@ -293,7 +294,7 @@ export class AdminPanel {
       name: 'seed',
       type: 'text',
       inputMode: 'numeric',
-      placeholder: t('admin.seed_random'),
+      placeholder: at('admin.seed_random'),
       value: o.seed === null ? '' : String(o.seed),
     });
     seed.addEventListener('change', () => {
@@ -322,7 +323,7 @@ export class AdminPanel {
     });
     const lengths = [15, 30, 45, 60, 90, 120];
     detail.append(
-      el('h3', { textContent: t('admin.options') }),
+      el('h3', { textContent: at('admin.options') }),
       el(
         'div',
         { className: 'grid' },
@@ -330,7 +331,7 @@ export class AdminPanel {
           'weapon',
           'admin.gun',
           [
-            ['', t('admin.gun_default')],
+            ['', at('admin.gun_default')],
             ...weapons.map((w): [string, string] => [w.id, gunLabel(this.content, w.id)]),
           ],
           o.weapon ?? '',
@@ -343,7 +344,7 @@ export class AdminPanel {
           'sight',
           'admin.sight',
           [
-            ['', t('admin.sight_default')],
+            ['', at('admin.sight_default')],
             ...this.content.weapons.sights.map((x): [string, string] => [
               x.id,
               tOr(x.nameKey, x.id),
@@ -354,12 +355,12 @@ export class AdminPanel {
             setOpt({ sight: v === '' ? null : v });
           },
         ),
-        el('label', {}, t('admin.seed'), seed),
+        el('label', {}, at('admin.seed'), seed),
         select(
           'huntSeconds',
           'admin.length',
           [
-            ['', t('admin.length_default')],
+            ['', at('admin.length_default')],
             ...lengths.map((s): [string, string] => [String(s), `${String(s)} s`]),
           ],
           o.huntSeconds === null ? '' : String(o.huntSeconds),
@@ -371,9 +372,9 @@ export class AdminPanel {
           'omen',
           'admin.omen',
           [
-            ['default', t('admin.omen_default')],
-            ['on', t('admin.omen_on')],
-            ['off', t('admin.omen_off')],
+            ['default', at('admin.omen_default')],
+            ['on', at('admin.omen_on')],
+            ['off', at('admin.omen_off')],
           ],
           o.omen,
           (v) => {
@@ -383,20 +384,20 @@ export class AdminPanel {
         select(
           'event',
           'admin.event',
-          [['', t('admin.event_none')], ...events.map((x): [string, string] => [x, x])],
+          [['', at('admin.event_none')], ...events.map((x): [string, string] => [x, x])],
           o.event ?? '',
           (v) => {
             setOpt({ event: v === '' ? null : v });
           },
         ),
-        el('label', {}, t('admin.quota'), quota),
-        ...(e.kind === 'daily' ? [el('label', {}, t('admin.date'), date)] : []),
+        el('label', {}, at('admin.quota'), quota),
+        ...(e.kind === 'daily' ? [el('label', {}, at('admin.date'), date)] : []),
       ),
       el(
         'div',
         { className: 'row mt' },
         button(
-          t('admin.play'),
+          at('admin.play'),
           'play',
           () => {
             this.update((s) => ({
@@ -414,13 +415,13 @@ export class AdminPanel {
     // Review.
     const r = reviewOf(this.save, e.id);
     const statusRow = el('div', { className: 'row' });
-    const statuses: [ReviewStatus, I18nKey][] = [
+    const statuses: [ReviewStatus, string][] = [
       ['none', 'admin.status_none'],
       ['ok', 'admin.status_ok'],
       ['work', 'admin.status_work'],
     ];
     const statusBtns = statuses.map(([st, key]) => {
-      const b = button(t(key), `status-${st}`, () => {
+      const b = button(at(key), `status-${st}`, () => {
         this.update((s) => withReview(s, e.id, { status: st }));
         for (const x of statusBtns) x.setAttribute('aria-pressed', String(x === b));
         this.refreshRow(e);
@@ -449,14 +450,17 @@ export class AdminPanel {
         },
         'btn star',
       );
-      b.setAttribute('aria-label', `${t('admin.rating')} ${String(n)}`);
+      b.setAttribute('aria-label', `${at('admin.rating')} ${String(n)}`);
       return b;
     });
-    starRow.append(el('span', { className: 'muted', textContent: t('admin.rating') }), ...starBtns);
+    starRow.append(
+      el('span', { className: 'muted', textContent: at('admin.rating') }),
+      ...starBtns,
+    );
     paint(r.rating);
     const notes = el('textarea', {
       name: 'notes',
-      placeholder: t('admin.notes_hint'),
+      placeholder: at('admin.notes_hint'),
       value: r.notes,
       maxLength: 4000,
     });
@@ -466,14 +470,14 @@ export class AdminPanel {
     });
     const toast = el('span', { className: 'toast' });
     detail.append(
-      el('h3', { textContent: t('admin.review') }),
+      el('h3', { textContent: at('admin.review') }),
       statusRow,
       starRow,
-      el('label', { className: 'mt' }, t('admin.notes'), notes),
+      el('label', { className: 'mt' }, at('admin.notes'), notes),
       el(
         'div',
         { className: 'row mt' },
-        button(t('admin.send'), 'send-github', () => {
+        button(at('admin.send'), 'send-github', () => {
           const facts = entryFacts(e, this.content, this.save.options, this.save.played[e.id]);
           const url = issueUrl(facts, reviewOf(this.save, e.id), this.where());
           window.open(url, '_blank', 'noopener');
@@ -489,7 +493,7 @@ export class AdminPanel {
     );
     const md = adminReport(this.save, facts, this.where());
     const ok = await copyText(md);
-    toast.textContent = ok ? t('admin.copied') : t('admin.copy_failed');
+    toast.textContent = ok ? at('admin.copied') : at('admin.copy_failed');
     toast.dataset['report'] = md;
     if (!ok) {
       // Shown for a manual copy (some embeds block the clipboard).
@@ -507,17 +511,17 @@ export class AdminPanel {
     this.root.replaceChildren();
     const o = this.save.play?.options ?? this.save.options;
     const facts = [
-      `${t('admin.gun')}: ${o.weapon === null ? t('admin.gun_default') : gunLabel(this.content, o.weapon)}`,
-      `${t('admin.seed')}: ${o.seed === null ? t('admin.seed_random') : String(o.seed)}`,
-      `${t('admin.length')}: ${o.huntSeconds === null ? t('admin.length_default') : `${String(o.huntSeconds)} s`}`,
-      `${t('admin.omen')}: ${t(o.omen === 'on' ? 'admin.omen_on' : o.omen === 'off' ? 'admin.omen_off' : 'admin.omen_default')}`,
-      ...(o.event === null ? [] : [`${t('admin.event')}: ${o.event}`]),
-      ...(o.quotaMul === 1 ? [] : [`${t('admin.quota')} ${String(o.quotaMul)}`]),
-      ...(entry.kind === 'daily' && o.date !== null ? [`${t('admin.date')}: ${o.date}`] : []),
+      `${at('admin.gun')}: ${o.weapon === null ? at('admin.gun_default') : gunLabel(this.content, o.weapon)}`,
+      `${at('admin.seed')}: ${o.seed === null ? at('admin.seed_random') : String(o.seed)}`,
+      `${at('admin.length')}: ${o.huntSeconds === null ? at('admin.length_default') : `${String(o.huntSeconds)} s`}`,
+      `${at('admin.omen')}: ${at(o.omen === 'on' ? 'admin.omen_on' : o.omen === 'off' ? 'admin.omen_off' : 'admin.omen_default')}`,
+      ...(o.event === null ? [] : [`${at('admin.event')}: ${o.event}`]),
+      ...(o.quotaMul === 1 ? [] : [`${at('admin.quota')} ${String(o.quotaMul)}`]),
+      ...(entry.kind === 'daily' && o.date !== null ? [`${at('admin.date')}: ${o.date}`] : []),
     ];
     let pressed = false;
     const play = button(
-      t('admin.play'),
+      at('admin.play'),
       'start',
       (ev) => {
         if (pressed) return;
@@ -533,15 +537,15 @@ export class AdminPanel {
         'div',
         { className: 'card' },
         el('h1', {
-          textContent: fill(t('admin.play_card'), { map: entryLabel(entry, this.content) }),
+          textContent: fill(at('admin.play_card'), { map: entryLabel(entry, this.content) }),
         }),
         el('p', { className: 'muted', textContent: facts.join(' · ') }),
-        el('p', { className: 'muted', textContent: t('admin.unranked') }),
+        el('p', { className: 'muted', textContent: at('admin.unranked') }),
         el(
           'div',
           { className: 'row' },
           play,
-          button(t('admin.back'), 'back', () => {
+          button(at('admin.back'), 'back', () => {
             this.admin.back();
           }),
         ),

@@ -3113,8 +3113,13 @@ as it's so close by." GDD §11.3b, §11.3; art bible §4.2b; Tech §3.9.
   the near plane: 2 cans on 3 posts on the mid plane's fence line, moved back by a bonus map like
   the near fence. Same rules and checks; scored with the cans' plane factor (mid 1.3), which already
   pays distance, so no extra distance bonus. The Blikkiesdans is once a hunt over both fences.
-- *Strings.* The nut pops, the secret's banner and its Bird Book name are in the lazy guide tables
-  (D-055), so the first download does not grow; only Oupa's line is in the main tables.
+- *First download (must not grow).* The nut pops, the secret's banner and its Bird Book name are
+  in the lazy guide tables (D-055, `guide.makalani.*`); only Oupa's line is in the main tables.
+  MakalaniView is its own lazy chunk (loaded once a map with palms runs). The sim, content and
+  view glue still added ~4.6 KB gzip, so the playtest admin page moved out of the first download:
+  AdminPanel and its labels are a lazy chunk (AdminScene imports them), and its strings are their
+  own tables (`src/i18n/admin/<lang>.json`; the keys the rest of the game shares — admin.back,
+  admin.crate_tag, admin.range, admin.sight_default — stay in the main tables).
 - *Placement.* `src/content/palmChecks.ts` checks every map (each layout, with each bonus map):
   art for the plane, inside the layer, no overlap with props, secret parts, colonies or another
   group, and no hanging nut in front of a bird band or secret part of a plane behind. The first

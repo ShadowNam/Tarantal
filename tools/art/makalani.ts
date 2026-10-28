@@ -75,7 +75,7 @@ export function makalaniTrunk(p: MakalaniPaint): string {
       [1, p.tint(shade(BARK.dark, -0.2))],
     ]),
     // Grass and a soft shadow at the foot.
-    el('path', { d: ellipseD(8, 4, TRUNK.w * 1.1, 7), fill: '#2A1A14', opacity: 0.25 }),
+    el('path', { d: ellipseD(4, 4, TRUNK.w * 0.62, 6), fill: '#2A1A14', opacity: 0.25 }),
     el('path', { d: polyD(outline), fill: `url(#${id})` }),
   ];
   // Faint leaf-scar rings: shallow arcs, darker below a lit lip.
@@ -124,7 +124,7 @@ export function makalaniTrunk(p: MakalaniPaint): string {
     const y = -len + 8 + k * 14 + rnd() * 6;
     const side = k % 2 === 0 ? -1 : 1;
     const w = half(y);
-    const tipX = side * (w + 10 + rnd() * 10);
+    const tipX = side * (w + 5 + rnd() * 5);
     const tipY = y - 16 - rnd() * 8;
     const base: Pt[] = [
       [side * w * 0.2, y + 5],
@@ -155,8 +155,8 @@ export function makalaniTrunk(p: MakalaniPaint): string {
   parts.push(edge(left, '60 6 30 4'), edge(right, '40 5 70 8'));
   // Grass at the foot.
   for (let k = 0; k < 14; k++) {
-    const x = (rnd() - 0.5) * TRUNK.w * 1.6;
-    const h = 8 + rnd() * 14;
+    const x = (rnd() - 0.5) * TRUNK.w * 0.9;
+    const h = 6 + rnd() * 8;
     parts.push(
       el('path', {
         d: `M${r2(x)} ${r2(TRUNK.below - 2)}q${r2((rnd() - 0.5) * 6)} ${r2(-h * 0.6)} ${r2((rnd() - 0.5) * 8)} ${r2(-h)}`,

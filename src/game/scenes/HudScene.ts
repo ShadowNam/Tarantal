@@ -742,15 +742,15 @@ export class HudScene extends Phaser.Scene {
         banner.push(t('hud.blikkiesdans'));
       } else if (e.type === 'secretTriggered' && e.propId === MAKALANI_SECRET) {
         // 1.9.3 (D-056): three nuts popped or juggled out (lazy strings: the guide tables).
-        banner.push(this.lazy('hud.makalani'));
+        banner.push(this.lazy('guide.makalani.hud'));
       } else if (e.type === 'nutKnocked') {
-        this.pushPop(this.lazy('makalani.knock'), '#F2E2C4');
+        this.pushPop(this.lazy('guide.makalani.knock'), '#F2E2C4');
       } else if (e.type === 'nutJuggled') {
-        this.pushPop(fill(this.lazy('makalani.chain'), { n: e.chain }), '#F2E2C4');
+        this.pushPop(fill(this.lazy('guide.makalani.chain'), { n: e.chain }), '#F2E2C4');
       } else if (e.type === 'nutPopped') {
-        this.pushPop(this.lazy('makalani.pop'), '#FFF4DC');
+        this.pushPop(this.lazy('guide.makalani.pop'), '#FFF4DC');
       } else if (e.type === 'nutGone') {
-        banner.push(`${this.lazy('makalani.weg')} ${formatAward(e.points)}`);
+        banner.push(`${this.lazy('guide.makalani.weg')} ${formatAward(e.points)}`);
       } else if (e.type === 'canJuggled') {
         // The chain shows with each air hit; the points pop with their bonusAwarded.
         this.pushPop(fill(t('cans.chain'), { n: e.chain }), '#E8EEF5');

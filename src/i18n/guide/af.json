@@ -22,11 +22,11 @@
   "guide.tip.rooikol": "Wys en skiet: naby en middel voëls val vinnig; ver voëls is klein, vat jou tyd met hulle.",
   "guide.tip.voorlaaier": "Spaar elke skoot vir 'n groot, digte troep.",
   "guide.tip.mielie_masjien": "Hou in en swaai: dit hoef nooit te herlaai nie.",
-  "makalani.name": "makalani-neut",
-  "makalani.knock": "Tok!",
-  "makalani.chain": "{n}× in die lug!",
-  "makalani.pop": "Krak!",
-  "makalani.weg": "WEG!",
-  "hud.makalani": "HARD SOOS 'N MAKALANI!",
-  "secret.makalani": "Hard soos 'n makalani"
+  "guide.makalani.name": "makalani-neut",
+  "guide.makalani.knock": "Tok!",
+  "guide.makalani.chain": "{n}× in die lug!",
+  "guide.makalani.pop": "Krak!",
+  "guide.makalani.weg": "WEG!",
+  "guide.makalani.hud": "HARD SOOS 'N MAKALANI!",
+  "guide.makalani.secret": "Hard soos 'n makalani"
 }

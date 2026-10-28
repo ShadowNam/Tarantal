@@ -609,7 +609,7 @@ export class ShedScene extends Phaser.Scene {
               b.layouts.some((l) => (l.palms?.length ?? 0) > 0)
                 ? [
                     {
-                      label: `★ ${guideString(getLanguage(), 'secret.makalani') ?? ''}`,
+                      label: `★ ${guideString(getLanguage(), 'guide.makalani.secret') ?? ''}`,
                       seen: book.secrets.includes(secretKey(b.id, MAKALANI_SECRET)),
                     },
                   ]

@@ -1,6 +1,7 @@
 // v1.2x (D-034): how the admin page names its entries, modes and guns (i18n; en is enough).
 import type { ContentBundle } from '../../content/schemas';
-import { fill, t, tOr } from '../../i18n/i18n';
+import { fill, tOr } from '../../i18n/i18n';
+import { at, atOr } from './adminI18n';
 import type { AdminEntry, AdminOptions, EntryFacts } from '../../meta/admin';
 import { bonusSlug } from '../../meta/bonusMaps';
 
@@ -15,11 +16,11 @@ export function entryLabel(e: AdminEntry, content: ContentBundle): string {
     const f = content.feesdae.specials.find((x) => x.id === e.feesdag);
     const pad = (n: number): string => String(n).padStart(2, '0');
     const date = f === undefined ? '' : `${pad(f.date.day)}/${pad(f.date.month)}`;
-    return fill(t('admin.feesdag_date'), { name: tOr(f?.nameKey ?? '', e.feesdag), date });
+    return fill(at('admin.feesdag_date'), { name: tOr(f?.nameKey ?? '', e.feesdag), date });
   }
-  if (e.kind === 'daily') return t('admin.daily');
+  if (e.kind === 'daily') return at('admin.daily');
   if (e.kind === 'season')
-    return `${tOr(`season.${e.season ?? ''}`, e.season ?? '')} · ${tOr(
+    return `${tOr(`season.${e.season ?? ''}`, e.season ?? '')} · ${atOr(
       `admin.stage_${e.stage ?? ''}`,
       e.stage ?? '',
     )}`;
@@ -27,23 +28,23 @@ export function entryLabel(e: AdminEntry, content: ContentBundle): string {
     e.bonus !== null
       ? tOr(`map.${bonusSlug(e.bonus)}`, e.bonus)
       : e.layout === 'none' || e.layout === null
-        ? t('admin.plain')
+        ? at('admin.plain')
         : tOr(`map.day.${e.layout}`, e.layout);
   return `${biomeName(content, e.biome)} · ${where}`;
 }
 
 /** The entry's group heading in the list. */
 export function groupLabel(e: AdminEntry, content: ContentBundle): string {
-  if (e.kind === 'daily' && e.feesdag !== null) return t('admin.group_feesdae');
-  if (e.kind === 'daily') return t('admin.group_daily');
-  if (e.kind === 'season') return t('admin.group_season');
+  if (e.kind === 'daily' && e.feesdag !== null) return at('admin.group_feesdae');
+  if (e.kind === 'daily') return at('admin.group_daily');
+  if (e.kind === 'season') return at('admin.group_season');
   return biomeName(content, e.biome);
 }
 
 export function gunLabel(content: ContentBundle, id: string): string {
   const w = content.weapons.weapons.find((x) => x.id === id);
   const name = tOr(`weapon.${id}`, id);
-  return w?.kind === 'crate' ? `${name} ${t('admin.crate_tag')}` : name;
+  return w?.kind === 'crate' ? `${name} ${at('admin.crate_tag')}` : name;
 }
 
 export function modeOf(e: AdminEntry): string {

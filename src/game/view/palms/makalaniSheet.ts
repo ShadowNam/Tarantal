@@ -34,11 +34,13 @@ export function palmFrames(plane: PalmArtPlane): { trunk: PalmFrame; crown: Palm
   const s = PALM_ART_SCALE[plane];
   const r = (n: number): number => Math.max(2, Math.round(n * s));
   return {
+    // Room round the drawing: the flared foot and its grass, and 24 px above the top (the crown
+    // covers it; the edge audit wants no art cut by the texture's edge).
     trunk: {
-      w: r(TRUNK.w + 8),
-      h: r(TRUNK.len + TRUNK.below),
-      ox: r(TRUNK.w + 8) / 2,
-      oy: r(TRUNK.len),
+      w: r(TRUNK.w + 28),
+      h: r(TRUNK.len + TRUNK.below + 24),
+      ox: r(TRUNK.w + 28) / 2,
+      oy: r(TRUNK.len + 24),
     },
     crown: {
       w: r(CROWN.half * 2),
