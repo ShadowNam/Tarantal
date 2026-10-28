@@ -256,8 +256,8 @@
     "id": "karoo.wed.canHappy",
     "label": "Karoo wed (near + far fence) · can-happy",
     "seeds": 500,
-    "mean": 4012.606,
-    "canShare": 0.04482872228172913,
+    "mean": 3899.982,
+    "canShare": 0.06134182157763805,
     "nutShare": 0,
     "nutKnocks": 0,
     "nutAirHits": 0,
@@ -267,22 +267,22 @@
     "id": "caps.okavango.mon.twee_twee",
     "label": "Okavango mon · twee_twee iron · nut-happy",
     "seeds": 500,
-    "mean": 2003.632,
+    "mean": 2381.92,
     "canShare": 0,
-    "nutShare": 0.045213891572903606,
-    "nutKnocks": 0.404,
-    "nutAirHits": 0.032,
-    "nutPops": 4.96
+    "nutShare": 0.040431248740511856,
+    "nutKnocks": 0.416,
+    "nutAirHits": 0.208,
+    "nutPops": 5.938
   },
   "caps.okavango.mon.pomp": {
     "id": "caps.okavango.mon.pomp",
     "label": "Okavango mon · pomp · nut-happy",
     "seeds": 500,
-    "mean": 299.744,
+    "mean": 1775.56,
     "canShare": 0,
-    "nutShare": 0.5150995516173802,
-    "nutKnocks": 12.692,
-    "nutAirHits": 3.646,
-    "nutPops": 0.016
+    "nutShare": 0.1511534389150465,
+    "nutKnocks": 19.978,
+    "nutAirHits": 11.496,
+    "nutPops": 0.766
   }
 }
