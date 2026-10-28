@@ -48,8 +48,10 @@ export async function rifleSave(page: Page, gun: string, sight: string): Promise
 }
 
 /**
- * Picks up the first crate through the sight: presses on it, follows it each frame (the sight
- * comes up while it falls), releases once the sight is up; again until the power-up runs.
+ * Picks up the first crate through the sight. A held sight aims finely (a move is divided by the
+ * zoom from the press point), so the helper never moves: it waits until the crate has landed,
+ * presses once on the box (below it by the offset crosshair on touch: the finger sits under the
+ * aim point), holds until the sight is up, and releases in place. Again until the power-up runs.
  */
 export async function pickUpScoped(page: Page, touch: boolean, id: string): Promise<void> {
   await page.waitForFunction(() => (window.__TM__?.crateSpots.length ?? 0) > 0, null, {
@@ -65,8 +67,10 @@ export async function pickUpScoped(page: Page, touch: boolean, id: string): Prom
           return;
         }
         let n = 0;
-        let held = false;
-        let since = 0;
+        let held: { x: number; y: number; since: number } | null = null;
+        let lastY = Number.NaN;
+        let still = 0;
+        let fired = 0;
         const ev = (type: string, x: number, y: number): void => {
           const r = canvas.getBoundingClientRect();
           canvas.dispatchEvent(
@@ -83,35 +87,55 @@ export async function pickUpScoped(page: Page, touch: boolean, id: string): Prom
             }),
           );
         };
+        const fail = (why: string): void => {
+          const spot = h.crateSpots[0];
+          reject(
+            new Error(
+              `${why}: raise ${h.zoom.raise}, crate ${spot === undefined ? 'none' : `${Math.round(spot.x)},${Math.round(spot.y)}`}, ` +
+                `reticle ${Math.round(h.zoom.reticleX)},${Math.round(h.zoom.reticleY)}, offset ${h.aimOffsetPx}, ` +
+                `presses ${n}, shots ${fired}, shells ${h.shells}, powerups [${h.powerups.join(',')}]`,
+            ),
+          );
+        };
+        const startShots = h.shots;
         const loop = (): void => {
+          fired = h.shots - startShots;
           if (h.powerups.includes(want)) {
             resolve();
             return;
           }
           if (h.over) {
-            reject(new Error('the hunt ended first'));
+            fail('the hunt ended first');
             return;
           }
           const spot = h.crateSpots[0];
-          if (spot === undefined || spot.x < 0 || spot.x > h.designWidth) {
-            requestAnimationFrame(loop);
-            return;
-          }
-          if (!held) {
-            if (h.zoom.raise === 0) {
-              ev('pointerdown', spot.x, spot.y);
-              held = true;
-              since = h.tick;
+          if (held !== null) {
+            if (h.zoom.raise >= 1 && h.tick - held.since >= 2) {
+              ev('pointerup', held.x, held.y);
+              held = null;
+              n++;
             }
-          } else if (h.zoom.raise >= 1 && h.tick - since >= 2) {
-            // The sight is up: the reticle shows where the crate is in the zoomed view.
-            ev('pointerup', h.zoom.reticleX, h.zoom.reticleY);
-            held = false;
-            n++;
+          } else if (spot === undefined) {
+            fail('the crate is gone');
+            return;
           } else {
-            // While it comes up the crate keeps falling: the zoomed point under the reticle
-            // follows it (the hook's crate spot is in zoomed screen px).
-            ev('pointermove', spot.x, spot.y);
+            // Landed: its y holds still for a few frames.
+            still = spot.y === lastY ? still + 1 : 0;
+            lastY = spot.y;
+            const ready =
+              still >= 4 &&
+              h.zoom.raise === 0 &&
+              h.cooldownTicks === 0 &&
+              !h.reloading &&
+              h.shells > 0 &&
+              spot.x > 0 &&
+              spot.x < h.designWidth;
+            if (ready) {
+              const off = isTouch ? h.aimOffsetPx : 0;
+              const y = Math.min(h.designHeight - 1, spot.y + off);
+              ev('pointerdown', spot.x, y);
+              held = { x: spot.x, y, since: h.tick };
+            }
           }
           requestAnimationFrame(loop);
         };

@@ -1843,6 +1843,7 @@ export class HuntScene extends Phaser.Scene {
       hook.score = state.score;
       hook.shells = state.weapon.shells;
       hook.cooldownTicks = state.weapon.cooldownTicks;
+      hook.aimOffsetPx = this.ctx.prefs.crosshairOffsetPx;
       // D-029: GPU texture memory (RGBA bytes of every texture source), sampled twice a second.
       if (state.tick % 30 === 0) this.sampleTextures(hook);
       hook.magazine = state.weapon.magazine;
