@@ -157,12 +157,12 @@
     "id": "okavango.fri.nutHappy",
     "label": "Okavango fri (2 palm groups) · nut-happy",
     "seeds": 500,
-    "mean": 2828.354,
+    "mean": 3648.19,
     "canShare": 0,
-    "nutShare": 0.06828918869420164,
-    "nutKnocks": 17.762,
-    "nutAirHits": 4.366,
-    "nutPops": 0.174
+    "nutShare": 0.06902765480964533,
+    "nutKnocks": 22.89,
+    "nutAirHits": 10.004,
+    "nutPops": 0.922
   },
   "okavango.sat.before": {
     "id": "okavango.sat.before",
@@ -190,12 +190,12 @@
     "id": "okavango.sat.nutHappy",
     "label": "Okavango sat (2 palm groups) · nut-happy",
     "seeds": 500,
-    "mean": 3237.642,
+    "mean": 4563.864,
     "canShare": 0,
-    "nutShare": 0.05194212331073046,
-    "nutKnocks": 16.422,
-    "nutAirHits": 2.59,
-    "nutPops": 0.012
+    "nutShare": 0.030308528036768843,
+    "nutKnocks": 14.69,
+    "nutAirHits": 2.312,
+    "nutPops": 0.014
   },
   "okavango.sun.before": {
     "id": "okavango.sun.before",
@@ -212,23 +212,23 @@
     "id": "okavango.sun.competent",
     "label": "Okavango sun (2 palm groups) · competent",
     "seeds": 500,
-    "mean": 3940.864,
+    "mean": 3947.278,
     "canShare": 0,
-    "nutShare": 0.00036692461348577366,
-    "nutKnocks": 0.214,
-    "nutAirHits": 0.012,
-    "nutPops": 0
+    "nutShare": 0.0007296167130868411,
+    "nutKnocks": 0.416,
+    "nutAirHits": 0.048,
+    "nutPops": 0.004
   },
   "okavango.sun.nutHappy": {
     "id": "okavango.sun.nutHappy",
     "label": "Okavango sun (2 palm groups) · nut-happy",
     "seeds": 500,
-    "mean": 2721.886,
+    "mean": 3563.876,
     "canShare": 0,
-    "nutShare": 0.07684745062798369,
-    "nutKnocks": 19.876,
-    "nutAirHits": 5.388,
-    "nutPops": 0.328
+    "nutShare": 0.051585408695476495,
+    "nutKnocks": 16.858,
+    "nutAirHits": 7.004,
+    "nutPops": 0.58
   },
   "karoo.wed.before": {
     "id": "karoo.wed.before",
