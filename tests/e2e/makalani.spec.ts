@@ -36,6 +36,27 @@ test.describe('Makalani nuts (1.9.3, D-056)', () => {
       { timeout: 60_000 },
     );
 
+    // Review M11: every crown sits on its trunk's top (screen px, from the images as placed).
+    const palms = (await hook(page)).nuts?.palms ?? [];
+    for (const p of palms.filter((x) => x.built))
+      for (const t of p.trunks)
+        expect(
+          Math.hypot(t.crownBase.x - t.trunkTop.x, t.crownBase.y - t.trunkTop.y),
+          `${p.plane} palm at x ${String(p.x)}: crown base vs trunk top`,
+        ).toBeLessThanOrEqual(2);
+    // Review M12: a palm by the water is reflected, its foot mirrored at the water line.
+    await page.waitForFunction(
+      () => (window.__TM__?.nuts?.palms ?? []).some((p) => p.built && p.reflection !== null),
+      null,
+      { timeout: 60_000 },
+    );
+    const wet = ((await hook(page)).nuts?.palms ?? []).find((p) => p.reflection !== null);
+    expect(wet?.reflection?.visible).toBe(true);
+    const r = wet?.reflection;
+    if (r !== undefined && r !== null) {
+      expect(r.y).toBeGreaterThanOrEqual(r.waterY);
+      expect(r.y).toBeLessThanOrEqual(r.waterY + 40);
+    }
     // Crack one off (or pop it: three pellets on it). A cracked nut is in the air, then lower.
     let run = await shootThings(page, touch, 'nuts', 'knock', COOLDOWN, { plane: 'near' });
     for (let i = 0; i < 6 && !run.log.some((e) => e.startsWith('nut-knock')); i++) {
