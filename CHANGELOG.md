@@ -3,6 +3,27 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.9.3] — Makalani palms in the Okavango: nuts that crack off, juggle and pop (28 Oct 2026)
+
+Decision record D-056. The product owner (26 Oct): "Since it's Okavango, I want us to add some
+makalani trees … If somebody manages to hit such a small makalani, maybe it can do a small
+blow-up, or fall down … Be creative." And (27 Oct): "one or two cans on the further-away fence".
+
+### Added
+- **Makalani palms** in the Okavango: tall, slender grey trunks with faint rings, crowns of stiff
+  grey-green fan leaves on spiny stalks, dry fronds hanging below; one to three groups on every
+  weekday map (near and mid), the crowns swaying a little in the wind. Palms by the water are
+  reflected in the channel with a gentle ripple. The distant palms on the horizon are makalani too.
+- **Makalani nuts** hang in clusters of 3–8 under the crowns (mostly glossy brown, some orange and
+  green). One or two pellets crack a nut off with a "tok": it drops spinning. Hit it again in the
+  air and it juggles like a tin can, higher with every hit; it bounces hard and rolls when it lands.
+  Three pellets at once, or a rifle bullet, pop it into husk and ivory chips with a "krak!".
+  Points for each, a little more than a can. Nuts never block a shot at a bird behind them.
+- **Secret "Hard soos 'n makalani"**: pop or juggle out three nuts in one hunt (+25), with a line
+  from Oupa.
+- **Blikkies on the far fence**: on the Karoo map with the near fence (Wednesday), two more cans on
+  the farther fence, smaller and further away, worth more per hit.
+
 ## [1.9.2] — Playtest fixes: crate icons, the ten-second call, and the red dot sight (28 Oct 2026)
 
 Decision record D-055. From the product owner's playtest on 27 Oct.

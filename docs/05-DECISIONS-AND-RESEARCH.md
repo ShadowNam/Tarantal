@@ -3079,6 +3079,52 @@ you've got 10 seconds left … those 10 seconds don't seem to be 10 seconds. The
   art-preview specs unless `ART_PREVIEW=1`, so the four desktop and three Pixel 7 shards hold 40–54
   tests each. The Skietbaan's long tests get 10 min (about 5 on a typical runner, 7 on a slow one).
 
+**D-056 1.9.3 Makalani palms in the Okavango, with nuts that crack off, juggle and pop; cans on
+the Karoo's far fence (28 Oct 2026):** the product owner (26 Oct, photos of makalani palms at
+sunset by the water and of a nut cluster): "Since it's Okavango, I want us to add some makalani
+trees … The makalani are very hard nuts that are hanging on them … If somebody manages to hit such
+a small makalani, maybe it can do a small blow-up, or fall down … Be creative." And (27 Oct): "the
+Blikkies game works well; I would prefer if there were one or two cans on the further-away fence,
+as it's so close by." GDD §11.3b, §11.3; art bible §4.2b; Tech §3.9.
+- *Palms.* Layout content (`layouts[].palms`: kind single/pair/trio, near or mid plane, u, flip,
+  water) with the shapes in `birds.json → makalani.palms` (trunk feet, tops and heights, cluster
+  anchors), which the sim, the view and the content checks share. Drawn from **one trunk and one
+  crown texture per plane** (MakalaniView turns each trunk to its lean, stretches it to its height
+  and sets a crown on top): one image per group would cost several times the texture memory in the
+  Okavango's HD hunt, the closest to the budget. Crowns sway ±1.6° on sim time (held frames hold;
+  reduce motion × 0.35). A group by water is mirrored below the water line, squashed into the
+  channel (× 0.28: the mid channel is a narrow strip), see-through, with a ripple on sim time.
+  The painted mid-layer palms are gone (the sprites stand where they stood on some days); the far
+  layers paint makalani silhouettes in ones, twos and threes.
+- *Nuts reuse the juggle body.* A nut is the v1.8 `JuggleBody` with two optional tuning fields:
+  `knockUpMul` (the crack-off kicks only × 0.25 upward: it drops off its stalk; cans leave it out,
+  1) and `roll` (after its bounce it keeps rolling, slowing by `decelPxPerSec2`; cans leave it out
+  and lie still). No second physics; the cans' flights are unchanged (their golden events too).
+  Nuts enter the hit test as the cans' capsule with no axis (a circle) and `passThrough`: a pellet
+  that meets a nut and then a bird behind it hits the bird (nuts never block a bird); anything else
+  behind stops at the nut. The touch assist grows them like a can.
+- *Pop.* `popPellets` (3) pellets on one nut in one shot, or any hit by a `popWeapons` gun (.22,
+  Langloop): the nut bursts (hanging or in the air). One or two pellets crack it off or juggle it.
+- *Scoring* (event bonuses × Stampede only, as the cans): crack-off 6, air hit 10 + 3 × (n − 1)
+  capped at chain 8, pop 12, Weg! 18, × the plane factor (near 0.8, mid 1.3). A little more than
+  a can (5, 8 + 2 × (n − 1), Weg! 15): a nut is smaller. The secret "Hard soos 'n makalani": 3 nuts
+  popped or juggled out in one hunt, +25, once a hunt, Oupa's line `bark.makalani`.
+- *Far fence.* `layouts[].farFence` (the fence's shape) on Wednesday's Karoo map, whose fence is on
+  the near plane: 2 cans on 3 posts on the mid plane's fence line, moved back by a bonus map like
+  the near fence. Same rules and checks; scored with the cans' plane factor (mid 1.3), which already
+  pays distance, so no extra distance bonus. The Blikkiesdans is once a hunt over both fences.
+- *Strings.* The nut pops, the secret's banner and its Bird Book name are in the lazy guide tables
+  (D-055), so the first download does not grow; only Oupa's line is in the main tables.
+- *Placement.* `src/content/palmChecks.ts` checks every map (each layout, with each bonus map):
+  art for the plane, inside the layer, no overlap with props, secret parts, colonies or another
+  group, and no hanging nut in front of a bird band or secret part of a plane behind. The first
+  palm heights hung mid-plane nuts in front of the far plane's flocks and near nuts in front of the
+  mokoro flag; the palms are taller now (h 700–820 at plane scale 1).
+- *Golden replays* re-recorded: the content hash changed; Okavango layouts have nuts, and
+  Wednesday's Karoo map two far cans.
+- *Later (build plan):* a carved makalani nut as a Notaboek reward or a charm.
+
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
@@ -3137,6 +3183,17 @@ you've got 10 seconds left … those 10 seconds don't seem to be 10 seconds. The
 [Best practices](https://code.claude.com/docs/en/best-practices) — CLAUDE.md under ~200 lines,
 path-scoped rules in `.claude/rules/`, skills for repeatable workflows, a fresh-context reviewer
 subagent, verification Claude can run itself, plan mode for multi-file work.
+
+**Makalani palm (D-056)**
+- *Hyphaene petersiana*, the real fan palm: northern Namibia, the Kunene and the Okavango, often in
+  pairs or small groups by water; nearly round fruit 40–60 mm, green → orange → glossy dark brown
+  over about two years, on long branched, knotted stalks below the crown; the hard ivory kernel
+  ("vegetable ivory") is carved into key rings, necklaces and ornaments (oryx, elephants,
+  cheetahs); elephants and baboons eat the pulp; the leaves are woven into baskets.
+- Sources: [Gondwana Collection — Is the makalani palm really that useful?](https://gondwana-collection.com/blog/is-the-makalani-palm-tree-in-namibia-really-that-useful) ·
+  [TravelNam — makalani](https://travelnam.com/?p=43892) ·
+  [Cheetah Conservation Fund — the art of makalani nuts](https://cheetah.org/ccf-blog/ccf-in-namibia/the-art-of-makalani-nuts-richard-and-eddies-craftsmanship-in-namibia/) ·
+  [Travel News Namibia — trees: cosmetic oil, palm wine and African sandalwood](https://travelnewsnamibia.com/trees-cosmetic-oil-palm-wine-and-african-sandalwood)
 
 ## 4. Open questions for the product owner
 1. Portrait support in v1? (Default: no.)
