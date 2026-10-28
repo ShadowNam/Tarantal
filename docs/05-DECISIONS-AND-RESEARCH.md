@@ -3085,7 +3085,7 @@ sunset by the water and of a nut cluster): "Since it's Okavango, I want us to ad
 trees … The makalani are very hard nuts that are hanging on them … If somebody manages to hit such
 a small makalani, maybe it can do a small blow-up, or fall down … Be creative." And (27 Oct): "the
 Blikkies game works well; I would prefer if there were one or two cans on the further-away fence,
-as it's so close by." GDD §11.3b, §11.3; art bible §4.2b; Tech §3.9.
+as it's so close by." GDD §11.3b, §11.3; art bible §4.2b; Tech §3.13.
 - *Palms.* Layout content (`layouts[].palms`: kind single/pair/trio, near or mid plane, u, flip,
   water) with the shapes in `birds.json → makalani.palms` (trunk feet, tops and heights, cluster
   anchors), which the sim, the view and the content checks share. Drawn from **one trunk and one

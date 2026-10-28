@@ -320,4 +320,136 @@ describe('makalani nuts (D-056)', () => {
       expect(ofType(ev, 'nutPopped').length, weapon).toBe(0);
     }
   });
+
+  for (const [weapon, sight] of [
+    ['twee_twee', 'iron'],
+    ['langloop', undefined],
+  ] as const)
+    it(`a rifle bullet (${weapon}) pops a hanging nut (review M10)`, () => {
+      const c = withPalm(quiet(OKA));
+      const s = sim(c, { ...MODE, weapon, ...(sight === undefined ? {} : { sight }), omen: false });
+      const n = nuts(s)[0];
+      if (n === undefined) throw new Error('no nut');
+      const [cam, fire] = aimAt(c.scoring.planes.near.scrollFactor, n.x, n.y);
+      if (cam === undefined || fire?.t !== 'fire') throw new Error('no aim');
+      // Through the sight: raise it on the nut, hold until it is up and steady, release.
+      const ev = [...run(s, 1, [cam, { t: 'aimStart', dx: fire.dx, sy: fire.sy }])];
+      for (let i = 0; i < 40; i++)
+        ev.push(...run(s, 1, [{ t: 'aimMove', dx: fire.dx, sy: fire.sy }]));
+      ev.push(...run(s, 1, [{ t: 'aimRelease' }]));
+      ev.push(...run(s, 2));
+      expect(ofType(ev, 'shotFired').length).toBe(1);
+      const p = ofType(ev, 'nutPopped')[0];
+      expect(p?.nutId, weapon).toBe(n.id);
+      expect(p?.pellets).toBe(1);
+      expect(ofType(ev, 'nutKnocked').length).toBe(0);
+    });
+
+  it('"Hard soos \'n makalani" also comes from nuts juggled out of the top (Weg!) (review M10)', () => {
+    const c = withPalm(quiet(OKA));
+    const s = sim(c);
+    const all: SimEvent[] = [];
+    const ids = nuts(s)
+      .slice(0, 6)
+      .map((n) => n.id);
+    for (const id of ids) {
+      if (ofType(all, 'nutGone').length >= 3) break;
+      all.push(...shootNut(s, c, id));
+      // Juggle it at the top of every arc until it leaves the view or lands.
+      for (let i = 0; i < 1200; i++) {
+        const v = nut(s, id);
+        if (v.state !== 'air' && v.state !== 'bounced') break;
+        const before = v.y;
+        all.push(...run(s, 1));
+        const now = nut(s, id);
+        if (
+          (now.state === 'air' || now.state === 'bounced') &&
+          now.y > before &&
+          s.snapshot().weapon.cooldownTicks === 0
+        )
+          all.push(...shootNut(s, c, id));
+      }
+    }
+    expect(ofType(all, 'nutGone').length).toBeGreaterThanOrEqual(3);
+    expect(ofType(all, 'nutPopped').length).toBe(0);
+    const secret = ofType(all, 'secretTriggered').filter((e) => e.propId === 'makalani');
+    expect(secret.length).toBe(1);
+    const weg = ofType(all, 'bonusAwarded').find((b) => b.bonus === 'nutWeg');
+    expect(weg?.base).toBe(Math.round(c.scoring.nuts.weg * c.scoring.nuts.planeMul.near));
+  });
+
+  it('nuts pay × Stampede in the last seconds (review M10)', () => {
+    const c = withPalm(quiet(OKA));
+    const s = sim(c);
+    for (let i = 0; i < 6000 && !s.snapshot().stampedeActive; i++) run(s, 1);
+    expect(s.snapshot().stampedeActive).toBe(true);
+    const ev = shootNut(s, c, first(s));
+    const knock = ofType(ev, 'bonusAwarded').find((b) => b.bonus === 'nutKnock');
+    const plain = Math.round(c.scoring.nuts.knockOff * c.scoring.nuts.planeMul.near);
+    expect(knock?.base).toBe(plain);
+    expect(knock?.award).toBe(plain * c.scoring.stampede.mul);
+  });
+
+  it('a nut-only shot at streak 3+ leaves the streak and Frenzy alone and pays no Frenzy (review M10)', () => {
+    const c = withPalm(quiet(OKA));
+    c.birds.flyoverDefaults.bobPx = 0;
+    c.birds.flyoverDefaults.groupSize = [1, 1];
+    const b = biomeOf(c, OKA);
+    for (const k of b.pacing.keyframes) {
+      k.flyoversPerMin = 120;
+      k.popupsPerMin = 0;
+      k.flocks = {};
+    }
+    b.pacing.stampede = { flyoversPerMin: 120, popupsPerMin: 0 };
+    // No spread: the nut shot can't miss (a miss would reset the streak).
+    const gun = c.weapons.weapons.find((w) => w.id === 'dubbelloop');
+    if (gun === undefined || gun.kind !== 'primary') throw new Error('no dubbelloop');
+    gun.spreadPx = 0;
+    const s = sim(c, { ...MODE, weapon: 'dubbelloop' }, 4);
+    for (let shot = 0; shot < 3 && !s.isOver();) {
+      const bird = s
+        .snapshot()
+        .birds.find((x) => x.hittable && x.kind === 'target' && x.plane === 'mid' && x.y > 200);
+      if (bird === undefined) {
+        run(s, 1);
+        continue;
+      }
+      reloaded(s);
+      const ev = run(s, 1, aimAt(c.scoring.planes.mid.scrollFactor, bird.x, bird.y));
+      if (ofType(ev, 'targetBagged').length > 0) shot++;
+      else if (s.snapshot().streak === 0) shot = 0;
+      run(s, 10);
+    }
+    const streak = s.snapshot().streak;
+    expect(streak).toBeGreaterThanOrEqual(3);
+    const mul = s.snapshot().frenzyMul;
+    expect(mul).toBeGreaterThan(1);
+    // A nut with no bird right behind it on screen (it would take the pellets: nuts pass them on).
+    const clear = (id: number): boolean => {
+      const snap = s.snapshot();
+      const n = nut(s, id);
+      const nx = n.x - (snap.cameraX - 960);
+      return snap.birds.every((x) => {
+        if (!x.hittable) return true;
+        const sf = c.scoring.planes[x.plane].scrollFactor;
+        const bx = x.x - (snap.cameraX - 960) * sf;
+        return Math.hypot(bx - nx, x.y - n.y) > 90;
+      });
+    };
+    const id = nuts(s).find((n) => n.state === 'rest')?.id ?? 0;
+    for (let i = 0; i < 3000 && !clear(id); i++) run(s, 1);
+    reloaded(s);
+    for (let i = 0; i < 3000 && !clear(id); i++) run(s, 1);
+    const ev = shootNut(s, c, id);
+    expect(ofType(ev, 'nutKnocked').length + ofType(ev, 'nutPopped').length).toBe(1);
+    expect(ofType(ev, 'miss').length).toBe(0);
+    expect(s.snapshot().streak).toBe(streak);
+    expect(s.snapshot().frenzyMul).toBe(mul);
+    const paid = ofType(ev, 'bonusAwarded').find(
+      (x) => x.bonus === 'nutKnock' || x.bonus === 'nutPop',
+    );
+    // × Stampede only (if it runs by now), never × Frenzy.
+    const stampede = s.snapshot().stampedeActive ? c.scoring.stampede.mul : 1;
+    expect(paid?.award).toBe((paid?.base ?? 0) * stampede);
+  });
 });

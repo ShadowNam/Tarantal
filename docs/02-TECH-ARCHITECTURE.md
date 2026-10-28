@@ -492,6 +492,7 @@ replaces the biome's (`resolveMap`); a bonus map keeps its layout's. Tuning is
   downloads) and fails `--strict` above 1.5 MB.
 - **Previews:** `?birds=0` (dev and e2e builds only, `devContent.withNoBirds`) plays a hunt
   without flocks, pop-ups, fly-over spawns, events or crates.
+
 ### 3.13 Juggle bodies: tin cans and makalani nuts (v1.8, D-050; 1.9.3, D-056)
 
 - **One physics:** `src/sim/juggle/body.ts` is the only flight code for things that are knocked,
