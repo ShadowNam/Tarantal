@@ -1,5 +1,14 @@
 apply plugin: 'com.android.application'
 
+// D-058: versionName and versionCode come from package.json, written by `npm run build:android`
+// (tools/android-sync.ts → version.properties, not committed).
+def tmVersion = new Properties()
+def tmVersionFile = file('version.properties')
+if (!tmVersionFile.exists()) {
+    throw new GradleException("android/app/version.properties is missing: run `npm run build:android` first")
+}
+tmVersionFile.withInputStream { tmVersion.load(it) }
+
 android {
     namespace = "na.tarantal.madness"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +16,8 @@ android {
         applicationId "na.tarantal.madness"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode Integer.parseInt(tmVersion.getProperty('versionCode'))
+        versionName tmVersion.getProperty('versionName')
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,8 +25,21 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        // TEST ONLY — never use for the Play Store (android/test-signing/README.md). A committed
+        // key with public passwords, so every friends' build installs over the one before. A
+        // store release is signed with the product owner's private upload key, never committed.
+        testOnly {
+            storeFile file('../test-signing/tarantal-test.p12')
+            storeType 'pkcs12'
+            storePassword 'tarantal-test-only'
+            keyAlias 'tarantal-test'
+            keyPassword 'tarantal-test-only'
+        }
+    }
     buildTypes {
         release {
+            signingConfig signingConfigs.testOnly
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

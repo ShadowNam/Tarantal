@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- D-058: the launch screen: the guineafowl on the Karoo dusk (before the game's own loading screen). -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/ic_launcher_background" />
+    <item>
+        <bitmap android:gravity="center" android:src="@drawable/splash_bird" />
+    </item>
+</layer-list>

@@ -49,11 +49,17 @@ function listFiles(dir: string): string[] {
   });
 }
 
+/** D-058: the Pages build's Android test app page and APK (/android/) are never game downloads. */
+function isAndroidDownload(file: string): boolean {
+  return file.startsWith('android/');
+}
+
 let files: string[];
 let manifest: ViteManifest;
 try {
   files = listFiles(dist)
     .map((f) => relative(dist, f).split(sep).join('/'))
+    .filter((f) => !isAndroidDownload(f))
     .sort();
   manifest = JSON.parse(readFileSync(join(dist, '.vite', 'manifest.json'), 'utf8')) as ViteManifest;
 } catch {
