@@ -4,6 +4,7 @@
 // HUD / the hunt log (meta) / the FTUE director, then draw the interpolated snapshot. The scene
 // never writes into the sim: input reaches it only as Commands. Esc, P, the HUD pause button or
 // a hidden tab open the pause menu; the hunt clock holds while it is open.
+import { inputSightZoom, redDotIds } from '../view/redDot';
 import { designSize } from '../layout';
 import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
@@ -642,13 +643,13 @@ export class HuntScene extends Phaser.Scene {
   }
 
   /** v1.3: the picture a fitted sight draws (weapons.json sights), or null for no sight. */
-  /** 1.9.2 (D-055): a red-dot power-up (Rooikol) is running: the rifle aims at 1×. */
-  private redDotOn(): boolean {
-    const running = this.runner?.state.powerups ?? [];
-    return running.some(
-      (p) => this.ctx.content.powerups.powerups.find((d) => d.id === p.id)?.effect.redDot === true,
-    );
+  /** 1.9.2 (D-055): the power-ups that swap a rifle's sight for a red dot. */
+  private get redDots(): ReadonlySet<string> {
+    this.redDotSet ??= redDotIds(this.ctx.content);
+    return this.redDotSet;
   }
+
+  private redDotSet: ReadonlySet<string> | null = null;
 
   private sightPicture(id: string | null): SightPicture | null {
     if (id === null) return null;
@@ -1505,16 +1506,12 @@ export class HuntScene extends Phaser.Scene {
           (this.runner?.state.weapon.holdToFire ?? false) || this.ctx.prefs.holdToFire,
         weaponHolds: () => this.runner?.state.weapon.holdToFire ?? false,
         // v1.3: a rifle in hand (its fitted sight's zoom) holds to zoom and releases to fire.
-        sightZoom: () => {
-          const w = this.runner?.state.weapon;
-          if (w?.kind !== 'primary' || w.sight === null) return null;
-          // 1.9.2 (D-055) Rooikol: a red dot magnifies nothing, so fine aim moves 1:1.
-          if (this.redDotOn()) return 1;
-          const s = this.ctx.content.weapons.sights.find((x) => x.id === w.sight);
-          return s?.zoom[w.zoomStep] ?? s?.zoom[0] ?? null;
-        },
-        // v1.4 (D-038): a variable scope's steps, and the touch zoom buttons beside the ammo.
-        zoomSteps: () => (this.redDotOn() ? null : hud.zoomOf(this.runner?.state.weapon)),
+        // 1.9.2 (D-055) Rooikol: a red dot magnifies nothing, so fine aim moves 1:1 (for the
+        // whole hold it was pressed with: redDot.ts).
+        sightZoom: () => inputSightZoom(this.runner?.state, this.ctx.content, this.redDots),
+        // v1.4 (D-038): a variable scope's steps, and the touch zoom buttons beside the ammo
+        // (none under the red dot).
+        zoomSteps: () => hud.zoomOf(this.runner?.state),
         zoomButtonAt: (x, y) => hud.zoomButtonAt(x, y),
         readyToFire: () => {
           const w = this.runner?.state.weapon;
