@@ -21,5 +21,12 @@
   "guide.tip.oupa_laai": "Schieß einfach weiter: Oupa kümmert sich ums Nachladen.",
   "guide.tip.rooikol": "Zeigen und schießen: nahe und mittlere Vögel fallen schnell; ferne sind klein, nimm dir Zeit für sie.",
   "guide.tip.voorlaaier": "Heb dir jeden Schuss für einen großen, dichten Schwarm auf.",
-  "guide.tip.mielie_masjien": "Halten und schwenken: es muss nie nachgeladen werden."
+  "guide.tip.mielie_masjien": "Halten und schwenken: es muss nie nachgeladen werden.",
+  "makalani.name": "Makalaninuss",
+  "makalani.knock": "Tok!",
+  "makalani.chain": "{n}× in der Luft!",
+  "makalani.pop": "Krak!",
+  "makalani.weg": "WEG!",
+  "hud.makalani": "HART WIE EINE MAKALANI!",
+  "secret.makalani": "Hart wie eine Makalani"
 }

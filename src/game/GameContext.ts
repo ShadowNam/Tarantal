@@ -376,6 +376,36 @@ export interface TestHook {
     }[];
     bestChain: number;
   } | null;
+  /** 1.9.3 (D-056): the far fence's cans (null: none), as `cans`. */
+  farCans: {
+    plane: string;
+    spots: {
+      id: number;
+      x: number;
+      y: number;
+      r: number;
+      state: string;
+      chain: number;
+      marks: number;
+    }[];
+    bestChain: number;
+  } | null;
+  /** 1.9.3 (D-056): the makalani nuts (null: no palms): each nut on screen (design px; r = hit
+   *  radius), the palm groups (built: drawn yet), the longest chain. Nut events go to canLog
+   *  ("nut-knock:6", "nut-juggle:2:13", "nut-pop:10", "nut-landed", "nut-weg:14"). */
+  nuts: {
+    nuts: {
+      id: number;
+      plane: string;
+      x: number;
+      y: number;
+      r: number;
+      state: string;
+      chain: number;
+    }[];
+    palms: { plane: string; x: number; footY: number; built: boolean }[];
+    bestChain: number;
+  } | null;
   canLog: string[];
   canMs: number;
   /** D-051: the potjie (null: no potjie on this map): HD art showing, lid off, rattles and clangs

@@ -420,6 +420,11 @@ export interface PalmView {
   /** The water line its reflection mirrors at (null: not by water). */
   readonly waterY: number | null;
   readonly scale: number;
+  readonly trunks: readonly {
+    readonly footX: number;
+    readonly topX: number;
+    readonly topY: number;
+  }[];
   readonly clusters: readonly {
     readonly x: number;
     readonly y: number;

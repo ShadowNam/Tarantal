@@ -2,7 +2,7 @@
 // art-source/ exactly like a human delivery (docs/06), marked `"origin": "interim"` in each rig.json.
 // Then run `npm run assets:pack`. A folder whose rig.json is not marked interim is a human delivery
 // and is never touched.
-//   --only birds|guns|scenery|sprites|flyers|range|meerkats|feesdae|blikkies
+//   --only birds|guns|scenery|sprites|flyers|range|meerkats|feesdae|blikkies|makalani
 //                         one part (none: sheets only). scenery = parallax layers + props (D-031),
 //                         sprites = shared FX/UI/crate sprites, flyers = non-target birds,
 //                         range = the Skietbaan's steel plate (24 Oct update),
@@ -41,7 +41,16 @@ import {
   loadBiomeArt,
 } from '../../src/game/placeholder/ProceduralAssetFactory';
 import { BIOME_PLANS } from './biomes';
-import { layerTint, renderLayer, renderProp } from './landscape';
+import { layerTint, renderLayer, renderLoose, renderProp } from './landscape';
+import { palmPart, renderNutSheet } from './makalani';
+import {
+  NUT_MASTER,
+  NUT_SHEET,
+  PALM_ART_PLANES,
+  palmCrownKey,
+  palmFrames,
+  palmTrunkKey,
+} from '../../src/game/view/palms/makalaniSheet';
 import { buildFaunaSheet } from './faunaSheets';
 import { planePxPerMetre } from '../birdUnits';
 import { renderMeerkatSheet } from './meerkats';
@@ -579,6 +588,44 @@ if (wants('blikkies')) {
       await json({ origin: 'interim', encode: 'png8', master: CAN_MASTER, originX: 0, originY: 0 }),
     );
     console.log(`sprites/${CAN_SHEET}`);
+  }
+}
+if (wants('makalani') && !hdOnly) {
+  // 1.9.3 (D-056): the makalani trunk and crown per plane (each with its 2× HD twin in
+  // art-source/hd/) and the nut sheet at 2× (no HD source needed), in the Okavango's group.
+  for (const plane of PALM_ART_PLANES) {
+    const frames = palmFrames(plane);
+    const layer = plane === 'near' ? 'near' : 'mid';
+    for (const part of ['trunk', 'crown'] as const) {
+      const key = part === 'trunk' ? palmTrunkKey(plane) : palmCrownKey(plane);
+      const f = frames[part];
+      const png = join(src, 'sprites', `${key}.png`);
+      if (!oursFile(png)) {
+        console.warn(`skip sprites/${key}: a human delivery is there`);
+        continue;
+      }
+      const draw = (res: number): Rgba =>
+        renderLoose(cfg, 'okavango-spring', layer, key, f, res, (ctx) =>
+          palmPart(part, plane, { tint: ctx.tint, pen: ctx.pen, rnd: ctx.rnd }),
+        );
+      put(png, encodePng8(draw(1), 128));
+      put(
+        png.replace(/\.png$/, '.json'),
+        await json({ origin: 'interim', encode: 'png8', originX: f.ox / f.w, originY: f.oy / f.h }),
+      );
+      putHd(`sprites/${key}.png`, draw(HD_RES), 128);
+      console.log(`sprites/${key}`);
+    }
+  }
+  const png = join(src, 'sprites', `${NUT_SHEET}.png`);
+  if (!oursFile(png)) console.warn(`skip sprites/${NUT_SHEET}: a human delivery is there`);
+  else {
+    put(png, encodePng8(renderNutSheet(content.birds.makalani.nutR)));
+    put(
+      png.replace(/\.png$/, '.json'),
+      await json({ origin: 'interim', encode: 'png8', master: NUT_MASTER, originX: 0, originY: 0 }),
+    );
+    console.log(`sprites/${NUT_SHEET}`);
   }
 }
 if (wants('flyers')) {

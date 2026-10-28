@@ -1645,6 +1645,8 @@ export const BARK_TRIGGERS = [
   'runWon',
   // v1.8 (D-050): a tin can juggled barks.canChain times in a row.
   'canChain',
+  // 1.9.3 (D-056): the "Hard soos 'n makalani" secret.
+  'makalani',
   // D-048: a special day's own lines (feesdae.json barks; the tuning here gives no lines).
   'feesdagStart',
   'feesdagBat',
@@ -2250,6 +2252,33 @@ export const FeelSchema = obj({
     pitchMax: pos,
     /** Fence wire strands, as shares of the post height from the ground. */
     wire: z.array(fraction).max(3),
+  }),
+  /** 1.9.3 (D-056): the makalani palms' and nuts' look and sound (art bible §4.2b). */
+  makalani: obj({
+    /** Frond sway: a crown turns ± swayDeg around its base, once per swayPeriodSeconds (each
+     *  crown in its own phase); reduce motion × reducedSwayMul. On sim time (held frames hold). */
+    swayDeg: nonNeg,
+    swayPeriodSeconds: pos,
+    reducedSwayMul: fraction,
+    /** Reflection: alpha, how far down it reaches (a share of the palm's height, squashed into
+     *  the channel), and its ripple (px at plane scale 1, period). */
+    reflectAlpha: fraction,
+    reflectDepth: fraction,
+    rippleAmpPx: nonNeg,
+    ripplePeriodSeconds: pos,
+    /** Above this spin the motion-blurred nut shows. */
+    blurDegPerSec: pos,
+    /** Fibre bits on a crack-off, husk and ivory bits on a pop, and their flight. */
+    fibreBits: posInt,
+    popBits: posInt,
+    bitSpeedPxPerSec: pos,
+    bitGravityPxPerSec2: pos,
+    bitSeconds: pos,
+    /** The ground shadow fades out this far above the ground (design px at plane scale 1). */
+    shadowFadePx: pos,
+    /** The tok's pitch: × (1 + pitchPerChain × n), at most pitchMax. */
+    pitchPerChain: nonNeg,
+    pitchMax: pos,
   }),
 });
 export type Feel = z.infer<typeof FeelSchema>;

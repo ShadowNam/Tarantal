@@ -4,6 +4,7 @@
 import { unlockedBiomes } from '../../meta/areas';
 import { FAMILIEFOTO_SECRET, hasColonies } from '../../sim/meerkats/colony';
 import { BLIKKIESDANS_SECRET } from '../../sim/cans/cans';
+import { MAKALANI_SECRET } from '../../sim/nuts/makalani';
 import { designSize, renderScale } from '../layout';
 import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
@@ -22,7 +23,7 @@ import type { Rect } from '../ui/hudLayout';
 import { drawButton, fitText, Menu, textStyle, UI, type MenuItem } from '../ui/menu';
 import { getLanguage, translator } from '../../i18n/i18n';
 import { clientToDesign } from '../input/screenButtons';
-import { guideLoaded, loadGuide } from '../ui/guideI18n';
+import { guideLoaded, guideString, loadGuide } from '../ui/guideI18n';
 import { guideCards } from '../ui/powerupGuide';
 import { upgradePowerupIcons } from '../ui/powerupIcons';
 import type { OverlayData } from './SettingsScene';
@@ -598,6 +599,18 @@ export class ShedScene extends Phaser.Scene {
                     {
                       label: `★ ${t('secret.blikkiesdans')}`,
                       seen: book.secrets.includes(secretKey(b.id, BLIKKIESDANS_SECRET)),
+                    },
+                  ]
+                : [],
+            )
+            // 1.9.3 (D-056): a biome with makalani palms has "Hard soos 'n makalani" (lazy
+            // strings: the guide tables, loaded with the Shed).
+            .concat(
+              b.layouts.some((l) => (l.palms?.length ?? 0) > 0)
+                ? [
+                    {
+                      label: `★ ${guideString(getLanguage(), 'secret.makalani') ?? ''}`,
+                      seen: book.secrets.includes(secretKey(b.id, MAKALANI_SECRET)),
                     },
                   ]
                 : [],

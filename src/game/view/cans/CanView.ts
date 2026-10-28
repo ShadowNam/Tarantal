@@ -94,6 +94,8 @@ export class CanView {
     private readonly look: CanLook,
     private readonly planeScale: Readonly<Record<PlaneId, number>>,
     private readonly lineWeight: Readonly<Record<PlaneId, number>>,
+    /** 1.9.3 (D-056): which fence it draws (the day's, or the far one behind it). */
+    private readonly which: 'cans' | 'farCans' = 'cans',
   ) {}
 
   private ensureFrames(): boolean {
@@ -125,7 +127,7 @@ export class CanView {
   /** One frame: the fence (built once) and every can, interpolated between the last two ticks. */
   update(s: SimState, prev: SimState | null, alpha: number): void {
     const t0 = performance.now();
-    const c = s.cans;
+    const c = s[this.which];
     this.last = c ?? null;
     if (c === undefined || !this.ensureFrames()) {
       this.ms = performance.now() - t0;
@@ -141,7 +143,7 @@ export class CanView {
       this.fence = null;
     }
     if (this.fence === null) this.buildFence(c, node.fixtures, scale, k, key);
-    const before = new Map((prev?.cans?.cans ?? []).map((x) => [x.id, x]));
+    const before = new Map((prev?.[this.which]?.cans ?? []).map((x) => [x.id, x]));
     const blur = (this.look.blurDegPerSec * Math.PI) / 180 / 60;
     // The Skietbaan puts up fresh cans (new ids): the old ones go.
     if (this.cans.size > c.cans.length)
@@ -236,7 +238,10 @@ export class CanView {
   /** This frame's events: dents where the pellets struck, and the sounds. */
   handle(events: readonly SimEvent[], audio: AudioDirector, width: number): void {
     const half = width / 2;
+    // 1.9.3: only this fence's cans (a second view draws the far fence).
+    const mine = (id: number): boolean => this.last?.cans.some((c) => c.id === id) ?? false;
     for (const e of events) {
+      if ('canId' in e && e.type.startsWith('can') && !mine(e.canId)) continue;
       if (e.type === 'canKnocked' || e.type === 'canJuggled') {
         const d = this.cans.get(e.canId);
         if (d !== undefined) this.dent(d, e.marks, e.pellets);

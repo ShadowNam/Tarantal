@@ -51,6 +51,12 @@ export interface PalmGroup {
   /** The water line it is mirrored at (null: not by water). */
   readonly waterY: number | null;
   readonly scale: number;
+  /** Each trunk's foot and top (plane px). */
+  readonly trunks: readonly {
+    readonly footX: number;
+    readonly topX: number;
+    readonly topY: number;
+  }[];
   /** Each cluster's anchor (plane px) and the top of the trunk its stalk hangs from. */
   readonly clusters: readonly {
     readonly x: number;
@@ -114,6 +120,11 @@ export function startPalms(d: PalmDeps): Palms | null {
     const flip = p.flip === true;
     const sx = flip ? -s : s;
     const x = p.u * coreWidth(pl.scrollFactor);
+    const trunks = kind.trunks.map((t) => ({
+      footX: x + t.dx * sx,
+      topX: x + t.topDx * sx,
+      topY: footY - t.h * s,
+    }));
     const water = p.water === true ? (d.biome.waterY?.[p.plane] ?? null) : null;
     const clusters = kind.clusters.flatMap((c) => {
       const t = kind.trunks[c.trunk];
@@ -157,6 +168,7 @@ export function startPalms(d: PalmDeps): Palms | null {
       flip,
       waterY: water,
       scale: s,
+      trunks,
       clusters,
     });
   });

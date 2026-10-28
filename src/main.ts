@@ -386,6 +386,8 @@ const hook: TestHook = {
   meerkats: [],
   meerkatLog: [],
   cans: null,
+  farCans: null,
+  nuts: null,
   canLog: [],
   canMs: 0,
   potjie: null,
