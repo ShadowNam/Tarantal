@@ -127,7 +127,10 @@ export class MakalaniView {
   private bits: Bit[] = [];
   private last: NutsView | null = null;
   private tick = 0;
-  private sheetReady = false;
+  private sheet: Phaser.Textures.Texture | null = null;
+  private canSheet: Phaser.Textures.Texture | null = null;
+  /** The manifest's hdEpoch the palms were built for. */
+  private epoch = -1;
   /** ms the palms and nuts took to draw this frame (e2e perf). */
   ms = 0;
 
@@ -141,21 +144,34 @@ export class MakalaniView {
     private readonly reducedMotion: boolean,
   ) {}
 
+  /** The nut sheet (and the cans' sheet for the shadow) as last cut: a texture swapped since
+   *  (an HD pack landing mid-hunt, review M5) gets its frames cut again and the images move over. */
   private ensureSheet(): boolean {
     if (!this.scene.textures.exists(NUT_SHEET)) return false;
     const tex = this.scene.textures.get(NUT_SHEET);
-    const k = 1 / this.manifest.displayScale(NUT_SHEET);
-    for (const f of nutFrames())
-      if (!tex.has(f.name)) tex.add(f.name, 0, f.x * k, f.y * k, f.w * k, f.h * k);
+    if (tex !== this.sheet) {
+      const k = 1 / this.manifest.displayScale(NUT_SHEET);
+      for (const f of nutFrames())
+        if (!tex.has(f.name)) tex.add(f.name, 0, f.x * k, f.y * k, f.w * k, f.h * k);
+      if (this.sheet !== null) {
+        for (const d of this.nuts.values()) d.img.setTexture(NUT_SHEET, d.img.frame.name);
+        for (const b of this.bits) b.img.setTexture(NUT_SHEET, b.img.frame.name);
+      }
+      this.sheet = tex;
+    }
     // The ground shadow is the cans' (common group).
     if (this.scene.textures.exists(CAN_SHEET)) {
       const cans = this.scene.textures.get(CAN_SHEET);
-      const s = canFrames().find((f) => f.name === 'shadow');
-      const kc = 1 / this.manifest.displayScale(CAN_SHEET);
-      if (s !== undefined && !cans.has('shadow'))
-        cans.add('shadow', 0, s.x * kc, s.y * kc, s.w * kc, s.h * kc);
+      if (cans !== this.canSheet) {
+        const s = canFrames().find((f) => f.name === 'shadow');
+        const kc = 1 / this.manifest.displayScale(CAN_SHEET);
+        if (s !== undefined && !cans.has('shadow'))
+          cans.add('shadow', 0, s.x * kc, s.y * kc, s.w * kc, s.h * kc);
+        if (this.canSheet !== null)
+          for (const d of this.nuts.values()) d.shadow.setTexture(CAN_SHEET, 'shadow');
+        this.canSheet = cans;
+      }
     }
-    this.sheetReady = true;
     return true;
   }
 
@@ -171,11 +187,17 @@ export class MakalaniView {
     const v = s.nuts;
     this.last = v ?? null;
     this.tick = s.tick + alpha;
-    if (v === undefined || (!this.sheetReady && !this.ensureSheet())) {
+    if (v === undefined || !this.ensureSheet()) {
       this.ms = performance.now() - t0;
       return;
     }
     const secs = this.tick / TICKS;
+    // An HD pack landed (or was dropped): build the palms again on the swapped trunk and crown
+    // textures and their display scale (review M5, as FaunaView does).
+    if (this.epoch !== this.manifest.hdEpoch) {
+      this.clearPalms();
+      this.epoch = this.manifest.hdEpoch;
+    }
     for (const p of v.palms) {
       let b = this.palms.get(p.index);
       if (b === undefined) {
@@ -482,7 +504,7 @@ export class MakalaniView {
     };
   }
 
-  clear(): void {
+  private clearPalms(): void {
     for (const b of this.palms.values()) {
       for (const t of b.trunks) t.destroy();
       for (const c of b.crowns) c.img.destroy();
@@ -490,6 +512,10 @@ export class MakalaniView {
       b.stalks.destroy();
     }
     this.palms.clear();
+  }
+
+  clear(): void {
+    this.clearPalms();
     for (const d of this.nuts.values()) {
       d.img.destroy();
       d.shadow.destroy();
@@ -497,7 +523,8 @@ export class MakalaniView {
     this.nuts.clear();
     for (const b of this.bits) b.img.destroy();
     this.bits = [];
-    this.sheetReady = false;
+    this.sheet = null;
+    this.canSheet = null;
   }
 }
 
