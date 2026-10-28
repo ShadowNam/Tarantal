@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "updated": "2026-10-28T05:50:00Z",
+ "updated": "2026-10-28T06:50:00Z",
  "by": "Claude",
  "summary": "Live on the test build: your playtest fixes and the red dot sight (1.9.2, merged 07:40 Namibia time on 28 Oct): the falling crate's power-up picture shows once, in the right place; \"Ten seconds!\" is called right at 10 s left; and a new Rooikol red dot sight power-up for the .22 and the Langloop (instant aim, no zoom wait, steadier dot, a quarter faster shots for 15 s). Tank is building makalani palms in the Okavango with nuts you can shoot, juggle and pop, plus cans on the Karoo's far fence (until about 14:45). Then: tree life, an Android test app for friends; then Namibië, Bushveld, baboons, The Harvest, the Christmas and New Year Dailies and v1.9–v1.13; Oupa's new voices last.",
  "current": {
@@ -75,6 +75,37 @@
   }
  ],
  "needsYou": [
+  {
+   "id": "v17e-cue",
+   "kind": "decision",
+   "title": "v1.7e: what replaces the star on secrets?",
+   "asked": "2026-10-28T06:49:00Z",
+   "status": "open",
+   "detail": "You asked for something better than the little star that marks the shootable secrets (25 Oct). Three mock-ups, drawn over real 1.9.2 screenshots (not in the game yet). v1.7e is due on 29 Oct around 07:45; your pick is needed before then.",
+   "options": [
+    "A (recommended). A tell animal lives at each secret and moves now and then: a rock agama doing push-ups on the dassie koppie, a lilac-breasted roller on the windpomp; shooting it costs nothing",
+    "B. Natural cues only: grass rustles and dust puffs at the koppie, a sun flash only on real metal, a few birds circling above",
+    "C. No cue on the map: Oupa hints in words (\"Something's odd about that koppie…\") and the Notaboek shows the secret's silhouette"
+   ],
+   "images": [
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17e-cue-overview.jpg",
+     "caption": "A / B / C side by side"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17e-cue-a.jpg",
+     "caption": "A: a tell animal"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17e-cue-b.jpg",
+     "caption": "B: natural cues"
+    },
+    {
+     "src": "https://raw.githubusercontent.com/ShadowNam/Tarantal/project-log/img/v17e-cue-c.jpg",
+     "caption": "C: no cue on the map"
+    }
+   ]
+  },
   {
    "id": "daily-specials",
    "kind": "decision",
@@ -2535,6 +2566,11 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-28T06:49:00Z",
+   "kind": "note",
+   "text": "v1.7e mock-ups sent: three ways to replace the star on secrets (A tell animal, B natural cues, C Oupa hints). Your pick is needed."
+  },
   {
    "at": "2026-10-28T05:41:00Z",
    "kind": "note",
