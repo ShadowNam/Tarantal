@@ -23,6 +23,7 @@ import { aloeClump, groundBand, plant, softSky } from './karoo';
 import { foregroundClumps, midScrub, nearGrass, verVeld } from './common';
 import { plantLook, seedTuft, veldShrub } from '../flora';
 import { baobab as baobabTree, marula, mopane } from '../species';
+import { baobabNear } from '../baobab';
 import { boulder, boulderPile as granitePile, graniteLook } from '../rocks';
 import type { PaintCtx } from '../landscape';
 
@@ -381,14 +382,13 @@ function foreground(ctx: LayerCtx): string {
  * (110, −120), 22 × 34, and birds perch at (−120, −215), on a limb's tip.
  */
 function baobab(ctx: PropCtx): string {
-  return baobabTree(ctx.rnd, 0, 260, 540, ctx, 'near', {
-    girth: 0.72,
+  // 1.9.4 (D-057): redrawn (tools/art/baobab.ts): one silhouette, hollows, stick nests, small
+  // hairy pods on long stalks.
+  return baobabNear(ctx.rnd, ctx, {
     reach: [
       [-124, -214],
       [158, -252],
     ],
-    pods: [{ x: 110, y: -120, rx: 21, ry: 33 }],
-    extraPods: 5,
   });
 }
 
@@ -564,7 +564,8 @@ export const BUSHVELD_PLAN: BiomeArtPlan = {
       master: 2,
       wobble: false,
       frame: { w: 600, h: 640, ox: 300, oy: 360 },
-      colours: 128,
+      // 1.9.4 (D-057): 96 colours keep the redrawn tree inside the Bushveld chunk.
+      colours: 96,
     },
     'bushveld/dassie_koppie': {
       draw: dassieKoppie,

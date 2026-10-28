@@ -36,12 +36,12 @@ export const TRUNK = {
  * under limb 4 at (110, −120).
  */
 export const BAOBAB_LIMBS: readonly BaobabLimb[] = [
-  { p0: [-62, -6], c1: [-120, -40], c2: [-200, -110], p1: [-268, -196], w0: 50, w1: 15 },
-  { p0: [-40, -20], c1: [-70, -90], c2: [-118, -180], p1: [-150, -282], w0: 50, w1: 14 },
-  { p0: [-12, -30], c1: [-14, -120], c2: [-36, -220], p1: [-30, -312], w0: 44, w1: 12 },
-  { p0: [18, -30], c1: [30, -110], c2: [44, -210], p1: [62, -300], w0: 46, w1: 12 },
-  { p0: [40, -18], c1: [80, -84], c2: [134, -170], p1: [176, -268], w0: 52, w1: 14 },
-  { p0: [62, -4], c1: [128, -40], c2: [210, -100], p1: [276, -190], w0: 48, w1: 14 },
+  { p0: [-62, -6], c1: [-130, -30], c2: [-190, -80], p1: [-246, -184], w0: 54, w1: 14 },
+  { p0: [-40, -22], c1: [-80, -80], c2: [-100, -170], p1: [-160, -262], w0: 48, w1: 13 },
+  { p0: [-14, -30], c1: [-26, -110], c2: [-6, -190], p1: [-46, -290], w0: 40, w1: 11 },
+  { p0: [18, -30], c1: [40, -100], c2: [18, -180], p1: [54, -268], w0: 42, w1: 11 },
+  { p0: [42, -18], c1: [96, -70], c2: [110, -190], p1: [178, -262], w0: 52, w1: 14 },
+  { p0: [62, -4], c1: [140, -24], c2: [200, -90], p1: [250, -182], w0: 50, w1: 14 },
 ];
 
 /** A point on a limb at t ∈ [0, 1]. */
@@ -114,11 +114,11 @@ function onLimb(i: number, t: number, rx: number, ry: number): Hollow {
  * shade side, and a crack the wild bees use.
  */
 export const HOLLOWS: Readonly<Record<HollowId, Hollow>> = {
-  owl: { x: -30, y: 46, rx: 19, ry: 25 },
-  galago: { x: 46, y: -6, rx: 8.5, ry: 10 },
+  owl: { x: -44, y: 118, rx: 19, ry: 25 },
+  galago: onLimb(4, 0.2, 8, 9.5),
   squirrel: onLimb(SQUIRREL_LIMB, SQUIRREL_T, 7, 8.5),
-  slit: { x: 50, y: 128, rx: 2.4, ry: 13 },
-  bees: { x: -60, y: 176, rx: 3.5, ry: 6 },
+  slit: { x: 62, y: 62, rx: 2.4, ry: 13 },
+  bees: { x: -74, y: 200, rx: 3.5, ry: 6 },
 };
 
 /** The squirrel's run: from its hole up limb 2 (along the top of the limb) and back. */
@@ -150,4 +150,4 @@ function nestOn(
 }
 
 /** The secret pod cluster (content: ellipse 22 × 34 at (110, −120)) hangs from limb 5 here. */
-export const POD_CLUSTER = { limb: 4, t: 0.5, x: 110, y: -120 } as const;
+export const POD_CLUSTER = { limb: 4, t: 0.47, x: 110, y: -120 } as const;
