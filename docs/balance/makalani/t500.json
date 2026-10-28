@@ -91,12 +91,12 @@
     "id": "okavango.wed.nutHappy",
     "label": "Okavango wed (2 palm groups) · nut-happy",
     "seeds": 500,
-    "mean": 2617.646,
+    "mean": 3612.718,
     "canShare": 0,
-    "nutShare": 0.06325377839478677,
-    "nutKnocks": 15.762,
-    "nutAirHits": 2.856,
-    "nutPops": 0.012
+    "nutShare": 0.03964826482443412,
+    "nutKnocks": 14.598,
+    "nutAirHits": 2.52,
+    "nutPops": 0.01
   },
   "okavango.thu.before": {
     "id": "okavango.thu.before",
@@ -124,12 +124,12 @@
     "id": "okavango.thu.nutHappy",
     "label": "Okavango thu (2 palm groups) · nut-happy",
     "seeds": 500,
-    "mean": 3102.518,
+    "mean": 4268.132,
     "canShare": 0,
-    "nutShare": 0.07063423967242091,
-    "nutKnocks": 19.84,
-    "nutAirHits": 5.346,
-    "nutPops": 0.288
+    "nutShare": 0.03690888660425685,
+    "nutKnocks": 16.188,
+    "nutAirHits": 5.222,
+    "nutPops": 0.402
   },
   "okavango.fri.before": {
     "id": "okavango.fri.before",
@@ -146,12 +146,12 @@
     "id": "okavango.fri.competent",
     "label": "Okavango fri (2 palm groups) · competent",
     "seeds": 500,
-    "mean": 4319.986,
+    "mean": 4311.444,
     "canShare": 0,
-    "nutShare": 0.002059265932806264,
-    "nutKnocks": 1.342,
-    "nutAirHits": 0.16,
-    "nutPops": 0.008
+    "nutShare": 0.0010140454103080081,
+    "nutKnocks": 0.786,
+    "nutAirHits": 0.062,
+    "nutPops": 0.004
   },
   "okavango.fri.nutHappy": {
     "id": "okavango.fri.nutHappy",
