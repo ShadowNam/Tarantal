@@ -552,8 +552,15 @@
     "stampede": "okavango_stampede"
   },
   "ambience": "okavango_reeds_bed",
+  "palmY": { "near": 1000, "mid": 776 },
+  "waterY": { "near": 1030, "mid": 790 },
   "layouts": [
     {
+      "palms": [
+        { "kind": "pair", "plane": "mid", "u": 0.294, "water": true },
+        { "kind": "single", "plane": "mid", "u": 0.964, "flip": true, "water": true },
+        { "kind": "single", "plane": "near", "u": 0.178 }
+      ],
       "id": "mon",
       "light": "dawn_mist",
       "weather": "calm",
@@ -577,6 +584,11 @@
       "cameraStartU": 0.1
     },
     {
+      "palms": [
+        { "kind": "pair", "plane": "mid", "u": 0.294, "flip": true, "water": true },
+        { "kind": "trio", "plane": "mid", "u": 0.677, "water": true },
+        { "kind": "single", "plane": "near", "u": 0.96, "flip": true }
+      ],
       "id": "tue",
       "light": "midday",
       "weather": "default",
@@ -620,6 +632,10 @@
       "cameraStartU": 0.72
     },
     {
+      "palms": [
+        { "kind": "pair", "plane": "mid", "u": 0.645, "water": true },
+        { "kind": "single", "plane": "mid", "u": 0.964, "flip": true, "water": true }
+      ],
       "id": "wed",
       "light": "overcast",
       "weather": "default",
@@ -650,6 +666,10 @@
       "cameraStartU": 0.74
     },
     {
+      "palms": [
+        { "kind": "trio", "plane": "mid", "u": 0.294, "water": true },
+        { "kind": "single", "plane": "near", "u": 0.96, "flip": true }
+      ],
       "id": "thu",
       "light": "golden",
       "weather": "omen",
@@ -683,6 +703,10 @@
       "cameraStartU": 0.78
     },
     {
+      "palms": [
+        { "kind": "pair", "plane": "mid", "u": 0.294, "flip": true, "water": true },
+        { "kind": "pair", "plane": "near", "u": 0.178 }
+      ],
       "id": "fri",
       "light": "dusty_wind",
       "weather": "default",
@@ -712,6 +736,10 @@
       "cameraStartU": 0.22
     },
     {
+      "palms": [
+        { "kind": "pair", "plane": "mid", "u": 0.645, "flip": true, "water": true },
+        { "kind": "single", "plane": "mid", "u": 0.964, "water": true }
+      ],
       "id": "sat",
       "light": "dusk",
       "weather": "default",
@@ -733,6 +761,10 @@
       "cameraStartU": 0.28
     },
     {
+      "palms": [
+        { "kind": "trio", "plane": "mid", "u": 0.294, "water": true },
+        { "kind": "single", "plane": "near", "u": 0.178 }
+      ],
       "id": "sun",
       "light": "bright_calm",
       "weather": "calm",
@@ -756,6 +788,7 @@
     {
       "$comment": "Verder (further): today's layout seen from further back — more far birds, fewer near ones, weather on and the wind stronger. Unlocked by beating the season's plain-hunt quota on today's map (GDD §11.5).",
       "id": "verder",
+      "fencePlane": { "near": "mid", "mid": "far" },
       "nameKey": "map.verder",
       "light": "verder_haze",
       "weather": "omen",
@@ -777,6 +810,7 @@
     {
       "$comment": "v1.3 (D-036) Nog Verder (further still): today's layout from further back again. The Ver plane opens: a flock on the strip at the foot of the far ridge, a Ver lane for fly-overs, fewer mid and near birds. Shotguns struggle; the .22 with a peep sight or scope shines (GDD §11.5).",
       "id": "nogVerder",
+      "fencePlane": { "near": "far", "mid": "far" },
       "nameKey": "map.nog_verder",
       "light": "nog_verder_haze",
       "weather": "omen",
@@ -801,6 +835,7 @@
     {
       "$comment": "v1.3 (D-036) Die Verste (the furthest): long range only. Mostly Ver birds — small dots unless you zoom in — and a far flock; a scoped rifle is the tool (not enforced: a shotgun can still play the far birds).",
       "id": "dieVerste",
+      "fencePlane": { "near": "ver", "mid": "ver", "far": "ver" },
       "needsScope": true,
       "nameKey": "map.die_verste",
       "light": "verste_haze",

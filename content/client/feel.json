@@ -1043,6 +1043,12 @@
         "cooldownMs": 20000,
         "lines": ["bark.blik_lug", "bark.blik_dans"]
       },
+      "makalani": {
+        "$comment": "1.9.3 (D-056): the 'Hard soos 'n makalani' secret (3 nuts popped or juggled out in one hunt).",
+        "priority": 60,
+        "cooldownMs": 20000,
+        "lines": ["bark.makalani"]
+      },
       "crate": {
         "priority": 25,
         "cooldownMs": 30000,
@@ -1247,5 +1253,26 @@
     "pitchPerChain": 0.07,
     "pitchMax": 1.9,
     "wire": [0.42, 0.78]
+  },
+  "makalani": {
+    "$comment": "1.9.3 (D-056): the makalani palms' and nuts' look and sound. Crowns sway a little on sim time (held frames hold; reduce motion calmer); palms by water are reflected with a gentle ripple; a crack-off sheds fibre, a pop bursts into husk and pale ivory chips (a small local puff, no flash).",
+    "swayDeg": 1.6,
+    "swayPeriodSeconds": 3.4,
+    "reducedSwayMul": 0.35,
+    "reflectAlpha": 0.45,
+    "reflectDepth": 0.17,
+    "rippleAmpPx": 3,
+    "ripplePeriodSeconds": 2.2,
+    "shimmerScale": 0.01,
+    "shimmerPeriodSeconds": 2.0,
+    "blurDegPerSec": 700,
+    "fibreBits": 5,
+    "popBits": 12,
+    "bitSpeedPxPerSec": 260,
+    "bitGravityPxPerSec2": 900,
+    "bitSeconds": 0.7,
+    "shadowFadePx": 180,
+    "pitchPerChain": 0.06,
+    "pitchMax": 1.7
   }
 }

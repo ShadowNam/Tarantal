@@ -1,0 +1,68 @@
+{
+  "okavango.mon.before": {
+    "id": "okavango.mon.before",
+    "label": "Okavango mon (3 palm groups) · before",
+    "seeds": 100,
+    "mean": 4589.21,
+    "canShare": 0,
+    "nutShare": 0,
+    "nutKnocks": 0,
+    "nutAirHits": 0,
+    "nutPops": 0
+  },
+  "okavango.mon.competent": {
+    "id": "okavango.mon.competent",
+    "label": "Okavango mon (3 palm groups) · competent",
+    "seeds": 100,
+    "mean": 4611.75,
+    "canShare": 0,
+    "nutShare": 0.0014224535154767712,
+    "nutKnocks": 0.84,
+    "nutAirHits": 0.03,
+    "nutPops": 0
+  },
+  "okavango.mon.nutHappy": {
+    "id": "okavango.mon.nutHappy",
+    "label": "Okavango mon (3 palm groups) · nut-happy",
+    "seeds": 100,
+    "mean": 3843.83,
+    "canShare": 0,
+    "nutShare": 0.06126701753199283,
+    "nutKnocks": 23.57,
+    "nutAirHits": 7.52,
+    "nutPops": 0.41
+  },
+  "okavango.tue.nutHappy": {
+    "id": "okavango.tue.nutHappy",
+    "label": "Okavango tue (3 palm groups) · nut-happy",
+    "seeds": 100,
+    "mean": 2363.21,
+    "canShare": 0,
+    "nutShare": 0.09922943792553349,
+    "nutKnocks": 21.98,
+    "nutAirHits": 3.94,
+    "nutPops": 0.03
+  },
+  "caps.okavango.mon.twee_twee": {
+    "id": "caps.okavango.mon.twee_twee",
+    "label": "Okavango mon · twee_twee iron · nut-happy",
+    "seeds": 100,
+    "mean": 1944.37,
+    "canShare": 0,
+    "nutShare": 0.046102336489454165,
+    "nutKnocks": 0.62,
+    "nutAirHits": 0.04,
+    "nutPops": 4.88
+  },
+  "caps.okavango.mon.pomp": {
+    "id": "caps.okavango.mon.pomp",
+    "label": "Okavango mon · pomp · nut-happy",
+    "seeds": 100,
+    "mean": 1580.24,
+    "canShare": 0,
+    "nutShare": 0.17798562243709817,
+    "nutKnocks": 20.48,
+    "nutAirHits": 11.95,
+    "nutPops": 0.65
+  }
+}

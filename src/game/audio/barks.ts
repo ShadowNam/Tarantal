@@ -17,6 +17,7 @@
 //     line follows it within 6 s and the two never share the screen (D-028 review).
 // The HUD shows the line as a speech bubble (the subtitle) and asks the AudioDirector to play
 // voice/<line> (it plays once a recording is delivered; music ducks under it).
+import { MAKALANI_SECRET } from '../../sim/nuts/makalani';
 import type { BarkTrigger, Feel, Feesdag } from '../../content/schemas';
 import type { SimEvent } from '../../sim/events';
 
@@ -157,6 +158,10 @@ export class BarkDirector {
         // v1.8 (D-050): a tin can kept in the air canChain hits in a row.
         case 'canJuggled':
           if (e.chain === t.canChain) cands.push('canChain');
+          break;
+        // 1.9.3 (D-056): three makalani nuts popped or juggled out.
+        case 'secretTriggered':
+          if (e.propId === MAKALANI_SECRET) cands.push('makalani');
           break;
         case 'powerupStarted':
           // An Oupa Laai pickup (or refresh) lets the next auto reload speak again.

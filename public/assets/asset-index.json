@@ -2785,9 +2785,9 @@
       "group": "okavango-spring",
       "origin": "interim",
       "file": {
-        "path": "assets/okavango-spring/img/fruit_okavango-spring.409df684d04e.png",
-        "bytes": 22260,
-        "hash": "409df684d04e"
+        "path": "assets/okavango-spring/img/fruit_okavango-spring.967135788678.png",
+        "bytes": 22900,
+        "hash": "967135788678"
       },
       "width": 512,
       "height": 512,
@@ -2906,6 +2906,19 @@
       },
       "width": 28,
       "height": 16
+    },
+    "fx/makalani": {
+      "group": "okavango-spring",
+      "origin": "interim",
+      "file": {
+        "path": "assets/okavango-spring/img/fx_makalani.749a46218ea4.png",
+        "bytes": 3773,
+        "hash": "749a46218ea4"
+      },
+      "width": 196,
+      "height": 28,
+      "originX": 0,
+      "originY": 0
     },
     "fx/pot": {
       "group": "common",
@@ -3348,6 +3361,58 @@
       },
       "width": 180,
       "height": 200
+    },
+    "okavango/makalani_crown_mid": {
+      "group": "okavango-spring",
+      "origin": "interim",
+      "file": {
+        "path": "assets/okavango-spring/img/okavango_makalani_crown_mid.3ddd4c56a4f3.png",
+        "bytes": 8325,
+        "hash": "3ddd4c56a4f3"
+      },
+      "width": 153,
+      "height": 144,
+      "originX": 0.5,
+      "originY": 0.5277777777777778
+    },
+    "okavango/makalani_crown_near": {
+      "group": "okavango-spring",
+      "origin": "interim",
+      "file": {
+        "path": "assets/okavango-spring/img/okavango_makalani_crown_near.7b3c1476e689.png",
+        "bytes": 31551,
+        "hash": "7b3c1476e689"
+      },
+      "width": 364,
+      "height": 342,
+      "originX": 0.5,
+      "originY": 0.5321637426900585
+    },
+    "okavango/makalani_trunk_mid": {
+      "group": "okavango-spring",
+      "origin": "interim",
+      "file": {
+        "path": "assets/okavango-spring/img/okavango_makalani_trunk_mid.2f3e7698b779.png",
+        "bytes": 3758,
+        "hash": "2f3e7698b779"
+      },
+      "width": 37,
+      "height": 353,
+      "originX": 0.5,
+      "originY": 0.9801699716713881
+    },
+    "okavango/makalani_trunk_near": {
+      "group": "okavango-spring",
+      "origin": "interim",
+      "file": {
+        "path": "assets/okavango-spring/img/okavango_makalani_trunk_near.d36e7f4f0220.png",
+        "bytes": 10010,
+        "hash": "d36e7f4f0220"
+      },
+      "width": 88,
+      "height": 840,
+      "originX": 0.5,
+      "originY": 0.9809523809523809
     },
     "okavango/mokoro_pole": {
       "group": "okavango-spring",
@@ -6228,14 +6293,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/okavango-spring/layers/far_ridge-0.041e4e080cac.png",
-          "bytes": 73707,
-          "hash": "041e4e080cac"
+          "path": "assets/okavango-spring/layers/far_ridge-0.53739abb7075.png",
+          "bytes": 74094,
+          "hash": "53739abb7075"
         },
         {
-          "path": "assets/okavango-spring/layers/far_ridge-1.7c8b38bd39b1.png",
-          "bytes": 32181,
-          "hash": "7c8b38bd39b1"
+          "path": "assets/okavango-spring/layers/far_ridge-1.68bae3441003.png",
+          "bytes": 34464,
+          "hash": "68bae3441003"
         }
       ],
       "tileWidth": 2048,
@@ -6265,14 +6330,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/okavango-spring/layers/far_veld-0.64e6c61b33b3.png",
-          "bytes": 10789,
-          "hash": "64e6c61b33b3"
+          "path": "assets/okavango-spring/layers/far_veld-0.22e048a1b4ee.png",
+          "bytes": 10794,
+          "hash": "22e048a1b4ee"
         },
         {
-          "path": "assets/okavango-spring/layers/far_veld-1.a9e36ba4516b.png",
-          "bytes": 7902,
-          "hash": "a9e36ba4516b"
+          "path": "assets/okavango-spring/layers/far_veld-1.dc219c6bc402.png",
+          "bytes": 8497,
+          "hash": "dc219c6bc402"
         }
       ],
       "tileWidth": 2048,
@@ -6283,64 +6348,64 @@
         "bucket": 256,
         "rows": [
           [
-            182,
+            181,
             232
           ],
           [
-            112,
-            163
+            110,
+            164
+          ],
+          [
+            117,
+            164
           ],
           [
             112,
-            165
+            173
           ],
           [
-            118,
-            186
+            111,
+            172
           ],
           [
-            118,
-            171
+            115,
+            181
           ],
           [
             113,
             172
           ],
           [
-            113,
-            184
-          ],
-          [
             119,
-            175
+            179
           ],
           [
             110,
-            180
+            169
           ],
           [
-            118,
-            170
+            116,
+            172
           ],
           [
             112,
-            168
+            166
           ],
           [
             184,
             232
           ],
           [
-            161,
+            160,
             232
           ],
           [
-            149,
+            117,
             232
           ],
           [
             108,
-            169
+            171
           ]
         ]
       }
@@ -6410,19 +6475,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/okavango-spring/layers/mid-0.c0ed6c702c64.png",
-          "bytes": 58569,
-          "hash": "c0ed6c702c64"
+          "path": "assets/okavango-spring/layers/mid-0.ef00737ee363.png",
+          "bytes": 60203,
+          "hash": "ef00737ee363"
         },
         {
-          "path": "assets/okavango-spring/layers/mid-1.635336f5674b.png",
-          "bytes": 68353,
-          "hash": "635336f5674b"
+          "path": "assets/okavango-spring/layers/mid-1.3f3758718a7a.png",
+          "bytes": 51942,
+          "hash": "3f3758718a7a"
         },
         {
-          "path": "assets/okavango-spring/layers/mid-2.fc2af4d830a1.png",
-          "bytes": 6784,
-          "hash": "fc2af4d830a1"
+          "path": "assets/okavango-spring/layers/mid-2.2c4219c824e5.png",
+          "bytes": 6454,
+          "hash": "2c4219c824e5"
         }
       ],
       "tileWidth": 2048,
@@ -6433,20 +6498,20 @@
         "bucket": 256,
         "rows": [
           [
-            283,
-            379
+            430,
+            530
           ],
           [
             370,
-            434
+            437
           ],
           [
             471,
             530
           ],
           [
-            359,
-            385
+            344,
+            386
           ],
           [
             362,
@@ -6454,19 +6519,19 @@
           ],
           [
             320,
-            354
+            356
           ],
           [
             396,
-            436
+            439
           ],
           [
-            280,
-            430
+            276,
+            432
           ],
           [
-            351,
-            428
+            350,
+            429
           ],
           [
             397,
@@ -6474,15 +6539,15 @@
           ],
           [
             400,
-            443
+            446
           ],
           [
-            280,
-            425
+            277,
+            428
           ],
           [
-            279,
-            359
+            276,
+            360
           ],
           [
             471,
@@ -6494,15 +6559,15 @@
           ],
           [
             333,
-            456
+            459
           ],
           [
-            369,
-            446
+            366,
+            449
           ],
           [
-            333,
-            453
+            331,
+            462
           ]
         ]
       }
@@ -9912,6 +9977,24 @@
       "lufs": -16.8,
       "peakDb": -1
     },
+    "voice/af/bark.makalani": {
+      "group": "voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-af/audio/voice/af-bark_makalani.b76e7f093721.ogg",
+        "bytes": 18065,
+        "hash": "b76e7f093721"
+      },
+      "mp3": {
+        "path": "assets/voice-af/audio/voice/af-bark_makalani.39ec84a06e35.mp3",
+        "bytes": 21393,
+        "hash": "39ec84a06e35"
+      },
+      "loop": false,
+      "lufs": -18.2,
+      "peakDb": -1
+    },
     "voice/af/bark.meerkat_scold": {
       "group": "voice-af",
       "origin": "interim",
@@ -10884,6 +10967,24 @@
       "lufs": -16,
       "peakDb": -7.3
     },
+    "voice/de/bark.makalani": {
+      "group": "voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-de/audio/voice/de-bark_makalani.984d7d57ed43.ogg",
+        "bytes": 28649,
+        "hash": "984d7d57ed43"
+      },
+      "mp3": {
+        "path": "assets/voice-de/audio/voice/de-bark_makalani.9bcafd567de6.mp3",
+        "bytes": 32166,
+        "hash": "9bcafd567de6"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -7.4
+    },
     "voice/de/bark.meerkat_scold": {
       "group": "voice-de",
       "origin": "interim",
@@ -11854,6 +11955,24 @@
       },
       "loop": false,
       "lufs": -17,
+      "peakDb": -1
+    },
+    "voice/en/bark.makalani": {
+      "group": "voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-en/audio/voice/en-bark_makalani.3f0ed2e1cf8b.ogg",
+        "bytes": 26815,
+        "hash": "3f0ed2e1cf8b"
+      },
+      "mp3": {
+        "path": "assets/voice-en/audio/voice/en-bark_makalani.30f9cb7180e5.mp3",
+        "bytes": 33837,
+        "hash": "30f9cb7180e5"
+      },
+      "loop": false,
+      "lufs": -16.7,
       "peakDb": -1
     },
     "voice/en/bark.meerkat_scold": {

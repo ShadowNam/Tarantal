@@ -31,7 +31,7 @@ import { msToTicks, TICKS_PER_SECOND } from '../../sim/clock';
 import type { SimEvent } from '../../sim/events';
 import { createRecorder, encodeInputLogText, type InputRecorder } from '../../sim/replay/inputLog';
 import { createSim } from '../../sim/Sim';
-import type { HuntResult, InputKind, ModeConfig, ModeId, SimState } from '../../sim/types';
+import type { HuntResult, InputKind, ModeConfig, ModeId, PlaneId, SimState } from '../../sim/types';
 import { CAMERA_MAX_X, CAMERA_MIN_X } from '../../sim/world';
 import {
   neededBeforeStart,
@@ -60,6 +60,7 @@ import { WorldView } from '../view/WorldView';
 import { WeaverView } from '../view/WeaverView';
 import { MeerkatView } from '../view/MeerkatView';
 import { CanView } from '../view/cans/CanView';
+import type { MakalaniView } from '../view/palms/MakalaniView';
 import { playPotjieSound } from '../view/potjieSounds';
 import { playMeerkatSound } from '../audio/meerkatSounds';
 import { largestTextures, textureBytes } from '../assets/textureBytes';
@@ -131,6 +132,12 @@ export class HuntScene extends Phaser.Scene {
   private meerkats!: MeerkatView;
   /** v1.8 (D-050): the day's fence and tin cans. */
   private cans!: CanView;
+  /** 1.9.3 (D-056): the far fence's cans (the Karoo's mid fence line) and the makalani palms. */
+  private farCans!: CanView;
+  /** Lazy (its own chunk: only maps with palms need it); null until it is in. */
+  private makalani: MakalaniView | null = null;
+  private makalaniGen = 0;
+  private makalaniLoading = false;
   /** v1.7c (D-047): fruit that swing and drop when shot (lazy chunk; null until it is in). */
   private fruit: FruitView | null = null;
   private fruitGen = 0;
@@ -504,6 +511,31 @@ export class HuntScene extends Phaser.Scene {
         ver: planes.ver.lineWeightPx,
       },
     );
+    const scales = {
+      near: planes.near.scale,
+      mid: planes.mid.scale,
+      far: planes.far.scale,
+      ver: planes.ver.scale,
+    };
+    const weights = {
+      near: planes.near.lineWeightPx,
+      mid: planes.mid.lineWeightPx,
+      far: planes.far.lineWeightPx,
+      ver: planes.ver.lineWeightPx,
+    };
+    this.farCans = new CanView(
+      this,
+      this.manifest,
+      this.parallax,
+      this.ctx.feel.cans,
+      scales,
+      weights,
+      'farCans',
+    );
+    this.makalani = null;
+    this.makalaniLoading = false;
+    this.makalaniGen++;
+    this.makalaniArgs = { scales, weights };
     this.loadFruit(mapBiome);
     this.weapon = new WeaponView(
       this,
@@ -1628,6 +1660,8 @@ export class HuntScene extends Phaser.Scene {
       hook.meerkatLog = [];
       hook.meerkats = [];
       hook.cans = null;
+      hook.farCans = null;
+      hook.nuts = null;
       hook.potjie = null;
       hook.canLog = [];
       hook.canMs = 0;
@@ -1754,6 +1788,9 @@ export class HuntScene extends Phaser.Scene {
     this.weavers.update(state);
     this.meerkats.update(state);
     this.cans.update(state, runner.prev, alpha);
+    this.farCans.update(state, runner.prev, alpha);
+    if (state.nuts !== undefined) this.loadMakalani();
+    this.makalani?.update(state, runner.prev, alpha);
     if (this.spookView !== null) {
       this.spookView.viewZoom = zoom.z;
       this.spookView.layout(width, height);
@@ -1769,7 +1806,7 @@ export class HuntScene extends Phaser.Scene {
     }
     if (this.ctx.hook) {
       this.ctx.hook.meerkatMs += this.meerkats.ms;
-      this.ctx.hook.canMs += this.cans.ms;
+      this.ctx.hook.canMs += this.cans.ms + this.farCans.ms + (this.makalani?.ms ?? 0);
       // v1.4 B (e2e perf): what the weavers and the mirage cost per frame.
       this.ctx.hook.sceneryMs += performance.now() - w0 + this.world.mirageMs;
       this.ctx.hook.sceneryFrames++;
@@ -1934,6 +1971,21 @@ export class HuntScene extends Phaser.Scene {
         state.cans === undefined
           ? null
           : { plane: state.cans.plane, spots: this.cans.spots(), bestChain: state.cans.bestChain };
+      hook.farCans =
+        state.farCans === undefined
+          ? null
+          : {
+              plane: state.farCans.plane,
+              spots: this.farCans.spots(),
+              bestChain: state.farCans.bestChain,
+            };
+      hook.nuts =
+        state.nuts === undefined
+          ? null
+          : {
+              ...(this.makalani?.spots() ?? { nuts: [], palms: [], layers: [] }),
+              bestChain: state.nuts.bestChain,
+            };
       hook.spook =
         state.feesdag === undefined || this.spookView === null
           ? null
@@ -1983,6 +2035,31 @@ export class HuntScene extends Phaser.Scene {
    * v1.7c (D-047): loads the fruit view (its own chunk) for the map now on screen. Sprites of a
    * previous map go; a load that finishes after another rebuild is dropped.
    */
+  private makalaniArgs: {
+    scales: Readonly<Record<PlaneId, number>>;
+    weights: Readonly<Record<PlaneId, number>>;
+  } | null = null;
+
+  /** 1.9.3 (D-056): the makalani view's chunk, loaded once a map with palms is running. */
+  private loadMakalani(): void {
+    if (this.makalani !== null || this.makalaniLoading || this.makalaniArgs === null) return;
+    this.makalaniLoading = true;
+    const gen = this.makalaniGen;
+    const args = this.makalaniArgs;
+    void import('../view/palms/MakalaniView').then((m) => {
+      if (gen !== this.makalaniGen) return;
+      this.makalani = new m.MakalaniView(
+        this,
+        this.manifest,
+        this.parallax,
+        this.ctx.feel.makalani,
+        args.scales,
+        args.weights,
+        this.ctx.reducedMotion,
+      );
+    });
+  }
+
   private loadFruit(mapBiome: Biome): void {
     this.fruit?.destroy();
     this.fruit = null;
@@ -2054,6 +2131,8 @@ export class HuntScene extends Phaser.Scene {
     this.meerkats.handle(events);
     this.spookView?.handle(events, this.ctx.audio, width);
     this.cans.handle(events, this.ctx.audio, width);
+    this.farCans.handle(events, this.ctx.audio, width);
+    this.makalani?.handle(events, this.ctx.audio, width);
     this.world.potjie.handle(events);
     if (this.ctx.hook) {
       const log = this.ctx.hook.canLog;
@@ -2062,6 +2141,13 @@ export class HuntScene extends Phaser.Scene {
         else if (e.type === 'canJuggled') log.push(`juggle:${String(e.chain)}:${String(e.points)}`);
         else if (e.type === 'canLanded' && e.final) log.push('landed');
         else if (e.type === 'canGone') log.push(`weg:${String(e.points)}`);
+        // 1.9.3 (D-056): the makalani nuts' events.
+        else if (e.type === 'nutKnocked') log.push(`nut-knock:${String(e.points)}`);
+        else if (e.type === 'nutJuggled')
+          log.push(`nut-juggle:${String(e.chain)}:${String(e.points)}`);
+        else if (e.type === 'nutPopped') log.push(`nut-pop:${String(e.points)}`);
+        else if (e.type === 'nutLanded' && e.final) log.push('nut-landed');
+        else if (e.type === 'nutGone') log.push(`nut-weg:${String(e.points)}`);
       }
       if (log.length > 200) log.splice(0, log.length - 200);
     }

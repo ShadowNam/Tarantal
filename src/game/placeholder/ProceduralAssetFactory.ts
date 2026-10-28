@@ -4,6 +4,7 @@
 // AssetManifest, so real art can replace any key later. Rendering-only code: Math.random would be
 // allowed here, but a tiny seeded PRNG keeps the panorama identical between runs and screenshots.
 import { canSpecs } from './canArt';
+import { makalaniSpecs } from './makalaniArt';
 import type { AmmoType, Biome, ContentBundle } from '../../content/schemas';
 import type { ArtPlaneId as PlaneId } from '../assets/artPlane';
 import { coreWidth, LAYER_BLEED_PX } from '../../sim/world';
@@ -1574,6 +1575,9 @@ export function createPlaceholderManifest(
   for (const s of art.extraTextures?.() ?? []) m.addTexture(s);
   // v1.8 (D-050): the tin cans' sheet (common: the home Karoo has a fence).
   for (const s of canSpecs()) m.addTexture(s);
+  // 1.9.3 (D-056): a biome with makalani palms on some day has their art (its own group).
+  if (biome.layouts.some((l) => (l.palms?.length ?? 0) > 0))
+    for (const s of makalaniSpecs()) m.addTexture(s);
   // v1.7 (D-044): a map with meerkat colonies plays their sounds (the desert group).
   if (hasColonies(biome)) for (const key of Object.values(MEERKAT_SOUNDS)) m.addSound(key);
   for (const s of uiSpecs()) m.addTexture(s);

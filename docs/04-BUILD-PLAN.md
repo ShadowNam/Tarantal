@@ -344,3 +344,7 @@ scolds. The Familiefoto secret, and the Spotter out of a burrow.
 Leaderboards with server replay validation (`server/`), weekly seeded Season Run, Endless mode,
 ghost replays of top hunts, charm pack 2, gamepad, Capacitor iOS/Android builds, Steam desktop
 wrapper, data-only mod loader UI. (The Namibië biome pack moved to v1.4.)
+
+**Idea (1.9.3, D-056, not built):** a carved makalani nut as a Notaboek reward or a charm.
+Carving the ivory-hard kernel into key rings and ornaments (oryx, elephants, cheetahs) is a
+well-known Namibian craft; it would tie the Okavango's nuts to the meta game.

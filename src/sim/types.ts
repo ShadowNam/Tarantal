@@ -375,6 +375,10 @@ export interface SimState {
   readonly feesdag?: FeesdagView;
   /** v1.8 (D-050): the day's fence and its tin cans (absent on maps without one). */
   readonly cans?: CansView;
+  /** 1.9.3 (D-056): a second fence further back with 1–2 cans (absent on maps without one). */
+  readonly farCans?: CansView;
+  /** 1.9.3 (D-056): the day's makalani palms and their nuts (absent on maps without palms). */
+  readonly nuts?: NutsView;
 }
 
 /** v1.8 (D-050): a tin can (plane coordinates, like a bird; r and half as drawn). */
@@ -401,6 +405,58 @@ export interface CansView {
   readonly groundY: number;
   readonly posts: readonly { readonly x: number; readonly top: number }[];
   readonly cans: readonly CanView[];
+  readonly bestChain: number;
+}
+
+/** 1.9.3 (D-056): a makalani palm group (plane coordinates: its foot; the clusters' anchors and
+ *  the trunk tops their stalks hang from). */
+export interface PalmView {
+  readonly index: number;
+  readonly kind: 'single' | 'pair' | 'trio';
+  readonly plane: 'near' | 'mid';
+  readonly x: number;
+  readonly footY: number;
+  readonly flip: boolean;
+  /** The water line its reflection mirrors at (null: not by water). */
+  readonly waterY: number | null;
+  readonly scale: number;
+  readonly trunks: readonly {
+    readonly footX: number;
+    readonly topX: number;
+    readonly topY: number;
+  }[];
+  readonly clusters: readonly {
+    readonly x: number;
+    readonly y: number;
+    readonly fromX: number;
+    readonly fromY: number;
+  }[];
+}
+
+/** 1.9.3 (D-056): a makalani nut (plane coordinates, like a can; `popped` = burst). */
+export interface NutView {
+  readonly id: number;
+  readonly palm: number;
+  readonly cluster: number;
+  readonly plane: 'near' | 'mid';
+  readonly colour: 'brown' | 'orange' | 'green';
+  readonly x: number;
+  readonly y: number;
+  readonly angle: number;
+  readonly spin: number;
+  readonly state: 'rest' | 'air' | 'bounced' | 'landed' | 'gone' | 'popped';
+  readonly chain: number;
+  readonly r: number;
+  /** The hit radius now (the e2e aims within it). */
+  readonly hitR: number;
+  /** Where it hung: its stalk's end. */
+  readonly hangX: number;
+  readonly hangY: number;
+}
+
+export interface NutsView {
+  readonly palms: readonly PalmView[];
+  readonly nuts: readonly NutView[];
   readonly bestChain: number;
 }
 
@@ -486,6 +542,17 @@ export interface HuntResult {
     readonly bestChain: number;
     readonly weg: number;
     /** Points the cans paid (after Frenzy and Stampede). */
+    readonly points: number;
+  };
+  /** 1.9.3 (D-056): the makalani nuts' tally (absent on maps without palms). */
+  readonly nuts?: {
+    readonly total: number;
+    readonly knocks: number;
+    readonly airHits: number;
+    readonly pops: number;
+    readonly bestChain: number;
+    readonly weg: number;
+    /** Points the nuts paid (after Stampede). */
     readonly points: number;
   };
   /** D-048: the special day played, and its tally (absent on ordinary hunts). */

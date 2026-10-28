@@ -198,8 +198,9 @@ describe('voice packs (v1.5, D-041)', () => {
 
   it('every voiced key has a file in every voice language (art-source and the asset index)', () => {
     // 44 lines in v1.5; v1.6b adds Oupa Laai's bark, v1.7 the meerkats' scold and Familiefoto,
-    // D-048 the Spookjag's five; v1.8 (D-050) the two Blikkies lines.
-    expect(LINES.length).toBe(54);
+    // D-048 the Spookjag's five; v1.8 (D-050) the two Blikkies lines; 1.9.3 (D-056) the makalani.
+    expect(LINES.length).toBe(55);
+    expect(LINES).toContain('bark.makalani');
     expect(LINES).toContain('bark.oupa_laai');
     expect(LINES).toContain('bark.weavers');
     expect(LINES).toEqual(expect.arrayContaining(['bark.meerkat_scold', 'bark.familiefoto']));

@@ -5,7 +5,8 @@
 import { designSize } from '../layout';
 import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
-import { fill, t, type I18nKey } from '../../i18n/i18n';
+import { fill, getLanguage, t } from '../../i18n/i18n';
+import { loadPrivacy, privacyLoaded, privacyString } from '../ui/privacyI18n';
 import type { GameContext } from '../GameContext';
 import type { Rect } from '../ui/hudLayout';
 import { drawButton, Menu, textStyle, UI, type MenuItem } from '../ui/menu';
@@ -48,24 +49,51 @@ export class PrivacyScene extends Phaser.Scene {
       .setOrigin(1, 0);
 
     const portal = this.ctx.platform.id !== 'web';
-    const paragraphs: [I18nKey, I18nKey][] = [
+    const paragraphs: [string, string][] = [
       ['privacy.stored_title', 'privacy.stored'],
       ['privacy.sent_title', portal ? 'privacy.sent_portal' : 'privacy.sent_web'],
       ['privacy.personal_title', 'privacy.personal'],
     ];
-    let y = py + 130;
     const wrapW = panelW - 120;
-    for (const [head, body] of paragraphs) {
-      this.add.text(px + 60, y, t(head), textStyle(34, '#FFD25A'));
-      y += 48;
-      const p = this.add.text(px + 60, y, t(body), {
+    // 1.9.3 (D-056, review M7): the paragraphs are a lazy chunk (Settings has usually loaded it).
+    // The panel and its buttons draw at once; the paragraphs fill in when they arrive, or say
+    // that they couldn't be loaded (Back still works; the next visit tries again).
+    const texts = paragraphs.map(([head, body]) => ({
+      head: this.add.text(px + 60, 0, '', textStyle(34, '#FFD25A')),
+      headKey: head,
+      body: this.add.text(px + 60, 0, '', {
         ...textStyle(28),
         fontStyle: '600',
         wordWrap: { width: wrapW },
         lineSpacing: 6,
+      }),
+      key: body,
+    }));
+    const layout = (failed: boolean): void => {
+      let y = py + 130;
+      texts.forEach((x, i) => {
+        x.head.setText(privacyString(getLanguage(), x.headKey)).setY(y);
+        y += 48;
+        // On failure the first paragraph says so (Back still works).
+        const text = failed
+          ? i === 0
+            ? t('privacy.load_failed')
+            : ''
+          : privacyString(getLanguage(), x.key);
+        x.body.setText(text).setY(y);
+        y += x.body.height + 28;
       });
-      y += p.height + 28;
-    }
+    };
+    layout(false);
+    if (!privacyLoaded())
+      loadPrivacy().then(
+        () => {
+          if (this.sys.isActive()) layout(false);
+        },
+        () => {
+          if (this.sys.isActive()) layout(true);
+        },
+      );
 
     const by = py + panelH - 120;
     const clear: Rect = { x: px + 40, y: by, w: Math.min(560, panelW / 2 - 60), h: 96 };

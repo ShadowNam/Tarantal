@@ -87,6 +87,46 @@ export function withForcedEvent(b: ContentBundle, event: string): ContentBundle 
 }
 
 /**
+ * 1.9.3 (D-056, review M14) ?makalaniPreview=juggle|pop (art previews only): `juggle` makes a nut
+ * in the air easy to hit (× 6 its radius instead of × 2.2) and never pops it, so the screenshot spec
+ * reaches a chain of 3 in a few shots; `pop` makes every gun a pop weapon, so any hit bursts the nut.
+ */
+export function withMakalaniPreview(b: ContentBundle, mode: string): ContentBundle {
+  const m = b.birds.makalani;
+  // Review M16: with the bigger air radius most of a shotgun's pellets land on the nut, and 3+
+  // pellets pop it: the juggle preview never pops (and no gun is a pop weapon).
+  if (mode === 'juggle')
+    return {
+      ...b,
+      birds: { ...b.birds, makalani: { ...m, airHitMul: 6, popPellets: 999, popWeapons: [] } },
+    };
+  if (mode === 'pop')
+    return {
+      ...b,
+      birds: {
+        ...b.birds,
+        makalani: { ...m, popWeapons: b.weapons.weapons.map((w) => w.id) },
+      },
+    };
+  return b;
+}
+
+/** 1.9.3 (D-056) ?palms=0 (art previews' "before"): every layout without its makalani palms. */
+export function withNoPalms(b: ContentBundle): ContentBundle {
+  return {
+    ...b,
+    biomes: b.biomes.map((x) => ({
+      ...x,
+      layouts: x.layouts.map((l) => {
+        const out = { ...l };
+        delete out.palms;
+        return out;
+      }),
+    })),
+  };
+}
+
+/**
  * v1.7 ?birds=0 (art previews of the meerkats): a hunt with no flocks, pop-ups, fly-over spawns,
  * world events, Stampede surge or crates — only the director's opening fly-over crosses the far
  * sky — so the colonies are the only thing on the veld. The colonies' own behaviour is unchanged (their stream draws the same numbers).

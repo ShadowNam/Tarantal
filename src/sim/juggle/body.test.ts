@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import { cos } from '../detmath';
 import { createStream } from '../rng';
-import { airborne, kick, restingBody, stepBody, type JuggleTuning } from './body';
+import { airborne, kick, restingBody, rollBody, stepBody, type JuggleTuning } from './body';
 
 const T: JuggleTuning = {
   gravityPxPerSec2: 1100,
@@ -114,5 +114,26 @@ describe('juggle body (D-050)', () => {
     }
     expect(out).toBe('gone');
     expect(b.chain).toBe(3);
+  });
+
+  it('1.9.3: knockUpMul softens only the knock-off; roll keeps it moving after the bounce', () => {
+    const t = { ...T, knockUpMul: 0.25, roll: { keep: 0.8, decelPxPerSec2: 300 } };
+    const b = body();
+    kick(b, t, 0.5, 1, createStream(7));
+    const plain = body();
+    kick(plain, T, 0.5, 1, createStream(7));
+    expect(b.vy).toBeCloseTo(plain.vy * 0.25, 9);
+    kick(b, t, 0.5, 1, createStream(7));
+    kick(plain, T, 0.5, 1, createStream(7));
+    expect(b.vy).toBeCloseTo(plain.vy, 9);
+    for (let i = 0; i < 600 && airborne(b); i++) stepBody(b, t, 0);
+    expect(b.state).toBe('landed');
+    expect(b.vx).not.toBe(0);
+    const x0 = b.x;
+    let moving = 0;
+    for (let i = 0; i < 600 && rollBody(b, t); i++) moving++;
+    expect(moving).toBeGreaterThan(0);
+    expect(b.x).not.toBe(x0);
+    expect(b.vx).toBe(0);
   });
 });

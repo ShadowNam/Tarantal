@@ -136,5 +136,22 @@
     },
     "secretChain": 8,
     "secretBonus": 75
+  },
+  "nuts": {
+    "$comment": "1.9.3 (D-056, GDD §11.3b): makalani nuts are event bonuses like the cans (× Stampede only), a bit more per air hit than a can (harder to hit); the crack-off pays a can's 5 (balance: docs/balance/makalani.md). Air hit n pays airHit + airHitStep × (min(n, chainCap) − 1); pop: a burst nut; weg: juggled out of the top; × planeMul of the nut's plane. The secret 'Hard soos 'n makalani': secretCount nuts popped or juggled out in one hunt.",
+    "knockOff": 5,
+    "airHit": 10,
+    "airHitStep": 3,
+    "chainCap": 8,
+    "weg": 18,
+    "pop": 12,
+    "planeMul": {
+      "near": 0.8,
+      "mid": 1.3,
+      "far": 2,
+      "ver": 2.5
+    },
+    "secretCount": 3,
+    "secretBonus": 25
   }
 }

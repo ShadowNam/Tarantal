@@ -457,4 +457,22 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
       omen: false,
     },
   },
+  // 1.9.3 (D-056): makalani nuts (a bot that shoots every nut in view: crack-offs, air hits,
+  // pops, landings) and the Karoo's far fence (a bot that shoots every can, the far ones too).
+  {
+    name: 'classic-81-okavango-tue-nuthappy-pointer',
+    seed: 81,
+    bot: 'nutHappy',
+    mode: 'classic',
+    inputKind: 'pointer',
+    modeConfig: { id: 'classic', biome: 'okavango-spring', layout: 'tue' },
+  },
+  {
+    name: 'classic-82-karoo-wed-canhappy-pointer',
+    seed: 82,
+    bot: 'canHappy',
+    mode: 'classic',
+    inputKind: 'pointer',
+    modeConfig: { id: 'classic', layout: 'wed' },
+  },
 ];

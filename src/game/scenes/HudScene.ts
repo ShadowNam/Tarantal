@@ -19,7 +19,7 @@ import { msToTicks } from '../../sim/clock';
 import { markSeen } from '../../meta/powerupsSeen';
 import { isOupaLine, oupaShows } from '../audio/oupaMode';
 import { PickupCard } from '../ui/PickupCard';
-import { guideLoaded, loadGuide } from '../ui/guideI18n';
+import { guideLoaded, guideString, loadGuide } from '../ui/guideI18n';
 import { effectText, shortText } from '../ui/powerupGuide';
 import { TEX } from '../assets/AssetManifest';
 import { powerupIcon, powerupIconEpoch, upgradePowerupIcons } from '../ui/powerupIcons';
@@ -55,6 +55,7 @@ import { cornerStampShown, stampFor, StampLabel } from '../ui/StampLabel';
 import { captionItem, updateCaptions, type CaptionLine } from '../audio/captions';
 import { FAMILIEFOTO_SECRET } from '../../sim/meerkats/colony';
 import { BLIKKIESDANS_SECRET } from '../../sim/cans/cans';
+import { MAKALANI_SECRET } from '../../sim/nuts/makalani';
 
 export interface HudControls {
   readonly pause: () => void;
@@ -739,6 +740,17 @@ export class HudScene extends Phaser.Scene {
       } else if (e.type === 'secretTriggered' && e.propId === BLIKKIESDANS_SECRET) {
         // v1.8 (D-050): the long tin-can juggle (its points pop with their bonusAwarded).
         banner.push(t('hud.blikkiesdans'));
+      } else if (e.type === 'secretTriggered' && e.propId === MAKALANI_SECRET) {
+        // 1.9.3 (D-056): three nuts popped or juggled out (lazy strings: the guide tables).
+        banner.push(this.lazy('guide.makalani.hud'));
+      } else if (e.type === 'nutKnocked') {
+        this.pushPop(this.lazy('guide.makalani.knock'), '#F2E2C4');
+      } else if (e.type === 'nutJuggled') {
+        this.pushPop(fill(this.lazy('guide.makalani.chain'), { n: e.chain }), '#F2E2C4');
+      } else if (e.type === 'nutPopped') {
+        this.pushPop(this.lazy('guide.makalani.pop'), '#FFF4DC');
+      } else if (e.type === 'nutGone') {
+        banner.push(`${this.lazy('guide.makalani.weg')} ${formatAward(e.points)}`);
       } else if (e.type === 'canJuggled') {
         // The chain shows with each air hit; the points pop with their bonusAwarded.
         this.pushPop(fill(t('cans.chain'), { n: e.chain }), '#E8EEF5');
@@ -1416,6 +1428,11 @@ export class HudScene extends Phaser.Scene {
       const old = this.pops.pop();
       if (old !== undefined) this.dropPop(old);
     }
+  }
+
+  /** 1.9.3 (D-056): a string from the lazy guide tables (empty until they are in). */
+  private lazy(key: string): string {
+    return guideString(getLanguage(), key) ?? '';
   }
 
   /** Does a secret with its own bark (biome content) go off or scold this frame? */

@@ -21,5 +21,12 @@
   "guide.tip.oupa_laai": "Keep shooting: Oupa has the reloading covered.",
   "guide.tip.rooikol": "Point and shoot: near and mid birds fall fast; far ones are small, so take your time on them.",
   "guide.tip.voorlaaier": "Save each blast for a big, tight flock.",
-  "guide.tip.mielie_masjien": "Hold and sweep: it never needs a reload."
+  "guide.tip.mielie_masjien": "Hold and sweep: it never needs a reload.",
+  "guide.makalani.name": "makalani nut",
+  "guide.makalani.knock": "Tok!",
+  "guide.makalani.chain": "{n}× in the air!",
+  "guide.makalani.pop": "Krak!",
+  "guide.makalani.weg": "GONE!",
+  "guide.makalani.hud": "HARD AS A MAKALANI!",
+  "guide.makalani.secret": "Hard as a makalani"
 }

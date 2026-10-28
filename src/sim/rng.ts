@@ -56,7 +56,9 @@ export type StreamName =
   // D-048: the special day's twist (Halloween: bat and owl times, lanes and swerves; lanterns).
   | 'feesdag'
   // v1.8 (D-050): tin cans (a kick's sideways jitter).
-  | 'cans';
+  | 'cans'
+  // 1.9.3 (D-056): makalani nuts (cluster sizes, colours, a kick's jitter).
+  | 'nuts';
 
 /** A stream's members are closures, so they are safe to pass around detached. */
 export interface RandomStream {

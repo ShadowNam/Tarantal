@@ -15,6 +15,8 @@ import {
   withDoppies,
   withEarlySpook,
   withNoBirds,
+  withMakalaniPreview,
+  withNoPalms,
   withPlaneScales,
   withQuotaMul,
   withTestCrate,
@@ -386,6 +388,8 @@ const hook: TestHook = {
   meerkats: [],
   meerkatLog: [],
   cans: null,
+  farCans: null,
+  nuts: null,
   canLog: [],
   canMs: 0,
   potjie: null,
@@ -460,7 +464,14 @@ const withDop =
 // e2e/dev only (v1.7 meerkat previews): ?birds=0 — no birds or world events, colonies only.
 const noBirds = testHooks && params.get('birds') === '0' ? withNoBirds(withDop) : withDop;
 // e2e/dev only (D-048): ?spook=early brings the special day's owls and bats in early.
-const devBundle = testHooks && params.get('spook') === 'early' ? withEarlySpook(noBirds) : noBirds;
+// e2e/dev only (1.9.3, D-056): ?palms=0 — the layouts without their makalani palms (the art
+// previews' "before").
+const noPalms = testHooks && params.get('palms') === '0' ? withNoPalms(noBirds) : noBirds;
+// e2e/dev only (review M14): ?makalaniPreview=juggle|pop — easy air hits, or every hit pops.
+const nutPreview = testHooks ? params.get('makalaniPreview') : null;
+const withNuts = nutPreview === null ? noPalms : withMakalaniPreview(noPalms, nutPreview);
+const devBundle =
+  testHooks && params.get('spook') === 'early' ? withEarlySpook(withNuts) : withNuts;
 // D-034: `?admin=1&play=1` plays the hunt the admin page stored (its content changes too).
 let adminSave: AdminSave | null = adminOn ? loadAdminSave() : null;
 const adminList = adminOn ? adminEntries(devBundle, placeholderBiomes()) : [];

@@ -169,6 +169,47 @@ describe('asset audit (M10)', () => {
   });
 });
 
+describe('makalani keys (1.9.3, D-056)', () => {
+  it('the nut sheet by its constant and the palm textures by their key builders are used', () => {
+    const keys = [
+      'fx/makalani',
+      'okavango/makalani_trunk_near',
+      'okavango/makalani_crown_mid',
+    ] as const;
+    const cat: Catalog = {
+      ...catalog,
+      entries: new Map(
+        keys.map((k) => [
+          k,
+          entry(k, 'texture', { width: 8, height: 8, group: 'okavango-spring' }),
+        ]),
+      ),
+    };
+    const r = audit(
+      base({
+        catalog: cat,
+        sources: new Map([
+          [
+            'src/game/view/palms/MakalaniView.ts',
+            'textures.exists(NUT_SHEET); add.image(0, 0, palmTrunkKey(p.plane)); palmCrownKey(p.plane)',
+          ],
+        ]),
+        tex: {},
+      }),
+    );
+    for (const k of keys)
+      expect(r.rows.find((x) => x.key === k)?.usedIn).toContain(
+        'src/game/view/palms/MakalaniView.ts',
+      );
+    expect(r.problems.filter((p) => p.includes('makalani'))).toEqual([]);
+    // Without the builders' calls the palm textures are unused.
+    const bare = audit(
+      base({ catalog: cat, sources: new Map([['src/x.ts', 'NUT_SHEET']]), tex: {} }),
+    );
+    expect(bare.problems.some((p) => p.includes('okavango/makalani_trunk_near'))).toBe(true);
+  });
+});
+
 describe('delivered bird clips (M10 review)', () => {
   it('the near plane needs only the pop-up clip; other planes need the whole flock set', () => {
     expect(clipsNeeded('near')).toEqual(['peek']);

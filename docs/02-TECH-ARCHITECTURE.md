@@ -492,6 +492,33 @@ replaces the biome's (`resolveMap`); a bonus map keeps its layout's. Tuning is
   downloads) and fails `--strict` above 1.5 MB.
 - **Previews:** `?birds=0` (dev and e2e builds only, `devContent.withNoBirds`) plays a hunt
   without flocks, pop-ups, fly-over spawns, events or crates.
+
+### 3.13 Juggle bodies: tin cans and makalani nuts (v1.8, D-050; 1.9.3, D-056)
+
+- **One physics:** `src/sim/juggle/body.ts` is the only flight code for things that are knocked,
+  juggled and fall: rest → air (each air hit grows the chain; the `wegChain`-th air hit clears the
+  top of the view) → one bounce → landed, or gone out of the top. Tunings are px at the tuning
+  reference, × `tuningRatio` per plane (`scaledTuning`). Two optional fields serve the nuts and
+  leave the cans as they were: `knockUpMul` (the knock-off's upward kick × it) and `roll` (after
+  the bounce it rolls on: `rollBody` slows it by `decelPxPerSec2`, turning with its speed).
+- **Cans** (`src/sim/cans/cans.ts`): a fence per layout (`fence`) and, since D-056, a second one
+  further back (`farFence`); the sim keeps a list of fences, one `CansView` each in the snapshot
+  (`cans`, `farCans`). Ids: 2,000,000 + (1000 for the far fence).
+- **Makalani nuts** (`src/sim/nuts/makalani.ts`): palm groups from the layout (`palms`, moved back
+  by a bonus map's `fencePlane`) and their shapes (`birds.json → makalani.palms`); 3–8 nuts per
+  cluster and their colours from the `nuts` stream. A nut is a `JuggleBody` plus `popped`. Ids
+  from 3,000,000. Snapshot `nuts` (palms with trunk feet and tops, cluster anchors; nuts).
+- **Hit test:** cans and nuts are `HitExtra` capsules of kind `can` (a nut's has no axis: a
+  circle). A nut's has `passThrough`: `resolvePellet` remembers the first nut a pellet meets and
+  goes on; a bird behind takes the pellet, anything else (or nothing) gives it to the nut. The
+  pellets on one can or nut in one shot make one kick (or, for a nut, `popPellets` of them or a
+  `popWeapons` gun burst it).
+- **Events:** `canKnocked`, `canJuggled`, `canLanded`, `canGone`; `nutKnocked`, `nutJuggled`,
+  `nutPopped`, `nutLanded`, `nutGone`. Bonuses `canKnock|canAir|canWeg` and `nutKnock|nutAir|nutPop|
+  nutWeg` are × Stampede only; a can- or nut-only shot leaves the Frenzy streak alone.
+- **View:** `CanView` (one per fence) and `MakalaniView` (palms from one trunk and one crown
+  texture per plane, sway and reflection on sim ticks; nuts; bits; sounds via the AudioDirector).
+
 ## 4. Content system (`content/`, `src/content/`)
 
 - One Zod schema per file type in `schemas.ts`; types are `z.infer`'d — never hand-written twice.

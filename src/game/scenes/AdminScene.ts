@@ -2,8 +2,9 @@
 // PlatformAdapter allows it (web only). The page itself is a DOM panel (AdminPanel) over the live
 // panorama; this scene only owns its lifetime, and (D-045) that of the Project overview over it.
 import * as Phaser from 'phaser';
+import { t } from '../../i18n/i18n';
 import { freshLoadShown } from '../../platform/freshLoad';
-import { AdminPanel } from '../admin/AdminPanel';
+import type { AdminPanel } from '../admin/AdminPanel';
 import { projectHref, projectRequested } from '../admin/adminProject';
 import type { GameContext } from '../GameContext';
 import type { ProjectOverviewHandle } from '../project/ProjectOverview';
@@ -45,50 +46,91 @@ export class AdminScene extends Phaser.Scene {
     // D-045: the Project overview is where the Skietbaan's Fresh load is: the web build's admin
     // page (dev server, GitHub Pages), on the list page; never in a portal build.
     const projectOn = data.view === 'list' && freshLoadShown(this.ctx.platform);
-    const panel = new AdminPanel(
-      admin,
-      this.ctx.content,
-      () => ({
-        build: admin.build,
-        device: navigator.userAgent,
-        viewport: `${String(window.innerWidth)}×${String(window.innerHeight)} @${String(
-          Math.round(window.devicePixelRatio * 100) / 100,
-        )}x · ${this.ctx.prefs.tier} tier`,
-      }),
-      {
-        ...(data.view === 'list' && data.range !== undefined ? { onRange: data.range } : {}),
-        ...(projectOn
-          ? {
-              onProject: () => {
-                this.openProject(panel);
-              },
-            }
-          : {}),
-        onView: (view, selected) => {
-          if (hook) {
-            hook.scene = 'admin';
-            hook.admin = { view, selected, entries: admin.entries.length };
-          }
-        },
-      },
-    );
+    // 1.9.3 (D-056): the panel is its own lazy chunk (playtest builds only open it), so the
+    // first download doesn't carry it.
+    const visit = this.visit;
+    let shown: AdminPanel | null = null;
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.project?.destroy();
       this.project = null;
-      panel.destroy();
+      shown?.destroy();
+      shown = null;
     });
-    const entry = admin.setup?.entry;
-    if (data.view === 'play' && entry !== undefined) {
-      const start = data.start;
-      panel.showPlay(entry, (pointerType) => {
-        this.scene.stop();
-        start(pointerType);
-      });
-    } else {
-      panel.showList();
-      // `?admin=1&project=1`: straight to the overview (a bookmark).
-      if (projectOn && projectRequested(window.location.search)) this.openProject(panel);
-    }
+    const open = (): void => {
+      import('../admin/AdminPanel').then(
+        (m) => {
+          if (visit !== this.visit || !this.sys.isActive()) return;
+          const panel = new m.AdminPanel(
+            admin,
+            this.ctx.content,
+            () => ({
+              build: admin.build,
+              device: navigator.userAgent,
+              viewport: `${String(window.innerWidth)}×${String(window.innerHeight)} @${String(
+                Math.round(window.devicePixelRatio * 100) / 100,
+              )}x · ${this.ctx.prefs.tier} tier`,
+            }),
+            {
+              ...(data.view === 'list' && data.range !== undefined ? { onRange: data.range } : {}),
+              ...(projectOn
+                ? {
+                    onProject: () => {
+                      this.openProject(panel);
+                    },
+                  }
+                : {}),
+              onView: (view, selected) => {
+                if (hook) {
+                  hook.scene = 'admin';
+                  hook.admin = { view, selected, entries: admin.entries.length };
+                }
+              },
+            },
+          );
+          const entry = admin.setup?.entry;
+          if (data.view === 'play' && entry !== undefined) {
+            const start = data.start;
+            panel.showPlay(entry, (pointerType) => {
+              this.scene.stop();
+              start(pointerType);
+            });
+          } else {
+            panel.showList();
+            // `?admin=1&project=1`: straight to the overview (a bookmark).
+            if (projectOn && projectRequested(window.location.search)) this.openProject(panel);
+          }
+          shown = panel;
+        },
+        () => {
+          // Review M7: the chunk didn't arrive (offline): say so, with a Retry.
+          if (visit === this.visit && this.sys.isActive()) this.chunkFailed(open);
+        },
+      );
+    };
+    open();
+  }
+
+  /** Review M7: the admin panel's chunk failed to load: a line and a Retry over the page. */
+  private chunkFailed(retry: () => void): void {
+    const box = document.createElement('div');
+    box.setAttribute('role', 'alert');
+    box.style.cssText =
+      'position:fixed;inset:auto 0 40% 0;margin:auto;width:min(90vw,560px);padding:20px;' +
+      'background:#2b2622;color:#f2ead8;font:600 18px sans-serif;text-align:center;' +
+      'border-radius:12px;z-index:20';
+    box.textContent = t('privacy.load_failed');
+    const btn = document.createElement('button');
+    btn.textContent = t('ui.retry');
+    btn.style.cssText = 'display:block;margin:14px auto 0;padding:10px 28px;font:inherit';
+    btn.addEventListener('click', () => {
+      box.remove();
+      retry();
+    });
+    box.appendChild(btn);
+    document.body.appendChild(box);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      box.remove();
+    });
   }
 
   /** D-045: the Project overview, from its lazy chunk (admin page builds only). */

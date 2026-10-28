@@ -1,7 +1,7 @@
 // v1.8 (D-050, GDD §11.3): a small, generic "juggle body" — something that rests until it is hit,
 // is kicked away from the hit side, spins, falls under gravity, is kicked higher by every further
 // hit while it is in the air (the chain), bounces once on the ground and lies there, or climbs out
-// of the top of the view and is gone. Tin cans are its first user; makalani nuts can follow.
+// of the top of the view and is gone. Tin cans are its first user; makalani nuts (1.9.3, D-056) the second.
 // Pure and deterministic: plane px and ticks only, detmath-free arithmetic, randomness only from
 // the stream the caller passes (its own system's), every number from the caller's tuning.
 import { TICKS_PER_SECOND } from '../clock';
@@ -28,6 +28,12 @@ export interface JuggleTuning {
   /** The air hit that always ends the juggle: from this chain on the kick is sized to clear
    *  the top of the view ("Weg!"), so a chain never runs on without end. */
   readonly wegChain: number;
+  /** 1.9.3 (D-056): the knock-off's upward kick × this (absent = 1: a can flies off its post; a
+   *  makalani nut cracks off its stalk and mostly drops). */
+  readonly knockUpMul?: number;
+  /** 1.9.3 (D-056): after its bounce it rolls on (sideways speed × keep, slowing by decel)
+   *  instead of lying still (absent: it lies where it lands, on its side). */
+  readonly roll?: { readonly keep: number; readonly decelPxPerSec2: number };
 }
 
 /** rest: where it was put; air: flying (the chain may grow); bounced: its one bounce, still in
@@ -93,7 +99,8 @@ export function kick(
   const share = Math.max(t.minSideShare, Math.abs(s));
   const jitter = t.jitterPxPerSec + t.jitterGrowthPxPerSec * g;
   const vxSec = (dir * t.kickSidePxPerSec * share + rng.range(-jitter, jitter)) * power;
-  let vySec = -t.kickUpPxPerSec * (1 + t.upGrowth * g) * power;
+  const lift = kind === 'knock' ? (t.knockUpMul ?? 1) : 1;
+  let vySec = -t.kickUpPxPerSec * (1 + t.upGrowth * g) * power * lift;
   if (n >= t.wegChain) {
     // The finishing kick: enough to rise from here past the top of the view, a little to spare
     // (v² = 2 g h).
@@ -134,8 +141,14 @@ export function stepBody(b: JuggleBody, t: JuggleTuning, topY: number): StepResu
       return 'bounced';
     }
     b.state = 'landed';
-    b.vx = 0;
     b.vy = 0;
+    if (t.roll !== undefined) {
+      // A round body rolls on: it keeps turning with its speed (rollBody slows it).
+      b.vx *= t.roll.keep;
+      b.spin = b.extent > 0 ? b.vx / b.extent : 0;
+      return 'landed';
+    }
+    b.vx = 0;
     b.spin = 0;
     // Lying on its side: the nearest quarter turn that lies flat (± π/2).
     const turn = Math.PI;
@@ -144,6 +157,19 @@ export function stepBody(b: JuggleBody, t: JuggleTuning, topY: number): StepResu
     return 'landed';
   }
   return null;
+}
+
+/** 1.9.3 (D-056): one tick of a landed round body rolling to a stop (tunings with `roll`).
+ *  True while it still moves. */
+export function rollBody(b: JuggleBody, t: JuggleTuning): boolean {
+  if (b.state !== 'landed' || t.roll === undefined || b.vx === 0) return false;
+  const d = t.roll.decelPxPerSec2 / (TICKS_PER_SECOND * TICKS_PER_SECOND);
+  const v = Math.abs(b.vx) <= d ? 0 : b.vx - Math.sign(b.vx) * d;
+  b.x += v;
+  b.vx = v;
+  b.spin = b.extent > 0 ? v / b.extent : 0;
+  b.angle += b.spin;
+  return v !== 0;
 }
 
 /** The body's flight numbers on a plane: px tunings × ratio (tuningRatio of the plane). */
@@ -155,5 +181,8 @@ export function scaledTuning(t: JuggleTuning, ratio: number): JuggleTuning {
     kickSidePxPerSec: t.kickSidePxPerSec * ratio,
     jitterPxPerSec: t.jitterPxPerSec * ratio,
     jitterGrowthPxPerSec: t.jitterGrowthPxPerSec * ratio,
+    ...(t.roll === undefined
+      ? {}
+      : { roll: { keep: t.roll.keep, decelPxPerSec2: t.roll.decelPxPerSec2 * ratio } }),
   };
 }

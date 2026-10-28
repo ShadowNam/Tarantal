@@ -127,6 +127,21 @@ export interface PelletResult {
   readonly canId?: number;
   readonly canDx?: number;
   readonly canDy?: number;
+  /** 1.9.3 (D-056): the can is a pass-through makalani nut (a bird behind would have taken it). */
+  readonly passThrough?: true;
+}
+
+/** 1.9.3 (D-056): a result that is something to shoot (not a plain prop occluder, not nothing). */
+export function isTarget(r: PelletResult): boolean {
+  return (
+    r.birdId !== null ||
+    r.crateId !== null ||
+    r.partId !== null ||
+    r.paperId !== undefined ||
+    r.meerkatId !== undefined ||
+    r.spookId !== undefined ||
+    (r.canId !== undefined && r.passThrough !== true)
+  );
 }
 
 /** v1.8 (D-050): a capsule: points within r of the segment centre ± (hx, hy). */
@@ -190,7 +205,13 @@ export type HitExtra =
       readonly shape: OccluderShape;
     }
   /** v1.8 (D-050): a tin can, its rotating capsule. */
-  | ({ readonly kind: 'can'; readonly canId: number } & Capsule);
+  | ({
+      readonly kind: 'can';
+      readonly canId: number;
+      /** 1.9.3 (D-056): a makalani nut: a pellet that meets it goes on, and a bird it then meets
+       *  behind takes it instead (nuts never block a bird); anything else stops at the nut. */
+      readonly passThrough?: boolean;
+    } & Capsule);
 
 const NOTHING: PelletResult = { birdId: null, propId: null, partId: null, crateId: null };
 
@@ -218,6 +239,11 @@ export function resolvePellet(
   extras: ReadonlyMap<string, readonly HitExtra[]> = new Map(),
   driftDx: (scrollFactor: number) => number = () => 0,
 ): PelletResult {
+  /** 1.9.3 (D-056): the first nut the pellet passed. Any target behind it takes the pellet (a
+   *  bird, a Spookjag thing, a crate, a secret part, a meerkat, a paper, a can — review M17);
+   *  only a plain prop occluder, or nothing, leaves it to the nut. */
+  let nut: PelletResult | null = null;
+  const after = (r: PelletResult): PelletResult => (nut === null || isTarget(r) ? r : nut);
   for (const slice of geometry.slices) {
     const p = tapToPlane(cx, slice.scrollFactor, dx + driftDx(slice.scrollFactor), sy);
     if (slice.plane !== null) {
@@ -233,23 +259,27 @@ export function resolvePellet(
     }
     for (const e of extras.get(slice.layerId) ?? []) {
       if (e.kind === 'can') {
-        if (pointInCapsule(p.x, p.y, e))
-          return { ...NOTHING, canId: e.canId, canDx: p.x - e.x, canDy: p.y - e.y };
+        if (!pointInCapsule(p.x, p.y, e)) continue;
+        const hit = { ...NOTHING, canId: e.canId, canDx: p.x - e.x, canDy: p.y - e.y };
+        if (e.passThrough !== true) return after(hit);
+        nut ??= { ...hit, passThrough: true };
         continue;
       }
       if (!pointInOccluder(p.x, p.y, { propId: '', x: e.x, y: e.y, shape: e.shape })) continue;
-      if (e.kind === 'paper') return { ...NOTHING, paperId: e.paperId };
-      if (e.kind === 'meerkat') return { ...NOTHING, meerkatId: e.meerkatId };
-      if (e.kind === 'spook') return { ...NOTHING, spookId: e.spookId };
-      return e.kind === 'crate'
-        ? { ...NOTHING, crateId: e.crateId }
-        : { ...NOTHING, propId: e.propId, partId: e.partId };
+      if (e.kind === 'paper') return after({ ...NOTHING, paperId: e.paperId });
+      if (e.kind === 'meerkat') return after({ ...NOTHING, meerkatId: e.meerkatId });
+      if (e.kind === 'spook') return after({ ...NOTHING, spookId: e.spookId });
+      return after(
+        e.kind === 'crate'
+          ? { ...NOTHING, crateId: e.crateId }
+          : { ...NOTHING, propId: e.propId, partId: e.partId },
+      );
     }
     for (const o of slice.occluders) {
-      if (pointInOccluder(p.x, p.y, o)) return { ...NOTHING, propId: o.propId };
+      if (pointInOccluder(p.x, p.y, o)) return after({ ...NOTHING, propId: o.propId });
     }
   }
-  return NOTHING;
+  return nut ?? NOTHING;
 }
 
 /**
@@ -341,6 +371,8 @@ export function resolvePattern(
   const pellets = at(0, 0);
   if (assisted === null) return pellets;
   // A crate, secret part, meerkat or Spookjag hit is a hit too: never thrown away for a snap.
+  // 1.9.3 (D-056, review M6): a makalani nut is not — nuts hang where birds fly, so a touch shot
+  // that clips a nut may still snap onto a bird; the nut keeps the pellets only without a snap.
   const hit = pellets.some(
     (p) =>
       p.r.birdId !== null ||
@@ -348,11 +380,14 @@ export function resolvePattern(
       p.r.partId !== null ||
       p.r.meerkatId !== undefined ||
       p.r.spookId !== undefined ||
-      p.r.canId !== undefined,
+      (p.r.canId !== undefined && p.r.passThrough !== true),
   );
   if (hit) return pellets;
+  const nutHit = pellets.some((p) => p.r.passThrough === true);
   const snap = assistSnap(dx, sy, cx, assisted, birdsByPlane, assistExtras, driftDx);
   if (snap === null) return pellets;
+  // Only a bird is worth more than the nut the shot already clipped.
+  if (nutHit && snap.canId !== undefined) return pellets;
   const snapped = at(snap.sx, snap.sy);
   const kept =
     snap.canId !== undefined
