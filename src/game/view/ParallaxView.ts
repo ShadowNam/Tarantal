@@ -13,6 +13,7 @@ import { coreWidth, DESIGN_HEIGHT, LAYER_BLEED_PX } from '../../sim/world';
 import { isHdTexture, TEX, type AssetManifest } from '../assets/AssetManifest';
 import { HD_PARTS, hdKeyOf } from '../assets/hdProps';
 import { FAUNA_HERDS } from './faunaHerds';
+import { hazeBelowProps } from './hazeOrder';
 import { FaunaView, type FaunaOptions } from './FaunaView';
 import type { FaunaProbe } from '../GameContext';
 import { lightTint } from './lightTint';
@@ -712,7 +713,11 @@ export class ParallaxView {
               h.alpha,
             )
             .setOrigin(0, 0);
-          l.root.addAt(rect, l.root.getIndex(l.fixtures));
+          // A band with an edge (mist lying on the veld) goes under the layer's props, so a tall
+          // prop never shows a hard light band where the mist starts (D-057); a whole-layer
+          // distance haze has no edge and stays over the props, which are as far away as the art.
+          const under = l.plane !== null && hazeBelowProps(h);
+          l.root.addAt(rect, under ? l.root.getIndex(l.fruit) + 1 : l.root.getIndex(l.fixtures));
           this.shapes[i]?.push({
             shape: rect,
             rect: { x0: -LAYER_BLEED_PX, y0: top, x1: width - LAYER_BLEED_PX, y1: bottom },

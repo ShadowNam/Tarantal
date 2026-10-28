@@ -448,6 +448,18 @@ frames. When a nest is shot they pour out of the holes, swirl round it chatterin
 few dart at the camera, and they settle back after about 3–4 s; mid and far nests send smaller
 bursts.
 
+#### 4.3b The colony's everyday life (1.9.4, D-057)
+Round every family nest, all hunt long: 6–12 sociable weavers in sight, about 1.3× true size
+against the tree, darting out from under the nest and looping in the open sky either side of the
+trunk, a few perched on the thatch roof and the branches either side,
+hopping and pecking on the ground below, going back in (frames: flap ×2, glide, perch, hop, peck).
+Now and then an **African pygmy falcon** (tiny, white below, grey above, a red-orange eye ring, a
+barred black-and-white tail; a little bigger than a weaver) perches on a branch against the sky
+and looks round; in Namibië a
+pair of **rosy-faced lovebirds** (green, a rosy face, a blue rump, a pale bill) sits on a branch
+and flies a round now and then. A near shot scatters them all; they trickle back a few seconds
+later. One sheet (`desert/colony`, `tools/art/colony.ts`), 1× with an HD twin; on sim time.
+
 ## 5. Props, secrets, crates
 Each secret prop needs: idle, "hint glint" (4-frame shimmer), triggered state, and an occluder shape.
 Crates: wooden ammo crate on a patched canvas parachute (Oupa's initials stencilled).
@@ -493,6 +505,43 @@ The Okavango's makalani palm (*Hyphaene petersiana*), at the camelthorn quality 
   has an HD twin; the trunks and the mid crown stay Standard in HD (texture memory, D-056); the nut sheet at 2× (`src/game/view/palms/makalaniSheet.ts`, `tools/art/makalani.ts`).
 - **Sound:** a woody "tok" (crack-off and air hits, rising with the chain), a dry "krak!" (pop), a
   hard click on the bounce, the cans' whistle for Weg!.
+
+#### 4.2c The baobab and its residents (1.9.4, D-057)
+
+The Bushveld kremetart in winter (*Adansonia digitata*), redrawn at the camelthorn bar (D-035):
+- **Silhouette:** one shape: a massive, fluted, slightly buttressed trunk (root lobes at the foot,
+  a slim waist, swelling into the shoulder) that flows into six thick, tapering, root-like limbs
+  with filled crotches: no collar, no hard join. Crooked branches off the outer limbs, fine twigs.
+- **Bark:** smooth grey-pink to grey-brown (`#A88F86` lit, `#9A8A80`, shade −30 %), lit from the
+  upper left, the limbs' undersides in shade; horizontal wrinkles and folds that curve round the
+  trunk (densest at the foot and the shoulder), vertical fluting running on into the limbs, two old
+  elephant scars (pale, pinkish, gouged), lichen in pale grey-green and ochre spots.
+- **Pods:** small (a third to half the branch's thickness), egg-shaped, hairy, grey-green to
+  olive-tan, each on a long thin stalk, in twos and threes; they swing and drop when shot (v1.7c),
+  the pivot at the stalk's top. The secret pod is a cluster of three.
+- **Hollows:** a big cavity low on the trunk (the barn owl's), a small hole low on the trunk's right (the
+  bushbaby's), a hole high on limb 2 (the squirrel's): placed so no two holes read as eyes (review T1); the hornbill's slit in a rough, lumpy seal of grey-brown dried mud,
+  a crack with a glint of comb (the bees'); healed, swollen lips, dark insides, a worn sill. Two
+  untidy stick nests of the red-billed buffalo weavers on the outer limbs.
+- **Residents** (`bushveld/baobab_life`, `tools/art/baobabLife.ts`; drawn at 2×): a lesser
+  bushbaby (huge dark eyes with a pale nose stripe, big pink ears; ears → eyes → head out → looking),
+  a tree squirrel (grey-brown, a pale side stripe, a bushy tail; peeking, running ×2, sitting), a
+  barn owl in its cavity (white heart-shaped face, golden-buff crown; front, head turned, blinking)
+  and flying off, a yellow-billed hornbill (black-and-white spotted wings, white belly, big curved
+  yellow bill; flying ×2, clinging, feeding) and the female's beak tip in the slit, a red-billed
+  buffalo weaver (black, red bill, white wing patch; flying ×2, perched), a bee (amber, a dark
+  band; a dozen swirl as a little cloud). The bushbaby is big enough for its huge eyes to read and
+  peeks from a visible hole a little wider than its head. Frames at a hole
+  are cut off at its lower rim. They show themselves now and then on sim time; a near shot makes
+  one duck back or fly off. No sound loop.
+
+#### 4.2d The sausage tree (1.9.4, D-057)
+The Okavango's *Kigelia africana*: a short smooth grey-brown trunk with pale flaking patches and
+faint rings, forking into four thick limbs (one silhouette, as the baobab); a broad spreading
+crown of leaf clumps in three tiers (dark under, lit upper left, dense oblong leaflets breaking
+the edges, gaps where limbs show); a few maroon flowers on hanging cords; heavy, slightly curved
+grey-brown sausages with a rough, lenticel-speckled skin, in four sizes, on long thin rope stalks
+at staggered heights (never in a row). They swing and drop when shot (v1.7c).
 
 ### 5.1 Skietbaan targets (D-037, D-040)
 Semi-realistic (D-035): no dark contours, light from the upper left. Interim art from

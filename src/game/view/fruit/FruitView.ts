@@ -18,6 +18,7 @@ import type { AudioDirector } from '../../audio/AudioDirector';
 import type { ParallaxView } from '../ParallaxView';
 import {
   fruitShot,
+  fruitAim,
   pelletsOnLayer,
   shotDriftPx,
   type Impact,
@@ -447,20 +448,8 @@ export class FruitView {
       const sy = (y: number): number => node.root.y + y * node.root.scaleY;
       const x = sx(f.img.x);
       if (out.length >= 200) break;
-      // Aim at the body: its middle (low in a hanging frame that holds its own stalk, high on a
-      // flower spike); turned with the swing.
-      const down =
-        f.spot.motion === 'hang' && f.spot.stalk === null
-          ? 0.72
-          : f.spot.motion === 'stand'
-            ? 0.3
-            : 0.5;
-      const aim = rotate(
-        { x: f.img.x - f.spot.ox + f.spot.fw / 2, y: f.img.y - f.spot.oy + f.spot.fh * down },
-        f.img.x,
-        f.img.y,
-        f.img.rotation,
-      );
+      // Aim at the body's middle, turned with the swing (fruitAim: inside its hit area).
+      const aim = fruitAim(f.spot, { x: f.img.x, y: f.img.y }, f.img.rotation);
       const cx = aim.x;
       const cy = aim.y;
       const land = landTick(f.spot, f.state, this.tuning, this.reduced);

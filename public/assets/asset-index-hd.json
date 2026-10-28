@@ -21,6 +21,16 @@
       "height": 800,
       "scale": 0.5
     },
+    "bushveld/baobab_life": {
+      "file": {
+        "path": "assets/bushveld-winter-hd/img/bushveld_baobab_life.d640cb7e7e04.png",
+        "bytes": 17660,
+        "hash": "d640cb7e7e04"
+      },
+      "width": 512,
+      "height": 516,
+      "scale": 0.5
+    },
     "bushveld/boulder_a": {
       "file": {
         "path": "assets/bushveld-winter-hd/img/bushveld_boulder_a.ecd7afa65588.png",
@@ -69,6 +79,16 @@
       },
       "width": 520,
       "height": 720,
+      "scale": 0.5
+    },
+    "desert/colony": {
+      "file": {
+        "path": "assets/desert-hd/img/desert_colony.c3cdc417e37f.png",
+        "bytes": 8510,
+        "hash": "c3cdc417e37f"
+      },
+      "width": 512,
+      "height": 252,
       "scale": 0.5
     },
     "fauna/bushveld_elephants": {
@@ -461,6 +481,16 @@
       "height": 760,
       "scale": 0.5
     },
+    "kalahari/weaver_camelthorn": {
+      "file": {
+        "path": "assets/kalahari-summer-hd/img/kalahari_weaver_camelthorn.b307a46dc82d.png",
+        "bytes": 231194,
+        "hash": "b307a46dc82d"
+      },
+      "width": 1160,
+      "height": 1160,
+      "scale": 0.5
+    },
     "karoo/aloe_a": {
       "file": {
         "path": "assets/karoo-autumn-hd/img/karoo_aloe_a.46f5f9de1818.png",
@@ -653,9 +683,9 @@
     },
     "okavango/sausage_tree": {
       "file": {
-        "path": "assets/okavango-spring-hd/img/okavango_sausage_tree.dc649ebfaaf9.png",
-        "bytes": 118836,
-        "hash": "dc649ebfaaf9"
+        "path": "assets/okavango-spring-hd/img/okavango_sausage_tree.d1ce0ccf6067.png",
+        "bytes": 136852,
+        "hash": "d1ce0ccf6067"
       },
       "width": 960,
       "height": 1280,

@@ -86,16 +86,18 @@ export function kigelia(s: KigeliaShape): FruitDrawing {
   const d: Pt = [Math.sin(s.tilt), Math.cos(s.tilt)];
   const n: Pt = [Math.cos(s.tilt), -Math.sin(s.tilt)];
   // Heavy fruit hang with a slight curve (either way).
-  const curl = (rnd() < 0.5 ? -1 : 1) * (0.05 + rnd() * 0.07);
+  // A gentle curve, either way (review T4: never straight cones).
+  const curl = (rnd() < 0.5 ? -1 : 1) * (0.07 + rnd() * 0.06);
   const P = (t: number, side: number): Pt => {
     const bend = curl * len * t * t;
     return [x1 + d[0] * len * t + n[0] * (bend + side), y1 + d[1] * len * t + n[1] * (bend + side)];
   };
   /** Half width along the fruit: a narrow neck, swelling to the tip, rounded both ends. */
   const hw = (t: number): number => {
-    const swell = 0.5 + 0.5 * Math.min(1, t / 0.4) ** 0.8;
-    const grow = 0.9 + 0.18 * t;
-    const capB = t > 0.84 ? Math.sqrt(Math.max(0, 1 - ((t - 0.84) / 0.16) ** 2)) : 1;
+    // A short neck that soon fills out (not a cone), slightly fatter toward the rounded end.
+    const swell = 0.66 + 0.34 * Math.min(1, t / 0.25) ** 0.7;
+    const grow = 0.88 + 0.26 * t;
+    const capB = t > 0.76 ? Math.sqrt(Math.max(0, 1 - ((t - 0.76) / 0.24) ** 2)) : 1;
     const capT = t < 0.05 ? 0.55 + 0.45 * Math.sqrt(1 - ((0.05 - t) / 0.05) ** 2) : 1;
     return (w / 2) * swell * grow * capB * capT;
   };

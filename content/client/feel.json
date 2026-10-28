@@ -1274,5 +1274,34 @@
     "shadowFadePx": 180,
     "pitchPerChain": 0.06,
     "pitchMax": 1.7
+  },
+  "treeLife": {
+    "residents": {
+      "galago": { "slotSeconds": 16, "chance": 0.35, "duskChance": 0.85, "outSeconds": 5 },
+      "squirrel": { "slotSeconds": 18, "chance": 0.7, "outSeconds": 6.5 },
+      "owl": { "slotSeconds": 21, "chance": 0.7, "outSeconds": 6 },
+      "hornbill": { "slotSeconds": 24, "chance": 0.65, "outSeconds": 8 },
+      "buffaloWeaver": { "slotSeconds": 10, "chance": 0.8, "outSeconds": 6 }
+    },
+    "duckRadiusPx": 60,
+    "duckSeconds": 0.3,
+    "bees": { "count": 12, "radiusPx": [5, 17], "swirlHz": 0.55, "scatterSeconds": 2.5, "scatterMul": 2.6 },
+    "colony": {
+      "birds": { "near": 13, "mid": 13, "far": 5, "ver": 3 },
+      "wingspanPx": { "near": 32, "mid": 22, "far": 12, "ver": 8 },
+      "falconMul": 1.2,
+      "perchShare": 0.3,
+      "groundShare": 0.14,
+      "reducedCountMul": 0.5,
+      "reducedSlowMul": 1.5,
+      "cycleSeconds": [8, 15],
+      "insideShare": 0.18,
+      "flightSeconds": [0.7, 1.3],
+      "nearShotPx": 110,
+      "scatterSeconds": 3.5,
+      "trickleSeconds": 3,
+      "falcon": { "slotSeconds": 22, "chance": 0.65, "outSeconds": 9 },
+      "lovebirds": { "slotSeconds": 14, "flySeconds": 3 }
+    }
   }
 }

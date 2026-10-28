@@ -2284,6 +2284,57 @@ export const FeelSchema = obj({
     pitchPerChain: nonNeg,
     pitchMax: pos,
   }),
+  /** 1.9.4 (D-057): the baobab's residents (art bible §4.2c; view only, on sim time). Each one
+   *  shows itself at most once per slot of slotSeconds: with probability chance (the bushbaby
+   *  duskChance on dawn, dusk and golden light), for outSeconds, at a seeded point in the slot. */
+  treeLife: obj({
+    residents: obj({
+      galago: obj({ slotSeconds: pos, chance: fraction, duskChance: fraction, outSeconds: pos }),
+      squirrel: obj({ slotSeconds: pos, chance: fraction, outSeconds: pos }),
+      owl: obj({ slotSeconds: pos, chance: fraction, outSeconds: pos }),
+      hornbill: obj({ slotSeconds: pos, chance: fraction, outSeconds: pos }),
+      buffaloWeaver: obj({ slotSeconds: pos, chance: fraction, outSeconds: pos }),
+    }),
+    /** A pellet this close to a resident (prop px) makes it duck back (or fly off). */
+    duckRadiusPx: pos,
+    /** How long ducking back (or the start of flying off) takes. */
+    duckSeconds: pos,
+    /** The bees at their crack: how many, how far they swirl (prop px), and how long and how
+     *  much wider they swirl after a near shot. */
+    bees: obj({
+      count: posInt,
+      radiusPx: z.tuple([pos, pos]),
+      swirlHz: pos,
+      scatterSeconds: pos,
+      scatterMul: pos,
+    }),
+    /** The sociable weavers' colony life (art bible §4.3b): weavers round a family nest per
+     *  plane (reduce motion: × reducedCountMul, cycles × reducedSlowMul slower); each lives
+     *  cycles of cycleSeconds (insideShare of them in the nest), flights of flightSeconds. A
+     *  pellet within nearShotPx of the nest (× the plane's scale) scatters them for
+     *  scatterSeconds; they trickle back over trickleSeconds. */
+    colony: obj({
+      birds: obj({ near: nonNegInt, mid: nonNegInt, far: nonNegInt, ver: nonNegInt }),
+      /** A weaver's drawn wingspan per plane (design px): about 1.3× true size against its tree,
+       *  so they read at the tree's plane scale (review R4). The falcon is falconMul × that. */
+      wingspanPx: obj({ near: pos, mid: pos, far: pos, ver: pos }),
+      falconMul: pos,
+      /** Of the cycles that aren't spent inside: perched on the roof and branches, on the ground;
+       *  the rest are loops in the open sky under the nest. */
+      perchShare: fraction,
+      groundShare: fraction,
+      reducedCountMul: fraction,
+      reducedSlowMul: pos,
+      cycleSeconds: z.tuple([pos, pos]),
+      insideShare: fraction,
+      flightSeconds: z.tuple([pos, pos]),
+      nearShotPx: pos,
+      scatterSeconds: pos,
+      trickleSeconds: pos,
+      falcon: obj({ slotSeconds: pos, chance: fraction, outSeconds: pos }),
+      lovebirds: obj({ slotSeconds: pos, flySeconds: pos }),
+    }),
+  }),
 });
 export type Feel = z.infer<typeof FeelSchema>;
 

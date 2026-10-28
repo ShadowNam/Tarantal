@@ -42,15 +42,28 @@
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/bushveld_baobab.54412da851c6.png",
-        "bytes": 115619,
-        "hash": "54412da851c6"
+        "path": "assets/bushveld-winter/img/bushveld_baobab.744922fff5e9.png",
+        "bytes": 157706,
+        "hash": "744922fff5e9"
       },
       "width": 1200,
       "height": 1280,
       "scale": 0.5,
       "originX": 0.5,
       "originY": 0.5625
+    },
+    "bushveld/baobab_life": {
+      "group": "bushveld-winter",
+      "origin": "interim",
+      "file": {
+        "path": "assets/bushveld-winter/img/bushveld_baobab_life.0af95f4fc8ea.png",
+        "bytes": 9661,
+        "hash": "0af95f4fc8ea"
+      },
+      "width": 256,
+      "height": 258,
+      "originX": 0,
+      "originY": 0
     },
     "bushveld/boulder_a": {
       "group": "bushveld-winter",
@@ -89,9 +102,9 @@
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/bushveld_dassie_koppie.ec0a8ec0e2c0.png",
-        "bytes": 36771,
-        "hash": "ec0a8ec0e2c0"
+        "path": "assets/bushveld-winter/img/bushveld_dassie_koppie.375efc749b45.png",
+        "bytes": 34629,
+        "hash": "375efc749b45"
       },
       "width": 1120,
       "height": 600,
@@ -120,6 +133,19 @@
       },
       "width": 260,
       "height": 360
+    },
+    "desert/colony": {
+      "group": "desert",
+      "origin": "interim",
+      "file": {
+        "path": "assets/desert/img/desert_colony.2b16eaae1075.png",
+        "bytes": 3859,
+        "hash": "2b16eaae1075"
+      },
+      "width": 256,
+      "height": 126,
+      "originX": 0,
+      "originY": 0
     },
     "desert/meerkats": {
       "group": "desert",
@@ -2733,9 +2759,9 @@
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/fruit_bushveld-winter.a42d38ddf779.png",
-        "bytes": 9984,
-        "hash": "a42d38ddf779"
+        "path": "assets/bushveld-winter/img/fruit_bushveld-winter.c57b1f35cf9c.png",
+        "bytes": 7420,
+        "hash": "c57b1f35cf9c"
       },
       "width": 512,
       "height": 512,
@@ -2785,9 +2811,9 @@
       "group": "okavango-spring",
       "origin": "interim",
       "file": {
-        "path": "assets/okavango-spring/img/fruit_okavango-spring.967135788678.png",
-        "bytes": 22900,
-        "hash": "967135788678"
+        "path": "assets/okavango-spring/img/fruit_okavango-spring.a0d38dfe9043.png",
+        "bytes": 25209,
+        "hash": "a0d38dfe9043"
       },
       "width": 512,
       "height": 512,
@@ -3083,13 +3109,12 @@
       "group": "kalahari-summer",
       "origin": "interim",
       "file": {
-        "path": "assets/kalahari-summer/img/kalahari_weaver_camelthorn.702405d9bb0b.png",
-        "bytes": 232730,
-        "hash": "702405d9bb0b"
+        "path": "assets/kalahari-summer/img/kalahari_weaver_camelthorn.e9eb5a8ec271.png",
+        "bytes": 79594,
+        "hash": "e9eb5a8ec271"
       },
-      "width": 1160,
-      "height": 1160,
-      "scale": 0.5,
+      "width": 580,
+      "height": 580,
       "originX": 0.5,
       "originY": 0.5172413793103449
     },
@@ -3495,9 +3520,9 @@
       "group": "okavango-spring",
       "origin": "interim",
       "file": {
-        "path": "assets/okavango-spring/img/okavango_sausage_tree.0076ee36a100.png",
-        "bytes": 46271,
-        "hash": "0076ee36a100"
+        "path": "assets/okavango-spring/img/okavango_sausage_tree.b5465886bfb4.png",
+        "bytes": 52735,
+        "hash": "b5465886bfb4"
       },
       "width": 480,
       "height": 640,

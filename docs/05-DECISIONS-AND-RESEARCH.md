@@ -3148,6 +3148,80 @@ as it's so close by." GDD §11.3b, §11.3; art bible §4.2b; Tech §3.13.
   which now shoots the far fence's cans too, on Karoo Wednesday).
 - *Later (build plan):* a carved makalani nut as a Notaboek reward or a charm.
 
+**D-057 1.9.4 Tree life: a living baobab, a better sausage tree and a busy weaver colony (28 Oct
+2026):** the product owner (26 Oct, with screenshots). Bushveld: "This big tree … it's a good
+start, but I think we need to put a bit more detail into it. Also the fruit somehow makes it look a
+bit weird … maybe the tree needs a few holes where a little mouse can look out or something
+similar … to make it a bit more alive." Kalahari: "this big family tree, I think it would be good
+to have some little birds fly around there also." Okavango: the sausages "still all look very stick
+figure like". GDD §11.1b; art bible §4.2c, §4.2d, §4.3b; Tech §3.14.
+- *The baobab* (`bushveld/baobab`, tools/art/baobab.ts) is one silhouette: a fluted, slightly
+  buttressed trunk that flows into six root-like limbs (each piece is inked and painted in the same
+  pass, with filled crotches, so there is no collar or hard join), grey-pink bark lit from the
+  upper left, horizontal wrinkles, vertical fluting that runs on into the limbs, two old elephant
+  scars, lichen; branches and fine twigs; the limbs' geometry, the hollows, the buffalo weavers'
+  stick nests and the squirrel's run live in `src/game/view/tree/baobabShape.ts`, which the art and
+  the view share. The pods are small (a third to half the branch's thickness), hairy, on long thin
+  stalks, in twos and threes; the secret pod is a cluster of three inside the content's hit
+  ellipse (content unchanged). 80 colours (the Bushveld chunk had 57 KB).
+- *The hard light band* across its trunk was the dawn mist's band on the mid layer (`dawn_mist`
+  haze from y 520), drawn over the layer's props. A haze band with an edge (top or bottom) now goes
+  under a plane layer's props (`hazeOrder.ts`); a whole-layer distance haze has no edge and stays
+  over them; sky and backdrop layers keep their order.
+- *Residents* (view only): a lesser bushbaby peeks from a small hole on the trunk's right side (more often under
+  dawn, dusk and golden light), a tree squirrel pops out of limb 2 and runs up it and back, a barn
+  owl looks out of the big cavity (turns its head, blinks), a yellow-billed hornbill flies in to
+  the sealed slit and feeds the female (her beak tip shows), red-billed buffalo weavers come and go
+  at their stick nests, and wild bees swirl at a crack. Each resident shows itself at most once per
+  slot of `slotSeconds` (feel.json `treeLife`), with a seeded chance, at a seeded point of the slot:
+  `lifeHash(seed, resident, slot)`, a pure function of the hunt's seed and the sim tick (never the
+  sim's RNG streams, no sim state). A pellet impact on the baobab's layer within `duckRadiusPx`
+  (mapped with `planeX = (cx − 960) × scrollFactor + 960 + dx`, fruitHits.ts) makes the one it
+  startles duck back (or the owl, hornbill and weaver fly off) for the rest of that visit; residents
+  never score and sit under the layer's birds, so they never block a shot at a bird. Their sheet
+  (`bushveld/baobab_life`) is drawn at 2× (18 KB; HD needs no twin): at 1× the small animals were
+  mostly half-transparent edge pixels and the squirrel read as a faint outline (review R2). The
+  bushbaby is 1.6× and peeks from a visible hole a little wider than its head (review R1); the
+  squirrel is 1.5×; a dozen amber bees make a little cloud at their crack (review R3). Room for it
+  in the Bushveld chunk: the baobab at 80 colours and the dassie koppie at 96 (1,525.0 KB). Frames
+  at a hole are drawn masked by the hole (the opening, and only ears above its upper rim), so the
+  view needs no mask. The wind's drift is left out of the near-shot test (it is a few px on the mid layer).
+- *Sausage tree* (`okavango/sausage_tree`, tools/art/sausageTree.ts): the same one-silhouette trunk
+  and limbs, a crown of eleven leaf clumps in three tiers (dark under, lit upper left, dense
+  leaflets breaking the edges, gaps where the limbs show), maroon flower cords, and the sausages
+  in four sizes (× 0.7 – 1.6), heavier and curved, on rope stalks of 34–104 px at staggered
+  heights (v1.7c swing and drop kept, the pivot at the stalk top). The fruit sheet is 9 KB smaller.
+- *Weaver colony* (`ColonyView`, colonyFlight.ts): 12 (mid) or 13 (near) weavers per family nest
+  live cycles of 8–15 s: in the nest, a dart (with a loop now and then) out of an entrance hole to
+  a perch on the roof or a branch, to the ground to hop and peck, or a wider loop; 6–12 are in
+  sight most of the time. A pygmy falcon perches at the nest now and then; in Namibië a pair of
+  rosy-faced lovebirds sits on a branch and flies a round now and then. A pellet within
+  `nearShotPx` of the nest scatters them for `scatterSeconds`; the nest shot itself (the existing
+  −10 every 2 s, `bark.weavers`, and the angry burst) scatters them for the burst; they trickle
+  back over `trickleSeconds`. Reduce motion: half the birds, cycles 1.5× slower. One sheet,
+  `desert/colony` (4 KB; HD twin 8 KB), in the desert group (it loads with either desert map).
+  Review R4–R5 (held desktop frames showed about 4 weavers, specks against the thatch): 13 per
+  nest, most cycles now loops in the open sky under the nest either side of the trunk(s) (each
+  bird on its own phase), a few perched on the roof and branches; drawn at a set wingspan per
+  plane (`wingspanPx`: 22 px mid, 32 px near, about 1.3× true size against the tree). The falcon
+  is 1.2× a weaver and perches on a branch against the sky picked from each tree's art
+  (`COLONY_FALCON_PERCH`); the test build's `?treeLife=falcon` keeps it perched the whole visit.
+- *Room in the Kalahari chunk.* `kalahari/weaver_camelthorn` is 1× in Standard with its 2× twin in
+  the Kalahari HD pack, as the Namibië nest tree has been (D-053): −149 KB in the Kalahari chunk
+  (Kalahari + desert 1,497.4 → 1,352.6 KB). HD texture memory is unchanged by it (the 2× twin
+  replaces a 2× master).
+- *First download (must not grow).* The residents' and the colony's views, and WeaverView (the
+  angry burst, v1.4), are one lazy chunk (`TreeLifeView`, 8.6 KB gzip) loaded on maps with the
+  baobab or a family nest; the scene plays the burst's scolding and counts it from the
+  `secretPenalty` event itself, and holds nest shots that come before the chunk for its burst
+  (review). First download 2,991.4 KB, 0.4 KB under main.
+- *HD texture memory* (computed from the textures; perf.spec measures it in CI): the residents'
+  2× sheet adds 0.8 MB to the Bushveld hunt (≈ 225.5 MB), the colony's 0.4 MB to the Kalahari and
+  Namibië hunts (≈ 225 and 229 MB); the sausage tree keeps its size (Okavango ≈ 240 MB); budget 256.
+- *Golden replays* are unchanged: none of this is in the sim (`npm run golden:update` shows no
+  diff), and feel.json is outside the content hash.
+- *Later (build plan, v1.13):* the residents become "Did you know?" entries in the field guide.
+
 
 ## 3. Research notes (with sources)
 
@@ -3218,6 +3292,29 @@ subagent, verification Claude can run itself, plan mode for multi-file work.
   [TravelNam — makalani](https://travelnam.com/?p=43892) ·
   [Cheetah Conservation Fund — the art of makalani nuts](https://cheetah.org/ccf-blog/ccf-in-namibia/the-art-of-makalani-nuts-richard-and-eddies-craftsmanship-in-namibia/) ·
   [Travel News Namibia — trees: cosmetic oil, palm wine and African sandalwood](https://travelnewsnamibia.com/trees-cosmetic-oil-palm-wine-and-african-sandalwood)
+
+**Baobab life and sociable-weaver colonies (D-057)**
+- *Baobab fruit:* large (15–22 cm), hairy, grey-green to yellow-brown egg- or sausage-shaped
+  capsules hanging on long stalks all over the bare tree; the tree is leafless most of the year,
+  so fruit on bare branches in the Bushveld winter is right.
+  Sources: [worldplants.ca — Adansonia digitata](https://www.worldplants.ca/display.php?id=3700) ·
+  [NTBG — Adansonia digitata](https://ntbg.org/database/plants/detail/adansonia-digitata)
+- *Who lives in baobabs:* hollows shelter galagos (bushbabies), tree squirrels, rodents, lizards
+  and snakes; larger cavities hold barn owls or ground hornbills; hornbills, rollers, parrots,
+  kestrels and spinetails nest in holes; wild honeybees hive in hollows; red-billed and
+  white-billed buffalo weavers build their stick nests in baobab crowns so often they could be
+  called "baobab weavers".
+  Sources: [NTBG — Adansonia digitata](https://ntbg.org/database/plants/detail/adansonia-digitata) ·
+  [Weavers of the world — red-billed buffalo weaver](https://weavers.adu.org.za/spcat.php?spc=22) ·
+  [Rufford Foundation — Tiwonge Gawa, baobab fauna](https://www.rufford.org/projects/tiwonge_gawa)
+- *Sociable weaver colonies:* up to ~100 families in one nest, some used for over a century; the
+  African pygmy falcon lives almost only in weaver colonies; pied barbets, familiar chats,
+  red-headed finches, ashy tits and rosy-faced lovebirds also use the chambers; owls, vultures and
+  eagles roost on the roof.
+  Sources: [San Diego Zoo — sociable weaver](https://animals.sandiegozoo.org/node/229) ·
+  [Audubon — Africa's social weaverbirds](https://www.audubon.org/) ·
+  [Tswalu — pygmy falcon research](https://www.tswalu.com/) ·
+  [Colossal — sociable weaver nests](https://www.thisiscolossal.com/?p=30414)
 
 ## 4. Open questions for the product owner
 1. Portrait support in v1? (Default: no.)

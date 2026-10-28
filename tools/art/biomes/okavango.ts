@@ -2,8 +2,9 @@
 // islands of jackalberry and ilala palms on the horizon, green grass cut by water channels, reed
 // beds and papyrus, a sausage tree, a hippo in the shallows, a lily pad with a reed frog, a
 // mokoro marker pole. No jacarandas (bible §2). Soft light from the upper left. D-031.
-import { bareBranch, plantLook, seedTuft } from '../flora';
-import { jackalberry, sausageTree as sausageSpecies } from '../species';
+import { seedTuft } from '../flora';
+import { jackalberry } from '../species';
+import { sausageTreeNear } from '../sausageTree';
 import { makalaniPalm } from '../makalani';
 import type { BiomeArtPlan, LayerCtx, PropCtx } from '../landscape';
 import {
@@ -669,13 +670,9 @@ function mokoroPole(ctx: PropCtx): string {
  * at (0, 95), 70 × 330 (the foot at y 260); birds perch at (−130, −170) on a bare branch.
  */
 function sausageTree(ctx: PropCtx): string {
-  const t = sausageSpecies(ctx.rnd, 0, 260, 560, ctx, 'near', 9, { w: 205, depth: 0.4, fork: 0.5 });
-  const look = plantLook({
-    leaf: ctx.tint('#4F7A38'),
-    bark: ctx.tint('#7A6E62'),
-    ink: ctx.pen.ink,
-  });
-  return g({}, t.svg, bareBranch(ctx.rnd, [-6, -40], [-150, -166], 14, look, 'smooth'));
+  // 1.9.4 (D-057): redrawn (tools/art/sausageTree.ts): a layered, lit crown, smooth bark, heavy
+  // sausages in a few sizes on long rope stalks.
+  return sausageTreeNear(ctx.rnd, ctx, { perch: [-130, -170], fruits: 9 });
 }
 
 function hippo(ctx: PropCtx): string {

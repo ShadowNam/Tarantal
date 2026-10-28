@@ -7,6 +7,7 @@
 import { tapToPlane } from '../../../sim/camera';
 import type { WindView } from '../../../sim/types';
 import type { FruitTuning, ShotOnFruit } from './fruitMotion';
+import type { FruitSpot } from './fruitTypes';
 
 /** A fruit's box on its layer (layer px). */
 export interface FruitBox {
@@ -142,4 +143,26 @@ export function fruitShot(
   });
   const box = { left: pivot.x - frame.ox, top: pivot.y - frame.oy, w: frame.fw, h: frame.fh };
   return shotOnFruit(box, local, tick, t);
+}
+
+/**
+ * 1.9.4 (review F1): where to aim at a fruit posed with its body's pivot at `pivot`, turned by
+ * `angle`: the middle of its drawn frame (low in a hanging frame that holds its own stalk, high on
+ * a flower spike), turned with the swing. The same frame is the hit area fruitShot() tests, so the
+ * aim point always lies inside it.
+ */
+export function fruitAim(
+  spot: Pick<FruitSpot, 'motion' | 'stalk' | 'fw' | 'fh' | 'ox' | 'oy'>,
+  pivot: LayerPellet,
+  angle: number,
+): LayerPellet {
+  const down =
+    spot.motion === 'hang' && spot.stalk === null ? 0.72 : spot.motion === 'stand' ? 0.3 : 0.5;
+  const x = pivot.x - spot.ox + spot.fw / 2;
+  const y = pivot.y - spot.oy + spot.fh * down;
+  const c = Math.cos(angle);
+  const s = Math.sin(angle);
+  const dx = x - pivot.x;
+  const dy = y - pivot.y;
+  return { x: pivot.x + dx * c - dy * s, y: pivot.y + dx * s + dy * c };
 }

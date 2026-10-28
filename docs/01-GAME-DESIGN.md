@@ -502,6 +502,18 @@ flash from any source keeps at least ½ s from the last (≤ 2 a second), and "r
 them. The weaver nest costs 10 each time you hit it (every 2 s at most) and is not a secret
 found. Numbers live in `content/biomes/kalahari-summer.json`.
 
+### 11.1b Life in the trees: non-target residents (1.9.4, D-057)
+The big trees are alive, and none of it is a target. The Bushveld baobab has hollows: now and then
+a bushbaby peeks out (more at dawn and dusk), a tree squirrel runs up a limb and back, a barn owl
+looks out of the big cavity, a yellow-billed hornbill brings food to the female sealed in her nest
+(her beak tip shows in the slit), buffalo weavers come and go at their stick nests, and bees swirl
+at a crack. A shot close to one makes it duck back into its hole, or fly off and come back later.
+Round each sociable-weaver nest (Kalahari, Namibië) the colony lives its day: weavers dart in and
+out, perch, hop on the sand; a pygmy falcon visits; in Namibië two lovebirds sit together. A near
+shot scatters them; they trickle back. Shooting the nest still costs 10 (every 2 s at most).
+Residents never score, never block a shot and never change the hunt (view only; replays and the
+Daily are unchanged). In v1.13 they become "Did you know?" entries in the field guide.
+
 ### 11.2 Meerkat colonies on the desert maps (v1.7, D-044)
 
 The product owner (24 Oct): "the desert stages should have small meerkat holes, and occasionally

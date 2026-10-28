@@ -667,7 +667,9 @@ export const KALAHARI_PLAN: BiomeArtPlan = {
   props: {
     'kalahari/weaver_camelthorn': {
       draw: weaverCamelthorn,
-      master: 2,
+      // 1.9.4 (D-057): 1× in Standard, its 2× twin in the Kalahari's HD pack (as the Namibië
+      // nest tree): −150 KB in the Kalahari chunk for the weaver colony's life.
+      master: 1,
       // D-054: 128 colours (no visible change; −40 KB) to make room for the far animals.
       colours: 128,
       wobble: false,

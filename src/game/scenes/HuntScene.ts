@@ -32,7 +32,7 @@ import type { SimEvent } from '../../sim/events';
 import { createRecorder, encodeInputLogText, type InputRecorder } from '../../sim/replay/inputLog';
 import { createSim } from '../../sim/Sim';
 import type { HuntResult, InputKind, ModeConfig, ModeId, PlaneId, SimState } from '../../sim/types';
-import { CAMERA_MAX_X, CAMERA_MIN_X } from '../../sim/world';
+import { CAMERA_MAX_X, CAMERA_MIN_X, coreWidth } from '../../sim/world';
 import {
   neededBeforeStart,
   neededLateMissing,
@@ -57,10 +57,10 @@ import { WeaponView } from '../view/WeaponView';
 import { planeToDx } from '../../sim/camera';
 import { crosshairExtent, reloadBoostsOf, spreadMulOf } from '../ui/gunLook';
 import { WorldView } from '../view/WorldView';
-import { WeaverView } from '../view/WeaverView';
 import { MeerkatView } from '../view/MeerkatView';
 import { CanView } from '../view/cans/CanView';
 import type { MakalaniView } from '../view/palms/MakalaniView';
+import type { TreeLifeView } from '../view/tree/TreeLifeView';
 import { playPotjieSound } from '../view/potjieSounds';
 import { playMeerkatSound } from '../audio/meerkatSounds';
 import { largestTextures, textureBytes } from '../assets/textureBytes';
@@ -126,8 +126,6 @@ export class HuntScene extends Phaser.Scene {
   private fx!: Fx;
   private weapon!: WeaponView;
   private world!: WorldView;
-  /** v1.4 B (D-039): angry weavers out of a shot family nest. */
-  private weavers!: WeaverView;
   /** v1.7 (D-044): the desert maps' meerkat colonies. */
   private meerkats!: MeerkatView;
   /** v1.8 (D-050): the day's fence and tin cans. */
@@ -141,6 +139,15 @@ export class HuntScene extends Phaser.Scene {
   /** v1.7c (D-047): fruit that swing and drop when shot (lazy chunk; null until it is in). */
   private fruit: FruitView | null = null;
   private fruitGen = 0;
+  /** 1.9.4 (D-057): the trees' residents (lazy chunk; null until it is in, or no baobab). */
+  private treeLife: TreeLifeView | null = null;
+  private treeLifeGen = 0;
+  /** Family nests by prop id (layer, x on it): the weavers' scolding is panned from here. */
+  private weaverNests = new Map<string, { layer: string; x: number }>();
+  /** Nest shots before the tree-life chunk was in (its burst plays them once it is). */
+  private lifeHeld: SimEvent[] = [];
+  private lightIds: readonly string[] = [];
+  private huntSeed = 0;
   /** Scroll factor of each prop of the map on screen (where a pellet stopped, for the fruit). */
   private propFactor = new Map<string, number>();
   private debug!: DebugOverlay;
@@ -374,6 +381,7 @@ export class HuntScene extends Phaser.Scene {
         ? null
         : feesdagById(this.ctx.content.feesdae, this.map.feesdag);
     const lightIds = special === null ? mapLights(map) : [special.light];
+    this.lightIds = lightIds;
     const lights = lightIds.flatMap((id) => {
       const light = this.ctx.feel.lights[id];
       return light === undefined ? [] : [light];
@@ -440,12 +448,6 @@ export class HuntScene extends Phaser.Scene {
     this.world.secretGlow = lights.some((l) => l.secretGlow === true);
     this.world.reducedMotion = this.ctx.reducedMotion;
     const planes = this.ctx.content.scoring.planes;
-    this.weavers = new WeaverView(this, this.ctx.feel, mapBiome, this.parallax, {
-      near: planes.near.scale,
-      mid: planes.mid.scale,
-      far: planes.far.scale,
-      ver: planes.ver.scale,
-    });
     this.spookView?.clear();
     this.spookView = null;
     const look = special === null ? undefined : this.ctx.feel.feesdae.looks[special.id];
@@ -537,6 +539,7 @@ export class HuntScene extends Phaser.Scene {
     this.makalaniGen++;
     this.makalaniArgs = { scales, weights };
     this.loadFruit(mapBiome);
+    this.loadTreeLife(mapBiome, scales);
     this.weapon = new WeaponView(
       this,
       this.ctx.feel,
@@ -1480,6 +1483,7 @@ export class HuntScene extends Phaser.Scene {
     }
     const aimAssist = save.settings.aimAssist;
     const seed = range?.seed ?? runHunt?.seed ?? plan?.seed ?? this.ctx.nextSeed();
+    this.huntSeed = seed;
     const sim = createSim({
       seed,
       content: this.ctx.content,
@@ -1785,7 +1789,6 @@ export class HuntScene extends Phaser.Scene {
     for (const c of this.world.potjie.cues)
       playPotjieSound(this.ctx.audio, c.sound, (c.screenX - width / 2) / (width / 2));
     const w0 = performance.now();
-    this.weavers.update(state);
     this.meerkats.update(state);
     this.cans.update(state, runner.prev, alpha);
     this.farCans.update(state, runner.prev, alpha);
@@ -1798,6 +1801,7 @@ export class HuntScene extends Phaser.Scene {
     this.spookView?.update(state.feesdag, runner.prev.feesdag, alpha, state.tick);
     // Interpolated like the birds and the camera (a held frame keeps alpha 0: it holds).
     this.fruit?.update(state, width, state.tick - 1 + alpha);
+    this.treeLife?.update(state, alpha);
     for (const cue of this.meerkats.cues) {
       const pan = (cue.screenX - width / 2) / (width / 2);
       // Only colonies on screen (or just off it) are heard.
@@ -1963,7 +1967,7 @@ export class HuntScene extends Phaser.Scene {
       hook.weapon = state.weapon.id;
       hook.powerups = state.powerups.map((p) => p.id);
       hook.wind = state.wind;
-      hook.weavers = this.weavers.visibleCount;
+      hook.weavers = this.treeLife?.weaverCount ?? 0;
       hook.potjie = this.world.potjie.hook;
       hook.hdProps = this.parallax.hdSpots();
       hook.meerkats = this.meerkats.spots();
@@ -2010,6 +2014,7 @@ export class HuntScene extends Phaser.Scene {
               swinging: this.fruit.swinging,
               spots: this.fruit.spots(),
             };
+      hook.treeLife = this.treeLife?.hook() ?? null;
       hook.mirage = state.mirage;
       hook.durationTicks = state.durationTicks;
     }
@@ -2058,6 +2063,48 @@ export class HuntScene extends Phaser.Scene {
         this.ctx.reducedMotion,
       );
     });
+  }
+
+  /** 1.9.4 (D-057): the tree-life chunk, for a map with the baobab or a weaver nest. */
+  private loadTreeLife(mapBiome: Biome, planeScale: Readonly<Record<PlaneId, number>>): void {
+    this.treeLife?.destroy();
+    this.treeLife = null;
+    const gen = ++this.treeLifeGen;
+    const weavers = this.ctx.feel.juice.weavers.barkKey;
+    this.lifeHeld = [];
+    this.weaverNests = new Map();
+    for (const p of mapBiome.props) {
+      const layer = mapBiome.layers.find((l) => l.id === p.layer);
+      if (
+        layer !== undefined &&
+        p.secret?.type === 'singleHit' &&
+        p.secret.reward.barkKey === weavers
+      )
+        this.weaverNests.set(p.id, { layer: layer.id, x: p.u * coreWidth(layer.scrollFactor) });
+    }
+    const wanted = mapBiome.props.some(
+      (p) =>
+        p.asset === 'bushveld/baobab' ||
+        (p.secret?.type === 'singleHit' && p.secret.reward.barkKey === weavers),
+    );
+    // e2e/dev only: ?treeLife=off (the art previews' "before").
+    if (!wanted || this.ctx.treeLifePreview === 'off') return;
+    void import('../view/tree/TreeLifeView')
+      .then((m) => {
+        if (gen !== this.treeLifeGen) return;
+        this.treeLife = new m.TreeLifeView(this, this.ctx.feel, mapBiome, this.parallax, {
+          seed: () => this.huntSeed,
+          lightIds: this.lightIds,
+          reducedMotion: this.ctx.reducedMotion,
+          preview: this.ctx.treeLifePreview,
+          farFactor: this.ctx.content.scoring.planes.far.scrollFactor,
+          cameraAt: (tick) => this.runner?.cameraAt(tick) ?? null,
+          planeScale,
+        });
+      })
+      .catch(() => {
+        // Offline without the chunk cached: the tree simply has no residents.
+      });
   }
 
   private loadFruit(mapBiome: Biome): void {
@@ -2173,10 +2220,25 @@ export class HuntScene extends Phaser.Scene {
       }
     }
     this.fruit?.handle(events, state, (e) => this.pelletStop(e, state), width);
-    for (const b of this.weavers.handle(events)) {
-      this.ctx.audio.weavers(Math.max(-1, Math.min(1, (b.screenX - half) / half)));
+    // v1.4 B: a shot family nest lets its weavers out; they chatter and scold (AudioDirector).
+    // 1.9.4 (review): the scolding and the count come straight from the event, so they never wait
+    // for the lazy tree-life chunk; nest shots before it is in are held for its burst.
+    for (const e of events) {
+      if (e.type !== 'secretPenalty') continue;
+      const nest = this.weaverNests.get(e.propId);
+      if (nest === undefined) continue;
+      const sx = (this.parallax.layer(nest.layer)?.root.x ?? 0) + nest.x;
+      this.ctx.audio.weavers(Math.max(-1, Math.min(1, (sx - half) / half)));
       if (this.ctx.hook) this.ctx.hook.weaverBursts++;
+      if (this.treeLife === null && this.lifeHeld.length < 16) this.lifeHeld.push(e);
     }
+    const stop = (e: Extract<SimEvent, { type: 'pelletImpact' }>): PelletStop | null =>
+      this.pelletStop(e, state);
+    if (this.treeLife !== null && this.lifeHeld.length > 0) {
+      this.treeLife.handle(this.lifeHeld, state, stop);
+      this.lifeHeld = [];
+    }
+    this.treeLife?.handle(events, state, stop);
     // The Skietbaan scores nothing: no Whole-flock stamp sound or slow-mo there (D-037).
     const heard = this.range === null ? events : events.filter((e) => e.type !== 'flockWiped');
     this.ctx.audio.handle(heard, (e) => {
@@ -2527,10 +2589,12 @@ export class HuntScene extends Phaser.Scene {
     this.cleanups = [];
     this.birds.clear();
     this.world.clear();
-    this.weavers.clear();
     this.meerkats.clear();
     this.spookView?.clear();
     this.fruit?.clear();
+    this.treeLife?.destroy();
+    this.treeLife = null;
+    this.treeLifeGen++;
     this.game.canvas.style.cursor = '';
   }
 }

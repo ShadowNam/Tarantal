@@ -519,6 +519,29 @@ replaces the biome's (`resolveMap`); a bonus map keeps its layout's. Tuning is
 - **View:** `CanView` (one per fence) and `MakalaniView` (palms from one trunk and one crown
   texture per plane, sway and reflection on sim ticks; nuts; bits; sounds via the AudioDirector).
 
+### 3.14 View-only life on sim time: tree residents and weaver colonies (1.9.4, D-057)
+- **Not in the sim.** The baobab's residents (`src/game/view/tree/baobabResidents.ts`) and the
+  weaver colonies' life (`colonyFlight.ts`) are pure functions of the sim tick and the hunt's
+  seed: `lifeHash(seed, …)` (an integer hash; never `Math.random`, never the sim's RNG streams)
+  picks each slot's visit, each bird's cycle and its targets. Held frames and replays draw the
+  same; golden replays never change. Tuning in `content/client/feel.json → treeLife` (outside the
+  content hash).
+- **Reactions from the event stream.** `BaobabLifeView` and `ColonyView` read `pelletImpact`
+  events, map each pellet onto their layer with `pelletsOnLayer` (fruitHits.ts: `planeX = (cx −
+  960) × scrollFactor + 960 + dx`; pellets a nearer bird or prop stopped are left out) and keep
+  only view state (the visit a resident was startled in, a colony's current scatter). The nest
+  shot's `secretPenalty` scatters its colony; the −10 is the sim's, as before.
+- **Never in the way.** Their sprites go in the layer's prop-fruit container: above the tree,
+  under the layer's haze, fixtures and birds. They take no pellets and never score.
+- **Lazy.** `TreeLifeView` (both views and WeaverView's angry burst) is a chunk of its own, loaded
+  on maps with the baobab or a family nest. Sheets are cut by the file under the key (1× Standard,
+  2× HD) and re-cut after a texture swap.
+- **Haze order** (`hazeOrder.ts`): on a plane layer a haze band with a top or bottom edge goes
+  under the layer's props; a whole-layer haze stays over them.
+- **Test build:** `?treeLife=<resident>|falcon` keeps one out almost all the time (art previews),
+  `?treeLife=off` turns the views off ("before" shots). Hook: `treeLife` (residents on screen,
+  near-shot ducks, the colonies' birds, falcon, lovebirds, scatters, nests).
+
 ## 4. Content system (`content/`, `src/content/`)
 
 - One Zod schema per file type in `schemas.ts`; types are `z.infer`'d — never hand-written twice.
