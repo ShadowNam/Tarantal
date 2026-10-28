@@ -26,7 +26,7 @@ import { el, ellipseD, g, polyD, r2 } from './svg';
 
 type Stop = readonly [number, string, number?];
 
-function gradient(
+export function gradient(
   kind: 'linear' | 'radial',
   attrs: Record<string, string | number>,
   stops: readonly Stop[],
@@ -50,7 +50,7 @@ interface Piece {
   readonly d: string;
 }
 
-function limbOutline(l: BaobabLimb, n = 28): { d: string; left: Pt[]; right: Pt[] } {
+export function limbOutline(l: BaobabLimb, n = 28): { d: string; left: Pt[]; right: Pt[] } {
   const left: Pt[] = [];
   const right: Pt[] = [];
   for (let i = 0; i <= n; i++) {
@@ -68,7 +68,7 @@ function limbOutline(l: BaobabLimb, n = 28): { d: string; left: Pt[]; right: Pt[
 }
 
 /** A crooked branch from `a` to `b` as a tapered outline, with its centre line. */
-function branch(
+export function branch(
   rnd: Rnd,
   a: Pt,
   b: Pt,

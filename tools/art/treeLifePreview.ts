@@ -46,7 +46,13 @@ function backdrop(
   return img;
 }
 
-async function prop(biomeId: string, key: string, name: string, footPx: number): Promise<void> {
+async function prop(
+  biomeId: string,
+  key: string,
+  name: string,
+  footPx: number,
+  res?: number,
+): Promise<void> {
   const biome = content.biomes.find((b) => b.id === biomeId);
   const plan = BIOME_PLANS.find((p) => p.biome === biomeId);
   if (biome === undefined || plan === undefined) throw new Error(biomeId);
@@ -55,8 +61,8 @@ async function prop(biomeId: string, key: string, name: string, footPx: number):
   const pr = biome.props.find((p) => p.asset === key);
   const size = m.size(key);
   if (pr === undefined || size === null) throw new Error(key);
-  const r = renderProp(cfg, plan, biome, pr, size, m.origin(key));
-  const foot = Math.round(r.img.height * r.originY + footPx * r.master);
+  const r = renderProp(cfg, plan, biome, pr, size, m.origin(key), res);
+  const foot = Math.round(r.img.height * r.originY + footPx * (res ?? r.master));
   const bg = backdrop(
     r.img.width,
     r.img.height,
@@ -91,3 +97,6 @@ if (want === 'all' || want === 'residents') {
   writeFileSync(path, encodePng(bg));
   console.log(`${path} (${bg.width}×${bg.height})`);
 }
+
+if (want === 'all' || want === 'sausage')
+  await prop('okavango-spring', 'okavango/sausage_tree', 'sausage-tree', 260, 2);
