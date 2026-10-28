@@ -341,6 +341,16 @@
       "height": 32,
       "scale": 0.5
     },
+    "fx/makalani": {
+      "file": {
+        "path": "assets/okavango-spring-hd/img/fx_makalani.25f3b9bfb674.png",
+        "bytes": 7373,
+        "hash": "25f3b9bfb674"
+      },
+      "width": 392,
+      "height": 56,
+      "scale": 0.5
+    },
     "fx/puff": {
       "file": {
         "path": "assets/common-hd/img/fx_puff.1d3655c508c9.png",
@@ -559,6 +569,46 @@
       },
       "width": 360,
       "height": 400,
+      "scale": 0.5
+    },
+    "okavango/makalani_crown_mid": {
+      "file": {
+        "path": "assets/okavango-spring-hd/img/okavango_makalani_crown_mid.b00dab8886d8.png",
+        "bytes": 15946,
+        "hash": "b00dab8886d8"
+      },
+      "width": 236,
+      "height": 218,
+      "scale": 0.5
+    },
+    "okavango/makalani_crown_near": {
+      "file": {
+        "path": "assets/okavango-spring-hd/img/okavango_makalani_crown_near.daa77c1d7940.png",
+        "bytes": 54862,
+        "hash": "daa77c1d7940"
+      },
+      "width": 560,
+      "height": 520,
+      "scale": 0.5
+    },
+    "okavango/makalani_trunk_mid": {
+      "file": {
+        "path": "assets/okavango-spring-hd/img/okavango_makalani_trunk_mid.21683a1ad275.png",
+        "bytes": 7110,
+        "hash": "21683a1ad275"
+      },
+      "width": 58,
+      "height": 686,
+      "scale": 0.5
+    },
+    "okavango/makalani_trunk_near": {
+      "file": {
+        "path": "assets/okavango-spring-hd/img/okavango_makalani_trunk_near.fb854fff3796.png",
+        "bytes": 19284,
+        "hash": "fb854fff3796"
+      },
+      "width": 136,
+      "height": 1632,
       "scale": 0.5
     },
     "okavango/mokoro_pole": {
@@ -1309,29 +1359,29 @@
     "okavango/mid": {
       "tiles": [
         {
-          "path": "assets/okavango-spring-hd/layers/mid-0.6b220892b190.png",
-          "bytes": 100636,
-          "hash": "6b220892b190"
+          "path": "assets/okavango-spring-hd/layers/mid-0.dea47d160b8b.png",
+          "bytes": 103313,
+          "hash": "dea47d160b8b"
         },
         {
-          "path": "assets/okavango-spring-hd/layers/mid-1.02677310f1b5.png",
-          "bytes": 55200,
-          "hash": "02677310f1b5"
+          "path": "assets/okavango-spring-hd/layers/mid-1.ef379902926b.png",
+          "bytes": 55639,
+          "hash": "ef379902926b"
         },
         {
-          "path": "assets/okavango-spring-hd/layers/mid-2.55d4e45dd59b.png",
-          "bytes": 71544,
-          "hash": "55d4e45dd59b"
+          "path": "assets/okavango-spring-hd/layers/mid-2.cef29fe09337.png",
+          "bytes": 42821,
+          "hash": "cef29fe09337"
         },
         {
-          "path": "assets/okavango-spring-hd/layers/mid-3.8667f2a66344.png",
-          "bytes": 108624,
-          "hash": "8667f2a66344"
+          "path": "assets/okavango-spring-hd/layers/mid-3.660ba8ccdc54.png",
+          "bytes": 92500,
+          "hash": "660ba8ccdc54"
         },
         {
-          "path": "assets/okavango-spring-hd/layers/mid-4.78071e366ab2.png",
-          "bytes": 15125,
-          "hash": "78071e366ab2"
+          "path": "assets/okavango-spring-hd/layers/mid-4.2b5788104b2b.png",
+          "bytes": 14131,
+          "hash": "2b5788104b2b"
         }
       ],
       "tileWidth": 1024,

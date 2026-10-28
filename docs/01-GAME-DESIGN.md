@@ -596,8 +596,63 @@ a South African farm pastime: here it is a skill toy beside the bird hunt, never
 - **Balance:** cans never out-score birds: a competent bot's share of score from cans stays
   ≤ ~10 %, also for a "can-happy" bot that shoots every can it sees and for the apex juggler
   that juggles every can it knocks off (`docs/balance/v1.8-blikkies.md`).
+- **The far fence (1.9.3, D-056):** the product owner (27 Oct): "I would prefer if there were one
+  or two cans on the further-away fence, as it's so close by." On the Karoo map whose fence stands
+  on the near plane (Wednesday), **1–2 cans stand on a second, farther fence on the mid plane's
+  fence line** (`layouts[].farFence`, the same shape as `fence`; a bonus map moves it back like the
+  near one). Same rules (the air chain, Weg!, the Blikkiesdans once a hunt over both fences),
+  sized and flown by the mid plane's scale (`tuningRatio`), hit radius floored by
+  `planes.mid.minHitRadiusPx`. Scored like the near cans with the plane factor the cans already
+  use (mid 1.3: further cans pay more), so no new rule.
 - **Names:** Blikkies (af), Tin Cans (en), Blechdosen (de), Blikjes (nl) (`docs/i18n-names.md`;
   the Afrikaans-names toggle shows "Blikkies" in every language).
+
+### 11.3b Makalani palms and their nuts (1.9.3, D-056)
+
+The product owner (26 Oct, with photos of makalani palms at sunset by the water and of a nut
+cluster): "Since it's Okavango, I want us to add some makalani trees … The makalani are very hard
+nuts that are hanging on them … If somebody manages to hit such a small makalani, maybe it can do a
+small blow-up, or fall down, or I don't know. Be creative."
+
+The makalani palm (*Hyphaene petersiana*, the real fan palm) grows in northern Namibia, the Kunene
+and the Okavango, often in pairs or small groups by water. Its nearly round fruit (40–60 mm) turn
+from green to orange to a glossy dark brown over about two years and hang on long, branched,
+knotted stalks below the crown; under the skin is a hard ivory kernel ("vegetable ivory") that
+Namibian carvers turn into key rings and ornaments (sources: D-056).
+
+- **Where:** the Okavango, **1–3 palm groups on each weekday layout** (`layouts[].palms`: a
+  single, a pair or a trio, on the near or mid plane, `u` across the plane; `water` = it stands by
+  a channel and is reflected). The bonus maps move them back like the fence (Verder: near → mid; a
+  group moved past the mid plane is left out — the far layers paint their own makalani
+  silhouettes). Content checks: a group stands on an open plane, inside its layer, never over a
+  prop, secret part, colony or another group, and its hanging nuts never hang in front of the bird
+  bands or secret parts of a plane behind (`src/content/palmChecks.ts`).
+- **Nuts:** each group's clusters hang **3–8 nuts** (rolled from the `nuts` stream), mostly glossy
+  brown, a few orange or green. A nut is a small target: radius 11 at plane scale 1 (× the plane's
+  scale, floored by its `minHitRadiusPx`), the touch aim assist as for a can; in the air × 2.2
+  (`airHitMul`).
+- **One or two pellets on a nut:** it **cracks off** with a woody "tok", a few fibre bits and a
+  spin, and **drops** (the knock-off's kick is × 0.25 upward). **Hit it again in the air** and it is
+  kicked up and away like a can — the Blikkies juggle body (§11.3, `src/sim/juggle/body.ts`), higher
+  and wilder each hit, the 10th air hit always "Weg!". Back on the ground it **bounces hard** once
+  (restitution 0.55) and **rolls** to a stop. A landed nut is done.
+- **Three or more pellets in one shot, or a rifle hit (.22, Langloop):** the nut **pops** — it bursts
+  into husk fibre and pale ivory chips with a "krak!" (a small local puff, no flash), hanging or in
+  the air.
+- **Scoring** (`content/scoring.json → nuts`, event bonuses × Stampede only, like the cans; nuts are
+  harder to hit than cans, so a bit more per hit): crack-off 6; air hit n pays 10 + 3 × (min(n, 8)
+  − 1); pop 12; Weg! 18; all × the plane factor (near 0.8, mid 1.3). A nut-only shot neither extends
+  nor resets Frenzy and is not a miss. Never a bag.
+- **Secret "Hard soos 'n makalani":** pop or juggle out (Weg!) **3 nuts in one hunt**: +25, once a
+  hunt, with Oupa's line (`bark.makalani`).
+- **It is still a shot:** it costs ammo and makes noise like any shot (flocks near it alert).
+  **Nuts never block a bird:** a pellet that meets a nut and then a bird behind it hits the bird.
+- **Modes:** Classic and the Daily (the day's layout) and the bonus maps; not the Season Run or the
+  FTUE (they play no layout), not the Skietbaan.
+- **Balance:** cans plus nuts stay ≤ ~10 % of a competent bot's score (`docs/balance/makalani.md`).
+- **Names:** makalani (en), makalani-neut (af), Makalaninuss (de), makalaninoot (nl)
+  (`docs/i18n-names.md`).
+- **Later (not built):** a carved makalani nut as a Notaboek reward or a charm (docs/04).
 
 ### 11.5 Day-of-week maps and bonus map Verder (v1.2, D-033)
 
