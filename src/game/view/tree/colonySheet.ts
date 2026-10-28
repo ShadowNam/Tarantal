@@ -68,5 +68,6 @@ export function colonyTexelsPerPx(width: number): number {
   return Math.max(1, Math.round(width / COLONY_SHEET_W));
 }
 
-/** A weaver's wingspan in the sheet (weaver_fly_*): the view scales frames by sizePx / this. */
-export const COLONY_WINGSPAN = 54;
+/** A flying weaver's drawn wingspan in the sheet (weaver_fly_*, design px at 1×): the view scales
+ *  every frame by feel.treeLife.colony.wingspanPx[plane] / this (review R4). */
+export const COLONY_WINGSPAN = 34;

@@ -30,7 +30,18 @@ export interface ColonyNest {
   readonly lovebirds: boolean;
   /** A per-nest number mixed into the seed (two colonies never move alike). */
   readonly salt: number;
+  /** Where the pygmy falcon perches (its feet, prop px): a branch against the sky. */
+  readonly falcon?: P;
 }
+
+/**
+ * Review R5: the pygmy falcon's perch on each nest tree's art (prop px; tools/art/camelthorn.ts
+ * draws these trees from fixed seeds): a branch with open sky behind it, clear of the thatch.
+ */
+export const COLONY_FALCON_PERCH: Readonly<Record<string, P>> = {
+  'kalahari/weaver_camelthorn': [176, -127],
+  'namibie/nest_camelthorn': [282, -205],
+};
 
 /** A scatter: a near shot (or the nest shot) at `start`; the colony stays away until `end`. */
 export interface Scatter {
@@ -74,12 +85,13 @@ function cycle(t: ColonyTuning, n: ColonyNest, seed: number, i: number, c: numbe
   const h = (k: number): number => lifeHash(seed ^ n.salt, 60 + i, c, k);
   const len = lerp(t.cycleSeconds[0], t.cycleSeconds[1], h(1));
   const r = h(2);
+  const out = 1 - t.insideShare;
   const act: Activity =
     r < t.insideShare
       ? 'inside'
-      : r < t.insideShare + (1 - t.insideShare) * 0.45
+      : r < t.insideShare + out * t.perchShare
         ? 'perch'
-        : r < t.insideShare + (1 - t.insideShare) * 0.75
+        : r < t.insideShare + out * (t.perchShare + t.groundShare)
           ? 'ground'
           : 'loop';
   const hole = entrance(n, Math.floor(h(3) * 6));
@@ -87,7 +99,11 @@ function cycle(t: ColonyTuning, n: ColonyNest, seed: number, i: number, c: numbe
   const perch = ps[Math.floor(h(4) * ps.length)] ?? hole;
   const ground: P = [n.ox + (h(5) - 0.5) * n.rx * 2.2, n.foot];
   const fly = lerp(t.flightSeconds[0], t.flightSeconds[1], h(6));
-  return { len, act, hole, perch, ground, fly, dir: h(7) < 0.5 ? -1 : 1, v: h(8) };
+  const dir = h(7) < 0.5 ? -1 : 1;
+  // Review R4: loops in the open sky under the nest, either side of the trunk(s).
+  const sky: P = [n.ox + dir * n.rx * lerp(0.75, 1.4, h(9)), n.oy + n.ry * lerp(1.8, 4.4, h(10))];
+  const loopR = n.ry * lerp(0.55, 0.9, h(11));
+  return { len, act, hole, perch, ground, fly, dir, v: h(8), sky, loopR };
 }
 
 /** The tick bird `i`'s cycles are laid from: a seeded offset so the colony is never in step. */
@@ -187,12 +203,7 @@ export function weaverAt(
   const fly = cy.fly;
   const hold = len - fly * 2;
   if (hold <= 0) return null;
-  const target: P =
-    cy.act === 'perch'
-      ? cy.perch
-      : cy.act === 'ground'
-        ? cy.ground
-        : [cy.hole[0] + cy.dir * (n.rx * 0.6 + 90 * n.scale), cy.hole[1] + 40 * n.scale];
+  const target: P = cy.act === 'perch' ? cy.perch : cy.act === 'ground' ? cy.ground : cy.sky;
   const loopR = cy.act === 'loop' ? 34 * n.scale : cy.v < 0.3 ? 16 * n.scale : 0;
   if (u < fly) {
     const p = dart(cy.hole, target, u / fly, loopR, 18 * n.scale);
@@ -217,10 +228,18 @@ export function weaverAt(
   }
   const h = u - fly;
   if (cy.act === 'loop') {
-    // A wider loop out from the tree and round.
-    const a = (h / hold) * Math.PI * 2;
-    const r = 46 * n.scale;
-    const p: P = [target[0] + Math.sin(a) * r * cy.dir, target[1] - (1 - Math.cos(a)) * r * 0.5];
+    // Loops round and round against the open sky (a whole number of turns, ~2.4 s each, so it
+    // leaves where it came in).
+    const turns = Math.max(1, Math.round(hold / 2.4));
+    const a = (h / hold) * turns * Math.PI * 2;
+    const r = cy.loopR;
+    // Each bird on its own phase of the loop (never a column of birds in step); the loop
+    // passes through `target`, where it came in and leaves.
+    const a0 = cy.v * Math.PI * 2;
+    const p: P = [
+      target[0] + (Math.sin(a + a0) - Math.sin(a0)) * r * cy.dir,
+      target[1] - (Math.cos(a0) - Math.cos(a + a0)) * r * 0.6,
+    ];
     return {
       frame: flyFrame(tick, 3, Math.cos(a) > 0.6),
       x: p[0],
@@ -271,8 +290,8 @@ export function falconAt(
     (forced ? 0 : Math.floor(lifeHash(seed ^ n.salt, 80, slot, 2) * (slotTicks - out)));
   if (tick < start || tick >= start + out) return null;
   const ps = perches(n);
-  const spot: P =
-    lifeHash(seed ^ n.salt, 80, slot, 3) < 0.5 ? entrance(n, 2) : (ps[5] ?? entrance(n, 2));
+  // Review R5: on its tree's branch against the sky (COLONY_FALCON_PERCH), else a side branch.
+  const spot: P = n.falcon ?? ps[5] ?? entrance(n, 2);
   const from: P = [spot[0] + 200 * n.scale, spot[1] - 140 * n.scale];
   const to: P = [spot[0] - 220 * n.scale, spot[1] - 120 * n.scale];
   const u = (tick - start) / S;
@@ -288,16 +307,17 @@ export function falconAt(
     const p = dart([at.x, at.y], to, k, 0, 0);
     return { frame: flapping(k), x: p[0], y: p[1], flip: true, alpha: k > 0.7 ? (1 - k) / 0.3 : 1 };
   }
-  if (u < fly) {
+  // The test build's preview (?treeLife=falcon) keeps it on its perch the whole visit.
+  if (u < fly && !forced) {
     const p = dart(from, spot, u / fly, 0, 0);
     return { frame: flapping(u / fly), x: p[0], y: p[1], flip: true, alpha: Math.min(1, u * 4) };
   }
-  if (u > out / S - fly) {
+  if (u > out / S - fly && !forced) {
     const k = (u - (out / S - fly)) / fly;
     const p = dart(spot, to, k, 0, 0);
     return { frame: flapping(k), x: p[0], y: p[1], flip: true, alpha: k > 0.8 ? (1 - k) / 0.2 : 1 };
   }
-  const look = Math.floor((u - fly) / 1.4) % 3;
+  const look = Math.floor(Math.max(0, u - fly) / 1.4) % 3;
   return {
     frame: look === 1 ? 'falcon_look' : 'falcon_perch',
     x: spot[0],

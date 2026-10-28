@@ -127,3 +127,33 @@ describe('weaver colony life (D-057)', () => {
       expect(lovebirdsAt(t, nam, 1, tick, null)).toHaveLength(2);
   });
 });
+
+describe('review R4–R5: alive against the sky', () => {
+  it('several weavers are in flight in the open sky under the nest at any moment', () => {
+    let total = 0;
+    let samples = 0;
+    for (let tick = 0; tick < 90 * S; tick += 30) {
+      let sky = 0;
+      for (let i = 0; i < nest.birds; i++) {
+        const p = weaverAt(t, nest, 42, i, tick, null, false);
+        if (p !== null && p.frame !== 'weaver_perch' && p.y > nest.oy + nest.ry) sky++;
+      }
+      total += sky;
+      samples++;
+    }
+    expect(total / samples).toBeGreaterThanOrEqual(3);
+  });
+
+  it('the previewed falcon sits on its perch the whole visit, at every held tick', async () => {
+    const { COLONY_FALCON_PERCH } = await import('./colonyFlight');
+    const perch = COLONY_FALCON_PERCH['kalahari/weaver_camelthorn'];
+    if (perch === undefined) throw new Error('perch');
+    const n = { ...nest, falcon: perch };
+    for (let tick = 0; tick < 60 * S; tick += 300) {
+      const f = falconAt(t, n, 42, tick, null, true);
+      expect(f, `tick ${tick}`).not.toBeNull();
+      expect(f?.frame).toMatch(/^falcon_(perch|look)$/);
+      expect([f?.x, f?.y]).toEqual(perch);
+    }
+  });
+});

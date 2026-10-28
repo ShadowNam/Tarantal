@@ -449,11 +449,13 @@ few dart at the camera, and they settle back after about 3–4 s; mid and far ne
 bursts.
 
 #### 4.3b The colony's everyday life (1.9.4, D-057)
-Round every family nest, all hunt long: 6–12 sociable weavers in sight, darting out of the
-entrance holes in short darts and loops, perched on the thatch roof and the branches either side,
+Round every family nest, all hunt long: 6–12 sociable weavers in sight, about 1.3× true size
+against the tree, darting out from under the nest and looping in the open sky either side of the
+trunk, a few perched on the thatch roof and the branches either side,
 hopping and pecking on the ground below, going back in (frames: flap ×2, glide, perch, hop, peck).
 Now and then an **African pygmy falcon** (tiny, white below, grey above, a red-orange eye ring, a
-barred black-and-white tail) perches at an entrance or on a branch and looks round; in Namibië a
+barred black-and-white tail; a little bigger than a weaver) perches on a branch against the sky
+and looks round; in Namibië a
 pair of **rosy-faced lovebirds** (green, a rosy face, a blue rump, a pale bill) sits on a branch
 and flies a round now and then. A near shot scatters them all; they trickle back a few seconds
 later. One sheet (`desert/colony`, `tools/art/colony.ts`), 1× with an HD twin; on sim time.

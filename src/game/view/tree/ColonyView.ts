@@ -20,6 +20,7 @@ import {
   type ColonyNest,
   type ColonyPose,
   type Scatter,
+  COLONY_FALCON_PERCH,
 } from './colonyFlight';
 import { COLONY_SHEET, COLONY_WINGSPAN, colonyFrames, colonyTexelsPerPx } from './colonySheet';
 
@@ -106,8 +107,12 @@ export class ColonyView {
           birds: count,
           lovebirds: biome.id === 'namibie',
           salt: idx * 7919 + 1,
+          ...(COLONY_FALCON_PERCH[prop.asset] === undefined
+            ? {}
+            : { falcon: COLONY_FALCON_PERCH[prop.asset] }),
         },
-        k: (w.sizePx * scale) / COLONY_WINGSPAN,
+        // Review R4: a set drawn wingspan per plane (about 1.3× true size against the tree).
+        k: t.wingspanPx[plane] / COLONY_WINGSPAN,
         scatter: null,
       });
     });
@@ -236,7 +241,7 @@ export class ColonyView {
         // Phaser flips round the texture's centre: mirror the origin with it.
         if (p.flip) img.setOrigin(1 - img.frame.pivotX, img.frame.pivotY);
         img
-          .setScale(c.k / this.tk)
+          .setScale(((p.frame.startsWith('falcon') ? t.falconMul : 1) * c.k) / this.tk)
           .setPosition(c.x + p.x, c.y + p.y)
           .setFlipX(p.flip)
           .setAlpha(p.alpha)

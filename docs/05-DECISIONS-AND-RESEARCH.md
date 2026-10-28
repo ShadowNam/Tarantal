@@ -3200,6 +3200,12 @@ figure like". GDD §11.1b; art bible §4.2c, §4.2d, §4.3b; Tech §3.14.
   −10 every 2 s, `bark.weavers`, and the angry burst) scatters them for the burst; they trickle
   back over `trickleSeconds`. Reduce motion: half the birds, cycles 1.5× slower. One sheet,
   `desert/colony` (4 KB; HD twin 8 KB), in the desert group (it loads with either desert map).
+  Review R4–R5 (held desktop frames showed about 4 weavers, specks against the thatch): 13 per
+  nest, most cycles now loops in the open sky under the nest either side of the trunk(s) (each
+  bird on its own phase), a few perched on the roof and branches; drawn at a set wingspan per
+  plane (`wingspanPx`: 22 px mid, 32 px near, about 1.3× true size against the tree). The falcon
+  is 1.2× a weaver and perches on a branch against the sky picked from each tree's art
+  (`COLONY_FALCON_PERCH`); the test build's `?treeLife=falcon` keeps it perched the whole visit.
 - *Room in the Kalahari chunk.* `kalahari/weaver_camelthorn` is 1× in Standard with its 2× twin in
   the Kalahari HD pack, as the Namibië nest tree has been (D-053): −149 KB in the Kalahari chunk
   (Kalahari + desert 1,497.4 → 1,352.6 KB). HD texture memory is unchanged by it (the 2× twin
