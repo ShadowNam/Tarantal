@@ -95,11 +95,40 @@ function galagoHead(cy: number, turn: number, paws: boolean): string {
 }
 
 function galago(frame: ResidentFrame): string {
+  // Review R1: 1.6× bigger (the eyes read as eyes), and masked by its hole: only what is inside
+  // the opening shows, plus the ears above its upper rim; the lower rim hides the chin and body.
   const h = HOLLOWS.galago;
-  const cy = frame === 'galago_ears' ? 9.5 : frame === 'galago_eyes' ? 4.5 : -2;
+  const k = 1.6;
+  const cy = frame === 'galago_ears' ? 13 : frame === 'galago_eyes' ? 8 : 4;
   const turn = frame === 'galago_look' ? 1 : 0;
   const paws = frame === 'galago_out' || frame === 'galago_look';
-  return outOfHole(h, 20, galagoHead(cy, turn, paws));
+  const id = nextId();
+  return g(
+    {},
+    el(
+      'clipPath',
+      { id },
+      el('path', { d: ellipseD(0, 0, h.rx - 0.6, h.ry - 0.6) }),
+      el('rect', {
+        x: -h.rx * 1.6,
+        y: -h.ry * 2.4,
+        width: h.rx * 3.2,
+        height: h.ry * 2.4 - h.ry * 0.45,
+      }),
+    ),
+    g(
+      { 'clip-path': `url(#${id})` },
+      g({ transform: `translate(0 ${cy}) scale(${k})` }, galagoHead(0, turn, false)),
+    ),
+    // Little hands on the lower rim.
+    paws
+      ? g(
+          {},
+          inked(ellipseD(-6.5, h.ry * 0.78, 2.8, 2), '#C8B8A6', 0.6),
+          inked(ellipseD(6.5, h.ry * 0.78, 2.8, 2), '#C8B8A6', 0.6),
+        )
+      : '',
+  );
 }
 
 // --- the tree squirrel (Paraxerus cepapi) ----------------------------------------------------
@@ -136,9 +165,10 @@ function squirrelTail(d: string): string {
 
 function squirrel(frame: ResidentFrame): string {
   if (frame === 'squirrel_peek') return outOfHole(HOLLOWS.squirrel, 16, squirrelHead(-1, 0, 1.5));
+  // Review R2: 1.5× (a solid grey-brown squirrel, not a faint outline), feet at the origin.
   if (frame === 'squirrel_sit')
     return g(
-      {},
+      { transform: 'scale(1.5)' },
       squirrelTail('M-6 -2Q-14 -10 -10 -20Q-6 -27 -1 -24'),
       inked('M-5 0Q-7 -9 -1 -13Q5 -14 6 -7Q7 -1 4 0Z', SQ_FUR, 0.7),
       fill('M1 -11Q5 -10 5 -5Q4 -1 2 -1Z', SQ_PALE),
@@ -148,7 +178,7 @@ function squirrel(frame: ResidentFrame): string {
   // Running: body stretched (a) or gathered (b), the tail streaming behind.
   const a = frame === 'squirrel_run_a';
   return g(
-    {},
+    { transform: 'scale(1.5)' },
     squirrelTail(
       a ? 'M-8 -6Q-16 -6 -19 -11Q-21 -16 -17 -18' : 'M-6 -7Q-14 -10 -17 -15Q-18 -19 -14 -20',
     ),
@@ -352,10 +382,12 @@ function buffaloWeaver(frame: ResidentFrame): string {
 }
 
 function bee(): string {
+  // Review R3: amber, so a dozen of them read as a little cloud at the crack.
   return g(
     {},
-    fill(ellipseD(0, 0.3, 1.2, 0.9), '#2A1E10'),
-    fill(ellipseD(0.2, -0.7, 0.9, 0.6), '#E8E4D8', { opacity: 0.8 }),
+    fill(ellipseD(0, 0.3, 1.6, 1.15), '#D89A2A'),
+    fill(ellipseD(0.2, 0.4, 0.45, 1.1), '#3A2610'),
+    fill(ellipseD(-0.2, -0.9, 1.1, 0.7), '#F4F0E4', { opacity: 0.85 }),
   );
 }
 

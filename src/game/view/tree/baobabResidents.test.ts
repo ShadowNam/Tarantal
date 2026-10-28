@@ -142,3 +142,29 @@ describe('lifeHash', () => {
     expect(below).toBeLessThan(0.42);
   });
 });
+
+describe('the squirrel runs on top of its limb (review R2)', () => {
+  it('every point of its run sits on the limb surface, fully opaque', async () => {
+    const { BAOBAB_LIMBS, limbAt, limbWidth, squirrelPath } = await import('./baobabShape');
+    const limb = BAOBAB_LIMBS[1];
+    if (limb === undefined) throw new Error('limb 2');
+    for (const p of squirrelPath()) {
+      // The nearest point on the limb's centre line is half the limb's width away.
+      let best = Infinity;
+      let w = 0;
+      for (let t = 0; t <= 1; t += 0.002) {
+        const c = limbAt(limb, t);
+        const d = Math.hypot(c[0] - p[0], c[1] - p[1]);
+        if (d < best) {
+          best = d;
+          w = limbWidth(limb, t);
+        }
+      }
+      expect(Math.abs(best - w / 2)).toBeLessThan(1.5);
+    }
+    const v = visits('squirrel', 4, false, true)[0];
+    if (v === undefined) throw new Error('no visit');
+    for (let tick = v.start; tick < v.end; tick += 5)
+      for (const s of residentPose(t, v, tick, null).sprites) expect(s.alpha).toBe(1);
+  });
+});

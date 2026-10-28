@@ -3163,7 +3163,7 @@ figure like". GDD §11.1b; art bible §4.2c, §4.2d, §4.3b; Tech §3.14.
   stick nests and the squirrel's run live in `src/game/view/tree/baobabShape.ts`, which the art and
   the view share. The pods are small (a third to half the branch's thickness), hairy, on long thin
   stalks, in twos and threes; the secret pod is a cluster of three inside the content's hit
-  ellipse (content unchanged). 96 colours (+40 KB packed; the Bushveld chunk had 57 KB).
+  ellipse (content unchanged). 80 colours (the Bushveld chunk had 57 KB).
 - *The hard light band* across its trunk was the dawn mist's band on the mid layer (`dawn_mist`
   haze from y 520), drawn over the layer's props. A haze band with an edge (top or bottom) now goes
   under a plane layer's props (`hazeOrder.ts`); a whole-layer distance haze has no edge and stays
@@ -3179,9 +3179,13 @@ figure like". GDD §11.1b; art bible §4.2c, §4.2d, §4.3b; Tech §3.14.
   (mapped with `planeX = (cx − 960) × scrollFactor + 960 + dx`, fruitHits.ts) makes the one it
   startles duck back (or the owl, hornbill and weaver fly off) for the rest of that visit; residents
   never score and sit under the layer's birds, so they never block a shot at a bird. Their sheet
-  (`bushveld/baobab_life`) is 1× in Standard (6 KB; no room for 2×) with its 2× twin in the
-  Bushveld HD pack. Frames at a hole are drawn cut off at the hole's lower rim, so no mask is
-  needed. The wind's drift is left out of the near-shot test (it is a few px on the mid layer).
+  (`bushveld/baobab_life`) is drawn at 2× (18 KB; HD needs no twin): at 1× the small animals were
+  mostly half-transparent edge pixels and the squirrel read as a faint outline (review R2). The
+  bushbaby is 1.6× and peeks from a visible hole a little wider than its head (review R1); the
+  squirrel is 1.5×; a dozen amber bees make a little cloud at their crack (review R3). Room for it
+  in the Bushveld chunk: the baobab at 80 colours and the dassie koppie at 96 (1,525.0 KB). Frames
+  at a hole are drawn masked by the hole (the opening, and only ears above its upper rim), so the
+  view needs no mask. The wind's drift is left out of the near-shot test (it is a few px on the mid layer).
 - *Sausage tree* (`okavango/sausage_tree`, tools/art/sausageTree.ts): the same one-silhouette trunk
   and limbs, a crown of eleven leaf clumps in three tiers (dark under, lit upper left, dense
   leaflets breaking the edges, gaps where the limbs show), maroon flower cords, and the sausages

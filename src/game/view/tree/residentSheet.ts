@@ -1,8 +1,8 @@
 // 1.9.4 (D-057, art bible §4.2c) The baobab residents' sheet: one small texture with every frame
 // of the bushbaby, the tree squirrel, the barn owl, the yellow-billed hornbill (and the female's
 // beak tip in the slit), the red-billed buffalo weaver and a bee. Sizes are prop px (the baobab
-// is drawn 1:1 on the mid layer); the Standard sheet is drawn at 1×, its HD twin at 2× (the
-// Bushveld chunk has no room for 2× in the first place). Frames face right; the view mirrors
+// is drawn 1:1 on the mid layer); the sheet is drawn at 2× (review R2: at 1× the small animals
+// were mostly half-transparent edge pixels and read as faint outlines), so HD needs no twin. Frames face right; the view mirrors
 // them. Pure constants and a frame table: the game, the placeholder and the interim art
 // generator (tools/art/baobabLife.ts) all read them.
 
@@ -11,15 +11,15 @@ export const RESIDENT_SHEET = 'bushveld/baobab_life';
 
 export const RESIDENT_FRAMES = [
   // Bushbaby at its hole (origin: the hole's centre): ears, eyes over the rim, head out, looking.
-  { name: 'galago_ears', w: 30, h: 30, ox: 15, oy: 20 },
-  { name: 'galago_eyes', w: 30, h: 30, ox: 15, oy: 20 },
-  { name: 'galago_out', w: 30, h: 30, ox: 15, oy: 20 },
-  { name: 'galago_look', w: 30, h: 30, ox: 15, oy: 20 },
+  { name: 'galago_ears', w: 44, h: 46, ox: 22, oy: 30 },
+  { name: 'galago_eyes', w: 44, h: 46, ox: 22, oy: 30 },
+  { name: 'galago_out', w: 44, h: 46, ox: 22, oy: 30 },
+  { name: 'galago_look', w: 44, h: 46, ox: 22, oy: 30 },
   // Tree squirrel: at its hole (origin: the hole's centre), then on the limb (origin: its feet).
   { name: 'squirrel_peek', w: 28, h: 26, ox: 14, oy: 16 },
-  { name: 'squirrel_run_a', w: 50, h: 26, ox: 25, oy: 22 },
-  { name: 'squirrel_run_b', w: 50, h: 26, ox: 25, oy: 22 },
-  { name: 'squirrel_sit', w: 40, h: 34, ox: 20, oy: 31 },
+  { name: 'squirrel_run_a', w: 76, h: 38, ox: 38, oy: 33 },
+  { name: 'squirrel_run_b', w: 76, h: 38, ox: 38, oy: 33 },
+  { name: 'squirrel_sit', w: 60, h: 52, ox: 30, oy: 47 },
   // Barn owl in its cavity (origin: the cavity's centre), and flying off (origin: its body).
   { name: 'owl_front', w: 44, h: 54, ox: 22, oy: 27 },
   { name: 'owl_left', w: 44, h: 54, ox: 22, oy: 27 },
@@ -38,8 +38,8 @@ export const RESIDENT_FRAMES = [
   { name: 'buffalo_fly_a', w: 24, h: 16, ox: 12, oy: 8 },
   { name: 'buffalo_fly_b', w: 24, h: 16, ox: 12, oy: 8 },
   { name: 'buffalo_perch', w: 18, h: 18, ox: 9, oy: 16 },
-  // A bee (a dot with a glint of wing).
-  { name: 'bee', w: 4, h: 4, ox: 2, oy: 2 },
+  // A bee (an amber dot with a dark band and a glint of wing).
+  { name: 'bee', w: 6, h: 6, ox: 3, oy: 3 },
 ] as const;
 
 export type ResidentFrame = (typeof RESIDENT_FRAMES)[number]['name'];

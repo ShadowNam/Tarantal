@@ -42,9 +42,9 @@
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/bushveld_baobab.9f104289c267.png",
-        "bytes": 163622,
-        "hash": "9f104289c267"
+        "path": "assets/bushveld-winter/img/bushveld_baobab.744922fff5e9.png",
+        "bytes": 157706,
+        "hash": "744922fff5e9"
       },
       "width": 1200,
       "height": 1280,
@@ -56,12 +56,12 @@
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/bushveld_baobab_life.440ab843c25b.png",
-        "bytes": 6271,
-        "hash": "440ab843c25b"
+        "path": "assets/bushveld-winter/img/bushveld_baobab_life.0af95f4fc8ea.png",
+        "bytes": 9661,
+        "hash": "0af95f4fc8ea"
       },
       "width": 256,
-      "height": 194,
+      "height": 258,
       "originX": 0,
       "originY": 0
     },
@@ -102,9 +102,9 @@
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/bushveld_dassie_koppie.ec0a8ec0e2c0.png",
-        "bytes": 36771,
-        "hash": "ec0a8ec0e2c0"
+        "path": "assets/bushveld-winter/img/bushveld_dassie_koppie.375efc749b45.png",
+        "bytes": 34629,
+        "hash": "375efc749b45"
       },
       "width": 1120,
       "height": 600,

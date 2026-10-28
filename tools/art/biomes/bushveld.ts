@@ -564,14 +564,16 @@ export const BUSHVELD_PLAN: BiomeArtPlan = {
       master: 2,
       wobble: false,
       frame: { w: 600, h: 640, ox: 300, oy: 360 },
-      // 1.9.4 (D-057): 96 colours keep the redrawn tree inside the Bushveld chunk.
-      colours: 96,
+      // 1.9.4 (D-057): 80 colours keep the redrawn tree and the residents' 2× sheet inside the
+      // Bushveld chunk (review R2).
+      colours: 80,
     },
     'bushveld/dassie_koppie': {
       draw: dassieKoppie,
       master: 2,
       wobble: false,
-      colours: 128,
+      // 1.9.4 (D-057): 96 colours (room for the residents' 2× sheet in the Bushveld chunk).
+      colours: 96,
       frame: { w: 560, h: 300, ox: 280, oy: 190 },
     },
     'bushveld/boulder_crack': { draw: boulderProp(true), wobble: false, colours: 112 },

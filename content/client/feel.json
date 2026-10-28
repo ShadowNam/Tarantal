@@ -1285,7 +1285,7 @@
     },
     "duckRadiusPx": 60,
     "duckSeconds": 0.3,
-    "bees": { "count": 9, "radiusPx": [4, 13], "swirlHz": 0.7, "scatterSeconds": 2.5, "scatterMul": 2.6 },
+    "bees": { "count": 12, "radiusPx": [5, 17], "swirlHz": 0.55, "scatterSeconds": 2.5, "scatterMul": 2.6 },
     "colony": {
       "birds": { "near": 13, "mid": 12, "far": 5, "ver": 3 },
       "reducedCountMul": 0.5,

@@ -117,7 +117,8 @@ function onLimb(i: number, t: number, rx: number, ry: number): Hollow {
  */
 export const HOLLOWS: Readonly<Record<HollowId, Hollow>> = {
   owl: { x: -44, y: 118, rx: 19, ry: 25 },
-  galago: { x: 76, y: 22, rx: 6.5, ry: 7.5 },
+  // Review R1: a visible opening a bit wider than the bushbaby's head, well inside the trunk.
+  galago: { x: 50, y: 44, rx: 12, ry: 13 },
   squirrel: onLimb(SQUIRREL_LIMB, SQUIRREL_T, 7, 8.5),
   slit: { x: 34, y: 168, rx: 2.4, ry: 13 },
   bees: { x: -74, y: 200, rx: 3.5, ry: 6 },

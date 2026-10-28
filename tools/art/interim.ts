@@ -62,6 +62,8 @@ import { COLONY_SHEET } from '../../src/game/view/tree/colonySheet';
 
 /** 1.9.4 (D-057): palette size of the baobab residents' sheet. */
 const RESIDENT_COLOURS = 96;
+/** 1.9.4 (D-057): palette size of the weaver colony's sheet. */
+const COLONY_COLOURS = 96;
 import {
   HALLOWEEN_SHEET,
   SHEET_MASTER as FEESDAE_MASTER,
@@ -602,27 +604,26 @@ if (wants('colony') && !hdOnly) {
   const png = join(src, 'sprites', `${COLONY_SHEET}.png`);
   if (!oursFile(png)) console.warn(`skip sprites/${COLONY_SHEET}: a human delivery is there`);
   else {
-    put(png, encodePng8(renderColonySheet(1), RESIDENT_COLOURS));
+    put(png, encodePng8(renderColonySheet(1), COLONY_COLOURS));
     put(
       png.replace(/\.png$/, '.json'),
       await json({ origin: 'interim', encode: 'png8', originX: 0, originY: 0 }),
     );
-    putHd(`sprites/${COLONY_SHEET}.png`, renderColonySheet(2), RESIDENT_COLOURS);
+    putHd(`sprites/${COLONY_SHEET}.png`, renderColonySheet(2), COLONY_COLOURS);
     console.log(`sprites/${COLONY_SHEET}`);
   }
 }
 if (wants('treelife') && !hdOnly) {
-  // 1.9.4 (D-057): the baobab residents' sheet at 1× (the Bushveld chunk has no room for 2×)
-  // and its 2× twin in art-source/hd/ (the Bushveld HD group).
+  // 1.9.4 (D-057): the baobab residents' sheet at 2× (review R2), which the HD pack serves too.
   const png = join(src, 'sprites', `${RESIDENT_SHEET}.png`);
   if (!oursFile(png)) console.warn(`skip sprites/${RESIDENT_SHEET}: a human delivery is there`);
   else {
-    put(png, encodePng8(renderResidentSheet(1), RESIDENT_COLOURS));
+    put(png, encodePng8(renderResidentSheet(2), RESIDENT_COLOURS));
     put(
       png.replace(/\.png$/, '.json'),
-      await json({ origin: 'interim', encode: 'png8', originX: 0, originY: 0 }),
+      await json({ origin: 'interim', encode: 'png8', master: 2, originX: 0, originY: 0 }),
     );
-    putHd(`sprites/${RESIDENT_SHEET}.png`, renderResidentSheet(2), RESIDENT_COLOURS);
+    rmSync(join(hdSrc, 'sprites', `${RESIDENT_SHEET}.png`), { force: true });
     console.log(`sprites/${RESIDENT_SHEET}`);
   }
 }

@@ -521,13 +521,15 @@ The Bushveld kremetart in winter (*Adansonia digitata*), redrawn at the cameltho
   bushbaby's), a hole high on limb 2 (the squirrel's): placed so no two holes read as eyes (review T1); the hornbill's slit in a rough, lumpy seal of grey-brown dried mud,
   a crack with a glint of comb (the bees'); healed, swollen lips, dark insides, a worn sill. Two
   untidy stick nests of the red-billed buffalo weavers on the outer limbs.
-- **Residents** (`bushveld/baobab_life`, `tools/art/baobabLife.ts`; 1× with an HD twin): a lesser
+- **Residents** (`bushveld/baobab_life`, `tools/art/baobabLife.ts`; drawn at 2×): a lesser
   bushbaby (huge dark eyes with a pale nose stripe, big pink ears; ears → eyes → head out → looking),
   a tree squirrel (grey-brown, a pale side stripe, a bushy tail; peeking, running ×2, sitting), a
   barn owl in its cavity (white heart-shaped face, golden-buff crown; front, head turned, blinking)
   and flying off, a yellow-billed hornbill (black-and-white spotted wings, white belly, big curved
   yellow bill; flying ×2, clinging, feeding) and the female's beak tip in the slit, a red-billed
-  buffalo weaver (black, red bill, white wing patch; flying ×2, perched), a bee. Frames at a hole
+  buffalo weaver (black, red bill, white wing patch; flying ×2, perched), a bee (amber, a dark
+  band; a dozen swirl as a little cloud). The bushbaby is big enough for its huge eyes to read and
+  peeks from a visible hole a little wider than its head. Frames at a hole
   are cut off at its lower rim. They show themselves now and then on sim time; a near shot makes
   one duck back or fly off. No sound loop.
 
