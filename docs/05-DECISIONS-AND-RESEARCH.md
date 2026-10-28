@@ -3064,6 +3064,11 @@ you've got 10 seconds left … those 10 seconds don't seem to be 10 seconds. The
   cooldowns cost the .22's bots points (they shoot at once and each shot alarms the flocks);
   bonus-map cap ≤ 4 500 holds (highest 3 982). Golden replays re-recorded: shotgun replays keep
   their events; the four rifle replays change (their crates roll from the new table).
+- *First download.* The Rooikol's strings and code grew the first download by 1.8 KB gzip. The
+  power-up guide's long sentences (`guide.effect/tip/how.*`, every item, four languages) moved to
+  their own lazy tables (`src/i18n/guide/<lang>.json`, loaded as a hunt or the Gun Shed starts,
+  like the Skietbaan's and the Graphics card's): 2 991.4 KB, 0.8 KB under main. The first-pickup
+  card shows the short line if they are not in yet; the Shed redraws when they land.
 
 ## 3. Research notes (with sources)
 
