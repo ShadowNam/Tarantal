@@ -1274,5 +1274,17 @@
     "shadowFadePx": 180,
     "pitchPerChain": 0.06,
     "pitchMax": 1.7
+  },
+  "treeLife": {
+    "residents": {
+      "galago": { "slotSeconds": 16, "chance": 0.35, "duskChance": 0.85, "outSeconds": 5 },
+      "squirrel": { "slotSeconds": 18, "chance": 0.7, "outSeconds": 6.5 },
+      "owl": { "slotSeconds": 21, "chance": 0.7, "outSeconds": 6 },
+      "hornbill": { "slotSeconds": 24, "chance": 0.65, "outSeconds": 8 },
+      "buffaloWeaver": { "slotSeconds": 10, "chance": 0.8, "outSeconds": 6 }
+    },
+    "duckRadiusPx": 60,
+    "duckSeconds": 0.3,
+    "bees": { "count": 9, "radiusPx": [4, 13], "swirlHz": 0.7, "scatterSeconds": 2.5, "scatterMul": 2.6 }
   }
 }

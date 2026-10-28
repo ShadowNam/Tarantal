@@ -2284,6 +2284,31 @@ export const FeelSchema = obj({
     pitchPerChain: nonNeg,
     pitchMax: pos,
   }),
+  /** 1.9.4 (D-057): the baobab's residents (art bible §4.2c; view only, on sim time). Each one
+   *  shows itself at most once per slot of slotSeconds: with probability chance (the bushbaby
+   *  duskChance on dawn, dusk and golden light), for outSeconds, at a seeded point in the slot. */
+  treeLife: obj({
+    residents: obj({
+      galago: obj({ slotSeconds: pos, chance: fraction, duskChance: fraction, outSeconds: pos }),
+      squirrel: obj({ slotSeconds: pos, chance: fraction, outSeconds: pos }),
+      owl: obj({ slotSeconds: pos, chance: fraction, outSeconds: pos }),
+      hornbill: obj({ slotSeconds: pos, chance: fraction, outSeconds: pos }),
+      buffaloWeaver: obj({ slotSeconds: pos, chance: fraction, outSeconds: pos }),
+    }),
+    /** A pellet this close to a resident (prop px) makes it duck back (or fly off). */
+    duckRadiusPx: pos,
+    /** How long ducking back (or the start of flying off) takes. */
+    duckSeconds: pos,
+    /** The bees at their crack: how many, how far they swirl (prop px), and how long and how
+     *  much wider they swirl after a near shot. */
+    bees: obj({
+      count: posInt,
+      radiusPx: z.tuple([pos, pos]),
+      swirlHz: pos,
+      scatterSeconds: pos,
+      scatterMul: pos,
+    }),
+  }),
 });
 export type Feel = z.infer<typeof FeelSchema>;
 
