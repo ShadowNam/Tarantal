@@ -47,9 +47,8 @@ test.describe('Makalani nuts (1.9.3, D-056)', () => {
       run.log.join(' '),
     ).toBe(true);
     const fell = await page.evaluate(() => {
-      const n = (window.__TM__?.nuts?.nuts ?? []).find(
-        (x) => x.state !== 'rest' && x.state !== 'popped',
-      );
+      // Only a nut still in the air will be lower in a moment (review M9).
+      const n = (window.__TM__?.nuts?.nuts ?? []).find((x) => x.state === 'air');
       return n === undefined ? null : { id: n.id, y: n.y };
     });
     if (fell !== null) {
