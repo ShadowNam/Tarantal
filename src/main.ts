@@ -304,6 +304,7 @@ const hook: TestHook = {
   ticksLeft: 0,
   score: 0,
   shells: 0,
+  cooldownTicks: 0,
   biome: '',
   map: null,
   verder: false,

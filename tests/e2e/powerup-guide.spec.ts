@@ -1,5 +1,5 @@
 // v1.7b (D-046): power-ups explained, and Oupa's switch, on every landscape profile (desktop,
-// Pixel 7, iPhone 14). The Gun Shed's Power-ups tab shows all eight cards with their icons and
+// Pixel 7, iPhone 14). The Gun Shed's Power-ups tab shows all nine cards (1.9.2: the Rooikol) with their icons and
 // scrolls; a hunt with `?crate=boeretroos` picks up the first crate: its card says what it does
 // (the full sentence the first time, its numbers from content) and its chip counts down; with
 // Oupa's comments Off no bark is shown or voiced in a hunt; with Text only his bubble shows but
@@ -35,6 +35,7 @@ const ALL = [
   'meerkat_spotter',
   'blitslaai',
   'oupa_laai',
+  'rooikol',
   'voorlaaier',
   'mielie_masjien',
 ];
@@ -121,7 +122,7 @@ test.beforeEach(({ browserName }, info) => {
   test.setTimeout(420_000);
 });
 
-test('the Gun Shed explains all eight power-ups and crate guns, with icons', async ({
+test('the Gun Shed explains all nine power-ups and crate guns, with icons', async ({
   page,
 }, info) => {
   const touch = isTouchProject(info);

@@ -171,6 +171,8 @@ export interface TestHook {
   ticksLeft: number;
   score: number;
   shells: number;
+  /** 1.9.2 (D-055): ticks until the gun may fire again (0 = ready). */
+  cooldownTicks: number;
   /** M8: belt size (-1 = no belt, Kettie), reloading, and Kettie stones in the air. */
   magazine: number;
   reloading: boolean;

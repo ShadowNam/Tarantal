@@ -642,6 +642,14 @@ export class HuntScene extends Phaser.Scene {
   }
 
   /** v1.3: the picture a fitted sight draws (weapons.json sights), or null for no sight. */
+  /** 1.9.2 (D-055): a red-dot power-up (Rooikol) is running: the rifle aims at 1×. */
+  private redDotOn(): boolean {
+    const running = this.runner?.state.powerups ?? [];
+    return running.some(
+      (p) => this.ctx.content.powerups.powerups.find((d) => d.id === p.id)?.effect.redDot === true,
+    );
+  }
+
   private sightPicture(id: string | null): SightPicture | null {
     if (id === null) return null;
     return this.ctx.content.weapons.sights.find((s) => s.id === id)?.picture ?? null;
@@ -1500,11 +1508,13 @@ export class HuntScene extends Phaser.Scene {
         sightZoom: () => {
           const w = this.runner?.state.weapon;
           if (w?.kind !== 'primary' || w.sight === null) return null;
+          // 1.9.2 (D-055) Rooikol: a red dot magnifies nothing, so fine aim moves 1:1.
+          if (this.redDotOn()) return 1;
           const s = this.ctx.content.weapons.sights.find((x) => x.id === w.sight);
           return s?.zoom[w.zoomStep] ?? s?.zoom[0] ?? null;
         },
         // v1.4 (D-038): a variable scope's steps, and the touch zoom buttons beside the ammo.
-        zoomSteps: () => hud.zoomOf(this.runner?.state.weapon),
+        zoomSteps: () => (this.redDotOn() ? null : hud.zoomOf(this.runner?.state.weapon)),
         zoomButtonAt: (x, y) => hud.zoomButtonAt(x, y),
         readyToFire: () => {
           const w = this.runner?.state.weapon;
@@ -1832,6 +1842,7 @@ export class HuntScene extends Phaser.Scene {
       hook.ticksLeft = state.ticksLeft;
       hook.score = state.score;
       hook.shells = state.weapon.shells;
+      hook.cooldownTicks = state.weapon.cooldownTicks;
       // D-029: GPU texture memory (RGBA bytes of every texture source), sampled twice a second.
       if (state.tick % 30 === 0) this.sampleTextures(hook);
       hook.magazine = state.weapon.magazine;
