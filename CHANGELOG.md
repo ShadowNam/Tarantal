@@ -3,6 +3,16 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.9.4] — Tree life: a living baobab, a better sausage tree and a busy weaver colony (28 Oct 2026)
+
+Decision record D-057. The product owner (26 Oct): the Bushveld baobab "needs a bit more detail
+… maybe the tree needs a few holes where a little mouse can look out"; the Kalahari weaver tree
+needs "some little birds fly around there also to make it look a bit more alive".
+
+### Fixed
+- The dawn mist no longer paints a hard light band across tall props (the baobab's trunk): mist
+  bands now lie under a layer's props.
+
 ## [1.9.3] — Makalani palms in the Okavango: nuts that crack off, juggle and pop (28 Oct 2026)
 
 Decision record D-056. The product owner (26 Oct): "Since it's Okavango, I want us to add some
