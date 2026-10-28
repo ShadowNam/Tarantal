@@ -2308,6 +2308,24 @@ export const FeelSchema = obj({
       scatterSeconds: pos,
       scatterMul: pos,
     }),
+    /** The sociable weavers' colony life (art bible §4.3b): weavers round a family nest per
+     *  plane (reduce motion: × reducedCountMul, cycles × reducedSlowMul slower); each lives
+     *  cycles of cycleSeconds (insideShare of them in the nest), flights of flightSeconds. A
+     *  pellet within nearShotPx of the nest (× the plane's scale) scatters them for
+     *  scatterSeconds; they trickle back over trickleSeconds. */
+    colony: obj({
+      birds: obj({ near: nonNegInt, mid: nonNegInt, far: nonNegInt, ver: nonNegInt }),
+      reducedCountMul: fraction,
+      reducedSlowMul: pos,
+      cycleSeconds: z.tuple([pos, pos]),
+      insideShare: fraction,
+      flightSeconds: z.tuple([pos, pos]),
+      nearShotPx: pos,
+      scatterSeconds: pos,
+      trickleSeconds: pos,
+      falcon: obj({ slotSeconds: pos, chance: fraction, outSeconds: pos }),
+      lovebirds: obj({ slotSeconds: pos, flySeconds: pos }),
+    }),
   }),
 });
 export type Feel = z.infer<typeof FeelSchema>;
