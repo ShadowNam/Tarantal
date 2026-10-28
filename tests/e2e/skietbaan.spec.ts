@@ -410,7 +410,8 @@ test.describe('Skietbaan (training ground)', () => {
     page,
   }, info) => {
     test.skip(!isLandscape(info), 'the admin page is used in landscape');
-    test.setTimeout(420_000);
+    // About 5 min on a typical CI runner and 7 on a slow one, so the long range tests get 10 (D-055).
+    test.setTimeout(600_000);
     const errors = collectErrors(page);
     const touch = isTouchProject(info);
     const name = device(info.project.name);
@@ -614,7 +615,7 @@ test.describe('Skietbaan (training ground)', () => {
     page,
   }, info) => {
     test.skip(!isLandscape(info), 'the admin page is used in landscape');
-    test.setTimeout(420_000);
+    test.setTimeout(600_000);
     const errors = collectErrors(page);
     const touch = isTouchProject(info);
     const name = device(info.project.name);
@@ -793,7 +794,7 @@ test.describe('Skietbaan (training ground)', () => {
     page,
   }, info) => {
     test.skip(!isLandscape(info), 'the admin page is used in landscape');
-    test.setTimeout(420_000);
+    test.setTimeout(600_000);
     const errors = collectErrors(page);
     const touch = isTouchProject(info);
     const r = rangeSteps(page, touch);
@@ -820,7 +821,7 @@ test.describe('Skietbaan (training ground)', () => {
     page,
   }, info) => {
     test.skip(!isLandscape(info), 'the admin page is used in landscape');
-    test.setTimeout(420_000);
+    test.setTimeout(600_000);
     const errors = collectErrors(page);
     const touch = isTouchProject(info);
     const r = rangeSteps(page, touch);
@@ -886,7 +887,7 @@ test.describe('Skietbaan (training ground)', () => {
 
   test('D-040: a held frame with marks is drawn the same twice', async ({ page }, info) => {
     test.skip(!isLandscape(info), 'the admin page is used in landscape');
-    test.setTimeout(420_000);
+    test.setTimeout(600_000);
     const errors = collectErrors(page);
     const touch = isTouchProject(info);
     // The range holds at tick HOLD (?holdAt). The last shot lands within ~30 ticks before it, so

@@ -3072,6 +3072,12 @@ you've got 10 seconds left … those 10 seconds don't seem to be 10 seconds. The
   their own lazy tables (`src/i18n/guide/<lang>.json`, loaded as a hunt or the Gun Shed starts,
   like the Skietbaan's and the Graphics card's): 2 991.4 KB, 0.8 KB under main. The first-pickup
   card shows the short line if they are not in yet; the Shed redraws when they land.
+- *CI shards.* Playwright splits a run into shards by test count, and the art-preview specs' tests
+  (run only with `ART_PREVIEW=1`) counted though they skip. The first two desktop shards ran about
+  4 min; the last held every long spec (30 min on main, 44 min on a slow runner with this PR's
+  specs and one retry) and hit the job's 45-min limit. `playwright.config.ts` now ignores the
+  art-preview specs unless `ART_PREVIEW=1`, so the four desktop and three Pixel 7 shards hold 40–54
+  tests each. The Skietbaan's long tests get 10 min (about 5 on a typical runner, 7 on a slow one).
 
 ## 3. Research notes (with sources)
 
