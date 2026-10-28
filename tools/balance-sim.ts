@@ -67,6 +67,11 @@ export interface HuntRow {
   readonly canAirHits: number;
   readonly canWeg: number;
   readonly canBestChain: number;
+  /** 1.9.3 (D-056): what the makalani nuts paid, knock-offs, air hits and pops (0 without palms). */
+  readonly nutPoints: number;
+  readonly nutKnocks: number;
+  readonly nutAirHits: number;
+  readonly nutPops: number;
 }
 
 export interface BotSummary {
@@ -136,6 +141,10 @@ export function playRows(job: Job): HuntRow[] {
       canAirHits: r.cans?.airHits ?? 0,
       canWeg: r.cans?.weg ?? 0,
       canBestChain: r.cans?.bestChain ?? 0,
+      nutPoints: r.nuts?.points ?? 0,
+      nutKnocks: r.nuts?.knocks ?? 0,
+      nutAirHits: r.nuts?.airHits ?? 0,
+      nutPops: r.nuts?.pops ?? 0,
     };
   });
 }

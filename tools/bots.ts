@@ -13,9 +13,10 @@ import { inReach, RIFLE_STYLES, withRifle } from './rifleBot';
 /** random: sprays · aim: near-perfect M1 aimer (goldens) · plinker / competent: GDD §13.8 ·
  *  spook (D-048, goldens only): shoots a special day's lanterns, bats and one owl ·
  *  canHappy (v1.8, D-050): the competent bot that shoots every tin can in view first ·
- *  apexJuggler (v1.8, D-050): the competent bot that juggles every can at the top of its arc. */
+ *  apexJuggler (v1.8, D-050): the competent bot that juggles every can at the top of its arc ·
+ *  nutHappy (1.9.3, D-056): the competent bot that shoots every makalani nut (and can) in view. */
 export type BotKind =
-  'random' | 'aim' | 'plinker' | 'competent' | 'spook' | 'canHappy' | 'apexJuggler';
+  'random' | 'aim' | 'plinker' | 'competent' | 'spook' | 'canHappy' | 'apexJuggler' | 'nutHappy';
 export const BOT_KINDS: readonly BotKind[] = [
   'random',
   'aim',
@@ -23,6 +24,7 @@ export const BOT_KINDS: readonly BotKind[] = [
   'competent',
   'canHappy',
   'apexJuggler',
+  'nutHappy',
 ];
 
 export interface Bot {
@@ -46,6 +48,12 @@ export function createBot(
   if (kind === 'canHappy') {
     const competent = createHumanBot('competent', seed, content, inputKind);
     const bot = canHappyBot(competent, seed, content, inputKind);
+    return { kind, next: withRifle(bot, content, seed, style).next };
+  }
+  if (kind === 'nutHappy') {
+    const competent = createHumanBot('competent', seed, content, inputKind);
+    const cans = canHappyBot(competent, seed, content, inputKind);
+    const bot = nutHappyBot(cans, seed, content, inputKind);
     return { kind, next: withRifle(bot, content, seed, style).next };
   }
   if (kind === 'apexJuggler') {
@@ -121,6 +129,73 @@ function canHappyBot(
       }
       if (aim === null) return inner.next(s);
       const dx = planeToDx(s.cameraX, f, aim.x);
+      if (Math.abs(dx) > VIEW_HALF_WIDTH || aim.y < 20) return inner.next(s);
+      ready = s.tick + 10;
+      return [{ t: 'fire', dx: dx + gauss() * SIGMA, sy: aim.y + gauss() * SIGMA }];
+    },
+  };
+}
+
+/**
+ * 1.9.3 (D-056): the competent player who can't leave a makalani nut alone (nor a can: it wraps
+ * the can-happy bot). Whenever a nut is in view and the gun is ready it shoots it — one in the air
+ * first (seen ~250 ms ago, led along its arc), else a hanging one — with the competent bot's aim
+ * error. The balance cap: cans plus nuts stay ≤ ~10 % of its score.
+ */
+function nutHappyBot(
+  inner: { next(state: SimState): Command[] },
+  seed: number,
+  content: ContentBundle,
+  inputKind: InputKind,
+): { next(state: SimState): Command[] } {
+  const rng = createStream((seed ^ fnv1a32('bot:nutHappy')) >>> 0);
+  const planes = content.scoring.planes;
+  const LAG = 15;
+  const SIGMA = inputKind === 'touch' ? 26 : 10;
+  const history: SimState[] = [];
+  let ready = 0;
+  const gauss = (): number => {
+    const u = Math.max(1e-9, rng.next());
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rng.next());
+  };
+  return {
+    next(s) {
+      history.push(s);
+      if (history.length > LAG + 2) history.shift();
+      const seen = history[0];
+      const before = history[1];
+      const w = s.weapon;
+      if (s.nuts === undefined || seen === undefined || before === undefined) return inner.next(s);
+      if (w.shells === 0 || w.reloading || w.cooldownTicks > 0 || s.tick < ready)
+        return inner.next(s);
+      const lag = s.tick - seen.tick;
+      const old = new Map((seen.nuts?.nuts ?? []).map((k) => [k.id, k]));
+      const older = new Map((before.nuts?.nuts ?? []).map((k) => [k.id, k]));
+      let aim: { x: number; y: number; f: number } | null = null;
+      for (const k of s.nuts.nuts) {
+        const a = old.get(k.id);
+        const b = older.get(k.id);
+        if (a === undefined || b === undefined || a.state !== 'air' || k.state !== 'air') continue;
+        const ratio = planes[k.plane].scale / content.scoring.tuningRefScale;
+        const g = (content.birds.makalani.juggle.gravityPxPerSec2 * ratio) / 3600;
+        aim = {
+          x: a.x + (b.x - a.x) * lag,
+          y: a.y + (b.y - a.y) * lag + 0.5 * g * lag * lag,
+          f: planes[k.plane].scrollFactor,
+        };
+        break;
+      }
+      if (aim === null) {
+        const hanging = (seen.nuts?.nuts ?? []).find(
+          (k) =>
+            k.state === 'rest' &&
+            Math.abs(planeToDx(s.cameraX, planes[k.plane].scrollFactor, k.x)) < VIEW_HALF_WIDTH,
+        );
+        if (hanging !== undefined)
+          aim = { x: hanging.x, y: hanging.y, f: planes[hanging.plane].scrollFactor };
+      }
+      if (aim === null) return inner.next(s);
+      const dx = planeToDx(s.cameraX, aim.f, aim.x);
       if (Math.abs(dx) > VIEW_HALF_WIDTH || aim.y < 20) return inner.next(s);
       ready = s.tick + 10;
       return [{ t: 'fire', dx: dx + gauss() * SIGMA, sy: aim.y + gauss() * SIGMA }];

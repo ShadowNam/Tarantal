@@ -21,6 +21,10 @@ const row = (bot: HuntRow['bot'], score: number, extra: Partial<HuntRow> = {}): 
   canAirHits: 0,
   canWeg: 0,
   canBestChain: 0,
+  nutPoints: 0,
+  nutKnocks: 0,
+  nutAirHits: 0,
+  nutPops: 0,
   ...extra,
 });
 
