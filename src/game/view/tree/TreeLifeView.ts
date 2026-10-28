@@ -1,42 +1,47 @@
-// 1.9.4 (D-057): the trees' life, in one lazy chunk (loaded once a map with the baobab is
-// running): the baobab's residents (BaobabLifeView). View only, on sim time; nothing here is in
-// the first download.
+// 1.9.4 (D-057): the trees' life, in one lazy chunk (loaded once a map with the baobab or a
+// sociable-weaver nest is running): the baobab's residents (BaobabLifeView) and the weaver
+// colony's life (ColonyView). View only, on sim time; nothing here is in the first download.
 import type * as Phaser from 'phaser';
 import type { Biome, Feel } from '../../../content/schemas';
 import type { SimEvent } from '../../../sim/events';
-import type { SimState } from '../../../sim/types';
+import type { PlaneId, SimState } from '../../../sim/types';
 import type { ParallaxView } from '../ParallaxView';
 import type { PelletStop } from '../fruit/fruitHits';
 import { BaobabLifeView, type ResidentHook } from './BaobabLifeView';
 import { RESIDENT_IDS } from './baobabResidents';
+import { ColonyView, type ColonyHook } from './ColonyView';
 
 export interface TreeLifeArgs {
   /** The hunt's seed (set when the hunt starts). */
   readonly seed: () => number;
   readonly lightIds: readonly string[];
   readonly reducedMotion: boolean;
-  /** Test build only: ?treeLife=<resident id>. */
+  /** Test build only: ?treeLife=<resident id> or falcon. */
   readonly preview: string | null;
   readonly farFactor: number;
   readonly cameraAt: (tick: number) => number | null;
+  readonly planeScale: Readonly<Record<PlaneId, number>>;
 }
 
 /** e2e hook: the residents on screen and the near shots that startled them. */
 export interface TreeLifeHook {
   residents: ResidentHook[];
   ducks: number;
+  /** The weaver colonies (null: no nest on this map). */
+  colony: ColonyHook | null;
 }
 
 /** Light presets under which the bushbaby is out more (dawn, dusk, the golden hour). */
 const DUSK_LIGHTS: ReadonlySet<string> = new Set(['dawn_mist', 'dusk', 'golden']);
 
 /** True when this map has something for the tree-life view to draw. */
-export function wantsTreeLife(biome: Biome): boolean {
-  return BaobabLifeView.wants(biome);
+export function wantsTreeLife(biome: Biome, feel: Feel): boolean {
+  return BaobabLifeView.wants(biome) || ColonyView.wants(biome, feel);
 }
 
 export class TreeLifeView {
   private readonly baobab: BaobabLifeView | null;
+  private readonly colony: ColonyView | null;
 
   constructor(
     scene: Phaser.Scene,
@@ -56,6 +61,16 @@ export class TreeLifeView {
           cameraAt: a.cameraAt,
         })
       : null;
+    this.colony = ColonyView.wants(biome, feel)
+      ? new ColonyView(scene, feel, biome, parallax, {
+          seed: a.seed,
+          reducedMotion: a.reducedMotion,
+          planeScale: a.planeScale,
+          falconPreview: a.preview === 'falcon',
+          farFactor: a.farFactor,
+          cameraAt: a.cameraAt,
+        })
+      : null;
   }
 
   handle(
@@ -64,17 +79,24 @@ export class TreeLifeView {
     stopOf: (e: Extract<SimEvent, { type: 'pelletImpact' }>) => PelletStop | null,
   ): void {
     this.baobab?.handle(events, state, stopOf);
+    this.colony?.handle(events, state, stopOf);
   }
 
   update(state: SimState, alpha: number): void {
     this.baobab?.update(state, alpha);
+    this.colony?.update(state, alpha);
   }
 
   hook(): TreeLifeHook {
-    return { residents: [...(this.baobab?.residents ?? [])], ducks: this.baobab?.duckCount ?? 0 };
+    return {
+      residents: [...(this.baobab?.residents ?? [])],
+      ducks: this.baobab?.duckCount ?? 0,
+      colony: this.colony === null ? null : { ...this.colony.hook },
+    };
   }
 
   destroy(): void {
     this.baobab?.destroy();
+    this.colony?.destroy();
   }
 }

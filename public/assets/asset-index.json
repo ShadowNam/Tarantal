@@ -134,6 +134,19 @@
       "width": 260,
       "height": 360
     },
+    "desert/colony": {
+      "group": "desert",
+      "origin": "interim",
+      "file": {
+        "path": "assets/desert/img/desert_colony.8adf835fdd7e.png",
+        "bytes": 3868,
+        "hash": "8adf835fdd7e"
+      },
+      "width": 256,
+      "height": 126,
+      "originX": 0,
+      "originY": 0
+    },
     "desert/meerkats": {
       "group": "desert",
       "origin": "interim",

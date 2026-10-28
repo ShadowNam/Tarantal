@@ -7,6 +7,7 @@ import { hdBaseOf, POTJIE_LID } from '../../src/game/assets/hdProps';
 import { CAN_SHEET } from '../../src/game/view/cans/canSheet';
 import { NUT_SHEET } from '../../src/game/view/palms/makalaniSheet';
 import { RESIDENT_SHEET } from '../../src/game/view/tree/residentSheet';
+import { COLONY_SHEET } from '../../src/game/view/tree/colonySheet';
 import { PLATE_FRAME_TEX, PLATE_TEX, RANGE_SOUNDS } from '../../src/game/range/rangeAssets';
 import type { AssetIndex, BirdClip } from '../../src/game/assets/assetIndex';
 import { clipFor, resolveClip } from '../../src/game/assets/birdClips';
@@ -86,6 +87,8 @@ function usages(
   if (key === NUT_SHEET) needles.push(/\bNUT_SHEET\b/);
   // 1.9.4 (D-057): the baobab residents' sheet by its constant (BaobabLifeView).
   if (key === RESIDENT_SHEET) needles.push(/\bRESIDENT_SHEET\b/);
+  // 1.9.4 (D-057): the weaver colony's sheet by its constant (ColonyView).
+  if (key === COLONY_SHEET) needles.push(/\bCOLONY_SHEET\b/);
   const palm = /^okavango\/makalani_(trunk|crown)_(near|mid)$/.exec(key);
   if (palm !== null) needles.push(palm[1] === 'trunk' ? /\bpalmTrunkKey\(/ : /\bpalmCrownKey\(/);
   const spookSound = Object.entries(SPOOK_SOUNDS).find(([, k]) => k === key)?.[0];

@@ -81,6 +81,16 @@
       "height": 720,
       "scale": 0.5
     },
+    "desert/colony": {
+      "file": {
+        "path": "assets/desert-hd/img/desert_colony.fbe48f321274.png",
+        "bytes": 8383,
+        "hash": "fbe48f321274"
+      },
+      "width": 512,
+      "height": 252,
+      "scale": 0.5
+    },
     "fauna/bushveld_elephants": {
       "file": {
         "path": "assets/bushveld-winter-hd/img/fauna_bushveld_elephants.b827abdf1754.png",

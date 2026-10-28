@@ -5,8 +5,9 @@
 // sheet is 1×, its HD twin 2×. It loads with either desert map (desert group). Frames face
 // right; the view mirrors them. Pure constants: the game, the placeholder and the interim art
 // generator (tools/art/colony.ts) read them.
+import { COLONY_SHEET_KEY } from '../../assets/desertAssets';
 
-export const COLONY_SHEET = 'desert/colony';
+export const COLONY_SHEET = COLONY_SHEET_KEY;
 
 export const COLONY_FRAMES = [
   { name: 'weaver_fly_a', w: 58, h: 36, ox: 29, oy: 18 },

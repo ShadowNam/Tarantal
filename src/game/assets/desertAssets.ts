@@ -19,9 +19,16 @@ export const MEERKAT_SOUNDS = {
 } as const;
 export type MeerkatSound = keyof typeof MEERKAT_SOUNDS;
 
+/** 1.9.4 (D-057): the weaver colony's sheet (src/game/view/tree/colonySheet.ts COLONY_SHEET). */
+export const COLONY_SHEET_KEY = 'desert/colony';
+
 /** A key that belongs to the desert group. */
 export function isDesertKey(key: string): boolean {
-  return key === MEERKAT_SHEET || (Object.values(MEERKAT_SOUNDS) as string[]).includes(key);
+  return (
+    key === MEERKAT_SHEET ||
+    key === COLONY_SHEET_KEY ||
+    (Object.values(MEERKAT_SOUNDS) as string[]).includes(key)
+  );
 }
 
 /**

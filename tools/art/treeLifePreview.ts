@@ -100,3 +100,20 @@ if (want === 'all' || want === 'residents') {
 
 if (want === 'all' || want === 'sausage')
   await prop('okavango-spring', 'okavango/sausage_tree', 'sausage-tree', 260, 2);
+
+if (want === 'all' || want === 'colony') {
+  const { renderColonySheet } = await import('./colony');
+  const img = renderColonySheet(4);
+  const bg = backdrop(
+    img.width,
+    img.height,
+    img.height,
+    ['#C8A070', '#C8A070'],
+    ['#C8A070', '#C8A070'],
+  );
+  over(bg, img, 0, 0);
+  mkdirSync(OUT, { recursive: true });
+  const path = join(OUT, 'tree-life-colony-sheet.png');
+  writeFileSync(path, encodePng(bg));
+  console.log(`${path} (${bg.width}×${bg.height})`);
+}

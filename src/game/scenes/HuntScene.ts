@@ -544,7 +544,7 @@ export class HuntScene extends Phaser.Scene {
     this.makalaniGen++;
     this.makalaniArgs = { scales, weights };
     this.loadFruit(mapBiome);
-    this.loadTreeLife(mapBiome);
+    this.loadTreeLife(mapBiome, scales);
     this.weapon = new WeaponView(
       this,
       this.ctx.feel,
@@ -2071,12 +2071,18 @@ export class HuntScene extends Phaser.Scene {
     });
   }
 
-  /** 1.9.4 (D-057): the tree-life chunk, for a map with the baobab. */
-  private loadTreeLife(mapBiome: Biome): void {
+  /** 1.9.4 (D-057): the tree-life chunk, for a map with the baobab or a weaver nest. */
+  private loadTreeLife(mapBiome: Biome, planeScale: Readonly<Record<PlaneId, number>>): void {
     this.treeLife?.destroy();
     this.treeLife = null;
     const gen = ++this.treeLifeGen;
-    if (!mapBiome.props.some((p) => p.asset === 'bushveld/baobab')) return;
+    const weavers = this.ctx.feel.juice.weavers.barkKey;
+    const wanted = mapBiome.props.some(
+      (p) =>
+        p.asset === 'bushveld/baobab' ||
+        (p.secret?.type === 'singleHit' && p.secret.reward.barkKey === weavers),
+    );
+    if (!wanted) return;
     void import('../view/tree/TreeLifeView')
       .then((m) => {
         if (gen !== this.treeLifeGen) return;
@@ -2087,6 +2093,7 @@ export class HuntScene extends Phaser.Scene {
           preview: this.ctx.treeLifePreview,
           farFactor: this.ctx.content.scoring.planes.far.scrollFactor,
           cameraAt: (tick) => this.runner?.cameraAt(tick) ?? null,
+          planeScale,
         });
       })
       .catch(() => {
