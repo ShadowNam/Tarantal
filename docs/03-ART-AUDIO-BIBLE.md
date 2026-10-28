@@ -469,6 +469,31 @@ dark ring: big on the canopy while it falls (74 px radius at the near plane, dra
 scenery so haze never fades it) and on the box's planked front, where the stencil used to be (the
 canopy's canvas patch and the stencil are gone from the art). About 3 KB each (PNG-8); all eight 26 KB, in the first download.
 
+
+#### 4.2b Makalani palms (1.9.3, D-056)
+
+The Okavango's makalani palm (*Hyphaene petersiana*), at the camelthorn quality bar (D-035):
+- **Trunk:** tall and slender, pale grey (`#C2BEB2` lit, `#9A968A`, `#66625A` shade) with faint
+  leaf-scar rings (shallow arcs under a lit lip), a gentle swelling a third of the way up, fine
+  cracks, old split leaf bases under the crown, a flared foot in grass. Drawn straight; the game
+  leans and stretches it per palm.
+- **Crown:** stiff, pleated fan leaves, grey-green (`#B9C6A0` / `#8C9C78` / `#5C6A4E`), on long
+  stalks with small spines, radiating from a dark heart; lit upper left; a skirt of dry brown
+  fronds (`#B8936A` / `#94704A` / `#644A30`) hanging below. Sways ±1.6° on sim time.
+- **Groups and water:** ones, twos and threes leaning apart; by a channel a group is mirrored,
+  squashed into the water, see-through and darker, with a gentle ripple (the product owner's
+  sunset photo).
+- **Nuts:** nearly round, glossy: chestnut brown (`#9A5A30` → `#2E160A`), some orange, a few
+  green; a pale stalk scar and a highlight upper left; a motion-blurred twin for a fast spin. They
+  hang on knotted, branched stalks (drawn by the game) under the crown. Bits: fibre strands, dark
+  husk chunks and pale ivory chips (`#F2EADA`), a small local puff, no flash.
+- **Far:** silhouettes in the far ridge and far veld (grey trunk, a round fan head, the dry skirt,
+  a dark nut cluster).
+- **Textures:** one trunk and one crown per plane (near at scale 1, mid at 0.42), each with an HD
+  twin; the nut sheet at 2× (`src/game/view/palms/makalaniSheet.ts`, `tools/art/makalani.ts`).
+- **Sound:** a woody "tok" (crack-off and air hits, rising with the chain), a dry "krak!" (pop), a
+  hard click on the bounce, the cans' whistle for Weg!.
+
 ### 5.1 Skietbaan targets (D-037, D-040)
 Semi-realistic (D-035): no dark contours, light from the upper left. Interim art from
 `npm run art:interim -- --only range` (`tools/art/rangeArt.ts`), group `range` (lazy).

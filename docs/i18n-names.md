@@ -269,3 +269,12 @@ These follow the names above (and the toggle brings back their pre-v1.5 text too
 | `bark.legend` | Bosveld-legende! | Bushveld Legend! | Buschveld-Legende! | Bosveldlegende! | |
 | `bark.run_won` | Die hele jaar! Bosveld-legende, my kind! | The whole year! Bushveld Legend, my kind! | Das ganze Jahr! Buschveld-Legende, Kind! | Het hele jaar! Bosveldlegende, m'n kind! | |
 
+**Makalani (1.9.3, D-056).** The nut's name and its pops live in the lazy guide tables
+(`src/i18n/guide/<lang>.json`, D-055), not the main files, so they are listed here rather than in
+the tables above (the names test reads the main files):
+
+| Key | af | en | de | nl |
+| --- | --- | --- | --- | --- |
+| `makalani.name` | makalani-neut | makalani nut | Makalaninuss | makalaninoot |
+| `secret.makalani` | Hard soos 'n makalani | Hard as a makalani | Hart wie eine Makalani | Hard als een makalani |
+| `makalani.knock` / `makalani.pop` | Tok! / Krak! | Tok! / Krak! | Tok! / Krak! | Tok! / Krak! |
