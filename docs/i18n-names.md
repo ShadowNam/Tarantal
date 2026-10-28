@@ -261,7 +261,6 @@ These follow the names above (and the toggle brings back their pre-v1.5 text too
 | `run.pay.total` | Doppies verdien | Caps earned | Kronkorken verdient | Dopjes verdiend | |
 | `run.ad_double` | ▶ Advertensie: dubbel Doppies (+{n}) | ▶ Ad: double caps (+{n}) | ▶ Werbung: doppelte Kronkorken (+{n}) | ▶ Advertentie: dubbele dopjes (+{n}) | |
 | `run.help_doppies` | Doppies is bottelproppe wat jy in elke jag verdien: meer as jy die kwota klop, plus rente op wat jy spaar. Spandeer hulle hier. | Bottle caps are what you earn in every hunt: more for beating the quota, plus interest on what you save. Spend them here. | Kronkorken verdienst du in jeder Jagd: mehr fürs Übertreffen des Solls, dazu Zinsen auf Erspartes. Hier gibst du sie aus. | Dopjes verdien je in elke jacht: meer als je het quotum haalt, plus rente op wat je spaart. Hier geef je ze uit. | |
-| `privacy.stored` | Jou instellings en vordering (jagte, beste tellings, range, Voëlboek, Notaboek, Seisoenrit en Daaglikse Jag-reeks) word net in hierdie blaaier gestoor. As jy jou blaaierdata uitvee, of die knoppie hieronder druk, is dit weg. | Your settings and progress (hunts, bests, ranks, Bird Book, Notebook, Season Run and Daily Hunt streak) are saved in this browser only. Clearing your browser data, or the button below, removes them. | Deine Einstellungen und dein Fortschritt (Jagden, Rekorde, Ränge, Vogelbuch, Notizbuch, Saisonjagd und Tagesjagd-Serie) werden nur in diesem Browser gespeichert. Wenn du die Browserdaten löschst oder die Taste unten drückst, sind sie weg. | Je instellingen en voortgang (jachten, records, rangen, Vogelboek, Notitieboek, Seizoensrun en Dagjacht-reeks) worden alleen in deze browser bewaard. Je browsergegevens wissen, of de knop hieronder, verwijdert ze. | |
 | `charm.haelstorm.desc` | Elke 8ste skoot is 'n Voorlaaier-knal | Every 8th shot is a Muzzle-Loader blast | Jeder 8. Schuss ist ein Vorderlader-Knall | Elk 8e schot is een Voorlader-knal | |
 | `charm.kettingreaksie.desc` | Elke Twee Vlieë: +0,2 Maal vir die jag | Each two-in-one shot: +0.2 Mult for the hunt | Jeder Doppeltreffer: +0,2 Mult für die Jagd | Elk twee-in-één-schot: +0,2 Mult voor de jacht | |
 | `charm.kwevoel_se_seen.desc` | Kwêvoël 3× so dikwels; alles ×2 terwyl hy roep | Go-away-bird 3× as often; all bags ×2 while it calls | Lärmvogel 3× so oft; alle Vögel ×2, solange er ruft | Lawaaivogel 3× zo vaak; alle vangsten ×2 als hij roept | |
@@ -276,3 +275,7 @@ the tables above (the names test reads the main files):
 - `guide.makalani.name`: makalani-neut (af) · makalani nut (en) · Makalaninuss (de) · makalaninoot (nl)
 - `guide.makalani.secret`: Hard soos 'n makalani (af) · Hard as a makalani (en) · Hart wie eine Makalani (de) · Hard als een makalani (nl)
 - `guide.makalani.knock` / `guide.makalani.pop`: Tok! / Krak! in every language
+
+**Privacy screen (1.9.3, D-056).** Its paragraphs and headings (`privacy.stored`, `privacy.*_title`,
+`privacy.sent_*`, `privacy.personal`) moved to the lazy table `src/i18n/privacy/<lang>.json`
+(the first download must not grow); the wording is unchanged.
