@@ -2,8 +2,12 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { parseFeel } from '../../../content/feel';
+import { loadFeel } from '../../../../tools/testContent';
+import okavangoSpots from './spots/fruit-okavango-spring.json' with { type: 'json' };
+import type { FruitSpot } from './fruitTypes';
 import {
   blocked,
+  fruitAim,
   fruitShot,
   pelletOnLayer,
   pelletsOnLayer,
@@ -122,5 +126,28 @@ describe('a shot on a fruit, composed (v1.7c review)', () => {
     const a = Math.PI / 2;
     expect(fruitShot(frame, pivot, a, [{ x: 100, y: 150 }], 0, t).pellets).toBe(0);
     expect(fruitShot(frame, pivot, a, [{ x: 50, y: 100 }], 0, t).pellets).toBe(1);
+  });
+});
+
+const okavango = okavangoSpots as unknown as FruitSpot[];
+
+describe('the aim point lies inside the drop hit area (1.9.4, review F1)', () => {
+  const t = loadFeel().juice.fruit;
+  it('every sausage, at rest and swinging either way', () => {
+    const sausages = okavango.filter((s) => s.species === 'sausage');
+    expect(sausages.length).toBeGreaterThan(4);
+    for (const s of sausages)
+      for (const angle of [-0.6, -0.3, 0, 0.3, 0.6]) {
+        const pivot = { x: s.x + s.ax, y: s.y + s.ay };
+        const aim = fruitAim(s, pivot, angle);
+        const shot = fruitShot(s, pivot, angle, [aim], 100, { ...t, hitPadPx: 0 });
+        expect(shot.pellets, `sausage at (${s.x}, ${s.y}), angle ${angle}`).toBe(1);
+      }
+  });
+
+  it('the sausages are drawn big enough to hit (main: 72–90 px tall; review T4)', () => {
+    const sausages = okavango.filter((s) => s.species === 'sausage');
+    expect(Math.max(...sausages.map((s) => s.fh))).toBeGreaterThanOrEqual(90);
+    expect(Math.min(...sausages.map((s) => s.fw))).toBeGreaterThanOrEqual(14);
   });
 });

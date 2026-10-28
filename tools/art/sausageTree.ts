@@ -35,18 +35,19 @@ interface Clump {
   readonly tier: number;
 }
 
+// Review T5: uneven sizes and spacing (gaps where the limbs show), never a cloud-pruned ring.
 const CLUMPS: readonly Clump[] = [
-  { x: -150, y: -200, rx: 70, ry: 46, tier: 0 },
-  { x: -50, y: -250, rx: 86, ry: 52, tier: 0 },
-  { x: 70, y: -240, rx: 84, ry: 50, tier: 0 },
-  { x: 165, y: -175, rx: 60, ry: 42, tier: 0 },
-  { x: -175, y: -135, rx: 56, ry: 36, tier: 1 },
-  { x: -80, y: -180, rx: 74, ry: 44, tier: 1 },
-  { x: 40, y: -185, rx: 80, ry: 46, tier: 1 },
-  { x: 150, y: -120, rx: 64, ry: 38, tier: 1 },
-  { x: -120, y: -110, rx: 56, ry: 32, tier: 2 },
-  { x: -10, y: -130, rx: 70, ry: 38, tier: 2 },
-  { x: 95, y: -110, rx: 62, ry: 34, tier: 2 },
+  { x: -158, y: -196, rx: 62, ry: 42, tier: 0 },
+  { x: -46, y: -256, rx: 90, ry: 50, tier: 0 },
+  { x: 82, y: -236, rx: 72, ry: 46, tier: 0 },
+  { x: 176, y: -168, rx: 50, ry: 38, tier: 0 },
+  { x: -186, y: -128, rx: 46, ry: 30, tier: 1 },
+  { x: -92, y: -184, rx: 66, ry: 40, tier: 1 },
+  { x: 58, y: -182, rx: 60, ry: 40, tier: 1 },
+  { x: 160, y: -116, rx: 54, ry: 32, tier: 1 },
+  { x: -128, y: -104, rx: 50, ry: 30, tier: 2 },
+  { x: -18, y: -124, rx: 52, ry: 32, tier: 2 },
+  { x: 102, y: -104, rx: 50, ry: 30, tier: 2 },
 ];
 
 export interface SausageTreeOpts {
@@ -276,17 +277,20 @@ export function sausageTreeNear(rnd: Rnd, p: Paint, o: SausageTreeOpts): string 
   const chosen: Pt[] = [];
   for (const h of order) {
     if (chosen.length >= o.fruits) break;
-    if (chosen.some((c) => Math.abs(c[0] - h[0]) < 22)) continue;
+    if (chosen.some((c) => Math.abs(c[0] - h[0]) < 26)) continue;
     chosen.push(h);
   }
-  const sizes = [0.7, 1, 1.25, 1.6];
+  // Four sizes (review T4): the largest at least as long as main's (73 px ± 25 %), some much
+  // longer; heavy (12–15.5 px wide).
+  const sizes = [0.85, 1.15, 1.5, 2];
   chosen.forEach((top, i) => {
-    const size = sizes[(i * 3 + Math.floor(rnd() * 2)) % sizes.length] ?? 1;
+    // Every size twice (never all short), in a scattered order.
+    const size = sizes[(i * 3) % sizes.length] ?? 1;
     const stalkLen = 34 + rnd() * 70;
     const sway = (rnd() - 0.5) * stalkLen * 0.14;
     const attach: Pt = [top[0] + sway, top[1] + stalkLen];
-    const len = 34 * size * (0.9 + rnd() * 0.2);
-    const w = clamp(7.4 + size * 1.8, 8, 11.5);
+    const len = 50 * size * (0.92 + rnd() * 0.16);
+    const w = clamp(10 + size * 2.8, 12, 15.5);
     const tilt = (rnd() - 0.5) * 0.3;
     const drawn = kigelia({ top, attach, sway, len, w, tilt, c: colours, ink });
     parts.push(
@@ -319,14 +323,16 @@ function clumpSvg(
 ): string {
   const tierDark = [0.22, 0.1, 0][c.tier] ?? 0;
   const pts: Pt[] = [];
+  // An uneven edge: lobes and two or three deep notches (review T5).
+  const notches = new Set([Math.floor(rnd() * 26), Math.floor(rnd() * 26), Math.floor(rnd() * 26)]);
   for (let i = 0; i < 26; i++) {
     const a = (i / 26) * Math.PI * 2;
-    const r = 0.88 + rnd() * 0.16;
+    const r = (0.78 + rnd() * 0.34) * (notches.has(i) ? 0.62 : 1);
     // Flatter underside: clumps hang, their lower edge straighter.
     const ry = Math.sin(a) > 0 ? c.ry * 0.8 : c.ry;
     pts.push([c.x + Math.cos(a) * c.rx * r, c.y + Math.sin(a) * ry * r]);
   }
-  const body = smoothD(pts, true, 0.8);
+  const body = smoothD(pts, true, 0.6);
   const grad = gradient(
     'radial',
     { cx: c.x - c.rx * 0.35, cy: c.y - c.ry * 0.5, r: Math.max(c.rx, c.ry) * 1.25 },
@@ -346,7 +352,7 @@ function clumpSvg(
   const n = Math.round((c.rx * c.ry) / 6);
   for (let k = 0; k < n; k++) {
     const a = rnd() * Math.PI * 2;
-    const rr = Math.sqrt(rnd()) * 1.06;
+    const rr = Math.sqrt(rnd()) * 1.12;
     const x = c.x + Math.cos(a) * c.rx * rr;
     const y = c.y + Math.sin(a) * c.ry * rr * (Math.sin(a) > 0 ? 0.8 : 1);
     const lit = ((c.x - x) / c.rx) * 0.6 + ((c.y - y) / c.ry) * 0.8 + (rnd() - 0.5) * 0.6;
@@ -361,12 +367,24 @@ function clumpSvg(
       `M${r2(x - cx * l)} ${r2(y - sy * l)}Q${r2(x - sy * w)} ${r2(y + cx * w)} ${r2(x + cx * l)} ${r2(y + sy * l)}Q${r2(x + sy * w)} ${r2(y - cx * w)} ${r2(x - cx * l)} ${r2(y - sy * l)}Z`,
     );
   }
+  let inner = '';
+  for (let k = 0; k < 4; k++) {
+    const a = rnd() * Math.PI;
+    inner += ellipseD(
+      c.x + Math.cos(a) * c.rx * 0.45,
+      c.y + c.ry * (0.05 + rnd() * 0.35),
+      c.rx * (0.18 + rnd() * 0.14),
+      c.ry * (0.16 + rnd() * 0.12),
+    );
+  }
   const tone = (k: string): string => shade(k, -tierDark);
   return g(
     {},
     grad.def,
     el('path', { d: body, fill: shade(col.leafDeep, -tierDark), transform: 'translate(3 5)' }),
     el('path', { d: body, fill: grad.url }),
+    // Darker inner clumps: shade between the leaf masses, low in the clump.
+    el('path', { d: inner, fill: shade(col.leafDeep, -tierDark), opacity: 0.7 }),
     el('path', { d: buckets.deep.join(''), fill: tone(col.leafDeep) }),
     el('path', { d: buckets.dark.join(''), fill: tone(col.leafDark) }),
     el('path', { d: buckets.mid.join(''), fill: tone(col.leafMid) }),
