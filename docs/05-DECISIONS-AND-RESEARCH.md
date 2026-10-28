@@ -3119,7 +3119,10 @@ as it's so close by." GDD §11.3b, §11.3; art bible §4.2b; Tech §3.9.
   view glue still added ~4.6 KB gzip, so the playtest admin page moved out of the first download:
   AdminPanel and its labels are a lazy chunk (AdminScene imports them), and its strings are their
   own tables (`src/i18n/admin/<lang>.json`; the keys the rest of the game shares — admin.back,
-  admin.crate_tag, admin.range, admin.sight_default — stay in the main tables).
+  admin.crate_tag, admin.range, admin.sight_default — stay in the main tables). The privacy
+  screen's three long paragraphs moved to `src/i18n/privacy/<lang>.json` (Settings loads them;
+  the screen redraws once they are in) and the makalani placeholders are empty (drawn art only,
+  like the fruit sheet). First download 2,991.4 KB, 0.4 KB under main (2,991.8).
 - *Placement.* `src/content/palmChecks.ts` checks every map (each layout, with each bonus map):
   art for the plane, inside the layer, no overlap with props, secret parts, colonies or another
   group, and no hanging nut in front of a bird band or secret part of a plane behind. The first

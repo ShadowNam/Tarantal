@@ -5,7 +5,8 @@
 import { designSize } from '../layout';
 import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
-import { fill, t, type I18nKey } from '../../i18n/i18n';
+import { fill, getLanguage, t, type I18nKey } from '../../i18n/i18n';
+import { loadPrivacy, privacyLoaded, privacyString } from '../ui/privacyI18n';
 import type { GameContext } from '../GameContext';
 import type { Rect } from '../ui/hudLayout';
 import { drawButton, Menu, textStyle, UI, type MenuItem } from '../ui/menu';
@@ -25,6 +26,13 @@ export class PrivacyScene extends Phaser.Scene {
   }
 
   create(data: PrivacyData): void {
+    // 1.9.3 (D-056): the paragraphs are a lazy chunk (Settings has usually loaded it already).
+    if (!privacyLoaded()) {
+      void loadPrivacy().then(() => {
+        if (this.sys.isActive()) this.scene.restart(data);
+      });
+      return;
+    }
     const { width, height } = designSize();
     fitCamera(this.cameras.main);
     const safe = this.ctx.safeArea();
@@ -48,7 +56,7 @@ export class PrivacyScene extends Phaser.Scene {
       .setOrigin(1, 0);
 
     const portal = this.ctx.platform.id !== 'web';
-    const paragraphs: [I18nKey, I18nKey][] = [
+    const paragraphs: [I18nKey, string][] = [
       ['privacy.stored_title', 'privacy.stored'],
       ['privacy.sent_title', portal ? 'privacy.sent_portal' : 'privacy.sent_web'],
       ['privacy.personal_title', 'privacy.personal'],
@@ -58,7 +66,8 @@ export class PrivacyScene extends Phaser.Scene {
     for (const [head, body] of paragraphs) {
       this.add.text(px + 60, y, t(head), textStyle(34, '#FFD25A'));
       y += 48;
-      const p = this.add.text(px + 60, y, t(body), {
+      const text = body === 'privacy.stored' ? t(body) : privacyString(getLanguage(), body);
+      const p = this.add.text(px + 60, y, text, {
         ...textStyle(28),
         fontStyle: '600',
         wordWrap: { width: wrapW },
