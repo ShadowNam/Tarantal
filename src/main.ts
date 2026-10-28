@@ -306,6 +306,7 @@ const hook: TestHook = {
   shells: 0,
   cooldownTicks: 0,
   aimOffsetPx: 0,
+  zoomPanel: false,
   biome: '',
   map: null,
   verder: false,

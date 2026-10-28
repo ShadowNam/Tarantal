@@ -173,6 +173,8 @@ export interface TestHook {
   shells: number;
   /** 1.9.2 (D-055): ticks until the gun may fire again (0 = ready). */
   cooldownTicks: number;
+  /** 1.9.2 (D-055): the Langloop's zoom panel (−/+ and "3×") is on screen. */
+  zoomPanel: boolean;
   /** 1.9.2 (D-055): how far above a finger it aims (Settings → offset crosshair; 0 = none). */
   aimOffsetPx: number;
   /** M8: belt size (-1 = no belt, Kettie), reloading, and Kettie stones in the air. */

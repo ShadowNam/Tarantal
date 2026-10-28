@@ -501,6 +501,7 @@ export class HudScene extends Phaser.Scene {
   private drawZoom(s: SimState): void {
     const l = this.layoutNow;
     const z = this.zoomOf(s);
+    if (this.ctx.hook) this.ctx.hook.zoomPanel = l !== null && z !== null;
     if (l === null || z === null) {
       this.zoomPanel.image.setVisible(false);
       this.zoomText.setVisible(false);

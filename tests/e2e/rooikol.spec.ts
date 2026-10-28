@@ -29,6 +29,8 @@ interface Burst {
   shotTicks: number[];
   maxZoom: number;
   pictures: string[];
+  /** Frames the Langloop's zoom panel (−/+ and "3×") showed (none under the red dot). */
+  zoomPanel: number;
 }
 
 /** Two quick taps in the open sky (fresh pointer ids), until two shots went off. */
@@ -42,7 +44,7 @@ async function twoQuickShots(page: Page, touch: boolean): Promise<Burst> {
           reject(new Error('game not booted'));
           return;
         }
-        const out: Burst = { shotTicks: [], maxZoom: 1, pictures: [] };
+        const out: Burst = { shotTicks: [], maxZoom: 1, pictures: [], zoomPanel: 0 };
         const start = h.shots;
         let n = 0;
         let down = false;
@@ -74,6 +76,7 @@ async function twoQuickShots(page: Page, touch: boolean): Promise<Burst> {
           // From the first press on (this frame's press has gone in by the next frame).
           if (pressed) {
             out.maxZoom = Math.max(out.maxZoom, h.zoom.z);
+            if (h.zoomPanel) out.zoomPanel++;
             const pic = h.zoom.picture;
             if (pic !== null && !out.pictures.includes(pic)) out.pictures.push(pic);
           }
@@ -132,6 +135,8 @@ for (const g of GUNS)
     expect((c ?? 0) - (a ?? 0)).toBeLessThanOrEqual(fast + 6);
     expect((c ?? 0) - (a ?? 0)).toBeLessThan(cooldownTicks(g.gun));
     expect(b.maxZoom).toBe(1);
+    // R1: no zoom steps to show or tap while the view is at 1× (the Langloop's panel is gone).
+    expect(b.zoomPanel).toBe(0);
     expect(b.pictures).toEqual(['red_dot']);
     expect(errors).toEqual([]);
   });
