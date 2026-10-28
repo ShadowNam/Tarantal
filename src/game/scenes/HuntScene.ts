@@ -4,7 +4,7 @@
 // HUD / the hunt log (meta) / the FTUE director, then draw the interpolated snapshot. The scene
 // never writes into the sim: input reaches it only as Commands. Esc, P, the HUD pause button or
 // a hidden tab open the pause menu; the hunt clock holds while it is open.
-import { inputSightZoom, redDotIds } from '../view/redDot';
+import { inputSightZoom, redDotIds, redDotUp } from '../view/redDot';
 import { designSize } from '../layout';
 import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
@@ -1724,7 +1724,9 @@ export class HuntScene extends Phaser.Scene {
     // The hunt is over: the sight comes down (the tally never opens over a frozen scope view).
     // 1.9.2 (D-055) Rooikol: a red dot is up at once and magnifies nothing (the view's call).
     const aimed = runner.over ? null : interpolateAim(runner.prev, state, alpha);
-    const redDot = state.aim?.redDot === true;
+    // The hold's own red dot while aiming; the next press's while idle (R6: the picture isn't
+    // rebuilt on every press and release while the Rooikol runs).
+    const redDot = redDotUp(state, this.redDots);
     const zoom = zoomFor(
       aimed !== null && redDot ? { ...aimed, zoom: 1, progress: 1 } : aimed,
       width,
