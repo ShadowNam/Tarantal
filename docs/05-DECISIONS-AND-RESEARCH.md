@@ -3135,8 +3135,11 @@ as it's so close by." GDD §11.3b, §11.3; art bible §4.2b; Tech §3.9.
   Okavango HD hunt ≈ 237.6 + 1.4 ≈ 239.0 MB (up to ~239.7 if the Standard copies stay resident),
   budget 256, target 240; perf.spec measures it in CI's full lane. The painted mid palms' removal
   leaves the mid layer's tiles the same size.
-- *Golden replays* re-recorded: the content hash changed; Okavango layouts have nuts, and
-  Wednesday's Karoo map two far cans.
+- *Golden replays.* The existing 39 keep their events, hashes and scores (none plays a map with
+  palms or a far fence; only the content hash in each changed). Two new ones lock the new
+  behaviour: `classic-81-okavango-tue-nuthappy-pointer` (the nut-happy bot on Okavango Tuesday:
+  crack-offs, air hits, landings) and `classic-82-karoo-wed-canhappy-pointer` (the can-happy bot,
+  which now shoots the far fence's cans too, on Karoo Wednesday).
 - *Later (build plan):* a carved makalani nut as a Notaboek reward or a charm.
 
 
