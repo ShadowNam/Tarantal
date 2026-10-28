@@ -86,6 +86,25 @@ export function withForcedEvent(b: ContentBundle, event: string): ContentBundle 
   };
 }
 
+/**
+ * 1.9.3 (D-056, review M14) ?makalaniPreview=juggle|pop (art previews only): `juggle` makes a nut
+ * in the air easy to hit (× 6 its radius instead of × 2.2), so the screenshot spec reaches a chain
+ * of 3 in a few shots; `pop` makes every gun a pop weapon, so any hit bursts the nut.
+ */
+export function withMakalaniPreview(b: ContentBundle, mode: string): ContentBundle {
+  const m = b.birds.makalani;
+  if (mode === 'juggle') return { ...b, birds: { ...b.birds, makalani: { ...m, airHitMul: 6 } } };
+  if (mode === 'pop')
+    return {
+      ...b,
+      birds: {
+        ...b.birds,
+        makalani: { ...m, popWeapons: b.weapons.weapons.map((w) => w.id) },
+      },
+    };
+  return b;
+}
+
 /** 1.9.3 (D-056) ?palms=0 (art previews' "before"): every layout without its makalani palms. */
 export function withNoPalms(b: ContentBundle): ContentBundle {
   return {

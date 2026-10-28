@@ -9,8 +9,9 @@
 //   cluster: Monday's near palm at the west end, a 2× close-up of its crown and nut clusters;
 //     cluster-std-hd: the same close-up, Standard | HD;
 //   falling: a nut just cracked off (fibre bits, the spin blur);
-//   juggle3: a nut at chain 3 in the air (the chain pop);
-//   pop: a nut bursting into husk and ivory chips;
+//   juggle3: a nut at chain 3 in the air (the chain pop; ?makalaniPreview=juggle: easy air hits);
+//   pop: a nut bursting into husk and ivory chips (?makalaniPreview=pop: every hit pops);
+// A wanted shot that doesn't come within its bounded attempts fails the test.
 //   far-can: a can from the Karoo's far fence mid-juggle (Wednesday).
 // Everything that moves on a held frame runs on sim time (sway, ripple, bits, nuts, pops): each
 // grab holds the sim (__TM_HOLD_AT__) or capture mode's freeze (F). On desktop the real mouse
@@ -19,7 +20,7 @@
 // area before grabbing (a lazy area's first frames still show the title's Karoo).
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { test, type Page, type TestInfo } from '@playwright/test';
+import { expect, test, type Page, type TestInfo } from '@playwright/test';
 import weaponsJson from '../../content/weapons.json' with { type: 'json' };
 import birdsJson from '../../content/birds.json' with { type: 'json' };
 import { blank, crop, decodePng, encodePng8, resize, type Rgba } from '../../tools/assets/image';
@@ -258,10 +259,13 @@ async function shootUntil(
       : until === 'pop'
         ? log.some((e) => e.startsWith('nut-pop'))
         : log.some((e) => e.startsWith(source === 'nuts' ? `nut-${until}` : until));
-  for (let i = 0; i < 30; i++) {
+  // Bounded (review M14): at most 6 rounds of ≤ 60 s / 1 500 frames each, well inside a test.
+  for (let i = 0; i < 6; i++) {
     const run = await shootThings(page, touch, source, until, COOLDOWN, {
       ...(plane === undefined ? {} : { plane }),
       holdOnDone: true,
+      budgetMs: 60_000,
+      maxFrames: 1500,
     });
     const h = await hook(page);
     const best = source === 'nuts' ? (h.nuts?.bestChain ?? 0) : (h.farCans?.bestChain ?? 0);
@@ -339,34 +343,44 @@ test('a nut cluster close-up (Monday near palm), Standard | HD', async ({ page }
   if (a !== undefined && b !== undefined) save('cluster-std-hd', info, sideBySide(a, b));
 });
 
-test('a nut falling, a juggle at chain 3, a pop', async ({ page }, info) => {
-  const touch = isTouchProject(info);
+/** A Monday Okavango hunt with the near palm in view (`preview`: ?makalaniPreview, review M14). */
+async function nearPalmHunt(page: Page, info: TestInfo, preview = ''): Promise<void> {
   await huntIn(
     page,
     info,
-    'biome=okavango-spring&layout=mon&seed=42&huntSeconds=600&birds=0&graphics=standard',
+    `biome=okavango-spring&layout=mon&seed=42&huntSeconds=600&birds=0&graphics=standard${preview}`,
     'okavango-spring',
   );
   await thingsInView(page, 'nuts', 'near');
-  // Falling: a few ticks after the crack-off (fibre bits out, the nut spinning down).
-  if (await shootUntil(page, touch, 'nuts', 'knock', 'near')) {
-    await release(page);
-    await holdSoon(page, touch, 8);
-    save('falling', info, (await canvasShot(page)).img);
-    await release(page);
-  }
-  // A chain of 3 (the pop "3× in the air!" on screen).
-  if (await shootUntil(page, touch, 'nuts', 3, 'near')) {
-    await holdSoon(page, touch, 0);
-    save('juggle3', info, (await canvasShot(page)).img);
-    await release(page);
-  }
-  // A pop: three pellets on one nut (a few tries with the Dubbelloop's pattern).
-  if (await shootUntil(page, touch, 'nuts', 'pop', 'near')) {
-    await holdSoon(page, touch, 3);
-    save('pop', info, (await canvasShot(page)).img);
-    await release(page);
-  }
+}
+
+test('a nut falling', async ({ page }, info) => {
+  const touch = isTouchProject(info);
+  await nearPalmHunt(page, info);
+  // A few ticks after the crack-off (fibre bits out, the nut spinning down).
+  expect(await shootUntil(page, touch, 'nuts', 'knock', 'near'), 'a crack-off').toBe(true);
+  await release(page);
+  await holdSoon(page, touch, 8);
+  save('falling', info, (await canvasShot(page)).img);
+});
+
+test('a juggle at chain 3', async ({ page }, info) => {
+  const touch = isTouchProject(info);
+  // Test builds only: a nut in the air is easy to hit (× 6 its radius), so chain 3 comes in a
+  // few shots; one shot an arc at its top, as before.
+  await nearPalmHunt(page, info, '&makalaniPreview=juggle');
+  expect(await shootUntil(page, touch, 'nuts', 3, 'near'), 'a chain of 3').toBe(true);
+  await holdSoon(page, touch, 0);
+  save('juggle3', info, (await canvasShot(page)).img);
+});
+
+test('a pop', async ({ page }, info) => {
+  const touch = isTouchProject(info);
+  // Test builds only: every gun pops a nut it hits (as a rifle does).
+  await nearPalmHunt(page, info, '&makalaniPreview=pop');
+  expect(await shootUntil(page, touch, 'nuts', 'pop', 'near'), 'a pop').toBe(true);
+  await holdSoon(page, touch, 3);
+  save('pop', info, (await canvasShot(page)).img);
 });
 
 test('a far-fence can mid-juggle (Karoo Wednesday)', async ({ page }, info) => {
@@ -378,7 +392,8 @@ test('a far-fence can mid-juggle (Karoo Wednesday)', async ({ page }, info) => {
     'karoo-autumn',
   );
   await thingsInView(page, 'farCans');
-  if (await shootUntil(page, touch, 'farCans', 'knock')) {
+  expect(await shootUntil(page, touch, 'farCans', 'knock'), 'a far can knocked off').toBe(true);
+  {
     await release(page);
     await holdSoon(page, touch, 6);
     const s = await canvasShot(page);
