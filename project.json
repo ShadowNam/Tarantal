@@ -1875,7 +1875,44 @@
    "estimate": false,
    "prs": [
     94
-   ]
+   ],
+   "summary": "Makalani palms by the water in the Okavango, with reflections at dusk and clusters of glossy brown nuts. A nut hit cracks off and falls; hit it in the air and it juggles like a can; a full shotgun hit pops it into fibre and ivory chips. Secret: 3 nuts in one hunt. Also 1–2 Blikkies cans on the Karoo's far fence (your request, 27 Oct).",
+   "owner": "Tank built it (task 099e6928); Claude reviewed it (fix lists M1–M20), ran the screenshots four times and merged it",
+   "checklist": [
+    {
+     "text": "Makalani palms (pairs and small groups, fronds that sway) on the near and mid planes of the Okavango, makalani silhouettes far away",
+     "done": true
+    },
+    {
+     "text": "Reflections in the water with a gentle ripple at dusk",
+     "done": true
+    },
+    {
+     "text": "Nut clusters: a hit cracks a nut off; hit it in the air and it juggles like a can; a full shotgun or rifle hit pops it into fibre and ivory chips",
+     "done": true
+    },
+    {
+     "text": "Scoring and the secret \"Hard soos 'n makalani\" (3 nuts in one hunt), Oupa line in 4 languages; balance sim keeps cans + nuts small",
+     "done": true
+    },
+    {
+     "text": "1–2 Blikkies cans on the Karoo's far fence, sized by distance",
+     "done": true
+    },
+    {
+     "text": "HD versions; the Okavango stays within its download and phone-memory budgets",
+     "done": true
+    },
+    {
+     "text": "Screenshots on desktop and both phones; browser tests; merged as 1.9.3 (#94)",
+     "done": true
+    },
+    {
+     "text": "Review fixes: crowns sit on their trunks, sharp HD nuts in front of the palm skirts, and a shot through a nut still hits the bird or owl behind it",
+     "done": true
+    }
+   ],
+   "requestedBy": "You, 26 Oct: \"add some makalani trees … If somebody manages to hit such a small makalani, maybe it can do a small blow-up, or fall down … Be creative.\" And 27 Oct: \"one or two cans on the further-away fence, as it's so close by.\""
   },
   {
    "id": "tree-life-a-detailed-baobab-with-real-ha",
@@ -2500,7 +2537,7 @@
    "date": "26 Oct, 07:20",
    "text": "Okavango: add makalani palms with their hard nuts; a hit nut should fall or burst; be creative",
    "outcome": "Planned: nuts crack off, juggle in the air like cans, or pop on a full hit",
-   "job": "makalani-palms-in-the-okavango-hanging-n"
+   "job": "makalani-palms-in-the-okavango-real-maka"
   },
   {
    "date": "26 Oct, 07:20",
@@ -2536,7 +2573,7 @@
    "date": "27 Oct, 20:30",
    "text": "Blikkies: one or two cans on the further-away fence too, the near fence is so close",
    "outcome": "Added to the makalani job (it already reuses the juggle code)",
-   "job": "makalani-palms-in-the-okavango-hanging-n"
+   "job": "makalani-palms-in-the-okavango-real-maka"
   },
   {
    "date": "27 Oct, 20:30",

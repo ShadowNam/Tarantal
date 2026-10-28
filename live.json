@@ -748,7 +748,7 @@
     }
    ]
   },
-  "makalani-palms-in-the-okavango-hanging-n": {
+  "makalani-palms-in-the-okavango-real-maka": {
    "owner": "Tank built it (task 099e6928); Claude reviewed it (fix lists M1–M20), ran the screenshots four times and merged it",
    "summary": "Makalani palms by the water in the Okavango, with reflections at dusk and clusters of glossy brown nuts. A nut hit cracks off and falls; hit it in the air and it juggles like a can; a full shotgun hit pops it into fibre and ivory chips. Secret: 3 nuts in one hunt. Also 1–2 Blikkies cans on the Karoo's far fence (your request, 27 Oct).",
    "requestedBy": "You, 26 Oct: \"add some makalani trees … If somebody manages to hit such a small makalani, maybe it can do a small blow-up, or fall down … Be creative.\" And 27 Oct: \"one or two cans on the further-away fence, as it's so close by.\"",
@@ -1055,7 +1055,7 @@
    "date": "26 Oct, 07:20",
    "text": "Okavango: add makalani palms with their hard nuts; a hit nut should fall or burst; be creative",
    "outcome": "Planned: nuts crack off, juggle in the air like cans, or pop on a full hit",
-   "job": "makalani-palms-in-the-okavango-hanging-n"
+   "job": "makalani-palms-in-the-okavango-real-maka"
   },
   {
    "date": "26 Oct, 07:20",
@@ -1091,7 +1091,7 @@
    "date": "27 Oct, 20:30",
    "text": "Blikkies: one or two cans on the further-away fence too, the near fence is so close",
    "outcome": "Added to the makalani job (it already reuses the juggle code)",
-   "job": "makalani-palms-in-the-okavango-hanging-n"
+   "job": "makalani-palms-in-the-okavango-real-maka"
   },
   {
    "date": "27 Oct, 20:30",
