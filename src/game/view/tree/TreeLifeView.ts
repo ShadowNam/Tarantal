@@ -10,6 +10,7 @@ import type { PelletStop } from '../fruit/fruitHits';
 import { BaobabLifeView, type ResidentHook } from './BaobabLifeView';
 import { RESIDENT_IDS } from './baobabResidents';
 import { ColonyView, type ColonyHook } from './ColonyView';
+import { WeaverView } from '../WeaverView';
 
 export interface TreeLifeArgs {
   /** The hunt's seed (set when the hunt starts). */
@@ -42,6 +43,8 @@ export function wantsTreeLife(biome: Biome, feel: Feel): boolean {
 export class TreeLifeView {
   private readonly baobab: BaobabLifeView | null;
   private readonly colony: ColonyView | null;
+  /** v1.4 B (D-039): the angry burst out of a shot family nest (lazy since 1.9.4). */
+  private readonly weavers: WeaverView | null;
 
   constructor(
     scene: Phaser.Scene,
@@ -71,20 +74,32 @@ export class TreeLifeView {
           cameraAt: a.cameraAt,
         })
       : null;
+    this.weavers = ColonyView.wants(biome, feel)
+      ? new WeaverView(scene, feel, biome, parallax, a.planeScale)
+      : null;
   }
 
+  /** Near shots and nest shots; returns the weaver bursts started (or kept out) by these
+   *  events, with the nest's screen x (the scene plays their scolding). */
   handle(
     events: readonly SimEvent[],
     state: SimState,
     stopOf: (e: Extract<SimEvent, { type: 'pelletImpact' }>) => PelletStop | null,
-  ): void {
+  ): { propId: string; screenX: number }[] {
     this.baobab?.handle(events, state, stopOf);
     this.colony?.handle(events, state, stopOf);
+    return this.weavers?.handle(events) ?? [];
+  }
+
+  /** e2e: the angry burst's weavers on screen now. */
+  get weaverCount(): number {
+    return this.weavers?.visibleCount ?? 0;
   }
 
   update(state: SimState, alpha: number): void {
     this.baobab?.update(state, alpha);
     this.colony?.update(state, alpha);
+    this.weavers?.update(state);
   }
 
   hook(): TreeLifeHook {
@@ -98,5 +113,6 @@ export class TreeLifeView {
   destroy(): void {
     this.baobab?.destroy();
     this.colony?.destroy();
+    this.weavers?.clear();
   }
 }

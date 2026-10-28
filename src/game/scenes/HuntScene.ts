@@ -57,7 +57,6 @@ import { WeaponView } from '../view/WeaponView';
 import { planeToDx } from '../../sim/camera';
 import { crosshairExtent, reloadBoostsOf, spreadMulOf } from '../ui/gunLook';
 import { WorldView } from '../view/WorldView';
-import { WeaverView } from '../view/WeaverView';
 import { MeerkatView } from '../view/MeerkatView';
 import { CanView } from '../view/cans/CanView';
 import type { MakalaniView } from '../view/palms/MakalaniView';
@@ -127,8 +126,6 @@ export class HuntScene extends Phaser.Scene {
   private fx!: Fx;
   private weapon!: WeaponView;
   private world!: WorldView;
-  /** v1.4 B (D-039): angry weavers out of a shot family nest. */
-  private weavers!: WeaverView;
   /** v1.7 (D-044): the desert maps' meerkat colonies. */
   private meerkats!: MeerkatView;
   /** v1.8 (D-050): the day's fence and tin cans. */
@@ -447,12 +444,6 @@ export class HuntScene extends Phaser.Scene {
     this.world.secretGlow = lights.some((l) => l.secretGlow === true);
     this.world.reducedMotion = this.ctx.reducedMotion;
     const planes = this.ctx.content.scoring.planes;
-    this.weavers = new WeaverView(this, this.ctx.feel, mapBiome, this.parallax, {
-      near: planes.near.scale,
-      mid: planes.mid.scale,
-      far: planes.far.scale,
-      ver: planes.ver.scale,
-    });
     this.spookView?.clear();
     this.spookView = null;
     const look = special === null ? undefined : this.ctx.feel.feesdae.looks[special.id];
@@ -1794,7 +1785,6 @@ export class HuntScene extends Phaser.Scene {
     for (const c of this.world.potjie.cues)
       playPotjieSound(this.ctx.audio, c.sound, (c.screenX - width / 2) / (width / 2));
     const w0 = performance.now();
-    this.weavers.update(state);
     this.meerkats.update(state);
     this.cans.update(state, runner.prev, alpha);
     this.farCans.update(state, runner.prev, alpha);
@@ -1973,7 +1963,7 @@ export class HuntScene extends Phaser.Scene {
       hook.weapon = state.weapon.id;
       hook.powerups = state.powerups.map((p) => p.id);
       hook.wind = state.wind;
-      hook.weavers = this.weavers.visibleCount;
+      hook.weavers = this.treeLife?.weaverCount ?? 0;
       hook.potjie = this.world.potjie.hook;
       hook.hdProps = this.parallax.hdSpots();
       hook.meerkats = this.meerkats.spots();
@@ -2214,8 +2204,9 @@ export class HuntScene extends Phaser.Scene {
       }
     }
     this.fruit?.handle(events, state, (e) => this.pelletStop(e, state), width);
-    this.treeLife?.handle(events, state, (e) => this.pelletStop(e, state));
-    for (const b of this.weavers.handle(events)) {
+    // v1.4 B: a shot family nest lets its weavers out (1.9.4: drawn by the lazy tree-life
+    // chunk); they chatter and scold (AudioDirector).
+    for (const b of this.treeLife?.handle(events, state, (e) => this.pelletStop(e, state)) ?? []) {
       this.ctx.audio.weavers(Math.max(-1, Math.min(1, (b.screenX - half) / half)));
       if (this.ctx.hook) this.ctx.hook.weaverBursts++;
     }
@@ -2569,7 +2560,6 @@ export class HuntScene extends Phaser.Scene {
     this.cleanups = [];
     this.birds.clear();
     this.world.clear();
-    this.weavers.clear();
     this.meerkats.clear();
     this.spookView?.clear();
     this.fruit?.clear();
