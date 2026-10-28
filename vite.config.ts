@@ -18,7 +18,8 @@ if (!PLATFORMS.includes(platform)) {
 }
 const portal = platform !== 'web';
 /** dist/, dist-poki/, dist-crazygames/, dist-android/ (capacitor.config.ts webDir). */
-const outDir = platform === 'web' ? 'dist' : platform === 'capacitor' ? 'dist-android' : `dist-${platform}`;
+const outDir =
+  platform === 'web' ? 'dist' : platform === 'capacitor' ? 'dist-android' : `dist-${platform}`;
 
 /** Portal builds: drop the PWA manifest and the iOS home-screen tags from index.html. */
 function stripPwa(): Plugin {

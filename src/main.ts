@@ -85,6 +85,7 @@ import type { Settings } from './meta/saveSchema';
 import { setStorageNamespace, storageStatus } from './meta/storage';
 import { installErrorHook } from './platform/errors';
 import { LocalPlatform } from './platform/local';
+import { handleBack, sendEscapeKey, titleOnTop } from './platform/backButton';
 import { adminPageInBuild, createPlatform, currentPlatformId } from './platform/platform';
 import {
   ADMIN_NAMESPACE,
@@ -1179,6 +1180,15 @@ async function boot(): Promise<void> {
       new AdminScene(ctx),
     ],
   });
+
+  // D-058, the Android app: the back button means Escape (pause in a hunt, Back in menus); on the
+  // title screen the app goes to the background.
+  platform.onBackButton?.(() =>
+    handleBack({
+      sendEscape: () => sendEscapeKey(document.body),
+      atTitle: () => titleOnTop(game.scene.getScenes(true).map((s) => s.sys.settings.key)),
+    }),
+  );
 
   // WebGL context loss (backgrounding, memory pressure; Tech §9): Phaser 4 restores the context
   // and re-uploads textures; the hunt holds still meanwhile so the run is never lost.
