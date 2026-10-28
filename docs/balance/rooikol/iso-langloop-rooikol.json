@@ -1,0 +1,67 @@
+{
+ "seeds": 500,
+ "mode": "classic",
+ "input": "pointer",
+ "bots": [
+  "competent",
+  "plinker"
+ ],
+ "overrides": [
+  "powerups.crates.table=[{\"id\":\"rooikol\",\"weight\":1}]"
+ ],
+ "summaries": [
+  {
+   "bot": "competent",
+   "hunts": 500,
+   "mean": 2953.432,
+   "p15": 2248,
+   "p25": 2445,
+   "p50": 2895,
+   "p75": 3375,
+   "p85": 3643,
+   "wingShotShare": 0.6041503863853434,
+   "wholeFlocksPerHunt": 0,
+   "wholeFlockHuntRate": 0,
+   "flushesPerHunt": 9.842,
+   "twoFliesPerHunt": 0,
+   "accuracy": 0.7347082579780084,
+   "secretsPerHunt": 5.356,
+   "cratesPerHunt": 1.98,
+   "penaltiesPerHunt": 0.006,
+   "verPerHunt": 0
+  },
+  {
+   "bot": "plinker",
+   "hunts": 500,
+   "mean": 2357.454,
+   "p15": 1688,
+   "p25": 1892,
+   "p50": 2318,
+   "p75": 2746,
+   "p85": 3033,
+   "wingShotShare": 0.5317310785349938,
+   "wholeFlocksPerHunt": 0,
+   "wholeFlockHuntRate": 0,
+   "flushesPerHunt": 4.912,
+   "twoFliesPerHunt": 0,
+   "accuracy": 0.8736506345649188,
+   "secretsPerHunt": 0.002,
+   "cratesPerHunt": 1.998,
+   "penaltiesPerHunt": 0.004,
+   "verPerHunt": 0
+  }
+ ],
+ "gates": [
+  {
+   "name": "competent mean in 2 500\u20134 500 (Bosveldjagter)",
+   "pass": true,
+   "detail": "2953"
+  },
+  {
+   "name": "plinker \u2265 25 % below competent",
+   "pass": false,
+   "detail": "20.2 % below"
+  }
+ ],
+ "seconds": 237.366939891
+}
