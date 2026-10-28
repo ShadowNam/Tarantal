@@ -224,7 +224,8 @@ function fanLeaf(
   for (let i = 0; i <= segs; i++) {
     const a = dir - spread / 2 + (spread * i) / segs + (rnd() - 0.5) * 0.04;
     // Stiff, pleated segments: the middle ones longest, the tips split and a little ragged.
-    const rr = r * (0.7 + 0.3 * Math.sin((i / segs) * Math.PI)) * (dry ? 1.15 : 1) * (0.94 + rnd() * 0.12);
+    const rr =
+      r * (0.7 + 0.3 * Math.sin((i / segs) * Math.PI)) * (dry ? 1.15 : 1) * (0.94 + rnd() * 0.12);
     tips.push([ex + Math.cos(a) * rr, ey + Math.sin(a) * rr]);
   }
   // Light from the upper left: fans facing up-left are lit.
