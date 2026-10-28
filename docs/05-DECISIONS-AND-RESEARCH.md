@@ -3050,6 +3050,9 @@ you've got 10 seconds left … those 10 seconds don't seem to be 10 seconds. The
   `lastSeconds` skips the gap and the frame's other picks, cuts the line playing (a new bark
   replaces the bubble and stops the voice) and claims the gap; if the first frame that sees ≤ 10 s
   is past 9.5 s (`barks.lastSecondsLateSeconds`), it is never said: a late "Ten seconds!" is wrong.
+  An exception to D-028's "never share the screen": a secret's own bark claims the gap, and if the
+  clock reaches 10 s inside that gap the ten-second call is still said, so its bubble can show
+  while the secret's banner is up. The clock wins: the call is worthless late.
 - *Rooikol (red dot sight).* A timed power-up (`powerups.json`): `redDot` — a rifle's sight is up
   on the press tick, sways as its first zoom step × `redDotSwayMul` (0.6), and the view draws it
   at 1× with a red-dot reticle (SightView 'red_dot'; the input's fine aim moves 1:1); and

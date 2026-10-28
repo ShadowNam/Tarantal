@@ -217,6 +217,16 @@ export interface Sim {
   progress × (sin θ, ½ sin 2θ)`, θ = 2π·t·pace/period + phase (detmath). A reload or a crate weapon
   lowers the sight (`aimEnded` with the reason); a blocked release fires nothing. `SimState.aim`
   carries the sight, its zoom, progress, aim, sway and breath for the renderer.
+  1.9.2 (D-055) red dot: while a power-up with `effect.redDot` runs (the Rooikol), `aimStart`
+  raises the sight at once (`aimRaised` on the press tick, held ticks start at `raiseMs`), so a
+  release on any later tick is a `'sight'` shot. The hold stores `redDot` and `redDotSwayMul` on
+  the `Aim` at the press: its sway is the first zoom step's × that factor for the whole hold, even
+  if the power-up ends first. `fireCooldownMul` multiplies a rifle's time between shots.
+  `SimState.aim.redDot` tells the view; `src/game/view/redDot.ts` is the view's one answer (the
+  hold's own flag while aiming, else the running power-up) for the 1× zoom, the red-dot reticle,
+  the HUD's zoom panel and fine aim (1:1). Crates: a power-up with `needsSight` weighs 0 in the
+  crate roll unless the hunt's gun has a sight (`rollCrate`'s skip set), so other hunts draw as
+  before; the Padstal never offers a power-up without `padstalPrice`.
 - **Very loud shots (v1.4, D-038):** a primary with `alertsAllFlocks` (the Langloop) threatens
   every flock with a shot, not just those within its alert radius: after the radius threats,
   `loudShotThreats` adds each other flock with members, once per shot, from the shot's mean
