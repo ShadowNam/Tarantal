@@ -402,6 +402,8 @@ export interface TestHook {
       r: number;
       state: string;
       chain: number;
+      /** Review M15: the nut image's drawn width (design px). */
+      drawnW: number;
     }[];
     palms: {
       plane: string;

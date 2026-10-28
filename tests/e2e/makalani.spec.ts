@@ -36,6 +36,17 @@ test.describe('Makalani nuts (1.9.3, D-056)', () => {
       { timeout: 60_000 },
     );
 
+    // Review M15: every hanging nut draws whole: its image NUT_BOX (24) × its plane's scale.
+    await page.waitForFunction(
+      () => (window.__TM__?.nuts?.nuts ?? []).some((n) => n.drawnW > 0),
+      null,
+      { timeout: 60_000 },
+    );
+    for (const n of ((await hook(page)).nuts?.nuts ?? []).filter((x) => x.state === 'rest'))
+      expect(
+        Math.abs(n.drawnW - 24 * (n.plane === 'near' ? 1 : 0.42)),
+        `nut ${String(n.id)}`,
+      ).toBeLessThan(1);
     // Review M11: every crown sits on its trunk's top (screen px, from the images as placed).
     const palms = (await hook(page)).nuts?.palms ?? [];
     for (const p of palms.filter((x) => x.built))

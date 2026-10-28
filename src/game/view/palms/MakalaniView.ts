@@ -22,6 +22,7 @@ import {
   NUT_SOUNDS,
   PALM_ART_SCALE,
   nutFrames,
+  nutTexelsPerPx,
   palmCrownKey,
   palmFrames,
   palmTrunkKey,
@@ -142,6 +143,8 @@ export class MakalaniView {
   private tick = 0;
   private sheet: Phaser.Textures.Texture | null = null;
   private canSheet: Phaser.Textures.Texture | null = null;
+  /** Texture px per design px of the nut sheet under the key (1 Standard, 2 HD). */
+  private nutK = 1;
   /** The manifest's hdEpoch the palms were built for. */
   private epoch = -1;
   /** ms the palms and nuts took to draw this frame (e2e perf). */
@@ -163,9 +166,13 @@ export class MakalaniView {
     if (!this.scene.textures.exists(NUT_SHEET)) return false;
     const tex = this.scene.textures.get(NUT_SHEET);
     if (tex !== this.sheet) {
-      const k = 1 / this.manifest.displayScale(NUT_SHEET);
+      // Review M15: cut by the file actually under the key (texture px per design px), not by
+      // displayScale(): an HD file installed through a manifest that doesn't list the sheet as
+      // view-scaled is "halved" with displayScale 1, and 1× cuts landed inside the 2× image.
+      const k = nutTexelsPerPx(tex.getSourceImage().width);
       for (const f of nutFrames())
         if (!tex.has(f.name)) tex.add(f.name, 0, f.x * k, f.y * k, f.w * k, f.h * k);
+      this.nutK = k;
       if (this.sheet !== null) {
         for (const d of this.nuts.values()) d.img.setTexture(NUT_SHEET, d.img.frame.name);
         for (const b of this.bits) b.img.setTexture(NUT_SHEET, b.img.frame.name);
@@ -380,7 +387,7 @@ export class MakalaniView {
       const x = p === undefined ? n.x : p.x + (n.x - p.x) * alpha;
       const y = p === undefined ? n.y : p.y + (n.y - p.y) * alpha;
       const a = p === undefined ? n.angle : p.angle + (n.angle - p.angle) * alpha;
-      const k = this.manifest.displayScale(NUT_SHEET);
+      const k = 1 / this.nutK;
       const fast = Math.abs(n.spin) > blur;
       const frame: NutFrame = fast ? `nut_${n.colour}_blur` : `nut_${n.colour}`;
       if (d.img.frame.name !== frame) d.img.setFrame(frame);
@@ -437,7 +444,7 @@ export class MakalaniView {
   ): void {
     const rnd = lcg(seed);
     const node = this.parallax.plane(plane);
-    const k = this.manifest.displayScale(NUT_SHEET);
+    const k = 1 / this.nutK;
     const sp = this.look.bitSpeedPxPerSec;
     for (let i = 0; i < n; i++) {
       const img = this.nutImage(frames[i % frames.length] ?? 'fibre');
@@ -495,6 +502,7 @@ export class MakalaniView {
       r: number;
       state: string;
       chain: number;
+      drawnW: number;
     }[];
     palms: PalmSpot[];
   } {
@@ -509,6 +517,8 @@ export class MakalaniView {
         r: Math.round(n.hitR * 10) / 10,
         state: n.state,
         chain: n.chain,
+        // Review M15: the nut image's drawn width (design px; NUT_BOX × its plane's scale).
+        drawnW: Math.round((this.nuts.get(n.id)?.img.displayWidth ?? 0) * 10) / 10,
       })),
       palms: v.palms.map((p) => this.palmSpot(p)),
     };

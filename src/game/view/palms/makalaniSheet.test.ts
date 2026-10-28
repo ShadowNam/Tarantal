@@ -3,7 +3,10 @@
 // Phaser's default (the centre) the trunk sank half its length and the crown floated.
 import { describe, expect, it } from 'vitest';
 import {
+  NUT_SHEET_W,
   PALM_ART_PLANES,
+  nutFrames,
+  nutTexelsPerPx,
   crownBaseOf,
   palmFrames,
   trunkTopOf,
@@ -40,4 +43,18 @@ describe('makalani placement', () => {
         const centred = trunkTopOf({ ...img, originY: 0.5 }, plane, f.trunk.h / k, k);
         expect(centred.y - top.y).toBeGreaterThan(100 * s);
       });
+});
+
+describe('the nut sheet (review M15)', () => {
+  it('a nut frame draws the same design size from the Standard and the 2× HD file', () => {
+    for (const width of [NUT_SHEET_W, NUT_SHEET_W * 2]) {
+      const k = nutTexelsPerPx(width);
+      expect(k).toBe(width / NUT_SHEET_W);
+      for (const f of nutFrames()) {
+        // Cut at the frame table × k in the file, drawn at 1 / k: the frame's design size.
+        expect((f.w * k) / k).toBe(f.w);
+        expect(f.x * k + f.w * k).toBeLessThanOrEqual(width);
+      }
+    }
+  });
 });

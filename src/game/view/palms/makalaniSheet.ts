@@ -96,6 +96,12 @@ const all = nutFrames();
 export const NUT_SHEET_W = Math.max(...all.map((f) => f.x + f.w)) + GAP;
 export const NUT_SHEET_H = NUT_BOX + 2 * GAP;
 
+/** Review M15: texture px per design px of a nut sheet file `sourceWidth` px wide (Standard 1,
+ *  the HD file 2): frames are cut at the frame table × this and drawn at 1 / this. */
+export function nutTexelsPerPx(sourceWidth: number): number {
+  return Math.max(1, Math.round((sourceWidth / NUT_SHEET_W) * 4) / 4);
+}
+
 /** Sounds through the AudioDirector: common recordings, pitched (a woody tok, a sharp krak, a
  *  hard bounce, the whoosh of Weg!). */
 export const NUT_SOUNDS = {
