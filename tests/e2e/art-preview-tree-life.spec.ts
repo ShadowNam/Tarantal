@@ -16,8 +16,8 @@
 //   colony-<biome>, colony-<biome>-before-after, colony-<biome>-std-hd: the weaver tree with the
 //     birds in flight and the pygmy falcon (?treeLife=falcon), Kalahari and Namibië (lovebirds);
 //     before = ?treeLife=off.
-// Everything that moves runs on sim time; every grab holds the sim (__TM_HOLD_AT__) at a fixed
-// tick, so Standard and HD show the same birds. Crops are anchored on the prop's own on-screen
+// Everything that moves runs on sim time; every grab holds the sim (__TM_HOLD_AT__) at a near
+// tick (a multiple of 300), so Standard and HD mostly show the same birds. Crops are anchored on the prop's own on-screen
 // box (graphics.bounds), so they line up across modes. On desktop the real mouse rests at the
 // bottom centre, outside both edge-pan bands. A wanted shot that doesn't come within its bounded
 // attempts fails the test. Each test waits until the hunt runs in the wanted area.
@@ -192,12 +192,14 @@ async function panToSausages(page: Page, touch: boolean): Promise<void> {
   await park(page, touch);
 }
 
-/** Holds the sim at the first multiple of 30 s at least 2 s from now (the same tick in every
- *  mode as long as each run gets here in time), then lets frames draw. */
+/** Holds the sim at the next multiple of 300 ticks at least 120 ticks ahead (review S1: a
+ *  multiple of 1 800 could be 30 s of sim time away, which a software-GL run took over 600 s to
+ *  reach). The wait is bounded by sim ticks (≤ 420 ahead), with a generous timeout. Runs that
+ *  reach the same pan in the same 300-tick window hold the same tick. */
 async function holdFixed(page: Page, touch: boolean): Promise<number> {
   const at = await page.evaluate(() => {
     const now = window.__TM__?.tick ?? 0;
-    const t = Math.ceil((now + 120) / 1800) * 1800;
+    const t = Math.ceil((now + 120) / 300) * 300;
     (window as { __TM_HOLD_AT__?: (tick: number) => void }).__TM_HOLD_AT__?.(t);
     return t;
   });
@@ -448,7 +450,7 @@ for (const [biome, key] of [
       await holdFixed(page, touch);
       if (mode !== 'before') {
         // The held tick shows the colony out and the falcon at the nest (a forced visit leaves
-        // a second's gap: then the next 30 s mark, bounded).
+        // a second's gap: then the next hold, bounded).
         for (let k = 0; k < 4; k++) {
           const c = (await hook(page)).treeLife?.colony;
           if (c !== null && c !== undefined && c.falcon && c.weavers >= 4) break;
