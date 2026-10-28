@@ -1,0 +1,35 @@
+{
+  "okavango.mon.before": {
+    "id": "okavango.mon.before",
+    "label": "Okavango mon (3 palm groups) · before",
+    "seeds": 500,
+    "mean": 4603.676,
+    "canShare": 0,
+    "nutShare": 0,
+    "nutKnocks": 0,
+    "nutAirHits": 0,
+    "nutPops": 0
+  },
+  "okavango.mon.competent": {
+    "id": "okavango.mon.competent",
+    "label": "Okavango mon (3 palm groups) · competent",
+    "seeds": 500,
+    "mean": 4628.068,
+    "canShare": 0,
+    "nutShare": 0.001422191722334244,
+    "nutKnocks": 0.96,
+    "nutAirHits": 0.062,
+    "nutPops": 0.004
+  },
+  "okavango.mon.nutHappy": {
+    "id": "okavango.mon.nutHappy",
+    "label": "Okavango mon (3 palm groups) · nut-happy",
+    "seeds": 500,
+    "mean": 2970.524,
+    "canShare": 0,
+    "nutShare": 0.08602118683437669,
+    "nutKnocks": 23.354,
+    "nutAirHits": 5.214,
+    "nutPops": 0.116
+  }
+}
