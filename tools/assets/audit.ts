@@ -5,6 +5,7 @@
 // inputs from disk.
 import { hdBaseOf, POTJIE_LID } from '../../src/game/assets/hdProps';
 import { CAN_SHEET } from '../../src/game/view/cans/canSheet';
+import { NUT_SHEET } from '../../src/game/view/palms/makalaniSheet';
 import { PLATE_FRAME_TEX, PLATE_TEX, RANGE_SOUNDS } from '../../src/game/range/rangeAssets';
 import type { AssetIndex, BirdClip } from '../../src/game/assets/assetIndex';
 import { clipFor, resolveClip } from '../../src/game/assets/birdClips';
@@ -79,6 +80,11 @@ function usages(
   if (key === HALLOWEEN_SHEET) needles.push(/\bHALLOWEEN_SHEET\b/);
   // v1.8 (D-050): the tin cans' sheet by its constant (CanView, the placeholder).
   if (key === CAN_SHEET) needles.push(/\bCAN_SHEET\b/);
+  // 1.9.3 (D-056): the makalani nut sheet by its constant, and the palm textures
+  // (okavango/makalani_<trunk|crown>_<plane>) wherever their key builders are called.
+  if (key === NUT_SHEET) needles.push(/\bNUT_SHEET\b/);
+  const palm = /^okavango\/makalani_(trunk|crown)_(near|mid)$/.exec(key);
+  if (palm !== null) needles.push(palm[1] === 'trunk' ? /\bpalmTrunkKey\(/ : /\bpalmCrownKey\(/);
   const spookSound = Object.entries(SPOOK_SOUNDS).find(([, k]) => k === key)?.[0];
   if (spookSound !== undefined) needles.push(new RegExp(`playSpookSound\\([^)]*'${spookSound}'`));
   const meerkatSound = Object.entries(MEERKAT_SOUNDS).find(([, k]) => k === key)?.[0];
