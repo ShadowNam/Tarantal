@@ -618,10 +618,11 @@ if (wants('makalani') && !hdOnly) {
           originY: f.oy / f.h,
           // The trunks stay Standard in HD (D-056): a smooth grey gradient, stretched per palm,
           // gains little at 2×, and the Okavango's HD hunt is the closest to the texture budget.
-          ...(part === 'trunk' ? { hd: false } : {}),
+          // 1.9.3 review M13: so does the small mid-plane crown (the near crown has its HD twin).
+          ...(part === 'trunk' || plane === 'mid' ? { hd: false } : {}),
         }),
       );
-      if (part === 'crown') putHd(`sprites/${key}.png`, draw(HD_RES), 128);
+      if (part === 'crown' && plane === 'near') putHd(`sprites/${key}.png`, draw(HD_RES), 128);
       console.log(`sprites/${key}`);
     }
   }

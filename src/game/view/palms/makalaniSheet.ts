@@ -20,7 +20,7 @@ export const palmCrownKey = (plane: PalmArtPlane): string => `okavango/makalani_
 export const TRUNK = { len: 800, w: 60, below: 16 } as const;
 /** The crown: its base (where the trunk top meets the leaf bases) is the origin; fans reach `up`
  *  above it and `half` to each side, the dry fronds hang `down` below it. */
-export const CROWN = { half: 140, up: 140, down: 120 } as const;
+export const CROWN = { half: 182, up: 182, down: 160 } as const;
 
 export interface PalmFrame {
   readonly w: number;

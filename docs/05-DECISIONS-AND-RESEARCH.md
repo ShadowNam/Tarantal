@@ -3133,12 +3133,13 @@ as it's so close by." GDD §11.3b, §11.3; art bible §4.2b; Tech §3.13.
   group, and no hanging nut in front of a bird band or secret part of a plane behind. The first
   palm heights hung mid-plane nuts in front of the far plane's flocks and near nuts in front of the
   mokoro flag; the palms are taller now (h 700–820 at plane scale 1).
-- *HD texture memory.* The new HD textures (from the packed sizes): near crown 560 × 520 (1.11
-  MB), mid crown 0.20 MB, nut sheet 0.08 MB; the trunks (1.33 MB at 2×) stay Standard in HD
-  (`"hd": false`: a smooth grey gradient stretched per palm gains little at 2×). Expected
-  Okavango HD hunt ≈ 237.6 + 1.4 ≈ 239.0 MB (up to ~239.7 if the Standard copies stay resident),
-  budget 256, target 240; perf.spec measures it in CI's full lane. The painted mid palms' removal
-  leaves the mid layer's tiles the same size.
+- *HD texture memory.* After the review's art pass (M13: the crown drawn × 1.3, about a third of
+  the trunk's height) the new HD textures (from the packed sizes) are the near crown 728 × 684
+  (1.90 MB) and the nut sheet (0.08 MB); the trunks (a smooth grey gradient stretched per palm)
+  and the small mid-plane crown stay Standard in HD (`"hd": false`; 0.39 MB as loaded). Expected
+  Okavango HD hunt ≈ 237.6 + 2.4 ≈ 240.0 MB (up to ~240.6 if the near crown's Standard copy stays
+  resident), budget 256, target 240; perf.spec measures it in CI's full lane. The painted mid
+  palms' removal leaves the mid layer's tiles the same size.
 - *Golden replays.* The existing 39 keep their events, hashes and scores (none plays a map with
   palms or a far fence; only the content hash in each changed). Two new ones lock the new
   behaviour: `classic-81-okavango-tue-nuthappy-pointer` (the nut-happy bot on Okavango Tuesday:

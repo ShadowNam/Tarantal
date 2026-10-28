@@ -489,8 +489,8 @@ The Okavango's makalani palm (*Hyphaene petersiana*), at the camelthorn quality 
   husk chunks and pale ivory chips (`#F2EADA`), a small local puff, no flash.
 - **Far:** silhouettes in the far ridge and far veld (grey trunk, a round fan head, the dry skirt,
   a dark nut cluster).
-- **Textures:** one trunk and one crown per plane (near at scale 1, mid at 0.42); the crowns have
-  HD twins, the trunks stay Standard in HD (a smooth gradient, D-056); the nut sheet at 2× (`src/game/view/palms/makalaniSheet.ts`, `tools/art/makalani.ts`).
+- **Textures:** one trunk and one crown per plane (near at scale 1, mid at 0.42); the near crown
+  has an HD twin; the trunks and the mid crown stay Standard in HD (texture memory, D-056); the nut sheet at 2× (`src/game/view/palms/makalaniSheet.ts`, `tools/art/makalani.ts`).
 - **Sound:** a woody "tok" (crack-off and air hits, rising with the chain), a dry "krak!" (pop), a
   hard click on the bounce, the cans' whistle for Weg!.
 

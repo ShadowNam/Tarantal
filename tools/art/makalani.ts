@@ -52,7 +52,7 @@ export function makalaniTrunk(p: MakalaniPaint): string {
   const half = (y: number): number => {
     const f = -y / len;
     // Tapering from the flared foot, a gentle swelling a third of the way up.
-    const swell = Math.exp(-(((f - 0.36) / 0.12) ** 2)) * 0.12;
+    const swell = Math.exp(-(((f - 0.36) / 0.14) ** 2)) * 0.2;
     const flare = Math.max(0, 0.08 - f) * 2.2;
     return (TRUNK.w / 2) * (1 - 0.34 * f + swell + flare);
   };
@@ -94,8 +94,8 @@ export function makalaniTrunk(p: MakalaniPaint): string {
       d: rings.join(''),
       fill: 'none',
       stroke: p.tint(BARK.dark),
-      'stroke-width': 1.1,
-      opacity: 0.3,
+      'stroke-width': 1.6,
+      opacity: 0.55,
     }),
     el('path', {
       d: lips.join(''),
@@ -120,12 +120,12 @@ export function makalaniTrunk(p: MakalaniPaint): string {
     );
   }
   // Old leaf bases under the crown: split, brown, angled up.
-  for (let k = 0; k < 7; k++) {
-    const y = -len + 8 + k * 14 + rnd() * 6;
+  for (let k = 0; k < 11; k++) {
+    const y = -len + 8 + k * 13 + rnd() * 6;
     const side = k % 2 === 0 ? -1 : 1;
     const w = half(y);
-    const tipX = side * (w + 5 + rnd() * 5);
-    const tipY = y - 16 - rnd() * 8;
+    const tipX = side * (w + 6 + rnd() * 6);
+    const tipY = y - 18 - rnd() * 8;
     const base: Pt[] = [
       [side * w * 0.2, y + 5],
       [side * (w + 2), y - 2],
@@ -273,9 +273,9 @@ export function makalaniCrown(p: MakalaniPaint): string {
   const back: string[] = [];
   const front: string[] = [];
   // The dry skirt first (behind): old fronds hanging down round the trunk top.
-  for (let k = 0; k < 7; k++) {
-    const a = Math.PI * (0.32 + (k / 6) * 0.36) + (rnd() - 0.5) * 0.08;
-    back.push(fanLeaf(p, a, 26 + rnd() * 14, 52 + rnd() * 18, true, 0));
+  for (let k = 0; k < 10; k++) {
+    const a = Math.PI * (0.3 + (k / 9) * 0.4) + (rnd() - 0.5) * 0.08;
+    back.push(fanLeaf(p, a, 30 + rnd() * 16, 58 + rnd() * 20, true, 0));
   }
   // Living fans: back ones (upward) first, then the sides, the front ones last.
   const fans: { a: number; z: number }[] = [];
@@ -490,11 +490,16 @@ export function makalaniPalm(
 }
 
 /** The plane's trunk and crown, at that plane's scale (frames from makalaniSheet.ts). */
+/** 1.9.3 review M13: the crown drawn × this (it spreads about a third of the trunk's height). */
+const CROWN_DRAW = 1.3;
+
 export function palmPart(part: 'trunk' | 'crown', plane: PalmArtPlane, p: MakalaniPaint): string {
   const s = PALM_ART_SCALE[plane];
   return g(
     { transform: `scale(${r2(s)})` },
-    part === 'trunk' ? makalaniTrunk(p) : makalaniCrown(p),
+    part === 'trunk'
+      ? makalaniTrunk(p)
+      : g({ transform: `scale(${r2(CROWN_DRAW)})` }, makalaniCrown(p)),
   );
 }
 

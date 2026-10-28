@@ -3366,35 +3366,35 @@
       "group": "okavango-spring",
       "origin": "interim",
       "file": {
-        "path": "assets/okavango-spring/img/okavango_makalani_crown_mid.34d2584d0352.png",
-        "bytes": 5527,
-        "hash": "34d2584d0352"
+        "path": "assets/okavango-spring/img/okavango_makalani_crown_mid.3ddd4c56a4f3.png",
+        "bytes": 8325,
+        "hash": "3ddd4c56a4f3"
       },
-      "width": 118,
-      "height": 109,
+      "width": 153,
+      "height": 144,
       "originX": 0.5,
-      "originY": 0.5412844036697247
+      "originY": 0.5277777777777778
     },
     "okavango/makalani_crown_near": {
       "group": "okavango-spring",
       "origin": "interim",
       "file": {
-        "path": "assets/okavango-spring/img/okavango_makalani_crown_near.eb4bd5ba5fe0.png",
-        "bytes": 20238,
-        "hash": "eb4bd5ba5fe0"
+        "path": "assets/okavango-spring/img/okavango_makalani_crown_near.7b3c1476e689.png",
+        "bytes": 31551,
+        "hash": "7b3c1476e689"
       },
-      "width": 280,
-      "height": 260,
+      "width": 364,
+      "height": 342,
       "originX": 0.5,
-      "originY": 0.5384615384615384
+      "originY": 0.5321637426900585
     },
     "okavango/makalani_trunk_mid": {
       "group": "okavango-spring",
       "origin": "interim",
       "file": {
-        "path": "assets/okavango-spring/img/okavango_makalani_trunk_mid.38937757021f.png",
-        "bytes": 3244,
-        "hash": "38937757021f"
+        "path": "assets/okavango-spring/img/okavango_makalani_trunk_mid.2f3e7698b779.png",
+        "bytes": 3758,
+        "hash": "2f3e7698b779"
       },
       "width": 37,
       "height": 353,
@@ -3405,9 +3405,9 @@
       "group": "okavango-spring",
       "origin": "interim",
       "file": {
-        "path": "assets/okavango-spring/img/okavango_makalani_trunk_near.f17a103cfe4d.png",
-        "bytes": 8636,
-        "hash": "f17a103cfe4d"
+        "path": "assets/okavango-spring/img/okavango_makalani_trunk_near.d36e7f4f0220.png",
+        "bytes": 10010,
+        "hash": "d36e7f4f0220"
       },
       "width": 88,
       "height": 840,
