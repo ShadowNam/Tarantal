@@ -3096,13 +3096,12 @@
       "group": "kalahari-summer",
       "origin": "interim",
       "file": {
-        "path": "assets/kalahari-summer/img/kalahari_weaver_camelthorn.702405d9bb0b.png",
-        "bytes": 232730,
-        "hash": "702405d9bb0b"
+        "path": "assets/kalahari-summer/img/kalahari_weaver_camelthorn.e9eb5a8ec271.png",
+        "bytes": 79594,
+        "hash": "e9eb5a8ec271"
       },
-      "width": 1160,
-      "height": 1160,
-      "scale": 0.5,
+      "width": 580,
+      "height": 580,
       "originX": 0.5,
       "originY": 0.5172413793103449
     },

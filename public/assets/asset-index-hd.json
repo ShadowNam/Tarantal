@@ -471,6 +471,16 @@
       "height": 760,
       "scale": 0.5
     },
+    "kalahari/weaver_camelthorn": {
+      "file": {
+        "path": "assets/kalahari-summer-hd/img/kalahari_weaver_camelthorn.b307a46dc82d.png",
+        "bytes": 231194,
+        "hash": "b307a46dc82d"
+      },
+      "width": 1160,
+      "height": 1160,
+      "scale": 0.5
+    },
     "karoo/aloe_a": {
       "file": {
         "path": "assets/karoo-autumn-hd/img/karoo_aloe_a.46f5f9de1818.png",
