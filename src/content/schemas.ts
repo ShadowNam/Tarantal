@@ -2266,6 +2266,10 @@ export const FeelSchema = obj({
     reflectDepth: fraction,
     rippleAmpPx: nonNeg,
     ripplePeriodSeconds: pos,
+    /** The reflection's width breathes ± shimmerScale (a share) once per shimmerPeriodSeconds,
+     *  about the palm's foot. */
+    shimmerScale: fraction,
+    shimmerPeriodSeconds: pos,
     /** Above this spin the motion-blurred nut shows. */
     blurDegPerSec: pos,
     /** Fibre bits on a crack-off, husk and ivory bits on a pop, and their flight. */

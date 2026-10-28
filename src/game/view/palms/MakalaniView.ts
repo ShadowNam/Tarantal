@@ -205,8 +205,9 @@ export class MakalaniView {
       // Mirrored at the water line and squashed into the channel; darker, see-through.
       reflection = this.scene.add.container(0, 0);
       const mirror = this.groupParts(p, tk, ck);
-      for (const t of mirror.trunks) reflection.add(t.setTint(0x55666a));
-      for (const c of mirror.crowns) reflection.add(c.img.setTint(0x55666a));
+      // Children relative to the palm's x, so the shimmer scales about the palm (review M4).
+      for (const t of mirror.trunks) reflection.add(t.setTint(0x55666a).setX(t.x - p.x));
+      for (const c of mirror.crowns) reflection.add(c.img.setTint(0x55666a).setX(c.img.x - p.x));
       reflectCrowns.push(...mirror.crowns);
       reflection.setAlpha(this.look.reflectAlpha);
       node.fixtures.add(reflection);
@@ -270,13 +271,18 @@ export class MakalaniView {
     const water = p.waterY ?? p.footY;
     const depth = this.look.reflectDepth;
     // Mirror around the water line: y' = water + (water − y) × depth.
+    // Reduce motion calms the ripple and the shimmer as it calms the sway.
+    const calm = this.reducedMotion ? this.look.reducedSwayMul : 1;
     const ripple =
       this.look.rippleAmpPx *
       p.scale *
+      calm *
       Math.sin((secs * 2 * Math.PI) / this.look.ripplePeriodSeconds);
-    b.reflection
-      .setPosition(ripple, water + water * depth)
-      .setScale(1 + 0.01 * Math.sin(secs * 3.1), -depth);
+    const shimmer =
+      this.look.shimmerScale *
+      calm *
+      Math.sin((secs * 2 * Math.PI) / this.look.shimmerPeriodSeconds);
+    b.reflection.setPosition(p.x + ripple, water + water * depth).setScale(1 + shimmer, -depth);
     for (const c of b.reflectCrowns) c.img.setRotation(c.base + amp * Math.sin(secs * w + c.phase));
   }
 

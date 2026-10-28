@@ -1263,6 +1263,8 @@
     "reflectDepth": 0.28,
     "rippleAmpPx": 3,
     "ripplePeriodSeconds": 2.2,
+    "shimmerScale": 0.01,
+    "shimmerPeriodSeconds": 2.0,
     "blurDegPerSec": 700,
     "fibreBits": 5,
     "popBits": 12,
