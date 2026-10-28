@@ -3129,6 +3129,12 @@ as it's so close by." GDD §11.3b, §11.3; art bible §4.2b; Tech §3.9.
   group, and no hanging nut in front of a bird band or secret part of a plane behind. The first
   palm heights hung mid-plane nuts in front of the far plane's flocks and near nuts in front of the
   mokoro flag; the palms are taller now (h 700–820 at plane scale 1).
+- *HD texture memory.* The new HD textures (from the packed sizes): near crown 560 × 520 (1.11
+  MB), mid crown 0.20 MB, nut sheet 0.08 MB; the trunks (1.33 MB at 2×) stay Standard in HD
+  (`"hd": false`: a smooth grey gradient stretched per palm gains little at 2×). Expected
+  Okavango HD hunt ≈ 237.6 + 1.4 ≈ 239.0 MB (up to ~239.7 if the Standard copies stay resident),
+  budget 256, target 240; perf.spec measures it in CI's full lane. The painted mid palms' removal
+  leaves the mid layer's tiles the same size.
 - *Golden replays* re-recorded: the content hash changed; Okavango layouts have nuts, and
   Wednesday's Karoo map two far cans.
 - *Later (build plan):* a carved makalani nut as a Notaboek reward or a charm.

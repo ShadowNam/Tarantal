@@ -611,9 +611,17 @@ if (wants('makalani') && !hdOnly) {
       put(png, encodePng8(draw(1), 128));
       put(
         png.replace(/\.png$/, '.json'),
-        await json({ origin: 'interim', encode: 'png8', originX: f.ox / f.w, originY: f.oy / f.h }),
+        await json({
+          origin: 'interim',
+          encode: 'png8',
+          originX: f.ox / f.w,
+          originY: f.oy / f.h,
+          // The trunks stay Standard in HD (D-056): a smooth grey gradient, stretched per palm,
+          // gains little at 2×, and the Okavango's HD hunt is the closest to the texture budget.
+          ...(part === 'trunk' ? { hd: false } : {}),
+        }),
       );
-      putHd(`sprites/${key}.png`, draw(HD_RES), 128);
+      if (part === 'crown') putHd(`sprites/${key}.png`, draw(HD_RES), 128);
       console.log(`sprites/${key}`);
     }
   }
