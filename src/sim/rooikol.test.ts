@@ -196,3 +196,39 @@ describe.each(['twee_twee', 'langloop'] as const)('Rooikol with %s', (gun) => {
     expect(gap).toBeLessThan(cooldownTicks(gun));
   });
 });
+
+describe('a red-dot hold outlives the power-up (R2)', () => {
+  /** Picks up the Rooikol, then presses (red dot) `wait` ticks before it ends and holds on
+   *  past its end; returns the sway each tick and the AimView's redDot. */
+  function holdAcrossExpiry(c: Content): { sway: [number, number][]; red: boolean[] } {
+    const sim = newSim(c, rifle('langloop'));
+    pickUp(sim, c);
+    waitCooldown(sim);
+    const left = sim.snapshot().powerups.find((p) => p.id === 'rooikol')?.ticksLeft ?? 0;
+    // Press 30 ticks before it ends (or now, if it lasts longer than the base content's).
+    run(sim, Math.max(0, Math.min(left, msToTicks(def?.durationMs ?? 0)) - 30));
+    run(sim, 1, [{ t: 'aimStart', dx: 0, sy: 300 }]);
+    const sway: [number, number][] = [];
+    const red: boolean[] = [];
+    for (let i = 0; i < 90; i++) {
+      run(sim, 1);
+      const a = sim.snapshot().aim;
+      sway.push([a?.swayDx ?? NaN, a?.swayDy ?? NaN]);
+      red.push(a?.redDot === true);
+    }
+    return { sway, red };
+  }
+
+  it('the sway keeps the factor it was pressed with when the Rooikol ends mid-hold', () => {
+    const short = crates('rooikol');
+    const long = crates('rooikol');
+    const rk = long.powerups.powerups.find((p) => p.id === 'rooikol');
+    if (rk === undefined) throw new Error('no rooikol');
+    // The same hunt, but the power-up outlasts the hold: the sway must match tick for tick.
+    rk.durationMs = (def?.durationMs ?? 0) * 4;
+    const a = holdAcrossExpiry(short);
+    const b = holdAcrossExpiry(long);
+    expect(a.red.every((r) => r)).toBe(true);
+    expect(a.sway).toEqual(b.sway);
+  });
+});

@@ -2670,9 +2670,12 @@ export function createSim(config: SimConfig): Sim {
     if (sight === null || !rifleInHand() || aim !== null) return;
     aim = raiseSight(dx, sy, zoomStep, swayRng, sight);
     // 1.9.2 (D-055) Rooikol: a red dot is up the moment it is pressed (no raise, no zoom).
-    const red = effectsOf(powerups).redDot;
+    const fx = effectsOf(powerups);
+    const red = fx.redDot;
     if (red) {
+      // Fixed for the whole hold: the power-up may end before the release.
       aim.redDot = true;
+      aim.redDotSwayMul = fx.redDotSwayMul;
       aim.heldTicks = sight.raiseTicks;
     }
     emit({
@@ -2689,7 +2692,7 @@ export function createSim(config: SimConfig): Sim {
   /** The sway now: the sight's own, or (red dot) its first step's × redDotSwayMul. */
   function swayOf(a: Aim, t: SightTiming): { dx: number; dy: number } {
     if (a.redDot !== true) return swayAt(a, t);
-    const k = effectsOf(powerups).redDotSwayMul;
+    const k = a.redDotSwayMul ?? 1;
     const w = swayAt({ ...a, step: 0 }, t);
     return { dx: w.dx * k, dy: w.dy * k };
   }

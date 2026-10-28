@@ -62,6 +62,8 @@ export interface Aim {
   step: number;
   /** 1.9.2 (D-055) Rooikol: raised as a red dot (up at once, no zoom); kept for the whole hold. */
   redDot?: boolean;
+  /** The red dot's sway factor, fixed at the press (the power-up may end mid-hold). */
+  redDotSwayMul?: number;
 }
 
 /** Starts a raise: two draws from the sway stream (always two, whatever the sight). */
