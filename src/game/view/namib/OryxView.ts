@@ -46,6 +46,18 @@ interface Built {
 /** A herd further than this (design px) off the screen's edges is not posed. */
 const OFF_SCREEN_PX = 260;
 
+/** Moves and scales a holder, touching only what changed. */
+function place(
+  c: Phaser.GameObjects.Container,
+  x: number,
+  y: number,
+  sx: number,
+  sy: number,
+): void {
+  if (c.x !== x || c.y !== y) c.setPosition(x, y);
+  if (c.scaleX !== sx || c.scaleY !== sy) c.setScale(sx, sy);
+}
+
 export class OryxView {
   private readonly built: Built[] = [];
   private readonly replaces: string | null;
@@ -116,20 +128,26 @@ export class OryxView {
         at.walking && !calm && !this.still
           ? -b.roam.bobPx * Math.abs(Math.sin(t * 5.1 + b.roam.phaseSeconds))
           : 0;
-      b.holder.setPosition(at.x + sh.herdDx, bob).setScale(at.facing, 1);
+      // Set only on change (review: unchanged setters every frame showed in the profile).
+      place(b.holder, at.x + sh.herdDx, bob, at.facing, 1);
       b.herd.update(tick, calm, width);
       // The mirror: flipped about the ground line, squashed, its feet `gapPx` below the herd's;
-      // posed only while the heat shows it.
+      // shown only while the heat shows it, posed as the herd is (no second pose pass).
       const mirrorOn = sh.alpha > 0.01;
       if (b.mirror.visible !== mirrorOn) b.mirror.setVisible(mirrorOn);
       b.spot.mirror = 0;
       if (!mirrorOn) continue;
       const sq = b.roam.reflect.squash * sh.squash;
-      b.mirror
-        .setPosition(at.x + sh.mirrorDx, b.roam.herd.y * (1 + sq) + b.roam.reflect.gapPx)
-        .setScale(at.facing, -sq)
-        .setAlpha(b.roam.reflect.alpha * sh.alpha);
-      b.image.update(tick, calm, width);
+      place(
+        b.mirror,
+        at.x + sh.mirrorDx,
+        b.roam.herd.y * (1 + sq) + b.roam.reflect.gapPx,
+        at.facing,
+        -sq,
+      );
+      const alpha = b.roam.reflect.alpha * sh.alpha;
+      if (b.mirror.alpha !== alpha) b.mirror.setAlpha(alpha);
+      b.image.copyPose(b.herd);
       b.spot.mirror = b.mirror.alpha;
     }
   }

@@ -104,13 +104,30 @@ export const OSTRICH_SYNTH: Record<keyof typeof OSTRICH_SOUNDS, Synth> = {
 const PUFF_TICKS = 36;
 const FEATHERS = 7;
 
+/** The nest scrape with its eggs baked into one small texture (one image, not one per egg). */
+interface Clutch {
+  readonly key: string;
+  readonly dt: Phaser.Textures.DynamicTexture;
+  readonly img: Phaser.GameObjects.Image;
+  /** Sheet texels per art px it was made for, and the eggs stamped in it. */
+  readonly tk: number;
+  eggs: number;
+}
+
 interface Built {
   readonly family: string;
   readonly layer: LayerNode;
-  readonly scrape: Phaser.GameObjects.Image | null;
-  readonly eggs: Phaser.GameObjects.Image[];
+  clutch: Clutch | null;
   readonly birds: Map<number, Phaser.GameObjects.Image>;
+  /** Each bird's sit state, and the fixtures' child count, the draw order was set for (set
+   *  again only when one changes). */
+  readonly sat: Map<number, boolean>;
+  children: number;
 }
+
+/** Margin (art px) round the scrape in the clutch texture. */
+const CLUTCH_PAD = 2;
+let clutchSerial = 0;
 
 interface Puff {
   readonly layer: LayerNode;
@@ -130,6 +147,8 @@ export class OstrichView {
   private readonly poses = new Map<number, string>();
   private sheet: Phaser.Textures.Texture | null = null;
   private tk = 1;
+  /** A puff went into the fixtures: the birds go back on top of it on the next update. */
+  private reorder = false;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -137,8 +156,10 @@ export class OstrichView {
     private readonly reducedMotion: boolean,
   ) {}
 
+  private readonly byName = new Map(this.frames.map((f) => [f.name, f]));
+
   private rect(name: string): OstrichRect | undefined {
-    return this.frames.find((f) => f.name === name);
+    return this.byName.get(name);
   }
 
   private ensureSheet(): boolean {
@@ -158,32 +179,85 @@ export class OstrichView {
     this.tk = k;
     this.sheet = tex;
     for (const b of this.built.values()) {
-      b.scrape?.setTexture(OSTRICH_SHEET, 'scrape');
-      for (const e of b.eggs) e.setTexture(OSTRICH_SHEET, 'egg');
+      if (b.clutch !== null) this.bakeClutch(b, b.clutch.eggs, true);
       for (const img of b.birds.values()) img.setTexture(OSTRICH_SHEET, img.frame.name);
     }
     return true;
+  }
+
+  /**
+   * Stamps the scrape and its first `eggs` eggs into the family's clutch texture (made on the
+   * first call, or again when the sheet's resolution changed), in sheet texels; the image shows
+   * it at the family's scale with its origin on the scrape's middle.
+   */
+  private bakeClutch(b: Built, eggs: number, force = false): void {
+    const sc = this.rect('scrape');
+    const eg = this.rect('egg');
+    const c0 = b.clutch;
+    if (sc === undefined || eg === undefined || c0 === null) return;
+    if (!force && c0.eggs === eggs && c0.tk === this.tk) return;
+    let c = c0;
+    const tk = this.tk;
+    if (c.tk !== tk) {
+      // Another resolution: a new texture of the new size, the old one freed once undrawn.
+      const fresh = this.makeClutch(c.img.x, c.img.y);
+      if (fresh === null) return;
+      b.layer.fixtures.addAt(fresh.img, b.layer.fixtures.getIndex(c.img));
+      c.img.destroy();
+      this.scene.textures.remove(c.key);
+      b.clutch = fresh;
+      c = fresh;
+    }
+    c.eggs = eggs;
+    const ox = sc.ox + CLUTCH_PAD;
+    const oy = sc.oy + CLUTCH_PAD;
+    c.dt.clear();
+    c.dt.stamp(OSTRICH_SHEET, 'scrape', ox * tk, oy * tk, {
+      originX: sc.ox / sc.w,
+      originY: sc.oy / sc.h,
+    });
+    for (const [dx, dy] of EGG_SPOTS.slice(0, eggs))
+      c.dt.stamp(OSTRICH_SHEET, 'egg', (ox + dx) * tk, (oy + dy * 0.5) * tk, {
+        originX: eg.ox / eg.w,
+        originY: eg.oy / eg.h,
+      });
+    c.dt.render();
+  }
+
+  private makeClutch(x: number, y: number): Clutch | null {
+    const sc = this.rect('scrape');
+    if (sc === undefined) return null;
+    const tk = this.tk;
+    const key = `namibie/ostrich-clutch/${String(++clutchSerial)}`;
+    const w = sc.w + CLUTCH_PAD * 2;
+    const h = sc.h + CLUTCH_PAD * 2;
+    const dt = this.scene.textures.addDynamicTexture(key, Math.ceil(w * tk), Math.ceil(h * tk));
+    if (dt === null) return null;
+    const img = this.scene.add
+      .image(x, y, key)
+      .setOrigin((sc.ox + CLUTCH_PAD) / w, (sc.oy + CLUTCH_PAD) / h);
+    // Not baked yet: bakeClutch stamps it.
+    return { key, dt, img, tk, eggs: -1 };
   }
 
   private build(f: OstrichFamilyView): Built | null {
     const layer = this.parallax.layer(f.layerId);
     if (layer === undefined) return null;
     const k = f.scale / OSTRICH_ART_SCALE / this.tk;
-    let scrape: Phaser.GameObjects.Image | null = null;
-    const eggs: Phaser.GameObjects.Image[] = [];
-    if (f.nest !== null) {
-      scrape = this.scene.add.image(f.nest.x, f.ground, OSTRICH_SHEET, 'scrape').setScale(k);
-      layer.fixtures.add(scrape);
-      const s = f.scale / OSTRICH_ART_SCALE;
-      for (const [dx, dy] of EGG_SPOTS.slice(0, f.nest.eggs)) {
-        const egg = this.scene.add
-          .image(f.nest.x + dx * s, f.ground + dy * s * 0.5, OSTRICH_SHEET, 'egg')
-          .setScale(k);
-        layer.fixtures.add(egg);
-        eggs.push(egg);
-      }
+    const clutch = f.nest === null ? null : this.makeClutch(f.nest.x, f.ground);
+    if (clutch !== null) {
+      clutch.img.setScale(k);
+      layer.fixtures.add(clutch.img);
     }
-    const b: Built = { family: f.id, layer, scrape, eggs, birds: new Map() };
+    const b: Built = {
+      family: f.id,
+      layer,
+      clutch,
+      birds: new Map(),
+      sat: new Map(),
+      children: -1,
+    };
+    if (f.nest !== null) this.bakeClutch(b, f.nest.eggs);
     this.built.set(f.id, b);
     return b;
   }
@@ -238,8 +312,20 @@ export class OstrichView {
             break;
           }
       const k = f.scale / OSTRICH_ART_SCALE / this.tk;
+      if (f.nest !== null && b.clutch !== null) {
+        this.bakeClutch(b, f.nest.eggs);
+        if (b.clutch.img.scaleX !== k) b.clutch.img.setScale(k);
+      }
       // The sitter covers the eggs: birds drawn after them, the sitter first (two passes, no
-      // sorted copy).
+      // sorted copy). The order is set again only when a bird comes or its sitting changes.
+      let reorder = this.reorder || b.layer.fixtures.length !== b.children;
+      for (const bird of f.birds) {
+        const sitting = bird.sitter && bird.pose === 'sit';
+        if (b.sat.get(bird.id) !== sitting) {
+          b.sat.set(bird.id, sitting);
+          reorder = true;
+        }
+      }
       for (let pass = 0; pass < 2; pass++)
         for (const bird of f.birds) {
           const sitting = bird.sitter && bird.pose === 'sit';
@@ -255,7 +341,7 @@ export class OstrichView {
             b.layer.fixtures.add(img);
             b.birds.set(bird.id, img);
           }
-          b.layer.fixtures.bringToTop(img);
+          if (reorder) b.layer.fixtures.bringToTop(img);
           let was: (typeof f.birds)[number] | undefined;
           if (pf !== undefined)
             for (const x of pf.birds)
@@ -273,15 +359,22 @@ export class OstrichView {
           // A looking bird turns its head the way it looks; else it faces where it goes.
           const facing = bird.pose === 'look' && bird.look !== 0 ? bird.look : bird.facing;
           const flip = facing < 0;
-          img.setFlipX(flip);
-          img.setOrigin(flip ? 1 - r.ox / r.w : r.ox / r.w, r.oy / r.h);
+          // Set only on change (review: unchanged setters every frame showed in the profile).
+          const ox = flip ? 1 - r.ox / r.w : r.ox / r.w;
+          const oy = r.oy / r.h;
+          if (img.flipX !== flip) img.setFlipX(flip);
+          if (img.originX !== ox || img.originY !== oy) img.setOrigin(ox, oy);
           // The display sways a little (on sim time; reduce motion holds it still).
           const sway =
             bird.pose === 'display' && !this.reducedMotion ? Math.sin(bird.t * 0.12) * 0.05 : 0;
-          img.setRotation(sway * facing);
-          img.setPosition(x, f.ground).setScale(k);
+          const rot = sway * facing;
+          if (img.rotation !== rot) img.setRotation(rot);
+          if (img.x !== x || img.y !== f.ground) img.setPosition(x, f.ground);
+          if (img.scaleX !== k || img.scaleY !== k) img.setScale(k);
         }
+      b.children = b.layer.fixtures.length;
     }
+    this.reorder = false;
     this.drawPuffs(s.tick);
   }
 
@@ -330,6 +423,8 @@ export class OstrichView {
       layer.fixtures.add(img);
       imgs.push(img);
     }
+    // As before the birds are drawn over a puff (they are raised once, not every frame).
+    this.reorder = true;
     this.puffs.push({ layer, tick, sand, imgs, x, y, k: scale / OSTRICH_ART_SCALE });
   }
 
@@ -362,8 +457,11 @@ export class OstrichView {
 
   destroy(): void {
     for (const b of this.built.values()) {
-      b.scrape?.destroy();
-      for (const e of b.eggs) e.destroy();
+      if (b.clutch !== null) {
+        // The image goes first: nothing draws the clutch's key when it is removed.
+        b.clutch.img.destroy();
+        this.scene.textures.remove(b.clutch.key);
+      }
       for (const img of b.birds.values()) img.destroy();
     }
     this.built.clear();

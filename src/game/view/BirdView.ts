@@ -97,6 +97,8 @@ export class BirdView {
   private readonly parallax: ParallaxView;
   private readonly drawn = new Map<number, Drawn>();
   private readonly content: ContentBundle;
+  /** v1.7d (D-059): creatures that drift (hot-air balloons), drawn by the Namibië chunk. */
+  private readonly drifters: ReadonlySet<string>;
   /** v1.3: the rifle zoom view's zoom (Ver birds pick sharper art when zoomed in). */
   private viewZoom = 1;
   private readonly artScales: Readonly<Record<ArtPlaneId, number>>;
@@ -117,6 +119,7 @@ export class BirdView {
     this.manifest = manifest;
     this.parallax = parallax;
     this.content = content;
+    this.drifters = new Set(content.birds.creatures.filter((c) => 'drift' in c).map((c) => c.id));
     const p = content.scoring.planes;
     this.artScales = { near: p.near.scale, mid: p.mid.scale, far: p.far.scale };
   }
@@ -157,7 +160,7 @@ export class BirdView {
     for (const b of birds) {
       const v = b.view;
       // v1.7d (D-059): drifters (hot-air balloons) are drawn by the Namibië chunk's BalloonView.
-      if (this.content.birds.creatures.some((c) => c.id === v.creature && 'drift' in c)) continue;
+      if (this.drifters.has(v.creature)) continue;
       seen.add(v.id);
       const { art, ratio } = this.artOf(v.plane);
       // The atlas goes to the GPU the first time this creature shows on this plane (D-029).

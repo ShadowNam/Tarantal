@@ -23,6 +23,9 @@ export const BALLOON_CREATURE = 'lugballon';
 
 export const BALLOON_SOUNDS = { burner: 'sfx/balloon_burner' } as const;
 
+/** A balloon further than this (design px) past a screen edge is hidden, not placed. */
+const OFF_SCREEN_PX = 400;
+
 /** Stand-in until a recording is in: the burner's roar (filtered noise, a soft swell). */
 export const BURNER_SYNTH: Synth = (ctx, out, noise) => {
   const t0 = ctx.currentTime;
@@ -160,27 +163,23 @@ export class BalloonView {
       const x = was === undefined ? b.x : was.x + (b.x - was.x) * alpha;
       const y = was === undefined ? b.y : was.y + (b.y - was.y) * alpha;
       const s0 = this.scaleOf(b) / this.tk;
-      d.body.setPosition(x, y).setScale(s0);
       const level = burnerAt(b.id, s.tick, d.hitAt);
-      const a = s0 * this.tk;
-      // The flame: a small local glow in the mouth (steady, never pulsing, with reduce flashes).
-      d.flame
-        .setVisible(level > 0.02)
-        .setPosition(x + BURNER.x * a, y + BURNER.y * a)
-        .setScale(s0 * (calm ? 1 : 0.75 + level * 0.35))
-        .setAlpha(calm ? (level > 0.02 ? 0.85 : 0) : 0.4 + level * 0.6);
       const roar = level > 0.5;
       if (roar && !d.flaring)
         audio.playExtra(BALLOON_SOUNDS.burner, this.pan(b, width), BURNER_SYNTH);
       d.flaring = roar;
       // A passenger shakes a fist for a second and a half after a hit.
       const fist = d.hitAt !== null && s.tick - d.hitAt >= 0 && s.tick - d.hitAt < 90;
-      d.fist
-        .setVisible(fist)
-        .setPosition(x + FIST.x * a, y + FIST.y * a)
-        .setScale(s0)
-        .setRotation(fist ? Math.sin((s.tick - (d.hitAt ?? 0)) * 0.6) * 0.35 : 0);
       const root = this.parallax.plane(b.plane).root;
+      // Off screen (wider than the envelope either way): hidden, not placed.
+      const sx = root.x + x * root.scale;
+      const on = sx > -OFF_SCREEN_PX && sx < width + OFF_SCREEN_PX;
+      if (d.body.visible !== on) d.body.setVisible(on);
+      const flameOn = on && level > 0.02;
+      if (d.flame.visible !== flameOn) d.flame.setVisible(flameOn);
+      if (d.fist.visible !== (on && fist)) d.fist.setVisible(on && fist);
+      if (d.body.scaleX !== s0) d.body.setScale(s0);
+      // The hook lists every live balloon, drawn or not (where it is now).
       const sp = d.spot;
       sp.x = root.x + x * root.scale;
       sp.y = root.y + y * root.scale;
@@ -188,6 +187,22 @@ export class BalloonView {
       sp.burner = level;
       sp.fist = fist;
       this.spots.push(sp);
+      if (!on) continue;
+      d.body.setPosition(x, y);
+      const a = s0 * this.tk;
+      // The flame: a small local glow in the mouth (steady, never pulsing, with reduce flashes).
+      if (flameOn) {
+        d.flame
+          .setPosition(x + BURNER.x * a, y + BURNER.y * a)
+          .setScale(s0 * (calm ? 1 : 0.75 + level * 0.35));
+        const fa = calm ? 0.85 : 0.4 + level * 0.6;
+        if (d.flame.alpha !== fa) d.flame.setAlpha(fa);
+      }
+      if (fist)
+        d.fist
+          .setPosition(x + FIST.x * a, y + FIST.y * a)
+          .setScale(s0)
+          .setRotation(Math.sin((s.tick - (d.hitAt ?? 0)) * 0.6) * 0.35);
     }
   }
 
