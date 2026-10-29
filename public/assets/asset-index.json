@@ -10651,6 +10651,186 @@
       "lufs": -18.5,
       "peakDb": -1
     },
+    "voice/af/guide.baboon.bagged": {
+      "group": "voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-af/audio/voice/af-guide_baboon_bagged.b21fbce8e775.ogg",
+        "bytes": 19037,
+        "hash": "b21fbce8e775"
+      },
+      "mp3": {
+        "path": "assets/voice-af/audio/voice/af-guide_baboon_bagged.27e26263e9cd.mp3",
+        "bytes": 22851,
+        "hash": "27e26263e9cd"
+      },
+      "loop": false,
+      "lufs": -19.3,
+      "peakDb": -1
+    },
+    "voice/af/guide.baboon.mother": {
+      "group": "voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-af/audio/voice/af-guide_baboon_mother.bf967ea5e1e5.ogg",
+        "bytes": 17206,
+        "hash": "bf967ea5e1e5"
+      },
+      "mp3": {
+        "path": "assets/voice-af/audio/voice/af-guide_baboon_mother.7d65d6700c38.mp3",
+        "bytes": 20093,
+        "hash": "7d65d6700c38"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -1.2
+    },
+    "voice/af/guide.baboon.raid_chase": {
+      "group": "voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-af/audio/voice/af-guide_baboon_raid_chase.a9cd3204b8f3.ogg",
+        "bytes": 13304,
+        "hash": "a9cd3204b8f3"
+      },
+      "mp3": {
+        "path": "assets/voice-af/audio/voice/af-guide_baboon_raid_chase.02125cd55822.mp3",
+        "bytes": 14859,
+        "hash": "02125cd55822"
+      },
+      "loop": false,
+      "lufs": -16.6,
+      "peakDb": -1
+    },
+    "voice/af/guide.baboon.raid_fruit": {
+      "group": "voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-af/audio/voice/af-guide_baboon_raid_fruit.4faf2f471173.ogg",
+        "bytes": 17849,
+        "hash": "4faf2f471173"
+      },
+      "mp3": {
+        "path": "assets/voice-af/audio/voice/af-guide_baboon_raid_fruit.53627a8c898f.mp3",
+        "bytes": 20350,
+        "hash": "53627a8c898f"
+      },
+      "loop": false,
+      "lufs": -17.1,
+      "peakDb": -1
+    },
+    "voice/af/guide.baboon.raid_hat": {
+      "group": "voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-af/audio/voice/af-guide_baboon_raid_hat.2a285be7a5b6.ogg",
+        "bytes": 19468,
+        "hash": "2a285be7a5b6"
+      },
+      "mp3": {
+        "path": "assets/voice-af/audio/voice/af-guide_baboon_raid_hat.a6a29f88be44.mp3",
+        "bytes": 22484,
+        "hash": "a6a29f88be44"
+      },
+      "loop": false,
+      "lufs": -16.4,
+      "peakDb": -1
+    },
+    "voice/af/guide.baboon.raid_mielie": {
+      "group": "voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-af/audio/voice/af-guide_baboon_raid_mielie.38849cb0c034.ogg",
+        "bytes": 14501,
+        "hash": "38849cb0c034"
+      },
+      "mp3": {
+        "path": "assets/voice-af/audio/voice/af-guide_baboon_raid_mielie.7a0637a54d2d.mp3",
+        "bytes": 16004,
+        "hash": "7a0637a54d2d"
+      },
+      "loop": false,
+      "lufs": -16.8,
+      "peakDb": -1
+    },
+    "voice/af/guide.baboon.raid_moon": {
+      "group": "voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-af/audio/voice/af-guide_baboon_raid_moon.d638a53aae5e.ogg",
+        "bytes": 21919,
+        "hash": "d638a53aae5e"
+      },
+      "mp3": {
+        "path": "assets/voice-af/audio/voice/af-guide_baboon_raid_moon.6c668654206f.mp3",
+        "bytes": 27141,
+        "hash": "6c668654206f"
+      },
+      "loop": false,
+      "lufs": -17.7,
+      "peakDb": -1
+    },
+    "voice/af/guide.baboon.raid_tap": {
+      "group": "voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-af/audio/voice/af-guide_baboon_raid_tap.c85bbd208545.ogg",
+        "bytes": 22950,
+        "hash": "c85bbd208545"
+      },
+      "mp3": {
+        "path": "assets/voice-af/audio/voice/af-guide_baboon_raid_tap.06f32e93a5e0.mp3",
+        "bytes": 28079,
+        "hash": "06f32e93a5e0"
+      },
+      "loop": false,
+      "lufs": -18.3,
+      "peakDb": -1
+    },
+    "voice/af/guide.baboon.raid_throw": {
+      "group": "voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-af/audio/voice/af-guide_baboon_raid_throw.89ab32886a90.ogg",
+        "bytes": 18819,
+        "hash": "89ab32886a90"
+      },
+      "mp3": {
+        "path": "assets/voice-af/audio/voice/af-guide_baboon_raid_throw.22a2cb11e060.mp3",
+        "bytes": 22696,
+        "hash": "22a2cb11e060"
+      },
+      "loop": false,
+      "lufs": -17.8,
+      "peakDb": -1
+    },
+    "voice/af/guide.baboon.stopped": {
+      "group": "voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-af/audio/voice/af-guide_baboon_stopped.31fbd31bfdda.ogg",
+        "bytes": 13139,
+        "hash": "31fbd31bfdda"
+      },
+      "mp3": {
+        "path": "assets/voice-af/audio/voice/af-guide_baboon_stopped.61611f491f42.mp3",
+        "bytes": 14393,
+        "hash": "61611f491f42"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -2.3
+    },
     "voice/de/bark.ag_nee": {
       "group": "voice-de",
       "origin": "interim",
@@ -11677,6 +11857,186 @@
       "lufs": -16,
       "peakDb": -6.5
     },
+    "voice/de/guide.baboon.bagged": {
+      "group": "voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-de/audio/voice/de-guide_baboon_bagged.c7dae1cb556e.ogg",
+        "bytes": 22256,
+        "hash": "c7dae1cb556e"
+      },
+      "mp3": {
+        "path": "assets/voice-de/audio/voice/de-guide_baboon_bagged.25f2a21f1c8b.mp3",
+        "bytes": 23820,
+        "hash": "25f2a21f1c8b"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -6.3
+    },
+    "voice/de/guide.baboon.mother": {
+      "group": "voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-de/audio/voice/de-guide_baboon_mother.3e919151b1fe.ogg",
+        "bytes": 22006,
+        "hash": "3e919151b1fe"
+      },
+      "mp3": {
+        "path": "assets/voice-de/audio/voice/de-guide_baboon_mother.efb0a51c61ac.mp3",
+        "bytes": 23560,
+        "hash": "efb0a51c61ac"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -6.3
+    },
+    "voice/de/guide.baboon.raid_chase": {
+      "group": "voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-de/audio/voice/de-guide_baboon_raid_chase.280692292957.ogg",
+        "bytes": 18058,
+        "hash": "280692292957"
+      },
+      "mp3": {
+        "path": "assets/voice-de/audio/voice/de-guide_baboon_raid_chase.e53371dbcc42.mp3",
+        "bytes": 18672,
+        "hash": "e53371dbcc42"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -6.7
+    },
+    "voice/de/guide.baboon.raid_fruit": {
+      "group": "voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-de/audio/voice/de-guide_baboon_raid_fruit.be242ce780a5.ogg",
+        "bytes": 21847,
+        "hash": "be242ce780a5"
+      },
+      "mp3": {
+        "path": "assets/voice-de/audio/voice/de-guide_baboon_raid_fruit.1523b763cb6a.mp3",
+        "bytes": 23274,
+        "hash": "1523b763cb6a"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -6.9
+    },
+    "voice/de/guide.baboon.raid_hat": {
+      "group": "voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-de/audio/voice/de-guide_baboon_raid_hat.586835057e87.ogg",
+        "bytes": 20784,
+        "hash": "586835057e87"
+      },
+      "mp3": {
+        "path": "assets/voice-de/audio/voice/de-guide_baboon_raid_hat.256ef3c10cd7.mp3",
+        "bytes": 22078,
+        "hash": "256ef3c10cd7"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -7
+    },
+    "voice/de/guide.baboon.raid_mielie": {
+      "group": "voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-de/audio/voice/de-guide_baboon_raid_mielie.18ea7467b453.ogg",
+        "bytes": 20477,
+        "hash": "18ea7467b453"
+      },
+      "mp3": {
+        "path": "assets/voice-de/audio/voice/de-guide_baboon_raid_mielie.008e8666692b.mp3",
+        "bytes": 21558,
+        "hash": "008e8666692b"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -7.1
+    },
+    "voice/de/guide.baboon.raid_moon": {
+      "group": "voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-de/audio/voice/de-guide_baboon_raid_moon.b1c525241d43.ogg",
+        "bytes": 22425,
+        "hash": "b1c525241d43"
+      },
+      "mp3": {
+        "path": "assets/voice-de/audio/voice/de-guide_baboon_raid_moon.7eb1b17b7e8f.mp3",
+        "bytes": 24002,
+        "hash": "7eb1b17b7e8f"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -5.2
+    },
+    "voice/de/guide.baboon.raid_tap": {
+      "group": "voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-de/audio/voice/de-guide_baboon_raid_tap.9d2f699d716b.ogg",
+        "bytes": 22263,
+        "hash": "9d2f699d716b"
+      },
+      "mp3": {
+        "path": "assets/voice-de/audio/voice/de-guide_baboon_raid_tap.fbd78891550e.mp3",
+        "bytes": 24132,
+        "hash": "fbd78891550e"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -7.1
+    },
+    "voice/de/guide.baboon.raid_throw": {
+      "group": "voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-de/audio/voice/de-guide_baboon_raid_throw.85136070306f.ogg",
+        "bytes": 22978,
+        "hash": "85136070306f"
+      },
+      "mp3": {
+        "path": "assets/voice-de/audio/voice/de-guide_baboon_raid_throw.5d432ead75d1.mp3",
+        "bytes": 24782,
+        "hash": "5d432ead75d1"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -4.7
+    },
+    "voice/de/guide.baboon.stopped": {
+      "group": "voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-de/audio/voice/de-guide_baboon_stopped.3076d592023c.ogg",
+        "bytes": 17189,
+        "hash": "3076d592023c"
+      },
+      "mp3": {
+        "path": "assets/voice-de/audio/voice/de-guide_baboon_stopped.91d0042b1963.mp3",
+        "bytes": 17528,
+        "hash": "91d0042b1963"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -7.4
+    },
     "voice/en/bark.ag_nee": {
       "group": "voice-en",
       "origin": "interim",
@@ -12702,6 +13062,186 @@
       "loop": false,
       "lufs": -16,
       "peakDb": -1
+    },
+    "voice/en/guide.baboon.bagged": {
+      "group": "voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-en/audio/voice/en-guide_baboon_bagged.1dcec429a68e.ogg",
+        "bytes": 18241,
+        "hash": "1dcec429a68e"
+      },
+      "mp3": {
+        "path": "assets/voice-en/audio/voice/en-guide_baboon_bagged.97f86c7626eb.mp3",
+        "bytes": 23063,
+        "hash": "97f86c7626eb"
+      },
+      "loop": false,
+      "lufs": -17.4,
+      "peakDb": -1
+    },
+    "voice/en/guide.baboon.mother": {
+      "group": "voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-en/audio/voice/en-guide_baboon_mother.a6fa47d3c2ca.ogg",
+        "bytes": 15779,
+        "hash": "a6fa47d3c2ca"
+      },
+      "mp3": {
+        "path": "assets/voice-en/audio/voice/en-guide_baboon_mother.6bb3bdbf6628.mp3",
+        "bytes": 19083,
+        "hash": "6bb3bdbf6628"
+      },
+      "loop": false,
+      "lufs": -17.1,
+      "peakDb": -1
+    },
+    "voice/en/guide.baboon.raid_chase": {
+      "group": "voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-en/audio/voice/en-guide_baboon_raid_chase.5ddb86c9794d.ogg",
+        "bytes": 14741,
+        "hash": "5ddb86c9794d"
+      },
+      "mp3": {
+        "path": "assets/voice-en/audio/voice/en-guide_baboon_raid_chase.79e9e531a40c.mp3",
+        "bytes": 16575,
+        "hash": "79e9e531a40c"
+      },
+      "loop": false,
+      "lufs": -17.2,
+      "peakDb": -1
+    },
+    "voice/en/guide.baboon.raid_fruit": {
+      "group": "voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-en/audio/voice/en-guide_baboon_raid_fruit.2c4d1a6ad14c.ogg",
+        "bytes": 14714,
+        "hash": "2c4d1a6ad14c"
+      },
+      "mp3": {
+        "path": "assets/voice-en/audio/voice/en-guide_baboon_raid_fruit.dd8c5a26a3b6.mp3",
+        "bytes": 16708,
+        "hash": "dd8c5a26a3b6"
+      },
+      "loop": false,
+      "lufs": -16.5,
+      "peakDb": -1
+    },
+    "voice/en/guide.baboon.raid_hat": {
+      "group": "voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-en/audio/voice/en-guide_baboon_raid_hat.517dbaa3f375.ogg",
+        "bytes": 17965,
+        "hash": "517dbaa3f375"
+      },
+      "mp3": {
+        "path": "assets/voice-en/audio/voice/en-guide_baboon_raid_hat.146438c7e679.mp3",
+        "bytes": 21423,
+        "hash": "146438c7e679"
+      },
+      "loop": false,
+      "lufs": -16.7,
+      "peakDb": -1
+    },
+    "voice/en/guide.baboon.raid_mielie": {
+      "group": "voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-en/audio/voice/en-guide_baboon_raid_mielie.72a5f8e69f47.ogg",
+        "bytes": 16346,
+        "hash": "72a5f8e69f47"
+      },
+      "mp3": {
+        "path": "assets/voice-en/audio/voice/en-guide_baboon_raid_mielie.9467eb0e5593.mp3",
+        "bytes": 18502,
+        "hash": "9467eb0e5593"
+      },
+      "loop": false,
+      "lufs": -16.1,
+      "peakDb": -1
+    },
+    "voice/en/guide.baboon.raid_moon": {
+      "group": "voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-en/audio/voice/en-guide_baboon_raid_moon.f48abae2aace.ogg",
+        "bytes": 18852,
+        "hash": "f48abae2aace"
+      },
+      "mp3": {
+        "path": "assets/voice-en/audio/voice/en-guide_baboon_raid_moon.5aa2bce1081e.mp3",
+        "bytes": 22799,
+        "hash": "5aa2bce1081e"
+      },
+      "loop": false,
+      "lufs": -17.2,
+      "peakDb": -1
+    },
+    "voice/en/guide.baboon.raid_tap": {
+      "group": "voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-en/audio/voice/en-guide_baboon_raid_tap.b9db04c9517b.ogg",
+        "bytes": 19732,
+        "hash": "b9db04c9517b"
+      },
+      "mp3": {
+        "path": "assets/voice-en/audio/voice/en-guide_baboon_raid_tap.d24b8f40b0c0.mp3",
+        "bytes": 22951,
+        "hash": "d24b8f40b0c0"
+      },
+      "loop": false,
+      "lufs": -17.2,
+      "peakDb": -1
+    },
+    "voice/en/guide.baboon.raid_throw": {
+      "group": "voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-en/audio/voice/en-guide_baboon_raid_throw.86192338cdb6.ogg",
+        "bytes": 17559,
+        "hash": "86192338cdb6"
+      },
+      "mp3": {
+        "path": "assets/voice-en/audio/voice/en-guide_baboon_raid_throw.e12fe77add00.mp3",
+        "bytes": 20614,
+        "hash": "e12fe77add00"
+      },
+      "loop": false,
+      "lufs": -17.4,
+      "peakDb": -1
+    },
+    "voice/en/guide.baboon.stopped": {
+      "group": "voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-en/audio/voice/en-guide_baboon_stopped.b51c21e27389.ogg",
+        "bytes": 10325,
+        "hash": "b51c21e27389"
+      },
+      "mp3": {
+        "path": "assets/voice-en/audio/voice/en-guide_baboon_stopped.2d1bcaa3dffd.mp3",
+        "bytes": 10542,
+        "hash": "2d1bcaa3dffd"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -2.6
     }
   },
   "guns": {
