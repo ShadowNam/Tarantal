@@ -33,10 +33,12 @@ const SPOOK_LINES = [B.start, B.bat, B.owl, B.lanternsOut, B.end];
 // have makalani palms, whose nuts hang where the owls and bats fly: a pattern that hits the owl
 // also cracks a nut or two (−10 + 5 a nut), and the lantern and bat counts move the same way.
 // These tests are about the Spookjag, not the palms (makalani.spec covers those).
-// today=: the Spookjag plays the Daily's map, and the Daily's biome and layout change with the UTC
+// DAY: the Spookjag plays the Daily's map, and the Daily's biome and layout change with the UTC
 // day. Without a fixed day the owl test passed on 28 Oct and timed out on 29 Oct (another map,
-// so the owls flew elsewhere). 2026-10-28 is the day the 1.9.4 full CI passed on.
-const QUERY = 'feesdag=halloween&seed=42&omen=0&huntSeconds=40&palms=0&today=2026-10-28';
+// so the owls flew elsewhere). 2026-10-28 is the day the 1.9.5 full CI passed on. `layout=none`
+// keeps what boot() adds when no day is given (it only touches Classic hunts).
+const DAY = 'today=2026-10-28&layout=none';
+const QUERY = `feesdag=halloween&seed=42&omen=0&huntSeconds=40&palms=0&${DAY}`;
 
 type R = { x: number; y: number; w: number; h: number };
 const overlaps = (a: R, b: R): boolean =>
@@ -160,7 +162,10 @@ test.describe('Feesdae: the Halloween Spookjag (D-048)', () => {
   // cross together: each half below plays its own hunt and needs only the first owl.
   async function owlHunt(page: Page, touch: boolean): Promise<void> {
     await seedSave(page, { quality: 'medium' });
-    await boot(page, 'feesdag=halloween&seed=42&omen=0&huntSeconds=60&birds=0&spook=early&palms=0');
+    await boot(
+      page,
+      `feesdag=halloween&seed=42&omen=0&huntSeconds=60&birds=0&spook=early&palms=0&${DAY}`,
+    );
     await page.waitForFunction(() => window.__TM__?.rects['daily'] !== undefined, null, {
       timeout: 60_000,
     });
