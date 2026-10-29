@@ -1,6 +1,6 @@
 {
- "updated": "2026-10-28T21:05:00Z",
- "summary": "Live on the test build: tree life (1.9.4, merged 22:57 Namibia time on 28 Oct): the Bushveld baobab redrawn with a bushbaby, tree squirrel, barn owl and a hornbill feeding its mate in its hollows (they duck away when shot near and never score); a better Okavango sausage tree with heavy sausages on rope stalks; sociable weavers and a pygmy falcon around the Kalahari and Namibië nests, lovebirds in Namibië. Tank is building the Android test app for friends now (until about 04:00). Then: Namibië veld life, the realistic Bushveld with a new secret marker (your A/B/C pick is needed), baboons, The Harvest, the Christmas and New Year Dailies and v1.9–v1.13; Oupa's new voices last.",
+ "updated": "2026-10-29T00:35:00Z",
+ "summary": "Live on the test build: the Android test app (1.9.5, merged 02:26 Namibia time on 29 Oct): friends can install Tarantal Madness on an Android phone from https://shadownam.github.io/Tarantal/android/ (about 32 MB, all the art inside, plays offline; the back button pauses a hunt). Before it, tree life (1.9.4): the baobab with animals in its hollows, the sausage tree, weavers and a pygmy falcon at the nests. Tank is building Namibië veld life now (detailed grass and sand, ostriches and their nest, oryx in the mirage, hot-air balloons; until about 08:30). Then the realistic Bushveld with a new secret marker (your A/B/C pick is needed), baboons, The Harvest, the Christmas and New Year Dailies and v1.9–v1.13; Oupa's new voices last.",
  "current": {
   "version": "1.7.1",
   "commit": "1bbedc7"
@@ -79,7 +79,7 @@
    "title": "v1.7e: what replaces the star on secrets?",
    "asked": "2026-10-28T06:49:00Z",
    "status": "open",
-   "detail": "You asked for something better than the little star that marks the shootable secrets (25 Oct). Three mock-ups, drawn over real 1.9.2 screenshots (not in the game yet). v1.7e starts on 29 Oct around 10:00; your pick is needed before then (asked again on 28 Oct at 20:59; without an answer, A gets built).",
+   "detail": "You asked for something better than the little star that marks the shootable secrets (25 Oct). Three mock-ups, drawn over real 1.9.2 screenshots (not in the game yet). v1.7e starts on 29 Oct around 08:30–10:00 (the Bushveld rocks come first, so the pick can arrive a little later); your pick is needed before then (asked again on 28 Oct at 20:59; without an answer, A gets built).",
    "options": [
     "A (recommended). A tell animal lives at each secret and moves now and then: a rock agama doing push-ups on the dassie koppie, a lilac-breasted roller on the windpomp; shooting it costs nothing",
     "B. Natural cues only: grass rustles and dust puffs at the koppie, a sun flash only on real metal, a few birds circling above",
@@ -901,33 +901,67 @@
    ]
   },
   "android-test-app-an-installable-apk-for-": {
-   "owner": "Tank builds it (task 287b529c, started 23:00); Claude reviews it",
+   "owner": "Tank built it (task 287b529c, 3 turns); Claude reviewed it, finished the PR description and merged it",
    "summary": "An Android test app friends can install from a link: all the art inside (Standard and HD, works offline), landscape full screen, the back button pauses a hunt, a test-only signing key so updates install over each other. GitHub builds the app; the test build gets a download page at /android/.",
    "requestedBy": "You, 27 Oct: \"Yes, add the Android test app\" (friends first, then the Apple App Store and Google Play).",
-   "status": "running",
+   "status": "done",
    "checklist": [
     {
      "text": "Capacitor Android project and an android build of the game",
-     "done": false
+     "done": true
     },
     {
      "text": "App behaviour: landscape, full screen, screen stays on in a hunt, back button pauses, sound stops in the background",
-     "done": false
+     "done": true
     },
     {
      "text": "All art in the app (Standard and HD), no downloads after install",
-     "done": false
+     "done": true
     },
     {
      "text": "Icon and splash from the guineafowl art",
-     "done": false
+     "done": true
     },
     {
      "text": "GitHub builds a signed test APK on every merge; download page on the test build",
+     "done": true
+    },
+    {
+     "text": "Tests and docs (docs/ANDROID-TEST-APP.md: installing, updating, a later Play Store release); merged as 1.9.5 (#96)",
+     "done": true
+    }
+   ]
+  },
+  "v1-7d-namibi-veld-life-detailed-grass-an": {
+   "owner": "Tank builds it (task d53ac7ff, started 02:30); Claude reviews and runs the screenshots",
+   "status": "running",
+   "checklist": [
+    {
+     "text": "Namibië ground: detailed golden bushman grass, sand ripples and gravel, natural edges instead of the black line",
      "done": false
     },
     {
-     "text": "Tests, docs (how friends install it; how a Play Store release works later); merge as the next patch",
+     "text": "Two ostriches and their nest with eggs; they walk, peck, swap on the nest, run from nearby shots and come back",
+     "done": false
+    },
+    {
+     "text": "Shooting an ostrich or the nest: never harmed, −10 with a cooldown and a bark",
+     "done": false
+    },
+    {
+     "text": "A small herd of oryx far away in the heat mirage, with a shimmer and a faint reflection",
+     "done": false
+    },
+    {
+     "text": "Hot-air balloons drifting by now and then (a hit costs a penalty and a passenger shakes a fist)",
+     "done": false
+    },
+    {
+     "text": "HD versions; the Namibië download stays within its budget",
+     "done": false
+    },
+    {
+     "text": "Balance check, screenshots on desktop and both phones, browser tests; merge as the next patch",
      "done": false
     }
    ]
@@ -1175,6 +1209,16 @@
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-29T00:30:00Z",
+   "kind": "note",
+   "text": "Tank started Namibië veld life: grass and sand, ostriches and their nest, oryx in the mirage, balloons (task d53ac7ff)."
+  },
+  {
+   "at": "2026-10-29T00:26:00Z",
+   "kind": "merge",
+   "text": "Android test app merged (1.9.5, #96): friends can install it from the test build's /android/ page."
+  },
   {
    "at": "2026-10-28T21:00:00Z",
    "kind": "note",
