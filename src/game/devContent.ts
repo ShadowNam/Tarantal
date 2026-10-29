@@ -211,3 +211,46 @@ export function withEarlySpook(b: ContentBundle): ContentBundle {
     },
   };
 }
+
+/**
+ * v1.8b (D-062) ?baboonRaid=<action> (e2e and art previews only): every map's troop is there, the
+ * first raid comes after 2 s and then one every ~10 s, one raider at a time, only at spots of that
+ * action (any spot when the map has none, or for `any`), its act lasts 4× as long and a hit raider
+ * runs off slowly, so a test or a screenshot meets a raid in progress quickly.
+ */
+export function withBaboonRaid(b: ContentBundle, action: string): ContentBundle {
+  const bb = b.birds.baboons;
+  const act = { ...bb.raids.actSeconds };
+  for (const k of Object.keys(act) as (keyof typeof act)[]) act[k] *= 4;
+  return {
+    ...b,
+    birds: {
+      ...b.birds,
+      baboons: {
+        ...bb,
+        raids: {
+          ...bb.raids,
+          perMinute: 6,
+          firstAfterSeconds: [2, 2],
+          pairChance: 0,
+          actSeconds: act,
+          // A hit raider runs off slowly enough for a test's second shot.
+          runPxPerSec: 200,
+        },
+      },
+    },
+    biomes: b.biomes.map((x) => {
+      const m = x.baboons;
+      if (m === undefined) return x;
+      const spots = m.spots.filter((s) => s.action === action);
+      return {
+        ...x,
+        baboons: {
+          ...m,
+          troops: m.troops.map((t) => ({ ...t, chance: 1 })),
+          spots: spots.length > 0 ? spots : m.spots,
+        },
+      };
+    }),
+  };
+}

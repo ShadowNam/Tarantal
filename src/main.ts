@@ -16,6 +16,7 @@ import {
   withEarlySpook,
   withNoBirds,
   withMakalaniPreview,
+  withBaboonRaid,
   withNoPalms,
   withPlaneScales,
   withQuotaMul,
@@ -483,8 +484,10 @@ const noPalms = testHooks && params.get('palms') === '0' ? withNoPalms(noBirds) 
 // e2e/dev only (review M14): ?makalaniPreview=juggle|pop — easy air hits, or every hit pops.
 const nutPreview = testHooks ? params.get('makalaniPreview') : null;
 const withNuts = nutPreview === null ? noPalms : withMakalaniPreview(noPalms, nutPreview);
-const devBundle =
-  testHooks && params.get('spook') === 'early' ? withEarlySpook(withNuts) : withNuts;
+const devSpook = testHooks && params.get('spook') === 'early' ? withEarlySpook(withNuts) : withNuts;
+// e2e/dev only (v1.8b, D-062): ?baboonRaid=<action>|any — a raid of that kind within seconds.
+const raidPreview = testHooks ? params.get('baboonRaid') : null;
+const devBundle = raidPreview === null ? devSpook : withBaboonRaid(devSpook, raidPreview);
 // D-034: `?admin=1&play=1` plays the hunt the admin page stored (its content changes too).
 let adminSave: AdminSave | null = adminOn ? loadAdminSave() : null;
 const adminList = adminOn ? adminEntries(devBundle, placeholderBiomes()) : [];

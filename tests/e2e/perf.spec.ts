@@ -356,6 +356,59 @@ test('perf: Kalahari meerkat colonies at 4× CPU throttle (Pixel 7)', async ({
   expect(errors).toEqual([]);
 });
 
+// v1.8b (D-062): the baboons' own update (a troop of up to 10 on the ridge and a raid) on the
+// Karoo, counted over the scenery frames, at most 0.3 ms a frame at 4× throttle on the Pixel 7
+// profile (its own timer, outside the weavers + mirage window). ?baboonRaid=any brings the first
+// raid in after 2 s (and the next ~10 s later).
+test('perf: Karoo baboon troop and a raid at 4× CPU throttle (Pixel 7)', async ({
+  page,
+  browserName,
+}, info) => {
+  test.skip(
+    info.project.name !== 'pixel7-landscape' || browserName !== 'chromium',
+    'measured on the Pixel 7 profile; CDP throttling needs Chromium',
+  );
+  test.setTimeout(400_000);
+  const touch = isTouchProject(info);
+  const errors = collectErrors(page);
+  await emulateCores(page);
+  await boot(page, 'biome=karoo-autumn&layout=mon&seed=3&huntSeconds=30&baboonRaid=any');
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  await startHunt(page, touch);
+  await page.waitForFunction(() => (window.__TM__?.tick ?? 0) > 30, null, { timeout: 120_000 });
+  let maxShown = 0;
+  let raids = 0;
+  while (!(await hook(page)).over) {
+    const h = await hook(page);
+    maxShown = Math.max(maxShown, (h.baboons ?? []).length);
+    if (h.baboonRaid !== null) raids++;
+    await waitTicks(page, 60);
+  }
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+  const h = await hook(page);
+  const real = stats(h.frameTimes.slice(30));
+  const cpu = stats(h.cpuFrameMs.slice(30));
+  const report = {
+    project: info.project.name,
+    tier: h.quality.tier,
+    throttle: 4,
+    maxBaboons: maxShown,
+    raidSamples: raids,
+    baboonMsPerFrame: h.sceneryFrames > 0 ? h.baboonMs / h.sceneryFrames : 0,
+    realFrameMs: real,
+    cpuFrameMs: cpu,
+  };
+  console.log(`[perf] ${JSON.stringify(report)}`);
+  writeFileSync(info.outputPath('perf.json'), JSON.stringify(report, null, 2));
+  expect(maxShown, 'the troop was drawn').toBeGreaterThanOrEqual(5);
+  expect(raids, 'a raid was on').toBeGreaterThan(0);
+  expect(cpu.n).toBeGreaterThan(30);
+  expect(report.baboonMsPerFrame, 'baboons ms per frame, 4× throttle').toBeLessThanOrEqual(0.3);
+  expect(cpu.avg, 'CPU cost per frame (ms), baboons, 4× throttle').toBeLessThanOrEqual(BUDGET_MS);
+  expect(errors).toEqual([]);
+});
+
 // v1.3 (D-036) scoped phase: the same method and budget as the smoke above (30 s hunt, the same
 // auto quality tier — on a 4-core CI runner the Pixel 7 profile is low, desktop medium — 4× CPU
 // throttle, CPU cost per frame ≤ 16.7 ms asserted, real frame time with
