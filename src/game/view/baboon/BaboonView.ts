@@ -93,8 +93,10 @@ export function ridgeFrame(m: SimBaboon): BaboonFrame | null {
     case 'up':
       return mother ? 'r_mother_walk_b' : 'r_up';
     case 'bark':
+      if (mother) return 'r_mother_sit';
       return alt(m.t, BARK_TICKS) ? 'r_bark_a' : 'r_bark_b';
     case 'play':
+      if (mother) return 'r_mother_sit';
       return alt(m.t, PLAY_TICKS) ? 'r_play_a' : 'r_play_b';
     case 'look':
       return mother ? 'r_mother_sit' : 'r_look';
