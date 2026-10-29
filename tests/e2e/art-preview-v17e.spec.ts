@@ -163,11 +163,12 @@ async function panToProp(page: Page, touch: boolean, key: string): Promise<void>
   for (let k = 0; k < 160; k++) {
     const r = await off();
     if (r !== null && Math.abs(r.o) <= 80) break;
-    // Overshot the centre: stop where the prop is fully on screen.
+    // Overshot the centre, or the camera stopped at the panorama's end: stop where the prop is
+    // fully on screen.
     if (
       r !== null &&
       prev !== null &&
-      Math.sign(r.o) !== Math.sign(prev) &&
+      (Math.sign(r.o) !== Math.sign(prev) || Math.abs(r.o - prev) < 2) &&
       Math.abs(r.o) <= r.room
     )
       break;
@@ -339,8 +340,14 @@ async function panToTell(page: Page, touch: boolean, species: string): Promise<v
   for (let k = 0; k < 200; k++) {
     const o = await off();
     if (o !== null && Math.abs(o) <= 60) break;
-    // Overshot the centre: stop where the tell is well inside the screen.
-    if (o !== null && prev !== null && Math.sign(o) !== Math.sign(prev) && Math.abs(o) <= inside)
+    // Overshot the centre, or the camera stopped at the panorama's end: stop where the tell is
+    // well inside the screen.
+    if (
+      o !== null &&
+      prev !== null &&
+      (Math.sign(o) !== Math.sign(prev) || Math.abs(o - prev) < 2) &&
+      Math.abs(o) <= inside
+    )
       break;
     prev = o;
     const dir = o === null || o > 0 ? 'KeyD' : 'KeyA';
