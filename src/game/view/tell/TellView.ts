@@ -43,6 +43,8 @@ export interface TellHook {
   readonly y: number;
   readonly visible: boolean;
   readonly glow: boolean;
+  /** The sprite's alpha now (1 except fading in, or fleeing). */
+  readonly alpha: number;
 }
 
 interface Slot {
@@ -55,6 +57,10 @@ interface Slot {
   alpha: number;
   shown: boolean;
   lit: boolean;
+  /** The sim phase last seen, and whether this rest is a fade-in (review R6: only at the start
+   *  of the hunt or back from 'gone', never after its own action). */
+  phase: string | null;
+  fadeIn: boolean;
   hook: TellHook;
 }
 
@@ -139,6 +145,8 @@ export class TellView {
       alpha: 1,
       shown: false,
       lit: false,
+      phase: null,
+      fadeIn: false,
       hook: {
         species: t.species,
         propId: t.propId,
@@ -147,6 +155,7 @@ export class TellView {
         y: 0,
         visible: false,
         glow: false,
+        alpha: 0,
       },
     };
     this.slots.set(t.id, s);
@@ -169,6 +178,10 @@ export class TellView {
       let x = t.x;
       let y = t.y;
       let alpha = 1;
+      if (t.phase !== s.phase) {
+        s.fadeIn = t.phase === 'rest' && s.phase !== 'act';
+        s.phase = t.phase;
+      }
       if (t.phase === 'act') pose = Math.floor(t.t / ACT_FRAME_TICKS) % 2 === 0 ? 'act_a' : 'act_b';
       else if (t.phase === 'gone') {
         if (t.t >= FLEE_TICKS) pose = null;
@@ -179,7 +192,7 @@ export class TellView {
           if (!GROUND.has(t.species)) y -= t.t * FLEE_PX * 0.6;
           alpha = Math.max(0, 1 - Math.max(0, t.t - (FLEE_TICKS - 6)) / 6);
         }
-      } else if (t.t < FADE_IN_TICKS) alpha = t.t / FADE_IN_TICKS;
+      } else if (s.fadeIn && t.t < FADE_IN_TICKS) alpha = t.t / FADE_IN_TICKS;
       const show = pose !== null && alpha > 0;
       if (show !== s.shown) {
         s.img.setVisible(show);
@@ -221,8 +234,16 @@ export class TellView {
         const hy = Math.round(layer.root.y + y * layer.root.scaleY);
         const h = s.hook;
         const f = show ? s.frame : null;
-        if (h.x !== hx || h.y !== hy || h.visible !== show || h.glow !== glowOn || h.frame !== f)
-          s.hook = { ...h, x: hx, y: hy, visible: show, glow: glowOn, frame: f };
+        const a = show ? alpha : 0;
+        if (
+          h.x !== hx ||
+          h.y !== hy ||
+          h.visible !== show ||
+          h.glow !== glowOn ||
+          h.frame !== f ||
+          h.alpha !== a
+        )
+          s.hook = { ...h, x: hx, y: hy, visible: show, glow: glowOn, frame: f, alpha: a };
       }
       this.hooks[i++] = s.hook;
     }

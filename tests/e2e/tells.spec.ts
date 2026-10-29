@@ -20,6 +20,7 @@ interface Tell {
   readonly y: number;
   readonly visible: boolean;
   readonly glow: boolean;
+  readonly alpha: number;
 }
 
 /** The hook's tells (null until the tell chunk is in). */
@@ -75,6 +76,43 @@ test('every Bushveld secret has its tell animal on screen, drawn from the sheet'
     null,
     { timeout: 120_000 },
   );
+  // Review R6: no blink after an action. Watch every frame (polling: raf) until two act → rest
+  // changes have been seen, bounded by sim ticks; at each change and the 12 ticks after it, the
+  // tell's alpha is 1.
+  const start = (await hook(page)).tick;
+  const seen = await page.waitForFunction(
+    (until) => {
+      const w = window as unknown as {
+        __TM__?: { tick: number; tells?: Tell[] | null };
+        __R6__?: {
+          last: Record<string, string>;
+          since: Record<string, number>;
+          n: number;
+          low: number;
+        };
+      };
+      const r6 = (w.__R6__ ??= { last: {}, since: {}, n: 0, low: 1 });
+      const tick = w.__TM__?.tick ?? 0;
+      for (const t of w.__TM__?.tells ?? []) {
+        const f = t.frame ?? '';
+        const was = r6.last[t.species] ?? '';
+        if (/_act_[ab]$/.test(was) && f.endsWith('_rest')) {
+          r6.since[t.species] = tick;
+          r6.n++;
+        }
+        const at = r6.since[t.species];
+        if (at !== undefined && tick - at <= 12 && t.visible) r6.low = Math.min(r6.low, t.alpha);
+        r6.last[t.species] = f;
+      }
+      if (r6.n >= 2) return { n: r6.n, low: r6.low };
+      return tick >= until ? { n: r6.n, low: r6.low } : false;
+    },
+    start + 1200,
+    { timeout: 600_000, polling: 'raf' },
+  );
+  const r = (await seen.jsonValue()) as { n: number; low: number };
+  expect(r.n, 'act → rest changes seen').toBeGreaterThan(0);
+  expect(r.low, 'alpha right after an action').toBe(1);
 });
 
 test('a hit on the drongo costs nothing; it leaves and comes back', async ({ page }, info) => {
