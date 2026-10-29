@@ -63,6 +63,7 @@ import type { MakalaniView } from '../view/palms/MakalaniView';
 import type { TreeLifeView } from '../view/tree/TreeLifeView';
 import type { NamibLifeView } from '../view/namib/NamibLifeView';
 import type { TellView } from '../view/tell/TellView';
+import type { BaboonView } from '../view/baboon/BaboonView';
 import { playPotjieSound } from '../view/potjieSounds';
 import { playMeerkatSound } from '../audio/meerkatSounds';
 import { largestTextures, textureBytes } from '../assets/textureBytes';
@@ -150,6 +151,9 @@ export class HuntScene extends Phaser.Scene {
   /** v1.7e (D-061): the secrets' tell animals (lazy chunk; null until it is in, or none). */
   private tells: TellView | null = null;
   private tellsGen = 0;
+  /** v1.8b (D-062): the baboon troops and raiders (lazy chunk; null until it is in, or none). */
+  private baboons: BaboonView | null = null;
+  private baboonsGen = 0;
   /** Family nests by prop id (layer, x on it): the weavers' scolding is panned from here. */
   private weaverNests = new Map<string, { layer: string; x: number }>();
   /** Nest shots before the tree-life chunk was in (its burst plays them once it is). */
@@ -550,6 +554,7 @@ export class HuntScene extends Phaser.Scene {
     this.loadTreeLife(mapBiome, scales);
     this.loadNamibLife(mapBiome);
     this.loadTells(mapBiome);
+    this.loadBaboons(mapBiome);
     this.weapon = new WeaponView(
       this,
       this.ctx.feel,
@@ -1684,6 +1689,8 @@ export class HuntScene extends Phaser.Scene {
       hook.namibLifeFrames = 0;
       hook.tells = null;
       hook.tellMs = 0;
+      hook.baboons = null;
+      hook.baboonMs = 0;
       hook.fruit = null;
       hook.hunts++;
     }
@@ -1844,6 +1851,11 @@ export class HuntScene extends Phaser.Scene {
     if (this.tells !== null) {
       this.tells.update(state, this.world.secretsLit(state));
       if (this.ctx.hook) this.ctx.hook.tellMs += this.tells.lastMs;
+    }
+    // v1.8b (D-062): the baboons, on their own timer (outside the weavers + mirage window).
+    if (this.baboons !== null) {
+      this.baboons.update(state);
+      if (this.ctx.hook) this.ctx.hook.baboonMs += this.baboons.lastMs;
     }
     this.weapon.spreadMul = spreadMulOf(state.powerups, this.ctx.content.powerups.powerups);
     // v1.7b (D-046): Chilli Biltong's sparks at the muzzle.
@@ -2047,6 +2059,8 @@ export class HuntScene extends Phaser.Scene {
       hook.treeLife = this.treeLife?.hook() ?? null;
       hook.namibLife = this.namibLife?.hook() ?? null;
       hook.tells = this.tells?.tells ?? null;
+      hook.baboons = this.baboons?.baboons ?? null;
+      hook.baboonRaid = state.baboons?.raid ?? null;
       hook.mirage = state.mirage;
       hook.durationTicks = state.durationTicks;
     }
@@ -2136,6 +2150,28 @@ export class HuntScene extends Phaser.Scene {
       })
       .catch(() => {
         // Offline without the chunk cached: the tree simply has no residents.
+      });
+  }
+
+  /** v1.8b (D-062): the baboons' chunk, for a map with a troop. */
+  private loadBaboons(mapBiome: Biome): void {
+    this.baboons?.destroy();
+    this.baboons = null;
+    const gen = ++this.baboonsGen;
+    if (mapBiome.baboons === undefined) return;
+    void import('../view/baboon/BaboonView')
+      .then((m) => {
+        if (gen !== this.baboonsGen) return;
+        this.baboons = new m.BaboonView(
+          this,
+          this.parallax,
+          () => performance.now(),
+          this.manifest,
+          this.ctx.content.birds.baboons,
+        );
+      })
+      .catch(() => {
+        // Offline without the chunk cached: the troops are simply not drawn.
       });
   }
 
@@ -2702,6 +2738,9 @@ export class HuntScene extends Phaser.Scene {
     this.tells?.destroy();
     this.tells = null;
     this.tellsGen++;
+    this.baboons?.destroy();
+    this.baboons = null;
+    this.baboonsGen++;
     this.game.canvas.style.cursor = '';
   }
 }
