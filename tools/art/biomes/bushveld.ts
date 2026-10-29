@@ -524,8 +524,8 @@ function dassie(rnd: Rnd, tint: (hex: string) => string): string {
   }
   return g(
     {},
-    // Contact shadow on the stone.
-    el('path', { d: ellipseD(40, -63, 30, 3), fill: '#1E1814', opacity: 0.35 }),
+    // Contact shadow on the stone (review R10: darker, so the belly sits on the rock).
+    el('path', { d: ellipseD(40, -63.5, 29, 3.2), fill: '#1E1814', opacity: 0.55 }),
     // Hind foot tucked under, behind the body.
     el('path', { d: ellipseD(20, -64.5, 6, 2.6), fill: furDark, stroke: ink, 'stroke-width': 0.8 }),
     el('path', {
@@ -566,7 +566,6 @@ function dassie(rnd: Rnd, tint: (hex: string) => string): string {
         ),
         fill: cream,
       }),
-      el('path', { d: ellipseD(40, -66, 12, 2.6), fill: cream, opacity: 0.7 }),
     ),
     // Front paws on the rock.
     el('path', {
@@ -608,7 +607,8 @@ function dassieKoppie(ctx: PropCtx): string {
     {},
     // The back rocks, the dassie's rock (its flat top at about y −63), the front heap.
     granitePile(ctx.rnd, 150, 40, 170, 120, look, 2),
-    graniteBoulder(ctx.rnd, 42, 2, 116, 66, look, { grass: false, shadow: false, flat: 0.6 }),
+    // v1.7e (review R10): a little taller, so its crown meets the dassie's belly (no gap).
+    graniteBoulder(ctx.rnd, 42, 2, 116, 69, look, { grass: false, shadow: false, flat: 0.6 }),
     dassie(ctx.rnd, ctx.tint),
     granitePile(ctx.rnd, -40, 92, 320, 150, look, 5),
   );

@@ -108,7 +108,7 @@
       },
       "secret": {
         "$comment": "Kremetart: shoot a hanging pod; it falls and flushes the flock below.",
-        "tell": { "species": "fork_tailed_drongo", "ox": 150, "oy": -250 },
+        "tell": { "species": "fork_tailed_drongo", "ox": 128, "oy": -264 },
         "type": "singleHit",
         "part": {
           "id": "pod",
@@ -151,7 +151,7 @@
       },
       "secret": {
         "$comment": "Shoot near the dassie, not at it: its alarm whistle alerts every flock and it points out hidden birds.",
-        "tell": { "species": "rock_agama", "ox": 105, "oy": -37, "facing": -1 },
+        "tell": { "species": "rock_agama", "ox": 96, "oy": -30, "facing": -1 },
         "type": "nearMiss",
         "part": {
           "id": "dassie",
