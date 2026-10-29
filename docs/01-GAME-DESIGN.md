@@ -666,7 +666,7 @@ Namibian carvers turn into key rings and ornaments (sources: D-056).
   (`docs/i18n-names.md`).
 - **Later (not built):** a carved makalani nut as a Notaboek reward or a charm (docs/04).
 
-### 11.3c Namibië veld life: ostriches, oryx in the mirage, hot-air balloons (1.9.6, D-059)
+### 11.3c Namibië veld life: ostriches, oryx in the mirage, hot-air balloons (1.9.7, D-059)
 - **The ground:** the Namibië sand and grass are redrawn without ink: red Namib sand with dune
   swells, wind ripples, grain, gravel plains, quartz patches and tracks, paler and cooler into the
   distance; bushman grass (Stipagrostis) with silvery plumes, dollar bush and dead branches as a

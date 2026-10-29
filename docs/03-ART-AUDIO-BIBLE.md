@@ -543,7 +543,7 @@ the edges, gaps where limbs show); a few maroon flowers on hanging cords; heavy,
 grey-brown sausages with a rough, lenticel-speckled skin, in four sizes, on long thin rope stalks
 at staggered heights (never in a row). They swing and drop when shot (v1.7c).
 
-#### 4.5c The Namib ground (1.9.6, D-059)
+#### 4.5c The Namib ground (1.9.7, D-059)
 No ink on sand or grass. Red-orange Namib sand: soft blurred dune swells (lit crest, shaded hollow),
 wind ripples as a shadow line under a lit line (rows wider apart toward the viewer, never closer
 than 7 px), sparse fine grain; gravel plains (a greyer stain, pebbles with a lit cap and a shadow),
@@ -556,7 +556,7 @@ bush (Zygophyllum): a low mound of round fleshy grey-green leaves, lit on top. D
 twisted, lit along the top. The cover is a sheet of variants (`namibie/veld`: three grass sizes
 per plane, tufts, a dry clump, two bushes, branches), placed at 0.4–1.6× of its drawn size.
 
-#### 4.5d The ostriches (1.9.6, D-059)
+#### 4.5d The ostriches (1.9.7, D-059)
 Same proportions and coat as the far-fauna ostrich, 197 px to the head on the mid plane (the D-054
 far-ostrich proportion). Cock: black plumes with white wing tips and tail, pinkish-grey bare neck
 and thighs, red shins. Hen: grey-brown, greyish-white plumes, grey skin. Layered shading (a lit
@@ -572,12 +572,12 @@ fanned white), a three-step run (wings half out, neck forward), hiss (neck low, 
 scrape: a shallow hollow with a raked rim; cream pitted eggs. One sheet at 1.5× (48 colours) for
 Standard and HD: a 2× sheet would take Namibië past its HD texture target and its chunk budget.
 
-#### 4.5e Oryx in the mirage (1.9.6, D-059)
+#### 4.5e Oryx in the mirage (1.9.7, D-059)
 The far gemsbok sheet's walking look (D-054), five animals walking the pan; the reflection is the
 same herd flipped and squashed to 45 % under the feet at 32 % alpha × the heat, wavering sideways a
 little more than the herd. Never a flash: a breathe of ≥ 3 s; still with reduce motion/flashes.
 
-#### 4.5f Hot-air balloons (1.9.6, D-059)
+#### 4.5f Hot-air balloons (1.9.7, D-059)
 An envelope 56 × 66 px on the far plane of ten gores in warm colours (red-orange-yellow; deep
 orange with a cream band and a zig-zag; terracotta and ochre with a teal gore), a sheen upper left
 and a shadow side, a load ring, ropes, a wicker basket with a padded rim, a burner frame and two

@@ -277,7 +277,7 @@ the tables above (the names test reads the main files):
 - `guide.makalani.secret`: Hard soos 'n makalani (af) · Hard as a makalani (en) · Hart wie eine Makalani (de) · Hard als een makalani (nl)
 - `guide.makalani.knock` / `guide.makalani.pop`: Tok! / Krak! in every language
 
-**Namibië veld life (1.9.6, D-059).** The balloon's name is in the creature table above. The new
+**Namibië veld life (1.9.7, D-059).** The balloon's name is in the creature table above. The new
 barks (voiced with the v1.5 interim TTS in en, af and de):
 
 - `bark.ostrich` (a shot ostrich or nest): Los my eiers uit! (af) · Leave my eggs alone! (en) · Finger weg von meinen Eiern! (de) · Blijf van mijn eieren af! (nl)

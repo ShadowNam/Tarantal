@@ -3257,7 +3257,7 @@ before any store account exists (D-052). Tech §8.5; docs/ANDROID-TEST-APP.md.
   in-app purchases.
 
 
-**D-059 1.9.6 Namibië veld life: grass and sand, ostriches, oryx in the mirage, balloons (29 Oct
+**D-059 1.9.7 Namibië veld life: grass and sand, ostriches, oryx in the mirage, balloons (29 Oct
 2026):** the product owner (25 Oct): "at least two ostriches with somewhere an ostrich nest … some
 oryx antelopes … far away in the distance, and there needs to be some mirage attached to that. And
 maybe some hot air balloons drifting by", and "The grass landscapes in the Namibia one also look

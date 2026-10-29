@@ -3,7 +3,7 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
-## [1.9.6] — Namibië veld life: grass and sand, ostriches, oryx in the mirage, balloons (29 Oct 2026)
+## [1.9.7] — Namibië veld life: grass and sand, ostriches, oryx in the mirage, balloons (29 Oct 2026)
 
 Decision record D-059. The product owner (25 Oct): "In the Namibia map … at least two ostriches
 with somewhere an ostrich nest … some oryx antelopes … roaming somewhere far away in the distance,

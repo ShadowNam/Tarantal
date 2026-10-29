@@ -542,7 +542,7 @@ replaces the biome's (`resolveMap`); a bonus map keeps its layout's. Tuning is
   `?treeLife=off` turns the views off ("before" shots). Hook: `treeLife` (residents on screen,
   near-shot ducks, the colonies' birds, falcon, lovebirds, scatters, nests).
 
-### 3.15 Namibië veld life: ostriches and balloons (1.9.6, D-059)
+### 3.15 Namibië veld life: ostriches and balloons (1.9.7, D-059)
 - **Ostriches (sim):** `src/sim/ostriches/ostriches.ts`, tuning `birds.json → ostriches`, pairs in
   the biome file (`ostriches`, per layout; `maps.ts` lets a layout replace them). Every draw comes
   from the **`ostriches`** stream (eggs, activities, swaps, run distances), family then bird order.
