@@ -304,23 +304,33 @@ async function tellsOf(page: Page): Promise<readonly LooseTell[]> {
   );
 }
 
-/** Pans (A/D) until the tell is within 60 px of the screen's centre (bounded). */
+/**
+ * Pans (A/D) until the tell is within 60 px of the screen's centre, or well inside the screen once
+ * a press overshoots it (on slow software GL one short press can pan ~400 px, so the centre may
+ * never be hit; the close-ups crop round the tell wherever it is). Bounded.
+ */
 async function panToTell(page: Page, touch: boolean, species: string): Promise<void> {
+  const w = (await hook(page)).designWidth;
+  const inside = w / 2 - 200;
   const off = async (): Promise<number | null> => {
     const t = (await tellsOf(page)).find((x) => x.species === species);
-    const w = (await hook(page)).designWidth;
     return t === undefined ? null : t.x - w / 2;
   };
+  let prev: number | null = null;
   for (let k = 0; k < 200; k++) {
     const o = await off();
     if (o !== null && Math.abs(o) <= 60) break;
+    // Overshot the centre: stop where the tell is well inside the screen.
+    if (o !== null && prev !== null && Math.sign(o) !== Math.sign(prev) && Math.abs(o) <= inside)
+      break;
+    prev = o;
     const dir = o === null || o > 0 ? 'KeyD' : 'KeyA';
     await page.keyboard.down(dir);
     await page.waitForTimeout(o === null || Math.abs(o) > 500 ? 400 : 100);
     await page.keyboard.up(dir);
   }
   const o = await off();
-  if (o === null || Math.abs(o) > 60) throw new Error(`pan to ${species}: off by ${o}`);
+  if (o === null || Math.abs(o) > inside) throw new Error(`pan to ${species}: off by ${o}`);
   await park(page, touch);
 }
 
