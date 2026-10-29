@@ -559,11 +559,18 @@ export class ShedScene extends Phaser.Scene {
    *  until then. */
   private birdBook(body: Rect): void {
     const book = this.ctx.save.data.birdBook;
-    const entries: { label: string; seen: boolean }[] = [
+    const g0 = (k: string): string => guideString(getLanguage(), `guide.baboon.${k}`) ?? '';
+    const entries: { label: string; seen: boolean; sub?: string }[] = [
       ...this.ctx.content.birds.creatures.map((c) => ({
         label: tOr(`creature.${c.id}`, c.id),
         seen: book.creatures.includes(c.id),
       })),
+      // v1.8b (D-062): the baboon, seen once a raider came down, with its rules (lazy strings).
+      {
+        label: `Bobbejaan · ${g0('name')}`,
+        seen: book.creatures.includes('bobbejaan'),
+        sub: fill(g0('rule'), { n: this.ctx.content.birds.baboons.hit.hitsToBag }),
+      },
       // v1.4 B: a locked area pack keeps its secrets to itself until it is unlocked.
       ...this.ctx.content.biomes
         .filter((b) =>
@@ -644,15 +651,23 @@ export class ShedScene extends Phaser.Scene {
         cellH,
         12,
       );
+      const sub = e.seen ? (e.sub ?? '') : '';
       const txt = this.add
         .text(
           x + cellW / 2,
-          y + cellH / 2,
+          y + cellH / 2 - (sub === '' ? 0 : 14),
           e.seen ? e.label : t('shed.unknown'),
           textStyle(26, e.seen ? '#1B1410' : '#9A9A8A'),
         )
         .setOrigin(0.5);
       fitText(txt, cellW - 20);
+      if (sub !== '')
+        fitText(
+          this.add
+            .text(x + cellW / 2, y + cellH / 2 + 16, sub, textStyle(18, '#4A3A28'))
+            .setOrigin(0.5),
+          cellW - 16,
+        );
     });
   }
 

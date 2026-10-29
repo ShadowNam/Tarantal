@@ -55,6 +55,8 @@ export function createHuntLogger(
         else if (e.type === 'secretTriggered') secrets.add(e.propId);
         // v1.7 (D-044): a desert map's meerkat colony counts the meerkat as seen.
         else if (e.type === 'colonySpawned') creatures.add('meerkat');
+        // v1.8b (D-062): the baboon's Bird Book entry, once a raider came down.
+        else if (e.type === 'baboonRaidStarted') creatures.add('bobbejaan');
       }
     },
     finish(r, bonusUnlocked = null) {

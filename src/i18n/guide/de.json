@@ -52,5 +52,6 @@
   "guide.baboon.raid_chase": "Er jagt meine Perlhühner!",
   "guide.baboon.bagged": "Erwischt! Ein Pavian weniger im Mais.",
   "guide.baboon.stopped": "Auf frischer Tat ertappt!",
-  "guide.baboon.mother": "Doch nicht die Mutter mit dem Baby!"
+  "guide.baboon.mother": "Doch nicht die Mutter mit dem Baby!",
+  "guide.baboon.rule": "Räuber: {n} Treffer. Nie die Mütter!"
 }
