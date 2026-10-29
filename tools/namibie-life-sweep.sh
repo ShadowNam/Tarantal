@@ -8,7 +8,7 @@
 # WORKERS (default 2) sets balance-sim's worker processes.
 set -eu
 seeds=$1; out=$2
-maps=${3:-mon tue wed thu fri sat sun sat+verder sat+nogVerder sat+dieVerste}
+maps=${3:-}; [ -n "$maps" ] || maps="mon tue wed thu fri sat sun sat+verder sat+nogVerder sat+dieVerste"
 bots=${4:-competent}; weapon=${5:-}; sight=${6:-}; workers=${WORKERS:-2}
 i=3
 events='[{"id":"hadeda","creature":"hadeda","perHunt":[0,1],"window":[0.2,0.8]},{"id":"cropSprayer","creature":"sproeier","perHunt":[0,1],"window":[0.3,0.7]}]'

@@ -97,6 +97,7 @@ rather than translating word for word. The tables show the text each language fi
 | `creature.sproeier` | Oom Faan se sproeivliegtuig | Uncle Faan's crop sprayer | Onkel Faans Sprühflieger | Ome Faans sproeivliegtuig | oom = uncle (the neighbour); Faan is a name |
 | `creature.visarend` | Visarend | Fish eagle | Schreiseeadler | Schreeuwarend |  |
 | `creature.meerkat` | Meerkat | Meerkat | Erdmännchen | Stokstaartje |  |
+| `creature.lugballon` | Lugballon | Hot-air balloon | Heißluftballon | Heteluchtballon | v1.7d: Namibië's drifting non-target; the toggle says "Lugballon" |
 
 ### Secrets
 
@@ -275,6 +276,12 @@ the tables above (the names test reads the main files):
 - `guide.makalani.name`: makalani-neut (af) · makalani nut (en) · Makalaninuss (de) · makalaninoot (nl)
 - `guide.makalani.secret`: Hard soos 'n makalani (af) · Hard as a makalani (en) · Hart wie eine Makalani (de) · Hard als een makalani (nl)
 - `guide.makalani.knock` / `guide.makalani.pop`: Tok! / Krak! in every language
+
+**Namibië veld life (1.9.6, D-059).** The balloon's name is in the creature table above. The new
+barks (voiced with the v1.5 interim TTS in en, af and de):
+
+- `bark.ostrich` (a shot ostrich or nest): Los my eiers uit! (af) · Leave my eggs alone! (en) · Finger weg von meinen Eiern! (de) · Blijf van mijn eieren af! (nl)
+- `bark.balloon` (a hit balloon's passenger): Hei! Ons is op vakansie! (af) · Oi! We're on holiday! (en) · He! Wir sind im Urlaub! (de) · Hé! Wij zijn op vakantie! (nl)
 
 **Privacy screen (1.9.3, D-056).** Its paragraphs and headings (`privacy.stored`, `privacy.*_title`,
 `privacy.sent_*`, `privacy.personal`) moved to the lazy table `src/i18n/privacy/<lang>.json`

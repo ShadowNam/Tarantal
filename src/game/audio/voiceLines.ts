@@ -1,7 +1,7 @@
 // v1.5 (D-041): the lines Oupa says out loud (art bible §10). Each is an i18n key: its text in the
 // text language is the caption, and its voice is the file voice/<voice language>/<key> from that
 // language's voice pack. Pure: from the bark tuning (feel.json barks) and the biomes' secrets.
-import type { Biome, MeerkatTuning } from '../../content/schemas';
+import type { Biome, ContentBundle, MeerkatTuning } from '../../content/schemas';
 import { VOICE_LANGUAGES, type VoiceLanguage } from '../../i18n/i18n';
 import { allBarkLines, type BarkTuning, type SpecialBarks } from './barks';
 
@@ -29,6 +29,18 @@ export function voiceLanguageOfGroup(group: string): VoiceLanguage | null {
   return VOICE_LANGUAGES.find((l) => l === lang) ?? null;
 }
 
+/** v1.7d (D-059): the Namibië veld life's barks — the ostrich's and the balloons' (drifters'). */
+export function veldLifeBarks(
+  birds: Pick<ContentBundle['birds'], 'ostriches' | 'creatures'>,
+): string[] {
+  return [
+    birds.ostriches.hit.barkKey,
+    ...birds.creatures.flatMap((c) =>
+      c.kind === 'nonTarget' && c.drift !== undefined ? [c.drift.barkKey] : [],
+    ),
+  ];
+}
+
 /**
  * Every voiced key: Oupa's trigger lines, plus each secret's bark (the weavers' "Tsk-tsk-tsk!"
  * scold, the windpomp sign, the egg…), and (v1.7, D-044) the meerkats' scold and Oupa's
@@ -40,8 +52,10 @@ export function voicedLines(
   meerkats?: Pick<MeerkatTuning, 'hit' | 'familiefoto'>,
   /** D-048: the special days' own lines (feesdae.json barks). */
   specials: readonly SpecialBarks[] = [],
+  /** v1.7d (D-059): more voiced barks (the ostriches', the balloon passengers'). */
+  extra: readonly string[] = [],
 ): string[] {
-  const out = new Set(allBarkLines(barks, specials));
+  const out = new Set([...allBarkLines(barks, specials), ...extra]);
   if (meerkats !== undefined) {
     out.add(meerkats.hit.barkKey);
     out.add(meerkats.familiefoto.barkKey);

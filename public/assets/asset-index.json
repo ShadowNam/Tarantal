@@ -9658,6 +9658,24 @@
       "lufs": -19,
       "peakDb": -1
     },
+    "voice/af/bark.balloon": {
+      "group": "voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-af/audio/voice/af-bark_balloon.1f69f6136916.ogg",
+        "bytes": 13875,
+        "hash": "1f69f6136916"
+      },
+      "mp3": {
+        "path": "assets/voice-af/audio/voice/af-bark_balloon.bb84637c6607.mp3",
+        "bytes": 15877,
+        "hash": "bb84637c6607"
+      },
+      "loop": false,
+      "lufs": -17.6,
+      "peakDb": -1
+    },
     "voice/af/bark.blik_dans": {
       "group": "voice-af",
       "origin": "interim",
@@ -10216,6 +10234,24 @@
       "lufs": -16.7,
       "peakDb": -1
     },
+    "voice/af/bark.ostrich": {
+      "group": "voice-af",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-af/audio/voice/af-bark_ostrich.205f622f55d8.ogg",
+        "bytes": 13247,
+        "hash": "205f622f55d8"
+      },
+      "mp3": {
+        "path": "assets/voice-af/audio/voice/af-bark_ostrich.add24622290a.mp3",
+        "bytes": 13089,
+        "hash": "add24622290a"
+      },
+      "loop": false,
+      "lufs": -16.1,
+      "peakDb": -1
+    },
     "voice/af/bark.oupa_laai": {
       "group": "voice-af",
       "origin": "interim",
@@ -10647,6 +10683,24 @@
       "loop": false,
       "lufs": -16,
       "peakDb": -7
+    },
+    "voice/de/bark.balloon": {
+      "group": "voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-de/audio/voice/de-bark_balloon.68a9bef192a0.ogg",
+        "bytes": 17748,
+        "hash": "68a9bef192a0"
+      },
+      "mp3": {
+        "path": "assets/voice-de/audio/voice/de-bark_balloon.b16ce37b775c.mp3",
+        "bytes": 18282,
+        "hash": "b16ce37b775c"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -5.1
     },
     "voice/de/bark.blik_dans": {
       "group": "voice-de",
@@ -11206,6 +11260,24 @@
       "lufs": -16,
       "peakDb": -6.9
     },
+    "voice/de/bark.ostrich": {
+      "group": "voice-de",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-de/audio/voice/de-bark_ostrich.cc7ada45f315.ogg",
+        "bytes": 19189,
+        "hash": "cc7ada45f315"
+      },
+      "mp3": {
+        "path": "assets/voice-de/audio/voice/de-bark_ostrich.b3366f187646.mp3",
+        "bytes": 20102,
+        "hash": "b3366f187646"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -6.5
+    },
     "voice/de/bark.oupa_laai": {
       "group": "voice-de",
       "origin": "interim",
@@ -11636,6 +11708,24 @@
       },
       "loop": false,
       "lufs": -17.7,
+      "peakDb": -1
+    },
+    "voice/en/bark.balloon": {
+      "group": "voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-en/audio/voice/en-bark_balloon.f613ddceedbf.ogg",
+        "bytes": 11556,
+        "hash": "f613ddceedbf"
+      },
+      "mp3": {
+        "path": "assets/voice-en/audio/voice/en-bark_balloon.71a07ba9d2b1.mp3",
+        "bytes": 12309,
+        "hash": "71a07ba9d2b1"
+      },
+      "loop": false,
+      "lufs": -16,
       "peakDb": -1
     },
     "voice/en/bark.blik_dans": {
@@ -12195,6 +12285,24 @@
       "loop": false,
       "lufs": -17.8,
       "peakDb": -1
+    },
+    "voice/en/bark.ostrich": {
+      "group": "voice-en",
+      "origin": "interim",
+      "kind": "voice",
+      "ogg": {
+        "path": "assets/voice-en/audio/voice/en-bark_ostrich.861a36f0c854.ogg",
+        "bytes": 12397,
+        "hash": "861a36f0c854"
+      },
+      "mp3": {
+        "path": "assets/voice-en/audio/voice/en-bark_ostrich.2b24d4de0698.mp3",
+        "bytes": 12959,
+        "hash": "2b24d4de0698"
+      },
+      "loop": false,
+      "lufs": -16,
+      "peakDb": -1.3
     },
     "voice/en/bark.oupa_laai": {
       "group": "voice-en",

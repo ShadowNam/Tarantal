@@ -19,7 +19,12 @@ import {
   loadBiomeArt,
   placeholderBiomes,
 } from '../../src/game/placeholder/ProceduralAssetFactory';
-import { specialVoiceGroup, voiceGroup, voicedLines } from '../../src/game/audio/voiceLines';
+import {
+  specialVoiceGroup,
+  veldLifeBarks,
+  voiceGroup,
+  voicedLines,
+} from '../../src/game/audio/voiceLines';
 import { voiceKey } from '../../src/game/assets/AssetManifest';
 import { VOICE_LANGUAGES } from '../../src/i18n/i18n';
 import {
@@ -156,6 +161,7 @@ export async function buildCatalog(content: ContentBundle): Promise<Catalog> {
       content.biomes,
       content.birds.meerkats,
       specialBarks,
+      veldLifeBarks(content.birds),
     )) {
       const key = voiceKey(lang, line);
       const group = special.has(line) ? specialVoiceGroup(lang) : voiceGroup(lang);
