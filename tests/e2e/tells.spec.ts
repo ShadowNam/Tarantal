@@ -8,7 +8,7 @@ import { expect, test, type Page } from '@playwright/test';
 import birds from '../../content/birds.json' with { type: 'json' };
 import bushveld from '../../content/biomes/bushveld-winter.json' with { type: 'json' };
 import { fireAt, reloadIfEmpty } from './feesdaeHelpers';
-import { boot, hook, isTouchProject, startHunt, waitTicks } from './helpers';
+import { boot, hook, isLandscape, isTouchProject, startHunt, waitTicks } from './helpers';
 
 const BASE = 'biome=bushveld-winter&seed=42&huntSeconds=300&birds=0&graphics=standard';
 
@@ -55,6 +55,7 @@ test.use({ serviceWorkers: 'block' });
 test('every Bushveld secret has its tell animal on screen, drawn from the sheet', async ({
   page,
 }, info) => {
+  test.skip(!isLandscape(info), 'landscape only: portrait shows the rotate card');
   test.setTimeout(600_000);
   await boot(page, BASE);
   await startHunt(page, isTouchProject(info));
@@ -77,6 +78,7 @@ test('every Bushveld secret has its tell animal on screen, drawn from the sheet'
 });
 
 test('a hit on the drongo costs nothing; it leaves and comes back', async ({ page }, info) => {
+  test.skip(!isLandscape(info), 'landscape only: portrait shows the rotate card');
   test.setTimeout(900_000);
   const touch = isTouchProject(info);
   await boot(page, BASE);
@@ -146,6 +148,7 @@ test('a hit on the drongo costs nothing; it leaves and comes back', async ({ pag
 });
 
 test('a held frame holds the tells; a dusk map lights them', async ({ page }, info) => {
+  test.skip(!isLandscape(info), 'landscape only: portrait shows the rotate card');
   test.setTimeout(600_000);
   const touch = isTouchProject(info);
   // Saturday is the dusk map: the secrets are lit (the tells' warm outline).
