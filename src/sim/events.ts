@@ -107,6 +107,8 @@ export type SimEvent =
       readonly spookId?: number;
       /** v1.8 (D-050): a tin can (absent everywhere else). */
       readonly canId?: number;
+      /** v1.7e (D-061): a secret's tell animal (absent everywhere else). */
+      readonly tellId?: number;
     }
   /** v1.3x (D-037) Skietbaan only: a shot's aim point on the range's plane (plane px; a rifle's
    *  before the sway), the point its group is measured from. */
@@ -683,6 +685,26 @@ export type SimEvent =
       readonly x: number;
       readonly chain: number;
       readonly points: number;
+    }
+  /** v1.7e (D-061): a pellet struck a secret's tell animal: it flees (no cost) and comes back. */
+  | {
+      readonly type: 'tellSpooked';
+      readonly tick: number;
+      readonly shotId: number;
+      readonly tellId: number;
+      readonly species: string;
+      readonly propId: string;
+      readonly layerId: string;
+      readonly x: number;
+      readonly y: number;
+    }
+  /** v1.7e (D-061): the tell animal is back at its secret after a hit. */
+  | {
+      readonly type: 'tellBack';
+      readonly tick: number;
+      readonly tellId: number;
+      readonly species: string;
+      readonly propId: string;
     };
 
 /** 1.9.3 (D-056): what nutKnocked and nutJuggled carry. */

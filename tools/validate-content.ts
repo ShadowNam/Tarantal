@@ -62,7 +62,11 @@ fileNames.push('meta/daily.json');
 fileNames.sort();
 
 const report = checkCrossRefs(parsed.bundle, {
-  i18nKeys: readI18nKeys(join(root, 'src/i18n/en.json')),
+  // v1.7e (D-061): the lazy guide table's keys count too (the tell animals' names live there).
+  i18nKeys: new Set([
+    ...readI18nKeys(join(root, 'src/i18n/en.json')),
+    ...readI18nKeys(join(root, 'src/i18n/guide/en.json')),
+  ]),
   strict,
   notaboek: notaboek.notaboek,
   daily: daily.value,

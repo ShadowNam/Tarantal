@@ -11,7 +11,11 @@ import { loadNotaboek } from '../../tools/testContent';
 
 const root = join(import.meta.dirname, '..', '..');
 const raw = readContentDir(join(root, 'content'));
-const i18nKeys = readI18nKeys(join(root, 'src/i18n/en.json'));
+// v1.7e (D-061): with the lazy guide table's keys (the tell animals' names live there).
+const i18nKeys = new Set([
+  ...readI18nKeys(join(root, 'src/i18n/en.json')),
+  ...readI18nKeys(join(root, 'src/i18n/guide/en.json')),
+]);
 
 /** Deep copy so tests can corrupt content without touching the shared fixture. */
 function clone(): { files: Record<string, unknown>; biomes: Record<string, unknown> } {

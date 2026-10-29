@@ -617,7 +617,8 @@ function boulderProp(crack: boolean) {
     const { w, h } = ctx.box;
     const ry = h / 2;
     // Content: the crack part sits at (−10, −30), 32 × 28; birds perch on the top (y ≈ −60).
-    return graniteBoulder(ctx.rnd, 0, ry * 0.75, w * 0.98, ry * 1.8, look, {
+    // v1.7e: a little smaller than the box (the soft contact shadow and the crown stay inside).
+    return graniteBoulder(ctx.rnd, 0, ry * 0.75, w * 0.86, ry * 1.6, look, {
       flat: 0.3,
       ...(crack ? { crack: { x: -10, y: -30, len: 70 } } : {}),
     });

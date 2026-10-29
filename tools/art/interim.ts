@@ -2,7 +2,7 @@
 // art-source/ exactly like a human delivery (docs/06), marked `"origin": "interim"` in each rig.json.
 // Then run `npm run assets:pack`. A folder whose rig.json is not marked interim is a human delivery
 // and is never touched.
-//   --only birds|guns|scenery|sprites|flyers|range|meerkats|feesdae|blikkies|makalani|treelife|colony|namiblife
+//   --only birds|guns|scenery|sprites|flyers|range|meerkats|feesdae|blikkies|makalani|treelife|colony|namiblife|tells
 //                         one part (none: sheets only). scenery = parallax layers + props (D-031),
 //                         sprites = shared FX/UI/crate sprites, flyers = non-target birds,
 //                         range = the Skietbaan's steel plate (24 Oct update),
@@ -57,6 +57,8 @@ import { renderMeerkatSheet } from './meerkats';
 import { MEERKAT_SHEET, SHEET_MASTER } from '../../src/game/assets/desertAssets';
 import { RESIDENT_SHEET } from '../../src/game/view/tree/residentSheet';
 import { renderResidentSheet } from './baobabLife';
+import { renderTellSheet } from './tells';
+import { TELL_SHEET } from '../../src/game/view/tell/tellSheet';
 import { renderColonySheet } from './colony';
 import { COLONY_SHEET } from '../../src/game/view/tree/colonySheet';
 import { collectVeld, renderVeldSheet } from './namibVeld';
@@ -69,6 +71,8 @@ import { renderBalloonSheet } from './balloon';
 
 /** 1.9.4 (D-057): palette size of the baobab residents' sheet. */
 const RESIDENT_COLOURS = 96;
+/** v1.7e (D-061): palette size of the tell animals' sheet. */
+const TELL_COLOURS = 128;
 /** 1.9.4 (D-057): palette size of the weaver colony's sheet. */
 const COLONY_COLOURS = 96;
 /** v1.7d (D-059): palette size of the Namib veld sheet. */
@@ -675,6 +679,28 @@ if (wants('colony') && !hdOnly) {
     );
     putHd(`sprites/${COLONY_SHEET}.png`, renderColonySheet(2), COLONY_COLOURS);
     console.log(`sprites/${COLONY_SHEET}`);
+  }
+}
+if (wants('tells') && !hdOnly) {
+  // v1.7e (D-061): the secrets' tell animals at 2× in the late group (no area chunk grows), which
+  // the HD pack serves too.
+  const png = join(src, 'sprites', `${TELL_SHEET}.png`);
+  if (!oursFile(png)) console.warn(`skip sprites/${TELL_SHEET}: a human delivery is there`);
+  else {
+    put(png, encodePng8(renderTellSheet(2), TELL_COLOURS));
+    put(
+      png.replace(/\.png$/, '.json'),
+      await json({
+        origin: 'interim',
+        encode: 'png8',
+        master: 2,
+        originX: 0,
+        originY: 0,
+        group: LATE_GROUP,
+      }),
+    );
+    rmSync(join(hdSrc, 'sprites', `${TELL_SHEET}.png`), { force: true });
+    console.log(`sprites/${TELL_SHEET}`);
   }
 }
 if (wants('treelife') && !hdOnly) {

@@ -100,6 +100,7 @@ import {
   activeParts,
   buildSecrets,
   hitPart,
+  isReady,
   nearMiss,
   partPosition,
   secretView,
@@ -195,6 +196,16 @@ import {
   type OstrichCtx,
   type OstrichFamilyState,
 } from './ostriches/ostriches';
+import {
+  createTells,
+  spookTell,
+  stepTell,
+  tellHitCentre,
+  tellPlacements,
+  tellPresent,
+  tellView,
+  type TellState,
+} from './tells/tells';
 
 export { FAMILIEFOTO_SECRET };
 
@@ -908,6 +919,13 @@ export function createSim(config: SimConfig): Sim {
       );
     }
   }
+  // v1.7e (D-061): the secrets' tell animals, from their own stream (none in the Skietbaan).
+  const tellT = content.birds.tells;
+  const tellRng = rng.stream('tells');
+  let nextTellId = 1;
+  const tells: TellState[] = ranged
+    ? []
+    : createTells(tellPlacements(biome), tellT, tellRng, () => nextTellId++);
   const osCooldownTicks = secondsToTicks(os.hit.cooldownSeconds);
   /** v1.7d (D-059): each balloon's penalty cooldown (the tick it ends). */
   const drifterCooldown = new Map<number, number>();
@@ -1556,6 +1574,15 @@ export function createSim(config: SimConfig): Sim {
         });
       }
     }
+    // v1.7e (D-061): the tell animals that are there (after the secret parts: never over one).
+    for (const t of tells)
+      if (tellPresent(t))
+        add(t.layerId, {
+          kind: 'tell',
+          tellId: t.id,
+          ...tellHitCentre(t),
+          shape: { type: 'ellipse', rx: t.hit.rx, ry: t.hit.ry },
+        });
     return out;
   }
 
@@ -1665,7 +1692,7 @@ export function createSim(config: SimConfig): Sim {
     const landedFar =
       r.birdId !== null
         ? plane === 'far' || plane === 'ver'
-        : r.meerkatId !== undefined || r.ostrichId !== undefined
+        : r.meerkatId !== undefined || r.ostrichId !== undefined || r.tellId !== undefined
           ? false
           : r.canId !== undefined
             ? thingPlane(r.canId) === 'far' || thingPlane(r.canId) === 'ver'
@@ -1692,6 +1719,7 @@ export function createSim(config: SimConfig): Sim {
       ...(r.ostrichId === undefined ? {} : { ostrichId: r.ostrichId }),
       ...(r.spookId === undefined ? {} : { spookId: r.spookId }),
       ...(r.canId === undefined ? {} : { canId: r.canId }),
+      ...(r.tellId === undefined ? {} : { tellId: r.tellId }),
       ...(cx === null ? {} : { cx }),
     });
     return { dx: ldx, sy: psy, r };
@@ -1856,6 +1884,7 @@ export function createSim(config: SimConfig): Sim {
           r.paperId !== undefined ||
           r.meerkatId !== undefined ||
           r.ostrichId !== undefined ||
+          r.tellId !== undefined ||
           r.canId !== undefined ||
           f.next >= bands.length;
         if (!stopped) continue;
@@ -1913,6 +1942,7 @@ export function createSim(config: SimConfig): Sim {
     const meerkatHits: number[] = [];
     const ostrichHits: number[] = [];
     const spookHits: number[] = [];
+    const tellHits: number[] = [];
     /** v1.8: pellets per tin can, their summed offsets and the dents (in landing order). */
     const canHits = new Map<
       number,
@@ -1956,6 +1986,7 @@ export function createSim(config: SimConfig): Sim {
       if (r.ostrichId !== undefined && !ostrichHits.includes(r.ostrichId))
         ostrichHits.push(r.ostrichId);
       if (r.spookId !== undefined && !spookHits.includes(r.spookId)) spookHits.push(r.spookId);
+      if (r.tellId !== undefined && !tellHits.includes(r.tellId)) tellHits.push(r.tellId);
       if (r.canId !== undefined) {
         const h = canHits.get(r.canId) ?? { n: 0, dx: 0, dy: 0, at: [] };
         h.n++;
@@ -2037,6 +2068,7 @@ export function createSim(config: SimConfig): Sim {
       meerkatHits.length > 0 ||
       ostrichHits.length > 0 ||
       spookHits.length > 0 ||
+      tellHits.length > 0 ||
       canHits.size > 0;
 
     const targets = bagged.filter((x) => x.bird.creature.kind !== 'nonTarget');
@@ -2212,6 +2244,7 @@ export function createSim(config: SimConfig): Sim {
       shot.alertRadiusPx * pass.alertRadiusMul * (miss ? pass.missAlertMul : 1) * rainMul;
     shotAtColonies(shotId, meerkatHits, impacts, shotCx, radius > 0, shot.alertsAllFlocks);
     shotAtOstriches(shotId, ostrichHits, impacts, shotCx, radius > 0, shot.alertsAllFlocks);
+    shotAtTells(shotId, tellHits);
     const near = shotThreats(flocks, impacts, shotCx, radius, planeGeo, baggedFlockIds);
     threaten(near, radius > 0 ? 'shot' : 'silentBag');
     // v1.4 (D-038): a very loud gun alerts every other flock too (unless a charm or the rain
@@ -2790,6 +2823,36 @@ export function createSim(config: SimConfig): Sim {
         lineUp(c, mk);
         photoColony = c;
       }
+    }
+  }
+
+  // --- tell animals (v1.7e, D-061) ----------------------------------------------------------
+  /** A shot's tell hits: each flees (no points, no Frenzy change) and comes back later. */
+  function shotAtTells(shotId: number, hits: readonly number[]): void {
+    for (const id of hits) {
+      const t = tells.find((x) => x.id === id);
+      if (t === undefined || !tellPresent(t)) continue;
+      spookTell(t, tellT, tellRng);
+      emit({
+        type: 'tellSpooked',
+        tick,
+        shotId,
+        tellId: t.id,
+        species: t.species,
+        propId: t.propId,
+        layerId: t.layerId,
+        x: t.x,
+        y: t.y,
+      });
+    }
+  }
+
+  function stepTells(): void {
+    for (const t of tells) {
+      const s = secrets.find((x) => x.propId === t.propId);
+      const back = stepTell(t, tellT, tellRng, s?.done ?? true, s !== undefined && isReady(s));
+      if (back === 'back')
+        emit({ type: 'tellBack', tick, tellId: t.id, species: t.species, propId: t.propId });
     }
   }
 
@@ -3410,6 +3473,7 @@ export function createSim(config: SimConfig): Sim {
       if (t === 'reset') emit({ type: 'secretReset', tick, propId: s.propId });
       else if (t === 'ready') emit({ type: 'secretReady', tick, propId: s.propId });
     }
+    stepTells();
 
     if (ranged) rangeStep();
     else {
@@ -3591,6 +3655,7 @@ export function createSim(config: SimConfig): Sim {
         crates: crates.map(crateView),
         meerkats: colonies.map(colonyView),
         ostriches: families.map(ostrichView),
+        tells: tells.map(tellView),
         powerups: powerups.map(powerupView),
         wind: windView(wind),
         dustDevils: dustDevils.map(dustDevilView),

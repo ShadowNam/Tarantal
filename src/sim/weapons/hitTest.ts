@@ -131,6 +131,8 @@ export interface PelletResult {
   readonly canDy?: number;
   /** 1.9.3 (D-056): the can is a pass-through makalani nut (a bird behind would have taken it). */
   readonly passThrough?: true;
+  /** v1.7e (D-061): a secret's tell animal (a non-target that costs nothing; never a target). */
+  readonly tellId?: number;
 }
 
 /** 1.9.3 (D-056): a result that is something to shoot (not a plain prop occluder, not nothing). */
@@ -203,6 +205,14 @@ export type HitExtra =
   | {
       readonly kind: 'ostrich';
       readonly ostrichId: number;
+      readonly x: number;
+      readonly y: number;
+      readonly shape: OccluderShape;
+    }
+  /** v1.7e (D-061): a secret's tell animal (a non-target: no cost). */
+  | {
+      readonly kind: 'tell';
+      readonly tellId: number;
       readonly x: number;
       readonly y: number;
       readonly shape: OccluderShape;
@@ -281,6 +291,7 @@ export function resolvePellet(
       if (e.kind === 'meerkat') return after({ ...NOTHING, meerkatId: e.meerkatId });
       if (e.kind === 'ostrich') return after({ ...NOTHING, ostrichId: e.ostrichId });
       if (e.kind === 'spook') return after({ ...NOTHING, spookId: e.spookId });
+      if (e.kind === 'tell') return after({ ...NOTHING, tellId: e.tellId });
       return after(
         e.kind === 'crate'
           ? { ...NOTHING, crateId: e.crateId }

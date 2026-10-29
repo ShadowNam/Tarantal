@@ -108,7 +108,7 @@ export function graniteBoulder(
     parts.push(
       blur.def,
       el('path', {
-        d: ellipseD(x + w * 0.1, y + 1, hw * 1.08, Math.max(2.5, h * 0.09)),
+        d: ellipseD(x + w * 0.06, y + 1, hw * 1.02, Math.max(2.5, h * 0.09)),
         fill: '#231B16',
         opacity: 0.38,
         filter: `url(#${blur.id})`,

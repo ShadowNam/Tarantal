@@ -60,7 +60,9 @@ export type StreamName =
   // 1.9.3 (D-056): makalani nuts (cluster sizes, colours, a kick's jitter).
   | 'nuts'
   // v1.7d (D-059): Namibië's ostriches (eggs, activities, swaps, runs).
-  | 'ostriches';
+  | 'ostriches'
+  // v1.7e (D-061): the secrets' tell animals (when they act, how long they stay away).
+  | 'tells';
 
 /** A stream's members are closures, so they are safe to pass around detached. */
 export interface RandomStream {

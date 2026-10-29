@@ -816,5 +816,26 @@
       "watchSeconds": [2, 3.5]
     },
     "hit": { "penalty": 10, "cooldownSeconds": 2, "hissSeconds": 0.6, "barkKey": "bark.ostrich" }
+  },
+  "tells": {
+    "$comment": "v1.7e (D-061, GDD §6.5): the secrets' tell animals, one per secret (each secret names its own under `tell` in the biome file). Sizes are the secret prop's layer px (about 1.3× true size against the prop, as the weaver colony's birds); times in seconds. Non-targets: a hit costs nothing (no points, no Frenzy change); the animal is gone for goneSeconds, then comes back, and stays away once its secret is spent.",
+    "actEverySeconds": [3, 6],
+    "actSeconds": 1.2,
+    "goneSeconds": [5, 9],
+    "species": [
+      { "id": "fork_tailed_drongo", "nameKey": "guide.tell.fork_tailed_drongo", "hit": { "rx": 9, "ry": 15, "ox": 0, "oy": -15 } },
+      { "id": "rock_agama", "nameKey": "guide.tell.rock_agama", "hit": { "rx": 17, "ry": 7, "ox": 0, "oy": -7 } },
+      { "id": "striped_skink", "nameKey": "guide.tell.striped_skink", "hit": { "rx": 14, "ry": 5, "ox": 0, "oy": -5 } },
+      { "id": "lilac_breasted_roller", "nameKey": "guide.tell.lilac_breasted_roller", "hit": { "rx": 10, "ry": 17, "ox": 0, "oy": -17 } },
+      { "id": "flap_necked_chameleon", "nameKey": "guide.tell.flap_necked_chameleon", "hit": { "rx": 15, "ry": 10, "ox": 0, "oy": -10 } },
+      { "id": "rock_kestrel", "nameKey": "guide.tell.rock_kestrel", "hit": { "rx": 11, "ry": 18, "ox": 0, "oy": -18 } },
+      { "id": "cape_wagtail", "nameKey": "guide.tell.cape_wagtail", "hit": { "rx": 11, "ry": 8, "ox": 0, "oy": -8 } },
+      { "id": "fiscal_shrike", "nameKey": "guide.tell.fiscal_shrike", "hit": { "rx": 8, "ry": 13, "ox": 0, "oy": -13 } },
+      { "id": "striped_mouse", "nameKey": "guide.tell.striped_mouse", "hit": { "rx": 26, "ry": 12, "ox": 0, "oy": -12 } },
+      { "id": "pied_crow", "nameKey": "guide.tell.pied_crow", "hit": { "rx": 15, "ry": 24, "ox": 0, "oy": -24 } },
+      { "id": "malachite_kingfisher", "nameKey": "guide.tell.malachite_kingfisher", "hit": { "rx": 7, "ry": 11, "ox": 0, "oy": -11 } },
+      { "id": "red_billed_oxpecker", "nameKey": "guide.tell.red_billed_oxpecker", "hit": { "rx": 12, "ry": 8, "ox": 0, "oy": -8 } },
+      { "id": "african_jacana", "nameKey": "guide.tell.african_jacana", "hit": { "rx": 22, "ry": 30, "ox": 0, "oy": -30 } }
+    ]
   }
 }
