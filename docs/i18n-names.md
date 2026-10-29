@@ -283,6 +283,24 @@ barks (voiced with the v1.5 interim TTS in en, af and de):
 - `bark.ostrich` (a shot ostrich or nest): Los my eiers uit! (af) · Leave my eggs alone! (en) · Finger weg von meinen Eiern! (de) · Blijf van mijn eieren af! (nl)
 - `bark.balloon` (a hit balloon's passenger): Hei! Ons is op vakansie! (af) · Oi! We're on holiday! (en) · He! Wir sind im Urlaub! (de) · Hé! Wij zijn op vakantie! (nl)
 
+**Tell animals (1.9.8, D-061).** The secrets' tell animals' names live in the lazy guide tables
+(`src/i18n/guide/<lang>.json`; the first download must not grow), so they are listed here rather
+than in the tables above:
+
+- `guide.tell.fork_tailed_drongo`: mikstertbyvanger (af) · fork-tailed drongo (en) · Trauerdrongo (de) · vorkstaartdrongo (nl)
+- `guide.tell.rock_agama`: bloukop-koggelmander (af) · rock agama (en) · Felsagame (de) · rotsagame (nl)
+- `guide.tell.striped_skink`: gestreepte akkedis (af) · striped skink (en) · Streifenskink (de) · gestreepte skink (nl)
+- `guide.tell.lilac_breasted_roller`: gewone troupant (af) · lilac-breasted roller (en) · Gabelracke (de) · vorkstaartscharrelaar (nl)
+- `guide.tell.flap_necked_chameleon`: flapnek-verkleurmannetjie (af) · flap-necked chameleon (en) · Lappenchamäleon (de) · lappenkameleon (nl)
+- `guide.tell.rock_kestrel`: kransvalk (af) · rock kestrel (en) · Felsenturmfalke (de) · rotstorenvalk (nl)
+- `guide.tell.cape_wagtail`: gewone kwikkie (af) · Cape wagtail (en) · Kapstelze (de) · Kaapse kwikstaart (nl)
+- `guide.tell.fiscal_shrike`: fiskaal (af) · fiscal shrike (en) · Fiskalwürger (de) · fiscaalklauwier (nl)
+- `guide.tell.striped_mouse`: streepmuis (af) · striped mouse (en) · Striemen-Grasmaus (de) · streepmuis (nl)
+- `guide.tell.pied_crow`: witborskraai (af) · pied crow (en) · Schildrabe (de) · schildraaf (nl)
+- `guide.tell.malachite_kingfisher`: kuifkopvisvanger (af) · malachite kingfisher (en) · Haubenzwergfischer (de) · malachietijsvogel (nl)
+- `guide.tell.red_billed_oxpecker`: rooibekrenostervoël (af) · red-billed oxpecker (en) · Rotschnabel-Madenhacker (de) · roodsnavelossenpikker (nl)
+- `guide.tell.african_jacana`: grootlangtoon (af) · African jacana (en) · Blaustirn-Blatthühnchen (de) · lelieloper (nl)
+
 **Privacy screen (1.9.3, D-056).** Its paragraphs and headings (`privacy.stored`, `privacy.*_title`,
 `privacy.sent_*`, `privacy.personal`) moved to the lazy table `src/i18n/privacy/<lang>.json`
 (the first download must not grow); the wording is unchanged.

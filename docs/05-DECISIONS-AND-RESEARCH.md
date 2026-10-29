@@ -3339,7 +3339,7 @@ option A stands (their standing instruction: go with the recommended options).
   and dwala sheets (`tools/art/bushveldGround.ts`); the ink lines between the planes are a lit crest
   with grass over it. Shrub and grass ink on those layers is a dark tone of the grass, not black.
   Art bible §4.2. The baobab, the herds and the residents are unchanged.
-- *Size.* The Bushveld chunk went 1,525.0 → 1,477.2 KB (budget 1,536): the baobab is 1× in
+- *Size.* The Bushveld chunk went 1,525.0 → 1,480.5 KB (budget 1,536): the baobab is 1× in
   Standard with its 2× twin in the HD pack (as the Kalahari weaver tree, D-057; HD texture memory
   unchanged), patches and crests have crisp edges (a blurred edge costs palette entries), the dwala
   have no noise grain, and the foot of the far ridge, always hidden by the far veld, is one flat
@@ -3353,8 +3353,9 @@ option A stands (their standing instruction: go with the recommended options).
 - *Why a sim entity.* The brief asks that a hit on the tell costs nothing and sends it off: so it
   is hittable, and a hit must be decided by the sim (replays, the Daily). Tells are hit extras on
   their prop's layer with their own RNG stream (`tells`); a shot that only hits a tell counts as
-  hitting a thing (no Frenzy change, D-021). Golden replays re-recorded on purpose: 5 of 41 event
-  streams changed where a bot's pellet met a tell; no score changed. Tech §3.12c.
+  hitting a thing (no Frenzy change, D-021). Golden replays re-recorded on purpose: 6 of 41 event
+  streams changed where a bot's pellet meets a tell; one score changed (the Halloween Daily in the
+  Bushveld, 5125 → 5137: a pellet that stopped on the skink now reaches a bird). Tech §3.12c.
 - *The glint retired.* `fx/glint` and `juice.glintEveryMs/glintMs` are gone. Oupa se Kaart, a dusk
   map and the Meerkat Spotter now give the tells a soft warm outline (a warm fill of the frame
   behind the animal) instead of rings on the secrets; "reduce flashes" has nothing to dim there

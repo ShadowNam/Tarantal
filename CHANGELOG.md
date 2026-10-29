@@ -37,7 +37,7 @@ something." Cue option A (a tell animal at each secret) stands: the recommended 
 - The secret "hint glint" (the four-point star every 4 s).
 
 ### Sizes
-- First download 2,972.3 KB (unchanged); Bushveld chunk 1,525.0 → 1,477.2 KB; late group 1,412.3 →
+- First download 2,972.3 KB (unchanged); Bushveld chunk 1,525.0 → 1,480.5 KB; late group 1,412.3 →
   1,428.9 KB (the tell sheet); TellView is a lazy chunk (1.3 KB).
 
 ## [1.9.7] — Namibië veld life: grass and sand, ostriches, oryx in the mirage, balloons (29 Oct 2026)
