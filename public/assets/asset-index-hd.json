@@ -641,16 +641,6 @@
       "height": 524,
       "scale": 0.5
     },
-    "namibie/veld": {
-      "file": {
-        "path": "assets/namibie-hd/img/namibie_veld.ad04c83a4aaa.png",
-        "bytes": 161571,
-        "hash": "ad04c83a4aaa"
-      },
-      "width": 1152,
-      "height": 1140,
-      "scale": 0.5
-    },
     "okavango/hippo": {
       "file": {
         "path": "assets/okavango-spring-hd/img/okavango_hippo.275363067980.png",

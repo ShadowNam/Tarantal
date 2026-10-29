@@ -444,7 +444,7 @@ if (wants('scenery')) {
     }
     // v1.7c (D-047): the biome's fruit sheet and where each fruit sits (FRUIT_LATE: late group).
     await writeFruit(biome.id, fruitOwners);
-    // v1.7d (D-059): the Namib ground cover — its sheet (1×, HD twin 2×) and placements.
+    // v1.7d (D-059): the Namib ground cover — its sheet (1×, Standard in HD too) and placements.
     if (veldSpots.length > 0) {
       const png = join(src, 'sprites', `${VELD_SHEET}.png`);
       const looks = namibieVeldLooks(cfg);
@@ -453,7 +453,9 @@ if (wants('scenery')) {
         png.replace(/\.png$/, '.json'),
         await json({ origin: 'interim', encode: 'png8', originX: 0, originY: 0 }),
       );
-      putHd(`sprites/${VELD_SHEET}.png`, renderVeldSheet(2, looks), VELD_COLOURS);
+      // No 2× twin: VeldView bakes the cover into Standard-resolution strips in both modes
+      // (Namibië's HD texture memory, D-059).
+      rmSync(join(hdSrc, 'sprites', `${VELD_SHEET}.png`), { force: true });
       put(
         join(root, 'src', 'game', 'view', 'namib', `veld-${biome.id}.json`),
         await json(veldSpots),
