@@ -791,6 +791,7 @@ export class HudScene extends Phaser.Scene {
           const bark = this.ctx.content.birds.ostriches.hit.barkKey;
           banner.push(tOr(bark, bark));
           this.ctx.audio.bark(bark);
+          this.ctx.hook?.namibLog.push(`bark:${bark}`);
         }
       } else if (e.type === 'balloonHit') {
         // v1.7d (D-059): a hot-air balloon hit (its points pop with penaltyApplied): "Oi! We're on
@@ -800,6 +801,7 @@ export class HudScene extends Phaser.Scene {
         if (e.points < 0 && bark !== undefined) {
           banner.push(tOr(bark, bark));
           this.ctx.audio.bark(bark);
+          this.ctx.hook?.namibLog.push(`bark:${bark}`);
         }
       } else if (e.type === 'meerkatScold') {
         // It pops out of its hole and scolds: "We're not guineafowl!"

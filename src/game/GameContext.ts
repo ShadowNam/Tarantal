@@ -363,7 +363,7 @@ export interface TestHook {
   }[];
   meerkatLog: string[];
   /** v1.7d (D-059): Namibië's ostrich and balloon events in order ("hit:-10", "hit:nest:-10",
-   *  "ran:shot", "call:display", "balloon:-25"). */
+   *  "ran:shot", "call:display", "balloon:-25", "bark:bark.ostrich"). */
   namibLog: string[];
   /** v1.8 (D-050): the day's tin cans (null: no fence) — the fence's plane, each can on screen
    *  (design px; r = hit radius), the hunt's can events in order ("knock:1", "juggle:2",
