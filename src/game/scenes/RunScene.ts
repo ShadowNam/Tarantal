@@ -2,6 +2,9 @@
 // tally after it (quota met or missed, doppies earned), the Padstal (offers, reroll, buy, sell,
 // drag charms to reorder) and the run summary (victory or defeat). Every change goes through
 // ctx.run, which writes the save, so closing the tab anywhere here resumes in the same place.
+// D-060: every screen of a run in play has [Save & leave] (the title's "Continue run" picks the run
+// up again, caps and all), and Escape / the Android back button does the same; the summary's
+// [Menu] and Back go to the title.
 import { designSize } from '../layout';
 import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
@@ -60,6 +63,8 @@ export class RunScene extends Phaser.Scene {
   /** Padstal notes drawn this build (for the test hook). */
   private notes: string[] = [];
   private panel!: Rect;
+  /** D-060: what Escape / the Android back button does on this view (set by the view). */
+  private back: (() => void) | null = null;
 
   constructor(ctx: GameContext) {
     super({ key: 'Run' });
@@ -69,6 +74,7 @@ export class RunScene extends Phaser.Scene {
   create(data: RunData): void {
     this.data_ = data;
     this.notes = [];
+    this.back = null;
     const run = this.ctx.run.shown;
     if (run === null) {
       data.title();
@@ -107,7 +113,13 @@ export class RunScene extends Phaser.Scene {
         focus = this.summary(run, items);
         break;
     }
-    new Menu(this, items, { focus, hook: this.ctx.hook });
+    new Menu(this, items, {
+      focus,
+      hook: this.ctx.hook,
+      onBack: () => {
+        this.back?.();
+      },
+    });
     const hook = this.ctx.hook;
     if (hook) {
       hook.scene = 'run';
@@ -156,6 +168,22 @@ export class RunScene extends Phaser.Scene {
         press(pt === 'keyboard' ? 'mouse' : pt);
       },
     });
+  }
+
+  /**
+   * D-060: [Save & leave] on a run in play: back to the title, the run kept as it is (every step
+   * is already in the save), so "Continue run" resumes on this screen with the same caps. Escape
+   * and the Android back button do the same.
+   */
+  private leaveButton(items: MenuItem[], rect: Rect): void {
+    let pressed = false;
+    const leave = (): void => {
+      if (pressed) return;
+      pressed = true;
+      this.data_.title();
+    };
+    this.button(items, 'run.menu', rect, t('run.save_leave'), 'secondary', 30, leave);
+    this.back = leave;
   }
 
   // --- hunt card ----------------------------------------------------------------------------
@@ -209,11 +237,13 @@ export class RunScene extends Phaser.Scene {
       pressed = true;
       this.data_.hunt(pt);
     });
-    this.button(items, 'run.menu', menu, t('run.menu'), 'secondary', 34, () => {
+    const leave = (): void => {
       if (pressed) return;
       pressed = true;
       this.data_.title();
-    });
+    };
+    this.button(items, 'run.menu', menu, t('run.save_leave'), 'secondary', 30, leave);
+    this.back = leave;
     return 'run.go';
   }
 
@@ -292,11 +322,17 @@ export class RunScene extends Phaser.Scene {
         this.ctx.run.openPadstal();
         this.go('padstal');
       });
+      // D-060: the run is saved at its tally; "Continue run" brings the player back here.
+      this.leaveButton(items, { x: p.x + 40, y: p.y + p.h - 130, w: 300, h: 84 });
       return 'run.padstal';
     }
     this.button(items, 'run.summary', next, t('run.to_summary'), 'primary', 52, () => {
       this.go('summary');
     });
+    // The run is over: Back moves on to its summary (which has [Menu]).
+    this.back = () => {
+      this.go('summary');
+    };
     return 'run.summary';
   }
 
@@ -379,7 +415,10 @@ export class RunScene extends Phaser.Scene {
     this.text(cx, p.y + 650, t('run.drag_hint'), 26, '#D8CFB8', p.w - 80);
 
     const by = p.y + p.h - 140;
-    const reroll: Rect = { x: p.x + 40, y: by + 10, w: 340, h: 96 };
+    // D-060: [Save & leave] bottom-left (as on the hunt card), [Reroll] beside it, [Next hunt]
+    // bottom-right; [Sell] (a charm picked) sits centred in the row above.
+    this.leaveButton(items, { x: p.x + 40, y: by + 10, w: 300, h: 96 });
+    const reroll: Rect = { x: p.x + 370, y: by + 10, w: 320, h: 96 };
     const next: Rect = { x: p.x + p.w - 460, y: by, w: 420, h: 112 };
     const cost = rerollCost(this.ctx.content, run);
     this.button(
@@ -396,7 +435,7 @@ export class RunScene extends Phaser.Scene {
     );
     const charmId = sel === null ? undefined : run.charms[sel];
     if (sel !== null && charmId !== undefined) {
-      const sell: Rect = { x: cx - 170, y: by + 10, w: 340, h: 96 };
+      const sell: Rect = { x: cx - 170, y: by - 96, w: 340, h: 84 };
       this.button(
         items,
         'run.sell',
@@ -417,7 +456,16 @@ export class RunScene extends Phaser.Scene {
     const firstVisit = !this.ctx.save.data.notices.includes(PADSTAL_HELP_NOTICE);
     if (this.data_.help === true || firstVisit) {
       items.length = 0;
-      return this.helpCard(items);
+      const focus = this.helpCard(items);
+      // Back closes the explainer, like its [Got it].
+      const ok = items.find((i) => i.id === 'run.helpClose');
+      this.back =
+        ok === undefined
+          ? null
+          : () => {
+              ok.press('keyboard', null);
+            };
+      return focus;
     }
     return 'run.next';
   }
@@ -448,6 +496,7 @@ export class RunScene extends Phaser.Scene {
       'run.help_consumable',
       'run.help_rental',
       'run.help_quota',
+      'run.help_leave',
     ];
     // The card is sized from its text (de/nl with large text run to ~10 lines). If even the
     // tallest card can't hold it on this screen, the text steps down a size until it fits.
@@ -736,6 +785,9 @@ export class RunScene extends Phaser.Scene {
     this.button(items, 'run.menu', menu, t('run.menu'), 'secondary', 34, () => {
       this.data_.title();
     });
+    this.back = () => {
+      this.data_.title();
+    };
     return 'run.new';
   }
 }
