@@ -5,6 +5,19 @@
     "karoo-autumn"
   ],
   "images": {
+    "baboons/sheet": {
+      "group": "late",
+      "origin": "interim",
+      "file": {
+        "path": "assets/late/img/baboons_sheet.401aca35c845.png",
+        "bytes": 89760,
+        "hash": "401aca35c845"
+      },
+      "width": 672,
+      "height": 946,
+      "originX": 0,
+      "originY": 0
+    },
     "biome/water": {
       "group": "common",
       "origin": "interim",

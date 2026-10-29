@@ -1,6 +1,16 @@
 {
   "version": 1,
   "images": {
+    "baboons/sheet": {
+      "file": {
+        "path": "assets/late-hd/img/baboons_sheet.5e7db36a0367.png",
+        "bytes": 188614,
+        "hash": "5e7db36a0367"
+      },
+      "width": 1344,
+      "height": 1892,
+      "scale": 0.5
+    },
     "bushveld/aloe_a": {
       "file": {
         "path": "assets/bushveld-winter-hd/img/bushveld_aloe_a.88aa1e5bb4aa.png",

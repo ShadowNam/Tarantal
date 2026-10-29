@@ -7,6 +7,7 @@ import { hdBaseOf, POTJIE_LID } from '../../src/game/assets/hdProps';
 import { CAN_SHEET } from '../../src/game/view/cans/canSheet';
 import { NUT_SHEET } from '../../src/game/view/palms/makalaniSheet';
 import { RESIDENT_SHEET } from '../../src/game/view/tree/residentSheet';
+import { BABOON_SHEET } from '../../src/game/view/baboon/baboonKeys';
 import { TELL_SHEET } from '../../src/game/view/tell/tellKeys';
 import { COLONY_SHEET } from '../../src/game/view/tree/colonySheet';
 import { VELD_SHEET } from '../../src/game/view/namib/veldSheet';
@@ -99,6 +100,8 @@ function usages(
   if (key === BALLOON_SHEET) needles.push(/\bBALLOON_SHEET\b/);
   // v1.7e (D-061): the tell animals' sheet by its constant (TellView).
   if (key === TELL_SHEET) needles.push(/\bTELL_SHEET\b/);
+  // v1.8b (D-062): the baboon sheet by its constant (BaboonView).
+  if (key === BABOON_SHEET) needles.push(/\bBABOON_SHEET\b/);
   const palm = /^okavango\/makalani_(trunk|crown)_(near|mid)$/.exec(key);
   if (palm !== null) needles.push(palm[1] === 'trunk' ? /\bpalmTrunkKey\(/ : /\bpalmCrownKey\(/);
   const spookSound = Object.entries(SPOOK_SOUNDS).find(([, k]) => k === key)?.[0];

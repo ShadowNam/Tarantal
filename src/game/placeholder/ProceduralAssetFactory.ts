@@ -29,6 +29,7 @@ import { ellipse, ground, inked, INK, prng, tuft } from './draw';
 import { sheetHerds } from '../view/faunaHerds';
 import { FRUIT_SHEET, fruitSheetKey } from '../view/fruit/fruitTypes';
 import { TELL_SHEET, TELL_SHEET_H, TELL_SHEET_W } from '../view/tell/tellKeys';
+import { BABOON_SHEET, BABOON_SHEET_H, BABOON_SHEET_W } from '../view/baboon/baboonKeys';
 import { hasColonies } from '../../sim/meerkats/colony';
 import { MEERKAT_SOUNDS } from '../assets/desertAssets';
 import { HD_PARTS, hdKeyOf, POTJIE_LID, POTJIE_LID_SIZE } from '../assets/hdProps';
@@ -1562,6 +1563,20 @@ export function createPlaceholderManifest(
     originY: 0,
     draw() {
       // Nothing: without delivered art the fruit stay baked out and FruitView shows none.
+    },
+  });
+  // v1.8b (D-062): the baboon sheet (late group; drawn art only: without delivered art the
+  // troops are not drawn while the hunt plays the same).
+  m.addTexture({
+    key: BABOON_SHEET,
+    width: BABOON_SHEET_W,
+    height: BABOON_SHEET_H,
+    originX: 0,
+    originY: 0,
+    // BaboonView cuts its frames by the file under the key (the 2× art) and sets the scale.
+    viewScaled: true,
+    draw() {
+      // Nothing: drawn art only.
     },
   });
   // v1.7e (D-061): the secrets' tell animals' sheet (late group; drawn art only: the placeholder
