@@ -124,3 +124,79 @@ test('large text + high contrast on a phone: Settings, tally and Padstal', async
   await page.waitForFunction(() => window.__TM__?.scene === 'tally', null, { timeout: 90_000 });
   await shot('tally');
 });
+
+// D-060 (user feedback, 29 Oct): the Farm Stall had no way out but [Next hunt]. Every screen of a
+// run in play now has [Save & leave]: the title shows the run's season, hunt and caps over
+// "Continue run", which resumes on the same screen with the same caps and offers. Escape (the
+// Android back button's key) does the same, and closes the stall's help card first.
+test('Save & leave: tally and Farm Stall to the title and back, caps and offers kept', async ({
+  page,
+}, info) => {
+  test.skip(!isLandscape(info), 'runs are played in landscape');
+  test.setTimeout(300_000);
+  const touch = isTouchProject(info);
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  const forget = (id: string): Promise<void> =>
+    page.evaluate((k) => {
+      const rects = window.__TM__?.rects;
+      if (rects !== undefined) Reflect.deleteProperty(rects, k);
+    }, id);
+  const fresh = (id: string): Promise<unknown> =>
+    page.waitForFunction((k) => window.__TM__?.rects[k] !== undefined, id, { timeout: 60_000 });
+  const atTitle = (): Promise<unknown> =>
+    page.waitForFunction(
+      () =>
+        window.__TM__?.scene === 'start' &&
+        typeof window.__TM__.runStatus === 'string' &&
+        window.__TM__.rects['seasonRun'] !== undefined,
+      null,
+      { timeout: 60_000 },
+    );
+  const view = (v: string): Promise<unknown> =>
+    page.waitForFunction((w) => window.__TM__?.run?.view === w, v, { timeout: 90_000 });
+
+  await boot(page, 'seed=4&huntSeconds=1&quotaMul=0');
+  await page.waitForFunction(() => window.__TM__?.rects['seasonRun'] !== undefined);
+  await tapRect(page, touch, 'seasonRun');
+  await view('intro');
+  // The tally's own button (not the hunt card's, left in the hook).
+  await forget('run.menu');
+  await tapRect(page, touch, 'run.go');
+  await view('tally');
+  await fresh('run.menu');
+  const caps = (await hook(page)).run?.doppies ?? -1;
+  expect(caps).toBeGreaterThan(0);
+  await page.screenshot({ path: `${SCREENSHOTS}/run-leave-tally-${info.project.name}.png` });
+  await tapRect(page, touch, 'run.menu');
+  await atTitle();
+  // Between hunts the line names the next hunt (hunt 1 was just played).
+  expect((await hook(page)).runStatus).toContain('hunt 2 of 3');
+  expect((await hook(page)).runStatus).toContain(`${caps} caps`);
+
+  // Continue run: back on the tally, then into the stall; Escape first closes the help card.
+  await tapRect(page, touch, 'seasonRun');
+  await view('tally');
+  await tapRect(page, touch, 'run.padstal');
+  await view('padstal');
+  await forget('run.next');
+  await page.keyboard.press('Escape');
+  await fresh('run.next');
+  expect((await hook(page)).scene).toBe('run');
+  const before = (await hook(page)).run;
+  await page.screenshot({ path: `${SCREENSHOTS}/run-leave-padstal-${info.project.name}.png` });
+  await tapRect(page, touch, 'run.menu');
+  await atTitle();
+  expect((await hook(page)).runStatus).toContain(`${before?.doppies ?? -1} caps`);
+  await page.screenshot({ path: `${SCREENSHOTS}/run-leave-title-${info.project.name}.png` });
+
+  // The same stall again: same caps, same offers. Escape leaves it too (the Android back button).
+  await tapRect(page, touch, 'seasonRun');
+  await view('padstal');
+  const again = (await hook(page)).run;
+  expect(again?.doppies).toBe(before?.doppies);
+  expect(again?.offers).toEqual(before?.offers);
+  await page.keyboard.press('Escape');
+  await atTitle();
+  expect(errors).toEqual([]);
+});
