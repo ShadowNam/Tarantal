@@ -388,6 +388,7 @@ const hook: TestHook = {
   weaverBursts: 0,
   meerkats: [],
   meerkatLog: [],
+  namibLog: [],
   cans: null,
   farCans: null,
   nuts: null,

@@ -591,6 +591,16 @@
       "height": 2088,
       "scale": 0.5
     },
+    "namibie/ostriches": {
+      "file": {
+        "path": "assets/namibie-hd/img/namibie_ostriches.8aedb44950c1.png",
+        "bytes": 179374,
+        "hash": "8aedb44950c1"
+      },
+      "width": 2048,
+      "height": 3200,
+      "scale": 0.5
+    },
     "namibie/pan_grass_a": {
       "file": {
         "path": "assets/namibie-hd/img/namibie_pan_grass_a.401cd1315cb8.png",

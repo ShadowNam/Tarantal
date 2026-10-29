@@ -1807,7 +1807,7 @@ export class HuntScene extends Phaser.Scene {
     // Interpolated like the birds and the camera (a held frame keeps alpha 0: it holds).
     this.fruit?.update(state, width, state.tick - 1 + alpha);
     this.treeLife?.update(state, alpha);
-    this.namibLife?.update(width);
+    this.namibLife?.update(state, runner.prev, alpha, width);
     for (const cue of this.meerkats.cues) {
       const pan = (cue.screenX - width / 2) / (width / 2);
       // Only colonies on screen (or just off it) are heard.
@@ -2123,7 +2123,9 @@ export class HuntScene extends Phaser.Scene {
     void import('../view/namib/NamibLifeView')
       .then((m) => {
         if (gen !== this.namibLifeGen || !m.wantsNamibLife(mapBiome)) return;
-        this.namibLife = new m.NamibLifeView(this, mapBiome, this.parallax);
+        this.namibLife = new m.NamibLifeView(this, mapBiome, this.parallax, {
+          reducedMotion: this.ctx.reducedMotion,
+        });
       })
       .catch(() => {
         // Offline without the chunk cached: the sand shows without its ground cover.
@@ -2243,6 +2245,17 @@ export class HuntScene extends Phaser.Scene {
       }
     }
     this.fruit?.handle(events, state, (e) => this.pelletStop(e, state), width);
+    // v1.7d (D-059): the ostriches' puffs and sounds (the lazy veld-life chunk), and the e2e log.
+    this.namibLife?.handle(events, state, this.ctx.audio, width);
+    if (this.ctx.hook) {
+      const log = this.ctx.hook.namibLog;
+      for (const e of events) {
+        if (log.length >= 200) break;
+        if (e.type === 'ostrichHit') log.push(`hit:${e.nest ? 'nest:' : ''}${e.points}`);
+        else if (e.type === 'ostrichesRan') log.push(`ran:${e.cause}`);
+        else if (e.type === 'ostrichCall') log.push(`call:${e.call}`);
+      }
+    }
     // v1.4 B: a shot family nest lets its weavers out; they chatter and scold (AudioDirector).
     // 1.9.4 (review): the scolding and the count come straight from the event, so they never wait
     // for the lazy tree-life chunk; nest shots before it is in are held for its burst.

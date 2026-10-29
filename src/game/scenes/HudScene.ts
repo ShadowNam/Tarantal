@@ -783,6 +783,15 @@ export class HudScene extends Phaser.Scene {
       } else if (e.type === 'meerkatHit') {
         // v1.7: a shot meerkat — points off (none inside the colony's cooldown).
         if (e.points < 0) this.pushPop(formatAward(e.points), '#FF6B5A');
+      } else if (e.type === 'ostrichHit') {
+        // v1.7d (D-059): a shot ostrich or nest — points off (none inside the cooldown) and its
+        // hiss: "Leave my eggs alone!"
+        if (e.points < 0) {
+          this.pushPop(formatAward(e.points), '#FF6B5A');
+          const bark = this.ctx.content.birds.ostriches.hit.barkKey;
+          banner.push(tOr(bark, bark));
+          this.ctx.audio.bark(bark);
+        }
       } else if (e.type === 'meerkatScold') {
         // It pops out of its hole and scolds: "We're not guineafowl!"
         if (e.points < 0) {

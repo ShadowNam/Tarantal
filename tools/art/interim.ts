@@ -2,7 +2,7 @@
 // art-source/ exactly like a human delivery (docs/06), marked `"origin": "interim"` in each rig.json.
 // Then run `npm run assets:pack`. A folder whose rig.json is not marked interim is a human delivery
 // and is never touched.
-//   --only birds|guns|scenery|sprites|flyers|range|meerkats|feesdae|blikkies|makalani|treelife|colony
+//   --only birds|guns|scenery|sprites|flyers|range|meerkats|feesdae|blikkies|makalani|treelife|colony|namiblife
 //                         one part (none: sheets only). scenery = parallax layers + props (D-031),
 //                         sprites = shared FX/UI/crate sprites, flyers = non-target birds,
 //                         range = the Skietbaan's steel plate (24 Oct update),
@@ -62,6 +62,8 @@ import { COLONY_SHEET } from '../../src/game/view/tree/colonySheet';
 import { collectVeld, renderVeldSheet } from './namibVeld';
 import { namibieVeldLooks } from './biomes/namibie';
 import { VELD_SHEET, type VeldSpot } from '../../src/game/view/namib/veldSheet';
+import { OSTRICH_SHEET } from '../../src/game/view/namib/ostrichSheet';
+import { renderOstrichSheet } from './ostrich';
 
 /** 1.9.4 (D-057): palette size of the baobab residents' sheet. */
 const RESIDENT_COLOURS = 96;
@@ -69,6 +71,8 @@ const RESIDENT_COLOURS = 96;
 const COLONY_COLOURS = 96;
 /** v1.7d (D-059): palette size of the Namib veld sheet. */
 const VELD_COLOURS = 128;
+/** v1.7d (D-059): palette size of the ostriches' sheet. */
+const OSTRICH_COLOURS = 64;
 import {
   HALLOWEEN_SHEET,
   SHEET_MASTER as FEESDAE_MASTER,
@@ -624,6 +628,20 @@ if (wants('blikkies')) {
       await json({ origin: 'interim', encode: 'png8', master: CAN_MASTER, originX: 0, originY: 0 }),
     );
     console.log(`sprites/${CAN_SHEET}`);
+  }
+}
+if (wants('namiblife') && !hdOnly) {
+  // v1.7d (D-059): the ostriches' sheet at 1× and its 2× twin (Namibië's group).
+  const png = join(src, 'sprites', `${OSTRICH_SHEET}.png`);
+  if (!oursFile(png)) console.warn(`skip sprites/${OSTRICH_SHEET}: a human delivery is there`);
+  else {
+    put(png, encodePng8(renderOstrichSheet(1), OSTRICH_COLOURS));
+    put(
+      png.replace(/\.png$/, '.json'),
+      await json({ origin: 'interim', encode: 'png8', originX: 0, originY: 0 }),
+    );
+    putHd(`sprites/${OSTRICH_SHEET}.png`, renderOstrichSheet(2), OSTRICH_COLOURS);
+    console.log(`sprites/${OSTRICH_SHEET}`);
   }
 }
 if (wants('colony') && !hdOnly) {
