@@ -1,9 +1,9 @@
 {
-  "updated": "2026-10-29T11:50:00Z",
-  "summary": "Live on the test build: Namibië veld life (1.9.7, merged 13:01 Namibia time on 29 Oct, your request of 25 Oct): detailed golden grass and sand ripples, an ostrich pair with their nest (never harmed; −10 if shot), oryx walking in the heat mirage, and hot-air balloons below the score box (a balloon hit needs 3 pellets of one shot). Before the merge the phone speed test caught the new grass making Namibië about 40 % heavier; it is now drawn once per map and the scene is as light as before. Earlier today: Season Run \"Save & leave\" (1.9.6). Tank has started v1.7e, the realistic Bushveld, with option A for the secrets (a small tell animal at each secret instead of the star; B or C still possible), then baboons, The Harvest, the Christmas and New Year Dailies and v1.9–v1.13; Oupa's new voices last.",
+  "updated": "2026-10-29T21:15:00Z",
+  "summary": "Live on the test build: realistic Bushveld and tell animals (1.9.8, merged 23:08 Namibia time on 29 Oct, your request of 25 Oct): the Bushveld rocks, koppies and middle distance redrawn as real weathered granite without black outlines, and the secret star replaced by a small animal that always lives at each secret (13 species, e.g. a rock agama on the dassie koppie, a lilac-breasted roller on the Kalahari wind pump, a pied crow in the quiver tree). The review caught tell animals that did not show in Standard graphics, blinked or floated, and art that could time out on a slow connection; all fixed before the merge. Tank has started v1.8b, the baboon troops; then The Harvest, the Christmas and New Year Dailies and v1.9–v1.13; Oupa's new voices last. An OpenRouter skill (text to speech, speech to text) is being built for the voices.",
   "current": {
-    "version": "1.9.7",
-    "commit": "19bfd95"
+    "version": "1.9.8",
+    "commit": "5508509"
   },
   "links": [
     {
@@ -34,17 +34,17 @@
   "numbers": [
     {
       "label": "Version on the test build",
-      "value": "1.9.7",
-      "note": "commit 19bfd95, merged 13:01 on 29 Oct"
+      "value": "1.9.8",
+      "note": "commit 5508509, merged 23:08 on 29 Oct"
     },
     {
       "label": "Pull requests merged",
-      "value": "98",
-      "note": "#1 to #101"
+      "value": "99",
+      "note": "#1 to #102"
     },
     {
       "label": "Unit tests",
-      "value": "1,539",
+      "value": "1,562",
       "note": "plus the browser test suites on 3 devices"
     },
     {
@@ -510,14 +510,42 @@
       ]
     },
     "v1.7e": {
-      "owner": "Tank",
-      "summary": "First, mock-ups of three ways to replace the star glint on secrets: (A) a small unique animal that always lives at each secret (e.g. a rock agama nodding on the dassie koppie, a lilac-breasted roller on the windmill) — Claude's pick and your idea; (B) natural cues only; (C) no cue, Oupa hints in words. You choose. Meanwhile: realistic Bushveld granite boulders and koppies, real ridges in the haze, textured winter veld, no black lines between the distances.",
-      "requestedBy": "You, 25 Oct ~20:20: \"the rocks and the middle distances look childish\" and \"that star thing is not working for me\"."
+      "owner": "Tank built it (task 0dded795, 8 turns: the rocks, the 13 tell animals, and 4 rounds of fixes after Claude's review); Claude ran the screenshots on desktop, Pixel 7 and iPhone 14, found the invisible-in-Standard and slow-connection bugs, and merged it",
+      "summary": "The Bushveld now looks real: weathered granite boulders and koppies with cracks and lichen, bushy hills in the haze and a textured winter veld, with no black lines. The star on the secrets is gone: each secret has its own small animal that does its little action every few seconds (13 species across the five areas; shooting one costs nothing, it flies off and comes back). Full CI green, including the phone speed tests.",
+      "requestedBy": "You, 25 Oct ~20:20: \"the rocks and the middle distances look childish\" and \"that star thing is not working for me\".",
+      "status": "done",
+      "checklist": [
+        {
+          "text": "Bushveld boulders and koppies redrawn as real granite (cracks, lichen, grass in the cracks, no black outlines)",
+          "done": true
+        },
+        {
+          "text": "Far koppies and hills with bushy silhouettes fading into haze; a textured middle distance (grass, red earth, scrub, termite mounds)",
+          "done": true
+        },
+        {
+          "text": "Option A: a small tell animal at each secret instead of the star (rock agama, roller, chameleon, fish eagle, pied crow…); shooting it costs nothing",
+          "done": true
+        },
+        {
+          "text": "The star glint retired; Oupa's Map charm, the first-hunt hint and the Notaboek updated",
+          "done": true
+        },
+        {
+          "text": "Sizes and phone speed within budget; screenshots on desktop and both phones; merge as the next patch",
+          "done": true
+        },
+        {
+          "text": "Review fixes: tells drawn in Standard when their picture arrives mid-hunt, no blinking, the agama on its rock, bigger and clearer tells, slow-connection art gets 120 s",
+          "done": true
+        }
+      ]
     },
     "v1.8b": {
-      "owner": "Tank",
+      "owner": "Tank builds it (task cef4a1d4, started 23:09 Namibia); Claude runs the screenshots and checks",
       "summary": "Chacma baboon troops on the ridges of most maps. Now and then raiders come down to cause trouble (steal Oupa's hat, raid fruit, throw fruit at the flock). A raider takes 2 hits and goes down like a guineafowl (your choice). Mothers with babies stay out of range and are never targets.",
-      "requestedBy": "You, 25 Oct ~20:20: \"the African baboon should also be present … pop up and do something naughty that might get them to eat a bullet or two\"."
+      "requestedBy": "You, 25 Oct ~20:20: \"the African baboon should also be present … pop up and do something naughty that might get them to eat a bullet or two\".",
+      "status": "running"
     },
     "v1.8c": {
       "owner": "Tank",
@@ -994,33 +1022,6 @@
           "done": true
         }
       ]
-    },
-    "v1-7e-realistic-bushveld-rocks-and-middl": {
-      "owner": "Tank builds it (task 0dded795, started 13:05); Claude runs the screenshots and checks",
-      "status": "running",
-      "requestedBy": "You, 25 Oct: \"In the Bushveld, the rocks and the middle distances also look a little bit childish, cartoonish … I also don't like this little star effect.\"",
-      "checklist": [
-        {
-          "text": "Bushveld boulders and koppies redrawn as real granite (cracks, lichen, grass in the cracks, no black outlines)",
-          "done": false
-        },
-        {
-          "text": "Far koppies and hills with bushy silhouettes fading into haze; a textured middle distance (grass, red earth, scrub, termite mounds)",
-          "done": false
-        },
-        {
-          "text": "Option A: a small tell animal at each secret instead of the star (rock agama, roller, chameleon, fish eagle, pied crow…); shooting it costs nothing",
-          "done": false
-        },
-        {
-          "text": "The star glint retired; Oupa's Map charm, the first-hunt hint and the Notaboek updated",
-          "done": false
-        },
-        {
-          "text": "Sizes and phone speed within budget; screenshots on desktop and both phones; merge as the next patch",
-          "done": false
-        }
-      ]
     }
   },
   "suggestions": [
@@ -1260,6 +1261,18 @@
       "text": "Bottle caps: keep them in the run (not a permanent wallet)",
       "outcome": "Confirmed; that is how 1.9.6 works (D-060), nothing to change",
       "job": "season-run-save-leave-your-request-after"
+    },
+    {
+      "date": "29 Oct, 22:25",
+      "text": "How to give the OpenRouter key, where it is stored, and what uses it",
+      "outcome": "Answered: a dedicated key with a credit limit, stored as a GitHub repository secret (or this environment's settings), used by a voices script and workflow; never pasted in chat",
+      "job": "v1.8b"
+    },
+    {
+      "date": "29 Oct, 22:35",
+      "text": "Build a skill so Claude can use OpenRouter for text to speech and speech to text",
+      "outcome": "In progress: .claude/skills/openrouter (one script, no dependencies; tested offline; live test after openrouter.ai is allowed in the environment)",
+      "job": "v1.8b"
     }
   ],
   "extraDecisions": [
@@ -2083,6 +2096,21 @@
       "at": "2026-10-27T20:48:00Z",
       "kind": "request",
       "text": "From your playtest: a red dot sight power-up, the crate picture bug and the late \"Ten seconds!\" call are the next job; herds another 5% smaller and ostriches smaller still."
+    },
+    {
+      "at": "2026-10-29T21:08:00Z",
+      "kind": "merge",
+      "text": "v1.7e merged as 1.9.8: realistic Bushveld rocks and a tell animal at every secret instead of the star."
+    },
+    {
+      "at": "2026-10-29T21:09:00Z",
+      "kind": "note",
+      "text": "v1.8b, the baboon troops, started on Tank."
+    },
+    {
+      "at": "2026-10-29T20:40:00Z",
+      "kind": "request",
+      "text": "You asked for an always-available OpenRouter skill (text to speech, speech to text and more); research done, the skill is being built and reviewed."
     }
   ]
 }
