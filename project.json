@@ -1,11 +1,11 @@
 {
  "schema": 1,
- "updated": "2026-10-29T06:30:00Z",
+ "updated": "2026-10-29T09:25:00Z",
  "by": "Claude",
- "summary": "Live on the test build: Season Run \"Save & leave\" (1.9.6, merged 08:23 Namibia time on 29 Oct, your request after playing the Android app): the Farm Stall, the result after each hunt and the hunt card all have Save & leave; the Android back button does the same; the title shows e.g. \"Autumn · hunt 2 of 3 · 12 caps\" over Continue run. The Android app link https://shadownam.github.io/Tarantal/android/ gets 1.9.6 with the next deploy. Overnight two test fixes went in too (the Halloween owl test and the Android back-button test). Tank's Namibië veld life (1.9.7: grass and sand, ostriches and their nest, oryx in the mirage, hot-air balloons) is in its final screenshot round. Then the realistic Bushveld with a new secret marker (your A/B/C pick is needed; A by default after 10:00), baboons, The Harvest, the Christmas and New Year Dailies and v1.9–v1.13; Oupa's new voices last.",
+ "summary": "Live on the test build: Season Run \"Save & leave\" (1.9.6, merged 08:23 Namibia time on 29 Oct, your request after playing the Android app): the Farm Stall, the result after each hunt and the hunt card all have Save & leave; the Android back button does the same; the title shows e.g. \"Autumn · hunt 2 of 3 · 12 caps\" over Continue run. Its test fix (#101) went in at 10:06. Tank's Namibië veld life (1.9.7: grass and sand, ostriches and their nest, oryx in the mirage, hot-air balloons below the score box) passed all three screenshot rounds and every test but one: the phone speed test found the new grass makes the Namibië scene about 40 % heavier on a mid-range phone, so Tank is making it cheaper to draw before the merge (about 14:00). Then the realistic Bushveld with a new secret marker (option A, a small tell animal at each secret, since no pick came by 10:00; B or C still possible), baboons, The Harvest, the Christmas and New Year Dailies and v1.9–v1.13; Oupa's new voices last.",
  "current": {
   "version": "1.9.6",
-  "commit": "fc0412c"
+  "commit": "60845b2"
  },
  "links": [
   {
@@ -37,12 +37,12 @@
   {
    "label": "Version on the test build",
    "value": "1.9.6",
-   "note": "commit fc0412c, merged 29 Oct, 08:23 Namibia time (the test build deploys a few minutes after)"
+   "note": "commit 60845b2, merged 29 Oct, 10:06 Namibia time (the test build deploys a few minutes after)"
   },
   {
    "label": "Pull requests merged",
-   "value": "96",
-   "note": "#1 to #100"
+   "value": "97",
+   "note": "#1 to #101"
   },
   {
    "label": "Unit tests",
@@ -81,7 +81,7 @@
    "title": "v1.7e: what replaces the star on secrets?",
    "asked": "2026-10-28T06:49:00Z",
    "status": "open",
-   "detail": "You asked for something better than the little star that marks the shootable secrets (25 Oct). Three mock-ups, drawn over real 1.9.2 screenshots (not in the game yet). v1.7e starts on 29 Oct around 08:30–10:00 (the Bushveld rocks come first, so the pick can arrive a little later); your pick is needed before then (asked again on 28 Oct at 20:59; without an answer, A gets built).",
+   "detail": "You asked for something better than the little star that marks the shootable secrets (25 Oct). Three mock-ups, drawn over real 1.9.2 screenshots (not in the game yet). No pick came by 10:00 on 29 Oct, so A (recommended) gets built when v1.7e starts after Namibië veld life (about 14:00). You can still switch to B or C: Tank builds the Bushveld rocks first.",
    "options": [
     "A (recommended). A tell animal lives at each secret and moves now and then: a rock agama doing push-ups on the dassie koppie, a lilac-breasted roller on the windpomp; shooting it costs nothing",
     "B. Natural cues only: grass rustles and dust puffs at the koppie, a sun flash only on real metal, a few birds circling above",
@@ -2009,13 +2009,50 @@
    "requestedBy": "You, 27 Oct: \"Yes, add the Android test app\" (friends first, then the Apple App Store and Google Play)."
   },
   {
+   "id": "season-run-save-leave-your-request-after",
+   "title": "Season Run: Save & leave (your request after playing the Android app, 29 Oct): the hunt card, the run tally and the Farm Stall can save the run and go back to the title, keeping your caps, charms and items; the title shows the run's status over Continue run; version 1.9.6",
+   "phase": "Version 1.x",
+   "status": "done",
+   "start": "2026-10-29T05:54:11Z",
+   "end": "2026-10-29T08:06:07Z",
+   "estimate": false,
+   "prs": [
+    100,
+    101
+   ],
+   "summary": "The Farm Stall had no way out but Next hunt. Now the hunt card, the result after each hunt and the Farm Stall have Save & leave: back to the title with the run kept (caps, charms, items, the stall's offers); Continue run picks it up on the same screen, and the title shows where the run stands. The Android back button does the same.",
+   "owner": "Claude built it (PR #100) while Tank worked on Namibië",
+   "checklist": [
+    {
+     "text": "Save & leave on the hunt card, the result after each hunt and the Farm Stall",
+     "done": true
+    },
+    {
+     "text": "Android back button and Escape do the same; the stall's help card explains it (en/af/de/nl)",
+     "done": true
+    },
+    {
+     "text": "Title: \"Autumn · hunt 2 of 3 · 12 caps\" over Continue run",
+     "done": true
+    },
+    {
+     "text": "Tests on desktop, Pixel 7 and iPhone; design doc and decision D-060; merged as 1.9.6 (#100)",
+     "done": true
+    }
+   ],
+   "requestedBy": "You, 29 Oct 07:35: \"There's no way out of the menu … these bottle caps need to be stored so that you can reuse them later.\""
+  },
+  {
    "id": "v1.7d",
    "title": "v1.7d: Namibië veld life: detailed grass and sand, ostriches and their nest, oryx in the mirage, hot-air balloons (your request, 25 Oct)",
    "phase": "Version 1.x",
    "status": "running",
    "start": "2026-10-29T00:26:00Z",
-   "end": "2026-10-29T06:26:00Z",
+   "end": "2026-10-29T12:00:00Z",
    "estimate": true,
+   "prs": [
+    97
+   ],
    "version": "1.7.3",
    "summary": "Namibië first: much more detailed bushman grass and sand (no black lines between the distances), then a pair of ostriches at their nest (they run from nearby shots), a herd of oryx far away shimmering in the mirage, and hot-air balloons drifting by (not targets).",
    "owner": "Tank",
@@ -2026,8 +2063,8 @@
    "title": "v1.7e: realistic Bushveld rocks and middle distance; a new secret cue instead of the star (mock-ups for you first) (your request, 25 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-29T06:26:00Z",
-   "end": "2026-10-29T13:26:00Z",
+   "start": "2026-10-29T12:00:00Z",
+   "end": "2026-10-29T19:00:00Z",
    "estimate": true,
    "version": "1.7.4",
    "summary": "First, mock-ups of three ways to replace the star glint on secrets: (A) a small unique animal that always lives at each secret (e.g. a rock agama nodding on the dassie koppie, a lilac-breasted roller on the windmill) — Claude's pick and your idea; (B) natural cues only; (C) no cue, Oupa hints in words. You choose. Meanwhile: realistic Bushveld granite boulders and koppies, real ridges in the haze, textured winter veld, no black lines between the distances.",
@@ -2039,8 +2076,8 @@
    "title": "v1.8b: Bobbejane: baboon troops on the ridges; raiders come down to cause trouble (your request, 25 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-29T13:26:00Z",
-   "end": "2026-10-29T19:26:00Z",
+   "start": "2026-10-29T19:00:00Z",
+   "end": "2026-10-30T01:00:00Z",
    "estimate": true,
    "version": "1.8.1",
    "summary": "Chacma baboon troops on the ridges of most maps. Now and then raiders come down to cause trouble (steal Oupa's hat, raid fruit, throw fruit at the flock). A raider takes 2 hits and goes down like a guineafowl (your choice). Mothers with babies stay out of range and are never targets.",
@@ -2052,8 +2089,8 @@
    "title": "v1.8c: Die Oes (The Harvest): a new 30-second mode; hold the animals off the crops while the fence is fixed (your idea, 25 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-29T19:26:00Z",
-   "end": "2026-10-30T04:26:00Z",
+   "start": "2026-10-30T01:00:00Z",
+   "end": "2026-10-30T10:00:00Z",
    "estimate": true,
    "version": "1.8.2",
    "summary": "A new mode on the title screen. The fence breaks, guineafowl, warthogs and baboons pour into the harvest field, and you have 30 seconds to hold them off while the farm workers fix the fence. A crop meter shows what you saved; the workers are never targets. Tank writes a short plan first.",
@@ -2065,8 +2102,8 @@
    "title": "Christmas Daily (25 Dec): Christmas in the sun, tinsel on the camelthorn, Oupa in a Santa hat and shorts (your pick, 27 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-30T04:26:00Z",
-   "end": "2026-10-30T10:26:00Z",
+   "start": "2026-10-30T10:00:00Z",
+   "end": "2026-10-30T16:00:00Z",
    "estimate": true
   },
   {
@@ -2074,8 +2111,8 @@
    "title": "New Year Daily: a countdown hunt with party hats, small fireworks and double points in the last 10 s (your pick, 27 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-30T10:26:00Z",
-   "end": "2026-10-30T15:26:00Z",
+   "start": "2026-10-30T16:00:00Z",
+   "end": "2026-10-30T21:00:00Z",
    "estimate": true
   },
   {
@@ -2083,8 +2120,8 @@
    "title": "v1.9: the veld soundscape and local music (doves, hadedas, cicadas, fish eagle; marimba, mbira, drums)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-30T15:26:00Z",
-   "end": "2026-10-30T20:26:00Z",
+   "start": "2026-10-30T21:00:00Z",
+   "end": "2026-10-31T02:00:00Z",
    "estimate": true,
    "version": "1.9.0"
   },
@@ -2093,8 +2130,8 @@
    "title": "v1.10: Reënbui — the first rain and the flying-ant feast",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-30T20:26:00Z",
-   "end": "2026-10-31T01:26:00Z",
+   "start": "2026-10-31T02:00:00Z",
+   "end": "2026-10-31T07:00:00Z",
    "estimate": true,
    "version": "1.10.0"
   },
@@ -2103,8 +2140,8 @@
    "title": "v1.11: Die Braai — the day ends at Oupa's fire under the Milky Way",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-31T01:26:00Z",
-   "end": "2026-10-31T06:26:00Z",
+   "start": "2026-10-31T07:00:00Z",
+   "end": "2026-10-31T12:00:00Z",
    "estimate": true,
    "version": "1.11.0"
   },
@@ -2113,8 +2150,8 @@
    "title": "v1.12: Brakkie, the farm dog",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-31T06:26:00Z",
-   "end": "2026-10-31T12:26:00Z",
+   "start": "2026-10-31T12:00:00Z",
+   "end": "2026-10-31T18:00:00Z",
    "estimate": true,
    "version": "1.12.0"
   },
@@ -2123,8 +2160,8 @@
    "title": "v1.13: veld cameos — warthogs, baboons, springbok, elephants, ostrich, dung beetle",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-31T12:26:00Z",
-   "end": "2026-10-31T18:26:00Z",
+   "start": "2026-10-31T18:00:00Z",
+   "end": "2026-11-01T00:00:00Z",
    "estimate": true,
    "version": "1.13.0"
   },
@@ -2133,8 +2170,8 @@
    "title": "Oupa's new voices, once all the text is final: English, Afrikaans and German generated through one voice API key (OpenRouter), each clip checked automatically by speech-to-text and redone if wrong; a short sample test first (your plan, 27 Oct)",
    "phase": "Version 1.x",
    "status": "next",
-   "start": "2026-10-31T18:26:00Z",
-   "end": "2026-10-31T23:26:00Z",
+   "start": "2026-11-01T00:00:00Z",
+   "end": "2026-11-01T05:00:00Z",
    "estimate": true
   }
  ],
