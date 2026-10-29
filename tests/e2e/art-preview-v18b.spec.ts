@@ -53,8 +53,9 @@ const AREAS: readonly Area[] = [
 ];
 
 test.use({ serviceWorkers: 'block' });
-// In order, in one worker: the HD test pairs its crops with the Karoo Standard test's.
-test.describe.configure({ mode: 'serial' });
+// In order, in one worker (a failure doesn't skip the rest): the HD test pairs its crops with the
+// Karoo Standard test's.
+test.describe.configure({ mode: 'default' });
 test.beforeEach(async ({ page }, info) => {
   test.skip(process.env['ART_PREVIEW'] !== '1', 'on demand: ART_PREVIEW=1');
   test.skip(!PROFILES.includes(device(info.project.name)), 'previews: desktop, Pixel 7, iPhone 14');
