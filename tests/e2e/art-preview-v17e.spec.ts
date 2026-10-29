@@ -10,8 +10,8 @@
 //   <shot>-before-after: the pair, once both variants are there;
 //   rocks-std-hd: the dassie koppie and the cracked boulder, Standard | HD (the same pan).
 //   tell-<species>-wide / -rest / -act / -seq / -std-hd: each secret's tell animal (cue A),
-//     one test per area: the view panned to it, a 3× close-up resting and doing its action, three
-//     stills 1 s apart, and the close-up Standard | HD; tell-glow-bushveld: Saturday's dusk map
+//     one test per area (one Standard boot, one HD boot): the view panned to it, a 3× close-up
+//     resting (opaque) and doing its action, three stills 1 s apart, the close-up Standard | HD; tell-glow-bushveld: Saturday's dusk map
 //     lights the tells (Oupa se Kaart's warm outline).
 // "Before": run this spec on a main checkout with V17E_VARIANT=before (only the first test runs;
 // it saves the -before files), then on this branch (it saves -after and the pairs). The file
@@ -297,6 +297,8 @@ interface LooseTell {
   readonly y: number;
   readonly visible: boolean;
   readonly glow: boolean;
+  /** Absent before review R6. */
+  readonly alpha?: number;
 }
 async function tellsOf(page: Page): Promise<readonly LooseTell[]> {
   return page.evaluate(
@@ -334,7 +336,8 @@ async function panToTell(page: Page, touch: boolean, species: string): Promise<v
   await park(page, touch);
 }
 
-/** Holds the sim on the first tick (within `ticks`) where the tell shows a frame matching `re`. */
+/** Holds the sim on the first tick (within `ticks`) where the tell shows a frame matching `re`,
+ *  fully opaque (review R7: never mid fade-in). */
 async function holdOnFrame(page: Page, species: string, re: string, ticks: number): Promise<void> {
   const ok = await page
     .waitForFunction(
@@ -344,7 +347,12 @@ async function holdOnFrame(page: Page, species: string, re: string, ticks: numbe
           __TM_HOLD_AT__?: (t: number) => void;
         };
         const t = tm.__TM__?.tells?.find((x) => x.species === sp);
-        if (t?.visible === true && t.frame !== null && new RegExp(pattern).test(t.frame)) {
+        if (
+          t?.visible === true &&
+          (t.alpha ?? 1) === 1 &&
+          t.frame !== null &&
+          new RegExp(pattern).test(t.frame)
+        ) {
           tm.__TM_HOLD_AT__?.((tm.__TM__?.tick ?? 0) + 1);
           return true;
         }
@@ -371,66 +379,78 @@ const TELL_AREAS: readonly (readonly [string, readonly string[]])[] = [
   ['okavango-spring', ['malachite_kingfisher', 'red_billed_oxpecker', 'african_jacana']],
 ];
 
+/** Boots an area and waits until the tell sheet is in (the late group). */
+async function tellsReady(
+  page: Page,
+  info: TestInfo,
+  gfx: 'standard' | 'hd',
+  biome: string,
+  want: string,
+): Promise<void> {
+  await huntIn(page, info, gfx, biome);
+  await page.waitForFunction(
+    (sp) =>
+      ((window as unknown as { __TM__?: { tells?: LooseTell[] | null } }).__TM__?.tells ?? []).some(
+        (t) => t.species === sp && t.frame !== null,
+      ),
+    want,
+    { timeout: 300_000 },
+  );
+}
+
+// Review R7: two boots per area — every Standard shot in one Standard hunt, every HD crop in one
+// HD hunt (a boot takes minutes on software GL).
 for (const [biome, species] of TELL_AREAS)
   test(`the tell animals: ${biome}`, async ({ page }, info) => {
     test.skip(VARIANT === 'before', 'this branch only');
-    // Two boots (Standard, HD) per tell: up to 15 minutes each on software GL.
-    test.setTimeout(species.length * 900_000);
+    test.setTimeout(1_200_000 + species.length * 600_000);
     const touch = isTouchProject(info);
+    const first = species[0] ?? '';
+    const stdCrops = new Map<string, Rgba>();
+    await tellsReady(page, info, 'standard', biome, first);
     for (const sp of species) {
-      const grabs: Grab[] = [];
-      for (const gfx of ['standard', 'hd'] as const) {
-        await huntIn(page, info, gfx, biome);
-        await page.waitForFunction(
-          (want) =>
-            (
-              (window as unknown as { __TM__?: { tells?: LooseTell[] | null } }).__TM__?.tells ?? []
-            ).some((t) => t.species === want && t.frame !== null),
-          sp,
-          { timeout: 300_000 },
-        );
-        await panToTell(page, touch, sp);
-        // Resting (held), then its action (held), then the sequence.
-        await holdOnFrame(page, sp, '_rest$', 600);
-        const rest = await grab(page);
-        const tr = (await tellsOf(page)).find((t) => t.species === sp);
-        if (tr === undefined) throw new Error(`${sp} is gone`);
-        if (gfx === 'hd') {
-          grabs.push(rest);
-          const std = grabs[0];
-          if (std !== undefined)
-            save(
-              `tell-${sp}-std-hd`,
-              info,
-              scaled(sideBySide(cut(std, tellBox(tr)), cut(rest, tellBox(tr))), 3),
-            );
-          continue;
-        }
-        grabs.push(rest);
-        save(`tell-${sp}-wide`, info, rest.img);
-        save(`tell-${sp}-rest`, info, scaled(cut(rest, tellBox(tr)), 3));
+      await panToTell(page, touch, sp);
+      // Resting (held, opaque), then its action (held), then three stills 1 s apart.
+      await holdOnFrame(page, sp, '_rest$', 900);
+      const rest = await grab(page);
+      const tr = (await tellsOf(page)).find((t) => t.species === sp);
+      if (tr === undefined) throw new Error(`${sp} is gone`);
+      save(`tell-${sp}-wide`, info, rest.img);
+      const restCrop = cut(rest, tellBox(tr));
+      stdCrops.set(sp, restCrop);
+      save(`tell-${sp}-rest`, info, scaled(restCrop, 3));
+      await release(page);
+      await holdOnFrame(page, sp, '_act_[ab]$', 900);
+      const act = await grab(page);
+      save(`tell-${sp}-act`, info, scaled(cut(act, tellBox(tr)), 3));
+      const seq: Rgba[] = [];
+      for (let k = 0; k < 3; k++) {
         await release(page);
-        await holdOnFrame(page, sp, '_act_[ab]$', 900);
-        const act = await grab(page);
-        save(`tell-${sp}-act`, info, scaled(cut(act, tellBox(tr)), 3));
-        // Three stills 1 s (60 ticks) apart, side by side.
-        const seq: Rgba[] = [];
-        for (let k = 0; k < 3; k++) {
-          await release(page);
-          const at = await page.evaluate(() => {
-            const t = (window.__TM__?.tick ?? 0) + 60;
-            (window as { __TM_HOLD_AT__?: (tick: number) => void }).__TM_HOLD_AT__?.(t);
-            return t;
-          });
-          await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) >= t, at, {
-            timeout: 600_000,
-          });
-          await page.waitForTimeout(1200);
-          seq.push(scaled(cut(await grab(page), tellBox(tr)), 2));
-        }
-        const [a, b, c] = seq as [Rgba, Rgba, Rgba];
-        save(`tell-${sp}-seq`, info, sideBySide(sideBySide(a, b), c));
+        const at = await page.evaluate(() => {
+          const t = (window.__TM__?.tick ?? 0) + 60;
+          (window as { __TM_HOLD_AT__?: (tick: number) => void }).__TM_HOLD_AT__?.(t);
+          return t;
+        });
+        await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) >= t, at, {
+          timeout: 600_000,
+        });
+        await page.waitForTimeout(1200);
+        seq.push(scaled(cut(await grab(page), tellBox(tr)), 2));
       }
+      const [a, b, c] = seq as [Rgba, Rgba, Rgba];
+      save(`tell-${sp}-seq`, info, sideBySide(sideBySide(a, b), c));
+      await release(page);
+    }
+    await tellsReady(page, info, 'hd', biome, first);
+    for (const sp of species) {
+      await panToTell(page, touch, sp);
+      await holdOnFrame(page, sp, '_rest$', 900);
+      const hd = await grab(page);
+      const tr = (await tellsOf(page)).find((t) => t.species === sp);
+      const std = stdCrops.get(sp);
+      if (tr === undefined || std === undefined) throw new Error(`${sp}: no HD or Standard crop`);
+      save(`tell-${sp}-std-hd`, info, scaled(sideBySide(std, cut(hd, tellBox(tr))), 3));
+      await release(page);
     }
   });
 
