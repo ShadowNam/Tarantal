@@ -431,7 +431,7 @@
   },
   "ostriches": [
     {
-      "$comment": "v1.7d (D-059): the ostrich pair and their nest on the pan edge (the layouts move them, and the calm early-light days bring a second pair).",
+      "$comment": "v1.7d (D-059): the ostrich pair and their nest on the pan edge (the layouts move them; one pair per map: a second pair stood in the mid flocks' band and drew about one accidental −10 per hunt, docs/balance/v1.7d-namibie-life.md).",
       "id": "nest_pair",
       "layer": "mid",
       "u": 0.6,
@@ -465,8 +465,7 @@
       ],
       "cameraStartU": 0.5,
       "ostriches": [
-        { "id": "nest_pair", "layer": "mid", "u": 0.58, "y": 830, "nest": true, "rangePx": 700 },
-        { "id": "roaming_pair", "layer": "mid", "u": 0.84, "y": 830, "nest": false, "rangePx": 700 }
+        { "id": "nest_pair", "layer": "mid", "u": 0.58, "y": 830, "nest": true, "rangePx": 700 }
       ],
       "pointsMul": 0.75,
       "planePointsMul": {
@@ -1040,8 +1039,7 @@
       ],
       "cameraStartU": 0.45,
       "ostriches": [
-        { "id": "nest_pair", "layer": "mid", "u": 0.56, "y": 830, "nest": true, "rangePx": 700 },
-        { "id": "roaming_pair", "layer": "mid", "u": 0.84, "y": 830, "nest": false, "rangePx": 700 }
+        { "id": "nest_pair", "layer": "mid", "u": 0.56, "y": 830, "nest": true, "rangePx": 700 }
       ],
       "pointsMul": 0.75,
       "planePointsMul": {

@@ -80,7 +80,7 @@ const trace = (s: Sim, ticks: number): string => {
 };
 
 describe('ostriches (v1.7d, D-059)', () => {
-  it('every Namibië map has a pair with its nest (calm early-light days a second pair); other biomes none', () => {
+  it('every Namibië map has a pair with its nest; other biomes none', () => {
     const c = quiet(NAM);
     for (const layout of ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']) {
       const s = sim(c, day(layout));
@@ -99,7 +99,6 @@ describe('ostriches (v1.7d, D-059)', () => {
       expect(first?.birds.find((b) => !b.male)?.pose).toBe('sit');
       expect(ofType(s.drainEvents(), 'ostrichesSpawned')).toHaveLength(fams.length);
     }
-    expect(sim(quiet(NAM), day('mon')).snapshot().ostriches).toHaveLength(2);
     expect(sim(quiet(), { id: 'classic' }).snapshot().ostriches).toEqual([]);
   });
 

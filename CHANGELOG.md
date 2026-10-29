@@ -24,8 +24,7 @@ detailed, enhanced."
 - **Ostriches and their nest** on the pan edge of every Namibië map: a black-and-white cock and a
   grey-brown hen, a scrape with 8–15 cream eggs. The hen sits by day while the cock stands guard;
   they walk, peck, look round and swap on the nest, and the cock fans his wings and booms. A shot
-  nearby (or the Langloop) sends them running; they come back after a few seconds. The calm
-  early-light days bring a second pair.
+  nearby (or the Langloop) sends them running; they come back after a few seconds.
 - **Don't shoot them:** an ostrich or the nest costs 10 points (2 s cooldown, like the meerkats);
   never hurt — a puff of feathers or sand, a hiss: "Leave my eggs alone!" / "Los my eiers uit!".
 - **Oryx in the mirage:** a gemsbok herd walks slowly across the far pan and back, with a faint
