@@ -221,6 +221,9 @@ test('a held frame holds the tells; a dusk map lights them', async ({ page }, in
 // the empty full-size placeholder stayed under the key and nothing showed while the hook said
 // "visible". The sheet's download is held until the hunt runs and the sim is held; the canvas at
 // the drongo's spot is compared before and after it lands (Standard graphics).
+// Review R12: the hold usually outlives the loader's 15 s timeout for a lazy file (as on a slow
+// connection). The loader then keeps the image's own load and the manifest takes the file when
+// it lands (finalLoader imageArrival), so this also checks that a timed-out lazy file still shows.
 test('the tells appear when the late sheet lands mid-hunt, drawn on the canvas', async ({
   page,
 }, info) => {
@@ -232,8 +235,10 @@ test('the tells appear when the late sheet lands mid-hunt, drawn on the canvas',
     release = r;
   });
   let held = false;
+  let heldAt = 0;
   await page.route(/\/late\/img\/tells_sheet\.[0-9a-f]+\.png$/, async (route) => {
     held = true;
+    heldAt = Date.now();
     await landed;
     await route.continue();
   });
@@ -263,6 +268,9 @@ test('the tells appear when the late sheet lands mid-hunt, drawn on the canvas',
   await page.mouse.move(0, 0);
   await page.waitForTimeout(800);
   const before = decodePng(await page.locator('#game canvas').screenshot());
+  const heldMs = Date.now() - heldAt;
+  // R12: past the loader's timeout the file must still land (no second request is needed).
+  console.log(`[tells] the sheet's request was held ${Math.round(heldMs / 1000)} s`);
   release();
   await page.waitForFunction(
     () =>
