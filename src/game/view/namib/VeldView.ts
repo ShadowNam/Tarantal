@@ -1,13 +1,13 @@
 // v1.7d (D-059, art bible §4.5c) The Namib ground cover: bushman grass, dollar bush and dead
 // branches from one small sheet (veldSheet.ts), at the art's placements (veld-namibie.json) over
 // the sand of the mid, near and foreground layers, in each layer's fruit container (above the
-// layer's art, below its props), nearest last. Static, so the mid and near cover (~1 500 tufts)
-// is BAKED once into DynamicTexture strips covering only the band the tufts sit in (pieces at
-// most PIECE_W wide, 1 texel per design px, Standard resolution in HD too): a handful of images a
-// frame instead of ~770 live Images (review: the per-object render cost was most of Namibië's
-// CPU at 4× throttle). The 15 foreground tufts stay images. If the sheet under the key changes
-// (a texture swap), the strips are re-baked in place (clear, stamps, one render: one frame never
-// shows both sets).
+// layer's art, below its props), nearest last. Static, so all of it (~1 500 tufts) is BAKED once
+// into DynamicTexture strips (review: the per-object render cost was most of Namibië's CPU at 4×
+// throttle): each layer is cut into PIECE_W-wide columns, and each column with tufts in
+// it becomes one piece trimmed to its own tufts' box (1 texel per design px, Standard resolution
+// in HD too; empty columns make none). A handful of images a frame instead of ~770. If the sheet
+// under the key changes (a texture swap), the strips are re-baked in place (clear, stamps, one
+// render: one frame never shows both sets).
 import type * as Phaser from 'phaser';
 import { LAYER_BLEED_PX } from '../../../sim/world';
 import type { LayerNode, ParallaxView } from '../ParallaxView';
@@ -25,11 +25,10 @@ const SPOTS: Readonly<Record<string, readonly VeldSpot[]>> = {
   namibie: spotsNamibie as unknown as readonly VeldSpot[],
 };
 
-/** Widest baked piece (design px = texels): inside every GPU's texture limit. */
-const PIECE_W = 2048;
-/** Layers baked into strips (indices into VELD_LAYERS: mid, near); the rest stay images. */
-const BAKED: ReadonlySet<number> = new Set([0, 1]);
-/** Off-screen margin (design px) for showing images: wider than any frame. */
+/** Column width of the baked pieces (design px = texels): narrow enough that each piece's own
+ *  trimmed box hugs the band (less texture than 2048-wide pieces), wide enough for few images. */
+const PIECE_W = 1024;
+/** Off-screen margin (design px) for showing pieces. */
 const MARGIN = 280;
 let bakeSerial = 0;
 
@@ -41,6 +40,8 @@ interface Spot {
   readonly flip: boolean;
   readonly left: number;
   readonly right: number;
+  readonly top: number;
+  readonly bottom: number;
 }
 
 interface Piece {
@@ -50,28 +51,24 @@ interface Piece {
   readonly x0: number;
   readonly y0: number;
   readonly w: number;
+  /** The tufts stamped into it (those reaching into its box). */
+  readonly spots: readonly Spot[];
 }
 
-interface Baked {
+interface Layer {
   readonly node: LayerNode;
   readonly spots: readonly Spot[];
   readonly pieces: Piece[];
 }
 
-interface Loose {
-  readonly node: LayerNode;
-  readonly spots: readonly Spot[];
-  readonly imgs: Phaser.GameObjects.Image[];
-}
-
 export class VeldView {
   private readonly frames = veldFrames();
-  private readonly baked: Baked[] = [];
-  private readonly loose: Loose[] = [];
+  private readonly layers: Layer[] = [];
   private sheet: Phaser.Textures.Texture | null = null;
   private tk = 1;
   private total = 0;
-  /** Images (baked pieces and loose tufts) drawn on the last update (e2e hook). */
+  /** e2e hook: baked pieces, and those drawn on the last update. */
+  strips = 0;
   shown = 0;
 
   constructor(
@@ -98,11 +95,11 @@ export class VeldView {
           flip: flip === 1,
           left: lx - frame.w * s,
           right: lx + frame.w * s,
+          top: y - frame.oy * s,
+          bottom: y + (frame.h - frame.oy) * s,
         });
       }
-      if (list.length === 0) return;
-      if (BAKED.has(li)) this.baked.push({ node, spots: list, pieces: [] });
-      else this.loose.push({ node, spots: list, imgs: [] });
+      if (list.length > 0) this.layers.push({ node, spots: list, pieces: [] });
     });
     this.ensureSheet();
   }
@@ -112,10 +109,17 @@ export class VeldView {
     return this.total;
   }
 
-  /** Texels in the baked strips (e2e/report: their texture memory is 4 bytes each). */
+  /** Tufts stamped into the strips (e2e hook; one counted once per piece it reaches). */
+  get baked(): number {
+    let n = 0;
+    for (const l of this.layers) for (const p of l.pieces) n += p.spots.length;
+    return n;
+  }
+
+  /** Texels in the baked strips (report: their texture memory is 4 bytes each). */
   get bakedTexels(): number {
     let n = 0;
-    for (const b of this.baked) for (const p of b.pieces) n += p.dt.width * p.dt.height;
+    for (const l of this.layers) for (const p of l.pieces) n += p.dt.width * p.dt.height;
     return n;
   }
 
@@ -129,49 +133,54 @@ export class VeldView {
       if (!tex.has(f.name)) tex.add(f.name, 0, f.x * k, f.y * k, f.w * k, f.h * k);
     this.tk = k;
     this.sheet = tex;
-    for (const b of this.baked) this.bake(b);
-    for (const l of this.loose) this.place(l);
+    for (const l of this.layers) this.bake(l);
     return true;
   }
 
-  /** Stamps a layer's tufts into its strip pieces (made on the first bake). */
-  private bake(b: Baked): void {
-    if (b.pieces.length === 0) {
+  /** Makes a layer's pieces (the first bake), then stamps their tufts into them. */
+  private bake(l: Layer): void {
+    if (l.pieces.length === 0) {
       let x0 = Infinity;
       let x1 = -Infinity;
-      let y0 = Infinity;
-      let y1 = -Infinity;
-      for (const p of b.spots) {
-        const f = p.frame;
+      for (const p of l.spots) {
         x0 = Math.min(x0, p.left);
         x1 = Math.max(x1, p.right);
-        y0 = Math.min(y0, p.y - f.oy * p.s);
-        y1 = Math.max(y1, p.y + (f.h - f.oy) * p.s);
       }
-      const top = Math.floor(y0) - 1;
-      const h = Math.ceil(y1) + 1 - top;
       const left = Math.floor(x0) - 1;
-      const width = Math.ceil(x1) + 1 - left;
-      const pieces: Piece[] = [];
-      for (let px = left; px < left + width; px += PIECE_W) {
-        const w = Math.min(PIECE_W, left + width - px);
+      for (let cx = left; cx < x1 + 1; cx += PIECE_W) {
+        const inCol = l.spots.filter((p) => p.right >= cx && p.left <= cx + PIECE_W);
+        if (inCol.length === 0) continue;
+        // Trimmed to the tufts' own box inside the column.
+        let a = Infinity;
+        let b = -Infinity;
+        let t = Infinity;
+        let u = -Infinity;
+        for (const p of inCol) {
+          a = Math.min(a, p.left);
+          b = Math.max(b, p.right);
+          t = Math.min(t, p.top);
+          u = Math.max(u, p.bottom);
+        }
+        const px = Math.max(cx, Math.floor(a) - 1);
+        const w = Math.min(cx + PIECE_W, Math.ceil(b) + 1) - px;
+        const top = Math.floor(t) - 1;
+        const h = Math.ceil(u) + 1 - top;
         const key = `namibie/veld-bake/${String(++bakeSerial)}`;
         const dt = this.scene.textures.addDynamicTexture(key, w, h);
-        if (dt === null) return;
+        if (dt === null) continue;
         const img = this.scene.add.image(px, top, key).setOrigin(0, 0);
-        pieces.push({ key, dt, img, x0: px, y0: top, w });
+        l.pieces.push({ key, dt, img, x0: px, y0: top, w, spots: inCol });
       }
-      b.pieces.push(...pieces);
+      this.strips += l.pieces.length;
       // Below the layer's fruit sprites (above its art, below its props).
-      b.node.fruit.addAt(
-        pieces.map((p) => p.img),
+      l.node.fruit.addAt(
+        l.pieces.map((p) => p.img),
         0,
       );
     }
-    for (const piece of b.pieces) {
+    for (const piece of l.pieces) {
       piece.dt.clear();
-      for (const p of b.spots) {
-        if (p.right < piece.x0 || p.left > piece.x0 + piece.w) continue;
+      for (const p of piece.spots) {
         const f = p.frame;
         piece.dt.stamp(VELD_SHEET, f.name, p.x - piece.x0, p.y - piece.y0, {
           originX: f.ox / f.w,
@@ -184,49 +193,17 @@ export class VeldView {
     }
   }
 
-  /** The foreground's few tufts as images (made once, re-textured after a swap). */
-  private place(l: Loose): void {
-    if (l.imgs.length === 0) {
-      for (const p of l.spots)
-        l.imgs.push(this.scene.add.image(p.x, p.y, VELD_SHEET, p.frame.name));
-      l.node.fruit.addAt(l.imgs, 0);
-    }
-    l.spots.forEach((p, i) => {
-      const img = l.imgs[i];
-      if (img === undefined) return;
-      const f = p.frame;
-      img.setTexture(VELD_SHEET, f.name);
-      // Phaser flips round the frame's centre: mirror the origin with it.
-      img.setOrigin(p.flip ? 1 - f.ox / f.w : f.ox / f.w, f.oy / f.h);
-      img.setFlipX(p.flip);
-      img.setScale(p.s / this.tk);
-    });
-  }
-
-  /** Shows only what is on screen (the layers' roots are already placed for this frame). */
+  /** Shows only the pieces on screen (the layers' roots are already placed for this frame). */
   update(width: number): void {
     this.ensureSheet();
     let shown = 0;
-    for (const b of this.baked) {
-      const r = b.node.root;
-      const from = (-r.x - MARGIN) / r.scale;
-      const to = (width - r.x + MARGIN) / r.scale;
-      for (const p of b.pieces) {
-        const on = r.visible && p.x0 + p.w >= from && p.x0 <= to;
-        if (p.img.visible !== on) p.img.setVisible(on);
-        if (on) shown++;
-      }
-    }
-    for (const l of this.loose) {
+    for (const l of this.layers) {
       const r = l.node.root;
       const from = (-r.x - MARGIN) / r.scale;
       const to = (width - r.x + MARGIN) / r.scale;
-      for (let i = 0; i < l.spots.length; i++) {
-        const p = l.spots[i];
-        const img = l.imgs[i];
-        if (p === undefined || img === undefined) continue;
-        const on = r.visible && p.right >= from && p.left <= to;
-        if (img.visible !== on) img.setVisible(on);
+      for (const p of l.pieces) {
+        const on = r.visible && p.x0 + p.w >= from && p.x0 <= to;
+        if (p.img.visible !== on) p.img.setVisible(on);
         if (on) shown++;
       }
     }
@@ -234,14 +211,13 @@ export class VeldView {
   }
 
   destroy(): void {
-    for (const b of this.baked)
-      for (const p of b.pieces) {
+    for (const l of this.layers)
+      for (const p of l.pieces) {
         // The image goes first: nothing draws the strip's key when it is removed.
         p.img.destroy();
         this.scene.textures.remove(p.key);
       }
-    for (const l of this.loose) for (const img of l.imgs) img.destroy();
-    this.baked.length = 0;
-    this.loose.length = 0;
+    this.layers.length = 0;
+    this.strips = 0;
   }
 }

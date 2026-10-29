@@ -15,10 +15,13 @@ import { OstrichView } from './OstrichView';
 import { BalloonView } from './BalloonView';
 import { VeldView } from './VeldView';
 
-/** e2e hook: the ground cover's sprites (placed, and drawn on the last frame). */
+/** e2e hook: the ground cover (tufts placed; baked strips, those drawn on the last frame, and
+ *  the tufts stamped into them). */
 export interface NamibLifeHook {
   veld: number;
+  veldStrips: number;
   veldShown: number;
+  veldBaked: number;
   /** The ostriches drawn this frame (screen design px: foot x, y; drawn height). */
   ostriches: ReturnType<OstrichView['spots']>;
   /** The roaming oryx herds (layer x, facing, the reflection's alpha, screen x) and the heat. */
@@ -101,7 +104,9 @@ export class NamibLifeView {
   hook(): NamibLifeHook {
     return {
       veld: this.veld.count,
+      veldStrips: this.veld.strips,
       veldShown: this.veld.shown,
+      veldBaked: this.veld.baked,
       ostriches: this.ostriches.spots(),
       oryx: this.oryx.spots,
       heat: this.heat,

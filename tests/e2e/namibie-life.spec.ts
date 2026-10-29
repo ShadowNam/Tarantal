@@ -145,8 +145,12 @@ test.describe('Namibië veld life (v1.7d, D-059)', () => {
     expect(life?.ostriches.map((o) => o.male).sort()).toEqual([false, true]);
     expect(life?.ostriches.some((o) => o.pose === 'sit')).toBe(true);
     for (const o of life?.ostriches ?? []) expect(o.h).toBeGreaterThan(60);
+    // The ground cover is baked into a few strips (D-059): every tuft in them, some strips drawn
+    // over the view and the rest culled (the layers are wider than the screen).
     expect(life?.veld ?? 0).toBeGreaterThan(500);
-    expect(life?.veldShown ?? 0).toBeGreaterThan(20);
+    expect(life?.veldBaked ?? 0).toBeGreaterThanOrEqual(life?.veld ?? 1);
+    expect(life?.veldShown ?? 0).toBeGreaterThan(0);
+    expect(life?.veldShown ?? 0).toBeLessThan(life?.veldStrips ?? 0);
     await page.screenshot({ path: `${SCREENSHOTS}/namibie-ostriches-${info.project.name}.png` });
     // A shot into the sand beside them: the log says they ran and the birds run (one read).
     let ran = false;

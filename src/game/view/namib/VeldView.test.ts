@@ -1,5 +1,5 @@
-// v1.7d (D-059, review): the mid and near ground cover is baked into a few strip textures (no
-// ~1 500 live images); only the foreground's few tufts stay images.
+// v1.7d (D-059, review): the ground cover is baked into a few strip textures trimmed to the
+// tufts (no ~1 500 live images).
 import { describe, expect, it } from 'vitest';
 import type * as Phaser from 'phaser';
 import type { ParallaxView } from '../ParallaxView';
@@ -60,22 +60,27 @@ function stub(): {
 }
 
 describe('VeldView (v1.7d, D-059)', () => {
-  it('bakes the mid and near cover into ≤ 2048-wide strips; the foreground stays images', () => {
+  it('bakes every tuft into ≤ 1024-wide strips trimmed to the tufts, one image each', () => {
     const st = stub();
     const v = new VeldView(st.scene, st.parallax, 'namibie');
     const all = spots;
-    const fg = all.filter((s) => s[0] === 2).length;
-    // A few strip pieces plus the foreground's tufts: never one image per tuft.
+    // A few strip pieces: never one image per tuft.
     expect(st.dts.length).toBeGreaterThan(0);
-    expect(st.dts.length).toBeLessThanOrEqual(8);
-    for (const d of st.dts) expect(d.w).toBeLessThanOrEqual(2048);
-    expect(st.images[0]).toBe(st.dts.length + fg);
-    // Every mid and near tuft is stamped (one rendered batch per piece).
-    expect(st.stamps[0]).toBeGreaterThanOrEqual(all.length - fg);
+    expect(st.dts.length).toBeLessThanOrEqual(20);
+    for (const d of st.dts) expect(d.w).toBeLessThanOrEqual(1024);
+    expect(st.images[0]).toBe(st.dts.length);
+    expect(v.strips).toBe(st.dts.length);
+    // Every tuft is stamped (one rendered batch per piece).
+    expect(st.stamps[0]).toBeGreaterThanOrEqual(all.length);
+    expect(v.baked).toBeGreaterThanOrEqual(all.length);
     expect(st.renders[0]).toBe(st.dts.length);
     expect(v.count).toBe(all.length);
+    // The strips' texture memory (4 bytes a texel), the same in Standard and HD.
+    console.log(
+      `[veld] ${String(v.strips)} strips, ${((v.bakedTexels * 4) / 2 ** 20).toFixed(2)} MB`,
+    );
     v.update(1920);
     expect(v.shown).toBeGreaterThan(0);
-    expect(v.shown).toBeLessThan(40);
+    expect(v.shown).toBeLessThanOrEqual(v.strips);
   });
 });
