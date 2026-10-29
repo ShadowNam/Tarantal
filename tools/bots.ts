@@ -9,6 +9,8 @@ import { CAMERA_MAX_X, CAMERA_MIN_X } from '../src/sim/world';
 
 import { createHumanBot } from './humanBots';
 import { inReach, RIFLE_STYLES, withRifle } from './rifleBot';
+// v1.8b (D-062): hunts here may need the lazy sim systems (baboons, ostriches).
+import '../src/sim/lazySystemsRegister';
 
 /** random: sprays · aim: near-perfect M1 aimer (goldens) · plinker / competent: GDD §13.8 ·
  *  spook (D-048, goldens only): shoots a special day's lanterns, bats and one owl ·

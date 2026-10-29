@@ -19,6 +19,8 @@ import {
   toClient,
   waitTicks,
 } from './helpers';
+// v1.8b (D-062): Node-side hunts register the lazy sim systems (the game loads their chunk).
+import '../../src/sim/lazySystemsRegister';
 
 /** Fire `count` taps over a 5 × 4 grid (clear of the HUD), reloading when the belt is empty. */
 async function tapAcrossScreen(page: Page, touch: boolean, count: number): Promise<void> {

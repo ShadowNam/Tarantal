@@ -122,6 +122,7 @@ import type { HdIndex } from './game/assets/hdIndex';
 import { createGraphicsControl, type HdRuntimeApi } from './game/assets/graphicsControl';
 import { decodeInputLogText } from './sim/replay/inputLog';
 import { runReplay } from './sim/replay/verify';
+import { loadSimSystems } from './game/simSystems';
 
 declare global {
   interface Window {
@@ -1220,7 +1221,9 @@ async function boot(): Promise<void> {
     window.__TM_TOOLS__ = {
       contentHash: hash,
       dailySeed: (key) => dailySeed(key, hash),
-      replay: (text) => {
+      // v1.8b (D-062): a replay may need the lazy sim systems (baboons, ostriches).
+      replay: async (text) => {
+        await loadSimSystems();
         const o = runReplay(decodeInputLogText(text), bundle);
         return { eventHash: o.eventHash, eventCount: o.eventCount, score: o.result.score };
       },

@@ -41,5 +41,16 @@
   "guide.tell.pied_crow": "witborskraai",
   "guide.tell.malachite_kingfisher": "kuifkopvisvanger",
   "guide.tell.red_billed_oxpecker": "rooibekrenostervoël",
-  "guide.tell.african_jacana": "grootlangtoon"
+  "guide.tell.african_jacana": "grootlangtoon",
+  "guide.baboon.name": "kaapse bobbejaan",
+  "guide.baboon.raid_hat": "Haai! Daai bobbejaan is agter my hoed aan!",
+  "guide.baboon.raid_fruit": "Bobbejaan in die vrugteboom! Voert!",
+  "guide.baboon.raid_tap": "Hy's agter die kraan aan! Daar gaan my water!",
+  "guide.baboon.raid_mielie": "Bobbejaan weer in die mielies!",
+  "guide.baboon.raid_throw": "Pas op, hy gooi die voëls met vrugte!",
+  "guide.baboon.raid_moon": "Ag nee, man! Hy wys vir ons sy agterstewe!",
+  "guide.baboon.raid_chase": "Hy jaag my tarentale!",
+  "guide.baboon.bagged": "Raak! Een bobbejaan minder in die mielies.",
+  "guide.baboon.stopped": "Op heterdaad betrap!",
+  "guide.baboon.mother": "Nie die ma met haar baba nie, man!"
 }

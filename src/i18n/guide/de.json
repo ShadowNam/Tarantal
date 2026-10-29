@@ -41,5 +41,16 @@
   "guide.tell.pied_crow": "Schildrabe",
   "guide.tell.malachite_kingfisher": "Haubenzwergfischer",
   "guide.tell.red_billed_oxpecker": "Rotschnabel-Madenhacker",
-  "guide.tell.african_jacana": "Blaustirn-Blatthühnchen"
+  "guide.tell.african_jacana": "Blaustirn-Blatthühnchen",
+  "guide.baboon.name": "Bärenpavian",
+  "guide.baboon.raid_hat": "He! Der Pavian will meinen Hut!",
+  "guide.baboon.raid_fruit": "Ein Pavian im Obstbaum! Weg da!",
+  "guide.baboon.raid_tap": "Er geht an den Wasserhahn! Mein Wasser!",
+  "guide.baboon.raid_mielie": "Schon wieder ein Pavian im Mais!",
+  "guide.baboon.raid_throw": "Achtung, er wirft mit Obst nach den Vögeln!",
+  "guide.baboon.raid_moon": "Ach nee! Der zeigt uns seinen Hintern!",
+  "guide.baboon.raid_chase": "Er jagt meine Perlhühner!",
+  "guide.baboon.bagged": "Erwischt! Ein Pavian weniger im Mais.",
+  "guide.baboon.stopped": "Auf frischer Tat ertappt!",
+  "guide.baboon.mother": "Doch nicht die Mutter mit dem Baby!"
 }

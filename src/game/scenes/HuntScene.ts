@@ -81,6 +81,8 @@ import type { AdminData } from './AdminScene';
 import type { RangeHost, RangeSession } from '../range/RangeSession';
 import { freshLoadShown } from '../../platform/freshLoad';
 import type { FruitView } from '../view/fruit/FruitView';
+import { loadSimSystems, simSystemsReady } from '../simSystems';
+import { needsLazySystems } from '../../sim/lazySystems';
 import type { PelletStop } from '../view/fruit/fruitHits';
 
 export interface HuntData {
@@ -223,6 +225,8 @@ export class HuntScene extends Phaser.Scene {
   }
 
   create(data: HuntData): void {
+    // v1.8b (D-062): the lazy sim systems' chunk, in the background from the title on.
+    void loadSimSystems();
     this.boundsSource = null;
     // M9 lazy biomes: an auto-started hunt in a biome whose art isn't loaded yet waits for it.
     const wanted = this.initialBiome(data);
@@ -1081,6 +1085,33 @@ export class HuntScene extends Phaser.Scene {
       });
   }
 
+  /** v1.8b (D-062): the lazy sim systems behind a veil; offline, Retry or Back (D-042). */
+  private waitForSimSystems(biomeId: string, then: (ok: boolean) => void): void {
+    const { width, height } = designSize();
+    const veil = this.add
+      .rectangle(width / 2, height / 2, width, height, 0x1b1410, 0.82)
+      .setDepth(9_999);
+    const def = this.ctx.content.biomes.find((b) => b.id === biomeId);
+    const area = def === undefined ? biomeId : tOr(def.nameKey, biomeId);
+    void loadSimSystems().then((ok) => {
+      if (ok || !veil.active) {
+        if (veil.active) veil.destroy();
+        then(ok);
+        return;
+      }
+      this.showArtFailed(
+        veil,
+        area,
+        () => {
+          this.waitForSimSystems(biomeId, then);
+        },
+        () => {
+          then(false);
+        },
+      );
+    });
+  }
+
   /** D-048: the feesdae group's files in the background; the sheet goes into the view on arrival. */
   private loadFeesdaeArt(): void {
     // Cached per page: each call only fetches what is still missing (a failed file, the lines
@@ -1434,6 +1465,15 @@ export class HuntScene extends Phaser.Scene {
     const huntBiome =
       mode.biome ??
       (mode.id === 'seasonHunt' ? this.biome.id : this.ctx.content.modes.modes[mode.id].biome);
+    // v1.8b (D-062): a map with baboons or ostriches waits for their sim code (a lazy chunk).
+    const huntBiomeDef = this.ctx.content.biomes.find((b) => b.id === huntBiome);
+    if (huntBiomeDef !== undefined && needsLazySystems(huntBiomeDef) && !simSystemsReady()) {
+      this.waitForSimSystems(huntBiome, (ok) => {
+        if (ok) this.begin(kind, startPointer, modeId, challenge, bonus);
+        else this.scene.restart({} satisfies HuntData);
+      });
+      return;
+    }
     // M9 lazy biomes: its art loads on first use; the hunt starts once it is in. D-053: with HD
     // chosen, also its HD pack (behind the same veil, "Play now in Standard" after 4 s), even when
     // its standard art came in earlier on the title (it skipped the HD wait before).

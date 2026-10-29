@@ -41,5 +41,16 @@
   "guide.tell.pied_crow": "schildraaf",
   "guide.tell.malachite_kingfisher": "malachietijsvogel",
   "guide.tell.red_billed_oxpecker": "roodsnavelossenpikker",
-  "guide.tell.african_jacana": "lelieloper"
+  "guide.tell.african_jacana": "lelieloper",
+  "guide.baboon.name": "beerbaviaan",
+  "guide.baboon.raid_hat": "Hé! Die baviaan wil mijn hoed!",
+  "guide.baboon.raid_fruit": "Een baviaan in de fruitboom! Wegwezen!",
+  "guide.baboon.raid_tap": "Hij gaat naar de kraan! Daar gaat mijn water!",
+  "guide.baboon.raid_mielie": "Weer een baviaan in de maïs!",
+  "guide.baboon.raid_throw": "Pas op, hij gooit met fruit naar de vogels!",
+  "guide.baboon.raid_moon": "Ach nee! Hij laat ons zijn achterwerk zien!",
+  "guide.baboon.raid_chase": "Hij jaagt op mijn parelhoenders!",
+  "guide.baboon.bagged": "Raak! Eén baviaan minder in de maïs.",
+  "guide.baboon.stopped": "Op heterdaad betrapt!",
+  "guide.baboon.mother": "Niet de moeder met haar baby!"
 }

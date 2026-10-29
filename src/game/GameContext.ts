@@ -621,7 +621,8 @@ export interface TestHook {
 export interface TestTools {
   readonly contentHash: string;
   dailySeed(key: string): number;
-  replay(log: string): { eventHash: string; eventCount: number; score: number };
+  /** v1.8b (D-062): async (it loads the lazy sim systems first). */
+  replay(log: string): Promise<{ eventHash: string; eventCount: number; score: number }>;
   /** v1.0.1 (D-028 §4): `n` world score pops now, pooled BitmapText or canvas Text; sync ms. */
   popBench(n: number, mode: 'bitmap' | 'text'): number | null;
   /** v1.4 (#56): turn the zoomed view's culling on or off (pictures must match either way). */

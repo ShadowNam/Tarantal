@@ -25,6 +25,8 @@ import {
   startHunt,
   tapRect,
 } from './helpers';
+// v1.8b (D-062): Node-side hunts register the lazy sim systems (the game loads their chunk).
+import '../../src/sim/lazySystemsRegister';
 
 const RAW = join(import.meta.dirname, '..', '..', 'docs', 'art-preview', 'screens');
 

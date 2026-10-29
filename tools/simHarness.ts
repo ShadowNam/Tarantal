@@ -8,6 +8,8 @@ import type { SimEvent } from '../src/sim/events';
 import { createSim, type Sim } from '../src/sim/Sim';
 import type { BirdView, Command, ModeConfig, SecretView } from '../src/sim/types';
 import { CAMERA_MAX_X, CAMERA_MIN_X } from '../src/sim/world';
+// v1.8b (D-062): hunts here may need the lazy sim systems (baboons, ostriches).
+import '../src/sim/lazySystemsRegister';
 
 export const base = loadContent();
 

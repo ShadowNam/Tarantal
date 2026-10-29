@@ -8,6 +8,8 @@ import { parseDailyMeta } from '../src/content/daily';
 import { parseFeel } from '../src/content/feel';
 import { parseNotaboek } from '../src/content/notaboek';
 import type { ContentBundle, DailyMeta, Feel, Notaboek } from '../src/content/schemas';
+// v1.8b (D-062): hunts here may need the lazy sim systems (baboons, ostriches).
+import '../src/sim/lazySystemsRegister';
 
 const root = join(import.meta.dirname, '..');
 

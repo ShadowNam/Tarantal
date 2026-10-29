@@ -5,6 +5,7 @@ import type { OstrichPose } from './ostriches/ostriches';
 import type { TellPhase } from './tells/tells';
 import type { BaboonRole, RaidPhase, RaiderPhase, RidgePose } from './baboons/baboons';
 import type { RangeProgramFactory } from './range/types';
+import type { LazySystems } from './lazySystems';
 
 /** v1.3 (D-036): `ver` is the distant band behind the far plane; only rifles reach it. */
 export type PlaneId = 'near' | 'mid' | 'far' | 'ver';
@@ -94,6 +95,8 @@ export interface SimConfig {
   /** v1.3x (D-037), mode 'range' only: the Skietbaan's spawn program (src/sim/range). Passed in
    *  rather than imported, so its code loads with the admin page's lazy chunk. */
   readonly rangeProgram?: RangeProgramFactory;
+  /** v1.8b (D-062): the lazy sim systems (baboons, ostriches); absent = the registered ones. */
+  readonly systems?: LazySystems;
 }
 
 export type Command =
