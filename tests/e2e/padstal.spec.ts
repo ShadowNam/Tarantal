@@ -133,17 +133,24 @@ test('Save & leave: tally and Farm Stall to the title and back, caps and offers 
   page,
 }, info) => {
   test.skip(!isLandscape(info), 'runs are played in landscape');
-  test.setTimeout(300_000);
+  test.setTimeout(420_000);
   const touch = isTouchProject(info);
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
-  const forget = (id: string): Promise<void> =>
-    page.evaluate((k) => {
+  // hook.rects keeps every id a menu ever published, so a rect can be left over from the screen
+  // before. Each step forgets the ids the next screen will publish and waits for them again: a
+  // tap only lands once that screen's menu exists (WebKit on CI builds scenes slowly).
+  const forget = (...ids: string[]): Promise<void> =>
+    page.evaluate((ks) => {
       const rects = window.__TM__?.rects;
-      if (rects !== undefined) Reflect.deleteProperty(rects, k);
-    }, id);
-  const fresh = (id: string): Promise<unknown> =>
-    page.waitForFunction((k) => window.__TM__?.rects[k] !== undefined, id, { timeout: 60_000 });
+      if (rects !== undefined) for (const k of ks) Reflect.deleteProperty(rects, k);
+    }, ids);
+  const fresh = async (id: string): Promise<void> => {
+    await page.waitForFunction((k) => window.__TM__?.rects[k] !== undefined, id, {
+      timeout: 90_000,
+    });
+    await page.waitForTimeout(300);
+  };
   const atTitle = (): Promise<unknown> =>
     page.waitForFunction(
       () =>
@@ -151,52 +158,81 @@ test('Save & leave: tally and Farm Stall to the title and back, caps and offers 
         typeof window.__TM__.runStatus === 'string' &&
         window.__TM__.rects['seasonRun'] !== undefined,
       null,
-      { timeout: 60_000 },
+      { timeout: 90_000 },
     );
-  const view = (v: string): Promise<unknown> =>
-    page.waitForFunction((w) => window.__TM__?.run?.view === w, v, { timeout: 90_000 });
+  const inView = (v: string): Promise<unknown> =>
+    page.waitForFunction(
+      (w) => window.__TM__?.scene === 'run' && window.__TM__.run?.view === w,
+      v,
+      { timeout: 90_000 },
+    );
+  /** Taps `id` and waits for `done`; one more tap if the screen did not move within 15 s. */
+  const tapUntil = async (id: string, done: () => Promise<unknown>): Promise<void> => {
+    const before = (await hook(page)).scene;
+    await tapRect(page, touch, id);
+    const moved = await page
+      .waitForFunction((s) => window.__TM__?.scene !== s, before, { timeout: 15_000 })
+      .then(() => true)
+      .catch(() => false);
+    if (!moved && before !== 'run') await tapRect(page, touch, id);
+    await done();
+  };
+  /** From a run screen to the title with [Save & leave]. */
+  const leave = async (): Promise<void> => {
+    await forget('seasonRun');
+    await tapRect(page, touch, 'run.menu');
+    await atTitle();
+    await fresh('seasonRun');
+  };
 
   await boot(page, 'seed=4&huntSeconds=1&quotaMul=0');
-  await page.waitForFunction(() => window.__TM__?.rects['seasonRun'] !== undefined);
-  await tapRect(page, touch, 'seasonRun');
-  await view('intro');
+  await fresh('seasonRun');
+  await forget('run.go');
+  await tapUntil('seasonRun', () => inView('intro'));
+  await fresh('run.go');
   // The tally's own button (not the hunt card's, left in the hook).
-  await forget('run.menu');
+  await forget('run.menu', 'run.padstal');
   await tapRect(page, touch, 'run.go');
-  await view('tally');
+  await inView('tally');
   await fresh('run.menu');
+  await fresh('run.padstal');
   const caps = (await hook(page)).run?.doppies ?? -1;
   expect(caps).toBeGreaterThan(0);
   await page.screenshot({ path: `${SCREENSHOTS}/run-leave-tally-${info.project.name}.png` });
-  await tapRect(page, touch, 'run.menu');
-  await atTitle();
+  await leave();
   // Between hunts the line names the next hunt (hunt 1 was just played).
   expect((await hook(page)).runStatus).toContain('hunt 2 of 3');
   expect((await hook(page)).runStatus).toContain(`${caps} caps`);
 
   // Continue run: back on the tally, then into the stall; Escape first closes the help card.
-  await tapRect(page, touch, 'seasonRun');
-  await view('tally');
+  await forget('run.padstal');
+  await tapUntil('seasonRun', () => inView('tally'));
+  await fresh('run.padstal');
+  await forget('run.helpClose', 'run.next', 'run.menu');
   await tapRect(page, touch, 'run.padstal');
-  await view('padstal');
-  await forget('run.next');
+  await inView('padstal');
+  await fresh('run.helpClose');
   await page.keyboard.press('Escape');
   await fresh('run.next');
+  await fresh('run.menu');
   expect((await hook(page)).scene).toBe('run');
   const before = (await hook(page)).run;
   await page.screenshot({ path: `${SCREENSHOTS}/run-leave-padstal-${info.project.name}.png` });
-  await tapRect(page, touch, 'run.menu');
-  await atTitle();
+  await leave();
   expect((await hook(page)).runStatus).toContain(`${before?.doppies ?? -1} caps`);
   await page.screenshot({ path: `${SCREENSHOTS}/run-leave-title-${info.project.name}.png` });
 
   // The same stall again: same caps, same offers. Escape leaves it too (the Android back button).
-  await tapRect(page, touch, 'seasonRun');
-  await view('padstal');
+  await forget('run.next', 'run.menu');
+  await tapUntil('seasonRun', () => inView('padstal'));
+  await fresh('run.next');
+  await fresh('run.menu');
   const again = (await hook(page)).run;
   expect(again?.doppies).toBe(before?.doppies);
   expect(again?.offers).toEqual(before?.offers);
+  await forget('seasonRun');
   await page.keyboard.press('Escape');
   await atTitle();
+  await fresh('seasonRun');
   expect(errors).toEqual([]);
 });
