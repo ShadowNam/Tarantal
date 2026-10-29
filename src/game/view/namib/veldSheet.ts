@@ -92,26 +92,27 @@ export interface VeldRect extends VeldFrameDef {
 }
 
 /** Sheet width at 1× (design px). */
-export const VELD_SHEET_W = 768;
+export const VELD_SHEET_W = 576;
 const GAP = 2;
 
-/** Each frame's rect in the 1× sheet (rows, left to right, in frame order). */
+/** Each frame's rect in the 1× sheet, in VELD_FRAMES order: packed in rows tallest first (the
+ *  least empty sheet, so the least texture memory in HD). */
 export function veldFrames(): VeldRect[] {
-  const out: VeldRect[] = [];
+  const at = new Map<string, { x: number; y: number }>();
   let x = GAP;
   let y = GAP;
   let row = 0;
-  for (const f of VELD_FRAMES) {
+  for (const f of [...VELD_FRAMES].sort((a, b) => b.h - a.h || b.w - a.w)) {
     if (x + f.w + GAP > VELD_SHEET_W) {
       x = GAP;
       y += row + GAP;
       row = 0;
     }
-    out.push({ ...f, x, y });
+    at.set(f.name, { x, y });
     x += f.w + GAP;
     row = Math.max(row, f.h);
   }
-  return out;
+  return VELD_FRAMES.map((f) => ({ ...f, x: at.get(f.name)?.x ?? 0, y: at.get(f.name)?.y ?? 0 }));
 }
 
 export const VELD_SHEET_H = ((): number => {
