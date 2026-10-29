@@ -52,7 +52,7 @@ type Layout = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 const query = (layout: Layout, o: { birds?: boolean; hold?: number; gfx?: string } = {}): string =>
   `biome=namibie&layout=${layout}&seed=${SEED}&huntSeconds=${SECONDS}` +
   `&graphics=${o.gfx ?? 'standard'}${o.birds === false ? '&birds=0' : ''}` +
-  `${o.hold === undefined ? '' : `&holdAt=${o.hold}`}`;
+  (o.hold === undefined ? '' : `&holdAt=${o.hold}`);
 
 /** Runs the page's hunt in Node (no input) and returns the first tick ≥ `from` where `pred`
  *  holds, with that tick's snapshot. */
