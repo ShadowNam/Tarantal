@@ -6,16 +6,20 @@
 // The ground before | after: run this spec once on a main checkout with V17D_VARIANT=before
 // (only the "ground" test runs; it saves the -before files), then on this branch: the ground test
 // saves -after and, with both there, the before | after pair. Every other shot is this branch.
+// The file imports nothing that only this branch has and reads this branch's hook and snapshot
+// fields through loose local types, so it typechecks and runs on main too.
 //
-// Frames are held at a sim tick (?holdAt) found by running the same hunt in Node (no input, so
-// the page plays it the same): the pair at the nest, a balloon in view, the oryx herd in view.
-// The running pair uses an in-page watcher (taps beside them at a tick, then holds 18 ticks
-// later). Standard | HD: the same held frame loaded with ?graphics=standard and ?graphics=hd,
-// cropped to the same box (nothing moves: the camera is in the sim and the sim is held). The
-// scope view is live (raising the sight needs the sim running); the herd moves 9 px a second.
-// On desktop the real mouse rests at the bottom centre, never in the edge-pan bands.
+// Held frames (?holdAt) come from running the same hunt in Node (no input, so the page plays it
+// the same): the pair at the nest, the oryx herd in view. The balloon is found in the page (held
+// once one is within 500 px of the centre). The running pair uses an in-page watcher (taps beside
+// them at a tick, then holds 18 ticks later). Standard | HD: the same held frame loaded with
+// ?graphics=standard and ?graphics=hd, cropped to the same box (the camera is in the sim and the
+// sim is held). The scope view is live (raising the sight needs the sim running). Close-ups of
+// the ground are taken left of the gun and above the bottom HUD. On desktop the real mouse rests
+// at the bottom centre, never in the edge-pan bands.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
 import {
   blank,
@@ -33,7 +37,6 @@ import { planeToDx } from '../../src/sim/camera';
 import { coreWidth } from '../../src/sim/world';
 import type { ContentBundle } from '../../src/content/schemas';
 import type { SimState } from '../../src/sim/types';
-import { ORYX_ROAMS, roamAt } from '../../src/game/view/namib/oryxRoam';
 import { boot, isTouchProject, startHunt } from './helpers';
 
 const OUT = join(import.meta.dirname, '..', '..', 'docs', 'art-preview', 'compare');
@@ -45,8 +48,6 @@ const SEED = 42;
 const SECONDS = 90;
 /** No frame before this tick (the Namibië groups and the veld-life chunk are in). */
 const EARLIEST = 420;
-const FULL = loadContent();
-const QUIET = withNoBirds(FULL);
 
 type Layout = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 const query = (layout: Layout, o: { birds?: boolean; hold?: number; gfx?: string } = {}): string =>
@@ -54,14 +55,47 @@ const query = (layout: Layout, o: { birds?: boolean; hold?: number; gfx?: string
   `&graphics=${o.gfx ?? 'standard'}${o.birds === false ? '&birds=0' : ''}` +
   (o.hold === undefined ? '' : `&holdAt=${o.hold}`);
 
+/** This branch's snapshot fields (absent on main), read loosely. */
+interface LooseFamily {
+  readonly nest: { readonly x: number } | null;
+  readonly birds: readonly { readonly pose: string; readonly x: number }[];
+}
+const familiesOf = (s: SimState): readonly LooseFamily[] =>
+  (s as unknown as { ostriches?: readonly LooseFamily[] }).ostriches ?? [];
+
+/** This branch's test-hook fields (absent on main), read loosely in the page. */
+interface LooseLife {
+  readonly veld: number;
+  readonly ostriches: readonly {
+    readonly x: number;
+    readonly y: number;
+    readonly h: number;
+    readonly pose: string;
+  }[];
+  readonly oryx: readonly { readonly screenX: number }[];
+  readonly balloons: readonly {
+    readonly id: number;
+    readonly x: number;
+    readonly y: number;
+    readonly h: number;
+  }[];
+}
+async function lifeOf(page: Page): Promise<LooseLife | null> {
+  return page.evaluate(
+    () =>
+      (window as unknown as { __TM__?: { namibLife?: LooseLife | null } }).__TM__?.namibLife ??
+      null,
+  );
+}
+
 /** Runs the page's hunt in Node (no input) and returns the first tick ≥ `from` where `pred`
- *  holds, with that tick's snapshot. */
+ *  holds. Called inside the tests only (never at load: the file must run on main). */
 function findTick(
   content: ContentBundle,
   layout: Layout,
   pred: (s: SimState) => boolean,
   from = EARLIEST,
-): { tick: number; state: SimState } {
+): number {
   const sim = createSim({
     seed: SEED,
     content,
@@ -72,21 +106,51 @@ function findTick(
     sim.step([]);
     sim.drainEvents();
     const s = sim.snapshot();
-    if (s.tick >= from && pred(s)) return { tick: s.tick, state: s };
+    if (s.tick >= from && pred(s)) return s.tick;
   }
   throw new Error(`namibie ${layout}: no tick for this frame`);
 }
 
-const midSf = FULL.scoring.planes.mid.scrollFactor;
-const farSf = FULL.scoring.planes.far.scrollFactor;
 /** A layer x's distance from the screen centre (design px) at the snapshot's camera. */
 const dxOf = (s: SimState, sf: number, x: number): number => planeToDx(s.cameraX, sf, x);
+
+/** The pair at the nest on Monday: both birds in view, the hen sitting, the cock standing. */
+function pairTick(): number {
+  const quiet = withNoBirds(loadContent());
+  const midSf = quiet.scoring.planes.mid.scrollFactor;
+  return findTick(quiet, 'mon', (s) => {
+    const f = familiesOf(s)[0];
+    if (f === undefined || f.nest === null) return false;
+    const sitting = f.birds.some((b) => b.pose === 'sit');
+    const standing = f.birds.some((b) => b.pose === 'stand' || b.pose === 'look');
+    return sitting && standing && f.birds.every((b) => Math.abs(dxOf(s, midSf, b.x)) < 600);
+  });
+}
+
+/** Tuesday (the mirage on): the oryx herd within 450 px of the screen centre. The roam module
+ *  is this branch's: loaded by a computed path so main's typecheck never looks for it. */
+async function oryxTick(): Promise<number> {
+  const file = join(import.meta.dirname, '..', '..', 'src', 'game', 'view', 'namib', 'oryxRoam.ts');
+  const m = (await import(pathToFileURL(file).href)) as {
+    ORYX_ROAMS: Record<string, readonly unknown[] | undefined>;
+    roamAt: (r: unknown, t: number, core: number) => { x: number };
+  };
+  const roam = m.ORYX_ROAMS['namibie']?.[0];
+  if (roam === undefined) throw new Error('no oryx');
+  const quiet = withNoBirds(loadContent());
+  const farSf = quiet.scoring.planes.far.scrollFactor;
+  const core = coreWidth(farSf);
+  return findTick(quiet, 'tue', (s) => {
+    const at = m.roamAt(roam, s.tick / 60, core);
+    return Math.abs(dxOf(s, farSf, at.x)) < 450;
+  });
+}
 
 test.use({ serviceWorkers: 'block' });
 test.beforeEach(async ({ page }, info) => {
   test.skip(process.env['ART_PREVIEW'] !== '1', 'on demand: ART_PREVIEW=1');
   test.skip(!PROFILES.includes(device(info.project.name)), 'previews: desktop, Pixel 7, iPhone 14');
-  // Software GL is slow: each test gets 10 minutes or more.
+  // Software GL is slow: each test gets 15 minutes.
   test.setTimeout(900_000);
   await page.addInitScript(() => {
     const key = 'tm.e2e.save.v1';
@@ -125,7 +189,7 @@ function scaled(src: Rgba, n: number): Rgba {
   return out;
 }
 
-/** Two images side by side on a dark strip (a | b), each scaled to the same height. */
+/** Two images side by side on a dark strip (a | b). */
 function sideBySide(a: Rgba, b: Rgba): Rgba {
   const h = Math.max(a.height, b.height);
   const out = blank(a.width + b.width + 8, h);
@@ -142,26 +206,35 @@ async function park(page: Page, touch: boolean): Promise<void> {
   if (box !== null) await page.mouse.move(box.x + box.width / 2, box.y + box.height * 0.97);
 }
 
+/** After boot: waits for the hunt to reach `tick` (held there), the art, the fonts. */
+async function settleAt(page: Page, touch: boolean, tick: number): Promise<void> {
+  await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) >= t, tick, { timeout: 600_000 });
+  await page.waitForFunction(() => window.__TM__?.fontsReady === true, null, { timeout: 30_000 });
+  // The veld-life chunk is in (a lazy area's first frames still show the title behind the veil).
+  if (VARIANT === 'after')
+    await page.waitForFunction(
+      () =>
+        ((window as unknown as { __TM__?: { namibLife?: { veld: number } | null } }).__TM__
+          ?.namibLife?.veld ?? 0) > 0,
+      null,
+      { timeout: 120_000 },
+    );
+  await park(page, touch);
+  await page.waitForTimeout(2000);
+}
+
 /** Boots the query, starts the hunt and waits for the hold tick, the Namibië art and fonts. */
 async function heldAt(page: Page, info: TestInfo, q: string, tick: number): Promise<void> {
   const touch = isTouchProject(info);
   await boot(page, q);
   await startHunt(page, touch);
-  await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) >= t, tick, { timeout: 600_000 });
-  await page.waitForFunction(() => window.__TM__?.fontsReady === true, null, { timeout: 30_000 });
-  // The veld-life chunk is in (a lazy area's first frames still show the title behind the veil).
-  if (VARIANT === 'after')
-    await page.waitForFunction(() => (window.__TM__?.namibLife?.veld ?? 0) > 0, null, {
-      timeout: 120_000,
-    });
-  await park(page, touch);
-  await page.waitForTimeout(2000);
+  await settleAt(page, touch, tick);
 }
 
-async function grab(page: Page): Promise<{ img: Rgba; k: number }> {
+async function grab(page: Page): Promise<{ img: Rgba; k: number; w: number }> {
   const img = decodePng(await page.locator('#game canvas').screenshot());
   const w = await page.evaluate(() => window.__TM__?.designWidth ?? 1920);
-  return { img, k: img.width / w };
+  return { img, k: img.width / w, w };
 }
 
 /** A crop round design point (cx, cy), w × h design px, clamped to the image. */
@@ -173,13 +246,12 @@ function around(g: { img: Rgba; k: number }, cx: number, cy: number, w: number, 
   return crop(g.img, x0, y0, Math.max(1, x1 - x0), Math.max(1, y1 - y0));
 }
 
-/** The pair at the nest on Monday: both birds in view, the hen sitting, the cock standing. */
-const PAIR = findTick(QUIET, 'mon', (s) => {
-  const f = s.ostriches[0];
-  if (f?.nest == null) return false;
-  const sitting = f.birds.some((b) => b.pose === 'sit');
-  const standing = f.birds.some((b) => b.pose === 'stand' || b.pose === 'look');
-  return sitting && standing && f.birds.every((b) => Math.abs(dxOf(s, midSf, b.x)) < 600);
+/** The near ground left of the gun and above the bottom HUD (design px box). */
+const nearBox = (w: number): { cx: number; cy: number; w: number; h: number } => ({
+  cx: w * 0.27,
+  cy: 860,
+  w: Math.min(700, w * 0.38),
+  h: 280,
 });
 
 test('the ground: Namibië centre view and a near-ground close-up (before | after)', async ({
@@ -188,32 +260,28 @@ test('the ground: Namibië centre view and a near-ground close-up (before | afte
   // Tuesday at midday with the mirage, birds on: what a player sees.
   await heldAt(page, info, query('tue', { hold: 600 }), 600);
   const g = await grab(page);
-  const w = g.img.width / g.k;
-  const centre = g.img;
-  const near = around(g, w / 2, 900, 900, 340);
-  save(`centre-${VARIANT}`, info, centre);
-  save(`ground-near-${VARIANT}`, info, scaled(near, 2));
+  const b = nearBox(g.w);
+  save(`centre-${VARIANT}`, info, g.img);
+  save(`ground-near-${VARIANT}`, info, scaled(around(g, b.cx, b.cy, b.w, b.h), 2));
   if (VARIANT === 'before') return;
-  // The full centre view of this branch, and before | after once both are there.
-  save('centre', info, centre);
+  save('centre', info, g.img);
   for (const name of ['centre', 'ground-near']) {
-    const b = fileOf(`${name}-before`, info);
-    const a = fileOf(`${name}-after`, info);
-    if (existsSync(b) && existsSync(a))
+    const before = fileOf(`${name}-before`, info);
+    const after = fileOf(`${name}-after`, info);
+    if (existsSync(before) && existsSync(after))
       save(
         `${name}-compare`,
         info,
-        sideBySide(decodePng(readFileSync(b)), decodePng(readFileSync(a))),
+        sideBySide(decodePng(readFileSync(before)), decodePng(readFileSync(after))),
       );
   }
 });
 
 test('the ostrich pair at the nest, a close-up and Standard | HD', async ({ page }, info) => {
   test.skip(VARIANT === 'before', 'this branch only');
-  const t = PAIR.tick;
+  const t = pairTick();
   await heldAt(page, info, query('mon', { birds: false, hold: t }), t);
-  const life = await page.evaluate(() => window.__TM__?.namibLife ?? null);
-  const os = life?.ostriches ?? [];
+  const os = (await lifeOf(page))?.ostriches ?? [];
   expect(os.length).toBe(2);
   const g = await grab(page);
   save('ostriches-pair', info, g.img);
@@ -225,6 +293,8 @@ test('the ostrich pair at the nest, a close-up and Standard | HD', async ({ page
   const box = { cx, cy: foot - tall * 0.55, w: 520, h: tall * 1.5 };
   const std = around(g, box.cx, box.cy, box.w, box.h);
   save('ostriches-closeup', info, scaled(std, n));
+  const nb = nearBox(g.w);
+  const veldStd = around(g, nb.cx, nb.cy + 20, 520, 220);
   // The same held frame in HD (2× art at half scale): same camera, same birds.
   await heldAt(page, info, query('mon', { birds: false, hold: t, gfx: 'hd' }), t);
   await page.waitForFunction(() => window.__TM__?.graphics.loading === 'done', null, {
@@ -237,28 +307,37 @@ test('the ostrich pair at the nest, a close-up and Standard | HD', async ({ page
     info,
     scaled(sideBySide(std, around(hd, box.cx, box.cy, box.w, box.h)), 2),
   );
-  // The ground cover (the veld sheet) close up, Standard | HD: the near sand in front.
-  const w = g.img.width / g.k;
+  // The ground cover (the veld sheet) close up, Standard | HD, left of the gun.
   save(
     'veld-std-hd',
     info,
-    scaled(sideBySide(around(g, w / 2, 960, 560, 230), around(hd, w / 2, 960, 560, 230)), 2),
+    scaled(sideBySide(veldStd, around(hd, nb.cx, nb.cy + 20, 520, 220)), 2),
   );
 });
 
 test('the ostriches running from a nearby shot', async ({ page }, info) => {
   test.skip(VARIANT === 'before', 'this branch only');
   const touch = isTouchProject(info);
-  const at = PAIR.tick;
+  const at = pairTick();
   await boot(page, query('mon', { birds: false }));
   await startHunt(page, touch);
   // In-page watcher: at the pair's tick, tap the sand right of them; hold 18 ticks later.
   await page.evaluate(
     ({ at, isTouch }) => {
-      const w = window as unknown as { __TM_HOLD_AT__?: (t: number) => void; __V17D__?: number };
+      const w = window as unknown as {
+        __TM_HOLD_AT__?: (t: number) => void;
+        __V17D__?: number;
+        __TM__?: {
+          tick: number;
+          designWidth: number;
+          designHeight: number;
+          aimOffsetPx: number;
+          namibLife?: { ostriches: { x: number; y: number }[] } | null;
+        };
+      };
       let frames = 0;
       const loop = (): void => {
-        const g = window.__TM__;
+        const g = w.__TM__;
         const canvas = document.querySelector<HTMLCanvasElement>('#game canvas');
         // Bounded: never more than 20 000 frames (CI's software GL runs slow).
         if (++frames > 20_000) return;
@@ -268,7 +347,7 @@ test('the ostriches running from a nearby shot', async ({ page }, info) => {
           return;
         }
         const x = Math.min(g.designWidth * 0.85, Math.max(...os.map((o) => o.x)) + 120);
-        const y = Math.max(...os.map((o) => o.y)) - 4;
+        const y = Math.max(...os.map((o) => o.y)) - 4 + (isTouch ? g.aimOffsetPx : 0);
         const r = canvas.getBoundingClientRect();
         const init: PointerEventInit = {
           clientX: r.left + (x / g.designWidth) * r.width,
@@ -295,12 +374,9 @@ test('the ostriches running from a nearby shot', async ({ page }, info) => {
     null,
     { timeout: 600_000 },
   );
-  const hold = (await h.jsonValue()) as number;
-  await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) >= t, hold, { timeout: 120_000 });
-  await park(page, touch);
-  await page.waitForTimeout(2000);
-  const os = await page.evaluate(() => window.__TM__?.namibLife?.ostriches ?? []);
-  expect(os.some((o) => o.pose.startsWith('run') || o.pose === 'hiss')).toBe(true);
+  await settleAt(page, touch, (await h.jsonValue()) as number);
+  const os = (await lifeOf(page))?.ostriches ?? [];
+  expect(os.some((o) => o.pose === 'run' || o.pose === 'hiss')).toBe(true);
   const g = await grab(page);
   save('ostriches-running', info, g.img);
   const cx = os.reduce((s, o) => s + o.x, 0) / Math.max(1, os.length);
@@ -308,37 +384,51 @@ test('the ostriches running from a nearby shot', async ({ page }, info) => {
   save('ostriches-running-closeup', info, scaled(around(g, cx, foot - 110, 700, 260), 2));
 });
 
-/** Monday's dawn balloon, its middle within 500 px of the screen centre. */
-const BALLOON = findTick(
-  FULL,
-  'mon',
-  (s) => s.birds.some((b) => b.creature === 'lugballon' && Math.abs(dxOf(s, farSf, b.x)) < 500),
-  EARLIEST,
-);
-
 test('a hot-air balloon drifting by, and its close-up', async ({ page }, info) => {
   test.skip(VARIANT === 'before', 'this branch only');
-  const t = BALLOON.tick;
-  await heldAt(page, info, query('mon', { hold: t }), t);
-  const bs = await page.evaluate(() => window.__TM__?.namibLife?.balloons ?? []);
+  const touch = isTouchProject(info);
+  // Monday's calm dawn always brings one. Found in the page: held as soon as a balloon's
+  // middle is within 500 px of the screen centre.
+  await boot(page, query('mon'));
+  await startHunt(page, touch);
+  await page.evaluate(() => {
+    const w = window as unknown as {
+      __TM_HOLD_AT__?: (t: number) => void;
+      __V17D_B__?: number;
+      __TM__?: {
+        tick: number;
+        designWidth: number;
+        namibLife?: { balloons: { x: number }[] } | null;
+      };
+    };
+    let frames = 0;
+    const loop = (): void => {
+      const g = w.__TM__;
+      if (++frames > 40_000) return;
+      const b = g?.namibLife?.balloons.find((x) => Math.abs(x.x - g.designWidth / 2) < 500);
+      if (g === undefined || b === undefined) {
+        requestAnimationFrame(loop);
+        return;
+      }
+      w.__V17D_B__ = g.tick + 1;
+      w.__TM_HOLD_AT__?.(g.tick + 1);
+    };
+    requestAnimationFrame(loop);
+  });
+  const h = await page.waitForFunction(
+    () => (window as unknown as { __V17D_B__?: number }).__V17D_B__ ?? null,
+    null,
+    { timeout: 720_000 },
+  );
+  await settleAt(page, touch, (await h.jsonValue()) as number);
+  const bs = (await lifeOf(page))?.balloons ?? [];
   expect(bs.length).toBeGreaterThan(0);
   const g = await grab(page);
   save('balloon', info, g.img);
-  const b = bs[0];
+  const b = bs.find((x) => Math.abs(x.x - g.w / 2) < 500) ?? bs[0];
   if (b === undefined) return;
   save('balloon-closeup', info, scaled(around(g, b.x, b.y + 10, 200, 180), 3));
 });
-
-/** Tuesday (the mirage on): the oryx herd within 450 px of the screen centre. */
-function oryxTick(): number {
-  const roam = ORYX_ROAMS['namibie']?.[0];
-  if (roam === undefined) throw new Error('no oryx');
-  const core = coreWidth(farSf);
-  return findTick(QUIET, 'tue', (s) => {
-    const at = roamAt(roam, s.tick / 60, core);
-    return Math.abs(dxOf(s, farSf, at.x)) < 450;
-  }).tick;
-}
 
 test('the oryx in the mirage, and through the Langloop scope', async ({ page }, info) => {
   test.skip(VARIANT === 'before', 'this branch only');
@@ -357,10 +447,9 @@ test('the oryx in the mirage, and through the Langloop scope', async ({ page }, 
       }),
     );
   });
-  const t = oryxTick();
+  const t = await oryxTick();
   await heldAt(page, info, query('tue', { birds: false, hold: t }), t);
-  const life = await page.evaluate(() => window.__TM__?.namibLife ?? null);
-  const herd = life?.oryx[0];
+  const herd = (await lifeOf(page))?.oryx[0];
   expect(herd).toBeDefined();
   const g = await grab(page);
   save('oryx-mirage', info, g.img);
@@ -370,21 +459,21 @@ test('the oryx in the mirage, and through the Langloop scope', async ({ page }, 
   await boot(page, query('tue', { birds: false }));
   await startHunt(page, touch);
   await page.waitForFunction((tt) => (window.__TM__?.tick ?? 0) >= tt, t, { timeout: 600_000 });
-  const x = await page.evaluate(() => window.__TM__?.namibLife?.oryx[0]?.screenX ?? 960);
+  const x = (await lifeOf(page))?.oryx[0]?.screenX ?? 960;
   await page.evaluate(
     ([dx, isTouch]) => {
       const canvas = document.querySelector<HTMLCanvasElement>('#game canvas');
       const g = window.__TM__;
       if (canvas === null || g === undefined) throw new Error('no game');
       const r = canvas.getBoundingClientRect();
+      const px = Math.min(g.designWidth - 300, Math.max(300, dx));
       canvas.dispatchEvent(
         new PointerEvent('pointerdown', {
           pointerId: isTouch ? 141 : 1,
           pointerType: isTouch ? 'touch' : 'mouse',
           button: 0,
           buttons: 1,
-          clientX:
-            r.left + (Math.min(g.designWidth - 300, Math.max(300, dx)) / g.designWidth) * r.width,
+          clientX: r.left + (px / g.designWidth) * r.width,
           clientY: r.top + (585 / g.designHeight) * r.height,
           bubbles: true,
           cancelable: true,
