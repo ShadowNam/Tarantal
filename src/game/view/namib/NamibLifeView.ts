@@ -82,6 +82,8 @@ export class NamibLifeView {
       width,
       this.heat,
     );
+    // The balloons: BirdView leaves drifters out, so this is the only place they are drawn.
+    this.balloons.update(s, prev, alpha, this.opts.audio, width);
   }
 
   /** This frame's events (puffs and sounds). */
