@@ -22,6 +22,7 @@ import {
   type AtlasRef,
   type BirdPlaneEntry,
   type FileRef,
+  sharedTileKeys,
 } from './assetIndex';
 import { mergeHdIndex, parseHdIndex, type HdIndex } from './hdIndex';
 import { texturesInUse } from './textureUse';
@@ -157,8 +158,9 @@ export function loadHd(
     queue(entry.group, () =>
       Promise.all(hd.tiles.map((t) => image(t))).then((imgs) => {
         if (!live() || imgs.some((i) => i === null)) return;
+        const keys = sharedTileKeys(`final:layer/${id}/hd`, hd.tiles);
         const tiles = imgs.map((img, i) => ({
-          key: `final:layer/${id}/hd/${i}`,
+          key: keys[i] ?? `final:layer/${id}/hd/${i}`,
           // Safe: the line above returned if any image is null.
           img: img as HTMLImageElement,
           path: hd.tiles[i]?.path ?? '',

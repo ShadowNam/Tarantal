@@ -56,6 +56,20 @@ const fileRef = z.object({
 });
 export type FileRef = z.infer<typeof fileRef>;
 
+/**
+ * v1.7d (D-059): texture keys of a layer's tiles, `${prefix}/${i}`, where tiles with the same
+ * file (hash) share the first one's key: one texture on the GPU, not one per copy (Namibië's HD
+ * foreground had five identical empty tiles, 3.1 MB each).
+ */
+export function sharedTileKeys(prefix: string, tiles: readonly FileRef[]): string[] {
+  const first = new Map<string, number>();
+  return tiles.map((t, i) => {
+    const j = first.get(t.hash) ?? i;
+    if (j === i) first.set(t.hash, i);
+    return `${prefix}/${String(j)}`;
+  });
+}
+
 const group = z.string().min(1);
 const fraction = z.number().min(0).max(1);
 
