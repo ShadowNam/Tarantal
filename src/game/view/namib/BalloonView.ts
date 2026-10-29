@@ -49,12 +49,17 @@ interface Drawn {
   readonly fist: Phaser.GameObjects.Image;
   hitAt: number | null;
   flaring: boolean;
+  /** The update that last saw it live. */
+  seen: number;
+  /** Its hook entry, reused every frame. */
+  readonly spot: { id: number; x: number; y: number; h: number; burner: number; fist: boolean };
 }
 
 export class BalloonView {
   private readonly frames = balloonFrames();
   private readonly drawn = new Map<number, Drawn>();
   private sheet: Phaser.Textures.Texture | null = null;
+  private frame = 0;
   /** e2e hook: drifters alive in the sim now, and whether the sheet is in to draw them. */
   live = 0;
   sheetReady = false;
@@ -99,7 +104,15 @@ export class BalloonView {
     const fist = this.scene.add.image(b.x, b.y, BALLOON_SHEET, 'fist').setVisible(false);
     // The flame sits in the envelope's mouth, over the basket: drawn behind the envelope.
     layer.fixtures.add([flame, body, fist]);
-    const d: Drawn = { body, flame, fist, hitAt: null, flaring: false };
+    const d: Drawn = {
+      body,
+      flame,
+      fist,
+      hitAt: null,
+      flaring: false,
+      seen: this.frame,
+      spot: { id: b.id, x: 0, y: 0, h: 0, burner: 0, fist: false },
+    };
     this.drawn.set(b.id, d);
     return d;
   }
@@ -112,22 +125,38 @@ export class BalloonView {
     width: number,
   ): void {
     this.spots.length = 0;
-    const live = s.birds.filter((b) => b.creature === BALLOON_CREATURE);
-    this.live = live.length;
+    // One walk over the snapshot's birds (no filtered copies): count and mark the live balloons.
+    const frame = ++this.frame;
+    let live = 0;
+    for (const b of s.birds) {
+      if (b.creature !== BALLOON_CREATURE) continue;
+      live++;
+      const d = this.drawn.get(b.id);
+      if (d !== undefined) d.seen = frame;
+    }
+    this.live = live;
     for (const [id, d] of this.drawn)
-      if (!live.some((b) => b.id === id)) {
+      if (d.seen !== frame) {
         d.body.destroy();
         d.flame.destroy();
         d.fist.destroy();
         this.drawn.delete(id);
       }
     this.sheetReady = this.ensureSheet();
-    if (live.length === 0 || !this.sheetReady) return;
+    if (live === 0 || !this.sheetReady) return;
     const calm = this.reduceFlashes();
-    for (const b of live) {
+    for (const b of s.birds) {
+      if (b.creature !== BALLOON_CREATURE) continue;
       const d = this.drawn.get(b.id) ?? this.add(b);
       if (d === null) continue;
-      const was = prev?.birds.find((x) => x.id === b.id);
+      d.seen = frame;
+      let was: SimBird | undefined;
+      if (prev !== null)
+        for (const x of prev.birds)
+          if (x.id === b.id) {
+            was = x;
+            break;
+          }
       const x = was === undefined ? b.x : was.x + (b.x - was.x) * alpha;
       const y = was === undefined ? b.y : was.y + (b.y - was.y) * alpha;
       const s0 = this.scaleOf(b) / this.tk;
@@ -152,14 +181,13 @@ export class BalloonView {
         .setScale(s0)
         .setRotation(fist ? Math.sin((s.tick - (d.hitAt ?? 0)) * 0.6) * 0.35 : 0);
       const root = this.parallax.plane(b.plane).root;
-      this.spots.push({
-        id: b.id,
-        x: root.x + x * root.scale,
-        y: root.y + y * root.scale,
-        h: d.body.displayHeight * root.scale,
-        burner: level,
-        fist,
-      });
+      const sp = d.spot;
+      sp.x = root.x + x * root.scale;
+      sp.y = root.y + y * root.scale;
+      sp.h = d.body.displayHeight * root.scale;
+      sp.burner = level;
+      sp.fist = fist;
+      this.spots.push(sp);
     }
   }
 

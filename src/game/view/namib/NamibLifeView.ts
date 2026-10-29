@@ -42,6 +42,7 @@ export class NamibLifeView {
   readonly oryx: OryxView;
   readonly balloons: BalloonView;
   private heat = 0;
+  private mirage: boolean | null = null;
 
   constructor(
     scene: Phaser.Scene,
@@ -74,7 +75,11 @@ export class NamibLifeView {
   update(s: SimState, prev: SimState | null, alpha: number, width: number): void {
     this.veld.update(width);
     this.ostriches.update(s, prev, alpha);
-    this.heat = heatOf(s.mirage, this.opts.lightIds());
+    // The heat follows the mirage flag and the hunt's lights: worked out only when it changes.
+    if (s.mirage !== this.mirage) {
+      this.mirage = s.mirage;
+      this.heat = heatOf(s.mirage, this.opts.lightIds());
+    }
     // Reduce flashes or motion: the shimmer holds still (the reflection stays).
     this.oryx.update(
       s.tick,

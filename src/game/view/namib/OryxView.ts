@@ -11,7 +11,23 @@ import { coreWidth } from '../../../sim/world';
 import type { AssetManifest } from '../../assets/AssetManifest';
 import { FaunaView, type FaunaOptions } from '../FaunaView';
 import type { ParallaxView } from '../ParallaxView';
-import { ORYX_REPLACE, ORYX_ROAMS, roamAt, shimmerAt, type OryxRoam } from './oryxRoam';
+import {
+  ORYX_REPLACE,
+  ORYX_ROAMS,
+  roamInto,
+  shimmerInto,
+  type OryxRoam,
+  type RoamPos,
+  type Shimmer,
+} from './oryxRoam';
+
+interface Spot {
+  key: string;
+  x: number;
+  facing: number;
+  mirror: number;
+  screenX: number;
+}
 
 interface Built {
   readonly roam: OryxRoam;
@@ -21,14 +37,22 @@ interface Built {
   readonly herd: FaunaView;
   readonly image: FaunaView;
   readonly root: Phaser.GameObjects.Container;
+  /** Its hook entry and scratch results, reused every frame (no allocation). */
+  readonly spot: Spot;
+  readonly at: RoamPos;
+  readonly sh: Shimmer;
 }
+
+/** A herd further than this (design px) off the screen's edges is not posed. */
+const OFF_SCREEN_PX = 260;
 
 export class OryxView {
   private readonly built: Built[] = [];
   private readonly replaces: string | null;
+  /** The old herd is hidden (once its holder exists; then never touched again). */
+  private replaced = false;
   /** e2e hook: where each herd stands now (layer px) and its reflection's alpha. */
-  readonly spots: { key: string; x: number; facing: number; mirror: number; screenX: number }[] =
-    [];
+  readonly spots: Spot[] = [];
 
   constructor(
     scene: Phaser.Scene,
@@ -49,41 +73,64 @@ export class OryxView {
       layer.root.addAt([mirror, holder], layer.root.getIndex(layer.fruit));
       const herd = new FaunaView(scene, manifest, [roam.herd], core, holder, fauna);
       const image = new FaunaView(scene, manifest, [roam.herd], core, mirror, fauna);
-      this.built.push({ roam, core, holder, mirror, herd, image, root: layer.root });
+      const spot: Spot = { key: roam.herd.key, x: 0, facing: 1, mirror: 0, screenX: 0 };
+      this.spots.push(spot);
+      this.built.push({
+        roam,
+        core,
+        holder,
+        mirror,
+        herd,
+        image,
+        root: layer.root,
+        spot,
+        at: { x: 0, facing: 1, walking: false },
+        sh: { herdDx: 0, mirrorDx: 0, squash: 1, alpha: 0 },
+      });
     }
   }
 
   /** `heat`: oryxRoam.heatOf (the mirage and the light). */
   update(tick: number, calm: boolean, width: number, heat: number): void {
     const t = tick / TICKS_PER_SECOND;
-    // The old far herd stands in the same band: the oryx replace it.
-    if (this.replaces !== null) this.parallax.setHerdVisible(this.replaces, false);
-    this.spots.length = 0;
+    // The old far herd stands in the same band: the oryx replace it (until it is hidden).
+    if (this.replaces !== null && !this.replaced)
+      this.replaced = this.parallax.setHerdVisible(this.replaces, false);
     for (const b of this.built) {
-      const at = roamAt(b.roam, t, b.core);
-      const sh = shimmerAt(t, heat, calm || this.still);
+      const at = roamInto(b.at, b.roam, t, b.core);
+      const sh = shimmerInto(b.sh, t, heat, calm || this.still);
+      const screenX = b.root.x + at.x * b.root.scale;
+      b.spot.x = at.x;
+      b.spot.facing = at.facing;
+      b.spot.screenX = screenX;
+      // Off screen: hidden, not posed.
+      const on = screenX > -OFF_SCREEN_PX && screenX < width + OFF_SCREEN_PX;
+      if (b.holder.visible !== on) b.holder.setVisible(on);
+      if (!on) {
+        if (b.mirror.visible) b.mirror.setVisible(false);
+        b.spot.mirror = 0;
+        continue;
+      }
       // A walker's step-bob on its own beat (none while it stands, or with reduce motion).
       const bob =
         at.walking && !calm && !this.still
           ? -b.roam.bobPx * Math.abs(Math.sin(t * 5.1 + b.roam.phaseSeconds))
           : 0;
       b.holder.setPosition(at.x + sh.herdDx, bob).setScale(at.facing, 1);
-      // The mirror: flipped about the ground line, squashed, its feet `gapPx` below the herd's.
+      b.herd.update(tick, calm, width);
+      // The mirror: flipped about the ground line, squashed, its feet `gapPx` below the herd's;
+      // posed only while the heat shows it.
+      const mirrorOn = sh.alpha > 0.01;
+      if (b.mirror.visible !== mirrorOn) b.mirror.setVisible(mirrorOn);
+      b.spot.mirror = 0;
+      if (!mirrorOn) continue;
       const sq = b.roam.reflect.squash * sh.squash;
       b.mirror
         .setPosition(at.x + sh.mirrorDx, b.roam.herd.y * (1 + sq) + b.roam.reflect.gapPx)
         .setScale(at.facing, -sq)
-        .setAlpha(b.roam.reflect.alpha * sh.alpha)
-        .setVisible(sh.alpha > 0.01);
-      b.herd.update(tick, calm, width);
+        .setAlpha(b.roam.reflect.alpha * sh.alpha);
       b.image.update(tick, calm, width);
-      this.spots.push({
-        key: b.roam.herd.key,
-        x: at.x,
-        facing: at.facing,
-        mirror: b.mirror.visible ? b.mirror.alpha : 0,
-        screenX: b.root.x + at.x * b.root.scale,
-      });
+      b.spot.mirror = b.mirror.alpha;
     }
   }
 

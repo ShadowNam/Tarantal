@@ -230,44 +230,57 @@ export class OstrichView {
     for (const f of s.ostriches) {
       const b = this.built.get(f.id) ?? this.build(f);
       if (b === null) continue;
-      const pf = prev?.ostriches.find((x) => x.id === f.id);
+      let pf: OstrichFamilyView | undefined;
+      if (prev !== null)
+        for (const x of prev.ostriches)
+          if (x.id === f.id) {
+            pf = x;
+            break;
+          }
       const k = f.scale / OSTRICH_ART_SCALE / this.tk;
-      // The sitter covers the eggs: birds drawn after them, the sitter first.
-      const order = [...f.birds].sort(
-        (a, c) => Number(c.sitter && c.pose === 'sit') - Number(a.sitter && a.pose === 'sit'),
-      );
-      for (const bird of order) {
-        let img = b.birds.get(bird.id);
-        if (img === undefined) {
-          img = this.scene.add.image(
-            bird.x,
-            f.ground,
-            OSTRICH_SHEET,
-            ostrichFrame(bird.male, 'stand'),
-          );
-          b.layer.fixtures.add(img);
-          b.birds.set(bird.id, img);
+      // The sitter covers the eggs: birds drawn after them, the sitter first (two passes, no
+      // sorted copy).
+      for (let pass = 0; pass < 2; pass++)
+        for (const bird of f.birds) {
+          const sitting = bird.sitter && bird.pose === 'sit';
+          if ((pass === 0) !== sitting) continue;
+          let img = b.birds.get(bird.id);
+          if (img === undefined) {
+            img = this.scene.add.image(
+              bird.x,
+              f.ground,
+              OSTRICH_SHEET,
+              ostrichFrame(bird.male, 'stand'),
+            );
+            b.layer.fixtures.add(img);
+            b.birds.set(bird.id, img);
+          }
+          b.layer.fixtures.bringToTop(img);
+          let was: (typeof f.birds)[number] | undefined;
+          if (pf !== undefined)
+            for (const x of pf.birds)
+              if (x.id === bird.id) {
+                was = x;
+                break;
+              }
+          const x = was === undefined ? bird.x : was.x + (bird.x - was.x) * alpha;
+          this.poses.set(bird.id, bird.pose);
+          const pose = framePose(bird);
+          const name = ostrichFrame(bird.male, pose);
+          const r = this.rect(name);
+          if (r === undefined) continue;
+          if (img.frame.name !== name) img.setFrame(name);
+          // A looking bird turns its head the way it looks; else it faces where it goes.
+          const facing = bird.pose === 'look' && bird.look !== 0 ? bird.look : bird.facing;
+          const flip = facing < 0;
+          img.setFlipX(flip);
+          img.setOrigin(flip ? 1 - r.ox / r.w : r.ox / r.w, r.oy / r.h);
+          // The display sways a little (on sim time; reduce motion holds it still).
+          const sway =
+            bird.pose === 'display' && !this.reducedMotion ? Math.sin(bird.t * 0.12) * 0.05 : 0;
+          img.setRotation(sway * facing);
+          img.setPosition(x, f.ground).setScale(k);
         }
-        b.layer.fixtures.bringToTop(img);
-        const was = pf?.birds.find((x) => x.id === bird.id);
-        const x = was === undefined ? bird.x : was.x + (bird.x - was.x) * alpha;
-        this.poses.set(bird.id, bird.pose);
-        const pose = framePose(bird);
-        const name = ostrichFrame(bird.male, pose);
-        const r = this.rect(name);
-        if (r === undefined) continue;
-        if (img.frame.name !== name) img.setFrame(name);
-        // A looking bird turns its head the way it looks; else it faces where it goes.
-        const facing = bird.pose === 'look' && bird.look !== 0 ? bird.look : bird.facing;
-        const flip = facing < 0;
-        img.setFlipX(flip);
-        img.setOrigin(flip ? 1 - r.ox / r.w : r.ox / r.w, r.oy / r.h);
-        // The display sways a little (on sim time; reduce motion holds it still).
-        const sway =
-          bird.pose === 'display' && !this.reducedMotion ? Math.sin(bird.t * 0.12) * 0.05 : 0;
-        img.setRotation(sway * facing);
-        img.setPosition(x, f.ground).setScale(k);
-      }
     }
     this.drawPuffs(s.tick);
   }

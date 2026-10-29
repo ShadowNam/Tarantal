@@ -96,24 +96,36 @@ export const ORYX_REPLACE: Readonly<Record<string, string>> = {
   namibie: 'fauna/namibie_gemsbok',
 };
 
-/** The herd's anchor x (layer px) and facing at sim second `t`, on a layer `core` px wide. */
-export function roamAt(
-  r: OryxRoam,
-  t: number,
-  core: number,
-): { x: number; facing: 1 | -1; walking: boolean } {
+export interface RoamPos {
+  x: number;
+  facing: 1 | -1;
+  walking: boolean;
+}
+
+/** roamAt into `out` (the view's per-frame call: no allocation). */
+export function roamInto(out: RoamPos, r: OryxRoam, t: number, core: number): RoamPos {
   const x0 = r.spanU[0] * core;
   const span = (r.spanU[1] - r.spanU[0]) * core;
-  if (span <= 0 || r.pxPerSec <= 0) return { x: x0, facing: 1, walking: false };
+  if (span <= 0 || r.pxPerSec <= 0) {
+    out.x = x0;
+    out.facing = 1;
+    out.walking = false;
+    return out;
+  }
   const cycle = r.walkSeconds + r.pauseSeconds;
   const s = Math.max(0, t + r.phaseSeconds);
   const inCycle = s % cycle;
   const walked = Math.floor(s / cycle) * r.walkSeconds + Math.min(inCycle, r.walkSeconds);
   const d = (walked * r.pxPerSec) % (2 * span);
-  const walking = inCycle < r.walkSeconds;
-  return d < span
-    ? { x: x0 + d, facing: 1, walking }
-    : { x: x0 + 2 * span - d, facing: -1, walking };
+  out.walking = inCycle < r.walkSeconds;
+  out.x = d < span ? x0 + d : x0 + 2 * span - d;
+  out.facing = d < span ? 1 : -1;
+  return out;
+}
+
+/** The herd's anchor x (layer px) and facing at sim second `t`, on a layer `core` px wide. */
+export function roamAt(r: OryxRoam, t: number, core: number): RoamPos {
+  return roamInto({ x: 0, facing: 1, walking: false }, r, t, core);
 }
 
 /** Light presets with no heat on the pan (cool dawn, dusk, cloud): no shimmer, no reflection. */
@@ -130,17 +142,29 @@ export function heatOf(mirage: boolean, lightIds: readonly string[]): number {
  * (px), the reflection's squash wobble and alpha factor. A slow breathe (≥ 3 s, never a flash);
  * still with reduce motion or reduce flashes (the reflection stays, at its mean alpha).
  */
-export function shimmerAt(
-  t: number,
-  h: number,
-  still: boolean,
-): { herdDx: number; mirrorDx: number; squash: number; alpha: number } {
-  if (h <= 0) return { herdDx: 0, mirrorDx: 0, squash: 1, alpha: 0 };
-  if (still) return { herdDx: 0, mirrorDx: 0, squash: 1, alpha: h * 0.7 };
-  return {
-    herdDx: 0.8 * h * Math.sin(t * 2.7),
-    mirrorDx: 2.2 * h * Math.sin(t * 1.9 + 1.1),
-    squash: 1 + 0.12 * h * Math.sin(t * 2.3),
-    alpha: h * (0.55 + 0.45 * Math.sin(t * 2.1)),
-  };
+export interface Shimmer {
+  herdDx: number;
+  mirrorDx: number;
+  squash: number;
+  alpha: number;
+}
+
+/** shimmerAt into `out` (no allocation). */
+export function shimmerInto(out: Shimmer, t: number, h: number, still: boolean): Shimmer {
+  if (h <= 0 || still) {
+    out.herdDx = 0;
+    out.mirrorDx = 0;
+    out.squash = 1;
+    out.alpha = h <= 0 ? 0 : h * 0.7;
+    return out;
+  }
+  out.herdDx = 0.8 * h * Math.sin(t * 2.7);
+  out.mirrorDx = 2.2 * h * Math.sin(t * 1.9 + 1.1);
+  out.squash = 1 + 0.12 * h * Math.sin(t * 2.3);
+  out.alpha = h * (0.55 + 0.45 * Math.sin(t * 2.1));
+  return out;
+}
+
+export function shimmerAt(t: number, h: number, still: boolean): Shimmer {
+  return shimmerInto({ herdDx: 0, mirrorDx: 0, squash: 1, alpha: 0 }, t, h, still);
 }

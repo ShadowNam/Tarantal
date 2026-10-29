@@ -63,7 +63,7 @@ describe('VeldView (v1.7d, D-059)', () => {
   it('bakes the mid and near cover into ≤ 2048-wide strips; the foreground stays images', () => {
     const st = stub();
     const v = new VeldView(st.scene, st.parallax, 'namibie');
-    const all = spots as number[][];
+    const all = spots;
     const fg = all.filter((s) => s[0] === 2).length;
     // A few strip pieces plus the foreground's tufts: never one image per tuft.
     expect(st.dts.length).toBeGreaterThan(0);
