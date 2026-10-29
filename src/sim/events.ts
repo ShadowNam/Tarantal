@@ -101,6 +101,8 @@ export type SimEvent =
       readonly paperId?: number;
       /** v1.7 (D-044): the meerkat it hit (absent everywhere else). */
       readonly meerkatId?: number;
+      /** v1.7d (D-059): the ostrich or nest it hit (absent everywhere else). */
+      readonly ostrichId?: number;
       /** D-048: the Spookjag bat, owl or lantern it hit (absent everywhere else). */
       readonly spookId?: number;
       /** v1.8 (D-050): a tin can (absent everywhere else). */
@@ -480,6 +482,53 @@ export type SimEvent =
       readonly x: number;
       readonly y: number;
       readonly points: number;
+    }
+  /** v1.7d (D-059): an ostrich pair (and its nest) at hunt start. */
+  | {
+      readonly type: 'ostrichesSpawned';
+      readonly tick: number;
+      readonly familyId: string;
+      readonly plane: PlaneId;
+      readonly x: number;
+      readonly y: number;
+      readonly nest: boolean;
+      readonly eggs: number;
+    }
+  /** v1.7d (D-059): an ostrich or its nest was shot: never hurt; the bird hisses and runs off
+   *  (a nest hit: the sitter). points: the penalty (negative), or 0 inside the cooldown. */
+  | {
+      readonly type: 'ostrichHit';
+      readonly tick: number;
+      readonly shotId: number;
+      readonly familyId: string;
+      /** The bird that hisses (the one shot, or the sitter of a shot nest). */
+      readonly ostrichId: number;
+      readonly nest: boolean;
+      readonly plane: PlaneId;
+      readonly x: number;
+      readonly y: number;
+      readonly points: number;
+    }
+  /** v1.7d (D-059): the pair ran from a shot nearby, a loud gun or a hit. */
+  | {
+      readonly type: 'ostrichesRan';
+      readonly tick: number;
+      readonly familyId: string;
+      readonly cause: 'shot' | 'loud' | 'hit';
+      readonly plane: PlaneId;
+      readonly x: number;
+      readonly y: number;
+    }
+  /** v1.7d (D-059): the male fans his wings and booms; or the pair swapped on the nest. */
+  | {
+      readonly type: 'ostrichCall';
+      readonly tick: number;
+      readonly familyId: string;
+      readonly ostrichId: number;
+      readonly call: 'display' | 'swap';
+      readonly plane: PlaneId;
+      readonly x: number;
+      readonly y: number;
     }
   /** The shot meerkat pops its head out of the hole and scolds (points: its hit's). */
   | {

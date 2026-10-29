@@ -414,6 +414,17 @@
     "far": 632,
     "ver": 572
   },
+  "ostriches": [
+    {
+      "$comment": "v1.7d (D-059): the ostrich pair and their nest on the pan edge (the layouts move them, and the calm early-light days bring a second pair).",
+      "id": "nest_pair",
+      "layer": "mid",
+      "u": 0.6,
+      "y": 830,
+      "nest": true,
+      "rangePx": 700
+    }
+  ],
   "layouts": [
     {
       "id": "mon",
@@ -438,6 +449,10 @@
         }
       ],
       "cameraStartU": 0.5,
+      "ostriches": [
+        { "id": "nest_pair", "layer": "mid", "u": 0.58, "y": 830, "nest": true, "rangePx": 700 },
+        { "id": "roaming_pair", "layer": "mid", "u": 0.84, "y": 830, "nest": false, "rangePx": 700 }
+      ],
       "pointsMul": 0.75,
       "planePointsMul": {
         "ver": 0.7
@@ -527,6 +542,9 @@
         }
       ],
       "cameraStartU": 0.3,
+      "ostriches": [
+        { "id": "nest_pair", "layer": "mid", "u": 0.52, "y": 830, "nest": true, "rangePx": 700 }
+      ],
       "pointsMul": 0.75,
       "planePointsMul": {
         "ver": 0.7
@@ -591,6 +609,9 @@
         "flyoversMul": 0.85
       },
       "cameraStartU": 0.55,
+      "ostriches": [
+        { "id": "nest_pair", "layer": "mid", "u": 0.62, "y": 830, "nest": true, "rangePx": 700 }
+      ],
       "pointsMul": 0.75,
       "planePointsMul": {
         "ver": 0.72
@@ -737,6 +758,9 @@
         }
       ],
       "cameraStartU": 0.78,
+      "ostriches": [
+        { "id": "nest_pair", "layer": "mid", "u": 0.4, "y": 830, "nest": true, "rangePx": 700 }
+      ],
       "pointsMul": 0.75,
       "planePointsMul": {
         "ver": 0.65
@@ -829,6 +853,9 @@
         }
       ],
       "cameraStartU": 0.6,
+      "ostriches": [
+        { "id": "nest_pair", "layer": "mid", "u": 0.64, "y": 830, "nest": true, "rangePx": 700 }
+      ],
       "pointsMul": 0.75,
       "planePointsMul": {
         "ver": 0.5
@@ -930,6 +957,9 @@
         }
       ],
       "cameraStartU": 0.5,
+      "ostriches": [
+        { "id": "nest_pair", "layer": "mid", "u": 0.6, "y": 830, "nest": true, "rangePx": 700 }
+      ],
       "planePointsMul": {
         "ver": 0.5
       },
@@ -994,6 +1024,10 @@
         }
       ],
       "cameraStartU": 0.45,
+      "ostriches": [
+        { "id": "nest_pair", "layer": "mid", "u": 0.56, "y": 830, "nest": true, "rangePx": 700 },
+        { "id": "roaming_pair", "layer": "mid", "u": 0.84, "y": 830, "nest": false, "rangePx": 700 }
+      ],
       "pointsMul": 0.75,
       "planePointsMul": {
         "ver": 0.68

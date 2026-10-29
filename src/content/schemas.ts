@@ -465,6 +465,67 @@ export const MeerkatsSchema = obj({
 });
 export type MeerkatTuning = z.infer<typeof MeerkatsSchema>;
 
+/** v1.7d (D-059): an ellipse hit shape (design px at plane scale 1; oy up from the feet < 0). */
+const ellipseBox = obj({ rx: pos, ry: pos, ox: z.number(), oy: z.number() });
+
+/**
+ * v1.7d (D-059): Namibië's ostriches (GDD §11.3c, Tech §3.12b). Non-targets like the meerkats:
+ * never hurt. Sizes and speeds are design px at plane scale 1 (scaled by the family's plane);
+ * times in seconds. Where the families stand is in the biome file (ostriches, per layout).
+ */
+export const OstrichesSchema = obj({
+  /** Standing height to the top of the head (plane scale 1): the view draws to it. */
+  heightPx: pos,
+  hitboxes: obj({
+    stand: obj({ body: ellipseBox, neck: ellipseBox }),
+    sit: obj({ body: ellipseBox, neck: ellipseBox }),
+    nest: ellipseBox,
+  }),
+  eggs: range(z.number().int().min(1).max(20)),
+  walkPxPerSec: pos,
+  runPxPerSec: pos,
+  /** A guard's activity weights (display: the male only). */
+  activities: obj({ walk: nonNeg, peck: nonNeg, look: nonNeg, stand: nonNeg, display: nonNeg }),
+  activitySeconds: obj({
+    peck: range(pos),
+    look: range(pos),
+    stand: range(pos),
+    display: range(pos),
+  }),
+  /** How long the sitter keeps its head still before turning it. */
+  sitLookSeconds: range(pos),
+  /** Time between the pair's swaps on the nest. */
+  swapSeconds: range(pos),
+  /** How far the guard wanders from the nest (plane scale 1). */
+  guardRadiusPx: pos,
+  scare: obj({
+    /** A pellet within radiusPx (on the family's plane, from its range) sends it running. */
+    radiusPx: pos,
+    runSeconds: range(pos),
+    watchSeconds: range(pos),
+  }),
+  hit: obj({
+    penalty: posInt,
+    cooldownSeconds: pos,
+    hissSeconds: pos,
+    barkKey: i18nKey,
+  }),
+});
+export type OstrichTuning = z.infer<typeof OstrichesSchema>;
+
+/** v1.7d (D-059): an ostrich pair (and maybe its nest) on one layer of a map. */
+export const OstrichFamilySchema = obj({
+  id,
+  layer: id,
+  u: fraction,
+  /** The ground line under their feet (design px). */
+  y: z.number(),
+  nest: z.boolean(),
+  /** How far either side of u they roam (plane scale 1). */
+  rangePx: pos,
+});
+export type OstrichFamily = z.infer<typeof OstrichFamilySchema>;
+
 export const BirdsSchema = obj({
   version,
   flockDefaults: obj({
@@ -537,6 +598,8 @@ export const BirdsSchema = obj({
   cans: CansSchema,
   /** 1.9.3 (D-056): makalani palms and their nuts (the Okavango). */
   makalani: MakalaniSchema,
+  /** v1.7d (D-059): Namibië's ostriches (behaviour and rules). */
+  ostriches: OstrichesSchema,
 });
 export type Birds = z.infer<typeof BirdsSchema>;
 
@@ -1129,6 +1192,8 @@ const mapOverrideShape = {
   ver: z.boolean().optional(),
   /** v1.7 (D-044): the map's meerkat colonies, replacing the biome's (1–2 on the desert maps). */
   colonies: z.array(ColonySchema).max(2).optional(),
+  /** v1.7d (D-059): the map's ostrich pairs, replacing the biome's. */
+  ostriches: z.array(OstrichFamilySchema).max(2).optional(),
 };
 
 export const LayoutSchema = obj({
@@ -1335,6 +1400,8 @@ export const BiomeSchema = obj({
   cameraStartU: fraction.optional(),
   /** v1.7 (D-044): meerkat colonies (layouts may replace them; absent = none). */
   colonies: z.array(ColonySchema).max(2).optional(),
+  /** v1.7d (D-059): ostrich pairs (layouts may replace them; absent = none). */
+  ostriches: z.array(OstrichFamilySchema).max(2).optional(),
   /** v1.8 (D-050): a fence's ground line per plane (design px), for the layouts' fences. */
   fenceY: somePlanes(z.number()).optional(),
   /** 1.9.3 (D-056): the ground line makalani palms stand on, per plane (design px). */

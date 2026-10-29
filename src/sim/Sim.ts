@@ -116,6 +116,7 @@ import type {
   BirdView,
   CansView,
   ColonyView,
+  OstrichFamilyView,
   Command,
   FlockState,
   HuntResult,
@@ -184,6 +185,15 @@ import {
   type ColonyCtx,
   type ColonyState,
 } from './meerkats/colony';
+import {
+  createFamily,
+  nestShape,
+  scareFamily,
+  shapesOf,
+  stepFamily,
+  type OstrichCtx,
+  type OstrichFamilyState,
+} from './ostriches/ostriches';
 
 export { FAMILIEFOTO_SECRET };
 
@@ -873,6 +883,30 @@ export function createSim(config: SimConfig): Sim {
       );
     }
   }
+  // v1.7d (D-059): Namibië's ostrich pairs, from their own stream (none in the Skietbaan).
+  const os = content.birds.ostriches;
+  const ostrichRng = rng.stream('ostriches');
+  let nextOstrichId = 1;
+  const families: OstrichFamilyState[] = [];
+  if (!ranged) {
+    for (const def of biome.ostriches ?? []) {
+      const layer = layerById.get(def.layer);
+      const plane = layer?.plane;
+      if (layer === undefined || plane === undefined) continue;
+      families.push(
+        createFamily(
+          def,
+          { id: layer.id, scrollFactor: layer.scrollFactor, plane },
+          scoring.planes[plane].scale,
+          os,
+          ostrichRng,
+          () => nextOstrichId++,
+        ),
+      );
+    }
+  }
+  const osCooldownTicks = secondsToTicks(os.hit.cooldownSeconds);
+  const ostrichCtx: OstrichCtx = { tuning: os, rng: ostrichRng };
   const mkCalmTicks = secondsToTicks(mk.calmSeconds);
   const mkCooldownTicks = secondsToTicks(mk.hit.cooldownSeconds);
   const mkHoldTicks = secondsToTicks(mk.familiefoto.holdSeconds);
@@ -992,6 +1026,17 @@ export function createSim(config: SimConfig): Sim {
       x: c.cx,
       y: c.ground,
       family: c.meerkats.length,
+    });
+  for (const f of families)
+    emit({
+      type: 'ostrichesSpawned',
+      tick: 0,
+      familyId: f.id,
+      plane: f.plane,
+      x: f.nest?.x ?? (f.left + f.right) / 2,
+      y: f.ground,
+      nest: f.nest !== null,
+      eggs: f.nest?.eggs ?? 0,
     });
   if (wind !== null) emit({ type: 'windChanged', tick: 0, dir: wind.dir, strength: wind.strength });
   if (spook !== null && setup.feesdag !== null)
@@ -1462,6 +1507,27 @@ export function createSim(config: SimConfig): Sim {
           });
       }
     }
+    // v1.7d (D-059): the ostriches (in front of their nest), then the nests.
+    for (const f of families) {
+      for (const b of f.birds)
+        for (const sh of shapesOf(b.pose, os))
+          add(f.layerId, {
+            kind: 'ostrich',
+            ostrichId: b.id,
+            x: b.x + sh.ox * f.scale * b.facing,
+            y: f.ground + sh.oy * f.scale,
+            shape: { type: 'ellipse', rx: sh.rx * f.scale, ry: sh.ry * f.scale },
+          });
+      const n = nestShape(f, os);
+      if (n !== null && f.nest !== null)
+        add(f.layerId, {
+          kind: 'ostrich',
+          ostrichId: f.nest.id,
+          x: n.x,
+          y: n.y,
+          shape: { type: 'ellipse', rx: n.rx, ry: n.ry },
+        });
+    }
     for (const p of papers) {
       const layerId = planeLayer.get(p.plane);
       if (layerId === undefined) continue;
@@ -1593,7 +1659,7 @@ export function createSim(config: SimConfig): Sim {
     const landedFar =
       r.birdId !== null
         ? plane === 'far' || plane === 'ver'
-        : r.meerkatId !== undefined
+        : r.meerkatId !== undefined || r.ostrichId !== undefined
           ? false
           : r.canId !== undefined
             ? thingPlane(r.canId) === 'far' || thingPlane(r.canId) === 'ver'
@@ -1617,6 +1683,7 @@ export function createSim(config: SimConfig): Sim {
       crateId: r.crateId,
       ...(r.paperId === undefined ? {} : { paperId: r.paperId }),
       ...(r.meerkatId === undefined ? {} : { meerkatId: r.meerkatId }),
+      ...(r.ostrichId === undefined ? {} : { ostrichId: r.ostrichId }),
       ...(r.spookId === undefined ? {} : { spookId: r.spookId }),
       ...(r.canId === undefined ? {} : { canId: r.canId }),
       ...(cx === null ? {} : { cx }),
@@ -1782,6 +1849,7 @@ export function createSim(config: SimConfig): Sim {
           r.crateId !== null ||
           r.paperId !== undefined ||
           r.meerkatId !== undefined ||
+          r.ostrichId !== undefined ||
           r.canId !== undefined ||
           f.next >= bands.length;
         if (!stopped) continue;
@@ -1837,6 +1905,7 @@ export function createSim(config: SimConfig): Sim {
     const partHits: { propId: string; partId: string }[] = [];
     const crateHits: number[] = [];
     const meerkatHits: number[] = [];
+    const ostrichHits: number[] = [];
     const spookHits: number[] = [];
     /** v1.8: pellets per tin can, their summed offsets and the dents (in landing order). */
     const canHits = new Map<
@@ -1878,6 +1947,8 @@ export function createSim(config: SimConfig): Sim {
       if (crateId !== null && !crateHits.includes(crateId)) crateHits.push(crateId);
       if (r.meerkatId !== undefined && !meerkatHits.includes(r.meerkatId))
         meerkatHits.push(r.meerkatId);
+      if (r.ostrichId !== undefined && !ostrichHits.includes(r.ostrichId))
+        ostrichHits.push(r.ostrichId);
       if (r.spookId !== undefined && !spookHits.includes(r.spookId)) spookHits.push(r.spookId);
       if (r.canId !== undefined) {
         const h = canHits.get(r.canId) ?? { n: 0, dx: 0, dy: 0, at: [] };
@@ -1928,6 +1999,7 @@ export function createSim(config: SimConfig): Sim {
       crateHits.length > 0 ||
       paperHits > 0 ||
       meerkatHits.length > 0 ||
+      ostrichHits.length > 0 ||
       spookHits.length > 0 ||
       canHits.size > 0;
 
@@ -2103,6 +2175,7 @@ export function createSim(config: SimConfig): Sim {
     const radius =
       shot.alertRadiusPx * pass.alertRadiusMul * (miss ? pass.missAlertMul : 1) * rainMul;
     shotAtColonies(shotId, meerkatHits, impacts, shotCx, radius > 0, shot.alertsAllFlocks);
+    shotAtOstriches(shotId, ostrichHits, impacts, shotCx, radius > 0, shot.alertsAllFlocks);
     const near = shotThreats(flocks, impacts, shotCx, radius, planeGeo, baggedFlockIds);
     threaten(near, radius > 0 ? 'shot' : 'silentBag');
     // v1.4 (D-038): a very loud gun alerts every other flock too (unless a charm or the rain
@@ -2684,6 +2757,131 @@ export function createSim(config: SimConfig): Sim {
     }
   }
 
+  // --- ostriches (v1.7d, D-059) ------------------------------------------------------------
+  /** A shot's ostrich and nest hits (points off, cooldown), then which pairs run: the hit one,
+   *  every one for a loud gun, any with an impact within scare.radiusPx of a bird or the nest
+   *  on its plane. A silenced shot only scares the pair it hit. */
+  function shotAtOstriches(
+    shotId: number,
+    hits: readonly number[],
+    impacts: readonly { dx: number; sy: number }[],
+    cx: number,
+    heard: boolean,
+    loud: boolean,
+  ): void {
+    if (families.length === 0) return;
+    const ran = new Set<OstrichFamilyState>();
+    for (const id of hits) {
+      const f = families.find((x) => x.nest?.id === id || x.birds.some((b) => b.id === id));
+      if (f === undefined || ran.has(f)) continue;
+      const nestX = f.nest !== null && f.nest.id === id ? f.nest.x : null;
+      const nest = nestX !== null;
+      const bird = nest
+        ? (f.birds.find((b) => b.sitter) ?? f.birds[0])
+        : f.birds.find((b) => b.id === id);
+      if (bird === undefined) continue;
+      const points = f.cooldown > 0 ? 0 : -os.hit.penalty;
+      if (points < 0) {
+        score += points;
+        stats.penalties++;
+        f.cooldown = osCooldownTicks;
+      }
+      emit({
+        type: 'ostrichHit',
+        tick,
+        shotId,
+        familyId: f.id,
+        ostrichId: bird.id,
+        nest,
+        plane: f.plane,
+        x: nestX ?? bird.x,
+        y: f.ground,
+        points,
+      });
+      scareFamily(f, nestX ?? bird.x, ostrichCtx, bird);
+      ran.add(f);
+      emit({
+        type: 'ostrichesRan',
+        tick,
+        familyId: f.id,
+        cause: 'hit',
+        plane: f.plane,
+        x: bird.x,
+        y: f.ground,
+      });
+    }
+    if (!heard) return;
+    for (const f of families) {
+      if (ran.has(f)) continue;
+      let from: number | null = null;
+      if (loud) from = tapToPlane(cx, f.scrollFactor, 0, f.ground).x;
+      else {
+        const r = os.scare.radiusPx * f.scale;
+        const xs = [...f.birds.map((b) => b.x), ...(f.nest === null ? [] : [f.nest.x])];
+        for (const imp of impacts) {
+          const p = tapToPlane(cx, f.scrollFactor, imp.dx, imp.sy);
+          const dy = Math.max(
+            0,
+            Math.abs(p.y - (f.ground - (os.heightPx * f.scale) / 2)) - (os.heightPx * f.scale) / 2,
+          );
+          if (xs.some((x) => (x - p.x) * (x - p.x) + dy * dy <= r * r)) {
+            from = p.x;
+            break;
+          }
+        }
+      }
+      if (from === null) continue;
+      scareFamily(f, from, ostrichCtx, null);
+      emit({
+        type: 'ostrichesRan',
+        tick,
+        familyId: f.id,
+        cause: loud ? 'loud' : 'shot',
+        plane: f.plane,
+        x: from,
+        y: f.ground,
+      });
+    }
+  }
+
+  function stepOstriches(): void {
+    for (const f of families)
+      for (const note of stepFamily(f, ostrichCtx)) {
+        if (note.kind === 'back') continue;
+        emit({
+          type: 'ostrichCall',
+          tick,
+          familyId: f.id,
+          ostrichId: note.bird.id,
+          call: note.kind,
+          plane: f.plane,
+          x: note.bird.x,
+          y: f.ground,
+        });
+      }
+  }
+
+  function ostrichView(f: OstrichFamilyState): OstrichFamilyView {
+    return {
+      id: f.id,
+      layerId: f.layerId,
+      plane: f.plane,
+      scale: f.scale,
+      ground: f.ground,
+      nest: f.nest === null ? null : { id: f.nest.id, x: f.nest.x, eggs: f.nest.eggs },
+      birds: f.birds.map((b) => ({
+        id: b.id,
+        male: b.male,
+        x: b.x,
+        facing: b.facing,
+        pose: b.pose,
+        t: b.t,
+        look: b.look,
+        sitter: b.sitter,
+      })),
+    };
+  }
+
   function stepColonies(): void {
     for (const c of colonies) {
       for (const note of stepColony(c, colonyCtx())) {
@@ -3046,6 +3244,7 @@ export function createSim(config: SimConfig): Sim {
   /** Flocks and birds move one step (skipped every other tick under Boeretroos). */
   function stepCreatures(): void {
     stepColonies();
+    stepOstriches();
     const exitedMembers: Bird[] = [];
     for (const f of flocks) {
       emitTransition(f, tickFsm(f, fParams, flockRng));
@@ -3355,6 +3554,7 @@ export function createSim(config: SimConfig): Sim {
         secrets: secrets.map(secretView),
         crates: crates.map(crateView),
         meerkats: colonies.map(colonyView),
+        ostriches: families.map(ostrichView),
         powerups: powerups.map(powerupView),
         wind: windView(wind),
         dustDevils: dustDevils.map(dustDevilView),

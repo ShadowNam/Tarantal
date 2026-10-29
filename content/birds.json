@@ -747,5 +747,40 @@
         "top": 1020
       }
     }
+  },
+  "ostriches": {
+    "$comment": "v1.7d (D-059): Namibië's ostriches — a black-and-white male and a grey-brown female, most maps with their nest. Non-targets: never hurt; a hit (bird or nest) costs the penalty with the meerkats' 2 s cooldown, the bird hisses and runs; a nearby shot or a loud gun sends the pair running, and they come back. Sizes and speeds are design px at plane scale 1 (× the family's plane scale: 470 → 197 px tall on the mid plane, about the D-054 far-ostrich proportion); times in seconds. Where the pairs stand is in the biome file.",
+    "heightPx": 470,
+    "hitboxes": {
+      "stand": {
+        "body": { "rx": 120, "ry": 80, "ox": 0, "oy": -280 },
+        "neck": { "rx": 28, "ry": 100, "ox": 80, "oy": -385 }
+      },
+      "sit": {
+        "body": { "rx": 140, "ry": 70, "ox": 0, "oy": -72 },
+        "neck": { "rx": 26, "ry": 75, "ox": 92, "oy": -175 }
+      },
+      "nest": { "rx": 170, "ry": 34, "ox": 0, "oy": -12 }
+    },
+    "eggs": [8, 15],
+    "walkPxPerSec": 140,
+    "runPxPerSec": 1000,
+    "activities": { "walk": 2, "peck": 3, "look": 2, "stand": 1.5, "display": 0.6 },
+    "activitySeconds": {
+      "peck": [2, 5],
+      "look": [2, 4],
+      "stand": [1.5, 3.5],
+      "display": [2.5, 4]
+    },
+    "sitLookSeconds": [2, 5],
+    "swapSeconds": [25, 45],
+    "guardRadiusPx": 520,
+    "scare": {
+      "$comment": "radiusPx: plane px on the pair's own plane, from the nearest bird or the nest.",
+      "radiusPx": 700,
+      "runSeconds": [1.2, 2],
+      "watchSeconds": [2, 3.5]
+    },
+    "hit": { "penalty": 10, "cooldownSeconds": 2, "hissSeconds": 0.6, "barkKey": "bark.ostrich" }
   }
 }

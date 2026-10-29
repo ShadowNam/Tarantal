@@ -1,6 +1,7 @@
 // Public sim types (Tech §3.1). The Phaser layer, tools and replays depend on these shapes.
 import type { ContentBundle } from '../content/schemas';
 import type { ColonyPhase, MeerkatPose } from './meerkats/colony';
+import type { OstrichPose } from './ostriches/ostriches';
 import type { RangeProgramFactory } from './range/types';
 
 /** v1.3 (D-036): `ver` is the distant band behind the far plane; only rifles reach it. */
@@ -242,6 +243,31 @@ export interface ColonyView {
   readonly meerkats: readonly MeerkatView[];
 }
 
+/** v1.7d (D-059): one ostrich as the view sees it. */
+export interface OstrichView {
+  readonly id: number;
+  readonly male: boolean;
+  readonly x: number;
+  readonly facing: 1 | -1;
+  readonly pose: OstrichPose;
+  /** Ticks in the pose (the view's walk cycle and wing flaps run on it). */
+  readonly t: number;
+  readonly look: -1 | 0 | 1;
+  readonly sitter: boolean;
+}
+
+/** v1.7d (D-059): an ostrich pair and its nest (Namibië). */
+export interface OstrichFamilyView {
+  readonly id: string;
+  readonly layerId: string;
+  readonly plane: PlaneId;
+  readonly scale: number;
+  readonly ground: number;
+  readonly nest: { readonly id: number; readonly x: number; readonly eggs: number } | null;
+  /** Sorted by id (the male first). */
+  readonly birds: readonly OstrichView[];
+}
+
 export interface CrateView {
   readonly id: number;
   readonly plane: PlaneId;
@@ -346,6 +372,8 @@ export interface SimState {
   readonly crates: readonly CrateView[];
   /** v1.7 (D-044): the map's meerkat colonies (none outside the desert maps). */
   readonly meerkats: readonly ColonyView[];
+  /** v1.7d (D-059): the map's ostrich pairs (none outside Namibië). */
+  readonly ostriches: readonly OstrichFamilyView[];
   readonly powerups: readonly PowerupView[];
   /** Null when the omen is off or the biome has no wind. */
   readonly wind: WindView | null;

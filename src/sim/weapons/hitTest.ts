@@ -121,6 +121,8 @@ export interface PelletResult {
   readonly paperId?: number;
   /** v1.7 (D-044): a meerkat of a desert colony (absent everywhere else). */
   readonly meerkatId?: number;
+  /** v1.7d (D-059): an ostrich or an ostrich nest (Namibië; absent everywhere else). */
+  readonly ostrichId?: number;
   /** D-048: a Spookjag bat, owl or lantern (absent everywhere else). */
   readonly spookId?: number;
   /** v1.8 (D-050): a tin can, and where the pellet struck it from its centre (plane px). */
@@ -139,6 +141,7 @@ export function isTarget(r: PelletResult): boolean {
     r.partId !== null ||
     r.paperId !== undefined ||
     r.meerkatId !== undefined ||
+    r.ostrichId !== undefined ||
     r.spookId !== undefined ||
     (r.canId !== undefined && r.passThrough !== true)
   );
@@ -192,6 +195,14 @@ export type HitExtra =
   | {
       readonly kind: 'meerkat';
       readonly meerkatId: number;
+      readonly x: number;
+      readonly y: number;
+      readonly shape: OccluderShape;
+    }
+  /** v1.7d (D-059): an ostrich's body or neck, or its nest (a non-target: points off). */
+  | {
+      readonly kind: 'ostrich';
+      readonly ostrichId: number;
       readonly x: number;
       readonly y: number;
       readonly shape: OccluderShape;
@@ -268,6 +279,7 @@ export function resolvePellet(
       if (!pointInOccluder(p.x, p.y, { propId: '', x: e.x, y: e.y, shape: e.shape })) continue;
       if (e.kind === 'paper') return after({ ...NOTHING, paperId: e.paperId });
       if (e.kind === 'meerkat') return after({ ...NOTHING, meerkatId: e.meerkatId });
+      if (e.kind === 'ostrich') return after({ ...NOTHING, ostrichId: e.ostrichId });
       if (e.kind === 'spook') return after({ ...NOTHING, spookId: e.spookId });
       return after(
         e.kind === 'crate'
@@ -379,6 +391,7 @@ export function resolvePattern(
       p.r.crateId !== null ||
       p.r.partId !== null ||
       p.r.meerkatId !== undefined ||
+      p.r.ostrichId !== undefined ||
       p.r.spookId !== undefined ||
       (p.r.canId !== undefined && p.r.passThrough !== true),
   );

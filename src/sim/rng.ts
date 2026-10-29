@@ -58,7 +58,9 @@ export type StreamName =
   // v1.8 (D-050): tin cans (a kick's sideways jitter).
   | 'cans'
   // 1.9.3 (D-056): makalani nuts (cluster sizes, colours, a kick's jitter).
-  | 'nuts';
+  | 'nuts'
+  // v1.7d (D-059): Namibië's ostriches (eggs, activities, swaps, runs).
+  | 'ostriches';
 
 /** A stream's members are closures, so they are safe to pass around detached. */
 export interface RandomStream {

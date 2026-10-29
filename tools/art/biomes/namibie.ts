@@ -1350,8 +1350,21 @@ function panGrass(seed: number) {
   // v1.7d (D-059): a low sand mound held by bushman grass: big clumps with plumes, no ink.
   return (ctx: PropCtx): string => {
     const look = namibLook(ctx);
-    const mound = mix(ctx.c('sandLight'), ctx.c('sand'), 0.35);
+    const moundFill = mix(ctx.c('sandLight'), ctx.c('sand'), 0.35);
     const grad = nextId();
+    const clip = nextId();
+    const mound = smoothD(
+      [
+        [-150, 130],
+        [-122, 100],
+        [-44, 86],
+        [58, 88],
+        [128, 100],
+        [150, 130],
+      ],
+      true,
+      0.7,
+    );
     const parts: string[] = [
       el(
         'defs',
@@ -1359,32 +1372,20 @@ function panGrass(seed: number) {
         el(
           'linearGradient',
           { id: grad, x1: 0, y1: 84, x2: 0, y2: 132, gradientUnits: 'userSpaceOnUse' },
-          el('stop', { offset: 0, 'stop-color': mix(mound, '#FFE6C8', 0.3) }),
-          el('stop', { offset: 1, 'stop-color': mix(mound, ctx.c('sandDark'), 0.5) }),
+          el('stop', { offset: 0, 'stop-color': mix(moundFill, '#FFE6C8', 0.3) }),
+          el('stop', { offset: 1, 'stop-color': mix(moundFill, ctx.c('sandDark'), 0.5) }),
         ),
       ),
       flat(ellipseD(10, 128, 165, 10), look.shadow, { opacity: 0.25 }),
-      flat(
-        smoothD(
-          [
-            [-150, 130],
-            [-122, 100],
-            [-44, 86],
-            [58, 88],
-            [128, 100],
-            [150, 130],
-          ],
-          true,
-          0.7,
-        ),
-        `url(#${grad})`,
-      ),
-      sandTexture(ctx.rnd, -130, 130, 96, 128, look, 0.9),
+      flat(mound, `url(#${grad})`),
+      // The sand's texture stays on the mound.
+      el('clipPath', { id: clip }, el('path', { d: mound })),
+      g({ 'clip-path': `url(#${clip})` }, sandTexture(ctx.rnd, -130, 130, 96, 128, look, 0.9)),
     ];
     for (let k = 0; k < 6; k++) {
-      const x = -100 + k * 40 + (ctx.rnd() - 0.5) * 16 + (seed % 2) * 8;
-      const hh = 110 + ctx.rnd() * 60 - Math.abs(k - 2.5) * 12;
-      parts.push(bushmanClump(ctx.rnd, x, 112 + ctx.rnd() * 10, hh, look, { spread: 0.7 }));
+      const x = -70 + k * 28 + (ctx.rnd() - 0.5) * 12 + (seed % 2) * 6;
+      const hh = 95 + ctx.rnd() * 45 - Math.abs(k - 2.5) * 10;
+      parts.push(bushmanClump(ctx.rnd, x, 112 + ctx.rnd() * 10, hh, look, { spread: 0.5 }));
     }
     return g({}, ...parts);
   };
@@ -1447,7 +1448,8 @@ export const NAMIBIE_PLAN: BiomeArtPlan = {
       // v1.7d (D-059): 1× in Standard, its 2× twin in the HD pack (room for the veld life).
       master: 1,
       wobble: false,
-      frame: { w: 230, h: 240, ox: 115, oy: 200 },
+      // v1.7d (D-059): its occluder reaches 70 px below the foot; at 1× the frame must hold it.
+      frame: { w: 230, h: 272, ox: 115, oy: 200 },
     },
     'namibie/quiver_tree': {
       draw: quiverProp,

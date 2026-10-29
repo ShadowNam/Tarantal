@@ -573,12 +573,12 @@
     },
     "namibie/camelthorn_young": {
       "file": {
-        "path": "assets/namibie-hd/img/namibie_camelthorn_young.00643c914136.png",
-        "bytes": 34118,
-        "hash": "00643c914136"
+        "path": "assets/namibie-hd/img/namibie_camelthorn_young.48734e427e01.png",
+        "bytes": 34300,
+        "hash": "48734e427e01"
       },
       "width": 460,
-      "height": 480,
+      "height": 544,
       "scale": 0.5
     },
     "namibie/nest_camelthorn": {
@@ -593,9 +593,9 @@
     },
     "namibie/pan_grass_a": {
       "file": {
-        "path": "assets/namibie-hd/img/namibie_pan_grass_a.7a3132e34ad5.png",
-        "bytes": 72782,
-        "hash": "7a3132e34ad5"
+        "path": "assets/namibie-hd/img/namibie_pan_grass_a.401cd1315cb8.png",
+        "bytes": 55859,
+        "hash": "401cd1315cb8"
       },
       "width": 720,
       "height": 760,
@@ -603,9 +603,9 @@
     },
     "namibie/pan_grass_b": {
       "file": {
-        "path": "assets/namibie-hd/img/namibie_pan_grass_b.e17185cc7ec9.png",
-        "bytes": 91907,
-        "hash": "e17185cc7ec9"
+        "path": "assets/namibie-hd/img/namibie_pan_grass_b.d50ec01959cc.png",
+        "bytes": 59612,
+        "hash": "d50ec01959cc"
       },
       "width": 760,
       "height": 760,
