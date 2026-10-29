@@ -68,9 +68,9 @@
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/bushveld_boulder_a.692a76f95665.png",
-        "bytes": 11064,
-        "hash": "692a76f95665"
+        "path": "assets/bushveld-winter/img/bushveld_boulder_a.416cdbf9a81f.png",
+        "bytes": 9468,
+        "hash": "416cdbf9a81f"
       },
       "width": 310,
       "height": 244
@@ -79,9 +79,9 @@
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/bushveld_boulder_b.7acd92f7ca33.png",
-        "bytes": 9703,
-        "hash": "7acd92f7ca33"
+        "path": "assets/bushveld-winter/img/bushveld_boulder_b.912ca4fa2ddc.png",
+        "bytes": 8412,
+        "hash": "912ca4fa2ddc"
       },
       "width": 290,
       "height": 232
@@ -90,9 +90,9 @@
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/bushveld_boulder_crack.bd59ee4896df.png",
-        "bytes": 12633,
-        "hash": "bd59ee4896df"
+        "path": "assets/bushveld-winter/img/bushveld_boulder_crack.a660317118cf.png",
+        "bytes": 10626,
+        "hash": "a660317118cf"
       },
       "width": 330,
       "height": 250
@@ -2899,17 +2899,6 @@
       "width": 200,
       "height": 200
     },
-    "fx/glint": {
-      "group": "common",
-      "origin": "interim",
-      "file": {
-        "path": "assets/common/img/fx_glint.a733bf6dd5d1.png",
-        "bytes": 1055,
-        "hash": "a733bf6dd5d1"
-      },
-      "width": 96,
-      "height": 96
-    },
     "fx/grass_tuft": {
       "group": "common",
       "origin": "interim",
@@ -3745,6 +3734,19 @@
       },
       "width": 260,
       "height": 96
+    },
+    "tells/sheet": {
+      "group": "late",
+      "origin": "interim",
+      "file": {
+        "path": "assets/late/img/tells_sheet.77b60a458039.png",
+        "bytes": 17185,
+        "hash": "77b60a458039"
+      },
+      "width": 340,
+      "height": 668,
+      "originX": 0,
+      "originY": 0
     },
     "ui/ammo/diabolo": {
       "group": "common",

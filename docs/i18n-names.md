@@ -239,7 +239,7 @@ These follow the names above (and the toggle brings back their pre-v1.5 text too
 
 | Key | af | en | de | nl | Note |
 |---|---|---|---|---|---|
-| `ftue.secret` | Hmm, Oupa se windpomp… | Hmm, Oupa's wind pump… | Hmm, Oupas Windpumpe… | Hmm, Oupa's windpomp… | |
+| `ftue.secret` | Sien jy die kransvalk op Oupa se windpomp? Hmm… | See the kestrel on Oupa's wind pump? Hmm… | Siehst du den Falken auf Oupas Windpumpe? Hmm… | Zie je de valk op Oupa's windpomp? Hmm… | v1.7e (D-061): the hint points at the windpomp's tell animal |
 | `title.verder_locked` | Klop {quota} om Verder oop te sluit | Beat {quota} to unlock Further | Schlag {quota}, dann ist Weiter frei | Versla {quota} om Verder te openen | |
 | `title.verder_best` | Verder-beste: {score} | Further best: {score} | Weiter-Rekord: {score} | Verder-record: {score} | |
 | `tally.verder_unlocked` | Verder is vandag oop! | Further unlocked for today! | Weiter ist heute frei! | Verder vandaag open! | |

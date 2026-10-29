@@ -221,15 +221,6 @@ function grassTuft(p: SpriteCtx): string {
   return g({}, ...parts);
 }
 
-function glint(p: SpriteCtx): string {
-  return g(
-    {},
-    flat(starD(4, 44, 7), p.c('flashCore')),
-    flat(starD(4, 26, 4, Math.PI / 4), '#FFFFFF', { opacity: 0.85 }),
-    flat(ellipseD(0, 0, 7, 7), '#FFFFFF'),
-  );
-}
-
 function ring(p: SpriteCtx): string {
   // Meerkat Spotter reveal ring: dashed (shape, not colour alone).
   const c = (w: number, col: string) =>
@@ -1415,7 +1406,6 @@ export const SPRITES: readonly SpriteSpec[] = [
   { key: 'fx/bubble', wobble: 2, draw: bubble },
   { key: 'fx/puff', wobble: 1, draw: puff },
   { key: 'fx/grass_tuft', wobble: 1.5, draw: grassTuft },
-  { key: 'fx/glint', wobble: 0, draw: glint },
   { key: 'fx/ring', wobble: 0, draw: ring },
   { key: 'fx/spark', wobble: 1, draw: spark },
   { key: 'crate/box', wobble: 1.5, draw: crateBox },

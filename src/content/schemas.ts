@@ -2015,9 +2015,6 @@ export const FeelSchema = obj({
     /** HUD banners (wing shot, Stampede) and the "DIE HELE SWERM!" stamp. */
     bannerMs: pos,
     stampMs: pos,
-    /** M4: secret hint glints (one per ready secret every glintEveryMs, each lasting glintMs). */
-    glintEveryMs: pos,
-    glintMs: pos,
     /** Wind leaves/dust particles per second at full strength (omen visual flags). */
     windParticlesPerSec: nonNeg,
     /** M8: rain streaks per second while it rains (sun-showers, storm), before the quality tier. */

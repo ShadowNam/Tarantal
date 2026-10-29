@@ -1014,7 +1014,6 @@ export const TEX = {
   cloudTower: 'sky/cloud_tower',
   mark: 'secret/mark',
   markHit: 'secret/mark_hit',
-  glint: 'fx/glint',
   ring: 'fx/ring',
   spark: 'fx/spark',
   crateChute: 'crate/chute',

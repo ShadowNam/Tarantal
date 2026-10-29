@@ -388,7 +388,6 @@ px = 1 design px), and the pack tool warns if it differs. Its origin defaults to
 | `fx/feather` | 24 × 48 | common |
 | `fx/flash` | 200 × 200 | common |
 | `fx/bolt` | 40 × 56 | common |
-| `fx/glint` | 96 × 96 | common |
 | `fx/grass_tuft` | 260 × 110 | common |
 | `fx/leaf` | 28 × 16 | common |
 | `fx/pot` | 140 × 110 | common |

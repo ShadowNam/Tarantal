@@ -1155,15 +1155,6 @@ function m4Specs(): CanvasSpec[] {
       ctx.lineWidth = 5;
       ctx.stroke();
     }),
-    // Hint glint: a four-point sparkle.
-    centred(TEX.glint, 96, 96, (ctx) => {
-      star(ctx, 4, 44, 8);
-      ctx.fillStyle = '#FFF6D5';
-      ctx.fill();
-      star(ctx, 4, 22, 4);
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fill();
-    }),
     // Meerkat Spotter reveal ring (shape, not colour alone: dashed).
     centred(TEX.ring, 200, 200, (ctx) => {
       ctx.setLineDash([18, 10]);
