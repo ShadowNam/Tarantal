@@ -487,7 +487,7 @@ export type MeerkatTuning = z.infer<typeof MeerkatsSchema>;
 const ellipseBox = obj({ rx: pos, ry: pos, ox: z.number(), oy: z.number() });
 
 /**
- * v1.7e (D-061, GDD §6.5): the secrets' tell animals. Sizes are the secret prop's layer px (the
+ * v1.7e (D-061, GDD §11.1c): the secrets' tell animals. Sizes are the secret prop's layer px (the
  * prop is drawn 1:1 on its layer); times in seconds. Each rests, does its small action (an
  * agama's push-ups, a kingfisher's bob) every actEverySeconds for actSeconds, and after a hit
  * is gone for goneSeconds. While its secret is spent (done) it stays away.

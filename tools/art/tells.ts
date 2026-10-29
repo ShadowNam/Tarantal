@@ -1,4 +1,4 @@
-// v1.7e (D-061, art bible §4.7) The secrets' tell animals, interim art: one small, unique,
+// v1.7e (D-061, art bible §5.2) The secrets' tell animals, interim art: one small, unique,
 // biome-accurate creature per secret, four frames each (rest, act_a, act_b, flee), facing right
 // with the feet at the origin, lit from the upper left, soft dark-tone outlines (no black ink).
 // Sizes come from the frame boxes (src/game/view/tell/tellSheet.ts). Drawn at 2×.

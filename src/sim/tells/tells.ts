@@ -1,4 +1,4 @@
-// v1.7e (D-061, GDD §6.5, Tech §3.12c) The secrets' tell animals: the cue that replaced the hint
+// v1.7e (D-061, GDD §11.1c, Tech §3.12c) The secrets' tell animals: the cue that replaced the hint
 // glint. One small, unique creature lives at each secret (the biome file names it under the
 // secret's `tell`) and does its small action every few seconds, so a sharp eye learns "where the
 // agama nods, there's something". A non-target: a hit costs nothing (no points, no Frenzy change);

@@ -127,7 +127,7 @@ Done when
 Scope
 - Biome loader: layers, props, occluders, secrets, events, omen, pacing, spawn tables.
 - Secrets: windpomp (4 blades → reservoir flush), bakkie spare wheel (alarm), potjie (+5 s), fence
-  bell (meerkat spotter). Secret hint glints.
+  bell (meerkat spotter). Secret hint glints (replaced in 1.9.8 by tell animals, D-061).
 - Penalties: Kwêvoël (with ⛔ first-sighting badge), crop sprayer. Hadeda event.
 - Omen: Karoo wind (bird speed ±, far-shot drift, wind sock), dust devils that flush on contact.
 - Generaal Tarentaal appearance (pot knock-off, then bag) once per Classic hunt.

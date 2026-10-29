@@ -250,8 +250,26 @@ koppies `#8E7FA6`, aloe flowers `#E2552C`. Weather: wind sock, dust devils, flyi
 
 **Winter · Bushveld** — frost mist at dawn, baobabs, mopane, granite koppies, red flowering aloes,
 dry pale grass, giraffe silhouettes, dassie on a rock. Palette: sky `#B9D7EA`, grass `#C9B98F`,
-granite `#A8977F` (grey-ochre since v1.6, D-042; the far koppies keep their warm rock), aloe `#E04A2B`, baobab bark `#8D7F74`. Weather: low sun glare (lens flare one side),
+granite `#A8977F` (grey-ochre since v1.6, D-042), aloe `#E04A2B`, baobab bark `#8D7F74`. Weather: low sun glare (lens flare one side),
 breath-fog puffs from birds.
+- *Rocks and middle distance, realistic (1.9.8, D-061; product owner 25 Oct: "the rocks and the
+  middle distances also look a little bit childish, cartoonish"):* **no ink anywhere on the rocks
+  or the ground.** Boulders and koppies (`tools/art/granite.ts`) are weathered granite, rounded
+  but faceted: a soft light-to-shade gradient (lit upper left), darker tones (not a line) toward
+  the rim, a dark undercut and a soft contact shadow, one or two onion-skin exfoliation shells
+  (a lit lip, a shadow under it, fresher pinkish rock where a shell flaked off), black rain
+  streaks down from the crown, warm iron stains, lichen rosettes (orange, grey-green, pale),
+  cracks with a lit edge, a low-contrast granite grain, grass breaking over the foot. **Far
+  hills** (`tools/art/bushHills.ts`) are Waterberg/Limpopo koppies and ridges in three haze rows
+  (each row mixed toward a cool haze `#AEBBC8` and the horizon, never faded by alpha): broken
+  skylines made of tree crowns, grey granite faces and boulder knobs on the crests, gullies in
+  shade, trees as dots thickening toward the foot. **The middle-distance ground**
+  (`tools/art/bushveldGround.ts`): dry winter veld with bare red-earth and pale-grass patches, a
+  game path winding toward the viewer, termite mounds of red earth, dwala (low sheets of bare
+  granite with joints, stains and lichen, grass over their edges) instead of the grey slabs; the
+  ink line between the planes is gone: a lit crest under the edge and grass breaking over it.
+  Patches and crests have crisp edges (a blurred edge costs palette entries and bytes in a
+  128-colour layer). The baobab, the herds and the tree residents are unchanged.
 - *Plants (v1.6, D-042):* the **baobab** (kremetart): a massive smooth grey bottle trunk (lit left,
   shade right, long vertical folds, soft wrinkles), thick limbs splaying up like roots into crooked
   bare winter branches, velvety grey-green pods on long stalks (the secret pod is one of them).
@@ -461,7 +479,8 @@ and flies a round now and then. A near shot scatters them all; they trickle back
 later. One sheet (`desert/colony`, `tools/art/colony.ts`), 1× with an HD twin; on sim time.
 
 ## 5. Props, secrets, crates
-Each secret prop needs: idle, "hint glint" (4-frame shimmer), triggered state, and an occluder shape.
+Each secret prop needs: idle, triggered state, and an occluder shape. (The "hint glint" is gone since
+1.9.8, D-061: each secret has a tell animal instead, §5.2.)
 Crates: wooden ammo crate on a patched canvas parachute (Oupa's initials stencilled).
 Power-up icons (from `4.jpeg`, refined): chilli biltong strip with flame, blue enamel mug with steam,
 bundle of red shells, meerkat with binoculars.
@@ -611,6 +630,20 @@ Semi-realistic (D-035): no dark contours, light from the upper left. Interim art
 - **Filtering:** marks (and, for a plate, its face) are baked per target into a small chain of textures (each level half the
   one above, like mipmaps), and the view shows the level with at least one texel per screen pixel;
   every level, the plate art and the frame filter LINEAR, also on the low tier (whose default is NEAREST).
+
+### 5.2 The secrets' tell animals (1.9.8, D-061)
+One small, unique, biome-accurate creature per secret (GDD §11.1c), drawn in the semi-realistic
+look of the tree residents (§4.2c): lit from the upper left, soft outlines in each surface's own
+darker tone (no black ink), true colours (the agama's blue head, the roller's lilac breast and blue
+wings, the malachite kingfisher's turquoise and red bill, the jacana's chestnut and blue shield).
+Sized about 1.3× true size against their prop so they read at play distance. Four frames each,
+facing right with the feet at the origin: **rest**, **act_a / act_b** (the small action, shown in
+turn: push-ups, a tail flick, a caw), **flee** (flying or running off after a hit). One sheet for
+all (`tells/sheet`, `src/game/view/tell/tellSheet.ts` boxes), drawn at 2× (`tools/art/tells.ts`),
+late group (no area chunk grows). Oupa se Kaart's look: a warm (#FFC46A) fill of the same frame
+18 % bigger behind the animal, at 55 % alpha: a soft glow, never a flash. Placement on each prop is
+checked offline with `npx tsx tools/art/tellPreview.ts <out.png>` (prop art, the tell, the
+secret's part in red and the tell's hit shape in blue).
 
 ## 6. HUD and UI
 

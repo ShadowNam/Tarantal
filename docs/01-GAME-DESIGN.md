@@ -514,6 +514,42 @@ shot scatters them; they trickle back. Shooting the nest still costs 10 (every 2
 Residents never score, never block a shot and never change the hunt (view only; replays and the
 Daily are unchanged). In v1.13 they become "Did you know?" entries in the field guide.
 
+### 11.1c Tell animals: how a secret shows itself (1.9.8, D-061)
+The product owner (25 Oct) didn't like the star ("hint glint") that sparkled on each secret every
+4 s: "We need to think of something else that could be enticing. Either a very unique animal that
+always appears there, or something." So every secret that pays has its **tell animal**: a small,
+unique, biome-accurate creature that always lives at that secret and does a small action every
+3–6 s, so a sharp eye learns "where the agama nods, there's something". The "don't shoot it"
+weaver nests have none (a tell would lure you to a penalty).
+
+| Biome | Secret | Tell animal | Its action |
+|---|---|---|---|
+| Bushveld | Baobab pod | fork-tailed drongo on the pod's limb | flicks its forked tail, looks round |
+| Bushveld | Dassie on the koppie | rock agama (blue head) on the next boulder | push-ups, head bob |
+| Bushveld | Boulder crack | striped skink on the boulder's shoulder | lifts its head, tongue flick |
+| Kalahari | Windpomp sign | lilac-breasted roller on the sign | opens its wings (the blue flash), looks round |
+| Kalahari | Dead camelthorn branch | flap-necked chameleon on another branch | rocks forward, swivels an eye, darkens |
+| Karoo | Windpomp | rock kestrel on the tail vane | bobs its head, fans its tail |
+| Karoo | Bakkie spare wheel | Cape wagtail on the cab roof | wags its tail |
+| Karoo | Potjie | striped mouse by the fire | sits up nibbling, whiskers twitch |
+| Karoo | Fence-post bell | fiscal shrike on the post | swings its tail, looks down |
+| Namibië | Quiver-tree egg | pied crow in the crown | caws, shrugs its wings |
+| Okavango | Mokoro pole flag | malachite kingfisher on the pole top | bobs, turns its head |
+| Okavango | Hippo | red-billed oxpecker on its back | pecks, looks up |
+| Okavango | Lily-pad frog | African jacana on its own lily leaf | steps, raises its wings |
+
+- **A non-target that costs nothing.** A pellet that strikes a tell scores nothing, takes nothing
+  off and leaves the Frenzy alone (like a shot that only hits a crate); the animal leaves (flies,
+  scurries or crawls off) and comes back after 5–9 s. Once its secret has paid out for the hunt it
+  leaves for good, so a tell always means "something here". It never covers the secret's own part.
+  The dassie's agama sits inside the dassie's 120 px "shoot near it": a shot at the agama can set
+  the dassie off, and that's fine.
+- **Oupa se Kaart** (and the dusk map, and the Meerkat Spotter) no longer rings the secrets: the
+  tell animals get a soft warm outline instead.
+- **Sim entity.** Tells are hit shapes in the sim with their own RNG stream (`tells`), so replays
+  and the Daily stay identical on every device. Numbers in `birds.json → tells`; each secret names
+  its tell under `tell` in the biome file. Names: `guide.tell.<id>` (en/af/de/nl, docs/i18n-names.md).
+
 ### 11.2 Meerkat colonies on the desert maps (v1.7, D-044)
 
 The product owner (24 Oct): "the desert stages should have small meerkat holes, and occasionally
@@ -1044,7 +1080,8 @@ Portal players decide in minutes. Script:
    spooks them, so every player sees it.)
 4. First empty belt: big RELOAD prompt with gesture hint (flick down / right-click).
 5. ~30 s: a flock FLUSHES — banner "Wing shot ×2!".
-6. ~40 s: windpomp blades glint — "Hmm, Oupa's windpomp…" (secret hint).
+6. ~40 s: "Hmm, Oupa's windpomp…" (secret hint): the rock kestrel on its tail vane is the windpomp's
+   tell animal (v1.7e, D-061: the old blade glint is gone).
 7. Tally → rank stamp → two buttons: **[Again]** (default focus) and **[Season Run]**.
 Never more than one line of text on screen during play. Skippable. Telemetry on every step.
 Implementation (M5): mode `ftue` in `modes.json` — 0.6× fly-over/pop-up rates, +40 px hit radius

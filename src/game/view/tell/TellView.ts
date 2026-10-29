@@ -1,4 +1,4 @@
-// v1.7e (D-061, GDD §6.5, art bible §4.7) The secrets' tell animals on screen (a lazy chunk: not
+// v1.7e (D-061, GDD §11.1c, art bible §5.2) The secrets' tell animals on screen (a lazy chunk: not
 // in the first download). Each tell is one sprite in its prop's layer (above the props, under the
 // layer's haze, in the map light's tint) drawn from the sim's snapshot: rest; its small action
 // (act_a / act_b in turn, a few frames each); after a hit, the flee frame moving off for a moment,

@@ -1,4 +1,4 @@
-// v1.7e (D-061, art bible §4.7) The tell animals' sheet: every secret's tell in one small texture,
+// v1.7e (D-061, art bible §5.2) The tell animals' sheet: every secret's tell in one small texture,
 // four frames each — rest, act_a and act_b (its small action, shown in turn), flee (leaving after
 // a hit). Sizes are prop px (the secret's prop is drawn 1:1 on its layer); every frame's origin is
 // the animal's feet (a perched bird's tail hangs below them). Frames face right; the view mirrors them. Drawn at 2× (small animals at 1×

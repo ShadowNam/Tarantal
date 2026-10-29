@@ -3,6 +3,43 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.9.8] — Realistic Bushveld rocks and middle distance; tell animals instead of the secret star (29 Oct 2026)
+
+Decision record D-061. The product owner (25 Oct): "In the Bushveld, the rocks and the middle
+distances also look a little bit childish, cartoonish. They need to look more realistic. And I also
+don't like this little star effect … Either a very unique animal that always appears there, or
+something." Cue option A (a tell animal at each secret) stands: the recommended option.
+
+### Added
+- **Tell animals:** every secret that pays has a small, unique creature that always lives there and
+  does its small action every few seconds: a drongo flicking its tail on the baobab, a blue-headed
+  rock agama doing push-ups by the dassie, a striped skink on the cracked boulder, a lilac-breasted
+  roller on the Kalahari windpomp sign, a chameleon in the dead camelthorn, a rock kestrel on the
+  Karoo windpomp, a wagtail on the bakkie, a striped mouse by the potjie, a fiscal on the bell's
+  post, a pied crow in the quiver tree, a malachite kingfisher on the mokoro pole, an oxpecker on
+  the hippo and a jacana on a lily leaf. Shoot one and it costs nothing: it flies or scurries off
+  and comes back a few seconds later; once its secret has paid out it stays away.
+- Their names in Afrikaans, English, German and Dutch.
+
+### Changed
+- **Bushveld rocks:** weathered granite without ink outlines: soft light and shade, darker rims,
+  undercuts and contact shadows, peeling shells, black rain streaks, iron stains, lichen, cracks and
+  grass at the foot (the boulders, the dassie's koppie, the cracked boulder, the foreground piles).
+- **Bushveld far hills:** real bushveld koppies and ridges in three haze rows, their skylines made
+  of tree crowns, with grey granite faces and boulder knobs, instead of smooth orange cones.
+- **Bushveld middle distance:** bare red earth and pale grass, a game path, termite mounds and low
+  granite sheets in the dry winter grass; no black lines between the planes any more.
+- **Oupa se Kaart** (and a dusk map, and the Meerkat Spotter) gives the tell animals a soft warm
+  outline instead of rings on the secrets.
+- The Bushveld baobab is 1× in Standard graphics (its 2× drawing is in the HD pack).
+
+### Removed
+- The secret "hint glint" (the four-point star every 4 s).
+
+### Sizes
+- First download 2,972.3 KB (unchanged); Bushveld chunk 1,525.0 → 1,477.2 KB; late group 1,412.3 →
+  1,428.9 KB (the tell sheet); TellView is a lazy chunk (1.3 KB).
+
 ## [1.9.7] — Namibië veld life: grass and sand, ostriches, oryx in the mirage, balloons (29 Oct 2026)
 
 Decision record D-059. The product owner (25 Oct): "In the Namibia map … at least two ostriches

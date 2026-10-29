@@ -3321,6 +3321,53 @@ very rough still". Decided:
   refreshes and no other area's HD layers, since refreshHd runs every 30 rendered frames.
 
 
+**D-061 1.9.8 Bushveld realism, and tell animals instead of the secret star (29 Oct 2026):** the
+product owner (25 Oct): "In the Bushveld, the rocks and the middle distances also look a little
+bit childish, cartoonish. They need to look more realistic. And I also don't like this little
+star effect that pulls attention to the special areas one can shoot … Either a very unique animal
+that always appears there, or something, but that star thing is not working for me." Shown
+mock-ups of three cues on 28 Oct (A: a tell animal at each secret; B: natural cues only; C: no cue
+on the map, Oupa hints in words), they gave no answer by 10:00 on 29 Oct, so the recommended
+option A stands (their standing instruction: go with the recommended options).
+- *Rocks, hills and ground (rendering only; replays unchanged by it).* Bushveld boulders, the
+  dassie koppie, the cracked boulder and the foreground piles are ink-free weathered granite
+  (`tools/art/granite.ts`: gradient light, rim tones, undercut, contact shadow, exfoliation shells,
+  rain streaks, iron stains, lichen, cracks, grain, grass at the foot). The far ridge is three haze
+  rows of bushy koppies and ridges (`tools/art/bushHills.ts`; tree-crown skylines, granite faces and
+  boulder knobs, gullies, tree dots; haze by colour, never alpha) instead of smooth orange cones and
+  mesas. The mid and near ground get red-earth and pale-grass patches, a game path, termite mounds
+  and dwala sheets (`tools/art/bushveldGround.ts`); the ink lines between the planes are a lit crest
+  with grass over it. Shrub and grass ink on those layers is a dark tone of the grass, not black.
+  Art bible §4.2. The baobab, the herds and the residents are unchanged.
+- *Size.* The Bushveld chunk went 1,525.0 → 1,477.2 KB (budget 1,536): the baobab is 1× in
+  Standard with its 2× twin in the HD pack (as the Kalahari weaver tree, D-057; HD texture memory
+  unchanged), patches and crests have crisp edges (a blurred edge costs palette entries), the dwala
+  have no noise grain, and the foot of the far ridge, always hidden by the far veld, is one flat
+  colour (−23 KB on that layer). HD: every redrawn layer and prop has its 2× twin.
+- *Tell animals (cue A).* Thirteen species, one per paying secret (GDD §11.1c): drongo, rock agama,
+  striped skink (Bushveld); lilac-breasted roller, flap-necked chameleon (Kalahari); rock kestrel,
+  Cape wagtail, striped mouse, fiscal shrike (Karoo); pied crow (Namibië); malachite kingfisher,
+  red-billed oxpecker, African jacana (Okavango). The "don't shoot it" weaver nests get none. Each
+  secret names its tell in the biome file (Zod; cross-refs: every paying secret has one, one secret
+  per species, its hit shape never touches the secret's part or a rotor's sweep).
+- *Why a sim entity.* The brief asks that a hit on the tell costs nothing and sends it off: so it
+  is hittable, and a hit must be decided by the sim (replays, the Daily). Tells are hit extras on
+  their prop's layer with their own RNG stream (`tells`); a shot that only hits a tell counts as
+  hitting a thing (no Frenzy change, D-021). Golden replays re-recorded on purpose: 5 of 41 event
+  streams changed where a bot's pellet met a tell; no score changed. Tech §3.12c.
+- *The glint retired.* `fx/glint` and `juice.glintEveryMs/glintMs` are gone. Oupa se Kaart, a dusk
+  map and the Meerkat Spotter now give the tells a soft warm outline (a warm fill of the frame
+  behind the animal) instead of rings on the secrets; "reduce flashes" has nothing to dim there
+  (it never flashes). Oupa's Map text: "Secrets' animals glow". The FTUE line ("Hmm, Oupa's wind
+  pump…") stays: the kestrel sits on the pump it names.
+- *First download (must not grow).* `TellView` is a lazy chunk (1.3 KB gzip); the sheet (2×, one
+  for all thirteen) is in the late group (Standard 17 KB, HD 36 KB); names live in the lazy guide
+  tables (`guide.tell.<id>`). The sim's tell code is paid for by the removed glint art: the first
+  download is 2,972.3 KB, 25 bytes under main.
+- *Phone performance (D-059 rules).* Two images per tell at most, properties set only on change,
+  no per-frame allocations, its own timer (`tellMs`, perf.spec ≤ 0.2 ms a frame at 4× throttle on
+  the Pixel 7 Namibië run).
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

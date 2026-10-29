@@ -493,6 +493,19 @@ replaces the biome's (`resolveMap`); a bonus map keeps its layout's. Tuning is
 - **Previews:** `?birds=0` (dev and e2e builds only, `devContent.withNoBirds`) plays a hunt
   without flocks, pop-ups, fly-over spawns, events or crates.
 
+### 3.12c Tell animals at the secrets (1.9.8, D-061)
+`src/sim/tells/tells.ts`: one tell per secret that names one (`tell` in the biome file, feet
+relative to the prop; species from `birds.json → tells`). State per tell: phase rest / act / gone,
+ticks in it and its length. It rests for `actEverySeconds`, acts for `actSeconds` (only while its
+secret is ready), and a hit sends it away for `goneSeconds`; once its secret is spent it is gone
+for the hunt. Draws come only from the `tells` stream, in tell order. While present its ellipse
+is a hit extra on the prop's layer (after the secret parts; `PelletResult.tellId`): it stops the
+pellet (a stone too), counts as hitting a thing (no Frenzy change, D-021) and costs nothing;
+`tellSpooked` / `tellBack` events. The snapshot's `tells` carry phase and ticks; `TellView` (a lazy
+chunk) draws from them only, on sim time, and holds on a held frame. Content checks
+(`src/content/tellChecks.ts`): every paying secret has a tell and no penalty prop has one, one
+secret per species, the hit shape (+4 px) never touches the secret's part or a rotor's sweep.
+
 ### 3.13 Juggle bodies: tin cans and makalani nuts (v1.8, D-050; 1.9.3, D-056)
 
 - **One physics:** `src/sim/juggle/body.ts` is the only flight code for things that are knocked,
