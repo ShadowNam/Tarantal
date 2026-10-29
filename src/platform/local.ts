@@ -174,6 +174,14 @@ export abstract class LocalPlatform implements PlatformAdapter {
     this.analytics('error', { source: report.source, message: report.message });
   }
 
+  openExternal(url: string): void {
+    try {
+      window.open(url, '_blank', 'noopener');
+    } catch {
+      // Blocked pop-up: nothing else to try.
+    }
+  }
+
   /** A plain reload: portal builds have no worker or caches of their own (web.ts overrides). */
   hardRefresh(): Promise<void> {
     try {

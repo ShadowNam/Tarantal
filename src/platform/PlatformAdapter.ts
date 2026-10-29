@@ -54,6 +54,13 @@ export interface PlatformAdapter {
   /** Analytics event (Tech §14). No personal data; may be a no-op on some portals. */
   analytics(event: string, data?: Record<string, unknown>): void;
   readonly canShowExternalLinks: boolean;
+  /** D-058: opens a link outside the game (a new tab; the Android app: the system browser). */
+  openExternal(url: string): void;
+  /**
+   * D-058, the Android app only: the back button calls `fn`; false (not handled) sends the app to
+   * the background. Other builds have no back button.
+   */
+  onBackButton?(fn: () => boolean): void;
   /** PWA extras (service worker, "Add to Home Screen" banner) belong to this build: web only. */
   readonly pwa: boolean;
   /**

@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import { AdGate, type Timers } from './adGate';
+import { CapacitorPlatform } from './capacitor';
 import { CrazyGamesPlatform, type CrazyAdCallbacks, type CrazySdk } from './crazygames';
 import type { PlatformOptions } from './local';
 import { PokiPlatform, type PokiSdk } from './poki';
@@ -362,6 +363,7 @@ describe('Skietbaan gate (D-037)', () => {
       web: WebPlatform.ADMIN_PAGE,
       poki: PokiPlatform.ADMIN_PAGE,
       crazygames: CrazyGamesPlatform.ADMIN_PAGE,
+      capacitor: CapacitorPlatform.ADMIN_PAGE,
     };
     expect(named).toEqual(BUILD_PLATFORMS.filter((p) => !admin[p]).sort());
     // And it is the first thing the method does.
@@ -382,6 +384,7 @@ describe('Project overview gate (D-045)', () => {
       web: WebPlatform.ADMIN_PAGE,
       poki: PokiPlatform.ADMIN_PAGE,
       crazygames: CrazyGamesPlatform.ADMIN_PAGE,
+      capacitor: CapacitorPlatform.ADMIN_PAGE,
     };
     expect(named).toEqual(BUILD_PLATFORMS.filter((p) => !admin[p]).sort());
     const flagAt = body.indexOf('const flag = import.meta.env.VITE_PLATFORM;');
@@ -402,6 +405,8 @@ describe('playtest admin page (D-034)', () => {
     vi.stubEnv('VITE_PLATFORM', 'poki');
     expect(adminPageInBuild()).toBe(false);
     vi.stubEnv('VITE_PLATFORM', 'crazygames');
+    expect(adminPageInBuild()).toBe(false);
+    vi.stubEnv('VITE_PLATFORM', 'capacitor');
     expect(adminPageInBuild()).toBe(false);
     vi.stubEnv('VITE_PLATFORM', '');
     expect(adminPageInBuild()).toBe(true);

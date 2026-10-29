@@ -885,7 +885,7 @@ export class HuntScene extends Phaser.Scene {
     // the raw flag (a literal after Vite's replacement) so a portal build drops this import()
     // and its chunk altogether; platform.spec checks the portal builds carry no such chunk.
     const flag = import.meta.env.VITE_PLATFORM;
-    if (flag === 'poki' || flag === 'crazygames') return;
+    if (flag === 'poki' || flag === 'crazygames' || flag === 'capacitor') return;
     if (this.ctx.admin === null) return;
     this.ctx.platform.loadingProgress(1);
     if (this.ctx.hook) this.ctx.hook.scene = 'skietbaan';

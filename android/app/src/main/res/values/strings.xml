@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Tarantal Madness</string>
+    <string name="title_activity_main">Tarantal Madness</string>
+    <string name="package_name">na.tarantal.madness</string>
+    <string name="custom_url_scheme">na.tarantal.madness</string>
+</resources>

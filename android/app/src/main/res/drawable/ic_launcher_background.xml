@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- D-058: the Karoo dusk behind the guineafowl (tools/make-android-icons.ts uses the same colours). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient
+        android:angle="270"
+        android:startColor="#E8A452"
+        android:endColor="#A84A2A"
+        android:type="linear" />
+</shape>

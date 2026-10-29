@@ -1,13 +1,14 @@
 // Picks the PlatformAdapter from the VITE_PLATFORM build flag (Tech §8), never by sniffing the
 // page. Vite replaces the flag at build time, so each build carries one adapter's code path.
+import { CapacitorPlatform } from './capacitor';
 import { CrazyGamesPlatform } from './crazygames';
 import type { PlatformOptions } from './local';
 import type { PlatformAdapter, PlatformId } from './PlatformAdapter';
 import { PokiPlatform } from './poki';
 import { WebPlatform } from './web';
 
-/** Platforms this build can be made for (capacitor and desktop wrappers come later). */
-export const BUILD_PLATFORMS = ['web', 'poki', 'crazygames'] as const;
+/** Platforms this build can be made for (capacitor: the Android test app, D-058; desktop later). */
+export const BUILD_PLATFORMS = ['web', 'poki', 'crazygames', 'capacitor'] as const;
 export type BuildPlatform = (typeof BUILD_PLATFORMS)[number];
 
 export function buildPlatform(flag: string | undefined): BuildPlatform {
@@ -30,6 +31,7 @@ export function adminPageInBuild(): boolean {
   const flag = import.meta.env.VITE_PLATFORM;
   if (flag === 'poki') return PokiPlatform.ADMIN_PAGE;
   if (flag === 'crazygames') return CrazyGamesPlatform.ADMIN_PAGE;
+  if (flag === 'capacitor') return CapacitorPlatform.ADMIN_PAGE;
   return WebPlatform.ADMIN_PAGE;
 }
 
@@ -41,6 +43,12 @@ export function createPlatform(
   const flag = import.meta.env.VITE_PLATFORM;
   if (flag === 'poki') return new PokiPlatform(opts);
   if (flag === 'crazygames') return new CrazyGamesPlatform(opts);
+  if (flag === 'capacitor')
+    return new CapacitorPlatform(
+      opts,
+      () => import('./capacitorNative').then((m) => m.capacitorNative()),
+      document,
+    );
   currentPlatformId(); // throws on an unknown flag
   return new WebPlatform(opts);
 }

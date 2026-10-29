@@ -70,7 +70,8 @@ jobs:
             {"project":"pixel7-landscape","browser":"chromium","shard":"1/3","skip":"$SKIP_LONG"},
             {"project":"pixel7-landscape","browser":"chromium","shard":"2/3","skip":"$SKIP_LONG"},
             {"project":"pixel7-landscape","browser":"chromium","shard":"3/3","skip":"$SKIP_LONG"},
-            {"project":"iphone14-landscape","browser":"webkit","shard":"1/1","skip":"$SKIP_LONG"}
+            {"project":"iphone14-landscape","browser":"webkit","shard":"1/1","skip":"$SKIP_LONG"},
+            {"project":"pixel7-landscape","browser":"chromium","shard":"android","only":"**/android-app.spec.ts","workers":1,"platform":"capacitor"}
           ]
           JSON
           )
@@ -96,7 +97,8 @@ jobs:
             {"project":"desktop-chromium","browser":"chromium","shard":"poki","only":"**/platform.spec.ts","workers":1,"platform":"poki"},
             {"project":"desktop-chromium","browser":"chromium","shard":"crazygames","only":"**/platform.spec.ts","workers":1,"platform":"crazygames"},
             {"project":"pixel7-landscape","browser":"chromium","shard":"poki","only":"**/platform.spec.ts","workers":1,"platform":"poki"},
-            {"project":"iphone14-landscape","browser":"webkit","shard":"poki","only":"**/platform.spec.ts","workers":1,"platform":"poki"}
+            {"project":"iphone14-landscape","browser":"webkit","shard":"poki","only":"**/platform.spec.ts","workers":1,"platform":"poki"},
+            {"project":"pixel7-landscape","browser":"chromium","shard":"android","only":"**/android-app.spec.ts","workers":1,"platform":"capacitor"}
           ]
           JSON
           )
@@ -129,6 +131,9 @@ jobs:
       - run: npm run size -- --strict --dir dist-poki
       - run: npm run build:crazygames
       - run: npm run size -- --strict --dir dist-crazygames
+      # D-058: the Android test app's web build (the APK itself: android.yml, label `android`).
+      - run: npm run build:android
+      - run: npm run size -- --strict --dir dist-android
 
   e2e:
     # One job per Playwright profile/shard, in parallel: under software-rendered WebGL a full run is

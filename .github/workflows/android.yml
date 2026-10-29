@@ -1,0 +1,85 @@
+name: Android test app
+
+# D-058: builds the friends' test APK (docs/ANDROID-TEST-APP.md) on GitHub's runners, which have
+# the Android SDK; nothing Android is installed on a developer's machine. The capacitor web build
+# (dist-android/) goes into the Capacitor project, Gradle builds and signs the release APK with
+# the committed TEST-ONLY key (android/test-signing/), and the APK is uploaded as a workflow
+# artifact `tarantal-madness-<version>.apk` (14 days).
+# - Pull requests: only with the label `android`.
+# - Pushes to main: pages.yml calls this workflow, then puts the APK on the Pages test build at
+#   /android/tarantal-madness.apk with the download page /android/.
+# - Manual: Actions → Android test app → Run workflow.
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, labeled]
+  workflow_call:
+    outputs:
+      artifact:
+        description: The uploaded APK's artifact name
+        value: ${{ jobs.apk.outputs.artifact }}
+  workflow_dispatch:
+
+concurrency:
+  group: android-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  apk:
+    name: build the test APK
+    if: >-
+      github.event_name != 'pull_request' ||
+      contains(github.event.pull_request.labels.*.name, 'android')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    outputs:
+      artifact: ${{ steps.name.outputs.artifact }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      # Capacitor 8 builds with Java 21.
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+      - run: npm ci
+      # dist-android/ (VITE_PLATFORM=capacitor, the same vite.config.ts and Phaser shader fix as
+      # every build), version.properties, `npx cap sync android`.
+      - run: npm run build:android
+      - name: Gradle assembleRelease
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
+      - name: Name the APK and check its signature
+        id: name
+        run: |
+          version=$(node -p "require('./package.json').version")
+          apk="tarantal-madness-${version}.apk"
+          cp android/app/build/outputs/apk/release/app-release.apk "$apk"
+          apksigner=$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner
+          "$apksigner" verify --print-certs "$apk" | tee signature.txt
+          # The committed TEST-ONLY certificate (android/test-signing/README.md).
+          grep -qi '5f219ef7a0bde860dd15f8b015bd053b4a239001ee3f594ae6d0ed322451abf0' signature.txt
+          bytes=$(stat -c %s "$apk")
+          echo "artifact=$apk" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Android test app $version"
+            echo ""
+            echo "- Artifact: \`$apk\` ($(awk "BEGIN { printf \"%.1f\", $bytes / 1048576 }") MB, $bytes bytes)"
+            echo "- versionCode: $(grep versionCode android/app/version.properties | cut -d= -f2)"
+            echo "- Signed with the TEST-ONLY key (never for the Play Store)"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v5
+        with:
+          name: ${{ steps.name.outputs.artifact }}
+          path: ${{ steps.name.outputs.artifact }}
+          retention-days: 14
+          if-no-files-found: error
+          # An APK is a zip already.
+          compression-level: 0

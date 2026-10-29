@@ -155,6 +155,8 @@ export default tseslint.config(
     ignores: [
       'dist/**',
       'dist-*/**',
+      // D-058: the Capacitor Android project (`cap sync` copies the minified web build into it).
+      'android/**',
       'node_modules/**',
       'coverage/**',
       'playwright-report/**',
