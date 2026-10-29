@@ -557,6 +557,98 @@
   "ambience": "okavango_reeds_bed",
   "palmY": { "near": 1000, "mid": 776 },
   "waterY": { "near": 1030, "mid": 790 },
+  "baboons": {
+    "$comment": "v1.8b (D-062): the troop on the wooded rise of the far bank (seats on the skyline: tools/art/ridgeLine.ts). Raids: the sausage tree, a mielie cob, fruit thrown at a flock, a chase.",
+    "troops": [
+      {
+        "id": "troop",
+        "layer": "far_ridge",
+        "plane": "far",
+        "u": 0.8625,
+        "seats": [
+          {
+            "dx": -176,
+            "y": 531
+          },
+          {
+            "dx": -136,
+            "y": 542
+          },
+          {
+            "dx": -98,
+            "y": 533
+          },
+          {
+            "dx": -62,
+            "y": 549
+          },
+          {
+            "dx": -26,
+            "y": 551
+          },
+          {
+            "dx": 10,
+            "y": 541
+          },
+          {
+            "dx": 46,
+            "y": 545
+          },
+          {
+            "dx": 84,
+            "y": 532
+          },
+          {
+            "dx": 122,
+            "y": 552
+          },
+          {
+            "dx": 162,
+            "y": 553
+          }
+        ],
+        "lookout": 0
+      }
+    ],
+    "spots": [
+      {
+        "id": "fruit",
+        "action": "fruit",
+        "layer": "mid",
+        "prop": "sausage_tree",
+        "ox": -130,
+        "y": 262,
+        "from": -1
+      },
+      {
+        "id": "throw",
+        "action": "throw",
+        "layer": "mid",
+        "u": 0.3,
+        "ox": 0,
+        "y": 750,
+        "from": -1
+      },
+      {
+        "id": "mielie",
+        "action": "mielie",
+        "layer": "mid",
+        "u": 0.65,
+        "ox": 0,
+        "y": 755,
+        "from": 1
+      },
+      {
+        "id": "chase",
+        "action": "chase",
+        "layer": "mid",
+        "u": 0.8,
+        "ox": 0,
+        "y": 750,
+        "from": 1
+      }
+    ]
+  },
   "layouts": [
     {
       "palms": [

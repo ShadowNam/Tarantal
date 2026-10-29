@@ -1,6 +1,6 @@
 // Typed gameplay events (Tech §3.4, CLAUDE.md rule 4). Audio, FX, UI, analytics and replay
 // hashing subscribe to these; they never read internal sim fields.
-import type { WorldEventId } from '../content/schemas';
+import type { RaidAction, WorldEventId } from '../content/schemas';
 import { fnv1a32 } from './rng';
 import type { BreakdownStep } from './scoring/pipeline';
 import type { BagBehaviour, BirdMotion, FlockState, PlaneId, RangeTarget } from './types';
@@ -13,7 +13,9 @@ export type ThreatSource =
   | 'gadget'
   | 'splash'
   // v1.7 (D-044): a meerkat sentinel's alarm bark (the nearest flock listens).
-  | 'meerkatAlarm';
+  | 'meerkatAlarm'
+  // v1.8b (D-062): a raiding baboon threw fruit at a flock or chased it.
+  | 'baboon';
 /** Why a flock changed state. */
 export type FlockCause =
   'threat' | 'window' | 'timeout' | 'landed' | 'settled' | 'gadget' | 'event' | 'stampede';
@@ -35,7 +37,10 @@ export type BonusId =
   | 'nutKnock'
   | 'nutAir'
   | 'nutPop'
-  | 'nutWeg';
+  | 'nutWeg'
+  // v1.8b (D-062): a raiding baboon bagged, and bagged before its raid was done.
+  | 'baboon'
+  | 'raidStopped';
 
 export type SimEvent =
   | {
@@ -109,6 +114,8 @@ export type SimEvent =
       readonly canId?: number;
       /** v1.7e (D-061): a secret's tell animal (absent everywhere else). */
       readonly tellId?: number;
+      /** v1.8b (D-062): a baboon (a raider or a troop member). */
+      readonly baboonId?: number;
     }
   /** v1.3x (D-037) Skietbaan only: a shot's aim point on the range's plane (plane px; a rifle's
    *  before the sway), the point its group is measured from. */
@@ -693,6 +700,80 @@ export type SimEvent =
       readonly shotId: number;
       readonly tellId: number;
       readonly propId: string;
+    }
+  /** v1.8b (D-062): the lookout barks: a raid is coming (raiders climb down next). */
+  | {
+      readonly type: 'baboonRaidWarned';
+      readonly tick: number;
+      readonly raidId: number;
+      readonly troopId: string;
+      readonly baboonId: number;
+      readonly spotId: string;
+      readonly action: RaidAction;
+      readonly raiders: number;
+    }
+  /** v1.8b (D-062): the raiders are down at their spot (walking in). */
+  | {
+      readonly type: 'baboonRaidStarted';
+      readonly tick: number;
+      readonly raidId: number;
+      readonly spotId: string;
+      readonly action: RaidAction;
+      readonly plane: PlaneId;
+      readonly x: number;
+      readonly y: number;
+    }
+  /** v1.8b (D-062): the mischief got done (the hat is gone, the fruit thrown…). */
+  | {
+      readonly type: 'baboonRaidDone';
+      readonly tick: number;
+      readonly raidId: number;
+      readonly spotId: string;
+      readonly action: RaidAction;
+      readonly plane: PlaneId;
+      readonly x: number;
+      readonly y: number;
+      /** A throw or chase: the flocks it threatened. */
+      readonly flockIds: readonly number[];
+    }
+  /** v1.8b (D-062): a pellet struck a baboon. A raider: hitsLeft to bag it (it flees). On the
+   *  ridge: a mother costs `points` (negative; 0 in the cooldown), anyone else costs nothing. */
+  | {
+      readonly type: 'baboonHit';
+      readonly tick: number;
+      readonly shotId: number;
+      readonly baboonId: number;
+      readonly role: 'raider' | 'lookout' | 'male' | 'mother' | 'juvenile';
+      readonly hitsLeft: number;
+      readonly plane: PlaneId;
+      readonly x: number;
+      readonly y: number;
+      readonly points: number;
+    }
+  /** v1.8b (D-062): a raider bagged (it tumbles like a guineafowl). stopped: before its raid was
+   *  done. points: what it paid (the stop bonus included). */
+  | {
+      readonly type: 'baboonBagged';
+      readonly tick: number;
+      readonly shotId: number;
+      readonly baboonId: number;
+      readonly raidId: number;
+      readonly action: RaidAction;
+      readonly plane: PlaneId;
+      readonly x: number;
+      readonly y: number;
+      readonly stopped: boolean;
+      readonly points: number;
+    }
+  /** v1.8b (D-062): a troop runs over its ridge (a hit, a loud gun); it comes back later. */
+  | {
+      readonly type: 'troopFled';
+      readonly tick: number;
+      readonly troopId: string;
+      readonly cause: 'hit' | 'loud';
+      readonly plane: PlaneId;
+      readonly x: number;
+      readonly y: number;
     };
 
 /** 1.9.3 (D-056): what nutKnocked and nutJuggled carry. */

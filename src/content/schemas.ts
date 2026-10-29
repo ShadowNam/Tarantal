@@ -570,6 +570,120 @@ export const OstrichFamilySchema = obj({
 });
 export type OstrichFamily = z.infer<typeof OstrichFamilySchema>;
 
+/** v1.8b (D-062): what a raiding baboon does at its spot (GDD §11.3d). */
+export const RaidActionSchema = z.enum(['hat', 'fruit', 'tap', 'mielie', 'throw', 'moon', 'chase']);
+export type RaidAction = z.infer<typeof RaidActionSchema>;
+
+/** v1.8b (D-062): a baboon's hit shapes in one stance (design px at plane scale 1, feet at 0). */
+const baboonBox = obj({ body: ellipseBox, head: ellipseBox });
+
+/**
+ * v1.8b (D-062, GDD §11.3d, Tech §3.12d): chacma baboon troops. A troop of 5–10 sits on a far
+ * ridge (never a target: a hit on a mother carrying her baby costs points, any hit sends the troop
+ * over the ridge); now and then the lookout barks and one or two males come down to raid a spot
+ * on the mid or near plane. A raider is a target: hitsToBag shots bag it (bagged like a
+ * guineafowl: the tumble and the puff). Sizes and speeds are design px at plane scale 1 (× the
+ * plane's scale); times in seconds. Where troops sit and raid is in the biome file (`baboons`).
+ */
+export const BaboonsSchema = obj({
+  /** A sitting adult male's height to the top of the head (plane scale 1): the view draws to it. */
+  heightPx: pos,
+  /** Mothers (with the baby on the back) and youngsters, as a share of the male's size. */
+  motherScale: pos,
+  juvenileScale: pos,
+  hitboxes: obj({ sit: baboonBox, walk: baboonBox, stand: baboonBox }),
+  troop: obj({
+    /** Members, the lookout included (capped by the troop's seats). */
+    size: range(z.number().int().min(5).max(10)),
+    mothers: range(nonNegInt),
+    juveniles: range(nonNegInt),
+    /** Idle activity weights on the ridge (play: youngsters only; walk: to a free seat). */
+    activities: obj({ sit: nonNeg, groom: nonNeg, look: nonNeg, play: nonNeg, walk: nonNeg }),
+    activitySeconds: range(pos),
+    walkPxPerSec: pos,
+    /** Running over the ridge (or climbing back), and how long it stays out of sight. */
+    climbSeconds: pos,
+    awaySeconds: range(pos),
+  }),
+  raids: obj({
+    /** Raids per minute on a map with a troop (× the map's raidsMul and pacing.raidsMul). */
+    perMinute: nonNeg,
+    firstAfterSeconds: range(pos),
+    /** Each gap is 60 / rate × (1 ± gapJitter). */
+    gapJitter: fraction,
+    /** Chance a second raider comes along. */
+    pairChance: fraction,
+    /** The build-up: the lookout barks, the raider climbs down, then is on its way. */
+    warnSeconds: pos,
+    climbSeconds: pos,
+    travelSeconds: range(pos),
+    /** A raider walks in from this far beside its spot (the second one pairGapPx behind). */
+    approachPx: pos,
+    pairGapPx: pos,
+    walkPxPerSec: pos,
+    runPxPerSec: pos,
+    /** How long each action takes before the raid is done. */
+    actSeconds: z.record(RaidActionSchema, pos),
+    /** After leaving, before it climbs back onto the ridge. */
+    backSeconds: range(pos),
+    /** A finished throw or chase threatens the flocks on the spot's plane within this share of
+     *  the panorama. */
+    alertRadiusU: fraction,
+  }),
+  hit: obj({
+    hitsToBag: posInt,
+    /** A bagged raider pays this many times a guineafowl's base on its plane (an event bonus:
+     *  × Frenzy × Stampede). */
+    pointsMul: pos,
+    /** Bagged before its raid was done: this bonus on top. */
+    stopBonus: posInt,
+    tumbleSeconds: pos,
+    /** A hit on a mother (and her baby): points off, then a cooldown. */
+    penalty: posInt,
+    cooldownSeconds: pos,
+  }),
+});
+export type BaboonTuning = z.infer<typeof BaboonsSchema>;
+
+/** v1.8b (D-062): a troop on a ridge: its seats are where members sit (layer px; dx from u). */
+export const TroopSchema = obj({
+  id,
+  layer: id,
+  /** The plane whose scale sizes the troop (the ridge itself is a backdrop layer). */
+  plane: PlaneIdSchema,
+  u: fraction,
+  seats: z.array(obj({ dx: z.number(), y: z.number() })).min(5).max(10),
+  /** The lookout's seat (index into seats). */
+  lookout: nonNegInt,
+  /** Chance the troop is there on a hunt (absent = always; the Kalahari keeps them rare). */
+  chance: fraction.optional(),
+});
+export type Troop = z.infer<typeof TroopSchema>;
+
+/** v1.8b (D-062): where a raid happens. With `prop`, x and y follow the prop (layouts move it). */
+export const RaidSpotSchema = obj({
+  id,
+  action: RaidActionSchema,
+  layer: id,
+  prop: id.optional(),
+  /** Without a prop: where along the layer (0…1). */
+  u: fraction.optional(),
+  ox: z.number(),
+  /** The raider's ground line (design px); with a prop, relative to the prop's y. */
+  y: z.number(),
+  /** The side it comes in from (and leaves to). */
+  from: z.union([z.literal(1), z.literal(-1)]),
+});
+export type RaidSpot = z.infer<typeof RaidSpotSchema>;
+
+export const BaboonMapSchema = obj({
+  troops: z.array(TroopSchema).min(1).max(2),
+  spots: z.array(RaidSpotSchema).min(1),
+  /** Multiplies baboons.raids.perMinute on this map (absent = 1). */
+  raidsMul: pos.optional(),
+});
+export type BaboonMap = z.infer<typeof BaboonMapSchema>;
+
 export const BirdsSchema = obj({
   version,
   flockDefaults: obj({
@@ -646,6 +760,8 @@ export const BirdsSchema = obj({
   ostriches: OstrichesSchema,
   /** v1.7e (D-061): the secrets' tell animals. */
   tells: TellsSchema,
+  /** v1.8b (D-062): chacma baboon troops and their raids. */
+  baboons: BaboonsSchema,
 });
 export type Birds = z.infer<typeof BirdsSchema>;
 
@@ -1241,6 +1357,8 @@ const mapOverrideShape = {
   pacing: obj({
     flyoversMul: pos.optional(),
     popupsMul: pos.optional(),
+    /** v1.8b (D-062): multiplies the baboon raids' rate. */
+    raidsMul: pos.optional(),
     /** Replaces every keyframe's flock targets. */
     flocks: somePlanes(nonNegInt).optional(),
   }).optional(),
@@ -1258,6 +1376,8 @@ const mapOverrideShape = {
   colonies: z.array(ColonySchema).max(2).optional(),
   /** v1.7d (D-059): the map's ostrich pairs, replacing the biome's. */
   ostriches: z.array(OstrichFamilySchema).max(2).optional(),
+  /** v1.8b (D-062): the map's baboon troops and raid spots, replacing the biome's. */
+  baboons: BaboonMapSchema.optional(),
 };
 
 export const LayoutSchema = obj({
@@ -1468,6 +1588,8 @@ export const BiomeSchema = obj({
   colonies: z.array(ColonySchema).max(2).optional(),
   /** v1.7d (D-059): ostrich pairs (layouts may replace them; absent = none). */
   ostriches: z.array(OstrichFamilySchema).max(2).optional(),
+  /** v1.8b (D-062): baboon troops and raid spots (layouts may replace them; absent = none). */
+  baboons: BaboonMapSchema.optional(),
   /** v1.8 (D-050): a fence's ground line per plane (design px), for the layouts' fences. */
   fenceY: somePlanes(z.number()).optional(),
   /** 1.9.3 (D-056): the ground line makalani palms stand on, per plane (design px). */

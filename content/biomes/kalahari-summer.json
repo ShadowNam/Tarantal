@@ -418,6 +418,82 @@
     "far": 632,
     "ver": 575
   },
+  "baboons": {
+    "$comment": "v1.8b (D-062): baboons are rare in the Kalahari: a troop on the rocky outcrop of the far ridge on about one hunt in three (chance). Raids: fruit thrown at a flock, a chase, a moon.",
+    "troops": [
+      {
+        "id": "troop",
+        "layer": "far_ridge",
+        "plane": "far",
+        "u": 0.325,
+        "seats": [
+          {
+            "dx": -176,
+            "y": 567
+          },
+          {
+            "dx": -136,
+            "y": 511
+          },
+          {
+            "dx": -98,
+            "y": 476
+          },
+          {
+            "dx": -62,
+            "y": 463
+          },
+          {
+            "dx": -26,
+            "y": 445
+          },
+          {
+            "dx": 10,
+            "y": 438
+          },
+          {
+            "dx": 46,
+            "y": 445
+          },
+          {
+            "dx": 84,
+            "y": 457
+          },
+          {
+            "dx": 122,
+            "y": 477
+          },
+          {
+            "dx": 162,
+            "y": 492
+          }
+        ],
+        "lookout": 5,
+        "chance": 0.3
+      }
+    ],
+    "spots": [
+      { "id": "moon", "action": "moon", "layer": "mid", "u": 0.85, "ox": 0, "y": 755, "from": 1 },
+      {
+        "id": "throw",
+        "action": "throw",
+        "layer": "mid",
+        "u": 0.62,
+        "ox": 0,
+        "y": 755,
+        "from": 1
+      },
+      {
+        "id": "chase",
+        "action": "chase",
+        "layer": "mid",
+        "u": 0.27,
+        "ox": 0,
+        "y": 760,
+        "from": -1
+      }
+    ]
+  },
   "layouts": [
     {
       "id": "mon",

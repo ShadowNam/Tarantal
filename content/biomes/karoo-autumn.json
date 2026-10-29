@@ -498,6 +498,107 @@
     "far": 632,
     "ver": 575
   },
+  "baboons": {
+    "$comment": "v1.8b (D-062): the troop on the flat-topped koppie in the middle of the far ridge (seats on its skyline: tools/art/ridgeLine.ts). Raids: Oupa's hat off the bakkie, the reservoir tap, a mielie cob, fruit thrown at a flock, a fence-post moon.",
+    "troops": [
+      {
+        "id": "troop",
+        "layer": "far_ridge",
+        "plane": "far",
+        "u": 0.475,
+        "seats": [
+          {
+            "dx": -166,
+            "y": 517
+          },
+          {
+            "dx": -136,
+            "y": 517
+          },
+          {
+            "dx": -106,
+            "y": 517
+          },
+          {
+            "dx": -78,
+            "y": 491
+          },
+          {
+            "dx": -52,
+            "y": 491
+          },
+          {
+            "dx": -26,
+            "y": 491
+          },
+          {
+            "dx": 0,
+            "y": 492
+          },
+          {
+            "dx": 24,
+            "y": 491
+          },
+          {
+            "dx": 48,
+            "y": 492
+          },
+          {
+            "dx": 70,
+            "y": 493
+          }
+        ],
+        "lookout": 3
+      }
+    ],
+    "spots": [
+      {
+        "id": "hat",
+        "action": "hat",
+        "layer": "mid",
+        "prop": "bakkie",
+        "ox": 290,
+        "y": 100,
+        "from": 1
+      },
+      {
+        "id": "tap",
+        "action": "tap",
+        "layer": "mid",
+        "prop": "reservoir",
+        "ox": 215,
+        "y": 40,
+        "from": 1
+      },
+      {
+        "id": "mielie",
+        "action": "mielie",
+        "layer": "mid",
+        "u": 0.655,
+        "ox": 0,
+        "y": 760,
+        "from": 1
+      },
+      {
+        "id": "throw",
+        "action": "throw",
+        "layer": "mid",
+        "u": 0.36,
+        "ox": 0,
+        "y": 755,
+        "from": -1
+      },
+      {
+        "id": "moon",
+        "action": "moon",
+        "layer": "mid",
+        "u": 0.45,
+        "ox": 0,
+        "y": 750,
+        "from": -1
+      }
+    ]
+  },
   "layouts": [
     {
       "id": "mon",

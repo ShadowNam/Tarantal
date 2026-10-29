@@ -441,6 +441,98 @@
       "rangePx": 700
     }
   ],
+  "baboons": {
+    "$comment": "v1.8b (D-062): the troop on the rocky ridge behind the pan (seats on the skyline: tools/art/ridgeLine.ts). Raids: camelthorn pods, fruit thrown at a flock, a chase, a moon.",
+    "troops": [
+      {
+        "id": "troop",
+        "layer": "far_ridge",
+        "plane": "far",
+        "u": 0.475,
+        "seats": [
+          {
+            "dx": -176,
+            "y": 476
+          },
+          {
+            "dx": -136,
+            "y": 476
+          },
+          {
+            "dx": -98,
+            "y": 463
+          },
+          {
+            "dx": -62,
+            "y": 452
+          },
+          {
+            "dx": -26,
+            "y": 449
+          },
+          {
+            "dx": 10,
+            "y": 474
+          },
+          {
+            "dx": 46,
+            "y": 480
+          },
+          {
+            "dx": 84,
+            "y": 470
+          },
+          {
+            "dx": 122,
+            "y": 470
+          },
+          {
+            "dx": 162,
+            "y": 452
+          }
+        ],
+        "lookout": 4
+      }
+    ],
+    "spots": [
+      {
+        "id": "fruit",
+        "action": "fruit",
+        "layer": "mid",
+        "prop": "camelthorn_mature",
+        "ox": 90,
+        "y": 0,
+        "from": 1
+      },
+      {
+        "id": "throw",
+        "action": "throw",
+        "layer": "mid",
+        "u": 0.92,
+        "ox": 0,
+        "y": 760,
+        "from": 1
+      },
+      {
+        "id": "chase",
+        "action": "chase",
+        "layer": "mid",
+        "u": 0.3,
+        "ox": 0,
+        "y": 765,
+        "from": -1
+      },
+      {
+        "id": "moon",
+        "action": "moon",
+        "layer": "mid",
+        "u": 0.76,
+        "ox": 0,
+        "y": 760,
+        "from": 1
+      }
+    ]
+  },
   "layouts": [
     {
       "id": "mon",

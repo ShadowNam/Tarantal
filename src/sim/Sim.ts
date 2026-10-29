@@ -119,6 +119,7 @@ import type {
   CansView,
   ColonyView,
   OstrichFamilyView,
+  BaboonsView,
   Command,
   FlockState,
   HuntResult,
@@ -206,6 +207,22 @@ import {
   tellView,
   type TellState,
 } from './tells/tells';
+import {
+  bagRaider,
+  createBaboons,
+  findMember,
+  findRaider,
+  fleeRaider,
+  memberPresent,
+  raiderStance,
+  ridgeStance,
+  roleScale,
+  scareTroop,
+  stepBaboons,
+  type BaboonCtx,
+  type BaboonsState,
+} from './baboons/baboons';
+import { spotBlockers } from './baboons/spotClear';
 
 export { FAMILIEFOTO_SECRET };
 
@@ -926,6 +943,21 @@ export function createSim(config: SimConfig): Sim {
   const tells: TellState[] = ranged
     ? []
     : createTells(tellPlacements(biome), tellT, tellRng, () => nextTellId++);
+  // v1.8b (D-062): the baboon troops, from their own stream (none in the Skietbaan or the FTUE).
+  const bb = content.birds.baboons;
+  const baboonCtx: BaboonCtx = { tuning: bb, rng: rng.stream('baboons') };
+  let nextBaboonId = 1;
+  const baboons: BaboonsState | null =
+    ranged || setup.tutorial !== null
+      ? null
+      : createBaboons(
+          biome,
+          geometry.planeScale,
+          baboonCtx,
+          () => nextBaboonId++,
+          (sp) => spotBlockers(biome, sp, content.birds, scoring.planes).length === 0,
+        );
+  const bbCooldownTicks = secondsToTicks(bb.hit.cooldownSeconds);
   const osCooldownTicks = secondsToTicks(os.hit.cooldownSeconds);
   /** v1.7d (D-059): each balloon's penalty cooldown (the tick it ends). */
   const drifterCooldown = new Map<number, number>();
@@ -1552,6 +1584,45 @@ export function createSim(config: SimConfig): Sim {
           shape: { type: 'ellipse', rx: n.rx, ry: n.ry },
         });
     }
+    // v1.8b (D-062): the troops on their ridges, then the raiders (targets: their radii get the
+    // plane's floor, D-049).
+    if (baboons !== null) {
+      for (const t of baboons.troops)
+        for (const m of t.members) {
+          if (!memberPresent(m)) continue;
+          const box = bb.hitboxes[ridgeStance(m.pose)];
+          const k = t.scale * roleScale(m.role, bb);
+          for (const sh of [box.body, box.head])
+            add(t.layerId, {
+              kind: 'baboon',
+              baboonId: m.id,
+              x: m.x + sh.ox * k * m.facing,
+              y: m.y + sh.oy * k,
+              shape: { type: 'ellipse', rx: sh.rx * k, ry: sh.ry * k },
+            });
+        }
+      const raid = baboons.raid;
+      for (const r of raid?.raiders ?? []) {
+        if (raid === null || r.done) continue;
+        const stance = raiderStance(r, raid.spot.action);
+        if (stance === null) continue;
+        const box = bb.hitboxes[stance];
+        const k = raid.spot.scale;
+        const floor = scoring.planes[raid.spot.plane].minHitRadiusPx;
+        for (const sh of [box.body, box.head])
+          add(raid.spot.layerId, {
+            kind: 'baboon',
+            baboonId: r.id,
+            x: r.x + sh.ox * k * r.facing,
+            y: r.y + sh.oy * k,
+            shape: {
+              type: 'ellipse',
+              rx: Math.max(sh.rx * k, sh === box.body ? floor : 0),
+              ry: Math.max(sh.ry * k, sh === box.body ? floor : 0),
+            },
+          });
+      }
+    }
     for (const p of papers) {
       const layerId = planeLayer.get(p.plane);
       if (layerId === undefined) continue;
@@ -1694,15 +1765,17 @@ export function createSim(config: SimConfig): Sim {
         ? plane === 'far' || plane === 'ver'
         : r.meerkatId !== undefined || r.ostrichId !== undefined || r.tellId !== undefined
           ? false
-          : r.canId !== undefined
-            ? thingPlane(r.canId) === 'far' || thingPlane(r.canId) === 'ver'
-            : r.spookId !== undefined
-              ? spook?.things.find((t) => t.id === r.spookId)?.plane === 'far'
-              : r.crateId !== null
-                ? crateCfg.plane === 'far'
-                : r.propId !== null
-                  ? (propLayerFactor.get(r.propId) ?? 1) <= farFactor
-                  : true;
+          : r.baboonId !== undefined
+            ? baboonPlane(r.baboonId) === 'far' || baboonPlane(r.baboonId) === 'ver'
+            : r.canId !== undefined
+              ? thingPlane(r.canId) === 'far' || thingPlane(r.canId) === 'ver'
+              : r.spookId !== undefined
+                ? spook?.things.find((t) => t.id === r.spookId)?.plane === 'far'
+                : r.crateId !== null
+                  ? crateCfg.plane === 'far'
+                  : r.propId !== null
+                    ? (propLayerFactor.get(r.propId) ?? 1) <= farFactor
+                    : true;
     const ldx = landedFar ? pdx + drift : pdx;
     emit({
       type: 'pelletImpact',
@@ -1720,6 +1793,7 @@ export function createSim(config: SimConfig): Sim {
       ...(r.spookId === undefined ? {} : { spookId: r.spookId }),
       ...(r.canId === undefined ? {} : { canId: r.canId }),
       ...(r.tellId === undefined ? {} : { tellId: r.tellId }),
+      ...(r.baboonId === undefined ? {} : { baboonId: r.baboonId }),
       ...(cx === null ? {} : { cx }),
     });
     return { dx: ldx, sy: psy, r };
@@ -1885,6 +1959,7 @@ export function createSim(config: SimConfig): Sim {
           r.meerkatId !== undefined ||
           r.ostrichId !== undefined ||
           r.tellId !== undefined ||
+          r.baboonId !== undefined ||
           r.canId !== undefined ||
           f.next >= bands.length;
         if (!stopped) continue;
@@ -1943,6 +2018,7 @@ export function createSim(config: SimConfig): Sim {
     const ostrichHits: number[] = [];
     const spookHits: number[] = [];
     const tellHits: number[] = [];
+    const baboonHits: number[] = [];
     /** v1.8: pellets per tin can, their summed offsets and the dents (in landing order). */
     const canHits = new Map<
       number,
@@ -1987,6 +2063,7 @@ export function createSim(config: SimConfig): Sim {
         ostrichHits.push(r.ostrichId);
       if (r.spookId !== undefined && !spookHits.includes(r.spookId)) spookHits.push(r.spookId);
       if (r.tellId !== undefined && !tellHits.includes(r.tellId)) tellHits.push(r.tellId);
+      if (r.baboonId !== undefined && !baboonHits.includes(r.baboonId)) baboonHits.push(r.baboonId);
       if (r.canId !== undefined) {
         const h = canHits.get(r.canId) ?? { n: 0, dx: 0, dy: 0, at: [] };
         h.n++;
@@ -2069,6 +2146,7 @@ export function createSim(config: SimConfig): Sim {
       ostrichHits.length > 0 ||
       spookHits.length > 0 ||
       tellHits.length > 0 ||
+      baboonHits.length > 0 ||
       canHits.size > 0;
 
     const targets = bagged.filter((x) => x.bird.creature.kind !== 'nonTarget');
@@ -2245,6 +2323,7 @@ export function createSim(config: SimConfig): Sim {
     shotAtColonies(shotId, meerkatHits, impacts, shotCx, radius > 0, shot.alertsAllFlocks);
     shotAtOstriches(shotId, ostrichHits, impacts, shotCx, radius > 0, shot.alertsAllFlocks);
     shotAtTells(shotId, tellHits);
+    shotAtBaboons(shotId, baboonHits, shot.alertsAllFlocks && radius > 0);
     const near = shotThreats(flocks, impacts, shotCx, radius, planeGeo, baggedFlockIds);
     threaten(near, radius > 0 ? 'shot' : 'silentBag');
     // v1.4 (D-038): a very loud gun alerts every other flock too (unless a charm or the rain
@@ -2847,6 +2926,228 @@ export function createSim(config: SimConfig): Sim {
     for (const t of tells) {
       const s = secrets.find((x) => x.propId === t.propId);
       stepTell(t, tellT, tellRng, s?.done ?? true, s !== undefined && isReady(s));
+    }
+  }
+
+  // --- baboons (v1.8b, D-062) --------------------------------------------------------------
+  /** The plane a baboon is on (a raider's spot, or its troop's). */
+  function baboonPlane(id: number): PlaneId | null {
+    if (baboons === null) return null;
+    const raid = baboons.raid;
+    if (raid !== null && findRaider(baboons, id) !== null) return raid.spot.plane;
+    return findMember(baboons, id)?.troop.plane ?? null;
+  }
+
+  /**
+   * A shot's baboon hits. A raider: one hit per shot; hitsToBag bag it (points × Frenzy ×
+   * Stampede, the stop bonus if its raid wasn't done), anything less sends it running; either way
+   * its troop runs over the ridge. A ridge member: a mother costs the penalty (with a cooldown),
+   * and the troop runs. A loud gun (the Langloop) sends every troop over its ridge.
+   */
+  function shotAtBaboons(shotId: number, hits: readonly number[], loud: boolean): void {
+    if (baboons === null) return;
+    const scared = new Set<string>();
+    for (const id of hits) {
+      const raid = baboons.raid;
+      const r = findRaider(baboons, id);
+      if (raid !== null && r !== null) {
+        if (r.phase === 'tumble' || r.done) continue;
+        r.hits++;
+        const left = Math.max(0, bb.hit.hitsToBag - r.hits);
+        const sp = raid.spot;
+        emit({
+          type: 'baboonHit',
+          tick,
+          shotId,
+          baboonId: r.id,
+          role: 'raider',
+          hitsLeft: left,
+          plane: sp.plane,
+          x: r.x,
+          y: r.y,
+          points: 0,
+        });
+        scared.add(raid.troopId);
+        if (left > 0) {
+          fleeRaider(r, sp, bb);
+          continue;
+        }
+        const stopped = !raid.completed;
+        bagRaider(baboons, r, bb);
+        let points = awardBonus(
+          'baboon',
+          Math.round(mapPoints(scoring.planes[sp.plane].base, sp.plane) * bb.hit.pointsMul),
+        );
+        if (stopped) points += awardBonus('raidStopped', bb.hit.stopBonus);
+        emit({
+          type: 'baboonBagged',
+          tick,
+          shotId,
+          baboonId: r.id,
+          raidId: raid.id,
+          action: sp.action,
+          plane: sp.plane,
+          x: r.x,
+          y: r.y,
+          stopped,
+          points,
+        });
+        // The other raider of a pair runs for it.
+        for (const o of raid.raiders) if (o !== r) fleeRaider(o, sp, bb);
+        continue;
+      }
+      const found = findMember(baboons, id);
+      if (found === null || !memberPresent(found.member)) continue;
+      const { troop, member } = found;
+      const mother = member.role === 'mother';
+      const points = mother && troop.cooldown === 0 && !ranged ? -bb.hit.penalty : 0;
+      if (points < 0) {
+        score += points;
+        stats.penalties++;
+        troop.cooldown = bbCooldownTicks;
+      }
+      emit({
+        type: 'baboonHit',
+        tick,
+        shotId,
+        baboonId: member.id,
+        role: member.role,
+        hitsLeft: 0,
+        plane: troop.plane,
+        x: member.x,
+        y: member.y,
+        points,
+      });
+      scared.add(troop.id);
+    }
+    for (const troop of baboons.troops) {
+      const hit = scared.has(troop.id);
+      if (!hit && !loud) continue;
+      const wasFled = troop.fled;
+      scareTroop(baboons, troop, baboonCtx);
+      if (wasFled) continue;
+      emit({
+        type: 'troopFled',
+        tick,
+        troopId: troop.id,
+        cause: hit ? 'hit' : 'loud',
+        plane: troop.plane,
+        x: troop.cx,
+        y: troop.seats[0]?.y ?? 0,
+      });
+    }
+  }
+
+  function baboonsView(b: BaboonsState): BaboonsView {
+    const raid = b.raid;
+    return {
+      troops: b.troops.map((t) => ({
+        id: t.id,
+        layerId: t.layerId,
+        plane: t.plane,
+        scale: t.scale,
+        fled: t.fled,
+        members: t.members
+          .filter((m) => !m.gone)
+          .map((m) => ({
+            id: m.id,
+            role: m.role,
+            x: m.x,
+            y: m.y,
+            facing: m.facing,
+            pose: m.pose,
+            t: m.t,
+            dur: m.dur,
+          })),
+      })),
+      raiders:
+        raid === null
+          ? []
+          : raid.raiders
+              .filter((r) => !r.done)
+              .map((r) => ({
+                id: r.id,
+                raidId: raid.id,
+                layerId: raid.spot.layerId,
+                plane: raid.spot.plane,
+                scale: raid.spot.scale,
+                action: raid.spot.action,
+                x: r.x,
+                y: r.y,
+                facing: r.facing,
+                phase: r.phase,
+                t: r.t,
+                dur: r.dur,
+                hits: r.hits,
+              })),
+      raid:
+        raid === null
+          ? null
+          : {
+              id: raid.id,
+              troopId: raid.troopId,
+              spotId: raid.spot.id,
+              action: raid.spot.action,
+              phase: raid.phase,
+              completed: raid.completed,
+            },
+    };
+  }
+
+  function stepBaboonTroops(): void {
+    if (baboons === null) return;
+    for (const note of stepBaboons(baboons, baboonCtx)) {
+      if (note.kind === 'warn') {
+        const sp = note.raid.spot;
+        emit({
+          type: 'baboonRaidWarned',
+          tick,
+          raidId: note.raid.id,
+          troopId: note.troop.id,
+          baboonId: note.lookout.id,
+          spotId: sp.id,
+          action: sp.action,
+          raiders: note.raid.memberIds.length,
+        });
+      } else if (note.kind === 'start') {
+        const sp = note.raid.spot;
+        emit({
+          type: 'baboonRaidStarted',
+          tick,
+          raidId: note.raid.id,
+          spotId: sp.id,
+          action: sp.action,
+          plane: sp.plane,
+          x: sp.x,
+          y: sp.y,
+        });
+      } else if (note.kind === 'done') {
+        const sp = note.raid.spot;
+        const flockIds: number[] = [];
+        if (sp.action === 'throw' || sp.action === 'chase') {
+          const su = sp.x / coreWidth(planeGeo[sp.plane].scrollFactor);
+          const near: FlockThreat[] = [];
+          for (const f of flocks) {
+            if (f.plane !== sp.plane || f.members.length === 0 || f.state === 'flush') continue;
+            const w = coreWidth(planeGeo[f.plane].scrollFactor);
+            if (Math.abs(centroid(f).x / w - su) > bb.raids.alertRadiusU) continue;
+            near.push({ flock: f, x: note.raider.x });
+            flockIds.push(f.id);
+          }
+          threaten(near, 'baboon');
+        }
+        emit({
+          type: 'baboonRaidDone',
+          tick,
+          raidId: note.raid.id,
+          spotId: sp.id,
+          action: sp.action,
+          plane: sp.plane,
+          x: note.raider.x,
+          y: sp.y,
+          flockIds,
+        });
+      }
     }
   }
 
@@ -3468,6 +3769,7 @@ export function createSim(config: SimConfig): Sim {
       else if (t === 'ready') emit({ type: 'secretReady', tick, propId: s.propId });
     }
     stepTells();
+    stepBaboonTroops();
 
     if (ranged) rangeStep();
     else {
@@ -3650,6 +3952,7 @@ export function createSim(config: SimConfig): Sim {
         meerkats: colonies.map(colonyView),
         ostriches: families.map(ostrichView),
         tells: tells.map(tellView),
+        baboons: baboons === null ? null : baboonsView(baboons),
         powerups: powerups.map(powerupView),
         wind: windView(wind),
         dustDevils: dustDevils.map(dustDevilView),

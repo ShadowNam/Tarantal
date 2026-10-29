@@ -62,7 +62,9 @@ export type StreamName =
   // v1.7d (D-059): Namibië's ostriches (eggs, activities, swaps, runs).
   | 'ostriches'
   // v1.7e (D-061): the secrets' tell animals (when they act, how long they stay away).
-  | 'tells';
+  | 'tells'
+  // v1.8b (D-062): baboon troops (their make-up, idle moves, raids, how long they stay away).
+  | 'baboons';
 
 /** A stream's members are closures, so they are safe to pass around detached. */
 export interface RandomStream {
