@@ -467,32 +467,7 @@ export function dwala(
   const clip = nextId();
   const grad = nextId();
   const inner: string[] = [];
-  // Grain and dark stains.
-  const grain = nextId();
-  inner.push(
-    el(
-      'filter',
-      { id: grain, x: 0, y: 0, width: 1, height: 1 },
-      el('feTurbulence', {
-        type: 'fractalNoise',
-        baseFrequency: '0.09 0.3',
-        numOctaves: 3,
-        seed: Math.floor(rnd() * 1000),
-      }),
-      el('feColorMatrix', {
-        type: 'matrix',
-        values: '0 0 0 0 0.2  0 0 0 0 0.18  0 0 0 0 0.15  2.6 0 0 0 -1.2',
-      }),
-    ),
-    el('rect', {
-      x: r2(x - hw * 1.3),
-      y: r2(y - h * 1.2),
-      width: r2(w * 1.3),
-      height: r2(h * 2),
-      filter: `url(#${grain})`,
-      opacity: 0.6,
-    }),
-  );
+  // Dark water stains (no noise grain on the sheets: it costs too many bytes in a layer).
   const stains: string[] = [];
   for (let k = 0; k < 2 + Math.floor(rnd() * 3); k++)
     stains.push(

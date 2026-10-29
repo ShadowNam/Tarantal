@@ -178,6 +178,11 @@ function farRidge(ctx: LayerCtx): string {
   for (let x = 0; x < ctx.width; x += 26 + ctx.rnd() * 50)
     parts.push(mopane(ctx.rnd, x, 602 + ctx.rnd() * 6, 22 + ctx.rnd() * 14, ctx, 'far', 0.4));
   for (const u of [0.3, 0.77]) parts.push(baobabTree(ctx.rnd, ctx.u(u), 606, 64, ctx, 'far'));
+  // v1.7e (D-061): below y 584 the far veld (its edge at 574 ± 3) always covers this layer: one
+  // flat colour there instead of hidden detail (bytes).
+  parts.push(
+    flat(`M-40 584H${r2(ctx.width + 40)}V${r2(ctx.bottom + 40)}H-40Z`, ctx.c('grassLight')),
+  );
   return g({}, ...parts);
 }
 
@@ -256,7 +261,7 @@ function mid(ctx: LayerCtx): string {
   ];
   // v1.7e (D-061): dry winter veld with texture: bare red earth, pale and darker grass patches.
   const earth = mix(ctx.c('soil'), '#A8603E', 0.5);
-  for (let k = 0; k < ctx.width / 110; k++) {
+  for (let k = 0; k < ctx.width / 200; k++) {
     const y = 672 + Math.pow(ctx.rnd(), 0.8) * 230;
     const near = (y - 660) / 240;
     const rx = (40 + ctx.rnd() * 90) * (0.6 + near);
@@ -268,9 +273,9 @@ function mid(ctx: LayerCtx): string {
         ctx.rnd() * ctx.width,
         y,
         rx,
-        rx * (0.07 + near * 0.06) + 2,
+        rx * (0.05 + near * 0.04) + 1.5,
         fill,
-        pick < 0.4 ? 0.55 : 0.4,
+        pick < 0.4 ? 0.4 : 0.32,
       ),
     );
   }
@@ -383,9 +388,9 @@ function near(ctx: LayerCtx): string {
         ctx.rnd() * ctx.width,
         y,
         rx,
-        rx * 0.16,
+        rx * 0.09,
         ctx.rnd() < 0.5 ? earth : ctx.c('straw'),
-        0.45,
+        0.3,
       ),
     );
   }
@@ -641,7 +646,9 @@ export const BUSHVELD_PLAN: BiomeArtPlan = {
   props: {
     'bushveld/baobab': {
       draw: baobab,
-      master: 2,
+      // v1.7e (D-061): 1× in Standard, its 2× twin in the Bushveld HD pack (as the Kalahari weaver
+      // tree, D-057): room in the Bushveld chunk for the redrawn rocks and the tell animals.
+      master: 1,
       wobble: false,
       frame: { w: 600, h: 640, ox: 300, oy: 360 },
       // 1.9.4 (D-057): 80 colours keep the redrawn tree and the residents' 2× sheet inside the

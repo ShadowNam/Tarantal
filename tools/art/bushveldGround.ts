@@ -19,29 +19,14 @@ export function naturalEdge(
   s: number,
   c: { readonly lit: string; readonly shade: string; readonly grass: readonly string[] },
 ): { inside: string; over: string } {
-  const crest = blurFilter(Math.max(0.6, s * 0.8));
-  const low = blurFilter(Math.max(1, s * 3));
-  const inside = g(
-    {},
-    crest.def,
-    low.def,
-    el('path', {
-      d: smoothD(shifted(edge, s * 1.2), false, 0.8),
-      fill: 'none',
-      stroke: c.lit,
-      'stroke-width': r2(Math.max(1, s * 1.6)),
-      opacity: 0.7,
-      filter: `url(#${crest.id})`,
-    }),
-    el('path', {
-      d: smoothD(shifted(edge, s * 6), false, 0.8),
-      fill: 'none',
-      stroke: c.shade,
-      'stroke-width': r2(s * 6),
-      opacity: 0.22,
-      filter: `url(#${low.id})`,
-    }),
-  );
+  // A lit crest just under the edge (crisp: a blurred band costs palette entries and bytes).
+  const inside = el('path', {
+    d: smoothD(shifted(edge, s * 1.1), false, 0.8),
+    fill: 'none',
+    stroke: c.lit,
+    'stroke-width': r2(Math.max(1, s * 1.4)),
+    opacity: 0.55,
+  });
   // Grass blades along the edge, in clumps, rising over it.
   const bins: string[][] = c.grass.map(() => []);
   const first = edge[0] as Pt;
@@ -100,15 +85,13 @@ export function patch(
     const r = 1 + n(t) * 0.35;
     pts.push([x + Math.cos(t) * rx * r, y + Math.sin(t) * ry * r]);
   }
-  const blur = blurFilter(Math.max(0.8, ry * 0.35));
+  // No blur: a soft edge costs many palette entries and bytes (D-061 size note).
   return g(
     {},
-    blur.def,
     el('path', {
       d: smoothD(pts, true, 0.7),
       fill,
       opacity: r2(opacity),
-      filter: `url(#${blur.id})`,
     }),
   );
 }
@@ -147,7 +130,7 @@ export function gamePath(
   return g(
     {},
     blur.def,
-    el('path', { d, fill: c.earth, opacity: 0.75, filter: `url(#${blur.id})` }),
+    el('path', { d, fill: c.earth, opacity: 0.75 }),
     el('path', {
       d: ruts,
       fill: 'none',

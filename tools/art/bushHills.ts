@@ -169,7 +169,7 @@ export function bushHill(rnd: Rnd, m: Hill, c: HillColours, scale = 1): string {
   // Trees: dots thickening toward the foot and in the gullies, never on the bare faces.
   const trees: string[] = [];
   const area = w * h;
-  for (let k = 0; k < Math.round(area / (55 * scale * scale)); k++) {
+  for (let k = 0; k < Math.round(area / (75 * scale * scale)); k++) {
     const tx = x + rnd() * w;
     const tt = topAt(tx);
     if (tt > base - 3) continue;
