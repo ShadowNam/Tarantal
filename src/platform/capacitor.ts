@@ -12,10 +12,13 @@ export const PUBLIC_GAME_URL = 'https://shadownam.github.io/Tarantal/';
 
 /** What the shell gives the game (capacitorNative.ts; fakes in the unit tests). */
 export interface NativeApp {
-  /** The Android back button (registering a listener stops the default "close the app"). */
-  onBackButton(fn: () => void): void;
-  /** The app comes to the front (true) or goes to the background (false). */
-  onAppActive(fn: (active: boolean) => void): void;
+  /**
+   * The Android back button (registering a listener stops the default "close the app").
+   * Resolves once the listener is in place (a failed registration is logged, never thrown).
+   */
+  onBackButton(fn: () => void): Promise<void>;
+  /** The app comes to the front (true) or goes to the background (false). Resolves as above. */
+  onAppActive(fn: (active: boolean) => void): Promise<void>;
   /** Sends the app to the background (Android's own back-at-the-root behaviour). */
   minimize(): void;
   /** Keeps the screen on (true) or lets it sleep again (false). */
@@ -99,10 +102,14 @@ export class CapacitorPlatform extends LocalPlatform {
       console.warn('capacitor shell not available', e);
       return;
     }
-    this.native.onBackButton(() => {
+    // One listener at a time, each in place before the game starts (main.ts awaits init()).
+    // Capacitor's web loader, used when a browser opens dist-android/ (the e2e), gives calls made
+    // at the same moment their own copies of a plugin and keeps only the last: a listener on the
+    // dropped copy never fires. On a device the calls go to native code.
+    await this.native.onBackButton(() => {
       this.pressBack();
     });
-    this.native.onAppActive((active) => {
+    await this.native.onAppActive((active) => {
       shimVisibility(this.doc, active);
       // Coming back to a paused hunt: the screen may sleep until play resumes.
       if (!active) this.setAwake(false);

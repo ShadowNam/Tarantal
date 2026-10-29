@@ -15,29 +15,34 @@ const tmScreen = registerPlugin<TmScreen>('TmScreen');
 
 /** Logs a failed native call instead of throwing into the game. */
 function quietly(p: Promise<unknown>, what: string): void {
-  p.catch((e: unknown) => {
+  void settled(p, what);
+}
+
+/** Resolves when the call is done, failed or not (a failure is logged). */
+async function settled(p: Promise<unknown>, what: string): Promise<void> {
+  try {
+    await p;
+  } catch (e: unknown) {
     console.warn(`capacitor ${what} failed`, e);
-  });
+  }
 }
 
 export function capacitorNative(): Promise<NativeApp> {
   const native: NativeApp = {
-    onBackButton: (fn) => {
-      quietly(
+    onBackButton: (fn) =>
+      settled(
         App.addListener('backButton', () => {
           fn();
         }),
         'backButton listener',
-      );
-    },
-    onAppActive: (fn) => {
-      quietly(
+      ),
+    onAppActive: (fn) =>
+      settled(
         App.addListener('appStateChange', (s) => {
           fn(s.isActive);
         }),
         'appStateChange listener',
-      );
-    },
+      ),
     minimize: () => {
       quietly(App.minimizeApp(), 'minimizeApp');
     },
