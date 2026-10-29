@@ -651,6 +651,30 @@ late group (no area chunk grows). Oupa se Kaart's look: a warm (#FFC46A) fill of
 checked offline with `npx tsx tools/art/tellPreview.ts <out.png>` (prop art, the tell, the
 secret's part in red and the tell's hit shape in blue).
 
+### 5.3 Chacma baboons (1.10.0, D-062)
+Semi-realistic like the far animals and the ostriches (D-035): olive grey-brown coat with a lit
+back and a paler grey belly, short fur strokes, the long dark dog-like muzzle with its nostrils at
+the tip, pale eyelids under a heavy brow, small ears, dark hands and feet, the pink-grey sitting
+pad; the tail in its typical "broken" arch (up from the rump, a sharp bend, then hanging). The
+adult male has a darker shoulder mane; a mother is a little smaller and paler with her small dark
+baby (pink face) riding jockey-style on her back, so the player sees at once she is not a target.
+No ink: edges a shade darker than the part; lit from the upper left; a soft contact shadow.
+Drawn from a posed skeleton (`tools/art/baboons.ts`) so every frame is the same animal. One sheet
+(`baboons/sheet`, late group, a 2× master: Standard gets the pack's 1×, HD the 2×), frames facing
+right with the origin at the feet, each box fitted to its drawing (`tools/art/baboonBoxes.ts`
+writes `src/game/view/baboon/baboonBoxes.ts`): **raiders** at the mid plane's size (a sitting male
+151 px at 1080): walk ×4, run ×2, the hat (wearing Oupa's khaki bush hat, scratching under it),
+fruit and mielie (eating, 2 each), the tap and the throw (up on the hind legs), the moon (on a
+fence post, its back to us, looking over its shoulder), the tumble and lying still; **the ridge** at
+the far plane's size (54 px): sit, groom, look, the lookout's bark (2), walk (2), play (2), the
+mother sitting and walking (2), climbing down and up; plus the thrown fruit and the tap's water.
+Youngsters are the male frames at 0.56, mothers their own frames at 0.82. Checks: every seat on its
+ridge's skyline, every frame clear of its box's edges and on its feet (`tools/art/baboonArt.test.ts`).
+**Sounds** (synths in the lazy view until recordings are delivered under `sfx/baboon_*`): the
+lookout's two-note "wa-hoo" bark, a hit raider's screech, each raid's own sound (the tap's water,
+a crunch of fruit or mielie, the throw's whoosh, the moon's rude raspberry, the chase's yelps), and
+the thump of a bagged one.
+
 ## 6. HUD and UI
 
 **Materials:** weathered wood signs (`#8B5A2B`), cream enamel with blue rim (`#F3EAD3` / `#2D5DA8`),

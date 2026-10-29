@@ -506,6 +506,33 @@ chunk) draws from them only, on sim time, and holds on a held frame. Content che
 (`src/content/tellChecks.ts`): every paying secret has a tell and no penalty prop has one, one
 secret per species, the hit shape (+4 px) never touches the secret's part or a rotor's sweep.
 
+### 3.12d Baboon troops (1.10.0, D-062), and the lazy sim systems
+`src/sim/baboons/baboons.ts`: the troops (`createTroop`: seats from the biome file, a member per
+seat, roles lookout / male / mother / juvenile from `birds.json → baboons.troop`), their idle moves
+on the ridge, `scareTroop` (over the ridge for `awaySeconds`) and the raid scheduler: one raid at a
+time; gaps of 60 / rate × (1 ± `gapJitter`) from one warning to the next (a raid that falls due
+while one is on waits); phases warn → climb → travel → on (raiders approach, act, leave; a hit one
+flees; a bagged one tumbles). Every draw comes from the `baboons` stream. `spotClear.ts` decides
+which raid spots are clear on a map (shared with the content check). `system.ts` is the hunt's view
+of it through `BaboonHost` (tick, emit, `awardBonus`, base points, penalty, threatening flocks):
+hit extras of kind `baboon` (ridge members: their body and head ellipses, × plane scale × role
+scale; raiders: the same with the plane's `minHitRadiusPx` floor, D-049), `PelletResult.baboonId`
+(stops a pellet or a stone; a thing for the Frenzy, D-021), events `baboonRaidWarned`,
+`baboonRaidStarted`, `baboonRaidDone`, `baboonHit`, `baboonBagged`, `troopFled`, bonuses `baboon`
+and `raidStopped`, and the snapshot's `baboons` (troops, raiders, the raid now).
+**Lazy sim systems:** the baboons, Namibië's ostriches (`ostriches/system.ts`, D-059) and the tell
+animals (`tells/system.ts`, D-061) live in one lazy chunk (`src/sim/lazySystemsRegister.ts`) so the
+first download doesn't carry them. A hunt takes their factories from `SimConfig.systems`, else the
+registered ones (`src/sim/lazySystems.ts`), and refuses to start a map that needs them without them
+(never a silently different replay). The game starts loading the chunk on the title
+(`src/game/simSystems.ts`) and a hunt that needs it waits behind a veil (offline: Retry or Back).
+Tools, unit tests (vitest `setupFiles`) and the Node side of e2e specs register it up front. Moving
+the ostriches and tells there changed no event: every golden replay passed as recorded.
+The view (`src/game/view/baboon/BaboonView.ts`, lazy) draws from the snapshot on sim time: one
+sprite per baboon, the thrown fruit and the tap's water; properties set on change only, off-screen
+sprites hidden, its own `baboonMs` timer. A far ridge with a troop is never merged into the far
+veld on the low tier (its art would slide away from the troop's hit shapes).
+
 ### 3.13 Juggle bodies: tin cans and makalani nuts (v1.8, D-050; 1.9.3, D-056)
 
 - **One physics:** `src/sim/juggle/body.ts` is the only flight code for things that are knocked,
