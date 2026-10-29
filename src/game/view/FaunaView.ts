@@ -275,8 +275,9 @@ export class FaunaView {
     const live = new Set<Animal>();
     for (const h of this.herdViews.values()) {
       const m = h.root.getWorldTransformMatrix();
-      const left = m.tx + m.a * h.x0;
-      const right = m.tx + m.a * h.x1;
+      // v1.7d (D-059): a roaming herd's holder may be mirrored (a < 0).
+      const left = m.tx + Math.min(m.a * h.x0, m.a * h.x1);
+      const right = m.tx + Math.max(m.a * h.x0, m.a * h.x1);
       const on = right >= -CULL_MARGIN && left <= viewWidth + CULL_MARGIN;
       if (!on) continue;
       for (const an of h.animals) {

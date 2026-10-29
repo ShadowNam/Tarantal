@@ -6,6 +6,10 @@ import type { SimEvent } from '../../../sim/events';
 import type { SimState } from '../../../sim/types';
 import type { AudioDirector } from '../../audio/AudioDirector';
 import type { ParallaxView } from '../ParallaxView';
+import type { AssetManifest } from '../../assets/AssetManifest';
+import type { FaunaOptions } from '../FaunaView';
+import { heatOf } from './oryxRoam';
+import { OryxView } from './OryxView';
 import { OstrichView } from './OstrichView';
 import { VeldView } from './VeldView';
 
@@ -15,6 +19,9 @@ export interface NamibLifeHook {
   veldShown: number;
   /** The ostriches drawn this frame (screen design px: foot x, y; drawn height). */
   ostriches: ReturnType<OstrichView['spots']>;
+  /** The roaming oryx herds (layer x, facing, the reflection's alpha, screen x) and the heat. */
+  oryx: OryxView['spots'];
+  heat: number;
 }
 
 /** True when a map shows the Namibië veld life. */
@@ -25,21 +32,45 @@ export function wantsNamibLife(biome: Pick<Biome, 'id'>): boolean {
 export class NamibLifeView {
   readonly veld: VeldView;
   readonly ostriches: OstrichView;
+  readonly oryx: OryxView;
+  private heat = 0;
 
   constructor(
     scene: Phaser.Scene,
     biome: Biome,
     parallax: ParallaxView,
-    opts: { readonly reducedMotion: boolean },
+    private readonly opts: {
+      readonly reducedMotion: boolean;
+      readonly reduceFlashes: () => boolean;
+      readonly manifest: AssetManifest;
+      readonly fauna: FaunaOptions;
+      readonly lightIds: () => readonly string[];
+    },
   ) {
     this.veld = new VeldView(scene, parallax, biome.id);
     this.ostriches = new OstrichView(scene, parallax, opts.reducedMotion);
+    this.oryx = new OryxView(
+      scene,
+      opts.manifest,
+      parallax,
+      biome.id,
+      opts.fauna,
+      opts.reducedMotion,
+    );
   }
 
   /** After the parallax is placed for this frame. */
   update(s: SimState, prev: SimState | null, alpha: number, width: number): void {
     this.veld.update(width);
     this.ostriches.update(s, prev, alpha);
+    this.heat = heatOf(s.mirage, this.opts.lightIds());
+    // Reduce flashes or motion: the shimmer holds still (the reflection stays).
+    this.oryx.update(
+      s.tick,
+      this.opts.reducedMotion || this.opts.reduceFlashes(),
+      width,
+      this.heat,
+    );
   }
 
   /** This frame's events (puffs and sounds). */
@@ -49,11 +80,18 @@ export class NamibLifeView {
 
   /** e2e hook. */
   hook(): NamibLifeHook {
-    return { veld: this.veld.count, veldShown: this.veld.shown, ostriches: this.ostriches.spots() };
+    return {
+      veld: this.veld.count,
+      veldShown: this.veld.shown,
+      ostriches: this.ostriches.spots(),
+      oryx: this.oryx.spots,
+      heat: this.heat,
+    };
   }
 
   destroy(): void {
     this.veld.destroy();
     this.ostriches.destroy();
+    this.oryx.destroy();
   }
 }

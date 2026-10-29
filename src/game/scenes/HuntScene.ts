@@ -2125,6 +2125,14 @@ export class HuntScene extends Phaser.Scene {
         if (gen !== this.namibLifeGen || !m.wantsNamibLife(mapBiome)) return;
         this.namibLife = new m.NamibLifeView(this, mapBiome, this.parallax, {
           reducedMotion: this.ctx.reducedMotion,
+          reduceFlashes: () => this.ctx.prefs.reduceFlashes,
+          manifest: this.manifest,
+          fauna: {
+            idle: this.ctx.feel.fauna.idle,
+            ticksPerSecond: TICKS_PER_SECOND,
+            still: this.ctx.faunaStill,
+          },
+          lightIds: () => this.lightIds,
         });
       })
       .catch(() => {
