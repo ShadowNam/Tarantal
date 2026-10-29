@@ -24,7 +24,9 @@ export interface ShotDamage {
 }
 
 export function pelletsToBagOf(creature: BirdCreature): number {
-  return creature.kind === 'nonTarget' ? 1 : creature.pelletsToBag;
+  // v1.7d (D-059): a drifter (a hot-air balloon) counts a hit only with drift.pelletsToHit.
+  if (creature.kind === 'nonTarget') return creature.drift?.pelletsToHit ?? 1;
+  return creature.pelletsToBag;
 }
 
 /** Mutates armorLeft/hitsLeft of the birds that were hit. `birds` must be in stable (id) order. */

@@ -558,8 +558,8 @@ replaces the biome's (`resolveMap`); a bonus map keeps its layout's. Tuning is
   `balloons` (handler `flyover`; an event may name `lights` it plays under). The director's
   `driftGroup` spawns 1–3 from the **`events`** stream, beside the view on the upwind side
   (`DirectorContext.windDir`) at `drift.skyY`; they fly like fly-overs (`airMul` follows the
-  wind). A drifter is never bagged: a hit restores its hits, pays the penalty once per
-  `hitCooldownSeconds` (`penaltyApplied`) and emits `balloonHit`.
+  wind). A drifter is never bagged: a hit (`drift.pelletsToHit` pellets of one shot) restores its
+  hits, pays the penalty once per `hitCooldownSeconds` (`penaltyApplied`) and emits `balloonHit`.
 - **View (lazy chunk `NamibLifeView`):** `VeldView` (the veld sheet at the art's placements,
   `veld-namibie.json`, in each layer's fruit container), `OstrichView`, `OryxView` (a roaming
   FaunaView of the far gemsbok sheet and its reflection; pure `roamAt`/`shimmerAt` of the tick),

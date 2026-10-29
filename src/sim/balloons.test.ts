@@ -16,6 +16,9 @@ import type { SimEvent } from './events';
 import { createSim, type Sim } from './Sim';
 import type { BirdView, ModeConfig } from './types';
 
+/** The HUD row's depth from the top (design px, every profile, safe areas included). */
+const HUD_CLEAR_PX = 150;
+
 const day = (layout: string): ModeConfig => ({ id: 'classic', biome: 'namibie', layout });
 const sim = (c: Content, layout: string, seed = 7): Sim =>
   createSim({ seed, content: c, mode: day(layout), inputKind: 'pointer' });
@@ -39,7 +42,7 @@ function untilBalloon(s: Sim): SimEvent[] {
 }
 
 describe('hot-air balloons (v1.7d, D-059)', () => {
-  it('the calm early-light days bring 1–3 balloons, high above the birds’ lanes', () => {
+  it('the calm early-light days bring 1–3 balloons, clear of the HUD, high in the far sky', () => {
     const c = calm();
     const T = c.birds.creatures.find((x) => x.id === 'lugballon');
     if (T?.kind !== 'nonTarget' || T.drift === undefined) throw new Error('no balloon');
@@ -52,10 +55,14 @@ describe('hot-air balloons (v1.7d, D-059)', () => {
       expect(up.length).toBeLessThanOrEqual(T.drift.group[1]);
       for (const b of up) {
         expect(b.plane).toBe('far');
-        expect(b.y).toBeLessThanOrEqual(T.drift.skyY[1] + T.drift.bobPx);
-        // The basket's bottom stays above the far birds' sky lane's middle.
+        const k = c.scoring.planes.far.scale;
+        const bob = T.drift.bobPx * (k / c.scoring.tuningRefScale);
+        expect(b.y).toBeLessThanOrEqual(T.drift.skyY[1] + bob);
+        // The envelope's top clears the HUD row (timer, pause, score: under HUD_CLEAR_PX)…
+        expect(b.y - T.hitbox.body.ry * k - bob).toBeGreaterThanOrEqual(HUD_CLEAR_PX);
+        // …and the balloon's middle stays in the top half of the far birds' sky lane.
         const lane = c.biomes.find((x) => x.id === 'namibie')?.lanes.far?.skyY ?? [0, 0];
-        expect(b.y + (T.hitbox.head?.oy ?? 0) * 0.15).toBeLessThan((lane[0] + lane[1]) / 2);
+        expect(b.y).toBeLessThan((lane[0] + lane[1]) / 2);
       }
     }
   });

@@ -688,8 +688,10 @@ Namibian carvers turn into key rings and ornaments (sources: D-056).
   upside-down reflection and a gentle waver breathe with the heat (full with the mirage omen, half
   on other hot days, none at dawn, dusk or under cloud).
 - **Hot-air balloons:** a non-target drifter (`lugballon`): 0–1 per hunt, and one more on the calm
-  early-light days (`dawn_mist`, `bright_calm`), 1–3 together, high above the birds' lanes, drifting
-  with the layout's wind. A hit costs **25** (once per 2 s per balloon) and never brings one down:
+  early-light days (`dawn_mist`, `bright_calm`), 1–3 together, high in the far sky (the envelope's
+  top below the HUD row), drifting with the layout's wind. A hit needs 3 pellets of one shot (a
+  stray pellet from a shot at the birds doesn't count), costs **25** (once per 2 s per balloon) and
+  never brings one down:
   the burner roars and a passenger shakes a fist: "Oi! We're on holiday!" (`bark.balloon`).
 - **Modes:** wherever the Namibië maps play (Classic, the Daily, the bonus maps); not the Skietbaan.
 

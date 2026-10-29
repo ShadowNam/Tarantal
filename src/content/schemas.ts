@@ -250,6 +250,9 @@ const nonTargetCreatureSchema = obj({
     offViewPx: pos,
     /** A hit costs the penalty at most once per this many seconds (it never comes down). */
     hitCooldownSeconds: pos,
+    /** Pellets of one shot it takes to count as a hit (a stray pellet from a shot at the birds
+     *  below doesn't; a gun with fewer pellets needs them all). */
+    pelletsToHit: posInt,
     barkKey: i18nKey,
   }).optional(),
 });
