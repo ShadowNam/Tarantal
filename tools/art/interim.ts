@@ -62,7 +62,7 @@ import { COLONY_SHEET } from '../../src/game/view/tree/colonySheet';
 import { collectVeld, renderVeldSheet } from './namibVeld';
 import { namibieVeldLooks } from './biomes/namibie';
 import { VELD_SHEET, type VeldSpot } from '../../src/game/view/namib/veldSheet';
-import { OSTRICH_SHEET } from '../../src/game/view/namib/ostrichSheet';
+import { OSTRICH_MASTER, OSTRICH_SHEET } from '../../src/game/view/namib/ostrichSheet';
 import { renderOstrichSheet } from './ostrich';
 import { BALLOON_SHEET } from '../../src/game/view/namib/balloonSheet';
 import { renderBalloonSheet } from './balloon';
@@ -73,8 +73,10 @@ const RESIDENT_COLOURS = 96;
 const COLONY_COLOURS = 96;
 /** v1.7d (D-059): palette size of the Namib veld sheet. */
 const VELD_COLOURS = 128;
-/** v1.7d (D-059): palette size of the ostriches' sheet. */
-const OSTRICH_COLOURS = 64;
+/** v1.7d (D-059): palette size of the balloons' sheet. */
+const BALLOON_COLOURS = 64;
+/** v1.7d (D-059): palette size of the ostriches' sheet (1.5×: 48 keeps the chunk in budget). */
+const OSTRICH_COLOURS = 48;
 import {
   HALLOWEEN_SHEET,
   SHEET_MASTER as FEESDAE_MASTER,
@@ -633,17 +635,16 @@ if (wants('blikkies')) {
   }
 }
 if (wants('namiblife') && !hdOnly) {
-  // v1.7d (D-059): the ostriches' sheet at 1× (Namibië's group; Standard in HD too).
+  // v1.7d (D-059): the ostriches' sheet at 1.5× (Namibië's group), one sheet for Standard and HD.
   const png = join(src, 'sprites', `${OSTRICH_SHEET}.png`);
   if (!oursFile(png)) console.warn(`skip sprites/${OSTRICH_SHEET}: a human delivery is there`);
   else {
-    put(png, encodePng8(renderOstrichSheet(1), OSTRICH_COLOURS));
+    put(png, encodePng8(renderOstrichSheet(OSTRICH_MASTER), OSTRICH_COLOURS));
     put(
       png.replace(/\.png$/, '.json'),
       await json({ origin: 'interim', encode: 'png8', originX: 0, originY: 0 }),
     );
-    // Standard in HD (as the kuifkop, D-054): its 2× twin (2048 × 3200, 25 MB of texture) would
-    // take Namibië's HD texture memory past the Pixel 7 budget (256 MB).
+    // No 2× twin: a 2× sheet would take Namibië's HD texture memory past its target (D-059).
     rmSync(join(hdSrc, 'sprites', `${OSTRICH_SHEET}.png`), { force: true });
     console.log(`sprites/${OSTRICH_SHEET}`);
   }
@@ -651,12 +652,12 @@ if (wants('namiblife') && !hdOnly) {
   const bpng = join(src, 'sprites', `${BALLOON_SHEET}.png`);
   if (!oursFile(bpng)) console.warn(`skip sprites/${BALLOON_SHEET}: a human delivery is there`);
   else {
-    put(bpng, encodePng8(renderBalloonSheet(1), OSTRICH_COLOURS));
+    put(bpng, encodePng8(renderBalloonSheet(1), BALLOON_COLOURS));
     put(
       bpng.replace(/\.png$/, '.json'),
       await json({ origin: 'interim', encode: 'png8', originX: 0, originY: 0 }),
     );
-    putHd(`sprites/${BALLOON_SHEET}.png`, renderBalloonSheet(2), OSTRICH_COLOURS);
+    putHd(`sprites/${BALLOON_SHEET}.png`, renderBalloonSheet(2), BALLOON_COLOURS);
     console.log(`sprites/${BALLOON_SHEET}`);
   }
 }

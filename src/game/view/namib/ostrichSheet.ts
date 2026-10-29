@@ -2,8 +2,9 @@
 // female in every pose the sim uses (standing, looking round, a four-step walk, pecking, sitting
 // on the nest, the male's wing display, a three-step run, hissing), the nest scrape and one egg.
 // Frames face right with the feet (or the scrape's middle) at their origin, in design px at the
-// mid plane (OSTRICH_ART_SCALE: the view scales by the family's plane scale ÷ it). The sheet is
-// 1× and stays Standard in HD (a 2× twin is 25 MB of texture: Namibië's HD budget, D-059). Pure constants: the game, the placeholder and the interim art
+// mid plane (OSTRICH_ART_SCALE: the view scales by the family's plane scale ÷ it). One sheet at
+// 1.5× (OSTRICH_MASTER) serves Standard and HD: a 2× sheet would take Namibië's HD texture memory
+// past its target (D-059). Pure constants: the game, the placeholder and the interim art
 // generator (tools/art/ostrich.ts) read them.
 
 import type { OstrichView } from '../../../sim/types';
@@ -39,19 +40,20 @@ interface Box {
 }
 
 const BOX: Readonly<Record<OstrichFramePose, Box>> = {
-  stand: { w: 220, h: 230, ox: 100, oy: 224 },
-  look: { w: 220, h: 230, ox: 100, oy: 224 },
-  walk_0: { w: 230, h: 230, ox: 105, oy: 224 },
-  walk_1: { w: 230, h: 230, ox: 105, oy: 224 },
-  walk_2: { w: 230, h: 230, ox: 105, oy: 224 },
-  walk_3: { w: 230, h: 230, ox: 105, oy: 224 },
-  peck: { w: 250, h: 170, ox: 100, oy: 164 },
-  sit: { w: 230, h: 220, ox: 110, oy: 214 },
-  display: { w: 300, h: 210, ox: 150, oy: 204 },
-  run_0: { w: 290, h: 214, ox: 135, oy: 208 },
-  run_1: { w: 290, h: 214, ox: 135, oy: 208 },
-  run_2: { w: 290, h: 214, ox: 135, oy: 208 },
-  hiss: { w: 260, h: 200, ox: 110, oy: 194 },
+  // Tight to the drawn birds (measured, a 4 px margin): less texture per frame.
+  stand: { w: 145, h: 222, ox: 72, oy: 214 },
+  look: { w: 145, h: 222, ox: 72, oy: 214 },
+  walk_0: { w: 163, h: 218, ox: 76, oy: 210 },
+  walk_1: { w: 163, h: 218, ox: 76, oy: 210 },
+  walk_2: { w: 163, h: 218, ox: 76, oy: 210 },
+  walk_3: { w: 163, h: 218, ox: 76, oy: 210 },
+  peck: { w: 186, h: 175, ox: 75, oy: 167 },
+  sit: { w: 150, h: 173, ox: 79, oy: 161 },
+  display: { w: 161, h: 183, ox: 81, oy: 171 },
+  run_0: { w: 215, h: 212, ox: 77, oy: 195 },
+  run_1: { w: 215, h: 212, ox: 77, oy: 195 },
+  run_2: { w: 215, h: 212, ox: 77, oy: 195 },
+  hiss: { w: 201, h: 186, ox: 73, oy: 178 },
 };
 
 export interface OstrichFrameDef extends Box {
@@ -82,22 +84,28 @@ export interface OstrichRect extends OstrichFrameDef {
 export const OSTRICH_SHEET_W = 1024;
 const GAP = 2;
 
+/** Each frame's rect in the 1× sheet, in OSTRICH_FRAMES order: packed in rows tallest first
+ *  (the least empty sheet, so the least texture memory). */
 export function ostrichFrames(): OstrichRect[] {
-  const out: OstrichRect[] = [];
+  const at = new Map<string, { x: number; y: number }>();
   let x = GAP;
   let y = GAP;
   let row = 0;
-  for (const f of OSTRICH_FRAMES) {
+  for (const f of [...OSTRICH_FRAMES].sort((a, b) => b.h - a.h || b.w - a.w)) {
     if (x + f.w + GAP > OSTRICH_SHEET_W) {
       x = GAP;
       y += row + GAP;
       row = 0;
     }
-    out.push({ ...f, x, y });
+    at.set(f.name, { x, y });
     x += f.w + GAP;
     row = Math.max(row, f.h);
   }
-  return out;
+  return OSTRICH_FRAMES.map((f) => ({
+    ...f,
+    x: at.get(f.name)?.x ?? 0,
+    y: at.get(f.name)?.y ?? 0,
+  }));
 }
 
 export const OSTRICH_SHEET_H = ((): number => {
@@ -107,8 +115,12 @@ export const OSTRICH_SHEET_H = ((): number => {
 
 /** Texture px per design px of a sheet whose file is `width` px wide (1 Standard, 2 HD). */
 export function ostrichTexelsPerPx(width: number): number {
-  return Math.max(1, Math.round(width / OSTRICH_SHEET_W));
+  // Not rounded: the sheet ships at 1.5× (Standard and HD, D-059).
+  return Math.max(1, width / OSTRICH_SHEET_W);
 }
+
+/** Texture px per design px the interim sheet is drawn at (one sheet for Standard and HD). */
+export const OSTRICH_MASTER = 1.5;
 
 /** Where each egg lies in the scrape (design px at the art scale, from its middle), in the
  *  order they are laid: the first `eggs` of these show. Packed in two loose rings. */

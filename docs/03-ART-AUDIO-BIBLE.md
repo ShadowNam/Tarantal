@@ -562,10 +562,15 @@ far-ostrich proportion). Cock: black plumes with white wing tips and tail, pinki
 and thighs, red shins. Hen: grey-brown, greyish-white plumes, grey skin. Layered shading (a lit
 back, a shaded belly, plume texture strokes), long legs with scaled shanks and two toes, a small
 head with a flat bill, a big dark eye with lashes and a bristly crown. Thin edges a shade darker
-than the part. Poses: stand, look, a four-step walk, peck, sit, display (the cock kneels, wings
+than the part. Review round 1: the body is rows of overlapping plumes (the cock's black with a
+grey sheen on each upper edge, the hen's mottled grey-brown with pale tips) inside a ruffled
+outline, drooping white (hen: greyish-white) wing and tail plumes with fine barbs, pink bare
+thighs with wrinkles and red shins on the cock, a slight S in the neck with a lighter throat, a
+collar ruff, two-toed feet. Sitting, the hen is a fluffed mound, wings a little spread over the
+eggs, neck up. Poses: stand, look, a four-step walk, peck, sit, display (the cock kneels, wings
 fanned white), a three-step run (wings half out, neck forward), hiss (neck low, bill open). The
-scrape: a shallow hollow with a raked rim; cream pitted eggs. The sheet (1×) stays Standard in HD
-(its 2× twin would take Namibië past the 256 MB HD texture budget on a Pixel 7).
+scrape: a shallow hollow with a raked rim; cream pitted eggs. One sheet at 1.5× (48 colours) for
+Standard and HD: a 2× sheet would take Namibië past its HD texture target and its chunk budget.
 
 #### 4.5e Oryx in the mirage (1.9.6, D-059)
 The far gemsbok sheet's walking look (D-054), five animals walking the pan; the reflection is the
