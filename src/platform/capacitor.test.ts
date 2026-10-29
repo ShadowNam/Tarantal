@@ -26,9 +26,11 @@ function fakeShell(share?: NativeApp['share']): FakeShell {
     active: () => undefined,
     onBackButton: (fn) => {
       shell.back = fn;
+      return Promise.resolve();
     },
     onAppActive: (fn) => {
       shell.active = fn;
+      return Promise.resolve();
     },
     minimize: () => shell.calls.push('minimize'),
     keepAwake: (on) => shell.calls.push(`awake:${String(on)}`),
@@ -68,6 +70,41 @@ describe('CapacitorPlatform (D-058)', () => {
     expect('onUpdateReady' in p).toBe(false);
     expect(p.capabilities()).toEqual({ fullscreen: false, standalone: true, iphone: false });
     await expect(p.requestFullscreen()).resolves.toBeUndefined();
+  });
+
+  it('registers its listeners one at a time, both in place before init() resolves', async () => {
+    // Capacitor's web loader keeps one plugin copy only when calls don't overlap (e2e in a browser).
+    const order: string[] = [];
+    let release = (): void => undefined;
+    const shell = fakeShell();
+    shell.onBackButton = (fn) => {
+      order.push('back:start');
+      shell.back = fn;
+      return new Promise<void>((resolve) => {
+        release = () => {
+          order.push('back:done');
+          resolve();
+        };
+      });
+    };
+    shell.onAppActive = (fn) => {
+      order.push('active:start');
+      shell.active = fn;
+      return Promise.resolve();
+    };
+    const p = new CapacitorPlatform(opts, () => Promise.resolve(shell), new FakeDoc());
+    let ready = false;
+    const init = p.init().then(() => {
+      ready = true;
+    });
+    await vi.waitFor(() => {
+      expect(order).toEqual(['back:start']);
+    });
+    expect(ready).toBe(false);
+    release();
+    await init;
+    expect(order).toEqual(['back:start', 'back:done', 'active:start']);
+    expect(ready).toBe(true);
   });
 
   it('opens external links in the system browser', async () => {
