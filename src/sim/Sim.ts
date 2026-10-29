@@ -2838,11 +2838,7 @@ export function createSim(config: SimConfig): Sim {
         tick,
         shotId,
         tellId: t.id,
-        species: t.species,
         propId: t.propId,
-        layerId: t.layerId,
-        x: t.x,
-        y: t.y,
       });
     }
   }
@@ -2851,8 +2847,7 @@ export function createSim(config: SimConfig): Sim {
     for (const t of tells) {
       const s = secrets.find((x) => x.propId === t.propId);
       const back = stepTell(t, tellT, tellRng, s?.done ?? true, s !== undefined && isReady(s));
-      if (back === 'back')
-        emit({ type: 'tellBack', tick, tellId: t.id, species: t.species, propId: t.propId });
+      if (back === 'back') emit({ type: 'tellBack', tick, tellId: t.id });
     }
   }
 

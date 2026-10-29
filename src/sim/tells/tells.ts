@@ -100,42 +100,30 @@ export function stepTell(
   spent: boolean,
   ready: boolean,
 ): 'back' | null {
+  t.t++;
   if (spent) {
     if (!t.left) {
       t.left = true;
-      t.phase = 'gone';
-      t.t = 0;
-      t.dur = 0;
+      enter(t, 'gone', 0);
     }
-    t.t++;
     return null;
   }
-  t.t++;
-  if (t.phase === 'gone') {
-    if (t.t < t.dur) return null;
-    t.phase = 'rest';
-    t.t = 0;
-    t.dur = ticks(rng, T.actEverySeconds);
-    return 'back';
-  }
   if (t.t < t.dur) return null;
-  if (t.phase === 'rest' && ready) {
-    t.phase = 'act';
-    t.t = 0;
-    t.dur = Math.max(1, secondsToTicks(T.actSeconds));
-  } else {
-    t.phase = 'rest';
-    t.t = 0;
-    t.dur = ticks(rng, T.actEverySeconds);
-  }
-  return null;
+  const back = t.phase === 'gone';
+  if (t.phase === 'rest' && ready) enter(t, 'act', Math.max(1, secondsToTicks(T.actSeconds)));
+  else enter(t, 'rest', ticks(rng, T.actEverySeconds));
+  return back ? 'back' : null;
+}
+
+function enter(t: TellState, phase: TellPhase, dur: number): void {
+  t.phase = phase;
+  t.t = 0;
+  t.dur = dur;
 }
 
 /** A pellet struck it: gone for goneSeconds (no cost). */
 export function spookTell(t: TellState, T: TellTuning, rng: RandomStream): void {
-  t.phase = 'gone';
-  t.t = 0;
-  t.dur = ticks(rng, T.goneSeconds);
+  enter(t, 'gone', ticks(rng, T.goneSeconds));
 }
 
 /** The map's tells: one per secret that names one (in prop order), feet on the prop's layer. */
@@ -159,16 +147,9 @@ export function tellPlacements(biome: Biome): TellPlacement[] {
 }
 
 export function tellView(t: TellState): TellView {
-  return {
-    id: t.id,
-    propId: t.propId,
-    layerId: t.layerId,
-    species: t.species,
-    x: t.x,
-    y: t.y,
-    facing: t.facing,
-    phase: t.phase,
-    t: t.t,
-    left: t.left,
-  };
+  // A copy without the sim-only fields (the hit shape, the phase length, `left`: a spent secret's
+  // tell is simply gone, and the view lets it leave).
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { hit, dur, left, ...v } = t;
+  return v;
 }

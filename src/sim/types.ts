@@ -269,8 +269,6 @@ export interface TellView {
   readonly phase: TellPhase;
   /** Ticks in this phase. */
   readonly t: number;
-  /** Gone because its secret is spent (it never comes back this hunt). */
-  readonly left: boolean;
 }
 
 /** v1.7d (D-059): an ostrich pair and its nest (Namibië). */

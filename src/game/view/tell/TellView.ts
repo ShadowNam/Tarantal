@@ -171,7 +171,7 @@ export class TellView {
       let alpha = 1;
       if (t.phase === 'act') pose = Math.floor(t.t / ACT_FRAME_TICKS) % 2 === 0 ? 'act_a' : 'act_b';
       else if (t.phase === 'gone') {
-        if (t.left || t.t >= FLEE_TICKS) pose = null;
+        if (t.t >= FLEE_TICKS) pose = null;
         else {
           pose = 'flee';
           // Away from the camera's side it faces: behind the prop, up for a bird.

@@ -499,8 +499,8 @@ export const TellsSchema = obj({
   species: z
     .array(
       obj({
+        /** Its name is the guide table's `guide.tell.<id>` (en/af/de/nl). */
         id,
-        nameKey: i18nKey,
         /** The hit shape round the animal's feet (oy up < 0). */
         hit: ellipseBox,
       }),

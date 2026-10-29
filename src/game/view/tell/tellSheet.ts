@@ -6,8 +6,9 @@
 // group (after the first download; no area chunk grows). Pure constants and a frame table: the
 // game, the placeholder and the interim art generator (tools/art/tells.ts) all read them.
 
-/** The sheet's texture key (late group: every manifest lists it). */
-export const TELL_SHEET = 'tells/sheet';
+import { TELL_SHEET_W } from './tellKeys';
+
+export { TELL_SHEET, TELL_SHEET_H, TELL_SHEET_W } from './tellKeys';
 
 /** Each species' frame box (prop px at 1×) and its feet within it. */
 export const TELL_BOXES = {
@@ -45,8 +46,6 @@ export interface TellRect {
   readonly oy: number;
 }
 
-/** Sheet width (prop px at 1×); frames are packed left to right in rows this wide. */
-export const TELL_SHEET_W = 340;
 const GAP = 2;
 
 /** Every frame's rect at 1× (prop px): one row per species. */
@@ -71,11 +70,10 @@ export function tellFrames(): TellRect[] {
   return out;
 }
 
-/** Sheet height (prop px at 1×). */
-export const TELL_SHEET_H = ((): number => {
-  const fr = tellFrames();
-  return Math.max(...fr.map((f) => f.y + f.h)) + GAP;
-})();
+/** Sheet height the frames need (prop px at 1×; tellKeys.ts TELL_SHEET_H must equal it). */
+export function tellSheetHeight(): number {
+  return Math.max(...tellFrames().map((f) => f.y + f.h)) + GAP;
+}
 
 /** Texture px per prop px of a sheet whose file is `width` px wide (2: the delivered 2× art). */
 export function tellTexelsPerPx(width: number): number {

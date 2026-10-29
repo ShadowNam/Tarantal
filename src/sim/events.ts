@@ -692,19 +692,13 @@ export type SimEvent =
       readonly tick: number;
       readonly shotId: number;
       readonly tellId: number;
-      readonly species: string;
       readonly propId: string;
-      readonly layerId: string;
-      readonly x: number;
-      readonly y: number;
     }
   /** v1.7e (D-061): the tell animal is back at its secret after a hit. */
   | {
       readonly type: 'tellBack';
       readonly tick: number;
       readonly tellId: number;
-      readonly species: string;
-      readonly propId: string;
     };
 
 /** 1.9.3 (D-056): what nutKnocked and nutJuggled carry. */

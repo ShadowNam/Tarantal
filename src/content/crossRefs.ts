@@ -93,7 +93,7 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
   };
 
   // --- birds.json --------------------------------------------------------------------------
-  for (const t of birds.tells.species) i18n('birds.json', t.nameKey);
+  for (const t of birds.tells.species) i18n('birds.json', `guide.tell.${t.id}`);
   for (const c of birds.creatures) {
     if (c.biomes) {
       for (const b of c.biomes) {

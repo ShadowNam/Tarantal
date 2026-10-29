@@ -419,7 +419,6 @@ const hook: TestHook = {
   namibLifeFrames: 0,
   tells: null,
   tellMs: 0,
-  tellFrames: 0,
   reloadFx: { chipIcons: [], bolts: 0, oupaHand: false, autoReloads: 0 },
   mirage: false,
   sceneryMs: 0,

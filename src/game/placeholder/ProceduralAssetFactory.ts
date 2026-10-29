@@ -28,7 +28,7 @@ import { sightSpecs } from './sightArt';
 import { ellipse, ground, inked, INK, prng, tuft } from './draw';
 import { sheetHerds } from '../view/faunaHerds';
 import { FRUIT_SHEET, fruitSheetKey } from '../view/fruit/fruitTypes';
-import { TELL_SHEET, TELL_SHEET_H, TELL_SHEET_W } from '../view/tell/tellSheet';
+import { TELL_SHEET, TELL_SHEET_H, TELL_SHEET_W } from '../view/tell/tellKeys';
 import { hasColonies } from '../../sim/meerkats/colony';
 import { MEERKAT_SOUNDS } from '../assets/desertAssets';
 import { HD_PARTS, hdKeyOf, POTJIE_LID, POTJIE_LID_SIZE } from '../assets/hdProps';

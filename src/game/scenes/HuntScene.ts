@@ -1684,7 +1684,6 @@ export class HuntScene extends Phaser.Scene {
       hook.namibLifeFrames = 0;
       hook.tells = null;
       hook.tellMs = 0;
-      hook.tellFrames = 0;
       hook.fruit = null;
       hook.hunts++;
     }
@@ -1844,10 +1843,7 @@ export class HuntScene extends Phaser.Scene {
     // v1.7e (D-061): the tell animals, on their own timer (outside the weavers + mirage window).
     if (this.tells !== null) {
       this.tells.update(state, this.world.secretsLit(state));
-      if (this.ctx.hook) {
-        this.ctx.hook.tellMs += this.tells.lastMs;
-        this.ctx.hook.tellFrames++;
-      }
+      if (this.ctx.hook) this.ctx.hook.tellMs += this.tells.lastMs;
     }
     this.weapon.spreadMul = spreadMulOf(state.powerups, this.ctx.content.powerups.powerups);
     // v1.7b (D-046): Chilli Biltong's sparks at the muzzle.
