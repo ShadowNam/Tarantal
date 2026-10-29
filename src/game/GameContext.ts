@@ -479,6 +479,9 @@ export interface TestHook {
   } | null;
   /** v1.7 (perf): ms spent drawing the meerkat colonies, summed with the frames counted. */
   meerkatMs: number;
+  /** v1.7d (perf, D-059): ms in the Namibië veld life's update, and the frames it ran. */
+  namibLifeMs: number;
+  namibLifeFrames: number;
   /** v1.6b (D-043): reload power-ups on the HUD — the chips' icon textures (null = none), the
    *  lightning glints on the belt now, Oupa's hand on the belt, and auto reloads this page. */
   reloadFx: { chipIcons: (string | null)[]; bolts: number; oupaHand: boolean; autoReloads: number };

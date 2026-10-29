@@ -1674,6 +1674,8 @@ export class HuntScene extends Phaser.Scene {
       hook.potjie = null;
       hook.canLog = [];
       hook.canMs = 0;
+      hook.namibLifeMs = 0;
+      hook.namibLifeFrames = 0;
       hook.fruit = null;
       hook.hunts++;
     }
@@ -1807,7 +1809,6 @@ export class HuntScene extends Phaser.Scene {
     // Interpolated like the birds and the camera (a held frame keeps alpha 0: it holds).
     this.fruit?.update(state, width, state.tick - 1 + alpha);
     this.treeLife?.update(state, alpha);
-    this.namibLife?.update(state, runner.prev, alpha, width);
     for (const cue of this.meerkats.cues) {
       const pan = (cue.screenX - width / 2) / (width / 2);
       // Only colonies on screen (or just off it) are heard.
@@ -1820,6 +1821,16 @@ export class HuntScene extends Phaser.Scene {
       // v1.4 B (e2e perf): what the weavers and the mirage cost per frame.
       this.ctx.hook.sceneryMs += performance.now() - w0 + this.world.mirageMs;
       this.ctx.hook.sceneryFrames++;
+    }
+    // v1.7d (D-059, review): the Namibië veld life on its own timer (outside the weavers +
+    // mirage window above).
+    if (this.namibLife !== null) {
+      const n0 = performance.now();
+      this.namibLife.update(state, runner.prev, alpha, width);
+      if (this.ctx.hook) {
+        this.ctx.hook.namibLifeMs += performance.now() - n0;
+        this.ctx.hook.namibLifeFrames++;
+      }
     }
     this.weapon.spreadMul = spreadMulOf(state.powerups, this.ctx.content.powerups.powerups);
     // v1.7b (D-046): Chilli Biltong's sparks at the muzzle.

@@ -414,6 +414,8 @@ const hook: TestHook = {
   treeLife: null,
   namibLife: null,
   meerkatMs: 0,
+  namibLifeMs: 0,
+  namibLifeFrames: 0,
   reloadFx: { chipIcons: [], bolts: 0, oupaHand: false, autoReloads: 0 },
   mirage: false,
   sceneryMs: 0,

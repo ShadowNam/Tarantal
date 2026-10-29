@@ -248,6 +248,9 @@ test('perf: Namibië mirage and angry weavers at 4× CPU throttle (Pixel 7)', as
     // The weavers' and the mirage's own share of each frame (same page, so the box's load and
     // software GL drop out).
     sceneryMsPerFrame: h.sceneryFrames > 0 ? h.sceneryMs / h.sceneryFrames : 0,
+    // v1.7d (D-059): the veld life's own update (ground cover, ostriches, oryx, balloons).
+    namibLifeMsPerFrame: h.namibLifeFrames > 0 ? h.namibLifeMs / h.namibLifeFrames : 0,
+    namibLifeFrames: h.namibLifeFrames,
     realFrameMs: real,
     cpuFrameMs: cpu,
   };
@@ -262,6 +265,12 @@ test('perf: Namibië mirage and angry weavers at 4× CPU throttle (Pixel 7)', as
     report.sceneryMsPerFrame,
     'weavers + mirage ms per frame, 4× throttle',
   ).toBeLessThanOrEqual(1);
+  // v1.7d (D-059): the veld life ran, and costs at most 0.5 ms a frame at 4× throttle.
+  expect(report.namibLifeFrames, 'the Namibië veld life ran').toBeGreaterThan(30);
+  expect(
+    report.namibLifeMsPerFrame,
+    'Namibië veld life ms per frame, 4× throttle',
+  ).toBeLessThanOrEqual(0.5);
   expect(cpu.avg, 'CPU cost per frame (ms), mirage + weavers, 4× throttle').toBeLessThanOrEqual(
     BUDGET_MS,
   );
