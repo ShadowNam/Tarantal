@@ -7,6 +7,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import birds from '../../content/birds.json' with { type: 'json' };
 import bushveld from '../../content/biomes/bushveld-winter.json' with { type: 'json' };
+import { decodePng } from '../../tools/assets/image';
 import { fireAt, reloadIfEmpty } from './feesdaeHelpers';
 import { boot, hook, isLandscape, isTouchProject, startHunt, waitTicks } from './helpers';
 
@@ -213,4 +214,83 @@ test('a held frame holds the tells; a dusk map lights them', async ({ page }, in
   const b = await tellsOf(page);
   expect(b).toEqual(a);
   expect((await hook(page)).tick).toBe(at);
+});
+
+// Review R11: the tell sheet is in the late group. When it lands after the hunt has started (a
+// first visit, a slow connection), the tells must appear then, and really be drawn: before the fix
+// the empty full-size placeholder stayed under the key and nothing showed while the hook said
+// "visible". The sheet's download is held until the hunt runs and the sim is held; the canvas at
+// the drongo's spot is compared before and after it lands (Standard graphics).
+test('the tells appear when the late sheet lands mid-hunt, drawn on the canvas', async ({
+  page,
+}, info) => {
+  test.skip(!isLandscape(info), 'landscape only: portrait shows the rotate card');
+  test.setTimeout(600_000);
+  const touch = isTouchProject(info);
+  let release: () => void = () => undefined;
+  const landed = new Promise<void>((r) => {
+    release = r;
+  });
+  let held = false;
+  await page.route(/\/late\/img\/tells_sheet\.[0-9a-f]+\.png$/, async (route) => {
+    held = true;
+    await landed;
+    await route.continue();
+  });
+  await boot(page, BASE);
+  await startHunt(page, touch);
+  // Pan west until the baobab (the drongo's prop) is near the screen's centre (bounded).
+  const w = (await hook(page)).designWidth;
+  for (let k = 0; k < 120; k++) {
+    const b = (await hook(page)).graphics.bounds.find((x) => x.key === 'bushveld/baobab');
+    if (b !== undefined && b.x + b.w / 2 > w * 0.3 && b.x + b.w / 2 < w * 0.7) break;
+    await page.keyboard.down('KeyA');
+    await page.waitForTimeout(150);
+    await page.keyboard.up('KeyA');
+  }
+  // Hold the sim past the fade-in (no shots: the drongo rests or acts, never gone).
+  const at = await page.evaluate(() => {
+    const t = Math.max(90, (window.__TM__?.tick ?? 0) + 30);
+    (window as { __TM_HOLD_AT__?: (tick: number) => void }).__TM_HOLD_AT__?.(t);
+    return t;
+  });
+  await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) >= t, at, { timeout: 300_000 });
+  expect(held, 'the tell sheet download was held').toBe(true);
+  // Without the sheet nothing is drawn, and the hook says so.
+  const waiting = (await tellsOf(page)) ?? [];
+  expect(waiting.length).toBeGreaterThan(0);
+  expect(waiting.every((t) => !t.visible && t.frame === null)).toBe(true);
+  await page.mouse.move(0, 0);
+  await page.waitForTimeout(800);
+  const before = decodePng(await page.locator('#game canvas').screenshot());
+  release();
+  await page.waitForFunction(
+    () =>
+      ((window as unknown as { __TM__?: { tells?: Tell[] | null } }).__TM__?.tells ?? []).some(
+        (t) => t.species === 'fork_tailed_drongo' && t.visible && t.alpha === 1,
+      ),
+    null,
+    { timeout: 300_000 },
+  );
+  await page.waitForTimeout(800);
+  const after = decodePng(await page.locator('#game canvas').screenshot());
+  const d = (await tellsOf(page))?.find((t) => t.species === 'fork_tailed_drongo');
+  if (d === undefined) throw new Error('no drongo');
+  const h = await hook(page);
+  expect(h.tick, 'still held').toBe(at);
+  // The box over the drongo (feet at d.x, d.y; it stands ~45 design px tall).
+  const k = after.height / h.designHeight;
+  let changed = 0;
+  for (let y = Math.round((d.y - 50) * k); y < Math.round((d.y + 2) * k); y++)
+    for (let x = Math.round((d.x - 20) * k); x < Math.round((d.x + 20) * k); x++) {
+      if (x < 0 || y < 0 || x >= after.width || y >= after.height) continue;
+      const i = (y * after.width + x) * 4;
+      const diff =
+        Math.abs((after.data[i] ?? 0) - (before.data[i] ?? 0)) +
+        Math.abs((after.data[i + 1] ?? 0) - (before.data[i + 1] ?? 0)) +
+        Math.abs((after.data[i + 2] ?? 0) - (before.data[i + 2] ?? 0));
+      if (diff > 60) changed++;
+    }
+  // The black drongo over the sky and branches: many pixels change.
+  expect(changed, 'canvas pixels drawn by the drongo').toBeGreaterThan(30 * k * k);
 });
