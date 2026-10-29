@@ -19,6 +19,7 @@ vi.mock('./finalLoader', () => ({
   loadJson: () => Promise.resolve({ frames: {} }),
   loadBytes: () => Promise.resolve(null),
   forgetImage: () => undefined,
+  imageArrival: () => Promise.resolve(null),
 }));
 
 interface FakeFrame {

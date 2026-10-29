@@ -18,7 +18,7 @@ import { COMMON_GROUP, LATE_GROUP, VER_GROUP, sharedTileKeys } from './assetInde
 import type { FaunaFrames } from '../view/faunaHerds';
 import { DESERT_GROUP } from './desertAssets';
 import { atlasRegion, checkAtlas, checkBirdAtlas, type AtlasRegion } from './atlasCheck';
-import { loadBytes, loadImage, loadJson } from './finalLoader';
+import { imageArrival, loadBytes, loadImage, loadJson } from './finalLoader';
 import { halveTexture, type TextureLike } from './hdTexture';
 
 /** A texture drawn at runtime onto a canvas. Origin is in texture pixels. */
@@ -486,7 +486,17 @@ export class AssetManifest {
         entry.group,
         () =>
           loadImage(entry.file.path, o.timeoutMs).then((img) => {
-            if (img === null) return;
+            if (img === null) {
+              // v1.7e (review R12): a lazy file (not the first download) that outlived its
+              // timeout is still taken when it lands; views that poll upgrade() pick it up.
+              if (!index.initialGroups.includes(entry.group))
+                void imageArrival(entry.file.path).then((late) => {
+                  if (late === null || this.finalImages.has(key)) return;
+                  this.finalImages.set(key, { img: late, entry });
+                  this.mark(key, entry.origin);
+                });
+              return;
+            }
             this.finalImages.set(key, { img, entry });
             this.mark(key, entry.origin);
           }),
