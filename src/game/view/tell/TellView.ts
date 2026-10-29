@@ -84,8 +84,11 @@ export class TellView {
     private readonly scene: Phaser.Scene,
     private readonly parallax: ParallaxView,
     private readonly now: () => number,
-    /** Each species' drawing scale (birds.json → tells.species[].scale). */
-    private readonly scales: ReadonlyMap<string, number> = new Map(),
+    /** The species (birds.json → tells.species): each one's drawing scale. */
+    private readonly species: readonly {
+      readonly id: string;
+      readonly scale?: number | undefined;
+    }[] = [],
   ) {}
 
   /** The sheet as last cut: cut again (and every sprite moved over) after a texture swap. */
@@ -121,7 +124,7 @@ export class TellView {
     const layer = this.parallax.layer(t.layerId);
     if (layer === undefined) return null;
     const frame = tellFrameName(t.species, 'rest');
-    const scale = this.scales.get(t.species) ?? 1;
+    const scale = this.species.find((x) => x.id === t.species)?.scale ?? 1;
     const glow = this.scene.add
       .image(t.x, t.y, TELL_SHEET, frame)
       .setScale((GLOW_GROW * scale) / this.k)

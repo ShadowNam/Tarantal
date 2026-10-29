@@ -62,6 +62,7 @@ export function createTells(
   for (const p of placements) {
     const sp = T.species.find((s) => s.id === p.species);
     if (sp === undefined) continue;
+    const k = sp.scale ?? 1;
     out.push({
       id: nextId(),
       propId: p.propId,
@@ -71,12 +72,7 @@ export function createTells(
       y: p.y,
       facing: p.facing,
       // Review R9: the hit shape grows with the drawing.
-      hit: {
-        rx: sp.hit.rx * sp.scale,
-        ry: sp.hit.ry * sp.scale,
-        ox: sp.hit.ox * sp.scale,
-        oy: sp.hit.oy * sp.scale,
-      },
+      hit: { rx: sp.hit.rx * k, ry: sp.hit.ry * k, ox: sp.hit.ox * k, oy: sp.hit.oy * k },
       phase: 'rest',
       t: 0,
       dur: ticks(rng, T.actEverySeconds),

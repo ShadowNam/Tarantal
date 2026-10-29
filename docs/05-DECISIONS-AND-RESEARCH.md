@@ -3365,7 +3365,7 @@ option A stands (their standing instruction: go with the recommended options).
 - *The glint retired.* `fx/glint` and `juice.glintEveryMs/glintMs` are gone. Oupa se Kaart, a dusk
   map and the Meerkat Spotter now give the tells a soft warm outline (a warm fill of the frame
   behind the animal) instead of rings on the secrets; "reduce flashes" has nothing to dim there
-  (it never flashes). Oupa's Map text: "Secrets' animals glow". The FTUE line ("Hmm, Oupa's wind
+  (it never flashes). Oupa's Map text stays ("Secrets glow": their tell animals do; it never named the glint). The FTUE line ("Hmm, Oupa's wind
   pump…") stays: the kestrel sits on the pump it names.
 - *First download (must not grow).* `TellView` is a lazy chunk (1.3 KB gzip); the sheet (2×, one
   for all thirteen) is in the late group (Standard 17 KB, HD 36 KB); names live in the lazy guide

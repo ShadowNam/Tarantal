@@ -504,8 +504,8 @@ export const TellsSchema = obj({
         /** The hit shape round the animal's feet (oy up < 0), at scale 1. */
         hit: ellipseBox,
         /** Review R9: drawn (and hit) this many times its sheet size, so a small animal still
-         *  reads at play distance (≥ ~14 screen px at 1280 px wide on the mid plane). */
-        scale: pos,
+         *  reads at play distance (≥ ~14 screen px at 1280 px wide on the mid plane). Absent = 1. */
+        scale: pos.optional(),
       }),
     )
     .min(1),

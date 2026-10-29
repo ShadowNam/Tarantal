@@ -2046,7 +2046,7 @@ export class HuntScene extends Phaser.Scene {
             };
       hook.treeLife = this.treeLife?.hook() ?? null;
       hook.namibLife = this.namibLife?.hook() ?? null;
-      hook.tells = this.tells === null ? null : [...this.tells.tells];
+      hook.tells = this.tells?.tells ?? null;
       hook.mirage = state.mirage;
       hook.durationTicks = state.durationTicks;
     }
@@ -2152,7 +2152,7 @@ export class HuntScene extends Phaser.Scene {
           this,
           this.parallax,
           () => performance.now(),
-          new Map(this.ctx.content.birds.tells.species.map((s) => [s.id, s.scale])),
+          this.ctx.content.birds.tells.species,
         );
       })
       .catch(() => {

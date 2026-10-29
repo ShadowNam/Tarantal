@@ -79,7 +79,7 @@ for (const b of content.biomes)
     const f = frames.find((x) => x.name === `${tell.species}_${pose}`);
     const sp = content.birds.tells.species.find((s) => s.id === tell.species);
     if (f !== undefined && sp !== undefined) {
-      const k = sp.scale;
+      const k = sp.scale ?? 1;
       const fw = Math.round(f.w * k);
       const fh = Math.round(f.h * k);
       let fr = resize(crop(sheet, f.x * 2, f.y * 2, f.w * 2, f.h * 2), fw, fh);

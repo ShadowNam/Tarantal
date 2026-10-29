@@ -69,7 +69,7 @@ export function tellIssues(bundle: ContentBundle, biome: Biome): string[] {
     const at = uses.get(sp.id) ?? [];
     if (at.length > 1) out.push(`${where}: tell species "${sp.id}" lives at ${at.join(', ')}`);
     const f = sec.tell.facing ?? 1;
-    const k = sp.scale;
+    const k = sp.scale ?? 1;
     const pts = ellipsePoints(
       sec.tell.ox + sp.hit.ox * k * f,
       sec.tell.oy + sp.hit.oy * k,

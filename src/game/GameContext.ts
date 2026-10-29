@@ -487,7 +487,7 @@ export interface TestHook {
   namibLifeFrames: number;
   /** v1.7e (D-061): the secrets' tell animals (null: none on this map, or the chunk not in yet),
    *  and the ms their view took, summed over the frames sceneryFrames counts (perf.spec). */
-  tells: TellHook[] | null;
+  tells: readonly TellHook[] | null;
   tellMs: number;
   /** v1.6b (D-043): reload power-ups on the HUD — the chips' icon textures (null = none), the
    *  lightning glints on the belt now, Oupa's hand on the belt, and auto reloads this page. */
