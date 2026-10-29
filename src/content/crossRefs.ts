@@ -7,6 +7,7 @@ import { colonyIssues } from './colonyChecks';
 import { ostrichIssues } from './ostrichChecks';
 import { fenceIssues } from './fenceChecks';
 import { palmIssues } from './palmChecks';
+import { tellIssues } from './tellChecks';
 import { WORLD_EVENT_HANDLERS } from '../sim/director/events';
 
 /** Half the narrowest visible design width (4:3, 1440 px; Tech §3.3). */
@@ -57,6 +58,8 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
 
   // --- unique ids --------------------------------------------------------------------------
   checkUnique('birds.json', 'creature', birds.creatures.map((c) => c.id), err);
+  // v1.7e (D-061): the tell animals' species (unique ids, named in every language).
+  checkUnique('birds.json', 'tell species', birds.tells.species.map((t) => t.id), err);
   checkUnique('weapons.json', 'weapon/gadget', [
     ...weapons.weapons.map((w) => w.id),
     ...weapons.gadgets.map((g) => g.id),
@@ -90,6 +93,7 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
   };
 
   // --- birds.json --------------------------------------------------------------------------
+  for (const t of birds.tells.species) i18n('birds.json', `guide.tell.${t.id}`);
   for (const c of birds.creatures) {
     if (c.biomes) {
       for (const b of c.biomes) {
@@ -381,6 +385,8 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
     for (const m of fenceIssues(bundle, biome)) err(file, m);
     // 1.9.3 (D-056): the makalani palms (art on their plane; nothing hidden behind the nuts).
     for (const m of palmIssues(bundle, biome)) err(file, m);
+    // v1.7e (D-061): the secrets' tell animals (one each, never over the secret's part).
+    for (const m of tellIssues(bundle, biome)) err(file, m);
     for (const entry of biome.spawnTable) {
       const c = creatures.get(entry.creature);
       if (c === undefined) err(file, `spawnTable uses unknown creature "${entry.creature}"`);

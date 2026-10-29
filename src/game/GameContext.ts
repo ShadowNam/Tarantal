@@ -7,6 +7,7 @@ import type { Biome, ContentBundle, DailyMeta, Feel, Notaboek } from '../content
 import type { ChallengeDecode } from '../meta/challenge';
 import type { FruitHookSpot } from './view/fruit/FruitView';
 import type { TreeLifeHook } from './view/tree/TreeLifeView';
+import type { TellHook } from './view/tell/TellView';
 import type { NamibLifeHook } from './view/namib/NamibLifeView';
 import type { LoadStatus, SaveStore } from '../meta/save';
 import type { StorageStatus } from '../meta/storage';
@@ -484,6 +485,10 @@ export interface TestHook {
   /** v1.7d (perf, D-059): ms in the Namibië veld life's update, and the frames it ran. */
   namibLifeMs: number;
   namibLifeFrames: number;
+  /** v1.7e (D-061): the secrets' tell animals (null: none on this map, or the chunk not in yet),
+   *  and the ms their view took, summed over the frames sceneryFrames counts (perf.spec). */
+  tells: readonly TellHook[] | null;
+  tellMs: number;
   /** v1.6b (D-043): reload power-ups on the HUD — the chips' icon textures (null = none), the
    *  lightning glints on the belt now, Oupa's hand on the belt, and auto reloads this page. */
   reloadFx: { chipIcons: (string | null)[]; bolts: number; oupaHand: boolean; autoReloads: number };

@@ -108,6 +108,7 @@
       },
       "secret": {
         "$comment": "Shoot the 4 marked blades while the rotor spins, all within windowSeconds of the first (D-021). Part offsets are relative to the rotor hub and turn with it.",
+        "tell": { "species": "rock_kestrel", "ox": -120, "oy": -44 },
         "type": "multiHit",
         "parts": [
           {
@@ -202,6 +203,7 @@
         "oy": 0
       },
       "secret": {
+        "tell": { "species": "cape_wagtail", "ox": 60, "oy": -90 },
         "type": "singleHit",
         "part": {
           "id": "spare_wheel",
@@ -235,6 +237,7 @@
       "y": 930,
       "asset": "karoo/potjie",
       "secret": {
+        "tell": { "species": "striped_mouse", "ox": 95, "oy": 104, "facing": -1 },
         "type": "singleHit",
         "part": {
           "id": "lid",
@@ -260,6 +263,7 @@
       "y": 650,
       "asset": "karoo/fence_bell",
       "secret": {
+        "tell": { "species": "fiscal_shrike", "ox": 2, "oy": -86 },
         "type": "singleHit",
         "part": {
           "id": "bell",

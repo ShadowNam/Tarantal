@@ -62,6 +62,7 @@ import { CanView } from '../view/cans/CanView';
 import type { MakalaniView } from '../view/palms/MakalaniView';
 import type { TreeLifeView } from '../view/tree/TreeLifeView';
 import type { NamibLifeView } from '../view/namib/NamibLifeView';
+import type { TellView } from '../view/tell/TellView';
 import { playPotjieSound } from '../view/potjieSounds';
 import { playMeerkatSound } from '../audio/meerkatSounds';
 import { largestTextures, textureBytes } from '../assets/textureBytes';
@@ -146,6 +147,9 @@ export class HuntScene extends Phaser.Scene {
   private namibLife: NamibLifeView | null = null;
   private namibLifeGen = 0;
   private treeLifeGen = 0;
+  /** v1.7e (D-061): the secrets' tell animals (lazy chunk; null until it is in, or none). */
+  private tells: TellView | null = null;
+  private tellsGen = 0;
   /** Family nests by prop id (layer, x on it): the weavers' scolding is panned from here. */
   private weaverNests = new Map<string, { layer: string; x: number }>();
   /** Nest shots before the tree-life chunk was in (its burst plays them once it is). */
@@ -545,6 +549,7 @@ export class HuntScene extends Phaser.Scene {
     this.loadFruit(mapBiome);
     this.loadTreeLife(mapBiome, scales);
     this.loadNamibLife(mapBiome);
+    this.loadTells(mapBiome);
     this.weapon = new WeaponView(
       this,
       this.ctx.feel,
@@ -1677,6 +1682,8 @@ export class HuntScene extends Phaser.Scene {
       hook.canMs = 0;
       hook.namibLifeMs = 0;
       hook.namibLifeFrames = 0;
+      hook.tells = null;
+      hook.tellMs = 0;
       hook.fruit = null;
       hook.hunts++;
     }
@@ -1832,6 +1839,11 @@ export class HuntScene extends Phaser.Scene {
         this.ctx.hook.namibLifeMs += performance.now() - n0;
         this.ctx.hook.namibLifeFrames++;
       }
+    }
+    // v1.7e (D-061): the tell animals, on their own timer (outside the weavers + mirage window).
+    if (this.tells !== null) {
+      this.tells.update(state, this.world.secretsLit(state));
+      if (this.ctx.hook) this.ctx.hook.tellMs += this.tells.lastMs;
     }
     this.weapon.spreadMul = spreadMulOf(state.powerups, this.ctx.content.powerups.powerups);
     // v1.7b (D-046): Chilli Biltong's sparks at the muzzle.
@@ -2034,6 +2046,7 @@ export class HuntScene extends Phaser.Scene {
             };
       hook.treeLife = this.treeLife?.hook() ?? null;
       hook.namibLife = this.namibLife?.hook() ?? null;
+      hook.tells = this.tells?.tells ?? null;
       hook.mirage = state.mirage;
       hook.durationTicks = state.durationTicks;
     }
@@ -2123,6 +2136,28 @@ export class HuntScene extends Phaser.Scene {
       })
       .catch(() => {
         // Offline without the chunk cached: the tree simply has no residents.
+      });
+  }
+
+  /** v1.7e (D-061): the tell animals' chunk, for a map with a secret that has one. */
+  private loadTells(mapBiome: Biome): void {
+    this.tells?.destroy();
+    this.tells = null;
+    const gen = ++this.tellsGen;
+    if (!mapBiome.props.some((p) => p.secret?.tell !== undefined)) return;
+    void import('../view/tell/TellView')
+      .then((m) => {
+        if (gen !== this.tellsGen) return;
+        this.tells = new m.TellView(
+          this,
+          this.parallax,
+          () => performance.now(),
+          this.manifest,
+          this.ctx.content.birds.tells.species,
+        );
+      })
+      .catch(() => {
+        // Offline without the chunk cached: the secrets simply show no tell.
       });
   }
 
@@ -2664,6 +2699,9 @@ export class HuntScene extends Phaser.Scene {
     this.namibLife?.destroy();
     this.namibLife = null;
     this.namibLifeGen++;
+    this.tells?.destroy();
+    this.tells = null;
+    this.tellsGen++;
     this.game.canvas.style.cursor = '';
   }
 }

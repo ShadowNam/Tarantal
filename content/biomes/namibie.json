@@ -196,6 +196,7 @@
       },
       "secret": {
         "$comment": "Shoot the ostrich-egg water flask hanging in the old quiver tree: it bursts, the birds roosting round it burst out, +60.",
+        "tell": { "species": "pied_crow", "ox": -40, "oy": -150 },
         "type": "singleHit",
         "part": {
           "id": "egg",

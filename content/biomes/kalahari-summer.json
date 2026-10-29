@@ -145,6 +145,7 @@
       },
       "secret": {
         "$comment": "Shoot the sign on the windpomp: +5 s.",
+        "tell": { "species": "lilac_breasted_roller", "ox": 30, "oy": -118, "facing": -1 },
         "type": "singleHit",
         "part": {
           "id": "sign",
@@ -178,6 +179,7 @@
       },
       "secret": {
         "$comment": "Snap the dry branch: the roosting flock bursts out, +50.",
+        "tell": { "species": "flap_necked_chameleon", "ox": 60, "oy": -120 },
         "type": "singleHit",
         "part": {
           "id": "branch",

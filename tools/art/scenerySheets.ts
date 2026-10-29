@@ -29,7 +29,7 @@ const sprite = (key: string): Rgba | null => read(join(SRC, 'sprites', `${key}.p
 export function spriteSheet(cfg: ArtConfig): [string, Uint8Array] {
   const groups: [string, (k: string) => boolean][] = [
     ['HUD', (k) => k.startsWith('ui/')],
-    ['secrets', (k) => k.startsWith('secret/') || k === 'fx/glint' || k === 'fx/ring'],
+    ['secrets', (k) => k.startsWith('secret/') || k === 'fx/ring'],
     ['crate, helper', (k) => k.startsWith('crate/') || k.startsWith('helper/')],
     ['FX', (k) => ['fx/flash', 'fx/bubble', 'fx/grass_tuft', 'fx/feather'].includes(k)],
     [
@@ -37,7 +37,6 @@ export function spriteSheet(cfg: ArtConfig): [string, Uint8Array] {
       (k) =>
         k.startsWith('fx/') &&
         ![
-          'fx/glint',
           'fx/ring',
           'fx/dust_devil',
           'fx/flash',

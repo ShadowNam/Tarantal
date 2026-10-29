@@ -2,6 +2,7 @@
 import type { ContentBundle } from '../content/schemas';
 import type { ColonyPhase, MeerkatPose } from './meerkats/colony';
 import type { OstrichPose } from './ostriches/ostriches';
+import type { TellPhase } from './tells/tells';
 import type { RangeProgramFactory } from './range/types';
 
 /** v1.3 (D-036): `ver` is the distant band behind the far plane; only rifles reach it. */
@@ -256,6 +257,20 @@ export interface OstrichView {
   readonly sitter: boolean;
 }
 
+/** v1.7e (D-061): a secret's tell animal as the view sees it (feet on its prop's layer). */
+export interface TellView {
+  readonly id: number;
+  readonly propId: string;
+  readonly layerId: string;
+  readonly species: string;
+  readonly x: number;
+  readonly y: number;
+  readonly facing: 1 | -1;
+  readonly phase: TellPhase;
+  /** Ticks in this phase. */
+  readonly t: number;
+}
+
 /** v1.7d (D-059): an ostrich pair and its nest (Namibië). */
 export interface OstrichFamilyView {
   readonly id: string;
@@ -374,6 +389,8 @@ export interface SimState {
   readonly meerkats: readonly ColonyView[];
   /** v1.7d (D-059): the map's ostrich pairs (none outside Namibië). */
   readonly ostriches: readonly OstrichFamilyView[];
+  /** v1.7e (D-061): the secrets' tell animals (none in the Skietbaan). */
+  readonly tells: readonly TellView[];
   readonly powerups: readonly PowerupView[];
   /** Null when the omen is off or the biome has no wind. */
   readonly wind: WindView | null;

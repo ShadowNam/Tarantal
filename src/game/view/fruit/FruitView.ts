@@ -231,9 +231,9 @@ export class FruitView {
   private upgrade(): void {
     if (!this.manifest.lateDone) return;
     if (this.manifest.upgrade(this.scene.textures, this.key).length === 0) {
-      // Nothing arrived for it (no delivery, or the file failed): stop looking, show none.
+      // Nothing arrived for it yet: show none, and keep looking every 30 frames (v1.7e, review
+      // R12: a file that outlived its timeout on a slow connection can still land mid-hunt).
       this.waiting = this.isPlaceholder();
-      if (this.waiting) this.frames = Number.NEGATIVE_INFINITY;
       return;
     }
     this.addFrames(this.spotList);

@@ -95,7 +95,6 @@ export class WorldView {
   /** Power-ups that bring a helper creature (helpers' `grants`, birds.json). */
   private readonly helperPowerups: ReadonlySet<string>;
   private readonly planeScale: Readonly<Record<PlaneId, number>>;
-  private nextGlintAt = 0;
   private windCredit = 0;
   /** v1.6 (D-042): the windpomps' turning heads and wheels. */
   private readonly windpomps: WindpompView;
@@ -150,13 +149,12 @@ export class WorldView {
 
   /** Draws this frame. `width`/`height` are the visible design size. */
   update(s: SimState, width: number, height: number): void {
-    const now = this.scene.time.now;
     this.windpomps.update(s);
     if (++this.hdFrames % 30 === 0) this.parallax.upgradeHd(this.scene.textures);
     this.potjie.update(s, this.reducedMotion, width);
     this.parallax.driftClouds(s.tick, s.rain || s.lightning);
     this.parallax.animateFauna(s.tick, this.reducedMotion, width);
-    this.drawSecrets(s, now);
+    this.drawSecrets(s);
     this.drawCrates(s);
     this.drawDevils(s);
     this.drawStones(s, width, height);
@@ -172,9 +170,7 @@ export class WorldView {
     this.blowWind(s, width, height);
   }
 
-  private drawSecrets(s: SimState, now: number): void {
-    const glint = now >= this.nextGlintAt;
-    if (glint) this.nextGlintAt = now + this.feel.juice.glintEveryMs;
+  private drawSecrets(s: SimState): void {
     for (const sec of s.secrets) {
       const layer = this.parallax.layer(sec.layerId);
       if (layer === undefined) continue;
@@ -188,8 +184,8 @@ export class WorldView {
         const rotor = rotorDef === undefined ? null : this.scene.add.image(hubX, hubY, TEX.rotor);
         if (rotor !== null) layer.fixtures.add(rotor);
         art = { rotor, hubX, hubY, marks: new Map() };
-        // Multi-hit secrets show which parts to hit (painted marks); single hits stay hidden
-        // until a glint or the Meerkat Spotter gives them away.
+        // Multi-hit secrets show which parts to hit (painted marks); single hits stay hidden: the
+        // secret's tell animal gives it away (v1.7e, D-061: TellView; the hint glint is gone).
         if (def?.type === 'multiHit') {
           for (const part of sec.parts) {
             const m = this.scene.add.image(part.x, part.y, TEX.mark);
@@ -208,29 +204,7 @@ export class WorldView {
         if (m.texture.key !== key) m.setTexture(key);
         m.setVisible(!sec.done);
       }
-      if (glint && sec.ready) {
-        const part = sec.parts.find((p) => !p.hit);
-        if (part !== undefined) this.glint(layer.fixtures, part.x, part.y);
-      }
     }
-  }
-
-  private glint(layer: Phaser.GameObjects.Container, x: number, y: number): void {
-    const g = this.scene.add
-      .image(x, y, TEX.glint)
-      .setScale(0)
-      .setAlpha(0.95 * this.prefs.flashAlpha);
-    layer.add(g);
-    this.scene.tweens.add({
-      targets: g,
-      scale: 0.8,
-      angle: 45,
-      yoyo: true,
-      duration: this.feel.juice.glintMs / 2,
-      onComplete: () => {
-        g.destroy();
-      },
-    });
   }
 
   private drawCrates(s: SimState): void {
@@ -546,6 +520,15 @@ export class WorldView {
   }
 
   /** Meerkat Spotter (GDD §10.4): rings around target birds and ready secret parts. */
+  /** v1.7e (D-061): the secrets' tell animals glow (Oupa se Kaart, a dusk map, the Spotter). */
+  secretsLit(s: SimState): boolean {
+    return (
+      s.powerups.some((p) => this.helperPowerups.has(p.id)) ||
+      s.season?.revealSecrets === true ||
+      this.secretGlow
+    );
+  }
+
   private drawRings(s: SimState): void {
     const reveal = s.powerups.some((p) => this.helperPowerups.has(p.id));
     let used = 0;
@@ -571,14 +554,8 @@ export class WorldView {
         ring(this.parallax.plane(b.plane).overlay, b.x, b.y, 120 * scale);
       }
     }
-    // Oupa se Kaart (charm) makes the secrets glow for the whole hunt; so does a dusk map (v1.2).
-    if (reveal || s.season?.revealSecrets === true || this.secretGlow) {
-      for (const sec of s.secrets) {
-        if (!sec.ready) continue;
-        const layer = this.parallax.layer(sec.layerId)?.fixtures ?? null;
-        for (const p of sec.parts) if (!p.hit) ring(layer, p.x, p.y, 44);
-      }
-    }
+    // v1.7e (D-061): Oupa se Kaart, a dusk map and the Spotter light the secrets' tell animals
+    // (a soft warm outline, TellView: secretsLit), not rings on the secrets.
     for (let i = used; i < this.rings.length; i++) this.rings[i]?.setVisible(false);
   }
 

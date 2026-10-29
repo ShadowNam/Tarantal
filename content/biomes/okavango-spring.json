@@ -126,6 +126,7 @@
       },
       "secret": {
         "$comment": "Shoot the flag on the mokoro marker pole: +5 s.",
+        "tell": { "species": "malachite_kingfisher", "ox": 0, "oy": -148 },
         "type": "singleHit",
         "part": {
           "id": "flag",
@@ -195,6 +196,7 @@
       },
       "secret": {
         "$comment": "Shoot the water beside the hippo: it yawns, the wave flushes the flocks on the bank.",
+        "tell": { "species": "red_billed_oxpecker", "ox": -20, "oy": -22 },
         "type": "singleHit",
         "part": {
           "id": "water",
@@ -262,6 +264,7 @@
       "asset": "okavango/lily_frog",
       "secret": {
         "$comment": "Shoot the frog's lily pad: the frog leaps (a Bird Book easter egg).",
+        "tell": { "species": "african_jacana", "ox": -110, "oy": 6 },
         "type": "singleHit",
         "part": {
           "id": "lily",

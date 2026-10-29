@@ -205,6 +205,9 @@ export function neededLateMissing(
 
 export const MAX_TILE_WIDTH = 2048;
 
+/** v1.7e (review R12): how many times the normal timeout a late or Ver image may take. */
+export const LAZY_TIMEOUT_MUL = 8;
+
 /** Placeholders upgrade() has renamed out of the way (keeps their new keys unique). */
 let retiredPlaceholders = 0;
 
@@ -485,7 +488,13 @@ export class AssetManifest {
       queue(
         entry.group,
         () =>
-          loadImage(entry.file.path, o.timeoutMs).then((img) => {
+          // v1.7e (review R12): a late or Ver image gets LAZY_TIMEOUT_MUL × the timeout: on a
+          // slow connection it may land mid-hunt (TellView, FruitView, FaunaView poll for it);
+          // dropped at 15 s it was lost for the session's hunts.
+          loadImage(
+            entry.file.path,
+            o.timeoutMs * (backgroundGroup(entry.group) ? LAZY_TIMEOUT_MUL : 1),
+          ).then((img) => {
             if (img === null) return;
             this.finalImages.set(key, { img, entry });
             this.mark(key, entry.origin);
@@ -1014,7 +1023,6 @@ export const TEX = {
   cloudTower: 'sky/cloud_tower',
   mark: 'secret/mark',
   markHit: 'secret/mark_hit',
-  glint: 'fx/glint',
   ring: 'fx/ring',
   spark: 'fx/spark',
   crateChute: 'crate/chute',

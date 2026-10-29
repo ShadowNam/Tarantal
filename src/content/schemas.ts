@@ -487,6 +487,32 @@ export type MeerkatTuning = z.infer<typeof MeerkatsSchema>;
 const ellipseBox = obj({ rx: pos, ry: pos, ox: z.number(), oy: z.number() });
 
 /**
+ * v1.7e (D-061, GDD §11.1c): the secrets' tell animals. Sizes are the secret prop's layer px (the
+ * prop is drawn 1:1 on its layer); times in seconds. Each rests, does its small action (an
+ * agama's push-ups, a kingfisher's bob) every actEverySeconds for actSeconds, and after a hit
+ * is gone for goneSeconds. While its secret is spent (done) it stays away.
+ */
+export const TellsSchema = obj({
+  actEverySeconds: range(pos),
+  actSeconds: pos,
+  goneSeconds: range(pos),
+  species: z
+    .array(
+      obj({
+        /** Its name is the guide table's `guide.tell.<id>` (en/af/de/nl). */
+        id,
+        /** The hit shape round the animal's feet (oy up < 0), at scale 1. */
+        hit: ellipseBox,
+        /** Review R9: drawn (and hit) this many times its sheet size, so a small animal still
+         *  reads at play distance (≥ ~14 screen px at 1280 px wide on the mid plane). Absent = 1. */
+        scale: pos.optional(),
+      }),
+    )
+    .min(1),
+});
+export type TellTuning = z.infer<typeof TellsSchema>;
+
+/**
  * v1.7d (D-059): Namibië's ostriches (GDD §11.3c, Tech §3.12b). Non-targets like the meerkats:
  * never hurt. Sizes and speeds are design px at plane scale 1 (scaled by the family's plane);
  * times in seconds. Where the families stand is in the biome file (ostriches, per layout).
@@ -618,6 +644,8 @@ export const BirdsSchema = obj({
   makalani: MakalaniSchema,
   /** v1.7d (D-059): Namibië's ostriches (behaviour and rules). */
   ostriches: OstrichesSchema,
+  /** v1.7e (D-061): the secrets' tell animals. */
+  tells: TellsSchema,
 });
 export type Birds = z.infer<typeof BirdsSchema>;
 
@@ -1067,6 +1095,21 @@ const secretRewardSchema = obj({
 /** A shootable part of a secret prop, in the prop's layer px relative to the prop (or rotor). */
 const secretPartSchema = obj({ id, shape: occluderSchema });
 
+/**
+ * v1.7e (D-061): the secret's tell animal (the cue that replaced the hint glint): a small, unique
+ * creature that always lives at the secret and does a small action every few seconds. Its feet
+ * in the prop's layer px relative to the prop; `species` names one of birds.json `tells.species`.
+ * A non-target: a hit costs nothing, it flees and comes back. Its hit shape never covers the
+ * secret's part (tools/validate-content.ts).
+ */
+const secretTellSchema = obj({
+  species: id,
+  ox: z.number(),
+  oy: z.number(),
+  /** 1 = faces right (the art's way), −1 = mirrored. */
+  facing: z.union([z.literal(1), z.literal(-1)]).optional(),
+});
+
 const secretSchema = z.discriminatedUnion('type', [
   obj({
     type: z.literal('multiHit'),
@@ -1076,6 +1119,7 @@ const secretSchema = z.discriminatedUnion('type', [
     /** All parts must be hit within this many seconds of the first, or the marks reset. */
     windowSeconds: pos.optional(),
     reward: secretRewardSchema,
+    tell: secretTellSchema.optional(),
   }),
   obj({
     type: z.literal('singleHit'),
@@ -1086,6 +1130,7 @@ const secretSchema = z.discriminatedUnion('type', [
     /** M8: hits (over any number of shots) before it pays, e.g. the Bushveld boulder crack. */
     hitsRequired: z.number().int().min(2).optional(),
     reward: secretRewardSchema,
+    tell: secretTellSchema.optional(),
   }).refine((s) => (s.oncePerHunt === true) !== (s.cooldownSeconds !== undefined), {
     message: 'singleHit secrets need exactly one of oncePerHunt or cooldownSeconds',
   }),
@@ -1099,6 +1144,7 @@ const secretSchema = z.discriminatedUnion('type', [
     oncePerHunt: z.literal(true).optional(),
     cooldownSeconds: pos.optional(),
     reward: secretRewardSchema,
+    tell: secretTellSchema.optional(),
   }).refine((s) => (s.oncePerHunt === true) !== (s.cooldownSeconds !== undefined), {
     message: 'nearMiss secrets need exactly one of oncePerHunt or cooldownSeconds',
   }),
@@ -1972,9 +2018,6 @@ export const FeelSchema = obj({
     /** HUD banners (wing shot, Stampede) and the "DIE HELE SWERM!" stamp. */
     bannerMs: pos,
     stampMs: pos,
-    /** M4: secret hint glints (one per ready secret every glintEveryMs, each lasting glintMs). */
-    glintEveryMs: pos,
-    glintMs: pos,
     /** Wind leaves/dust particles per second at full strength (omen visual flags). */
     windParticlesPerSec: nonNeg,
     /** M8: rain streaks per second while it rains (sun-showers, storm), before the quality tier. */

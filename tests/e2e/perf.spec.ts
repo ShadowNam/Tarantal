@@ -273,6 +273,9 @@ test('perf: Namibië mirage and angry weavers at 4× CPU throttle (Pixel 7)', as
     // v1.7d (D-059): the veld life's own update (ground cover, ostriches, oryx, balloons).
     namibLifeMsPerFrame: h.namibLifeFrames > 0 ? h.namibLifeMs / h.namibLifeFrames : 0,
     namibLifeFrames: h.namibLifeFrames,
+    // v1.7e (D-061): the secrets' tell animals' own update (counted over the scenery frames).
+    tells: h.tells?.length ?? 0,
+    tellMsPerFrame: h.sceneryFrames > 0 ? h.tellMs / h.sceneryFrames : 0,
     realFrameMs: real,
     cpuFrameMs: cpu,
   };
@@ -293,6 +296,9 @@ test('perf: Namibië mirage and angry weavers at 4× CPU throttle (Pixel 7)', as
     report.namibLifeMsPerFrame,
     'Namibië veld life ms per frame, 4× throttle',
   ).toBeLessThanOrEqual(0.5);
+  // v1.7e (D-061): the tell animals were drawn (the quiver tree's crow), at most 0.2 ms a frame.
+  expect(report.tells, 'tell animals on this map').toBeGreaterThan(0);
+  expect(report.tellMsPerFrame, 'tell animals ms per frame, 4× throttle').toBeLessThanOrEqual(0.2);
   expect(cpu.avg, 'CPU cost per frame (ms), mirage + weavers, 4× throttle').toBeLessThanOrEqual(
     BUDGET_MS,
   );

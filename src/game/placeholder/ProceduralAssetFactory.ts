@@ -28,6 +28,7 @@ import { sightSpecs } from './sightArt';
 import { ellipse, ground, inked, INK, prng, tuft } from './draw';
 import { sheetHerds } from '../view/faunaHerds';
 import { FRUIT_SHEET, fruitSheetKey } from '../view/fruit/fruitTypes';
+import { TELL_SHEET, TELL_SHEET_H, TELL_SHEET_W } from '../view/tell/tellKeys';
 import { hasColonies } from '../../sim/meerkats/colony';
 import { MEERKAT_SOUNDS } from '../assets/desertAssets';
 import { HD_PARTS, hdKeyOf, POTJIE_LID, POTJIE_LID_SIZE } from '../assets/hdProps';
@@ -1154,15 +1155,6 @@ function m4Specs(): CanvasSpec[] {
       ctx.lineWidth = 5;
       ctx.stroke();
     }),
-    // Hint glint: a four-point sparkle.
-    centred(TEX.glint, 96, 96, (ctx) => {
-      star(ctx, 4, 44, 8);
-      ctx.fillStyle = '#FFF6D5';
-      ctx.fill();
-      star(ctx, 4, 22, 4);
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fill();
-    }),
     // Meerkat Spotter reveal ring (shape, not colour alone: dashed).
     centred(TEX.ring, 200, 200, (ctx) => {
       ctx.setLineDash([18, 10]);
@@ -1570,6 +1562,20 @@ export function createPlaceholderManifest(
     originY: 0,
     draw() {
       // Nothing: without delivered art the fruit stay baked out and FruitView shows none.
+    },
+  });
+  // v1.7e (D-061): the secrets' tell animals' sheet (late group; drawn art only: the placeholder
+  // is empty, so without delivered art the secrets show no tell while the hunt plays the same).
+  m.addTexture({
+    key: TELL_SHEET,
+    width: TELL_SHEET_W,
+    height: TELL_SHEET_H,
+    originX: 0,
+    originY: 0,
+    // TellView cuts its frames by the file under the key (the 2× art).
+    viewScaled: true,
+    draw() {
+      // Nothing: drawn art only.
     },
   });
   for (const s of art.extraTextures?.() ?? []) m.addTexture(s);
