@@ -2270,6 +2270,8 @@ export class HuntScene extends Phaser.Scene {
         else if (e.type === 'ostrichesRan') log.push(`ran:${e.cause}`);
         else if (e.type === 'ostrichCall') log.push(`call:${e.call}`);
         else if (e.type === 'balloonHit') log.push(`balloon:${e.points}`);
+        else if (e.type === 'worldEvent' && e.event === 'balloons')
+          log.push(`event:balloons@${e.tick}`);
       }
     }
     // v1.4 B: a shot family nest lets its weavers out; they chatter and scold (AudioDirector).

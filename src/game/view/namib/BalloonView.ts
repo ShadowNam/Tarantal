@@ -55,6 +55,9 @@ export class BalloonView {
   private readonly frames = balloonFrames();
   private readonly drawn = new Map<number, Drawn>();
   private sheet: Phaser.Textures.Texture | null = null;
+  /** e2e hook: drifters alive in the sim now, and whether the sheet is in to draw them. */
+  live = 0;
+  sheetReady = false;
   private tk = 1;
   /** e2e hook: balloons drawn now (screen design px of the envelope's middle) and burner level. */
   readonly spots: { id: number; x: number; y: number; h: number; burner: number; fist: boolean }[] =
@@ -110,6 +113,7 @@ export class BalloonView {
   ): void {
     this.spots.length = 0;
     const live = s.birds.filter((b) => b.creature === BALLOON_CREATURE);
+    this.live = live.length;
     for (const [id, d] of this.drawn)
       if (!live.some((b) => b.id === id)) {
         d.body.destroy();
@@ -117,7 +121,8 @@ export class BalloonView {
         d.fist.destroy();
         this.drawn.delete(id);
       }
-    if (live.length === 0 || !this.ensureSheet()) return;
+    this.sheetReady = this.ensureSheet();
+    if (live.length === 0 || !this.sheetReady) return;
     const calm = this.reduceFlashes();
     for (const b of live) {
       const d = this.drawn.get(b.id) ?? this.add(b);

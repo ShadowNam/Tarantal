@@ -102,6 +102,8 @@ async function fire(
         x = o.x;
         y = o.y - o.h * 0.58;
       }
+      // On touch the crosshair sits aimOffsetPx above the finger: tap that much lower.
+      if (isTouch) y += g.aimOffsetPx;
       const r = canvas.getBoundingClientRect();
       const win = window as unknown as { __namibPointer?: number };
       win.__namibPointer = (win.__namibPointer ?? 960) + 1;
@@ -247,15 +249,31 @@ test.describe('Namibië veld life (v1.7d, D-059)', () => {
     const errors = collectErrors(page);
     await boot(page, DAWN);
     await startHunt(page, touch);
+    // Spawned in the sim first (the log and the live count), then drawn: a failure says which.
     const first = await page.waitForFunction(
       () => {
-        const b = window.__TM__?.namibLife?.balloons[0];
-        return b === undefined ? null : { id: b.id, x: b.x, tick: window.__TM__?.tick ?? 0 };
+        const g = window.__TM__;
+        const life = g?.namibLife;
+        const b = life?.balloons[0];
+        if (g === undefined) return null;
+        if (b !== undefined) return { id: b.id, x: b.x, tick: g.tick, why: '' };
+        // The whole hunt went by without one: say what the page saw.
+        if (g.over || g.tick > 60 * 80)
+          return {
+            id: -1,
+            x: 0,
+            tick: g.tick,
+            why: `no balloon drawn: live ${String(life?.balloonsLive)}, sheet ${String(
+              life?.balloonSheet,
+            )}, log ${g.namibLog.filter((x) => x.startsWith('event:')).join(' ')}`,
+          };
+        return null;
       },
       null,
-      { timeout: 300_000 },
+      { timeout: 420_000 },
     );
-    const a = (await first.jsonValue()) as { id: number; x: number; tick: number };
+    const a = (await first.jsonValue()) as { id: number; x: number; tick: number; why: string };
+    expect(a.why).toBe('');
     // 4 s of sim time later the same balloon has drifted (the camera stays put: no input).
     const later = await page.waitForFunction(
       (p) => {

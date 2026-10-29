@@ -126,6 +126,8 @@ export class OstrichView {
   private readonly frames = ostrichFrames();
   private readonly built = new Map<string, Built>();
   private readonly puffs: Puff[] = [];
+  /** Each bird's sim pose on the last update (e2e hook). */
+  private readonly poses = new Map<number, string>();
   private sheet: Phaser.Textures.Texture | null = null;
   private tk = 1;
 
@@ -192,6 +194,7 @@ export class OstrichView {
     id: number;
     male: boolean;
     pose: string;
+    frame: string;
     x: number;
     y: number;
     h: number;
@@ -201,6 +204,7 @@ export class OstrichView {
       id: number;
       male: boolean;
       pose: string;
+      frame: string;
       x: number;
       y: number;
       h: number;
@@ -211,7 +215,9 @@ export class OstrichView {
           family: b.family,
           id,
           male: img.frame.name.startsWith('m_'),
-          pose: img.frame.name.slice(2),
+          // The sim's pose (sit, walk, run…) and the frame drawn (walk_2, run_1…).
+          pose: this.poses.get(id) ?? '',
+          frame: img.frame.name.slice(2),
           x: b.layer.root.x + img.x * b.layer.root.scale,
           y: b.layer.root.y + img.y * b.layer.root.scale,
           h: img.displayHeight * b.layer.root.scale,
@@ -245,6 +251,7 @@ export class OstrichView {
         b.layer.fixtures.bringToTop(img);
         const was = pf?.birds.find((x) => x.id === bird.id);
         const x = was === undefined ? bird.x : was.x + (bird.x - was.x) * alpha;
+        this.poses.set(bird.id, bird.pose);
         const pose = framePose(bird);
         const name = ostrichFrame(bird.male, pose);
         const r = this.rect(name);

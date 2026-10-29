@@ -26,6 +26,9 @@ export interface NamibLifeHook {
   heat: number;
   /** The balloons drawn now (screen design px), their burner and fist. */
   balloons: BalloonView['spots'];
+  /** Balloons alive in the sim now (drawn or not), and whether their sheet is in. */
+  balloonsLive: number;
+  balloonSheet: boolean;
 }
 
 /** True when a map shows the Namibië veld life. */
@@ -96,6 +99,8 @@ export class NamibLifeView {
       oryx: this.oryx.spots,
       heat: this.heat,
       balloons: this.balloons.spots,
+      balloonsLive: this.balloons.live,
+      balloonSheet: this.balloons.sheetReady,
     };
   }
 
