@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-29T11:10:00Z",
+  "updated": "2026-10-29T11:50:00Z",
   "summary": "Live on the test build: Namibië veld life (1.9.7, merged 13:01 Namibia time on 29 Oct, your request of 25 Oct): detailed golden grass and sand ripples, an ostrich pair with their nest (never harmed; −10 if shot), oryx walking in the heat mirage, and hot-air balloons below the score box (a balloon hit needs 3 pellets of one shot). Before the merge the phone speed test caught the new grass making Namibië about 40 % heavier; it is now drawn once per map and the scene is as light as before. Earlier today: Season Run \"Save & leave\" (1.9.6). Tank has started v1.7e, the realistic Bushveld, with option A for the secrets (a small tell animal at each secret instead of the star; B or C still possible), then baboons, The Harvest, the Christmas and New Year Dailies and v1.9–v1.13; Oupa's new voices last.",
   "current": {
     "version": "1.9.7",
@@ -1254,6 +1254,12 @@
       "text": "Season Run: no way out of the Farm Stall; keep the bottle caps to use later",
       "outcome": "Built and merged as 1.9.6 (Save & leave, D-060)",
       "job": "season-run-save-leave-your-request-after"
+    },
+    {
+      "date": "29 Oct, 13:50",
+      "text": "Bottle caps: keep them in the run (not a permanent wallet)",
+      "outcome": "Confirmed; that is how 1.9.6 works (D-060), nothing to change",
+      "job": "season-run-save-leave-your-request-after"
     }
   ],
   "extraDecisions": [
@@ -1268,6 +1274,10 @@
     {
       "id": "D-045",
       "text": "Project overview page in the admin, with live data on the project-log branch (in progress)"
+    },
+    {
+      "id": "D-060",
+      "text": "Season Run Save & leave (1.9.6). Bottle caps stay inside each run, not a permanent wallet: your decision, 29 Oct 13:50"
     }
   ],
   "activity": [
