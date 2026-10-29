@@ -3354,8 +3354,14 @@ option A stands (their standing instruction: go with the recommended options).
   is hittable, and a hit must be decided by the sim (replays, the Daily). Tells are hit extras on
   their prop's layer with their own RNG stream (`tells`); a shot that only hits a tell counts as
   hitting a thing (no Frenzy change, D-021). Golden replays re-recorded on purpose: 6 of 41 event
-  streams changed where a bot's pellet meets a tell; one score changed (the Halloween Daily in the
-  Bushveld, 5125 → 5137: a pellet that stopped on the skink now reaches a bird). Tech §3.12c.
+  streams changed where a bot's pellet meets a tell; no score changed. Tech §3.12c.
+- *Readable, and on their props (review R6–R9).* Each species has a `scale` in `birds.json`
+  (sprite and hit shape grow together) so the small ones are ≥ ~14 screen px at 1280 px wide on
+  the mid plane (agama 1.8, skink 1.9, kingfisher, wagtail and oxpecker 1.5 …), with clear key
+  marks (the agama's blue head and orange tail, the drongo's deep fork, the roller's turquoise and
+  lilac, the rufous kestrel, the jacana's long toes). A unit test checks every tell's feet stand on
+  opaque prop art (`tools/art/tellFeet.test.ts`; the jacana brings its own lily leaf). They fade in
+  only at the hunt's start or back from a flight, never after their own action.
 - *The glint retired.* `fx/glint` and `juice.glintEveryMs/glintMs` are gone. Oupa se Kaart, a dusk
   map and the Meerkat Spotter now give the tells a soft warm outline (a warm fill of the frame
   behind the animal) instead of rings on the secrets; "reduce flashes" has nothing to dim there

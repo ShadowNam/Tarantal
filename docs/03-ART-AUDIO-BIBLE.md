@@ -636,7 +636,13 @@ One small, unique, biome-accurate creature per secret (GDD §11.1c), drawn in th
 look of the tree residents (§4.2c): lit from the upper left, soft outlines in each surface's own
 darker tone (no black ink), true colours (the agama's blue head, the roller's lilac breast and blue
 wings, the malachite kingfisher's turquoise and red bill, the jacana's chestnut and blue shield).
-Sized about 1.3× true size against their prop so they read at play distance. Four frames each,
+Sized about 1.3× true size against their prop, then `birds.json → tells.species[].scale` (review
+R9: agama 1.8, skink 1.9, kingfisher, wagtail and oxpecker 1.5, fiscal 1.35, chameleon 1.3, drongo
+1.2, roller 1.15) so each is ≥ ~14 screen px at 1280 px wide on the mid plane, with one clear key
+mark: the agama's bright blue head and orange tail, the drongo's deep fork, the roller's turquoise
+belly and lilac breast, the kingfisher's blue, the kestrel's rufous back, the jacana's chestnut and
+long splayed toes, the skink's cream stripes and copper tail. Feet always on opaque prop art
+(`tools/art/tellFeet.test.ts`). Four frames each,
 facing right with the feet at the origin: **rest**, **act_a / act_b** (the small action, shown in
 turn: push-ups, a tail flick, a caw), **flee** (flying or running off after a hit). One sheet for
 all (`tells/sheet`, `src/game/view/tell/tellSheet.ts` boxes), drawn at 2× (`tools/art/tells.ts`),

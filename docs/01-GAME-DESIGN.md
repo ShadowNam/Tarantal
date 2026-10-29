@@ -548,7 +548,9 @@ weaver nests have none (a tell would lure you to a penalty).
   tell animals get a soft warm outline instead.
 - **Sim entity.** Tells are hit shapes in the sim with their own RNG stream (`tells`), so replays
   and the Daily stay identical on every device. Numbers in `birds.json → tells`; each secret names
-  its tell under `tell` in the biome file. Names: `guide.tell.<id>` (en/af/de/nl, docs/i18n-names.md).
+  its tell under `tell` in the biome file; each species' `scale` there makes it readable at play
+  distance (≥ ~14 screen px at 1280 px wide on the mid plane). Names: `guide.tell.<id>`
+  (en/af/de/nl, docs/i18n-names.md).
 
 ### 11.2 Meerkat colonies on the desert maps (v1.7, D-044)
 
