@@ -1,11 +1,11 @@
 {
  "schema": 1,
- "updated": "2026-10-29T21:15:00Z",
+ "updated": "2026-10-29T22:21:00Z",
  "by": "Claude",
  "summary": "Live on the test build: realistic Bushveld and tell animals (1.9.8, merged 23:08 Namibia time on 29 Oct, your request of 25 Oct): the Bushveld rocks, koppies and middle distance redrawn as real weathered granite without black outlines, and the secret star replaced by a small animal that always lives at each secret (13 species, e.g. a rock agama on the dassie koppie, a lilac-breasted roller on the Kalahari wind pump, a pied crow in the quiver tree). The review caught tell animals that did not show in Standard graphics, blinked or floated, and art that could time out on a slow connection; all fixed before the merge. Tank has started v1.8b, the baboon troops; then The Harvest, the Christmas and New Year Dailies and v1.9–v1.13; Oupa's new voices last. An OpenRouter skill (text to speech, speech to text) is being built for the voices.",
  "current": {
   "version": "1.9.8",
-  "commit": "5508509"
+  "commit": "5a69219"
  },
  "links": [
   {
@@ -37,12 +37,12 @@
   {
    "label": "Version on the test build",
    "value": "1.9.8",
-   "note": "commit 5508509, merged 29 Oct, 23:07 Namibia time (the test build deploys a few minutes after)"
+   "note": "commit 5a69219, merged 30 Oct, 00:19 Namibia time (the test build deploys a few minutes after)"
   },
   {
    "label": "Pull requests merged",
-   "value": "99",
-   "note": "#1 to #102"
+   "value": "101",
+   "note": "#1 to #104"
   },
   {
    "label": "Unit tests",
@@ -2731,11 +2731,21 @@
   {
    "date": "29 Oct, 22:35",
    "text": "Build a skill so Claude can use OpenRouter for text to speech and speech to text",
-   "outcome": "In progress: .claude/skills/openrouter (one script, no dependencies; tested offline; live test after openrouter.ai is allowed in the environment)",
+   "outcome": "Built, reviewed and merged (#104); the package for claude.ai was sent to you. Live test after openrouter.ai is allowed and the key is added",
    "job": "v1.8b"
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-29T22:20:00Z",
+   "kind": "merge",
+   "text": "An OpenRouter skill for Claude is on main (#104): text to speech, speech to text and a check of every clip, with your own key. It needs openrouter.ai allowed in the cloud environment and the key stored as OPENROUTER_API_KEY (never in chat)."
+  },
+  {
+   "at": "2026-10-29T22:02:00Z",
+   "kind": "screenshots",
+   "text": "The v1.7e screenshots (94: the Bushveld before and after, Standard and HD, every tell animal) are on main (#103)."
+  },
   {
    "at": "2026-10-29T21:09:00Z",
    "kind": "note",
