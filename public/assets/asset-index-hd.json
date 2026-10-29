@@ -603,22 +603,22 @@
     },
     "namibie/pan_grass_a": {
       "file": {
-        "path": "assets/namibie-hd/img/namibie_pan_grass_a.401cd1315cb8.png",
-        "bytes": 55859,
-        "hash": "401cd1315cb8"
+        "path": "assets/namibie-hd/img/namibie_pan_grass_a.60014821c9f5.png",
+        "bytes": 54581,
+        "hash": "60014821c9f5"
       },
       "width": 720,
-      "height": 760,
+      "height": 524,
       "scale": 0.5
     },
     "namibie/pan_grass_b": {
       "file": {
-        "path": "assets/namibie-hd/img/namibie_pan_grass_b.d50ec01959cc.png",
-        "bytes": 59612,
-        "hash": "d50ec01959cc"
+        "path": "assets/namibie-hd/img/namibie_pan_grass_b.036420edd167.png",
+        "bytes": 58565,
+        "hash": "036420edd167"
       },
       "width": 760,
-      "height": 760,
+      "height": 524,
       "scale": 0.5
     },
     "namibie/quiver_egg": {

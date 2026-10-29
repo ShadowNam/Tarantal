@@ -1465,7 +1465,19 @@ export const NAMIBIE_PLAN: BiomeArtPlan = {
       wobble: false,
       frame: { w: 240, h: 254, ox: 116, oy: 234 },
     },
-    'namibie/pan_grass_a': { draw: panGrass(1), colours: 64 },
-    'namibie/pan_grass_b': { draw: panGrass(2), colours: 64 },
+    // v1.7d (D-059): framed to the low mound and its grass (the placeholder box's empty top
+    // rows were 1 MB of HD texture each).
+    'namibie/pan_grass_a': {
+      draw: panGrass(1),
+      colours: 64,
+      wobble: false,
+      frame: { w: 360, h: 262, ox: 180, oy: 112 },
+    },
+    'namibie/pan_grass_b': {
+      draw: panGrass(2),
+      colours: 64,
+      wobble: false,
+      frame: { w: 380, h: 262, ox: 190, oy: 112 },
+    },
   },
 };
