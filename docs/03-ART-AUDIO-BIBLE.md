@@ -543,6 +543,43 @@ the edges, gaps where limbs show); a few maroon flowers on hanging cords; heavy,
 grey-brown sausages with a rough, lenticel-speckled skin, in four sizes, on long thin rope stalks
 at staggered heights (never in a row). They swing and drop when shot (v1.7c).
 
+#### 4.5c The Namib ground (1.9.6, D-059)
+No ink on sand or grass. Red-orange Namib sand: soft blurred dune swells (lit crest, shaded hollow),
+wind ripples as a shadow line under a lit line (rows wider apart toward the viewer, never closer
+than 7 px), sparse fine grain; gravel plains (a greyer stain, pebbles with a lit cap and a shadow),
+now and then a quartz patch and a line of tracks; paler and cooler toward the horizon (a haze tint,
+not alpha). The plane edge is a lit sand ridge over a soft blurred shadow, grass breaking over it.
+**Bushman grass** (Stipagrostis): golden-straw blades in a fan, the back ones darker, a
+gradient from a shaded base to a lit top, a darker grass edge (never black); culms with slim
+silvery feathery plumes; a few dry broken stems and straw litter; a soft contact shadow. Dollar
+bush (Zygophyllum): a low mound of round fleshy grey-green leaves, lit on top. Dead branches: grey,
+twisted, lit along the top. The cover is a sheet of variants (`namibie/veld`: three grass sizes
+per plane, tufts, a dry clump, two bushes, branches), placed at 0.4–1.6× of its drawn size.
+
+#### 4.5d The ostriches (1.9.6, D-059)
+Same proportions and coat as the far-fauna ostrich, 197 px to the head on the mid plane (the D-054
+far-ostrich proportion). Cock: black plumes with white wing tips and tail, pinkish-grey bare neck
+and thighs, red shins. Hen: grey-brown, greyish-white plumes, grey skin. Layered shading (a lit
+back, a shaded belly, plume texture strokes), long legs with scaled shanks and two toes, a small
+head with a flat bill, a big dark eye with lashes and a bristly crown. Thin edges a shade darker
+than the part. Poses: stand, look, a four-step walk, peck, sit, display (the cock kneels, wings
+fanned white), a three-step run (wings half out, neck forward), hiss (neck low, bill open). The
+scrape: a shallow hollow with a raked rim; cream pitted eggs.
+
+#### 4.5e Oryx in the mirage (1.9.6, D-059)
+The far gemsbok sheet's walking look (D-054), five animals walking the pan; the reflection is the
+same herd flipped and squashed to 45 % under the feet at 32 % alpha × the heat, wavering sideways a
+little more than the herd. Never a flash: a breathe of ≥ 3 s; still with reduce motion/flashes.
+
+#### 4.5f Hot-air balloons (1.9.6, D-059)
+An envelope 56 × 66 px on the far plane of ten gores in warm colours (red-orange-yellow; deep
+orange with a cream band and a zig-zag; terracotta and ochre with a teal gore), a sheen upper left
+and a shadow side, a load ring, ropes, a wicker basket with a padded rim, a burner frame and two
+small passengers. No brand names or logos. The burner flame is a small local glow (never a screen
+flash; steady with reduce flashes); after a hit a passenger shakes a fist.
+Sounds (stand-in synths through the AudioDirector until recordings are in): the cock's deep
+three-part boom, a breathy hiss, heavy running footfalls, the burner's roar.
+
 ### 5.1 Skietbaan targets (D-037, D-040)
 Semi-realistic (D-035): no dark contours, light from the upper left. Interim art from
 `npm run art:interim -- --only range` (`tools/art/rangeArt.ts`), group `range` (lazy).

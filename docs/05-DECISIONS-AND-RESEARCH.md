@@ -3257,6 +3257,41 @@ before any store account exists (D-052). Tech §8.5; docs/ANDROID-TEST-APP.md.
   in-app purchases.
 
 
+**D-059 1.9.6 Namibië veld life: grass and sand, ostriches, oryx in the mirage, balloons (29 Oct
+2026):** the product owner (25 Oct): "at least two ostriches with somewhere an ostrich nest … some
+oryx antelopes … far away in the distance, and there needs to be some mirage attached to that. And
+maybe some hot air balloons drifting by", and "The grass landscapes in the Namibia one also look
+very rough still". Decided:
+- *Ground and grass:* ink-free Namib sand baked in the layers (ripples, swells, grain, gravel,
+  quartz, tracks, lit sand-ridge plane edges) and the grass, dollar bush and dead branches as
+  **sprites from one small sheet** (`namibie/veld`, 22 frames) placed at the art's recorded
+  placements (`veld-namibie.json`, ~1 500): baking hundreds of fine clumps into the layers cost
+  ~4× the bytes (mid + near + foreground +600 KB against ~240 KB of room). The five 2×-master
+  Namibië props (camelthorns, quiver trees) are 1× in Standard with their 2× twins in the HD pack
+  (as D-057), which paid for the life. The Kalahari keeps its ground (its own job if wanted).
+- *Ostriches:* in the sim like the meerkats (D-044): own stream `ostriches`, non-targets, −10 per
+  2 s for a bird or the nest, never hurt; nearby shots and the Langloop make them run and come
+  back. On the mid plane at 197 px to the head (true scale would be 552 px; the PO found the far
+  ostriches too big at 0.45 × true). **One pair per map:** a second pair (tried on the calm days)
+  stood in the mid flocks' ground band and drew ~1 accidental −10 per competent hunt (one pair:
+  0.1–0.2). No near-plane pair: at that scale an ostrich stands ~470 px and covers the planes
+  behind (the content check forbids it).
+- *Oryx:* view-only, a roaming FaunaView of the far gemsbok sheet (no new art) with a reflection
+  and a waver driven by the heat (the mirage omen, the light). No filter pass: Phaser 4.2.1
+  containers take none, and a Displacement filter per part would cost a render pass each on
+  phones; the brief's fallback (reflection, no bending) plus a sideways waver.
+- *Balloons:* a non-target `drift` creature (sim: hits, penalty 25 with a 2 s cooldown, never
+  bagged), the `balloons` event (+ one on `dawn_mist`/`bright_calm` days via the new event
+  `lights` filter), spawned upwind beside the view, high over the birds' lanes; drawn by the lazy
+  BalloonView (its own 4.6 KB sheet; BirdView skips drifters). The competent bot hits one in
+  0.05–0.1 hunts.
+- *Bytes:* the ostrich sim and content cost +3.6 KB in the first download; `sfx/weavers` moved to
+  the desert group (only the desert maps have weaver nests): first download 2,970.9 KB (main
+  2,991.6); Namibië + desert 1,456 KB of 1,536 (main 1,483.5); Kalahari + desert 1,377 KB.
+- *Balance:* `docs/balance/v1.7d-namibie-life.md` (before = this build without the pairs and the
+  balloon events).
+
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

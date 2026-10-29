@@ -666,6 +666,33 @@ Namibian carvers turn into key rings and ornaments (sources: D-056).
   (`docs/i18n-names.md`).
 - **Later (not built):** a carved makalani nut as a Notaboek reward or a charm (docs/04).
 
+### 11.3c Namibië veld life: ostriches, oryx in the mirage, hot-air balloons (1.9.6, D-059)
+- **The ground:** the Namibië sand and grass are redrawn without ink: red Namib sand with dune
+  swells, wind ripples, grain, gravel plains, quartz patches and tracks, paler and cooler into the
+  distance; bushman grass (Stipagrostis) with silvery plumes, dollar bush and dead branches as a
+  small sheet of variants placed over the sand; the plane edges are lit sand ridges.
+- **Ostriches and their nest** (every Namibië map, the mid plane): a black-and-white cock and a
+  grey-brown hen with a scrape of 8–15 cream eggs. Non-targets like the meerkats, in the sim (own
+  stream): the hen sits by day, the cock guards (walks, pecks, looks round); they swap on the
+  nest; the cock fans his wings and booms now and then. A pellet within `scare.radiusPx` of a bird
+  or the nest, or a loud gun (the Langloop), sends the pair running a short way at full speed; they
+  come back after a few seconds.
+- **Don't shoot them:** an ostrich or the nest costs **10** (once per 2 s, like the meerkats); never
+  hurt — feathers or sand puff, the bird hisses and runs: "Leave my eggs alone!" (`bark.ostrich`).
+  A shot that hits one is not a miss.
+- **One pair per map:** a second pair stood in the mid flocks' ground band and drew about one
+  accidental −10 per hunt from the competent bot; one pair draws 0.1–0.2
+  (`docs/balance/v1.7d-namibie-life.md`). A pair on the near plane would stand ~470 px tall and
+  cover the planes behind, so there is none.
+- **Oryx in the mirage** (view-only): a gemsbok herd walks the far pan and back; on hot days a faint
+  upside-down reflection and a gentle waver breathe with the heat (full with the mirage omen, half
+  on other hot days, none at dawn, dusk or under cloud).
+- **Hot-air balloons:** a non-target drifter (`lugballon`): 0–1 per hunt, and one more on the calm
+  early-light days (`dawn_mist`, `bright_calm`), 1–3 together, high above the birds' lanes, drifting
+  with the layout's wind. A hit costs **25** (once per 2 s per balloon) and never brings one down:
+  the burner roars and a passenger shakes a fist: "Oi! We're on holiday!" (`bark.balloon`).
+- **Modes:** wherever the Namibië maps play (Classic, the Daily, the bonus maps); not the Skietbaan.
+
 ### 11.5 Day-of-week maps and bonus map Verder (v1.2, D-033)
 
 Every biome has **seven layouts, one per UTC weekday** (`content/biomes/<biome>.json → layouts`,

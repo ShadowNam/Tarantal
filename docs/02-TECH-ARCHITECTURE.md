@@ -542,6 +542,30 @@ replaces the biome's (`resolveMap`); a bonus map keeps its layout's. Tuning is
   `?treeLife=off` turns the views off ("before" shots). Hook: `treeLife` (residents on screen,
   near-shot ducks, the colonies' birds, falcon, lovebirds, scatters, nests).
 
+### 3.15 Namibië veld life: ostriches and balloons (1.9.6, D-059)
+- **Ostriches (sim):** `src/sim/ostriches/ostriches.ts`, tuning `birds.json → ostriches`, pairs in
+  the biome file (`ostriches`, per layout; `maps.ts` lets a layout replace them). Every draw comes
+  from the **`ostriches`** stream (eggs, activities, swaps, run distances), family then bird order.
+  Each bird is a small state machine (sit · stand · look · walk · peck · display · run · hiss);
+  a family keeps a swap timer, a scare timer and its penalty cooldown. Hit test: each bird's body
+  and neck ellipses, then the nest (`HitExtra` kind `ostrich`, `PelletResult.ostrichId`), after
+  the meerkats on the layer. Events: `ostrichesSpawned`, `ostrichHit` (points: −penalty or 0),
+  `ostrichesRan` (shot · loud · hit), `ostrichCall` (display · swap). Snapshot: `ostriches`.
+  Content checks (`ostrichChecks.ts`, sharing `behindIssues` with the colonies): on a near or mid
+  layer, inside it, clear of colonies and own-layer secrets, never in front of the bird bands or
+  secrets behind.
+- **Balloons (sim):** a `nonTarget` creature with `drift` (`lugballon`) and the world event
+  `balloons` (handler `flyover`; an event may name `lights` it plays under). The director's
+  `driftGroup` spawns 1–3 from the **`events`** stream, beside the view on the upwind side
+  (`DirectorContext.windDir`) at `drift.skyY`; they fly like fly-overs (`airMul` follows the
+  wind). A drifter is never bagged: a hit restores its hits, pays the penalty once per
+  `hitCooldownSeconds` (`penaltyApplied`) and emits `balloonHit`.
+- **View (lazy chunk `NamibLifeView`):** `VeldView` (the veld sheet at the art's placements,
+  `veld-namibie.json`, in each layer's fruit container), `OstrichView`, `OryxView` (a roaming
+  FaunaView of the far gemsbok sheet and its reflection; pure `roamAt`/`shimmerAt` of the tick),
+  `BalloonView` (BirdView leaves drifters out). All on sim time; sheets cut by the file under the
+  key (1× Standard, 2× HD) and re-cut after a swap. Hook: `namibLife`, `namibLog`.
+
 ## 4. Content system (`content/`, `src/content/`)
 
 - One Zod schema per file type in `schemas.ts`; types are `z.infer`'d — never hand-written twice.
