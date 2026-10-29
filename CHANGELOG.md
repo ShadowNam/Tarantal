@@ -39,6 +39,10 @@ detailed, enhanced."
 - Namibië's camelthorn and quiver-tree props are 1× in Standard with their 2× twins in the HD
   pack (room in the Namibië chunk for the veld life).
 
+### Fixed
+- Android test app: the back button works from the first moment in the browser build (its
+  listeners are registered one at a time).
+
 ## [1.9.5] — Android test app: an installable APK for friends (28 Oct 2026)
 
 Decision record D-058. The product owner (27 Oct): "Yes, add the Android test app" — friends
