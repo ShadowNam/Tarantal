@@ -387,47 +387,77 @@ test('the ostriches running from a nearby shot', async ({ page }, info) => {
 test('a hot-air balloon drifting by, and its close-up', async ({ page }, info) => {
   test.skip(VARIANT === 'before', 'this branch only');
   const touch = isTouchProject(info);
-  // Monday's calm dawn always brings one. Found in the page: held as soon as a balloon's
-  // middle is within 500 px of the screen centre.
-  await boot(page, query('mon'));
+  // Monday's calm dawn always brings one. Found in the page: held as soon as a balloon is wholly
+  // on screen, at least EDGE px from the left and right edges and clear of every HUD rect (the
+  // score box, timer, pause…). The hunt is long enough for one to drift in on the widest screen
+  // (iPhone 14 landscape is ~2 340 design px wide); the watcher gives up after 40 000 frames.
+  await boot(page, query('mon').replace(`huntSeconds=${SECONDS}`, 'huntSeconds=300'));
   await startHunt(page, touch);
-  await page.evaluate(() => {
+  await page.evaluate((EDGE) => {
+    interface R {
+      x: number;
+      y: number;
+      w: number;
+      h: number;
+    }
     const w = window as unknown as {
       __TM_HOLD_AT__?: (t: number) => void;
-      __V17D_B__?: number;
+      __V17D_B__?: { tick: number; box: R };
       __TM__?: {
         tick: number;
         designWidth: number;
-        namibLife?: { balloons: { x: number }[] } | null;
+        designHeight: number;
+        rects: Record<string, R>;
+        namibLife?: { balloons: { x: number; y: number; h: number }[] } | null;
       };
     };
+    // The balloon frame's box from its hook spot: 72 × 112 at the art, the origin 40 down.
+    const boxOf = (b: { x: number; y: number; h: number }): R => {
+      const k = b.h / 112;
+      return { x: b.x - 36 * k, y: b.y - 40 * k, w: 72 * k, h: b.h };
+    };
+    const meets = (a: R, c: R): boolean =>
+      a.x < c.x + c.w && c.x < a.x + a.w && a.y < c.y + c.h && c.y < a.y + a.h;
     let frames = 0;
     const loop = (): void => {
       const g = w.__TM__;
       if (++frames > 40_000) return;
-      const b = g?.namibLife?.balloons.find((x) => Math.abs(x.x - g.designWidth / 2) < 500);
-      if (g === undefined || b === undefined) {
+      const ok = (r: R): boolean =>
+        g !== undefined &&
+        r.x >= EDGE &&
+        r.x + r.w <= g.designWidth - EDGE &&
+        r.y >= 0 &&
+        r.y + r.h <= g.designHeight &&
+        Object.values(g.rects).every((h) => !meets(r, h));
+      const box = (g?.namibLife?.balloons ?? []).map(boxOf).find(ok);
+      if (g === undefined || box === undefined) {
         requestAnimationFrame(loop);
         return;
       }
-      w.__V17D_B__ = g.tick + 1;
+      w.__V17D_B__ = { tick: g.tick + 1, box };
       w.__TM_HOLD_AT__?.(g.tick + 1);
     };
     requestAnimationFrame(loop);
-  });
+  }, 150);
   const h = await page.waitForFunction(
-    () => (window as unknown as { __V17D_B__?: number }).__V17D_B__ ?? null,
+    () => (window as unknown as { __V17D_B__?: { tick: number; box: unknown } }).__V17D_B__ ?? null,
     null,
-    { timeout: 720_000 },
+    { timeout: 840_000 },
   );
-  await settleAt(page, touch, (await h.jsonValue()) as number);
-  const bs = (await lifeOf(page))?.balloons ?? [];
-  expect(bs.length).toBeGreaterThan(0);
+  const found = (await h.jsonValue()) as {
+    tick: number;
+    box: { x: number; y: number; w: number; h: number };
+  };
+  await settleAt(page, touch, found.tick);
   const g = await grab(page);
   save('balloon', info, g.img);
-  const b = bs.find((x) => Math.abs(x.x - g.w / 2) < 500) ?? bs[0];
-  if (b === undefined) return;
-  save('balloon-closeup', info, scaled(around(g, b.x, b.y + 10, 200, 180), 3));
+  // The whole balloon (envelope, ropes, basket) with a margin round it.
+  const bx = found.box;
+  save(
+    'balloon-closeup',
+    info,
+    scaled(around(g, bx.x + bx.w / 2, bx.y + bx.h / 2, bx.w * 2.2 + 40, bx.h * 1.35 + 30), 3),
+  );
 });
 
 test('the oryx in the mirage, and through the Langloop scope', async ({ page }, info) => {
