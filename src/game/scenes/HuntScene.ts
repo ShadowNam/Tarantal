@@ -704,6 +704,7 @@ export class HuntScene extends Phaser.Scene {
    */
   private refreshHd(idle: boolean): void {
     const g = this.ctx.graphics;
+    if (this.ctx.hook) this.ctx.hook.graphics.refreshes++;
     if (!g.hd) {
       // Standard chosen while these views draw HD (Settings on the title: the hunt that follows
       // keeps the views, so no scene change frees it): swap back in place, free once unused.

@@ -447,7 +447,8 @@ export interface TestHook {
    * D-053: Standard or HD. `card`: the loading screen asked this launch (`pick`: its
    * recommendation); `loading`: the area's HD pack behind the loading screen; `bounds`: on-screen
    * boxes of sampled scenery and HUD images (design px, rounded), the same with Standard and HD;
-   * `hdTextures`: HD textures in the texture manager; `epoch`: the hunt manifest's hdEpoch.
+   * `hdTextures`: HD textures in the texture manager; `epoch`: the hunt manifest's hdEpoch;
+   * `refreshes`: HD refreshes run this page (every 30 rendered frames, v1.7d e2e).
    */
   graphics: {
     mode: 'standard' | 'hd';
@@ -460,6 +461,7 @@ export interface TestHook {
     bounds: { key: string; x: number; y: number; w: number; h: number; hd: boolean }[];
     hdTextures: number;
     epoch: number;
+    refreshes: number;
   };
   /** D-051: the bark keys secret banners showed this page, in order. */
   secretBarks: string[];

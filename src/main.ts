@@ -407,6 +407,7 @@ const hook: TestHook = {
     loading: 'none',
     bounds: [],
     hdTextures: 0,
+    refreshes: 0,
     epoch: 0,
   },
   secretBarks: [],
