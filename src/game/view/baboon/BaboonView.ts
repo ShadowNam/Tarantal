@@ -10,7 +10,9 @@
 // (review R11 of v1.7e) and the view looks for it every 30 frames.
 import type * as Phaser from 'phaser';
 import type { BaboonTuning } from '../../../content/schemas';
-import type { BaboonView as SimBaboon, RaiderView, SimState } from '../../../sim/types';
+import type { SimEvent } from '../../../sim/events';
+import type { BaboonView as SimBaboon, PlaneId, RaiderView, SimState } from '../../../sim/types';
+import type { AudioDirector } from '../../audio/AudioDirector';
 import type { ParallaxView } from '../ParallaxView';
 import {
   BABOON_SHEET,
@@ -20,6 +22,7 @@ import {
   baboonTexelsPerPx,
   type BaboonFrame,
 } from './baboonSheet';
+import { BABOON_SOUNDS, BABOON_SYNTH, RAID_SOUND, type BaboonSound } from './baboonSounds';
 
 /** Ticks per frame: walking, running, the ridge's walk and play, the bark, an action's swap. */
 const WALK_TICKS = 8;
@@ -144,6 +147,8 @@ export class BaboonView {
   private k = 2;
   private waitFrames = 0;
   private hookList: BaboonHook[] = [];
+  /** Raiders whose action's sound has played (cleared when they go). */
+  private readonly actHeard = new Set<number>();
   /** Milliseconds the last update took (perf.spec: baboonMs). */
   lastMs = 0;
   private readonly tumbleTicks: number;
@@ -291,7 +296,14 @@ export class BaboonView {
     const h = s.hook;
     const f = show ? s.frame : null;
     const a = show ? s.alpha : 0;
-    if (h.x !== hx || h.y !== hy || h.visible !== show || h.frame !== f || h.alpha !== a || h.groundY !== gy)
+    if (
+      h.x !== hx ||
+      h.y !== hy ||
+      h.visible !== show ||
+      h.frame !== f ||
+      h.alpha !== a ||
+      h.groundY !== gy
+    )
       s.hook = { ...h, x: hx, y: hy, visible: show, frame: f, alpha: a, groundY: gy };
   }
 
@@ -397,6 +409,7 @@ export class BaboonView {
       if (!s.seen) {
         s.img.destroy();
         this.raiders.delete(id);
+        this.actHeard.delete(id);
       }
     if (fruitAt !== null) {
       if (this.fruit === null || this.fruit.layerId !== fruitAt.layerId) {
@@ -422,6 +435,52 @@ export class BaboonView {
     }
     if (this.hookList.length !== n) this.hookList.length = n;
     this.lastMs = this.now() - t0;
+  }
+
+  /** The baboons' sounds: the lookout's bark, a hit raider's screech, the raid's own sound when
+   *  a raider gets to work, the thump of a bagged one. */
+  handle(events: readonly SimEvent[], state: SimState, audio: AudioDirector, width: number): void {
+    for (const e of events) {
+      let sound: BaboonSound | null = null;
+      let plane: PlaneId | null = null;
+      let x = 0;
+      if (e.type === 'baboonRaidWarned') {
+        const troop = state.baboons?.troops.find((t) => t.id === e.troopId);
+        const m = troop?.members.find((b) => b.id === e.baboonId);
+        if (troop !== undefined && m !== undefined) {
+          sound = 'bark';
+          plane = troop.plane;
+          x = m.x;
+        }
+      } else if (e.type === 'baboonHit') {
+        sound =
+          e.role === 'raider' && e.hitsLeft > 0 ? 'screech' : e.role === 'raider' ? null : 'bark';
+        plane = e.plane;
+        x = e.x;
+      } else if (e.type === 'baboonBagged') {
+        sound = 'thump';
+        plane = e.plane;
+        x = e.x;
+      } else if (e.type === 'troopFled' && e.cause === 'loud') {
+        sound = 'bark';
+        plane = e.plane;
+        x = e.x;
+      }
+      if (sound !== null && plane !== null)
+        audio.playExtra(BABOON_SOUNDS[sound], this.pan(plane, x, width), BABOON_SYNTH[sound]);
+    }
+    // A raider getting to work: its action's sound (once per raider).
+    for (const r of state.baboons?.raiders ?? [])
+      if (r.phase === 'act' && !this.actHeard.has(r.id)) {
+        this.actHeard.add(r.id);
+        const sound = RAID_SOUND[r.action];
+        audio.playExtra(BABOON_SOUNDS[sound], this.pan(r.plane, r.x, width), BABOON_SYNTH[sound]);
+      }
+  }
+
+  private pan(plane: PlaneId, x: number, width: number): number {
+    const sx = this.parallax.screenX(plane, x);
+    return Math.max(-1, Math.min(1, (sx - width / 2) / (width / 2)));
   }
 
   /** e2e: every baboon of the hunt drawn this frame (shown or culled). */

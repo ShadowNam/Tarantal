@@ -783,6 +783,14 @@ export class HudScene extends Phaser.Scene {
       } else if (e.type === 'meerkatHit') {
         // v1.7: a shot meerkat — points off (none inside the colony's cooldown).
         if (e.points < 0) this.pushPop(formatAward(e.points), '#FF6B5A');
+      } else if (e.type === 'baboonRaidWarned') {
+        // v1.8b (D-062): the lookout barks and Oupa sees what's coming (lazy guide strings).
+        this.oupa(`guide.baboon.raid_${e.action}`, banner);
+      } else if (e.type === 'baboonBagged') {
+        this.oupa(e.stopped ? 'guide.baboon.stopped' : 'guide.baboon.bagged', banner);
+      } else if (e.type === 'baboonHit' && e.points < 0) {
+        this.pushPop(formatAward(e.points), '#FF6B5A');
+        this.oupa('guide.baboon.mother', banner);
       } else if (e.type === 'ostrichHit') {
         // v1.7d (D-059): a shot ostrich or nest — points off (none inside the cooldown) and its
         // hiss: "Leave my eggs alone!"
@@ -1448,6 +1456,14 @@ export class HudScene extends Phaser.Scene {
       const old = this.pops.pop();
       if (old !== undefined) this.dropPop(old);
     }
+  }
+
+  /** v1.8b (D-062): an Oupa line from the guide tables: its caption and his voice. */
+  private oupa(key: string, banner: string[]): void {
+    const text = this.lazy(key);
+    if (text !== '') banner.push(text);
+    this.ctx.audio.bark(key);
+    this.ctx.hook?.namibLog.push(`bark:${key}`);
   }
 
   /** 1.9.3 (D-056): a string from the lazy guide tables (empty until they are in). */

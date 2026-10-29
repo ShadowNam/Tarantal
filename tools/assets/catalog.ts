@@ -22,6 +22,7 @@ import {
 import {
   specialVoiceGroup,
   veldLifeBarks,
+  baboonBarks,
   voiceGroup,
   voicedLines,
 } from '../../src/game/audio/voiceLines';
@@ -36,6 +37,7 @@ import {
   RANGE_SOUNDS,
 } from '../../src/game/range/rangeAssets';
 import { loadFeel } from '../testContent';
+import { RaidActionSchema } from '../../src/content/schemas';
 
 export interface CatalogEntry {
   readonly key: string;
@@ -161,7 +163,7 @@ export async function buildCatalog(content: ContentBundle): Promise<Catalog> {
       content.biomes,
       content.birds.meerkats,
       specialBarks,
-      veldLifeBarks(content.birds),
+      [...veldLifeBarks(content.birds), ...baboonBarks(RaidActionSchema.options)],
     )) {
       const key = voiceKey(lang, line);
       const group = special.has(line) ? specialVoiceGroup(lang) : voiceGroup(lang);
