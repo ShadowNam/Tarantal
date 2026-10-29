@@ -386,6 +386,11 @@ export class FaunaView {
     });
   }
 
+  /** v1.7d (D-059): shows or hides one herd (Namibië's roaming oryx replace the far gemsbok). */
+  setHerdVisible(key: string, on: boolean): void {
+    this.roots.get(key)?.setVisible(on);
+  }
+
   /** Test hook: animals drawn now. */
   animalCount(): number {
     return [...this.herdViews.values()].reduce((n, h) => n + h.animals.length, 0);

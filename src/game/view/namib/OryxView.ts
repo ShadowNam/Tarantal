@@ -11,7 +11,7 @@ import { coreWidth } from '../../../sim/world';
 import type { AssetManifest } from '../../assets/AssetManifest';
 import { FaunaView, type FaunaOptions } from '../FaunaView';
 import type { ParallaxView } from '../ParallaxView';
-import { ORYX_ROAMS, roamAt, shimmerAt, type OryxRoam } from './oryxRoam';
+import { ORYX_REPLACE, ORYX_ROAMS, roamAt, shimmerAt, type OryxRoam } from './oryxRoam';
 
 interface Built {
   readonly roam: OryxRoam;
@@ -25,6 +25,7 @@ interface Built {
 
 export class OryxView {
   private readonly built: Built[] = [];
+  private readonly replaces: string | null;
   /** e2e hook: where each herd stands now (layer px) and its reflection's alpha. */
   readonly spots: { key: string; x: number; facing: number; mirror: number; screenX: number }[] =
     [];
@@ -32,11 +33,12 @@ export class OryxView {
   constructor(
     scene: Phaser.Scene,
     manifest: AssetManifest,
-    parallax: ParallaxView,
+    private readonly parallax: ParallaxView,
     biomeId: string,
     fauna: FaunaOptions,
     private readonly still: boolean,
   ) {
+    this.replaces = ORYX_REPLACE[biomeId] ?? null;
     for (const roam of ORYX_ROAMS[biomeId] ?? []) {
       const layer = parallax.layer(roam.herd.layer);
       if (layer === undefined) continue;
@@ -54,11 +56,18 @@ export class OryxView {
   /** `heat`: oryxRoam.heatOf (the mirage and the light). */
   update(tick: number, calm: boolean, width: number, heat: number): void {
     const t = tick / TICKS_PER_SECOND;
+    // The old far herd stands in the same band: the oryx replace it.
+    if (this.replaces !== null) this.parallax.setHerdVisible(this.replaces, false);
     this.spots.length = 0;
     for (const b of this.built) {
       const at = roamAt(b.roam, t, b.core);
       const sh = shimmerAt(t, heat, calm || this.still);
-      b.holder.setPosition(at.x + sh.herdDx, 0).setScale(at.facing, 1);
+      // A walker's step-bob on its own beat (none while it stands, or with reduce motion).
+      const bob =
+        at.walking && !calm && !this.still
+          ? -b.roam.bobPx * Math.abs(Math.sin(t * 5.1 + b.roam.phaseSeconds))
+          : 0;
+      b.holder.setPosition(at.x + sh.herdDx, bob).setScale(at.facing, 1);
       // The mirror: flipped about the ground line, squashed, its feet `gapPx` below the herd's.
       const sq = b.roam.reflect.squash * sh.squash;
       b.mirror
