@@ -18,13 +18,14 @@ import {
   type Rnd,
 } from '../scenery';
 import { el, ellipseD, g, inked, r2, smoothD } from '../svg';
-import { mountainRow, paintRow, rockColours } from '../mountains';
+import { bushHill, hillColours, hillRow, type HillKind } from '../bushHills';
+import { gamePath, naturalEdge, patch, termiteMound } from '../bushveldGround';
 import { aloeClump, groundBand, plant, softSky } from './karoo';
 import { foregroundClumps, midScrub, nearGrass, verVeld } from './common';
 import { plantLook, seedTuft, veldShrub } from '../flora';
 import { baobab as baobabTree, marula, mopane } from '../species';
 import { baobabNear } from '../baobab';
-import { boulder, boulderPile as granitePile, graniteLook } from '../rocks';
+import { bushveldGranite, dwala, graniteBoulder, granitePile } from '../granite';
 import type { PaintCtx } from '../landscape';
 
 /** v1.6 (D-042): mopane scrub (butterfly leaves, olive and copper) as layered mounds. */
@@ -100,53 +101,79 @@ function sky(ctx: LayerCtx): string {
   );
 }
 
+/** v1.7e (D-061): a softer ink for the plane's scrub and grass (dark tone, not black). */
+function softInk(ctx: LayerCtx, k: number): LayerCtx {
+  return {
+    ...ctx,
+    pen: { ink: mix(ctx.pen.ink, shade(ctx.c('grassDark'), -0.35), 0.6), w: ctx.pen.w * k },
+  };
+}
+
+/** v1.7e (D-061): the edge colours between planes (no ink line). */
+function edgeColours(ctx: LayerCtx): { lit: string; shade: string; grass: string[] } {
+  return {
+    lit: ctx.c('bleached'),
+    shade: shade(ctx.c('grassDark'), -0.3),
+    grass: [ctx.c('straw'), ctx.c('grass'), shade(ctx.c('grassDark'), -0.1)],
+  };
+}
+
 function farRidge(ctx: LayerCtx): string {
   const parts: string[] = [];
   const horizon = ctx.raw('horizon');
-  // D-035: granite country (Spitzkoppe, the Erongo): a hazy back range of massifs and jagged
-  // ridges, then steep granite inselbergs, boulder koppies and low boulder heaps.
-  const rock = rockColours(ctx.raw);
-  const backPen: Pen = { ink: mix(ctx.pen.ink, horizon, 0.35), w: 1.4 };
-  const back = mountainRow(
-    ctx.rnd,
-    [
-      { kind: 'massif', w: 2 },
-      { kind: 'strata', w: 1 },
-      { kind: 'inselberg', w: 1 },
-    ],
+  // v1.7e (D-061): real Bushveld hills (Waterberg, Limpopo) instead of smooth orange cones: a
+  // pale, cool escarpment far back, a row of bushy ridges, then nearer koppies with granite faces
+  // and boulder knobs; each row tinted toward the haze (aerial perspective, never alpha).
+  const cool = '#AEBBC8';
+  const rows: {
+    kinds: HillKind[];
+    haze: number;
+    base: number;
+    w: [number, number];
+    h: [number, number];
+    gap: [number, number];
+    scale: number;
+  }[] = [
     {
+      kinds: ['escarpment', 'ridge'],
+      haze: 0.7,
+      base: 612,
+      w: [560, 950],
+      h: [105, 150],
+      gap: [-0.25, -0.05],
+      scale: 0.7,
+    },
+    {
+      kinds: ['ridge', 'koppie', 'ridge'],
+      haze: 0.46,
+      base: 630,
+      w: [300, 560],
+      h: [115, 185],
+      gap: [-0.2, 0.2],
+      scale: 0.85,
+    },
+    {
+      kinds: ['koppie', 'koppie', 'ridge'],
+      haze: 0.24,
+      base: 652,
+      w: [200, 380],
+      h: [130, 225],
+      gap: [0.3, 1.3],
+      scale: 1,
+    },
+  ];
+  for (const r of rows) {
+    const col = hillColours(r.haze, horizon, cool);
+    const hills = hillRow(ctx.rnd, r.kinds, {
       x0: -160,
       x1: ctx.width,
-      base: 626,
-      width: [420, 720],
-      height: [70, 150],
-      overlap: [0.1, 0.35],
-      haze: 0.52,
-    },
-  );
-  const front = mountainRow(
-    ctx.rnd,
-    [
-      { kind: 'inselberg', w: 2.4 },
-      { kind: 'koppie', w: 1.6 },
-      { kind: 'boulders', w: 1.6 },
-      { kind: 'massif', w: 0.6 },
-    ],
-    {
-      x0: -80,
-      x1: ctx.width,
-      base: 660,
-      width: [260, 520],
-      height: [90, 215],
-      overlap: [-0.3, 0.1],
-      haze: 0.2,
-    },
-  );
-  parts.push(
-    ...paintRow(ctx.rnd, back, rock, backPen, horizon),
-    ...paintRow(ctx.rnd, front, rock, ctx.pen, horizon),
-  );
-  // A line of mopane along the foot of the hills, and a baobab or two.
+      base: r.base,
+      width: r.w,
+      height: r.h,
+      gap: r.gap,
+    });
+    for (const m of hills) parts.push(bushHill(ctx.rnd, m, col, r.scale));
+  }
   // v1.6 (D-042): mopane woodland along the foot of the hills, and a baobab or two.
   for (let x = 0; x < ctx.width; x += 26 + ctx.rnd() * 50)
     parts.push(mopane(ctx.rnd, x, 602 + ctx.rnd() * 6, 22 + ctx.rnd() * 14, ctx, 'far', 0.4));
@@ -156,6 +183,7 @@ function farRidge(ctx: LayerCtx): string {
 
 function farVeld(ctx: LayerCtx): string {
   const band = groundBand(ctx, 574, 3, 120, ctx.c('grassLight'));
+  const soft = softInk(ctx, 0.8);
   const inside: string[] = [
     flat(
       groundD(ctx.rnd, -40, ctx.width + 40, 640, 6, 150, ctx.bottom + 40),
@@ -163,25 +191,38 @@ function farVeld(ctx: LayerCtx): string {
     ),
     flat(groundD(ctx.rnd, -40, ctx.width + 40, 700, 8, 170, ctx.bottom + 40), ctx.c('grass')),
   ];
+  // v1.7e (D-061): bare red earth and pale grass in long flat patches, far away.
+  for (let k = 0; k < ctx.width / 160; k++) {
+    const y = 590 + ctx.rnd() * 100;
+    const rx = 30 + ctx.rnd() * 80;
+    inside.push(
+      patch(
+        ctx.rnd,
+        ctx.rnd() * ctx.width,
+        y,
+        rx,
+        rx * 0.06 + 1.5,
+        ctx.rnd() < 0.45 ? ctx.c('soil') : ctx.c('bleached'),
+        0.45,
+      ),
+    );
+  }
+  inside.push(naturalEdge(ctx.rnd, band.edge, 0.6, edgeColours(ctx)).inside);
   // Distant mopane scrub: small, paler twiggy shrubs, thinly inked.
   const far: { y: number; svg: string }[] = [];
   for (let x = ctx.rnd() * 40; x < ctx.width; x += 14 + ctx.rnd() * 46) {
     const y = 584 + Math.pow(ctx.rnd(), 1.3) * 170;
     far.push({
       y,
-      svg: mopaneScrub(ctx, x, y, 3 + ((y - 580) / 170) * 7 + ctx.rnd() * 2, {
-        ink: ctx.pen.ink,
-        w: 1.2,
+      svg: mopaneScrub(soft, x, y, 3 + ((y - 580) / 170) * 7 + ctx.rnd() * 2, {
+        ink: soft.pen.ink,
+        w: 1,
       }),
     });
   }
   far.sort((p, q) => p.y - q.y);
   inside.push(...far.map((i) => i.svg));
-  const parts = [
-    band.svg,
-    g({ 'clip-path': `url(#${band.clip})` }, ...inside),
-    line(smoothD(band.edge, false, 0.8), ctx.pen),
-  ];
+  const parts = [band.svg, g({ 'clip-path': `url(#${band.clip})` }, ...inside)];
   // v1.6: far mopane and marula, simpler versions of the mid-plane trees.
   for (let x = 40; x < ctx.width; x += 140 + ctx.rnd() * 260) {
     const foot = yAt(band.edge, x) + 4;
@@ -200,6 +241,8 @@ function farVeld(ctx: LayerCtx): string {
 
 function mid(ctx: LayerCtx): string {
   const band = groundBand(ctx, 658, 5, 150, ctx.c('grassLight'));
+  const soft = softInk(ctx, 0.7);
+  const look = bushveldGranite(ctx.tint, ctx.raw('grass'));
   const inside: string[] = [
     flat(
       groundD(ctx.rnd, -40, ctx.width + 40, 692, 8, 170, ctx.bottom + 40),
@@ -211,36 +254,39 @@ function mid(ctx: LayerCtx): string {
       mix(ctx.c('grass'), ctx.c('grassDark'), 0.45),
     ),
   ];
-  // Low granite sheets breaking through the grass, sandy patches, dry-grass hatching.
-  for (let k = 0; k < ctx.width / 420; k++) {
-    const x = ctx.rnd() * ctx.width;
-    const y = 720 + ctx.rnd() * 170;
-    const s = 0.6 + (y - 700) / 200;
-    const sheet = smoothD(
-      [
-        [x - 110 * s, y + 6],
-        [x - 70 * s, y - 10 * s],
-        [x + 40 * s, y - 13 * s],
-        [x + 110 * s, y + 4],
-        [x + 30 * s, y + 10 * s],
-      ],
-      true,
-      0.8,
-    );
+  // v1.7e (D-061): dry winter veld with texture: bare red earth, pale and darker grass patches.
+  const earth = mix(ctx.c('soil'), '#A8603E', 0.5);
+  for (let k = 0; k < ctx.width / 110; k++) {
+    const y = 672 + Math.pow(ctx.rnd(), 0.8) * 230;
+    const near = (y - 660) / 240;
+    const rx = (40 + ctx.rnd() * 90) * (0.6 + near);
+    const pick = ctx.rnd();
+    const fill = pick < 0.4 ? earth : pick < 0.75 ? ctx.c('bleached') : ctx.c('grassDark');
     inside.push(
-      inked(sheet, ctx.c('granite'), ctx.pen.ink, 3),
-      flat(ellipseD(x + 30 * s, y + 2, 60 * s, 5 * s), shade(ctx.c('granite'), -0.2)),
-    );
-  }
-  for (let k = 0; k < ctx.width / 240; k++) {
-    const x = ctx.rnd() * ctx.width;
-    const y = 700 + ctx.rnd() * 200;
-    inside.push(
-      flat(
-        ellipseD(x, y, 50 + ctx.rnd() * 70, 5 + ctx.rnd() * 5),
-        mix(ctx.c('soil'), ctx.c('grass'), 0.45),
+      patch(
+        ctx.rnd,
+        ctx.rnd() * ctx.width,
+        y,
+        rx,
+        rx * (0.07 + near * 0.06) + 2,
+        fill,
+        pick < 0.4 ? 0.55 : 0.4,
       ),
     );
+  }
+  // A game path winding out of the far veld toward the viewer.
+  inside.push(
+    gamePath(ctx.rnd, [ctx.u(0.38), 664], [ctx.u(0.44), 915], 3, 22, {
+      earth: mix(earth, ctx.c('bleached'), 0.35),
+      dark: shade(earth, -0.3),
+    }),
+  );
+  // Dwala: low sheets of bare granite breaking through the grass.
+  for (let k = 0; k < Math.max(3, Math.round(ctx.width / 1100)); k++) {
+    const x = ctx.rnd() * ctx.width;
+    const y = 740 + ctx.rnd() * 150;
+    const s = 0.6 + (y - 700) / 220;
+    inside.push(dwala(ctx.rnd, x, y, (120 + ctx.rnd() * 120) * s, (9 + ctx.rnd() * 6) * s, look));
   }
   inside.push(
     hatch(
@@ -254,8 +300,6 @@ function mid(ctx: LayerCtx): string {
       shade(ctx.c('grass'), -0.15),
       1.5,
     ),
-  );
-  inside.push(
     hatch(
       ctx.rnd,
       0,
@@ -268,12 +312,31 @@ function mid(ctx: LayerCtx): string {
       2,
     ),
   );
-  const items = midScrub(ctx, {
-    bushes: 0.85,
-    stone: tone(ctx.c('granite'), 0.25, 0.2),
-    shrub: (x, y, s, pen) => mopaneScrub(ctx, x, y, s, pen),
-  });
+  // Termite mounds of red earth.
+  const mounds: { y: number; svg: string }[] = [];
+  for (const [u, y, h] of [
+    [0.08, 706, 34],
+    [0.42, 690, 26],
+    [0.71, 742, 44],
+    [0.97, 700, 30],
+  ] as const)
+    mounds.push({
+      y,
+      svg: termiteMound(ctx.rnd, ctx.u(u), y, h, {
+        earth: mix(earth, ctx.c('grass'), 0.3),
+        grass: ctx.c('straw'),
+      }),
+    });
+  const items = [
+    ...midScrub(soft, {
+      bushes: 0.85,
+      stone: tone(ctx.c('granite'), 0.25, 0.2),
+      shrub: (x, y, s, pen) => mopaneScrub(soft, x, y, s, pen),
+    }),
+    ...mounds,
+  ];
   items.sort((a, b) => a.y - b.y);
+  inside.push(naturalEdge(ctx.rnd, band.edge, 1, edgeColours(ctx)).inside);
   inside.push(...items.map((i) => i.svg));
   // v1.6 (D-042): a marula with its fallen fruit and two winter mopane on the mid plane.
   const trees: string[] = [];
@@ -294,13 +357,14 @@ function mid(ctx: LayerCtx): string {
     {},
     band.svg,
     g({ 'clip-path': `url(#${band.clip})` }, ...inside),
-    line(smoothD(band.edge, false, 0.8), ctx.pen),
+    naturalEdge(ctx.rnd, band.edge, 1.4, edgeColours(ctx)).over,
     ...trees,
   );
 }
 
 function near(ctx: LayerCtx): string {
   const band = groundBand(ctx, 848, 9, 120, mix(ctx.c('grass'), ctx.c('grassDark'), 0.35));
+  const soft = softInk(ctx, 0.75);
   const inside: string[] = [
     flat(groundD(ctx.rnd, -40, ctx.width + 40, 884, 10, 200, ctx.bottom + 40), ctx.c('grassDark')),
     flat(
@@ -308,6 +372,23 @@ function near(ctx: LayerCtx): string {
       shade(ctx.c('grassDark'), -0.08),
     ),
   ];
+  // v1.7e (D-061): bare red earth and pale grass patches near the viewer.
+  const earth = mix(ctx.c('soil'), '#A8603E', 0.5);
+  for (let k = 0; k < ctx.width / 260; k++) {
+    const y = 870 + ctx.rnd() * 190;
+    const rx = 70 + ctx.rnd() * 140;
+    inside.push(
+      patch(
+        ctx.rnd,
+        ctx.rnd() * ctx.width,
+        y,
+        rx,
+        rx * 0.16,
+        ctx.rnd() < 0.5 ? earth : ctx.c('straw'),
+        0.45,
+      ),
+    );
+  }
   inside.push(
     hatch(
       ctx.rnd,
@@ -321,27 +402,24 @@ function near(ctx: LayerCtx): string {
       2.5,
     ),
   );
-  const items = nearGrass(ctx, {
+  const edge = naturalEdge(ctx.rnd, band.edge, 2, edgeColours(ctx));
+  inside.push(edge.inside);
+  const items = nearGrass(soft, {
     stone: tone(ctx.c('granite'), 0.25, 0.2),
     bushes: 0.6,
-    shrub: (x, y, s, pen) => mopaneScrub(ctx, x, y, s, pen),
-    tuft: (x, y, h, pen) => winterTuft(ctx, x, y, h, pen),
+    shrub: (x, y, s, pen) => mopaneScrub(soft, x, y, s, pen),
+    tuft: (x, y, h, pen) => winterTuft(soft, x, y, h, pen),
   });
   items.sort((a, b) => a.y - b.y);
   inside.push(...items.map((i) => i.svg));
-  return g(
-    {},
-    band.svg,
-    g({ 'clip-path': `url(#${band.clip})` }, ...inside),
-    line(smoothD(band.edge, false, 0.8), ctx.pen),
-  );
+  return g({}, band.svg, g({ 'clip-path': `url(#${band.clip})` }, ...inside), edge.over);
 }
 
 function foreground(ctx: LayerCtx): string {
   const pen = ctx.pen;
   const parts = foregroundClumps(ctx, [ctx.u(0.06), ctx.u(0.92)], (x) =>
     ctx.rnd() < 0.6
-      ? granitePile(ctx.rnd, x, 1100, 220, 140, graniteLook(ctx.tint, pen, ctx.c('grass')), pen, 3)
+      ? granitePile(ctx.rnd, x, 1100, 220, 140, bushveldGranite(ctx.tint, ctx.raw('grass')), 3)
       : g(
           {},
           inked(
@@ -516,24 +594,26 @@ function dassie(rnd: Rnd, tint: (hex: string) => string): string {
 
 /** v1.6 (D-042): the dassie's koppie: faceted granite with lichen, cracks and an aloe. */
 function dassieKoppie(ctx: PropCtx): string {
-  const look = graniteLook(ctx.tint, ctx.pen, ctx.c('grass'));
+  // v1.7e (D-061): ink-free weathered granite (tools/art/granite.ts).
+  const look = bushveldGranite(ctx.tint, ctx.raw('grass'));
   return g(
     {},
-    // The back rocks, the dassie's rock (its top at about y −63), the front heap.
-    granitePile(ctx.rnd, 150, 40, 170, 120, look, ctx.pen, 2),
-    boulder(ctx.rnd, 42, 2, 116, 66, look, ctx.pen, { grass: false }),
+    // The back rocks, the dassie's rock (its flat top at about y −63), the front heap.
+    granitePile(ctx.rnd, 150, 40, 170, 120, look, 2),
+    graniteBoulder(ctx.rnd, 42, 2, 116, 66, look, { grass: false, shadow: false, flat: 0.6 }),
     dassie(ctx.rnd, ctx.tint),
-    granitePile(ctx.rnd, -40, 92, 320, 150, look, ctx.pen, 5, { aloe: true }),
+    granitePile(ctx.rnd, -40, 92, 320, 150, look, 5),
   );
 }
 
 function boulderProp(crack: boolean) {
   return (ctx: PropCtx): string => {
-    const look = graniteLook(ctx.tint, ctx.pen, ctx.c('grass'));
+    const look = bushveldGranite(ctx.tint, ctx.raw('grass'));
     const { w, h } = ctx.box;
     const ry = h / 2;
     // Content: the crack part sits at (−10, −30), 32 × 28; birds perch on the top (y ≈ −60).
-    return boulder(ctx.rnd, 0, ry * 0.75, w * 0.98, ry * 1.8, look, ctx.pen, {
+    return graniteBoulder(ctx.rnd, 0, ry * 0.75, w * 0.98, ry * 1.8, look, {
+      flat: 0.3,
       ...(crack ? { crack: { x: -10, y: -30, len: 70 } } : {}),
     });
   };
