@@ -19,6 +19,9 @@ export const MEERKAT_SOUNDS = {
 } as const;
 export type MeerkatSound = keyof typeof MEERKAT_SOUNDS;
 
+/** v1.7d (D-059): the weavers' scolding at a shot nest (an SFX id, in the desert group). */
+export const WEAVERS_SOUND = 'sfx/weavers';
+
 /** 1.9.4 (D-057): the weaver colony's sheet (src/game/view/tree/colonySheet.ts COLONY_SHEET). */
 export const COLONY_SHEET_KEY = 'desert/colony';
 
@@ -26,6 +29,8 @@ export const COLONY_SHEET_KEY = 'desert/colony';
 export function isDesertKey(key: string): boolean {
   return (
     key === MEERKAT_SHEET ||
+    // v1.7d (D-059): the weavers' scolding (only the desert maps have weaver nests).
+    key === WEAVERS_SOUND ||
     key === COLONY_SHEET_KEY ||
     (Object.values(MEERKAT_SOUNDS) as string[]).includes(key)
   );

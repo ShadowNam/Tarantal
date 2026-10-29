@@ -9551,16 +9551,16 @@
       "peakDb": -5.4
     },
     "sfx/weavers": {
-      "group": "common",
+      "group": "desert",
       "origin": "interim",
       "kind": "sfx",
       "ogg": {
-        "path": "assets/common/audio/sfx/weavers.2981c419d434.ogg",
+        "path": "assets/desert/audio/sfx/weavers.2981c419d434.ogg",
         "bytes": 20088,
         "hash": "2981c419d434"
       },
       "mp3": {
-        "path": "assets/common/audio/sfx/weavers.87d45d80b527.mp3",
+        "path": "assets/desert/audio/sfx/weavers.87d45d80b527.mp3",
         "bytes": 25846,
         "hash": "87d45d80b527"
       },
