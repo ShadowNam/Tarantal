@@ -1,11 +1,11 @@
 {
  "schema": 1,
- "updated": "2026-10-29T09:25:00Z",
+ "updated": "2026-10-29T11:10:00Z",
  "by": "Claude",
- "summary": "Live on the test build: Season Run \"Save & leave\" (1.9.6, merged 08:23 Namibia time on 29 Oct, your request after playing the Android app): the Farm Stall, the result after each hunt and the hunt card all have Save & leave; the Android back button does the same; the title shows e.g. \"Autumn · hunt 2 of 3 · 12 caps\" over Continue run. Its test fix (#101) went in at 10:06. Tank's Namibië veld life (1.9.7: grass and sand, ostriches and their nest, oryx in the mirage, hot-air balloons below the score box) passed all three screenshot rounds and every test but one: the phone speed test found the new grass makes the Namibië scene about 40 % heavier on a mid-range phone, so Tank is making it cheaper to draw before the merge (about 14:00). Then the realistic Bushveld with a new secret marker (option A, a small tell animal at each secret, since no pick came by 10:00; B or C still possible), baboons, The Harvest, the Christmas and New Year Dailies and v1.9–v1.13; Oupa's new voices last.",
+ "summary": "Live on the test build: Namibië veld life (1.9.7, merged 13:01 Namibia time on 29 Oct, your request of 25 Oct): detailed golden grass and sand ripples, an ostrich pair with their nest (never harmed; −10 if shot), oryx walking in the heat mirage, and hot-air balloons below the score box (a balloon hit needs 3 pellets of one shot). Before the merge the phone speed test caught the new grass making Namibië about 40 % heavier; it is now drawn once per map and the scene is as light as before. Earlier today: Season Run \"Save & leave\" (1.9.6). Tank has started v1.7e, the realistic Bushveld, with option A for the secrets (a small tell animal at each secret instead of the star; B or C still possible), then baboons, The Harvest, the Christmas and New Year Dailies and v1.9–v1.13; Oupa's new voices last.",
  "current": {
-  "version": "1.9.6",
-  "commit": "60845b2"
+  "version": "1.9.7",
+  "commit": "19bfd95"
  },
  "links": [
   {
@@ -36,23 +36,23 @@
  "numbers": [
   {
    "label": "Version on the test build",
-   "value": "1.9.6",
-   "note": "commit 60845b2, merged 29 Oct, 10:06 Namibia time (the test build deploys a few minutes after)"
+   "value": "1.9.7",
+   "note": "commit 19bfd95, merged 29 Oct, 13:01 Namibia time (the test build deploys a few minutes after)"
   },
   {
    "label": "Pull requests merged",
-   "value": "97",
+   "value": "98",
    "note": "#1 to #101"
   },
   {
    "label": "Unit tests",
-   "value": "1,250",
+   "value": "1,539",
    "note": "plus the browser test suites on 3 devices"
   },
   {
    "label": "First download",
-   "value": "3.00 MB",
-   "note": "3,069 KB of the 3,072 KB budget"
+   "value": "2.97 MB",
+   "note": "2,972.3 KB of the 3,072 KB budget"
   },
   {
    "label": "Hunting areas",
@@ -70,7 +70,7 @@
   },
   {
    "label": "Decisions logged",
-   "value": "59",
+   "value": "60",
    "note": "D-001 to D-060 on main"
   }
  ],
@@ -81,7 +81,7 @@
    "title": "v1.7e: what replaces the star on secrets?",
    "asked": "2026-10-28T06:49:00Z",
    "status": "open",
-   "detail": "You asked for something better than the little star that marks the shootable secrets (25 Oct). Three mock-ups, drawn over real 1.9.2 screenshots (not in the game yet). No pick came by 10:00 on 29 Oct, so A (recommended) gets built when v1.7e starts after Namibië veld life (about 14:00). You can still switch to B or C: Tank builds the Bushveld rocks first.",
+   "detail": "You asked for something better than the little star that marks the shootable secrets (25 Oct). Three mock-ups, drawn over real screenshots. No pick came by 10:00 on 29 Oct, so A (recommended) is being built in v1.7e (started 13:05). You can still switch to B or C: Tank does the Bushveld rocks first.",
    "options": [
     "A (recommended). A tell animal lives at each secret and moves now and then: a rock agama doing push-ups on the dassie koppie, a lilac-breasted roller on the windpomp; shooting it costs nothing",
     "B. Natural cues only: grass rustles and dust puffs at the koppie, a sun flash only on real metal, a few birds circling above",
@@ -2044,12 +2044,12 @@
   },
   {
    "id": "v1.7d",
-   "title": "v1.7d: Namibië veld life: detailed grass and sand, ostriches and their nest, oryx in the mirage, hot-air balloons (your request, 25 Oct)",
+   "title": "v1.7d: Namibië veld life: detailed grass and sand, ostriches and their nest, oryx in the mirage, hot-air balloons; version 1.9.7 (your request, 25 Oct)",
    "phase": "Version 1.x",
-   "status": "running",
-   "start": "2026-10-29T00:26:00Z",
-   "end": "2026-10-29T12:00:00Z",
-   "estimate": true,
+   "status": "done",
+   "start": "2026-10-29T00:59:32Z",
+   "end": "2026-10-29T11:01:47Z",
+   "estimate": false,
    "prs": [
     97
    ],
@@ -2060,11 +2060,11 @@
   },
   {
    "id": "v1.7e",
-   "title": "v1.7e: realistic Bushveld rocks and middle distance; a new secret cue instead of the star (mock-ups for you first) (your request, 25 Oct)",
+   "title": "v1.7e: realistic Bushveld rocks and middle distance; a new secret cue instead of the star (a small tell animal at each secret, option A) (your request, 25 Oct)",
    "phase": "Version 1.x",
-   "status": "next",
-   "start": "2026-10-29T12:00:00Z",
-   "end": "2026-10-29T19:00:00Z",
+   "status": "running",
+   "start": "2026-10-29T11:01:00Z",
+   "end": "2026-10-29T18:05:00Z",
    "estimate": true,
    "version": "1.7.4",
    "summary": "First, mock-ups of three ways to replace the star glint on secrets: (A) a small unique animal that always lives at each secret (e.g. a rock agama nodding on the dassie koppie, a lilac-breasted roller on the windmill) — Claude's pick and your idea; (B) natural cues only; (C) no cue, Oupa hints in words. You choose. Meanwhile: realistic Bushveld granite boulders and koppies, real ridges in the haze, textured winter veld, no black lines between the distances.",

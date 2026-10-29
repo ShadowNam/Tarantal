@@ -1,9 +1,9 @@
 {
-  "updated": "2026-10-29T09:25:00Z",
-  "summary": "Live on the test build: Season Run \"Save & leave\" (1.9.6, merged 08:23 Namibia time on 29 Oct, your request after playing the Android app): the Farm Stall, the result after each hunt and the hunt card all have Save & leave; the Android back button does the same; the title shows e.g. \"Autumn · hunt 2 of 3 · 12 caps\" over Continue run. Its test fix (#101) went in at 10:06. Tank's Namibië veld life (1.9.7: grass and sand, ostriches and their nest, oryx in the mirage, hot-air balloons below the score box) passed all three screenshot rounds and every test but one: the phone speed test found the new grass makes the Namibië scene about 40 % heavier on a mid-range phone, so Tank is making it cheaper to draw before the merge (about 14:00). Then the realistic Bushveld with a new secret marker (option A, a small tell animal at each secret, since no pick came by 10:00; B or C still possible), baboons, The Harvest, the Christmas and New Year Dailies and v1.9–v1.13; Oupa's new voices last.",
+  "updated": "2026-10-29T11:10:00Z",
+  "summary": "Live on the test build: Namibië veld life (1.9.7, merged 13:01 Namibia time on 29 Oct, your request of 25 Oct): detailed golden grass and sand ripples, an ostrich pair with their nest (never harmed; −10 if shot), oryx walking in the heat mirage, and hot-air balloons below the score box (a balloon hit needs 3 pellets of one shot). Before the merge the phone speed test caught the new grass making Namibië about 40 % heavier; it is now drawn once per map and the scene is as light as before. Earlier today: Season Run \"Save & leave\" (1.9.6). Tank has started v1.7e, the realistic Bushveld, with option A for the secrets (a small tell animal at each secret instead of the star; B or C still possible), then baboons, The Harvest, the Christmas and New Year Dailies and v1.9–v1.13; Oupa's new voices last.",
   "current": {
-    "version": "1.7.1",
-    "commit": "1bbedc7"
+    "version": "1.9.7",
+    "commit": "19bfd95"
   },
   "links": [
     {
@@ -34,23 +34,23 @@
   "numbers": [
     {
       "label": "Version on the test build",
-      "value": "1.6.1",
-      "note": "commit 133c85f, deploying after the merge at 20:42"
+      "value": "1.9.7",
+      "note": "commit 19bfd95, merged 13:01 on 29 Oct"
     },
     {
       "label": "Pull requests merged",
-      "value": "75",
-      "note": "#1 to #76"
+      "value": "98",
+      "note": "#1 to #101"
     },
     {
       "label": "Unit tests",
-      "value": "1,250",
+      "value": "1,539",
       "note": "plus the browser test suites on 3 devices"
     },
     {
       "label": "First download",
-      "value": "3.00 MB",
-      "note": "3,069 KB of the 3,072 KB budget"
+      "value": "2.97 MB",
+      "note": "2,972.3 KB of the 3,072 KB budget"
     },
     {
       "label": "Hunting areas",
@@ -79,7 +79,7 @@
       "title": "v1.7e: what replaces the star on secrets?",
       "asked": "2026-10-28T06:49:00Z",
       "status": "open",
-      "detail": "You asked for something better than the little star that marks the shootable secrets (25 Oct). Three mock-ups, drawn over real 1.9.2 screenshots (not in the game yet). No pick came by 10:00 on 29 Oct, so A (recommended) gets built when v1.7e starts after Namibië veld life (about 14:00). You can still switch to B or C: Tank builds the Bushveld rocks first.",
+      "detail": "You asked for something better than the little star that marks the shootable secrets (25 Oct). Three mock-ups, drawn over real screenshots. No pick came by 10:00 on 29 Oct, so A (recommended) is being built in v1.7e (started 13:05). You can still switch to B or C: Tank does the Bushveld rocks first.",
       "options": [
         "A (recommended). A tell animal lives at each secret and moves now and then: a rock agama doing push-ups on the dassie koppie, a lilac-breasted roller on the windpomp; shooting it costs nothing",
         "B. Natural cues only: grass rustles and dust puffs at the koppie, a sun flash only on real metal, a few birds circling above",
@@ -933,8 +933,8 @@
       ]
     },
     "v1-7d-namibi-veld-life-detailed-grass-an": {
-      "owner": "Tank builds it (task d53ac7ff, started 02:30; 5 rounds of fixes after Claude's review: feathered ostriches, oryx no longer in a parade line, balloons now drawn, balloons below the score box, and now the phone speed fix); Claude ran the screenshots (54 shots on desktop, Pixel 7 and iPhone 14) and merged main into the branch",
-      "status": "running",
+      "owner": "Tank built it (task d53ac7ff, 8 turns: the art, the ostriches and balloons, 4 rounds of fixes after Claude's review, and the phone speed fix); Claude ran the screenshots (54 shots on desktop, Pixel 7 and iPhone 14), measured the speed problem and merged it",
+      "status": "done",
       "checklist": [
         {
           "text": "Namibië ground: detailed golden bushman grass, sand ripples and gravel, natural edges instead of the black line",
@@ -961,14 +961,15 @@
           "done": true
         },
         {
-          "text": "Phone speed: the Namibië scene back within the 60 fps budget on the Pixel 7 test (the grass drawn once per layer instead of ~770 pieces a frame)",
-          "done": false
+          "text": "Phone speed: the Namibië scene within the 60 fps budget on the Pixel 7 test (the grass drawn once per map instead of ~770 pieces a frame)",
+          "done": true
         },
         {
-          "text": "Balance check, screenshots on desktop and both phones (done), browser tests (all pass but the phone speed test)",
-          "done": false
+          "text": "Balance check, screenshots on desktop and both phones, browser tests (all pass)",
+          "done": true
         }
-      ]
+      ],
+      "summary": "The Namibië maps came alive: golden bushman grass and sand ripples instead of the black line, an ostrich pair and their nest, oryx in the heat mirage and hot-air balloons. Full CI first caught the new grass costing ~40 % more per frame on a mid-range phone; it is now baked once per map, the nest and eggs are one picture, and identical map tiles share one texture (−12.5 MB on phones in HD)."
     },
     "season-run-save-leave-your-request-after": {
       "owner": "Claude built it (PR #100) while Tank worked on Namibië",
@@ -991,6 +992,33 @@
         {
           "text": "Tests on desktop, Pixel 7 and iPhone; design doc and decision D-060; merged as 1.9.6 (#100)",
           "done": true
+        }
+      ]
+    },
+    "v1-7e-realistic-bushveld-rocks-and-middl": {
+      "owner": "Tank builds it (task 0dded795, started 13:05); Claude runs the screenshots and checks",
+      "status": "running",
+      "requestedBy": "You, 25 Oct: \"In the Bushveld, the rocks and the middle distances also look a little bit childish, cartoonish … I also don't like this little star effect.\"",
+      "checklist": [
+        {
+          "text": "Bushveld boulders and koppies redrawn as real granite (cracks, lichen, grass in the cracks, no black outlines)",
+          "done": false
+        },
+        {
+          "text": "Far koppies and hills with bushy silhouettes fading into haze; a textured middle distance (grass, red earth, scrub, termite mounds)",
+          "done": false
+        },
+        {
+          "text": "Option A: a small tell animal at each secret instead of the star (rock agama, roller, chameleon, fish eagle, pied crow…); shooting it costs nothing",
+          "done": false
+        },
+        {
+          "text": "The star glint retired; Oupa's Map charm, the first-hunt hint and the Notaboek updated",
+          "done": false
+        },
+        {
+          "text": "Sizes and phone speed within budget; screenshots on desktop and both phones; merge as the next patch",
+          "done": false
         }
       ]
     }
