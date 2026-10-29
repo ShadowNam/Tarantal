@@ -3256,6 +3256,26 @@ before any store account exists (D-052). Tech §8.5; docs/ANDROID-TEST-APP.md.
 - *Out of scope:* iOS (needs an Apple developer account), store listings or uploads, ads,
   in-app purchases.
 
+**D-060 1.9.6 Season Run: [Save & leave] on every screen between hunts (29 Oct 2026):** the
+product owner, after playing the Android test app (29 Oct): the Farm Stall offers only [Reroll]
+and [Next hunt] — "what if you don't want to continue playing now? There's no way out … these
+bottle caps need to be stored so that you can reuse them later." GDD §13.6.
+- *What was there:* every run step was already in the save (RunFlow writes it), and the title's
+  "Continue run" resumed on the same screen; but only the hunt card had a way out ([Menu]), the
+  run tally and the Padstal had none, Escape / the Android back button did nothing on any run
+  screen, and nothing said the caps were kept.
+- *Change:* [Save & leave] bottom-left on the hunt card (was [Menu]), the run tally (while the
+  run goes on) and the Padstal ([Reroll] moves beside it; [Sell] moves to the row above); it
+  returns to the title with the run untouched. Escape and the Android back button do the same
+  (D-058: back is that screen's Back); on the Padstal they first close the help card; on a lost
+  run's tally they go on to the summary; on the summary ([Menu]) they go to the title. The
+  Padstal's help card gains a line saying so.
+- *Title:* over "Continue run" a status line gives the run's place and caps ("Autumn · hunt 2 of 3
+  · 12 caps"; between hunts it names the next hunt), kept within the button's width so it never
+  meets the Daily's status line.
+- *Not changed:* the doppies stay in-run currency (§13.4: no meta currency to grind or sell).
+  Leaving pauses the run; the caps wait in it, as the product owner asked ("reuse them later").
+
 
 ## 3. Research notes (with sources)
 

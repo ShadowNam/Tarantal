@@ -334,6 +334,38 @@ export class TitleScene extends Phaser.Scene {
         resume ? 'selected' : 'secondary',
         44,
       );
+      // D-060: a saved run in play shows where it stands over its button (season, hunt, caps):
+      // the caps are kept until the player comes back.
+      const cur = this.ctx.run.current;
+      if (this.ctx.hook) this.ctx.hook.runStatus = null;
+      if (
+        cur !== null &&
+        (cur.phase === 'hunt' || cur.phase === 'tally' || cur.phase === 'padstal')
+      ) {
+        // Between hunts (tally, stall) the line names the hunt that comes next.
+        const next = cur.phase === 'hunt' ? cur.huntIndex : cur.huntIndex + 1;
+        const info = this.ctx.run.info({ ...cur, huntIndex: next });
+        const where = fill(t('run.hunt_of'), {
+          season: tOr(`season.${info.season}`, info.season),
+          n: info.huntInSeason + 1,
+        });
+        const line = `${where} · ${fill(t('run.doppies'), { n: cur.doppies })}`;
+        const status = this.add
+          .text(run.x + run.w / 2, run.y - 14, line, {
+            ...textStyle(26),
+            stroke: '#1B1410',
+            strokeThickness: 5,
+          })
+          .setOrigin(0.5, 1);
+        // Within its own button's width: the Daily's status line (up to 1.6× wide on a special
+        // day) sits beside it.
+        fitText(status, bw);
+        if (this.ctx.hook) {
+          const b = status.getBounds();
+          this.ctx.hook.rects['runStatus'] = { x: b.x, y: b.y, w: b.width, h: b.height };
+          this.ctx.hook.runStatus = line;
+        }
+      }
       drawButton(this, settings, t('title.settings'), 'secondary', 44);
       // Focus order follows the buttons left to right: Shed, Daily, Season Run, Settings.
       items.push(
