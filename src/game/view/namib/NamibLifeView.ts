@@ -1,5 +1,6 @@
 // v1.7d (D-059, GDD §11.3c) Namibië veld life, one lazy chunk loaded with a Namibië map: the
-// ground cover (VeldView). View-only: it reads snapshots and events, never sim internals.
+// ground cover (VeldView), the ostriches (OstrichView), oryx in the mirage (OryxView) and the
+// hot-air balloons (BalloonView). View-only: it reads snapshots and events, never sim internals.
 import type * as Phaser from 'phaser';
 import type { Biome } from '../../../content/schemas';
 import type { SimEvent } from '../../../sim/events';
@@ -11,6 +12,7 @@ import type { FaunaOptions } from '../FaunaView';
 import { heatOf } from './oryxRoam';
 import { OryxView } from './OryxView';
 import { OstrichView } from './OstrichView';
+import { BalloonView } from './BalloonView';
 import { VeldView } from './VeldView';
 
 /** e2e hook: the ground cover's sprites (placed, and drawn on the last frame). */
@@ -22,6 +24,8 @@ export interface NamibLifeHook {
   /** The roaming oryx herds (layer x, facing, the reflection's alpha, screen x) and the heat. */
   oryx: OryxView['spots'];
   heat: number;
+  /** The balloons drawn now (screen design px), their burner and fist. */
+  balloons: BalloonView['spots'];
 }
 
 /** True when a map shows the Namibië veld life. */
@@ -33,6 +37,7 @@ export class NamibLifeView {
   readonly veld: VeldView;
   readonly ostriches: OstrichView;
   readonly oryx: OryxView;
+  readonly balloons: BalloonView;
   private heat = 0;
 
   constructor(
@@ -45,6 +50,8 @@ export class NamibLifeView {
       readonly manifest: AssetManifest;
       readonly fauna: FaunaOptions;
       readonly lightIds: () => readonly string[];
+      readonly audio: AudioDirector;
+      readonly planeScales: Readonly<Record<'near' | 'mid' | 'far' | 'ver', number>>;
     },
   ) {
     this.veld = new VeldView(scene, parallax, biome.id);
@@ -57,6 +64,7 @@ export class NamibLifeView {
       opts.fauna,
       opts.reducedMotion,
     );
+    this.balloons = new BalloonView(scene, parallax, opts.reduceFlashes, opts.planeScales);
   }
 
   /** After the parallax is placed for this frame. */
@@ -76,6 +84,7 @@ export class NamibLifeView {
   /** This frame's events (puffs and sounds). */
   handle(events: readonly SimEvent[], s: SimState, audio: AudioDirector, width: number): void {
     this.ostriches.handle(events, s, audio, width);
+    this.balloons.handle(events);
   }
 
   /** e2e hook. */
@@ -86,6 +95,7 @@ export class NamibLifeView {
       ostriches: this.ostriches.spots(),
       oryx: this.oryx.spots,
       heat: this.heat,
+      balloons: this.balloons.spots,
     };
   }
 
@@ -93,5 +103,6 @@ export class NamibLifeView {
     this.veld.destroy();
     this.ostriches.destroy();
     this.oryx.destroy();
+    this.balloons.destroy();
   }
 }

@@ -2133,6 +2133,13 @@ export class HuntScene extends Phaser.Scene {
             still: this.ctx.faunaStill,
           },
           lightIds: () => this.lightIds,
+          audio: this.ctx.audio,
+          planeScales: {
+            near: this.ctx.content.scoring.planes.near.scale,
+            mid: this.ctx.content.scoring.planes.mid.scale,
+            far: this.ctx.content.scoring.planes.far.scale,
+            ver: this.ctx.content.scoring.planes.ver.scale,
+          },
         });
       })
       .catch(() => {
@@ -2262,6 +2269,7 @@ export class HuntScene extends Phaser.Scene {
         if (e.type === 'ostrichHit') log.push(`hit:${e.nest ? 'nest:' : ''}${e.points}`);
         else if (e.type === 'ostrichesRan') log.push(`ran:${e.cause}`);
         else if (e.type === 'ostrichCall') log.push(`call:${e.call}`);
+        else if (e.type === 'balloonHit') log.push(`balloon:${e.points}`);
       }
     }
     // v1.4 B: a shot family nest lets its weavers out; they chatter and scold (AudioDirector).

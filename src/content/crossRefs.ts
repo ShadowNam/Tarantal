@@ -112,6 +112,8 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
   i18n('birds.json', birds.meerkats.familiefoto.barkKey);
   // v1.7d (D-059): the ostriches' bark.
   i18n('birds.json', birds.ostriches.hit.barkKey);
+  for (const c of birds.creatures)
+    if (c.kind === 'nonTarget' && c.drift !== undefined) i18n('birds.json', c.drift.barkKey);
 
   // --- weapons.json ------------------------------------------------------------------------
   // v1.3 (D-036): sights and the rifles that fit them.
@@ -635,6 +637,7 @@ function checkEventShape(
     case 'hadeda':
     case 'cropSprayer':
     case 'fishEagle':
+    case 'balloons':
       needs(c !== undefined && c.kind === 'nonTarget' && (c.speeds?.fly ?? 0) > 0, 'a non-target creature with speeds.fly');
       return;
     case 'kwevoel':

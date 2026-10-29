@@ -10,6 +10,7 @@ import { RESIDENT_SHEET } from '../../src/game/view/tree/residentSheet';
 import { COLONY_SHEET } from '../../src/game/view/tree/colonySheet';
 import { VELD_SHEET } from '../../src/game/view/namib/veldSheet';
 import { OSTRICH_SHEET } from '../../src/game/view/namib/ostrichSheet';
+import { BALLOON_SHEET } from '../../src/game/view/namib/balloonSheet';
 import { PLATE_FRAME_TEX, PLATE_TEX, RANGE_SOUNDS } from '../../src/game/range/rangeAssets';
 import type { AssetIndex, BirdClip } from '../../src/game/assets/assetIndex';
 import { clipFor, resolveClip } from '../../src/game/assets/birdClips';
@@ -94,6 +95,7 @@ function usages(
   // v1.7d (D-059): the Namib veld sheet by its constant (VeldView).
   if (key === VELD_SHEET) needles.push(/\bVELD_SHEET\b/);
   if (key === OSTRICH_SHEET) needles.push(/\bOSTRICH_SHEET\b/);
+  if (key === BALLOON_SHEET) needles.push(/\bBALLOON_SHEET\b/);
   const palm = /^okavango\/makalani_(trunk|crown)_(near|mid)$/.exec(key);
   if (palm !== null) needles.push(palm[1] === 'trunk' ? /\bpalmTrunkKey\(/ : /\bpalmCrownKey\(/);
   const spookSound = Object.entries(SPOOK_SOUNDS).find(([, k]) => k === key)?.[0];

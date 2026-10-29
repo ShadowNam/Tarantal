@@ -64,6 +64,8 @@ import { namibieVeldLooks } from './biomes/namibie';
 import { VELD_SHEET, type VeldSpot } from '../../src/game/view/namib/veldSheet';
 import { OSTRICH_SHEET } from '../../src/game/view/namib/ostrichSheet';
 import { renderOstrichSheet } from './ostrich';
+import { BALLOON_SHEET } from '../../src/game/view/namib/balloonSheet';
+import { renderBalloonSheet } from './balloon';
 
 /** 1.9.4 (D-057): palette size of the baobab residents' sheet. */
 const RESIDENT_COLOURS = 96;
@@ -642,6 +644,18 @@ if (wants('namiblife') && !hdOnly) {
     );
     putHd(`sprites/${OSTRICH_SHEET}.png`, renderOstrichSheet(2), OSTRICH_COLOURS);
     console.log(`sprites/${OSTRICH_SHEET}`);
+  }
+  // The hot-air balloons' sheet at 1× and its 2× twin.
+  const bpng = join(src, 'sprites', `${BALLOON_SHEET}.png`);
+  if (!oursFile(bpng)) console.warn(`skip sprites/${BALLOON_SHEET}: a human delivery is there`);
+  else {
+    put(bpng, encodePng8(renderBalloonSheet(1), OSTRICH_COLOURS));
+    put(
+      bpng.replace(/\.png$/, '.json'),
+      await json({ origin: 'interim', encode: 'png8', originX: 0, originY: 0 }),
+    );
+    putHd(`sprites/${BALLOON_SHEET}.png`, renderBalloonSheet(2), OSTRICH_COLOURS);
+    console.log(`sprites/${BALLOON_SHEET}`);
   }
 }
 if (wants('colony') && !hdOnly) {

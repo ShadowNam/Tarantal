@@ -103,6 +103,15 @@ for (const f of parsed.bundle.feesdae.specials)
       file: 'feesdae.json',
       message: `special "${f.id}" uses unknown light "${f.light}"`,
     });
+// v1.7d (D-059): an event's lights are presets, and some layout of its biome uses each.
+for (const biome of parsed.bundle.biomes)
+  for (const e of biome.events)
+    for (const l of e.lights ?? [])
+      if (feel.feel.lights[l] === undefined || !biome.layouts.some((x) => x.light === l))
+        errors.push({
+          file: `biomes/${biome.id}.json`,
+          message: `event "${e.id}" names light "${l}", which no layout of the biome uses`,
+        });
 // v1.2 (D-033): every layout and bonus map light is a preset, and its layers are the biome's.
 for (const biome of parsed.bundle.biomes) {
   const layerIds = new Set(biome.layers.map((l) => l.id));

@@ -155,8 +155,10 @@ export class BirdView {
   update(birds: readonly DrawBird[], tick: number): void {
     const seen = new Set<number>();
     for (const b of birds) {
-      seen.add(b.view.id);
       const v = b.view;
+      // v1.7d (D-059): drifters (hot-air balloons) are drawn by the Namibië chunk's BalloonView.
+      if (this.content.birds.creatures.some((c) => c.id === v.creature && 'drift' in c)) continue;
+      seen.add(v.id);
       const { art, ratio } = this.artOf(v.plane);
       // The atlas goes to the GPU the first time this creature shows on this plane (D-029).
       const final = this.manifest.ensureBird(this.scene.textures, v.creature, art);

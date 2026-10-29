@@ -458,6 +458,39 @@
       }
     },
     {
+      "$comment": "v1.7d (D-059): hot-air balloons drifting over the Namibië sky on calm days (warm stripes and panels, a wicker basket, the burner flaring now and then). A non-target like the crop sprayer: a hit costs the penalty, the burner roars and a passenger shakes a fist. They drift high over the birds' lanes (drift.skyY) with the layout's wind; BalloonView draws them (their bird frames are empty). Hitbox: the envelope (body) and the basket (head), at plane scale 1 (× 0.15 on the far plane: an envelope 56 × 66 px).",
+      "id": "lugballon",
+      "kind": "nonTarget",
+      "planes": ["far"],
+      "behaviours": ["flyoverEvent"],
+      "penalty": -25,
+      "speeds": {
+        "fly": 110
+      },
+      "hitbox": {
+        "body": {
+          "rx": 187,
+          "ry": 220,
+          "ox": 0,
+          "oy": 0
+        },
+        "head": {
+          "r": 47,
+          "ox": 0,
+          "oy": 313
+        }
+      },
+      "drift": {
+        "skyY": [70, 82],
+        "group": [1, 3],
+        "spacingPx": [700, 1100],
+        "bobPx": 3,
+        "offViewPx": 1250,
+        "hitCooldownSeconds": 2,
+        "barkKey": "bark.balloon"
+      }
+    },
+    {
       "id": "sproeier",
       "kind": "nonTarget",
       "planes": [

@@ -3260,6 +3260,19 @@
       "originX": 0.7258064516129032,
       "originY": 0.375
     },
+    "namibie/balloons": {
+      "group": "namibie",
+      "origin": "interim",
+      "file": {
+        "path": "assets/namibie/img/namibie_balloons.8c833e422ae9.png",
+        "bytes": 4247,
+        "hash": "8c833e422ae9"
+      },
+      "width": 256,
+      "height": 116,
+      "originX": 0,
+      "originY": 0
+    },
     "namibie/camelthorn_mature": {
       "group": "namibie",
       "origin": "interim",

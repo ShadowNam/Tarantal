@@ -792,6 +792,15 @@ export class HudScene extends Phaser.Scene {
           banner.push(tOr(bark, bark));
           this.ctx.audio.bark(bark);
         }
+      } else if (e.type === 'balloonHit') {
+        // v1.7d (D-059): a hot-air balloon hit (its points pop with penaltyApplied): "Oi! We're on
+        // holiday!"
+        const c = this.ctx.content.birds.creatures.find((x) => x.id === 'lugballon');
+        const bark = c?.kind === 'nonTarget' ? c.drift?.barkKey : undefined;
+        if (e.points < 0 && bark !== undefined) {
+          banner.push(tOr(bark, bark));
+          this.ctx.audio.bark(bark);
+        }
       } else if (e.type === 'meerkatScold') {
         // It pops out of its hole and scolds: "We're not guineafowl!"
         if (e.points < 0) {

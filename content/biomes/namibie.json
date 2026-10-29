@@ -259,6 +259,21 @@
       ]
     },
     {
+      "$comment": "v1.7d (D-059): now and then 1–3 hot-air balloons drift across the far sky with the wind.",
+      "id": "balloons",
+      "creature": "lugballon",
+      "perHunt": [0, 1],
+      "window": [0.05, 0.45]
+    },
+    {
+      "$comment": "v1.7d (D-059): the calm early-light days bring them out more often.",
+      "id": "balloons",
+      "creature": "lugballon",
+      "perHunt": [1, 1],
+      "window": [0.02, 0.3],
+      "lights": ["dawn_mist", "bright_calm"]
+    },
+    {
       "id": "cropSprayer",
       "creature": "sproeier",
       "perHunt": [

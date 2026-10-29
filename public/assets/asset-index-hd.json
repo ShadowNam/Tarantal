@@ -551,6 +551,16 @@
       "height": 440,
       "scale": 0.5
     },
+    "namibie/balloons": {
+      "file": {
+        "path": "assets/namibie-hd/img/namibie_balloons.3f43a157b44a.png",
+        "bytes": 10661,
+        "hash": "3f43a157b44a"
+      },
+      "width": 512,
+      "height": 232,
+      "scale": 0.5
+    },
     "namibie/camelthorn_mature": {
       "file": {
         "path": "assets/namibie-hd/img/namibie_camelthorn_mature.c2beafc51569.png",

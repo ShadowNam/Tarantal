@@ -10,6 +10,7 @@
 import type { Biome, ContentBundle, Feesdag, Sight } from '../content/schemas';
 import {
   behaviourOf,
+  damageOf,
   isHittable,
   updateBird,
   viewOf,
@@ -535,6 +536,7 @@ export function createSim(config: SimConfig): Sim {
         durationTicks,
         rng.stream('events'),
         season?.kind === 'boss',
+        setup.map.layout?.light ?? null,
       );
   const schedule =
     pass.spawnRateMul.size === 0
@@ -548,6 +550,7 @@ export function createSim(config: SimConfig): Sim {
             durationTicks,
             pass.spawnRateMul,
             rng.stream('charms'),
+            setup.map.layout?.light ?? null,
           ),
         );
   // Stormvoël rule (GDD §13.3): dark except lightning, never above maxFlashesPerSecond (schema).
@@ -906,6 +909,8 @@ export function createSim(config: SimConfig): Sim {
     }
   }
   const osCooldownTicks = secondsToTicks(os.hit.cooldownSeconds);
+  /** v1.7d (D-059): each balloon's penalty cooldown (the tick it ends). */
+  const drifterCooldown = new Map<number, number>();
   const ostrichCtx: OstrichCtx = { tuning: os, rng: ostrichRng };
   const mkCalmTicks = secondsToTicks(mk.calmSeconds);
   const mkCooldownTicks = secondsToTicks(mk.hit.cooldownSeconds);
@@ -1053,6 +1058,7 @@ export function createSim(config: SimConfig): Sim {
       cameraX,
       aliveBirds: birds.length,
       stampede: stampedeActive(),
+      windDir: wind?.dir ?? null,
       nextId: () => nextBirdId++,
     };
   }
@@ -1980,6 +1986,36 @@ export function createSim(config: SimConfig): Sim {
     for (const d of damage.outcomes) {
       const b = byId.get(d.birdId);
       if (b === undefined) continue;
+      // v1.7d (D-059): a drifter (a hot-air balloon) is never brought down: the penalty (with
+      // its cooldown), and it drifts on.
+      const drift = b.creature.kind === 'nonTarget' ? b.creature.drift : undefined;
+      if (drift !== undefined) {
+        b.hitsLeft = damageOf(b.creature).hitsLeft;
+        const until = drifterCooldown.get(b.id) ?? -1;
+        const points =
+          tick < until || ranged
+            ? 0
+            : (pass.penaltyOverride.get(b.creature.id) ??
+              (b.creature.kind === 'nonTarget' ? b.creature.penalty : 0));
+        if (points < 0) {
+          score += points;
+          stats.penalties++;
+          drifterCooldown.set(b.id, tick + secondsToTicks(drift.hitCooldownSeconds));
+          emit({ type: 'penaltyApplied', tick, birdId: b.id, creature: b.creature.id, points });
+          charmTrigger('penalty', { creature: b.creature.id, plane: b.plane });
+        }
+        emit({
+          type: 'balloonHit',
+          tick,
+          shotId,
+          birdId: b.id,
+          plane: b.plane,
+          x: b.x,
+          y: b.y,
+          points,
+        });
+        continue;
+      }
       if (d.kind === 'armor') {
         emit({ type: 'armorKnocked', tick, shotId, birdId: b.id, armorLeft: d.armorLeft });
         if (b.creature.kind === 'boss' && b.creature.armorHitBonus !== undefined) {

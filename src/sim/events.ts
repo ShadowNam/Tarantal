@@ -483,6 +483,18 @@ export type SimEvent =
       readonly y: number;
       readonly points: number;
     }
+  /** v1.7d (D-059): a hot-air balloon was hit: never harmed (it drifts on); the burner roars
+   *  and a passenger shakes a fist. points: the penalty, or 0 inside its cooldown. */
+  | {
+      readonly type: 'balloonHit';
+      readonly tick: number;
+      readonly shotId: number;
+      readonly birdId: number;
+      readonly plane: PlaneId;
+      readonly x: number;
+      readonly y: number;
+      readonly points: number;
+    }
   /** v1.7d (D-059): an ostrich pair (and its nest) at hunt start. */
   | {
       readonly type: 'ostrichesSpawned';

@@ -49,6 +49,8 @@ export const WorldEventIdSchema = z.enum([
   // M8: the Okavango fish eagle fly-over and the kuifkop hopping between reeds.
   'fishEagle',
   'kuifkopHop',
+  // v1.7d (D-059): hot-air balloons drifting over the Namibië sky.
+  'balloons',
 ]);
 export type WorldEventId = z.infer<typeof WorldEventIdSchema>;
 
@@ -237,6 +239,19 @@ const nonTargetCreatureSchema = obj({
   alertsAllFlocks: z.boolean().optional(),
   speeds: partialSpeedsSchema.optional(),
   hitbox: hitboxSchema,
+  /** v1.7d (D-059): drifts instead of flying over (hot-air balloons): 1–3 of them, high in the
+   *  sky (skyY: design y of the hitbox centre, above the birds' lanes), entering offViewPx
+   *  beside the view on the upwind side (the layout's wind if it has one) and barely bobbing. */
+  drift: obj({
+    skyY: range(nonNeg),
+    group: range(posInt),
+    spacingPx: range(pos),
+    bobPx: nonNeg,
+    offViewPx: pos,
+    /** A hit costs the penalty at most once per this many seconds (it never comes down). */
+    hitCooldownSeconds: pos,
+    barkKey: i18nKey,
+  }).optional(),
 });
 
 const helperCreatureSchema = obj({
@@ -1281,6 +1296,8 @@ export const BiomeSchema = obj({
       window: windowFraction,
       perchProps: z.array(id).min(1).optional(),
       omenOnly: z.boolean().optional(),
+      /** v1.7d (D-059): only on maps under these lights (layout presets). */
+      lights: z.array(id).min(1).optional(),
       flushOnContact: z.boolean().optional(),
       speedPxPerSec: pos.optional(),
       modes: z.array(ModeIdSchema).min(1).optional(),
