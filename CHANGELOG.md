@@ -3,6 +3,23 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.9.6] — Season Run: Save & leave (29 Oct 2026)
+
+Decision record D-060. The product owner, after playing the Android test app: the Farm Stall had
+no way out but "Next hunt", and nothing said the bottle caps were kept.
+
+### Added
+- **Save & leave** on the hunt card, the run tally and the Farm Stall: back to the title with the
+  run kept exactly as it is (caps, charms, consumables, rented gun, the stall's offers).
+  **Continue run** on the title picks it up on the same screen; a line over the button shows the
+  run's season, next hunt and caps ("Autumn · hunt 2 of 3 · 12 caps").
+- The Escape key and the Android back button do the same on those screens (on the stall they
+  close its help card first); the stall's help card says so.
+
+### Changed
+- On the Farm Stall, Reroll moves next to Save & leave and Sell moves up a row. The hunt card's
+  Menu button is now Save & leave.
+
 ## [1.9.5] — Android test app: an installable APK for friends (28 Oct 2026)
 
 Decision record D-058. The product owner (27 Oct): "Yes, add the Android test app" — friends

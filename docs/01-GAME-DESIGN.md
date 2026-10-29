@@ -904,6 +904,12 @@ peep sight; the small scope at the Bosveldjagter rank. v1.4: *Unlock Die Verste*
 Between hunts the run shows a hunt card (season, quota, Boss Rule), the run tally (quota met or
 missed, doppies earned line by line) and the Padstal; after the last hunt or a missed quota, a
 summary with the run record. Charms are reordered by dragging (Padstal and pause screen).
+Every one of these screens while the run is in play (hunt card, run tally, Padstal) has
+**[Save & leave]** (D-060): back to the title with the run kept as it is — doppies, charms,
+consumables, a rented gun and the Padstal's offers — and the title shows the run's place over
+**Continue run** ("Autumn · hunt 2 of 3 · 12 caps"), which resumes on the same screen. Escape and
+the Android back button do the same (on the Padstal they first close its help card). The doppies
+still never leave the run (§13.4): leaving pauses the run, it does not bank them.
 
 ### 13.7 Skiet-Skuur (the shed)
 Hub screen: equip weapon for Classic/Daily, view unlocked charms, Bird Book, Notaboek, cosmetics
