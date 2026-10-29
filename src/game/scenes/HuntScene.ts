@@ -2152,6 +2152,7 @@ export class HuntScene extends Phaser.Scene {
           this,
           this.parallax,
           () => performance.now(),
+          this.manifest,
           this.ctx.content.birds.tells.species,
         );
       })

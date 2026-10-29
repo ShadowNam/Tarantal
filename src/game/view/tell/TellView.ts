@@ -66,6 +66,17 @@ interface Slot {
   hook: TellHook;
 }
 
+/** What TellView needs of the AssetManifest (review R11: the late sheet arrives mid-hunt). */
+export interface TellSheetSource {
+  /** True once the delivered sheet (or its HD twin) is the texture under the key. */
+  delivered(textures: Phaser.Textures.TextureManager, key: string): boolean;
+  /** Swaps a placeholder for the delivered file once it has arrived. */
+  upgrade(textures: Phaser.Textures.TextureManager, prefix: string): string[];
+}
+
+/** Frames between looks for the delivered sheet while it hasn't landed. */
+const SHEET_POLL_FRAMES = 30;
+
 /** True when this map has a secret with a tell. */
 export function wantsTells(biome: Biome): boolean {
   return biome.props.some((p) => p.secret?.tell !== undefined);
@@ -77,6 +88,8 @@ export class TellView {
   /** Texture px per prop px of the sheet under the key (2: the delivered 2× art). */
   private k = 2;
   private hooks: TellHook[] = [];
+  /** Frames since the hunt began waiting for the delivered sheet (polls every 30). */
+  private waitFrames = 0;
   /** Milliseconds the last update took (perf.spec: tellMs). */
   lastMs = 0;
 
@@ -84,6 +97,8 @@ export class TellView {
     private readonly scene: Phaser.Scene,
     private readonly parallax: ParallaxView,
     private readonly now: () => number,
+    /** The hunt's manifest: the sheet is ready only once the delivered file is under the key. */
+    private readonly manifest: TellSheetSource,
     /** The species (birds.json → tells.species): each one's drawing scale. */
     private readonly species: readonly {
       readonly id: string;
@@ -91,14 +106,28 @@ export class TellView {
     }[] = [],
   ) {}
 
+  /**
+   * Review R11: true once the delivered sheet (Standard or its HD twin) is under the key. The
+   * placeholder install() draws is an EMPTY canvas at full size: cutting frames from it showed
+   * nothing while the hook said the tells were visible. While the late group hasn't landed, look
+   * for it every SHEET_POLL_FRAMES frames and swap it in (as FruitView does).
+   */
+  sheetReady(): boolean {
+    const tx = this.scene.textures;
+    if (!this.manifest.delivered(tx, TELL_SHEET)) {
+      if (this.waitFrames++ % SHEET_POLL_FRAMES !== 0) return false;
+      this.manifest.upgrade(tx, TELL_SHEET);
+      if (!this.manifest.delivered(tx, TELL_SHEET)) return false;
+    }
+    return this.ensureSheet();
+  }
+
   /** The sheet as last cut: cut again (and every sprite moved over) after a texture swap. */
   private ensureSheet(): boolean {
     if (!this.scene.textures.exists(TELL_SHEET)) return false;
     const tex = this.scene.textures.get(TELL_SHEET);
     if (tex === this.sheet) return true;
     const w = tex.getSourceImage().width;
-    // The empty placeholder (no delivered art yet): nothing to cut.
-    if (w < 8) return false;
     const k = tellTexelsPerPx(w);
     for (const f of tellFrames()) {
       const fr = tex.has(f.name)
@@ -174,7 +203,26 @@ export class TellView {
   /** Draws the tells at this tick; `lit`: the secrets glow (warm outline). */
   update(state: SimState, lit: boolean): void {
     const t0 = this.now();
-    if (!this.ensureSheet()) {
+    if (!this.sheetReady()) {
+      // Not delivered yet: nothing is drawn, and the hook says so (frame null, not visible).
+      if (this.hooks.length !== state.tells.length)
+        this.hooks = state.tells.map((t) => ({
+          species: t.species,
+          propId: t.propId,
+          frame: null,
+          x: 0,
+          y: 0,
+          visible: false,
+          glow: false,
+          alpha: 0,
+        }));
+      for (const s of this.slots.values())
+        if (s.shown) {
+          s.img.setVisible(false);
+          s.glow.setVisible(false);
+          s.shown = false;
+          s.lit = false;
+        }
       this.lastMs = this.now() - t0;
       return;
     }
