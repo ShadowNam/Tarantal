@@ -221,9 +221,9 @@ test('a held frame holds the tells; a dusk map lights them', async ({ page }, in
 // the empty full-size placeholder stayed under the key and nothing showed while the hook said
 // "visible". The sheet's download is held until the hunt runs and the sim is held; the canvas at
 // the drongo's spot is compared before and after it lands (Standard graphics).
-// Review R12: the hold usually outlives the loader's 15 s timeout for a lazy file (as on a slow
-// connection). The loader then keeps the image's own load and the manifest takes the file when
-// it lands (finalLoader imageArrival), so this also checks that a timed-out lazy file still shows.
+// Review R12: the hold outlives the old 15 s timeout (as a slow connection would). Late-group
+// images now get 8× the timeout (120 s), so the file is still taken when it lands; the hold must
+// stay well inside that (it fails clearly past 100 s, and the route lets go at 100 s anyway).
 test('the tells appear when the late sheet lands mid-hunt, drawn on the canvas', async ({
   page,
 }, info) => {
@@ -239,7 +239,7 @@ test('the tells appear when the late sheet lands mid-hunt, drawn on the canvas',
   await page.route(/\/late\/img\/tells_sheet\.[0-9a-f]+\.png$/, async (route) => {
     held = true;
     heldAt = Date.now();
-    await landed;
+    await Promise.race([landed, new Promise((r) => setTimeout(r, 100_000))]);
     await route.continue();
   });
   await boot(page, BASE);
@@ -261,6 +261,10 @@ test('the tells appear when the late sheet lands mid-hunt, drawn on the canvas',
   });
   await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) >= t, at, { timeout: 300_000 });
   expect(held, 'the tell sheet download was held').toBe(true);
+  expect(
+    Date.now() - heldAt,
+    'boot, pan and hold took longer than the hold may last (100 s of the 120 s lazy timeout)',
+  ).toBeLessThan(100_000);
   // Without the sheet nothing is drawn, and the hook says so.
   const waiting = (await tellsOf(page)) ?? [];
   expect(waiting.length).toBeGreaterThan(0);
@@ -269,8 +273,8 @@ test('the tells appear when the late sheet lands mid-hunt, drawn on the canvas',
   await page.waitForTimeout(800);
   const before = decodePng(await page.locator('#game canvas').screenshot());
   const heldMs = Date.now() - heldAt;
-  // R12: past the loader's timeout the file must still land (no second request is needed).
   console.log(`[tells] the sheet's request was held ${Math.round(heldMs / 1000)} s`);
+  expect(heldMs, 'the hold must stay inside the lazy timeout (120 s)').toBeLessThan(100_000);
   release();
   await page.waitForFunction(
     () =>
