@@ -89,6 +89,7 @@ import {
 } from './targets';
 import { readWav } from './wav';
 import { FAUNA_RES } from '../../src/game/view/faunaHerds';
+import { splitVoiceIndex, VOICE_INDEX_PATH } from '../../src/game/assets/voiceIndex';
 
 export interface PackOptions {
   /** art-source/ (or a stand-in source folder). */
@@ -939,8 +940,12 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
   mkdirSync(dirname(indexFile), { recursive: true });
   // D-053: the HD parts in their own file (the first download's index stays as it was).
   const split = splitHdIndex(checked);
-  writeFileSync(indexFile, `${JSON.stringify(split.index, null, 2)}\n`);
+  // v1.8b (D-062): the voice packs' entries in their own lazy file too.
+  const voiced = splitVoiceIndex(split.index);
+  writeFileSync(indexFile, `${JSON.stringify(voiced.index, null, 2)}\n`);
   written.push(ASSET_INDEX_PATH);
+  writeFileSync(join(o.publicDir, VOICE_INDEX_PATH), `${JSON.stringify(voiced.voice, null, 2)}\n`);
+  written.push(VOICE_INDEX_PATH);
   writeFileSync(join(o.publicDir, HD_INDEX_PATH), `${JSON.stringify(split.hd, null, 2)}\n`);
   written.push(HD_INDEX_PATH);
   return { index: checked, written: written.sort(), warnings, errors };

@@ -8,6 +8,7 @@
 // not remembered as done: a later bark retries just those, at most MAX_ATTEMPTS times per language.
 // A missing index or file leaves Oupa silent (his speech bubble is the caption either way).
 import type { AssetIndex } from '../assets/assetIndex';
+import { mergeVoiceIndex, type VoiceIndex } from '../assets/voiceIndex';
 import type { FinalSound } from '../assets/AssetManifest';
 import type { AudioDirector } from './AudioDirector';
 import { voiceGroup } from './voiceLines';
@@ -24,6 +25,8 @@ export interface VoicePackEnv {
   readonly loadBytes: (path: string) => Promise<ArrayBuffer | null>;
   /** The state of the language in use changed (test hook). */
   readonly onState?: (lang: VoiceLanguage, state: VoicePackState) => void;
+  /** v1.8b (D-062): fetches the voice half of the index (absent: the index has the entries). */
+  readonly voiceIndex?: () => Promise<VoiceIndex | null>;
 }
 
 /** The index entries of one voice language's pack, by key. */
@@ -44,6 +47,8 @@ export class VoicePacks {
   private attempts = 0;
   /** The language with a fetch round in flight, if any. */
   private loading: VoiceLanguage | null = null;
+  /** v1.8b (D-062): the index with its voice half merged in, once fetched. */
+  private voice: AssetIndex | null = null;
 
   constructor(
     private readonly audio: AudioDirector,
@@ -87,8 +92,23 @@ export class VoicePacks {
 
   private load(lang: VoiceLanguage): void {
     if (this.wanted !== lang || this.lang !== lang || this.loading === lang) return;
+    // v1.8b (D-062): the packs' entries are in the voice half of the index (fetched once).
+    if (this.index !== null && this.voice === null && this.env.voiceIndex !== undefined) {
+      this.loading = lang;
+      void this.env.voiceIndex().then((v) => {
+        if (this.loading === lang) this.loading = null;
+        if (v === null || this.index === null) {
+          this.env.onState?.(lang, 'missing');
+          return;
+        }
+        this.voice = mergeVoiceIndex(this.index, v);
+        this.load(lang);
+      });
+      return;
+    }
     const format = this.audio.fileFormat();
-    const entries = this.index === null ? [] : voicePackEntries(this.index, lang);
+    const index = this.voice ?? this.index;
+    const entries = index === null ? [] : voicePackEntries(index, lang);
     if (entries.length === 0 || format === null) {
       this.env.onState?.(lang, 'missing');
       return;

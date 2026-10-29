@@ -9,6 +9,11 @@ import {
   type AssetIndex,
 } from '../../src/game/assets/assetIndex';
 import { mergeHdIndex, parseHdIndex } from '../../src/game/assets/hdIndex';
+import {
+  mergeVoiceIndex,
+  parseVoiceIndex,
+  VOICE_INDEX_PATH,
+} from '../../src/game/assets/voiceIndex';
 
 /** The index (null when absent), its parse error, and the HD half merged in when present. */
 export function readFullIndex(dir: string): { index: AssetIndex | null; error: string | null } {
@@ -16,9 +21,17 @@ export function readFullIndex(dir: string): { index: AssetIndex | null; error: s
   if (!existsSync(path)) return { index: null, error: null };
   const { index, error } = parseAssetIndex(JSON.parse(readFileSync(path, 'utf8')));
   if (error !== null) return { index: null, error };
+  // v1.8b (D-062): the voice packs' entries (their own lazy file).
+  const voicePath = join(dir, VOICE_INDEX_PATH);
+  let full = index;
+  if (existsSync(voicePath)) {
+    const voice = parseVoiceIndex(JSON.parse(readFileSync(voicePath, 'utf8')));
+    if (voice === null) return { index: null, error: `${VOICE_INDEX_PATH} is invalid` };
+    full = mergeVoiceIndex(full, voice);
+  }
   const hdPath = join(dir, HD_INDEX_PATH);
-  if (!existsSync(hdPath)) return { index, error: null };
+  if (!existsSync(hdPath)) return { index: full, error: null };
   const hd = parseHdIndex(JSON.parse(readFileSync(hdPath, 'utf8')));
   if (hd === null) return { index: null, error: `${HD_INDEX_PATH} is invalid` };
-  return { index: mergeHdIndex(index, hd), error: null };
+  return { index: mergeHdIndex(full, hd), error: null };
 }

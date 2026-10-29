@@ -124,6 +124,7 @@ import { createGraphicsControl, type HdRuntimeApi } from './game/assets/graphics
 import { decodeInputLogText } from './sim/replay/inputLog';
 import { runReplay } from './sim/replay/verify';
 import { loadSimSystems } from './game/simSystems';
+import { loadVoiceIndex } from './game/assets/voiceIndex';
 
 declare global {
   interface Window {
@@ -707,6 +708,7 @@ async function boot(): Promise<void> {
   const voicePacks = new VoicePacks(audio, assetIndex, {
     // Uncached: a voice language left behind keeps no bytes (finalLoader's loadBytes caches).
     loadBytes: (path) => fetchBytesUncached(path, feel.assets.fileTimeoutMs),
+    voiceIndex: loadVoiceIndex,
     onState: (lang, state) => {
       if (hook.voice.language === lang) hook.voice.pack = state;
     },

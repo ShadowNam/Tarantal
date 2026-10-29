@@ -30,6 +30,7 @@ import {
 } from './feesdaeAssets';
 import { drawStandin } from './standin';
 import anchorsJson from './hatAnchors.json';
+import { loadVoiceIndex } from '../assets/voiceIndex';
 
 type Anchor = readonly [number, number, number, number];
 /** The guineafowl's head in every frame of every clip (tools/art/hatAnchors.ts). */
@@ -196,7 +197,10 @@ export function loadFeesdaeAssets(audio: AudioDirector): Promise<HTMLImageElemen
           return;
         }
         const group = specialVoiceGroup(lang);
-        const want = Object.entries(ix.audio).filter(([, e]) => e.group === group);
+        // v1.8b (D-062): the special days' lines are in the voice half of the index.
+        const voice = await loadVoiceIndex();
+        const all = voice === null ? ix.audio : { ...ix.audio, ...voice.audio };
+        const want = Object.entries(all).filter(([, e]) => e.group === group);
         if (!(await loadSounds(audio, want, format))) voices.delete(lang);
       }),
     );

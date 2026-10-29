@@ -6,6 +6,7 @@ import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from '
 import { join, relative, sep } from 'node:path';
 import type { Plugin } from 'vite';
 import { ASSET_INDEX_PATH, HD_INDEX_PATH } from '../src/game/assets/assetIndex';
+import { VOICE_INDEX_PATH } from '../src/game/assets/voiceIndex';
 import { readFullIndex } from './assets/fullIndex';
 import { BUILD_MESSAGE, CACHE_PREFIX } from '../src/platform/swUpdate';
 import { audioFiles, lazyAssetFiles } from './sizeBudget';
@@ -100,6 +101,7 @@ self.addEventListener('fetch', (event) => {
   if (
     url.pathname.endsWith('/${ASSET_INDEX_PATH}') ||
     url.pathname.endsWith('/${HD_INDEX_PATH}') ||
+    url.pathname.endsWith('/${VOICE_INDEX_PATH}') ||
     url.pathname.endsWith('.html')
   ) {
     event.respondWith(
