@@ -68,9 +68,9 @@
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/bushveld_boulder_a.416cdbf9a81f.png",
-        "bytes": 9468,
-        "hash": "416cdbf9a81f"
+        "path": "assets/bushveld-winter/img/bushveld_boulder_a.f52ae4ff5d2b.png",
+        "bytes": 10112,
+        "hash": "f52ae4ff5d2b"
       },
       "width": 310,
       "height": 244
@@ -79,9 +79,9 @@
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/bushveld_boulder_b.912ca4fa2ddc.png",
-        "bytes": 8412,
-        "hash": "912ca4fa2ddc"
+        "path": "assets/bushveld-winter/img/bushveld_boulder_b.4e06d1da1717.png",
+        "bytes": 8496,
+        "hash": "4e06d1da1717"
       },
       "width": 290,
       "height": 232
@@ -90,9 +90,9 @@
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/bushveld_boulder_crack.a660317118cf.png",
-        "bytes": 10626,
-        "hash": "a660317118cf"
+        "path": "assets/bushveld-winter/img/bushveld_boulder_crack.9e21ce7d2dbf.png",
+        "bytes": 10765,
+        "hash": "9e21ce7d2dbf"
       },
       "width": 330,
       "height": 250
@@ -101,9 +101,9 @@
       "group": "bushveld-winter",
       "origin": "interim",
       "file": {
-        "path": "assets/bushveld-winter/img/bushveld_dassie_koppie.8a5099ee187d.png",
-        "bytes": 62389,
-        "hash": "8a5099ee187d"
+        "path": "assets/bushveld-winter/img/bushveld_dassie_koppie.e91c98a5b134.png",
+        "bytes": 66396,
+        "hash": "e91c98a5b134"
       },
       "width": 1120,
       "height": 600,
@@ -4081,14 +4081,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/bushveld-winter/layers/far_veld-0.7cfc02e4aac3.png",
-          "bytes": 16650,
-          "hash": "7cfc02e4aac3"
+          "path": "assets/bushveld-winter/layers/far_veld-0.3856defe3e93.png",
+          "bytes": 16628,
+          "hash": "3856defe3e93"
         },
         {
-          "path": "assets/bushveld-winter/layers/far_veld-1.e7d3debf9420.png",
-          "bytes": 13597,
-          "hash": "e7d3debf9420"
+          "path": "assets/bushveld-winter/layers/far_veld-1.8d5982f28ead.png",
+          "bytes": 13537,
+          "hash": "8d5982f28ead"
         }
       ],
       "tileWidth": 2048,
@@ -4100,11 +4100,11 @@
         "rows": [
           [
             151,
-            181
+            182
           ],
           [
             180,
-            217
+            216
           ],
           [
             195,
@@ -4132,7 +4132,7 @@
           ],
           [
             146,
-            170
+            168
           ],
           [
             148,
@@ -4166,19 +4166,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/bushveld-winter/layers/foreground-0.4c4428ed70e1.png",
-          "bytes": 26952,
-          "hash": "4c4428ed70e1"
+          "path": "assets/bushveld-winter/layers/foreground-0.fdef853890df.png",
+          "bytes": 26971,
+          "hash": "fdef853890df"
         },
         {
-          "path": "assets/bushveld-winter/layers/foreground-1.98039297f3c6.png",
-          "bytes": 14941,
-          "hash": "98039297f3c6"
+          "path": "assets/bushveld-winter/layers/foreground-1.999bc7bd073c.png",
+          "bytes": 15359,
+          "hash": "999bc7bd073c"
         },
         {
-          "path": "assets/bushveld-winter/layers/foreground-2.6ed8bde698c3.png",
-          "bytes": 12975,
-          "hash": "6ed8bde698c3"
+          "path": "assets/bushveld-winter/layers/foreground-2.6693f3564138.png",
+          "bytes": 13054,
+          "hash": "6693f3564138"
         },
         {
           "path": "assets/bushveld-winter/layers/foreground-3.67c0d9056c65.png",
@@ -4226,19 +4226,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/bushveld-winter/layers/mid-0.a75d03fdba2d.png",
-          "bytes": 87871,
-          "hash": "a75d03fdba2d"
+          "path": "assets/bushveld-winter/layers/mid-0.060465ea8391.png",
+          "bytes": 87922,
+          "hash": "060465ea8391"
         },
         {
-          "path": "assets/bushveld-winter/layers/mid-1.9682b828333a.png",
-          "bytes": 120979,
-          "hash": "9682b828333a"
+          "path": "assets/bushveld-winter/layers/mid-1.95a6becf5cc8.png",
+          "bytes": 120719,
+          "hash": "95a6becf5cc8"
         },
         {
-          "path": "assets/bushveld-winter/layers/mid-2.8c1edaf927cc.png",
-          "bytes": 14282,
-          "hash": "8c1edaf927cc"
+          "path": "assets/bushveld-winter/layers/mid-2.bee37fad5ea8.png",
+          "bytes": 14257,
+          "hash": "bee37fad5ea8"
         }
       ],
       "tileWidth": 2048,
@@ -4249,76 +4249,76 @@
         "bucket": 256,
         "rows": [
           [
-            414,
+            427,
             480
           ],
           [
             233,
-            366
+            311
           ],
           [
-            286,
-            318
+            287,
+            316
           ],
           [
             232,
             330
           ],
           [
-            377,
-            445
+            281,
+            343
           ],
           [
             266,
-            335
+            389
           ],
           [
             229,
             336
           ],
           [
-            312,
-            354
+            317,
+            353
           ],
           [
-            405,
+            417,
             480
           ],
           [
-            408,
-            480
+            229,
+            333
           ],
           [
-            230,
-            389
+            232,
+            385
           ],
           [
-            341,
+            354,
             390
           ],
           [
-            343,
+            351,
             480
           ],
           [
             289,
-            351
+            350
           ],
           [
-            359,
-            457
+            254,
+            335
+          ],
+          [
+            326,
+            363
           ],
           [
             318,
-            383
-          ],
-          [
-            251,
-            373
-          ],
-          [
-            230,
             370
+          ],
+          [
+            231,
+            351
           ]
         ]
       }
@@ -4328,19 +4328,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/bushveld-winter/layers/near-0.3227733f8c06.png",
-          "bytes": 73052,
-          "hash": "3227733f8c06"
+          "path": "assets/bushveld-winter/layers/near-0.72d4c3ba498d.png",
+          "bytes": 72597,
+          "hash": "72d4c3ba498d"
         },
         {
-          "path": "assets/bushveld-winter/layers/near-1.7d56ae8777dd.png",
-          "bytes": 80621,
-          "hash": "7d56ae8777dd"
+          "path": "assets/bushveld-winter/layers/near-1.9fe93fc1dc31.png",
+          "bytes": 80097,
+          "hash": "9fe93fc1dc31"
         },
         {
-          "path": "assets/bushveld-winter/layers/near-2.625e94d9f6e0.png",
-          "bytes": 66543,
-          "hash": "625e94d9f6e0"
+          "path": "assets/bushveld-winter/layers/near-2.9c060240364e.png",
+          "bytes": 66049,
+          "hash": "9c060240364e"
         }
       ],
       "tileWidth": 2048,
@@ -4351,96 +4351,96 @@
         "bucket": 256,
         "rows": [
           [
-            30,
-            46
+            130,
+            185
           ],
           [
-            34,
-            52
+            99,
+            144
           ],
           [
-            202,
-            206
-          ],
-          [
-            163,
-            177
-          ],
-          [
-            101,
-            120
-          ],
-          [
-            238,
+            198,
             260
           ],
           [
-            92,
-            108
-          ],
-          [
-            36,
-            58
-          ],
-          [
-            224,
-            234
-          ],
-          [
-            46,
-            55
-          ],
-          [
-            65,
-            80
-          ],
-          [
-            177,
-            196
-          ],
-          [
-            33,
-            52
-          ],
-          [
-            248,
+            206,
             260
           ],
           [
-            33,
-            49
-          ],
-          [
-            239,
+            206,
             260
           ],
           [
-            231,
-            256
+            88,
+            260
           ],
           [
-            124,
-            137
+            157,
+            260
           ],
           [
-            38,
-            47
+            178,
+            260
           ],
           [
-            33,
-            55
+            176,
+            260
           ],
           [
-            227,
-            254
+            188,
+            260
           ],
           [
-            80,
-            95
+            145,
+            260
+          ],
+          [
+            171,
+            260
+          ],
+          [
+            106,
+            185
+          ],
+          [
+            211,
+            260
+          ],
+          [
+            74,
+            125
+          ],
+          [
+            175,
+            260
+          ],
+          [
+            158,
+            260
+          ],
+          [
+            194,
+            260
+          ],
+          [
+            84,
+            134
+          ],
+          [
+            86,
+            161
+          ],
+          [
+            170,
+            260
+          ],
+          [
+            160,
+            260
           ],
           [
             165,
-            186
+            260
           ]
         ]
       }

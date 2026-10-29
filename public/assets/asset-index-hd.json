@@ -43,9 +43,9 @@
     },
     "bushveld/boulder_a": {
       "file": {
-        "path": "assets/bushveld-winter-hd/img/bushveld_boulder_a.265b7e776a85.png",
-        "bytes": 28344,
-        "hash": "265b7e776a85"
+        "path": "assets/bushveld-winter-hd/img/bushveld_boulder_a.b75b75acc401.png",
+        "bytes": 28184,
+        "hash": "b75b75acc401"
       },
       "width": 620,
       "height": 488,
@@ -53,9 +53,9 @@
     },
     "bushveld/boulder_b": {
       "file": {
-        "path": "assets/bushveld-winter-hd/img/bushveld_boulder_b.3c252bcb5ff9.png",
-        "bytes": 23327,
-        "hash": "3c252bcb5ff9"
+        "path": "assets/bushveld-winter-hd/img/bushveld_boulder_b.18d9ca894459.png",
+        "bytes": 24042,
+        "hash": "18d9ca894459"
       },
       "width": 580,
       "height": 464,
@@ -63,9 +63,9 @@
     },
     "bushveld/boulder_crack": {
       "file": {
-        "path": "assets/bushveld-winter-hd/img/bushveld_boulder_crack.3c6a8892bf8a.png",
-        "bytes": 29557,
-        "hash": "3c6a8892bf8a"
+        "path": "assets/bushveld-winter-hd/img/bushveld_boulder_crack.acdcc09de717.png",
+        "bytes": 29994,
+        "hash": "acdcc09de717"
       },
       "width": 660,
       "height": 500,
@@ -956,34 +956,34 @@
     "bushveld/foreground": {
       "tiles": [
         {
-          "path": "assets/bushveld-winter-hd/layers/foreground-0.bfaf8da057b0.png",
-          "bytes": 29402,
-          "hash": "bfaf8da057b0"
+          "path": "assets/bushveld-winter-hd/layers/foreground-0.4fadda5792d8.png",
+          "bytes": 29135,
+          "hash": "4fadda5792d8"
         },
         {
-          "path": "assets/bushveld-winter-hd/layers/foreground-1.310d32177a27.png",
-          "bytes": 34014,
-          "hash": "310d32177a27"
+          "path": "assets/bushveld-winter-hd/layers/foreground-1.a3a7fd3a5441.png",
+          "bytes": 34473,
+          "hash": "a3a7fd3a5441"
         },
         {
-          "path": "assets/bushveld-winter-hd/layers/foreground-2.fafffb309970.png",
-          "bytes": 29510,
-          "hash": "fafffb309970"
+          "path": "assets/bushveld-winter-hd/layers/foreground-2.c57105169f9b.png",
+          "bytes": 30674,
+          "hash": "c57105169f9b"
         },
         {
-          "path": "assets/bushveld-winter-hd/layers/foreground-3.4fddcb128bee.png",
-          "bytes": 8643,
-          "hash": "4fddcb128bee"
+          "path": "assets/bushveld-winter-hd/layers/foreground-3.cffee880a41d.png",
+          "bytes": 8528,
+          "hash": "cffee880a41d"
         },
         {
-          "path": "assets/bushveld-winter-hd/layers/foreground-4.5f1b35a46e0a.png",
-          "bytes": 11676,
-          "hash": "5f1b35a46e0a"
+          "path": "assets/bushveld-winter-hd/layers/foreground-4.8ee07d3940ac.png",
+          "bytes": 11813,
+          "hash": "8ee07d3940ac"
         },
         {
-          "path": "assets/bushveld-winter-hd/layers/foreground-5.0bbce08934cc.png",
-          "bytes": 20292,
-          "hash": "0bbce08934cc"
+          "path": "assets/bushveld-winter-hd/layers/foreground-5.882ed3b7992e.png",
+          "bytes": 20381,
+          "hash": "882ed3b7992e"
         },
         {
           "path": "assets/bushveld-winter-hd/layers/foreground-6.3b4a18c9cc0d.png",
@@ -997,29 +997,29 @@
     "bushveld/mid": {
       "tiles": [
         {
-          "path": "assets/bushveld-winter-hd/layers/mid-0.24916f72e5b1.png",
-          "bytes": 117444,
-          "hash": "24916f72e5b1"
+          "path": "assets/bushveld-winter-hd/layers/mid-0.1ae0cbc827b7.png",
+          "bytes": 118264,
+          "hash": "1ae0cbc827b7"
         },
         {
-          "path": "assets/bushveld-winter-hd/layers/mid-1.48572adb71b6.png",
-          "bytes": 107595,
-          "hash": "48572adb71b6"
+          "path": "assets/bushveld-winter-hd/layers/mid-1.f39630215657.png",
+          "bytes": 107942,
+          "hash": "f39630215657"
         },
         {
-          "path": "assets/bushveld-winter-hd/layers/mid-2.bd0f1f033a3b.png",
-          "bytes": 163606,
-          "hash": "bd0f1f033a3b"
+          "path": "assets/bushveld-winter-hd/layers/mid-2.5531ff58d871.png",
+          "bytes": 163975,
+          "hash": "5531ff58d871"
         },
         {
-          "path": "assets/bushveld-winter-hd/layers/mid-3.7e6442ca047a.png",
-          "bytes": 163620,
-          "hash": "7e6442ca047a"
+          "path": "assets/bushveld-winter-hd/layers/mid-3.bf4c1bff9765.png",
+          "bytes": 163383,
+          "hash": "bf4c1bff9765"
         },
         {
-          "path": "assets/bushveld-winter-hd/layers/mid-4.66aca7f18cac.png",
-          "bytes": 34655,
-          "hash": "66aca7f18cac"
+          "path": "assets/bushveld-winter-hd/layers/mid-4.f8f68fe0b6b3.png",
+          "bytes": 34708,
+          "hash": "f8f68fe0b6b3"
         }
       ],
       "tileWidth": 1024,
@@ -1028,34 +1028,34 @@
     "bushveld/near": {
       "tiles": [
         {
-          "path": "assets/bushveld-winter-hd/layers/near-0.192f29c08025.png",
-          "bytes": 89574,
-          "hash": "192f29c08025"
+          "path": "assets/bushveld-winter-hd/layers/near-0.08c189c42ae6.png",
+          "bytes": 88187,
+          "hash": "08c189c42ae6"
         },
         {
-          "path": "assets/bushveld-winter-hd/layers/near-1.201c17c125c7.png",
-          "bytes": 89107,
-          "hash": "201c17c125c7"
+          "path": "assets/bushveld-winter-hd/layers/near-1.9e7f630dd7aa.png",
+          "bytes": 87904,
+          "hash": "9e7f630dd7aa"
         },
         {
-          "path": "assets/bushveld-winter-hd/layers/near-2.ba2129681e4b.png",
-          "bytes": 90143,
-          "hash": "ba2129681e4b"
+          "path": "assets/bushveld-winter-hd/layers/near-2.e0f008f3f0fd.png",
+          "bytes": 89298,
+          "hash": "e0f008f3f0fd"
         },
         {
-          "path": "assets/bushveld-winter-hd/layers/near-3.c6f29682b72c.png",
-          "bytes": 107682,
-          "hash": "c6f29682b72c"
+          "path": "assets/bushveld-winter-hd/layers/near-3.5d62d9087fe3.png",
+          "bytes": 106274,
+          "hash": "5d62d9087fe3"
         },
         {
-          "path": "assets/bushveld-winter-hd/layers/near-4.a91712a84cc6.png",
-          "bytes": 102019,
-          "hash": "a91712a84cc6"
+          "path": "assets/bushveld-winter-hd/layers/near-4.93bbdc6b3d33.png",
+          "bytes": 100477,
+          "hash": "93bbdc6b3d33"
         },
         {
-          "path": "assets/bushveld-winter-hd/layers/near-5.daa7b16da694.png",
-          "bytes": 61020,
-          "hash": "daa7b16da694"
+          "path": "assets/bushveld-winter-hd/layers/near-5.33defbc2c5e1.png",
+          "bytes": 60312,
+          "hash": "33defbc2c5e1"
         }
       ],
       "tileWidth": 1024,

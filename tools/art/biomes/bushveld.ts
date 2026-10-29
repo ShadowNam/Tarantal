@@ -101,11 +101,12 @@ function sky(ctx: LayerCtx): string {
   );
 }
 
-/** v1.7e (D-061): a softer ink for the plane's scrub and grass (dark tone, not black). */
+/** v1.7e (D-061): a softer ink for the plane's scrub and grass: a dark tone of the grass at the
+ *  edges, not a black line (review R2). */
 function softInk(ctx: LayerCtx, k: number): LayerCtx {
   return {
     ...ctx,
-    pen: { ink: mix(ctx.pen.ink, shade(ctx.c('grassDark'), -0.35), 0.6), w: ctx.pen.w * k },
+    pen: { ink: mix(ctx.pen.ink, shade(ctx.c('grassDark'), -0.3), 0.8), w: ctx.pen.w * k },
   };
 }
 
@@ -420,7 +421,9 @@ function near(ctx: LayerCtx): string {
   return g({}, band.svg, g({ 'clip-path': `url(#${band.clip})` }, ...inside), edge.over);
 }
 
-function foreground(ctx: LayerCtx): string {
+function foreground(raw: LayerCtx): string {
+  // v1.7e (review R2): the foreground grass and log in dark tones, no black ink.
+  const ctx = softInk(raw, 0.7);
   const pen = ctx.pen;
   const parts = foregroundClumps(ctx, [ctx.u(0.06), ctx.u(0.92)], (x) =>
     ctx.rnd() < 0.6
@@ -617,8 +620,8 @@ function boulderProp(crack: boolean) {
     const { w, h } = ctx.box;
     const ry = h / 2;
     // Content: the crack part sits at (−10, −30), 32 × 28; birds perch on the top (y ≈ −60).
-    // v1.7e: a little smaller than the box (the soft contact shadow and the crown stay inside).
-    return graniteBoulder(ctx.rnd, 0, ry * 0.75, w * 0.86, ry * 1.6, look, {
+    // v1.7e: smaller than the box and shifted down: a margin above the crown (review R1: it touched the top).
+    return graniteBoulder(ctx.rnd, 0, ry * 0.9, w * 0.86, ry * 1.6, look, {
       flat: 0.3,
       ...(crack ? { crack: { x: -10, y: -30, len: 70 } } : {}),
     });

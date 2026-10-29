@@ -9,7 +9,7 @@
 // Pure: (rnd, arguments) → SVG.
 import { blurFilter, ringNoise } from './camelthorn';
 import { mix, nextId, shade, type Pt, type Rnd } from './scenery';
-import { el, ellipseD, g, r2, smoothD } from './svg';
+import { el, ellipseD, g, prng, r2, smoothD } from './svg';
 
 export interface GraniteLook {
   readonly base: string;
@@ -104,13 +104,14 @@ export function graniteBoulder(
   const parts: string[] = [];
   const inner: string[] = [];
   if (o.shadow !== false) {
-    const blur = blurFilter(Math.max(1, h * 0.06));
+    // Review R3: a crisper contact shadow (less blur, a little darker).
+    const blur = blurFilter(Math.max(0.8, h * 0.03));
     parts.push(
       blur.def,
       el('path', {
-        d: ellipseD(x + w * 0.06, y + 1, hw * 1.02, Math.max(2.5, h * 0.09)),
+        d: ellipseD(x + w * 0.06, y + 1, hw * 1.0, Math.max(2.2, h * 0.075)),
         fill: '#231B16',
-        opacity: 0.38,
+        opacity: 0.46,
         filter: `url(#${blur.id})`,
       }),
     );
@@ -146,8 +147,9 @@ export function graniteBoulder(
     );
   }
   // Darker toward the rim (form shadow), deep under the belly, a faint bounce at the very foot.
-  const rimBlur = blurFilter(Math.max(1.2, w * 0.035));
-  const belly = blurFilter(Math.max(1.5, h * 0.08));
+  // Review R3: more form — tighter blurs on the rim tone and the dark underside.
+  const rimBlur = blurFilter(Math.max(1, w * 0.02));
+  const belly = blurFilter(Math.max(1, h * 0.045));
   inner.push(
     rimBlur.def,
     belly.def,
@@ -161,9 +163,9 @@ export function graniteBoulder(
       filter: `url(#${rimBlur.id})`,
     }),
     el('path', {
-      d: ellipseD(x + hw * 0.18, y - h * 0.02, hw * 1.05, h * 0.3),
+      d: ellipseD(x + hw * 0.18, y - h * 0.02, hw * 1.05, h * 0.27),
       fill: look.deep,
-      opacity: 0.55,
+      opacity: 0.66,
       filter: `url(#${belly.id})`,
     }),
     el('path', {
@@ -350,15 +352,46 @@ export function graniteBoulder(
       }),
     );
   });
+  // Review R3: a lit top edge along the sunward crown (crisp, no ink), and a fine crystal
+  // speckle that the 2× HD art resolves. Both from a local seed: no other rock moves.
+  const local = prng(Math.round(x * 31 + y * 17 + w * 7 + h * 3) >>> 0);
+  inner.push(
+    el('path', {
+      d: smoothD(
+        rim.slice(3, 17).map(([px, py]): Pt => [px + w * 0.004, py + h * 0.012]),
+        false,
+        0.55,
+      ),
+      fill: 'none',
+      stroke: look.lit,
+      'stroke-width': r2(Math.max(0.8, w * 0.012)),
+      'stroke-linecap': 'round',
+      opacity: 0.85,
+    }),
+  );
+  if (detail) {
+    const dark: string[] = [];
+    const light: string[] = [];
+    for (let k = 0; k < Math.round((w * h) / 70); k++) {
+      const sx = x + (local() - 0.5) * w;
+      const sy = y - local() * h;
+      const r = 0.25 + local() * 0.4;
+      (local() < 0.6 ? dark : light).push(ellipseD(sx, sy, r, r));
+    }
+    inner.push(
+      el('path', { d: dark.join(''), fill: look.deep, opacity: 0.35 }),
+      el('path', { d: light.join(''), fill: look.lit, opacity: 0.45 }),
+    );
+  }
   parts.push(g({ 'clip-path': `url(#${clip})` }, ...inner));
-  // The crevice where it meets the ground: soft and dark, no line.
-  const foot = blurFilter(Math.max(0.8, h * 0.025));
+  // The crevice where it meets the ground: dark and crisper (review R3), no line.
+  const foot = blurFilter(Math.max(0.5, h * 0.012));
   parts.push(
     foot.def,
     el('path', {
-      d: ellipseD(x + hw * 0.05, y - 0.5, hw * 0.82, Math.max(1.2, h * 0.035)),
+      d: ellipseD(x + hw * 0.05, y - 0.5, hw * 0.84, Math.max(1.2, h * 0.032)),
       fill: look.deep,
-      opacity: 0.7,
+      opacity: 0.85,
       filter: `url(#${foot.id})`,
     }),
   );

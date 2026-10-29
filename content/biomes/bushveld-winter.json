@@ -189,7 +189,7 @@
       },
       "secret": {
         "$comment": "Three hits on the crack: the boulder rolls, the birds hiding behind it burst out, +5 s.",
-        "tell": { "species": "striped_skink", "ox": 36, "oy": -64 },
+        "tell": { "species": "striped_skink", "ox": 42, "oy": -38 },
         "type": "singleHit",
         "part": {
           "id": "crack",
