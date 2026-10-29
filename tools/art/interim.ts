@@ -59,11 +59,16 @@ import { RESIDENT_SHEET } from '../../src/game/view/tree/residentSheet';
 import { renderResidentSheet } from './baobabLife';
 import { renderColonySheet } from './colony';
 import { COLONY_SHEET } from '../../src/game/view/tree/colonySheet';
+import { collectVeld, renderVeldSheet } from './namibVeld';
+import { namibieVeldLooks } from './biomes/namibie';
+import { VELD_SHEET, type VeldSpot } from '../../src/game/view/namib/veldSheet';
 
 /** 1.9.4 (D-057): palette size of the baobab residents' sheet. */
 const RESIDENT_COLOURS = 96;
 /** 1.9.4 (D-057): palette size of the weaver colony's sheet. */
 const COLONY_COLOURS = 96;
+/** v1.7d (D-059): palette size of the Namib veld sheet. */
+const VELD_COLOURS = 128;
 import {
   HALLOWEEN_SHEET,
   SHEET_MASTER as FEESDAE_MASTER,
@@ -347,6 +352,7 @@ if (wants('scenery')) {
       continue;
     }
     const fruitOwners: FruitOwner[] = [];
+    const veldSpots: VeldSpot[] = [];
     for (const layer of biome.layers) {
       const png = join(src, 'layers', biome.id, `${layer.id}.png`);
       if (!oursFile(png)) {
@@ -356,9 +362,14 @@ if (wants('scenery')) {
       const lp = plan.layers[layer.id];
       const enc = lp?.encode ?? 'png8';
       // v1.7c (D-047): fruit on the mid and near planes become sprites (the far stays baked).
-      const { value: img, fruit } = FRUIT_LAYERS.has(layer.id)
-        ? collectFruit(() => renderLayer(cfg, plan, layer))
-        : { value: renderLayer(cfg, plan, layer), fruit: [] };
+      // v1.7d (D-059): the Namib ground cover is recorded as sprite placements (VeldView).
+      const veld = collectVeld(() =>
+        FRUIT_LAYERS.has(layer.id)
+          ? collectFruit(() => renderLayer(cfg, plan, layer))
+          : { value: renderLayer(cfg, plan, layer), fruit: [] },
+      );
+      veldSpots.push(...veld.spots);
+      const { value: img, fruit } = veld.result;
       if (fruit.length > 0) fruitOwners.push({ on: layer.id, prop: false, fruit });
       put(png, enc === 'png8' ? encodePng8(img, lp?.colours) : encodePng(img));
       put(
@@ -425,6 +436,22 @@ if (wants('scenery')) {
     }
     // v1.7c (D-047): the biome's fruit sheet and where each fruit sits (FRUIT_LATE: late group).
     await writeFruit(biome.id, fruitOwners);
+    // v1.7d (D-059): the Namib ground cover — its sheet (1×, HD twin 2×) and placements.
+    if (veldSpots.length > 0) {
+      const png = join(src, 'sprites', `${VELD_SHEET}.png`);
+      const looks = namibieVeldLooks(cfg);
+      put(png, encodePng8(renderVeldSheet(1, looks), VELD_COLOURS));
+      put(
+        png.replace(/\.png$/, '.json'),
+        await json({ origin: 'interim', encode: 'png8', originX: 0, originY: 0 }),
+      );
+      putHd(`sprites/${VELD_SHEET}.png`, renderVeldSheet(2, looks), VELD_COLOURS);
+      put(
+        join(root, 'src', 'game', 'view', 'namib', `veld-${biome.id}.json`),
+        await json(veldSpots),
+      );
+      console.log(`sprites/${VELD_SHEET}: ${veldSpots.length} placements`);
+    }
   }
 }
 if (wants('fauna')) {

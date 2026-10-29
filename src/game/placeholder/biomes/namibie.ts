@@ -6,6 +6,7 @@
 import { verBand, type Band, type BiomeArt } from '../biomeArt';
 import { ellipse, ground, inked, INK, tuft } from '../draw';
 import { desertSpecs } from '../treeLifeArt';
+import { namibieLifeSpecs } from '../namibLifeArt';
 
 const C = {
   skyTop: '#8DBCE0',
@@ -277,8 +278,9 @@ function drawProp(ctx: CanvasRenderingContext2D, id: string, w: number, h: numbe
 export const NAMIBIE_ART: BiomeArt = {
   bands: BANDS,
   drawProp,
-  // v1.7 (D-044): the meerkat colonies' sheet (shared with the other desert map).
-  extraTextures: desertSpecs,
+  // v1.7 (D-044): the meerkat colonies' sheet (shared with the other desert map); v1.7d (D-059):
+  // the Namibië veld-life sheets.
+  extraTextures: () => [...desertSpecs(), ...namibieLifeSpecs()],
   propPad: {
     nest_camelthorn: { top: 420, side: 468 },
     camelthorn_mature: { top: 160, side: 200 },
