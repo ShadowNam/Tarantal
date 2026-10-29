@@ -9,6 +9,10 @@
 //   far-<variant>: a 1.5× close-up of the far hills and the far veld above the koppie;
 //   <shot>-before-after: the pair, once both variants are there;
 //   rocks-std-hd: the dassie koppie and the cracked boulder, Standard | HD (the same pan).
+//   tell-<species>-wide / -rest / -act / -seq / -std-hd: each secret's tell animal (cue A),
+//     one test per area: the view panned to it, a 3× close-up resting and doing its action, three
+//     stills 1 s apart, and the close-up Standard | HD; tell-glow-bushveld: Saturday's dusk map
+//     lights the tells (Oupa se Kaart's warm outline).
 // "Before": run this spec on a main checkout with V17E_VARIANT=before (only the first test runs;
 // it saves the -before files), then on this branch (it saves -after and the pairs). The file
 // imports nothing that only this branch has, so it typechecks and runs on main too.
@@ -103,8 +107,18 @@ async function park(page: Page, touch: boolean): Promise<void> {
 }
 
 /** Boots a Bushveld hunt and waits until it runs there with its own layers (HD: the pack in). */
-async function huntIn(page: Page, info: TestInfo, gfx: 'standard' | 'hd'): Promise<void> {
-  await page.goto(`/?e2e=1&feesdag=none&ftue=0&${BASE}&graphics=${gfx}`);
+async function huntIn(
+  page: Page,
+  info: TestInfo,
+  gfx: 'standard' | 'hd',
+  biome = 'bushveld-winter',
+  layout = 'none',
+): Promise<void> {
+  const base = BASE.replace('biome=bushveld-winter', `biome=${biome}`).replace(
+    'layout=none',
+    `layout=${layout}`,
+  );
+  await page.goto(`/?e2e=1&feesdag=none&ftue=0&${base}&graphics=${gfx}`);
   await page.waitForFunction(() => window.__TM__?.ready === true, null, { timeout: 300_000 });
   const touch = isTouchProject(info);
   await startHunt(page, touch);
@@ -112,20 +126,21 @@ async function huntIn(page: Page, info: TestInfo, gfx: 'standard' | 'hd'): Promi
     await page.waitForFunction(() => (window.__TM__?.graphics.hdTextures ?? 0) > 0, null, {
       timeout: 300_000,
     });
+  const prefix = `layer:${biome.split('-')[0] ?? biome}/`;
   await page.waitForFunction(
-    () => {
+    ([want, pre]) => {
       const tm = window.__TM__;
       const layers = (tm?.graphics.bounds ?? []).filter((b) => b.key.startsWith('layer:'));
       return (
         tm?.scene === 'hunt' &&
-        tm.biome === 'bushveld-winter' &&
+        tm.biome === want &&
         tm.menu !== 'hdLoading' &&
         tm.graphics.loading !== 'loading' &&
         layers.length > 0 &&
-        layers.every((b) => b.key.startsWith('layer:bushveld/'))
+        layers.every((b) => b.key.startsWith(pre))
       );
     },
-    null,
+    [biome, prefix] as const,
     { timeout: 300_000 },
   );
   await park(page, touch);
@@ -270,4 +285,162 @@ test('the redrawn rocks: the dassie koppie and the cracked boulder, Standard | H
       info,
       scaled(sideBySide(cut(std, propBox(std, CRACK)), cut(hd, propBox(hd, CRACK))), 2),
     );
+});
+
+// --- the tell animals (cue A, D-061) ----------------------------------------------------------
+
+/** This branch's hook field (absent on main), read loosely. */
+interface LooseTell {
+  readonly species: string;
+  readonly frame: string | null;
+  readonly x: number;
+  readonly y: number;
+  readonly visible: boolean;
+  readonly glow: boolean;
+}
+async function tellsOf(page: Page): Promise<readonly LooseTell[]> {
+  return page.evaluate(
+    () => (window as unknown as { __TM__?: { tells?: LooseTell[] | null } }).__TM__?.tells ?? [],
+  );
+}
+
+/** Pans (A/D) until the tell is within 60 px of the screen's centre (bounded). */
+async function panToTell(page: Page, touch: boolean, species: string): Promise<void> {
+  const off = async (): Promise<number | null> => {
+    const t = (await tellsOf(page)).find((x) => x.species === species);
+    const w = (await hook(page)).designWidth;
+    return t === undefined ? null : t.x - w / 2;
+  };
+  for (let k = 0; k < 200; k++) {
+    const o = await off();
+    if (o !== null && Math.abs(o) <= 60) break;
+    const dir = o === null || o > 0 ? 'KeyD' : 'KeyA';
+    await page.keyboard.down(dir);
+    await page.waitForTimeout(o === null || Math.abs(o) > 500 ? 400 : 100);
+    await page.keyboard.up(dir);
+  }
+  const o = await off();
+  if (o === null || Math.abs(o) > 60) throw new Error(`pan to ${species}: off by ${o}`);
+  await park(page, touch);
+}
+
+/** Holds the sim on the first tick (within `ticks`) where the tell shows a frame matching `re`. */
+async function holdOnFrame(page: Page, species: string, re: string, ticks: number): Promise<void> {
+  const ok = await page
+    .waitForFunction(
+      ([sp, pattern, until]) => {
+        const tm = window as unknown as {
+          __TM__?: { tick: number; tells?: LooseTell[] | null };
+          __TM_HOLD_AT__?: (t: number) => void;
+        };
+        const t = tm.__TM__?.tells?.find((x) => x.species === sp);
+        if (t?.visible === true && t.frame !== null && new RegExp(pattern).test(t.frame)) {
+          tm.__TM_HOLD_AT__?.((tm.__TM__?.tick ?? 0) + 1);
+          return true;
+        }
+        return (tm.__TM__?.tick ?? 0) >= until ? 'late' : false;
+      },
+      [species, re, (await hook(page)).tick + ticks] as const,
+      { timeout: 600_000 },
+    )
+    .then(async (h) => (await h.jsonValue()) === true);
+  if (!ok) throw new Error(`${species}: no ${re} frame within ${ticks} ticks`);
+  await page.waitForTimeout(1500);
+}
+
+/** A crop round the tell's feet (design px box), for close-ups. */
+function tellBox(t: LooseTell): { x: number; y: number; w: number; h: number } {
+  return { x: t.x - 70, y: t.y - 90, w: 140, h: 110 };
+}
+
+const TELL_AREAS: readonly (readonly [string, readonly string[]])[] = [
+  ['bushveld-winter', ['fork_tailed_drongo', 'rock_agama', 'striped_skink']],
+  ['kalahari-summer', ['lilac_breasted_roller', 'flap_necked_chameleon']],
+  ['karoo-autumn', ['rock_kestrel', 'cape_wagtail', 'striped_mouse', 'fiscal_shrike']],
+  ['namibie', ['pied_crow']],
+  ['okavango-spring', ['malachite_kingfisher', 'red_billed_oxpecker', 'african_jacana']],
+];
+
+for (const [biome, species] of TELL_AREAS)
+  test(`the tell animals: ${biome}`, async ({ page }, info) => {
+    test.skip(VARIANT === 'before', 'this branch only');
+    // Two boots (Standard, HD) per tell: up to 15 minutes each on software GL.
+    test.setTimeout(species.length * 900_000);
+    const touch = isTouchProject(info);
+    for (const sp of species) {
+      const grabs: Grab[] = [];
+      for (const gfx of ['standard', 'hd'] as const) {
+        await huntIn(page, info, gfx, biome);
+        await page.waitForFunction(
+          (want) =>
+            (
+              (window as unknown as { __TM__?: { tells?: LooseTell[] | null } }).__TM__?.tells ?? []
+            ).some((t) => t.species === want && t.frame !== null),
+          sp,
+          { timeout: 300_000 },
+        );
+        await panToTell(page, touch, sp);
+        // Resting (held), then its action (held), then the sequence.
+        await holdOnFrame(page, sp, '_rest$', 600);
+        const rest = await grab(page);
+        const tr = (await tellsOf(page)).find((t) => t.species === sp);
+        if (tr === undefined) throw new Error(`${sp} is gone`);
+        if (gfx === 'hd') {
+          grabs.push(rest);
+          const std = grabs[0];
+          if (std !== undefined)
+            save(
+              `tell-${sp}-std-hd`,
+              info,
+              scaled(sideBySide(cut(std, tellBox(tr)), cut(rest, tellBox(tr))), 3),
+            );
+          continue;
+        }
+        grabs.push(rest);
+        save(`tell-${sp}-wide`, info, rest.img);
+        save(`tell-${sp}-rest`, info, scaled(cut(rest, tellBox(tr)), 3));
+        await release(page);
+        await holdOnFrame(page, sp, '_act_[ab]$', 900);
+        const act = await grab(page);
+        save(`tell-${sp}-act`, info, scaled(cut(act, tellBox(tr)), 3));
+        // Three stills 1 s (60 ticks) apart, side by side.
+        const seq: Rgba[] = [];
+        for (let k = 0; k < 3; k++) {
+          await release(page);
+          const at = await page.evaluate(() => {
+            const t = (window.__TM__?.tick ?? 0) + 60;
+            (window as { __TM_HOLD_AT__?: (tick: number) => void }).__TM_HOLD_AT__?.(t);
+            return t;
+          });
+          await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) >= t, at, {
+            timeout: 600_000,
+          });
+          await page.waitForTimeout(1200);
+          seq.push(scaled(cut(await grab(page), tellBox(tr)), 2));
+        }
+        const [a, b, c] = seq as [Rgba, Rgba, Rgba];
+        save(`tell-${sp}-seq`, info, sideBySide(sideBySide(a, b), c));
+      }
+    }
+  });
+
+test('the tell animals glow on a dusk map (Bushveld Saturday)', async ({ page }, info) => {
+  test.skip(VARIANT === 'before', 'this branch only');
+  const touch = isTouchProject(info);
+  await huntIn(page, info, 'standard', 'bushveld-winter', 'sat');
+  await page.waitForFunction(
+    () =>
+      ((window as unknown as { __TM__?: { tells?: LooseTell[] | null } }).__TM__?.tells ?? []).some(
+        (t) => t.species === 'rock_agama' && t.glow,
+      ),
+    null,
+    { timeout: 300_000 },
+  );
+  await panToTell(page, touch, 'rock_agama');
+  await holdOnFrame(page, 'rock_agama', '_(rest|act_[ab])$', 600);
+  const g = await grab(page);
+  const t = (await tellsOf(page)).find((x) => x.species === 'rock_agama');
+  if (t === undefined) throw new Error('no agama');
+  save('tell-glow-bushveld', info, g.img);
+  save('tell-glow-bushveld-closeup', info, scaled(cut(g, tellBox(t)), 3));
 });
