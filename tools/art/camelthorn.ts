@@ -541,6 +541,8 @@ export interface CamelthornSpec {
   readonly nest?: NestSpec;
   /** Clump count override. */
   readonly clumps?: number;
+  /** v1.7d (D-059): the biome's own grass tuft at the foot (default: the inked blonde tuft). */
+  readonly tuft?: (rnd: Rnd, x: number, y: number, h: number) => string;
 }
 
 export interface CamelthornArt {
@@ -912,15 +914,17 @@ export function camelthornTree(
     tufts.sort((a, b) => a.y - b.y);
     for (const t of tufts)
       parts.push(
-        tuft(
-          rnd,
-          t.x,
-          t.y,
-          Math.max(22, s.crownW * (0.1 + rnd() * 0.08)),
-          tone(rnd() < 0.5 ? look.grass : look.grassPale, 0.25, 0.25),
-          { ink: look.ink, w: Math.max(0.4, pen.w * 0.18) },
-          9,
-        ),
+        s.tuft !== undefined
+          ? s.tuft(rnd, t.x, t.y, Math.max(22, s.crownW * (0.1 + rnd() * 0.08)))
+          : tuft(
+              rnd,
+              t.x,
+              t.y,
+              Math.max(22, s.crownW * (0.1 + rnd() * 0.08)),
+              tone(rnd() < 0.5 ? look.grass : look.grassPale, 0.25, 0.25),
+              { ink: look.ink, w: Math.max(0.4, pen.w * 0.18) },
+              9,
+            ),
       );
   }
   return {

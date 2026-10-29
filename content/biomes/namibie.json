@@ -259,6 +259,21 @@
       ]
     },
     {
+      "$comment": "v1.7d (D-059): now and then 1–3 hot-air balloons drift across the far sky with the wind.",
+      "id": "balloons",
+      "creature": "lugballon",
+      "perHunt": [0, 1],
+      "window": [0.05, 0.45]
+    },
+    {
+      "$comment": "v1.7d (D-059): the calm early-light days bring them out more often.",
+      "id": "balloons",
+      "creature": "lugballon",
+      "perHunt": [1, 1],
+      "window": [0.02, 0.3],
+      "lights": ["dawn_mist", "bright_calm"]
+    },
+    {
       "id": "cropSprayer",
       "creature": "sproeier",
       "perHunt": [
@@ -414,6 +429,17 @@
     "far": 632,
     "ver": 572
   },
+  "ostriches": [
+    {
+      "$comment": "v1.7d (D-059): the ostrich pair and their nest on the pan edge (the layouts move them; one pair per map: a second pair stood in the mid flocks' band and drew about one accidental −10 per hunt, docs/balance/v1.7d-namibie-life.md).",
+      "id": "nest_pair",
+      "layer": "mid",
+      "u": 0.6,
+      "y": 830,
+      "nest": true,
+      "rangePx": 700
+    }
+  ],
   "layouts": [
     {
       "id": "mon",
@@ -438,6 +464,9 @@
         }
       ],
       "cameraStartU": 0.5,
+      "ostriches": [
+        { "id": "nest_pair", "layer": "mid", "u": 0.58, "y": 830, "nest": true, "rangePx": 700 }
+      ],
       "pointsMul": 0.75,
       "planePointsMul": {
         "ver": 0.7
@@ -527,6 +556,9 @@
         }
       ],
       "cameraStartU": 0.3,
+      "ostriches": [
+        { "id": "nest_pair", "layer": "mid", "u": 0.52, "y": 830, "nest": true, "rangePx": 700 }
+      ],
       "pointsMul": 0.75,
       "planePointsMul": {
         "ver": 0.7
@@ -591,6 +623,9 @@
         "flyoversMul": 0.85
       },
       "cameraStartU": 0.55,
+      "ostriches": [
+        { "id": "nest_pair", "layer": "mid", "u": 0.62, "y": 830, "nest": true, "rangePx": 700 }
+      ],
       "pointsMul": 0.75,
       "planePointsMul": {
         "ver": 0.72
@@ -737,6 +772,9 @@
         }
       ],
       "cameraStartU": 0.78,
+      "ostriches": [
+        { "id": "nest_pair", "layer": "mid", "u": 0.4, "y": 830, "nest": true, "rangePx": 700 }
+      ],
       "pointsMul": 0.75,
       "planePointsMul": {
         "ver": 0.65
@@ -829,6 +867,9 @@
         }
       ],
       "cameraStartU": 0.6,
+      "ostriches": [
+        { "id": "nest_pair", "layer": "mid", "u": 0.64, "y": 830, "nest": true, "rangePx": 700 }
+      ],
       "pointsMul": 0.75,
       "planePointsMul": {
         "ver": 0.5
@@ -930,6 +971,9 @@
         }
       ],
       "cameraStartU": 0.5,
+      "ostriches": [
+        { "id": "nest_pair", "layer": "mid", "u": 0.6, "y": 830, "nest": true, "rangePx": 700 }
+      ],
       "planePointsMul": {
         "ver": 0.5
       },
@@ -994,6 +1038,9 @@
         }
       ],
       "cameraStartU": 0.45,
+      "ostriches": [
+        { "id": "nest_pair", "layer": "mid", "u": 0.56, "y": 830, "nest": true, "rangePx": 700 }
+      ],
       "pointsMul": 0.75,
       "planePointsMul": {
         "ver": 0.68

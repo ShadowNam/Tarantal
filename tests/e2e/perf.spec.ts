@@ -169,6 +169,29 @@ for (const biome of AREAS)
       biome,
       { timeout: 180_000 },
     );
+    // v1.7d (D-059, CI run 40842297447): the HD layers go in, and the Karoo title's HD layers
+    // are purged, in refreshHd, which runs every 30 RENDERED frames, not on a clock. On CI's
+    // software GL a heavy area's 30 frames took longer than a fixed 4 s, so the sample caught
+    // both areas' layers on the GPU. Wait (bounded) for two refreshes after the fauna went HD
+    // and for no other area's HD layers in the sample; the assertions below still judge it.
+    const area = biome.split('-')[0] ?? biome;
+    const r0 = await page.evaluate(() => window.__TM__?.graphics.refreshes ?? 0);
+    await page
+      .waitForFunction(
+        ([from, own]) => {
+          const tm = window.__TM__;
+          if (tm === undefined || tm.graphics.refreshes < from + 2) return false;
+          return !tm.textureTop.some(
+            (t) =>
+              t.key.includes('/hd/') &&
+              t.key.includes('layer/') &&
+              !t.key.includes(`layer/${own}/`),
+          );
+        },
+        [r0, area] as const,
+        { timeout: 90_000 },
+      )
+      .catch(() => undefined);
     // A few texture samples (the hook updates about twice a second), and a frame or two of play.
     await page.waitForTimeout(4000);
     const h = await hook(page);
@@ -179,7 +202,6 @@ for (const biome of AREAS)
       contentType: 'application/json',
     });
     // No other area's HD layers stay on the GPU.
-    const area = biome.split('-')[0] ?? biome;
     const others = h.textureTop.filter(
       (t) =>
         t.key.includes('/hd/') && t.key.includes('layer/') && !t.key.includes(`layer/${area}/`),
@@ -248,6 +270,9 @@ test('perf: Namibië mirage and angry weavers at 4× CPU throttle (Pixel 7)', as
     // The weavers' and the mirage's own share of each frame (same page, so the box's load and
     // software GL drop out).
     sceneryMsPerFrame: h.sceneryFrames > 0 ? h.sceneryMs / h.sceneryFrames : 0,
+    // v1.7d (D-059): the veld life's own update (ground cover, ostriches, oryx, balloons).
+    namibLifeMsPerFrame: h.namibLifeFrames > 0 ? h.namibLifeMs / h.namibLifeFrames : 0,
+    namibLifeFrames: h.namibLifeFrames,
     realFrameMs: real,
     cpuFrameMs: cpu,
   };
@@ -262,6 +287,12 @@ test('perf: Namibië mirage and angry weavers at 4× CPU throttle (Pixel 7)', as
     report.sceneryMsPerFrame,
     'weavers + mirage ms per frame, 4× throttle',
   ).toBeLessThanOrEqual(1);
+  // v1.7d (D-059): the veld life ran, and costs at most 0.5 ms a frame at 4× throttle.
+  expect(report.namibLifeFrames, 'the Namibië veld life ran').toBeGreaterThan(30);
+  expect(
+    report.namibLifeMsPerFrame,
+    'Namibië veld life ms per frame, 4× throttle',
+  ).toBeLessThanOrEqual(0.5);
   expect(cpu.avg, 'CPU cost per frame (ms), mirage + weavers, 4× throttle').toBeLessThanOrEqual(
     BUDGET_MS,
   );

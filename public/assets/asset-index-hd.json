@@ -551,11 +551,51 @@
       "height": 440,
       "scale": 0.5
     },
+    "namibie/balloons": {
+      "file": {
+        "path": "assets/namibie-hd/img/namibie_balloons.3f43a157b44a.png",
+        "bytes": 10661,
+        "hash": "3f43a157b44a"
+      },
+      "width": 512,
+      "height": 232,
+      "scale": 0.5
+    },
+    "namibie/camelthorn_mature": {
+      "file": {
+        "path": "assets/namibie-hd/img/namibie_camelthorn_mature.c2beafc51569.png",
+        "bytes": 93935,
+        "hash": "c2beafc51569"
+      },
+      "width": 800,
+      "height": 592,
+      "scale": 0.5
+    },
+    "namibie/camelthorn_old": {
+      "file": {
+        "path": "assets/namibie-hd/img/namibie_camelthorn_old.ef80a365e187.png",
+        "bytes": 72161,
+        "hash": "ef80a365e187"
+      },
+      "width": 780,
+      "height": 592,
+      "scale": 0.5
+    },
+    "namibie/camelthorn_young": {
+      "file": {
+        "path": "assets/namibie-hd/img/namibie_camelthorn_young.48734e427e01.png",
+        "bytes": 34300,
+        "hash": "48734e427e01"
+      },
+      "width": 460,
+      "height": 544,
+      "scale": 0.5
+    },
     "namibie/nest_camelthorn": {
       "file": {
-        "path": "assets/namibie-hd/img/namibie_nest_camelthorn.c9767d176642.png",
-        "bytes": 614833,
-        "hash": "c9767d176642"
+        "path": "assets/namibie-hd/img/namibie_nest_camelthorn.7458881c600d.png",
+        "bytes": 519951,
+        "hash": "7458881c600d"
       },
       "width": 2088,
       "height": 2088,
@@ -563,22 +603,42 @@
     },
     "namibie/pan_grass_a": {
       "file": {
-        "path": "assets/namibie-hd/img/namibie_pan_grass_a.1b32ae034e44.png",
-        "bytes": 42163,
-        "hash": "1b32ae034e44"
+        "path": "assets/namibie-hd/img/namibie_pan_grass_a.60014821c9f5.png",
+        "bytes": 54581,
+        "hash": "60014821c9f5"
       },
       "width": 720,
-      "height": 760,
+      "height": 524,
       "scale": 0.5
     },
     "namibie/pan_grass_b": {
       "file": {
-        "path": "assets/namibie-hd/img/namibie_pan_grass_b.cf7741603345.png",
-        "bytes": 44045,
-        "hash": "cf7741603345"
+        "path": "assets/namibie-hd/img/namibie_pan_grass_b.036420edd167.png",
+        "bytes": 58565,
+        "hash": "036420edd167"
       },
       "width": 760,
-      "height": 760,
+      "height": 524,
+      "scale": 0.5
+    },
+    "namibie/quiver_egg": {
+      "file": {
+        "path": "assets/namibie-hd/img/namibie_quiver_egg.46cb111f524e.png",
+        "bytes": 30863,
+        "hash": "46cb111f524e"
+      },
+      "width": 480,
+      "height": 508,
+      "scale": 0.5
+    },
+    "namibie/quiver_tree": {
+      "file": {
+        "path": "assets/namibie-hd/img/namibie_quiver_tree.a7aff04c29ef.png",
+        "bytes": 30859,
+        "hash": "a7aff04c29ef"
+      },
+      "width": 480,
+      "height": 524,
       "scale": 0.5
     },
     "okavango/hippo": {
@@ -1210,29 +1270,29 @@
     "namibie/foreground": {
       "tiles": [
         {
-          "path": "assets/namibie-hd/layers/foreground-0.3d3a44c885eb.png",
-          "bytes": 3650,
-          "hash": "3d3a44c885eb"
+          "path": "assets/namibie-hd/layers/foreground-0.6f53bcbeb8f0.png",
+          "bytes": 220,
+          "hash": "6f53bcbeb8f0"
         },
         {
-          "path": "assets/namibie-hd/layers/foreground-1.99abcb09c237.png",
-          "bytes": 29139,
-          "hash": "99abcb09c237"
+          "path": "assets/namibie-hd/layers/foreground-1.6f53bcbeb8f0.png",
+          "bytes": 220,
+          "hash": "6f53bcbeb8f0"
         },
         {
-          "path": "assets/namibie-hd/layers/foreground-2.722a596d16f7.png",
-          "bytes": 29847,
-          "hash": "722a596d16f7"
+          "path": "assets/namibie-hd/layers/foreground-2.7568b347b9aa.png",
+          "bytes": 7544,
+          "hash": "7568b347b9aa"
         },
         {
-          "path": "assets/namibie-hd/layers/foreground-3.b6f76f8e555a.png",
-          "bytes": 30630,
-          "hash": "b6f76f8e555a"
+          "path": "assets/namibie-hd/layers/foreground-3.6f53bcbeb8f0.png",
+          "bytes": 220,
+          "hash": "6f53bcbeb8f0"
         },
         {
-          "path": "assets/namibie-hd/layers/foreground-4.9380c25862ec.png",
-          "bytes": 19268,
-          "hash": "9380c25862ec"
+          "path": "assets/namibie-hd/layers/foreground-4.6f53bcbeb8f0.png",
+          "bytes": 220,
+          "hash": "6f53bcbeb8f0"
         },
         {
           "path": "assets/namibie-hd/layers/foreground-5.6f53bcbeb8f0.png",
@@ -1251,29 +1311,29 @@
     "namibie/mid": {
       "tiles": [
         {
-          "path": "assets/namibie-hd/layers/mid-0.d9d38bb69d5b.png",
-          "bytes": 59816,
-          "hash": "d9d38bb69d5b"
+          "path": "assets/namibie-hd/layers/mid-0.606033f07094.png",
+          "bytes": 87908,
+          "hash": "606033f07094"
         },
         {
-          "path": "assets/namibie-hd/layers/mid-1.8140800ef1bb.png",
-          "bytes": 51948,
-          "hash": "8140800ef1bb"
+          "path": "assets/namibie-hd/layers/mid-1.8e9f609d208e.png",
+          "bytes": 59242,
+          "hash": "8e9f609d208e"
         },
         {
-          "path": "assets/namibie-hd/layers/mid-2.a28d58062179.png",
-          "bytes": 44697,
-          "hash": "a28d58062179"
+          "path": "assets/namibie-hd/layers/mid-2.9ab72504d48b.png",
+          "bytes": 53619,
+          "hash": "9ab72504d48b"
         },
         {
-          "path": "assets/namibie-hd/layers/mid-3.ba6ba867d9b9.png",
-          "bytes": 93160,
-          "hash": "ba6ba867d9b9"
+          "path": "assets/namibie-hd/layers/mid-3.bbbaf62626e6.png",
+          "bytes": 94721,
+          "hash": "bbbaf62626e6"
         },
         {
-          "path": "assets/namibie-hd/layers/mid-4.ef868a343363.png",
-          "bytes": 29184,
-          "hash": "ef868a343363"
+          "path": "assets/namibie-hd/layers/mid-4.363b574d6568.png",
+          "bytes": 18130,
+          "hash": "363b574d6568"
         }
       ],
       "tileWidth": 1024,
@@ -1282,34 +1342,34 @@
     "namibie/near": {
       "tiles": [
         {
-          "path": "assets/namibie-hd/layers/near-0.6cdd89d71a68.png",
-          "bytes": 84849,
-          "hash": "6cdd89d71a68"
+          "path": "assets/namibie-hd/layers/near-0.4852f58c0243.png",
+          "bytes": 76539,
+          "hash": "4852f58c0243"
         },
         {
-          "path": "assets/namibie-hd/layers/near-1.7da25ed1e9e5.png",
-          "bytes": 63785,
-          "hash": "7da25ed1e9e5"
+          "path": "assets/namibie-hd/layers/near-1.eb9371ffa668.png",
+          "bytes": 79424,
+          "hash": "eb9371ffa668"
         },
         {
-          "path": "assets/namibie-hd/layers/near-2.a3088f39efc4.png",
-          "bytes": 54548,
-          "hash": "a3088f39efc4"
+          "path": "assets/namibie-hd/layers/near-2.72bc4fe7813f.png",
+          "bytes": 78036,
+          "hash": "72bc4fe7813f"
         },
         {
-          "path": "assets/namibie-hd/layers/near-3.fb16b2157848.png",
-          "bytes": 88485,
-          "hash": "fb16b2157848"
+          "path": "assets/namibie-hd/layers/near-3.b218538062f1.png",
+          "bytes": 97973,
+          "hash": "b218538062f1"
         },
         {
-          "path": "assets/namibie-hd/layers/near-4.60bcdb8a294d.png",
-          "bytes": 50519,
-          "hash": "60bcdb8a294d"
+          "path": "assets/namibie-hd/layers/near-4.80f404683000.png",
+          "bytes": 81043,
+          "hash": "80f404683000"
         },
         {
-          "path": "assets/namibie-hd/layers/near-5.2368dd7ed83c.png",
-          "bytes": 30521,
-          "hash": "2368dd7ed83c"
+          "path": "assets/namibie-hd/layers/near-5.2f48a2ef9061.png",
+          "bytes": 62017,
+          "hash": "2f48a2ef9061"
         }
       ],
       "tileWidth": 1024,

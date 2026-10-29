@@ -40,6 +40,8 @@ export interface DirectorContext {
   readonly cameraX: number;
   readonly aliveBirds: number;
   readonly stampede: boolean;
+  /** v1.7d (D-059): the omen wind's direction (null: no wind): balloons drift with it. */
+  readonly windDir?: 1 | -1 | null;
   nextId(): number;
 }
 
@@ -163,6 +165,39 @@ export function createDirector(deps: DirectorDeps): Director {
       ),
       bobOffset: rng.range(0, 2 * Math.PI),
     });
+  }
+
+  /**
+   * v1.7d (D-059): 1–3 hot-air balloons drifting with the wind, high over the birds' lanes. They
+   * enter offViewPx beside the view's centre on the upwind side (so they drift into view, never
+   * pop up in it), spaced apart along the way, barely bobbing.
+   */
+  function driftGroup(
+    ctx: DirectorContext,
+    creature: BirdCreature,
+    drift: NonNullable<Extract<BirdCreature, { kind: 'nonTarget' }>['drift']>,
+    plane: PlaneId,
+    rng: RandomStream,
+  ): Bird[] {
+    const coin: 1 | -1 = rng.chance(0.5) ? 1 : -1;
+    const dir: 1 | -1 = ctx.windDir ?? coin;
+    const n = Math.min(rng.int(drift.group[0], drift.group[1]), maxBirds - ctx.aliveBirds);
+    const f = scrollFactorOf(plane);
+    const centre = planeCentreX(ctx.cameraX, f);
+    const ratio = tuningRatio(planes[plane].scale, content.scoring.tuningRefScale);
+    const out: Bird[] = [];
+    let behind = 0;
+    for (let i = 0; i < n; i++) {
+      const y = rng.range(drift.skyY[0], drift.skyY[1]);
+      const b = makeFlyover(ctx, creature, plane, dir, y, 0, rng);
+      const x = Math.min(
+        coreWidth(f) + LAYER_BLEED_PX,
+        Math.max(-LAYER_BLEED_PX, centre - dir * (drift.offViewPx + behind)),
+      );
+      out.push({ ...b, x, bobAmp: drift.bobPx * ratio });
+      behind += rng.range(drift.spacingPx[0], drift.spacingPx[1]) * ratio;
+    }
+    return out;
   }
 
   function spawnFlyoverGroup(ctx: DirectorContext): Bird[] {
@@ -383,6 +418,8 @@ export function createDirector(deps: DirectorDeps): Director {
       if (creature === undefined || creature.kind === 'helper' || ctx.aliveBirds >= maxBirds)
         return [];
       const plane = creature.planes[0];
+      if (creature.kind === 'nonTarget' && creature.drift !== undefined && plane !== undefined)
+        return driftGroup(ctx, creature, creature.drift, plane, rng);
       const sky = plane === undefined ? undefined : biome.lanes[plane]?.skyY;
       if (plane === undefined || sky === undefined) return [];
       const dir: 1 | -1 = rng.chance(0.5) ? 1 : -1;

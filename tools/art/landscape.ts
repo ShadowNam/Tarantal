@@ -41,6 +41,8 @@ export interface LayerPlan {
   /** D-035: px over which the art fades in at the top edge (tall grass tips taper out there
    *  instead of being cut flat by the texture's edge). */
   readonly fadeTop?: number;
+  /** v1.7d (D-059): false = no hand-drawn wobble (fine, ink-free ground art it would smear). */
+  readonly wobble?: boolean;
   draw(ctx: LayerCtx): string;
 }
 
@@ -101,7 +103,8 @@ export function layerTint(cfg: ArtConfig, biome: string, layerId: string): (hex:
   return paint(cfg, biome, layerId, `${biome}/${layerId}`).tint;
 }
 
-function paint(cfg: ArtConfig, biome: string, layerId: string, seedKey: string): PaintCtx {
+/** v1.7d (D-059): a layer's paint context (palette, haze, pen, a PRNG seeded by `seedKey`). */
+export function paint(cfg: ArtConfig, biome: string, layerId: string, seedKey: string): PaintCtx {
   const pal = biomePalette(cfg, biome);
   const haze = cfg.scenery.haze[layerId] ?? 0;
   const horizon = pal('horizon');
@@ -135,7 +138,7 @@ export function renderLayer(
     u: (u) => LAYER_BLEED_PX + u * core,
   };
   const body = lp.draw(ctx);
-  const wob = WOBBLE_OF[layer.id] ?? null;
+  const wob = lp.wobble === false ? null : (WOBBLE_OF[layer.id] ?? null);
   const filter =
     wob === null
       ? ''

@@ -115,6 +115,11 @@ export class FaunaView {
   private lastCalm = false;
   private waits = 0;
   private debugGfx: Phaser.GameObjects.Graphics | null = null;
+  /** v1.7d (perf, D-059): per-update scratch (no allocation a frame): the posed animals and the
+   *  matrices a herd's world box is read from. */
+  private readonly live = new Set<Animal>();
+  private m0: Phaser.GameObjects.Components.TransformMatrix | null = null;
+  private m1: Phaser.GameObjects.Components.TransformMatrix | null = null;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -272,11 +277,16 @@ export class FaunaView {
     }
     this.lastTick = tick;
     this.lastCalm = calm;
-    const live = new Set<Animal>();
+    const live = this.live;
+    live.clear();
     for (const h of this.herdViews.values()) {
-      const m = h.root.getWorldTransformMatrix();
-      const left = m.tx + m.a * h.x0;
-      const right = m.tx + m.a * h.x1;
+      // Made once (Phaser allocates both when none are passed), then reused.
+      this.m0 ??= h.root.getWorldTransformMatrix();
+      this.m1 ??= h.root.getWorldTransformMatrix();
+      const m = h.root.getWorldTransformMatrix(this.m0, this.m1);
+      // v1.7d (D-059): a roaming herd's holder may be mirrored (a < 0).
+      const left = m.tx + Math.min(m.a * h.x0, m.a * h.x1);
+      const right = m.tx + Math.max(m.a * h.x0, m.a * h.x1);
       const on = right >= -CULL_MARGIN && left <= viewWidth + CULL_MARGIN;
       if (!on) continue;
       for (const an of h.animals) {
@@ -383,6 +393,31 @@ export class FaunaView {
         source: { w: src?.width ?? 0, h: src?.height ?? 0 },
       };
     });
+  }
+
+  /**
+   * v1.7d (perf, D-059): poses this view's parts as `from`'s are now, without working the poses
+   * out again — for a view built from the same herds (the oryx's reflection), part for part.
+   */
+  copyPose(from: FaunaView): void {
+    this.refresh();
+    const n = this.parts.length;
+    if (n !== from.parts.length) return;
+    for (let i = 0; i < n; i++) {
+      const p = this.parts[i];
+      const q = from.parts[i];
+      if (p === undefined || q === undefined || p.part === 'body') continue;
+      if (p.img.angle !== q.img.angle) p.img.setAngle(q.img.angle);
+      if (p.img.scaleX !== q.img.scaleX || p.img.scaleY !== q.img.scaleY)
+        p.img.setScale(q.img.scaleX, q.img.scaleY);
+    }
+  }
+
+  /** v1.7d (D-059): shows or hides one herd (Namibië's roaming oryx replace the far gemsbok). */
+  setHerdVisible(key: string, on: boolean): boolean {
+    const r = this.roots.get(key);
+    r?.setVisible(on);
+    return r !== undefined;
   }
 
   /** Test hook: animals drawn now. */

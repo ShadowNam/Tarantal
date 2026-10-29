@@ -149,6 +149,8 @@ function applyOverride(biome: Biome, o: Override): Biome {
     ...(o.cameraStartU === undefined ? {} : { cameraStartU: o.cameraStartU }),
     // v1.7 (D-044): a map's colonies replace the biome's (a bonus map keeps its layout's).
     ...(o.colonies === undefined ? {} : { colonies: o.colonies }),
+    // v1.7d (D-059): so do its ostrich pairs.
+    ...(o.ostriches === undefined ? {} : { ostriches: o.ostriches }),
     ...(o.flyovers === undefined ? {} : { flyovers: { ...biome.flyovers, ...o.flyovers } }),
   };
 }

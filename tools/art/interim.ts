@@ -2,7 +2,7 @@
 // art-source/ exactly like a human delivery (docs/06), marked `"origin": "interim"` in each rig.json.
 // Then run `npm run assets:pack`. A folder whose rig.json is not marked interim is a human delivery
 // and is never touched.
-//   --only birds|guns|scenery|sprites|flyers|range|meerkats|feesdae|blikkies|makalani|treelife|colony
+//   --only birds|guns|scenery|sprites|flyers|range|meerkats|feesdae|blikkies|makalani|treelife|colony|namiblife
 //                         one part (none: sheets only). scenery = parallax layers + props (D-031),
 //                         sprites = shared FX/UI/crate sprites, flyers = non-target birds,
 //                         range = the Skietbaan's steel plate (24 Oct update),
@@ -59,11 +59,24 @@ import { RESIDENT_SHEET } from '../../src/game/view/tree/residentSheet';
 import { renderResidentSheet } from './baobabLife';
 import { renderColonySheet } from './colony';
 import { COLONY_SHEET } from '../../src/game/view/tree/colonySheet';
+import { collectVeld, renderVeldSheet } from './namibVeld';
+import { namibieVeldLooks } from './biomes/namibie';
+import { VELD_SHEET, type VeldSpot } from '../../src/game/view/namib/veldSheet';
+import { OSTRICH_MASTER, OSTRICH_SHEET } from '../../src/game/view/namib/ostrichSheet';
+import { renderOstrichSheet } from './ostrich';
+import { BALLOON_SHEET } from '../../src/game/view/namib/balloonSheet';
+import { renderBalloonSheet } from './balloon';
 
 /** 1.9.4 (D-057): palette size of the baobab residents' sheet. */
 const RESIDENT_COLOURS = 96;
 /** 1.9.4 (D-057): palette size of the weaver colony's sheet. */
 const COLONY_COLOURS = 96;
+/** v1.7d (D-059): palette size of the Namib veld sheet. */
+const VELD_COLOURS = 128;
+/** v1.7d (D-059): palette size of the balloons' sheet. */
+const BALLOON_COLOURS = 64;
+/** v1.7d (D-059): palette size of the ostriches' sheet (1.5×: 48 keeps the chunk in budget). */
+const OSTRICH_COLOURS = 48;
 import {
   HALLOWEEN_SHEET,
   SHEET_MASTER as FEESDAE_MASTER,
@@ -347,6 +360,7 @@ if (wants('scenery')) {
       continue;
     }
     const fruitOwners: FruitOwner[] = [];
+    const veldSpots: VeldSpot[] = [];
     for (const layer of biome.layers) {
       const png = join(src, 'layers', biome.id, `${layer.id}.png`);
       if (!oursFile(png)) {
@@ -356,9 +370,14 @@ if (wants('scenery')) {
       const lp = plan.layers[layer.id];
       const enc = lp?.encode ?? 'png8';
       // v1.7c (D-047): fruit on the mid and near planes become sprites (the far stays baked).
-      const { value: img, fruit } = FRUIT_LAYERS.has(layer.id)
-        ? collectFruit(() => renderLayer(cfg, plan, layer))
-        : { value: renderLayer(cfg, plan, layer), fruit: [] };
+      // v1.7d (D-059): the Namib ground cover is recorded as sprite placements (VeldView).
+      const veld = collectVeld(() =>
+        FRUIT_LAYERS.has(layer.id)
+          ? collectFruit(() => renderLayer(cfg, plan, layer))
+          : { value: renderLayer(cfg, plan, layer), fruit: [] },
+      );
+      veldSpots.push(...veld.spots);
+      const { value: img, fruit } = veld.result;
       if (fruit.length > 0) fruitOwners.push({ on: layer.id, prop: false, fruit });
       put(png, enc === 'png8' ? encodePng8(img, lp?.colours) : encodePng(img));
       put(
@@ -425,6 +444,24 @@ if (wants('scenery')) {
     }
     // v1.7c (D-047): the biome's fruit sheet and where each fruit sits (FRUIT_LATE: late group).
     await writeFruit(biome.id, fruitOwners);
+    // v1.7d (D-059): the Namib ground cover — its sheet (1×, Standard in HD too) and placements.
+    if (veldSpots.length > 0) {
+      const png = join(src, 'sprites', `${VELD_SHEET}.png`);
+      const looks = namibieVeldLooks(cfg);
+      put(png, encodePng8(renderVeldSheet(1, looks), VELD_COLOURS));
+      put(
+        png.replace(/\.png$/, '.json'),
+        await json({ origin: 'interim', encode: 'png8', originX: 0, originY: 0 }),
+      );
+      // No 2× twin: VeldView bakes the cover into Standard-resolution strips in both modes
+      // (Namibië's HD texture memory, D-059).
+      rmSync(join(hdSrc, 'sprites', `${VELD_SHEET}.png`), { force: true });
+      put(
+        join(root, 'src', 'game', 'view', 'namib', `veld-${biome.id}.json`),
+        await json(veldSpots),
+      );
+      console.log(`sprites/${VELD_SHEET}: ${veldSpots.length} placements`);
+    }
   }
 }
 if (wants('fauna')) {
@@ -597,6 +634,33 @@ if (wants('blikkies')) {
       await json({ origin: 'interim', encode: 'png8', master: CAN_MASTER, originX: 0, originY: 0 }),
     );
     console.log(`sprites/${CAN_SHEET}`);
+  }
+}
+if (wants('namiblife') && !hdOnly) {
+  // v1.7d (D-059): the ostriches' sheet at 1.5× (Namibië's group), one sheet for Standard and HD.
+  const png = join(src, 'sprites', `${OSTRICH_SHEET}.png`);
+  if (!oursFile(png)) console.warn(`skip sprites/${OSTRICH_SHEET}: a human delivery is there`);
+  else {
+    put(png, encodePng8(renderOstrichSheet(OSTRICH_MASTER), OSTRICH_COLOURS));
+    put(
+      png.replace(/\.png$/, '.json'),
+      await json({ origin: 'interim', encode: 'png8', originX: 0, originY: 0 }),
+    );
+    // No 2× twin: a 2× sheet would take Namibië's HD texture memory past its target (D-059).
+    rmSync(join(hdSrc, 'sprites', `${OSTRICH_SHEET}.png`), { force: true });
+    console.log(`sprites/${OSTRICH_SHEET}`);
+  }
+  // The hot-air balloons' sheet at 1× and its 2× twin.
+  const bpng = join(src, 'sprites', `${BALLOON_SHEET}.png`);
+  if (!oursFile(bpng)) console.warn(`skip sprites/${BALLOON_SHEET}: a human delivery is there`);
+  else {
+    put(bpng, encodePng8(renderBalloonSheet(1), BALLOON_COLOURS));
+    put(
+      bpng.replace(/\.png$/, '.json'),
+      await json({ origin: 'interim', encode: 'png8', originX: 0, originY: 0 }),
+    );
+    putHd(`sprites/${BALLOON_SHEET}.png`, renderBalloonSheet(2), BALLOON_COLOURS);
+    console.log(`sprites/${BALLOON_SHEET}`);
   }
 }
 if (wants('colony') && !hdOnly) {

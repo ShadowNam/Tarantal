@@ -6,8 +6,9 @@
 // trees of tools/art/camelthorn.ts, one with the sociable-weaver family nest), quiver trees
 // (Aloidendron dichotomum, one with an ostrich-egg water flask) and grass mounds. Light from the
 // upper left, thin soft outlines (D-035).
-import type { BiomeArtPlan, LayerCtx, PaintCtx, PropCtx } from '../landscape';
-import { plantLook, roundFruit, veldShrub } from '../flora';
+import { paint, type BiomeArtPlan, type LayerCtx, type PaintCtx, type PropCtx } from '../landscape';
+import type { ArtConfig } from '../config';
+import { roundFruit } from '../flora';
 import { StrokeBin, zigzag } from '../camelthorn';
 import { boulder, graniteLook } from '../rocks';
 import {
@@ -17,7 +18,6 @@ import {
   mix,
   nextId,
   shade,
-  tone,
   yAt,
   type Pen,
   type Pt,
@@ -27,8 +27,20 @@ import { el, ellipseD, g, inked, r2, smoothD } from '../svg';
 import { fruit, placedFruit } from '../fruitSink';
 import { quiverSpikeHi, roundHi } from '../fruitLook';
 import { groundBand, groundShadow, softSky } from './karoo';
-import { foregroundClumps, midScrub, nearGrass, verVeld } from './common';
-import { tuftOf } from '../vegetation';
+import { verVeld } from './common';
+import {
+  bushmanClump,
+  clumpField,
+  gravelPatch,
+  sandGradient,
+  sandRidge,
+  sandTexture,
+  softBlur,
+  tracks,
+  veldSprite,
+  type NamibLook,
+  type VeldLooks,
+} from '../namibVeld';
 import {
   camelthornLook,
   camelthornSpec,
@@ -441,12 +453,14 @@ function farVeld(ctx: LayerCtx): string {
     }),
   );
   // Odd tufts and stones far out on the pan, sparse.
+  const farLook = namibLook(ctx, 0.25);
   const far: { y: number; svg: string }[] = [];
   for (let x = ctx.rnd() * 200; x < ctx.width; x += 90 + ctx.rnd() * 260) {
     const y = 600 + Math.pow(ctx.rnd(), 1.2) * 90;
     far.push({
       y,
-      svg: panShrub(ctx, x, y, 2 + ((y - 600) / 90) * 4, { ink: ctx.pen.ink, w: 0.8 }),
+      // v1.7d (D-059): tiny ink-free grass clumps, finer and sparser into the distance.
+      svg: bushmanClump(ctx.rnd, x, y, 2.5 + ((y - 600) / 90) * 5, farLook, { detail: false }),
     });
   }
   far.sort((p, q) => p.y - q.y);
@@ -479,44 +493,117 @@ function farVeld(ctx: LayerCtx): string {
   return g({}, ...parts);
 }
 
+/**
+ * v1.7d (D-059): the colours of the Namib ground on one plane — straw-gold bushman grass with
+ * silvery plumes, red sand, grey gravel — from this layer's (hazed) palette. `cool` pushes the
+ * sand paler and cooler (aerial perspective, a haze tint, never alpha).
+ */
+function namibLook(ctx: PaintCtx, cool = 0): NamibLook {
+  const haze = mix(ctx.raw('horizon'), '#C9D2DA', 0.35);
+  const c = (n: string): string => mix(ctx.c(n), haze, cool);
+  const straw = mix(c('straw'), c('grass'), 0.5);
+  return {
+    grassBase: mix(straw, '#6E5434', 0.5),
+    grass: straw,
+    grassLit: mix(c('grassPale'), '#FFFDF2', 0.3),
+    grassEdge: mix(straw, '#5A3E22', 0.55),
+    plume: mix(c('seed'), '#E6E8EC', 0.35),
+    sandDark: mix(c('sandDark'), '#7A3020', 0.2),
+    sand: c('sand'),
+    sandLit: mix(c('sandLight'), '#FFE6C8', 0.25),
+    gravel: mix(c('stone'), c('sandDark'), 0.35),
+    pebble: c('stone'),
+    shrub: mix('#A3A374', c('bossieGrey'), 0.45),
+    wood: mix(c('deadwood'), '#8A8078', 0.3),
+    shadow: '#4A2418',
+  };
+}
+
+/** The pan-edge (calcrete) colours of the mid plane, in the same NamibLook shape. */
+function calcreteLook(ctx: PaintCtx): NamibLook {
+  const base = namibLook(ctx, 0.12);
+  return {
+    ...base,
+    sandDark: mix(ctx.c('calcreteDark'), ctx.c('sandDark'), 0.25),
+    sand: ctx.c('calcrete'),
+    sandLit: mix(ctx.c('saltBright'), ctx.c('calcrete'), 0.3),
+    shadow: '#5A4636',
+  };
+}
+
 function mid(ctx: LayerCtx): string {
+  // v1.7d (D-059): the pan edge — calcrete running into pale red sand, with gravel plains, fine
+  // grain and ripples, sparse small bushman grass and dollar bush; a lit edge instead of ink.
   const band = groundBand(ctx, 664, 4, 150, mix(ctx.c('salt'), ctx.c('calcrete'), 0.5));
+  const cal = calcreteLook(ctx);
+  const sandy = namibLook(ctx, 0.3);
+  const w = ctx.width;
   const inside: string[] = [
-    flat(groundD(ctx.rnd, -40, ctx.width + 40, 700, 10, 170, ctx.bottom + 40), ctx.c('calcrete')),
-    flat(
-      groundD(ctx.rnd, -40, ctx.width + 40, 770, 14, 190, ctx.bottom + 40),
-      mix(ctx.c('calcrete'), ctx.c('sandLight'), 0.35),
-    ),
-    flat(
-      groundD(ctx.rnd, -40, ctx.width + 40, 850, 16, 210, ctx.bottom + 40),
-      mix(ctx.c('calcrete'), ctx.c('sandLight'), 0.65),
-    ),
+    sandGradient(-40, w + 40, 650, ctx.bottom + 10, [
+      [0, mix(ctx.c('salt'), ctx.c('calcrete'), 0.5)],
+      [0.12, ctx.c('calcrete')],
+      [0.5, mix(ctx.c('calcrete'), ctx.c('sandLight'), 0.4)],
+      [1, mix(ctx.c('calcrete'), ctx.c('sandLight'), 0.75)],
+    ]),
+    sandTexture(ctx.rnd, -20, w + 20, 668, ctx.bottom, cal, 0.42),
   ];
-  // Salt patches running out into the calcrete, and pale gravel specks.
-  for (let k = 0; k < ctx.width / 70; k++) {
-    const x = ctx.rnd() * ctx.width;
+  // Salt patches running out into the calcrete (soft-edged).
+  const blur = softBlur(2);
+  let salt = '';
+  for (let k = 0; k < w / 90; k++) {
+    const x = ctx.rnd() * w;
     const y = 676 + Math.pow(ctx.rnd(), 1.6) * 120;
+    salt += ellipseD(x, y, 30 + ctx.rnd() * 110, 2 + ctx.rnd() * 5);
+  }
+  inside.push(
+    el('defs', {}, blur.def),
+    flat(salt, ctx.c('salt'), { opacity: 0.5, filter: `url(#${blur.id})` }),
+  );
+  // Gravel plains: grey pebble patches, a quartz one now and then.
+  for (let x = ctx.rnd() * 300; x < w; x += 260 + ctx.rnd() * 520) {
+    const y = 690 + Math.pow(ctx.rnd(), 0.8) * 200;
+    const t = (y - 680) / 220;
     inside.push(
-      flat(ellipseD(x, y, 30 + ctx.rnd() * 110, 2 + ctx.rnd() * 5), ctx.c('salt'), {
-        opacity: 0.55,
-      }),
+      gravelPatch(ctx.rnd, x, y, 40 + t * 60 + ctx.rnd() * 40, 4 + t * 7, cal, ctx.rnd() < 0.18),
     );
   }
-  let specks = '';
-  for (let k = 0; k < ctx.width / 10; k++) {
-    const x = ctx.rnd() * ctx.width;
-    const y = 680 + ctx.rnd() * 225;
-    const r = 0.6 + ((y - 680) / 225) * 1.6;
-    specks += ellipseD(x, y, r * 1.4, r * 0.7);
-  }
-  inside.push(flat(specks, ctx.c('calcreteDark'), { opacity: 0.5 }));
-  const items = midScrub(ctx, {
-    bushes: 0.28,
-    stone: tone(ctx.c('stone'), 0.25, 0.25),
-    shrub: (x, y, sz, pen) => panShrub(ctx, x, y, sz, pen),
+  // Tracks across the pan edge.
+  for (let k = 0; k < w / 1400; k++)
+    inside.push(
+      tracks(ctx.rnd, ctx.rnd() * w, 720 + ctx.rnd() * 160, 120 + ctx.rnd() * 160, 1.6, cal),
+    );
+  const items: { y: number; svg: string }[] = clumpField(ctx.rnd, {
+    x0: 0,
+    x1: w,
+    y0: 676,
+    y1: 905,
+    h: [7, 26],
+    gap: 46,
+    draw: (x, y, h) =>
+      ctx.rnd() < 0.35
+        ? veldSprite(ctx.rnd, 'mid', 'tuft', x, y, h * 0.55)
+        : veldSprite(ctx.rnd, 'mid', 'grass', x, y, h),
+    look: sandy,
   });
+  for (let x = 30 + ctx.rnd() * 200; x < w; x += 140 + ctx.rnd() * 380) {
+    const y = 684 + Math.pow(ctx.rnd(), 0.9) * 215;
+    const t = (y - 680) / 225;
+    if (ctx.rnd() < 0.25)
+      items.push({ y, svg: veldSprite(ctx.rnd, 'mid', 'branch', x, y, 10 + t * 26) });
+    else
+      items.push({
+        y,
+        svg: veldSprite(ctx.rnd, 'mid', 'dollar', x, y, 3 + t * 9 + ctx.rnd() * 3),
+      });
+  }
   items.sort((a, b) => a.y - b.y);
   inside.push(...items.map((i) => i.svg));
+  // Grass breaking over the edge: small clumps standing right on it.
+  const edgeGrass: string[] = [];
+  for (let x = ctx.rnd() * 80; x < w; x += 30 + ctx.rnd() * 160) {
+    const y = yAt(band.edge, x) + 1.5 + ctx.rnd() * 2;
+    edgeGrass.push(veldSprite(ctx.rnd, 'mid', 'grass', x, y, 5 + ctx.rnd() * 9));
+  }
   // v1.6 (D-042): quiver trees in winter flower on the calcrete edge (clear of the props and
   // of the waterhole sightline in the middle).
   const trees: string[] = [];
@@ -532,116 +619,138 @@ function mid(ctx: LayerCtx): string {
     {},
     band.svg,
     g({ 'clip-path': `url(#${band.clip})` }, ...inside),
-    line(smoothD(band.edge, false, 0.8), {
-      ink: mix(ctx.pen.ink, ctx.c('calcreteDark'), 0.45),
-      w: 1.6,
-    }),
+    sandRidge(band.edge, cal, 0.42),
+    ...edgeGrass,
     ...trees,
   );
 }
 
-/** Wind ripples on sand: short parallel curved strokes. */
-function ripples(
-  rnd: Rnd,
-  x0: number,
-  x1: number,
-  y0: number,
-  y1: number,
-  n: number,
-  colour: string,
-  w: number,
-): string {
-  let d = '';
-  for (let k = 0; k < n; k++) {
-    const x = x0 + rnd() * (x1 - x0);
-    const y = y0 + rnd() * (y1 - y0);
-    const len = 14 + ((y - y0) / Math.max(1, y1 - y0)) * 30;
-    d += `M${r2(x)} ${r2(y)}q${r2(len * 0.5)} ${r2(-len * 0.16)} ${r2(len)} 0`;
-  }
-  return el('path', {
-    d,
-    fill: 'none',
-    stroke: colour,
-    'stroke-width': w,
-    'stroke-linecap': 'round',
-  });
-}
-
 function near(ctx: LayerCtx): string {
+  // v1.7d (D-059): the red dune edge — Namib sand with soft undulations, wind ripples, fine
+  // grain, gravel and a quartz patch, tracks, dead branches, dollar bush and bushman grass from
+  // small tufts to big clumps; a lit sand ridge with grass over it instead of the inked seam.
   const band = groundBand(ctx, 848, 9, 120, mix(ctx.c('sandLight'), ctx.c('sand'), 0.5));
+  const look = namibLook(ctx);
+  const w = ctx.width;
   const inside: string[] = [
-    flat(groundD(ctx.rnd, -40, ctx.width + 40, 878, 10, 200, ctx.bottom + 40), ctx.c('sand')),
-    flat(groundD(ctx.rnd, -40, ctx.width + 40, 960, 14, 230, ctx.bottom + 40), ctx.c('sandDark')),
+    sandGradient(-40, w + 40, 830, ctx.bottom + 10, [
+      [0, mix(ctx.c('sandLight'), ctx.raw('horizon'), 0.3)],
+      [0.1, ctx.c('sandLight')],
+      [0.4, ctx.c('sand')],
+      [1, mix(ctx.c('sand'), ctx.c('sandDark'), 0.6)],
+    ]),
+    sandTexture(ctx.rnd, -20, w + 20, 852, ctx.bottom, look, 1),
   ];
-  inside.push(
-    ripples(
-      ctx.rnd,
-      0,
-      ctx.width,
-      870,
-      1080,
-      Math.round(ctx.width / 12),
-      shade(ctx.c('sandDark'), -0.2),
-      3,
-    ),
-    ripples(
-      ctx.rnd,
-      0,
-      ctx.width,
-      870,
-      1080,
-      Math.round(ctx.width / 28),
-      shade(ctx.c('sand'), 0.25),
-      2,
-    ),
-  );
-  const items = nearGrass(ctx, {
-    stone: tone(ctx.c('stone'), 0.25, 0.25),
-    bushes: 0.25,
-    shrub: (x, y, sz, pen) => panShrub(ctx, x, y, sz, pen),
+  // Gravel plains and one quartz-pebble patch per screen or so.
+  for (let x = 120 + ctx.rnd() * 300; x < w; x += 420 + ctx.rnd() * 700) {
+    const y = 880 + ctx.rnd() * 170;
+    inside.push(
+      gravelPatch(ctx.rnd, x, y, 70 + ctx.rnd() * 90, 8 + ctx.rnd() * 8, look, ctx.rnd() < 0.3),
+    );
+  }
+  for (let k = 0; k < w / 900; k++)
+    inside.push(
+      tracks(ctx.rnd, ctx.rnd() * w, 875 + ctx.rnd() * 190, 160 + ctx.rnd() * 220, 3.2, look),
+    );
+  // A calmer band where the pop-ups rise (y 905–965): small tufts only there.
+  const items: { y: number; svg: string }[] = clumpField(ctx.rnd, {
+    x0: 0,
+    x1: w,
+    y0: 858,
+    y1: 1078,
+    h: [26, 72],
+    gap: 80,
+    draw: (x, y, h) => {
+      const r = ctx.rnd();
+      const kind = r < 0.12 && h > 30 ? 'dry' : r < 0.4 ? 'tuft' : 'grass';
+      return veldSprite(ctx.rnd, 'near', kind, x, y, kind === 'tuft' ? h * 0.55 : h);
+    },
+    look,
+    avoid: (_x, y) => y > 905 && y < 965 && ctx.rnd() < 0.7,
   });
+  for (let x = 200 + ctx.rnd() * 300; x < w; x += 380 + ctx.rnd() * 600) {
+    const y = ctx.rnd() < 0.5 ? 875 + ctx.rnd() * 25 : 970 + ctx.rnd() * 90;
+    if (ctx.rnd() < 0.35)
+      items.push({
+        y,
+        svg: veldSprite(ctx.rnd, 'near', 'branch', x, y, 50 + ctx.rnd() * 60),
+      });
+    else
+      items.push({
+        y,
+        svg: veldSprite(ctx.rnd, 'near', 'dollar', x, y, 16 + ctx.rnd() * 14),
+      });
+  }
   // v1.6 (D-042): !nara hummocks with their melons on the red dune edge (clear of the band
   // where the pop-ups rise).
-  for (let x = 260 + ctx.rnd() * 300; x < ctx.width; x += 700 + ctx.rnd() * 700) {
+  for (let x = 260 + ctx.rnd() * 300; x < w; x += 700 + ctx.rnd() * 700) {
     const y = ctx.rnd() < 0.5 ? 880 + ctx.rnd() * 20 : 975 + ctx.rnd() * 70;
     items.push({ y, svg: naraHummock(ctx, x, y, 48 + ((y - 870) / 200) * 30) });
   }
   items.sort((a, b) => a.y - b.y);
   inside.push(...items.map((i) => i.svg));
+  const edgeGrass: string[] = [];
+  for (let x = ctx.rnd() * 120; x < w; x += 60 + ctx.rnd() * 260) {
+    const y = yAt(band.edge, x) + 3 + ctx.rnd() * 4;
+    edgeGrass.push(veldSprite(ctx.rnd, 'near', 'grass', x, y, 12 + ctx.rnd() * 22));
+  }
   return g(
     {},
     band.svg,
     g({ 'clip-path': `url(#${band.clip})` }, ...inside),
-    line(smoothD(band.edge, false, 0.8), ctx.pen),
+    sandRidge(band.edge, look, 1),
+    ...edgeGrass,
   );
 }
 
 function foreground(ctx: LayerCtx): string {
+  // v1.7d (D-059): big bushman-grass clumps at the screen's foot (no ink), a boulder now and then.
   const pen = ctx.pen;
-  return g(
-    {},
-    ...foregroundClumps(ctx, [ctx.u(0.05), ctx.u(0.93)], (x) =>
+  const parts: string[] = [];
+  const avoid = [ctx.u(0.05), ctx.u(0.93)];
+  for (let x = 160 + ctx.rnd() * 200; x < ctx.width; x += 500 + ctx.rnd() * 800) {
+    if (avoid.some((a) => Math.abs(a - x) < 320)) continue;
+    if (ctx.rnd() < 0.35)
       // v1.6 (D-042): weathered boulders like the Bushveld's, in this biome's rock.
-      boulder(
-        ctx.rnd,
-        x,
-        1092,
-        120 + ctx.rnd() * 50,
-        70 + ctx.rnd() * 26,
-        graniteLook(ctx.tint, pen, ctx.c('grass'), '#B0A090'),
-        pen,
-      ),
-    ),
-  );
+      parts.push(
+        boulder(
+          ctx.rnd,
+          x,
+          1092,
+          120 + ctx.rnd() * 50,
+          70 + ctx.rnd() * 26,
+          graniteLook(ctx.tint, pen, ctx.c('grass'), '#B0A090'),
+          pen,
+        ),
+      );
+    const n = 2 + Math.floor(ctx.rnd() * 3);
+    for (let k = 0; k < n; k++) {
+      const tx = x + (ctx.rnd() - 0.5) * 240;
+      const h = 70 + Math.pow(ctx.rnd(), 1.5) * 130;
+      parts.push(veldSprite(ctx.rnd, 'foreground', 'grass', tx, 1086 + ctx.rnd() * 8, h));
+    }
+  }
+  return g({}, ...parts);
 }
 
 // --- props ---------------------------------------------------------------------------------
 
 /** The family-nest camelthorn: the approved Kalahari tree at 1.8× (content geometry is 1.8×). */
+/** v1.7d (D-059): bushman grass (no ink) at a camelthorn's foot. */
+function namibTuft(ctx: PaintCtx): (rnd: Rnd, x: number, y: number, h: number) => string {
+  const look = namibLook(ctx);
+  return (rnd, x, y, h) => bushmanClump(rnd, x, y, h * 0.8, look, { spread: 0.8 });
+}
+
 function nestCamelthorn(ctx: PropCtx): string {
   return g(
     { transform: 'scale(1.8)' },
-    camelthornTree(ctx.rnd, nestTreeSpec(), camelthornLook(ctx.c, ctx.pen), ctx.pen).svg,
+    camelthornTree(
+      ctx.rnd,
+      { ...nestTreeSpec(), tuft: namibTuft(ctx) },
+      camelthornLook(ctx.c, ctx.pen),
+      ctx.pen,
+    ).svg,
   );
 }
 
@@ -649,7 +758,7 @@ function camelthornProp(kind: Exclude<CamelthornVariant, 'nest'>, k: number, lea
   return (ctx: PropCtx): string =>
     camelthornTree(
       ctx.rnd,
-      camelthornSpec(kind, 0, 0, k, lean),
+      { ...camelthornSpec(kind, 0, 0, k, lean), tuft: namibTuft(ctx) },
       camelthornLook(ctx.c, ctx.pen),
       ctx.pen,
     ).svg;
@@ -920,17 +1029,6 @@ function naraHummock(ctx: PaintCtx, x: number, y: number, s: number): string {
   return g({}, ...parts);
 }
 
-/** v1.6: a grey shrub of the pan edge and dunes. */
-function panShrub(ctx: PaintCtx, x: number, y: number, s: number, pen: Pen): string {
-  const look = plantLook({
-    leaf: mix(ctx.c('bossieGrey'), ctx.c('bossie'), ctx.rnd() * 0.6),
-    bark: ctx.c('twig'),
-    ink: pen.ink,
-    sun: ctx.c('grassPale'),
-  });
-  return veldShrub(ctx.rnd, x, y, s, ctx.rnd() < 0.5 ? 'driedoring' : 'renoster', look, pen);
-}
-
 /** A quiver tree standing on a layer: drawn at its foot (x, foot), `k` × its prop size. */
 function layerQuiver(ctx: PaintCtx, x: number, foot: number, h: number, flowers: number): string {
   const k = h / 200;
@@ -1139,16 +1237,15 @@ function quiverTree(
         }),
       );
     }
-  // Blonde tufts at the foot.
-  const a = tone(ctx.c('grass'), 0.22, 0.25);
-  const b = tone(ctx.c('grassPale'), 0.22, 0.2);
-  for (const [x, hh, t] of [
-    [-30, 22, a],
-    [-18, 16, b],
-    [26, 20, b],
-    [38, 14, a],
+  // Bushman grass at the foot (v1.7d, D-059: no ink).
+  const look = namibLook(ctx);
+  for (const [x, hh] of [
+    [-30, 22],
+    [-14, 15],
+    [26, 19],
+    [40, 13],
   ] as const)
-    parts.push(tuftOf('fan', rnd, x, 4, hh, t, { ink: pen.ink, w: 1.4 }, ctx.c('seed')));
+    parts.push(bushmanClump(rnd, x, 4, hh, look, { spread: 0.8 }));
   return { svg: g({}, ...parts), limbs };
 }
 
@@ -1250,55 +1347,55 @@ function quiverEgg(ctx: PropCtx): string {
 }
 
 function panGrass(seed: number) {
+  // v1.7d (D-059): a low sand mound held by bushman grass: big clumps with plumes, no ink.
   return (ctx: PropCtx): string => {
-    const pen = ctx.pen;
-    const mound = mix(ctx.c('calcrete'), ctx.c('sandLight'), 0.45);
+    const look = namibLook(ctx);
+    const moundFill = mix(ctx.c('sandLight'), ctx.c('sand'), 0.35);
+    const grad = nextId();
+    const clip = nextId();
+    const mound = smoothD(
+      [
+        [-150, 130],
+        [-122, 100],
+        [-44, 86],
+        [58, 88],
+        [128, 100],
+        [150, 130],
+      ],
+      true,
+      0.7,
+    );
     const parts: string[] = [
-      inked(
-        smoothD(
-          [
-            [-150, 130],
-            [-122, 98],
-            [-44, 84],
-            [58, 86],
-            [128, 98],
-            [150, 130],
-          ],
-          true,
-          0.7,
+      el(
+        'defs',
+        {},
+        el(
+          'linearGradient',
+          { id: grad, x1: 0, y1: 84, x2: 0, y2: 132, gradientUnits: 'userSpaceOnUse' },
+          el('stop', { offset: 0, 'stop-color': mix(moundFill, '#FFE6C8', 0.3) }),
+          el('stop', { offset: 1, 'stop-color': mix(moundFill, ctx.c('sandDark'), 0.5) }),
         ),
-        mound,
-        pen.ink,
-        pen.w * 0.8,
       ),
-      flat(ellipseD(-50, 98, 60, 8), shade(mound, 0.3), { opacity: 0.7 }),
-      flat(ellipseD(70, 112, 70, 10), shade(mound, -0.18), { opacity: 0.6 }),
+      flat(ellipseD(10, 128, 165, 10), look.shadow, { opacity: 0.25 }),
+      flat(mound, `url(#${grad})`),
+      // The sand's texture stays on the mound.
+      el('clipPath', { id: clip }, el('path', { d: mound })),
+      g({ 'clip-path': `url(#${clip})` }, sandTexture(ctx.rnd, -130, 130, 96, 128, look, 0.9)),
     ];
-    const a = tone(ctx.c('grass'), 0.22, 0.25);
-    const b = tone(ctx.c('grassPale'), 0.22, 0.2);
-    for (let k = 0; k < 7; k++) {
-      const x = -96 + k * 32 + (ctx.rnd() - 0.5) * 12;
-      const hh = 125 + ctx.rnd() * 60 - Math.abs(k - 3) * 16;
-      parts.push(
-        tuftOf(
-          k % 3 === seed % 3 ? 'upright' : 'fan',
-          ctx.rnd,
-          x,
-          118,
-          hh,
-          k % 2 === seed % 2 ? a : b,
-          pen,
-          ctx.c('seed'),
-        ),
-      );
-    }
     for (let k = 0; k < 6; k++) {
-      const x = -90 + k * 36 + (ctx.rnd() - 0.5) * 20;
-      const top = -60 - ctx.rnd() * 110;
-      parts.push(line(`M${r2(x)} 60Q${r2(x - 6)} ${r2(top + 40)} ${r2(x + 4)} ${r2(top)}`, pen, 3));
-      parts.push(inked(ellipseD(x + 4, top + 10, 7, 18), ctx.c('seed'), pen.ink, 2));
+      const x = -70 + k * 28 + (ctx.rnd() - 0.5) * 12 + (seed % 2) * 6;
+      const hh = 95 + ctx.rnd() * 45 - Math.abs(k - 2.5) * 10;
+      parts.push(bushmanClump(ctx.rnd, x, 112 + ctx.rnd() * 10, hh, look, { spread: 0.5 }));
     }
     return g({}, ...parts);
+  };
+}
+
+/** v1.7d (D-059): the colours of the veld sheet (mid-size classes hazed, near ones not). */
+export function namibieVeldLooks(cfg: ArtConfig): VeldLooks {
+  return {
+    far: namibLook(paint(cfg, 'namibie', 'mid', 'namibie/veld'), 0.3),
+    near: namibLook(paint(cfg, 'namibie', 'near', 'namibie/veld')),
   };
 }
 
@@ -1311,9 +1408,17 @@ export const NAMIBIE_PLAN: BiomeArtPlan = {
     far_ridge: { top: 376, height: 214, colours: 96, draw: farRidge },
     ver_veld: { top: 524, height: 64, draw: verStrip },
     far_veld: { top: 464, height: 232, colours: 112, draw: farVeld },
-    mid: { top: 500, height: 410, colours: 128, draw: mid },
-    near: { top: 820, height: 260, colours: 128, draw: near },
-    foreground: { top: 880, height: 200, fadeTop: 28, colours: 128, draw: foreground },
+    // v1.7d (D-059): the ink-free Namib ground draws without the hand-drawn wobble.
+    mid: { top: 500, height: 410, colours: 128, wobble: false, draw: mid },
+    near: { top: 820, height: 260, colours: 128, wobble: false, draw: near },
+    foreground: {
+      top: 880,
+      height: 200,
+      fadeTop: 28,
+      colours: 128,
+      wobble: false,
+      draw: foreground,
+    },
   },
   props: {
     'namibie/nest_camelthorn': {
@@ -1326,35 +1431,53 @@ export const NAMIBIE_PLAN: BiomeArtPlan = {
     },
     'namibie/camelthorn_mature': {
       draw: camelthornProp('mature', 0.6, 10),
-      master: 2,
+      // v1.7d (D-059): 1× in Standard, its 2× twin in the HD pack (room for the veld life).
+      master: 1,
       wobble: false,
       frame: { w: 400, h: 296, ox: 196, oy: 258 },
     },
     'namibie/camelthorn_old': {
       draw: camelthornProp('old', 0.6, -8),
-      master: 2,
+      // v1.7d (D-059): 1× in Standard, its 2× twin in the HD pack (room for the veld life).
+      master: 1,
       wobble: false,
       frame: { w: 390, h: 296, ox: 195, oy: 258 },
     },
     'namibie/camelthorn_young': {
       draw: camelthornProp('young', 0.72, 6),
-      master: 2,
+      // v1.7d (D-059): 1× in Standard, its 2× twin in the HD pack (room for the veld life).
+      master: 1,
       wobble: false,
-      frame: { w: 230, h: 240, ox: 115, oy: 200 },
+      // v1.7d (D-059): its occluder reaches 70 px below the foot; at 1× the frame must hold it.
+      frame: { w: 230, h: 272, ox: 115, oy: 200 },
     },
     'namibie/quiver_tree': {
       draw: quiverProp,
-      master: 2,
+      // v1.7d (D-059): 1× in Standard, its 2× twin in the HD pack (room for the veld life).
+      master: 1,
       wobble: false,
       frame: { w: 240, h: 262, ox: 120, oy: 242 },
     },
     'namibie/quiver_egg': {
       draw: quiverEgg,
-      master: 2,
+      // v1.7d (D-059): 1× in Standard, its 2× twin in the HD pack (room for the veld life).
+      master: 1,
       wobble: false,
       frame: { w: 240, h: 254, ox: 116, oy: 234 },
     },
-    'namibie/pan_grass_a': { draw: panGrass(1) },
-    'namibie/pan_grass_b': { draw: panGrass(2) },
+    // v1.7d (D-059): framed to the low mound and its grass (the placeholder box's empty top
+    // rows were 1 MB of HD texture each).
+    'namibie/pan_grass_a': {
+      draw: panGrass(1),
+      colours: 64,
+      wobble: false,
+      frame: { w: 360, h: 262, ox: 180, oy: 112 },
+    },
+    'namibie/pan_grass_b': {
+      draw: panGrass(2),
+      colours: 64,
+      wobble: false,
+      frame: { w: 380, h: 262, ox: 190, oy: 112 },
+    },
   },
 };

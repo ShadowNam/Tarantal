@@ -4,6 +4,7 @@
 import { coreWidth, DESIGN_HEIGHT } from '../sim/world';
 import { mixedOverlaps } from './rangeFootprint';
 import { colonyIssues } from './colonyChecks';
+import { ostrichIssues } from './ostrichChecks';
 import { fenceIssues } from './fenceChecks';
 import { palmIssues } from './palmChecks';
 import { WORLD_EVENT_HANDLERS } from '../sim/director/events';
@@ -109,6 +110,10 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
   }
   i18n('birds.json', birds.meerkats.hit.barkKey);
   i18n('birds.json', birds.meerkats.familiefoto.barkKey);
+  // v1.7d (D-059): the ostriches' bark.
+  i18n('birds.json', birds.ostriches.hit.barkKey);
+  for (const c of birds.creatures)
+    if (c.kind === 'nonTarget' && c.drift !== undefined) i18n('birds.json', c.drift.barkKey);
 
   // --- weapons.json ------------------------------------------------------------------------
   // v1.3 (D-036): sights and the rifles that fit them.
@@ -370,6 +375,8 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
     for (const b of biome.bonusMaps) i18n(file, b.nameKey);
     // v1.7 (D-044): meerkat colonies on every map of the biome.
     for (const m of colonyIssues(bundle, biome)) err(file, m);
+    // v1.7d (D-059): the ostrich pairs (nothing hidden behind them, clear of the colonies).
+    for (const m of ostrichIssues(bundle, biome)) err(file, m);
     // v1.8 (D-050): the Blikkies fences (a can stands on a post; nothing hidden behind them).
     for (const m of fenceIssues(bundle, biome)) err(file, m);
     // 1.9.3 (D-056): the makalani palms (art on their plane; nothing hidden behind the nuts).
@@ -630,6 +637,7 @@ function checkEventShape(
     case 'hadeda':
     case 'cropSprayer':
     case 'fishEagle':
+    case 'balloons':
       needs(c !== undefined && c.kind === 'nonTarget' && (c.speeds?.fly ?? 0) > 0, 'a non-target creature with speeds.fly');
       return;
     case 'kwevoel':

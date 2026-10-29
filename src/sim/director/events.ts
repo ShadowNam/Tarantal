@@ -54,6 +54,7 @@ export const WORLD_EVENT_HANDLERS: Readonly<Record<WorldEventId, WorldEventHandl
   stampede: 'stampede',
   fishEagle: 'flyover',
   kuifkopHop: 'hopper',
+  balloons: 'flyover',
 };
 
 /** Non-target fly-over events (cost points when shot). */
@@ -69,7 +70,10 @@ function eventApplies(
   mode: ModeId,
   omen: boolean,
   bossHunt: boolean,
+  light: string | null = null,
 ): boolean {
+  // v1.7d (D-059): an event for some lights only (the calm early-light days' balloons).
+  if (event.lights !== undefined && (light === null || !event.lights.includes(light))) return false;
   // A Season Run boss hunt always brings the biome's boss (GDD §13.1).
   const forcedBoss = bossHunt && WORLD_EVENT_HANDLERS[event.id] === 'boss';
   if (event.modes !== undefined && !event.modes.includes(mode) && !forcedBoss) return false;
@@ -84,10 +88,11 @@ export function scheduleWorldEvents(
   durationTicks: number,
   rng: RandomStream,
   bossHunt = false,
+  light: string | null = null,
 ): ScheduledEvent[] {
   const out: ScheduledEvent[] = [];
   biome.events.forEach((event, index) => {
-    if (!eventApplies(event, mode, omen, bossHunt)) return;
+    if (!eventApplies(event, mode, omen, bossHunt, light)) return;
     const count = rng.int(event.perHunt[0], event.perHunt[1]);
     for (let i = 0; i < count; i++) {
       const t = rng.range(event.window[0], event.window[1]);
@@ -114,11 +119,12 @@ export function scheduleExtraEvents(
   durationTicks: number,
   mulByCreature: ReadonlyMap<string, number>,
   rng: RandomStream,
+  light: string | null = null,
 ): ScheduledEvent[] {
   const out: ScheduledEvent[] = [];
   biome.events.forEach((event, index) => {
     const mul = event.creature === undefined ? undefined : mulByCreature.get(event.creature);
-    if (mul === undefined || mul <= 1 || !eventApplies(event, mode, omen, false)) return;
+    if (mul === undefined || mul <= 1 || !eventApplies(event, mode, omen, false, light)) return;
     const extra = Math.round(((event.perHunt[0] + event.perHunt[1]) / 2) * (mul - 1));
     for (let i = 0; i < extra; i++) {
       const t = rng.range(event.window[0], event.window[1]);

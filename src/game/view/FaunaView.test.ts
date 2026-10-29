@@ -181,6 +181,26 @@ describe('FaunaView (D-054)', () => {
     expect(calmMax).toBeGreaterThan(0);
     expect(calmMax).toBeLessThan(fullMax);
   });
+
+  it('copyPose (v1.7d): a view of the same herds takes the other view’s pose part for part', () => {
+    const w = world();
+    w.land();
+    const herdView = view(w);
+    herdView.update(0, false);
+    const mirror = view(w);
+    mirror.update(0, false);
+    const n = w.images.length / 2;
+    const pose = (from: number): number[] =>
+      w.images.slice(from, from + n).flatMap((i) => [i.angle, i.scaleX, i.scaleY]);
+    let differed = false;
+    for (let t = 0; t < 60 * 20; t += 7) {
+      herdView.update(t, false);
+      if (pose(0).join() !== pose(n).join()) differed = true;
+      mirror.copyPose(herdView);
+      expect(pose(n)).toEqual(pose(0));
+    }
+    expect(differed).toBe(true);
+  });
 });
 
 describe('FaunaView HD swaps (D-054 review)', () => {

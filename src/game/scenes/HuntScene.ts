@@ -61,6 +61,7 @@ import { MeerkatView } from '../view/MeerkatView';
 import { CanView } from '../view/cans/CanView';
 import type { MakalaniView } from '../view/palms/MakalaniView';
 import type { TreeLifeView } from '../view/tree/TreeLifeView';
+import type { NamibLifeView } from '../view/namib/NamibLifeView';
 import { playPotjieSound } from '../view/potjieSounds';
 import { playMeerkatSound } from '../audio/meerkatSounds';
 import { largestTextures, textureBytes } from '../assets/textureBytes';
@@ -141,6 +142,9 @@ export class HuntScene extends Phaser.Scene {
   private fruitGen = 0;
   /** 1.9.4 (D-057): the trees' residents (lazy chunk; null until it is in, or no baobab). */
   private treeLife: TreeLifeView | null = null;
+  /** v1.7d (D-059): the Namibië veld life (its own lazy chunk). */
+  private namibLife: NamibLifeView | null = null;
+  private namibLifeGen = 0;
   private treeLifeGen = 0;
   /** Family nests by prop id (layer, x on it): the weavers' scolding is panned from here. */
   private weaverNests = new Map<string, { layer: string; x: number }>();
@@ -540,6 +544,7 @@ export class HuntScene extends Phaser.Scene {
     this.makalaniArgs = { scales, weights };
     this.loadFruit(mapBiome);
     this.loadTreeLife(mapBiome, scales);
+    this.loadNamibLife(mapBiome);
     this.weapon = new WeaponView(
       this,
       this.ctx.feel,
@@ -699,6 +704,7 @@ export class HuntScene extends Phaser.Scene {
    */
   private refreshHd(idle: boolean): void {
     const g = this.ctx.graphics;
+    if (this.ctx.hook) this.ctx.hook.graphics.refreshes++;
     if (!g.hd) {
       // Standard chosen while these views draw HD (Settings on the title: the hunt that follows
       // keeps the views, so no scene change frees it): swap back in place, free once unused.
@@ -1669,6 +1675,8 @@ export class HuntScene extends Phaser.Scene {
       hook.potjie = null;
       hook.canLog = [];
       hook.canMs = 0;
+      hook.namibLifeMs = 0;
+      hook.namibLifeFrames = 0;
       hook.fruit = null;
       hook.hunts++;
     }
@@ -1814,6 +1822,16 @@ export class HuntScene extends Phaser.Scene {
       // v1.4 B (e2e perf): what the weavers and the mirage cost per frame.
       this.ctx.hook.sceneryMs += performance.now() - w0 + this.world.mirageMs;
       this.ctx.hook.sceneryFrames++;
+    }
+    // v1.7d (D-059, review): the Namibië veld life on its own timer (outside the weavers +
+    // mirage window above).
+    if (this.namibLife !== null) {
+      const n0 = performance.now();
+      this.namibLife.update(state, runner.prev, alpha, width);
+      if (this.ctx.hook) {
+        this.ctx.hook.namibLifeMs += performance.now() - n0;
+        this.ctx.hook.namibLifeFrames++;
+      }
     }
     this.weapon.spreadMul = spreadMulOf(state.powerups, this.ctx.content.powerups.powerups);
     // v1.7b (D-046): Chilli Biltong's sparks at the muzzle.
@@ -2015,6 +2033,7 @@ export class HuntScene extends Phaser.Scene {
               spots: this.fruit.spots(),
             };
       hook.treeLife = this.treeLife?.hook() ?? null;
+      hook.namibLife = this.namibLife?.hook() ?? null;
       hook.mirage = state.mirage;
       hook.durationTicks = state.durationTicks;
     }
@@ -2104,6 +2123,39 @@ export class HuntScene extends Phaser.Scene {
       })
       .catch(() => {
         // Offline without the chunk cached: the tree simply has no residents.
+      });
+  }
+
+  /** v1.7d (D-059): the Namibië veld-life chunk, for a Namibië map. */
+  private loadNamibLife(mapBiome: Biome): void {
+    this.namibLife?.destroy();
+    this.namibLife = null;
+    const gen = ++this.namibLifeGen;
+    if (mapBiome.id !== 'namibie') return;
+    void import('../view/namib/NamibLifeView')
+      .then((m) => {
+        if (gen !== this.namibLifeGen || !m.wantsNamibLife(mapBiome)) return;
+        this.namibLife = new m.NamibLifeView(this, mapBiome, this.parallax, {
+          reducedMotion: this.ctx.reducedMotion,
+          reduceFlashes: () => this.ctx.prefs.reduceFlashes,
+          manifest: this.manifest,
+          fauna: {
+            idle: this.ctx.feel.fauna.idle,
+            ticksPerSecond: TICKS_PER_SECOND,
+            still: this.ctx.faunaStill,
+          },
+          lightIds: () => this.lightIds,
+          audio: this.ctx.audio,
+          planeScales: {
+            near: this.ctx.content.scoring.planes.near.scale,
+            mid: this.ctx.content.scoring.planes.mid.scale,
+            far: this.ctx.content.scoring.planes.far.scale,
+            ver: this.ctx.content.scoring.planes.ver.scale,
+          },
+        });
+      })
+      .catch(() => {
+        // Offline without the chunk cached: the sand shows without its ground cover.
       });
   }
 
@@ -2220,6 +2272,20 @@ export class HuntScene extends Phaser.Scene {
       }
     }
     this.fruit?.handle(events, state, (e) => this.pelletStop(e, state), width);
+    // v1.7d (D-059): the ostriches' puffs and sounds (the lazy veld-life chunk), and the e2e log.
+    this.namibLife?.handle(events, state, this.ctx.audio, width);
+    if (this.ctx.hook) {
+      const log = this.ctx.hook.namibLog;
+      for (const e of events) {
+        if (log.length >= 200) break;
+        if (e.type === 'ostrichHit') log.push(`hit:${e.nest ? 'nest:' : ''}${e.points}`);
+        else if (e.type === 'ostrichesRan') log.push(`ran:${e.cause}`);
+        else if (e.type === 'ostrichCall') log.push(`call:${e.call}`);
+        else if (e.type === 'balloonHit') log.push(`balloon:${e.points}`);
+        else if (e.type === 'worldEvent' && e.event === 'balloons')
+          log.push(`event:balloons@${e.tick}`);
+      }
+    }
     // v1.4 B: a shot family nest lets its weavers out; they chatter and scold (AudioDirector).
     // 1.9.4 (review): the scolding and the count come straight from the event, so they never wait
     // for the lazy tree-life chunk; nest shots before it is in are held for its burst.
@@ -2595,6 +2661,9 @@ export class HuntScene extends Phaser.Scene {
     this.treeLife?.destroy();
     this.treeLife = null;
     this.treeLifeGen++;
+    this.namibLife?.destroy();
+    this.namibLife = null;
+    this.namibLifeGen++;
     this.game.canvas.style.cursor = '';
   }
 }

@@ -3,6 +3,46 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.9.7] — Namibië veld life: grass and sand, ostriches, oryx in the mirage, balloons (29 Oct 2026)
+
+Decision record D-059. The product owner (25 Oct): "In the Namibia map … at least two ostriches
+with somewhere an ostrich nest … some oryx antelopes … roaming somewhere far away in the distance,
+and there needs to be some mirage attached to that. And maybe some hot air balloons drifting by."
+And: "The grass landscapes in the Namibia one also look very rough still, it needs to be much more
+detailed, enhanced."
+
+### Added
+- **Namibië ground redrawn** (no ink): red Namib sand with soft dune swells, wind ripples, fine
+  grain, gravel plains with pebbles, a quartz-pebble patch now and then and animal tracks, paler and
+  cooler into the distance; the hard black seam between the planes is now a lit sand ridge over a
+  soft shadow with grass breaking over it.
+- **Bushman grass** (Stipagrostis): golden-straw clumps of fine blades with silvery feathery seed
+  plumes, lit tops, shaded bases, darker grass edges, contact shadows, dry broken stems and litter;
+  small tufts to big clumps, denser and bigger near, sparse with bare sand between. Dollar bush
+  (Zygophyllum) and dead branches too. Drawn as a small sheet of variants placed over the sand
+  (VeldView), Standard and HD.
+- **Ostriches and their nest** on the pan edge of every Namibië map: a black-and-white cock and a
+  grey-brown hen, a scrape with 8–15 cream eggs. The hen sits by day while the cock stands guard;
+  they walk, peck, look round and swap on the nest, and the cock fans his wings and booms. A shot
+  nearby (or the Langloop) sends them running; they come back after a few seconds.
+- **Don't shoot them:** an ostrich or the nest costs 10 points (2 s cooldown, like the meerkats);
+  never hurt — a puff of feathers or sand, a hiss: "Leave my eggs alone!" / "Los my eiers uit!".
+- **Oryx in the mirage:** a gemsbok herd walks slowly across the far pan and back, with a faint
+  upside-down reflection and a gentle waver that breathe with the heat (full on the mirage days,
+  none at dawn, dusk or under cloud).
+- **Hot-air balloons:** now and then 1–3 balloons in warm stripes drift high across the far sky
+  with the wind (more often on the calm early-light days), the burner flaring now and then. A hit
+  costs 25 (with a cooldown); the burner roars and a passenger shakes a fist: "Oi! We're on
+  holiday!" / "Hei! Ons is op vakansie!".
+
+### Changed
+- Namibië's camelthorn and quiver-tree props are 1× in Standard with their 2× twins in the HD
+  pack (room in the Namibië chunk for the veld life).
+
+### Fixed
+- Android test app: the back button works from the first moment in the browser build (its
+  listeners are registered one at a time).
+
 ## [1.9.6] — Season Run: Save & leave (29 Oct 2026)
 
 Decision record D-060. The product owner, after playing the Android test app: the Farm Stall had

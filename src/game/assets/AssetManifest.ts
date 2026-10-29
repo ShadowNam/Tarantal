@@ -14,7 +14,7 @@ import type {
   HdImage,
   ImageEntry,
 } from './assetIndex';
-import { COMMON_GROUP, LATE_GROUP, VER_GROUP } from './assetIndex';
+import { COMMON_GROUP, LATE_GROUP, VER_GROUP, sharedTileKeys } from './assetIndex';
 import type { FaunaFrames } from '../view/faunaHerds';
 import { DESERT_GROUP } from './desertAssets';
 import { atlasRegion, checkAtlas, checkBirdAtlas, type AtlasRegion } from './atlasCheck';
@@ -501,8 +501,9 @@ export class AssetManifest {
           Promise.all(entry.tiles.map((t) => loadImage(t.path, o.timeoutMs))).then((imgs) => {
             // A layer is all or nothing: half a delivered panorama would show a seam.
             if (imgs.some((i) => i === null)) return;
+            const keys = sharedTileKeys(`final:layer/${id}`, entry.tiles);
             const tiles = imgs.map((img, i) => ({
-              key: `final:layer/${id}/${i}`,
+              key: keys[i] ?? `final:layer/${id}/${i}`,
               // Safe: the line above returned if any image is null.
               img: img as HTMLImageElement,
             }));

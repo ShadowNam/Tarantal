@@ -1587,7 +1587,9 @@ export function createPlaceholderManifest(
   for (const s of sightSpecs()) m.addTexture(s);
   for (const s of ammoSpecs(ammoTypes)) m.addTexture(s);
   for (const s of omenSpecs()) m.addTexture(s);
-  for (const id of SFX_IDS) m.addSound(sfxKey(id));
+  // v1.7d (D-059): the weavers' scolding is heard only at the desert maps' weaver nests: it loads
+  // with them (the desert group), not in the first download (elsewhere its synth stands in).
+  for (const id of SFX_IDS) if (id !== 'weavers' || hasColonies(biome)) m.addSound(sfxKey(id));
   // M10: music and ambience are silent placeholders until recordings are delivered.
   for (const stem of STEMS) m.addSound(musicKey(biome.id, stem));
   m.addSound(ambienceKey(biome.id));

@@ -367,6 +367,13 @@ export class ParallaxView {
   }
 
   /** D-054: builds herds whose sheets landed and follows HD swaps, without posing them. */
+  /** v1.7d (D-059): shows or hides one far herd by its key; true once the herd is built. */
+  setHerdVisible(key: string, on: boolean): boolean {
+    let found = false;
+    for (const f of this.fauna) if (f.setHerdVisible(key, on)) found = true;
+    return found;
+  }
+
   refreshFauna(): void {
     for (const f of this.fauna) f.refresh(true);
   }

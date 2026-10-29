@@ -7,6 +7,7 @@ import type { Biome, ContentBundle, DailyMeta, Feel, Notaboek } from '../content
 import type { ChallengeDecode } from '../meta/challenge';
 import type { FruitHookSpot } from './view/fruit/FruitView';
 import type { TreeLifeHook } from './view/tree/TreeLifeView';
+import type { NamibLifeHook } from './view/namib/NamibLifeView';
 import type { LoadStatus, SaveStore } from '../meta/save';
 import type { StorageStatus } from '../meta/storage';
 import type { ErrorReport, PlatformAdapter } from '../platform/PlatformAdapter';
@@ -361,6 +362,9 @@ export interface TestHook {
     hittable: boolean;
   }[];
   meerkatLog: string[];
+  /** v1.7d (D-059): Namibië's ostrich and balloon events in order ("hit:-10", "hit:nest:-10",
+   *  "ran:shot", "call:display", "balloon:-25", "bark:bark.ostrich"). */
+  namibLog: string[];
   /** v1.8 (D-050): the day's tin cans (null: no fence) — the fence's plane, each can on screen
    *  (design px; r = hit radius), the hunt's can events in order ("knock:1", "juggle:2",
    *  "landed", "weg:39"), at most 200, and ms spent drawing them (summed, with the frames). */
@@ -443,7 +447,8 @@ export interface TestHook {
    * D-053: Standard or HD. `card`: the loading screen asked this launch (`pick`: its
    * recommendation); `loading`: the area's HD pack behind the loading screen; `bounds`: on-screen
    * boxes of sampled scenery and HUD images (design px, rounded), the same with Standard and HD;
-   * `hdTextures`: HD textures in the texture manager; `epoch`: the hunt manifest's hdEpoch.
+   * `hdTextures`: HD textures in the texture manager; `epoch`: the hunt manifest's hdEpoch;
+   * `refreshes`: HD refreshes run this page (every 30 rendered frames, v1.7d e2e).
    */
   graphics: {
     mode: 'standard' | 'hd';
@@ -456,12 +461,15 @@ export interface TestHook {
     bounds: { key: string; x: number; y: number; w: number; h: number; hd: boolean }[];
     hdTextures: number;
     epoch: number;
+    refreshes: number;
   };
   /** D-051: the bark keys secret banners showed this page, in order. */
   secretBarks: string[];
   /** 1.9.4 (D-057): the trees' residents on screen (design px) and near shots that startled
    *  them (null: no tree life on this map, or its chunk is not in yet). */
   treeLife: TreeLifeHook | null;
+  /** v1.7d (D-059): the Namibië veld life (null: not a Namibië map, or its chunk not in yet). */
+  namibLife: NamibLifeHook | null;
   /** v1.7c (D-047): the fruit view (null until its chunk is in, or a map without fruit): fruit
    *  placed, pellet hits and drops this hunt, fruit swinging now, and the fruit on screen. */
   fruit: {
@@ -473,6 +481,9 @@ export interface TestHook {
   } | null;
   /** v1.7 (perf): ms spent drawing the meerkat colonies, summed with the frames counted. */
   meerkatMs: number;
+  /** v1.7d (perf, D-059): ms in the Namibië veld life's update, and the frames it ran. */
+  namibLifeMs: number;
+  namibLifeFrames: number;
   /** v1.6b (D-043): reload power-ups on the HUD — the chips' icon textures (null = none), the
    *  lightning glints on the belt now, Oupa's hand on the belt, and auto reloads this page. */
   reloadFx: { chipIcons: (string | null)[]; bolts: number; oupaHand: boolean; autoReloads: number };

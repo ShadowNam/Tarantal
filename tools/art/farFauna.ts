@@ -52,19 +52,22 @@ export interface DrawnLook {
   };
 }
 
-type V = [number, number];
+export type V = [number, number];
 
-const add = (a: Pt, b: Pt): V => [a[0] + b[0], a[1] + b[1]];
-const sub = (a: Pt, b: Pt): V => [a[0] - b[0], a[1] - b[1]];
-const mul = (a: Pt, k: number): V => [a[0] * k, a[1] * k];
-const lerp = (a: Pt, b: Pt, t: number): V => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+export const add = (a: Pt, b: Pt): V => [a[0] + b[0], a[1] + b[1]];
+export const sub = (a: Pt, b: Pt): V => [a[0] - b[0], a[1] - b[1]];
+export const mul = (a: Pt, k: number): V => [a[0] * k, a[1] * k];
+export const lerp = (a: Pt, b: Pt, t: number): V => [
+  a[0] + (b[0] - a[0]) * t,
+  a[1] + (b[1] - a[1]) * t,
+];
 const len = (a: Pt): number => Math.hypot(a[0], a[1]);
-const unit = (a: Pt): V => {
+export const unit = (a: Pt): V => {
   const l = len(a) || 1;
   return [a[0] / l, a[1] / l];
 };
 /** Rotates p about c by `deg`, clockwise on screen (y down). */
-function rot(p: Pt, c: Pt, deg: number): V {
+export function rot(p: Pt, c: Pt, deg: number): V {
   const a = (deg * Math.PI) / 180;
   const ca = Math.cos(a);
   const sa = Math.sin(a);
@@ -78,10 +81,10 @@ const dirOf = (deg: number): V => [
   -Math.sin((deg * Math.PI) / 180),
 ];
 /** Clockwise normal on screen: for a head pointing forward it points down (the throat side). */
-const nrm = (d: Pt): V => [-d[1], d[0]];
+export const nrm = (d: Pt): V => [-d[1], d[0]];
 
 /** A limb or neck outline from a skeleton: joints with widths, as a smooth closed shape. */
-function limb(joints: readonly { p: Pt; w: number }[], tension = 0.85): string {
+export function limb(joints: readonly { p: Pt; w: number }[], tension = 0.85): string {
   const left: V[] = [];
   const right: V[] = [];
   for (let i = 0; i < joints.length; i++) {
@@ -467,7 +470,7 @@ interface Pen {
 }
 
 /** Outer outline + fill of a union of shapes: the strokes first (half shows), fills on top. */
-function solid(shapes: readonly string[], fill: string, edge: string, w: number): string {
+export function solid(shapes: readonly string[], fill: string, edge: string, w: number): string {
   // One path per shape: overlapping shapes in one path can wind against each other and leave
   // holes (see-through legs).
   return (
@@ -486,13 +489,13 @@ function solid(shapes: readonly string[], fill: string, edge: string, w: number)
 }
 
 /** A clip path that is the union of shapes (one child each), and its id. */
-function clipOf(shapes: readonly string[]): { id: string; def: string } {
+export function clipOf(shapes: readonly string[]): { id: string; def: string } {
   const id = nextId();
   return { id, def: el('clipPath', { id }, ...shapes.map((d) => el('path', { d }))) };
 }
 
 /** A fill (a gradient) over everything inside a clip: no double alpha where shapes overlap. */
-function wash(
+export function wash(
   clipId: string,
   fill: string,
   box: { x0: number; y0: number; x1: number; y1: number },
@@ -510,7 +513,7 @@ function wash(
 }
 
 /** A vertical light gradient (lit top, shaded bottom) as an id + defs. */
-function vGrad(
+export function vGrad(
   y0: number,
   y1: number,
   stops: readonly (readonly [number, string, number])[],
@@ -544,7 +547,7 @@ function radial(cx: number, cy: number, rx: number, ry: number, c: string, a: nu
 }
 
 /** A soft contact shadow under the feet. */
-function contactShadow(x0: number, x1: number, h: number): string {
+export function contactShadow(x0: number, x1: number, h: number): string {
   return radial((x0 + x1) / 2, 0, (x1 - x0) / 2, Math.max(1.2, h), '#2A1E14', 0.42);
 }
 
