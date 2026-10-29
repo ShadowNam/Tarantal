@@ -633,7 +633,7 @@ if (wants('blikkies')) {
   }
 }
 if (wants('namiblife') && !hdOnly) {
-  // v1.7d (D-059): the ostriches' sheet at 1× and its 2× twin (Namibië's group).
+  // v1.7d (D-059): the ostriches' sheet at 1× (Namibië's group; Standard in HD too).
   const png = join(src, 'sprites', `${OSTRICH_SHEET}.png`);
   if (!oursFile(png)) console.warn(`skip sprites/${OSTRICH_SHEET}: a human delivery is there`);
   else {
@@ -642,7 +642,9 @@ if (wants('namiblife') && !hdOnly) {
       png.replace(/\.png$/, '.json'),
       await json({ origin: 'interim', encode: 'png8', originX: 0, originY: 0 }),
     );
-    putHd(`sprites/${OSTRICH_SHEET}.png`, renderOstrichSheet(2), OSTRICH_COLOURS);
+    // Standard in HD (as the kuifkop, D-054): its 2× twin (2048 × 3200, 25 MB of texture) would
+    // take Namibië's HD texture memory past the Pixel 7 budget (256 MB).
+    rmSync(join(hdSrc, 'sprites', `${OSTRICH_SHEET}.png`), { force: true });
     console.log(`sprites/${OSTRICH_SHEET}`);
   }
   // The hot-air balloons' sheet at 1× and its 2× twin.

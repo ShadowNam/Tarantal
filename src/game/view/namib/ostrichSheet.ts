@@ -2,8 +2,8 @@
 // female in every pose the sim uses (standing, looking round, a four-step walk, pecking, sitting
 // on the nest, the male's wing display, a three-step run, hissing), the nest scrape and one egg.
 // Frames face right with the feet (or the scrape's middle) at their origin, in design px at the
-// mid plane (OSTRICH_ART_SCALE: the view scales by the family's plane scale ÷ it). The Standard
-// sheet is 1×, its HD twin 2×. Pure constants: the game, the placeholder and the interim art
+// mid plane (OSTRICH_ART_SCALE: the view scales by the family's plane scale ÷ it). The sheet is
+// 1× and stays Standard in HD (a 2× twin is 25 MB of texture: Namibië's HD budget, D-059). Pure constants: the game, the placeholder and the interim art
 // generator (tools/art/ostrich.ts) read them.
 
 import type { OstrichView } from '../../../sim/types';

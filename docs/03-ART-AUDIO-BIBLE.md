@@ -564,7 +564,8 @@ back, a shaded belly, plume texture strokes), long legs with scaled shanks and t
 head with a flat bill, a big dark eye with lashes and a bristly crown. Thin edges a shade darker
 than the part. Poses: stand, look, a four-step walk, peck, sit, display (the cock kneels, wings
 fanned white), a three-step run (wings half out, neck forward), hiss (neck low, bill open). The
-scrape: a shallow hollow with a raked rim; cream pitted eggs.
+scrape: a shallow hollow with a raked rim; cream pitted eggs. The sheet (1×) stays Standard in HD
+(its 2× twin would take Namibië past the 256 MB HD texture budget on a Pixel 7).
 
 #### 4.5e Oryx in the mirage (1.9.6, D-059)
 The far gemsbok sheet's walking look (D-054), five animals walking the pan; the reflection is the

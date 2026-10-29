@@ -3274,7 +3274,7 @@ very rough still". Decided:
   back. On the mid plane at 197 px to the head (true scale would be 552 px; the PO found the far
   ostriches too big at 0.45 × true). **One pair per map:** a second pair (tried on the calm days)
   stood in the mid flocks' ground band and drew ~1 accidental −10 per competent hunt (one pair:
-  0.1–0.2). No near-plane pair: at that scale an ostrich stands ~470 px and covers the planes
+  0.1–0.2). Their sheet stays Standard in HD (a 2× twin is 25 MB of texture). No near-plane pair: at that scale an ostrich stands ~470 px and covers the planes
   behind (the content check forbids it).
 - *Oryx:* view-only, a roaming FaunaView of the far gemsbok sheet (no new art) with a reflection
   and a waver driven by the heat (the mirage omen, the light). No filter pass: Phaser 4.2.1
