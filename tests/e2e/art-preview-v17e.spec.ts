@@ -146,24 +146,41 @@ async function huntIn(
   await park(page, touch);
 }
 
-/** Pans (A/D, short presses) until prop `key` is within 80 px of the screen's centre (bounded). */
+/**
+ * Pans (A/D, short presses) until prop `key` is within 80 px of the screen's centre, or fully on
+ * screen once a press overshoots it (on slow software GL one short press can pan ~400 px, so the
+ * centre may never be hit; the crops use the prop's own box wherever it is). Bounded.
+ */
 async function panToProp(page: Page, touch: boolean, key: string): Promise<void> {
-  const off = async (): Promise<number | null> => {
+  const off = async (): Promise<{ o: number; room: number } | null> => {
     const h = await hook(page);
     const b = h.graphics.bounds.find((x) => x.key === key);
-    return b === undefined ? null : b.x + b.w / 2 - h.designWidth / 2;
+    if (b === undefined) return null;
+    // How far off centre the prop may sit and still be on screen with a 40 px margin.
+    return { o: b.x + b.w / 2 - h.designWidth / 2, room: h.designWidth / 2 - b.w / 2 - 40 };
   };
+  let prev: number | null = null;
   for (let k = 0; k < 160; k++) {
-    const o = await off();
-    if (o !== null && Math.abs(o) <= 80) break;
+    const r = await off();
+    if (r !== null && Math.abs(r.o) <= 80) break;
+    // Overshot the centre: stop where the prop is fully on screen.
+    if (
+      r !== null &&
+      prev !== null &&
+      Math.sign(r.o) !== Math.sign(prev) &&
+      Math.abs(r.o) <= r.room
+    )
+      break;
+    prev = r === null ? null : r.o;
     // Off screen: the koppie lies east of the opening view.
-    const dir = o === null || o > 0 ? 'KeyD' : 'KeyA';
+    const dir = r === null || r.o > 0 ? 'KeyD' : 'KeyA';
     await page.keyboard.down(dir);
-    await page.waitForTimeout(o === null || Math.abs(o) > 500 ? 400 : 120);
+    await page.waitForTimeout(r === null || Math.abs(r.o) > 500 ? 400 : 120);
     await page.keyboard.up(dir);
   }
-  const o = await off();
-  if (o === null || Math.abs(o) > 80) throw new Error(`pan to ${key}: off by ${o}`);
+  const r = await off();
+  if (r === null || (Math.abs(r.o) > 80 && Math.abs(r.o) > r.room))
+    throw new Error(`pan to ${key}: off by ${r === null ? null : r.o}`);
   await park(page, touch);
 }
 
