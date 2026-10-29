@@ -51,6 +51,8 @@ interface Slot {
   readonly img: Phaser.GameObjects.Image;
   readonly glow: Phaser.GameObjects.Image;
   readonly layerId: string;
+  /** Review R9: the species' drawing scale (birds.json tells.species[].scale). */
+  readonly scale: number;
   frame: string;
   x: number;
   y: number;
@@ -82,6 +84,8 @@ export class TellView {
     private readonly scene: Phaser.Scene,
     private readonly parallax: ParallaxView,
     private readonly now: () => number,
+    /** Each species' drawing scale (birds.json → tells.species[].scale). */
+    private readonly scales: ReadonlyMap<string, number> = new Map(),
   ) {}
 
   /** The sheet as last cut: cut again (and every sprite moved over) after a texture swap. */
@@ -104,8 +108,8 @@ export class TellView {
     }
     this.k = k;
     for (const s of this.slots.values()) {
-      s.img.setTexture(TELL_SHEET, s.frame).setScale(1 / k);
-      s.glow.setTexture(TELL_SHEET, s.frame).setScale(GLOW_GROW / k);
+      s.img.setTexture(TELL_SHEET, s.frame).setScale(s.scale / k);
+      s.glow.setTexture(TELL_SHEET, s.frame).setScale((GLOW_GROW * s.scale) / k);
     }
     this.sheet = tex;
     return true;
@@ -117,16 +121,17 @@ export class TellView {
     const layer = this.parallax.layer(t.layerId);
     if (layer === undefined) return null;
     const frame = tellFrameName(t.species, 'rest');
+    const scale = this.scales.get(t.species) ?? 1;
     const glow = this.scene.add
       .image(t.x, t.y, TELL_SHEET, frame)
-      .setScale(GLOW_GROW / this.k)
+      .setScale((GLOW_GROW * scale) / this.k)
       .setTint(GLOW_TINT)
       .setTintMode(Phaser.TintModes.FILL)
       .setAlpha(GLOW_ALPHA)
       .setVisible(false);
     const img = this.scene.add
       .image(t.x, t.y, TELL_SHEET, frame)
-      .setScale(1 / this.k)
+      .setScale(scale / this.k)
       .setVisible(false);
     const tint = this.parallax.layerTint(t.layerId);
     if (tint !== 0xffffff) img.setTint(tint);
@@ -139,6 +144,7 @@ export class TellView {
       img,
       glow,
       layerId: t.layerId,
+      scale,
       frame,
       x: t.x,
       y: t.y,

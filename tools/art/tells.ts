@@ -124,7 +124,8 @@ function bird(b: BirdLook, pose: TellPose): string {
     const py = Math.sin(r) * H * 0.07;
     const ex2 = tx + Math.sin(r) * tl;
     const ey2 = ty - Math.cos(r) * tl;
-    const fork = b.tailShape === 'fork' ? 0.25 : b.tailShape === 'wedge' ? -0.15 : 0;
+    // Review R9: a deep fork (the drongo's key mark).
+    const fork = b.tailShape === 'fork' ? 0.42 : b.tailShape === 'wedge' ? -0.15 : 0;
     const wide = b.tailShape === 'square' || b.tailShape === 'fork' ? 1.5 : 1;
     const nx = Math.cos(r);
     const ny = Math.sin(r);
@@ -145,7 +146,14 @@ function bird(b: BirdLook, pose: TellPose): string {
   );
   const toes = b.toes ?? 0;
   if (toes > 0)
-    parts.push(line(`M${r2(-toes / 2)} 0L${r2(toes / 2)} 0M0 0L${r2(-toes * 0.2)} 1`, b.legs, 0.6));
+    // The jacana's long splayed toes (its key mark, review R9).
+    parts.push(
+      line(
+        `M${r2(-toes / 2)} 0.6L${r2(toes / 2)} -0.4M0 0L${r2(-toes * 0.3)} 1.6M0 0L${r2(toes * 0.35)} 1.4`,
+        b.legs,
+        1.1,
+      ),
+    );
   parts.push(shape(tailPts(), b.tail, 0.5));
   // Body: back colour, a belly front, the wing over it.
   parts.push(sh(ell(0, bodyY, bodyRx, bodyRy, lean), b.back, 0.6));
@@ -249,7 +257,7 @@ const DRONGO: BirdLook = {
   beak: '#141418',
   beakLen: 0.16,
   legs: '#1A1A1A',
-  tailLen: 0.55,
+  tailLen: 0.66,
   tailShape: 'fork',
   acts: ['tail', 'look'],
   marks: () => fill(ellipseD(0.4, -1.1, 1.3, 1.3), '#B8302A', { opacity: 0.9 }),
@@ -257,10 +265,10 @@ const DRONGO: BirdLook = {
 const ROLLER: BirdLook = {
   H: 40,
   lean: 14,
-  back: '#9C8A5E',
-  belly: '#7FB8C8',
-  head: '#7FA87E',
-  wing: '#3E8CC0',
+  back: '#A08A58',
+  belly: '#4CC4D4',
+  head: '#6EB49A',
+  wing: '#2A86DA',
   tail: '#2E5E9A',
   beak: '#1E1E22',
   beakLen: 0.2,
@@ -273,7 +281,7 @@ const ROLLER: BirdLook = {
     g(
       {},
       // The lilac breast and throat, a dark eye stripe.
-      fill(ellipseD(1.5, 5.5, 4.6, 3.6), '#B48CC8', { opacity: 0.95 }),
+      fill(ellipseD(1.5, 5.5, 5.4, 4.4), '#C084DC', { opacity: 1 }),
       line('M-2.8 -0.6L3.6 -0.6', '#2A2A2A', 0.9, { opacity: 0.7 }),
       fill(ellipseD(-1.2, -3.2, 3.4, 1.8), '#D8E0C0', { opacity: 0.5 }),
     ),
@@ -281,10 +289,10 @@ const ROLLER: BirdLook = {
 const KESTREL: BirdLook = {
   H: 40,
   lean: 10,
-  back: '#A85A36',
-  belly: '#C8784A',
-  head: '#7A7E88',
-  wing: '#9A4E2E',
+  back: '#C0582A',
+  belly: '#D8844E',
+  head: '#76808E',
+  wing: '#B4542A',
   tail: '#7E828C',
   beak: '#3A3634',
   beakLen: 0.12,
@@ -350,11 +358,11 @@ const CROW: BirdLook = {
 const KINGFISHER: BirdLook = {
   H: 26,
   lean: 14,
-  back: '#1E8AA8',
-  belly: '#D8743A',
-  head: '#2E9AB8',
-  wing: '#1C7E9E',
-  tail: '#16708E',
+  back: '#1E7CDA',
+  belly: '#E8783A',
+  head: '#2A8EE6',
+  wing: '#1666C8',
+  tail: '#1458B0',
   beak: '#D8341E',
   beakLen: 0.24,
   legs: '#D8341E',
@@ -388,10 +396,10 @@ const OXPECKER: BirdLook = {
 const JACANA: BirdLook = {
   H: 72,
   lean: 30,
-  back: '#8A3E24',
-  belly: '#7A3420',
+  back: '#A23C1A',
+  belly: '#8E3218',
   head: '#F2EEE6',
-  wing: '#9A4626',
+  wing: '#B0441E',
   tail: '#6E2E1A',
   beak: '#4A7EC8',
   beakLen: 0.13,
@@ -400,7 +408,7 @@ const JACANA: BirdLook = {
   tailLen: 0.22,
   tailShape: 'square',
   acts: ['step', 'wings'],
-  toes: 24,
+  toes: 36,
   marks: () =>
     g(
       {},
@@ -506,18 +514,20 @@ const AGAMA: LizardLook = {
   L: 50,
   body: '#7A6E5E',
   belly: '#C8B898',
-  head: '#3E6EC8',
-  tail: '#7E7262',
-  stripes: '#E0B04A',
+  // Review R9: the breeding male's bright blue head and an orange-tinged tail.
+  head: '#2C7CF2',
+  tail: '#D88A3C',
+  stripes: '#E8B850',
   speckle: '#D8CDB4',
 };
+// Review R9: near-black body, bright cream stripes and a coppery tail, so it reads on grey granite.
 const SKINK: LizardLook = {
   L: 40,
-  body: '#4E4234',
+  body: '#2E2620',
   belly: '#C8B898',
-  head: '#5A4C3C',
-  tail: '#5E5040',
-  stripes: '#E8DCB8',
+  head: '#3A2E24',
+  tail: '#A8643A',
+  stripes: '#FFF2C8',
 };
 
 function chameleon(pose: TellPose): string {

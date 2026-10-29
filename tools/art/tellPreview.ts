@@ -79,17 +79,20 @@ for (const b of content.biomes)
     const f = frames.find((x) => x.name === `${tell.species}_${pose}`);
     const sp = content.birds.tells.species.find((s) => s.id === tell.species);
     if (f !== undefined && sp !== undefined) {
-      let fr = resize(crop(sheet, f.x * 2, f.y * 2, f.w * 2, f.h * 2), f.w, f.h);
+      const k = sp.scale;
+      const fw = Math.round(f.w * k);
+      const fh = Math.round(f.h * k);
+      let fr = resize(crop(sheet, f.x * 2, f.y * 2, f.w * 2, f.h * 2), fw, fh);
       const facing = tell.facing ?? 1;
       if (facing === -1) fr = flipX(fr);
-      const ox = facing === -1 ? f.w - f.ox : f.ox;
-      over(cell, fr, px + tell.ox - ox, py + tell.oy - f.oy);
+      const ox = (facing === -1 ? f.w - f.ox : f.ox) * k;
+      over(cell, fr, px + tell.ox - ox, py + tell.oy - f.oy * k);
       ellipse(
         cell,
-        px + tell.ox + sp.hit.ox * facing,
-        py + tell.oy + sp.hit.oy,
-        sp.hit.rx,
-        sp.hit.ry,
+        px + tell.ox + sp.hit.ox * k * facing,
+        py + tell.oy + sp.hit.oy * k,
+        sp.hit.rx * k,
+        sp.hit.ry * k,
         [40, 90, 230],
       );
     }

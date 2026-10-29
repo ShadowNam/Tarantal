@@ -501,8 +501,11 @@ export const TellsSchema = obj({
       obj({
         /** Its name is the guide table's `guide.tell.<id>` (en/af/de/nl). */
         id,
-        /** The hit shape round the animal's feet (oy up < 0). */
+        /** The hit shape round the animal's feet (oy up < 0), at scale 1. */
         hit: ellipseBox,
+        /** Review R9: drawn (and hit) this many times its sheet size, so a small animal still
+         *  reads at play distance (≥ ~14 screen px at 1280 px wide on the mid plane). */
+        scale: pos,
       }),
     )
     .min(1),

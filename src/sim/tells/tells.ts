@@ -70,7 +70,13 @@ export function createTells(
       x: p.x,
       y: p.y,
       facing: p.facing,
-      hit: sp.hit,
+      // Review R9: the hit shape grows with the drawing.
+      hit: {
+        rx: sp.hit.rx * sp.scale,
+        ry: sp.hit.ry * sp.scale,
+        ox: sp.hit.ox * sp.scale,
+        oy: sp.hit.oy * sp.scale,
+      },
       phase: 'rest',
       t: 0,
       dur: ticks(rng, T.actEverySeconds),

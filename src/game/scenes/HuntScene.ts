@@ -2148,7 +2148,12 @@ export class HuntScene extends Phaser.Scene {
     void import('../view/tell/TellView')
       .then((m) => {
         if (gen !== this.tellsGen) return;
-        this.tells = new m.TellView(this, this.parallax, () => performance.now());
+        this.tells = new m.TellView(
+          this,
+          this.parallax,
+          () => performance.now(),
+          new Map(this.ctx.content.birds.tells.species.map((s) => [s.id, s.scale])),
+        );
       })
       .catch(() => {
         // Offline without the chunk cached: the secrets simply show no tell.
