@@ -689,7 +689,10 @@ export function veldSprite(
   const f = veldFrameFor(kind, size, v);
   const def = VELD_FRAMES[f];
   if (def === undefined) return '';
-  const s = size / def.ref;
+  // Never far from the drawn size (no shimmer from downscales, no blur from upscales); too
+  // small to see: left out.
+  if (size < def.ref * 0.3) return '';
+  const s = Math.min(1.6, Math.max(0.4, size / def.ref));
   // Outside a collection (the HD layer render, previews) the ground cover is left out: the
   // sheet and VeldView draw it.
   veldSink?.push([

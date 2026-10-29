@@ -579,7 +579,10 @@ function mid(ctx: LayerCtx): string {
     y1: 905,
     h: [7, 26],
     gap: 46,
-    draw: (x, y, h) => veldSprite(ctx.rnd, 'mid', ctx.rnd() < 0.35 ? 'tuft' : 'grass', x, y, h),
+    draw: (x, y, h) =>
+      ctx.rnd() < 0.35
+        ? veldSprite(ctx.rnd, 'mid', 'tuft', x, y, h * 0.55)
+        : veldSprite(ctx.rnd, 'mid', 'grass', x, y, h),
     look: sandy,
   });
   for (let x = 30 + ctx.rnd() * 200; x < w; x += 140 + ctx.rnd() * 380) {
@@ -660,7 +663,7 @@ function near(ctx: LayerCtx): string {
     draw: (x, y, h) => {
       const r = ctx.rnd();
       const kind = r < 0.12 && h > 30 ? 'dry' : r < 0.4 ? 'tuft' : 'grass';
-      return veldSprite(ctx.rnd, 'near', kind, x, y, h);
+      return veldSprite(ctx.rnd, 'near', kind, x, y, kind === 'tuft' ? h * 0.55 : h);
     },
     look,
     avoid: (_x, y) => y > 905 && y < 965 && ctx.rnd() < 0.7,

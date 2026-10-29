@@ -411,6 +411,7 @@ const hook: TestHook = {
   secretBarks: [],
   fruit: null,
   treeLife: null,
+  namibLife: null,
   meerkatMs: 0,
   reloadFx: { chipIcons: [], bolts: 0, oupaHand: false, autoReloads: 0 },
   mirage: false,

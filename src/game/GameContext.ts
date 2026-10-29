@@ -7,6 +7,7 @@ import type { Biome, ContentBundle, DailyMeta, Feel, Notaboek } from '../content
 import type { ChallengeDecode } from '../meta/challenge';
 import type { FruitHookSpot } from './view/fruit/FruitView';
 import type { TreeLifeHook } from './view/tree/TreeLifeView';
+import type { NamibLifeHook } from './view/namib/NamibLifeView';
 import type { LoadStatus, SaveStore } from '../meta/save';
 import type { StorageStatus } from '../meta/storage';
 import type { ErrorReport, PlatformAdapter } from '../platform/PlatformAdapter';
@@ -462,6 +463,8 @@ export interface TestHook {
   /** 1.9.4 (D-057): the trees' residents on screen (design px) and near shots that startled
    *  them (null: no tree life on this map, or its chunk is not in yet). */
   treeLife: TreeLifeHook | null;
+  /** v1.7d (D-059): the Namibië veld life (null: not a Namibië map, or its chunk not in yet). */
+  namibLife: NamibLifeHook | null;
   /** v1.7c (D-047): the fruit view (null until its chunk is in, or a map without fruit): fruit
    *  placed, pellet hits and drops this hunt, fruit swinging now, and the fruit on screen. */
   fruit: {

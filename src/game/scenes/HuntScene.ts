@@ -61,6 +61,7 @@ import { MeerkatView } from '../view/MeerkatView';
 import { CanView } from '../view/cans/CanView';
 import type { MakalaniView } from '../view/palms/MakalaniView';
 import type { TreeLifeView } from '../view/tree/TreeLifeView';
+import type { NamibLifeView } from '../view/namib/NamibLifeView';
 import { playPotjieSound } from '../view/potjieSounds';
 import { playMeerkatSound } from '../audio/meerkatSounds';
 import { largestTextures, textureBytes } from '../assets/textureBytes';
@@ -141,6 +142,9 @@ export class HuntScene extends Phaser.Scene {
   private fruitGen = 0;
   /** 1.9.4 (D-057): the trees' residents (lazy chunk; null until it is in, or no baobab). */
   private treeLife: TreeLifeView | null = null;
+  /** v1.7d (D-059): the Namibië veld life (its own lazy chunk). */
+  private namibLife: NamibLifeView | null = null;
+  private namibLifeGen = 0;
   private treeLifeGen = 0;
   /** Family nests by prop id (layer, x on it): the weavers' scolding is panned from here. */
   private weaverNests = new Map<string, { layer: string; x: number }>();
@@ -540,6 +544,7 @@ export class HuntScene extends Phaser.Scene {
     this.makalaniArgs = { scales, weights };
     this.loadFruit(mapBiome);
     this.loadTreeLife(mapBiome, scales);
+    this.loadNamibLife(mapBiome);
     this.weapon = new WeaponView(
       this,
       this.ctx.feel,
@@ -1802,6 +1807,7 @@ export class HuntScene extends Phaser.Scene {
     // Interpolated like the birds and the camera (a held frame keeps alpha 0: it holds).
     this.fruit?.update(state, width, state.tick - 1 + alpha);
     this.treeLife?.update(state, alpha);
+    this.namibLife?.update(width);
     for (const cue of this.meerkats.cues) {
       const pan = (cue.screenX - width / 2) / (width / 2);
       // Only colonies on screen (or just off it) are heard.
@@ -2015,6 +2021,7 @@ export class HuntScene extends Phaser.Scene {
               spots: this.fruit.spots(),
             };
       hook.treeLife = this.treeLife?.hook() ?? null;
+      hook.namibLife = this.namibLife?.hook() ?? null;
       hook.mirage = state.mirage;
       hook.durationTicks = state.durationTicks;
     }
@@ -2104,6 +2111,22 @@ export class HuntScene extends Phaser.Scene {
       })
       .catch(() => {
         // Offline without the chunk cached: the tree simply has no residents.
+      });
+  }
+
+  /** v1.7d (D-059): the Namibië veld-life chunk, for a Namibië map. */
+  private loadNamibLife(mapBiome: Biome): void {
+    this.namibLife?.destroy();
+    this.namibLife = null;
+    const gen = ++this.namibLifeGen;
+    if (mapBiome.id !== 'namibie') return;
+    void import('../view/namib/NamibLifeView')
+      .then((m) => {
+        if (gen !== this.namibLifeGen || !m.wantsNamibLife(mapBiome)) return;
+        this.namibLife = new m.NamibLifeView(this, mapBiome, this.parallax);
+      })
+      .catch(() => {
+        // Offline without the chunk cached: the sand shows without its ground cover.
       });
   }
 
@@ -2595,6 +2618,9 @@ export class HuntScene extends Phaser.Scene {
     this.treeLife?.destroy();
     this.treeLife = null;
     this.treeLifeGen++;
+    this.namibLife?.destroy();
+    this.namibLife = null;
+    this.namibLifeGen++;
     this.game.canvas.style.cursor = '';
   }
 }
