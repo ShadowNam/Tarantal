@@ -1,11 +1,11 @@
 {
  "schema": 1,
- "updated": "2026-10-29T00:35:00Z",
+ "updated": "2026-10-29T06:30:00Z",
  "by": "Claude",
- "summary": "Live on the test build: the Android test app (1.9.5, merged 02:26 Namibia time on 29 Oct): friends can install Tarantal Madness on an Android phone from https://shadownam.github.io/Tarantal/android/ (about 32 MB, all the art inside, plays offline; the back button pauses a hunt). Before it, tree life (1.9.4): the baobab with animals in its hollows, the sausage tree, weavers and a pygmy falcon at the nests. Tank is building Namibië veld life now (detailed grass and sand, ostriches and their nest, oryx in the mirage, hot-air balloons; until about 08:30). Then the realistic Bushveld with a new secret marker (your A/B/C pick is needed), baboons, The Harvest, the Christmas and New Year Dailies and v1.9–v1.13; Oupa's new voices last.",
+ "summary": "Live on the test build: Season Run \"Save & leave\" (1.9.6, merged 08:23 Namibia time on 29 Oct, your request after playing the Android app): the Farm Stall, the result after each hunt and the hunt card all have Save & leave; the Android back button does the same; the title shows e.g. \"Autumn · hunt 2 of 3 · 12 caps\" over Continue run. The Android app link https://shadownam.github.io/Tarantal/android/ gets 1.9.6 with the next deploy. Overnight two test fixes went in too (the Halloween owl test and the Android back-button test). Tank's Namibië veld life (1.9.7: grass and sand, ostriches and their nest, oryx in the mirage, hot-air balloons) is in its final screenshot round. Then the realistic Bushveld with a new secret marker (your A/B/C pick is needed; A by default after 10:00), baboons, The Harvest, the Christmas and New Year Dailies and v1.9–v1.13; Oupa's new voices last.",
  "current": {
-  "version": "1.9.5",
-  "commit": "412cfac"
+  "version": "1.9.6",
+  "commit": "fc0412c"
  },
  "links": [
   {
@@ -36,13 +36,13 @@
  "numbers": [
   {
    "label": "Version on the test build",
-   "value": "1.9.5",
-   "note": "commit 412cfac, merged 29 Oct, 02:25 Namibia time (the test build deploys a few minutes after)"
+   "value": "1.9.6",
+   "note": "commit fc0412c, merged 29 Oct, 08:23 Namibia time (the test build deploys a few minutes after)"
   },
   {
    "label": "Pull requests merged",
-   "value": "93",
-   "note": "#1 to #96"
+   "value": "96",
+   "note": "#1 to #100"
   },
   {
    "label": "Unit tests",
@@ -70,8 +70,8 @@
   },
   {
    "label": "Decisions logged",
-   "value": "58",
-   "note": "D-001 to D-058 on main"
+   "value": "59",
+   "note": "D-001 to D-060 on main"
   }
  ],
  "needsYou": [
@@ -2643,9 +2643,30 @@
    "date": "27 Oct, 22:45",
    "text": "Far animals: shrink another 5%, and the ostriches are still too big",
    "outcome": "All herds 0.57 of true size, ostriches 0.45; in the far animals job"
+  },
+  {
+   "date": "29 Oct, 07:35",
+   "text": "Season Run: no way out of the Farm Stall; keep the bottle caps to use later",
+   "outcome": "Built and merged as 1.9.6 (Save & leave, D-060)",
+   "job": "season-run-save-leave-your-request-after"
   }
  ],
  "activity": [
+  {
+   "at": "2026-10-29T06:23:00Z",
+   "kind": "merge",
+   "text": "Season Run Save & leave merged (1.9.6, #100): a way out of the Farm Stall, your caps kept in the run."
+  },
+  {
+   "at": "2026-10-29T04:32:00Z",
+   "kind": "merge",
+   "text": "Test fix merged (#99): the Android back button reaches the game from the first moment in the browser test build."
+  },
+  {
+   "at": "2026-10-29T02:26:00Z",
+   "kind": "merge",
+   "text": "Test fix merged (#98): the Halloween owl test now plays a fixed day's map."
+  },
   {
    "at": "2026-10-29T00:30:00Z",
    "kind": "note",
