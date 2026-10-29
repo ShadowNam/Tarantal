@@ -118,17 +118,6 @@ function forget<T>(cache: Map<string, Promise<T | null>>, path: string, p: Promi
 }
 
 const images = new Map<string, Promise<HTMLImageElement | null>>();
-/**
- * v1.7e (review R12): each image's own load, with no timeout. A lazy file (the late group, an
- * area chunk) on a slow connection can outlive its timeout and still arrive: the manifest takes
- * it then (imageArrival), so views that poll for it (TellView, FruitView, FaunaView) show it.
- */
-const arrivals = new Map<string, Promise<HTMLImageElement | null>>();
-
-/** The image at `path` when it finally loads (null if it fails or was never asked for). */
-export function imageArrival(path: string): Promise<HTMLImageElement | null> {
-  return arrivals.get(path) ?? Promise.resolve(null);
-}
 const jsons = new Map<string, Promise<unknown>>();
 const buffers = new Map<string, Promise<ArrayBuffer | null>>();
 
@@ -140,8 +129,6 @@ export function loadImage(path: string, timeoutMs: number): Promise<HTMLImageEle
     img.decoding = 'async';
     const load = new Promise<HTMLImageElement | null>((resolve) => {
       img.onload = () => {
-        // Arrived after its timeout dropped it from the cache: cache it again (no refetch).
-        if (!images.has(path)) images.set(path, Promise.resolve(img));
         resolve(arrived(path, img));
       };
       img.onerror = () => {
@@ -149,7 +136,6 @@ export function loadImage(path: string, timeoutMs: number): Promise<HTMLImageEle
       };
     });
     img.src = path;
-    arrivals.set(path, load);
     p = forget(
       images,
       path,

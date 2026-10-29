@@ -86,7 +86,8 @@ describe('tell animals (D-061)', () => {
     let back = false;
     for (let k = 0; k < 60 * 12 && !back; k++) {
       s.step([]);
-      back = s.drainEvents().some((e) => e.type === 'tellBack' && e.tellId === t.id);
+      s.drainEvents();
+      back = s.snapshot().tells.find((x) => x.id === t.id)?.phase !== 'gone';
     }
     expect(back).toBe(true);
   });

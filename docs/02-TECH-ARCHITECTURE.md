@@ -501,7 +501,7 @@ secret is ready), and a hit sends it away for `goneSeconds`; once its secret is 
 for the hunt. Draws come only from the `tells` stream, in tell order. While present its ellipse
 is a hit extra on the prop's layer (after the secret parts; `PelletResult.tellId`): it stops the
 pellet (a stone too), counts as hitting a thing (no Frenzy change, D-021) and costs nothing;
-`tellSpooked` / `tellBack` events. The snapshot's `tells` carry phase and ticks; `TellView` (a lazy
+a `tellSpooked` event (its return shows in the snapshot's phase). The snapshot's `tells` carry phase and ticks; `TellView` (a lazy
 chunk) draws from them only, on sim time, and holds on a held frame. Content checks
 (`src/content/tellChecks.ts`): every paying secret has a tell and no penalty prop has one, one
 secret per species, the hit shape (+4 px) never touches the secret's part or a rotor's sweep.

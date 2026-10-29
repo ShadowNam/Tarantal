@@ -2846,8 +2846,7 @@ export function createSim(config: SimConfig): Sim {
   function stepTells(): void {
     for (const t of tells) {
       const s = secrets.find((x) => x.propId === t.propId);
-      const back = stepTell(t, tellT, tellRng, s?.done ?? true, s !== undefined && isReady(s));
-      if (back === 'back') emit({ type: 'tellBack', tick, tellId: t.id });
+      stepTell(t, tellT, tellRng, s?.done ?? true, s !== undefined && isReady(s));
     }
   }
 

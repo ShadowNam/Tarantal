@@ -15,7 +15,6 @@ vi.mock('./finalLoader', () => ({
   loadImage: (path: string) => Promise.resolve(FAILING.test(path) ? null : {}),
   loadJson: () => Promise.resolve({}),
   loadBytes: () => Promise.resolve(null),
-  imageArrival: () => Promise.resolve(null),
 }));
 
 describe('neededLateMissing', () => {

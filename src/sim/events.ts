@@ -693,12 +693,6 @@ export type SimEvent =
       readonly shotId: number;
       readonly tellId: number;
       readonly propId: string;
-    }
-  /** v1.7e (D-061): the tell animal is back at its secret after a hit. */
-  | {
-      readonly type: 'tellBack';
-      readonly tick: number;
-      readonly tellId: number;
     };
 
 /** 1.9.3 (D-056): what nutKnocked and nutJuggled carry. */

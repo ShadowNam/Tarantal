@@ -93,7 +93,6 @@ export function tellHitCentre(t: TellState): { x: number; y: number } {
 /**
  * One tick. `spent`: its secret has paid out for the hunt (it leaves and stays away). `ready`:
  * the secret can be set off now (a cooling-down secret's tell rests without acting).
- * Returns 'back' on the tick it comes back after a hit.
  */
 export function stepTell(
   t: TellState,
@@ -101,20 +100,18 @@ export function stepTell(
   rng: RandomStream,
   spent: boolean,
   ready: boolean,
-): 'back' | null {
+): void {
   t.t++;
   if (spent) {
     if (!t.left) {
       t.left = true;
       enter(t, 'gone', 0);
     }
-    return null;
+    return;
   }
-  if (t.t < t.dur) return null;
-  const back = t.phase === 'gone';
+  if (t.t < t.dur) return;
   if (t.phase === 'rest' && ready) enter(t, 'act', Math.max(1, secondsToTicks(T.actSeconds)));
   else enter(t, 'rest', ticks(rng, T.actEverySeconds));
-  return back ? 'back' : null;
 }
 
 function enter(t: TellState, phase: TellPhase, dur: number): void {

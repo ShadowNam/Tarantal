@@ -18,7 +18,7 @@ import { COMMON_GROUP, LATE_GROUP, VER_GROUP, sharedTileKeys } from './assetInde
 import type { FaunaFrames } from '../view/faunaHerds';
 import { DESERT_GROUP } from './desertAssets';
 import { atlasRegion, checkAtlas, checkBirdAtlas, type AtlasRegion } from './atlasCheck';
-import { imageArrival, loadBytes, loadImage, loadJson } from './finalLoader';
+import { loadBytes, loadImage, loadJson } from './finalLoader';
 import { halveTexture, type TextureLike } from './hdTexture';
 
 /** A texture drawn at runtime onto a canvas. Origin is in texture pixels. */
@@ -204,6 +204,9 @@ export function neededLateMissing(
 }
 
 export const MAX_TILE_WIDTH = 2048;
+
+/** v1.7e (review R12): how many times the normal timeout a late or Ver image may take. */
+export const LAZY_TIMEOUT_MUL = 8;
 
 /** Placeholders upgrade() has renamed out of the way (keeps their new keys unique). */
 let retiredPlaceholders = 0;
@@ -485,18 +488,14 @@ export class AssetManifest {
       queue(
         entry.group,
         () =>
-          loadImage(entry.file.path, o.timeoutMs).then((img) => {
-            if (img === null) {
-              // v1.7e (review R12): a lazy file (not the first download) that outlived its
-              // timeout is still taken when it lands; views that poll upgrade() pick it up.
-              if (!index.initialGroups.includes(entry.group))
-                void imageArrival(entry.file.path).then((late) => {
-                  if (late === null || this.finalImages.has(key)) return;
-                  this.finalImages.set(key, { img: late, entry });
-                  this.mark(key, entry.origin);
-                });
-              return;
-            }
+          // v1.7e (review R12): a late or Ver image gets LAZY_TIMEOUT_MUL × the timeout: on a
+          // slow connection it may land mid-hunt (TellView, FruitView, FaunaView poll for it);
+          // dropped at 15 s it was lost for the session's hunts.
+          loadImage(
+            entry.file.path,
+            o.timeoutMs * (backgroundGroup(entry.group) ? LAZY_TIMEOUT_MUL : 1),
+          ).then((img) => {
+            if (img === null) return;
             this.finalImages.set(key, { img, entry });
             this.mark(key, entry.origin);
           }),
