@@ -3310,6 +3310,15 @@ very rough still". Decided:
   2,991.6); Namibië + desert 1,456 KB of 1,536 (main 1,483.5); Kalahari + desert 1,377 KB.
 - *Balance:* `docs/balance/v1.7d-namibie-life.md` (before = this build without the pairs and the
   balloon events).
+- *Perf (review, CI run 40842297447: Pixel 7 Namibië CPU 17.6 ms against 16.67, HD memory sampled
+  with the Karoo's HD layers still in):* the ground cover is **baked** into DynamicTexture strips
+  (1024-px columns trimmed to their tufts, 15 pieces, 13.7 MB, Standard resolution in HD too; the
+  veld sheet has no HD twin), the nest and its eggs into one clutch image; the veld life's
+  per-frame update allocates nothing and sets only what changed, the oryx reflection copies the
+  herd's pose, off-screen balloons are hidden; layer tiles with the same file share one texture
+  (Namibië's five identical empty HD foreground tiles: −12.5 MB). The veld life has its own
+  timer (`namibLifeMs`, ≤ 0.5 ms a frame at 4×); the HD-memory test waits (bounded) for two HD
+  refreshes and no other area's HD layers, since refreshHd runs every 30 rendered frames.
 
 
 ## 3. Research notes (with sources)
