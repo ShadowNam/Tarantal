@@ -8,7 +8,7 @@
 //          [--layout mon..sun] [--bonus verder|nogVerder|dieVerste]  (v1.2/v1.3 maps)
 //          [--feesdag halloween]  (D-048 special day; with --mode daily)
 //          [--weapon <id>] [--sight iron|peep|scope_small]  (v1.3: e.g. the Twee-Twee)
-//          [--out tmp/x.json] [--json]
+//          [--from 1] (first seed)  [--out tmp/x.json] [--json]
 //        npm run balance -- --run …   Season Runs per charm policy (see tools/season-sim.ts)
 // --omen overrides the mode's omen (modes.json: Classic off, Daily on).
 import { fork } from 'node:child_process';
@@ -330,7 +330,9 @@ async function main(): Promise<void> {
   );
   const started = performance.now();
 
-  const all = Array.from({ length: seeds }, (_, i) => i + 1);
+  // v1.8c: --from N runs seeds N … N + seeds − 1 (100-seed chunks on a small box).
+  const from = Math.max(1, Number(arg('from', '1')));
+  const all = Array.from({ length: seeds }, (_, i) => i + from);
   const jobs: Job[] = [];
   for (const bot of bots) {
     const chunk = Math.ceil(seeds / workers);
