@@ -3,12 +3,12 @@
   "images": {
     "baboons/sheet": {
       "file": {
-        "path": "assets/baboons-hd/img/baboons_sheet.781fcb1ba46d.png",
-        "bytes": 176710,
-        "hash": "781fcb1ba46d"
+        "path": "assets/baboons-hd/img/baboons_sheet.4e1d0d0ae139.png",
+        "bytes": 178364,
+        "hash": "4e1d0d0ae139"
       },
       "width": 1512,
-      "height": 1756,
+      "height": 1820,
       "scale": 0.5
     },
     "bushveld/aloe_a": {

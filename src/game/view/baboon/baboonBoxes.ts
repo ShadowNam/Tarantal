@@ -34,7 +34,7 @@ export const BABOON_BOXES = {
   r_mother_walk_b: { w: 73, h: 72, ox: 39, oy: 66 },
   r_down: { w: 76, h: 73, ox: 44, oy: 59 },
   r_up: { w: 71, h: 66, ox: 39, oy: 59 },
-  r_rock: { w: 480, h: 88, ox: 240, oy: 82 },
+  r_rock: { w: 480, h: 120, ox: 240, oy: 113 },
   fx_fruit: { w: 26, h: 30, ox: 12, oy: 15 },
   fx_water: { w: 60, h: 42, ox: 4, oy: 7 },
 } as const;

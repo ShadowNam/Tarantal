@@ -671,8 +671,9 @@ the far plane's size (54 px): sit, groom, look, the lookout's bark (2), walk (2)
 mother sitting and walking (2), climbing down and up; plus the thrown fruit and the tap's water.
 Youngsters are the male frames at 0.56, mothers their own frames at 0.82. The far frames have
 darker, warmer fur than the raiders (they sit against the far ridge's pale haze) and a 1.45×
-baby, so a mother reads at 1× on a phone. `r_rock`: a weathered granite outcrop (420 × 72 ridge
-px, `troopRock.ts`) drawn under a troop whose ridge has no high ground where it sits. Checks: every seat on its
+baby, so a mother reads at 1× on a phone. `r_rock`: a weathered granite outcrop (428 × 100 ridge
+px, `troopRock.ts`) drawn under a troop whose ridge has no high ground where it sits, its base
+behind the far veld's top edge (the Okavango's far bank: a koppie in front of the treeline). Checks: every seat on its
 ridge's skyline, every frame clear of its box's edges and on its feet (`tools/art/baboonArt.test.ts`).
 **Sounds** (synths in the lazy view until recordings are delivered under `sfx/baboon_*`): the
 lookout's two-note "wa-hoo" bark, a hit raider's screech, each raid's own sound (the tap's water,

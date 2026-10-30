@@ -10,4 +10,4 @@ export const BABOON_SHEET = 'baboons/sheet';
 export const BABOON_GROUP = 'baboons';
 /** Sheet size, design px at 1× (baboonSheet.ts packs the frames into it). */
 export const BABOON_SHEET_W = 756;
-export const BABOON_SHEET_H = 878;
+export const BABOON_SHEET_H = 910;

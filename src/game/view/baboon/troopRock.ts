@@ -6,7 +6,7 @@
 
 /** Half the rock's width at its base, and its height in the middle. */
 export const ROCK_HALF_W = 214;
-export const ROCK_H = 72;
+export const ROCK_H = 100;
 
 /** The rock's top at dx (≤ 0: above the base; 0 past its ends). A low dome with a few knobs. */
 export function rockTop(dx: number): number {
