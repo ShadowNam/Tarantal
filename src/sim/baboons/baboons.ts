@@ -204,9 +204,10 @@ function roles(n: number, T: BaboonTuning, rng: RandomStream): BaboonRole[] {
   while (1 + mothers + juveniles + 1 > n && juveniles > 0) juveniles--;
   while (1 + mothers + juveniles + 1 > n && mothers > 0) mothers--;
   const males = n - 1 - mothers - juveniles;
+  // Mothers choose their seats first (the highest), after the lookout's.
   const out: BaboonRole[] = ['lookout'];
-  for (let i = 0; i < males; i++) out.push('male');
   for (let i = 0; i < mothers; i++) out.push('mother');
+  for (let i = 0; i < males; i++) out.push('male');
   for (let i = 0; i < juveniles; i++) out.push('juvenile');
   return out;
 }
@@ -239,7 +240,15 @@ export function createTroop(
   };
   for (const role of roles(n, T, rng)) {
     let seat = def.lookout;
-    if (role !== 'lookout') {
+    if (role === 'mother') {
+      // Mothers take the highest seats left (furthest from the far flocks below the ridge, so a
+      // near miss at a bird lands on a male, never on a mother) and stay there.
+      let k = 0;
+      for (let i = 1; i < free.length; i++)
+        if ((seats[free[i] ?? 0]?.y ?? 0) < (seats[free[k] ?? 0]?.y ?? 0)) k = i;
+      seat = free[k] ?? 0;
+      free.splice(k, 1);
+    } else if (role !== 'lookout') {
       const k = rng.int(0, free.length - 1);
       seat = free[k] ?? 0;
       free.splice(k, 1);
@@ -334,7 +343,8 @@ function choose(troop: TroopState, b: Baboon, ctx: BaboonCtx): void {
     b.role === 'lookout' ? 0 : a.groom,
     look,
     b.role === 'juvenile' ? a.play : 0,
-    b.role === 'lookout' ? 0 : a.walk,
+    // The lookout keeps his seat, and mothers theirs (the highest, see createTroop).
+    b.role === 'lookout' || b.role === 'mother' ? 0 : a.walk,
   ];
   const i = r.weightedIndex(weights);
   const dur = ticks(r, T.troop.activitySeconds);

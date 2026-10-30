@@ -6,6 +6,7 @@
 # biomes: e.g. "karoo-autumn:2 namibie:3"; maps: e.g. "mon tue sat+verder" (default: 7 weekdays).
 # Appends one line per biome, map, side and bot: biome, map, side, gun, bot, mean, penalties/hunt.
 # WORKERS (default 1) sets balance-sim's worker processes (this box runs out of memory with many).
+# SIDES (default "before after") runs one side only (e.g. SIDES=after after a change to the troops).
 set -eu
 seeds=$1; out=$2; biomes=$3
 maps=${4:-}; [ -n "$maps" ] || maps="mon tue wed thu fri sat sun"
@@ -19,7 +20,7 @@ for bi in $biomes; do
     layout=${map%%+*}
     bonus=''
     case $map in *+*) bonus="--bonus ${map#*+}" ;; esac
-    for side in before after; do
+    for side in ${SIDES:-before after}; do
       if [ $side = before ]; then set -- --set "biomes.$i.baboons.troops=[]"; else set --; fi
       # shellcheck disable=SC2086
       npx tsx tools/balance-sim.ts --seeds "$seeds" --bots "$bots" --biome "$biome" \

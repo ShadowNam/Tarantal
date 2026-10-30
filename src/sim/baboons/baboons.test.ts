@@ -247,6 +247,27 @@ describe('baboon troops (D-062)', () => {
     expect(s.snapshot().baboons?.troops[0]?.members.some((m) => m.pose !== 'out')).toBe(true);
   });
 
+  it('mothers sit on the highest seats (after the lookout) and stay there', () => {
+    for (const id of ['karoo-autumn', 'okavango-spring', 'namibie', 'bushveld-winter']) {
+      const s = sim(quiet(id), 4, {}, id);
+      const t = s.snapshot().baboons?.troops[0];
+      if (t === undefined) throw new Error(id);
+      const mothers = t.members.filter((m) => m.role === 'mother');
+      const others = t.members.filter((m) => m.role !== 'mother' && m.role !== 'lookout');
+      expect(mothers.length).toBeGreaterThan(0);
+      // Highest = smallest y: every mother sits at least as high as every other member but the lookout.
+      for (const m of mothers) for (const o of others) expect(m.y, id).toBeLessThanOrEqual(o.y);
+      const at = new Map(mothers.map((m) => [m.id, m.x]));
+      for (let k = 0; k < 60 * 120; k++) {
+        s.step([]);
+        s.drainEvents();
+        for (const m of s.snapshot().baboons?.troops[0]?.members ?? [])
+          if (m.role === 'mother' && m.pose !== 'out' && m.pose !== 'down' && m.pose !== 'up')
+            expect(m.x, `${id} mother ${m.id}`).toBe(at.get(m.id));
+      }
+    }
+  });
+
   it('mothers and youngsters never raid; raiders are always males', () => {
     const c = quiet();
     c.birds.baboons.raids.pairChance = 1;
