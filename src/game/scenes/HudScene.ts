@@ -825,6 +825,19 @@ export class HudScene extends Phaser.Scene {
     const firstPickup = this.rangeOn ? null : this.pickups(s, events, l);
     this.updateBarks(s, events, now, l, firstPickup);
     const banner: string[] = [];
+    // D-065 (e2e): the last score awards with their pipeline steps (the countdown's ×2).
+    const hook = this.ctx.hook;
+    if (hook)
+      for (const e of events)
+        if (e.type === 'scoreAwarded') {
+          hook.awards.push({
+            tick: e.tick,
+            award: e.award,
+            mult: e.mult,
+            kinds: e.breakdown.map((b) => b.kind),
+          });
+          if (hook.awards.length > 20) hook.awards.shift();
+        }
     for (const e of events) {
       if (e.type === 'secretTriggered' && e.propId === FAMILIEFOTO_SECRET) {
         // v1.7 (D-044): the Familiefoto has its own banner and line (the familiefoto event).
