@@ -131,6 +131,7 @@ interface KersfeesHook {
     baubles: number;
     found: number | null;
     sheet: 'hd' | 'standard' | 'standin';
+    crowns: { id: string; x: number; y: number; w: number; h: number }[];
   };
 }
 
@@ -237,6 +238,8 @@ export class HuntScene extends Phaser.Scene {
   /** D-048: the special day this hunt plays (null on an ordinary hunt) and its look. */
   private special: Feesdag | null = null;
   private spookView: SpecialDayView | null = null;
+  /** e2e: the tweens and animations were frozen by a hold (restored when it is lifted). */
+  private heldTweens = false;
   /** v1.2: UTC day the hunt started (its layout is that day's; Verder unlocks for that day). */
   private huntDay = 0;
   /** Real time of the next Stampede rumble shake. */
@@ -1948,6 +1951,14 @@ export class HuntScene extends Phaser.Scene {
       this.anims.globalTimeScale = 0;
       // v1.0.1: the HUD's tweens too (Oupa's bubble holds where it is).
       this.scene.get('Hud').tweens.timeScale = 0;
+      this.heldTweens = true;
+    } else if (!runner.held && this.heldTweens) {
+      // D-064: a page hold lifted (__TM_HOLD_AT__ moved on): tweens and animations run again
+      // (they stayed frozen before, so a later frame still showed the held flash and pops).
+      this.heldTweens = false;
+      this.tweens.timeScale = 1;
+      this.anims.globalTimeScale = 1;
+      this.scene.get('Hud').tweens.timeScale = 1;
     }
     // M10: the music follows the hunt's intensity (calm / build / stampede).
     this.ctx.audio.setIntensity(stemFor(runner.over ? null : state, this.ctx.feel.audio));
@@ -2077,6 +2088,8 @@ export class HuntScene extends Phaser.Scene {
         x: Math.round(c.root.x),
         y: Math.round(c.root.y),
       };
+      // D-064 (screenshot spec): the gun's rect, so a close-up can keep the barrel off it.
+      this.ctx.hook.rects['gun'] = this.weapon.gunRect();
       // v1.3: the rifle zoom view (the reticle is where a release fires, on screen).
       const z = this.zoomView;
       this.ctx.hook.zoom = {

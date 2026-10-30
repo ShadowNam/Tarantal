@@ -137,6 +137,7 @@ test.describe('Feesdae: Christmas in the sun (D-064)', () => {
       'harvestStatus',
       'runStatus',
       'dailyStatus',
+      'dailyBadge',
     ]) {
       const r = h.rects[id];
       if (oupa !== undefined && r !== undefined) expect(overlaps(oupa, r), id).toBe(false);
@@ -152,10 +153,23 @@ test.describe('Feesdae: Christmas in the sun (D-064)', () => {
     expect(h.spook?.tinsel?.prop).not.toBeNull();
     expect(h.spook?.tinsel?.garlands ?? 0).toBeGreaterThan(0);
     expect(h.spook?.heat ?? 0).toBeGreaterThan(0);
-    // Oupa opens Christmas (his lines are kept in the hook's log).
-    await page.waitForFunction((line) => window.__TM__?.barks.includes(line) === true, B.start, {
-      timeout: 120_000,
-    });
+    // Oupa opens Christmas (his lines are kept in the hook's log), his Santa-hat face on the
+    // bubble inside the screen (read in the frame that shows it).
+    const face = await page.waitForFunction(
+      (line) => {
+        const g = window.__TM__;
+        const r = g?.rects['barkPortrait'];
+        if (g === undefined || !g.barks.includes(line)) return null;
+        return r === undefined ? null : { r, w: g.designWidth, h: g.designHeight };
+      },
+      B.start,
+      { timeout: 120_000 },
+    );
+    const fr = (await face.jsonValue()) as { r: R; w: number; h: number };
+    expect(fr.r.x).toBeGreaterThanOrEqual(0);
+    expect(fr.r.y).toBeGreaterThanOrEqual(0);
+    expect(fr.r.x + fr.r.w).toBeLessThanOrEqual(fr.w);
+    expect(fr.r.y + fr.r.h).toBeLessThanOrEqual(fr.h);
 
     // The delivered sheet, then a present in view: its box is really drawn (pixels change where
     // it stands when the presents are hidden at the same held tick).
@@ -214,6 +228,19 @@ test.describe('Feesdae: Christmas in the sun (D-064)', () => {
     const tag = h.rects['tallyTag'];
     expect(head).toBeDefined();
     if (head !== undefined && tag !== undefined) expect(overlaps(head, tag)).toBe(false);
+    // Oupa's head and the present on the frame: on screen, clear of the buttons.
+    for (const piece of [head, h.rects['tallyPresent']]) {
+      expect(piece).toBeDefined();
+      if (piece === undefined) continue;
+      expect(piece.x).toBeGreaterThanOrEqual(0);
+      expect(piece.y).toBeGreaterThanOrEqual(0);
+      expect(piece.x + piece.w).toBeLessThanOrEqual(h.designWidth);
+      expect(piece.y + piece.h).toBeLessThanOrEqual(h.designHeight);
+      for (const id of ['again', 'menu', 'share']) {
+        const b = h.rects[id];
+        if (b !== undefined) expect(overlaps(piece, b), id).toBe(false);
+      }
+    }
     await tapRectInPage(page, touch, 'share');
     await page.waitForFunction(() => window.__TM__?.lastShare != null, null, { timeout: 30_000 });
     h = await hook(page);

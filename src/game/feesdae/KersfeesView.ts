@@ -245,6 +245,15 @@ export class KersfeesSceneView {
   foundPoints: number | null = null;
   /** e2e only: presents and tinsel hidden (__TM_XMAS_HIDE__). */
   private hidden = false;
+  /** Each decorated tree's crown (layer px): the hook gives its screen rect. */
+  private readonly crowns: {
+    id: string;
+    layer: string;
+    x0: number;
+    x1: number;
+    y0: number;
+    y1: number;
+  }[] = [];
   /** The trees the tinsel hangs on (props by id, layer trees as layer@u). */
   readonly tinselTrees: string[] = [];
   /** The rifle zoom the world is drawn at (1 = no sight up). */
@@ -332,6 +341,21 @@ export class KersfeesSceneView {
           this.glints.push({ img: glint, baubles: mine, phase: this.glints.length * 0.37 });
         }
         this.tinselTrees.push(at.id);
+        // The crown's box round every anchor (layer px), for the e2e hook's screen rects.
+        const pts = [
+          ...t.garlands.flatMap((gl) => [gl.from, gl.to]),
+          ...t.baubles.map((b) => b.at),
+        ];
+        const xs = pts.map((p) => p[0]);
+        const ys = pts.map((p) => p[1]);
+        this.crowns.push({
+          id: at.id,
+          layer: at.layer,
+          x0: at.x + Math.min(...xs),
+          x1: at.x + Math.max(...xs),
+          y0: at.y + Math.min(...ys),
+          y1: at.y + Math.max(...ys) + 40,
+        });
       }
     const hatsOn = d.decorations.includes('santaHats');
     this.hats = {
@@ -508,6 +532,7 @@ export class KersfeesSceneView {
     baubles: number;
     found: number | null;
     sheet: 'hd' | 'standard' | 'standin';
+    crowns: { id: string; x: number; y: number; w: number; h: number }[];
   } {
     return {
       prop: this.tinselTrees[0] ?? null,
@@ -516,6 +541,22 @@ export class KersfeesSceneView {
       baubles: this.baubles.length,
       found: this.foundPoints,
       sheet: this.sheetKind,
+      crowns: this.crowns.flatMap((c) => {
+        const node = this.parallax.layer(c.layer);
+        if (node === undefined) return [];
+        const k = node.root.scaleX;
+        const x = node.root.x + c.x0 * k;
+        const y = node.root.y + c.y0 * node.root.scaleY;
+        return [
+          {
+            id: c.id,
+            x: Math.round(x),
+            y: Math.round(y),
+            w: Math.round((c.x1 - c.x0) * k),
+            h: Math.round((c.y1 - c.y0) * node.root.scaleY),
+          },
+        ];
+      }),
     };
   }
 

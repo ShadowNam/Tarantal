@@ -577,6 +577,7 @@ export interface TestHook {
       baubles: number;
       found: number | null;
       sheet: 'hd' | 'standard' | 'standin';
+      crowns: { id: string; x: number; y: number; w: number; h: number }[];
     };
     heat?: number;
   } | null;
