@@ -27,7 +27,12 @@ import {
 const HALLOWEEN = loadContent().feesdae.specials.find((f) => f.id === 'halloween');
 if (HALLOWEEN === undefined) throw new Error('no halloween in feesdae.json');
 const B = HALLOWEEN.barks;
-const SPOOK_LINES = [B.start, B.bat, B.owl, B.lanternsOut, B.end];
+const SPOOK_LINES = [B.start, B.bat, B.owl, B.lanternsOut, B.end].filter(
+  (l): l is string => l !== undefined,
+);
+const TWIST = HALLOWEEN.twist;
+if (TWIST.rule !== 'spookjag') throw new Error('halloween is a spookjag');
+const OWL_LINE = B.owl ?? '';
 // No weather (the Daily's wind would drift the far shots), a short hunt.
 // 1.9.3 (D-056, review M20): palms=0 — the Daily's map (its seed follows the content hash) may
 // have makalani palms, whose nuts hang where the owls and bats fly: a pattern that hits the owl
@@ -118,8 +123,8 @@ test.describe('Feesdae: the Halloween Spookjag (D-048)', () => {
     expect(h.map?.lights).toEqual([HALLOWEEN.light]);
     expect(h.hudTag).toMatch(/^Spookjag · DAILY #\d+$/);
     const lanterns = h.spook?.things.filter((t) => t.kind === 'lantern') ?? [];
-    expect(lanterns.length).toBeGreaterThanOrEqual(HALLOWEEN.twist.lanterns.count[0]);
-    expect(lanterns.length).toBeLessThanOrEqual(HALLOWEEN.twist.lanterns.count[1]);
+    expect(lanterns.length).toBeGreaterThanOrEqual(TWIST.lanterns.count[0]);
+    expect(lanterns.length).toBeLessThanOrEqual(TWIST.lanterns.count[1]);
     // Oupa opens the Spookjag (read with the hook frame that has it).
     await page.waitForFunction(
       (line) => window.__TM__?.barks.includes(line) === true,
@@ -276,13 +281,9 @@ test.describe('Feesdae: the Halloween Spookjag (D-048)', () => {
       if (out !== -10) continue;
       // Oupa's scold (his lines are kept in the hook's log, so a later read still sees it).
       const bark = await page
-        .waitForFunction(
-          (line) => window.__TM__?.barks.includes(line) === true,
-          HALLOWEEN.barks.owl,
-          {
-            timeout: 15_000,
-          },
-        )
+        .waitForFunction((line) => window.__TM__?.barks.includes(line) === true, OWL_LINE, {
+          timeout: 15_000,
+        })
         .then(() => true)
         .catch(() => false);
       hit = { score: out, bark };

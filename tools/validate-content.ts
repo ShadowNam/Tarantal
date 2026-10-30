@@ -7,6 +7,7 @@ import { checkCrossRefs } from '../src/content/crossRefs';
 import { readContentDir, readI18nKeys } from '../src/content/loadNode';
 import { parseFeel } from '../src/content/feel';
 import { LANTERN_BARE_GROUND_PX, LANTERN_GROUND_PX } from '../src/game/feesdae/feesdaeAssets';
+import { PRESENT_GROUND_PX } from '../src/game/feesdae/christmasAssets';
 import { checkGunLook } from '../src/game/ui/gunLook';
 import { SFX_IDS } from '../src/game/audio/synth';
 import { parseDailyMeta } from '../src/content/daily';
@@ -93,12 +94,20 @@ for (const f of parsed.bundle.feesdae.specials)
 // D-048: a lantern's hit circle sits on the pumpkin of the sheet (feesdaeAssets.ts).
 for (const f of parsed.bundle.feesdae.specials)
   if (
-    f.twist.lanterns.lift !== LANTERN_GROUND_PX ||
-    f.twist.lanterns.liftBare !== LANTERN_BARE_GROUND_PX
+    f.twist.rule === 'spookjag' &&
+    (f.twist.lanterns.lift !== LANTERN_GROUND_PX ||
+      f.twist.lanterns.liftBare !== LANTERN_BARE_GROUND_PX)
   )
     errors.push({
       file: 'feesdae.json',
       message: `special "${f.id}": lanterns.lift/liftBare must be ${LANTERN_GROUND_PX}/${LANTERN_BARE_GROUND_PX} (the sheet's pumpkin above its ground line)`,
+    });
+// D-064: a present's hit ellipse sits on the box of the sheet (christmasAssets.ts).
+for (const f of parsed.bundle.feesdae.specials)
+  if (f.twist.rule === 'kersfees' && f.twist.presents.lift !== PRESENT_GROUND_PX)
+    errors.push({
+      file: 'feesdae.json',
+      message: `special "${f.id}": presents.lift must be ${PRESENT_GROUND_PX} (the sheet's box above its foot)`,
     });
 // D-048: a special's light is a preset too.
 for (const f of parsed.bundle.feesdae.specials)

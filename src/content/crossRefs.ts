@@ -533,14 +533,35 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
       err('feesdae.json', `special "${f.id}" plays unknown biome "${f.map.biome}"`);
     const b = f.barks;
     for (const k of [f.nameKey, f.badgeKey, b.start, b.bat, b.owl, b.lanternsOut, b.end])
-      i18n('feesdae.json', k);
+      if (k !== undefined) i18n('feesdae.json', k);
+    for (const k of [b.present, b.presentsFound, b.dry]) if (k !== undefined) i18n('feesdae.json', k);
+    const propIds = new Set(biomes.flatMap((x) => x.props.map((p) => p.id)));
     const tw = f.twist;
+    // D-064: Christmas's presents — each spot at a known prop, enough spots, its moments' lines.
+    if (tw.rule === 'kersfees') {
+      for (const s of tw.presents.spots)
+        if (!propIds.has(s.prop))
+          err('feesdae.json', `special "${f.id}": present spot at unknown prop "${s.prop}"`);
+      if (tw.presents.count[0] > tw.presents.count[1])
+        err('feesdae.json', `special "${f.id}": presents count out of order`);
+      // Every biome with present spots must hold the most presents the count can ask for.
+      for (const biome of biomes) {
+        const own = new Set(biome.props.map((p) => p.id));
+        const n = tw.presents.spots.filter((s) => own.has(s.prop)).length;
+        if (n > 0 && n < tw.presents.count[1])
+          err('feesdae.json', `special "${f.id}": ${biome.id} has ${n} present spots (< ${tw.presents.count[1]})`);
+      }
+      if (b.present === undefined || b.presentsFound === undefined)
+        err('feesdae.json', `special "${f.id}": the kersfees rule needs barks.present and barks.presentsFound`);
+      continue;
+    }
+    if (b.bat === undefined || b.owl === undefined || b.lanternsOut === undefined)
+      err('feesdae.json', `special "${f.id}": the spookjag rule needs barks.bat, owl and lanternsOut`);
     for (const [name, c] of [['bats', tw.bats], ['owls', tw.owls]] as const)
       if (!(c.window[1] <= 1 && c.perHunt[0] <= c.perHunt[1]))
         err('feesdae.json', `special "${f.id}": ${name} window/perHunt out of range`);
     if (tw.bats.points <= 0) err('feesdae.json', `special "${f.id}": bats are a bonus (points > 0)`);
     if (tw.owls.points >= 0) err('feesdae.json', `special "${f.id}": owls are protected (points < 0)`);
-    const propIds = new Set(biomes.flatMap((b) => b.props.map((p) => p.id)));
     for (const s of tw.lanterns.spots)
       if ('prop' in s && !propIds.has(s.prop))
         err('feesdae.json', `special "${f.id}": lantern spot on unknown prop "${s.prop}"`);

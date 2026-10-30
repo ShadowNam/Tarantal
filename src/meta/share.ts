@@ -67,9 +67,11 @@ export interface ShareSpecial {
   readonly frame: string;
 }
 
-/** The emoji frame of each special's card (left, right): moon, bats and a pumpkin. */
+/** The emoji frame of each special's card (left, right): Halloween's moon, bats and a pumpkin;
+ *  D-064 Christmas's tinsel, a present, Oupa in his Santa hat and the sun. */
 export const SHARE_FRAMES: Readonly<Record<string, readonly [string, string]>> = {
   halloween: ['🎃🦇', '🦇🌕'],
+  christmas: ['✨🎁', '🎅☀️'],
 };
 
 export interface ShareInput {

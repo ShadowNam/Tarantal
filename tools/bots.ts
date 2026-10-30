@@ -13,7 +13,7 @@ import { inReach, RIFLE_STYLES, withRifle } from './rifleBot';
 import '../src/sim/lazySystemsRegister';
 
 /** random: sprays · aim: near-perfect M1 aimer (goldens) · plinker / competent: GDD §13.8 ·
- *  spook (D-048, goldens only): shoots a special day's lanterns, bats and one owl ·
+ *  spook (D-048, goldens only): shoots a special day's lanterns (or presents), bats and one owl ·
  *  canHappy (v1.8, D-050): the competent bot that shoots every tin can in view first ·
  *  apexJuggler (v1.8, D-050): the competent bot that juggles every can at the top of its arc ·
  *  nutHappy (1.9.3, D-056): the competent bot that shoots every makalani nut (and can) in view ·
@@ -482,7 +482,8 @@ function spookBot(content: ContentBundle): Bot {
       if (s.tick < next || s.weapon.reloading || s.weapon.cooldownTicks > 0) return [];
       const things = s.feesdag?.things ?? [];
       const pick =
-        things.find((t) => t.kind === 'lantern' && !t.dark) ??
+        // D-064: Christmas's shut presents the same way (Halloween has none: its picks stay).
+        things.find((t) => (t.kind === 'lantern' || t.kind === 'present') && !t.dark) ??
         things.find((t) => t.kind === 'bat') ??
         (owlShot ? undefined : things.find((t) => t.kind === 'owl'));
       if (pick === undefined) return [];

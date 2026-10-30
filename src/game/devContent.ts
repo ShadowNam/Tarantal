@@ -196,18 +196,22 @@ export function withEarlySpook(b: ContentBundle): ContentBundle {
     ...b,
     feesdae: {
       ...b.feesdae,
-      specials: b.feesdae.specials.map((f) => ({
-        ...f,
-        twist: {
-          ...f.twist,
-          owls: {
-            ...f.twist.owls,
-            perHunt: [2, 2] as [number, number],
-            window: [0.15, 0.3] as [number, number],
-          },
-          bats: { ...f.twist.bats, window: [0.02, 0.5] as [number, number] },
-        },
-      })),
+      specials: b.feesdae.specials.map((f) =>
+        f.twist.rule !== 'spookjag'
+          ? f
+          : {
+              ...f,
+              twist: {
+                ...f.twist,
+                owls: {
+                  ...f.twist.owls,
+                  perHunt: [2, 2] as [number, number],
+                  window: [0.15, 0.3] as [number, number],
+                },
+                bats: { ...f.twist.bats, window: [0.02, 0.5] as [number, number] },
+              },
+            },
+      ),
     },
   };
 }

@@ -306,9 +306,15 @@ export class BarkDirector {
 export function allBarkLines(t: BarkTuning, specials: readonly SpecialBarks[] = []): string[] {
   const out = new Set<string>();
   for (const cfg of Object.values(t.triggers)) for (const l of cfg.lines) out.add(l);
-  for (const s of specials)
-    for (const l of [s.start, s.bat, s.owl, s.lanternsOut, s.end]) out.add(l);
+  for (const s of specials) for (const l of specialLinesOf(s)) out.add(l);
   return [...out].sort();
+}
+
+/** D-048/D-064: every line of one special day (the moments its twist rule has). */
+export function specialLinesOf(s: SpecialBarks): string[] {
+  return [s.start, s.bat, s.owl, s.lanternsOut, s.present, s.presentsFound, s.dry, s.end].filter(
+    (l): l is string => l !== undefined,
+  );
 }
 
 /** Hunt-start bark: the first hunt of a UTC day (the save remembers the last hunt's day). */

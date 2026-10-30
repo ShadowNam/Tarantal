@@ -780,6 +780,23 @@
         }
       ]
     },
+    "kersfees_son": {
+      "$comment": "D-064 Christmas in the sun: a bright, hot midsummer noon — a pale, white-hot sky low down, a bleached far ridge and a warm sunlit veld; the heat shimmer along the horizon is the special's look (feesdae.looks.christmas.heat, the Namibië mirage strips). Birds stay untinted. No flashes.",
+      "tint": {
+        "sky": "#EEF4FF",
+        "far_ridge": "#F2E4D0",
+        "ver_veld": "#F6EAD6",
+        "far_veld": "#FFF2DC",
+        "mid": "#FFF6E6",
+        "near": "#FFF8EC",
+        "foreground": "#F2E4CE"
+      },
+      "haze": [
+        { "layer": "sky", "color": "#FFF8E8", "alpha": 0.5, "top": 380, "bottom": 540 },
+        { "layer": "far_ridge", "color": "#FAF0DE", "alpha": 0.34 },
+        { "layer": "far_veld", "color": "#FFF2DA", "alpha": 0.12, "top": 470 }
+      ]
+    },
     "spookjag": {
       "$comment": "D-048 Halloween's Spookjag: a dark, cool dusk — a deep blue-purple sky, a dim cool ground, a faint violet afterglow on the horizon (no orange), so the moon, the lanterns' glow and the bats' silhouettes read. Birds stay untinted. The soft vignette is the special's look (feesdae.looks.halloween.vignette). No flashes.",
       "tint": {
@@ -1133,6 +1150,22 @@
         "priority": 60,
         "cooldownMs": 0,
         "lines": []
+      },
+      "feesdagPresent": {
+        "$comment": "D-064 (Christmas in the sun): a present opened (the last one says presentsFound instead); presentsFound is held until said like Lanterns out; feesdagDry speaks instead of the idle or miss-streak line.",
+        "priority": 64,
+        "cooldownMs": 20000,
+        "lines": []
+      },
+      "presentsFound": {
+        "priority": 92,
+        "cooldownMs": 0,
+        "lines": []
+      },
+      "feesdagDry": {
+        "priority": 42,
+        "cooldownMs": 30000,
+        "lines": []
       }
     }
   },
@@ -1240,6 +1273,90 @@
           "inner": 0.55
         },
         "owlScale": 2.2
+      },
+      "christmas": {
+        "$comment": "D-064 Christmas in the sun: hatShare of the guineafowl wear tiny Santa hats (Halloween's witch-hat anchors and sizes); tinsel garlands and baubles hang on the first listed tree the day's map has, at [dx, dy] px from the prop's position; the glint walks the baubles on sim time (a soft swell, never a flash; off with reduce flashes); heat = the horizon shimmer's strength (off on the low tier and with reduced motion).",
+        "hatShare": 0.3,
+        "hat": { "widthPerHeadR": 2.6, "tilt": 0.22 },
+        "tinsel": [
+          {
+            "prop": "weaver_camelthorn",
+            "garlands": [
+              { "from": [-240, -150], "to": [-100, -165], "colour": "silver" },
+              { "from": [110, -150], "to": [250, -165], "colour": "red" },
+              { "from": [-130, -30], "to": [100, -35], "colour": "silver" }
+            ],
+            "baubles": [
+              { "at": [-230, -142], "colour": "gold" },
+              { "at": [-170, -140], "colour": "red" },
+              { "at": [180, -140], "colour": "silver" },
+              { "at": [240, -152], "colour": "red" },
+              { "at": [-60, -12], "colour": "gold" },
+              { "at": [40, -14], "colour": "red" }
+            ]
+          },
+          {
+            "prop": "camelthorn_mature",
+            "garlands": [
+              { "from": [-140, -185], "to": [-10, -175], "colour": "silver" },
+              { "from": [10, -178], "to": [130, -190], "colour": "red" }
+            ],
+            "baubles": [
+              { "at": [-90, -170], "colour": "red" },
+              { "at": [70, -175], "colour": "gold" }
+            ]
+          },
+          {
+            "prop": "baobab",
+            "garlands": [
+              { "from": [-95, -40], "to": [95, -45], "colour": "red" },
+              { "from": [-160, -150], "to": [-40, -120], "colour": "silver" },
+              { "from": [40, -120], "to": [170, -150], "colour": "silver" }
+            ],
+            "baubles": [
+              { "at": [-120, -128], "colour": "red" },
+              { "at": [-70, -112], "colour": "gold" },
+              { "at": [80, -116], "colour": "silver" },
+              { "at": [140, -138], "colour": "red" },
+              { "at": [0, -22], "colour": "gold" }
+            ]
+          },
+          {
+            "prop": "sausage_tree",
+            "garlands": [
+              { "from": [-210, -140], "to": [-60, -110], "colour": "silver" },
+              { "from": [-150, -210], "to": [140, -215], "colour": "red" },
+              { "from": [60, -115], "to": [210, -145], "colour": "silver" }
+            ],
+            "baubles": [
+              { "at": [-150, -118], "colour": "red" },
+              { "at": [-90, -104], "colour": "gold" },
+              { "at": [100, -112], "colour": "red" },
+              { "at": [170, -132], "colour": "silver" },
+              { "at": [0, -185], "colour": "gold" }
+            ]
+          },
+          {
+            "prop": "windpomp",
+            "garlands": [
+              { "from": [-40, 150], "to": [40, 150], "colour": "silver" },
+              { "from": [-30, 60], "to": [30, 60], "colour": "red" },
+              { "from": [-21, -20], "to": [21, -20], "colour": "silver" }
+            ],
+            "baubles": [
+              { "at": [-40, 152], "colour": "red" },
+              { "at": [40, 152], "colour": "gold" },
+              { "at": [-30, 62], "colour": "gold" },
+              { "at": [30, 62], "colour": "red" },
+              { "at": [0, -8], "colour": "silver" }
+            ]
+          }
+        ],
+        "glint": { "periodSeconds": 3.2, "alpha": 0.75, "scale": 0.6 },
+        "heat": 0.8,
+        "lidHopPx": 70,
+        "lidSeconds": 0.7,
+        "confettiSeconds": 0.9
       }
     }
   },
