@@ -6,26 +6,16 @@
 // Pure constants and a frame table: the game, the pack tool and the interim art generator read
 // them.
 
-/** Christmas's asset group (lazy: tools/size-check counts it as its own chunk). */
-export const CHRISTMAS_GROUP = 'feesdae-christmas';
-
-/** Every Christmas frame on one sheet (texture key). */
-export const CHRISTMAS_SHEET = 'feesdae/christmas';
-/** The interim sheet is drawn at 2× (and so is the in-game stand-in): crisp in a scope and in HD. */
-export const XMAS_MASTER = 2;
-
-/** Sounds through the AudioDirector (recording once delivered, else a small synth). */
-export const XMAS_SOUNDS = {
-  sting: 'sfx/xmas_sting',
-  tally: 'sfx/xmas_tally',
-  present: 'sfx/present_open',
-} as const;
-export type XmasSound = keyof typeof XMAS_SOUNDS;
-
-/** A present's foot is this far below its centre (the frame's origin), design px at scale 1:
- *  feesdae.json presents.lift must match (content:validate). */
-export const PRESENT_GROUND_PX = 50;
-
+export {
+  CHRISTMAS_GROUP,
+  CHRISTMAS_SHEET,
+  OUPA_DRAWN,
+  PRESENT_GROUND_PX,
+  XMAS_MASTER,
+  XMAS_SOUNDS,
+  type XmasSound,
+} from './christmasKeys';
+import { CHRISTMAS_SHEET, XMAS_SOUNDS } from './christmasKeys';
 /** The wraps a present can come in (picked by its id). */
 export const PRESENT_WRAPS = ['a', 'b', 'c'] as const;
 export type PresentWrap = (typeof PRESENT_WRAPS)[number];
@@ -65,10 +55,6 @@ const PRESENT = { w: 140, h: 182, ox: 70, oy: 130 };
 /** The lid with its bow, origin where it sits on the box (its bottom centre). */
 const LID = { w: 140, h: 92, ox: 70, oy: 84 };
 const BAUBLE = { w: 30, h: 38, ox: 15, oy: 2 };
-
-/** Oupa is drawn at half size (he is shown small: the title badge, the tally, the bubble), so his
- *  frames are half the art's size; the views scale him up by OUPA_DRAWN. */
-export const OUPA_DRAWN = 0.5;
 
 /** Packed in shelves, tallest first (keeps the sheet's GPU size down: 600 × 710 design px). */
 const SPECS: readonly FrameSpec[] = [

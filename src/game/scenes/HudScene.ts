@@ -7,7 +7,7 @@
 // left-handed mirroring, and the ⛔ call-out only for creatures not yet in the Bird Book (first
 // sighting ever). A separate scene so camera shake never moves it. Fed each frame by HuntScene
 // with the latest snapshot and that frame's events.
-import { CHRISTMAS_SHEET, OUPA_DRAWN, XMAS_MASTER } from '../feesdae/christmasAssets';
+import { CHRISTMAS_SHEET, OUPA_DRAWN, XMAS_MASTER } from '../feesdae/christmasKeys';
 import { redDotIds, redDotUp } from '../view/redDot';
 import { designSize } from '../layout';
 import { fitCamera } from '../view/fitCamera';

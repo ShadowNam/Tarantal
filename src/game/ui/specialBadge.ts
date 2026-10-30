@@ -2,7 +2,7 @@
 // orange pill behind the Daily's status line. Drawn in code (no art in the first download). The tally's special frame (drawSlateFrame) uses the special's own sheet.
 import * as Phaser from 'phaser';
 import { HALLOWEEN_SHEET, SHEET_MASTER } from '../feesdae/feesdaeAssets';
-import { CHRISTMAS_SHEET, OUPA_DRAWN, XMAS_MASTER } from '../feesdae/christmasAssets';
+import { CHRISTMAS_SHEET, OUPA_DRAWN, XMAS_MASTER } from '../feesdae/christmasKeys';
 import type { Rect } from './hudLayout';
 
 const FILL = 0xf28c28;

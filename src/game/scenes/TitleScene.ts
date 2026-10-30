@@ -21,7 +21,7 @@ import type { Rect } from '../ui/hudLayout';
 import { drawButton, fitText, Menu, textStyle, type MenuItem } from '../ui/menu';
 import { cornerStampShown, stampFor, StampLabel } from '../ui/StampLabel';
 import { drawBadgeOupa, drawSpecialBadge, specialStatusStyle } from '../ui/specialBadge';
-import { CHRISTMAS_SHEET } from '../feesdae/christmasAssets';
+import { CHRISTMAS_SHEET } from '../feesdae/christmasKeys';
 
 export interface TitleData {
   /** Starts the hunt; pointerId is the pressing pointer (null from the keyboard). */

@@ -16,7 +16,7 @@ import type { GameContext } from '../GameContext';
 import { formatPercent, formatScore } from '../ui/format';
 import { tallyBarkSlot, type Rect } from '../ui/hudLayout';
 import { drawSlateFrame } from '../ui/specialBadge';
-import { XMAS_SOUNDS } from '../feesdae/christmasAssets';
+import { XMAS_SOUNDS } from '../feesdae/christmasKeys';
 import { BarkBubble, sayBark } from '../ui/BarkBubble';
 import { powerupIcon } from '../ui/powerupIcons';
 import type { BarkTrigger } from '../../content/schemas';
