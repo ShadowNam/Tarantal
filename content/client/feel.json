@@ -1416,9 +1416,9 @@
         ],
         "glint": { "periodSeconds": 3.2, "alpha": 0.75, "scale": 0.6 },
         "heat": 0.8,
-        "lidHopPx": 70,
-        "lidSeconds": 0.7,
-        "confettiSeconds": 0.9
+        "lidHopPx": 120,
+        "lidSeconds": 1,
+        "confettiSeconds": 1.2
       }
     }
   },

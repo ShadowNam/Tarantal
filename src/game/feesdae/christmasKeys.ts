@@ -27,7 +27,7 @@ export const PRESENT_GROUND_PX = 50;
 export const OUPA_DRAWN = 0.5;
 
 /** Sheet width in design px (christmasAssets.ts packs the frames into it). */
-export const XMAS_SHEET_W = 600;
+export const XMAS_SHEET_W = 644;
 
 /** D-064 round 2: the HD sheet (2×) has its own key; the Standard pack is 1× under
  *  CHRISTMAS_SHEET. Which one a hunt draws follows the Graphics setting. */

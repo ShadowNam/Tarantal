@@ -356,7 +356,7 @@ function lid(w: PresentWrap, withBow = true): string {
 
 /** A present (box centre at the origin, its foot 50 px below). Open: the lid leans against the
  *  box, the bow has flown, tissue and a toy guineafowl peep out of the dark inside. */
-function present(w: PresentWrap, open: boolean, seed: number): string {
+function present(w: PresentWrap, open: boolean, seed: number, restingLid = true): string {
   const [pl, pm, ps] = WRAPS[w].paper;
   const front = linear(
     [
@@ -431,7 +431,7 @@ function present(w: PresentWrap, open: boolean, seed: number): string {
     {},
     defs(front, side),
     // The lid, its bow flown, knocked back: it stands tilted behind the open box.
-    g({ transform: 'translate(14 -54) rotate(-14) scale(0.92)' }, lid(w, false)),
+    restingLid ? g({ transform: 'translate(14 -54) rotate(-14) scale(0.92)' }, lid(w, false)) : '',
     // The open top: the dark inside, tissue paper, a toy guineafowl peeping out.
     path(polyD(TOP), C.inside),
     path(
@@ -1170,9 +1170,12 @@ function oupa(): string {
 function frameArt(name: XmasFrame, seed: number): string {
   if (name.startsWith('present_')) {
     const [, w, state] = name.split('_') as [string, PresentWrap, 'shut' | 'open'];
-    return present(w, state === 'open', seed);
+    // Open: lid-less — the game's lid sprite tumbles off and comes to rest behind the box.
+    return present(w, state === 'open', seed, false);
   }
-  if (name.startsWith('lid_')) return lid(name.slice(4) as PresentWrap);
+  // The flying lid has no bow: the bow pops off on its own (bow_<wrap>).
+  if (name.startsWith('lid_')) return lid(name.slice(4) as PresentWrap, false);
+  if (name.startsWith('bow_')) return bow(name.slice(4) as PresentWrap);
   switch (name) {
     case 'garland_silver':
       return garland('silver', 1201);

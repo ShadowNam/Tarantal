@@ -36,6 +36,7 @@ interface FrameSpec {
 export type XmasFrame =
   | `present_${PresentWrap}_${'shut' | 'open'}`
   | `lid_${PresentWrap}`
+  | `bow_${PresentWrap}`
   | 'garland_silver'
   | 'garland_red'
   | 'bauble_red'
@@ -54,6 +55,8 @@ export type XmasFrame =
 const PRESENT = { w: 140, h: 182, ox: 70, oy: 130 };
 /** The lid with its bow, origin where it sits on the box (its bottom centre). */
 const LID = { w: 140, h: 92, ox: 70, oy: 84 };
+/** A bow on its own (it pops off the lid as a present opens), origin at its knot. */
+const BOW = { w: 110, h: 76, ox: 55, oy: 42 };
 const BAUBLE = { w: 30, h: 38, ox: 15, oy: 2 };
 
 /** Packed in shelves, tallest first (keeps the sheet's GPU size down: 600 × 710 design px). */
@@ -71,6 +74,9 @@ const SPECS: readonly FrameSpec[] = [
   { name: 'lid_a', ...LID },
   { name: 'lid_b', ...LID },
   { name: 'lid_c', ...LID },
+  { name: 'bow_a', ...BOW },
+  { name: 'bow_b', ...BOW },
+  { name: 'bow_c', ...BOW },
   { name: 'garland_silver', w: GARLAND_SPAN_PX + 20, h: 90, ox: 10 + GARLAND_SPAN_PX / 2, oy: 14 },
   { name: 'garland_red', w: GARLAND_SPAN_PX + 20, h: 90, ox: 10 + GARLAND_SPAN_PX / 2, oy: 14 },
   { name: 'hat_m', w: 70, h: 64, ox: 35, oy: 55, forScale: 0.5 },
@@ -97,21 +103,22 @@ export { XMAS_SHEET_W } from './christmasKeys';
 import { XMAS_SHEET_W } from './christmasKeys';
 const PAD = 4;
 
-/** Every frame of the sheet in design px (×1), packed in shelves in SPECS order. */
+/**
+ * Every frame of the sheet in design px (×1): first-fit shelves — each frame (tallest first, the
+ * SPECS order) goes on the first shelf tall enough with room left, else on a new shelf.
+ */
 export function xmasFrames(): XmasRect[] {
   const out: XmasRect[] = [];
-  let x = 0;
-  let y = 0;
-  let row = 0;
+  const shelves: { y: number; h: number; x: number }[] = [];
   for (const s of SPECS) {
-    if (x + s.w > XMAS_SHEET_W) {
-      x = 0;
-      y += row + PAD;
-      row = 0;
+    let shelf = shelves.find((sh) => sh.h >= s.h && sh.x + s.w <= XMAS_SHEET_W);
+    if (shelf === undefined) {
+      const last = shelves[shelves.length - 1];
+      shelf = { y: last === undefined ? 0 : last.y + last.h + PAD, h: s.h, x: 0 };
+      shelves.push(shelf);
     }
-    out.push({ ...s, x, y, forScale: s.forScale ?? 1 });
-    x += s.w + PAD;
-    row = Math.max(row, s.h);
+    out.push({ ...s, x: shelf.x, y: shelf.y, forScale: s.forScale ?? 1 });
+    shelf.x += s.w + PAD;
   }
   return out;
 }

@@ -185,6 +185,9 @@ export function playXmasSound(audio: AudioDirector, id: XmasSound, pan: number):
 interface DrawnPresent {
   readonly img: Phaser.GameObjects.Image;
   readonly lid: Phaser.GameObjects.Image;
+  readonly bow: Phaser.GameObjects.Image;
+  /** The lid has landed behind the box (moved under the present in its container). */
+  landed: boolean;
   readonly confetti: Phaser.GameObjects.Image;
   readonly plane: PlaneId;
   /** The tick it was opened (lid hop and confetti run from it), or null while shut. */
@@ -397,7 +400,13 @@ export class KersfeesSceneView {
     for (const b of this.baubles) b.img.setTexture(key, b.img.frame.name).setScale(1 / this.master);
     for (const gl of this.glints)
       gl.img.setTexture(key, 'glint').setScale(this.look.glint.scale / this.master);
-    for (const d of this.drawn.values()) d.img.setScale(this.planeScale[d.plane] / this.master);
+    for (const d of this.drawn.values()) {
+      d.img.setScale(this.planeScale[d.plane] / this.master);
+      if (d.landed)
+        d.lid
+          .setTexture(key, d.lid.frame.name)
+          .setScale((this.planeScale[d.plane] / this.master) * 0.92);
+    }
   }
 
   /** Whether the delivered sheet (not the stand-in) is drawn. */
@@ -431,14 +440,16 @@ export class KersfeesSceneView {
         const node = this.parallax.plane(t.plane);
         const img = this.scene.add.image(t.x, t.y, this.key, 'present_a_shut');
         const lid = this.scene.add.image(t.x, t.y, this.key, 'lid_a').setVisible(false);
+        const bow = this.scene.add.image(t.x, t.y, this.key, 'bow_a').setVisible(false);
         const confetti = this.scene.add.image(t.x, t.y, this.key, 'confetti').setVisible(false);
         // Under the props (a prop covers part of the box), over the layer's art; the lid and
         // confetti fly over everything in the plane.
         node.fruit.add(img);
         node.overlay?.add(lid);
+        node.overlay?.add(bow);
         node.overlay?.add(confetti);
         img.setScale(s / this.master);
-        d = { img, lid, confetti, plane: t.plane, openedAt: null };
+        d = { img, lid, bow, confetti, plane: t.plane, openedAt: null, landed: false };
         this.drawn.set(t.id, d);
       }
       const wrap = wrapOf(t.id);
@@ -461,6 +472,11 @@ export class KersfeesSceneView {
     }
   }
 
+  /**
+   * A present opening, on sim ticks (a held frame shows it): the lid (its bow popped off) is flung
+   * up, tumbles a full turn and lands tilted behind the box, where it stays; the bow flies higher,
+   * spinning, and fades; a puff of paper confetti bursts up and falls. No flash.
+   */
   private animateOpen(
     d: DrawnPresent,
     x: number,
@@ -470,27 +486,54 @@ export class KersfeesSceneView {
     ticks: number,
   ): void {
     const t = ticks / TICKS_PER_SECOND;
-    const lidT = t / this.look.lidSeconds;
-    const top = y - 50 * s;
-    if (lidT < 1) {
+    const lidT = Math.min(1, t / this.look.lidSeconds);
+    const top = y - 38 * s;
+    const restX = x + 14 * s;
+    const restY = y - 54 * s;
+    const restRot = -0.244;
+    const sc = s / this.master;
+    if (!d.landed) {
       setFrame(d.lid, this.key, `lid_${wrap}` as XmasFrame);
-      // Up and off to the side, turning, then fading as it lands.
       const hop = this.look.lidHopPx * s * 4 * lidT * (1 - lidT);
+      const e = lidT * lidT * (3 - 2 * lidT);
       d.lid
         .setVisible(true)
-        .setScale(s / this.master)
-        .setPosition(x + 60 * s * lidT, top - hop)
-        .setRotation(0.9 * lidT)
-        .setAlpha(lidT < 0.7 ? 1 : (1 - lidT) / 0.3);
-    } else if (d.lid.visible) d.lid.setVisible(false);
+        .setScale(sc * (1 - 0.08 * e))
+        .setPosition(x + (restX - x) * e, top + (restY - top) * e - hop)
+        .setRotation(restRot * e - Math.PI * 2 * (1 - e));
+      if (lidT >= 1) {
+        // Landed: behind the box (under the present in its container), for good.
+        d.landed = true;
+        d.lid
+          .setRotation(restRot)
+          .setPosition(restX, restY)
+          .setScale(sc * 0.92);
+        const node = this.parallax.plane(d.plane);
+        node.overlay?.remove(d.lid);
+        node.fruit.addAt(d.lid, node.fruit.getIndex(d.img));
+      }
+    }
+    const bowT = t / (this.look.lidSeconds * 0.9);
+    if (bowT < 1) {
+      setFrame(d.bow, this.key, `bow_${wrap}` as XmasFrame);
+      d.bow
+        .setVisible(true)
+        .setScale(sc)
+        .setPosition(
+          x - 40 * s * bowT,
+          top - 30 * s - this.look.lidHopPx * 1.6 * s * 4 * bowT * (1 - bowT * 0.6),
+        )
+        .setRotation(-3 * bowT)
+        .setAlpha(bowT < 0.6 ? 1 : (1 - bowT) / 0.4);
+    } else if (d.bow.visible) d.bow.setVisible(false);
     const cT = t / this.look.confettiSeconds;
     if (cT < 1) {
       setFrame(d.confetti, this.key, 'confetti');
       d.confetti
         .setVisible(true)
-        .setPosition(x, top - 20 * s - 40 * s * cT)
+        .setPosition(x, top - 20 * s - 90 * s * cT + 140 * s * cT * cT)
         .setScale(((0.5 + 0.8 * cT) * s) / this.master)
-        .setAlpha(1 - cT);
+        .setAlpha(cT < 0.6 ? 1 : (1 - cT) / 0.4);
     } else if (d.confetti.visible) d.confetti.setVisible(false);
   }
 
@@ -564,6 +607,7 @@ export class KersfeesSceneView {
     for (const d of this.drawn.values()) {
       d.img.destroy();
       d.lid.destroy();
+      d.bow.destroy();
       d.confetti.destroy();
     }
     this.drawn.clear();
