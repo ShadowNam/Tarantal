@@ -173,3 +173,27 @@ describe('Christmas share card (D-064)', () => {
     expect(text).toContain('🎅☀️');
   });
 });
+
+describe('New Year share card (D-065)', () => {
+  it('frames the card with streamers, a party hat and a firework, and names "New Year 2027"', () => {
+    const input: ShareInput = {
+      dailyNumber: 72,
+      biome: 'okavango-spring',
+      layout: 'thu',
+      score: 3664,
+      rank: 'bosveldjagter',
+      grid: '🟩🟨🟩🟩⬛',
+      wholeFlocks: 0,
+      url: '',
+      feesdag: { title: 'New Year 2027', frame: 'newyear' },
+    };
+    const text = joinShare(buildShareText(input, translator('en')));
+    expect(text.startsWith('🎊🥳 🐦 Tarantal Madness · New Year 2027 · Daily #72')).toBe(true);
+    expect(text).toContain('🎆🎊');
+    // The title the tally builds: the special's name and the year that starts.
+    const ny = feesdagById(F, 'newyear');
+    const day = daysFromCivil(2026, 12, 31);
+    expect(`${translator('en').text(ny?.nameKey ?? '')} ${shareYear(ny, day)}`).toBe('New Year 2027');
+    expect(`${translator('af').text(ny?.nameKey ?? '')} ${shareYear(ny, day)}`).toBe('Nuwejaar 2027');
+  });
+});
