@@ -323,6 +323,7 @@ const hook: TestHook = {
   bonusNeedsScope: [],
   verBirds: [],
   farBirds: [],
+  targetBirds: [],
   verderUnlocked: null,
   glare: null,
   omen: false,

@@ -303,6 +303,9 @@ export interface TestHook {
   verBirds: { id: number; x: number; y: number }[];
   /** D-049: hittable far-plane targets' body centres on the screen (design px), for aiming. */
   farBirds: { id: number; x: number; y: number }[];
+  /** D-065 (e2e): hittable target birds on screen (not the Ver), body centre in design px,
+   *  nearest plane first. */
+  targetBirds: { id: number; plane: string; x: number; y: number }[];
   /** v1.7b: each crate's item and the icon drawn on it (null = none). */
   crateSpots: {
     id: number;

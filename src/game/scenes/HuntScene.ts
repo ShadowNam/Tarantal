@@ -2191,6 +2191,37 @@ export class HuntScene extends Phaser.Scene {
             ),
           y: b.y + (body?.oy ?? 0) * far.scale,
         }));
+      // D-065 (e2e): hittable target birds on screen at their body centre (design px), every
+      // plane but the Ver, nearest plane first — what a spec aims at (a flock's mean position can
+      // fall between its birds once it runs or flushes).
+      const planesNow = this.ctx.content.scoring.planes;
+      hook.targetBirds = state.birds
+        .filter((b) => b.hittable && b.kind === 'target' && b.plane !== 'ver')
+        .map((b) => {
+          const pl = planesNow[b.plane];
+          const c = this.ctx.content.birds.creatures.find((x) => x.id === b.creature);
+          const hb = c !== undefined && 'hitbox' in c ? c.hitbox.body : body;
+          return {
+            id: b.id,
+            plane: b.plane,
+            x:
+              width / 2 +
+              planeToDx(state.cameraX, pl.scrollFactor, b.x + (hb?.ox ?? 0) * pl.scale * b.facing),
+            y: b.y + (hb?.oy ?? 0) * pl.scale,
+          };
+        })
+        .filter((b) => b.x > 0 && b.x < width)
+        .sort((a, b) =>
+          a.plane === b.plane
+            ? a.id - b.id
+            : a.plane === 'near'
+              ? -1
+              : b.plane === 'near'
+                ? 1
+                : a.plane === 'mid'
+                  ? -1
+                  : 1,
+        );
       hook.flockSpots = state.flocks.map((f) => {
         const members = state.birds.filter((b) => b.flockId === f.id);
         const n = Math.max(1, members.length);
