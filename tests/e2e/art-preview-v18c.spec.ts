@@ -396,12 +396,28 @@ test('the Harvest: title, intro, mid-run, a worker ducking, the rush, the end, t
   save('rush', info, rush.img);
   const hog = await warthogBox(page);
   save('warthog-2x', info, scaled(cut(rush, hog.box), hog.near ? 1 : 2));
-  // A fly-in close up: a francolin or a turtle dove on screen (else any fly-over), 2×.
-  const flyins = await page.evaluate(() => window.__TM__?.harvestFlyovers ?? []);
-  const bird =
-    flyins.find((b) => b.creature === 'fisant' || b.creature === 'tortelduif') ?? flyins[0];
-  if (bird === undefined) throw new Error('no fly-in on screen at the peak');
-  save('flyin-2x', info, scaled(cut(rush, { x: bird.x - 90, y: bird.y - 70, w: 180, h: 140 }), 2));
+  // A fly-in close up (review round 2): a francolin or a turtle dove fully on screen (else any
+  // fly-over), stepping on a few ticks at a time (bounded) until one is; fail on a sliver.
+  let fly: Grab = rush;
+  let bird: { x: number; y: number; creature: string } | undefined;
+  const w0 = (await hook(page)).designWidth;
+  for (let step = 0; step < 24 && bird === undefined; step++) {
+    if (step > 0) {
+      const t = (await hook(page)).tick + 6;
+      if (t > INTRO + RUSH - 2) break;
+      await holdAt(page, touch, t);
+      fly = await grab(page);
+    }
+    const all = (await page.evaluate(() => window.__TM__?.harvestFlyovers ?? [])).filter(
+      (b) => b.x > 110 && b.x < w0 - 110 && b.y > 90 && b.y < 900,
+    );
+    bird = all.find((b) => b.creature === 'fisant' || b.creature === 'tortelduif') ?? all[0];
+  }
+  if (bird === undefined) throw new Error('no fly-in fully on screen near the peak');
+  const flyCrop = cut(fly, { x: bird.x - 100, y: bird.y - 80, w: 200, h: 160 });
+  if (flyCrop.width < 20 * fly.k || flyCrop.height < 20 * fly.k)
+    throw new Error(`the fly-in crop is a sliver (${String(flyCrop.width)} px)`);
+  save('flyin-2x', info, scaled(flyCrop, 2));
 
   // The end: the fence whole, the animals running off.
   await holdAt(page, touch, INTRO + RUSH + 30);
@@ -412,8 +428,10 @@ test('the Harvest: title, intro, mid-run, a worker ducking, the rush, the end, t
   // The tally.
   await release(page);
   await page.waitForFunction(() => window.__TM__?.scene === 'tally', null, { timeout: 900_000 });
+  // Review round 2: every row, the Best row, the stamp and the news are in.
+  await page.waitForFunction(() => window.__TM__?.tallyDone === true, null, { timeout: 300_000 });
   await park(page, touch);
-  await page.waitForTimeout(4000);
+  await page.waitForTimeout(1000);
   save('tally', info, (await grab(page)).img);
 });
 

@@ -445,6 +445,7 @@ const hook: TestHook = {
   challenge: null,
   notice: null,
   hudTag: null,
+  tallyDone: false,
   tally: null,
   lastShare: null,
   platform: currentPlatformId(),

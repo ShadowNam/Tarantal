@@ -319,6 +319,18 @@ export class TallyScene extends Phaser.Scene {
       },
     });
 
+    // v1.8c review: the hook says when everything is in (rows, stamp, news), for screenshots.
+    if (this.ctx.hook) {
+      this.ctx.hook.tallyDone = false;
+      const doneMs = Math.max(
+        pace.rowDelayMs + rows.length * pace.rowStaggerMs + pace.rowFadeMs,
+        pace.countUpMs + pace.stampMs,
+        pace.countUpMs + pace.newsDelayMs + 200,
+      );
+      this.time.delayedCall(doneMs + 100, () => {
+        if (this.ctx.hook) this.ctx.hook.tallyDone = true;
+      });
+    }
     // What changed in the save: one line, the most exciting news first.
     const news = this.news(data);
     if (news !== null) {

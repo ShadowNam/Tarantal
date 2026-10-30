@@ -60,6 +60,14 @@ export interface HarvestHook {
   /** Its ground line on screen (design px): the feet must stand on it. */
   readonly groundY: number;
   readonly visible: boolean;
+  /** Review round 2: the body's hit ellipse on screen (design px: centre and radii), as the sim
+   *  tests a shot against it (workers and warthogs; null for the rest). */
+  readonly body: {
+    readonly x: number;
+    readonly y: number;
+    readonly rx: number;
+    readonly ry: number;
+  } | null;
 }
 
 /** The sheet as the view needs it from the manifest. */
@@ -181,7 +189,7 @@ export class HarvestView {
       flip: false,
       shown: false,
       seen: false,
-      hook: { id, role, frame: null, x: 0, y: 0, groundY: 0, visible: false },
+      hook: { id, role, frame: null, x: 0, y: 0, groundY: 0, visible: false, body: null },
     };
   }
 
@@ -246,17 +254,60 @@ export class HarvestView {
     return true;
   }
 
-  private hookOf(s: Slot, show: boolean, x: number, y: number, groundY: number): void {
+  private hookOf(
+    s: Slot,
+    show: boolean,
+    x: number,
+    y: number,
+    groundY: number,
+    /** The body ellipse on the layer (layer px), or null. */
+    body: { x: number; y: number; rx: number; ry: number } | null = null,
+  ): void {
     if (!this.hooks) return;
     const layer = this.parallax.layer(s.layerId);
     if (layer === undefined) return;
-    const hx = Math.round(layer.root.x + x * layer.root.scaleX);
-    const hy = Math.round(layer.root.y + y * layer.root.scaleY);
-    const gy = Math.round(layer.root.y + groundY * layer.root.scaleY);
+    const r = layer.root;
+    const hx = Math.round(r.x + x * r.scaleX);
+    const hy = Math.round(r.y + y * r.scaleY);
+    const gy = Math.round(r.y + groundY * r.scaleY);
     const h = s.hook;
     const f = show ? s.frame : null;
-    if (h.x !== hx || h.y !== hy || h.visible !== show || h.frame !== f || h.groundY !== gy)
-      s.hook = { ...h, x: hx, y: hy, visible: show, frame: f, groundY: gy };
+    const b =
+      body === null
+        ? null
+        : {
+            x: r.x + body.x * r.scaleX,
+            y: r.y + body.y * r.scaleY,
+            rx: body.rx * r.scaleX,
+            ry: body.ry * r.scaleY,
+          };
+    const same =
+      (h.body === null && b === null) ||
+      (h.body !== null && b !== null && h.body.x === b.x && h.body.y === b.y && h.body.rx === b.rx);
+    if (
+      h.x !== hx ||
+      h.y !== hy ||
+      h.visible !== show ||
+      h.frame !== f ||
+      h.groundY !== gy ||
+      !same
+    )
+      s.hook = { ...h, x: hx, y: hy, visible: show, frame: f, groundY: gy, body: b };
+  }
+
+  /** A hit box's body ellipse on its layer (as the sim builds it: × scale, mirrored by facing). */
+  private bodyOf(
+    box: { readonly body: { rx: number; ry: number; ox: number; oy: number } },
+    a: HarvestActorView,
+  ): { x: number; y: number; rx: number; ry: number } | null {
+    if (!this.hooks) return null;
+    const b = box.body;
+    return {
+      x: a.x + b.ox * a.scale * a.facing,
+      y: a.y + b.oy * a.scale,
+      rx: b.rx * a.scale,
+      ry: b.ry * a.scale,
+    };
   }
 
   private slotFor(a: HarvestActorView, role: string, frame: HarvestFrame): Slot | null {
@@ -329,7 +380,14 @@ export class HarvestView {
         w.facing < 0,
         alpha,
       );
-      this.hookOf(s, shown, w.x, w.y, w.y);
+      this.hookOf(
+        s,
+        shown,
+        w.x,
+        w.y,
+        w.y,
+        this.bodyOf(w.phase === 'dig' ? W.hitboxes.dig : W.hitboxes.trot, w),
+      );
     }
     for (const p of h.piglets) {
       const frame: HarvestFrame = p.running
@@ -371,7 +429,14 @@ export class HarvestView {
         k.facing < 0,
         1,
       );
-      this.hookOf(s, shown, k.x, k.y, k.y);
+      this.hookOf(
+        s,
+        shown,
+        k.x,
+        k.y,
+        k.y,
+        this.bodyOf(k.phase === 'duck' ? K.hitboxes.duck : K.hitboxes.work, k),
+      );
     }
     // Gone actors: their slots go too.
     for (const [id, s] of this.slots)

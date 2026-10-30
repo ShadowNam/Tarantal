@@ -7,7 +7,6 @@
 // with a fresh pointerId each (feesdaeHelpers.fireAt); every wait is bounded by sim ticks.
 import { expect, test, type Page } from '@playwright/test';
 import modes from '../../content/modes.json' with { type: 'json' };
-import scoring from '../../content/scoring.json' with { type: 'json' };
 import { decodePng } from '../../tools/assets/image';
 import { fireAt } from './feesdaeHelpers';
 import { boot, hook, isLandscape, isTouchProject, tapRect } from './helpers';
@@ -22,6 +21,8 @@ interface Actor {
   readonly x: number;
   readonly y: number;
   readonly visible: boolean;
+  /** The body's hit ellipse on screen (workers, warthogs). */
+  readonly body: { x: number; y: number; rx: number; ry: number } | null;
 }
 
 async function actorsOf(page: Page): Promise<readonly Actor[]> {
@@ -159,55 +160,79 @@ test('a shot aimed at a worker costs the penalty and the worker ducks; the sheet
   const after = decodePng(await page.locator('#game canvas').screenshot());
   const h = await hook(page);
   const k = after.height / h.designHeight;
-  const workers = (await actorsOf(page)).filter((a) => a.role === 'worker' && a.visible);
-  expect(workers.length, 'workers on screen at the gap').toBeGreaterThan(0);
-  // Pixels: a worker's body (feet up to ~1/2 its height) differs from the field there before.
+  // Review round 2: only workers whose body is fully on screen (the iPhone's view is narrower).
+  const workers = (await actorsOf(page)).filter(
+    (a) =>
+      a.role === 'worker' &&
+      a.visible &&
+      a.body !== null &&
+      a.body.x - a.body.rx > 0 &&
+      a.body.x + a.body.rx < h.designWidth &&
+      a.body.y - a.body.ry > 0,
+  );
+  expect(workers.length, 'workers fully on screen at the gap').toBeGreaterThan(0);
+  // Pixels inside each worker's body ellipse differ from the field there before they came.
   const px = (img: typeof after, x: number, y: number): [number, number, number] => {
     const i = (Math.round(y * k) * img.width + Math.round(x * k)) * 4;
     return [img.data[i] ?? 0, img.data[i + 1] ?? 0, img.data[i + 2] ?? 0];
   };
-  const tall = H.workers.heightPx * scoring.planes.mid.scale;
   let drawn = 0;
   for (const w of workers) {
+    const b = w.body;
+    if (b === null) continue;
+    let samples = 0;
     let differs = 0;
-    for (let y = w.y - tall * 0.6; y < w.y - tall * 0.15; y += 4)
-      for (let x = w.x - 10; x <= w.x + 10; x += 4) {
+    for (let dy = -0.8; dy <= 0.8; dy += 0.2)
+      for (let dx = -0.6; dx <= 0.6; dx += 0.3) {
+        const x = b.x + dx * b.rx;
+        const y = b.y + dy * b.ry;
+        samples++;
         const a = px(before, x, y);
-        const b = px(after, x, y);
-        if (Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]) > 60) differs++;
+        const c = px(after, x, y);
+        if (Math.abs(a[0] - c[0]) + Math.abs(a[1] - c[1]) + Math.abs(a[2] - c[2]) > 45) differs++;
       }
-    if (differs > 10) drawn++;
+    if (differs >= samples / 3) drawn++;
   }
   expect(drawn, `workers drawn on the canvas, of ${workers.length}`).toBe(workers.length);
 
-  // A shot aimed at a worker's body: the penalty, the duck (read in the same wait).
-  const w = workers[0];
-  if (w === undefined) throw new Error('no worker');
+  // A shot aimed at a worker's body centre (the sim's own ellipse, from the hook): the penalty
+  // and the duck, read in the same wait; bounded attempts, each held 30 ticks.
   const score0 = (await hook(page)).score;
-  await fireAt(page, touch, {
-    x: w.x,
-    y: w.y + H.workers.hitboxes.work.body.oy * scoring.planes.mid.scale,
-  });
-  await page.evaluate((t) => {
-    (window as { __TM_HOLD_AT__?: (tick: number) => void }).__TM_HOLD_AT__?.(t + 30);
-  }, at);
-  const got = await page.waitForFunction(
-    (until) => {
-      const tm = window.__TM__;
-      const hv = tm?.harvest;
-      if (hv !== null && hv !== undefined && hv.bystanderPenalty > 0)
-        return {
-          penalty: hv.bystanderPenalty,
-          score: tm?.score ?? 0,
-          ducked: hv.workers.some((x) => x.phase === 'duck'),
-        };
-      if ((tm?.tick ?? 0) >= until) throw new Error('the shot cost nothing');
-      return false;
-    },
-    at + 30,
-    { timeout: 300_000, polling: 'raf' },
-  );
-  const r = (await got.jsonValue()) as { penalty: number; score: number; ducked: boolean };
+  let r: { penalty: number; score: number; ducked: boolean } | null = null;
+  let tick = at;
+  for (let attempt = 0; attempt < 4 && r === null; attempt++) {
+    const w = (await actorsOf(page)).find((a) => a.id === workers[0]?.id);
+    const b = w?.body ?? null;
+    if (b === null) throw new Error('the worker has no body on screen');
+    const aim = { x: Math.round(b.x), y: Math.round(b.y) };
+    const inside = ((aim.x - b.x) / b.rx) ** 2 + ((aim.y - b.y) / b.ry) ** 2 <= 1;
+    expect(inside, 'the aim point is inside the body ellipse').toBe(true);
+    await fireAt(page, touch, aim);
+    const until = tick + 30;
+    await page.evaluate((t) => {
+      (window as { __TM_HOLD_AT__?: (tick: number) => void }).__TM_HOLD_AT__?.(t);
+    }, until);
+    const got = await page.waitForFunction(
+      (u) => {
+        const tm = window.__TM__;
+        const hv = tm?.harvest;
+        if (hv !== null && hv !== undefined && hv.bystanderPenalty > 0)
+          return {
+            penalty: hv.bystanderPenalty,
+            score: tm?.score ?? 0,
+            ducked: hv.workers.some((x) => x.phase === 'duck'),
+          };
+        return (tm?.tick ?? 0) >= u ? 'miss' : false;
+      },
+      until,
+      { timeout: 120_000, polling: 'raf' },
+    );
+    const v = (await got.jsonValue()) as
+      { penalty: number; score: number; ducked: boolean } | 'miss';
+    if (v !== 'miss') r = v;
+    tick = until;
+  }
+  if (r === null) throw new Error('four shots aimed at a worker cost nothing');
   expect(r.penalty).toBe(H.workers.penalty);
   expect(r.score).toBe(score0 - H.workers.penalty);
   expect(r.ducked, 'the worker ducks').toBe(true);

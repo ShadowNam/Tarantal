@@ -561,6 +561,8 @@ export interface TestHook {
   /** M7: one-line notice on the title (a bad challenge link), the HUD tag, tally lines. */
   notice: string | null;
   hudTag: string | null;
+  /** v1.8c review: the tally's count-up, rows, stamp and news are all in (a screenshot waits). */
+  tallyDone: boolean;
   tally: {
     tag: string | null;
     compare: string | null;
