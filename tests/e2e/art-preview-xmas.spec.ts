@@ -1,6 +1,6 @@
 // D-064 Christmas in the sun previews, on demand (not part of the regular suite):
 //   ART_PREVIEW=1 npx playwright test tests/e2e/art-preview-xmas.spec.ts --project=desktop-chromium
-// One profile at a time (desktop, Pixel 7, iPhone 14 landscape); four boots per device, each test
+// One profile at a time (desktop, Pixel 7, iPhone 14 landscape); three boots per device, each test
 // well under 12 min on software GL. Writes docs/art-preview/compare/xmas-<shot>-<device>.png
 // (palette PNG ≤ 1600 px wide; close-ups 2–4× nearest-neighbour):
 //   title, title-closeup — the Daily as "Christmas in the sun", its badge, Oupa waving beside it;
@@ -12,22 +12,13 @@
 //     shut; just shot (the lid knocked back, confetti; the flash gone, the barrel and crosshair
 //     off it); a second later (the two crops must differ);
 //   tally — the Christmas slate; share — the card a friend receives, rendered on the page;
-//   compare-tinsel, compare-present — Standard | HD side by side (the HD boot adds its half).
 // ?presents=near puts the two presents either side of the windpomp / tinsel tree; ?birds=0 where
 // nothing may stand in front. An in-page watcher holds the sim (__TM_HOLD_AT__); a held frame is
 // grabbed only after the hook's frame counter moved on (a freshly drawn frame).
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
-import {
-  blank,
-  blit,
-  crop,
-  decodePng,
-  encodePng8,
-  resize,
-  type Rgba,
-} from '../../tools/assets/image';
+import { blank, crop, decodePng, encodePng8, resize, type Rgba } from '../../tools/assets/image';
 import { loadContent } from '../../tools/testContent';
 import { release, shootPresentOpen, xmasRunning, xmasSheetIn } from './christmasHelpers';
 import { cameraStill, tapRectInPage } from './feesdaeHelpers';
@@ -291,7 +282,6 @@ test('the hunt in the sun: the bubble, wide with a tinsel tree, its crown, a San
   const shot = await grab(page);
   save('hunt', info, shot);
   await closeUp(page, info, 'tinsel', shot, pad(crown, 40));
-  save('std-tinsel', info, await cut(page, shot, pad(crown, 40)));
   await release(page);
 
   // A guineafowl in a Santa hat, close up, its crop on screen and clear of the HUD and the gun:
@@ -375,7 +365,6 @@ test('a present shut, just opened and opened; the tally and the share card', asy
   let box = await clearOf();
   let shot = await grab(page);
   await closeUp(page, info, 'present', shot, box);
-  save('std-present', info, await cut(page, shot, box));
   await release(page);
 
   // The opening moment: an in-page watcher (every frame, bounded) holds the sim OPEN_TICKS after
@@ -485,40 +474,4 @@ test('a present shut, just opened and opened; the tally and the share card', asy
   }, text);
   writeFileSync(join(OUT, `xmas-share-${device(info.project.name)}.txt`), `${text}\n`);
   save('share', info, decodePng(await page.locator('#xmas-share-card').screenshot()));
-});
-
-test('Standard | HD: the tinsel tree and a present', async ({ page }, info) => {
-  const touch = isTouchProject(info);
-  await boot(page, `${QUERY}&huntSeconds=120&presents=near&birds=0&graphics=hd`);
-  await startXmas(page, touch);
-  expect(await page.evaluate(() => window.__TM__?.spook?.tinsel?.sheet)).toBe('hd');
-  await page.waitForFunction(() => (window.__TM__?.tick ?? 0) >= 240, null, { timeout: 300_000 });
-  const pair = (name: string, hd: Rgba): void => {
-    const stdFile = fileOf(`std-${name}`, info);
-    const std = existsSync(stdFile) ? decodePng(readFileSync(stdFile)) : blank(hd.width, hd.height);
-    const both = blank(std.width + hd.width + 12, Math.max(std.height, hd.height));
-    blit(both, std, 0, 0);
-    blit(both, hd, std.width + 12, 0);
-    const n = Math.max(1, Math.min(3, Math.floor(1600 / Math.max(1, both.width))));
-    save(`compare-${name}`, info, scaled(both, n));
-  };
-  await panTo(page, async () => {
-    const c = await crownOf(page);
-    return c === null ? null : c.x + c.w / 2;
-  });
-  await park(page, touch);
-  await holdFresh(page);
-  const crown = await crownOf(page);
-  if (crown === null) throw new Error('no tinsel tree');
-  pair('tinsel', await cut(page, await grab(page), pad(crown, 40)));
-  await release(page);
-  const p = await presentOf(page);
-  if (p === null) throw new Error('no present');
-  await panTo(page, async () => (await presentOf(page, p.id))?.x ?? null, 0.35, 120);
-  await park(page, touch, 0.78);
-  await holdFresh(page);
-  const at = await presentOf(page, p.id);
-  if (at === null) throw new Error('the present is gone');
-  pair('present', await cut(page, await grab(page), presentBox(at)));
-  await release(page);
 });
