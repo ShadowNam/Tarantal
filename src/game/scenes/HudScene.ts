@@ -7,7 +7,7 @@
 // left-handed mirroring, and the ⛔ call-out only for creatures not yet in the Bird Book (first
 // sighting ever). A separate scene so camera shake never moves it. Fed each frame by HuntScene
 // with the latest snapshot and that frame's events.
-import { OUPA_DRAWN, xmasKeyIn, xmasMasterOf } from '../feesdae/christmasKeys';
+import { xmasKeyIn } from '../feesdae/christmasKeys';
 import { redDotIds, redDotUp } from '../view/redDot';
 import { designSize } from '../layout';
 import { fitCamera } from '../view/fitCamera';
@@ -802,13 +802,7 @@ export class HudScene extends Phaser.Scene {
         // sheet or its stand-in already).
         if (e.feesdag === 'christmas') {
           const key = xmasKeyIn(this.textures);
-          if (key !== null)
-            this.bubble?.setPortrait({
-              key,
-              frame: 'oupa_head',
-              scale:
-                0.36 / OUPA_DRAWN / xmasMasterOf(this.textures.get(key).getSourceImage().width),
-            });
+          if (key !== null) this.bubble?.setPortrait({ key, frame: 'oupa_head' });
         }
       } else if (e.type === 'lanternsOut') {
         banner.push(`${t('feesdag.lanterns_out')} ${formatAward(e.points)}`);

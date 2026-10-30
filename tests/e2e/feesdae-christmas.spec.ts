@@ -159,13 +159,18 @@ test.describe('Feesdae: Christmas in the sun (D-064)', () => {
       (line) => {
         const g = window.__TM__;
         const r = g?.rects['barkPortrait'];
+        const text = g?.rects['barkLine'];
         if (g === undefined || !g.barks.includes(line)) return null;
-        return r === undefined ? null : { r, w: g.designWidth, h: g.designHeight };
+        return r === undefined || text === undefined
+          ? null
+          : { r, text, w: g.designWidth, h: g.designHeight };
       },
       B.start,
       { timeout: 120_000 },
     );
-    const fr = (await face.jsonValue()) as { r: R; w: number; h: number };
+    const fr = (await face.jsonValue()) as { r: R; text: R; w: number; h: number };
+    // His face sits in the name row: it never covers the line's first letters.
+    expect(overlaps(fr.r, fr.text), "Oupa's face over the line").toBe(false);
     expect(fr.r.x).toBeGreaterThanOrEqual(0);
     expect(fr.r.y).toBeGreaterThanOrEqual(0);
     expect(fr.r.x + fr.r.w).toBeLessThanOrEqual(fr.w);

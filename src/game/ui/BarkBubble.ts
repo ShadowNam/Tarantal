@@ -46,11 +46,12 @@ export class BarkBubble {
   }
 
   /**
-   * D-064: Oupa's face (a texture frame, origin at his face's middle) at the bubble's top-left,
-   * inside the plate (so inside the slot, i.e. the safe area: only his hat's tip rises above the
-   * plate), while a special day's hunt runs; null takes it away.
+   * D-064: Oupa's face in his Santa hat (a texture frame, origin at his face's middle) beside his
+   * name while a special day's hunt runs; null takes it away. It lives in the name row only: show()
+   * sizes it from the name's height (every language, large text) so his beard ends on the row's
+   * baseline and the line starts below it; only the hat's tip rises above the plate.
    */
-  setPortrait(p: { key: string; frame: string; scale: number } | null): void {
+  setPortrait(p: { key: string; frame: string } | null): void {
     if (p === null) {
       this.portrait?.setVisible(false);
       return;
@@ -59,11 +60,13 @@ export class BarkBubble {
       this.portrait = this.scene.add.image(0, 0, p.key, p.frame);
       this.root.add(this.portrait);
     }
-    this.portrait
-      .setTexture(p.key, p.frame)
-      .setScale(p.scale)
-      .setPosition(PAD + 12, PAD + 14);
-    this.portrait.setVisible(true);
+    this.portrait.setTexture(p.key, p.frame).setVisible(true);
+  }
+
+  /** D-064: the line's on-screen rect (the e2e checks Oupa's face never covers it). */
+  lineRect(): Rect {
+    const b = this.line.getBounds();
+    return { x: b.x, y: b.y, w: b.width, h: b.height };
   }
 
   /** D-064: the portrait's on-screen rect while it shows (design px), else null. */
@@ -77,15 +80,33 @@ export class BarkBubble {
   show(text: string, slot: Rect, timing: BarkTiming, nowMs: number): void {
     const inner = slot.w - 2 * PAD;
     this.line.setWordWrapWidth(inner, true).setText(text).setScale(1);
-    // D-064: with Oupa's face on the corner, his name moves right of it.
-    const nameX = this.portrait?.visible === true ? PAD + 40 : PAD;
+    // D-064: Oupa's face in the name row, left of his name: its face and beard (the frame below
+    // its origin, 32 % of it) end on the row's baseline; the hat rises above. The line starts
+    // below the row, so the beard never covers a letter.
+    let nameX = PAD;
+    const face = this.portrait;
+    if (face?.visible === true) {
+      const fh = face.frame.height;
+      const fw = face.frame.width;
+      const dispH = this.name.height * 1.9;
+      const k = dispH / Math.max(1, fh);
+      face.setScale(k);
+      face.setPosition(
+        PAD + face.originX * fw * k,
+        PAD + this.name.height - (1 - face.originY) * fh * k,
+      );
+      nameX = PAD + fw * k + 6;
+    }
     this.name.setPosition(nameX, PAD);
     const top = PAD + this.name.height;
     // Too tall for the slot (a long translation at a large text size): shrink to fit.
     const room = slot.h - top - PAD;
     if (this.line.height > room) this.line.setScale(Math.max(0.5, room / this.line.height));
     this.line.setPosition(PAD, top);
-    const w = Math.min(slot.w, Math.max(this.name.width, this.line.displayWidth) + 2 * PAD);
+    const w = Math.min(
+      slot.w,
+      Math.max(nameX - PAD + this.name.width, this.line.displayWidth) + 2 * PAD,
+    );
     const h = Math.min(slot.h, top + this.line.displayHeight + PAD);
     this.plate.setSize(w, h);
     this.plate.setRounded(18);
@@ -150,8 +171,13 @@ export function sayBark(
     hook.bark = { line, text, x: r.x, y: r.y, w: r.w, h: r.h };
     // D-064: Oupa's Santa-hat face on the bubble, for the safe-area checks.
     const face = bubble.portraitRect();
-    if (face === null) delete hook.rects['barkPortrait'];
-    else hook.rects['barkPortrait'] = face;
+    if (face === null) {
+      delete hook.rects['barkPortrait'];
+      delete hook.rects['barkLine'];
+    } else {
+      hook.rects['barkPortrait'] = face;
+      hook.rects['barkLine'] = bubble.lineRect();
+    }
     hook.barks.push(line);
     if (hook.barks.length > HOOK_BARKS_MAX) hook.barks.shift();
     bubble.onHidden = () => {
