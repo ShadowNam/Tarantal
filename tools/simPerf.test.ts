@@ -75,4 +75,50 @@ describe('sim performance budget', () => {
     expect(maxBirds).toBeGreaterThanOrEqual(55);
     expect(mean).toBeLessThan(1.5);
   });
+
+  // v1.8c (D-063): the Harvest at its peak — the warthogs at their cap with piglets, the workers,
+  // the baboon raid, the mid flocks and the fly-overs ramped up — with shooting every few ticks.
+  it('step() averages ≤ 1.5 ms in the Harvest rush at its peak', () => {
+    const content = structuredClone(loadContent());
+    const h = content.modes.modes.harvest;
+    h.rush.keyframes = h.rush.keyframes.map((k) => ({ ...k, warthogsPerMin: 120 }));
+    h.warthogs.sowChance = 1;
+    h.huntSeconds = 60;
+    const oes = content.biomes.find((b) => b.id === h.biome);
+    if (oes === undefined) throw new Error('no Harvest map');
+    oes.pacing.maxFlocks = 6;
+    for (const k of oes.pacing.keyframes) {
+      k.flocks = { mid: 3 };
+      k.flyoversPerMin = 60;
+      k.popupsPerMin = 20;
+    }
+    const sim = createSim({ seed: 4, content, mode: { id: 'harvest' }, inputKind: 'touch' });
+    // Through the intro (no shots: a tap would skip it) and the first warthogs.
+    for (let i = 0; i < 600; i++) sim.step([]);
+    sim.drainEvents();
+    let total = 0;
+    let steps = 0;
+    let maxAnimals = 0;
+    for (let i = 0; i < 1200 && !sim.isOver(); i++) {
+      const cmds: Command[] = [];
+      if (i % 5 === 0)
+        cmds.push({ t: 'fire', dx: ((i * 37) % 1600) - 800, sy: 650 + ((i * 53) % 350) });
+      if (i % 30 === 0) cmds.push({ t: 'reload' });
+      if (i % 200 === 0) cmds.push({ t: 'cameraTarget', cx: 960 + ((i * 7) % 3200) });
+      const t0 = performance.now();
+      sim.step(cmds);
+      total += performance.now() - t0;
+      steps++;
+      sim.drainEvents();
+      const s = sim.snapshot();
+      maxAnimals = Math.max(
+        maxAnimals,
+        s.birds.length + (s.harvest?.warthogs.length ?? 0) + (s.harvest?.piglets.length ?? 0),
+      );
+    }
+    const mean = total / steps;
+    console.log(`harvest step(): mean ${(mean * 1000).toFixed(1)} µs, up to ${maxAnimals} animals`);
+    expect(maxAnimals).toBeGreaterThanOrEqual(30);
+    expect(mean).toBeLessThan(1.5);
+  });
 });
