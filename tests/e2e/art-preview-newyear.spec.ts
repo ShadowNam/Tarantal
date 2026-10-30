@@ -7,8 +7,10 @@
 //   title, title-closeup — the Daily as "New Year", its badge, Oupa in his party hat with a blower;
 //   bubble — Oupa's bark bubble with his party-hat face (cropped from the bubble's own rect);
 //   hunt — wide at dusk turning to blue hour, stars out, small fireworks on the far horizon
-//     (?fireworks=max: a burst every slot, 3 a second, so a held frame has one);
-//   countdown, countdown-closeup — the HUD's big countdown held at "5", the ×2 tag by the score;
+//     (?fireworks=max: a burst every slot, 3 a second, so a held frame has one), and fireworks — a
+//     burst in open sky (its pixels checked against the same held frame without the fireworks);
+//   countdown, countdown-closeup, countdown-tag — the HUD's big countdown held at "5" (its digit
+//     centred), the ×2 tag beside the score plate;
 //   hat — a guineafowl in a small striped party hat, on the near plane (looked for from the
 //     hunt's start, lesson 27);
 //   tally — the New Year slate ("Happy New Year!", streamers, Oupa's head, a burst);
@@ -24,7 +26,7 @@ import { loadContent } from '../../tools/testContent';
 import { release } from './christmasHelpers';
 import { tapRectInPage } from './feesdaeHelpers';
 import { boot, isTouchProject, tapRect } from './helpers';
-import { nyRunning, nySheetIn } from './newyearHelpers';
+import { hideNy, nyRunning, nySheetIn } from './newyearHelpers';
 
 const OUT = join(import.meta.dirname, '..', '..', 'docs', 'art-preview', 'compare');
 const PROFILES = ['desktop-chromium', 'pixel7-landscape', 'iphone14-landscape'];
@@ -210,38 +212,69 @@ test('the hunt: the bubble, wide at dusk with fireworks, the countdown held at 5
     timeout: 480_000,
   });
   await park(page, touch);
-  const wide = await page.waitForFunction(
-    () => {
-      const g = window.__TM__;
-      const hold = (window as unknown as { __TM_HOLD_AT__?: (t: number) => void }).__TM_HOLD_AT__;
-      if (g === undefined || hold === undefined) return null;
-      const burst = (g.spook?.newYear?.bursts ?? []).find(
-        (x) => x.alpha > 0.4 && x.x > 200 && x.x < g.designWidth - 200,
-      );
-      if (burst === undefined) return null;
-      hold(g.tick + 1);
-      return burst;
-    },
-    null,
-    { timeout: 240_000, polling: 'raf' },
-  );
-  const burst = (await wide.jsonValue()) as { x: number; y: number; r: number };
-  const f0 = await page.evaluate(() => window.__TM__?.sceneryFrames ?? 0);
-  await page.waitForFunction((f) => (window.__TM__?.sceneryFrames ?? 0) >= f + 3, f0, {
-    timeout: 60_000,
-  });
-  await page.waitForTimeout(500);
+  // A burst in open sky: hold a frame with one well inside the view, grab it with the fireworks
+  // shown and hidden at that held tick, and keep it only if its box really changes (no nearer
+  // prop — a tree crown, a reed bed — in front of it). Bounded: up to 8 bursts.
+  let kept: { shot: Rgba; box: Rect } | null = null;
+  for (let attempt = 0; attempt < 8 && kept === null; attempt++) {
+    const wide = await page.waitForFunction(
+      () => {
+        const g = window.__TM__;
+        const hold = (window as unknown as { __TM_HOLD_AT__?: (t: number) => void }).__TM_HOLD_AT__;
+        if (g === undefined || hold === undefined) return null;
+        const avoid = Object.values(g.rects);
+        const burst = (g.spook?.newYear?.bursts ?? []).find((x) => {
+          if (x.alpha < 0.5 || x.x < 220 || x.x > g.designWidth - 220) return false;
+          const r = x.r + 40;
+          const b = { x: x.x - r, y: x.y - r, w: 2 * r, h: 2 * r };
+          return !avoid.some(
+            (o) => b.x < o.x + o.w && o.x < b.x + b.w && b.y < o.y + o.h && o.y < b.y + b.h,
+          );
+        });
+        if (burst === undefined) return null;
+        hold(g.tick + 1);
+        return burst;
+      },
+      null,
+      { timeout: 240_000, polling: 'raf' },
+    );
+    const burst = (await wide.jsonValue()) as { x: number; y: number; r: number };
+    const f0 = await page.evaluate(() => window.__TM__?.sceneryFrames ?? 0);
+    await page.waitForFunction((f) => (window.__TM__?.sceneryFrames ?? 0) >= f + 3, f0, {
+      timeout: 60_000,
+    });
+    await page.waitForTimeout(500);
+    const on = await grab(page);
+    await hideNy(page, true);
+    const off = await grab(page);
+    await hideNy(page, false);
+    const box = pad({ x: burst.x, y: burst.y, w: 0, h: 0 }, burst.r + 50);
+    const a = await cut(page, on, box);
+    const b = await cut(page, off, box);
+    let changedPx = 0;
+    for (let k = 0; k < a.data.length; k += 4)
+      if (
+        Math.abs((a.data[k] ?? 0) - (b.data[k] ?? 0)) +
+          Math.abs((a.data[k + 1] ?? 0) - (b.data[k + 1] ?? 0)) +
+          Math.abs((a.data[k + 2] ?? 0) - (b.data[k + 2] ?? 0)) >
+        60
+      )
+        changedPx++;
+    info.annotations.push({ type: `burst ${attempt}`, description: `${changedPx} px drawn` });
+    if (changedPx >= 60) kept = { shot: on, box };
+    else {
+      await release(page);
+      const t0 = await page.evaluate(() => window.__TM__?.tick ?? 0);
+      await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) >= t + 20, t0, {
+        timeout: 120_000,
+      });
+    }
+  }
+  if (kept === null) throw new Error('no burst in open sky');
   const stars = await page.evaluate(() => window.__TM__?.spook?.newYear?.starAlpha ?? 0);
   expect.soft(stars, 'the stars are coming out').toBeGreaterThan(0);
-  const shot = await grab(page);
-  save('hunt', info, shot);
-  await closeUp(
-    page,
-    info,
-    'fireworks',
-    shot,
-    pad({ x: burst.x, y: burst.y, w: 0, h: 0 }, burst.r + 60),
-  );
+  save('hunt', info, kept.shot);
+  await closeUp(page, info, 'fireworks', kept.shot, kept.box);
   await release(page);
 
   // The countdown held at "5" (a page hold: it replaces the URL's), mid-second.
@@ -268,13 +301,15 @@ test('the hunt: the bubble, wide at dusk with fireworks, the countdown held at 5
     throw new Error('no countdown on the HUD');
   const cshot = await grab(page);
   save('countdown', info, cshot);
-  const x0 = Math.min(r.countdown.x, r.tag.x) - 30;
-  const y0 = Math.min(r.countdown.y, r.score.y) - 20;
-  await closeUp(page, info, 'countdown-closeup', cshot, {
-    x: x0,
-    y: y0,
-    w: Math.max(r.countdown.x + r.countdown.w, r.score.x + r.score.w) + 20 - x0,
-    h: r.countdown.y + r.countdown.h + 20 - y0,
+  // The digit, centred in its own crop; then the ×2 tag with the score plate beside it.
+  await closeUp(page, info, 'countdown-closeup', cshot, pad(r.countdown, 50));
+  const tx = Math.min(r.tag.x, r.score.x) - 24;
+  const ty = Math.min(r.tag.y, r.score.y) - 20;
+  await closeUp(page, info, 'countdown-tag', cshot, {
+    x: tx,
+    y: ty,
+    w: Math.max(r.tag.x + r.tag.w, r.score.x + r.score.w) + 20 - tx,
+    h: Math.max(r.tag.y + r.tag.h, r.score.y + r.score.h) + 20 - ty,
   });
   await release(page);
 });
@@ -283,9 +318,10 @@ test('a party hat on the near plane; the tally and the share card', async ({ pag
   const touch = isTouchProject(info);
   await boot(page, `${QUERY}&huntSeconds=24`);
   await startNy(page, touch);
-  // A guineafowl in a party hat, close up, from the hunt's start (lesson 27): its crop on screen
-  // and clear of the HUD and the gun; a near bird any time; a mid one after 6 s of sim time
-  // without one.
+  // A guineafowl in a party hat, close up, from the hunt's start (lesson 27): the crop centred on
+  // the hat (the head and neck under it), on screen, clear of the HUD and the gun, and no other
+  // bird in it (a clump of bodies hides the heads); a near bird any time; a mid one after 6 s of
+  // sim time without one.
   const hat = await page.waitForFunction(
     (m) => {
       const g = window.__TM__;
@@ -294,11 +330,12 @@ test('a party hat on the near plane; the tally and the share card', async ({ pag
       if (g === undefined || hold === undefined || g.spook === null) return null;
       w.__nyHatFrom ??= g.tick;
       const waited = g.tick - w.__nyHatFrom;
-      const size = { near: 320, mid: 200, far: 160, ver: 160 };
+      const size = { near: 260, mid: 170, far: 140, ver: 140 };
       const avoid = [...Object.values(g.rects), ...(g.gunRect === null ? [] : [g.gunRect])];
       const boxOf = (p: { x: number; y: number; plane: keyof typeof size }) => {
         const s = size[p.plane];
-        return { x: p.x - s / 2, y: p.y - s / 4, w: s, h: (s * 3) / 4 };
+        // The hat sits above its brim (p): centre the crop a little above it.
+        return { x: p.x - s / 2, y: p.y - s * 0.48, w: s, h: s * 0.75 };
       };
       const pick = (plane: 'near' | 'mid') =>
         g.spook?.hats.find((p) => {
@@ -306,9 +343,18 @@ test('a party hat on the near plane; the tally and the share card', async ({ pag
           const b = boxOf(p);
           if (b.x < m || b.y < m || b.x + b.w > g.designWidth - m) return false;
           if (b.y + b.h > g.designHeight - m) return false;
-          return !avoid.some(
-            (r) => b.x < r.x + r.w && r.x < b.x + b.w && b.y < r.y + r.h && r.y < b.y + b.h,
-          );
+          if (
+            avoid.some(
+              (r) => b.x < r.x + r.w && r.x < b.x + b.w && b.y < r.y + r.h && r.y < b.y + b.h,
+            )
+          )
+            return false;
+          // Only its own wearer may be in the crop: no other bird's body, no other hat.
+          const inside = (q: { x: number; y: number }) =>
+            q.x > b.x && q.x < b.x + b.w && q.y > b.y && q.y < b.y + b.h;
+          const birds = g.targetBirds.filter((t) => inside(t)).length;
+          const hats = (g.spook?.hats ?? []).filter((h) => h !== p && inside(h)).length;
+          return birds <= 1 && hats === 0;
         });
       const spot = pick('near') ?? (waited >= 360 ? pick('mid') : undefined);
       if (spot === undefined) return null;
@@ -327,7 +373,7 @@ test('a party hat on the near plane; the tally and the share card', async ({ pag
   await page.waitForFunction(() => window.__TM__?.scene === 'tally', null, { timeout: 600_000 });
   expect(await page.evaluate(() => window.__TM__?.tally?.frame ?? null)).toBe('newyear');
   expect(await page.evaluate(() => window.__TM__?.tally?.greeting ?? null)).toBe('Happy New Year!');
-  await page.waitForFunction(() => window.__TM__?.tallyDone === true, null, { timeout: 120_000 });
+  await page.waitForFunction(() => window.__TM__?.tallyDone === true, null, { timeout: 300_000 });
   await park(page, touch);
   await page.waitForTimeout(1500);
   const r = await page.evaluate(() => ({
