@@ -1,7 +1,7 @@
 // D-064: the code-drawn stand-in for the Christmas sheet (christmasAssets.ts layout), shown only
 // until the delivered sheet arrives (or on a build without an asset index). Simple flat shapes in
 // the sheet's frame boxes and origins, so the view and the hit circles line up the same.
-import { PRESENT_GROUND_PX, xmasFrames, type XmasRect } from './christmasAssets';
+import { OUPA_DRAWN, PRESENT_GROUND_PX, xmasFrames, type XmasRect } from './christmasAssets';
 
 type G = CanvasRenderingContext2D;
 
@@ -90,6 +90,10 @@ function draw(g: G, f: XmasRect): void {
       hat(g, x, y, a === 'l' ? 1 : a === 'm' ? 0.54 : 0.28);
       return;
     case 'oupa':
+      // Drawn at half size, like the sheet's (OUPA_DRAWN).
+      g.translate(x, y);
+      g.scale(OUPA_DRAWN, OUPA_DRAWN);
+      g.translate(-x, -y);
       if (a === 'head') {
         ell(g, x, y, 30, 34, '#D69A72');
         ell(g, x, y + 30, 26, 24, '#F2F0EA');

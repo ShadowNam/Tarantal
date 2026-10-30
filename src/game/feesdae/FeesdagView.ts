@@ -202,6 +202,27 @@ async function loadSounds(
 }
 
 /**
+ * D-064: only a special's sheet (the same cached load as loadFeesdaeAssets): null when the index
+ * doesn't list it or it failed. Christmas's hunt waits for it (bounded by the file timeout) so no
+ * stand-in is drawn in normal play (~7 MB of GPU memory saved; it never blocks on an unlisted file).
+ */
+export function loadSpecialSheet(special: string): Promise<HTMLImageElement | null> {
+  const files = SPECIAL_FILES[special];
+  if (files === undefined) return Promise.resolve(null);
+  let own = sheets.get(special);
+  if (own === undefined) {
+    own = fetchAssetIndex(FILE_TIMEOUT_MS).then(async (r) => {
+      const entry = r.index?.images[files.sheet];
+      const img = entry === undefined ? null : await loadImage(entry.file.path, FILE_TIMEOUT_MS);
+      if (img === null) sheets.delete(special);
+      return img;
+    });
+    sheets.set(special, own);
+  }
+  return own;
+}
+
+/**
  * A special's own group's files, in the background (D-064: only that special's — a Halloween hunt
  * never fetches Christmas's and the other way round): its recordings (all at once) and the sheet.
  * Resolves with the sheet (null if it is not delivered or failed). A load that came back empty
@@ -251,16 +272,7 @@ export function loadFeesdaeAssets(
         if (!(await loadSounds(audio, want, format))) voices.delete(voiceId);
       }),
     );
-  let own = sheets.get(special);
-  if (own === undefined) {
-    own = index.then(async (ix) => {
-      const entry = ix?.images[files.sheet];
-      const img = entry === undefined ? null : await loadImage(entry.file.path, FILE_TIMEOUT_MS);
-      if (img === null) sheets.delete(special);
-      return img;
-    });
-    sheets.set(special, own);
-  }
+  const own = loadSpecialSheet(special);
   return Promise.all([sounds.get(special), own, voices.get(voiceId)]).then(([, img]) => img);
 }
 

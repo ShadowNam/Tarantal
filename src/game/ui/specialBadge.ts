@@ -2,7 +2,7 @@
 // orange pill behind the Daily's status line. Drawn in code (no art in the first download). The tally's special frame (drawSlateFrame) uses the special's own sheet.
 import * as Phaser from 'phaser';
 import { HALLOWEEN_SHEET, SHEET_MASTER } from '../feesdae/feesdaeAssets';
-import { CHRISTMAS_SHEET, XMAS_MASTER } from '../feesdae/christmasAssets';
+import { CHRISTMAS_SHEET, OUPA_DRAWN, XMAS_MASTER } from '../feesdae/christmasAssets';
 import type { Rect } from './hudLayout';
 
 const FILL = 0xf28c28;
@@ -61,10 +61,10 @@ function xmasKey(scene: Phaser.Scene): string | null {
 export function drawBadgeOupa(scene: Phaser.Scene, badge: Rect): Rect | null {
   const key = xmasKey(scene);
   if (key === null) return null;
-  const s = 0.36;
+  const s = 0.36 / OUPA_DRAWN;
   const img = scene.add
     .image(badge.x - 8, badge.y + badge.h, key, 'oupa')
-    .setOrigin(110 / 240, 412 / 420)
+    .setOrigin(55 / 120, 206 / 210)
     .setScale(s / XMAS_MASTER)
     .setDepth(6);
   const b = img.getBounds();
@@ -158,8 +158,8 @@ function drawXmasFrame(scene: Phaser.Scene, slate: Rect): Rect | null {
     .setScale(0.55 / m);
   const head = scene.add
     .image(slate.x - 30, slate.y - 26, key, 'oupa_head')
-    .setOrigin(62 / 130, 136 / 200)
-    .setScale(0.62 / m);
+    .setOrigin(31 / 66, 68 / 100)
+    .setScale(0.62 / OUPA_DRAWN / m);
   const b = head.getBounds();
   return { x: b.x, y: b.y, w: b.width, h: b.height };
 }

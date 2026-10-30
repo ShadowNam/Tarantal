@@ -117,6 +117,10 @@ interface MapChoice {
 let feesdaeModule: typeof import('../feesdae/FeesdagView') | null = null;
 /** D-048: each special's delivered sheet, once it has arrived (absent = the stand-in draws). */
 const feesdaeSheets = new Map<string, HTMLImageElement>();
+/** D-064: specials whose sheet a hunt has waited for once (a failed load isn't waited on again). */
+const feesdaeSheetTried = new Set<string>();
+/** D-064: the specials whose hunt waits (bounded) for their own listed sheet before it starts. */
+const WAIT_FOR_SHEET: readonly string[] = ['christmas'];
 
 /** D-064: the Christmas view's e2e hook (its tinsel). */
 interface KersfeesHook {
@@ -1096,9 +1100,16 @@ export class HuntScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(10_000);
     void import('../feesdae/FeesdagView')
-      .then((m) => {
+      .then(async (m) => {
         feesdaeModule = m;
         this.loadFeesdaeArt();
+        // D-064: Christmas waits for its own sheet when the index lists it (bounded by the file
+        // timeout; unlisted or failed: the stand-in draws instead).
+        if (WAIT_FOR_SHEET.includes(special.id) && !feesdaeSheetTried.has(special.id)) {
+          feesdaeSheetTried.add(special.id);
+          const img = await m.loadSpecialSheet(special.id);
+          if (img !== null) feesdaeSheets.set(special.id, img);
+        }
         return true;
       })
       .catch(() => false)
@@ -1548,7 +1559,11 @@ export class HuntScene extends Phaser.Scene {
     this.special = feesdagById(this.ctx.content.feesdae, mode.feesdag);
     // A later special-day hunt tries the files again if the first load came back without them.
     if (this.special !== null) this.loadFeesdaeArt();
-    if (this.special !== null && feesdaeModule === null) {
+    if (
+      this.special !== null &&
+      (feesdaeModule === null ||
+        (WAIT_FOR_SHEET.includes(this.special.id) && !feesdaeSheetTried.has(this.special.id)))
+    ) {
       this.waitForFeesdae(this.special, (ok) => {
         if (ok) this.begin(kind, startPointer, modeId, challenge, bonus);
         else this.scene.restart({} satisfies HuntData);

@@ -66,29 +66,33 @@ const PRESENT = { w: 140, h: 182, ox: 70, oy: 130 };
 const LID = { w: 140, h: 92, ox: 70, oy: 84 };
 const BAUBLE = { w: 30, h: 38, ox: 15, oy: 2 };
 
-/** Packed in shelves in this order. */
+/** Oupa is drawn at half size (he is shown small: the title badge, the tally, the bubble), so his
+ *  frames are half the art's size; the views scale him up by OUPA_DRAWN. */
+export const OUPA_DRAWN = 0.5;
+
+/** Packed in shelves, tallest first (keeps the sheet's GPU size down: 600 × 710 design px). */
 const SPECS: readonly FrameSpec[] = [
-  { name: 'oupa', w: 240, h: 420, ox: 110, oy: 412 },
-  { name: 'garland_silver', w: GARLAND_SPAN_PX + 20, h: 90, ox: 10 + GARLAND_SPAN_PX / 2, oy: 14 },
-  { name: 'garland_red', w: GARLAND_SPAN_PX + 20, h: 90, ox: 10 + GARLAND_SPAN_PX / 2, oy: 14 },
+  { name: 'oupa', w: 120, h: 210, ox: 55, oy: 206 },
   { name: 'present_a_shut', ...PRESENT },
   { name: 'present_b_shut', ...PRESENT },
   { name: 'present_c_shut', ...PRESENT },
   { name: 'present_a_open', ...PRESENT },
   { name: 'present_b_open', ...PRESENT },
   { name: 'present_c_open', ...PRESENT },
+  { name: 'confetti', w: 140, h: 140, ox: 70, oy: 70 },
+  { name: 'hat_l', w: 130, h: 120, ox: 65, oy: 104, forScale: 1 },
+  { name: 'oupa_head', w: 66, h: 100, ox: 31, oy: 68 },
   { name: 'lid_a', ...LID },
   { name: 'lid_b', ...LID },
   { name: 'lid_c', ...LID },
-  { name: 'hat_l', w: 130, h: 120, ox: 65, oy: 104, forScale: 1 },
-  { name: 'confetti', w: 140, h: 140, ox: 70, oy: 70 },
-  { name: 'oupa_head', w: 130, h: 200, ox: 62, oy: 136 },
+  { name: 'garland_silver', w: GARLAND_SPAN_PX + 20, h: 90, ox: 10 + GARLAND_SPAN_PX / 2, oy: 14 },
+  { name: 'garland_red', w: GARLAND_SPAN_PX + 20, h: 90, ox: 10 + GARLAND_SPAN_PX / 2, oy: 14 },
   { name: 'hat_m', w: 70, h: 64, ox: 35, oy: 55, forScale: 0.5 },
-  { name: 'hat_s', w: 36, h: 34, ox: 18, oy: 29, forScale: 0.22 },
   { name: 'glint', w: 44, h: 44, ox: 22, oy: 22 },
   { name: 'bauble_red', ...BAUBLE },
   { name: 'bauble_gold', ...BAUBLE },
   { name: 'bauble_silver', ...BAUBLE },
+  { name: 'hat_s', w: 36, h: 34, ox: 18, oy: 29, forScale: 0.22 },
 ];
 
 export interface XmasRect {
@@ -103,7 +107,7 @@ export interface XmasRect {
 }
 
 /** Sheet width in design px (×XMAS_MASTER in texture px). */
-export const XMAS_SHEET_W = 760;
+export const XMAS_SHEET_W = 600;
 const PAD = 4;
 
 /** Every frame of the sheet in design px (×1), packed in shelves in SPECS order. */

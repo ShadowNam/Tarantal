@@ -13,6 +13,7 @@
 //   waving (the title badge, the tally slate); his head alone for the bark bubble.
 // Coordinates: design px; each frame is drawn round its origin (christmasAssets.ts).
 import {
+  OUPA_DRAWN,
   XMAS_MASTER,
   XMAS_SHEET_H,
   XMAS_SHEET_W,
@@ -846,9 +847,9 @@ function frameArt(name: XmasFrame, seed: number): string {
     case 'hat_s':
       return santaHat('s');
     case 'oupa':
-      return oupa();
+      return g({ transform: `scale(${OUPA_DRAWN})` }, oupa());
     case 'oupa_head':
-      return oupaHead();
+      return g({ transform: `scale(${OUPA_DRAWN})` }, oupaHead());
     default:
       return '';
   }
