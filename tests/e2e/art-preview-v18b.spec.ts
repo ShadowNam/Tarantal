@@ -283,21 +283,25 @@ async function raiderBox(page: Page): Promise<{ x: number; y: number; w: number;
 /** Waits (bounded by sim ticks) until the raider is at its mischief (an action frame). */
 /** Waits (bounded by sim ticks) until a raid is on with its raider in the hook: an off-screen raider
  *  isn't drawn (its frame is null), so this reads the sim's raid state, not a frame. */
-async function untilRaider(page: Page): Promise<void> {
+async function untilRaider(page: Page, notRaid = -1): Promise<number> {
   const start = (await hook(page)).tick;
-  await page.waitForFunction(
-    (until) => {
+  const got = await page.waitForFunction(
+    ([until, not]) => {
       const tm = (
-        window as unknown as Hooked & { __TM__?: { baboonRaid?: { phase: string } | null } }
+        window as unknown as Hooked & {
+          __TM__?: { baboonRaid?: { id: number; phase: string } | null };
+        }
       ).__TM__;
+      const raid = tm?.baboonRaid;
       const r = (tm?.baboons ?? []).find((b) => b.role === 'raider');
-      if (tm?.baboonRaid?.phase === 'on' && r !== undefined) return true;
+      if (raid?.phase === 'on' && raid.id !== not && r !== undefined) return raid.id;
       if ((tm?.tick ?? 0) > until) throw new Error(`no raid by tick ${until}`);
       return false;
     },
-    start + 60 * 60,
+    [start + 60 * 90, notRaid] as const,
     { timeout: 900_000 },
   );
+  return (await got.jsonValue()) as number;
 }
 
 /** With the raider on screen: waits (bounded) until it is drawn at its mischief. */
@@ -372,7 +376,15 @@ test('Karoo: the troop, the hat raid, the raider close up, the tumble (Standard)
   // The Standard crops, for the HD test's pairs (tests may run in other workers).
   save('troop-karoo-std-crop', info, got.troop);
   save('raider-karoo-std-crop', info, got.raider);
-  // Two hits bag the raider: hold just after the bagging shot to catch the tumble (bounded).
+  // Two hits bag a raider: the NEXT raid (the grabs above used up this one's act): wait for it
+  // in the sim, pan to it, shoot at once, and hold just after the bagging shot (bounded).
+  const grabbed = await page.evaluate(
+    () =>
+      (window as unknown as { __TM__?: { baboonRaid?: { id: number } | null } }).__TM__?.baboonRaid
+        ?.id ?? -1,
+  );
+  await untilRaider(page, grabbed);
+  await panToX(page, touch, () => raiderX(page));
   const k = scoring.planes.mid.scale;
   let tumbled = false;
   for (let shot = 0; shot < 40 && !tumbled; shot++) {
