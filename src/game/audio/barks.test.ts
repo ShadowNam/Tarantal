@@ -318,3 +318,71 @@ describe('special-day lines (D-048)', () => {
     expect(d.say('feesdagEnd', GAP + 1)).toBeNull();
   });
 });
+
+describe('Christmas in the sun lines (D-064)', () => {
+  const special = loadContent().feesdae.specials.find((f) => f.id === 'christmas');
+  if (special === undefined) throw new Error('no christmas');
+  const b = special.barks;
+  const started: SimEvent = {
+    type: 'feesdagStarted',
+    tick: 0,
+    feesdag: 'christmas',
+    lanterns: 0,
+    presents: 3,
+  };
+  const opened = (left: number): SimEvent => ({
+    type: 'presentOpened',
+    tick: 100,
+    shotId: 1,
+    id: 9,
+    plane: 'mid',
+    x: 0,
+    y: 0,
+    presentsLeft: left,
+  });
+
+  it('speaks the start, a present found, all found and the end lines', () => {
+    const d = new BarkDirector(T, GAP);
+    d.startHunt(0, b);
+    expect(d.hunt([started], frame(0))?.line).toBe(b.start);
+    expect(d.hunt([opened(2)], frame(GAP + 1))?.line).toBe(b.present);
+    // The last present says "all found" (held until said), not the single-present line.
+    expect(
+      d.hunt([opened(0), { type: 'presentsFound', tick: 200, points: 25 }], frame(GAP * 2 + 2))
+        ?.line,
+    ).toBe(b.presentsFound);
+    expect(d.say('feesdagEnd', GAP * 3 + 3)?.line).toBe(b.end);
+  });
+
+  it('a long dry spell says the Christmas dry line instead of the idle one', () => {
+    const d = new BarkDirector(T, GAP);
+    d.startHunt(0, b);
+    const idleTicks = T.idleSeconds * 60 + 1;
+    expect(d.hunt([], frame(GAP + 1, idleTicks))?.line).toBe(b.dry);
+  });
+
+  it('has no Halloween lines, and Halloween has no Christmas ones', () => {
+    const d = new BarkDirector(T, GAP);
+    d.startHunt(0, b);
+    d.hunt([started], frame(0));
+    const bat: SimEvent = {
+      type: 'spookHit',
+      tick: 100,
+      shotId: 1,
+      thing: 'bat',
+      id: 9,
+      plane: 'mid',
+      x: 0,
+      y: 0,
+      points: 15,
+      lanternsLit: 0,
+    };
+    expect(d.hunt([bat], frame(GAP + 1))).toBeNull();
+    const h = new BarkDirector(T, GAP);
+    const hb = loadContent().feesdae.specials.find((f) => f.id === 'halloween')?.barks ?? null;
+    h.startHunt(0, hb);
+    expect(h.hunt([opened(2)], frame(GAP + 1))).toBeNull();
+    // On Halloween a dry spell is still the idle line.
+    expect(h.hunt([], frame(GAP * 2 + 2, T.idleSeconds * 60 + 1))?.trigger).toBe('idle');
+  });
+});

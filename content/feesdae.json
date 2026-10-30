@@ -216,7 +216,7 @@
             { "prop": "windpomp", "dx": -56, "dy": 314 },
             { "prop": "windpomp", "dx": 72, "dy": 314 },
             { "prop": "reservoir", "dx": -190, "dy": 56 },
-            { "prop": "reservoir", "dx": 174, "dy": 66 },
+            { "prop": "reservoir", "dx": 174, "dy": 62 },
             { "prop": "bakkie", "dx": -186, "dy": 96 },
             { "prop": "bakkie", "dx": 206, "dy": 87 },
             { "prop": "weaver_camelthorn", "dx": -46, "dy": 260 },

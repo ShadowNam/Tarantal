@@ -1311,7 +1311,7 @@
             "garlands": [
               { "from": [-95, -40], "to": [95, -45], "colour": "red" },
               { "from": [-160, -150], "to": [-40, -120], "colour": "silver" },
-              { "from": [40, -120], "to": [170, -150], "colour": "silver" }
+              { "from": [40, -120], "to": [168, -134], "colour": "silver" }
             ],
             "baubles": [
               { "at": [-120, -128], "colour": "red" },
