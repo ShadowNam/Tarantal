@@ -880,7 +880,6 @@
       "stopBonus": 15,
       "tumbleSeconds": 0.9,
       "penalty": 15,
-      "motherPellets": 2,
       "cooldownSeconds": 2
     }
   }

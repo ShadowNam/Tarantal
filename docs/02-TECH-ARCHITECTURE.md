@@ -518,7 +518,9 @@ of it through `BaboonHost` (tick, emit, `awardBonus`, base points, penalty, thre
 hit extras of kind `baboon`, after the layer's secret parts and tells (ridge members, not while
 climbing over the ridge: their body and head ellipses, × plane scale × role
 scale; raiders: the same with the plane's `minHitRadiusPx` floor, D-049), `PelletResult.baboonId`
-(stops a pellet or a stone; a thing for the Frenzy, D-021), events `baboonRaidWarned`,
+(stops a pellet or a stone; a thing for the Frenzy, D-021); a shot's ridge hits come with its aim
+point (the fire command's dx, y, a rifle's before the sway, mapped onto the troop's layer): a
+mother costs the penalty only when it is inside her body or head ellipse; events `baboonRaidWarned`,
 `baboonRaidStarted`, `baboonRaidDone`, `baboonHit`, `baboonBagged`, `troopFled`, bonuses `baboon`
 and `raidStopped`, and the snapshot's `baboons` (troops, raiders, the raid now).
 **Lazy sim systems:** the baboons, Namibië's ostriches (`ostriches/system.ts`, D-059) and the tell

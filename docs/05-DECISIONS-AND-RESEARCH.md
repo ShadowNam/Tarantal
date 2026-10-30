@@ -3414,6 +3414,15 @@ something naughty that might get them to eat a bullet or two."
   low). A mother now costs points only when `baboons.hit.motherPellets` (2) pellets of one shot
   strike her, or the one pellet of a one-pellet gun (the Windbuks, the rifles, the Kettie); a stray
   pellet still sends the troop away. Numbers: docs/balance/v1.8b-baboons.md.
+- *Aimed at her (round 4; replaces the two-pellet rule).* The Kettie (one stone, so the two-pellet
+  rule couldn't help) still drew 0.127 accidental mother hits a hunt on the Okavango: stones aimed
+  at far birds below the ridge drop onto the troop. A mother now costs points only when the shot
+  was aimed at her: the fire command's aim point (dx, y; a rifle's before the sway), mapped onto
+  the troop's layer, lies inside her body or head ellipse, for every gun. A pellet or stone that
+  strikes her without that (a spread, the Kettie's drop, the wind) only sends the troop over the
+  ridge. `baboons.hit.motherPellets` is gone: with the aim rule it added nothing (a shot aimed at
+  her body puts its pellets on her anyway). Tests: `src/sim/baboons/system.test.ts` and the Kettie
+  drop test in `baboons.test.ts`; the mother tests aimed at her body centre still cost 15.
 - *Nothing floating (screenshot review round 1).* The Okavango's far bank is a thin treeline where
   its troop is clear of the line of fire, and the troop seemed to float over it: a troop may now
   have a rock outcrop drawn under it (`rock` in the biome file; `src/game/view/baboon/troopRock.ts`

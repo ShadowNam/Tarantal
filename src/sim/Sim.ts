@@ -381,6 +381,8 @@ interface ShotContext {
   readonly lastShell: boolean;
   /** Camera centre when fired (impacts are screen dx from it). */
   readonly cx: number;
+  /** v1.8b (D-062): the command's aim point (screen dx, y; a rifle's before the sway). */
+  readonly aim: { readonly dx: number; readonly sy: number };
 }
 
 /** A pellet that has landed: where (screen px for the shot's camera) and on what. */
@@ -1795,7 +1797,7 @@ export function createSim(config: SimConfig): Sim {
       shellsLeft,
       ...(how === undefined ? {} : { aim: how }),
     });
-    const ctx: ShotContext = { shotId, shot, shellIndex, lastShell, cx: cameraX };
+    const ctx: ShotContext = { shotId, shot, shellIndex, lastShell, cx: cameraX, aim: aimAt };
     if (rangeProgram !== null) {
       // The Skietbaan's aim point on its plane: groups are measured from it.
       const aimed = rangeProgram.aimTarget(cameraX, aimAt.dx, aimAt.sy, birds);
@@ -1938,8 +1940,6 @@ export function createSim(config: SimConfig): Sim {
     const spookHits: number[] = [];
     const tellHits: number[] = [];
     const baboonHits: number[] = [];
-    /** v1.8b (D-062): pellets per baboon (a mother counts from motherPellets). */
-    const baboonPellets = new Map<number, number>();
     /** v1.8: pellets per tin can, their summed offsets and the dents (in landing order). */
     const canHits = new Map<
       number,
@@ -1984,10 +1984,7 @@ export function createSim(config: SimConfig): Sim {
         ostrichHits.push(r.ostrichId);
       if (r.spookId !== undefined && !spookHits.includes(r.spookId)) spookHits.push(r.spookId);
       if (r.tellId !== undefined && !tellHits.includes(r.tellId)) tellHits.push(r.tellId);
-      if (r.baboonId !== undefined) {
-        if (!baboonHits.includes(r.baboonId)) baboonHits.push(r.baboonId);
-        baboonPellets.set(r.baboonId, (baboonPellets.get(r.baboonId) ?? 0) + 1);
-      }
+      if (r.baboonId !== undefined && !baboonHits.includes(r.baboonId)) baboonHits.push(r.baboonId);
       if (r.canId !== undefined) {
         const h = canHits.get(r.canId) ?? { n: 0, dx: 0, dy: 0, at: [] };
         h.n++;
@@ -2248,12 +2245,8 @@ export function createSim(config: SimConfig): Sim {
     ostriches?.shot(shotId, ostrichHits, impacts, shotCx, radius > 0, shot.alertsAllFlocks);
     tells?.shot(shotId, tellHits);
     if (baboonHits.length > 0 || (shot.alertsAllFlocks && radius > 0))
-      baboons?.shot(
-        shotId,
-        baboonHits,
-        shot.alertsAllFlocks && radius > 0,
-        (id) => baboonPellets.get(id) ?? 0,
-        shot.pellets,
+      baboons?.shot(shotId, baboonHits, shot.alertsAllFlocks && radius > 0, (layerId) =>
+        tapToPlane(shotCx, layerById.get(layerId)?.scrollFactor ?? 1, ctx.aim.dx, ctx.aim.sy),
       );
     const near = shotThreats(flocks, impacts, shotCx, radius, planeGeo, baggedFlockIds);
     threaten(near, radius > 0 ? 'shot' : 'silentBag');

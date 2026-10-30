@@ -8,6 +8,7 @@ import { loadContent } from '../../../tools/testContent';
 import { baboonIssues } from '../../content/baboonChecks';
 import { planeToDx } from '../camera';
 import type { SimEvent } from '../events';
+import { ridgeStance } from './baboons';
 import { createSim, type Sim } from '../Sim';
 import type { ModeConfig, RaiderView } from '../types';
 import { coreWidth } from '../world';
@@ -303,6 +304,62 @@ describe('baboon troops (D-062)', () => {
     const hit = ofType(ev, 'baboonHit')[0];
     expect(hit?.role).toBe('mother');
     expect(s.snapshot().score).toBe(before - c.birds.baboons.hit.penalty);
+  });
+
+  it('a Kettie stone aimed above a mother that drops onto her costs nothing (aimed rule)', () => {
+    const c = loadContent() as Content;
+    const s = createSim({
+      seed: 42,
+      content: c,
+      mode: {
+        id: 'classic',
+        biome: 'karoo-autumn',
+        layout: 'mon',
+        weapon: 'kettie',
+        huntSeconds: 300,
+      },
+      inputKind: 'pointer',
+    });
+    steps(s, 30);
+    const mother = s.snapshot().baboons?.troops[0]?.members.find((m) => m.role === 'mother');
+    if (mother === undefined) throw new Error('no mother');
+    panTo(s, mother.x, 0.15);
+    const st = s.snapshot();
+    const m = st.baboons?.troops[0]?.members.find((x) => x.id === mother.id);
+    if (m === undefined) throw new Error('no mother');
+    const bb = c.birds.baboons;
+    const k = c.scoring.planes.far.scale * bb.motherScale;
+    const box = bb.hitboxes[ridgeStance(m.pose)];
+    const shape = (sh: typeof box.body) => ({
+      x: m.x + sh.ox * k * m.facing,
+      y: m.y + sh.oy * k,
+      rx: sh.rx * k,
+      ry: sh.ry * k,
+    });
+    const body = shape(box.body);
+    const head = shape(box.head);
+    const inside = (x: number, y: number, e: typeof body): boolean =>
+      (x - e.x) * (x - e.x) * e.ry * e.ry + (y - e.y) * (y - e.y) * e.rx * e.rx <=
+      e.rx * e.rx * e.ry * e.ry;
+    const kettie = c.weapons.weapons.find((w) => w.id === 'kettie');
+    const drop = kettie?.kind === 'primary' ? (kettie.projectile?.dropPx.far ?? 0) : 0;
+    expect(drop).toBeGreaterThan(0);
+    // A point on her body whose aim point (drop px higher) is on neither of her shapes.
+    let aim: { x: number; y: number } | null = null;
+    for (let f = -0.8; f <= 0.8 && aim === null; f += 0.1) {
+      const x = body.x + f * body.rx;
+      const y = body.y - drop;
+      if (!inside(x, y, body) && !inside(x, y, head) && inside(x, y + drop, body)) aim = { x, y };
+    }
+    if (aim === null) throw new Error('no aim point beside her');
+    const before = st.score;
+    s.step([{ t: 'fire', dx: planeToDx(st.cameraX, 0.15, aim.x), sy: aim.y }]);
+    const ev = steps(s, 60, [...s.drainEvents()]);
+    const hit = ofType(ev, 'baboonHit')[0];
+    expect(hit?.role).toBe('mother');
+    expect(hit?.points).toBe(0);
+    expect(s.snapshot().score).toBe(before);
+    expect(ofType(ev, 'troopFled')).toHaveLength(1);
   });
 
   it('mothers and youngsters never raid; raiders are always males', () => {

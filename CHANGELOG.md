@@ -14,7 +14,7 @@ down and is bagged like a guineafowl.
 - **Baboon troops:** 5–10 chacma baboons on the far ridge of every Karoo, Bushveld, Okavango and
   Namibië map (and now and then on the Kalahari's rocky outcrop): the big male on lookout, mothers
   with a baby on their back, youngsters playing, males grooming and dozing. Never targets up there:
-  a hit on a mother costs 15, and any hit (or the Langloop) sends the troop over the ridge for a
+  a shot aimed at a mother costs 15 (a stray pellet or stone costs nothing), and any hit (or the Langloop) sends the troop over the ridge for a
   while.
 - **Raids:** about once a minute the lookout barks and a male (sometimes two) climbs down to cause
   trouble: Oupa's hat off the bakkie, the tap, the fruit tree, a mielie cob, fruit thrown at the

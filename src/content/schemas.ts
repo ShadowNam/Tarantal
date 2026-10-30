@@ -638,11 +638,8 @@ export const BaboonsSchema = obj({
     /** Bagged before its raid was done: this bonus on top. */
     stopBonus: posInt,
     tumbleSeconds: pos,
-    /** A hit on a mother (and her baby): points off, then a cooldown. */
+    /** A shot aimed at a mother (and her baby) that strikes her: points off, then a cooldown. */
     penalty: posInt,
-    /** Pellets of one shot that must strike a mother for the penalty (a gun with fewer pellets:
-     *  all of them), like the balloons: a stray pellet of a spread costs nothing. */
-    motherPellets: posInt,
     cooldownSeconds: pos,
   }),
 });

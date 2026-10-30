@@ -742,9 +742,10 @@ Namibian carvers turn into key rings and ornaments (sources: D-056).
   far bird below the ridge lands on a male (no cost), not on a mother; and the mothers' seats are
   never in the line of fire of a fruit, a secret or a tell in front (a shot at the sausages never
   costs 15). In the sim (own stream `baboons`).
-- **Never targets up there.** A hit on a mother (and her baby) costs **15** (once per 2 s) when at
-  least **2 pellets of one shot** strike her (a one-pellet gun's hit is enough; a stray pellet of
-  a spread aimed at a bird below costs nothing, like the balloons); a hit
+- **Never targets up there.** A hit on a mother (and her baby) costs **15** (once per 2 s) only
+  when the shot was **aimed at her** (its aim point on her body or head), with every gun; a stray
+  pellet or stone that strikes her (a spread or a Kettie stone's drop at a bird below, the wind)
+  costs nothing; a hit
   on any member, or the Langloop's shot, sends the troop over the ridge (they climb down out of
   sight) and it comes back after 14–22 s.
 - **Raids:** about **1.2 per minute** on a map with a troop (× the map's `raidsMul` and the

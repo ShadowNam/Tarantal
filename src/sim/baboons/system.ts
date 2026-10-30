@@ -8,7 +8,7 @@ import { secondsToTicks } from '../clock';
 import type { BonusId, SimEvent } from '../events';
 import type { RandomStream } from '../rng';
 import type { BaboonsView, PlaneId } from '../types';
-import type { HitExtra } from '../weapons/hitTest';
+import { pointInOccluder, type HitExtra } from '../weapons/hitTest';
 import {
   bagRaider,
   createBaboons,
@@ -53,10 +53,8 @@ export interface BaboonSystem {
     shotId: number,
     hits: readonly number[],
     loud: boolean,
-    /** Pellets of this shot that struck a baboon. */
-    pellets: (id: number) => number,
-    /** Pellets the gun fires per shot. */
-    gunPellets: number,
+    /** The shot's aim point (the command's, before any sway) on a layer: x, y in its coords. */
+    aimOn: (layerId: string) => { readonly x: number; readonly y: number },
   ): void;
   step(): void;
   view(): BaboonsView;
@@ -87,20 +85,23 @@ export const createBaboonSystem: BaboonSystemFactory = (biome, content, planeSca
   const state = s;
   const cooldownTicks = secondsToTicks(bb.hit.cooldownSeconds);
 
+  /** A ridge member's hit shapes on its troop's layer (the same as extras() adds). */
+  function memberShapes(t: (typeof state.troops)[number], m: (typeof t.members)[number]) {
+    const box = bb.hitboxes[ridgeStance(m.pose)];
+    const k = t.scale * roleScale(m.role, bb);
+    return [box.body, box.head].map((sh) => ({
+      x: m.x + sh.ox * k * m.facing,
+      y: m.y + sh.oy * k,
+      shape: { type: 'ellipse' as const, rx: sh.rx * k, ry: sh.ry * k },
+    }));
+  }
+
   function extras(add: (layerId: string, e: HitExtra) => void): void {
     for (const t of state.troops)
       for (const m of t.members) {
         if (!memberPresent(m)) continue;
-        const box = bb.hitboxes[ridgeStance(m.pose)];
-        const k = t.scale * roleScale(m.role, bb);
-        for (const sh of [box.body, box.head])
-          add(t.layerId, {
-            kind: 'baboon',
-            baboonId: m.id,
-            x: m.x + sh.ox * k * m.facing,
-            y: m.y + sh.oy * k,
-            shape: { type: 'ellipse', rx: sh.rx * k, ry: sh.ry * k },
-          });
+        for (const sh of memberShapes(t, m))
+          add(t.layerId, { kind: 'baboon', baboonId: m.id, ...sh });
       }
     // The raiders are targets: their body radii get the plane's floor (D-049).
     const raid = state.raid;
@@ -134,14 +135,14 @@ export const createBaboonSystem: BaboonSystemFactory = (biome, content, planeSca
   /**
    * A raider: one hit per shot; hitsToBag bag it (points × Frenzy × Stampede, the stop bonus if
    * its raid wasn't done), anything less sends it running; either way its troop runs over the
-   * ridge. A ridge member: a mother costs the penalty (with a cooldown), and the troop runs.
+   * ridge. A ridge member: a mother the shot was aimed at costs the penalty (with a cooldown),
+   * and the troop runs.
    */
   function shot(
     shotId: number,
     hits: readonly number[],
     loud: boolean,
-    pellets: (id: number) => number,
-    gunPellets: number,
+    aimOn: (layerId: string) => { readonly x: number; readonly y: number },
   ): void {
     const tick = host.tick();
     const scared = new Set<string>();
@@ -197,12 +198,15 @@ export const createBaboonSystem: BaboonSystemFactory = (biome, content, planeSca
       const found = findMember(state, id);
       if (found === null || !memberPresent(found.member)) continue;
       const { troop, member } = found;
-      // A mother costs points when motherPellets of one shot strike her (a one-pellet gun's one
-      // hit is enough): a stray pellet of a spread aimed at a bird below never does (it still
-      // sends the troop away).
-      const struck = pellets(member.id) >= Math.min(bb.hit.motherPellets, gunPellets);
+      // A mother costs points only when the shot was aimed at her (its aim point inside her hit
+      // shapes, for every gun): a stray pellet or stone that strikes her (a spread, the Kettie's
+      // drop, the wind) only sends the troop away.
+      const aim = aimOn(troop.layerId);
+      const aimed = memberShapes(troop, member).some((sh) =>
+        pointInOccluder(aim.x, aim.y, { propId: '', ...sh }),
+      );
       const points =
-        member.role === 'mother' && struck && troop.cooldown === 0 && !host.ranged
+        member.role === 'mother' && aimed && troop.cooldown === 0 && !host.ranged
           ? -bb.hit.penalty
           : 0;
       if (points < 0) {
