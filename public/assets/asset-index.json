@@ -2757,13 +2757,12 @@
       "group": "feesdae-christmas",
       "origin": "interim",
       "file": {
-        "path": "assets/feesdae-christmas/img/feesdae_christmas.6adab038df13.png",
-        "bytes": 85417,
-        "hash": "6adab038df13"
+        "path": "assets/feesdae-christmas/img/feesdae_christmas.374d48b5e74c.png",
+        "bytes": 57617,
+        "hash": "374d48b5e74c"
       },
-      "width": 1200,
-      "height": 1420,
-      "scale": 0.5,
+      "width": 600,
+      "height": 710,
       "originX": 0,
       "originY": 0
     },

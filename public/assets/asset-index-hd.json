@@ -291,6 +291,16 @@
       "height": 232,
       "scale": 0.5
     },
+    "feesdae/christmas": {
+      "file": {
+        "path": "assets/feesdae-christmas-hd/img/feesdae_christmas.d6fe37d8440e.png",
+        "bytes": 132703,
+        "hash": "d6fe37d8440e"
+      },
+      "width": 1200,
+      "height": 1420,
+      "scale": 0.5
+    },
     "fx/bolt": {
       "file": {
         "path": "assets/common-hd/img/fx_bolt.7817d40782d2.png",
