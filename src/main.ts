@@ -16,6 +16,8 @@ import {
   withEarlySpook,
   withNoBirds,
   withMakalaniPreview,
+  withBaboonRaid,
+  withNoBaboons,
   withNoPalms,
   withPlaneScales,
   withQuotaMul,
@@ -122,6 +124,8 @@ import type { HdIndex } from './game/assets/hdIndex';
 import { createGraphicsControl, type HdRuntimeApi } from './game/assets/graphicsControl';
 import { decodeInputLogText } from './sim/replay/inputLog';
 import { runReplay } from './sim/replay/verify';
+import { loadSimSystems } from './game/simSystems';
+import { loadVoiceIndex } from './game/assets/voiceIndex';
 
 declare global {
   interface Window {
@@ -419,6 +423,9 @@ const hook: TestHook = {
   namibLifeFrames: 0,
   tells: null,
   tellMs: 0,
+  baboons: null,
+  baboonRaid: null,
+  baboonMs: 0,
   reloadFx: { chipIcons: [], bolts: 0, oupaHand: false, autoReloads: 0 },
   mirage: false,
   sceneryMs: 0,
@@ -479,8 +486,12 @@ const noPalms = testHooks && params.get('palms') === '0' ? withNoPalms(noBirds) 
 // e2e/dev only (review M14): ?makalaniPreview=juggle|pop — easy air hits, or every hit pops.
 const nutPreview = testHooks ? params.get('makalaniPreview') : null;
 const withNuts = nutPreview === null ? noPalms : withMakalaniPreview(noPalms, nutPreview);
-const devBundle =
-  testHooks && params.get('spook') === 'early' ? withEarlySpook(withNuts) : withNuts;
+const devSpook = testHooks && params.get('spook') === 'early' ? withEarlySpook(withNuts) : withNuts;
+// e2e/dev only (v1.8b, D-062): ?baboonRaid=<action>|any — a raid of that kind within seconds.
+const raidPreview = testHooks ? params.get('baboonRaid') : null;
+const withRaid = raidPreview === null ? devSpook : withBaboonRaid(devSpook, raidPreview);
+// e2e only (v1.8b, D-062): ?baboons=0 — no baboon troops (specs that don't test them).
+const devBundle = testHooks && params.get('baboons') === '0' ? withNoBaboons(withRaid) : withRaid;
 // D-034: `?admin=1&play=1` plays the hunt the admin page stored (its content changes too).
 let adminSave: AdminSave | null = adminOn ? loadAdminSave() : null;
 const adminList = adminOn ? adminEntries(devBundle, placeholderBiomes()) : [];
@@ -504,6 +515,9 @@ const initialDesign = designSizeFor(viewport().width, viewport().height);
 let portrait = isPortrait(viewport().width, viewport().height);
 let contextLost = false;
 
+// v1.8b (D-062): the lazy sim systems (baboons, ostriches, tells) from the start, so a hunt's Start
+// never waits for them.
+void loadSimSystems();
 const platform = createPlatform({
   serviceWorker: import.meta.env.PROD,
   // v1.6 (D-042): the worker names its build; the update bar shows only when it differs.
@@ -700,6 +714,7 @@ async function boot(): Promise<void> {
   const voicePacks = new VoicePacks(audio, assetIndex, {
     // Uncached: a voice language left behind keeps no bytes (finalLoader's loadBytes caches).
     loadBytes: (path) => fetchBytesUncached(path, feel.assets.fileTimeoutMs),
+    voiceIndex: loadVoiceIndex,
     onState: (lang, state) => {
       if (hook.voice.language === lang) hook.voice.pack = state;
     },
@@ -1044,6 +1059,10 @@ async function boot(): Promise<void> {
       shareBase,
       unranked,
       feesdagOverride: feesdagOverride(),
+      // e2e only (v1.8b): ?dailySeed= fixes the Daily's seed whatever the content hash.
+      ...(testHooks && params.has('dailySeed')
+        ? { seedOverride: Number(params.get('dailySeed')) >>> 0 }
+        : {}),
     }),
     pendingChallenge,
     platform,
@@ -1217,7 +1236,9 @@ async function boot(): Promise<void> {
     window.__TM_TOOLS__ = {
       contentHash: hash,
       dailySeed: (key) => dailySeed(key, hash),
-      replay: (text) => {
+      // v1.8b (D-062): a replay may need the lazy sim systems (baboons, ostriches).
+      replay: async (text) => {
+        await loadSimSystems();
         const o = runReplay(decodeInputLogText(text), bundle);
         return { eventHash: o.eventHash, eventCount: o.eventCount, score: o.result.score };
       },

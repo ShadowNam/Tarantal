@@ -133,6 +133,8 @@ export interface PelletResult {
   readonly passThrough?: true;
   /** v1.7e (D-061): a secret's tell animal (a non-target that costs nothing; never a target). */
   readonly tellId?: number;
+  /** v1.8b (D-062): a baboon (a raider is a target; a ridge member is not). */
+  readonly baboonId?: number;
 }
 
 /** 1.9.3 (D-056): a result that is something to shoot (not a plain prop occluder, not nothing). */
@@ -145,6 +147,7 @@ export function isTarget(r: PelletResult): boolean {
     r.meerkatId !== undefined ||
     r.ostrichId !== undefined ||
     r.spookId !== undefined ||
+    r.baboonId !== undefined ||
     (r.canId !== undefined && r.passThrough !== true)
   );
 }
@@ -213,6 +216,14 @@ export type HitExtra =
   | {
       readonly kind: 'tell';
       readonly tellId: number;
+      readonly x: number;
+      readonly y: number;
+      readonly shape: OccluderShape;
+    }
+  /** v1.8b (D-062): a baboon's body or head (a raider, or a troop member on its ridge). */
+  | {
+      readonly kind: 'baboon';
+      readonly baboonId: number;
       readonly x: number;
       readonly y: number;
       readonly shape: OccluderShape;
@@ -292,6 +303,7 @@ export function resolvePellet(
       if (e.kind === 'ostrich') return after({ ...NOTHING, ostrichId: e.ostrichId });
       if (e.kind === 'spook') return after({ ...NOTHING, spookId: e.spookId });
       if (e.kind === 'tell') return after({ ...NOTHING, tellId: e.tellId });
+      if (e.kind === 'baboon') return after({ ...NOTHING, baboonId: e.baboonId });
       return after(
         e.kind === 'crate'
           ? { ...NOTHING, crateId: e.crateId }
@@ -404,6 +416,7 @@ export function resolvePattern(
       p.r.meerkatId !== undefined ||
       p.r.ostrichId !== undefined ||
       p.r.spookId !== undefined ||
+      p.r.baboonId !== undefined ||
       (p.r.canId !== undefined && p.r.passThrough !== true),
   );
   if (hit) return pellets;

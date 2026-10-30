@@ -63,6 +63,7 @@ import type { MakalaniView } from '../view/palms/MakalaniView';
 import type { TreeLifeView } from '../view/tree/TreeLifeView';
 import type { NamibLifeView } from '../view/namib/NamibLifeView';
 import type { TellView } from '../view/tell/TellView';
+import type { BaboonView } from '../view/baboon/BaboonView';
 import { playPotjieSound } from '../view/potjieSounds';
 import { playMeerkatSound } from '../audio/meerkatSounds';
 import { largestTextures, textureBytes } from '../assets/textureBytes';
@@ -71,6 +72,7 @@ import { layoutForDay } from '../../meta/maps';
 import { applyBonusResult, bonusKeys, bonusOpenFor, bonusSlug } from '../../meta/bonusMaps';
 import { formatScore } from '../ui/format';
 import type { HudScene } from './HudScene';
+import { nameSceneWhenHudReady } from './hudReadyScene';
 import type { PauseData } from './PauseScene';
 import { viewFor, type RunData, type RunView } from './RunScene';
 import type { TallyData } from './TallyScene';
@@ -80,7 +82,10 @@ import type { AdminData } from './AdminScene';
 import type { RangeHost, RangeSession } from '../range/RangeSession';
 import { freshLoadShown } from '../../platform/freshLoad';
 import type { FruitView } from '../view/fruit/FruitView';
+import { loadSimSystems, simSystemsReady } from '../simSystems';
+import { needsLazySystems } from '../../sim/lazySystems';
 import type { PelletStop } from '../view/fruit/fruitHits';
+import { BABOON_SHEET } from '../view/baboon/baboonKeys';
 
 export interface HuntData {
   /** Skip the title (the [Again] button) with this input kind. */
@@ -150,6 +155,9 @@ export class HuntScene extends Phaser.Scene {
   /** v1.7e (D-061): the secrets' tell animals (lazy chunk; null until it is in, or none). */
   private tells: TellView | null = null;
   private tellsGen = 0;
+  /** v1.8b (D-062): the baboon troops and raiders (lazy chunk; null until it is in, or none). */
+  private baboons: BaboonView | null = null;
+  private baboonsGen = 0;
   /** Family nests by prop id (layer, x on it): the weavers' scolding is panned from here. */
   private weaverNests = new Map<string, { layer: string; x: number }>();
   /** Nest shots before the tree-life chunk was in (its burst plays them once it is). */
@@ -219,6 +227,8 @@ export class HuntScene extends Phaser.Scene {
   }
 
   create(data: HuntData): void {
+    // v1.8b (D-062): the lazy sim systems' chunk, in the background from the title on.
+    void loadSimSystems();
     this.boundsSource = null;
     // M9 lazy biomes: an auto-started hunt in a biome whose art isn't loaded yet waits for it.
     const wanted = this.initialBiome(data);
@@ -550,6 +560,7 @@ export class HuntScene extends Phaser.Scene {
     this.loadTreeLife(mapBiome, scales);
     this.loadNamibLife(mapBiome);
     this.loadTells(mapBiome);
+    this.loadBaboons(mapBiome);
     this.weapon = new WeaponView(
       this,
       this.ctx.feel,
@@ -1076,6 +1087,80 @@ export class HuntScene extends Phaser.Scene {
       });
   }
 
+  /**
+   * v1.8b (D-062): the baboon sheet behind a veil: it is in flight in the background (with the
+   * late group); look for it every 200 ms. If the background files settle without it, Retry
+   * (reload the missing file) or Back (D-042).
+   */
+  private waitForBaboonSheet(
+    id: string,
+    manifest: AssetManifest,
+    then: (ok: boolean) => void,
+  ): void {
+    const { width, height } = designSize();
+    const veil = this.add
+      .rectangle(width / 2, height / 2, width, height, 0x1b1410, 0.82)
+      .setDepth(9_999);
+    const label = this.add
+      .text(width / 2, height / 2, t('ui.loading'), textStyle(48, '#F3EAD3'))
+      .setOrigin(0.5)
+      .setDepth(10_000);
+    const t0 = performance.now();
+    const poll = this.time.addEvent({
+      delay: 200,
+      loop: true,
+      callback: () => {
+        manifest.upgrade(this.textures, BABOON_SHEET);
+        const ok = manifest.delivered(this.textures, BABOON_SHEET);
+        if (!ok && !manifest.lateDone) return;
+        poll.remove();
+        if (label.active) label.destroy();
+        // e2e: how long Start waited for the sheet (hunt.spec: the first hunt never does).
+        if (this.ctx.hook) this.ctx.hook.boot['baboonSheetWaitMs'] = performance.now() - t0;
+        if (ok) {
+          if (veil.active) veil.destroy();
+          // Files arrived while waiting (the sheet, and with it any background file such as a
+          // map's Ver strips): the views install them when they are built (as waitForLate does).
+          this.viewsStale = true;
+          then(true);
+          return;
+        }
+        veil.destroy();
+        this.waitForLate(id, { sight: false, ver: false, baboons: true }, then);
+      },
+    });
+  }
+
+  /** v1.8b (D-062): the lazy sim systems behind a veil; offline, Retry or Back (D-042). */
+  private waitForSimSystems(biomeId: string, then: (ok: boolean) => void): void {
+    const { width, height } = designSize();
+    const veil = this.add
+      .rectangle(width / 2, height / 2, width, height, 0x1b1410, 0.82)
+      .setDepth(9_999);
+    const def = this.ctx.content.biomes.find((b) => b.id === biomeId);
+    const area = def === undefined ? biomeId : tOr(def.nameKey, biomeId);
+    const t0 = performance.now();
+    void loadSimSystems().then((ok) => {
+      // e2e: how long Start waited for the sim systems' chunk.
+      if (this.ctx.hook) this.ctx.hook.boot['simSystemsWaitMs'] = performance.now() - t0;
+      if (ok || !veil.active) {
+        if (veil.active) veil.destroy();
+        then(ok);
+        return;
+      }
+      this.showArtFailed(
+        veil,
+        area,
+        () => {
+          this.waitForSimSystems(biomeId, then);
+        },
+        () => {
+          then(false);
+        },
+      );
+    });
+  }
+
   /** D-048: the feesdae group's files in the background; the sheet goes into the view on arrival. */
   private loadFeesdaeArt(): void {
     // Cached per page: each call only fetches what is still missing (a failed file, the lines
@@ -1429,6 +1514,15 @@ export class HuntScene extends Phaser.Scene {
     const huntBiome =
       mode.biome ??
       (mode.id === 'seasonHunt' ? this.biome.id : this.ctx.content.modes.modes[mode.id].biome);
+    // v1.8b (D-062): a map with baboons or ostriches waits for their sim code (a lazy chunk).
+    const huntBiomeDef = this.ctx.content.biomes.find((b) => b.id === huntBiome);
+    if (huntBiomeDef !== undefined && needsLazySystems(huntBiomeDef) && !simSystemsReady()) {
+      this.waitForSimSystems(huntBiome, (ok) => {
+        if (ok) this.begin(kind, startPointer, modeId, challenge, bonus);
+        else this.scene.restart({} satisfies HuntData);
+      });
+      return;
+    }
     // M9 lazy biomes: its art loads on first use; the hunt starts once it is in. D-053: with HD
     // chosen, also its HD pack (behind the same veil, "Play now in Standard" after 4 s), even when
     // its standard art came in earlier on the title (it skipped the HD wait before).
@@ -1447,6 +1541,23 @@ export class HuntScene extends Phaser.Scene {
     // so the sight and the Ver strip are never drawn from their placeholders.
     const huntDef = this.ctx.content.biomes.find((b) => b.id === huntBiome);
     const huntManifest = huntDef === undefined ? this.manifest : this.ctx.manifestFor(huntDef);
+    // v1.8b (D-062): a map with a baboon troop waits for the baboon sheet when it is delivered
+    // (the troop can be hit from the first tick, so it must be drawn then; the file loads in the
+    // background). Never for a file the index doesn't list.
+    if (
+      huntDef?.baboons !== undefined &&
+      range === null &&
+      mode.id !== 'ftue' &&
+      // Only a file the delivered index has (no or a stand-in delivery: the placeholder draws).
+      huntManifest.listed(BABOON_SHEET) &&
+      !huntManifest.delivered(this.textures, BABOON_SHEET)
+    ) {
+      this.waitForBaboonSheet(huntDef.id, huntManifest, (ok) => {
+        if (ok) this.begin(kind, startPointer, modeId, challenge, bonus);
+        else this.scene.restart({} satisfies HuntData);
+      });
+      return;
+    }
     if (range !== null || mode.sight !== undefined) {
       const gun =
         mode.weapon ??
@@ -1643,7 +1754,11 @@ export class HuntScene extends Phaser.Scene {
 
     const hook = this.ctx.hook;
     if (hook) {
-      hook.scene = 'hunt';
+      // The scene's name once the HUD is up (its pause button exists only then): 'range' on the
+      // Skietbaan, 'hunt' otherwise.
+      nameSceneWhenHudReady(hook, hud.events, range === null ? 'hunt' : 'range', () =>
+        this.sys.isActive(),
+      );
       hook.mode = this.modeId;
       hook.huntSeed = seed;
       hook.daily =
@@ -1684,6 +1799,8 @@ export class HuntScene extends Phaser.Scene {
       hook.namibLifeFrames = 0;
       hook.tells = null;
       hook.tellMs = 0;
+      hook.baboons = null;
+      hook.baboonMs = 0;
       hook.fruit = null;
       hook.hunts++;
     }
@@ -1844,6 +1961,11 @@ export class HuntScene extends Phaser.Scene {
     if (this.tells !== null) {
       this.tells.update(state, this.world.secretsLit(state));
       if (this.ctx.hook) this.ctx.hook.tellMs += this.tells.lastMs;
+    }
+    // v1.8b (D-062): the baboons, on their own timer (outside the weavers + mirage window).
+    if (this.baboons !== null) {
+      this.baboons.update(state);
+      if (this.ctx.hook) this.ctx.hook.baboonMs += this.baboons.lastMs;
     }
     this.weapon.spreadMul = spreadMulOf(state.powerups, this.ctx.content.powerups.powerups);
     // v1.7b (D-046): Chilli Biltong's sparks at the muzzle.
@@ -2047,6 +2169,8 @@ export class HuntScene extends Phaser.Scene {
       hook.treeLife = this.treeLife?.hook() ?? null;
       hook.namibLife = this.namibLife?.hook() ?? null;
       hook.tells = this.tells?.tells ?? null;
+      hook.baboons = this.baboons?.baboons ?? null;
+      hook.baboonRaid = state.baboons?.raid ?? null;
       hook.mirage = state.mirage;
       hook.durationTicks = state.durationTicks;
     }
@@ -2136,6 +2260,29 @@ export class HuntScene extends Phaser.Scene {
       })
       .catch(() => {
         // Offline without the chunk cached: the tree simply has no residents.
+      });
+  }
+
+  /** v1.8b (D-062): the baboons' chunk, for a map with a troop. */
+  private loadBaboons(mapBiome: Biome): void {
+    this.baboons?.destroy();
+    this.baboons = null;
+    const gen = ++this.baboonsGen;
+    if (mapBiome.baboons === undefined) return;
+    void import('../view/baboon/BaboonView')
+      .then((m) => {
+        if (gen !== this.baboonsGen) return;
+        this.baboons = new m.BaboonView(
+          this,
+          this.parallax,
+          () => performance.now(),
+          this.manifest,
+          this.ctx.content.birds.baboons,
+          this.ctx.hook !== null,
+        );
+      })
+      .catch(() => {
+        // Offline without the chunk cached: the troops are simply not drawn.
       });
   }
 
@@ -2267,6 +2414,8 @@ export class HuntScene extends Phaser.Scene {
     this.cans.handle(events, this.ctx.audio, width);
     this.farCans.handle(events, this.ctx.audio, width);
     this.makalani?.handle(events, this.ctx.audio, width);
+    // v1.8b (D-062): the baboons' barks, screeches and raid sounds.
+    this.baboons?.handle(events, state, this.ctx.audio, width);
     this.world.potjie.handle(events);
     if (this.ctx.hook) {
       const log = this.ctx.hook.canLog;
@@ -2702,6 +2851,9 @@ export class HuntScene extends Phaser.Scene {
     this.tells?.destroy();
     this.tells = null;
     this.tellsGen++;
+    this.baboons?.destroy();
+    this.baboons = null;
+    this.baboonsGen++;
     this.game.canvas.style.cursor = '';
   }
 }

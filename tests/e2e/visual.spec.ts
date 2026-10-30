@@ -91,6 +91,17 @@ test('hunt held at a fixed tick', async ({ page }, info) => {
   await tapRect(page, isTouchProject(info), 'start');
   await page.waitForFunction(() => (window.__TM__?.tick ?? 0) >= 300, null, { timeout: 120_000 });
   await herdsDrawn(page);
+  // v1.8b (D-062): the Karoo's baboon troop on the far ridge, from the late group's sheet: wait
+  // until it is drawn so the screen never shows it on one run and not the next.
+  await page.waitForFunction(
+    () =>
+      (
+        (window as unknown as { __TM__?: { baboons?: readonly unknown[] | null } }).__TM__
+          ?.baboons ?? []
+      ).length > 0,
+    null,
+    { timeout: 120_000 },
+  );
   // Move the pointer off the scene so no reticle or hover shows.
   await page.mouse.move(0, 0);
   await settled(page);

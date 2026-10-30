@@ -7,6 +7,7 @@
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { ASSET_INDEX_PATH, HD_INDEX_PATH, type AssetIndex } from '../src/game/assets/assetIndex';
+import { VOICE_INDEX_PATH } from '../src/game/assets/voiceIndex';
 import { readFullIndex } from './assets/fullIndex';
 import { TEX } from '../src/game/assets/AssetManifest';
 import { audit, formatAudit } from './assets/audit';
@@ -44,7 +45,7 @@ if (existsSync(indexPath)) {
 }
 const files = walk(join(publicDir, 'assets'))
   .map((p) => posix(relative(publicDir, p)))
-  .filter((p) => p !== ASSET_INDEX_PATH && p !== HD_INDEX_PATH)
+  .filter((p) => p !== ASSET_INDEX_PATH && p !== HD_INDEX_PATH && p !== VOICE_INDEX_PATH)
   .sort();
 const sources = new Map<string, string>();
 for (const p of [...walk(join(root, 'src')), ...walk(join(root, 'content'))]) {

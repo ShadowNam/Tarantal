@@ -60,7 +60,7 @@ test('Namibië: locked on a new save, with how to unlock it', async ({ page }, i
   const touch = isTouchProject(info);
   const errors = collectErrors(page);
   await seed(page, false);
-  await boot(page, `today=${DAY.key}`);
+  await boot(page, `today=${DAY.key}&baboons=0`);
   await openAreas(page, touch);
   let h = await hook(page);
   expect(h.areas).toEqual([
@@ -88,7 +88,7 @@ test('Namibië: Die Verste reached opens it; Classic plays there and the Langloo
   const touch = isTouchProject(info);
   const errors = collectErrors(page);
   await seed(page, true);
-  await boot(page, `seed=46&today=${DAY.key}&huntSeconds=25`);
+  await boot(page, `seed=46&today=${DAY.key}&huntSeconds=25&baboons=0`);
   await openAreas(page, touch);
   expect((await hook(page)).areas).toContainEqual({ id: 'namibie', unlocked: true, chosen: false });
   // The unlock is kept in the save (the bonus unlock is for one day only).
@@ -179,7 +179,7 @@ test('Namibië: with Verder unlocked there today, the title starts Verder in Nam
       }),
     );
   }, DAY.n);
-  await boot(page, `seed=47&today=${DAY.key}&huntSeconds=20`);
+  await boot(page, `seed=47&today=${DAY.key}&huntSeconds=20&baboons=0`);
   await page.waitForFunction(() => window.__TM__?.rects['verder'] !== undefined, null, {
     timeout: 60_000,
   });

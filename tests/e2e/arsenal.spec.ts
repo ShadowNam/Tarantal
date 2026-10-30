@@ -39,7 +39,7 @@ test('Kettie: no belt, a stone flies and lands after the shot', async ({ page },
   const touch = isTouchProject(info);
   const errors = collectErrors(page);
   await equip(page, 'kettie');
-  await boot(page, 'huntSeconds=20');
+  await boot(page, 'huntSeconds=20&baboons=0');
   await startHunt(page, touch);
   let h = await hook(page);
   expect(h.weapon).toBe('kettie');
@@ -63,7 +63,7 @@ test('Plaas-Pomp: six shells, a shot cuts the reload', async ({ page }, info) =>
   const touch = isTouchProject(info);
   const errors = collectErrors(page);
   await equip(page, 'pomp');
-  await boot(page, 'huntSeconds=20');
+  await boot(page, 'huntSeconds=20&baboons=0');
   await startHunt(page, touch);
   let h = await hook(page);
   expect(h.weapon).toBe('pomp');

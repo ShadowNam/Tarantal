@@ -3,6 +3,33 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.10.0] — Bobbejane: baboon troops on the ridges; raiders that come down to cause trouble (30 Oct 2026)
+
+Decision record D-062. The product owner (25 Oct): "It's important in these maps that the African
+baboon is also present, maybe sitting at the back of the mountains … Pop up and do something
+naughty that might get them to eat a bullet or two." Decided the same evening: a shot baboon goes
+down and is bagged like a guineafowl.
+
+### Added
+- **Baboon troops:** 5–10 chacma baboons on the far ridge of every Karoo, Bushveld, Okavango and
+  Namibië map (and now and then on the Kalahari's rocky outcrop): the big male on lookout, mothers
+  with a baby on their back, youngsters playing, males grooming and dozing. Never targets up there:
+  a shot aimed at a mother costs 15 (a stray pellet or stone costs nothing), and any hit (or the Langloop) sends the troop over the ridge for a
+  while.
+- **Raids:** about once a minute the lookout barks and a male (sometimes two) climbs down to cause
+  trouble: Oupa's hat off the bakkie, the tap, the fruit tree, a mielie cob, fruit thrown at the
+  guineafowl, a fence-post moon, a chase. Two hits bag a raider: 3 × a guineafowl's points on its
+  plane, and +15 if you stop it before the mischief is done ("Caught in the act!"). No blood: the
+  guineafowl's tumble and puff.
+- Oupa's lines for each raid, a bagged raider and a hit mother (voiced in English, Afrikaans and
+  German; Dutch text); the baboons' sounds (the lookout's wa-hoo, screeches, each raid's own sound).
+- The Bird Book's "Bobbejaan · chacma baboon" entry with its rule.
+
+### Changed
+- The baboons', ostriches' and tell animals' game code loads in the background after the first
+  download (the first download did not grow).
+- On the low graphics tier a far ridge with a troop is drawn as its own layer.
+
 ## [1.9.8] — Realistic Bushveld rocks and middle distance; tell animals instead of the secret star (29 Oct 2026)
 
 Decision record D-061. The product owner (25 Oct): "In the Bushveld, the rocks and the middle

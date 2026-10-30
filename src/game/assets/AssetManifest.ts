@@ -17,6 +17,7 @@ import type {
 import { COMMON_GROUP, LATE_GROUP, VER_GROUP, sharedTileKeys } from './assetIndex';
 import type { FaunaFrames } from '../view/faunaHerds';
 import { DESERT_GROUP } from './desertAssets';
+import { BABOON_GROUP, BABOON_SHEET } from '../view/baboon/baboonKeys';
 import { atlasRegion, checkAtlas, checkBirdAtlas, type AtlasRegion } from './atlasCheck';
 import { loadBytes, loadImage, loadJson } from './finalLoader';
 import { halveTexture, type TextureLike } from './hdTexture';
@@ -118,13 +119,15 @@ export function groupForBiome(group: string, biome: string | undefined): boolean
     group === LATE_GROUP ||
     group === VER_GROUP ||
     group === DESERT_GROUP ||
+    // v1.8b (D-062): the baboon sheet, loaded with every hunt (every area has a troop).
+    group === BABOON_GROUP ||
     group === biome
   );
 }
 
 /** D-053: late and Ver groups load after the hunt can start (in the background). */
 export function backgroundGroup(group: string): boolean {
-  return group === LATE_GROUP || group === VER_GROUP;
+  return group === LATE_GROUP || group === VER_GROUP || group === BABOON_GROUP;
 }
 
 /**
@@ -184,6 +187,8 @@ export interface LateNeed {
   readonly ver: boolean;
   /** The hunt's weapon: its gun rig when it is delivered with the Ver group (the rifles). */
   readonly weapon?: string;
+  /** v1.8b (D-062): the map has a baboon troop: its sheet (the baboons group). */
+  readonly baboons?: boolean;
 }
 
 /**
@@ -195,6 +200,7 @@ export function neededLateMissing(
   need: LateNeed,
 ): readonly MissingFile[] {
   return missing.filter((m) => {
+    if (m.key === BABOON_SHEET) return need.baboons === true;
     if (m.group !== VER_GROUP) return false;
     if (m.key.startsWith('sight/')) return need.sight;
     const gun = /^gun\/(.+)$/.exec(m.key);
@@ -214,6 +220,8 @@ let retiredPlaceholders = 0;
 export class AssetManifest {
   /** @internal */
   readonly specs = new Map<string, CanvasSpec>();
+  /** v1.8b (D-062): image keys whose delivered file the last load queued. */
+  private readonly listedImages = new Set<string>();
   /** @internal */
   readonly layerArt = new Map<string, LayerArt>();
   /** Placeholder tile key → its layer's asset id (skipped when the layer has final art). */
@@ -321,6 +329,11 @@ export class AssetManifest {
 
   has(key: string): boolean {
     return this.specs.has(key);
+  }
+
+  /** v1.8b (D-062): the delivered index lists a file for this image (and this manifest loads it). */
+  listed(key: string): boolean {
+    return this.listedImages.has(key);
   }
 
   /** Texture key for a bird; creatures without art yet fall back to the plain tarentaal. */
@@ -452,6 +465,9 @@ export class AssetManifest {
     const jobs: Promise<void>[] = [];
     // D-029: the late group downloads after everything else (it isn't needed to start a hunt).
     const late: (() => Promise<void>)[] = [];
+    // v1.8b (D-062): the baboon sheet goes first in the background (a hunt with a troop waits for
+    // it), before the larger late and Ver files.
+    const lateFirst: (() => Promise<void>)[] = [];
     // v1.6 (D-042): what this load must deliver before a hunt may start (not the late group),
     // checked once the jobs are done; a failure is a key with the file that failed.
     const expect: { key: string; path: string; done: () => boolean }[] = [];
@@ -471,12 +487,14 @@ export class AssetManifest {
         group !== VER_GROUP &&
         // v1.7 (D-044): only a desert map's manifest lists the desert keys (others skip them).
         group !== DESERT_GROUP &&
+        group !== BABOON_GROUP &&
         group !== o.biome
       )
         return;
       // v1.3: the Ver strips aren't needed to start a hunt either (only bonus maps show them).
-      if (group === LATE_GROUP || group === VER_GROUP) {
-        late.push(job);
+      // v1.8b (D-062): the baboon sheet too (a hunt with a troop waits for that one file).
+      if (group === LATE_GROUP || group === VER_GROUP || group === BABOON_GROUP) {
+        (group === BABOON_GROUP ? lateFirst : late).push(job);
         if (need !== undefined) expectLate.push({ ...need, group });
       } else {
         jobs.push(job());
@@ -485,6 +503,9 @@ export class AssetManifest {
     };
     for (const [key, entry] of Object.entries(index.images)) {
       if (!this.specs.has(key) || this.layerOfTile.has(key)) continue;
+      // v1.8b (D-062): which delivered images this manifest loads (a hunt never waits for a file
+      // the index doesn't have: with no or a partial delivery its placeholder draws).
+      if (groupForBiome(entry.group, o.biome)) this.listedImages.add(key);
       queue(
         entry.group,
         () =>
@@ -654,12 +675,14 @@ export class AssetManifest {
       console.warn(`[assets] ${m.key}: delivered file failed to load (${m.path})`);
     this.lateDone = false;
     this.missingLate = [];
-    this.lateLoaded = Promise.all(late.map((job) => job())).then(() => {
-      this.missingLate = expectLate
-        .filter((e) => !e.done())
-        .map((e) => ({ key: e.key, path: e.path, group: e.group }));
-      this.lateDone = true;
-    });
+    this.lateLoaded = Promise.all(lateFirst.map((job) => job()))
+      .then(() => Promise.all(late.map((job) => job())))
+      .then(() => {
+        this.missingLate = expectLate
+          .filter((e) => !e.done())
+          .map((e) => ({ key: e.key, path: e.path, group: e.group }));
+        this.lateDone = true;
+      });
   }
 
   /**

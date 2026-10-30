@@ -73,7 +73,7 @@ for (const [biome, atLeast] of [
     test.setTimeout(400_000);
     const touch = isTouchProject(info);
     const errors = collectErrors(page);
-    await boot(page, `biome=${biome}&seed=42&huntSeconds=60`);
+    await boot(page, `biome=${biome}&seed=42&huntSeconds=60&baboons=0`);
     await startHunt(page, touch);
     await nestInView(page);
     const before = await hook(page);

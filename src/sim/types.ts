@@ -1,9 +1,11 @@
 // Public sim types (Tech §3.1). The Phaser layer, tools and replays depend on these shapes.
-import type { ContentBundle } from '../content/schemas';
+import type { ContentBundle, RaidAction } from '../content/schemas';
 import type { ColonyPhase, MeerkatPose } from './meerkats/colony';
 import type { OstrichPose } from './ostriches/ostriches';
 import type { TellPhase } from './tells/tells';
+import type { BaboonRole, RaidPhase, RaiderPhase, RidgePose } from './baboons/baboons';
 import type { RangeProgramFactory } from './range/types';
+import type { LazySystems } from './lazySystems';
 
 /** v1.3 (D-036): `ver` is the distant band behind the far plane; only rifles reach it. */
 export type PlaneId = 'near' | 'mid' | 'far' | 'ver';
@@ -93,6 +95,8 @@ export interface SimConfig {
   /** v1.3x (D-037), mode 'range' only: the Skietbaan's spawn program (src/sim/range). Passed in
    *  rather than imported, so its code loads with the admin page's lazy chunk. */
   readonly rangeProgram?: RangeProgramFactory;
+  /** v1.8b (D-062): the lazy sim systems (baboons, ostriches); absent = the registered ones. */
+  readonly systems?: LazySystems;
 }
 
 export type Command =
@@ -271,6 +275,64 @@ export interface TellView {
   readonly t: number;
 }
 
+/** v1.8b (D-062): a baboon on its troop's ridge. */
+export interface BaboonView {
+  readonly id: number;
+  readonly role: BaboonRole;
+  readonly x: number;
+  readonly y: number;
+  readonly facing: 1 | -1;
+  readonly pose: RidgePose;
+  /** Ticks in this pose, and how long it lasts (0 = until something ends it). */
+  readonly t: number;
+  readonly dur: number;
+}
+
+/** v1.8b (D-062): a troop on its ridge (members bagged on a raid are left out). */
+export interface TroopView {
+  readonly id: string;
+  readonly layerId: string;
+  readonly plane: PlaneId;
+  /** The plane scale the troop is drawn at. */
+  readonly scale: number;
+  readonly fled: boolean;
+  /** v1.8b (review): the rock outcrop drawn under the troop (layer px: middle, base), or null. */
+  readonly rock: { readonly x: number; readonly y: number } | null;
+  readonly members: readonly BaboonView[];
+}
+
+/** v1.8b (D-062): a raider down at its spot. */
+export interface RaiderView {
+  readonly id: number;
+  readonly raidId: number;
+  readonly layerId: string;
+  readonly plane: PlaneId;
+  readonly scale: number;
+  readonly action: RaidAction;
+  readonly x: number;
+  readonly y: number;
+  readonly facing: 1 | -1;
+  readonly phase: RaiderPhase;
+  readonly t: number;
+  readonly dur: number;
+  readonly hits: number;
+}
+
+/** v1.8b (D-062): the map's baboons (null: no troop on this hunt). */
+export interface BaboonsView {
+  readonly troops: readonly TroopView[];
+  readonly raiders: readonly RaiderView[];
+  /** The raid building up or on (null: none), for the view's cues and the test hooks. */
+  readonly raid: {
+    readonly id: number;
+    readonly troopId: string;
+    readonly spotId: string;
+    readonly action: RaidAction;
+    readonly phase: RaidPhase;
+    readonly completed: boolean;
+  } | null;
+}
+
 /** v1.7d (D-059): an ostrich pair and its nest (Namibië). */
 export interface OstrichFamilyView {
   readonly id: string;
@@ -391,6 +453,8 @@ export interface SimState {
   readonly ostriches: readonly OstrichFamilyView[];
   /** v1.7e (D-061): the secrets' tell animals (none in the Skietbaan). */
   readonly tells: readonly TellView[];
+  /** v1.8b (D-062): the map's baboon troops and raiders (null: none on this hunt). */
+  readonly baboons: BaboonsView | null;
   readonly powerups: readonly PowerupView[];
   /** Null when the omen is off or the biome has no wind. */
   readonly wind: WindView | null;

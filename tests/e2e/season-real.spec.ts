@@ -17,6 +17,8 @@ import {
   SCREENSHOTS,
   tapRect,
 } from './helpers';
+// v1.8b (D-062): Node-side hunts register the lazy sim systems (the game loads their chunk).
+import '../../src/sim/lazySystemsRegister';
 
 /** A run that passed its first `hunts` hunts and left the last Padstal (phase 'hunt'). */
 function savedRunAt(hunts: number): RunState {

@@ -133,6 +133,14 @@ function applyOverride(biome: Biome, o: Override): Biome {
           },
         };
 
+  // v1.8b (D-062): a map's troops replace the biome's; pacing.raidsMul scales its raid rate.
+  const troopMap = o.baboons ?? biome.baboons;
+  const raidsMul = o.pacing?.raidsMul;
+  const baboons =
+    troopMap === undefined || raidsMul === undefined
+      ? troopMap
+      : { ...troopMap, raidsMul: (troopMap.raidsMul ?? 1) * raidsMul };
+
   const twist =
     o.flushAsRunChance === undefined
       ? biome.twist
@@ -151,6 +159,7 @@ function applyOverride(biome: Biome, o: Override): Biome {
     ...(o.colonies === undefined ? {} : { colonies: o.colonies }),
     // v1.7d (D-059): so do its ostrich pairs.
     ...(o.ostriches === undefined ? {} : { ostriches: o.ostriches }),
+    ...(baboons === undefined ? {} : { baboons }),
     ...(o.flyovers === undefined ? {} : { flyovers: { ...biome.flyovers, ...o.flyovers } }),
   };
 }

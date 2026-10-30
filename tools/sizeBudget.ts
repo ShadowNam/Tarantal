@@ -6,6 +6,7 @@
 // the index's `initialGroups` (the non-home biomes) are lazy too.
 
 import { HD_INDEX_PATH, indexFiles, type AssetIndex } from '../src/game/assets/assetIndex';
+import { VOICE_INDEX_PATH } from '../src/game/assets/voiceIndex';
 
 /** The part of Vite's .vite/manifest.json this needs. */
 export interface ViteManifestEntry {
@@ -65,6 +66,8 @@ export function lazyAssetFiles(index: AssetIndex): Set<string> {
     // D-053: the HD half of the index is fetched only when the card shows or HD is chosen (never
     // precached: a Standard player doesn't download it).
     HD_INDEX_PATH,
+    // v1.8b (D-062): the voice half, fetched when a voice pack first loads.
+    VOICE_INDEX_PATH,
   ]);
 }
 

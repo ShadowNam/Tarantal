@@ -67,6 +67,9 @@ export interface TallyExtras {
 export interface DailyFlowDeps {
   readonly content: ContentBundle;
   readonly contentHash: string;
+  /** e2e only (?dailySeed=): the Daily's seed, fixed whatever the content hash (a spec whose
+   *  shots depend on the seeded hunt keeps it when content changes elsewhere). */
+  readonly seedOverride?: number;
   readonly meta: DailyMeta;
   readonly save: SaveStore;
   readonly platform: Pick<PlatformAdapter, 'analytics' | 'share' | 'shareUrl'>;
@@ -103,13 +106,14 @@ export class DailyFlow {
   /** Today's daily setup (seed, biome, number; D-048: the special, if today is one). */
   todaySetup(): DailySetup {
     const d = this.deps;
-    return dailySetup(d.today(), {
+    const setup = dailySetup(d.today(), {
       meta: d.meta,
       contentHash: d.contentHash,
       playable: d.playableBiomes,
       fallbackBiome: d.content.modes.modes.daily.biome,
       feesdag: this.todaysSpecial(),
     });
+    return d.seedOverride === undefined ? setup : { ...setup, seed: d.seedOverride };
   }
 
   /** D-048: the special day today's Daily plays (Halloween on 31 Oct UTC), or null. */

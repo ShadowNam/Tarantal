@@ -7,7 +7,7 @@ import type { Page } from '@playwright/test';
 import { hook } from './helpers';
 
 /** Wednesday's Karoo map has its fence on the near plane (content/biomes/karoo-autumn.json). */
-export const NEAR_FENCE = 'biome=karoo-autumn&layout=wed&seed=42&huntSeconds=90';
+export const NEAR_FENCE = 'biome=karoo-autumn&layout=wed&seed=42&huntSeconds=90&baboons=0';
 /** Tuesday's: the mid plane. Friday's: the far plane. */
 export const MID_FENCE = 'biome=karoo-autumn&layout=tue&seed=42&huntSeconds=90';
 export const FAR_FENCE = 'biome=karoo-autumn&layout=fri&seed=42&huntSeconds=90';

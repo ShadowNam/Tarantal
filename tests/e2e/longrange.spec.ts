@@ -23,6 +23,8 @@ import {
   tapRect,
 } from './helpers';
 import { composePair } from '../../tools/art/compare';
+// v1.8b (D-062): Node-side hunts register the lazy sim systems (the game loads their chunk).
+import '../../src/sim/lazySystemsRegister';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const SCREENS = join(ROOT, 'docs', 'art-preview', 'screens');

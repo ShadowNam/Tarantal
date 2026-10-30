@@ -8,6 +8,8 @@ import type { ChallengeDecode } from '../meta/challenge';
 import type { FruitHookSpot } from './view/fruit/FruitView';
 import type { TreeLifeHook } from './view/tree/TreeLifeView';
 import type { TellHook } from './view/tell/TellView';
+import type { BaboonHook } from './view/baboon/BaboonView';
+import type { BaboonsView } from '../sim/types';
 import type { NamibLifeHook } from './view/namib/NamibLifeView';
 import type { LoadStatus, SaveStore } from '../meta/save';
 import type { StorageStatus } from '../meta/storage';
@@ -489,6 +491,11 @@ export interface TestHook {
    *  and the ms their view took, summed over the frames sceneryFrames counts (perf.spec). */
   tells: readonly TellHook[] | null;
   tellMs: number;
+  /** v1.8b (D-062): the baboons drawn this frame (null: no troop, or the chunk not in yet), the
+   *  raid now (from the snapshot), and the ms their view took (perf.spec: per scenery frame). */
+  baboons: readonly BaboonHook[] | null;
+  baboonRaid: BaboonsView['raid'];
+  baboonMs: number;
   /** v1.6b (D-043): reload power-ups on the HUD — the chips' icon textures (null = none), the
    *  lightning glints on the belt now, Oupa's hand on the belt, and auto reloads this page. */
   reloadFx: { chipIcons: (string | null)[]; bolts: number; oupaHand: boolean; autoReloads: number };
@@ -614,7 +621,8 @@ export interface TestHook {
 export interface TestTools {
   readonly contentHash: string;
   dailySeed(key: string): number;
-  replay(log: string): { eventHash: string; eventCount: number; score: number };
+  /** v1.8b (D-062): async (it loads the lazy sim systems first). */
+  replay(log: string): Promise<{ eventHash: string; eventCount: number; score: number }>;
   /** v1.0.1 (D-028 §4): `n` world score pops now, pooled BitmapText or canvas Text; sync ms. */
   popBench(n: number, mode: 'bitmap' | 'text'): number | null;
   /** v1.4 (#56): turn the zoomed view's culling on or off (pictures must match either way). */

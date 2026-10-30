@@ -218,7 +218,7 @@ const gunEntry = z.object({
 export const AUDIO_KINDS = ['sfx', 'music', 'ambience', 'voice'] as const;
 export type AudioKind = (typeof AUDIO_KINDS)[number];
 
-const audioEntry = z.object({
+export const audioEntry = z.object({
   group,
   origin,
   kind: z.enum(AUDIO_KINDS),

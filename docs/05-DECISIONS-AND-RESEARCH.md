@@ -3375,6 +3375,89 @@ option A stands (their standing instruction: go with the recommended options).
   no per-frame allocations, its own timer (`tellMs`, perf.spec ≤ 0.2 ms a frame at 4× throttle on
   the Pixel 7 Namibië run).
 
+**D-062 1.10.0 Bobbejane: baboon troops on the ridges, raiders that come down (29–30 Oct 2026):**
+the product owner (25 Oct, ~20:20): "It's important in these maps that the African baboon is also
+present, maybe sitting at the back of the mountains, because they are also problem animals and
+people tend to shoot at them, so one should always see them here and there. Pop up and do
+something naughty that might get them to eat a bullet or two."
+- *Decided with the product owner the same evening: a shot baboon goes down and is bagged like a
+  guineafowl* (not just scared off). Only raiders (adult and young males that came down to cause
+  trouble) are targets; mothers carrying babies and the babies stay on the ridge and cost points
+  if hit. The game's tone stays: no blood, the guineafowl's tumble and puff, Oupa's humour.
+- *Portals may rate it older.* Shooting a mammal (even a cartoon "problem animal", bloodless) may
+  push an age rating up on some portals and stores (an IARC questionnaire asks about violence
+  against animals). Poki and CrazyGames are no longer targets (D-052); for the App Store and Google
+  Play the rating questionnaire must mention it. If a store objects, raiders can become
+  scare-only by content alone (`birds.json → baboons.hit.hitsToBag` very high: every hit sends
+  the raider and its troop off, none is bagged), a store build's content override.
+- *Rules (GDD §11.3d).* A troop of 5–10 on each map's far ridge (the Kalahari: chance 0.3, its
+  rocky outcrop only), seats on the ridge art's skyline (`tools/art/ridgeLine.ts`). ~1.2 raids a
+  minute with a build-up (the lookout barks, a raider climbs down, then walks in at a raid spot on
+  the mid plane). 2 hits bag a raider for 3 × a guineafowl's base on its plane (an event bonus ×
+  Frenzy × Stampede), +15 before its raid is done; a mother costs 15 (2 s cooldown); any hit, or the
+  Langloop, sends the troop over the ridge for 14–22 s. A finished throw or chase threatens the
+  flocks nearby. Mothers take the troop's highest seats and never walk: the first sweep showed
+  0.2–0.8 accidental mother hits a hunt on the Okavango (its troop sat ~35 px above the far flocks'
+  ground band).
+- *Line of fire (review round 2).* A pellet aimed at a fruit (view-only: the Okavango's sausages)
+  or a little off a secret's part or tell flies on to the far ridge; with the troop behind, a mother
+  cost 15 (fruit.spec on the Okavango). Every map now keeps the seats mothers can take out of the
+  line of fire of every fruit, paying secret part and tell on the near and mid planes over the whole
+  camera sweep (the ridge scrolls slower, so x lines up somewhere; y must not overlap):
+  `tools/art/troopLineOfFire.ts` and its test. The troops moved to clear stretches (Karoo u 0.425,
+  Okavango 0.875, Namibië 0.425; Bushveld unchanged), and the Kalahari has no troop on Friday (its
+  dead camelthorn's branch lines up with every stretch of the ridge). The "don't shoot it" weaver
+  nests are no targets. e2e specs that shoot at other things or count the score use `?baboons=0`.
+- *Two pellets for a mother (round 2, the supervisor's gate: < 0.1 accidental mother hits a hunt
+  for every area and gun).* Even out of the line of fire, the Dubbelloop's spread at far birds
+  below the ridge drew 0.1–0.8 accidental mother hits a hunt (most on the Okavango, whose ridge is
+  low). A mother now costs points only when `baboons.hit.motherPellets` (2) pellets of one shot
+  strike her, or the one pellet of a one-pellet gun (the Windbuks, the rifles, the Kettie); a stray
+  pellet still sends the troop away. Numbers: docs/balance/v1.8b-baboons.md.
+- *Aimed at her (round 4; replaces the two-pellet rule).* The Kettie (one stone, so the two-pellet
+  rule couldn't help) still drew 0.127 accidental mother hits a hunt on the Okavango: stones aimed
+  at far birds below the ridge drop onto the troop. A mother now costs points only when the shot
+  was aimed at her: the fire command's aim point (dx, y; a rifle's before the sway), mapped onto
+  the troop's layer, lies inside her body or head ellipse, for every gun. A pellet or stone that
+  strikes her without that (a spread, the Kettie's drop, the wind) only sends the troop over the
+  ridge. `baboons.hit.motherPellets` is gone: with the aim rule it added nothing (a shot aimed at
+  her body puts its pellets on her anyway). Tests: `src/sim/baboons/system.test.ts` and the Kettie
+  drop test in `baboons.test.ts`; the mother tests aimed at her body centre still cost 15.
+- *Nothing floating (screenshot review round 1).* The Okavango's far bank is a thin treeline where
+  its troop is clear of the line of fire, and the troop seemed to float over it: a troop may now
+  have a rock outcrop drawn under it (`rock` in the biome file; `src/game/view/baboon/troopRock.ts`
+  is the rock's top, shared by the art, the seats and the test), and the Okavango troop sits on one.
+  A test checks every seat on every map stands on its ridge's art (within 2 px) or on its rock.
+  The far troop got darker, warmer fur and larger babies so it reads against the haze at 1×, and
+  Start never waits for the baboons (the sheet loads first in the background, the sim systems'
+  chunk at boot).
+  Raid spots that would put a raider over a secret's part, a tell animal, a meerkat
+  colony or an ostrich pair are left out on that map (`src/sim/baboons/spotClear.ts`, shared by the
+  sim and the content check; ≥ 2 clear spots on every map).
+- *Sim (Tech §3.12d).* Own stream `baboons`; hit kind `baboon`; events `baboonRaidWarned`,
+  `baboonRaidStarted`, `baboonRaidDone`, `baboonHit`, `baboonBagged`, `troopFled`; bonuses `baboon`,
+  `raidStopped`. Golden replays re-recorded on purpose (every map with a troop gains its events;
+  one random-bot replay lost 15 to a ridge mother); the v3 fixtures' hashes re-derived.
+- *Size: lazy sim systems.* The baboons' sim code (~5 KB gzip) went into a lazy chunk with
+  Namibië's ostriches (D-059) and the tell animals (D-061), moved there unchanged (every golden
+  replay passed as recorded), so the first download pays for none of them. The game loads the chunk
+  from the title; a hunt that needs it waits (offline: Retry or Back, D-042). The baboon sheet is
+  its own group, `baboons` (2× master, Standard 90 KB, `baboons-hd` 189 KB), loading in the
+  background after the first download like the late group; a hunt with a troop waits for that one
+  file (the troop can be hit from the first tick, so it must be drawn then; review round 1). The
+  view is a lazy chunk, Oupa's lines are in the lazy guide tables (en/af/de/nl), voiced in en/af/de
+  with the interim TTS (D-041), and the voice packs' index entries moved to a lazy
+  `asset-index-voice.json` (fetched when a pack first loads), which pays for their ten new lines.
+- *Hit order (review round 1).* The baboons' hit shapes come after a layer's secret parts and tell
+  animals: where a raider walks in past one, the secret takes the pellet (spotClear checks only
+  where raiders stand at their mischief). Members climbing over the ridge can't be hit.
+- *Low tier.* A far ridge with a troop is no longer merged into the far veld on the low tier: merged,
+  its art would scroll at the far veld's rate while the troop's hit shapes stay at the ridge's. So
+  troop maps draw 6 layers on the low tier (5 before); the sim must be the same on every tier, and
+  the perf jobs (desktop and Pixel 7, incl. the low tier's 50 fps at 6× throttle) passed with it
+  (supervisor's decision, 30 Oct). quality.spec checks the merge on a map without a troop and the
+  unmerged ridge on a troop map.
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**

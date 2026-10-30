@@ -10,10 +10,10 @@ import type { Page } from '@playwright/test';
 /** Monday's Okavango map: a mid pair and a mid single by the water, a near single at the west
  *  end (content/biomes/okavango-spring.json). */
 export const PALMS_MON =
-  'biome=okavango-spring&layout=mon&seed=42&huntSeconds=90&graphics=standard';
+  'biome=okavango-spring&layout=mon&seed=42&huntSeconds=90&graphics=standard&baboons=0';
 /** Wednesday's Karoo map: the near fence and the far (mid-plane) fence. */
 export const FAR_FENCE_WED =
-  'biome=karoo-autumn&layout=wed&seed=42&huntSeconds=90&graphics=standard';
+  'biome=karoo-autumn&layout=wed&seed=42&huntSeconds=90&graphics=standard&baboons=0';
 
 export type ThingSource = 'nuts' | 'farCans';
 

@@ -11,7 +11,8 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { veldLifeBarks, voicedLines } from '../../src/game/audio/voiceLines';
+import { baboonBarks, veldLifeBarks, voicedLines } from '../../src/game/audio/voiceLines';
+import { RaidActionSchema } from '../../src/content/schemas';
 import { VOICE_LANGUAGES, type VoiceLanguage } from '../../src/i18n/i18n';
 import { loadContent, loadFeel } from '../testContent';
 
@@ -41,14 +42,21 @@ const lines = voicedLines(
   loadContent().biomes,
   loadContent().birds.meerkats,
   loadContent().feesdae.specials.map((f) => f.barks),
-  veldLifeBarks(loadContent().birds),
+  [...veldLifeBarks(loadContent().birds), ...baboonBarks(RaidActionSchema.options)],
 ).filter((l) => only === undefined || only.includes(l));
 const jobs: { lang: string; key: string; text: string; out: string }[] = [];
 for (const lang of langs) {
   if (!(VOICE_LANGUAGES as readonly string[]).includes(lang)) throw new Error(`no voice ${lang}`);
-  const table = JSON.parse(
-    readFileSync(join(root, 'src', 'i18n', `${lang}.json`), 'utf8'),
-  ) as Record<string, string>;
+  // v1.8b (D-062): lines whose text lives in the lazy guide tables (the baboons') too.
+  const table = {
+    ...(JSON.parse(
+      readFileSync(join(root, 'src', 'i18n', 'guide', `${lang}.json`), 'utf8'),
+    ) as Record<string, string>),
+    ...(JSON.parse(readFileSync(join(root, 'src', 'i18n', `${lang}.json`), 'utf8')) as Record<
+      string,
+      string
+    >),
+  };
   for (const key of lines) {
     const text = table[key];
     if (text === undefined) throw new Error(`${lang}.json has no ${key}`);

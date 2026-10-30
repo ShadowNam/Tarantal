@@ -89,6 +89,8 @@ import {
 } from './targets';
 import { readWav } from './wav';
 import { FAUNA_RES } from '../../src/game/view/faunaHerds';
+import { splitVoiceIndex, VOICE_INDEX_PATH } from '../../src/game/assets/voiceIndex';
+import { BABOON_GROUP } from '../../src/game/view/baboon/baboonKeys';
 
 export interface PackOptions {
   /** art-source/ (or a stand-in source folder). */
@@ -121,8 +123,9 @@ const sidecarOrigin = z
     master: z.number().int().min(1).max(4),
     /** v1.3: the long-range chunk (sight pictures, D-036) instead of the key's own group;
      *  v1.7b (D-046): or the late group (the power-up icons, after the first download; v1.7c,
-     *  D-047: the Karoo's and Kalahari's fruit sheets). */
-    group: z.enum([VER_GROUP, LATE_GROUP]),
+     *  D-047: the Karoo's and Kalahari's fruit sheets); v1.8b (D-062): or the baboons' own group
+     *  (loaded with every hunt, before it starts). */
+    group: z.enum([VER_GROUP, LATE_GROUP, BABOON_GROUP]),
     /** D-053: false = no HD version in the HD pack (default: one when a 2× source exists). */
     hd: z.boolean(),
     /** D-054: a far-animal sheet's frames (src/game/view/faunaHerds.ts FaunaFrame, design px). */
@@ -281,6 +284,7 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
       want === LATE_GROUP ||
       want === VER_GROUP ||
       want === DESERT_GROUP ||
+      want === BABOON_GROUP ||
       o.catalog.biomes.includes(want)
     )
       return want;
@@ -939,8 +943,12 @@ export async function packAssets(o: PackOptions): Promise<PackReport> {
   mkdirSync(dirname(indexFile), { recursive: true });
   // D-053: the HD parts in their own file (the first download's index stays as it was).
   const split = splitHdIndex(checked);
-  writeFileSync(indexFile, `${JSON.stringify(split.index, null, 2)}\n`);
+  // v1.8b (D-062): the voice packs' entries in their own lazy file too.
+  const voiced = splitVoiceIndex(split.index);
+  writeFileSync(indexFile, `${JSON.stringify(voiced.index, null, 2)}\n`);
   written.push(ASSET_INDEX_PATH);
+  writeFileSync(join(o.publicDir, VOICE_INDEX_PATH), `${JSON.stringify(voiced.voice, null, 2)}\n`);
+  written.push(VOICE_INDEX_PATH);
   writeFileSync(join(o.publicDir, HD_INDEX_PATH), `${JSON.stringify(split.hd, null, 2)}\n`);
   written.push(HD_INDEX_PATH);
   return { index: checked, written: written.sort(), warnings, errors };

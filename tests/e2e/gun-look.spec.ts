@@ -110,7 +110,7 @@ test('every gun shows its own ammo and crosshair, full and partly spent', async 
   test.setTimeout(300_000);
   const errors = collectErrors(page);
   await seed(page, null);
-  await boot(page, 'seed=42&huntSeconds=20&holdAt=30');
+  await boot(page, 'seed=42&huntSeconds=20&holdAt=30&baboons=0');
   await startHunt(page, isTouchProject(info));
   await page.waitForFunction(() => (window.__TM__?.tick ?? 0) >= 30, null, { timeout: 120_000 });
   await fontsIn(page);
@@ -164,7 +164,7 @@ test('real play: firing the Windbuks spends its diabolo pellets', async ({ page 
   const touch = isTouchProject(info);
   const errors = collectErrors(page);
   await seed(page, 'windbuks');
-  await boot(page, 'seed=42&huntSeconds=20');
+  await boot(page, 'seed=42&huntSeconds=20&baboons=0');
   await startHunt(page, touch);
   let h = await hook(page);
   expect(counts(h.ammo, 'diabolo')).toEqual([6, 0]);
@@ -190,7 +190,7 @@ test('touch: the offset crosshair sits above the finger and the shot goes there'
   test.setTimeout(180_000);
   const errors = collectErrors(page);
   await seed(page, null, { offsetCrosshair: true });
-  await boot(page, 'seed=42&huntSeconds=20');
+  await boot(page, 'seed=42&huntSeconds=20&baboons=0');
   await startHunt(page, true);
   const h = await hook(page);
   const x = Math.round(h.designWidth / 2);
@@ -226,7 +226,7 @@ test('before: each gun on main, full and partly spent', async ({ browser, baseUR
     });
     const page = await context.newPage();
     await seed(page, crate ? null : c.gun);
-    await boot(page, `seed=7&huntSeconds=60${crate ? `&crate=${c.gun}` : ''}`);
+    await boot(page, `seed=7&huntSeconds=60&baboons=0${crate ? `&crate=${c.gun}` : ''}`);
     await startHunt(page, touch);
     await fontsIn(page);
     const h = await hook(page);

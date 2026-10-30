@@ -38,6 +38,8 @@ import { coreWidth } from '../../src/sim/world';
 import type { ContentBundle } from '../../src/content/schemas';
 import type { SimState } from '../../src/sim/types';
 import { boot, isTouchProject, startHunt } from './helpers';
+// v1.8b (D-062): Node-side hunts register the lazy sim systems (the game loads their chunk).
+import '../../src/sim/lazySystemsRegister';
 
 const OUT = join(import.meta.dirname, '..', '..', 'docs', 'art-preview', 'compare');
 const PROFILES = ['desktop-chromium', 'pixel7-landscape', 'iphone14-landscape'];

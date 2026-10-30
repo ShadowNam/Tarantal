@@ -39,7 +39,7 @@ test('the first hunt of the day: Oupa greets in a bubble clear of the HUD', asyn
   test.setTimeout(180_000);
   const touch = isTouchProject(info);
   const errors = collectErrors(page);
-  await boot(page, 'seed=42&huntSeconds=30&holdAt=45');
+  await boot(page, 'seed=42&huntSeconds=30&holdAt=45&baboons=0');
   await startHunt(page, touch);
   await waitBark(page);
   const h = await hook(page);
@@ -75,7 +75,7 @@ test('a tap on the bubble is a shot (it never takes input)', async ({ page }, in
   test.skip(!isLandscape(info), 'landscape profiles only');
   test.setTimeout(180_000);
   const touch = isTouchProject(info);
-  await boot(page, 'seed=42&huntSeconds=30');
+  await boot(page, 'seed=42&huntSeconds=30&baboons=0');
   await startHunt(page, touch);
   // Tap the bubble's centre in-page the frame it appears (a round trip could outlast it).
   const tapped = await page.evaluate(
@@ -127,7 +127,7 @@ test('Oupa speaks the save language (af)', async ({ page }, info) => {
         JSON.stringify({ v: 1, settings: { language: 'af' } }),
       );
   });
-  await boot(page, 'seed=42&huntSeconds=30&holdAt=45');
+  await boot(page, 'seed=42&huntSeconds=30&holdAt=45&baboons=0');
   await startHunt(page, false);
   await waitBark(page);
   const h = await hook(page);

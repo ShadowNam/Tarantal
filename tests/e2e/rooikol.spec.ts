@@ -126,7 +126,7 @@ for (const g of GUNS)
     const touch = isTouchProject(info);
     const errors = collectErrors(page);
     await rifleSave(page, g.gun, g.sight);
-    await boot(page, 'seed=7&huntSeconds=90&graphics=standard&crate=rooikol');
+    await boot(page, 'seed=7&huntSeconds=90&graphics=standard&crate=rooikol&baboons=0');
     await startHunt(page, touch);
     await pickUpScoped(page, touch, 'rooikol');
     // Two rounds for the burst: reload (Space) if the pickup took more.

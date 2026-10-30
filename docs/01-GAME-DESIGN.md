@@ -733,6 +733,43 @@ Namibian carvers turn into key rings and ornaments (sources: D-056).
   the burner roars and a passenger shakes a fist: "Oi! We're on holiday!" (`bark.balloon`).
 - **Modes:** wherever the Namibië maps play (Classic, the Daily, the bonus maps); not the Skietbaan.
 
+### 11.3d Bobbejane: baboon troops and their raids (1.10.0, D-062)
+- **The troop** (every Karoo, Bushveld, Okavango and Namibië map, each weekday layout and the bonus
+  maps; the Kalahari only on about one hunt in three, on its rocky outcrop): 5–10 chacma baboons
+  sit on the far ridge, on its skyline: the big male on lookout on the highest seat, 1–3 mothers
+  with a baby riding on their back, 1–2 youngsters playing, males grooming, dozing, looking round
+  and walking to another seat. Mothers take the highest seats and stay there, so a near miss at a
+  far bird below the ridge lands on a male (no cost), not on a mother; and the mothers' seats are
+  never in the line of fire of a fruit, a secret or a tell in front (a shot at the sausages never
+  costs 15). In the sim (own stream `baboons`).
+- **Never targets up there.** A hit on a mother (and her baby) costs **15** (once per 2 s) only
+  when the shot was **aimed at her** (its aim point on her body or head), with every gun; a stray
+  pellet or stone that strikes her (a spread or a Kettie stone's drop at a bird below, the wind)
+  costs nothing; a hit
+  on any member, or the Langloop's shot, sends the troop over the ridge (they climb down out of
+  sight) and it comes back after 14–22 s.
+- **Raids:** about **1.2 per minute** on a map with a troop (× the map's `raidsMul` and the
+  layout's `pacing.raidsMul`; the first after 12–22 s). Each has a visible build-up: the lookout
+  barks ("wa-hoo"), one male (or two, 30 %) climbs down off the ridge, and after a short while
+  walks in from the side of a raid spot on the mid plane. Then the mischief, for 3.5–6 s: Oupa's
+  hat off the bakkie (it sits wearing it), the reservoir or windpomp tap (water everywhere), the
+  fruit tree (the baobab, the sausage tree, the camelthorn), a mielie cob, fruit thrown at a flock,
+  a moon from a fence post, a chase after the guineafowl. Then it goes back the way it came and
+  climbs back onto the ridge. A done throw or chase threatens the flocks on the mid plane near it.
+- **Raiders are targets: bagged like a guineafowl** (the product owner, 25 Oct): **2 hits** bag one
+  (each shot that hits it is one hit; the first sends it running). It pays **3 ×** a guineafowl's
+  base on the mid plane (30, as an event bonus × Frenzy × Stampede) and **+15** if its raid wasn't
+  done yet ("Caught in the act!"). No blood: the guineafowl's tumble and puff, then it lies still
+  and fades. A hit raider's troop runs over the ridge. Mothers and babies never come down.
+- **Where:** raid spots are in the biome file (`baboons.spots`), anchored to a prop (they move with
+  it on a layout) or at a place on the layer. A spot where a raider would stand over a secret's
+  part, a tell animal, a meerkat colony or an ostrich pair on that map is left out of the hunt;
+  every map keeps at least two clear spots (content check).
+- **Oupa:** a line for each raid as it starts, a bagged raider, one caught in the act, and a hit
+  mother (en/af/de voiced, nl text).
+- **Bird Book:** "Bobbejaan · chacma baboon" with its rule (seen once a raider came down).
+- **Modes:** Classic, the Daily, the Season Run, the bonus maps; not the Skietbaan or Oupa se Les.
+
 ### 11.5 Day-of-week maps and bonus map Verder (v1.2, D-033)
 
 Every biome has **seven layouts, one per UTC weekday** (`content/biomes/<biome>.json → layouts`,

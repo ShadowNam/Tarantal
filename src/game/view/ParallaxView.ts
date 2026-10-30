@@ -171,6 +171,9 @@ export class ParallaxView {
         src.plane !== undefined ||
         biome.props.some((p) => p.layer === from) ||
         (biome.twist?.splash?.zones ?? []).some((z) => z.layer === from) ||
+        // v1.8b (D-062): a ridge with a baboon troop keeps its own scroll (the troop's hit
+        // shapes are on it; merged, the art would slide away from them).
+        (biome.baboons?.troops ?? []).some((t) => t.layer === from) ||
         // v1.3: never across a plane layer between them (the far ridge stays behind the Ver
         // plane's birds on maps that open it).
         (dst !== undefined &&

@@ -498,6 +498,66 @@
     "far": 632,
     "ver": 575
   },
+  "baboons": {
+    "$comment": "v1.8b (D-062): the troop on the flat-topped koppie in the middle of the far ridge, clear of the line of fire of the windpomp, the bakkie and the fruit (review round 2) (seats on its skyline: tools/art/ridgeLine.ts). Raids: Oupa's hat off the bakkie, the reservoir tap, a mielie cob, fruit thrown at a flock, a fence-post moon.",
+    "troops": [
+      {
+        "id": "troop",
+        "layer": "far_ridge",
+        "plane": "far",
+        "u": 0.425,
+        "seats": [{"dx":-150,"y":577},{"dx":-118,"y":560},{"dx":-88,"y":531},{"dx":-60,"y":517},{"dx":-32,"y":517},{"dx":-6,"y":518},{"dx":20,"y":517},{"dx":46,"y":491},{"dx":72,"y":491},{"dx":98,"y":491}],
+        "lookout": 7
+      }
+    ],
+    "spots": [
+      {
+        "id": "hat",
+        "action": "hat",
+        "layer": "mid",
+        "prop": "bakkie",
+        "ox": 290,
+        "y": 100,
+        "from": 1
+      },
+      {
+        "id": "tap",
+        "action": "tap",
+        "layer": "mid",
+        "prop": "reservoir",
+        "ox": 215,
+        "y": 40,
+        "from": 1
+      },
+      {
+        "id": "mielie",
+        "action": "mielie",
+        "layer": "mid",
+        "u": 0.655,
+        "ox": 0,
+        "y": 760,
+        "from": 1
+      },
+      {
+        "id": "throw",
+        "action": "throw",
+        "layer": "mid",
+        "u": 0.36,
+        "ox": 0,
+        "y": 755,
+        "from": -1
+      },
+      {
+        "id": "moon",
+        "action": "moon",
+        "layer": "mid",
+        "u": 0.45,
+        "ox": 0,
+        "y": 750,
+        "from": -1
+      }
+    ]
+  },
   "layouts": [
     {
       "id": "mon",

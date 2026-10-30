@@ -69,13 +69,14 @@ test.describe('Daily Hunt', () => {
       const h = await hook(page);
       if (w !== null) expect(h.designWidth).toBe(designSizeFor(w, 1080).width);
       const got = await page.evaluate(
-        ([day, logs]) => {
+        async ([day, logs]) => {
           const tools = window.__TM_TOOLS__;
           if (!tools) throw new Error('test tools missing');
+          // v1.8b (D-062): replay() is async (it loads the lazy sim systems first).
           return {
             contentHash: tools.contentHash,
             seed: tools.dailySeed(day),
-            outcomes: logs.map((l) => tools.replay(l)),
+            outcomes: await Promise.all(logs.map((l) => tools.replay(l))),
           };
         },
         [GOLDEN_DAY, golden.map((g) => g.log)] as const,

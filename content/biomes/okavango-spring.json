@@ -557,6 +557,57 @@
   "ambience": "okavango_reeds_bed",
   "palmY": { "near": 1000, "mid": 776 },
   "waterY": { "near": 1030, "mid": 790 },
+  "baboons": {
+    "$comment": "v1.8b (D-062): the troop on a rock outcrop on the far bank east of the sausage tree (the bank is a thin treeline there: the rock gives the troop ground; its seats are on the rock, troopRock.ts), clear of its fruit's line of fire (review rounds 2–3). Raids: the sausage tree, a mielie cob, fruit thrown at a flock, a chase.",
+    "troops": [
+      {
+        "id": "troop",
+        "layer": "far_ridge",
+        "plane": "far",
+        "u": 0.875,
+        "seats": [{"dx":-170,"y":534},{"dx":-132,"y":513},{"dx":-96,"y":500},{"dx":-62,"y":503},{"dx":-28,"y":499},{"dx":6,"y":483},{"dx":40,"y":493},{"dx":76,"y":499},{"dx":112,"y":516},{"dx":150,"y":519}],
+        "lookout": 5, "rock": { "y": 590 }
+      }
+    ],
+    "spots": [
+      {
+        "id": "fruit",
+        "action": "fruit",
+        "layer": "mid",
+        "prop": "sausage_tree",
+        "ox": -130,
+        "y": 262,
+        "from": -1
+      },
+      {
+        "id": "throw",
+        "action": "throw",
+        "layer": "mid",
+        "u": 0.3,
+        "ox": 0,
+        "y": 750,
+        "from": -1
+      },
+      {
+        "id": "mielie",
+        "action": "mielie",
+        "layer": "mid",
+        "u": 0.65,
+        "ox": 0,
+        "y": 755,
+        "from": 1
+      },
+      {
+        "id": "chase",
+        "action": "chase",
+        "layer": "mid",
+        "u": 0.8,
+        "ox": 0,
+        "y": 750,
+        "from": 1
+      }
+    ]
+  },
   "layouts": [
     {
       "palms": [

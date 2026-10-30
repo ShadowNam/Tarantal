@@ -8,6 +8,7 @@ import { ostrichIssues } from './ostrichChecks';
 import { fenceIssues } from './fenceChecks';
 import { palmIssues } from './palmChecks';
 import { tellIssues } from './tellChecks';
+import { baboonIssues } from './baboonChecks';
 import { WORLD_EVENT_HANDLERS } from '../sim/director/events';
 
 /** Half the narrowest visible design width (4:3, 1440 px; Tech §3.3). */
@@ -387,6 +388,8 @@ export function checkCrossRefs(bundle: ContentBundle, options: CrossRefOptions):
     for (const m of palmIssues(bundle, biome)) err(file, m);
     // v1.7e (D-061): the secrets' tell animals (one each, never over the secret's part).
     for (const m of tellIssues(bundle, biome)) err(file, m);
+    // v1.8b (D-062): the baboon troops and raid spots (a raider never covers a secret or a tell).
+    for (const m of baboonIssues(bundle, biome)) err(file, m);
     for (const entry of biome.spawnTable) {
       const c = creatures.get(entry.creature);
       if (c === undefined) err(file, `spawnTable uses unknown creature "${entry.creature}"`);

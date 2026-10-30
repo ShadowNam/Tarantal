@@ -36,7 +36,7 @@ for (const reduced of [false, true]) {
     const touch = isTouchProject(info);
     const errors = collectErrors(page);
     if (reduced) await reduceFlashes(page);
-    await boot(page, 'biome=kalahari-summer&omen=1&huntSeconds=24');
+    await boot(page, 'biome=kalahari-summer&omen=1&huntSeconds=24&baboons=0');
     await startHunt(page, touch);
     const h = await hook(page);
     expect(h.biome).toBe('kalahari-summer');

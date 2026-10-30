@@ -28,6 +28,7 @@ import {
   type ViteManifest,
 } from './sizeBudget';
 import { DESERT_GROUP } from '../src/game/assets/desertAssets';
+import { BABOON_GROUP } from '../src/game/view/baboon/baboonKeys';
 import { hdGroupOf, isHdGroup } from '../src/game/assets/hdPack';
 import { hasColonies } from '../src/sim/meerkats/colony';
 import { loadContent } from './testContent';
@@ -149,10 +150,11 @@ if (chunks.has(DESERT_GROUP)) {
 // the background after it (late-hd, ver-hd); reported, each group checked above.
 if (groups.some(isHdGroup)) {
   console.log(
-    'HD pack per area (before the hunt: common-hd + the area; background: late-hd, ver-hd):',
+    'HD pack per area (before the hunt: common-hd + the area; background: late-hd, ver-hd, baboons-hd):',
   );
   const hdOf = (g: string): number => (chunks.has(hdGroupOf(g)) ? gzOf(hdGroupOf(g)) : 0);
-  const background = hdOf(LATE_GROUP) + hdOf(VER_GROUP);
+  // v1.8b (D-062): the baboon sheet's twin loads in the background too.
+  const background = hdOf(LATE_GROUP) + hdOf(VER_GROUP) + hdOf(BABOON_GROUP);
   for (const b of loadContent().biomes) {
     if (!groups.includes(b.id)) continue;
     const before = hdOf(COMMON_GROUP) + hdOf(b.id) + (hasColonies(b) ? hdOf(DESERT_GROUP) : 0);

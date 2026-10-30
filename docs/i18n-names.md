@@ -301,6 +301,23 @@ than in the tables above:
 - `guide.tell.red_billed_oxpecker`: rooibekrenostervoël (af) · red-billed oxpecker (en) · Rotschnabel-Madenhacker (de) · roodsnavelossenpikker (nl)
 - `guide.tell.african_jacana`: grootlangtoon (af) · African jacana (en) · Blaustirn-Blatthühnchen (de) · lelieloper (nl)
 
+**Baboons (1.10.0, D-062).** The baboon's name and Oupa's baboon lines live in the lazy guide
+tables (`src/i18n/guide/<lang>.json`; the first download must not grow). Voiced with the interim
+TTS in en, af and de (D-041); nl is text only:
+
+- `guide.baboon.name`: kaapse bobbejaan (af) · chacma baboon (en) · Bärenpavian (de) · beerbaviaan (nl); the Bird Book shows "Bobbejaan · <name>" in every language
+- `guide.baboon.rule`: Rowers: {n} skote vat een. Nooit die ma's nie! (af) · Raiders: {n} hits bag one. Never the mothers! (en) · Räuber: {n} Treffer. Nie die Mütter! (de) · Rovers: {n} treffers. Nooit de moeders! (nl)
+- `guide.baboon.raid_hat`: Haai! Daai bobbejaan is agter my hoed aan! (af) · Hey! That bobbejaan is after my hat! (en) · He! Der Pavian will meinen Hut! (de) · Hé! Die baviaan wil mijn hoed! (nl)
+- `guide.baboon.raid_fruit`: Bobbejaan in die vrugteboom! Voert! (af) · Bobbejaan in the fruit tree! Shoo! (en) · Ein Pavian im Obstbaum! Weg da! (de) · Een baviaan in de fruitboom! Wegwezen! (nl)
+- `guide.baboon.raid_tap`: Hy's agter die kraan aan! Daar gaan my water! (af) · He's going for the tap! There goes my water! (en) · Er geht an den Wasserhahn! Mein Wasser! (de) · Hij gaat naar de kraan! Daar gaat mijn water! (nl)
+- `guide.baboon.raid_mielie`: Bobbejaan weer in die mielies! (af) · Bobbejaan in the mielies again! (en) · Schon wieder ein Pavian im Mais! (de) · Weer een baviaan in de maïs! (nl)
+- `guide.baboon.raid_throw`: Pas op, hy gooi die voëls met vrugte! (af) · Watch out, he's throwing fruit at the birds! (en) · Achtung, er wirft mit Obst nach den Vögeln! (de) · Pas op, hij gooit met fruit naar de vogels! (nl)
+- `guide.baboon.raid_moon`: Ag nee, man! Hy wys vir ons sy agterstewe! (af) · Ag no, man! He's showing us his backside! (en) · Ach nee! Der zeigt uns seinen Hintern! (de) · Ach nee! Hij laat ons zijn achterwerk zien! (nl)
+- `guide.baboon.raid_chase`: Hy jaag my tarentale! (af) · He's chasing my tarentale! (en) · Er jagt meine Perlhühner! (de) · Hij jaagt op mijn parelhoenders! (nl)
+- `guide.baboon.bagged`: Raak! Een bobbejaan minder in die mielies. (af) · Got him! One bobbejaan less in the mielies. (en) · Erwischt! Ein Pavian weniger im Mais. (de) · Raak! Eén baviaan minder in de maïs. (nl)
+- `guide.baboon.stopped`: Op heterdaad betrap! (af) · Caught in the act! (en) · Auf frischer Tat ertappt! (de) · Op heterdaad betrapt! (nl)
+- `guide.baboon.mother`: Nie die ma met haar baba nie, man! (af) · Not the mother with her baby, man! (en) · Doch nicht die Mutter mit dem Baby! (de) · Niet de moeder met haar baby! (nl)
+
 **Privacy screen (1.9.3, D-056).** Its paragraphs and headings (`privacy.stored`, `privacy.*_title`,
 `privacy.sent_*`, `privacy.personal`) moved to the lazy table `src/i18n/privacy/<lang>.json`
 (the first download must not grow); the wording is unchanged.

@@ -32,7 +32,7 @@ for (const [project, cases] of Object.entries(CASES)) {
       const touch = isTouchProject(info);
       const errors = collectErrors(page);
       if (c.viewport) await page.setViewportSize(c.viewport);
-      await boot(page, 'seed=42&huntSeconds=60');
+      await boot(page, 'seed=42&huntSeconds=60&baboons=0');
       await startHunt(page, touch);
       const start = await hook(page);
       expect(start.missingTextures).toEqual([]);

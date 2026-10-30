@@ -17,7 +17,7 @@ import {
 import { reloadIfEmpty } from './feesdaeHelpers';
 
 const COLONY = 'dune_colony';
-const QUERY = 'biome=kalahari-summer&layout=sat&seed=42&huntSeconds=90';
+const QUERY = 'biome=kalahari-summer&layout=sat&seed=42&huntSeconds=90&baboons=0';
 
 /** The colony's centre on screen (mean of its meerkats' feet), or null before the hunt. */
 async function colonyX(page: Page): Promise<number | null> {

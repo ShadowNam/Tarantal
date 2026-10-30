@@ -41,5 +41,18 @@
   "guide.tell.pied_crow": "pied crow",
   "guide.tell.malachite_kingfisher": "malachite kingfisher",
   "guide.tell.red_billed_oxpecker": "red-billed oxpecker",
-  "guide.tell.african_jacana": "African jacana"
+  "guide.tell.african_jacana": "African jacana",
+  "guide.baboon.name": "chacma baboon",
+  "guide.baboon.raid_hat": "Hey! That bobbejaan is after my hat!",
+  "guide.baboon.raid_fruit": "Bobbejaan in the fruit tree! Shoo!",
+  "guide.baboon.raid_tap": "He's going for the tap! There goes my water!",
+  "guide.baboon.raid_mielie": "Bobbejaan in the mielies again!",
+  "guide.baboon.raid_throw": "Watch out, he's throwing fruit at the birds!",
+  "guide.baboon.raid_moon": "Ag no, man! He's showing us his backside!",
+  "guide.baboon.raid_chase": "He's chasing my tarentale!",
+  "guide.baboon.bagged": "Got him! One bobbejaan less in the mielies.",
+  "guide.baboon.stopped": "Caught in the act!",
+  "guide.baboon.mother": "Not the mother with her baby, man!",
+  "guide.baboon.rule": "Raiders: {n} hits bag one. Never the mothers!",
+  "guide.baboon.book": "Bobbejaan · chacma baboon"
 }

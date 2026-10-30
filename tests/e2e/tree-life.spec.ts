@@ -67,7 +67,7 @@ test('bushveld: a resident of the baobab shows itself within the hunt', async ({
   test.setTimeout(480_000);
   const touch = isTouchProject(info);
   const errors = collectErrors(page);
-  await boot(page, 'biome=bushveld-winter&seed=42&huntSeconds=120&graphics=standard');
+  await boot(page, 'biome=bushveld-winter&seed=42&huntSeconds=120&graphics=standard&baboons=0');
   await startHunt(page, touch);
   await partInView(page, 'pod');
   const h = await hook(page);
@@ -156,7 +156,7 @@ for (const biome of ['kalahari-summer', 'namibie'] as const) {
     test.setTimeout(420_000);
     const touch = isTouchProject(info);
     const errors = collectErrors(page);
-    await boot(page, `biome=${biome}&seed=42&huntSeconds=120&graphics=standard`);
+    await boot(page, `biome=${biome}&seed=42&huntSeconds=120&graphics=standard&baboons=0`);
     await startHunt(page, touch);
     await partInView(page, 'nest');
     await page.waitForFunction(() => (window.__TM__?.treeLife?.colony?.weavers ?? 0) > 0, null, {

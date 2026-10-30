@@ -22,7 +22,7 @@ test('score pops are pooled: many shown, few made', async ({ page }, info) => {
   test.setTimeout(300_000);
   const touch = isTouchProject(info);
   const errors = collectErrors(page);
-  await boot(page, 'seed=42&huntSeconds=60&capture=1');
+  await boot(page, 'seed=42&huntSeconds=60&capture=1&baboons=0');
   await startHunt(page, touch);
   await page.evaluate(() => {
     const watch = (): void => {

@@ -41,6 +41,17 @@ export function veldLifeBarks(
   ];
 }
 
+/** v1.8b (D-062): Oupa's baboon lines (their text is in the lazy guide tables, guide/<lang>.json):
+ *  each raid as it starts, a bagged raider, one stopped in the act, a mother hit. */
+export function baboonBarks(actions: readonly string[]): string[] {
+  return [
+    ...actions.map((a) => `guide.baboon.raid_${a}`),
+    'guide.baboon.bagged',
+    'guide.baboon.stopped',
+    'guide.baboon.mother',
+  ];
+}
+
 /**
  * Every voiced key: Oupa's trigger lines, plus each secret's bark (the weavers' "Tsk-tsk-tsk!"
  * scold, the windpomp sign, the egg…), and (v1.7, D-044) the meerkats' scold and Oupa's

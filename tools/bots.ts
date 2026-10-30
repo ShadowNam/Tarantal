@@ -9,14 +9,25 @@ import { CAMERA_MAX_X, CAMERA_MIN_X } from '../src/sim/world';
 
 import { createHumanBot } from './humanBots';
 import { inReach, RIFLE_STYLES, withRifle } from './rifleBot';
+// v1.8b (D-062): hunts here may need the lazy sim systems (baboons, ostriches).
+import '../src/sim/lazySystemsRegister';
 
 /** random: sprays · aim: near-perfect M1 aimer (goldens) · plinker / competent: GDD §13.8 ·
  *  spook (D-048, goldens only): shoots a special day's lanterns, bats and one owl ·
  *  canHappy (v1.8, D-050): the competent bot that shoots every tin can in view first ·
  *  apexJuggler (v1.8, D-050): the competent bot that juggles every can at the top of its arc ·
- *  nutHappy (1.9.3, D-056): the competent bot that shoots every makalani nut (and can) in view. */
+ *  nutHappy (1.9.3, D-056): the competent bot that shoots every makalani nut (and can) in view ·
+ *  baboonHappy (v1.8b, D-062): the competent bot that shoots a raiding baboon in view first. */
 export type BotKind =
-  'random' | 'aim' | 'plinker' | 'competent' | 'spook' | 'canHappy' | 'apexJuggler' | 'nutHappy';
+  | 'random'
+  | 'aim'
+  | 'plinker'
+  | 'competent'
+  | 'spook'
+  | 'canHappy'
+  | 'apexJuggler'
+  | 'nutHappy'
+  | 'baboonHappy';
 export const BOT_KINDS: readonly BotKind[] = [
   'random',
   'aim',
@@ -25,6 +36,7 @@ export const BOT_KINDS: readonly BotKind[] = [
   'canHappy',
   'apexJuggler',
   'nutHappy',
+  'baboonHappy',
 ];
 
 export interface Bot {
@@ -56,6 +68,11 @@ export function createBot(
     const bot = nutHappyBot(cans, seed, content, inputKind);
     return { kind, next: withRifle(bot, content, seed, style).next };
   }
+  if (kind === 'baboonHappy') {
+    const competent = createHumanBot('competent', seed, content, inputKind);
+    const bot = baboonHappyBot(competent, seed, content, inputKind);
+    return { kind, next: withRifle(bot, content, seed, style).next };
+  }
   if (kind === 'apexJuggler') {
     const competent = createHumanBot('competent', seed, content, inputKind);
     const bot = apexJuggler(competent, seed, content, inputKind);
@@ -76,6 +93,46 @@ export function createBot(
  * it along its arc, gravity and all), else a resting one — with the competent bot's aim error;
  * otherwise it hunts like the competent bot. The balance cap: cans stay ≤ ~10 % of its score.
  */
+/** v1.8b (D-062): a raider in view (as seen LAG ticks ago) gets the next shot, at its body. */
+function baboonHappyBot(
+  inner: { next(state: SimState): Command[] },
+  seed: number,
+  content: ContentBundle,
+  inputKind: InputKind,
+): { next(state: SimState): Command[] } {
+  const rng = createStream((seed ^ fnv1a32('bot:baboonHappy')) >>> 0);
+  const planes = content.scoring.planes;
+  const box = content.birds.baboons.hitboxes;
+  const LAG = 15;
+  const SIGMA = inputKind === 'touch' ? 26 : 10;
+  const history: SimState[] = [];
+  let ready = 0;
+  const gauss = (): number => {
+    const u = Math.max(1e-9, rng.next());
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rng.next());
+  };
+  return {
+    next(s) {
+      history.push(s);
+      if (history.length > LAG + 1) history.shift();
+      const seen = history[0];
+      const w = s.weapon;
+      if (seen === undefined || w.shells === 0 || w.reloading || w.cooldownTicks > 0)
+        return inner.next(s);
+      if (s.tick < ready) return inner.next(s);
+      const r = seen.baboons?.raiders.find((x) => x.phase !== 'tumble');
+      if (r === undefined) return inner.next(s);
+      const f = planes[r.plane].scrollFactor;
+      const b = box[r.phase === 'act' ? 'sit' : 'walk'].body;
+      const dx = planeToDx(s.cameraX, f, r.x + b.ox * r.scale * r.facing);
+      if (Math.abs(dx) > VIEW_HALF_WIDTH) return inner.next(s);
+      ready = s.tick + 10;
+      const sy = r.y + b.oy * r.scale;
+      return [{ t: 'fire', dx: dx + gauss() * SIGMA, sy: sy + gauss() * SIGMA }];
+    },
+  };
+}
+
 function canHappyBot(
   inner: { next(state: SimState): Command[] },
   seed: number,
