@@ -92,7 +92,12 @@ export class VoicePacks {
 
   private load(lang: VoiceLanguage): void {
     if (this.wanted !== lang || this.lang !== lang || this.loading === lang) return;
-    // v1.8b (D-062): the packs' entries are in the voice half of the index (fetched once).
+    // v1.8b (D-062): the packs' entries are in the voice half of the index (fetched once). An
+    // index without any audio means no audio was delivered: no voice either (as before the split).
+    if (this.index !== null && Object.keys(this.index.audio).length === 0) {
+      this.env.onState?.(lang, 'missing');
+      return;
+    }
     if (this.index !== null && this.voice === null && this.env.voiceIndex !== undefined) {
       this.loading = lang;
       void this.env.voiceIndex().then((v) => {

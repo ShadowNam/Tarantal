@@ -198,7 +198,8 @@ export function loadFeesdaeAssets(audio: AudioDirector): Promise<HTMLImageElemen
         }
         const group = specialVoiceGroup(lang);
         // v1.8b (D-062): the special days' lines are in the voice half of the index.
-        const voice = await loadVoiceIndex();
+        // An index without any audio: none delivered, no voice either.
+        const voice = Object.keys(ix.audio).length === 0 ? null : await loadVoiceIndex();
         const all = voice === null ? ix.audio : { ...ix.audio, ...voice.audio };
         const want = Object.entries(all).filter(([, e]) => e.group === group);
         if (!(await loadSounds(audio, want, format))) voices.delete(lang);

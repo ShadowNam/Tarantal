@@ -62,4 +62,33 @@ describe('voice index (D-062)', () => {
     expect(added.some((f) => f.key === 'voice/en/guide.baboon.bagged')).toBe(true);
     expect(added.every((f) => f.key.startsWith('voice/en/'))).toBe(true);
   });
+
+  it('an index without any audio (none delivered) loads no voice at all', async () => {
+    const { index } = parseAssetIndex(read('assets/asset-index.json'));
+    let asked = 0;
+    const added: FinalSound[] = [];
+    const audio = {
+      setVoiceLanguage: () => undefined,
+      onUnlocked: (fn: () => void) => {
+        fn();
+      },
+      fileFormat: () => 'ogg' as const,
+      addRecorded: (f: readonly FinalSound[]) => added.push(...f),
+    };
+    const packs = new VoicePacks(
+      audio as unknown as AudioDirector,
+      { ...index, audio: {} },
+      {
+        loadBytes: () => Promise.resolve(new ArrayBuffer(4)),
+        voiceIndex: () => {
+          asked++;
+          return Promise.resolve(parseVoiceIndex(read('assets/asset-index-voice.json')));
+        },
+      },
+    );
+    packs.use('en', true);
+    for (let i = 0; i < 5; i++) await new Promise((r) => setTimeout(r, 0));
+    expect(asked).toBe(0);
+    expect(added).toEqual([]);
+  });
 });
