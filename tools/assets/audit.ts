@@ -148,6 +148,8 @@ function usages(
       needles.push(new RegExp(`"(start|bat|owl|lanternsOut|end)":\\s*"${line}"`));
       // v1.8b (D-062): Oupa's baboon lines (guide tables), voiced by HudScene's oupa(key).
       if (line.startsWith('guide\\.baboon\\.')) needles.push(/\bthis\.oupa\(/);
+      // v1.8c (D-063): Oupa's Harvest lines, the same way.
+      if (line.startsWith('guide\\.harvest\\.')) needles.push(/\bthis\.oupa\('guide\.harvest\./);
     } else needles.push(quoted(key));
     // Music, ambience and voice keys are built at runtime: the player must call the key helper.
     const helper =
