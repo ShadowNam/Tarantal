@@ -80,15 +80,29 @@
       "id": "farmhouse",
       "layer": "far_veld",
       "u": 0.2,
-      "y": 600,
-      "asset": "oes/farmhouse"
+      "y": 612,
+      "asset": "oes/farmhouse",
+      "occluder": {
+        "type": "rect",
+        "w": 300,
+        "h": 150,
+        "ox": 0,
+        "oy": -75
+      }
     },
     {
       "id": "tractor",
       "layer": "far_veld",
       "u": 0.86,
-      "y": 608,
-      "asset": "oes/tractor"
+      "y": 614,
+      "asset": "oes/tractor",
+      "occluder": {
+        "type": "rect",
+        "w": 130,
+        "h": 84,
+        "ox": 0,
+        "oy": -42
+      }
     },
     {
       "id": "sunflowers_a",
@@ -302,43 +316,43 @@
         "seats": [
           {
             "dx": -150,
-            "y": 560
+            "y": 485
           },
           {
             "dx": -118,
-            "y": 548
+            "y": 473
           },
           {
             "dx": -88,
-            "y": 530
+            "y": 466
           },
           {
             "dx": -60,
-            "y": 520
+            "y": 463
           },
           {
             "dx": -32,
-            "y": 516
+            "y": 459
           },
           {
             "dx": -6,
-            "y": 516
+            "y": 457
           },
           {
             "dx": 20,
-            "y": 518
+            "y": 457
           },
           {
             "dx": 46,
-            "y": 524
+            "y": 458
           },
           {
             "dx": 72,
-            "y": 536
+            "y": 461
           },
           {
             "dx": 98,
-            "y": 550
+            "y": 466
           }
         ],
         "lookout": 5
