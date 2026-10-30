@@ -6,7 +6,14 @@ import { translator } from '../i18n/i18n';
 import { challengeFor, challengeHunt, decodeChallenge, encodeChallenge } from './challenge';
 import { dailyMode, dailySetup } from './daily';
 import { dayNumber, daysFromCivil } from './dailyCalendar';
-import { feesdagById, feesdagForDay, todaysFeesdag, yearOfDay } from './feesdae';
+import {
+  feesdagById,
+  feesdagForDay,
+  shareYear,
+  specialDays,
+  todaysFeesdag,
+  yearOfDay,
+} from './feesdae';
 import { buildShareText, joinShare, type ShareInput } from './share';
 
 const content = loadContent();
@@ -37,8 +44,32 @@ describe('Feesdae calendar (UTC, D-048)', () => {
     expect(feesdagForDay(F, utc('2026-10-31T12:00:00Z'))?.id).toBe('halloween');
   });
 
+  it('31 Dec and 1 Jan are New Year (D-065): 30 Dec 23:59 no, 31 Dec 00:00 and 1 Jan 23:59 yes, 2 Jan no', () => {
+    expect(feesdagForDay(F, utc('2026-12-30T23:59:59Z'))).toBeNull();
+    expect(feesdagForDay(F, utc('2026-12-31T00:00:00Z'))?.id).toBe('newyear');
+    expect(feesdagForDay(F, utc('2026-12-31T23:59:59Z'))?.id).toBe('newyear');
+    expect(feesdagForDay(F, utc('2027-01-01T00:00:00Z'))?.id).toBe('newyear');
+    expect(feesdagForDay(F, utc('2027-01-01T23:59:59Z'))?.id).toBe('newyear');
+    expect(feesdagForDay(F, utc('2027-01-02T00:00:00Z'))).toBeNull();
+    // Halloween and Christmas keep their own days.
+    expect(feesdagForDay(F, utc('2026-10-31T12:00:00Z'))?.id).toBe('halloween');
+    expect(feesdagForDay(F, utc('2026-12-25T12:00:00Z'))?.id).toBe('christmas');
+    expect(feesdagForDay(F, utc('2026-12-26T12:00:00Z'))).toBeNull();
+  });
+
+  it("the share card names the year that starts on New Year, the day's own year otherwise", () => {
+    const ny = feesdagById(F, 'newyear');
+    expect(shareYear(ny, utc('2026-12-31T12:00:00Z'))).toBe(2027);
+    expect(shareYear(ny, utc('2027-01-01T12:00:00Z'))).toBe(2027);
+    expect(shareYear(feesdagById(F, 'halloween'), utc('2026-10-31T12:00:00Z'))).toBe(2026);
+    expect(shareYear(feesdagById(F, 'christmas'), utc('2026-12-25T12:00:00Z'))).toBe(2026);
+    expect(shareYear(null, utc('2026-12-31T12:00:00Z'))).toBe(2026);
+    expect(todaysFeesdag(F, daysFromCivil(2026, 10, 26), 'newyear')?.id).toBe('newyear');
+    expect(todaysFeesdag(F, daysFromCivil(2026, 12, 31), 'none')).toBeNull();
+  });
+
   it('no two specials share a date (content cross-check)', () => {
-    const dates = F.specials.map((f) => `${f.date.month}-${f.date.day}`);
+    const dates = F.specials.flatMap((f) => specialDays(f).map((d) => `${d.month}-${d.day}`));
     expect(new Set(dates).size).toBe(dates.length);
   });
 

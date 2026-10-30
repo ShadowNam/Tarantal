@@ -33,7 +33,7 @@ import {
   type ShareMessage,
   type ShareSpecial,
 } from '../../meta/share';
-import { feesdagById, todaysFeesdag, yearOfDay } from '../../meta/feesdae';
+import { feesdagById, shareYear, todaysFeesdag } from '../../meta/feesdae';
 import type { PlatformAdapter } from '../../platform/PlatformAdapter';
 import type { ShareOutcome } from '../../platform/share';
 import type { HuntResult, ModeConfig } from '../../sim/types';
@@ -403,7 +403,7 @@ export class DailyFlow {
     return {
       title: fill(t('feesdag.share_title'), {
         name: tOr(special.nameKey, special.id),
-        year: yearOfDay(daily?.setup.day ?? this.deps.today()),
+        year: shareYear(special, daily?.setup.day ?? this.deps.today()),
       }),
       frame: special.shareFrame,
     };
