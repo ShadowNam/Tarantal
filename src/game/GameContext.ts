@@ -549,12 +549,27 @@ export interface TestHook {
     id: string;
     lanternsLit: number;
     lanternsTotal: number;
-    things: { id: number; kind: string; x: number; y: number; dark: boolean }[];
+    things: {
+      id: number;
+      kind: string;
+      x: number;
+      y: number;
+      dark: boolean;
+      /** D-064: a present's drawn frame (present_<wrap>_<shut|open>). */
+      frame?: string | null;
+    }[];
     final: boolean;
-    /** Witch hats drawn now (screen design px). */
+    /** Witch hats (D-064: Santa hats) drawn now (screen design px). */
     hats: { x: number; y: number }[];
+    /** D-064 (Christmas): presents still shut and the day's total. */
+    presentsClosed?: number;
+    presentsTotal?: number;
+    /** D-064 (Christmas): the tree the tinsel hangs on, its garlands and baubles; the heat
+     *  shimmer's strength as drawn (0 = off: low tier, reduced motion). */
+    tinsel?: { prop: string | null; garlands: number; baubles: number };
+    heat?: number;
   } | null;
-  /** D-048: the feesdae group's sheet: delivered ('final') or the code-drawn stand-in. */
+  /** D-048: the special's group's sheet: delivered ('final') or the code-drawn stand-in. */
   feesdaeArt: 'final' | 'standin' | null;
   /** M7: challenge of the hunt running or just ended, and the card / tally lines shown. */
   challenge: { seed: number; mode: string; score: number; contentChanged: boolean } | null;

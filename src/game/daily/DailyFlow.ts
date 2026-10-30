@@ -379,12 +379,19 @@ export class DailyFlow {
           : {
               ...sp,
               nameKey,
-              line: fill(t('feesdag.tally'), {
-                bats: fd.bats,
-                owls: fd.owls,
-                lanterns: fd.lanterns,
-                total: fd.lanternsTotal,
-              }),
+              // D-064: Christmas counts its presents found; Halloween its bats, owls, lanterns.
+              line:
+                fd.presentsTotal === undefined
+                  ? fill(t('feesdag.tally'), {
+                      bats: fd.bats,
+                      owls: fd.owls,
+                      lanterns: fd.lanterns,
+                      total: fd.lanternsTotal,
+                    })
+                  : fill(t('feesdag.presents_left'), {
+                      n: fd.presents ?? 0,
+                      total: fd.presentsTotal,
+                    }),
             },
     };
   }

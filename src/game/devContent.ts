@@ -217,6 +217,36 @@ export function withEarlySpook(b: ContentBundle): ContentBundle {
 }
 
 /**
+ * e2e/dev only (D-064, `?presents=near`): Christmas's presents stand only at each map's tinsel tree
+ * (or the Karoo's windpomp), two of them, either side of it — a spec or a screenshot finds them
+ * all in one view. The rule and its scoring are as on the day.
+ */
+export function withNearPresents(b: ContentBundle): ContentBundle {
+  const at = new Set(['windpomp', 'weaver_camelthorn', 'baobab', 'sausage_tree', 'camelthorn_old']);
+  return {
+    ...b,
+    feesdae: {
+      ...b.feesdae,
+      specials: b.feesdae.specials.map((f) =>
+        f.twist.rule !== 'kersfees'
+          ? f
+          : {
+              ...f,
+              twist: {
+                ...f.twist,
+                presents: {
+                  ...f.twist.presents,
+                  count: [2, 2] as [number, number],
+                  spots: f.twist.presents.spots.filter((p) => at.has(p.prop)),
+                },
+              },
+            },
+      ),
+    },
+  };
+}
+
+/**
  * v1.8b (D-062) ?baboonRaid=<action> (e2e and art previews only): every map's troop is there, the
  * first raid comes after 2 s and then one every ~10 s, one raider at a time, only at spots of that
  * action (any spot when the map has none, or for `any`), its act lasts 4× as long and a hit raider

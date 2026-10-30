@@ -20,7 +20,8 @@ import { findLayout } from '../../sim/maps';
 import type { Rect } from '../ui/hudLayout';
 import { drawButton, fitText, Menu, textStyle, type MenuItem } from '../ui/menu';
 import { cornerStampShown, stampFor, StampLabel } from '../ui/StampLabel';
-import { drawSpecialBadge, SPECIAL_STATUS_STYLE } from '../ui/specialBadge';
+import { drawBadgeOupa, drawSpecialBadge, specialStatusStyle } from '../ui/specialBadge';
+import { CHRISTMAS_SHEET } from '../feesdae/christmasAssets';
 
 export interface TitleData {
   /** Starts the hunt; pointerId is the pressing pointer (null from the keyboard). */
@@ -315,15 +316,18 @@ export class TitleScene extends Phaser.Scene {
             ...textStyle(26),
             stroke: '#1B1410',
             strokeThickness: 5,
-            ...(badge === null ? {} : SPECIAL_STATUS_STYLE),
+            ...(badge === null || special === null ? {} : specialStatusStyle(special.id)),
           })
           .setOrigin(0.5, 1)
           .setDepth(badge === null ? 0 : 6);
         // v1.8c: five buttons now; the line keeps to its own slot (the Harvest's line is next to it).
         fitText(status, bw + gap);
         if (badge !== null) {
-          const r = drawSpecialBadge(this, status.getBounds());
+          const r = drawSpecialBadge(this, status.getBounds(), special?.id);
           if (this.ctx.hook) this.ctx.hook.rects['dailyBadge'] = r;
+          // D-064: on Christmas, Oupa in his Santa hat waves beside the badge once Christmas's
+          // lazy group is in (fetched in the background on the day only; never blocks the title).
+          if (special?.id === 'christmas') this.badgeOupa(r);
         }
         if (this.ctx.hook) {
           const b = status.getBounds();
@@ -489,6 +493,31 @@ export class TitleScene extends Phaser.Scene {
   }
 
   /** The line above the Daily button: new today, the streak (and its freeze), or played. */
+  /**
+   * D-064: Oupa beside the Christmas badge. Christmas's lazy group (and the feesdae view chunk)
+   * load in the background on the day only; he appears when the sheet is in, if the title is
+   * still up. Never blocks the title or a hunt.
+   */
+  private badgeOupa(badge: Rect): void {
+    const show = (): void => {
+      if (!this.sys.isActive()) return;
+      const r = drawBadgeOupa(this, badge);
+      if (r !== null && this.ctx.hook) this.ctx.hook.rects['dailyOupa'] = r;
+    };
+    if (this.textures.exists(CHRISTMAS_SHEET)) {
+      show();
+      return;
+    }
+    void import('../feesdae/FeesdagView')
+      .then(async (m) => {
+        const img = await m.loadFeesdaeAssets(this.ctx.audio, 'christmas');
+        if (img === null || !this.sys.isActive()) return;
+        m.ensureXmasTexture(this, img);
+        show();
+      })
+      .catch(() => undefined);
+  }
+
   private dailyStatus(played: boolean): string {
     // D-028: a test link on a public build only ever plays practice.
     if (this.ctx.daily.unranked) return t('title.daily_unranked');

@@ -10,7 +10,7 @@ import { fitCamera } from '../view/fitCamera';
 import * as Phaser from 'phaser';
 import type { Feesdag } from '../../content/schemas';
 import { feesdagById } from '../../meta/feesdae';
-import type { FeesdagSceneView } from '../feesdae/FeesdagView';
+import type { SpecialDayView } from '../feesdae/FeesdagView';
 import type { Biome, Weapon } from '../../content/schemas';
 import { DebugOverlay } from '../../debug/DebugOverlay';
 import { artSummary } from '../assets/artSummary';
@@ -115,8 +115,13 @@ interface MapChoice {
 
 /** D-048: the special days' view module (a lazy chunk), once it has loaded. */
 let feesdaeModule: typeof import('../feesdae/FeesdagView') | null = null;
-/** D-048: the delivered Halloween sheet, once it has arrived (null = the stand-in draws). */
-let feesdaeSheet: HTMLImageElement | null = null;
+/** D-048: each special's delivered sheet, once it has arrived (absent = the stand-in draws). */
+const feesdaeSheets = new Map<string, HTMLImageElement>();
+
+/** D-064: the Christmas view's e2e hook (its tinsel). */
+interface KersfeesHook {
+  tinsel(): { prop: string | null; garlands: number; baubles: number };
+}
 
 const END_DELAY_MS = 900;
 /** Time per frame spent drawing deferred textures behind the start card. */
@@ -220,7 +225,7 @@ export class HuntScene extends Phaser.Scene {
   private map: MapChoice = {};
   /** D-048: the special day this hunt plays (null on an ordinary hunt) and its look. */
   private special: Feesdag | null = null;
-  private spookView: FeesdagSceneView | null = null;
+  private spookView: SpecialDayView | null = null;
   /** v1.2: UTC day the hunt started (its layout is that day's; Verder unlocks for that day). */
   private huntDay = 0;
   /** Real time of the next Stampede rumble shake. */
@@ -476,7 +481,31 @@ export class HuntScene extends Phaser.Scene {
     this.spookView?.clear();
     this.spookView = null;
     const look = special?.id === 'halloween' ? this.ctx.feel.feesdae.looks.halloween : undefined;
-    if (special !== null && look !== undefined && feesdaeModule !== null) {
+    this.world.heat = 0;
+    const planeScales = {
+      near: planes.near.scale,
+      mid: planes.mid.scale,
+      far: planes.far.scale,
+      ver: planes.ver.scale,
+    };
+    if (special?.id === 'christmas' && feesdaeModule !== null) {
+      // D-064: Christmas in the sun (presents, tinsel, Santa hats, the heat shimmer).
+      const world = this.world;
+      this.spookView = new feesdaeModule.KersfeesSceneView({
+        scene: this,
+        parallax: this.parallax,
+        look: this.ctx.feel.feesdae.looks.christmas,
+        planeScale: planeScales,
+        mapBiome,
+        decorations: special.decorations,
+        sheet: feesdaeSheets.get(special.id) ?? null,
+        reduceFlashes: this.ctx.prefs.reduceFlashes,
+        setHeat: (h) => {
+          world.heat = h;
+        },
+      });
+      this.birds.hats = this.spookView.hats;
+    } else if (special !== null && look !== undefined && feesdaeModule !== null) {
       const textures = this.textures;
       const manifest = this.manifest;
       this.spookView = new feesdaeModule.FeesdagSceneView(
@@ -504,7 +533,7 @@ export class HuntScene extends Phaser.Scene {
         },
         special.decorations,
         this.screenFixed,
-        feesdaeSheet,
+        feesdaeSheets.get(special.id) ?? null,
       );
       this.birds.hats = this.spookView.hats;
     } else this.birds.hats = null;
@@ -1074,7 +1103,8 @@ export class HuntScene extends Phaser.Scene {
       .catch(() => false)
       .then((ok) => {
         if (label.active) label.destroy();
-        if (this.ctx.hook) this.ctx.hook.feesdaeArt = feesdaeSheet === null ? 'standin' : 'final';
+        if (this.ctx.hook)
+          this.ctx.hook.feesdaeArt = feesdaeSheets.has(special.id) ? 'final' : 'standin';
         if (ok || !veil.active) {
           if (veil.active) veil.destroy();
           then(ok);
@@ -1169,14 +1199,18 @@ export class HuntScene extends Phaser.Scene {
     });
   }
 
-  /** D-048: the feesdae group's files in the background; the sheet goes into the view on arrival. */
+  /** D-048: the special's own group's files in the background (D-064: only that special's);
+   *  the sheet goes into the view on arrival. */
   private loadFeesdaeArt(): void {
     // Cached per page: each call only fetches what is still missing (a failed file, the lines
     // of a voice language picked since).
-    if (feesdaeModule === null) return;
-    void feesdaeModule.loadFeesdaeAssets(this.ctx.audio).then((img) => {
-      if (img === null || feesdaeSheet !== null) return;
-      feesdaeSheet = img;
+    const special = this.special;
+    if (feesdaeModule === null || special === null) return;
+    const id = special.id;
+    void feesdaeModule.loadFeesdaeAssets(this.ctx.audio, id).then((img) => {
+      if (img === null || feesdaeSheets.has(id)) return;
+      feesdaeSheets.set(id, img);
+      if (this.special?.id !== id) return;
       if (this.ctx.hook) this.ctx.hook.feesdaeArt = 'final';
       if (this.sys.isActive()) this.spookView?.useSheet(img);
     });
@@ -2185,6 +2219,16 @@ export class HuntScene extends Phaser.Scene {
                 x: Math.round(this.parallax.screenX(p.plane, p.x)),
                 y: Math.round(p.y),
               })),
+              ...(state.feesdag.presentsTotal === undefined
+                ? {}
+                : {
+                    presentsClosed: state.feesdag.presentsClosed ?? 0,
+                    presentsTotal: state.feesdag.presentsTotal,
+                    ...('tinsel' in this.spookView && typeof this.spookView.tinsel === 'function'
+                      ? { tinsel: (this.spookView as KersfeesHook).tinsel() }
+                      : {}),
+                    heat: this.world.heatOn() ? this.world.heat : 0,
+                  }),
             };
       hook.fruit =
         this.fruit === null

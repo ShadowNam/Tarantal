@@ -16,6 +16,7 @@ import type { GameContext } from '../GameContext';
 import { formatPercent, formatScore } from '../ui/format';
 import { tallyBarkSlot, type Rect } from '../ui/hudLayout';
 import { drawSlateFrame } from '../ui/specialBadge';
+import { XMAS_SOUNDS } from '../feesdae/christmasAssets';
 import { BarkBubble, sayBark } from '../ui/BarkBubble';
 import { powerupIcon } from '../ui/powerupIcons';
 import type { BarkTrigger } from '../../content/schemas';
@@ -171,6 +172,9 @@ export class TallyScene extends Phaser.Scene {
       special == null
         ? null
         : drawSlateFrame(this, special.frame, { x: px, y: py, w: panelW, h: panelH });
+    // D-064: Christmas's tally plays a phrase of a carol on the pennywhistle (its recording came
+    // with the hunt's lazy group; silent until then).
+    if (special?.frame === 'christmas') this.ctx.audio.playExtra(XMAS_SOUNDS.tally, 0, () => 0);
     // D-048: the frame's moon and the tag's rects ride along into the hook's final rects below.
     const frameRects: Record<string, Rect> = {};
     if (moon !== null) frameRects['tallyMoon'] = moon;

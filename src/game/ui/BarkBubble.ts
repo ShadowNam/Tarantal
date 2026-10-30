@@ -25,6 +25,8 @@ export class BarkBubble {
   private readonly name: Phaser.GameObjects.Text;
   private readonly line: Phaser.GameObjects.Text;
   private shownUntil = -Infinity;
+  /** D-064: Oupa's face over the bubble's corner on a special day (Christmas: his Santa hat). */
+  private portrait: Phaser.GameObjects.Image | null = null;
   /** The bubble's design-px rect while it shows (null = hidden). */
   rect: Rect | null = null;
   /** Called once the bubble has faded out (or was hidden). */
@@ -43,11 +45,30 @@ export class BarkBubble {
     this.root.setVisible(false).setDepth(5);
   }
 
+  /**
+   * D-064: Oupa's face (a texture frame, origin at his face's middle) peeping over the bubble's
+   * top-left corner while a special day's hunt runs; null takes it away.
+   */
+  setPortrait(p: { key: string; frame: string; scale: number } | null): void {
+    if (p === null) {
+      this.portrait?.setVisible(false);
+      return;
+    }
+    if (this.portrait === null) {
+      this.portrait = this.scene.add.image(0, 0, p.key, p.frame);
+      this.root.add(this.portrait);
+    }
+    this.portrait.setTexture(p.key, p.frame).setScale(p.scale).setPosition(-6, -10);
+    this.portrait.setVisible(true);
+  }
+
   /** Shows `text` in `slot` (top-left anchored) for timing.bubbleMs, fading in and out. */
   show(text: string, slot: Rect, timing: BarkTiming, nowMs: number): void {
     const inner = slot.w - 2 * PAD;
     this.line.setWordWrapWidth(inner, true).setText(text).setScale(1);
-    this.name.setPosition(PAD, PAD);
+    // D-064: with Oupa's face on the corner, his name moves right of it.
+    const nameX = this.portrait?.visible === true ? PAD + 34 : PAD;
+    this.name.setPosition(nameX, PAD);
     const top = PAD + this.name.height;
     // Too tall for the slot (a long translation at a large text size): shrink to fit.
     const room = slot.h - top - PAD;

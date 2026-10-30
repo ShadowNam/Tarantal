@@ -31,6 +31,35 @@ import {
 import { drawStandin } from './standin';
 import anchorsJson from './hatAnchors.json';
 import { loadVoiceIndex } from '../assets/voiceIndex';
+import { CHRISTMAS_SHEET, XMAS_SOUNDS } from './christmasAssets';
+
+export { KersfeesSceneView } from './KersfeesView';
+export { ensureXmasTexture } from './KersfeesView';
+
+/** D-064: what HuntScene drives on a special day, whichever special it is. */
+export interface SpecialDayView {
+  viewZoom: number;
+  readonly hats: HatSource;
+  readonly final: boolean;
+  layout(width: number, height: number): void;
+  useSheet(img: HTMLImageElement): void;
+  update(
+    state: FeesdagState | undefined,
+    prev: FeesdagState | undefined,
+    alpha: number,
+    tick: number,
+  ): void;
+  handle(events: readonly SimEvent[], audio: AudioDirector, width: number): void;
+  spots(): {
+    id: number;
+    kind: string;
+    x: number;
+    y: number;
+    dark: boolean;
+    frame?: string | null;
+  }[];
+  clear(): void;
+}
 
 type Anchor = readonly [number, number, number, number];
 /** The guineafowl's head in every frame of every clip (tools/art/hatAnchors.ts). */
@@ -144,9 +173,15 @@ export function playSpookSound(audio: AudioDirector, id: SpookSound, pan: number
   audio.playExtra(SPOOK_SOUNDS[id], Math.max(-1, Math.min(1, pan)), SYNTH[id]);
 }
 
-let sounds: Promise<void> | null = null;
-let sheet: Promise<HTMLImageElement | null> | null = null;
-/** Oupa's special-day lines, per voice language (a lazy group each: specialVoiceGroup). */
+/** D-064: each special's own files (its lazy group): its sounds and its sheet. */
+const SPECIAL_FILES: Readonly<Record<string, { sounds: readonly string[]; sheet: string }>> = {
+  halloween: { sounds: Object.values(SPOOK_SOUNDS), sheet: HALLOWEEN_SHEET },
+  christmas: { sounds: Object.values(XMAS_SOUNDS), sheet: CHRISTMAS_SHEET },
+};
+/** Per special: its sounds and sheet loading (kept for the page once they worked). */
+const sounds = new Map<string, Promise<void>>();
+const sheets = new Map<string, Promise<HTMLImageElement | null>>();
+/** Oupa's special-day lines, per special and voice language (specialVoiceGroup). */
 const voices = new Map<string, Promise<void>>();
 
 /** Loads these index sounds at once; true when every one of them arrived. */
@@ -167,52 +202,66 @@ async function loadSounds(
 }
 
 /**
- * The feesdae group's files, in the background: its recordings (all at once) and the sheet.
+ * A special's own group's files, in the background (D-064: only that special's — a Halloween hunt
+ * never fetches Christmas's and the other way round): its recordings (all at once) and the sheet.
  * Resolves with the sheet (null if it is not delivered or failed). A load that came back empty
  * is tried again on the next special-day hunt; one that worked is kept for the page.
  */
-export function loadFeesdaeAssets(audio: AudioDirector): Promise<HTMLImageElement | null> {
+export function loadFeesdaeAssets(
+  audio: AudioDirector,
+  special: string,
+): Promise<HTMLImageElement | null> {
+  const files = SPECIAL_FILES[special];
+  if (files === undefined) return Promise.resolve(null);
   const index = fetchAssetIndex(FILE_TIMEOUT_MS).then((r) => r.index);
   const format = audio.fileFormat();
-  sounds ??= index.then(async (ix) => {
-    if (ix === null || format === null) {
-      sounds = null;
-      return;
-    }
-    const want = Object.values(SPOOK_SOUNDS).flatMap((k) => {
-      const e = ix.audio[k];
-      return e === undefined ? [] : [[k, e] as [string, AssetIndex['audio'][string]]];
-    });
-    if (!(await loadSounds(audio, want, format)) || want.length < Object.keys(SPOOK_SOUNDS).length)
-      sounds = null;
-  });
-  // Oupa's lines for the special day in the voice language now (another language: next time).
-  const lang = audio.voiceLanguage;
-  if (!voices.has(lang))
-    voices.set(
-      lang,
+  if (!sounds.has(special))
+    sounds.set(
+      special,
       index.then(async (ix) => {
         if (ix === null || format === null) {
-          voices.delete(lang);
+          sounds.delete(special);
           return;
         }
-        const group = specialVoiceGroup(lang, 'halloween');
+        const want = files.sounds.flatMap((k) => {
+          const e = ix.audio[k];
+          return e === undefined ? [] : [[k, e] as [string, AssetIndex['audio'][string]]];
+        });
+        if (!(await loadSounds(audio, want, format)) || want.length < files.sounds.length)
+          sounds.delete(special);
+      }),
+    );
+  // Oupa's lines for the special day in the voice language now (another language: next time).
+  const lang = audio.voiceLanguage;
+  const voiceId = `${special}/${lang}`;
+  if (!voices.has(voiceId))
+    voices.set(
+      voiceId,
+      index.then(async (ix) => {
+        if (ix === null || format === null) {
+          voices.delete(voiceId);
+          return;
+        }
+        const group = specialVoiceGroup(lang, special);
         // v1.8b (D-062): the special days' lines are in the voice half of the index.
         // An index without any audio: none delivered, no voice either.
         const voice = Object.keys(ix.audio).length === 0 ? null : await loadVoiceIndex();
         const all = voice === null ? ix.audio : { ...ix.audio, ...voice.audio };
         const want = Object.entries(all).filter(([, e]) => e.group === group);
-        if (!(await loadSounds(audio, want, format))) voices.delete(lang);
+        if (!(await loadSounds(audio, want, format))) voices.delete(voiceId);
       }),
     );
-  sheet ??= index.then(async (ix) => {
-    const entry = ix?.images[HALLOWEEN_SHEET];
-    const img = entry === undefined ? null : await loadImage(entry.file.path, FILE_TIMEOUT_MS);
-    if (img === null) sheet = null;
-    return img;
-  });
-  const own = sheet;
-  return Promise.all([sounds, own, voices.get(lang)]).then(([, img]) => img);
+  let own = sheets.get(special);
+  if (own === undefined) {
+    own = index.then(async (ix) => {
+      const entry = ix?.images[files.sheet];
+      const img = entry === undefined ? null : await loadImage(entry.file.path, FILE_TIMEOUT_MS);
+      if (img === null) sheets.delete(special);
+      return img;
+    });
+    sheets.set(special, own);
+  }
+  return Promise.all([sounds.get(special), own, voices.get(voiceId)]).then(([, img]) => img);
 }
 
 // --- the view ----------------------------------------------------------------------------------

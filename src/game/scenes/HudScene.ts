@@ -7,6 +7,7 @@
 // left-handed mirroring, and the ⛔ call-out only for creatures not yet in the Bird Book (first
 // sighting ever). A separate scene so camera shake never moves it. Fed each frame by HuntScene
 // with the latest snapshot and that frame's events.
+import { CHRISTMAS_SHEET, XMAS_MASTER } from '../feesdae/christmasAssets';
 import { redDotIds, redDotUp } from '../view/redDot';
 import { designSize } from '../layout';
 import { fitCamera } from '../view/fitCamera';
@@ -194,6 +195,8 @@ export class HudScene extends Phaser.Scene {
   private barksOn = false;
   /** D-048: the Spookjag's lantern count this hunt (the "Lanterns 2/4" pop). */
   private runnerLanterns: number | null = null;
+  /** D-064: the presents hidden in this Christmas hunt (null on other hunts). */
+  private runnerPresents: number | null = null;
   private firstTodayPending = false;
   private lastScore = 0;
   /** M7: "DAILY #n" / "PRACTICE · DAILY #n" / "BEAT 2 840" under the score, in the Season Run
@@ -584,6 +587,8 @@ export class HudScene extends Phaser.Scene {
     if (!on) return;
     // D-048: a special day's hunt brings Oupa's lines for it (said once the hunt starts).
     this.ctx.barks.startHunt(0, special);
+    // D-064: Oupa's Santa-hat face on the bubble comes with Christmas's feesdagStarted.
+    this.bubble?.setPortrait(null);
     const today = this.ctx.today();
     const save = this.ctx.save;
     this.firstTodayPending = firstHuntToday(save.data.barks.lastHuntDay, today);
@@ -792,8 +797,27 @@ export class HudScene extends Phaser.Scene {
           );
       } else if (e.type === 'feesdagStarted') {
         this.runnerLanterns = e.lanterns;
+        this.runnerPresents = e.presents ?? null;
+        // D-064: on Christmas Oupa's bubble shows his face in his Santa hat (the hunt drew the
+        // sheet or its stand-in already).
+        if (e.feesdag === 'christmas') {
+          const key = [CHRISTMAS_SHEET, `${CHRISTMAS_SHEET}#standin`].find((k) =>
+            this.textures.exists(k),
+          );
+          if (key !== undefined)
+            this.bubble?.setPortrait({ key, frame: 'oupa_head', scale: 0.36 / XMAS_MASTER });
+        }
       } else if (e.type === 'lanternsOut') {
         banner.push(`${t('feesdag.lanterns_out')} ${formatAward(e.points)}`);
+      } else if (e.type === 'presentOpened') {
+        // D-064 (Christmas): a present found — how many of the day's are open now.
+        const total = this.runnerPresents ?? 0;
+        this.pushPop(
+          fill(t('feesdag.presents_left'), { n: total - e.presentsLeft, total }),
+          '#FFD25A',
+        );
+      } else if (e.type === 'presentsFound') {
+        banner.push(`${t('feesdag.presents_found')} ${formatAward(e.points)}`);
       } else if (e.type === 'meerkatHit') {
         // v1.7: a shot meerkat — points off (none inside the colony's cooldown).
         if (e.points < 0) this.pushPop(formatAward(e.points), '#FF6B5A');
