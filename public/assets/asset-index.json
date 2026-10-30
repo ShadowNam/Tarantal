@@ -6524,14 +6524,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/oes/layers/far_veld-0.411e48898244.png",
-          "bytes": 15886,
-          "hash": "411e48898244"
+          "path": "assets/oes/layers/far_veld-0.6c9df4a42752.png",
+          "bytes": 9895,
+          "hash": "6c9df4a42752"
         },
         {
-          "path": "assets/oes/layers/far_veld-1.44a1037e9b40.png",
-          "bytes": 8428,
-          "hash": "44a1037e9b40"
+          "path": "assets/oes/layers/far_veld-1.39219d4c102a.png",
+          "bytes": 12758,
+          "hash": "39219d4c102a"
         }
       ],
       "tileWidth": 2048,
@@ -6558,11 +6558,11 @@
             300
           ],
           [
-            157,
+            153,
             300
           ],
           [
-            160,
+            155,
             300
           ],
           [
@@ -6570,7 +6570,7 @@
             300
           ],
           [
-            155,
+            156,
             300
           ],
           [
@@ -6582,11 +6582,11 @@
             300
           ],
           [
-            159,
+            153,
             300
           ],
           [
-            154,
+            159,
             300
           ],
           [
@@ -6594,7 +6594,7 @@
             300
           ],
           [
-            154,
+            157,
             300
           ],
           [
@@ -6669,19 +6669,19 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/oes/layers/mid-0.73047ff7098a.png",
-          "bytes": 141521,
-          "hash": "73047ff7098a"
+          "path": "assets/oes/layers/mid-0.f3e223187179.png",
+          "bytes": 202026,
+          "hash": "f3e223187179"
         },
         {
-          "path": "assets/oes/layers/mid-1.dfb1c3fc4b41.png",
-          "bytes": 92531,
-          "hash": "dfb1c3fc4b41"
+          "path": "assets/oes/layers/mid-1.d493e85144b2.png",
+          "bytes": 153825,
+          "hash": "d493e85144b2"
         },
         {
-          "path": "assets/oes/layers/mid-2.1eeb1d7cd46c.png",
-          "bytes": 24430,
-          "hash": "1eeb1d7cd46c"
+          "path": "assets/oes/layers/mid-2.91fdc07b834a.png",
+          "bytes": 33083,
+          "hash": "91fdc07b834a"
         }
       ],
       "tileWidth": 2048,
@@ -6692,75 +6692,75 @@
         "bucket": 256,
         "rows": [
           [
-            228,
+            312,
             380
           ],
           [
-            235,
+            314,
             380
           ],
           [
-            229,
+            304,
             380
           ],
           [
-            230,
+            325,
             380
           ],
           [
-            234,
+            313,
             380
           ],
           [
-            230,
+            316,
             380
           ],
           [
-            223,
+            267,
             380
           ],
           [
-            217,
-            238
-          ],
-          [
-            234,
+            298,
             380
           ],
           [
-            364,
+            269,
             380
           ],
           [
-            245,
+            302,
             380
           ],
           [
-            296,
+            312,
             380
           ],
           [
-            254,
+            311,
             380
           ],
           [
-            231,
+            305,
             380
           ],
           [
-            255,
+            315,
             380
           ],
           [
-            254,
+            311,
             380
           ],
           [
-            226,
+            309,
             380
           ],
           [
-            222,
+            301,
+            380
+          ],
+          [
+            295,
             380
           ]
         ]
@@ -6893,14 +6893,14 @@
       "origin": "interim",
       "tiles": [
         {
-          "path": "assets/oes/layers/sky-0.2b0b881ad8d9.png",
-          "bytes": 5599,
-          "hash": "2b0b881ad8d9"
+          "path": "assets/oes/layers/sky-0.00458f44c07c.png",
+          "bytes": 10778,
+          "hash": "00458f44c07c"
         },
         {
-          "path": "assets/oes/layers/sky-1.61a1396892f0.png",
-          "bytes": 3902,
-          "hash": "61a1396892f0"
+          "path": "assets/oes/layers/sky-1.246fb79d577e.png",
+          "bytes": 4802,
+          "hash": "246fb79d577e"
         }
       ],
       "tileWidth": 2048,
@@ -7519,14 +7519,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/oes/birds/fisant-far@1x-0.a8a9e9f9b1df.png",
-                "bytes": 6007,
-                "hash": "a8a9e9f9b1df"
+                "path": "assets/oes/birds/fisant-far@1x-0.3e841a9305b5.png",
+                "bytes": 6078,
+                "hash": "3e841a9305b5"
               },
               "data": {
-                "path": "assets/oes/birds/fisant-far@1x-0.21486bf49852.json",
+                "path": "assets/oes/birds/fisant-far@1x-0.580a3ed59587.json",
                 "bytes": 2422,
-                "hash": "21486bf49852"
+                "hash": "580a3ed59587"
               }
             }
           ]
@@ -7585,14 +7585,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/oes/birds/fisant-mid@1x-0.03e2fc52118b.png",
-                "bytes": 32061,
-                "hash": "03e2fc52118b"
+                "path": "assets/oes/birds/fisant-mid@1x-0.652dca7f63cc.png",
+                "bytes": 32424,
+                "hash": "652dca7f63cc"
               },
               "data": {
-                "path": "assets/oes/birds/fisant-mid@1x-0.c92bc915a00f.json",
+                "path": "assets/oes/birds/fisant-mid@1x-0.08bd75adb33a.json",
                 "bytes": 2509,
-                "hash": "c92bc915a00f"
+                "hash": "08bd75adb33a"
               }
             }
           ]
@@ -9092,14 +9092,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/oes/birds/tortelduif-far@1x-0.b92c3723dc6d.png",
-                "bytes": 5246,
-                "hash": "b92c3723dc6d"
+                "path": "assets/oes/birds/tortelduif-far@1x-0.890ff12e5554.png",
+                "bytes": 5245,
+                "hash": "890ff12e5554"
               },
               "data": {
-                "path": "assets/oes/birds/tortelduif-far@1x-0.d5a6df64bf78.json",
+                "path": "assets/oes/birds/tortelduif-far@1x-0.d034907e7860.json",
                 "bytes": 2420,
-                "hash": "d5a6df64bf78"
+                "hash": "d034907e7860"
               }
             }
           ]
@@ -9158,14 +9158,14 @@
           "pages": [
             {
               "image": {
-                "path": "assets/oes/birds/tortelduif-mid@1x-0.6170d43dcfec.png",
-                "bytes": 23564,
-                "hash": "6170d43dcfec"
+                "path": "assets/oes/birds/tortelduif-mid@1x-0.dc53eb815f1c.png",
+                "bytes": 23584,
+                "hash": "dc53eb815f1c"
               },
               "data": {
-                "path": "assets/oes/birds/tortelduif-mid@1x-0.36c549ab8484.json",
+                "path": "assets/oes/birds/tortelduif-mid@1x-0.5dda0f06c499.json",
                 "bytes": 2517,
-                "hash": "36c549ab8484"
+                "hash": "5dda0f06c499"
               }
             }
           ]

@@ -731,24 +731,22 @@ function visarend(o: Draw, clip: BirdClip, k: number): string {
     flat(ellipseD(138, -28, 5, 5), P.face),
     flat(ellipseD(139, -28, 2.6, 2.6), o.ink),
     fill(wingD(EAGLE_WING, 10, -24, len, a), a >= 0 ? P.wing : P.wingLight, o),
-    o.far
-      ? ''
-      : flat(
-          wingD(
-            [
-              [40, 0.05],
-              [52, 0.32],
-              [30, 0.36],
-              [0, 0.3],
-              [-20, 0.05],
-            ],
-            10,
-            -24,
-            len,
-            a,
-          ),
-          P.chestnut,
-        ),
+    flat(
+      wingD(
+        [
+          [40, 0.05],
+          [52, 0.32],
+          [30, 0.36],
+          [0, 0.3],
+          [-20, 0.05],
+        ],
+        10,
+        -24,
+        len,
+        a,
+      ),
+      P.chestnut,
+    ),
   );
 }
 
@@ -946,6 +944,8 @@ const FISANT = {
   face: '#D2402E',
   bill: '#3A2E26',
   leg: '#4A3A30',
+  /** Review round 1 (item 8): the pale streaks that make it read as a francolin at far size. */
+  streak: '#E2CFA6',
 };
 const DOVE = {
   body: '#A99A8C',
@@ -1042,6 +1042,15 @@ function fisantBird(o: Draw, a: number): string {
           opacity: 0.55,
         }),
       );
+  // Pale streaks along the flanks and back (bigger and fewer at far size, so they still read).
+  const streaks = o.far ? 7 : 16;
+  for (let i = 0; i < streaks; i++) {
+    const sx = -78 + (i / streaks) * 160 + rnd() * 10;
+    const sy = -30 + rnd() * 60;
+    specks.push(
+      flat(ellipseD(sx, sy, o.far ? 14 : 9, o.far ? 4.5 : 3), P.streak, { opacity: 0.85 }),
+    );
+  }
   return g(
     {},
     fill(wingD(ROUND_WING, 18, -18, 130, a), P.dark, o),
@@ -1101,24 +1110,37 @@ function duifBird(o: Draw, a: number): string {
     {},
     fill(wingD(POINTED_WING, 14, -14, 132, a), P.dark, o),
     // The long tail with its pale tip.
+    // Review round 1 (item 8): the long, slim, graduated tail (dark band, white tip) that tells a
+    // dove from the plump, short-tailed francolin even at far size.
     fill(
       polyD([
-        [-76, -10],
-        [-150, -16],
-        [-152, 14],
-        [-76, 16],
+        [-76, -9],
+        [-178, -14],
+        [-184, 0],
+        [-178, 12],
+        [-76, 13],
       ]),
       P.wing,
       o,
     ),
     flat(
       polyD([
-        [-136, -15],
-        [-152, -16],
-        [-152, 14],
-        [-136, 14],
+        [-150, -12],
+        [-164, -13],
+        [-164, 11],
+        [-150, 11],
       ]),
-      P.light,
+      P.tip,
+    ),
+    flat(
+      polyD([
+        [-164, -13],
+        [-178, -14],
+        [-184, 0],
+        [-178, 12],
+        [-164, 11],
+      ]),
+      '#F2EEE8',
     ),
     el('clipPath', { id }, el('path', { d: body })),
     fill(body, P.body, o),

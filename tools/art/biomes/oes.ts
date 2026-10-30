@@ -20,6 +20,11 @@ const GAP_HALF = 170;
 const WORKERS_TO = 520;
 /** The fence's ground line on the mid layer. */
 const FENCE_Y = 700;
+/** Review round 1 (item 11): the farmhouse (its windbreak and road) on the far veld, and the stretch
+ *  of the far veld the koppie's troop (far ridge, u 0.2) lines up with over the camera sweep: kept
+ *  low (no house or tree rises behind the troop: tools/art/troopBackdrop.ts). */
+const FARM_U = 0.76;
+const TROOP_WINDOW: readonly [number, number] = [0.06, 0.46];
 
 // --- plants -------------------------------------------------------------------------------
 
@@ -325,7 +330,7 @@ function farVeld(ctx: LayerCtx): string {
       'stroke-width': 1,
     }),
   );
-  const fx = ctx.u(0.2);
+  const fx = ctx.u(FARM_U);
   inside.push(
     flat(
       `M${fx + 60} 612Q${fx + 400} 650 ${fx + 700} 700L${fx + 760} 700Q${fx + 430} 646 ${fx + 80} 612Z`,
@@ -356,6 +361,7 @@ function farVeld(ctx: LayerCtx): string {
   }
   for (let x = 80; x < ctx.width; x += 300 + ctx.rnd() * 400) {
     if (Math.abs(x - fx) < 320) continue;
+    if (x > ctx.u(TROOP_WINDOW[0]) && x < ctx.u(TROOP_WINDOW[1])) continue;
     parts.push(
       treeBlob(
         ctx.rnd,
@@ -441,15 +447,28 @@ function mid(ctx: LayerCtx): string {
     (x > ctx.u(0.06) && x < ctx.u(0.11)) ||
     (x > ctx.u(0.38) && x < ctx.u(0.43)) ||
     (x > ctx.u(0.93) && x < ctx.u(0.98));
+  // Review round 1 (item 5): rows fill the field down to the near plane on both sides of the
+  // farm track; in front of the workers' stretch the front rows stay low (their tops below the
+  // workers' feet at the fence) so the workers read.
   for (const [foot, step, h] of [
     [712, 30, 120],
     [738, 34, 155],
+    [764, 36, 170],
     [790, 40, 185],
+    [818, 42, 195],
+    [848, 44, 205],
+    [880, 46, 215],
   ] as const) {
+    // The track widens toward us (from ±(GAP_HALF − 20) at the fence to ±(GAP_HALF + 40) at 910).
+    const k = Math.max(0, Math.min(1, (foot - 690) / 220));
+    const trackHalf = GAP_HALF - 20 + k * 60 + 26;
     for (let x = -20 + ctx.rnd() * step; x < ctx.width + 20; x += step * (0.8 + ctx.rnd() * 0.4)) {
-      if (x > clearL && x < clearR) continue;
+      if (foot < 760 ? x > clearL && x < clearR : Math.abs(x - gap) < trackHalf) continue;
       const y = foot + (ctx.rnd() - 0.5) * 6;
-      const hh = h * (0.88 + ctx.rnd() * 0.22);
+      const workers = x > gap && x < clearR;
+      const cap = workers ? Math.max(0, y - FENCE_Y - 14) : Infinity;
+      if (cap < 40) continue;
+      const hh = Math.min(cap, h * (0.88 + ctx.rnd() * 0.22));
       const pen2: Pen = { ink: ctx.pen.ink, w: 2.2 };
       items.push({
         y,
@@ -746,7 +765,9 @@ function sunflowerClump(seed: number) {
 export const OES_PLAN: BiomeArtPlan = {
   biome: 'oes',
   layers: {
-    sky: { top: 0, height: 1080, encode: 'png8', draw: sky },
+    // Review round 1 (item 3): the warm-to-blue gradient banded in a 256-colour palette; a
+    // true-colour PNG keeps it smooth (its rows are near-uniform, so it stays small).
+    sky: { top: 0, height: 1080, encode: 'png', draw: sky },
     far_ridge: { top: 420, height: 250, colours: 96, draw: farRidge },
     far_veld: { top: 440, height: 300, colours: 112, draw: farVeld },
     mid: { top: 540, height: 380, colours: 128, draw: mid },

@@ -1489,29 +1489,29 @@
     "oes/mid": {
       "tiles": [
         {
-          "path": "assets/oes-hd/layers/mid-0.a3226f680ce6.png",
-          "bytes": 163572,
-          "hash": "a3226f680ce6"
+          "path": "assets/oes-hd/layers/mid-0.ece9cbc3e78f.png",
+          "bytes": 241180,
+          "hash": "ece9cbc3e78f"
         },
         {
-          "path": "assets/oes-hd/layers/mid-1.3cedb0ad4937.png",
-          "bytes": 163284,
-          "hash": "3cedb0ad4937"
+          "path": "assets/oes-hd/layers/mid-1.9df396008c31.png",
+          "bytes": 240901,
+          "hash": "9df396008c31"
         },
         {
-          "path": "assets/oes-hd/layers/mid-2.d6a8326e8dad.png",
-          "bytes": 43740,
-          "hash": "d6a8326e8dad"
+          "path": "assets/oes-hd/layers/mid-2.f3502fb4db9e.png",
+          "bytes": 121033,
+          "hash": "f3502fb4db9e"
         },
         {
-          "path": "assets/oes-hd/layers/mid-3.3b8876293799.png",
-          "bytes": 164711,
-          "hash": "3b8876293799"
+          "path": "assets/oes-hd/layers/mid-3.0d9dfaf4c2c7.png",
+          "bytes": 239100,
+          "hash": "0d9dfaf4c2c7"
         },
         {
-          "path": "assets/oes-hd/layers/mid-4.71c741b270a8.png",
-          "bytes": 54190,
-          "hash": "71c741b270a8"
+          "path": "assets/oes-hd/layers/mid-4.d1352b3515ec.png",
+          "bytes": 75898,
+          "hash": "d1352b3515ec"
         }
       ],
       "tileWidth": 1024,
@@ -1668,14 +1668,14 @@
         "pages": [
           {
             "image": {
-              "path": "assets/oes-hd/birds/fisant-far@2x-0.0b6dfeb696db.png",
-              "bytes": 15578,
-              "hash": "0b6dfeb696db"
+              "path": "assets/oes-hd/birds/fisant-far@2x-0.1dd47caf7c08.png",
+              "bytes": 15984,
+              "hash": "1dd47caf7c08"
             },
             "data": {
-              "path": "assets/oes-hd/birds/fisant-far@2x-0.6f848253272a.json",
+              "path": "assets/oes-hd/birds/fisant-far@2x-0.c06c10e47b76.json",
               "bytes": 2444,
-              "hash": "6f848253272a"
+              "hash": "c06c10e47b76"
             }
           }
         ]
@@ -1684,14 +1684,14 @@
         "pages": [
           {
             "image": {
-              "path": "assets/oes-hd/birds/fisant-mid@2x-0.20fab85a4435.png",
-              "bytes": 107015,
-              "hash": "20fab85a4435"
+              "path": "assets/oes-hd/birds/fisant-mid@2x-0.7d410c1f55a7.png",
+              "bytes": 105556,
+              "hash": "7d410c1f55a7"
             },
             "data": {
-              "path": "assets/oes-hd/birds/fisant-mid@2x-0.a54a6b557817.json",
+              "path": "assets/oes-hd/birds/fisant-mid@2x-0.5825fef7a952.json",
               "bytes": 2522,
-              "hash": "a54a6b557817"
+              "hash": "5825fef7a952"
             }
           }
         ]
@@ -1790,14 +1790,14 @@
         "pages": [
           {
             "image": {
-              "path": "assets/oes-hd/birds/tortelduif-far@2x-0.932a8fa04ef1.png",
-              "bytes": 13529,
-              "hash": "932a8fa04ef1"
+              "path": "assets/oes-hd/birds/tortelduif-far@2x-0.75895adf832f.png",
+              "bytes": 13649,
+              "hash": "75895adf832f"
             },
             "data": {
-              "path": "assets/oes-hd/birds/tortelduif-far@2x-0.0312e7dec61c.json",
-              "bytes": 2448,
-              "hash": "0312e7dec61c"
+              "path": "assets/oes-hd/birds/tortelduif-far@2x-0.e13517fbfacd.json",
+              "bytes": 2455,
+              "hash": "e13517fbfacd"
             }
           }
         ]
@@ -1806,14 +1806,14 @@
         "pages": [
           {
             "image": {
-              "path": "assets/oes-hd/birds/tortelduif-mid@2x-0.407518c28590.png",
-              "bytes": 77817,
-              "hash": "407518c28590"
+              "path": "assets/oes-hd/birds/tortelduif-mid@2x-0.ab93045c96db.png",
+              "bytes": 80149,
+              "hash": "ab93045c96db"
             },
             "data": {
-              "path": "assets/oes-hd/birds/tortelduif-mid@2x-0.b1c4aaf79fb3.json",
+              "path": "assets/oes-hd/birds/tortelduif-mid@2x-0.905a10c408d9.json",
               "bytes": 2522,
-              "hash": "b1c4aaf79fb3"
+              "hash": "905a10c408d9"
             }
           }
         ]
