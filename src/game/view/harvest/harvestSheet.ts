@@ -21,10 +21,15 @@ export { HARVEST_GROUP, HARVEST_SHEET, HARVEST_SHEET_H, HARVEST_SHEET_W } from '
  *  to the hat's top. The view scales each to its plane. */
 export const WARTHOG_H = 200;
 export const PIGLET_H = 90;
-export const WORKER_H = 252;
+/** Drawn larger than shown on the mid plane (modes.json harvest.workers.heightPx × 0.42 ≈ 113
+ *  px), so the 2× master keeps its detail in HD. */
+export const WORKER_H = 180;
 /** The gap panel: as wide as the gap (2 × its half-width 170) at the mid layer's px, and tall. */
 export const FENCE_GAP_W = 340;
-export const FENCE_H = 180;
+export const FENCE_H = 90;
+/** v1.8c (review round 1): the mid layer's fence post, drawn height above its ground line (design
+ *  px; tools/art/biomes/oes.ts draws them, the gap panel matches). A worker stands ~1.6× it. */
+export const FENCE_POST_H = 70;
 
 interface Box {
   readonly w: number;

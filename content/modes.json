@@ -234,15 +234,15 @@
         "nearShare": 0.3
       },
       "warthogs": {
-        "heightPx": 280,
+        "heightPx": 175,
         "hitboxes": {
           "trot": {
-            "body": { "rx": 220, "ry": 105, "ox": -10, "oy": -150 },
-            "head": { "rx": 80, "ry": 72, "ox": 220, "oy": -170 }
+            "body": { "rx": 105, "ry": 47, "ox": -18, "oy": -107 },
+            "head": { "rx": 44, "ry": 35, "ox": 105, "oy": -93 }
           },
           "dig": {
-            "body": { "rx": 215, "ry": 100, "ox": -20, "oy": -130 },
-            "head": { "rx": 80, "ry": 70, "ox": 200, "oy": -70 }
+            "body": { "rx": 102, "ry": 47, "ox": -18, "oy": -89 },
+            "head": { "rx": 39, "ry": 42, "ox": 93, "oy": -44 }
           }
         },
         "trotPxPerSec": 520,
@@ -264,15 +264,15 @@
         "bonusPerPercent": 5
       },
       "workers": {
-        "heightPx": 600,
+        "heightPx": 270,
         "hitboxes": {
           "work": {
-            "body": { "rx": 85, "ry": 210, "ox": 0, "oy": -230 },
-            "head": { "rx": 55, "ry": 60, "ox": 0, "oy": -500 }
+            "body": { "rx": 32, "ry": 113, "ox": 5, "oy": -113 },
+            "head": { "rx": 22, "ry": 24, "ox": 8, "oy": -243 }
           },
           "duck": {
-            "body": { "rx": 110, "ry": 140, "ox": 0, "oy": -150 },
-            "head": { "rx": 55, "ry": 55, "ox": 30, "oy": -300 }
+            "body": { "rx": 46, "ry": 73, "ox": 14, "oy": -73 },
+            "head": { "rx": 24, "ry": 24, "ox": 38, "oy": -162 }
           }
         },
         "runPxPerSec": 700,

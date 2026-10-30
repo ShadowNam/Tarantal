@@ -8,4 +8,4 @@ export const HARVEST_SHEET = 'oes/harvest';
 export const HARVEST_GROUP = 'oes';
 /** Sheet size, design px at 1× (harvestSheet.ts packs the frames into it). */
 export const HARVEST_SHEET_W = 1536;
-export const HARVEST_SHEET_H = 1143;
+export const HARVEST_SHEET_H = 918;

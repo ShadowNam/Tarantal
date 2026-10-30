@@ -3434,12 +3434,12 @@
       "group": "oes",
       "origin": "interim",
       "file": {
-        "path": "assets/oes/img/oes_harvest.650e12837081.png",
-        "bytes": 136830,
-        "hash": "650e12837081"
+        "path": "assets/oes/img/oes_harvest.a5f35ecd8329.png",
+        "bytes": 145879,
+        "hash": "a5f35ecd8329"
       },
       "width": 1536,
-      "height": 1143,
+      "height": 918,
       "originX": 0,
       "originY": 0
     },

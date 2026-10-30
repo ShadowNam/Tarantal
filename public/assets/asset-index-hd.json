@@ -663,12 +663,12 @@
     },
     "oes/harvest": {
       "file": {
-        "path": "assets/oes-hd/img/oes_harvest.a026c98c4fc0.png",
-        "bytes": 282435,
-        "hash": "a026c98c4fc0"
+        "path": "assets/oes-hd/img/oes_harvest.38295a0b9c9d.png",
+        "bytes": 335126,
+        "hash": "38295a0b9c9d"
       },
       "width": 3072,
-      "height": 2286,
+      "height": 1836,
       "scale": 0.5
     },
     "oes/sunflowers_a": {

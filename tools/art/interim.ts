@@ -79,7 +79,7 @@ const RESIDENT_COLOURS = 96;
 const TELL_COLOURS = 128;
 /** v1.8b (D-062): the baboon sheet's palette (fur, faces, a few props). */
 const BABOON_COLOURS = 160;
-const HARVEST_COLOURS = 192;
+const HARVEST_COLOURS = 256;
 /** 1.9.4 (D-057): palette size of the weaver colony's sheet. */
 const COLONY_COLOURS = 96;
 /** v1.7d (D-059): palette size of the Namib veld sheet. */
