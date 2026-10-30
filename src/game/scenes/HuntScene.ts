@@ -1534,12 +1534,15 @@ export class HuntScene extends Phaser.Scene {
     // so the sight and the Ver strip are never drawn from their placeholders.
     const huntDef = this.ctx.content.biomes.find((b) => b.id === huntBiome);
     const huntManifest = huntDef === undefined ? this.manifest : this.ctx.manifestFor(huntDef);
-    // v1.8b (D-062): a map with a baboon troop waits for the baboon sheet (the troop can be hit
-    // from the first tick, so it must be drawn then; the file loads in the background).
+    // v1.8b (D-062): a map with a baboon troop waits for the baboon sheet when it is delivered
+    // (the troop can be hit from the first tick, so it must be drawn then; the file loads in the
+    // background). Never for a file the index doesn't list.
     if (
       huntDef?.baboons !== undefined &&
       range === null &&
       mode.id !== 'ftue' &&
+      // Only a file the delivered index has (no or a stand-in delivery: the placeholder draws).
+      huntManifest.listed(BABOON_SHEET) &&
       !huntManifest.delivered(this.textures, BABOON_SHEET)
     ) {
       this.waitForBaboonSheet(huntDef.id, huntManifest, (ok) => {

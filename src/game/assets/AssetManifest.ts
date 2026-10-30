@@ -220,6 +220,8 @@ let retiredPlaceholders = 0;
 export class AssetManifest {
   /** @internal */
   readonly specs = new Map<string, CanvasSpec>();
+  /** v1.8b (D-062): image keys whose delivered file the last load queued. */
+  private readonly listedImages = new Set<string>();
   /** @internal */
   readonly layerArt = new Map<string, LayerArt>();
   /** Placeholder tile key → its layer's asset id (skipped when the layer has final art). */
@@ -327,6 +329,11 @@ export class AssetManifest {
 
   has(key: string): boolean {
     return this.specs.has(key);
+  }
+
+  /** v1.8b (D-062): the delivered index lists a file for this image (and this manifest loads it). */
+  listed(key: string): boolean {
+    return this.listedImages.has(key);
   }
 
   /** Texture key for a bird; creatures without art yet fall back to the plain tarentaal. */
@@ -493,6 +500,9 @@ export class AssetManifest {
     };
     for (const [key, entry] of Object.entries(index.images)) {
       if (!this.specs.has(key) || this.layerOfTile.has(key)) continue;
+      // v1.8b (D-062): which delivered images this manifest loads (a hunt never waits for a file
+      // the index doesn't have: with no or a partial delivery its placeholder draws).
+      if (groupForBiome(entry.group, o.biome)) this.listedImages.add(key);
       queue(
         entry.group,
         () =>

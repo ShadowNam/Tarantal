@@ -427,3 +427,20 @@ describe('D-054: a released area keeps no HD layers on the GPU (Pixel 7 HD hunts
     expect(hdTiles(bush, 'bushveld/mid').some((k) => api.exists(k))).toBe(false);
   });
 });
+
+describe('AssetManifest.listed (v1.8b, D-062)', () => {
+  it('knows the delivered baboon sheet; a delivery without it lists nothing to wait for', async () => {
+    const m = await loadedArea('karoo-autumn');
+    expect(m.listed('baboons/sheet')).toBe(true);
+    const b = content.biomes.find((x) => x.id === 'karoo-autumn');
+    if (b === undefined) throw new Error('no Karoo');
+    const without = createPlaceholderManifest(content, b);
+    const images = { ...index.images };
+    delete images['baboons/sheet'];
+    await without.loadFinal(
+      { ...index, images },
+      { atlasScale: 1, timeoutMs: 1000, audioFormat: null, biome: 'karoo-autumn' },
+    );
+    expect(without.listed('baboons/sheet')).toBe(false);
+  });
+});

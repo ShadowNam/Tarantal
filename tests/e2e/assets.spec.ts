@@ -98,7 +98,11 @@ test('with no delivery every key falls back to its placeholder', async ({ page }
   const st = await statuses(page);
   for (const key of FINAL_KEYS) expect(st[key], key).toBe('placeholder');
   expect(Object.values(st).every((s) => s === 'placeholder')).toBe(true);
+  // v1.8b (D-062): the Karoo has a baboon troop; with no delivery the hunt still starts at once
+  // (it never waits for a sheet the index doesn't have; the troop's placeholder draws nothing).
   await startHunt(page, isTouchProject(info));
+  expect((await hook(page)).biome).toBe('karoo-autumn');
+  expect((await hook(page)).baboonRaid).toBeNull();
   expect((await hook(page)).missingTextures).toEqual([]);
   expect((await hook(page)).assets.recorded).toEqual([]);
   await waitTicks(page, 240);
