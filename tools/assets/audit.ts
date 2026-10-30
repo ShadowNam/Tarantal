@@ -111,7 +111,11 @@ function usages(
   const palm = /^okavango\/makalani_(trunk|crown)_(near|mid)$/.exec(key);
   if (palm !== null) needles.push(palm[1] === 'trunk' ? /\bpalmTrunkKey\(/ : /\bpalmCrownKey\(/);
   const xmasSound = Object.entries(XMAS_SOUNDS).find(([, k]) => k === key)?.[0];
-  if (xmasSound !== undefined) needles.push(new RegExp(`playXmasSound\\([^)]*'${xmasSound}'`));
+  if (xmasSound !== undefined) {
+    needles.push(new RegExp(`playXmasSound\\([^)]*'${xmasSound}'`));
+    // The tally's carol phrase is played by its constant (TallyScene, outside the lazy chunk).
+    needles.push(new RegExp(`XMAS_SOUNDS\\.${xmasSound}\\b`));
+  }
   const spookSound = Object.entries(SPOOK_SOUNDS).find(([, k]) => k === key)?.[0];
   if (spookSound !== undefined) needles.push(new RegExp(`playSpookSound\\([^)]*'${spookSound}'`));
   const meerkatSound = Object.entries(MEERKAT_SOUNDS).find(([, k]) => k === key)?.[0];

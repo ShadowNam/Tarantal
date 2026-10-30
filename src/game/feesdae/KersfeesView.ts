@@ -203,6 +203,9 @@ export interface KersfeesDeps {
   readonly reduceFlashes: boolean;
   /** The heat shimmer's strength goes to WorldView (it owns the mirage strips). */
   readonly setHeat: (strength: number) => void;
+  /** The e2e hooks are on: `__TM_XMAS_HIDE__(true)` hides the presents and the tinsel, so a spec
+   *  can grab the same held tick with and without them (the drawn art, not only hook flags). */
+  readonly hooks?: boolean;
 }
 
 export class KersfeesSceneView {
@@ -217,6 +220,10 @@ export class KersfeesSceneView {
   private readonly glint: Phaser.GameObjects.Image | null = null;
   private readonly reduceFlashes: boolean;
   private last: FeesdagState | null = null;
+  /** e2e hook: what "Presents found!" paid (null until every present is open). */
+  foundPoints: number | null = null;
+  /** e2e only: presents and tinsel hidden (__TM_XMAS_HIDE__). */
+  private hidden = false;
   /** The tree the tinsel hangs on (null: the map has none of the listed trees). */
   readonly tinselProp: string | null = null;
   /** The rifle zoom the world is drawn at (1 = no sight up). */
@@ -232,6 +239,12 @@ export class KersfeesSceneView {
     this.reduceFlashes = d.reduceFlashes;
     this.key = ensureXmasTexture(d.scene, d.sheet);
     const look = d.look;
+    if (d.hooks === true)
+      (window as { __TM_XMAS_HIDE__?: (on: boolean) => void }).__TM_XMAS_HIDE__ = (on) => {
+        this.hidden = on;
+        for (const g of this.garlands) g.img.setVisible(!on);
+        for (const b of this.baubles) b.img.setVisible(!on);
+      };
     if (d.decorations.includes('heatHaze')) d.setHeat(look.heat);
     // Tinsel on the first listed tree the day's map has (a layout may have moved it).
     if (d.decorations.includes('tinsel'))
@@ -348,6 +361,7 @@ export class KersfeesSceneView {
       }
       const wrap = wrapOf(t.id);
       setFrame(d.img, this.key, `present_${wrap}_${t.dark ? 'open' : 'shut'}`);
+      if (d.img.visible === this.hidden) d.img.setVisible(!this.hidden);
       if (t.dark && d.openedAt === null) d.openedAt = tick;
       if (d.openedAt !== null) this.animateOpen(d, t.x, t.y, s, wrap, tick - d.openedAt);
     }
@@ -405,6 +419,7 @@ export class KersfeesSceneView {
     const half = width / 2;
     for (const e of events) {
       if (e.type === 'feesdagStarted') playXmasSound(audio, 'sting', 0);
+      else if (e.type === 'presentsFound') this.foundPoints = e.points;
       else if (e.type === 'presentOpened')
         playXmasSound(audio, 'present', (this.parallax.screenX(e.plane, e.x) - half) / half);
     }
@@ -430,8 +445,18 @@ export class KersfeesSceneView {
   }
 
   /** e2e hook: the tinsel's tree and how many garlands and baubles hang on it. */
-  tinsel(): { prop: string | null; garlands: number; baubles: number } {
-    return { prop: this.tinselProp, garlands: this.garlands.length, baubles: this.baubles.length };
+  tinsel(): {
+    prop: string | null;
+    garlands: number;
+    baubles: number;
+    found: number | null;
+  } {
+    return {
+      prop: this.tinselProp,
+      garlands: this.garlands.length,
+      baubles: this.baubles.length,
+      found: this.foundPoints,
+    };
   }
 
   clear(): void {

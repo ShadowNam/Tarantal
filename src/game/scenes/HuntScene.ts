@@ -120,7 +120,7 @@ const feesdaeSheets = new Map<string, HTMLImageElement>();
 
 /** D-064: the Christmas view's e2e hook (its tinsel). */
 interface KersfeesHook {
-  tinsel(): { prop: string | null; garlands: number; baubles: number };
+  tinsel(): { prop: string | null; garlands: number; baubles: number; found: number | null };
 }
 
 const END_DELAY_MS = 900;
@@ -503,6 +503,7 @@ export class HuntScene extends Phaser.Scene {
         setHeat: (h) => {
           world.heat = h;
         },
+        hooks: this.ctx.hook !== null,
       });
       this.birds.hats = this.spookView.hats;
     } else if (special !== null && look !== undefined && feesdaeModule !== null) {
