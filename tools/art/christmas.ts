@@ -25,6 +25,8 @@ import type { Rgba } from '../assets/image';
 import { renderSvg } from './raster';
 import { el, ellipseD, g, polyD, prng, r2, smoothD, svgDoc } from './svg';
 
+type P = readonly [number, number];
+
 const C = {
   ink: '#2A1A14',
   white: '#FFFDF6',
@@ -131,37 +133,162 @@ function radial(
 const defs = (...d: { def: string }[]): string => el('defs', {}, ...d.map((x) => x.def));
 
 // --- presents -----------------------------------------------------------------------------------
+// D-064 round 2: a box seen a little from the right and above — the front face lit from the
+// left, the right side in shade, the paper's print (stars, dots or stripes) clipped to each face,
+// fold creases at the edges; a glossy ribbon (dark rims, a bright streak) and a full bow with
+// shaded loops, inner shadows and a knot with a highlight. Fine detail (print, creases, streaks)
+// is at the 2× master's scale: the 1× Standard pack softens it, HD keeps it.
 
-/** The bow on top of a lid, centred on (0, 0) = the lid's top. */
-function bow(w: PresentWrap): string {
-  const [lit, mid, shade] = WRAPS[w].ribbon;
-  const loop = (s: 1 | -1): string =>
-    edge(
-      smoothD(
-        [
-          [0, 0],
-          [s * 16, -20],
-          [s * 38, -30],
-          [s * 46, -16],
-          [s * 30, -4],
-        ],
-        true,
-        0.8,
-      ),
-      mid,
-      2.2,
+/** The box: front face x −52 … 36, y −38 … 50; the side face skews 20 px right, 12 px up. */
+const FRONT: P[] = [
+  [-52, -38],
+  [36, -38],
+  [36, 50],
+  [-52, 50],
+];
+const SIDE: P[] = [
+  [36, -38],
+  [56, -50],
+  [56, 38],
+  [36, 50],
+];
+const TOP: P[] = [
+  [-52, -38],
+  [-32, -50],
+  [56, -50],
+  [36, -38],
+];
+
+/** The paper's print over a face (clipped to it). */
+function print(w: PresentWrap, face: readonly P[], seed: number, shade: number): string {
+  const id = uid('face');
+  const rnd = prng(seed);
+  const ink = WRAPS[w].dot;
+  const marks: string[] = [];
+  if (w === 'a')
+    // Little five-point gold stars in a loose grid.
+    for (let y = -56; y < 56; y += 14)
+      for (let x = -60; x < 64; x += 16) {
+        const cx = x + ((y / 14) % 2 === 0 ? 0 : 8) + rnd() * 2;
+        const cy = y + rnd() * 2;
+        const pts: P[] = [];
+        for (let k = 0; k < 10; k++) {
+          const a = (k * Math.PI) / 5 - Math.PI / 2;
+          const r = k % 2 === 0 ? 4.2 : 1.8;
+          pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]);
+        }
+        marks.push(path(polyD(pts), ink, { opacity: 0.85 * shade }));
+      }
+  else if (w === 'b')
+    // Polka dots, two sizes.
+    for (let y = -56; y < 56; y += 11)
+      for (let x = -60; x < 64; x += 11) {
+        const big = ((x + y) / 11) % 2 === 0;
+        marks.push(
+          el('circle', {
+            cx: r2(x + ((y / 11) % 2 === 0 ? 0 : 5.5)),
+            cy: r2(y),
+            r: big ? 2.6 : 1.4,
+            fill: ink,
+            opacity: 0.8 * shade,
+          }),
+        );
+      }
+  else
+    // Diagonal stripes, a broad one and a fine one.
+    for (let k = -140; k < 140; k += 16) {
+      marks.push(stroke(`M${k} -60L${k + 120} 60`, ink, 4, 0.55 * shade));
+      marks.push(stroke(`M${k + 8} -60L${k + 128} 60`, ink, 1, 0.7 * shade));
+    }
+  // Paper grain: a few faint flecks (a 2× detail).
+  for (let i = 0; i < 26; i++)
+    marks.push(
+      el('circle', {
+        cx: r2(-58 + rnd() * 116),
+        cy: r2(-56 + rnd() * 108),
+        r: 0.5,
+        fill: '#FFFFFF',
+        opacity: 0.18,
+      }),
     );
+  return g(
+    {},
+    el('clipPath', { id }, path(polyD(face), '#000')),
+    g({ 'clip-path': `url(#${id})` }, ...marks),
+  );
+}
+
+/** A glossy ribbon band along a line (from a to b, width w): dark rims, a bright streak. */
+function ribbonBand(a: P, b: P, width: number, w: PresentWrap, shade = 1): string {
+  const [lit, mid, dark] = WRAPS[w].ribbon;
+  const d = `M${r2(a[0])} ${r2(a[1])}L${r2(b[0])} ${r2(b[1])}`;
+  // Butt ends: the band stops at the box's edges.
+  const band = (colour: string, wd: number, op = 1): string =>
+    el('path', {
+      d,
+      fill: 'none',
+      stroke: colour,
+      'stroke-width': wd,
+      'stroke-linecap': 'butt',
+      opacity: op,
+    });
+  return g(
+    { opacity: shade },
+    band(dark, width),
+    band(mid, width - 3),
+    band(lit, Math.max(1, width * 0.18), 0.9),
+  );
+}
+
+/** The bow, its knot at (0, 0): two shaded loops with inner shadows, two folded tails. */
+function bow(w: PresentWrap): string {
+  const [lit, mid, dark] = WRAPS[w].ribbon;
+  const loop = (s: 1 | -1): string => {
+    const outer = smoothD(
+      [
+        [0, 0],
+        [s * 14, -22],
+        [s * 36, -34],
+        [s * 50, -22],
+        [s * 40, -6],
+      ],
+      true,
+      0.8,
+    );
+    const inner = smoothD(
+      [
+        [s * 10, -6],
+        [s * 22, -20],
+        [s * 36, -24],
+        [s * 40, -14],
+        [s * 30, -8],
+      ],
+      true,
+      0.8,
+    );
+    return g(
+      {},
+      edge(outer, mid, 2.2),
+      path(inner, dark, { opacity: 0.75 }),
+      stroke(`M${s * 8} -10Q${s * 22} -30 ${s * 40} -28`, lit, 2.4, 0.9),
+      stroke(`M${s * 30} -30Q${s * 40} -30 ${s * 46} -22`, '#FFFFFF', 1, 0.7),
+    );
+  };
   const tail = (s: 1 | -1): string =>
-    edge(
-      polyD([
-        [s * 2, 2],
-        [s * 26, 22],
-        [s * 20, 28],
-        [s * 30, 30],
-        [s * 8, 6],
-      ]),
-      shade,
-      2,
+    g(
+      {},
+      edge(
+        polyD([
+          [s * 2, 2],
+          [s * 22, 26],
+          [s * 16, 30],
+          [s * 28, 36],
+          [s * 8, 8],
+        ]),
+        dark,
+        1.8,
+      ),
+      stroke(`M${s * 5} 6L${s * 20} 26`, mid, 2, 0.8),
     );
   return g(
     {},
@@ -169,240 +296,292 @@ function bow(w: PresentWrap): string {
     tail(1),
     loop(-1),
     loop(1),
-    stroke('M-30 -20Q-22 -26 -10 -14', lit, 3, 0.8),
-    stroke('M30 -22Q24 -27 12 -16', lit, 2.4, 0.6),
-    edge(ellipseD(0, -4, 9, 8), mid, 2.2),
-    path(ellipseD(-3, -7, 3.5, 3), lit, { opacity: 0.85 }),
+    edge(ellipseD(0, -3, 9, 8), mid, 2),
+    path(ellipseD(-2.5, -6, 3.5, 2.6), lit),
+    el('circle', { cx: -3.5, cy: -7, r: 1.1, fill: '#FFFFFF', opacity: 0.9 }),
   );
 }
 
-/** The lid (130 × 22) with its bow; (0, 0) = where it sits on the box (its bottom centre). */
-function lid(w: PresentWrap): string {
+/** The lid (its front band and top) with its bow; (0, 0) = where it sits on the box. */
+function lid(w: PresentWrap, withBow = true): string {
   const [pl, pm, ps] = WRAPS[w].paper;
-  const [rl, rm] = WRAPS[w].ribbon;
-  const paper = linear([
+  const front = linear(
+    [
+      [0, pl],
+      [0.5, pm],
+      [1, ps],
+    ],
+    1,
+    0,
+  );
+  const top = linear([
     [0, pl],
-    [0.45, pm],
-    [1, ps],
+    [1, pm],
   ]);
+  // Front band x −56 … 40, y −16 … 0; side −> 60; top above, a little lighter.
+  const bandF: P[] = [
+    [-56, -16],
+    [40, -16],
+    [40, 2],
+    [-56, 2],
+  ];
+  const bandS: P[] = [
+    [40, -16],
+    [60, -28],
+    [60, -10],
+    [40, 2],
+  ];
+  const lidTop: P[] = [
+    [-56, -16],
+    [-36, -28],
+    [60, -28],
+    [40, -16],
+  ];
   return g(
     {},
-    defs(paper),
-    edge(
-      polyD([
-        [-66, 0],
-        [-66, -22],
-        [66, -22],
-        [66, 0],
-      ]),
-      paper.url,
-      2.4,
-    ),
-    path(
-      polyD([
-        [-12, 0],
-        [-12, -22],
-        [12, -22],
-        [12, 0],
-      ]),
-      rm,
-    ),
-    stroke('M-6 -20L-6 -2', rl, 3, 0.7),
-    stroke('M-62 -19L62 -19', pl, 2, 0.5),
-    g({ transform: 'translate(0 -22)' }, bow(w)),
+    defs(front, top),
+    edge(polyD(lidTop), top.url, 2),
+    print(w, lidTop, 77, 0.8),
+    edge(polyD(bandF), front.url, 2.2),
+    print(w, bandF, 78, 0.9),
+    edge(polyD(bandS), ps, 2),
+    // The ribbon over the lid: down the front band and across the top.
+    ribbonBand([-4, -16], [-4, 2], 14, w),
+    ribbonBand([-24, -22], [56, -22], 9, w, 0.9),
+    ribbonBand([4, -28], [-14, -16], 10, w, 0.9),
+    stroke('M-54 -15L39 -15', '#FFFFFF', 1, 0.45),
+    withBow ? g({ transform: 'translate(2 -24)' }, bow(w)) : '',
   );
 }
 
-/** A present's box (120 × 100, centred on the origin). Open: its tissue and gift show. */
+/** A present (box centre at the origin, its foot 50 px below). Open: the lid leans against the
+ *  box, the bow has flown, tissue and a toy guineafowl peep out of the dark inside. */
 function present(w: PresentWrap, open: boolean, seed: number): string {
   const [pl, pm, ps] = WRAPS[w].paper;
-  const [rl, rm, rs] = WRAPS[w].ribbon;
-  const paper = linear(
+  const front = linear(
     [
       [0, pl],
       [0.35, pm],
       [1, ps],
     ],
     1,
-    0.3,
+    0.25,
   );
-  const rnd = prng(seed);
-  const dots: string[] = [];
-  for (let i = 0; i < 16; i++) {
-    const x = -52 + rnd() * 104;
-    const y = -44 + rnd() * 90;
-    if (Math.abs(x) < 16 || Math.abs(y) < 14) continue;
-    dots.push(
-      // Little stars printed on the paper.
-      path(
-        polyD([
-          [x, y - 5],
-          [x + 1.6, y - 1.6],
-          [x + 5, y],
-          [x + 1.6, y + 1.6],
-          [x, y + 5],
-          [x - 1.6, y + 1.6],
-          [x - 5, y],
-          [x - 1.6, y - 1.6],
-        ]),
-        WRAPS[w].dot,
-        { opacity: 0.75 },
-      ),
-    );
-  }
-  const box = polyD([
-    [-60, -50],
-    [60, -50],
-    [60, 50],
-    [-60, 50],
-  ]);
-  const inside = open
-    ? g(
-        {},
-        // The open top: the box's dark inside, tissue paper and a small gift peeping out.
-        path(
-          polyD([
-            [-56, -50],
-            [56, -50],
-            [52, -38],
-            [-52, -38],
-          ]),
-          C.inside,
-        ),
-        edge(
-          smoothD(
-            [
-              [-54, -44],
-              [-38, -66],
-              [-20, -52],
-              [-4, -74],
-              [14, -54],
-              [34, -70],
-              [54, -46],
-              [30, -40],
-              [-30, -40],
-            ],
-            true,
-            0.7,
-          ),
-          C.tissue,
-          1.8,
-        ),
-        edge(
-          polyD([
-            [-14, -46],
-            [-14, -68],
-            [16, -68],
-            [16, -46],
-          ]),
-          C.gold,
-          1.8,
-        ),
-        stroke('M-14 -60L16 -60', C.redShade, 3),
-      )
-    : '';
-  return g(
+  const side = linear(
+    [
+      [0, ps],
+      [1, '#000000'],
+    ],
+    1,
+    0,
+  );
+  const box = g(
     {},
-    defs(paper),
-    // A soft contact shadow on the ground.
-    path(ellipseD(0, 52, 70, 8), '#000000', { opacity: 0.22 }),
-    edge(box, paper.url, 2.6),
-    ...dots,
-    // The ribbon crossing the box, lit on the sun side.
+    path(ellipseD(4, 51, 70, 8), '#000000', { opacity: 0.24 }),
+    edge(polyD(SIDE), side.url, 2.4),
+    print(w, SIDE, seed + 1, 0.45),
+    edge(polyD(FRONT), front.url, 2.6),
+    print(w, FRONT, seed, 1),
+    // Sun on the left of the front, shade into the bottom, the folds at the edges.
     path(
       polyD([
-        [-12, -50],
-        [12, -50],
-        [12, 50],
-        [-12, 50],
-      ]),
-      rm,
-    ),
-    path(
-      polyD([
-        [-60, -8],
-        [60, -8],
-        [60, 10],
-        [-60, 10],
-      ]),
-      rm,
-    ),
-    stroke('M-7 -48L-7 48', rl, 3.2, 0.75),
-    stroke('M-58 -3L58 -3', rl, 2.6, 0.6),
-    stroke('M10 -48L10 48', rs, 2, 0.6),
-    // Sun on the left face, shade on the right.
-    path(
-      polyD([
-        [-60, -50],
-        [-50, -50],
-        [-50, 50],
-        [-60, 50],
+        [-52, -38],
+        [-40, -38],
+        [-40, 50],
+        [-52, 50],
       ]),
       '#FFFFFF',
-      { opacity: 0.16 },
+      { opacity: 0.14 },
     ),
     path(
       polyD([
-        [48, -50],
-        [60, -50],
-        [60, 50],
-        [48, 50],
+        [-52, 36],
+        [36, 36],
+        [36, 50],
+        [-52, 50],
       ]),
       '#000000',
       { opacity: 0.16 },
     ),
-    edge(box, 'none', 2.6),
-    inside,
-    open ? '' : g({ transform: 'translate(0 -50)' }, lid(w).replace(/^/, '')),
+    stroke('M-47 -34L-47 46', '#FFFFFF', 1, 0.35),
+    stroke('M33 -34L33 46', '#000000', 1, 0.25),
+    stroke('M38 -30L54 -40', '#000000', 1, 0.3),
+    // The ribbon: down the front and the side, round the middle.
+    ribbonBand([-8, -38], [-8, 50], 16, w),
+    ribbonBand([-52, 4], [36, 4], 13, w),
+    ribbonBand([36, 4], [56, -8], 12, w, 0.75),
+    edge(polyD(FRONT), 'none', 2.6),
+  );
+  if (!open) return g({}, defs(front, side), box, g({ transform: 'translate(0 -38)' }, lid(w)));
+  const tissue = smoothD(
+    [
+      [-50, -40],
+      [-36, -62],
+      [-20, -48],
+      [-6, -70],
+      [12, -52],
+      [30, -66],
+      [54, -50],
+      [34, -40],
+    ],
+    true,
+    0.7,
+  );
+  return g(
+    {},
+    defs(front, side),
+    // The lid, its bow flown, knocked back: it stands tilted behind the open box.
+    g({ transform: 'translate(14 -54) rotate(-14) scale(0.92)' }, lid(w, false)),
+    // The open top: the dark inside, tissue paper, a toy guineafowl peeping out.
+    path(polyD(TOP), C.inside),
+    path(
+      polyD([
+        [-50, -39],
+        [34, -39],
+        [52, -49],
+        [-30, -49],
+      ]),
+      '#1E120C',
+      { opacity: 0.6 },
+    ),
+    toyFowl(),
+    edge(tissue, C.tissue, 1.6, '#B8A888'),
+    stroke('M-30 -52Q-20 -58 -8 -54M18 -56Q28 -62 40 -54', '#E8D8B4', 1.4),
+    box,
+    // The flaps of the open top fold outwards.
+    edge(
+      polyD([
+        [-52, -38],
+        [-62, -48],
+        [-40, -54],
+        [-32, -50],
+      ]),
+      pl,
+      1.8,
+    ),
+    edge(
+      polyD([
+        [56, -50],
+        [64, -60],
+        [44, -62],
+        [36, -52],
+      ]),
+      ps,
+      1.8,
+    ),
+  );
+}
+
+/** A small plush guineafowl peeping out of an open present: speckled grey, a blue face, a red
+ *  wattle and a yellow-brown helmet — the game's own bird, as a toy. */
+function toyFowl(): string {
+  const dots: string[] = [];
+  for (let i = 0; i < 10; i++)
+    dots.push(
+      el('circle', {
+        cx: r2(-8 + (i % 5) * 4),
+        cy: r2(-52 + Math.floor(i / 5) * 4),
+        r: 0.9,
+        fill: '#FFFFFF',
+      }),
+    );
+  return g(
+    {},
+    edge(ellipseD(0, -50, 14, 9), '#4A4E5A', 1.6),
+    ...dots,
+    edge(ellipseD(10, -62, 7, 7), '#5DA0D8', 1.4),
+    path(
+      polyD([
+        [9, -69],
+        [12, -76],
+        [14, -68],
+      ]),
+      '#C89A50',
+    ),
+    path(ellipseD(12, -56, 2.2, 3), '#D8302E'),
+    el('circle', { cx: 12, cy: -63, r: 1.3, fill: '#1A1016' }),
+    el('circle', { cx: 12.4, cy: -63.4, r: 0.4, fill: '#FFFFFF' }),
+    path(
+      polyD([
+        [16, -62],
+        [21, -61],
+        [16, -59],
+      ]),
+      '#E8C88A',
+    ),
   );
 }
 
 // --- tinsel -------------------------------------------------------------------------------------
 
-/** A tinsel garland from (−150, 0) to (150, 0), sagging ~56 px: a twisted rope with a fringe. */
+/** A tinsel garland from (−150, 0) to (150, 0), sagging ~56 px: a twisted strand of foil — a rope
+ *  wound with a bright spiral, a dense fringe of fine foil hairs catching the light — and a few
+ *  sparkles. */
 function garland(colour: 'silver' | 'red', seed: number): string {
   const [lit, mid, shade] =
     colour === 'silver' ? [C.silverLit, C.silver, C.silverShade] : [C.redLit, C.red, C.redShade];
   const rnd = prng(seed);
   const at = (t: number): [number, number] => [-150 + 300 * t, 56 * 4 * t * (1 - t)];
-  const rope = Array.from({ length: 25 }, (_, i) => at(i / 24));
+  const rope = Array.from({ length: 41 }, (_, i) => at(i / 40));
   const fringe: string[] = [];
-  for (let i = 0; i < 140; i++) {
+  for (let i = 0; i < 320; i++) {
     const t = rnd();
     const [x, y] = at(t);
     const a = rnd() * Math.PI * 2;
-    const l = 6 + rnd() * 10;
-    const c = rnd() < 0.3 ? lit : rnd() < 0.6 ? mid : shade;
+    const l = 5 + rnd() * 9;
+    const c = rnd() < 0.25 ? lit : rnd() < 0.6 ? mid : shade;
+    const bend = (rnd() - 0.5) * 4;
     fringe.push(
       stroke(
-        `M${r2(x)} ${r2(y)}L${r2(x + Math.cos(a) * l)} ${r2(y + Math.sin(a) * l)}`,
+        `M${r2(x)} ${r2(y)}Q${r2(x + Math.cos(a) * l * 0.5 + bend)} ${r2(y + Math.sin(a) * l * 0.5)} ${r2(x + Math.cos(a) * l)} ${r2(y + Math.sin(a) * l)}`,
         c,
-        2.2,
+        0.9 + rnd() * 0.8,
         0.95,
       ),
     );
   }
+  // The spiral: short bright dashes across the rope, every few px.
+  const spiral: string[] = [];
+  for (let i = 0; i < 60; i++) {
+    const t = (i + 0.5) / 60;
+    const [x, y] = at(t);
+    spiral.push(stroke(`M${r2(x - 2)} ${r2(y - 3)}L${r2(x + 2)} ${r2(y + 3)}`, lit, 1.4, 0.85));
+  }
   const sparks: string[] = [];
-  for (let i = 0; i < 12; i++) {
-    const [x, y] = at(rnd());
+  for (let i = 0; i < 9; i++) {
+    const [x, y] = at(0.06 + rnd() * 0.88);
+    const r = 3 + rnd() * 2.5;
     sparks.push(
-      el('circle', { cx: r2(x + rnd() * 6 - 3), cy: r2(y + rnd() * 6 - 3), r: 1.8, fill: C.white }),
+      path(
+        polyD([
+          [x, y - r],
+          [x + 0.8, y - 0.8],
+          [x + r, y],
+          [x + 0.8, y + 0.8],
+          [x, y + r],
+          [x - 0.8, y + 0.8],
+          [x - r, y],
+          [x - 0.8, y - 0.8],
+        ]),
+        C.white,
+        { opacity: 0.95 },
+      ),
     );
   }
   return g(
     {},
-    stroke(polyD(rope, false), shade, 9),
-    stroke(polyD(rope, false), mid, 6),
+    stroke(polyD(rope, false), shade, 8),
+    stroke(polyD(rope, false), mid, 5),
     ...fringe,
-    stroke(polyD(rope, false), lit, 1.6, 0.8),
+    ...spiral,
     ...sparks,
-    // The hooks it hangs from.
     el('circle', { cx: -150, cy: 0, r: 3, fill: C.silverShade }),
     el('circle', { cx: 150, cy: 0, r: 3, fill: C.silverShade }),
   );
 }
 
-/** A bauble hanging from (0, 0): a little cap, the glossy ball below. */
+/** A bauble hanging from (0, 0): a ridged cap and wire loop, a glossy ball with a window
+ *  reflection, a rim light on the shade side and a soft band of colour. */
 function bauble(colour: 'red' | 'gold' | 'silver'): string {
   const [lit, mid, shade] =
     colour === 'red'
@@ -412,13 +591,13 @@ function bauble(colour: 'red' | 'gold' | 'silver'): string {
         : [C.silverLit, C.silver, C.silverShade];
   const ball = radial([
     [0, lit, 1],
-    [0.55, mid, 1],
+    [0.5, mid, 1],
     [1, shade, 1],
   ]);
   return g(
     {},
     defs(ball),
-    stroke('M0 0L0 7', C.silverShade, 1.4),
+    stroke('M0 0Q-2 3 0 7', C.silverShade, 1.2),
     edge(
       polyD([
         [-4, 6],
@@ -427,10 +606,33 @@ function bauble(colour: 'red' | 'gold' | 'silver'): string {
         [-4, 11],
       ]),
       C.gold,
-      1,
+      0.8,
     ),
-    edge(ellipseD(0, 23, 12.5, 12.5), ball.url, 1.6),
-    path(ellipseD(-4, 18, 3.6, 2.6), C.white, { opacity: 0.85 }),
+    stroke('M-2.5 7L-2.5 10.5M0 7L0 10.5M2.5 7L2.5 10.5', C.goldShade, 0.6),
+    edge(ellipseD(0, 23, 12.5, 12.5), ball.url, 1.4),
+    stroke('M-11 26Q0 31 11 26', lit, 1.2, 0.45),
+    // A window's reflection and a rim light.
+    path(
+      polyD([
+        [-8, 15],
+        [-4, 14],
+        [-4, 19],
+        [-8, 20],
+      ]),
+      C.white,
+      { opacity: 0.8 },
+    ),
+    path(
+      polyD([
+        [-3.4, 14],
+        [-1.2, 13.8],
+        [-1.2, 18.6],
+        [-3.4, 18.9],
+      ]),
+      C.white,
+      { opacity: 0.6 },
+    ),
+    stroke('M8 17Q11 23 7 31', C.white, 1, 0.35),
   );
 }
 
@@ -636,9 +838,23 @@ function oupaHead(): string {
   );
 }
 
-/** Oupa standing and waving, his feet at (0, 0): khaki shirt and shorts, vellies, a Santa hat. */
+/**
+ * Oupa standing and waving, his feet at (0, 0) (D-064 round 2: at the v1.6/v1.7 bar): a lean old
+ * farmer, a little stooped — a khaki short-sleeved shirt with flap pockets, rolled sleeves and
+ * folds at the elbow and belt, a leather belt, khaki shorts with creases, sun-browned arms and
+ * legs shaded round (knees, calves, knuckles), socks rolled over brown suede vellies, a Santa hat.
+ */
 function oupa(): string {
   const shirt = linear(
+    [
+      [0, C.khakiLit],
+      [0.45, C.khaki],
+      [1, C.khakiShade],
+    ],
+    1,
+    0,
+  );
+  const shorts = linear(
     [
       [0, C.khakiLit],
       [0.5, C.khaki],
@@ -647,98 +863,162 @@ function oupa(): string {
     1,
     0,
   );
-  const shorts = linear(
+  const limb = linear(
     [
-      [0, C.khaki],
-      [1, C.khakiShade],
+      [0, C.skinLit],
+      [0.55, C.skin],
+      [1, C.skinShade],
     ],
     1,
-    0.4,
+    0,
   );
-  const leg = (x: number): string =>
+  const suede = linear(
+    [
+      [0, C.velskoenLit],
+      [1, C.velskoen],
+    ],
+    0,
+    1,
+  );
+  const leg = (x: number, lean: number): string =>
     g(
       {},
-      edge(
-        polyD([
-          [x - 10, -128],
-          [x + 10, -128],
-          [x + 9, -36],
-          [x - 9, -36],
-        ]),
-        C.skin,
-        2,
-      ),
-      // Socks rolled down over the vellies.
-      edge(
-        polyD([
-          [x - 10, -40],
-          [x + 10, -40],
-          [x + 10, -22],
-          [x - 10, -22],
-        ]),
-        C.sock,
-        1.8,
-      ),
-      // Velskoene: brown suede, a light stitched rand.
+      // Thigh to ankle, a knee and a calf: a tapered, shaded shape.
       edge(
         smoothD(
           [
-            [x - 12, -24],
-            [x + 12, -24],
-            [x + 30, -10],
-            [x + 30, 0],
-            [x - 14, 0],
+            [x - 11, -128],
+            [x + 11, -128],
+            [x + 10 + lean, -92],
+            [x + 9 + lean, -80],
+            [x + 10 + lean, -58],
+            [x + 7 + lean, -36],
+            [x - 7 + lean, -36],
+            [x - 9 + lean, -60],
+            [x - 10 + lean, -80],
+            [x - 11 + lean * 0.5, -96],
           ],
           true,
           0.6,
         ),
-        C.velskoen,
-        2.2,
+        limb.url,
+        2,
       ),
-      stroke(`M${x - 13} -4L${x + 29} -4`, C.velskoenLit, 2, 0.8),
+      // The knee: a soft highlight and a crease.
+      path(ellipseD(x + lean - 1, -86, 6, 5), C.skinLit, { opacity: 0.55 }),
+      stroke(`M${x + lean - 5} -80Q${x + lean} -77 ${x + lean + 5} -80`, C.skinShade, 1.2, 0.8),
+      // Socks rolled down over the vellies, a ribbed edge.
+      edge(
+        polyD([
+          [x - 9 + lean, -40],
+          [x + 9 + lean, -40],
+          [x + 10 + lean, -22],
+          [x - 10 + lean, -22],
+        ]),
+        C.sock,
+        1.6,
+      ),
+      stroke(
+        `M${x - 8 + lean} -36L${x + 8 + lean} -36M${x - 8 + lean} -32L${x + 8 + lean} -32`,
+        '#C8BEA8',
+        1,
+      ),
+      // Velskoene: brown suede, a stitched rand, laces, a sole.
+      edge(
+        smoothD(
+          [
+            [x - 12 + lean, -24],
+            [x + 12 + lean, -24],
+            [x + 26 + lean, -14],
+            [x + 32 + lean, -4],
+            [x + 30 + lean, 0],
+            [x - 14 + lean, 0],
+          ],
+          true,
+          0.6,
+        ),
+        suede.url,
+        2,
+      ),
+      stroke(`M${x - 13 + lean} -4L${x + 30 + lean} -4`, '#3A2618', 2.4),
+      stroke(`M${x - 10 + lean} -8L${x + 26 + lean} -8`, '#E8D8B8', 0.8, 0.8),
+      stroke(
+        `M${x + 2 + lean} -20L${x + 10 + lean} -16M${x + 4 + lean} -16L${x + 12 + lean} -13`,
+        '#2A1A10',
+        1,
+      ),
+    );
+  const hand = (cx: number, cy: number, rot: number): string =>
+    g(
+      { transform: `translate(${cx} ${cy}) rotate(${rot})` },
+      // Palm and four fingers, a thumb; knuckles shaded.
+      edge(ellipseD(0, 0, 8, 9), C.skin, 1.6),
+      ...[-6, -2, 2, 6].map((fx, i) =>
+        edge(
+          `M${fx - 1.8} -6L${fx - 1.6} ${-16 - (i === 1 || i === 2 ? 2 : 0)}Q${fx} ${-19 - (i === 1 || i === 2 ? 2 : 0)} ${fx + 1.6} ${-16 - (i === 1 || i === 2 ? 2 : 0)}L${fx + 1.8} -6Z`,
+          C.skinLit,
+          1.2,
+        ),
+      ),
+      edge('M7 0Q14 -4 15 -10Q12 -11 9 -6Z', C.skin, 1.2),
+      stroke('M-6 -4L6 -4', C.skinShade, 0.8, 0.7),
     );
   return g(
     {},
-    defs(shirt, shorts),
-    path(ellipseD(6, 2, 62, 8), '#000000', { opacity: 0.2 }),
-    leg(-18),
-    leg(18),
-    // Shorts.
-    edge(
-      polyD([
-        [-36, -184],
-        [36, -184],
-        [40, -120],
-        [4, -120],
-        [0, -150],
-        [-4, -120],
-        [-40, -120],
-      ]),
-      shorts.url,
-      2.4,
-    ),
-    stroke('M0 -184L0 -150', C.khakiShade, 2),
+    defs(shirt, shorts, limb, suede),
+    path(ellipseD(8, 2, 62, 8), '#000000', { opacity: 0.2 }),
+    leg(-17, -2),
+    leg(17, 3),
+    // Shorts: wide legs, creases at the fly and the hems, pockets.
     edge(
       polyD([
         [-36, -186],
         [36, -186],
-        [36, -176],
-        [-36, -176],
+        [42, -124],
+        [6, -120],
+        [0, -150],
+        [-6, -120],
+        [-42, -124],
       ]),
-      '#5A4028',
+      shorts.url,
+      2.4,
+    ),
+    stroke('M0 -184L0 -150', C.khakiShade, 1.6),
+    stroke('M-30 -138L-14 -134M14 -134L30 -138', C.khakiShade, 1.2, 0.8),
+    stroke('M-32 -178Q-24 -168 -26 -158M32 -178Q24 -168 26 -158', C.khakiShade, 1.2, 0.7),
+    stroke('M-40 -128L-8 -124M8 -124L40 -128', C.khakiLit, 1.2, 0.7),
+    // Belt and buckle.
+    edge(
+      polyD([
+        [-37, -192],
+        [37, -192],
+        [37, -182],
+        [-37, -182],
+      ]),
+      '#5A3A22',
       1.6,
     ),
-    // Shirt: short sleeves, two flap pockets, the buttons down the front.
+    edge(
+      polyD([
+        [-5, -193],
+        [5, -193],
+        [5, -181],
+        [-5, -181],
+      ]),
+      C.gold,
+      1.2,
+    ),
+    // Shirt: a body with folds tucked into the belt, a collar, flap pockets, buttons.
     edge(
       smoothD(
         [
-          [-38, -180],
+          [-38, -186],
           [-44, -236],
-          [-30, -262],
-          [0, -268],
-          [30, -262],
+          [-30, -264],
+          [0, -270],
+          [30, -264],
           [44, -236],
-          [38, -180],
+          [38, -186],
         ],
         true,
         0.6,
@@ -746,76 +1026,144 @@ function oupa(): string {
       shirt.url,
       2.4,
     ),
-    edge(
-      polyD([
-        [-30, -238],
-        [-12, -238],
-        [-12, -214],
-        [-30, -214],
-      ]),
-      C.khakiLit,
-      1.6,
+    stroke(
+      'M-30 -190Q-26 -200 -32 -210M28 -190Q24 -202 30 -212M-8 -190L-4 -200',
+      C.khakiShade,
+      1.2,
+      0.8,
     ),
     edge(
       polyD([
-        [12, -238],
-        [30, -238],
-        [30, -214],
-        [12, -214],
+        [-14, -268],
+        [0, -254],
+        [-4, -270],
       ]),
       C.khakiLit,
-      1.6,
+      1.4,
     ),
-    stroke('M0 -262L0 -186', C.khakiShade, 1.6),
-    ...[-250, -230, -210, -192].map((y) => el('circle', { cx: 0, cy: y, r: 2, fill: '#6A5430' })),
-    // Left arm down, right arm up waving.
     edge(
       polyD([
-        [-42, -258],
-        [-54, -250],
-        [-60, -196],
-        [-46, -196],
+        [14, -268],
+        [0, -254],
+        [4, -270],
+      ]),
+      C.khakiLit,
+      1.4,
+    ),
+    edge(
+      polyD([
+        [-30, -240],
+        [-12, -240],
+        [-12, -216],
+        [-30, -216],
+      ]),
+      C.khaki,
+      1.4,
+    ),
+    edge(
+      polyD([
+        [-31, -242],
+        [-11, -242],
+        [-13, -233],
+        [-29, -233],
+      ]),
+      C.khakiLit,
+      1.4,
+    ),
+    edge(
+      polyD([
+        [12, -240],
+        [30, -240],
+        [30, -216],
+        [12, -216],
+      ]),
+      C.khaki,
+      1.4,
+    ),
+    edge(
+      polyD([
+        [11, -242],
+        [31, -242],
+        [29, -233],
+        [13, -233],
+      ]),
+      C.khakiLit,
+      1.4,
+    ),
+    stroke('M0 -254L0 -192', C.khakiShade, 1.4),
+    ...[-246, -228, -210].map((y) => el('circle', { cx: 0, cy: y, r: 1.8, fill: '#6A5430' })),
+    // Left arm down: a rolled sleeve, a shaded forearm, his hand.
+    edge(
+      polyD([
+        [-40, -260],
+        [-56, -248],
+        [-60, -214],
+        [-44, -212],
         [-38, -236],
       ]),
       shirt.url,
       2.2,
     ),
+    stroke('M-60 -218L-44 -216', C.khakiShade, 2.4),
     edge(
-      polyD([
-        [-60, -198],
-        [-46, -198],
-        [-46, -168],
-        [-60, -168],
-      ]),
-      C.skin,
-      2,
+      smoothD(
+        [
+          [-58, -214],
+          [-46, -214],
+          [-46, -180],
+          [-50, -168],
+          [-58, -168],
+          [-60, -186],
+        ],
+        true,
+        0.6,
+      ),
+      limb.url,
+      1.8,
     ),
-    edge(ellipseD(-53, -162, 9, 10), C.skin, 2),
+    hand(-53, -160, 180),
+    // Right arm up, waving: the upper arm, its rolled sleeve, the forearm, an open hand.
     edge(
       polyD([
-        [60, -282],
-        [74, -290],
-        [90, -336],
-        [78, -342],
+        [61.7, -279.1],
+        [71.5, -291.7],
+        [60.5, -300.3],
+        [50.7, -287.7],
       ]),
-      C.skin,
-      2,
+      limb.url,
+      1.8,
     ),
-    edge(ellipseD(86, -348, 10, 12), C.skin, 2),
-    stroke('M80 -356L78 -366M86 -358L86 -369M92 -356L95 -366', C.skin, 4),
     edge(
       polyD([
-        [36, -262],
-        [48, -268],
-        [76, -292],
-        [62, -300],
-        [40, -280],
+        [45.1, -254.4],
+        [63.3, -277.8],
+        [49.1, -289],
+        [30.9, -265.6],
       ]),
       shirt.url,
       2.2,
     ),
+    stroke('M63.3 -277.8L49.1 -289', C.khakiShade, 2.6),
+    stroke('M38 -262Q46 -270 52 -280', C.khakiShade, 1, 0.6),
+    edge(
+      smoothD(
+        [
+          [64, -298],
+          [74, -292],
+          [88, -326],
+          [86, -340],
+          [78, -340],
+          [70, -320],
+        ],
+        true,
+        0.6,
+      ),
+      limb.url,
+      1.8,
+    ),
+    hand(84, -348, 12),
     // His head and beard, the Santa hat on top.
-    g({ transform: 'translate(0 -290) scale(0.82)' }, oupaHead()),
+    g({ transform: 'translate(0 -292) scale(0.82)' }, oupaHead()),
   );
 }
 

@@ -93,7 +93,8 @@ export interface XmasRect {
 }
 
 /** Sheet width in design px (×XMAS_MASTER in texture px). */
-export const XMAS_SHEET_W = 600;
+export { XMAS_SHEET_W } from './christmasKeys';
+import { XMAS_SHEET_W } from './christmasKeys';
 const PAD = 4;
 
 /** Every frame of the sheet in design px (×1), packed in shelves in SPECS order. */

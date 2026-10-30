@@ -15,7 +15,7 @@ import type { TallyExtras } from '../daily/DailyFlow';
 import type { GameContext } from '../GameContext';
 import { formatPercent, formatScore } from '../ui/format';
 import { tallyBarkSlot, type Rect } from '../ui/hudLayout';
-import { drawSlateFrame } from '../ui/specialBadge';
+import { drawSlateFrame, lastXmasPresent } from '../ui/specialBadge';
 import { XMAS_SOUNDS } from '../feesdae/christmasKeys';
 import { BarkBubble, sayBark } from '../ui/BarkBubble';
 import { powerupIcon } from '../ui/powerupIcons';
@@ -178,6 +178,9 @@ export class TallyScene extends Phaser.Scene {
     // D-048: the frame's moon and the tag's rects ride along into the hook's final rects below.
     const frameRects: Record<string, Rect> = {};
     if (moon !== null) frameRects['tallyMoon'] = moon;
+    // D-064: Christmas's present on the frame (kept clear of the buttons; e2e checks it).
+    if (special?.frame === 'christmas' && lastXmasPresent !== null)
+      frameRects['tallyPresent'] = lastXmasPresent;
     const title = this.add
       .text(
         px + panelW / 2,

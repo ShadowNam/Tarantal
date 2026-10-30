@@ -7,7 +7,7 @@
 // left-handed mirroring, and the ⛔ call-out only for creatures not yet in the Bird Book (first
 // sighting ever). A separate scene so camera shake never moves it. Fed each frame by HuntScene
 // with the latest snapshot and that frame's events.
-import { CHRISTMAS_SHEET, OUPA_DRAWN, XMAS_MASTER } from '../feesdae/christmasKeys';
+import { OUPA_DRAWN, xmasKeyIn, xmasMasterOf } from '../feesdae/christmasKeys';
 import { redDotIds, redDotUp } from '../view/redDot';
 import { designSize } from '../layout';
 import { fitCamera } from '../view/fitCamera';
@@ -801,14 +801,13 @@ export class HudScene extends Phaser.Scene {
         // D-064: on Christmas Oupa's bubble shows his face in his Santa hat (the hunt drew the
         // sheet or its stand-in already).
         if (e.feesdag === 'christmas') {
-          const key = [CHRISTMAS_SHEET, `${CHRISTMAS_SHEET}#standin`].find((k) =>
-            this.textures.exists(k),
-          );
-          if (key !== undefined)
+          const key = xmasKeyIn(this.textures);
+          if (key !== null)
             this.bubble?.setPortrait({
               key,
               frame: 'oupa_head',
-              scale: 0.36 / OUPA_DRAWN / XMAS_MASTER,
+              scale:
+                0.36 / OUPA_DRAWN / xmasMasterOf(this.textures.get(key).getSourceImage().width),
             });
         }
       } else if (e.type === 'lanternsOut') {

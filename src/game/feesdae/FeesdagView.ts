@@ -31,6 +31,7 @@ import {
 import { drawStandin } from './standin';
 import anchorsJson from './hatAnchors.json';
 import { loadVoiceIndex } from '../assets/voiceIndex';
+import { fetchHdIndex } from '../assets/hdRuntime';
 import { CHRISTMAS_SHEET, XMAS_SOUNDS } from './christmasAssets';
 
 export { KersfeesSceneView } from './KersfeesView';
@@ -206,18 +207,28 @@ async function loadSounds(
  * doesn't list it or it failed. Christmas's hunt waits for it (bounded by the file timeout) so no
  * stand-in is drawn in normal play (~7 MB of GPU memory saved; it never blocks on an unlisted file).
  */
-export function loadSpecialSheet(special: string): Promise<HTMLImageElement | null> {
+export function loadSpecialSheet(special: string, hd = false): Promise<HTMLImageElement | null> {
   const files = SPECIAL_FILES[special];
   if (files === undefined) return Promise.resolve(null);
-  let own = sheets.get(special);
+  const id = hd ? `${special}@hd` : special;
+  let own = sheets.get(id);
   if (own === undefined) {
-    own = fetchAssetIndex(FILE_TIMEOUT_MS).then(async (r) => {
-      const entry = r.index?.images[files.sheet];
-      const img = entry === undefined ? null : await loadImage(entry.file.path, FILE_TIMEOUT_MS);
-      if (img === null) sheets.delete(special);
+    own = (async () => {
+      // D-064 round 2: with HD on, the sheet's 2× twin from the HD half of the index (its own
+      // lazy "-hd" group); the Standard 1× pack otherwise, or when there is no twin.
+      const path = hd
+        ? ((await fetchHdIndex(FILE_TIMEOUT_MS))?.images[files.sheet]?.file.path ?? null)
+        : null;
+      const std =
+        path === null
+          ? ((await fetchAssetIndex(FILE_TIMEOUT_MS)).index?.images[files.sheet]?.file.path ?? null)
+          : null;
+      const file = path ?? std;
+      const img = file === null ? null : await loadImage(file, FILE_TIMEOUT_MS);
+      if (img === null) sheets.delete(id);
       return img;
-    });
-    sheets.set(special, own);
+    })();
+    sheets.set(id, own);
   }
   return own;
 }
@@ -231,6 +242,7 @@ export function loadSpecialSheet(special: string): Promise<HTMLImageElement | nu
 export function loadFeesdaeAssets(
   audio: AudioDirector,
   special: string,
+  hd = false,
 ): Promise<HTMLImageElement | null> {
   const files = SPECIAL_FILES[special];
   if (files === undefined) return Promise.resolve(null);
@@ -272,7 +284,7 @@ export function loadFeesdaeAssets(
         if (!(await loadSounds(audio, want, format))) voices.delete(voiceId);
       }),
     );
-  const own = loadSpecialSheet(special);
+  const own = loadSpecialSheet(special, hd);
   return Promise.all([sounds.get(special), own, voices.get(voiceId)]).then(([, img]) => img);
 }
 

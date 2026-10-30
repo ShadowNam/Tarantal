@@ -46,8 +46,9 @@ export class BarkBubble {
   }
 
   /**
-   * D-064: Oupa's face (a texture frame, origin at his face's middle) peeping over the bubble's
-   * top-left corner while a special day's hunt runs; null takes it away.
+   * D-064: Oupa's face (a texture frame, origin at his face's middle) at the bubble's top-left,
+   * inside the plate (so inside the slot, i.e. the safe area: only his hat's tip rises above the
+   * plate), while a special day's hunt runs; null takes it away.
    */
   setPortrait(p: { key: string; frame: string; scale: number } | null): void {
     if (p === null) {
@@ -58,8 +59,18 @@ export class BarkBubble {
       this.portrait = this.scene.add.image(0, 0, p.key, p.frame);
       this.root.add(this.portrait);
     }
-    this.portrait.setTexture(p.key, p.frame).setScale(p.scale).setPosition(-6, -10);
+    this.portrait
+      .setTexture(p.key, p.frame)
+      .setScale(p.scale)
+      .setPosition(PAD + 12, PAD + 14);
     this.portrait.setVisible(true);
+  }
+
+  /** D-064: the portrait's on-screen rect while it shows (design px), else null. */
+  portraitRect(): Rect | null {
+    if (this.portrait?.visible !== true || this.rect === null) return null;
+    const b = this.portrait.getBounds();
+    return { x: b.x, y: b.y, w: b.width, h: b.height };
   }
 
   /** Shows `text` in `slot` (top-left anchored) for timing.bubbleMs, fading in and out. */
@@ -67,7 +78,7 @@ export class BarkBubble {
     const inner = slot.w - 2 * PAD;
     this.line.setWordWrapWidth(inner, true).setText(text).setScale(1);
     // D-064: with Oupa's face on the corner, his name moves right of it.
-    const nameX = this.portrait?.visible === true ? PAD + 34 : PAD;
+    const nameX = this.portrait?.visible === true ? PAD + 40 : PAD;
     this.name.setPosition(nameX, PAD);
     const top = PAD + this.name.height;
     // Too tall for the slot (a long translation at a large text size): shrink to fit.
@@ -137,6 +148,10 @@ export function sayBark(
   if (hook) {
     const r = bubble.rect ?? slot;
     hook.bark = { line, text, x: r.x, y: r.y, w: r.w, h: r.h };
+    // D-064: Oupa's Santa-hat face on the bubble, for the safe-area checks.
+    const face = bubble.portraitRect();
+    if (face === null) delete hook.rects['barkPortrait'];
+    else hook.rects['barkPortrait'] = face;
     hook.barks.push(line);
     if (hook.barks.length > HOOK_BARKS_MAX) hook.barks.shift();
     bubble.onHidden = () => {

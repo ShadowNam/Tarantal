@@ -57,11 +57,7 @@ import {
   HALLOWEEN_SHEET,
   SHEET_MASTER as FEESDAE_MASTER,
 } from '../../src/game/feesdae/feesdaeAssets';
-import {
-  CHRISTMAS_GROUP,
-  CHRISTMAS_SHEET,
-  XMAS_MASTER,
-} from '../../src/game/feesdae/christmasAssets';
+import { CHRISTMAS_GROUP, CHRISTMAS_SHEET } from '../../src/game/feesdae/christmasAssets';
 import { DESERT_GROUP, MEERKAT_SHEET, SHEET_MASTER } from '../../src/game/assets/desertAssets';
 import type { ContentBundle } from '../../src/content/schemas';
 import type { ArtPlaneId as PlaneId } from '../../src/game/assets/artPlane';
@@ -1025,8 +1021,9 @@ export function propPlaneRes(content: ContentBundle, key: string): number {
   if (key === MEERKAT_SHEET) return SHEET_MASTER;
   // D-048: the Halloween sheet keeps its 2× master (its frame table is in texture px at 2×).
   if (key === HALLOWEEN_SHEET) return FEESDAE_MASTER;
-  // D-064: the Christmas sheet too (its frame table is in texture px at 2×).
-  if (key === CHRISTMAS_SHEET) return XMAS_MASTER;
+  // D-064 round 2: the Christmas sheet packs at 1× for Standard (its frames scale by the image's
+  // own width), and its 2× master is the HD twin (feesdae-christmas-hd): HD shows more detail.
+  if (key === CHRISTMAS_SHEET) return 1;
   // v1.8 (D-050): the tin cans keep their 2× master (near cans are seen close up).
   if (key === CAN_SHEET) return CAN_MASTER;
   let res = 0;

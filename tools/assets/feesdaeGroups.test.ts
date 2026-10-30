@@ -48,6 +48,10 @@ describe('the special days split their lazy groups (D-064)', () => {
     const { index } = readFullIndex(join(root, 'public'));
     if (index === null) throw new Error('no asset index');
     expect(index.images[CHRISTMAS_SHEET]?.group).toBe(CHRISTMAS_GROUP);
+    // Round 2: Standard is the 1× pack; the 2× master is its HD twin, in its own lazy group.
+    const xmas = index.images[CHRISTMAS_SHEET];
+    expect(xmas?.hd?.file.path).toContain('/feesdae-christmas-hd/');
+    expect(xmas?.hd?.width).toBe((xmas?.width ?? 0) * 2);
     expect(index.images[HALLOWEEN_SHEET]?.group).toBe(FEESDAE_GROUP);
     for (const k of Object.values(XMAS_SOUNDS)) expect(index.audio[k]?.group).toBe(CHRISTMAS_GROUP);
     for (const g of index.initialGroups) expect(g.startsWith('feesdae')).toBe(false);

@@ -28,6 +28,7 @@ import {
 } from './christmasAssets';
 import { drawChristmasStandin } from './christmasStandin';
 import anchorsJson from './hatAnchors.json';
+import { CHRISTMAS_SHEET_HD, xmasKeyIn, xmasMasterOf } from './christmasKeys';
 
 type Anchor = readonly [number, number, number, number];
 /** The guineafowl's head in every frame of every clip (tools/art/hatAnchors.ts): the Santa hats
@@ -43,32 +44,45 @@ const TICKS_PER_SECOND = 60;
 
 const ORIGINS = new Map(xmasFrames().map((f) => [f.name, f]));
 
-/** Adds the frame table to a texture (texture px = design px × XMAS_MASTER). */
-export function addXmasFrames(tex: Phaser.Textures.Texture): void {
+/** Adds the frame table to a texture (texture px = design px × its master: 1 Standard, 2 HD). */
+export function addXmasFrames(tex: Phaser.Textures.Texture, master: number): void {
   for (const f of xmasFrames()) {
     if (tex.has(f.name)) continue;
-    tex.add(f.name, 0, f.x * XMAS_MASTER, f.y * XMAS_MASTER, f.w * XMAS_MASTER, f.h * XMAS_MASTER);
+    tex.add(f.name, 0, f.x * master, f.y * master, f.w * master, f.h * master);
   }
 }
 
-/** The delivered sheet when it is in, else the stand-in (drawn once per page). */
+/**
+ * The delivered sheet when it is in (D-064 round 2: a 2× image is the HD sheet, a 1× one the
+ * Standard pack; each has its own key), else the best one already loaded, else the stand-in
+ * (drawn once per page, at 2×).
+ */
 export function ensureXmasTexture(scene: Phaser.Scene, sheet: HTMLImageElement | null): string {
   const textures = scene.textures;
-  if (sheet !== null && !textures.exists(CHRISTMAS_SHEET)) {
-    const tex = textures.addImage(CHRISTMAS_SHEET, sheet);
-    if (tex !== null) addXmasFrames(tex);
+  if (sheet !== null) {
+    const master = xmasMasterOf(sheet.width);
+    const key = master >= 2 ? CHRISTMAS_SHEET_HD : CHRISTMAS_SHEET;
+    if (!textures.exists(key)) {
+      const tex = textures.addImage(key, sheet);
+      if (tex !== null) addXmasFrames(tex, master);
+    }
+    if (textures.exists(key)) return key;
   }
-  if (textures.exists(CHRISTMAS_SHEET)) return CHRISTMAS_SHEET;
-  if (!textures.exists(XMAS_STANDIN)) {
-    const canvas = document.createElement('canvas');
-    canvas.width = XMAS_SHEET_W * XMAS_MASTER;
-    canvas.height = XMAS_SHEET_H * XMAS_MASTER;
-    const g = canvas.getContext('2d');
-    if (g !== null) drawChristmasStandin(g, XMAS_MASTER);
-    const tex = textures.addCanvas(XMAS_STANDIN, canvas);
-    if (tex !== null) addXmasFrames(tex);
-  }
+  const have = xmasKeyIn(textures);
+  if (have !== null) return have;
+  const canvas = document.createElement('canvas');
+  canvas.width = XMAS_SHEET_W * XMAS_MASTER;
+  canvas.height = XMAS_SHEET_H * XMAS_MASTER;
+  const g = canvas.getContext('2d');
+  if (g !== null) drawChristmasStandin(g, XMAS_MASTER);
+  const tex = textures.addCanvas(XMAS_STANDIN, canvas);
+  if (tex !== null) addXmasFrames(tex, XMAS_MASTER);
   return XMAS_STANDIN;
+}
+
+/** Texture px per design px of the texture under `key`. */
+function masterOf(scene: Phaser.Scene, key: string): number {
+  return xmasMasterOf(scene.textures.get(key).getSourceImage().width);
 }
 
 /** Sets a frame and its origin, only when they change. */
@@ -210,6 +224,8 @@ export interface KersfeesDeps {
 
 export class KersfeesSceneView {
   private key: string;
+  /** Texture px per design px of the sheet drawn now (1 Standard, 2 HD or the stand-in). */
+  private master: number;
   private readonly scene: Phaser.Scene;
   private readonly parallax: ParallaxView;
   private readonly look: ChristmasLook;
@@ -243,6 +259,7 @@ export class KersfeesSceneView {
     this.planeScale = d.planeScale;
     this.reduceFlashes = d.reduceFlashes;
     this.key = ensureXmasTexture(d.scene, d.sheet);
+    this.master = masterOf(d.scene, this.key);
     const look = d.look;
     if (d.hooks === true)
       (window as { __TM_XMAS_HIDE__?: (on: boolean) => void }).__TM_XMAS_HIDE__ = (on) => {
@@ -291,7 +308,7 @@ export class KersfeesSceneView {
           );
           const f = ORIGINS.get(frame);
           if (f !== undefined) img.setOrigin(f.ox / f.w, f.oy / f.h);
-          img.setRotation(Math.atan2(y1 - y0, x1 - x0)).setScale(span / XMAS_MASTER);
+          img.setRotation(Math.atan2(y1 - y0, x1 - x0)).setScale(span / this.master);
           layer.fixtures.add(img);
           this.garlands.push({ img, frame });
         }
@@ -303,14 +320,14 @@ export class KersfeesSceneView {
           const img = d.scene.add.image(x, y, this.key, frame);
           const f = ORIGINS.get(frame);
           if (f !== undefined) img.setOrigin(f.ox / f.w, f.oy / f.h);
-          img.setScale(1 / XMAS_MASTER);
+          img.setScale(1 / this.master);
           layer.fixtures.add(img);
           mine.push({ img, x, y: y + 23 });
         }
         this.baubles.push(...mine);
         if (!this.reduceFlashes && mine.length > 0) {
           const glint = d.scene.add.image(0, 0, this.key, 'glint');
-          glint.setScale(look.glint.scale / XMAS_MASTER).setAlpha(0);
+          glint.setScale(look.glint.scale / this.master).setAlpha(0);
           layer.fixtures.add(glint);
           this.glints.push({ img: glint, baubles: mine, phase: this.glints.length * 0.37 });
         }
@@ -345,18 +362,32 @@ export class KersfeesSceneView {
     // The view has no screen-fixed parts.
   }
 
-  /** The delivered sheet arrived: every image moves over to it. */
+  /** The delivered sheet arrived: every image moves over to it (rescaled to its master). */
   useSheet(img: HTMLImageElement): void {
-    this.key = ensureXmasTexture(this.scene, img);
-    if (this.key !== CHRISTMAS_SHEET) return;
-    for (const g of this.garlands) g.img.setTexture(this.key, g.frame);
-    for (const b of this.baubles) b.img.setTexture(this.key, b.img.frame.name);
-    for (const gl of this.glints) gl.img.setTexture(this.key, 'glint');
+    const key = ensureXmasTexture(this.scene, img);
+    if (key === XMAS_STANDIN || key === this.key) return;
+    const k = this.master / masterOf(this.scene, key);
+    this.key = key;
+    this.master = masterOf(this.scene, key);
+    for (const g of this.garlands) g.img.setTexture(key, g.frame).setScale(g.img.scaleX * k);
+    for (const b of this.baubles) b.img.setTexture(key, b.img.frame.name).setScale(1 / this.master);
+    for (const gl of this.glints)
+      gl.img.setTexture(key, 'glint').setScale(this.look.glint.scale / this.master);
+    for (const d of this.drawn.values()) d.img.setScale(this.planeScale[d.plane] / this.master);
   }
 
   /** Whether the delivered sheet (not the stand-in) is drawn. */
   get final(): boolean {
-    return this.key === CHRISTMAS_SHEET;
+    return this.key === CHRISTMAS_SHEET || this.key === CHRISTMAS_SHEET_HD;
+  }
+
+  /** e2e: which sheet is drawn ('hd', 'standard' or 'standin'). */
+  get sheetKind(): 'hd' | 'standard' | 'standin' {
+    return this.key === CHRISTMAS_SHEET_HD
+      ? 'hd'
+      : this.key === CHRISTMAS_SHEET
+        ? 'standard'
+        : 'standin';
   }
 
   /** One frame: the presents (shut, or open with the lid hop and confetti on sim time), the glint. */
@@ -382,7 +413,7 @@ export class KersfeesSceneView {
         node.fruit.add(img);
         node.overlay?.add(lid);
         node.overlay?.add(confetti);
-        img.setScale(s / XMAS_MASTER);
+        img.setScale(s / this.master);
         d = { img, lid, confetti, plane: t.plane, openedAt: null };
         this.drawn.set(t.id, d);
       }
@@ -423,7 +454,7 @@ export class KersfeesSceneView {
       const hop = this.look.lidHopPx * s * 4 * lidT * (1 - lidT);
       d.lid
         .setVisible(true)
-        .setScale(s / XMAS_MASTER)
+        .setScale(s / this.master)
         .setPosition(x + 60 * s * lidT, top - hop)
         .setRotation(0.9 * lidT)
         .setAlpha(lidT < 0.7 ? 1 : (1 - lidT) / 0.3);
@@ -434,7 +465,7 @@ export class KersfeesSceneView {
       d.confetti
         .setVisible(true)
         .setPosition(x, top - 20 * s - 40 * s * cT)
-        .setScale(((0.5 + 0.8 * cT) * s) / XMAS_MASTER)
+        .setScale(((0.5 + 0.8 * cT) * s) / this.master)
         .setAlpha(1 - cT);
     } else if (d.confetti.visible) d.confetti.setVisible(false);
   }
@@ -476,6 +507,7 @@ export class KersfeesSceneView {
     garlands: number;
     baubles: number;
     found: number | null;
+    sheet: 'hd' | 'standard' | 'standin';
   } {
     return {
       prop: this.tinselTrees[0] ?? null,
@@ -483,6 +515,7 @@ export class KersfeesSceneView {
       garlands: this.garlands.length,
       baubles: this.baubles.length,
       found: this.foundPoints,
+      sheet: this.sheetKind,
     };
   }
 

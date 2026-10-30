@@ -576,6 +576,7 @@ export interface TestHook {
       garlands: number;
       baubles: number;
       found: number | null;
+      sheet: 'hd' | 'standard' | 'standin';
     };
     heat?: number;
   } | null;

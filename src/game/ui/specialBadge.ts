@@ -2,7 +2,7 @@
 // orange pill behind the Daily's status line. Drawn in code (no art in the first download). The tally's special frame (drawSlateFrame) uses the special's own sheet.
 import * as Phaser from 'phaser';
 import { HALLOWEEN_SHEET, SHEET_MASTER } from '../feesdae/feesdaeAssets';
-import { CHRISTMAS_SHEET, OUPA_DRAWN, XMAS_MASTER } from '../feesdae/christmasKeys';
+import { OUPA_DRAWN, xmasKeyIn, xmasMasterOf } from '../feesdae/christmasKeys';
 import type { Rect } from './hudLayout';
 
 const FILL = 0xf28c28;
@@ -49,26 +49,37 @@ export function specialStatusStyle(special: string): {
     : { ...SPECIAL_STATUS_STYLE };
 }
 
-/** D-064: the Christmas sheet's key: delivered, else the hunt's stand-in (KersfeesView). */
-function xmasKey(scene: Phaser.Scene): string | null {
-  if (scene.textures.exists(CHRISTMAS_SHEET)) return CHRISTMAS_SHEET;
-  const standin = `${CHRISTMAS_SHEET}#standin`;
-  return scene.textures.exists(standin) ? standin : null;
+/** D-064: the best Christmas texture in (HD, Standard, the stand-in) and its master. */
+function xmasKey(scene: Phaser.Scene): { key: string; m: number } | null {
+  const key = xmasKeyIn(scene.textures);
+  if (key === null) return null;
+  return { key, m: xmasMasterOf(scene.textures.get(key).getSourceImage().width) };
+}
+
+/** Moves an image so its bounds stay inside the screen (design px) with a margin. */
+function keepOnScreen(scene: Phaser.Scene, img: Phaser.GameObjects.Image, margin = 8): Rect {
+  const cam = scene.cameras.main;
+  let b = img.getBounds();
+  const dx = Math.max(0, margin - b.x) - Math.max(0, b.right - (cam.width - margin));
+  const dy = Math.max(0, margin - b.y) - Math.max(0, b.bottom - (cam.height - margin));
+  if (dx !== 0 || dy !== 0) img.setPosition(img.x + dx, img.y + dy);
+  b = img.getBounds();
+  return { x: b.x, y: b.y, w: b.width, h: b.height };
 }
 
 /** D-064: Oupa in his Santa hat and shorts, waving beside the title's badge (feet on the badge's
  *  baseline, left of it). Null until Christmas's sheet is in. */
 export function drawBadgeOupa(scene: Phaser.Scene, badge: Rect): Rect | null {
-  const key = xmasKey(scene);
-  if (key === null) return null;
+  const tex = xmasKey(scene);
+  if (tex === null) return null;
   const s = 0.36 / OUPA_DRAWN;
+  // Left of the badge, clear of its corner (his waving hand reaches ~34 px right of his feet).
   const img = scene.add
-    .image(badge.x - 8, badge.y + badge.h, key, 'oupa')
+    .image(badge.x - 44, badge.y + badge.h, tex.key, 'oupa')
     .setOrigin(55 / 120, 206 / 210)
-    .setScale(s / XMAS_MASTER)
+    .setScale(s / tex.m)
     .setDepth(6);
-  const b = img.getBounds();
-  return { x: b.x, y: b.y, w: b.width, h: b.height };
+  return keepOnScreen(scene, img);
 }
 
 /** The Halloween sheet's key: delivered, else the hunt's stand-in (both from FeesdagView). */
@@ -82,6 +93,9 @@ function sheetKey(scene: Phaser.Scene): string | null {
  * D-048: a special day's frame round the tally slate (Halloween: a purple edge, the moon, bats
  * and a pumpkin lantern). Drawn from the special's sheet, which its hunt has just loaded.
  */
+/** D-064: the tally present's rect (the tally hook keeps it for the overlap checks). */
+export let lastXmasPresent: Rect | null = null;
+
 export function drawSlateFrame(scene: Phaser.Scene, frame: string, slate: Rect): Rect | null {
   if (frame === 'christmas') return drawXmasFrame(scene, slate);
   if (frame !== 'halloween') return null;
@@ -139,9 +153,9 @@ function drawXmasFrame(scene: Phaser.Scene, slate: Rect): Rect | null {
     slate.h + 2,
     18,
   );
-  const key = xmasKey(scene);
-  if (key === null) return null;
-  const m = XMAS_MASTER;
+  const tex = xmasKey(scene);
+  if (tex === null) return null;
+  const { key, m } = tex;
   // Tinsel along the top edge, clear of the tag (top left) and [Share] (top right).
   const garlands: [number, number, string][] = [
     [slate.x + 150, slate.y - 4, 'garland_silver'],
@@ -152,14 +166,20 @@ function drawXmasFrame(scene: Phaser.Scene, slate: Rect): Rect | null {
       .image(x, y, key, f)
       .setOrigin(160 / 320, 14 / 90)
       .setScale(0.7 / m);
-  scene.add
-    .image(slate.x + slate.w - 40, slate.y + slate.h - 18, key, 'present_a_shut')
+  // A present on the right edge of the frame, half way down (clear of the buttons at the
+  // bottom and of [Share] at the top), kept on screen.
+  const present = scene.add
+    .image(slate.x + slate.w + 10, slate.y + slate.h * 0.55, key, 'present_a_shut')
     .setOrigin(70 / 140, 180 / 182)
-    .setScale(0.55 / m);
+    .setScale(0.32 / m);
+  const pr = keepOnScreen(scene, present);
+  // Oupa's head in his Santa hat on the frame's left edge, below the corner (on every device
+  // inside the screen; Halloween's moon sits outside the corner, which a phone cuts).
   const head = scene.add
-    .image(slate.x - 30, slate.y - 26, key, 'oupa_head')
+    .image(slate.x - 4, slate.y + 64, key, 'oupa_head')
     .setOrigin(31 / 66, 68 / 100)
-    .setScale(0.62 / OUPA_DRAWN / m);
-  const b = head.getBounds();
-  return { x: b.x, y: b.y, w: b.width, h: b.height };
+    .setScale(0.4 / OUPA_DRAWN / m);
+  const hr = keepOnScreen(scene, head);
+  lastXmasPresent = pr;
+  return hr;
 }
