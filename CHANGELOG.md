@@ -3,6 +3,26 @@
 All notable changes to Tarantal Madness. Versions follow [Semantic Versioning](https://semver.org).
 Decision records for each milestone are in `docs/05-DECISIONS-AND-RESEARCH.md` (D-017 … D-028).
 
+## [1.11.0] — Die Oes (The Harvest): a new 30-second mode on a farm field (30 Oct 2026)
+
+Decision record D-063. The product owner (25 Oct): "A very good level we could do, and call it the
+harvest … everything flocks to it and tries to eat as much as possible. You've got 30 seconds to
+shoot as many animals for points as possible to keep them out while the fence gets repaired."
+
+- **Die Oes / The Harvest** on the title (a fifth button, after the first hunt): a 3-s intro on sim
+  time (a warthog family barges through the fence; a tap skips it), then 30 s of animals pouring
+  into the crops (guineafowl flocks, fly-overs, warthogs, v1.8b's baboon raiders after the mielies)
+  while the farm workers mend the gap. The crop meter drains per eating animal; the fence closes at
+  30 s and the crop saved pays a bonus. Its own tally (bagged by kind, crop saved, crop bonus) and a
+  local best.
+- **Warthogs:** 2 hits bag one (3 × a guineafowl's base, × Frenzy), the first sends it running.
+  Piglets trail their mother, never come in alone and are never targets.
+- **Workers and piglets** cost points only from a shot aimed at them (the baboon mothers' rule); a
+  stray pellet makes a worker duck. The workers stand out of every target's line of fire over the
+  whole camera sweep (`tools/art/harvestLineOfFire.ts`).
+- The Harvest's map (`oes`), its sheet, sim system and view are lazy: the first download only
+  carries the title button, its strings and the mode's content.
+
 ## [1.10.0] — Bobbejane: baboon troops on the ridges; raiders that come down to cause trouble (30 Oct 2026)
 
 Decision record D-062. The product owner (25 Oct): "It's important in these maps that the African
