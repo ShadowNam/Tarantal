@@ -163,7 +163,7 @@
       {
         "t": 1,
         "flocks": {
-          "mid": 2
+          "mid": 1
         },
         "flyoversPerMin": 18,
         "popupsPerMin": 8
@@ -175,7 +175,7 @@
       "flockState": "run"
     },
     "maxBirdsOnScreen": 60,
-    "maxFlocks": 6
+    "maxFlocks": 8
   },
   "spawnTable": [
     {

@@ -384,14 +384,17 @@ test('the Harvest: title, intro, mid-run, a worker ducking, the rush, the end, t
 
   // The rush at its peak: from 6 s before the end, hold at the first tick (checked every 10)
   // with at least 2 flocks, 3 warthogs and a raider on screen; fail when it never gets busy.
+  // Review round 3: 30-tick steps (each costs seconds on software GL), the counts logged, and the
+  // thin-rush error thrown well inside the budget (at most 10 steps).
   let busy = false;
-  for (let at = INTRO + RUSH - 6 * 60; at <= INTRO + RUSH - 10 && !busy; at += 10) {
+  let last = { flocks: 0, warthogs: 0, raiders: 0, flyins: 0 };
+  for (let at = INTRO + RUSH - 6 * 60; at <= INTRO + RUSH - 20 && !busy; at += 30) {
     await holdAt(page, touch, at);
-    const c = await rushCount(page);
-    busy = c.flocks >= 2 && c.warthogs >= 3 && c.raiders >= 1;
-    if (at + 10 > INTRO + RUSH - 10 && !busy)
-      throw new Error(`the rush is thin at its peak: ${JSON.stringify(c)}`);
+    last = await rushCount(page);
+    console.log(`[v18c] rush at tick ${String(at)}: ${JSON.stringify(last)}`);
+    busy = last.flocks >= 2 && last.warthogs >= 3 && last.raiders >= 1;
   }
+  if (!busy) throw new Error(`the rush is thin at its peak: ${JSON.stringify(last)}`);
   const rush = await grab(page);
   save('rush', info, rush.img);
   const hog = await warthogBox(page);

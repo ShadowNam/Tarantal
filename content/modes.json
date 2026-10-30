@@ -225,12 +225,12 @@
       "rush": {
         "keyframes": [
           { "t": 0, "warthogsPerMin": 10, "gapFlocksPerMin": 4 },
-          { "t": 0.5, "warthogsPerMin": 18, "gapFlocksPerMin": 6 },
-          { "t": 1, "warthogsPerMin": 30, "gapFlocksPerMin": 8 }
+          { "t": 0.5, "warthogsPerMin": 18, "gapFlocksPerMin": 8 },
+          { "t": 1, "warthogsPerMin": 30, "gapFlocksPerMin": 12 }
         ],
         "maxWarthogs": 8,
         "gapFlockSize": [4, 7],
-        "maxGapFlocks": 4,
+        "maxGapFlocks": 6,
         "nearShare": 0.3
       },
       "warthogs": {

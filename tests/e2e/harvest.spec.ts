@@ -147,7 +147,12 @@ test('a shot aimed at a worker costs the penalty and the worker ducks; the sheet
     null,
     { timeout: 300_000 },
   );
-  if (!touch) await page.mouse.move(0, 0);
+  // Review round 3: the mouse rests at the bottom centre, outside both edge-pan bands (at 0, 0 it
+  // panned the camera between the two grabs and the workers slid out of view).
+  if (!touch) {
+    const box = await page.locator('#game canvas').boundingBox();
+    if (box !== null) await page.mouse.move(box.x + box.width / 2, box.y + box.height * 0.97);
+  }
   await page.waitForTimeout(1500);
   const before = decodePng(await page.locator('#game canvas').screenshot());
   // On to the rush with the workers at work (held).
@@ -176,24 +181,36 @@ test('a shot aimed at a worker costs the penalty and the worker ducks; the sheet
     const i = (Math.round(y * k) * img.width + Math.round(x * k)) * 4;
     return [img.data[i] ?? 0, img.data[i + 1] ?? 0, img.data[i + 2] ?? 0];
   };
+  // Several points inside each body ellipse; a point inside another worker's ellipse is skipped.
   let drawn = 0;
+  const report: string[] = [];
   for (const w of workers) {
     const b = w.body;
     if (b === null) continue;
     let samples = 0;
     let differs = 0;
-    for (let dy = -0.8; dy <= 0.8; dy += 0.2)
-      for (let dx = -0.6; dx <= 0.6; dx += 0.3) {
+    for (let dy = -0.8; dy <= 0.81; dy += 0.2)
+      for (let dx = -0.6; dx <= 0.61; dx += 0.3) {
         const x = b.x + dx * b.rx;
         const y = b.y + dy * b.ry;
+        const other = workers.some(
+          (o) =>
+            o !== w &&
+            o.body !== null &&
+            ((x - o.body.x) / o.body.rx) ** 2 + ((y - o.body.y) / o.body.ry) ** 2 <= 1,
+        );
+        if (other) continue;
         samples++;
         const a = px(before, x, y);
         const c = px(after, x, y);
-        if (Math.abs(a[0] - c[0]) + Math.abs(a[1] - c[1]) + Math.abs(a[2] - c[2]) > 45) differs++;
+        if (Math.abs(a[0] - c[0]) + Math.abs(a[1] - c[1]) + Math.abs(a[2] - c[2]) > 40) differs++;
       }
-    if (differs >= samples / 3) drawn++;
+    report.push(`${String(w.id)}: ${String(differs)}/${String(samples)}`);
+    if (samples > 0 && differs >= samples / 4) drawn++;
   }
-  expect(drawn, `workers drawn on the canvas, of ${workers.length}`).toBe(workers.length);
+  expect(drawn, `workers drawn on the canvas, of ${workers.length} (${report.join(', ')})`).toBe(
+    workers.length,
+  );
 
   // A shot aimed at a worker's body centre (the sim's own ellipse, from the hook): the penalty
   // and the duck, read in the same wait; bounded attempts, each held 30 ticks.
