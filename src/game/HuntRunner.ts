@@ -95,13 +95,14 @@ export class HuntRunner {
     return this.sim.result();
   }
 
-  /** v1.7 e2e only: a hold tick set from the page (art previews freeze right after an event). */
+  /** v1.7 e2e only: a hold tick set from the page (art previews freeze right after an event).
+   *  v1.8c: once set it REPLACES the URL's ?holdAt (a spec that boots held can then move the hold
+   *  on, or lift it with a huge tick); before, the earlier of the two always won, so a URL hold
+   *  could never be lifted. */
   holdAt: number | undefined = undefined;
 
   private holdTick(): number | undefined {
-    const a = this.opts.holdAtTick;
-    const b = this.holdAt;
-    return a === undefined ? b : b === undefined ? a : Math.min(a, b);
+    return this.holdAt ?? this.opts.holdAtTick;
   }
 
   /** The sim reached its e2e hold tick (?holdAt) and stays there. */

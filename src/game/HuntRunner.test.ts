@@ -21,6 +21,27 @@ describe('HuntRunner', () => {
     expect(r.alpha).toBeCloseTo(0.5, 5);
   });
 
+  it('a hold set from the page replaces the URL hold (v1.8c: it can move it on or lift it)', () => {
+    const r = new HuntRunner(newSim(), { maxStepsPerFrame: 5, holdAtTick: 3 });
+    for (let i = 0; i < 4; i++) r.advance(STEP_MS * 2);
+    expect(r.state.tick).toBe(3);
+    expect(r.held).toBe(true);
+    // Moved on: the URL's tick no longer holds it.
+    r.holdAt = 6;
+    for (let i = 0; i < 4; i++) r.advance(STEP_MS * 2);
+    expect(r.state.tick).toBe(6);
+    // Lifted (a huge tick): it runs on.
+    r.holdAt = 1e12;
+    r.advance(STEP_MS * 2);
+    expect(r.state.tick).toBe(8);
+    expect(r.held).toBe(false);
+    // An earlier page hold still holds at once.
+    const e = new HuntRunner(newSim(), { maxStepsPerFrame: 5, holdAtTick: 30 });
+    e.holdAt = 2;
+    for (let i = 0; i < 4; i++) e.advance(STEP_MS * 2);
+    expect(e.state.tick).toBe(2);
+  });
+
   it('remembers the camera each tick resolved with (v1.7c: fruit see shots where the sim did)', () => {
     // A sim whose camera moves 40 px on every tick, as while a finger pans.
     const real = newSim();

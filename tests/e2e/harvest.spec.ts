@@ -28,6 +28,25 @@ async function actorsOf(page: Page): Promise<readonly Actor[]> {
   return page.evaluate(() => window.__TM__?.harvestActors ?? []);
 }
 
+/** Waits until the sim reaches tick `t`; fails fast (not after minutes) when the sim stops short of
+ *  it — a hold that wasn't lifted — i.e. the tick doesn't move for 20 s. */
+async function untilTick(page: Page, t: number): Promise<void> {
+  await page.waitForFunction(
+    (want) => {
+      const w = window as unknown as { __HVT__?: { tick: number; at: number } };
+      const tick = window.__TM__?.tick ?? 0;
+      if (tick >= want) return true;
+      const now = performance.now();
+      if (w.__HVT__ === undefined || w.__HVT__.tick !== tick) w.__HVT__ = { tick, at: now };
+      else if (now - w.__HVT__.at > 20_000)
+        throw new Error(`the sim stopped at tick ${String(tick)} (< ${String(want)})`);
+      return false;
+    },
+    t,
+    { timeout: 300_000, polling: 250 },
+  );
+}
+
 async function startHarvest(page: Page, touch: boolean): Promise<void> {
   await page.waitForFunction(() => window.__TM__?.rects['harvest'] !== undefined, null, {
     timeout: 120_000,
@@ -84,13 +103,13 @@ test('a tap in the intro skips it without a shot', async ({ page }, info) => {
   const touch = isTouchProject(info);
   await boot(page, `seed=7&huntSeconds=30&baboons=0&graphics=standard&holdAt=20`);
   await startHarvest(page, touch);
-  await page.waitForFunction(() => (window.__TM__?.tick ?? 0) >= 20, null, { timeout: 300_000 });
+  await untilTick(page, 20);
   expect((await hook(page)).harvest?.phase).toBe('intro');
   await fireAt(page, touch, { x: (await hook(page)).designWidth / 2, y: 500 });
   await page.evaluate(() => {
     (window as { __TM_HOLD_AT__?: (tick: number) => void }).__TM_HOLD_AT__?.(40);
   });
-  await page.waitForFunction(() => (window.__TM__?.tick ?? 0) >= 40, null, { timeout: 300_000 });
+  await untilTick(page, 40);
   const h = await hook(page);
   expect(h.harvest?.phase, 'the intro was skipped').toBe('rush');
   expect(h.harvest?.clockTicksLeft ?? 0, 'the 30-s clock runs').toBeGreaterThan(30 * 60 - 40);
@@ -106,7 +125,7 @@ test('a shot aimed at a worker costs the penalty and the worker ducks; the sheet
   // Held at tick 3: the workers are still running in from the right (their spots show the field).
   await boot(page, 'seed=7&huntSeconds=30&baboons=0&graphics=standard&holdAt=3');
   await startHarvest(page, touch);
-  await page.waitForFunction(() => (window.__TM__?.tick ?? 0) >= 3, null, { timeout: 300_000 });
+  await untilTick(page, 3);
   await page.waitForFunction(
     () => (window.__TM__?.harvestActors ?? []).some((a) => a.role === 'gap' && a.visible),
     null,
@@ -120,7 +139,7 @@ test('a shot aimed at a worker costs the penalty and the worker ducks; the sheet
   await page.evaluate((t) => {
     (window as { __TM_HOLD_AT__?: (tick: number) => void }).__TM_HOLD_AT__?.(t);
   }, at);
-  await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) >= t, at, { timeout: 300_000 });
+  await untilTick(page, at);
   await page.waitForTimeout(1500);
   const after = decodePng(await page.locator('#game canvas').screenshot());
   const h = await hook(page);
