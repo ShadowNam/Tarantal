@@ -929,20 +929,27 @@ tail; the owl's soft "hoo-HOOO"; a bat's two high squeaks; a lantern's soft whoo
 five Spookjag lines are voiced like his others (§10.1).
 
 **Christmas — Christmas in the sun (D-064; interim art: `npm run art:interim -- --only christmas`,
-tools/art/christmas.ts; 600 × 710 design px at 2×, ~6.8 MB on the GPU):**
-- *Light:* its own preset, `kersfees_son`: a bright, hot midsummer noon — a pale, white-hot sky
-  low down, a bleached far ridge, a warm sunlit veld. Birds stay untinted. A heat shimmer along the
-  horizon: the Namibië mirage's soft strips at `looks.christmas.heat` (sim time; still with
-  "reduce flashes", off on the low tier and with reduced motion).
-- *Presents:* three wraps — Christmas red with a gold ribbon, bottle green with a red one, sky blue
-  with a silver one — printed with little stars, a glossy bow on the lid, sun on the left face and
-  shade on the right, a soft contact shadow. Tucked in behind a prop (drawn under it, so the trunk,
+tools/art/christmas.ts; 600 × 710 design px: a 1× Standard pack, ~1.7 MB on the GPU, and its 2×
+master as the HD twin, ~6.8 MB — HD keeps the fine print, creases and foil hairs):**
+- *Light:* its own preset, `kersfees_son`: a blazing midsummer noon — the sky bleached white-hot
+  towards the horizon, the far ridge washed pale in the glare, the veld and near ground baked
+  golden. Birds stay untinted. Along the horizon a heat band of fine wavering ripples (it reads in
+  a still frame) with the Namibië mirage's soft strips, at `looks.christmas.heat` (sim time; off
+  on the low tier and with reduced motion).
+- *Presents:* a box seen a little from the right and above (the front lit, the side in shade,
+  fold creases), three wraps — Christmas red printed with gold stars and a gold ribbon, bottle
+  green with white polka dots and a red ribbon, sky blue with silver stripes and a silver ribbon —
+  paper grain, a glossy ribbon (dark rims, a bright streak) and a full bow (shaded loops, inner
+  shadows, a knot with a highlight), a soft contact shadow. Tucked in behind a prop (drawn under it, so the trunk,
   rock, tank or bakkie covers 10–50 % of the box and never its middle), feet on the line the
-  prop's art stands on (unit-tested against the art). Opened: the box shows its tissue and a small
-  gift; the lid with its bow hops off and fades (0.7 s), a puff of paper confetti rises (0.9 s),
-  on sim time; no flash.
-- *Tinsel:* a silver and a red garland — a twisted rope with a glinting fringe — hung between two
-  hooks on the big tree, and red, gold and silver baubles on little caps (anchors per tree in
+  prop's art stands on (unit-tested against the art). Opened: the lid knocked back and tilted
+  behind the box, the bow flown, tissue paper and a toy guineafowl peeping out of the dark inside;
+  as it opens the lid hops off (0.7 s) and a puff of paper confetti rises (0.9 s), on sim time;
+  no flash.
+- *Tinsel:* a silver and a red garland — a twisted foil strand with a bright spiral, a dense
+  fringe of fine hairs and sparkles — hung between two hooks in the crown of every listed tree the
+  map has (the camelthorns first; the windpomp one small garland), and red, gold and silver baubles
+  with a ridged cap, a window reflection and a rim light (anchors per tree in
   `feel.json looks.christmas.tinsel`, checked against the tree's art). A small soft four-point glint
   walks the baubles, up and down over ~1 s of a 3.2 s turn (never a flash; off with "reduce
   flashes").
@@ -950,11 +957,13 @@ tools/art/christmas.ts; 600 × 710 design px at 2×, ~6.8 MB on the GPU):**
   the guineafowl, on the witch hats' head anchors and sizes (three drawings).
 - *Oupa:* an old Karoo farmer, cheerful and respectful — sun-browned face, a full white beard and
   moustache, bushy white brows and smiling eyes, a khaki short-sleeved shirt with flap pockets,
-  khaki shorts, socks rolled down over brown vellies, and a Santa hat; waving beside the title's
+  rolled sleeves and folds, a belt, khaki shorts with creases, shaded arms and legs (knees, calves,
+  hands with fingers), socks rolled down over laced brown vellies, and a Santa hat; waving beside the title's
   badge, his head on the tally slate's corner and on his bark bubble (drawn at half size: he is
   shown small).
 - *Tally and share card:* a green and red edge round the slate, tinsel along the top, a present
-  at the bottom right, Oupa's head in his Santa hat on the top-left corner; the title "Christmas
+  on the right edge and Oupa's head in his Santa hat on the left edge (both kept on screen and
+  clear of the buttons); the title "Christmas
   in the sun 2026". The share text is framed ✨🎁 … 🎅☀️.
 
 **Sounds (interim, `npm run audio:interim -- --only sfx`):** the sting, kwela on a pennywhistle —

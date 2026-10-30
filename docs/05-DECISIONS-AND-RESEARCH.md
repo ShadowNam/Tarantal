@@ -3513,6 +3513,40 @@ down and are bagged like the guineafowl (no blood, D-035).
   one Oupa line at a time; the tally is Again / Share / Menu with a Best row. And a page-set test
   hold now replaces the URL's `?holdAt` (it could never be lifted before).
 
+**D-064 1.11.1 Feesdae: Christmas in the sun (25 Dec) (30 Oct 2026):** the second special on the
+Feesdae system (D-048), picked by the product owner on 27 Oct: "Christmas, 25 Dec: 'Christmas in
+the sun': heat haze, tinsel on the camelthorn, Oupa in a Santa hat and shorts, presents hidden as
+secrets, carols on the pennywhistle." New Year is next, as its own job.
+- *Rule.* The twist is a discriminated union on `rule`; Christmas's `kersfees` hides 3–5 presents
+  at the day's props (content spots per map: `prop`, `dx`, `dy` = the foot on the line the prop's
+  art stands on, measured from the art and unit-tested within 2 px; 10–50 % covered, the middle
+  always showing; every Daily map and weekday keeps them in the camera sweep). Presents are
+  Spookjag things of kind `present` on the same `feesdag` stream; each opens once (it stays open,
+  no points of its own); every one open pays "Presents found!" +25 once, an event bonus (Frenzy ×
+  Stampede, GDD §5.3). Halloween's draws, events and golden hashes are unchanged
+  (`feesdagStarted` carries `presents` only on Christmas). Two Christmas goldens (competent; the
+  spook bot opening every present).
+- *Groups.* Each special is a lazy group of its own so one never downloads the other's files:
+  Halloween keeps `feesdae` / `feesdae-voice-<lang>`; Christmas is `feesdae-christmas` (+ its HD
+  twin `feesdae-christmas-hd`) / `feesdae-voice-christmas-<lang>`. The Christmas sheet packs at 1×
+  for Standard (~1.7 MB on the GPU) with its 2× master as the HD twin (~6.8 MB); the hunt waits
+  (bounded, behind its veil) for its listed sheet, so normal play never builds the code-drawn
+  stand-in. The title fetches the group in the background on the day only, for Oupa beside the
+  badge. First download +4.3 KB gz (strings, the special's content and its title/HUD/tally glue).
+- *Look.* Its own light (`kersfees_son`: a bleached, white-hot sky towards the horizon, baked
+  golden ground); a heat band of fine wavering ripples along the far and Ver horizons plus the
+  mirage strips (WorldView; one TileSprite per horizon, sim time; off on the low tier and with
+  reduced motion); tinsel and baubles on every listed tree a map has — the camelthorns (the
+  Karoo's two sweet thorns painted in its mid layer, both Kalahari camelthorns, Namibië's nest
+  camelthorn), the baobab and the sausage tree — with a small glint per tree (no flash), the
+  windpomp one small garland; Santa hats on Halloween's head anchors; Oupa (a figure drawn for
+  this: white beard, khaki shirt and shorts, vellies, a Santa hat) beside the title badge, on the
+  tally slate and on his bark bubble. Sounds: a kwela pennywhistle "Jingle Bells" (1857) sting, a
+  "Silent Night" (1818) phrase on the tally, paper and a bell for a present (public-domain
+  melodies, synthesised); five voiced lines (en/af/de interim TTS; nl speaks Afrikaans).
+- *Also fixed.* Lifting a page hold (`__TM_HOLD_AT__`) now unfreezes the tweens and animations it
+  froze (screenshot specs saw a held muzzle flash and pops in every later frame).
+
 ## 3. Research notes (with sources)
 
 **Moorhuhn / Crazy Chicken**
