@@ -13,8 +13,8 @@
 //   raid-mielie, raider-mielie-2x: a baboon raider at the mielies (?baboonRaid=mielie);
 //   field-std-hd, warthog-std-hd, worker-std-hd: Standard | HD crops (the HD boot pairs its crops
 //     with the Standard boot's *-std-crop files, same seed, same held tick, no pan).
-// Three boots per device: the whole Harvest (Standard), the crops and a raid (Standard), the crops
-// in HD. Every grab holds the sim (__TM_HOLD_AT__ or ?holdAt); anything that moves runs on sim
+// Four boots per device: the Harvest's first half (title → duck) and second half (booted straight to
+// the rush → tally), the crops and a raid (Standard), the crops in HD. Every grab holds the sim (__TM_HOLD_AT__ or ?holdAt); anything that moves runs on sim
 // time; the far herds are still (?faunaIdle=0). On desktop the real mouse rests at the bottom
 // centre, outside both edge-pan bands. A shot that is missing fails the test (bounded attempts).
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -318,9 +318,7 @@ async function panToX(
   await park(page, touch);
 }
 
-test('the Harvest: title, intro, mid-run, a worker ducking, the rush, the end, the tally', async ({
-  page,
-}, info) => {
+test('the Harvest, part 1: title, intro, mid-run, a worker ducking', async ({ page }, info) => {
   const touch = isTouchProject(info);
   // Held at the intro from the start (the fence just broke, the family barging in).
   await bootTitle(
@@ -381,9 +379,22 @@ test('the Harvest: title, intro, mid-run, a worker ducking, the rush, the end, t
   const duck = await grab(page);
   save('duck', info, duck.img);
   save('duck-2x', info, scaled(cut(duck, await workerBox(page)), 2));
+});
 
-  // The rush at its peak: from 6 s before the end, hold at the first tick (checked every 10)
-  // with at least 2 flocks, 3 warthogs and a raider on screen; fail when it never gets busy.
+// Review round 3: the second half boots straight to the rush (the same flags, held 6 s before the
+// end), so each half stays well inside the timeout on software GL (one test took ~25 min).
+test('the Harvest, part 2: the rush, a warthog and a fly-in close up, the end, the tally', async ({
+  page,
+}, info) => {
+  const touch = isTouchProject(info);
+  const from = INTRO + RUSH - 6 * 60;
+  await bootTitle(page, `harvestRush=1&baboonRaid=mielie&holdAt=${String(from)}`, 'standard');
+  await park(page, touch);
+  await startHarvest(page, info, 'standard');
+  await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) >= t, from, { timeout: 900_000 });
+  await park(page, touch);
+  // The rush at its peak: hold at the first step with at least 2 flocks, 3 warthogs and a raider
+  // on screen; fail when it never gets busy.
   // Review round 3: 30-tick steps (each costs seconds on software GL), the counts logged, and the
   // thin-rush error thrown well inside the budget (at most 10 steps).
   let busy = false;
