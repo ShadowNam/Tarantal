@@ -915,10 +915,13 @@ repaired." Numbers: `content/modes.json → harvest`; the map: `content/biomes/o
 - **Intro (3 s, on sim time, before the clock):** a warthog family (a sow and three piglets)
   barges through the fence — the posts tip, the wire snaps, the "Oes" sign swings — while the
   workers run to the gap. Oupa: "Hulle is deur die draad!". A tap skips it (no shot is fired).
-- **The rush (30 s):** guineafowl flocks forage in the rows (the usual flock rules), fly-overs
-  cross the field, warthogs trot in (through the gap on the mid plane, round the fence's end on
+- **The rush (30 s):** guineafowl flocks pour in through the gap at a run and forage in the rows
+  (the usual flock rules; `rush.gapFlocksPerMin`, a few more start on the feeding spots near the
+  gap), fly-overs (guineafowl, francolins and turtle doves) cross the field, warthogs trot in (through the gap on the mid plane, round the fence's end on
   the near plane; tails up) and dig, baboon raiders (§11.3d) come down for the mielies, early and
-  often. Rates ramp up over the 30 s (`rush.keyframes`, the biome's pacing).
+  often. Rates ramp up over the 30 s (`rush.keyframes`, the biome's pacing); the dig, feeding
+  and raid spots sit in the gap's half of the field, where the camera starts, so the peak is busy
+  on screen (the screenshot spec asserts ≥ 2 flocks, 3 warthogs and a raider).
 - **Warthogs:** 2 hits bag one (each shot that hits is one hit; the first sends it running back
   out), bagged like a guineafowl (the tumble and puff, no blood): 3 × a guineafowl's base on its
   plane, an event bonus × Frenzy. A sow may bring 2–3 **piglets**: they trail her, never come in
@@ -928,7 +931,8 @@ repaired." Numbers: `content/modes.json → harvest`; the map: `content/biomes/o
   Bagging or driving one off stops its drain. HUD: a big bar at the top ("Crop saved 87 %"), amber
   under 70 %, red with a gold rim and Oupa's "The crop!" under the warning line (40 %); never a
   flash.
-- **The farm workers (3):** mend the gap from its right post; a "Fence repairs…" bar fills with the
+- **The farm workers (3):** about 1.6× the fence posts' height (a person by a 1.2 m fence), mend
+  the gap from its right post; a "Fence repairs…" bar fills with the
   clock, the gap's panel goes up in stages. They are never targets: a worker costs **100** (once per
   2 s each) only when the shot was **aimed at them** — the fire command's aim point inside their
   body or head, and the shot hit no target (a bird, a warthog, a raider) — the baboon mothers'

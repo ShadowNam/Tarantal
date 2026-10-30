@@ -3499,6 +3499,19 @@ down and are bagged like the guineafowl (no blood, D-035).
   (`harvestHunter` in tools/bots.ts; outside the Harvest they are unchanged).
 - *Replays.* `harvest` appended to the replay modes (index 4); two Harvest golden replays; every
   other replay's event hash unchanged (the content hash moved).
+- *Review round 1 (the supervisor, 30 Oct, after the first screenshots).* The workers were ~3× the
+  fence: they are now 1.6× its posts on the mid plane (`harvestSheet.test.ts` checks 1.3–1.8),
+  and the warthogs, piglets and workers are redrawn semi-realistic at the D-035 bar (posed
+  skeletons, shading, texture; HD now adds detail). The rush was thin on screen: flocks now pour in
+  through the gap at a run (`rush.gapFlocksPerMin`, starting past the gap's post away from the
+  workers), the dig, feeding and raid spots moved into the gap's half of the field, the peak rates
+  went up (warthogs 30/min, max 8), and the crop drain was re-tuned (competent ~69 %). The flocks'
+  spread in the line-of-fire check now uses the plane's tuning ratio (it used the drawing scale),
+  so the workers moved to dx 200/290/380 and the right-hand feeding spot further out. The sky is
+  true colour (no banding), the mid plane is full of rows, the farmhouse moved so the troop never
+  lines up on its roof (`tools/art/troopBackdrop.ts`). The HUD bars sit under the pause button;
+  one Oupa line at a time; the tally is Again / Share / Menu with a Best row. And a page-set test
+  hold now replaces the URL's `?holdAt` (it could never be lifted before).
 
 ## 3. Research notes (with sources)
 
