@@ -271,9 +271,10 @@ test('HD texture memory, title → the Harvest (oes)', async ({ page, browserNam
 });
 
 // D-064: a Christmas in the sun hunt in HD on its heaviest map — the Okavango (the heaviest Daily
-// area in HD, ~240 MB before Christmas, D-054/D-056), the Daily of 27 Dec 2026 forced to the
-// special — reached from the title: Christmas's sheet (~6.8 MB on the GPU) on top, no stand-in
-// (the hunt waits for its listed sheet), no other area's HD layers. ≤ 256 MB asserted.
+// area in HD: 253.9 MB measured on its own), the Daily of 27 Dec 2026 forced to the special —
+// reached from the title: Christmas's sheet stays Standard in HD (~1.7 MB on the GPU; a 2× twin
+// measured 258.5 MB here), no stand-in (the hunt waits for its listed sheet), no other area's HD
+// layers. ≤ 256 MB asserted.
 test('HD texture memory, a Christmas hunt on its heaviest map (okavango)', async ({
   page,
   browserName,
@@ -339,6 +340,12 @@ test('HD texture memory, a Christmas hunt on its heaviest map (okavango)', async
   expect(
     h.textureTop.filter((t) => t.key.includes('#standin')),
     'a special-day stand-in on the GPU',
+  ).toEqual([]);
+  // Standard in HD: the Christmas sheet drawn is the 1× one, and no HD Christmas texture is in.
+  expect(h.spook?.tinsel?.sheet).toBe('standard');
+  expect(
+    h.textureTop.filter((t) => t.key.includes('christmas') && t.key.includes('hd')),
+    'an HD Christmas texture on the GPU',
   ).toEqual([]);
   expect(mb, 'christmas (okavango): texture memory (MB) with HD').toBeLessThanOrEqual(256);
 });
