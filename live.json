@@ -1,9 +1,9 @@
 {
-  "updated": "2026-10-30T13:09:39Z",
-  "summary": "Live on the test build: Die Oes (The Harvest) (1.11.0, merged 15:09 Namibia time on 30 Oct, your idea of 25 Oct): a new 30-second mode on the title screen. A warthog family breaks the farm fence, then guineafowl flocks, francolins, doves, warthogs and baboon raiders pour into the mielies, pumpkins and sunflowers while three farm workers mend the gap. Warthogs take 2 hits; a crop meter drains while animals eat, and what is left pays a crop bonus; its own tally and best score. Workers and piglets cost points only when you aimed at them. Also fixed: animals facing left were drawn up to ~20 px beside where shots hit them (baboons, meerkats, tree residents, ostriches too). Tank has started the Christmas Daily (\"Christmas in the sun\"); then the New Year Daily and v1.9–v1.13; Oupa's new voices last.",
+  "updated": "2026-10-30T19:46:50Z",
+  "summary": "Live on the test build: the Christmas Daily, \"Christmas in the sun\" (1.11.1, merged 21:46 Namibia time on 30 Oct, your pick of 27 Oct). On 25 Dec the Daily Hunt turns hot and festive: a bleached, shimmering horizon, tinsel and baubles in the camelthorn, Oupa in a Santa hat and shorts on the title, the tally and his speech bubble, some guineafowl in tiny Santa hats, and presents hidden in the scenery: shoot one and the lid tumbles off, the bow pops and confetti bursts (find them all for +25). Carols on the pennywhistle and a Christmas share card. Next: the New Year Daily, then v1.9–v1.13; Oupa's new voices last.",
   "current": {
-    "version": "1.11.0",
-    "commit": "86244d9"
+    "version": "1.11.1",
+    "commit": "fd3f363"
   },
   "links": [
     {
@@ -34,23 +34,23 @@
   "numbers": [
     {
       "label": "Version on the test build",
-      "value": "1.11.0",
-      "note": "commit 86244d9, merged 15:09 on 30 Oct"
+      "value": "1.11.1",
+      "note": "commit fd3f363, merged 21:46 on 30 Oct"
     },
     {
       "label": "Pull requests merged",
-      "value": "103",
-      "note": "#1 to #106"
+      "value": "104",
+      "note": "#1 to #107"
     },
     {
       "label": "Unit tests",
-      "value": "1,713",
+      "value": "1,771",
       "note": "plus the browser test suites on 3 devices"
     },
     {
       "label": "First download",
-      "value": "2.97 MB",
-      "note": "2,971.8 KB of the 3,072 KB budget"
+      "value": "2.98 MB",
+      "note": "2,977.8 KB of the 3,072 KB budget"
     },
     {
       "label": "Hunting areas",
@@ -1025,8 +1025,14 @@
       ]
     },
     "christmas-daily": {
-      "owner": "Tank builds it (task 91acb5c8, started 15:09 Namibia); Claude runs the screenshots and checks",
+      "owner": "Tank built it (task 91acb5c8); Claude reviewed four screenshot passes, fixed the screenshot test and merged it (#107)",
       "summary": "On 25 Dec the Daily Hunt becomes \"Christmas in the sun\": heat haze, tinsel and baubles on the camelthorn, Oupa in a Santa hat and shorts, some guineafowl in tiny Santa hats, 3–5 presents hidden in the scenery (find them all for +25), carols on the pennywhistle and a Christmas share card. Built on the Halloween special-days system.",
+      "requestedBy": "You, 27 Oct: your pick from the holiday Daily list (Christmas, then New Year).",
+      "status": "done"
+    },
+    "new-year-daily": {
+      "owner": "Tank builds it (task 5f6cc915, started 21:46 Namibia); Claude runs the screenshots and checks",
+      "summary": "On 31 Dec–1 Jan the Daily Hunt becomes a countdown hunt: party hats on the guineafowl, small fireworks on the horizon (never full-screen flashes) and double points in the last 10 seconds.",
       "requestedBy": "You, 27 Oct: your pick from the holiday Daily list (Christmas, then New Year).",
       "status": "running"
     }
@@ -2153,6 +2159,11 @@
       "at": "2026-10-30T13:09:39Z",
       "kind": "decision",
       "text": "Harvest workers and piglets cost points only when the shot was aimed at them (the same rule as the baboon mothers); accidental worker hits stay at most 0.01 a run on every gun. Claude went with the recommended option; say if you want it changed."
+    },
+    {
+      "at": "2026-10-30T19:46:50Z",
+      "kind": "merge",
+      "text": "The Christmas Daily (\"Christmas in the sun\") is on the test build (1.11.1, #107): heat haze, tinsel on the camelthorn, Oupa in a Santa hat, guineafowl in Santa hats and hidden presents that burst open. Full CI green; reviewed screenshots on desktop, Pixel 7 and iPhone 14."
     }
   ]
 }
