@@ -12,7 +12,7 @@ import karoo from '../../content/biomes/karoo-autumn.json' with { type: 'json' }
 import scoring from '../../content/scoring.json' with { type: 'json' };
 import { decodePng } from '../../tools/assets/image';
 import { fireAt, reloadIfEmpty } from './feesdaeHelpers';
-import { boot, hook, isLandscape, isTouchProject, startHunt, waitTicks } from './helpers';
+import { boot, hook, isLandscape, isTouchProject, startHunt, tapRect, waitTicks } from './helpers';
 
 const BASE =
   'biome=karoo-autumn&layout=mon&seed=42&huntSeconds=300&birds=0&graphics=standard&baboonRaid=hat';
@@ -236,10 +236,11 @@ test('a hit on a mother costs points; the troop runs over the ridge', async ({ p
   expect((await baboonsOf(page)).filter((b) => b.role !== 'raider' && b.visible)).toEqual([]);
 });
 
-// v1.7e's lesson (R11): a lazily delivered sheet must really be drawn when it lands mid-hunt. The
-// baboon sheet's download is held until the hunt runs and the sim is held; then the canvas pixels
-// at the troop's spot are compared before and after it lands (Standard graphics).
-test('the troop is drawn on the canvas when the baboon sheet lands mid-hunt', async ({
+// v1.7e's lesson (R11), and the review of v1.8b: the troop is hittable from the hunt's first tick,
+// so a hunt on a map with a troop waits for the baboon sheet (it loads in the background after the
+// first download). Its download is held: the hunt doesn't start; released, the hunt starts and the
+// troop is really drawn: the canvas over each member's body differs from the sky just above it.
+test('a hunt waits for the baboon sheet; then the troop is drawn on the canvas', async ({
   page,
 }, info) => {
   test.skip(!isLandscape(info), 'landscape only: portrait shows the rotate card');
@@ -250,57 +251,60 @@ test('the troop is drawn on the canvas when the baboon sheet lands mid-hunt', as
     release = r;
   });
   let held = false;
-  let heldAt = 0;
-  await page.route(/\/late\/img\/baboons_sheet\.[0-9a-f]+\.png$/, async (route) => {
+  await page.route(/\/baboons\/img\/baboons_sheet\.[0-9a-f]+\.png$/, async (route) => {
     held = true;
-    heldAt = Date.now();
     await Promise.race([landed, new Promise((r) => setTimeout(r, 100_000))]);
     await route.continue();
   });
   await boot(page, BASE.replace('&baboonRaid=hat', ''));
-  await startHunt(page, touch);
-  await panCamera(page, troopCameraX());
-  // Hold the sim early (the troop sits; no raid before 12 s).
-  const at = await page.evaluate(() => {
-    const t = Math.max(120, (window.__TM__?.tick ?? 0) + 30);
-    (window as { __TM_HOLD_AT__?: (tick: number) => void }).__TM_HOLD_AT__?.(t);
-    return t;
+  // Start the hunt without startHunt's wait for it: it must not run while the sheet is held.
+  await page.waitForFunction(() => window.__TM__?.rects['start'] !== undefined, null, {
+    timeout: 120_000,
   });
-  await page.waitForFunction((t) => (window.__TM__?.tick ?? 0) >= t, at, { timeout: 300_000 });
+  await tapRect(page, touch, 'start');
+  await page.waitForTimeout(5000);
   expect(held, 'the baboon sheet download was held').toBe(true);
-  // Without the sheet nothing is drawn, and the hook says so.
-  expect((await baboonsOf(page)).filter((b) => b.visible)).toEqual([]);
-  await page.mouse.move(0, 0);
-  await page.waitForTimeout(800);
-  const before = decodePng(await page.locator('#game canvas').screenshot());
-  expect(Date.now() - heldAt, 'the hold must stay inside the lazy timeout (120 s)').toBeLessThan(
-    100_000,
-  );
+  expect((await hook(page)).tick, 'the hunt waits for the sheet').toBe(0);
   release();
+  await page.waitForFunction(() => (window.__TM__?.tick ?? 0) > 30, null, { timeout: 300_000 });
+  await panCamera(page, troopCameraX());
   await page.waitForFunction(
     () =>
-      ((window as unknown as Hooked).__TM__?.baboons ?? []).filter((b) => b.visible).length >= 5,
+      ((window as unknown as Hooked).__TM__?.baboons ?? []).filter(
+        (b) => b.role !== 'raider' && b.visible,
+      ).length >= 5,
     null,
     { timeout: 300_000 },
   );
-  await page.waitForTimeout(800);
-  const after = decodePng(await page.locator('#game canvas').screenshot());
+  // Hold before the first raid (12 s at the earliest) with the troop sitting.
+  await page.evaluate(() => {
+    const t = (window.__TM__?.tick ?? 0) + 20;
+    (window as { __TM_HOLD_AT__?: (tick: number) => void }).__TM_HOLD_AT__?.(t);
+  });
+  await page.mouse.move(0, 0);
+  await page.waitForTimeout(1500);
+  const img = decodePng(await page.locator('#game canvas').screenshot());
   const h = await hook(page);
-  expect(h.tick, 'still held').toBe(at);
-  const shown = (await baboonsOf(page)).filter((b) => b.visible);
-  const k = after.height / h.designHeight;
-  let changed = 0;
-  // A box over each baboon's body (feet at x, y; a sitting male is ~54 design px on the ridge).
-  for (const b of shown)
-    for (let y = Math.round((b.y - 40) * k); y < Math.round((b.y - 4) * k); y++)
-      for (let x = Math.round((b.x - 12) * k); x < Math.round((b.x + 12) * k); x++) {
-        if (x < 0 || y < 0 || x >= after.width || y >= after.height) continue;
-        const i = (y * after.width + x) * 4;
-        const diff =
-          Math.abs((after.data[i] ?? 0) - (before.data[i] ?? 0)) +
-          Math.abs((after.data[i + 1] ?? 0) - (before.data[i + 1] ?? 0)) +
-          Math.abs((after.data[i + 2] ?? 0) - (before.data[i + 2] ?? 0));
-        if (diff > 60) changed++;
+  const k = img.height / h.designHeight;
+  const px = (x: number, y: number): [number, number, number] => {
+    const i = (Math.round(y * k) * img.width + Math.round(x * k)) * 4;
+    return [img.data[i] ?? 0, img.data[i + 1] ?? 0, img.data[i + 2] ?? 0];
+  };
+  let drawn = 0;
+  const shown = (await baboonsOf(page)).filter((b) => b.role !== 'raider' && b.visible);
+  for (const b of shown) {
+    // The sky well above the head, and the body (a sitting male is ~54 design px on the ridge).
+    const sky = px(b.x, b.y - 80);
+    let differs = 0;
+    for (let y = b.y - 30; y < b.y - 6; y += 2)
+      for (let x = b.x - 8; x <= b.x + 8; x += 2) {
+        const c = px(x, y);
+        if (Math.abs(c[0] - sky[0]) + Math.abs(c[1] - sky[1]) + Math.abs(c[2] - sky[2]) > 60)
+          differs++;
       }
-  expect(changed, 'canvas pixels drawn by the troop').toBeGreaterThan(60 * k * k);
+    if (differs > 20) drawn++;
+  }
+  expect(drawn, `members drawn on the canvas, of ${shown.length}`).toBeGreaterThanOrEqual(
+    Math.min(5, shown.length),
+  );
 });

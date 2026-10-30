@@ -313,8 +313,10 @@ function setPose(b: Baboon, pose: RidgePose, dur: number): void {
 
 const onRidge = (b: Baboon): boolean => !b.gone && b.pose !== 'out';
 
-/** Whether a member can be hit now (it is on the ridge, drawn). */
-export const memberPresent = (b: Baboon): boolean => onRidge(b);
+/** Whether a member can be hit now: on the ridge and settled there, not climbing over it (the
+ *  view slides and fades it then; review of v1.8b). */
+export const memberPresent = (b: Baboon): boolean =>
+  onRidge(b) && b.pose !== 'down' && b.pose !== 'up';
 
 /** The hit stance of a ridge pose. */
 export function ridgeStance(pose: RidgePose): 'sit' | 'walk' | 'stand' {

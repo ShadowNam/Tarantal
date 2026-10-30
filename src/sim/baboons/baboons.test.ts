@@ -294,6 +294,38 @@ describe('baboon troops (D-062)', () => {
     expect(fled[0]?.cause).toBe('loud');
   });
 
+  it('a raider walking past a secret part never takes its pellets (the secret does)', () => {
+    const c = baboonContent('karoo-autumn', 2);
+    const karoo = biomeOf(c, 'karoo-autumn');
+    const bm = karoo.baboons;
+    const bakkie = karoo.props.find((p) => p.id === 'bakkie');
+    if (bm === undefined || bakkie === undefined) throw new Error('no baboons');
+    // Only the mielie spot: its raider walks in past the bakkie's spare wheel.
+    karoo.baboons = { ...bm, spots: bm.spots.filter((x) => x.id === 'mielie') };
+    const wheelX = bakkie.u * coreWidth(0.6) - 180;
+    // Low on the wheel, where the walking raider's back overlaps it (y 671–686).
+    const wheelY = bakkie.y - 40 + 30;
+    const s = sim(c, 3);
+    panTo(s, wheelX, 0.6);
+    const scale = c.scoring.planes.mid.scale;
+    const walk = c.birds.baboons.hitboxes.walk.body;
+    let crossed = false;
+    for (let k = 0; k < 60 * 60 && !crossed; k++) {
+      s.step([]);
+      s.drainEvents();
+      const r = s.snapshot().baboons?.raiders[0];
+      if (r === undefined || r.phase !== 'approach') continue;
+      const bodyX = r.x + walk.ox * scale * r.facing;
+      crossed = Math.abs(bodyX - wheelX) < 12;
+    }
+    expect(crossed, 'the raider walked past the wheel').toBe(true);
+    const st = s.snapshot();
+    s.step([{ t: 'fire', dx: planeToDx(st.cameraX, 0.6, wheelX), sy: wheelY }]);
+    const ev = steps(s, 30, [...s.drainEvents()]);
+    expect(ofType(ev, 'baboonHit')).toHaveLength(0);
+    expect(ofType(ev, 'pelletImpact').map((e) => e.partId)).toContain('spare_wheel');
+  });
+
   it('spots blocked on a map are left out (never a raider over a secret or a tell)', () => {
     const c = quiet();
     const karoo = biomeOf(c, 'karoo-autumn');

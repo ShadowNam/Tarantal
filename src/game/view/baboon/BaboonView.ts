@@ -38,6 +38,8 @@ const CLIMB_DROP = 22;
 const TUMBLE_SHARE = 0.45;
 /** The thrower's fruit flies for the act's last FLIGHT_TICKS ticks. */
 const FLIGHT_TICKS = 20;
+/** A raider fades in over its first steps toward its spot. */
+const FADE_IN_TICKS = 20;
 /** Off-screen margin (design px) before a sprite is hidden. */
 const CULL_PX = 160;
 
@@ -162,6 +164,8 @@ export class BaboonView {
     private readonly now: () => number,
     private readonly manifest: BaboonSheetSource,
     private readonly tuning: BaboonTuning,
+    /** The e2e hooks are on (else no hook entries are made). */
+    private readonly hooks = false,
   ) {
     this.tumbleTicks = Math.max(1, Math.round(tuning.hit.tumbleSeconds * 60));
   }
@@ -290,11 +294,14 @@ export class BaboonView {
     return true;
   }
 
-  private hookOf(s: Slot, show: boolean, groundY: number | null): void {
+  /** The test hook's entry (only with the hooks on: no allocations otherwise). Its position is
+   *  the baboon's place from the snapshot, culled or not (review of v1.8b). */
+  private hookOf(s: Slot, show: boolean, x: number, y: number, groundY: number | null): void {
+    if (!this.hooks) return;
     const layer = this.parallax.layer(s.layerId);
     if (layer === undefined) return;
-    const hx = Math.round(layer.root.x + s.x * layer.root.scaleX);
-    const hy = Math.round(layer.root.y + s.y * layer.root.scaleY);
+    const hx = Math.round(layer.root.x + x * layer.root.scaleX);
+    const hy = Math.round(layer.root.y + y * layer.root.scaleY);
     const gy = groundY === null ? null : Math.round(layer.root.y + groundY * layer.root.scaleY);
     const h = s.hook;
     const f = show ? s.frame : null;
@@ -352,8 +359,8 @@ export class BaboonView {
           alpha = 1 - away;
         }
         const show = this.place(s, frame, m.x, y, scale, m.facing === -1, alpha);
-        this.hookOf(s, show, null);
-        this.hookList[n++] = s.hook;
+        this.hookOf(s, show, m.x, y, null);
+        if (this.hooks) this.hookList[n++] = s.hook;
       }
     }
     // Members bagged on a raid leave the snapshot: hide theirs.
@@ -387,9 +394,11 @@ export class BaboonView {
         else alpha = Math.max(0, 1 - (p - TUMBLE_SHARE) / (1 - TUMBLE_SHARE));
       }
       if (r.phase === 'act' && r.action === 'moon') y -= Math.abs(Math.sin(r.t / 7)) * 2 * scale;
+      // It walks in from beside its spot: fade in over its first steps (review of v1.8b).
+      if (r.phase === 'approach' && r.t < FADE_IN_TICKS) alpha = r.t / FADE_IN_TICKS;
       const show = this.place(s, frame, r.x, y, scale, r.facing === -1, alpha);
-      this.hookOf(s, show, r.y);
-      this.hookList[n++] = s.hook;
+      this.hookOf(s, show, r.x, y, r.y);
+      if (this.hooks) this.hookList[n++] = s.hook;
       if (r.phase === 'act' && r.action === 'throw' && r.t >= r.dur - FLIGHT_TICKS) {
         const ft = r.t - (r.dur - FLIGHT_TICKS);
         fruitAt = {

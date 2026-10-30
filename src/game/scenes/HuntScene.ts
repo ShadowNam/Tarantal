@@ -84,6 +84,7 @@ import type { FruitView } from '../view/fruit/FruitView';
 import { loadSimSystems, simSystemsReady } from '../simSystems';
 import { needsLazySystems } from '../../sim/lazySystems';
 import type { PelletStop } from '../view/fruit/fruitHits';
+import { BABOON_SHEET } from '../view/baboon/baboonKeys';
 
 export interface HuntData {
   /** Skip the title (the [Again] button) with this input kind. */
@@ -1085,6 +1086,44 @@ export class HuntScene extends Phaser.Scene {
       });
   }
 
+  /**
+   * v1.8b (D-062): the baboon sheet behind a veil: it is in flight in the background (with the
+   * late group); look for it every 200 ms. If the background files settle without it, Retry
+   * (reload the missing file) or Back (D-042).
+   */
+  private waitForBaboonSheet(
+    id: string,
+    manifest: AssetManifest,
+    then: (ok: boolean) => void,
+  ): void {
+    const { width, height } = designSize();
+    const veil = this.add
+      .rectangle(width / 2, height / 2, width, height, 0x1b1410, 0.82)
+      .setDepth(9_999);
+    const label = this.add
+      .text(width / 2, height / 2, t('ui.loading'), textStyle(48, '#F3EAD3'))
+      .setOrigin(0.5)
+      .setDepth(10_000);
+    const poll = this.time.addEvent({
+      delay: 200,
+      loop: true,
+      callback: () => {
+        manifest.upgrade(this.textures, BABOON_SHEET);
+        const ok = manifest.delivered(this.textures, BABOON_SHEET);
+        if (!ok && !manifest.lateDone) return;
+        poll.remove();
+        if (label.active) label.destroy();
+        if (ok) {
+          if (veil.active) veil.destroy();
+          then(true);
+          return;
+        }
+        veil.destroy();
+        this.waitForLate(id, { sight: false, ver: false, baboons: true }, then);
+      },
+    });
+  }
+
   /** v1.8b (D-062): the lazy sim systems behind a veil; offline, Retry or Back (D-042). */
   private waitForSimSystems(biomeId: string, then: (ok: boolean) => void): void {
     const { width, height } = designSize();
@@ -1492,6 +1531,20 @@ export class HuntScene extends Phaser.Scene {
     // so the sight and the Ver strip are never drawn from their placeholders.
     const huntDef = this.ctx.content.biomes.find((b) => b.id === huntBiome);
     const huntManifest = huntDef === undefined ? this.manifest : this.ctx.manifestFor(huntDef);
+    // v1.8b (D-062): a map with a baboon troop waits for the baboon sheet (the troop can be hit
+    // from the first tick, so it must be drawn then; the file loads in the background).
+    if (
+      huntDef?.baboons !== undefined &&
+      range === null &&
+      mode.id !== 'ftue' &&
+      !huntManifest.delivered(this.textures, BABOON_SHEET)
+    ) {
+      this.waitForBaboonSheet(huntDef.id, huntManifest, (ok) => {
+        if (ok) this.begin(kind, startPointer, modeId, challenge, bonus);
+        else this.scene.restart({} satisfies HuntData);
+      });
+      return;
+    }
     if (range !== null || mode.sight !== undefined) {
       const gun =
         mode.weapon ??
@@ -2208,6 +2261,7 @@ export class HuntScene extends Phaser.Scene {
           () => performance.now(),
           this.manifest,
           this.ctx.content.birds.baboons,
+          this.ctx.hook !== null,
         );
       })
       .catch(() => {

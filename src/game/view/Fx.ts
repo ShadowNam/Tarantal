@@ -174,7 +174,7 @@ export class Fx {
           break;
         // v1.8b (D-062): a bagged raider goes down in the same puff (no feathers, no blood).
         case 'baboonBagged':
-          this.poof(e.plane, e.x, e.y - 40);
+          this.poof(e.plane, e.x, e.y - 20);
           break;
         case 'scoreAwarded': {
           const at = this.bagged.get(e.birdId);

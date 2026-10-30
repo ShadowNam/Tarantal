@@ -1546,8 +1546,6 @@ export function createSim(config: SimConfig): Sim {
     }
     // v1.7d (D-059): the ostriches (in front of their nest), then the nests.
     ostriches?.extras(add);
-    // v1.8b (D-062): the troops on their ridges, then the raiders.
-    baboons?.extras(add);
     for (const p of papers) {
       const layerId = planeLayer.get(p.plane);
       if (layerId === undefined) continue;
@@ -1572,6 +1570,9 @@ export function createSim(config: SimConfig): Sim {
     }
     // v1.7e (D-061): the tell animals that are there (after the secret parts: never over one).
     tells?.extras(add);
+    // v1.8b (D-062): the troops on their ridges, then the raiders: after the secret parts and the
+    // tells, so where a raider walks past one the secret (or tell) takes the pellet (review).
+    baboons?.extras(add);
     return out;
   }
 

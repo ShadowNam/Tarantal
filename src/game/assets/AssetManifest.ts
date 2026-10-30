@@ -17,6 +17,7 @@ import type {
 import { COMMON_GROUP, LATE_GROUP, VER_GROUP, sharedTileKeys } from './assetIndex';
 import type { FaunaFrames } from '../view/faunaHerds';
 import { DESERT_GROUP } from './desertAssets';
+import { BABOON_GROUP, BABOON_SHEET } from '../view/baboon/baboonKeys';
 import { atlasRegion, checkAtlas, checkBirdAtlas, type AtlasRegion } from './atlasCheck';
 import { loadBytes, loadImage, loadJson } from './finalLoader';
 import { halveTexture, type TextureLike } from './hdTexture';
@@ -118,13 +119,15 @@ export function groupForBiome(group: string, biome: string | undefined): boolean
     group === LATE_GROUP ||
     group === VER_GROUP ||
     group === DESERT_GROUP ||
+    // v1.8b (D-062): the baboon sheet, loaded with every hunt (every area has a troop).
+    group === BABOON_GROUP ||
     group === biome
   );
 }
 
 /** D-053: late and Ver groups load after the hunt can start (in the background). */
 export function backgroundGroup(group: string): boolean {
-  return group === LATE_GROUP || group === VER_GROUP;
+  return group === LATE_GROUP || group === VER_GROUP || group === BABOON_GROUP;
 }
 
 /**
@@ -184,6 +187,8 @@ export interface LateNeed {
   readonly ver: boolean;
   /** The hunt's weapon: its gun rig when it is delivered with the Ver group (the rifles). */
   readonly weapon?: string;
+  /** v1.8b (D-062): the map has a baboon troop: its sheet (the baboons group). */
+  readonly baboons?: boolean;
 }
 
 /**
@@ -195,6 +200,7 @@ export function neededLateMissing(
   need: LateNeed,
 ): readonly MissingFile[] {
   return missing.filter((m) => {
+    if (m.key === BABOON_SHEET) return need.baboons === true;
     if (m.group !== VER_GROUP) return false;
     if (m.key.startsWith('sight/')) return need.sight;
     const gun = /^gun\/(.+)$/.exec(m.key);
@@ -471,11 +477,13 @@ export class AssetManifest {
         group !== VER_GROUP &&
         // v1.7 (D-044): only a desert map's manifest lists the desert keys (others skip them).
         group !== DESERT_GROUP &&
+        group !== BABOON_GROUP &&
         group !== o.biome
       )
         return;
       // v1.3: the Ver strips aren't needed to start a hunt either (only bonus maps show them).
-      if (group === LATE_GROUP || group === VER_GROUP) {
+      // v1.8b (D-062): the baboon sheet too (a hunt with a troop waits for that one file).
+      if (group === LATE_GROUP || group === VER_GROUP || group === BABOON_GROUP) {
         late.push(job);
         if (need !== undefined) expectLate.push({ ...need, group });
       } else {

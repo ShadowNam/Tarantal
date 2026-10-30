@@ -59,7 +59,7 @@ import { RESIDENT_SHEET } from '../../src/game/view/tree/residentSheet';
 import { renderResidentSheet } from './baobabLife';
 import { renderTellSheet } from './tells';
 import { renderBaboonSheet } from './baboons';
-import { BABOON_SHEET } from '../../src/game/view/baboon/baboonKeys';
+import { BABOON_GROUP, BABOON_SHEET } from '../../src/game/view/baboon/baboonKeys';
 import { TELL_SHEET } from '../../src/game/view/tell/tellSheet';
 import { renderColonySheet } from './colony';
 import { COLONY_SHEET } from '../../src/game/view/tree/colonySheet';
@@ -708,8 +708,8 @@ if (wants('tells') && !hdOnly) {
   }
 }
 if (wants('baboons') && !hdOnly) {
-  // v1.8b (D-062): the baboon troops and raiders at 2× in the late group (no area chunk grows),
-  // which the HD pack serves too.
+  // v1.8b (D-062): the baboon troops and raiders at 2× in their own group (loaded with every
+  // hunt; no area chunk grows), which the HD pack serves too (baboons-hd).
   const png = join(src, 'sprites', `${BABOON_SHEET}.png`);
   if (!oursFile(png)) console.warn(`skip sprites/${BABOON_SHEET}: a human delivery is there`);
   else {
@@ -722,7 +722,7 @@ if (wants('baboons') && !hdOnly) {
         master: 2,
         originX: 0,
         originY: 0,
-        group: LATE_GROUP,
+        group: BABOON_GROUP,
       }),
     );
     rmSync(join(hdSrc, 'sprites', `${BABOON_SHEET}.png`), { force: true });

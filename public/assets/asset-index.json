@@ -6,10 +6,10 @@
   ],
   "images": {
     "baboons/sheet": {
-      "group": "late",
+      "group": "baboons",
       "origin": "interim",
       "file": {
-        "path": "assets/late/img/baboons_sheet.401aca35c845.png",
+        "path": "assets/baboons/img/baboons_sheet.401aca35c845.png",
         "bytes": 89760,
         "hash": "401aca35c845"
       },

@@ -567,7 +567,7 @@ export class ShedScene extends Phaser.Scene {
       })),
       // v1.8b (D-062): the baboon, seen once a raider came down, with its rules (lazy strings).
       {
-        label: `Bobbejaan · ${g0('name')}`,
+        label: g0('book'),
         seen: book.creatures.includes('bobbejaan'),
         sub: fill(g0('rule'), { n: this.ctx.content.birds.baboons.hit.hitsToBag }),
       },

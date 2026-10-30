@@ -157,7 +157,8 @@ describe('AssetManifest HD files', () => {
     const now = new Set(f.now.map((x) => x.group));
     const later = new Set(f.background.map((x) => x.group));
     expect([...now].sort()).toEqual(['bushveld-winter-hd', 'common-hd']);
-    expect([...later].sort()).toEqual(['late-hd', 'ver-hd']);
+    // v1.8b (D-062): the baboon sheet's twin loads in the background too.
+    expect([...later].sort()).toEqual(['baboons-hd', 'late-hd', 'ver-hd']);
     for (const x of [...f.now, ...f.background]) {
       expect(isHdGroup(x.group)).toBe(true);
       expect(x.path.startsWith(`assets/${x.group}/`)).toBe(true);
