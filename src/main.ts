@@ -428,6 +428,7 @@ const hook: TestHook = {
   baboons: null,
   baboonRaid: null,
   baboonMs: 0,
+  feesdagMs: 0,
   harvestActors: null,
   harvestFlyovers: [],
   harvest: null,

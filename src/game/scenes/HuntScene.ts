@@ -1864,6 +1864,7 @@ export class HuntScene extends Phaser.Scene {
       hook.harvestActors = null;
       hook.harvest = null;
       hook.harvestMs = 0;
+      hook.feesdagMs = 0;
       hook.fruit = null;
       hook.hunts++;
     }
@@ -1993,7 +1994,9 @@ export class HuntScene extends Phaser.Scene {
       this.spookView.viewZoom = zoom.z;
       this.spookView.layout(width, height);
     }
+    const f0 = performance.now();
     this.spookView?.update(state.feesdag, runner.prev.feesdag, alpha, state.tick);
+    if (this.ctx.hook) this.ctx.hook.feesdagMs += performance.now() - f0;
     // Interpolated like the birds and the camera (a held frame keeps alpha 0: it holds).
     this.fruit?.update(state, width, state.tick - 1 + alpha);
     this.treeLife?.update(state, alpha);

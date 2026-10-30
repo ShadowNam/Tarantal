@@ -516,6 +516,9 @@ export interface TestHook {
     bystanderPenalty: number;
   } | null;
   harvestMs: number;
+  /** D-064 (perf): ms the special day's view took (its update; the heat shimmer is counted in
+   *  sceneryMs with the mirage), summed over the frames sceneryFrames counts. */
+  feesdagMs: number;
   /** v1.6b (D-043): reload power-ups on the HUD — the chips' icon textures (null = none), the
    *  lightning glints on the belt now, Oupa's hand on the belt, and auto reloads this page. */
   reloadFx: { chipIcons: (string | null)[]; bolts: number; oupaHand: boolean; autoReloads: number };
