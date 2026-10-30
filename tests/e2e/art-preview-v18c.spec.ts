@@ -399,25 +399,75 @@ test('the Harvest: title, intro, mid-run, a worker ducking, the rush, the end, t
   save('rush', info, rush.img);
   const hog = await warthogBox(page);
   save('warthog-2x', info, scaled(cut(rush, hog.box), hog.near ? 1 : 2));
-  // A fly-in close up (review round 2): a francolin or a turtle dove fully on screen (else any
-  // fly-over), stepping on a few ticks at a time (bounded) until one is; fail on a sliver.
+  // A fly-in close up (review round 3): a francolin (preferred) or a turtle dove fully on screen
+  // and clear of every HUD rect (crop meter, fence bar, pause, timer, score, Frenzy, windsock, the
+  // bark line), stepping on a few ticks at a time (bounded); fail on a sliver. A clear dove too is
+  // saved as flyin-dove-2x.
+  type Box = { x: number; y: number; w: number; h: number };
+  const boxOf = (b: { x: number; y: number }): Box => ({
+    x: b.x - 100,
+    y: b.y - 80,
+    w: 200,
+    h: 160,
+  });
+  const meets = (a: Box, b: Box): boolean =>
+    a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+  const hudRects = async (): Promise<Box[]> =>
+    page.evaluate(() => {
+      const tm = window.__TM__;
+      const out: { x: number; y: number; w: number; h: number }[] = [];
+      for (const id of [
+        'harvestCrop',
+        'harvestRepair',
+        'pause',
+        'timer',
+        'score',
+        'frenzy',
+        'windsock',
+      ]) {
+        const r = tm?.rects[id];
+        if (r !== undefined) out.push(r);
+      }
+      const bark = tm?.bark;
+      if (bark != null) out.push({ x: bark.x, y: bark.y, w: bark.w, h: bark.h });
+      return out;
+    });
   let fly: Grab = rush;
   let bird: { x: number; y: number; creature: string } | undefined;
+  let dove: { x: number; y: number; creature: string } | undefined;
   const w0 = (await hook(page)).designWidth;
-  for (let step = 0; step < 24 && bird === undefined; step++) {
+  for (let step = 0; step < 24 && bird?.creature !== 'fisant'; step++) {
     if (step > 0) {
       const t = (await hook(page)).tick + 6;
       if (t > INTRO + RUSH - 2) break;
       await holdAt(page, touch, t);
-      fly = await grab(page);
     }
-    const all = (await page.evaluate(() => window.__TM__?.harvestFlyovers ?? [])).filter(
-      (b) => b.x > 110 && b.x < w0 - 110 && b.y > 90 && b.y < 900,
+    const hud = await hudRects();
+    const clear = (await page.evaluate(() => window.__TM__?.harvestFlyovers ?? [])).filter(
+      (b) =>
+        b.x > 110 &&
+        b.x < w0 - 110 &&
+        b.y > 90 &&
+        b.y < 900 &&
+        !hud.some((r) => meets(boxOf(b), r)),
     );
-    bird = all.find((b) => b.creature === 'fisant' || b.creature === 'tortelduif') ?? all[0];
+    const pick =
+      clear.find((b) => b.creature === 'fisant') ??
+      clear.find((b) => b.creature === 'tortelduif') ??
+      clear[0];
+    if (pick === undefined) continue;
+    if (bird === undefined || pick.creature === 'fisant') {
+      fly = await grab(page);
+      bird = pick;
+      const d = clear.find((b) => b.creature === 'tortelduif');
+      if (d !== undefined && dove === undefined) {
+        dove = d;
+        save('flyin-dove-2x', info, scaled(cut(fly, boxOf(d)), 2));
+      }
+    }
   }
-  if (bird === undefined) throw new Error('no fly-in fully on screen near the peak');
-  const flyCrop = cut(fly, { x: bird.x - 100, y: bird.y - 80, w: 200, h: 160 });
+  if (bird === undefined) throw new Error('no fly-in fully on screen and clear of the HUD');
+  const flyCrop = cut(fly, boxOf(bird));
   if (flyCrop.width < 20 * fly.k || flyCrop.height < 20 * fly.k)
     throw new Error(`the fly-in crop is a sliver (${String(flyCrop.width)} px)`);
   save('flyin-2x', info, scaled(flyCrop, 2));
