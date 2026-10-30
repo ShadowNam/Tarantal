@@ -72,6 +72,11 @@ export class Menu {
   private readonly cleanups: (() => void)[] = [];
   private active = true;
 
+  /** D-064: every item's rect now (design px): what decorations must keep clear of. */
+  itemRects(): Rect[] {
+    return this.items.map((i) => i.rect());
+  }
+
   constructor(scene: Phaser.Scene, items: readonly MenuItem[], opts: MenuOptions = {}) {
     this.items = [...items];
     this.opts = opts;

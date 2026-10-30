@@ -548,6 +548,9 @@ export interface TestHook {
   huntSeed: number | null;
   /** M7: the daily hunt running or just ended (null = not a daily). */
   daily: { key: string; number: number; seed: number; official: boolean } | null;
+  /** D-064: Oupa on the title on Christmas: drawn, or left out for lack of room (null: not yet,
+   *  or no Christmas). */
+  titleOupa: 'drawn' | 'nospace' | null;
   /** D-048: the title's special-day badge (null on an ordinary day). */
   feesdag: { id: string; badge: string } | null;
   /** D-048: the Spookjag's things on screen (design px) during a special day's hunt. */

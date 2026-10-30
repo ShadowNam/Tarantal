@@ -67,19 +67,27 @@ function keepOnScreen(scene: Phaser.Scene, img: Phaser.GameObjects.Image, margin
   return { x: b.x, y: b.y, w: b.width, h: b.height };
 }
 
-/** D-064: Oupa in his Santa hat and shorts, waving beside the title's badge (feet on the badge's
- *  baseline, left of it). Null until Christmas's sheet is in. */
-export function drawBadgeOupa(scene: Phaser.Scene, badge: Rect): Rect | null {
+/** D-064: the screen rect Oupa's figure takes with his feet at (x, y), shown at art scale `s`
+ *  (design px per art px; his frame is 240 × 420 art px, the feet 55/120 across, 206/210 down). */
+export function badgeOupaRect(x: number, y: number, s: number): Rect {
+  const w = (120 / OUPA_DRAWN) * s;
+  const h = (210 / OUPA_DRAWN) * s;
+  return { x: x - (55 / 120) * w, y: y - (206 / 210) * h, w, h };
+}
+
+/** D-064: Oupa in his Santa hat and shorts, waving on the title, his feet at (x, y), at art
+ *  scale `s` (the title lays him out clear of every title rect: TitleScene.badgeOupa). Null
+ *  until Christmas's sheet is in. */
+export function drawBadgeOupa(scene: Phaser.Scene, x: number, y: number, s: number): Rect | null {
   const tex = xmasKey(scene);
   if (tex === null) return null;
-  const s = 0.36 / OUPA_DRAWN;
-  // Left of the badge, clear of its corner (his waving hand reaches ~34 px right of his feet).
   const img = scene.add
-    .image(badge.x - 44, badge.y + badge.h, tex.key, 'oupa')
+    .image(x, y, tex.key, 'oupa')
     .setOrigin(55 / 120, 206 / 210)
-    .setScale(s / tex.m)
+    .setScale(s / OUPA_DRAWN / tex.m)
     .setDepth(6);
-  return keepOnScreen(scene, img);
+  const b = img.getBounds();
+  return { x: b.x, y: b.y, w: b.width, h: b.height };
 }
 
 /** The Halloween sheet's key: delivered, else the hunt's stand-in (both from FeesdagView). */

@@ -120,27 +120,21 @@ test.describe('Feesdae: Christmas in the sun (D-064)', () => {
       expect(status.x + status.w).toBeLessThanOrEqual(badge.x + badge.w);
     }
     if (badge !== undefined && button !== undefined) expect(overlaps(badge, button)).toBe(false);
-    // Oupa in his Santa hat waves beside the badge once Christmas's lazy group is in; he covers
-    // no button, status line or the hint.
-    await page.waitForFunction(() => window.__TM__?.rects['dailyOupa'] !== undefined, null, {
-      timeout: 120_000,
-    });
+    // Oupa in his Santa hat waves beside the badge once Christmas's lazy group is in, laid out
+    // clear of EVERY title rect (buttons, the area pill, the badge, the status lines, the hint)
+    // and inside the screen, on every aspect ratio.
+    await page.waitForFunction(() => window.__TM__?.titleOupa != null, null, { timeout: 120_000 });
     h = await hook(page);
+    expect(h.titleOupa).toBe('drawn');
     const oupa = h.rects['dailyOupa'];
-    for (const id of [
-      'shed',
-      'daily',
-      'harvest',
-      'run',
-      'settings',
-      'titleHint',
-      'harvestStatus',
-      'runStatus',
-      'dailyStatus',
-      'dailyBadge',
-    ]) {
-      const r = h.rects[id];
-      if (oupa !== undefined && r !== undefined) expect(overlaps(oupa, r), id).toBe(false);
+    expect(oupa).toBeDefined();
+    if (oupa !== undefined) {
+      expect(oupa.x).toBeGreaterThanOrEqual(0);
+      expect(oupa.y).toBeGreaterThanOrEqual(0);
+      expect(oupa.x + oupa.w).toBeLessThanOrEqual(h.designWidth);
+      expect(oupa.y + oupa.h).toBeLessThanOrEqual(h.designHeight);
+      for (const [id, r] of Object.entries(h.rects))
+        if (id !== 'dailyOupa') expect(overlaps(oupa, r), `Oupa over ${id}`).toBe(false);
     }
 
     await tapRect(page, touch, 'daily');

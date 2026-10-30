@@ -212,9 +212,10 @@ const OPEN_TICKS = 18;
 
 test('the title: the Daily as Christmas in the sun, its badge and Oupa', async ({ page }, info) => {
   await boot(page, QUERY);
-  await page.waitForFunction(() => window.__TM__?.rects['dailyOupa'] !== undefined, null, {
+  await page.waitForFunction(() => window.__TM__?.titleOupa != null, null, {
     timeout: 240_000,
   });
+  expect(await page.evaluate(() => window.__TM__?.titleOupa)).toBe('drawn');
   await page.waitForFunction(() => window.__TM__?.fontsReady === true, null, { timeout: 30_000 });
   await park(page, isTouchProject(info));
   await page.waitForTimeout(1500);
@@ -228,6 +229,9 @@ test('the title: the Daily as Christmas in the sun, its badge and Oupa', async (
   const { daily: d, oupa: o, pill } = h;
   if (d === null || o === null || pill === null) throw new Error('no daily button, badge or Oupa');
   expect(overlaps(o, pill), "Oupa's feet over the badge").toBe(false);
+  const all = await page.evaluate(() => window.__TM__?.rects ?? {});
+  for (const [id, r] of Object.entries(all))
+    if (id !== 'dailyOupa') expect(overlaps(o, r), `Oupa over ${id}`).toBe(false);
   const x = Math.min(d.x, o.x) - 40;
   const y = Math.min(d.y, o.y) - 40;
   const shot = await grab(page);

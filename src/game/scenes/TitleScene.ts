@@ -20,7 +20,12 @@ import { findLayout } from '../../sim/maps';
 import type { Rect } from '../ui/hudLayout';
 import { drawButton, fitText, Menu, textStyle, type MenuItem } from '../ui/menu';
 import { cornerStampShown, stampFor, StampLabel } from '../ui/StampLabel';
-import { drawBadgeOupa, drawSpecialBadge, specialStatusStyle } from '../ui/specialBadge';
+import {
+  badgeOupaRect,
+  drawBadgeOupa,
+  drawSpecialBadge,
+  specialStatusStyle,
+} from '../ui/specialBadge';
 import { CHRISTMAS_SHEET } from '../feesdae/christmasKeys';
 
 export interface TitleData {
@@ -501,7 +506,10 @@ export class TitleScene extends Phaser.Scene {
   private badgeOupa(badge: Rect): void {
     const show = (): void => {
       if (!this.sys.isActive()) return;
-      const r = drawBadgeOupa(this, badge);
+      const at = this.oupaSpot(badge);
+      if (this.ctx.hook) this.ctx.hook.titleOupa = at === null ? 'nospace' : 'drawn';
+      if (at === null) return;
+      const r = drawBadgeOupa(this, at.x, at.y, at.s);
       if (r !== null && this.ctx.hook) this.ctx.hook.rects['dailyOupa'] = r;
     };
     if (this.textures.exists(CHRISTMAS_SHEET)) {
@@ -516,6 +524,56 @@ export class TitleScene extends Phaser.Scene {
         show();
       })
       .catch(() => undefined);
+  }
+
+  /**
+   * D-064: where Oupa stands on the title, computed from what is on screen now (every aspect
+   * ratio): every menu item (the buttons, the area pill), every line of text (status lines, the
+   * hint, the best line), the small pictures and the badge. Tries beside the badge (left, then
+   * right), then standing on top of it, each at three sizes; the first spot clear of all of them
+   * and inside the safe area wins. Null: no room on this screen (he is left out).
+   */
+  private oupaSpot(badge: Rect): { x: number; y: number; s: number } | null {
+    const { width, height } = designSize();
+    const safe = this.ctx.safeArea();
+    const occupied: Rect[] = [badge, ...(this.menu?.itemRects() ?? [])];
+    const big = width * height * 0.25;
+    for (const child of this.children.list) {
+      if (!(child instanceof Phaser.GameObjects.Text || child instanceof Phaser.GameObjects.Image))
+        continue;
+      if (!child.visible) continue;
+      const b = child.getBounds();
+      if (b.width * b.height >= big || b.width === 0) continue;
+      occupied.push({ x: b.x, y: b.y, w: b.width, h: b.height });
+    }
+    const gap = 6;
+    const foot = badge.y + badge.h;
+    for (const s of [0.36, 0.3, 0.24, 0.19]) {
+      const probe = badgeOupaRect(0, 0, s);
+      const dxFeet = -probe.x; // feet from the rect's left edge
+      const candidates = [
+        // Left of the badge, his right edge clear of it.
+        { x: badge.x - gap - probe.w + dxFeet, y: foot },
+        // Right of the badge.
+        { x: badge.x + badge.w + gap + dxFeet, y: foot },
+        // Standing on top of the badge, at its left end and at its right end.
+        { x: badge.x + dxFeet, y: badge.y - 2 },
+        { x: badge.x + badge.w - probe.w + dxFeet, y: badge.y - 2 },
+      ];
+      for (const c of candidates) {
+        const r = badgeOupaRect(c.x, c.y, s);
+        const inside =
+          r.x >= safe.left + 8 &&
+          r.y >= safe.top + 8 &&
+          r.x + r.w <= width - safe.right - 8 &&
+          r.y + r.h <= height - safe.bottom - 8;
+        const clear = occupied.every(
+          (o) => r.x >= o.x + o.w || o.x >= r.x + r.w || r.y >= o.y + o.h || o.y >= r.y + r.h,
+        );
+        if (inside && clear) return { ...c, s };
+      }
+    }
+    return null;
   }
 
   private dailyStatus(played: boolean): string {
