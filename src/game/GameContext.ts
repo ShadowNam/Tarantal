@@ -552,6 +552,9 @@ export interface TestHook {
   huntSeed: number | null;
   /** M7: the daily hunt running or just ended (null = not a daily). */
   daily: { key: string; number: number; seed: number; official: boolean } | null;
+  /** D-065: the HUD's notice lines' slots (the banner, the call-out), design px; null before a
+   *  hunt. In New Year's countdown they sit below it. */
+  notices: { banner: Rect; callout: Rect } | null;
   /** D-065 (e2e): the last 20 score awards — tick, award, mult and the pipeline's steps. */
   awards: { tick: number; award: number; mult: number; kinds: string[] }[];
   /** D-065 (New Year): the HUD's countdown digit and its "×2" tag while they show (null else). */

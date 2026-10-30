@@ -434,6 +434,7 @@ const hook: TestHook = {
   titleOupa: null,
   countdown: null,
   awards: [],
+  notices: null,
   harvestActors: null,
   harvestFlyovers: [],
   harvest: null,

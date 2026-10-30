@@ -130,6 +130,9 @@ export class HudScene extends Phaser.Scene {
   private countdownTag!: Phaser.GameObjects.Text;
   private countdownN = 0;
   private countdownScale = -1;
+  private countdownTop = -1;
+  /** D-065: the y the notice lines start below while the countdown shows (null otherwise). */
+  private noticesBelow: number | null = null;
   /** The last second the tick sounded for (a relayout redraws without ticking again). */
   private countdownTicked = 0;
   private pops: Pop[] = [];
@@ -739,27 +742,39 @@ export class HudScene extends Phaser.Scene {
     const tps = TICKS_PER_SECOND;
     const n = cd?.active === true && s.ticksLeft > 0 ? Math.ceil(s.ticksLeft / tps) : 0;
     const hook = this.ctx.hook;
-    if (n !== this.countdownN) {
-      this.countdownN = n;
+    const look = this.ctx.feel.feesdae.looks.newyear.countdown;
+    // Under the charm row, and under a pickup card while one is up (it shares the top centre).
+    const card = this.pickupCard?.shown ?? null;
+    const top = Math.max(
+      l.charms.y + l.charms.h + 12,
+      card === null ? 0 : card.rect.y + card.rect.h + 12,
+    );
+    const changed = n !== this.countdownN || top !== this.countdownTop;
+    if (changed) {
       const on = n > 0;
-      this.countdown.setVisible(on);
-      this.countdownTag.setVisible(on);
-      if (on) {
-        this.countdown.setText(fill(t('feesdag.countdown_n'), { n }));
-        this.countdownTag.setText(fill(t('feesdag.countdown_mul'), { mult: cd?.mult ?? 2 }));
-        if (n <= 3 && n !== this.countdownTicked) {
-          this.countdownTicked = n;
-          this.ctx.audio.playExtra(NY_SOUNDS.tick, 0, () => 0);
-        }
-      } else this.countdownTicked = 0;
-      const top = l.charms.y + l.charms.h + 12;
+      if (n !== this.countdownN) {
+        this.countdown.setVisible(on);
+        this.countdownTag.setVisible(on);
+        if (on) {
+          this.countdown.setText(fill(t('feesdag.countdown_n'), { n }));
+          this.countdownTag.setText(fill(t('feesdag.countdown_mul'), { mult: cd?.mult ?? 2 }));
+          if (n <= 3 && n !== this.countdownTicked) {
+            this.countdownTicked = n;
+            this.ctx.audio.playExtra(NY_SOUNDS.tick, 0, () => 0);
+          }
+        } else this.countdownTicked = 0;
+      }
+      this.countdownN = n;
+      this.countdownTop = top;
       this.countdown.setPosition(l.safe.x + l.safe.w / 2, top);
       this.countdownTag.setPosition(l.score.x - 18, l.score.y + l.score.h / 2);
-      this.banner.setY(on ? top + this.countdown.height + 60 : l.safe.y + 180);
+      // The notices (banner, call-out) go below it while it shows: never on top of it.
+      this.noticesBelow = on ? top + this.countdown.height * (1 + look.pulse) + 16 : null;
+      this.placeNotices(l);
       if (hook) {
         if (on) {
           // Its rect at the pulse's largest, so the checks hold through every frame.
-          this.countdown.setScale(1 + this.ctx.feel.feesdae.looks.newyear.countdown.pulse);
+          this.countdown.setScale(1 + look.pulse);
           this.countdownScale = -1;
           const b = this.countdown.getBounds();
           const g = this.countdownTag.getBounds();
@@ -775,7 +790,6 @@ export class HudScene extends Phaser.Scene {
     if (n === 0) return;
     // The pulse: a little larger as each second starts, back by pulseSeconds (sim time). The
     // text grows from its top centre, so it never moves up into the rects above it.
-    const look = this.ctx.feel.feesdae.looks.newyear.countdown;
     const into = tps - (s.ticksLeft % tps === 0 ? tps : s.ticksLeft % tps);
     const k = Math.max(0, 1 - into / (look.pulseSeconds * tps));
     const scale = Math.round((1 + look.pulse * k) * 100) / 100;
@@ -783,6 +797,31 @@ export class HudScene extends Phaser.Scene {
       this.countdownScale = scale;
       this.countdown.setScale(scale);
     }
+  }
+
+  /**
+   * D-065: where the notice lines go — the banner (bonuses, secrets) and the call-out (a
+   * protected creature's first sighting: "Go-away bird — don't shoot!"). Normally at their fixed
+   * heights; in New Year's countdown below it (banner first, the call-out under the banner's
+   * slot). The hook gets each line's slot (full safe width, one line high) for the overlap checks.
+   */
+  private placeNotices(l: HudLayout): void {
+    const below = this.noticesBelow;
+    const bannerH = Math.max(this.banner.height, 84);
+    const calloutH = Math.max(this.callout.height, 48);
+    const bannerY = below === null ? l.safe.y + 180 : below + bannerH / 2;
+    const calloutY =
+      below === null
+        ? l.safe.y + 290
+        : Math.max(l.safe.y + 290, bannerY + bannerH / 2 + 12 + calloutH / 2);
+    if (this.banner.visible && below !== null && this.banner.y < bannerY) this.banner.setY(bannerY);
+    if (this.callout.y !== calloutY) this.callout.setY(calloutY);
+    const hook = this.ctx.hook;
+    if (hook)
+      hook.notices = {
+        banner: { x: l.safe.x, y: bannerY - bannerH / 2, w: l.safe.w, h: bannerH },
+        callout: { x: l.safe.x, y: calloutY - calloutH / 2, w: l.safe.w, h: calloutH },
+      };
   }
 
   private placeStamp(): void {
@@ -1709,7 +1748,13 @@ export class HudScene extends Phaser.Scene {
           ? lay.safe.y + 180
           : harvestBarsRects(lay).repair.y + harvestBarsRects(lay).repair.h + 56;
     if (lay !== null)
-      this.banner.setY(card === null ? top : Math.max(top, card.rect.y + card.rect.h + 56));
+      this.banner.setY(
+        Math.max(
+          card === null ? top : Math.max(top, card.rect.y + card.rect.h + 56),
+          // D-065: below New Year's countdown while it shows.
+          this.noticesBelow === null ? 0 : this.noticesBelow + this.banner.height / 2,
+        ),
+      );
     // Long banners (crate + hint, bonus time + bark) shrink to fit between the HUD corners.
     const l = this.layoutNow;
     const room =

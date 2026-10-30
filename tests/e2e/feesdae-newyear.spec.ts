@@ -191,9 +191,21 @@ test.describe('Feesdae: New Year countdown (D-065)', () => {
       () => {
         const g = window.__TM__;
         const c = g?.rects['countdown'];
-        if (g === undefined || c === undefined || g.countdown === null || g.safe === null)
+        if (
+          g === undefined ||
+          c === undefined ||
+          g.countdown === null ||
+          g.safe === null ||
+          g.notices === null
+        )
           return null;
-        return { rects: g.rects, safe: g.safe, n: g.countdown.n, tag: g.countdown.tag };
+        return {
+          rects: g.rects,
+          safe: g.safe,
+          n: g.countdown.n,
+          tag: g.countdown.tag,
+          notices: g.notices,
+        };
       },
       null,
       { timeout: 120_000 },
@@ -203,6 +215,7 @@ test.describe('Feesdae: New Year countdown (D-065)', () => {
       safe: R;
       n: number;
       tag: string;
+      notices: { banner: R; callout: R };
     };
     expect(cd.n).toBeGreaterThanOrEqual(1);
     expect(cd.n).toBeLessThanOrEqual(10);
@@ -219,6 +232,13 @@ test.describe('Feesdae: New Year countdown (D-065)', () => {
         if (other !== 'countdown' && other !== 'countdownTag')
           expect(overlaps(r, o), `${id} over ${other}`).toBe(false);
     }
+    // The notice lines (the banner; the call-out, e.g. "Go-away bird — don't shoot!") go below
+    // the countdown while it shows: their slots never cross its digit, on every device.
+    const digit = cd.rects['countdown'];
+    if (digit !== undefined)
+      for (const [id, o] of Object.entries(cd.notices))
+        expect(overlaps(digit, o), `the countdown over the ${id} line`).toBe(false);
+    expect(overlaps(cd.notices.banner, cd.notices.callout), 'banner over call-out').toBe(false);
 
     // A bag in the countdown: its pipeline has the countdown's ×2 after the Stampede's, and the
     // score went up by the award (read where the hook keeps them).
