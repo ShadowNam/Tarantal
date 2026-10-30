@@ -11,7 +11,12 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { baboonBarks, veldLifeBarks, voicedLines } from '../../src/game/audio/voiceLines';
+import {
+  baboonBarks,
+  harvestBarks,
+  veldLifeBarks,
+  voicedLines,
+} from '../../src/game/audio/voiceLines';
 import { RaidActionSchema } from '../../src/content/schemas';
 import { VOICE_LANGUAGES, type VoiceLanguage } from '../../src/i18n/i18n';
 import { loadContent, loadFeel } from '../testContent';
@@ -42,7 +47,11 @@ const lines = voicedLines(
   loadContent().biomes,
   loadContent().birds.meerkats,
   loadContent().feesdae.specials.map((f) => f.barks),
-  [...veldLifeBarks(loadContent().birds), ...baboonBarks(RaidActionSchema.options)],
+  [
+    ...veldLifeBarks(loadContent().birds),
+    ...baboonBarks(RaidActionSchema.options),
+    ...harvestBarks(),
+  ],
 ).filter((l) => only === undefined || only.includes(l));
 const jobs: { lang: string; key: string; text: string; out: string }[] = [];
 for (const lang of langs) {

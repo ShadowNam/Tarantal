@@ -52,6 +52,14 @@ export function baboonBarks(actions: readonly string[]): string[] {
   ];
 }
 
+/** v1.8c (D-063): Oupa's Harvest lines (lazy guide tables): the fence broken, a worker shot at
+ *  (aimed) or ducking (a stray pellet), a piglet shot at, the crop running low, the fence fixed. */
+export function harvestBarks(): string[] {
+  return ['intro', 'worker', 'duck', 'piglet', 'crop_low', 'fixed'].map(
+    (k) => `guide.harvest.${k}`,
+  );
+}
+
 /**
  * Every voiced key: Oupa's trigger lines, plus each secret's bark (the weavers' "Tsk-tsk-tsk!"
  * scold, the windpomp sign, the egg…), and (v1.7, D-044) the meerkats' scold and Oupa's

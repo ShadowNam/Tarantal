@@ -2472,7 +2472,7 @@ export class HuntScene extends Phaser.Scene {
     this.makalani?.handle(events, this.ctx.audio, width);
     // v1.8b (D-062): the baboons' barks, screeches and raid sounds.
     this.baboons?.handle(events, state, this.ctx.audio, width);
-    this.harvest?.handle(events);
+    this.harvest?.handle(events, state, this.ctx.audio, width);
     this.world.potjie.handle(events);
     if (this.ctx.hook) {
       const log = this.ctx.hook.canLog;

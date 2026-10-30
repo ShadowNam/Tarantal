@@ -799,6 +799,21 @@ export class HudScene extends Phaser.Scene {
       } else if (e.type === 'baboonHit' && e.points < 0) {
         this.pushPop(formatAward(e.points), '#FF6B5A');
         this.oupa('guide.baboon.mother', banner);
+      } else if (e.type === 'harvestFenceBroken') {
+        // v1.8c (D-063): the Harvest — "Hulle is deur die draad!"
+        this.oupa('guide.harvest.intro', banner);
+      } else if (e.type === 'harvestBystanderHit') {
+        // A shot aimed at a worker or a piglet costs points and gets a telling-off; a stray
+        // pellet only makes a worker duck (and Oupa grumble).
+        if (e.points < 0) {
+          this.pushPop(formatAward(e.points), '#FF6B5A');
+          this.oupa(e.who === 'worker' ? 'guide.harvest.worker' : 'guide.harvest.piglet', banner);
+        } else if (e.who === 'worker') this.oupa('guide.harvest.duck', banner);
+      } else if (e.type === 'cropWarning') {
+        this.oupa('guide.harvest.crop_low', banner);
+      } else if (e.type === 'harvestFenceClosed') {
+        if (e.bonus > 0) this.pushPop(formatAward(e.bonus), '#FFD25A');
+        this.oupa('guide.harvest.fixed', banner);
       } else if (e.type === 'ostrichHit') {
         // v1.7d (D-059): a shot ostrich or nest — points off (none inside the cooldown) and its
         // hiss: "Leave my eggs alone!"

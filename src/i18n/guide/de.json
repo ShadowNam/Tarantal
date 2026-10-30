@@ -54,5 +54,11 @@
   "guide.baboon.stopped": "Auf frischer Tat ertappt!",
   "guide.baboon.mother": "Doch nicht die Mutter mit dem Baby!",
   "guide.baboon.rule": "Räuber: {n} Treffer. Nie die Mütter!",
-  "guide.baboon.book": "Bobbejaan · Bärenpavian"
+  "guide.baboon.book": "Bobbejaan · Bärenpavian",
+  "guide.harvest.intro": "Hulle is deur die draad! Sie sind durch den Zaun!",
+  "guide.harvest.worker": "He! Nicht auf die Arbeiter schießen!",
+  "guide.harvest.duck": "Vorsicht, Mann! Die arbeiten da!",
+  "guide.harvest.piglet": "Lass die Ferkel in Ruhe!",
+  "guide.harvest.crop_low": "Die Ernte! Die fressen alles auf!",
+  "guide.harvest.fixed": "Der Zaun ist dicht! Gut gemacht, alle!"
 }

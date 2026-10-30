@@ -54,5 +54,11 @@
   "guide.baboon.stopped": "Op heterdaad betrap!",
   "guide.baboon.mother": "Nie die ma met haar baba nie, man!",
   "guide.baboon.rule": "Rowers: {n} skote vat een. Nooit die ma's nie!",
-  "guide.baboon.book": "Bobbejaan · kaapse bobbejaan"
+  "guide.baboon.book": "Bobbejaan · kaapse bobbejaan",
+  "guide.harvest.intro": "Hulle is deur die draad!",
+  "guide.harvest.worker": "Haai! Mens skiet nie die werkers nie!",
+  "guide.harvest.duck": "Pasop, man! Hulle werk daar!",
+  "guide.harvest.piglet": "Los die varkies uit!",
+  "guide.harvest.crop_low": "Die oes! Hulle vreet alles op!",
+  "guide.harvest.fixed": "Die draad is heel! Mooi so, almal!"
 }

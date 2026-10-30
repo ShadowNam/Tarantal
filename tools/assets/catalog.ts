@@ -23,6 +23,7 @@ import {
   specialVoiceGroup,
   veldLifeBarks,
   baboonBarks,
+  harvestBarks,
   voiceGroup,
   voicedLines,
 } from '../../src/game/audio/voiceLines';
@@ -163,7 +164,11 @@ export async function buildCatalog(content: ContentBundle): Promise<Catalog> {
       content.biomes,
       content.birds.meerkats,
       specialBarks,
-      [...veldLifeBarks(content.birds), ...baboonBarks(RaidActionSchema.options)],
+      [
+        ...veldLifeBarks(content.birds),
+        ...baboonBarks(RaidActionSchema.options),
+        ...harvestBarks(),
+      ],
     )) {
       const key = voiceKey(lang, line);
       const group = special.has(line) ? specialVoiceGroup(lang) : voiceGroup(lang);

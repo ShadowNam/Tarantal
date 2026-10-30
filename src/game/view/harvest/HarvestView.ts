@@ -9,7 +9,13 @@
 import type * as Phaser from 'phaser';
 import type { HarvestSetup } from '../../../content/schemas';
 import type { SimEvent } from '../../../sim/events';
-import type { HarvestActorView, HarvestView as SimHarvest, SimState } from '../../../sim/types';
+import type {
+  HarvestActorView,
+  HarvestView as SimHarvest,
+  PlaneId,
+  SimState,
+} from '../../../sim/types';
+import type { AudioDirector } from '../../audio/AudioDirector';
 import { designSize } from '../../layout';
 import type { ParallaxView } from '../ParallaxView';
 import {
@@ -21,6 +27,7 @@ import {
   harvestTexelsPerPx,
   type HarvestFrame,
 } from './harvestSheet';
+import { HARVEST_SOUNDS, HARVEST_SYNTH, type HarvestSound } from './harvestSounds';
 
 /** Ticks per frame: trotting, running, digging, working, a worker's run. */
 const TROT_TICKS = 7;
@@ -38,6 +45,8 @@ const SHEET_POLL_FRAMES = 30;
 const SIGN_SWING = 0.5;
 const SIGN_PERIOD = 50;
 const SIGN_DECAY = 0.985;
+/** The workers hammer every this many ticks of the rush (a sound, sim time). */
+const HAMMER_TICKS = 100;
 
 /** e2e: one Harvest actor on screen. */
 export interface HarvestHook {
@@ -419,10 +428,44 @@ export class HarvestView {
 
   /** Baboon raiders bagged this hunt (for the tally; the sim counts the warthogs). */
   baboonsBagged = 0;
+  /** The last sim tick the workers' hammering played. */
+  private hammerTick = -1;
 
-  /** The Harvest's events: counts for the tally (sounds come with the Harvest's audio). */
-  handle(events: readonly SimEvent[]): void {
-    for (const e of events) if (e.type === 'baboonBagged') this.baboonsBagged++;
+  /** The Harvest's events: counts for the tally and the sounds (a recording under the key wins,
+   *  else the small synths). The workers hammer every HAMMER_TICKS of the rush. */
+  handle(events: readonly SimEvent[], state: SimState, audio: AudioDirector, width: number): void {
+    const h = state.harvest;
+    const play = (sound: HarvestSound, plane: PlaneId | null, x: number): void => {
+      audio.playExtra(
+        HARVEST_SOUNDS[sound],
+        plane === null ? 0 : this.pan(plane, x, width),
+        HARVEST_SYNTH[sound],
+      );
+    };
+    for (const e of events) {
+      if (e.type === 'baboonBagged') this.baboonsBagged++;
+      else if (e.type === 'harvestFenceBroken' && h !== null) play('snap', 'mid', h.gap.x);
+      else if (e.type === 'warthogEntered') {
+        const w = h?.warthogs.find((x) => x.id === e.warthogId);
+        if (w !== undefined) play('grunt', w.plane, w.x);
+      } else if (e.type === 'warthogHit' && e.hitsLeft > 0) play('grunt', e.plane, e.x);
+      else if (e.type === 'warthogBagged') play('thump', e.plane, e.x);
+      else if (e.type === 'harvestBystanderHit' && e.who === 'piglet') play('squeal', e.plane, e.x);
+      else if (e.type === 'cropWarning') play('warn', null, 0);
+      else if (e.type === 'harvestFenceClosed') play('jingle', null, 0);
+    }
+    if (h !== null && h.phase === 'rush' && state.tick - this.hammerTick >= HAMMER_TICKS) {
+      const k = h.workers.find((w) => w.phase === 'work');
+      if (k !== undefined) {
+        this.hammerTick = state.tick;
+        play('hammer', k.plane, k.x);
+      }
+    }
+  }
+
+  private pan(plane: PlaneId, x: number, width: number): number {
+    const sx = this.parallax.screenX(plane, x);
+    return Math.max(-1, Math.min(1, (sx - width / 2) / (width / 2)));
   }
 
   destroy(): void {

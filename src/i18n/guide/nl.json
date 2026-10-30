@@ -54,5 +54,11 @@
   "guide.baboon.stopped": "Op heterdaad betrapt!",
   "guide.baboon.mother": "Niet de moeder met haar baby!",
   "guide.baboon.rule": "Rovers: {n} treffers. Nooit de moeders!",
-  "guide.baboon.book": "Bobbejaan · beerbaviaan"
+  "guide.baboon.book": "Bobbejaan · beerbaviaan",
+  "guide.harvest.intro": "Hulle is deur die draad! Ze zijn door het hek!",
+  "guide.harvest.worker": "Hé! Niet op de arbeiders schieten!",
+  "guide.harvest.duck": "Pas op, man! Daar wordt gewerkt!",
+  "guide.harvest.piglet": "Laat de biggetjes met rust!",
+  "guide.harvest.crop_low": "De oogst! Ze vreten alles op!",
+  "guide.harvest.fixed": "Het hek is dicht! Goed gedaan, allemaal!"
 }
