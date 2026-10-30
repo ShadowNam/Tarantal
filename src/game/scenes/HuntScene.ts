@@ -1115,6 +1115,9 @@ export class HuntScene extends Phaser.Scene {
         if (label.active) label.destroy();
         if (ok) {
           if (veil.active) veil.destroy();
+          // Files arrived while waiting (the sheet, and with it any background file such as a
+          // map's Ver strips): the views install them when they are built (as waitForLate does).
+          this.viewsStale = true;
           then(true);
           return;
         }
