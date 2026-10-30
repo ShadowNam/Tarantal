@@ -976,17 +976,21 @@ like his others (§10.1; nl text speaks Afrikaans).
 **New Year — the countdown (D-065; interim art: `npm run art:interim -- --only newyear`,
 tools/art/newyear.ts; 400 × 358 design px, drawn at 2× and shipped as a 1× pack, ~0.57 MB on the
 GPU; Standard in HD from the start, so an HD hunt on the Okavango stays ≤ 256 MB):**
-- *Light:* its own preset, `nuwejaar_skemer`: a warm summer dusk — a deepening blue sky over a
-  rose-gold afterglow low on the horizon, the far ridge mauve, the veld warm and dim. Over the hunt
-  a midnight-blue wash darkens the sky to blue hour (`looks.newyear.blueHour`) and ~34 stars come
-  out and twinkle slowly (sim time). Birds stay untinted.
+- *Light:* its own preset, `nuwejaar_skemer`, grading the whole scene: the low sun's warm light
+  on the near plane, the mid plane dimmer, the far planes cool and violet in shadow, a rose-gold
+  afterglow low on the horizon under a deepening blue sky. Over the hunt it goes to blue hour: a
+  midnight-blue wash on the sky (`looks.newyear.blueHour`) and an extra blue tint on every plane's
+  art, props and far animals (`blueHour.ground`, stronger on the far planes); ~34 stars come out
+  and twinkle slowly (sim time). Birds stay untinted (readability).
 - *Fireworks:* small bursts low over the far horizon, on the sky layer behind the far ridge: a
-  dim rocket climbs, then a ring of 14 small sparks (one 16 px soft dot, tinted gold, red, green
-  or white) opens, drifts down and fades over 1.3 s. Never a large or full-screen flash: each
-  burst is ≤ ~120 px across, at most 3 start in any second (one per 1/3 s slot), more in the
-  countdown (2.4/s) than before it (0.7/s), half as many on the low tier; with "reduce flashes"
-  they only twinkle where they hang (≤ 35 % alpha: never brighter than the sky). A fixed pool of
-  sprites, made once.
+  dim rocket streak climbs, a small bright core puffs (30 px, gone in a sixth of the burst), and
+  16 sparks streak out along their own rays at their own speeds — gold, red, green or white, a
+  white sparkle in each burst — their trails shortening as they slow, then glittering (a flicker)
+  as they fall and fade over 1.5 s (one 40 × 10 px streak frame, tinted, added light). Never a
+  large or full-screen flash: each burst is ≤ ~170 px across, at most 3 start in any second (one
+  per 1/3 s slot), more in the countdown (2.4/s) than before it (0.7/s), half as many on the low
+  tier; with "reduce flashes" only plain dots twinkle where they hang (≤ 35 % alpha, no core,
+  never brighter than the sky). A fixed pool of sprites, made once.
 - *Party hats:* a striped paper cone (gold, red, blue bands, shaded round), a white zigzag trim and
   a gold pompom, on about 30 % of the guineafowl, on the witch and Santa hats' head anchors and
   sizes (three drawings; the small one two-tone).
